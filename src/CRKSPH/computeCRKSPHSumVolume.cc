@@ -25,8 +25,6 @@ computeCRKSPHSumVolume(const ConnectivityMap<Dimension>& connectivityMap,
                             const TableKernel<Dimension>& W,
                             const FieldList<Dimension, typename Dimension::Vector>& position,
                             const FieldList<Dimension, typename Dimension::SymTensor>& H,
-                            const typename std::vector<BoundarySpace::Boundary<Dimension>*>::const_iterator& boundaryBegin,
-                            const typename std::vector<BoundarySpace::Boundary<Dimension>*>::const_iterator& boundaryEnd,
                             FieldList<Dimension, typename Dimension::Scalar>& vol) {
 
   // Pre-conditions.
@@ -95,15 +93,6 @@ computeCRKSPHSumVolume(const ConnectivityMap<Dimension>& connectivityMap,
       vol(nodeListi, i) = 1.0/vol(nodeListi, i);
     }
   }
-
-  // Apply boundary conditions to the per node volume estimate.
-  typedef typename std::vector<BoundarySpace::Boundary<Dimension>*>::const_iterator BoundaryIterator;
-  for (BoundaryIterator boundItr = boundaryBegin;
-       boundItr != boundaryEnd;
-       ++boundItr) (*boundItr)->applyFieldListGhostBoundary(vol);
-  for (BoundaryIterator boundItr = boundaryBegin;
-       boundItr != boundaryEnd;
-       ++boundItr) (*boundItr)->finalizeGhostBoundary();
 
 }
 

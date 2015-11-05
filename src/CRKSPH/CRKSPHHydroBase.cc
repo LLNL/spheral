@@ -15,6 +15,7 @@
 #include "computeHullVolumes.hh"
 #include "computeNeighborHull.hh"
 #include "computeCRKSPHSumMassDensity.hh"
+#include "computeCRKSPHSumVolume.hh"
 #include "computeCRKSPHMoments.hh"
 #include "computeCRKSPHCorrections.hh"
 #include "computeCRKSPHIntegral.hh"
@@ -138,6 +139,7 @@ CRKSPHHydroBase(const SmoothingScaleBase<Dimension>& smoothingScaleMethod,
   mMaxViscousPressure(FieldSpace::Copy),
   mEffViscousPressure(FieldSpace::Copy),
   mViscousWork(FieldSpace::Copy),
+  mVolume(FieldSpace::Copy),
   mWeightedNeighborSum(FieldSpace::Copy),
   mMassSecondMoment(FieldSpace::Copy),
   mXSPHDeltaV(FieldSpace::Copy),
@@ -202,6 +204,7 @@ initializeProblemStartup(DataBase<Dimension>& dataBase) {
   mHideal = dataBase.newFluidFieldList(SymTensor::zero, ReplaceBoundedFieldList<Dimension, Field<Dimension, SymTensor> >::prefix() + HydroFieldNames::H);
   mMaxViscousPressure = dataBase.newFluidFieldList(0.0, HydroFieldNames::maxViscousPressure);
   mEffViscousPressure = dataBase.newFluidFieldList(0.0, HydroFieldNames::effectiveViscousPressure);
+  mVolume = dataBase.newFluidFieldList(0.0, HydroFieldNames::volume);
   mViscousWork = dataBase.newFluidFieldList(0.0, HydroFieldNames::viscousWork);
   mWeightedNeighborSum = dataBase.newFluidFieldList(0.0, HydroFieldNames::weightedNeighborSum);
   mMassSecondMoment = dataBase.newFluidFieldList(SymTensor::zero, HydroFieldNames::massSecondMoment);
@@ -246,18 +249,21 @@ initializeProblemStartup(DataBase<Dimension>& dataBase) {
   // mSurfNorm = dataBase.newFluidFieldList(Vector::zero, "Surface Normal");
 
   // // Compute the volumes.
-  // const TableKernel<Dimension>& W = this->kernel();
-  // const FieldList<Dimension, SymTensor> H = dataBase.fluidHfield();
+  const TableKernel<Dimension>& W = this->kernel();
+  const ConnectivityMap<Dimension>& connectivityMap = dataBase.connectivityMap();
+  const FieldList<Dimension, Scalar> mass = dataBase.fluidMass();
+  const FieldList<Dimension, SymTensor> H = dataBase.fluidHfield();
+  const FieldList<Dimension, Vector> position = dataBase.fluidPosition();
+  computeCRKSPHSumVolume(connectivityMap, this->kernel(), position, H, mVolume);
   // computeHVolumes(W.kernelExtent(), H, mVolume);
 
-  // // We need the boundary information on volume to initialize the CRKSPH corrections.
-  // for (ConstBoundaryIterator boundItr = this->boundaryBegin();
-  //      boundItr != this->boundaryEnd();
-  //      ++boundItr) (*boundItr)->applyFieldListGhostBoundary(mVolume);
-  // for (ConstBoundaryIterator boundItr = this->boundaryBegin();
-  //      boundItr != this->boundaryEnd();
-  //      ++boundItr) (*boundItr)->finalizeGhostBoundary();
-
+  for (ConstBoundaryIterator boundItr = this->boundaryBegin();
+       boundItr != this->boundaryEnd();
+       ++boundItr) (*boundItr)->applyFieldListGhostBoundary(mVolume);
+  for (ConstBoundaryIterator boundItr = this->boundaryBegin();
+       boundItr != this->boundaryEnd();
+       ++boundItr) (*boundItr)->finalizeGhostBoundary();
+/*
   // Initialize the kernel correction fields.
   dataBase.updateConnectivityMap(false);
   const ConnectivityMap<Dimension>& connectivityMap = dataBase.connectivityMap();
@@ -282,7 +288,10 @@ initializeProblemStartup(DataBase<Dimension>& dataBase) {
   for (ConstBoundaryIterator boundItr = this->boundaryBegin();
        boundItr != this->boundaryEnd();
        ++boundItr) (*boundItr)->finalizeGhostBoundary();
-  computeCRKSPHMoments(connectivityMap, W, vol, position, H, correctionOrder(), NodeCoupling(), mM0, mM1, mM2, mM3, mM4, mGradm0, mGradm1, mGradm2, mGradm3, mGradm4);
+*/
+
+  //computeCRKSPHMoments(connectivityMap, W, vol, position, H, correctionOrder(), NodeCoupling(), mM0, mM1, mM2, mM3, mM4, mGradm0, mGradm1, mGradm2, mGradm3, mGradm4);
+  computeCRKSPHMoments(connectivityMap, W, mVolume, position, H, correctionOrder(), NodeCoupling(), mM0, mM1, mM2, mM3, mM4, mGradm0, mGradm1, mGradm2, mGradm3, mGradm4);
   // computeZerothCRKSPHCorrections(mM0, mGradm0, mA0, mGradA0);
   computeCRKSPHCorrections(mM0, mM1, mM2, mM3, mM4, mGradm0, mGradm1, mGradm2, mGradm3, mGradm4, correctionOrder(), mA, mB, mC, mGradA, mGradB, mGradC);
 
@@ -320,6 +329,7 @@ registerState(DataBase<Dimension>& dataBase,
   // dataBase.fluidSoundSpeed(mSoundSpeed);
   dataBase.resizeFluidFieldList(mPressure,   0.0,                   HydroFieldNames::pressure, false);
   dataBase.resizeFluidFieldList(mSoundSpeed, 0.0,                   HydroFieldNames::soundSpeed, false);
+  dataBase.resizeFluidFieldList(mVolume,     0.0,                   HydroFieldNames::volume, false);
   dataBase.resizeFluidFieldList(mA0,         0.0,                   HydroFieldNames::A0_CRKSPH, false);
   dataBase.resizeFluidFieldList(mGradA0,     Vector::zero,          HydroFieldNames::gradA0_CRKSPH, false);
   dataBase.resizeFluidFieldList(mA,          0.0,                   HydroFieldNames::A_CRKSPH, false);
@@ -364,6 +374,7 @@ registerState(DataBase<Dimension>& dataBase,
   const TableKernel<Dimension>& W = this->kernel();
   // PolicyPointer volumePolicy(new HVolumePolicy<Dimension>(W.kernelExtent()));
   // state.enroll(mVolume, volumePolicy);
+  state.enroll(mVolume); // Static enrollment as computeCRKSPHSumVolume updates this field in this class.
 
   // We need to build up CompositeFieldListPolicies for the mass density and H fields
   // in order to enforce NodeList dependent limits.
@@ -561,9 +572,23 @@ initialize(const typename Dimension::Scalar time,
 
   // FieldList<Dimension, Vector> surfNorm = state.fields("Surface Normal", Vector::zero);
   
+
+  // Compute the volume per node.
   // Change CRKSPH weights here if need be!
-  const FieldList<Dimension, Scalar> massDensity = state.fields(HydroFieldNames::massDensity, 0.0);
-  const FieldList<Dimension, Scalar> vol = mass/massDensity;
+  //const FieldList<Dimension, Scalar> massDensity = state.fields(HydroFieldNames::massDensity, 0.0);
+  //const FieldList<Dimension, Scalar> vol = mass/massDensity;
+  FieldList<Dimension, Scalar> vol = state.fields(HydroFieldNames::volume, 0.0);
+  computeCRKSPHSumVolume(connectivityMap, W, position, H, vol);
+  // computeHullVolumes(connectivityMap, position, vol);
+
+  // // We need boundary conditions enforced on the volume before we can compute corrections.
+  for (ConstBoundaryIterator boundItr = this->boundaryBegin();
+       boundItr != this->boundaryEnd();
+       ++boundItr) (*boundItr)->applyFieldListGhostBoundary(vol);
+  for (ConstBoundaryIterator boundItr = this->boundaryBegin();
+       boundItr != this->boundaryEnd();
+       ++boundItr) (*boundItr)->finalizeGhostBoundary();
+
   computeCRKSPHMoments(connectivityMap, W, vol, position, H, correctionOrder(), NodeCoupling(), m0, m1, m2, m3, m4, gradm0, gradm1, gradm2, gradm3, gradm4);
   // computeZerothCRKSPHCorrections(m0, gradm0, A0, gradA0);
   computeCRKSPHCorrections(m0, m1, m2, m3, m4, gradm0, gradm1, gradm2, gradm3, gradm4, correctionOrder(), A, B, C, gradA, gradB, gradC);
@@ -630,6 +655,7 @@ evaluateDerivatives(const typename Dimension::Scalar time,
   // Get the state and derivative FieldLists.
   // State FieldLists.
   const FieldList<Dimension, Scalar> mass = state.fields(HydroFieldNames::mass, 0.0);
+  const FieldList<Dimension, Scalar> volume = state.fields(HydroFieldNames::volume, 0.0);
   const FieldList<Dimension, Vector> position = state.fields(HydroFieldNames::position, Vector::zero);
   const FieldList<Dimension, Vector> velocity = state.fields(HydroFieldNames::velocity, Vector::zero);
   const FieldList<Dimension, Scalar> massDensity = state.fields(HydroFieldNames::massDensity, 0.0);
@@ -781,7 +807,8 @@ evaluateDerivatives(const typename Dimension::Scalar time,
         gradCi = gradC(nodeListi, i);
       }
       const Scalar Hdeti = Hi.Determinant();
-      const Scalar weighti = mi/rhoi;  // Change CRKSPH weights here if need be!
+      //const Scalar weighti = mi/rhoi;  // Change CRKSPH weights here if need be!
+      const Scalar weighti = volume(nodeListi, i);  // Change CRKSPH weights here if need be!
       // const Scalar psii = psi(nodeListi, i);
       // const Vector& gradPi = gradP(nodeListi, i);
       CHECK2(mi > 0.0, i << " " << mi);
@@ -867,7 +894,8 @@ evaluateDerivatives(const typename Dimension::Scalar time,
                 gradCj = gradC(nodeListj, j);
               }
               const Scalar Hdetj = Hj.Determinant();
-              const Scalar weightj = mj/rhoj;     // Change CRKSPH weights here if need be!
+              //const Scalar weightj = mj/rhoj;     // Change CRKSPH weights here if need be!
+              const Scalar weightj = volume(nodeListj, j);     // Change CRKSPH weights here if need be!
               // const Scalar psij = psi(nodeListj, j);
               // const Vector& gradPj = gradP(nodeListj, j);
               CHECK(mj > 0.0);
@@ -1125,23 +1153,24 @@ postStateUpdate(const DataBase<Dimension>& dataBase,
                 const StateDerivatives<Dimension>& derivs) const {
 
   // // Grab state we're going to use.
-  // const TableKernel<Dimension>& W = this->kernel();
-  // const ConnectivityMap<Dimension>& connectivityMap = dataBase.connectivityMap();
-  // const FieldList<Dimension, Vector> position = state.fields(HydroFieldNames::position, Vector::zero);
+  //const TableKernel<Dimension>& W = this->kernel();
+  //const ConnectivityMap<Dimension>& connectivityMap = dataBase.connectivityMap();
+  //const FieldList<Dimension, Vector> position = state.fields(HydroFieldNames::position, Vector::zero);
+  //const FieldList<Dimension, SymTensor> H = state.fields(HydroFieldNames::H, SymTensor::zero);
   // const FieldList<Dimension, Scalar> mass = state.fields(HydroFieldNames::mass, 0.0);
-  // const FieldList<Dimension, SymTensor> H = state.fields(HydroFieldNames::H, SymTensor::zero);
 
-  // // Compute the volume per node.
-  // FieldList<Dimension, Scalar> vol = state.fields(HydroFieldNames::volume, 0.0);
+  // Compute the volume per node.
+  //FieldList<Dimension, Scalar> vol = state.fields(HydroFieldNames::volume, 0.0);
+  //computeCRKSPHSumVolume(connectivityMap, W, position, H, vol);
   // computeHullVolumes(connectivityMap, position, vol);
 
   // // We need boundary conditions enforced on the volume before we can compute corrections.
-  // for (ConstBoundaryIterator boundItr = this->boundaryBegin();
-  //      boundItr != this->boundaryEnd();
-  //      ++boundItr) (*boundItr)->applyFieldListGhostBoundary(vol);
-  // for (ConstBoundaryIterator boundItr = this->boundaryBegin();
-  //      boundItr != this->boundaryEnd();
-  //      ++boundItr) (*boundItr)->finalizeGhostBoundary();
+  //for (ConstBoundaryIterator boundItr = this->boundaryBegin();
+  //     boundItr != this->boundaryEnd();
+  //     ++boundItr) (*boundItr)->applyFieldListGhostBoundary(vol);
+  //for (ConstBoundaryIterator boundItr = this->boundaryBegin();
+  //     boundItr != this->boundaryEnd();
+  //     ++boundItr) (*boundItr)->finalizeGhostBoundary();
 
   // // Compute the kernel correction fields.
   // FieldList<Dimension, Scalar> A = state.fields(HydroFieldNames::A_CRKSPH, 0.0);
@@ -1297,7 +1326,8 @@ applyGhostBoundaries(State<Dimension>& state,
                      StateDerivatives<Dimension>& derivs) {
 
   // Apply boundary conditions to the basic fluid state Fields.
-  // FieldList<Dimension, Scalar> vol = state.fields(HydroFieldNames::volume, 0.0);
+
+  FieldList<Dimension, Scalar> vol = state.fields(HydroFieldNames::volume, 0.0);
   FieldList<Dimension, Scalar> mass = state.fields(HydroFieldNames::mass, 0.0);
   FieldList<Dimension, Scalar> massDensity = state.fields(HydroFieldNames::massDensity, 0.0);
   FieldList<Dimension, Scalar> specificThermalEnergy = state.fields(HydroFieldNames::specificThermalEnergy, 0.0);
@@ -1318,7 +1348,7 @@ applyGhostBoundaries(State<Dimension>& state,
   for (ConstBoundaryIterator boundaryItr = this->boundaryBegin(); 
        boundaryItr != this->boundaryEnd();
        ++boundaryItr) {
-    // (*boundaryItr)->applyFieldListGhostBoundary(vol);
+    (*boundaryItr)->applyFieldListGhostBoundary(vol);
     (*boundaryItr)->applyFieldListGhostBoundary(mass);
     (*boundaryItr)->applyFieldListGhostBoundary(massDensity);
     (*boundaryItr)->applyFieldListGhostBoundary(specificThermalEnergy);
@@ -1345,7 +1375,7 @@ enforceBoundaries(State<Dimension>& state,
                   StateDerivatives<Dimension>& derivs) {
 
   // Enforce boundary conditions on the fluid state Fields.
-  // FieldList<Dimension, Scalar> vol = state.fields(HydroFieldNames::volume, 0.0);
+  FieldList<Dimension, Scalar> vol = state.fields(HydroFieldNames::volume, 0.0);
   FieldList<Dimension, Scalar> mass = state.fields(HydroFieldNames::mass, 0.0);
   FieldList<Dimension, Scalar> massDensity = state.fields(HydroFieldNames::massDensity, 0.0);
   FieldList<Dimension, Scalar> specificThermalEnergy = state.fields(HydroFieldNames::specificThermalEnergy, 0.0);
@@ -1366,7 +1396,7 @@ enforceBoundaries(State<Dimension>& state,
   for (ConstBoundaryIterator boundaryItr = this->boundaryBegin(); 
        boundaryItr != this->boundaryEnd();
        ++boundaryItr) {
-    // (*boundaryItr)->enforceFieldListBoundary(vol);
+    (*boundaryItr)->enforceFieldListBoundary(vol);
     (*boundaryItr)->enforceFieldListBoundary(mass);
     (*boundaryItr)->enforceFieldListBoundary(massDensity);
     (*boundaryItr)->enforceFieldListBoundary(specificThermalEnergy);
@@ -1409,6 +1439,7 @@ dumpState(FileIO& file, string pathName) const {
   file.write(mDHDt, pathName + "/DHDt");
   file.write(mDvDx, pathName + "/DvDx");
   file.write(mInternalDvDx, pathName + "/internalDvDx");
+  file.write(mVolume, pathName + "/Volume");
   file.write(mA, pathName + "/A");
   file.write(mB, pathName + "/B");
   file.write(mC, pathName + "/C");
@@ -1444,6 +1475,7 @@ restoreState(const FileIO& file, string pathName) {
   file.read(mDHDt, pathName + "/DHDt");
   file.read(mDvDx, pathName + "/DvDx");
   file.read(mInternalDvDx, pathName + "/internalDvDx");
+  file.read(mVolume, pathName + "/Volume");
   file.read(mA, pathName + "/A");
   file.read(mB, pathName + "/B");
   file.read(mC, pathName + "/C");

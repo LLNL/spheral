@@ -134,7 +134,6 @@ self.generateSolidCRKSPHHydroBaseBindings(self.SolidCRKSPHHydroBase%(dim)id, %(d
                                  constrefparam(tablekernel, "W"),
                                  constrefparam(vectorfieldlist, "position"),
                                  constrefparam(symtensorfieldlist, "H"),
-                                 constrefparam(vector_of_boundary, "boundaries"),
                                  refparam(scalarfieldlist, "vol")],
                                 template_parameters = [dim],
                                 custom_name = "computeCRKSPHSumVolume%id" % ndim)
