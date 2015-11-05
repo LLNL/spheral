@@ -129,6 +129,16 @@ self.generateSolidCRKSPHHydroBaseBindings(self.SolidCRKSPHHydroBase%(dim)id, %(d
                                 template_parameters = [dim],
                                 custom_name = "computeCRKSPHSumMassDensity%id" % ndim)
 
+        self.space.add_function("computeCRKSPHSumVolume", None,
+                                [constrefparam(connectivitymap, "connectivityMap"),
+                                 constrefparam(tablekernel, "W"),
+                                 constrefparam(vectorfieldlist, "position"),
+                                 constrefparam(symtensorfieldlist, "H"),
+                                 constrefparam(vector_of_boundary, "boundaries"),
+                                 refparam(scalarfieldlist, "vol")],
+                                template_parameters = [dim],
+                                custom_name = "computeCRKSPHSumVolume%id" % ndim)
+
         self.space.add_function("computeSolidCRKSPHSumMassDensity", None,
                                 [constrefparam(connectivitymap, "connectivityMap"),
                                  constrefparam(tablekernel, "W"),
