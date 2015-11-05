@@ -6,6 +6,7 @@
 #include "CRKSPH/CRKSPHHydroBase.hh"
 #include "CRKSPH/SolidCRKSPHHydroBase.hh"
 #include "CRKSPH/computeCRKSPHSumMassDensity.hh"
+#include "CRKSPH/computeCRKSPHSumVolume.hh"
 #include "CRKSPH/computeSolidCRKSPHSumMassDensity.hh"
 #include "CRKSPH/computeCRKSPHMoments.hh"
 #include "CRKSPH/computeCRKSPHCorrections.hh"
@@ -119,6 +120,23 @@ computeCRKSPHSumMassDensity(const NeighborSpace::ConnectivityMap<Dimension>& con
   computeCRKSPHSumMassDensity(connectivityMap, W, position, mass, H, 
                             boundaries.begin(), boundaries.end(),
                             massDensity);
+}
+
+//------------------------------------------------------------------------------
+// compputeCRKSPHSumVolume with a std::vector<Boundary> rather than iterators.
+//------------------------------------------------------------------------------
+template<typename Dimension>
+inline
+void
+computeCRKSPHSumVolume(const NeighborSpace::ConnectivityMap<Dimension>& connectivityMap,
+                            const KernelSpace::TableKernel<Dimension>& W,
+                            const FieldSpace::FieldList<Dimension, typename Dimension::Vector>& position,
+                            const FieldSpace::FieldList<Dimension, typename Dimension::SymTensor>& H,
+                            const std::vector<BoundarySpace::Boundary<Dimension>*>& boundaries,
+                            FieldSpace::FieldList<Dimension, typename Dimension::Scalar>& vol) {
+  computeCRKSPHSumVolume(connectivityMap, W, position, H,
+                            boundaries.begin(), boundaries.end(),
+                            vol);
 }
 
 }
