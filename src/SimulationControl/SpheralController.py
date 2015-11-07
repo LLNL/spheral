@@ -176,7 +176,8 @@ class SpheralController(RestartableObject):
                 bc.initializeProblemStartup()
         state = eval("State%s(db, packages)" % (self.dim))
         derivs = eval("StateDerivatives%s(db, packages)" % (self.dim))
-        self.integrator.initialize(state, derivs)
+        self.integrator.preStepInitialize(state, derivs)
+        self.integrator.initializeDerivatives(initialTime, 0.0, state, derivs)
 
         # If requested, initialize the derivatives.
         if initializeDerivatives:

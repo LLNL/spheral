@@ -95,7 +95,7 @@ step(typename Dimension::Scalar maxTime,
   DataBase<Dimension>& db = this->accessDataBase();
 
   // Initalize the integrator.
-  this->initialize(state, derivs);
+  this->preStepInitialize(state, derivs);
 
   // Extract velocity into its own State as a copy.
   State<Dimension> velocityState;
@@ -113,6 +113,7 @@ step(typename Dimension::Scalar maxTime,
 
   // Evaluate the beginning of step derivatives.
   derivs.Zero();
+  this->initializeDerivatives(t, hdt0, state, derivs);
   this->evaluateDerivatives(t, hdt0, db, state, derivs);
   this->finalizeDerivatives(t, hdt0, db, state, derivs);
 
@@ -124,7 +125,7 @@ step(typename Dimension::Scalar maxTime,
   this->finalizeGhostBoundaries();
 
   // Evaluate the derivatives at the midpoint.
-  this->preStepInitialize(t + hdt0, hdt0, state, derivs);
+  this->initializeDerivatives(t + hdt0, hdt0, state, derivs);
   derivs.Zero();
   this->evaluateDerivatives(t + hdt0, hdt0, db, state, derivs);
   this->finalizeDerivatives(t + hdt0, hdt0, db, state, derivs);
@@ -176,7 +177,7 @@ step(typename Dimension::Scalar maxTime,
   this->finalizeGhostBoundaries();
 
   // Apply any physics specific finalizations.
-  this->finalize(t + dt, dt, state, derivs);
+  this->postStepFinalize(t + dt, dt, state, derivs);
 
   // Set the new current time and last time step.
   this->currentCycle(this->currentCycle() + 1);
