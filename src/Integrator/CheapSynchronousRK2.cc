@@ -98,7 +98,6 @@ step(typename Dimension::Scalar maxTime,
                                    derivs);
 
   // Copy the beginning of step state.
-  this->initializeDerivatives(t + 0.5*dt, 0.5*dt, state, derivs);
   State<Dimension> state0(state);
   state0.copyState();
   state0.timeAdvanceOnly(false);
@@ -113,7 +112,7 @@ step(typename Dimension::Scalar maxTime,
 
   // Evaluate the derivatives at the midpoint.
   derivs.Zero();
-  // this->initializeDerivatives(t + hdt, hdt, state, derivs);
+  this->initializeDerivatives(t + hdt, hdt, state, derivs);
   this->evaluateDerivatives(t + hdt, hdt, db, state, derivs);
   this->finalizeDerivatives(t + hdt, hdt, db, state, derivs);
 
