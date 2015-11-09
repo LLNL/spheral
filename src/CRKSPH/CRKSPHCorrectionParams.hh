@@ -4,11 +4,18 @@
 //Enumerated type for the corrected Kernels
 namespace Spheral {
 namespace CRKSPHSpace {
+
 enum CRKOrder {//Used to assign the order of the corrections
   ZerothOrder = 0,
   LinearOrder = 1,
   QuadraticOrder = 2
 };
+
+enum CRKVolumeType { // Choices for the CRK volume weighting
+  MassOverDensity = 0,
+  SumVolume = 1,
+};
+
 }
 }
 #endif
