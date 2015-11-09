@@ -64,6 +64,7 @@ public:
                        const PhysicsSpace::MassDensityType densityUpdate,
                        const PhysicsSpace::HEvolutionType HUpdate,
                        const CRKSPHSpace::CRKOrder correctionOrder,
+                       const CRKSPHSpace::CRKVolumeType volumeType,
                        const double epsTensile,
                        const double nTensile);
 

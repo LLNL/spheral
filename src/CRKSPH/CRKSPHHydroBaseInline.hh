@@ -56,6 +56,23 @@ correctionOrder(const CRKSPHSpace::CRKOrder order) {
   mCorrectionOrder = order;
 }
 
+//------------------------------------------------------------------------------
+// Choose which volume weighting to use.
+//------------------------------------------------------------------------------
+template<typename Dimension>
+inline
+CRKSPHSpace::CRKVolumeType
+CRKSPHHydroBase<Dimension>::volumeType() const {
+  return mVolumeType;
+}
+
+template<typename Dimension>
+inline
+void
+CRKSPHHydroBase<Dimension>::
+volumeType(const CRKSPHSpace::CRKVolumeType x) {
+  mVolumeType = x;
+}
 
 //------------------------------------------------------------------------------
 // Access the flag determining if we're using the compatible energy evolution 
@@ -373,14 +390,6 @@ template<typename Dimension>
 inline
 const FieldSpace::FieldList<Dimension, typename Dimension::Scalar>&
 CRKSPHHydroBase<Dimension>::
-A0() const {
-  return mA0;
-}
-
-template<typename Dimension>
-inline
-const FieldSpace::FieldList<Dimension, typename Dimension::Scalar>&
-CRKSPHHydroBase<Dimension>::
 A() const {
   return mA;
 }
@@ -399,14 +408,6 @@ const FieldSpace::FieldList<Dimension, typename Dimension::Tensor>&
 CRKSPHHydroBase<Dimension>::
 C() const {
   return mC;
-}
-
-template<typename Dimension>
-inline
-const FieldSpace::FieldList<Dimension, typename Dimension::Vector>&
-CRKSPHHydroBase<Dimension>::
-gradA0() const {
-  return mGradA0;
 }
 
 template<typename Dimension>

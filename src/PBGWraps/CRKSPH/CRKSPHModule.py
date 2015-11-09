@@ -33,6 +33,7 @@ self.CRKSPHHydroBase%(dim)id = addObject(self.space, "CRKSPHHydroBase%(dim)id", 
 self.SolidCRKSPHHydroBase%(dim)id = addObject(self.space, "SolidCRKSPHHydroBase%(dim)id", allow_subclassing=True, parent=self.CRKSPHHydroBase%(dim)id)
 ''' % {"dim" : dim})
         self.CRKOrder = self.space.add_enum("CRKOrder", ["ZerothOrder", "LinearOrder", "QuadraticOrder"])
+        self.CRKVolumeType = self.space.add_enum("CRKVolumeType", ["MassOverDensity", "SumVolume"])
 
         return
 
@@ -378,6 +379,7 @@ self.generateSolidCRKSPHHydroBaseBindings(self.SolidCRKSPHHydroBase%(dim)id, %(d
                            param("MassDensityType", "densityUpdate", default_value="Spheral::PhysicsSpace::RigorousSumDensity"),
                            param("HEvolutionType", "HUpdate", default_value="Spheral::PhysicsSpace::IdealH"),
                            param("CRKOrder", "correctionOrder", default_value="Spheral::CRKSPHSpace::LinearOrder"),
+                           param("CRKVolumeType", "volumeType", default_value="Spheral::CRKSPHSpace::SumVolume"),
                            param("double", "epsTensile", default_value="0.0"),
                            param("double", "nTensile", default_value="4.0")])
 
@@ -432,6 +434,7 @@ self.generateSolidCRKSPHHydroBaseBindings(self.SolidCRKSPHHydroBase%(dim)id, %(d
         x.add_instance_attribute("densityUpdate", "MassDensityType", getter="densityUpdate", setter="densityUpdate")
         x.add_instance_attribute("HEvolution", "HEvolutionType", getter="HEvolution", setter="HEvolution")
         x.add_instance_attribute("correctionOrder", "CRKOrder", getter="correctionOrder", setter="correctionOrder")
+        x.add_instance_attribute("volumeType", "CRKVolumeType", getter="volumeType", setter="volumeType")
         x.add_instance_attribute("compatibleEnergyEvolution", "bool", getter="compatibleEnergyEvolution", setter="compatibleEnergyEvolution")
         x.add_instance_attribute("XSPH", "bool", getter="XSPH", setter="XSPH")
         x.add_instance_attribute("filter", "double", getter="filter", setter="filter")
@@ -464,11 +467,9 @@ self.generateSolidCRKSPHHydroBaseBindings(self.SolidCRKSPHHydroBase%(dim)id, %(d
         const_ref_return_value(x, me, "%s::internalDvDx0" % me, tensorfieldlist, [], "internalDvDx0")
         const_ref_return_value(x, me, "%s::pairAccelerations0" % me, vectorvectorfieldlist, [], "pairAccelerations0")
 
-        const_ref_return_value(x, me, "%s::A0" % me, scalarfieldlist, [], "A0")
         const_ref_return_value(x, me, "%s::A" % me, scalarfieldlist, [], "A")
         const_ref_return_value(x, me, "%s::B" % me, vectorfieldlist, [], "B")
         const_ref_return_value(x, me, "%s::C" % me, tensorfieldlist, [], "C")
-        const_ref_return_value(x, me, "%s::gradA0" % me, vectorfieldlist, [], "gradA0")
         const_ref_return_value(x, me, "%s::gradA" % me, vectorfieldlist, [], "gradA")
         const_ref_return_value(x, me, "%s::gradB" % me, tensorfieldlist, [], "gradB")
         const_ref_return_value(x, me, "%s::gradC" % me, thirdranktensorfieldlist, [], "gradC")
@@ -533,6 +534,7 @@ self.generateSolidCRKSPHHydroBaseBindings(self.SolidCRKSPHHydroBase%(dim)id, %(d
                            param("MassDensityType", "densityUpdate", default_value="Spheral::PhysicsSpace::RigorousSumDensity"),
                            param("HEvolutionType", "HUpdate", default_value="Spheral::PhysicsSpace::IdealH"),
                            param("CRKOrder", "correctionOrder", default_value="Spheral::CRKSPHSpace::LinearOrder"),
+                           param("CRKVolumeType", "volumeType", default_value="Spheral::CRKSPHSpace::SumVolume"),
                            param("double", "epsTensile", default_value="0.0"),
                            param("double", "nTensile", default_value="4.0")])
 

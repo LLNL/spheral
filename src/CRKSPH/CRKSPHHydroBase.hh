@@ -67,6 +67,7 @@ public:
                   const PhysicsSpace::MassDensityType densityUpdate,
                   const PhysicsSpace::HEvolutionType HUpdate,
                   const CRKSPHSpace::CRKOrder correctionOrder,
+                  const CRKSPHSpace::CRKVolumeType volumeType,
                   const double epsTensile,
                   const double nTensile);
 
@@ -153,6 +154,10 @@ public:
   CRKSPHSpace::CRKOrder correctionOrder() const;
   void correctionOrder(const CRKSPHSpace::CRKOrder order);
 
+  // Flag for the CRK volume weighting definition
+  CRKSPHSpace::CRKVolumeType volumeType() const;
+  void volumeType(const CRKSPHSpace::CRKVolumeType x);
+
   // Flag to determine if we're using the total energy conserving compatible energy
   // evolution scheme.
   bool compatibleEnergyEvolution() const;
@@ -210,11 +215,9 @@ public:
   const FieldSpace::FieldList<Dimension, Tensor>&    internalDvDx0() const;
   const FieldSpace::FieldList<Dimension, std::vector<Vector> >& pairAccelerations0() const;
 
-  const FieldSpace::FieldList<Dimension, Scalar>&    A0() const;
   const FieldSpace::FieldList<Dimension, Scalar>&    A() const;
   const FieldSpace::FieldList<Dimension, Vector>&    B() const;
   const FieldSpace::FieldList<Dimension, Tensor>&    C() const;
-  const FieldSpace::FieldList<Dimension, Vector>&    gradA0() const;
   const FieldSpace::FieldList<Dimension, Vector>&    gradA() const;
   const FieldSpace::FieldList<Dimension, Tensor>&    gradB() const;
   const FieldSpace::FieldList<Dimension, ThirdRankTensor>&    gradC() const;
@@ -248,6 +251,7 @@ private:
   PhysicsSpace::MassDensityType mDensityUpdate;
   PhysicsSpace::HEvolutionType mHEvolution;
   CRKSPHSpace::CRKOrder mCorrectionOrder;
+  CRKSPHSpace::CRKVolumeType mVolumeType;
   bool mCompatibleEnergyEvolution, mGradhCorrection, mXSPH;
   double mfilter;
   Scalar mEpsTensile, mnTensile;
@@ -288,11 +292,9 @@ private:
   FieldSpace::FieldList<Dimension, std::vector<Vector> > mPairAccelerations;
   FieldSpace::FieldList<Dimension, std::vector<Vector> > mPairAccelerations0;
 
-  FieldSpace::FieldList<Dimension, Scalar>    mA0;
   FieldSpace::FieldList<Dimension, Scalar>    mA;
   FieldSpace::FieldList<Dimension, Vector>    mB;
   FieldSpace::FieldList<Dimension, Tensor>    mC;
-  FieldSpace::FieldList<Dimension, Vector>    mGradA0;
   FieldSpace::FieldList<Dimension, Vector>    mGradA;
   FieldSpace::FieldList<Dimension, Tensor>    mGradB;
   FieldSpace::FieldList<Dimension, ThirdRankTensor>    mGradC;
