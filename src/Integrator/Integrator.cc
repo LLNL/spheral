@@ -238,9 +238,16 @@ Integrator<Dimension>::preStepInitialize(State<Dimension>& state,
   applyGhostBoundaries(state, derivs);
 
   // Register the now updated connectivity with the state.
+  DataBase<Dimension>& db = accessDataBase();
   if (mRequireConnectivity) {
-    DataBase<Dimension>& db = accessDataBase();
     state.enrollConnectivityMap(db.connectivityMapPtr(mRequireGhostConnectivity));
+  }
+
+  // Loop over the physics packages and perform any necessary initializations.
+  for (typename Integrator<Dimension>::ConstPackageIterator physicsItr = physicsPackagesBegin();
+       physicsItr != physicsPackagesEnd();
+       ++physicsItr) {
+    (*physicsItr)->preStepInitialize(db, state, derivs);
   }
 }
 

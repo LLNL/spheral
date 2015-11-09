@@ -153,17 +153,15 @@ registerState(DataBase<Dimension>& dataBase,
 }
 
 //------------------------------------------------------------------------------
-// Initialize -- for this class this means determine the effective flaw
+// preStepInitialize -- for this class this means determine the effective flaw
 // failure strains.
 //------------------------------------------------------------------------------
 template<typename Dimension>
 void
 DamageModel<Dimension>::
-initialize(const Scalar time, 
-           const Scalar dt,
-           const DataBase<Dimension>& dataBase, 
-           State<Dimension>& state,
-           StateDerivatives<Dimension>& derivs) {
+preStepInitialize(const DataBase<Dimension>& dataBase, 
+                  State<Dimension>& state,
+                  StateDerivatives<Dimension>& derivs) {
 
   // If we're just using the "FullSpectrum" of flaws, we don't reduce the 
   // flaws for each node to a single value at all.  In that case there's no

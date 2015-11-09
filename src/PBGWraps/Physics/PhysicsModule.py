@@ -127,6 +127,9 @@ generateStdVectorBindings(self.vector_of_Physics%(dim)id, "Spheral::PhysicsSpace
         x.add_method("applyGhostBoundaries", None, [refparam(state, "state"), refparam(derivatives, "derivatives")], is_virtual=True)
         x.add_method("enforceBoundaries", None, [refparam(state, "state"), refparam(derivatives, "derivatives")], is_virtual=True)
         x.add_method("initializeProblemStartup", None, [refparam(database, "dataBase")], is_virtual=True)
+        x.add_method("preStepInitialize", None, [constrefparam(database, "dataBase"),
+                                                 refparam(state, "state"),
+                                                 refparam(derivatives, "derivatives")], is_virtual=True)
         x.add_method("initialize", None, [param("const double", "time"),
                                           param("const double", "dt"),
                                           constrefparam(database, "dataBase"),
