@@ -194,23 +194,6 @@ self.generateSolidCRKSPHHydroBaseBindings(self.SolidCRKSPHHydroBase%(dim)id, %(d
                                  refparam(thirdranktensorfieldlist, "gradC")],
                                 template_parameters = [dim],
                                 custom_name = "computeCRKSPHCorrections%id" % ndim)
-        self.space.add_function("computeCRKSPHCorrections", None,
-                                [constrefparam(connectivitymap, "connectivityMap"),
-                                 constrefparam(tablekernel, "W"),
-                                 constrefparam(scalarfieldlist, "weight"),
-                                 constrefparam(vectorfieldlist, "position"),
-                                 constrefparam(symtensorfieldlist, "H"),
-                                 constrefparam("Spheral::NodeCoupling", "nodeCoupling"),
-                                 refparam(scalarfieldlist, "A"),
-                                 refparam(vectorfieldlist, "B"),
-                                 refparam(vectorfieldlist, "gradA"),
-                                 refparam(tensorfieldlist, "gradB"),
-                                 refparam(scalarfieldlist, "Ac"),
-                                 refparam(vectorfieldlist, "Bc"),
-                                 refparam(vectorfieldlist, "gradAc"),
-                                 refparam(tensorfieldlist, "gradBc")],
-                                template_parameters = [dim],
-                                custom_name = "computeCRKSPHCorrections%id" % ndim)
 
         # CRKSPH interpolation.
         for (fl, element) in ((scalarfieldlist, "double"),
@@ -541,7 +524,9 @@ self.generateSolidCRKSPHHydroBaseBindings(self.SolidCRKSPHHydroBase%(dim)id, %(d
         # Attributes.
         const_ref_return_value(x, me, "%s::Adamage" % me, scalarfieldlist, [], "Adamage")
         const_ref_return_value(x, me, "%s::Bdamage" % me, vectorfieldlist, [], "Bdamage")
+        const_ref_return_value(x, me, "%s::Cdamage" % me, tensorfieldlist, [], "Cdamage")
         const_ref_return_value(x, me, "%s::gradAdamage" % me, vectorfieldlist, [], "gradAdamage")
         const_ref_return_value(x, me, "%s::gradBdamage" % me, tensorfieldlist, [], "gradBdamage")
+        const_ref_return_value(x, me, "%s::gradCdamage" % me, thirdranktensorfieldlist, [], "gradCdamage")
 
         return
