@@ -57,21 +57,6 @@ namespace Spheral {
                                                     FieldList<Dim< %(ndim)s >, Dim< %(ndim)s >::Vector>&,
                                                     FieldList<Dim< %(ndim)s >, Dim< %(ndim)s >::Tensor>&,
                                                     FieldList<Dim< %(ndim)s >, Dim< %(ndim)s >::ThirdRankTensor>&);
-
-    template void computeCRKSPHCorrections(const ConnectivityMap<Dim< %(ndim)s > >&, 
-                                           const TableKernel<Dim< %(ndim)s > >&, 
-                                           const FieldList<Dim< %(ndim)s >, Dim< %(ndim)s >::Scalar>&,
-                                           const FieldList<Dim< %(ndim)s >, Dim< %(ndim)s >::Vector>&,
-                                           const FieldList<Dim< %(ndim)s >, Dim< %(ndim)s >::SymTensor>&,
-                                           const NodeCoupling& nodeCoupling,
-                                           FieldList<Dim< %(ndim)s >, Dim< %(ndim)s >::Scalar>&,
-                                           FieldList<Dim< %(ndim)s >, Dim< %(ndim)s >::Vector>&,
-                                           FieldList<Dim< %(ndim)s >, Dim< %(ndim)s >::Vector>&,
-                                           FieldList<Dim< %(ndim)s >, Dim< %(ndim)s >::Tensor>&,
-                                           FieldList<Dim< %(ndim)s >, Dim< %(ndim)s >::Scalar>&,
-                                           FieldList<Dim< %(ndim)s >, Dim< %(ndim)s >::Vector>&,
-                                           FieldList<Dim< %(ndim)s >, Dim< %(ndim)s >::Vector>&,
-                                           FieldList<Dim< %(ndim)s >, Dim< %(ndim)s >::Tensor>&);
   }
 }
 

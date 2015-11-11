@@ -5,6 +5,7 @@
 #include "Eigen/Dense"
 
 #include "computeCRKSPHCorrections.hh"
+#include "SolidSPH/NodeCoupling.hh"
 #include "Field/Field.hh"
 #include "Field/FieldList.hh"
 #include "Neighbor/ConnectivityMap.hh"
