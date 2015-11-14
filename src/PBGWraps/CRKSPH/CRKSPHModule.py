@@ -124,8 +124,12 @@ self.generateSolidCRKSPHHydroBaseBindings(self.SolidCRKSPHHydroBase%(dim)id, %(d
                                  constrefparam(tablekernel, "W"),
                                  constrefparam(vectorfieldlist, "position"),
                                  constrefparam(scalarfieldlist, "mass"),
+                                 constrefparam(scalarfieldlist, "vol"),
                                  constrefparam(symtensorfieldlist, "H"),
-                                 constrefparam(vector_of_boundary, "boundaries"),
+                                 constrefparam(scalarfieldlist, "A"),
+                                 constrefparam(vectorfieldlist, "B"),
+                                 constrefparam(tensorfieldlist, "C"),
+                                 param("Spheral::CRKSPHSpace::CRKOrder","correctionOrder"),
                                  refparam(scalarfieldlist, "massDensity")],
                                 template_parameters = [dim],
                                 custom_name = "computeCRKSPHSumMassDensity%id" % ndim)
