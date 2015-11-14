@@ -571,8 +571,8 @@ initialize(const typename Dimension::Scalar time,
   // Compute the volume per node.
   // Change CRKSPH weights here if need be!
   FieldList<Dimension, Scalar> vol = state.fields(HydroFieldNames::volume, 0.0);
+  FieldList<Dimension, Scalar> massDensity = state.fields(HydroFieldNames::massDensity, 0.0);
   if (mVolumeType == MassOverDensity) {
-    const FieldList<Dimension, Scalar> massDensity = state.fields(HydroFieldNames::massDensity, 0.0);
     vol.assignFields(mass/massDensity);
   } else if (mVolumeType == SumVolume) {
     computeCRKSPHSumVolume(connectivityMap, W, position, H, vol);
@@ -590,6 +590,13 @@ initialize(const typename Dimension::Scalar time,
 
   computeCRKSPHMoments(connectivityMap, W, vol, position, H, correctionOrder(), NodeCoupling(), m0, m1, m2, m3, m4, gradm0, gradm1, gradm2, gradm3, gradm4);
   computeCRKSPHCorrections(m0, m1, m2, m3, m4, gradm0, gradm1, gradm2, gradm3, gradm4, correctionOrder(), A, B, C, gradA, gradB, gradC);
+
+  // Depending on the mass density advancement selected, we may want to replace the 
+  // mass density.
+  if (densityUpdate() == PhysicsSpace::RigorousSumDensity) {
+    computeCRKSPHSumMassDensity<Dimension>(connectivityMap, W, position, mass, vol, H, A, B, C, correctionOrder(), massDensity);
+  }
+
   for (ConstBoundaryIterator boundItr = this->boundaryBegin();
        boundItr != this->boundaryEnd();
        ++boundItr) {
@@ -599,6 +606,7 @@ initialize(const typename Dimension::Scalar time,
     (*boundItr)->applyFieldListGhostBoundary(gradA);
     (*boundItr)->applyFieldListGhostBoundary(gradB);
     (*boundItr)->applyFieldListGhostBoundary(gradC);
+    (*boundItr)->applyFieldListGhostBoundary(massDensity);
   }
 
   // Get the artificial viscosity and initialize it.
@@ -1196,34 +1204,34 @@ finalize(const typename Dimension::Scalar time,
   // Base class finalization.
   GenericHydro<Dimension>::finalize(time, dt, dataBase, state, derivs);
 
-  // Depending on the mass density advancement selected, we may want to replace the 
-  // mass density.
-  if (densityUpdate() == PhysicsSpace::RigorousSumDensity) {
-    const TableKernel<Dimension>& W = this->kernel();
-    const ConnectivityMap<Dimension>& connectivityMap = dataBase.connectivityMap();
-    const FieldList<Dimension, Scalar> mass = state.fields(HydroFieldNames::mass, 0.0);
-    const FieldList<Dimension, SymTensor> H = state.fields(HydroFieldNames::H, SymTensor::zero);
-    const FieldList<Dimension, Vector> position = state.fields(HydroFieldNames::position, Vector::zero);
-    FieldList<Dimension, Scalar> massDensity = state.fields(HydroFieldNames::massDensity, 0.0);
-    computeCRKSPHSumMassDensity(connectivityMap, this->kernel(), position, mass, H, this->boundaryBegin(), this->boundaryEnd(), massDensity);
-
-    // FieldList<Dimension, Scalar> vol = dataBase.newFluidFieldList(0.0, "volume");
-    // FieldList<Dimension, FacetedVolume> polyvol = dataBase.newFluidFieldList(FacetedVolume(), "poly volume");
-    // computeHullVolumes(connectivityMap, this->kernel().kernelExtent(), position, H, polyvol, vol);
-    // SPHSpace::computeSPHSumMassDensity(connectivityMap, this->kernel(), position, mass, H, massDensity);
-    for (ConstBoundaryIterator boundaryItr = this->boundaryBegin(); 
-         boundaryItr != this->boundaryEnd();
-         ++boundaryItr) (*boundaryItr)->applyFieldListGhostBoundary(massDensity);
-    for (ConstBoundaryIterator boundaryItr = this->boundaryBegin(); 
-         boundaryItr != this->boundaryEnd();
-         ++boundaryItr) (*boundaryItr)->finalizeGhostBoundary();
-
-  // } else if (densityUpdate() == PhysicsSpace::SumDensity) {
+  // // Depending on the mass density advancement selected, we may want to replace the 
+  // // mass density.
+  // if (densityUpdate() == PhysicsSpace::RigorousSumDensity) {
+  //   const TableKernel<Dimension>& W = this->kernel();
+  //   const ConnectivityMap<Dimension>& connectivityMap = dataBase.connectivityMap();
+  //   const FieldList<Dimension, Scalar> mass = state.fields(HydroFieldNames::mass, 0.0);
+  //   const FieldList<Dimension, SymTensor> H = state.fields(HydroFieldNames::H, SymTensor::zero);
+  //   const FieldList<Dimension, Vector> position = state.fields(HydroFieldNames::position, Vector::zero);
   //   FieldList<Dimension, Scalar> massDensity = state.fields(HydroFieldNames::massDensity, 0.0);
-  //   FieldList<Dimension, Scalar> massDensitySum = derivs.fields(ReplaceFieldList<Dimension, Field<Dimension, Field<Dimension, Scalar> > >::prefix() + 
-  //                                                               HydroFieldNames::massDensity, 0.0);
-  //   massDensity.assignFields(massDensitySum);
-  }
+  //   computeCRKSPHSumMassDensity(connectivityMap, this->kernel(), position, mass, H, this->boundaryBegin(), this->boundaryEnd(), massDensity);
+
+  //   // FieldList<Dimension, Scalar> vol = dataBase.newFluidFieldList(0.0, "volume");
+  //   // FieldList<Dimension, FacetedVolume> polyvol = dataBase.newFluidFieldList(FacetedVolume(), "poly volume");
+  //   // computeHullVolumes(connectivityMap, this->kernel().kernelExtent(), position, H, polyvol, vol);
+  //   // SPHSpace::computeSPHSumMassDensity(connectivityMap, this->kernel(), position, mass, H, massDensity);
+  //   for (ConstBoundaryIterator boundaryItr = this->boundaryBegin(); 
+  //        boundaryItr != this->boundaryEnd();
+  //        ++boundaryItr) (*boundaryItr)->applyFieldListGhostBoundary(massDensity);
+  //   for (ConstBoundaryIterator boundaryItr = this->boundaryBegin(); 
+  //        boundaryItr != this->boundaryEnd();
+  //        ++boundaryItr) (*boundaryItr)->finalizeGhostBoundary();
+
+  // // } else if (densityUpdate() == PhysicsSpace::SumDensity) {
+  // //   FieldList<Dimension, Scalar> massDensity = state.fields(HydroFieldNames::massDensity, 0.0);
+  // //   FieldList<Dimension, Scalar> massDensitySum = derivs.fields(ReplaceFieldList<Dimension, Field<Dimension, Field<Dimension, Scalar> > >::prefix() + 
+  // //                                                               HydroFieldNames::massDensity, 0.0);
+  // //   massDensity.assignFields(massDensitySum);
+  // }
 
   // Add any filtering component to the node movement.
   // This form looks for points that are too close based on specific volume.
