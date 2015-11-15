@@ -125,12 +125,14 @@ computeCRKSPHSumMassDensity(const ConnectivityMap<Dimension>& connectivityMap,
             rij = ri - rj;
             etai = Hi*rij;
             etaj = Hj*rij;
-            // Wj = CRKSPHKernel(W, correctionOrder,  rij,  etai, Hdeti,  etaj, Hdetj, Ai, Bi, Ci);
-            // Wi = CRKSPHKernel(W, correctionOrder, -rij, -etaj, Hdetj, -etai, Hdeti, Aj, Bj, Cj);
-            Wj = W.kernelValue(etaj.magnitude(), Hdetj);
-            Wi = W.kernelValue(etai.magnitude(), Hdeti);
+            Wj = CRKSPHKernel(W, correctionOrder,  rij,  etai, Hdeti,  etaj, Hdetj, Ai, Bi, Ci);
+            Wi = CRKSPHKernel(W, correctionOrder, -rij, -etaj, Hdetj, -etai, Hdeti, Aj, Bj, Cj);
+            // Wj = W.kernelValue(etaj.magnitude(), Hdetj);
+            // Wi = W.kernelValue(etai.magnitude(), Hdeti);
 
             // Sum the pair-wise contributions.
+            // massDensity(nodeListi, i) += (nodeListi == nodeListj ? mj : mi) * Wj;
+            // massDensity(nodeListj, j) += (nodeListi == nodeListj ? mi : mj) * Wi;
             massDensity(nodeListi, i) += (nodeListi == nodeListj ? mj : mi) * Vj*Wj;
             massDensity(nodeListj, j) += (nodeListi == nodeListj ? mi : mj) * Vi*Wi;
             vol1(nodeListi, i) += Vj*Vj*Wj;
@@ -140,10 +142,11 @@ computeCRKSPHSumMassDensity(const ConnectivityMap<Dimension>& connectivityMap,
       }
   
       // Finalize the density for node i.
-      // Wj = CRKSPHKernel(W, correctionOrder, Vector::zero, Vector::zero, Hdeti, Vector::zero, Hdeti, Ai, Bi, Ci);
-      Wj = W.kernelValue(0.0, Hdeti);
+      Wj = CRKSPHKernel(W, correctionOrder, Vector::zero, Vector::zero, Hdeti, Vector::zero, Hdeti, Ai, Bi, Ci);
+      // Wj = W.kernelValue(0.0, Hdeti);
       massDensity(nodeListi, i) = max(rhoMin, 
                                       min(rhoMax,
+                                          // (massDensity(nodeListi, i) + mi*Wj)));
                                           (massDensity(nodeListi, i) + mi*Vi*Wj)/
                                           (vol1(nodeListi, i) + Vi*Vi*Wj)));
       CHECK(massDensity(nodeListi, i) > 0.0);
