@@ -294,7 +294,6 @@ elif CRKSPH:
                              correctionOrder = correctionOrder,
                              densityUpdate = densityUpdate,
                              HUpdate = HUpdate)
-    hydro.volumeType = CRKVoronoiVolume
 else:
     hydro = HydroConstructor(W = WT,
                              Q = q,
