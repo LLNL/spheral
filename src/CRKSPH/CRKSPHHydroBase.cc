@@ -13,6 +13,7 @@
 #include "CRKSPHHydroBase.hh"
 #include "CRKSPHUtilities.hh"
 #include "computeVoronoiVolume.hh"
+#include "computeHullVolumes.hh"
 #include "computeCRKSPHSumVolume.hh"
 #include "computeCRKSPHSumMassDensity.hh"
 #include "computeCRKSPHMoments.hh"
@@ -258,6 +259,8 @@ initializeProblemStartup(DataBase<Dimension>& dataBase) {
     computeCRKSPHSumVolume(connectivityMap, this->kernel(), position, H, mVolume);
   } else if (mVolumeType == CRKVoronoiVolume) {
     computeVoronoiVolume(position, mVolume);
+  } else if (mVolumeType == CRKHullVolume) {
+    computeHullVolumes(connectivityMap, W.kernelExtent(), position, H, mVolume);
   } else {
     VERIFY2(false, "Unknown CRK volume weighting.");
   }
@@ -579,6 +582,8 @@ initialize(const typename Dimension::Scalar time,
     computeCRKSPHSumVolume(connectivityMap, W, position, H, vol);
   } else if (mVolumeType == CRKVoronoiVolume) {
     computeVoronoiVolume(position, vol);
+  } else if (mVolumeType == CRKHullVolume) {
+    computeHullVolumes(connectivityMap, W.kernelExtent(), position, H, vol);
   } else {
     VERIFY2(false, "Unknown CRK volume weighting.");
   }

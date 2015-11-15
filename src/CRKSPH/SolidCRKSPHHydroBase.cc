@@ -15,6 +15,7 @@
 #include "CRKSPHUtilities.hh"
 #include "volumeSpacing.hh"
 #include "computeVoronoiVolume.hh"
+#include "computeHullVolumes.hh"
 #include "computeCRKSPHSumVolume.hh"
 #include "computeCRKSPHMoments.hh"
 #include "computeCRKSPHCorrections.hh"
@@ -396,6 +397,8 @@ initialize(const typename Dimension::Scalar time,
     computeCRKSPHSumVolume(connectivityMap, W, position, H, vol);
   } else if (this->volumeType() == CRKVoronoiVolume) {
     computeVoronoiVolume(position, vol);
+  } else if (this->volumeType() == CRKHullVolume) {
+    computeHullVolumes(connectivityMap, W.kernelExtent(), position, H, vol);
   } else {
     VERIFY2(false, "Unknown CRK volume weighting.");
   }
