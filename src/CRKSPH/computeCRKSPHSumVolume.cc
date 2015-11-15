@@ -22,10 +22,10 @@ using NodeSpace::FluidNodeList;
 template<typename Dimension>
 void
 computeCRKSPHSumVolume(const ConnectivityMap<Dimension>& connectivityMap,
-                            const TableKernel<Dimension>& W,
-                            const FieldList<Dimension, typename Dimension::Vector>& position,
-                            const FieldList<Dimension, typename Dimension::SymTensor>& H,
-                            FieldList<Dimension, typename Dimension::Scalar>& vol) {
+                       const TableKernel<Dimension>& W,
+                       const FieldList<Dimension, typename Dimension::Vector>& position,
+                       const FieldList<Dimension, typename Dimension::SymTensor>& H,
+                       FieldList<Dimension, typename Dimension::Scalar>& vol) {
 
   // Pre-conditions.
   const size_t numNodeLists = vol.size();
