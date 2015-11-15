@@ -163,7 +163,6 @@ dataDir = os.path.join(dataDirBase,
                        "nPerh=%f" % nPerh,
                        "compatibleEnergy=%s" % compatibleEnergy,
                        "Cullen=%s" % boolCullenViscosity,
-                       "Qconstruct=%s" % Qconstructor,
                        "filter=%f" % filter)
 restartDir = os.path.join(dataDir, "restarts")
 restartBaseName = os.path.join(restartDir, "Noh-planar-1d-%i" % nx1)
@@ -295,6 +294,7 @@ elif CRKSPH:
                              correctionOrder = correctionOrder,
                              densityUpdate = densityUpdate,
                              HUpdate = HUpdate)
+    hydro.volumeType = CRKVoronoiVolume
 else:
     hydro = HydroConstructor(W = WT,
                              Q = q,
@@ -505,10 +505,11 @@ if graphics:
     Aplot.refresh()
     plots.append((Aplot, "Noh-planar-A.png"))
     
-    dvdxPlot = plotFieldList(hydro.DvDx(),yFunction='-1*%s.xx',winTitle='Source Fn',colorNodeLists=False)
-    viscPlot = plotFieldList(hydro.maxViscousPressure(),
-                             winTitle = "max(rho^2 Piij)",
-                             colorNodeLists = False)
+    if CRKSPH:
+        volPlot = plotFieldList(hydro.volume(), 
+                                winTitle = "volume",
+                                colorNodeLists = False, plotGhosts = False)
+        plots.append(volPlot)
 
     if boolReduceViscosity:
         alphaPlotQ = plotFieldList(q.reducingViscosityMultiplierQ(),

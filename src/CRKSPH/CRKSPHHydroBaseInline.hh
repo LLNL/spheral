@@ -260,6 +260,14 @@ massSecondMoment() const {
 
 template<typename Dimension>
 inline
+const FieldSpace::FieldList<Dimension, typename Dimension::Scalar>&
+CRKSPHHydroBase<Dimension>::
+volume() const {
+  return mVolume;
+}
+
+template<typename Dimension>
+inline
 const FieldSpace::FieldList<Dimension, typename Dimension::Vector>&
 CRKSPHHydroBase<Dimension>::
 XSPHDeltaV() const {

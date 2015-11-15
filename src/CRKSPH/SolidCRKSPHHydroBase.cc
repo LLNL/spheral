@@ -14,6 +14,7 @@
 #include "CRKSPHHydroBase.hh"
 #include "CRKSPHUtilities.hh"
 #include "volumeSpacing.hh"
+#include "computeVoronoiVolume.hh"
 #include "computeCRKSPHSumVolume.hh"
 #include "computeCRKSPHMoments.hh"
 #include "computeCRKSPHCorrections.hh"
@@ -389,10 +390,12 @@ initialize(const typename Dimension::Scalar time,
   // Change CRKSPH weights here if need be!
   FieldList<Dimension, Scalar> vol = state.fields(HydroFieldNames::volume, 0.0);
   FieldList<Dimension, Scalar> massDensity = state.fields(HydroFieldNames::massDensity, 0.0);
-  if (this->volumeType() == MassOverDensity) {
+  if (this->volumeType() == CRKMassOverDensity) {
     vol.assignFields(mass/massDensity);
-  } else if (this->volumeType() == SumVolume) {
+  } else if (this->volumeType() == CRKSumVolume) {
     computeCRKSPHSumVolume(connectivityMap, W, position, H, vol);
+  } else if (this->volumeType() == CRKVoronoiVolume) {
+    computeVoronoiVolume(position, vol);
   } else {
     VERIFY2(false, "Unknown CRK volume weighting.");
   }
