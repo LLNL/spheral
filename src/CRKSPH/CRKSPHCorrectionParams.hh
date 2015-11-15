@@ -12,8 +12,9 @@ enum CRKOrder {//Used to assign the order of the corrections
 };
 
 enum CRKVolumeType { // Choices for the CRK volume weighting
-  MassOverDensity = 0,
-  SumVolume = 1,
+  CRKMassOverDensity = 0,
+  CRKSumVolume = 1,
+  CRKVoronoiVolume = 2,
 };
 
 }

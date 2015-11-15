@@ -196,6 +196,7 @@ public:
   const FieldSpace::FieldList<Dimension, Scalar>&    viscousWork() const;
   const FieldSpace::FieldList<Dimension, Scalar>&    weightedNeighborSum() const;
   const FieldSpace::FieldList<Dimension, SymTensor>& massSecondMoment() const;
+  const FieldSpace::FieldList<Dimension, Scalar>&    volume() const;
   const FieldSpace::FieldList<Dimension, Vector>&    XSPHDeltaV() const;
   const FieldSpace::FieldList<Dimension, Vector>&    DxDt() const;
 

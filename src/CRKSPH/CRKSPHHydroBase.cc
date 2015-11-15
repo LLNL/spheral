@@ -12,10 +12,9 @@
 
 #include "CRKSPHHydroBase.hh"
 #include "CRKSPHUtilities.hh"
-#include "computeHullVolumes.hh"
-#include "computeNeighborHull.hh"
-#include "computeCRKSPHSumMassDensity.hh"
+#include "computeVoronoiVolume.hh"
 #include "computeCRKSPHSumVolume.hh"
+#include "computeCRKSPHSumMassDensity.hh"
 #include "computeCRKSPHMoments.hh"
 #include "computeCRKSPHCorrections.hh"
 #include "computeCRKSPHIntegral.hh"
@@ -252,11 +251,13 @@ initializeProblemStartup(DataBase<Dimension>& dataBase) {
   const FieldList<Dimension, Scalar> mass = dataBase.fluidMass();
   const FieldList<Dimension, SymTensor> H = dataBase.fluidHfield();
   const FieldList<Dimension, Vector> position = dataBase.fluidPosition();
-  if (mVolumeType == MassOverDensity) {
+  if (mVolumeType == CRKMassOverDensity) {
     const FieldList<Dimension, Scalar> massDensity = dataBase.fluidMassDensity();
     mVolume.assignFields(mass/massDensity);
-  } else if (mVolumeType == SumVolume) {
+  } else if (mVolumeType == CRKSumVolume) {
     computeCRKSPHSumVolume(connectivityMap, this->kernel(), position, H, mVolume);
+  } else if (mVolumeType == CRKVoronoiVolume) {
+    computeVoronoiVolume(position, mVolume);
   } else {
     VERIFY2(false, "Unknown CRK volume weighting.");
   }
@@ -572,10 +573,12 @@ initialize(const typename Dimension::Scalar time,
   // Change CRKSPH weights here if need be!
   FieldList<Dimension, Scalar> vol = state.fields(HydroFieldNames::volume, 0.0);
   FieldList<Dimension, Scalar> massDensity = state.fields(HydroFieldNames::massDensity, 0.0);
-  if (mVolumeType == MassOverDensity) {
+  if (mVolumeType == CRKMassOverDensity) {
     vol.assignFields(mass/massDensity);
-  } else if (mVolumeType == SumVolume) {
+  } else if (mVolumeType == CRKSumVolume) {
     computeCRKSPHSumVolume(connectivityMap, W, position, H, vol);
+  } else if (mVolumeType == CRKVoronoiVolume) {
+    computeVoronoiVolume(position, vol);
   } else {
     VERIFY2(false, "Unknown CRK volume weighting.");
   }
