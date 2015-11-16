@@ -105,6 +105,7 @@ commandLine(
 
     densityUpdate = RigorousSumDensity, # VolumeScaledDensity,
     correctionOrder = LinearOrder,
+    volumeType = CRKSumVolume,
     compatibleEnergy = True,
     gradhCorrection = False,
 
@@ -329,6 +330,7 @@ elif CRKSPH:
                              compatibleEnergyEvolution = compatibleEnergy,
                              XSPH = XSPH,
                              correctionOrder = correctionOrder,
+                             volumeType = volumeType,
                              densityUpdate = densityUpdate,
                              HUpdate = HUpdate)
 else:
