@@ -91,6 +91,7 @@ commandLine(KernelConstructor = BSplineKernel,
             smoothIters = 0,
             HUpdate = IdealH,
             correctionOrder = LinearOrder,
+            volumeType = CRKSumVolume,
             domainIndependent = False,
             rigorousBoundaries = False,
             dtverbose = False,
@@ -301,6 +302,7 @@ elif CRKSPH:
                              compatibleEnergyEvolution = compatibleEnergy,
                              XSPH = XSPH,
                              correctionOrder = correctionOrder,
+                             volumeType = volumeType,
                              densityUpdate = densityUpdate,
                              HUpdate = HUpdate)
 else:
