@@ -61,23 +61,12 @@ computeVoronoiVolume(const FieldList<Dim<2>, Dim<2>::Vector>& position,
     // Do the polytope tessellation.
     polytope::Tessellation<2, double> tessellation;
     {
-#ifdef USE_MPI
-      polytope::DistributedTessellator<2, double> tessellator
-#if defined USE_TRIANGLE && ( USE_TRIANGLE>0 )
-        (new polytope::TriangleTessellator<double>(),
-#else
-        (new polytope::BoostTessellator<double>(),
-#endif
-         true,     // Manage memory for serial tessellator
-         false);   // Build parallel connectivity
-#else
-#if defined USE_TRIANGLE && ( USE_TRIANGLE>0 )
+#if defined USE_TRIANGLE && ( USE_TRIANGLE==1 )
       polytope::TriangleTessellator<double> tessellator;
 #else
       polytope::BoostTessellator<double> tessellator;
 #endif
-#endif
-      tessellator.tessellate(coords, tessellation);
+      tessellator.tessellateDegenerate(coords, 1.0e-8, tessellation);
     }
     CHECK(tessellation.cells.size() == numGens);
 
