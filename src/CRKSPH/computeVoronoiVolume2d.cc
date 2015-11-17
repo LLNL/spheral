@@ -61,11 +61,7 @@ computeVoronoiVolume(const FieldList<Dim<2>, Dim<2>::Vector>& position,
     // Do the polytope tessellation.
     polytope::Tessellation<2, double> tessellation;
     {
-#if defined USE_TRIANGLE && ( USE_TRIANGLE==1 )
       polytope::TriangleTessellator<double> tessellator;
-#else
-      polytope::BoostTessellator<double> tessellator;
-#endif
       tessellator.tessellateDegenerate(coords, 1.0e-8, tessellation);
     }
     CHECK(tessellation.cells.size() == numGens);
