@@ -452,6 +452,16 @@ if graphics:
                PPlot = PPlot,
                HPlot = HPlot)
 
+    plots = [(rhoPlot, "Noh-shear-rho.png"),
+             (vrPlot, "Noh-shear-vel.png"),
+             (epsPlot, "Noh-shear-eps.png"),
+             (PPlot, "Noh-shear-P.png"),
+             (HPlot, "Noh-shear-h.png")]
+
+    # Make hardcopies of the plots.
+    for p, filename in plots:
+        p.hardcopy(os.path.join(dataDir, filename), terminal="png")
+
     # Report the error norms.
     rmin, rmax = 0.05, 0.35
     r = mpi.allreduce([x.y for x in nodes1.positions().internalValues()], mpi.SUM)
@@ -478,6 +488,7 @@ if graphics:
             L2 = Pn.gridpnorm(2, rmin, rmax)
             Linf = Pn.gridpnorm("inf", rmin, rmax)
             print "\t%s \t\t%g \t\t%g \t\t%g" % (name, L1, L2, Linf)
+
 #-------------------------------------------------------------------------------
 # If requested, write out the state in a global ordering to a file.
 #-------------------------------------------------------------------------------
