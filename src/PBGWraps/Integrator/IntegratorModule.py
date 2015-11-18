@@ -123,18 +123,13 @@ self.generateIntegratorDescendentBindings(self.VerletIntegrator%(dim)id, %(dim)i
                                             constrefparam(derivatives, "derivs")],
                      is_const = True,
                      is_virtual = True)
-        x.add_method("initialize", None, [refparam(state, "state"),
-                                          refparam(derivatives, "derivs")],
-                     is_virtual = True)
-        x.add_method("preStepInitialize", None, [param("double", "t"),
-                                                 param("double", "dt"),
-                                                 refparam(state, "state"),
+        x.add_method("preStepInitialize", None, [refparam(state, "state"),
                                                  refparam(derivatives, "derivs")],
                      is_virtual = True)
-        x.add_method("finalize", None, [param("double", "t"),
-                                        param("double", "dt"),
-                                        refparam(state, "state"),
-                                        refparam(derivatives, "derivs")],
+        x.add_method("initializeDerivatives", None, [param("double", "t"),
+                                                     param("double", "dt"),
+                                                     refparam(state, "state"),
+                                                     refparam(derivatives, "derivs")],
                      is_virtual = True)
         x.add_method("evaluateDerivatives", None, [param("double", "t"),
                                                    param("double", "dt"),
@@ -152,6 +147,11 @@ self.generateIntegratorDescendentBindings(self.VerletIntegrator%(dim)id, %(dim)i
                                                refparam(state, "state"),
                                                constrefparam(derivatives, "derivs")],
                      is_const = True)
+        x.add_method("postStepFinalize", None, [param("double", "t"),
+                                                param("double", "dt"),
+                                                refparam(state, "state"),
+                                                refparam(derivatives, "derivs")],
+                     is_virtual = True)
         x.add_method("appendPhysicsPackage", None, [constrefparam(physics, "package")])
         x.add_method("havePhysicsPackage", "bool", [constrefparam(physics, "package")], is_const=True)
         x.add_method("uniqueBoundaryConditions", vectorboundary, [], is_const=True)

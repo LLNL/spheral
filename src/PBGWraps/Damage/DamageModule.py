@@ -100,11 +100,9 @@ self.generateTensorDamageModelBindings(self.TensorDamageModel%(dim)id, %(dim)i)
                                                  refparam(scalarfield, "DDDt")], is_const=True)
         x.add_method("registerState", None, [refparam(database, "dataBase"),
                                              refparam(state, "state")], is_virtual=True)
-        x.add_method("initialize", None, [param("const double", "time"),
-                                          param("const double", "dt"),
-                                          constrefparam(database, "dataBase"),
-                                          refparam(state, "state"),
-                                          refparam(derivatives, "derivatives")], is_virtual=True)
+        x.add_method("preStepInitialize", None, [constrefparam(database, "dataBase"),
+                                                 refparam(state, "state"),
+                                                 refparam(derivatives, "derivatives")], is_virtual=True)
         x.add_method("postStateUpdate", None, [constrefparam(database, "dataBase"),
                                                refparam(state, "state"),
                                                constrefparam(derivatives, "derivatives")], is_const=True, is_virtual=True)

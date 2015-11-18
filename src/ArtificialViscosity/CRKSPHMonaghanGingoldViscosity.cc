@@ -2,6 +2,7 @@
 // A simple form for the artificial viscosity due to Monaghan & Gingold.
 //----------------------------------------------------------------------------//
 #include "CRKSPHMonaghanGingoldViscosity.hh"
+#include "Boundary/Boundary.hh"
 #include "DataOutput/Restart.hh"
 #include "Field/FieldList.hh"
 #include "DataBase/DataBase.hh"
@@ -13,6 +14,8 @@
 #include "Boundary/Boundary.hh"
 #include "Hydro/HydroFieldNames.hh"
 #include "DataBase/IncrementState.hh"
+#include "CRKSPH/computeCRKSPHMoments.hh"
+#include "CRKSPH/computeCRKSPHCorrections.hh"
 #include "CRKSPH/gradientCRKSPH.hh"
 
 namespace Spheral {
@@ -122,9 +125,83 @@ initialize(const DataBase<Dimension>& dataBase,
   // Let the base class do it's thing.
   ArtificialViscosity<Dimension>::initialize(dataBase, state, derivs, boundaryBegin, boundaryEnd, time, dt, W);
 
+  // The connectivity.
+  const ConnectivityMap<Dimension>& connectivityMap = dataBase.connectivityMap();
+  const vector<const NodeList<Dimension>*>& nodeLists = connectivityMap.nodeLists();
+  const size_t numNodeLists = nodeLists.size();
+
+  // const FieldList<Dimension, Scalar> vol = state.fields(HydroFieldNames::volume, 0.0);
+  // const FieldList<Dimension, Scalar> mass = state.fields(HydroFieldNames::mass, 0.0);
+  const FieldList<Dimension, Vector> position = state.fields(HydroFieldNames::position, Vector::zero);
+  const FieldList<Dimension, SymTensor> H = state.fields(HydroFieldNames::H, SymTensor::zero);
+
+  const CRKSPHSpace::CRKOrder correctionOrder = this->QcorrectionOrder();
+
+  // Make new correction fields cause do not want to mess up the corrections of the solver if they are at different orders.
+  // The CRK hydro has already evaluated the moments, so we get to just reuse those.
+  const FieldList<Dimension, Scalar> m0 = state.fields(HydroFieldNames::m0_CRKSPH, 0.0);
+  const FieldList<Dimension, Vector> m1 = state.fields(HydroFieldNames::m1_CRKSPH, Vector::zero);
+  const FieldList<Dimension, SymTensor> m2 = state.fields(HydroFieldNames::m2_CRKSPH, SymTensor::zero);
+  const FieldList<Dimension, ThirdRankTensor> m3 = state.fields(HydroFieldNames::m3_CRKSPH, ThirdRankTensor::zero);
+  const FieldList<Dimension, FourthRankTensor> m4 = state.fields(HydroFieldNames::m4_CRKSPH, FourthRankTensor::zero);
+  const FieldList<Dimension, Vector> gradm0 = state.fields(HydroFieldNames::gradM0_CRKSPH, Vector::zero);
+  const FieldList<Dimension, Tensor> gradm1 = state.fields(HydroFieldNames::gradM1_CRKSPH, Tensor::zero);
+  const FieldList<Dimension, ThirdRankTensor> gradm2 = state.fields(HydroFieldNames::gradM2_CRKSPH, ThirdRankTensor::zero);
+  const FieldList<Dimension, FourthRankTensor> gradm3 = state.fields(HydroFieldNames::gradM3_CRKSPH, FourthRankTensor::zero);
+  const FieldList<Dimension, FifthRankTensor> gradm4 = state.fields(HydroFieldNames::gradM4_CRKSPH, FifthRankTensor::zero);
+  FieldList<Dimension, Scalar> QA = dataBase.newFluidFieldList(0.0, "Q A");
+  FieldList<Dimension, Vector> QB;
+  FieldList<Dimension, Tensor> QC;
+  FieldList<Dimension, Vector> QgradA = dataBase.newFluidFieldList(Vector::zero, "Q grad A");
+  FieldList<Dimension, Tensor> QgradB;
+  FieldList<Dimension, ThirdRankTensor> QgradC;
+  if (correctionOrder == CRKSPHSpace::LinearOrder or correctionOrder == CRKSPHSpace::QuadraticOrder) {
+    QB = dataBase.newFluidFieldList(Vector::zero, "Q B");
+    QgradB = dataBase.newFluidFieldList(Tensor::zero, "Q grad B");
+  }
+  if (correctionOrder == CRKSPHSpace::QuadraticOrder) {
+    QC = dataBase.newFluidFieldList(Tensor::zero, "Q C");
+    QgradC = dataBase.newFluidFieldList(ThirdRankTensor::zero, "Q grad C");
+  }
+
+  FieldList<Dimension, Tensor> QDvDx  = dataBase.newFluidFieldList(Tensor::zero, "Q Velocity Gradient");
+
+  // Change CRKSPH weights here if need be!
+  // const FieldList<Dimension, Scalar> massDensity = state.fields(HydroFieldNames::massDensity, 0.0);
+  // const FieldList<Dimension, Scalar> vol = mass/massDensity;
+  const FieldList<Dimension, Scalar> vol = state.fields(HydroFieldNames::volume, 0.0);
+  CRKSPHSpace::computeCRKSPHCorrections(m0, m1, m2, m3, m4, gradm0, gradm1, gradm2, gradm3, gradm4, correctionOrder, QA, QB, QC, QgradA, QgradB, QgradC);
+  for (typename ArtificialViscosity<Dimension>::ConstBoundaryIterator boundItr = boundaryBegin;
+       boundItr < boundaryEnd;
+       ++boundItr) {
+    (*boundItr)->applyFieldListGhostBoundary(QA);
+    (*boundItr)->applyFieldListGhostBoundary(QB);
+    (*boundItr)->applyFieldListGhostBoundary(QC);
+    (*boundItr)->applyFieldListGhostBoundary(QgradA);
+    (*boundItr)->applyFieldListGhostBoundary(QgradB);
+    (*boundItr)->applyFieldListGhostBoundary(QgradC);
+  }
+  for (typename ArtificialViscosity<Dimension>::ConstBoundaryIterator boundItr = boundaryBegin;
+       boundItr != boundaryEnd;
+       ++boundItr) (*boundItr)->finalizeGhostBoundary();
+
+  // Get the velocity gradient.
+  const FieldList<Dimension, Vector> velocity = state.fields(HydroFieldNames::velocity, Vector::zero);
+  QDvDx.assignFields(CRKSPHSpace::gradientCRKSPH(velocity, position, vol, H, QA, QB, QC, QgradA, QgradB, QgradC, connectivityMap, ArtificialViscosity<Dimension>::QcorrectionOrder(), W, NodeCoupling()));
+  for (typename ArtificialViscosity<Dimension>::ConstBoundaryIterator boundItr = boundaryBegin;
+       boundItr < boundaryEnd;
+       ++boundItr) {
+    (*boundItr)->applyFieldListGhostBoundary(QDvDx);
+  }
+  for (typename ArtificialViscosity<Dimension>::ConstBoundaryIterator boundItr = boundaryBegin;
+       boundItr != boundaryEnd;
+       ++boundItr) (*boundItr)->finalizeGhostBoundary();
+
+
   // Cache pointers to the velocity gradient.
-  FieldList<Dimension, Tensor> DvDx = derivs.fields(HydroFieldNames::velocityGradient, Tensor::zero);
-  mGradVel = DvDx;
+  //FieldList<Dimension, Tensor> DvDx = derivs.fields(HydroFieldNames::velocityGradient, Tensor::zero);
+  //mGradVel = DvDx;
+  mGradVel = QDvDx;
 }
 
 //------------------------------------------------------------------------------
@@ -241,7 +318,8 @@ Piij(const unsigned nodeListi, const unsigned i,
   const Scalar ri = gradi/(sgn(gradj)*max(1.0e-30, abs(gradj)));
   const Scalar rj = gradj/(sgn(gradi)*max(1.0e-30, abs(gradi)));
   CHECK(min(ri, rj) <= 1.0);
-  const Scalar phi = limiterMM(min(ri, rj));
+  //const Scalar phi = limiterMM(min(ri, rj));
+  const Scalar phi = limiterVL(min(ri, rj));
 
   // //const Scalar gradi = (((1.0/Dimension::nDim)*Tensor::one*DvDxi.Trace()).dot(xij)).dot(xij);
   // //const Scalar gradj = (((1.0/Dimension::nDim)*Tensor::one*DvDxj.Trace()).dot(xij)).dot(xij);

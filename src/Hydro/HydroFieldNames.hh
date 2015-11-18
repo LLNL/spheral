@@ -45,6 +45,13 @@ struct HydroFieldNames {
   static const std::string m0_CRKSPH;
   static const std::string m1_CRKSPH;
   static const std::string m2_CRKSPH;
+  static const std::string m3_CRKSPH;
+  static const std::string m4_CRKSPH;
+  static const std::string gradM0_CRKSPH;
+  static const std::string gradM1_CRKSPH;
+  static const std::string gradM2_CRKSPH;
+  static const std::string gradM3_CRKSPH;
+  static const std::string gradM4_CRKSPH;
   static const std::string A0_CRKSPH;
   static const std::string A_CRKSPH;
   static const std::string B_CRKSPH;

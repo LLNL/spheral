@@ -111,6 +111,11 @@ public:
   // An optional hook to initialize once when the problem is starting up.
   virtual void initializeProblemStartup(DataBaseSpace::DataBase<Dimension>& dataBase);
 
+  // Optional hook to be called at the beginning of a time step.
+  virtual void preStepInitialize(const DataBaseSpace::DataBase<Dimension>& dataBase, 
+                                 State<Dimension>& state,
+                                 StateDerivatives<Dimension>& derivs);
+
   // Some packages might want a hook to do some initializations before the
   // evaluateDerivatives() method is called.
   virtual void initialize(const Scalar time, 
@@ -120,6 +125,7 @@ public:
                           StateDerivatives<Dimension>& derivs);
 
   // Similarly packages might want a hook to do some post-step finalizations.
+  // Really we should rename this post-step finalize.
   virtual void finalize(const Scalar time, 
                         const Scalar dt,
                         DataBaseSpace::DataBase<Dimension>& dataBase, 

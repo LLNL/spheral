@@ -85,21 +85,18 @@ public:
                           const State<Dimension>& state,
                           const StateDerivatives<Dimension>& derivs) const;
 
-  // Perform any expected initializations of the integrator.
-  virtual void initialize(State<Dimension>& state,
-                          StateDerivatives<Dimension>& derivs);
-
   // Perform generic initializations at the beginning of a timestep.
-  virtual void preStepInitialize(const double t,
-                                 const double dt,
-                                 State<Dimension>& state,
+  // To be called once per advance cycle.
+  virtual void preStepInitialize(State<Dimension>& state,
                                  StateDerivatives<Dimension>& derivs);
 
-  // Finalize at the end a timestep.
-  virtual void finalize(const double t,
-                        const double dt,
-                        State<Dimension>& state,
-                        StateDerivatives<Dimension>& derivs);
+  // Prepare all physics packages for calls to evaluateDerivatives.
+  // To be called before any call to Physics::evaluateDerivatives, therefore potentially
+  // several times during a time step.
+  virtual void initializeDerivatives(const double t,
+                                     const double dt,
+                                     State<Dimension>& state,
+                                     StateDerivatives<Dimension>& derivs);
 
   // Iterate over all physics packages and call evaluateDerivatives.
   void evaluateDerivatives(const Scalar t,
@@ -119,6 +116,12 @@ public:
   void postStateUpdate(const DataBaseSpace::DataBase<Dimension>& dataBase,
                        State<Dimension>& state,
                        const StateDerivatives<Dimension>& derivs) const;
+
+  // Finalize at the end a timestep, therefore called once at the end of a timestep.
+  virtual void postStepFinalize(const double t,
+                                const double dt,
+                                State<Dimension>& state,
+                                StateDerivatives<Dimension>& derivs);
 
   // Add a Physics package.
   void appendPhysicsPackage(PhysicsSpace::Physics<Dimension>& package);

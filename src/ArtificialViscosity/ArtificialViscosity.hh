@@ -10,6 +10,7 @@
 #include <utility>
 
 #include "Geometry/Dimension.hh"
+#include "CRKSPH/CRKSPHCorrectionParams.hh"
 
 #ifndef __GCCXML__
 #include <vector>
@@ -68,7 +69,8 @@ public:
 
     // Constructors.
     ArtificialViscosity(const Scalar Clinear,
-                      const Scalar Cquadratic);
+                        const Scalar Cquadratic,
+                        const CRKSPHSpace::CRKOrder QcorrectionOrder = CRKSPHSpace::LinearOrder);
 
     // Destructor.
     virtual ~ArtificialViscosity();
@@ -107,6 +109,10 @@ public:
 
     Scalar Cq() const;
     void Cq(Scalar Cq);
+
+    //Allow access to the Q correction order.
+    CRKSPHSpace::CRKOrder QcorrectionOrder() const;
+    void QcorrectionOrder(CRKSPHSpace::CRKOrder order);
 
     // Toggle for the Balsara shear correction.
     bool balsaraShearCorrection() const;
@@ -204,6 +210,7 @@ protected:
 
   Scalar mClinear;
   Scalar mCquadratic;
+  CRKSPHSpace::CRKOrder mQcorrectionOrder;
 
 #ifndef __GCCXML__
   // Parameters for the Balsara shear correction.

@@ -86,7 +86,7 @@ step(typename Dimension::Scalar maxTime,
   DataBase<Dimension>& db = this->accessDataBase();
 
   // Initalize the integrator.
-  this->initialize(state, derivs1);
+  this->preStepInitialize(state, derivs1);
 
   // Determine the minimum timestep across all packages.
   const Scalar dt = this->selectDt(min(this->dtMin(), maxTime - t),
@@ -107,6 +107,7 @@ step(typename Dimension::Scalar maxTime,
 
   // Stage 1:
   // Get derivs1(t_n, state(t_n))
+  this->initializeDerivatives(t, dt, state, derivs1);
   this->evaluateDerivatives(t, dt, db, state, derivs1);
   this->finalizeDerivatives(t, dt, db, state, derivs1);
 
@@ -116,7 +117,7 @@ step(typename Dimension::Scalar maxTime,
   this->applyGhostBoundaries(tmpstate, derivs1);
   this->postStateUpdate(db, tmpstate, derivs1);
   this->finalizeGhostBoundaries();
-  this->preStepInitialize(t + 0.5*dt, 0.5*dt, tmpstate, derivs2);
+  this->initializeDerivatives(t + 0.5*dt, 0.5*dt, tmpstate, derivs2);
   this->evaluateDerivatives(t + 0.5*dt, 0.5*dt, db, tmpstate, derivs2);
   this->finalizeDerivatives(t + 0.5*dt, 0.5*dt, db, tmpstate, derivs2);
 
@@ -128,7 +129,7 @@ step(typename Dimension::Scalar maxTime,
   this->applyGhostBoundaries(tmpstate, derivs2);
   this->postStateUpdate(db, tmpstate, derivs2);
   this->finalizeGhostBoundaries();
-  this->preStepInitialize(t + 0.5*dt, 0.5*dt, tmpstate, derivs3);
+  this->initializeDerivatives(t + 0.5*dt, 0.5*dt, tmpstate, derivs3);
   this->evaluateDerivatives(t + 0.5*dt, 0.5*dt, db, tmpstate, derivs3);
   this->finalizeDerivatives(t + 0.5*dt, 0.5*dt, db, tmpstate, derivs3);
 
@@ -140,7 +141,7 @@ step(typename Dimension::Scalar maxTime,
   this->applyGhostBoundaries(tmpstate, derivs3);
   this->postStateUpdate(db, tmpstate, derivs3);
   this->finalizeGhostBoundaries();
-  this->preStepInitialize(t + dt, dt, tmpstate, derivs4);
+  this->initializeDerivatives(t + dt, dt, tmpstate, derivs4);
   this->evaluateDerivatives(t + dt, dt, db, tmpstate, derivs4);
   this->finalizeDerivatives(t + dt, dt, db, tmpstate, derivs4);
 
@@ -157,7 +158,7 @@ step(typename Dimension::Scalar maxTime,
   this->finalizeGhostBoundaries();
 
   // Apply any physics specific finalizations.
-  this->finalize(t + dt, dt, state, derivs4);
+  this->postStepFinalize(t + dt, dt, state, derivs4);
 
   // Enforce boundaries.
   this->enforceBoundaries(state, derivs4);

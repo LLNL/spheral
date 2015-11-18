@@ -84,6 +84,7 @@ commandLine(nx1 = 100,
             statsStep = 1,
             smoothIters = 0,
             HUpdate = IntegrateH,
+            correctionOrder = LinearOrder,
             densityUpdate = RigorousSumDensity,
             compatibleEnergy = True,
             gradhCorrection = True,
@@ -140,9 +141,9 @@ eos = GammaLawGasMKS(gamma, mu)
 # Interpolation kernels.
 #-------------------------------------------------------------------------------
 if KernelConstructor==NBSplineKernel:
-  WT = TableKernel(NBSplineKernel(order), 1000000)
+  WT = TableKernel(NBSplineKernel(order), 1000)
 else:
-  WT = TableKernel(KernelConstructor(), 1000000)
+  WT = TableKernel(KernelConstructor(), 1000)
 output("WT")
 kernelExtent = WT.kernelExtent
 output("WT")
@@ -284,6 +285,7 @@ elif CRKSPH:
                              filter = filter,
                              cfl = cfl,
                              compatibleEnergyEvolution = compatibleEnergy,
+                             correctionOrder = correctionOrder,
                              XSPH = XSPH,
                              densityUpdate = densityUpdate,
                              HUpdate = HUpdate)

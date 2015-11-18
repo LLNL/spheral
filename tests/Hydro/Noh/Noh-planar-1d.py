@@ -95,6 +95,8 @@ commandLine(KernelConstructor = BSplineKernel,
             smoothIters = 0,
             HUpdate = IdealH,
             correctionOrder = LinearOrder,
+            QcorrectionOrder = LinearOrder,
+            volumeType = CRKSumVolume,
             densityUpdate = RigorousSumDensity, # VolumeScaledDensity,
             compatibleEnergy = True,
             gradhCorrection = True,
@@ -162,7 +164,6 @@ dataDir = os.path.join(dataDirBase,
                        "nPerh=%f" % nPerh,
                        "compatibleEnergy=%s" % compatibleEnergy,
                        "Cullen=%s" % boolCullenViscosity,
-                       "Qconstruct=%s" % Qconstructor,
                        "filter=%f" % filter)
 restartDir = os.path.join(dataDir, "restarts")
 restartBaseName = os.path.join(restartDir, "Noh-planar-1d-%i" % nx1)
@@ -256,6 +257,7 @@ output("db.numFluidNodeLists")
 q = Qconstructor(Cl, Cq, linearInExpansion)
 q.epsilon2 = epsilon2
 q.limiter = Qlimiter
+q.QcorrectionOrder = QcorrectionOrder
 output("q")
 output("q.Cl")
 output("q.Cq")
@@ -291,6 +293,7 @@ elif CRKSPH:
                              compatibleEnergyEvolution = compatibleEnergy,
                              XSPH = XSPH,
                              correctionOrder = correctionOrder,
+                             volumeType = volumeType,
                              densityUpdate = densityUpdate,
                              HUpdate = HUpdate)
 else:
@@ -503,10 +506,11 @@ if graphics:
     Aplot.refresh()
     plots.append((Aplot, "Noh-planar-A.png"))
     
-    dvdxPlot = plotFieldList(hydro.DvDx(),yFunction='-1*%s.xx',winTitle='Source Fn',colorNodeLists=False)
-    viscPlot = plotFieldList(hydro.maxViscousPressure(),
-                             winTitle = "max(rho^2 Piij)",
-                             colorNodeLists = False)
+    if CRKSPH:
+        volPlot = plotFieldList(hydro.volume(), 
+                                winTitle = "volume",
+                                colorNodeLists = False, plotGhosts = False)
+        plots.append(volPlot)
 
     if boolReduceViscosity:
         alphaPlotQ = plotFieldList(q.reducingViscosityMultiplierQ(),

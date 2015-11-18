@@ -84,6 +84,7 @@ commandLine(nx1 = 400,
             statsStep = 10,
             HUpdate = IdealH,
             correctionOrder = LinearOrder,
+            volumeType = CRKSumVolume,
             densityUpdate = RigorousSumDensity,
             compatibleEnergy = True,
             gradhCorrection = False,
@@ -257,6 +258,7 @@ elif CRKSPH:
                              filter = filter,
                              cfl = cfl,
                              correctionOrder = correctionOrder,
+                             volumeType = volumeType,
                              compatibleEnergyEvolution = compatibleEnergy,
                              XSPH = XSPH,
                              densityUpdate = densityUpdate,
@@ -494,9 +496,6 @@ if graphics:
              (csPlot, "Sod-planar-cs.png")]
     
     if CRKSPH:
-        volPlot = plotFieldList(hydro.volume(),
-                                winTitle = "volume",
-                                colorNodeLists = False)
         APlot = plotFieldList(hydro.A(),
                               winTitle = "A",
                               colorNodeLists = False)
@@ -504,15 +503,11 @@ if graphics:
                               yFunction = "%s.x",
                               winTitle = "B",
                               colorNodeLists = False)
-        plots += [(volPlot, "Sod-planar-vol.png"),
-                  (APlot, "Sod-planar-A.png"),
+        plots += [(APlot, "Sod-planar-A.png"),
                   (BPlot, "Sod-planar-B.png")]
-        state = State()
         derivs = StateDerivatives(db, integrator.physicsPackages())
         drhodt = derivs.scalarFields("delta mass density")
         pdrhodt = plotFieldList(drhodt, winTitle = "DrhoDt", colorNodeLists=False)
-        drhodx = derivs.vectorFields("mass density gradient")
-        pdrhodx = plotFieldList(drhodx, yFunction="%s.x", winTitle = "DrhoDx", colorNodeLists=False)
     
     viscPlot = plotFieldList(hydro.maxViscousPressure(),
                              winTitle = "max(rho^2 Piij)",
