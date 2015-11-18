@@ -133,50 +133,50 @@ CRKSPHHydroBase(const SmoothingScaleBase<Dimension>& smoothingScaleMethod,
   mfilter(filter),
   mEpsTensile(epsTensile),
   mnTensile(nTensile),
-  mTimeStepMask(FieldSpace::Reference),
-  mPressure(FieldSpace::Reference),
-  mSoundSpeed(FieldSpace::Reference),
-  mSpecificThermalEnergy0(FieldSpace::Reference),
-  mHideal(FieldSpace::Reference),
-  mMaxViscousPressure(FieldSpace::Reference),
-  mEffViscousPressure(FieldSpace::Reference),
-  mViscousWork(FieldSpace::Reference),
-  mVolume(FieldSpace::Reference),
-  mWeightedNeighborSum(FieldSpace::Reference),
-  mMassSecondMoment(FieldSpace::Reference),
-  mXSPHDeltaV(FieldSpace::Reference),
-  mDxDt(FieldSpace::Reference),
-  mDvDt(FieldSpace::Reference),
-  mDmassDensityDt(FieldSpace::Reference),
-  mDspecificThermalEnergyDt(FieldSpace::Reference),
-  mDHDt(FieldSpace::Reference),
-  mDvDx(FieldSpace::Reference),
-  mInternalDvDx(FieldSpace::Reference),
-  mPairAccelerations(FieldSpace::Reference),
-  mDvDt0(FieldSpace::Reference),
-  mDmassDensityDt0(FieldSpace::Reference),
-  mDspecificThermalEnergyDt0(FieldSpace::Reference),
-  mDHDt0(FieldSpace::Reference),
-  mDvDx0(FieldSpace::Reference),
-  mInternalDvDx0(FieldSpace::Reference),
-  mPairAccelerations0(FieldSpace::Reference),
-  mA(FieldSpace::Reference),
-  mB(FieldSpace::Reference),
-  mC(FieldSpace::Reference),
-  mGradA(FieldSpace::Reference),
-  mGradB(FieldSpace::Reference),
-  mGradC(FieldSpace::Reference),
-  mM0(FieldSpace::Reference),
-  mM1(FieldSpace::Reference),
-  mM2(FieldSpace::Reference),
-  mM3(FieldSpace::Reference),
-  mM4(FieldSpace::Reference),
-  mGradm0(FieldSpace::Reference),
-  mGradm1(FieldSpace::Reference),
-  mGradm2(FieldSpace::Reference),
-  mGradm3(FieldSpace::Reference),
-  mGradm4(FieldSpace::Reference),
-  mSurfNorm(FieldSpace::Reference),
+  mTimeStepMask(FieldSpace::Copy),
+  mPressure(FieldSpace::Copy),
+  mSoundSpeed(FieldSpace::Copy),
+  mSpecificThermalEnergy0(FieldSpace::Copy),
+  mHideal(FieldSpace::Copy),
+  mMaxViscousPressure(FieldSpace::Copy),
+  mEffViscousPressure(FieldSpace::Copy),
+  mViscousWork(FieldSpace::Copy),
+  mVolume(FieldSpace::Copy),
+  mWeightedNeighborSum(FieldSpace::Copy),
+  mMassSecondMoment(FieldSpace::Copy),
+  mXSPHDeltaV(FieldSpace::Copy),
+  mDxDt(FieldSpace::Copy),
+  mDvDt(FieldSpace::Copy),
+  mDmassDensityDt(FieldSpace::Copy),
+  mDspecificThermalEnergyDt(FieldSpace::Copy),
+  mDHDt(FieldSpace::Copy),
+  mDvDx(FieldSpace::Copy),
+  mInternalDvDx(FieldSpace::Copy),
+  mPairAccelerations(FieldSpace::Copy),
+  mDvDt0(FieldSpace::Copy),
+  mDmassDensityDt0(FieldSpace::Copy),
+  mDspecificThermalEnergyDt0(FieldSpace::Copy),
+  mDHDt0(FieldSpace::Copy),
+  mDvDx0(FieldSpace::Copy),
+  mInternalDvDx0(FieldSpace::Copy),
+  mPairAccelerations0(FieldSpace::Copy),
+  mA(FieldSpace::Copy),
+  mB(FieldSpace::Copy),
+  mC(FieldSpace::Copy),
+  mGradA(FieldSpace::Copy),
+  mGradB(FieldSpace::Copy),
+  mGradC(FieldSpace::Copy),
+  mM0(FieldSpace::Copy),
+  mM1(FieldSpace::Copy),
+  mM2(FieldSpace::Copy),
+  mM3(FieldSpace::Copy),
+  mM4(FieldSpace::Copy),
+  mGradm0(FieldSpace::Copy),
+  mGradm1(FieldSpace::Copy),
+  mGradm2(FieldSpace::Copy),
+  mGradm3(FieldSpace::Copy),
+  mGradm4(FieldSpace::Copy),
+  mSurfNorm(FieldSpace::Copy),
   mRestart(DataOutput::registerWithRestart(*this)) {
 }
 
@@ -264,59 +264,20 @@ initializeProblemStartup(DataBase<Dimension>& dataBase) {
   } else {
     VERIFY2(false, "Unknown CRK volume weighting.");
   }
-  // computeHVolumes(W.kernelExtent(), H, mVolume);
-
   for (ConstBoundaryIterator boundItr = this->boundaryBegin();
        boundItr != this->boundaryEnd();
        ++boundItr) (*boundItr)->applyFieldListGhostBoundary(mVolume);
   for (ConstBoundaryIterator boundItr = this->boundaryBegin();
        boundItr != this->boundaryEnd();
        ++boundItr) (*boundItr)->finalizeGhostBoundary();
-/*
-  // Initialize the kernel correction fields.
-  dataBase.updateConnectivityMap(false);
-  const ConnectivityMap<Dimension>& connectivityMap = dataBase.connectivityMap();
-  const TableKernel<Dimension>& W = this->kernel();
-  const FieldList<Dimension, Vector> position = dataBase.fluidPosition();
-  const FieldList<Dimension, SymTensor> H = dataBase.fluidHfield();
-  FieldList<Dimension, Scalar> mass = dataBase.fluidMass();
-  FieldList<Dimension, Scalar> massDensity = dataBase.fluidMassDensity();
-  for (ConstBoundaryIterator boundItr = this->boundaryBegin();
-       boundItr != this->boundaryEnd();
-       ++boundItr) {
-    (*boundItr)->applyFieldListGhostBoundary(mass);
-    (*boundItr)->applyFieldListGhostBoundary(massDensity);
-  }
-  for (ConstBoundaryIterator boundItr = this->boundaryBegin();
-       boundItr != this->boundaryEnd();
-       ++boundItr) (*boundItr)->finalizeGhostBoundary();
-  FieldList<Dimension, Scalar> vol = mass/massDensity;
-  for (ConstBoundaryIterator boundItr = this->boundaryBegin();
-       boundItr != this->boundaryEnd();
-       ++boundItr) (*boundItr)->applyFieldListGhostBoundary(vol);
-  for (ConstBoundaryIterator boundItr = this->boundaryBegin();
-       boundItr != this->boundaryEnd();
-       ++boundItr) (*boundItr)->finalizeGhostBoundary();
-*/
 
+  // Compute the corrections.
   computeCRKSPHMoments(connectivityMap, W, mVolume, position, H, correctionOrder(), NodeCoupling(), mM0, mM1, mM2, mM3, mM4, mGradm0, mGradm1, mGradm2, mGradm3, mGradm4);
   computeCRKSPHCorrections(mM0, mM1, mM2, mM3, mM4, mGradm0, mGradm1, mGradm2, mGradm3, mGradm4, correctionOrder(), mA, mB, mC, mGradA, mGradB, mGradC);
 
   // Initialize the pressure and sound speed.
   dataBase.fluidPressure(mPressure);
   dataBase.fluidSoundSpeed(mSoundSpeed);
-
-  // We need to call our own evaluate derivatives method in order to initialize the 
-  // viscous pressure for use in choosing a timestep.
-  // vector<Physics<Dimension>*> packages(1, this);
-  // State<Dimension> state(dataBase, packages);
-  // StateDerivatives<Dimension> derivs(dataBase, packages);
-  // this->applyGhostBoundaries(state, derivs);
-  // for (ConstBoundaryIterator boundItr = this->boundaryBegin();
-  //      boundItr != this->boundaryEnd();
-  //      ++boundItr) (*boundItr)->finalizeGhostBoundary();
-  // this->initialize(0.0, 1.0, dataBase, state, derivs);
-  // this->evaluateDerivatives(0.0, 1.0, dataBase, state, derivs);
 }
 
 //------------------------------------------------------------------------------

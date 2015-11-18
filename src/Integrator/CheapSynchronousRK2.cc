@@ -90,7 +90,7 @@ step(typename Dimension::Scalar maxTime,
   // Initalize the integrator.
   state.timeAdvanceOnly(true);
   this->preStepInitialize(state, derivs);
-  this->initializeDerivatives(t, 0.0, state, derivs);
+  // this->initializeDerivatives(t, 0.0, state, derivs);
 
   // Determine the minimum timestep across all packages.
   const Scalar dt = this->selectDt(min(this->dtMin(), maxTime - t),
@@ -113,7 +113,7 @@ step(typename Dimension::Scalar maxTime,
 
   // Evaluate the derivatives at the midpoint.
   derivs.Zero();
-  // this->initializeDerivatives(t + hdt, hdt, state, derivs);
+  this->initializeDerivatives(t + hdt, hdt, state, derivs);
   this->evaluateDerivatives(t + hdt, hdt, db, state, derivs);
   this->finalizeDerivatives(t + hdt, hdt, db, state, derivs);
 
