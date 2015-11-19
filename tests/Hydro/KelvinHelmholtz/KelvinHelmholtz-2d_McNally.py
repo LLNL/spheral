@@ -544,12 +544,12 @@ def mixingScale(cycle, t, dt):
       M=sqrt((S/D)*(S/D)+(C/D)*(C/D))*2.0
       KE = max(ke)
       print "At time t = %s, Mixing Amp M = %s \n" % (t,M)
-      with open(mixFile, "a") as myfile:
+      with open(os.path.join(dataDir, mixFile), "a") as myfile:
         myfile.write("%s\t %s\t %s\n" % (t, M, KE))
 
 if graphMixing:
     control.appendPeriodicTimeWork(mixingScale, mixInterval)
-    myfile = open(mixFile, "w")
+    myfile = open(os.path.join(dataDir, mixFile), "w")
     myfile.write("# time           mixamp                     KEMax\n")
     myfile.close()
 
@@ -626,7 +626,7 @@ if serialDump:
           serialData.append([nodeL.positions()[j],3.0/(nodeL.Hfield()[j].Trace()),nodeL.mass()[j],nodeL.massDensity()[j],nodeL.specificThermalEnergy()[j]])
   serialData = mpi.reduce(serialData,mpi.SUM)
   if rank == 0:
-    f = open(dataDir + "/serialDump.ascii",'w')
+    f = open(os.path.join(dataDir, "/serialDump.ascii"),'w')
     for i in xrange(len(serialData)):
       f.write("{0} {1} {2} {3} {4} {5} {6} {7}\n".format(i,serialData[i][0][0],serialData[i][0][1],0.0,serialData[i][1],serialData[i][2],serialData[i][3],serialData[i][4]))
     f.close()
