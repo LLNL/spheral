@@ -416,13 +416,6 @@ initialize(const typename Dimension::Scalar time,
   computeCRKSPHMoments(connectivityMap, W, vol, position, H, this->correctionOrder(), nodeCoupling, m0, m1, m2, m3, m4, gradm0, gradm1, gradm2, gradm3, gradm4);
   computeCRKSPHCorrections(m0, m1, m2, m3, m4, gradm0, gradm1, gradm2, gradm3, gradm4, this->correctionOrder(), Adamage, Bdamage, Cdamage, gradAdamage, gradBdamage, gradCdamage);
 
-  // Depending on the mass density advancement selected, we may want to replace the 
-  // mass density.
-  if (this->densityUpdate() == PhysicsSpace::RigorousSumDensity) {
-    computeCRKSPHSumMassDensity<Dimension>(connectivityMap, W, position, mass, vol, H, A, B, C, this->correctionOrder(), massDensity);
-  }
-
-
   for (ConstBoundaryIterator boundItr = this->boundaryBegin();
        boundItr != this->boundaryEnd();
        ++boundItr) {
@@ -974,33 +967,70 @@ finalize(const typename Dimension::Scalar time,
   // Base class finalization.
   PhysicsSpace::GenericHydro<Dimension>::finalize(time, dt, dataBase, state, derivs);
 
-  // // Depending on the mass density advancement selected, we may want to replace the 
-  // // mass density.
-  // if (this->densityUpdate() == PhysicsSpace::RigorousSumDensity) {
-  //   const TableKernel<Dimension>& W = this->kernel();
-  //   const ConnectivityMap<Dimension>& connectivityMap = dataBase.connectivityMap();
-  //   const FieldList<Dimension, Scalar> mass = state.fields(HydroFieldNames::mass, 0.0);
-  //   const FieldList<Dimension, SymTensor> H = state.fields(HydroFieldNames::H, SymTensor::zero);
-  //   const FieldList<Dimension, Vector> position = state.fields(HydroFieldNames::position, Vector::zero);
-  //   const FieldList<Dimension, SymTensor> damage = state.fields(SolidFieldNames::effectiveTensorDamage, SymTensor::zero);
-  //   const FieldList<Dimension, Vector> gradDamage = state.fields(SolidFieldNames::damageGradient, Vector::zero);
-  //   const FieldList<Dimension, int> fragIDs = state.fields(SolidFieldNames::fragmentIDs, int(1));
-  //   DamagedNodeCouplingWithFrags<Dimension> coupling(damage, gradDamage, H, fragIDs);
-  //   FieldList<Dimension, Scalar> massDensity = state.fields(HydroFieldNames::massDensity, 0.0);
-  //   computeCRKSPHSumMassDensity(connectivityMap, this->kernel(), position, mass, H, this->boundaryBegin(), this->boundaryEnd(), massDensity);
-  //   for (ConstBoundaryIterator boundaryItr = this->boundaryBegin(); 
-  //        boundaryItr != this->boundaryEnd();
-  //        ++boundaryItr) (*boundaryItr)->applyFieldListGhostBoundary(massDensity);
-  //   for (ConstBoundaryIterator boundaryItr = this->boundaryBegin(); 
-  //        boundaryItr != this->boundaryEnd();
-  //        ++boundaryItr) (*boundaryItr)->finalizeGhostBoundary();
+  // Depending on the mass density advancement selected, we may want to replace the 
+  // mass density.
+  if (this->densityUpdate() == PhysicsSpace::RigorousSumDensity) {
+    const TableKernel<Dimension>& W = this->kernel();
+    const ConnectivityMap<Dimension>& connectivityMap = dataBase.connectivityMap();
+    const FieldList<Dimension, Scalar> mass = state.fields(HydroFieldNames::mass, 0.0);
+    const FieldList<Dimension, SymTensor> H = state.fields(HydroFieldNames::H, SymTensor::zero);
+    const FieldList<Dimension, Vector> position = state.fields(HydroFieldNames::position, Vector::zero);
+    FieldList<Dimension, Scalar> massDensity = state.fields(HydroFieldNames::massDensity, 0.0);
+    FieldList<Dimension, Scalar> vol = state.fields(HydroFieldNames::volume, 0.0);
+    FieldList<Dimension, Scalar> A = state.fields(HydroFieldNames::A_CRKSPH, 0.0);
+    FieldList<Dimension, Vector> B = state.fields(HydroFieldNames::B_CRKSPH, Vector::zero);
+    FieldList<Dimension, Tensor> C = state.fields(HydroFieldNames::C_CRKSPH, Tensor::zero);
+    FieldList<Dimension, Vector> gradA = state.fields(HydroFieldNames::gradA_CRKSPH, Vector::zero);
+    FieldList<Dimension, Tensor> gradB = state.fields(HydroFieldNames::gradB_CRKSPH, Tensor::zero);
+    FieldList<Dimension, ThirdRankTensor> gradC = state.fields(HydroFieldNames::gradC_CRKSPH, ThirdRankTensor::zero);
+    FieldList<Dimension, Scalar> m0 = state.fields(HydroFieldNames::m0_CRKSPH, 0.0);
+    FieldList<Dimension, Vector> m1 = state.fields(HydroFieldNames::m1_CRKSPH, Vector::zero);
+    FieldList<Dimension, SymTensor> m2 = state.fields(HydroFieldNames::m2_CRKSPH, SymTensor::zero);
+    FieldList<Dimension, ThirdRankTensor> m3 = state.fields(HydroFieldNames::m3_CRKSPH, ThirdRankTensor::zero);
+    FieldList<Dimension, FourthRankTensor> m4 = state.fields(HydroFieldNames::m4_CRKSPH, FourthRankTensor::zero);
+    FieldList<Dimension, Vector> gradm0 = state.fields(HydroFieldNames::gradM0_CRKSPH, Vector::zero);
+    FieldList<Dimension, Tensor> gradm1 = state.fields(HydroFieldNames::gradM1_CRKSPH, Tensor::zero);
+    FieldList<Dimension, ThirdRankTensor> gradm2 = state.fields(HydroFieldNames::gradM2_CRKSPH, ThirdRankTensor::zero);
+    FieldList<Dimension, FourthRankTensor> gradm3 = state.fields(HydroFieldNames::gradM3_CRKSPH, FourthRankTensor::zero);
+    FieldList<Dimension, FifthRankTensor> gradm4 = state.fields(HydroFieldNames::gradM4_CRKSPH, FifthRankTensor::zero);
+    if (this->volumeType() == CRKMassOverDensity) {
+      vol.assignFields(mass/massDensity);
+    } else if (this->volumeType() == CRKSumVolume) {
+      computeCRKSPHSumVolume(connectivityMap, W, position, H, vol);
+    } else if (this->volumeType() == CRKVoronoiVolume) {
+      computeVoronoiVolume(position, vol);
+    } else if (this->volumeType() == CRKHullVolume) {
+      computeHullVolumes(connectivityMap, W.kernelExtent(), position, H, vol);
+    } else {
+      VERIFY2(false, "Unknown CRK volume weighting.");
+    }
+    for (ConstBoundaryIterator boundItr = this->boundaryBegin();
+         boundItr != this->boundaryEnd();
+         ++boundItr) (*boundItr)->applyFieldListGhostBoundary(vol);
+    for (ConstBoundaryIterator boundItr = this->boundaryBegin();
+         boundItr != this->boundaryEnd();
+         ++boundItr) (*boundItr)->finalizeGhostBoundary();
+    computeCRKSPHMoments(connectivityMap, W, vol, position, H, this->correctionOrder(), NodeCoupling(), m0, m1, m2, m3, m4, gradm0, gradm1, gradm2, gradm3, gradm4);
+    computeCRKSPHCorrections(m0, m1, m2, m3, m4, gradm0, gradm1, gradm2, gradm3, gradm4, this->correctionOrder(), A, B, C, gradA, gradB, gradC);
+    computeCRKSPHSumMassDensity(connectivityMap, W, position, mass, vol, H, A, B, C, this->correctionOrder(), massDensity);
 
-  // // } else if (this->densityUpdate() == PhysicsSpace::SumDensity) {
-  // //   FieldList<Dimension, Scalar> massDensity = state.fields(HydroFieldNames::massDensity, 0.0);
-  // //   FieldList<Dimension, Scalar> massDensitySum = derivs.fields(ReplaceFieldList<Dimension, Field<Dimension, Field<Dimension, Scalar> > >::prefix() + 
-  // //                                                               HydroFieldNames::massDensity, 0.0);
-  // //   massDensity.assignFields(massDensitySum);
-  // }
+    // FieldList<Dimension, Scalar> vol = dataBase.newFluidFieldList(0.0, "volume");
+    // FieldList<Dimension, FacetedVolume> polyvol = dataBase.newFluidFieldList(FacetedVolume(), "poly volume");
+    // computeHullVolumes(connectivityMap, this->kernel().kernelExtent(), position, H, polyvol, vol);
+    // SPHSpace::computeSPHSumMassDensity(connectivityMap, this->kernel(), position, mass, H, massDensity);
+    for (ConstBoundaryIterator boundaryItr = this->boundaryBegin(); 
+         boundaryItr != this->boundaryEnd();
+         ++boundaryItr) (*boundaryItr)->applyFieldListGhostBoundary(massDensity);
+    for (ConstBoundaryIterator boundaryItr = this->boundaryBegin(); 
+         boundaryItr != this->boundaryEnd();
+         ++boundaryItr) (*boundaryItr)->finalizeGhostBoundary();
+
+  // } else if (densityUpdate() == PhysicsSpace::SumDensity) {
+  //   FieldList<Dimension, Scalar> massDensity = state.fields(HydroFieldNames::massDensity, 0.0);
+  //   FieldList<Dimension, Scalar> massDensitySum = derivs.fields(ReplaceFieldList<Dimension, Field<Dimension, Field<Dimension, Scalar> > >::prefix() + 
+  //                                                               HydroFieldNames::massDensity, 0.0);
+  //   massDensity.assignFields(massDensitySum);
+  }
 
   // // Add any filtering component to the node movement.
   // // Note that the FacetedVolumes are in coordinates with the node at the origin already!
