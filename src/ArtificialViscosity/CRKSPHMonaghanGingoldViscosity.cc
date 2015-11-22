@@ -319,7 +319,11 @@ Piij(const unsigned nodeListi, const unsigned i,
   const Scalar rj = gradj/(sgn(gradi)*max(1.0e-30, abs(gradi)));
   CHECK(min(ri, rj) <= 1.0);
   //const Scalar phi = limiterMM(min(ri, rj));
-  const Scalar phi = limiterVL(min(ri, rj));
+  Scalar phi = limiterVL(min(ri, rj));
+
+  // If the points are getting too close, we let the Q come back full force.
+  const Scalar etaij2 = min(etai.magnitude2(), etaj.magnitude2());
+  phi *= min(1.0, etaij2*etaij2);
 
   // //const Scalar gradi = (((1.0/Dimension::nDim)*Tensor::one*DvDxi.Trace()).dot(xij)).dot(xij);
   // //const Scalar gradj = (((1.0/Dimension::nDim)*Tensor::one*DvDxj.Trace()).dot(xij)).dot(xij);
