@@ -16,6 +16,7 @@ text = """
 #include "HatKernel.hh"
 #include "QuarticSplineKernel.hh"
 #include "QuinticSplineKernel.hh"
+#include "WendlandC2Kernel.hh"
 #include "WendlandC4Kernel.hh"
 #include "WendlandC6Kernel.hh"
 #include "ExpInvKernel.hh"
@@ -36,6 +37,7 @@ for Wname in ("BSplineKernel",
               "HatKernel",
               "QuarticSplineKernel",
               "QuinticSplineKernel",
+              "WendlandC2Kernel",
               "WendlandC4Kernel",
               "WendlandC6Kernel",
               "ExpInvKernel"):
