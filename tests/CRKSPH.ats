@@ -30,7 +30,7 @@ def addTests(crk, nPerh):
          label = "Cylindrical Noh problem -- 2-D (serial %s)" % label)
     test(script = "Hydro/Noh/Noh-spherical-3d.py",
          clas = "--nx %i --ny %i --nz %i --CRKSPH %s --KernelConstructor %s --order %i --cfl %g --nPerh %g --Cl %g --Cq %g  --linearInExpansion %s --filter %g --graphics True --clearDirectories True --outputFile 'Noh-spherical.ascii'" % (int(50*nPerh), int(50*nPerh), int(50*nPerh), crk, KernelConstructor, order, cfl, nPerh, Cl, Cq, linearInExpansion, filter), 
-         label = "Spherical Noh problem -- 3-D (20 proc %s)" % label,
+         label = "Spherical Noh problem -- 3-D (80 proc %s)" % label,
          np = 80)
     nx, ny = int(20*nPerh), int(100*nPerh)
     test(script = "Hydro/Noh/Noh-shear-2d.py", 
@@ -44,7 +44,7 @@ def addTests(crk, nPerh):
          label = "Cylindrical Sedov problem -- 2-D (serial %s)" % label)
     test(script = "Hydro/Sedov/Sedov-spherical-3d.py",
          clas = "--nx %i --ny %i --nz %i --CRKSPH %s --KernelConstructor %s --order %i --cfl %g --nPerh %g --Cl %g --Cq %g  --linearInExpansion %s --filter %g --graphics True --clearDirectories True --smoothSpike True --outputFile Sedov-spherical.ascii" % (int(50*nPerh), int(50*nPerh), int(50*nPerh), crk, KernelConstructor, order, cfl, nPerh, Cl, Cq, linearInExpansion, filter), 
-         label = "Spherical Sedov problem -- 3-D (20 proc %s)" % label,
+         label = "Spherical Sedov problem -- 3-D (80 proc %s)" % label,
          np = 80)
     test(script = "Hydro/GreshoVortex/GreshoVortex.py",
          clas = "--nx1 %i --ny1 %i --CRKSPH %s --KernelConstructor %s --order %i --cfl %g --nPerh %g --Cl %g --Cq %g  --linearInExpansion %s --filter %g --graphics True --clearDirectories True --goalTime 3.0 --outputFile GreshoVortex.ascii" % (int(64*nPerh), int(64*nPerh), crk, KernelConstructor, order, cfl, nPerh, Cl, Cq, linearInExpansion, filter), 
@@ -53,7 +53,7 @@ def addTests(crk, nPerh):
     nx, ny = int(256*nPerh), int(128*nPerh)
     test(script = "Hydro/KelvinHelmholtz/KelvinHelmholtz-2d_McNally.py",
          clas = "--nx1 %i --nx2 %i --ny1 %i --ny2 %i --CRKSPH %s --KernelConstructor %s --order %i --cfl %g --nPerh %g --Cl %g --Cq %g  --linearInExpansion %s --filter %g --clearDirectories True --graphMixing True --mixFile KH_%s_256x256_ats.gnu" % (nx, nx, ny, ny, crk, KernelConstructor, order, cfl, nPerh, Cl, Cq, linearInExpansion, filter, label), 
-         label = "Kelvin-Helmholtz problem -- 2-D (40 proc, %s)" % label,
+         label = "Kelvin-Helmholtz problem -- 2-D (80 proc, %s)" % label,
          np = 80)
     nx1, ny1 = int(20*nPerh), int(60*nPerh)
     nx2, ny2 = int(40*nPerh), int(10*nPerh)
@@ -62,6 +62,13 @@ def addTests(crk, nPerh):
          clas = "--nx1 %i --ny1 %i --nx2 %i --ny2 %i --nx3 %i --ny3 %i --CRKSPH %s --KernelConstructor %s --order %i --cfl %g --nPerh %g --Cl %g --Cq %g  --linearInExpansion %s --filter %g --clearDirectories True --XSPH False" % (nx1, ny1, nx2, ny2, nx3, ny3, crk, KernelConstructor, order, cfl, nPerh, Cl, Cq, linearInExpansion, filter), 
          label = "Triple-point problem -- 2-D (level 1 mesh, 4 proc, %s)" % label,
          np = 4)
+    nx1, ny1 = 2*nx1, 2*ny1
+    nx2, ny2 = 2*nx2, 2*ny2
+    nx3, ny3 = 2*nx3, 2*ny3
+    test(script = "Hydro/TriplePoint/TriplePoint-xy.py",
+         clas = "--nx1 %i --ny1 %i --nx2 %i --ny2 %i --nx3 %i --ny3 %i --CRKSPH %s --KernelConstructor %s --order %i --cfl %g --nPerh %g --Cl %g --Cq %g  --linearInExpansion %s --filter %g --clearDirectories True --XSPH False" % (nx1, ny1, nx2, ny2, nx3, ny3, crk, KernelConstructor, order, cfl, nPerh, Cl, Cq, linearInExpansion, filter), 
+         label = "Triple-point problem -- 2-D (level 2 mesh, 20 proc, %s)" % label,
+         np = 20)
     return
 
 #-------------------------------------------------------------------------------
