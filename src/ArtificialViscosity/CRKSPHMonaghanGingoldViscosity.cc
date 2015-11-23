@@ -237,6 +237,8 @@ Piij(const unsigned nodeListi, const unsigned i,
   const Tensor& DvDxi = mGradVel(nodeListi, i);
   const Tensor& DvDxj = mGradVel(nodeListj, j);
 
+  const double nPerh = dynamic_cast<const FluidNodeList<Dimension>&>(rvAlphaQ[0]->nodeList()).nodesPerSmoothingScale();
+
   // Are we applying the shear corrections?
   Scalar fshear = 1.0;
   if (balsaraShearCorrection) {
@@ -274,45 +276,8 @@ Piij(const unsigned nodeListi, const unsigned i,
 */
 
   // Compute the corrected velocity difference.
-  Vector vij = vi - vj;
+  // Vector vij = vi - vj;
   const Vector xij = 0.5*(xi - xj);
-  // const SymTensor Si = DvDxi.Symmetric();
-  // const SymTensor Sj = DvDxj.Symmetric();
-  // const Tensor Ai = DvDxi.SkewSymmetric();
-  // const Tensor Aj = DvDxj.SkewSymmetric();
-  // const Scalar gradSi = (Si.dot(xij)).dot(xij);
-  // const Scalar gradSj = (Sj.dot(xij)).dot(xij);
-  // const Scalar gradAi = (Ai.dot(xij)).dot(xij);
-  // const Scalar gradAj = (Aj.dot(xij)).dot(xij);
-  // const Scalar rSi = gradSi*safeInv(gradSj);
-  // const Scalar rSj = safeInv(rSi);
-  // const Scalar rAi = gradAi*safeInv(gradAj);
-  // const Scalar rAj = safeInv(rAi);
-  // const Scalar phiSi = swebyLimiter(rSi, 1.5);
-  // const Scalar phiSj = swebyLimiter(rSj, 1.5);
-  // const Scalar phiAi = swebyLimiter(rAi, 2.0);
-  // const Scalar phiAj = swebyLimiter(rAj, 2.0);
-
-  // // An experiment by Mike: try decomposing the velocity gradient into the symmetric and anti-symmetic 
-  // // parts.  Apply the limiter to just the symmetric piece, and always use the anti-symmetric portion
-  // // to project the velocity.
-  // const SymTensor DvDxSi = DvDxi.Symmetric();
-  // const Tensor    DvDxAi = DvDxi.SkewSymmetric();
-  // const SymTensor DvDxSj = DvDxj.Symmetric();
-  // const Tensor    DvDxAj = DvDxj.SkewSymmetric();
-  // const Scalar gradSi = (DvDxSi.dot(xij)).dot(xij);
-  // const Scalar gradSj = (DvDxSj.dot(xij)).dot(xij);
-  // const Scalar gradAi = (DvDxAi.dot(xij)).dot(xij);
-  // const Scalar gradAj = (DvDxAj.dot(xij)).dot(xij);
-  // const Scalar rSi = gradSi/(sgn(gradSj)*max(1.0e-30, abs(gradSj)));
-  // const Scalar rSj = gradSj/(sgn(gradSi)*max(1.0e-30, abs(gradSi)));
-  // const Scalar rAi = gradAi/(sgn(gradAj)*max(1.0e-30, abs(gradAj)));
-  // const Scalar rAj = gradAj/(sgn(gradAi)*max(1.0e-30, abs(gradAi)));
-  // const Scalar phiSi = limiterSB(rSi);
-  // const Scalar phiSj = limiterSB(rSj);
-  // const Scalar phiAi = limiterSB(rAi);
-  // const Scalar phiAj = limiterSB(rAj);
-
   const Scalar gradi = (DvDxi.dot(xij)).dot(xij);
   const Scalar gradj = (DvDxj.dot(xij)).dot(xij);
   const Scalar ri = gradi/(sgn(gradj)*max(1.0e-30, abs(gradj)));
@@ -322,33 +287,14 @@ Piij(const unsigned nodeListi, const unsigned i,
   Scalar phi = limiterVL(min(ri, rj));
 
   // If the points are getting too close, we let the Q come back full force.
-  const Scalar etaij2 = min(etai.magnitude2(), etaj.magnitude2());
+  const Scalar etaij2 = min(etai.magnitude2(), etaj.magnitude2())*(nPerh*nPerh);
   phi *= min(1.0, etaij2*etaij2);
-
-  // //const Scalar gradi = (((1.0/Dimension::nDim)*Tensor::one*DvDxi.Trace()).dot(xij)).dot(xij);
-  // //const Scalar gradj = (((1.0/Dimension::nDim)*Tensor::one*DvDxj.Trace()).dot(xij)).dot(xij);
-  // // const Scalar curli = this->curlVelocityMagnitude(DvDxi);
-  // // const Scalar curlj = this->curlVelocityMagnitude(DvDxj);
-  // // const Scalar divi = abs(DvDxi.Trace());
-  // // const Scalar divj = abs(DvDxj.Trace());
-  // // const Scalar betaij = min(2.0, 1.0 + min(curli/max(1.0e-30, curli + divi), curlj/max(1.0e-30, curlj + divj)));
-
-  // const Scalar phii = limiterVL(max(0.0, min(ri, 2.0 - ri)));
-  // const Scalar phij = limiterVL(max(0.0, min(rj, 2.0 - rj)));
-  // const Scalar fphii = max(0.0, 1.0 - phii);
-  // const Scalar fphij = max(0.0, 1.0 - phij);
 
   // "Mike" method.
   const Vector vi1 = vi - phi*DvDxi*xij;
   const Vector vj1 = vj + phi*DvDxj*xij;
-  // const Vector vi1 = vi - (phiSi*DvDxSi + phiAi*DvDxAi)*xij;
-  // const Vector vj1 = vj + (phiSj*DvDxSj + phiAj*DvDxAj)*xij;
-  //const Vector vi1 = vi - DvDxi*xij;
-  //const Vector vj1 = vj + DvDxj*xij;
-  //const Vector vi1 = vi - (DvDxi-(1.0-phii)*(1.0/Dimension::nDim)*Tensor::one*DvDxi.Trace())*xij;
-  //const Vector vj1 = vj + (DvDxj-(1.0-phij)*(1.0/Dimension::nDim)*Tensor::one*DvDxj.Trace())*xij;
   
-  vij = vi1 - vj1;
+  const Vector vij = vi1 - vj1;
   
   // Compute mu.
   const Scalar mui = vij.dot(etai)/(etai.magnitude2() + eps2);
