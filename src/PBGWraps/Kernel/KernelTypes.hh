@@ -14,6 +14,7 @@
 #include "Kernel/QuarticSplineKernel.hh"
 #include "Kernel/QuinticSplineKernel.hh"
 #include "Kernel/TableKernel.hh"
+#include "Kernel/WendlandC2Kernel.hh"
 #include "Kernel/WendlandC4Kernel.hh"
 #include "Kernel/WendlandC6Kernel.hh"
 #include "Kernel/ExpInvKernel.hh"
@@ -71,6 +72,10 @@ typedef QuinticSplineKernel<Dim<3> > QuinticSplineKernel3d;
 typedef TableKernel<Dim<1> > TableKernel1d;
 typedef TableKernel<Dim<2> > TableKernel2d;
 typedef TableKernel<Dim<3> > TableKernel3d;
+
+typedef WendlandC2Kernel<Dim<1> > WendlandC2Kernel1d;
+typedef WendlandC2Kernel<Dim<2> > WendlandC2Kernel2d;
+typedef WendlandC2Kernel<Dim<3> > WendlandC2Kernel3d;
     
 typedef WendlandC4Kernel<Dim<1> > WendlandC4Kernel1d;
 typedef WendlandC4Kernel<Dim<2> > WendlandC4Kernel2d;
