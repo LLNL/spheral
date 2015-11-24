@@ -45,8 +45,7 @@ MonaghanGingoldViscosity(const Scalar Clinear,
                          const bool quadraticInExpansion):
   ArtificialViscosity<Dimension>(Clinear, Cquadratic),
   mLinearInExpansion(linearInExpansion),
-  mQuadraticInExpansion(quadraticInExpansion),
-  mGradVel(FieldSpace::Reference) {
+  mQuadraticInExpansion(quadraticInExpansion) {
 }
 
 //------------------------------------------------------------------------------
@@ -55,30 +54,6 @@ MonaghanGingoldViscosity(const Scalar Clinear,
 template<typename Dimension>
 MonaghanGingoldViscosity<Dimension>::
 ~MonaghanGingoldViscosity() {
-}
-
-
-//------------------------------------------------------------------------------
-// Initialize for the FluidNodeLists in the given DataBase.
-//------------------------------------------------------------------------------
-template<typename Dimension>
-void
-MonaghanGingoldViscosity<Dimension>::
-initialize(const DataBase<Dimension>& dataBase,
-           const State<Dimension>& state,
-           const StateDerivatives<Dimension>& derivs,
-           typename ArtificialViscosity<Dimension>::ConstBoundaryIterator boundaryBegin,
-           typename ArtificialViscosity<Dimension>::ConstBoundaryIterator boundaryEnd,
-           const typename Dimension::Scalar time,
-           const typename Dimension::Scalar dt,
-           const TableKernel<Dimension>& W) {
-
-  // Let the base class do it's thing.
-  ArtificialViscosity<Dimension>::initialize(dataBase, state, derivs, boundaryBegin, boundaryEnd, time, dt, W);
-
-  // Cache pointers to the velocity gradient.
-  FieldList<Dimension, Tensor> DvDx = derivs.fields(HydroFieldNames::velocityGradient, Tensor::zero);
-  mGradVel = DvDx;
 }
 
 
@@ -112,28 +87,28 @@ Piij(const unsigned nodeListi, const unsigned i,
   const FieldSpace::FieldList<Dimension, Scalar>& rvAlphaL = this->reducingViscosityMultiplierL();
 
   // Are we applying the shear corrections?
-  //const Scalar fsheari = (balsaraShearCorrection ? this->mShearMultiplier(nodeListi, i) : 1.0);
-  //const Scalar fshearj = (balsaraShearCorrection ? this->mShearMultiplier(nodeListj, j) : 1.0);
+  const Scalar fsheari = (balsaraShearCorrection ? this->mShearMultiplier(nodeListi, i) : 1.0);
+  const Scalar fshearj = (balsaraShearCorrection ? this->mShearMultiplier(nodeListj, j) : 1.0);
 
-  Scalar fshear = 1.0;
-  Scalar fsheari = fshear;
-  Scalar fshearj = fshear;
-  const Tensor& DvDxi = mGradVel(nodeListi, i);
-  const Tensor& DvDxj = mGradVel(nodeListj, j);
-  if (balsaraShearCorrection) {
-    const Scalar csneg = this->negligibleSoundSpeed();
-    const Scalar hiinv = Hi.Trace()/Dimension::nDim;
-    const Scalar hjinv = Hj.Trace()/Dimension::nDim;
-    const Scalar ci = max(csneg, csi);
-    const Scalar cj = max(csneg, csj);
-    const Scalar fi = abs(DvDxi.Trace())/(this->curlVelocityMagnitude(DvDxi) + abs(DvDxi.Trace()) + eps2*ci*hiinv);
-    const Scalar fj = abs(DvDxj.Trace())/(this->curlVelocityMagnitude(DvDxj) + abs(DvDxj.Trace()) + eps2*cj*hjinv);
-    fshear = min(fi, fj);
-    //fsheari = fi;
-    //fshearj = fj;
-    fsheari = fshear;
-    fshearj = fshear;
-  }
+  // Scalar fshear = 1.0;
+  // Scalar fsheari = fshear;
+  // Scalar fshearj = fshear;
+  // const Tensor& DvDxi = mGradVel(nodeListi, i);
+  // const Tensor& DvDxj = mGradVel(nodeListj, j);
+  // if (balsaraShearCorrection) {
+  //   const Scalar csneg = this->negligibleSoundSpeed();
+  //   const Scalar hiinv = Hi.Trace()/Dimension::nDim;
+  //   const Scalar hjinv = Hj.Trace()/Dimension::nDim;
+  //   const Scalar ci = max(csneg, csi);
+  //   const Scalar cj = max(csneg, csj);
+  //   const Scalar fi = abs(DvDxi.Trace())/(this->curlVelocityMagnitude(DvDxi) + abs(DvDxi.Trace()) + eps2*ci*hiinv);
+  //   const Scalar fj = abs(DvDxj.Trace())/(this->curlVelocityMagnitude(DvDxj) + abs(DvDxj.Trace()) + eps2*cj*hjinv);
+  //   fshear = min(fi, fj);
+  //   //fsheari = fi;
+  //   //fshearj = fj;
+  //   fsheari = fshear;
+  //   fshearj = fshear;
+  // }
 
   // Compute mu.
   const Vector vij = vi - vj;

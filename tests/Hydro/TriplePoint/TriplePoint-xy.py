@@ -97,6 +97,8 @@ commandLine(
     maxSteps = None,
     statsStep = 10,
     HUpdate = IdealH,
+    correctionOrder = LinearOrder,
+    QcorrectionOrder = LinearOrder,
     domainIndependent = False,
     rigorousBoundaries = False,
     dtverbose = False,
@@ -124,7 +126,7 @@ elif CRKSPH:
         HydroConstructor = ACRKSPHHydro
     else:
         HydroConstructor = CRKSPHHydro
-    Qconstructor = CRKSPHMonaghanGingoldViscosity
+    #Qconstructor = CRKSPHMonaghanGingoldViscosity
 else:
     if ASPH:
         HydroConstructor = ASPHHydro
@@ -148,6 +150,10 @@ baseDir = os.path.join(dataDir,
                        "filter=%f" % filter,
                        "%ix%i" % (nx1 + nx2, ny1 + ny2),
                        "Cl=%3.1f_Cq=%3.1f" % (Cl,Cq))
+if CRKSPH:
+    baseDir = os.path.join(baseDir, 
+                           "correctionOrder=%s" % correctionOrder,
+                           "QcorrectionOrder=%s" % QcorrectionOrder)
 restartDir = os.path.join(baseDir, "restarts")
 restartBaseName = os.path.join(restartDir, "triplepoint-xy-%ix%i" % (nx1 + nx2, ny1 + ny2))
 
@@ -288,6 +294,7 @@ q = Qconstructor(Cl, Cq, linearInExpansion)
 q.epsilon2 = epsilon2
 q.limiter = Qlimiter
 q.balsaraShearCorrection = balsaraCorrection
+q.QcorrectionOrder = QcorrectionOrder
 output("q")
 output("q.Cl")
 output("q.Cq")
@@ -322,6 +329,7 @@ elif CRKSPH:
                              filter = filter,
                              cfl = cfl,
                              compatibleEnergyEvolution = compatibleEnergy,
+                             correctionOrder = correctionOrder,
                              XSPH = XSPH,
                              densityUpdate = densityUpdate,
                              HUpdate = HUpdate)
