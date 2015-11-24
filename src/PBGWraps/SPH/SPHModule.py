@@ -44,7 +44,7 @@ self.SPHHydroBase%(dim)id = addObject(self.space, "SPHHydroBase%(dim)id", allow_
             exec('''
 self.generateSPHHydroBaseBindings(self.SPHHydroBase%(dim)id, %(dim)i)
 ''' % {"dim" : dim})
-        self.generateDimBindings(dim)
+            self.generateDimBindings(dim)
 
         return
 
