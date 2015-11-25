@@ -109,7 +109,9 @@ def distributeNodesInRange1d(listOfNodeTuples,
             rho = nodes.massDensity()
             for n, rho0, (x0, x1) in initialConditions:
                 if type(rho0) == float:
-                    rho0 = ConstantRho(rho0)
+                    rhof = ConstantRho(rho0)
+                else:
+                    rhof = rho0
                 if minNodeID <= (nCumulative + n) and maxNodeID >= nCumulative:
                     iglobal0 = max(minNodeID, nCumulative)
                     iglobal1 = min(maxNodeID, nCumulative + n)
@@ -126,14 +128,16 @@ def distributeNodesInRange1d(listOfNodeTuples,
                         else:
                             xi = x0 + (nodeOffset + i + 0.5)*dx
                         pos[indexOffset + i].x = xi
-                        mass[indexOffset + i] = dx*rho0(xi)
-                        rho[indexOffset + i] = rho0(xi)
+                        mass[indexOffset + i] = dx*rhof(xi)
+                        rho[indexOffset + i] = rhof(xi)
                         H[indexOffset + i] = Hi
                 nCumulative += n
         else:
             nodes, n, rho0, (x0, x1) = nodeTuple
             if type(rho0) == float:
-                rho0 = ConstantRho(rho0)
+                rhof = ConstantRho(rho0)
+            else:
+                rhof = rho0
             pos = nodes.positions()
             mass = nodes.mass()
             H = nodes.Hfield()
@@ -154,8 +158,8 @@ def distributeNodesInRange1d(listOfNodeTuples,
                     else:
                         xi = x0 + (nodeOffset + i + 0.5)*dx
                     pos[indexOffset + i].x = xi
-                    mass[indexOffset + i] = dx*rho0(xi)
-                    rho[indexOffset + i] = rho0(xi)
+                    mass[indexOffset + i] = dx*rhof(xi)
+                    rho[indexOffset + i] = rhof(xi)
                     H[indexOffset + i] = Hi
             nCumulative += n
 
