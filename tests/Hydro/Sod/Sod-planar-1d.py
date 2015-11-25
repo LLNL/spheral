@@ -190,14 +190,36 @@ else:
 nodeSet = [nodes1, nodes2]
 
 #-------------------------------------------------------------------------------
+# A function to specify the density profile.
+#-------------------------------------------------------------------------------
+def rho_initial(xi):
+    dx1 = (x1 - x0)/nx1
+    dx2 = (x2 - x1)/nx2
+    hfold = 4*max(dx1, dx2)
+    if smoothDiscontinuity:
+        if xi < x1 - hfold:
+            return rho1
+        elif xi > x1 + hfold:
+            return rho2
+        else:
+            f = 0.5*(sin(0.5*pi*(xi - x1)/hfold) + 1.0)
+            return (1.0 - f)*rho1 + f*rho2
+    else:
+        if xi < x1:
+            return rho1
+        else:
+            return rho2
+
+#-------------------------------------------------------------------------------
 # Set the node properties.
 #-------------------------------------------------------------------------------
 from DistributeNodes import distributeNodesInRange1d
 if numNodeLists == 1:
-    distributeNodesInRange1d([(nodes1, [(nx1, rho1, (x0, x1)), (nx2, rho2, (x1, x2))])])
+    distributeNodesInRange1d([(nodes1, [(nx1, rho_initial, (x0, x1)), 
+                                        (nx2, rho_initial, (x1, x2))])])
 else:
-    distributeNodesInRange1d([(nodes1, [(nx1, rho1, (x0, x1))]),
-                              (nodes2, [(nx2, rho2, (x1, x2))])])
+    distributeNodesInRange1d([(nodes1, [(nx1, rho_initial, (x0, x1))]),
+                              (nodes2, [(nx2, rho_initial, (x1, x2))])])
 output("nodes1.numNodes")
 output("nodes2.numNodes")
 
@@ -344,33 +366,6 @@ output("integrator.lastDt")
 output("integrator.dtMin")
 output("integrator.dtMax")
 output("integrator.rigorousBoundaries")
-
-#-------------------------------------------------------------------------------
-# If requested, smooth the state at the discontinuity.
-#-------------------------------------------------------------------------------
-if smoothDiscontinuity:
-    W0 = WT.kernelValue(0.0, 1.0)
-    m1 = (x1 - x0)*rho1/nx1
-    m2 = (x2 - x1)*rho2/nx2
-    dx1 = (x1 - x0)/nx1
-    dx2 = (x2 - x1)/nx2
-    h1 = 2.0*dx1 * nPerh
-    h2 = 2.0*dx2 * nPerh
-    H1 = SymTensor(1.0/(nPerh * dx1))
-    H2 = SymTensor(1.0/(nPerh * dx2))
-    A1 = P1/(rho1**gammaGas)
-    A2 = P2/(rho2**gammaGas)
-
-    for i in xrange(nodes1.numInternalNodes):
-        fi = WT.kernelValue(abs(nodes1.positions()[i].x - x1)/h1, 1.0) / W0
-        fi = 1.0 - min(1.0, abs(nodes1.positions()[i].x - x1)/h1)
-        assert fi >= 0.0 and fi <= 1.0
-        nodes1.mass()[i] = (1.0 - fi)*m1 + 0.5*fi*(m1 + m2)
-    for i in xrange(nodes2.numInternalNodes):
-        fi = WT.kernelValue(abs(nodes2.positions()[i].x - x1)/h2, 1.0) / W0
-        fi = 1.0 - min(1.0, abs(nodes2.positions()[i].x - x1)/h2)
-        assert fi >= 0.0 and fi <= 1.0
-        nodes2.mass()[i] = (1.0 - fi)*m2 + 0.5*fi*(m1 + m2)
 
 #-------------------------------------------------------------------------------
 # Make the problem controller.

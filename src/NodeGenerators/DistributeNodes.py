@@ -2,6 +2,7 @@ from math import *
 from Spheral import *
 import mpi
 import distributeNodesGeneric
+from NodeGeneratorBase import ConstantRho
 
 #-------------------------------------------------------------------------------
 # Domain decompose using the sort and divide scheme (1d method).
@@ -107,6 +108,8 @@ def distributeNodesInRange1d(listOfNodeTuples,
             H = nodes.Hfield()
             rho = nodes.massDensity()
             for n, rho0, (x0, x1) in initialConditions:
+                if type(rho0) == float:
+                    rho0 = ConstantRho(rho0)
                 if minNodeID <= (nCumulative + n) and maxNodeID >= nCumulative:
                     iglobal0 = max(minNodeID, nCumulative)
                     iglobal1 = min(maxNodeID, nCumulative + n)
@@ -116,19 +119,21 @@ def distributeNodesInRange1d(listOfNodeTuples,
                     indexOffset = nodes.numInternalNodes
                     nodes.numInternalNodes += numNewNodes
                     dx = (x1 - x0)/max(1, n)
-                    mi = (x1 - x0)*rho0/max(1, n)
                     Hi = SymTensor1d(1.0/max(nodes.hmin, min(nodes.hmax, nPerh*dx)))
                     for i in xrange(numNewNodes):
                         if reverse:
-                            pos[indexOffset + i].x = x1 - (nodeOffset + i + 0.5)*dx
+                            xi = x1 - (nodeOffset + i + 0.5)*dx
                         else:
-                            pos[indexOffset + i].x = x0 + (nodeOffset + i + 0.5)*dx
-                        mass[indexOffset + i] = mi
-                        rho[indexOffset + i] = rho0
+                            xi = x0 + (nodeOffset + i + 0.5)*dx
+                        pos[indexOffset + i].x = xi
+                        mass[indexOffset + i] = dx*rho0(xi)
+                        rho[indexOffset + i] = rho0(xi)
                         H[indexOffset + i] = Hi
                 nCumulative += n
         else:
             nodes, n, rho0, (x0, x1) = nodeTuple
+            if type(rho0) == float:
+                rho0 = ConstantRho(rho0)
             pos = nodes.positions()
             mass = nodes.mass()
             H = nodes.Hfield()
@@ -142,15 +147,15 @@ def distributeNodesInRange1d(listOfNodeTuples,
                 indexOffset = nodes.numInternalNodes
                 nodes.numInternalNodes += numNewNodes
                 dx = (x1 - x0)/max(1, n)
-                mi = (x1 - x0)*rho0/max(1, n)
                 Hi = SymTensor1d(1.0/max(nodes.hmin, min(nodes.hmax, nPerh*dx)))
                 for i in xrange(numNewNodes):
                     if reverse:
-                        pos[indexOffset + i].x = x1 - (nodeOffset + i + 0.5)*dx
+                        xi = x1 - (nodeOffset + i + 0.5)*dx
                     else:
-                        pos[indexOffset + i].x = x0 + (nodeOffset + i + 0.5)*dx
-                    mass[indexOffset + i] = mi
-                    rho[indexOffset + i] = rho0
+                        xi = x0 + (nodeOffset + i + 0.5)*dx
+                    pos[indexOffset + i].x = xi
+                    mass[indexOffset + i] = dx*rho0(xi)
+                    rho[indexOffset + i] = rho0(xi)
                     H[indexOffset + i] = Hi
             nCumulative += n
 
