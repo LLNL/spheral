@@ -120,8 +120,8 @@ else:
 # Path names.
 #-------------------------------------------------------------------------------
 dataDir = os.path.join(dataRoot,
-                       str(HydroConstructor).split()[1].split(".")[1][:-2],
-                       str(Qconstructor).split()[1].split(".")[-1][:-2],
+                       HydroConstructor.__name__,
+                       Qconstructor.__name__,
                        "nperh=%4.2f" % nPerh,
                        "XSPH=%s" % XSPH,
                        "densityUpdate=%s" % densityUpdate,

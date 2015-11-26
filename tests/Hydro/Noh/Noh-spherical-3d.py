@@ -132,8 +132,8 @@ else:
         HydroConstructor = ASPHHydro
 
 dataDir = os.path.join(dataDir,
-                       str(HydroConstructor).split("'")[1].split(".")[-1],
-                       "%s-Cl=%g-Cq=%g" % (str(Qconstructor).split("'")[1].split(".")[-1], Cl, Cq),
+                       HydroConstructor.__name__,
+                       "%s-Cl=%g-Cq=%g" % (Qconstructor.__name__, Cl, Cq),
                        "nPerh=%f" % nPerh,
                        "compatibleEnergy=%s" % compatibleEnergy,
                        "boolCullenViscosity=%s" % boolCullenViscosity,
