@@ -119,8 +119,8 @@ else:
         HydroConstructor = SPHHydro
 
 dataDir = os.path.join(dataDirBase, 
-                       str(HydroConstructor).split("'")[1].split(".")[-1],
-                       str(Qconstructor).split("'")[1].split(".")[-1],
+                       HydroConstructor.__name__,
+                       Qconstructor.__name__,
                        "nPerh=%f" % nPerh,
                        "compatibleEnergy=%s" % compatibleEnergy,
                        "correctionOrder=%s" % correctionOrder,
@@ -192,10 +192,10 @@ nodeSet = [nodes1, nodes2]
 #-------------------------------------------------------------------------------
 # A function to specify the density profile.
 #-------------------------------------------------------------------------------
+dx1 = (x1 - x0)/nx1
+dx2 = (x2 - x1)/nx2
+hfold = 4*max(dx1, dx2)
 def rho_initial(xi):
-    dx1 = (x1 - x0)/nx1
-    dx2 = (x2 - x1)/nx2
-    hfold = 4*max(dx1, dx2)
     if smoothDiscontinuity:
         if xi < x1 - hfold:
             return rho1
@@ -224,11 +224,23 @@ output("nodes1.numNodes")
 output("nodes2.numNodes")
 
 # Set node specific thermal energies
-def specificEnergy(x):
-    if x < x1:
-        return P1/((gammaGas - 1.0)*rho1)
+eps1 = P1/((gammaGas - 1.0)*rho1)
+eps2 = P2/((gammaGas - 1.0)*rho2)
+def specificEnergy(xi):
+    if smoothDiscontinuity:
+        if xi < x1 - hfold:
+            return eps1
+        elif xi > x1 + hfold:
+            return eps2
+        else:
+            f = 0.5*(sin(0.5*pi*(xi - x1)/hfold) + 1.0)
+            return (1.0 - f)*eps1 + f*eps2
     else:
-        return P2/((gammaGas - 1.0)*rho2)
+        if xi < x1:
+            return eps1
+        else:
+            return eps2
+
 for nodes in nodeSet:
     pos = nodes.positions()
     eps = nodes.specificThermalEnergy()
