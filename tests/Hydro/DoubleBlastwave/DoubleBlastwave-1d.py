@@ -91,8 +91,8 @@ else:
     HydroConstructor = SPHHydro
 
 dataDir = os.path.join(dataDirBase, 
-                       str(HydroConstructor).split("'")[1].split(".")[-1],
-                       str(Qconstructor).split("'")[1].split(".")[-1],
+                       HydroConstructor.__name__,
+                       Qconstructor.__name__,
                        "%i" % (nx),
                        "nPerh=%s" % nPerh)
 restartDir = os.path.join(dataDir, "restarts")

@@ -137,8 +137,8 @@ else:
         HydroConstructor = ASPHHydro
 
 dataDir = os.path.join(dataRoot,
-                       str(HydroConstructor).split()[1].replace(">", "").replace("'",""),
-                       str(Qconstructor).split()[1].replace(">", "").replace("'",""),
+                       HydroConstructor.__name__,
+                       Qconstructor.__name__,
                        "basaraShearCorrection=%s_Qlimiter=%s" % (balsaraCorrection, Qlimiter),
                        "nperh=%4.2f" % nPerh,
                        "XSPH=%s" % XSPH,
