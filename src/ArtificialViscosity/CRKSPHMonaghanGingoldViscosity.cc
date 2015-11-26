@@ -197,11 +197,14 @@ initialize(const DataBase<Dimension>& dataBase,
        boundItr != boundaryEnd;
        ++boundItr) (*boundItr)->finalizeGhostBoundary();
 
-
   // Cache pointers to the velocity gradient.
-  //FieldList<Dimension, Tensor> DvDx = derivs.fields(HydroFieldNames::velocityGradient, Tensor::zero);
-  //mGradVel = DvDx;
   mGradVel = QDvDx;
+
+  // Store the eta_crit value based on teh nodes perh smoothing scale.
+  const double nPerh = dynamic_cast<const FluidNodeList<Dimension>&>(mGradVel[0]->nodeList()).nodesPerSmoothingScale();
+  const double mEtaCrit = 1.0/nPerh;
+  const double mEtaFold = 0.05*nPerh;
+  CHECK(mEtaFold > 0.0);
 }
 
 //------------------------------------------------------------------------------
@@ -236,8 +239,6 @@ Piij(const unsigned nodeListi, const unsigned i,
   const FieldSpace::FieldList<Dimension, Scalar>& rvAlphaL = this->reducingViscosityMultiplierL();
   const Tensor& DvDxi = mGradVel(nodeListi, i);
   const Tensor& DvDxj = mGradVel(nodeListj, j);
-
-  const double nPerh = dynamic_cast<const FluidNodeList<Dimension>&>(rvAlphaQ[0]->nodeList()).nodesPerSmoothingScale();
 
   // Are we applying the shear corrections?
   Scalar fshear = 1.0;
@@ -287,8 +288,12 @@ Piij(const unsigned nodeListi, const unsigned i,
   Scalar phi = limiterVL(min(ri, rj));
 
   // If the points are getting too close, we let the Q come back full force.
-  const Scalar etaij2 = min(etai.magnitude2(), etaj.magnitude2())*(nPerh*nPerh);
-  phi *= min(1.0, etaij2*etaij2);
+  const Scalar etaij = min(etai.magnitude(), etaj.magnitude());
+  // phi *= (etaij2 < etaCrit2 ? 0.0 : 1.0);
+  // phi *= min(1.0, etaij2*etaij2/(etaCrit2etaCrit2));
+  if (etaij < mEtaCrit) {
+    phi *= exp(-FastMath::square((etaij - mEtaCrit)/mEtaFold));
+  }
 
   // "Mike" method.
   const Vector vi1 = vi - phi*DvDxi*xij;

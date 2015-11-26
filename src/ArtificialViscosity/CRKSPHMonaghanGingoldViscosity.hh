@@ -66,6 +66,7 @@ public:
 
 private:
   //--------------------------- Private Interface ---------------------------//
+  double mEtaCrit, mEtaFold;
   FieldSpace::FieldList<Dimension, Tensor> mGradVel;
 
   CRKSPHMonaghanGingoldViscosity();
