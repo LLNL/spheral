@@ -11,7 +11,7 @@ linearInExpansion = False
 #-------------------------------------------------------------------------------
 # Function to add the tests.
 #-------------------------------------------------------------------------------
-def addTests(crk, nPerh, resmultiplier=None):
+def addTests(crk, nPerh, resMultiplier=None):
     if crk:
         label = "CRK"
     else:
