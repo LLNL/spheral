@@ -202,8 +202,8 @@ initialize(const DataBase<Dimension>& dataBase,
 
   // Store the eta_crit value based on teh nodes perh smoothing scale.
   const double nPerh = dynamic_cast<const FluidNodeList<Dimension>&>(mGradVel[0]->nodeList()).nodesPerSmoothingScale();
-  const double mEtaCrit = 1.0/nPerh;
-  const double mEtaFold = 0.05*nPerh;
+  mEtaCrit = 1.0/nPerh;
+  mEtaFold = 0.05*nPerh;
   CHECK(mEtaFold > 0.0);
 }
 
