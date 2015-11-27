@@ -201,9 +201,11 @@ initialize(const DataBase<Dimension>& dataBase,
   mGradVel = QDvDx;
 
   // Store the eta_crit value based on teh nodes perh smoothing scale.
-  const double nPerh = dynamic_cast<const FluidNodeList<Dimension>&>(mGradVel[0]->nodeList()).nodesPerSmoothingScale();
-  mEtaCrit = 1.0/nPerh;
-  mEtaFold = 0.05*nPerh;
+  // const double nPerh = dynamic_cast<const FluidNodeList<Dimension>&>(mGradVel[0]->nodeList()).nodesPerSmoothingScale();
+  // mEtaCrit = 1.0/nPerh;
+  // mEtaFold = 0.05*nPerh;
+  mEtaCrit = W.kernelExtent()/3.0;
+  mEtaFold = 0.05*mEtaCrit;
   CHECK(mEtaFold > 0.0);
 }
 
