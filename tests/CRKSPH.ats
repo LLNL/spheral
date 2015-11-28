@@ -1,11 +1,11 @@
 #-*-python-*-
 # This is an ATS script to coordinate running a series of tests of CRKSPH.
 cfl = 0.25
-Cl = 1.0
+Cl = 2.0
 Cq = 1.0
 filter = 0.0
 KernelConstructor = "NBSplineKernel"
-order = 5
+order = 7
 linearInExpansion = False
 
 #-------------------------------------------------------------------------------
@@ -76,5 +76,5 @@ def addTests(crk, nPerh, resMultiplier=None):
 #-------------------------------------------------------------------------------
 # Add the tests.
 #-------------------------------------------------------------------------------
+addTests(True, 0.75, 1)
 addTests(True, 1.01, 1)
-addTests(True, 1.33333, 1)
