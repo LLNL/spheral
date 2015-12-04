@@ -35,8 +35,7 @@ public:
   // The coupling operator.
   virtual double operator()(const unsigned nodeListi, const unsigned i,
                             const unsigned nodeListj, const unsigned j) const {
-    if (nodeListi != nodeListj or
-        mFragIDs(nodeListi, i) != mFragIDs(nodeListj, j)) {
+    if (mFragIDs(nodeListi, i) != mFragIDs(nodeListj, j)) {
       return 0.0;
     } else {
       return DamagedNodeCoupling<Dimension>::operator()(nodeListi, i, nodeListj, j);
