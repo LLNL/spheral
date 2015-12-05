@@ -185,10 +185,16 @@ self.addVonNeumanViscosityMethods(self.VonNeumanViscosity%(dim)id, %(dim)i)
         x.add_constructor([param("double", "Clinear", default_value="1.0"),
                            param("double", "Cquadratic", default_value="1.0"),
                            param("bool", "linearInExpansion", default_value="false"),
-                           param("bool", "quadraticInExpansion", default_value="false")])
+                           param("bool", "quadraticInExpansion", default_value="false"),
+                           param("double", "etaCritFrac", default_value="1.0"),
+                           param("double", "etaFoldFrac", default_value="0.2")])
 
         # Add the local methods.
         self.addArtificialViscosityVirtualMethods(x, ndim, False)
+
+        # Attributes
+        x.add_instance_attribute("etaCritFrac", "double", getter="etaCritFrac", setter="etaCritFrac")
+        x.add_instance_attribute("etaFoldFrac", "double", getter="etaFoldFrac", setter="etaFoldFrac")
 
         return
     
