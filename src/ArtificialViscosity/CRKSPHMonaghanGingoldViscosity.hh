@@ -29,7 +29,9 @@ public:
   CRKSPHMonaghanGingoldViscosity(const Scalar Clinear,
                                  const Scalar Cquadratic,
                                  const bool linearInExpansion,
-                                 const bool quadraticInExpansion);
+                                 const bool quadraticInExpansion,
+                                 const Scalar etaCritFrac,
+                                 const Scalar etaFoldFrac);
 
   // Destructor.
   virtual ~CRKSPHMonaghanGingoldViscosity();
@@ -61,12 +63,20 @@ public:
                                          const Scalar csj,
                                          const SymTensor& Hj) const;
 
+  // Access the fractions setting the critical spacing for kicking the
+  // viscosity back on full force.
+  double etaCritFrac() const;
+  void etaCritFrac(const double val);
+
+  double etaFoldFrac() const;
+  void etaFoldFrac(const double val);
+
   // Restart methods.
   virtual std::string label() const { return "CRKSPHMonaghanGingoldViscosity"; }
 
 private:
   //--------------------------- Private Interface ---------------------------//
-  double mEtaCrit, mEtaFold;
+  double mEtaCritFrac, mEtaFoldFrac, mEtaCrit, mEtaFold;
   FieldSpace::FieldList<Dimension, Tensor> mGradVel;
 
   CRKSPHMonaghanGingoldViscosity();

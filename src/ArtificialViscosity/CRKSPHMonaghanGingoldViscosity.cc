@@ -93,9 +93,15 @@ CRKSPHMonaghanGingoldViscosity<Dimension>::
 CRKSPHMonaghanGingoldViscosity(const Scalar Clinear,
                                const Scalar Cquadratic,
                                const bool linearInExpansion,
-                               const bool quadraticInExpansion):
+                               const bool quadraticInExpansion,
+                               const Scalar etaCritFrac,
+                               const Scalar etaFoldFrac):
   MonaghanGingoldViscosity<Dimension>(Clinear, Cquadratic, 
                                       linearInExpansion, quadraticInExpansion),
+  mEtaCritFrac(etaCritFrac),
+  mEtaFoldFrac(etaFoldFrac),
+  mEtaCrit(0.0),
+  mEtaFold(1.0),
   mGradVel(FieldSpace::Reference) {
 }
 
@@ -202,10 +208,8 @@ initialize(const DataBase<Dimension>& dataBase,
 
   // Store the eta_crit value based on teh nodes perh smoothing scale.
   const double nPerh = dynamic_cast<const FluidNodeList<Dimension>&>(mGradVel[0]->nodeList()).nodesPerSmoothingScale();
-  mEtaCrit = 1.0/nPerh;
-  mEtaFold = 0.2/nPerh;
-  // mEtaCrit = 0.0;
-  // mEtaFold = 0.05*W.kernelExtent();
+  mEtaCrit = mEtaCritFrac/nPerh;
+  mEtaFold = mEtaFoldFrac/nPerh;
   CHECK(mEtaFold > 0.0);
 }
 
@@ -289,13 +293,13 @@ Piij(const unsigned nodeListi, const unsigned i,
   //const Scalar phi = limiterMM(min(ri, rj));
   Scalar phi = limiterVL(min(ri, rj));
 
-  // If the points are getting too close, we let the Q come back full force.
-  const Scalar etaij = min(etai.magnitude(), etaj.magnitude());
-  // phi *= (etaij2 < etaCrit2 ? 0.0 : 1.0);
-  // phi *= min(1.0, etaij2*etaij2/(etaCrit2etaCrit2));
-  if (etaij < mEtaCrit) {
-    phi *= exp(-FastMath::square((etaij - mEtaCrit)/mEtaFold));
-  }
+  // // If the points are getting too close, we let the Q come back full force.
+  // const Scalar etaij = min(etai.magnitude(), etaj.magnitude());
+  // // phi *= (etaij2 < etaCrit2 ? 0.0 : 1.0);
+  // // phi *= min(1.0, etaij2*etaij2/(etaCrit2etaCrit2));
+  // if (etaij < mEtaCrit) {
+  //   phi *= exp(-FastMath::square((etaij - mEtaCrit)/mEtaFold));
+  // }
 
   // "Mike" method.
   const Vector vi1 = vi - phi*DvDxi*xij;
