@@ -76,5 +76,6 @@ def addTests(crk, nPerh, resMultiplier=None):
 #-------------------------------------------------------------------------------
 # Add the tests.
 #-------------------------------------------------------------------------------
-addTests(True, 0.75, 1)
-addTests(True, 1.01, 1)
+#addTests(True, 0.75, 1)
+#addTests(True, 1.01, 1)
+addTests(True, 4.01, 1)
