@@ -293,13 +293,13 @@ Piij(const unsigned nodeListi, const unsigned i,
   //const Scalar phi = limiterMM(min(ri, rj));
   Scalar phi = limiterVL(min(ri, rj));
 
-  // // If the points are getting too close, we let the Q come back full force.
-  // const Scalar etaij = min(etai.magnitude(), etaj.magnitude());
-  // // phi *= (etaij2 < etaCrit2 ? 0.0 : 1.0);
-  // // phi *= min(1.0, etaij2*etaij2/(etaCrit2etaCrit2));
-  // if (etaij < mEtaCrit) {
-  //   phi *= exp(-FastMath::square((etaij - mEtaCrit)/mEtaFold));
-  // }
+  // If the points are getting too close, we let the Q come back full force.
+  const Scalar etaij = min(etai.magnitude(), etaj.magnitude());
+  // phi *= (etaij2 < etaCrit2 ? 0.0 : 1.0);
+  // phi *= min(1.0, etaij2*etaij2/(etaCrit2etaCrit2));
+  if (etaij < mEtaCrit) {
+    phi *= exp(-FastMath::square((etaij - mEtaCrit)/mEtaFold));
+  }
 
   // "Mike" method.
   const Vector vi1 = vi - phi*DvDxi*xij;
