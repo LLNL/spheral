@@ -299,7 +299,7 @@ evaluateDerivatives(const typename Dimension::Scalar time,
   }
 
   // Post-conditions.
-  BEGIN_CONTRACT_SCOPE;
+  BEGIN_CONTRACT_SCOPE
   {
     int nodeListi = 0;
     for (typename DataBase<Dimension>::ConstFluidNodeListIterator itr = dataBase.fluidNodeListBegin();
@@ -318,7 +318,7 @@ evaluateDerivatives(const typename Dimension::Scalar time,
       }
     }
   }
-  END_CONTRACT_SCOPE;
+  END_CONTRACT_SCOPE
 
 }
 

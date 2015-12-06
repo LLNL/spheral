@@ -20,10 +20,10 @@ buildEigenVector(const Dim<3>::SymTensor& A,
   typedef Dim<3>::Vector Vector;
   typedef Dim<3>::SymTensor Tensor;
 
-  BEGIN_CONTRACT_SCOPE;
+  BEGIN_CONTRACT_SCOPE
   // Compute an appropriate tolerance for "zero" on the matrix.
   const double tol = 1.0e-3*std::max(1.0, A.diagonalElements().magnitude());
-  END_CONTRACT_SCOPE;
+  END_CONTRACT_SCOPE
 
   // First build the matrix we're going to solve.
   const Tensor B(A.xx() - lambda, A.xy(), A.xz(),

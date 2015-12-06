@@ -123,7 +123,7 @@ coarsenBinnedValues(vector<vector<Value> >& values,
   }
 
   // Post-conditions.
-  BEGIN_CONTRACT_SCOPE;
+  BEGIN_CONTRACT_SCOPE
   {
     for (size_t level = 1; level < numLevels; ++level) {
       const unsigned nx = nxFine/(1U << (numLevels - level - 1));
@@ -152,7 +152,7 @@ coarsenBinnedValues(vector<vector<Value> >& values,
       }
     }
   }
-  END_CONTRACT_SCOPE;
+  END_CONTRACT_SCOPE
 }
 
 }

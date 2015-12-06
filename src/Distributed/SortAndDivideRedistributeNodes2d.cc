@@ -218,12 +218,12 @@ redistributeNodes(DataBase<Dim<2> >& dataBase,
   }
 
   // Check that all nodes really really have been assigned to a domain.
-  BEGIN_CONTRACT_SCOPE;
+  BEGIN_CONTRACT_SCOPE
   CHECK(newNodeDistribution.size() == nodeDistribution.size());
   for (vector<DomainNode<Dimension> >::iterator itr = newNodeDistribution.begin();
        itr != newNodeDistribution.end();
        ++itr) CHECK(itr->domainID >= 0 && itr->domainID < numProcs);
-  END_CONTRACT_SCOPE;
+  END_CONTRACT_SCOPE
 
   // The nodeDistribution now holds the desired redistribution of the nodes.
   // Go ahead and redistribute them.
@@ -271,13 +271,15 @@ domainsPerChunk(const Dim<2>::SymTensor::EigenStructType& shapeTensor) const {
   }
 
   // That's it.  Check our post-conditions and return the answer.
-  BEGIN_CONTRACT_SCOPE;
-  int checkCount = 0;
-  for (vector<int>::const_iterator itr = result.begin();
-       itr != result.end();
-       ++itr) checkCount += *itr;
-  ENSURE(checkCount == numProcs);
-  END_CONTRACT_SCOPE;
+  BEGIN_CONTRACT_SCOPE
+  {
+    int checkCount = 0;
+    for (vector<int>::const_iterator itr = result.begin();
+         itr != result.end();
+         ++itr) checkCount += *itr;
+    ENSURE(checkCount == numProcs);
+  }
+  END_CONTRACT_SCOPE
 
   return result;
 }

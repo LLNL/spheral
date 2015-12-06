@@ -52,12 +52,12 @@ Zone(const Mesh<Dim<3> >& mesh,
   mFaceIDs(faceIDs) {
 
   // Pre-conditions.
-  BEGIN_CONTRACT_SCOPE;
+  BEGIN_CONTRACT_SCOPE
   {
     REQUIRE(mFaceIDs.size() > 3);
     BOOST_FOREACH(int i, mFaceIDs) REQUIRE((i < 0 ? ~i : i) < mMeshPtr->mFaces.size());
   }
-  END_CONTRACT_SCOPE;
+  END_CONTRACT_SCOPE
   
   // Construct the edge and node IDs.
   int faceID;

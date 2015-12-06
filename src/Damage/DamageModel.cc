@@ -119,13 +119,13 @@ computeScalarDDDt(const DataBase<Dimension>& dataBase,
   }
 
   // Post-conditions.
-  BEGIN_CONTRACT_SCOPE;
+  BEGIN_CONTRACT_SCOPE
   for (int i = 0; i != mNodeList.numInternalNodes(); ++i) {
     if (mExcludeNode(i) == 1) {
       ENSURE(DDDt(i) == 0.0);
     }
   }
-  END_CONTRACT_SCOPE;
+  END_CONTRACT_SCOPE
 }
 
 //------------------------------------------------------------------------------

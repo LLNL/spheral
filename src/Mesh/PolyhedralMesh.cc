@@ -58,7 +58,7 @@ reconstructInternal(const vector<Dim<3>::Vector>& generators,
   // Pre-conditions.
   int i, j, k, igen, jgen;
   const unsigned numGens = generators.size();
-  BEGIN_CONTRACT_SCOPE;
+  BEGIN_CONTRACT_SCOPE
   {
     REQUIRE(xmin.x() < xmax.x() and
             xmin.y() < xmax.y() and
@@ -73,7 +73,7 @@ reconstructInternal(const vector<Dim<3>::Vector>& generators,
       }
     }
   }
-  END_CONTRACT_SCOPE;
+  END_CONTRACT_SCOPE
 
   // The inverse box scale.
   const Vector box = xmax - xmin;
@@ -330,14 +330,14 @@ boundingSurface() const {
   }
 
   // Post-conditions.
-  BEGIN_CONTRACT_SCOPE;
+  BEGIN_CONTRACT_SCOPE
   {
     BOOST_FOREACH(const vector<unsigned>& indices, facetIndices) {
       ENSURE(indices.size() >= 3);
       ENSURE(*max_element(indices.begin(), indices.end()) < vertices.size());
     }
   }
-  END_CONTRACT_SCOPE;
+  END_CONTRACT_SCOPE
 
   // That's it.
   return FacetedVolume(vertices, facetIndices);
@@ -357,7 +357,7 @@ createNewMeshElements(const vector<vector<vector<unsigned> > >& newCells) {
 
   // Pre-conditions.
   REQUIRE(mNodes.size() <= mNodePositions.size());
-  BEGIN_CONTRACT_SCOPE;
+  BEGIN_CONTRACT_SCOPE
   {
     BOOST_FOREACH(const vector<vector<unsigned> >& cellFaces, newCells) {
       REQUIRE(cellFaces.size() >= minFacesPerZone);
@@ -369,7 +369,7 @@ createNewMeshElements(const vector<vector<vector<unsigned> > >& newCells) {
       }
     }
   }
-  END_CONTRACT_SCOPE;
+  END_CONTRACT_SCOPE
 
   // Some useful sizes.
   const unsigned numOldNodes = mNodes.size();

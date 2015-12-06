@@ -227,7 +227,7 @@ iterateIdealH(DataBase<Dimension>& dataBase,
       }
     }
 
-    BEGIN_CONTRACT_SCOPE;
+    BEGIN_CONTRACT_SCOPE
     {
       // Ensure that all nodes have been calculated.
       for (typename FieldList<Dimension, int>::const_iterator fieldItr = flagNodeDone.begin();
@@ -238,7 +238,7 @@ iterateIdealH(DataBase<Dimension>& dataBase,
         }
       }
     }
-    END_CONTRACT_SCOPE;
+    END_CONTRACT_SCOPE
 
     // Assign the new H's.
     H.assignFields(H1);

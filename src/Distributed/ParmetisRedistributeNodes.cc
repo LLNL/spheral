@@ -467,12 +467,12 @@ buildCSRGraph(const DataBase<Dimension>& dataBase,
     }
   }
   
-  BEGIN_CONTRACT_SCOPE;
+  BEGIN_CONTRACT_SCOPE
   // After we're done, all nodes in all NodeLists should be flagged as done.
   for (InternalNodeIterator<Dimension> itr = flagNodeDone.internalNodeBegin();
        itr != flagNodeDone.internalNodeEnd();
        ++itr) ENSURE(flagNodeDone(itr) == 1);
-  END_CONTRACT_SCOPE;
+  END_CONTRACT_SCOPE
 
   // We need to ensure all nodes have at least one neighor, so if there are any
   // isolated ones assign them a neighbor.
@@ -500,12 +500,12 @@ buildCSRGraph(const DataBase<Dimension>& dataBase,
 //   // Force the connectivity to be symmetric.
 //   enforceSymmetricConnectivity(neighbors);
 
-  BEGIN_CONTRACT_SCOPE;
+  BEGIN_CONTRACT_SCOPE
   // Make sure there are no nodes without neighbors.
   for (typename ConnectivityType::iterator itr = neighbors.begin();
        itr != neighbors.end();
        ++itr) CHECK(itr->second.size() > 0);
-  END_CONTRACT_SCOPE;
+  END_CONTRACT_SCOPE
 
   // Print the initial statistics about the connectivity of the nodes.
   printConnectivityStatistics(neighbors);
@@ -527,12 +527,12 @@ buildCSRGraph(const DataBase<Dimension>& dataBase,
   printConnectivityStatistics(neighbors);
 
   // Check that the internal connectivity map is sensible.
-  BEGIN_CONTRACT_SCOPE;
+  BEGIN_CONTRACT_SCOPE
   {
     const bool checkConnect = validConnectivity(nodeDistribution, dataBase, neighbors, globalNodeIDs);
     CHECK(checkConnect);
   }
-  END_CONTRACT_SCOPE;
+  END_CONTRACT_SCOPE
 
   // Size the output vectors.
   xadj = vector<idx_t>();
@@ -920,9 +920,9 @@ inverseConnectivity(const map<int, vector<pair<int, double> > >& neighbors) cons
   }
 
   // Make sure the input connectivity has entries for all our nodes.
-  BEGIN_CONTRACT_SCOPE;
+  BEGIN_CONTRACT_SCOPE
   for (int i = minGlobalID; i != maxGlobalID + 1; ++i) REQUIRE(neighbors.find(i) != neighbors.end());
-  END_CONTRACT_SCOPE;
+  END_CONTRACT_SCOPE
 
   // Build as much of the inverse as we can on the local domain.
   ConnectivityType result;
@@ -998,7 +998,7 @@ inverseConnectivity(const map<int, vector<pair<int, double> > >& neighbors) cons
   }
 
   // Post-conditions.
-  BEGIN_CONTRACT_SCOPE;
+  BEGIN_CONTRACT_SCOPE
   {
     // We should only have the number of global IDs.
     const int numIDs = maxGlobalID - minGlobalID + 1;
@@ -1011,7 +1011,7 @@ inverseConnectivity(const map<int, vector<pair<int, double> > >& neighbors) cons
       ENSURE(itr->first >= minGlobalID && itr->first <= maxGlobalID);
     }
   }
-  END_CONTRACT_SCOPE;
+  END_CONTRACT_SCOPE
 
   return result;
 }

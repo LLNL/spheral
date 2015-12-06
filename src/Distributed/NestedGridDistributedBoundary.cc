@@ -248,7 +248,7 @@ unpackGridCellIndices(const vector<int>& packedGridCellIndices,
 		       vector< vector< GridCellIndex<Dimension> > >& gridCellSet) const {
 
   // Pre-conditions.
-  BEGIN_CONTRACT_SCOPE;
+  BEGIN_CONTRACT_SCOPE
   {
     REQUIRE(fmod(packedGridCellIndices.size(), (double) Dimension::nDim) == 0);
     int checkcount = 0;
@@ -257,7 +257,7 @@ unpackGridCellIndices(const vector<int>& packedGridCellIndices,
          ++itr) checkcount = checkcount + *itr;
     REQUIRE(checkcount*Dimension::nDim == packedGridCellIndices.size());
   }
-  END_CONTRACT_SCOPE;
+  END_CONTRACT_SCOPE
 
   // Make sure the gridCellSet is appropriately dimensioned.
   const int numGridLevels = gridCellDimension.size();
@@ -488,14 +488,14 @@ buildSendNodes(const DataBase<Dimension>& dataBase) {
     packElement(xmaxNodesDomain[procID], localBuffer);
     packElement(xminSampleDomain[procID], localBuffer);
     packElement(xmaxSampleDomain[procID], localBuffer);
-    BEGIN_CONTRACT_SCOPE;
+    BEGIN_CONTRACT_SCOPE
     {
       int tmp = localBuffer.size();
       int globalMinSize;
       MPI_Allreduce(&tmp, &globalMinSize, 1, MPI_INT, MPI_MIN, Communicator::communicator());
       CHECK(globalMinSize == localBuffer.size());
     }
-    END_CONTRACT_SCOPE;
+    END_CONTRACT_SCOPE
     if (localBuffer.size() > 0) {
       for (int sendProc = 0; sendProc != numProcs; ++sendProc) {
 	vector<char> buffer = localBuffer;

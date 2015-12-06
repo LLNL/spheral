@@ -175,7 +175,7 @@ GeomSymmetricTensor<3>::eigenVectors() const {
 
 // #endif
 
-  BEGIN_CONTRACT_SCOPE;
+  BEGIN_CONTRACT_SCOPE
   // Check the result.
   const double lambda1 = result.eigenValues.x();
   const double lambda2 = result.eigenValues.y();
@@ -206,7 +206,7 @@ GeomSymmetricTensor<3>::eigenVectors() const {
                                yx(), yy() - lambda3, yz(),
                                zx(), zy(), zz() - lambda3)*v3).maxAbsElement(), 0.0, tol));
   ENSURE(fuzzyEqual(abs(result.eigenVectors.Determinant()), 1.0, tolerance));
-  END_CONTRACT_SCOPE;
+  END_CONTRACT_SCOPE
 
   return result;
 }

@@ -160,7 +160,7 @@ FileIO::read(FieldSpace::Field<Dimension, std::vector<DataType> >& field,
   CHECK(numElementsPerNode.size() == field.nodeList().numInternalNodes());
 
   // Consistency check...
-  BEGIN_CONTRACT_SCOPE;
+  BEGIN_CONTRACT_SCOPE
   {
     int numElements = 0;
     for (std::vector<int>::const_iterator itr = numElementsPerNode.begin();
@@ -168,7 +168,7 @@ FileIO::read(FieldSpace::Field<Dimension, std::vector<DataType> >& field,
          ++itr) numElements += *itr;
     CHECK(numElements == elements.size());
   }
-  END_CONTRACT_SCOPE;
+  END_CONTRACT_SCOPE
 
   // Fill the Field back in.
   typename std::vector<DataType>::const_iterator elementItr = elements.begin();

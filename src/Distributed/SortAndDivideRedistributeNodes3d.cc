@@ -257,12 +257,12 @@ redistributeNodes(DataBase<Dim<3> >& dataBase,
 //   }
 
   // Check that all nodes really really have been assigned to a domain.
-  BEGIN_CONTRACT_SCOPE;
+  BEGIN_CONTRACT_SCOPE
   CHECK(newNodeDistribution.size() == nodeDistribution.size());
   for (vector<DomainNode<Dimension> >::iterator itr = newNodeDistribution.begin();
        itr != newNodeDistribution.end();
        ++itr) CHECK(itr->domainID >= 0 && itr->domainID < numProcs);
-  END_CONTRACT_SCOPE;
+  END_CONTRACT_SCOPE
 
   // The nodeDistribution now holds the desired redistribution of the nodes.
   // Go ahead and redistribute them.
@@ -305,7 +305,7 @@ domainsPerChunk(const Dim<3>::SymTensor::EigenStructType& shapeTensor) const {
   const int baseRemainPerSlab = totalRemainProcs / xChunks;
   vector<int> remainProcs((std::size_t) xChunks, baseRemainPerSlab);
   remainProcs[0] += totalRemainProcs - baseRemainPerSlab * xChunks;
-  BEGIN_CONTRACT_SCOPE;
+  BEGIN_CONTRACT_SCOPE
   {
     int checkCount = 0;
     for (vector<int>::const_iterator itr = remainProcs.begin();
@@ -313,7 +313,7 @@ domainsPerChunk(const Dim<3>::SymTensor::EigenStructType& shapeTensor) const {
          ++itr) checkCount += *itr;
     CHECK(checkCount == totalRemainProcs);
   }
-  END_CONTRACT_SCOPE;
+  END_CONTRACT_SCOPE
 
   // Prepare the result.
   vector< vector<int> > result(xChunks);
@@ -346,7 +346,7 @@ domainsPerChunk(const Dim<3>::SymTensor::EigenStructType& shapeTensor) const {
     }
     CHECK(result[i].size() == yChunks);
 
-    BEGIN_CONTRACT_SCOPE;
+    BEGIN_CONTRACT_SCOPE
     {
       int checkCount = 0;
       for (vector<int>::const_iterator itr = result[i].begin();
@@ -354,21 +354,23 @@ domainsPerChunk(const Dim<3>::SymTensor::EigenStructType& shapeTensor) const {
            ++itr) checkCount += *itr;
       CHECK(checkCount == numDomainsInSlab);
     }
-    END_CONTRACT_SCOPE;
+    END_CONTRACT_SCOPE
 
   }
 
   // That's it.  Check our post-conditions and return the answer.
   ENSURE(result.size() == xChunks);
-  BEGIN_CONTRACT_SCOPE;
-  int checkCount = 0;
-  for (int i = 0; i != xChunks; ++i) {
-    for (vector<int>::const_iterator itr = result[i].begin();
-         itr != result[i].end();
-         ++itr) checkCount += *itr;
+  BEGIN_CONTRACT_SCOPE
+  {
+    int checkCount = 0;
+    for (int i = 0; i != xChunks; ++i) {
+      for (vector<int>::const_iterator itr = result[i].begin();
+           itr != result[i].end();
+           ++itr) checkCount += *itr;
+    }
+    ENSURE(checkCount == numProcs);
   }
-  ENSURE(checkCount == numProcs);
-  END_CONTRACT_SCOPE;
+  END_CONTRACT_SCOPE
 
   return result;
 }

@@ -309,14 +309,14 @@ binFieldList2Lattice(const FieldList<Dimension, Value>& fieldList,
   // get the same answer on each processor to bit precision.
   result = vector<Value>(ntotal, DataTypeTraits<Value>::zero());
 
-  BEGIN_CONTRACT_SCOPE;
+  BEGIN_CONTRACT_SCOPE
   // Check that everyone agrees about the size.
   {
     int bufSizeMin;
     MPI_Allreduce(&bufSize, &bufSizeMin, 1, MPI_INT, MPI_MIN, Communicator::communicator());
     CHECK(bufSizeMin == bufSize);
   }
-  END_CONTRACT_SCOPE;
+  END_CONTRACT_SCOPE
 
   // Sum up everyone's contribution.
   for (int sendProc = 0; sendProc != numProcs; ++sendProc) {

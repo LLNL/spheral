@@ -403,7 +403,7 @@ GeomPolygon(const vector<GeomPolygon::Vector>& points):
     GeometryUtilities::computeAncillaryGeometry(*this, mVertexFacetConnectivity, mFacetFacetConnectivity, mVertexUnitNorms);
 
     // Post-conditions.
-    BEGIN_CONTRACT_SCOPE;
+    BEGIN_CONTRACT_SCOPE
     {
       // Ensure the facet node ordering is correct.
       CounterClockwiseComparator<Vector, vector<Vector> > nodeComparator(mVertices, mVertices[0]);
@@ -433,7 +433,7 @@ GeomPolygon(const vector<GeomPolygon::Vector>& points):
       // this check.
       //      BOOST_FOREACH(vec, points) ENSURE(this->convexContains(vec));
     }
-    END_CONTRACT_SCOPE;
+    END_CONTRACT_SCOPE
   }
 }
 

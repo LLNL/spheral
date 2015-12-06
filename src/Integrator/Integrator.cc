@@ -413,7 +413,7 @@ uniqueBoundaryConditions() const {
 
   }
 
-  BEGIN_CONTRACT_SCOPE;
+  BEGIN_CONTRACT_SCOPE
   // Ensure that all boundary conditions are included in the result
   for (ConstPackageIterator physicsItr = physicsPackagesBegin();
        physicsItr != physicsPackagesEnd();
@@ -431,7 +431,7 @@ uniqueBoundaryConditions() const {
        ++boundaryItr) {
     ENSURE(count(result.begin(), result.end(), *boundaryItr) == 1);
   }
-  END_CONTRACT_SCOPE;
+  END_CONTRACT_SCOPE
 
   // That's it.
   return result;
@@ -570,14 +570,14 @@ Integrator<Dimension>::setGhostNodes() {
       }
 
       // All nodes should now be labeled as keepers.
-      BEGIN_CONTRACT_SCOPE;
+      BEGIN_CONTRACT_SCOPE
       {
         for (size_t nodeListi = 0; nodeListi != numNodeLists; ++nodeListi) {
           ENSURE(flags[nodeListi]->numElements() == 0 or
                  *min_element(flags[nodeListi]->begin(), flags[nodeListi]->end()) == 1);
         }
       }
-      END_CONTRACT_SCOPE;
+      END_CONTRACT_SCOPE
 
       // The ConnectivityMap should be valid too.
       ENSURE(db.connectivityMap().valid());

@@ -91,7 +91,7 @@ PeriodicBoundary<Dimension>::setGhostNodes(NodeList<Dimension>& nodeList) {
   mPlane1Boundary.setGhostNodes(nodeList);
   mPlane2Boundary.setGhostNodes(nodeList);
 
-  BEGIN_CONTRACT_SCOPE;
+  BEGIN_CONTRACT_SCOPE
   {
     const unsigned num = nodeList.numNodes();
     unsigned i;
@@ -100,7 +100,7 @@ PeriodicBoundary<Dimension>::setGhostNodes(NodeList<Dimension>& nodeList) {
     BOOST_FOREACH(i, mPlane2Boundary.controlNodes(nodeList)) { CHECK(i < num); }
     BOOST_FOREACH(i, mPlane2Boundary.ghostNodes(nodeList)) { CHECK(i < num); }
   }
-  END_CONTRACT_SCOPE;
+  END_CONTRACT_SCOPE
 
   // Now add this NodeList to this master Boundary condition.
   this->addNodeList(nodeList);

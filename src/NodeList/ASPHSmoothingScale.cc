@@ -479,7 +479,7 @@ newSmoothingScale(const SymTensor& H,
   result.rotationalTransform(eigen.eigenVectors);
 
   // We're done!
-  BEGIN_CONTRACT_SCOPE;
+  BEGIN_CONTRACT_SCOPE
   {
     const Vector eigenValues = result.eigenValues();
     ENSURE(distinctlyGreaterThan(eigenValues.minElement(), 0.0));
@@ -487,7 +487,7 @@ newSmoothingScale(const SymTensor& H,
     ENSURE(fuzzyLessThanOrEqual(1.0/eigenValues.minElement(), hmax, 1.0e-5));
     ENSURE(fuzzyGreaterThanOrEqual(eigenValues.minElement()/eigenValues.maxElement(), hminratio, 1.e-3));
   }
-  END_CONTRACT_SCOPE;
+  END_CONTRACT_SCOPE
 
   return result;
 

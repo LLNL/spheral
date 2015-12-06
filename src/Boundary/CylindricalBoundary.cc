@@ -141,7 +141,7 @@ setGhostNodes(NodeList<Dim<3> >& nodeList) {
   }
 
   // Contract checking...
-  BEGIN_CONTRACT_SCOPE;
+  BEGIN_CONTRACT_SCOPE
   {
     vector<int>::const_iterator controlItr = controlNodes.begin();
     vector<int>::const_iterator ghostItr = ghostNodes.begin();
@@ -155,7 +155,7 @@ setGhostNodes(NodeList<Dim<3> >& nodeList) {
       CHECK(fuzzyEqual(sqrt(FastMath::square(positions(j).y()) + FastMath::square(positions(j).z())), ri));
     }
   }
-  END_CONTRACT_SCOPE;
+  END_CONTRACT_SCOPE
 
   // We can use the normal ghost boundary enforcement to update the
   // H's of the ghost nodes.
@@ -205,7 +205,7 @@ updateGhostNodes(NodeList<Dim<3> >& nodeList) {
   CHECK(ghostItr == ghostNodes.end());
 
   // Contract checking...
-  BEGIN_CONTRACT_SCOPE;
+  BEGIN_CONTRACT_SCOPE
   {
     vector<int>::const_iterator controlItr = controlNodes.begin();
     vector<int>::const_iterator ghostItr = ghostNodes.begin();
@@ -219,7 +219,7 @@ updateGhostNodes(NodeList<Dim<3> >& nodeList) {
       CHECK(fuzzyEqual(sqrt(FastMath::square(positions(j).y()) + FastMath::square(positions(j).z())), ri));
     }
   }
-  END_CONTRACT_SCOPE;
+  END_CONTRACT_SCOPE
 
   // We can use the normal ghost boundary enforcement to update the
   // H's of the ghost nodes.

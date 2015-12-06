@@ -53,7 +53,7 @@ Zone(const Mesh<Dim<2> >& mesh,
   mFaceIDs(faceIDs) {
 
   // Pre-conditions.
-  BEGIN_CONTRACT_SCOPE;
+  BEGIN_CONTRACT_SCOPE
   {
     REQUIRE(mFaceIDs.size() > 2);
     BOOST_FOREACH(int i, mFaceIDs) {
@@ -63,7 +63,7 @@ Zone(const Mesh<Dim<2> >& mesh,
       REQUIRE(mMeshPtr->mFaces[j].mEdgeIDs[0] == j);
     }
   }
-  END_CONTRACT_SCOPE;
+  END_CONTRACT_SCOPE
   
   // Copy the face IDs as the edge IDs (they are degenerate after all!).
   int faceID;
@@ -85,7 +85,7 @@ Zone(const Mesh<Dim<2> >& mesh,
   CHECK(mNodeIDs.size() == mEdgeIDs.size());
 
   // Post-conditions.
-  BEGIN_CONTRACT_SCOPE;
+  BEGIN_CONTRACT_SCOPE
   {
     ENSURE2(mNodeIDs.size() == mFaceIDs.size(), mID << " " << mNodeIDs.size() << " " << mFaceIDs.size());
     ENSURE2(mEdgeIDs.size() == mFaceIDs.size(), mID << " " << mEdgeIDs.size() << " " << mFaceIDs.size());
@@ -143,7 +143,7 @@ Zone(const Mesh<Dim<2> >& mesh,
               << mMeshPtr->mFaces[id2].position());
     }
   }
-  END_CONTRACT_SCOPE;
+  END_CONTRACT_SCOPE
 }
 
 //------------------------------------------------------------------------------
