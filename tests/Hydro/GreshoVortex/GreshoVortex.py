@@ -74,6 +74,8 @@ commandLine(
     fcellPressure = 0.0,
     Cl = 1.0, 
     Cq = 0.75,
+    etaCritFrac = 1.0,
+    etaFoldFrac = 0.2,
     linearInExpansion = False,
     Qlimiter = False,
     balsaraCorrection = False,
@@ -333,6 +335,8 @@ elif CRKSPH:
                              volumeType = volumeType,
                              densityUpdate = densityUpdate,
                              HUpdate = HUpdate)
+    q.etaCritFrac = etaCritFrac
+    q.etaFoldFrac = etaFoldFrac
 else:
     hydro = HydroConstructor(W = WT,
                              Q = q,
