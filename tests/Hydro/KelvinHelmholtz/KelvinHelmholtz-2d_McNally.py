@@ -164,7 +164,7 @@ dataDir = os.path.join(dataDir,
                        "compatibleEnergy=%s" % (compatibleEnergy),
                        "PSPH=%s" % (PSPH),
                        "Cullen=%s" % (boolCullenViscosity),
-                       "filter=%s" % filter,
+                       "filter=%g" % filter,
                        "%s-Cl=%g-Cq=%g" % (Qconstructor.__name__, Cl, Cq),
                        "%ix%i" % (nx1, ny1 + ny2),
                        "nPerh=%g-Qhmult=%g" % (nPerh, Qhmult))
