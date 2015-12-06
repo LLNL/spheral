@@ -93,7 +93,7 @@ sortByPositions(list<DomainNode<Dimension> >& domainNodes,
   domainNodes.sort(cmp);
 
   // Post-conditions.
-  BEGIN_CONTRACT_SCOPE;
+  BEGIN_CONTRACT_SCOPE
   for (typename list<DomainNode<Dimension> >::const_iterator itr1 = domainNodes.begin();
        itr1 != domainNodes.end();
        ++itr1) {
@@ -102,7 +102,7 @@ sortByPositions(list<DomainNode<Dimension> >& domainNodes,
     if (itr2 != domainNodes.end()) 
       ENSURE(itr1->position(positionIndex) <= itr2->position(positionIndex));
   }
-  END_CONTRACT_SCOPE;
+  END_CONTRACT_SCOPE
 }
 
 //------------------------------------------------------------------------------
@@ -180,7 +180,7 @@ popFrontNodes(list<DomainNode<Dimension> >& sortedCandidateNodes,
       }
     }
 
-    BEGIN_CONTRACT_SCOPE;
+    BEGIN_CONTRACT_SCOPE
     {
       double sumTotalWork;
       int sumNumAvailableNodes;
@@ -189,7 +189,7 @@ popFrontNodes(list<DomainNode<Dimension> >& sortedCandidateNodes,
       ENSURE(fuzzyEqual(sumTotalWork, numProcs * totalWork, 1.0e-12));
       ENSURE(sumNumAvailableNodes == numProcs * globalNumAvailableNodes);
     }
-    END_CONTRACT_SCOPE;
+    END_CONTRACT_SCOPE
 
   }
 
@@ -246,7 +246,7 @@ shapeTensor(const vector<DomainNode<Dimension> >& domainNodes) const {
   // That's it.
   ENSURE(fuzzyEqual(result.eigenValues.magnitude(), 1.0));
   ENSURE(fuzzyEqual(abs(result.eigenVectors.Determinant()), 1.0));
-  BEGIN_CONTRACT_SCOPE;
+  BEGIN_CONTRACT_SCOPE
   {
     double x = result.eigenValues(0);
     for (int i = 1; i != Dimension::nDim; ++i) {
@@ -254,7 +254,7 @@ shapeTensor(const vector<DomainNode<Dimension> >& domainNodes) const {
       x = result.eigenValues(i);
     }
   }
-  END_CONTRACT_SCOPE;
+  END_CONTRACT_SCOPE
 
   return result;
 }

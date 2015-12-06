@@ -103,13 +103,13 @@ removeExpiredPointers() {
   }
 
   // Post-conditions.
-  BEGIN_CONTRACT_SCOPE;
+  BEGIN_CONTRACT_SCOPE
   {
     for (const_iterator itr = this->begin();
          itr != this->end();
          ++itr ) ENSURE(not itr->expired());
   }
-  END_CONTRACT_SCOPE;
+  END_CONTRACT_SCOPE
 }
 
 //------------------------------------------------------------------------------

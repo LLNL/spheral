@@ -63,14 +63,14 @@ globalReduceToUniqueElements(vector<int>& x) {
     copy(otherX.begin(), otherX.end(), back_inserter(x));
   }
   reduceToUniqueElements(x);
-  BEGIN_CONTRACT_SCOPE;
+  BEGIN_CONTRACT_SCOPE
   {
     int tmp = x.size();
     int sum;
     MPI_Allreduce(&tmp, &sum, 1, MPI_INT, MPI_SUM, Communicator::communicator());
     ENSURE(sum == x.size()*numProcs);
   }
-  END_CONTRACT_SCOPE;
+  END_CONTRACT_SCOPE
 #endif
 }
 
@@ -194,14 +194,14 @@ computeFragmentField(const NodeList<Dimension>& nodes,
                                                  globalNodeIDs.end(),
                                                  globalMinID);
     localNode = (ilocalItr != globalNodeIDs.end());
-    BEGIN_CONTRACT_SCOPE;
+    BEGIN_CONTRACT_SCOPE
     {
       int tmp = localNode ? 1 : 0;
       int sum;
       MPI_Allreduce(&tmp, &sum, 1, MPI_INT, MPI_SUM, Communicator::communicator());
       CHECK(sum == 1);
     }
-    END_CONTRACT_SCOPE;
+    END_CONTRACT_SCOPE
     int tmp = numProcs;
     if (localNode) {
       CHECK(ilocalItr != globalNodeIDs.end());
@@ -211,13 +211,13 @@ computeFragmentField(const NodeList<Dimension>& nodes,
     }
     MPI_Allreduce(&tmp, &nodeDomain, 1, MPI_INT, MPI_MIN, Communicator::communicator());
     CHECK(nodeDomain >= 0 && nodeDomain < numProcs);
-    BEGIN_CONTRACT_SCOPE;
+    BEGIN_CONTRACT_SCOPE
     {
       int tmp;
       MPI_Allreduce(&nodeDomain, &tmp, 1, MPI_INT, MPI_SUM, Communicator::communicator());
       CHECK(tmp == numProcs*nodeDomain);
     }
-    END_CONTRACT_SCOPE;
+    END_CONTRACT_SCOPE
 #endif
 
     // Get the position and H for this node.
@@ -267,7 +267,7 @@ computeFragmentField(const NodeList<Dimension>& nodes,
     }
     CHECK(fragID >= 0 && fragID < numFragments);
 #ifdef USE_MPI
-    BEGIN_CONTRACT_SCOPE;
+    BEGIN_CONTRACT_SCOPE
     {
       int tmp;
       MPI_Allreduce(&fragID, &tmp, 1, MPI_INT, MPI_SUM, Communicator::communicator());
@@ -275,7 +275,7 @@ computeFragmentField(const NodeList<Dimension>& nodes,
       MPI_Allreduce(&numFragments, &tmp, 1, MPI_INT, MPI_SUM, Communicator::communicator());
       CHECK(tmp == numProcs*numFragments);
     }
-    END_CONTRACT_SCOPE;
+    END_CONTRACT_SCOPE
 #endif
 
     // Remove the known maxGlobalID from the stack of fragment IDs.
@@ -320,7 +320,7 @@ computeFragmentField(const NodeList<Dimension>& nodes,
     }
 #endif
 
-    BEGIN_CONTRACT_SCOPE;
+    BEGIN_CONTRACT_SCOPE
     {
       for (typename vector<int>::iterator itr = significantNeighbors.begin();
            itr != significantNeighbors.end();
@@ -330,7 +330,7 @@ computeFragmentField(const NodeList<Dimension>& nodes,
                    globalNodeIDs[*itr]) == globalNodesRemaining.end());
       }
     }
-    END_CONTRACT_SCOPE;
+    END_CONTRACT_SCOPE
 
   }
 

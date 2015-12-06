@@ -210,7 +210,7 @@ GeomPolyhedron(const vector<GeomPolyhedron::Vector>& points):
     }
 
     // Post-conditions.
-    BEGIN_CONTRACT_SCOPE;
+    BEGIN_CONTRACT_SCOPE
     {
       // All normals should be outward facing.
       Vector centroid;
@@ -229,7 +229,7 @@ GeomPolyhedron(const vector<GeomPolyhedron::Vector>& points):
 //            itr != points.end();
 //            ++itr) ENSURE(convexContains(*itr));
     }
-    END_CONTRACT_SCOPE;
+    END_CONTRACT_SCOPE
 
   }
 }

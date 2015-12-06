@@ -76,7 +76,7 @@ bool pointInPolygon(const Dim<3>::Vector& p,
   // Prerequisites.
   const unsigned npts = vertices.size();
   unsigned i, j, k;
-  BEGIN_CONTRACT_SCOPE;
+  BEGIN_CONTRACT_SCOPE
   {
     REQUIRE(vertices.size() > 2);
     const double normmag = normal.magnitude();
@@ -89,7 +89,7 @@ bool pointInPolygon(const Dim<3>::Vector& p,
     }
     REQUIRE(fuzzyEqual(pointPlaneDistance(p, vertices[0], normal.unitVector()), 0.0, 1.0e-10));
   }
-  END_CONTRACT_SCOPE;
+  END_CONTRACT_SCOPE
 
   bool result = false;
 
@@ -166,7 +166,7 @@ bool pointInPolygon(const Dim<3>::Vector& p,
   // Prerequisites.
   const unsigned npts = ipoints.size();
   unsigned i, j, k;
-  BEGIN_CONTRACT_SCOPE;
+  BEGIN_CONTRACT_SCOPE
   {
     REQUIRE(ipoints.size() > 2);
     const double normmag = normal.magnitude();
@@ -179,7 +179,7 @@ bool pointInPolygon(const Dim<3>::Vector& p,
     }
     REQUIRE2(fuzzyEqual(pointPlaneDistance(p, vertices[ipoints[0]], normal.unitVector()), 0.0, 1.0e-3), pointPlaneDistance(p, vertices[ipoints[0]], normal.unitVector()));
   }
-  END_CONTRACT_SCOPE;
+  END_CONTRACT_SCOPE
 
   bool result = false;
 

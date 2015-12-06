@@ -470,13 +470,13 @@ removeZonesByMask(const vector<unsigned>& zoneMask) {
   // }
 
   // That's it.
-  BEGIN_CONTRACT_SCOPE;
+  BEGIN_CONTRACT_SCOPE
   {
     Vector xmin, xmax;
     this->boundingBox(xmin, xmax);
     ENSURE2(this->validDomainInfo(xmin, xmax, false) == "", this->validDomainInfo(xmin, xmax, false));
   }
-  END_CONTRACT_SCOPE;
+  END_CONTRACT_SCOPE
 }
 
 //------------------------------------------------------------------------------
@@ -798,7 +798,7 @@ generateDomainInfo() {
   }
 
   // Ensure consistency in the potential exchange pattern!
-  BEGIN_CONTRACT_SCOPE;
+  BEGIN_CONTRACT_SCOPE
   {
     for (int sendProc = 0; sendProc != numDomains; ++sendProc) {
       unsigned num = potentialNeighborDomains.size();
@@ -812,7 +812,7 @@ generateDomainInfo() {
              binary_search(otherNeighbors.begin(), otherNeighbors.end(), rank) == false));
     }
   }
-  END_CONTRACT_SCOPE;
+  END_CONTRACT_SCOPE
 
   // Exchange the keys.
   vector<vector<Key> > neighborHashes;
@@ -1302,7 +1302,7 @@ globalMeshNodeIDs() const {
     // I think this post-condition check is too expensive to always have in a 
     // contract, so I'm putting this same logic in the Mesh unit tests instead.
 //     // Post-conditions (parallel).
-//     BEGIN_CONTRACT_SCOPE;
+//     BEGIN_CONTRACT_SCOPE
 //     {
 //       // Make sure everyone is consistent about the global IDs of shared nodes.
 //       list<vector<unsigned> > sendBuffers, recvBuffers;
@@ -1354,7 +1354,7 @@ globalMeshNodeIDs() const {
 //         MPI_Waitall(sendRequests.size(), &sendRequests.front(), &sendStatus.front());
 //       }
 //     }
-//     END_CONTRACT_SCOPE;
+//     END_CONTRACT_SCOPE
 #endif
 
   }
@@ -1394,7 +1394,7 @@ globalMeshFaceIDs(const vector<unsigned>& globalNodeIDs) const {
   }
 
   // Post-conditions.
-  BEGIN_CONTRACT_SCOPE;
+  BEGIN_CONTRACT_SCOPE
   {
     ENSURE(result.size() == mFaces.size());
 
@@ -1403,7 +1403,7 @@ globalMeshFaceIDs(const vector<unsigned>& globalNodeIDs) const {
       ENSURE(find(result.begin() + i + 1, result.end(), result[i]) == result.end());
     }
   }
-  END_CONTRACT_SCOPE;
+  END_CONTRACT_SCOPE
 
   return result;
 }
@@ -1513,7 +1513,7 @@ boundingBox(typename Dimension::Vector& xmin,
 //   ENSURE(mSharedNodes.size() == mNeighborDomains.size());
 //   ENSURE(mSharedFaces.size() == mNeighborDomains.size());
 // #ifdef USE_MPI
-//   BEGIN_CONTRACT_SCOPE;
+//   BEGIN_CONTRACT_SCOPE
 //   {
 //     cerr << Process::getRank() << " Mesh::buildAncillaryCommData 6" << endl;
 //     // Make sure each domain agrees about the shared faces.
@@ -1554,7 +1554,7 @@ boundingBox(typename Dimension::Vector& xmin,
 //     vector<MPI_Status> recvStats(requests.size());
 //     MPI_Waitall(requests.size(), &requests.front(), &recvStatus.front());
 //   }
-//   END_CONTRACT_SCOPE;
+//   END_CONTRACT_SCOPE
 // #endif
 //   cerr << Process::getRank() << " Mesh::buildAncillaryCommData 9" << endl;
 // }

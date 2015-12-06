@@ -318,10 +318,10 @@ FieldList<Dimension, DataType>::appendField(const Field<Dimension, DataType>& fi
   buildNodeListIndexMap();
 
   // Post-conditions.
-  BEGIN_CONTRACT_SCOPE;
+  BEGIN_CONTRACT_SCOPE
   ENSURE(mFieldPtrs[mNodeListIndexMap[field.nodeListPtr()]] == *(fieldForNodeList(*field.nodeListPtr())));
   ENSURE(this->size() == mNodeListPtrs.size());
-  END_CONTRACT_SCOPE;
+  END_CONTRACT_SCOPE
 
 }
 
@@ -397,11 +397,11 @@ appendNewField(const typename FieldSpace::Field<Dimension, DataType>::FieldName 
   buildNodeListIndexMap();
 
   // Post-conditions.
-  BEGIN_CONTRACT_SCOPE;
+  BEGIN_CONTRACT_SCOPE
   ENSURE(mFieldPtrs[mNodeListIndexMap[fieldPtr->nodeListPtr()]] == *(fieldForNodeList(*(fieldPtr->nodeListPtr()))));
   ENSURE(this->size() == mNodeListPtrs.size());
   ENSURE(mFieldBasePtrs.size() == mFieldPtrs.size());
-  END_CONTRACT_SCOPE;
+  END_CONTRACT_SCOPE
 
 }
 
@@ -1033,11 +1033,11 @@ FieldList<Dimension, DataType>
 FieldList<Dimension, DataType>::operator+(const FieldList<Dimension, DataType>& rhs) const {
 
   // Pre-conditions.
-  BEGIN_CONTRACT_SCOPE;
+  BEGIN_CONTRACT_SCOPE
   REQUIRE(numFields() == rhs.numFields());
   for (int i = 0; i != numFields(); ++i) 
     REQUIRE(mFieldPtrs[i]->nodeListPtr() == rhs[i]->nodeListPtr());
-  END_CONTRACT_SCOPE;
+  END_CONTRACT_SCOPE
 
   FieldList<Dimension, DataType> result(*this);
   result.copyFields();
@@ -1054,11 +1054,11 @@ FieldList<Dimension, DataType>
 FieldList<Dimension, DataType>::operator-(const FieldList<Dimension, DataType>& rhs) const {
 
   // Pre-conditions.
-  BEGIN_CONTRACT_SCOPE;
+  BEGIN_CONTRACT_SCOPE
   REQUIRE(numFields() == rhs.numFields());
   for (int i = 0; i != numFields(); ++i) 
     REQUIRE(mFieldPtrs[i]->nodeListPtr() == rhs[i]->nodeListPtr());
-  END_CONTRACT_SCOPE;
+  END_CONTRACT_SCOPE
 
   FieldList<Dimension, DataType> result(*this);
   result.copyFields();
@@ -1075,11 +1075,11 @@ FieldList<Dimension, DataType>&
 FieldList<Dimension, DataType>::operator+=(const FieldList<Dimension, DataType>& rhs) {
 
   // Pre-conditions.
-  BEGIN_CONTRACT_SCOPE;
+  BEGIN_CONTRACT_SCOPE
   REQUIRE(numFields() == rhs.numFields());
   for (int i = 0; i != numFields(); ++i) 
     REQUIRE(mFieldPtrs[i]->nodeListPtr() == rhs[i]->nodeListPtr());
-  END_CONTRACT_SCOPE;
+  END_CONTRACT_SCOPE
 
   for (int i = 0; i < numFields(); ++i) {
     CHECK((*this)[i]->nodeListPtr() == rhs[i]->nodeListPtr());
@@ -1097,11 +1097,11 @@ FieldList<Dimension, DataType>&
 FieldList<Dimension, DataType>::operator-=(const FieldList<Dimension, DataType>& rhs) {
 
   // Pre-conditions.
-  BEGIN_CONTRACT_SCOPE;
+  BEGIN_CONTRACT_SCOPE
   REQUIRE(numFields() == rhs.numFields());
   for (int i = 0; i != numFields(); ++i) 
     REQUIRE(mFieldPtrs[i]->nodeListPtr() == rhs[i]->nodeListPtr());
-  END_CONTRACT_SCOPE;
+  END_CONTRACT_SCOPE
 
   for (int i = 0; i < numFields(); ++i) {
     CHECK((*this)[i]->nodeListPtr() == rhs[i]->nodeListPtr());
@@ -1355,11 +1355,11 @@ FieldList<Dimension, DataType>::
 operator==(const FieldList<Dimension, DataType>& rhs) const {
 
   // Pre-conditions.
-  BEGIN_CONTRACT_SCOPE;
+  BEGIN_CONTRACT_SCOPE
   REQUIRE(numFields() == rhs.numFields());
   for (int i = 0; i != numFields(); ++i) 
     REQUIRE(mFieldPtrs[i]->nodeListPtr() == rhs[i]->nodeListPtr());
-  END_CONTRACT_SCOPE;
+  END_CONTRACT_SCOPE
 
   bool result = true;
   int i = 0;
@@ -1391,11 +1391,11 @@ FieldList<Dimension, DataType>::
 operator>(const FieldList<Dimension, DataType>& rhs) const {
 
   // Pre-conditions.
-  BEGIN_CONTRACT_SCOPE;
+  BEGIN_CONTRACT_SCOPE
   REQUIRE(numFields() == rhs.numFields());
   for (int i = 0; i != numFields(); ++i) 
     REQUIRE(mFieldPtrs[i]->nodeListPtr() == rhs[i]->nodeListPtr());
-  END_CONTRACT_SCOPE;
+  END_CONTRACT_SCOPE
 
   bool result = true;
   int i = 0;
@@ -1416,11 +1416,11 @@ FieldList<Dimension, DataType>::
 operator<(const FieldList<Dimension, DataType>& rhs) const {
 
   // Pre-conditions.
-  BEGIN_CONTRACT_SCOPE;
+  BEGIN_CONTRACT_SCOPE
   REQUIRE(numFields() == rhs.numFields());
   for (int i = 0; i != numFields(); ++i) 
     REQUIRE(mFieldPtrs[i]->nodeListPtr() == rhs[i]->nodeListPtr());
-  END_CONTRACT_SCOPE;
+  END_CONTRACT_SCOPE
 
   bool result = true;
   int i = 0;

@@ -117,7 +117,7 @@ nodeOrdering(const FieldSpace::FieldList<Dimension, DataType>& criteria) {
   CHECK(iGlobal == numGlobalNodes);
 
   // Post-conditions.
-  BEGIN_CONTRACT_SCOPE;
+  BEGIN_CONTRACT_SCOPE
   {
     int iNodeList = 0;
     for (typename FieldList<Dimension, int>::const_iterator itr = result.begin();
@@ -142,7 +142,7 @@ nodeOrdering(const FieldSpace::FieldList<Dimension, DataType>& criteria) {
       ENSURE(countGlobal == 1);
     }
   }
-  END_CONTRACT_SCOPE;
+  END_CONTRACT_SCOPE
 
   return result;
 }

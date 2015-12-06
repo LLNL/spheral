@@ -155,11 +155,11 @@ globalNodeIDs(const NodeList<Dimension>& nodeList) {
   // Sort the node info.
   if (nodeInfo.size() > 0) {
     sort(nodeInfo.begin(), nodeInfo.end());
-    BEGIN_CONTRACT_SCOPE;
+    BEGIN_CONTRACT_SCOPE
     for (int i = 0; i < nodeInfo.size() - 1; ++i) {
       CHECK(boost::tuples::get<0>(nodeInfo[i]) <= boost::tuples::get<0>(nodeInfo[i + 1]));
     }
-    END_CONTRACT_SCOPE;
+    END_CONTRACT_SCOPE
   }
 
   // Now we can assign consecutive global IDs based on the sorted list.
@@ -271,7 +271,7 @@ globalNodeIDs(const NodeListIterator& begin,
   CHECK(beginID == endID);
 
   // Post-conditions.
-  BEGIN_CONTRACT_SCOPE;
+  BEGIN_CONTRACT_SCOPE
   {
     ENSURE(result.numFields() == numNodeLists);
 
@@ -296,7 +296,7 @@ globalNodeIDs(const NodeListIterator& begin,
       }
     }
   }
-  END_CONTRACT_SCOPE;
+  END_CONTRACT_SCOPE
 
 #else
 

@@ -98,7 +98,7 @@ currentDomainDecomposition(const DataBase<Dimension>& dataBase,
                            const FieldList<Dimension, Scalar>& workPerNode) const {
 
   // Pre-conditions.
-  BEGIN_CONTRACT_SCOPE;
+  BEGIN_CONTRACT_SCOPE
   REQUIRE(dataBase.numNodeLists() == globalNodeIDs.numFields());
   REQUIRE(dataBase.numNodeLists() == workPerNode.numFields());
   for (typename FieldList<Dimension, int>::const_iterator itr = globalNodeIDs.begin();
@@ -107,7 +107,7 @@ currentDomainDecomposition(const DataBase<Dimension>& dataBase,
   for (typename FieldList<Dimension, Scalar>::const_iterator itr = workPerNode.begin();
        itr != workPerNode.end();
        ++itr) REQUIRE(dataBase.haveNodeList((*itr)->nodeList()));
-  END_CONTRACT_SCOPE;
+  END_CONTRACT_SCOPE
 
   // Prepare the result.
   vector<DomainNode<Dimension> > result;
@@ -333,14 +333,14 @@ enforceDomainDecomposition(const vector<DomainNode<Dimension> >& nodeDistributio
     // This is a somewhat expensive contract because of the all reduce,
     // but it is critical all processors agree about the fields defined
     // on each NodeList.
-    BEGIN_CONTRACT_SCOPE;
+    BEGIN_CONTRACT_SCOPE
     {
       int localNumFields = (**nodeListItr).numFields();
       int globalNumFields;
       MPI_Allreduce(&localNumFields, &globalNumFields, 1, MPI_INT, MPI_MAX, Communicator::communicator());
       CHECK(localNumFields == globalNumFields);
     }
-    END_CONTRACT_SCOPE;
+    END_CONTRACT_SCOPE
   }
 
   // Wait until we know the sizes of the encoded field buffers we're receiving.

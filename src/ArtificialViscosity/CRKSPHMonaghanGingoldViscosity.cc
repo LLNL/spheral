@@ -324,5 +324,41 @@ Piij(const unsigned nodeListi, const unsigned i,
                    ej/rhoj*Tensor::one);
 }
 
+//------------------------------------------------------------------------------
+// etaCritFrac
+//------------------------------------------------------------------------------
+template<typename Dimension>
+double
+CRKSPHMonaghanGingoldViscosity<Dimension>::
+etaCritFrac() const {
+  return mEtaCritFrac;
+}
+
+template<typename Dimension>
+void
+CRKSPHMonaghanGingoldViscosity<Dimension>::
+etaCritFrac(const double val) {
+  VERIFY(val >= 0.0);
+  mEtaCritFrac = val;
+}
+
+//------------------------------------------------------------------------------
+// etaFoldFrac
+//------------------------------------------------------------------------------
+template<typename Dimension>
+double
+CRKSPHMonaghanGingoldViscosity<Dimension>::
+etaFoldFrac() const {
+  return mEtaFoldFrac;
+}
+
+template<typename Dimension>
+void
+CRKSPHMonaghanGingoldViscosity<Dimension>::
+etaFoldFrac(const double val) {
+  VERIFY(val > 0.0);
+  mEtaFoldFrac = val;
+}
+
 }
 }

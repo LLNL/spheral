@@ -29,7 +29,7 @@ removeElements(std::vector<Value>& vec,
     const index_t newSize = originalSize - elements.size();
 
     // Pre-conditions.
-    BEGIN_CONTRACT_SCOPE;
+    BEGIN_CONTRACT_SCOPE
     {
       // We require the input IDs be sorted and unique.
       for (typename std::vector<index_t>::const_iterator itr = elements.begin();
@@ -40,7 +40,7 @@ removeElements(std::vector<Value>& vec,
       if (elements.size() > 0) 
 	REQUIRE(elements[0] >= 0 && elements.back() < originalSize);
     }
-    END_CONTRACT_SCOPE;
+    END_CONTRACT_SCOPE
 
     // Remove the elements.
     // We prefer not to use the vector::erase here 'cause if we're removing

@@ -527,7 +527,7 @@ computeConnectivity() {
   typedef Timing::Time Time;
 
   // Pre-conditions.
-  BEGIN_CONTRACT_SCOPE;
+  BEGIN_CONTRACT_SCOPE
   {
     for (typename vector<const NodeList<Dimension>*>::const_iterator itr = mNodeLists.begin();
          itr != mNodeLists.end();
@@ -536,7 +536,7 @@ computeConnectivity() {
     }
     REQUIRE(mOffsets.size() == mNodeLists.size());
   }
-  END_CONTRACT_SCOPE;
+  END_CONTRACT_SCOPE
 
   const bool domainDecompIndependent = NodeListRegistrar<Dimension>::instance().domainDecompositionIndependent();
 
@@ -848,7 +848,7 @@ computeConnectivity() {
   }
 
   // Post conditions.
-  BEGIN_CONTRACT_SCOPE;
+  BEGIN_CONTRACT_SCOPE
   // Make sure that the correct number of nodes have been completed.
   for (unsigned iNodeList = 0; iNodeList != numNodeLists; ++iNodeList) {
     const unsigned n = (mBuildGhostConnectivity ? 
@@ -861,7 +861,7 @@ computeConnectivity() {
   }
   // Make sure we're ready to be used.
   ENSURE(valid());
-  END_CONTRACT_SCOPE;
+  END_CONTRACT_SCOPE
 }
 
 }

@@ -66,7 +66,7 @@ TableKernel<Dimension>::kernelAndGradValues(const std::vector<double>& etaMagnit
                                             std::vector<double>& gradValues) const {
   // Preconditions.
   const size_t n = etaMagnitudes.size();
-  BEGIN_CONTRACT_SCOPE;
+  BEGIN_CONTRACT_SCOPE
   {
     REQUIRE(Hdets.size() == n);
     for (size_t i = 0; i != n; ++i) {
@@ -74,7 +74,7 @@ TableKernel<Dimension>::kernelAndGradValues(const std::vector<double>& etaMagnit
       REQUIRE(Hdets[i] >= 0.0);
     }
   }
-  END_CONTRACT_SCOPE;
+  END_CONTRACT_SCOPE
 
   // Prepare the results.
   kernelValues = std::vector<double>(n);

@@ -79,14 +79,14 @@ findIntersections(const Dim<1>::Vector& xmin,
   }
 
   // Post-conditions.
-  BEGIN_CONTRACT_SCOPE;
+  BEGIN_CONTRACT_SCOPE
   {
     if (result.size() > 0) {
       ENSURE(result.front().x() >= smin.x());
       ENSURE(result.back().x() <= smax.x());
     }
   }
-  END_CONTRACT_SCOPE;
+  END_CONTRACT_SCOPE
 
   return result;
 }
@@ -143,7 +143,7 @@ findIntersections(const Dim<2>::Vector& xmin,
   }
 
   // Post-conditions.
-  BEGIN_CONTRACT_SCOPE;
+  BEGIN_CONTRACT_SCOPE
   {
     const Vector shat = (s1 - s0).unitVector();
     const double segLen = (s1 - s0).magnitude();
@@ -155,7 +155,7 @@ findIntersections(const Dim<2>::Vector& xmin,
       ENSURE((*itr - s0).dot(shat)*safeInv(segLen) <= (1.0 + 1.0e-8));
     }
   }
-  END_CONTRACT_SCOPE;
+  END_CONTRACT_SCOPE
 
   return result;
 }
@@ -225,7 +225,7 @@ findIntersections(const Dim<3>::Vector& xmin,
   }
 
   // Post-conditions.
-  BEGIN_CONTRACT_SCOPE;
+  BEGIN_CONTRACT_SCOPE
   {
     const Vector shat = (s1 - s0).unitVector();
     const double segLen = (s1 - s0).magnitude();
@@ -237,7 +237,7 @@ findIntersections(const Dim<3>::Vector& xmin,
       ENSURE((*itr - s0).dot(shat)*safeInv(segLen) <= 1.0);
     }
   }
-  END_CONTRACT_SCOPE;
+  END_CONTRACT_SCOPE
 
   return result;
 }
@@ -297,7 +297,7 @@ integrateThroughMeshAlongSegment(const vector<vector<Value> >& values,
   typedef typename Dimension::Vector Vector;
 
   // Preconditions.
-  BEGIN_CONTRACT_SCOPE;
+  BEGIN_CONTRACT_SCOPE
   {
     REQUIRE(ncells.size() == Dimension::nDim);
     for (unsigned level = 0; level != values.size(); ++level) {
@@ -306,7 +306,7 @@ integrateThroughMeshAlongSegment(const vector<vector<Value> >& values,
       REQUIRE(values[level].size() == ncellsTotal);
     }
   }
-  END_CONTRACT_SCOPE;
+  END_CONTRACT_SCOPE
 
   // Find the points of intersection with the cartesian planes.
   vector<Vector> intersections = findIntersections(xmin, xmax, ncells, s0, s1);

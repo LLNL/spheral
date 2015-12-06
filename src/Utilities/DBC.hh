@@ -137,11 +137,11 @@ if (::Spheral::dbc::assertionLock()) {        \
 // Use these to declare variables that are only used by contracts.
 //----------------------------------------------------------------------------
 #ifdef DBC_USE_SCOPES
-#define BEGIN_CONTRACT_SCOPE 
-#define END_CONTRACT_SCOPE 
+#define BEGIN_CONTRACT_SCOPE {
+#define END_CONTRACT_SCOPE }
 #else
 #define BEGIN_CONTRACT_SCOPE if (false) { while(false)
-#define END_CONTRACT_SCOPE } while(false)
+#define END_CONTRACT_SCOPE } while(false);
 #endif
 
 //----------- Define one-argument forms

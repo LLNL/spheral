@@ -69,13 +69,13 @@ buildLimiter(const std::vector<std::pair<double, typename Dimension::Vector> >& 
 
   // Pre-conditions.
   REQUIRE(phiScales.size() > 0);
-  BEGIN_CONTRACT_SCOPE;
+  BEGIN_CONTRACT_SCOPE
   {
     for (size_t k = 0; k != phiScales.size(); ++k) {
       REQUIRE(fuzzyEqual(phiScales[k].second.magnitude2(), 1.0, 1.0e-12));
     }
   }
-  END_CONTRACT_SCOPE;
+  END_CONTRACT_SCOPE
 
   // Iterate over the input scalar phis and build the second moment tensor.
   SymTensor result;
@@ -103,7 +103,7 @@ buildLimiter(const std::vector<std::pair<double, typename Dimension::Vector> >& 
   result *= f;
 
   // Post-condtions.
-  BEGIN_CONTRACT_SCOPE;
+  BEGIN_CONTRACT_SCOPE
   {
     for (PhiItr itr = phiScales.begin(); itr != phiScales.end(); ++itr) {
       const double phi0 = itr->first;
@@ -111,7 +111,7 @@ buildLimiter(const std::vector<std::pair<double, typename Dimension::Vector> >& 
       ENSURE(fuzzyLessThanOrEqual(result.dot(vec0).magnitude(), phi0, 1.0e-12));
     }
   }
-  END_CONTRACT_SCOPE;
+  END_CONTRACT_SCOPE
 
   return result;
 }
