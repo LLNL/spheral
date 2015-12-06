@@ -38,6 +38,8 @@ commandLine(nx1 = 400,
             aMax = 2.0,
             Cl = 1.0,
             Cq = 1.5,
+            etaCritFrac = 1.0,
+            etaFoldFrac = 0.2,
             boolCullenViscosity = False,
             alphMax = 2.0,
             alphMin = 0.02,
@@ -297,6 +299,8 @@ elif CRKSPH:
                              XSPH = XSPH,
                              densityUpdate = densityUpdate,
                              HUpdate = HUpdate)
+    q.etaCritFrac = etaCritFrac
+    q.etaFoldFrac = etaFoldFrac
 else:
     hydro = HydroConstructor(W = WT,
                              Q = q,
