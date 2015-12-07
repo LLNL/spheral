@@ -65,7 +65,7 @@ commandLine(asph = False,
             R0 = Vector(0.0, 0.0),
 
             # Properties of the gas disk.
-            fractionPressureSupport = 0.5,
+            fractionPressureSupport = 0.0,
             rho0  = 1.0,
             rd0   = 10.0,
             sig   = 2.5,
@@ -119,8 +119,8 @@ commandLine(asph = False,
             dtGrowth = 2.0,
             maxSteps = None,
             statsStep = 10,
-            redistributeStep = 100,
-            restartStep = 100,
+            redistributeStep = 1000,
+            restartStep = 1000,
             restoreCycle = None,
             smoothIters = 0,
             rigorousBoundaries = True,
@@ -130,7 +130,7 @@ commandLine(asph = False,
             serialDumpEach = 10,
             
             vizCycle = None,
-            vizTime = 0.1,
+            vizTime = 0.5,
             vizMethod = SpheralPointmeshSiloDump.dumpPhysicsState
             )
 
@@ -143,6 +143,7 @@ if SVPH:
     else:
         HydroConstructor = SVPHFacetedHydro
 elif CRKSPH:
+    Qconstructor = CRKSPHMonaghanGingoldViscosity2d
     if ASPH:
         HydroConstructor = ACRKSPHHydro
     else:
@@ -221,7 +222,7 @@ eos = PolytropicEquationOfStateMKS(fractionPressureSupport*polytropicConstant,
 # one for use with the artificial viscosity
 #-------------------------------------------------------------------------------
 WT = TableKernel(NBSplineKernel(5), 100)
-WTPi = TableKernel(NBSplineKernel(3), 100)
+WTPi = TableKernel(NBSplineKernel(5), 100)
 output('WT')
 output('WTPi')
 
@@ -424,7 +425,8 @@ control = SpheralController(integrator, WT,
                             vizBaseName = vizBaseName,
                             vizDir = vizDir,
                             vizStep = vizCycle,
-                            vizTime = vizTime)
+                            vizTime = vizTime,
+                            restoreCycle=restoreCycle)
 
 
 if serialDump:
@@ -433,12 +435,7 @@ if serialDump:
 output('control')
 
 # Smooth the initial conditions.
-if restoreCycle is not None:
-    control.loadRestartFile(restoreCycle)
-else:
-    control.iterateIdealH()
-    control.smoothState(smoothIters)
-    control.dropRestartFile()
+
 
 #-------------------------------------------------------------------------------
 # Advance to the end time.
