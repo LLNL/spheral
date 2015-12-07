@@ -50,13 +50,13 @@ class sDump(object):
 # Generic problem parameters
 #-------------------------------------------------------------------------------
 commandLine(asph = False,
-            lattice = False,
-            n = 100,
+            lattice = True,
+            n = 128,
             thetaMin = 0.0,
             thetaMax = 2.0*pi,
             rmin = 0.5,
             rmax = 2.0,
-            nPerh = 2.01,
+            nPerh = 1.44,
 
             # Properties of the central gravitating particle.
             G0 = 1.0,
@@ -89,7 +89,7 @@ commandLine(asph = False,
             Qconstructor = MonaghanGingoldViscosity2d,
             #Qconstructor = TensorMonaghanGingoldViscosity2d,
             Cl = 1.0,
-            Cq = 0.75,
+            Cq = 2.0,
             Qlimiter = False,
             balsaraCorrection = True,
             epsilon2 = 1e-4,
@@ -98,7 +98,7 @@ commandLine(asph = False,
             hmin = 0.004,
             hmax = 10.0,
             hminratio = 0.1,
-            compatibleEnergy = True,
+            compatibleEnergy = False,
             gradhCorrection = False,
             HEvolution = IdealH,
             sumForMassDensity = RigorousSumDensity,
@@ -112,15 +112,15 @@ commandLine(asph = False,
 
             # Integrator and run time.
             IntegratorConstructor = CheapSynchronousRK2Integrator,
-            goalTime = 10.0,
+            goalTime = 120.0,
             dt = 0.0001,
             dtMin = 1.0e-5,
             dtMax = 0.1,
             dtGrowth = 2.0,
             maxSteps = None,
             statsStep = 10,
-            redistributeStep = 100,
-            restartStep = 100,
+            redistributeStep = 500,
+            restartStep = 500,
             restoreCycle = None,
             smoothIters = 0,
             rigorousBoundaries = True,
@@ -130,7 +130,7 @@ commandLine(asph = False,
             serialDumpEach = 10,
             
             vizCycle = None,
-            vizTime = 0.1,
+            vizTime = 1,
             vizMethod = SpheralPointmeshSiloDump.dumpPhysicsState
             )
 
@@ -143,6 +143,7 @@ if SVPH:
     else:
         HydroConstructor = SVPHFacetedHydro
 elif CRKSPH:
+    Qconstructor = CRKSPHMonaghanGingoldViscosity2d
     if ASPH:
         HydroConstructor = ACRKSPHHydro
     else:
@@ -155,6 +156,8 @@ else:
 
 # Data output info.
 dataDir = "hopkins-%i" % n
+dataDir = os.path.join(dataDir, "CRK=%s-nPerh=%f-balsara=%s" % (CRKSPH,nPerh,balsaraCorrection))
+dataDir = os.path.join(dataDir, "Cl=%f-Cq=%f" % (Cl,Cq))
 restartBaseName = "%s/KeplerianDisk-n=%i" % (dataDir,n)
                                             
 vizDir = os.path.join(dataDir, "visit")
@@ -216,7 +219,7 @@ eos = PolytropicEquationOfStateMKS(polytropicConstant,
 # Create our interpolation kernels -- one for normal hydro interactions, and
 # one for use with the artificial viscosity
 #-------------------------------------------------------------------------------
-WT = TableKernel(NBSplineKernel(5), 100)
+WT = TableKernel(NBSplineKernel(3), 100)
 WTPi = TableKernel(NBSplineKernel(3), 100)
 output('WT')
 output('WTPi')
@@ -431,7 +434,8 @@ control = SpheralController(integrator, WT,
                             vizBaseName = vizBaseName,
                             vizDir = vizDir,
                             vizStep = vizCycle,
-                            vizTime = vizTime)
+                            vizTime = vizTime,
+                            restoreCycle=restoreCycle)
 
 
 if serialDump:
@@ -440,12 +444,6 @@ if serialDump:
 output('control')
 
 # Smooth the initial conditions.
-if restoreCycle is not None:
-    control.loadRestartFile(restoreCycle)
-else:
-    control.iterateIdealH()
-    control.smoothState(smoothIters)
-    control.dropRestartFile()
 
 #-------------------------------------------------------------------------------
 # Advance to the end time.
