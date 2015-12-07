@@ -1,8 +1,8 @@
 #-*-python-*-
 # This is an ATS script to coordinate running a series of tests of CRKSPH.
 cfl = 0.25
-Cl = 0.75
-Cq = 0.5
+Cl = 0.5
+Cq = 0.1
 filter = 0.0
 KernelConstructor = "WendlandC4Kernel"
 order = 7
