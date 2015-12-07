@@ -56,7 +56,7 @@ commandLine(asph = False,
             thetaMax = 2.0*pi,
             rmin = 0.0,
             rmax = 5.0,
-            nPerh = 2.01,
+            nPerh = 1.51,
 
             # Properties of the central gravitating particle.
             G0 = 1.0,
@@ -212,7 +212,7 @@ eos = PolytropicEquationOfStateMKS(fractionPressureSupport*polytropicConstant,
 # one for use with the artificial viscosity
 #-------------------------------------------------------------------------------
 WT = TableKernel(NBSplineKernel(5), 100)
-WTPi = TableKernel(NBSplineKernel(3), 100)
+WTPi = TableKernel(NBSplineKernel(5), 100)
 output('WT')
 output('WTPi')
 
@@ -328,7 +328,7 @@ output("gravity.deltaPotentialFraction")
 # Construct the hydro physics object.
 #-------------------------------------------------------------------------------
 if SVPH:
-    hydro = HydroConstructor(WT, q,
+    hydro = HydroConstructor(W=WT, Q=q,
                              cfl = cfl,
                              compatibleEnergyEvolution = compatibleEnergy,
                              densityUpdate = densityUpdate,
@@ -343,7 +343,7 @@ if SVPH:
 # xmin = Vector(x0 - 0.5*(x2 - x0), y0 - 0.5*(y2 - y0)),
 # xmax = Vector(x2 + 0.5*(x2 - x0), y2 + 0.5*(y2 - y0)))
 elif CRKSPH:
-    hydro = HydroConstructor(WT, WTPi, q,
+    hydro = HydroConstructor(W=WT, WPi=WTPi, Q=q,
                              filter = filter,
                              cfl = cfl,
                              compatibleEnergyEvolution = compatibleEnergy,
@@ -351,9 +351,9 @@ elif CRKSPH:
                              densityUpdate = densityUpdate,
                              HUpdate = HUpdate)
 else:
-    hydro = HydroConstructor(WT,
-                             WTPi,
-                             q,
+    hydro = HydroConstructor(W=WT,
+                             WPi=WTPi,
+                             Q=q,
                              cfl = cfl,
                              compatibleEnergyEvolution = compatibleEnergy,
                              gradhCorrection = gradhCorrection,
