@@ -25,7 +25,11 @@ def plotW(plot, W, xmin=0.0, xmax=2.0, numPnts=200, Hdet=1.0, title='',
     plot.ylabel('W')
     if title:
         plot.title(title)
-    data = Gnuplot.Data(x/xmax, y/y[0], with_='lines', title=lineTitle)
+    ymax = 0
+    for i in xrange(numPnts):
+        if abs(y[i]) > ymax:
+            ymax = abs(y[i])
+    data = Gnuplot.Data(x/xmax, y/ymax, with_='lines', title=lineTitle)
 
     plot.replot(data)
     plot('set xrange[0:1]')
@@ -103,7 +107,7 @@ titleDict = {'spline':  'B Spline Kernel',
              }
 
 plots = []
-for i in xrange(1):
+for i in xrange(2):
     plots.append(generateNewGnuPlot())
 for kernel in kernels:
     title(titleDict[kernel])
@@ -116,5 +120,8 @@ for kernel in kernels:
         output("WT.kernelExtent")
         plotW(plots[-1], WT.kernelValue, 0.0, W.kernelExtent,
               title='Kernels',
+              lineTitle = titleDict[kernel])
+        plotW(plots[-2], WT.gradValue, 0.0, W.kernelExtent,
+              title = 'Kernel Gradients',
               lineTitle = titleDict[kernel])
 
