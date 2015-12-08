@@ -1,0 +1,277 @@
+fopt1 = -ffortran-bounds-check -fpedantic-error -O
+Wopt1 = -Wuninitialized -Wunused -Wimplicit
+lopt1 = 
+dir   = c:/cygwin/bin/
+#
+add_dens.o :	add_dens.f
+	g77 $(fopt1) $(Wopt1) -c add_dens.f
+#
+assign_density.o :	assign_density.f maxx.inc
+	g77 $(fopt1) $(Wopt1) -c assign_density.f
+#
+assign_density_a.o :	assign_density_a.f maxx.inc
+	g77 $(fopt1) $(Wopt1) -c assign_density_a.f
+#
+assign_force_pot.o :	assign_force_pot.f maxx.inc
+	g77 $(fopt1) $(Wopt1) -c assign_force_pot.f
+#
+buffer_points.o :	buffer_points.f maxx.inc
+	g77 $(fopt1) $(Wopt1) -c buffer_points.f
+#
+buffer_points_a.o :	buffer_points_a.f maxx.inc
+	g77 $(fopt1) $(Wopt1) -c buffer_points_a.f
+#
+check_for_edge_trouble.o :	check_for_edge_trouble.f
+	g77 $(fopt1) $(Wopt1) -c check_for_edge_trouble.f
+#
+check_high.o :	check_high.f
+	g77 $(fopt1) $(Wopt1) -c check_high.f
+#
+convolve_it.o :	convolve_it.f
+	g77 $(fopt1) $(Wopt1) -c convolve_it.f
+#
+daughter_group_nina.o :	daughter_group_nina.f maxx.inc
+	g77 $(fopt1) $(Wopt1) -c daughter_group_nina.f
+#
+energies.o :	energies.f
+	g77 $(fopt1) $(Wopt1) -c energies.f
+#
+energies_a.o :	energies_a.f
+	g77 $(fopt1) $(Wopt1) -c energies_a.f
+#
+edge_distance.o :	edge_distance.f
+	g77 $(fopt1) $(Wopt1) -c edge_distance.f
+#
+equivalence_class.o :	equivalence_class.f
+	g77 $(fopt1) $(Wopt1) -c equivalence_class.f
+#
+find_chains.o :	find_chains.f maxx.inc
+	g77 $(fopt1) $(Wopt1) -c find_chains.f
+#
+find_go_ahead.o :	find_go_ahead.f maxx.inc
+	g77 $(fopt1) $(Wopt1) -c find_go_ahead.f
+#
+find_high_pairs.o :	find_high_pairs.f maxx.inc
+	g77 $(fopt1) $(Wopt1) -c find_high_pairs.f
+#
+find_high_points.o :	find_high_points.f maxx.inc
+	g77 $(fopt1) $(Wopt1) -c find_high_points.f
+#
+find_high_points_a.o :	find_high_points_a.f maxx.inc
+	g77 $(fopt1) $(Wopt1) -c find_high_points_a.f
+#
+find_neighbors_nina.o :	find_neighbors_nina.f maxx.inc
+	g77 $(fopt1) $(Wopt1) -c find_neighbors_nina.f
+#
+force_at_fake_particles.o :	force_at_fake_particles.f
+	g77 $(fopt1) $(Wopt1) -c force_at_fake_particles.f
+#
+force_at_particle.o :	force_at_particle.f
+	g77 $(fopt1) $(Wopt1) -c force_at_particle.f
+#
+force_at_particle_a.o :	force_at_particle_a.f
+	g77 $(fopt1) $(Wopt1) -c force_at_particle_a.f
+#
+force_at_point.o :	force_at_point.f
+	g77 $(fopt1) $(Wopt1) -c force_at_point.f
+#
+force_at_point_zel.o :	force_at_point_zel.f
+	g77 $(fopt1) $(Wopt1) -c force_at_point_zel.f
+#
+four2.o :	four2.f
+	g77 $(fopt1)  -Wuninitialized -Wunused -c four2.f
+#
+fractal_gravity.o :	fractal_gravity.f maxes.inc maxx.inc maxx_iso.inc
+	g77 $(fopt1) $(Wopt1) -c fractal_gravity.f
+#
+fractal_gravity_a.o :	fractal_gravity_a.f maxes.inc maxx.inc maxx_iso.inc
+	g77 $(fopt1) $(Wopt1) -c fractal_gravity_a.f
+#
+gen_initial_conditions.o :	gen_initial_conditions.f maxes.inc maxx.inc maxx_iso.inc
+	g77 $(fopt1) $(Wopt1) -c gen_initial_conditions.f
+#
+heavies.o :	heavies.f
+	g77 $(fopt1) $(Wopt1) -c heavies.f
+#
+heavies_a.o :	heavies_a.f
+	g77 $(fopt1) $(Wopt1) -c heavies_a.f
+#
+high_groups.o :	high_groups.f maxx.inc
+	g77 $(fopt1) $(Wopt1) -c high_groups.f
+#
+highest_level_group.o :	highest_level_group.f
+	g77 $(fopt1) $(Wopt1) -c highest_level_group.f
+#
+highest_level_group_a.o :	highest_level_group_a.f
+	g77 $(fopt1) $(Wopt1) -c highest_level_group_a.f
+#
+isolated_solver.o :	isolated_solver.f maxx.inc maxx_iso.inc
+	g77 $(fopt1) $(Wopt1) -c isolated_solver.f
+#
+it_is_inside.o :	it_is_inside.f
+	g77 $(fopt1) $(Wopt1) -c it_is_inside.f
+#
+list_buffer.o :	list_buffer.f
+	g77 $(fopt1) $(Wopt1) -c list_buffer.f
+#
+list_buffer_a.o :	list_buffer_a.f
+	g77 $(fopt1) $(Wopt1) -c list_buffer_a.f
+#
+make_decisions_erika.o :	make_decisions_erika.f
+	g77 $(fopt1) $(Wopt1) -c make_decisions_erika.f
+#
+make_rho_hat.o :	make_rho_hat.f maxx.inc
+	g77 $(fopt1) $(Wopt1) -c make_rho_hat.f
+#
+my_list_sort_1.o :	my_list_sort_1.f maxx.inc
+	g77 $(fopt1) $(Wopt1) -c my_list_sort_1.f
+#
+my_list_sort_3.o :	my_list_sort_3.f maxx.inc
+	g77 $(fopt1) $(Wopt1) -c my_list_sort_3.f
+#
+negatives_groups.o :	negatives_groups.f
+	g77 $(fopt1) $(Wopt1) -c negatives_groups.f
+#
+negatives_particles.o :	negatives_particles.f
+	g77 $(fopt1) $(Wopt1) -c negatives_particles.f
+#
+negatives_points.o :	negatives_points.f maxx.inc
+	g77 $(fopt1) $(Wopt1) -c negatives_points.f
+#
+offset.o :	offset.f
+	g77 $(fopt1) $(Wopt1) -c offset.f
+#
+particle_lists.o :	particle_lists.f maxx.inc
+	g77 $(fopt1) $(Wopt1) -c particle_lists.f
+#
+periodic_solver.o :	periodic_solver.f maxx.inc
+	g77 $(fopt1) $(Wopt1) -c periodic_solver.f
+#
+poisson_solver.o :	poisson_solver.f maxx.inc
+	g77 $(fopt1) $(Wopt1) -c poisson_solver.f
+#
+poisson_solver_a.o :	poisson_solver_a.f maxx.inc
+	g77 $(fopt1) $(Wopt1) -c poisson_solver_a.f
+#
+potential_start.o :	potential_start.f
+	g77 $(fopt1) $(Wopt1) -c potential_start.f
+#
+power_spectrum.o :	power_spectrum.f
+	g77 $(fopt1) $(Wopt1) -c power_spectrum.f
+#
+remove_dupes.o :	remove_dupes.f maxx.inc
+	g77 $(fopt1) $(Wopt1) -c remove_dupes.f
+#
+run_fractal.o :	run_fractal.f	maxes.inc
+	g77 $(fopt1) $(Wopt1) -c run_fractal.f
+#
+run_fractal_a.o :	run_fractal_a.f	maxes.inc
+	g77 $(fopt1) $(Wopt1) -c run_fractal_a.f
+#
+run_fractal_initial.o :	run_fractal_initial.f 
+	g77 $(fopt1) $(Wopt1) -c run_fractal_initial.f
+#
+run_fractal_initial_a.o :	run_fractal_initial_a.f 
+	g77 $(fopt1) $(Wopt1) -c run_fractal_initial_a.f
+#
+run_fractal_initial_b.o :	run_fractal_initial_b.f 
+	g77 $(fopt1) $(Wopt1) -c run_fractal_initial_b.f
+#
+set_constant_real.o :	set_constant_real.f
+	g77 $(fopt1) $(Wopt1) -c set_constant_real.f
+#
+sor_2.o :	sor_2.f maxx.inc
+	g77 $(fopt1) $(Wopt1) -c sor_2.f
+#
+sor_d.o :	sor_d.f maxx.inc maxes.inc
+	g77 $(fopt1) $(Wopt1) -c sor_d.f
+#
+sor_d_a.o :	sor_d_a.f maxx.inc maxes.inc
+	g77 $(fopt1) $(Wopt1) -c sor_d_a.f
+#
+sum_prod.o :	sum_prod.f
+	g77 $(fopt1) $(Wopt1) -c sum_prod.f
+#
+sum_up.o :	sum_up.f
+	g77 $(fopt1) $(Wopt1) -c sum_up.f
+#
+take_a_step.o :	take_a_step.f
+	g77 $(fopt1) $(Wopt1) -c take_a_step.f
+#
+take_a_step_a.o :	take_a_step_a.f
+	g77 $(fopt1) $(Wopt1) -c take_a_step_a.f
+#
+test_big.o :	test_big.f
+	g77 $(fopt1) $(Wopt1) -c test_big.f
+#
+test_up_down.o :	test_up_down.f
+	g77 $(fopt1) $(Wopt1) -c test_up_down.f
+#
+timing.o :	timing.f
+	g77 $(fopt1) $(Wopt1) -c timing.f
+#
+tree_start.o :	tree_start.f
+	g77 $(fopt1) $(Wopt1) -c tree_start.f
+#
+uppers.o :	uppers.f
+	g77 $(fopt1) $(Wopt1) -c uppers.f
+#
+where_is_edge.o :	where_is_edge.f
+	g77 $(fopt1) $(Wopt1) -c where_is_edge.f
+#
+write_it.o :	write_it.f
+	g77 $(fopt1) $(Wopt1) -c write_it.f
+#
+files_fractal_nina_o= \
+add_dens.o assign_density.o assign_force_pot.o buffer_points.o\
+check_for_edge_trouble.o check_high.o daughter_group_nina.o \
+edge_distance.o energies.o equivalence_class.o find_chains.o find_go_ahead.o\
+find_high_pairs.o find_high_points.o find_neighbors_nina.o\
+force_at_fake_particles.o force_at_particle.o force_at_point.o force_at_point_zel.o\
+four2.o fractal_gravity.o heavies.o high_groups.o \
+highest_level_group.o list_buffer.o \
+isolated_solver.o it_is_inside.o make_decisions_erika.o \
+make_rho_hat.o my_list_sort_3.o my_list_sort_1.o negatives_groups.o \
+negatives_particles.o negatives_points.o offset.o particle_lists.o\
+periodic_solver.o poisson_solver.o potential_start.o\
+power_spectrum.o remove_dupes.o set_constant_real.o\
+sor_2.o sor_d.o sum_prod.o sum_up.o take_a_step.o test_big.o test_up_down.o\
+timing.o tree_start.o uppers.o where_is_edge.o write_it.o
+#
+run_fractal_per_nina.exe : 	$(files_fractal_nina_o) run_fractal.o
+	g77 $(lopt1) -o $(dir)run_fractal_per_nina.exe $(files_fractal_nina_o) run_fractal.o
+#
+run_fractal_iso_nina.exe : 	$(files_fractal_nina_o) run_fractal.o
+	g77 $(lopt1) -o $(dir)run_fractal_iso_nina.exe $(files_fractal_nina_o) run_fractal.o
+#
+run_fractal_initial_nina.exe : 	$(files_fractal_nina_o) run_fractal_initial.o
+	g77 $(lopt1) -o $(dir)run_fractal_initial_nina.exe $(files_fractal_nina_o) run_fractal_initial.o
+#
+files_fractal_nina_a_o= \
+add_dens.o assign_density.o assign_force_pot.o buffer_points.o\
+check_for_edge_trouble.o check_high.o daughter_group_nina.o \
+edge_distance.o energies.o equivalence_class.o find_chains.o find_go_ahead.o\
+find_high_pairs.o find_high_points.o find_neighbors_nina.o\
+force_at_fake_particles.o force_at_particle_a.o force_at_point.o force_at_point_zel.o\
+four2.o fractal_gravity_a.o heavies.o high_groups.o \
+highest_level_group_a.o list_buffer.o \
+isolated_solver.o it_is_inside.o make_decisions_erika.o \
+make_rho_hat.o my_list_sort_3.o my_list_sort_1.o negatives_groups.o \
+negatives_particles.o negatives_points.o offset.o particle_lists.o\
+periodic_solver.o poisson_solver.o potential_start.o\
+ power_spectrum.o remove_dupes.o set_constant_real.o\
+sor_d.o sor_2.o sum_prod.o sum_up.o take_a_step.o test_big.o test_up_down.o\
+timing.o tree_start.o uppers.o where_is_edge.o write_it.o
+#
+run_fractal_per_nina_a.exe : 	$(files_fractal_nina_a_o) run_fractal.o
+	g77 $(lopt1) -o $(dir)run_fractal_per_nina_a.exe $(files_fractal_nina_a_o) run_fractal.o
+#
+run_fractal_iso_nina_a.exe : 	$(files_fractal_nina_a_o) run_fractal.o
+	g77 $(lopt1) -o $(dir)run_fractal_iso_nina_a.exe $(files_fractal_nina_a_o) run_fractal.o
+#
+run_fractal_initial_nina_a.exe : 	$(files_fractal_nina_a_o) run_fractal_initial_a.o
+	g77 $(lopt1) -o $(dir)run_fractal_initial_nina_a.exe $(files_fractal_nina_a_o) run_fractal_initial_a.o
+#
+gen_initial_conditions_nina.exe : 	$(files_fractal_nina_o) gen_initial_conditions.o
+	g77 $(lopt1) -o $(dir)gen_initial_conditions_nina.exe $(files_fractal_nina_o) gen_initial_conditions.o
+
