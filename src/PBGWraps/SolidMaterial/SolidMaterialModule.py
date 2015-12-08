@@ -166,6 +166,27 @@ def generateLinearPolynomialEquationOfStateBindings(x, ndim):
     x.add_method("computeDPDrho", "double", [param("double", "rho"),
                                              param("double", "specificThermalEnergy")], is_const=True)
     x.add_method("valid", "bool", [], is_const=True, is_virtual=True)
+    x.add_method("pressure", "double", [param("double", "massDensity"),
+                                        param("double", "specificThermalEnergy")],
+                 is_const=True)
+    x.add_method("temperature", "double", [param("double", "massDensity"),
+                                           param("double", "specificThermalEnergy")],
+                 is_const=True)
+    x.add_method("specificThermalEnergy", "double", [param("double", "massDensity"),
+                                                     param("double", "temperature")],
+                 is_const=True)
+    x.add_method("specificHeat", "double", [param("double", "massDensity"),
+                                            param("double", "tempernature")],
+                 is_const=True)
+    x.add_method("soundSpeed", "double", [param("double", "massDensity"),
+                                          param("double", "specificThermalEnergy")],
+                 is_const=True)
+    x.add_method("gamma", "double", [param("double", "massDensity"),
+                                     param("double", "specificThermalEnergy")],
+                 is_const=True)
+    x.add_method("bulkModulus", "double", [param("double", "massDensity"),
+                                           param("double", "specificThermalEnergy")],
+                 is_const=True)
 
     # Attributes.
     x.add_instance_attribute("a0", "double", getter="a0", setter="a0")
@@ -210,6 +231,27 @@ def generateGruneisenEquationOfStateBindings(x, ndim):
     x.add_method("computeDPDrho", "double", [param("double", "rho"),
                                              param("double", "specificThermalEnergy")], is_const=True)
     x.add_method("valid", "bool", [], is_const=True, is_virtual=True)
+    x.add_method("pressure", "double", [param("double", "massDensity"),
+                                        param("double", "specificThermalEnergy")],
+                 is_const=True)
+    x.add_method("temperature", "double", [param("double", "massDensity"),
+                                           param("double", "specificThermalEnergy")],
+                 is_const=True)
+    x.add_method("specificThermalEnergy", "double", [param("double", "massDensity"),
+                                                     param("double", "temperature")],
+                 is_const=True)
+    x.add_method("specificHeat", "double", [param("double", "massDensity"),
+                                            param("double", "tempernature")],
+                 is_const=True)
+    x.add_method("soundSpeed", "double", [param("double", "massDensity"),
+                                          param("double", "specificThermalEnergy")],
+                 is_const=True)
+    x.add_method("gamma", "double", [param("double", "massDensity"),
+                                     param("double", "specificThermalEnergy")],
+                 is_const=True)
+    x.add_method("bulkModulus", "double", [param("double", "massDensity"),
+                                           param("double", "specificThermalEnergy")],
+                 is_const=True)
 
     # Attributes.
     x.add_instance_attribute("C0", "double", getter="C0", setter="C0")
@@ -324,6 +366,28 @@ def generateTillotsonEquationOfStateBindings(x, ndim):
     x.add_method("compute_dP2deps_rho", "double", [param("double", "phi"), param("double", "dphideps_rho"), param("double", "rho"), param("double", "eps")], is_const=True)
     x.add_method("compute_dP4deps_rho", "double", [param("double", "phi"), param("double", "dphideps_rho"), param("double", "eta"), param("double", "rho"), param("double", "eps")], is_const=True)
 
+    x.add_method("pressure", "double", [param("double", "massDensity"),
+                                        param("double", "specificThermalEnergy")],
+                 is_const=True)
+    x.add_method("temperature", "double", [param("double", "massDensity"),
+                                           param("double", "specificThermalEnergy")],
+                 is_const=True)
+    x.add_method("specificThermalEnergy", "double", [param("double", "massDensity"),
+                                                     param("double", "temperature")],
+                 is_const=True)
+    x.add_method("specificHeat", "double", [param("double", "massDensity"),
+                                            param("double", "tempernature")],
+                 is_const=True)
+    x.add_method("soundSpeed", "double", [param("double", "massDensity"),
+                                          param("double", "specificThermalEnergy")],
+                 is_const=True)
+    x.add_method("gamma", "double", [param("double", "massDensity"),
+                                     param("double", "specificThermalEnergy")],
+                 is_const=True)
+    x.add_method("bulkModulus", "double", [param("double", "massDensity"),
+                                           param("double", "specificThermalEnergy")],
+                 is_const=True)
+
     # Attributes.
     x.add_instance_attribute("etamin_solid", "double", getter="etamin_solid", setter="etamin_solid")
     x.add_instance_attribute("etamax_solid", "double", getter="etamax_solid", setter="etamax_solid")
@@ -366,6 +430,27 @@ def generateMurnahanEquationOfStateBindings(x, ndim):
     x.add_method("computeDPDrho", "double", [param("double", "rho"),
                                              param("double", "specificThermalEnergy")], is_const=True)
     x.add_method("valid", "bool", [], is_const=True, is_virtual=True)
+    x.add_method("pressure", "double", [param("double", "massDensity"),
+                                        param("double", "specificThermalEnergy")],
+                 is_const=True)
+    x.add_method("temperature", "double", [param("double", "massDensity"),
+                                           param("double", "specificThermalEnergy")],
+                 is_const=True)
+    x.add_method("specificThermalEnergy", "double", [param("double", "massDensity"),
+                                                     param("double", "temperature")],
+                 is_const=True)
+    x.add_method("specificHeat", "double", [param("double", "massDensity"),
+                                            param("double", "tempernature")],
+                 is_const=True)
+    x.add_method("soundSpeed", "double", [param("double", "massDensity"),
+                                          param("double", "specificThermalEnergy")],
+                 is_const=True)
+    x.add_method("gamma", "double", [param("double", "massDensity"),
+                                     param("double", "specificThermalEnergy")],
+                 is_const=True)
+    x.add_method("bulkModulus", "double", [param("double", "massDensity"),
+                                           param("double", "specificThermalEnergy")],
+                 is_const=True)
 
     # Attributes.
     x.add_instance_attribute("n", "double", getter="n", setter="n")

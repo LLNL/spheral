@@ -68,6 +68,28 @@ public:
 			     const FieldSpace::Field<Dimension, Scalar>& massDensity,
 			     const FieldSpace::Field<Dimension, Scalar>& specificThermalEnergy) const;
 
+  // We also want the equivalent functions for individual calculations.
+  Scalar pressure(const Scalar massDensity,
+                  const Scalar specificThermalEnergy) const;
+
+  Scalar temperature(const Scalar massDensity,
+                     const Scalar specificThermalEnergy) const;
+
+  Scalar specificThermalEnergy(const Scalar massDensity,
+                               const Scalar temperature) const;
+
+  Scalar specificHeat(const Scalar massDensity,
+                      const Scalar temperature) const;
+
+  Scalar soundSpeed(const Scalar massDensity,
+                    const Scalar specificThermalEnergy) const;
+
+  Scalar gamma(const Scalar massDensity,
+               const Scalar specificThermalEnergy) const;
+
+  Scalar bulkModulus(const Scalar massDensity,
+                     const Scalar specificThermalEnergy) const;
+
   // Access the member data.
   double n() const;
   double K() const;
@@ -87,30 +109,6 @@ public:
                        const Scalar specificThermalEnergy) const;
 
   virtual bool valid() const;
-
-protected:
-  //--------------------------- Protected Interface ---------------------------//
-  // We also want the equivalent functions for individual calculations.
-  virtual Scalar pressure(const Scalar massDensity,
-                          const Scalar specificThermalEnergy) const;
-
-  virtual Scalar temperature(const Scalar massDensity,
-                             const Scalar specificThermalEnergy) const;
-
-  virtual Scalar specificThermalEnergy(const Scalar massDensity,
-                                       const Scalar temperature) const;
-
-  virtual Scalar specificHeat(const Scalar massDensity,
-                              const Scalar temperature) const;
-
-  virtual Scalar soundSpeed(const Scalar massDensity,
-                            const Scalar specificThermalEnergy) const;
-
-  virtual Scalar gamma(const Scalar massDensity,
-		       const Scalar specificThermalEnergy) const;
-
-  virtual Scalar bulkModulus(const Scalar massDensity,
-                             const Scalar specificThermalEnergy) const;
 
 private:
   //--------------------------- Private Interface ---------------------------//
