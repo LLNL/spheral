@@ -311,4 +311,4 @@ else:
             rhoPlots.append(plotFieldList(db.fluidMassDensity,
                                           plotStyle = "lines",
                                           winTitle = "time=%4.3f" % control.time()))
-            rhoPlots[-1].hardcopy(os.path.join(plotDir, "rho_plot_t=%4.3f.png" % control.time()), terminal="png")
+            rhoPlots[-1].hardcopy(os.path.join(plotDir, "DB_%i_rho_plot_t=%4.3f.png" % (nx, control.time())), terminal="png")
