@@ -133,29 +133,27 @@ public:
   double compute_dP2deps_rho(const double& phi, const double& dphideps_rho, const double& rho, const double& eps) const;
   double compute_dP4deps_rho(const double& phi, const double& dphideps_rho, const double& eta, const double& rho, const double& eps) const;
 
-protected:
-  //--------------------------- Protected Interface ---------------------------//
   // We also want the equivalent functions for individual calculations.
-  virtual Scalar pressure(const Scalar massDensity,
-                          const Scalar specificThermalEnergy) const;
+  Scalar pressure(const Scalar massDensity,
+                  const Scalar specificThermalEnergy) const;
 
-  virtual Scalar temperature(const Scalar massDensity,
-                             const Scalar specificThermalEnergy) const;
+  Scalar temperature(const Scalar massDensity,
+                     const Scalar specificThermalEnergy) const;
 
-  virtual Scalar specificThermalEnergy(const Scalar massDensity,
-                                       const Scalar temperature) const;
+  Scalar specificThermalEnergy(const Scalar massDensity,
+                               const Scalar temperature) const;
 
-  virtual Scalar specificHeat(const Scalar massDensity,
-                              const Scalar temperature) const;
+  Scalar specificHeat(const Scalar massDensity,
+                      const Scalar temperature) const;
 
-  virtual Scalar soundSpeed(const Scalar massDensity,
-                            const Scalar specificThermalEnergy) const;
+  Scalar soundSpeed(const Scalar massDensity,
+                    const Scalar specificThermalEnergy) const;
 
-  virtual Scalar gamma(const Scalar massDensity,
-		       const Scalar specificThermalEnergy) const;
+  Scalar gamma(const Scalar massDensity,
+               const Scalar specificThermalEnergy) const;
 
-  virtual Scalar bulkModulus(const Scalar massDensity,
-                             const Scalar specificThermalEnergy) const;
+  Scalar bulkModulus(const Scalar massDensity,
+                     const Scalar specificThermalEnergy) const;
 
 private:
   //--------------------------- Private Interface ---------------------------//
