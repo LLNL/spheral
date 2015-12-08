@@ -92,28 +92,6 @@ public:
   Scalar applyPressureLimits(const Scalar P) const;
 
 protected:
-  // The following methods have been moved to the protected interface as we are deprecating them.
-  virtual Scalar pressure(const Scalar massDensity,
-                          const Scalar specificThermalEnergy) const { VERIFY2(false, "Individual values for EquationOfState::pressure is deprecated."); }
-
-  virtual Scalar temperature(const Scalar massDensity,
-                             const Scalar specificThermalEnergy) const { VERIFY2(false, "Individual values for EquationOfState::temperature is deprecated."); }
-
-  virtual Scalar specificThermalEnergy(const Scalar massDensity,
-                                       const Scalar temperature) const { VERIFY2(false, "Individual values for EquationOfState::specificThermalEnergy is deprecated."); }
-
-  virtual Scalar specificHeat(const Scalar massDensity,
-                              const Scalar temperature) const { VERIFY2(false, "Individual values for EquationOfState::specificHeat is deprecated."); }
-
-  virtual Scalar soundSpeed(const Scalar massDensity,
-                            const Scalar specificThermalEnergy) const { VERIFY2(false, "Individual values for EquationOfState::soundSpeed is deprecated."); }
-
-  virtual Scalar gamma(const Scalar massDensity,
-		       const Scalar specificThermalEnergy) const { VERIFY2(false, "Individual values for EquationOfState::gamma is deprecated."); }
-
-  virtual Scalar bulkModulus(const Scalar massDensity,
-                             const Scalar specificThermalEnergy) const { VERIFY2(false, "Individual values for EquationOfState::bulkModulus is deprecated."); }
-
   PhysicalConstants mConstants;
 
 private:
