@@ -85,6 +85,27 @@ def generateANEOSBindings(x, ndim):
                              [param(me, "self")],
                              template_parameters = [dim],
                              custom_name = "specificThermalEnergyVals")
+    x.add_method("pressure", "double", [param("double", "massDensity"),
+                                        param("double", "specificThermalEnergy")],
+                 is_const=True)
+    x.add_method("temperature", "double", [param("double", "massDensity"),
+                                           param("double", "specificThermalEnergy")],
+                 is_const=True)
+    x.add_method("specificThermalEnergy", "double", [param("double", "massDensity"),
+                                                     param("double", "temperature")],
+                 is_const=True)
+    x.add_method("specificHeat", "double", [param("double", "massDensity"),
+                                            param("double", "tempernature")],
+                 is_const=True)
+    x.add_method("soundSpeed", "double", [param("double", "massDensity"),
+                                          param("double", "specificThermalEnergy")],
+                 is_const=True)
+    x.add_method("gamma", "double", [param("double", "massDensity"),
+                                     param("double", "specificThermalEnergy")],
+                 is_const=True)
+    x.add_method("bulkModulus", "double", [param("double", "massDensity"),
+                                           param("double", "specificThermalEnergy")],
+                 is_const=True)
 
     # Attributes.
     x.add_instance_attribute("materialNumber", "int", getter="materialNumber", is_const=True)

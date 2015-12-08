@@ -121,6 +121,30 @@ self.generateIsothermalEquationOfStateBindings(self.IsothermalEquationOfState%(d
         x.add_instance_attribute("gamma", "double", getter="getGamma", setter="setGamma")
         x.add_instance_attribute("mu", "double", getter="getMolecularWeight", setter="setMolecularWeight")
 
+        # Methods.
+        x.add_method("pressure", "double", [param("double", "massDensity"),
+                                            param("double", "specificThermalEnergy")],
+                     is_const=True)
+        x.add_method("temperature", "double", [param("double", "massDensity"),
+                                               param("double", "specificThermalEnergy")],
+                     is_const=True)
+        x.add_method("specificThermalEnergy", "double", [param("double", "massDensity"),
+                                                         param("double", "temperature")],
+                     is_const=True)
+        x.add_method("specificHeat", "double", [param("double", "massDensity"),
+                                                param("double", "tempernature")],
+                     is_const=True)
+        x.add_method("soundSpeed", "double", [param("double", "massDensity"),
+                                              param("double", "specificThermalEnergy")],
+                     is_const=True)
+        x.add_method("gamma", "double", [param("double", "massDensity"),
+                                         param("double", "specificThermalEnergy")],
+                     is_const=True)
+        x.add_method("bulkModulus", "double", [param("double", "massDensity"),
+                                               param("double", "specificThermalEnergy")],
+                     is_const=True)
+
+        # Add the EOS virual interface.
         generateEquationOfStateVirtualBindings(x, ndim, False)
 
         return
@@ -146,6 +170,30 @@ self.generateIsothermalEquationOfStateBindings(self.IsothermalEquationOfState%(d
         x.add_instance_attribute("molecularWeight", "double", getter="molecularWeight", is_const=True)
         x.add_instance_attribute("externalPressure", "double", getter="externalPressure", setter="setExternalPressure")
 
+        # Methods.
+        x.add_method("pressure", "double", [param("double", "massDensity"),
+                                            param("double", "specificThermalEnergy")],
+                     is_const=True)
+        x.add_method("temperature", "double", [param("double", "massDensity"),
+                                               param("double", "specificThermalEnergy")],
+                     is_const=True)
+        x.add_method("specificThermalEnergy", "double", [param("double", "massDensity"),
+                                                         param("double", "temperature")],
+                     is_const=True)
+        x.add_method("specificHeat", "double", [param("double", "massDensity"),
+                                                param("double", "tempernature")],
+                     is_const=True)
+        x.add_method("soundSpeed", "double", [param("double", "massDensity"),
+                                              param("double", "specificThermalEnergy")],
+                     is_const=True)
+        x.add_method("gamma", "double", [param("double", "massDensity"),
+                                         param("double", "specificThermalEnergy")],
+                     is_const=True)
+        x.add_method("bulkModulus", "double", [param("double", "massDensity"),
+                                               param("double", "specificThermalEnergy")],
+                     is_const=True)
+
+        # Add the EOS virual interface.
         generateEquationOfStateVirtualBindings(x, ndim, False)
 
         return
@@ -168,6 +216,30 @@ self.generateIsothermalEquationOfStateBindings(self.IsothermalEquationOfState%(d
         x.add_instance_attribute("molecularWeight", "double", getter="molecularWeight", is_const=True)
         x.add_instance_attribute("externalPressure", "double", getter="externalPressure", setter="setExternalPressure")
 
+        # Methods.
+        x.add_method("pressure", "double", [param("double", "massDensity"),
+                                            param("double", "specificThermalEnergy")],
+                     is_const=True)
+        x.add_method("temperature", "double", [param("double", "massDensity"),
+                                               param("double", "specificThermalEnergy")],
+                     is_const=True)
+        x.add_method("specificThermalEnergy", "double", [param("double", "massDensity"),
+                                                         param("double", "temperature")],
+                     is_const=True)
+        x.add_method("specificHeat", "double", [param("double", "massDensity"),
+                                                param("double", "tempernature")],
+                     is_const=True)
+        x.add_method("soundSpeed", "double", [param("double", "massDensity"),
+                                              param("double", "specificThermalEnergy")],
+                     is_const=True)
+        x.add_method("gamma", "double", [param("double", "massDensity"),
+                                         param("double", "specificThermalEnergy")],
+                     is_const=True)
+        x.add_method("bulkModulus", "double", [param("double", "massDensity"),
+                                               param("double", "specificThermalEnergy")],
+                     is_const=True)
+
+        # Add the EOS virual interface.
         generateEquationOfStateVirtualBindings(x, ndim, False)
 
         return
@@ -208,28 +280,6 @@ def generateEquationOfStateVirtualBindings(x, ndim, pureVirtual):
                                        constrefparam(scalarfield, "massDensity"),
                                        constrefparam(scalarfield, "specificThermalEnergy")],
                  is_const=True, is_virtual=True, is_pure_virtual=pureVirtual)
-
-    # x.add_method("pressure", "double", [param("double", "massDensity"),
-    #                                     param("double", "specificThermalEnergy")],
-    #              is_const=True, is_virtual=True, is_pure_virtual=pureVirtual)
-    # x.add_method("temperature", "double", [param("double", "massDensity"),
-    #                                        param("double", "specificThermalEnergy")],
-    #              is_const=True, is_virtual=True, is_pure_virtual=pureVirtual)
-    # x.add_method("specificThermalEnergy", "double", [param("double", "massDensity"),
-    #                                                  param("double", "temperature")],
-    #              is_const=True, is_virtual=True, is_pure_virtual=pureVirtual)
-    # x.add_method("specificHeat", "double", [param("double", "massDensity"),
-    #                                         param("double", "temperature")],
-    #              is_const=True, is_virtual=True, is_pure_virtual=pureVirtual)
-    # x.add_method("soundSpeed", "double", [param("double", "massDensity"),
-    #                                       param("double", "specificThermalEnergy")],
-    #              is_const=True, is_virtual=True, is_pure_virtual=pureVirtual)
-    # x.add_method("gamma", "double", [param("double", "massDensity"),
-    #                                  param("double", "specificThermalEnergy")],
-    #              is_const=True, is_virtual=True, is_pure_virtual=pureVirtual)
-    # x.add_method("bulkModulus", "double", [param("double", "massDensity"),
-    #                                        param("double", "specificThermalEnergy")],
-    #              is_const=True, is_virtual=True, is_pure_virtual=pureVirtual)
 
     x.add_method("valid", "bool", [], is_const=True, is_virtual=True, is_pure_virtual=pureVirtual)
 
