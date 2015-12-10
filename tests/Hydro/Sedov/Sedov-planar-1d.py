@@ -26,6 +26,7 @@ commandLine(nRadial = 50,
             smoothSpike = True,
             gamma = 5.0/3.0,
             mu = 1.0,
+            smallPressure = False,
 
             Cl = 1.0,
             Cq = 0.75,
@@ -199,6 +200,10 @@ if restoreCycle is None:
             Wi = WT.kernelValue(etaij, Hi.Determinant())
             Ei = Wi*Espike
             epsi = Ei/mass[nodeID]
+            if smallPressure:
+               P0 = 1.0e-6
+               eps0 = P0/((gamma - 1.0)*rho0)
+               epsi = epsi + eps0
             eps[nodeID] = epsi
             Wsum += Wi
         Wsum = mpi.allreduce(Wsum, mpi.SUM)
@@ -214,6 +219,10 @@ if restoreCycle is None:
             if rij < rmin:
                 i = nodeID
                 rmin = rij
+            if smallPressure:
+               P0 = 1.0e-6
+               eps0 = P0/((gamma - 1.0)*rho0)
+               eps[nodeID] = eps0
         rminglobal = mpi.allreduce(rmin, mpi.MIN)
         if fuzzyEqual(rmin, rminglobal):
             assert i >= 0 and i < nodes1.numInternalNodes
@@ -307,7 +316,8 @@ for p in packages:
 # Construct a time integrator, and add the one physics package.
 #-------------------------------------------------------------------------------
 integrator = CheapSynchronousRK2Integrator(db)
-integrator.appendPhysicsPackage(hydro)
+for p in packages:
+    integrator.appendPhysicsPackage(p)
 integrator.lastDt = dt
 if dtMin:
     integrator.dtMin = dtMin
@@ -372,6 +382,8 @@ if mpi.rank == 0:
     rans, vans, epsans, rhoans, Pans, hans = answer.solution(control.time(), r)
     Aans = [Pi/(rhoi**gamma) for (Pi, rhoi) in zip(Pans, rhoans)]
     print "\tQuantity \t\tL1 \t\t\tL2 \t\t\tLinf"
+    #f = open("MCTesting.txt", "a")
+    #f.write(("CL=%g, Cq=%g \t") %(Cl, Cq))
     for (name, data, ans) in [("Mass Density", rho, rhoans),
                               ("Pressure", P, Pans),
                               ("Velocity", v, vans),
@@ -385,6 +397,8 @@ if mpi.rank == 0:
         L2 = Pn.gridpnorm(2, rmin, rmax)
         Linf = Pn.gridpnorm("inf", rmin, rmax)
         print "\t%s \t\t%g \t\t%g \t\t%g" % (name, L1, L2, Linf)
+        #f.write(("\t\t%g") % (L1))
+    #f.write("\n")
 
 #-------------------------------------------------------------------------------
 # If requested, write out the state in a global ordering to a file.

@@ -605,6 +605,8 @@ if mpi.rank == 0:
     print "\tQuantity \t\tL1 \t\t\tL2 \t\t\tLinf"
     failure = False
     hD = []
+    #f = open("MCTesting.txt", "a")
+    #f.write(("CL=%g, Cq=%g \t") %(Cl, Cq))
     for (name, data, ans) in [("Mass Density", rhoprof, rhoans),
                                              ("Pressure", Pprof, Pans),
                                              ("Velocity", vprof, vans),
@@ -617,7 +619,9 @@ if mpi.rank == 0:
         L2 = Pn.gridpnorm(2, rmin, rmax)
         Linf = Pn.gridpnorm("inf", rmin, rmax)
         print "\t%s \t\t%g \t\t%g \t\t%g" % (name, L1, L2, Linf)
+        #f.write(("\t\t%g") % (L1))
         hD.append([L1,L2,Linf])
+    #f.write("\n")
 
     print "%d\t %g\t %g\t %g\t %g\t %g\t %g\t %g\t %g\t %g\t %g\t %g\t %g\t" % (nx1+nx2,hD[0][0],hD[1][0],hD[2][0],hD[3][0],
                                                                                 hD[0][1],hD[1][1],hD[2][1],hD[3][1],
