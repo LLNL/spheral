@@ -32,7 +32,7 @@ def makeSolidNodeList%(dim)s(name,
                                   hmin, hmax, hminratio, 
                                   nPerh, maxNumNeighbors,
                                   rhoMin, rhoMax)
-    result._strength = strength
+    result.strength = strength
     if NeighborType == NestedGridNeighbor%(dim)s:
         result._neighbor = NestedGridNeighbor%(dim)s(result, searchType, 
                                                      numGridLevels, topGridCellSize, 

@@ -42,6 +42,7 @@ def makeFluidNodeList%(dim)s(name,
         result._neighbor = NeighborType(result, searchType, kernelExtent,
                                         xmin, xmax)
     result.registerNeighbor(result._neighbor)
+    result.eos = eos
     return result
 """
 
