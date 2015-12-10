@@ -26,6 +26,7 @@ commandLine(KernelConstructor = BSplineKernel,
             nx1 = 100,
             rho1 = 1.0,
             eps1 = 0.0,
+	    smallPressure = False, #If set to True eps is not zero but small. 
             x0 = 0.0,
             x1 = 1.0,
             xwall = 0.0,
@@ -101,7 +102,7 @@ commandLine(KernelConstructor = BSplineKernel,
             volumeType = CRKSumVolume,
             densityUpdate = RigorousSumDensity, # VolumeScaledDensity,
             compatibleEnergy = True,
-            gradhCorrection = True,
+            gradhCorrection = False,
             domainIndependent = True,
             cullGhostNodes = True,
             
@@ -145,6 +146,10 @@ commandLine(KernelConstructor = BSplineKernel,
             graphics = True,
             )
 assert not(boolReduceViscosity and boolCullenViscosity)
+if smallPressure:
+   P0 = 1.0e-6
+   eps1 = P0/((gamma - 1.0)*rho1)
+   
 if SVPH:
     HydroConstructor = SVPHFacetedHydro
 elif CRKSPH:
