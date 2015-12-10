@@ -34,6 +34,9 @@ commandLine(seed = "lattice",
             rmin = 0.0,
             rmax = 1.0,
             nPerh = 2.01,
+            rho0 = 1.0,
+            eps0 = 0.0,
+            smallPressure = False,
 
             vr0 = -1.0, 
 
@@ -110,9 +113,11 @@ commandLine(seed = "lattice",
             graphics = True,
             )
 
-rho0 = 1.0
-eps0 = 0.0
 assert not(boolReduceViscosity and boolCullenViscosity)
+if smallPressure:
+   P0 = 1.0e-6
+   eps0 = P0/((gamma - 1.0)*rho0)
+
 
 if SVPH:
     if SPH:

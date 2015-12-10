@@ -34,6 +34,7 @@ commandLine(seed = "lattice",
 
             rho1 = 1.0,
             eps1 = 0.0,
+            smallPressure = False,
             vshear = 1.0,
             vy = -1.0,
 
@@ -119,6 +120,11 @@ commandLine(seed = "lattice",
 
             )
 assert not(boolReduceViscosity and boolCullenViscosity)
+if smallPressure:
+   P0 = 1.0e-6
+   eps1 = P0/((gamma - 1.0)*rho1)
+
+
 if SVPH:
     if SPH:
         HydroConstructor = SVPHFacetedHydro

@@ -34,6 +34,9 @@ commandLine(KernelConstructor = BSplineKernel,
             rmin = 0.0,
             rmax = 1.0,
             nPerh = 2.01,
+            rho0 = 1.0,
+            eps0 = 0.0,
+            smallPressure = False,
 
             vr0 = -1.0, 
 
@@ -117,6 +120,8 @@ assert not(boolReduceViscosity and boolCullenViscosity)
 assert thetaFactor in (0.5, 1.0, 2.0)
 theta = thetaFactor * pi
 
+
+
 xmax = (rmax, rmax)
 if thetaFactor == 0.5:
     xmin = (0.0, 0.0)
@@ -126,8 +131,9 @@ else:
     assert thetaFactor == 2.0
     xmin = (-rmax, -rmax)
 
-rho0 = 1.0
-eps0 = 0.0
+if smallPressure:
+   P0 = 1.0e-6
+   eps0 = P0/((gamma - 1.0)*rho0)
 
 if SVPH:
     if SPH:
@@ -335,7 +341,7 @@ if boolReduceViscosity:
     evolveReducingViscosityMultiplier = MorrisMonaghanReducingViscosity(q,nhQ,nhL,aMin,aMax)
     packages.append(evolveReducingViscosityMultiplier)
 elif boolCullenViscosity:
-    evolveCullenViscosityMultiplier = CullenDehnenViscosity(q,WTPi,alphMax,alphMin,betaC,betaD,betaE,fKern,boolHopkinsCorrection)
+    evolveCullenViscosityMultiplier = CullenDehnenViscosity(q,WT,alphMax,alphMin,betaC,betaD,betaE,fKern,boolHopkinsCorrection)
     packages.append(evolveCullenViscosityMultiplier)
 
 
