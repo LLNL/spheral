@@ -93,6 +93,7 @@ else:
 dataDir = os.path.join(dataDirBase, 
                        HydroConstructor.__name__,
                        Qconstructor.__name__,
+                       "Cl=%g_Cq=%g" % (Cl, Cq),
                        "%i" % (nx),
                        "nPerh=%s" % nPerh)
 restartDir = os.path.join(dataDir, "restarts")
