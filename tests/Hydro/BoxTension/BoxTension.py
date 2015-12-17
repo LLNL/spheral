@@ -57,8 +57,8 @@ commandLine(
 
     SVPH = False,
     CRKSPH = False,
+    PSPH = False,
     ASPH = False,
-    SPH = True,   # This just chooses the H algorithm -- you can use this with CRKSPH for instance.
     filter = 0.0,  # For CRKSPH
     Qconstructor = MonaghanGingoldViscosity,
     #Qconstructor = TensorMonaghanGingoldViscosity,
@@ -87,7 +87,6 @@ commandLine(
     hmax = 0.5,
     hminratio = 0.1,
     cfl = 0.5,
-    PSPH = False,
     XSPH = False,
     epsilonTensile = 0.0,
     nTensile = 8,
@@ -133,6 +132,11 @@ elif CRKSPH:
         HydroConstructor = ACRKSPHHydro
     else:
         HydroConstructor = CRKSPHHydro
+elif PSPH:
+    if ASPH:
+        HydroConstructor = APSPHHydro
+    else:
+        HydroConstructor = PSPHHydro
 else:
     if ASPH:
         HydroConstructor = ASPHHydro
@@ -234,14 +238,14 @@ if restoreCycle is None:
                                                 xminreject = (x1, y1),
                                                 xmaxreject = (x2, y2),
                                                 nNodePerh = nPerh,
-                                                SPH = SPH,
+                                                SPH = not ASPH,
                                                 reversereject = True)
     generatorInner = GenerateNodeDistribution2d(nx2, ny2, rho2,
                                                 distributionType = "lattice",
                                                 xmin = (x1, y1),
                                                 xmax = (x2, y2),
                                                 nNodePerh = nPerh,
-                                                SPH = SPH)
+                                                SPH = not ASPH)
 
     if mpi.procs > 1:
         from VoronoiDistributeNodes import distributeNodes2d
@@ -337,7 +341,6 @@ else:
                              compatibleEnergyEvolution = compatibleEnergy,
                              gradhCorrection = gradhCorrection,
                              XSPH = XSPH,
-                             PSPH = PSPH,
                              densityUpdate = densityUpdate,
                              HUpdate = HUpdate,
                              epsTensile = epsilonTensile,

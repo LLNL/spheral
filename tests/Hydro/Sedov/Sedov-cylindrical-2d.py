@@ -42,8 +42,9 @@ commandLine(seed = "constantDTheta",
             balsaraCorrection = False,
             linearInExpansion = False,
 
-            ASPH = False,     # Only for H evolution, not hydro algorithm
             CRKSPH = False,
+            PSPH = False,
+            ASPH = False,     # Only for H evolution, not hydro algorithm
             Qconstructor = MonaghanGingoldViscosity,
             correctionOrder = LinearOrder,
             densityUpdate = RigorousSumDensity, # VolumeScaledDensity,
@@ -63,13 +64,11 @@ commandLine(seed = "constantDTheta",
             fKern = 1.0/3.0,
             boolHopkinsCorrection = True,
 
-            HydroConstructor = SPHHydro,
             hmin = 1e-15,
             hmax = 1.0,
             cfl = 0.5,
             useVelocityMagnitudeForDt = True,
             XSPH = False,
-            PSPH = False,
             rhomin = 1e-10,
 
             steps = None,
@@ -134,6 +133,11 @@ if CRKSPH:
         HydroConstructor = ACRKSPHHydro
     else:
         HydroConstructor = CRKSPHHydro
+elif PSPH:
+    if ASPH:
+        HydroConstructor = APSPHHydro
+    else:
+        HydroConstructor = PSPHHydro
 else:
     if ASPH:
         HydroConstructor = ASPHHydro
@@ -329,7 +333,6 @@ else:
                              gradhCorrection = gradhCorrection,
                              densityUpdate = densityUpdate,
                              XSPH = XSPH,
-                             PSPH = PSPH,
                              HUpdate = HEvolution)
 output("hydro")
 output("hydro.kernel()")

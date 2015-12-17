@@ -47,6 +47,7 @@ commandLine(seed = "lattice",
 
             SVPH = False,
             CRKSPH = False,
+            PSPH = False,
             SPH = True,   # This just chooses the H algorithm -- you can use this with CRKSPH for instance.
             Qconstructor = MonaghanGingoldViscosity,
             linearConsistent = False,
@@ -62,7 +63,6 @@ commandLine(seed = "lattice",
             hminratio = 0.1,
             cfl = 0.5,
             XSPH = False,
-            PSPH = False,
             epsilonTensile = 0.0,
             nTensile = 8,
             filter = 0.0,
@@ -130,6 +130,11 @@ elif CRKSPH:
     else:
         HydroConstructor = ACRKSPHHydro
     Qconstructor = CRKSPHMonaghanGingoldViscosity
+elif PSPH:
+    if SPH:
+        HydroConstructor = PSPHHydro
+    else:
+        HydroConstructor = APSPHHydro
 else:
     if SPH:
         HydroConstructor = SPHHydro
@@ -295,7 +300,6 @@ else:
                              densityUpdate = densityUpdate,
                              HUpdate = HUpdate,
                              XSPH = XSPH,
-                             PSPH = PSPH,
                              epsTensile = epsilonTensile,
                              nTensile = nTensile)
 output("hydro")

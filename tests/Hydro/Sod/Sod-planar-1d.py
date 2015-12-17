@@ -31,6 +31,10 @@ commandLine(nx1 = 400,
             gammaGas = 5.0/3.0,
             mu = 1.0,
             
+            SVPH = False,
+            CRKSPH = False,
+            PSPH = False,
+            solid = False,    # If true, use the fluid limit of the solid hydro option
             Qconstructor = MonaghanGingoldViscosity,
             boolReduceViscosity = False,
             nh = 5.0,
@@ -56,7 +60,6 @@ commandLine(nx1 = 400,
             hmax = 1.0,
             cfl = 0.5,
             XSPH = False,
-            PSPH = False,
             epsilonTensile = 0.0,
             nTensile = 8,
             rhoMin = 0.01,
@@ -70,9 +73,6 @@ commandLine(nx1 = 400,
             bArtificialConduction = False,
             arCondAlpha = 0.5,
 
-            SVPH = False,
-            CRKSPH = False,
-            solid = False,    # If true, use the fluid limit of the solid hydro option
             IntegratorConstructor = CheapSynchronousRK2Integrator,
             dtverbose = False,
             steps = None,
@@ -114,6 +114,8 @@ elif CRKSPH:
     else:
         HydroConstructor = CRKSPHHydro
     Qconstructor = CRKSPHMonaghanGingoldViscosity
+elif PSPH:
+    HydroConstructor = PSPHHydro
 else:
     if solid:
         HydroConstructor = SolidSPHHydro
@@ -309,7 +311,6 @@ else:
                              gradhCorrection = gradhCorrection,
                              densityUpdate = densityUpdate,
                              HUpdate = HUpdate,
-                             PSPH = PSPH,
                              XSPH = XSPH,
                              epsTensile = epsilonTensile,
                              nTensile = nTensile)

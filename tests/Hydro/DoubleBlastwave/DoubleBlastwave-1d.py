@@ -20,9 +20,9 @@ commandLine(
     # Hydro algorithm.
     SVPH = False,
     CRKSPH = False,
+    PSPH = False,
     cfl = 0.5,
     XSPH = False,
-    PSPH = False,
     epsilonTensile = 0.0,
     nTensile = 8,
     filter = 0.00,
@@ -87,6 +87,8 @@ if SVPH:
 elif CRKSPH:
     HydroConstructor = CRKSPHHydro
     Qconstructor = CRKSPHMonaghanGingoldViscosity
+elif PSPH:
+    HydroConstructor = PSPHHydro
 else:
     HydroConstructor = SPHHydro
 
@@ -215,7 +217,6 @@ else:
                              densityUpdate = densityUpdate,
                              HUpdate = HUpdate,
                              XSPH = XSPH,
-                             PSPH = PSPH,
                              epsTensile = epsilonTensile,
                              nTensile = nTensile)
 output("hydro")

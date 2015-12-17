@@ -31,6 +31,7 @@ generichydro%(dim)id = findObject(PhysicsSpace, "GenericHydro%(dim)id")
 
 # Expose types.
 self.SPHHydroBase%(dim)id = addObject(self.space, "SPHHydroBase%(dim)id", allow_subclassing=True, parent=generichydro%(dim)id)
+self.PSPHHydroBase%(dim)id = addObject(self.space, "PSPHHydroBase%(dim)id", allow_subclassing=True, parent=self.SPHHydroBase%(dim)id)
 ''' % {"dim" : dim})
 
         return
@@ -43,6 +44,7 @@ self.SPHHydroBase%(dim)id = addObject(self.space, "SPHHydroBase%(dim)id", allow_
         for dim in self.dims:
             exec('''
 self.generateSPHHydroBaseBindings(self.SPHHydroBase%(dim)id, %(dim)i)
+self.generatePSPHHydroBaseBindings(self.PSPHHydroBase%(dim)id, %(dim)i)
 ''' % {"dim" : dim})
             self.generateDimBindings(dim)
 
@@ -145,7 +147,6 @@ self.generateSPHHydroBaseBindings(self.SPHHydroBase%(dim)id, %(dim)i)
                            param("int", "useVelocityMagnitudeForDt", default_value="false"),
                            param("int", "compatibleEnergyEvolution", default_value="true"),
                            param("int", "gradhCorrection", default_value="false"),
-                           param("int", "PSPH", default_value="false"),
                            param("int", "XSPH", default_value="true"),
                            param("int", "correctVelocityGradient", default_value="false"),
                            param("int", "sumMassDensityOverAllNodeLists", default_value="true"),
@@ -204,7 +205,6 @@ self.generateSPHHydroBaseBindings(self.SPHHydroBase%(dim)id, %(dim)i)
         x.add_instance_attribute("compatibleEnergyEvolution", "bool", getter="compatibleEnergyEvolution", setter="compatibleEnergyEvolution")
         x.add_instance_attribute("gradhCorrection", "bool", getter="gradhCorrection", setter="gradhCorrection")
         x.add_instance_attribute("correctVelocityGradient", "bool", getter="correctVelocityGradient", setter="correctVelocityGradient")
-        x.add_instance_attribute("PSPH", "bool", getter="PSPH", setter="PSPH")
         x.add_instance_attribute("XSPH", "bool", getter="XSPH", setter="XSPH")
         x.add_instance_attribute("sumMassDensityOverAllNodeLists", "bool", getter="sumMassDensityOverAllNodeLists", setter="sumMassDensityOverAllNodeLists")
         x.add_instance_attribute("filter", "double", getter="filter", setter="filter")
@@ -241,99 +241,72 @@ self.generateSPHHydroBaseBindings(self.SPHHydroBase%(dim)id, %(dim)i)
 
         return
 
-    # #---------------------------------------------------------------------------
-    # # Bindings (TotalHydro).
-    # #---------------------------------------------------------------------------
-    # def generateTotalHydroBindings(self, x, ndim):
+    #---------------------------------------------------------------------------
+    # Bindings (PSPHHydroBase).
+    #---------------------------------------------------------------------------
+    def generatePSPHHydroBaseBindings(self, x, ndim):
 
-    #     # Object names.
-    #     me = "Spheral::PhysicsSpace::TotalHydro%id" % ndim
-    #     dim = "Spheral::Dim<%i>" % ndim
-    #     vector = "Vector%id" % ndim
-    #     tensor = "Tensor%id" % ndim
-    #     symtensor = "SymTensor%id" % ndim
-    #     fieldbase = "Spheral::FieldSpace::FieldBase%id" % ndim
-    #     intfield = "Spheral::FieldSpace::IntField%id" % ndim
-    #     scalarfield = "Spheral::FieldSpace::ScalarField%id" % ndim
-    #     vectorfield = "Spheral::FieldSpace::VectorField%id" % ndim
-    #     vector3dfield = "Spheral::FieldSpace::Vector3dField%id" % ndim
-    #     tensorfield = "Spheral::FieldSpace::TensorField%id" % ndim
-    #     thirdranktensorfield = "Spheral::FieldSpace::ThirdRankTensorField%id" % ndim
-    #     vectordoublefield = "Spheral::FieldSpace::VectorDoubleField%id" % ndim
-    #     vectorvectorfield = "Spheral::FieldSpace::VectorVectorField%id" % ndim
-    #     vectorsymtensorfield = "Spheral::FieldSpace::VectorSymTensorField%id" % ndim
-    #     symtensorfield = "Spheral::FieldSpace::SymTensorField%id" % ndim
-    #     intfieldlist = "Spheral::FieldSpace::IntFieldList%id" % ndim
-    #     scalarfieldlist = "Spheral::FieldSpace::ScalarFieldList%id" % ndim
-    #     vectorfieldlist = "Spheral::FieldSpace::VectorFieldList%id" % ndim
-    #     vector3dfieldlist = "Spheral::FieldSpace::Vector3dFieldList%id" % ndim
-    #     tensorfieldlist = "Spheral::FieldSpace::TensorFieldList%id" % ndim
-    #     symtensorfieldlist = "Spheral::FieldSpace::SymTensorFieldList%id" % ndim
-    #     thirdranktensorfieldlist = "Spheral::FieldSpace::ThirdRankTensorFieldList%id" % ndim
-    #     vectordoublefieldlist = "Spheral::FieldSpace::VectorDoubleFieldList%id" % ndim
-    #     vectorvectorfieldlist = "Spheral::FieldSpace::VectorVectorFieldList%id" % ndim
-    #     vectorsymtensorfieldlist = "Spheral::FieldSpace::VectorSymTensorFieldList%id" % ndim
-    #     nodelist = "Spheral::NodeSpace::NodeList%id" % ndim
-    #     state = "Spheral::State%id" % ndim
-    #     derivatives = "Spheral::StateDerivatives%id" % ndim
-    #     database = "Spheral::DataBaseSpace::DataBase%id" % ndim
-    #     connectivitymap = "Spheral::NeighborSpace::ConnectivityMap%id" % ndim
-    #     key = "pair_NodeList%id_string" % ndim
-    #     vectorkeys = "vector_of_pair_NodeList%id_string" % ndim
-    #     tablekernel = "Spheral::KernelSpace::TableKernel%id" % ndim
-    #     artificialviscosity = "Spheral::ArtificialViscositySpace::ArtificialViscosity%id" % ndim
-    #     fileio = "Spheral::FileIOSpace::FileIO"
+        # Object names.
+        me = "Spheral::SPHSpace::PSPHHydroBase%id" % ndim
+        dim = "Spheral::Dim<%i>" % ndim
+        vector = "Vector%id" % ndim
+        tensor = "Tensor%id" % ndim
+        symtensor = "SymTensor%id" % ndim
+        fieldbase = "Spheral::FieldSpace::FieldBase%id" % ndim
+        intfield = "Spheral::FieldSpace::IntField%id" % ndim
+        scalarfield = "Spheral::FieldSpace::ScalarField%id" % ndim
+        vectorfield = "Spheral::FieldSpace::VectorField%id" % ndim
+        vector3dfield = "Spheral::FieldSpace::Vector3dField%id" % ndim
+        tensorfield = "Spheral::FieldSpace::TensorField%id" % ndim
+        thirdranktensorfield = "Spheral::FieldSpace::ThirdRankTensorField%id" % ndim
+        vectordoublefield = "Spheral::FieldSpace::VectorDoubleField%id" % ndim
+        vectorvectorfield = "Spheral::FieldSpace::VectorVectorField%id" % ndim
+        vectorsymtensorfield = "Spheral::FieldSpace::VectorSymTensorField%id" % ndim
+        symtensorfield = "Spheral::FieldSpace::SymTensorField%id" % ndim
+        intfieldlist = "Spheral::FieldSpace::IntFieldList%id" % ndim
+        scalarfieldlist = "Spheral::FieldSpace::ScalarFieldList%id" % ndim
+        vectorfieldlist = "Spheral::FieldSpace::VectorFieldList%id" % ndim
+        vector3dfieldlist = "Spheral::FieldSpace::Vector3dFieldList%id" % ndim
+        tensorfieldlist = "Spheral::FieldSpace::TensorFieldList%id" % ndim
+        symtensorfieldlist = "Spheral::FieldSpace::SymTensorFieldList%id" % ndim
+        thirdranktensorfieldlist = "Spheral::FieldSpace::ThirdRankTensorFieldList%id" % ndim
+        vectordoublefieldlist = "Spheral::FieldSpace::VectorDoubleFieldList%id" % ndim
+        vectorvectorfieldlist = "Spheral::FieldSpace::VectorVectorFieldList%id" % ndim
+        vectorsymtensorfieldlist = "Spheral::FieldSpace::VectorSymTensorFieldList%id" % ndim
+        nodelist = "Spheral::NodeSpace::NodeList%id" % ndim
+        state = "Spheral::State%id" % ndim
+        derivatives = "Spheral::StateDerivatives%id" % ndim
+        database = "Spheral::DataBaseSpace::DataBase%id" % ndim
+        connectivitymap = "Spheral::NeighborSpace::ConnectivityMap%id" % ndim
+        key = "pair_NodeList%id_string" % ndim
+        vectorkeys = "vector_of_pair_NodeList%id_string" % ndim
+        tablekernel = "Spheral::KernelSpace::TableKernel%id" % ndim
+        artificialviscosity = "Spheral::ArtificialViscositySpace::ArtificialViscosity%id" % ndim
+        fileio = "Spheral::FileIOSpace::FileIO"
+        smoothingscalebase = "Spheral::NodeSpace::SmoothingScaleBase%id" % ndim
 
-    #     # Constructors.
-    #     x.add_constructor([constrefparam(tablekernel, "W"),
-    #                        constrefparam(tablekernel, "WPi"),
-    #                        refparam(artificialviscosity, "Q"),
-    #                        param("HEvolutionType", "HUpdate", default_value="Spheral::PhysicsSpace::IdealH"),
-    #                        param("double", "hmin", default_value="1.0e-100"),
-    #                        param("double", "hmax", default_value="1.0e100"),
-    #                        param("double", "hratiomin", default_value="0.1")])
+        # Constructors.
+        x.add_constructor([constrefparam(smoothingscalebase, "smoothingScaleMethod"),
+                           refparam(artificialviscosity, "Q"),
+                           constrefparam(tablekernel, "W"),
+                           constrefparam(tablekernel, "WPi"),
+                           param("double", "filter", default_value="0.0"),
+                           param("double", "cfl", default_value="0.5"),
+                           param("int", "useVelocityMagnitudeForDt", default_value="false"),
+                           param("int", "compatibleEnergyEvolution", default_value="true"),
+                           param("int", "gradhCorrection", default_value="false"),
+                           param("int", "XSPH", default_value="true"),
+                           param("int", "correctVelocityGradient", default_value="false"),
+                           param("int", "sumMassDensityOverAllNodeLists", default_value="true"),
+                           param("MassDensityType", "densityUpdate", default_value="Spheral::PhysicsSpace::RigorousSumDensity"),
+                           param("HEvolutionType", "HUpdate", default_value="Spheral::PhysicsSpace::IdealH"),
+                           param("double", "epsTensile", default_value="0.3"),
+                           param("double", "nTensile", default_value="4.0"),
+                           param(vector, "xmin", default_value="%s(-1e10, -1e10, -1e10)" % vector),
+                           param(vector, "xmax", default_value="%s( 1e10,  1e10,  1e10)" % vector)])
 
-    #     # Methods.
-    #     x.add_method("evaluateDerivatives", None, [param("const double", "time"),
-    #                                                param("const double", "dt"),
-    #                                                constrefparam(database, "dataBase"),
-    #                                                constrefparam(state, "state"),
-    #                                                refparam(derivatives, "derivatives")],
-    #                  is_const=True, is_virtual=True)
-    #     x.add_method("postStateUpdate", None, [constrefparam(database, "dataBase"),
-    #                                            refparam(state, "state"),
-    #                                            constrefparam(derivatives, "derivatives")], is_const=True, is_virtual=True)
-    #     x.add_method("registerState", None, [refparam(database, "dataBase"),
-    #                                          refparam(state, "state")],
-    #                  is_virtual=True)
-    #     x.add_method("registerDerivatives", None, [refparam(database, "dataBase"),
-    #                                                refparam(derivatives, "derivatives")],
-    #                  is_virtual=True)
-    #     x.add_method("applyGhostBoundaries", None, [refparam(state, "state"), refparam(derivatives, "derivatives")], is_virtual=True)
-    #     x.add_method("enforceBoundaries", None, [refparam(state, "state"), refparam(derivatives, "derivatives")], is_virtual=True)
-    #     x.add_method("label", "std::string", [], is_const=True, is_virtual=True)
-    #     x.add_method("dumpState", None, [refparam(fileio, "fileIO"),
-    #                                      refparam("std::string", "pathName")],
-    #                  is_const = True,
-    #                  is_virtual = True)
-    #     x.add_method("restoreState", None, [refparam(fileio, "fileIO"),
-    #                                         refparam("std::string", "pathName")],
-    #                  is_virtual = True)
-        
-    #     # Attributes.
-    #     x.add_instance_attribute("HEvolution", "HEvolutionType", getter="HEvolution", setter="HEvolution")
-    #     x.add_instance_attribute("hmin", "double", getter="hmin", setter="hmin")
-    #     x.add_instance_attribute("hmax", "double", getter="hmax", setter="hmax")
-    #     x.add_instance_attribute("hratiomin", "double", getter="hratiomin", setter="hratiomin")
-    #     x.add_instance_attribute("Hideal", symtensorfieldlist, getter="Hideal", is_const=True)
-    #     x.add_instance_attribute("timeStepMask", intfieldlist, getter="timeStepMask", is_const=True)
-    #     x.add_instance_attribute("pressure", scalarfieldlist, getter="pressure", is_const=True)
-    #     x.add_instance_attribute("soundSpeed", scalarfieldlist, getter="soundSpeed", is_const=True)
-    #     x.add_instance_attribute("weightedNeighborSum", scalarfieldlist, getter="weightedNeighborSum", is_const=True)
-    #     x.add_instance_attribute("totalEnergy", scalarfieldlist, getter="totalEnergy", is_const=True)
-    #     x.add_instance_attribute("volume", scalarfieldlist, getter="volume", is_const=True)
-    #     x.add_instance_attribute("linearMomentum", vectorfieldlist, getter="linearMomentum", is_const=True)
-    #     x.add_instance_attribute("DEDt", scalarfieldlist, getter="DEDt", is_const=True)
-    #     x.add_instance_attribute("massSecondMoment", symtensorfieldlist, getter="massSecondMoment", is_const=True)
+        # Attributes.
+        const_ref_return_value(x, me, "%s::PSPHpbar" % me, scalarfieldlist, [], "PSPHpbar")
+        const_ref_return_value(x, me, "%s::PSPHcorrection" % me, scalarfieldlist, [], "PSPHcorrection")
 
-    #     return
+        return
