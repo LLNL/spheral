@@ -45,6 +45,7 @@ commandLine(KernelConstructor = BSplineKernel,
 
             SVPH = False,
             CRKSPH = False,
+	    PSPH = False,
             SPH = True,   # This just chooses the H algorithm -- you can use this with CRKSPH for instance.
             Qconstructor = MonaghanGingoldViscosity,
             #Qconstructor = TensorMonaghanGingoldViscosity,
@@ -74,7 +75,6 @@ commandLine(KernelConstructor = BSplineKernel,
             hmax = 0.5,
             hminratio = 0.1,
             cfl = 0.5,
-	    PSPH = False,
             XSPH = False,
             epsilonTensile = 0.0,
             nTensile = 8,
@@ -120,8 +120,6 @@ assert not(boolReduceViscosity and boolCullenViscosity)
 assert thetaFactor in (0.5, 1.0, 2.0)
 theta = thetaFactor * pi
 
-
-
 xmax = (rmax, rmax)
 if thetaFactor == 0.5:
     xmin = (0.0, 0.0)
@@ -146,6 +144,11 @@ elif CRKSPH:
     else:
         HydroConstructor = ACRKSPHHydro
     Qconstructor = CRKSPHMonaghanGingoldViscosity
+elif PSPH:
+    if SPH:
+        HydroConstructor = PSPHHydro
+    else:
+        HydroConstructor = APSPHHydro
 else:
     if SPH:
         HydroConstructor = SPHHydro
@@ -319,7 +322,6 @@ else:
                              gradhCorrection = gradhCorrection,
                              densityUpdate = densityUpdate,
                              HUpdate = HUpdate,
-			     PSPH = PSPH,
                              XSPH = XSPH,
                              epsTensile = epsilonTensile,
                              nTensile = nTensile)

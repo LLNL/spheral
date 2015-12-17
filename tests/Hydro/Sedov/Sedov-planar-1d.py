@@ -36,6 +36,7 @@ commandLine(nRadial = 50,
             linearInExpansion = False,
 
             CRKSPH = False,
+            PSPH = False,
             Qconstructor = MonaghanGingoldViscosity,
             correctionOrder = LinearOrder,
             densityUpdate = RigorousSumDensity, # VolumeScaledDensity,
@@ -61,7 +62,6 @@ commandLine(nRadial = 50,
             hmax = 1.0,
             cfl = 0.5,
             useVelocityMagnitudeForDt = True,
-            PSPH = False,
             XSPH = False,
             rhomin = 1e-10,
 
@@ -114,6 +114,8 @@ Espike *= 0.5
 if CRKSPH:
     Qconstructor = CRKSPHMonaghanGingoldViscosity
     HydroConstructor = CRKSPHHydro
+elif PSPH:
+    HydroConstructor = PSPHHydro
 else:
     HydroConstructor = SPHHydro
 
@@ -278,7 +280,6 @@ else:
                              gradhCorrection = gradhCorrection,
                              densityUpdate = densityUpdate,
                              XSPH = XSPH,
-                             PSPH = PSPH,
                              HUpdate = HEvolution)
 output("hydro")
 output("hydro.kernel()")

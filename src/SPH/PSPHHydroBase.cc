@@ -1,7 +1,7 @@
 //---------------------------------Spheral++----------------------------------//
-// SolidSPHHydroBase -- The SPH/ASPH solid material hydrodynamic package for Spheral++.
+// PSPHHydroBase -- The PSPH/APSPH hydrodynamic package for Spheral++.
 //
-// Created by JMO, Fri Jul 30 11:07:33 PDT 2010
+// Created by JMO, Wed Dec 16 20:52:02 PST 2015
 //----------------------------------------------------------------------------//
 #include <limits.h>
 #include <float.h>
@@ -10,25 +10,32 @@
 #include <map>
 #include <vector>
 
-#include "SolidSPHHydroBase.hh"
-#include "DamagedNodeCoupling.hh"
-#include "SPH/SPHHydroBase.hh"
+#include "PSPHHydroBase.hh"
+#include "computeSPHSumMassDensity.hh"
+#include "computeSumVoronoiCellMassDensity.hh"
+#include "computeSPHOmegaGradhCorrection.hh"
+#include "computePSPHCorrections.hh"
 #include "NodeList/SmoothingScaleBase.hh"
 #include "Hydro/HydroFieldNames.hh"
-#include "Strength/SolidFieldNames.hh"
-#include "Strength/SolidNodeList.hh"
-#include "Strength/DeviatoricStressPolicy.hh"
-#include "Strength/BulkModulusPolicy.hh"
-#include "Strength/PlasticStrainPolicy.hh"
-#include "Strength/ShearModulusPolicy.hh"
-#include "Strength/YieldStrengthPolicy.hh"
-#include "Strength/StrengthSoundSpeedPolicy.hh"
+#include "Physics/GenericHydro.hh"
 #include "DataBase/State.hh"
 #include "DataBase/StateDerivatives.hh"
 #include "DataBase/IncrementFieldList.hh"
-#include "DataBase/IncrementBoundedFieldList.hh"
 #include "DataBase/ReplaceFieldList.hh"
+#include "DataBase/IncrementBoundedFieldList.hh"
 #include "DataBase/ReplaceBoundedFieldList.hh"
+#include "DataBase/IncrementBoundedState.hh"
+#include "DataBase/ReplaceBoundedState.hh"
+#include "DataBase/CompositeFieldListPolicy.hh"
+#include "Hydro/VolumePolicy.hh"
+#include "Hydro/VoronoiMassDensityPolicy.hh"
+#include "Hydro/SumVoronoiMassDensityPolicy.hh"
+#include "Hydro/SpecificThermalEnergyPolicy.hh"
+#include "Hydro/PositionPolicy.hh"
+#include "Hydro/PressurePolicy.hh"
+#include "Hydro/SoundSpeedPolicy.hh"
+#include "Mesh/MeshPolicy.hh"
+#include "Mesh/generateMesh.hh"
 #include "ArtificialViscosity/ArtificialViscosity.hh"
 #include "DataBase/DataBase.hh"
 #include "Field/FieldList.hh"
@@ -37,17 +44,19 @@
 #include "Neighbor/ConnectivityMap.hh"
 #include "Utilities/timingUtilities.hh"
 #include "Utilities/safeInv.hh"
+#include "Utilities/globalBoundingVolumes.hh"
 #include "FileIO/FileIO.hh"
+#include "Mesh/Mesh.hh"
+#include "CRKSPH/volumeSpacing.hh"
 
 namespace Spheral {
-namespace SolidSPHSpace {
+namespace SPHSpace {
 
 using namespace std;
-using SPHSpace::SPHHydroBase;
+using PhysicsSpace::GenericHydro;
 using NodeSpace::SmoothingScaleBase;
 using NodeSpace::NodeList;
 using NodeSpace::FluidNodeList;
-using SolidMaterial::SolidNodeList;
 using FileIOSpace::FileIO;
 using ArtificialViscositySpace::ArtificialViscosity;
 using KernelSpace::TableKernel;
@@ -55,72 +64,35 @@ using DataBaseSpace::DataBase;
 using FieldSpace::Field;
 using FieldSpace::FieldList;
 using NeighborSpace::ConnectivityMap;
+using MeshSpace::Mesh;
 
-//------------------------------------------------------------------------------
-// Compute the artificial tensile stress correction tensor for the given 
-// stress tensor
-//------------------------------------------------------------------------------
-inline
-Dim<1>::SymTensor
-tensileStressCorrection(const Dim<1>::SymTensor& sigma) {
-  if (sigma.xx() > 0.0) {
-    return -sigma;
-  } else {
-    return Dim<1>::SymTensor();
-  }
-}
-
-inline
-Dim<2>::SymTensor
-tensileStressCorrection(const Dim<2>::SymTensor& sigma) {
-  const EigenStruct<2> eigen = sigma.eigenVectors();
-  const double lambdax = eigen.eigenValues.x();
-  const double lambday = eigen.eigenValues.y();
-  Dim<2>::SymTensor result((lambdax > 0.0 ? -lambdax : 0.0), 0.0,
-                           0.0, (lambday > 0.0 ? -lambday : 0.0));
-  result.rotationalTransform(eigen.eigenVectors);
-  return result;
-}
-
-inline
-Dim<3>::SymTensor
-tensileStressCorrection(const Dim<3>::SymTensor& sigma) {
-  const EigenStruct<3> eigen = sigma.eigenVectors();
-  const double lambdax = eigen.eigenValues.x();
-  const double lambday = eigen.eigenValues.y();
-  const double lambdaz = eigen.eigenValues.z();
-  Dim<3>::SymTensor result((lambdax > 0.0 ? -lambdax : 0.0), 0.0, 0.0,
-                           0.0, (lambday > 0.0 ? -lambday : 0.0), 0.0,
-                           0.0, 0.0, (lambdaz > 0.0 ? -lambdaz : 0.0));
-  result.rotationalTransform(eigen.eigenVectors);
-  return result;
-}
+using PhysicsSpace::MassDensityType;
+using PhysicsSpace::HEvolutionType;
 
 //------------------------------------------------------------------------------
 // Construct with the given artificial viscosity and kernels.
 //------------------------------------------------------------------------------
 template<typename Dimension>
-SolidSPHHydroBase<Dimension>::
-SolidSPHHydroBase(const SmoothingScaleBase<Dimension>& smoothingScaleMethod,
-                  ArtificialViscosity<Dimension>& Q,
-                  const TableKernel<Dimension>& W,
-                  const TableKernel<Dimension>& WPi,
-                  const TableKernel<Dimension>& WGrad,
-                  const double filter,
-                  const double cfl,
-                  const bool useVelocityMagnitudeForDt,
-                  const bool compatibleEnergyEvolution,
-                  const bool gradhCorrection,
-                  const bool XSPH,
-                  const bool correctVelocityGradient,
-                  const bool sumMassDensityOverAllNodeLists,
-                  const PhysicsSpace::MassDensityType densityUpdate,
-                  const PhysicsSpace::HEvolutionType HUpdate,
-                  const double epsTensile,
-                  const double nTensile,
-                  const Vector& xmin,
-                  const Vector& xmax):
-  SPHHydroBase<Dimension>(smoothingScaleMethod, 
+PSPHHydroBase<Dimension>::
+PSPHHydroBase(const SmoothingScaleBase<Dimension>& smoothingScaleMethod,
+              ArtificialViscosity<Dimension>& Q,
+              const TableKernel<Dimension>& W,
+              const TableKernel<Dimension>& WPi,
+              const double filter,
+              const double cfl,
+              const bool useVelocityMagnitudeForDt,
+              const bool compatibleEnergyEvolution,
+              const bool gradhCorrection,
+              const bool XSPH,
+              const bool correctVelocityGradient,
+              const bool sumMassDensityOverAllNodeLists,
+              const MassDensityType densityUpdate,
+              const HEvolutionType HUpdate,
+              const double epsTensile,
+              const double nTensile,
+              const Vector& xmin,
+              const Vector& xmax):
+  SPHHydroBase<Dimension>(smoothingScaleMethod,
                           Q,
                           W,
                           WPi,
@@ -138,21 +110,16 @@ SolidSPHHydroBase(const SmoothingScaleBase<Dimension>& smoothingScaleMethod,
                           nTensile,
                           xmin,
                           xmax),
-  mGradKernel(WGrad),
-  mDdeviatoricStressDt(FieldSpace::Copy),
-  mBulkModulus(FieldSpace::Copy),
-  mShearModulus(FieldSpace::Copy),
-  mYieldStrength(FieldSpace::Copy),
-  mPlasticStrain0(FieldSpace::Copy),
-  mRestart(DataOutput::registerWithRestart(*this)) {
+  mPSPHpbar(FieldSpace::Copy),
+  mPSPHcorrection(FieldSpace::Copy) {
 }
 
 //------------------------------------------------------------------------------
 // Destructor
 //------------------------------------------------------------------------------
 template<typename Dimension>
-SolidSPHHydroBase<Dimension>::
-~SolidSPHHydroBase() {
+PSPHHydroBase<Dimension>::
+~PSPHHydroBase() {
 }
 
 //------------------------------------------------------------------------------
@@ -160,133 +127,70 @@ SolidSPHHydroBase<Dimension>::
 //------------------------------------------------------------------------------
 template<typename Dimension>
 void
-SolidSPHHydroBase<Dimension>::
+PSPHHydroBase<Dimension>::
 initializeProblemStartup(DataBase<Dimension>& dataBase) {
 
-  // Call the ancestor.
+  // SPH does most of it.
   SPHHydroBase<Dimension>::initializeProblemStartup(dataBase);
 
-  // Create storage for the state we're holding.
-  mDdeviatoricStressDt = dataBase.newFluidFieldList(SymTensor::zero, IncrementFieldList<Dimension, Vector>::prefix() + SolidFieldNames::deviatoricStress);
-  mBulkModulus = dataBase.newFluidFieldList(0.0, SolidFieldNames::bulkModulus);
-  mShearModulus = dataBase.newFluidFieldList(0.0, SolidFieldNames::shearModulus);
-  mYieldStrength = dataBase.newFluidFieldList(0.0, SolidFieldNames::yieldStrength);
-  mPlasticStrain0 = dataBase.newFluidFieldList(0.0, SolidFieldNames::plasticStrain + "0");
-
-  // Set the moduli.
-  size_t nodeListi = 0;
-  for (typename DataBase<Dimension>::SolidNodeListIterator itr = dataBase.solidNodeListBegin();
-       itr != dataBase.solidNodeListEnd();
-       ++itr, ++nodeListi) {
-    (*itr)->bulkModulus(*mBulkModulus[nodeListi]);
-    (*itr)->shearModulus(*mShearModulus[nodeListi]);
-    (*itr)->yieldStrength(*mYieldStrength[nodeListi]);
-  }
+  // Create storage for our internal state.
+  mPSPHpbar = dataBase.newFluidFieldList(0.0, HydroFieldNames::PSPHpbar);
+  mPSPHcorrection = dataBase.newFluidFieldList(0.0, HydroFieldNames::PSPHcorrection);
 }
-
 
 //------------------------------------------------------------------------------
 // Register the state we need/are going to evolve.
 //------------------------------------------------------------------------------
 template<typename Dimension>
 void
-SolidSPHHydroBase<Dimension>::
+PSPHHydroBase<Dimension>::
 registerState(DataBase<Dimension>& dataBase,
               State<Dimension>& state) {
 
   typedef typename State<Dimension>::PolicyPointer PolicyPointer;
 
-  // Invoke SPHHydro's state.
+  // SPH does most of it.
   SPHHydroBase<Dimension>::registerState(dataBase, state);
 
-  // Create the local storage.
-  dataBase.resizeFluidFieldList(mBulkModulus, 0.0, SolidFieldNames::bulkModulus, false);
-  dataBase.resizeFluidFieldList(mShearModulus, 0.0, SolidFieldNames::shearModulus, false);
-  dataBase.resizeFluidFieldList(mYieldStrength, 0.0, SolidFieldNames::yieldStrength, false);
-  dataBase.resizeFluidFieldList(mPlasticStrain0, 0.0, SolidFieldNames::plasticStrain + "0", false);
-
-  // Grab the normal Hydro's registered version of the sound speed.
-  FieldList<Dimension, Scalar> cs = state.fields(HydroFieldNames::soundSpeed, 0.0);
-  CHECK(cs.numFields() == dataBase.numFluidNodeLists());
-
-  // Build the FieldList versions of our state.
-  FieldList<Dimension, SymTensor> S, D;
-  FieldList<Dimension, Scalar> ps;
-  FieldList<Dimension, Vector> gradD;
-  FieldList<Dimension, int> fragIDs;
-  size_t nodeListi = 0;
-  for (typename DataBase<Dimension>::SolidNodeListIterator itr = dataBase.solidNodeListBegin();
-       itr != dataBase.solidNodeListEnd();
-       ++itr, ++nodeListi) {
-    S.appendField((*itr)->deviatoricStress());
-    ps.appendField((*itr)->plasticStrain());
-    D.appendField((*itr)->effectiveDamage());
-    gradD.appendField((*itr)->damageGradient());
-    fragIDs.appendField((*itr)->fragmentIDs());
-
-    // Make a copy of the beginning plastic strain.
-    *mPlasticStrain0[nodeListi] = (*itr)->plasticStrain();
-    (*mPlasticStrain0[nodeListi]).name(SolidFieldNames::plasticStrain + "0");
-  }
-
-  // Register the deviatoric stress and plastic strain to be evolved.
-  PolicyPointer deviatoricStressPolicy(new DeviatoricStressPolicy<Dimension>());
-  PolicyPointer plasticStrainPolicy(new PlasticStrainPolicy<Dimension>());
-  state.enroll(S, deviatoricStressPolicy);
-  state.enroll(ps, plasticStrainPolicy);
-
-  // Register the bulk modulus, shear modulus, and yield strength.
-  PolicyPointer bulkModulusPolicy(new BulkModulusPolicy<Dimension>());
-  PolicyPointer shearModulusPolicy(new ShearModulusPolicy<Dimension>());
-  PolicyPointer yieldStrengthPolicy(new YieldStrengthPolicy<Dimension>());
-  state.enroll(mBulkModulus, bulkModulusPolicy);
-  state.enroll(mShearModulus, shearModulusPolicy);
-  state.enroll(mYieldStrength, yieldStrengthPolicy);
-
-  // Override the policy for the sound speed.
-  PolicyPointer csPolicy(new StrengthSoundSpeedPolicy<Dimension>());
-  state.enroll(cs, csPolicy);
-
-  // Register the effective damage and damage gradient with default no-op updates.
-  // If there are any damage models running they can override these choices.
-  state.enroll(D);
-  state.enroll(gradD);
-
-  // Register the fragment IDs.
-  state.enroll(fragIDs);
-
-  // And finally the intial plastic strain.
-  state.enroll(mPlasticStrain0);
+  // Register the PSPH correction terms
+  // We deliberately make this non-dynamic here.  These corrections are computed
+  // during PSPHHydroBase::initialize, not as part of our usual state update.
+  state.enroll(mPSPHpbar);
+  state.enroll(mPSPHcorrection);
 }
 
 //------------------------------------------------------------------------------
-// Register the state derivative fields.
+// Initialize the hydro.
 //------------------------------------------------------------------------------
 template<typename Dimension>
 void
-SolidSPHHydroBase<Dimension>::
-registerDerivatives(DataBase<Dimension>& dataBase,
-                    StateDerivatives<Dimension>& derivs) {
+PSPHHydroBase<Dimension>::
+initialize(const typename Dimension::Scalar time,
+           const typename Dimension::Scalar dt,
+           const DataBase<Dimension>& dataBase,
+           State<Dimension>& state,
+           StateDerivatives<Dimension>& derivs) {
 
-  // Call the ancestor method.
-  SPHHydroBase<Dimension>::registerDerivatives(dataBase, derivs);
+  // SPH does most of it.
+  SPHHydroBase<Dimension>::initialize(time, dt, dataBase, state, derivs);
 
-  // Create the scratch fields.
-  // Note we deliberately do not zero out the derivatives here!  This is because the previous step
-  // info here may be used by other algorithms (like the CheapSynchronousRK2 integrator or
-  // the ArtificialVisocisity::initialize step).
-  const string DSDtName = IncrementFieldList<Dimension, Vector>::prefix() + SolidFieldNames::deviatoricStress;
-  dataBase.resizeFluidFieldList(mDdeviatoricStressDt, SymTensor::zero, DSDtName, false);
-
-  derivs.enroll(mDdeviatoricStressDt);
-
-  size_t nodeListi = 0;
-  for (typename DataBase<Dimension>::SolidNodeListIterator itr = dataBase.solidNodeListBegin();
-       itr != dataBase.solidNodeListEnd();
-       ++itr, ++nodeListi) {
-    CHECK((*itr) != 0);
-    derivs.enroll((*itr)->plasticStrainRate());
+  // Do the PSPH corrections.
+  const TableKernel<Dimension>& W = this->kernel();
+  const ConnectivityMap<Dimension>& connectivityMap = dataBase.connectivityMap();
+  const FieldList<Dimension, Scalar> mass = state.fields(HydroFieldNames::mass, 0.0);
+  const FieldList<Dimension, Vector> position = state.fields(HydroFieldNames::position, Vector::zero);
+  const FieldList<Dimension, Scalar> specificThermalEnergy = state.fields(HydroFieldNames::specificThermalEnergy, 0.0);
+  const FieldList<Dimension, SymTensor> H = state.fields(HydroFieldNames::H, SymTensor::zero);
+  FieldList<Dimension, Scalar> PSPHpbar = state.fields(HydroFieldNames::PSPHpbar, 0.0);
+  FieldList<Dimension, Scalar> PSPHcorrection = state.fields(HydroFieldNames::PSPHcorrection, 0.0);
+  computePSPHCorrections(connectivityMap, W, mass, position, specificThermalEnergy, H, PSPHpbar, PSPHcorrection);
+  for (ConstBoundaryIterator boundItr = this->boundaryBegin();
+       boundItr != this->boundaryEnd();
+       ++boundItr) {
+    (*boundItr)->applyFieldListGhostBoundary(PSPHpbar);
+    (*boundItr)->applyFieldListGhostBoundary(PSPHcorrection);
   }
+  // We depend on the caller knowing to finalize the ghost boundaries!
 }
 
 //------------------------------------------------------------------------------
@@ -294,7 +198,7 @@ registerDerivatives(DataBase<Dimension>& dataBase,
 //------------------------------------------------------------------------------
 template<typename Dimension>
 void
-SolidSPHHydroBase<Dimension>::
+PSPHHydroBase<Dimension>::
 evaluateDerivatives(const typename Dimension::Scalar time,
                     const typename Dimension::Scalar dt,
                     const DataBase<Dimension>& dataBase,
@@ -307,17 +211,11 @@ evaluateDerivatives(const typename Dimension::Scalar time,
   // The kernels and such.
   const TableKernel<Dimension>& W = this->kernel();
   const TableKernel<Dimension>& WQ = this->PiKernel();
-  const TableKernel<Dimension>& WG = this->GradKernel();
-  const SmoothingScaleBase<Dimension>& smoothingScaleMethod = this->smoothingScaleMethod();
 
   // A few useful constants we'll use in the following loop.
   typedef typename Timing::Time Time;
   const double tiny = 1.0e-30;
   const Scalar W0 = W(0.0, 1.0);
-  const Scalar WQ0 = WQ(0.0, 1.0);
-  const Scalar epsTensile = this->epsilonTensile();
-  const bool compatibleEnergy = this->compatibleEnergyEvolution();
-  const bool XSPH = this->XSPH();
 
   // The connectivity.
   const ConnectivityMap<Dimension>& connectivityMap = dataBase.connectivityMap();
@@ -335,11 +233,11 @@ evaluateDerivatives(const typename Dimension::Scalar time,
   const FieldList<Dimension, Scalar> pressure = state.fields(HydroFieldNames::pressure, 0.0);
   const FieldList<Dimension, Scalar> soundSpeed = state.fields(HydroFieldNames::soundSpeed, 0.0);
   const FieldList<Dimension, Scalar> omega = state.fields(HydroFieldNames::omegaGradh, 0.0);
-  const FieldList<Dimension, SymTensor> S = state.fields(SolidFieldNames::deviatoricStress, SymTensor::zero);
-  const FieldList<Dimension, Scalar> mu = state.fields(SolidFieldNames::shearModulus, 0.0);
-  const FieldList<Dimension, SymTensor> damage = state.fields(SolidFieldNames::effectiveTensorDamage, SymTensor::zero);
-  const FieldList<Dimension, Vector> gradDamage = state.fields(SolidFieldNames::damageGradient, Vector::zero);
-  const FieldList<Dimension, int> fragIDs = state.fields(SolidFieldNames::fragmentIDs, int(1));
+  const FieldList<Dimension, Scalar> PSPHpbar = state.fields(HydroFieldNames::PSPHpbar, 0.0);
+  const FieldList<Dimension, Scalar> PSPHcorrection = state.fields(HydroFieldNames::PSPHcorrection, 0.0);
+  const FieldList<Dimension, Scalar> reducingViscosityMultiplierQ = state.fields(HydroFieldNames::reducingViscosityMultiplierQ, 0.0);
+  const FieldList<Dimension, Scalar> reducingViscosityMultiplierL = state.fields(HydroFieldNames::reducingViscosityMultiplierL, 0.0);
+
   CHECK(mass.size() == numNodeLists);
   CHECK(position.size() == numNodeLists);
   CHECK(velocity.size() == numNodeLists);
@@ -349,14 +247,14 @@ evaluateDerivatives(const typename Dimension::Scalar time,
   CHECK(pressure.size() == numNodeLists);
   CHECK(soundSpeed.size() == numNodeLists);
   CHECK(omega.size() == numNodeLists);
-  CHECK(S.size() == numNodeLists);
-  CHECK(mu.size() == numNodeLists);
-  CHECK(damage.size() == numNodeLists);
-  CHECK(gradDamage.size() == numNodeLists);
-  CHECK(fragIDs.size() == numNodeLists);
+  CHECK(PSPHpbar.size() == numNodeLists);
+  CHECK(PSPHcorrection.size() == numNodeLists);
+  CHECK(reducingViscosityMultiplierQ.size() == numNodeLists);
+  CHECK(reducingViscosityMultiplierL.size() == numNodeLists);
 
   // Derivative FieldLists.
   FieldList<Dimension, Scalar> rhoSum = derivatives.fields(ReplaceFieldList<Dimension, Scalar>::prefix() + HydroFieldNames::massDensity, 0.0);
+  FieldList<Dimension, Scalar> normalization = derivatives.fields(HydroFieldNames::normalization, 0.0);
   FieldList<Dimension, Vector> DxDt = derivatives.fields(IncrementFieldList<Dimension, Vector>::prefix() + HydroFieldNames::position, Vector::zero);
   FieldList<Dimension, Scalar> DrhoDt = derivatives.fields(IncrementFieldList<Dimension, Scalar>::prefix() + HydroFieldNames::massDensity, 0.0);
   FieldList<Dimension, Vector> DvDt = derivatives.fields(IncrementFieldList<Dimension, Vector>::prefix() + HydroFieldNames::velocity, Vector::zero);
@@ -369,15 +267,14 @@ evaluateDerivatives(const typename Dimension::Scalar time,
   FieldList<Dimension, SymTensor> Hideal = derivatives.fields(ReplaceBoundedFieldList<Dimension, SymTensor>::prefix() + HydroFieldNames::H, SymTensor::zero);
   FieldList<Dimension, Scalar> maxViscousPressure = derivatives.fields(HydroFieldNames::maxViscousPressure, 0.0);
   FieldList<Dimension, Scalar> effViscousPressure = derivatives.fields(HydroFieldNames::effectiveViscousPressure, 0.0);
-  FieldList<Dimension, Scalar> rhoSumCorrection = derivatives.fields(HydroFieldNames::massDensityCorrection, 0.0);
   FieldList<Dimension, Scalar> viscousWork = derivatives.fields(HydroFieldNames::viscousWork, 0.0);
   FieldList<Dimension, vector<Vector> > pairAccelerations = derivatives.fields(HydroFieldNames::pairAccelerations, vector<Vector>());
   FieldList<Dimension, Scalar> XSPHWeightSum = derivatives.fields(HydroFieldNames::XSPHWeightSum, 0.0);
   FieldList<Dimension, Vector> XSPHDeltaV = derivatives.fields(HydroFieldNames::XSPHDeltaV, Vector::zero);
   FieldList<Dimension, Scalar> weightedNeighborSum = derivatives.fields(HydroFieldNames::weightedNeighborSum, 0.0);
   FieldList<Dimension, SymTensor> massSecondMoment = derivatives.fields(HydroFieldNames::massSecondMoment, SymTensor::zero);
-  FieldList<Dimension, SymTensor> DSDt = derivatives.fields(IncrementFieldList<Dimension, SymTensor>::prefix() + SolidFieldNames::deviatoricStress, SymTensor::zero);
   CHECK(rhoSum.size() == numNodeLists);
+  CHECK(normalization.size() == numNodeLists);
   CHECK(DxDt.size() == numNodeLists);
   CHECK(DrhoDt.size() == numNodeLists);
   CHECK(DvDt.size() == numNodeLists);
@@ -390,17 +287,15 @@ evaluateDerivatives(const typename Dimension::Scalar time,
   CHECK(Hideal.size() == numNodeLists);
   CHECK(maxViscousPressure.size() == numNodeLists);
   CHECK(effViscousPressure.size() == numNodeLists);
-  CHECK(rhoSumCorrection.size() == numNodeLists);
   CHECK(viscousWork.size() == numNodeLists);
   CHECK(pairAccelerations.size() == numNodeLists);
   CHECK(XSPHWeightSum.size() == numNodeLists);
   CHECK(XSPHDeltaV.size() == numNodeLists);
   CHECK(weightedNeighborSum.size() == numNodeLists);
   CHECK(massSecondMoment.size() == numNodeLists);
-  CHECK(DSDt.size() == numNodeLists);
 
   // Size up the pair-wise accelerations before we start.
-  if (compatibleEnergy) {
+  if (this->mCompatibleEnergyEvolution) {
     size_t nodeListi = 0;
     for (typename DataBase<Dimension>::ConstFluidNodeListIterator itr = dataBase.fluidNodeListBegin();
          itr != dataBase.fluidNodeListEnd();
@@ -430,9 +325,6 @@ evaluateDerivatives(const typename Dimension::Scalar time,
     // Get the work field for this NodeList.
     Field<Dimension, Scalar>& workFieldi = nodeList.work();
 
-    // Build the functor we use to compute the effective coupling between nodes.
-    DamagedNodeCoupling<Dimension> coupling(damage, gradDamage, H);
-
     // Iterate over the internal nodes in this NodeList.
     for (typename ConnectivityMap<Dimension>::const_iterator iItr = connectivityMap.begin(nodeListi);
          iItr != connectivityMap.end(nodeListi);
@@ -453,17 +345,15 @@ evaluateDerivatives(const typename Dimension::Scalar time,
       const SymTensor& Hi = H(nodeListi, i);
       const Scalar& ci = soundSpeed(nodeListi, i);
       const Scalar& omegai = omega(nodeListi, i);
-      const SymTensor& Si = S(nodeListi, i);
-      const Scalar& mui = mu(nodeListi, i);
       const Scalar Hdeti = Hi.Determinant();
       const Scalar safeOmegai = 1.0/max(tiny, omegai);
-      const int fragIDi = fragIDs(nodeListi, i);
       CHECK(mi > 0.0);
       CHECK(rhoi > 0.0);
       CHECK(omegai > 0.0);
       CHECK(Hdeti > 0.0);
 
       Scalar& rhoSumi = rhoSum(nodeListi, i);
+      Scalar& normi = normalization(nodeListi, i);
       Vector& DxDti = DxDt(nodeListi, i);
       Scalar& DrhoDti = DrhoDt(nodeListi, i);
       Vector& DvDti = DvDt(nodeListi, i);
@@ -476,14 +366,12 @@ evaluateDerivatives(const typename Dimension::Scalar time,
       SymTensor& Hideali = Hideal(nodeListi, i);
       Scalar& maxViscousPressurei = maxViscousPressure(nodeListi, i);
       Scalar& effViscousPressurei = effViscousPressure(nodeListi, i);
-      Scalar& rhoSumCorrectioni = rhoSumCorrection(nodeListi, i);
       Scalar& viscousWorki = viscousWork(nodeListi, i);
       vector<Vector>& pairAccelerationsi = pairAccelerations(nodeListi, i);
       Scalar& XSPHWeightSumi = XSPHWeightSum(nodeListi, i);
       Vector& XSPHDeltaVi = XSPHDeltaV(nodeListi, i);
       Scalar& weightedNeighborSumi = weightedNeighborSum(nodeListi, i);
       SymTensor& massSecondMomenti = massSecondMoment(nodeListi, i);
-      SymTensor& DSDti = DSDt(nodeListi, i);
       Scalar& worki = workFieldi(i);
 
       // Get the connectivity info for this node.
@@ -522,15 +410,14 @@ evaluateDerivatives(const typename Dimension::Scalar time,
               const SymTensor& Hj = H(nodeListj, j);
               const Scalar& cj = soundSpeed(nodeListj, j);
               const Scalar& omegaj = omega(nodeListj, j);
-              const SymTensor& Sj = S(nodeListj, j);
               const Scalar Hdetj = Hj.Determinant();
               const Scalar safeOmegaj = 1.0/max(tiny, omegaj);
-              const int fragIDj = fragIDs(nodeListj, j);
               CHECK(mj > 0.0);
               CHECK(rhoj > 0.0);
               CHECK(Hdetj > 0.0);
 
               Scalar& rhoSumj = rhoSum(nodeListj, j);
+              Scalar& normj = normalization(nodeListj, j);
               Vector& DxDtj = DxDt(nodeListj, j);
               Scalar& DrhoDtj = DrhoDt(nodeListj, j);
               Vector& DvDtj = DvDt(nodeListj, j);
@@ -541,16 +428,12 @@ evaluateDerivatives(const typename Dimension::Scalar time,
               Tensor& localMj = localM(nodeListj, j);
               Scalar& maxViscousPressurej = maxViscousPressure(nodeListj, j);
               Scalar& effViscousPressurej = effViscousPressure(nodeListj, j);
-              Scalar& rhoSumCorrectionj = rhoSumCorrection(nodeListj, j);
               Scalar& viscousWorkj = viscousWork(nodeListj, j);
               vector<Vector>& pairAccelerationsj = pairAccelerations(nodeListj, j);
               Scalar& XSPHWeightSumj = XSPHWeightSum(nodeListj, j);
               Vector& XSPHDeltaVj = XSPHDeltaV(nodeListj, j);
               Scalar& weightedNeighborSumj = weightedNeighborSum(nodeListj, j);
               SymTensor& massSecondMomentj = massSecondMoment(nodeListj, j);
-
-              // Flag if this is a contiguous material pair or not.
-              const bool sameMatij = (nodeListi == nodeListj and fragIDi == fragIDj);
 
               // Node displacement.
               const Vector rij = ri - rj;
@@ -567,49 +450,36 @@ evaluateDerivatives(const typename Dimension::Scalar time,
               const Scalar Wi = WWi.first;
               const Scalar gWi = WWi.second;
               const Vector gradWi = gWi*Hetai;
-              const std::pair<double, double> WQWi = WQ.kernelAndGradValue(etaMagi, Hdeti);
-              const Scalar WQi = WQWi.first;
-              const Scalar gWQi = WQWi.second;
-              const Vector gradWQi = gWQi*Hetai;
-              const Vector gradWGi = WG.gradValue(etaMagi, Hdeti) * Hetai;
+              const Vector gradWQi = WQ.gradValue(etaMagi, Hdeti) * Hetai;
 
               const Vector Hetaj = Hj*etaj.unitVector();
               const std::pair<double, double> WWj = W.kernelAndGradValue(etaMagj, Hdetj);
               const Scalar Wj = WWj.first;
               const Scalar gWj = WWj.second;
               const Vector gradWj = gWj*Hetaj;
-              const std::pair<double, double> WQWj = WQ.kernelAndGradValue(etaMagj, Hdetj);
-              const Scalar WQj = WQWj.first;
-              const Scalar gWQj = WQWj.second;
-              const Vector gradWQj = gWQj*Hetaj;
-              const Vector gradWGj = WG.gradValue(etaMagj, Hdetj) * Hetaj;
-
-              // Determine how we're applying damage.
-              const Scalar fDeffij = coupling(nodeListi, i, nodeListj, j);
+              const Vector gradWQj = WQ.gradValue(etaMagj, Hdetj) * Hetaj;
 
               // Zero'th and second moment of the node distribution -- used for the
               // ideal H calculation.
               const double rij2 = rij.magnitude2();
-              const SymTensor thpt = rij.selfdyad()/(rij2 + 1.0e-10) / FastMath::square(Dimension::pownu12(rij2 + 1.0e-10));
-              weightedNeighborSumi += fweightij*abs(gWi);
-              weightedNeighborSumj += fweightij*abs(gWj);
+              const SymTensor thpt = rij.selfdyad()/max(tiny, rij2*FastMath::square(Dimension::pownu12(rij2)));
+              weightedNeighborSumi += fweightij*std::abs(gWi);
+              weightedNeighborSumj += fweightij*std::abs(gWj);
               massSecondMomenti += fweightij*gradWi.magnitude2()*thpt;
               massSecondMomentj += fweightij*gradWj.magnitude2()*thpt;
 
-              // Contribution to the sum density (only if the same material).
+              // Contribution to the sum density.
               if (nodeListi == nodeListj) {
                 rhoSumi += mj*Wi;
                 rhoSumj += mi*Wj;
+                normi += mi/rhoi*Wi;
+                normj += mj/rhoj*Wj;
               }
-
-              // Contribution to the sum density correction
-              rhoSumCorrectioni += mj * WQi / rhoj ;
-              rhoSumCorrectionj += mi * WQj / rhoi ;
 
               // Mass density evolution.
               const Vector vij = vi - vj;
-              const double deltaDrhoDti = fDeffij*(vij.dot(gradWi));
-              const double deltaDrhoDtj = fDeffij*(vij.dot(gradWj));
+              const double deltaDrhoDti = vij.dot(gradWi);
+              const double deltaDrhoDtj = vij.dot(gradWj);
               DrhoDti += deltaDrhoDti;
               DrhoDtj += deltaDrhoDtj;
 
@@ -619,70 +489,97 @@ evaluateDerivatives(const typename Dimension::Scalar time,
                                                         rj, etaj, vj, rhoj, cj, Hj);
               const Vector Qacci = 0.5*(QPiij.first *gradWQi);
               const Vector Qaccj = 0.5*(QPiij.second*gradWQj);
+//               const Scalar workQi = 0.5*(QPiij.first *vij).dot(gradWQi);
+//               const Scalar workQj = 0.5*(QPiij.second*vij).dot(gradWQj);
               const Scalar workQi = vij.dot(Qacci);
               const Scalar workQj = vij.dot(Qaccj);
               const Scalar Qi = rhoi*rhoi*(QPiij.first. diagonalElements().maxAbsElement());
               const Scalar Qj = rhoj*rhoj*(QPiij.second.diagonalElements().maxAbsElement());
               maxViscousPressurei = max(maxViscousPressurei, Qi);
               maxViscousPressurej = max(maxViscousPressurej, Qj);
-              effViscousPressurei += mj*Qi*WQi/rhoj;
-              effViscousPressurej += mi*Qj*WQj/rhoi;
+              effViscousPressurei += mj/rhoj * Qi * Wi;
+              effViscousPressurej += mi/rhoi * Qj * Wj;
               viscousWorki += mj*workQi;
               viscousWorkj += mi*workQj;
 
-              // Damage scaling of negative pressures.
-              const Scalar Peffi = (Pi > 0.0 ? Pi : fDeffij*Pi);
-              const Scalar Peffj = (Pj > 0.0 ? Pj : fDeffij*Pj);
-
-              // Compute the stress tensors.
-              SymTensor sigmai = -Peffi*SymTensor::one;
-              SymTensor sigmaj = -Peffj*SymTensor::one;
-              if (sameMatij) {
-                sigmai += fDeffij*Si;
-                sigmaj += fDeffij*Sj;
-              }
-
-              // Compute the tensile correction to add to the stress as described in 
-              // Gray, Monaghan, & Swift (Comput. Methods Appl. Mech. Eng., 190, 2001)
-              const Scalar fi = epsTensile*FastMath::pow4(Wi/(Hdeti*WnPerh));
-              const Scalar fj = epsTensile*FastMath::pow4(Wj/(Hdetj*WnPerh));
-              const SymTensor Ri = fi*tensileStressCorrection(sigmai);
-              const SymTensor Rj = fj*tensileStressCorrection(sigmaj);
-              sigmai += Ri;
-              sigmaj += Rj;
+              // Determine an effective pressure including a term to fight the tensile instability.
+//             const Scalar fij = epsTensile*pow(Wi/(Hdeti*WnPerh), nTensile);
+              const Scalar fij = this->mEpsTensile*FastMath::pow4(Wi/(Hdeti*WnPerh));
+              const Scalar Ri = fij*(Pi < 0.0 ? -Pi : 0.0);
+              const Scalar Rj = fij*(Pj < 0.0 ? -Pj : 0.0);
+              const Scalar Peffi = Pi + Ri;
+              const Scalar Peffj = Pj + Rj;
 
               // Acceleration.
               CHECK(rhoi > 0.0);
               CHECK(rhoj > 0.0);
-              const SymTensor sigmarhoi = sigmai/(rhoi*rhoi);
-              const SymTensor sigmarhoj = sigmaj/(rhoj*rhoj);
-              const Vector deltaDvDt = fDeffij*(sigmarhoi*safeOmegai*gradWi + sigmarhoj*safeOmegaj*gradWj) - Qacci - Qaccj;
-              DvDti += mj*deltaDvDt;
-              DvDtj -= mi*deltaDvDt;
+              const double Prhoi = Peffi/(rhoi*rhoi);
+              const double Prhoj = Peffj/(rhoj*rhoj);
+              const Scalar& Fcorri=PSPHcorrection(nodeListi, i);
+              const Scalar& Fcorrj=PSPHcorrection(nodeListj, j);
+              const Scalar& Pbari=PSPHpbar(nodeListi, i);
+              const Scalar& Pbarj=PSPHpbar(nodeListj, j);
+              //const Scalar Fij=1.0-Fcorri*safeInv(mj*epsj);
+              //const Scalar Fji=1.0-Fcorrj*safeInv(mi*epsi);
+              const Scalar Fij=1.0-Fcorri/max(mj*epsj,tiny);
+              const Scalar Fji=1.0-Fcorrj/max(mi*epsi,tiny);
+              //const double gamma=1.4;//NEED TO BE A CLASS VARIABLE
+              const double gamma=5.0/3.0;//NEED TO BE A CLASS VARIABLE
+              const double engCoef=(gamma-1)*(gamma-1)*epsi*epsj;
+              Vector deltaDvDt = Prhoi*safeOmegai*gradWi + Prhoj*safeOmegaj*gradWj + Qacci + Qaccj;
 
-              // Pair-wise portion of grad velocity.
-              const Tensor deltaDvDxi = fDeffij*vij.dyad(gradWGi);
-              const Tensor deltaDvDxj = fDeffij*vij.dyad(gradWGj);
+              deltaDvDt = engCoef*(gradWi*Fij/max(Pbari,tiny) + gradWj*Fji/max(Pbarj,tiny)) + Qacci + Qaccj;
+              //deltaDvDt = engCoef*(gradWi*Fij*safeInv(Pbari) + gradWj*Fji*safeInv(Pbarj)) + Qacci + Qaccj;
+
+              DvDti -= mj*deltaDvDt;
+              DvDtj += mi*deltaDvDt;
 
               // Specific thermal energy evolution.
-              DepsDti -= mj*(fDeffij*sigmarhoi.doubledot(deltaDvDxi.Symmetric()) - workQi);
-              DepsDtj -= mi*(fDeffij*sigmarhoj.doubledot(deltaDvDxj.Symmetric()) - workQj);
-              if (compatibleEnergy) {
-                pairAccelerationsi.push_back( mj*deltaDvDt);
-                pairAccelerationsj.push_back(-mi*deltaDvDt);
+              DepsDti += mj*(engCoef*deltaDrhoDti*Fij/max(Pbari,tiny) + workQi);
+              DepsDtj += mi*(engCoef*deltaDrhoDtj*Fji/max(Pbarj,tiny) + workQj);
+              //DepsDti += mj*(engCoef*deltaDrhoDti*Fij*safeInv(Pbari) + workQi);
+              //DepsDtj += mi*(engCoef*deltaDrhoDtj*Fji*safeInv(Pbarj) + workQj);
+
+#define HOPKINS
+#ifdef HOPKINS //ADD ARITIFICIAL CONDUCTIVITY IN HOPKINS 2014A
+              const Scalar alph_c = 0.25;//Parameter = 0.25 in Hopkins 2014
+              const Scalar Vs = ci+cj-3.0*vij.dot(rij.unitVector());
+              const Scalar& Qalpha_i = reducingViscosityMultiplierL(nodeListi, i); //Both L and Q corrections are the same for Cullen Viscosity
+              const Scalar& Qalpha_j = reducingViscosityMultiplierL(nodeListj, j); //Both L and Q corrections are the same for Cullen Viscosity
+              //DepsDti += (Vs > 0.0)*alph_c*mi*mj*(Qalpha_i+Qalpha_j)*0.5*Vs*(epsi-epsj)*abs(Pi-Pj)*((gradWi+gradWj).dot(rij.unitVector()))*safeInv((Pi+Pj+1e-30)*(rhoi+rhoj+1e-30));
+              //DepsDtj += (Vs > 0.0)*alph_c*mi*mj*(Qalpha_i+Qalpha_j)*0.5*Vs*(epsi-epsj)*abs(Pi-Pj)*((gradWi+gradWj).dot(rij.unitVector()))*safeInv((Pi+Pj+1e-30)*(rhoi+rhoj+1e-30));
+              //DepsDti += (Vs > 0.0) ? alph_c*mj*(Qalpha_i+Qalpha_j)*0.5*Vs*(epsi-epsj)*abs(Pbari-Pbarj)*((gradWi).dot(rij.unitVector()))/max((Pbari+Pbarj)*0.5*(rhoi+rhoj),tiny) : 0.0;
+              //DepsDtj += (Vs > 0.0) ? alph_c*mi*(Qalpha_i+Qalpha_j)*0.5*Vs*(epsj-epsi)*abs(Pbari-Pbarj)*((gradWj).dot(rij.unitVector()))/max((Pbari+Pbarj)*0.5*(rhoi+rhoj),tiny) : 0.0;
+              DepsDti += (Vs > 0.0) ? alph_c*mj*(Qalpha_i+Qalpha_j)*0.5*Vs*(epsi-epsj)*abs(Pbari-Pbarj)*((gradWi+gradWj).dot(rij.unitVector()))/max((Pbari+Pbarj)*(rhoi+rhoj),tiny) : 0.0;
+              DepsDtj += (Vs > 0.0) ? alph_c*mi*(Qalpha_i+Qalpha_j)*0.5*Vs*(epsj-epsi)*abs(Pbari-Pbarj)*((gradWi+gradWj).dot(rij.unitVector()))/max((Pbari+Pbarj)*(rhoi+rhoj),tiny) : 0.0;
+              //const Scalar tmpi = (Vs > 0.0) ? alph_c*mj*(Qalpha_i+Qalpha_j)*0.5*Vs*(epsi-epsj)*abs(Pbari-Pbarj)*((gradWi+gradWj).dot(rij.unitVector()))*safeInv((Pbari+Pbarj)*(rhoi+rhoj)) : 0.0;
+              //const Scalar tmpj = (Vs > 0.0) ? alph_c*mi*(Qalpha_i+Qalpha_j)*0.5*Vs*(epsj-epsi)*abs(Pbari-Pbarj)*((gradWi+gradWj).dot(rij.unitVector()))*safeInv((Pbari+Pbarj)*(rhoi+rhoj)) : 0.0;
+              //DepsDti += tmpi;
+              //DepsDtj += tmpj;
+              //DepsDti += (Vs > 0.0) ? alph_c*mj*(Qalpha_i+Qalpha_j)*0.5*Vs*(epsi-epsj)*abs(Pbari-Pbarj)*((gradWi+gradWj).dot(rij.unitVector()))*safeInv((Pbari+Pbarj)*(rhoi+rhoj)) : 0.0;
+              //DepsDtj += (Vs > 0.0) ? alph_c*mi*(Qalpha_i+Qalpha_j)*0.5*Vs*(epsj-epsi)*abs(Pbari-Pbarj)*((gradWi+gradWj).dot(rij.unitVector()))*safeInv((Pbari+Pbarj)*(rhoi+rhoj)) : 0.0;
+              //DepsDti += (Vs > 0.0 && Pbari > 1e-4 && Pbarj > 1e-4) ? alph_c*mj*(Qalpha_i+Qalpha_j)*0.5*Vs*(epsi-epsj)*abs(Pbari-Pbarj)*((gradWi+gradWj).dot(rij.unitVector()))*safeInv((Pbari+Pbarj)*(rhoi+rhoj),tiny) : 0.0;
+              //DepsDtj += (Vs > 0.0 && Pbari > 1e-4 && Pbarj > 1e-4) ? alph_c*mi*(Qalpha_i+Qalpha_j)*0.5*Vs*(epsj-epsi)*abs(Pbari-Pbarj)*((gradWi+gradWj).dot(rij.unitVector()))*safeInv((Pbari+Pbarj)*(rhoi+rhoj),tiny) : 0.0;
+#endif
+
+              if (this->mCompatibleEnergyEvolution) {
+                pairAccelerationsi.push_back(-mj*deltaDvDt);
+                pairAccelerationsj.push_back(mi*deltaDvDt);
               }
 
               // Velocity gradient.
+              const Tensor deltaDvDxi = vij.dyad(gradWi);
+              const Tensor deltaDvDxj = vij.dyad(gradWj);
               DvDxi -= mj*deltaDvDxi;
               DvDxj -= mi*deltaDvDxj;
-              if (sameMatij) {
+              if (nodeListi == nodeListj) {
                 localDvDxi -= mj*deltaDvDxi;
                 localDvDxj -= mi*deltaDvDxj;
               }
 
               // Estimate of delta v (for XSPH).
-              if (XSPH and sameMatij) {
-                const double fXSPH = fDeffij*max(0.0, min(1.0, abs(vij.dot(rij)*safeInv(vij.magnitude()*rij.magnitude()))));
+              if (this->mXSPH and (nodeListi == nodeListj)) {
+                const double fXSPH = max(0.0, min(1.0, abs(vij.dot(rij)*safeInv(vij.magnitude()*rij.magnitude()))));
                 CHECK(fXSPH >= 0.0 and fXSPH <= 1.0);
                 XSPHWeightSumi += fXSPH*mj/rhoj*Wi;
                 XSPHWeightSumj += fXSPH*mi/rhoi*Wj;
@@ -693,7 +590,7 @@ evaluateDerivatives(const typename Dimension::Scalar time,
               // Linear gradient correction term.
               Mi -= mj/rhoj*rij.dyad(gradWi);
               Mj -= mi/rhoi*rij.dyad(gradWj);
-              if (sameMatij) {
+              if (nodeListi == nodeListj) {
                 localMi -= mj/rhoj*rij.dyad(gradWi);
                 localMj -= mi/rhoi*rij.dyad(gradWj);
               }
@@ -702,7 +599,7 @@ evaluateDerivatives(const typename Dimension::Scalar time,
         }
       }
       const size_t numNeighborsi = connectivityMap.numNeighborsForNode(&nodeList, i);
-      CHECK(not this->compatibleEnergyEvolution() or NodeListRegistrar<Dimension>::instance().domainDecompositionIndependent() or
+      CHECK(not this->mCompatibleEnergyEvolution or NodeListRegistrar<Dimension>::instance().domainDecompositionIndependent() or
             (i >= firstGhostNodei and pairAccelerationsi.size() == 0) or
             (pairAccelerationsi.size() == numNeighborsi));
 
@@ -711,12 +608,7 @@ evaluateDerivatives(const typename Dimension::Scalar time,
 
       // Add the self-contribution to density sum.
       rhoSumi += mi*W0*Hdeti;
-
-      // Add the self-contribution to density sum correction.
-      rhoSumCorrectioni += mi*WQ0*Hdeti/rhoi ;
-
-      // Correct the effective viscous pressure.
-      effViscousPressurei /= rhoSumCorrectioni ;
+      normi += mi/rhoi*W0*Hdeti;
 
       // Finish the continuity equation.
       DrhoDti *= mi*safeOmegai;
@@ -738,41 +630,34 @@ evaluateDerivatives(const typename Dimension::Scalar time,
       massSecondMomenti /= Hdeti*Hdeti;
 
       // Determine the position evolution, based on whether we're doing XSPH or not.
-      if (XSPH) {
-        CHECK(XSPHWeightSumi >= 0.0);
-        XSPHWeightSumi += Hdeti*mi/rhoi*W0 + 1.0e-30;
-        DxDti = vi + XSPHDeltaVi/XSPHWeightSumi;
+      if (this->mXSPH) {
+        XSPHWeightSumi += Hdeti*mi/rhoi*W0;
+        CHECK2(XSPHWeightSumi != 0.0, i << " " << XSPHWeightSumi);
+        DxDti = vi + XSPHDeltaVi/max(tiny, XSPHWeightSumi);
       } else {
         DxDti = vi;
       }
 
       // The H tensor evolution.
-      DHDti = smoothingScaleMethod.smoothingScaleDerivative(Hi,
-                                                            ri,
-                                                            DvDxi,
-                                                            hmin,
-                                                            hmax,
-                                                            hminratio,
-                                                            nPerh);
-      Hideali = smoothingScaleMethod.newSmoothingScale(Hi,
-                                                       ri,
-                                                       weightedNeighborSumi,
-                                                       massSecondMomenti,
-                                                       W,
-                                                       hmin,
-                                                       hmax,
-                                                       hminratio,
-                                                       nPerh,
-                                                       connectivityMap,
-                                                       nodeListi,
-                                                       i);
-
-      // Determine the deviatoric stress evolution.
-      const SymTensor deformation = localDvDxi.Symmetric();
-      const Tensor spin = localDvDxi.SkewSymmetric();
-      const SymTensor deviatoricDeformation = deformation - (deformation.Trace()/3.0)*SymTensor::one;
-      const SymTensor spinCorrection = (spin*Si + Si*spin).Symmetric();
-      DSDti = spinCorrection + (2.0*mui)*deviatoricDeformation;
+      DHDti = this->mSmoothingScaleMethod.smoothingScaleDerivative(Hi,
+                                                                   ri,
+                                                                   DvDxi,
+                                                                   hmin,
+                                                                   hmax,
+                                                                   hminratio,
+                                                                   nPerh);
+      Hideali = this->mSmoothingScaleMethod.newSmoothingScale(Hi,
+                                                              ri,
+                                                              weightedNeighborSumi,
+                                                              massSecondMomenti,
+                                                              W,
+                                                              hmin,
+                                                              hmax,
+                                                              hminratio,
+                                                              nPerh,
+                                                              connectivityMap,
+                                                              nodeListi,
+                                                              i);
 
       // Increment the work for i.
       worki += Timing::difference(start, Timing::currentTime());
@@ -801,32 +686,52 @@ evaluateDerivatives(const typename Dimension::Scalar time,
 }
 
 //------------------------------------------------------------------------------
+// Finalize the derivatives.
+//------------------------------------------------------------------------------
+template<typename Dimension>
+void
+PSPHHydroBase<Dimension>::
+finalizeDerivatives(const typename Dimension::Scalar time,
+                    const typename Dimension::Scalar dt,
+                    const DataBase<Dimension>& dataBase,
+                    const State<Dimension>& state,
+                    StateDerivatives<Dimension>& derivs) const {
+
+  // If we're using the compatible energy discretization, we need to enforce
+  // boundary conditions on the accelerations.
+  if (this->compatibleEnergyEvolution()) {
+
+    FieldList<Dimension, Vector> accelerations = derivs.fields(IncrementFieldList<Dimension, Field<Dimension, Vector> >::prefix() + HydroFieldNames::velocity, Vector::zero);
+    for (ConstBoundaryIterator boundaryItr = this->boundaryBegin();
+         boundaryItr != this->boundaryEnd();
+         ++boundaryItr) (*boundaryItr)->applyFieldListGhostBoundary(accelerations);
+    for (ConstBoundaryIterator boundaryItr = this->boundaryBegin(); 
+         boundaryItr != this->boundaryEnd();
+         ++boundaryItr) (*boundaryItr)->finalizeGhostBoundary();
+  }
+}
+
+//------------------------------------------------------------------------------
 // Apply the ghost boundary conditions for hydro state fields.
 //------------------------------------------------------------------------------
 template<typename Dimension>
 void
-SolidSPHHydroBase<Dimension>::
+PSPHHydroBase<Dimension>::
 applyGhostBoundaries(State<Dimension>& state,
                      StateDerivatives<Dimension>& derivs) {
 
-  // Ancestor method.
+  // SPH does most of it.
   SPHHydroBase<Dimension>::applyGhostBoundaries(state, derivs);
 
-  // Apply boundary conditions to our extra strength variables.
-  FieldList<Dimension, SymTensor> S = state.fields(SolidFieldNames::deviatoricStress, SymTensor::zero);
-  FieldList<Dimension, Scalar> K = state.fields(SolidFieldNames::bulkModulus, 0.0);
-  FieldList<Dimension, Scalar> mu = state.fields(SolidFieldNames::shearModulus, 0.0);
-  FieldList<Dimension, Scalar> Y = state.fields(SolidFieldNames::yieldStrength, 0.0);
-  FieldList<Dimension, int> fragIDs = state.fields(SolidFieldNames::fragmentIDs, int(1));
+  // Apply boundary conditions to the PSPH corrections.
+  FieldList<Dimension, Scalar> PSPHpbar = state.fields(HydroFieldNames::PSPHpbar, 0.0);
+  FieldList<Dimension, Scalar> PSPHcorrection = state.fields(HydroFieldNames::PSPHcorrection, 0.0);
 
   for (ConstBoundaryIterator boundaryItr = this->boundaryBegin(); 
        boundaryItr != this->boundaryEnd();
        ++boundaryItr) {
-    (*boundaryItr)->applyFieldListGhostBoundary(S);
-    (*boundaryItr)->applyFieldListGhostBoundary(K);
-    (*boundaryItr)->applyFieldListGhostBoundary(mu);
-    (*boundaryItr)->applyFieldListGhostBoundary(Y);
-    (*boundaryItr)->applyFieldListGhostBoundary(fragIDs);
+    (*boundaryItr)->applyFieldListGhostBoundary(PSPHpbar);
+    (*boundaryItr)->applyFieldListGhostBoundary(PSPHcorrection);
   }
 }
 
@@ -835,28 +740,22 @@ applyGhostBoundaries(State<Dimension>& state,
 //------------------------------------------------------------------------------
 template<typename Dimension>
 void
-SolidSPHHydroBase<Dimension>::
+PSPHHydroBase<Dimension>::
 enforceBoundaries(State<Dimension>& state,
                   StateDerivatives<Dimension>& derivs) {
 
-  // Ancestor method.
+  // SPH does most of it.
   SPHHydroBase<Dimension>::enforceBoundaries(state, derivs);
 
-  // Enforce boundary conditions on the extra strength variable.s
-  FieldList<Dimension, SymTensor> S = state.fields(SolidFieldNames::deviatoricStress, SymTensor::zero);
-  FieldList<Dimension, Scalar> K = state.fields(SolidFieldNames::bulkModulus, 0.0);
-  FieldList<Dimension, Scalar> mu = state.fields(SolidFieldNames::shearModulus, 0.0);
-  FieldList<Dimension, Scalar> Y = state.fields(SolidFieldNames::yieldStrength, 0.0);
-  FieldList<Dimension, int> fragIDs = state.fields(SolidFieldNames::fragmentIDs, int(1));
+  // Enforce boundary conditions on the PSPH corrections.
+  FieldList<Dimension, Scalar> PSPHpbar = state.fields(HydroFieldNames::PSPHpbar, 0.0);
+  FieldList<Dimension, Scalar> PSPHcorrection = state.fields(HydroFieldNames::PSPHcorrection, 0.0);
 
   for (ConstBoundaryIterator boundaryItr = this->boundaryBegin(); 
        boundaryItr != this->boundaryEnd();
        ++boundaryItr) {
-    (*boundaryItr)->enforceFieldListBoundary(S);
-    (*boundaryItr)->enforceFieldListBoundary(K);
-    (*boundaryItr)->enforceFieldListBoundary(mu);
-    (*boundaryItr)->enforceFieldListBoundary(Y);
-    (*boundaryItr)->enforceFieldListBoundary(fragIDs);
+    (*boundaryItr)->enforceFieldListBoundary(PSPHpbar);
+    (*boundaryItr)->enforceFieldListBoundary(PSPHcorrection);
   }
 }
 
@@ -865,17 +764,14 @@ enforceBoundaries(State<Dimension>& state,
 //------------------------------------------------------------------------------
 template<typename Dimension>
 void
-SolidSPHHydroBase<Dimension>::
-dumpState(FileIO& file, const string& pathName) const {
+PSPHHydroBase<Dimension>::
+dumpState(FileIO& file, string pathName) const {
 
-  // Ancestor method.
+  // SPH does most of it.
   SPHHydroBase<Dimension>::dumpState(file, pathName);
 
-  file.write(mDdeviatoricStressDt, pathName + "/DdeviatoricStressDt");
-  file.write(mBulkModulus, pathName + "/bulkModulus");
-  file.write(mShearModulus, pathName + "/shearModulus");
-  file.write(mYieldStrength, pathName + "/yieldStrength");
-  file.write(mPlasticStrain0, pathName + "/plasticStrain0");
+  file.write(mPSPHpbar, pathName + "/PSPHpbar");
+  file.write(mPSPHcorrection, pathName + "/PSPHcorrection");
 }
 
 //------------------------------------------------------------------------------
@@ -883,17 +779,14 @@ dumpState(FileIO& file, const string& pathName) const {
 //------------------------------------------------------------------------------
 template<typename Dimension>
 void
-SolidSPHHydroBase<Dimension>::
-restoreState(const FileIO& file, const string& pathName) {
+PSPHHydroBase<Dimension>::
+restoreState(const FileIO& file, string pathName) {
  
-  // Ancestor method.
+  // SPH does most of it.
   SPHHydroBase<Dimension>::restoreState(file, pathName);
 
-  file.read(mDdeviatoricStressDt, pathName + "/DdeviatoricStressDt");
-  file.read(mBulkModulus, pathName + "/bulkModulus");
-  file.read(mShearModulus, pathName + "/shearModulus");
-  file.read(mYieldStrength, pathName + "/yieldStrength");
-  file.read(mPlasticStrain0, pathName + "/plasticStrain0");
+  file.read(mPSPHpbar, pathName + "/PSPHpbar");
+  file.read(mPSPHcorrection, pathName + "/PSPHcorrection");
 }
 
 }

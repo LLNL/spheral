@@ -74,23 +74,6 @@ SPHHydroBase<Dimension>::gradhCorrection(const bool val) {
 }
 
 //------------------------------------------------------------------------------
-// Access the flag determining if we're using the PSPH algorithm.
-//------------------------------------------------------------------------------
-template<typename Dimension>
-inline
-bool
-SPHHydroBase<Dimension>::PSPH() const {
-  return mBoolPSPH;
-}
-
-template<typename Dimension>
-inline
-void
-SPHHydroBase<Dimension>::PSPH(const bool val) {
-  mBoolPSPH = val;
-}
-
-//------------------------------------------------------------------------------
 // Access the flag determining if we're using the XSPH algorithm.
 //------------------------------------------------------------------------------
 template<typename Dimension>
@@ -277,23 +260,6 @@ SPHHydroBase<Dimension>::
 omegaGradh() const {
   return mOmegaGradh;
 }
-
-template<typename Dimension>
-inline
-const FieldSpace::FieldList<Dimension, typename Dimension::Scalar>&
-SPHHydroBase<Dimension>::
-PSPHpbar() const {
-  return mPSPHpbar;
-}
-
-template<typename Dimension>
-inline
-const FieldSpace::FieldList<Dimension, typename Dimension::Scalar>&
-SPHHydroBase<Dimension>::
-PSPHcorrection() const {
-  return mPSPHcorrection;
-}
-
 
 template<typename Dimension>
 inline

@@ -41,6 +41,10 @@ commandLine(seed = "lattice",
             gamma = 5.0/3.0,
             mu = 1.0,
 
+	    SVPH = False,
+            CRKSPH = False,
+            PSPH = False,
+            SPH = True,   # This just chooses the H algorithm -- you can use this with CRKSPH for instance.
             Qconstructor = MonaghanGingoldViscosity,
             #Qconstructor = TensorMonaghanGingoldViscosity,
             boolReduceViscosity = False,
@@ -70,7 +74,6 @@ commandLine(seed = "lattice",
             cfl = 0.5,
             useVelocityMagnitudeForDt = False,
             XSPH = False,
-            PSPH = False,
             epsilonTensile = 0.0,
             nTensile = 8,
             filter = 0.0,
@@ -83,9 +86,6 @@ commandLine(seed = "lattice",
             goalTime = 0.6,
             steps = None,
             vizCycle = None,
-	    SVPH = False,
-            CRKSPH = False,
-            SPH = True,   # This just chooses the H algorithm -- you can use this with CRKSPH for instance.
             vizTime = 0.05,
             dt = 0.0001,
             dtMin = 1.0e-5, 
@@ -136,6 +136,11 @@ elif CRKSPH:
     else:
         HydroConstructor = ACRKSPHHydro
     Qconstructor = CRKSPHMonaghanGingoldViscosity
+elif PSPH:
+    if SPH:
+        HydroConstructor = PSPHHydro
+    else:
+        HydroConstructor = APSPHHydro
 else:
     if SPH:
         HydroConstructor = SPHHydro
@@ -148,7 +153,6 @@ dataDir = os.path.join(dataRoot,
                        "basaraShearCorrection=%s_Qlimiter=%s" % (balsaraCorrection, Qlimiter),
                        "nperh=%4.2f" % nPerh,
                        "XSPH=%s" % XSPH,
-                       "PSPH=%s" % PSPH,
                        "densityUpdate=%s" % densityUpdate,
                        "compatibleEnergy=%s" % compatibleEnergy,
                        "Cullen=%s" % boolCullenViscosity,
@@ -308,7 +312,6 @@ else:
                              gradhCorrection = gradhCorrection,
                              densityUpdate = densityUpdate,
                              HUpdate = HUpdate,
-                             PSPH = PSPH,
                              XSPH = XSPH,
                              epsTensile = epsilonTensile,
                              nTensile = nTensile)
