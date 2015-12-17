@@ -1210,7 +1210,8 @@ class GenerateRandomNodesMatchingProfile3d(NodeGeneratorBase):
                  thetaMax = pi,
                  phiMin = 0.0,
                  phiMax = 2.0*pi,
-                 nNodePerh = 2.01):
+                 nNodePerh = 2.01,
+                 m0 = -1.0):
         
         assert n > 0
         assert rmin < rmax
@@ -1248,6 +1249,8 @@ class GenerateRandomNodesMatchingProfile3d(NodeGeneratorBase):
 
         # Now set the nominal mass per node.
         self.m0 = self.totalMass/(4.0/3.0*pi*pow(self.n,3))
+        if m0 > 0:
+            self.m0 = m0
         assert self.m0 > 0.0
         print "Nominal mass per node of %g." % self.m0
 
@@ -1271,7 +1274,8 @@ class GenerateRandomNodesMatchingProfile3d(NodeGeneratorBase):
                              0.0, 0.0, 1.0/hi)
             mshell  = rhoi * 4.0*pi*ri*ri*dr
             nshell  = int(mshell / self.m0)
-            mi      = self.m0 * (mshell/(nshell*self.m0))
+            #print "nshell=%d mshell=%f m0=%f" % (nshell,mshell,self.m0)
+            #mi      = self.m0 * (mshell/(nshell*self.m0))
             
             for n in xrange(nshell):
                 random.seed()
@@ -1280,11 +1284,12 @@ class GenerateRandomNodesMatchingProfile3d(NodeGeneratorBase):
                 w       = random.random()
                 theta   = 2.0*pi*u
                 phi     = acos(2.0*v-1)
-                deltar  = w*(0.45*dr)
+                #deltar  = w*(0.45*dr)
+                deltar  = 0.0
                 self.x.append((ri-deltar)*cos(theta)*sin(phi))
                 self.y.append((ri-deltar)*sin(theta)*sin(phi))
                 self.z.append((ri-deltar)*cos(phi))
-                self.m.append(mi)
+                self.m.append(self.m0)
                 self.H.append(Hi)
                     
             # Decrement to the next radial bin inward.
