@@ -13,6 +13,7 @@
 #include "Field/Field.hh"
 #include "Field/FieldList.hh"
 #include "Kernel/TableKernel.hh"
+#include "Material/EquationOfState.hh"
 #include "Utilities/testBoxIntersection.hh"
 #include "Utilities/safeInv.hh"
 #include "State.hh"
@@ -43,6 +44,7 @@ using FieldSpace::FieldList;
 using KernelSpace::TableKernel;
 using NeighborSpace::Neighbor;
 using NeighborSpace::ConnectivityMap;
+using Material::EquationOfState;
 
 //------------------------------------------------------------------------------
 // Empty constructor.
@@ -1045,6 +1047,27 @@ fluidVolume(FieldList<Dimension, typename Dimension::Scalar>& result) const {
        nodeListItr != fluidNodeListEnd();
        ++nodeListItr, ++nodeListi) {
     (*nodeListItr)->volume(*result[nodeListi]);
+  }
+}
+
+//------------------------------------------------------------------------------
+// Return the fluid gamma (ratio of specific heats).
+//------------------------------------------------------------------------------
+template<typename Dimension>
+void
+DataBase<Dimension>::
+fluidGamma(FieldList<Dimension, typename Dimension::Scalar>& result) const {
+  REQUIRE(valid());
+  this->resizeFluidFieldList(result, 0.0, HydroFieldNames::gamma, false);
+  size_t nodeListi = 0;
+  for (ConstFluidNodeListIterator nodeListItr = fluidNodeListBegin();
+       nodeListItr != fluidNodeListEnd();
+       ++nodeListItr, ++nodeListi) {
+    const EquationOfState<Dimension>& eos = (*nodeListItr)->equationOfState();
+    const Field<Dimension, Scalar>& rho = (*nodeListItr)->massDensity();
+    const Field<Dimension, Scalar>& eps = (*nodeListItr)->specificThermalEnergy();
+    Field<Dimension, Scalar>& gam = **result.fieldForNodeList(**nodeListItr);
+    eos.setGammaField(gam, rho, eps);
   }
 }
 

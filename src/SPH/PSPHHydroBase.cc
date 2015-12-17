@@ -34,6 +34,7 @@
 #include "Hydro/PositionPolicy.hh"
 #include "Hydro/PressurePolicy.hh"
 #include "Hydro/SoundSpeedPolicy.hh"
+#include "Hydro/GammaPolicy.hh"
 #include "Mesh/MeshPolicy.hh"
 #include "Mesh/generateMesh.hh"
 #include "ArtificialViscosity/ArtificialViscosity.hh"
@@ -110,6 +111,7 @@ PSPHHydroBase(const SmoothingScaleBase<Dimension>& smoothingScaleMethod,
                           nTensile,
                           xmin,
                           xmax),
+  mGamma(FieldSpace::Copy),
   mPSPHpbar(FieldSpace::Copy),
   mPSPHcorrection(FieldSpace::Copy) {
 }
@@ -132,8 +134,10 @@ initializeProblemStartup(DataBase<Dimension>& dataBase) {
 
   // SPH does most of it.
   SPHHydroBase<Dimension>::initializeProblemStartup(dataBase);
+  dataBase.fluidGamma(mGamma);
 
   // Create storage for our internal state.
+  mGamma = dataBase.newFluidFieldList(0.0, HydroFieldNames::gamma);
   mPSPHpbar = dataBase.newFluidFieldList(0.0, HydroFieldNames::PSPHpbar);
   mPSPHcorrection = dataBase.newFluidFieldList(0.0, HydroFieldNames::PSPHcorrection);
 }
@@ -151,6 +155,10 @@ registerState(DataBase<Dimension>& dataBase,
 
   // SPH does most of it.
   SPHHydroBase<Dimension>::registerState(dataBase, state);
+
+  // We also require the fluid gamma.
+  PolicyPointer gammaPolicy(new GammaPolicy<Dimension>());
+  state.enroll(mGamma, gammaPolicy);
 
   // Register the PSPH correction terms
   // We deliberately make this non-dynamic here.  These corrections are computed
@@ -232,11 +240,12 @@ evaluateDerivatives(const typename Dimension::Scalar time,
   const FieldList<Dimension, SymTensor> H = state.fields(HydroFieldNames::H, SymTensor::zero);
   const FieldList<Dimension, Scalar> pressure = state.fields(HydroFieldNames::pressure, 0.0);
   const FieldList<Dimension, Scalar> soundSpeed = state.fields(HydroFieldNames::soundSpeed, 0.0);
+  const FieldList<Dimension, Scalar> gamma = state.fields(HydroFieldNames::gamma, 0.0);
   const FieldList<Dimension, Scalar> omega = state.fields(HydroFieldNames::omegaGradh, 0.0);
   const FieldList<Dimension, Scalar> PSPHpbar = state.fields(HydroFieldNames::PSPHpbar, 0.0);
   const FieldList<Dimension, Scalar> PSPHcorrection = state.fields(HydroFieldNames::PSPHcorrection, 0.0);
-  const FieldList<Dimension, Scalar> reducingViscosityMultiplierQ = state.fields(HydroFieldNames::reducingViscosityMultiplierQ, 0.0);
-  const FieldList<Dimension, Scalar> reducingViscosityMultiplierL = state.fields(HydroFieldNames::reducingViscosityMultiplierL, 0.0);
+  // const FieldList<Dimension, Scalar> reducingViscosityMultiplierQ = state.fields(HydroFieldNames::reducingViscosityMultiplierQ, 0.0);
+  // const FieldList<Dimension, Scalar> reducingViscosityMultiplierL = state.fields(HydroFieldNames::reducingViscosityMultiplierL, 0.0);
 
   CHECK(mass.size() == numNodeLists);
   CHECK(position.size() == numNodeLists);
@@ -246,11 +255,12 @@ evaluateDerivatives(const typename Dimension::Scalar time,
   CHECK(H.size() == numNodeLists);
   CHECK(pressure.size() == numNodeLists);
   CHECK(soundSpeed.size() == numNodeLists);
+  CHECK(gamma.size() == numNodeLists);
   CHECK(omega.size() == numNodeLists);
   CHECK(PSPHpbar.size() == numNodeLists);
   CHECK(PSPHcorrection.size() == numNodeLists);
-  CHECK(reducingViscosityMultiplierQ.size() == numNodeLists);
-  CHECK(reducingViscosityMultiplierL.size() == numNodeLists);
+  // CHECK(reducingViscosityMultiplierQ.size() == numNodeLists);
+  // CHECK(reducingViscosityMultiplierL.size() == numNodeLists);
 
   // Derivative FieldLists.
   FieldList<Dimension, Scalar> rhoSum = derivatives.fields(ReplaceFieldList<Dimension, Scalar>::prefix() + HydroFieldNames::massDensity, 0.0);
@@ -344,6 +354,7 @@ evaluateDerivatives(const typename Dimension::Scalar time,
       const Scalar& Pi = pressure(nodeListi, i);
       const SymTensor& Hi = H(nodeListi, i);
       const Scalar& ci = soundSpeed(nodeListi, i);
+      const Scalar& gammai = gamma(nodeListi, i);
       const Scalar& omegai = omega(nodeListi, i);
       const Scalar Hdeti = Hi.Determinant();
       const Scalar safeOmegai = 1.0/max(tiny, omegai);
@@ -409,6 +420,7 @@ evaluateDerivatives(const typename Dimension::Scalar time,
               const Scalar& Pj = pressure(nodeListj, j);
               const SymTensor& Hj = H(nodeListj, j);
               const Scalar& cj = soundSpeed(nodeListj, j);
+              const Scalar& gammaj = gamma(nodeListj, j);
               const Scalar& omegaj = omega(nodeListj, j);
               const Scalar Hdetj = Hj.Determinant();
               const Scalar safeOmegaj = 1.0/max(tiny, omegaj);
@@ -523,9 +535,7 @@ evaluateDerivatives(const typename Dimension::Scalar time,
               //const Scalar Fji=1.0-Fcorrj*safeInv(mi*epsi);
               const Scalar Fij=1.0-Fcorri/max(mj*epsj,tiny);
               const Scalar Fji=1.0-Fcorrj/max(mi*epsi,tiny);
-              //const double gamma=1.4;//NEED TO BE A CLASS VARIABLE
-              const double gamma=5.0/3.0;//NEED TO BE A CLASS VARIABLE
-              const double engCoef=(gamma-1)*(gamma-1)*epsi*epsj;
+              const double engCoef=(gammai-1)*(gammaj-1)*epsi*epsj;
               Vector deltaDvDt = Prhoi*safeOmegai*gradWi + Prhoj*safeOmegaj*gradWj + Qacci + Qaccj;
 
               deltaDvDt = engCoef*(gradWi*Fij/max(Pbari,tiny) + gradWj*Fji/max(Pbarj,tiny)) + Qacci + Qaccj;
@@ -540,7 +550,7 @@ evaluateDerivatives(const typename Dimension::Scalar time,
               //DepsDti += mj*(engCoef*deltaDrhoDti*Fij*safeInv(Pbari) + workQi);
               //DepsDtj += mi*(engCoef*deltaDrhoDtj*Fji*safeInv(Pbarj) + workQj);
 
-#define HOPKINS
+// #define HOPKINS
 #ifdef HOPKINS //ADD ARITIFICIAL CONDUCTIVITY IN HOPKINS 2014A
               const Scalar alph_c = 0.25;//Parameter = 0.25 in Hopkins 2014
               const Scalar Vs = ci+cj-3.0*vij.dot(rij.unitVector());
@@ -724,12 +734,14 @@ applyGhostBoundaries(State<Dimension>& state,
   SPHHydroBase<Dimension>::applyGhostBoundaries(state, derivs);
 
   // Apply boundary conditions to the PSPH corrections.
+  FieldList<Dimension, Scalar> gamma = state.fields(HydroFieldNames::gamma, 0.0);
   FieldList<Dimension, Scalar> PSPHpbar = state.fields(HydroFieldNames::PSPHpbar, 0.0);
   FieldList<Dimension, Scalar> PSPHcorrection = state.fields(HydroFieldNames::PSPHcorrection, 0.0);
 
   for (ConstBoundaryIterator boundaryItr = this->boundaryBegin(); 
        boundaryItr != this->boundaryEnd();
        ++boundaryItr) {
+    (*boundaryItr)->applyFieldListGhostBoundary(gamma);
     (*boundaryItr)->applyFieldListGhostBoundary(PSPHpbar);
     (*boundaryItr)->applyFieldListGhostBoundary(PSPHcorrection);
   }
@@ -748,12 +760,14 @@ enforceBoundaries(State<Dimension>& state,
   SPHHydroBase<Dimension>::enforceBoundaries(state, derivs);
 
   // Enforce boundary conditions on the PSPH corrections.
+  FieldList<Dimension, Scalar> gamma = state.fields(HydroFieldNames::gamma, 0.0);
   FieldList<Dimension, Scalar> PSPHpbar = state.fields(HydroFieldNames::PSPHpbar, 0.0);
   FieldList<Dimension, Scalar> PSPHcorrection = state.fields(HydroFieldNames::PSPHcorrection, 0.0);
 
   for (ConstBoundaryIterator boundaryItr = this->boundaryBegin(); 
        boundaryItr != this->boundaryEnd();
        ++boundaryItr) {
+    (*boundaryItr)->enforceFieldListBoundary(gamma);
     (*boundaryItr)->enforceFieldListBoundary(PSPHpbar);
     (*boundaryItr)->enforceFieldListBoundary(PSPHcorrection);
   }
@@ -770,6 +784,7 @@ dumpState(FileIO& file, string pathName) const {
   // SPH does most of it.
   SPHHydroBase<Dimension>::dumpState(file, pathName);
 
+  file.write(mGamma, pathName + "/gamma");
   file.write(mPSPHpbar, pathName + "/PSPHpbar");
   file.write(mPSPHcorrection, pathName + "/PSPHcorrection");
 }
@@ -785,6 +800,7 @@ restoreState(const FileIO& file, string pathName) {
   // SPH does most of it.
   SPHHydroBase<Dimension>::restoreState(file, pathName);
 
+  file.read(mGamma, pathName + "/gamma");
   file.read(mPSPHpbar, pathName + "/PSPHpbar");
   file.read(mPSPHcorrection, pathName + "/PSPHcorrection");
 }

@@ -117,6 +117,7 @@ public:
                          StateDerivatives<Dimension>& derivs);
 
   // The state field lists we're maintaining.
+  const FieldSpace::FieldList<Dimension, Scalar>&    gamma() const;
   const FieldSpace::FieldList<Dimension, Scalar>&    PSPHpbar() const;
   const FieldSpace::FieldList<Dimension, Scalar>&    PSPHcorrection() const;
 
@@ -130,6 +131,7 @@ public:
 protected:
   //---------------------------  Protected Interface ---------------------------//
   //PSPH Fields
+  FieldSpace::FieldList<Dimension, Scalar>    mGamma;
   FieldSpace::FieldList<Dimension, Scalar>    mPSPHpbar;
   FieldSpace::FieldList<Dimension, Scalar>    mPSPHcorrection;
 
