@@ -102,7 +102,7 @@ commandLine(KernelConstructor = BSplineKernel,
             volumeType = CRKSumVolume,
             densityUpdate = RigorousSumDensity, # VolumeScaledDensity,
             compatibleEnergy = True,
-            gradhCorrection = False,
+            gradhCorrection = True,
             domainIndependent = True,
             cullGhostNodes = True,
             
