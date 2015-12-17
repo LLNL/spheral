@@ -16,6 +16,7 @@ SRCTARGETS = \
 INSTSRCTARGETS = \
 	$(srcdir)/PressurePolicyInst.cc.py \
 	$(srcdir)/SoundSpeedPolicyInst.cc.py \
+	$(srcdir)/GammaPolicyInst.cc.py \
 	$(srcdir)/SpecificThermalEnergyPolicyInst.cc.py \
 	$(srcdir)/NonSymmetricSpecificThermalEnergyPolicyInst.cc.py \
 	$(srcdir)/PositionPolicyInst.cc.py \
