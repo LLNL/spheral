@@ -233,5 +233,89 @@ FileIO::fileOpen() const {
   return mFileOpen;
 }
 
-} 
+#ifndef CXXONLY
+//------------------------------------------------------------------------------
+// Write out a python object by pickling it.
+//------------------------------------------------------------------------------
+void
+FileIO::
+writeObject(PyObject* thing, PyObject* pathObj) {
+
+  // Extract the path.
+  const string path(PyString_AsString(pathObj));
+
+  // Pickle our object.
+  PyObject* thingArgs = Py_BuildValue("(O)", thing);
+  PyObject* pickledThing = PyObject_CallObject(mPickleDumps, thingArgs);
+  if (pickledThing == NULL) {
+    PyErr_SetString(PyExc_ValueError, "Unable to pickle object");
+  }
+
+  // Extract the string representation of the object.
+  CHECK(PyString_Check(pickledThing));
+  string result(PyString_AsString(pickledThing));
+
+  // Replace the \n to <<n>> to survive writing to the file.
+  boost::replace_all(result, "\n", "<<n>>");
+  CHECK(result.find("\n") == string::npos);
+
+  // Now we can finally write the sucker out.
+  this->write(result, string(path));
+
+  // Deallocate stuff.
+  Py_DECREF(thingArgs);
+  Py_DECREF(pickledThing);
+}
+
+//------------------------------------------------------------------------------
+// Read in and decode a pickled python object.
+//------------------------------------------------------------------------------
+PyObject*
+FileIO::
+readObject(PyObject* pathObj) const {
+
+  // Extract the path.
+  const string path(PyString_AsString(pathObj));
+
+  // Read in the pickled string representation.
+  string encodedThing;
+  this->read(encodedThing, path);
+
+  // Convert the \n's back to the real thing.
+  boost::replace_all(encodedThing, "<<n>>", "\n");
+  CHECK(encodedThing.find("<<n>>") == string::npos);
+
+  // Turn the string into a python object.
+  const char* thpt = encodedThing.c_str();
+  PyObject* pyEncodedThing = Py_BuildValue("s", thpt);
+
+  // Unpickle our object.
+  PyObject* argsToPickle = Py_BuildValue("(O)", pyEncodedThing);
+  PyObject* result = PyEval_CallObject(mPickleLoads, argsToPickle);
+  if (result == NULL) {
+    PyErr_SetString(PyExc_ValueError, "Unable to unpickle string");
+    return NULL;
+  }
+
+//   PyObject* result = PyObject_CallMethod(mPickleMod, "loads", "s", thpt);
+
+//   cerr << "      result is ";
+//   PyObject_Print(result, stderr, 0);
+//   cerr << "   from   ";
+//   cerr << "           "
+//        << encodedThing 
+//        << endl;
+
+  // Deallocate stuff.
+  Py_DECREF(pyEncodedThing);
+  Py_DECREF(argsToPickle);
+
+  // We're done.
+  Py_INCREF(result);
+  return result;
+}
+#endif
+
+}
+
 }

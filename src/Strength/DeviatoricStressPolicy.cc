@@ -23,6 +23,18 @@ using NodeSpace::NodeList;
 using KernelSpace::TableKernel;
 
 //------------------------------------------------------------------------------
+// Helper method to compute the J2 constant from the deviatoric stress.
+//------------------------------------------------------------------------------
+namespace {
+template<typename Dimension>
+inline
+double
+computeJ2(const typename Dimension::SymTensor& x) {
+  return 0.5*x.doubledot(x);
+}
+}
+
+//------------------------------------------------------------------------------
 // Constructors.
 //------------------------------------------------------------------------------
 template<typename Dimension>
@@ -51,23 +63,60 @@ update(const KeyType& key,
        const double multiplier,
        const double t,
        const double dt) {
-  KeyType fieldKey, nodeListKey;
-  StateBase<Dimension>::splitFieldKey(key, fieldKey, nodeListKey);
-  REQUIRE(fieldKey == SolidFieldNames::deviatoricStress and
-          nodeListKey == UpdatePolicyBase<Dimension>::wildcard());
-  FieldList<Dimension, SymTensor> S = state.fields(fieldKey, SymTensor::zero);
+
+  // Get the state we're advancing.
+  FieldList<Dimension, SymTensor> S = state.fields(SolidFieldNames::deviatoricStress, SymTensor::zero);
+  // FieldList<Dimension, Scalar> ps = state.fields(SolidFieldNames::plasticStrain, 0.0);
+  // FieldList<Dimension, Scalar> psr = derivs.fields(SolidFieldNames::plasticStrainRate, 0.0);
+  // FieldList<Dimension, Scalar> eps = state.fields(HydroFieldNames::specificThermalEnergy, 0.0);
+  // const FieldList<Dimension, Scalar> rho = state.fields(HydroFieldNames::massDensity, 0.0);
+  // const FieldList<Dimension, Scalar> P = state.fields(HydroFieldNames::pressure, 0.0);
+  // const FieldList<Dimension, Scalar> G = state.fields(SolidFieldNames::shearModulus, 0.0);
+  // const FieldList<Dimension, Scalar> Y = state.fields(SolidFieldNames::yieldStrength, 0.0);
+  // const FieldList<Dimension, Scalar> ps0 = state.fields(SolidFieldNames::plasticStrain + "0", 0.0);
+  // const FieldList<Dimension, Tensor> DvDx = derivs.fields(HydroFieldNames::internalVelocityGradient, Tensor::zero);
+  const FieldList<Dimension, SymTensor> DSDt = derivs.fields(IncrementFieldList<Dimension, SymTensor>::prefix() + 
+                                                             SolidFieldNames::deviatoricStress, SymTensor::zero);
+
+  // Iterate over the internal nodes.
   const unsigned numFields = S.numFields();
-
-  // Get the derivative.
-  KeyType incrementKey = this->prefix() + fieldKey;
-  const FieldSpace::FieldList<Dimension, SymTensor> dS = derivs.fields(incrementKey, SymTensor::zero);
-  CHECK(dS.size() == numFields);
-
-  // Loop over the internal values of the field.
   for (unsigned k = 0; k != numFields; ++k) {
     const unsigned n = S[k]->numInternalElements();
     for (unsigned i = 0; i != n; ++i) {
-      S(k,i) += multiplier*(dS(k,i));
+
+      const SymTensor Sold = S(k,i);                        // Starting deviatoric stress.
+      const SymTensor S0 = Sold + multiplier*(DSDt(k,i));    // Elastic prediction for the new deviatoric stress.
+
+      // // Equivalent stress deviator.
+      // const double J2 = computeJ2<Dimension>(S0);
+      // CHECK(J2 >= 0.0);
+
+      // // Radial return correction.
+      // const double f = max(1.0, 3.0*J2*safeInvVar(FastMath::square(0.1*Y(k,i))));
+      // CHECK(f >= 1.0);
+
+      // // Check for yielding.
+      // if (f > 1.0) {
+
+      //   const SymTensor deformation = DvDx(k,i).Symmetric();
+      //   const SymTensor linearDeformation = deformation - (deformation.Trace()/Dimension::nDim)*SymTensor::one;
+      //   const Tensor spin = DvDx(k,i).SkewSymmetric();
+      //   const SymTensor S1 = S0/sqrt(f);                                                       // New deviatoric stress with plastic yielding.
+      //   const Tensor R = (spin*(Sold + S1)).SkewSymmetric();
+      //   const Tensor deltaPStensor = linearDeformation*multiplier - 0.5*(S1 - Sold + R*multiplier)/G(k,i);
+      //   const double deltaEPS = sqrt(2.0/3.0*deltaPStensor.doubledot(deltaPStensor));
+      //   const double epsdot = sqrt(2.0/3.0*linearDeformation.doubledot(linearDeformation));
+      //   const double plasticWork = Sold.doubledot(deltaPStensor);
+      //   ps(k,i) += deltaEPS;
+      //   psr(k,i) = (ps(k,i) - ps0(k,i))*safeInv(dt);
+      //   // eps(k,i) += plasticWork/rho(k,i); // Should add plastic work to intenrnal energy?
+
+      // } else {
+
+        // Purely elastic flow.
+        S(k,i) = S0;
+
+      // }
     }
   }
 

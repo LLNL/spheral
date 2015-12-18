@@ -187,11 +187,29 @@ applyGhostBoundary(Field<Dimension, typename Dimension::ThirdRankTensor>& field)
   CHECK(this->controlNodes(nodeList).size() == this->ghostNodes(nodeList).size());
   vector<int>::const_iterator controlItr = this->controlBegin(nodeList);
   vector<int>::const_iterator ghostItr = this->ghostBegin(nodeList);
+  const Tensor T = this->reflectOperator();
+  const Tensor T2 = innerProduct<Dimension>(T.Transpose(), T.Transpose());
+  ThirdRankTensor val;
   for (; controlItr < this->controlEnd(nodeList); ++controlItr, ++ghostItr) {
     CHECK(ghostItr < this->ghostEnd(nodeList));
     CHECK(*controlItr >= 0 && *controlItr < nodeList.numNodes());
     CHECK(*ghostItr >= nodeList.firstGhostNode() && *ghostItr < nodeList.numNodes());
-    field(*ghostItr) = innerProduct<Dimension>(reflectOperator(), innerProduct<Dimension>(field(*controlItr), reflectOperator()));
+    val = ThirdRankTensor::zero;
+    const ThirdRankTensor& fc = field(*controlItr);
+    for (unsigned i = 0; i != Dimension::nDim; ++i) {
+      for (unsigned j = 0; j != Dimension::nDim; ++j) {
+        for (unsigned k = 0; k != Dimension::nDim; ++k) {
+          for (unsigned q = 0; q != Dimension::nDim; ++q) {
+            for (unsigned r = 0; r != Dimension::nDim; ++r) {
+              for (unsigned s = 0; s != Dimension::nDim; ++s) {
+                val(i,j,k) += T(i,q)*T(j,r)*T(k,s)*fc(q,r,s);
+              }
+            }
+          }
+        }
+      }
+    }
+    field(*ghostItr) = val; //innerProduct<Dimension>(T, innerProduct<Dimension>(field(*controlItr), T2));
   }
 }
 
@@ -290,13 +308,30 @@ void
 ReflectingBoundary<Dimension>::
 enforceBoundary(Field<Dimension, typename Dimension::ThirdRankTensor>& field) const {
   REQUIRE(valid());
-
+  const Tensor T = this->reflectOperator();
+  const Tensor T2 = innerProduct<Dimension>(T.Transpose(), T.Transpose());
   const NodeList<Dimension>& nodeList = field.nodeList();
+  ThirdRankTensor val;
   for (vector<int>::const_iterator itr = this->violationBegin(nodeList);
        itr < this->violationEnd(nodeList); 
        ++itr) {
     CHECK(*itr >= 0 && *itr < nodeList.numInternalNodes());
-    field(*itr) = innerProduct<Dimension>(reflectOperator(), innerProduct<Dimension>(field(*itr), reflectOperator()));
+    val = ThirdRankTensor::zero;
+    const ThirdRankTensor& fc = field(*itr);
+    for (unsigned i = 0; i != Dimension::nDim; ++i) {
+      for (unsigned j = 0; j != Dimension::nDim; ++j) {
+        for (unsigned k = 0; k != Dimension::nDim; ++k) {
+          for (unsigned q = 0; q != Dimension::nDim; ++q) {
+            for (unsigned r = 0; r != Dimension::nDim; ++r) {
+              for (unsigned s = 0; s != Dimension::nDim; ++s) {
+                val(i,j,k) += T(i,q)*T(j,r)*T(k,s)*fc(q,r,s);
+              }
+            }
+          }
+        }
+      }
+    }
+    field(*itr) = val; // innerProduct<Dimension>(T, innerProduct<Dimension>(field(*itr), T2));
   }
 }
 
@@ -398,13 +433,31 @@ ReflectingBoundary<Dimension>::
 enforceBoundary(vector<typename Dimension::ThirdRankTensor>& faceField,
                 const Mesh<Dimension>& mesh) const {
   REQUIRE(faceField.size() == mesh.numFaces());
+  const Tensor T = this->reflectOperator();
+  const Tensor T2 = innerProduct<Dimension>(T.Transpose(), T.Transpose());
   const GeomPlane<Dimension>& plane = this->enterPlane();
   const vector<unsigned> faceIDs = this->facesOnPlane(mesh, plane, 1.0e-6);
+  ThirdRankTensor val;
   for (vector<unsigned>::const_iterator itr = faceIDs.begin();
        itr != faceIDs.end();
        ++itr) {
     CHECK(*itr < faceField.size());
-    faceField[*itr] += innerProduct<Dimension>(mReflectOperator, innerProduct<Dimension>(faceField[*itr], mReflectOperator));
+    val = ThirdRankTensor::zero;
+    const ThirdRankTensor& fc = faceField[*itr];
+    for (unsigned i = 0; i != Dimension::nDim; ++i) {
+      for (unsigned j = 0; j != Dimension::nDim; ++j) {
+        for (unsigned k = 0; k != Dimension::nDim; ++k) {
+          for (unsigned q = 0; q != Dimension::nDim; ++q) {
+            for (unsigned r = 0; r != Dimension::nDim; ++r) {
+              for (unsigned s = 0; s != Dimension::nDim; ++s) {
+                val(i,j,k) += T(i,q)*T(j,r)*T(k,s)*fc(q,r,s);
+              }
+            }
+          }
+        }
+      }
+    }
+    faceField[*itr] += val; // += innerProduct<Dimension>(T, innerProduct<Dimension>(faceField[*itr], T2));
   }
 }
 

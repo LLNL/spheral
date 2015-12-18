@@ -18,8 +18,8 @@ namespace FractalSpace
     int FFTNodes;
     int HypreRank;
     int HypreNodes;
-    int RandomRank;
-    int RandomNodes;
+//     int RandomRank;
+//     int RandomNodes;
     int MPI_SWITCH;
     int MPI_MAX_COMMS;
     long int number_particles_total;
@@ -43,15 +43,15 @@ namespace FractalSpace
     MPI_Comm FractalWorld;
     MPI_Comm FFTWorld;
     MPI_Comm HypreWorld;
-    MPI_Comm RandomWorld;
+//     MPI_Comm RandomWorld;
     MPI_Group FractalGroup;
     MPI_Group FFTGroup;
     MPI_Group HypreGroup;
-    MPI_Group RandomGroup;
+//     MPI_Group RandomGroup;
     bool IAmPeriodic;
     bool IAmAnFFTNode;
     bool IAmAHypreNode;
-    bool IAmARandomNode;
+//     bool IAmARandomNode;
     vector <int>Franks;
     vector <bool>ItIsAnFFTNode;
     vector <int>Hranks;
@@ -93,6 +93,7 @@ namespace FractalSpace
     {
       WallTime=Clock();
       cerr << " Empty Mess " << "\n";
+//       cerr << " HypreWorldEMPTY " << FractalRank << " " << &FractalWorld << endl;
     }
     Mess(const bool& MR,const int& GR,const bool& PR,const int& NP,
 	 int& FR0,int& FR1,int& FR2,const int& FN,MPI_Comm& FW):
@@ -143,6 +144,7 @@ namespace FractalSpace
 	  number_particles_total=NP;
 	  length_x=grid_length;
 	}
+//       cerr << " HypreWorld0A " << FractalRank << " " << &FractalWorld << endl;
       //      if(FractalRank == 0)
       //	cerr << " made a mess " << FractalRank << " " << FractalNodes << " " << length_x << " " << start_x << " " << total_memory << "\n";
     }
@@ -187,6 +189,7 @@ namespace FractalSpace
 	}
       //      if(FractalRank == 0)
       //	cerr << " made a mess " << FractalRank << " " << FractalNodes << " " << length_x << " " << start_x << " " << total_memory << "\n";
+//       cerr << " HypreWorld0B " << FractalRank << " " << &FractalWorld << endl;
     }
     ~Mess()
     {
@@ -254,6 +257,7 @@ namespace FractalSpace
 					  vector < vector <int> >& dataI_out,vector <int>& dataI_in,int& how_manyI,
 					  vector < vector <double> >& dataR_out,vector <double>& dataR_in,int& how_manyR);
     void MPI_MYTest(int which,int test) const;
+    void Which_Nodes(int count,vector <int>& counts,vector <bool>& YesNo,int ROOT,MPI_Comm& World);
     void my_AllgatherI(vector <int>& paramsend,vector <int>& paramrecv,const int& nsend) const;
     void my_AllgatherI(vector <long>& paramsend,vector <long>& paramrecv,const int& nsend) const;
     void my_AllgatherR(vector <double>& paramsend,vector <double>& paramrecv,const int& nsend) const;
@@ -279,9 +283,11 @@ namespace FractalSpace
     void Send_LONG_INT_from_ROOT(vector <long int>& numbers,const int& how_long,const int& ROOT) const;
     void Send_DOUBLE_from_ROOT(vector <double>& numbers,const int& how_long,const int& ROOT) const;
     void Full_Stop() const;
-    void Full_Stop_Do_Not_Argue() const;
     void Full_Stop(MPI_Comm& World) const;
+    void Full_Stop_Do_Not_Argue() const;
     void Full_Stop_Do_Not_Argue(MPI_Comm& World) const;
+    void Fake_Stop_Do_Not_Argue() const;
+    void Fake_Stop_Do_Not_Argue(MPI_Comm& World) const;
     void zeroR();
     void zeroR(const double& grail);
     void zeroRS();
@@ -292,7 +298,7 @@ namespace FractalSpace
     void HypreGroupFree();
     void HypreGroups3Free();
     void createFractalWorld(MPI_Comm& World,vector <int>& dims);
-    void make_Random_Group();
+//     void make_Random_Group();
   };
 }
 #endif

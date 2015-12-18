@@ -1,8 +1,5 @@
-#ATS:test(SELF, "--CRKSPH=True --nx1=256 --nx2=256 --ny1=128 --ny2=128 --cfl=0.25 --Cl=1.0 --Cq=1.0 --clearDirectories=True --filter=0 --nPerh=1.51 --serialDump=True", label="KH CRK, nPerh=1.5", np=1)
-#ATS:test(SELF, "--CRKSPH=True --nx1=256 --nx2=256 --ny1=128 --ny2=128 --cfl=0.25 --Cl=1.0 --Cq=1.0 --clearDirectories=True --filter=0 --nPerh=2.01 --serialDump=True", label="KH CRK, nPerh=2.0", np=1)
-#ATS:test(SELF, "--CRKSPH=False --nx1=256 --nx2=256 --ny1=128 --ny2=128 --cfl=0.25 --Cl=1.0 --Cq=1.0 --clearDirectories=True --filter=0 --nPerh=1.51 --serialDump=True", label="KH Spheral, nPerh=1.5", np=1)
-#ATS:test(SELF, "--CRKSPH=False --nx1=256 --nx2=256 --ny1=128 --ny2=128 --cfl=0.25 --Cl=0.0 --Cq=0.0 --clearDirectories=True --filter=0 --nPerh=1.51 --serialDump=True", label="KH Spheral-NoQ, nPerh=1.5", np=1)
-#ATS:test(SELF, "--CRKSPH=False --nx1=256 --nx2=256 --ny1=128 --ny2=128 --cfl=0.25 --Cl=0.0 --Cq=0.0 --clearDirectories=True --filter=0 --nPerh=1.51  --serialDump=True --compatibleEnergy=False", label="KH TSPH-NoQ, nPerh=1.5", np=1)
+#ATS:test(SELF, "--CRKSPH=True --nx1=256 --nx2=256 --ny1=128 --ny2=128 --cfl=0.25 --Cl=1.0 --Cq=1.0 --clearDirectories=True --KernelConstructor NBSplineKernel --filter=0 --nPerh=1.51 --graphMixing True --mixFile KH_CRK_256x256.gnu --serialDump=False", label="KH CRK 256^2, nPerh=1.5", np=10)
+#ATS:test(SELF, "--CRKSPH=True --nx1=512 --nx2=512 --ny1=256 --ny2=256 --cfl=0.25 --Cl=1.0 --Cq=1.0 --clearDirectories=True --KernelConstructor NBSplineKernel --filter=0 --nPerh=1.51 --graphMixing True --mixFile KH_CRK_512x512.gnu --serialDump=False", label="KH CRK 512^2, nPerh=1.5", np=70)
 
 #-------------------------------------------------------------------------------
 # This is the basic Kelvin-Helmholtz problem as discussed in
@@ -26,10 +23,10 @@ title("Kelvin-Helmholtz test problem in 2D")
 #-------------------------------------------------------------------------------
 # Generic problem parameters
 #-------------------------------------------------------------------------------
-commandLine(nx1 = 100,
-            ny1 = 50,
-            nx2 = 100,
-            ny2 = 50,
+commandLine(nx1 = 256,
+            ny1 = 128,
+            nx2 = 256,
+            ny2 = 128,
             
             rho1 = 1.0,
             rho2 = 2.0,
@@ -57,6 +54,9 @@ commandLine(nx1 = 100,
             SPH = True,   # This just chooses the H algorithm -- you can use this with CRKSPH for instance.
             filter = 0.0,   # CRKSPH filtering
             Qconstructor = MonaghanGingoldViscosity,
+            KernelConstructor = BSplineKernel,
+            order = 5,
+            correctionOrder = LinearOrder,
             #Qconstructor = TensorMonaghanGingoldViscosity,
             linearConsistent = False,
             fcentroidal = 0.0,
@@ -66,6 +66,14 @@ commandLine(nx1 = 100,
             aMin = 0.1,
             aMax = 2.0,
             Qhmult = 1.0,
+            boolCullenViscosity = False,
+            alphMax = 2.0,
+            alphMin = 0.02,
+            betaC = 0.7,
+            betaD = 0.05,
+            betaE = 1.0,
+            fKern = 1.0/3.0,
+            boolHopkinsCorrection = True,
             Cl = 1.0, 
             Cq = 1.0,
             linearInExpansion = False,
@@ -78,6 +86,7 @@ commandLine(nx1 = 100,
             cfl = 0.5,
             useVelocityMagnitudeForDt = False,
             XSPH = False,
+            PSPH = False,
             epsilonTensile = 0.0,
             nTensile = 8,
 
@@ -111,12 +120,16 @@ commandLine(nx1 = 100,
             dataDir = "dumps-KelvinHelmholtz-2d_McNally",
             outputFile = "None",
             comparisonFile = "None",
+            graphMixing = False,
+            mixInterval = 0.02,
+            mixFile = "MixingModeAmp.gnu",
             
             serialDump = False, #whether to dump a serial ascii file at the end for viz
             
             bArtificialConduction = False,
             arCondAlpha = 0.5,
             )
+assert not(boolReduceViscosity and boolCullenViscosity)
 
 assert numNodeLists in (1, 2)
 
@@ -144,8 +157,10 @@ dataDir = os.path.join(dataDir,
                        "vxboost=%g-vyboost=%g" % (vxboost, vyboost),
                        str(HydroConstructor).split("'")[1].split(".")[-1],
                        "densityUpdate=%s" % (densityUpdate),
+                       "correctionOrder=%s" % (correctionOrder),
                        "compatibleEnergy=%s" % (compatibleEnergy),
-                       "XSPH=%s" % XSPH,
+                       "PSPH=%s" % (PSPH),
+                       "Cullen=%s" % (boolCullenViscosity),
                        "filter=%s" % filter,
                        "%s-Cl=%g-Cq=%g" % (str(Qconstructor).split("'")[1].split(".")[-1], Cl, Cq),
                        "%ix%i" % (nx1, ny1 + ny2),
@@ -182,8 +197,12 @@ eos = GammaLawGasMKS(gamma, mu)
 #-------------------------------------------------------------------------------
 # Interpolation kernels.
 #-------------------------------------------------------------------------------
-WT = TableKernel(BSplineKernel(), 1000)
-WTPi = TableKernel(BSplineKernel(), 1000, Qhmult)
+if KernelConstructor==NBSplineKernel:
+    Wbase = NBSplineKernel(order)
+else:
+    Wbase = KernelConstructor()
+WT = TableKernel(Wbase, 1000)
+WTPi = WT
 output("WT")
 output("WTPi")
 kernelExtent = WT.kernelExtent
@@ -195,10 +214,12 @@ nodes1 = makeFluidNodeList("High density gas", eos,
                            hmin = hmin,
                            hmax = hmax,
                            hminratio = hminratio,
+                           kernelExtent = kernelExtent,
                            nPerh = nPerh)
 nodes2 = makeFluidNodeList("Low density gas", eos,
                            hmin = hmin,
                            hmax = hmax,
+                           kernelExtent = kernelExtent,
                            hminratio = hminratio,
                            nPerh = nPerh)
 nodeSet = [nodes1, nodes2]
@@ -344,7 +365,8 @@ output("q.quadraticInExpansion")
 # Construct the hydro physics object.
 #-------------------------------------------------------------------------------
 if SVPH:
-    hydro = HydroConstructor(WT, q,
+    hydro = HydroConstructor(W = WT, 
+                             Q = q,
                              cfl = cfl,
                              useVelocityMagnitudeForDt = useVelocityMagnitudeForDt,
                              compatibleEnergyEvolution = compatibleEnergy,
@@ -360,21 +382,26 @@ if SVPH:
                              # xmin = Vector(x0 - 0.5*(x2 - x0), y0 - 0.5*(y2 - y0)),
                              # xmax = Vector(x2 + 0.5*(x2 - x0), y2 + 0.5*(y2 - y0)))
 elif CRKSPH:
-    hydro = HydroConstructor(WT, WTPi, q,
+    Wf = NBSplineKernel(9)
+    hydro = HydroConstructor(W = WT, 
+                             WPi = WTPi, 
+                             Q = q,
                              filter = filter,
                              cfl = cfl,
                              useVelocityMagnitudeForDt = useVelocityMagnitudeForDt,
                              compatibleEnergyEvolution = compatibleEnergy,
                              XSPH = XSPH,
+                             correctionOrder = correctionOrder,
                              densityUpdate = densityUpdate,
                              HUpdate = HUpdate)
 else:
-    hydro = HydroConstructor(WT,
-                             WTPi,
-                             q,
+    hydro = HydroConstructor(W = WT,
+                             WPi = WTPi,
+                             Q = q,
                              cfl = cfl,
                              useVelocityMagnitudeForDt = useVelocityMagnitudeForDt,
                              compatibleEnergyEvolution = compatibleEnergy,
+                             PSPH = PSPH,
                              gradhCorrection = gradhCorrection,
                              XSPH = XSPH,
                              densityUpdate = densityUpdate,
@@ -397,8 +424,12 @@ packages = [hydro]
 
 if boolReduceViscosity:
     evolveReducingViscosityMultiplier = MorrisMonaghanReducingViscosity(q,nh,aMin,aMax)
-    
     packages.append(evolveReducingViscosityMultiplier)
+elif boolCullenViscosity:
+    evolveCullenViscosityMultiplier = CullenDehnenViscosity(q,WTPi,alphMax,alphMin,betaC,betaD,betaE,fKern,boolHopkinsCorrection)
+    packages.append(evolveCullenViscosityMultiplier)
+
+    
 
 #-------------------------------------------------------------------------------
 # Construct the Artificial Conduction physics object.
@@ -477,6 +508,47 @@ control = SpheralController(integrator, WT,
                             vizTime = vizTime,
                             SPH = SPH)
 output("control")
+
+#-------------------------------------------------------------------------------
+# Add a method for measuring the mixing scale.
+#-------------------------------------------------------------------------------
+def mixingScale(cycle, t, dt):
+    si = []
+    ci = []
+    di = []
+    ke = []
+    for nodeL in nodeSet:
+     xprof = mpi.reduce([x.x for x in nodeL.positions().internalValues()], mpi.SUM)
+     yprof = mpi.reduce([x.y for x in nodeL.positions().internalValues()], mpi.SUM)
+     vely = mpi.reduce([v.y for v in nodeL.velocity().internalValues()], mpi.SUM)
+     hprof = mpi.reduce([1.0/sqrt(H.Determinant()) for H in nodeL.Hfield().internalValues()], mpi.SUM)
+     rhoprof = mpi.reduce(nodes.massDensity().internalValues(), mpi.SUM)
+     if mpi.rank == 0:
+      for j in xrange (len(xprof)):
+        ke.append(0.5*rhoprof[j]*vely[j]*vely[j])
+        if yprof[j] < 0.5:
+          si.append(vely[j]*hprof[j]*hprof[j]*sin(4*pi*xprof[j])*exp(-4.0*pi*abs(yprof[j]-0.25)))
+          ci.append(vely[j]*hprof[j]*hprof[j]*cos(4*pi*xprof[j])*exp(-4.0*pi*abs(yprof[j]-0.25)))
+          di.append(hprof[j]*hprof[j]*exp(-4.0*pi*abs(yprof[j]-0.25)))
+        else:
+          si.append(vely[j]*hprof[j]*hprof[j]*sin(4*pi*xprof[j])*exp(-4.0*pi*abs((1.0-yprof[j])-0.25)))
+          ci.append(vely[j]*hprof[j]*hprof[j]*cos(4*pi*xprof[j])*exp(-4.0*pi*abs((1.0-yprof[j])-0.25)))
+          di.append(hprof[j]*hprof[j]*exp(-4.0*pi*abs((1.0-yprof[j])-0.25)))
+    if mpi.rank == 0:
+      S=sum(si)
+      C=sum(ci)
+      D=sum(di)
+      M=sqrt((S/D)*(S/D)+(C/D)*(C/D))*2.0
+      KE = max(ke)
+      print "At time t = %s, Mixing Amp M = %s \n" % (t,M)
+      with open(mixFile, "a") as myfile:
+        myfile.write("%s\t %s\t %s\n" % (t, M, KE))
+
+if graphMixing:
+    control.appendPeriodicTimeWork(mixingScale, mixInterval)
+    myfile = open(mixFile, "w")
+    myfile.write("# time           mixamp                     KEMax\n")
+    myfile.close()
 
 #-------------------------------------------------------------------------------
 # Advance to the end time.

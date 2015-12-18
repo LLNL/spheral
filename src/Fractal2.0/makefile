@@ -1,9 +1,8 @@
 classes = fractal_memory.hh classes.hh point_class.hh group_class.hh fractal_class.hh misc_class.hh particle_class.hh mess.hh file_class.hh hyphest.hh libs.hh headers.hh classes.hh
 fopt1 = -pedantic -O3 
 Wopt1 = -Wunused
-fftopt1 = 
 gprof = 
-debug = -g
+debug = 
 verbose = -v
 debug= 
 verbose = 
@@ -11,23 +10,34 @@ STD = -std=c++0x
 dir   = execs/
 #
 system = intel
-manynodes = long
+vers = 9
 #
 compiler = mpiicpc
-PREFIXH = /g/g90/jensv/cplus/hypre-2.9.0b/src/hypre/intel-global
 PREFIXF = /g/g90/jensv/cplus/fftw-3.3.3/install-intel
+PREFIXH = /g/g90/jensv/cplus/hypre-2.9.0b/src/hypre/intel-global
+#
+ifeq ($(debug),d)
+	fopt1 = -g -pedantic -O0
+endif
+#
+ifeq ($(vers),10)
+	PREFIXH = /g/g90/jensv/cplus/HYPREINTEL101/hypre-2.10.1/src/hypre
+endif
 #
 ifeq ($(system),ibmgnu)
 	compiler = mpicxx
 	PREFIXF = /g/g90/jensv/cplus/fftw-3.3.3/install-ibmgnu
 	PREFIXH = /g/g90/jensv/cplus/hypreibmgnu/hypre-2.9.0b/src/hypre/noglobal
+	ifeq ($(vers),10)
+		PREFIXH = /g/g90/jensv/cplus/HYPREIBM101/hypre-2.10.1/src/hypre
+	endif
 endif
 Loptfftw = -L$(PREFIXF)/lib
 head_dir_fftw = $(PREFIXF)/include
 Lopthypre = -L$(PREFIXH)/lib
 head_dir_hypre = $(PREFIXH)/include
 #
-compile = $(compiler) -I $(head_dir_fftw) -I $(head_dir_hypre) $(STD) $(verbose) $(debug) $(fopt1) $(Wopt1) $(gprof)
+compile = $(compiler) -I $(head_dir_fftw) -I $(head_dir_hypre) $(STD) $(verbose) $(fopt1) $(Wopt1) $(gprof)
 #
 parameter_per_file = fractal_memory_parameters_cosmo
 fractal_galaxy_run_o=fractal_galaxy.o
@@ -438,6 +448,9 @@ shrink_cube.o :	shrink_cube.cc $(classes)
 sor_solver.o :	sor_solver.cc $(classes)
 	$(compile) -c sor_solver.cc
 #
+sor_2.o :	sor_2.cc $(classes)
+	$(compile) -c sor_2.cc
+#
 sort_3.o :	sort_3.cc $(classes)
 	$(compile) -c sort_3.cc
 #
@@ -452,9 +465,6 @@ slices_to_potfB.o :	slices_to_potfB.cc $(classes)
 #
 slices_to_pot_init.o :	slices_to_pot_init.cc $(classes)
 	$(compile) -c slices_to_pot_init.cc
-#
-sor_2.o :	sor_2.cc $(classes)
-	$(compile) -c sor_2.cc
 #
 split_nodes.o :	split_nodes.cc $(classes)
 	$(compile) -c split_nodes.cc
@@ -616,8 +626,6 @@ power_spectrum.o \
 really_clear.o \
 remove_pseudo_particles.o \
 shrink_cube.o \
-sor_solver.o \
-sor_2.o \
 sort3_list.o \
 split_nodes.o \
 split_particle.o \

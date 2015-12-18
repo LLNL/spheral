@@ -7,10 +7,8 @@
 #include "CRKSPH/SolidCRKSPHHydroBase.hh"
 #include "CRKSPH/computeCRKSPHSumMassDensity.hh"
 #include "CRKSPH/computeSolidCRKSPHSumMassDensity.hh"
-#include "CRKSPH/computeHullSumMassDensity.hh"
 #include "CRKSPH/computeCRKSPHCorrections.hh"
 #include "CRKSPH/centerOfMass.hh"
-#include "CRKSPH/computeVoronoiCentroids.hh"
 #include "CRKSPH/computeHullVolumes.hh"
 #include "CRKSPH/computeNeighborHull.hh"
 #include "CRKSPH/computeHVolumes.hh"
@@ -38,6 +36,7 @@ typedef SolidCRKSPHHydroBase<Dim<3> > SolidCRKSPHHydroBase3d;
 inline
 void
 CRKSPHKernelAndGradient1d(const KernelSpace::TableKernel<Dim<1> >& W,
+                        const int correctionOrder,
                         const Dim<1>::Vector& rij,
                         const Dim<1>::Vector& etai,
                         const Dim<1>::SymTensor& Hi,
@@ -47,17 +46,20 @@ CRKSPHKernelAndGradient1d(const KernelSpace::TableKernel<Dim<1> >& W,
                         const Dim<1>::Scalar& Hdetj,
                         const Dim<1>::Scalar& Ai,
                         const Dim<1>::Vector& Bi,
+                        const Dim<1>::Tensor& Ci,
                         const Dim<1>::Vector& gradAi,
                         const Dim<1>::Tensor& gradBi,
+                        const Dim<1>::ThirdRankTensor& gradCi,
                         Dim<1>::Scalar* WCRKSPH,
                         Dim<1>::Scalar* gradWSPH,
                         Dim<1>::Vector& gradWCRKSPH) {
-  return CRKSPHKernelAndGradient(W, rij, etai, Hi, Hdeti, etaj, Hj, Hdetj, Ai, Bi, gradAi, gradBi, *WCRKSPH, *gradWSPH, gradWCRKSPH);
+  return CRKSPHKernelAndGradient(W, correctionOrder, rij, etai, Hi, Hdeti, etaj, Hj, Hdetj, Ai, Bi, Ci, gradAi, gradBi, gradCi, *WCRKSPH, *gradWSPH, gradWCRKSPH);
 }
 
 inline
 void
 CRKSPHKernelAndGradient2d(const KernelSpace::TableKernel<Dim<2> >& W,
+                        const int correctionOrder,
                         const Dim<2>::Vector& rij,
                         const Dim<2>::Vector& etai,
                         const Dim<2>::SymTensor& Hi,
@@ -67,17 +69,20 @@ CRKSPHKernelAndGradient2d(const KernelSpace::TableKernel<Dim<2> >& W,
                         const Dim<2>::Scalar& Hdetj,
                         const Dim<2>::Scalar& Ai,
                         const Dim<2>::Vector& Bi,
+                        const Dim<2>::Tensor& Ci,
                         const Dim<2>::Vector& gradAi,
                         const Dim<2>::Tensor& gradBi,
+                        const Dim<2>::ThirdRankTensor& gradCi,
                         Dim<2>::Scalar* WCRKSPH,
                         Dim<2>::Scalar* gradWSPH,
                         Dim<2>::Vector& gradWCRKSPH) {
-  return CRKSPHKernelAndGradient(W, rij, etai, Hi, Hdeti, etaj, Hj, Hdetj, Ai, Bi, gradAi, gradBi, *WCRKSPH, *gradWSPH, gradWCRKSPH);
+  return CRKSPHKernelAndGradient(W, correctionOrder, rij, etai, Hi, Hdeti, etaj, Hj, Hdetj, Ai, Bi, Ci, gradAi, gradBi, gradCi, *WCRKSPH, *gradWSPH, gradWCRKSPH);
 }
 
 inline
 void
 CRKSPHKernelAndGradient3d(const KernelSpace::TableKernel<Dim<3> >& W,
+                        const int correctionOrder,
                         const Dim<3>::Vector& rij,
                         const Dim<3>::Vector& etai,
                         const Dim<3>::SymTensor& Hi,
@@ -87,12 +92,14 @@ CRKSPHKernelAndGradient3d(const KernelSpace::TableKernel<Dim<3> >& W,
                         const Dim<3>::Scalar& Hdetj,
                         const Dim<3>::Scalar& Ai,
                         const Dim<3>::Vector& Bi,
+                        const Dim<3>::Tensor& Ci,
                         const Dim<3>::Vector& gradAi,
                         const Dim<3>::Tensor& gradBi,
+                        const Dim<3>::ThirdRankTensor& gradCi,
                         Dim<3>::Scalar* WCRKSPH,
                         Dim<3>::Scalar* gradWSPH,
                         Dim<3>::Vector& gradWCRKSPH) {
-  return CRKSPHKernelAndGradient(W, rij, etai, Hi, Hdeti, etaj, Hj, Hdetj, Ai, Bi, gradAi, gradBi, *WCRKSPH, *gradWSPH, gradWCRKSPH);
+  return CRKSPHKernelAndGradient(W, correctionOrder, rij, etai, Hi, Hdeti, etaj, Hj, Hdetj, Ai, Bi, Ci, gradAi, gradBi, gradCi, *WCRKSPH, *gradWSPH, gradWCRKSPH);
 }
 
 // //------------------------------------------------------------------------------

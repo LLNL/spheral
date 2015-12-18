@@ -249,6 +249,7 @@ self.addDataBaseMethods(self.DataBase%(dim)id, %(dim)i)
         vector = "Vector%id" % ndim
         tensor = "Tensor%id" % ndim
         symtensor = "SymTensor%id" % ndim
+        thirdranktensor = "ThirdRankTensor%id" % ndim
         polyvol = {1: "Box1d", 
                    2: "Polygon",
                    3: "Polyhedron"}[ndim]
@@ -345,6 +346,7 @@ self.addDataBaseMethods(self.DataBase%(dim)id, %(dim)i)
                                                    (vectorfieldlist, vector, "%s::zero" % vector, "Vector"),
                                                    (tensorfieldlist, tensor, "%s::zero" % tensor, "Tensor"),
                                                    (symtensorfieldlist, symtensor, "%s::zero" % symtensor, "SymTensor"),
+                                                   (thirdranktensorfieldlist, thirdranktensor, "%s::zero" % thirdranktensor, "ThirdRankTensor"),
                                                    (polyvolfieldlist, polyvol, "%s()" % polyvol, "FacetedVolume")]:
             exec("""
 x.add_method("newGlobalFieldList", "%(result)s", [param("%(value)s", "value", default_value="%(default)s"),

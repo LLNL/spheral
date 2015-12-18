@@ -32,7 +32,9 @@
 #include "Utilities/iterateIdealH.hh"
 #include "Utilities/globalNodeIDsInline.hh"
 #include "Distributed/BoundingVolumeDistributedBoundary.hh"
+#if USE_MPI
 #include "Distributed/NestedGridDistributedBoundary.hh"
+#endif
 #include "Boundary/ReflectingBoundary.hh"
 #include "Field/Field.hh"
 
@@ -180,6 +182,25 @@ copyArrayToSymTensorFieldList(const double* xx_array,
   }
 }
 
+void
+copyArrayToSymTensorFieldList(const double* diag_array,
+                              FieldList<Dim<3>, Dim<3>::SymTensor>& fieldList) {
+  const unsigned nfields = fieldList.numFields();
+  unsigned k = 0;
+  for (unsigned i = 0; i != nfields; ++i) {
+    const unsigned n = fieldList[i]->numElements();
+    for (unsigned j = 0; j != n; ++j) {
+      fieldList(i,j).xx(diag_array[k + j]);
+      fieldList(i,j).xy(0.0);
+      fieldList(i,j).xz(0.0);
+      fieldList(i,j).yy(diag_array[k + j]);
+      fieldList(i,j).yz(0.0);
+      fieldList(i,j).zz(diag_array[k + j]);
+    }
+    k += n;
+  }
+}
+
 //------------------------------------------------------------------------------
 // Copy a FieldList to a set of C arrays.  In this case we only copy internal
 // values back to the C arrays.
@@ -313,6 +334,7 @@ initialize(const bool ASPH,
            const bool useVelocityDt,
            const bool ScalarQ,
            const bool addDistributedBoundary,
+           const bool useDamage,
            const int kernelType,
            const int piKernelType,
            const int gradKernelType,
@@ -444,10 +466,10 @@ initialize(const bool ASPH,
   }
   me.mQptr->epsilon2(0.01);
   me.mHydroPtr = boost::shared_ptr<SolidSPHHydroBase<Dimension> >(new SolidSPHHydroBase<Dimension>(*me.mSmoothingScaleMethodPtr,
+                                                                                                   *me.mQptr,
                                                                                                    *me.mKernelPtr,
                                                                                                    *me.mPiKernelPtr,
                                                                                                    *me.mGradKernelPtr,
-                                                                                                   *me.mQptr,
                                                                                                    0.0,                              // filter
                                                                                                    CFL,                              // cfl
                                                                                                    useVelocityDt,                    // useVelocityMagnitudeForDt
@@ -467,6 +489,9 @@ initialize(const bool ASPH,
   // but the other methods are useful.
   me.mIntegratorPtr = boost::shared_ptr<CheapSynchronousRK2<Dimension> >(new CheapSynchronousRK2<Dimension>(*me.mDataBasePtr));
   me.mIntegratorPtr->appendPhysicsPackage(*me.mHydroPtr);
+
+  // Remember if we need are going to use damage. 
+  me.mUseDamage = useDamage;
 
   // Remember if we need to do parallel stuff ourself.
   me.mAddDistributedBoundary = addDistributedBoundary;
@@ -517,7 +542,9 @@ initializeStep(const unsigned* nintpermat,
                const double* bulkModulus,
                const double* shearModulus,
                const double* yieldStrength,
-               const double* plasticStrain) {
+               const double* plasticStrain,
+               const double* damage,
+               const int* particleType) {
 
   // Get our instance.
   SpheralPseudoScript3D& me = SpheralPseudoScript3D::instance();
@@ -534,9 +561,13 @@ initializeStep(const unsigned* nintpermat,
     me.mNodeLists[imat].numGhostNodes(me.mNumHostGhostNodes[imat]);
   }
 
-  // Prepare the state and such. Call registerState and registerDerivatives later!
-  me.mStatePtr = boost::shared_ptr<State<Dimension> >(new State<Dimension>());
-  me.mDerivsPtr = boost::shared_ptr<StateDerivatives<Dimension> >(new StateDerivatives<Dimension>());
+  // Prepare the state and such.
+  me.mStatePtr = boost::shared_ptr<State<Dimension> >(new State<Dimension>(*me.mDataBasePtr,
+                                                                           me.mIntegratorPtr->physicsPackagesBegin(), 
+                                                                           me.mIntegratorPtr->physicsPackagesEnd()));
+  me.mDerivsPtr = boost::shared_ptr<StateDerivatives<Dimension> >(new StateDerivatives<Dimension>(*me.mDataBasePtr,
+                                                                                                  me.mIntegratorPtr->physicsPackagesBegin(), 
+                                                                                                  me.mIntegratorPtr->physicsPackagesEnd()));
 
   // Copy the given state into Spheral's structures.
   SpheralPseudoScript3D::updateState(mass, 
@@ -551,7 +582,9 @@ initializeStep(const unsigned* nintpermat,
                                    bulkModulus, 
                                    shearModulus, 
                                    yieldStrength,
-                                   plasticStrain);
+                                   plasticStrain,
+                                   damage,
+                                   particleType);
 
   // Vote on a time step and return it.
   me.mIntegratorPtr->lastDt(1e10);
@@ -591,7 +624,9 @@ updateState(const double* mass,
             const double* bulkModulus,
             const double* shearModulus,
             const double* yieldStrength,
-            const double* plasticStrain) {
+            const double* plasticStrain,
+            const double* damage,
+            const int* particleType) {
 
   // Get our instance.
   SpheralPseudoScript3D& me = SpheralPseudoScript3D::instance();
@@ -602,10 +637,6 @@ updateState(const double* mass,
     me.mNodeLists[imat].numInternalNodes(me.mNumInternalNodes[imat]);
     me.mNodeLists[imat].numGhostNodes(me.mNumHostGhostNodes[imat]);
   }
-
-  // register the Hydro fields.
-  me.mHydroPtr->registerState(*me.mDataBasePtr,*me.mStatePtr);
-  me.mHydroPtr->registerDerivatives(*me.mDataBasePtr,*me.mDerivsPtr);
 
   // Pull the state fields.
   FieldList<Dimension, Scalar> m = me.mStatePtr->fields(HydroFieldNames::mass, 0.0);
@@ -618,53 +649,61 @@ updateState(const double* mass,
   FieldList<Dimension, Scalar> cs = me.mStatePtr->fields(HydroFieldNames::soundSpeed, 0.0);
   FieldList<Dimension, SymTensor> S = me.mStatePtr->fields(SolidFieldNames::deviatoricStress, SymTensor::zero);
   FieldList<Dimension, Scalar> ps = me.mStatePtr->fields(SolidFieldNames::plasticStrain, 0.0);
+  FieldList<Dimension, SymTensor> D = me.mStatePtr->fields(SolidFieldNames::effectiveTensorDamage, SymTensor::zero);
+  FieldList<Dimension, int> pType = me.mStatePtr->fields(SolidFieldNames::particleTypes, 0);
   FieldList<Dimension, Scalar> K = me.mStatePtr->fields(SolidFieldNames::bulkModulus, 0.0);
   FieldList<Dimension, Scalar> mu = me.mStatePtr->fields(SolidFieldNames::shearModulus, 0.0);
   FieldList<Dimension, Scalar> Y = me.mStatePtr->fields(SolidFieldNames::yieldStrength, 0.0);
 
   // Fill in the material properties.
-  if(mass != NULL) {
-    copyArrayToScalarFieldList(mass, m);
+  if (mass != NULL) {
+     copyArrayToScalarFieldList(mass, m);
   }
-  if(position_x != NULL && position_y != NULL && position_z != NULL) {
-    copyArrayToVectorFieldList(position_x, position_y, position_z, pos);
+  if (position_x != NULL && position_y != NULL && position_z != NULL) {
+     copyArrayToVectorFieldList(position_x, position_y, position_z, pos);
   }
-  if(velocity_x != NULL && velocity_y != NULL && velocity_z != NULL) {
-    copyArrayToVectorFieldList(velocity_x, velocity_y, velocity_z, vel);
+  if (velocity_x != NULL && velocity_y != NULL && velocity_z != NULL) {
+     copyArrayToVectorFieldList(velocity_x, velocity_y, velocity_z, vel);
   }
-  if(massDensity != NULL) {
-    copyArrayToScalarFieldList(massDensity, rho);
+  if (massDensity != NULL) {
+     copyArrayToScalarFieldList(massDensity, rho);
   }
-  if(specificThermalEnergy != NULL) {
-    copyArrayToScalarFieldList(specificThermalEnergy, eps);
+  if (specificThermalEnergy != NULL) {
+     copyArrayToScalarFieldList(specificThermalEnergy, eps);
   }
-  if(Hfield_xx != NULL && Hfield_xy != NULL && Hfield_xz != NULL &&
-     Hfield_yy != NULL && Hfield_yz != NULL && Hfield_zz != NULL) {
-    copyArrayToSymTensorFieldList(Hfield_xx, Hfield_xy, Hfield_xz,
-                                  Hfield_yy, Hfield_yz, Hfield_zz, H);
+  if (Hfield_xx != NULL && Hfield_xy != NULL && Hfield_xz != NULL &&
+      Hfield_yy != NULL && Hfield_yz != NULL && Hfield_zz != NULL) {
+     copyArrayToSymTensorFieldList(Hfield_xx, Hfield_xy, Hfield_xz,
+                                   Hfield_yy, Hfield_yz, Hfield_zz, H);
   }
-  if(pressure != NULL) {
-    copyArrayToScalarFieldList(pressure, P);
+  if (pressure != NULL) {
+     copyArrayToScalarFieldList(pressure, P);
   }
-  if(deviatoricStress_xx != NULL && deviatoricStress_xy != NULL && deviatoricStress_xz != NULL &&
-     deviatoricStress_yy != NULL && deviatoricStress_yz != NULL && deviatoricStress_zz != NULL) {
-    copyArrayToSymTensorFieldList(deviatoricStress_xx, deviatoricStress_xy, deviatoricStress_xz,
-                                  deviatoricStress_yy, deviatoricStress_yz, deviatoricStress_zz, S);
+  if (deviatoricStress_xx != NULL && deviatoricStress_xy != NULL && deviatoricStress_xz != NULL &&
+      deviatoricStress_yy != NULL && deviatoricStress_yz != NULL && deviatoricStress_zz != NULL) {
+     copyArrayToSymTensorFieldList(deviatoricStress_xx, deviatoricStress_xy, deviatoricStress_xz,
+                                   deviatoricStress_yy, deviatoricStress_yz, deviatoricStress_zz, S);
   }
-  if(soundSpeed != NULL) {
-    copyArrayToScalarFieldList(soundSpeed, cs);
+  if (soundSpeed != NULL) {
+     copyArrayToScalarFieldList(soundSpeed, cs);
   }
-  if(bulkModulus != NULL) {
-    copyArrayToScalarFieldList(bulkModulus, K);
+  if (bulkModulus != NULL) {
+     copyArrayToScalarFieldList(bulkModulus, K);
   }
-  if(shearModulus != NULL) {
-    copyArrayToScalarFieldList(shearModulus, mu);
+  if (shearModulus != NULL) {
+     copyArrayToScalarFieldList(shearModulus, mu);
   }
-  if(yieldStrength != NULL) {
-    copyArrayToScalarFieldList(yieldStrength, Y);
+  if (yieldStrength != NULL) {
+     copyArrayToScalarFieldList(yieldStrength, Y);
   }
-  if(plasticStrain != NULL) {
-    copyArrayToScalarFieldList(plasticStrain, ps);
+  if (plasticStrain != NULL) {
+     copyArrayToScalarFieldList(plasticStrain, ps);
+  }
+  if (damage != NULL) {
+     copyArrayToSymTensorFieldList(damage, D);
+  }
+  if (particleType != NULL) {
+     copyArrayToIntFieldList(particleType, pType);
   }
 
   // Add host code boundaries
@@ -676,7 +715,9 @@ updateState(const double* mass,
   // If requested, add the appropriate DistributedBoundary for Spheral to handle
   // distributed ghost nodes.
   if (me.mAddDistributedBoundary) {
+#if USE_MPI
     me.mHydroPtr->appendBoundary(BoundarySpace::NestedGridDistributedBoundary<Dimension>::instance());
+#endif
   }
 
   // Initialize the integrator.  This set's neighbor, connectivity, ghost nodes, etc.

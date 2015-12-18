@@ -1,6 +1,7 @@
 from SpheralModules.Spheral.CRKSPHSpace import *
 from SpheralModules.Spheral.NodeSpace import *
 from SpheralModules.Spheral.PhysicsSpace import *
+from SpheralModules.Spheral.KernelSpace import *
 
 from spheralDimensions import spheralDimensions
 dims = spheralDimensions()
@@ -12,9 +13,9 @@ CRKSPHHydroFactoryString = """
 class %(classname)s%(dim)s(CRKSPHHydroBase%(dim)s):
 
     def __init__(self,
-                 W,
-                 WPi,
                  Q,
+                 W,
+                 WPi = None,
                  filter = 0.0,
                  cfl = 0.25,
                  useVelocityMagnitudeForDt = False,
@@ -22,14 +23,17 @@ class %(classname)s%(dim)s(CRKSPHHydroBase%(dim)s):
                  XSPH = True,
                  densityUpdate = RigorousSumDensity,
                  HUpdate = IdealH,
+                 correctionOrder = LinearOrder,
                  epsTensile = 0.0,
                  nTensile = 4.0):
         self._smoothingScaleMethod = %(smoothingScaleMethod)s%(dim)s()
+        if WPi is None:
+            WPi = W
         CRKSPHHydroBase%(dim)s.__init__(self,
                                         self._smoothingScaleMethod,
+                                        Q,
                                         W,
                                         WPi,
-                                        Q,
                                         filter,
                                         cfl,
                                         useVelocityMagnitudeForDt,
@@ -37,6 +41,7 @@ class %(classname)s%(dim)s(CRKSPHHydroBase%(dim)s):
                                         XSPH,
                                         densityUpdate,
                                         HUpdate,
+                                        correctionOrder,
                                         epsTensile,
                                         nTensile)
         return

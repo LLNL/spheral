@@ -45,11 +45,13 @@ commandLine(seed = "lattice",
             etamax = 4.0,
 
             # Artificial viscosity (and other numerical crap).
-            HydroConstructor = SolidASPHHydro,             # Hydro algorithm
+            CRKSPH = False,
+            ASPH = True,     # Only for H evolution, not hydro algorithm
             Qconstructor = MonaghanGingoldViscosity,       # Artificial viscosity algorithm
-            HEvolution = IdealH,
+            HUpdate = IdealH,
             densityUpdate = IntegrateDensity,
-            compatibleEnergyEvolution = True,
+            compatibleEnergy = True,
+            filter = 0.0,
             Cl = 1.0,                                      # Linear Q coefficient
             Cq = 1.0,                                      # Quadratic Q coefficient
             Qlimiter = False,                              # Q directional limiter switch
@@ -67,6 +69,7 @@ commandLine(seed = "lattice",
             epsilonTensile = 0.0,
             nTensile = 4,
             rigorousBoundaries = False,
+            gradhCorrection = False,
 
             # Simulation control
             goalTime = 150.0,
@@ -86,10 +89,25 @@ commandLine(seed = "lattice",
             verbosedt = False,
             )
 
+if CRKSPH:
+    if ASPH:
+        HydroConstructor = SolidACRKSPHHydro
+    else:
+        HydroConstructor = SolidCRKSPHHydro
+    Qconstructor = CRKSPHMonaghanGingoldViscosity
+else:
+    if ASPH:
+        HydroConstructor = SolidASPHHydro
+    else:
+        HydroConstructor = SolidSPHHydro
+
 # Restart and output files.
 dataDir = os.path.join(baseDir,
                        "reflect=%s" % reflect,
-                       "%ix%i" % (nr, nz))
+                       "%ix%i" % (nr, nz),
+                       "XSPH=%s" % XSPH,
+                       str(HydroConstructor).split("'")[1].split(".")[-1],
+                       str(Qconstructor).split("'")[1].split(".")[-1])
 restartDir = os.path.join(dataDir, "restarts", "proc-%04i" % mpi.rank)
 vizDir = os.path.join(dataDir, "viz")
 restartBaseName = os.path.join(restartDir, "TaylorImpact-%i-%i" % (nr, nz))
@@ -205,9 +223,7 @@ del n
 # one for use with the artificial viscosity
 #-------------------------------------------------------------------------------
 WT = TableKernel(BSplineKernel(), 1000)
-WTPi = WT
 output('WT')
-output('WTPi')
 
 #-------------------------------------------------------------------------------
 # Set node properties (positions, masses, H's, etc.)
@@ -285,27 +301,35 @@ output("q.balsaraShearCorrection")
 #-------------------------------------------------------------------------------
 # Construct the hydro physics object.
 #-------------------------------------------------------------------------------
-hydro = HydroConstructor(WT,
-                         WTPi,
-                         q,
-                         cfl = cfl,
-                         useVelocityMagnitudeForDt = useVelocityMagnitudeForDt,
-                         compatibleEnergyEvolution = compatibleEnergyEvolution,
-                         gradhCorrection = False,
-                         densityUpdate = densityUpdate,
-                         HUpdate = HEvolution,
-                         XSPH = XSPH,
-                         epsTensile = epsilonTensile,
-                         nTensile = nTensile)
+if CRKSPH:
+    hydro = HydroConstructor(W = WT,
+                             Q = q,
+                             filter = filter,
+                             cfl = cfl,
+                             compatibleEnergyEvolution = compatibleEnergy,
+                             XSPH = XSPH,
+                             densityUpdate = densityUpdate,
+                             HUpdate = HUpdate)
+else:
+    hydro = HydroConstructor(W = WT,
+                             Q = q,
+                             filter = filter,
+                             cfl = cfl,
+                             compatibleEnergyEvolution = compatibleEnergy,
+                             gradhCorrection = gradhCorrection,
+                             densityUpdate = densityUpdate,
+                             HUpdate = HUpdate,
+                             XSPH = XSPH,
+                             epsTensile = epsilonTensile,
+                             nTensile = nTensile)
 for bc in bcs:
     hydro.appendBoundary(bc)
 output("hydro")
 output("hydro.cfl")
 output("hydro.useVelocityMagnitudeForDt")
 output("hydro.HEvolution")
-output("hydro.sumForMassDensity")
+output("hydro.densityUpdate")
 output("hydro.compatibleEnergyEvolution")
-output("hydro.gradhCorrection")
 output("hydro.kernel()")
 output("hydro.PiKernel()")
 

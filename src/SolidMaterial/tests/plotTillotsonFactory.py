@@ -9,10 +9,10 @@ from SolidSpheral3d import *
 #-------------------------------------------------------------------------------
 # Build the EOS's we're going to consider.
 #-------------------------------------------------------------------------------
-mats = ["Granite", "Pumice", "Nylon", "Glass"]
-units = PhysicalConstants(1.0,   # Unit length in meters
-                          1.0,   # Unit mass in kg
-                          1.0)   # Unit time in seconds
+mats = ["Granite", "Pumice", "Nylon", "Glass", "copper"]
+units = PhysicalConstants(0.01,     # Unit length in meters
+                          0.001,    # Unit mass in kg
+                          1.0e-6)   # Unit time in seconds
 etamin, etamax = 0.01, 100.0
 EOSes = [TillotsonEquationOfState(mat, etamin, etamax, units) for mat in mats]
 
@@ -30,23 +30,34 @@ epsMin, epsMax = 1.0e-5, 1e10
 deps = (log(epsMax) - log(epsMin))/n
 eps = [exp(log(epsMin) + i*deps) for i in xrange(n + 1)]
 
+# Make a fake NodeList so we can call the EOS with Fields.
+nodes = makeVoidNodeList("nodes", numInternal=1)
+
 plots = []
 for matLabel, eos in zip(mats, EOSes):
+    rhof = ScalarField("rho", nodes)
+    epsf = ScalarField("eps", nodes)
+    Pf = ScalarField("P", nodes)
+    csf = ScalarField("cs", nodes)
     P, cs = [], []
     for rhoi in rho:
         for epsi in eps:
-            P.append((rhoi, epsi, eos.pressure(rhoi, epsi)))
-            cs.append((rhoi, epsi, eos.soundSpeed(rhoi, epsi)))
+            rhof[0] = rhoi
+            epsf[0] = epsi
+            eos.setPressure(Pf, rhof, epsf)
+            eos.setSoundSpeed(csf, rhof, epsf)
+            P.append((rhoi, epsi, Pf[0]))
+            cs.append((rhoi, epsi, csf[0]))
     plots.append(Gnuplot.Gnuplot())
     plots.append(Gnuplot.Gnuplot())
     Pplot = plots[-2]
     csPlot = plots[-1]
     Pplot("set logscale y; set logscale z")
     csPlot("set logscale y; set logscale z")
-    Pdata, csData = Gnuplot.Data(P), Gnuplot.Data(cs)
+    Pdata, csData = Gnuplot.Data(P, inline=True), Gnuplot.Data(cs, inline=True)
     Pplot.splot(Pdata, title="%s pressure" % matLabel)
-    Pplot.xlabel("rho (kg/m^3)")
-    Pplot.ylabel("eps (J/kg)")
+    Pplot.xlabel("rho")
+    Pplot.ylabel("eps")
     csPlot.splot(csData, title="%s sound speed" % matLabel)
-    csPlot.xlabel("rho (kg/m^3)")
-    csPlot.ylabel("eps (J/kg)")
+    csPlot.xlabel("rho")
+    csPlot.ylabel("eps")

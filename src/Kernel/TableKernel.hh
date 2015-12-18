@@ -19,19 +19,6 @@
 namespace Spheral {
 namespace KernelSpace {
 
-// Forward declarations.
-template<typename Dimension> class BSplineKernel;
-template<typename Dimension> class W4SplineKernel;
-template<typename Dimension> class GaussianKernel;
-template<typename Dimension> class SuperGaussianKernel;
-template<typename Dimension> class PiGaussianKernel;
-template<typename Dimension> class SincKernel;
-template<typename Dimension> class NSincPolynomialKernel;
-template<typename Dimension> class NBSplineKernel;
-template<typename Dimension> class HatKernel;
-template<typename Dimension> class QuarticSplineKernel;
-template<typename Dimension> class QuinticSplineKernel;
-
 template<typename Dimension>
 class TableKernel: public Kernel<Dimension, TableKernel<Dimension> > {
 
@@ -53,6 +40,10 @@ public:
 
   // Assignment.
   TableKernel& operator=(const TableKernel& rhs);
+
+  // Linearly combine with another kernel.
+  template<typename KernelType>
+  void augment(const KernelType& kernel);
 
   // Return the kernel weight for a given normalized distance or position.
   double kernelValue(double etaMagnitude, double Hdet) const;

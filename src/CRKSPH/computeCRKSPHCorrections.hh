@@ -20,11 +20,37 @@ namespace Spheral {
   }
 
   namespace CRKSPHSpace {
-
-    // Version assuming full pair-wise node coupling.
+    // Function to compute CRK corrections assuming full pair-wise node coupling
     template<typename Dimension>
     void
     computeCRKSPHCorrections(const NeighborSpace::ConnectivityMap<Dimension>& connectivityMap,
+                             const KernelSpace::TableKernel<Dimension>& W,
+                             const FieldSpace::FieldList<Dimension, typename Dimension::Scalar>& weight,
+                             const FieldSpace::FieldList<Dimension, typename Dimension::Vector>& position,
+                             const FieldSpace::FieldList<Dimension, typename Dimension::SymTensor>& H,
+                             const int correctionOrder,
+                             FieldSpace::FieldList<Dimension, typename Dimension::Scalar>& A,
+                             FieldSpace::FieldList<Dimension, typename Dimension::Vector>& B,
+                             FieldSpace::FieldList<Dimension, typename Dimension::Tensor>& C,
+                             FieldSpace::FieldList<Dimension, typename Dimension::Vector>& gradA,
+                             FieldSpace::FieldList<Dimension, typename Dimension::Tensor>& gradB,
+                             FieldSpace::FieldList<Dimension, typename Dimension::ThirdRankTensor>& gradC);
+    // Zeroth Correction 
+    template<typename Dimension>
+    void
+    computeZerothCRKSPHCorrections(const NeighborSpace::ConnectivityMap<Dimension>& connectivityMap,
+                             const KernelSpace::TableKernel<Dimension>& W,
+                             const FieldSpace::FieldList<Dimension, typename Dimension::Scalar>& weight,
+                             const FieldSpace::FieldList<Dimension, typename Dimension::Vector>& position,
+                             const FieldSpace::FieldList<Dimension, typename Dimension::SymTensor>& H,
+                             FieldSpace::FieldList<Dimension, typename Dimension::Scalar>& A,
+                             FieldSpace::FieldList<Dimension, typename Dimension::Tensor>& gradA);
+
+
+    // Linear Correction 
+    template<typename Dimension>
+    void
+    computeLinearCRKSPHCorrections(const NeighborSpace::ConnectivityMap<Dimension>& connectivityMap,
                              const KernelSpace::TableKernel<Dimension>& W,
                              const FieldSpace::FieldList<Dimension, typename Dimension::Scalar>& weight,
                              const FieldSpace::FieldList<Dimension, typename Dimension::Vector>& position,
@@ -33,6 +59,20 @@ namespace Spheral {
                              FieldSpace::FieldList<Dimension, typename Dimension::Vector>& B,
                              FieldSpace::FieldList<Dimension, typename Dimension::Vector>& gradA,
                              FieldSpace::FieldList<Dimension, typename Dimension::Tensor>& gradB);
+    // Quadratic Correction 
+    template<typename Dimension>
+    void
+    computeQuadraticCRKSPHCorrections(const NeighborSpace::ConnectivityMap<Dimension>& connectivityMap,
+                             const KernelSpace::TableKernel<Dimension>& W,
+                             const FieldSpace::FieldList<Dimension, typename Dimension::Scalar>& weight,
+                             const FieldSpace::FieldList<Dimension, typename Dimension::Vector>& position,
+                             const FieldSpace::FieldList<Dimension, typename Dimension::SymTensor>& H,
+                             FieldSpace::FieldList<Dimension, typename Dimension::Scalar>& A,
+                             FieldSpace::FieldList<Dimension, typename Dimension::Vector>& B,
+                             FieldSpace::FieldList<Dimension, typename Dimension::Tensor>& C,
+                             FieldSpace::FieldList<Dimension, typename Dimension::Vector>& gradA,
+                             FieldSpace::FieldList<Dimension, typename Dimension::Tensor>& gradB,
+                             FieldSpace::FieldList<Dimension, typename Dimension::ThirdRankTensor>& gradC);
 
     // Version allowing arbitrary function for pair-wise node coupling.
     template<typename Dimension>

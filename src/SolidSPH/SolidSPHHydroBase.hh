@@ -52,10 +52,10 @@ public:
 
   // Constructors.
   SolidSPHHydroBase(const NodeSpace::SmoothingScaleBase<Dimension>& smoothingScaleMethod,
+                    ArtificialViscositySpace::ArtificialViscosity<Dimension>& Q,
                     const KernelSpace::TableKernel<Dimension>& W,
                     const KernelSpace::TableKernel<Dimension>& WPi,
                     const KernelSpace::TableKernel<Dimension>& WGrad,
-                    ArtificialViscositySpace::ArtificialViscosity<Dimension>& Q,
                     const double filter,
                     const double cfl,
                     const bool useVelocityMagnitudeForDt,

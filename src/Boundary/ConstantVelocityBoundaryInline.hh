@@ -19,7 +19,7 @@ template<typename Dimension>
 inline
 std::vector<int>
 ConstantVelocityBoundary<Dimension>::
-nodeIndicies() const {
+nodeIndices() const {
   std::vector<int> result;
   for (int i = 0; i != mNodeListPtr->numInternalNodes(); ++i) {
     if (mNodes(i) == 1) result.push_back(i);

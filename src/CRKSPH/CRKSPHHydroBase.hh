@@ -36,6 +36,11 @@ namespace Spheral {
 
 namespace Spheral {
 namespace CRKSPHSpace {
+enum CRKOrder {//Used to assign the order of the corrections
+  ZerothOrder = 0,
+  LinearOrder = 1,
+  QuadraticOrder = 2
+};
 
 template<typename Dimension>
 class CRKSPHHydroBase: public PhysicsSpace::GenericHydro<Dimension> {
@@ -45,6 +50,7 @@ public:
   typedef typename Dimension::Scalar Scalar;
   typedef typename Dimension::Vector Vector;
   typedef typename Dimension::Tensor Tensor;
+  typedef typename Dimension::ThirdRankTensor ThirdRankTensor;
   typedef typename Dimension::SymTensor SymTensor;
   typedef typename Dimension::FacetedVolume FacetedVolume;
 
@@ -52,9 +58,9 @@ public:
 
   // Constructors.
   CRKSPHHydroBase(const NodeSpace::SmoothingScaleBase<Dimension>& smoothingScaleMethod,
+                  ArtificialViscositySpace::ArtificialViscosity<Dimension>& Q,
                   const KernelSpace::TableKernel<Dimension>& W,
                   const KernelSpace::TableKernel<Dimension>& WPi,
-                  ArtificialViscositySpace::ArtificialViscosity<Dimension>& Q,
                   const double filter,
                   const double cfl,
                   const bool useVelocityMagnitudeForDt,
@@ -62,6 +68,7 @@ public:
                   const bool XSPH,
                   const PhysicsSpace::MassDensityType densityUpdate,
                   const PhysicsSpace::HEvolutionType HUpdate,
+                  const CRKSPHSpace::CRKOrder correctionOrder,
                   const double epsTensile,
                   const double nTensile);
 
@@ -144,6 +151,10 @@ public:
   PhysicsSpace::HEvolutionType HEvolution() const;
   void HEvolution(const PhysicsSpace::HEvolutionType type);
 
+  // Flag to choose CRK Correction Order
+  CRKSPHSpace::CRKOrder correctionOrder() const;
+  void correctionOrder(const CRKSPHSpace::CRKOrder order);
+
   // Flag to determine if we're using the total energy conserving compatible energy
   // evolution scheme.
   bool compatibleEnergyEvolution() const;
@@ -196,8 +207,10 @@ public:
 
   const FieldSpace::FieldList<Dimension, Scalar>&    A() const;
   const FieldSpace::FieldList<Dimension, Vector>&    B() const;
+  const FieldSpace::FieldList<Dimension, Tensor>&    C() const;
   const FieldSpace::FieldList<Dimension, Vector>&    gradA() const;
   const FieldSpace::FieldList<Dimension, Tensor>&    gradB() const;
+  const FieldSpace::FieldList<Dimension, ThirdRankTensor>&    gradC() const;
     
   const FieldSpace::FieldList<Dimension, Vector>&    surfNorm() const;
 
@@ -216,6 +229,7 @@ private:
   // A bunch of switches.
   PhysicsSpace::MassDensityType mDensityUpdate;
   PhysicsSpace::HEvolutionType mHEvolution;
+  CRKSPHSpace::CRKOrder mCorrectionOrder;
   bool mCompatibleEnergyEvolution, mGradhCorrection, mXSPH;
   double mfilter;
   Scalar mEpsTensile, mnTensile;
@@ -251,8 +265,10 @@ private:
 
   FieldSpace::FieldList<Dimension, Scalar>    mA;
   FieldSpace::FieldList<Dimension, Vector>    mB;
+  FieldSpace::FieldList<Dimension, Tensor>    mC;
   FieldSpace::FieldList<Dimension, Vector>    mGradA;
   FieldSpace::FieldList<Dimension, Tensor>    mGradB;
+  FieldSpace::FieldList<Dimension, ThirdRankTensor>    mGradC;
     
   FieldSpace::FieldList<Dimension, Vector>    mSurfNorm;
 

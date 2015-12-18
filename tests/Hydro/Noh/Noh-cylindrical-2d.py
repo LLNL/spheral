@@ -1,9 +1,5 @@
-#ATS:t0 = test(SELF,       "--steps=40 --restartStep 20  --graphics False --vizTime None --clearDirectories True", np=4, label="Cylindrical Noh restart test INITIAL RUN")
-#ATS:t1 = testif(t0, SELF, "--steps 20 --restartStep 100 --graphics False --vizTime None --restoreCycle 20 --checkRestart True", np=4, label="Cylindrical Noh restart test RESTARTED CHECK")
-#ATS:t2 = testif(t1, SELF, "--steps 40 --restartStep 20  --graphics False --vizTime None --clearDirectories True --IntegratorConstructor SynchronousRK2Integrator", np=4, label="Cylindrical Noh restart test INITIAL RUN (SynchronousRK2)")
-#ATS:t3 = testif(t2, SELF, "--steps 20 --restartStep 100 --graphics False --vizTime None --restoreCycle 20 --checkRestart True --IntegratorConstructor SynchronousRK2Integrator", np=4, label="Cylindrical Noh restart test RESTARTED CHECK (SynchronousRK2)")
-#ATS:t10 = test(SELF,        "--steps 40 --graphics False --vizTime None --dataDir 'dumps-cylindrical-reproducing' --clearDirectories True  --domainIndependent True --outputFile 'Noh-cylindrical-1proc-reproducing.txt'", np=1, label="Cylindrical Noh domain independence test SERIAL RUN")
-#ATS:t11 = testif(t10, SELF, "--steps 40 --graphics False --vizTime None --dataDir 'dumps-cylindrical-reproducing' --clearDirectories False --domainIndependent True --outputFile 'Noh-cylindrical-4proc-reproducing.txt' --comparisonFile 'Noh-cylindrical-1proc-reproducing.txt'", np=4, label="Cylindrical Noh domain independence test 4 PROC RUN")
+#ATS:test(SELF, "--CRKSPH=True --nRadial=100 --cfl=0.25 --Cl=1.0 --Cq=1.0 --clearDirectories=True --filter=0 --nPerh=2.01 --graphics False", label="KH CRK, nPerh=2.0", np=20)
+#ATS:test(SELF, "--CRKSPH=False --nRadial=100 --cfl=0.25 --Cl=1.0 --Cq=1.0 --clearDirectories=True --filter=0 --nPerh=2.01 --graphics False", label="KH CRK, nPerh=2.0", np=20)
 
 #-------------------------------------------------------------------------------
 # The Cylindrical Noh test case run in 2-D.
@@ -15,7 +11,6 @@ from math import *
 from Spheral2d import *
 from SpheralTestUtilities import *
 from SpheralGnuPlotUtilities import *
-from findLastRestart import *
 from GenerateNodeDistribution2d import *
 from CubicNodeGenerator import GenerateSquareNodeDistribution
 from CentroidalVoronoiRelaxation import *
@@ -29,6 +24,7 @@ title("2-D integrated hydro test -- cylindrical Noh problem")
 # Generic problem parameters
 #-------------------------------------------------------------------------------
 commandLine(KernelConstructor = BSplineKernel,
+            order = 5,
             seed = "constantDTheta",
 
             thetaFactor = 0.5,
@@ -54,6 +50,15 @@ commandLine(KernelConstructor = BSplineKernel,
             nhL = 10.0,
             aMin = 0.1,
             aMax = 2.0,
+            boolCullenViscosity = False,
+            alphMax = 2.0,
+            alphMin = 0.02,
+            betaC = 0.7,
+            betaD = 0.05,
+            betaE = 1.0,
+            fKern = 1.0/3.0,
+            boolHopkinsCorrection = True,
+
             linearConsistent = False,
             Cl = 1.0, 
             Cq = 0.75,
@@ -66,7 +71,8 @@ commandLine(KernelConstructor = BSplineKernel,
             hmax = 0.5,
             hminratio = 0.1,
             cfl = 0.5,
-            XSPH = True,
+	    PSPH = False,
+            XSPH = False,
             epsilonTensile = 0.0,
             nTensile = 8,
             filter = 0.0,
@@ -84,6 +90,7 @@ commandLine(KernelConstructor = BSplineKernel,
             statsStep = 10,
             smoothIters = 0,
             HUpdate = IdealH,
+            correctionOrder = LinearOrder,
             domainIndependent = False,
             rigorousBoundaries = False,
             dtverbose = False,
@@ -95,7 +102,7 @@ commandLine(KernelConstructor = BSplineKernel,
             useVoronoiOutput = False,
             clearDirectories = False,
             vizDerivs = False,
-            restoreCycle = None,
+            restoreCycle = -1,
             restartStep = 1000,
             checkRestart = False,
             dataDir = "dumps-cylindrical-Noh",
@@ -105,6 +112,7 @@ commandLine(KernelConstructor = BSplineKernel,
             graphics = True,
             )
 
+assert not(boolReduceViscosity and boolCullenViscosity)
 assert thetaFactor in (0.5, 1.0, 2.0)
 theta = thetaFactor * pi
 
@@ -142,6 +150,8 @@ dataDir = os.path.join(dataDir,
                        "%s-Cl=%g-Cq=%g" % (str(Qconstructor).split("'")[1].split(".")[-1], Cl, Cq),
                        "nPerh=%f" % nPerh,
                        "compatibleEnergy=%s" % compatibleEnergy,
+                       "Cullen=%s" % boolCullenViscosity,
+                       "Qconstruct=%s" % Qconstructor,
                        "filter=%f" % filter,
                        "nrad=%i_ntheta=%i" % (nRadial, nTheta))
 restartDir = os.path.join(dataDir, "restarts")
@@ -167,12 +177,6 @@ if mpi.rank == 0:
 mpi.barrier()
 
 #-------------------------------------------------------------------------------
-# If we're restarting, find the set of most recent restart files.
-#-------------------------------------------------------------------------------
-if restoreCycle is None:
-    restoreCycle = findLastRestart(restartBaseName)
-
-#-------------------------------------------------------------------------------
 # Material properties.
 #-------------------------------------------------------------------------------
 eos = GammaLawGasMKS(gamma, mu)
@@ -180,10 +184,11 @@ eos = GammaLawGasMKS(gamma, mu)
 #-------------------------------------------------------------------------------
 # Interpolation kernels.
 #-------------------------------------------------------------------------------
-WT = TableKernel(BSplineKernel(), 1000)
-WTPi = TableKernel(BSplineKernel(), 1000)
+if KernelConstructor==NBSplineKernel:
+  WT = TableKernel(NBSplineKernel(order), 1000)
+else:
+  WT = TableKernel(KernelConstructor(), 1000)
 output("WT")
-output("WTPi")
 kernelExtent = WT.kernelExtent
 
 #-------------------------------------------------------------------------------
@@ -192,6 +197,7 @@ kernelExtent = WT.kernelExtent
 nodes1 = makeFluidNodeList("nodes1", eos,
                              hmin = hmin,
                              hmax = hmax,
+                             kernelExtent = kernelExtent,
                              hminratio = hminratio,
                              nPerh = nPerh)
 output("nodes1")
@@ -205,43 +211,42 @@ output("nodes1.nodesPerSmoothingScale")
 #-------------------------------------------------------------------------------
 pos = nodes1.positions()
 vel = nodes1.velocity()
-if restoreCycle is None:
-    if seed == "square":
-        generator = GenerateSquareNodeDistribution(nRadial,
-                                                   nTheta,
-                                                   rho0,
-                                                   xmin,
-                                                   xmax,
-                                                   nNodePerh = nPerh,
-                                                   SPH = True)
-    else:
-        generator = GenerateNodeDistribution2d(nRadial, nTheta, rho0, seed,
-                                               rmin = rmin,
-                                               rmax = rmax,
-                                               xmin = xmin,
-                                               xmax = xmax,
-                                               theta = theta,
-                                               azimuthalOffsetFraction = azimuthalOffsetFraction,
+if seed == "square":
+    generator = GenerateSquareNodeDistribution(nRadial,
+                                               nTheta,
+                                               rho0,
+                                               xmin,
+                                               xmax,
                                                nNodePerh = nPerh,
                                                SPH = True)
+else:
+    generator = GenerateNodeDistribution2d(nRadial, nTheta, rho0, seed,
+                                           rmin = rmin,
+                                           rmax = rmax,
+                                           xmin = xmin,
+                                           xmax = xmax,
+                                           theta = theta,
+                                           azimuthalOffsetFraction = azimuthalOffsetFraction,
+                                           nNodePerh = nPerh,
+                                           SPH = True)
 
-    if mpi.procs > 1:
-        from VoronoiDistributeNodes import distributeNodes2d
-        #from PeanoHilbertDistributeNodes import distributeNodes2d
-    else:
-        from DistributeNodes import distributeNodes2d
+if mpi.procs > 1:
+    from VoronoiDistributeNodes import distributeNodes2d
+    #from PeanoHilbertDistributeNodes import distributeNodes2d
+else:
+    from DistributeNodes import distributeNodes2d
 
-    distributeNodes2d((nodes1, generator))
-    output("mpi.reduce(nodes1.numInternalNodes, mpi.MIN)")
-    output("mpi.reduce(nodes1.numInternalNodes, mpi.MAX)")
-    output("mpi.reduce(nodes1.numInternalNodes, mpi.SUM)")
+distributeNodes2d((nodes1, generator))
+output("mpi.reduce(nodes1.numInternalNodes, mpi.MIN)")
+output("mpi.reduce(nodes1.numInternalNodes, mpi.MAX)")
+output("mpi.reduce(nodes1.numInternalNodes, mpi.SUM)")
 
-    # Set node specific thermal energies
-    nodes1.specificThermalEnergy(ScalarField("tmp", nodes1, eps0))
+# Set node specific thermal energies
+nodes1.specificThermalEnergy(ScalarField("tmp", nodes1, eps0))
 
-    # Set node velocities
-    for nodeID in xrange(nodes1.numNodes):
-        vel[nodeID] = pos[nodeID].unitVector()*vr0
+# Set node velocities
+for nodeID in xrange(nodes1.numNodes):
+    vel[nodeID] = pos[nodeID].unitVector()*vr0
 
 #-------------------------------------------------------------------------------
 # Construct a DataBase to hold our node list
@@ -275,7 +280,8 @@ output("q.quadraticInExpansion")
 # Construct the hydro physics object.
 #-------------------------------------------------------------------------------
 if SVPH:
-    hydro = HydroConstructor(WT, q,
+    hydro = HydroConstructor(W = WT,
+                             Q = q,
                              cfl = cfl,
                              compatibleEnergyEvolution = compatibleEnergy,
                              densityUpdate = densityUpdate,
@@ -288,21 +294,25 @@ if SVPH:
                              xmin = Vector(-1.1, -1.1),
                              xmax = Vector( 1.1,  1.1))
 elif CRKSPH:
-    hydro = HydroConstructor(WT, WTPi, q,
+    hydro = HydroConstructor(W = WT,
+                             Q = q,
                              filter = filter,
                              cfl = cfl,
                              compatibleEnergyEvolution = compatibleEnergy,
                              XSPH = XSPH,
+                             correctionOrder = correctionOrder,
                              densityUpdate = densityUpdate,
                              HUpdate = HUpdate)
 else:
-    hydro = HydroConstructor(WT, WTPi, q,
+    hydro = HydroConstructor(W = WT,
+                             Q = q,
                              filter = filter,
                              cfl = cfl,
                              compatibleEnergyEvolution = compatibleEnergy,
                              gradhCorrection = gradhCorrection,
                              densityUpdate = densityUpdate,
                              HUpdate = HUpdate,
+			     PSPH = PSPH,
                              XSPH = XSPH,
                              epsTensile = epsilonTensile,
                              nTensile = nTensile)
@@ -319,9 +329,14 @@ packages = [hydro]
 #-------------------------------------------------------------------------------
 # Construct the MMRV physics object.
 #-------------------------------------------------------------------------------
+
 if boolReduceViscosity:
     evolveReducingViscosityMultiplier = MorrisMonaghanReducingViscosity(q,nhQ,nhL,aMin,aMax)
     packages.append(evolveReducingViscosityMultiplier)
+elif boolCullenViscosity:
+    evolveCullenViscosityMultiplier = CullenDehnenViscosity(q,WTPi,alphMax,alphMin,betaC,betaD,betaE,fKern,boolHopkinsCorrection)
+    packages.append(evolveCullenViscosityMultiplier)
+
 
 #-------------------------------------------------------------------------------
 # Create boundary conditions.
@@ -383,7 +398,7 @@ control = SpheralController(integrator, WT,
                             vizStep = vizCycle,
                             vizTime = vizTime,
                             vizDerivs = vizDerivs,
-                            skipInitialPeriodicWork = SVPH,
+                            #skipInitialPeriodicWork = SVPH,
                             SPH = True,        # Only for iterating H
                             )
 output("control")
@@ -418,10 +433,6 @@ else:
     control.updateViz(control.totalSteps, integrator.currentTime, 0.0)
     control.dropRestartFile()
 
-Eerror = (control.conserve.EHistory[-1] - control.conserve.EHistory[0])/max(1.0e-30, control.conserve.EHistory[0])
-print "Total energy error: %g" % Eerror
-if compatibleEnergy and abs(Eerror) > 1e-13:
-    raise ValueError, "Energy error outside allowed bounds."
 
 #-------------------------------------------------------------------------------
 # Plot the results.
@@ -537,21 +548,22 @@ if outputFile != "None":
     Pprof = mpi.reduce(P.internalValues(), mpi.SUM)
     vprof = mpi.reduce([v.x for v in nodes1.velocity().internalValues()], mpi.SUM)
     epsprof = mpi.reduce(nodes1.specificThermalEnergy().internalValues(), mpi.SUM)
+    Qprof = mpi.reduce(hydro.viscousWork()[0].internalValues(), mpi.SUM)
     hprof = mpi.reduce([1.0/sqrt(H.Determinant()) for H in nodes1.Hfield().internalValues()], mpi.SUM)
     mof = mortonOrderIndices(db)
     mo = mpi.reduce(mof[0].internalValues(), mpi.SUM)
     if mpi.rank == 0:
         rprof = [sqrt(xi*xi + yi*yi) for xi, yi in zip(xprof, yprof)]
-        multiSort(rprof, mo, xprof, yprof, rhoprof, Pprof, vprof, epsprof, hprof)
+        multiSort(rprof, mo, xprof, yprof, rhoprof, Pprof, vprof, epsprof, hprof, Qprof)
         rans, vans, epsans, rhoans, Pans, hans = answer.solution(control.time(), rprof)
         f = open(outputFile, "w")
-        f.write(("# " + 20*"%15s " + "\n") % ("r", "x", "y", "rho", "P", "v", "eps", "h", "mortonOrder",
+        f.write(("# " + 21*"%15s " + "\n") % ("r", "x", "y", "rho", "P", "v", "eps", "h", "mortonOrder", "QWork",
                                               "rhoans", "Pans", "vans", "epsans",
                                               "x_uu", "y_uu", "rho_uu", "P_uu", "v_uu", "eps_uu", "h_uu"))
-        for (ri, xi, yi, rhoi, Pi, vi, epsi, hi, mi, 
-             rhoansi, Pansi, vansi, epsansi)  in zip(rprof, xprof, yprof, rhoprof, Pprof, vprof, epsprof, hprof, mo,
+        for (ri, xi, yi, rhoi, Pi, vi, epsi, hi, mi, Qi,
+             rhoansi, Pansi, vansi, epsansi)  in zip(rprof, xprof, yprof, rhoprof, Pprof, vprof, epsprof, hprof, mo, Qprof,
                                                      rhoans, Pans, vans, epsans):
-            f.write((8*"%16.12e " + "%i " + 4*"%16.12e " + 7*"%i " + "\n") % (ri, xi, yi, rhoi, Pi, vi, epsi, hi, mi,
+            f.write((8*"%16.12e " + "%i " + 5*"%16.12e " + 7*"%i " + "\n") % (ri, xi, yi, rhoi, Pi, vi, epsi, hi, mi, Qi,
                                                                               rhoansi, Pansi, vansi, epsansi,
                                                                               unpackElementUL(packElementDouble(xi)),
                                                                               unpackElementUL(packElementDouble(yi)),
@@ -569,3 +581,7 @@ if outputFile != "None":
             comparisonFile = os.path.join(dataDir, comparisonFile)
             import filecmp
             assert filecmp.cmp(outputFile, comparisonFile)
+Eerror = (control.conserve.EHistory[-1] - control.conserve.EHistory[0])/max(1.0e-30, control.conserve.EHistory[0])
+print "Total energy error: %g" % Eerror
+if compatibleEnergy and abs(Eerror) > 1e-13:
+    raise ValueError, "Energy error outside allowed bounds."

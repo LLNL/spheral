@@ -227,9 +227,9 @@ SILODIR = $(SILODIST:.tar.gz=)
 SILOBUILDDATE = $(patsubst %.tar.gz, .%.date, $(SILODIST))
 
 # Eigen
-EIGENDIST = Eigen-3.2.5.tar.bz2
-EIGENURL = http://bitbucket.org/eigen/eigen/get/3.2.5.tar.bz2
-EIGENDIR = eigen-eigen-bdd17ee3b1b3
+EIGENDIST = Eigen-3.2.6.tar.bz2
+EIGENURL = http://bitbucket.org/eigen/eigen/get/3.2.6.tar.bz2
+EIGENDIR = eigen-eigen-c58038c56923
 EIGENBUILDDATE = .eigen.date
 
 # # Voro++
@@ -319,7 +319,6 @@ all:	$(PYTHONBUILDDATE) \
 	$(SILOBUILDDATE) \
 	$(EIGENBUILDDATE) \
 	$(MPMATHBUILDDATE) \
-	$(POLYTOPEBUILDDATE) \
 	$(OPENSUBDIVTARGETS) \
 	$(EXTRATHIRDPARTYTARGETS) \
 #	$(HYPREBUILDDATE)
@@ -842,7 +841,7 @@ $(HASHMAPBUILDDATE):	$(HASHMAPDIST)
 $(VISITWRITERDIST):
 	$(CURL) "$(VISITWRITERURL)" > $(VISITWRITERDIST)
 
-$(VISITWRITERBUILDDATE):  $(VISITWRITERDIST) $(POLYTOPEBUILDDATE)
+$(VISITWRITERBUILDDATE):  $(VISITWRITERDIST)
 	@echo "################################################################################"
 	@echo "# Building $(VISITWRITERDIST)"
 	@echo "################################################################################"

@@ -1,3 +1,9 @@
+#ATS:test(SELF, "--CRKSPH=True --nx1=128 --nx2=128 --ny1=256 --ny2=512 --cfl=0.25 --Cl=1.0 --Cq=1.0 --clearDirectories=False --filter=0 --nPerh=1.51 --serialDump=True", label="RT CRK, nPerh=1.5", np=16)
+#ATS:test(SELF, "--CRKSPH=True --nx1=128 --nx2=128 --ny1=256 --ny2=512 --cfl=0.25 --Cl=1.0 --Cq=1.0 --clearDirectories=False --filter=0 --nPerh=2.01 --serialDump=True", label="RT CRK, nPerh=2.0", np=16)
+#ATS:test(SELF, "--CRKSPH=False --nx1=128 --nx2=128 --ny1=256 --ny2=512 --cfl=0.25 --Cl=1.0 --Cq=1.0 --clearDirectories=False --filter=0 --nPerh=1.51 --serialDump=True", label="RT Spheral, nPerh=1.5", np=16)
+#ATS:test(SELF, "--CRKSPH=False --nx1=128 --nx2=128 --ny1=256 --ny2=512 --cfl=0.25 --Cl=0.0 --Cq=0.0 --clearDirectories=False --filter=0 --nPerh=1.51 --serialDump=True", label="RT Spheral-NoQ, nPerh=1.5", np=16)
+#ATS:test(SELF, "--CRKSPH=False --nx1=128 --nx2=128 --ny1=256 --ny2=512 --cfl=0.25 --Cl=0.0 --Cq=0.0 --clearDirectories=False --filter=0 --nPerh=1.51  --serialDump=True --compatibleEnergy=False", label="RT TSPH-NoQ, nPerh=1.5", np=16)
+
 #-------------------------------------------------------------------------------
 # This is the basic Rayleigh-Taylor Problem
 #-------------------------------------------------------------------------------
@@ -86,7 +92,7 @@ commandLine(nx1     = 50,
             nTensile = 8,
             
             IntegratorConstructor = CheapSynchronousRK2Integrator,
-            goalTime = 4.0,
+            goalTime = 5.0,
             steps = None,
             vizCycle = None,
             vizTime = 0.01,
@@ -318,7 +324,8 @@ output("q.quadraticInExpansion")
 # Construct the hydro physics object.
 #-------------------------------------------------------------------------------
 if SVPH:
-    hydro = HydroConstructor(WT, q,
+    hydro = HydroConstructor(W = WT, 
+                             Q = q,
                              cfl = cfl,
                              useVelocityMagnitudeForDt = useVelocityMagnitudeForDt,
                              compatibleEnergyEvolution = compatibleEnergy,
@@ -334,7 +341,9 @@ if SVPH:
 # xmin = Vector(x0 - 0.5*(x2 - x0), y0 - 0.5*(y2 - y0)),
 # xmax = Vector(x2 + 0.5*(x2 - x0), y2 + 0.5*(y2 - y0)))
 elif CRKSPH:
-    hydro = HydroConstructor(WT, WTPi, q,
+    hydro = HydroConstructor(W = WT,
+                             WPi = WTPi,
+                             Q = q,
                              filter = filter,
                              cfl = cfl,
                              useVelocityMagnitudeForDt = useVelocityMagnitudeForDt,
@@ -343,9 +352,9 @@ elif CRKSPH:
                              densityUpdate = densityUpdate,
                              HUpdate = HUpdate)
 else:
-    hydro = HydroConstructor(WT,
-                             WTPi,
-                             q,
+    hydro = HydroConstructor(W = WT,
+                             WPi = WTPi,
+                             Q = q,
                              cfl = cfl,
                              useVelocityMagnitudeForDt = useVelocityMagnitudeForDt,
                              compatibleEnergyEvolution = compatibleEnergy,

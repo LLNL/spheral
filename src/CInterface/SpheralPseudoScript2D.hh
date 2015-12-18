@@ -42,6 +42,7 @@ public:
   typedef Dim<2>::Vector Vector;
   typedef Dim<2>::Tensor Tensor;
   typedef Dim<2>::SymTensor SymTensor;
+  typedef FieldSpace::Field<Dimension, std::vector<double> > FlawStorageType;
 
   // Get the instance.
   static SpheralPseudoScript2D& instance();
@@ -56,6 +57,7 @@ public:
                          const bool useVelocityDt,
                          const bool ScalarQ,
                          const bool addDistributedBoundary,
+                         const bool useDamage,
                          const int kernelType,
                          const int piKernelType,
                          const int gradKernelType,
@@ -93,7 +95,9 @@ public:
                                const double* bulkModulus,
                                const double* shearModulus,
                                const double* yieldStrength,
-                               const double* plasticStrain);
+                               const double* plasticStrain,
+                               const double* damage,
+                               const int* particleType);
 
   // updateState -- updates values of state fields without resizing.
   static void updateState(const double* mass,
@@ -114,7 +118,9 @@ public:
                           const double* bulkModulus,
                           const double* shearModulus,
                           const double* yieldStrength,
-                          const double* plasticStrain);
+                          const double* plasticStrain,
+                          const double* damage,
+                          const int* particleType);
 
   // evaluateDerivatives -- computes the fluid time derivatives.
   static void evaluateDerivatives(double* massDensitySum,
@@ -178,6 +184,9 @@ private:
 
   // Flag as to whether we're doing the DistributedBoundary or not.
   bool mAddDistributedBoundary;
+
+  // Flag as to whether we're going to use damage or not.
+  bool mUseDamage;
 
   // The material data.
   boost::shared_ptr<Material::PhysicalConstants> mUnitsPtr;

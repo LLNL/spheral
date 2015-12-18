@@ -31,6 +31,7 @@ struct SolidFieldNames {
   static const std::string porosityAlpha;
   static const std::string porosityStrain;
   static const std::string fragmentIDs;
+  static const std::string particleTypes;
 };
 
 }

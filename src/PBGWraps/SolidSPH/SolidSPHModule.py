@@ -145,9 +145,10 @@ self.generateSolidSPHHydroBaseBindings(self.SolidSPHHydroBase%(dim)id, %(dim)i)
 
         # Constructors.
         x.add_constructor([constrefparam(smoothingscalebase, "smoothingScaleMethod"),
+                           refparam(artificialviscosity, "Q"),
                            constrefparam(tablekernel, "W"),
                            constrefparam(tablekernel, "WPi"),
-                           refparam(artificialviscosity, "Q"),
+                           constrefparam(tablekernel, "WGrad"),
                            param("double", "filter", default_value="0.0"),
                            param("double", "cfl", default_value="0.5"),
                            param("int", "useVelocityMagnitudeForDt", default_value="false"),

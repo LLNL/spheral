@@ -11,11 +11,17 @@
 #include "Geometry/GeomTensor.hh"
 #include "Geometry/GeomSymmetricTensor.hh"
 #include "Geometry/GeomThirdRankTensor.hh"
+#include "Geometry/GeomFourthRankTensor.hh"
+#include "Geometry/GeomFifthRankTensor.hh"
 #include "Geometry/EigenStruct.hh"
 #include "Geometry/computeEigenValues.hh"
 #include "Geometry/GeomPlane.hh"
 #include "Geometry/GeomPolygon.hh"
 #include "Geometry/GeomPolyhedron.hh"
+#include "Geometry/invertRankNTensor.hh"
+#include "Geometry/innerProduct.hh"
+#include "Geometry/outerProduct.hh"
+#include "Geometry/innerDoubleProduct.hh"
 #include "Utilities/DataTypeTraits.hh"
 
 using namespace Spheral;
@@ -40,6 +46,14 @@ typedef GeomSymmetricTensor<3> SymTensor3d;
 typedef GeomThirdRankTensor<1> ThirdRankTensor1d;
 typedef GeomThirdRankTensor<2> ThirdRankTensor2d;
 typedef GeomThirdRankTensor<3> ThirdRankTensor3d;
+
+typedef GeomFourthRankTensor<1> FourthRankTensor1d;
+typedef GeomFourthRankTensor<2> FourthRankTensor2d;
+typedef GeomFourthRankTensor<3> FourthRankTensor3d;
+
+typedef GeomFifthRankTensor<1> FifthRankTensor1d;
+typedef GeomFifthRankTensor<2> FifthRankTensor2d;
+typedef GeomFifthRankTensor<3> FifthRankTensor3d;
 
 typedef EigenStruct<1> EigenStruct1d;
 typedef EigenStruct<2> EigenStruct2d;
@@ -133,17 +147,65 @@ containsGeomType(Type& self,
 }
 
 //------------------------------------------------------------------------------
-// Set the given element of a third rank tensor.
+// Set the given element of a second rank tensor.
 //------------------------------------------------------------------------------
-template<typename TRT>
+template<typename TT>
 inline
 void
-assignThirdRankTensorElement(TRT& self,
+assignSecondRankTensorElement(TT& self,
+                              const size_t i,
+                              const size_t j,
+                              const double val) {
+  VERIFY(i < TT::nDimensions and j < TT::nDimensions);
+  self(i,j) = val;
+}
+
+//------------------------------------------------------------------------------
+// Set the given element of a third rank tensor.
+//------------------------------------------------------------------------------
+template<typename TT>
+inline
+void
+assignThirdRankTensorElement(TT& self,
                              const size_t i,
                              const size_t j,
                              const size_t k,
                              const double val) {
+  VERIFY(i < TT::nDimensions and j < TT::nDimensions and k < TT::nDimensions);
   self(i,j,k) = val;
+}
+
+//------------------------------------------------------------------------------
+// Set the given element of a fourth rank tensor.
+//------------------------------------------------------------------------------
+template<typename TT>
+inline
+void
+assignFourthRankTensorElement(TT& self,
+                              const size_t i,
+                              const size_t j,
+                              const size_t k,
+                              const size_t m,
+                              const double val) {
+  VERIFY(i < TT::nDimensions and j < TT::nDimensions and k < TT::nDimensions and m < TT::nDimensions);
+  self(i,j,k,m) = val;
+}
+
+//------------------------------------------------------------------------------
+// Set the given element of a fifth rank tensor.
+//------------------------------------------------------------------------------
+template<typename TT>
+inline
+void
+assignFifthRankTensorElement(TT& self,
+                              const size_t i,
+                              const size_t j,
+                              const size_t k,
+                              const size_t m,
+                              const size_t n,
+                              const double val) {
+  VERIFY(i < TT::nDimensions and j < TT::nDimensions and k < TT::nDimensions and m < TT::nDimensions and n < TT::nDimensions);
+  self(i,j,k,m,n) = val;
 }
 
 //------------------------------------------------------------------------------
@@ -175,30 +237,6 @@ printReprTensor(const Tensor& val) {
     s << "( ";
     for (size_t col = 0; col != Tensor::nDimensions; ++col) {
       s << val(row, col) << " ";
-    }
-    s << ")";
-  }
-  s << ")";
-  return s.str();
-}
-
-//------------------------------------------------------------------------------
-// Nice string representations (ThirdRankTensor)
-//------------------------------------------------------------------------------
-template<typename TRTensor>
-inline
-std::string
-printReprThirdRankTensor(const TRTensor& val) {
-  std::stringstream s;
-  s << "Tensor" << TRTensor::nDimensions << "d(";
-  for (size_t i = 0; i != TRTensor::nDimensions; ++i) {
-    s << "( ";
-    for (size_t j = 0; j != TRTensor::nDimensions; ++j) {
-      s << "( ";
-      for (size_t k = 0; k != TRTensor::nDimensions; ++k) {
-        s << val(i, j, k) << " ";
-      }
-      s << ")";
     }
     s << ")";
   }

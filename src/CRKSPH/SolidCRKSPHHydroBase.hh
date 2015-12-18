@@ -47,14 +47,15 @@ public:
   typedef typename Dimension::Vector Vector;
   typedef typename Dimension::Tensor Tensor;
   typedef typename Dimension::SymTensor SymTensor;
+  typedef typename Dimension::ThirdRankTensor ThirdRankTensor;
 
   typedef typename PhysicsSpace::Physics<Dimension>::ConstBoundaryIterator ConstBoundaryIterator;
 
   // Constructors.
   SolidCRKSPHHydroBase(const NodeSpace::SmoothingScaleBase<Dimension>& smoothingScaleMethod,
+                       ArtificialViscositySpace::ArtificialViscosity<Dimension>& Q,
                        const KernelSpace::TableKernel<Dimension>& W,
                        const KernelSpace::TableKernel<Dimension>& WPi,
-                       ArtificialViscositySpace::ArtificialViscosity<Dimension>& Q,
                        const double filter,
                        const double cfl,
                        const bool useVelocityMagnitudeForDt,
@@ -62,6 +63,7 @@ public:
                        const bool XSPH,
                        const PhysicsSpace::MassDensityType densityUpdate,
                        const PhysicsSpace::HEvolutionType HUpdate,
+                       const CRKSPHSpace::CRKOrder correctionOrder,
                        const double epsTensile,
                        const double nTensile);
 

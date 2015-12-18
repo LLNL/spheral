@@ -13,6 +13,7 @@ LIBTARGET = libSpheral_$(PKGNAME).$(DYLIBEXT)
 INSTSRCTARGETS = \
 	$(srcdir)/LinearPolynomialEquationOfStateInst.cc.py \
 	$(srcdir)/GruneisenEquationOfStateInst.cc.py \
+	$(srcdir)/OsborneEquationOfStateInst.cc.py \
 	$(srcdir)/MurnahanEquationOfStateInst.cc.py \
 	$(srcdir)/TillotsonEquationOfStateInst.cc.py \
 	$(srcdir)/SteinbergGuinanStrengthInst.cc.py \

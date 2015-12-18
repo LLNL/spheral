@@ -49,6 +49,7 @@ BPLINCS = @BPLINCS@
 HDF5FLAGS = @HDF5FLAGS@
 POLYTOPEFLAGS = @POLYTOPEFLAGS@
 POLYTOPELIBS = @POLYTOPELIBS@
+USE_POLYTOPE = @USE_POLYTOPE@
 USE_TRIANGLE = @USE_TRIANGLE@
 USE_TETGEN = @USE_TETGEN@
 
@@ -268,6 +269,7 @@ force_build:
 
 %.o: %.f90
 	$(FORT) $(FORTFLAGS) -c $< -o $(*F).o
+
 %.o:	%.cpp
 	$(MPICXX) $(MPICXXFLAGS) $(INCS) $(BPLINCS) -I. -c $< -o $(*F).o
 
@@ -329,6 +331,7 @@ $(STATICLIBTARGET): $(LIBTARGET)
 	@echo "################################################################################"
 	@mkdir -p $(LIBDIR)
 	ar rcs $(STATICLIBTARGET) $(OBJS) $(PYFFLEOBJS)
+	cp -f $(STATICLIBTARGET) $(LIBDIR)
 
 #-------------------------------------------------------------------------------
 $(THIRDPARTYLIBTARGET): $(OBJS) $(PYFFLEOBJS) $(EXETARGETS)

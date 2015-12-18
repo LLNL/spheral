@@ -21,9 +21,10 @@ namespace FractalSpace
     bool time_trial;
     int min_hypre_group_size;
     bool hypre_load_balance;
-    int HypreMaxSpecial;
+//     int HypreMaxSpecial;
     int hypre_max_node_load;
-    int hypre_max_average_load;
+    double hypre_multiplier;
+//     int hypre_max_average_load;
     double G;
     vector <double>xmin;
     vector <double>xmax;
@@ -150,8 +151,8 @@ namespace FractalSpace
     vector <int> masks_level_init;
     //
     vector < vector<Group*> > all_groups;
-    vector < vector<Group*> > all_buffer_groups;
-    vector < vector<Group*> > all_inside_groups;
+//     vector < vector<Group*> > all_buffer_groups;
+//     vector < vector<Group*> > all_inside_groups;
     Misc* p_misc; 
     Fractal* p_fractal;
     Mess* p_mess;
@@ -176,9 +177,8 @@ namespace FractalSpace
       time_trial(true),
       min_hypre_group_size(45),
       hypre_load_balance(false),
-      HypreMaxSpecial(200000),
-      hypre_max_node_load(30000),
-      hypre_max_average_load(20000),
+      hypre_max_node_load(40000),
+      hypre_multiplier(2.0),
       G(1.0),
       amnesia(true),
       mind_wipe(false),

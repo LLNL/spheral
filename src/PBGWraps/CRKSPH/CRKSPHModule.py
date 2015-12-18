@@ -32,6 +32,7 @@ generichydro%(dim)id = findObject(PhysicsSpace, "GenericHydro%(dim)id")
 self.CRKSPHHydroBase%(dim)id = addObject(self.space, "CRKSPHHydroBase%(dim)id", allow_subclassing=True, parent=generichydro%(dim)id)
 self.SolidCRKSPHHydroBase%(dim)id = addObject(self.space, "SolidCRKSPHHydroBase%(dim)id", allow_subclassing=True, parent=self.CRKSPHHydroBase%(dim)id)
 ''' % {"dim" : dim})
+        self.CRKOrder = self.space.add_enum("CRKOrder", ["ZerothOrder", "LinearOrder", "QuadraticOrder"])
 
         return
 
@@ -80,19 +81,22 @@ self.generateSolidCRKSPHHydroBaseBindings(self.SolidCRKSPHHydroBase%(dim)id, %(d
 
         # Helper to compute the CRKSPH kernel.
         self.space.add_function("CRKSPHKernel", "double", [constrefparam(tablekernel, "W"),
+           						   param("int","correctionOrder"),
                                                            constrefparam(vector, "rij"),
                                                            constrefparam(vector, "etai"),
                                                            param("double", "Hdeti"),
                                                            constrefparam(vector, "etaj"),
                                                            param("double", "Hdetj"),
                                                            param("double", "Ai"),
-                                                           constrefparam(vector, "Bi")],
+                                                           constrefparam(vector, "Bi"),
+      							   constrefparam(tensor, "Ci")],
                                 template_parameters = [dim],
                                 custom_name = "CRKSPHKernel%id" % ndim,
                                 docstring = "Evaluate the CRKSPH corrected kernel.")
 
         # Simultaneously evaluate the CRKSPH kernel and it's gradient.
         self.space.add_function("CRKSPHKernelAndGradient%id" % ndim, None, [constrefparam(tablekernel, "W"),
+									    param("int","correctionOrder"),
                                                                             constrefparam(vector, "rij"),
                                                                             constrefparam(vector, "etai"),
                                                                             constrefparam(symtensor, "Hi"),
@@ -102,8 +106,10 @@ self.generateSolidCRKSPHHydroBaseBindings(self.SolidCRKSPHHydroBase%(dim)id, %(d
                                                                             param("double", "Hdetj"),
                                                                             param("double", "Ai"),
                                                                             constrefparam(vector, "Bi"),
+                                                                            constrefparam(tensor, "Ci"),
                                                                             constrefparam(vector, "gradAi"),
                                                                             constrefparam(tensor, "gradBi"),
+                                                                            constrefparam(thirdranktensor, "gradCi"),
                                                                             Parameter.new("double*", "WCRKSPH", direction=Parameter.DIRECTION_OUT),
                                                                             Parameter.new("double*", "gradWSPH", direction=Parameter.DIRECTION_OUT),
                                                                             refparam(vector, "gradWCRKSPH")],
@@ -132,18 +138,6 @@ self.generateSolidCRKSPHHydroBaseBindings(self.SolidCRKSPHHydroBase%(dim)id, %(d
                                 template_parameters = [dim],
                                 custom_name = "computeSolidCRKSPHSumMassDensity%id" % ndim)
 
-        # Hull sum density.
-        self.space.add_function("computeHullSumMassDensity", None,
-                                [constrefparam(connectivitymap, "connectivityMap"),
-                                 constrefparam(tablekernel, "W"),
-                                 constrefparam(vectorfieldlist, "position"),
-                                 constrefparam(scalarfieldlist, "mass"),
-                                 constrefparam(symtensorfieldlist, "H"),
-                                 constrefparam("Spheral::NodeCoupling", "nodeCoupling"),
-                                 refparam(scalarfieldlist, "massDensity")],
-                                template_parameters = [dim],
-                                custom_name = "computeHullSumMassDensity%id" % ndim)
-
         # CRKSPH corrections.
         self.space.add_function("computeCRKSPHCorrections", None,
                                 [constrefparam(connectivitymap, "connectivityMap"),
@@ -151,10 +145,14 @@ self.generateSolidCRKSPHHydroBaseBindings(self.SolidCRKSPHHydroBase%(dim)id, %(d
                                  constrefparam(scalarfieldlist, "weight"),
                                  constrefparam(vectorfieldlist, "position"),
                                  constrefparam(symtensorfieldlist, "H"),
+                                 #constrefparam("Spheral::CRKSPHSpace::CRKOrder","correctionOrder"),
+                                 param("int","correctionOrder"),
                                  refparam(scalarfieldlist, "A"),
                                  refparam(vectorfieldlist, "B"),
+                                 refparam(tensorfieldlist, "C"),
                                  refparam(vectorfieldlist, "gradA"),
-                                 refparam(tensorfieldlist, "gradB")],
+                                 refparam(tensorfieldlist, "gradB"),
+                                 refparam(thirdranktensorfieldlist, "gradC")],
                                 template_parameters = [dim],
                                 custom_name = "computeCRKSPHCorrections%id" % ndim)
         self.space.add_function("computeCRKSPHCorrections", None,
@@ -188,7 +186,9 @@ self.generateSolidCRKSPHHydroBaseBindings(self.SolidCRKSPHHydroBase%(dim)id, %(d
                                      constrefparam(symtensorfieldlist, "H"),
                                      constrefparam(scalarfieldlist, "A"),
                                      constrefparam(vectorfieldlist, "B"),
+                                     constrefparam(tensorfieldlist, "C"),
                                      constrefparam(connectivitymap, "connectivityMap"),
+                                     param("int","correctionOrder"),
                                      constrefparam(tablekernel, "W")],
                                     template_parameters = [dim, element],
                                     custom_name = "interpolateCRKSPH",
@@ -200,7 +200,9 @@ self.generateSolidCRKSPHHydroBaseBindings(self.SolidCRKSPHHydroBase%(dim)id, %(d
                                      constrefparam(symtensorfieldlist, "H"),
                                      constrefparam(scalarfieldlist, "A"),
                                      constrefparam(vectorfieldlist, "B"),
+                                     constrefparam(tensorfieldlist, "C"),
                                      constrefparam(connectivitymap, "connectivityMap"),
+                                     param("int","correctionOrder"),
                                      constrefparam(tablekernel, "W"),
                                      constrefparam("Spheral::NodeCoupling", "nodeCoupling")],
                                     template_parameters = [dim, element],
@@ -217,9 +219,12 @@ self.generateSolidCRKSPHHydroBaseBindings(self.SolidCRKSPHHydroBase%(dim)id, %(d
                                      constrefparam(symtensorfieldlist, "H"),
                                      constrefparam(scalarfieldlist, "A"),
                                      constrefparam(vectorfieldlist, "B"),
+                                     constrefparam(tensorfieldlist, "C"),
                                      constrefparam(vectorfieldlist, "gradA"),
                                      constrefparam(tensorfieldlist, "gradB"),
+                                     constrefparam(thirdranktensorfieldlist, "gradC"),
                                      constrefparam(connectivitymap, "connectivityMap"),
+                                     param("int","correctionOrder"),
                                      constrefparam(tablekernel, "W")],
                                     template_parameters = [dim, element],
                                     custom_name = "gradientCRKSPH",
@@ -231,9 +236,12 @@ self.generateSolidCRKSPHHydroBaseBindings(self.SolidCRKSPHHydroBase%(dim)id, %(d
                                      constrefparam(symtensorfieldlist, "H"),
                                      constrefparam(scalarfieldlist, "A"),
                                      constrefparam(vectorfieldlist, "B"),
+                                     constrefparam(tensorfieldlist, "C"),
                                      constrefparam(vectorfieldlist, "gradA"),
                                      constrefparam(tensorfieldlist, "gradB"),
+                                     constrefparam(thirdranktensorfieldlist, "gradC"),
                                      constrefparam(connectivitymap, "connectivityMap"),
+                                     param("int","correctionOrder"),
                                      constrefparam(tablekernel, "W"),
                                      constrefparam("Spheral::NodeCoupling", "nodeCoupling")],
                                     template_parameters = [dim, element],
@@ -256,11 +264,6 @@ self.generateSolidCRKSPHHydroBaseBindings(self.SolidCRKSPHHydroBase%(dim)id, %(d
                               refparam(polyvolfieldlist, "polyvol"),
                               refparam(scalarfieldlist, "volume")],
                              docstring = "Compute the hull volume for each point in a FieldList of positions.")
-
-        # Compute the centroids.
-        Spheral.add_function("computeVoronoiCentroids", vectorfieldlist,
-                             [constrefparam(vectorfieldlist, "position")],
-                             docstring = "Compute the Voronoi based centroids for each point in a FieldList of positions.")
 
         # Compute the H scaled volume for each point.
         Spheral.add_function("computeHVolumes", None,
@@ -326,9 +329,9 @@ self.generateSolidCRKSPHHydroBaseBindings(self.SolidCRKSPHHydroBase%(dim)id, %(d
 
         # Constructors.
         x.add_constructor([constrefparam(smoothingscalebase, "smoothingScaleMethod"),
+                           refparam(artificialviscosity, "Q"),
                            constrefparam(tablekernel, "W"),
                            constrefparam(tablekernel, "WPi"),
-                           refparam(artificialviscosity, "Q"),
                            param("double", "filter", default_value="0.1"),
                            param("double", "cfl", default_value="0.5"),
                            param("int", "useVelocityMagnitudeForDt", default_value="false"),
@@ -336,6 +339,7 @@ self.generateSolidCRKSPHHydroBaseBindings(self.SolidCRKSPHHydroBase%(dim)id, %(d
                            param("int", "XSPH", default_value="true"),
                            param("MassDensityType", "densityUpdate", default_value="Spheral::PhysicsSpace::RigorousSumDensity"),
                            param("HEvolutionType", "HUpdate", default_value="Spheral::PhysicsSpace::IdealH"),
+                           param("CRKOrder", "correctionOrder", default_value="Spheral::CRKSPHSpace::LinearOrder"),
                            param("double", "epsTensile", default_value="0.0"),
                            param("double", "nTensile", default_value="4.0")])
 
@@ -389,6 +393,7 @@ self.generateSolidCRKSPHHydroBaseBindings(self.SolidCRKSPHHydroBase%(dim)id, %(d
         # Attributes.
         x.add_instance_attribute("densityUpdate", "MassDensityType", getter="densityUpdate", setter="densityUpdate")
         x.add_instance_attribute("HEvolution", "HEvolutionType", getter="HEvolution", setter="HEvolution")
+        x.add_instance_attribute("correctionOrder", "CRKOrder", getter="correctionOrder", setter="correctionOrder")
         x.add_instance_attribute("compatibleEnergyEvolution", "bool", getter="compatibleEnergyEvolution", setter="compatibleEnergyEvolution")
         x.add_instance_attribute("XSPH", "bool", getter="XSPH", setter="XSPH")
         x.add_instance_attribute("filter", "double", getter="filter", setter="filter")
@@ -418,8 +423,10 @@ self.generateSolidCRKSPHHydroBaseBindings(self.SolidCRKSPHHydroBase%(dim)id, %(d
 
         const_ref_return_value(x, me, "%s::A" % me, scalarfieldlist, [], "A")
         const_ref_return_value(x, me, "%s::B" % me, vectorfieldlist, [], "B")
+        const_ref_return_value(x, me, "%s::C" % me, tensorfieldlist, [], "C")
         const_ref_return_value(x, me, "%s::gradA" % me, vectorfieldlist, [], "gradA")
         const_ref_return_value(x, me, "%s::gradB" % me, tensorfieldlist, [], "gradB")
+        const_ref_return_value(x, me, "%s::gradC" % me, thirdranktensorfieldlist, [], "gradC")
         const_ref_return_value(x, me, "%s::surfNorm" % me, vectorfieldlist, [], "surfNorm")
 
         return
@@ -470,9 +477,9 @@ self.generateSolidCRKSPHHydroBaseBindings(self.SolidCRKSPHHydroBase%(dim)id, %(d
 
         # Constructors.
         x.add_constructor([constrefparam(smoothingscalebase, "smoothingScaleMethod"),
+                           refparam(artificialviscosity, "Q"),
                            constrefparam(tablekernel, "W"),
                            constrefparam(tablekernel, "WPi"),
-                           refparam(artificialviscosity, "Q"),
                            param("double", "filter", default_value="0.0"),
                            param("double", "cfl", default_value="0.25"),
                            param("int", "useVelocityMagnitudeForDt", default_value="false"),
@@ -480,6 +487,7 @@ self.generateSolidCRKSPHHydroBaseBindings(self.SolidCRKSPHHydroBase%(dim)id, %(d
                            param("int", "XSPH", default_value="true"),
                            param("MassDensityType", "densityUpdate", default_value="Spheral::PhysicsSpace::RigorousSumDensity"),
                            param("HEvolutionType", "HUpdate", default_value="Spheral::PhysicsSpace::IdealH"),
+                           param("CRKOrder", "correctionOrder", default_value="Spheral::CRKSPHSpace::LinearOrder"),
                            param("double", "epsTensile", default_value="0.0"),
                            param("double", "nTensile", default_value="4.0")])
 

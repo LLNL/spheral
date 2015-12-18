@@ -102,10 +102,10 @@ tensileStressCorrection(const Dim<3>::SymTensor& sigma) {
 template<typename Dimension>
 SolidSPHHydroBase<Dimension>::
 SolidSPHHydroBase(const SmoothingScaleBase<Dimension>& smoothingScaleMethod,
+                  ArtificialViscosity<Dimension>& Q,
                   const TableKernel<Dimension>& W,
                   const TableKernel<Dimension>& WPi,
                   const TableKernel<Dimension>& WGrad,
-                  ArtificialViscosity<Dimension>& Q,
                   const double filter,
                   const double cfl,
                   const bool useVelocityMagnitudeForDt,
@@ -121,14 +121,15 @@ SolidSPHHydroBase(const SmoothingScaleBase<Dimension>& smoothingScaleMethod,
                   const Vector& xmin,
                   const Vector& xmax):
   SPHHydroBase<Dimension>(smoothingScaleMethod, 
+                          Q,
                           W,
                           WPi,
-                          Q,
                           filter,
                           cfl,
                           useVelocityMagnitudeForDt,
                           compatibleEnergyEvolution,
                           gradhCorrection,
+                          false,              // Currently don't support PSPH in solids
                           XSPH,
                           correctVelocityGradient,
                           sumMassDensityOverAllNodeLists,
@@ -214,6 +215,7 @@ registerState(DataBase<Dimension>& dataBase,
   FieldList<Dimension, Scalar> ps;
   FieldList<Dimension, Vector> gradD;
   FieldList<Dimension, int> fragIDs;
+  FieldList<Dimension, int> pTypes;
   size_t nodeListi = 0;
   for (typename DataBase<Dimension>::SolidNodeListIterator itr = dataBase.solidNodeListBegin();
        itr != dataBase.solidNodeListEnd();
@@ -223,6 +225,7 @@ registerState(DataBase<Dimension>& dataBase,
     D.appendField((*itr)->effectiveDamage());
     gradD.appendField((*itr)->damageGradient());
     fragIDs.appendField((*itr)->fragmentIDs());
+    pTypes.appendField((*itr)->particleTypes());
 
     // Make a copy of the beginning plastic strain.
     *mPlasticStrain0[nodeListi] = (*itr)->plasticStrain();
@@ -254,6 +257,9 @@ registerState(DataBase<Dimension>& dataBase,
 
   // Register the fragment IDs.
   state.enroll(fragIDs);
+
+  // Register the particle types.
+  state.enroll(pTypes);
 
   // And finally the intial plastic strain.
   state.enroll(mPlasticStrain0);
@@ -312,6 +318,7 @@ evaluateDerivatives(const typename Dimension::Scalar time,
 
   // A few useful constants we'll use in the following loop.
   typedef typename Timing::Time Time;
+  const double tiny = 1.0e-30;
   const Scalar W0 = W(0.0, 1.0);
   const Scalar WQ0 = WQ(0.0, 1.0);
   const Scalar epsTensile = this->epsilonTensile();
@@ -339,6 +346,7 @@ evaluateDerivatives(const typename Dimension::Scalar time,
   const FieldList<Dimension, SymTensor> damage = state.fields(SolidFieldNames::effectiveTensorDamage, SymTensor::zero);
   const FieldList<Dimension, Vector> gradDamage = state.fields(SolidFieldNames::damageGradient, Vector::zero);
   const FieldList<Dimension, int> fragIDs = state.fields(SolidFieldNames::fragmentIDs, int(1));
+  const FieldList<Dimension, int> pTypes = state.fields(SolidFieldNames::particleTypes, int(0));
   CHECK(mass.size() == numNodeLists);
   CHECK(position.size() == numNodeLists);
   CHECK(velocity.size() == numNodeLists);
@@ -353,6 +361,7 @@ evaluateDerivatives(const typename Dimension::Scalar time,
   CHECK(damage.size() == numNodeLists);
   CHECK(gradDamage.size() == numNodeLists);
   CHECK(fragIDs.size() == numNodeLists);
+  CHECK(pTypes.size() == numNodeLists);
 
   // Derivative FieldLists.
   FieldList<Dimension, Scalar> rhoSum = derivatives.fields(ReplaceFieldList<Dimension, Scalar>::prefix() + HydroFieldNames::massDensity, 0.0);
@@ -455,8 +464,9 @@ evaluateDerivatives(const typename Dimension::Scalar time,
       const SymTensor& Si = S(nodeListi, i);
       const Scalar& mui = mu(nodeListi, i);
       const Scalar Hdeti = Hi.Determinant();
-      const Scalar safeOmegai = omegai/(omegai*omegai + 1.0e-4);
+      const Scalar safeOmegai = 1.0/max(tiny, omegai);
       const int fragIDi = fragIDs(nodeListi, i);
+      const int pTypei = pTypes(nodeListi, i);
       CHECK(mi > 0.0);
       CHECK(rhoi > 0.0);
       CHECK(omegai > 0.0);
@@ -523,8 +533,9 @@ evaluateDerivatives(const typename Dimension::Scalar time,
               const Scalar& omegaj = omega(nodeListj, j);
               const SymTensor& Sj = S(nodeListj, j);
               const Scalar Hdetj = Hj.Determinant();
-              const Scalar safeOmegaj = omegaj/(omegaj*omegaj + 1.0e-4);
+              const Scalar safeOmegaj = 1.0/max(tiny, omegaj);
               const int fragIDj = fragIDs(nodeListj, j);
+              const int pTypej = pTypes(nodeListj, j);
               CHECK(mj > 0.0);
               CHECK(rhoj > 0.0);
               CHECK(Hdetj > 0.0);
@@ -550,6 +561,9 @@ evaluateDerivatives(const typename Dimension::Scalar time,
 
               // Flag if this is a contiguous material pair or not.
               const bool sameMatij = (nodeListi == nodeListj and fragIDi == fragIDj);
+
+              // Flag if at least one particle is free (0).
+              const bool freeParticle = (pTypei == 0 or pTypej == 0);
 
               // Node displacement.
               const Vector rij = ri - rj;
@@ -656,8 +670,10 @@ evaluateDerivatives(const typename Dimension::Scalar time,
               const SymTensor sigmarhoi = sigmai/(rhoi*rhoi);
               const SymTensor sigmarhoj = sigmaj/(rhoj*rhoj);
               const Vector deltaDvDt = fDeffij*(sigmarhoi*safeOmegai*gradWi + sigmarhoj*safeOmegaj*gradWj) - Qacci - Qaccj;
-              DvDti += mj*deltaDvDt;
-              DvDtj -= mi*deltaDvDt;
+              if (freeParticle) {
+                DvDti += mj*deltaDvDt;
+                DvDtj -= mi*deltaDvDt;
+              }
 
               // Pair-wise portion of grad velocity.
               const Tensor deltaDvDxi = fDeffij*vij.dyad(gradWGi);
@@ -701,8 +717,8 @@ evaluateDerivatives(const typename Dimension::Scalar time,
         }
       }
       const size_t numNeighborsi = connectivityMap.numNeighborsForNode(&nodeList, i);
-      CHECK(not compatibleEnergy or 
-            //            (i >= firstGhostNodei and pairAccelerationsi.size() == 0) or
+      CHECK(not this->compatibleEnergyEvolution() or NodeListRegistrar<Dimension>::instance().domainDecompositionIndependent() or
+            (i >= firstGhostNodei and pairAccelerationsi.size() == 0) or
             (pairAccelerationsi.size() == numNeighborsi));
 
       // Get the time for pairwise interactions.

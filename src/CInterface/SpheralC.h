@@ -1,7 +1,9 @@
 #ifndef __Spheral_C_interface__
 #define __Spheral_C_interface__
 
+#ifdef USE_MPI
 #include "mpi.h"
+#endif
 
 #ifdef __cplusplus
 extern "C" {
@@ -39,7 +41,9 @@ extern "C" {
   Arguments:
   comm (MPI_Communicator) : the MPI_COMM object to use.
   ----------------------------------------------------------------------------*/
+#ifdef USE_MPI
 void spheral_set_communicator(MPI_Comm* comm);
+#endif
 
 /*------------------------------------------------------------------------------
   spheral_initialize
@@ -76,6 +80,7 @@ void spheral_initialize3d(const int ASPH,
                           const int useVelocityDt,
                           const int ScalarQ,
                           const int addDistributedBoundary,
+                          const int useDamage,
                           const int kernelType,
                           const int piKernelType,
                           const int gradKernelType,
@@ -103,6 +108,7 @@ void spheral_initialize2d(const int ASPH,
                           const int useVelocityDt,
                           const int ScalarQ,
                           const int addDistributedBoundary,
+                          const int useDamage,
                           const int kernelType,
                           const int piKernelType,
                           const int gradKernelType,
@@ -176,7 +182,9 @@ double spheral_initialize_step3d(const unsigned* nintpermat,
                                  const double* bulkModulus,
                                  const double* shearModulus,
                                  const double* yieldStrength,
-                                 const double* plasticStrain);
+                                 const double* plasticStrain,
+                                 const double* damage,
+                                 const int* particleType);
 
 double spheral_initialize_step2d(const unsigned* nintpermat,
                                  const unsigned* npermat,
@@ -198,7 +206,9 @@ double spheral_initialize_step2d(const unsigned* nintpermat,
                                  const double* bulkModulus,
                                  const double* shearModulus,
                                  const double* yieldStrength,
-                                 const double* plasticStrain);
+                                 const double* plasticStrain,
+                                 const double* damage,
+                                 const int* particleType);
 
 /*------------------------------------------------------------------------------
   spheral_update_state
@@ -236,7 +246,9 @@ void spheral_update_state3d(const double* mass,
                             const double* bulkModulus,
                             const double* shearModulus,
                             const double* yieldStrength,
-                            const double* plasticStrain);
+                            const double* plasticStrain,
+                            const double* damage,
+                            const int* particleType);
 
 void spheral_update_state2d(const double* mass,
                             const double* massDensity,
@@ -256,7 +268,9 @@ void spheral_update_state2d(const double* mass,
                             const double* bulkModulus,
                             const double* shearModulus,
                             const double* yieldStrength,
-                            const double* plasticStrain);
+                            const double* plasticStrain,
+                            const double* damage,
+                            const int* particleType);
 
 /*------------------------------------------------------------------------------
   spheral_evaluate_derivatives

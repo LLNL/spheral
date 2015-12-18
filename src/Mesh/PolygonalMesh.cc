@@ -8,7 +8,9 @@
 #include <sstream>
 #include "boost/foreach.hpp"
 
+#ifndef NOPOLYTOPE
 #include "polytope/polytope.hh"
+#endif
 
 #include "Mesh.hh"
 #include "Utilities/DBC.hh"
@@ -24,6 +26,7 @@ using namespace boost;
 
 namespace {
 
+#ifndef NOPOLYTOPE
 //------------------------------------------------------------------------------
 // Internal worker method with common code for building from a 2D polytope
 // tessellation.
@@ -143,6 +146,7 @@ void buildFromPolytope(polytope::Tessellation<2, double>& tessellation,
                                     << Timing::difference(t0, Timing::currentTime())
                                     << " seconds to construct mesh elements." << endl;
 }
+#endif
 
 }
 
@@ -165,6 +169,7 @@ reconstructInternal(const vector<Dim<2>::Vector>& generators,
                     const Dim<2>::Vector& xmin,
                     const Dim<2>::Vector& xmax) {
 
+#ifndef NOPOLYTOPE
   // Some useful typedefs.
   typedef Dim<2> Dimension;
 
@@ -208,11 +213,20 @@ reconstructInternal(const vector<Dim<2>::Vector>& generators,
   {
 #ifdef USE_MPI
     polytope::DistributedTessellator<2, double> tessellator
-      (new polytope::VoroPP_2d<double>(),
+#if defined USE_TRIANGLE && ( USE_TRIANGLE>0 )
+      (new polytope::TriangleTessellator<double>(),
+#else
+      (new polytope::BoostTessellator<double>(),
+#endif
        true,     // Manage memory for serial tessellator
        true);    // Build parallel connectivity
 #else
-    polytope::VoroPP_2d<double> tessellator;
+#if defined USE_TRIANGLE && ( USE_TRIANGLE>0 )
+    polytope::TriangleTessellator<double> tessellator;
+#else
+    polytope::BoostTessellator<double> tessellator;
+#endif
+    tessellator.tessellate(gens, const_cast<double*>(xmin.begin()), const_cast<double*>(xmax.begin()), tessellation);
 #endif
     tessellator.tessellate(gens, const_cast<double*>(xmin.begin()), const_cast<double*>(xmax.begin()), tessellation);
   }
@@ -245,6 +259,7 @@ reconstructInternal(const vector<Dim<2>::Vector>& generators,
                     mNeighborDomains,
                     mSharedNodes,
                     mSharedFaces);
+#endif
 }
 
 //------------------------------------------------------------------------------
@@ -255,6 +270,7 @@ void
 Mesh<Dim<2> >::
 reconstructInternal(const vector<Dim<2>::Vector>& generators,
                     const Dim<2>::FacetedVolume& boundary) {
+#ifndef NOPOLYTOPE
 
   // Some useful typedefs.
   typedef Dim<2> Dimension;
@@ -319,11 +335,21 @@ reconstructInternal(const vector<Dim<2>::Vector>& generators,
   polytope::Tessellation<2, double> tessellation;
   {
 #ifdef USE_MPI
-    polytope::DistributedTessellator<2, double> tessellator(new polytope::VoroPP_2d<double>(),
+    polytope::DistributedTessellator<2, double> tessellator
+#if defined USE_TRIANGLE && ( USE_TRIANGLE>0 )
+      (new polytope::TriangleTessellator<double>(),
+#else
+      (new polytope::BoostTessellator<double>(),
+#endif
                                                             true,     // Manage memory for serial tessellator
                                                             true);    // Build parallel connectivity
 #else
-    polytope::VoroPP_2d<double> tessellator;
+#if defined USE_TRIANGLE && ( USE_TRIANGLE>0 )
+    polytope::TriangleTessellator<double> tessellator;
+#else
+    polytope::BoostTessellator<double> tessellator;
+#endif
+    tessellator.tessellate(gens, const_cast<double*>(xmin.begin()), const_cast<double*>(xmax.begin()), tessellation);
 #endif
     tessellator.tessellate(gens, plcBoundary.points, plcBoundary, tessellation);
   }
@@ -359,6 +385,8 @@ reconstructInternal(const vector<Dim<2>::Vector>& generators,
                     mNeighborDomains,
                     mSharedNodes,
                     mSharedFaces);
+
+#endif
 }
 
 //------------------------------------------------------------------------------

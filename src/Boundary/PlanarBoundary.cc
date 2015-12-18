@@ -174,8 +174,8 @@ PlanarBoundary<Dimension>::setGhostNodes(NodeList<Dimension>& nodeList) {
   // std::sort(controlNodes.begin(), controlNodes.end());
   // controlNodes.erase(std::unique(controlNodes.begin(), controlNodes.end()), controlNodes.end());
 
-  // Set the ghost node indicies to correspond to these control nodes.
-  setGhostNodeIndicies(nodeList);
+  // Set the ghost node indices to correspond to these control nodes.
+  setGhostNodeIndices(nodeList);
 
   // Assign the positions and H's to the new ghost nodes.
   updateGhostNodes(nodeList);
@@ -204,8 +204,8 @@ setGhostNodes(NodeList<Dimension>& nodeList,
   vector<int>& controlNodes = boundaryNodes.controlNodes;
   controlNodes = presetControlNodes;
 
-  // Set the ghost node indicies to correspond to these control nodes.
-  setGhostNodeIndicies(nodeList);
+  // Set the ghost node indices to correspond to these control nodes.
+  setGhostNodeIndices(nodeList);
 
   // Assign the masses and positions to the new ghost nodes.
   updateGhostNodes(nodeList);
@@ -324,11 +324,11 @@ PlanarBoundary<Dimension>::valid() const {
 }
 
 //------------------------------------------------------------------------------
-// Internal method to set the ghost node indicies once the controls are set.
+// Internal method to set the ghost node indices once the controls are set.
 //------------------------------------------------------------------------------
 template<typename Dimension>
 void
-PlanarBoundary<Dimension>::setGhostNodeIndicies(NodeList<Dimension>& nodeList) {
+PlanarBoundary<Dimension>::setGhostNodeIndices(NodeList<Dimension>& nodeList) {
 
   // Get the sets of control and ghost nodes.
   BoundaryNodes& boundaryNodes = this->accessBoundaryNodes(nodeList);
@@ -361,7 +361,7 @@ void
 PlanarBoundary<Dimension>::updateGhostNodes(NodeList<Dimension>& nodeList) {
   REQUIRE(valid());
 
-  // Get the control and ghost node indicies.
+  // Get the control and ghost node indices.
   BoundaryNodes& boundaryNodes = this->accessBoundaryNodes(nodeList);
   vector<int>& controlNodes = boundaryNodes.controlNodes;
   vector<int>& ghostNodes = boundaryNodes.ghostNodes;

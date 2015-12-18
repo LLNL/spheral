@@ -14,9 +14,11 @@ extern "C" {
 //------------------------------------------------------------------------------
 // spheral_set_communicator
 //------------------------------------------------------------------------------
+#ifdef USE_MPI
 void spheral_set_communicator(MPI_Comm* comm) {
   Spheral::Communicator::communicator(*comm);
 }
+#endif
 
 //------------------------------------------------------------------------------
 // spheral_initialize3d
@@ -30,6 +32,7 @@ void spheral_initialize3d(const int ASPH,
                           const int useVelocityDt,
                           const int ScalarQ,
                           const int addDistributedBoundary,
+                          const int useDamage,
                           const int kernelType,
                           const int piKernelType,
                           const int gradKernelType,
@@ -56,6 +59,7 @@ void spheral_initialize3d(const int ASPH,
                                              (useVelocityDt == 1),
                                              (ScalarQ == 1),
                                              (addDistributedBoundary == 1),
+                                             (useDamage == 1),
                                              kernelType,
                                              piKernelType,
                                              gradKernelType,
@@ -87,6 +91,7 @@ void spheral_initialize2d(const int ASPH,
                           const int useVelocityDt,
                           const int ScalarQ,
                           const int addDistributedBoundary,
+                          const int useDamage,
                           const int kernelType,
                           const int piKernelType,
                           const int gradKernelType,
@@ -111,6 +116,7 @@ void spheral_initialize2d(const int ASPH,
                                              (useVelocityDt == 1),
                                              (ScalarQ == 1),
                                              (addDistributedBoundary == 1),
+                                             (useDamage == 1),
                                              kernelType,
                                              piKernelType,
                                              gradKernelType,
@@ -159,7 +165,9 @@ double spheral_initialize_step3d(const unsigned* nintpermat,
                                  const double* bulkModulus,
                                  const double* shearModulus,
                                  const double* yieldStrength,
-                                 const double* plasticStrain) {
+                                 const double* plasticStrain,
+                                 const double* damage,
+                                 const int* particleType) {
   return Spheral::SpheralPseudoScript3D::initializeStep(nintpermat,
                                                         npermat,
                                                         mass,
@@ -188,7 +196,9 @@ double spheral_initialize_step3d(const unsigned* nintpermat,
                                                         bulkModulus,
                                                         shearModulus,
                                                         yieldStrength,
-                                                        plasticStrain);
+                                                        plasticStrain,
+                                                        damage,
+                                                        particleType);
 }
 
 //------------------------------------------------------------------------------
@@ -214,7 +224,9 @@ double spheral_initialize_step2d(const unsigned* nintpermat,
                                  const double* bulkModulus,
                                  const double* shearModulus,
                                  const double* yieldStrength,
-                                 const double* plasticStrain) {
+                                 const double* plasticStrain,
+                                 const double* damage,
+                                 const int* particleType) {
   return Spheral::SpheralPseudoScript2D::initializeStep(nintpermat,
                                                         npermat,
                                                         mass,
@@ -235,7 +247,9 @@ double spheral_initialize_step2d(const unsigned* nintpermat,
                                                         bulkModulus,
                                                         shearModulus,
                                                         yieldStrength,
-                                                        plasticStrain);
+                                                        plasticStrain,
+                                                        damage,
+                                                        particleType);
 }
 
 //------------------------------------------------------------------------------
@@ -267,7 +281,9 @@ void spheral_update_state3d(const double* mass,
                             const double* bulkModulus,
                             const double* shearModulus,
                             const double* yieldStrength,
-                            const double* plasticStrain) {
+                            const double* plasticStrain,
+                            const double* damage,
+                            const int* particleType) {
   Spheral::SpheralPseudoScript3D::updateState(mass,
                                               massDensity,
                                               position_x,
@@ -294,7 +310,9 @@ void spheral_update_state3d(const double* mass,
                                               bulkModulus,
                                               shearModulus,
                                               yieldStrength,
-                                              plasticStrain);
+                                              plasticStrain,
+                                              damage,
+                                              particleType);
 }
 
 //------------------------------------------------------------------------------
@@ -318,7 +336,9 @@ void spheral_update_state2d(const double* mass,
                             const double* bulkModulus,
                             const double* shearModulus,
                             const double* yieldStrength,
-                            const double* plasticStrain) {
+                            const double* plasticStrain,
+                            const double* damage,
+                            const int* particleType) {
   Spheral::SpheralPseudoScript2D::updateState(mass,
                                               massDensity,
                                               position_x,
@@ -337,7 +357,9 @@ void spheral_update_state2d(const double* mass,
                                               bulkModulus,
                                               shearModulus,
                                               yieldStrength,
-                                              plasticStrain);
+                                              plasticStrain,
+                                              damage,
+                                              particleType);
 }
 
 //------------------------------------------------------------------------------

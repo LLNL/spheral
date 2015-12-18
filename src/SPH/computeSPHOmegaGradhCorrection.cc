@@ -72,6 +72,7 @@ computeSPHOmegaGradhCorrection(const ConnectivityMap<Dimension>& connectivityMap
 
       // Iterate over the neighbor NodeLists.
       for (int nodeListj = 0; nodeListj != numNodeLists; ++nodeListj) {
+        const int firstGhostNodej = omegaGradh[nodeListj]->nodeList().firstGhostNode();
 
         // Iterate over the neighbors for in this NodeList.
         const vector<int>& connectivity = fullConnectivity[nodeListj];
@@ -80,33 +81,41 @@ computeSPHOmegaGradhCorrection(const ConnectivityMap<Dimension>& connectivityMap
              ++jItr) {
           const int j = *jItr;
 
-          const Vector& rj = position(nodeListj, j);
-          const SymTensor& Hj = H(nodeListj, j);
-          const Scalar Hdetj = Hj.Determinant();
+          // Only proceed if this node pair has not been calculated yet.
+          if (connectivityMap.calculatePairInteraction(nodeListi, i, 
+                                                       nodeListj, j,
+                                                       firstGhostNodej)) {
 
-          // Kernel weighting and gradient.
-          const Vector rij = ri - rj;
-          const Scalar etai = (Hi*rij).magnitude();
-          const Scalar etaj = (Hj*rij).magnitude();
-          const std::pair<double, double> WWi = W.kernelAndGradValue(etai, Hdeti);
-          const Scalar& Wi = WWi.first;
-          const Scalar& gWi = WWi.second;
-          const std::pair<double, double> WWj = W.kernelAndGradValue(etaj, Hdetj);
-          const Scalar& Wj = WWj.first;
-          const Scalar& gWj = WWj.second;
+            const Vector& rj = position(nodeListj, j);
+            const SymTensor& Hj = H(nodeListj, j);
+            const Scalar Hdetj = Hj.Determinant();
 
-          // Sum the pair-wise contributions.
-          omegaGradh(nodeListi, i) += Wi;
-          gradsum(i) += etai*gWi;
+            // Kernel weighting and gradient.
+            const Vector rij = ri - rj;
+            const Scalar etai = (Hi*rij).magnitude();
+            const Scalar etaj = (Hj*rij).magnitude();
+            const std::pair<double, double> WWi = W.kernelAndGradValue(etai, Hdeti);
+            const Scalar& Wi = WWi.first;
+            const Scalar& gWi = WWi.second;
+            const std::pair<double, double> WWj = W.kernelAndGradValue(etaj, Hdetj);
+            const Scalar& Wj = WWj.first;
+            const Scalar& gWj = WWj.second;
+
+            // Sum the pair-wise contributions.
+            omegaGradh(nodeListi, i) += Wi;
+            gradsum(i) += etai*gWi;
+            omegaGradh(nodeListj, j) += Wj;
+            gradsum(j) += etaj*gWj;
+          }
         }
       }
 
       // Finish the grad h correction.
       CHECK(omegaGradh(nodeListi, i) > 0.0);
-      omegaGradh(nodeListi, i) = std::max(1.0e-50, -gradsum(i)/(Dimension::nDim * omegaGradh(nodeListi, i)));
+      omegaGradh(nodeListi, i) = -gradsum(i)/(Dimension::nDim * omegaGradh(nodeListi, i));
 
       // Post-conditions.
-      ENSURE(omegaGradh(nodeListi, i) > 0.0);
+      ENSURE(omegaGradh(nodeListi, i) >= 0.0);
     }
   }
 }

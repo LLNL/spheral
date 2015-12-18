@@ -214,9 +214,7 @@ eosDamaged = GruneisenEquationOfStateCGS2d(7.90,    # reference density
 # one for use with the artificial viscosity
 #-------------------------------------------------------------------------------
 WT = TableKernel2d(BSplineKernel2d(), 1000)
-WTPi = TableKernel2d(BSplineKernel2d(), 1000)
 output("WT")
-output("WTPi")
 kernelExtent = WT.kernelExtent()
 
 #-------------------------------------------------------------------------------
@@ -351,16 +349,12 @@ output("q.balsaraShearCorrection")
 #-------------------------------------------------------------------------------
 # Construct the hydro physics object.
 #-------------------------------------------------------------------------------
-hydro = Hydro2d(WT,
-                WTPi,
-                q,
-                compatibleEnergyEvolution,
-                gradhCorrection,
-                sumForMassDensity,
-                HEvolution,
-                hmin,
-                hmax,
-                postIterateHCycle)
+hydro = Hydro2d(W = WT,
+                Q = q,
+                compatibleEnergyEvolution = compatibleEnergyEvolution,
+                gradhCorrection = gradhCorrection,
+                densityUpdate = sumForMassDensity,
+                HUpdate = HEvolution)
 hydro.cfl = cfl
 hydro.useVelocityMagnitudeForDt = useVelocityMagnitudeForDt
 output("hydro")

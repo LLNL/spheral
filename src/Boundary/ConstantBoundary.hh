@@ -10,7 +10,9 @@
 #define ConstantBoundary_HH
 
 #include "Boundary.hh"
+#include "Geometry/GeomPlane.hh"
 #include "NodeList/NodeList.hh"
+#include "DataBase/StateBase.hh" // For constructing Field keys.
 
 namespace Spheral {
   namespace NodeSpace {
@@ -39,10 +41,12 @@ public:
   typedef typename Dimension::Tensor Tensor;
   typedef typename Dimension::SymTensor SymTensor;
   typedef typename Dimension::ThirdRankTensor ThirdRankTensor;
+  typedef typename StateBase<Dimension>::KeyType KeyType;
 
   // Constructors and destructors.
-  ConstantBoundary(const NodeSpace::NodeList<Dimension>& nodeList,
-                   const std::vector<int>& nodeIDs);
+  ConstantBoundary(NodeSpace::NodeList<Dimension>& nodeList,
+                   const std::vector<int>& nodeIDs,
+                   const GeomPlane<Dimension>& denialPlane);
   virtual ~ConstantBoundary();
 
   //**********************************************************************
@@ -78,43 +82,53 @@ public:
   virtual void enforceBoundary(FieldSpace::Field<Dimension, ThirdRankTensor>& field) const;
   //**********************************************************************
 
+  // After physics have been initialized we take a snapshot of the node state.
+  virtual void initializeProblemStartup();
+
   // Minimal valid test.
   virtual bool valid() const;
 
   // Accessor methods.
+  std::vector<int> nodeIndices() const;
   int numConstantNodes() const;
   const NodeSpace::NodeList<Dimension>& nodeList() const;
+  Tensor reflectOperator() const;
 
-#ifndef __GCCXML__
-  // Helper method for inserting Field values in the internal map data 
-  // structures.
-  template<typename DataType>
-  void storeFieldValues(const NodeSpace::NodeList<Dimension>& nodeList,
-                        const std::vector<int>& nodeIDs,
-                        std::map<const FieldSpace::FieldBase<Dimension>*, 
-                                 std::vector<DataType> >& values) const;
-
-  // Set the ghost values in the given field using the given map.
-  template<typename DataType>
-  void setGhostValues(FieldSpace::Field<Dimension, DataType>& field,
-                      const std::map<const FieldSpace::FieldBase<Dimension>*, 
-                                     std::vector<DataType> >& values) const;
-#endif
+  //****************************************************************************
+  // Methods required for restarting.
+  virtual std::string label() const;
+  virtual void dumpState(FileIOSpace::FileIO& file, std::string pathName) const;
+  virtual void restoreState(const FileIOSpace::FileIO& file, std::string pathName);
+  //****************************************************************************
 
 private:
   //--------------------------- Private Interface ---------------------------//
-#ifndef __GCCXML__
+  NodeSpace::NodeList<Dimension>* mNodeListPtr;
+  int mBoundaryCount;
+  FieldSpace::Field<Dimension, int> mNodeFlags;
   int mNumConstantNodes;
-  const NodeSpace::NodeList<Dimension>* mNodeListPtr;
+  GeomPlane<Dimension> mDenialPlane;
+  Tensor mReflectOperator;
+  bool mActive;
 
-  std::map<const FieldSpace::FieldBase<Dimension>*, std::vector<int> > mIntValues;
-  std::map<const FieldSpace::FieldBase<Dimension>*, std::vector<Scalar> > mScalarValues;
-  std::map<const FieldSpace::FieldBase<Dimension>*, std::vector<Vector> > mVectorValues;
-  std::map<const FieldSpace::FieldBase<Dimension>*, std::vector<Tensor> > mTensorValues;
-  std::map<const FieldSpace::FieldBase<Dimension>*, std::vector<SymTensor> > mSymTensorValues;
-  std::map<const FieldSpace::FieldBase<Dimension>*, std::vector<ThirdRankTensor> > mThirdRankTensorValues;
-  std::map<const FieldSpace::FieldBase<Dimension>*, std::vector<std::vector<Scalar> > > mVectorScalarValues;
-#endif
+  typedef std::map<KeyType, std::vector<int> > IntStorageType;
+  typedef std::map<KeyType, std::vector<Scalar> > ScalarStorageType;
+  typedef std::map<KeyType, std::vector<Vector> > VectorStorageType;
+  typedef std::map<KeyType, std::vector<Tensor> > TensorStorageType;
+  typedef std::map<KeyType, std::vector<SymTensor> > SymTensorStorageType;
+  typedef std::map<KeyType, std::vector<ThirdRankTensor> > ThirdRankTensorStorageType;
+  typedef std::map<KeyType, std::vector<std::vector<Scalar> > > VectorScalarStorageType;
+
+  IntStorageType mIntValues;
+  ScalarStorageType mScalarValues;
+  VectorStorageType mVectorValues;
+  TensorStorageType mTensorValues;
+  SymTensorStorageType mSymTensorValues;
+  ThirdRankTensorStorageType mThirdRankTensorValues;
+  VectorScalarStorageType mVectorScalarValues;
+
+  // The restart registration.
+  DataOutput::RestartRegistrationType mRestart;
 
   // No default or copy constructors.
   ConstantBoundary();
@@ -124,9 +138,7 @@ private:
 }
 }
 
-#ifndef __GCCXML__
 #include "ConstantBoundaryInline.hh"
-#endif
 
 #else
 

@@ -37,6 +37,8 @@ struct HydroFieldNames {
   static const std::string soundSpeed;
   static const std::string pairAccelerations;
   static const std::string pairWork;
+  static const std::string PSPHpbar;
+  static const std::string PSPHcorrection;
   static const std::string omegaGradh;
   static const std::string numberDensitySum;
   static const std::string timeStepMask;
@@ -46,9 +48,11 @@ struct HydroFieldNames {
   static const std::string A0_CRKSPH;
   static const std::string A_CRKSPH;
   static const std::string B_CRKSPH;
+  static const std::string C_CRKSPH;
   static const std::string gradA0_CRKSPH;
   static const std::string gradA_CRKSPH;
   static const std::string gradB_CRKSPH;
+  static const std::string gradC_CRKSPH;
   static const std::string M_CRKSPH;
   static const std::string volume;
   static const std::string linearMomentum;

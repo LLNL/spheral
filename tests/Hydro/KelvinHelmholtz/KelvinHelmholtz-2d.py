@@ -45,7 +45,8 @@ commandLine(nx1 = 100,
             mu = 1.0,
 
             nPerh = 1.51,
-
+            KernelConstructor = BSplineKernel,
+            order = 5,
             SVPH = False,
             CRKSPH = False,
             ASPH = False,
@@ -181,8 +182,13 @@ eos = GammaLawGasMKS(gamma, mu)
 #-------------------------------------------------------------------------------
 # Interpolation kernels.
 #-------------------------------------------------------------------------------
-WT = TableKernel(BSplineKernel(), 1000)
-WTPi = TableKernel(BSplineKernel(), 1000, Qhmult)
+if KernelConstructor=="NBSplineKernel":
+  WT = TableKernel(NBSplineKernel(order), 1000)
+  WTPi = TableKernel(NBSplineKernel(order), 1000, Qhmult)
+  print "USING NBSPLINE!"
+else:
+  WT = TableKernel(KernelConstructor(), 1000)
+  WTPi = TableKernel(KernelConstructor(), 1000, Qhmult)
 output("WT")
 output("WTPi")
 kernelExtent = WT.kernelExtent
@@ -308,7 +314,8 @@ output("q.quadraticInExpansion")
 # Construct the hydro physics object.
 #-------------------------------------------------------------------------------
 if SVPH:
-    hydro = HydroConstructor(WT, q,
+    hydro = HydroConstructor(W = WT, 
+                             Q = q,
                              cfl = cfl,
                              useVelocityMagnitudeForDt = useVelocityMagnitudeForDt,
                              compatibleEnergyEvolution = compatibleEnergy,
@@ -324,7 +331,9 @@ if SVPH:
                              # xmin = Vector(x0 - 0.5*(x2 - x0), y0 - 0.5*(y2 - y0)),
                              # xmax = Vector(x2 + 0.5*(x2 - x0), y2 + 0.5*(y2 - y0)))
 elif CRKSPH:
-    hydro = HydroConstructor(WT, WTPi, q,
+    hydro = HydroConstructor(W = WT, 
+                             WPi = WTPi,
+                             Q = q,
                              filter = filter,
                              cfl = cfl,
                              useVelocityMagnitudeForDt = useVelocityMagnitudeForDt,
@@ -333,9 +342,9 @@ elif CRKSPH:
                              densityUpdate = densityUpdate,
                              HUpdate = HUpdate)
 else:
-    hydro = HydroConstructor(WT,
-                             WTPi,
-                             q,
+    hydro = HydroConstructor(W = WT,
+                             WPi = WTPi,
+                             Q = q,
                              cfl = cfl,
                              useVelocityMagnitudeForDt = useVelocityMagnitudeForDt,
                              compatibleEnergyEvolution = compatibleEnergy,

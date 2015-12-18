@@ -15,6 +15,7 @@ from SpheralConservation import SpheralConservation
 from GzipFileIO import GzipFileIO
 from SpheralTestUtilities import globalFrame
 from NodeGeneratorBase import ConstantRho
+from findLastRestart import findLastRestart
 
 from spheralDimensions import spheralDimensions
 dims = spheralDimensions()
@@ -89,6 +90,10 @@ class SpheralController(RestartableObject):
         # a DistributedBoundaryCondition into each physics package.
         self.insertDistributedBoundary(integrator.physicsPackages())
 
+        # Should we look for the last restart set?
+        if restoreCycle == -1:
+            restoreCycle = findLastRestart(restartBaseName)
+
         # Generic initialization work.
         self.reinitializeProblem(restartBaseName,
                                  vizBaseName,
@@ -159,11 +164,16 @@ class SpheralController(RestartableObject):
         if restoreCycle is None and not skipInitialPeriodicWork:
             self.iterateIdealH()
 
+        # Create ghost nodes for the physics packages to initialize with.
+        self.integrator.setGhostNodes()
+
         # Initialize the integrator and packages.
         db = self.integrator.dataBase()
         packages = self.integrator.physicsPackages()
         for package in packages:
             package.initializeProblemStartup(db)
+            for bc in package.boundaryConditions():
+                bc.initializeProblemStartup()
         state = eval("State%s(db, packages)" % (self.dim))
         derivs = eval("StateDerivatives%s(db, packages)" % (self.dim))
         self.integrator.initialize(state, derivs)

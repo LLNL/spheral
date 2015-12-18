@@ -38,13 +38,23 @@ commandLine(nx1 = 400,
             aMax = 2.0,
             Cl = 1.0,
             Cq = 1.5,
+            boolCullenViscosity = False,
+            alphMax = 2.0,
+            alphMin = 0.02,
+            betaC = 0.7,
+            betaD = 0.05,
+            betaE = 1.0,
+            fKern = 1.0/3.0,
+            boolHopkinsCorrection = True,
             linearInExpansion = False,
+            quadraticInExpansion = False,
             Qlimiter = False,
             epsilon2 = 1e-4,
             hmin = 1e-10,
             hmax = 1.0,
             cfl = 0.5,
             XSPH = False,
+            PSPH = False,
             epsilonTensile = 0.0,
             nTensile = 8,
             rhoMin = 0.01,
@@ -53,6 +63,7 @@ commandLine(nx1 = 400,
             hourglassLimiter = 1,
             filter = 0.00,
             KernelConstructor = BSplineKernel,
+            order = 5,
             
             bArtificialConduction = False,
             arCondAlpha = 0.5,
@@ -72,15 +83,16 @@ commandLine(nx1 = 400,
             maxSteps = None,
             statsStep = 10,
             HUpdate = IdealH,
+            correctionOrder = LinearOrder,
             densityUpdate = RigorousSumDensity,
             compatibleEnergy = True,
-            gradhCorrection = True,
+            gradhCorrection = False,
             linearConsistent = False,
 
             useRefinement = False,
 
             clearDirectories = False,
-            restoreCycle = None,
+            restoreCycle = -1,
             restartStep = 200,
             dataDirBase = "dumps-Sod-planar",
             restartBaseName = "Sod-planar-1d-restart",
@@ -90,6 +102,7 @@ commandLine(nx1 = 400,
             graphics = True,
             )
 
+assert not(boolReduceViscosity and boolCullenViscosity)
 if SVPH:
     HydroConstructor = SVPHFacetedHydro
 elif CRKSPH:
@@ -107,6 +120,11 @@ else:
 dataDir = os.path.join(dataDirBase, 
                        str(HydroConstructor).split("'")[1].split(".")[-1],
                        str(Qconstructor).split("'")[1].split(".")[-1],
+                       "nPerh=%f" % nPerh,
+                       "compatibleEnergy=%s" % compatibleEnergy,
+                       "correctionOrder=%s" % correctionOrder,
+                       "Cullen=%s" % boolCullenViscosity,
+                       "filter=%f" % filter,
                        "%i" % (nx1 + nx2))
 restartDir = os.path.join(dataDir, "restarts")
 restartBaseName = os.path.join(restartDir, "Sod-planar-1d-%i" % (nx1 + nx2))
@@ -132,10 +150,12 @@ strength = NullStrength()
 #-------------------------------------------------------------------------------
 # Interpolation kernels.
 #-------------------------------------------------------------------------------
-WT = TableKernel(BSplineKernel(), 1000)
-WTPi = WT
+if KernelConstructor==NBSplineKernel:
+  WT = TableKernel(NBSplineKernel(order), 1000)
+else:
+  WT = TableKernel(KernelConstructor(), 1000)
+kernelExtent = WT.kernelExtent
 output("WT")
-output("WTPi")
 
 #-------------------------------------------------------------------------------
 # Make the NodeLists.
@@ -145,22 +165,26 @@ if solid:
                                hmin = hmin,
                                hmax = hmax,
                                nPerh = nPerh,
+                               kernelExtent = kernelExtent,
                                rhoMin = rhoMin)
     nodes2 = makeSolidNodeList("nodes2", eos, strength,
                                hmin = hmin,
                                hmax = hmax,
                                nPerh = nPerh,
+                               kernelExtent = kernelExtent,
                                rhoMin = rhoMin)
 else:
     nodes1 = makeFluidNodeList("nodes1", eos, 
                                hmin = hmin,
                                hmax = hmax,
                                nPerh = nPerh,
+                               kernelExtent = kernelExtent,
                                rhoMin = rhoMin)
     nodes2 = makeFluidNodeList("nodes2", eos, 
                                hmin = hmin,
                                hmax = hmax,
                                nPerh = nPerh,
+                               kernelExtent = kernelExtent,
                                rhoMin = rhoMin)
 nodeSet = [nodes1, nodes2]
 
@@ -201,7 +225,7 @@ output("db.numFluidNodeLists")
 #-------------------------------------------------------------------------------
 # Construct the artificial viscosity.
 #-------------------------------------------------------------------------------
-q = Qconstructor(Cl, Cq, linearInExpansion)
+q = Qconstructor(Cl, Cq, linearInExpansion, quadraticInExpansion)
 q.limiter = Qlimiter
 q.epsilon2 = epsilon2
 output("q")
@@ -215,10 +239,9 @@ output("q.quadraticInExpansion")
 #-------------------------------------------------------------------------------
 # Construct the hydro physics object.
 #-------------------------------------------------------------------------------
-WT = TableKernel(KernelConstructor(), 1000)
-
 if SVPH:
-    hydro = HydroConstructor(WT, q,
+    hydro = HydroConstructor(W = WT,
+                             Q = q,
                              cfl = cfl,
                              compatibleEnergyEvolution = compatibleEnergy,
                              XSVPH = XSPH,
@@ -229,22 +252,24 @@ if SVPH:
                              xmin = Vector(-100.0),
                              xmax = Vector( 100.0))
 elif CRKSPH:
-    hydro = HydroConstructor(WT, WTPi, q,
+    hydro = HydroConstructor(W = WT, 
+                             Q = q,
                              filter = filter,
                              cfl = cfl,
+                             correctionOrder = correctionOrder,
                              compatibleEnergyEvolution = compatibleEnergy,
                              XSPH = XSPH,
                              densityUpdate = densityUpdate,
                              HUpdate = HUpdate)
 else:
-    hydro = HydroConstructor(WT,
-                             WTPi,
-                             q,
+    hydro = HydroConstructor(W = WT,
+                             Q = q,
                              cfl = cfl,
                              compatibleEnergyEvolution = compatibleEnergy,
                              gradhCorrection = gradhCorrection,
                              densityUpdate = densityUpdate,
                              HUpdate = HUpdate,
+                             PSPH = PSPH,
                              XSPH = XSPH,
                              epsTensile = epsilonTensile,
                              nTensile = nTensile)
@@ -256,10 +281,13 @@ packages = [hydro]
 # Construct the MMRV physics object.
 #-------------------------------------------------------------------------------
 if boolReduceViscosity:
-    #q.reducingViscosityCorrection = True
     evolveReducingViscosityMultiplier = MorrisMonaghanReducingViscosity(q,nh,aMin,aMax)
-    
     packages.append(evolveReducingViscosityMultiplier)
+elif boolCullenViscosity:
+    evolveCullenViscosityMultiplier = CullenDehnenViscosity(q,WT,alphMax,alphMin,betaC,betaD,betaE,fKern,boolHopkinsCorrection)
+    packages.append(evolveCullenViscosityMultiplier)
+
+
 
 #-------------------------------------------------------------------------------
 # Construct the Artificial Conduction physics object.

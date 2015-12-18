@@ -64,7 +64,7 @@ setGhostNodes(NodeList<Dim<3> >& nodeList) {
   // The field of ghost positions for this NodeList.
   Field<Dim<3>, vector<Vector> >& ghostPositions = **(mGhostPositions.fieldForNodeList(nodeList));
 
-  // The ghost node indicies.
+  // The ghost node indices.
   const int currentNumGhostNodes = nodeList.numGhostNodes();
   int ghostNodeIndex = nodeList.numNodes();
 
@@ -159,7 +159,7 @@ setGhostNodes(NodeList<Dim<3> >& nodeList) {
       }
     }
 
-    // Set the control and ghost node indicies for this internal node.
+    // Set the control and ghost node indices for this internal node.
     const int nghosti = ghostPositions(i).size();
     CHECK(nghosti > 0);
     controlNodes.reserve(controlNodes.size() + nghosti);
@@ -306,8 +306,8 @@ applyGhostBoundary(Field<Dim<3>, Dim<3>::Tensor>& field) const {
     CHECK(ghostItr < ghostEnd(nodeList));
     CHECK(*controlItr >= 0 && *controlItr < nodeList.numNodes());
     CHECK(*ghostItr >= nodeList.firstGhostNode() && *ghostItr < nodeList.numNodes());
-    const Tensor op = reflectOperator(position(*controlItr), position(*ghostItr));
-    field(*ghostItr) = op*(field(*controlItr)*op);
+    const Tensor T = reflectOperator(position(*controlItr), position(*ghostItr));
+    field(*ghostItr) = T*(field(*controlItr)*T);
   }
 }
 
@@ -326,8 +326,8 @@ applyGhostBoundary(Field<Dim<3>, Dim<3>::SymTensor>& field) const {
     CHECK(ghostItr < ghostEnd(nodeList));
     CHECK(*controlItr >= 0 && *controlItr < nodeList.numNodes());
     CHECK(*ghostItr >= nodeList.firstGhostNode() && *ghostItr < nodeList.numNodes());
-    const Tensor op = reflectOperator(position(*controlItr), position(*ghostItr));
-    field(*ghostItr) = op*(field(*controlItr)*op).Symmetric();
+    const Tensor T = reflectOperator(position(*controlItr), position(*ghostItr));
+    field(*ghostItr) = T*(field(*controlItr)*T).Symmetric();
   }
 }
 
@@ -342,12 +342,28 @@ applyGhostBoundary(Field<Dim<3>, Dim<3>::ThirdRankTensor>& field) const {
   CHECK(controlNodes(nodeList).size() == ghostNodes(nodeList).size());
   vector<int>::const_iterator controlItr = controlBegin(nodeList);
   vector<int>::const_iterator ghostItr = ghostBegin(nodeList);
+  ThirdRankTensor val;
   for (; controlItr < controlEnd(nodeList); ++controlItr, ++ghostItr) {
     CHECK(ghostItr < ghostEnd(nodeList));
     CHECK(*controlItr >= 0 && *controlItr < nodeList.numNodes());
     CHECK(*ghostItr >= nodeList.firstGhostNode() && *ghostItr < nodeList.numNodes());
-    const Tensor op = reflectOperator(position(*controlItr), position(*ghostItr));
-    field(*ghostItr) = innerProduct<Dimension>(op, innerProduct<Dimension>(field(*controlItr), op));
+    const Tensor T = reflectOperator(position(*controlItr), position(*ghostItr));
+    val = ThirdRankTensor::zero;
+    const ThirdRankTensor& fc = field(*controlItr);
+    for (unsigned i = 0; i != Dimension::nDim; ++i) {
+      for (unsigned j = 0; j != Dimension::nDim; ++j) {
+        for (unsigned k = 0; k != Dimension::nDim; ++k) {
+          for (unsigned q = 0; q != Dimension::nDim; ++q) {
+            for (unsigned r = 0; r != Dimension::nDim; ++r) {
+              for (unsigned s = 0; s != Dimension::nDim; ++s) {
+                val(i,j,k) += T(i,q)*T(j,r)*T(k,s)*fc(q,r,s);
+              }
+            }
+          }
+        }
+      }
+    }
+    field(*ghostItr) = val;
   }
 }
 

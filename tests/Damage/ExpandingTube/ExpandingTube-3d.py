@@ -490,9 +490,7 @@ eosAir = GammaLawGasCGS(gammaAir, molecularWeightAir)
 # one for use with the artificial viscosity
 #-------------------------------------------------------------------------------
 WT = TableKernel(BSplineKernel(), 1000)
-WTPi = TableKernel(BSplineKernel(), 1000)
 output("WT")
-output("WTPi")
 
 #-------------------------------------------------------------------------------
 # Create the NodeLists.
@@ -727,15 +725,12 @@ output("q.balsaraShearCorrection")
 #-------------------------------------------------------------------------------
 # Construct the hydro physics object.
 #-------------------------------------------------------------------------------
-hydro = Hydro(WT,
-              WTPi,
-              q,
-              compatibleEnergyEvolution,
-              gradhCorrection,
-              sumForMassDensity,
-              HEvolution,
-              hmin,
-              hmax)
+hydro = Hydro(W = WT,
+              Q = q,
+              compatibleEnergyEvolution = compatibleEnergyEvolution,
+              gradhCorrection = gradhCorrection,
+              densityUpdate = sumForMassDensity,
+              HUpdate = HEvolution)
 hydro.cfl = cfl
 hydro.useVelocityMagnitudeForDt = useVelocityMagnitudeForDt
 output("hydro")

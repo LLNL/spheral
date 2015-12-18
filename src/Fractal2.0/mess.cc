@@ -16,7 +16,6 @@ namespace FractalSpace
     HypreWorld=MPI_COMM_NULL;
     MPI_Comm_group(FractalWorld,&FractalGroup);
     MPI_Comm_group(FFTWorld,&FFTGroup);
-    //      MPI_Comm_group(HypreWorld,&HypreGroup);
     FractalRank=what_is_my_rank(); 
     FractalNodes=how_many_nodes();
     FFTRank=FractalRank;
@@ -115,7 +114,6 @@ namespace FractalSpace
       {
 	const pint Length_c=(Length_1+2)/2;
 	total_memory=fftw_mpi_local_size_3d(Length_1,Length_1,Length_c,FFTWorld,&length_x,&start_x);
-	//	cerr << " total_memory " << FractalRank << " " << FFTRank << " " << total_memory << " " << length_x << " " << start_x << "\n";
 	create_potRC();
 	plan_rc=fftw_mpi_plan_dft_r2c_3d(Length_1,Length_1,Length_1,potR,potC,FFTWorld,FFTW_ESTIMATE);
 	plan_cr=fftw_mpi_plan_dft_c2r_3d(Length_1,Length_1,Length_1,potC,potR,FFTWorld,FFTW_ESTIMATE);
@@ -126,9 +124,7 @@ namespace FractalSpace
 	const pint Length_11=Length_1+1;
 	const pint Length_2=2*Length_1;
 	double g_c=pow(static_cast<double>(Length_1),-5)/8.0;
-	//	  cerr << " g_c= " << g_c << " " << FractalRank << "\n";
 	total_memory=fftw_mpi_local_size_3d(Length_2,Length_2,Length_11,FFTWorld,&length_x,&start_x);
-	//	cerr << " total_memory " << FractalRank << " " << FFTRank << " " << total_memory << " " << length_x << " " << start_x << " " << g_c << "\n";
 	green.resize(length_x*Length_11*Length_11);
 	create_potRC();
 	plan_rc=fftw_mpi_plan_dft_r2c_3d(Length_2,Length_2,Length_2,potR,potC,FFTWorld,FFTW_ESTIMATE);
@@ -187,8 +183,6 @@ namespace FractalSpace
 	int FRank=(FN*FractalNodes)/FFTNodes;
 	ItIsAnFFTNode[FRank]=true;
 	Franks.push_back(FRank);
-	//	if(FractalRank == 0)
-	//	  cerr << " FFTNODES " << FN << " " << Franks.back() << "\n";
 	if(FRank == FractalRank)
 	  {
 	    IAmAnFFTNode=true;
@@ -209,8 +203,6 @@ namespace FractalSpace
 	assert(FFTRank == what_is_my_FFT_rank());
 	assert(FFTNodes == how_many_FFT_nodes());
       }
-    //    if(FractalRank == 0)
-    //      cerr << " messyc " << FractalRank << " " << how_long << " " << periodic << " " << FFTRank << " " << FFTNodes << " " << IAmAnFFTNode << "\n";
   }
   void Mess::FFTWFinal()
   {
@@ -401,6 +393,7 @@ namespace FractalSpace
     my_AllgatherI(counts_out,counts,1);
   }
   template void Mess::How_Many_On_Nodes(int count,vector <int>& counts) const;
+  template void Mess::How_Many_On_Nodes(long count,vector <long>& counts) const;
   void Mess::MAX_Things_To_Send_Receive_I(vector <int>& counts_out_send,vector <int>& counts_in_send,vector <int>& maxSR)
   {
     ofstream& FF=p_file->DUMPS;
@@ -650,10 +643,16 @@ namespace FractalSpace
       }
     MPI_Group_incl(HypreGroup,RanksH[2].size(),&(*RanksH[2].begin()),&HG[2]);
     MPI_Comm_create(HypreWorld,HG[2],&HComms[2]);
+//     cerr << " HypreWorldB " << FractalRank << " " << &HypreGroup << " " << &HypreWorld << " " << &HG[2] << " " << &HComms[2] << endl;
+//     fprintf(p_file->PFHypre,"HypreWorldB %p %p %p %p \n",&HypreGroup,&HypreWorld,&HG[2],&HComms[2]);
     MPI_Group_incl(HypreGroup,RanksH[1].size(),&(*RanksH[1].begin()),&HG[1]);
     MPI_Comm_create(HypreWorld,HG[1],&HComms[1]);
+//     cerr << " HypreWorldC " << FractalRank << " " << &HypreGroup << " " << &HypreWorld << " " << &HG[1] << " " << &HComms[1] << endl;
+//     fprintf(p_file->PFHypre,"HypreWorldC %p %p %p %p \n",&HypreGroup,&HypreWorld,&HG[1],&HComms[1]);
     MPI_Group_incl(HypreGroup,RanksH[0].size(),&(*RanksH[0].begin()),&HG[0]);
     MPI_Comm_create(HypreWorld,HG[0],&HComms[0]);
+//     cerr << " HypreWorldD " << FractalRank << " " << &HypreGroup << " " << &HypreWorld << " " << &HG[0] << " " << &HComms[0] << endl;
+//     fprintf(p_file->PFHypre,"HypreWorldD %p %p %p %p \n",&HypreGroup,&HypreWorld,&HG[0],&HComms[0]);
   }
   void Mess::make_MPI_Groups()
   {
@@ -1023,7 +1022,6 @@ namespace FractalSpace
     dataR_in.clear();
     vector <int>countsa_out(FractalNodes0,0);
     vector <int>countsa_in(FractalNodes0);
-    //      FF << " SendOther AA " << FractalRank << "\n";
     int totals=0;
     try
       {
@@ -1214,7 +1212,6 @@ namespace FractalSpace
       }
     Full_Stop_Do_Not_Argue(MComms[1]);
     Full_Stop_Do_Not_Argue(MComms[2]);
-    //      FF << " SendOther FF " << FractalRank << "\n";
     countsa_in.assign(FractalNodes2,0);
     How_Many_Things_To_Send_I(MComms[2],countsa_out,countsa_in);
     dataI_in.clear();
@@ -1226,13 +1223,11 @@ namespace FractalSpace
 	total_out+=countsa_out[FR2];
 	total_in+=countsa_in[FR2];
       }
-    //      FF << " TotalsOther 2 " << total_out*(integers+1) << " " << total_out*doubles << " " <<  total_in*(integers+1) << " " << total_in*doubles << "\n";
     Send_Data_Somewhere_No_Block(MComms[2],countsa_out,countsa_in,
 				 integers+1,doubles,
 				 dataI_out,dataI_in,how_manyI,
 				 dataR_out,dataR_in,how_manyR);
 
-    //      FF << " SendOther GG " << FractalRank << "\n";
     dataI_out.clear();
     dataR_out.clear();
     counts_in.assign(FractalNodes,0);
@@ -1352,13 +1347,9 @@ namespace FractalSpace
 	      }
 	  }
       }
-    //      cerr << " BHyp " << FractalRank << " " << HypreRank << " "  << HypreRank0 << " "  << HypreRank1 << " "  << HypreRank2;;
-    //      cerr << " " << HypreLong0 << " " << HypreLong1 << " " << HypreLong2 << " " << HypreNodes << "\n";
     dataI_out.clear();
     dataR_out.clear();
     How_Many_Things_To_Send_I(HComms[2],countsa_out,countsa_in);
-    //      cerr << " CHyp " << FractalRank << " " << HypreRank << " "  << HypreRank0 << " "  << HypreRank1 << " "  << HypreRank2;;
-    //      cerr << " " << HypreLong0 << " " << HypreLong1 << " " << HypreLong2 << " " << HypreNodes << "\n";
 
     dataIa_in.clear();
     dataRa_in.clear();
@@ -1367,8 +1358,6 @@ namespace FractalSpace
 				 integers+1,doubles,
 				 dataIa_out,dataIa_in,how_manyI,
 				 dataRa_out,dataRa_in,how_manyR);
-    //      cerr << " DHyp " << FractalRank << " " << HypreRank << " "  << HypreRank0 << " "  << HypreRank1 << " "  << HypreRank2;;
-    //      cerr << " " << HypreLong0 << " " << HypreLong1 << " " << HypreLong2 << " " << HypreNodes << "\n";
     dataIa_out.clear();
     dataRa_out.clear();
     dataIa_out.resize(HypreLong1);
@@ -1401,21 +1390,15 @@ namespace FractalSpace
       }
     Full_Stop_Do_Not_Argue(HComms[2]);
     Full_Stop_Do_Not_Argue(HComms[1]);
-    //      cerr << " EHyp " << FractalRank << " " << HypreRank << " "  << HypreRank0 << " "  << HypreRank1 << " "  << HypreRank2;;
-    //      cerr << " " << HypreLong0 << " " << HypreLong1 << " " << HypreLong2 << " " << HypreNodes << "\n";
     countsa_in.assign(HypreLong1,0);
     How_Many_Things_To_Send_I(HComms[1],countsa_out,countsa_in);
     dataIa_in.clear();
     dataRa_in.clear();
-    //      cerr << " FHyp " << FractalRank << " " << HypreRank << " "  << HypreRank0 << " "  << HypreRank1 << " "  << HypreRank2;;
-    //      cerr << " " << HypreLong0 << " " << HypreLong1 << " " << HypreLong2 << " " << HypreNodes << "\n";
 
     Send_Data_Somewhere_No_Block(HComms[1],countsa_out,countsa_in,
 				 integers+2,doubles,
 				 dataIa_out,dataIa_in,how_manyI,
 				 dataRa_out,dataRa_in,how_manyR);
-    //      cerr << " GHyp " << FractalRank << " " << HypreRank << " "  << HypreRank0 << " "  << HypreRank1 << " "  << HypreRank2;;
-    //      cerr << " " << HypreLong0 << " " << HypreLong1 << " " << HypreLong2 << " " << HypreNodes << "\n";
 
     dataIa_out.clear();
     dataRa_out.clear();
@@ -1448,22 +1431,16 @@ namespace FractalSpace
 	      }
 	  }
       }
-    //      cerr << " HHyp " << FractalRank << " " << HypreRank << " "  << HypreRank0 << " "  << HypreRank1 << " "  << HypreRank2;;
-    //      cerr << " " << HypreLong0 << " " << HypreLong1 << " " << HypreLong2 << " " << HypreNodes << "\n";
     Full_Stop_Do_Not_Argue(HComms[1]);
     Full_Stop_Do_Not_Argue(HComms[0]);
     countsa_in.assign(HypreLong0,0);
     How_Many_Things_To_Send_I(HComms[0],countsa_out,countsa_in);
-    //      cerr << " IHyp " << FractalRank << " " << HypreRank << " "  << HypreRank0 << " "  << HypreRank1 << " "  << HypreRank2;;
-    //      cerr << " " << HypreLong0 << " " << HypreLong1 << " " << HypreLong2 << " " << HypreNodes << "\n";
     dataIa_in.clear();
     dataRa_in.clear();
     Send_Data_Somewhere_No_Block(HComms[0],countsa_out,countsa_in,
 				 integers+2,doubles,
 				 dataIa_out,dataIa_in,how_manyI,
 				 dataRa_out,dataRa_in,how_manyR);
-    //      cerr << " JHyp " << FractalRank << " " << HypreRank << " "  << HypreRank0 << " "  << HypreRank1 << " "  << HypreRank2;;
-    //      cerr << " " << HypreLong0 << " " << HypreLong1 << " " << HypreLong2 << " " << HypreNodes << "\n";
     dataIa_out.clear();
     dataRa_out.clear();
     dataIa_out.resize(HypreLong2);
@@ -1494,22 +1471,16 @@ namespace FractalSpace
 	      }
 	  }
       }
-    //      cerr << " KHyp " << FractalRank << " " << HypreRank << " "  << HypreRank0 << " "  << HypreRank1 << " "  << HypreRank2;;
-    //      cerr << " " << HypreLong0 << " " << HypreLong1 << " " << HypreLong2 << " " << HypreNodes << "\n";
     Full_Stop_Do_Not_Argue(HComms[0]);
     Full_Stop_Do_Not_Argue(HComms[2]);
     countsa_in.assign(HypreLong2,0);
     How_Many_Things_To_Send_I(HComms[2],countsa_out,countsa_in);
-    //      cerr << " LHyp " << FractalRank << " " << HypreRank << " "  << HypreRank0 << " "  << HypreRank1 << " "  << HypreRank2;;
-    //      cerr << " " << HypreLong0 << " " << HypreLong1 << " " << HypreLong2 << " " << HypreNodes << "\n";
     dataIa_in.clear();
     dataRa_in.clear();
     Send_Data_Somewhere_No_Block(HComms[2],countsa_out,countsa_in,
 				 integers+1,doubles,
 				 dataIa_out,dataIa_in,how_manyI,
 				 dataRa_out,dataRa_in,how_manyR);
-    //      cerr << " MHyp " << FractalRank << " " << HypreRank << " "  << HypreRank0 << " "  << HypreRank1 << " "  << HypreRank2;;
-    //      cerr << " " << HypreLong0 << " " << HypreLong1 << " " << HypreLong2 << " " << HypreNodes << "\n";
     dataIa_out.clear();
     dataRa_out.clear();
     dataIa_out.resize(HypreNodes);
@@ -1536,8 +1507,6 @@ namespace FractalSpace
 	      }
 	  }
       }
-    //      cerr << " KHyp " << FractalRank << " " << HypreRank << " "  << HypreRank0 << " "  << HypreRank1 << " "  << HypreRank2;;
-    //      cerr << " " << HypreLong0 << " " << HypreLong1 << " " << HypreLong2 << " " << HypreNodes << "\n";
     dataI_in.clear();
     dataR_in.clear();
     how_manyI=0;
@@ -1563,8 +1532,6 @@ namespace FractalSpace
 	how_manyR+=countR;
       }
     Full_Stop_Do_Not_Argue(HypreWorld);
-    //      cerr << " LHyp " << FractalRank << " " << HypreRank << " "  << HypreRank0 << " "  << HypreRank1 << " "  << HypreRank2;;
-    //      cerr << " " << HypreLong0 << " " << HypreLong1 << " " << HypreLong2 << " " << HypreNodes << "\n";
   }
   void Mess::MPI_MYTest(int which,int test) const
   {
@@ -1573,26 +1540,42 @@ namespace FractalSpace
     fprintf(p_file->PFFractalMemory," MPI Error %d %d %d %d %d %d %d %d \n",which,test,
 	    MPI_ERR_COMM,MPI_ERR_TYPE,MPI_ERR_COUNT,MPI_ERR_TAG,MPI_ERR_RANK,MPI_SUCCESS);
   }
-//   void Which_Nodes(int count,vector <int>& counts,int ROOT,MPI_Comm& World)
+//   void Which_Nodes(int count,vector <int>& counts,vector <bool>& YesNo,int ROOT,MPI_Comm& World)
 //   {
-//     int nsend=1;
-//     int csize=send*how_many_nodes(World);
+//     bool ThisIsROOT = ROOT == what_is_my_rank(World);
+//     int csize=how_many_nodes(World);
 //     vector <int>Count(1);
 //     Count[0]=count;
-//     counts.resize(csize);
-//     MPI_Gather(&(*(Count.begin())),nsend,MPI_INT,&(*(counts.begin())),nsend,MPI_INT,ROOT,World);
+//     if(ThisIsROOT)
+//       counts.resize(csize);
+//     MPI_Gather(&(*(Count.begin())),1,MPI_INT,&(*(counts.begin())),1,MPI_INT,ROOT,World);
 //     int isize=8*sizeof(int);
 //     int batches=(csize-1)/isize+1;
 //     vector <unsigned int> Ucounts(batches,0);
+//     if(ThisIsROOT)
+//       {
+// 	for(int b=0;b<batches;b++)
+// 	  {
+// 	    int n0=(b*csize)/batches;
+// 	    int n1=((b+1)*csize)/batches;
+// 	    for(int n=n1-1;n>=n0;n--)
+// 	      {
+// 		Ucounts[b]*=2;
+// 		if(counts[n] > 0)
+// 		  Ucounts[b]++;
+// 	      }
+// 	  }
+//       }
+//     MPI_Bcast(&(*(Ucounts.begin())),batches,MPI_UNSIGNED,ROOT,World);
+//     YesNo.resize(csize);
 //     for(int b=0;b<batches;b++)
 //       {
 // 	int n0=(b*csize)/batches;
 // 	int n1=((b+1)*csize)/batches;
 // 	for(int n=n0;n<n1;n++)
 // 	  {
-// 	    Ucounts[b]*=2;
-// 	    if(counts[n])
-// 	      Ucounts[b]++;
+// 	    YesNo[n]=(Ucounts[b] % 2) == 1;
+// 	    Ucounts[b]/=2;
 // 	  }
 //       }
 //   }
@@ -1756,6 +1739,11 @@ namespace FractalSpace
   {
     MPI_Barrier(FractalWorld);
   }
+  void Mess::Fake_Stop_Do_Not_Argue() const
+  {
+    if(FractalRank != 0)
+      MPI_Barrier(FractalWorld);
+  }
   void Mess::Full_Stop(MPI_Comm& World) const
   {
     if(time_trial)
@@ -1764,6 +1752,13 @@ namespace FractalSpace
   void Mess::Full_Stop_Do_Not_Argue(MPI_Comm& World) const
   {
     MPI_Barrier(World);
+  }
+  void Mess::Fake_Stop_Do_Not_Argue(MPI_Comm& World) const
+  {
+    int Ranky;
+    MPI_Comm_rank(World,&Ranky);
+    if(Ranky != 0)
+      MPI_Barrier(World);
   }
   void Mess::zeroR()
   {
@@ -1804,6 +1799,8 @@ namespace FractalSpace
     HypreRank=MyHypreRank();
     if(!IAmAHypreNode)
       return;
+//     cerr << " HypreWorldA " << FractalRank << " " << &FractalGroup << " " << &FractalWorld << " " << &HypreGroup << " " << &HypreWorld << endl;
+//     fprintf(p_file->PFHypre,"HypreWorldA %p %p %p %p \n",&FractalGroup,&FractalWorld,&HypreGroup,&HypreWorld);
     make_MPI_Hypre_Groups();
   }
   void Mess::HypreGroupFree()
@@ -1847,62 +1844,4 @@ namespace FractalSpace
     FractalNodes1=dims[1];
     FractalNodes2=dims[2];
   }
-//   void Mess::make_Random_Group()
-//   {
-//     if(FractalNodes <= 2*RandomNodes)
-//       {
-// 	RandomNodes=FractalNodes;
-// 	RandomWorld=FractalWorld;
-// 	RandomGroup=FractalGroup;
-// 	IAmARandomNode=true;
-// 	Rranks.resize(FractalNodes);
-// 	IRranks.resize(FractalNodes);
-// 	for(int FR=0;FR<FractalNodes;FR++)
-// 	  {
-// 	    Rranks[FR]=FR;
-// 	    IRranks[FR]=FR;
-// 	  }
-//       }
-//     else
-//       {
-// 	IAmARandomNode=false;
-// 	Rranks.assign(RandomNodes,-1);
-// 	IRranks.assign(FractalNodes,-1);
-// 	double aFractalNodes=FractalNodes;
-// 	double rand_max=RAND_MAX;
-// 	for(int RR=0;RR<RandomNodes;RR++)
-// 	  {
-// 	    bool not_yet=true;
-// 	    while(not_yet)
-// 	      {
-// 		int FR=aFractalNodes*(double)(rand())/rand_max;
-// 		if(IRranks[FR] < 0)
-// 		  {
-// 		    Rranks[RR]=FR;
-// 		    IRranks[FR]=RR;
-// 		    not_yet=false;
-// 		  }
-// 	      }
-// 	  }
-// 	std::sort(Rranks.begin(),Rranks.end());
-// 	IRranks.assign(FractalNodes,-1);
-// 	for(int RR=0;RR<RandomNodes;RR++)
-// 	  {
-// 	    IRranks[Rranks[RR]]=RR;
-// 	    if(Rranks[RR] == FractalRank)
-// 	      {
-// 		RandomRank=RR;
-// 		IAmARandomNode=true;
-// 	      }
-// 	  }
-//       }
-//     MPI_Comm_group(FractalWorld,&FractalGroup);
-//     MPI_Group_incl(FractalGroup, RandomNodes, &(*(Rranks.begin())), &RandomGroup);
-//     MPI_Comm_create(FractalWorld, RandomGroup, &RandomWorld);
-//     if(!IAmARandomNode)
-//       return;
-//     int Ranky;
-//     MPI_Comm_rank(RandomWorld,&Ranky);
-//     assert(Ranky == RandomRank);
-//   }
 }
