@@ -60,7 +60,7 @@ public:
                 const bool compatibleEnergyEvolution,
                 const bool gradhCorrection,
                 const bool XSPH,
-                const bool correctVelocityGradient,
+                const bool HopkinsConductivity,
                 const bool sumMassDensityOverAllNodeLists,
                 const PhysicsSpace::MassDensityType densityUpdate,
                 const PhysicsSpace::HEvolutionType HUpdate,
@@ -116,6 +116,10 @@ public:
   void enforceBoundaries(State<Dimension>& state,
                          StateDerivatives<Dimension>& derivs);
 
+  // Flag determining if we're applying Hopkins 2014 conductivity.
+  bool HopkinsConductivity() const;
+  void HopkinsConductivity(const bool val);
+
   // The state field lists we're maintaining.
   const FieldSpace::FieldList<Dimension, Scalar>&    gamma() const;
   const FieldSpace::FieldList<Dimension, Scalar>&    PSPHpbar() const;
@@ -130,6 +134,8 @@ public:
 
 protected:
   //---------------------------  Protected Interface ---------------------------//
+  bool mHopkinsConductivity;
+
   //PSPH Fields
   FieldSpace::FieldList<Dimension, Scalar>    mGamma;
   FieldSpace::FieldList<Dimension, Scalar>    mPSPHpbar;
