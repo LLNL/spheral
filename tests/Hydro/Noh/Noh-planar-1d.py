@@ -47,6 +47,7 @@ commandLine(KernelConstructor = BSplineKernel,
             Qconstructor = MonaghanGingoldViscosity,
             #Qconstructor = TensorMonaghanGingoldViscosity,
             boolReduceViscosity = False,
+            HopkinsConductivity = False,     # For PSPH
             nhQ = 5.0,
             nhL = 10.0,
             aMin = 0.1,
@@ -307,6 +308,20 @@ elif CRKSPH:
                              HUpdate = HUpdate)
     q.etaCritFrac = etaCritFrac
     q.etaFoldFrac = etaFoldFrac
+elif PSPH:
+    hydro = HydroConstructor(W = WT,
+                             Q = q,
+                             filter = filter,
+                             cfl = cfl,
+                             useVelocityMagnitudeForDt = useVelocityMagnitudeForDt,
+                             compatibleEnergyEvolution = compatibleEnergy,
+                             gradhCorrection = gradhCorrection,
+                             HopkinsConductivity = HopkinsConductivity,
+                             densityUpdate = densityUpdate,
+                             HUpdate = HUpdate,
+                             XSPH = XSPH,
+                             epsTensile = epsilonTensile,
+                             nTensile = nTensile)
 else:
     hydro = HydroConstructor(W = WT,
                              Q = q,

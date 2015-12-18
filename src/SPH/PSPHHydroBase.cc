@@ -85,7 +85,7 @@ PSPHHydroBase(const SmoothingScaleBase<Dimension>& smoothingScaleMethod,
               const bool compatibleEnergyEvolution,
               const bool gradhCorrection,
               const bool XSPH,
-              const bool correctVelocityGradient,
+              const bool HopkinsConductivity,
               const bool sumMassDensityOverAllNodeLists,
               const MassDensityType densityUpdate,
               const HEvolutionType HUpdate,
@@ -103,7 +103,7 @@ PSPHHydroBase(const SmoothingScaleBase<Dimension>& smoothingScaleMethod,
                           compatibleEnergyEvolution,
                           gradhCorrection,
                           XSPH,
-                          correctVelocityGradient,
+                          false,
                           sumMassDensityOverAllNodeLists,
                           densityUpdate,
                           HUpdate,
@@ -111,6 +111,7 @@ PSPHHydroBase(const SmoothingScaleBase<Dimension>& smoothingScaleMethod,
                           nTensile,
                           xmin,
                           xmax),
+  mHopkinsConductivity(HopkinsConductivity),
   mGamma(FieldSpace::Copy),
   mPSPHpbar(FieldSpace::Copy),
   mPSPHcorrection(FieldSpace::Copy) {
@@ -244,8 +245,8 @@ evaluateDerivatives(const typename Dimension::Scalar time,
   const FieldList<Dimension, Scalar> omega = state.fields(HydroFieldNames::omegaGradh, 0.0);
   const FieldList<Dimension, Scalar> PSPHpbar = state.fields(HydroFieldNames::PSPHpbar, 0.0);
   const FieldList<Dimension, Scalar> PSPHcorrection = state.fields(HydroFieldNames::PSPHcorrection, 0.0);
-  // const FieldList<Dimension, Scalar> reducingViscosityMultiplierQ = state.fields(HydroFieldNames::reducingViscosityMultiplierQ, 0.0);
-  // const FieldList<Dimension, Scalar> reducingViscosityMultiplierL = state.fields(HydroFieldNames::reducingViscosityMultiplierL, 0.0);
+  const FieldList<Dimension, Scalar> reducingViscosityMultiplierQ = state.fields(HydroFieldNames::reducingViscosityMultiplierQ, 0.0);
+  const FieldList<Dimension, Scalar> reducingViscosityMultiplierL = state.fields(HydroFieldNames::reducingViscosityMultiplierL, 0.0);
 
   CHECK(mass.size() == numNodeLists);
   CHECK(position.size() == numNodeLists);
@@ -259,8 +260,8 @@ evaluateDerivatives(const typename Dimension::Scalar time,
   CHECK(omega.size() == numNodeLists);
   CHECK(PSPHpbar.size() == numNodeLists);
   CHECK(PSPHcorrection.size() == numNodeLists);
-  // CHECK(reducingViscosityMultiplierQ.size() == numNodeLists);
-  // CHECK(reducingViscosityMultiplierL.size() == numNodeLists);
+  CHECK((not mHopkinsConductivity) or (reducingViscosityMultiplierQ.size() == numNodeLists));
+  CHECK((not mHopkinsConductivity) or (reducingViscosityMultiplierL.size() == numNodeLists));
 
   // Derivative FieldLists.
   FieldList<Dimension, Scalar> rhoSum = derivatives.fields(ReplaceFieldList<Dimension, Scalar>::prefix() + HydroFieldNames::massDensity, 0.0);
@@ -550,27 +551,27 @@ evaluateDerivatives(const typename Dimension::Scalar time,
               //DepsDti += mj*(engCoef*deltaDrhoDti*Fij*safeInv(Pbari) + workQi);
               //DepsDtj += mi*(engCoef*deltaDrhoDtj*Fji*safeInv(Pbarj) + workQj);
 
-// #define HOPKINS
-#ifdef HOPKINS //ADD ARITIFICIAL CONDUCTIVITY IN HOPKINS 2014A
-              const Scalar alph_c = 0.25;//Parameter = 0.25 in Hopkins 2014
-              const Scalar Vs = ci+cj-3.0*vij.dot(rij.unitVector());
-              const Scalar& Qalpha_i = reducingViscosityMultiplierL(nodeListi, i); //Both L and Q corrections are the same for Cullen Viscosity
-              const Scalar& Qalpha_j = reducingViscosityMultiplierL(nodeListj, j); //Both L and Q corrections are the same for Cullen Viscosity
-              //DepsDti += (Vs > 0.0)*alph_c*mi*mj*(Qalpha_i+Qalpha_j)*0.5*Vs*(epsi-epsj)*abs(Pi-Pj)*((gradWi+gradWj).dot(rij.unitVector()))*safeInv((Pi+Pj+1e-30)*(rhoi+rhoj+1e-30));
-              //DepsDtj += (Vs > 0.0)*alph_c*mi*mj*(Qalpha_i+Qalpha_j)*0.5*Vs*(epsi-epsj)*abs(Pi-Pj)*((gradWi+gradWj).dot(rij.unitVector()))*safeInv((Pi+Pj+1e-30)*(rhoi+rhoj+1e-30));
-              //DepsDti += (Vs > 0.0) ? alph_c*mj*(Qalpha_i+Qalpha_j)*0.5*Vs*(epsi-epsj)*abs(Pbari-Pbarj)*((gradWi).dot(rij.unitVector()))/max((Pbari+Pbarj)*0.5*(rhoi+rhoj),tiny) : 0.0;
-              //DepsDtj += (Vs > 0.0) ? alph_c*mi*(Qalpha_i+Qalpha_j)*0.5*Vs*(epsj-epsi)*abs(Pbari-Pbarj)*((gradWj).dot(rij.unitVector()))/max((Pbari+Pbarj)*0.5*(rhoi+rhoj),tiny) : 0.0;
-              DepsDti += (Vs > 0.0) ? alph_c*mj*(Qalpha_i+Qalpha_j)*0.5*Vs*(epsi-epsj)*abs(Pbari-Pbarj)*((gradWi+gradWj).dot(rij.unitVector()))/max((Pbari+Pbarj)*(rhoi+rhoj),tiny) : 0.0;
-              DepsDtj += (Vs > 0.0) ? alph_c*mi*(Qalpha_i+Qalpha_j)*0.5*Vs*(epsj-epsi)*abs(Pbari-Pbarj)*((gradWi+gradWj).dot(rij.unitVector()))/max((Pbari+Pbarj)*(rhoi+rhoj),tiny) : 0.0;
-              //const Scalar tmpi = (Vs > 0.0) ? alph_c*mj*(Qalpha_i+Qalpha_j)*0.5*Vs*(epsi-epsj)*abs(Pbari-Pbarj)*((gradWi+gradWj).dot(rij.unitVector()))*safeInv((Pbari+Pbarj)*(rhoi+rhoj)) : 0.0;
-              //const Scalar tmpj = (Vs > 0.0) ? alph_c*mi*(Qalpha_i+Qalpha_j)*0.5*Vs*(epsj-epsi)*abs(Pbari-Pbarj)*((gradWi+gradWj).dot(rij.unitVector()))*safeInv((Pbari+Pbarj)*(rhoi+rhoj)) : 0.0;
-              //DepsDti += tmpi;
-              //DepsDtj += tmpj;
-              //DepsDti += (Vs > 0.0) ? alph_c*mj*(Qalpha_i+Qalpha_j)*0.5*Vs*(epsi-epsj)*abs(Pbari-Pbarj)*((gradWi+gradWj).dot(rij.unitVector()))*safeInv((Pbari+Pbarj)*(rhoi+rhoj)) : 0.0;
-              //DepsDtj += (Vs > 0.0) ? alph_c*mi*(Qalpha_i+Qalpha_j)*0.5*Vs*(epsj-epsi)*abs(Pbari-Pbarj)*((gradWi+gradWj).dot(rij.unitVector()))*safeInv((Pbari+Pbarj)*(rhoi+rhoj)) : 0.0;
-              //DepsDti += (Vs > 0.0 && Pbari > 1e-4 && Pbarj > 1e-4) ? alph_c*mj*(Qalpha_i+Qalpha_j)*0.5*Vs*(epsi-epsj)*abs(Pbari-Pbarj)*((gradWi+gradWj).dot(rij.unitVector()))*safeInv((Pbari+Pbarj)*(rhoi+rhoj),tiny) : 0.0;
-              //DepsDtj += (Vs > 0.0 && Pbari > 1e-4 && Pbarj > 1e-4) ? alph_c*mi*(Qalpha_i+Qalpha_j)*0.5*Vs*(epsj-epsi)*abs(Pbari-Pbarj)*((gradWi+gradWj).dot(rij.unitVector()))*safeInv((Pbari+Pbarj)*(rhoi+rhoj),tiny) : 0.0;
-#endif
+              //ADD ARITIFICIAL CONDUCTIVITY IN HOPKINS 2014A
+              if (mHopkinsConductivity) {
+                const Scalar alph_c = 0.25;//Parameter = 0.25 in Hopkins 2014
+                const Scalar Vs = ci+cj-3.0*vij.dot(rij.unitVector());
+                const Scalar& Qalpha_i = reducingViscosityMultiplierL(nodeListi, i); //Both L and Q corrections are the same for Cullen Viscosity
+                const Scalar& Qalpha_j = reducingViscosityMultiplierL(nodeListj, j); //Both L and Q corrections are the same for Cullen Viscosity
+                //DepsDti += (Vs > 0.0)*alph_c*mi*mj*(Qalpha_i+Qalpha_j)*0.5*Vs*(epsi-epsj)*abs(Pi-Pj)*((gradWi+gradWj).dot(rij.unitVector()))*safeInv((Pi+Pj+1e-30)*(rhoi+rhoj+1e-30));
+                //DepsDtj += (Vs > 0.0)*alph_c*mi*mj*(Qalpha_i+Qalpha_j)*0.5*Vs*(epsi-epsj)*abs(Pi-Pj)*((gradWi+gradWj).dot(rij.unitVector()))*safeInv((Pi+Pj+1e-30)*(rhoi+rhoj+1e-30));
+                //DepsDti += (Vs > 0.0) ? alph_c*mj*(Qalpha_i+Qalpha_j)*0.5*Vs*(epsi-epsj)*abs(Pbari-Pbarj)*((gradWi).dot(rij.unitVector()))/max((Pbari+Pbarj)*0.5*(rhoi+rhoj),tiny) : 0.0;
+                //DepsDtj += (Vs > 0.0) ? alph_c*mi*(Qalpha_i+Qalpha_j)*0.5*Vs*(epsj-epsi)*abs(Pbari-Pbarj)*((gradWj).dot(rij.unitVector()))/max((Pbari+Pbarj)*0.5*(rhoi+rhoj),tiny) : 0.0;
+                DepsDti += (Vs > 0.0) ? alph_c*mj*(Qalpha_i+Qalpha_j)*0.5*Vs*(epsi-epsj)*abs(Pbari-Pbarj)*((gradWi+gradWj).dot(rij.unitVector()))/max((Pbari+Pbarj)*(rhoi+rhoj),tiny) : 0.0;
+                DepsDtj += (Vs > 0.0) ? alph_c*mi*(Qalpha_i+Qalpha_j)*0.5*Vs*(epsj-epsi)*abs(Pbari-Pbarj)*((gradWi+gradWj).dot(rij.unitVector()))/max((Pbari+Pbarj)*(rhoi+rhoj),tiny) : 0.0;
+                //const Scalar tmpi = (Vs > 0.0) ? alph_c*mj*(Qalpha_i+Qalpha_j)*0.5*Vs*(epsi-epsj)*abs(Pbari-Pbarj)*((gradWi+gradWj).dot(rij.unitVector()))*safeInv((Pbari+Pbarj)*(rhoi+rhoj)) : 0.0;
+                //const Scalar tmpj = (Vs > 0.0) ? alph_c*mi*(Qalpha_i+Qalpha_j)*0.5*Vs*(epsj-epsi)*abs(Pbari-Pbarj)*((gradWi+gradWj).dot(rij.unitVector()))*safeInv((Pbari+Pbarj)*(rhoi+rhoj)) : 0.0;
+                //DepsDti += tmpi;
+                //DepsDtj += tmpj;
+                //DepsDti += (Vs > 0.0) ? alph_c*mj*(Qalpha_i+Qalpha_j)*0.5*Vs*(epsi-epsj)*abs(Pbari-Pbarj)*((gradWi+gradWj).dot(rij.unitVector()))*safeInv((Pbari+Pbarj)*(rhoi+rhoj)) : 0.0;
+                //DepsDtj += (Vs > 0.0) ? alph_c*mi*(Qalpha_i+Qalpha_j)*0.5*Vs*(epsj-epsi)*abs(Pbari-Pbarj)*((gradWi+gradWj).dot(rij.unitVector()))*safeInv((Pbari+Pbarj)*(rhoi+rhoj)) : 0.0;
+                //DepsDti += (Vs > 0.0 && Pbari > 1e-4 && Pbarj > 1e-4) ? alph_c*mj*(Qalpha_i+Qalpha_j)*0.5*Vs*(epsi-epsj)*abs(Pbari-Pbarj)*((gradWi+gradWj).dot(rij.unitVector()))*safeInv((Pbari+Pbarj)*(rhoi+rhoj),tiny) : 0.0;
+                //DepsDtj += (Vs > 0.0 && Pbari > 1e-4 && Pbarj > 1e-4) ? alph_c*mi*(Qalpha_i+Qalpha_j)*0.5*Vs*(epsj-epsi)*abs(Pbari-Pbarj)*((gradWi+gradWj).dot(rij.unitVector()))*safeInv((Pbari+Pbarj)*(rhoi+rhoj),tiny) : 0.0;
+              }
 
               if (this->mCompatibleEnergyEvolution) {
                 pairAccelerationsi.push_back(-mj*deltaDvDt);
