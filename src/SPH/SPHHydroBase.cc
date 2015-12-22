@@ -722,10 +722,10 @@ evaluateDerivatives(const typename Dimension::Scalar time,
               const pair<Tensor, Tensor> QPiij = Q.Piij(nodeListi, i, nodeListj, j,
                                                         ri, etai, vi, rhoi, ci, Hi,
                                                         rj, etaj, vj, rhoj, cj, Hj);
-              const Vector Qacci = 0.5*(QPiij.first *gradWQi);
-              const Vector Qaccj = 0.5*(QPiij.second*gradWQj);
-//               const Scalar workQi = 0.5*(QPiij.first *vij).dot(gradWQi);
-//               const Scalar workQj = 0.5*(QPiij.second*vij).dot(gradWQj);
+              const Vector Qacci = 0.5*safeOmegai*(QPiij.first *gradWQi);
+              const Vector Qaccj = 0.5*safeOmegaj*(QPiij.second*gradWQj);
+              // const Scalar workQi = 0.5*safeOmegai*(QPiij.first *vij).dot(gradWQi);
+              // const Scalar workQj = 0.5*safeOmegaj*(QPiij.second*vij).dot(gradWQj);
               const Scalar workQi = vij.dot(Qacci);
               const Scalar workQj = vij.dot(Qaccj);
               const Scalar Qi = rhoi*rhoi*(QPiij.first. diagonalElements().maxAbsElement());
@@ -748,30 +748,29 @@ evaluateDerivatives(const typename Dimension::Scalar time,
               // Acceleration.
               CHECK(rhoi > 0.0);
               CHECK(rhoj > 0.0);
-              const double Prhoi = Peffi/(rhoi*rhoi);
-              const double Prhoj = Peffj/(rhoj*rhoj);
-              const Vector deltaDvDt = Prhoi*safeOmegai*gradWi + Prhoj*safeOmegaj*gradWj + Qacci + Qaccj;
-
+              const double Prhoi = safeOmegai*Peffi/(rhoi*rhoi);
+              const double Prhoj = safeOmegaj*Peffj/(rhoj*rhoj);
+              const Vector deltaDvDt = Prhoi*gradWi + Prhoj*gradWj + Qacci + Qaccj;
               DvDti -= mj*deltaDvDt;
               DvDtj += mi*deltaDvDt;
 
               // Specific thermal energy evolution.
+              // const Scalar workQij = 0.5*(mj*workQi + mi*workQj);
               DepsDti += mj*(Prhoi*deltaDrhoDti + workQi);
               DepsDtj += mi*(Prhoj*deltaDrhoDtj + workQj);
-
               if (mCompatibleEnergyEvolution) {
                 pairAccelerationsi.push_back(-mj*deltaDvDt);
-                pairAccelerationsj.push_back(mi*deltaDvDt);
+                pairAccelerationsj.push_back( mi*deltaDvDt);
               }
 
               // Velocity gradient.
-              const Tensor deltaDvDxi = vij.dyad(gradWi);
-              const Tensor deltaDvDxj = vij.dyad(gradWj);
-              DvDxi -= mj*deltaDvDxi;
-              DvDxj -= mi*deltaDvDxj;
+              const Tensor deltaDvDxi = mj*vij.dyad(gradWi);
+              const Tensor deltaDvDxj = mi*vij.dyad(gradWj);
+              DvDxi -= deltaDvDxi;
+              DvDxj -= deltaDvDxj;
               if (nodeListi == nodeListj) {
-                localDvDxi -= mj*deltaDvDxi;
-                localDvDxj -= mi*deltaDvDxj;
+                localDvDxi -= deltaDvDxi;
+                localDvDxj -= deltaDvDxj;
               }
 
               // Estimate of delta v (for XSPH).
@@ -809,9 +808,6 @@ evaluateDerivatives(const typename Dimension::Scalar time,
 
       // Finish the continuity equation.
       DrhoDti *= mi*safeOmegai;
-
-      // Finish the thermal energy derivative.
-      DepsDti *= safeOmegai;
 
       // Finish the gradient of the velocity.
       CHECK(rhoi > 0.0);
