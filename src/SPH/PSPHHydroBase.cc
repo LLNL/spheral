@@ -502,10 +502,10 @@ evaluateDerivatives(const typename Dimension::Scalar time,
                                                         rj, etaj, vj, rhoj, cj, Hj);
               const Vector Qacci = 0.5*(QPiij.first *gradWQi);
               const Vector Qaccj = 0.5*(QPiij.second*gradWQj);
-//               const Scalar workQi = 0.5*(QPiij.first *vij).dot(gradWQi);
-//               const Scalar workQj = 0.5*(QPiij.second*vij).dot(gradWQj);
-              const Scalar workQi = vij.dot(Qacci);
-              const Scalar workQj = vij.dot(Qaccj);
+              const Scalar workQi = 0.5*(QPiij.first *vij).dot(gradWQi);
+              const Scalar workQj = 0.5*(QPiij.second*vij).dot(gradWQj);
+              // const Scalar workQi = vij.dot(Qacci);
+              // const Scalar workQj = vij.dot(Qaccj);
               const Scalar Qi = rhoi*rhoi*(QPiij.first. diagonalElements().maxAbsElement());
               const Scalar Qj = rhoj*rhoj*(QPiij.second.diagonalElements().maxAbsElement());
               maxViscousPressurei = max(maxViscousPressurei, Qi);
@@ -546,8 +546,8 @@ evaluateDerivatives(const typename Dimension::Scalar time,
               DvDtj += mi*deltaDvDt;
 
               // Specific thermal energy evolution.
-              DepsDti += mj*(engCoef*deltaDrhoDti*Fij/max(Pbari,tiny) + workQi);
-              DepsDtj += mi*(engCoef*deltaDrhoDtj*Fji/max(Pbarj,tiny) + workQj);
+              DepsDti += mj*(engCoef*deltaDrhoDti*Fij/max(Pbari,tiny)*safeOmegai + workQi);
+              DepsDtj += mi*(engCoef*deltaDrhoDtj*Fji/max(Pbarj,tiny)*safeOmegaj + workQj);
               //DepsDti += mj*(engCoef*deltaDrhoDti*Fij*safeInv(Pbari) + workQi);
               //DepsDtj += mi*(engCoef*deltaDrhoDtj*Fji*safeInv(Pbarj) + workQj);
 
