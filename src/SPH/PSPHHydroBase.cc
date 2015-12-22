@@ -500,12 +500,12 @@ evaluateDerivatives(const typename Dimension::Scalar time,
               const pair<Tensor, Tensor> QPiij = Q.Piij(nodeListi, i, nodeListj, j,
                                                         ri, etai, vi, rhoi, ci, Hi,
                                                         rj, etaj, vj, rhoj, cj, Hj);
-              const Vector Qacci = 0.5*(QPiij.first *gradWQi);
-              const Vector Qaccj = 0.5*(QPiij.second*gradWQj);
-              const Scalar workQi = 0.5*(QPiij.first *vij).dot(gradWQi);
-              const Scalar workQj = 0.5*(QPiij.second*vij).dot(gradWQj);
-              // const Scalar workQi = vij.dot(Qacci);
-              // const Scalar workQj = vij.dot(Qaccj);
+              const Vector Qacci = 0.5*safeOmegai*(QPiij.first *gradWQi);
+              const Vector Qaccj = 0.5*safeOmegaj*(QPiij.second*gradWQj);
+              // const Scalar workQi = 0.5*safeOmegai*(QPiij.first *vij).dot(gradWQi);
+              // const Scalar workQj = 0.5*safeOmegaj*(QPiij.second*vij).dot(gradWQj);
+              const Scalar workQi = vij.dot(Qacci);
+              const Scalar workQj = vij.dot(Qaccj);
               const Scalar Qi = rhoi*rhoi*(QPiij.first. diagonalElements().maxAbsElement());
               const Scalar Qj = rhoj*rhoj*(QPiij.second.diagonalElements().maxAbsElement());
               maxViscousPressurei = max(maxViscousPressurei, Qi);
@@ -526,8 +526,6 @@ evaluateDerivatives(const typename Dimension::Scalar time,
               // Acceleration.
               CHECK(rhoi > 0.0);
               CHECK(rhoj > 0.0);
-              const double Prhoi = Peffi/(rhoi*rhoi);
-              const double Prhoj = Peffj/(rhoj*rhoj);
               const Scalar& Fcorri=PSPHcorrection(nodeListi, i);
               const Scalar& Fcorrj=PSPHcorrection(nodeListj, j);
               const Scalar& Pbari=PSPHpbar(nodeListi, i);
@@ -537,9 +535,7 @@ evaluateDerivatives(const typename Dimension::Scalar time,
               const Scalar Fij=1.0-Fcorri/max(mj*epsj,tiny);
               const Scalar Fji=1.0-Fcorrj/max(mi*epsi,tiny);
               const double engCoef=(gammai-1)*(gammaj-1)*epsi*epsj;
-              Vector deltaDvDt = Prhoi*safeOmegai*gradWi + Prhoj*safeOmegaj*gradWj + Qacci + Qaccj;
-
-              deltaDvDt = engCoef*(gradWi*Fij/max(Pbari,tiny) + gradWj*Fji/max(Pbarj,tiny)) + Qacci + Qaccj;
+              const Vector deltaDvDt = engCoef*(gradWi*Fij/max(Pbari,tiny)*safeOmegai + gradWj*Fji/max(Pbarj,tiny)*safeOmegaj) + Qacci + Qaccj;
               //deltaDvDt = engCoef*(gradWi*Fij*safeInv(Pbari) + gradWj*Fji*safeInv(Pbarj)) + Qacci + Qaccj;
 
               DvDti -= mj*deltaDvDt;
@@ -575,7 +571,7 @@ evaluateDerivatives(const typename Dimension::Scalar time,
 
               if (this->mCompatibleEnergyEvolution) {
                 pairAccelerationsi.push_back(-mj*deltaDvDt);
-                pairAccelerationsj.push_back(mi*deltaDvDt);
+                pairAccelerationsj.push_back( mi*deltaDvDt);
               }
 
               // Velocity gradient.
@@ -623,9 +619,6 @@ evaluateDerivatives(const typename Dimension::Scalar time,
 
       // Finish the continuity equation.
       DrhoDti *= mi*safeOmegai;
-
-      // Finish the thermal energy derivative.
-      DepsDti *= safeOmegai;
 
       // Finish the gradient of the velocity.
       CHECK(rhoi > 0.0);
