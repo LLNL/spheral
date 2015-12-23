@@ -28,6 +28,8 @@ commandLine(seed = "lattice",
             smallPressure = False,
             Espike = 1.0,
             smoothSpike = True,
+            topHatSpike = False,
+            smoothSpikeScale = 0.5,
             gamma = 5.0/3.0,
             mu = 1.0,
 
@@ -77,6 +79,11 @@ commandLine(seed = "lattice",
             dataRoot = "dumps-spherical-Sedov",
             outputFile = "None",
             )
+
+if smallPressure:
+    P0 = 1.0e-6
+    eps0 = P0/((gamma - 1.0)*rho0)
+    print "WARNING: smallPressure specified, so setting eps0=%g" % eps0
 
 # Figure out what our goal time should be.
 import SedovAnalyticSolution
@@ -201,18 +208,20 @@ if restoreCycle is None:
 
     # Set the point source of energy.
     Esum = 0.0
-    if smoothSpike:
+    if smoothSpike or topHatSpike:
         Wsum = 0.0
         for nodeID in xrange(nodes1.numInternalNodes):
             Hi = H[nodeID]
             etaij = (Hi*pos[nodeID]).magnitude()
-            Wi = WT.kernelValue(etaij, Hi.Determinant())
+            if smoothSpike:
+                Wi = WT.kernelValue(etaij/smoothSpikeScale, 1.0)
+            else:
+                if etaij < smoothSpikeScale*kernelExtent:
+                    Wi = 1.0
+                else:
+                    Wi = 0.0
             Ei = Wi*Espike/8.0
             epsi = Ei/mass[nodeID]
-            if smallPressure:
-               P0 = 1.0e-6
-               eps0 = P0/((gamma - 1.0)*rho0)
-               epsi = epsi + eps0
             eps[nodeID] = epsi
             Wsum += Wi
         Wsum = mpi.allreduce(Wsum, mpi.SUM)
@@ -220,6 +229,7 @@ if restoreCycle is None:
         for nodeID in xrange(nodes1.numInternalNodes):
             eps[nodeID] /= Wsum
             Esum += eps[nodeID]*mass[nodeID]
+            eps[nodeID] += eps0
     else:
         i = -1
         rmin = 1e50
@@ -228,14 +238,11 @@ if restoreCycle is None:
             if rij < rmin:
                 i = nodeID
                 rmin = rij
-            if smallPressure:
-               P0 = 1.0e-6
-               eps0 = P0/((gamma - 1.0)*rho0)
-               eps[nodeID] = eps0
+            eps[nodeID] = eps0
         rminglobal = mpi.allreduce(rmin, mpi.MIN)
         if fuzzyEqual(rmin, rminglobal):
             assert i >= 0 and i < nodes1.numInternalNodes
-            eps[i] = Espike/8.0/mass[i]
+            eps[i] += Espike/8.0/mass[i]
             Esum += Espike/8.0
     Eglobal = mpi.allreduce(Esum, mpi.SUM)
     print "Initialized a total energy of", Eglobal
@@ -342,7 +349,8 @@ control = SpheralController(integrator, WT,
                             vizBaseName = "Sedov-spherical-3d-%ix%ix%i" % (nx, ny, nz),
                             vizDir = vizDir,
                             vizStep = vizCycle,
-                            vizTime = vizTime)
+                            vizTime = vizTime,
+                            SPH = (not ASPH))
 output("control")
 
 #-------------------------------------------------------------------------------

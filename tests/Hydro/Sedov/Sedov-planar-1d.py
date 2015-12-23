@@ -25,6 +25,7 @@ commandLine(nRadial = 50,
             Espike = 1.0,
             smoothSpike = True,
             topHatSpike = False,
+            smoothSpikeScale = 0.5,
             gamma = 5.0/3.0,
             mu = 1.0,
             smallPressure = False,
@@ -74,6 +75,7 @@ commandLine(nRadial = 50,
             dtMin = 1.0e-8,
             dtMax = None,
             dtGrowth = 2.0,
+            dtverbose = False,
             maxSteps = None,
             statsStep = 1,
             smoothIters = 0,
@@ -89,6 +91,11 @@ commandLine(nRadial = 50,
             dataRoot = "dumps-planar-Sedov",
             outputFile = "None",
             )
+
+if smallPressure:
+    P0 = 1.0e-6
+    eps0 = P0/((gamma - 1.0)*rho0)
+    print "WARNING: smallPressure specified, so setting eps0=%g" % eps0
 
 assert not(boolReduceViscosity and boolCullenViscosity)
 # Figure out what our goal time should be.
@@ -202,18 +209,14 @@ if restoreCycle is None:
             Hi = H[nodeID]
             etaij = (Hi*pos[nodeID]).magnitude()
             if smoothSpike:
-                Wi = WT.kernelValue(2.0*etaij, 1.0)
+                Wi = WT.kernelValue(etaij/smoothSpikeScale, 1.0)
             else:
-                if etaij < 0.5*kernelExtent:
+                if etaij < smoothSpikeScale*kernelExtent:
                     Wi = 1.0
                 else:
                     Wi = 0.0
             Ei = Wi*Espike
             epsi = Ei/mass[nodeID]
-            if smallPressure:
-               P0 = 1.0e-6
-               eps0 = P0/((gamma - 1.0)*rho0)
-               epsi = epsi + eps0
             eps[nodeID] = epsi
             Wsum += Wi
         Wsum = mpi.allreduce(Wsum, mpi.SUM)
@@ -221,6 +224,7 @@ if restoreCycle is None:
         for nodeID in xrange(nodes1.numInternalNodes):
             eps[nodeID] /= Wsum
             Esum += eps[nodeID]*mass[nodeID]
+            eps[nodeID] += eps0
     else:
         i = -1
         rmin = 1e50
@@ -229,14 +233,11 @@ if restoreCycle is None:
             if rij < rmin:
                 i = nodeID
                 rmin = rij
-            if smallPressure:
-               P0 = 1.0e-6
-               eps0 = P0/((gamma - 1.0)*rho0)
-               eps[nodeID] = eps0
+            eps[nodeID] = eps0
         rminglobal = mpi.allreduce(rmin, mpi.MIN)
         if fuzzyEqual(rmin, rminglobal):
             assert i >= 0 and i < nodes1.numInternalNodes
-            eps[i] = Espike/mass[i]
+            eps[i] += Espike/mass[i]
             Esum += Espike
     Eglobal = mpi.allreduce(Esum, mpi.SUM)
     print "Initialized a total energy of", Eglobal
@@ -345,6 +346,7 @@ if dtMin:
 if dtMax:
     integrator.dtMax = dtMax
 integrator.dtGrowth = dtGrowth
+integrator.verbose = dtverbose
 output("integrator")
 output("integrator.havePhysicsPackage(hydro)")
 output("integrator.dtGrowth")
@@ -396,6 +398,7 @@ Hinverse = db.newFluidSymTensorFieldList()
 db.fluidHinverse(Hinverse)
 hr = mpi.allreduce([x.xx for x in Hinverse[0].internalValues()], mpi.SUM)
 
+Aans = None
 if mpi.rank == 0:
     from SpheralGnuPlotUtilities import multiSort
     import Pnorm
@@ -420,6 +423,7 @@ if mpi.rank == 0:
         print "\t%s \t\t%g \t\t%g \t\t%g" % (name, L1, L2, Linf)
         #f.write(("\t\t%g") % (L1))
     #f.write("\n")
+Aans = mpi.bcast(Aans, 0)
 
 #-------------------------------------------------------------------------------
 # If requested, write out the state in a global ordering to a file.
