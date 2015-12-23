@@ -26,6 +26,7 @@ namespace Spheral {
        				   const FieldSpace::FieldList<Dimension, typename Dimension::Scalar>& mass,
                                    const FieldSpace::FieldList<Dimension, typename Dimension::Vector>& position,
        				   const FieldSpace::FieldList<Dimension, typename Dimension::Scalar>& specificThermalEnergy,
+       				   const FieldSpace::FieldList<Dimension, typename Dimension::Scalar>& gamma,
                                    const FieldSpace::FieldList<Dimension, typename Dimension::SymTensor>& H,
                                    FieldSpace::FieldList<Dimension, typename Dimension::Scalar>& PSPHpbar,
                                    FieldSpace::FieldList<Dimension, typename Dimension::Scalar>& PSPHcorrection);
