@@ -184,6 +184,7 @@ double spheral_initialize_step3d(const unsigned* nintpermat,
                                  const double* yieldStrength,
                                  const double* plasticStrain,
                                  const double* damage,
+                                 const int* regionNumber,
                                  const int* particleType);
 
 double spheral_initialize_step2d(const unsigned* nintpermat,
@@ -208,6 +209,7 @@ double spheral_initialize_step2d(const unsigned* nintpermat,
                                  const double* yieldStrength,
                                  const double* plasticStrain,
                                  const double* damage,
+                                 const int* regionNumber,
                                  const int* particleType);
 
 /*------------------------------------------------------------------------------
@@ -248,6 +250,7 @@ void spheral_update_state3d(const double* mass,
                             const double* yieldStrength,
                             const double* plasticStrain,
                             const double* damage,
+                            const int* regionNumber,
                             const int* particleType);
 
 void spheral_update_state2d(const double* mass,
@@ -270,6 +273,7 @@ void spheral_update_state2d(const double* mass,
                             const double* yieldStrength,
                             const double* plasticStrain,
                             const double* damage,
+                            const int* regionNumber,
                             const int* particleType);
 
 /*------------------------------------------------------------------------------

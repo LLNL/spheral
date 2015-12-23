@@ -97,6 +97,7 @@ public:
                                const double* yieldStrength,
                                const double* plasticStrain,
                                const double* damage,
+                               const int* fragmentIndex,
                                const int* particleType);
 
   // updateState -- updates values of state fields without resizing.
@@ -120,6 +121,7 @@ public:
                           const double* yieldStrength,
                           const double* plasticStrain,
                           const double* damage,
+                          const int* fragmentIndex,
                           const int* particleType);
 
   // evaluateDerivatives -- computes the fluid time derivatives.
