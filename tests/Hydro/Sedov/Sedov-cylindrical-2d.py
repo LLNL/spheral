@@ -33,6 +33,7 @@ commandLine(seed = "constantDTheta",
             Espike = 1.0,
             smoothSpike = True,
             topHatSpike = False,
+            smoothSpikeScale = 0.5,
             gamma = 5.0/3.0,
             mu = 1.0,
 
@@ -99,6 +100,11 @@ commandLine(seed = "constantDTheta",
             outputFile = "None",
             serialDump=True,
             )
+
+if smallPressure:
+    P0 = 1.0e-6
+    eps0 = P0/((gamma - 1.0)*rho0)
+    print "WARNING: smallPressure specified, so setting eps0=%g" % eps0
 
 assert not(boolReduceViscosity and boolCullenViscosity)
 assert thetaFactor in (0.5, 1.0, 2.0)
@@ -255,18 +261,14 @@ if restoreCycle is None:
             Hi = H[nodeID]
             etaij = (Hi*pos[nodeID]).magnitude()
             if smoothSpike:
-                Wi = WT.kernelValue(2.0*etaij, 1.0)
+                Wi = WT.kernelValue(etaij/smoothSpikeScale, 1.0)
             else:
-                if etaij < 0.5*kernelExtent:
+                if etaij < smoothSpikeScale*kernelExtent:
                     Wi = 1.0
                 else:
                     Wi = 0.0
             Ei = Wi*Espike
             epsi = Ei/mass[nodeID]
-            if smallPressure:
-               P0 = 1.0e-6
-               eps0 = P0/((gamma - 1.0)*rho0)
-               epsi = epsi + eps0
             eps[nodeID] = epsi
             Wsum += Wi
         Wsum = mpi.allreduce(Wsum, mpi.SUM)
@@ -274,6 +276,7 @@ if restoreCycle is None:
         for nodeID in xrange(nodes1.numInternalNodes):
             eps[nodeID] /= Wsum
             Esum += eps[nodeID]*mass[nodeID]
+            eps[nodeID] += eps0
     else:
         i = -1
         rmin = 1e50
@@ -282,14 +285,11 @@ if restoreCycle is None:
             if rij < rmin:
                 i = nodeID
                 rmin = rij
-            if smallPressure:
-               P0 = 1.0e-6
-               eps0 = P0/((gamma - 1.0)*rho0)
-               eps[nodeID] = eps0
+            eps[nodeID] = eps0
         rminglobal = mpi.allreduce(rmin, mpi.MIN)
         if fuzzyEqual(rmin, rminglobal):
             assert i >= 0 and i < nodes1.numInternalNodes
-            eps[i] = Espike/mass[i]
+            eps[i] += Espike/mass[i]
             Esum += Espike
     Eglobal = mpi.allreduce(Esum, mpi.SUM)
     print "Initialized a total energy of", Eglobal
@@ -427,7 +427,8 @@ control = SpheralController(integrator, WT,
                             vizBaseName = "Sedov-cylindrical-2d-%ix%i" % (nRadial, nTheta),
                             vizDir = vizDir,
                             vizStep = vizCycle,
-                            vizTime = vizTime)
+                            vizTime = vizTime,
+                            SPH = (not ASPH))
 output("control")
 
 #-------------------------------------------------------------------------------
@@ -482,6 +483,7 @@ for Hfield, hrfield, htfield in zip(Hinverse,
 hr = mpi.allreduce(list(hrfl[0].internalValues()), mpi.SUM)
 ht = mpi.allreduce(list(htfl[0].internalValues()), mpi.SUM)
 
+Aans = None
 if mpi.rank == 0:
     from SpheralGnuPlotUtilities import multiSort
     import Pnorm
@@ -506,6 +508,7 @@ if mpi.rank == 0:
         print "\t%s \t\t%g \t\t%g \t\t%g" % (name, L1, L2, Linf)
         #f.write(("\t\t%g") % (L1))
     #f.write("\n")
+Aans = mpi.bcast(Aans, 0)
 
 #-------------------------------------------------------------------------------
 # If requested, write out the state in a global ordering to a file.
