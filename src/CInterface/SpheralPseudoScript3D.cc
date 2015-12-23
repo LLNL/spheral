@@ -37,6 +37,7 @@
 #endif
 #include "Boundary/ReflectingBoundary.hh"
 #include "Field/Field.hh"
+#include "FieldOperations/FieldListFunctions.hh"
 
 namespace Spheral {
 
@@ -544,6 +545,7 @@ initializeStep(const unsigned* nintpermat,
                const double* yieldStrength,
                const double* plasticStrain,
                const double* damage,
+               const int* fragmentIndex,
                const int* particleType) {
 
   // Get our instance.
@@ -584,6 +586,7 @@ initializeStep(const unsigned* nintpermat,
                                    yieldStrength,
                                    plasticStrain,
                                    damage,
+                                   fragmentIndex,
                                    particleType);
 
   // Vote on a time step and return it.
@@ -626,6 +629,7 @@ updateState(const double* mass,
             const double* yieldStrength,
             const double* plasticStrain,
             const double* damage,
+            const int* fragmentIndex,
             const int* particleType) {
 
   // Get our instance.
@@ -650,6 +654,9 @@ updateState(const double* mass,
   FieldList<Dimension, SymTensor> S = me.mStatePtr->fields(SolidFieldNames::deviatoricStress, SymTensor::zero);
   FieldList<Dimension, Scalar> ps = me.mStatePtr->fields(SolidFieldNames::plasticStrain, 0.0);
   FieldList<Dimension, SymTensor> D = me.mStatePtr->fields(SolidFieldNames::effectiveTensorDamage, SymTensor::zero);
+  FieldList<Dimension, Scalar> scalarD = me.mStatePtr->fields(SolidFieldNames::scalarDamage, 0.0);
+  FieldList<Dimension, Vector> gradD = me.mStatePtr->fields(SolidFieldNames::damageGradient, Vector::zero);
+  FieldList<Dimension, int> fragID = me.mStatePtr->fields(SolidFieldNames::fragmentIDs, 0);
   FieldList<Dimension, int> pType = me.mStatePtr->fields(SolidFieldNames::particleTypes, 0);
   FieldList<Dimension, Scalar> K = me.mStatePtr->fields(SolidFieldNames::bulkModulus, 0.0);
   FieldList<Dimension, Scalar> mu = me.mStatePtr->fields(SolidFieldNames::shearModulus, 0.0);
@@ -701,6 +708,12 @@ updateState(const double* mass,
   }
   if (damage != NULL) {
      copyArrayToSymTensorFieldList(damage, D);
+     copyArrayToScalarFieldList(damage, scalarD);
+     // compute damage gradient
+     gradD = FieldSpace::gradient(scalarD, pos, m, m, rho, H, *me.mKernelPtr) ;
+  }
+  if (fragmentIndex != NULL) {
+     copyArrayToIntFieldList(fragmentIndex, fragID);
   }
   if (particleType != NULL) {
      copyArrayToIntFieldList(particleType, pType);
