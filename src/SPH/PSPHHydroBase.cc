@@ -223,7 +223,7 @@ evaluateDerivatives(const typename Dimension::Scalar time,
 
   // A few useful constants we'll use in the following loop.
   typedef typename Timing::Time Time;
-  const double tiny = 1.0e-30;
+  const double tiny = 1.0e-10;
   const Scalar W0 = W(0.0, 1.0);
 
   // The connectivity.
@@ -468,7 +468,7 @@ evaluateDerivatives(const typename Dimension::Scalar time,
               // Zero'th and second moment of the node distribution -- used for the
               // ideal H calculation.
               const double rij2 = rij.magnitude2();
-              const SymTensor thpt = rij.selfdyad()/max(tiny, rij2*FastMath::square(Dimension::pownu12(rij2)));
+              const SymTensor thpt = rij.selfdyad()*safeInv(rij2*FastMath::square(Dimension::pownu12(rij2)), tiny);
               weightedNeighborSumi += fweightij*std::abs(gWi);
               weightedNeighborSumj += fweightij*std::abs(gWj);
               massSecondMomenti += fweightij*gradWi.magnitude2()*thpt;
@@ -523,22 +523,19 @@ evaluateDerivatives(const typename Dimension::Scalar time,
               const Scalar& Fcorrj=PSPHcorrection(nodeListj, j);
               const Scalar& Pbari=PSPHpbar(nodeListi, i);
               const Scalar& Pbarj=PSPHpbar(nodeListj, j);
-              //const Scalar Fij=1.0-Fcorri*safeInv(mj*epsj);
-              //const Scalar Fji=1.0-Fcorrj*safeInv(mi*epsi);
-              const Scalar Fij=1.0-Fcorri/max(mj*epsj,tiny);
-              const Scalar Fji=1.0-Fcorrj/max(mi*epsi,tiny);
+              const Scalar Fij=1.0-Fcorri*safeInv(mj*epsj, tiny);
+              const Scalar Fji=1.0-Fcorrj*safeInv(mi*epsi, tiny);
               const double engCoef=(gammai-1)*(gammaj-1)*epsi*epsj;
-              const Vector deltaDvDt = engCoef*(gradWi*Fij/max(Pbari,tiny) + gradWj*Fji/max(Pbarj,tiny)) + Qacci + Qaccj;
-              //deltaDvDt = engCoef*(gradWi*Fij*safeInv(Pbari) + gradWj*Fji*safeInv(Pbarj)) + Qacci + Qaccj;
+              const Vector deltaDvDt = engCoef*(gradWi*Fij*safeInv(Pbari, tiny) + gradWj*Fji*safeInv(Pbarj, tiny)) + Qacci + Qaccj;
 
               DvDti -= mj*deltaDvDt;
               DvDtj += mi*deltaDvDt;
 
               // Specific thermal energy evolution.
-              DepsDti += mj*(engCoef*deltaDrhoDti*Fij/max(Pbari,tiny) + workQi);
-              DepsDtj += mi*(engCoef*deltaDrhoDtj*Fji/max(Pbarj,tiny) + workQj);
-              //DepsDti += mj*(engCoef*deltaDrhoDti*Fij*safeInv(Pbari) + workQi);
-              //DepsDtj += mi*(engCoef*deltaDrhoDtj*Fji*safeInv(Pbarj) + workQj);
+              // DepsDti += mj*(engCoef*deltaDrhoDti*Fij/max(Pbari,tiny) + workQi);
+              // DepsDtj += mi*(engCoef*deltaDrhoDtj*Fji/max(Pbarj,tiny) + workQj);
+              DepsDti += mj*(engCoef*deltaDrhoDti*Fij*safeInv(Pbari, tiny) + workQi);
+              DepsDtj += mi*(engCoef*deltaDrhoDtj*Fji*safeInv(Pbarj, tiny) + workQj);
 
               //ADD ARITIFICIAL CONDUCTIVITY IN HOPKINS 2014A
               if (mHopkinsConductivity) {
@@ -550,8 +547,8 @@ evaluateDerivatives(const typename Dimension::Scalar time,
                 //DepsDtj += (Vs > 0.0)*alph_c*mi*mj*(Qalpha_i+Qalpha_j)*0.5*Vs*(epsi-epsj)*abs(Pi-Pj)*((gradWi+gradWj).dot(rij.unitVector()))*safeInv((Pi+Pj+1e-30)*(rhoi+rhoj+1e-30));
                 //DepsDti += (Vs > 0.0) ? alph_c*mj*(Qalpha_i+Qalpha_j)*0.5*Vs*(epsi-epsj)*abs(Pbari-Pbarj)*((gradWi).dot(rij.unitVector()))/max((Pbari+Pbarj)*0.5*(rhoi+rhoj),tiny) : 0.0;
                 //DepsDtj += (Vs > 0.0) ? alph_c*mi*(Qalpha_i+Qalpha_j)*0.5*Vs*(epsj-epsi)*abs(Pbari-Pbarj)*((gradWj).dot(rij.unitVector()))/max((Pbari+Pbarj)*0.5*(rhoi+rhoj),tiny) : 0.0;
-                DepsDti += (Vs > 0.0) ? alph_c*mj*(Qalpha_i+Qalpha_j)*0.5*Vs*(epsi-epsj)*abs(Pbari-Pbarj)*((gradWi+gradWj).dot(rij.unitVector()))/max((Pbari+Pbarj)*(rhoi+rhoj),tiny) : 0.0;
-                DepsDtj += (Vs > 0.0) ? alph_c*mi*(Qalpha_i+Qalpha_j)*0.5*Vs*(epsj-epsi)*abs(Pbari-Pbarj)*((gradWi+gradWj).dot(rij.unitVector()))/max((Pbari+Pbarj)*(rhoi+rhoj),tiny) : 0.0;
+                DepsDti += (Vs > 0.0) ? alph_c*mj*(Qalpha_i+Qalpha_j)*0.5*Vs*(epsi-epsj)*abs(Pbari-Pbarj)*((gradWi+gradWj).dot(rij.unitVector()))*safeInv((Pbari+Pbarj)*(rhoi+rhoj),tiny) : 0.0;
+                DepsDtj += (Vs > 0.0) ? alph_c*mi*(Qalpha_i+Qalpha_j)*0.5*Vs*(epsj-epsi)*abs(Pbari-Pbarj)*((gradWi+gradWj).dot(rij.unitVector()))*safeInv((Pbari+Pbarj)*(rhoi+rhoj),tiny) : 0.0;
                 //const Scalar tmpi = (Vs > 0.0) ? alph_c*mj*(Qalpha_i+Qalpha_j)*0.5*Vs*(epsi-epsj)*abs(Pbari-Pbarj)*((gradWi+gradWj).dot(rij.unitVector()))*safeInv((Pbari+Pbarj)*(rhoi+rhoj)) : 0.0;
                 //const Scalar tmpj = (Vs > 0.0) ? alph_c*mi*(Qalpha_i+Qalpha_j)*0.5*Vs*(epsj-epsi)*abs(Pbari-Pbarj)*((gradWi+gradWj).dot(rij.unitVector()))*safeInv((Pbari+Pbarj)*(rhoi+rhoj)) : 0.0;
                 //DepsDti += tmpi;
@@ -630,7 +627,7 @@ evaluateDerivatives(const typename Dimension::Scalar time,
       if (this->mXSPH) {
         XSPHWeightSumi += Hdeti*mi/rhoi*W0;
         CHECK2(XSPHWeightSumi != 0.0, i << " " << XSPHWeightSumi);
-        DxDti = vi + XSPHDeltaVi/max(tiny, XSPHWeightSumi);
+        DxDti = vi + XSPHDeltaVi*safeInvVar(XSPHWeightSumi, tiny);
       } else {
         DxDti = vi;
       }
