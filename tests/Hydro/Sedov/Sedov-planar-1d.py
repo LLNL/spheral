@@ -202,9 +202,9 @@ if restoreCycle is None:
             Hi = H[nodeID]
             etaij = (Hi*pos[nodeID]).magnitude()
             if smoothSpike:
-                Wi = WT.kernelValue(etaij, Hi.Determinant())
+                Wi = WT.kernelValue(2.0*etaij, 1.0)
             else:
-                if etaij < kernelExtent:
+                if etaij < 0.5*kernelExtent:
                     Wi = 1.0
                 else:
                     Wi = 0.0
