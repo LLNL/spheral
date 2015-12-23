@@ -26,7 +26,7 @@ class %(classname)s%(dim)s(PSPHHydroBase%(dim)s):
                  sumMassDensityOverAllNodeLists = True,
                  densityUpdate = RigorousSumDensity,
                  HUpdate = IdealH,
-                 epsTensile = 0.3,
+                 epsTensile = 0.0,
                  nTensile = 4.0,
                  xmin = Vector%(dim)s(-1e100, -1e100, -1e100),
                  xmax = Vector%(dim)s( 1e100,  1e100,  1e100)):
