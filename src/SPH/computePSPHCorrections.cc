@@ -30,6 +30,7 @@ computePSPHCorrections(const ConnectivityMap<Dimension>& connectivityMap,
                                const FieldList<Dimension, typename Dimension::Scalar>& mass,
                                const FieldList<Dimension, typename Dimension::Vector>& position,
                                const FieldList<Dimension, typename Dimension::Scalar>& specificThermalEnergy,
+                               const FieldList<Dimension, typename Dimension::Scalar>& gamma,
                                const FieldList<Dimension, typename Dimension::SymTensor>& H,
                                FieldList<Dimension, typename Dimension::Scalar>& PSPHpbar,
                                FieldList<Dimension, typename Dimension::Scalar>& PSPHcorrection) {
@@ -39,6 +40,7 @@ computePSPHCorrections(const ConnectivityMap<Dimension>& connectivityMap,
   REQUIRE(mass.size() == numNodeLists);
   REQUIRE(position.size() == numNodeLists);
   REQUIRE(specificThermalEnergy.size() == numNodeLists);
+  REQUIRE(gamma.size() == numNodeLists);
   REQUIRE(H.size() == numNodeLists);
   REQUIRE(PSPHcorrection.size() == numNodeLists);
 
@@ -51,8 +53,6 @@ computePSPHCorrections(const ConnectivityMap<Dimension>& connectivityMap,
   PSPHpbar = 0.0;
   PSPHcorrection = 0.0;
   const double tiny = 1.0e-30;
-  const double gamma = 5.0/3.0;//NEEDS TO COME FROM THE INTERFACE!
-  //const double gamma = 1.4;//NEEDS TO COME FROM THE INTERFACE!
 
   // Walk the FluidNodeLists.
   for (size_t nodeListi = 0; nodeListi != numNodeLists; ++nodeListi) {
@@ -72,6 +72,7 @@ computePSPHCorrections(const ConnectivityMap<Dimension>& connectivityMap,
       const SymTensor& Hi = H(nodeListi, i);
       const Scalar Hdeti = Hi.Determinant();
       const Scalar invhi = (Hi.Trace()/Dimension::nDim);
+      const Scalar gammai = gamma(nodeListi, i);
 
       // Neighbors!
       const vector<vector<int> >& fullConnectivity = connectivityMap.connectivityForNode(nodeListi, i);
@@ -95,8 +96,9 @@ computePSPHCorrections(const ConnectivityMap<Dimension>& connectivityMap,
           const Vector& rj = position(nodeListj, j);
           const SymTensor& Hj = H(nodeListj, j);
           const Scalar Hdetj = Hj.Determinant();
-          const Scalar& mj = mass(nodeListj, j);
-          const Scalar& epsj = specificThermalEnergy(nodeListj, j);
+          const Scalar mj = mass(nodeListj, j);
+          const Scalar epsj = specificThermalEnergy(nodeListj, j);
+          const Scalar gammaj = gamma(nodeListj, j);
 
           // Kernel weighting and gradient.
           const Vector rij = ri - rj;
@@ -108,7 +110,7 @@ computePSPHCorrections(const ConnectivityMap<Dimension>& connectivityMap,
           const std::pair<double, double> WWj = W.kernelAndGradValue(etaj, Hdetj);
           const Scalar& Wj = WWj.first;
           const Scalar& gWj = WWj.second;
-          const Scalar xj=(gamma-1)*mj*epsj;
+          const Scalar xj=(gammaj-1.0)*mj*epsj;
           const Scalar gradh=invhi*(Dimension::nDim*Wi+etai*gWi);
           PSPHpbar(nodeListi, i) += xj*Wi;
           Nbari += Wi;
@@ -118,9 +120,9 @@ computePSPHCorrections(const ConnectivityMap<Dimension>& connectivityMap,
         }
       }
       //const Scalar fi=1.0+gradNbari*safeInv(Dimension::nDim*Nbari*invhi);
-      //PSPHcorrection(nodeListi, i)=gradPbari*safeInv(Dimension::nDim*(gamma-1)*Nbari*invhi*fi);
+      //PSPHcorrection(nodeListi, i)=gradPbari*safeInv(Dimension::nDim*(gammai-1.0)*Nbari*invhi*fi);
       const Scalar fi=1.0+gradNbari/max(Dimension::nDim*Nbari*invhi,tiny);
-      PSPHcorrection(nodeListi, i)=gradPbari/max(Dimension::nDim*(gamma-1)*Nbari*invhi*fi,tiny);
+      PSPHcorrection(nodeListi, i)=gradPbari/max(Dimension::nDim*(gammai-1.0)*Nbari*invhi*fi,tiny);
     }
   }
 }

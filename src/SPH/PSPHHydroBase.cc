@@ -13,7 +13,6 @@
 #include "PSPHHydroBase.hh"
 #include "computeSPHSumMassDensity.hh"
 #include "computeSumVoronoiCellMassDensity.hh"
-#include "computeSPHOmegaGradhCorrection.hh"
 #include "computePSPHCorrections.hh"
 #include "NodeList/SmoothingScaleBase.hh"
 #include "Hydro/HydroFieldNames.hh"
@@ -189,10 +188,11 @@ initialize(const typename Dimension::Scalar time,
   const FieldList<Dimension, Scalar> mass = state.fields(HydroFieldNames::mass, 0.0);
   const FieldList<Dimension, Vector> position = state.fields(HydroFieldNames::position, Vector::zero);
   const FieldList<Dimension, Scalar> specificThermalEnergy = state.fields(HydroFieldNames::specificThermalEnergy, 0.0);
+  const FieldList<Dimension, Scalar> gamma = state.fields(HydroFieldNames::gamma, 0.0);
   const FieldList<Dimension, SymTensor> H = state.fields(HydroFieldNames::H, SymTensor::zero);
   FieldList<Dimension, Scalar> PSPHpbar = state.fields(HydroFieldNames::PSPHpbar, 0.0);
   FieldList<Dimension, Scalar> PSPHcorrection = state.fields(HydroFieldNames::PSPHcorrection, 0.0);
-  computePSPHCorrections(connectivityMap, W, mass, position, specificThermalEnergy, H, PSPHpbar, PSPHcorrection);
+  computePSPHCorrections(connectivityMap, W, mass, position, specificThermalEnergy, gamma, H, PSPHpbar, PSPHcorrection);
   for (ConstBoundaryIterator boundItr = this->boundaryBegin();
        boundItr != this->boundaryEnd();
        ++boundItr) {
@@ -242,7 +242,6 @@ evaluateDerivatives(const typename Dimension::Scalar time,
   const FieldList<Dimension, Scalar> pressure = state.fields(HydroFieldNames::pressure, 0.0);
   const FieldList<Dimension, Scalar> soundSpeed = state.fields(HydroFieldNames::soundSpeed, 0.0);
   const FieldList<Dimension, Scalar> gamma = state.fields(HydroFieldNames::gamma, 0.0);
-  const FieldList<Dimension, Scalar> omega = state.fields(HydroFieldNames::omegaGradh, 0.0);
   const FieldList<Dimension, Scalar> PSPHpbar = state.fields(HydroFieldNames::PSPHpbar, 0.0);
   const FieldList<Dimension, Scalar> PSPHcorrection = state.fields(HydroFieldNames::PSPHcorrection, 0.0);
   const FieldList<Dimension, Scalar> reducingViscosityMultiplierQ = state.fields(HydroFieldNames::reducingViscosityMultiplierQ, 0.0);
@@ -257,7 +256,6 @@ evaluateDerivatives(const typename Dimension::Scalar time,
   CHECK(pressure.size() == numNodeLists);
   CHECK(soundSpeed.size() == numNodeLists);
   CHECK(gamma.size() == numNodeLists);
-  CHECK(omega.size() == numNodeLists);
   CHECK(PSPHpbar.size() == numNodeLists);
   CHECK(PSPHcorrection.size() == numNodeLists);
   CHECK((not mHopkinsConductivity) or (reducingViscosityMultiplierQ.size() == numNodeLists));
@@ -356,12 +354,9 @@ evaluateDerivatives(const typename Dimension::Scalar time,
       const SymTensor& Hi = H(nodeListi, i);
       const Scalar& ci = soundSpeed(nodeListi, i);
       const Scalar& gammai = gamma(nodeListi, i);
-      const Scalar& omegai = omega(nodeListi, i);
       const Scalar Hdeti = Hi.Determinant();
-      const Scalar safeOmegai = 1.0/max(tiny, omegai);
       CHECK(mi > 0.0);
       CHECK(rhoi > 0.0);
-      CHECK(omegai > 0.0);
       CHECK(Hdeti > 0.0);
 
       Scalar& rhoSumi = rhoSum(nodeListi, i);
@@ -422,9 +417,7 @@ evaluateDerivatives(const typename Dimension::Scalar time,
               const SymTensor& Hj = H(nodeListj, j);
               const Scalar& cj = soundSpeed(nodeListj, j);
               const Scalar& gammaj = gamma(nodeListj, j);
-              const Scalar& omegaj = omega(nodeListj, j);
               const Scalar Hdetj = Hj.Determinant();
-              const Scalar safeOmegaj = 1.0/max(tiny, omegaj);
               CHECK(mj > 0.0);
               CHECK(rhoj > 0.0);
               CHECK(Hdetj > 0.0);
@@ -500,10 +493,10 @@ evaluateDerivatives(const typename Dimension::Scalar time,
               const pair<Tensor, Tensor> QPiij = Q.Piij(nodeListi, i, nodeListj, j,
                                                         ri, etai, vi, rhoi, ci, Hi,
                                                         rj, etaj, vj, rhoj, cj, Hj);
-              const Vector Qacci = 0.5*safeOmegai*(QPiij.first *gradWQi);
-              const Vector Qaccj = 0.5*safeOmegaj*(QPiij.second*gradWQj);
-              // const Scalar workQi = 0.5*safeOmegai*(QPiij.first *vij).dot(gradWQi);
-              // const Scalar workQj = 0.5*safeOmegaj*(QPiij.second*vij).dot(gradWQj);
+              const Vector Qacci = 0.5*(QPiij.first *gradWQi);
+              const Vector Qaccj = 0.5*(QPiij.second*gradWQj);
+              // const Scalar workQi = 0.5*(QPiij.first *vij).dot(gradWQi);
+              // const Scalar workQj = 0.5*(QPiij.second*vij).dot(gradWQj);
               const Scalar workQi = vij.dot(Qacci);
               const Scalar workQj = vij.dot(Qaccj);
               const Scalar Qi = rhoi*rhoi*(QPiij.first. diagonalElements().maxAbsElement());
@@ -535,15 +528,15 @@ evaluateDerivatives(const typename Dimension::Scalar time,
               const Scalar Fij=1.0-Fcorri/max(mj*epsj,tiny);
               const Scalar Fji=1.0-Fcorrj/max(mi*epsi,tiny);
               const double engCoef=(gammai-1)*(gammaj-1)*epsi*epsj;
-              const Vector deltaDvDt = engCoef*(gradWi*Fij/max(Pbari,tiny)*safeOmegai + gradWj*Fji/max(Pbarj,tiny)*safeOmegaj) + Qacci + Qaccj;
+              const Vector deltaDvDt = engCoef*(gradWi*Fij/max(Pbari,tiny) + gradWj*Fji/max(Pbarj,tiny)) + Qacci + Qaccj;
               //deltaDvDt = engCoef*(gradWi*Fij*safeInv(Pbari) + gradWj*Fji*safeInv(Pbarj)) + Qacci + Qaccj;
 
               DvDti -= mj*deltaDvDt;
               DvDtj += mi*deltaDvDt;
 
               // Specific thermal energy evolution.
-              DepsDti += mj*(engCoef*deltaDrhoDti*Fij/max(Pbari,tiny)*safeOmegai + workQi);
-              DepsDtj += mi*(engCoef*deltaDrhoDtj*Fji/max(Pbarj,tiny)*safeOmegaj + workQj);
+              DepsDti += mj*(engCoef*deltaDrhoDti*Fij/max(Pbari,tiny) + workQi);
+              DepsDtj += mi*(engCoef*deltaDrhoDtj*Fji/max(Pbarj,tiny) + workQj);
               //DepsDti += mj*(engCoef*deltaDrhoDti*Fij*safeInv(Pbari) + workQi);
               //DepsDtj += mi*(engCoef*deltaDrhoDtj*Fji*safeInv(Pbarj) + workQj);
 
@@ -618,12 +611,12 @@ evaluateDerivatives(const typename Dimension::Scalar time,
       normi += mi/rhoi*W0*Hdeti;
 
       // Finish the continuity equation.
-      DrhoDti *= mi*safeOmegai;
+      DrhoDti *= mi;
 
       // Finish the gradient of the velocity.
       CHECK(rhoi > 0.0);
-      DvDxi *= safeOmegai/rhoi;
-      localDvDxi *= safeOmegai/rhoi;
+      DvDxi /= rhoi;
+      localDvDxi /= rhoi;
       if (this->correctVelocityGradient()) {
         DvDxi = Mi*DvDxi;
         localDvDxi = localMi*DvDxi;
