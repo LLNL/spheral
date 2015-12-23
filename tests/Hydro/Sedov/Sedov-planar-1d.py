@@ -204,7 +204,10 @@ if restoreCycle is None:
             if smoothSpike:
                 Wi = WT.kernelValue(etaij, Hi.Determinant())
             else:
-                Wi = 1.0
+                if etaij < kernelExtent:
+                    Wi = 1.0
+                else:
+                    Wi = 0.0
             Ei = Wi*Espike
             epsi = Ei/mass[nodeID]
             if smallPressure:
