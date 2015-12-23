@@ -192,24 +192,26 @@ dt(const DataBase<Dimension>& dataBase,
           reason = "velocity divergence";
         }
 
-        // // Maximum velocity difference limit.
-        // const Vector& vi = velocity(nodeListi, i);
-        // const vector< vector<int> >& fullConnectivity = connectivityMap.connectivityForNode(nodeListi, i);
-        // for (unsigned nodeListj = 0; nodeListj != numNodeLists; ++nodeListj) {
-        //   const vector<int>& connectivity = fullConnectivity[nodeListj];
-        //   for (vector<int>::const_iterator jItr = connectivity.begin();
-        //        jItr != connectivity.end();
-        //        ++jItr) {
-        //     const int j = *jItr;
-        //     const Vector& vj = velocity(nodeListj, j);
-        //     const Scalar vij = (vi - vj).magnitude();
-        //     const Scalar dtVelDiff = nodeScale/std::max(vij, 1e-30);
-        //     if (dtVelDiff < minDt) {
-        //       minDt = dtVelDiff;
-        //       reason = "pairwise velocity difference";
-        //     }
-        //   }
-        // }
+        // Maximum velocity difference limit.
+        const Vector& xi = position(nodeListi, i);
+        const Vector& vi = velocity(nodeListi, i);
+        const vector< vector<int> >& fullConnectivity = connectivityMap.connectivityForNode(nodeListi, i);
+        for (unsigned nodeListj = 0; nodeListj != numNodeLists; ++nodeListj) {
+          const vector<int>& connectivity = fullConnectivity[nodeListj];
+          for (vector<int>::const_iterator jItr = connectivity.begin();
+               jItr != connectivity.end();
+               ++jItr) {
+            const int j = *jItr;
+            const Vector& xj = position(nodeListj, j);
+            const Vector& vj = velocity(nodeListj, j);
+            const Scalar vij = std::max(0.0, (vi - vj).dot((xi - xj).unitVector()));
+            const Scalar dtVelDiff = nodeScale/std::max(vij, 1e-30);
+            if (dtVelDiff < minDt) {
+              minDt = dtVelDiff;
+              reason = "pairwise velocity difference";
+            }
+          }
+        }
 
         //     // Eigenvalues of the stress-strain tensor.
         //     Vector eigenValues = DvDx(nodeListi, i).Symmetric().eigenValues();
