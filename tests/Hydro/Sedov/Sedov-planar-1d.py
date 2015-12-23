@@ -24,6 +24,7 @@ commandLine(nRadial = 50,
             eps0 = 0.0,
             Espike = 1.0,
             smoothSpike = True,
+            topHatSpike = False,
             gamma = 5.0/3.0,
             mu = 1.0,
             smallPressure = False,
@@ -56,6 +57,7 @@ commandLine(nRadial = 50,
             betaE = 1.0,
             fKern = 1.0/3.0,
             boolHopkinsCorrection = True,
+            HopkinsConductivity = False,
 
             HydroConstructor = SPHHydro,
             hmin = 1e-15,
@@ -194,12 +196,15 @@ if restoreCycle is None:
 
     # Set the point source of energy.
     Esum = 0.0
-    if smoothSpike:
+    if smoothSpike or topHatSpike:
         Wsum = 0.0
         for nodeID in xrange(nodes1.numInternalNodes):
             Hi = H[nodeID]
             etaij = (Hi*pos[nodeID]).magnitude()
-            Wi = WT.kernelValue(etaij, Hi.Determinant())
+            if smoothSpike:
+                Wi = WT.kernelValue(etaij, Hi.Determinant())
+            else:
+                Wi = 1.0
             Ei = Wi*Espike
             epsi = Ei/mass[nodeID]
             if smallPressure:
@@ -272,6 +277,18 @@ if CRKSPH:
                              correctionOrder = correctionOrder,
                              densityUpdate = densityUpdate,
                              HUpdate = HUpdate)
+elif PSPH:
+    hydro = HydroConstructor(W = WT,
+                             Q = q,
+                             filter = filter,
+                             cfl = cfl,
+                             useVelocityMagnitudeForDt = useVelocityMagnitudeForDt,
+                             compatibleEnergyEvolution = compatibleEnergy,
+                             gradhCorrection = gradhCorrection,
+                             HopkinsConductivity = HopkinsConductivity,
+                             densityUpdate = densityUpdate,
+                             HUpdate = HUpdate,
+                             XSPH = XSPH)
 else:
     hydro = HydroConstructor(W = WT, 
                              Q = q,
