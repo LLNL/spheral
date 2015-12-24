@@ -235,7 +235,7 @@ if restoreCycle is None:
         generator = GenerateNodeDistribution2d(nRadial, nTheta, rho0, seed,
                                                rmin = rmin,
                                                rmax = rmax,
-                                               xmin = Vector(0,0),
+                                               xmin = Vector(-1,-1),
                                                xmax = Vector(1,1),
                                                theta = theta,
                                                azimuthalOffsetFraction = azimuthalOffsetFraction,
