@@ -310,7 +310,6 @@ initialize(const typename Dimension::Scalar time,
     const FieldList<Dimension, Scalar> massDensity = state.fields(HydroFieldNames::massDensity, 0.0);
     const FieldList<Dimension, SymTensor> H = state.fields(HydroFieldNames::H, SymTensor::zero);
     const FieldList<Dimension, Scalar> soundSpeed = state.fields(HydroFieldNames::soundSpeed, 0.0);
-    const FieldList<Dimension, Scalar> PSPHpbar = state.fields(HydroFieldNames::PSPHpbar, 0.0);
   
     CHECK(mass.size() == numNodeLists);
     CHECK(position.size() == numNodeLists);
@@ -332,21 +331,12 @@ initialize(const typename Dimension::Scalar time,
     FieldList<Dimension, Scalar> cullAlpha = state.fields("mCullAlpha", 0.0);
     FieldList<Dimension, Scalar> prevDivV2 = derivs.fields("mPrevDivV2", 0.0);
     FieldList<Dimension, Scalar> cullAlpha2 = derivs.fields("mCullAlpha2", 0.0);
-    FieldList<Dimension, Tensor> cull_D(FieldSpace::Copy);
-    FieldList<Dimension, Tensor> cull_T(FieldSpace::Copy);
-    FieldList<Dimension, Tensor> cull_Da(FieldSpace::Copy);
-    FieldList<Dimension, Scalar> cull_R(FieldSpace::Copy);
-    FieldList<Dimension, Scalar> cull_sigv(FieldSpace::Copy);
-    FieldList<Dimension, Scalar> temp_arr(FieldSpace::Copy);
-    for (size_t nodeListk = 0; nodeListk != numNodeLists; ++nodeListk) {
-      const NodeList<Dimension>& nodeList = position[nodeListk]->nodeList();
-      cull_D.appendNewField("Cullen D Tensor", nodeList, Tensor::zero);
-      cull_T.appendNewField("Cullen T Tensor", nodeList, Tensor::zero);
-      cull_Da.appendNewField("Cullen another D Tensor for calculating A Tensor", nodeList, Tensor::zero);
-      cull_R.appendNewField("Cullen R Scalar", nodeList, 0.0);
-      cull_sigv.appendNewField("Cullen signal velocity Scalar", nodeList, 0.0);
-      temp_arr.appendNewField("Scractch", nodeList, 0.0);
-    }
+    FieldList<Dimension, Tensor> cull_D = dataBase.newFluidFieldList(Tensor::zero, "Cullen D Tensor");
+    FieldList<Dimension, Tensor> cull_T = dataBase.newFluidFieldList(Tensor::zero, "Cullen T Tensor");
+    FieldList<Dimension, Tensor> cull_Da = dataBase.newFluidFieldList(Tensor::zero, "Cullen another D Tensor for calculating A Tensor");
+    FieldList<Dimension, Scalar> cull_R = dataBase.newFluidFieldList(0.0, "Cullen R Scalar");
+    FieldList<Dimension, Scalar> cull_sigv = dataBase.newFluidFieldList(0.0, "Cullen signal velocity Scalar");
+    FieldList<Dimension, Scalar> temp_arr = dataBase.newFluidFieldList(0.0, "Scratch");
   
     for (typename DataBase<Dimension>::ConstFluidNodeListIterator itr = dataBase.fluidNodeListBegin();
          itr != dataBase.fluidNodeListEnd();
