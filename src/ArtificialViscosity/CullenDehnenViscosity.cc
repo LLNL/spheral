@@ -504,6 +504,14 @@ initialize(const typename Dimension::Scalar time,
       }
     }
         
+    // Q and L need boundaries applied.
+    for (ConstBoundaryIterator boundaryItr = this->boundaryBegin(); 
+         boundaryItr != this->boundaryEnd();
+         ++boundaryItr) {
+      (*boundaryItr)->applyFieldListGhostBoundary(reducingViscosityMultiplierQ);
+      (*boundaryItr)->applyFieldListGhostBoundary(reducingViscosityMultiplierL);
+    }
+    // We rely on the caller to make sure boundaries are finalized.
 }
 //------------------------------------------------------------------------------
 // Finalize
