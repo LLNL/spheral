@@ -193,11 +193,17 @@ initialize(const typename Dimension::Scalar time,
   FieldList<Dimension, Scalar> PSPHpbar = state.fields(HydroFieldNames::PSPHpbar, 0.0);
   FieldList<Dimension, Scalar> PSPHcorrection = state.fields(HydroFieldNames::PSPHcorrection, 0.0);
   computePSPHCorrections(connectivityMap, W, mass, position, specificThermalEnergy, gamma, H, PSPHpbar, PSPHcorrection);
+
+  // Replace the pressure in the state with the PSPH sum definition.
+  FieldList<Dimension, Scalar> P = state.fields(HydroFieldNames::pressure, 0.0);
+  P.assignFields(PSPHpbar);
+
   for (ConstBoundaryIterator boundItr = this->boundaryBegin();
        boundItr != this->boundaryEnd();
        ++boundItr) {
     (*boundItr)->applyFieldListGhostBoundary(PSPHpbar);
     (*boundItr)->applyFieldListGhostBoundary(PSPHcorrection);
+    (*boundItr)->applyFieldListGhostBoundary(P);
   }
   // We depend on the caller knowing to finalize the ghost boundaries!
 }
@@ -350,7 +356,6 @@ evaluateDerivatives(const typename Dimension::Scalar time,
       const Vector& vi = velocity(nodeListi, i);
       const Scalar& rhoi = massDensity(nodeListi, i);
       const Scalar& epsi = specificThermalEnergy(nodeListi, i);
-      const Scalar& Pi = pressure(nodeListi, i);
       const SymTensor& Hi = H(nodeListi, i);
       const Scalar& ci = soundSpeed(nodeListi, i);
       const Scalar& gammai = gamma(nodeListi, i);
@@ -413,7 +418,6 @@ evaluateDerivatives(const typename Dimension::Scalar time,
               const Vector& vj = velocity(nodeListj, j);
               const Scalar& rhoj = massDensity(nodeListj, j);
               const Scalar& epsj = specificThermalEnergy(nodeListj, j);
-              const Scalar& Pj = pressure(nodeListj, j);
               const SymTensor& Hj = H(nodeListj, j);
               const Scalar& cj = soundSpeed(nodeListj, j);
               const Scalar& gammaj = gamma(nodeListj, j);
@@ -507,14 +511,6 @@ evaluateDerivatives(const typename Dimension::Scalar time,
               effViscousPressurej += mi/rhoi * Qj * Wj;
               viscousWorki += mj*workQi;
               viscousWorkj += mi*workQj;
-
-              // Determine an effective pressure including a term to fight the tensile instability.
-//             const Scalar fij = epsTensile*pow(Wi/(Hdeti*WnPerh), nTensile);
-              const Scalar fij = this->mEpsTensile*FastMath::pow4(Wi/(Hdeti*WnPerh));
-              const Scalar Ri = fij*(Pi < 0.0 ? -Pi : 0.0);
-              const Scalar Rj = fij*(Pj < 0.0 ? -Pj : 0.0);
-              const Scalar Peffi = Pi + Ri;
-              const Scalar Peffj = Pj + Rj;
 
               // Acceleration.
               CHECK(rhoi > 0.0);

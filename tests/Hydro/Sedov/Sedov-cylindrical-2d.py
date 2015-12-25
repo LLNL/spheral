@@ -74,6 +74,7 @@ commandLine(seed = "constantDTheta",
             XSPH = False,
             rhomin = 1e-10,
 
+            IntegratorConstructor = CheapSynchronousRK2Integrator,
             steps = None,
             goalTime = None,
             goalRadius = 0.8,
@@ -395,7 +396,7 @@ for p in packages:
 #-------------------------------------------------------------------------------
 # Construct a time integrator, and add the one physics package.
 #-------------------------------------------------------------------------------
-integrator = CheapSynchronousRK2Integrator(db)
+integrator = IntegratorConstructor(db)
 for p in packages:
     integrator.appendPhysicsPackage(p)
 integrator.lastDt = dt
