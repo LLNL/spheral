@@ -81,14 +81,6 @@ public:
   void registerState(DataBaseSpace::DataBase<Dimension>& dataBase,
                      State<Dimension>& state);
 
-  // Initialize the Hydro before we start a derivative evaluation.
-  virtual
-  void initialize(const Scalar time,
-                  const Scalar dt,
-                  const DataBaseSpace::DataBase<Dimension>& dataBase,
-                  State<Dimension>& state,
-                  StateDerivatives<Dimension>& derivs);
-                       
   // Evaluate the derivatives for the principle hydro variables:
   // mass density, velocity, and specific thermal energy.
   virtual
@@ -106,6 +98,12 @@ public:
                            const State<Dimension>& state,
                            StateDerivatives<Dimension>& derivs) const;
 
+  // Post-state update. For PSPH this is where we recompute the PSPH pressure and corrections.
+  virtual 
+  void postStateUpdate(const DataBaseSpace::DataBase<Dimension>& dataBase, 
+                       State<Dimension>& state,
+                       const StateDerivatives<Dimension>& derivatives) const;
+
   // Apply boundary conditions to the physics specific fields.
   virtual
   void applyGhostBoundaries(State<Dimension>& state,
@@ -122,7 +120,6 @@ public:
 
   // The state field lists we're maintaining.
   const FieldSpace::FieldList<Dimension, Scalar>&    gamma() const;
-  const FieldSpace::FieldList<Dimension, Scalar>&    PSPHpbar() const;
   const FieldSpace::FieldList<Dimension, Scalar>&    PSPHcorrection() const;
 
   //****************************************************************************
@@ -138,7 +135,6 @@ protected:
 
   //PSPH Fields
   FieldSpace::FieldList<Dimension, Scalar>    mGamma;
-  FieldSpace::FieldList<Dimension, Scalar>    mPSPHpbar;
   FieldSpace::FieldList<Dimension, Scalar>    mPSPHcorrection;
 
 private:

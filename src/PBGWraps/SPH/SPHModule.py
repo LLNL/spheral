@@ -308,7 +308,7 @@ self.generatePSPHHydroBaseBindings(self.PSPHHydroBase%(dim)id, %(dim)i)
         # Attributes.
         x.add_instance_attribute("HopkinsConductivity", "bool", getter="HopkinsConductivity", setter="HopkinsConductivity")
 
-        const_ref_return_value(x, me, "%s::PSPHpbar" % me, scalarfieldlist, [], "PSPHpbar")
+        const_ref_return_value(x, me, "%s::gamma" % me, scalarfieldlist, [], "gamma")
         const_ref_return_value(x, me, "%s::PSPHcorrection" % me, scalarfieldlist, [], "PSPHcorrection")
 
         return

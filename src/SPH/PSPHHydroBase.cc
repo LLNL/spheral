@@ -112,7 +112,6 @@ PSPHHydroBase(const SmoothingScaleBase<Dimension>& smoothingScaleMethod,
                           xmax),
   mHopkinsConductivity(HopkinsConductivity),
   mGamma(FieldSpace::Copy),
-  mPSPHpbar(FieldSpace::Copy),
   mPSPHcorrection(FieldSpace::Copy) {
 }
 
@@ -134,12 +133,53 @@ initializeProblemStartup(DataBase<Dimension>& dataBase) {
 
   // SPH does most of it.
   SPHHydroBase<Dimension>::initializeProblemStartup(dataBase);
-  dataBase.fluidGamma(mGamma);
 
   // Create storage for our internal state.
   mGamma = dataBase.newFluidFieldList(0.0, HydroFieldNames::gamma);
-  mPSPHpbar = dataBase.newFluidFieldList(0.0, HydroFieldNames::PSPHpbar);
   mPSPHcorrection = dataBase.newFluidFieldList(0.0, HydroFieldNames::PSPHcorrection);
+
+  // For the next stage we need valid boundary conditions.
+  // Note setting the ghost nodes like this automatically fills in ghost values for
+  // positions and H's.
+  for (typename DataBase<Dimension>::FluidNodeListIterator nodeListItr = dataBase.fluidNodeListBegin();
+       nodeListItr != dataBase.fluidNodeListEnd(); 
+       ++nodeListItr) {
+    (*nodeListItr)->numGhostNodes(0);
+    (*nodeListItr)->neighbor().updateNodes();
+  }
+  for (ConstBoundaryIterator boundItr = this->boundaryBegin();
+       boundItr != this->boundaryEnd();
+       ++boundItr) {
+    (*boundItr)->setAllGhostNodes(dataBase);
+    (*boundItr)->finalizeGhostBoundary();
+    for (typename DataBase<Dimension>::FluidNodeListIterator nodeListItr = dataBase.fluidNodeListBegin();
+         nodeListItr != dataBase.fluidNodeListEnd(); 
+         ++nodeListItr) {
+      (*nodeListItr)->neighbor().updateNodes();
+    }
+  }
+
+  // For consistency we initialize the pressure, mass density, and sound speeds
+  // with the PSPH sums on problem startup.
+  const TableKernel<Dimension>& W = this->kernel();
+  const ConnectivityMap<Dimension>& connectivityMap = dataBase.connectivityMap();
+  FieldList<Dimension, Scalar> mass = dataBase.fluidMass();
+  FieldList<Dimension, Vector> position = dataBase.fluidPosition();
+  FieldList<Dimension, Scalar> specificThermalEnergy = dataBase.fluidSpecificThermalEnergy();
+  FieldList<Dimension, SymTensor> H = dataBase.fluidHfield();
+  dataBase.fluidGamma(mGamma);
+  for (ConstBoundaryIterator boundItr = this->boundaryBegin();
+       boundItr != this->boundaryEnd();
+       ++boundItr) {
+    (*boundItr)->applyFieldListGhostBoundary(mass);
+    (*boundItr)->applyFieldListGhostBoundary(specificThermalEnergy);
+    (*boundItr)->applyFieldListGhostBoundary(mGamma);
+  }
+  for (ConstBoundaryIterator boundaryItr = this->boundaryBegin(); 
+       boundaryItr != this->boundaryEnd();
+       ++boundaryItr) (*boundaryItr)->finalizeGhostBoundary();
+  computePSPHCorrections(connectivityMap, W, mass, position, specificThermalEnergy, mGamma, H, 
+                         this->mPressure, this->mSoundSpeed, mPSPHcorrection);
 }
 
 //------------------------------------------------------------------------------
@@ -160,28 +200,30 @@ registerState(DataBase<Dimension>& dataBase,
   PolicyPointer gammaPolicy(new GammaPolicy<Dimension>());
   state.enroll(mGamma, gammaPolicy);
 
-  // Register the PSPH correction terms
-  // We deliberately make this non-dynamic here.  These corrections are computed
-  // during PSPHHydroBase::initialize, not as part of our usual state update.
-  state.enroll(mPSPHpbar);
+  // Override the default policies for pressure and sound speed.  We'll compute those
+  // specially in the postStateUpdate.  Same goes for registering the PSPHcorrections.
   state.enroll(mPSPHcorrection);
+  state.removePolicy(this->mPressure);
+  state.removePolicy(this->mSoundSpeed);
 }
 
 //------------------------------------------------------------------------------
-// Initialize the hydro.
+// Post-state update.  This is where we can recompute the PSPH pressure and
+// corrections.
 //------------------------------------------------------------------------------
 template<typename Dimension>
 void
 PSPHHydroBase<Dimension>::
-initialize(const typename Dimension::Scalar time,
-           const typename Dimension::Scalar dt,
-           const DataBase<Dimension>& dataBase,
-           State<Dimension>& state,
-           StateDerivatives<Dimension>& derivs) {
+postStateUpdate(const DataBase<Dimension>& dataBase,
+                State<Dimension>& state,
+                const StateDerivatives<Dimension>& derivs) const {
 
-  // SPH does most of it.
-  SPHHydroBase<Dimension>::initialize(time, dt, dataBase, state, derivs);
-
+  // First we need out boundary conditions completed, which the time integrator hasn't 
+  // verified yet.
+  for (ConstBoundaryIterator boundItr = this->boundaryBegin();
+       boundItr != this->boundaryEnd();
+       ++boundItr) (*boundItr)->finalizeGhostBoundary();
+  
   // Do the PSPH corrections.
   const TableKernel<Dimension>& W = this->kernel();
   const ConnectivityMap<Dimension>& connectivityMap = dataBase.connectivityMap();
@@ -190,21 +232,18 @@ initialize(const typename Dimension::Scalar time,
   const FieldList<Dimension, Scalar> specificThermalEnergy = state.fields(HydroFieldNames::specificThermalEnergy, 0.0);
   const FieldList<Dimension, Scalar> gamma = state.fields(HydroFieldNames::gamma, 0.0);
   const FieldList<Dimension, SymTensor> H = state.fields(HydroFieldNames::H, SymTensor::zero);
-  FieldList<Dimension, Scalar> PSPHpbar = state.fields(HydroFieldNames::PSPHpbar, 0.0);
-  FieldList<Dimension, Scalar> PSPHcorrection = state.fields(HydroFieldNames::PSPHcorrection, 0.0);
-  computePSPHCorrections(connectivityMap, W, mass, position, specificThermalEnergy, gamma, H, PSPHpbar, PSPHcorrection);
-
-  // Replace the pressure in the state with the PSPH sum definition.
   FieldList<Dimension, Scalar> P = state.fields(HydroFieldNames::pressure, 0.0);
-  P.assignFields(PSPHpbar);
-
+  FieldList<Dimension, Scalar> cs = state.fields(HydroFieldNames::soundSpeed, 0.0);
+  FieldList<Dimension, Scalar> PSPHcorrection = state.fields(HydroFieldNames::PSPHcorrection, 0.0);
+  computePSPHCorrections(connectivityMap, W, mass, position, specificThermalEnergy, gamma, H, P, cs, PSPHcorrection);
   for (ConstBoundaryIterator boundItr = this->boundaryBegin();
        boundItr != this->boundaryEnd();
        ++boundItr) {
-    (*boundItr)->applyFieldListGhostBoundary(PSPHpbar);
-    (*boundItr)->applyFieldListGhostBoundary(PSPHcorrection);
     (*boundItr)->applyFieldListGhostBoundary(P);
+    (*boundItr)->applyFieldListGhostBoundary(cs);
+    (*boundItr)->applyFieldListGhostBoundary(PSPHcorrection);
   }
+
   // We depend on the caller knowing to finalize the ghost boundaries!
 }
 
@@ -248,7 +287,6 @@ evaluateDerivatives(const typename Dimension::Scalar time,
   const FieldList<Dimension, Scalar> pressure = state.fields(HydroFieldNames::pressure, 0.0);
   const FieldList<Dimension, Scalar> soundSpeed = state.fields(HydroFieldNames::soundSpeed, 0.0);
   const FieldList<Dimension, Scalar> gamma = state.fields(HydroFieldNames::gamma, 0.0);
-  const FieldList<Dimension, Scalar> PSPHpbar = state.fields(HydroFieldNames::PSPHpbar, 0.0);
   const FieldList<Dimension, Scalar> PSPHcorrection = state.fields(HydroFieldNames::PSPHcorrection, 0.0);
   const FieldList<Dimension, Scalar> reducingViscosityMultiplierQ = state.fields(HydroFieldNames::reducingViscosityMultiplierQ, 0.0);
   const FieldList<Dimension, Scalar> reducingViscosityMultiplierL = state.fields(HydroFieldNames::reducingViscosityMultiplierL, 0.0);
@@ -262,7 +300,6 @@ evaluateDerivatives(const typename Dimension::Scalar time,
   CHECK(pressure.size() == numNodeLists);
   CHECK(soundSpeed.size() == numNodeLists);
   CHECK(gamma.size() == numNodeLists);
-  CHECK(PSPHpbar.size() == numNodeLists);
   CHECK(PSPHcorrection.size() == numNodeLists);
   CHECK((not mHopkinsConductivity) or (reducingViscosityMultiplierQ.size() == numNodeLists));
   CHECK((not mHopkinsConductivity) or (reducingViscosityMultiplierL.size() == numNodeLists));
@@ -356,6 +393,7 @@ evaluateDerivatives(const typename Dimension::Scalar time,
       const Vector& vi = velocity(nodeListi, i);
       const Scalar& rhoi = massDensity(nodeListi, i);
       const Scalar& epsi = specificThermalEnergy(nodeListi, i);
+      const Scalar& Pi = pressure(nodeListi, i);
       const SymTensor& Hi = H(nodeListi, i);
       const Scalar& ci = soundSpeed(nodeListi, i);
       const Scalar& gammai = gamma(nodeListi, i);
@@ -418,6 +456,7 @@ evaluateDerivatives(const typename Dimension::Scalar time,
               const Vector& vj = velocity(nodeListj, j);
               const Scalar& rhoj = massDensity(nodeListj, j);
               const Scalar& epsj = specificThermalEnergy(nodeListj, j);
+              const Scalar& Pj = pressure(nodeListj, j);
               const SymTensor& Hj = H(nodeListj, j);
               const Scalar& cj = soundSpeed(nodeListj, j);
               const Scalar& gammaj = gamma(nodeListj, j);
@@ -517,21 +556,19 @@ evaluateDerivatives(const typename Dimension::Scalar time,
               CHECK(rhoj > 0.0);
               const Scalar& Fcorri=PSPHcorrection(nodeListi, i);
               const Scalar& Fcorrj=PSPHcorrection(nodeListj, j);
-              const Scalar& Pbari=PSPHpbar(nodeListi, i);
-              const Scalar& Pbarj=PSPHpbar(nodeListj, j);
               const Scalar Fij=1.0-Fcorri*safeInv(mj*epsj, tiny);
               const Scalar Fji=1.0-Fcorrj*safeInv(mi*epsi, tiny);
               const double engCoef=(gammai-1)*(gammaj-1)*epsi*epsj;
-              const Vector deltaDvDt = engCoef*(gradWi*Fij*safeInv(Pbari, tiny) + gradWj*Fji*safeInv(Pbarj, tiny)) + Qacci + Qaccj;
+              const Vector deltaDvDt = engCoef*(gradWi*Fij*safeInv(Pi, tiny) + gradWj*Fji*safeInv(Pj, tiny)) + Qacci + Qaccj;
 
               DvDti -= mj*deltaDvDt;
               DvDtj += mi*deltaDvDt;
 
               // Specific thermal energy evolution.
-              // DepsDti += mj*(engCoef*deltaDrhoDti*Fij/max(Pbari,tiny) + workQi);
-              // DepsDtj += mi*(engCoef*deltaDrhoDtj*Fji/max(Pbarj,tiny) + workQj);
-              DepsDti += mj*(engCoef*deltaDrhoDti*Fij*safeInv(Pbari, tiny) + workQi);
-              DepsDtj += mi*(engCoef*deltaDrhoDtj*Fji*safeInv(Pbarj, tiny) + workQj);
+              // DepsDti += mj*(engCoef*deltaDrhoDti*Fij/max(Pi,tiny) + workQi);
+              // DepsDtj += mi*(engCoef*deltaDrhoDtj*Fji/max(Pj,tiny) + workQj);
+              DepsDti += mj*(engCoef*deltaDrhoDti*Fij*safeInv(Pi, tiny) + workQi);
+              DepsDtj += mi*(engCoef*deltaDrhoDtj*Fji*safeInv(Pj, tiny) + workQj);
 
               //ADD ARITIFICIAL CONDUCTIVITY IN HOPKINS 2014A
               if (mHopkinsConductivity) {
@@ -541,18 +578,18 @@ evaluateDerivatives(const typename Dimension::Scalar time,
                 const Scalar& Qalpha_j = reducingViscosityMultiplierL(nodeListj, j); //Both L and Q corrections are the same for Cullen Viscosity
                 //DepsDti += (Vs > 0.0)*alph_c*mi*mj*(Qalpha_i+Qalpha_j)*0.5*Vs*(epsi-epsj)*abs(Pi-Pj)*((gradWi+gradWj).dot(rij.unitVector()))*safeInv((Pi+Pj+1e-30)*(rhoi+rhoj+1e-30));
                 //DepsDtj += (Vs > 0.0)*alph_c*mi*mj*(Qalpha_i+Qalpha_j)*0.5*Vs*(epsi-epsj)*abs(Pi-Pj)*((gradWi+gradWj).dot(rij.unitVector()))*safeInv((Pi+Pj+1e-30)*(rhoi+rhoj+1e-30));
-                //DepsDti += (Vs > 0.0) ? alph_c*mj*(Qalpha_i+Qalpha_j)*0.5*Vs*(epsi-epsj)*abs(Pbari-Pbarj)*((gradWi).dot(rij.unitVector()))/max((Pbari+Pbarj)*0.5*(rhoi+rhoj),tiny) : 0.0;
-                //DepsDtj += (Vs > 0.0) ? alph_c*mi*(Qalpha_i+Qalpha_j)*0.5*Vs*(epsj-epsi)*abs(Pbari-Pbarj)*((gradWj).dot(rij.unitVector()))/max((Pbari+Pbarj)*0.5*(rhoi+rhoj),tiny) : 0.0;
-                DepsDti += (Vs > 0.0) ? alph_c*mj*(Qalpha_i+Qalpha_j)*0.5*Vs*(epsi-epsj)*abs(Pbari-Pbarj)*((gradWi+gradWj).dot(rij.unitVector()))*safeInv((Pbari+Pbarj)*(rhoi+rhoj),tiny) : 0.0;
-                DepsDtj += (Vs > 0.0) ? alph_c*mi*(Qalpha_i+Qalpha_j)*0.5*Vs*(epsj-epsi)*abs(Pbari-Pbarj)*((gradWi+gradWj).dot(rij.unitVector()))*safeInv((Pbari+Pbarj)*(rhoi+rhoj),tiny) : 0.0;
-                //const Scalar tmpi = (Vs > 0.0) ? alph_c*mj*(Qalpha_i+Qalpha_j)*0.5*Vs*(epsi-epsj)*abs(Pbari-Pbarj)*((gradWi+gradWj).dot(rij.unitVector()))*safeInv((Pbari+Pbarj)*(rhoi+rhoj)) : 0.0;
-                //const Scalar tmpj = (Vs > 0.0) ? alph_c*mi*(Qalpha_i+Qalpha_j)*0.5*Vs*(epsj-epsi)*abs(Pbari-Pbarj)*((gradWi+gradWj).dot(rij.unitVector()))*safeInv((Pbari+Pbarj)*(rhoi+rhoj)) : 0.0;
+                //DepsDti += (Vs > 0.0) ? alph_c*mj*(Qalpha_i+Qalpha_j)*0.5*Vs*(epsi-epsj)*abs(Pi-Pj)*((gradWi).dot(rij.unitVector()))/max((Pi+Pj)*0.5*(rhoi+rhoj),tiny) : 0.0;
+                //DepsDtj += (Vs > 0.0) ? alph_c*mi*(Qalpha_i+Qalpha_j)*0.5*Vs*(epsj-epsi)*abs(Pi-Pj)*((gradWj).dot(rij.unitVector()))/max((Pi+Pj)*0.5*(rhoi+rhoj),tiny) : 0.0;
+                DepsDti += (Vs > 0.0) ? alph_c*mj*(Qalpha_i+Qalpha_j)*0.5*Vs*(epsi-epsj)*abs(Pi-Pj)*((gradWi+gradWj).dot(rij.unitVector()))*safeInv((Pi+Pj)*(rhoi+rhoj),tiny) : 0.0;
+                DepsDtj += (Vs > 0.0) ? alph_c*mi*(Qalpha_i+Qalpha_j)*0.5*Vs*(epsj-epsi)*abs(Pi-Pj)*((gradWi+gradWj).dot(rij.unitVector()))*safeInv((Pi+Pj)*(rhoi+rhoj),tiny) : 0.0;
+                //const Scalar tmpi = (Vs > 0.0) ? alph_c*mj*(Qalpha_i+Qalpha_j)*0.5*Vs*(epsi-epsj)*abs(Pi-Pj)*((gradWi+gradWj).dot(rij.unitVector()))*safeInv((Pi+Pj)*(rhoi+rhoj)) : 0.0;
+                //const Scalar tmpj = (Vs > 0.0) ? alph_c*mi*(Qalpha_i+Qalpha_j)*0.5*Vs*(epsj-epsi)*abs(Pi-Pj)*((gradWi+gradWj).dot(rij.unitVector()))*safeInv((Pi+Pj)*(rhoi+rhoj)) : 0.0;
                 //DepsDti += tmpi;
                 //DepsDtj += tmpj;
-                //DepsDti += (Vs > 0.0) ? alph_c*mj*(Qalpha_i+Qalpha_j)*0.5*Vs*(epsi-epsj)*abs(Pbari-Pbarj)*((gradWi+gradWj).dot(rij.unitVector()))*safeInv((Pbari+Pbarj)*(rhoi+rhoj)) : 0.0;
-                //DepsDtj += (Vs > 0.0) ? alph_c*mi*(Qalpha_i+Qalpha_j)*0.5*Vs*(epsj-epsi)*abs(Pbari-Pbarj)*((gradWi+gradWj).dot(rij.unitVector()))*safeInv((Pbari+Pbarj)*(rhoi+rhoj)) : 0.0;
-                //DepsDti += (Vs > 0.0 && Pbari > 1e-4 && Pbarj > 1e-4) ? alph_c*mj*(Qalpha_i+Qalpha_j)*0.5*Vs*(epsi-epsj)*abs(Pbari-Pbarj)*((gradWi+gradWj).dot(rij.unitVector()))*safeInv((Pbari+Pbarj)*(rhoi+rhoj),tiny) : 0.0;
-                //DepsDtj += (Vs > 0.0 && Pbari > 1e-4 && Pbarj > 1e-4) ? alph_c*mi*(Qalpha_i+Qalpha_j)*0.5*Vs*(epsj-epsi)*abs(Pbari-Pbarj)*((gradWi+gradWj).dot(rij.unitVector()))*safeInv((Pbari+Pbarj)*(rhoi+rhoj),tiny) : 0.0;
+                //DepsDti += (Vs > 0.0) ? alph_c*mj*(Qalpha_i+Qalpha_j)*0.5*Vs*(epsi-epsj)*abs(Pi-Pj)*((gradWi+gradWj).dot(rij.unitVector()))*safeInv((Pi+Pj)*(rhoi+rhoj)) : 0.0;
+                //DepsDtj += (Vs > 0.0) ? alph_c*mi*(Qalpha_i+Qalpha_j)*0.5*Vs*(epsj-epsi)*abs(Pi-Pj)*((gradWi+gradWj).dot(rij.unitVector()))*safeInv((Pi+Pj)*(rhoi+rhoj)) : 0.0;
+                //DepsDti += (Vs > 0.0 && Pi > 1e-4 && Pj > 1e-4) ? alph_c*mj*(Qalpha_i+Qalpha_j)*0.5*Vs*(epsi-epsj)*abs(Pi-Pj)*((gradWi+gradWj).dot(rij.unitVector()))*safeInv((Pi+Pj)*(rhoi+rhoj),tiny) : 0.0;
+                //DepsDtj += (Vs > 0.0 && Pi > 1e-4 && Pj > 1e-4) ? alph_c*mi*(Qalpha_i+Qalpha_j)*0.5*Vs*(epsj-epsi)*abs(Pi-Pj)*((gradWi+gradWj).dot(rij.unitVector()))*safeInv((Pi+Pj)*(rhoi+rhoj),tiny) : 0.0;
               }
 
               if (this->mCompatibleEnergyEvolution) {
@@ -715,14 +752,12 @@ applyGhostBoundaries(State<Dimension>& state,
 
   // Apply boundary conditions to the PSPH corrections.
   FieldList<Dimension, Scalar> gamma = state.fields(HydroFieldNames::gamma, 0.0);
-  FieldList<Dimension, Scalar> PSPHpbar = state.fields(HydroFieldNames::PSPHpbar, 0.0);
   FieldList<Dimension, Scalar> PSPHcorrection = state.fields(HydroFieldNames::PSPHcorrection, 0.0);
 
   for (ConstBoundaryIterator boundaryItr = this->boundaryBegin(); 
        boundaryItr != this->boundaryEnd();
        ++boundaryItr) {
     (*boundaryItr)->applyFieldListGhostBoundary(gamma);
-    (*boundaryItr)->applyFieldListGhostBoundary(PSPHpbar);
     (*boundaryItr)->applyFieldListGhostBoundary(PSPHcorrection);
   }
 }
@@ -741,14 +776,12 @@ enforceBoundaries(State<Dimension>& state,
 
   // Enforce boundary conditions on the PSPH corrections.
   FieldList<Dimension, Scalar> gamma = state.fields(HydroFieldNames::gamma, 0.0);
-  FieldList<Dimension, Scalar> PSPHpbar = state.fields(HydroFieldNames::PSPHpbar, 0.0);
   FieldList<Dimension, Scalar> PSPHcorrection = state.fields(HydroFieldNames::PSPHcorrection, 0.0);
 
   for (ConstBoundaryIterator boundaryItr = this->boundaryBegin(); 
        boundaryItr != this->boundaryEnd();
        ++boundaryItr) {
     (*boundaryItr)->enforceFieldListBoundary(gamma);
-    (*boundaryItr)->enforceFieldListBoundary(PSPHpbar);
     (*boundaryItr)->enforceFieldListBoundary(PSPHcorrection);
   }
 }
@@ -765,7 +798,6 @@ dumpState(FileIO& file, string pathName) const {
   SPHHydroBase<Dimension>::dumpState(file, pathName);
 
   file.write(mGamma, pathName + "/gamma");
-  file.write(mPSPHpbar, pathName + "/PSPHpbar");
   file.write(mPSPHcorrection, pathName + "/PSPHcorrection");
 }
 
@@ -781,7 +813,6 @@ restoreState(const FileIO& file, string pathName) {
   SPHHydroBase<Dimension>::restoreState(file, pathName);
 
   file.read(mGamma, pathName + "/gamma");
-  file.read(mPSPHpbar, pathName + "/PSPHpbar");
   file.read(mPSPHcorrection, pathName + "/PSPHcorrection");
 }
 
