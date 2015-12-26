@@ -52,6 +52,7 @@ commandLine(nx1 = 400,
             betaE = 1.0,
             fKern = 1.0/3.0,
             boolHopkinsCorrection = True,
+            HopkinsConductivity = False,
             linearInExpansion = False,
             quadraticInExpansion = False,
             Qlimiter = False,
@@ -303,6 +304,18 @@ elif CRKSPH:
                              HUpdate = HUpdate)
     q.etaCritFrac = etaCritFrac
     q.etaFoldFrac = etaFoldFrac
+elif PSPH:
+    hydro = HydroConstructor(W = WT,
+                             Q = q,
+                             cfl = cfl,
+                             compatibleEnergyEvolution = compatibleEnergy,
+                             gradhCorrection = gradhCorrection,
+                             densityUpdate = densityUpdate,
+                             HUpdate = HUpdate,
+                             XSPH = XSPH,
+                             HopkinsConductivity = HopkinsConductivity,
+                             epsTensile = epsilonTensile,
+                             nTensile = nTensile)
 else:
     hydro = HydroConstructor(W = WT,
                              Q = q,
