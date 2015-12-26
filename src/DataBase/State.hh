@@ -74,6 +74,8 @@ public:
 
   // Remove a policy.
   void removePolicy(const KeyType& key);
+  void removePolicy(FieldSpace::FieldBase<Dimension>& field);
+  void removePolicy(FieldSpace::FieldListBase<Dimension>& field);
 
   // Enroll the given Field and associated update policy
   void enroll(FieldSpace::FieldBase<Dimension>& field, PolicyPointer policy);
