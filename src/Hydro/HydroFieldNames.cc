@@ -34,7 +34,6 @@ const std::string Spheral::HydroFieldNames::pairAccelerations = "pair-wise accel
 const std::string Spheral::HydroFieldNames::pairWork = "pair-wise work";
 const std::string Spheral::HydroFieldNames::omegaGradh = "grad h corrections";
 const std::string Spheral::HydroFieldNames::gamma = "ratio of specific heats";
-const std::string Spheral::HydroFieldNames::PSPHpbar = "PSPH Pressure interpolate";
 const std::string Spheral::HydroFieldNames::PSPHcorrection = "PSPH Correction";
 const std::string Spheral::HydroFieldNames::numberDensitySum = "number density sum";
 const std::string Spheral::HydroFieldNames::timeStepMask = "time step mask";

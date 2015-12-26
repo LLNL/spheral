@@ -26,14 +26,15 @@ using NodeSpace::NodeList;
 template<typename Dimension>
 void
 computePSPHCorrections(const ConnectivityMap<Dimension>& connectivityMap,
-                               const TableKernel<Dimension>& W,
-                               const FieldList<Dimension, typename Dimension::Scalar>& mass,
-                               const FieldList<Dimension, typename Dimension::Vector>& position,
-                               const FieldList<Dimension, typename Dimension::Scalar>& specificThermalEnergy,
-                               const FieldList<Dimension, typename Dimension::Scalar>& gamma,
-                               const FieldList<Dimension, typename Dimension::SymTensor>& H,
-                               FieldList<Dimension, typename Dimension::Scalar>& PSPHpbar,
-                               FieldList<Dimension, typename Dimension::Scalar>& PSPHcorrection) {
+                       const TableKernel<Dimension>& W,
+                       const FieldList<Dimension, typename Dimension::Scalar>& mass,
+                       const FieldList<Dimension, typename Dimension::Vector>& position,
+                       const FieldList<Dimension, typename Dimension::Scalar>& specificThermalEnergy,
+                       const FieldList<Dimension, typename Dimension::Scalar>& gamma,
+                       const FieldList<Dimension, typename Dimension::SymTensor>& H,
+                       FieldList<Dimension, typename Dimension::Scalar>& PSPHpbar,
+                       FieldList<Dimension, typename Dimension::Scalar>& PSPHsoundSpeed,
+                       FieldList<Dimension, typename Dimension::Scalar>& PSPHcorrection) {
 
   // Pre-conditions.
   const size_t numNodeLists = PSPHpbar.size();
@@ -42,6 +43,7 @@ computePSPHCorrections(const ConnectivityMap<Dimension>& connectivityMap,
   REQUIRE(specificThermalEnergy.size() == numNodeLists);
   REQUIRE(gamma.size() == numNodeLists);
   REQUIRE(H.size() == numNodeLists);
+  REQUIRE(PSPHsoundSpeed.size() == numNodeLists);
   REQUIRE(PSPHcorrection.size() == numNodeLists);
 
   typedef typename Dimension::Scalar Scalar;
@@ -72,6 +74,7 @@ computePSPHCorrections(const ConnectivityMap<Dimension>& connectivityMap,
       const SymTensor& Hi = H(nodeListi, i);
       const Scalar Hdeti = Hi.Determinant();
       const Scalar invhi = (Hi.Trace()/Dimension::nDim);
+      const Scalar epsi = specificThermalEnergy(nodeListi, i);
       const Scalar gammai = gamma(nodeListi, i);
 
       // Neighbors!
@@ -123,6 +126,8 @@ computePSPHCorrections(const ConnectivityMap<Dimension>& connectivityMap,
       //PSPHcorrection(nodeListi, i)=gradPbari*safeInv(Dimension::nDim*(gammai-1.0)*Nbari*invhi*fi);
       const Scalar fi=1.0+gradNbari/max(Dimension::nDim*Nbari*invhi,tiny);
       PSPHcorrection(nodeListi, i)=gradPbari/max(Dimension::nDim*(gammai-1.0)*Nbari*invhi*fi,tiny);
+      CHECK((gammai-1.0)*epsi >= 0.0);
+      PSPHsoundSpeed(nodeListi, i) = sqrt(std::max(0.0, (gammai - 1.0)*epsi));
     }
   }
 }
