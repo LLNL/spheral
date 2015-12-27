@@ -363,7 +363,7 @@ initialize(const typename Dimension::Scalar time,
 
     // Are we using RK methods to take our gradients?
     if (mReproducingKernelGradient) {
-      const CRKSPHSpace::CRKOrder correctionOrder = CRKSPHSpace::ZerothOrder;
+      const CRKSPHSpace::CRKOrder correctionOrder = CRKSPHSpace::LinearOrder;
 
       // Yep, so find the gradient of v and DvDt.
       // We'll use the mass as our weighting for simplicity.
@@ -387,8 +387,8 @@ initialize(const typename Dimension::Scalar time,
       FieldList<Dimension, Vector> gradA = dataBase.newFluidFieldList(Vector::zero, HydroFieldNames::gradA_CRKSPH);
       FieldList<Dimension, Tensor> gradB = dataBase.newFluidFieldList(Tensor::zero, HydroFieldNames::gradB_CRKSPH);
       FieldList<Dimension, ThirdRankTensor> gradC = dataBase.newFluidFieldList(ThirdRankTensor::zero, HydroFieldNames::gradC_CRKSPH);
-      CRKSPHSpace::computeCRKSPHMoments(connectivityMap, W, mass, position, H, CRKSPHSpace::ZerothOrder, NodeCoupling(), m0, m1, m2, m3, m4, gradm0, gradm1, gradm2, gradm3, gradm4);
-      CRKSPHSpace::computeCRKSPHCorrections(m0, m1, m2, m3, m4, gradm0, gradm1, gradm2, gradm3, gradm4, CRKSPHSpace::ZerothOrder, A, B, C, gradA, gradB, gradC);
+      CRKSPHSpace::computeCRKSPHMoments(connectivityMap, W, mass, position, H, correctionOrder, NodeCoupling(), m0, m1, m2, m3, m4, gradm0, gradm1, gradm2, gradm3, gradm4);
+      CRKSPHSpace::computeCRKSPHCorrections(m0, m1, m2, m3, m4, gradm0, gradm1, gradm2, gradm3, gradm4, correctionOrder, A, B, C, gradA, gradB, gradC);
 
       // We're going to evaluate the gradient of v and DvDt simultaneously, along with finding vsig and such.
       // Walk the FluidNodeLists.
@@ -485,8 +485,8 @@ initialize(const typename Dimension::Scalar time,
                   // Kernel weight and gradient.
                   Scalar Wi, gWi, Wj, gWj;
                   Vector gradWi, gradWj;
-                  CRKSPHSpace::CRKSPHKernelAndGradient(W, CRKSPHSpace::ZerothOrder,  rij, -etai, Hi, Hdeti,  etaj, Hj, Hdetj, Ai, Bi, Ci, gradAi, gradBi, gradCi, Wj, gWj, gradWj);
-                  CRKSPHSpace::CRKSPHKernelAndGradient(W, CRKSPHSpace::ZerothOrder, -rij,  etaj, Hj, Hdetj, -etai, Hi, Hdeti, Aj, Bj, Cj, gradAj, gradBj, gradCj, Wi, gWi, gradWi);
+                  CRKSPHSpace::CRKSPHKernelAndGradient(W, correctionOrder,  rij, -etai, Hi, Hdeti,  etaj, Hj, Hdetj, Ai, Bi, Ci, gradAi, gradBi, gradCi, Wj, gWj, gradWj);
+                  CRKSPHSpace::CRKSPHKernelAndGradient(W, correctionOrder, -rij,  etaj, Hj, Hdetj, -etai, Hi, Hdeti, Aj, Bj, Cj, gradAj, gradBj, gradCj, Wi, gWi, gradWi);
 
                   // Increment the pair-wise gradients.
                   DvDx(nodeListi, i) += wj*vj*gradWj;
@@ -496,7 +496,9 @@ initialize(const typename Dimension::Scalar time,
 
                   // Check the signal velocity.
                   const Scalar csij = 0.5*(csi + csj);
-                  vsigi = std::max(vsigi, csij - std::min(0.0, (vi - vj).dot(rij.unitVector())));
+                  const Scalar vsigij = csij - std::min(0.0, (vi - vj).dot(rij.unitVector()));
+                  vsigi = std::max(vsigi, vsigij);
+                  vsigj = std::max(vsigj, vsigij);
                 }
               }
             }
@@ -598,15 +600,15 @@ initialize(const typename Dimension::Scalar time,
           const Scalar divai = DvDtDxi.Trace();
           const Tensor Si = DvDxi.Symmetric() - divvi/Dimension::nDim * Tensor::one;
           const Scalar thpt = FastMath::pow2(2.0*FastMath::pow4(1.0 - Ri)*divvi);
-          const Scalar zetai = thpt*safeInvVar(thpt + (Si*Si.Transpose()).Trace());
+          const Scalar zetai = thpt*safeInv(thpt + (Si*Si.Transpose()).Trace());
           const Scalar Ai = zetai*std::max(-divai, 0.0);
-          const Scalar alpha_locali = malphMax*hi*hi*Ai*safeInvVar(vsigi*vsigi + hi*hi*Ai);
-          const Scalar taui = hi*safeInvVar(2.0*mbetaD*vsigi);
+          const Scalar alpha_locali = malphMax*hi*hi*Ai*safeInv(vsigi*vsigi + hi*hi*Ai);
+          const Scalar taui = hi*safeInv(2.0*mbetaD*vsigi);
           
           Scalar& alphai = reducingViscosityMultiplierQ(nodeListi, i);
           Scalar& DalphaDti = DreducingViscosityMultiplierQDt(nodeListi, i);
           alphai = std::max(alphai, alpha_locali);
-          DalphaDti = std::min(0.0, alpha_locali - alphai)*safeInvVar(taui);
+          DalphaDti = std::min(0.0, alpha_locali - alphai)*safeInv(taui);
           reducingViscosityMultiplierL(nodeListi, i) = alphai;
           DreducingViscosityMultiplierLDt(nodeListi, i) = DalphaDti;
         }
