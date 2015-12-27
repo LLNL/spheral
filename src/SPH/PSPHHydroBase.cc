@@ -164,6 +164,7 @@ initializeProblemStartup(DataBase<Dimension>& dataBase) {
   const TableKernel<Dimension>& W = this->kernel();
   const ConnectivityMap<Dimension>& connectivityMap = dataBase.connectivityMap();
   FieldList<Dimension, Scalar> mass = dataBase.fluidMass();
+  FieldList<Dimension, Scalar> rho = dataBase.fluidMassDensity();
   FieldList<Dimension, Vector> position = dataBase.fluidPosition();
   FieldList<Dimension, Scalar> specificThermalEnergy = dataBase.fluidSpecificThermalEnergy();
   FieldList<Dimension, SymTensor> H = dataBase.fluidHfield();
@@ -179,7 +180,7 @@ initializeProblemStartup(DataBase<Dimension>& dataBase) {
        boundaryItr != this->boundaryEnd();
        ++boundaryItr) (*boundaryItr)->finalizeGhostBoundary();
   computePSPHCorrections(connectivityMap, W, mass, position, specificThermalEnergy, mGamma, H, 
-                         this->mPressure, this->mSoundSpeed, mPSPHcorrection);
+                         rho, this->mPressure, this->mSoundSpeed, mPSPHcorrection);
 }
 
 //------------------------------------------------------------------------------
@@ -232,13 +233,15 @@ postStateUpdate(const DataBase<Dimension>& dataBase,
   const FieldList<Dimension, Scalar> specificThermalEnergy = state.fields(HydroFieldNames::specificThermalEnergy, 0.0);
   const FieldList<Dimension, Scalar> gamma = state.fields(HydroFieldNames::gamma, 0.0);
   const FieldList<Dimension, SymTensor> H = state.fields(HydroFieldNames::H, SymTensor::zero);
+  FieldList<Dimension, Scalar> rho = state.fields(HydroFieldNames::massDensity, 0.0);
   FieldList<Dimension, Scalar> P = state.fields(HydroFieldNames::pressure, 0.0);
   FieldList<Dimension, Scalar> cs = state.fields(HydroFieldNames::soundSpeed, 0.0);
   FieldList<Dimension, Scalar> PSPHcorrection = state.fields(HydroFieldNames::PSPHcorrection, 0.0);
-  computePSPHCorrections(connectivityMap, W, mass, position, specificThermalEnergy, gamma, H, P, cs, PSPHcorrection);
+  computePSPHCorrections(connectivityMap, W, mass, position, specificThermalEnergy, gamma, H, rho, P, cs, PSPHcorrection);
   for (ConstBoundaryIterator boundItr = this->boundaryBegin();
        boundItr != this->boundaryEnd();
        ++boundItr) {
+    (*boundItr)->applyFieldListGhostBoundary(rho);
     (*boundItr)->applyFieldListGhostBoundary(P);
     (*boundItr)->applyFieldListGhostBoundary(cs);
     (*boundItr)->applyFieldListGhostBoundary(PSPHcorrection);

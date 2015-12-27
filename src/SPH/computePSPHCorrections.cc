@@ -32,6 +32,7 @@ computePSPHCorrections(const ConnectivityMap<Dimension>& connectivityMap,
                        const FieldList<Dimension, typename Dimension::Scalar>& specificThermalEnergy,
                        const FieldList<Dimension, typename Dimension::Scalar>& gamma,
                        const FieldList<Dimension, typename Dimension::SymTensor>& H,
+                       FieldList<Dimension, typename Dimension::Scalar>& PSPHmassDensity,
                        FieldList<Dimension, typename Dimension::Scalar>& PSPHpbar,
                        FieldList<Dimension, typename Dimension::Scalar>& PSPHsoundSpeed,
                        FieldList<Dimension, typename Dimension::Scalar>& PSPHcorrection) {
@@ -43,6 +44,7 @@ computePSPHCorrections(const ConnectivityMap<Dimension>& connectivityMap,
   REQUIRE(specificThermalEnergy.size() == numNodeLists);
   REQUIRE(gamma.size() == numNodeLists);
   REQUIRE(H.size() == numNodeLists);
+  REQUIRE(PSPHmassDensity.size() == numNodeLists);
   REQUIRE(PSPHsoundSpeed.size() == numNodeLists);
   REQUIRE(PSPHcorrection.size() == numNodeLists);
 
@@ -52,6 +54,7 @@ computePSPHCorrections(const ConnectivityMap<Dimension>& connectivityMap,
   typedef typename Dimension::SymTensor SymTensor;
 
   // Zero out the result.
+  PSPHmassDensity = 0.0;
   PSPHpbar = 0.0;
   PSPHcorrection = 0.0;
   const double tiny = 1.0e-30;
@@ -73,6 +76,7 @@ computePSPHCorrections(const ConnectivityMap<Dimension>& connectivityMap,
       const Vector& ri = position(nodeListi, i);
       const SymTensor& Hi = H(nodeListi, i);
       const Scalar Hdeti = Hi.Determinant();
+      const Scalar mi = mass(nodeListi, i);
       const Scalar invhi = (Hi.Trace()/Dimension::nDim);
       const Scalar epsi = specificThermalEnergy(nodeListi, i);
       const Scalar gammai = gamma(nodeListi, i);
@@ -115,6 +119,7 @@ computePSPHCorrections(const ConnectivityMap<Dimension>& connectivityMap,
           const Scalar& gWj = WWj.second;
           const Scalar xj=(gammaj-1.0)*mj*epsj;
           const Scalar gradh=invhi*(Dimension::nDim*Wi+etai*gWi);
+          PSPHmassDensity(nodeListi, i) += mj*Wi;
           PSPHpbar(nodeListi, i) += xj*Wi;
           Nbari += Wi;
           gradPbari -= xj*gradh;
@@ -128,6 +133,7 @@ computePSPHCorrections(const ConnectivityMap<Dimension>& connectivityMap,
       PSPHcorrection(nodeListi, i)=gradPbari/max(Dimension::nDim*(gammai-1.0)*Nbari*invhi*fi,tiny);
       CHECK((gammai-1.0)*epsi >= 0.0);
       PSPHsoundSpeed(nodeListi, i) = sqrt(std::max(0.0, (gammai - 1.0)*epsi));
+      PSPHmassDensity(nodeListi, i) += mi*W(0.0, Hdeti);
     }
   }
 }
