@@ -51,6 +51,7 @@ commandLine(nRadial = 50,
             aMax = 2.0,
             Qhmult = 1.0,
             boolCullenViscosity = False,
+            cullenReproducingKernelGradient = False,  # Use reproducing kernels for gradients in Cullen-Dehnen visocosity model
             alphMax = 2.0,
             alphMin = 0.02,
             betaC = 0.7,
@@ -58,7 +59,6 @@ commandLine(nRadial = 50,
             betaE = 1.0,
             fKern = 1.0/3.0,
             boolHopkinsCorrection = True,
-            cullenReproducingKernelGradient = False,  # Use reproducing kernels for gradients in Cullen-Dehnen visocosity model
             HopkinsConductivity = False,
 
             HydroConstructor = SPHHydro,

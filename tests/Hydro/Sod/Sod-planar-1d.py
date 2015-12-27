@@ -45,6 +45,7 @@ commandLine(nx1 = 400,
             etaCritFrac = 1.0,
             etaFoldFrac = 0.2,
             boolCullenViscosity = False,
+            cullenReproducingKernelGradient = False,  # Use reproducing kernels for gradients in Cullen-Dehnen visocosity model
             alphMax = 2.0,
             alphMin = 0.02,
             betaC = 0.7,
@@ -338,10 +339,8 @@ if boolReduceViscosity:
     evolveReducingViscosityMultiplier = MorrisMonaghanReducingViscosity(q,nh,aMin,aMax)
     packages.append(evolveReducingViscosityMultiplier)
 elif boolCullenViscosity:
-    evolveCullenViscosityMultiplier = CullenDehnenViscosity(q,WT,alphMax,alphMin,betaC,betaD,betaE,fKern,boolHopkinsCorrection)
+    evolveCullenViscosityMultiplier = CullenDehnenViscosity(q,WT,alphMax,alphMin,betaC,betaD,betaE,fKern,boolHopkinsCorrection,cullenReproducingKernelGradient)
     packages.append(evolveCullenViscosityMultiplier)
-
-
 
 #-------------------------------------------------------------------------------
 # Construct the Artificial Conduction physics object.
@@ -539,6 +538,14 @@ if graphics:
                              colorNodeLists = False)
     plots.append((viscPlot, "Sod-planar-viscosity.png"))
     
+    if boolCullenViscosity:
+        cullAlphaPlot = plotFieldList(q.reducingViscosityMultiplierQ(),
+                                      winTitle = "Cullen alpha")
+        cullDalphaPlot = plotFieldList(evolveCullenViscosityMultiplier.DrvAlphaDtQ(),
+                                       winTitle = "Cullen DalphaDt")
+        plots += [(cullAlphaPlot, "Sedov-planar-Cullen-alpha.png"),
+                  (cullDalphaPlot, "Sedov-planar-Cullen-DalphaDt.png")]
+
     #if boolReduceViscosity:
     #    alphaPlot = plotFieldList(q.reducingViscosityMultiplier(),
     #                              winTitle = "rvAlpha",
