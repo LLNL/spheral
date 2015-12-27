@@ -409,6 +409,7 @@ initialize(const typename Dimension::Scalar time,
           const Vector& ri = position(nodeListi, i);
           const SymTensor& Hi = H(nodeListi, i);
           const Scalar Hdeti = Hi.Determinant();
+          const Scalar mi = mass(nodeListi, i);
           const Scalar& Ai = A(nodeListi, i);
           const Vector& gradAi = gradA(nodeListi, i);
           if (correctionOrder != CRKSPHSpace::ZerothOrder) {
@@ -421,13 +422,13 @@ initialize(const typename Dimension::Scalar time,
           }
           const Vector& vi = velocity(nodeListi, i);
           const Scalar csi = soundSpeed(nodeListi, i);
-          Vector& DvDti = prevDvDt(nodeListi, i);
+          const Vector& DvDti = prevDvDt(nodeListi, i);
           Scalar& vsigi = vsig(nodeListi, i);
 
           // Add our self-contribution.  A strange thing in a gradient!
           const Scalar W0 = W.kernelValue(0.0, Hdeti);
-          DvDx(nodeListi, i) += mass(nodeListi, i)*vi*W0*(Ai*Bi + gradAi);
-          DvDtDx(nodeListi, i) += mass(nodeListi, i)*DvDti*W0*(Ai*Bi + gradAi);
+          DvDx(nodeListi, i) += mi*vi*W0*(Ai*Bi + gradAi);
+          DvDtDx(nodeListi, i) += mi*DvDti*W0*(Ai*Bi + gradAi);
 
           // Neighbors!
           const vector<vector<int> >& fullConnectivity = connectivityMap.connectivityForNode(nodeListi, i);
@@ -474,7 +475,7 @@ initialize(const typename Dimension::Scalar time,
                   }
                   const Vector& vj = velocity(nodeListj, j);
                   const Scalar csj = soundSpeed(nodeListj, j);
-                  Vector& DvDtj = prevDvDt(nodeListj, j);
+                  const Vector& DvDtj = prevDvDt(nodeListj, j);
                   Scalar& vsigj = vsig(nodeListj, j);
 
                   // Node displacement.
@@ -495,8 +496,7 @@ initialize(const typename Dimension::Scalar time,
                   DvDtDx(nodeListj, j) += wi*DvDti*gradWi;
 
                   // Check the signal velocity.
-                  const Scalar csij = 0.5*(csi + csj);
-                  const Scalar vsigij = csij - std::min(0.0, (vi - vj).dot(rij.unitVector()));
+                  const Scalar vsigij = 0.5*(csi + csj) - std::min(0.0, (vi - vj).dot(rij.unitVector()));
                   vsigi = std::max(vsigi, vsigij);
                   vsigj = std::max(vsigj, vsigij);
                 }
@@ -574,8 +574,8 @@ initialize(const typename Dimension::Scalar time,
                   const Scalar Wj = W(Hj*rij, Hdetj);
 
                   // Compute R.
-                  Ri += sgn(divvj)*mj*Wi;
-                  Rj += sgn(divvi)*mi*Wj;
+                  Ri += sgn0(divvj)*mj*Wi;
+                  Rj += sgn0(divvi)*mi*Wj;
                 }
               }
             }
