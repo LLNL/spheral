@@ -52,14 +52,15 @@ public:
     
     // Constructors & Destructors
     CullenDehnenViscosity(ArtificialViscosity<Dimension>& q,
-                                    const KernelSpace::TableKernel<Dimension>& W,
-                                    const Scalar alphMax,
-                                    const Scalar alphMin,
-                                    const Scalar betaC,
-                                    const Scalar betaD,
-                                    const Scalar betaE,
-                                    const Scalar fKern,
-                                    const bool boolHopkins);
+                          const KernelSpace::TableKernel<Dimension>& W,
+                          const Scalar alphMax,
+                          const Scalar alphMin,
+                          const Scalar betaC,
+                          const Scalar betaD,
+                          const Scalar betaE,
+                          const Scalar fKern,
+                          const bool boolHopkins,
+                          const bool reproducingKernelGradient);
     virtual ~CullenDehnenViscosity();
     
     //............................................................................
@@ -121,6 +122,7 @@ public:
     Scalar betaC() const;
     Scalar fKern() const;
     bool boolHopkins() const;
+    bool reproducingKernelGradient() const;
     
     void alphMax(Scalar val);
     void alphMin(Scalar val);
@@ -129,6 +131,7 @@ public:
     void betaC(Scalar val);
     void fKern(Scalar val);
     void boolHopkins(bool val);
+    void reproducingKernelGradient(bool val);
 
     // Access the stored interpolation kernels.
     const KernelSpace::TableKernel<Dimension>& kernel() const;
@@ -137,6 +140,8 @@ public:
     const FieldSpace::FieldList<Dimension, Scalar>&    CullAlpha() const;
     const FieldSpace::FieldList<Dimension, Scalar>&    PrevDivV2() const;
     const FieldSpace::FieldList<Dimension, Scalar>&    CullAlpha2() const;
+    const FieldSpace::FieldList<Dimension, Scalar>&    DrvAlphaDtQ() const;
+    const FieldSpace::FieldList<Dimension, Scalar>&    DrvAlphaDtL() const;
     
     
 private:
@@ -151,6 +156,7 @@ private:
 
     Scalar malphMax, malphMin, mbetaE, mbetaD, mbetaC, mfKern;
     bool mboolHopkins;//Use Hopkins Reformulation
+    bool mReproducingKernelGradient;  // Use reproducing kernels to estimate gradients.
     ArtificialViscosity<Dimension>& myq;
     const KernelSpace::TableKernel<Dimension>& mKernel;
     FieldSpace::FieldList<Dimension, Vector>    mPrevDvDt;//Will enroll as state fields
@@ -158,6 +164,8 @@ private:
     FieldSpace::FieldList<Dimension, Scalar>    mCullAlpha;
     FieldSpace::FieldList<Dimension, Scalar>    mPrevDivV2;//Will enroll as derivative fields so that we can store the previous time step value.
     FieldSpace::FieldList<Dimension, Scalar>    mCullAlpha2;
+    FieldSpace::FieldList<Dimension, Scalar>    mDrvAlphaDtQ;  // We're actually going to evolve these at the same rate.
+    FieldSpace::FieldList<Dimension, Scalar>    mDrvAlphaDtL;
 };
     
 }

@@ -58,6 +58,7 @@ commandLine(nRadial = 50,
             betaE = 1.0,
             fKern = 1.0/3.0,
             boolHopkinsCorrection = True,
+            cullenReproducingKernelGradient = False,  # Use reproducing kernels for gradients in Cullen-Dehnen visocosity model
             HopkinsConductivity = False,
 
             HydroConstructor = SPHHydro,
@@ -321,7 +322,7 @@ if boolReduceViscosity:
     evolveReducingViscosityMultiplier = MorrisMonaghanReducingViscosity(q,nh,aMin,aMax)
     packages.append(evolveReducingViscosityMultiplier)
 elif boolCullenViscosity:
-    evolveCullenViscosityMultiplier = CullenDehnenViscosity(q,WT,alphMax,alphMin,betaC,betaD,betaE,fKern,boolHopkinsCorrection)
+    evolveCullenViscosityMultiplier = CullenDehnenViscosity(q,WT,alphMax,alphMin,betaC,betaD,betaE,fKern,boolHopkinsCorrection,cullenReproducingKernelGradient)
     packages.append(evolveCullenViscosityMultiplier)
 
 
@@ -469,6 +470,14 @@ if graphics:
     Aplot.title("Specific entropy")
     Aplot.refresh()
     plots.append((Aplot, "Sedov-planar-entropy.png"))
+
+    if boolCullenViscosity:
+        cullAlphaPlot = plotFieldList(q.reducingViscosityMultiplierQ(),
+                                      winTitle = "Cullen alpha")
+        cullDalphaPlot = plotFieldList(evolveCullenViscosityMultiplier.DrvAlphaDtQ(),
+                                       winTitle = "Cullen DalphaDt")
+        plots += [(cullAlphaPlot, "Sedov-planar-Cullen-alpha.png"),
+                  (cullDalphaPlot, "Sedov-planar-Cullen-DalphaDt.png")]
 
     # Make hardcopies of the plots.
     for p, filename in plots:
