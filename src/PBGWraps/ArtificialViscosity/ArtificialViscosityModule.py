@@ -249,7 +249,8 @@ self.addVonNeumanViscosityMethods(self.VonNeumanViscosity%(dim)id, %(dim)i)
                            param("double", "betaD", default_value="0.05"),
                            param("double", "betaE", default_value="1.0"),
                            param("double", "fKern", default_value="0.33333"),
-                           param("int", "boolHopkins", default_value="true")])
+                           param("bool", "boolHopkins", default_value="true"),
+                           param("bool", "reproducingKernelGradient", default_value="false")])
 
         # Add the abstract methods.
         generatePhysicsVirtualBindings(x, ndim, False)
@@ -261,7 +262,8 @@ self.addVonNeumanViscosityMethods(self.VonNeumanViscosity%(dim)id, %(dim)i)
         x.add_instance_attribute("betaD", "double", getter="betaD", setter="betaD")
         x.add_instance_attribute("betaC", "double", getter="betaC", setter="betaC")
         x.add_instance_attribute("fKern", "double", getter="fKern", setter="fKern")
-        x.add_instance_attribute("boolHopkins", "double", getter="boolHopkins", setter="boolHopkins")
+        x.add_instance_attribute("boolHopkins", "bool", getter="boolHopkins", setter="boolHopkins")
+        x.add_instance_attribute("reproducingKernelGradient", "bool", getter="reproducingKernelGradient", setter="reproducingKernelGradient")
 
         # Methods.
         const_ref_return_value(x, me, "%s::PrevDvDt" % me, vectorfieldlist, [], "PrevDvDt")
@@ -269,6 +271,8 @@ self.addVonNeumanViscosityMethods(self.VonNeumanViscosity%(dim)id, %(dim)i)
         const_ref_return_value(x, me, "%s::PrevDivV2" % me, scalarfieldlist, [], "PrevDivV2")
         const_ref_return_value(x, me, "%s::CullAlpha" % me, scalarfieldlist, [], "CullAlpha")
         const_ref_return_value(x, me, "%s::CullAlpha2" % me, scalarfieldlist, [], "CullAlpha2")
+        const_ref_return_value(x, me, "%s::DrvAlphaDtQ" % me, scalarfieldlist, [], "DrvAlphaDtQ")
+        const_ref_return_value(x, me, "%s::DrvAlphaDtL" % me, scalarfieldlist, [], "DrvAlphaDtL")
    
         return
 
