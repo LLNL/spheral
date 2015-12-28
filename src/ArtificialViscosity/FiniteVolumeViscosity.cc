@@ -85,22 +85,24 @@ Piij(const unsigned nodeListi, const unsigned i,
   const double Cl = this->mClinear;
   const double Cq = this->mCquadratic;
   const double eps2 = this->mEpsilon2;
-  const bool balsaraShearCorrection = this->mBalsaraShearCorrection;
 
-  // Are we applying the shear corrections?
+  // Grab the FieldLists scaling the coefficients.
+  // These incorporate things like the Balsara shearing switch or Morris & Monaghan time evolved
+  // coefficients.
+  const Scalar fCli = this->mClMultiplier(nodeListi, i);
+  const Scalar fCqi = this->mCqMultiplier(nodeListi, i);
+  const Scalar fClj = this->mClMultiplier(nodeListj, j);
+  const Scalar fCqj = this->mCqMultiplier(nodeListj, j);
+
   const Vector vij = vi - vj;
-  const Scalar fshear = (balsaraShearCorrection ? 
-                         abs(vij.unitVector().dot(vij.unitVector())) :
-                         1.0);
-
   const Vector xji = xj - xi;
   const Vector xjihat = xji.unitVector();
   const Scalar hi = 1.0/(Hi*xjihat).magnitude();
   const Scalar hj = 1.0/(Hj*xjihat).magnitude();
   const Scalar DvDxi = min(0.0, mDvDx(nodeListi, i).Trace());
   const Scalar DvDxj = min(0.0, mDvDx(nodeListj, j).Trace());
-  const Scalar Pii = fshear*(-Cl*csi*DvDxi + Cq*hi*DvDxi*DvDxi)*hi/rhoi;
-  const Scalar Pij = fshear*(-Cl*csj*DvDxj + Cq*hj*DvDxj*DvDxj)*hj/rhoj;
+  const Scalar Pii = (-Cl*fCli*csi*DvDxi + Cq*fCqi*hi*DvDxi*DvDxi)*hi/rhoi;
+  const Scalar Pij = (-Cl*fClj*csj*DvDxj + Cq*fCqj*hj*DvDxj*DvDxj)*hj/rhoj;
   return make_pair(Pii*Tensor::one, Pij*Tensor::one);
 }
 

@@ -84,22 +84,15 @@ Piij(const unsigned nodeListi, const unsigned i,
     const double Cl = this->mClinear;
     const double Cq = this->mCquadratic;
     const double eps2 = this->mEpsilon2;
-    const bool balsara = this->mBalsaraShearCorrection;
     const bool limiter = this->mLimiterSwitch;
 
-    // State of node I.
-    const Tensor& _sigmai = this->mSigma(nodeListi, i);
-    const Scalar fsheari = (balsara ?
-                            this->mShearMultiplier(nodeListi, i) :
-                            1.0);
-    CHECK(fsheari >= 0.0 && fsheari <= 1.0);
-
-    // State for node J.
-    const Tensor& _sigmaj = this->mSigma(nodeListj, j);
-    const Scalar fshearj = (balsara ?
-                            this->mShearMultiplier(nodeListj, j) :
-                            1.0);
-    CHECK(fshearj >= 0.0 && fshearj <= 1.0);
+    // Grab the FieldLists scaling the coefficients.
+    // These incorporate things like the Balsara shearing switch or Morris & Monaghan time evolved
+    // coefficients.
+    const Scalar fCli = this->mClMultiplier(nodeListi, i);
+    const Scalar fCqi = this->mCqMultiplier(nodeListi, i);
+    const Scalar fClj = this->mClMultiplier(nodeListj, j);
+    const Scalar fCqj = this->mCqMultiplier(nodeListj, j);
 
     // Some more geometry.
     const Scalar xij2 = xij.magnitude2();
@@ -110,6 +103,8 @@ Piij(const unsigned nodeListi, const unsigned i,
     const Scalar hj = sqrt(hj2);
 
     // BOOGA!
+    const Tensor& _sigmai = this->mSigma(nodeListi, i);
+    const Tensor& _sigmaj = this->mSigma(nodeListj, j);
     Tensor sigmai = _sigmai;
     Tensor sigmaj = _sigmaj;
     {
@@ -129,11 +124,11 @@ Piij(const unsigned nodeListi, const unsigned i,
 
     // Calculate the tensor viscous internal energy.
     const Tensor mui = hi*sigmai;
-    Tensor Qepsi = fsheari*(-Cl*csi*mui.Transpose() + Cq*mui*mui);
+    Tensor Qepsi = -Cl*fCli*csi*mui.Transpose() + Cq*fCqi*mui*mui;
     if (limiter) Qepsi = this->calculateLimiter(vi, vj, csi, csj, hi, hj, nodeListi, i)*Qepsi;
 
     const Tensor muj = hj*sigmaj;
-    Tensor Qepsj = fshearj*(-Cl*csj*muj.Transpose() + Cq*muj*muj);
+    Tensor Qepsj = -Cl*fClj*csj*muj.Transpose() + Cq*fCqj*muj*muj;
     if (limiter) Qepsj = this->calculateLimiter(vj, vi, csj, csi, hj, hi, nodeListj, j)*Qepsj;
 
     // We now have enough to compute Pi!
