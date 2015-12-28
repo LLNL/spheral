@@ -260,7 +260,7 @@ if restoreCycle is None:
                                              xmin = (0.0, 0.75),
                                              xmax = (1.0, 1.0),
                                              nNodePerh = nPerh,
-                                             SPH = (not SPH))
+                                             SPH = (not ASPH))
     generator2 = CompositeNodeDistribution(generator21, generator22)
 
     if mpi.procs > 1:
