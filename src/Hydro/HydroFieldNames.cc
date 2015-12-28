@@ -66,5 +66,5 @@ const std::string Spheral::HydroFieldNames::faceForce = "face force";
 const std::string Spheral::HydroFieldNames::faceMass = "face mass";
 const std::string Spheral::HydroFieldNames::polyvols = "poly faceted volumes";
 const std::string Spheral::HydroFieldNames::massDensityGradient = "mass density gradient";
-const std::string Spheral::HydroFieldNames::reducingViscosityMultiplierQ = "reducing viscosity parameter Quadratic";
-const std::string Spheral::HydroFieldNames::reducingViscosityMultiplierL = "reducing viscosity parameter Linear";
+const std::string Spheral::HydroFieldNames::ArtificialViscousClMultiplier = "Cl multiplier for artificial viscosity";
+const std::string Spheral::HydroFieldNames::ArtificialViscousCqMultiplier = "Cq multiplier for artificial viscosity";

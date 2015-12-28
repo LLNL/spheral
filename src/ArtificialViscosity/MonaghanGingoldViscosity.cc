@@ -82,13 +82,14 @@ Piij(const unsigned nodeListi, const unsigned i,
   const double Cl = this->mClinear;
   const double Cq = this->mCquadratic;
   const double eps2 = this->mEpsilon2;
-  const bool balsaraShearCorrection = this->mBalsaraShearCorrection;
-  const FieldSpace::FieldList<Dimension, Scalar>& rvAlphaQ = this->reducingViscosityMultiplierQ();
-  const FieldSpace::FieldList<Dimension, Scalar>& rvAlphaL = this->reducingViscosityMultiplierL();
 
-  // Are we applying the shear corrections?
-  const Scalar fsheari = (balsaraShearCorrection ? this->mShearMultiplier(nodeListi, i) : 1.0);
-  const Scalar fshearj = (balsaraShearCorrection ? this->mShearMultiplier(nodeListj, j) : 1.0);
+  // Grab the FieldLists scaling the coefficients.
+  // These incorporate things like the Balsara shearing switch or Morris & Monaghan time evolved
+  // coefficients.
+  const Scalar fCli = this->mClMultiplier(nodeListi, i);
+  const Scalar fCqi = this->mCqMultiplier(nodeListi, i);
+  const Scalar fClj = this->mClMultiplier(nodeListj, j);
+  const Scalar fCqj = this->mCqMultiplier(nodeListj, j);
 
   // Scalar fshear = 1.0;
   // Scalar fsheari = fshear;
@@ -120,10 +121,10 @@ Piij(const unsigned nodeListi, const unsigned i,
   //                            Cq     *(mQuadraticInExpansion ? -sgn(mui)*mui*mui : FastMath::square(min(0.0, mui))));
   // const Scalar ej = fshear*(-Cl*csj*(mLinearInExpansion    ? muj                : min(0.0, muj)) +
   //                            Cq     *(mQuadraticInExpansion ? -sgn(muj)*muj*muj  : FastMath::square(min(0.0, muj))));
-  const Scalar ei = fsheari*(-Cl*rvAlphaL(nodeListi,i)*csi*(mLinearInExpansion    ? mui                : min(0.0, mui)) +
-                              Cq *rvAlphaQ(nodeListi,i)   *(mQuadraticInExpansion ? -sgn(mui)*mui*mui  : FastMath::square(min(0.0, mui)))) ;
-  const Scalar ej = fshearj*(-Cl*rvAlphaL(nodeListj,j)*csj*(mLinearInExpansion    ? muj                : min(0.0, muj)) +
-                              Cq *rvAlphaQ(nodeListj,j)    *(mQuadraticInExpansion ? -sgn(muj)*muj*muj : FastMath::square(min(0.0, muj))));
+  const Scalar ei = -Cl*fCli*csi*(mLinearInExpansion    ? mui                : min(0.0, mui)) +
+                     Cq*fCqi    *(mQuadraticInExpansion ? -sgn(mui)*mui*mui  : FastMath::square(min(0.0, mui)));
+  const Scalar ej = -Cl*fClj*csj*(mLinearInExpansion    ? muj                : min(0.0, muj)) +
+                     Cq*fCqj    *(mQuadraticInExpansion ? -sgn(muj)*muj*muj  : FastMath::square(min(0.0, muj)));
   CHECK2(ei >= 0.0 or (mLinearInExpansion or mQuadraticInExpansion), ei << " " << csi << " " << mui);
   CHECK2(ej >= 0.0 or (mLinearInExpansion or mQuadraticInExpansion), ej << " " << csj << " " << muj);
 
