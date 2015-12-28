@@ -134,6 +134,8 @@ self.generateThirdMomentHourglassControlBindings(self.ThirdMomentHourglassContro
         x.add_static_attribute("faceMass", "std::string",  is_const=True)
         x.add_static_attribute("polyvols", "std::string",  is_const=True)
         x.add_static_attribute("massDensityGradient", "std::string",  is_const=True)
+        x.add_static_attribute("ArtificialViscousClMultiplier", "std::string",  is_const=True)
+        x.add_static_attribute("ArtificialViscousCqMultiplier", "std::string",  is_const=True)
         return
 
     #---------------------------------------------------------------------------

@@ -291,8 +291,8 @@ evaluateDerivatives(const typename Dimension::Scalar time,
   const FieldList<Dimension, Scalar> soundSpeed = state.fields(HydroFieldNames::soundSpeed, 0.0);
   const FieldList<Dimension, Scalar> gamma = state.fields(HydroFieldNames::gamma, 0.0);
   const FieldList<Dimension, Scalar> PSPHcorrection = state.fields(HydroFieldNames::PSPHcorrection, 0.0);
-  const FieldList<Dimension, Scalar> reducingViscosityMultiplierQ = state.fields(HydroFieldNames::reducingViscosityMultiplierQ, 0.0);
-  const FieldList<Dimension, Scalar> reducingViscosityMultiplierL = state.fields(HydroFieldNames::reducingViscosityMultiplierL, 0.0);
+  const FieldList<Dimension, Scalar> reducingViscosityMultiplierQ = state.fields(HydroFieldNames::ArtificialViscousCqMultiplier, 0.0);
+  const FieldList<Dimension, Scalar> reducingViscosityMultiplierL = state.fields(HydroFieldNames::ArtificialViscousClMultiplier, 0.0);
 
   CHECK(mass.size() == numNodeLists);
   CHECK(position.size() == numNodeLists);
