@@ -472,7 +472,7 @@ if graphics:
     plots.append((Aplot, "Sedov-planar-entropy.png"))
 
     if boolCullenViscosity:
-        cullAlphaPlot = plotFieldList(q.reducingViscosityMultiplierQ(),
+        cullAlphaPlot = plotFieldList(q.ClMultiplier(),
                                       winTitle = "Cullen alpha")
         cullDalphaPlot = plotFieldList(evolveCullenViscosityMultiplier.DrvAlphaDtQ(),
                                        winTitle = "Cullen DalphaDt")

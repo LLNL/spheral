@@ -47,13 +47,6 @@ public:
                              const State<Dimension>& state,
                              StateDerivatives<Dimension>& derivatives) const;
         
-    void applyGhostBoundaries(State<Dimension>& state,
-                         StateDerivatives<Dimension>& derivs);
-    
-    void enforceBoundaries(State<Dimension>& state,
-                      StateDerivatives<Dimension>& derivs);
-
-    
     // Vote on a time step.
     virtual TimeStepType dt(const DataBaseSpace::DataBase<Dimension>& dataBase,
                             const State<Dimension>& state,
@@ -78,8 +71,10 @@ public:
     virtual void restoreState(const FileIOSpace::FileIO& file, std::string pathName);
         
         
+    // Access the FieldList of Reducing Viscosity multiplicative correction.
     const FieldSpace::FieldList<Dimension, Scalar>& DrvAlphaDtQ() const;
     const FieldSpace::FieldList<Dimension, Scalar>& DrvAlphaDtL() const;
+
     Scalar nhQ() const;
     Scalar nhL() const;
     Scalar aMin() const;
@@ -94,7 +89,6 @@ private:
     //--------------------------- Private Interface ---------------------------//
     // The restart registration.
     DataOutput::RestartRegistrationType mRestart;
-        
         
     MorrisMonaghanReducingViscosity();
     MorrisMonaghanReducingViscosity(const MorrisMonaghanReducingViscosity&);

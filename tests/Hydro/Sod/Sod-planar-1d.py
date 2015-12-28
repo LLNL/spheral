@@ -539,7 +539,7 @@ if graphics:
     plots.append((viscPlot, "Sod-planar-viscosity.png"))
     
     if boolCullenViscosity:
-        cullAlphaPlot = plotFieldList(q.reducingViscosityMultiplierQ(),
+        cullAlphaPlot = plotFieldList(q.ClMultiplier(),
                                       winTitle = "Cullen alpha")
         cullDalphaPlot = plotFieldList(evolveCullenViscosityMultiplier.DrvAlphaDtQ(),
                                        winTitle = "Cullen DalphaDt")
