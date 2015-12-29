@@ -546,10 +546,10 @@ if graphics:
         plots += [(cullAlphaPlot, "Sedov-planar-Cullen-alpha.png"),
                   (cullDalphaPlot, "Sedov-planar-Cullen-DalphaDt.png")]
 
-    #if boolReduceViscosity:
-    #    alphaPlot = plotFieldList(q.reducingViscosityMultiplier(),
-    #                              winTitle = "rvAlpha",
-    #                              colorNodeLists = False)
+    if boolReduceViscosity:
+        alphaPlot = plotFieldList(q.ClMultiplier(),
+                                  winTitle = "rvAlpha",
+                                  colorNodeLists = False)
 
     # # Plot the specific entropy.
     # if mpi.rank == 0:
