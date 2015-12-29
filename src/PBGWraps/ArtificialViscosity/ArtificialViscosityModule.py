@@ -271,8 +271,8 @@ self.addVonNeumanViscosityMethods(self.VonNeumanViscosity%(dim)id, %(dim)i)
         const_ref_return_value(x, me, "%s::PrevDivV2" % me, scalarfieldlist, [], "PrevDivV2")
         const_ref_return_value(x, me, "%s::CullAlpha" % me, scalarfieldlist, [], "CullAlpha")
         const_ref_return_value(x, me, "%s::CullAlpha2" % me, scalarfieldlist, [], "CullAlpha2")
-        const_ref_return_value(x, me, "%s::DrvAlphaDtQ" % me, scalarfieldlist, [], "DrvAlphaDtQ")
-        const_ref_return_value(x, me, "%s::DrvAlphaDtL" % me, scalarfieldlist, [], "DrvAlphaDtL")
+        const_ref_return_value(x, me, "%s::DalphaDt" % me, scalarfieldlist, [], "DalphaDt")
+        const_ref_return_value(x, me, "%s::alphaLocal" % me, scalarfieldlist, [], "alphaLocal")
    
         return
 
