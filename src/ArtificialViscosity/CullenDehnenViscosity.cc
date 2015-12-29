@@ -779,12 +779,13 @@ finalizeDerivatives(const Scalar time,
           alpha_i = alph_loci;  
         else
           alpha_i = alph_loci + (old_alpha_i-alph_loci)*exp(-dt*safeInv(taui));
+          // alpha_i = alph_loci + (old_alpha_i-alph_loci)*exp(-dt*safeInv(taui));
 
         if(mboolHopkins)alpha_i = max(cull_etai*alph_zeroi,malphMin);//Use Hopkins Reformulated Alpha
-        alpha_local(nodeListi, i) = alpha_i;
         if(mboolHopkins)alpha_i = alph_zeroi;//Hopkins evolves alpha_zero, not alpha
-        
-                  
+        alpha_local(nodeListi, i) = alph_loci;
+        DalphaDt(nodeListi, i) = std::min(0.0, alph_loci - reducingViscosityMultiplierQ(nodeListi, i))*safeInv(taui);
+
         /*
           if(i== 10 && nodeListi==0){
           //cout << "AFTER i=" << i << " temp_arr=" << temp_arr(nodeListi, i) << endl;
