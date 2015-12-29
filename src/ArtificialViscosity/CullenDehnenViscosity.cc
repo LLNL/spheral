@@ -607,13 +607,13 @@ initialize(const typename Dimension::Scalar time,
         const Scalar Ai = zetai*std::max(-divai, 0.0);
         const Scalar alpha_locali = malphMax*hi*hi*Ai*safeInv(vsigi*vsigi + hi*hi*Ai);
         const Scalar taui = hi*safeInv(2.0*mbetaD*vsigi);
-        // if (i == 400) cerr << " --> " << i << " " << alpha_locali << " " << hi << " " << Ai << " " << vsigi << " " << zetai << " " << divvi << " " << divai << " " << Si << endl;
           
         Scalar& alphai = reducingViscosityMultiplierQ(nodeListi, i);
         Scalar& DalphaDti = DreducingViscosityMultiplierQDt(nodeListi, i);
+        // if (i == 400) cerr << " --> " << i << " " << alpha_locali << " " << alphai << " " << hi << " " << Ai << " " << vsigi << " " << zetai << " " << divvi << " " << divai << " " << Si << endl;
         alphai = std::max(alphai, alpha_locali);
-        DalphaDti = std::min(0.0, alpha_locali - alphai)*safeInv(taui);
         reducingViscosityMultiplierL(nodeListi, i) = alphai;
+        DalphaDti = std::min(0.0, alpha_locali - alphai)*safeInv(taui);
         DreducingViscosityMultiplierLDt(nodeListi, i) = DalphaDti;
       }
     }
