@@ -52,14 +52,23 @@ update(const KeyType& key,
   const FieldList<Dimension, Scalar> alpha_local = derivs.fields("Cullen alpha local", 0.0);
   const FieldList<Dimension, Scalar> DalphaDt = derivs.fields("Cullen alpha delta", 0.0);
 
-  // Set the new values.
   const unsigned numNodeLists = rvQ.size();
+  CHECK(rvL.size() == numNodeLists);
+  CHECK(alpha_local.size() == numNodeLists);
+  CHECK(DalphaDt.size() == numNodeLists);
+
+  // Set the new values.
   const Scalar alphaMin = this->minValue();
   const Scalar alphaMax = this->maxValue();
   for (unsigned k = 0; k != numNodeLists; ++k) {
     const unsigned n = rvQ[k]->numInternalElements();
-    for (unsigned i = 0; i != n; ++i) {
-      const Scalar alphai = max(alphaMin, min(alphaMax, max(alpha_local(k, i), rvQ(k, i)) + multiplier*DalphaDt(k, i)));
+    for (unsigned i = 0; i < n; ++i) {
+      // if (i == 400) std::cerr << " --> " 
+      //                         << i << " " 
+      //                         << rvQ(k, i) << " " 
+      //                         << alpha_local(k, i) << " "
+      //                         << DalphaDt(k,i) << std::endl;
+      const Scalar alphai = std::max(alphaMin, std::min(alphaMax, max(alpha_local(k, i), rvQ(k, i)) + multiplier*DalphaDt(k, i)));
       rvQ(k, i) = alphai;
       rvL(k, i) = alphai;
     }

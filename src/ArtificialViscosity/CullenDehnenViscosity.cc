@@ -611,7 +611,7 @@ finalizeDerivatives(const Scalar time,
           
         const Scalar alphai = reducingViscosityMultiplierQ(nodeListi, i);
         Scalar& alpha_locali = alpha_local(nodeListi, i);
-        alpha_locali = max(alphai, malphMax*hi*hi*Ai*safeInv(vsigi*vsigi + hi*hi*Ai));
+        alpha_locali = malphMax*hi*hi*Ai*safeInv(vsigi*vsigi + hi*hi*Ai);
         DalphaDt(nodeListi, i) = std::min(0.0, alpha_locali - alphai)*safeInv(taui);
         // if (i == 400) cerr << " --> " << i << " " << alpha_locali << " " << alphai << " " << hi << " " << Ai << " " << vsigi << " " << zetai << " " << divvi << " " << divai << " " << Si << endl;
       }
