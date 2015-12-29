@@ -493,8 +493,9 @@ def createList(x):
 A = []
 for nodes in nodeSet:
     rho = createList(nodes.massDensity().internalValues())
-    pressure = ScalarField("pressure", nodes)
-    nodes.pressure(pressure)
+    #pressure = ScalarField("pressure", nodes)
+    #nodes.pressure(pressure)
+    pressure = hydro.pressure()[0]
     P = createList(pressure.internalValues())
     A += [Pi/rhoi**gammaGas for (Pi, rhoi) in zip(P, rho)]
 
