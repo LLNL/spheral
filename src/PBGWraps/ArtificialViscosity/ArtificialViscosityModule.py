@@ -102,7 +102,6 @@ self.addVonNeumanViscosityMethods(self.VonNeumanViscosity%(dim)id, %(dim)i)
         x.add_instance_attribute("Cq", "double", getter="Cq", setter="Cq")
         x.add_instance_attribute("QcorrectionOrder", "CRKOrder", getter="QcorrectionOrder", setter="QcorrectionOrder")
         x.add_instance_attribute("balsaraShearCorrection", "bool", getter="balsaraShearCorrection", setter="balsaraShearCorrection")
-        x.add_instance_attribute("reducingViscosityCorrection", "bool", getter="reducingViscosityCorrection", setter="reducingViscosityCorrection")
         x.add_instance_attribute("limiter", "bool", getter="limiter", setter="limiter")
         x.add_instance_attribute("epsilon2", "double", getter="epsilon2", setter="epsilon2")
         x.add_instance_attribute("negligibleSoundSpeed", "double", getter="negligibleSoundSpeed", setter="negligibleSoundSpeed")
@@ -121,7 +120,8 @@ self.addVonNeumanViscosityMethods(self.VonNeumanViscosity%(dim)id, %(dim)i)
 
         # Methods.
         x.add_method("curlVelocityMagnitude", "double", [refparam(tensor, "DvDx")], is_const=True)
-        x.add_method("shearMultiplier", scalarfieldlist, [], is_const=True)
+        x.add_method("ClMultiplier", scalarfieldlist, [], is_const=True)
+        x.add_method("CqMultiplier", scalarfieldlist, [], is_const=True)
         x.add_method("sigma", tensorfieldlist, [], is_const=True)
         x.add_method("gradDivVelocity", vectorfieldlist, [], is_const=True)
         x.add_method("calculateLimiter", tensor, [refparam(vector, "vi"),
@@ -148,8 +148,8 @@ self.addVonNeumanViscosityMethods(self.VonNeumanViscosity%(dim)id, %(dim)i)
         x.add_method("calculateSigma", "bool", [], is_const=True, visibility="protected")
         x.add_method("calculateSigma", None, [param("bool", "value")], visibility="protected")
         
-        x.add_method("reducingViscosityMultiplierQ", scalarfieldlist, [])
-        x.add_method("reducingViscosityMultiplierL", scalarfieldlist, [])
+        x.add_method("CqMultiplier", scalarfieldlist, [])
+        x.add_method("ClMultiplier", scalarfieldlist, [])
 
         # Add the abstract methods.
         self.addArtificialViscosityVirtualMethods(x, ndim, True)
@@ -271,8 +271,8 @@ self.addVonNeumanViscosityMethods(self.VonNeumanViscosity%(dim)id, %(dim)i)
         const_ref_return_value(x, me, "%s::PrevDivV2" % me, scalarfieldlist, [], "PrevDivV2")
         const_ref_return_value(x, me, "%s::CullAlpha" % me, scalarfieldlist, [], "CullAlpha")
         const_ref_return_value(x, me, "%s::CullAlpha2" % me, scalarfieldlist, [], "CullAlpha2")
-        const_ref_return_value(x, me, "%s::DrvAlphaDtQ" % me, scalarfieldlist, [], "DrvAlphaDtQ")
-        const_ref_return_value(x, me, "%s::DrvAlphaDtL" % me, scalarfieldlist, [], "DrvAlphaDtL")
+        const_ref_return_value(x, me, "%s::DalphaDt" % me, scalarfieldlist, [], "DalphaDt")
+        const_ref_return_value(x, me, "%s::alphaLocal" % me, scalarfieldlist, [], "alphaLocal")
    
         return
 
