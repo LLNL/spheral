@@ -94,70 +94,40 @@ balsaraShearCorrection(bool value) {
 }
 
 //------------------------------------------------------------------------------
-// Access the list of Balsara shear correction multipliers.
-//------------------------------------------------------------------------------
-template<typename Dimension>
-inline
-const FieldSpace::FieldList<Dimension, typename Dimension::Scalar>&
-ArtificialViscosity<Dimension>::
-shearMultiplier() const {
-  return mShearMultiplier;
-}
-    
-//------------------------------------------------------------------------------
-// Toggle for the Reducing Viscosity correction.
-//------------------------------------------------------------------------------
-template<typename Dimension>
-inline
-bool
-ArtificialViscosity<Dimension>::
-reducingViscosityCorrection() const {
-    return mReducingViscosityCorrection;
-}
-
-template<typename Dimension>
-inline
-void
-ArtificialViscosity<Dimension>::
-reducingViscosityCorrection(bool value) {
-    mReducingViscosityCorrection = value;
-}
-    
-//------------------------------------------------------------------------------
-// Access the list of Reducing Viscosity correction multiplier.
+// Access the FieldLists of multipliers.
 //------------------------------------------------------------------------------
 template<typename Dimension>
 inline
 FieldSpace::FieldList<Dimension, typename Dimension::Scalar>&
 ArtificialViscosity<Dimension>::
-reducingViscosityMultiplierQ() {
-    return mReducingViscosityMultiplierQ;
-}
-    
-template<typename Dimension>
-inline
-const FieldSpace::FieldList<Dimension, typename Dimension::Scalar>&
-ArtificialViscosity<Dimension>::
-reducingViscosityMultiplierQ() const {
-    return mReducingViscosityMultiplierQ;
+ClMultiplier() {
+  return mClMultiplier;
 }
     
 template<typename Dimension>
 inline
 FieldSpace::FieldList<Dimension, typename Dimension::Scalar>&
 ArtificialViscosity<Dimension>::
-reducingViscosityMultiplierL() {
-    return mReducingViscosityMultiplierL;
+CqMultiplier() {
+  return mCqMultiplier;
 }
-
+    
 template<typename Dimension>
 inline
 const FieldSpace::FieldList<Dimension, typename Dimension::Scalar>&
 ArtificialViscosity<Dimension>::
-reducingViscosityMultiplierL() const {
-    return mReducingViscosityMultiplierL;
+ClMultiplier() const {
+  return mClMultiplier;
 }
-
+    
+template<typename Dimension>
+inline
+const FieldSpace::FieldList<Dimension, typename Dimension::Scalar>&
+ArtificialViscosity<Dimension>::
+CqMultiplier() const {
+  return mCqMultiplier;
+}
+    
 //------------------------------------------------------------------------------
 // Calculate the curl of the velocity given the stress tensor.
 //------------------------------------------------------------------------------

@@ -539,17 +539,17 @@ if graphics:
     plots.append((viscPlot, "Sod-planar-viscosity.png"))
     
     if boolCullenViscosity:
-        cullAlphaPlot = plotFieldList(q.reducingViscosityMultiplierQ(),
+        cullAlphaPlot = plotFieldList(q.ClMultiplier(),
                                       winTitle = "Cullen alpha")
-        cullDalphaPlot = plotFieldList(evolveCullenViscosityMultiplier.DrvAlphaDtQ(),
+        cullDalphaPlot = plotFieldList(evolveCullenViscosityMultiplier.DalphaDt(),
                                        winTitle = "Cullen DalphaDt")
         plots += [(cullAlphaPlot, "Sedov-planar-Cullen-alpha.png"),
                   (cullDalphaPlot, "Sedov-planar-Cullen-DalphaDt.png")]
 
-    #if boolReduceViscosity:
-    #    alphaPlot = plotFieldList(q.reducingViscosityMultiplier(),
-    #                              winTitle = "rvAlpha",
-    #                              colorNodeLists = False)
+    if boolReduceViscosity:
+        alphaPlot = plotFieldList(q.ClMultiplier(),
+                                  winTitle = "rvAlpha",
+                                  colorNodeLists = False)
 
     # # Plot the specific entropy.
     # if mpi.rank == 0:
