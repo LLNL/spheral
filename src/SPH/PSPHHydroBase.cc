@@ -137,50 +137,7 @@ initializeProblemStartup(DataBase<Dimension>& dataBase) {
   // Create storage for our internal state.
   mGamma = dataBase.newFluidFieldList(0.0, HydroFieldNames::gamma);
   mPSPHcorrection = dataBase.newFluidFieldList(0.0, HydroFieldNames::PSPHcorrection);
-
-  // For the next stage we need valid boundary conditions.
-  // Note setting the ghost nodes like this automatically fills in ghost values for
-  // positions and H's.
-  for (typename DataBase<Dimension>::FluidNodeListIterator nodeListItr = dataBase.fluidNodeListBegin();
-       nodeListItr != dataBase.fluidNodeListEnd(); 
-       ++nodeListItr) {
-    (*nodeListItr)->numGhostNodes(0);
-    (*nodeListItr)->neighbor().updateNodes();
-  }
-  for (ConstBoundaryIterator boundItr = this->boundaryBegin();
-       boundItr != this->boundaryEnd();
-       ++boundItr) {
-    (*boundItr)->setAllGhostNodes(dataBase);
-    (*boundItr)->finalizeGhostBoundary();
-    for (typename DataBase<Dimension>::FluidNodeListIterator nodeListItr = dataBase.fluidNodeListBegin();
-         nodeListItr != dataBase.fluidNodeListEnd(); 
-         ++nodeListItr) {
-      (*nodeListItr)->neighbor().updateNodes();
-    }
-  }
-
-  // For consistency we initialize the pressure, mass density, and sound speeds
-  // with the PSPH sums on problem startup.
-  const TableKernel<Dimension>& W = this->kernel();
-  const ConnectivityMap<Dimension>& connectivityMap = dataBase.connectivityMap();
-  FieldList<Dimension, Scalar> mass = dataBase.fluidMass();
-  FieldList<Dimension, Scalar> rho = dataBase.fluidMassDensity();
-  FieldList<Dimension, Vector> position = dataBase.fluidPosition();
-  FieldList<Dimension, Scalar> specificThermalEnergy = dataBase.fluidSpecificThermalEnergy();
-  FieldList<Dimension, SymTensor> H = dataBase.fluidHfield();
   dataBase.fluidGamma(mGamma);
-  for (ConstBoundaryIterator boundItr = this->boundaryBegin();
-       boundItr != this->boundaryEnd();
-       ++boundItr) {
-    (*boundItr)->applyFieldListGhostBoundary(mass);
-    (*boundItr)->applyFieldListGhostBoundary(specificThermalEnergy);
-    (*boundItr)->applyFieldListGhostBoundary(mGamma);
-  }
-  for (ConstBoundaryIterator boundaryItr = this->boundaryBegin(); 
-       boundaryItr != this->boundaryEnd();
-       ++boundaryItr) (*boundaryItr)->finalizeGhostBoundary();
-  computePSPHCorrections(connectivityMap, W, mass, position, specificThermalEnergy, mGamma, H, 
-                         rho, this->mPressure, this->mSoundSpeed, mPSPHcorrection);
 }
 
 //------------------------------------------------------------------------------
@@ -194,6 +151,10 @@ registerState(DataBase<Dimension>& dataBase,
 
   typedef typename State<Dimension>::PolicyPointer PolicyPointer;
 
+  // Make sure we're the right size.
+  dataBase.resizeFluidFieldList(mGamma, 0.0, HydroFieldNames::gamma, false);
+  dataBase.resizeFluidFieldList(mPSPHcorrection, 0.0, HydroFieldNames::PSPHcorrection, false);
+
   // SPH does most of it.
   SPHHydroBase<Dimension>::registerState(dataBase, state);
 
@@ -206,6 +167,43 @@ registerState(DataBase<Dimension>& dataBase,
   state.enroll(mPSPHcorrection);
   state.removePolicy(this->mPressure);
   state.removePolicy(this->mSoundSpeed);
+}
+
+//------------------------------------------------------------------------------
+// Pre-step initializations.  Since the topology has just been changed we need
+// to recompute the PSPH corrections.
+//------------------------------------------------------------------------------
+template<typename Dimension>
+void
+PSPHHydroBase<Dimension>::
+preStepInitialize(const DataBase<Dimension>& dataBase,
+                  State<Dimension>& state,
+                  StateDerivatives<Dimension>& derivs) {
+
+  // Do the PSPH corrections.
+  const TableKernel<Dimension>& W = this->kernel();
+  const ConnectivityMap<Dimension>& connectivityMap = dataBase.connectivityMap();
+  const FieldList<Dimension, Scalar> mass = state.fields(HydroFieldNames::mass, 0.0);
+  const FieldList<Dimension, Vector> position = state.fields(HydroFieldNames::position, Vector::zero);
+  const FieldList<Dimension, Scalar> specificThermalEnergy = state.fields(HydroFieldNames::specificThermalEnergy, 0.0);
+  const FieldList<Dimension, Scalar> gamma = state.fields(HydroFieldNames::gamma, 0.0);
+  const FieldList<Dimension, SymTensor> H = state.fields(HydroFieldNames::H, SymTensor::zero);
+  FieldList<Dimension, Scalar> rho = state.fields(HydroFieldNames::massDensity, 0.0);
+  FieldList<Dimension, Scalar> P = state.fields(HydroFieldNames::pressure, 0.0);
+  FieldList<Dimension, Scalar> cs = state.fields(HydroFieldNames::soundSpeed, 0.0);
+  FieldList<Dimension, Scalar> PSPHcorrection = state.fields(HydroFieldNames::PSPHcorrection, 0.0);
+  computePSPHCorrections(connectivityMap, W, mass, position, specificThermalEnergy, gamma, H, rho, P, cs, PSPHcorrection);
+  for (ConstBoundaryIterator boundItr = this->boundaryBegin();
+       boundItr != this->boundaryEnd();
+       ++boundItr) {
+    (*boundItr)->applyFieldListGhostBoundary(rho);
+    (*boundItr)->applyFieldListGhostBoundary(P);
+    (*boundItr)->applyFieldListGhostBoundary(cs);
+    (*boundItr)->applyFieldListGhostBoundary(PSPHcorrection);
+  }
+  for (ConstBoundaryIterator boundItr = this->boundaryBegin();
+       boundItr != this->boundaryEnd();
+       ++boundItr) (*boundItr)->finalizeGhostBoundary();
 }
 
 //------------------------------------------------------------------------------
