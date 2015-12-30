@@ -56,8 +56,8 @@ PSYCOBUILDDATE = .psyco.date
 # ELEMENTTREEBUILDDATE = $(patsubst %.zip, .%.date, $(ELEMENTTREEDIST))
 
 # Boost
-BOOSTDIST = boost_1_55_0.tar.bz2
-BOOSTURL = http://sourceforge.net/projects/boost/files/boost/1.55.0/$(BOOSTDIST)/download
+BOOSTDIST = boost_1_60_0.tar.bz2
+BOOSTURL = http://sourceforge.net/projects/boost/files/boost/1.60.0/$(BOOSTDIST)/download
 BOOSTDIR = $(BOOSTDIST:.tar.bz2=)
 BOOSTDATE = $(patsubst %.tar.bz2, .%.date, $(BOOSTDIST))
 BOOSTPYTHONLIB0 = libboost_python$(BOOSTEXT).$(DYLIBEXT)
@@ -494,7 +494,7 @@ $(BOOSTDATE):	$(BOOSTDIST) $(ZLIBBUILDDATE)
 	$(BZIP2) -dc $(BOOSTDIST) | $(TAR) -xf -
 	$(SHELL) -ec 'cd $(BOOSTDIR); \
 	PATH=$(prefix)/bin:$$PATH; export PATH; \
-	./bootstrap.sh --without-libraries=atomic,coroutine,log,chrono,context,date_time,exception,filesystem,graph,graph_parallel,iostreams,locale,math,mpi,program_options,python,random,regex,serialization,signals,system,test,thread,timer,wave --prefix=$(prefix); \
+	./bootstrap.sh --without-libraries=atomic,container,coroutine,coroutine2,log,chrono,context,date_time,exception,filesystem,graph,graph_parallel,iostreams,locale,math,mpi,program_options,python,random,regex,serialization,signals,system,test,thread,timer,type_erasure,wave --prefix=$(prefix); \
 	./b2 install'
 	@if ! test -e "$(prefix)/include/boost" ; then \
 	echo "ERROR building local boost distribution. (0, no include dir)"; \
