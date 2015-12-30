@@ -81,6 +81,12 @@ public:
   void registerState(DataBaseSpace::DataBase<Dimension>& dataBase,
                      State<Dimension>& state);
 
+  // Pre-step initializations.
+  virtual 
+  void preStepInitialize(const DataBaseSpace::DataBase<Dimension>& dataBase, 
+                         State<Dimension>& state,
+                         StateDerivatives<Dimension>& derivatives);
+
   // Evaluate the derivatives for the principle hydro variables:
   // mass density, velocity, and specific thermal energy.
   virtual
