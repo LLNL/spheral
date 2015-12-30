@@ -81,8 +81,8 @@ Piij(const unsigned nodeListi, const unsigned i,
   if (vij.dot(xij) < 0.0) {
           
     const double tiny = 1.0e-20;
-    const double Cl = this->mClinear;
-    const double Cq = this->mCquadratic;
+    double Cl = this->mClinear;
+    double Cq = this->mCquadratic;
     const double eps2 = this->mEpsilon2;
     const bool limiter = this->mLimiterSwitch;
 
@@ -93,6 +93,8 @@ Piij(const unsigned nodeListi, const unsigned i,
     const Scalar fCqi = this->mCqMultiplier(nodeListi, i);
     const Scalar fClj = this->mClMultiplier(nodeListj, j);
     const Scalar fCqj = this->mCqMultiplier(nodeListj, j);
+    Cl *= 0.5*(fCli + fClj);
+    Cq *= 0.5*(fCqi + fCqj);
 
     // Some more geometry.
     const Scalar xij2 = xij.magnitude2();
@@ -124,11 +126,11 @@ Piij(const unsigned nodeListi, const unsigned i,
 
     // Calculate the tensor viscous internal energy.
     const Tensor mui = hi*sigmai;
-    Tensor Qepsi = -Cl*fCli*csi*mui.Transpose() + Cq*fCqi*mui*mui;
+    Tensor Qepsi = -Cl*csi*mui.Transpose() + Cq*mui*mui;
     if (limiter) Qepsi = this->calculateLimiter(vi, vj, csi, csj, hi, hj, nodeListi, i)*Qepsi;
 
     const Tensor muj = hj*sigmaj;
-    Tensor Qepsj = -Cl*fClj*csj*muj.Transpose() + Cq*fCqj*muj*muj;
+    Tensor Qepsj = -Cl*csj*muj.Transpose() + Cq*muj*muj;
     if (limiter) Qepsj = this->calculateLimiter(vj, vi, csj, csi, hj, hi, nodeListj, j)*Qepsj;
 
     // We now have enough to compute Pi!

@@ -82,8 +82,8 @@ Piij(const unsigned nodeListi, const unsigned i,
      const Scalar csj,
      const SymTensor& Hj) const {
 
-  const double Cl = this->mClinear;
-  const double Cq = this->mCquadratic;
+  double Cl = this->mClinear;
+  double Cq = this->mCquadratic;
   const double eps2 = this->mEpsilon2;
 
   // Grab the FieldLists scaling the coefficients.
@@ -93,6 +93,8 @@ Piij(const unsigned nodeListi, const unsigned i,
   const Scalar fCqi = this->mCqMultiplier(nodeListi, i);
   const Scalar fClj = this->mClMultiplier(nodeListj, j);
   const Scalar fCqj = this->mCqMultiplier(nodeListj, j);
+  Cl *= 0.5*(fCli + fClj);
+  Cq *= 0.5*(fCqi + fCqj);
 
   const Vector vij = vi - vj;
   const Vector xji = xj - xi;
@@ -101,8 +103,8 @@ Piij(const unsigned nodeListi, const unsigned i,
   const Scalar hj = 1.0/(Hj*xjihat).magnitude();
   const Scalar DvDxi = min(0.0, mDvDx(nodeListi, i).Trace());
   const Scalar DvDxj = min(0.0, mDvDx(nodeListj, j).Trace());
-  const Scalar Pii = (-Cl*fCli*csi*DvDxi + Cq*fCqi*hi*DvDxi*DvDxi)*hi/rhoi;
-  const Scalar Pij = (-Cl*fClj*csj*DvDxj + Cq*fCqj*hj*DvDxj*DvDxj)*hj/rhoj;
+  const Scalar Pii = (-Cl*csi*DvDxi + Cq*fCqi*hi*DvDxi*DvDxi)*hi/rhoi;
+  const Scalar Pij = (-Cl*csj*DvDxj + Cq*fCqj*hj*DvDxj*DvDxj)*hj/rhoj;
   return make_pair(Pii*Tensor::one, Pij*Tensor::one);
 }
 
