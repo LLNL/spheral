@@ -98,7 +98,7 @@ commandLine(nx1 = 400,
 
             clearDirectories = False,
             restoreCycle = -1,
-            restartStep = 200,
+            restartStep = 10000,
             dataDirBase = "dumps-Sod-planar",
             restartBaseName = "Sod-planar-1d-restart",
             outputFile = "None",
