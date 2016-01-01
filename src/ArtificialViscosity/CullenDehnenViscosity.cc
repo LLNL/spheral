@@ -333,6 +333,7 @@ finalizeDerivatives(const Scalar time,
 
   // The kernels
   const TableKernel<Dimension>& W = this->kernel();
+  const Scalar kernelExtent = W.kernelExtent();
 
   // The connectivity.
   const ConnectivityMap<Dimension>& connectivityMap = dataBase.connectivityMap();
@@ -600,7 +601,7 @@ finalizeDerivatives(const Scalar time,
         const Tensor& DvDtDxi = DvDtDx(nodeListi, i);
         const Scalar Ri = R(nodeListi, i);
         const Scalar vsigi = vsig(nodeListi, i);
-        const Scalar hi = Dimension::nDim/Hi.Trace();  // Harmonic averaging.
+        const Scalar hi = kernelExtent*Dimension::nDim/Hi.Trace();  // Harmonic averaging.
         const Scalar divvi = DvDxi.Trace();
         const Scalar divai = DvDtDxi.Trace();
         const Tensor Si = DvDxi.Symmetric() - divvi/Dimension::nDim * Tensor::one;
@@ -611,9 +612,8 @@ finalizeDerivatives(const Scalar time,
           
         const Scalar alphai = reducingViscosityMultiplierQ(nodeListi, i);
         Scalar& alpha_locali = alpha_local(nodeListi, i);
-        alpha_locali = malphMax*hi*hi*Ai*safeInv(vsigi*vsigi + hi*hi*Ai);
+        alpha_locali = malphMax*hi*hi*Ai*safeInvVar(vsigi*vsigi + hi*hi*Ai);
         DalphaDt(nodeListi, i) = std::min(0.0, alpha_locali - alphai)*safeInv(taui);
-        // if (i == 400) cerr << " --> " << i << " " << alpha_locali << " " << alphai << " " << hi << " " << Ai << " " << vsigi << " " << zetai << " " << divvi << " " << divai << " " << Si << endl;
       }
     }
 
@@ -756,7 +756,7 @@ finalizeDerivatives(const Scalar time,
   
         const SymTensor& Hi = H(nodeListi, i);
         const Scalar& ci = soundSpeed(nodeListi, i);
-        const Scalar invhi = (Hi.Trace()/Dimension::nDim);
+        const Scalar invhi = Hi.Trace()/(kernelExtent*Dimension::nDim);
         const Tensor hat_Vi = cull_D(nodeListi, i)*(cull_T(nodeListi, i).Inverse());
         const Tensor hat_Ai = cull_Da(nodeListi, i)*(cull_T(nodeListi, i).Inverse());
         //Scalar& div_Vi = prevDivV2(nodeListi, i);
