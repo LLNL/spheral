@@ -50,9 +50,6 @@ commandLine(
     gamma = 5.0/3.0,
     mu = 1.0,
 
-    numGridLevels = 20,
-    topGridCellSize = 20.0,
-
     # Parameters for iterating H.
     iterateH = True,
     maxHIterations = 200,
