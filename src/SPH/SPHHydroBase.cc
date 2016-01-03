@@ -811,11 +811,14 @@ evaluateDerivatives(const typename Dimension::Scalar time,
 
       // Finish the gradient of the velocity.
       CHECK(rhoi > 0.0);
-      DvDxi *= safeOmegai/rhoi;
-      localDvDxi *= safeOmegai/rhoi;
       if (this->correctVelocityGradient()) {
-        DvDxi = Mi*DvDxi;
-        localDvDxi = localMi*DvDxi;
+        Mi = Mi.Inverse();
+        localMi = localMi.Inverse();
+        DvDxi = DvDxi*Mi/rhoi;
+        localDvDxi = localDvDxi*localMi/rhoi;
+      } else {
+        DvDxi *= safeOmegai/rhoi;
+        localDvDxi *= safeOmegai/rhoi;
       }
 
       // Complete the moments of the node distribution for use in the ideal H calculation.
