@@ -59,7 +59,8 @@ commandLine(
 
     goalTime = 0.01,
     steps = None,
-    dtSample = 1e-5,
+    vizTime = 1e-5,
+    vizStep = None,
     dt = 1e-10,
     dtMin = 1e-10,
     dtMax = 1e-5,
@@ -292,7 +293,8 @@ control = SpheralController(integrator, WT,
                             restartBaseName = restartBaseName,
                             vizDir = visitDir,
                             vizBaseName = "RotatingSteelRod-2d",
-                            vizTime = dtSample,
+                            vizTime = vizTime,
+                            vizStep = vizStep,
                             vizDerivs = True)
 output("control")
 
