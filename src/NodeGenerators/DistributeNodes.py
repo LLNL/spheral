@@ -116,7 +116,6 @@ def distributeNodesInRange1d(listOfNodeTuples,
                     iglobal0 = max(minNodeID, nCumulative)
                     iglobal1 = min(maxNodeID, nCumulative + n)
                     numNewNodes = iglobal1 - iglobal0
-                    assert numNewNodes > 0
                     nodeOffset = iglobal0 - nCumulative
                     indexOffset = nodes.numInternalNodes
                     nodes.numInternalNodes += numNewNodes
