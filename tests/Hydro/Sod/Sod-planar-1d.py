@@ -24,7 +24,7 @@ commandLine(nx1 = 400,
             x1 = 0.0,
             x2 = 0.5,
 
-            smoothDiscontinuity = False,
+            hsmooth = 0.0,  # Optionally smooth initial discontinuity
 
             nPerh = 1.25,
 
@@ -201,21 +201,15 @@ nodeSet = [nodes1, nodes2]
 #-------------------------------------------------------------------------------
 dx1 = (x1 - x0)/nx1
 dx2 = (x2 - x1)/nx2
-hfold = 4*max(dx1, dx2)
+hfold = hsmooth*max(dx1, dx2)
 def rho_initial(xi):
-    if smoothDiscontinuity:
-        if xi < x1 - hfold:
-            return rho1
-        elif xi > x1 + hfold:
-            return rho2
-        else:
-            f = 0.5*(sin(0.5*pi*(xi - x1)/hfold) + 1.0)
-            return (1.0 - f)*rho1 + f*rho2
+    if xi < x1 - hfold:
+        return rho1
+    elif xi > x1 + hfold:
+        return rho2
     else:
-        if xi < x1:
-            return rho1
-        else:
-            return rho2
+        f = 0.5*(sin(0.5*pi*(xi - x1)/hfold) + 1.0)
+        return (1.0 - f)*rho1 + f*rho2
 
 #-------------------------------------------------------------------------------
 # Set the node properties.
@@ -231,28 +225,22 @@ output("nodes1.numNodes")
 output("nodes2.numNodes")
 
 # Set node specific thermal energies
-eps1 = P1/((gammaGas - 1.0)*rho1)
-eps2 = P2/((gammaGas - 1.0)*rho2)
-def specificEnergy(xi):
-    if smoothDiscontinuity:
-        if xi < x1 - hfold:
-            return eps1
-        elif xi > x1 + hfold:
-            return eps2
-        else:
-            f = 0.5*(sin(0.5*pi*(xi - x1)/hfold) + 1.0)
-            return (1.0 - f)*eps1 + f*eps2
+def specificEnergy(xi, rhoi):
+    if xi < x1 - hfold:
+        Pi = P1
+    elif xi > x1 + hfold:
+        Pi = P2
     else:
-        if xi < x1:
-            return eps1
-        else:
-            return eps2
+        f = 0.5*(sin(0.5*pi*(xi - x1)/hfold) + 1.0)
+        Pi = (1.0 - f)*P1 + f*P2
+    return Pi/((gammaGas - 1.0)*rhoi)
 
 for nodes in nodeSet:
     pos = nodes.positions()
     eps = nodes.specificThermalEnergy()
+    rho = nodes.massDensity()
     for i in xrange(nodes.numInternalNodes):
-        eps[i] = specificEnergy(pos[i].x)
+        eps[i] = specificEnergy(pos[i].x, rho[i])
 
 #-------------------------------------------------------------------------------
 # Construct a DataBase to hold our node list
