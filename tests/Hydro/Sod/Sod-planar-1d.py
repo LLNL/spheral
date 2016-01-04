@@ -478,8 +478,9 @@ answer = SodSolution(nPoints=nx1 + nx2,
                      h1 = 1.0/h1,
                      h2 = 1.0/h2)
 
-cs = db.newFluidScalarFieldList(0.0, "sound speed")
-db.fluidSoundSpeed(cs)
+#cs = db.newFluidScalarFieldList(0.0, "sound speed")
+#db.fluidSoundSpeed(cs)
+cs = hydro.soundSpeed()
 
 def createList(x):
     xx = x
@@ -504,6 +505,7 @@ xprof = createList([x.x for x in nodes1.positions().internalValues()] +
                    [x.x for x in nodes2.positions().internalValues()])
 xans, vans, uans, rhoans, Pans, hans = answer.solution(control.time(), xprof)
 Aans = [Pi/rhoi**gammaGas for (Pi, rhoi) in zip(Pans,  rhoans)]
+csAns = [sqrt(Pi/rhoi) for (Pi, rhoi) in zip(Pans,  rhoans)]
 
 if graphics:
     from SpheralGnuPlotUtilities import *
@@ -512,7 +514,13 @@ if graphics:
     plotAnswer(answer, control.time(),
                rhoPlot, velPlot, epsPlot, PPlot, HPlot)
     pE = plotEHistory(control.conserve)
+
     csPlot = plotFieldList(cs, winTitle="Sound speed")
+    csAnsData = Gnuplot.Data(xans, csAns, 
+                             with_ = "lines",
+                             title = "Analytic")
+    csPlot.replot(csAnsData)
+
     plots = [(rhoPlot, "Sod-planar-rho.png"),
              (velPlot, "Sod-planar-vel.png"),
              (epsPlot, "Sod-planar-eps.png"),
