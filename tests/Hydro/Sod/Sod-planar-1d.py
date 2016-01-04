@@ -91,6 +91,7 @@ commandLine(nx1 = 400,
             volumeType = CRKSumVolume,
             densityUpdate = RigorousSumDensity,
             compatibleEnergy = True,
+            correctVelocityGradient = False,
             gradhCorrection = False,
             linearConsistent = False,
 
@@ -310,13 +311,11 @@ elif PSPH:
                              Q = q,
                              cfl = cfl,
                              compatibleEnergyEvolution = compatibleEnergy,
-                             gradhCorrection = gradhCorrection,
                              densityUpdate = densityUpdate,
                              HUpdate = HUpdate,
                              XSPH = XSPH,
-                             HopkinsConductivity = HopkinsConductivity,
-                             epsTensile = epsilonTensile,
-                             nTensile = nTensile)
+                             correctVelocityGradient = correctVelocityGradient,
+                             HopkinsConductivity = HopkinsConductivity)
 else:
     hydro = HydroConstructor(W = WT,
                              Q = q,
@@ -326,6 +325,7 @@ else:
                              densityUpdate = densityUpdate,
                              HUpdate = HUpdate,
                              XSPH = XSPH,
+                             correctVelocityGradient = correctVelocityGradient,
                              epsTensile = epsilonTensile,
                              nTensile = nTensile)
 output("hydro")
