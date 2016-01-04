@@ -544,8 +544,8 @@ if graphics:
                                       winTitle = "Cullen alpha")
         cullDalphaPlot = plotFieldList(evolveCullenViscosityMultiplier.DalphaDt(),
                                        winTitle = "Cullen DalphaDt")
-        plots += [(cullAlphaPlot, "Sedov-planar-Cullen-alpha.png"),
-                  (cullDalphaPlot, "Sedov-planar-Cullen-DalphaDt.png")]
+        plots += [(cullAlphaPlot, "Sod-planar-Cullen-alpha.png"),
+                  (cullDalphaPlot, "Sod-planar-Cullen-DalphaDt.png")]
 
     if boolReduceViscosity:
         alphaPlot = plotFieldList(q.ClMultiplier(),

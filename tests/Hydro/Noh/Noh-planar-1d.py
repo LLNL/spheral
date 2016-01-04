@@ -122,25 +122,25 @@ commandLine(KernelConstructor = BSplineKernel,
             comparisonFile = "None",
 
             # Parameters for the test acceptance.,
-            L1rho =   0.0576511,   		
-            L2rho =   0.237516,    
-            Linfrho = 1.7572,      
-                                                             
-            L1P =     0.0215632,   
-            L2P =     0.0927809,   
-            LinfP =   0.696429,    
-                                                             
-            L1v =     0.0225349,   
-            L2v =     0.116537,    
-            Linfv =   0.873397,    
-                                                             
-            L1eps =   0.0113601,   
-            L2eps =   0.053594,    
-            Linfeps = 0.378879,    
-                                                 
-            L1h =     0.000305076, 
-            L2h =     0.00123863,  
-            Linfh =   0.00763659,  
+            L1rho =   0.0569491,    		
+            L2rho =   0.235912,     
+            Linfrho = 1.75461,      
+                                                              
+            L1P =     0.0214942,    
+            L2P =     0.0925634,    
+            LinfP =   0.695726,     
+                                                              
+            L1v =     0.022539,     
+            L2v =     0.116544,     
+            Linfv =   0.873349,     
+                                                              
+            L1eps =   0.0113606,    
+            L2eps =   0.0535938,    
+            Linfeps = 0.378853,     
+                                                  
+            L1h =     0.000326532,  
+            L2h =     0.0013018,    
+            Linfh =   0.00782539,   
 
             tol = 1.0e-5,
 
@@ -315,13 +315,10 @@ elif PSPH:
                              cfl = cfl,
                              useVelocityMagnitudeForDt = useVelocityMagnitudeForDt,
                              compatibleEnergyEvolution = compatibleEnergy,
-                             gradhCorrection = gradhCorrection,
                              HopkinsConductivity = HopkinsConductivity,
                              densityUpdate = densityUpdate,
                              HUpdate = HUpdate,
-                             XSPH = XSPH,
-                             epsTensile = epsilonTensile,
-                             nTensile = nTensile)
+                             XSPH = XSPH)
 else:
     hydro = HydroConstructor(W = WT,
                              Q = q,
@@ -536,6 +533,14 @@ if graphics:
                                 winTitle = "volume",
                                 colorNodeLists = False, plotGhosts = False)
         plots.append(volPlot)
+
+    if boolCullenViscosity:
+        cullAlphaPlot = plotFieldList(q.ClMultiplier(),
+                                      winTitle = "Cullen alpha")
+        cullDalphaPlot = plotFieldList(evolveCullenViscosityMultiplier.DalphaDt(),
+                                       winTitle = "Cullen DalphaDt")
+        plots += [(cullAlphaPlot, "Noh-planar-Cullen-alpha.png"),
+                  (cullDalphaPlot, "Noh-planar-Cullen-DalphaDt.png")]
 
     if boolReduceViscosity:
         alphaPlotQ = plotFieldList(q.reducingViscosityMultiplierQ(),
