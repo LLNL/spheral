@@ -21,7 +21,7 @@ class %(classname)s%(dim)s(PSPHHydroBase%(dim)s):
                  useVelocityMagnitudeForDt = False,
                  compatibleEnergyEvolution = True,
                  XSPH = True,
-                 correctVelocityGradient = False,
+                 correctVelocityGradient = True,
                  HopkinsConductivity = False,
                  sumMassDensityOverAllNodeLists = True,
                  densityUpdate = RigorousSumDensity,
