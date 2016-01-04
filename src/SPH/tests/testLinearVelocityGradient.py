@@ -200,7 +200,7 @@ output("db.numFluidNodeLists")
 #-------------------------------------------------------------------------------
 if iterateH:
     bounds = vector_of_Boundary()
-    method = ASPHSmoothingScale()
+    method = SPHSmoothingScale()
     iterateIdealH(db,
                   bounds,
                   WT,

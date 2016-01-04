@@ -50,6 +50,7 @@ commandLine(KernelConstructor = BSplineKernel,
             Qconstructor = MonaghanGingoldViscosity,
             #Qconstructor = TensorMonaghanGingoldViscosity,
             boolReduceViscosity = False,
+            HopkinsConductivity = False,     # For PSPH
             nhQ = 5.0,
             nhL = 10.0,
             aMin = 0.1,
@@ -101,7 +102,7 @@ commandLine(KernelConstructor = BSplineKernel,
 
             densityUpdate = RigorousSumDensity, # VolumeScaledDensity,
             compatibleEnergy = True,
-            gradhCorrection = False,
+            gradhCorrection = True,
 
             useVoronoiOutput = False,
             clearDirectories = False,
@@ -313,6 +314,16 @@ elif CRKSPH:
                              volumeType = volumeType,
                              densityUpdate = densityUpdate,
                              HUpdate = HUpdate)
+elif PSPH:
+    hydro = HydroConstructor(W = WT,
+                             Q = q,
+                             filter = filter,
+                             cfl = cfl,
+                             compatibleEnergyEvolution = compatibleEnergy,
+                             HopkinsConductivity = HopkinsConductivity,
+                             densityUpdate = densityUpdate,
+                             HUpdate = HUpdate,
+                             XSPH = XSPH)
 else:
     hydro = HydroConstructor(W = WT,
                              Q = q,

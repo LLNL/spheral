@@ -71,14 +71,15 @@ commandLine(seed = "lattice",
             nhL = 10.0,
             aMin = 0.1,
             aMax = 2.0,
-            boolCullenViscosity = False,
             alphMax = 2.0,
             alphMin = 0.02,
             betaC = 0.7,
             betaD = 0.05,
             betaE = 1.0,
             fKern = 1.0/3.0,
+            boolCullenViscosity = False,
             boolHopkinsCorrection = True,
+            HopkinsConductivity = False,     # For PSPH
 
             IntegratorConstructor = CheapSynchronousRK2Integrator,
             goalTime = 0.6,
@@ -100,7 +101,7 @@ commandLine(seed = "lattice",
             correctionOrder = LinearOrder,
             densityUpdate = RigorousSumDensity, # VolumeScaledDensity,
             compatibleEnergy = True,
-            gradhCorrection = False,
+            gradhCorrection = True,
 
             clearDirectories = False,
             restoreCycle = None,
@@ -291,6 +292,16 @@ elif CRKSPH:
                              correctionOrder = correctionOrder,
                              densityUpdate = densityUpdate,
                              HUpdate = HUpdate)
+elif PSPH:
+    hydro = HydroConstructor(W = WT,
+                             Q = q,
+                             filter = filter,
+                             cfl = cfl,
+                             compatibleEnergyEvolution = compatibleEnergy,
+                             HopkinsConductivity = HopkinsConductivity,
+                             densityUpdate = densityUpdate,
+                             HUpdate = HUpdate,
+                             XSPH = XSPH)
 else:
     hydro = HydroConstructor(W = WT,
                              Q = q,
