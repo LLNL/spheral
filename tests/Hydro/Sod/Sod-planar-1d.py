@@ -505,7 +505,7 @@ xprof = createList([x.x for x in nodes1.positions().internalValues()] +
                    [x.x for x in nodes2.positions().internalValues()])
 xans, vans, uans, rhoans, Pans, hans = answer.solution(control.time(), xprof)
 Aans = [Pi/rhoi**gammaGas for (Pi, rhoi) in zip(Pans,  rhoans)]
-csAns = [sqrt(Pi/rhoi) for (Pi, rhoi) in zip(Pans,  rhoans)]
+csAns = [sqrt(gammaGas*Pi/rhoi) for (Pi, rhoi) in zip(Pans,  rhoans)]
 
 if graphics:
     from SpheralGnuPlotUtilities import *

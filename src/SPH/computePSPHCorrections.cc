@@ -132,7 +132,7 @@ computePSPHCorrections(const ConnectivityMap<Dimension>& connectivityMap,
       const Scalar fi=1.0+gradNbari/max(Dimension::nDim*Nbari*invhi,tiny);
       PSPHcorrection(nodeListi, i)=gradPbari/max(Dimension::nDim*(gammai-1.0)*Nbari*invhi*fi,tiny);
       CHECK2((gammai-1.0)*epsi >= 0.0, i << " " << gammai << " " << epsi);
-      PSPHsoundSpeed(nodeListi, i) = sqrt(std::max(0.0, (gammai - 1.0)*epsi));
+      PSPHsoundSpeed(nodeListi, i) = sqrt(std::max(0.0, gammai*(gammai - 1.0)*epsi));
       PSPHmassDensity(nodeListi, i) += mi*W(0.0, Hdeti);
     }
   }
