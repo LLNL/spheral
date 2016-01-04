@@ -294,14 +294,12 @@ self.generatePSPHHydroBaseBindings(self.PSPHHydroBase%(dim)id, %(dim)i)
                            param("double", "cfl", default_value="0.5"),
                            param("int", "useVelocityMagnitudeForDt", default_value="false"),
                            param("int", "compatibleEnergyEvolution", default_value="true"),
-                           param("int", "gradhCorrection", default_value="false"),
                            param("int", "XSPH", default_value="true"),
+                           param("int", "correctVelocityGradient", default_value="false"),
                            param("int", "HopkinsConductivity", default_value="false"),
                            param("int", "sumMassDensityOverAllNodeLists", default_value="true"),
                            param("MassDensityType", "densityUpdate", default_value="Spheral::PhysicsSpace::RigorousSumDensity"),
                            param("HEvolutionType", "HUpdate", default_value="Spheral::PhysicsSpace::IdealH"),
-                           param("double", "epsTensile", default_value="0.3"),
-                           param("double", "nTensile", default_value="4.0"),
                            param(vector, "xmin", default_value="%s(-1e10, -1e10, -1e10)" % vector),
                            param(vector, "xmax", default_value="%s( 1e10,  1e10,  1e10)" % vector)])
 

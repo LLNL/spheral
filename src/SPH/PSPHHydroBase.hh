@@ -58,14 +58,12 @@ public:
                 const double cfl,
                 const bool useVelocityMagnitudeForDt,
                 const bool compatibleEnergyEvolution,
-                const bool gradhCorrection,
                 const bool XSPH,
+                const bool correctVelocityGradient,
                 const bool HopkinsConductivity,
                 const bool sumMassDensityOverAllNodeLists,
                 const PhysicsSpace::MassDensityType densityUpdate,
                 const PhysicsSpace::HEvolutionType HUpdate,
-                const double epsTensile,
-                const double nTensile,
                 const Vector& xmin,
                 const Vector& xmax);
 

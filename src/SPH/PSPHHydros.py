@@ -20,14 +20,12 @@ class %(classname)s%(dim)s(PSPHHydroBase%(dim)s):
                  cfl = 0.5,
                  useVelocityMagnitudeForDt = False,
                  compatibleEnergyEvolution = True,
-                 gradhCorrection = False,
                  XSPH = True,
+                 correctVelocityGradient = False,
                  HopkinsConductivity = False,
                  sumMassDensityOverAllNodeLists = True,
                  densityUpdate = RigorousSumDensity,
                  HUpdate = IdealH,
-                 epsTensile = 0.0,
-                 nTensile = 4.0,
                  xmin = Vector%(dim)s(-1e100, -1e100, -1e100),
                  xmax = Vector%(dim)s( 1e100,  1e100,  1e100)):
         self._smoothingScaleMethod = %(smoothingScaleMethod)s%(dim)s()
@@ -42,14 +40,12 @@ class %(classname)s%(dim)s(PSPHHydroBase%(dim)s):
                                       cfl,
                                       useVelocityMagnitudeForDt,
                                       compatibleEnergyEvolution,
-                                      gradhCorrection,
                                       XSPH,
+                                      correctVelocityGradient,
                                       HopkinsConductivity,
                                       sumMassDensityOverAllNodeLists,
                                       densityUpdate,
                                       HUpdate,
-                                      epsTensile,
-                                      nTensile,
                                       xmin,
                                       xmax)
         return

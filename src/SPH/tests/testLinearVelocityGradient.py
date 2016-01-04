@@ -1,6 +1,7 @@
-#ATS:test(SELF, "--graphics False --nx1 10 --nx2 10 --testDim 1d", label="CRKSPH interpolation test -- 1D (serial)")
-#ATS:test(SELF, "--graphics False --nx1 10 --nx2 10 --testDim 2d", label="CRKSPH interpolation test -- 2D (serial)")
-#ATS:test(SELF, "--graphics False --nx1 10 --nx2 10 --testDim 3d", label="CRKSPH interpolation test -- 3D (serial)")
+#ATS:for testDim in ("1d", "2d"): # , "3d"):
+#ATS:    for HydroChoice in ("SPHHydro", "ASPHHydro", "SolidSPHHydro", "SolidASPHHydro", "PSPHHydro", "APSPHHydro"):
+#ATS:        test(SELF, "--graphics False --nx1 10 --nx2 10 --testCase linear --testDim %s --HydroChoice %s" % (testDim, HydroChoice), 
+#ATS:             label="%s linear gradient correction test -- %s (serial)" % (HydroChoice, testDim))
 #-------------------------------------------------------------------------------
 # Unit test of the linear velocity gradient correction for SPH.
 #-------------------------------------------------------------------------------
@@ -26,6 +27,9 @@ commandLine(
     nPerh = 2.01,
     hmin = 0.0001, 
     hmax = 10.0,
+
+    # What hydro operator should we test?
+    HydroChoice = "SPHHydro",
     gradhCorrection = False,
 
     # Should we randomly perturb the positions?
@@ -68,7 +72,8 @@ assert testDim in ("1d", "2d", "3d")
 #-------------------------------------------------------------------------------
 # Appropriately set generic object names based on the test dimensionality.
 #-------------------------------------------------------------------------------
-exec("from Spheral%s import *" % testDim)
+exec("from SolidSpheral%s import *" % testDim)
+HydroConstructor = eval(HydroChoice)
 
 #-------------------------------------------------------------------------------
 # Create a random number generator.
@@ -92,7 +97,7 @@ kernelExtent = WT.kernelExtent
 #-------------------------------------------------------------------------------
 # Make the NodeList.
 #-------------------------------------------------------------------------------
-nodes1 = makeFluidNodeList("nodes1", eos,
+nodes1 = makeSolidNodeList("nodes1", eos,
                            hmin = hmin,
                            hmax = hmax,
                            nPerh = nPerh)
@@ -195,7 +200,7 @@ output("db.numFluidNodeLists")
 #-------------------------------------------------------------------------------
 if iterateH:
     bounds = vector_of_Boundary()
-    method = SPHSmoothingScale()
+    method = ASPHSmoothingScale()
     iterateIdealH(db,
                   bounds,
                   WT,
@@ -228,10 +233,15 @@ for i in xrange(nodes1.numInternalNodes):
 db.updateConnectivityMap(True)
 cm = db.connectivityMap()
 q = MonaghanGingoldViscosity(1.0, 1.0)
-hydro = SPHHydro(Q = q,
-                 W = WT,
-                 gradhCorrection = gradhCorrection,
-                 correctVelocityGradient = False)
+if "PSPH" in HydroChoice:
+    hydro = HydroConstructor(Q = q,
+                             W = WT,
+                             correctVelocityGradient = False)
+else:
+    hydro = HydroConstructor(Q = q,
+                             W = WT,
+                             gradhCorrection = gradhCorrection,
+                             correctVelocityGradient = False)
 integrator = CheapSynchronousRK2Integrator(db)
 integrator.appendPhysicsPackage(hydro)
 hydro.initializeProblemStartup(db)
@@ -309,19 +319,19 @@ if graphics:
                             inline = True)
     dSPH0data = Gnuplot.Data(xans, [x.xx for x in dfSPH0.internalValues()],
                              with_ = "points",
-                             title = "SPH (uncorrected)",
+                             title = HydroChoice + " (uncorrected)",
                              inline = True)
     dSPH1data = Gnuplot.Data(xans, [x.xx for x in dfSPH1.internalValues()],
                              with_ = "points",
-                             title = "SPH (corrected)",
+                             title = HydroChoice + " (corrected)",
                              inline = True)
     errdSPH0data = Gnuplot.Data(xans, errdySPH0.internalValues(),
                                 with_ = "points",
-                                title = "SPH (uncorrected)",
+                                title = HydroChoice + " (uncorrected)",
                                 inline = True)
     errdSPH1data = Gnuplot.Data(xans, errdySPH1.internalValues(),
                                 with_ = "points",
-                                title = "SPH (corrected)",
+                                title = HydroChoice + " (corrected)",
                                 inline = True)
 
     p3 = generateNewGnuPlot()

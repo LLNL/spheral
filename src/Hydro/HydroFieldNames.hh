@@ -60,7 +60,7 @@ struct HydroFieldNames {
   static const std::string gradA_CRKSPH;
   static const std::string gradB_CRKSPH;
   static const std::string gradC_CRKSPH;
-  static const std::string M_CRKSPH;
+  static const std::string M_SPHCorrection;
   static const std::string volume;
   static const std::string linearMomentum;
   static const std::string totalEnergy;

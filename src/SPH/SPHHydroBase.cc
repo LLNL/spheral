@@ -175,8 +175,8 @@ initializeProblemStartup(DataBase<Dimension>& dataBase) {
   mDvDx = dataBase.newFluidFieldList(Tensor::zero, HydroFieldNames::velocityGradient);
   mInternalDvDx = dataBase.newFluidFieldList(Tensor::zero, HydroFieldNames::internalVelocityGradient);
   mPairAccelerations = dataBase.newFluidFieldList(vector<Vector>(), HydroFieldNames::pairAccelerations);
-  mM = dataBase.newFluidFieldList(Tensor::zero, HydroFieldNames::M_CRKSPH);
-  mLocalM = dataBase.newFluidFieldList(Tensor::zero, "local " + HydroFieldNames::M_CRKSPH);
+  mM = dataBase.newFluidFieldList(Tensor::zero, HydroFieldNames::M_SPHCorrection);
+  mLocalM = dataBase.newFluidFieldList(Tensor::zero, "local " + HydroFieldNames::M_SPHCorrection);
 
   // Initialize the pressure and sound speed.
   dataBase.fluidPressure(mPressure);
@@ -358,8 +358,8 @@ registerDerivatives(DataBase<Dimension>& dataBase,
   dataBase.resizeFluidFieldList(mDHDt, SymTensor::zero, IncrementFieldList<Dimension, Field<Dimension, Vector> >::prefix() + HydroFieldNames::H, false);
   dataBase.resizeFluidFieldList(mDvDx, Tensor::zero, HydroFieldNames::velocityGradient, false);
   dataBase.resizeFluidFieldList(mInternalDvDx, Tensor::zero, HydroFieldNames::internalVelocityGradient, false);
-  dataBase.resizeFluidFieldList(mM, Tensor::zero, HydroFieldNames::M_CRKSPH, false);
-  dataBase.resizeFluidFieldList(mLocalM, Tensor::zero, "local " + HydroFieldNames::M_CRKSPH, false);
+  dataBase.resizeFluidFieldList(mM, Tensor::zero, HydroFieldNames::M_SPHCorrection, false);
+  dataBase.resizeFluidFieldList(mLocalM, Tensor::zero, "local " + HydroFieldNames::M_SPHCorrection, false);
   dataBase.resizeFluidFieldList(mPairAccelerations, vector<Vector>(), HydroFieldNames::pairAccelerations, false);
 
   derivs.enroll(mHideal);
@@ -496,8 +496,8 @@ evaluateDerivatives(const typename Dimension::Scalar time,
   FieldList<Dimension, Scalar> DepsDt = derivatives.fields(IncrementFieldList<Dimension, Scalar>::prefix() + HydroFieldNames::specificThermalEnergy, 0.0);
   FieldList<Dimension, Tensor> DvDx = derivatives.fields(HydroFieldNames::velocityGradient, Tensor::zero);
   FieldList<Dimension, Tensor> localDvDx = derivatives.fields(HydroFieldNames::internalVelocityGradient, Tensor::zero);
-  FieldList<Dimension, Tensor> M = derivatives.fields(HydroFieldNames::M_CRKSPH, Tensor::zero);
-  FieldList<Dimension, Tensor> localM = derivatives.fields("local " + HydroFieldNames::M_CRKSPH, Tensor::zero);
+  FieldList<Dimension, Tensor> M = derivatives.fields(HydroFieldNames::M_SPHCorrection, Tensor::zero);
+  FieldList<Dimension, Tensor> localM = derivatives.fields("local " + HydroFieldNames::M_SPHCorrection, Tensor::zero);
   FieldList<Dimension, SymTensor> DHDt = derivatives.fields(IncrementFieldList<Dimension, SymTensor>::prefix() + HydroFieldNames::H, SymTensor::zero);
   FieldList<Dimension, SymTensor> Hideal = derivatives.fields(ReplaceBoundedFieldList<Dimension, SymTensor>::prefix() + HydroFieldNames::H, SymTensor::zero);
   FieldList<Dimension, Scalar> maxViscousPressure = derivatives.fields(HydroFieldNames::maxViscousPressure, 0.0);
@@ -654,7 +654,6 @@ evaluateDerivatives(const typename Dimension::Scalar time,
               Scalar& rhoSumj = rhoSum(nodeListj, j);
               Scalar& normj = normalization(nodeListj, j);
               Vector& DxDtj = DxDt(nodeListj, j);
-              Scalar& DrhoDtj = DrhoDt(nodeListj, j);
               Vector& DvDtj = DvDt(nodeListj, j);
               Scalar& DepsDtj = DepsDt(nodeListj, j);
               Tensor& DvDxj = DvDx(nodeListj, j);
@@ -711,14 +710,8 @@ evaluateDerivatives(const typename Dimension::Scalar time,
                 normj += mj/rhoj*Wj;
               }
 
-              // Mass density evolution.
-              const Vector vij = vi - vj;
-              const double deltaDrhoDti = vij.dot(gradWi);
-              const double deltaDrhoDtj = vij.dot(gradWj);
-              DrhoDti += deltaDrhoDti;
-              DrhoDtj += deltaDrhoDtj;
-
               // Compute the pair-wise artificial viscosity.
+              const Vector vij = vi - vj;
               const pair<Tensor, Tensor> QPiij = Q.Piij(nodeListi, i, nodeListj, j,
                                                         ri, etai, vi, rhoi, ci, Hi,
                                                         rj, etaj, vj, rhoj, cj, Hj);
@@ -756,8 +749,8 @@ evaluateDerivatives(const typename Dimension::Scalar time,
 
               // Specific thermal energy evolution.
               // const Scalar workQij = 0.5*(mj*workQi + mi*workQj);
-              DepsDti += mj*(Prhoi*deltaDrhoDti + workQi);
-              DepsDtj += mi*(Prhoj*deltaDrhoDtj + workQj);
+              DepsDti += mj*(Prhoi*vij.dot(gradWi) + workQi);
+              DepsDtj += mi*(Prhoj*vij.dot(gradWj) + workQj);
               if (mCompatibleEnergyEvolution) {
                 pairAccelerationsi.push_back(-mj*deltaDvDt);
                 pairAccelerationsj.push_back( mi*deltaDvDt);
@@ -784,11 +777,11 @@ evaluateDerivatives(const typename Dimension::Scalar time,
               }
 
               // Linear gradient correction term.
-              Mi -= mj/rhoj*rij.dyad(gradWi);
-              Mj -= mi/rhoi*rij.dyad(gradWj);
+              Mi -= mj*rij.dyad(gradWi);
+              Mj -= mi*rij.dyad(gradWj);
               if (nodeListi == nodeListj) {
-                localMi -= mj/rhoj*rij.dyad(gradWi);
-                localMj -= mi/rhoi*rij.dyad(gradWj);
+                localMi -= mj*rij.dyad(gradWi);
+                localMj -= mi*rij.dyad(gradWj);
               }
             }
           }
@@ -806,20 +799,20 @@ evaluateDerivatives(const typename Dimension::Scalar time,
       rhoSumi += mi*W0*Hdeti;
       normi += mi/rhoi*W0*Hdeti;
 
-      // Finish the continuity equation.
-      DrhoDti *= mi*safeOmegai;
-
       // Finish the gradient of the velocity.
       CHECK(rhoi > 0.0);
-      if (this->correctVelocityGradient()) {
+      if (this->mCorrectVelocityGradient) {
         Mi = Mi.Inverse();
         localMi = localMi.Inverse();
-        DvDxi = DvDxi*Mi/rhoi;
-        localDvDxi = localDvDxi*localMi/rhoi;
+        DvDxi = DvDxi*Mi;
+        localDvDxi = localDvDxi*localMi;
       } else {
         DvDxi *= safeOmegai/rhoi;
         localDvDxi *= safeOmegai/rhoi;
       }
+
+      // Evaluate the continuity equation.
+      DrhoDti = -rhoi*DvDxi.Trace();
 
       // Complete the moments of the node distribution for use in the ideal H calculation.
       weightedNeighborSumi = Dimension::rootnu(max(0.0, weightedNeighborSumi/Hdeti));

@@ -82,14 +82,12 @@ PSPHHydroBase(const SmoothingScaleBase<Dimension>& smoothingScaleMethod,
               const double cfl,
               const bool useVelocityMagnitudeForDt,
               const bool compatibleEnergyEvolution,
-              const bool gradhCorrection,
               const bool XSPH,
+              const bool correctVelocityGradient,
               const bool HopkinsConductivity,
               const bool sumMassDensityOverAllNodeLists,
               const MassDensityType densityUpdate,
               const HEvolutionType HUpdate,
-              const double epsTensile,
-              const double nTensile,
               const Vector& xmin,
               const Vector& xmax):
   SPHHydroBase<Dimension>(smoothingScaleMethod,
@@ -100,14 +98,14 @@ PSPHHydroBase(const SmoothingScaleBase<Dimension>& smoothingScaleMethod,
                           cfl,
                           useVelocityMagnitudeForDt,
                           compatibleEnergyEvolution,
-                          gradhCorrection,
+                          true,
                           XSPH,
-                          false,
+                          correctVelocityGradient,
                           sumMassDensityOverAllNodeLists,
                           densityUpdate,
                           HUpdate,
-                          epsTensile,
-                          nTensile,
+                          0.0,
+                          1.0,
                           xmin,
                           xmax),
   mHopkinsConductivity(HopkinsConductivity),
@@ -314,8 +312,8 @@ evaluateDerivatives(const typename Dimension::Scalar time,
   FieldList<Dimension, Scalar> DepsDt = derivatives.fields(IncrementFieldList<Dimension, Scalar>::prefix() + HydroFieldNames::specificThermalEnergy, 0.0);
   FieldList<Dimension, Tensor> DvDx = derivatives.fields(HydroFieldNames::velocityGradient, Tensor::zero);
   FieldList<Dimension, Tensor> localDvDx = derivatives.fields(HydroFieldNames::internalVelocityGradient, Tensor::zero);
-  FieldList<Dimension, Tensor> M = derivatives.fields(HydroFieldNames::M_CRKSPH, Tensor::zero);
-  FieldList<Dimension, Tensor> localM = derivatives.fields("local " + HydroFieldNames::M_CRKSPH, Tensor::zero);
+  FieldList<Dimension, Tensor> M = derivatives.fields(HydroFieldNames::M_SPHCorrection, Tensor::zero);
+  FieldList<Dimension, Tensor> localM = derivatives.fields("local " + HydroFieldNames::M_SPHCorrection, Tensor::zero);
   FieldList<Dimension, SymTensor> DHDt = derivatives.fields(IncrementFieldList<Dimension, SymTensor>::prefix() + HydroFieldNames::H, SymTensor::zero);
   FieldList<Dimension, SymTensor> Hideal = derivatives.fields(ReplaceBoundedFieldList<Dimension, SymTensor>::prefix() + HydroFieldNames::H, SymTensor::zero);
   FieldList<Dimension, Scalar> maxViscousPressure = derivatives.fields(HydroFieldNames::maxViscousPressure, 0.0);
@@ -371,9 +369,6 @@ evaluateDerivatives(const typename Dimension::Scalar time,
     const Scalar hminratio = nodeList.hminratio();
     const int maxNumNeighbors = nodeList.maxNumNeighbors();
     const Scalar nPerh = nodeList.nodesPerSmoothingScale();
-
-    // The scale for the tensile correction.
-    const Scalar WnPerh = W(1.0/nPerh, 1.0);
 
     // Get the work field for this NodeList.
     Field<Dimension, Scalar>& workFieldi = nodeList.work();
@@ -469,7 +464,6 @@ evaluateDerivatives(const typename Dimension::Scalar time,
               Scalar& rhoSumj = rhoSum(nodeListj, j);
               Scalar& normj = normalization(nodeListj, j);
               Vector& DxDtj = DxDt(nodeListj, j);
-              Scalar& DrhoDtj = DrhoDt(nodeListj, j);
               Vector& DvDtj = DvDt(nodeListj, j);
               Scalar& DepsDtj = DepsDt(nodeListj, j);
               Tensor& DvDxj = DvDx(nodeListj, j);
@@ -526,14 +520,8 @@ evaluateDerivatives(const typename Dimension::Scalar time,
                 normj += mj/rhoj*Wj;
               }
 
-              // Mass density evolution.
-              const Vector vij = vi - vj;
-              const double deltaDrhoDti = vij.dot(gradWi);
-              const double deltaDrhoDtj = vij.dot(gradWj);
-              DrhoDti += deltaDrhoDti;
-              DrhoDtj += deltaDrhoDtj;
-
               // Compute the pair-wise artificial viscosity.
+              const Vector vij = vi - vj;
               const pair<Tensor, Tensor> QPiij = Q.Piij(nodeListi, i, nodeListj, j,
                                                         ri, etai, vi, rhoi, ci, Hi,
                                                         rj, etaj, vj, rhoj, cj, Hj);
@@ -566,10 +554,12 @@ evaluateDerivatives(const typename Dimension::Scalar time,
               DvDtj += mi*deltaDvDt;
 
               // Specific thermal energy evolution.
-              // DepsDti += mj*(engCoef*deltaDrhoDti*Fij/max(Pi,tiny) + workQi);
-              // DepsDtj += mi*(engCoef*deltaDrhoDtj*Fji/max(Pj,tiny) + workQj);
-              DepsDti += mj*(engCoef*deltaDrhoDti*Fij*safeInv(Pi, tiny) + workQi);
-              DepsDtj += mi*(engCoef*deltaDrhoDtj*Fji*safeInv(Pj, tiny) + workQj);
+              DepsDti += mj*(engCoef*Fij*safeInv(Pi, tiny)*vij.dot(gradWi) + workQi);
+              DepsDtj += mi*(engCoef*Fji*safeInv(Pj, tiny)*vij.dot(gradWj) + workQj);
+              if (this->mCompatibleEnergyEvolution) {
+                pairAccelerationsi.push_back(-mj*deltaDvDt);
+                pairAccelerationsj.push_back( mi*deltaDvDt);
+              }
 
               //ADD ARITIFICIAL CONDUCTIVITY IN HOPKINS 2014A
               if (mHopkinsConductivity) {
@@ -593,19 +583,14 @@ evaluateDerivatives(const typename Dimension::Scalar time,
                 //DepsDtj += (Vs > 0.0 && Pi > 1e-4 && Pj > 1e-4) ? alph_c*mi*(Qalpha_i+Qalpha_j)*0.5*Vs*(epsj-epsi)*abs(Pi-Pj)*((gradWi+gradWj).dot(rij.unitVector()))*safeInv((Pi+Pj)*(rhoi+rhoj),tiny) : 0.0;
               }
 
-              if (this->mCompatibleEnergyEvolution) {
-                pairAccelerationsi.push_back(-mj*deltaDvDt);
-                pairAccelerationsj.push_back( mi*deltaDvDt);
-              }
-
               // Velocity gradient.
-              const Tensor deltaDvDxi = vij.dyad(gradWi);
-              const Tensor deltaDvDxj = vij.dyad(gradWj);
-              DvDxi -= mj*deltaDvDxi;
-              DvDxj -= mi*deltaDvDxj;
+              const Tensor deltaDvDxi = mj*vij.dyad(gradWi);
+              const Tensor deltaDvDxj = mi*vij.dyad(gradWj);
+              DvDxi -= deltaDvDxi;
+              DvDxj -= deltaDvDxj;
               if (nodeListi == nodeListj) {
-                localDvDxi -= mj*deltaDvDxi;
-                localDvDxj -= mi*deltaDvDxj;
+                localDvDxi -= deltaDvDxi;
+                localDvDxj -= deltaDvDxj;
               }
 
               // Estimate of delta v (for XSPH).
@@ -619,11 +604,11 @@ evaluateDerivatives(const typename Dimension::Scalar time,
               }
 
               // Linear gradient correction term.
-              Mi -= mj/rhoj*rij.dyad(gradWi);
-              Mj -= mi/rhoi*rij.dyad(gradWj);
+              Mi -= mj*rij.dyad(gradWi);
+              Mj -= mi*rij.dyad(gradWj);
               if (nodeListi == nodeListj) {
-                localMi -= mj/rhoj*rij.dyad(gradWi);
-                localMj -= mi/rhoi*rij.dyad(gradWj);
+                localMi -= mj*rij.dyad(gradWi);
+                localMj -= mi*rij.dyad(gradWj);
               }
             }
           }
@@ -641,17 +626,20 @@ evaluateDerivatives(const typename Dimension::Scalar time,
       rhoSumi += mi*W0*Hdeti;
       normi += mi/rhoi*W0*Hdeti;
 
-      // Finish the continuity equation.
-      DrhoDti *= mi;
-
       // Finish the gradient of the velocity.
       CHECK(rhoi > 0.0);
-      DvDxi /= rhoi;
-      localDvDxi /= rhoi;
-      if (this->correctVelocityGradient()) {
-        DvDxi = Mi*DvDxi;
-        localDvDxi = localMi*DvDxi;
+      if (this->mCorrectVelocityGradient) {
+        Mi = Mi.Inverse();
+        localMi = localMi.Inverse();
+        DvDxi = DvDxi*Mi;
+        localDvDxi = localDvDxi*localMi;
+      } else {
+        DvDxi /= rhoi;
+        localDvDxi /= rhoi;
       }
+
+      // Evaluate the continuity equation.
+      DrhoDti = -rhoi*DvDxi.Trace();
 
       // Complete the moments of the node distribution for use in the ideal H calculation.
       weightedNeighborSumi = Dimension::rootnu(max(0.0, weightedNeighborSumi/Hdeti));
@@ -727,7 +715,7 @@ finalizeDerivatives(const typename Dimension::Scalar time,
 
   // If we're using the compatible energy discretization, we need to enforce
   // boundary conditions on the accelerations.
-  if (this->compatibleEnergyEvolution()) {
+  if (this->mCompatibleEnergyEvolution) {
 
     FieldList<Dimension, Vector> accelerations = derivs.fields(IncrementFieldList<Dimension, Field<Dimension, Vector> >::prefix() + HydroFieldNames::velocity, Vector::zero);
     for (ConstBoundaryIterator boundaryItr = this->boundaryBegin();
