@@ -20,9 +20,9 @@ commandLine(
     # Hydro algorithm.
     SVPH = False,
     CRKSPH = False,
+    PSPH = False,
     cfl = 0.5,
     XSPH = False,
-    PSPH = False,
     epsilonTensile = 0.0,
     nTensile = 8,
     filter = 0.00,
@@ -87,12 +87,15 @@ if SVPH:
 elif CRKSPH:
     HydroConstructor = CRKSPHHydro
     Qconstructor = CRKSPHMonaghanGingoldViscosity
+elif PSPH:
+    HydroConstructor = PSPHHydro
 else:
     HydroConstructor = SPHHydro
 
 dataDir = os.path.join(dataDirBase, 
                        HydroConstructor.__name__,
                        Qconstructor.__name__,
+                       "Cl=%g_Cq=%g" % (Cl, Cq),
                        "%i" % (nx),
                        "nPerh=%s" % nPerh)
 restartDir = os.path.join(dataDir, "restarts")
@@ -214,7 +217,6 @@ else:
                              densityUpdate = densityUpdate,
                              HUpdate = HUpdate,
                              XSPH = XSPH,
-                             PSPH = PSPH,
                              epsTensile = epsilonTensile,
                              nTensile = nTensile)
 output("hydro")

@@ -40,6 +40,8 @@ computeCRKSPHSumVolume(const ConnectivityMap<Dimension>& connectivityMap,
   typedef typename Dimension::FourthRankTensor FourthRankTensor;
   typedef typename Dimension::FifthRankTensor FifthRankTensor;
 
+  // Zero it out.
+  vol = 0.0;
 
   // For our first pass compute the effective volume per point.
   for (size_t nodeListi = 0; nodeListi != numNodeLists; ++nodeListi) {

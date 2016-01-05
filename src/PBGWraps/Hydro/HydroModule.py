@@ -102,6 +102,8 @@ self.generateThirdMomentHourglassControlBindings(self.ThirdMomentHourglassContro
         x.add_static_attribute("pairAccelerations", "std::string",  is_const=True)
         x.add_static_attribute("pairWork", "std::string",  is_const=True)
         x.add_static_attribute("omegaGradh", "std::string",  is_const=True)
+        x.add_static_attribute("gamma", "std::string",  is_const=True)
+        x.add_static_attribute("PSPHcorrection", "std::string",  is_const=True)
         x.add_static_attribute("numberDensitySum", "std::string",  is_const=True)
         x.add_static_attribute("timeStepMask", "std::string",  is_const=True)
         x.add_static_attribute("m0_CRKSPH", "std::string",  is_const=True)
@@ -121,7 +123,7 @@ self.generateThirdMomentHourglassControlBindings(self.ThirdMomentHourglassContro
         x.add_static_attribute("gradA_CRKSPH", "std::string",  is_const=True)
         x.add_static_attribute("gradB_CRKSPH", "std::string",  is_const=True)
         x.add_static_attribute("gradC_CRKSPH", "std::string",  is_const=True)
-        x.add_static_attribute("M_CRKSPH", "std::string",  is_const=True)
+        x.add_static_attribute("M_SPHCorrection", "std::string",  is_const=True)
         x.add_static_attribute("volume", "std::string",  is_const=True)
         x.add_static_attribute("linearMomentum", "std::string",  is_const=True)
         x.add_static_attribute("totalEnergy", "std::string",  is_const=True)
@@ -132,6 +134,8 @@ self.generateThirdMomentHourglassControlBindings(self.ThirdMomentHourglassContro
         x.add_static_attribute("faceMass", "std::string",  is_const=True)
         x.add_static_attribute("polyvols", "std::string",  is_const=True)
         x.add_static_attribute("massDensityGradient", "std::string",  is_const=True)
+        x.add_static_attribute("ArtificialViscousClMultiplier", "std::string",  is_const=True)
+        x.add_static_attribute("ArtificialViscousCqMultiplier", "std::string",  is_const=True)
         return
 
     #---------------------------------------------------------------------------

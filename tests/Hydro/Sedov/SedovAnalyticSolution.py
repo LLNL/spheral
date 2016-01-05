@@ -141,7 +141,9 @@ class SedovSolution:
         t1 = t**nu1
         t2 = t**nu2
 
-        vs = nu2 * (E/rho1)**nu1 / t**(nu/(nu + 2.0))
+        vs = nu2 * (E/rho1)**nu1
+        if t != 0.0:
+            vs /= t**(nu/(nu + 2.0))
         r2 = (E/rho1)**nu1 * t2
         v2 = 2.0/(gamma + 1.0)*vs
         rho2 = (gamma + 1.0)/(gamma - 1.0)*rho1

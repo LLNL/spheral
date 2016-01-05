@@ -34,6 +34,9 @@ commandLine(seed = "lattice",
             rmin = 0.0,
             rmax = 1.0,
             nPerh = 2.01,
+            rho0 = 1.0,
+            eps0 = 0.0,
+            smallPressure = False,
 
             vr0 = -1.0, 
 
@@ -44,6 +47,7 @@ commandLine(seed = "lattice",
 
             SVPH = False,
             CRKSPH = False,
+            PSPH = False,
             SPH = True,   # This just chooses the H algorithm -- you can use this with CRKSPH for instance.
             Qconstructor = MonaghanGingoldViscosity,
             linearConsistent = False,
@@ -59,7 +63,6 @@ commandLine(seed = "lattice",
             hminratio = 0.1,
             cfl = 0.5,
             XSPH = False,
-            PSPH = False,
             epsilonTensile = 0.0,
             nTensile = 8,
             filter = 0.0,
@@ -68,14 +71,15 @@ commandLine(seed = "lattice",
             nhL = 10.0,
             aMin = 0.1,
             aMax = 2.0,
-            boolCullenViscosity = False,
             alphMax = 2.0,
             alphMin = 0.02,
             betaC = 0.7,
             betaD = 0.05,
             betaE = 1.0,
             fKern = 1.0/3.0,
+            boolCullenViscosity = False,
             boolHopkinsCorrection = True,
+            HopkinsConductivity = False,     # For PSPH
 
             IntegratorConstructor = CheapSynchronousRK2Integrator,
             goalTime = 0.6,
@@ -97,7 +101,7 @@ commandLine(seed = "lattice",
             correctionOrder = LinearOrder,
             densityUpdate = RigorousSumDensity, # VolumeScaledDensity,
             compatibleEnergy = True,
-            gradhCorrection = False,
+            gradhCorrection = True,
 
             clearDirectories = False,
             restoreCycle = None,
@@ -110,9 +114,11 @@ commandLine(seed = "lattice",
             graphics = True,
             )
 
-rho0 = 1.0
-eps0 = 0.0
 assert not(boolReduceViscosity and boolCullenViscosity)
+if smallPressure:
+   P0 = 1.0e-6
+   eps0 = P0/((gamma - 1.0)*rho0)
+
 
 if SVPH:
     if SPH:
@@ -125,6 +131,11 @@ elif CRKSPH:
     else:
         HydroConstructor = ACRKSPHHydro
     Qconstructor = CRKSPHMonaghanGingoldViscosity
+elif PSPH:
+    if SPH:
+        HydroConstructor = PSPHHydro
+    else:
+        HydroConstructor = APSPHHydro
 else:
     if SPH:
         HydroConstructor = SPHHydro
@@ -281,6 +292,16 @@ elif CRKSPH:
                              correctionOrder = correctionOrder,
                              densityUpdate = densityUpdate,
                              HUpdate = HUpdate)
+elif PSPH:
+    hydro = HydroConstructor(W = WT,
+                             Q = q,
+                             filter = filter,
+                             cfl = cfl,
+                             compatibleEnergyEvolution = compatibleEnergy,
+                             HopkinsConductivity = HopkinsConductivity,
+                             densityUpdate = densityUpdate,
+                             HUpdate = HUpdate,
+                             XSPH = XSPH)
 else:
     hydro = HydroConstructor(W = WT,
                              Q = q,
@@ -290,7 +311,6 @@ else:
                              densityUpdate = densityUpdate,
                              HUpdate = HUpdate,
                              XSPH = XSPH,
-                             PSPH = PSPH,
                              epsTensile = epsilonTensile,
                              nTensile = nTensile)
 output("hydro")

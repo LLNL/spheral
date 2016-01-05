@@ -34,6 +34,9 @@ commandLine(KernelConstructor = BSplineKernel,
             rmin = 0.0,
             rmax = 1.0,
             nPerh = 2.01,
+            rho0 = 1.0,
+            eps0 = 0.0,
+            smallPressure = False,
 
             vr0 = -1.0, 
 
@@ -42,10 +45,12 @@ commandLine(KernelConstructor = BSplineKernel,
 
             SVPH = False,
             CRKSPH = False,
+	    PSPH = False,
             SPH = True,   # This just chooses the H algorithm -- you can use this with CRKSPH for instance.
             Qconstructor = MonaghanGingoldViscosity,
             #Qconstructor = TensorMonaghanGingoldViscosity,
             boolReduceViscosity = False,
+            HopkinsConductivity = False,     # For PSPH
             nhQ = 5.0,
             nhL = 10.0,
             aMin = 0.1,
@@ -71,7 +76,6 @@ commandLine(KernelConstructor = BSplineKernel,
             hmax = 0.5,
             hminratio = 0.1,
             cfl = 0.5,
-	    PSPH = False,
             XSPH = False,
             epsilonTensile = 0.0,
             nTensile = 8,
@@ -98,7 +102,7 @@ commandLine(KernelConstructor = BSplineKernel,
 
             densityUpdate = RigorousSumDensity, # VolumeScaledDensity,
             compatibleEnergy = True,
-            gradhCorrection = False,
+            gradhCorrection = True,
 
             useVoronoiOutput = False,
             clearDirectories = False,
@@ -126,8 +130,9 @@ else:
     assert thetaFactor == 2.0
     xmin = (-rmax, -rmax)
 
-rho0 = 1.0
-eps0 = 0.0
+if smallPressure:
+   P0 = 1.0e-6
+   eps0 = P0/((gamma - 1.0)*rho0)
 
 if SVPH:
     if SPH:
@@ -140,6 +145,11 @@ elif CRKSPH:
     else:
         HydroConstructor = ACRKSPHHydro
     Qconstructor = CRKSPHMonaghanGingoldViscosity
+elif PSPH:
+    if SPH:
+        HydroConstructor = PSPHHydro
+    else:
+        HydroConstructor = APSPHHydro
 else:
     if SPH:
         HydroConstructor = SPHHydro
@@ -304,6 +314,16 @@ elif CRKSPH:
                              volumeType = volumeType,
                              densityUpdate = densityUpdate,
                              HUpdate = HUpdate)
+elif PSPH:
+    hydro = HydroConstructor(W = WT,
+                             Q = q,
+                             filter = filter,
+                             cfl = cfl,
+                             compatibleEnergyEvolution = compatibleEnergy,
+                             HopkinsConductivity = HopkinsConductivity,
+                             densityUpdate = densityUpdate,
+                             HUpdate = HUpdate,
+                             XSPH = XSPH)
 else:
     hydro = HydroConstructor(W = WT,
                              Q = q,
@@ -313,7 +333,6 @@ else:
                              gradhCorrection = gradhCorrection,
                              densityUpdate = densityUpdate,
                              HUpdate = HUpdate,
-			     PSPH = PSPH,
                              XSPH = XSPH,
                              epsTensile = epsilonTensile,
                              nTensile = nTensile)
@@ -335,7 +354,7 @@ if boolReduceViscosity:
     evolveReducingViscosityMultiplier = MorrisMonaghanReducingViscosity(q,nhQ,nhL,aMin,aMax)
     packages.append(evolveReducingViscosityMultiplier)
 elif boolCullenViscosity:
-    evolveCullenViscosityMultiplier = CullenDehnenViscosity(q,WTPi,alphMax,alphMin,betaC,betaD,betaE,fKern,boolHopkinsCorrection)
+    evolveCullenViscosityMultiplier = CullenDehnenViscosity(q,WT,alphMax,alphMin,betaC,betaD,betaE,fKern,boolHopkinsCorrection)
     packages.append(evolveCullenViscosityMultiplier)
 
 

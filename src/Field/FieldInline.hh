@@ -226,9 +226,7 @@ inline
 Field<Dimension, DataType>&
 Field<Dimension, DataType>::operator=(const DataType& rhs) {
   REQUIRE(mValid);
-  for (iterator fieldItr = begin(); fieldItr < end(); ++fieldItr) {
-    *fieldItr = rhs;
-  }
+  std::fill(begin(), end(), rhs);
   return *this;
 }
 
@@ -411,9 +409,7 @@ inline
 void
 Field<Dimension, DataType>::Zero() {
   REQUIRE(mValid);
-  for (iterator fieldItr = begin(); fieldItr < end(); ++fieldItr) {
-    *fieldItr = DataTypeTraits<DataType>::zero();
-  }
+  std::fill(begin(), end(), DataTypeTraits<DataType>::zero());
 }
 
 //------------------------------------------------------------------------------
@@ -424,9 +420,8 @@ inline
 void
 Field<Dimension, DataType>::applyMin(const DataType& dataMin) {
   REQUIRE(mValid);
-  for (iterator fieldItr = begin(); fieldItr < end(); ++fieldItr) {
-    *fieldItr = std::max(dataMin, *fieldItr);
-  }
+  const unsigned n = this->numElements();
+  for (unsigned i = 0; i != n; ++i) mDataArray[i] = std::max(mDataArray[i], dataMin);
 }
 
 //------------------------------------------------------------------------------
@@ -437,9 +432,8 @@ inline
 void
 Field<Dimension, DataType>::applyMax(const DataType& dataMax) {
   REQUIRE(mValid);
-  for (iterator fieldItr = begin(); fieldItr < end(); ++fieldItr) {
-    *fieldItr = std::min(dataMax, *fieldItr);
-  }
+  const unsigned n = this->numElements();
+  for (unsigned i = 0; i != n; ++i) mDataArray[i] = std::min(mDataArray[i], dataMax);
 }
 
 //------------------------------------------------------------------------------
@@ -450,9 +444,8 @@ inline
 void
 Field<Dimension, DataType>::applyScalarMin(const double dataMin) {
   REQUIRE(mValid);
-  for (iterator fieldItr = begin(); fieldItr < end(); ++fieldItr) {
-    *fieldItr = Spheral::max(dataMin, *fieldItr);
-  }
+  const unsigned n = this->numElements();
+  for (unsigned i = 0; i != n; ++i) mDataArray[i] = Spheral::max(mDataArray[i], dataMin);
 }
 
 //------------------------------------------------------------------------------
@@ -463,9 +456,8 @@ inline
 void
 Field<Dimension, DataType>::applyScalarMax(const double dataMax) {
   REQUIRE(mValid);
-  for (iterator fieldItr = begin(); fieldItr < end(); ++fieldItr) {
-    *fieldItr = Spheral::min(dataMax, *fieldItr);
-  }
+  const unsigned n = this->numElements();
+  for (unsigned i = 0; i != n; ++i) mDataArray[i] = Spheral::min(mDataArray[i], dataMax);
 }
 
 //------------------------------------------------------------------------------
@@ -478,9 +470,8 @@ Field<Dimension, DataType>::operator+(const Field<Dimension, DataType>& rhs) con
   REQUIRE(valid() && rhs.valid());
   REQUIRE(this->nodeListPtr() == rhs.nodeListPtr());
   Field<Dimension, DataType> result(*this);
-  for (int i = 0; i < result.size(); ++i) {
-    result(i) += rhs(i);
-  }
+  const unsigned n = this->numElements();
+  for (unsigned i = 0; i != n; ++i) result(i) += rhs(i);
   return result;
 }
 
@@ -494,9 +485,8 @@ Field<Dimension, DataType>::operator-(const Field<Dimension, DataType>& rhs) con
   REQUIRE(valid() && rhs.valid());
   REQUIRE(this->nodeListPtr() == rhs.nodeListPtr());
   Field<Dimension, DataType> result(*this);
-  for (int i = 0; i < result.size(); ++i) {
-    result(i) -= rhs(i);
-  }
+  const unsigned n = this->numElements();
+  for (unsigned i = 0; i != n; ++i) result(i) -= rhs(i);
   return result;
 }
 
@@ -509,9 +499,8 @@ Field<Dimension, DataType>&
 Field<Dimension, DataType>::operator+=(const Field<Dimension, DataType>& rhs) {
   REQUIRE(valid() && rhs.valid());
   REQUIRE(this->nodeListPtr() == rhs.nodeListPtr());
-  for (int i = 0; i < size(); ++i) {
-    (*this)(i) += rhs(i);
-  }
+  const unsigned n = this->numElements();
+  for (unsigned i = 0; i != n; ++i) (*this)(i) += rhs(i);
   return *this;
 }
 
@@ -524,9 +513,8 @@ Field<Dimension, DataType>&
 Field<Dimension, DataType>::operator-=(const Field<Dimension, DataType>& rhs) {
   REQUIRE(valid() && rhs.valid());
   REQUIRE(this->nodeListPtr() == rhs.nodeListPtr());
-  for (int i = 0; i < size(); ++i) {
-    (*this)(i) -= rhs(i);
-  }
+  const unsigned n = this->numElements();
+  for (unsigned i = 0; i != n; ++i) (*this)(i) -= rhs(i);
   return *this;
 }
 
@@ -539,9 +527,8 @@ Field<Dimension, DataType>
 Field<Dimension, DataType>::operator+(const DataType& rhs) const {
   REQUIRE(valid());
   Field<Dimension, DataType> result(*this);
-  for (int i = 0; i < result.size(); ++i) {
-    result(i) += rhs;
-  }
+  const unsigned n = this->numElements();
+  for (unsigned i = 0; i != n; ++i) result(i) += rhs;
   return result;
 }
 
@@ -554,9 +541,8 @@ Field<Dimension, DataType>
 Field<Dimension, DataType>::operator-(const DataType& rhs) const {
   REQUIRE(valid());
   Field<Dimension, DataType> result(*this);
-  for (int i = 0; i < result.size(); ++i) {
-    result(i) -= rhs;
-  }
+  const unsigned n = this->numElements();
+  for (unsigned i = 0; i != n; ++i) result(i) -= rhs;
   return result;
 }
 
@@ -568,9 +554,8 @@ inline
 Field<Dimension, DataType>&
 Field<Dimension, DataType>::operator+=(const DataType& rhs) {
   REQUIRE(valid());
-  for (int i = 0; i < size(); ++i) {
-    (*this)(i) += rhs;
-  }
+  const unsigned n = this->numElements();
+  for (unsigned i = 0; i != n; ++i) (*this)(i) += rhs;
   return *this;
 }
 
@@ -582,9 +567,8 @@ inline
 Field<Dimension, DataType>&
 Field<Dimension, DataType>::operator-=(const DataType& rhs) {
   REQUIRE(valid());
-  for (int i = 0; i < size(); ++i) {
-    (*this)(i) -= rhs;
-  }
+  const unsigned n = this->numElements();
+  for (unsigned i = 0; i != n; ++i) (*this)(i) -= rhs;
   return *this;
 }
 
@@ -599,9 +583,8 @@ Field<Dimension, DataType>::
 operator*=(const Field<Dimension, Scalar>& rhs) {
   REQUIRE(valid() && rhs.valid());
   REQUIRE(this->nodeListPtr() == rhs.nodeListPtr());
-  for (int i = 0; i < size(); ++i) {
-    (*this)(i) *= rhs(i);
-  }
+  const unsigned n = this->numElements();
+  for (unsigned i = 0; i != n; ++i) (*this)(i) *= rhs(i);
   return *this;
 }
 
@@ -614,9 +597,8 @@ Field<Dimension, DataType>&
 Field<Dimension, DataType>::
 operator*=(const Scalar& rhs) {
   REQUIRE(valid());
-  for (int i = 0; i < size(); ++i) {
-    (*this)(i) *= rhs;
-  }
+  const unsigned n = this->numElements();
+  for (unsigned i = 0; i != n; ++i) (*this)(i) *= rhs;
   return *this;
 }
 
@@ -632,7 +614,8 @@ operator/(const Field<Dimension, typename Dimension::Scalar>& rhs) const {
   REQUIRE(valid() && rhs.valid());
   REQUIRE(this->nodeListPtr() == rhs.nodeListPtr());
   Field<Dimension, DataType> result(*this);
-  for (int i = 0; i < result.size(); ++i) {
+  const unsigned n = this->numElements();
+  for (unsigned i = 0; i != n; ++i) {
     CHECK(rhs(i) != 0.0);
     result(i) /= rhs(i);
   }
@@ -650,7 +633,8 @@ Field<Dimension, DataType>::
 operator/=(const Field<Dimension, typename Dimension::Scalar>& rhs) {
   REQUIRE(valid() && rhs.valid());
   REQUIRE(this->nodeListPtr() == rhs.nodeListPtr());
-  for (int i = 0; i < size(); ++i) {
+  const unsigned n = this->numElements();
+  for (int i = 0; i < n; ++i) {
     REQUIRE(rhs(i) != 0.0);
     (*this)(i) /= rhs(i);
   }
@@ -682,7 +666,8 @@ Field<Dimension, DataType>::
 operator/=(const Scalar& rhs) {
   REQUIRE(valid());
   REQUIRE(rhs != 0.0);
-  for (int i = 0; i < size(); ++i) {
+  const unsigned n = this->numElements();
+  for (int i = 0; i < n; ++i) {
     CHECK(rhs != 0.0);
     (*this)(i) /= rhs;
   }

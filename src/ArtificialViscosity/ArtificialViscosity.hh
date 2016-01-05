@@ -58,26 +58,26 @@ namespace ArtificialViscositySpace {
 template<typename Dimension>
 class ArtificialViscosity {
 public:
-    //--------------------------- Public Interface ---------------------------//
-    typedef typename Dimension::Scalar Scalar;
-    typedef typename Dimension::Vector Vector;
-    typedef typename Dimension::Tensor Tensor;
-    typedef typename Dimension::SymTensor SymTensor;
-    typedef typename std::pair<double, std::string> TimeStepType;
+  //--------------------------- Public Interface ---------------------------//
+  typedef typename Dimension::Scalar Scalar;
+  typedef typename Dimension::Vector Vector;
+  typedef typename Dimension::Tensor Tensor;
+  typedef typename Dimension::SymTensor SymTensor;
+  typedef typename std::pair<double, std::string> TimeStepType;
 
-    typedef typename std::vector<BoundarySpace::Boundary<Dimension>*>::const_iterator ConstBoundaryIterator;
+  typedef typename std::vector<BoundarySpace::Boundary<Dimension>*>::const_iterator ConstBoundaryIterator;
 
-    // Constructors.
-    ArtificialViscosity(const Scalar Clinear,
-                        const Scalar Cquadratic,
-                        const CRKSPHSpace::CRKOrder QcorrectionOrder = CRKSPHSpace::LinearOrder);
+  // Constructors.
+  ArtificialViscosity(const Scalar Clinear,
+                      const Scalar Cquadratic,
+                      const CRKSPHSpace::CRKOrder QcorrectionOrder = CRKSPHSpace::LinearOrder);
 
-    // Destructor.
-    virtual ~ArtificialViscosity();
+  // Destructor.
+  virtual ~ArtificialViscosity();
 
-    // Initialize the artificial viscosity for all FluidNodeLists in the given
-    // DataBase.
-    virtual void initialize(const DataBaseSpace::DataBase<Dimension>& dataBase,
+  // Initialize the artificial viscosity for all FluidNodeLists in the given
+  // DataBase.
+  virtual void initialize(const DataBaseSpace::DataBase<Dimension>& dataBase,
                           const State<Dimension>& state,
                           const StateDerivatives<Dimension>& derivs,
                           ConstBoundaryIterator boundaryBegin,
@@ -86,9 +86,9 @@ public:
                           const Scalar dt,
                           const KernelSpace::TableKernel<Dimension>& W);
 
-    // Require all descendents to return the artificial viscous Pi = P/rho^2 as a tensor.
-    // Scalar viscosities should just return a diagonal tensor with their value along the diagonal.
-    virtual std::pair<Tensor, Tensor> Piij(const unsigned nodeListi, const unsigned i, 
+  // Require all descendents to return the artificial viscous Pi = P/rho^2 as a tensor.
+  // Scalar viscosities should just return a diagonal tensor with their value along the diagonal.
+  virtual std::pair<Tensor, Tensor> Piij(const unsigned nodeListi, const unsigned i, 
                                          const unsigned nodeListj, const unsigned j,
                                          const Vector& xi,
                                          const Vector& etai,
@@ -103,55 +103,48 @@ public:
                                          const Scalar csj,
                                          const SymTensor& Hj) const = 0;
 
-    // Allow access to the linear and quadratic constants.
-    Scalar Cl() const;
-    void Cl(Scalar Cl);
+  // Allow access to the linear and quadratic constants.
+  Scalar Cl() const;
+  void Cl(Scalar Cl);
 
-    Scalar Cq() const;
-    void Cq(Scalar Cq);
+  Scalar Cq() const;
+  void Cq(Scalar Cq);
 
-    //Allow access to the Q correction order.
-    CRKSPHSpace::CRKOrder QcorrectionOrder() const;
-    void QcorrectionOrder(CRKSPHSpace::CRKOrder order);
+  //Allow access to the Q correction order.
+  CRKSPHSpace::CRKOrder QcorrectionOrder() const;
+  void QcorrectionOrder(CRKSPHSpace::CRKOrder order);
 
-    // Toggle for the Balsara shear correction.
-    bool balsaraShearCorrection() const;
-    void balsaraShearCorrection(bool value);
+  // Toggle for the Balsara shear correction.
+  bool balsaraShearCorrection() const;
+  void balsaraShearCorrection(bool value);
 
-    // Calculate the curl of the velocity given the stress tensor.
-    Scalar curlVelocityMagnitude(const Tensor& DvDx) const;
+  // Calculate the curl of the velocity given the stress tensor.
+  Scalar curlVelocityMagnitude(const Tensor& DvDx) const;
 
-    // Access the FieldList of Balsara shear multiplicative corrections.
-    const FieldSpace::FieldList<Dimension, Scalar>& shearMultiplier() const;
+  // Access the FieldList of multiplicative corrections.
+  FieldSpace::FieldList<Dimension, Scalar>& ClMultiplier();
+  FieldSpace::FieldList<Dimension, Scalar>& CqMultiplier();
+  const FieldSpace::FieldList<Dimension, Scalar>& ClMultiplier() const;
+  const FieldSpace::FieldList<Dimension, Scalar>& CqMultiplier() const;
 
-    // Toggle for the Reducing Viscosity correction.
-    bool reducingViscosityCorrection() const;
-    void reducingViscosityCorrection(bool value);
+  // Access the internally computed estimate of sigma:
+  // sig^ab = \partial v^a / \partial x^b.
+  const FieldSpace::FieldList<Dimension, Tensor>& sigma() const;
 
-    // Access the FieldList of Reducing Viscosity multiplicative correction.
-    FieldSpace::FieldList<Dimension, Scalar>& reducingViscosityMultiplierQ();
-    const FieldSpace::FieldList<Dimension, Scalar>& reducingViscosityMultiplierQ() const;
-    FieldSpace::FieldList<Dimension, Scalar>& reducingViscosityMultiplierL();
-    const FieldSpace::FieldList<Dimension, Scalar>& reducingViscosityMultiplierL() const;
+  // Access the internally computed estimate of the velocity gradient and
+  // grad div velocity.
+  const FieldSpace::FieldList<Dimension, Vector>& gradDivVelocity() const;
 
-    // Access the internally computed estimate of sigma:
-    // sig^ab = \partial v^a / \partial x^b.
-    const FieldSpace::FieldList<Dimension, Tensor>& sigma() const;
+  // Switch to turn the del^2 v limiter on/off.
+  bool limiter() const;
+  void limiter(bool value);
 
-    // Access the internally computed estimate of the velocity gradient and
-    // grad div velocity.
-    const FieldSpace::FieldList<Dimension, Vector>& gradDivVelocity() const;
+  // Access the epsilon safety factor.
+  Scalar epsilon2() const;
+  void epsilon2(Scalar epsilon2);
 
-    // Switch to turn the del^2 v limiter on/off.
-    bool limiter() const;
-    void limiter(bool value);
-
-    // Access the epsilon safety factor.
-    Scalar epsilon2() const;
-    void epsilon2(Scalar epsilon2);
-
-    // Method to return the limiter magnitude for the given node.
-    Tensor calculateLimiter(const Vector& vi,
+  // Method to return the limiter magnitude for the given node.
+  Tensor calculateLimiter(const Vector& vi,
                           const Vector& vj,
                           const Scalar ci,
                           const Scalar cj,
@@ -160,47 +153,47 @@ public:
                           const int nodeListID,
                           const int nodeID) const;
 
-    // Helper for the limiter, calculate the unit grad div v term for the given 
-    // node.
-    Vector shockDirection(const Scalar ci,
+  // Helper for the limiter, calculate the unit grad div v term for the given 
+  // node.
+  Vector shockDirection(const Scalar ci,
                         const Scalar hi,
                         const int nodeListID,
                         const int nodeID) const;
 
-    // The negligible sound speed parameter for use in the limiter.
-    Scalar negligibleSoundSpeed() const;
-    void negligibleSoundSpeed(const Scalar val);
+  // The negligible sound speed parameter for use in the limiter.
+  Scalar negligibleSoundSpeed() const;
+  void negligibleSoundSpeed(const Scalar val);
 
-    // The multiplier for sound speed in the limiter.
-    Scalar csMultiplier() const;
-    void csMultiplier(const Scalar val);
+  // The multiplier for sound speed in the limiter.
+  Scalar csMultiplier() const;
+  void csMultiplier(const Scalar val);
 
-    // The multiplier for energy in the limiter.
-    Scalar energyMultiplier() const;
-    void energyMultiplier(const Scalar val);
+  // The multiplier for energy in the limiter.
+  Scalar energyMultiplier() const;
+  void energyMultiplier(const Scalar val);
 
-    // Helper method to calculate Del cross V from the given sigma tensor.
-    Scalar computeDelCrossVMagnitude(const Tensor& sigma) const;
+  // Helper method to calculate Del cross V from the given sigma tensor.
+  Scalar computeDelCrossVMagnitude(const Tensor& sigma) const;
 
-    // Helper method to calculate the weighting based on the given position
-    // for use in the sigma calculation.
-    Vector sigmaWeighting(const Vector& r) const;
+  // Helper method to calculate the weighting based on the given position
+  // for use in the sigma calculation.
+  Vector sigmaWeighting(const Vector& r) const;
 
-    // Figure out the total stress-strain tensor for a given node pair based on 
-    // the stored average value and the given (position, velocity) pair.
-    Tensor sigmaij(const Vector& rji, 
+  // Figure out the total stress-strain tensor for a given node pair based on 
+  // the stored average value and the given (position, velocity) pair.
+  Tensor sigmaij(const Vector& rji, 
                  const Vector& rjiUnit, 
                  const Vector& vji, 
                  const Scalar& hi2,
                  const int nodeListID,
                  const int nodeID) const;
 
-    //****************************************************************************
-    // Methods required for restarting.
-    virtual std::string label() const { return "ArtificialViscosity"; }
-    virtual void dumpState(FileIOSpace::FileIO& file, const std::string& pathName) const;
-    virtual void restoreState(const FileIOSpace::FileIO& file, const std::string& pathName);
-    //****************************************************************************
+  //****************************************************************************
+  // Methods required for restarting.
+  virtual std::string label() const { return "ArtificialViscosity"; }
+  virtual void dumpState(FileIOSpace::FileIO& file, const std::string& pathName) const;
+  virtual void restoreState(const FileIOSpace::FileIO& file, const std::string& pathName);
+  //****************************************************************************
 
 protected:
   //--------------------------- Protected Interface ---------------------------//
@@ -212,10 +205,11 @@ protected:
   Scalar mCquadratic;
   CRKSPHSpace::CRKOrder mQcorrectionOrder;
 
-#ifndef __GCCXML__
-  // Parameters for the Balsara shear correction.
+  // Switch for the Balsara shear correction.
   bool mBalsaraShearCorrection;
-  FieldSpace::FieldList<Dimension, Scalar> mShearMultiplier;
+
+  // Generic multipliers for the linear and quadratic terms.
+  FieldSpace::FieldList<Dimension, Scalar> mClMultiplier, mCqMultiplier;
 
   // Parameters for the Q limiter.
   bool mCalculateSigma;
@@ -227,15 +221,8 @@ protected:
   FieldSpace::FieldList<Dimension, Tensor> mSigma;
   FieldSpace::FieldList<Dimension, Vector> mGradDivVelocity;
     
-  // Parameters for Reducing Q correction after shocks
-    bool mReducingViscosityCorrection;
-    FieldSpace::FieldList<Dimension, Scalar> mReducingViscosityMultiplierQ;
-    FieldSpace::FieldList<Dimension, Scalar> mReducingViscosityMultiplierL;
-
-
   // The restart registration.
   DataOutput::RestartRegistrationType mRestart;
-#endif
 
   // Protected methods.
   virtual void calculateSigmaAndGradDivV(const DataBaseSpace::DataBase<Dimension>& dataBase,
@@ -255,9 +242,7 @@ private:
 }
 }
 
-#ifndef __GCCXML__
 #include "ArtificialViscosityInline.hh"
-#endif
 
 #else
 

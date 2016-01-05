@@ -55,6 +55,7 @@ commandLine(nx1 = 128,
             
             SVPH = False,
             CRKSPH = False,
+            PSPH = False,
             SPH = True,   # This just chooses the H algorithm -- you can use this with CRKSPH for instance.
             filter = 0.0,   # CRKSPH filtering
             Qconstructor = MonaghanGingoldViscosity,
@@ -89,7 +90,6 @@ commandLine(nx1 = 128,
             cfl = 0.5,
             useVelocityMagnitudeForDt = False,
             XSPH = False,
-            PSPH = False,
             epsilonTensile = 0.0,
             nTensile = 8,
             
@@ -143,6 +143,11 @@ elif CRKSPH:
         HydroConstructor = CRKSPHHydro
     else:
         HydroConstructor = ACRKSPHHydro
+elif PSPH:
+    if SPH:
+        HydroConstructor = PSPHHydro
+    else:
+        HydroConstructor = APSPHHydro
 else:
     if SPH:
         HydroConstructor = SPHHydro
@@ -156,9 +161,9 @@ dataDir = os.path.join(dataDir,
                        Qconstructor.__name__,
                        KernelConstructor.__name__,
                        "densityUpdate=%s" % (densityUpdate),
+                       "correctionOrder=%s" % (correctionOrder),
                        "XSPH=%s" % XSPH,
                        "filter=%s" % filter,
-                       "PSPH=%s" % PSPH,
                        "compatible=%s" % compatibleEnergy,
                        "Cullen=%s" % boolCullenViscosity,
                        "%s-Cl=%g-Cq=%g" % (str(Qconstructor).split("'")[1].split(".")[-1], Cl, Cq),
@@ -319,7 +324,6 @@ else:
                              compatibleEnergyEvolution = compatibleEnergy,
                              gradhCorrection = gradhCorrection,
                              XSPH = XSPH,
-                             PSPH = PSPH,
                              densityUpdate = densityUpdate,
                              HUpdate = HUpdate,
                              epsTensile = epsilonTensile,

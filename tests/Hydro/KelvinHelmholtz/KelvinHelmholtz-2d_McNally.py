@@ -50,8 +50,8 @@ commandLine(nx1 = 256,
 
             SVPH = False,
             CRKSPH = False,
-            ASPH = False,
-            SPH = True,   # This just chooses the H algorithm -- you can use this with CRKSPH for instance.
+            PSPH = False,
+            ASPH = False,   # Just for choosing the H algorithm
             filter = 0.0,   # CRKSPH filtering
             Qconstructor = MonaghanGingoldViscosity,
             KernelConstructor = BSplineKernel,
@@ -87,7 +87,6 @@ commandLine(nx1 = 256,
             cfl = 0.5,
             useVelocityMagnitudeForDt = False,
             XSPH = False,
-            PSPH = False,
             epsilonTensile = 0.0,
             nTensile = 8,
 
@@ -130,8 +129,8 @@ commandLine(nx1 = 256,
             bArtificialConduction = False,
             arCondAlpha = 0.5,
             )
-assert not(boolReduceViscosity and boolCullenViscosity)
 
+assert not(boolReduceViscosity and boolCullenViscosity)
 assert numNodeLists in (1, 2)
 
 # Decide on our hydro algorithm.
@@ -146,6 +145,11 @@ elif CRKSPH:
         HydroConstructor = ACRKSPHHydro
     else:
         HydroConstructor = CRKSPHHydro
+elif PSPH:
+    if ASPH:
+        HydroConstructor = APSPHHydro
+    else:
+        HydroConstructor = PSPHHydro
 else:
     if ASPH:
         HydroConstructor = ASPHHydro
@@ -162,7 +166,6 @@ dataDir = os.path.join(dataDir,
                        "correctionOrder=%s" % (correctionOrder),
                        "volumeType=%s" % volumeType,
                        "compatibleEnergy=%s" % (compatibleEnergy),
-                       "PSPH=%s" % (PSPH),
                        "Cullen=%s" % (boolCullenViscosity),
                        "filter=%g" % filter,
                        "%s-Cl=%g-Cq=%g" % (Qconstructor.__name__, Cl, Cq),
@@ -243,21 +246,21 @@ if restoreCycle is None:
                                             xmin = (0.0,  0.25),
                                             xmax = (1.0,  0.75),
                                             nNodePerh = nPerh,
-                                            SPH = SPH)
+                                            SPH = (not ASPH))
     generator21 = GenerateNodeDistribution2d(nx2, int(0.5*ny2 + 0.5),
                                              rho = rho1,
                                              distributionType = "lattice",
                                              xmin = (0.0, 0.0),
                                              xmax = (1.0, 0.25),
                                              nNodePerh = nPerh,
-                                             SPH = SPH)
+                                             SPH = (not ASPH))
     generator22 = GenerateNodeDistribution2d(nx2, int(0.5*ny2 + 0.5),
                                              rho = rho1,
                                              distributionType = "lattice",
                                              xmin = (0.0, 0.75),
                                              xmax = (1.0, 1.0),
                                              nNodePerh = nPerh,
-                                             SPH = SPH)
+                                             SPH = (not ASPH))
     generator2 = CompositeNodeDistribution(generator21, generator22)
 
     if mpi.procs > 1:
@@ -405,7 +408,6 @@ else:
                              cfl = cfl,
                              useVelocityMagnitudeForDt = useVelocityMagnitudeForDt,
                              compatibleEnergyEvolution = compatibleEnergy,
-                             PSPH = PSPH,
                              gradhCorrection = gradhCorrection,
                              XSPH = XSPH,
                              densityUpdate = densityUpdate,
@@ -510,7 +512,7 @@ control = SpheralController(integrator, WT,
                             vizDir = vizDir,
                             vizStep = vizCycle,
                             vizTime = vizTime,
-                            SPH = SPH)
+                            SPH = (not ASPH))
 output("control")
 
 #-------------------------------------------------------------------------------
@@ -627,7 +629,7 @@ if serialDump:
           serialData.append([nodeL.positions()[j],3.0/(nodeL.Hfield()[j].Trace()),nodeL.mass()[j],nodeL.massDensity()[j],nodeL.specificThermalEnergy()[j]])
   serialData = mpi.reduce(serialData,mpi.SUM)
   if rank == 0:
-    f = open(os.path.join(dataDir, "/serialDump.ascii"),'w')
+    f = open(os.path.join(dataDir, "./serialDump.ascii"),'w')
     for i in xrange(len(serialData)):
       f.write("{0} {1} {2} {3} {4} {5} {6} {7}\n".format(i,serialData[i][0][0],serialData[i][0][1],0.0,serialData[i][1],serialData[i][2],serialData[i][3],serialData[i][4]))
     f.close()

@@ -24,13 +24,17 @@ commandLine(nx1 = 400,
             x1 = 0.0,
             x2 = 0.5,
 
-            smoothDiscontinuity = False,
+            hsmooth = 0.0,  # Optionally smooth initial discontinuity
 
             nPerh = 1.25,
 
             gammaGas = 5.0/3.0,
             mu = 1.0,
             
+            SVPH = False,
+            CRKSPH = False,
+            PSPH = False,
+            solid = False,    # If true, use the fluid limit of the solid hydro option
             Qconstructor = MonaghanGingoldViscosity,
             boolReduceViscosity = False,
             nh = 5.0,
@@ -41,6 +45,7 @@ commandLine(nx1 = 400,
             etaCritFrac = 1.0,
             etaFoldFrac = 0.2,
             boolCullenViscosity = False,
+            cullenReproducingKernelGradient = False,  # Use reproducing kernels for gradients in Cullen-Dehnen visocosity model
             alphMax = 2.0,
             alphMin = 0.02,
             betaC = 0.7,
@@ -48,6 +53,7 @@ commandLine(nx1 = 400,
             betaE = 1.0,
             fKern = 1.0/3.0,
             boolHopkinsCorrection = True,
+            HopkinsConductivity = False,
             linearInExpansion = False,
             quadraticInExpansion = False,
             Qlimiter = False,
@@ -56,7 +62,6 @@ commandLine(nx1 = 400,
             hmax = 1.0,
             cfl = 0.5,
             XSPH = False,
-            PSPH = False,
             epsilonTensile = 0.0,
             nTensile = 8,
             rhoMin = 0.01,
@@ -70,15 +75,12 @@ commandLine(nx1 = 400,
             bArtificialConduction = False,
             arCondAlpha = 0.5,
 
-            SVPH = False,
-            CRKSPH = False,
-            solid = False,    # If true, use the fluid limit of the solid hydro option
             IntegratorConstructor = CheapSynchronousRK2Integrator,
             dtverbose = False,
             steps = None,
             goalTime = 0.15,
-            dt = 1e-4,
-            dtMin = 1.0e-5,
+            dt = 1e-6,
+            dtMin = 1.0e-6,
             dtMax = 0.1,
             dtGrowth = 2.0,
             rigorousBoundaries = False,
@@ -89,14 +91,15 @@ commandLine(nx1 = 400,
             volumeType = CRKSumVolume,
             densityUpdate = RigorousSumDensity,
             compatibleEnergy = True,
-            gradhCorrection = False,
+            correctVelocityGradient = True,
+            gradhCorrection = True,
             linearConsistent = False,
 
             useRefinement = False,
 
             clearDirectories = False,
             restoreCycle = -1,
-            restartStep = 200,
+            restartStep = 10000,
             dataDirBase = "dumps-Sod-planar",
             restartBaseName = "Sod-planar-1d-restart",
             outputFile = "None",
@@ -114,6 +117,8 @@ elif CRKSPH:
     else:
         HydroConstructor = CRKSPHHydro
     Qconstructor = CRKSPHMonaghanGingoldViscosity
+elif PSPH:
+    HydroConstructor = PSPHHydro
 else:
     if solid:
         HydroConstructor = SolidSPHHydro
@@ -196,21 +201,15 @@ nodeSet = [nodes1, nodes2]
 #-------------------------------------------------------------------------------
 dx1 = (x1 - x0)/nx1
 dx2 = (x2 - x1)/nx2
-hfold = 4*max(dx1, dx2)
+hfold = hsmooth*max(dx1, dx2)
 def rho_initial(xi):
-    if smoothDiscontinuity:
-        if xi < x1 - hfold:
-            return rho1
-        elif xi > x1 + hfold:
-            return rho2
-        else:
-            f = 0.5*(sin(0.5*pi*(xi - x1)/hfold) + 1.0)
-            return (1.0 - f)*rho1 + f*rho2
+    if xi < x1 - hfold:
+        return rho1
+    elif xi > x1 + hfold:
+        return rho2
     else:
-        if xi < x1:
-            return rho1
-        else:
-            return rho2
+        f = 0.5*(sin(0.5*pi*(xi - x1)/hfold) + 1.0)
+        return (1.0 - f)*rho1 + f*rho2
 
 #-------------------------------------------------------------------------------
 # Set the node properties.
@@ -226,28 +225,22 @@ output("nodes1.numNodes")
 output("nodes2.numNodes")
 
 # Set node specific thermal energies
-eps1 = P1/((gammaGas - 1.0)*rho1)
-eps2 = P2/((gammaGas - 1.0)*rho2)
-def specificEnergy(xi):
-    if smoothDiscontinuity:
-        if xi < x1 - hfold:
-            return eps1
-        elif xi > x1 + hfold:
-            return eps2
-        else:
-            f = 0.5*(sin(0.5*pi*(xi - x1)/hfold) + 1.0)
-            return (1.0 - f)*eps1 + f*eps2
+def specificEnergy(xi, rhoi):
+    if xi < x1 - hfold:
+        Pi = P1
+    elif xi > x1 + hfold:
+        Pi = P2
     else:
-        if xi < x1:
-            return eps1
-        else:
-            return eps2
+        f = 0.5*(sin(0.5*pi*(xi - x1)/hfold) + 1.0)
+        Pi = (1.0 - f)*P1 + f*P2
+    return Pi/((gammaGas - 1.0)*rhoi)
 
 for nodes in nodeSet:
     pos = nodes.positions()
     eps = nodes.specificThermalEnergy()
+    rho = nodes.massDensity()
     for i in xrange(nodes.numInternalNodes):
-        eps[i] = specificEnergy(pos[i].x)
+        eps[i] = specificEnergy(pos[i].x, rho[i])
 
 #-------------------------------------------------------------------------------
 # Construct a DataBase to hold our node list
@@ -301,6 +294,16 @@ elif CRKSPH:
                              HUpdate = HUpdate)
     q.etaCritFrac = etaCritFrac
     q.etaFoldFrac = etaFoldFrac
+elif PSPH:
+    hydro = HydroConstructor(W = WT,
+                             Q = q,
+                             cfl = cfl,
+                             compatibleEnergyEvolution = compatibleEnergy,
+                             densityUpdate = densityUpdate,
+                             HUpdate = HUpdate,
+                             XSPH = XSPH,
+                             correctVelocityGradient = correctVelocityGradient,
+                             HopkinsConductivity = HopkinsConductivity)
 else:
     hydro = HydroConstructor(W = WT,
                              Q = q,
@@ -309,8 +312,8 @@ else:
                              gradhCorrection = gradhCorrection,
                              densityUpdate = densityUpdate,
                              HUpdate = HUpdate,
-                             PSPH = PSPH,
                              XSPH = XSPH,
+                             correctVelocityGradient = correctVelocityGradient,
                              epsTensile = epsilonTensile,
                              nTensile = nTensile)
 output("hydro")
@@ -321,13 +324,11 @@ packages = [hydro]
 # Construct the MMRV physics object.
 #-------------------------------------------------------------------------------
 if boolReduceViscosity:
-    evolveReducingViscosityMultiplier = MorrisMonaghanReducingViscosity(q,nh,aMin,aMax)
+    evolveReducingViscosityMultiplier = MorrisMonaghanReducingViscosity(q,nh,nh,aMin,aMax)
     packages.append(evolveReducingViscosityMultiplier)
 elif boolCullenViscosity:
-    evolveCullenViscosityMultiplier = CullenDehnenViscosity(q,WT,alphMax,alphMin,betaC,betaD,betaE,fKern,boolHopkinsCorrection)
+    evolveCullenViscosityMultiplier = CullenDehnenViscosity(q,WT,alphMax,alphMin,betaC,betaD,betaE,fKern,boolHopkinsCorrection,cullenReproducingKernelGradient)
     packages.append(evolveCullenViscosityMultiplier)
-
-
 
 #-------------------------------------------------------------------------------
 # Construct the Artificial Conduction physics object.
@@ -465,8 +466,9 @@ answer = SodSolution(nPoints=nx1 + nx2,
                      h1 = 1.0/h1,
                      h2 = 1.0/h2)
 
-cs = db.newFluidScalarFieldList(0.0, "sound speed")
-db.fluidSoundSpeed(cs)
+#cs = db.newFluidScalarFieldList(0.0, "sound speed")
+#db.fluidSoundSpeed(cs)
+cs = hydro.soundSpeed()
 
 def createList(x):
     xx = x
@@ -480,8 +482,9 @@ def createList(x):
 A = []
 for nodes in nodeSet:
     rho = createList(nodes.massDensity().internalValues())
-    pressure = ScalarField("pressure", nodes)
-    nodes.pressure(pressure)
+    #pressure = ScalarField("pressure", nodes)
+    #nodes.pressure(pressure)
+    pressure = hydro.pressure()[0]
     P = createList(pressure.internalValues())
     A += [Pi/rhoi**gammaGas for (Pi, rhoi) in zip(P, rho)]
 
@@ -490,6 +493,7 @@ xprof = createList([x.x for x in nodes1.positions().internalValues()] +
                    [x.x for x in nodes2.positions().internalValues()])
 xans, vans, uans, rhoans, Pans, hans = answer.solution(control.time(), xprof)
 Aans = [Pi/rhoi**gammaGas for (Pi, rhoi) in zip(Pans,  rhoans)]
+csAns = [sqrt(gammaGas*Pi/rhoi) for (Pi, rhoi) in zip(Pans,  rhoans)]
 
 if graphics:
     from SpheralGnuPlotUtilities import *
@@ -498,7 +502,13 @@ if graphics:
     plotAnswer(answer, control.time(),
                rhoPlot, velPlot, epsPlot, PPlot, HPlot)
     pE = plotEHistory(control.conserve)
+
     csPlot = plotFieldList(cs, winTitle="Sound speed")
+    csAnsData = Gnuplot.Data(xans, csAns, 
+                             with_ = "lines",
+                             title = "Analytic")
+    csPlot.replot(csAnsData)
+
     plots = [(rhoPlot, "Sod-planar-rho.png"),
              (velPlot, "Sod-planar-vel.png"),
              (epsPlot, "Sod-planar-eps.png"),
@@ -525,10 +535,18 @@ if graphics:
                              colorNodeLists = False)
     plots.append((viscPlot, "Sod-planar-viscosity.png"))
     
-    #if boolReduceViscosity:
-    #    alphaPlot = plotFieldList(q.reducingViscosityMultiplier(),
-    #                              winTitle = "rvAlpha",
-    #                              colorNodeLists = False)
+    if boolCullenViscosity:
+        cullAlphaPlot = plotFieldList(q.ClMultiplier(),
+                                      winTitle = "Cullen alpha")
+        cullDalphaPlot = plotFieldList(evolveCullenViscosityMultiplier.DalphaDt(),
+                                       winTitle = "Cullen DalphaDt")
+        plots += [(cullAlphaPlot, "Sod-planar-Cullen-alpha.png"),
+                  (cullDalphaPlot, "Sod-planar-Cullen-DalphaDt.png")]
+
+    if boolReduceViscosity:
+        alphaPlot = plotFieldList(q.ClMultiplier(),
+                                  winTitle = "rvAlpha",
+                                  colorNodeLists = False)
 
     # # Plot the specific entropy.
     # if mpi.rank == 0:
@@ -605,6 +623,8 @@ if mpi.rank == 0:
     print "\tQuantity \t\tL1 \t\t\tL2 \t\t\tLinf"
     failure = False
     hD = []
+    #f = open("MCTesting.txt", "a")
+    #f.write(("CL=%g, Cq=%g \t") %(Cl, Cq))
     for (name, data, ans) in [("Mass Density", rhoprof, rhoans),
                                              ("Pressure", Pprof, Pans),
                                              ("Velocity", vprof, vans),
@@ -617,7 +637,9 @@ if mpi.rank == 0:
         L2 = Pn.gridpnorm(2, rmin, rmax)
         Linf = Pn.gridpnorm("inf", rmin, rmax)
         print "\t%s \t\t%g \t\t%g \t\t%g" % (name, L1, L2, Linf)
+        #f.write(("\t\t%g") % (L1))
         hD.append([L1,L2,Linf])
+    #f.write("\n")
 
     print "%d\t %g\t %g\t %g\t %g\t %g\t %g\t %g\t %g\t %g\t %g\t %g\t %g\t" % (nx1+nx2,hD[0][0],hD[1][0],hD[2][0],hD[3][0],
                                                                                 hD[0][1],hD[1][1],hD[2][1],hD[3][1],

@@ -316,7 +316,16 @@ class EarthLikeProfileConstantTemp3d():
         
         self.soln.sort()
         self.rMax = r - dr  # to call inside the script to reset rMax
-    
+
+        totM = 0.0
+        for i in xrange(len(self.soln)-1):
+            r1 = self.soln[i+1][0]
+            r0 = self.soln[i][0]
+            f1 = self.soln[i+1][1]*r1*r1
+            f0 = self.soln[i][0]*r0*r0
+            totM += 4.0*pi*0.5*(f1+f0)*(r1-r0)
+        self.totalMass = totM
+
     def __call__(self,r):
         rho = self.rho0
         for i in xrange(len(self.soln)):

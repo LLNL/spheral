@@ -26,6 +26,7 @@ commandLine(KernelConstructor = BSplineKernel,
             nx1 = 100,
             rho1 = 1.0,
             eps1 = 0.0,
+	    smallPressure = False, #If set to True eps is not zero but small. 
             x0 = 0.0,
             x1 = 1.0,
             xwall = 0.0,
@@ -42,9 +43,11 @@ commandLine(KernelConstructor = BSplineKernel,
 
             SVPH = False,
             CRKSPH = False,
+            PSPH = False,
             Qconstructor = MonaghanGingoldViscosity,
             #Qconstructor = TensorMonaghanGingoldViscosity,
             boolReduceViscosity = False,
+            HopkinsConductivity = False,     # For PSPH
             nhQ = 5.0,
             nhL = 10.0,
             aMin = 0.1,
@@ -73,7 +76,6 @@ commandLine(KernelConstructor = BSplineKernel,
             cfl = 0.5,
             useVelocityMagnitudeForDt = False,
             XSPH = False,
-            PSPH = False,
             epsilonTensile = 0.0,
             nTensile = 4.0,
             hourglass = None,
@@ -120,31 +122,35 @@ commandLine(KernelConstructor = BSplineKernel,
             comparisonFile = "None",
 
             # Parameters for the test acceptance.,
-            L1rho =   0.0587603, 		
-            L2rho =   0.233607,
-            Linfrho = 1.70012,
-                                                           
-            L1P =     0.021621,
-            L2P =     0.0910545,
-            LinfP =   0.667976,
-                                                           
-            L1v =     0.0234762,
-            L2v =     0.117328,
-            Linfv =   0.84881,
-                                                           
-            L1eps =   0.0113634,
-            L2eps =   0.0532294,
-            Linfeps = 0.371081,
-                                               
-            L1h =     0.000312939,
-            L2h =     0.00125403,
-            Linfh =   0.00761903,
+            L1rho =   0.0569491,    		
+            L2rho =   0.235912,     
+            Linfrho = 1.75461,      
+                                                              
+            L1P =     0.0214942,    
+            L2P =     0.0925634,    
+            LinfP =   0.695726,     
+                                                              
+            L1v =     0.022539,     
+            L2v =     0.116544,     
+            Linfv =   0.873349,     
+                                                              
+            L1eps =   0.0113606,    
+            L2eps =   0.0535938,    
+            Linfeps = 0.378853,     
+                                                  
+            L1h =     0.000326532,  
+            L2h =     0.0013018,    
+            Linfh =   0.00782539,   
 
             tol = 1.0e-5,
 
             graphics = True,
             )
 assert not(boolReduceViscosity and boolCullenViscosity)
+if smallPressure:
+   P0 = 1.0e-6
+   eps1 = P0/((gamma - 1.0)*rho1)
+   
 if SVPH:
     HydroConstructor = SVPHFacetedHydro
 elif CRKSPH:
@@ -154,6 +160,8 @@ elif CRKSPH:
         HydroConstructor = CRKSPHHydro
     Qconstructor = CRKSPHMonaghanGingoldViscosity
     gradhCorrection = False
+elif PSPH:
+   HydroConstructor = PSPHHydro
 else:
     if solid:
         HydroConstructor = SolidSPHHydro
@@ -300,6 +308,17 @@ elif CRKSPH:
                              HUpdate = HUpdate)
     q.etaCritFrac = etaCritFrac
     q.etaFoldFrac = etaFoldFrac
+elif PSPH:
+    hydro = HydroConstructor(W = WT,
+                             Q = q,
+                             filter = filter,
+                             cfl = cfl,
+                             useVelocityMagnitudeForDt = useVelocityMagnitudeForDt,
+                             compatibleEnergyEvolution = compatibleEnergy,
+                             HopkinsConductivity = HopkinsConductivity,
+                             densityUpdate = densityUpdate,
+                             HUpdate = HUpdate,
+                             XSPH = XSPH)
 else:
     hydro = HydroConstructor(W = WT,
                              Q = q,
@@ -311,7 +330,6 @@ else:
                              densityUpdate = densityUpdate,
                              HUpdate = HUpdate,
                              XSPH = XSPH,
-                             PSPH = PSPH,
                              epsTensile = epsilonTensile,
                              nTensile = nTensile)
 output("hydro")
@@ -515,6 +533,14 @@ if graphics:
                                 winTitle = "volume",
                                 colorNodeLists = False, plotGhosts = False)
         plots.append(volPlot)
+
+    if boolCullenViscosity:
+        cullAlphaPlot = plotFieldList(q.ClMultiplier(),
+                                      winTitle = "Cullen alpha")
+        cullDalphaPlot = plotFieldList(evolveCullenViscosityMultiplier.DalphaDt(),
+                                       winTitle = "Cullen DalphaDt")
+        plots += [(cullAlphaPlot, "Noh-planar-Cullen-alpha.png"),
+                  (cullDalphaPlot, "Noh-planar-Cullen-DalphaDt.png")]
 
     if boolReduceViscosity:
         alphaPlotQ = plotFieldList(q.reducingViscosityMultiplierQ(),
