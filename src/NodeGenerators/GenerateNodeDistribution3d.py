@@ -1758,7 +1758,8 @@ class GenerateIcosahedronMatchingProfile3d(NodeGeneratorBase):
                  phiMax = 2.0*pi,
                  nNodePerh = 2.01,
                  offset=None,
-                 rMaxForMassMatching=None):
+                 rMaxForMassMatching=None,
+                 rejecter=None):
         
         assert n > 0
         assert rmin < rmax
@@ -2027,6 +2028,15 @@ class GenerateIcosahedronMatchingProfile3d(NodeGeneratorBase):
             #self.H.append(Hi)
             
             ri = max(rmin, ri - dr)
+    
+        # If the user provided a "rejecter", give it a pass
+        # at the nodes.
+        if rejecter:
+            self.x, self.y, self.z, self.m, self.H = rejecter(self.x,
+                                                              self.y,
+                                                              self.z,
+                                                              self.m,
+                                                              self.H)
     
         # If requested, shift the nodes.
         if offset:
