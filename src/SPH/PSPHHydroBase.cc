@@ -190,7 +190,9 @@ preStepInitialize(const DataBase<Dimension>& dataBase,
   FieldList<Dimension, Scalar> P = state.fields(HydroFieldNames::pressure, 0.0);
   FieldList<Dimension, Scalar> cs = state.fields(HydroFieldNames::soundSpeed, 0.0);
   FieldList<Dimension, Scalar> PSPHcorrection = state.fields(HydroFieldNames::PSPHcorrection, 0.0);
-  computePSPHCorrections(connectivityMap, W, mass, position, specificThermalEnergy, gamma, H, rho, P, cs, PSPHcorrection);
+  computePSPHCorrections(connectivityMap, W, mass, position, specificThermalEnergy, gamma, H, 
+                         (this->mDensityUpdate != PhysicsSpace::IntegrateDensity),
+                         rho, P, cs, PSPHcorrection);
   for (ConstBoundaryIterator boundItr = this->boundaryBegin();
        boundItr != this->boundaryEnd();
        ++boundItr) {
@@ -233,7 +235,9 @@ postStateUpdate(const DataBase<Dimension>& dataBase,
   FieldList<Dimension, Scalar> P = state.fields(HydroFieldNames::pressure, 0.0);
   FieldList<Dimension, Scalar> cs = state.fields(HydroFieldNames::soundSpeed, 0.0);
   FieldList<Dimension, Scalar> PSPHcorrection = state.fields(HydroFieldNames::PSPHcorrection, 0.0);
-  computePSPHCorrections(connectivityMap, W, mass, position, specificThermalEnergy, gamma, H, rho, P, cs, PSPHcorrection);
+  computePSPHCorrections(connectivityMap, W, mass, position, specificThermalEnergy, gamma, H,
+                         (this->mDensityUpdate != PhysicsSpace::IntegrateDensity),
+                         rho, P, cs, PSPHcorrection);
   for (ConstBoundaryIterator boundItr = this->boundaryBegin();
        boundItr != this->boundaryEnd();
        ++boundItr) {
@@ -514,10 +518,10 @@ evaluateDerivatives(const typename Dimension::Scalar time,
 
               // Contribution to the sum density.
               if (nodeListi == nodeListj) {
-                rhoSumi += mj*Wi;
-                rhoSumj += mi*Wj;
-                normi += mi/rhoi*Wi;
-                normj += mj/rhoj*Wj;
+                rhoSumi += mj*Wj;
+                rhoSumj += mi*Wi;
+                normi += mi/rhoi*Wj;
+                normj += mj/rhoj*Wi;
               }
 
               // Compute the pair-wise artificial viscosity.
