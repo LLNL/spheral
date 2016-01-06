@@ -119,7 +119,7 @@ computePSPHCorrections(const ConnectivityMap<Dimension>& connectivityMap,
           const Scalar& gWj = WWj.second;
           const Scalar xj=(gammaj-1.0)*mj*epsj;
           const Scalar gradh=invhi*(Dimension::nDim*Wi+etai*gWi);
-          PSPHmassDensity(nodeListi, i) += mj*Wi;
+          PSPHmassDensity(nodeListi, i) += mj*Wj;
           PSPHpbar(nodeListi, i) += xj*Wi;
           Nbari += Wi;
           gradPbari -= xj*gradh;
