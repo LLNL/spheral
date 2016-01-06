@@ -32,6 +32,7 @@ computePSPHCorrections(const ConnectivityMap<Dimension>& connectivityMap,
                        const FieldList<Dimension, typename Dimension::Scalar>& specificThermalEnergy,
                        const FieldList<Dimension, typename Dimension::Scalar>& gamma,
                        const FieldList<Dimension, typename Dimension::SymTensor>& H,
+                       const bool computeMassDensity,
                        FieldList<Dimension, typename Dimension::Scalar>& PSPHmassDensity,
                        FieldList<Dimension, typename Dimension::Scalar>& PSPHpbar,
                        FieldList<Dimension, typename Dimension::Scalar>& PSPHsoundSpeed,
@@ -54,7 +55,7 @@ computePSPHCorrections(const ConnectivityMap<Dimension>& connectivityMap,
   typedef typename Dimension::SymTensor SymTensor;
 
   // Zero out the result.
-  PSPHmassDensity = 0.0;
+  if (computeMassDensity) PSPHmassDensity = 0.0;
   PSPHpbar = 0.0;
   PSPHcorrection = 0.0;
   const double tiny = 1.0e-30;
@@ -119,7 +120,7 @@ computePSPHCorrections(const ConnectivityMap<Dimension>& connectivityMap,
           const Scalar& gWj = WWj.second;
           const Scalar xj=(gammaj-1.0)*mj*epsj;
           const Scalar gradh=invhi*(Dimension::nDim*Wi+etai*gWi);
-          PSPHmassDensity(nodeListi, i) += mj*Wi;
+          if (computeMassDensity) PSPHmassDensity(nodeListi, i) += mj*Wi;
           PSPHpbar(nodeListi, i) += xj*Wi;
           Nbari += Wi;
           gradPbari -= xj*gradh;
@@ -133,7 +134,7 @@ computePSPHCorrections(const ConnectivityMap<Dimension>& connectivityMap,
       PSPHcorrection(nodeListi, i)=gradPbari/max(Dimension::nDim*(gammai-1.0)*Nbari*invhi*fi,tiny);
       CHECK2((gammai-1.0)*epsi >= 0.0, i << " " << gammai << " " << epsi);
       PSPHsoundSpeed(nodeListi, i) = sqrt(std::max(0.0, gammai*(gammai - 1.0)*epsi));
-      PSPHmassDensity(nodeListi, i) += mi*W(0.0, Hdeti);
+      if (computeMassDensity) PSPHmassDensity(nodeListi, i) += mi*W(0.0, Hdeti);
     }
   }
 }

@@ -95,8 +95,8 @@ computeSPHSumMassDensity(const ConnectivityMap<Dimension>& connectivityMap,
               const Scalar Wj = W.kernelValue(etaj, Hdetj);
 
               // Sum the pair-wise contributions.
-              massDensity(nodeListi, i) += mj*Wi;
-              massDensity(nodeListj, j) += mi*Wj;
+              massDensity(nodeListi, i) += mj*Wj;
+              massDensity(nodeListj, j) += mi*Wi;
             }
           }
         }
