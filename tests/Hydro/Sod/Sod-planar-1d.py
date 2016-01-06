@@ -169,31 +169,21 @@ output("WT")
 # Make the NodeLists.
 #-------------------------------------------------------------------------------
 if solid:
-    nodes1 = makeSolidNodeList("nodes1", eos, strength,
-                               hmin = hmin,
-                               hmax = hmax,
-                               nPerh = nPerh,
-                               kernelExtent = kernelExtent,
-                               rhoMin = rhoMin)
-    nodes2 = makeSolidNodeList("nodes2", eos, strength,
-                               hmin = hmin,
-                               hmax = hmax,
-                               nPerh = nPerh,
-                               kernelExtent = kernelExtent,
-                               rhoMin = rhoMin)
+    makeNL = makeSolidNodeList
 else:
-    nodes1 = makeFluidNodeList("nodes1", eos, 
-                               hmin = hmin,
-                               hmax = hmax,
-                               nPerh = nPerh,
-                               kernelExtent = kernelExtent,
-                               rhoMin = rhoMin)
-    nodes2 = makeFluidNodeList("nodes2", eos, 
-                               hmin = hmin,
-                               hmax = hmax,
-                               nPerh = nPerh,
-                               kernelExtent = kernelExtent,
-                               rhoMin = rhoMin)
+    makeNL = makeFluidNodeList
+nodes1 = makeNL("nodes1", eos, 
+                hmin = hmin,
+                hmax = hmax,
+                nPerh = nPerh,
+                kernelExtent = kernelExtent,
+                rhoMin = rhoMin)
+nodes2 = makeNL("nodes2", eos, 
+                hmin = hmin,
+                hmax = hmax,
+                nPerh = nPerh,
+                kernelExtent = kernelExtent,
+                rhoMin = rhoMin)
 nodeSet = [nodes1, nodes2]
 
 #-------------------------------------------------------------------------------
