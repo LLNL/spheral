@@ -28,6 +28,7 @@ namespace Spheral {
                            const FieldSpace::FieldList<Dimension, typename Dimension::Scalar>& specificThermalEnergy,
                            const FieldSpace::FieldList<Dimension, typename Dimension::Scalar>& gamma,
                            const FieldSpace::FieldList<Dimension, typename Dimension::SymTensor>& H,
+                           const bool computeMassDensity,
                            FieldSpace::FieldList<Dimension, typename Dimension::Scalar>& PSPHmassDensity,
                            FieldSpace::FieldList<Dimension, typename Dimension::Scalar>& PSPHpbar,
                            FieldSpace::FieldList<Dimension, typename Dimension::Scalar>& PSPHsoundSpeed,
