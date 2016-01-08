@@ -714,7 +714,8 @@ evaluateDerivatives(const typename Dimension::Scalar time,
       // Finish the gradient of the velocity.
       CHECK(rhoi > 0.0);
       if (this->mCorrectVelocityGradient and
-          std::abs(Mi.Determinant()) > 1.0e-10) {
+          std::abs(Mi.Determinant()) > 1.0e-10 and
+          numNeighborsi > Dimension::pownu(2)) {
         Mi = Mi.Inverse();
         localMi = localMi.Inverse();
         DvDxi = DvDxi*Mi;
