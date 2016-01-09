@@ -58,6 +58,7 @@ public:
                const double cfl,
                const bool useVelocityMagnitudeForDt,
                const bool compatibleEnergyEvolution,
+               const bool evolveTotalEnergy,
                const bool gradhCorrection,
                const bool XSPH,
                const bool correctVelocityGradient,
@@ -149,6 +150,10 @@ public:
   bool compatibleEnergyEvolution() const;
   void compatibleEnergyEvolution(const bool val);
 
+  // Flag controlling if we evolve total or specific energy.
+  bool evolveTotalEnergy() const;
+  void evolveTotalEnergy(const bool val);
+
   // Flag to determine if we're using the grad h correction.
   bool gradhCorrection() const;
   void gradhCorrection(const bool val);
@@ -193,6 +198,7 @@ public:
   const FieldSpace::FieldList<Dimension, Scalar>&    volume() const;
   const FieldSpace::FieldList<Dimension, Scalar>&    omegaGradh() const;
   const FieldSpace::FieldList<Dimension, Scalar>&    specificThermalEnergy0() const;
+  const FieldSpace::FieldList<Dimension, Scalar>&    energy() const;
   const FieldSpace::FieldList<Dimension, SymTensor>& Hideal() const;
   const FieldSpace::FieldList<Dimension, Scalar>&    maxViscousPressure() const;
   const FieldSpace::FieldList<Dimension, Scalar>&    effectiveViscousPressure() const;
@@ -210,6 +216,7 @@ public:
   const FieldSpace::FieldList<Dimension, Vector>&    DvDt() const;
   const FieldSpace::FieldList<Dimension, Scalar>&    DmassDensityDt() const;
   const FieldSpace::FieldList<Dimension, Scalar>&    DspecificThermalEnergyDt() const;
+  const FieldSpace::FieldList<Dimension, Scalar>&    DenergyDt() const;
   const FieldSpace::FieldList<Dimension, SymTensor>& DHDt() const;
   const FieldSpace::FieldList<Dimension, Tensor>&    DvDx() const;
   const FieldSpace::FieldList<Dimension, Tensor>&    internalDvDx() const;
@@ -230,7 +237,7 @@ protected:
   // A bunch of switches.
   PhysicsSpace::MassDensityType mDensityUpdate;
   PhysicsSpace::HEvolutionType mHEvolution;
-  bool mCompatibleEnergyEvolution, mGradhCorrection, mXSPH, mCorrectVelocityGradient, mSumMassDensityOverAllNodeLists;
+  bool mCompatibleEnergyEvolution, mEvolveTotalEnergy, mGradhCorrection, mXSPH, mCorrectVelocityGradient, mSumMassDensityOverAllNodeLists;
 
   // Magnitude of the hourglass/parasitic mode filter.
   double mfilter;
@@ -247,6 +254,7 @@ protected:
   FieldSpace::FieldList<Dimension, Scalar>    mSoundSpeed;
   FieldSpace::FieldList<Dimension, Scalar>    mOmegaGradh;
   FieldSpace::FieldList<Dimension, Scalar>    mSpecificThermalEnergy0;
+  FieldSpace::FieldList<Dimension, Scalar>    mEnergy;
 
   FieldSpace::FieldList<Dimension, SymTensor> mHideal;
   FieldSpace::FieldList<Dimension, Scalar>    mMaxViscousPressure;
@@ -266,6 +274,7 @@ protected:
   FieldSpace::FieldList<Dimension, Vector>    mDvDt;
   FieldSpace::FieldList<Dimension, Scalar>    mDmassDensityDt;
   FieldSpace::FieldList<Dimension, Scalar>    mDspecificThermalEnergyDt;
+  FieldSpace::FieldList<Dimension, Scalar>    mDenergyDt;
   FieldSpace::FieldList<Dimension, SymTensor> mDHDt;
   FieldSpace::FieldList<Dimension, Tensor>    mDvDx;
   FieldSpace::FieldList<Dimension, Tensor>    mInternalDvDx;
