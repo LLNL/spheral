@@ -58,9 +58,9 @@ public:
                 const double cfl,
                 const bool useVelocityMagnitudeForDt,
                 const bool compatibleEnergyEvolution,
+                const bool evolveTotalEnergy,
                 const bool XSPH,
                 const bool correctVelocityGradient,
-                const bool evolveTotalEnergy,
                 const bool HopkinsConductivity,
                 const bool sumMassDensityOverAllNodeLists,
                 const PhysicsSpace::MassDensityType densityUpdate,
@@ -79,11 +79,6 @@ public:
   virtual 
   void registerState(DataBaseSpace::DataBase<Dimension>& dataBase,
                      State<Dimension>& state);
-
-  // Register the derivatives/change fields for updating state.
-  virtual
-  void registerDerivatives(DataBaseSpace::DataBase<Dimension>& dataBase,
-                           StateDerivatives<Dimension>& derivs);
 
   // Pre-step initializations.
   virtual 
@@ -124,19 +119,13 @@ public:
   void enforceBoundaries(State<Dimension>& state,
                          StateDerivatives<Dimension>& derivs);
 
-  // Flag controlling if we evolve total or specific energy.
-  bool evolveTotalEnergy() const;
-  void evolveTotalEnergy(const bool val);
-
   // Flag determining if we're applying Hopkins 2014 conductivity.
   bool HopkinsConductivity() const;
   void HopkinsConductivity(const bool val);
 
   // The state field lists we're maintaining.
-  const FieldSpace::FieldList<Dimension, Scalar>&    energy() const;
   const FieldSpace::FieldList<Dimension, Scalar>&    gamma() const;
   const FieldSpace::FieldList<Dimension, Scalar>&    PSPHcorrection() const;
-  const FieldSpace::FieldList<Dimension, Scalar>&    DenergyDt() const;
 
   //****************************************************************************
   // Methods required for restarting.
@@ -147,13 +136,11 @@ public:
 
 protected:
   //---------------------------  Protected Interface ---------------------------//
-  bool mEvolveTotalEnergy, mHopkinsConductivity;
+  bool mHopkinsConductivity;
 
   //PSPH Fields
-  FieldSpace::FieldList<Dimension, Scalar>    mEnergy;
   FieldSpace::FieldList<Dimension, Scalar>    mGamma;
   FieldSpace::FieldList<Dimension, Scalar>    mPSPHcorrection;
-  FieldSpace::FieldList<Dimension, Scalar>    mDenergyDt;
 
 private:
   //--------------------------- Private Interface ---------------------------//

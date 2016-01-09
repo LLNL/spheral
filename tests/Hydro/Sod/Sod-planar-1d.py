@@ -34,7 +34,7 @@ commandLine(nx1 = 400,
             SVPH = False,
             CRKSPH = False,
             PSPH = False,
-            evolveTotalEnergy = False,  # Only for PSPH -- evolve total rather than specific energy
+            evolveTotalEnergy = False,  # Only for SPH variants -- evolve total rather than specific energy
             solid = False,    # If true, use the fluid limit of the solid hydro option
             Qconstructor = MonaghanGingoldViscosity,
             boolReduceViscosity = False,
@@ -301,6 +301,7 @@ else:
                              Q = q,
                              cfl = cfl,
                              compatibleEnergyEvolution = compatibleEnergy,
+                             evolveTotalEnergy = evolveTotalEnergy,
                              gradhCorrection = gradhCorrection,
                              densityUpdate = densityUpdate,
                              HUpdate = HUpdate,

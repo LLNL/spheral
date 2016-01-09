@@ -146,6 +146,7 @@ self.generatePSPHHydroBaseBindings(self.PSPHHydroBase%(dim)id, %(dim)i)
                            param("double", "cfl", default_value="0.5"),
                            param("int", "useVelocityMagnitudeForDt", default_value="false"),
                            param("int", "compatibleEnergyEvolution", default_value="true"),
+                           param("int", "evolveTotalEnergy", default_value="false"),
                            param("int", "gradhCorrection", default_value="false"),
                            param("int", "XSPH", default_value="true"),
                            param("int", "correctVelocityGradient", default_value="false"),
@@ -203,6 +204,7 @@ self.generatePSPHHydroBaseBindings(self.PSPHHydroBase%(dim)id, %(dim)i)
         x.add_instance_attribute("sumForMassDensity", "MassDensityType", getter="densityUpdate", setter="densityUpdate")  # Provided for backwards compatibility
         x.add_instance_attribute("HEvolution", "HEvolutionType", getter="HEvolution", setter="HEvolution")
         x.add_instance_attribute("compatibleEnergyEvolution", "bool", getter="compatibleEnergyEvolution", setter="compatibleEnergyEvolution")
+        x.add_instance_attribute("evolveTotalEnergy", "bool", getter="evolveTotalEnergy", setter="evolveTotalEnergy")
         x.add_instance_attribute("gradhCorrection", "bool", getter="gradhCorrection", setter="gradhCorrection")
         x.add_instance_attribute("correctVelocityGradient", "bool", getter="correctVelocityGradient", setter="correctVelocityGradient")
         x.add_instance_attribute("XSPH", "bool", getter="XSPH", setter="XSPH")
@@ -219,6 +221,7 @@ self.generatePSPHHydroBaseBindings(self.PSPHHydroBase%(dim)id, %(dim)i)
         const_ref_return_value(x, me, "%s::soundSpeed" % me, scalarfieldlist, [], "soundSpeed")
         const_ref_return_value(x, me, "%s::omegaGradh" % me, scalarfieldlist, [], "omegaGradh")
         const_ref_return_value(x, me, "%s::specificThermalEnergy0" % me, scalarfieldlist, [], "specificThermalEnergy0")
+        const_ref_return_value(x, me, "%s::energy" % me, scalarfieldlist, [], "energy")
         const_ref_return_value(x, me, "%s::Hideal" % me, symtensorfieldlist, [], "Hideal")
         const_ref_return_value(x, me, "%s::maxViscousPressure" % me, scalarfieldlist, [], "maxViscousPressure")
         const_ref_return_value(x, me, "%s::effectiveViscousPressure" % me, scalarfieldlist, [], "effectiveViscousPressure")
@@ -232,6 +235,7 @@ self.generatePSPHHydroBaseBindings(self.PSPHHydroBase%(dim)id, %(dim)i)
         const_ref_return_value(x, me, "%s::DvDt" % me, vectorfieldlist, [], "DvDt")
         const_ref_return_value(x, me, "%s::DmassDensityDt" % me, scalarfieldlist, [], "DmassDensityDt")
         const_ref_return_value(x, me, "%s::DspecificThermalEnergyDt" % me, scalarfieldlist, [], "DspecificThermalEnergyDt")
+        const_ref_return_value(x, me, "%s::DenergyDt" % me, scalarfieldlist, [], "DenergyDt")
         const_ref_return_value(x, me, "%s::DHDt" % me, symtensorfieldlist, [], "DHDt")
         const_ref_return_value(x, me, "%s::DvDx" % me, tensorfieldlist, [], "DvDx")
         const_ref_return_value(x, me, "%s::internalDvDx" % me, tensorfieldlist, [], "internalDvDx")
@@ -294,9 +298,9 @@ self.generatePSPHHydroBaseBindings(self.PSPHHydroBase%(dim)id, %(dim)i)
                            param("double", "cfl", default_value="0.5"),
                            param("int", "useVelocityMagnitudeForDt", default_value="false"),
                            param("int", "compatibleEnergyEvolution", default_value="true"),
+                           param("int", "evolveTotalEnergy", default_value="false"),
                            param("int", "XSPH", default_value="true"),
                            param("int", "correctVelocityGradient", default_value="false"),
-                           param("int", "evolveTotalEnergy", default_value="false"),
                            param("int", "HopkinsConductivity", default_value="false"),
                            param("int", "sumMassDensityOverAllNodeLists", default_value="true"),
                            param("MassDensityType", "densityUpdate", default_value="Spheral::PhysicsSpace::RigorousSumDensity"),
@@ -307,9 +311,7 @@ self.generatePSPHHydroBaseBindings(self.PSPHHydroBase%(dim)id, %(dim)i)
         # Attributes.
         x.add_instance_attribute("HopkinsConductivity", "bool", getter="HopkinsConductivity", setter="HopkinsConductivity")
 
-        const_ref_return_value(x, me, "%s::energy" % me, scalarfieldlist, [], "energy")
         const_ref_return_value(x, me, "%s::gamma" % me, scalarfieldlist, [], "gamma")
         const_ref_return_value(x, me, "%s::PSPHcorrection" % me, scalarfieldlist, [], "PSPHcorrection")
-        const_ref_return_value(x, me, "%s::DenergyDt" % me, scalarfieldlist, [], "DenergyDt")
 
         return
