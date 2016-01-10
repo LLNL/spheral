@@ -288,14 +288,6 @@ specificThermalEnergy0() const {
 
 template<typename Dimension>
 inline
-const FieldSpace::FieldList<Dimension, typename Dimension::Scalar>&
-SPHHydroBase<Dimension>::
-energy() const {
-  return mEnergy;
-}
-
-template<typename Dimension>
-inline
 const FieldSpace::FieldList<Dimension, typename Dimension::SymTensor>&
 SPHHydroBase<Dimension>::
 Hideal() const {
@@ -428,14 +420,6 @@ const FieldSpace::FieldList<Dimension, typename Dimension::Scalar>&
 SPHHydroBase<Dimension>::
 DspecificThermalEnergyDt() const {
   return mDspecificThermalEnergyDt;
-}
-
-template<typename Dimension>
-inline
-const FieldSpace::FieldList<Dimension, typename Dimension::Scalar>&
-SPHHydroBase<Dimension>::
-DenergyDt() const {
-  return mDenergyDt;
 }
 
 template<typename Dimension>
