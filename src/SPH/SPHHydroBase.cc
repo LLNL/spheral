@@ -251,7 +251,7 @@ registerState(DataBase<Dimension>& dataBase,
   }
 
   // We have to choose either compatible or total energy evolution.
-  VERIFY2(mCompatibleEnergyEvolution ^ mEvolveTotalEnergy,
+  VERIFY2(not (mCompatibleEnergyEvolution and mEvolveTotalEnergy),
           "SPH error : you cannot simultaneously use both compatibleEnergyEvolution and evolveTotalEnergy");
 
   // If we're using the compatibile energy discretization, prepare to maintain a copy
