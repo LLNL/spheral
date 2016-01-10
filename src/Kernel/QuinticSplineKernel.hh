@@ -10,6 +10,7 @@
 #define __Spheral_QuinticSplineKernel_hh__
 
 #include "Kernel.hh"
+#include "Geometry/Dimension.hh"
 
 namespace Spheral {
 namespace KernelSpace {
@@ -40,12 +41,13 @@ public:
 
 };
 
-}
-}
+// Forward declare the specialized constructors.
+template<> QuinticSplineKernel<Dim<1> >::QuinticSplineKernel();
+template<> QuinticSplineKernel<Dim<2> >::QuinticSplineKernel();
+template<> QuinticSplineKernel<Dim<3> >::QuinticSplineKernel();
 
-#ifndef __GCCXML__
-#include "QuinticSplineKernelInline.hh"
-#endif
+}
+}
 
 #else
 
