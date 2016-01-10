@@ -41,8 +41,7 @@ using NeighborSpace::ConnectivityMap;
 template<typename Dimension>
 SpecificFromTotalThermalEnergyPolicy<Dimension>::
 SpecificFromTotalThermalEnergyPolicy():
-  FieldListUpdatePolicyBase<Dimension, typename Dimension::Scalar>(HydroFieldNames::velocity,
-                                                                   HydroFieldNames::totalEnergy) {
+  FieldListUpdatePolicyBase<Dimension, typename Dimension::Scalar>() {
 }
 
 //------------------------------------------------------------------------------
@@ -76,16 +75,21 @@ update(const KeyType& key,
   // Get the state fields.
   const FieldList<Dimension, Scalar> mass = state.fields(HydroFieldNames::mass, Scalar());
   const FieldList<Dimension, Vector> velocity = state.fields(HydroFieldNames::velocity, Vector::zero);
-  const FieldList<Dimension, Scalar> E = state.fields(HydroFieldNames::totalEnergy, 0.0);
+  const FieldList<Dimension, Vector> DvDt = derivs.fields(IncrementFieldList<Dimension, Vector>::prefix() + HydroFieldNames::velocity, Vector::zero);
+  const FieldList<Dimension, Scalar> DEDt = derivs.fields(IncrementFieldList<Dimension, Vector>::prefix() + HydroFieldNames::specificThermalEnergy, 0.0);
 
   // Do it.
   for (size_t nodeListi = 0; nodeListi != numFields; ++nodeListi) {
     const size_t n = eps[nodeListi]->numInternalElements();
     for (size_t i = 0; i != n; ++i) {
+      Scalar& epsi = eps(nodeListi, i);
       const Scalar mi = mass(nodeListi, i);
-      const Scalar Ei = E(nodeListi, i);
-      const Vector& vi = velocity(nodeListi, i);
-      eps(nodeListi, i) = Ei/mi - 0.5*vi.magnitude2();
+      const Vector& vi0 = velocity(nodeListi, i);
+      const Vector& ai0 = DvDt(nodeListi, i);
+      const Scalar DEDti = DEDt(nodeListi, i);
+      const Scalar E0i = mi*(0.5*vi0.magnitude2() + epsi);
+      const Scalar E1i = E0i + multiplier*DEDti;
+      epsi = E1i/mi - 0.5*(vi0 + multiplier*ai0).magnitude2();
     }
   }
 }

@@ -114,7 +114,6 @@ SPHHydroBase(const SmoothingScaleBase<Dimension>& smoothingScaleMethod,
   mVolume(FieldSpace::Copy),
   mOmegaGradh(FieldSpace::Copy),
   mSpecificThermalEnergy0(FieldSpace::Copy),
-  mEnergy(FieldSpace::Copy),
   mHideal(FieldSpace::Copy),
   mMaxViscousPressure(FieldSpace::Copy),
   mEffViscousPressure(FieldSpace::Copy),
@@ -130,7 +129,6 @@ SPHHydroBase(const SmoothingScaleBase<Dimension>& smoothingScaleMethod,
   mDvDt(FieldSpace::Copy),
   mDmassDensityDt(FieldSpace::Copy),
   mDspecificThermalEnergyDt(FieldSpace::Copy),
-  mDenergyDt(FieldSpace::Copy),
   mDHDt(FieldSpace::Copy),
   mDvDx(FieldSpace::Copy),
   mInternalDvDx(FieldSpace::Copy),
@@ -182,11 +180,6 @@ initializeProblemStartup(DataBase<Dimension>& dataBase) {
   mPairAccelerations = dataBase.newFluidFieldList(vector<Vector>(), HydroFieldNames::pairAccelerations);
   mM = dataBase.newFluidFieldList(Tensor::zero, HydroFieldNames::M_SPHCorrection);
   mLocalM = dataBase.newFluidFieldList(Tensor::zero, "local " + HydroFieldNames::M_SPHCorrection);
-
-  if (mEvolveTotalEnergy) {
-    mEnergy = dataBase.newFluidFieldList(0.0, HydroFieldNames::totalEnergy);
-    mDenergyDt = dataBase.newFluidFieldList(0.0, IncrementFieldList<Dimension, Scalar>::prefix() + HydroFieldNames::totalEnergy);
-  }
 
   // Initialize the pressure and sound speed.
   dataBase.fluidPressure(mPressure);
@@ -311,7 +304,7 @@ registerState(DataBase<Dimension>& dataBase,
   // Are we using the compatible energy evolution scheme?
   FieldList<Dimension, Scalar> specificThermalEnergy = dataBase.fluidSpecificThermalEnergy();
   FieldList<Dimension, Vector> velocity = dataBase.fluidVelocity();
-  if (compatibleEnergyEvolution()) {
+  if (mCompatibleEnergyEvolution) {
     PolicyPointer thermalEnergyPolicy(new SpecificThermalEnergyPolicy<Dimension>(dataBase));
     PolicyPointer velocityPolicy(new IncrementFieldList<Dimension, Vector>(HydroFieldNames::position,
                                                                            HydroFieldNames::specificThermalEnergy));
@@ -320,19 +313,11 @@ registerState(DataBase<Dimension>& dataBase,
     state.enroll(mSpecificThermalEnergy0);
 
   } else if (mEvolveTotalEnergy) {
-    // If we're doing total energy, prepare the total energy field and register it.
-    dataBase.resizeFluidFieldList(mEnergy, 0.0, HydroFieldNames::totalEnergy, false);
-    const unsigned numNodeLists = dataBase.numFluidNodeLists();
-    for (unsigned nodeListi = 0; nodeListi < numNodeLists; ++nodeListi) {
-      const unsigned n = mass[nodeListi]->numInternalElements();
-      for (unsigned i = 0; i < n; ++i) {
-        mEnergy(nodeListi, i) = (0.5*velocity(nodeListi, i).magnitude2() + specificThermalEnergy(nodeListi, i))*mass(nodeListi, i);
-      }
-    }
-    PolicyPointer energyPolicy(new IncrementFieldList<Dimension, Scalar>());
+    // If we're doing total energy, we register the specific energy to advance with the
+    // total energy policy.
     PolicyPointer epsPolicy(new SpecificFromTotalThermalEnergyPolicy<Dimension>());
     PolicyPointer velocityPolicy(new IncrementFieldList<Dimension, Vector>());
-    state.enroll(mEnergy, energyPolicy);
+    velocityPolicy->addDependency(HydroFieldNames::specificThermalEnergy);
     state.enroll(specificThermalEnergy, epsPolicy);
     state.enroll(velocity, velocityPolicy);
 
@@ -421,12 +406,6 @@ registerDerivatives(DataBase<Dimension>& dataBase,
   derivs.enroll(mM);
   derivs.enroll(mLocalM);
   derivs.enroll(mPairAccelerations);
-
-  // If we're doing total energy, prepare it's time derivative.
-  if (mEvolveTotalEnergy) {
-    dataBase.resizeFluidFieldList(mDenergyDt, 0.0, IncrementFieldList<Dimension, SymTensor>::prefix() + HydroFieldNames::totalEnergy, false);
-    derivs.enroll(mDenergyDt);
-  }
 }
 
 //------------------------------------------------------------------------------
@@ -533,7 +512,6 @@ evaluateDerivatives(const typename Dimension::Scalar time,
   FieldList<Dimension, Scalar> DrhoDt = derivatives.fields(IncrementFieldList<Dimension, Scalar>::prefix() + HydroFieldNames::massDensity, 0.0);
   FieldList<Dimension, Vector> DvDt = derivatives.fields(IncrementFieldList<Dimension, Vector>::prefix() + HydroFieldNames::velocity, Vector::zero);
   FieldList<Dimension, Scalar> DepsDt = derivatives.fields(IncrementFieldList<Dimension, Scalar>::prefix() + HydroFieldNames::specificThermalEnergy, 0.0);
-  FieldList<Dimension, Scalar> DEDt = derivatives.fields(IncrementFieldList<Dimension, Scalar>::prefix() + HydroFieldNames::totalEnergy, 0.0);
   FieldList<Dimension, Tensor> DvDx = derivatives.fields(HydroFieldNames::velocityGradient, Tensor::zero);
   FieldList<Dimension, Tensor> localDvDx = derivatives.fields(HydroFieldNames::internalVelocityGradient, Tensor::zero);
   FieldList<Dimension, Tensor> M = derivatives.fields(HydroFieldNames::M_SPHCorrection, Tensor::zero);
@@ -554,8 +532,6 @@ evaluateDerivatives(const typename Dimension::Scalar time,
   CHECK(DrhoDt.size() == numNodeLists);
   CHECK(DvDt.size() == numNodeLists);
   CHECK(DepsDt.size() == numNodeLists);
-  CHECK((mEvolveTotalEnergy and DEDt.size() == numNodeLists) or
-        ((not mEvolveTotalEnergy) and DEDt.size() == 0));
   CHECK(DvDx.size() == numNodeLists);
   CHECK(localDvDx.size() == numNodeLists);
   CHECK(M.size() == numNodeLists);
@@ -789,20 +765,13 @@ evaluateDerivatives(const typename Dimension::Scalar time,
               DvDti -= mj*deltaDvDt;
               DvDtj += mi*deltaDvDt;
 
-              // Check if we're evolving total or specific thermal energy.
-              if (mEvolveTotalEnergy) {
-                // Total energy evolution.
-                DEDt(nodeListi, i) += mi*mj*(Prhoi*vij.dot(gradWi) + workQi);
-                DEDt(nodeListj, j) += mi*mj*(Prhoj*vij.dot(gradWj) + workQj);
-              } else {
-                // Specific thermal energy evolution.
-                // const Scalar workQij = 0.5*(mj*workQi + mi*workQj);
-                DepsDti += mj*(Prhoi*vij.dot(gradWi) + workQi);
-                DepsDtj += mi*(Prhoj*vij.dot(gradWj) + workQj);
-                if (mCompatibleEnergyEvolution) {
-                  pairAccelerationsi.push_back(-mj*deltaDvDt);
-                  pairAccelerationsj.push_back( mi*deltaDvDt);
-                }
+              // Specific thermal energy evolution.
+              // const Scalar workQij = 0.5*(mj*workQi + mi*workQj);
+              DepsDti += mj*(Prhoi*vij.dot(gradWi) + workQi);
+              DepsDtj += mi*(Prhoj*vij.dot(gradWj) + workQj);
+              if (mCompatibleEnergyEvolution) {
+                pairAccelerationsi.push_back(-mj*deltaDvDt);
+                pairAccelerationsj.push_back( mi*deltaDvDt);
               }
 
               // Velocity gradient.
@@ -866,9 +835,7 @@ evaluateDerivatives(const typename Dimension::Scalar time,
       DrhoDti = -rhoi*DvDxi.Trace();
 
       // If needed finish the total energy derivative.
-      if (mEvolveTotalEnergy) {
-        DEDt(nodeListi, i) += mi*vi.dot(DvDti);
-      }
+      if (mEvolveTotalEnergy) DepsDti = mi*(vi.dot(DvDti) + DepsDti);
 
       // Complete the moments of the node distribution for use in the ideal H calculation.
       weightedNeighborSumi = Dimension::rootnu(max(0.0, weightedNeighborSumi/Hdeti));
@@ -1287,7 +1254,6 @@ dumpState(FileIO& file, string pathName) const {
   file.write(mDvDt, pathName + "/DvDt");
   file.write(mDmassDensityDt, pathName + "/DmassDensityDt");
   file.write(mDspecificThermalEnergyDt, pathName + "/DspecificThermalEnergyDt");
-  if (mEvolveTotalEnergy) file.write(mDenergyDt, pathName + "/DenergyDt");
   file.write(mDHDt, pathName + "/DHDt");
   file.write(mDvDx, pathName + "/DvDx");
   file.write(mInternalDvDx, pathName + "/internalDvDx");
@@ -1327,7 +1293,6 @@ restoreState(const FileIO& file, string pathName) {
   file.read(mDvDt, pathName + "/DvDt");
   file.read(mDmassDensityDt, pathName + "/DmassDensityDt");
   file.read(mDspecificThermalEnergyDt, pathName + "/DspecificThermalEnergyDt");
-  if (mEvolveTotalEnergy) file.read(mDenergyDt, pathName + "/DenergyDt");
   file.read(mDHDt, pathName + "/DHDt");
   file.read(mDvDx, pathName + "/DvDx");
   file.read(mInternalDvDx, pathName + "/internalDvDx");

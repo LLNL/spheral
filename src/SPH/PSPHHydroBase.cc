@@ -315,7 +315,6 @@ evaluateDerivatives(const typename Dimension::Scalar time,
   FieldList<Dimension, Scalar> DrhoDt = derivatives.fields(IncrementFieldList<Dimension, Scalar>::prefix() + HydroFieldNames::massDensity, 0.0);
   FieldList<Dimension, Vector> DvDt = derivatives.fields(IncrementFieldList<Dimension, Vector>::prefix() + HydroFieldNames::velocity, Vector::zero);
   FieldList<Dimension, Scalar> DepsDt = derivatives.fields(IncrementFieldList<Dimension, Scalar>::prefix() + HydroFieldNames::specificThermalEnergy, 0.0);
-  FieldList<Dimension, Scalar> DEDt = derivatives.fields(IncrementFieldList<Dimension, Scalar>::prefix() + HydroFieldNames::totalEnergy, 0.0);
   FieldList<Dimension, Tensor> DvDx = derivatives.fields(HydroFieldNames::velocityGradient, Tensor::zero);
   FieldList<Dimension, Tensor> localDvDx = derivatives.fields(HydroFieldNames::internalVelocityGradient, Tensor::zero);
   FieldList<Dimension, Tensor> M = derivatives.fields(HydroFieldNames::M_SPHCorrection, Tensor::zero);
@@ -336,8 +335,6 @@ evaluateDerivatives(const typename Dimension::Scalar time,
   CHECK(DrhoDt.size() == numNodeLists);
   CHECK(DvDt.size() == numNodeLists);
   CHECK(DepsDt.size() == numNodeLists);
-  CHECK((this->mEvolveTotalEnergy and DEDt.size() == numNodeLists) or
-        ((not this->mEvolveTotalEnergy) and DEDt.size() == 0));
   CHECK(DvDx.size() == numNodeLists);
   CHECK(localDvDx.size() == numNodeLists);
   CHECK(M.size() == numNodeLists);
@@ -563,20 +560,12 @@ evaluateDerivatives(const typename Dimension::Scalar time,
               DvDti -= mj*deltaDvDt;
               DvDtj += mi*deltaDvDt;
 
-              // Check if we're evolving total or specific thermal energy.
-              if (this->mEvolveTotalEnergy) {
-                // Total energy evolution.  Form taken from Hopkins 2014, appendix F2.
-                // const Scalar workQij = 0.25*mi*mj*((rhoi*QPiij.first + rhoj*QPiij.second)*(vi + vj)).dot(gradWQi + gradWQj)/(rhoi + rhoj);
-                DEDt(nodeListi, i) += mi*mj*(engCoef*Fij*safeInv(Pi, tiny)*vij.dot(gradWi) + workQi);
-                DEDt(nodeListj, j) += mi*mj*(engCoef*Fji*safeInv(Pj, tiny)*vij.dot(gradWj) + workQj);
-              } else {
-                // Specific thermal energy evolution.
-                DepsDti += mj*(engCoef*Fij*safeInv(Pi, tiny)*vij.dot(gradWi) + workQi);
-                DepsDtj += mi*(engCoef*Fji*safeInv(Pj, tiny)*vij.dot(gradWj) + workQj);
-                if (this->mCompatibleEnergyEvolution) {
-                  pairAccelerationsi.push_back(-mj*deltaDvDt);
-                  pairAccelerationsj.push_back( mi*deltaDvDt);
-                }
+              // Specific thermal energy evolution.
+              DepsDti += mj*(engCoef*Fij*safeInv(Pi, tiny)*vij.dot(gradWi) + workQi);
+              DepsDtj += mi*(engCoef*Fji*safeInv(Pj, tiny)*vij.dot(gradWj) + workQj);
+              if (this->mCompatibleEnergyEvolution) {
+                pairAccelerationsi.push_back(-mj*deltaDvDt);
+                pairAccelerationsj.push_back( mi*deltaDvDt);
               }
 
               //ADD ARITIFICIAL CONDUCTIVITY IN HOPKINS 2014A
@@ -662,9 +651,7 @@ evaluateDerivatives(const typename Dimension::Scalar time,
       DrhoDti = -rhoi*DvDxi.Trace();
 
       // If needed finish the total energy derivative.
-      if (this->mEvolveTotalEnergy) {
-        DEDt(nodeListi, i) += mi*vi.dot(DvDti);
-      }
+      if (this->mEvolveTotalEnergy) DepsDti = mi*(vi.dot(DvDti) + DepsDti);
 
       // Complete the moments of the node distribution for use in the ideal H calculation.
       weightedNeighborSumi = Dimension::rootnu(max(0.0, weightedNeighborSumi/Hdeti));

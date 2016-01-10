@@ -198,7 +198,6 @@ public:
   const FieldSpace::FieldList<Dimension, Scalar>&    volume() const;
   const FieldSpace::FieldList<Dimension, Scalar>&    omegaGradh() const;
   const FieldSpace::FieldList<Dimension, Scalar>&    specificThermalEnergy0() const;
-  const FieldSpace::FieldList<Dimension, Scalar>&    energy() const;
   const FieldSpace::FieldList<Dimension, SymTensor>& Hideal() const;
   const FieldSpace::FieldList<Dimension, Scalar>&    maxViscousPressure() const;
   const FieldSpace::FieldList<Dimension, Scalar>&    effectiveViscousPressure() const;
@@ -216,7 +215,6 @@ public:
   const FieldSpace::FieldList<Dimension, Vector>&    DvDt() const;
   const FieldSpace::FieldList<Dimension, Scalar>&    DmassDensityDt() const;
   const FieldSpace::FieldList<Dimension, Scalar>&    DspecificThermalEnergyDt() const;
-  const FieldSpace::FieldList<Dimension, Scalar>&    DenergyDt() const;
   const FieldSpace::FieldList<Dimension, SymTensor>& DHDt() const;
   const FieldSpace::FieldList<Dimension, Tensor>&    DvDx() const;
   const FieldSpace::FieldList<Dimension, Tensor>&    internalDvDx() const;
@@ -254,7 +252,6 @@ protected:
   FieldSpace::FieldList<Dimension, Scalar>    mSoundSpeed;
   FieldSpace::FieldList<Dimension, Scalar>    mOmegaGradh;
   FieldSpace::FieldList<Dimension, Scalar>    mSpecificThermalEnergy0;
-  FieldSpace::FieldList<Dimension, Scalar>    mEnergy;
 
   FieldSpace::FieldList<Dimension, SymTensor> mHideal;
   FieldSpace::FieldList<Dimension, Scalar>    mMaxViscousPressure;
@@ -274,7 +271,6 @@ protected:
   FieldSpace::FieldList<Dimension, Vector>    mDvDt;
   FieldSpace::FieldList<Dimension, Scalar>    mDmassDensityDt;
   FieldSpace::FieldList<Dimension, Scalar>    mDspecificThermalEnergyDt;
-  FieldSpace::FieldList<Dimension, Scalar>    mDenergyDt;
   FieldSpace::FieldList<Dimension, SymTensor> mDHDt;
   FieldSpace::FieldList<Dimension, Tensor>    mDvDx;
   FieldSpace::FieldList<Dimension, Tensor>    mInternalDvDx;

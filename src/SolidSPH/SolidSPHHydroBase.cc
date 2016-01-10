@@ -363,7 +363,6 @@ evaluateDerivatives(const typename Dimension::Scalar time,
   FieldList<Dimension, Scalar> DrhoDt = derivatives.fields(IncrementFieldList<Dimension, Scalar>::prefix() + HydroFieldNames::massDensity, 0.0);
   FieldList<Dimension, Vector> DvDt = derivatives.fields(IncrementFieldList<Dimension, Vector>::prefix() + HydroFieldNames::velocity, Vector::zero);
   FieldList<Dimension, Scalar> DepsDt = derivatives.fields(IncrementFieldList<Dimension, Scalar>::prefix() + HydroFieldNames::specificThermalEnergy, 0.0);
-  FieldList<Dimension, Scalar> DEDt = derivatives.fields(IncrementFieldList<Dimension, Scalar>::prefix() + HydroFieldNames::totalEnergy, 0.0);
   FieldList<Dimension, Tensor> DvDx = derivatives.fields(HydroFieldNames::velocityGradient, Tensor::zero);
   FieldList<Dimension, Tensor> localDvDx = derivatives.fields(HydroFieldNames::internalVelocityGradient, Tensor::zero);
   FieldList<Dimension, Tensor> M = derivatives.fields(HydroFieldNames::M_SPHCorrection, Tensor::zero);
@@ -385,8 +384,6 @@ evaluateDerivatives(const typename Dimension::Scalar time,
   CHECK(DrhoDt.size() == numNodeLists);
   CHECK(DvDt.size() == numNodeLists);
   CHECK(DepsDt.size() == numNodeLists);
-  CHECK((this->mEvolveTotalEnergy and DEDt.size() == numNodeLists) or
-        ((not this->mEvolveTotalEnergy) and DEDt.size() == 0));
   CHECK(DvDx.size() == numNodeLists);
   CHECK(localDvDx.size() == numNodeLists);
   CHECK(M.size() == numNodeLists);
@@ -662,19 +659,12 @@ evaluateDerivatives(const typename Dimension::Scalar time,
               const Tensor deltaDvDxi = fDeffij*vij.dyad(gradWGi);
               const Tensor deltaDvDxj = fDeffij*vij.dyad(gradWGj);
 
-              // Check if we're evolving total or specific thermal energy.
-              if (this->mEvolveTotalEnergy) {
-                // Total energy evolution.
-                DEDt(nodeListi, i) -= mi*mj*(fDeffij*sigmarhoi.doubledot(deltaDvDxi.Symmetric()) - workQi);
-                DEDt(nodeListj, j) -= mi*mj*(fDeffij*sigmarhoj.doubledot(deltaDvDxj.Symmetric()) - workQj);
-              } else {
-                // Specific thermal energy evolution.
-                DepsDti -= mj*(fDeffij*sigmarhoi.doubledot(deltaDvDxi.Symmetric()) - workQi);
-                DepsDtj -= mi*(fDeffij*sigmarhoj.doubledot(deltaDvDxj.Symmetric()) - workQj);
-                if (compatibleEnergy) {
-                  pairAccelerationsi.push_back( mj*deltaDvDt);
-                  pairAccelerationsj.push_back(-mi*deltaDvDt);
-                }
+              // Specific thermal energy evolution.
+              DepsDti -= mj*(fDeffij*sigmarhoi.doubledot(deltaDvDxi.Symmetric()) - workQi);
+              DepsDtj -= mi*(fDeffij*sigmarhoj.doubledot(deltaDvDxj.Symmetric()) - workQj);
+              if (compatibleEnergy) {
+                pairAccelerationsi.push_back( mj*deltaDvDt);
+                pairAccelerationsj.push_back(-mi*deltaDvDt);
               }
 
               // Velocity gradient.
@@ -741,9 +731,7 @@ evaluateDerivatives(const typename Dimension::Scalar time,
       DrhoDti = -rhoi*DvDxi.Trace();
 
       // If needed finish the total energy derivative.
-      if (this->mEvolveTotalEnergy) {
-        DEDt(nodeListi, i) += mi*vi.dot(DvDti);
-      }
+      if (this->mEvolveTotalEnergy) DepsDti = mi*(vi.dot(DvDti) + DepsDti);
 
       // Complete the moments of the node distribution for use in the ideal H calculation.
       weightedNeighborSumi = Dimension::rootnu(max(0.0, weightedNeighborSumi/Hdeti));
