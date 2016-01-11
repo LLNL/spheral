@@ -44,6 +44,7 @@ commandLine(KernelConstructor = BSplineKernel,
             SVPH = False,
             CRKSPH = False,
             PSPH = False,
+            evolveTotalEnergy = False,  # Only for SPH variants -- evolve total rather than specific energy
             Qconstructor = MonaghanGingoldViscosity,
             #Qconstructor = TensorMonaghanGingoldViscosity,
             boolReduceViscosity = False,
@@ -53,6 +54,7 @@ commandLine(KernelConstructor = BSplineKernel,
             aMin = 0.1,
             aMax = 2.0,
             boolCullenViscosity = False,
+            cullenReproducingKernelGradient = False,  # Use reproducing kernels for gradients in Cullen-Dehnen visocosity model
             alphMax = 2.0,
             alphMin = 0.02,
             betaC = 0.7,
@@ -315,6 +317,7 @@ elif PSPH:
                              cfl = cfl,
                              useVelocityMagnitudeForDt = useVelocityMagnitudeForDt,
                              compatibleEnergyEvolution = compatibleEnergy,
+                             evolveTotalEnergy = evolveTotalEnergy,
                              HopkinsConductivity = HopkinsConductivity,
                              densityUpdate = densityUpdate,
                              HUpdate = HUpdate,
@@ -326,6 +329,7 @@ else:
                              cfl = cfl,
                              useVelocityMagnitudeForDt = useVelocityMagnitudeForDt,
                              compatibleEnergyEvolution = compatibleEnergy,
+                             evolveTotalEnergy = evolveTotalEnergy,
                              gradhCorrection = gradhCorrection,
                              densityUpdate = densityUpdate,
                              HUpdate = HUpdate,
@@ -350,7 +354,7 @@ if boolReduceViscosity:
     evolveReducingViscosityMultiplier = MorrisMonaghanReducingViscosity(q,nhQ,nhL,aMin,aMax)
     packages.append(evolveReducingViscosityMultiplier)
 elif boolCullenViscosity:
-    evolveCullenViscosityMultiplier = CullenDehnenViscosity(q,WT,alphMax,alphMin,betaC,betaD,betaE,fKern,boolHopkinsCorrection)
+    evolveCullenViscosityMultiplier = CullenDehnenViscosity(q,WT,alphMax,alphMin,betaC,betaD,betaE,fKern,boolHopkinsCorrection,cullenReproducingKernelGradient)
     packages.append(evolveCullenViscosityMultiplier)
 
 #-------------------------------------------------------------------------------
