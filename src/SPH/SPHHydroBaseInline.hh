@@ -57,6 +57,23 @@ SPHHydroBase<Dimension>::compatibleEnergyEvolution(const bool val) {
 }
 
 //------------------------------------------------------------------------------
+// Access the flag determining if we're evolving total or specific energy
+//------------------------------------------------------------------------------
+template<typename Dimension>
+inline
+bool
+SPHHydroBase<Dimension>::evolveTotalEnergy() const {
+  return mEvolveTotalEnergy;
+}
+
+template<typename Dimension>
+inline
+void
+SPHHydroBase<Dimension>::evolveTotalEnergy(const bool val) {
+  mEvolveTotalEnergy = val;
+}
+
+//------------------------------------------------------------------------------
 // Access the flag determining if we're using the grad h correction.
 //------------------------------------------------------------------------------
 template<typename Dimension>

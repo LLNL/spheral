@@ -146,6 +146,7 @@ self.generatePSPHHydroBaseBindings(self.PSPHHydroBase%(dim)id, %(dim)i)
                            param("double", "cfl", default_value="0.5"),
                            param("int", "useVelocityMagnitudeForDt", default_value="false"),
                            param("int", "compatibleEnergyEvolution", default_value="true"),
+                           param("int", "evolveTotalEnergy", default_value="false"),
                            param("int", "gradhCorrection", default_value="false"),
                            param("int", "XSPH", default_value="true"),
                            param("int", "correctVelocityGradient", default_value="false"),
@@ -203,6 +204,7 @@ self.generatePSPHHydroBaseBindings(self.PSPHHydroBase%(dim)id, %(dim)i)
         x.add_instance_attribute("sumForMassDensity", "MassDensityType", getter="densityUpdate", setter="densityUpdate")  # Provided for backwards compatibility
         x.add_instance_attribute("HEvolution", "HEvolutionType", getter="HEvolution", setter="HEvolution")
         x.add_instance_attribute("compatibleEnergyEvolution", "bool", getter="compatibleEnergyEvolution", setter="compatibleEnergyEvolution")
+        x.add_instance_attribute("evolveTotalEnergy", "bool", getter="evolveTotalEnergy", setter="evolveTotalEnergy")
         x.add_instance_attribute("gradhCorrection", "bool", getter="gradhCorrection", setter="gradhCorrection")
         x.add_instance_attribute("correctVelocityGradient", "bool", getter="correctVelocityGradient", setter="correctVelocityGradient")
         x.add_instance_attribute("XSPH", "bool", getter="XSPH", setter="XSPH")
@@ -294,6 +296,7 @@ self.generatePSPHHydroBaseBindings(self.PSPHHydroBase%(dim)id, %(dim)i)
                            param("double", "cfl", default_value="0.5"),
                            param("int", "useVelocityMagnitudeForDt", default_value="false"),
                            param("int", "compatibleEnergyEvolution", default_value="true"),
+                           param("int", "evolveTotalEnergy", default_value="false"),
                            param("int", "XSPH", default_value="true"),
                            param("int", "correctVelocityGradient", default_value="false"),
                            param("int", "HopkinsConductivity", default_value="false"),

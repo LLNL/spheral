@@ -64,7 +64,9 @@ commandLine(# Geometry
             HUpdate = IdealH,
             densityUpdate = IntegrateDensity,
             compatibleEnergy = True,
+            evolveTotalEnergy = False,
             gradhCorrection = False,
+            correctVelocityGradient = True,
             filter = 0.0,
 
             # Time advancement.
@@ -274,7 +276,9 @@ else:
                              filter = filter,
                              cfl = cfl,
                              compatibleEnergyEvolution = compatibleEnergy,
+                             evolveTotalEnergy = evolveTotalEnergy,
                              gradhCorrection = gradhCorrection,
+                             correctVelocityGradient = correctVelocityGradient,
                              densityUpdate = densityUpdate,
                              HUpdate = HUpdate,
                              XSPH = XSPH,

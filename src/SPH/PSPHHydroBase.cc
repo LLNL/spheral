@@ -29,7 +29,6 @@
 #include "Hydro/VolumePolicy.hh"
 #include "Hydro/VoronoiMassDensityPolicy.hh"
 #include "Hydro/SumVoronoiMassDensityPolicy.hh"
-#include "Hydro/SpecificThermalEnergyPolicy.hh"
 #include "Hydro/PositionPolicy.hh"
 #include "Hydro/PressurePolicy.hh"
 #include "Hydro/SoundSpeedPolicy.hh"
@@ -82,6 +81,7 @@ PSPHHydroBase(const SmoothingScaleBase<Dimension>& smoothingScaleMethod,
               const double cfl,
               const bool useVelocityMagnitudeForDt,
               const bool compatibleEnergyEvolution,
+              const bool evolveTotalEnergy,
               const bool XSPH,
               const bool correctVelocityGradient,
               const bool HopkinsConductivity,
@@ -98,6 +98,7 @@ PSPHHydroBase(const SmoothingScaleBase<Dimension>& smoothingScaleMethod,
                           cfl,
                           useVelocityMagnitudeForDt,
                           compatibleEnergyEvolution,
+                          evolveTotalEnergy,
                           true,
                           XSPH,
                           correctVelocityGradient,
@@ -529,8 +530,10 @@ evaluateDerivatives(const typename Dimension::Scalar time,
               const pair<Tensor, Tensor> QPiij = Q.Piij(nodeListi, i, nodeListj, j,
                                                         ri, etai, vi, rhoi, ci, Hi,
                                                         rj, etaj, vj, rhoj, cj, Hj);
-              const Vector Qacci = 0.5*(QPiij.first *gradWQi);
-              const Vector Qaccj = 0.5*(QPiij.second*gradWQj);
+              const Vector Qacci = 0.5*rhoi*QPiij.first  * (gradWi + gradWj)/(rhoi + rhoj);
+              const Vector Qaccj = 0.5*rhoj*QPiij.second * (gradWi + gradWj)/(rhoi + rhoj);
+              // const Vector Qacci = 0.5*(QPiij.first *gradWQi);
+              // const Vector Qaccj = 0.5*(QPiij.second*gradWQj);
               // const Scalar workQi = 0.5*(QPiij.first *vij).dot(gradWQi);
               // const Scalar workQj = 0.5*(QPiij.second*vij).dot(gradWQj);
               const Scalar workQi = vij.dot(Qacci);
@@ -633,7 +636,8 @@ evaluateDerivatives(const typename Dimension::Scalar time,
       // Finish the gradient of the velocity.
       CHECK(rhoi > 0.0);
       if (this->mCorrectVelocityGradient and
-          std::abs(Mi.Determinant()) > 1.0e-10) {
+          std::abs(Mi.Determinant()) > 1.0e-10 and
+          numNeighborsi > Dimension::pownu(2)) {
         Mi = Mi.Inverse();
         localMi = localMi.Inverse();
         DvDxi = DvDxi*Mi;
@@ -645,6 +649,9 @@ evaluateDerivatives(const typename Dimension::Scalar time,
 
       // Evaluate the continuity equation.
       DrhoDti = -rhoi*DvDxi.Trace();
+
+      // If needed finish the total energy derivative.
+      if (this->mEvolveTotalEnergy) DepsDti = mi*(vi.dot(DvDti) + DepsDti);
 
       // Complete the moments of the node distribution for use in the ideal H calculation.
       weightedNeighborSumi = Dimension::rootnu(max(0.0, weightedNeighborSumi/Hdeti));

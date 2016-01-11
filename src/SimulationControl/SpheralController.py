@@ -58,13 +58,16 @@ class SpheralController(RestartableObject):
                  vizDerivs = False,
                  initialTime = 0.0,
                  SPH = False,
-                 skipInitialPeriodicWork = False):
+                 skipInitialPeriodicWork = False,
+                 iterateInitialH = True,
+                 numHIterationsBetweenCycles = 0):
         RestartableObject.__init__(self)
         self.integrator = integrator
         self.kernel = kernel
         self.restartObjects = restartObjects
         self.restartFileConstructor = restartFileConstructor
         self.SPH = SPH
+        self.numHIterationsBetweenCycles = numHIterationsBetweenCycles
 
         # Determine the dimensionality of this run, based on the integrator.
         self.dim = "%id" % self.integrator.dataBase().nDim
@@ -110,7 +113,8 @@ class SpheralController(RestartableObject):
                                  vizTime = vizTime,
                                  vizFields = vizFields,
                                  vizFieldLists = vizFieldLists,
-                                 skipInitialPeriodicWork = skipInitialPeriodicWork)
+                                 skipInitialPeriodicWork = skipInitialPeriodicWork,
+                                 iterateInitialH = True)
 
         # Read the restart information if requested.
         if not restoreCycle is None:
@@ -138,7 +142,8 @@ class SpheralController(RestartableObject):
                             vizTime = None,
                             vizFields = [],
                             vizFieldLists = [],
-                            skipInitialPeriodicWork = False):
+                            skipInitialPeriodicWork = False,
+                            iterateInitialH = True):
 
         # Intialize the cycle count.
         self.totalSteps = 0
@@ -161,7 +166,7 @@ class SpheralController(RestartableObject):
         self.integrator.currentTime = initialTime
 
         # If we're starting from scratch, initialize the H tensors.
-        if restoreCycle is None and not skipInitialPeriodicWork:
+        if restoreCycle is None and not skipInitialPeriodicWork and iterateInitialH:
             self.iterateIdealH()
 
         # Create ghost nodes for the physics packages to initialize with.
@@ -289,6 +294,8 @@ class SpheralController(RestartableObject):
                (maxSteps == None or currentSteps < maxSteps)):
             self.stepTimer.start()
             self.integrator.step(goalTime)
+            if self.numHIterationsBetweenCycles > 0:
+                self.iterateIdealH(maxIdealHIterations = self.numHIterationsBetweenCycles)
             self.stepTimer.stop()
             currentSteps = currentSteps + 1
             self.totalSteps = self.totalSteps + 1

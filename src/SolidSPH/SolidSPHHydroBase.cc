@@ -110,6 +110,7 @@ SolidSPHHydroBase(const SmoothingScaleBase<Dimension>& smoothingScaleMethod,
                   const double cfl,
                   const bool useVelocityMagnitudeForDt,
                   const bool compatibleEnergyEvolution,
+                  const bool evolveTotalEnergy,
                   const bool gradhCorrection,
                   const bool XSPH,
                   const bool correctVelocityGradient,
@@ -128,6 +129,7 @@ SolidSPHHydroBase(const SmoothingScaleBase<Dimension>& smoothingScaleMethod,
                           cfl,
                           useVelocityMagnitudeForDt,
                           compatibleEnergyEvolution,
+                          evolveTotalEnergy,
                           gradhCorrection,
                           XSPH,
                           correctVelocityGradient,
@@ -714,7 +716,8 @@ evaluateDerivatives(const typename Dimension::Scalar time,
       // Finish the gradient of the velocity.
       CHECK(rhoi > 0.0);
       if (this->mCorrectVelocityGradient and
-          std::abs(Mi.Determinant()) > 1.0e-10) {
+          std::abs(Mi.Determinant()) > 1.0e-10 and
+          numNeighborsi > Dimension::pownu(2)) {
         Mi = Mi.Inverse();
         localMi = localMi.Inverse();
         DvDxi = DvDxi*Mi;
@@ -726,6 +729,9 @@ evaluateDerivatives(const typename Dimension::Scalar time,
 
       // Evaluate the continuity equation.
       DrhoDti = -rhoi*DvDxi.Trace();
+
+      // If needed finish the total energy derivative.
+      if (this->mEvolveTotalEnergy) DepsDti = mi*(vi.dot(DvDti) + DepsDti);
 
       // Complete the moments of the node distribution for use in the ideal H calculation.
       weightedNeighborSumi = Dimension::rootnu(max(0.0, weightedNeighborSumi/Hdeti));

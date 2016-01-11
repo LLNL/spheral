@@ -1,3 +1,4 @@
+from SpheralModules.Spheral import *
 from SpheralModules.Spheral.SPHSpace import *
 from SpheralModules.Spheral.NodeSpace import *
 from SpheralModules.Spheral.PhysicsSpace import *
@@ -22,14 +23,17 @@ class %(classname)s%(dim)s(SolidSPHHydroBase%(dim)s):
                  cfl = 0.5,
                  useVelocityMagnitudeForDt = False,
                  compatibleEnergyEvolution = True,
+                 evolveTotalEnergy = False,
                  gradhCorrection = True,
                  XSPH = True,
-                 correctVelocityGradient = True,
+                 correctVelocityGradient = False,
                  sumMassDensityOverAllNodeLists = False,
                  densityUpdate = RigorousSumDensity,
                  HUpdate = IdealH,
                  epsTensile = 0.3,
-                 nTensile = 4.0):
+                 nTensile = 4.0,
+                 xmin = Vector%(dim)s(-1e100, -1e100, -1e100),
+                 xmax = Vector%(dim)s( 1e100,  1e100,  1e100)):
         self._smoothingScaleMethod = %(smoothingScaleMethod)s%(dim)s()
         if WPi is None:
             WPi = W
@@ -45,6 +49,7 @@ class %(classname)s%(dim)s(SolidSPHHydroBase%(dim)s):
                                           cfl,
                                           useVelocityMagnitudeForDt,
                                           compatibleEnergyEvolution,
+                                          evolveTotalEnergy,
                                           gradhCorrection,
                                           XSPH,
                                           correctVelocityGradient,
@@ -52,7 +57,9 @@ class %(classname)s%(dim)s(SolidSPHHydroBase%(dim)s):
                                           densityUpdate,
                                           HUpdate,
                                           epsTensile,
-                                          nTensile)
+                                          nTensile,
+                                          xmin,
+                                          xmax)
         return
 """
 

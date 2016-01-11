@@ -58,6 +58,7 @@ public:
                const double cfl,
                const bool useVelocityMagnitudeForDt,
                const bool compatibleEnergyEvolution,
+               const bool evolveTotalEnergy,
                const bool gradhCorrection,
                const bool XSPH,
                const bool correctVelocityGradient,
@@ -149,6 +150,10 @@ public:
   bool compatibleEnergyEvolution() const;
   void compatibleEnergyEvolution(const bool val);
 
+  // Flag controlling if we evolve total or specific energy.
+  bool evolveTotalEnergy() const;
+  void evolveTotalEnergy(const bool val);
+
   // Flag to determine if we're using the grad h correction.
   bool gradhCorrection() const;
   void gradhCorrection(const bool val);
@@ -230,7 +235,7 @@ protected:
   // A bunch of switches.
   PhysicsSpace::MassDensityType mDensityUpdate;
   PhysicsSpace::HEvolutionType mHEvolution;
-  bool mCompatibleEnergyEvolution, mGradhCorrection, mXSPH, mCorrectVelocityGradient, mSumMassDensityOverAllNodeLists;
+  bool mCompatibleEnergyEvolution, mEvolveTotalEnergy, mGradhCorrection, mXSPH, mCorrectVelocityGradient, mSumMassDensityOverAllNodeLists;
 
   // Magnitude of the hourglass/parasitic mode filter.
   double mfilter;

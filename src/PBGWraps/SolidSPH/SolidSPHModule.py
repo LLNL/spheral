@@ -154,6 +154,7 @@ self.generateSolidSPHHydroBaseBindings(self.SolidSPHHydroBase%(dim)id, %(dim)i)
                            param("double", "cfl", default_value="0.5"),
                            param("int", "useVelocityMagnitudeForDt", default_value="false"),
                            param("int", "compatibleEnergyEvolution", default_value="true"),
+                           param("int", "evolveTotalEnergy", default_value="false"),
                            param("int", "gradhCorrection", default_value="false"),
                            param("int", "XSPH", default_value="true"),
                            param("int", "correctVelocityGradient", default_value="true"),
