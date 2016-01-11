@@ -26,7 +26,7 @@ class %(classname)s%(dim)s(SolidSPHHydroBase%(dim)s):
                  evolveTotalEnergy = False,
                  gradhCorrection = True,
                  XSPH = True,
-                 correctVelocityGradient = True,
+                 correctVelocityGradient = False,
                  sumMassDensityOverAllNodeLists = False,
                  densityUpdate = RigorousSumDensity,
                  HUpdate = IdealH,
