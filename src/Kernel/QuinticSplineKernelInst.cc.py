@@ -23,8 +23,8 @@ if ndim == "1":
 template<>
 QuinticSplineKernel< Dim<1> >::QuinticSplineKernel():
   Kernel<Dim<1>, QuinticSplineKernel< Dim<1> > >() {
-  setVolumeNormalization(1.0/16.0);
-  setKernelExtent(2.0);
+  setVolumeNormalization(FastMath::pow5(3.0)/40.0);
+  setKernelExtent(1.0);
   setInflectionPoint(0.342037); // (2.0/15.0*(7.0 - pow(2.0, 1.0/3.0) - pow(22.0, 2.0/3.0)));
 }
 """
@@ -34,8 +34,8 @@ elif ndim == "2":
 template<>
 QuinticSplineKernel< Dim<2> >::QuinticSplineKernel():
   Kernel<Dim<2>, QuinticSplineKernel< Dim<2> > >() {
-  setVolumeNormalization(3.0/(16.0*M_PI));
-  setKernelExtent(2.0);
+  setVolumeNormalization(FastMath::pow5(3.0)*7.0/(478.0*M_PI));
+  setKernelExtent(1.0);
   setInflectionPoint(0.342037); // (2.0/15.0*(7.0 - pow(2.0, 1.0/3.0) - pow(22.0, 2.0/3.0)));
 }
 """
@@ -46,8 +46,8 @@ else:
 template<>
 QuinticSplineKernel< Dim<3> >::QuinticSplineKernel():
   Kernel<Dim<3>, QuinticSplineKernel< Dim<3> > >() {
-  setVolumeNormalization(7.0/(40.0*M_PI));
-  setKernelExtent(2.0);
+  setVolumeNormalization(FastMath::pow5(3.0)/(40.0*M_PI));
+  setKernelExtent(1.0);
   setInflectionPoint(0.342037); // (2.0/15.0*(7.0 - pow(2.0, 1.0/3.0) - pow(22.0, 2.0/3.0)));
 }
 """
