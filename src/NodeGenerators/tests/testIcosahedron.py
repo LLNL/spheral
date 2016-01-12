@@ -12,7 +12,7 @@ commandLine(nPerh   = 2.01,
             rmin    = 0.0,
             rmax    = 2.0,
             scaler  = 0.6,
-            nr      = 10,
+            nr      = 20,
             seed    = "ico")
 
 class densityProf:
@@ -22,6 +22,20 @@ class densityProf:
     def __call__(self,r):
         return 1.0e6*exp(-r/self.R)
 #return (2.2-r)/self.R
+
+class rejecter(object):
+    def __init__(self,point,radius):
+        self.point=point
+        self.radius=radius
+    def accept(self,x,y,z):
+        dx = self.point[0] - x
+        dy = self.point[1] - y
+        dz = self.point[2] - z
+        if (sqrt(dx*dx+dy*dy+dz*dz)<self.radius):
+            return True
+        else:
+            return False
+
 
 #-------------------------------------------------------------------------------
 # Material properties.
@@ -56,8 +70,9 @@ output("nodes.nodesPerSmoothingScale")
 rhoProfile = densityProf(scaler)
 
 if seed == "ico":
+    reject = rejecter([2,0,0],0.5)
     generator = GenerateIcosahedronMatchingProfile3d(nr,rhoProfile,rmin,rmax,
-                                                     nNodePerh = nPerh)
+                                                     nNodePerh = nPerh,rejecter=reject)
 elif seed == "random":
     generator = GenerateRandomNodesMatchingProfile3d(nr,rhoProfile,rmin,rmax,
                                                      nNodePerh = nPerh)
