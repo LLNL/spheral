@@ -1,8 +1,9 @@
-#ATS:test(SELF, "--CRKSPH=False --n=50 --cfl=0.25 --Cl=1.0 --Cq=2.0 --filter=0 --nPerh=1.01 --balsaraCorrection=True --fractionPressureSupport=0.25 --serialDump=True --compatibleEnergy=False --goalTime=50", label="Kepler SPH balsara no-compat, nPerh=1.5 fp=0.05", np=20)
-#ATS:test(SELF, "--CRKSPH=False --n=50 --cfl=0.25 --Cl=1.0 --Cq=2.0 --filter=0 --nPerh=1.01 --balsaraCorrection=True --fractionPressureSupport=0.25 --serialDump=True --compatibleEnergy=True --goalTime=50", label="Kepler SPH balsara w-compat, nPerh=1.5 fp=0.05", np=20)
-#ATS:test(SELF, "--CRKSPH=False --n=50 --cfl=0.25 --Cl=1.0 --Cq=2.0 --filter=0 --nPerh=1.01 --balsaraCorrection=False --fractionPressureSupport=0.25 --serialDump=True --compatibleEnergy=False --goalTime=50", label="Kepler SPH no-compat, nPerh=1.5 fp=0.05", np=20)
-#ATS:test(SELF, "--CRKSPH=False --n=50 --cfl=0.25 --Cl=1.0 --Cq=2.0 --filter=0 --nPerh=1.01 --balsaraCorrection=False --fractionPressureSupport=0.25 --serialDump=True --compatibleEnergy=True --goalTime=50", label="Kepler SPH w-compat, nPerh=1.5 fp=0.05", np=20)
-
+#ATS:test(SELF, "--CRKSPH=False --n=50 --cfl=0.25 --Cl=1.0 --Cq=1.0 --filter=0 --nPerh=1.51 --balsaraCorrection=True --fractionPressureSupport=0.5 --serialDump=True", label="Kepler SPH balsara, nPerh=1.5 fp=0.5", np=20)
+#ATS:test(SELF, "--CRKSPH=False --n=50 --cfl=0.25 --Cl=1.0 --Cq=1.0 --filter=0 --nPerh=1.51 --fractionPressureSupport=0.25 --serialDump=True", label="Kepler SPH, nPerh=1.5 fp=0.25", np=20)
+#ATS:test(SELF, "--CRKSPH=False --n=50 --cfl=0.25 --Cl=1.0 --Cq=1.0 --filter=0 --nPerh=1.51 --fractionPressureSupport=0.05 --serialDump=True", label="Kepler SPH, nPerh=1.5 fp=0.05", np=20)
+#ATS:test(SELF, "--CRKSPH=False --n=50 --cfl=0.25 --Cl=1.0 --Cq=1.0 --filter=0 --nPerh=1.51 --balsaraCorrection=True --fractionPressureSupport=0.05 --serialDump=True", label="Kepler SPH, nPerh=1.5 fp=0.05 balsara", np=20)
+#ATS:test(SELF, "--CRKSPH=False --n=50 --cfl=0.25 --Cl=1.0 --Cq=1.0 --filter=0 --nPerh=1.51 --balsaraCorrection=True --fractionPressureSupport=0.95 --serialDump=True", label="Kepler SPH, nPerh=1.5 fp=0.95 balsara", np=20)
+#ATS:test(SELF, "--CRKSPH=False --n=50 --cfl=0.25 --Cl=1.0 --Cq=1.0 --filter=0 --nPerh=1.51 --balsaraCorrection=True --fractionPressureSupport=0.25 --serialDump=True", label="Kepler SPH, nPerh=1.5 fp=0.25 balsara", np=20)
 
 #-------------------------------------------------------------------------------
 # This test problem sets up a gas disk in a fixed potential from a softened
@@ -164,8 +165,7 @@ else:
 # Data output info.
 dataDir = "owen-%i" % n
 dataDir = os.path.join(dataDir, "fp=%f" % (fractionPressureSupport))
-dataDir = os.path.join(dataDir, "CRK=%s-Balsara=%s-nPerh=%f-compatible=%s" % (CRKSPH,balsaraCorrection,nPerh,compatibleEnergy))
-dataDir = os.path.join(dataDir, "Cl=%f-Cq=%f" % (Cl,Cq))
+dataDir = os.path.join(dataDir, "CRK=%s-Balsara=%s-nPerh=%f" % (CRKSPH,balsaraCorrection,nPerh))
 restartBaseName = "%s/KeplerianDisk-f=%f-n=%i" % (dataDir,
                                                   fractionPressureSupport,
                                                   n)
@@ -435,8 +435,7 @@ control = SpheralController(integrator, WT,
                             vizBaseName = vizBaseName,
                             vizDir = vizDir,
                             vizStep = vizCycle,
-                            vizTime = vizTime,
-                            restoreCycle = restoreCycle)
+                            vizTime = vizTime)
 
 
 if serialDump:
@@ -445,7 +444,12 @@ if serialDump:
 output('control')
 
 # Smooth the initial conditions.
-
+if restoreCycle is not None:
+    control.loadRestartFile(restoreCycle)
+else:
+    control.iterateIdealH()
+    control.smoothState(smoothIters)
+    control.dropRestartFile()
 
 #-------------------------------------------------------------------------------
 # Advance to the end time.

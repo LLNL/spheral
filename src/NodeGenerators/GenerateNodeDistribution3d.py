@@ -979,221 +979,6 @@ class GenerateCylindricalNodeDistribution3d(GenerateNodeDistributionRZ):
         return self.H[i]
 
 #-------------------------------------------------------------------------------
-# Specialized version that generates a sphere matching a radial profile using
-# the monte carlo method
-#-------------------------------------------------------------------------------
-class GenerateMonteCarloProfile3d(NodeGeneratorBase):
-    
-    #---------------------------------------------------------------------------
-    # Constructor
-    #---------------------------------------------------------------------------
-    def __init__(self, n, densityProfileMethod,
-                 rmin = 0.0,
-                 rmax = 1.0,
-                 thetaMin = 0.0,
-                 thetaMax = pi,
-                 phiMin = 0.0,
-                 phiMax = 2.0*pi,
-                 nNodePerh = 2.01,
-                 m0 = None):
-        
-        assert n > 0
-        assert rmin < rmax
-        assert thetaMin < thetaMax
-        assert thetaMin >= 0.0 and thetaMin <= 2.0*pi
-        assert thetaMax >= 0.0 and thetaMax <= 2.0*pi
-        assert phiMin < phiMax
-        assert phiMin >= 0.0 and phiMin <= 2.0*pi
-        assert phiMax >= 0.0 and phiMax <= 2.0*pi
-        assert nNodePerh > 0.0
-        
-        self.n = n
-        self.rmin = rmin
-        self.rmax = rmax
-        self.thetaMin = thetaMin
-        self.thetaMax = thetaMax
-        self.phiMin = phiMin
-        self.phiMax = phiMax
-        self.nNodePerh = nNodePerh
-        
-        # If the user provided a constant for rho, then use the constantRho
-        # class to provide this value.
-        if type(densityProfileMethod) == type(1.0):
-            self.densityProfileMethod = ConstantRho(densityProfileMethod)
-        else:
-            self.densityProfileMethod = densityProfileMethod
-        
-        self.totalMass = self.integrateTotalMass(self.densityProfileMethod,
-                                                 rmin, rmax,
-                                                 0.0, pi,
-                                                 0.0, 2.0*pi)
-        
-        if m0 is None:
-            # Now set the nominal mass per node.
-            self.m0 = self.totalMass/n # In this case, we're setting the total number of particles
-        else:
-            self.m0 = m0
-            n = self.totalMass/m0
-        assert self.m0 > 0.0
-        print "Nominal mass per node of %g for %d nodes" % (self.m0,n)
-        
-        # Get the normalization constant for radial probability distribution
-        norm = self.integrateDensityFunction(self.densityProfileMethod,rmin,rmax)
-        pMax = 0
-        
-        dr = (rmax-rmin)/10000.0
-        for i in xrange(10000):
-            ri = rmin + dr*i
-            pMax = max(self.densityProfileMethod(ri)/norm,pMax)
-
-        # OK, we now know enough to generate the node positions.
-        from Spheral import SymTensor3d
-        import random
-        self.x = []
-        self.y = []
-        self.z = []
-        self.m = []
-        self.H = []
-
-        # Below was an attempt at a sophisticated probability sampling, using accept/reject instead
-        '''
-        while (len(self.x)<n):
-            random.seed()
-            u       = random.random()
-            v       = random.random()
-            w       = random.random()
-            theta   = 2.0*pi*u
-            phi     = acos(2.0*v-1)
-            r       = self.integrateDensityFunction(self.densityProfileMethod,rmin,rmax,w,norm)
-            print "r = %f" % r
-            rhoi    = self.densityProfileMethod(r)
-            voli    = self.m0/rhoi
-            hi      = 2.0*nNodePerh*pow(3.0/(4.0*pi)*voli,1.0/3.0)
-            Hi      = SymTensor3d(1.0/hi, 0.0, 0.0,
-                                  0.0, 1.0/hi, 0.0,
-                                  0.0, 0.0, 1.0/hi)
-
-            if ((theta >= thetaMin) and (theta <= thetaMax) and (phi <= phiMax) and (phi >= phiMin) and (r <= rmax) and (r >= rmin)):
-                self.x.append((r)*cos(theta)*sin(phi))
-                self.y.append((r)*sin(theta)*sin(phi))
-                self.z.append((r)*cos(phi))
-                self.m.append(self.m0)
-                self.H.append(Hi)
-        '''
-        
-        while (len(self.x)<n):
-            random.seed()
-            x       = random.uniform(-rmax,rmax)
-            y       = random.uniform(-rmax,rmax)
-            z       = random.uniform(-rmax,rmax)
-            r       = sqrt(x*x+y*y+z*z)
-            u       = random.random()*pMax
-            
-            if ((r<=rmax) and (r>=rmin)):
-                if (self.densityProfileMethod(ri)/norm >= u):
-                    # accept
-                    rhoi    = self.densityProfileMethod(r)
-                    voli    = self.m0/rhoi
-                    hi      = 2.0*nNodePerh*pow(3.0/(4.0*pi)*voli,1.0/3.0)
-                    Hi      = SymTensor3d(1.0/hi, 0.0, 0.0,
-                                          0.0, 1.0/hi, 0.0,
-                                          0.0, 0.0, 1.0/hi)
-                    phi     = atan2(y,x)+pi
-                    theta   = acos(z/r)
-                    if ((theta >= thetaMin) and (theta <= thetaMax) and (phi <= phiMax) and (phi >= phiMin)):
-                        self.x.append(x)
-                        self.y.append(y)
-                        self.z.append(z)
-                        self.m.append(self.m0)
-                        self.H.append(Hi)
-
-
-        print "Generated a total of %i nodes." % len(self.x)
-
-        # Make sure the total mass is what we intend it to be, by applying
-        # a multiplier to the particle masses.
-        sumMass = 0.0
-        for m in self.m:
-            sumMass += m
-        assert sumMass > 0.0
-
-        # Have the base class break up the serial node distribution
-        # for parallel cases.
-        NodeGeneratorBase.__init__(self, True,
-                                   self.x, self.y, self.z, self.m, self.H)
-        return
-    
-    #---------------------------------------------------------------------------
-    # Get the position for the given node index.
-    #---------------------------------------------------------------------------
-    def localPosition(self, i):
-        assert i >= 0 and i < len(self.x)
-        assert len(self.x) == len(self.y) == len(self.z)
-        return Vector3d(self.x[i], self.y[i], self.z[i])
-    
-    #---------------------------------------------------------------------------
-    # Get the mass for the given node index.
-    #---------------------------------------------------------------------------
-    def localMass(self, i):
-        assert i >= 0 and i < len(self.m)
-        return self.m[i]
-    
-    #---------------------------------------------------------------------------
-    # Get the mass density for the given node index.
-    #---------------------------------------------------------------------------
-    def localMassDensity(self, i):
-        return self.densityProfileMethod(self.localPosition(i).magnitude())
-    
-    #---------------------------------------------------------------------------
-    # Get the H tensor for the given node index.
-    #---------------------------------------------------------------------------
-    def localHtensor(self, i):
-        assert i >= 0 and i < len(self.H)
-        return self.H[i]
-    
-    
-    #---------------------------------------------------------------------------
-    # Numerically integrate the given density profile to determine the total
-    # enclosed mass.
-    #---------------------------------------------------------------------------
-    def integrateTotalMass(self, densityProfileMethod,
-                           rmin, rmax,
-                           thetaMin, thetaMax,
-                           phiMin, phiMax,
-                           nbins = 1000):
-        assert nbins > 0
-        assert nbins % 2 == 0
-        
-        result = 0
-        dr = (rmax-rmin)/nbins
-        for i in xrange(1,nbins):
-            r1 = rmin + (i-1)*dr
-            r2 = rmin + i*dr
-            result += 0.5*dr*(r2*r2*densityProfileMethod(r2)+r1*r1*densityProfileMethod(r1))
-        result = result * (phiMax-phiMin) * (cos(thetaMin)-cos(thetaMax))
-        return result
-
-    def integrateDensityFunction(self,densityProfileMethod,rmin,rmax,
-                                 lam = -1.0,
-                                 norm = 1.0,
-                                 nbins = 1000):
-        assert nbins > 0
-        assert nbins % 2 == 0
-
-        result = 0
-        dr = (rmax-rmin)/nbins
-        for i in xrange(1,nbins):
-            r1 = rmin + (i-1)*dr
-            r2 = rmin + i*dr
-            result += 0.5*dr*norm*(densityProfileMethod(r2)+densityProfileMethod(r1))
-            if (lam >=0 and result >= lam):
-                result = r1
-                break
-        return result
-
-
-
-#-------------------------------------------------------------------------------
 # Specialized version that generates a variable radial stepping to try
 # and match a given density profile with (nearly) constant mass nodes.  This
 # only supports random node placement in each shell.
@@ -1210,8 +995,7 @@ class GenerateRandomNodesMatchingProfile3d(NodeGeneratorBase):
                  thetaMax = pi,
                  phiMin = 0.0,
                  phiMax = 2.0*pi,
-                 nNodePerh = 2.01,
-                 m0 = -1.0):
+                 nNodePerh = 2.01):
         
         assert n > 0
         assert rmin < rmax
@@ -1249,8 +1033,6 @@ class GenerateRandomNodesMatchingProfile3d(NodeGeneratorBase):
 
         # Now set the nominal mass per node.
         self.m0 = self.totalMass/(4.0/3.0*pi*pow(self.n,3))
-        if m0 > 0:
-            self.m0 = m0
         assert self.m0 > 0.0
         print "Nominal mass per node of %g." % self.m0
 
@@ -1274,8 +1056,7 @@ class GenerateRandomNodesMatchingProfile3d(NodeGeneratorBase):
                              0.0, 0.0, 1.0/hi)
             mshell  = rhoi * 4.0*pi*ri*ri*dr
             nshell  = int(mshell / self.m0)
-            #print "nshell=%d mshell=%f m0=%f" % (nshell,mshell,self.m0)
-            #mi      = self.m0 * (mshell/(nshell*self.m0))
+            mi      = self.m0 * (mshell/(nshell*self.m0))
             
             for n in xrange(nshell):
                 random.seed()
@@ -1284,12 +1065,11 @@ class GenerateRandomNodesMatchingProfile3d(NodeGeneratorBase):
                 w       = random.random()
                 theta   = 2.0*pi*u
                 phi     = acos(2.0*v-1)
-                #deltar  = w*(0.45*dr)
-                deltar  = 0.0
+                deltar  = w*(0.45*dr)
                 self.x.append((ri-deltar)*cos(theta)*sin(phi))
                 self.y.append((ri-deltar)*sin(theta)*sin(phi))
                 self.z.append((ri-deltar)*cos(phi))
-                self.m.append(self.m0)
+                self.m.append(mi)
                 self.H.append(Hi)
                     
             # Decrement to the next radial bin inward.
@@ -1758,8 +1538,7 @@ class GenerateIcosahedronMatchingProfile3d(NodeGeneratorBase):
                  phiMax = 2.0*pi,
                  nNodePerh = 2.01,
                  offset=None,
-                 rMaxForMassMatching=None,
-                 rejecter=None):
+                 rMaxForMassMatching=None):
         
         assert n > 0
         assert rmin < rmax
@@ -1771,8 +1550,6 @@ class GenerateIcosahedronMatchingProfile3d(NodeGeneratorBase):
         assert phiMax >= 0.0 and phiMax <= 2.0*pi
         assert nNodePerh > 0.0
         assert offset is None or len(offset)==3
-        
-        import random
         
         if offset is None:
             self.offset = Vector3d(0,0,0)
@@ -1888,14 +1665,9 @@ class GenerateIcosahedronMatchingProfile3d(NodeGeneratorBase):
             # Get the nominal delta r, number of nodes,
             # and mass per node at this radius.
             rhoi    = self.densityProfileMethod(ri)
-            dr      = pow(self.m0/(rhoi),1.0/3.0)
-            dr      = min(dr,ri-rmin)
-            #mshell  = rhoi * 4.0*pi*ri*ri*dr
-            mshell  = self.integrateTotalMass(self.densityProfileMethod,
-                                              ri-dr, ri,
-                                              0, pi,
-                                              0, 2*pi)
-            nshell  = int(mshell / self.m0+0.5)
+            dr      = pow(self.m0/(4.0/3.0*pi*rhoi),1.0/3.0)
+            mshell  = rhoi * 4.0*pi*ri*ri*dr
+            nshell  = int(mshell / self.m0)
             nshell  = max(nshell,1)
             nr      = 0
             ver     = 0
@@ -1905,9 +1677,7 @@ class GenerateIcosahedronMatchingProfile3d(NodeGeneratorBase):
             Hi = SymTensor3d(1.0/hi, 0.0, 0.0,
                              0.0, 1.0/hi, 0.0,
                              0.0, 0.0, 1.0/hi)
-                             
-            mi  = mshell / float(nshell)
-            if (nshell > 4 and nshell<163):
+            if (nshell > 2):
                 for i in xrange(len(shapeData)):
                     nc  = 0
                     nco = 0
@@ -1940,77 +1710,18 @@ class GenerateIcosahedronMatchingProfile3d(NodeGeneratorBase):
                     self.createCubicSphere(nr)
                 else:
                     self.createIcoSphere(nr)
-            elif(nshell==1 and mi> 0.5 * self.m0):
+            elif(nshell==1):
                 self.positions.append([0,0,0])
             elif(nshell==2):
-                self.positions.append([0,0,1])
-                self.positions.append([0,0,-1])
-            elif(nshell==3):
-                t = sqrt(3)/2.0
-                self.positions.append([0,1,0])
-                self.positions.append([t,-0.5,0])
-                self.positions.append([-t,-0.5,0])
-            elif(nshell==4):
-                t = sqrt(3.0)/3.0
-                self.positions.append([t,t,t])
-                self.positions.append([t,-t,-t])
-                self.positions.append([-t,-t,t])
-                self.positions.append([-t,t,-t])
-            elif(nshell>=163):
-                # do the spiral thing here
-                
-                
-                p = 0
-                for i in xrange(1,nshell+1):
-                    h = -1.0+(2.0*(i-1.0)/(nshell-1.0))
-                    t = acos(h)
-                    
-                    if (i>1 and i<nshell):
-                        p = (p + 3.8/sqrt(nshell)*1.0/sqrt(1.0-h*h)) % (2.0*pi)
-                    elif (i==nshell):
-                        p = 0
-                    
-                    x = sin(t)*cos(p)
-                    y = sin(t)*sin(p)
-                    z = cos(t)
-                    
-                    
-                    self.positions.append([x,y,z])
-            #mi = self.m0 * (float(nshell)/float(len(self.positions)))
-            
+                self.positions.append([1,0,0])
+                self.positions.append([-1,0,0])
+            mi = self.m0 * (float(nshell)/float(len(self.positions)))
             rii = ri - 0.5*dr
             print "at r=%g, wanted %d; computed %d total nodes with mass=%g" %(rii,nshell,len(self.positions),mi)
             for n in xrange(len(self.positions)):
                 x       = rii*self.positions[n][0]
                 y       = rii*self.positions[n][1]
                 z       = rii*self.positions[n][2]
-                
-                
-                random.seed(nshell)
-                dt = random.random()*pi
-                dt2 = random.random()*pi
-                
-                rot = [[1.0,0.0,0.0],[0.0,cos(dt),-sin(dt)],[0.0,sin(dt),cos(dt)]]
-                rot2 = [[cos(dt2),0.0,sin(dt2)],[0.0,1.0,0.0],[-sin(dt2),0.0,cos(dt2)]]
-                pos = [x,y,z]
-                posp= [0,0,0]
-                for k in xrange(3):
-                    for j in xrange(3):
-                        posp[k] += pos[j]*rot[k][j]
-                
-                x = posp[0]
-                y = posp[1]
-                z = posp[2]
-                
-                pos = [x,y,z]
-                posp= [0,0,0]
-                for k in xrange(3):
-                    for j in xrange(3):
-                        posp[k] += pos[j]*rot2[k][j]
-                x = posp[0]
-                y = posp[1]
-                z = posp[2]
-                
                 if(nshell>1):
                     theta   = acos(z/sqrt(x*x+y*y+z*z))
                     phi     = atan2(y,x)
@@ -2020,23 +1731,14 @@ class GenerateIcosahedronMatchingProfile3d(NodeGeneratorBase):
                     theta = (thetaMax - thetaMin)/2.0
                     phi = (phiMax - phiMin)/2.0
                 if (theta<=thetaMax and theta>=thetaMin) and (phi<=phiMax and phi>=phiMin):
-                    self.x.append(x)
-                    self.y.append(y)
-                    self.z.append(z)
+                    self.x.append(rii*self.positions[n][0])
+                    self.y.append(rii*self.positions[n][1])
+                    self.z.append(rii*self.positions[n][2])
                     self.m.append(mi)
                     self.H.append(SymTensor3d.one*(1.0/hi))
             #self.H.append(Hi)
             
-            ri = max(rmin, ri - dr)
-    
-        # If the user provided a "rejecter", give it a pass
-        # at the nodes.
-        if rejecter:
-            self.x, self.y, self.z, self.m, self.H = rejecter(self.x,
-                                                              self.y,
-                                                              self.z,
-                                                              self.m,
-                                                              self.H)
+            ri = max(0.0, ri - dr)
     
         # If requested, shift the nodes.
         if offset:
@@ -2351,244 +2053,3 @@ class GenerateIcosahedronMatchingProfile3d(NodeGeneratorBase):
             self.faces = faces2
             n = len(self.positions)
 
-class GenerateSpiralMatchingProfile3d(NodeGeneratorBase):
-    
-    #---------------------------------------------------------------------------
-    # Constructor
-    #---------------------------------------------------------------------------
-    def __init__(self, n, densityProfileMethod,
-                 rmin = 0.0,
-                 rmax = 1.0,
-                 thetaMin = 0.0,
-                 thetaMax = pi,
-                 phiMin = 0.0,
-                 phiMax = 2.0*pi,
-                 nNodePerh = 2.01,
-                 offset=None,
-                 rMaxForMassMatching=None):
-        
-        assert n > 0
-        assert rmin < rmax
-        assert thetaMin < thetaMax
-        assert thetaMin >= 0.0 and thetaMin <= 2.0*pi
-        assert thetaMax >= 0.0 and thetaMax <= 2.0*pi
-        assert phiMin < phiMax
-        assert phiMin >= 0.0 and phiMin <= 2.0*pi
-        assert phiMax >= 0.0 and phiMax <= 2.0*pi
-        assert nNodePerh > 0.0
-        assert offset is None or len(offset)==3
-        
-        import random
-        
-        if offset is None:
-            self.offset = Vector3d(0,0,0)
-        else:
-            self.offset = Vector3d(offset[0],offset[1],offset[2])
-        
-        self.n = n
-        self.rmin = rmin
-        self.rmax = rmax
-        self.thetaMin = thetaMin
-        self.thetaMax = thetaMax
-        self.phiMin = phiMin
-        self.phiMax = phiMax
-        self.nNodePerh = nNodePerh
-
-        # If the user provided a constant for rho, then use the constantRho
-        # class to provide this value.
-        if type(densityProfileMethod) == type(1.0):
-            self.densityProfileMethod = ConstantRho(densityProfileMethod)
-        else:
-            self.densityProfileMethod = densityProfileMethod
-
-        # Determine how much total mass there is in the system.
-        if rMaxForMassMatching is None:
-            self.totalMass = self.integrateTotalMass(self.densityProfileMethod,
-                                                     rmin, rmax,
-                                                     thetaMin, thetaMax,
-                                                     phiMin, phiMax)
-        else:
-            self.totalMass = self.integrateTotalMass(self.densityProfileMethod,
-                                                     0.0, rMaxForMassMatching,
-                                                     thetaMin, thetaMax,
-                                                     phiMin, phiMax)
-        print "Total mass of %g in the range r = (%g, %g), theta = (%g, %g), phi = (%g, %g)" % \
-            (self.totalMass, rmin, rmax, thetaMin, thetaMax, phiMin, phiMax)
-
-        # Now set the nominal mass per node.
-        self.m0 = self.totalMass/(4.0/3.0*pi*pow(self.n,3))
-        assert self.m0 > 0.0
-        print "Nominal mass per node of %g." % self.m0
-
-        from Spheral import SymTensor3d
-        self.x = []
-        self.y = []
-        self.z = []
-        self.m = []
-        self.H = []
-        ri = rmax
-        
-        while ri > rmin:
-            # create the database of faces and positions
-            self.positions      = []     # [index,[point]]
-            self.middlePoints   = []  # [i,[key,index]]
-            self.faces          = []
-            self.index          = 0
-            
-            # Get the nominal delta r, number of nodes,
-            # and mass per node at this radius.
-            rhoi    = self.densityProfileMethod(ri)
-            dr      = pow(self.m0/(rhoi),1.0/3.0)
-            dr      = min(dr,ri-rmin)
-            #mshell  = rhoi * 4.0*pi*ri*ri*dr
-            mshell  = self.integrateTotalMass(self.densityProfileMethod,
-                                              ri-dr, ri,
-                                              0, pi,
-                                              0, 2*pi)
-            nshell  = int(mshell / self.m0+0.5)
-            nshell  = max(nshell,1)
-            nr      = 0
-            ver     = 0
-            counts  = []
-
-            hi = nNodePerh*(dr)
-            Hi = SymTensor3d(1.0/hi, 0.0, 0.0,
-                           0.0, 1.0/hi, 0.0,
-                           0.0, 0.0, 1.0/hi)
-                           
-            mi  = mshell / float(nshell)
-            
-            if (nshell > 1):
-                p = 0
-                for i in xrange(1,nshell+1):
-                    h = -1.0+(2.0*(i-1.0)/(nshell-1.0))
-                    t = acos(h)
-                    
-                    if (i>1 and i<nshell):
-                        p = (p + 3.8/sqrt(nshell)*1.0/sqrt(1.0-h*h)) % (2.0*pi)
-                    elif (i==nshell):
-                        p = 0
-                    
-                    x = sin(t)*cos(p)
-                    y = sin(t)*sin(p)
-                    z = cos(t)
-
-                    self.positions.append([x,y,z])
-            elif (nshell==1 and mi > 0.5 * self.m0):
-                self.positions.append([0,0,0])
-
-            #mi = self.m0 * (float(nshell)/float(len(self.positions)))
-            
-            rii = ri - 0.5*dr
-            print "at r=%g, wanted %d; computed %d total nodes with mass=%g" %(rii,nshell,len(self.positions),mi)
-            for n in xrange(len(self.positions)):
-                x       = rii*self.positions[n][0]
-                y       = rii*self.positions[n][1]
-                z       = rii*self.positions[n][2]
-                
-                
-                random.seed(nshell)
-                dt = random.random()*pi
-                dt2 = random.random()*pi
-                
-                rot = [[1.0,0.0,0.0],[0.0,cos(dt),-sin(dt)],[0.0,sin(dt),cos(dt)]]
-                rot2 = [[cos(dt2),0.0,sin(dt2)],[0.0,1.0,0.0],[-sin(dt2),0.0,cos(dt2)]]
-                pos = [x,y,z]
-                posp= [0,0,0]
-                for k in xrange(3):
-                    for j in xrange(3):
-                        posp[k] += pos[j]*rot[k][j]
-                
-                x = posp[0]
-                y = posp[1]
-                z = posp[2]
-                
-                pos = [x,y,z]
-                posp= [0,0,0]
-                for k in xrange(3):
-                    for j in xrange(3):
-                        posp[k] += pos[j]*rot2[k][j]
-                x = posp[0]
-                y = posp[1]
-                z = posp[2]
-                
-                if(nshell>1):
-                    theta   = acos(z/sqrt(x*x+y*y+z*z))
-                    phi     = atan2(y,x)
-                    if (phi<0.0):
-                        phi = phi + 2.0*pi
-                else:
-                    theta = (thetaMax - thetaMin)/2.0
-                    phi = (phiMax - phiMin)/2.0
-                if (theta<=thetaMax and theta>=thetaMin) and (phi<=phiMax and phi>=phiMin):
-                    self.x.append(x)
-                    self.y.append(y)
-                    self.z.append(z)
-                    self.m.append(mi)
-                    self.H.append(SymTensor3d.one*(1.0/hi))
-                
-            ri = max(rmin, ri - dr)
-                
-        # If requested, shift the nodes.
-        if offset:
-            for i in xrange(len(self.x)):
-                self.x[i] += offset[0]
-                self.y[i] += offset[1]
-                self.z[i] += offset[2]
-        
-        print "Generated a total of %i nodes." % len(self.x)
-        NodeGeneratorBase.__init__(self, True,
-                                   self.x, self.y, self.z, self.m, self.H)
-        return
-
-
-    #---------------------------------------------------------------------------
-    # Get the position for the given node index.
-    #---------------------------------------------------------------------------
-    def localPosition(self, i):
-        assert i >= 0 and i < len(self.x)
-        assert len(self.x) == len(self.y) == len(self.z)
-        return Vector3d(self.x[i], self.y[i], self.z[i])
-
-    #---------------------------------------------------------------------------
-    # Get the mass for the given node index.
-    #---------------------------------------------------------------------------
-    def localMass(self, i):
-        assert i >= 0 and i < len(self.m)
-        return self.m[i]
-
-    #---------------------------------------------------------------------------
-    # Get the mass density for the given node index.
-    #---------------------------------------------------------------------------
-    def localMassDensity(self, i):
-        loc = Vector3d(0,0,0)
-        loc = self.localPosition(i) - self.offset
-        return self.densityProfileMethod(loc.magnitude())
-
-    #---------------------------------------------------------------------------
-    # Get the H tensor for the given node index.
-    #---------------------------------------------------------------------------
-    def localHtensor(self, i):
-        assert i >= 0 and i < len(self.H)
-        return self.H[i]
-
-    #---------------------------------------------------------------------------
-    # Numerically integrate the given density profile to determine the total
-    # enclosed mass.
-    #---------------------------------------------------------------------------
-    def integrateTotalMass(self, densityProfileMethod,
-                           rmin, rmax,
-                           thetaMin, thetaMax,
-                           phiMin, phiMax,
-                           nbins = 10000):
-        assert nbins > 0
-        assert nbins % 2 == 0
-        
-        result = 0
-        dr = (rmax-rmin)/nbins
-        for i in xrange(1,nbins):
-            r1 = rmin + (i-1)*dr
-            r2 = rmin + i*dr
-            result += 0.5*dr*(r2*r2*densityProfileMethod(r2)+r1*r1*densityProfileMethod(r1))
-        result = result * (phiMax-phiMin) * (cos(thetaMin)-cos(thetaMax))
-        return result

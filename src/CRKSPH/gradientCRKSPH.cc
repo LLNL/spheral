@@ -37,7 +37,7 @@ gradientCRKSPH(const FieldSpace::FieldList<Dimension, DataType>& fieldList,
                const FieldSpace::FieldList<Dimension, typename Dimension::Tensor>& gradB,
                const FieldSpace::FieldList<Dimension, typename Dimension::ThirdRankTensor>& gradC,
                const NeighborSpace::ConnectivityMap<Dimension>& connectivityMap,
-               const CRKOrder correctionOrder,
+               const int correctionOrder,
                const KernelSpace::TableKernel<Dimension>& W,
                const NodeCoupling& nodeCoupling) {
 
@@ -47,10 +47,10 @@ gradientCRKSPH(const FieldSpace::FieldList<Dimension, DataType>& fieldList,
   REQUIRE(weight.size() == numNodeLists);
   REQUIRE(H.size() == numNodeLists);
   REQUIRE(B.size() == numNodeLists);
-  REQUIRE(C.size() == numNodeLists or correctionOrder != QuadraticOrder);
+  REQUIRE(C.size() == numNodeLists);
   REQUIRE(gradA.size() == numNodeLists);
-  REQUIRE(gradB.size() == numNodeLists or correctionOrder == ZerothOrder);
-  REQUIRE(gradC.size() == numNodeLists or correctionOrder != QuadraticOrder);
+  REQUIRE(gradB.size() == numNodeLists);
+  REQUIRE(gradC.size() == numNodeLists);
 
   typedef typename Dimension::Scalar Scalar;
   typedef typename Dimension::Vector Vector;
@@ -69,10 +69,6 @@ gradientCRKSPH(const FieldSpace::FieldList<Dimension, DataType>& fieldList,
   }
 
   // Walk the FluidNodeLists.
-  Vector Bi = Vector::zero, Bj = Vector::zero;
-  Tensor Ci = Tensor::zero, Cj = Tensor::zero;
-  Tensor gradBi = Tensor::zero, gradBj = Tensor::zero;
-  ThirdRankTensor gradCi = ThirdRankTensor::zero, gradCj = ThirdRankTensor::zero;
   for (size_t nodeListi = 0; nodeListi != numNodeLists; ++nodeListi) {
     const int firstGhostNodei = A[nodeListi]->nodeList().firstGhostNode();
 
@@ -87,15 +83,11 @@ gradientCRKSPH(const FieldSpace::FieldList<Dimension, DataType>& fieldList,
       const SymTensor& Hi = H(nodeListi, i);
       const Scalar Hdeti = Hi.Determinant();
       const Scalar& Ai = A(nodeListi, i);
+      const Vector& Bi = B(nodeListi, i);
+      const Tensor& Ci = C(nodeListi, i);
       const Vector& gradAi = gradA(nodeListi, i);
-      if (correctionOrder != ZerothOrder) {
-        Bi = B(nodeListi, i);
-        gradBi = gradB(nodeListi, i);
-      }
-      if (correctionOrder == QuadraticOrder) {
-        Ci = C(nodeListi, i);
-        gradCi = gradC(nodeListi, i);
-      }
+      const Tensor& gradBi = gradB(nodeListi, i);
+      const ThirdRankTensor& gradCi = gradC(nodeListi, i);
       const DataType& Fi = fieldList(nodeListi, i);
       GradientType& gradFi = result(nodeListi, i);
 
@@ -140,15 +132,11 @@ gradientCRKSPH(const FieldSpace::FieldList<Dimension, DataType>& fieldList,
 	      const SymTensor& Hj = H(nodeListj, j);
 	      const Scalar Hdetj = Hj.Determinant();
 	      const Scalar& Aj = A(nodeListj, j);
+	      const Vector& Bj = B(nodeListj, j);
+	      const Tensor& Cj = C(nodeListj, j);
 	      const Vector& gradAj = gradA(nodeListj, j);
-              if (correctionOrder != ZerothOrder) {
-                Bj = B(nodeListj, j);
-                gradBj = gradB(nodeListj, j);
-              }
-              if (correctionOrder == QuadraticOrder) {
-                Cj = C(nodeListj, j);
-                gradCj = gradC(nodeListj, j);
-              }
+	      const Tensor& gradBj = gradB(nodeListj, j);
+	      const ThirdRankTensor& gradCj = gradC(nodeListj, j);
 	      const DataType& Fj = fieldList(nodeListj, j);
 	      GradientType& gradFj = result(nodeListj, j);
 

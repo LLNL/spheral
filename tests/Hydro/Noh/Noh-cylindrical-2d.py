@@ -1,5 +1,5 @@
-#ATS:test(SELF, "--CRKSPH=True --nRadial=100 --cfl=0.25 --Cl=1.0 --Cq=1.0 --clearDirectories=True --filter=0.0 --nPerh=2.01 --graphics False", label="KH CRK, nPerh=2.0", np=20)
-#ATS:test(SELF, "--CRKSPH=False --nRadial=100 --cfl=0.25 --Cl=1.0 --Cq=1.0 --clearDirectories=True --filter=0.0 --nPerh=2.01 --graphics False", label="KH CRK, nPerh=2.0", np=20)
+#ATS:test(SELF, "--CRKSPH=True --nRadial=100 --cfl=0.25 --Cl=1.0 --Cq=1.0 --clearDirectories=True --filter=0 --nPerh=2.01 --graphics False", label="KH CRK, nPerh=2.0", np=20)
+#ATS:test(SELF, "--CRKSPH=False --nRadial=100 --cfl=0.25 --Cl=1.0 --Cq=1.0 --clearDirectories=True --filter=0 --nPerh=2.01 --graphics False", label="KH CRK, nPerh=2.0", np=20)
 
 #-------------------------------------------------------------------------------
 # The Cylindrical Noh test case run in 2-D.
@@ -34,9 +34,6 @@ commandLine(KernelConstructor = BSplineKernel,
             rmin = 0.0,
             rmax = 1.0,
             nPerh = 2.01,
-            rho0 = 1.0,
-            eps0 = 0.0,
-            smallPressure = False,
 
             vr0 = -1.0, 
 
@@ -45,12 +42,10 @@ commandLine(KernelConstructor = BSplineKernel,
 
             SVPH = False,
             CRKSPH = False,
-	    PSPH = False,
             SPH = True,   # This just chooses the H algorithm -- you can use this with CRKSPH for instance.
             Qconstructor = MonaghanGingoldViscosity,
             #Qconstructor = TensorMonaghanGingoldViscosity,
             boolReduceViscosity = False,
-            HopkinsConductivity = False,     # For PSPH
             nhQ = 5.0,
             nhL = 10.0,
             aMin = 0.1,
@@ -76,6 +71,7 @@ commandLine(KernelConstructor = BSplineKernel,
             hmax = 0.5,
             hminratio = 0.1,
             cfl = 0.5,
+	    PSPH = False,
             XSPH = False,
             epsilonTensile = 0.0,
             nTensile = 8,
@@ -95,14 +91,13 @@ commandLine(KernelConstructor = BSplineKernel,
             smoothIters = 0,
             HUpdate = IdealH,
             correctionOrder = LinearOrder,
-            volumeType = CRKSumVolume,
             domainIndependent = False,
             rigorousBoundaries = False,
             dtverbose = False,
 
             densityUpdate = RigorousSumDensity, # VolumeScaledDensity,
             compatibleEnergy = True,
-            gradhCorrection = True,
+            gradhCorrection = False,
 
             useVoronoiOutput = False,
             clearDirectories = False,
@@ -130,9 +125,8 @@ else:
     assert thetaFactor == 2.0
     xmin = (-rmax, -rmax)
 
-if smallPressure:
-   P0 = 1.0e-6
-   eps0 = P0/((gamma - 1.0)*rho0)
+rho0 = 1.0
+eps0 = 0.0
 
 if SVPH:
     if SPH:
@@ -145,11 +139,6 @@ elif CRKSPH:
     else:
         HydroConstructor = ACRKSPHHydro
     Qconstructor = CRKSPHMonaghanGingoldViscosity
-elif PSPH:
-    if SPH:
-        HydroConstructor = PSPHHydro
-    else:
-        HydroConstructor = APSPHHydro
 else:
     if SPH:
         HydroConstructor = SPHHydro
@@ -157,11 +146,12 @@ else:
         HydroConstructor = ASPHHydro
 
 dataDir = os.path.join(dataDir,
-                       HydroConstructor.__name__,
-                       "%s-Cl=%g-Cq=%g" % (Qconstructor.__name__, Cl, Cq),
+                       str(HydroConstructor).split("'")[1].split(".")[-1],
+                       "%s-Cl=%g-Cq=%g" % (str(Qconstructor).split("'")[1].split(".")[-1], Cl, Cq),
                        "nPerh=%f" % nPerh,
                        "compatibleEnergy=%s" % compatibleEnergy,
                        "Cullen=%s" % boolCullenViscosity,
+                       "Qconstruct=%s" % Qconstructor,
                        "filter=%f" % filter,
                        "nrad=%i_ntheta=%i" % (nRadial, nTheta))
 restartDir = os.path.join(dataDir, "restarts")
@@ -311,19 +301,8 @@ elif CRKSPH:
                              compatibleEnergyEvolution = compatibleEnergy,
                              XSPH = XSPH,
                              correctionOrder = correctionOrder,
-                             volumeType = volumeType,
                              densityUpdate = densityUpdate,
                              HUpdate = HUpdate)
-elif PSPH:
-    hydro = HydroConstructor(W = WT,
-                             Q = q,
-                             filter = filter,
-                             cfl = cfl,
-                             compatibleEnergyEvolution = compatibleEnergy,
-                             HopkinsConductivity = HopkinsConductivity,
-                             densityUpdate = densityUpdate,
-                             HUpdate = HUpdate,
-                             XSPH = XSPH)
 else:
     hydro = HydroConstructor(W = WT,
                              Q = q,
@@ -333,6 +312,7 @@ else:
                              gradhCorrection = gradhCorrection,
                              densityUpdate = densityUpdate,
                              HUpdate = HUpdate,
+			     PSPH = PSPH,
                              XSPH = XSPH,
                              epsTensile = epsilonTensile,
                              nTensile = nTensile)
@@ -354,7 +334,7 @@ if boolReduceViscosity:
     evolveReducingViscosityMultiplier = MorrisMonaghanReducingViscosity(q,nhQ,nhL,aMin,aMax)
     packages.append(evolveReducingViscosityMultiplier)
 elif boolCullenViscosity:
-    evolveCullenViscosityMultiplier = CullenDehnenViscosity(q,WT,alphMax,alphMin,betaC,betaD,betaE,fKern,boolHopkinsCorrection)
+    evolveCullenViscosityMultiplier = CullenDehnenViscosity(q,WTPi,alphMax,alphMin,betaC,betaD,betaE,fKern,boolHopkinsCorrection)
     packages.append(evolveCullenViscosityMultiplier)
 
 

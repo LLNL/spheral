@@ -50,8 +50,7 @@ commandLine(
 
     SVPH = False,
     CRKSPH = False,
-    PSPH = False,
-    ASPH = False,   # This just chooses the H algorithm -- you can use this with CRKSPH for instance.
+    SPH = True,   # This just chooses the H algorithm -- you can use this with CRKSPH for instance.
     filter = 0.0,  # For CRKSPH
     KernelConstructor = NBSplineKernel,
     order = 5,
@@ -75,8 +74,6 @@ commandLine(
     fcellPressure = 0.0,
     Cl = 1.0, 
     Cq = 0.75,
-    etaCritFrac = 1.0,
-    etaFoldFrac = 0.2,
     linearInExpansion = False,
     Qlimiter = False,
     balsaraCorrection = False,
@@ -86,6 +83,7 @@ commandLine(
     hminratio = 0.1,
     cfl = 0.5,
     XSPH = False,
+    PSPH = False,
     epsilonTensile = 0.0,
     nTensile = 8,
 
@@ -107,7 +105,6 @@ commandLine(
 
     densityUpdate = RigorousSumDensity, # VolumeScaledDensity,
     correctionOrder = LinearOrder,
-    volumeType = CRKSumVolume,
     compatibleEnergy = True,
     gradhCorrection = False,
 
@@ -124,26 +121,21 @@ commandLine(
 assert not(boolReduceViscosity and boolCullenViscosity)
 # Decide on our hydro algorithm.
 if SVPH:
-    if ASPH:
-        HydroConstructor = ASVPHFacetedHydro
-    else:
+    if SPH:
         HydroConstructor = SVPHFacetedHydro
+    else:
+        HydroConstructor = ASVPHFacetedHydro
 elif CRKSPH:
     Qconstructor = CRKSPHMonaghanGingoldViscosity
-    if ASPH:
-        HydroConstructor = ACRKSPHHydro
-    else:
+    if SPH:
         HydroConstructor = CRKSPHHydro
-elif PSPH:
-    if ASPH:
-        HydroConstructor = APSPHHydro
     else:
-        HydroConstructor = PSPHHydro
+        HydroConstructor = ACRKSPHHydro
 else:
-    if ASPH:
-        HydroConstructor = ASPHHydro
-    else:
+    if SPH:
         HydroConstructor = SPHHydro
+    else:
+        HydroConstructor = ASPHHydro
 
 #-------------------------------------------------------------------------------
 # Build our directory paths.
@@ -159,6 +151,7 @@ baseDir = os.path.join(dataDir,
                        "Cl=%g_Cq=%g" % (Cl, Cq),
                        densityUpdateLabel[densityUpdate],
                        "compatibleEnergy=%s" % compatibleEnergy,
+                       "PSPH=%s" % PSPH,
                        "Cullen=%s" % boolCullenViscosity,
                        "nPerh=%3.1f" % nPerh,
                        "fcentroidal=%f" % max(fcentroidal, filter),
@@ -336,17 +329,15 @@ elif CRKSPH:
                              compatibleEnergyEvolution = compatibleEnergy,
                              XSPH = XSPH,
                              correctionOrder = correctionOrder,
-                             volumeType = volumeType,
                              densityUpdate = densityUpdate,
                              HUpdate = HUpdate)
-    q.etaCritFrac = etaCritFrac
-    q.etaFoldFrac = etaFoldFrac
 else:
     hydro = HydroConstructor(W = WT,
                              Q = q,
                              cfl = cfl,
                              compatibleEnergyEvolution = compatibleEnergy,
                              gradhCorrection = gradhCorrection,
+                             PSPH = PSPH,
                              XSPH = XSPH,
                              densityUpdate = densityUpdate,
                              HUpdate = HUpdate,
@@ -472,7 +463,7 @@ control = SpheralController(integrator, WT,
                             vizStep = vizCycle,
                             vizTime = vizTime,
                             skipInitialPeriodicWork = (HydroConstructor in (SVPHFacetedHydro, ASVPHFacetedHydro)),
-                            SPH = (not ASPH))
+                            SPH = SPH)
 output("control")
 
 #-------------------------------------------------------------------------------

@@ -5,7 +5,6 @@
 #define __Spheral__interpolateCRKSPH__
 
 #include "SolidSPH/NodeCoupling.hh"
-#include "CRKSPHCorrectionParams.hh"
 
 namespace Spheral {
 
@@ -32,7 +31,7 @@ namespace Spheral {
                       const FieldSpace::FieldList<Dimension, typename Dimension::Vector>& B,
                       const FieldSpace::FieldList<Dimension, typename Dimension::Tensor>& C,
                       const NeighborSpace::ConnectivityMap<Dimension>& connectivityMap,
-                      const CRKOrder correctionOrder,
+                      const int correctionOrder,
                       const KernelSpace::TableKernel<Dimension>& W,
                       const NodeCoupling& nodeCoupling = NodeCoupling());
 

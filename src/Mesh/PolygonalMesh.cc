@@ -182,7 +182,7 @@ reconstructInternal(const vector<Dim<2>::Vector>& generators,
 
   // Pre-conditions.
   int i, j, k, igen, numGens = generators.size();
-  BEGIN_CONTRACT_SCOPE
+  BEGIN_CONTRACT_SCOPE;
   {
     REQUIRE(xmin.x() < xmax.x() and
             xmin.y() < xmax.y());
@@ -196,7 +196,7 @@ reconstructInternal(const vector<Dim<2>::Vector>& generators,
       }
     }
   }
-  END_CONTRACT_SCOPE
+  END_CONTRACT_SCOPE;
 
   // Copy the generator positions to a polytope style flat array.
   vector<double> gens;
@@ -226,6 +226,7 @@ reconstructInternal(const vector<Dim<2>::Vector>& generators,
 #else
     polytope::BoostTessellator<double> tessellator;
 #endif
+    tessellator.tessellate(gens, const_cast<double*>(xmin.begin()), const_cast<double*>(xmax.begin()), tessellation);
 #endif
     tessellator.tessellate(gens, const_cast<double*>(xmin.begin()), const_cast<double*>(xmax.begin()), tessellation);
   }
@@ -284,7 +285,7 @@ reconstructInternal(const vector<Dim<2>::Vector>& generators,
 
   // Pre-conditions.
   int i, j, k, igen, numGens = generators.size();
-  BEGIN_CONTRACT_SCOPE
+  BEGIN_CONTRACT_SCOPE;
   {
     REQUIRE(xmin.x() < xmax.x() and
             xmin.y() < xmax.y());
@@ -297,7 +298,7 @@ reconstructInternal(const vector<Dim<2>::Vector>& generators,
       }
     }
   }
-  END_CONTRACT_SCOPE
+  END_CONTRACT_SCOPE;
 
   // Copy the generator positions to a polytope style flat array.
   vector<double> gens;
@@ -334,11 +335,21 @@ reconstructInternal(const vector<Dim<2>::Vector>& generators,
   polytope::Tessellation<2, double> tessellation;
   {
 #ifdef USE_MPI
-    polytope::DistributedTessellator<2, double> tessellator(new polytope::BoostTessellator<double>(),
+    polytope::DistributedTessellator<2, double> tessellator
+#if defined USE_TRIANGLE && ( USE_TRIANGLE>0 )
+      (new polytope::TriangleTessellator<double>(),
+#else
+      (new polytope::BoostTessellator<double>(),
+#endif
                                                             true,     // Manage memory for serial tessellator
                                                             true);    // Build parallel connectivity
 #else
+#if defined USE_TRIANGLE && ( USE_TRIANGLE>0 )
+    polytope::TriangleTessellator<double> tessellator;
+#else
     polytope::BoostTessellator<double> tessellator;
+#endif
+    tessellator.tessellate(gens, const_cast<double*>(xmin.begin()), const_cast<double*>(xmax.begin()), tessellation);
 #endif
     tessellator.tessellate(gens, plcBoundary.points, plcBoundary, tessellation);
   }
@@ -491,14 +502,14 @@ boundingSurface() const {
   }
 
   // Post-conditions.
-  BEGIN_CONTRACT_SCOPE
+  BEGIN_CONTRACT_SCOPE;
   {
     BOOST_FOREACH(const vector<unsigned>& indices, facetIndices) {
       ENSURE(indices.size() == 2);
       ENSURE(*max_element(indices.begin(), indices.end()) < vertices.size());
     }
   }
-  END_CONTRACT_SCOPE
+  END_CONTRACT_SCOPE;
 
   // That's it.
   return FacetedVolume(vertices, facetIndices);
@@ -517,7 +528,7 @@ createNewMeshElements(const vector<vector<vector<unsigned> > >& newCells) {
 
   // Pre-conditions.
   REQUIRE(mNodes.size() <= mNodePositions.size());
-  BEGIN_CONTRACT_SCOPE
+  BEGIN_CONTRACT_SCOPE;
   {
     BOOST_FOREACH(const vector<vector<unsigned> >& cellFaces, newCells) {
       REQUIRE(cellFaces.size() >= minFacesPerZone);
@@ -529,7 +540,7 @@ createNewMeshElements(const vector<vector<vector<unsigned> > >& newCells) {
       }
     }
   }
-  END_CONTRACT_SCOPE
+  END_CONTRACT_SCOPE;
 
   // Some useful sizes.
   const unsigned numOldNodes = mNodes.size();

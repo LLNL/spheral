@@ -33,6 +33,17 @@ public:
   // Destructor.
   virtual ~MonaghanGingoldViscosity();
 
+  // Initialize the artificial viscosity for all FluidNodeLists in the given
+  // DataBase.
+  virtual void initialize(const DataBaseSpace::DataBase<Dimension>& dataBase,
+                          const State<Dimension>& state,
+                          const StateDerivatives<Dimension>& derivs,
+                          ConstBoundaryIterator boundaryBegin,
+                          ConstBoundaryIterator boundaryEnd,
+                          const Scalar time,
+                          const Scalar dt,
+                          const KernelSpace::TableKernel<Dimension>& W);
+
   // The required method to compute the artificial viscous P/rho^2.
   virtual std::pair<Tensor, Tensor> Piij(const unsigned nodeListi, const unsigned i, 
                                          const unsigned nodeListj, const unsigned j,
@@ -61,6 +72,7 @@ public:
 
 private:
   //--------------------------- Private Interface ---------------------------//
+  FieldSpace::FieldList<Dimension, Tensor> mGradVel;
   bool mLinearInExpansion, mQuadraticInExpansion;
 
   MonaghanGingoldViscosity();

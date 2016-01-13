@@ -24,7 +24,6 @@ class %(classname)s%(dim)s(CRKSPHHydroBase%(dim)s):
                  densityUpdate = RigorousSumDensity,
                  HUpdate = IdealH,
                  correctionOrder = LinearOrder,
-                 volumeType = CRKSumVolume,
                  epsTensile = 0.0,
                  nTensile = 4.0):
         self._smoothingScaleMethod = %(smoothingScaleMethod)s%(dim)s()
@@ -43,7 +42,6 @@ class %(classname)s%(dim)s(CRKSPHHydroBase%(dim)s):
                                         densityUpdate,
                                         HUpdate,
                                         correctionOrder,
-                                        volumeType,
                                         epsTensile,
                                         nTensile)
         return

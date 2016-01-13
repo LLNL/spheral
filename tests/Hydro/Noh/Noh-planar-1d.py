@@ -26,7 +26,6 @@ commandLine(KernelConstructor = BSplineKernel,
             nx1 = 100,
             rho1 = 1.0,
             eps1 = 0.0,
-	    smallPressure = False, #If set to True eps is not zero but small. 
             x0 = 0.0,
             x1 = 1.0,
             xwall = 0.0,
@@ -43,11 +42,9 @@ commandLine(KernelConstructor = BSplineKernel,
 
             SVPH = False,
             CRKSPH = False,
-            PSPH = False,
             Qconstructor = MonaghanGingoldViscosity,
             #Qconstructor = TensorMonaghanGingoldViscosity,
             boolReduceViscosity = False,
-            HopkinsConductivity = False,     # For PSPH
             nhQ = 5.0,
             nhL = 10.0,
             aMin = 0.1,
@@ -66,8 +63,6 @@ commandLine(KernelConstructor = BSplineKernel,
             Qhmult = 1.0,
             Cl = 1.0, 
             Cq = 1.0,
-            etaCritFrac = 1.0,
-            etaFoldFrac = 0.2,
             linearInExpansion = False,
             Qlimiter = False,
             epsilon2 = 1e-2,
@@ -76,6 +71,7 @@ commandLine(KernelConstructor = BSplineKernel,
             cfl = 0.5,
             useVelocityMagnitudeForDt = False,
             XSPH = False,
+            PSPH = False,
             epsilonTensile = 0.0,
             nTensile = 4.0,
             hourglass = None,
@@ -99,12 +95,9 @@ commandLine(KernelConstructor = BSplineKernel,
             smoothIters = 0,
             HUpdate = IdealH,
             correctionOrder = LinearOrder,
-            QcorrectionOrder = LinearOrder,
-            volumeType = CRKSumVolume,
             densityUpdate = RigorousSumDensity, # VolumeScaledDensity,
             compatibleEnergy = True,
             gradhCorrection = True,
-            correctVelocityGradient = True,
             domainIndependent = True,
             cullGhostNodes = True,
             
@@ -123,35 +116,31 @@ commandLine(KernelConstructor = BSplineKernel,
             comparisonFile = "None",
 
             # Parameters for the test acceptance.,
-            L1rho =   0.0434126,
-            L2rho =   0.206929,
-            Linfrho = 1.62872,
-                                                                         
-            L1P =     0.0180305,
-            L2P =     0.0842893,
-            LinfP =   0.645561,
-                                                                         
-            L1v =     0.0228862,
-            L2v =     0.115948,
-            Linfv =   0.842776,
-                                                                         
-            L1eps =   0.0110498,
-            L2eps =   0.0526271,
-            Linfeps = 0.36837,
-                                                             
-            L1h =     0.000318824,
-            L2h =     0.00127697,
-            Linfh =   0.00768513,
+            L1rho =   0.0587603, 		
+            L2rho =   0.233607,
+            Linfrho = 1.70012,
+                                                           
+            L1P =     0.021621,
+            L2P =     0.0910545,
+            LinfP =   0.667976,
+                                                           
+            L1v =     0.0234762,
+            L2v =     0.117328,
+            Linfv =   0.84881,
+                                                           
+            L1eps =   0.0113634,
+            L2eps =   0.0532294,
+            Linfeps = 0.371081,
+                                               
+            L1h =     0.000312939,
+            L2h =     0.00125403,
+            Linfh =   0.00761903,
 
             tol = 1.0e-5,
 
             graphics = True,
             )
 assert not(boolReduceViscosity and boolCullenViscosity)
-if smallPressure:
-   P0 = 1.0e-6
-   eps1 = P0/((gamma - 1.0)*rho1)
-   
 if SVPH:
     HydroConstructor = SVPHFacetedHydro
 elif CRKSPH:
@@ -161,8 +150,6 @@ elif CRKSPH:
         HydroConstructor = CRKSPHHydro
     Qconstructor = CRKSPHMonaghanGingoldViscosity
     gradhCorrection = False
-elif PSPH:
-   HydroConstructor = PSPHHydro
 else:
     if solid:
         HydroConstructor = SolidSPHHydro
@@ -170,11 +157,12 @@ else:
         HydroConstructor = SPHHydro
 
 dataDir = os.path.join(dataDirBase,
-                       HydroConstructor.__name__,
-                       Qconstructor.__name__,
+                       str(HydroConstructor).split("'")[1].split(".")[-1],
+                       str(Qconstructor).split("'")[1].split(".")[-1],
                        "nPerh=%f" % nPerh,
                        "compatibleEnergy=%s" % compatibleEnergy,
                        "Cullen=%s" % boolCullenViscosity,
+                       "Qconstruct=%s" % Qconstructor,
                        "filter=%f" % filter)
 restartDir = os.path.join(dataDir, "restarts")
 restartBaseName = os.path.join(restartDir, "Noh-planar-1d-%i" % nx1)
@@ -268,7 +256,6 @@ output("db.numFluidNodeLists")
 q = Qconstructor(Cl, Cq, linearInExpansion)
 q.epsilon2 = epsilon2
 q.limiter = Qlimiter
-q.QcorrectionOrder = QcorrectionOrder
 output("q")
 output("q.Cl")
 output("q.Cq")
@@ -304,22 +291,8 @@ elif CRKSPH:
                              compatibleEnergyEvolution = compatibleEnergy,
                              XSPH = XSPH,
                              correctionOrder = correctionOrder,
-                             volumeType = volumeType,
                              densityUpdate = densityUpdate,
                              HUpdate = HUpdate)
-    q.etaCritFrac = etaCritFrac
-    q.etaFoldFrac = etaFoldFrac
-elif PSPH:
-    hydro = HydroConstructor(W = WT,
-                             Q = q,
-                             filter = filter,
-                             cfl = cfl,
-                             useVelocityMagnitudeForDt = useVelocityMagnitudeForDt,
-                             compatibleEnergyEvolution = compatibleEnergy,
-                             HopkinsConductivity = HopkinsConductivity,
-                             densityUpdate = densityUpdate,
-                             HUpdate = HUpdate,
-                             XSPH = XSPH)
 else:
     hydro = HydroConstructor(W = WT,
                              Q = q,
@@ -328,10 +301,10 @@ else:
                              useVelocityMagnitudeForDt = useVelocityMagnitudeForDt,
                              compatibleEnergyEvolution = compatibleEnergy,
                              gradhCorrection = gradhCorrection,
-                             correctVelocityGradient = correctVelocityGradient,
                              densityUpdate = densityUpdate,
                              HUpdate = HUpdate,
                              XSPH = XSPH,
+                             PSPH = PSPH,
                              epsTensile = epsilonTensile,
                              nTensile = nTensile)
 output("hydro")
@@ -530,19 +503,10 @@ if graphics:
     Aplot.refresh()
     plots.append((Aplot, "Noh-planar-A.png"))
     
-    if CRKSPH:
-        volPlot = plotFieldList(hydro.volume(), 
-                                winTitle = "volume",
-                                colorNodeLists = False, plotGhosts = False)
-        plots.append(volPlot)
-
-    if boolCullenViscosity:
-        cullAlphaPlot = plotFieldList(q.ClMultiplier(),
-                                      winTitle = "Cullen alpha")
-        cullDalphaPlot = plotFieldList(evolveCullenViscosityMultiplier.DalphaDt(),
-                                       winTitle = "Cullen DalphaDt")
-        plots += [(cullAlphaPlot, "Noh-planar-Cullen-alpha.png"),
-                  (cullDalphaPlot, "Noh-planar-Cullen-DalphaDt.png")]
+    dvdxPlot = plotFieldList(hydro.DvDx(),yFunction='-1*%s.xx',winTitle='Source Fn',colorNodeLists=False)
+    viscPlot = plotFieldList(hydro.maxViscousPressure(),
+                             winTitle = "max(rho^2 Piij)",
+                             colorNodeLists = False)
 
     if boolReduceViscosity:
         alphaPlotQ = plotFieldList(q.reducingViscosityMultiplierQ(),
