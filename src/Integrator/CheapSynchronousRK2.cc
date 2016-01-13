@@ -110,6 +110,7 @@ step(typename Dimension::Scalar maxTime,
   this->applyGhostBoundaries(state, derivs);
   this->postStateUpdate(db, state, derivs);
   this->finalizeGhostBoundaries();
+  // this->enforceBoundaries(state, derivs);
 
   // Evaluate the derivatives at the midpoint.
   derivs.Zero();

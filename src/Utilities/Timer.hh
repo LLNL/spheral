@@ -7,10 +7,8 @@
 #endif
 
 #ifdef MPI
-extern "C" {
 #include "mpi.h"
 #include "Distributed/Communicator.hh"
-}
 #endif
 
 // if TIMER is not defined, then we just have a stub class.

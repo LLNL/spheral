@@ -94,14 +94,13 @@ self.addVonNeumanViscosityMethods(self.VonNeumanViscosity%(dim)id, %(dim)i)
 
         # Constructors.
         x.add_constructor([param("double", "Clinear", default_value="1.0"),
-                           param("double", "Cquadratic", default_value="1.0"),
-                           param("CRKOrder", "QcorrectionOrder", default_value="Spheral::CRKSPHSpace::LinearOrder")])
+                           param("double", "Cquadratic", default_value="1.0")])
 
         # Attributes.
         x.add_instance_attribute("Cl", "double", getter="Cl", setter="Cl")
         x.add_instance_attribute("Cq", "double", getter="Cq", setter="Cq")
-        x.add_instance_attribute("QcorrectionOrder", "CRKOrder", getter="QcorrectionOrder", setter="QcorrectionOrder")
         x.add_instance_attribute("balsaraShearCorrection", "bool", getter="balsaraShearCorrection", setter="balsaraShearCorrection")
+        x.add_instance_attribute("reducingViscosityCorrection", "bool", getter="reducingViscosityCorrection", setter="reducingViscosityCorrection")
         x.add_instance_attribute("limiter", "bool", getter="limiter", setter="limiter")
         x.add_instance_attribute("epsilon2", "double", getter="epsilon2", setter="epsilon2")
         x.add_instance_attribute("negligibleSoundSpeed", "double", getter="negligibleSoundSpeed", setter="negligibleSoundSpeed")
@@ -120,8 +119,7 @@ self.addVonNeumanViscosityMethods(self.VonNeumanViscosity%(dim)id, %(dim)i)
 
         # Methods.
         x.add_method("curlVelocityMagnitude", "double", [refparam(tensor, "DvDx")], is_const=True)
-        x.add_method("ClMultiplier", scalarfieldlist, [], is_const=True)
-        x.add_method("CqMultiplier", scalarfieldlist, [], is_const=True)
+        x.add_method("shearMultiplier", scalarfieldlist, [], is_const=True)
         x.add_method("sigma", tensorfieldlist, [], is_const=True)
         x.add_method("gradDivVelocity", vectorfieldlist, [], is_const=True)
         x.add_method("calculateLimiter", tensor, [refparam(vector, "vi"),
@@ -148,8 +146,8 @@ self.addVonNeumanViscosityMethods(self.VonNeumanViscosity%(dim)id, %(dim)i)
         x.add_method("calculateSigma", "bool", [], is_const=True, visibility="protected")
         x.add_method("calculateSigma", None, [param("bool", "value")], visibility="protected")
         
-        x.add_method("CqMultiplier", scalarfieldlist, [])
-        x.add_method("ClMultiplier", scalarfieldlist, [])
+        x.add_method("reducingViscosityMultiplierQ", scalarfieldlist, [])
+        x.add_method("reducingViscosityMultiplierL", scalarfieldlist, [])
 
         # Add the abstract methods.
         self.addArtificialViscosityVirtualMethods(x, ndim, True)
@@ -185,16 +183,10 @@ self.addVonNeumanViscosityMethods(self.VonNeumanViscosity%(dim)id, %(dim)i)
         x.add_constructor([param("double", "Clinear", default_value="1.0"),
                            param("double", "Cquadratic", default_value="1.0"),
                            param("bool", "linearInExpansion", default_value="false"),
-                           param("bool", "quadraticInExpansion", default_value="false"),
-                           param("double", "etaCritFrac", default_value="1.0"),
-                           param("double", "etaFoldFrac", default_value="0.2")])
+                           param("bool", "quadraticInExpansion", default_value="false")])
 
         # Add the local methods.
         self.addArtificialViscosityVirtualMethods(x, ndim, False)
-
-        # Attributes
-        x.add_instance_attribute("etaCritFrac", "double", getter="etaCritFrac", setter="etaCritFrac")
-        x.add_instance_attribute("etaFoldFrac", "double", getter="etaFoldFrac", setter="etaFoldFrac")
 
         return
     
@@ -249,8 +241,7 @@ self.addVonNeumanViscosityMethods(self.VonNeumanViscosity%(dim)id, %(dim)i)
                            param("double", "betaD", default_value="0.05"),
                            param("double", "betaE", default_value="1.0"),
                            param("double", "fKern", default_value="0.33333"),
-                           param("bool", "boolHopkins", default_value="true"),
-                           param("bool", "reproducingKernelGradient", default_value="false")])
+                           param("int", "boolHopkins", default_value="true")])
 
         # Add the abstract methods.
         generatePhysicsVirtualBindings(x, ndim, False)
@@ -262,8 +253,7 @@ self.addVonNeumanViscosityMethods(self.VonNeumanViscosity%(dim)id, %(dim)i)
         x.add_instance_attribute("betaD", "double", getter="betaD", setter="betaD")
         x.add_instance_attribute("betaC", "double", getter="betaC", setter="betaC")
         x.add_instance_attribute("fKern", "double", getter="fKern", setter="fKern")
-        x.add_instance_attribute("boolHopkins", "bool", getter="boolHopkins", setter="boolHopkins")
-        x.add_instance_attribute("reproducingKernelGradient", "bool", getter="reproducingKernelGradient", setter="reproducingKernelGradient")
+        x.add_instance_attribute("boolHopkins", "double", getter="boolHopkins", setter="boolHopkins")
 
         # Methods.
         const_ref_return_value(x, me, "%s::PrevDvDt" % me, vectorfieldlist, [], "PrevDvDt")
@@ -271,8 +261,6 @@ self.addVonNeumanViscosityMethods(self.VonNeumanViscosity%(dim)id, %(dim)i)
         const_ref_return_value(x, me, "%s::PrevDivV2" % me, scalarfieldlist, [], "PrevDivV2")
         const_ref_return_value(x, me, "%s::CullAlpha" % me, scalarfieldlist, [], "CullAlpha")
         const_ref_return_value(x, me, "%s::CullAlpha2" % me, scalarfieldlist, [], "CullAlpha2")
-        const_ref_return_value(x, me, "%s::DalphaDt" % me, scalarfieldlist, [], "DalphaDt")
-        const_ref_return_value(x, me, "%s::alphaLocal" % me, scalarfieldlist, [], "alphaLocal")
    
         return
 

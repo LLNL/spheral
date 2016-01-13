@@ -59,6 +59,7 @@ commandLine(nx1 = 100,
             hmax = 0.1,
             cfl = 0.5,
             XSPH = False,
+            PSPH = False,
             epsilonTensile = 0.0,
             nTensile = 4,
             filter = 0.0,
@@ -68,7 +69,6 @@ commandLine(nx1 = 100,
             SVPH = False,
             CRKSPH = False,
             TSPH = False,
-            PSPH = False,
             IntegratorConstructor = CheapSynchronousRK2Integrator,
             steps = None,
             goalTime = 5.0,
@@ -82,7 +82,6 @@ commandLine(nx1 = 100,
             statsStep = 1,
             smoothIters = 0,
             HUpdate = IntegrateH,
-            correctionOrder = LinearOrder,
             densityUpdate = RigorousSumDensity,
             compatibleEnergy = True,
             gradhCorrection = True,
@@ -108,8 +107,6 @@ elif CRKSPH:
     Qconstructor = CRKSPHMonaghanGingoldViscosity
 elif TSPH:
     HydroConstructor = TaylorSPHHydro
-elif PSPH:
-    HydroConstructor = PSPHHydro
 else:
     HydroConstructor = SPHHydro
 
@@ -140,9 +137,9 @@ eos = IsothermalEquationOfStateMKS(cs2, mu)
 # Interpolation kernels.
 #-------------------------------------------------------------------------------
 if KernelConstructor==NBSplineKernel:
-  WT = TableKernel(NBSplineKernel(order), 10000)
+  WT = TableKernel(NBSplineKernel(order), 1000000)
 else:
-  WT = TableKernel(KernelConstructor(), 10000)
+  WT = TableKernel(KernelConstructor(), 1000000)
 output("WT")
 kernelExtent = WT.kernelExtent
 output("WT")
@@ -281,7 +278,6 @@ elif CRKSPH:
                              filter = filter,
                              cfl = cfl,
                              compatibleEnergyEvolution = compatibleEnergy,
-                             correctionOrder = correctionOrder,
                              XSPH = XSPH,
                              densityUpdate = densityUpdate,
                              HUpdate = HUpdate)
@@ -300,6 +296,7 @@ else:
                              compatibleEnergyEvolution = compatibleEnergy,
                              gradhCorrection = gradhCorrection,
                              XSPH = XSPH,
+                             PSPH = PSPH,
                              densityUpdate = densityUpdate,
                              HUpdate = HUpdate,
                              epsTensile = epsilonTensile,

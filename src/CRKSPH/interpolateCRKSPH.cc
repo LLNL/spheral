@@ -34,7 +34,7 @@ interpolateCRKSPH(const FieldSpace::FieldList<Dimension, DataType>& fieldList,
                   const FieldSpace::FieldList<Dimension, typename Dimension::Vector>& B,
                   const FieldSpace::FieldList<Dimension, typename Dimension::Tensor>& C,
                   const NeighborSpace::ConnectivityMap<Dimension>& connectivityMap,
-                  const CRKOrder correctionOrder,
+                  const int correctionOrder,
                   const KernelSpace::TableKernel<Dimension>& W,
                   const NodeCoupling& nodeCoupling) {
 
@@ -44,8 +44,8 @@ interpolateCRKSPH(const FieldSpace::FieldList<Dimension, DataType>& fieldList,
   REQUIRE(weight.size() == numNodeLists);
   REQUIRE(H.size() == numNodeLists);
   REQUIRE(A.size() == numNodeLists);
-  REQUIRE(B.size() == numNodeLists or correctionOrder == ZerothOrder);
-  REQUIRE(C.size() == numNodeLists or correctionOrder != QuadraticOrder);
+  REQUIRE(B.size() == numNodeLists);
+  REQUIRE(C.size() == numNodeLists);
 
   typedef typename Dimension::Scalar Scalar;
   typedef typename Dimension::Vector Vector;
@@ -63,8 +63,6 @@ interpolateCRKSPH(const FieldSpace::FieldList<Dimension, DataType>& fieldList,
   }
 
   // Walk the FluidNodeLists.
-  Vector Bi = Vector::zero, Bj = Vector::zero;
-  Tensor Ci = Tensor::zero, Cj = Tensor::zero;
   for (size_t nodeListi = 0; nodeListi != numNodeLists; ++nodeListi) {
     const int firstGhostNodei = A[nodeListi]->nodeList().firstGhostNode();
 
@@ -79,8 +77,8 @@ interpolateCRKSPH(const FieldSpace::FieldList<Dimension, DataType>& fieldList,
       const SymTensor& Hi = H(nodeListi, i);
       const Scalar Hdeti = Hi.Determinant();
       const Scalar& Ai = A(nodeListi, i);
-      if (correctionOrder != ZerothOrder) Bi = B(nodeListi, i);
-      if (correctionOrder == QuadraticOrder) Ci = C(nodeListi, i);
+      const Vector& Bi = B(nodeListi, i);
+      const Tensor& Ci = C(nodeListi, i);
       const DataType& Fi = fieldList(nodeListi, i);
       DataType& resulti = result(nodeListi, i);
 
@@ -125,8 +123,8 @@ interpolateCRKSPH(const FieldSpace::FieldList<Dimension, DataType>& fieldList,
               const SymTensor& Hj = H(nodeListj, j);
               const Scalar Hdetj = Hj.Determinant();
               const Scalar& Aj = A(nodeListj, j);
-              if (correctionOrder != ZerothOrder) Bj = B(nodeListj, j);
-              if (correctionOrder == QuadraticOrder) Cj = C(nodeListj, j);
+              const Vector& Bj = B(nodeListj, j);
+              const Tensor& Cj = C(nodeListj, j);
               const DataType& Fj = fieldList(nodeListj, j);
               DataType& resultj = result(nodeListj, j);
 

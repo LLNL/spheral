@@ -40,10 +40,9 @@ using FieldSpace::gradient;
 template<typename Dimension>
 ArtificialConduction<Dimension>::
 ArtificialConduction(const TableKernel<Dimension>& W,
-                     const Scalar alphaArCond, const CRKSPHSpace::CRKOrder ACcorrectionOrder):
+                     const Scalar alphaArCond):
     Physics<Dimension>(),
     mKernel(W),
-    mACcorrectionOrder(ACcorrectionOrder),
     mAlphaArCond(alphaArCond){
     
 }
@@ -58,22 +57,6 @@ ArtificialConduction<Dimension>::~ArtificialConduction() {
 //------------------------------------------------------------------------------
 // Accessor Fns
 //------------------------------------------------------------------------------
-template<typename Dimension>
-inline
-CRKSPHSpace::CRKOrder
-ArtificialConduction<Dimension>::ACcorrectionOrder() const {
-  return mACcorrectionOrder;
-}
-
-template<typename Dimension>
-inline
-void
-ArtificialConduction<Dimension>::
-ACcorrectionOrder(const CRKSPHSpace::CRKOrder order) {
-  mACcorrectionOrder = order;
-}
-
-
     
 //------------------------------------------------------------------------------
 // On problem start up, we need to initialize our internal data.
@@ -175,7 +158,8 @@ evaluateDerivatives(const typename Dimension::Scalar time,
         CHECK(gradA0.size() == numNodeLists);
         CHECK(gradA.size() == numNodeLists);
         CHECK(gradB.size() == numNodeLists);
-        gradP = gradientCRKSPH(pressure, position, mass, H, A, B, C, gradA, gradB, gradC, connectivityMap, ACcorrectionOrder(), W, NodeCoupling());
+        const int correctionOrder = 1;//Using Linear Correction
+        gradP = gradientCRKSPH(pressure, position, mass, H, A, B, C, gradA, gradB, gradC, connectivityMap, correctionOrder, W, NodeCoupling());
     }
     else { gradP = gradient(pressure,position,mass,mass,massDensity,H,W); }
     

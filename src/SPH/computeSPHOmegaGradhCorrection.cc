@@ -44,16 +44,12 @@ computeSPHOmegaGradhCorrection(const ConnectivityMap<Dimension>& connectivityMap
   // Zero out the result.
   omegaGradh = 0.0;
 
-  // Prepare a FieldList to hold the sum gradient.
-  FieldList<Dimension, Scalar> gradsum(FieldSpace::Copy);
-  for (size_t nodeListi = 0; nodeListi != numNodeLists; ++nodeListi) {
-    const NodeList<Dimension>& nodeList = omegaGradh[nodeListi]->nodeList();
-    gradsum.appendNewField("sum of the gradient", nodeList, 0.0);
-  }
-
   // Walk the FluidNodeLists.
   for (size_t nodeListi = 0; nodeListi != numNodeLists; ++nodeListi) {
     const NodeList<Dimension>& nodeList = omegaGradh[nodeListi]->nodeList();
+
+    // Stuff we're going to accumulate.
+    Field<Dimension, Scalar> gradsum("sum of the gradient", nodeList);
 
     // Iterate over the nodes in this node list.
     for (typename ConnectivityMap<Dimension>::const_iterator iItr = connectivityMap.begin(nodeListi);
@@ -107,16 +103,16 @@ computeSPHOmegaGradhCorrection(const ConnectivityMap<Dimension>& connectivityMap
 
             // Sum the pair-wise contributions.
             omegaGradh(nodeListi, i) += Wi;
-            gradsum(nodeListi, i) += etai*gWi;
+            gradsum(i) += etai*gWi;
             omegaGradh(nodeListj, j) += Wj;
-            gradsum(nodeListj, j) += etaj*gWj;
+            gradsum(j) += etaj*gWj;
           }
         }
       }
 
       // Finish the grad h correction.
       CHECK(omegaGradh(nodeListi, i) > 0.0);
-      omegaGradh(nodeListi, i) = -gradsum(nodeListi, i)/(Dimension::nDim * omegaGradh(nodeListi, i));
+      omegaGradh(nodeListi, i) = -gradsum(i)/(Dimension::nDim * omegaGradh(nodeListi, i));
 
       // Post-conditions.
       ENSURE(omegaGradh(nodeListi, i) >= 0.0);

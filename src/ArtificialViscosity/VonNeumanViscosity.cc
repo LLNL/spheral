@@ -87,6 +87,7 @@ initialize(const DataBase<Dimension>& dataBase,
   const FieldList<Dimension, Scalar> vol = mass/massDensity;
 
   // Get the fluid velocity gradient.
+  const int correctionOrder = 1;//Using Linear Correction
   const FieldList<Dimension, Tensor> velocityGradient = CRKSPHSpace::gradientCRKSPH(velocity,
                                                                                     position,
                                                                                     vol,
@@ -98,7 +99,7 @@ initialize(const DataBase<Dimension>& dataBase,
                                                                                     gradB,
                                                                                     gradC,
                                                                                     connectivityMap,
-										    ArtificialViscosity<Dimension>::QcorrectionOrder(),
+										    correctionOrder,
                                                                                     W,
                                                                                     NodeCoupling());
 

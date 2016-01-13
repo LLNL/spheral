@@ -73,7 +73,6 @@ commandLine(
 
     SVPH = False,
     CRKSPH = False,
-    PSPH = False,
     SPH = True,   # This just chooses the H algorithm -- you can use this with CRKSPH for instance.
     filter = 0.0,  # For CRKSPH
     KernelConstructor = NBSplineKernel,
@@ -107,6 +106,7 @@ commandLine(
     hminratio = 0.1,
     cfl = 0.5,
     XSPH = False,
+    PSPH = False,
     epsilonTensile = 0.0,
     nTensile = 8,
 
@@ -153,11 +153,6 @@ elif CRKSPH:
         HydroConstructor = CRKSPHHydro
     else:
         HydroConstructor = ACRKSPHHydro
-elif PSPH:
-    if SPH:
-        HydroConstructor = PSPHHydro
-    else:
-        HydroConstructor = APSPHHydro
 else:
     if SPH:
         HydroConstructor = SPHHydro
@@ -178,6 +173,7 @@ baseDir = os.path.join(dataDir,
                        "Cl=%g_Cq=%g" % (Cl, Cq),
                        densityUpdateLabel[densityUpdate],
                        "compatibleEnergy=%s" % compatibleEnergy,
+                       "PSPH=%s" % PSPH,
                        "Cullen=%s" % boolCullenViscosity,
                        "nPerh=%3.1f" % nPerh,
                        "fcentroidal=%f" % max(fcentroidal, filter),
@@ -350,6 +346,7 @@ else:
                              cfl = cfl,
                              compatibleEnergyEvolution = compatibleEnergy,
                              gradhCorrection = gradhCorrection,
+                             PSPH = PSPH,
                              XSPH = XSPH,
                              densityUpdate = densityUpdate,
                              HUpdate = HUpdate,

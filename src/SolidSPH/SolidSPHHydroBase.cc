@@ -110,7 +110,6 @@ SolidSPHHydroBase(const SmoothingScaleBase<Dimension>& smoothingScaleMethod,
                   const double cfl,
                   const bool useVelocityMagnitudeForDt,
                   const bool compatibleEnergyEvolution,
-                  const bool evolveTotalEnergy,
                   const bool gradhCorrection,
                   const bool XSPH,
                   const bool correctVelocityGradient,
@@ -129,8 +128,8 @@ SolidSPHHydroBase(const SmoothingScaleBase<Dimension>& smoothingScaleMethod,
                           cfl,
                           useVelocityMagnitudeForDt,
                           compatibleEnergyEvolution,
-                          evolveTotalEnergy,
                           gradhCorrection,
+                          false,              // Currently don't support PSPH in solids
                           XSPH,
                           correctVelocityGradient,
                           sumMassDensityOverAllNodeLists,
@@ -216,6 +215,7 @@ registerState(DataBase<Dimension>& dataBase,
   FieldList<Dimension, Scalar> ps;
   FieldList<Dimension, Vector> gradD;
   FieldList<Dimension, int> fragIDs;
+  FieldList<Dimension, int> pTypes;
   size_t nodeListi = 0;
   for (typename DataBase<Dimension>::SolidNodeListIterator itr = dataBase.solidNodeListBegin();
        itr != dataBase.solidNodeListEnd();
@@ -225,6 +225,7 @@ registerState(DataBase<Dimension>& dataBase,
     D.appendField((*itr)->effectiveDamage());
     gradD.appendField((*itr)->damageGradient());
     fragIDs.appendField((*itr)->fragmentIDs());
+    pTypes.appendField((*itr)->particleTypes());
 
     // Make a copy of the beginning plastic strain.
     *mPlasticStrain0[nodeListi] = (*itr)->plasticStrain();
@@ -256,6 +257,9 @@ registerState(DataBase<Dimension>& dataBase,
 
   // Register the fragment IDs.
   state.enroll(fragIDs);
+
+  // Register the particle types.
+  state.enroll(pTypes);
 
   // And finally the intial plastic strain.
   state.enroll(mPlasticStrain0);
@@ -342,6 +346,7 @@ evaluateDerivatives(const typename Dimension::Scalar time,
   const FieldList<Dimension, SymTensor> damage = state.fields(SolidFieldNames::effectiveTensorDamage, SymTensor::zero);
   const FieldList<Dimension, Vector> gradDamage = state.fields(SolidFieldNames::damageGradient, Vector::zero);
   const FieldList<Dimension, int> fragIDs = state.fields(SolidFieldNames::fragmentIDs, int(1));
+  const FieldList<Dimension, int> pTypes = state.fields(SolidFieldNames::particleTypes, int(0));
   CHECK(mass.size() == numNodeLists);
   CHECK(position.size() == numNodeLists);
   CHECK(velocity.size() == numNodeLists);
@@ -356,6 +361,7 @@ evaluateDerivatives(const typename Dimension::Scalar time,
   CHECK(damage.size() == numNodeLists);
   CHECK(gradDamage.size() == numNodeLists);
   CHECK(fragIDs.size() == numNodeLists);
+  CHECK(pTypes.size() == numNodeLists);
 
   // Derivative FieldLists.
   FieldList<Dimension, Scalar> rhoSum = derivatives.fields(ReplaceFieldList<Dimension, Scalar>::prefix() + HydroFieldNames::massDensity, 0.0);
@@ -365,8 +371,8 @@ evaluateDerivatives(const typename Dimension::Scalar time,
   FieldList<Dimension, Scalar> DepsDt = derivatives.fields(IncrementFieldList<Dimension, Scalar>::prefix() + HydroFieldNames::specificThermalEnergy, 0.0);
   FieldList<Dimension, Tensor> DvDx = derivatives.fields(HydroFieldNames::velocityGradient, Tensor::zero);
   FieldList<Dimension, Tensor> localDvDx = derivatives.fields(HydroFieldNames::internalVelocityGradient, Tensor::zero);
-  FieldList<Dimension, Tensor> M = derivatives.fields(HydroFieldNames::M_SPHCorrection, Tensor::zero);
-  FieldList<Dimension, Tensor> localM = derivatives.fields("local " + HydroFieldNames::M_SPHCorrection, Tensor::zero);
+  FieldList<Dimension, Tensor> M = derivatives.fields(HydroFieldNames::M_CRKSPH, Tensor::zero);
+  FieldList<Dimension, Tensor> localM = derivatives.fields("local " + HydroFieldNames::M_CRKSPH, Tensor::zero);
   FieldList<Dimension, SymTensor> DHDt = derivatives.fields(IncrementFieldList<Dimension, SymTensor>::prefix() + HydroFieldNames::H, SymTensor::zero);
   FieldList<Dimension, SymTensor> Hideal = derivatives.fields(ReplaceBoundedFieldList<Dimension, SymTensor>::prefix() + HydroFieldNames::H, SymTensor::zero);
   FieldList<Dimension, Scalar> maxViscousPressure = derivatives.fields(HydroFieldNames::maxViscousPressure, 0.0);
@@ -460,6 +466,7 @@ evaluateDerivatives(const typename Dimension::Scalar time,
       const Scalar Hdeti = Hi.Determinant();
       const Scalar safeOmegai = 1.0/max(tiny, omegai);
       const int fragIDi = fragIDs(nodeListi, i);
+      const int pTypei = pTypes(nodeListi, i);
       CHECK(mi > 0.0);
       CHECK(rhoi > 0.0);
       CHECK(omegai > 0.0);
@@ -528,12 +535,14 @@ evaluateDerivatives(const typename Dimension::Scalar time,
               const Scalar Hdetj = Hj.Determinant();
               const Scalar safeOmegaj = 1.0/max(tiny, omegaj);
               const int fragIDj = fragIDs(nodeListj, j);
+              const int pTypej = pTypes(nodeListj, j);
               CHECK(mj > 0.0);
               CHECK(rhoj > 0.0);
               CHECK(Hdetj > 0.0);
 
               Scalar& rhoSumj = rhoSum(nodeListj, j);
               Vector& DxDtj = DxDt(nodeListj, j);
+              Scalar& DrhoDtj = DrhoDt(nodeListj, j);
               Vector& DvDtj = DvDt(nodeListj, j);
               Scalar& DepsDtj = DepsDt(nodeListj, j);
               Tensor& DvDxj = DvDx(nodeListj, j);
@@ -552,6 +561,9 @@ evaluateDerivatives(const typename Dimension::Scalar time,
 
               // Flag if this is a contiguous material pair or not.
               const bool sameMatij = (nodeListi == nodeListj and fragIDi == fragIDj);
+
+              // Flag if at least one particle is free (0).
+              const bool freeParticle = (pTypei == 0 or pTypej == 0);
 
               // Node displacement.
               const Vector rij = ri - rj;
@@ -607,13 +619,19 @@ evaluateDerivatives(const typename Dimension::Scalar time,
               rhoSumCorrectioni += mj * WQi / rhoj ;
               rhoSumCorrectionj += mi * WQj / rhoi ;
 
-              // Compute the pair-wise artificial viscosity.
+              // Mass density evolution.
               const Vector vij = vi - vj;
+              const double deltaDrhoDti = fDeffij*(vij.dot(gradWi));
+              const double deltaDrhoDtj = fDeffij*(vij.dot(gradWj));
+              DrhoDti += deltaDrhoDti;
+              DrhoDtj += deltaDrhoDtj;
+
+              // Compute the pair-wise artificial viscosity.
               const pair<Tensor, Tensor> QPiij = Q.Piij(nodeListi, i, nodeListj, j,
                                                         ri, etai, vi, rhoi, ci, Hi,
                                                         rj, etaj, vj, rhoj, cj, Hj);
-              const Vector Qacci = 0.5*safeOmegai*(QPiij.first *gradWQi);
-              const Vector Qaccj = 0.5*safeOmegaj*(QPiij.second*gradWQj);
+              const Vector Qacci = 0.5*(QPiij.first *gradWQi);
+              const Vector Qaccj = 0.5*(QPiij.second*gradWQj);
               const Scalar workQi = vij.dot(Qacci);
               const Scalar workQj = vij.dot(Qaccj);
               const Scalar Qi = rhoi*rhoi*(QPiij.first. diagonalElements().maxAbsElement());
@@ -649,11 +667,13 @@ evaluateDerivatives(const typename Dimension::Scalar time,
               // Acceleration.
               CHECK(rhoi > 0.0);
               CHECK(rhoj > 0.0);
-              const SymTensor sigmarhoi = safeOmegai*sigmai/(rhoi*rhoi);
-              const SymTensor sigmarhoj = safeOmegaj*sigmaj/(rhoj*rhoj);
-              const Vector deltaDvDt = fDeffij*(sigmarhoi*gradWi + sigmarhoj*gradWj) - Qacci - Qaccj;
-              DvDti += mj*deltaDvDt;
-              DvDtj -= mi*deltaDvDt;
+              const SymTensor sigmarhoi = sigmai/(rhoi*rhoi);
+              const SymTensor sigmarhoj = sigmaj/(rhoj*rhoj);
+              const Vector deltaDvDt = fDeffij*(sigmarhoi*safeOmegai*gradWi + sigmarhoj*safeOmegaj*gradWj) - Qacci - Qaccj;
+              if (freeParticle) {
+                DvDti += mj*deltaDvDt;
+                DvDtj -= mi*deltaDvDt;
+              }
 
               // Pair-wise portion of grad velocity.
               const Tensor deltaDvDxi = fDeffij*vij.dyad(gradWGi);
@@ -686,11 +706,11 @@ evaluateDerivatives(const typename Dimension::Scalar time,
               }
 
               // Linear gradient correction term.
-              Mi -= fDeffij*mj*rij.dyad(gradWi);
-              Mj -= fDeffij*mi*rij.dyad(gradWj);
+              Mi -= mj/rhoj*rij.dyad(gradWi);
+              Mj -= mi/rhoi*rij.dyad(gradWj);
               if (sameMatij) {
-                localMi -= fDeffij*mj*rij.dyad(gradWi);
-                localMj -= fDeffij*mi*rij.dyad(gradWj);
+                localMi -= mj/rhoj*rij.dyad(gradWi);
+                localMj -= mi/rhoi*rij.dyad(gradWj);
               }
             }
           }
@@ -713,25 +733,20 @@ evaluateDerivatives(const typename Dimension::Scalar time,
       // Correct the effective viscous pressure.
       effViscousPressurei /= rhoSumCorrectioni ;
 
+      // Finish the continuity equation.
+      DrhoDti *= mi*safeOmegai;
+
+      // Finish the thermal energy derivative.
+      DepsDti *= safeOmegai;
+
       // Finish the gradient of the velocity.
       CHECK(rhoi > 0.0);
-      if (this->mCorrectVelocityGradient and
-          std::abs(Mi.Determinant()) > 1.0e-10 and
-          numNeighborsi > Dimension::pownu(2)) {
-        Mi = Mi.Inverse();
-        localMi = localMi.Inverse();
-        DvDxi = DvDxi*Mi;
-        localDvDxi = localDvDxi*localMi;
-      } else {
-        DvDxi *= safeOmegai/rhoi;
-        localDvDxi *= safeOmegai/rhoi;
+      DvDxi *= safeOmegai/rhoi;
+      localDvDxi *= safeOmegai/rhoi;
+      if (this->correctVelocityGradient()) {
+        DvDxi = Mi*DvDxi;
+        localDvDxi = localMi*DvDxi;
       }
-
-      // Evaluate the continuity equation.
-      DrhoDti = -rhoi*DvDxi.Trace();
-
-      // If needed finish the total energy derivative.
-      if (this->mEvolveTotalEnergy) DepsDti = mi*(vi.dot(DvDti) + DepsDti);
 
       // Complete the moments of the node distribution for use in the ideal H calculation.
       weightedNeighborSumi = Dimension::rootnu(max(0.0, weightedNeighborSumi/Hdeti));

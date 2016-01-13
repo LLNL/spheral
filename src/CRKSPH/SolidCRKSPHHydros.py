@@ -25,7 +25,6 @@ class %(classname)s%(dim)s(SolidCRKSPHHydroBase%(dim)s):
                  densityUpdate = RigorousSumDensity,
                  HUpdate = IdealH,
                  correctionOrder = LinearOrder,
-                 volumeType = CRKSumVolume,
                  epsTensile = 0.0,
                  nTensile = 4.0):
         self._smoothingScaleMethod = %(smoothingScaleMethod)s%(dim)s()
@@ -33,9 +32,9 @@ class %(classname)s%(dim)s(SolidCRKSPHHydroBase%(dim)s):
             WPi = W
         SolidCRKSPHHydroBase%(dim)s.__init__(self,
                                              self._smoothingScaleMethod,
-                                             Q,
                                              W,
                                              WPi,
+                                             Q,
                                              filter,
                                              cfl,
                                              useVelocityMagnitudeForDt,
@@ -44,7 +43,6 @@ class %(classname)s%(dim)s(SolidCRKSPHHydroBase%(dim)s):
                                              densityUpdate,
                                              HUpdate,
                                              correctionOrder,
-                                             volumeType,
                                              epsTensile,
                                              nTensile)
         return

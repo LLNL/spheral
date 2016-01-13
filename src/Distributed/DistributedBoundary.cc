@@ -187,7 +187,7 @@ communicatedProcs(vector<int>& sendProcs,
 //   const NodeList<Dimension>* nodeListPtr = field.nodeListPtr();
 
 //   // Pre-conditions.
-//   BEGIN_CONTRACT_SCOPE
+//   BEGIN_CONTRACT_SCOPE;
 //   {
 //     const int nProcs = numDomains();
 //     const int procID = domainID();
@@ -253,7 +253,7 @@ communicatedProcs(vector<int>& sendProcs,
 //       }
 //     }
 //   }
-//   END_CONTRACT_SCOPE
+//   END_CONTRACT_SCOPE;
 
 //   // Get the map of (domain -> send and receive nodes) for the NodeList
 //   // of this Field.
@@ -360,7 +360,7 @@ communicatedProcs(vector<int>& sendProcs,
 //   const NodeList<Dimension>* nodeListPtr = field.nodeListPtr();
 
 //   // Pre-conditions.
-//   BEGIN_CONTRACT_SCOPE
+//   BEGIN_CONTRACT_SCOPE;
 //   {
 //     const int nProcs = numDomains();
 //     const int procID = domainID();
@@ -423,7 +423,7 @@ communicatedProcs(vector<int>& sendProcs,
 //       }
 //     }
 //   }
-//   END_CONTRACT_SCOPE
+//   END_CONTRACT_SCOPE;
 
 //   // Get the map of (domain -> send and receive nodes) for the NodeList
 //   // of this Field.
@@ -595,7 +595,7 @@ beginExchangeField(Field<Dimension, DataType>& field) const {
   const int procID = domainID();
 
   // Pre-conditions.
-  BEGIN_CONTRACT_SCOPE
+  BEGIN_CONTRACT_SCOPE;
   {
     for (int checkProc = 0; checkProc != nProcs; ++checkProc) {
 
@@ -659,7 +659,7 @@ beginExchangeField(Field<Dimension, DataType>& field) const {
       }
     }
   }
-  END_CONTRACT_SCOPE
+  END_CONTRACT_SCOPE;
 
   // Establish a unique tag for this field's send/recv ops with neighbor domains.
   ++mMPIFieldTag;
@@ -711,7 +711,7 @@ beginExchangeField(Field<Dimension, DataType>& field) const {
     }
 
     // Check the receive sizes.
-    BEGIN_CONTRACT_SCOPE
+    BEGIN_CONTRACT_SCOPE;
     {
       CHECK(mRecvBuffers.size() == mField2RecvBuffer.size());
       int totalNumRecvs = 0;
@@ -720,7 +720,7 @@ beginExchangeField(Field<Dimension, DataType>& field) const {
            ++itr) totalNumRecvs += itr->size();
       CHECK(mRecvRequests.size() == totalNumRecvs);
     }
-    END_CONTRACT_SCOPE
+    END_CONTRACT_SCOPE;
 
     // Now send all of our send nodes.
     for (typename DomainBoundaryNodeMap::const_iterator domainItr = domBoundNodeMap.begin();
@@ -750,7 +750,7 @@ beginExchangeField(Field<Dimension, DataType>& field) const {
     }
 
     // Check the send sizes.
-    BEGIN_CONTRACT_SCOPE
+    BEGIN_CONTRACT_SCOPE;
     {
       CHECK(mSendBuffers.size() == mField2SendBuffer.size());
       int totalNumSends = 0;
@@ -759,7 +759,7 @@ beginExchangeField(Field<Dimension, DataType>& field) const {
            ++itr) totalNumSends += itr->size();
       CHECK(mSendRequests.size() == totalNumSends);
     }
-    END_CONTRACT_SCOPE
+    END_CONTRACT_SCOPE;
 
 
 
@@ -1260,7 +1260,7 @@ template<typename Dimension>
 void
 DistributedBoundary<Dimension>::finalizeExchanges() {
 
-  BEGIN_CONTRACT_SCOPE
+  BEGIN_CONTRACT_SCOPE;
   {
     // Make sure everyone has the same number of exchange fields.
     const int nProcs = numDomains();
@@ -1304,7 +1304,7 @@ DistributedBoundary<Dimension>::finalizeExchanges() {
     REQUIRE(mSendRequests.size() == numSendBuffers);
     REQUIRE(mRecvRequests.size() == numRecvBuffers);
   }
-  END_CONTRACT_SCOPE
+  END_CONTRACT_SCOPE;
 
 #ifdef USE_MPI_DEADLOCK_DETECTION
   vector<int> dummyInts;
@@ -1498,6 +1498,8 @@ buildReceiveAndGhostNodes(const DataBase<Dimension>& dataBase) {
   // This processor's ID.
   int procID = this->domainID();
   int numProcs = this->numDomains();
+  // This if prevents a dereference of a zero length vector &recvStatus.front()
+  if (numProcs > 1) {
   CHECK(procID < numProcs);
 
   // Reserve space for the number of nodes we'll be getting from each domain.
@@ -1595,12 +1597,13 @@ buildReceiveAndGhostNodes(const DataBase<Dimension>& dataBase) {
     }
   }
 
+  }
   // Fill out the Boundary list of control and ghost nodes with the send and receive
   // nodes on this domain as a courtesy.
   // At the moment this information won't be used for this boundary condition.
   this->setControlAndGhostNodes();
 
-  BEGIN_CONTRACT_SCOPE
+  BEGIN_CONTRACT_SCOPE;
   {
     // Ensure we wound up with the correct slices of ghost node indicies.
     int nodeListID = 0;
@@ -1610,8 +1613,7 @@ buildReceiveAndGhostNodes(const DataBase<Dimension>& dataBase) {
       ENSURE((**nodeListItr).numNodes() == firstNewGhostNode[nodeListID]);
     }
   }
-  END_CONTRACT_SCOPE
-
+  END_CONTRACT_SCOPE;
 }
 
 }

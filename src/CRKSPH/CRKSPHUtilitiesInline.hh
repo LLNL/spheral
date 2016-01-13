@@ -8,7 +8,6 @@
 #include "Kernel/TableKernel.hh"
 #include "Geometry/innerDoubleProduct.hh"
 #include "Geometry/innerProduct.hh"
-#include "CRKSPHCorrectionParams.hh"
 
 namespace Spheral {
 namespace CRKSPHSpace {
@@ -20,7 +19,7 @@ template<typename Dimension>
 inline
 typename Dimension::Scalar
 CRKSPHKernel(const KernelSpace::TableKernel<Dimension>& W,
-           const CRKOrder correctionOrder,
+           const int correctionOrder,
            const typename Dimension::Vector& rij,
            const typename Dimension::Vector& etai,
            const typename Dimension::Scalar& Hdeti,
@@ -30,11 +29,18 @@ CRKSPHKernel(const KernelSpace::TableKernel<Dimension>& W,
            const typename Dimension::Vector& Bi,
            const typename Dimension::Tensor& Ci) {
   typedef typename Dimension::Tensor Tensor;
-  if(correctionOrder == ZerothOrder){
+  if(correctionOrder == 0){
       return Ai*W(etaj.magnitude(), Hdetj);
-  }else if(correctionOrder == LinearOrder){
+  }else if(correctionOrder == 1){
       return Ai*(1.0 + Bi.dot(rij))*W(etaj.magnitude(), Hdetj);
-  }else {//correctionOrder == QuadraticOrder
+  }else {//correctionOrder == 2
+      // Tensor CiP = Tensor::zero;
+      // for (size_t ii = 0; ii != Dimension::nDim; ++ii) {
+      //   for (size_t jj = 0; jj != Dimension::nDim; ++jj) {
+      //      if(ii <= jj)CiP(ii,jj)=Ci(ii,jj);
+      //   }
+      // }
+      // return Ai*(1.0 + Bi.dot(rij)+CiP.dot(rij).dot(rij))*W(etaj.magnitude(), Hdetj);
     return Ai*(1.0 + Bi.dot(rij) + Geometry::innerDoubleProduct<Dimension>(Ci, rij.selfdyad()))*W(etaj.magnitude(), Hdetj);
   }
 }
@@ -46,7 +52,7 @@ template<typename Dimension>
 inline
 void
 CRKSPHKernelAndGradient(const KernelSpace::TableKernel<Dimension>& W,
-                      const CRKOrder correctionOrder,
+                      const int correctionOrder,
                       const typename Dimension::Vector& rij,
                       const typename Dimension::Vector& etai,
                       const typename Dimension::SymTensor& Hi,
@@ -68,30 +74,53 @@ CRKSPHKernelAndGradient(const KernelSpace::TableKernel<Dimension>& W,
   typedef typename Dimension::Tensor Tensor;
   const std::pair<Scalar, Scalar> WWj = W.kernelAndGradValue(etaj.magnitude(), Hdetj);
   const Scalar Wj = WWj.first; 
-  if(correctionOrder == ZerothOrder){
+  if(correctionOrder == 0){
      WCRKSPH = Ai*Wj;
      gradWSPH = WWj.second;
      const Vector gradWj = Hj*etaj.unitVector() * WWj.second;
+     //gradWCRKSPH = Ai*(1.0 + Bi.dot(rij))*gradWj + Ai*(Bi + gradBi*rij)*Wj + gradAi*(1.0 + Bi.dot(rij))*Wj;
      gradWCRKSPH = Ai*gradWj + gradAi*Wj;
-  }else if(correctionOrder == LinearOrder){
+  }else if(correctionOrder == 1){
      WCRKSPH = Ai*(1.0 + Bi.dot(rij))*Wj;
      gradWSPH = WWj.second;
      const Vector gradWj = Hj*etaj.unitVector() * WWj.second;
+     //gradWCRKSPH = Ai*(1.0 + Bi.dot(rij))*gradWj + Ai*(Bi + gradBi*rij)*Wj + gradAi*(1.0 + Bi.dot(rij))*Wj;
      gradWCRKSPH = Ai*(1.0 + Bi.dot(rij))*gradWj + Ai*Bi*Wj + gradAi*(1.0 + Bi.dot(rij))*Wj;
      for (size_t ii = 0; ii != Dimension::nDim; ++ii) {
        for (size_t jj = 0; jj != Dimension::nDim; ++jj) {
          gradWCRKSPH(ii) += Ai*Wj*gradBi(jj,ii)*rij(jj);
        }
      }
-  }else {//correctionOrder == QuadraticOrder
+  }else {//correctionOrder == 2
+      // Tensor CiP = Tensor::zero;
+      // for (size_t ii = 0; ii != Dimension::nDim; ++ii) {
+      //   for (size_t jj = 0; jj != Dimension::nDim; ++jj) {
+      //      if(ii <= jj)CiP(ii,jj)=Ci(ii,jj);
+      //   }
+      // }
      WCRKSPH = Ai*(1.0 + Bi.dot(rij) + Geometry::innerDoubleProduct<Dimension>(Ci, rij.selfdyad()))*Wj;
      gradWSPH = WWj.second;
      const Vector gradWj = Hj*etaj.unitVector() * WWj.second;
+     //gradWCRKSPH = Ai*(1.0 + Bi.dot(rij))*gradWj + Ai*(Bi + gradBi*rij)*Wj + gradAi*(1.0 + Bi.dot(rij))*Wj;
+     //gradWCRKSPH = Ai*(1.0 + Bi.dot(rij))*gradWj + Ai*Bi*Wj + gradAi*(1.0 + Bi.dot(rij))*Wj;
      gradWCRKSPH = Ai*(1.0 + Bi.dot(rij) + Geometry::innerDoubleProduct<Dimension>(Ci, rij.selfdyad()))*gradWj + Ai*Bi*Wj;
      gradWCRKSPH += gradAi*(1.0 + Bi.dot(rij) + Geometry::innerDoubleProduct<Dimension>(Ci, rij.selfdyad()))*Wj;
      gradWCRKSPH += Ai*(Geometry::innerProduct<Dimension>(rij,gradBi))*Wj;
      gradWCRKSPH += Ai*(Geometry::innerDoubleProduct<Dimension>(rij.selfdyad(),gradCi))*Wj;
      gradWCRKSPH += 2.0*Ai*(Geometry::innerProduct<Dimension>(rij,Ci))*Wj;
+/*
+     for (size_t ii = 0; ii != Dimension::nDim; ++ii) {
+       for (size_t jj = 0; jj != Dimension::nDim; ++jj) {
+         gradWCRKSPH(ii) += Ai*Wj*gradBi(jj,ii)*rij(jj);
+         if(ii <= jj)gradWCRKSPH(ii) += Ai*Wj*Ci(ii,jj)*rij(jj);
+         if(jj <= ii)gradWCRKSPH(ii) += Ai*Wj*Ci(jj,ii)*rij(jj);
+         for (size_t kk = 0; kk != Dimension::nDim; ++kk) {
+            if(jj <= kk)gradWCRKSPH(ii) += Ai*Wj*gradCi(jj,kk,ii)*rij(jj)*rij(kk);
+         }
+    
+       }
+     }
+*/
   }
 }
 

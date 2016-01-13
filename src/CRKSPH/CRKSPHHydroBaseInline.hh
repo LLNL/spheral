@@ -56,23 +56,6 @@ correctionOrder(const CRKSPHSpace::CRKOrder order) {
   mCorrectionOrder = order;
 }
 
-//------------------------------------------------------------------------------
-// Choose which volume weighting to use.
-//------------------------------------------------------------------------------
-template<typename Dimension>
-inline
-CRKSPHSpace::CRKVolumeType
-CRKSPHHydroBase<Dimension>::volumeType() const {
-  return mVolumeType;
-}
-
-template<typename Dimension>
-inline
-void
-CRKSPHHydroBase<Dimension>::
-volumeType(const CRKSPHSpace::CRKVolumeType x) {
-  mVolumeType = x;
-}
 
 //------------------------------------------------------------------------------
 // Access the flag determining if we're using the compatible energy evolution 
@@ -206,6 +189,14 @@ template<typename Dimension>
 inline
 const FieldSpace::FieldList<Dimension, typename Dimension::Scalar>&
 CRKSPHHydroBase<Dimension>::
+volume() const {
+  return mVolume;
+}
+
+template<typename Dimension>
+inline
+const FieldSpace::FieldList<Dimension, typename Dimension::Scalar>&
+CRKSPHHydroBase<Dimension>::
 specificThermalEnergy0() const {
   return mSpecificThermalEnergy0;
 }
@@ -256,14 +247,6 @@ const FieldSpace::FieldList<Dimension, typename Dimension::SymTensor>&
 CRKSPHHydroBase<Dimension>::
 massSecondMoment() const {
   return mMassSecondMoment;
-}
-
-template<typename Dimension>
-inline
-const FieldSpace::FieldList<Dimension, typename Dimension::Scalar>&
-CRKSPHHydroBase<Dimension>::
-volume() const {
-  return mVolume;
 }
 
 template<typename Dimension>
@@ -332,66 +315,18 @@ internalDvDx() const {
 
 template<typename Dimension>
 inline
+const FieldSpace::FieldList<Dimension, typename Dimension::Vector>&
+CRKSPHHydroBase<Dimension>::
+DmassDensityDx() const {
+  return mDmassDensityDx;
+}
+
+template<typename Dimension>
+inline
 const FieldSpace::FieldList<Dimension, std::vector<typename Dimension::Vector> >&
 CRKSPHHydroBase<Dimension>::
 pairAccelerations() const {
   return mPairAccelerations;
-}
-
-template<typename Dimension>
-inline
-const FieldSpace::FieldList<Dimension, typename Dimension::Vector>&
-CRKSPHHydroBase<Dimension>::
-DvDt0() const {
-  return mDvDt0;
-}
-
-template<typename Dimension>
-inline
-const FieldSpace::FieldList<Dimension, typename Dimension::Scalar>&
-CRKSPHHydroBase<Dimension>::
-DmassDensityDt0() const {
-  return mDmassDensityDt0;
-}
-
-template<typename Dimension>
-inline
-const FieldSpace::FieldList<Dimension, typename Dimension::Scalar>&
-CRKSPHHydroBase<Dimension>::
-DspecificThermalEnergyDt0() const {
-  return mDspecificThermalEnergyDt0;
-}
-
-template<typename Dimension>
-inline
-const FieldSpace::FieldList<Dimension, typename Dimension::SymTensor>&
-CRKSPHHydroBase<Dimension>::
-DHDt0() const {
-  return mDHDt0;
-}
-
-template<typename Dimension>
-inline
-const FieldSpace::FieldList<Dimension, typename Dimension::Tensor>&
-CRKSPHHydroBase<Dimension>::
-DvDx0() const {
-  return mDvDx0;
-}
-
-template<typename Dimension>
-inline
-const FieldSpace::FieldList<Dimension, typename Dimension::Tensor>&
-CRKSPHHydroBase<Dimension>::
-internalDvDx0() const {
-  return mInternalDvDx0;
-}
-
-template<typename Dimension>
-inline
-const FieldSpace::FieldList<Dimension, std::vector<typename Dimension::Vector> >&
-CRKSPHHydroBase<Dimension>::
-pairAccelerations0() const {
-  return mPairAccelerations0;
 }
 
 template<typename Dimension>
@@ -440,86 +375,6 @@ const FieldSpace::FieldList<Dimension, typename Dimension::ThirdRankTensor>&
 CRKSPHHydroBase<Dimension>::
 gradC() const {
   return mGradC;
-}
-
-template<typename Dimension>
-inline
-const FieldSpace::FieldList<Dimension, typename Dimension::Scalar>&
-CRKSPHHydroBase<Dimension>::
-m0() const {
-  return mM0;
-}
-
-template<typename Dimension>
-inline
-const FieldSpace::FieldList<Dimension, typename Dimension::Vector>&
-CRKSPHHydroBase<Dimension>::
-m1() const {
-  return mM1;
-}
-
-template<typename Dimension>
-inline
-const FieldSpace::FieldList<Dimension, typename Dimension::SymTensor>&
-CRKSPHHydroBase<Dimension>::
-m2() const {
-  return mM2;
-}
-
-template<typename Dimension>
-inline
-const FieldSpace::FieldList<Dimension, typename Dimension::ThirdRankTensor>&
-CRKSPHHydroBase<Dimension>::
-m3() const {
-  return mM3;
-}
-
-template<typename Dimension>
-inline
-const FieldSpace::FieldList<Dimension, typename Dimension::FourthRankTensor>&
-CRKSPHHydroBase<Dimension>::
-m4() const {
-  return mM4;
-}
-
-template<typename Dimension>
-inline
-const FieldSpace::FieldList<Dimension, typename Dimension::Vector>&
-CRKSPHHydroBase<Dimension>::
-gradm0() const {
-  return mGradm0;
-}
-
-template<typename Dimension>
-inline
-const FieldSpace::FieldList<Dimension, typename Dimension::Tensor>&
-CRKSPHHydroBase<Dimension>::
-gradm1() const {
-  return mGradm1;
-}
-
-template<typename Dimension>
-inline
-const FieldSpace::FieldList<Dimension, typename Dimension::ThirdRankTensor>&
-CRKSPHHydroBase<Dimension>::
-gradm2() const {
-  return mGradm2;
-}
-
-template<typename Dimension>
-inline
-const FieldSpace::FieldList<Dimension, typename Dimension::FourthRankTensor>&
-CRKSPHHydroBase<Dimension>::
-gradm3() const {
-  return mGradm3;
-}
-
-template<typename Dimension>
-inline
-const FieldSpace::FieldList<Dimension, typename Dimension::FifthRankTensor>&
-CRKSPHHydroBase<Dimension>::
-gradm4() const {
-  return mGradm4;
 }
 
 template<typename Dimension>

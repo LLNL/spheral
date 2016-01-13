@@ -19,9 +19,7 @@
 #include "Distributed/Communicator.hh"
 
 #ifdef USE_MPI
-extern "C" {
 #include "mpi.h"
-}
 #endif
 
 namespace Spheral {
@@ -166,9 +164,9 @@ fuzzyCompare(const boost::tuple<uint64_t, uint64_t, uint64_t>& lhs,
              const boost::tuple<uint64_t, uint64_t, uint64_t>& rhs,
              const uint64_t delta) {
   using namespace boost;
-  const uint64_t dx = std::max(get<0>(lhs), get<0>(rhs)) - std::min(get<0>(lhs), get<0>(rhs));
-  const uint64_t dy = std::max(get<1>(lhs), get<1>(rhs)) - std::min(get<1>(lhs), get<1>(rhs));
-  const uint64_t dz = std::max(get<2>(lhs), get<2>(rhs)) - std::min(get<2>(lhs), get<2>(rhs));
+  const unsigned dx = std::max(get<0>(lhs), get<0>(rhs)) - std::min(get<0>(lhs), get<0>(rhs));
+  const unsigned dy = std::max(get<1>(lhs), get<1>(rhs)) - std::min(get<1>(lhs), get<1>(rhs));
+  const unsigned dz = std::max(get<2>(lhs), get<2>(rhs)) - std::min(get<2>(lhs), get<2>(rhs));
   return ((dx <= delta and dy <= delta and dz <= delta) ?  0 :
           get<2>(lhs) < get<2>(rhs)                     ? -1 :
           get<2>(lhs) > get<2>(rhs)                     ?  1 :

@@ -17,9 +17,7 @@
 #endif
 
 #ifdef USE_MPI
-extern "C" {
 #include "mpi.h"
-}
 #endif
 
 namespace Spheral {

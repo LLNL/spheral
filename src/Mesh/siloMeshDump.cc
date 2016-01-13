@@ -11,9 +11,7 @@
 #include "boost/share_ptr.hpp"
 
 #ifdef USE_MPI
-extern "C" {
 #include "mpi.h"
-}
 #endif
 #include "silo.h"
 

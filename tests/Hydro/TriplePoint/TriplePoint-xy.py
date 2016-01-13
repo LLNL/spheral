@@ -53,10 +53,6 @@ commandLine(
     nx3 = 120,
     ny3 = 30,
 
-    # Optionally set the initial density with the sum definition, and recompute
-    # the energy to re-establish the the initial pressures.
-    relaxInitialDensity = False,
-
     nPerh = 1.51,
     KernelConstructor = BSplineKernel,
     order = 5,
@@ -65,7 +61,7 @@ commandLine(
     CRKSPH = False,
     ASPH = False,
     SPH = True,   # This just chooses the H algorithm -- you can use this with CRKSPH for instance.
-    filter = 0.0,  # For CRKSPH
+    filter = 0.2,  # For CRKSPH
     Qconstructor = MonaghanGingoldViscosity,
     #Qconstructor = TensorMonaghanGingoldViscosity,
     boolReduceViscosity = False,
@@ -101,8 +97,6 @@ commandLine(
     maxSteps = None,
     statsStep = 10,
     HUpdate = IdealH,
-    correctionOrder = LinearOrder,
-    QcorrectionOrder = LinearOrder,
     domainIndependent = False,
     rigorousBoundaries = False,
     dtverbose = False,
@@ -154,10 +148,6 @@ baseDir = os.path.join(dataDir,
                        "filter=%f" % filter,
                        "%ix%i" % (nx1 + nx2, ny1 + ny2),
                        "Cl=%3.1f_Cq=%3.1f" % (Cl,Cq))
-if CRKSPH:
-    baseDir = os.path.join(baseDir, 
-                           "correctionOrder=%s" % correctionOrder,
-                           "QcorrectionOrder=%s" % QcorrectionOrder)
 restartDir = os.path.join(baseDir, "restarts")
 restartBaseName = os.path.join(restartDir, "triplepoint-xy-%ix%i" % (nx1 + nx2, ny1 + ny2))
 
@@ -298,7 +288,6 @@ q = Qconstructor(Cl, Cq, linearInExpansion)
 q.epsilon2 = epsilon2
 q.limiter = Qlimiter
 q.balsaraShearCorrection = balsaraCorrection
-q.QcorrectionOrder = QcorrectionOrder
 output("q")
 output("q.Cl")
 output("q.Cq")
@@ -333,7 +322,6 @@ elif CRKSPH:
                              filter = filter,
                              cfl = cfl,
                              compatibleEnergyEvolution = compatibleEnergy,
-                             correctionOrder = correctionOrder,
                              XSPH = XSPH,
                              densityUpdate = densityUpdate,
                              HUpdate = HUpdate)
@@ -361,6 +349,7 @@ packages = [hydro]
 #-------------------------------------------------------------------------------
 # Construct the MMRV physics object.
 #-------------------------------------------------------------------------------
+
 if boolReduceViscosity:
     #q.reducingViscosityCorrection = True
     evolveReducingViscosityMultiplier = MorrisMonaghanReducingViscosity(q,nh,aMin,aMax)
@@ -429,38 +418,6 @@ control = SpheralController(integrator, WT,
                             skipInitialPeriodicWork = (HydroConstructor in (SVPHFacetedHydro, ASVPHFacetedHydro)),
                             SPH = SPH)
 output("control")
-
-#-------------------------------------------------------------------------------
-# Optionally compute the sum density and recompute the initial conditions.
-#-------------------------------------------------------------------------------
-if relaxInitialDensity and control.totalSteps == 0:
-    state = State(db, integrator.physicsPackages())
-    derivs = StateDerivatives(db, integrator.physicsPackages())
-    integrator.preStepInitialize(state, derivs)
-    integrator.initializeDerivatives(0.0, 0.0, state, derivs)
-    cm = db.connectivityMap()
-    mass = state.scalarFields(HydroFieldNames.mass)
-    position = state.vectorFields(HydroFieldNames.position)
-    H = state.symTensorFields(HydroFieldNames.H)
-    rho = state.scalarFields(HydroFieldNames.massDensity)
-    if CRKSPH:
-        vol = state.scalarFields(HydroFieldNames.volume)
-        A = state.scalarFields(HydroFieldNames.A_CRKSPH)
-        B = state.vectorFields(HydroFieldNames.B_CRKSPH)
-        C = state.tensorFields(HydroFieldNames.C_CRKSPH)
-        computeCRKSPHSumMassDensity(cm, WT, position, mass, vol, H, A, B, C, hydro.correctionOrder, rho)
-    else:
-        computeSPHSumMassDensity(cm, WT, True, position, mass, H, rho)
-    for (nodes, P0) in ((leftNodes, P1),
-                        (topNodes, P2),
-                        (bottomNodes, P3)):
-        rhof = nodes.massDensity()
-        epsf = nodes.specificThermalEnergy()
-        for i in xrange(nodes.numInternalNodes):
-            epsf[i] = P0/((gamma1 - 1.0)*rhof[i])
-
-    # Force another visit dumps so we can see what changed.
-    control.dropViz(0, 0.0, 0.0)
 
 #-------------------------------------------------------------------------------
 # Advance to the end time.
