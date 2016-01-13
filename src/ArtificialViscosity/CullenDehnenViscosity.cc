@@ -601,19 +601,28 @@ finalizeDerivatives(const Scalar time,
         const Tensor& DvDtDxi = DvDtDx(nodeListi, i);
         const Scalar Ri = R(nodeListi, i);
         const Scalar vsigi = vsig(nodeListi, i);
-        const Scalar hi = kernelExtent*Dimension::nDim/Hi.Trace();  // Harmonic averaging.
         const Scalar divvi = DvDxi.Trace();
         const Scalar divai = DvDtDxi.Trace();
         const Tensor Si = DvDxi.Symmetric() - divvi/Dimension::nDim * Tensor::one;
-        const Scalar thpt = FastMath::pow2(2.0*FastMath::pow4(1.0 - Ri)*divvi);
-        const Scalar zetai = thpt*safeInv(thpt + (Si*Si.Transpose()).Trace());
-        const Scalar Ai = zetai*std::max(-divai, 0.0);
-        const Scalar taui = hi*safeInv(2.0*mbetaD*vsigi);
-          
         const Scalar alphai = reducingViscosityMultiplierQ(nodeListi, i);
         Scalar& alpha_locali = alpha_local(nodeListi, i);
-        alpha_locali = malphMax*hi*hi*Ai*safeInvVar(vsigi*vsigi + hi*hi*Ai);
-        DalphaDt(nodeListi, i) = std::min(0.0, alpha_locali - alphai)*safeInv(taui);
+        if (mboolHopkins) {
+          const Scalar hi = mfKern*Dimension::nDim/Hi.Trace();  // Harmonic averaging.
+          const Scalar alpha_tmp = (std::min(divvi, divai) < 0.0 ?
+                                    malphMax*std::abs(divai)*safeInvVar(std::abs(divai) + mbetaC*vsigi*vsigi/FastMath::pow2(mfKern*hi)) :
+                                    0.0);
+          alpha_locali = std::max(alpha_tmp, alphai);
+          const Scalar thpt = FastMath::pow2(FastMath::pow4(1.0 - Ri)*divvi);
+          alpha_locali *= thpt*safeInvVar(thpt + (Si*Si.Transpose()).Trace());
+        } else {
+          const Scalar hi = kernelExtent*Dimension::nDim/Hi.Trace();  // Harmonic averaging.
+          const Scalar thpt = FastMath::pow2(2.0*FastMath::pow4(1.0 - Ri)*divvi);
+          const Scalar zetai = thpt*safeInvVar(thpt + (Si*Si.Transpose()).Trace());
+          const Scalar Ai = zetai*std::max(-divai, 0.0);
+          const Scalar taui = hi*safeInvVar(2.0*mbetaD*vsigi);
+          alpha_locali = std::max(alphai, malphMax*hi*hi*Ai*safeInvVar(vsigi*vsigi + hi*hi*Ai));
+          DalphaDt(nodeListi, i) = std::min(0.0, alpha_locali - alphai)*safeInv(taui);
+        }
       }
     }
 
