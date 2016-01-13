@@ -15,9 +15,7 @@
 #include "DataTypeTraits.hh"
 
 #ifdef USE_MPI
-extern "C" {
 #include "mpi.h"
-}
 #include "Distributed/Communicator.hh"
 #endif
 
