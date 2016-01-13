@@ -13,9 +13,7 @@
 #include "Kernel/TableKernel.hh"
 
 #ifdef USE_MPI
-extern "C" {
 #include "mpi.h"
-}
 #include "Utilities/DataTypeTraits.hh"
 #include "Utilities/packElement.hh"
 #include "Distributed/Communicator.hh"

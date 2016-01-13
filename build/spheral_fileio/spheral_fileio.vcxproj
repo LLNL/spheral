@@ -9,6 +9,14 @@
       <Configuration>Debug</Configuration>
       <Platform>x64</Platform>
     </ProjectConfiguration>
+    <ProjectConfiguration Include="ParDebugVisit|Win32">
+      <Configuration>ParDebugVisit</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="ParDebugVisit|x64">
+      <Configuration>ParDebugVisit</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
     <ProjectConfiguration Include="ParDebug|Win32">
       <Configuration>ParDebug</Configuration>
       <Platform>Win32</Platform>
@@ -43,54 +51,56 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
     <ConfigurationType>StaticLibrary</ConfigurationType>
     <UseDebugLibraries>true</UseDebugLibraries>
-    <PlatformToolset>Intel C++ Compiler XE 15.0</PlatformToolset>
-    <CharacterSet>MultiByte</CharacterSet>
+    <PlatformToolset>Intel C++ Compiler 16.0</PlatformToolset>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
     <ConfigurationType>StaticLibrary</ConfigurationType>
     <UseDebugLibraries>true</UseDebugLibraries>
-    <PlatformToolset>Intel C++ Compiler XE 15.0</PlatformToolset>
-    <CharacterSet>MultiByte</CharacterSet>
+    <PlatformToolset>Intel C++ Compiler 16.0</PlatformToolset>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='ParDebug|Win32'" Label="Configuration">
     <ConfigurationType>StaticLibrary</ConfigurationType>
     <UseDebugLibraries>true</UseDebugLibraries>
-    <PlatformToolset>Intel C++ Compiler XE 15.0</PlatformToolset>
-    <CharacterSet>MultiByte</CharacterSet>
+    <PlatformToolset>Intel C++ Compiler 16.0</PlatformToolset>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='ParDebugVisit|Win32'" Label="Configuration">
+    <ConfigurationType>StaticLibrary</ConfigurationType>
+    <UseDebugLibraries>true</UseDebugLibraries>
+    <PlatformToolset>Intel C++ Compiler 16.0</PlatformToolset>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='ParDebug|x64'" Label="Configuration">
     <ConfigurationType>StaticLibrary</ConfigurationType>
     <UseDebugLibraries>true</UseDebugLibraries>
-    <PlatformToolset>Intel C++ Compiler XE 15.0</PlatformToolset>
-    <CharacterSet>MultiByte</CharacterSet>
+    <PlatformToolset>Intel C++ Compiler 16.0</PlatformToolset>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='ParDebugVisit|x64'" Label="Configuration">
+    <ConfigurationType>StaticLibrary</ConfigurationType>
+    <UseDebugLibraries>true</UseDebugLibraries>
+    <PlatformToolset>Intel C++ Compiler 16.0</PlatformToolset>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
     <ConfigurationType>StaticLibrary</ConfigurationType>
     <UseDebugLibraries>false</UseDebugLibraries>
-    <PlatformToolset>Intel C++ Compiler XE 15.0</PlatformToolset>
+    <PlatformToolset>Intel C++ Compiler 16.0</PlatformToolset>
     <WholeProgramOptimization>true</WholeProgramOptimization>
-    <CharacterSet>MultiByte</CharacterSet>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
     <ConfigurationType>StaticLibrary</ConfigurationType>
     <UseDebugLibraries>false</UseDebugLibraries>
-    <PlatformToolset>Intel C++ Compiler XE 15.0</PlatformToolset>
+    <PlatformToolset>Intel C++ Compiler 16.0</PlatformToolset>
     <WholeProgramOptimization>true</WholeProgramOptimization>
-    <CharacterSet>MultiByte</CharacterSet>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='ParRelease|Win32'" Label="Configuration">
     <ConfigurationType>StaticLibrary</ConfigurationType>
     <UseDebugLibraries>false</UseDebugLibraries>
-    <PlatformToolset>Intel C++ Compiler XE 15.0</PlatformToolset>
+    <PlatformToolset>Intel C++ Compiler 16.0</PlatformToolset>
     <WholeProgramOptimization>true</WholeProgramOptimization>
-    <CharacterSet>MultiByte</CharacterSet>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='ParRelease|x64'" Label="Configuration">
     <ConfigurationType>StaticLibrary</ConfigurationType>
     <UseDebugLibraries>false</UseDebugLibraries>
-    <PlatformToolset>Intel C++ Compiler XE 15.0</PlatformToolset>
+    <PlatformToolset>Intel C++ Compiler 16.0</PlatformToolset>
     <WholeProgramOptimization>true</WholeProgramOptimization>
-    <CharacterSet>MultiByte</CharacterSet>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
   <ImportGroup Label="ExtensionSettings">
@@ -110,7 +120,17 @@
     <Import Project="..\..\..\..\src\Win32\Base Debug Libraries.props" />
     <Import Project="..\..\..\..\src\Win32\Properties\Parallel.Win32.props" />
   </ImportGroup>
+  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='ParDebugVisit|Win32'" Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+    <Import Project="..\..\..\..\src\Win32\Base Debug Libraries.props" />
+    <Import Project="..\..\..\..\src\Win32\Properties\Parallel.Win32.props" />
+  </ImportGroup>
   <ImportGroup Condition="'$(Configuration)|$(Platform)'=='ParDebug|x64'" Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+    <Import Project="..\..\..\..\src\Win32\Base Debug Libraries.props" />
+    <Import Project="..\..\..\..\src\Win32\Properties\Parallel.x64.props" />
+  </ImportGroup>
+  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='ParDebugVisit|x64'" Label="PropertySheets">
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
     <Import Project="..\..\..\..\src\Win32\Base Debug Libraries.props" />
     <Import Project="..\..\..\..\src\Win32\Properties\Parallel.x64.props" />
@@ -148,7 +168,7 @@
       <AdditionalIncludeDirectories>..;../../src;../../..;../../../polytope/src;../../../polytope/Win32;../../../qhull/src;../../../eigen;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <Cpp0xSupport>true</Cpp0xSupport>
       <DisableLanguageExtensions>true</DisableLanguageExtensions>
-      <DisableSpecificWarnings>2358</DisableSpecificWarnings>
+      <DisableSpecificWarnings>2358;2586</DisableSpecificWarnings>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -166,7 +186,7 @@
       <AdditionalIncludeDirectories>..;../../src;../../..;../../../polytope/src;../../../polytope/Win32;../../../qhull/src;../../../eigen;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <Cpp0xSupport>true</Cpp0xSupport>
       <DisableLanguageExtensions>true</DisableLanguageExtensions>
-      <DisableSpecificWarnings>2358</DisableSpecificWarnings>
+      <DisableSpecificWarnings>2358;2586</DisableSpecificWarnings>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -184,7 +204,25 @@
       <AdditionalIncludeDirectories>..;../../src;../../..;../../../polytope/src;../../../polytope/Win32;../../../qhull/src;../../../eigen;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <Cpp0xSupport>true</Cpp0xSupport>
       <DisableLanguageExtensions>true</DisableLanguageExtensions>
-      <DisableSpecificWarnings>2358</DisableSpecificWarnings>
+      <DisableSpecificWarnings>2358;2586</DisableSpecificWarnings>
+    </ClCompile>
+    <Link>
+      <SubSystem>Windows</SubSystem>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='ParDebugVisit|Win32'">
+    <ClCompile>
+      <PrecompiledHeader>
+      </PrecompiledHeader>
+      <WarningLevel>Level3</WarningLevel>
+      <Optimization>Disabled</Optimization>
+      <PreprocessorDefinitions>SPHERAL2D;SPHERAL3D;CXXONLY;USE_MPI;MPICH_SKIP_MPICXX;OMPI_SKIP_MPICXX;BOOST_DISABLE_THREADS;WIN32;_DEBUG;_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <UndefinePreprocessorDefinitions>LAM_WANT_MPI2CPP</UndefinePreprocessorDefinitions>
+      <AdditionalIncludeDirectories>..;../../src;../../..;../../../polytope/src;../../../polytope/Win32;../../../qhull/src;../../../eigen;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <Cpp0xSupport>true</Cpp0xSupport>
+      <DisableLanguageExtensions>true</DisableLanguageExtensions>
+      <DisableSpecificWarnings>2358;2586</DisableSpecificWarnings>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -201,7 +239,25 @@
       <UndefinePreprocessorDefinitions>LAM_WANT_MPI2CPP</UndefinePreprocessorDefinitions>
       <AdditionalIncludeDirectories>..;../../src;../../..;../../../polytope/src;../../../polytope/Win32;../../../qhull/src;../../../eigen;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <DisableLanguageExtensions>true</DisableLanguageExtensions>
-      <DisableSpecificWarnings>2358</DisableSpecificWarnings>
+      <DisableSpecificWarnings>2358;2586</DisableSpecificWarnings>
+    </ClCompile>
+    <Link>
+      <SubSystem>Windows</SubSystem>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='ParDebugVisit|x64'">
+    <ClCompile>
+      <PrecompiledHeader>
+      </PrecompiledHeader>
+      <WarningLevel>TurnOffAllWarnings</WarningLevel>
+      <Optimization>Disabled</Optimization>
+      <PreprocessorDefinitions>SPHERAL2D;SPHERAL3D;_USE_MATH_DEFINES;CXXONLY;USE_MPI;MPICH_SKIP_MPICXX;OMPI_SKIP_MPICXX;BOOST_DISABLE_THREADS;WIN32;_NDEBUG;_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <UndefinePreprocessorDefinitions>LAM_WANT_MPI2CPP</UndefinePreprocessorDefinitions>
+      <AdditionalIncludeDirectories>..;../../src;../../..;../../../polytope/src;../../../polytope/Win32;../../../qhull/src;../../../eigen;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <DisableLanguageExtensions>true</DisableLanguageExtensions>
+      <DisableSpecificWarnings>2358;2586</DisableSpecificWarnings>
+      <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -221,7 +277,7 @@
       <AdditionalIncludeDirectories>..;../../src;../../..;../../../polytope/src;../../../polytope/Win32;../../../qhull/src;../../../eigen;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <Cpp0xSupport>true</Cpp0xSupport>
       <DisableLanguageExtensions>true</DisableLanguageExtensions>
-      <DisableSpecificWarnings>2358</DisableSpecificWarnings>
+      <DisableSpecificWarnings>2358;2586</DisableSpecificWarnings>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -243,7 +299,7 @@
       <AdditionalIncludeDirectories>..;../../src;../../..;../../../polytope/src;../../../polytope/Win32;../../../qhull/src;../../../eigen;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <Cpp0xSupport>true</Cpp0xSupport>
       <DisableLanguageExtensions>true</DisableLanguageExtensions>
-      <DisableSpecificWarnings>2358</DisableSpecificWarnings>
+      <DisableSpecificWarnings>2358;2586</DisableSpecificWarnings>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -265,7 +321,7 @@
       <AdditionalIncludeDirectories>..;../../src;../../..;../../../polytope/src;../../../polytope/Win32;../../../qhull/src;../../../eigen;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <Cpp0xSupport>true</Cpp0xSupport>
       <DisableLanguageExtensions>true</DisableLanguageExtensions>
-      <DisableSpecificWarnings>2358</DisableSpecificWarnings>
+      <DisableSpecificWarnings>2358;2586</DisableSpecificWarnings>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -289,7 +345,7 @@
       <DisableLanguageExtensions>true</DisableLanguageExtensions>
       <EnableEnhancedInstructionSet>StreamingSIMDExtensions2</EnableEnhancedInstructionSet>
       <FavorSizeOrSpeed>Size</FavorSizeOrSpeed>
-      <DisableSpecificWarnings>2358</DisableSpecificWarnings>
+      <DisableSpecificWarnings>2358;2586</DisableSpecificWarnings>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>

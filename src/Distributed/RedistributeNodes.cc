@@ -5,9 +5,7 @@
 // Created by JMO, Tue Feb  4 14:23:11 PST 2003
 //----------------------------------------------------------------------------//
 
-extern "C" {
 #include "mpi.h"
-}
 
 #include <algorithm>
 #include <vector>

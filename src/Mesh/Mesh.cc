@@ -22,9 +22,7 @@
 #include "NodeList/NodeList.hh"
 
 #ifdef USE_MPI
-extern "C" {
 #include "mpi.h"
-}
 #include "Utilities/packElement.hh"
 #endif
 
