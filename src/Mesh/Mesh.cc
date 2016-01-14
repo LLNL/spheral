@@ -37,7 +37,6 @@ using std::max;
 using std::abs;
 
 using NodeSpace::NodeList;
-
 namespace { // anonymous
 
 #ifdef USE_MPI

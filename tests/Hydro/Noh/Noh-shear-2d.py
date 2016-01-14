@@ -34,12 +34,17 @@ commandLine(seed = "lattice",
 
             rho1 = 1.0,
             eps1 = 0.0,
+            smallPressure = False,
             vshear = 1.0,
             vy = -1.0,
 
             gamma = 5.0/3.0,
             mu = 1.0,
 
+	    SVPH = False,
+            CRKSPH = False,
+            PSPH = False,
+            SPH = True,   # This just chooses the H algorithm -- you can use this with CRKSPH for instance.
             Qconstructor = MonaghanGingoldViscosity,
             #Qconstructor = TensorMonaghanGingoldViscosity,
             boolReduceViscosity = False,
@@ -69,7 +74,6 @@ commandLine(seed = "lattice",
             cfl = 0.5,
             useVelocityMagnitudeForDt = False,
             XSPH = False,
-            PSPH = False,
             epsilonTensile = 0.0,
             nTensile = 8,
             filter = 0.0,
@@ -82,9 +86,6 @@ commandLine(seed = "lattice",
             goalTime = 0.6,
             steps = None,
             vizCycle = None,
-	    SVPH = False,
-            CRKSPH = False,
-            SPH = True,   # This just chooses the H algorithm -- you can use this with CRKSPH for instance.
             vizTime = 0.05,
             dt = 0.0001,
             dtMin = 1.0e-5, 
@@ -119,6 +120,11 @@ commandLine(seed = "lattice",
 
             )
 assert not(boolReduceViscosity and boolCullenViscosity)
+if smallPressure:
+   P0 = 1.0e-6
+   eps1 = P0/((gamma - 1.0)*rho1)
+
+
 if SVPH:
     if SPH:
         HydroConstructor = SVPHFacetedHydro
@@ -130,6 +136,11 @@ elif CRKSPH:
     else:
         HydroConstructor = ACRKSPHHydro
     Qconstructor = CRKSPHMonaghanGingoldViscosity
+elif PSPH:
+    if SPH:
+        HydroConstructor = PSPHHydro
+    else:
+        HydroConstructor = APSPHHydro
 else:
     if SPH:
         HydroConstructor = SPHHydro
@@ -137,12 +148,11 @@ else:
         HydroConstructor = ASPHHydro
 
 dataDir = os.path.join(dataRoot,
-                       str(HydroConstructor).split()[1].replace(">", "").replace("'",""),
-                       str(Qconstructor).split()[1].replace(">", "").replace("'",""),
+                       HydroConstructor.__name__,
+                       Qconstructor.__name__,
                        "basaraShearCorrection=%s_Qlimiter=%s" % (balsaraCorrection, Qlimiter),
                        "nperh=%4.2f" % nPerh,
                        "XSPH=%s" % XSPH,
-                       "PSPH=%s" % PSPH,
                        "densityUpdate=%s" % densityUpdate,
                        "compatibleEnergy=%s" % compatibleEnergy,
                        "Cullen=%s" % boolCullenViscosity,
@@ -302,7 +312,6 @@ else:
                              gradhCorrection = gradhCorrection,
                              densityUpdate = densityUpdate,
                              HUpdate = HUpdate,
-                             PSPH = PSPH,
                              XSPH = XSPH,
                              epsTensile = epsilonTensile,
                              nTensile = nTensile)
@@ -452,6 +461,16 @@ if graphics:
                PPlot = PPlot,
                HPlot = HPlot)
 
+    plots = [(rhoPlot, "Noh-shear-rho.png"),
+             (vrPlot, "Noh-shear-vel.png"),
+             (epsPlot, "Noh-shear-eps.png"),
+             (PPlot, "Noh-shear-P.png"),
+             (HPlot, "Noh-shear-h.png")]
+
+    # Make hardcopies of the plots.
+    for p, filename in plots:
+        p.hardcopy(os.path.join(dataDir, filename), terminal="png")
+
     # Report the error norms.
     rmin, rmax = 0.05, 0.35
     r = mpi.allreduce([x.y for x in nodes1.positions().internalValues()], mpi.SUM)
@@ -478,6 +497,7 @@ if graphics:
             L2 = Pn.gridpnorm(2, rmin, rmax)
             Linf = Pn.gridpnorm("inf", rmin, rmax)
             print "\t%s \t\t%g \t\t%g \t\t%g" % (name, L1, L2, Linf)
+
 #-------------------------------------------------------------------------------
 # If requested, write out the state in a global ordering to a file.
 #-------------------------------------------------------------------------------

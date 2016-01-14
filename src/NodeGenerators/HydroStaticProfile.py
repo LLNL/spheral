@@ -134,7 +134,8 @@ class WeppnerSolver():
     def __call__(self,r):
         return 0
 
-class HydroStaticProfileConstantTemp3d():
+class EarthLikeProfileConstantTemp3d():
+    # this version will first solve inward to get central density, then outward to fix the total mass
     def __init__(self,
                  rho0,      # Density at Radius
                  rMax,      # Radius
@@ -143,13 +144,421 @@ class HydroStaticProfileConstantTemp3d():
                  eostup,    # tuple that indicates how materials/eos change
                  units,
                  nbins=1000):
-
+        
         self.soln = []
         self.rho0 = rho0
         
         from SolidSpheral3d import makeVoidNodeList
         from SolidSpheral3d import ScalarField
+        
+        eoscount    = len(eostup)/2
+        
+        nodes   = makeVoidNodeList("nodes", numInternal=1)
+        ef      = ScalarField("eps", nodes)
+        Kf      = ScalarField("mod", nodes)
+        Pf      = ScalarField("pressure", nodes)
+        rhof    = ScalarField("rho", nodes)
+        tempf   = ScalarField("temp", nodes)
+        
+        # get the eos for this radius
+        if(eoscount>1):
+            eos = eostup[2*(eoscount-1)]
+        else:
+            eos = eostup[0]
+        
+        rhof[0] = rho0
+        eos.setSpecificThermalEnergy(ef,rhof,tempf)
+        e       = ef[0]
+        eos.setBulkModulus(Kf,rhof,ef)
+        K       = Kf[0]
+        
+        y0  = -M0*units.G/(rMax**2)*(rho0**2)/K
+        
+        r   = rMax
+        rho = rho0
+        dr  = rMax/nbins
+        y   = y0
+        dy  = 0
+        
+        tempf[0] = temp
+        eosold = None
+        #eosSwitch = False
+        step = 0
 
+        while(r>0):
+            # get the eos for this radius
+            if(eoscount>1):
+                for i in xrange(eoscount):
+                    ermin = eostup[2*i+1][0]
+                    ermax = eostup[2*i+1][1]
+                    if(r<=ermax and r>=ermin):
+                        if eos is not None:
+                            eosold = eos
+                        eos = eostup[2*i]
+                        break
+            else:
+                if eos is not None:
+                    eosold = eos
+                eos = eostup[0]
+
+            if step>0:
+                #print "Switching eos at r=%e" % r
+                #print eosold,eos
+                # compute a new rho based on pressure and the new eos
+                # first get old rho -> pressure
+                rhof[0] = rho
+                eosold.setSpecificThermalEnergy(ef,rhof,tempf)
+                eosold.setPressure(Pf,rhof,ef)
+                P = Pf[0]
+                #print "P=%e" % P
+                # now root-find for new density based on this pressure
+                tol = 0.0001
+                d = 1.0
+                iter = 0
+                #print "old rho was %f" % rho
+                while ((abs(d)>tol) and (iter < 1000)):
+                    rhof[0] = rho
+                    eos.setSpecificThermalEnergy(ef,rhof,tempf)
+                    eos.setPressure(Pf,rhof,ef)
+                    eos.setBulkModulus(Kf,rhof,ef)
+                    Pn = Pf[0]
+                    #print "Pn=%e" % Pn
+                    Kn = Kf[0]
+                    d = (Pn-P)/Kn
+                    rho *= (1.0-d)
+                    iter += 1
+            #print "new rho is %f after %d iterations, d was %f" % (rho,iter,d)
+
+
+            rhof[0] = rho
+            eos.setSpecificThermalEnergy(ef,rhof,tempf)
+            e       = ef[0]
+            eos.setBulkModulus(Kf,rhof,ef)
+            K       = Kf[0]
+            
+            #print "dy, dr, rho, y, r, K = {0:3.3e} {1:3.3e} {2:3.3e} {3:3.3e} {4:3.3e} {5:3.3e}".format(dy,dr,rho,y,r,K)
+            
+            dy      = dr*(2.0/rho*y*y - 2.0/r*y - units.G/K*4.0*pi*pow(rho,3.0))
+            #self.soln.append([r,rho])
+            y       = y + dy
+            rho     = rho - y*dr
+            r       = r - dr
+            step    += 1
+        
+        #print "Now Forward..."
+        # got central density, now solve outward until Mtot = M0
+        self.soln.append([0,rho])
+        Mt  = 0
+        r   = dr
+        step = 0
+        eosold = None
+        
+        
+        while(Mt<=M0):
+            Mt = Mt + 4.0*pi*r*r*rho*dr
+            # get the eos for this radius
+            if(eoscount>1):
+                for i in xrange(eoscount):
+                    ermin = eostup[2*i+1][0]
+                    ermax = eostup[2*i+1][1]
+                    if(r<=ermax and r>=ermin):
+                        if eos is not None:
+                            eosold = eos
+                        eos = eostup[2*i]
+                        break
+            else:
+                if eos is not None:
+                    eosold = eos
+                eos = eostup[0]
+            
+            if step>0:
+                #print "Switching eos at r=%e" % r
+                #print eosold,eos
+                # compute a new rho based on pressure and the new eos
+                # first get old rho -> pressure
+                rhof[0] = rho
+                eosold.setSpecificThermalEnergy(ef,rhof,tempf)
+                eosold.setPressure(Pf,rhof,ef)
+                P = Pf[0]
+                #print "P=%e" % P
+                # now root-find for new density based on this pressure
+                tol = 0.0001
+                d = 1.0
+                iter = 0
+                #print "old rho was %f" % rho
+                while ((abs(d)>tol) and (iter < 1000)):
+                    rhof[0] = rho
+                    eos.setSpecificThermalEnergy(ef,rhof,tempf)
+                    eos.setPressure(Pf,rhof,ef)
+                    eos.setBulkModulus(Kf,rhof,ef)
+                    Pn = Pf[0]
+                    #print "Pn=%e" % Pn
+                    Kn = Kf[0]
+                    d = (Pn-P)/Kn
+                    rho *= (1.0-d)
+                    iter += 1
+            #print "new rho is %f after %d iterations, d was %f" % (rho,iter,d)
+            
+            rhof[0] = rho
+            eos.setSpecificThermalEnergy(ef,rhof,tempf)
+            e       = ef[0]
+            eos.setBulkModulus(Kf,rhof,ef)
+            K       = Kf[0]
+            
+            #print "dy, dr, rho, y, r, Mt, K = {0:3.3e} {1:3.3e} {2:3.3e} {3:3.3e} {4:3.3e} {5:3.3e} {6:3.3e}".format(dy,dr,rho,y,r,Mt,K)
+            dy      = dr*(2.0/rho*y*y - 2.0/r*y - units.G/K*4.0*pi*pow(rho,3.0))
+            #self.soln.append([r,rho])
+            y       = y + dy
+            rho     = rho + y*dr
+            self.soln.append([r,rho])
+            r       = r + dr
+            step    += 1
+        
+        self.soln.sort()
+        self.rMax = r - dr  # to call inside the script to reset rMax
+
+        totM = 0.0
+        for i in xrange(len(self.soln)-1):
+            r1 = self.soln[i+1][0]
+            r0 = self.soln[i][0]
+            f1 = self.soln[i+1][1]*r1*r1
+            f0 = self.soln[i][0]*r0*r0
+            totM += 4.0*pi*0.5*(f1+f0)*(r1-r0)
+        self.totalMass = totM
+
+    def __call__(self,r):
+        rho = self.rho0
+        for i in xrange(len(self.soln)):
+            if(self.soln[i][0] > r):
+                if(i>0):
+                    f1  = self.soln[i][1]
+                    f0  = self.soln[i-1][1]
+                    r1  = self.soln[i][0]
+                    r0  = self.soln[i-1][0]
+                    rho = (f1-f0)*(r-r1)/(r1-r0)+f1
+                else:
+                    rho = self.soln[0][1]
+                break
+        return rho
+
+class HydroStaticProfileConstantTemp3d():
+    # this version will first solve inward to get central density, then outward to fix the total mass
+    def __init__(self,
+                 rho0,      # Density at Radius
+                 rMax,      # Radius
+                 M0,        # Mass at Radius
+                 temp,      # Temperature throughout
+                 eostup,    # tuple that indicates how materials/eos change
+                 units,
+                 nbins=1000):
+        
+        self.soln = []
+        self.rho0 = rho0
+        
+        from SolidSpheral3d import makeVoidNodeList
+        from SolidSpheral3d import ScalarField
+        
+        eoscount    = len(eostup)/2
+        
+        nodes   = makeVoidNodeList("nodes", numInternal=1)
+        ef      = ScalarField("eps", nodes)
+        Kf      = ScalarField("mod", nodes)
+        Pf      = ScalarField("pressure", nodes)
+        rhof    = ScalarField("rho", nodes)
+        tempf   = ScalarField("temp", nodes)
+        
+        # get the eos for this radius
+        if(eoscount>1):
+            eos = eostup[2*(eoscount-1)]
+        else:
+            eos = eostup[0]
+        
+        rhof[0] = rho0
+        eos.setSpecificThermalEnergy(ef,rhof,tempf)
+        e       = ef[0]
+        eos.setBulkModulus(Kf,rhof,ef)
+        K       = Kf[0]
+        
+        y0  = -M0*units.G/(rMax**2)*(rho0**2)/K
+        
+        r   = rMax
+        rho = rho0
+        dr  = rMax/nbins
+        y   = y0
+        dy  = 0
+        
+        tempf[0] = temp
+        eosold = None
+        eosSwitch = False
+        
+        while(r>0):
+            # get the eos for this radius
+            if(eoscount>1):
+                for i in xrange(eoscount):
+                    ermin = eostup[2*i+1][0]
+                    ermax = eostup[2*i+1][1]
+                    if(r<=ermax and r>=ermin):
+                        if r!=rMax:
+                            if ((eos != eosold) and (eosold is not None) and (eosSwitch == False)):
+                                eosSwitch = True
+                            else:
+                                eosSwitch = False
+                                eosold = eos
+                        
+                        eos = eostup[2*i]
+                        break
+            else:
+                eos = eostup[0]
+            
+            if eosSwitch:
+                print "Switching eos at r=%e" % r
+                #print eosold,eos
+                # compute a new rho based on pressure and the new eos
+                # first get old rho -> pressure
+                rhof[0] = rho
+                eosold.setSpecificThermalEnergy(ef,rhof,tempf)
+                eosold.setPressure(Pf,rhof,ef)
+                P = Pf[0]
+                #print "P=%e" % P
+                # now root-find for new density based on this pressure
+                tol = 0.0001
+                d = 1.0
+                iter = 0
+                print "old rho was %f" % rho
+                while ((abs(d)>tol) and (iter < 1000)):
+                    rhof[0] = rho
+                    eos.setSpecificThermalEnergy(ef,rhof,tempf)
+                    eos.setPressure(Pf,rhof,ef)
+                    eos.setBulkModulus(Kf,rhof,ef)
+                    Pn = Pf[0]
+                    #print "Pn=%e" % Pn
+                    Kn = Kf[0]
+                    d = (Pn-P)/Kn
+                    rho *= (1.0-d)
+                    iter += 1
+                print "new rho is %f after %d iterations, d was %f" % (rho,iter,d)
+            
+            
+            rhof[0] = rho
+            eos.setSpecificThermalEnergy(ef,rhof,tempf)
+            e       = ef[0]
+            eos.setBulkModulus(Kf,rhof,ef)
+            K       = Kf[0]
+            
+            #print "dy, dr, rho, y, r, K = {0:3.3e} {1:3.3e} {2:3.3e} {3:3.3e} {4:3.3e} {5:3.3e}".format(dy,dr,rho,y,r,K)
+            
+            dy      = dr*(2.0/rho*y*y - 2.0/r*y - units.G/K*4.0*pi*pow(rho,3.0))
+            #self.soln.append([r,rho])
+            y       = y + dy
+            rho     = rho - y*dr
+            r       = r - dr
+        
+        #print "Now Forward..."
+        # got central density, now solve outward until Mtot = M0
+        self.soln.append([0,rho])
+        Mt  = 0
+        r   = dr
+        eosSwitch = False
+        eosold = None
+        
+        
+        while(Mt<=M0):
+            Mt = Mt + 4.0*pi*r*r*rho*dr
+            # get the eos for this radius
+            if(eoscount>1):
+                for i in xrange(eoscount):
+                    ermin = eostup[2*i+1][0]
+                    ermax = eostup[2*i+1][1]
+                    if(r<=ermax and r>=ermin):
+                        if r>0:
+                            if ((eos != eosold) and (eosold is not None) and (eosSwitch == False)):
+                                eosSwitch = True
+                            else:
+                                eosSwitch = False
+                                eosold = eos
+                        
+                        eos = eostup[2*i]
+                        break
+            else:
+                eos = eostup[0]
+            
+            if eosSwitch:
+                print "Switching eos at r=%e" % r
+                #print eosold,eos
+                # compute a new rho based on pressure and the new eos
+                # first get old rho -> pressure
+                rhof[0] = rho
+                eosold.setSpecificThermalEnergy(ef,rhof,tempf)
+                eosold.setPressure(Pf,rhof,ef)
+                P = Pf[0]
+                #print "P=%e" % P
+                # now root-find for new density based on this pressure
+                tol = 0.0001
+                d = 1.0
+                iter = 0
+                print "old rho was %f" % rho
+                while ((abs(d)>tol) and (iter < 1000)):
+                    rhof[0] = rho
+                    eos.setSpecificThermalEnergy(ef,rhof,tempf)
+                    eos.setPressure(Pf,rhof,ef)
+                    eos.setBulkModulus(Kf,rhof,ef)
+                    Pn = Pf[0]
+                    #print "Pn=%e" % Pn
+                    Kn = Kf[0]
+                    d = (Pn-P)/Kn
+                    rho *= (1.0-d)
+                    iter += 1
+                print "new rho is %f after %d iterations, d was %f" % (rho,iter,d)
+            
+            rhof[0] = rho
+            eos.setSpecificThermalEnergy(ef,rhof,tempf)
+            e       = ef[0]
+            eos.setBulkModulus(Kf,rhof,ef)
+            K       = Kf[0]
+            
+            #print "dy, dr, rho, y, r, Mt, K = {0:3.3e} {1:3.3e} {2:3.3e} {3:3.3e} {4:3.3e} {5:3.3e} {6:3.3e}".format(dy,dr,rho,y,r,Mt,K)
+            dy      = dr*(2.0/rho*y*y - 2.0/r*y - units.G/K*4.0*pi*pow(rho,3.0))
+            #self.soln.append([r,rho])
+            y       = y + dy
+            rho     = rho + y*dr
+            self.soln.append([r,rho])
+            r       = r + dr
+        
+        self.soln.sort()
+        self.rMax = r - dr  # to call inside the script to reset rMax
+    
+    def __call__(self,r):
+        rho = self.rho0
+        for i in xrange(len(self.soln)):
+            if(self.soln[i][0] > r):
+                if(i>0):
+                    f1  = self.soln[i][1]
+                    f0  = self.soln[i-1][1]
+                    r1  = self.soln[i][0]
+                    r0  = self.soln[i-1][0]
+                    rho = (f1-f0)*(r-r1)/(r1-r0)+f1
+                else:
+                    rho = self.soln[0][1]
+                break
+        return rho
+
+
+class OldHydroStaticProfileConstantTemp3d():
+    def __init__(self,
+                 rho0,      # Density at Radius
+                 rMax,      # Radius
+                 M0,        # Mass at Radius
+                 temp,      # Temperature throughout
+                 eostup,    # tuple that indicates how materials/eos change
+                 units,
+                 nbins=1000):
+        
+        self.soln = []
+        self.rho0 = rho0
+        
+        from SolidSpheral3d import makeVoidNodeList
+        from SolidSpheral3d import ScalarField
+        
         eoscount    = len(eostup)/2
         
         nodes   = makeVoidNodeList("nodes", numInternal=1)
@@ -191,7 +600,7 @@ class HydroStaticProfileConstantTemp3d():
                         break
             else:
                 eos = eostup[0]
-        
+            
             rhof[0] = rho
             eos.setSpecificThermalEnergy(ef,rhof,tempf)
             e       = ef[0]
@@ -205,9 +614,9 @@ class HydroStaticProfileConstantTemp3d():
             y       = y + dy
             rho     = rho - y*dr
             r       = r - dr
-
+        
         self.soln.sort()
-
+    
     def __call__(self,r):
         rho = self.rho0
         for i in xrange(len(self.soln)):
@@ -228,35 +637,170 @@ class HydroStaticProfileConstantTemp3d():
 #-------------------------------------------------------------------------------
 class HydroStaticProfileConstantTemp2d():
     def __init__(self,
-                 rho0,
-                 rMax,
-                 temp,
-                 eostup,
+                 rho0,      # Density at Radius
+                 rMax,      # Radius
+                 M0,        # Mass at Radius
+                 temp,      # Temperature throughout
+                 eostup,    # tuple that indicates how materials/eos change
                  units,
-                 y0=0,
                  nbins=1000):
         
-        self.y0     = y0
-        self.rMax   = rMax
-        self.nbins  = nbins
-        self.rho0   = rho0
-        eoscount    = len(eostup)/2
-        self.soln   = []
+        self.soln = []
+        self.rho0 = rho0
         
         from SolidSpheral2d import makeVoidNodeList
         from SolidSpheral2d import ScalarField
 
-        r   = self.rMax
-        rho = self.rho0
-        dr  = self.rMax/self.nbins
-        y   = self.y0
+        eoscount    = len(eostup)/2
+
+        nodes   = makeVoidNodeList("nodes", numInternal=1)
+        ef      = ScalarField("eps", nodes)
+        Kf      = ScalarField("mod", nodes)
+        rhof    = ScalarField("rho", nodes)
+        tempf   = ScalarField("temp", nodes)
+
+        # get the eos for this radius
+        if(eoscount>1):
+            eos = eostup[2*(eoscount-1)]
+        else:
+            eos = eostup[0]
+
+        rhof[0] = rho0
+        eos.setSpecificThermalEnergy(ef,rhof,tempf)
+        e       = ef[0]
+        eos.setBulkModulus(Kf,rhof,ef)
+        K       = Kf[0]
+
+        y0  = -M0*units.G/(rMax)*(rho0**2)/K
+        
+        r   = rMax
+        rho = rho0
+        dr  = rMax/nbins
+        y   = y0
         dy  = 0
+        
+        tempf[0] = temp
+        
+        while(r>0):
+            # get the eos for this radius
+            if(eoscount>1):
+                for i in xrange(eoscount):
+                    ermin = eostup[2*i+1][0]
+                    ermax = eostup[2*i+1][1]
+                    if(r<=ermax and r>=ermin):
+                        eos = eostup[2*i]
+                        break
+            else:
+                eos = eostup[0]
+            
+            rhof[0] = rho
+            eos.setSpecificThermalEnergy(ef,rhof,tempf)
+            e       = ef[0]
+            eos.setBulkModulus(Kf,rhof,ef)
+            K       = Kf[0]
+            dy      = dr*(2.0/rho*y*y - 1.0/r*y - units.G/K*2.0*pi*pow(rho,3.0))
+            #self.soln.append([r,rho])
+            y       = y + dy
+            rho     = rho - y*dr
+            r       = r - dr
+    
+        print "Now Forward..."
+        # got central density, now solve outward until Mtot = M0
+        self.soln.append([0,rho])
+        Mt  = 0
+        r   = dr
+        
+        while(Mt<=M0):
+            Mt = Mt + 2.0*pi*r*rho*dr
+            # get the eos for this radius
+            if(eoscount>1):
+                for i in xrange(eoscount):
+                    ermin = eostup[2*i+1][0]
+                    ermax = eostup[2*i+1][1]
+                    if(r<=ermax and r>=ermin):
+                        eos = eostup[2*i]
+                        break
+            else:
+                eos = eostup[0]
+            
+            rhof[0] = rho
+            eos.setSpecificThermalEnergy(ef,rhof,tempf)
+            e       = ef[0]
+            eos.setBulkModulus(Kf,rhof,ef)
+            K       = Kf[0]
+            
+            print "dy, dr, rho, y, r, Mt, K = {0:3.3e} {1:3.3e} {2:3.3e} {3:3.3e} {4:3.3e} {5:3.3e} {6:3.3e}".format(dy,dr,rho,y,r,Mt,K)
+            dy      = dr*(2.0/rho*y*y - 2.0/r*y - units.G/K*4.0*pi*pow(rho,3.0))
+            #self.soln.append([r,rho])
+            y       = y + dy
+            rho     = rho + y*dr
+            self.soln.append([r,rho])
+            r       = r + dr
+        
+        self.soln.sort()
+        self.rMax = r - dr  # to call inside the script to reset rMax
+    
+        self.soln.sort()
+    
+    def __call__(self,r):
+        rho = self.rho0
+        for i in xrange(len(self.soln)):
+            if(self.soln[i][0] > r):
+                if(i>0):
+                    f1  = self.soln[i][1]
+                    f0  = self.soln[i-1][1]
+                    r1  = self.soln[i][0]
+                    r0  = self.soln[i-1][0]
+                    rho = (f1-f0)*(r-r1)/(r1-r0)+f1
+
+                else:
+                    rho = self.soln[0][1]
+                break
+        return rho
+
+class OldHydroStaticProfileConstantTemp2d():
+    def __init__(self,
+                 rho0,      # Density at Radius
+                 rMax,      # Radius
+                 M0,        # Mass at Radius
+                 temp,      # Temperature throughout
+                 eostup,    # tuple that indicates how materials/eos change
+                 units,
+                 nbins=1000):
+        
+        self.soln = []
+        self.rho0 = rho0
+        
+        from SolidSpheral2d import makeVoidNodeList
+        from SolidSpheral2d import ScalarField
+        
+        eoscount    = len(eostup)/2
         
         nodes   = makeVoidNodeList("nodes", numInternal=1)
         ef      = ScalarField("eps", nodes)
         Kf      = ScalarField("mod", nodes)
         rhof    = ScalarField("rho", nodes)
         tempf   = ScalarField("temp", nodes)
+        
+        # get the eos for this radius
+        if(eoscount>1):
+            eos = eostup[2*(eoscount-1)]
+        else:
+            eos = eostup[0]
+        
+        rhof[0] = rho0
+        eos.setSpecificThermalEnergy(ef,rhof,tempf)
+        e       = ef[0]
+        eos.setBulkModulus(Kf,rhof,ef)
+        K       = Kf[0]
+        
+        y0  = -M0*units.G/(rMax)*(rho0**2)/K
+        
+        r   = rMax
+        rho = rho0
+        dr  = rMax/nbins
+        y   = y0
+        dy  = 0
         
         tempf[0] = temp
         
@@ -295,7 +839,7 @@ class HydroStaticProfileConstantTemp2d():
                     r1  = self.soln[i][0]
                     r0  = self.soln[i-1][0]
                     rho = (f1-f0)*(r-r1)/(r1-r0)+f1
-
+                
                 else:
                     rho = self.soln[0][1]
                 break

@@ -48,6 +48,8 @@ public:
   typedef typename Dimension::Tensor Tensor;
   typedef typename Dimension::SymTensor SymTensor;
   typedef typename Dimension::ThirdRankTensor ThirdRankTensor;
+  typedef typename Dimension::FourthRankTensor FourthRankTensor;
+  typedef typename Dimension::FifthRankTensor FifthRankTensor;
 
   typedef typename PhysicsSpace::Physics<Dimension>::ConstBoundaryIterator ConstBoundaryIterator;
 
@@ -64,6 +66,7 @@ public:
                        const PhysicsSpace::MassDensityType densityUpdate,
                        const PhysicsSpace::HEvolutionType HUpdate,
                        const CRKSPHSpace::CRKOrder correctionOrder,
+                       const CRKSPHSpace::CRKVolumeType volumeType,
                        const double epsTensile,
                        const double nTensile);
 
@@ -101,14 +104,6 @@ public:
                            const State<Dimension>& state,
                            StateDerivatives<Dimension>& derivatives) const;
 
-  // Finalize the hydro at the completion of an integration step.
-  virtual
-  void finalize(const Scalar time,
-                const Scalar dt,
-                DataBaseSpace::DataBase<Dimension>& dataBase,
-                State<Dimension>& state,
-                StateDerivatives<Dimension>& derivs);
-
   // Apply boundary conditions to the physics specific fields.
   virtual
   void applyGhostBoundaries(State<Dimension>& state,
@@ -127,10 +122,12 @@ public:
   const FieldSpace::FieldList<Dimension, Scalar>& plasticStrain0() const;
   const FieldSpace::FieldList<Dimension, int>& fragIDs() const;
 
-  const FieldSpace::FieldList<Dimension, Scalar>&    Adamage() const;
-  const FieldSpace::FieldList<Dimension, Vector>&    Bdamage() const;
-  const FieldSpace::FieldList<Dimension, Vector>&    gradAdamage() const;
-  const FieldSpace::FieldList<Dimension, Tensor>&    gradBdamage() const;
+  const FieldSpace::FieldList<Dimension, Scalar>&          Adamage() const;
+  const FieldSpace::FieldList<Dimension, Vector>&          Bdamage() const;
+  const FieldSpace::FieldList<Dimension, Tensor>&          Cdamage() const;
+  const FieldSpace::FieldList<Dimension, Vector>&          gradAdamage() const;
+  const FieldSpace::FieldList<Dimension, Tensor>&          gradBdamage() const;
+  const FieldSpace::FieldList<Dimension, ThirdRankTensor>& gradCdamage() const;
 
   //****************************************************************************
   // Methods required for restarting.
@@ -150,10 +147,12 @@ private:
   FieldSpace::FieldList<Dimension, Scalar> mPlasticStrain0;
   FieldSpace::FieldList<Dimension, int> mFragIDs;
 
-  FieldSpace::FieldList<Dimension, Scalar>    mAdamage;
-  FieldSpace::FieldList<Dimension, Vector>    mBdamage;
-  FieldSpace::FieldList<Dimension, Vector>    mGradAdamage;
-  FieldSpace::FieldList<Dimension, Tensor>    mGradBdamage;
+  FieldSpace::FieldList<Dimension, Scalar>          mAdamage;
+  FieldSpace::FieldList<Dimension, Vector>          mBdamage;
+  FieldSpace::FieldList<Dimension, Tensor>          mCdamage;
+  FieldSpace::FieldList<Dimension, Vector>          mGradAdamage;
+  FieldSpace::FieldList<Dimension, Tensor>          mGradBdamage;
+  FieldSpace::FieldList<Dimension, ThirdRankTensor> mGradCdamage;
 
   // The restart registration.
   DataOutput::RestartRegistrationType mRestart;

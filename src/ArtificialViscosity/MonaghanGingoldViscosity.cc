@@ -45,8 +45,7 @@ MonaghanGingoldViscosity(const Scalar Clinear,
                          const bool quadraticInExpansion):
   ArtificialViscosity<Dimension>(Clinear, Cquadratic),
   mLinearInExpansion(linearInExpansion),
-  mQuadraticInExpansion(quadraticInExpansion),
-  mGradVel(FieldSpace::Reference) {
+  mQuadraticInExpansion(quadraticInExpansion) {
 }
 
 //------------------------------------------------------------------------------
@@ -55,30 +54,6 @@ MonaghanGingoldViscosity(const Scalar Clinear,
 template<typename Dimension>
 MonaghanGingoldViscosity<Dimension>::
 ~MonaghanGingoldViscosity() {
-}
-
-
-//------------------------------------------------------------------------------
-// Initialize for the FluidNodeLists in the given DataBase.
-//------------------------------------------------------------------------------
-template<typename Dimension>
-void
-MonaghanGingoldViscosity<Dimension>::
-initialize(const DataBase<Dimension>& dataBase,
-           const State<Dimension>& state,
-           const StateDerivatives<Dimension>& derivs,
-           typename ArtificialViscosity<Dimension>::ConstBoundaryIterator boundaryBegin,
-           typename ArtificialViscosity<Dimension>::ConstBoundaryIterator boundaryEnd,
-           const typename Dimension::Scalar time,
-           const typename Dimension::Scalar dt,
-           const TableKernel<Dimension>& W) {
-
-  // Let the base class do it's thing.
-  ArtificialViscosity<Dimension>::initialize(dataBase, state, derivs, boundaryBegin, boundaryEnd, time, dt, W);
-
-  // Cache pointers to the velocity gradient.
-  FieldList<Dimension, Tensor> DvDx = derivs.fields(HydroFieldNames::velocityGradient, Tensor::zero);
-  mGradVel = DvDx;
 }
 
 
@@ -104,36 +79,39 @@ Piij(const unsigned nodeListi, const unsigned i,
      const Scalar csj,
      const SymTensor& Hj) const {
 
-  const double Cl = this->mClinear;
-  const double Cq = this->mCquadratic;
+  double Cl = this->mClinear;
+  double Cq = this->mCquadratic;
   const double eps2 = this->mEpsilon2;
-  const bool balsaraShearCorrection = this->mBalsaraShearCorrection;
-  const FieldSpace::FieldList<Dimension, Scalar>& rvAlphaQ = this->reducingViscosityMultiplierQ();
-  const FieldSpace::FieldList<Dimension, Scalar>& rvAlphaL = this->reducingViscosityMultiplierL();
 
-  // Are we applying the shear corrections?
-  //const Scalar fsheari = (balsaraShearCorrection ? this->mShearMultiplier(nodeListi, i) : 1.0);
-  //const Scalar fshearj = (balsaraShearCorrection ? this->mShearMultiplier(nodeListj, j) : 1.0);
+  // Grab the FieldLists scaling the coefficients.
+  // These incorporate things like the Balsara shearing switch or Morris & Monaghan time evolved
+  // coefficients.
+  const Scalar fCli = this->mClMultiplier(nodeListi, i);
+  const Scalar fCqi = this->mCqMultiplier(nodeListi, i);
+  const Scalar fClj = this->mClMultiplier(nodeListj, j);
+  const Scalar fCqj = this->mCqMultiplier(nodeListj, j);
+  Cl *= 0.5*(fCli + fClj);
+  Cq *= 0.5*(fCqi + fCqj);
 
-  Scalar fshear = 1.0;
-  Scalar fsheari = fshear;
-  Scalar fshearj = fshear;
-  const Tensor& DvDxi = mGradVel(nodeListi, i);
-  const Tensor& DvDxj = mGradVel(nodeListj, j);
-  if (balsaraShearCorrection) {
-    const Scalar csneg = this->negligibleSoundSpeed();
-    const Scalar hiinv = Hi.Trace()/Dimension::nDim;
-    const Scalar hjinv = Hj.Trace()/Dimension::nDim;
-    const Scalar ci = max(csneg, csi);
-    const Scalar cj = max(csneg, csj);
-    const Scalar fi = abs(DvDxi.Trace())/(this->curlVelocityMagnitude(DvDxi) + abs(DvDxi.Trace()) + eps2*ci*hiinv);
-    const Scalar fj = abs(DvDxj.Trace())/(this->curlVelocityMagnitude(DvDxj) + abs(DvDxj.Trace()) + eps2*cj*hjinv);
-    fshear = min(fi, fj);
-    //fsheari = fi;
-    //fshearj = fj;
-    fsheari = fshear;
-    fshearj = fshear;
-  }
+  // Scalar fshear = 1.0;
+  // Scalar fsheari = fshear;
+  // Scalar fshearj = fshear;
+  // const Tensor& DvDxi = mGradVel(nodeListi, i);
+  // const Tensor& DvDxj = mGradVel(nodeListj, j);
+  // if (balsaraShearCorrection) {
+  //   const Scalar csneg = this->negligibleSoundSpeed();
+  //   const Scalar hiinv = Hi.Trace()/Dimension::nDim;
+  //   const Scalar hjinv = Hj.Trace()/Dimension::nDim;
+  //   const Scalar ci = max(csneg, csi);
+  //   const Scalar cj = max(csneg, csj);
+  //   const Scalar fi = abs(DvDxi.Trace())/(this->curlVelocityMagnitude(DvDxi) + abs(DvDxi.Trace()) + eps2*ci*hiinv);
+  //   const Scalar fj = abs(DvDxj.Trace())/(this->curlVelocityMagnitude(DvDxj) + abs(DvDxj.Trace()) + eps2*cj*hjinv);
+  //   fshear = min(fi, fj);
+  //   //fsheari = fi;
+  //   //fshearj = fj;
+  //   fsheari = fshear;
+  //   fshearj = fshear;
+  // }
 
   // Compute mu.
   const Vector vij = vi - vj;
@@ -141,14 +119,10 @@ Piij(const unsigned nodeListi, const unsigned i,
   const Scalar muj = vij.dot(etaj)/(etaj.magnitude2() + eps2);
 
   // The artificial internal energy.
-  // const Scalar ei = fshear*(-Cl*csi*(mLinearInExpansion    ? mui                : min(0.0, mui)) +
-  //                            Cq     *(mQuadraticInExpansion ? -sgn(mui)*mui*mui : FastMath::square(min(0.0, mui))));
-  // const Scalar ej = fshear*(-Cl*csj*(mLinearInExpansion    ? muj                : min(0.0, muj)) +
-  //                            Cq     *(mQuadraticInExpansion ? -sgn(muj)*muj*muj  : FastMath::square(min(0.0, muj))));
-  const Scalar ei = fsheari*(-Cl*rvAlphaL(nodeListi,i)*csi*(mLinearInExpansion    ? mui                : min(0.0, mui)) +
-                              Cq *rvAlphaQ(nodeListi,i)   *(mQuadraticInExpansion ? -sgn(mui)*mui*mui  : FastMath::square(min(0.0, mui)))) ;
-  const Scalar ej = fshearj*(-Cl*rvAlphaL(nodeListj,j)*csj*(mLinearInExpansion    ? muj                : min(0.0, muj)) +
-                              Cq *rvAlphaQ(nodeListj,j)    *(mQuadraticInExpansion ? -sgn(muj)*muj*muj : FastMath::square(min(0.0, muj))));
+  const Scalar ei = -Cl*csi*(mLinearInExpansion    ? mui                : min(0.0, mui)) +
+                     Cq    *(mQuadraticInExpansion ? -sgn(mui)*mui*mui  : FastMath::square(min(0.0, mui)));
+  const Scalar ej = -Cl*csj*(mLinearInExpansion    ? muj                : min(0.0, muj)) +
+                     Cq    *(mQuadraticInExpansion ? -sgn(muj)*muj*muj  : FastMath::square(min(0.0, muj)));
   CHECK2(ei >= 0.0 or (mLinearInExpansion or mQuadraticInExpansion), ei << " " << csi << " " << mui);
   CHECK2(ej >= 0.0 or (mLinearInExpansion or mQuadraticInExpansion), ej << " " << csj << " " << muj);
 

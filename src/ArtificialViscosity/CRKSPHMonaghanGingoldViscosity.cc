@@ -2,6 +2,7 @@
 // A simple form for the artificial viscosity due to Monaghan & Gingold.
 //----------------------------------------------------------------------------//
 #include "CRKSPHMonaghanGingoldViscosity.hh"
+#include "Boundary/Boundary.hh"
 #include "DataOutput/Restart.hh"
 #include "Field/FieldList.hh"
 #include "DataBase/DataBase.hh"
@@ -13,6 +14,8 @@
 #include "Boundary/Boundary.hh"
 #include "Hydro/HydroFieldNames.hh"
 #include "DataBase/IncrementState.hh"
+#include "CRKSPH/computeCRKSPHMoments.hh"
+#include "CRKSPH/computeCRKSPHCorrections.hh"
 #include "CRKSPH/gradientCRKSPH.hh"
 
 namespace Spheral {
@@ -90,9 +93,15 @@ CRKSPHMonaghanGingoldViscosity<Dimension>::
 CRKSPHMonaghanGingoldViscosity(const Scalar Clinear,
                                const Scalar Cquadratic,
                                const bool linearInExpansion,
-                               const bool quadraticInExpansion):
+                               const bool quadraticInExpansion,
+                               const Scalar etaCritFrac,
+                               const Scalar etaFoldFrac):
   MonaghanGingoldViscosity<Dimension>(Clinear, Cquadratic, 
                                       linearInExpansion, quadraticInExpansion),
+  mEtaCritFrac(etaCritFrac),
+  mEtaFoldFrac(etaFoldFrac),
+  mEtaCrit(0.0),
+  mEtaFold(1.0),
   mGradVel(FieldSpace::Reference) {
 }
 
@@ -122,9 +131,86 @@ initialize(const DataBase<Dimension>& dataBase,
   // Let the base class do it's thing.
   ArtificialViscosity<Dimension>::initialize(dataBase, state, derivs, boundaryBegin, boundaryEnd, time, dt, W);
 
+  // The connectivity.
+  const ConnectivityMap<Dimension>& connectivityMap = dataBase.connectivityMap();
+  const vector<const NodeList<Dimension>*>& nodeLists = connectivityMap.nodeLists();
+  const size_t numNodeLists = nodeLists.size();
+
+  // const FieldList<Dimension, Scalar> vol = state.fields(HydroFieldNames::volume, 0.0);
+  // const FieldList<Dimension, Scalar> mass = state.fields(HydroFieldNames::mass, 0.0);
+  const FieldList<Dimension, Vector> position = state.fields(HydroFieldNames::position, Vector::zero);
+  const FieldList<Dimension, SymTensor> H = state.fields(HydroFieldNames::H, SymTensor::zero);
+
+  const CRKSPHSpace::CRKOrder correctionOrder = this->QcorrectionOrder();
+
+  // Make new correction fields cause do not want to mess up the corrections of the solver if they are at different orders.
+  // The CRK hydro has already evaluated the moments, so we get to just reuse those.
+  const FieldList<Dimension, Scalar> m0 = state.fields(HydroFieldNames::m0_CRKSPH, 0.0);
+  const FieldList<Dimension, Vector> m1 = state.fields(HydroFieldNames::m1_CRKSPH, Vector::zero);
+  const FieldList<Dimension, SymTensor> m2 = state.fields(HydroFieldNames::m2_CRKSPH, SymTensor::zero);
+  const FieldList<Dimension, ThirdRankTensor> m3 = state.fields(HydroFieldNames::m3_CRKSPH, ThirdRankTensor::zero);
+  const FieldList<Dimension, FourthRankTensor> m4 = state.fields(HydroFieldNames::m4_CRKSPH, FourthRankTensor::zero);
+  const FieldList<Dimension, Vector> gradm0 = state.fields(HydroFieldNames::gradM0_CRKSPH, Vector::zero);
+  const FieldList<Dimension, Tensor> gradm1 = state.fields(HydroFieldNames::gradM1_CRKSPH, Tensor::zero);
+  const FieldList<Dimension, ThirdRankTensor> gradm2 = state.fields(HydroFieldNames::gradM2_CRKSPH, ThirdRankTensor::zero);
+  const FieldList<Dimension, FourthRankTensor> gradm3 = state.fields(HydroFieldNames::gradM3_CRKSPH, FourthRankTensor::zero);
+  const FieldList<Dimension, FifthRankTensor> gradm4 = state.fields(HydroFieldNames::gradM4_CRKSPH, FifthRankTensor::zero);
+  FieldList<Dimension, Scalar> QA = dataBase.newFluidFieldList(0.0, "Q A");
+  FieldList<Dimension, Vector> QB;
+  FieldList<Dimension, Tensor> QC;
+  FieldList<Dimension, Vector> QgradA = dataBase.newFluidFieldList(Vector::zero, "Q grad A");
+  FieldList<Dimension, Tensor> QgradB;
+  FieldList<Dimension, ThirdRankTensor> QgradC;
+  if (correctionOrder == CRKSPHSpace::LinearOrder or correctionOrder == CRKSPHSpace::QuadraticOrder) {
+    QB = dataBase.newFluidFieldList(Vector::zero, "Q B");
+    QgradB = dataBase.newFluidFieldList(Tensor::zero, "Q grad B");
+  }
+  if (correctionOrder == CRKSPHSpace::QuadraticOrder) {
+    QC = dataBase.newFluidFieldList(Tensor::zero, "Q C");
+    QgradC = dataBase.newFluidFieldList(ThirdRankTensor::zero, "Q grad C");
+  }
+
+  FieldList<Dimension, Tensor> QDvDx  = dataBase.newFluidFieldList(Tensor::zero, "Q Velocity Gradient");
+
+  // Change CRKSPH weights here if need be!
+  // const FieldList<Dimension, Scalar> massDensity = state.fields(HydroFieldNames::massDensity, 0.0);
+  // const FieldList<Dimension, Scalar> vol = mass/massDensity;
+  const FieldList<Dimension, Scalar> vol = state.fields(HydroFieldNames::volume, 0.0);
+  CRKSPHSpace::computeCRKSPHCorrections(m0, m1, m2, m3, m4, gradm0, gradm1, gradm2, gradm3, gradm4, correctionOrder, QA, QB, QC, QgradA, QgradB, QgradC);
+  for (typename ArtificialViscosity<Dimension>::ConstBoundaryIterator boundItr = boundaryBegin;
+       boundItr < boundaryEnd;
+       ++boundItr) {
+    (*boundItr)->applyFieldListGhostBoundary(QA);
+    (*boundItr)->applyFieldListGhostBoundary(QB);
+    (*boundItr)->applyFieldListGhostBoundary(QC);
+    (*boundItr)->applyFieldListGhostBoundary(QgradA);
+    (*boundItr)->applyFieldListGhostBoundary(QgradB);
+    (*boundItr)->applyFieldListGhostBoundary(QgradC);
+  }
+  for (typename ArtificialViscosity<Dimension>::ConstBoundaryIterator boundItr = boundaryBegin;
+       boundItr != boundaryEnd;
+       ++boundItr) (*boundItr)->finalizeGhostBoundary();
+
+  // Get the velocity gradient.
+  const FieldList<Dimension, Vector> velocity = state.fields(HydroFieldNames::velocity, Vector::zero);
+  QDvDx.assignFields(CRKSPHSpace::gradientCRKSPH(velocity, position, vol, H, QA, QB, QC, QgradA, QgradB, QgradC, connectivityMap, ArtificialViscosity<Dimension>::QcorrectionOrder(), W, NodeCoupling()));
+  for (typename ArtificialViscosity<Dimension>::ConstBoundaryIterator boundItr = boundaryBegin;
+       boundItr < boundaryEnd;
+       ++boundItr) {
+    (*boundItr)->applyFieldListGhostBoundary(QDvDx);
+  }
+  for (typename ArtificialViscosity<Dimension>::ConstBoundaryIterator boundItr = boundaryBegin;
+       boundItr != boundaryEnd;
+       ++boundItr) (*boundItr)->finalizeGhostBoundary();
+
   // Cache pointers to the velocity gradient.
-  FieldList<Dimension, Tensor> DvDx = derivs.fields(HydroFieldNames::velocityGradient, Tensor::zero);
-  mGradVel = DvDx;
+  mGradVel = QDvDx;
+
+  // Store the eta_crit value based on teh nodes perh smoothing scale.
+  const double nPerh = dynamic_cast<const FluidNodeList<Dimension>&>(mGradVel[0]->nodeList()).nodesPerSmoothingScale();
+  mEtaCrit = mEtaCritFrac/nPerh;
+  mEtaFold = mEtaFoldFrac/nPerh;
+  CHECK(mEtaFold > 0.0);
 }
 
 //------------------------------------------------------------------------------
@@ -149,16 +235,24 @@ Piij(const unsigned nodeListi, const unsigned i,
      const Scalar csj,
      const SymTensor& Hj) const {
 
-  const double Cl = this->mClinear;
-  const double Cq = this->mCquadratic;
+  double Cl = this->mClinear;
+  double Cq = this->mCquadratic;
   const double eps2 = this->mEpsilon2;
   const bool linearInExp = this->linearInExpansion();
   const bool quadInExp = this->quadraticInExpansion();
   const bool balsaraShearCorrection = this->mBalsaraShearCorrection;
-  const FieldSpace::FieldList<Dimension, Scalar>& rvAlphaQ = this->reducingViscosityMultiplierQ();
-  const FieldSpace::FieldList<Dimension, Scalar>& rvAlphaL = this->reducingViscosityMultiplierL();
   const Tensor& DvDxi = mGradVel(nodeListi, i);
   const Tensor& DvDxj = mGradVel(nodeListj, j);
+
+  // Grab the FieldLists scaling the coefficients.
+  // These incorporate things like the Balsara shearing switch or Morris & Monaghan time evolved
+  // coefficients.
+  const Scalar fCli = this->mClMultiplier(nodeListi, i);
+  const Scalar fCqi = this->mCqMultiplier(nodeListi, i);
+  const Scalar fClj = this->mClMultiplier(nodeListj, j);
+  const Scalar fCqj = this->mCqMultiplier(nodeListj, j);
+  Cl *= 0.5*(fCli + fClj);
+  Cq *= 0.5*(fCqi + fCqj);
 
   // Are we applying the shear corrections?
   Scalar fshear = 1.0;
@@ -197,92 +291,81 @@ Piij(const unsigned nodeListi, const unsigned i,
 */
 
   // Compute the corrected velocity difference.
-  Vector vij = vi - vj;
+  // Vector vij = vi - vj;
   const Vector xij = 0.5*(xi - xj);
-  // const SymTensor Si = DvDxi.Symmetric();
-  // const SymTensor Sj = DvDxj.Symmetric();
-  // const Tensor Ai = DvDxi.SkewSymmetric();
-  // const Tensor Aj = DvDxj.SkewSymmetric();
-  // const Scalar gradSi = (Si.dot(xij)).dot(xij);
-  // const Scalar gradSj = (Sj.dot(xij)).dot(xij);
-  // const Scalar gradAi = (Ai.dot(xij)).dot(xij);
-  // const Scalar gradAj = (Aj.dot(xij)).dot(xij);
-  // const Scalar rSi = gradSi*safeInv(gradSj);
-  // const Scalar rSj = safeInv(rSi);
-  // const Scalar rAi = gradAi*safeInv(gradAj);
-  // const Scalar rAj = safeInv(rAi);
-  // const Scalar phiSi = swebyLimiter(rSi, 1.5);
-  // const Scalar phiSj = swebyLimiter(rSj, 1.5);
-  // const Scalar phiAi = swebyLimiter(rAi, 2.0);
-  // const Scalar phiAj = swebyLimiter(rAj, 2.0);
-
-  // // An experiment by Mike: try decomposing the velocity gradient into the symmetric and anti-symmetic 
-  // // parts.  Apply the limiter to just the symmetric piece, and always use the anti-symmetric portion
-  // // to project the velocity.
-  // const SymTensor DvDxSi = DvDxi.Symmetric();
-  // const Tensor    DvDxAi = DvDxi.SkewSymmetric();
-  // const SymTensor DvDxSj = DvDxj.Symmetric();
-  // const Tensor    DvDxAj = DvDxj.SkewSymmetric();
-  // const Scalar gradSi = (DvDxSi.dot(xij)).dot(xij);
-  // const Scalar gradSj = (DvDxSj.dot(xij)).dot(xij);
-  // const Scalar gradAi = (DvDxAi.dot(xij)).dot(xij);
-  // const Scalar gradAj = (DvDxAj.dot(xij)).dot(xij);
-  // const Scalar rSi = gradSi/(sgn(gradSj)*max(1.0e-30, abs(gradSj)));
-  // const Scalar rSj = gradSj/(sgn(gradSi)*max(1.0e-30, abs(gradSi)));
-  // const Scalar rAi = gradAi/(sgn(gradAj)*max(1.0e-30, abs(gradAj)));
-  // const Scalar rAj = gradAj/(sgn(gradAi)*max(1.0e-30, abs(gradAi)));
-  // const Scalar phiSi = limiterSB(rSi);
-  // const Scalar phiSj = limiterSB(rSj);
-  // const Scalar phiAi = limiterSB(rAi);
-  // const Scalar phiAj = limiterSB(rAj);
-
   const Scalar gradi = (DvDxi.dot(xij)).dot(xij);
   const Scalar gradj = (DvDxj.dot(xij)).dot(xij);
   const Scalar ri = gradi/(sgn(gradj)*max(1.0e-30, abs(gradj)));
   const Scalar rj = gradj/(sgn(gradi)*max(1.0e-30, abs(gradi)));
   CHECK(min(ri, rj) <= 1.0);
-  const Scalar phi = limiterMM(min(ri, rj));
+  //const Scalar phi = limiterMM(min(ri, rj));
+  Scalar phi = limiterVL(min(ri, rj));
 
-  // //const Scalar gradi = (((1.0/Dimension::nDim)*Tensor::one*DvDxi.Trace()).dot(xij)).dot(xij);
-  // //const Scalar gradj = (((1.0/Dimension::nDim)*Tensor::one*DvDxj.Trace()).dot(xij)).dot(xij);
-  // // const Scalar curli = this->curlVelocityMagnitude(DvDxi);
-  // // const Scalar curlj = this->curlVelocityMagnitude(DvDxj);
-  // // const Scalar divi = abs(DvDxi.Trace());
-  // // const Scalar divj = abs(DvDxj.Trace());
-  // // const Scalar betaij = min(2.0, 1.0 + min(curli/max(1.0e-30, curli + divi), curlj/max(1.0e-30, curlj + divj)));
-
-  // const Scalar phii = limiterVL(max(0.0, min(ri, 2.0 - ri)));
-  // const Scalar phij = limiterVL(max(0.0, min(rj, 2.0 - rj)));
-  // const Scalar fphii = max(0.0, 1.0 - phii);
-  // const Scalar fphij = max(0.0, 1.0 - phij);
+  // If the points are getting too close, we let the Q come back full force.
+  const Scalar etaij = min(etai.magnitude(), etaj.magnitude());
+  // phi *= (etaij2 < etaCrit2 ? 0.0 : 1.0);
+  // phi *= min(1.0, etaij2*etaij2/(etaCrit2etaCrit2));
+  if (etaij < mEtaCrit) {
+    phi *= exp(-FastMath::square((etaij - mEtaCrit)/mEtaFold));
+  }
 
   // "Mike" method.
   const Vector vi1 = vi - phi*DvDxi*xij;
   const Vector vj1 = vj + phi*DvDxj*xij;
-  // const Vector vi1 = vi - (phiSi*DvDxSi + phiAi*DvDxAi)*xij;
-  // const Vector vj1 = vj + (phiSj*DvDxSj + phiAj*DvDxAj)*xij;
-  //const Vector vi1 = vi - DvDxi*xij;
-  //const Vector vj1 = vj + DvDxj*xij;
-  //const Vector vi1 = vi - (DvDxi-(1.0-phii)*(1.0/Dimension::nDim)*Tensor::one*DvDxi.Trace())*xij;
-  //const Vector vj1 = vj + (DvDxj-(1.0-phij)*(1.0/Dimension::nDim)*Tensor::one*DvDxj.Trace())*xij;
   
-  vij = vi1 - vj1;
+  const Vector vij = vi1 - vj1;
   
   // Compute mu.
   const Scalar mui = vij.dot(etai)/(etai.magnitude2() + eps2);
   const Scalar muj = vij.dot(etaj)/(etaj.magnitude2() + eps2);
 
   // The artificial internal energy.
-  const Scalar ei = fshear*(-Cl*rvAlphaL(nodeListi,i)*csi*(linearInExp    ? mui                : min(0.0, mui)) +
-                             Cq *rvAlphaQ(nodeListi,i)   *(quadInExp      ? -sgn(mui)*mui*mui  : FastMath::square(min(0.0, mui))));
-  const Scalar ej = fshear*(-Cl*rvAlphaL(nodeListj,j)*csj*(linearInExp    ? muj                : min(0.0, muj)) +
-                             Cq *rvAlphaQ(nodeListj,j)   *(quadInExp      ? -sgn(muj)*muj*muj  : FastMath::square(min(0.0, muj))));
+  const Scalar ei = fshear*(-Cl*csi*(linearInExp    ? mui                : min(0.0, mui)) +
+                             Cq    *(quadInExp      ? -sgn(mui)*mui*mui  : FastMath::square(min(0.0, mui))));
+  const Scalar ej = fshear*(-Cl*csj*(linearInExp    ? muj                : min(0.0, muj)) +
+                             Cq    *(quadInExp      ? -sgn(muj)*muj*muj  : FastMath::square(min(0.0, muj))));
   CHECK2(ei >= 0.0 or (linearInExp or quadInExp), ei << " " << csi << " " << mui);
   CHECK2(ej >= 0.0 or (linearInExp or quadInExp), ej << " " << csj << " " << muj);
 
   // Now compute the symmetrized artificial viscous pressure.
   return make_pair(ei/rhoi*Tensor::one,
                    ej/rhoj*Tensor::one);
+}
+
+//------------------------------------------------------------------------------
+// etaCritFrac
+//------------------------------------------------------------------------------
+template<typename Dimension>
+double
+CRKSPHMonaghanGingoldViscosity<Dimension>::
+etaCritFrac() const {
+  return mEtaCritFrac;
+}
+
+template<typename Dimension>
+void
+CRKSPHMonaghanGingoldViscosity<Dimension>::
+etaCritFrac(const double val) {
+  VERIFY(val >= 0.0);
+  mEtaCritFrac = val;
+}
+
+//------------------------------------------------------------------------------
+// etaFoldFrac
+//------------------------------------------------------------------------------
+template<typename Dimension>
+double
+CRKSPHMonaghanGingoldViscosity<Dimension>::
+etaFoldFrac() const {
+  return mEtaFoldFrac;
+}
+
+template<typename Dimension>
+void
+CRKSPHMonaghanGingoldViscosity<Dimension>::
+etaFoldFrac(const double val) {
+  VERIFY(val > 0.0);
+  mEtaFoldFrac = val;
 }
 
 }

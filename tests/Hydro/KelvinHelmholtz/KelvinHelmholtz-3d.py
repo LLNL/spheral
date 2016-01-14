@@ -40,8 +40,8 @@ commandLine(nx = 200,
 
             SVPH = False,
             CRKSPH = False,
-            ASPH = False,
-            SPH = True,   # This just chooses the H algorithm -- you can use this with CRKSPH for instance.
+            PSPH = False,
+            ASPH = False,  # This just chooses the H algorithm -- you can use this with CRKSPH for instance.
             filter = 0.0,   # CRKSPH filtering
             Qconstructor = MonaghanGingoldViscosity,
             KernelConstructor = BSplineKernel,
@@ -75,7 +75,6 @@ commandLine(nx = 200,
             cfl = 0.5,
             useVelocityMagnitudeForDt = False,
             XSPH = False,
-            PSPH = False,
             epsilonTensile = 0.0,
             nTensile = 8,
 
@@ -133,6 +132,11 @@ elif CRKSPH:
         HydroConstructor = ACRKSPHHydro
     else:
         HydroConstructor = CRKSPHHydro
+elif PSPH:
+    if ASPH:
+        HydroConstructor = APSPHHydro
+    else:
+        HydroConstructor = PSPHHydro
 else:
     if ASPH:
         HydroConstructor = ASPHHydro
@@ -228,14 +232,14 @@ if restoreCycle is None:
                                             xmin = (0.0, 0.0, 0.0),
                                             xmax = (1.0, 0.5, 1.0),
                                             nNodePerh = nPerh,
-                                            SPH = SPH)
+                                            SPH = (not ASPH))
     generatorLow = GenerateNodeDistribution3d(nx, ny, nz,
                                              rho = rho1,
                                              distributionType = "lattice",
                                              xmin = (0.0, 0.5, 0.0),
                                              xmax = (1.0, 1.0, 1.0),
                                              nNodePerh = nPerh,
-                                             SPH = SPH)
+                                             SPH = (not ASPH))
     if mpi.procs > 1:
         from VoronoiDistributeNodes import distributeNodes3d
     else:
@@ -336,7 +340,6 @@ else:
                              cfl = cfl,
                              useVelocityMagnitudeForDt = useVelocityMagnitudeForDt,
                              compatibleEnergyEvolution = compatibleEnergy,
-                             PSPH = PSPH,
                              gradhCorrection = gradhCorrection,
                              XSPH = XSPH,
                              densityUpdate = densityUpdate,
@@ -447,7 +450,7 @@ control = SpheralController(integrator, WT,
                             vizDir = vizDir,
                             vizStep = vizCycle,
                             vizTime = vizTime,
-                            SPH = SPH)
+                            SPH = (not ASPH))
 output("control")
 
 #-------------------------------------------------------------------------------
