@@ -28,7 +28,7 @@ commandLine(
     hmax = 10.0,
 
     # What order of reproducing kernel should we use (0,1,2)?
-    correctionOrder = 1,
+    correctionOrder = LinearOrder,
     
     # Should we randomly perturb the positions?
     ranfrac = 0.2,
@@ -49,9 +49,6 @@ commandLine(
 
     gamma = 5.0/3.0,
     mu = 1.0,
-
-    numGridLevels = 20,
-    topGridCellSize = 20.0,
 
     # Parameters for iterating H.
     iterateH = True,
@@ -248,6 +245,17 @@ gradA_fl = db.newFluidVectorFieldList(Vector.zero, "gradA")
 gradB_fl = db.newFluidTensorFieldList(Tensor.zero, "gradB")
 gradC_fl = db.newFluidThirdRankTensorFieldList(ThirdRankTensor.zero, "gradB")
 
+m0_fl = db.newFluidScalarFieldList(0.0, "m0")
+m1_fl = db.newFluidVectorFieldList(Vector.zero, "m1")
+m2_fl = db.newFluidSymTensorFieldList(SymTensor.zero, "m2")
+m3_fl = db.newFluidThirdRankTensorFieldList(ThirdRankTensor.zero, "m3")
+m4_fl = db.newFluidFourthRankTensorFieldList(FourthRankTensor.zero, "m4")
+gradm0_fl = db.newFluidVectorFieldList(Vector.zero, "grad m0")
+gradm1_fl = db.newFluidTensorFieldList(Tensor.zero, "grad m1")
+gradm2_fl = db.newFluidThirdRankTensorFieldList(ThirdRankTensor.zero, "grad m2")
+gradm3_fl = db.newFluidFourthRankTensorFieldList(FourthRankTensor.zero, "grad m3")
+gradm4_fl = db.newFluidFifthRankTensorFieldList(FifthRankTensor.zero, "grad m4")
+
 db.updateConnectivityMap(True)
 cm = db.connectivityMap()
 position_fl = db.fluidPosition
@@ -258,7 +266,10 @@ H_fl = db.fluidHfield
 polyvol_fl = db.newFluidFacetedVolumeFieldList(FacetedVolume(), "polyvols")
 #weight_fl = db.newFluidScalarFieldList(1.0, "volume")
 #computeHullVolumes(cm, position_fl, polyvol_fl, weight_fl)
-computeCRKSPHCorrections(cm, WT, weight_fl, position_fl, H_fl, correctionOrder,
+computeCRKSPHMoments(cm, WT, weight_fl, position_fl, H_fl, correctionOrder, NodeCoupling(),
+                     m0_fl, m1_fl, m2_fl, m3_fl, m4_fl, gradm0_fl, gradm1_fl, gradm2_fl, gradm3_fl, gradm4_fl)
+computeCRKSPHCorrections(m0_fl, m1_fl, m2_fl, m3_fl, m4_fl, gradm0_fl, gradm1_fl, gradm2_fl, gradm3_fl, gradm4_fl,
+                         correctionOrder,
                          A_fl, B_fl, C_fl, gradA_fl, gradB_fl, gradC_fl)
 
 # Extract the field state for the following calculations.

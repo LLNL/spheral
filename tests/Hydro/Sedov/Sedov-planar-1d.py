@@ -24,8 +24,11 @@ commandLine(nRadial = 50,
             eps0 = 0.0,
             Espike = 1.0,
             smoothSpike = True,
+            topHatSpike = False,
+            smoothSpikeScale = 0.5,
             gamma = 5.0/3.0,
             mu = 1.0,
+            smallPressure = False,
 
             Cl = 1.0,
             Cq = 0.75,
@@ -35,6 +38,7 @@ commandLine(nRadial = 50,
             linearInExpansion = False,
 
             CRKSPH = False,
+            PSPH = False,
             Qconstructor = MonaghanGingoldViscosity,
             correctionOrder = LinearOrder,
             densityUpdate = RigorousSumDensity, # VolumeScaledDensity,
@@ -47,6 +51,7 @@ commandLine(nRadial = 50,
             aMax = 2.0,
             Qhmult = 1.0,
             boolCullenViscosity = False,
+            cullenReproducingKernelGradient = False,  # Use reproducing kernels for gradients in Cullen-Dehnen visocosity model
             alphMax = 2.0,
             alphMin = 0.02,
             betaC = 0.7,
@@ -54,13 +59,13 @@ commandLine(nRadial = 50,
             betaE = 1.0,
             fKern = 1.0/3.0,
             boolHopkinsCorrection = True,
+            HopkinsConductivity = False,
 
             HydroConstructor = SPHHydro,
             hmin = 1e-15,
             hmax = 1.0,
             cfl = 0.5,
             useVelocityMagnitudeForDt = True,
-            PSPH = False,
             XSPH = False,
             rhomin = 1e-10,
 
@@ -71,6 +76,7 @@ commandLine(nRadial = 50,
             dtMin = 1.0e-8,
             dtMax = None,
             dtGrowth = 2.0,
+            dtverbose = False,
             maxSteps = None,
             statsStep = 1,
             smoothIters = 0,
@@ -86,6 +92,11 @@ commandLine(nRadial = 50,
             dataRoot = "dumps-planar-Sedov",
             outputFile = "None",
             )
+
+if smallPressure:
+    P0 = 1.0e-6
+    eps0 = P0/((gamma - 1.0)*rho0)
+    print "WARNING: smallPressure specified, so setting eps0=%g" % eps0
 
 assert not(boolReduceViscosity and boolCullenViscosity)
 # Figure out what our goal time should be.
@@ -113,6 +124,8 @@ Espike *= 0.5
 if CRKSPH:
     Qconstructor = CRKSPHMonaghanGingoldViscosity
     HydroConstructor = CRKSPHHydro
+elif PSPH:
+    HydroConstructor = PSPHHydro
 else:
     HydroConstructor = SPHHydro
 
@@ -120,8 +133,8 @@ else:
 # Path names.
 #-------------------------------------------------------------------------------
 dataDir = os.path.join(dataRoot,
-                       str(HydroConstructor).split()[1].split(".")[1][:-2],
-                       str(Qconstructor).split()[1].split(".")[-1][:-2],
+                       HydroConstructor.__name__,
+                       Qconstructor.__name__,
                        "nperh=%4.2f" % nPerh,
                        "XSPH=%s" % XSPH,
                        "densityUpdate=%s" % densityUpdate,
@@ -191,12 +204,18 @@ if restoreCycle is None:
 
     # Set the point source of energy.
     Esum = 0.0
-    if smoothSpike:
+    if smoothSpike or topHatSpike:
         Wsum = 0.0
         for nodeID in xrange(nodes1.numInternalNodes):
             Hi = H[nodeID]
             etaij = (Hi*pos[nodeID]).magnitude()
-            Wi = WT.kernelValue(etaij, Hi.Determinant())
+            if smoothSpike:
+                Wi = WT.kernelValue(etaij/smoothSpikeScale, 1.0)
+            else:
+                if etaij < smoothSpikeScale*kernelExtent:
+                    Wi = 1.0
+                else:
+                    Wi = 0.0
             Ei = Wi*Espike
             epsi = Ei/mass[nodeID]
             eps[nodeID] = epsi
@@ -206,6 +225,7 @@ if restoreCycle is None:
         for nodeID in xrange(nodes1.numInternalNodes):
             eps[nodeID] /= Wsum
             Esum += eps[nodeID]*mass[nodeID]
+            eps[nodeID] += eps0
     else:
         i = -1
         rmin = 1e50
@@ -214,10 +234,11 @@ if restoreCycle is None:
             if rij < rmin:
                 i = nodeID
                 rmin = rij
+            eps[nodeID] = eps0
         rminglobal = mpi.allreduce(rmin, mpi.MIN)
         if fuzzyEqual(rmin, rminglobal):
             assert i >= 0 and i < nodes1.numInternalNodes
-            eps[i] = Espike/mass[i]
+            eps[i] += Espike/mass[i]
             Esum += Espike
     Eglobal = mpi.allreduce(Esum, mpi.SUM)
     print "Initialized a total energy of", Eglobal
@@ -261,6 +282,18 @@ if CRKSPH:
                              correctionOrder = correctionOrder,
                              densityUpdate = densityUpdate,
                              HUpdate = HUpdate)
+elif PSPH:
+    hydro = HydroConstructor(W = WT,
+                             Q = q,
+                             filter = filter,
+                             cfl = cfl,
+                             useVelocityMagnitudeForDt = useVelocityMagnitudeForDt,
+                             compatibleEnergyEvolution = compatibleEnergy,
+                             gradhCorrection = gradhCorrection,
+                             HopkinsConductivity = HopkinsConductivity,
+                             densityUpdate = densityUpdate,
+                             HUpdate = HUpdate,
+                             XSPH = XSPH)
 else:
     hydro = HydroConstructor(W = WT, 
                              Q = q,
@@ -269,7 +302,6 @@ else:
                              gradhCorrection = gradhCorrection,
                              densityUpdate = densityUpdate,
                              XSPH = XSPH,
-                             PSPH = PSPH,
                              HUpdate = HEvolution)
 output("hydro")
 output("hydro.kernel()")
@@ -290,7 +322,7 @@ if boolReduceViscosity:
     evolveReducingViscosityMultiplier = MorrisMonaghanReducingViscosity(q,nh,aMin,aMax)
     packages.append(evolveReducingViscosityMultiplier)
 elif boolCullenViscosity:
-    evolveCullenViscosityMultiplier = CullenDehnenViscosity(q,WT,alphMax,alphMin,betaC,betaD,betaE,fKern,boolHopkinsCorrection)
+    evolveCullenViscosityMultiplier = CullenDehnenViscosity(q,WT,alphMax,alphMin,betaC,betaD,betaE,fKern,boolHopkinsCorrection,cullenReproducingKernelGradient)
     packages.append(evolveCullenViscosityMultiplier)
 
 
@@ -307,13 +339,15 @@ for p in packages:
 # Construct a time integrator, and add the one physics package.
 #-------------------------------------------------------------------------------
 integrator = CheapSynchronousRK2Integrator(db)
-integrator.appendPhysicsPackage(hydro)
+for p in packages:
+    integrator.appendPhysicsPackage(p)
 integrator.lastDt = dt
 if dtMin:
     integrator.dtMin = dtMin
 if dtMax:
     integrator.dtMax = dtMax
 integrator.dtGrowth = dtGrowth
+integrator.verbose = dtverbose
 output("integrator")
 output("integrator.havePhysicsPackage(hydro)")
 output("integrator.dtGrowth")
@@ -365,6 +399,7 @@ Hinverse = db.newFluidSymTensorFieldList()
 db.fluidHinverse(Hinverse)
 hr = mpi.allreduce([x.xx for x in Hinverse[0].internalValues()], mpi.SUM)
 
+Aans = None
 if mpi.rank == 0:
     from SpheralGnuPlotUtilities import multiSort
     import Pnorm
@@ -372,6 +407,8 @@ if mpi.rank == 0:
     rans, vans, epsans, rhoans, Pans, hans = answer.solution(control.time(), r)
     Aans = [Pi/(rhoi**gamma) for (Pi, rhoi) in zip(Pans, rhoans)]
     print "\tQuantity \t\tL1 \t\t\tL2 \t\t\tLinf"
+    #f = open("MCTesting.txt", "a")
+    #f.write(("CL=%g, Cq=%g \t") %(Cl, Cq))
     for (name, data, ans) in [("Mass Density", rho, rhoans),
                               ("Pressure", P, Pans),
                               ("Velocity", v, vans),
@@ -385,6 +422,9 @@ if mpi.rank == 0:
         L2 = Pn.gridpnorm(2, rmin, rmax)
         Linf = Pn.gridpnorm("inf", rmin, rmax)
         print "\t%s \t\t%g \t\t%g \t\t%g" % (name, L1, L2, Linf)
+        #f.write(("\t\t%g") % (L1))
+    #f.write("\n")
+Aans = mpi.bcast(Aans, 0)
 
 #-------------------------------------------------------------------------------
 # If requested, write out the state in a global ordering to a file.
@@ -430,6 +470,14 @@ if graphics:
     Aplot.title("Specific entropy")
     Aplot.refresh()
     plots.append((Aplot, "Sedov-planar-entropy.png"))
+
+    if boolCullenViscosity:
+        cullAlphaPlot = plotFieldList(q.ClMultiplier(),
+                                      winTitle = "Cullen alpha")
+        cullDalphaPlot = plotFieldList(evolveCullenViscosityMultiplier.DrvAlphaDtQ(),
+                                       winTitle = "Cullen DalphaDt")
+        plots += [(cullAlphaPlot, "Sedov-planar-Cullen-alpha.png"),
+                  (cullDalphaPlot, "Sedov-planar-Cullen-DalphaDt.png")]
 
     # Make hardcopies of the plots.
     for p, filename in plots:

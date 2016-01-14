@@ -1,5 +1,5 @@
-#ATS:test(SELF, "--CRKSPH=True --nx1=256 --nx2=256 --ny1=128 --ny2=128 --cfl=0.25 --Cl=1.0 --Cq=1.0 --clearDirectories=True --KernelConstructor NBSplineKernel --filter=0 --nPerh=1.51 --graphMixing True --mixFile KH_CRK_256x256.gnu --serialDump=False", label="KH CRK 256^2, nPerh=1.5", np=10)
-#ATS:test(SELF, "--CRKSPH=True --nx1=512 --nx2=512 --ny1=256 --ny2=256 --cfl=0.25 --Cl=1.0 --Cq=1.0 --clearDirectories=True --KernelConstructor NBSplineKernel --filter=0 --nPerh=1.51 --graphMixing True --mixFile KH_CRK_512x512.gnu --serialDump=False", label="KH CRK 512^2, nPerh=1.5", np=70)
+#ATS:test(SELF, "--CRKSPH=True --nx1=256 --nx2=256 --ny1=128 --ny2=128 --cfl=0.25 --Cl=1.0 --Cq=1.0 --clearDirectories=True --KernelConstructor NBSplineKernel --filter=0.0 --nPerh=1.51 --graphMixing True --mixFile KH_CRK_256x256.gnu --serialDump=False", label="KH CRK 256^2, nPerh=1.5", np=10)
+#ATS:test(SELF, "--CRKSPH=True --nx1=512 --nx2=512 --ny1=256 --ny2=256 --cfl=0.25 --Cl=1.0 --Cq=1.0 --clearDirectories=True --KernelConstructor NBSplineKernel --filter=0.0 --nPerh=1.51 --graphMixing True --mixFile KH_CRK_512x512.gnu --serialDump=False", label="KH CRK 512^2, nPerh=1.5", np=70)
 
 #-------------------------------------------------------------------------------
 # This is the basic Kelvin-Helmholtz problem as discussed in
@@ -50,13 +50,14 @@ commandLine(nx1 = 256,
 
             SVPH = False,
             CRKSPH = False,
-            ASPH = False,
-            SPH = True,   # This just chooses the H algorithm -- you can use this with CRKSPH for instance.
+            PSPH = False,
+            ASPH = False,   # Just for choosing the H algorithm
             filter = 0.0,   # CRKSPH filtering
             Qconstructor = MonaghanGingoldViscosity,
             KernelConstructor = BSplineKernel,
             order = 5,
             correctionOrder = LinearOrder,
+            volumeType = CRKSumVolume,
             #Qconstructor = TensorMonaghanGingoldViscosity,
             linearConsistent = False,
             fcentroidal = 0.0,
@@ -86,7 +87,6 @@ commandLine(nx1 = 256,
             cfl = 0.5,
             useVelocityMagnitudeForDt = False,
             XSPH = False,
-            PSPH = False,
             epsilonTensile = 0.0,
             nTensile = 8,
 
@@ -129,8 +129,8 @@ commandLine(nx1 = 256,
             bArtificialConduction = False,
             arCondAlpha = 0.5,
             )
-assert not(boolReduceViscosity and boolCullenViscosity)
 
+assert not(boolReduceViscosity and boolCullenViscosity)
 assert numNodeLists in (1, 2)
 
 # Decide on our hydro algorithm.
@@ -145,6 +145,11 @@ elif CRKSPH:
         HydroConstructor = ACRKSPHHydro
     else:
         HydroConstructor = CRKSPHHydro
+elif PSPH:
+    if ASPH:
+        HydroConstructor = APSPHHydro
+    else:
+        HydroConstructor = PSPHHydro
 else:
     if ASPH:
         HydroConstructor = ASPHHydro
@@ -155,14 +160,15 @@ dataDir = os.path.join(dataDir,
                        "rho1=%g-rho2=%g" % (rho1, rho2),
                        "vx1=%g-vx2=%g" % (abs(vx1), abs(vx2)),
                        "vxboost=%g-vyboost=%g" % (vxboost, vyboost),
-                       str(HydroConstructor).split("'")[1].split(".")[-1],
+                       HydroConstructor.__name__,
+                       KernelConstructor.__name__,
                        "densityUpdate=%s" % (densityUpdate),
                        "correctionOrder=%s" % (correctionOrder),
+                       "volumeType=%s" % volumeType,
                        "compatibleEnergy=%s" % (compatibleEnergy),
-                       "PSPH=%s" % (PSPH),
                        "Cullen=%s" % (boolCullenViscosity),
-                       "filter=%s" % filter,
-                       "%s-Cl=%g-Cq=%g" % (str(Qconstructor).split("'")[1].split(".")[-1], Cl, Cq),
+                       "filter=%g" % filter,
+                       "%s-Cl=%g-Cq=%g" % (Qconstructor.__name__, Cl, Cq),
                        "%ix%i" % (nx1, ny1 + ny2),
                        "nPerh=%g-Qhmult=%g" % (nPerh, Qhmult))
 restartDir = os.path.join(dataDir, "restarts")
@@ -240,21 +246,21 @@ if restoreCycle is None:
                                             xmin = (0.0,  0.25),
                                             xmax = (1.0,  0.75),
                                             nNodePerh = nPerh,
-                                            SPH = SPH)
+                                            SPH = (not ASPH))
     generator21 = GenerateNodeDistribution2d(nx2, int(0.5*ny2 + 0.5),
                                              rho = rho1,
                                              distributionType = "lattice",
                                              xmin = (0.0, 0.0),
                                              xmax = (1.0, 0.25),
                                              nNodePerh = nPerh,
-                                             SPH = SPH)
+                                             SPH = (not ASPH))
     generator22 = GenerateNodeDistribution2d(nx2, int(0.5*ny2 + 0.5),
                                              rho = rho1,
                                              distributionType = "lattice",
                                              xmin = (0.0, 0.75),
                                              xmax = (1.0, 1.0),
                                              nNodePerh = nPerh,
-                                             SPH = SPH)
+                                             SPH = (not ASPH))
     generator2 = CompositeNodeDistribution(generator21, generator22)
 
     if mpi.procs > 1:
@@ -392,6 +398,7 @@ elif CRKSPH:
                              compatibleEnergyEvolution = compatibleEnergy,
                              XSPH = XSPH,
                              correctionOrder = correctionOrder,
+                             volumeType = volumeType,
                              densityUpdate = densityUpdate,
                              HUpdate = HUpdate)
 else:
@@ -401,7 +408,6 @@ else:
                              cfl = cfl,
                              useVelocityMagnitudeForDt = useVelocityMagnitudeForDt,
                              compatibleEnergyEvolution = compatibleEnergy,
-                             PSPH = PSPH,
                              gradhCorrection = gradhCorrection,
                              XSPH = XSPH,
                              densityUpdate = densityUpdate,
@@ -506,7 +512,7 @@ control = SpheralController(integrator, WT,
                             vizDir = vizDir,
                             vizStep = vizCycle,
                             vizTime = vizTime,
-                            SPH = SPH)
+                            SPH = (not ASPH))
 output("control")
 
 #-------------------------------------------------------------------------------
@@ -541,12 +547,12 @@ def mixingScale(cycle, t, dt):
       M=sqrt((S/D)*(S/D)+(C/D)*(C/D))*2.0
       KE = max(ke)
       print "At time t = %s, Mixing Amp M = %s \n" % (t,M)
-      with open(mixFile, "a") as myfile:
+      with open(os.path.join(dataDir, mixFile), "a") as myfile:
         myfile.write("%s\t %s\t %s\n" % (t, M, KE))
 
 if graphMixing:
     control.appendPeriodicTimeWork(mixingScale, mixInterval)
-    myfile = open(mixFile, "w")
+    myfile = open(os.path.join(dataDir, mixFile), "w")
     myfile.write("# time           mixamp                     KEMax\n")
     myfile.close()
 
@@ -623,7 +629,7 @@ if serialDump:
           serialData.append([nodeL.positions()[j],3.0/(nodeL.Hfield()[j].Trace()),nodeL.mass()[j],nodeL.massDensity()[j],nodeL.specificThermalEnergy()[j]])
   serialData = mpi.reduce(serialData,mpi.SUM)
   if rank == 0:
-    f = open(dataDir + "/serialDump.ascii",'w')
+    f = open(os.path.join(dataDir, "./serialDump.ascii"),'w')
     for i in xrange(len(serialData)):
       f.write("{0} {1} {2} {3} {4} {5} {6} {7}\n".format(i,serialData[i][0][0],serialData[i][0][1],0.0,serialData[i][1],serialData[i][2],serialData[i][3],serialData[i][4]))
     f.close()

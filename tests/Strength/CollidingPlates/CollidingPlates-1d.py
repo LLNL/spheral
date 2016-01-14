@@ -1,12 +1,12 @@
 # Non-compatible tests
-#ATS:t10 = test(SELF, "--graphics False --restartStep 50 --clearDirectories True --domainIndependent True --compatibleEnergy False --outputFile 'CollidingPlates-1d-1proc-reproducing.txt' --referenceFile 'Reference/CollidingPlates-1d-reference-noncompatible-20151020.txt'", np=1, label="Colliding plates domain independence test SERIAL Non-compatible RUN")
-#ATS:t11 = testif(t10, SELF, "--graphics False --clearDirectories False --domainIndependent True --compatibleEnergy False --outputFile 'CollidingPlates-1d-1proc-reproducing.txt' --referenceFile 'Reference/CollidingPlates-1d-reference-noncompatible-20151020.txt' --restoreCycle 50", np=1, label="Colliding plates domain independence test SERIAL RESTART Non-compatible RUN")
-#ATS:t12 = testif(t10, SELF, "--graphics False --clearDirectories False --domainIndependent True --compatibleEnergy False --outputFile 'CollidingPlates-1d-4proc-reproducing.txt' --referenceFile 'Reference/CollidingPlates-1d-reference-noncompatible-20151020.txt' --comparisonFile 'dumps-CollidingPlates-1d/SolidSPHHydro1d/MonaghanGingoldViscosity1d/100/CollidingPlates-1d-1proc-reproducing.txt'", np=4, label="Colliding plates domain independence test 4 DOMAIN Non-compatible RUN")
+#ATS:t10 = test(SELF, "--graphics False --restartStep 50 --clearDirectories True --domainIndependent True --compatibleEnergy False --outputFile 'CollidingPlates-1d-1proc-reproducing.txt' --referenceFile 'Reference/CollidingPlates-1d-reference-noncompatible-20160103.txt'", np=1, label="Colliding plates domain independence test SERIAL Non-compatible RUN")
+#ATS:t11 = testif(t10, SELF, "--graphics False --clearDirectories False --domainIndependent True --compatibleEnergy False --outputFile 'CollidingPlates-1d-1proc-reproducing.txt' --referenceFile 'Reference/CollidingPlates-1d-reference-noncompatible-20160103.txt' --restoreCycle 50", np=1, label="Colliding plates domain independence test SERIAL RESTART Non-compatible RUN")
+#ATS:t12 = testif(t10, SELF, "--graphics False --clearDirectories False --domainIndependent True --compatibleEnergy False --outputFile 'CollidingPlates-1d-4proc-reproducing.txt' --referenceFile 'Reference/CollidingPlates-1d-reference-noncompatible-20160103.txt' --comparisonFile 'dumps-CollidingPlates-1d/SolidSPHHydro1d/MonaghanGingoldViscosity1d/100/CollidingPlates-1d-1proc-reproducing.txt'", np=4, label="Colliding plates domain independence test 4 DOMAIN Non-compatible RUN")
 #
 # Compatible tests
-#ATS:t50 = test(SELF, "--graphics False --restartStep 50 --dataDirBase 'dumps-CollidingPlates-compatible-1d' --clearDirectories True --domainIndependent True --compatibleEnergy True --outputFile 'CollidingPlates-1d-1proc-reproducing.txt' --referenceFile 'Reference/CollidingPlates-1d-reference-compatible-20151020.txt'", np=1, label="Colliding plates domain independence test SERIAL Compatible RUN")
-#ATS:t51 = testif(t50, SELF, "--graphics False --dataDirBase 'dumps-CollidingPlates-compatible-1d' --clearDirectories False --domainIndependent True --compatibleEnergy True --outputFile 'CollidingPlates-1d-1proc-reproducing.txt' --referenceFile 'Reference/CollidingPlates-1d-reference-compatible-20151020.txt' --restoreCycle 50", np=1, label="Colliding plates domain independence test SERIAL RESTART Compatible RUN")
-#ATS:t52 = testif(t50, SELF, "--graphics False --dataDirBase 'dumps-CollidingPlates-compatible-1d' --clearDirectories False --domainIndependent True --compatibleEnergy True --outputFile 'CollidingPlates-1d-4proc-reproducing.txt' --referenceFile 'Reference/CollidingPlates-1d-reference-compatible-20151020.txt' --comparisonFile 'dumps-CollidingPlates-compatible-1d/SolidSPHHydro1d/MonaghanGingoldViscosity1d/100/CollidingPlates-1d-1proc-reproducing.txt'", np=4, label="Colliding plates domain independence test 4 DOMAIN Compatible RUN")
+#ATS:t50 = test(SELF, "--graphics False --restartStep 50 --dataDirBase 'dumps-CollidingPlates-compatible-1d' --clearDirectories True --domainIndependent True --compatibleEnergy True --outputFile 'CollidingPlates-1d-1proc-reproducing.txt' --referenceFile 'Reference/CollidingPlates-1d-reference-compatible-20160103.txt'", np=1, label="Colliding plates domain independence test SERIAL Compatible RUN")
+#ATS:t51 = testif(t50, SELF, "--graphics False --dataDirBase 'dumps-CollidingPlates-compatible-1d' --clearDirectories False --domainIndependent True --compatibleEnergy True --outputFile 'CollidingPlates-1d-1proc-reproducing.txt' --referenceFile 'Reference/CollidingPlates-1d-reference-compatible-20160103.txt' --restoreCycle 50", np=1, label="Colliding plates domain independence test SERIAL RESTART Compatible RUN")
+#ATS:t52 = testif(t50, SELF, "--graphics False --dataDirBase 'dumps-CollidingPlates-compatible-1d' --clearDirectories False --domainIndependent True --compatibleEnergy True --outputFile 'CollidingPlates-1d-4proc-reproducing.txt' --referenceFile 'Reference/CollidingPlates-1d-reference-compatible-20160103.txt' --comparisonFile 'dumps-CollidingPlates-compatible-1d/SolidSPHHydro1d/MonaghanGingoldViscosity1d/100/CollidingPlates-1d-1proc-reproducing.txt'", np=4, label="Colliding plates domain independence test 4 DOMAIN Compatible RUN")
 
 #-------------------------------------------------------------------------------
 # A pair of steel plates colliding at the origin.  This is a useful test of
@@ -64,7 +64,9 @@ commandLine(# Geometry
             HUpdate = IdealH,
             densityUpdate = IntegrateDensity,
             compatibleEnergy = True,
+            evolveTotalEnergy = False,
             gradhCorrection = False,
+            correctVelocityGradient = True,
             filter = 0.0,
 
             # Time advancement.
@@ -88,7 +90,7 @@ commandLine(# Geometry
             graphics = True,
             testtol = 1.0e-3,
             clearDirectories = False,
-            referenceFile = "Reference/CollidingPlates-1d-reference-compatible-20151020.txt",
+            referenceFile = "Reference/CollidingPlates-1d-reference-compatible-20160103.txt",
             dataDirBase = "dumps-CollidingPlates-1d",
             outputFile = "None",
             comparisonFile = "None",
@@ -274,7 +276,9 @@ else:
                              filter = filter,
                              cfl = cfl,
                              compatibleEnergyEvolution = compatibleEnergy,
+                             evolveTotalEnergy = evolveTotalEnergy,
                              gradhCorrection = gradhCorrection,
+                             correctVelocityGradient = correctVelocityGradient,
                              densityUpdate = densityUpdate,
                              HUpdate = HUpdate,
                              XSPH = XSPH,
