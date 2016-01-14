@@ -61,7 +61,7 @@ AC_ARG_WITH(pybindgen,
     AC_MSG_RESULT(no)
     PYTHONBINDING="PYBINDGEN"
     PYTHONPKGDIR="PBGWraps"
-    PYTHONPKGS="Geometry CXXTypes Silo DataOutput NodeList Field Kernel Neighbor Material FileIO DataBase Boundary Physics ArtificialViscosity Hydro ExternalForce Gravity Integrator Utilities NodeGenerators FieldOperations SPH CRKSPH SVPH TaylorSPH Mesh Damage SolidMaterial SolidSPH Strength ArtificialConduction CInterface $PYTHONPKGS"
+    PYTHONPKGS="Geometry CXXTypes Silo DataOutput NodeList Field Kernel Neighbor Material FileIO DataBase Boundary Physics ArtificialViscosity Hydro ExternalForce Gravity Integrator Utilities NodeGenerators FieldOperations SPH CRKSPH SVPH TaylorSPH Mesh Damage SolidMaterial SolidSPH Strength ArtificialConduction $PYTHONPKGS"
     PYOPT="$PYOPT"
     MODULELINK="-L\$(LIBDIR) \$(PKGLIBS)"
     if test "`uname -s`" = "AIX"; then
