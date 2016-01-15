@@ -38,7 +38,7 @@ using BoundarySpace::Boundary;
 using NeighborSpace::ConnectivityMap;
 using KernelSpace::TableKernel;
 
-//namespace {
+namespace {
 
 //------------------------------------------------------------------------------
 // limiter for velocity projection.
@@ -83,7 +83,7 @@ double limiterSB(const double x) {
   }
 }
 
-//}
+}
 
 //------------------------------------------------------------------------------
 // Construct with the given value for the linear and quadratic coefficients.

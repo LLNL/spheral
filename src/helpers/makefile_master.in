@@ -116,8 +116,8 @@ TAUFLAGS = # @TAUFLAGS@
 DEPFLAG  =   @DEPFLAG@   
 CFLAGS   =   @CFLAGS@ $(INCS) $(TAUFLAGS)
 CXXFLAGS =   @CXXFLAGS@ $(INCS) $(TAUFLAGS)
-MPICCFLAGS =
-MPICXXFLAGS =
+MPICCFLAGS = @MPICCFLAGS@
+MPICXXFLAGS = @MPICXXFLAGS@
 FORTFLAGS =   @FORTFLAGS@
 DYNLIBFLAG = @DYNLIBFLAG@
 SHAREDFLAG = @SHAREDFLAG@
@@ -259,22 +259,22 @@ force_build:
 	$(MPICXX) $(MPICXXFLAGS) $(CXXFLAGS) $(PYFFLEOPT) $(EXTRAFLAGS) -I. -w -c .MethodsSource/$(*F)Methods.cc -o $(*F)Methods.o
 
 %Wrap.o: %Wrap.cc
-	$(MPICXX) $(MPICXXFLAGS) $(CXXFLAGS) -c $< -o $(*F)Wrap.o
+	$(MPICXX) $(MPICXXFLAGS) $(CXXFLAGS) $(PYOPT) $(EXTRAFLAGS) -c $< -o $(*F)Wrap.o
 
 %.o: %.cc
-	$(MPICXX) $(MPICXXFLAGS) $(CXXFLAGS) -c $< -o $(*F).o
+	$(MPICXX) $(MPICXXFLAGS) $(CXXFLAGS) $(OPTFLAGS) $(EXTRAFLAGS) -c $< -o $(*F).o
 
 %.o: %.f
-	$(FORT) $(FORTFLAGS) -c $< -o $(*F).o
+	$(FORT) $(FORTFLAGS) $(OPTFLAGS) $(EXTRAFLAGS) -c $< -o $(*F).o
 
 %.o: %.f90
 	$(FORT) $(FORTFLAGS) -c $< -o $(*F).o
 
 %.o:	%.cpp
-	$(MPICXX) $(MPICXXFLAGS) $(INCS) $(BPLINCS) -I. -c $< -o $(*F).o
+	$(MPICXX) $(MPICXXFLAGS) $(INCS) $(BPLINCS) $(CXXFLAGS) $(PYOPT) $(EXTRAFLAGS) -I. -c $< -o $(*F).o
 
 %.o:	%.C
-	$(MPICXX) $(MPICXXFLAGS) $(INCS) $(EXTRAINCLUDES) -I$(srcdir) -I. -c $< -o $(*F).o
+	$(MPICXX) $(MPICXXFLAGS) $(INCS) $(EXTRAINCLUDES) -I$(srcdir) $(CXXFLAGS) $(PYOPT) $(EXTRAFLAGS) -I. -c $< -o $(*F).o
 
 %Inst1d.cc:	%Inst.cc.py
 	@$(PYTHONEXE) $(SPHERALTOP)/helpers/InstantiationGenerator.py $< $@ 1
@@ -322,7 +322,12 @@ endif
 
 #-------------------------------------------------------------------------------
 $(LIBTARGET): $(OBJS) $(PYFFLEOBJS) $(EXETARGETS)
+	@echo "################################################################################"
+	@echo "# Building library $(LIBTARGET)"
+	@echo "################################################################################"
 	@mkdir -p $(LIBDIR)
+	$(MPICXX) $(MPICXXFLAGS) $(CXXFLAGS) $(OPTFLAGS) $(DYNLIBFLAG) $(EXTRAINCLUDES) $(LDINSTALLNAME) $(LIBTARGET) $(OBJS) $(PYFFLEOBJS) $(LDFLAGS) $(LDRPATH) $(LIBS) $(EXTRALIBS) $(DEPENDLIBS) $(LIBTARGETFLAGS)
+	cp -f $(LIBTARGET) $(LIBDIR)
 
 #-------------------------------------------------------------------------------
 $(STATICLIBTARGET): $(LIBTARGET)

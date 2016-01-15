@@ -27,7 +27,7 @@ INSTSRCTARGETS += \
 endif
 ifeq ("yes", "@INST3D@")
 INSTSRCTARGETS += \
-	$(srcdir)/ConstantZVelocityBoundaryInst.cc.py
+	$(srcdir)/ConstantZVelocityBoundaryInst.cc
 SRCTARGETS += \
 	$(srcdir)/CylindricalBoundary.cc \
 	$(srcdir)/AxialSymmetryBoundary.cc \
