@@ -17,7 +17,8 @@ procID = mpi.rank
 nProcs = mpi.procs
 
 #-------------------------------------------------------------------------------
-# Class to generate 3-D node positions in a stretched lattice
+# Class to generate 3-D node positions in a QVT fashion
+# This is a direct port of Steen Hansen's QVT code. See Hansen et al. 2007
 #-------------------------------------------------------------------------------
 class QuaquaversalTiling3d(NodeGeneratorBase):
     
@@ -26,8 +27,10 @@ class QuaquaversalTiling3d(NodeGeneratorBase):
     #---------------------------------------------------------------------------
     def __init__(self,
                  n = 100,
-                 xmin = [0,0,0],
-                 xmax = [1,1,1],
+                 xmin = 0.0,
+                 xmax = 1.0,
+                 rho = 1.0,
+                 nNodePerh = 2.0,
                  offset=None,
                  rejecter=None,
                  maxLevel=6):
@@ -86,15 +89,36 @@ class QuaquaversalTiling3d(NodeGeneratorBase):
                             0., 0., 1.,
                             -1., 0., 1.])
                             
+
             level = 0
             ii = 0
-            self.checkNorm(level,ii)
+
+            n  = self.checkNorm(level,ii)
+            dx = (xmax-xmin)
+            vo = dx**3
+            nd = n/vo
+            m0 = rho/nd
+            vi = 1.0/nd
+            hi = 2.0*nNodePerh*pow(3.0/(4.0*pi)*vi,1.0/3.0)
+            Hi = SymTensor3d(1.0/hi, 0.0, 0.0,
+                             0.0, 1.0/hi, 0.0,
+                             0.0, 0.0, 1.0/hi)
+            
+            
             vec = moveCenter(vec)
-            print vec
+            #print vec
             
             vec = recurse(level,ii,vec)
             
-            print self.sph
+            #print self.sph
+            
+            for i in xrange(len(self.sph)):
+                self.x.append(self.scale(self.sph[i][0]))
+                self.y.append(self.scale(self.sph[i][1]))
+                self.z.append(self.scale(self.sph[i][2]))
+                self.m.append(m0)
+                self.H.append(Hi)
+            
 
             # Initialize the base class.  If "serialInitialization" is True, this
             # is where the points are broken up between processors as well.
@@ -134,9 +158,9 @@ class QuaquaversalTiling3d(NodeGeneratorBase):
         assert i >= 0 and i < len(self.H)
         return self.H[i]
 
-    def checkNorm(self,level,ii):
-        b = pow(8,self.maxLevel)
-        print "This will produce %e points" % b
+    def checkNorm(self,ii):
+        n = pow(8,self.maxLevel)
+        print "This will produce %e points" % n
 
         for i in xrange(8):
             for j in xrange(4):
@@ -145,7 +169,7 @@ class QuaquaversalTiling3d(NodeGeneratorBase):
                     b = b + self.mm[i][j][k]
                 if (b!=1):
                     print "b = %f,%i,%i" %(b,i,j)
-        return
+        return n
 
     def moveCenter(self,vec):
         for i in xrange(4):
@@ -207,5 +231,10 @@ class QuaquaversalTiling3d(NodeGeneratorBase):
                 vec2 = recurse(level,ii,vec2)
 
             return vec2
+
+    def scale(self,x):
+        ymin = -0.14
+        ymax = 0.14
+        return (ymax-ymin)/(self.xmax-self.xmin)*(x-self.xmin) + ymin
 
 
