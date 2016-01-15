@@ -33,6 +33,7 @@ class GenerateNodeDistribution3d(NodeGeneratorBase):
                  phimax = None,
                  zmin = None,
                  zmax = None,
+                 offset = None,
                  nNodePerh = 2.01,
                  SPH = False,
                  rejecter = None):
@@ -66,6 +67,7 @@ class GenerateNodeDistribution3d(NodeGeneratorBase):
                  xmin is not None and
                  xmax is not None)
                 )
+        assert offset is None or len(offset) == 3
 
         self.n1 = n1
         self.n2 = n2
@@ -201,6 +203,13 @@ class GenerateNodeDistribution3d(NodeGeneratorBase):
                                      self.rmax,
                                      self.origin,
                                      self.nNodePerh)
+
+        # If requested, shift the nodes.
+        if offset:
+            for i in xrange(len(self.x)):
+                self.x[i] += offset[0]
+                self.y[i] += offset[1]
+                self.z[i] += offset[2]
 
         # If the user provided a "rejecter", give it a pass
         # at the nodes.
