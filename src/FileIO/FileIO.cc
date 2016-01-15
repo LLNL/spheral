@@ -26,7 +26,21 @@ FileIO::FileIO():
   mFileName(""),
   mAccess(Undefined),
   mFileOpen(false)
-{
+#ifndef CXXONLY
+  ,
+  mPickleMod(NULL),
+  mPickleDumps(NULL),
+  mPickleLoads(NULL) {
+
+  // Import pickle.
+  PyObject* modName = Py_BuildValue("s", "cPickle");
+  mPickleMod = PyImport_Import(modName);
+  mPickleDumps = PyObject_GetAttrString(mPickleMod, "dumps");
+  mPickleLoads = PyObject_GetAttrString(mPickleMod, "loads");
+  Py_DECREF(modName);
+#else
+  {
+#endif
 }
 
 //------------------------------------------------------------------------------
@@ -36,14 +50,32 @@ FileIO::FileIO(const string filename, AccessType access):
   mFileName(filename),
   mAccess(access),
   mFileOpen(false)
-{
+#ifndef CXXONLY
+  ,
+  mPickleMod(NULL),
+  mPickleDumps(NULL),
+  mPickleLoads(NULL) {
+  
+  // Import pickle.
+  PyObject* modName = Py_BuildValue("s", "cPickle");
+  mPickleMod = PyImport_Import(modName);
+  mPickleDumps = PyObject_GetAttrString(mPickleMod, "dumps");
+  mPickleLoads = PyObject_GetAttrString(mPickleMod, "loads");
+  Py_DECREF(modName);
+#else
+  {
+#endif
 }
 
 //------------------------------------------------------------------------------
 // Destructor
 //------------------------------------------------------------------------------
-FileIO::~FileIO()
-{
+FileIO::~FileIO() {
+#ifndef CXXONLY
+  Py_DECREF(mPickleMod);
+  Py_DECREF(mPickleDumps);
+  Py_DECREF(mPickleLoads);
+#endif
 }
 
 //------------------------------------------------------------------------------
@@ -317,5 +349,4 @@ readObject(PyObject* pathObj) const {
 #endif
 
 }
-
 }
