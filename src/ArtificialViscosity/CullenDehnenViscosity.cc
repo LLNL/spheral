@@ -284,7 +284,7 @@ registerState(DataBase<Dimension>& dataBase,
 
   FieldList<Dimension, Scalar>& rvAlphaQ = myq.CqMultiplier();
   FieldList<Dimension, Scalar>& rvAlphaL = myq.ClMultiplier();
-  PolicyPointer alphaPolicy(new IncrementCullenMultipliers<Dimension>(malphMin, malphMax));
+  PolicyPointer alphaPolicy(new IncrementCullenMultipliers<Dimension>(malphMin, malphMax, mboolHopkins));
   state.enroll(rvAlphaQ, alphaPolicy);
   state.enroll(rvAlphaL);
 }
@@ -580,8 +580,8 @@ finalizeDerivatives(const Scalar time,
                 const Scalar Wj = W(Hj*rij, Hdetj);
 
                 // Compute R.
-                Ri += sgn0(divvj)*mj*Wi;
-                Rj += sgn0(divvi)*mi*Wj;
+                Ri += sgn(divvj)*mj*Wi;
+                Rj += sgn(divvi)*mi*Wj;
               }
             }
           }
@@ -593,6 +593,12 @@ finalizeDerivatives(const Scalar time,
     }
 
     // Now we have DvDx, DvDtDx, R, and vsig.  We can compute the Cullen & Dehnen viscosity coefficients.
+    // We also repurpose 
+    //   mCullAlpha  -> alpha0
+    //   mCullAlpha2 -> alpha_tmp.
+    //   alpha_local -> alpha
+    const FieldList<Dimension, Scalar> alpha0 = state.fields("mCullAlpha", 0.0);
+    FieldList<Dimension, Scalar> alpha_tmp = derivs.fields("mCullAlpha2", 0.0);
     for (size_t nodeListi = 0; nodeListi != numNodeLists; ++nodeListi) {
       const size_t n = A[nodeListi]->numInternalElements();
       for (size_t i = 0; i != n; ++i) {
@@ -601,19 +607,31 @@ finalizeDerivatives(const Scalar time,
         const Tensor& DvDtDxi = DvDtDx(nodeListi, i);
         const Scalar Ri = R(nodeListi, i);
         const Scalar vsigi = vsig(nodeListi, i);
-        const Scalar hi = kernelExtent*Dimension::nDim/Hi.Trace();  // Harmonic averaging.
         const Scalar divvi = DvDxi.Trace();
         const Scalar divai = DvDtDxi.Trace();
         const Tensor Si = DvDxi.Symmetric() - divvi/Dimension::nDim * Tensor::one;
-        const Scalar thpt = FastMath::pow2(2.0*FastMath::pow4(1.0 - Ri)*divvi);
-        const Scalar zetai = thpt*safeInv(thpt + (Si*Si.Transpose()).Trace());
-        const Scalar Ai = zetai*std::max(-divai, 0.0);
-        const Scalar taui = hi*safeInv(2.0*mbetaD*vsigi);
-          
         const Scalar alphai = reducingViscosityMultiplierQ(nodeListi, i);
         Scalar& alpha_locali = alpha_local(nodeListi, i);
-        alpha_locali = malphMax*hi*hi*Ai*safeInvVar(vsigi*vsigi + hi*hi*Ai);
-        DalphaDt(nodeListi, i) = std::min(0.0, alpha_locali - alphai)*safeInv(taui);
+        if (mboolHopkins) {
+          const Scalar hi = Dimension::nDim/Hi.Trace();  // Harmonic averaging.
+          const Scalar alpha0i = alpha0(nodeListi, i);
+          Scalar& alpha_tmpi = alpha_tmp(nodeListi, i);
+          alpha_tmpi = (std::min(divvi, divai) < 0.0 ?
+                        malphMax*std::abs(divai)*safeInvVar(std::abs(divai) + mbetaC*vsigi*vsigi/FastMath::pow2(mfKern*hi)) :
+                        0.0);
+          const Scalar thpt = FastMath::pow2(mbetaE*FastMath::pow4(1.0 - Ri)*divvi);
+          const Scalar taui = hi/kernelExtent*safeInvVar(2.0*mbetaD*vsigi);
+          alpha_locali = thpt*alpha0i*safeInvVar(thpt + (Si*Si.Transpose()).Trace());
+          DalphaDt(nodeListi, i) = std::min(0.0, alpha0i - alpha_tmpi)*safeInv(taui);
+        } else {
+          const Scalar hi = kernelExtent*Dimension::nDim/Hi.Trace();  // Harmonic averaging.
+          const Scalar thpt = FastMath::pow2(2.0*FastMath::pow4(1.0 - Ri)*divvi);
+          const Scalar zetai = thpt*safeInvVar(thpt + (Si*Si.Transpose()).Trace());
+          const Scalar Ai = zetai*std::max(-divai, 0.0);
+          const Scalar taui = hi*safeInvVar(2.0*mbetaD*vsigi);
+          DalphaDt(nodeListi, i) = std::min(0.0, alpha_locali - alphai)*safeInv(taui);
+          alpha_locali = std::max(alphai, malphMax*hi*hi*Ai*safeInvVar(vsigi*vsigi + hi*hi*Ai));
+        }
       }
     }
 
