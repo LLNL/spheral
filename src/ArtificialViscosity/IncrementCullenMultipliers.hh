@@ -23,7 +23,7 @@ public:
   typedef typename UpdatePolicyBase<Dimension>::KeyType KeyType;
 
   // Constructors, destructor.
-  IncrementCullenMultipliers(const Scalar minValue, const Scalar maxValue);
+  IncrementCullenMultipliers(const Scalar minValue, const Scalar maxValue, const bool hopkinsForm);
   virtual ~IncrementCullenMultipliers();
   
   // Overload the methods describing how to update Fields.
@@ -39,6 +39,7 @@ public:
 
 private:
   //--------------------------- Private Interface ---------------------------//
+  bool mHopkinsForm;
   IncrementCullenMultipliers(const IncrementCullenMultipliers& rhs);
   IncrementCullenMultipliers& operator=(const IncrementCullenMultipliers& rhs);
 };
