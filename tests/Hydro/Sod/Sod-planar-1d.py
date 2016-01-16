@@ -24,7 +24,8 @@ commandLine(nx1 = 400,
             x1 = 0.0,
             x2 = 0.5,
 
-            hsmooth = 0.0,  # Optionally smooth initial discontinuity
+            hsmooth = 0.0,             # Optionally smooth initial discontinuity
+            sumInitialDensity = False, # Optionally sum the initial density before setting the pressure and such
 
             nPerh = 1.25,
 
@@ -388,6 +389,28 @@ control = SpheralController(integrator, WT,
 output("control")
 
 #-------------------------------------------------------------------------------
+# If requested, reset the intial energies and densities.
+#-------------------------------------------------------------------------------
+if sumInitialDensity and control.totalSteps == 0:
+    packages = integrator.physicsPackages()
+    state = State(db, packages)
+    derivs = StateDerivatives(db, packages)
+    integrator.setGhostNodes()
+    integrator.preStepInitialize(state, derivs)
+    cm = db.connectivityMap()
+    pos = db.fluidPosition
+    mass = db.fluidMass
+    H = db.fluidHfield
+    rho = db.fluidMassDensity
+    computeSPHSumMassDensity(cm, WT, True, pos, mass, H, rho)
+    for nodes in nodeSet:
+        pos = nodes.positions()
+        eps = nodes.specificThermalEnergy()
+        rho = nodes.massDensity()
+        for i in xrange(nodes.numInternalNodes):
+            eps[i] = specificEnergy(pos[i].x, rho[i])
+
+#-------------------------------------------------------------------------------
 # If we want to use refinement, build the refinemnt algorithm.
 #-------------------------------------------------------------------------------
 class SelectNodes:
@@ -463,27 +486,21 @@ answer = SodSolution(nPoints=nx1 + nx2,
 #db.fluidSoundSpeed(cs)
 cs = hydro.soundSpeed()
 
+# Make a flat list from a FieldList
 def createList(x):
-    xx = x
-    if xx == []:
-        xx = [-1e50,]
-    tmp = mpi.allreduce(xx, mpi.SUM)
-    result = [y for y in tmp if y != -1e50]
-    return result
+    result = []
+    for i in xrange(len(x)):
+        for j in xrange(x[i].numInternalElements):
+            result.append(x(i,j))
+    return mpi.allreduce(result)
 
 # Compute the simulated specific entropy.
-A = []
-for nodes in nodeSet:
-    rho = createList(nodes.massDensity().internalValues())
-    #pressure = ScalarField("pressure", nodes)
-    #nodes.pressure(pressure)
-    pressure = hydro.pressure()[0]
-    P = createList(pressure.internalValues())
-    A += [Pi/rhoi**gammaGas for (Pi, rhoi) in zip(P, rho)]
+rho = createList(db.fluidMassDensity)
+P = createList(hydro.pressure())
+A = [Pi/rhoi**gammaGas for (Pi, rhoi) in zip(P, rho)]
 
 # The analytic solution for the simulated entropy.
-xprof = createList([x.x for x in nodes1.positions().internalValues()] +
-                   [x.x for x in nodes2.positions().internalValues()])
+xprof = [x.x for x in createList(db.fluidPosition)]
 xans, vans, uans, rhoans, Pans, hans = answer.solution(control.time(), xprof)
 Aans = [Pi/rhoi**gammaGas for (Pi, rhoi) in zip(Pans,  rhoans)]
 csAns = [sqrt(gammaGas*Pi/rhoi) for (Pi, rhoi) in zip(Pans,  rhoans)]
@@ -579,14 +596,12 @@ print "Energy conservation: original=%g, final=%g, error=%g" % (control.conserve
 #-------------------------------------------------------------------------------
 from SpheralGnuPlotUtilities import multiSort
 mof = mortonOrderIndices(db)
-mo = mpi.reduce(mof[0].internalValues(), mpi.SUM)
-rhoprof = mpi.reduce(nodes1.massDensity().internalValues(), mpi.SUM)
-P = ScalarField("pressure", nodes1)
-nodes1.pressure(P)
-Pprof = mpi.reduce(P.internalValues(), mpi.SUM)
-vprof = mpi.reduce([v.x for v in nodes1.velocity().internalValues()], mpi.SUM)
-epsprof = mpi.reduce(nodes1.specificThermalEnergy().internalValues(), mpi.SUM)
-hprof = mpi.reduce([1.0/H.xx for H in nodes1.Hfield().internalValues()], mpi.SUM)
+mo = createList(mof)
+rhoprof = createList(db.fluidMassDensity)
+Pprof = createList(hydro.pressure())
+vprof = [v.x for v in createList(db.fluidVelocity)]
+epsprof = createList(db.fluidSpecificThermalEnergy)
+hprof = [1.0/Hi.xx for Hi in createList(db.fluidHfield)]
 
 rmin = x0
 rmax = x2
