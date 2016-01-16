@@ -97,7 +97,8 @@ q = MonaghanGingoldViscosity(0.0, 0.0)
 #-------------------------------------------------------------------------------
 # Construct the hydro physics object.
 #-------------------------------------------------------------------------------
-hydro = SPHHydro(WT, WTPi, q,
+hydro = SPHHydro(W = WT, 
+                 Q = q,
                  cfl = cfl,
                  densityUpdate = densityUpdate,
                  HUpdate = HEvolution)

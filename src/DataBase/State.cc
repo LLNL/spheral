@@ -340,5 +340,25 @@ removePolicy(const typename State<Dimension>::KeyType& key) {
   if (policies.size() == 0) mPolicyMap.erase(outerItr);
 }
 
+//------------------------------------------------------------------------------
+// Remove the policy associated with a Field.
+//------------------------------------------------------------------------------
+template<typename Dimension>
+void
+State<Dimension>::
+removePolicy(FieldSpace::FieldBase<Dimension>& field) {
+  this->removePolicy(StateBase<Dimension>::key(field));
+}
+
+//------------------------------------------------------------------------------
+// Remove the policy associated with a FieldList.
+//------------------------------------------------------------------------------
+template<typename Dimension>
+void
+State<Dimension>::
+removePolicy(FieldSpace::FieldListBase<Dimension>& fieldList) {
+  this->removePolicy(StateBase<Dimension>::key(fieldList));
+}
+
 }
 

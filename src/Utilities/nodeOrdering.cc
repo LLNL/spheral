@@ -35,8 +35,8 @@ using NodeSpace::NodeList;
 
 template<typename DataType>
 struct CompareTuples {
-  bool operator()(const tuple<int, int, DataType>& lhs,
-                  const tuple<int, int, DataType>& rhs) {
+  bool operator()(const boost::tuple<int, int, DataType>& lhs,
+                  const boost::tuple<int, int, DataType>& rhs) {
     return get<2>(lhs) < get<2>(rhs);
   }
 };
@@ -55,14 +55,14 @@ nodeOrdering(const FieldSpace::FieldList<Dimension, DataType>& criteria) {
 
   // Make a set of tuples containing the node info and indicies.
   int iNodeList = 0;
-  vector<tuple<int, int, DataType> > sortedList;
+  vector<boost::tuple<int, int, DataType> > sortedList;
   for (typename FieldList<Dimension, DataType>::const_iterator fieldItr = criteria.begin();
        fieldItr != criteria.end();
        ++fieldItr, ++iNodeList) {
     const NodeList<Dimension>& nodeList = (**fieldItr).nodeList();
     result.appendField(Field<Dimension, int>("node indicies", nodeList, -1));
     for (int i = 0; i != nodeList.numInternalNodes(); ++i) {
-      sortedList.push_back(make_tuple(iNodeList, i, (**fieldItr)(i)));
+      sortedList.push_back(boost::make_tuple(iNodeList, i, (**fieldItr)(i)));
     }
   }
 
@@ -117,7 +117,7 @@ nodeOrdering(const FieldSpace::FieldList<Dimension, DataType>& criteria) {
   CHECK(iGlobal == numGlobalNodes);
 
   // Post-conditions.
-  BEGIN_CONTRACT_SCOPE;
+  BEGIN_CONTRACT_SCOPE
   {
     int iNodeList = 0;
     for (typename FieldList<Dimension, int>::const_iterator itr = result.begin();
@@ -142,7 +142,7 @@ nodeOrdering(const FieldSpace::FieldList<Dimension, DataType>& criteria) {
       ENSURE(countGlobal == 1);
     }
   }
-  END_CONTRACT_SCOPE;
+  END_CONTRACT_SCOPE
 
   return result;
 }

@@ -23,7 +23,6 @@ computeHullVolumes(const ConnectivityMap<Dimension>& connectivityMap,
                    const typename Dimension::Scalar kernelExtent,
                    const FieldList<Dimension, typename Dimension::Vector>& position,
                    const FieldList<Dimension, typename Dimension::SymTensor>& H,
-                   FieldList<Dimension, typename Dimension::FacetedVolume>& polyvol,
                    FieldList<Dimension, typename Dimension::Scalar>& volume) {
 
   // Pre-conditions.
@@ -38,7 +37,6 @@ computeHullVolumes(const ConnectivityMap<Dimension>& connectivityMap,
   typedef typename Dimension::FacetedVolume FacetedVolume;
 
   // Walk the FluidNodeLists.
-  const double kernelExtent2 = kernelExtent*kernelExtent;
   for (size_t nodeListi = 0; nodeListi != numNodeLists; ++nodeListi) {
 
     // Iterate over the nodes in this node list.
@@ -50,9 +48,11 @@ computeHullVolumes(const ConnectivityMap<Dimension>& connectivityMap,
       // Get the state for node i.
       const Vector& ri = position(nodeListi, i);
       const SymTensor& Hi = H(nodeListi, i);
+      const Scalar Hdeti = Hi.Determinant();
 
-      // Collect the positions of all neighbors *within i's sampling volume*.
-      vector<Vector> positionsInv(1, Vector::zero);
+      // Collect the half-way positions of all neighbors *within i's sampling volume*.
+      // We do this in eta space.
+      vector<Vector> etaInv(1, Vector::zero);
       const vector<vector<int> >& fullConnectivity = connectivityMap.connectivityForNode(nodeListi, i);
       CHECK(fullConnectivity.size() == numNodeLists);
       for (size_t nodeListj = 0; nodeListj != numNodeLists; ++nodeListj) {
@@ -62,21 +62,22 @@ computeHullVolumes(const ConnectivityMap<Dimension>& connectivityMap,
              ++jItr) {
           const int j = *jItr;
           const Vector& rj = position(nodeListj, j);
-          const Vector rji = rj - ri;
-          const Scalar etai2 = (Hi*rji).magnitude2();
-          if (etai2 < kernelExtent2) {
-            const Vector rjiHat = rji.unitVector();
-            positionsInv.push_back(1.0/sqrt(rji.magnitude2() + 1.0e-30) * rjiHat);
+          const Vector rji = 0.5*(rj - ri);
+          const Vector etai = Hi*rji;
+          const Scalar etaiMag = etai.magnitude();
+          if (etaiMag < kernelExtent) {
+            const Vector etaiHat = etai.unitVector();
+            etaInv.push_back(1.0/max(etaiMag, 1.0e-30) * etaiHat);
           }
         }
       }
 
       // Build the hull of the inverse.
-      const FacetedVolume hullInv(positionsInv);
+      const FacetedVolume hullInv(etaInv);
 
       // Use the vertices selected by the inverse hull to construct the
       // volume of the node.
-      vector<Vector> positions;
+      vector<Vector> eta;
       const vector<Vector>& vertsInv = hullInv.vertices();
       CHECK((Dimension::nDim == 1 and vertsInv.size() == 2) or
             (Dimension::nDim == 2 and vertsInv.size() >= 3) or
@@ -85,16 +86,15 @@ computeHullVolumes(const ConnectivityMap<Dimension>& connectivityMap,
            itr != vertsInv.end();
            ++itr) {
         if (itr->magnitude2() < 1.0e-30) {
-          positions.push_back(Vector::zero);
+          eta.push_back(Vector::zero);
         } else {
-          positions.push_back(1.0/sqrt(itr->magnitude2()) * itr->unitVector());
+          eta.push_back(1.0/sqrt(itr->magnitude2()) * itr->unitVector());
         }
       }
 
       // And we have it.
-      // polyvol(nodeListi, i) = FacetedVolume(positions, hullInv.facetVertices());
-      polyvol(nodeListi, i) = FacetedVolume(positions);
-      volume(nodeListi, i) = polyvol(nodeListi, i).volume();
+      const FacetedVolume polyeta = FacetedVolume(eta);
+      volume(nodeListi, i) = polyeta.volume()/Hdeti;
     }
   }
 }

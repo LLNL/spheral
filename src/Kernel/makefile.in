@@ -23,8 +23,10 @@ INSTSRCTARGETS = \
 	$(srcdir)/QuinticSplineKernelInst.cc.py \
 	$(srcdir)/TableKernelInst.cc.py \
 	$(srcdir)/VolumeIntegrationFunctionsInst.cc.py \
+	$(srcdir)/WendlandC2KernelInst.cc.py \
 	$(srcdir)/WendlandC4KernelInst.cc.py \
-	$(srcdir)/WendlandC6KernelInst.cc.py
+	$(srcdir)/WendlandC6KernelInst.cc.py \
+	$(srcdir)/ExpInvKernelInst.cc.py
 SRCTARGETS =
 
 #-------------------------------------------------------------------------------

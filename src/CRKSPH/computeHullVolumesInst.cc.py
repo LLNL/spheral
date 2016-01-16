@@ -10,7 +10,6 @@ namespace Spheral {
                                    const Dim< %(ndim)s >::Scalar kernelExtent,
                                    const FieldList<Dim< %(ndim)s >, Dim< %(ndim)s >::Vector>&,
                                    const FieldList<Dim< %(ndim)s >, Dim< %(ndim)s >::SymTensor>&,
-                                   FieldList<Dim< %(ndim)s >, Dim< %(ndim)s >::FacetedVolume>&,
                                    FieldList<Dim< %(ndim)s >, Dim< %(ndim)s >::Scalar>&);
 }
 

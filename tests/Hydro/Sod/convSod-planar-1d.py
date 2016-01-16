@@ -121,9 +121,7 @@ eos = GammaLawGasMKS(gammaGas, mu)
 # Interpolation kernels.
 #-------------------------------------------------------------------------------
 WT = TableKernel(BSplineKernel(), 1000)
-WTPi = WT
 output("WT")
-output("WTPi")
 
 #-------------------------------------------------------------------------------
 # Make the NodeLists.
@@ -195,10 +193,9 @@ for nx1 in nxlist:
     #-------------------------------------------------------------------------------
     # Construct the hydro physics object.
     #-------------------------------------------------------------------------------
-    WT = TableKernel(KernelConstructor(), 1000)
-
     if SVPH:
-        hydro = SVPHFacetedHydro(WT, q,
+        hydro = SVPHFacetedHydro(W = WT, 
+                                 Q = q,
                                  cfl = cfl,
                                  compatibleEnergyEvolution = compatibleEnergy,
                                  XSVPH = XSPH,
@@ -209,23 +206,24 @@ for nx1 in nxlist:
                                  xmin = Vector(-100.0),
                                  xmax = Vector( 100.0))
     elif CRKSPH:
-        hydro = CRKSPHHydro(WT, WTPi, q,
-                          filter = filter,
-                          cfl = cfl,
-                          compatibleEnergyEvolution = compatibleEnergy,
-                          XSPH = XSPH,
-                          densityUpdate = densityUpdate,
-                          HUpdate = HUpdate)
+        hydro = CRKSPHHydro(W = WT, 
+                            Q = q,
+                            filter = filter,
+                            cfl = cfl,
+                            compatibleEnergyEvolution = compatibleEnergy,
+                            XSPH = XSPH,
+                            densityUpdate = densityUpdate,
+                            HUpdate = HUpdate)
     elif TSPH:
-        hydro = TaylorSPHHydro(WT, q,
+        hydro = TaylorSPHHydro(W = WT, 
+                               Q = q,
                                cfl = cfl,
                                compatibleEnergyEvolution = compatibleEnergy,
                                XSPH = XSPH,
                                HUpdate = HUpdate)
     else:
-        hydro = SPHHydro(WT,
-                         WTPi,
-                         q,
+        hydro = SPHHydro(W = WT,
+                         Q = q,
                          cfl = cfl,
                          compatibleEnergyEvolution = compatibleEnergy,
                          gradhCorrection = gradhCorrection,

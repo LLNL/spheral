@@ -1,12 +1,12 @@
 # Non-compatible tests
-#ATS:t10 = test(SELF, "--graphics False --restartStep 50 --clearDirectories True --domainIndependent True --compatibleEnergy False --outputFile 'CollidingPlates-1d-1proc-reproducing.txt' --referenceFile 'Reference/CollidingPlates-1d-reference-noncompatible-20150715.txt'", np=1, label="Colliding plates domain independence test SERIAL Non-compatible RUN")
-#ATS:t11 = testif(t10, SELF, "--graphics False --clearDirectories False --domainIndependent True --compatibleEnergy False --outputFile 'CollidingPlates-1d-1proc-reproducing.txt' --referenceFile 'Reference/CollidingPlates-1d-reference-noncompatible-20150715.txt' --restoreCycle 50", np=1, label="Colliding plates domain independence test SERIAL RESTART Non-compatible RUN")
-#ATS:t12 = testif(t10, SELF, "--graphics False --clearDirectories False --domainIndependent True --compatibleEnergy False --outputFile 'CollidingPlates-1d-4proc-reproducing.txt' --referenceFile 'Reference/CollidingPlates-1d-reference-noncompatible-20150715.txt' --comparisonFile 'dumps-CollidingPlates-1d/100/CollidingPlates-1d-1proc-reproducing.txt'", np=4, label="Colliding plates domain independence test 4 DOMAIN Non-compatible RUN")
+#ATS:t10 = test(SELF, "--graphics False --restartStep 50 --clearDirectories True --domainIndependent True --compatibleEnergy False --outputFile 'CollidingPlates-1d-1proc-reproducing.txt' --referenceFile 'Reference/CollidingPlates-1d-reference-noncompatible-20160103.txt'", np=1, label="Colliding plates domain independence test SERIAL Non-compatible RUN")
+#ATS:t11 = testif(t10, SELF, "--graphics False --clearDirectories False --domainIndependent True --compatibleEnergy False --outputFile 'CollidingPlates-1d-1proc-reproducing.txt' --referenceFile 'Reference/CollidingPlates-1d-reference-noncompatible-20160103.txt' --restoreCycle 50", np=1, label="Colliding plates domain independence test SERIAL RESTART Non-compatible RUN")
+#ATS:t12 = testif(t10, SELF, "--graphics False --clearDirectories False --domainIndependent True --compatibleEnergy False --outputFile 'CollidingPlates-1d-4proc-reproducing.txt' --referenceFile 'Reference/CollidingPlates-1d-reference-noncompatible-20160103.txt' --comparisonFile 'dumps-CollidingPlates-1d/SolidSPHHydro1d/MonaghanGingoldViscosity1d/100/CollidingPlates-1d-1proc-reproducing.txt'", np=4, label="Colliding plates domain independence test 4 DOMAIN Non-compatible RUN")
 #
 # Compatible tests
-#ATS:t50 = test(SELF, "--graphics False --restartStep 50 --dataDirBase 'dumps-CollidingPlates-compatible-1d' --clearDirectories True --domainIndependent True --compatibleEnergy True --outputFile 'CollidingPlates-1d-1proc-reproducing.txt' --referenceFile 'Reference/CollidingPlates-1d-reference-compatible-20150715.txt'", np=1, label="Colliding plates domain independence test SERIAL Compatible RUN")
-#ATS:t51 = testif(t50, SELF, "--graphics False --dataDirBase 'dumps-CollidingPlates-compatible-1d' --clearDirectories False --domainIndependent True --compatibleEnergy True --outputFile 'CollidingPlates-1d-1proc-reproducing.txt' --referenceFile 'Reference/CollidingPlates-1d-reference-compatible-20150715.txt' --restoreCycle 50", np=1, label="Colliding plates domain independence test SERIAL RESTART Compatible RUN")
-#ATS:t52 = testif(t50, SELF, "--graphics False --dataDirBase 'dumps-CollidingPlates-compatible-1d' --clearDirectories False --domainIndependent True --compatibleEnergy True --outputFile 'CollidingPlates-1d-4proc-reproducing.txt' --referenceFile 'Reference/CollidingPlates-1d-reference-compatible-20150715.txt' --comparisonFile 'dumps-CollidingPlates-compatible-1d/100/CollidingPlates-1d-1proc-reproducing.txt'", np=4, label="Colliding plates domain independence test 4 DOMAIN Compatible RUN")
+#ATS:t50 = test(SELF, "--graphics False --restartStep 50 --dataDirBase 'dumps-CollidingPlates-compatible-1d' --clearDirectories True --domainIndependent True --compatibleEnergy True --outputFile 'CollidingPlates-1d-1proc-reproducing.txt' --referenceFile 'Reference/CollidingPlates-1d-reference-compatible-20160103.txt'", np=1, label="Colliding plates domain independence test SERIAL Compatible RUN")
+#ATS:t51 = testif(t50, SELF, "--graphics False --dataDirBase 'dumps-CollidingPlates-compatible-1d' --clearDirectories False --domainIndependent True --compatibleEnergy True --outputFile 'CollidingPlates-1d-1proc-reproducing.txt' --referenceFile 'Reference/CollidingPlates-1d-reference-compatible-20160103.txt' --restoreCycle 50", np=1, label="Colliding plates domain independence test SERIAL RESTART Compatible RUN")
+#ATS:t52 = testif(t50, SELF, "--graphics False --dataDirBase 'dumps-CollidingPlates-compatible-1d' --clearDirectories False --domainIndependent True --compatibleEnergy True --outputFile 'CollidingPlates-1d-4proc-reproducing.txt' --referenceFile 'Reference/CollidingPlates-1d-reference-compatible-20160103.txt' --comparisonFile 'dumps-CollidingPlates-compatible-1d/SolidSPHHydro1d/MonaghanGingoldViscosity1d/100/CollidingPlates-1d-1proc-reproducing.txt'", np=4, label="Colliding plates domain independence test 4 DOMAIN Compatible RUN")
 
 #-------------------------------------------------------------------------------
 # A pair of steel plates colliding at the origin.  This is a useful test of
@@ -64,7 +64,9 @@ commandLine(# Geometry
             HUpdate = IdealH,
             densityUpdate = IntegrateDensity,
             compatibleEnergy = True,
+            evolveTotalEnergy = False,
             gradhCorrection = False,
+            correctVelocityGradient = True,
             filter = 0.0,
 
             # Time advancement.
@@ -88,7 +90,7 @@ commandLine(# Geometry
             graphics = True,
             testtol = 1.0e-3,
             clearDirectories = False,
-            referenceFile = "Reference/CollidingPlates-1d-reference-compatible-20150715.txt",
+            referenceFile = "Reference/CollidingPlates-1d-reference-compatible-20160103.txt",
             dataDirBase = "dumps-CollidingPlates-1d",
             outputFile = "None",
             comparisonFile = "None",
@@ -260,7 +262,8 @@ output("q.balsaraShearCorrection")
 # Construct the hydro physics object.
 #-------------------------------------------------------------------------------
 if CRKSPH:
-    hydro = HydroConstructor(WT, WTPi, q,
+    hydro = HydroConstructor(W = WT,
+                             Q = q,
                              filter = filter,
                              cfl = cfl,
                              compatibleEnergyEvolution = compatibleEnergy,
@@ -268,11 +271,14 @@ if CRKSPH:
                              densityUpdate = densityUpdate,
                              HUpdate = HUpdate)
 else:
-    hydro = HydroConstructor(WT, WTPi, q,
+    hydro = HydroConstructor(W = WT,
+                             Q = q,
                              filter = filter,
                              cfl = cfl,
                              compatibleEnergyEvolution = compatibleEnergy,
+                             evolveTotalEnergy = evolveTotalEnergy,
                              gradhCorrection = gradhCorrection,
+                             correctVelocityGradient = correctVelocityGradient,
                              densityUpdate = densityUpdate,
                              HUpdate = HUpdate,
                              XSPH = XSPH,
@@ -408,47 +414,18 @@ if outputFile != "None":
         thpt.sort()
         mo, xprof, rhoprof, Pprof, vprof, epsprof, hprof, sprof = zip(*thpt)
         f = open(outputFile, "w")
-        f.write(("#" + 15*" %16s" + "\n") % ("x", "rho", "P", "v", "eps", "h", "S", "m", 
-                                             "int(x)", "int(rho)", "int(P)", "int(v)", "int(eps)", "int(h)", "int(S)"))
+        f.write(("#" + 7*" %16s" + "\n") % ("x", "rho", "P", "v", "eps", "h", "S"))
         for (xi, rhoi, Pi, vi, epsi, hi, si, mi) in zip(xprof, rhoprof, Pprof, vprof, epsprof, hprof, sprof, mo):
-            f.write((7*"%16.12e " + 8*"%i " + "\n") %
-                    (xi, rhoi, Pi, vi, epsi, hi, si, mi,
-                     unpackElementUL(packElementDouble(xi)),
-                     unpackElementUL(packElementDouble(rhoi)),
-                     unpackElementUL(packElementDouble(Pi)),
-                     unpackElementUL(packElementDouble(vi)),
-                     unpackElementUL(packElementDouble(epsi)),
-                     unpackElementUL(packElementDouble(hi)),
-                     unpackElementUL(packElementDouble(si))))
+            f.write((7*"%16.12e " + "\n") %
+                    (xi, rhoi, Pi, vi, epsi, hi, si))
         f.close()
 
         #---------------------------------------------------------------------------
         # Check the floating values for the state against reference data.
         #---------------------------------------------------------------------------
         if referenceFile != "None":
-            print "Comparing to reference file: %s" % referenceFile
-            f = open(referenceFile, "r")
-            reflines = f.readlines()[1:]
-            f.close()
-            xref =   [float(line.split()[0]) for line in reflines]
-            rhoref = [float(line.split()[1]) for line in reflines]
-            Pref =   [float(line.split()[2]) for line in reflines]
-            vref =   [float(line.split()[3]) for line in reflines]
-            epsref = [float(line.split()[4]) for line in reflines]
-            href =   [float(line.split()[5]) for line in reflines]
-            sref =   [float(line.split()[6]) for line in reflines]
-
-            for f, fref, name in ((xprof, xref, "position"),
-                                  (rhoprof, rhoref, "density"),
-                                  (Pprof, Pref, "pressure"),
-                                  (vprof, vref, "velocity"),
-                                  (epsprof, epsref, "specific thermal energy"),
-                                  (hprof, href, "h"),
-                                  (sprof, sref, "deviatoric stress")):
-                assert len(f) == len(fref)
-                for fi, frefi in zip(f, fref):
-                    if not fuzzyEqual(fi, frefi, testtol):
-                        raise ValueError, "Comparison to reference %s failed\n%s\n%s" % (name, fi, frefi)
+            import filearraycmp as fcomp
+            assert fcomp.filearraycmp(outputFile, referenceFile, testtol, testtol)
             print "Floating point comparison test passed."
 
         #---------------------------------------------------------------------------

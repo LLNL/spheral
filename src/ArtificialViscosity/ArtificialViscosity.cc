@@ -42,11 +42,10 @@ ArtificialViscosity<Dimension>::
 ArtificialViscosity():
   mClinear(1.0),
   mCquadratic(1.0),
+  mQcorrectionOrder(CRKSPHSpace::LinearOrder),  
   mBalsaraShearCorrection(false),
-  mShearMultiplier(FieldSpace::Copy),
-  mReducingViscosityCorrection(false),
-  mReducingViscosityMultiplierQ(FieldSpace::Copy),
-  mReducingViscosityMultiplierL(FieldSpace::Copy),
+  mClMultiplier(FieldSpace::Copy),
+  mCqMultiplier(FieldSpace::Copy),
   mCalculateSigma(false),
   mLimiterSwitch(false),
   mEpsilon2(1.0e-2),
@@ -63,14 +62,13 @@ ArtificialViscosity():
 //------------------------------------------------------------------------------
 template<typename Dimension>
 ArtificialViscosity<Dimension>::
-ArtificialViscosity(Scalar Clinear, Scalar Cquadratic):
+ArtificialViscosity(Scalar Clinear, Scalar Cquadratic, CRKSPHSpace::CRKOrder QcorrectionOrder):
   mClinear(Clinear),
   mCquadratic(Cquadratic),
+  mQcorrectionOrder(QcorrectionOrder), 
   mBalsaraShearCorrection(false),
-  mShearMultiplier(FieldSpace::Copy),
-  mReducingViscosityCorrection(false),
-  mReducingViscosityMultiplierQ(FieldSpace::Copy),
-  mReducingViscosityMultiplierL(FieldSpace::Copy),
+  mClMultiplier(FieldSpace::Copy),
+  mCqMultiplier(FieldSpace::Copy),
   mCalculateSigma(false),
   mLimiterSwitch(false),
   mEpsilon2(1.0e-2),
@@ -113,28 +111,16 @@ initialize(const DataBase<Dimension>& dataBase,
                                                                boundaryBegin,
                                                                boundaryEnd);
 
-  // add rvAlpha to the FluidFieldList if it doesn't already exist
-  if (reducingViscosityCorrection()) {
-    dataBase.resizeFluidFieldList(mReducingViscosityMultiplierQ, 0.1, HydroFieldNames::reducingViscosityMultiplierQ, false);
-    dataBase.resizeFluidFieldList(mReducingViscosityMultiplierL, 0.1, HydroFieldNames::reducingViscosityMultiplierL, false);
-  } else {
-    dataBase.resizeFluidFieldList(mReducingViscosityMultiplierQ, 1.0, HydroFieldNames::reducingViscosityMultiplierQ, false);
-    dataBase.resizeFluidFieldList(mReducingViscosityMultiplierL, 1.0, HydroFieldNames::reducingViscosityMultiplierL, false);
-  }
-  for (typename ArtificialViscosity<Dimension>::ConstBoundaryIterator boundItr = boundaryBegin;
-       boundItr != boundaryEnd;
-       ++boundItr) {
-    (*boundItr)->applyFieldListGhostBoundary(mReducingViscosityMultiplierQ);
-    (*boundItr)->applyFieldListGhostBoundary(mReducingViscosityMultiplierL);
-  }
-    
+  // Start by assuming we're not scaling the linear and quadratic terms by anything.
+  // Note we set the last argument here to false, which ensures that if these Fields already exist we don't overwrite
+  // their values.  This is needed 'cause some physics options (like the Morris & Monaghan time evolved Q or 
+  // Cullen & Dehnen) need to evolve these parameters.
+  dataBase.resizeFluidFieldList(mClMultiplier, 1.0, HydroFieldNames::ArtificialViscousClMultiplier, false);
+  dataBase.resizeFluidFieldList(mCqMultiplier, 1.0, HydroFieldNames::ArtificialViscousCqMultiplier, false);
+
   // If we are applying the Balsara shear flow correction term, calculate the
   // per node multiplier.
   if (balsaraShearCorrection()) {
-
-    // Begin by verifying that the internal FieldList mQultiplier is correctly
-    // sized.
-    dataBase.resizeFluidFieldList(mShearMultiplier, 0.0, "sigmaShear");
 
     // State we need.
     const FieldList<Dimension, Scalar> soundSpeed = state.fields(HydroFieldNames::soundSpeed, 0.0);
@@ -157,19 +143,21 @@ initialize(const DataBase<Dimension>& dataBase,
         CHECK(curl >= 0.0);
         CHECK(hmaxinverse > 0.0);
         CHECK(cs > 0.0);
-        mShearMultiplier(nodeListi, i) = div/(div + curl + epsilon2()*cs*hmaxinverse);
-        CHECK(mShearMultiplier(nodeListi, i) >= 0.0 and mShearMultiplier(nodeListi, i) <= 1.0);
+        const Scalar fshear = div/(div + curl + epsilon2()*cs*hmaxinverse);
+        CHECK(fshear >= 0.0 and fshear <= 1.0);
+        mClMultiplier(nodeListi, i) *= fshear;
+        mCqMultiplier(nodeListi, i) *= fshear;
       }
     }
+  }
 
-    // Apply boundary conditions to fill out the shear corrections on ghost nodes.
-    // We deliberately do not finalize the boundaries here, depending on the calling environment
-    // to know when to do this efficiently.
-    for (typename ArtificialViscosity<Dimension>::ConstBoundaryIterator boundItr = boundaryBegin;
-         boundItr != boundaryEnd;
-         ++boundItr) {
-      (*boundItr)->applyFieldListGhostBoundary(mShearMultiplier);
-    }
+  // We deliberately do not finalize the boundaries here, depending on the calling environment
+  // to know when to do this efficiently.
+  for (typename ArtificialViscosity<Dimension>::ConstBoundaryIterator boundItr = boundaryBegin;
+       boundItr != boundaryEnd;
+       ++boundItr) {
+    (*boundItr)->applyFieldListGhostBoundary(mClMultiplier);
+    (*boundItr)->applyFieldListGhostBoundary(mCqMultiplier);
   }
 }
 
@@ -182,9 +170,8 @@ ArtificialViscosity<Dimension>::
 dumpState(FileIO& file, const string& pathName) const {
   if (calculateSigma()) file.write(mSigma, pathName + "/sigma");
   if (mLimiterSwitch) file.write(gradDivVelocity(), pathName + "/gradDivVelocity");
-  if (mBalsaraShearCorrection) file.write(mShearMultiplier, pathName + "/shearMultiplier");
-  file.write(mReducingViscosityMultiplierQ, pathName + "/reducingViscosityMultiplierQ");
-  file.write(mReducingViscosityMultiplierL, pathName + "/reducingViscosityMultiplierL");
+  file.write(mClMultiplier, pathName + "/ClMultiplier");
+  file.write(mCqMultiplier, pathName + "/CqMultiplier");
 }  
 
 //------------------------------------------------------------------------------
@@ -196,9 +183,8 @@ ArtificialViscosity<Dimension>::
 restoreState(const FileIO& file, const string& pathName) {
   if (calculateSigma()) file.read(mSigma, pathName + "/sigma");
   if (mLimiterSwitch) file.read(mGradDivVelocity, pathName + "/gradDivVelocity");
-  if (mBalsaraShearCorrection) file.read(mShearMultiplier, pathName + "/shearMultiplier");
-  file.read(mReducingViscosityMultiplierQ, pathName + "/reducingViscosityMultiplierQ");
-  file.read(mReducingViscosityMultiplierL, pathName + "/reducingViscosityMultiplierL");
+  file.read(mClMultiplier, pathName + "/ClMultiplier");
+  file.read(mCqMultiplier, pathName + "/CqMultiplier");
 }
 
 //------------------------------------------------------------------------------

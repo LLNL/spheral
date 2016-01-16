@@ -56,7 +56,7 @@ reconstructInternal(const vector<Mesh<Dim<1> >::Vector>& localGenerators,
   const unsigned numDomains = Process::getTotalNumberOfProcesses();
 
   // Pre-conditions.
-  BEGIN_CONTRACT_SCOPE;
+  BEGIN_CONTRACT_SCOPE
   {
     REQUIRE(xmin < xmax);
     for (vector<Vector>::const_iterator itr = localGenerators.begin();
@@ -65,7 +65,7 @@ reconstructInternal(const vector<Mesh<Dim<1> >::Vector>& localGenerators,
       REQUIRE2(xmin <= *itr and *itr <= xmax, "Node out of bounds:  " << *itr << " not in [" << xmin << " " << xmax << "]");
     }
   }
-  END_CONTRACT_SCOPE;
+  END_CONTRACT_SCOPE
 
   // Get the full set of generators we need.
   vector<Vector> generators = localGenerators;
@@ -121,7 +121,7 @@ reconstructInternal(const vector<Mesh<Dim<1> >::Vector>& localGenerators,
   CompareIndicesByPositions zoneComparator(generators);
   sort(zoneOrder.begin(), zoneOrder.end(), zoneComparator);
   CHECK(zoneOrder.size() == generators.size());
-  BEGIN_CONTRACT_SCOPE;
+  BEGIN_CONTRACT_SCOPE
   {
     // This check not only checks that the positions are sorted but
     // also that there are no duplicates.
@@ -132,7 +132,7 @@ reconstructInternal(const vector<Mesh<Dim<1> >::Vector>& localGenerators,
              "Bad generator positions:  " << generators[*itr] << " " << generators[*(itr + 1)]);
     }
   }
-  END_CONTRACT_SCOPE;
+  END_CONTRACT_SCOPE
 
   // It's also useful to have the reverse mapping.
   vector<unsigned> sortedZoneIDs(zoneOrder.size(), UNSETID);
@@ -243,12 +243,12 @@ reconstructInternal(const vector<Mesh<Dim<1> >::Vector>& localGenerators,
   ENSURE(mZones.size() == localGenerators.size());
   ENSURE(mSharedNodes.size() == mNeighborDomains.size());
   ENSURE(mSharedFaces.size() == mNeighborDomains.size());
-  BEGIN_CONTRACT_SCOPE;
+  BEGIN_CONTRACT_SCOPE
   {
     // In 1D we know that every shared node should correspond to a shared face!
     for (unsigned i = 0; i != mSharedNodes.size(); ++i) ENSURE(mSharedFaces[i].size() == mSharedNodes[i].size());
   }
-  END_CONTRACT_SCOPE;
+  END_CONTRACT_SCOPE
   ENSURE2(this->valid() == "", this->valid());
 }
 
@@ -292,7 +292,7 @@ createNewMeshElements(const vector<vector<vector<unsigned> > >& newCells) {
 
   // Pre-conditions.
   REQUIRE(mNodes.size() <= mNodePositions.size());
-  BEGIN_CONTRACT_SCOPE;
+  BEGIN_CONTRACT_SCOPE
   {
     BOOST_FOREACH(const vector<vector<unsigned> >& cellFaces, newCells) {
       REQUIRE(cellFaces.size() == 2);
@@ -300,7 +300,7 @@ createNewMeshElements(const vector<vector<vector<unsigned> > >& newCells) {
       REQUIRE(cellFaces[1].size() == 1 and cellFaces[1][0] < mNodePositions.size());
     }
   }
-  END_CONTRACT_SCOPE;
+  END_CONTRACT_SCOPE
 
   // Some useful sizes.
   const unsigned numOldNodes = mNodes.size();

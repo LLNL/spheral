@@ -318,7 +318,7 @@ redistributeNodes(DataBase<Dimension>& dataBase,
 
   // Post-conditions.
   // Make sure the nodes are now sorted by the index keys.
-  BEGIN_CONTRACT_SCOPE;
+  BEGIN_CONTRACT_SCOPE
   {
     for (typename DataBase<Dimension>::ConstNodeListIterator nodeListItr = dataBase.nodeListBegin();
          nodeListItr != dataBase.nodeListEnd();
@@ -329,7 +329,7 @@ redistributeNodes(DataBase<Dimension>& dataBase,
       }
     }
   }
-  END_CONTRACT_SCOPE;
+  END_CONTRACT_SCOPE
 
 }
 

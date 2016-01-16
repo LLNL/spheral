@@ -1,8 +1,8 @@
 #ATS:if SYS_TYPE.startswith('darwin'):
-#ATS:    t10 = test(SELF, "--graphics False --clearDirectories True --domainIndependent True --outputFile 'TensileRod-GradyKipp-1d-1proc-reproducing.txt' --referenceFile 'Reference/TensileRod-GradyKipp-1d-1proc-reproducing-darwin-20150812.txt'", np=1, label="Tensile rod domain independence test SERIAL RUN")
-#ATS:    t11 = testif(t10, SELF, "--graphics False --clearDirectories False --domainIndependent True --outputFile 'TensileRod-GradyKipp-1d-4proc-reproducing.txt' --comparisonFile 'TensileRod-GradyKipp-1d-1proc-reproducing.txt' --referenceFile 'Reference/TensileRod-GradyKipp-1d-1proc-reproducing-darwin-20150812.txt'", np=4, label="Tensile rod domain independence test 4 DOMAIN RUN")
-#ATS:    t12 = testif(t10, SELF, "--graphics False --clearDirectories False --domainIndependent True --outputFile 'TensileRod-GradyKipp-1d-1proc-reproducing-restart.txt' --comparisonFile 'TensileRod-GradyKipp-1d-1proc-reproducing.txt' --restoreCycle 500 --referenceFile 'Reference/TensileRod-GradyKipp-1d-1proc-reproducing-darwin-20150812.txt'", np=1, label="Tensile rod domain independence test SERIAL RESTART RUN")
-#ATS:    t13 = testif(t11, SELF, "--graphics False --clearDirectories False --domainIndependent True --outputFile 'TensileRod-GradyKipp-1d-4proc-reproducing-restart.txt' --comparisonFile 'TensileRod-GradyKipp-1d-1proc-reproducing.txt' --restoreCycle 500 --referenceFile 'Reference/TensileRod-GradyKipp-1d-1proc-reproducing-darwin-20150812.txt'", np=4, label="Tensile rod domain independence test 4 DOMAIN RESTART RUN")
+#ATS:    t10 = test(SELF, "--graphics False --clearDirectories True --domainIndependent True --outputFile 'TensileRod-GradyKipp-1d-1proc-reproducing.txt' --referenceFile 'Reference/TensileRod-GradyKipp-1d-1proc-reproducing-darwin-20160103.txt'", np=1, label="Tensile rod domain independence test SERIAL RUN")
+#ATS:    t11 = testif(t10, SELF, "--graphics False --clearDirectories False --domainIndependent True --outputFile 'TensileRod-GradyKipp-1d-4proc-reproducing.txt' --comparisonFile 'TensileRod-GradyKipp-1d-1proc-reproducing.txt' --referenceFile 'Reference/TensileRod-GradyKipp-1d-1proc-reproducing-darwin-20160103.txt'", np=4, label="Tensile rod domain independence test 4 DOMAIN RUN")
+#ATS:    t12 = testif(t10, SELF, "--graphics False --clearDirectories False --domainIndependent True --outputFile 'TensileRod-GradyKipp-1d-1proc-reproducing-restart.txt' --comparisonFile 'TensileRod-GradyKipp-1d-1proc-reproducing.txt' --restoreCycle 500 --referenceFile 'Reference/TensileRod-GradyKipp-1d-1proc-reproducing-darwin-20160103.txt'", np=1, label="Tensile rod domain independence test SERIAL RESTART RUN")
+#ATS:    t13 = testif(t11, SELF, "--graphics False --clearDirectories False --domainIndependent True --outputFile 'TensileRod-GradyKipp-1d-4proc-reproducing-restart.txt' --comparisonFile 'TensileRod-GradyKipp-1d-1proc-reproducing.txt' --restoreCycle 500 --referenceFile 'Reference/TensileRod-GradyKipp-1d-1proc-reproducing-darwin-20160103.txt'", np=4, label="Tensile rod domain independence test 4 DOMAIN RESTART RUN")
 #ATS:else:
 #ATS:    t10 = test(SELF, "--graphics False --clearDirectories True --domainIndependent True --outputFile 'TensileRod-GradyKipp-1d-1proc-reproducing.txt'", np=1, label="Tensile rod domain independence test SERIAL RUN")
 #ATS:    t11 = testif(t10, SELF, "--graphics False --clearDirectories False --domainIndependent True --outputFile 'TensileRod-GradyKipp-1d-4proc-reproducing.txt' --comparisonFile 'TensileRod-GradyKipp-1d-1proc-reproducing.txt'", np=4, label="Tensile rod domain independence test 4 DOMAIN RUN")
@@ -147,7 +147,8 @@ commandLine(length = 3.0,
             HUpdate = IdealH,
             densityUpdate = IntegrateDensity,
             compatibleEnergy = True,
-            gradhCorrection = False,
+            gradhCorrection = True,
+            correctVelocityGradient = True,
             domainIndependent = False,
             dtverbose = False,
 
@@ -156,9 +157,9 @@ commandLine(length = 3.0,
 
             graphics = True,
 
-            testtol = 1.0e-3,
+            testtol = 1.0e-4,
             clearDirectories = False,
-            referenceFile = "Reference/TensileRod-GradyKipp-1d-1proc-reproducing-20150917.txt",
+            referenceFile = "Reference/TensileRod-GradyKipp-1d-1proc-reproducing-20160104.txt",
             dataDirBase = "dumps-TensileRod-1d",
             outputFile = "None",
             comparisonFile = "None",
@@ -438,7 +439,8 @@ output("q.balsaraShearCorrection")
 # Construct the hydro physics object.
 #-------------------------------------------------------------------------------
 if CRKSPH:
-    hydro = HydroConstructor(WT, WTPi, q,
+    hydro = HydroConstructor(W = WT,
+                             Q = q,
                              filter = filter,
                              cfl = cfl,
                              compatibleEnergyEvolution = compatibleEnergy,
@@ -446,11 +448,13 @@ if CRKSPH:
                              densityUpdate = densityUpdate,
                              HUpdate = HUpdate)
 else:
-    hydro = HydroConstructor(WT, WTPi, q,
+    hydro = HydroConstructor(W = WT,
+                             Q = q,
                              filter = filter,
                              cfl = cfl,
                              compatibleEnergyEvolution = compatibleEnergy,
                              gradhCorrection = gradhCorrection,
+                             correctVelocityGradient = correctVelocityGradient,
                              densityUpdate = densityUpdate,
                              HUpdate = HUpdate,
                              XSPH = XSPH,
@@ -671,48 +675,17 @@ if outputFile != "None":
     if mpi.rank == 0:
         multiSort(mo, xprof, rhoprof, Pprof, vprof, epsprof, hprof, sprof, dprof)
         f = open(outputFile, "w")
-        f.write(("#" + 17*" %16s" + "\n") % ("x", "rho", "P", "v", "eps", "h", "S", "D", "m", 
-                                             "int(x)", "int(rho)", "int(P)", "int(v)", "int(eps)", "int(h)", "int(S)", "int(D)"))
-        for (xi, rhoi, Pi, vi, epsi, hi, si, di, mi) in zip(xprof, rhoprof, Pprof, vprof, epsprof, hprof, sprof, dprof, mo):
-            f.write((8*"%16.12e " + 9*"%i " + "\n") %
-                    (xi, rhoi, Pi, vi, epsi, hi, si, di, mi,
-                     unpackElementUL(packElementDouble(xi)),
-                     unpackElementUL(packElementDouble(rhoi)),
-                     unpackElementUL(packElementDouble(Pi)),
-                     unpackElementUL(packElementDouble(vi)),
-                     unpackElementUL(packElementDouble(epsi)),
-                     unpackElementUL(packElementDouble(hi)),
-                     unpackElementUL(packElementDouble(si)),
-                     unpackElementUL(packElementDouble(di))))
+        f.write(("#" + 8*" %16s" + "\n") % ("x", "rho", "P", "v", "eps", "h", "S", "D"))
+        for (xi, rhoi, Pi, vi, epsi, hi, si, di) in zip(xprof, rhoprof, Pprof, vprof, epsprof, hprof, sprof, dprof):
+            f.write((8*"%16.12e " + "\n") %
+                    (xi, rhoi, Pi, vi, epsi, hi, si, di))
         f.close()
 
         #---------------------------------------------------------------------------
         # Check the floating values for the state against reference data.
         #---------------------------------------------------------------------------
-        f = open(referenceFile, "r")
-        reflines = f.readlines()[1:]
-        f.close()
-        xref =   [float(line.split()[0]) for line in reflines]
-        rhoref = [float(line.split()[1]) for line in reflines]
-        Pref =   [float(line.split()[2]) for line in reflines]
-        vref =   [float(line.split()[3]) for line in reflines]
-        epsref = [float(line.split()[4]) for line in reflines]
-        href =   [float(line.split()[5]) for line in reflines]
-        sref =   [float(line.split()[6]) for line in reflines]
-        dref =   [float(line.split()[7]) for line in reflines]
-
-        for f, fref, name, tt in ((xprof, xref, "position", testtol),
-                                  (rhoprof, rhoref, "density", testtol),
-                                  (Pprof, Pref, "pressure", testtol),
-                                  (vprof, vref, "velocity", testtol),
-                                  (epsprof, epsref, "specific thermal energy", testtol),
-                                  (hprof, href, "h", testtol),
-                                  (sprof, sref, "strain", testtol),
-                                  (dprof, dref, "damage", testtol)):
-            assert len(f) == len(fref)
-            for fi, frefi in zip(f, fref):
-                if not fuzzyEqual(fi, frefi, tt):
-                    raise ValueError, "Comparison to reference %s failed : %g != %g : %g" % (name, fi, frefi, tt)
+        import filearraycmp as fcomp
+        assert fcomp.filearraycmp(outputFile, referenceFile, testtol, testtol)
         print "Floating point comparison test passed."
 
         #---------------------------------------------------------------------------

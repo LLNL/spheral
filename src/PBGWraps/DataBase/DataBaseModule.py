@@ -249,6 +249,9 @@ self.addDataBaseMethods(self.DataBase%(dim)id, %(dim)i)
         vector = "Vector%id" % ndim
         tensor = "Tensor%id" % ndim
         symtensor = "SymTensor%id" % ndim
+        thirdranktensor = "ThirdRankTensor%id" % ndim
+        fourthranktensor = "FourthRankTensor%id" % ndim
+        fifthranktensor = "FifthRankTensor%id" % ndim
         polyvol = {1: "Box1d", 
                    2: "Polygon",
                    3: "Polyhedron"}[ndim]
@@ -259,6 +262,8 @@ self.addDataBaseMethods(self.DataBase%(dim)id, %(dim)i)
         vector3dfield = "Spheral::FieldSpace::Vector3dField%id" % ndim
         tensorfield = "Spheral::FieldSpace::TensorField%id" % ndim
         thirdranktensorfield = "Spheral::FieldSpace::ThirdRankTensorField%id" % ndim
+        fourthranktensorfield = "Spheral::FieldSpace::FourthRankTensorField%id" % ndim
+        fifthranktensorfield = "Spheral::FieldSpace::FifthRankTensorField%id" % ndim
         polyvolfield = "Spheral::FieldSpace::FacetedVolumeField%id" % ndim
         vectordoublefield = "Spheral::FieldSpace::VectorDoubleField%id" % ndim
         vectorvectorfield = "Spheral::FieldSpace::VectorVectorField%id" % ndim
@@ -271,6 +276,8 @@ self.addDataBaseMethods(self.DataBase%(dim)id, %(dim)i)
         tensorfieldlist = "Spheral::FieldSpace::TensorFieldList%id" % ndim
         symtensorfieldlist = "Spheral::FieldSpace::SymTensorFieldList%id" % ndim
         thirdranktensorfieldlist = "Spheral::FieldSpace::ThirdRankTensorFieldList%id" % ndim
+        fourthranktensorfieldlist = "Spheral::FieldSpace::FourthRankTensorFieldList%id" % ndim
+        fifthranktensorfieldlist = "Spheral::FieldSpace::FifthRankTensorFieldList%id" % ndim
         polyvolfieldlist = "Spheral::FieldSpace::FacetedVolumeFieldList%id" % ndim
         vectordoublefieldlist = "Spheral::FieldSpace::VectorDoubleFieldList%id" % ndim
         vectorvectorfieldlist = "Spheral::FieldSpace::VectorVectorFieldList%id" % ndim
@@ -345,6 +352,9 @@ self.addDataBaseMethods(self.DataBase%(dim)id, %(dim)i)
                                                    (vectorfieldlist, vector, "%s::zero" % vector, "Vector"),
                                                    (tensorfieldlist, tensor, "%s::zero" % tensor, "Tensor"),
                                                    (symtensorfieldlist, symtensor, "%s::zero" % symtensor, "SymTensor"),
+                                                   (thirdranktensorfieldlist, thirdranktensor, "%s::zero" % thirdranktensor, "ThirdRankTensor"),
+                                                   (fourthranktensorfieldlist, fourthranktensor, "%s::zero" % fourthranktensor, "FourthRankTensor"),
+                                                   (fifthranktensorfieldlist, fifthranktensor, "%s::zero" % fifthranktensor, "FifthRankTensor"),
                                                    (polyvolfieldlist, polyvol, "%s()" % polyvol, "FacetedVolume")]:
             exec("""
 x.add_method("newGlobalFieldList", "%(result)s", [param("%(value)s", "value", default_value="%(default)s"),

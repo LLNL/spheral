@@ -40,9 +40,10 @@ using FieldSpace::gradient;
 template<typename Dimension>
 ArtificialConduction<Dimension>::
 ArtificialConduction(const TableKernel<Dimension>& W,
-                     const Scalar alphaArCond):
+                     const Scalar alphaArCond, const CRKSPHSpace::CRKOrder ACcorrectionOrder):
     Physics<Dimension>(),
     mKernel(W),
+    mACcorrectionOrder(ACcorrectionOrder),
     mAlphaArCond(alphaArCond){
     
 }
@@ -57,6 +58,22 @@ ArtificialConduction<Dimension>::~ArtificialConduction() {
 //------------------------------------------------------------------------------
 // Accessor Fns
 //------------------------------------------------------------------------------
+template<typename Dimension>
+inline
+CRKSPHSpace::CRKOrder
+ArtificialConduction<Dimension>::ACcorrectionOrder() const {
+  return mACcorrectionOrder;
+}
+
+template<typename Dimension>
+inline
+void
+ArtificialConduction<Dimension>::
+ACcorrectionOrder(const CRKSPHSpace::CRKOrder order) {
+  mACcorrectionOrder = order;
+}
+
+
     
 //------------------------------------------------------------------------------
 // On problem start up, we need to initialize our internal data.
@@ -148,16 +165,17 @@ evaluateDerivatives(const typename Dimension::Scalar time,
         CRKSPHisOn = 1;
         const FieldList<Dimension, Scalar> A = state.fields(HydroFieldNames::A_CRKSPH, 0.0);
         const FieldList<Dimension, Vector> B = state.fields(HydroFieldNames::B_CRKSPH, Vector::zero);
+        const FieldList<Dimension, Tensor> C = state.fields(HydroFieldNames::C_CRKSPH, Tensor::zero);
         const FieldList<Dimension, Vector> gradA0 = state.fields(HydroFieldNames::gradA0_CRKSPH, Vector::zero);
         const FieldList<Dimension, Vector> gradA = state.fields(HydroFieldNames::gradA_CRKSPH, Vector::zero);
         const FieldList<Dimension, Tensor> gradB = state.fields(HydroFieldNames::gradB_CRKSPH, Tensor::zero);
+        const FieldList<Dimension, ThirdRankTensor> gradC = state.fields(HydroFieldNames::gradC_CRKSPH, ThirdRankTensor::zero);
         CHECK(A.size() == numNodeLists);
         CHECK(B.size() == numNodeLists);
         CHECK(gradA0.size() == numNodeLists);
         CHECK(gradA.size() == numNodeLists);
         CHECK(gradB.size() == numNodeLists);
-        
-        gradP = gradientCRKSPH(pressure, position, mass, H, A, B, gradA, gradB, connectivityMap, W, NodeCoupling());
+        gradP = gradientCRKSPH(pressure, position, mass, H, A, B, C, gradA, gradB, gradC, connectivityMap, ACcorrectionOrder(), W, NodeCoupling());
     }
     else { gradP = gradient(pressure,position,mass,mass,massDensity,H,W); }
     

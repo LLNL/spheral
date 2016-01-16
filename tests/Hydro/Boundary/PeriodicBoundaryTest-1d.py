@@ -119,9 +119,8 @@ q.balsaraShearCorrection = balsaraCorrection
 #-------------------------------------------------------------------------------
 # Construct the hydro physics object.
 #-------------------------------------------------------------------------------
-hydro = HydroConstructor(WT,
-                         WT,
-                         q,
+hydro = HydroConstructor(W = WT,
+                         Q = q,
                          cfl = cfl,
                          compatibleEnergyEvolution = compatibleEnergy,
                          gradhCorrection = gradhCorrection,

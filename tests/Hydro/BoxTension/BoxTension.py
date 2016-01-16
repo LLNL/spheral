@@ -52,11 +52,13 @@ commandLine(
     ny2 = 50,
 
     nPerh = 1.51,
+    KernelConstructor = BSplineKernel,
+    order = 5,
 
     SVPH = False,
     CRKSPH = False,
+    PSPH = False,
     ASPH = False,
-    SPH = True,   # This just chooses the H algorithm -- you can use this with CRKSPH for instance.
     filter = 0.0,  # For CRKSPH
     Qconstructor = MonaghanGingoldViscosity,
     #Qconstructor = TensorMonaghanGingoldViscosity,
@@ -64,6 +66,15 @@ commandLine(
     nh = 5.0,
     aMin = 0.1,
     aMax = 2.0,
+    boolCullenViscosity = False,
+    alphMax = 2.0,
+    alphMin = 0.02,
+    betaC = 0.7,
+    betaD = 0.05,
+    betaE = 1.0,
+    fKern = 1.0/3.0,
+    boolHopkinsCorrection = True,
+
     linearConsistent = False,
     fcentroidal = 0.0,
     fcellPressure = 0.0,
@@ -76,14 +87,14 @@ commandLine(
     hmax = 0.5,
     hminratio = 0.1,
     cfl = 0.5,
-    XSPH = True,
+    XSPH = False,
     epsilonTensile = 0.0,
     nTensile = 8,
 
     IntegratorConstructor = CheapSynchronousRK2Integrator,
     goalTime = 7.0,
     steps = None,
-    vizCycle = 5,
+    vizCycle = None,
     vizTime = 0.1,
     dt = 0.0001,
     dtMin = 1.0e-5, 
@@ -97,8 +108,10 @@ commandLine(
     dtverbose = False,
 
     densityUpdate = RigorousSumDensity, # VolumeScaledDensity,
+    correctionOrder = LinearOrder,
     compatibleEnergy = True,
     gradhCorrection = False,
+    serialDump = False,
 
     useVoronoiOutput = True,
     clearDirectories = False,
@@ -106,6 +119,7 @@ commandLine(
     restartStep = 200,
     dataDir = "dumps-boxtension-xy",
     )
+assert not(boolReduceViscosity and boolCullenViscosity)
 
 # Decide on our hydro algorithm.
 if SVPH:
@@ -118,6 +132,11 @@ elif CRKSPH:
         HydroConstructor = ACRKSPHHydro
     else:
         HydroConstructor = CRKSPHHydro
+elif PSPH:
+    if ASPH:
+        HydroConstructor = APSPHHydro
+    else:
+        HydroConstructor = PSPHHydro
 else:
     if ASPH:
         HydroConstructor = ASPHHydro
@@ -177,10 +196,11 @@ eos2 = GammaLawGasMKS(gamma1, mu)
 #-------------------------------------------------------------------------------
 # Interpolation kernels.
 #-------------------------------------------------------------------------------
-WT = TableKernel(BSplineKernel(), 1000)
-WTPi = WT # TableKernel(HatKernel(1.0, 1.0), 1000)
+if KernelConstructor==NBSplineKernel:
+  WT = TableKernel(NBSplineKernel(order), 1000)
+else:
+  WT = TableKernel(KernelConstructor(), 1000)
 output("WT")
-output("WTPi")
 kernelExtent = WT.kernelExtent
 
 #-------------------------------------------------------------------------------
@@ -190,11 +210,13 @@ outerNodes = makeFluidNodeList("outer", eos1,
                                hmin = hmin,
                                hmax = hmax,
                                hminratio = hminratio,
+                               kernelExtent = kernelExtent,
                                nPerh = nPerh)
 innerNodes = makeFluidNodeList("inner", eos2,
                                hmin = hmin,
                                hmax = hmax,
                                hminratio = hminratio,
+                               kernelExtent = kernelExtent,
                                nPerh = nPerh)
 nodeSet = (outerNodes, innerNodes)
 for nodes in nodeSet:
@@ -216,14 +238,14 @@ if restoreCycle is None:
                                                 xminreject = (x1, y1),
                                                 xmaxreject = (x2, y2),
                                                 nNodePerh = nPerh,
-                                                SPH = SPH,
+                                                SPH = not ASPH,
                                                 reversereject = True)
     generatorInner = GenerateNodeDistribution2d(nx2, ny2, rho2,
                                                 distributionType = "lattice",
                                                 xmin = (x1, y1),
                                                 xmax = (x2, y2),
                                                 nNodePerh = nPerh,
-                                                SPH = SPH)
+                                                SPH = not ASPH)
 
     if mpi.procs > 1:
         from VoronoiDistributeNodes import distributeNodes2d
@@ -287,7 +309,8 @@ output("q.balsaraShearCorrection")
 # Construct the hydro physics object.
 #-------------------------------------------------------------------------------
 if SVPH:
-    hydro = HydroConstructor(WT, q,
+    hydro = HydroConstructor(W = WT, 
+                             Q = q,
                              cfl = cfl,
                              compatibleEnergyEvolution = compatibleEnergy,
                              densityUpdate = densityUpdate,
@@ -300,19 +323,20 @@ if SVPH:
                              xmin = Vector(x0 - (x3 - x0), y0 - (y3 - y0)),
                              xmax = Vector(x3 + (x3 - x0), y3 + (y3 - y0)))
 elif CRKSPH:
-    hydro = HydroConstructor(WT, WTPi, q,
+    hydro = HydroConstructor(W = WT, 
+                             Q = q,
                              filter = filter,
                              epsTensile = epsilonTensile,
                              nTensile = nTensile,
                              cfl = cfl,
                              compatibleEnergyEvolution = compatibleEnergy,
                              XSPH = XSPH,
+                             correctionOrder = correctionOrder,
                              densityUpdate = densityUpdate,
                              HUpdate = HUpdate)
 else:
-    hydro = HydroConstructor(WT,
-                             WTPi,
-                             q,
+    hydro = HydroConstructor(W = WT,
+                             Q = q,
                              cfl = cfl,
                              compatibleEnergyEvolution = compatibleEnergy,
                              gradhCorrection = gradhCorrection,
@@ -334,12 +358,13 @@ packages = [hydro]
 #-------------------------------------------------------------------------------
 # Construct the MMRV physics object.
 #-------------------------------------------------------------------------------
-
 if boolReduceViscosity:
-    #q.reducingViscosityCorrection = True
     evolveReducingViscosityMultiplier = MorrisMonaghanReducingViscosity(q,nh,aMin,aMax)
-    
     packages.append(evolveReducingViscosityMultiplier)
+elif boolCullenViscosity:
+    evolveCullenViscosityMultiplier = CullenDehnenViscosity(q,WT,alphMax,alphMin,betaC,betaD,betaE,fKern,boolHopkinsCorrection)
+    packages.append(evolveCullenViscosityMultiplier)
+
 
 
 #-------------------------------------------------------------------------------
@@ -358,8 +383,8 @@ xbc1 = ReflectingBoundary(xPlane1)
 ybc0 = ReflectingBoundary(yPlane0)
 ybc1 = ReflectingBoundary(yPlane1)
 
-#bcSet = [xbc, ybc]
-bcSet = [xbc0, xbc1, ybc0, ybc1]
+bcSet = [xbc, ybc]
+#bcSet = [xbc0, xbc1, ybc0, ybc1]
 
 for p in packages:
     for bc in bcSet:
@@ -422,3 +447,21 @@ else:
     control.advance(goalTime, maxSteps)
     control.updateViz(control.totalSteps, integrator.currentTime, 0.0)
     control.dropRestartFile()
+
+if serialDump:
+  procs = mpi.procs
+  rank = mpi.rank
+  serialData = []
+  i,j = 0,0
+  for i in xrange(procs):
+    for nodeL in nodeSet:
+      if rank == i:
+        for j in xrange(nodeL.numInternalNodes):
+          serialData.append([nodeL.positions()[j],3.0/(nodeL.Hfield()[j].Trace()),nodeL.mass()[j],nodeL.massDensity()[j],nodeL.specificThermalEnergy()[j]])
+  serialData = mpi.reduce(serialData,mpi.SUM)
+  if rank == 0:
+    f = open(dataDir + "/serialDump.ascii",'w')
+    for i in xrange(len(serialData)):
+      f.write("{0} {1} {2} {3} {4} {5} {6} {7}\n".format(i,serialData[i][0][0],serialData[i][0][1],0.0,serialData[i][1],serialData[i][2],serialData[i][3],serialData[i][4]))
+    f.close()
+

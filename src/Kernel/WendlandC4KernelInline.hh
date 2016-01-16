@@ -10,27 +10,27 @@ template<>
 inline
 WendlandC4Kernel< Dim<1> >::WendlandC4Kernel():
   Kernel<Dim<1>, WendlandC4Kernel< Dim<1> > >() {
-  setVolumeNormalization(27.0/37.0);
-  setKernelExtent(2.0);
-  setInflectionPoint(1.0/3.0);
+  setVolumeNormalization(3.0/2.0);
+  setKernelExtent(1.0);
+  setInflectionPoint(0.275978);
 }
 
 template<>
 inline
 WendlandC4Kernel< Dim<2> >::WendlandC4Kernel():
   Kernel<Dim<2>, WendlandC4Kernel< Dim<2> > >() {
-  setVolumeNormalization(9.0/(5.0*M_PI));
-  setKernelExtent(2.0);
-  setInflectionPoint(1.0/3.0);
+  setVolumeNormalization(9.0/(M_PI));
+  setKernelExtent(1.0);
+  setInflectionPoint(0.235571);
 }
 
 template<>
 inline
 WendlandC4Kernel< Dim<3> >::WendlandC4Kernel():
   Kernel<Dim<3>, WendlandC4Kernel< Dim<3> > >() {
-  setVolumeNormalization(165.0/(112.0*M_PI));
-  setKernelExtent(2.0);
-  setInflectionPoint(1.0/3.0);
+  setVolumeNormalization(495.0/(32.0*M_PI));
+  setKernelExtent(1.0);
+  setInflectionPoint(0.235571);
 }
 
 //------------------------------------------------------------------------------
@@ -51,13 +51,13 @@ WendlandC4Kernel<Dimension>::kernelValue(double etaMagnitude, double Hdet) const
   REQUIRE(etaMagnitude >= 0.0);
   REQUIRE(Hdet >= 0.0);
 
-  if (etaMagnitude < 2.0) {
-    double eta2 = etaMagnitude*etaMagnitude;
-    return this->volumeNormalization()*Hdet*(pow(1.0-0.5*etaMagnitude,6)*
-                                             (1.0+3.0*etaMagnitude+(35.0/6.0)*eta2));
-  } else {
-    return 0.0;
-  }
+  double eta2 = etaMagnitude*etaMagnitude;
+  if(Dimension::nDim == 1)
+      return this->volumeNormalization()*Hdet*(pow(1.0-etaMagnitude,5)*
+                                             (1.0+5.0*etaMagnitude+8.0*eta2))*(etaMagnitude < 1.0);
+  else
+      return this->volumeNormalization()*Hdet*(pow(1.0-etaMagnitude,6)*
+                                             (1.0+6.0*etaMagnitude+(35.0/3.0)*eta2))*(etaMagnitude < 1.0);
 }
 
 //------------------------------------------------------------------------------
@@ -70,12 +70,14 @@ WendlandC4Kernel<Dimension>::gradValue(double etaMagnitude, double Hdet) const {
   REQUIRE(etaMagnitude >= 0.0);
   REQUIRE(Hdet >= 0.0);
 
-  if (etaMagnitude < 2.0) {
-    return  this->volumeNormalization()*Hdet*((7.0/192.0)*pow(etaMagnitude-2.0,5)*
-                                              etaMagnitude*(20.0*etaMagnitude-1.0));
-  } else {
-    return 0.0;
-  }
+  if(Dimension::nDim == 1)
+      return this->volumeNormalization()*Hdet*(-14.0*pow(1.0-etaMagnitude,4)*etaMagnitude*
+                                             (1.0+4.0*etaMagnitude))*(etaMagnitude < 1.0);
+  else
+      return  this->volumeNormalization()*Hdet*((56.0/3.0)*pow(etaMagnitude-1.0,5)*
+                                              etaMagnitude*(5.0*etaMagnitude+1.0))*(etaMagnitude < 1.0);
+
+
 }
 
 //------------------------------------------------------------------------------
@@ -87,14 +89,16 @@ double
 WendlandC4Kernel<Dimension>::grad2Value(double etaMagnitude, double Hdet) const {
   REQUIRE(etaMagnitude >= 0.0);
   REQUIRE(Hdet >= 0.0);
-
-  if (etaMagnitude < 1.0) {
     const double eta2 = etaMagnitude*etaMagnitude;
-    return this->volumeNormalization()*Hdet*((7.0/96.0)*pow(etaMagnitude-2.0,4)*
-                                               (70.0*eta2-43.0*etaMagnitude+1.0));
-  } else {
-    return 0.0;
-  }
+    if(Dimension::nDim == 1)
+      return this->volumeNormalization()*Hdet*(-14.0*pow(etaMagnitude-1.0,3)*
+                                             (24.0*eta2-3.0*etaMagnitude-1.0))*(etaMagnitude < 1.0);
+    else
+      return this->volumeNormalization()*Hdet*((56.0/3.0)*pow(etaMagnitude-1.0,4)*
+                                               (35.0*eta2-4.0*etaMagnitude-1.0))*(etaMagnitude < 1.0);
+
+
+
 }
 
 }

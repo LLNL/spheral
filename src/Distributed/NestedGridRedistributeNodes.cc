@@ -237,11 +237,11 @@ redistributeNodes(DataBase<Dimension>& dataBase,
   CHECK(currentDomain == numProcs);
 
   // Check that all nodes really really have been assigned to a domain.
-  BEGIN_CONTRACT_SCOPE;
+  BEGIN_CONTRACT_SCOPE
   for (typename vector<DomainNode<Dimension> >::iterator itr = nodeDistribution.begin();
        itr != nodeDistribution.end();
        ++itr) CHECK(itr->domainID >= 0 && itr->domainID < numProcs);
-  END_CONTRACT_SCOPE;
+  END_CONTRACT_SCOPE
 
   // The nodeDistribution now holds the desired redistribution of the nodes.
   // Go ahead and redistribute them.
@@ -302,7 +302,7 @@ computeGridCellPopulations(const DataBase<Dimension>& dataBase,
     }
   }
 
-  BEGIN_CONTRACT_SCOPE;
+  BEGIN_CONTRACT_SCOPE
   // Check that the local grid cell and grid level counts are consistent before
   // we begin to reduce global info.
   for (int gridLevel = 0; gridLevel != numOccupiedGridLevels; ++gridLevel) {
@@ -312,7 +312,7 @@ computeGridCellPopulations(const DataBase<Dimension>& dataBase,
          ++itr) checkCount += itr->second;
     CHECK(checkCount == gridLevelPopulations[gridLevel]);
   }
-  END_CONTRACT_SCOPE;
+  END_CONTRACT_SCOPE
 
   // Every domain has individually counted up the number of nodes, so sum the
   // counts over all processes to get the global counts.
@@ -403,7 +403,7 @@ findMaster(const typename NestedGridRedistributeNodes<Dimension>::GridCellPopula
            int& gridLevel) const {
 
   // Preconditions.
-  BEGIN_CONTRACT_SCOPE;
+  BEGIN_CONTRACT_SCOPE
   REQUIRE(gridCellPopulations.size() == gridLevelPopulations.size());
   for (int i = 0; i != gridCellPopulations.size(); ++i) {
     int check = 0;
@@ -412,7 +412,7 @@ findMaster(const typename NestedGridRedistributeNodes<Dimension>::GridCellPopula
          ++itr) check += itr->second;
     REQUIRE(check == gridLevelPopulations[i]);
   }
-  END_CONTRACT_SCOPE;
+  END_CONTRACT_SCOPE
 
   // First find the grid level with the most nodes.
   const int numGridLevels = gridLevelPopulations.size();
@@ -745,11 +745,11 @@ gatherAvailableCoarseNodes(const DataBase<Dimension>& dataBase,
 
   // OK, now the root process has all info, while all other processes have their own
   // local set of coarse nodes only.
-  BEGIN_CONTRACT_SCOPE;
+  BEGIN_CONTRACT_SCOPE
   ENSURE(globalNodeIndices.size() == globalNodeWork.size());
   sort(globalNodeIndices.begin(), globalNodeIndices.end());
   ENSURE(unique(globalNodeIndices.begin(), globalNodeIndices.end()) == globalNodeIndices.end());
-  END_CONTRACT_SCOPE;
+  END_CONTRACT_SCOPE
 }
 
 //------------------------------------------------------------------------------
@@ -848,28 +848,30 @@ assignNodesToDomain(const DataBase<Dimension>& dataBase,
   }
 
   // Post-conditions.
-  BEGIN_CONTRACT_SCOPE;
-  // Check that everyone agrees if the domain is full or not.
-  int fullFlag = domainFull ? 1 : 0;
-  int fullFlagSum;
-  MPI_Allreduce(&fullFlag, &fullFlagSum, 1, MPI_INT, MPI_SUM, Communicator::communicator());
-  ENSURE(fullFlagSum == numProcs * fullFlag);
+  BEGIN_CONTRACT_SCOPE
+  {
+    // Check that everyone agrees if the domain is full or not.
+    int fullFlag = domainFull ? 1 : 0;
+    int fullFlagSum;
+    MPI_Allreduce(&fullFlag, &fullFlagSum, 1, MPI_INT, MPI_SUM, Communicator::communicator());
+    ENSURE(fullFlagSum == numProcs * fullFlag);
 
-  // Check that we're all consistent about the grid level & grid cell populations.
-  for (int gl = 0; gl != numGridLevels; ++gl) {
-    int glPop = gridLevelPopulations[gl];
-    int gcPop = 0;
-    for (typename map<GridCellIndex<Dimension>, int>::const_iterator itr = gridCellPopulations[gl].begin();
-         itr != gridCellPopulations[gl].end();
-         ++itr) gcPop += itr->second;
-    CHECK(glPop == gcPop);
-    int glPopSum, gcPopSum;
-    MPI_Allreduce(&glPop, &glPopSum, 1, MPI_INT, MPI_SUM, Communicator::communicator());
-    MPI_Allreduce(&gcPop, &gcPopSum, 1, MPI_INT, MPI_SUM, Communicator::communicator());
-    CHECK(glPopSum == numProcs * glPop);
-    CHECK(gcPopSum == numProcs * gcPop);
+    // Check that we're all consistent about the grid level & grid cell populations.
+    for (int gl = 0; gl != numGridLevels; ++gl) {
+      int glPop = gridLevelPopulations[gl];
+      int gcPop = 0;
+      for (typename map<GridCellIndex<Dimension>, int>::const_iterator itr = gridCellPopulations[gl].begin();
+           itr != gridCellPopulations[gl].end();
+           ++itr) gcPop += itr->second;
+      CHECK(glPop == gcPop);
+      int glPopSum, gcPopSum;
+      MPI_Allreduce(&glPop, &glPopSum, 1, MPI_INT, MPI_SUM, Communicator::communicator());
+      MPI_Allreduce(&gcPop, &gcPopSum, 1, MPI_INT, MPI_SUM, Communicator::communicator());
+      CHECK(glPopSum == numProcs * glPop);
+      CHECK(gcPopSum == numProcs * gcPop);
+    }
   }
-  END_CONTRACT_SCOPE;
+  END_CONTRACT_SCOPE
 
   // That's it.  Return whether or not the domain has been filled.
   return domainFull;

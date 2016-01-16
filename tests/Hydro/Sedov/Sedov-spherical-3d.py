@@ -20,11 +20,16 @@ commandLine(seed = "lattice",
             ny = 50,
             nz = 50,
             nPerh = 1.51,
+            KernelConstructor = BSplineKernel,
+            order = 5,
 
             rho0 = 1.0,
             eps0 = 0.0,
+            smallPressure = False,
             Espike = 1.0,
             smoothSpike = True,
+            topHatSpike = False,
+            smoothSpikeScale = 0.5,
             gamma = 5.0/3.0,
             mu = 1.0,
 
@@ -75,6 +80,11 @@ commandLine(seed = "lattice",
             outputFile = "None",
             )
 
+if smallPressure:
+    P0 = 1.0e-6
+    eps0 = P0/((gamma - 1.0)*rho0)
+    print "WARNING: smallPressure specified, so setting eps0=%g" % eps0
+
 # Figure out what our goal time should be.
 import SedovAnalyticSolution
 h0 = 1.0/nx*nPerh
@@ -110,8 +120,8 @@ else:
 # Path names.
 #-------------------------------------------------------------------------------
 dataDir = os.path.join(dataRoot,
-                       str(HydroConstructor).split()[1].split(".")[1][:-2],
-                       str(Qconstructor).split()[1].split(".")[-1][:-2],
+                       HydroConstructor.__name__,
+                       Qconstructor.__name__,
                        "nperh=%4.2f" % nPerh,
                        "cfl=%f" % cfl,
                        "XSPH=%s" % XSPH,
@@ -153,10 +163,11 @@ eos = GammaLawGasMKS(gamma, mu)
 # Create our interpolation kernels -- one for normal hydro interactions, and
 # one for use with the artificial viscosity
 #-------------------------------------------------------------------------------
-WT = TableKernel(BSplineKernel(), 1000)
-WTPi = WT
+if KernelConstructor==NBSplineKernel:
+  WT = TableKernel(NBSplineKernel(order), 1000)
+else:
+  WT = TableKernel(KernelConstructor(), 1000)
 output("WT")
-output("WTPi")
 
 #-------------------------------------------------------------------------------
 # Create a NodeList and associated Neighbor object.
@@ -197,12 +208,18 @@ if restoreCycle is None:
 
     # Set the point source of energy.
     Esum = 0.0
-    if smoothSpike:
+    if smoothSpike or topHatSpike:
         Wsum = 0.0
         for nodeID in xrange(nodes1.numInternalNodes):
             Hi = H[nodeID]
             etaij = (Hi*pos[nodeID]).magnitude()
-            Wi = WT.kernelValue(etaij, Hi.Determinant())
+            if smoothSpike:
+                Wi = WT.kernelValue(etaij/smoothSpikeScale, 1.0)
+            else:
+                if etaij < smoothSpikeScale*kernelExtent:
+                    Wi = 1.0
+                else:
+                    Wi = 0.0
             Ei = Wi*Espike/8.0
             epsi = Ei/mass[nodeID]
             eps[nodeID] = epsi
@@ -212,6 +229,7 @@ if restoreCycle is None:
         for nodeID in xrange(nodes1.numInternalNodes):
             eps[nodeID] /= Wsum
             Esum += eps[nodeID]*mass[nodeID]
+            eps[nodeID] += eps0
     else:
         i = -1
         rmin = 1e50
@@ -220,10 +238,11 @@ if restoreCycle is None:
             if rij < rmin:
                 i = nodeID
                 rmin = rij
+            eps[nodeID] = eps0
         rminglobal = mpi.allreduce(rmin, mpi.MIN)
         if fuzzyEqual(rmin, rminglobal):
             assert i >= 0 and i < nodes1.numInternalNodes
-            eps[i] = Espike/8.0/mass[i]
+            eps[i] += Espike/8.0/mass[i]
             Esum += Espike/8.0
     Eglobal = mpi.allreduce(Esum, mpi.SUM)
     print "Initialized a total energy of", Eglobal
@@ -258,7 +277,8 @@ output("q.quadraticInExpansion")
 # Construct the hydro physics object.
 #-------------------------------------------------------------------------------
 if CRKSPH:
-    hydro = HydroConstructor(WT, WTPi, q,
+    hydro = HydroConstructor(W = WT, 
+                             Q = q,
                              filter = filter,
                              cfl = cfl,
                              compatibleEnergyEvolution = compatibleEnergy,
@@ -266,7 +286,8 @@ if CRKSPH:
                              densityUpdate = densityUpdate,
                              HUpdate = HUpdate)
 else:
-    hydro = HydroConstructor(WT, WTPi, q,
+    hydro = HydroConstructor(W = WT, 
+                             Q = q,
                              cfl = cfl,
                              compatibleEnergyEvolution = compatibleEnergy,
                              gradhCorrection = gradhCorrection,
@@ -302,7 +323,8 @@ for p in packages:
 # Construct a time integrator, and add the one physics package.
 #-------------------------------------------------------------------------------
 integrator = CheapSynchronousRK2Integrator(db)
-integrator.appendPhysicsPackage(hydro)
+for p in packages:
+    integrator.appendPhysicsPackage(p)
 integrator.lastDt = dt
 if dtMin:
     integrator.dtMin = dtMin
@@ -327,7 +349,8 @@ control = SpheralController(integrator, WT,
                             vizBaseName = "Sedov-spherical-3d-%ix%ix%i" % (nx, ny, nz),
                             vizDir = vizDir,
                             vizStep = vizCycle,
-                            vizTime = vizTime)
+                            vizTime = vizTime,
+                            SPH = (not ASPH))
 output("control")
 
 #-------------------------------------------------------------------------------
@@ -366,6 +389,8 @@ A = mpi.allreduce([Pi/(rhoi**gamma) for (Pi, rhoi) in zip(Pf.internalValues(), n
 
 rans, vans, epsans, rhoans, Pans, hans = answer.solution(control.time(), r)
 Aans = [Pi/(rhoi**gamma) for (Pi, rhoi) in zip(Pans, rhoans)]
+from SpheralGnuPlotUtilities import multiSort
+multiSort(r, rho, v, eps, P, A, rhoans, vans, epsans, Pans, hans)
 
 if mpi.rank == 0:
     from SpheralGnuPlotUtilities import multiSort
@@ -391,12 +416,12 @@ if mpi.rank == 0:
 if outputFile != "None" and mpi.rank == 0:
     outputFile = os.path.join(dataDir, outputFile)
     f = open(outputFile, "w")
-    f.write(("# " + 15*"%15s " + "\n") % ("r", "x", "y", "z", "rho", "m", "P", "v", "eps", "A",
+    f.write(("# " + 16*"%15s " + "\n") % ("r", "x", "y", "z", "rho", "m", "P", "v", "eps", "A",
                                           "rhoans", "Pans", "vans", "epsans", "Aans", "hrans"))
     for (ri, xi, yi, zi, rhoi, mi, Pi, vi, epsi, Ai, 
          rhoansi, Pansi, vansi, epsansi, Aansi, hansi)  in zip(r, xprof, yprof, zprof, rho, mass, P, v, eps, A,
                                                                rhoans, Pans, vans, epsans, Aans, hans):
-         f.write((15*"%16.12e " + "\n") % (ri, xi, yi, zi, rhoi, mi, Pi, vi, epsi, Ai,
+         f.write((16*"%16.12e " + "\n") % (ri, xi, yi, zi, rhoi, mi, Pi, vi, epsi, Ai,
                                            rhoansi, Pansi, vansi, epsansi, Aansi, hansi))
     f.close()
 

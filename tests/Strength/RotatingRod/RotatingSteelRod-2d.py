@@ -59,7 +59,8 @@ commandLine(
 
     goalTime = 0.01,
     steps = None,
-    dtSample = 1e-5,
+    vizTime = 1e-5,
+    vizStep = None,
     dt = 1e-10,
     dtMin = 1e-10,
     dtMax = 1e-5,
@@ -156,9 +157,7 @@ strengthModel = SteinbergGuinanStrengthCGS(eos,
 # one for use with the artificial viscosity
 #-------------------------------------------------------------------------------
 WT = TableKernel(BSplineKernel(), 1000)
-WTPi = TableKernel(BSplineKernel(), 1000)
 output("WT")
-output("WTPi")
 kernelExtent = WT.kernelExtent
 
 #-------------------------------------------------------------------------------
@@ -171,6 +170,7 @@ nodes = makeSolidNodeList("Stainless steel", eos, strengthModel,
                           hminratio = hminratio,
                           rhoMin = etamin*rho0,
                           rhoMax = etamax*rho0,
+                          kernelExtent = kernelExtent,
                           xmin = Vector(-10*xlength, -10*ylength),  # Box size for neighbor selection
                           xmax = Vector( 10*xlength,  10*ylength))  # Box size for neighbor selection
 
@@ -243,9 +243,8 @@ output("q.balsaraShearCorrection")
 #-------------------------------------------------------------------------------
 # Construct the hydro physics object.
 #-------------------------------------------------------------------------------
-hydro = HydroConstructor(WT,
-                         WTPi,
-                         q,
+hydro = HydroConstructor(W = WT,
+                         Q = q,
                          cfl = cfl,
                          useVelocityMagnitudeForDt = useVelocityMagnitudeForDt,
                          compatibleEnergyEvolution = compatibleEnergyEvolution,
@@ -294,7 +293,8 @@ control = SpheralController(integrator, WT,
                             restartBaseName = restartBaseName,
                             vizDir = visitDir,
                             vizBaseName = "RotatingSteelRod-2d",
-                            vizTime = dtSample,
+                            vizTime = vizTime,
+                            vizStep = vizStep,
                             vizDerivs = True)
 output("control")
 

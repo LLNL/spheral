@@ -21,10 +21,12 @@ title("1-D integrated hydro test -- planar Noh problem")
 # Generic problem parameters
 #-------------------------------------------------------------------------------
 commandLine(KernelConstructor = BSplineKernel,
+            order = 5,
 
             nx1 = 100,
             rho1 = 1.0,
             eps1 = 0.0,
+	    smallPressure = False, #If set to True eps is not zero but small. 
             x0 = 0.0,
             x1 = 1.0,
             xwall = 0.0,
@@ -41,19 +43,31 @@ commandLine(KernelConstructor = BSplineKernel,
 
             SVPH = False,
             CRKSPH = False,
+            PSPH = False,
             Qconstructor = MonaghanGingoldViscosity,
             #Qconstructor = TensorMonaghanGingoldViscosity,
             boolReduceViscosity = False,
+            HopkinsConductivity = False,     # For PSPH
             nhQ = 5.0,
             nhL = 10.0,
             aMin = 0.1,
             aMax = 2.0,
+            boolCullenViscosity = False,
+            alphMax = 2.0,
+            alphMin = 0.02,
+            betaC = 0.7,
+            betaD = 0.05,
+            betaE = 1.0,
+            fKern = 1.0/3.0,
+            boolHopkinsCorrection = True,
             linearConsistent = False,
             fcentroidal = 0.0,
             fcellPressure = 0.0,
             Qhmult = 1.0,
             Cl = 1.0, 
             Cq = 1.0,
+            etaCritFrac = 1.0,
+            etaFoldFrac = 0.2,
             linearInExpansion = False,
             Qlimiter = False,
             epsilon2 = 1e-2,
@@ -84,9 +98,13 @@ commandLine(KernelConstructor = BSplineKernel,
             statsStep = 1,
             smoothIters = 0,
             HUpdate = IdealH,
+            correctionOrder = LinearOrder,
+            QcorrectionOrder = LinearOrder,
+            volumeType = CRKSumVolume,
             densityUpdate = RigorousSumDensity, # VolumeScaledDensity,
             compatibleEnergy = True,
             gradhCorrection = True,
+            correctVelocityGradient = True,
             domainIndependent = True,
             cullGhostNodes = True,
             
@@ -105,31 +123,35 @@ commandLine(KernelConstructor = BSplineKernel,
             comparisonFile = "None",
 
             # Parameters for the test acceptance.,
-            L1rho =   0.059517       ,
-            L2rho =   0.234803       ,
-            Linfrho = 1.69835        ,
-                                                           
-            L1P =     0.0218862      ,
-            L2P =     0.0915099      ,
-            LinfP =   0.667126       ,
-                                                           
-            L1v =     0.023729       ,
-            L2v =     0.117924       ,
-            Linfv =   0.848251       ,
-                                                           
-            L1eps =   0.0114841      ,
-            L2eps =   0.0535023      ,
-            Linfeps = 0.370852       ,
-                                               
-            L1h =     0.000315869    ,
-            L2h =     0.00125931     ,
-            Linfh =   0.00761168     ,
+            L1rho =   0.0434126,
+            L2rho =   0.206929,
+            Linfrho = 1.62872,
+                                                                         
+            L1P =     0.0180305,
+            L2P =     0.0842893,
+            LinfP =   0.645561,
+                                                                         
+            L1v =     0.0228862,
+            L2v =     0.115948,
+            Linfv =   0.842776,
+                                                                         
+            L1eps =   0.0110498,
+            L2eps =   0.0526271,
+            Linfeps = 0.36837,
+                                                             
+            L1h =     0.000318824,
+            L2h =     0.00127697,
+            Linfh =   0.00768513,
 
             tol = 1.0e-5,
 
             graphics = True,
             )
-
+assert not(boolReduceViscosity and boolCullenViscosity)
+if smallPressure:
+   P0 = 1.0e-6
+   eps1 = P0/((gamma - 1.0)*rho1)
+   
 if SVPH:
     HydroConstructor = SVPHFacetedHydro
 elif CRKSPH:
@@ -138,6 +160,9 @@ elif CRKSPH:
     else:
         HydroConstructor = CRKSPHHydro
     Qconstructor = CRKSPHMonaghanGingoldViscosity
+    gradhCorrection = False
+elif PSPH:
+   HydroConstructor = PSPHHydro
 else:
     if solid:
         HydroConstructor = SolidSPHHydro
@@ -145,8 +170,12 @@ else:
         HydroConstructor = SPHHydro
 
 dataDir = os.path.join(dataDirBase,
-                       str(HydroConstructor).split("'")[1].split(".")[-1],
-                       str(Qconstructor).split("'")[1].split(".")[-1])
+                       HydroConstructor.__name__,
+                       Qconstructor.__name__,
+                       "nPerh=%f" % nPerh,
+                       "compatibleEnergy=%s" % compatibleEnergy,
+                       "Cullen=%s" % boolCullenViscosity,
+                       "filter=%f" % filter)
 restartDir = os.path.join(dataDir, "restarts")
 restartBaseName = os.path.join(restartDir, "Noh-planar-1d-%i" % nx1)
 
@@ -172,10 +201,13 @@ strength = NullStrength()
 #-------------------------------------------------------------------------------
 # Interpolation kernels.
 #-------------------------------------------------------------------------------
-WT = TableKernel(KernelConstructor(), 1000)
-WTPi = TableKernel(KernelConstructor(), 1000, Qhmult)
+if KernelConstructor==NBSplineKernel:
+    Wbase = NBSplineKernel(order)
+else:
+    Wbase = KernelConstructor()
+WT = TableKernel(Wbase, 1000)
+kernelExtent = WT.kernelExtent
 output("WT")
-output("WTPi")
 
 #-------------------------------------------------------------------------------
 # Make the NodeList.
@@ -185,12 +217,14 @@ if solid:
                                hmin = hmin,
                                hmax = hmax,
                                nPerh = nPerh,
+                               kernelExtent = kernelExtent,
                                NeighborType = NeighborType)
 else:
     nodes1 = makeFluidNodeList("nodes1", eos, 
                                hmin = hmin,
                                hmax = hmax,
                                nPerh = nPerh,
+                               kernelExtent = kernelExtent,
                                NeighborType = NeighborType)
     
 output("nodes1")
@@ -234,6 +268,7 @@ output("db.numFluidNodeLists")
 q = Qconstructor(Cl, Cq, linearInExpansion)
 q.epsilon2 = epsilon2
 q.limiter = Qlimiter
+q.QcorrectionOrder = QcorrectionOrder
 output("q")
 output("q.Cl")
 output("q.Cq")
@@ -246,7 +281,8 @@ output("q.quadraticInExpansion")
 # Construct the hydro physics object.
 #-------------------------------------------------------------------------------
 if SVPH:
-    hydro = HydroConstructor(WT, q,
+    hydro = HydroConstructor(W = WT,
+                             Q = q,
                              cfl = cfl,
                              useVelocityMagnitudeForDt = useVelocityMagnitudeForDt,
                              compatibleEnergyEvolution = compatibleEnergy,
@@ -260,21 +296,39 @@ if SVPH:
                              xmin = Vector(-100.0),
                              xmax = Vector( 100.0))
 elif CRKSPH:
-    hydro = HydroConstructor(WT, WTPi, q,
+    hydro = HydroConstructor(W = WT,
+                             Q = q,
                              filter = filter,
                              cfl = cfl,
                              useVelocityMagnitudeForDt = useVelocityMagnitudeForDt,
                              compatibleEnergyEvolution = compatibleEnergy,
                              XSPH = XSPH,
+                             correctionOrder = correctionOrder,
+                             volumeType = volumeType,
                              densityUpdate = densityUpdate,
                              HUpdate = HUpdate)
+    q.etaCritFrac = etaCritFrac
+    q.etaFoldFrac = etaFoldFrac
+elif PSPH:
+    hydro = HydroConstructor(W = WT,
+                             Q = q,
+                             filter = filter,
+                             cfl = cfl,
+                             useVelocityMagnitudeForDt = useVelocityMagnitudeForDt,
+                             compatibleEnergyEvolution = compatibleEnergy,
+                             HopkinsConductivity = HopkinsConductivity,
+                             densityUpdate = densityUpdate,
+                             HUpdate = HUpdate,
+                             XSPH = XSPH)
 else:
-    hydro = HydroConstructor(WT, WTPi, q,
+    hydro = HydroConstructor(W = WT,
+                             Q = q,
                              filter = filter,
                              cfl = cfl,
                              useVelocityMagnitudeForDt = useVelocityMagnitudeForDt,
                              compatibleEnergyEvolution = compatibleEnergy,
                              gradhCorrection = gradhCorrection,
+                             correctVelocityGradient = correctVelocityGradient,
                              densityUpdate = densityUpdate,
                              HUpdate = HUpdate,
                              XSPH = XSPH,
@@ -294,12 +348,12 @@ packages = [hydro]
 #-------------------------------------------------------------------------------
 # Construct the MMRV physics object.
 #-------------------------------------------------------------------------------
-
 if boolReduceViscosity:
-    #q.reducingViscosityCorrection = True
     evolveReducingViscosityMultiplier = MorrisMonaghanReducingViscosity(q,nhQ,nhL,aMin,aMax)
-    
     packages.append(evolveReducingViscosityMultiplier)
+elif boolCullenViscosity:
+    evolveCullenViscosityMultiplier = CullenDehnenViscosity(q,WT,alphMax,alphMin,betaC,betaD,betaE,fKern,boolHopkinsCorrection)
+    packages.append(evolveCullenViscosityMultiplier)
 
 #-------------------------------------------------------------------------------
 # Construct the Artificial Conduction physics object.
@@ -437,6 +491,14 @@ A = [Pi/rhoi**gamma for (Pi, rhoi) in zip(P, rho)]
 xprof = mpi.allreduce([x.x for x in nodes1.positions().internalValues()], mpi.SUM)
 xans, vans, uans, rhoans, Pans, hans = answer.solution(control.time(), xprof)
 Aans = [Pi/rhoi**gamma for (Pi, rhoi) in zip(Pans,  rhoans)]
+L1 = 0.0
+for i in xrange(len(rho)):
+  L1 = L1 + abs(rho[i]-rhoans[i])
+L1_tot = L1 / len(rho)
+if mpi.rank == 0 and outputFile != "None":
+ print "L1=",L1_tot,"\n"
+ with open("Converge.txt", "a") as myfile:
+    myfile.write("%s %s\n" % (nx1, L1_tot))
 
 #-------------------------------------------------------------------------------
 # Plot the final state.
@@ -468,10 +530,19 @@ if graphics:
     Aplot.refresh()
     plots.append((Aplot, "Noh-planar-A.png"))
     
-    dvdxPlot = plotFieldList(hydro.DvDx(),yFunction='-1*%s.xx',winTitle='Source Fn',colorNodeLists=False)
-    viscPlot = plotFieldList(hydro.maxViscousPressure(),
-                             winTitle = "max(rho^2 Piij)",
-                             colorNodeLists = False)
+    if CRKSPH:
+        volPlot = plotFieldList(hydro.volume(), 
+                                winTitle = "volume",
+                                colorNodeLists = False, plotGhosts = False)
+        plots.append(volPlot)
+
+    if boolCullenViscosity:
+        cullAlphaPlot = plotFieldList(q.ClMultiplier(),
+                                      winTitle = "Cullen alpha")
+        cullDalphaPlot = plotFieldList(evolveCullenViscosityMultiplier.DalphaDt(),
+                                       winTitle = "Cullen DalphaDt")
+        plots += [(cullAlphaPlot, "Noh-planar-Cullen-alpha.png"),
+                  (cullDalphaPlot, "Noh-planar-Cullen-DalphaDt.png")]
 
     if boolReduceViscosity:
         alphaPlotQ = plotFieldList(q.reducingViscosityMultiplierQ(),
@@ -490,10 +561,6 @@ if graphics:
     for p, filename in plots:
         p.hardcopy(os.path.join(dataDir, filename), terminal="png")
 
-Eerror = (control.conserve.EHistory[-1] - control.conserve.EHistory[0])/control.conserve.EHistory[0]
-print "Total energy error: %g" % Eerror
-if checkEnergy and abs(Eerror) > 1e-13:
-    raise ValueError, "Energy error outside allowed bounds."
 
 #-------------------------------------------------------------------------------
 # Measure the difference between the simulation and analytic answer.
@@ -604,3 +671,7 @@ if mpi.rank == 0:
 
 
 
+Eerror = (control.conserve.EHistory[-1] - control.conserve.EHistory[0])/control.conserve.EHistory[0]
+print "Total energy error: %g" % Eerror
+if checkEnergy and abs(Eerror) > 1e-13:
+    raise ValueError, "Energy error outside allowed bounds."

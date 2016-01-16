@@ -111,6 +111,17 @@ initializeProblemStartup(DataBase<Dimension>& dataBase) {
 }
 
 //------------------------------------------------------------------------------
+// Provide a default no-op pre-step initialization method.
+//------------------------------------------------------------------------------
+template<typename Dimension>
+void
+Physics<Dimension>::
+preStepInitialize(const DataBase<Dimension>& dataBase, 
+                  State<Dimension>& state,
+                  StateDerivatives<Dimension>& derivs) {
+}
+
+//------------------------------------------------------------------------------
 // Provide a default no-op initialization method.
 //------------------------------------------------------------------------------
 template<typename Dimension>

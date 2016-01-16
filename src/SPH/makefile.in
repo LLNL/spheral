@@ -12,11 +12,14 @@ LIBTARGET = libSpheral_$(PKGNAME).$(DYLIBEXT)
 INSTSRCTARGETS = \
 	$(srcdir)/computeSPHSumMassDensityInst.cc.py \
 	$(srcdir)/computeSPHOmegaGradhCorrectionInst.cc.py \
+	$(srcdir)/computePSPHCorrectionsInst.cc.py \
 	$(srcdir)/computeSumVoronoiCellMassDensityInst.cc.py \
-	$(srcdir)/SPHHydroBaseInst.cc.py
+	$(srcdir)/SPHHydroBaseInst.cc.py \
+	$(srcdir)/PSPHHydroBaseInst.cc.py
 
 PYTHONTARGETS = \
 	$(srcdir)/SPHHydros.py \
+	$(srcdir)/PSPHHydros.py \
 	$(srcdir)/SPHUtilities.py \
 	$(srcdir)/FacetedSurfaceASPHHydro.py
 

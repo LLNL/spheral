@@ -197,6 +197,8 @@ class CXXTypes:
                                     "Tensor1d", "Tensor2d", "Tensor3d",
                                     "SymTensor1d", "SymTensor2d", "SymTensor3d",
                                     "ThirdRankTensor1d", "ThirdRankTensor2d", "ThirdRankTensor3d",
+                                    "FourthRankTensor1d", "FourthRankTensor2d", "FourthRankTensor3d",
+                                    "FifthRankTensor1d", "FifthRankTensor2d", "FifthRankTensor3d",
                                     "Geom3Vector",
                                     "Box1d", "Polygon", "Polyhedron",
                                     "vector_of_char", "vector_of_unsigned", "vector_of_int", "vector_of_float", "vector_of_double", "vector_of_string", 
@@ -204,6 +206,8 @@ class CXXTypes:
                                     "vector_of_Tensor1d", "vector_of_Tensor2d", "vector_of_Tensor3d",
                                     "vector_of_SymTensor1d", "vector_of_SymTensor2d", "vector_of_SymTensor3d",
                                     "vector_of_ThirdRankTensor1d", "vector_of_ThirdRankTensor2d", "vector_of_ThirdRankTensor3d",
+                                    "vector_of_FourthRankTensor1d", "vector_of_FourthRankTensor2d", "vector_of_FourthRankTensor3d",
+                                    "vector_of_FifthRankTensor1d", "vector_of_FifthRankTensor2d", "vector_of_FifthRankTensor3d",
                                     "vector_of_vector_of_char", "vector_of_vector_of_unsigned", "vector_of_vector_of_int", "vector_of_vector_of_float", "vector_of_vector_of_double", "vector_of_vector_of_string"]
 
         # The pair types.

@@ -2,6 +2,7 @@ from SpheralModules.Spheral.CRKSPHSpace import *
 from SpheralModules.Spheral.NodeSpace import *
 from SpheralModules.Spheral.PhysicsSpace import *
 from SpheralModules.Spheral.PhysicsSpace import *
+from SpheralModules.Spheral.KernelSpace import *
 
 from spheralDimensions import spheralDimensions
 dims = spheralDimensions()
@@ -13,9 +14,9 @@ SolidCRKSPHHydroFactoryString = """
 class %(classname)s%(dim)s(SolidCRKSPHHydroBase%(dim)s):
 
     def __init__(self,
-                 W,
-                 WPi,
                  Q,
+                 W,
+                 WPi = None,
                  filter = 0.0,
                  cfl = 0.25,
                  useVelocityMagnitudeForDt = False,
@@ -23,14 +24,18 @@ class %(classname)s%(dim)s(SolidCRKSPHHydroBase%(dim)s):
                  XSPH = True,
                  densityUpdate = RigorousSumDensity,
                  HUpdate = IdealH,
+                 correctionOrder = LinearOrder,
+                 volumeType = CRKSumVolume,
                  epsTensile = 0.0,
                  nTensile = 4.0):
         self._smoothingScaleMethod = %(smoothingScaleMethod)s%(dim)s()
+        if WPi is None:
+            WPi = W
         SolidCRKSPHHydroBase%(dim)s.__init__(self,
                                              self._smoothingScaleMethod,
+                                             Q,
                                              W,
                                              WPi,
-                                             Q,
                                              filter,
                                              cfl,
                                              useVelocityMagnitudeForDt,
@@ -38,6 +43,8 @@ class %(classname)s%(dim)s(SolidCRKSPHHydroBase%(dim)s):
                                              XSPH,
                                              densityUpdate,
                                              HUpdate,
+                                             correctionOrder,
+                                             volumeType,
                                              epsTensile,
                                              nTensile)
         return

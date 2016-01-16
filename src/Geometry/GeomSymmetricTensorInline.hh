@@ -33,7 +33,7 @@ GeomSymmetricTensor<2>::elementIndex(const GeomSymmetricTensor<2>::size_type row
   int i = std::min(row, column);
   int j = std::max(row, column);
   int result = (5 - i)*i/2 + j - i;
-  ENSURE(result >= 0 and result < mNumElements);
+  ENSURE(result >= 0 and result < numElements);
   return result;
 }
 
@@ -47,7 +47,7 @@ GeomSymmetricTensor<3>::elementIndex(const GeomSymmetricTensor<3>::size_type row
   int i = std::min(row, column);
   int j = std::max(row, column);
   int result = (7 - i)*i/2 + j - i;
-  ENSURE(result >= 0 and result < mNumElements);
+  ENSURE(result >= 0 and result < numElements);
   return result;
 }
 
@@ -266,6 +266,25 @@ GeomSymmetricTensor<nDim>::operator()(const typename GeomSymmetricTensor<nDim>::
   REQUIRE(row < nDim);
   REQUIRE(column < nDim);
   return *(begin() + elementIndex(row, column));
+}
+
+//------------------------------------------------------------------------------
+// Return the (index) element using the bracket operator.
+//------------------------------------------------------------------------------
+template<int nDim>
+inline
+double
+GeomSymmetricTensor<nDim>::operator[](typename GeomSymmetricTensor<nDim>::size_type index) const {
+  REQUIRE(index < numElements);
+  return *(begin() + index);
+}
+
+template<int nDim>
+inline
+double&
+GeomSymmetricTensor<nDim>::operator[](typename GeomSymmetricTensor<nDim>::size_type index) {
+  REQUIRE(index < numElements);
+  return *(begin() + index);
 }
 
 //------------------------------------------------------------------------------
@@ -762,7 +781,7 @@ template<int nDim>
 inline
 typename GeomSymmetricTensor<nDim>::iterator
 GeomSymmetricTensor<nDim>::end() {
-  return &(this->mxx) + mNumElements;
+  return &(this->mxx) + numElements;
 }
 
 template<int nDim>
@@ -776,7 +795,7 @@ template<int nDim>
 inline
 typename GeomSymmetricTensor<nDim>::const_iterator
 GeomSymmetricTensor<nDim>::end() const {
-  return &(this->mxx) + mNumElements;
+  return &(this->mxx) + numElements;
 }
 
 //------------------------------------------------------------------------------
@@ -1855,10 +1874,8 @@ inline
 double
 GeomSymmetricTensor<2>::
 doubledot(const GeomTensor<2>& rhs) const {
-  return ((this->mxx)*(rhs.xx()) +
-          (this->mxy)*(rhs.xy()) +
-          (this->mxy)*(rhs.yx()) +
-          (this->myy)*(rhs.yy()));
+  return ((this->mxx)*(rhs.xx()) + (this->mxy)*(rhs.yx()) + 
+          (this->mxy)*(rhs.xy()) + (this->myy)*(rhs.yy()));
 }
 
 template<>
@@ -1866,15 +1883,9 @@ inline
 double
 GeomSymmetricTensor<3>::
 doubledot(const GeomTensor<3>& rhs) const {
-  return ((this->mxx)*(rhs.xx()) +
-          (this->mxy)*(rhs.xy()) +
-          (this->mxz)*(rhs.xz()) +
-          (this->mxy)*(rhs.yx()) +
-          (this->myy)*(rhs.yy()) +
-          (this->myz)*(rhs.yz()) +
-          (this->mxz)*(rhs.zx()) +
-          (this->myz)*(rhs.zy()) +
-          (this->mzz)*(rhs.zz()));
+  return ((this->mxx)*(rhs.xx()) + (this->mxy)*(rhs.yx()) + (this->mxz)*(rhs.zx()) +
+          (this->mxy)*(rhs.xy()) + (this->myy)*(rhs.yy()) + (this->myz)*(rhs.zy()) +
+          (this->mxz)*(rhs.xz()) + (this->myz)*(rhs.yz()) + (this->mzz)*(rhs.zz()));
 }
 
 //------------------------------------------------------------------------------
@@ -1893,10 +1904,8 @@ inline
 double
 GeomSymmetricTensor<2>::
 doubledot(const GeomSymmetricTensor<2>& rhs) const {
-  return ((this->mxx)*(rhs.xx()) +
-          (this->mxy)*(rhs.xy()) +
-          (this->mxy)*(rhs.xy()) +
-          (this->myy)*(rhs.yy()));
+  return ((this->mxx)*(rhs.xx()) + (this->mxy)*(rhs.yx()) + 
+          (this->mxy)*(rhs.xy()) + (this->myy)*(rhs.yy()));
 }
 
 template<>
@@ -1904,15 +1913,9 @@ inline
 double
 GeomSymmetricTensor<3>::
 doubledot(const GeomSymmetricTensor<3>& rhs) const {
-  return ((this->mxx)*(rhs.xx()) +
-          (this->mxy)*(rhs.xy()) +
-          (this->mxz)*(rhs.xz()) +
-          (this->mxy)*(rhs.yx()) +
-          (this->myy)*(rhs.yy()) +
-          (this->myz)*(rhs.yz()) +
-          (this->mxz)*(rhs.zx()) +
-          (this->myz)*(rhs.zy()) +
-          (this->mzz)*(rhs.zz()));
+  return ((this->mxx)*(rhs.xx()) + (this->mxy)*(rhs.yx()) + (this->mxz)*(rhs.zx()) +
+          (this->mxy)*(rhs.xy()) + (this->myy)*(rhs.yy()) + (this->myz)*(rhs.zy()) +
+          (this->mxz)*(rhs.xz()) + (this->myz)*(rhs.yz()) + (this->mzz)*(rhs.zz()));
 }
 
 //------------------------------------------------------------------------------
@@ -1931,9 +1934,8 @@ inline
 double
 GeomSymmetricTensor<2>::
 selfDoubledot() const {
-  return (FastMath::square(this->mxx) +
-          2.0*FastMath::square(this->mxy) +
-          FastMath::square(this->myy));
+  return ((this->mxx)*(this->mxx) + (this->mxy)*(this->mxy) + 
+          (this->mxy)*(this->mxy) + (this->myy)*(this->myy));
 }
 
 template<>
@@ -1941,12 +1943,9 @@ inline
 double
 GeomSymmetricTensor<3>::
 selfDoubledot() const {
-  return (FastMath::square(this->mxx) +
-          2.0*FastMath::square(this->mxy) +
-          2.0*FastMath::square(this->mxz) +
-          FastMath::square(this->myy) +
-          2.0*FastMath::square(this->myz) +
-          FastMath::square(this->mzz));
+  return ((this->mxx)*(this->mxx) + (this->mxy)*(this->mxy) + (this->mxz)*(this->mxz) +
+          (this->mxy)*(this->mxy) + (this->myy)*(this->myy) + (this->myz)*(this->myz) +
+          (this->mxz)*(this->mxz) + (this->myz)*(this->myz) + (this->mzz)*(this->mzz));
 }
 
 //------------------------------------------------------------------------------

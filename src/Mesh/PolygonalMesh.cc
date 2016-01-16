@@ -8,7 +8,9 @@
 #include <sstream>
 #include "boost/foreach.hpp"
 
+#ifndef NOPOLYTOPE
 #include "polytope/polytope.hh"
+#endif
 
 #include "Mesh.hh"
 #include "Utilities/DBC.hh"
@@ -24,6 +26,7 @@ using namespace boost;
 
 namespace {
 
+#ifndef NOPOLYTOPE
 //------------------------------------------------------------------------------
 // Internal worker method with common code for building from a 2D polytope
 // tessellation.
@@ -143,6 +146,7 @@ void buildFromPolytope(polytope::Tessellation<2, double>& tessellation,
                                     << Timing::difference(t0, Timing::currentTime())
                                     << " seconds to construct mesh elements." << endl;
 }
+#endif
 
 }
 
@@ -165,6 +169,7 @@ reconstructInternal(const vector<Dim<2>::Vector>& generators,
                     const Dim<2>::Vector& xmin,
                     const Dim<2>::Vector& xmax) {
 
+#ifndef NOPOLYTOPE
   // Some useful typedefs.
   typedef Dim<2> Dimension;
 
@@ -177,7 +182,7 @@ reconstructInternal(const vector<Dim<2>::Vector>& generators,
 
   // Pre-conditions.
   int i, j, k, igen, numGens = generators.size();
-  BEGIN_CONTRACT_SCOPE;
+  BEGIN_CONTRACT_SCOPE
   {
     REQUIRE(xmin.x() < xmax.x() and
             xmin.y() < xmax.y());
@@ -191,7 +196,7 @@ reconstructInternal(const vector<Dim<2>::Vector>& generators,
       }
     }
   }
-  END_CONTRACT_SCOPE;
+  END_CONTRACT_SCOPE
 
   // Copy the generator positions to a polytope style flat array.
   vector<double> gens;
@@ -253,6 +258,7 @@ reconstructInternal(const vector<Dim<2>::Vector>& generators,
                     mNeighborDomains,
                     mSharedNodes,
                     mSharedFaces);
+#endif
 }
 
 //------------------------------------------------------------------------------
@@ -263,6 +269,7 @@ void
 Mesh<Dim<2> >::
 reconstructInternal(const vector<Dim<2>::Vector>& generators,
                     const Dim<2>::FacetedVolume& boundary) {
+#ifndef NOPOLYTOPE
 
   // Some useful typedefs.
   typedef Dim<2> Dimension;
@@ -277,7 +284,7 @@ reconstructInternal(const vector<Dim<2>::Vector>& generators,
 
   // Pre-conditions.
   int i, j, k, igen, numGens = generators.size();
-  BEGIN_CONTRACT_SCOPE;
+  BEGIN_CONTRACT_SCOPE
   {
     REQUIRE(xmin.x() < xmax.x() and
             xmin.y() < xmax.y());
@@ -290,7 +297,7 @@ reconstructInternal(const vector<Dim<2>::Vector>& generators,
       }
     }
   }
-  END_CONTRACT_SCOPE;
+  END_CONTRACT_SCOPE
 
   // Copy the generator positions to a polytope style flat array.
   vector<double> gens;
@@ -367,6 +374,8 @@ reconstructInternal(const vector<Dim<2>::Vector>& generators,
                     mNeighborDomains,
                     mSharedNodes,
                     mSharedFaces);
+
+#endif
 }
 
 //------------------------------------------------------------------------------
@@ -482,14 +491,14 @@ boundingSurface() const {
   }
 
   // Post-conditions.
-  BEGIN_CONTRACT_SCOPE;
+  BEGIN_CONTRACT_SCOPE
   {
     BOOST_FOREACH(const vector<unsigned>& indices, facetIndices) {
       ENSURE(indices.size() == 2);
       ENSURE(*max_element(indices.begin(), indices.end()) < vertices.size());
     }
   }
-  END_CONTRACT_SCOPE;
+  END_CONTRACT_SCOPE
 
   // That's it.
   return FacetedVolume(vertices, facetIndices);
@@ -508,7 +517,7 @@ createNewMeshElements(const vector<vector<vector<unsigned> > >& newCells) {
 
   // Pre-conditions.
   REQUIRE(mNodes.size() <= mNodePositions.size());
-  BEGIN_CONTRACT_SCOPE;
+  BEGIN_CONTRACT_SCOPE
   {
     BOOST_FOREACH(const vector<vector<unsigned> >& cellFaces, newCells) {
       REQUIRE(cellFaces.size() >= minFacesPerZone);
@@ -520,7 +529,7 @@ createNewMeshElements(const vector<vector<vector<unsigned> > >& newCells) {
       }
     }
   }
-  END_CONTRACT_SCOPE;
+  END_CONTRACT_SCOPE
 
   // Some useful sizes.
   const unsigned numOldNodes = mNodes.size();

@@ -160,7 +160,7 @@ latticePoints(const typename Dimension::Vector& ri,
   }
 
   // Post-conditions.
-  BEGIN_CONTRACT_SCOPE;
+  BEGIN_CONTRACT_SCOPE
   ENSURE(result.size() == ntot);
   for (int i = 0; i != result.size(); ++i) {
     ENSURE(result[i].size() == Dimension::nDim);
@@ -168,7 +168,7 @@ latticePoints(const typename Dimension::Vector& ri,
       ENSURE(result[i][j] >= imin[j] && result[i][j] <= imax[j]);
     }
   }
-  END_CONTRACT_SCOPE;
+  END_CONTRACT_SCOPE
 
   // That's it.
   return result;

@@ -6,6 +6,7 @@
 
 #include "Geometry/MathTraits.hh"
 #include "SolidSPH/NodeCoupling.hh"
+#include "CRKSPHCorrectionParams.hh"
 
 namespace Spheral {
 
@@ -30,9 +31,12 @@ namespace Spheral {
                    const FieldSpace::FieldList<Dimension, typename Dimension::SymTensor>& H,
                    const FieldSpace::FieldList<Dimension, typename Dimension::Scalar>& A,
                    const FieldSpace::FieldList<Dimension, typename Dimension::Vector>& B,
+                   const FieldSpace::FieldList<Dimension, typename Dimension::Tensor>& C,
                    const FieldSpace::FieldList<Dimension, typename Dimension::Vector>& gradA,
                    const FieldSpace::FieldList<Dimension, typename Dimension::Tensor>& gradB,
+                   const FieldSpace::FieldList<Dimension, typename Dimension::ThirdRankTensor>& gradC,
                    const NeighborSpace::ConnectivityMap<Dimension>& connectivityMap,
+		   const CRKOrder correctionOrder,
                    const KernelSpace::TableKernel<Dimension>& W,
                    const NodeCoupling& nodeCoupling = NodeCoupling());
 

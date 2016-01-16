@@ -89,7 +89,8 @@ step(typename Dimension::Scalar maxTime,
 
   // Initalize the integrator.
   state.timeAdvanceOnly(true);
-  this->initialize(state, derivs);
+  this->preStepInitialize(state, derivs);
+  // this->initializeDerivatives(t, 0.0, state, derivs);
 
   // Determine the minimum timestep across all packages.
   const Scalar dt = this->selectDt(min(this->dtMin(), maxTime - t),
@@ -109,13 +110,10 @@ step(typename Dimension::Scalar maxTime,
   this->applyGhostBoundaries(state, derivs);
   this->postStateUpdate(db, state, derivs);
   this->finalizeGhostBoundaries();
-  // this->enforceBoundaries(state, derivs);
-
-  // Loop over the physics packages and perform any necessary initializations.
 
   // Evaluate the derivatives at the midpoint.
   derivs.Zero();
-  this->preStepInitialize(t + hdt, hdt, state, derivs);
+  this->initializeDerivatives(t + hdt, hdt, state, derivs);
   this->evaluateDerivatives(t + hdt, hdt, db, state, derivs);
   this->finalizeDerivatives(t + hdt, hdt, db, state, derivs);
 
@@ -131,7 +129,7 @@ step(typename Dimension::Scalar maxTime,
   // this->enforceBoundaries(state, derivs);
 
   // Apply any physics specific finalizations.
-  this->finalize(t + dt, dt, state, derivs);
+  this->postStepFinalize(t + dt, dt, state, derivs);
 
   // Enforce boundaries.
   this->enforceBoundaries(state, derivs);

@@ -51,13 +51,14 @@ public:
 
   // Constructors.
   SPHHydroBase(const NodeSpace::SmoothingScaleBase<Dimension>& smoothingScaleMethod,
+               ArtificialViscositySpace::ArtificialViscosity<Dimension>& Q,
                const KernelSpace::TableKernel<Dimension>& W,
                const KernelSpace::TableKernel<Dimension>& WPi,
-               ArtificialViscositySpace::ArtificialViscosity<Dimension>& Q,
                const double filter,
                const double cfl,
                const bool useVelocityMagnitudeForDt,
                const bool compatibleEnergyEvolution,
+               const bool evolveTotalEnergy,
                const bool gradhCorrection,
                const bool XSPH,
                const bool correctVelocityGradient,
@@ -149,6 +150,10 @@ public:
   bool compatibleEnergyEvolution() const;
   void compatibleEnergyEvolution(const bool val);
 
+  // Flag controlling if we evolve total or specific energy.
+  bool evolveTotalEnergy() const;
+  void evolveTotalEnergy(const bool val);
+
   // Flag to determine if we're using the grad h correction.
   bool gradhCorrection() const;
   void gradhCorrection(const bool val);
@@ -196,6 +201,7 @@ public:
   const FieldSpace::FieldList<Dimension, SymTensor>& Hideal() const;
   const FieldSpace::FieldList<Dimension, Scalar>&    maxViscousPressure() const;
   const FieldSpace::FieldList<Dimension, Scalar>&    effectiveViscousPressure() const;
+  const FieldSpace::FieldList<Dimension, Scalar>&    massDensityCorrection() const;
   const FieldSpace::FieldList<Dimension, Scalar>&    viscousWork() const;
   const FieldSpace::FieldList<Dimension, Scalar>&    massDensitySum() const;
   const FieldSpace::FieldList<Dimension, Scalar>&    normalization() const;
@@ -229,7 +235,7 @@ protected:
   // A bunch of switches.
   PhysicsSpace::MassDensityType mDensityUpdate;
   PhysicsSpace::HEvolutionType mHEvolution;
-  bool mCompatibleEnergyEvolution, mGradhCorrection, mXSPH, mCorrectVelocityGradient, mSumMassDensityOverAllNodeLists;
+  bool mCompatibleEnergyEvolution, mEvolveTotalEnergy, mGradhCorrection, mXSPH, mCorrectVelocityGradient, mSumMassDensityOverAllNodeLists;
 
   // Magnitude of the hourglass/parasitic mode filter.
   double mfilter;
@@ -250,6 +256,7 @@ protected:
   FieldSpace::FieldList<Dimension, SymTensor> mHideal;
   FieldSpace::FieldList<Dimension, Scalar>    mMaxViscousPressure;
   FieldSpace::FieldList<Dimension, Scalar>    mEffViscousPressure;
+  FieldSpace::FieldList<Dimension, Scalar>    mMassDensityCorrection;
   FieldSpace::FieldList<Dimension, Scalar>    mViscousWork;
   FieldSpace::FieldList<Dimension, Scalar>    mMassDensitySum;
   FieldSpace::FieldList<Dimension, Scalar>    mNormalization;

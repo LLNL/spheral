@@ -164,14 +164,14 @@ Boundary<Dimension>::setAllViolationNodes(DataBase<Dimension>& dataBase) {
     setViolationNodes(**nodeListItr);
   }
 
-  BEGIN_CONTRACT_SCOPE;
+  BEGIN_CONTRACT_SCOPE
   // Make sure the boundary knows about each nodelist in the database.
   for (typename DataBase<Dimension>::ConstNodeListIterator 
        i = dataBase.nodeListBegin(); i != dataBase.nodeListEnd(); ++i)
   {
     ENSURE(mBoundaryNodes.find(*i) != mBoundaryNodes.end());
   } // end for
-  END_CONTRACT_SCOPE;
+  END_CONTRACT_SCOPE
 }
 
 //------------------------------------------------------------------------------

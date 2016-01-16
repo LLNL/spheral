@@ -9,11 +9,13 @@
 #include <numeric>
 #include <map>
 #include <limits>
+#include <stdio.h>
+#include <stdint.h>
 
 #include "boost/foreach.hpp"
 
-#include "polytope/polytope.hh"
-#include "polytope/convexHull_2d.hh"
+// #include "polytope/polytope.hh"
+// #include "polytope/convexHull_2d.hh"
 
 #include "GeomPolygon.hh"
 #include "FacetedVolumeUtilities.hh"
@@ -24,9 +26,298 @@
 #include "Utilities/CounterClockwiseComparator.hh"
 #include "Utilities/pointInPolygon.hh"
 
+//------------------------------------------------------------------------------
+// It seems there is a missing specialization for abs(long unsigned int), so 
+// fill it in.
+// This is necessary for the collinear method below to compile.  It seems evil
+// to insert something into namespace std:: like this, by the way.
+//------------------------------------------------------------------------------
+namespace std {
+  // inline long unsigned int abs(long unsigned int x) { return x; }
+  inline uint64_t          abs(uint64_t x)          { return x; }
+}
+
 namespace Spheral {
 
 using namespace std;
+
+//********************************************************************************
+// The following anonymous stuff is lifted from the convex hull method I 
+// implemented in polytope.
+namespace {
+
+struct KeyTraits {
+  // typedef uint64_t Key;
+  typedef int64_t Key;
+  static const uint32_t numbits;
+  static const uint32_t numbits1d;
+  static const Key zero;
+  static const Key one;
+  static const Key two;
+  static const Key maxKey1d;
+  static const Key maxKey;
+};
+
+namespace geometry {
+
+//------------------------------------------------------------------------------
+// polytope 2D dot
+//------------------------------------------------------------------------------
+template<int Dimension, typename RealType>
+RealType
+dot(const RealType* a, const RealType* b) {
+  return a[0]*b[0] + a[1]*b[1];
+}
+
+//------------------------------------------------------------------------------
+// polytope 2D distance
+//------------------------------------------------------------------------------
+template<int Dimension, typename RealType>
+RealType
+distance(const RealType* a, const RealType* b) {
+  const RealType dx = a[0] - b[0];
+  const RealType dy = a[1] - b[1];
+  return sqrt(dx*dx + dy*dy);
+}
+
+//------------------------------------------------------------------------------
+// Determine if the given points are collinear to some accuracy.
+//------------------------------------------------------------------------------
+template<int Dimension, typename RealType>
+bool
+collinear(const RealType* a, const RealType* b, const RealType* c, const RealType tol) {
+  RealType ab[Dimension], ac[Dimension], abmag = 0.0, acmag = 0.0;
+  for (unsigned j = 0; j != Dimension; ++j) {
+    ab[j] = b[j] - a[j];
+    ac[j] = c[j] - a[j];
+    abmag += ab[j]*ab[j];
+    acmag += ac[j]*ac[j];
+  }
+  if (abmag < tol or acmag < tol) return true;
+  abmag = sqrt(abmag);
+  acmag = sqrt(acmag);
+  for (unsigned j = 0; j != Dimension; ++j) {
+    ab[j] /= abmag;
+    ac[j] /= acmag;
+  }
+  return std::abs(std::abs(dot<Dimension, RealType>(ab, ac)) - 1.0) < tol;
+}
+
+}
+
+//------------------------------------------------------------------------------
+// A integer version of the simple 2D point.
+//------------------------------------------------------------------------------
+template<typename CoordType>
+struct Point2 {
+  CoordType x, y;
+  unsigned index;
+  Point2(): x(0), y(0), index(0) {}
+  Point2(const CoordType& xi, const CoordType& yi, const unsigned i = 0): x(xi), y(yi), index(i) {}
+  Point2& operator=(const Point2& rhs) { x = rhs.x; y = rhs.y; index = rhs.index; return *this; }
+  bool operator==(const Point2& rhs) const { return (x == rhs.x and y == rhs.y); }
+  bool operator!=(const Point2& rhs) const { return !(*this == rhs); }
+  bool operator<(const Point2& rhs) const {
+    return (x < rhs.x                ? true :
+            x == rhs.x and y < rhs.y ? true :
+            false);
+  }
+  template<typename RealType>
+  Point2(const RealType& xi, const RealType& yi, const RealType& dx, const unsigned i = 0): 
+    x(static_cast<CoordType>(xi/dx + 0.5)),
+    y(static_cast<CoordType>(yi/dx + 0.5)),
+    index(i) {}
+  template<typename RealType>
+  Point2(const RealType& xi, const RealType& yi, 
+         const RealType& xlow, const RealType& ylow,
+         const RealType& dx,
+         const unsigned i = 0): 
+    x(static_cast<CoordType>((xi - xlow)/dx + 0.5)),
+    y(static_cast<CoordType>((yi - ylow)/dx + 0.5)),
+    index(i) {}
+  template<typename RealType> RealType realx(const RealType& xmin, const RealType& dx) const { return static_cast<RealType>(x*dx) + xmin; }
+  template<typename RealType> RealType realy(const RealType& ymin, const RealType& dy) const { return static_cast<RealType>(y*dy) + ymin; }
+  Point2& operator+=(const Point2& rhs) { x += rhs.x; y += rhs.y; return *this; }
+  Point2& operator-=(const Point2& rhs) { x -= rhs.x; y -= rhs.y; return *this; }
+  Point2& operator*=(const CoordType& rhs) { x *= rhs; y *= rhs; return *this; }
+  Point2& operator/=(const CoordType& rhs) { x /= rhs; y /= rhs; return *this; }
+  Point2 operator+(const Point2& rhs) const { Point2 result(*this); result += rhs; return result; }
+  Point2 operator-(const Point2& rhs) const { Point2 result(*this); result -= rhs; return result; }
+  Point2 operator*(const CoordType& rhs) const { Point2 result(*this); result *= rhs; return result; }
+  Point2 operator/(const CoordType& rhs) const { Point2 result(*this); result /= rhs; return result; }
+  Point2 operator-() const { return Point2(-x, -y); }
+  CoordType  operator[](const size_t i) const { CHECK(i < 2); return *(&x + i); }
+  CoordType& operator[](const size_t i)       { CHECK(i < 2); return *(&x + i); }
+};
+
+//------------------------------------------------------------------------------
+// A fuzzy comparison operator for our quantized Point2 type.
+//------------------------------------------------------------------------------
+template<typename UintType>
+struct FuzzyPoint2LessThan {
+  UintType fuzz;
+  FuzzyPoint2LessThan(const UintType ifuzz = 1): fuzz(ifuzz) {}
+  bool operator()(const Point2<UintType>& p1, const Point2<UintType>& p2) {
+    return (p1.x + fuzz < p2.x        ? true :
+            p1.x        > p2.x + fuzz ? false :
+            p1.y + fuzz < p2.y        ? true :
+            p1.y        > p2.y + fuzz ? false :
+            false);
+  }
+  bool operator()(const std::pair<Point2<UintType>, unsigned>& p1,
+                  const std::pair<Point2<UintType>, unsigned>& p2) {
+    return operator()(p1.first, p2.first);
+  }
+};
+
+//------------------------------------------------------------------------------
+// sign of the Z coordinate of cross product : (p2 - p1)x(p3 - p1).
+//------------------------------------------------------------------------------
+template<typename RealType>
+int zcross_sign(const Point2<RealType>& p1, const Point2<RealType>& p2, const Point2<RealType>& p3) {
+//   double scale = 1.0/max(RealType(1), max(p1.x, max(p1.y, max(p2.x, max(p2.y, max(p3.x, p3.y))))));
+  const double ztest = 
+    (double(p2.x) - double(p1.x))*(double(p3.y) - double(p1.y)) -
+    (double(p2.y) - double(p1.y))*(double(p3.x) - double(p1.x));
+  return (ztest < 0.0 ? -1 :
+          ztest > 0.0 ?  1 :
+                         0);
+  // return (p2.x - p1.x)*(p3.y - p1.y) - (p2.y - p1.y)*(p3.x - p1.x);
+}
+
+//------------------------------------------------------------------------------
+// Comparator to compare std::pair's by their first element.
+//------------------------------------------------------------------------------
+template<typename T1, typename T2>
+struct ComparePairByFirstElement {
+  bool operator()(const std::pair<T1, T2>& lhs, const std::pair<T1, T2>& rhs) const {
+    return lhs.first < rhs.first;
+  }
+};
+
+//------------------------------------------------------------------------------
+// The method itself.
+//
+// NOTE: The convex hull can be of dimension smaller than 2D. Lower
+//       dimensionality is stored in the structure of the PLC facets
+//             1D - Collinear points - A single length-2 facet with indices 
+//                                     pointing to the smallest and largest
+//                                     points in the sorted point hash
+//             0D - Single point     - A single length-2 facet with the same
+//                                     index (0) in both positions 
+//------------------------------------------------------------------------------
+template<typename RealType>
+std::vector<std::vector<int> >
+convexHull_2d(const std::vector<RealType>& points,
+              const RealType* low,
+              const RealType& dx) {
+  typedef KeyTraits::Key CoordHash;
+  typedef Point2<CoordHash> PointHash;
+  // typedef polytope::DimensionTraits<2, RealType>::CoordHash CoordHash;
+  // typedef polytope::DimensionTraits<2, RealType>::IntPoint PointHash;
+
+  CHECK(!points.empty());
+  CHECK(points.size() % 2 == 0);
+  const unsigned n = points.size() / 2;
+  vector<vector<int> > plc;
+  int i, j, k, t;
+  
+  // If there's only one or two points, we're done: that's the whole hull
+  if (n == 1 or n == 2) {
+    plc.resize(1, std::vector<int>(2));
+    plc[0][0] = 0;
+    plc[0][1] = (n == 1) ? 0 : 1;
+    return plc;
+  }
+  
+  // Start by finding a point distinct from point 0.
+  j = 1;
+  while (j != n and geometry::distance<2, RealType>(&points[0], &points[2*j]) < dx) ++j;
+  if (j == n - 1) {
+    // There are only 2 distinct positions!
+    plc.resize(1, std::vector<int>(2));
+    plc[0][0] = 0;
+    plc[0][1] = j;
+    return plc;
+  } else if (j == n) {
+    // Good god, there are no distinct points!
+    plc.resize(1, std::vector<int>(2));
+    plc[0][0] = 0;
+    plc[0][1] = 0;
+    return plc;
+  }
+
+  // Check if the input points are collinear.
+  bool collinear = true;
+  CHECK(n > 2);
+  i = 2;
+  while (collinear and i != n) {
+    collinear = geometry::collinear<2,RealType>(&points[0], &points[2*j], &points[2*i], dx);
+    ++i;
+  }
+  
+  // Hash the input points and sort them by x coordinate, remembering their original indices
+  // in the input set.  We also ensure that only unique (using a fuzzy comparison) points
+  // are inserted here, since duplicates mess up the hull calculation.
+  const RealType& xmin = low[0];
+  const RealType& ymin = low[1];
+  std::set<std::pair<PointHash, unsigned>, FuzzyPoint2LessThan<CoordHash> > uniquePoints;
+  for (i = 0; i != n; ++i) {
+    uniquePoints.insert(std::make_pair(PointHash(CoordHash((points[2*i]     - xmin)/dx + 0.5),
+                                                 CoordHash((points[2*i + 1] - ymin)/dx + 0.5)),
+                                       i));
+  }
+  std::vector<std::pair<PointHash, unsigned> > sortedPoints(uniquePoints.begin(), uniquePoints.end());
+  std::sort(sortedPoints.begin(), sortedPoints.end());
+
+  // If the points are collinear, we can save a lot of work
+  if (collinear) {
+    plc.resize(1, std::vector<int>(2));
+    plc[0][0] = sortedPoints.front().second;
+    plc[0][1] = sortedPoints.back().second;
+  }
+  else {
+    // Prepare the result.
+    const unsigned nunique = sortedPoints.size();
+    std::vector<int> result(2*nunique);
+    
+    // Build the lower hull.
+    for (i = 0, k = 0; i < nunique; i++) {
+      while (k >= 2 and
+             zcross_sign(sortedPoints[result[k - 2]].first, sortedPoints[result[k - 1]].first, sortedPoints[i].first) <= 0) k--;
+      result[k++] = i;
+    }
+    
+    // Build the upper hull.
+    for (i = nunique - 2, t = k + 1; i >= 0; i--) {
+      while (k >= t and
+             zcross_sign(sortedPoints[result[k - 2]].first, sortedPoints[result[k - 1]].first, sortedPoints[i].first) <= 0) k--;
+      result[k++] = i;
+    }
+    // if (!(k >= 4)) {
+    //   std::cerr << "Blago!  " << n << " " << nunique << " " << k << std::endl;
+    //   std::cerr << "Unique:" << std::endl;
+    //   for (unsigned i = 0; i != nunique; ++i) std::cerr << "  --> " << sortedPoints[i].first << std::endl;
+    //   std::cerr << "Input:" << std::endl;
+    //   for (unsigned i = 0; i != n; ++i) std::cerr << "  --> " << points[2*i] << " " << points[2*i+1] << std::endl;
+    // }
+    CHECK(k >= 4);
+    CHECK(result.front() == result.back());
+    
+    // Translate our sorted information to a PLC based on the input point ordering and we're done.
+    for (i = 0; i != k - 1; ++i) {
+      j = (i + 1) % k;
+      plc.push_back(std::vector<int>());
+      plc.back().push_back(sortedPoints[result[i]].second);
+      plc.back().push_back(sortedPoints[result[j]].second);
+    }
+    CHECK(plc.size() == k - 1);
+  }
+  return plc;
+}
+
+} // end anonymous namespace
+//********************************************************************************
 
 //------------------------------------------------------------------------------
 // Default constructor.
@@ -81,8 +372,9 @@ GeomPolygon(const vector<GeomPolygon::Vector>& points):
 
     // Call the polytope method for computing the convex hull.
     vector<double> low(2, 0.0);
-    polytope::PLC<2, double> plc = polytope::convexHull_2d(points_polytope, &(*low.begin()), 1.0e-15);
-    const unsigned numVertices = plc.facets.size();
+    // polytope::PLC<2, double> plc = polytope::convexHull_2d(points_polytope, &(*low.begin()), 1.0e-15);
+    vector<vector<int> > plc = convexHull_2d(points_polytope, &(*low.begin()), 1.0e-15);
+    const unsigned numVertices = plc.size();
     CHECK(numVertices >= 3);
 
     // Extract the hull information back to our local convention.  We use the fact that
@@ -91,8 +383,8 @@ GeomPolygon(const vector<GeomPolygon::Vector>& points):
     mVertices.reserve(numVertices);
     int i, j;
     for (j = 0; j != numVertices; ++j) {
-      CHECK(plc.facets[j].size() == 2);
-      i = plc.facets[j][0];
+      CHECK(plc[j].size() == 2);
+      i = plc[j][0];
       CHECK(i >= 0 and i < points.size());
       mVertices.push_back(points[i]);
     }
@@ -111,7 +403,7 @@ GeomPolygon(const vector<GeomPolygon::Vector>& points):
     GeometryUtilities::computeAncillaryGeometry(*this, mVertexFacetConnectivity, mFacetFacetConnectivity, mVertexUnitNorms);
 
     // Post-conditions.
-    BEGIN_CONTRACT_SCOPE;
+    BEGIN_CONTRACT_SCOPE
     {
       // Ensure the facet node ordering is correct.
       CounterClockwiseComparator<Vector, vector<Vector> > nodeComparator(mVertices, mVertices[0]);
@@ -141,7 +433,7 @@ GeomPolygon(const vector<GeomPolygon::Vector>& points):
       // this check.
       //      BOOST_FOREACH(vec, points) ENSURE(this->convexContains(vec));
     }
-    END_CONTRACT_SCOPE;
+    END_CONTRACT_SCOPE
   }
 }
 

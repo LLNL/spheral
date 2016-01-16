@@ -213,12 +213,13 @@ selectDt(const typename Dimension::Scalar dtMin,
 }
 
 //------------------------------------------------------------------------------
-// Perform basic initializations for the integrators.
+// Initializations for integrators.  To be called once at the beginning of an
+// integrator step.
 //------------------------------------------------------------------------------
 template<typename Dimension>
 void
-Integrator<Dimension>::initialize(State<Dimension>& state,
-                                  StateDerivatives<Dimension>& derivs) {
+Integrator<Dimension>::preStepInitialize(State<Dimension>& state,
+                                         StateDerivatives<Dimension>& derivs) {
 
   // Check if we need to construct connectivity.
   mRequireConnectivity = false;
@@ -237,27 +238,31 @@ Integrator<Dimension>::initialize(State<Dimension>& state,
   applyGhostBoundaries(state, derivs);
 
   // Register the now updated connectivity with the state.
+  DataBase<Dimension>& db = accessDataBase();
   if (mRequireConnectivity) {
-    DataBase<Dimension>& db = accessDataBase();
     state.enrollConnectivityMap(db.connectivityMapPtr(mRequireGhostConnectivity));
   }
 
-  // Prepare individual packages and node lists.
-  preStepInitialize(currentTime(), 0.0, state, derivs);
+  // Loop over the physics packages and perform any necessary initializations.
+  for (typename Integrator<Dimension>::ConstPackageIterator physicsItr = physicsPackagesBegin();
+       physicsItr != physicsPackagesEnd();
+       ++physicsItr) {
+    (*physicsItr)->preStepInitialize(db, state, derivs);
+  }
 }
 
 //------------------------------------------------------------------------------
-// Initializations that need to be called before a time advance step begins.
+// Initialize all physics packages before evaluating derivatives.
+// Called before each call to Physics::evaluateDerivatives.
 //------------------------------------------------------------------------------
 template<typename Dimension>
 void
-Integrator<Dimension>::preStepInitialize(const double t,
-                                         const double dt,
-                                         State<Dimension>& state,
-                                         StateDerivatives<Dimension>& derivs) {
+Integrator<Dimension>::initializeDerivatives(const double t,
+                                             const double dt,
+                                             State<Dimension>& state,
+                                             StateDerivatives<Dimension>& derivs) {
 
-  // Loop over the NodeLists in the DataBase and initialize them.  Also make sure
-  // they know about the smoothing scale constraints.
+  // Initialize the work fields.
   DataBase<Dimension>& db = accessDataBase();
   for (typename DataBase<Dimension>::NodeListIterator nodeListItr = db.nodeListBegin();
        nodeListItr < db.nodeListEnd();
@@ -275,30 +280,6 @@ Integrator<Dimension>::preStepInitialize(const double t,
   // Physics packages may have called boundary conditions as well, so finalize any
   // outstanding boundary conditions here.
   this->finalizeGhostBoundaries();
-}
-
-//------------------------------------------------------------------------------
-// Finalize at the completion of a time step.
-//------------------------------------------------------------------------------
-template<typename Dimension>
-void
-Integrator<Dimension>::finalize(const double t,
-                                const double dt,
-                                State<Dimension>& state,
-                                StateDerivatives<Dimension>& derivs) {
-
-  // Loop over the physics packages and perform any necessary finalizations.
-  DataBase<Dimension>& db = accessDataBase();
-//   for (typename DataBase<Dimension>::FluidNodeListIterator nodeListItr = db.fluidNodeListBegin();
-//        nodeListItr != db.fluidNodeListEnd(); 
-//        ++nodeListItr) {
-//     (*nodeListItr)->neighbor().updateNodes();
-//   }
-  for (typename Integrator<Dimension>::ConstPackageIterator physicsItr = physicsPackagesBegin();
-       physicsItr != physicsPackagesEnd();
-       ++physicsItr) {
-    (*physicsItr)->finalize(t, dt, db, state, derivs);
-  }
 }
 
 //------------------------------------------------------------------------------
@@ -358,6 +339,30 @@ Integrator<Dimension>::postStateUpdate(const DataBase<Dimension>& dataBase,
 }
 
 //------------------------------------------------------------------------------
+// Finalize at the completion of a time step.
+//------------------------------------------------------------------------------
+template<typename Dimension>
+void
+Integrator<Dimension>::postStepFinalize(const double t,
+                                        const double dt,
+                                        State<Dimension>& state,
+                                        StateDerivatives<Dimension>& derivs) {
+
+  // Loop over the physics packages and perform any necessary finalizations.
+  DataBase<Dimension>& db = accessDataBase();
+//   for (typename DataBase<Dimension>::FluidNodeListIterator nodeListItr = db.fluidNodeListBegin();
+//        nodeListItr != db.fluidNodeListEnd(); 
+//        ++nodeListItr) {
+//     (*nodeListItr)->neighbor().updateNodes();
+//   }
+  for (typename Integrator<Dimension>::ConstPackageIterator physicsItr = physicsPackagesBegin();
+       physicsItr != physicsPackagesEnd();
+       ++physicsItr) {
+    (*physicsItr)->finalize(t, dt, db, state, derivs);
+  }
+}
+
+//------------------------------------------------------------------------------
 // Add a physics package.
 //------------------------------------------------------------------------------
 template<typename Dimension>
@@ -408,7 +413,7 @@ uniqueBoundaryConditions() const {
 
   }
 
-  BEGIN_CONTRACT_SCOPE;
+  BEGIN_CONTRACT_SCOPE
   // Ensure that all boundary conditions are included in the result
   for (ConstPackageIterator physicsItr = physicsPackagesBegin();
        physicsItr != physicsPackagesEnd();
@@ -426,7 +431,7 @@ uniqueBoundaryConditions() const {
        ++boundaryItr) {
     ENSURE(count(result.begin(), result.end(), *boundaryItr) == 1);
   }
-  END_CONTRACT_SCOPE;
+  END_CONTRACT_SCOPE
 
   // That's it.
   return result;
@@ -565,14 +570,14 @@ Integrator<Dimension>::setGhostNodes() {
       }
 
       // All nodes should now be labeled as keepers.
-      BEGIN_CONTRACT_SCOPE;
+      BEGIN_CONTRACT_SCOPE
       {
         for (size_t nodeListi = 0; nodeListi != numNodeLists; ++nodeListi) {
           ENSURE(flags[nodeListi]->numElements() == 0 or
                  *min_element(flags[nodeListi]->begin(), flags[nodeListi]->end()) == 1);
         }
       }
-      END_CONTRACT_SCOPE;
+      END_CONTRACT_SCOPE
 
       // The ConnectivityMap should be valid too.
       ENSURE(db.connectivityMap().valid());

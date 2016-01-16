@@ -24,6 +24,7 @@ struct HydroFieldNames {
   static const std::string specificThermalEnergy;
   static const std::string maxViscousPressure;
   static const std::string effectiveViscousPressure;
+  static const std::string massDensityCorrection;
   static const std::string viscousWork;
   static const std::string XSPHDeltaV;
   static const std::string XSPHWeightSum;
@@ -36,24 +37,30 @@ struct HydroFieldNames {
   static const std::string soundSpeed;
   static const std::string pairAccelerations;
   static const std::string pairWork;
-///***************CULLEN********************************************************************
-  static const std::string prevDvDt;
-  static const std::string prevDivV;
-  static const std::string cullAlpha;
-//****************CULLEN********************************************************************
+  static const std::string gamma;
+  static const std::string PSPHcorrection;
   static const std::string omegaGradh;
   static const std::string numberDensitySum;
   static const std::string timeStepMask;
   static const std::string m0_CRKSPH;
   static const std::string m1_CRKSPH;
   static const std::string m2_CRKSPH;
+  static const std::string m3_CRKSPH;
+  static const std::string m4_CRKSPH;
+  static const std::string gradM0_CRKSPH;
+  static const std::string gradM1_CRKSPH;
+  static const std::string gradM2_CRKSPH;
+  static const std::string gradM3_CRKSPH;
+  static const std::string gradM4_CRKSPH;
   static const std::string A0_CRKSPH;
   static const std::string A_CRKSPH;
   static const std::string B_CRKSPH;
+  static const std::string C_CRKSPH;
   static const std::string gradA0_CRKSPH;
   static const std::string gradA_CRKSPH;
   static const std::string gradB_CRKSPH;
-  static const std::string M_CRKSPH;
+  static const std::string gradC_CRKSPH;
+  static const std::string M_SPHCorrection;
   static const std::string volume;
   static const std::string linearMomentum;
   static const std::string totalEnergy;
@@ -64,8 +71,8 @@ struct HydroFieldNames {
   static const std::string faceMass;
   static const std::string polyvols;
   static const std::string massDensityGradient;
-  static const std::string reducingViscosityMultiplierQ;
-  static const std::string reducingViscosityMultiplierL;
+  static const std::string ArtificialViscousClMultiplier;
+  static const std::string ArtificialViscousCqMultiplier;
 };
 
 }

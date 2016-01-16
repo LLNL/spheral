@@ -20,6 +20,7 @@ commandLine(
     # Hydro algorithm.
     SVPH = False,
     CRKSPH = False,
+    PSPH = False,
     cfl = 0.5,
     XSPH = False,
     epsilonTensile = 0.0,
@@ -27,10 +28,12 @@ commandLine(
     filter = 0.00,
     HUpdate = IdealH,
     densityUpdate = RigorousSumDensity,
+    correctionOrder = LinearOrder,
     compatibleEnergy = True,
     gradhCorrection = False,
     linearConsistent = False,
     KernelConstructor = BSplineKernel,
+    order = 5,
 
     # Q
     Qconstructor = MonaghanGingoldViscosity,
@@ -39,6 +42,20 @@ commandLine(
     linearInExpansion = False,
     Qlimiter = False,
     epsilon2 = 1e-4,
+  
+    boolReduceViscosity = False,
+    nh = 5.0,
+    aMin = 0.1,
+    aMax = 2.0,
+    Qhmult = 1.0,
+    boolCullenViscosity = False,
+    alphMax = 2.0,
+    alphMin = 0.02,
+    betaC = 0.7,
+    betaD = 0.05,
+    betaE = 1.0,
+    fKern = 1.0/3.0,
+    boolHopkinsCorrection = True,
 
     # Integrator.
     IntegratorConstructor = CheapSynchronousRK2Integrator,
@@ -63,19 +80,24 @@ commandLine(
     restartBaseName = "DoubleBlastwave-restart",
     graphics = True,
 )
+assert not(boolReduceViscosity and boolCullenViscosity)
 
 if SVPH:
     HydroConstructor = SVPHFacetedHydro
 elif CRKSPH:
     HydroConstructor = CRKSPHHydro
     Qconstructor = CRKSPHMonaghanGingoldViscosity
+elif PSPH:
+    HydroConstructor = PSPHHydro
 else:
     HydroConstructor = SPHHydro
 
 dataDir = os.path.join(dataDirBase, 
-                       str(HydroConstructor).split("'")[1].split(".")[-1],
-                       str(Qconstructor).split("'")[1].split(".")[-1],
-                       "%i" % (nx))
+                       HydroConstructor.__name__,
+                       Qconstructor.__name__,
+                       "Cl=%g_Cq=%g" % (Cl, Cq),
+                       "%i" % (nx),
+                       "nPerh=%s" % nPerh)
 restartDir = os.path.join(dataDir, "restarts")
 restartBaseName = os.path.join(restartDir, "DoubleBlastwave-1d-%i")
 plotDir = os.path.join(dataDir, "plots")
@@ -100,10 +122,12 @@ eos = GammaLawGasMKS(1.4, 2.0)
 #-------------------------------------------------------------------------------
 # Interpolation kernels.
 #-------------------------------------------------------------------------------
-WT = TableKernel(KernelConstructor(), 1000)
-WTPi = WT
+if KernelConstructor==NBSplineKernel:
+  WT = TableKernel(NBSplineKernel(order), 1000)
+else:
+  WT = TableKernel(KernelConstructor(), 1000)
+kernelExtent = WT.kernelExtent
 output("WT")
-output("WTPi")
 
 #-------------------------------------------------------------------------------
 # Make the NodeLists.
@@ -111,6 +135,7 @@ output("WTPi")
 nodes = makeFluidNodeList("nodes", eos, 
                            hmin = hmin,
                            hmax = hmax,
+			   kernelExtent = kernelExtent,
                            nPerh = nPerh)
 nodeSet = [nodes]
 
@@ -162,7 +187,8 @@ output("q.quadraticInExpansion")
 # Construct the hydro physics object.
 #-------------------------------------------------------------------------------
 if SVPH:
-    hydro = HydroConstructor(WT, q,
+    hydro = HydroConstructor(W = WT, 
+                             Q = q,
                              cfl = cfl,
                              compatibleEnergyEvolution = compatibleEnergy,
                              XSVPH = XSPH,
@@ -173,17 +199,18 @@ if SVPH:
                              xmin = Vector(-100.0),
                              xmax = Vector( 100.0))
 elif CRKSPH:
-    hydro = HydroConstructor(WT, WTPi, q,
+    hydro = HydroConstructor(W = WT, 
+                             Q = q,
                              filter = filter,
                              cfl = cfl,
                              compatibleEnergyEvolution = compatibleEnergy,
                              XSPH = XSPH,
+                             correctionOrder = correctionOrder,
                              densityUpdate = densityUpdate,
                              HUpdate = HUpdate)
 else:
-    hydro = HydroConstructor(WT,
-                             WTPi,
-                             q,
+    hydro = HydroConstructor(W = WT,
+                             Q = q,
                              cfl = cfl,
                              compatibleEnergyEvolution = compatibleEnergy,
                              gradhCorrection = gradhCorrection,
@@ -195,6 +222,17 @@ else:
 output("hydro")
 
 packages = [hydro]
+
+#-------------------------------------------------------------------------------
+# Construct the MMRV physics object.
+#-------------------------------------------------------------------------------
+
+if boolReduceViscosity:
+    evolveReducingViscosityMultiplier = MorrisMonaghanReducingViscosity(q,nh,aMin,aMax)
+    packages.append(evolveReducingViscosityMultiplier)
+elif boolCullenViscosity:
+    evolveCullenViscosityMultiplier = CullenDehnenViscosity(q,WT,alphMax,alphMin,betaC,betaD,betaE,fKern,boolHopkinsCorrection)
+    packages.append(evolveCullenViscosityMultiplier)
 
 #-------------------------------------------------------------------------------
 # Create boundary conditions.
@@ -275,4 +313,4 @@ else:
             rhoPlots.append(plotFieldList(db.fluidMassDensity,
                                           plotStyle = "lines",
                                           winTitle = "time=%4.3f" % control.time()))
-            rhoPlots[-1].hardcopy(os.path.join(plotDir, "rho_plot_t=%4.3f.png" % control.time()), terminal="png")
+            rhoPlots[-1].hardcopy(os.path.join(plotDir, "DB_%i_rho_plot_t=%4.3f.png" % (nx, control.time())), terminal="png")

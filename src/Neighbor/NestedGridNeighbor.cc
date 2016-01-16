@@ -157,14 +157,14 @@ setMasterList(const int nodeID) {
   masterList = vector<int>();
   const Field<Dimension, Vector>& positions = this->nodeList().positions();
   const Field<Dimension, SymTensor>& Hfield = this->nodeList().Hfield();
-  BEGIN_CONTRACT_SCOPE;
+  BEGIN_CONTRACT_SCOPE
   {
     const int gridLevelCheck = mNodeOnGridLevel[nodeID];
     const GridCellIndex<Dimension> gridCellCheck = mNodeInCell[gridLevelCheck][nodeID];
     CHECK(gridLevel(Hfield(nodeID)) == gridLevelCheck);
     CHECK(gridCellIndex(positions(nodeID), gridLevel(nodeID)) == gridCellCheck);
   }
-  END_CONTRACT_SCOPE;
+  END_CONTRACT_SCOPE
   setMasterList(positions(nodeID), Hfield(nodeID));
 }
 
@@ -970,7 +970,7 @@ NestedGridNeighbor<Dimension>::updateNodes() {
   }
 
   // Post-conditions.
-  BEGIN_CONTRACT_SCOPE;
+  BEGIN_CONTRACT_SCOPE
   {
     // Make sure each node is only linked into one grid cell.
     const NodeList<Dimension>& nodes = this->nodeList();
@@ -992,7 +992,7 @@ NestedGridNeighbor<Dimension>::updateNodes() {
     }
     for (int i = 0; i != nodes.numNodes(); ++i) ENSURE(count(i) == 1);
   }
-  END_CONTRACT_SCOPE;
+  END_CONTRACT_SCOPE
 
 }
 

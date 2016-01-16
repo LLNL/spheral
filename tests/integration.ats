@@ -7,6 +7,7 @@
 # Geometry unit tests
 source("../src/Geometry/tests/testVector.py")
 source("../src/Geometry/tests/testTensor.py")
+source("../src/Geometry/tests/testInnerOuterProduct.py")
 source("../src/Geometry/tests/testEigen3d.py")
 source("../src/Geometry/tests/testPolygon.py")
 source("../src/Geometry/tests/testPolyhedron.py")
@@ -15,12 +16,15 @@ source("../src/Geometry/tests/testPolyhedron.py")
 source("../src/Boundary/tests/testPeriodicBoundary-1d.py")
 source("../src/Boundary/tests/testPeriodicBoundary-2d.py")
 
+# SPH unit tests
+source("../src/SPH/tests/testLinearVelocityGradient.py")
+
 # CRKSPH unit tests
 source("../src/CRKSPH/tests/testInterpolation.py")
 
 # SVPH unit tests
 source("../src/SVPH/tests/testSVPHInterpolation-1d.py")
-source("../src/SVPH/tests/testSVPHInterpolation-2d.py")
+# source("../src/SVPH/tests/testSVPHInterpolation-2d.py")
 
 # Field unit tests
 source("../src/Field/tests/testField.py")
@@ -51,8 +55,8 @@ source("../src/Utilities/tests/testSimpsonsIntegration.py")
 
 # Mesh tests.
 source("../src/Mesh/tests/testLineMesh.py")
-source("../src/Mesh/tests/testPolygonalMesh.py")
-source("../src/Mesh/tests/testPolyhedralMesh.py")
+# source("../src/Mesh/tests/testPolygonalMesh.py")   # Suspended until we fix the polytope with Spheral issues.
+# source("../src/Mesh/tests/testPolyhedralMesh.py")  # Suspended until we fix the polytope with Spheral issues.
 
 # Hydro tests
 source("Hydro/HydroTests.ats")

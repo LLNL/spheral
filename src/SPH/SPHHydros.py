@@ -13,35 +13,37 @@ SPHHydroFactoryString = """
 class %(classname)s%(dim)s(SPHHydroBase%(dim)s):
 
     def __init__(self,
-                 W,
-                 WPi,
                  Q,
+                 W,
+                 WPi = None,
                  filter = 0.0,
                  cfl = 0.5,
                  useVelocityMagnitudeForDt = False,
                  compatibleEnergyEvolution = True,
-                 gradhCorrection = False,
+                 evolveTotalEnergy = False,
+                 gradhCorrection = True,
                  XSPH = True,
                  correctVelocityGradient = False,
                  sumMassDensityOverAllNodeLists = True,
                  densityUpdate = RigorousSumDensity,
                  HUpdate = IdealH,
-                 epsTensile = 0.3,
+                 epsTensile = 0.0,
                  nTensile = 4.0,
                  xmin = Vector%(dim)s(-1e100, -1e100, -1e100),
                  xmax = Vector%(dim)s( 1e100,  1e100,  1e100)):
         self._smoothingScaleMethod = %(smoothingScaleMethod)s%(dim)s()
-        if xmin is None:
-            xmin = Vector%(dim)s.one
+        if WPi is None:
+            WPi = W
         SPHHydroBase%(dim)s.__init__(self,
                                      self._smoothingScaleMethod,
+                                     Q,
                                      W,
                                      WPi,
-                                     Q,
                                      filter,
                                      cfl,
                                      useVelocityMagnitudeForDt,
                                      compatibleEnergyEvolution,
+                                     evolveTotalEnergy,
                                      gradhCorrection,
                                      XSPH,
                                      correctVelocityGradient,

@@ -476,13 +476,13 @@ deleteNodes(const vector<int>& nodeIDs) {
        ++fieldItr) (*fieldItr)->deleteElements(uniqueIDs);
 
   // Post-conditions.
-  BEGIN_CONTRACT_SCOPE;
+  BEGIN_CONTRACT_SCOPE
   for (typename vector<FieldBase<Dimension>*>::iterator fieldItr = mFieldBaseList.begin();
        fieldItr < mFieldBaseList.end();
        ++fieldItr) {
     ENSURE((*fieldItr)->size() == mNumNodes);
   }
-  END_CONTRACT_SCOPE;
+  END_CONTRACT_SCOPE
   
 }
 
@@ -568,14 +568,14 @@ reorderNodes(const vector<int>& newOrdering) {
   const int n = this->numInternalNodes();
 
   // Pre-conditions.
-  BEGIN_CONTRACT_SCOPE;
+  BEGIN_CONTRACT_SCOPE
   {
     REQUIRE(newOrdering.size() == n);
     vector<int> tmp(newOrdering);
     sort(tmp.begin(), tmp.end());
     for (int i = 0; i != n; ++i) REQUIRE(tmp[i] == i);
   }
-  END_CONTRACT_SCOPE;
+  END_CONTRACT_SCOPE
 
   // Make sure we're not carting around ghost nodes.
   this->numGhostNodes(0);

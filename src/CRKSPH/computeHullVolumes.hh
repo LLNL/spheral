@@ -23,7 +23,6 @@ namespace Spheral {
                      const typename Dimension::Scalar kernelExtent,
                      const FieldSpace::FieldList<Dimension, typename Dimension::Vector>& position,
                      const FieldSpace::FieldList<Dimension, typename Dimension::SymTensor>& H,
-                     FieldSpace::FieldList<Dimension, typename Dimension::FacetedVolume>& polyvol,
                      FieldSpace::FieldList<Dimension, typename Dimension::Scalar>& volume);
 }
 

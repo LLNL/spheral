@@ -66,6 +66,7 @@ from VoidNodeLists import *
 # Import SPH, SVPH, and CRKSPH
 # ------------------------------------------------------------------------------
 from SPHHydros import *
+from PSPHHydros import *
 from SVPHHydros import *
 from CRKSPHHydros import *
 from SolidCRKSPHHydros import *

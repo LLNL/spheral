@@ -34,7 +34,8 @@ public:
   typedef unsigned size_type;
 
   // Useful static memeber data.
-  static const int nDimensions;
+  static const size_type nDimensions;
+  static const size_type numElements;
   static const GeomTensor zero;
   static const GeomTensor one;
 
@@ -60,6 +61,10 @@ public:
   // Access the elements by indicies.
   double operator()(const size_type row, const size_type column) const;
   double& operator()(const size_type row, const size_type column);
+
+  // More C++ style indexing.
+  double operator[](size_type index) const;
+  double& operator[](size_type index);
 
   // Access the individual elements by (x,y,z) notation.
   double xx() const;
@@ -184,6 +189,14 @@ private:
 };
 
 // Declare specializations.
+template<> const unsigned GeomTensor<1>::nDimensions;
+template<> const unsigned GeomTensor<2>::nDimensions;
+template<> const unsigned GeomTensor<3>::nDimensions;
+
+template<> const unsigned GeomTensor<1>::numElements;
+template<> const unsigned GeomTensor<2>::numElements;
+template<> const unsigned GeomTensor<3>::numElements;
+
 template<> GeomVector<1> GeomTensor<1>::eigenValues() const;
 template<> GeomVector<2> GeomTensor<2>::eigenValues() const;
 template<> GeomVector<3> GeomTensor<3>::eigenValues() const;
@@ -392,10 +405,6 @@ template<> void GeomTensor<3>::rotationalTransform(const GeomTensor<3>&);
 template<> double GeomTensor<1>::maxAbsElement() const;
 template<> double GeomTensor<2>::maxAbsElement() const;
 template<> double GeomTensor<3>::maxAbsElement() const;
-
-template<> const int GeomTensor<1>::nDimensions;
-template<> const int GeomTensor<2>::nDimensions;
-template<> const int GeomTensor<3>::nDimensions;
 
 template<> const GeomTensor<1> GeomTensor<1>::zero;
 template<> const GeomTensor<2> GeomTensor<2>::zero;

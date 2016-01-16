@@ -62,6 +62,14 @@ Bdamage() const {
 
 template<typename Dimension>
 inline
+const FieldSpace::FieldList<Dimension, typename Dimension::Tensor>&
+SolidCRKSPHHydroBase<Dimension>::
+Cdamage() const {
+  return mCdamage;
+}
+
+template<typename Dimension>
+inline
 const FieldSpace::FieldList<Dimension, typename Dimension::Vector>&
 SolidCRKSPHHydroBase<Dimension>::
 gradAdamage() const {
@@ -74,6 +82,14 @@ const FieldSpace::FieldList<Dimension, typename Dimension::Tensor>&
 SolidCRKSPHHydroBase<Dimension>::
 gradBdamage() const {
   return mGradBdamage;
+}
+
+template<typename Dimension>
+inline
+const FieldSpace::FieldList<Dimension, typename Dimension::ThirdRankTensor>&
+SolidCRKSPHHydroBase<Dimension>::
+gradCdamage() const {
+  return mGradCdamage;
 }
 
 }

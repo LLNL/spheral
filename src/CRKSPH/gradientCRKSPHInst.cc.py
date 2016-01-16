@@ -20,9 +20,12 @@ namespace Spheral {
                                            const FieldList<Dim< %(ndim)s >, Dim< %(ndim)s >::SymTensor>& Hfield,
                                            const FieldList<Dim< %(ndim)s >, Dim< %(ndim)s >::Scalar>& A,
                                            const FieldList<Dim< %(ndim)s >, Dim< %(ndim)s >::Vector>& B,
+                                           const FieldList<Dim< %(ndim)s >, Dim< %(ndim)s >::Tensor>& C,
                                            const FieldList<Dim< %(ndim)s >, Dim< %(ndim)s >::Vector>& gradA,
                                            const FieldList<Dim< %(ndim)s >, Dim< %(ndim)s >::Tensor>& gradB,
+                                           const FieldList<Dim< %(ndim)s >, Dim< %(ndim)s >::ThirdRankTensor>& gradC,
                                            const ConnectivityMap<Dim< %(ndim)s > >& connectivityMap,
+ 					   const CRKOrder correctionOrder,
                                            const TableKernel< Dim< %(ndim)s > >& kernel,
                                            const NodeCoupling& nodeCoupling);
       template 
@@ -33,9 +36,12 @@ namespace Spheral {
                                              const FieldList<Dim< %(ndim)s >, Dim< %(ndim)s >::SymTensor>& Hfield,
                                              const FieldList<Dim< %(ndim)s >, Dim< %(ndim)s >::Scalar>& A,
                                              const FieldList<Dim< %(ndim)s >, Dim< %(ndim)s >::Vector>& B,
+                                             const FieldList<Dim< %(ndim)s >, Dim< %(ndim)s >::Tensor>& C,
                                              const FieldList<Dim< %(ndim)s >, Dim< %(ndim)s >::Vector>& gradA,
                                              const FieldList<Dim< %(ndim)s >, Dim< %(ndim)s >::Tensor>& gradB,
+                                             const FieldList<Dim< %(ndim)s >, Dim< %(ndim)s >::ThirdRankTensor>& gradC,
                                              const ConnectivityMap<Dim< %(ndim)s > >& connectivityMap,
+ 					     const CRKOrder correctionOrder,
                                              const TableKernel< Dim< %(ndim)s > >& kernel,
                                              const NodeCoupling& nodeCoupling);
 

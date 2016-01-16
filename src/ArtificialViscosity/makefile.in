@@ -13,6 +13,8 @@ INSTSRCTARGETS = \
 	$(srcdir)/ArtificialViscosityInst.cc.py \
 	$(srcdir)/MonaghanGingoldViscosityInst.cc.py \
 	$(srcdir)/MorrisMonaghanReducingViscosityInst.cc.py \
+	$(srcdir)/CullenDehnenViscosityInst.cc.py \
+	$(srcdir)/IncrementCullenMultipliersInst.cc.py \
 	$(srcdir)/TensorMonaghanGingoldViscosityInst.cc.py \
 	$(srcdir)/FiniteVolumeViscosityInst.cc.py \
 	$(srcdir)/CRKSPHMonaghanGingoldViscosityInst.cc.py \

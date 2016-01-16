@@ -1,3 +1,4 @@
+from SpheralModules.Spheral import *
 from SpheralModules.Spheral.SPHSpace import *
 from SpheralModules.Spheral.NodeSpace import *
 from SpheralModules.Spheral.PhysicsSpace import *
@@ -14,31 +15,41 @@ SolidSPHHydroFactoryString = """
 class %(classname)s%(dim)s(SolidSPHHydroBase%(dim)s):
 
     def __init__(self,
-                 W,
-                 WPi,
                  Q,
+                 W,
+                 WPi = None,
+                 WGrad = None,
                  filter = 0.0,
                  cfl = 0.5,
                  useVelocityMagnitudeForDt = False,
                  compatibleEnergyEvolution = True,
-                 gradhCorrection = False,
+                 evolveTotalEnergy = False,
+                 gradhCorrection = True,
                  XSPH = True,
                  correctVelocityGradient = False,
                  sumMassDensityOverAllNodeLists = False,
                  densityUpdate = RigorousSumDensity,
                  HUpdate = IdealH,
                  epsTensile = 0.3,
-                 nTensile = 4.0):
+                 nTensile = 4.0,
+                 xmin = Vector%(dim)s(-1e100, -1e100, -1e100),
+                 xmax = Vector%(dim)s( 1e100,  1e100,  1e100)):
         self._smoothingScaleMethod = %(smoothingScaleMethod)s%(dim)s()
+        if WPi is None:
+            WPi = W
+        if WGrad is None:
+            WGrad = W
         SolidSPHHydroBase%(dim)s.__init__(self,
                                           self._smoothingScaleMethod,
+                                          Q,
                                           W,
                                           WPi,
-                                          Q,
+                                          WGrad,
                                           filter,
                                           cfl,
                                           useVelocityMagnitudeForDt,
                                           compatibleEnergyEvolution,
+                                          evolveTotalEnergy,
                                           gradhCorrection,
                                           XSPH,
                                           correctVelocityGradient,
@@ -46,7 +57,9 @@ class %(classname)s%(dim)s(SolidSPHHydroBase%(dim)s):
                                           densityUpdate,
                                           HUpdate,
                                           epsTensile,
-                                          nTensile)
+                                          nTensile,
+                                          xmin,
+                                          xmax)
         return
 """
 

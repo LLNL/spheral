@@ -20,13 +20,18 @@ public:
   typedef typename Dimension::Vector Vector;
   typedef typename Dimension::Tensor Tensor;
   typedef typename Dimension::SymTensor SymTensor;
+  typedef typename Dimension::ThirdRankTensor ThirdRankTensor;
+  typedef typename Dimension::FourthRankTensor FourthRankTensor;
+  typedef typename Dimension::FifthRankTensor FifthRankTensor;
   typedef typename ArtificialViscosity<Dimension>::ConstBoundaryIterator ConstBoundaryIterator;
 
   // Constructors.
   CRKSPHMonaghanGingoldViscosity(const Scalar Clinear,
                                  const Scalar Cquadratic,
                                  const bool linearInExpansion,
-                                 const bool quadraticInExpansion);
+                                 const bool quadraticInExpansion,
+                                 const Scalar etaCritFrac,
+                                 const Scalar etaFoldFrac);
 
   // Destructor.
   virtual ~CRKSPHMonaghanGingoldViscosity();
@@ -58,11 +63,20 @@ public:
                                          const Scalar csj,
                                          const SymTensor& Hj) const;
 
+  // Access the fractions setting the critical spacing for kicking the
+  // viscosity back on full force.
+  double etaCritFrac() const;
+  void etaCritFrac(const double val);
+
+  double etaFoldFrac() const;
+  void etaFoldFrac(const double val);
+
   // Restart methods.
   virtual std::string label() const { return "CRKSPHMonaghanGingoldViscosity"; }
 
 private:
   //--------------------------- Private Interface ---------------------------//
+  double mEtaCritFrac, mEtaFoldFrac, mEtaCrit, mEtaFold;
   FieldSpace::FieldList<Dimension, Tensor> mGradVel;
 
   CRKSPHMonaghanGingoldViscosity();

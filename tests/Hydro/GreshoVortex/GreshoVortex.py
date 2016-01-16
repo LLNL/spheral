@@ -50,10 +50,11 @@ commandLine(
 
     SVPH = False,
     CRKSPH = False,
-    ASPH = False,
-    SPH = True,   # This just chooses the H algorithm -- you can use this with CRKSPH for instance.
+    PSPH = False,
+    ASPH = False,   # This just chooses the H algorithm -- you can use this with CRKSPH for instance.
     filter = 0.0,  # For CRKSPH
-    KernelConstructor = BSplineKernel,
+    KernelConstructor = NBSplineKernel,
+    order = 5,
     Qconstructor = MonaghanGingoldViscosity,
     #Qconstructor = TensorMonaghanGingoldViscosity,
     boolReduceViscosity = False,
@@ -61,11 +62,21 @@ commandLine(
     nhL = 10.0,
     aMin = 0.1,
     aMax = 2.0,
+    boolCullenViscosity = False,
+    alphMax = 2.0,
+    alphMin = 0.02,
+    betaC = 0.7,
+    betaD = 0.05,
+    betaE = 1.0,
+    fKern = 1.0/3.0,
+    boolHopkinsCorrection = True,
     linearConsistent = False,
     fcentroidal = 0.0,
     fcellPressure = 0.0,
     Cl = 1.0, 
     Cq = 0.75,
+    etaCritFrac = 1.0,
+    etaFoldFrac = 0.2,
     linearInExpansion = False,
     Qlimiter = False,
     balsaraCorrection = False,
@@ -95,6 +106,8 @@ commandLine(
     dtverbose = False,
 
     densityUpdate = RigorousSumDensity, # VolumeScaledDensity,
+    correctionOrder = LinearOrder,
+    volumeType = CRKSumVolume,
     compatibleEnergy = True,
     gradhCorrection = False,
 
@@ -108,6 +121,7 @@ commandLine(
     outputFile = "None",
     )
 
+assert not(boolReduceViscosity and boolCullenViscosity)
 # Decide on our hydro algorithm.
 if SVPH:
     if ASPH:
@@ -115,21 +129,21 @@ if SVPH:
     else:
         HydroConstructor = SVPHFacetedHydro
 elif CRKSPH:
+    Qconstructor = CRKSPHMonaghanGingoldViscosity
     if ASPH:
         HydroConstructor = ACRKSPHHydro
     else:
         HydroConstructor = CRKSPHHydro
+elif PSPH:
+    if ASPH:
+        HydroConstructor = APSPHHydro
+    else:
+        HydroConstructor = PSPHHydro
 else:
     if ASPH:
         HydroConstructor = ASPHHydro
     else:
         HydroConstructor = SPHHydro
-
-#-------------------------------------------------------------------------------
-# CRKSPH Switches to ensure consistency
-#-------------------------------------------------------------------------------
-if CRKSPH:
-    Qconstructor = CRKSPHMonaghanGingoldViscosity
 
 #-------------------------------------------------------------------------------
 # Build our directory paths.
@@ -145,7 +159,7 @@ baseDir = os.path.join(dataDir,
                        "Cl=%g_Cq=%g" % (Cl, Cq),
                        densityUpdateLabel[densityUpdate],
                        "compatibleEnergy=%s" % compatibleEnergy,
-                       "XSPH=%s" % XSPH,
+                       "Cullen=%s" % boolCullenViscosity,
                        "nPerh=%3.1f" % nPerh,
                        "fcentroidal=%f" % max(fcentroidal, filter),
                        "fcellPressure=%f" % fcellPressure,
@@ -187,10 +201,11 @@ eos = GammaLawGasMKS(gamma, mu)
 #-------------------------------------------------------------------------------
 # Interpolation kernels.
 #-------------------------------------------------------------------------------
-WT = TableKernel(KernelConstructor(), 1000)
-WTPi = WT # TableKernel(HatKernel(1.0, 1.0), 1000)
+if KernelConstructor==NBSplineKernel:
+  WT = TableKernel(NBSplineKernel(order), 1000)
+else:
+  WT = TableKernel(KernelConstructor(), 1000)
 output("WT")
-output("WTPi")
 kernelExtent = WT.kernelExtent
 
 #-------------------------------------------------------------------------------
@@ -200,6 +215,7 @@ nodes = makeFluidNodeList("fluid", eos,
                                hmin = hmin,
                                hmax = hmax,
                                hminratio = hminratio,
+                               kernelExtent = kernelExtent,
                                nPerh = nPerh)
 output("nodes.name")
 output("    nodes.hmin")
@@ -297,7 +313,8 @@ output("q.quadraticInExpansion")
 # Construct the hydro physics object.
 #-------------------------------------------------------------------------------
 if SVPH:
-    hydro = HydroConstructor(WT, q,
+    hydro = HydroConstructor(W = WT, 
+                             Q = q,
                              cfl = cfl,
                              compatibleEnergyEvolution = compatibleEnergy,
                              densityUpdate = densityUpdate,
@@ -310,19 +327,23 @@ if SVPH:
                              xmin = Vector(x0 - (x1 - x0), y0 - (y1 - y0)),
                              xmax = Vector(x1 + (x1 - x0), y3 + (y1 - y0)))
 elif CRKSPH:
-    hydro = HydroConstructor(WT, WTPi, q,
+    hydro = HydroConstructor(W = WT, 
+                             Q = q,
                              filter = filter,
                              epsTensile = epsilonTensile,
                              nTensile = nTensile,
                              cfl = cfl,
                              compatibleEnergyEvolution = compatibleEnergy,
                              XSPH = XSPH,
+                             correctionOrder = correctionOrder,
+                             volumeType = volumeType,
                              densityUpdate = densityUpdate,
                              HUpdate = HUpdate)
+    q.etaCritFrac = etaCritFrac
+    q.etaFoldFrac = etaFoldFrac
 else:
-    hydro = HydroConstructor(WT,
-                             WTPi,
-                             q,
+    hydro = HydroConstructor(W = WT,
+                             Q = q,
                              cfl = cfl,
                              compatibleEnergyEvolution = compatibleEnergy,
                              gradhCorrection = gradhCorrection,
@@ -344,12 +365,12 @@ packages = [hydro]
 #-------------------------------------------------------------------------------
 # Construct the MMRV physics object.
 #-------------------------------------------------------------------------------
-
 if boolReduceViscosity:
-    #q.reducingViscosityCorrection = True
     evolveReducingViscosityMultiplier = MorrisMonaghanReducingViscosity(q,nhQ,nhL,aMin,aMax)
-    
     packages.append(evolveReducingViscosityMultiplier)
+elif boolCullenViscosity:
+    evolveCullenViscosityMultiplier = CullenDehnenViscosity(q,WT,alphMax,alphMin,betaC,betaD,betaE,fKern,boolHopkinsCorrection)
+    packages.append(evolveCullenViscosityMultiplier)
 
 
 #-------------------------------------------------------------------------------
@@ -451,7 +472,7 @@ control = SpheralController(integrator, WT,
                             vizStep = vizCycle,
                             vizTime = vizTime,
                             skipInitialPeriodicWork = (HydroConstructor in (SVPHFacetedHydro, ASVPHFacetedHydro)),
-                            SPH = SPH)
+                            SPH = (not ASPH))
 output("control")
 
 #-------------------------------------------------------------------------------
@@ -502,18 +523,38 @@ if outputFile != "None":
     rhoprof = mpi.reduce(nodes.massDensity().internalValues(), mpi.SUM)
     Pprof = mpi.reduce(P.internalValues(), mpi.SUM)
     vprof = mpi.reduce([v.magnitude() for v in nodes.velocity().internalValues()], mpi.SUM)
+    velx = mpi.reduce([v.x for v in nodes.velocity().internalValues()], mpi.SUM)
+    vely = mpi.reduce([v.y for v in nodes.velocity().internalValues()], mpi.SUM)
     epsprof = mpi.reduce(nodes.specificThermalEnergy().internalValues(), mpi.SUM)
     hprof = mpi.reduce([1.0/sqrt(H.Determinant()) for H in nodes.Hfield().internalValues()], mpi.SUM)
     mof = mortonOrderIndices(db)
     mo = mpi.reduce(mof[0].internalValues(), mpi.SUM)
+
     if mpi.rank == 0:
         rprof = [sqrt(xi*xi + yi*yi) for xi, yi in zip(xprof, yprof)]
-        multiSort(rprof, mo, xprof, yprof, rhoprof, Pprof, vprof, epsprof, hprof)
+        multiSort(rprof, mo, xprof, yprof, rhoprof, Pprof, vprof, epsprof, hprof,velx,vely)
+        L1 = 0.0
+        vazprof = []
+        for i in xrange(len(xprof)):
+           rhat = (Vector(xprof[i],yprof[i]) - Vector(xc, yc)).unitVector()
+           vel_vec = Vector(velx[i],vely[i])
+           vazprof.append((vel_vec - vel_vec.dot(rhat)*rhat).magnitude())
+           vans = 0.0
+           if rprof[i] < 0.2:
+             vans = 5*rprof[i]
+           elif rprof[i] < 0.4:
+             vans = 2.0-5.0*rprof[i]
+           else:
+             vans = 0.0
+           L1 = L1 + abs(vazprof[i]-vans)
+        L1 = L1/len(xprof)
+        with open("Converge.txt.%s" % nPerh, "a") as myfile:
+          myfile.write("%s\t %s\n" % (nx1,L1))
         f = open(outputFile, "w")
         f.write(("# " + 16*"%15s " + "\n") % ("r", "x", "y", "rho", "P", "v", "eps", "h", "mortonOrder",
                                               "x_uu", "y_uu", "rho_uu", "P_uu", "v_uu", "eps_uu", "h_uu"))
-        for (ri, xi, yi, rhoi, Pi, vi, epsi, hi, mi)  in zip(rprof, xprof, yprof, rhoprof, Pprof, vprof, epsprof, hprof, mo):
-            f.write((8*"%16.12e " + "%i " + 7*"%i " + "\n") % (ri, xi, yi, rhoi, Pi, vi, epsi, hi, mi,
+        for (ri, xi, yi, rhoi, Pi, vi, vaz, epsi, hi, mi)  in zip(rprof, xprof, yprof, rhoprof, Pprof, vprof, vazprof, epsprof, hprof, mo):
+            f.write((9*"%16.12e " + "%i " + 7*"%i " + "\n") % (ri, xi, yi, rhoi, Pi, vi, vaz, epsi, hi, mi,
                                                                unpackElementUL(packElementDouble(xi)),
                                                                unpackElementUL(packElementDouble(yi)),
                                                                unpackElementUL(packElementDouble(rhoi)),

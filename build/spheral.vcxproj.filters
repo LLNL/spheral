@@ -1,0 +1,2021 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="Source Files">
+      <UniqueIdentifier>{4FC737F1-C7A5-4376-A066-2A32D752A2FF}</UniqueIdentifier>
+      <Extensions>cpp;c;cc;cxx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
+    </Filter>
+    <Filter Include="Header Files">
+      <UniqueIdentifier>{93995380-89BD-4b04-88EB-625FBE52EBFB}</UniqueIdentifier>
+      <Extensions>h;hpp;hxx;hm;inl;inc;xsd</Extensions>
+    </Filter>
+    <Filter Include="Resource Files">
+      <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
+      <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
+    </Filter>
+    <Filter Include="Source Files\Geometry">
+      <UniqueIdentifier>{694176a4-38ec-4d2b-a83f-3d6334946197}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\NodeList">
+      <UniqueIdentifier>{a087a163-4ee8-4f2b-b4c9-bdfe1d5cbd52}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\Field">
+      <UniqueIdentifier>{53494047-a21d-4a54-8804-17a8ac2f3b50}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\FieldOperations">
+      <UniqueIdentifier>{532e2cfb-9516-4075-85a2-8e6b193749f4}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\Kernel">
+      <UniqueIdentifier>{4d198bbd-47fe-46e0-9079-08eabfdf16b0}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\Material">
+      <UniqueIdentifier>{4cfc9628-34b5-4bc0-954a-c810220a96e3}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\Neighbor">
+      <UniqueIdentifier>{ada2087f-f47d-4ed6-a4ad-dda5f74054cc}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\Database">
+      <UniqueIdentifier>{4a41226c-735b-4434-a97a-73ff59489098}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\Database">
+      <UniqueIdentifier>{1a7c3190-a975-43b9-97d2-bd8c6fbf42a1}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\Boundary">
+      <UniqueIdentifier>{9625c6ca-fa10-4c07-9c3b-b1427a838d2d}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\Boundary">
+      <UniqueIdentifier>{f523a305-9163-4ffd-bb57-4b2a18cef657}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\Physics">
+      <UniqueIdentifier>{339a401b-1e95-431c-9b9e-3804e7a05918}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\ArtificialViscosity">
+      <UniqueIdentifier>{88bcc26b-402d-4c23-86e0-c684c488eed6}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\Hydro">
+      <UniqueIdentifier>{49e565bc-cd95-4210-a7b2-8a511223f9c4}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\ExternalForce">
+      <UniqueIdentifier>{8338c759-04e6-4cea-9176-41a9d420e84f}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\Gravity">
+      <UniqueIdentifier>{04703dc5-23af-483f-8e5e-f14d93baa83a}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\FileIO">
+      <UniqueIdentifier>{0083f70d-7012-414d-b72b-af744d922694}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\Integrator">
+      <UniqueIdentifier>{38725898-402d-4204-87f5-41187e3ed869}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\DataOutput">
+      <UniqueIdentifier>{abf2cec2-13b5-413e-9a04-e8b1a451ca80}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\Utilities">
+      <UniqueIdentifier>{36fd4c36-aaf2-4868-9dd7-38b0b6c0548a}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\NodeGenerator">
+      <UniqueIdentifier>{be14597b-182c-49da-8ddb-c9fd967dfcc0}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\SPH">
+      <UniqueIdentifier>{e2995ee6-0191-4be8-a4c2-4fb2af26109a}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\CRKSPH">
+      <UniqueIdentifier>{d2316dc8-a3d3-4274-a996-afc6c02b04f6}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\SVPH">
+      <UniqueIdentifier>{952de497-664c-49fa-a642-ba7eb18b15ee}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\TaylorSPH">
+      <UniqueIdentifier>{d8361713-9444-4419-942c-d166ed8d1abd}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\Mesh">
+      <UniqueIdentifier>{caf1c85c-120a-4ca6-bd85-eda2d06c74c3}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\Damage">
+      <UniqueIdentifier>{203100c8-0eca-404b-9192-8e9e71e73f98}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\SolidMaterial">
+      <UniqueIdentifier>{1e3320ed-53ca-4798-9578-3e1b312a7364}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\SolidSPH">
+      <UniqueIdentifier>{08d107cb-9651-423e-b668-68068983c15b}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\Strength">
+      <UniqueIdentifier>{4c63734a-c945-4aea-8116-cc0500fab2fa}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\ArtificialConduction">
+      <UniqueIdentifier>{fab696a1-795d-40c1-bec7-66b0e7e601fc}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\CInterface">
+      <UniqueIdentifier>{1532e8ee-4904-446c-bfe3-28787e292e17}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\Distributed">
+      <UniqueIdentifier>{0128410f-3622-457e-a547-a60c13585cb6}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\ArtificialViscosity">
+      <UniqueIdentifier>{8aa63abf-b844-4400-8a32-f8f552b7aeca}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\Hydro">
+      <UniqueIdentifier>{93bd2f44-c1f6-495c-9498-ea417caf4552}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\CInterface">
+      <UniqueIdentifier>{ee4ca632-d0a3-499d-9300-d3233c3effdd}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\CRKSPH">
+      <UniqueIdentifier>{009385eb-bea6-42f8-b482-e0726894dd3a}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\Damage">
+      <UniqueIdentifier>{acfc0d9d-5801-472e-a015-f84e9969a680}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\DataOutput">
+      <UniqueIdentifier>{bd23cfa1-c647-4ed1-847d-3ee4b2b64da0}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\Distributed">
+      <UniqueIdentifier>{2509bc6c-676f-41b6-b565-4bb7f8763ba4}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\ExternalForce">
+      <UniqueIdentifier>{ebe20d92-76b8-457d-914c-30764932e35d}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\FileIO">
+      <UniqueIdentifier>{17928432-01ef-4c9a-b8d9-1fa80f602aa8}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\ArtificialConduction">
+      <UniqueIdentifier>{8e813ba4-7ee5-4e95-837d-747e986deec4}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\TaylorSPH">
+      <UniqueIdentifier>{9410feef-6237-426f-a00b-99bdc0d04bff}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\SVPH">
+      <UniqueIdentifier>{b8acde09-0165-4406-9f6d-a7c74acceb14}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\Integrator">
+      <UniqueIdentifier>{a77cfde3-5edf-48d1-b34e-6dfe998ad1d1}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\Mesh">
+      <UniqueIdentifier>{3ab63694-ad75-4f8a-8604-3534e59e60c0}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\SolidMaterial">
+      <UniqueIdentifier>{b1bada3a-1961-4ee2-8c77-6a77080b9051}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\Strength">
+      <UniqueIdentifier>{2a8b2f20-c42f-471f-9427-62614367be30}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\Utilities">
+      <UniqueIdentifier>{de0ca593-c2df-46bb-b4c2-af5eb40de2ac}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <Text Include="ReadMe.txt" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="..\src\Geometry\buildEigenVector.cc">
+      <Filter>Source Files\Geometry</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\Geometry\computeEigenValues.cc">
+      <Filter>Source Files\Geometry</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\Geometry\Dimension.cc">
+      <Filter>Source Files\Geometry</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\Geometry\EigenStruct.cc">
+      <Filter>Source Files\Geometry</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\Geometry\fakemain.cc">
+      <Filter>Source Files\Geometry</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\Geometry\Geom3Vector.cc">
+      <Filter>Source Files\Geometry</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\Geometry\GeomFacet2d.cc">
+      <Filter>Source Files\Geometry</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\Geometry\GeomFacet3d.cc">
+      <Filter>Source Files\Geometry</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\Geometry\GeomPlane.cc">
+      <Filter>Source Files\Geometry</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\Geometry\GeomPolygon.cc">
+      <Filter>Source Files\Geometry</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\Geometry\GeomPolyhedron.cc">
+      <Filter>Source Files\Geometry</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\Geometry\GeomSymmetricTensor.cc">
+      <Filter>Source Files\Geometry</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\Geometry\GeomTensor.cc">
+      <Filter>Source Files\Geometry</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\Geometry\GeomThirdRankTensor.cc">
+      <Filter>Source Files\Geometry</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\Geometry\GeomVector.cc">
+      <Filter>Source Files\Geometry</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\Geometry\Jacobi.cc">
+      <Filter>Source Files\Geometry</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\Geometry\Jacobi2.cc">
+      <Filter>Source Files\Geometry</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\NodeList\FluidNodeListInst.cc">
+      <Filter>Source Files\NodeList</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\NodeList\generateVoidNodesInst.cc">
+      <Filter>Source Files\NodeList</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\NodeList\NodeListInst.cc">
+      <Filter>Source Files\NodeList</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\NodeList\NodeListRegistrarInst.cc">
+      <Filter>Source Files\NodeList</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\NodeList\nthNodalMomentInst.cc">
+      <Filter>Source Files\NodeList</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\NodeList\SmoothingScaleBaseInst.cc">
+      <Filter>Source Files\NodeList</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\NodeList\SPHSmoothingScaleInst.cc">
+      <Filter>Source Files\NodeList</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\NodeList\ASPHSmoothingScaleInst.cc">
+      <Filter>Source Files\NodeList</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\NodeList\FixedSmoothingScaleInst.cc">
+      <Filter>Source Files\NodeList</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\Field\GhostNodeIteratorInst.cc">
+      <Filter>Source Files\Field</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\Field\InternalNodeIteratorInst.cc">
+      <Filter>Source Files\Field</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\Field\MasterNodeIteratorInst.cc">
+      <Filter>Source Files\Field</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\Field\NodeIteratorBaseInst.cc">
+      <Filter>Source Files\Field</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\Field\RefineNodeIteratorInst.cc">
+      <Filter>Source Files\Field</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\Field\AllNodeIteratorInst.cc">
+      <Filter>Source Files\Field</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\Field\CoarseNodeIteratorInst.cc">
+      <Filter>Source Files\Field</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\FieldOperations\sampleFieldsMashInst.cc">
+      <Filter>Source Files\FieldOperations</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\FieldOperations\sampleMultipleFields2LatticeInst.cc">
+      <Filter>Source Files\FieldOperations</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\FieldOperations\sampleMultipleFields2LatticeMashInst.cc">
+      <Filter>Source Files\FieldOperations</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\FieldOperations\sampleMultipleFieldsMashInst.cc">
+      <Filter>Source Files\FieldOperations</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\FieldOperations\smoothFieldsInst.cc">
+      <Filter>Source Files\FieldOperations</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\FieldOperations\smoothFieldsMash2Inst.cc">
+      <Filter>Source Files\FieldOperations</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\FieldOperations\smoothFieldsMashInst.cc">
+      <Filter>Source Files\FieldOperations</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\FieldOperations\splatFieldsMashInst.cc">
+      <Filter>Source Files\FieldOperations</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\FieldOperations\splatMultipleFieldsMashInst.cc">
+      <Filter>Source Files\FieldOperations</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\FieldOperations\binFieldList2LatticeInst.cc">
+      <Filter>Source Files\FieldOperations</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\FieldOperations\divergenceInst.cc">
+      <Filter>Source Files\FieldOperations</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\FieldOperations\divergenceMashInst.cc">
+      <Filter>Source Files\FieldOperations</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\FieldOperations\divergencePairWiseInst.cc">
+      <Filter>Source Files\FieldOperations</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\FieldOperations\gradDivVectorFieldListGolden2Inst.cc">
+      <Filter>Source Files\FieldOperations</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\FieldOperations\gradDivVectorFieldListGoldenInst.cc">
+      <Filter>Source Files\FieldOperations</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\FieldOperations\gradDivVectorFieldListInst.cc">
+      <Filter>Source Files\FieldOperations</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\FieldOperations\gradDivVectorFieldListMashInst.cc">
+      <Filter>Source Files\FieldOperations</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\FieldOperations\gradDivVectorFieldListPairWiseInst.cc">
+      <Filter>Source Files\FieldOperations</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\FieldOperations\gradDivVectorFieldListSimpleInst.cc">
+      <Filter>Source Files\FieldOperations</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\FieldOperations\gradientInst.cc">
+      <Filter>Source Files\FieldOperations</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\FieldOperations\gradientMashInst.cc">
+      <Filter>Source Files\FieldOperations</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\FieldOperations\gradientPairWiseInst.cc">
+      <Filter>Source Files\FieldOperations</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\Kernel\TableKernelInst.cc">
+      <Filter>Source Files\Kernel</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\Kernel\VolumeIntegrationFunctionsInst.cc">
+      <Filter>Source Files\Kernel</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\Kernel\W4SplineKernel.cc">
+      <Filter>Source Files\Kernel</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\Kernel\WendlandC4Kernel.cc">
+      <Filter>Source Files\Kernel</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\Kernel\WendlandC6Kernel.cc">
+      <Filter>Source Files\Kernel</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\Kernel\BSplineKernel.cc">
+      <Filter>Source Files\Kernel</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\Kernel\GaussianKernel.cc">
+      <Filter>Source Files\Kernel</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\Kernel\HatKernel.cc">
+      <Filter>Source Files\Kernel</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\Kernel\Kernel.cc">
+      <Filter>Source Files\Kernel</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\Kernel\NBSplineKernelInst.cc">
+      <Filter>Source Files\Kernel</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\Kernel\NSincPolynomialKernelInst.cc">
+      <Filter>Source Files\Kernel</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\Kernel\PiGaussianKernel.cc">
+      <Filter>Source Files\Kernel</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\Kernel\QuarticSplineKernel.cc">
+      <Filter>Source Files\Kernel</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\Kernel\QuinticSplineKernel.cc">
+      <Filter>Source Files\Kernel</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\Kernel\SincKernel.cc">
+      <Filter>Source Files\Kernel</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\Kernel\SuperGaussianKernel.cc">
+      <Filter>Source Files\Kernel</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\Material\HelmholtzEquationOfStateInst.cc">
+      <Filter>Source Files\Material</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\Material\IsothermalEquationOfStateInst.cc">
+      <Filter>Source Files\Material</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\Material\PhysicalConstants.cc">
+      <Filter>Source Files\Material</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\Material\PolytropicEquationOfStateInst.cc">
+      <Filter>Source Files\Material</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\Material\EquationOfStateInst.cc">
+      <Filter>Source Files\Material</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\Material\GammaLawGasInst.cc">
+      <Filter>Source Files\Material</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\Neighbor\ConnectivityMapInst.cc">
+      <Filter>Source Files\Neighbor</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\Neighbor\GridCellIndexInst.cc">
+      <Filter>Source Files\Neighbor</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\Neighbor\GridCellPlaneInst.cc">
+      <Filter>Source Files\Neighbor</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\Neighbor\NeighborInst.cc">
+      <Filter>Source Files\Neighbor</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\Neighbor\NestedGridNeighborInst.cc">
+      <Filter>Source Files\Neighbor</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\Neighbor\TreeNeighborInst.cc">
+      <Filter>Source Files\Neighbor</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\DataBase\ReplaceFieldListInst.cc">
+      <Filter>Source Files\Database</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\DataBase\ReplaceStateInst.cc">
+      <Filter>Source Files\Database</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\DataBase\StateBaseInst.cc">
+      <Filter>Source Files\Database</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\DataBase\StateDerivativesInst.cc">
+      <Filter>Source Files\Database</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\DataBase\StateInst.cc">
+      <Filter>Source Files\Database</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\DataBase\CompositeFieldListPolicyInst.cc">
+      <Filter>Source Files\Database</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\DataBase\CopyFieldListInst.cc">
+      <Filter>Source Files\Database</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\DataBase\CopyStateInst.cc">
+      <Filter>Source Files\Database</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\DataBase\DataBaseInst.cc">
+      <Filter>Source Files\Database</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\DataBase\IncrementBoundedFieldListInst.cc">
+      <Filter>Source Files\Database</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\DataBase\IncrementBoundedStateInst.cc">
+      <Filter>Source Files\Database</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\DataBase\IncrementFieldListInst.cc">
+      <Filter>Source Files\Database</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\DataBase\IncrementStateInst.cc">
+      <Filter>Source Files\Database</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\DataBase\ReplaceBoundedFieldListInst.cc">
+      <Filter>Source Files\Database</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\DataBase\ReplaceBoundedStateInst.cc">
+      <Filter>Source Files\Database</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\Boundary\AxialSymmetryBoundary.cc">
+      <Filter>Source Files\Boundary</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\Boundary\BoundaryInst.cc">
+      <Filter>Source Files\Boundary</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\Boundary\ConstantBoundaryInst.cc">
+      <Filter>Source Files\Boundary</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\Boundary\ConstantRVelocityBoundaryInst.cc">
+      <Filter>Source Files\Boundary</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\Boundary\ConstantVelocityBoundaryInst.cc">
+      <Filter>Source Files\Boundary</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\Boundary\ConstantXVelocityBoundaryInst.cc">
+      <Filter>Source Files\Boundary</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\Boundary\ConstantYVelocityBoundaryInst.cc">
+      <Filter>Source Files\Boundary</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\Boundary\ConstantZVelocityBoundaryInst.cc">
+      <Filter>Source Files\Boundary</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\Boundary\CylindricalBoundary.cc">
+      <Filter>Source Files\Boundary</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\Boundary\PeriodicBoundaryInst.cc">
+      <Filter>Source Files\Boundary</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\Boundary\PlanarBoundaryInst.cc">
+      <Filter>Source Files\Boundary</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\Boundary\ReflectingBoundaryInst.cc">
+      <Filter>Source Files\Boundary</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\Boundary\RigidBoundaryInst.cc">
+      <Filter>Source Files\Boundary</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\Physics\GenericBodyForceInst.cc">
+      <Filter>Source Files\Physics</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\Physics\GenericHydroInst.cc">
+      <Filter>Source Files\Physics</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\Physics\PhysicsInst.cc">
+      <Filter>Source Files\Physics</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\ArtificialViscosity\ArtificialViscosityInst.cc">
+      <Filter>Source Files\ArtificialViscosity</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\ArtificialViscosity\CRKSPHMonaghanGingoldViscosityInst.cc">
+      <Filter>Source Files\ArtificialViscosity</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\ArtificialViscosity\FiniteVolumeViscosityInst.cc">
+      <Filter>Source Files\ArtificialViscosity</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\ArtificialViscosity\MonaghanGingoldViscosityInst.cc">
+      <Filter>Source Files\ArtificialViscosity</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\ArtificialViscosity\MorrisMonaghanReducingViscosityInst.cc">
+      <Filter>Source Files\ArtificialViscosity</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\ArtificialViscosity\TensorCRKSPHViscosityInst.cc">
+      <Filter>Source Files\ArtificialViscosity</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\ArtificialViscosity\TensorMonaghanGingoldViscosityInst.cc">
+      <Filter>Source Files\ArtificialViscosity</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\ArtificialViscosity\TensorSVPHViscosityInst.cc">
+      <Filter>Source Files\ArtificialViscosity</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\ArtificialViscosity\VonNeumanViscosityInst.cc">
+      <Filter>Source Files\ArtificialViscosity</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\Hydro\HydroFieldNames.cc">
+      <Filter>Source Files\Hydro</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\Hydro\NonSymmetricSpecificThermalEnergyPolicyInst.cc">
+      <Filter>Source Files\Hydro</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\Hydro\PositionPolicyInst.cc">
+      <Filter>Source Files\Hydro</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\Hydro\PressurePolicyInst.cc">
+      <Filter>Source Files\Hydro</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\Hydro\SecondMomentHourglassControlInst.cc">
+      <Filter>Source Files\Hydro</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\Hydro\SoundSpeedPolicyInst.cc">
+      <Filter>Source Files\Hydro</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\Hydro\SpecificThermalEnergyPolicyInst.cc">
+      <Filter>Source Files\Hydro</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\Hydro\SumVoronoiMassDensityPolicyInst.cc">
+      <Filter>Source Files\Hydro</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\Hydro\ThirdMomentHourglassControlInst.cc">
+      <Filter>Source Files\Hydro</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\Hydro\VolumePolicyInst.cc">
+      <Filter>Source Files\Hydro</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\Hydro\VoronoiMassDensityPolicyInst.cc">
+      <Filter>Source Files\Hydro</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\ExternalForce\PointPotentialInst.cc">
+      <Filter>Source Files\ExternalForce</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\ExternalForce\ConstantAccelerationInst.cc">
+      <Filter>Source Files\ExternalForce</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\ExternalForce\LinearAccelerationInst.cc">
+      <Filter>Source Files\ExternalForce</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\ExternalForce\NFWPotentialInst.cc">
+      <Filter>Source Files\ExternalForce</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\Gravity\NBodyGravityInst.cc">
+      <Filter>Source Files\Gravity</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\Gravity\TreeGravityInst.cc">
+      <Filter>Source Files\Gravity</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\FileIO\FileIO.cc">
+      <Filter>Source Files\FileIO</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\FileIO\FlatFileIO.cc">
+      <Filter>Source Files\FileIO</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\FileIO\PyFileIO.cc">
+      <Filter>Source Files\FileIO</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\FileIO\vectorstringUtilities.cc">
+      <Filter>Source Files\FileIO</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\Integrator\CheapSynchronousRK2Inst.cc">
+      <Filter>Source Files\Integrator</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\Integrator\IntegratorInst.cc">
+      <Filter>Source Files\Integrator</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\Integrator\PredictorCorrectorInst.cc">
+      <Filter>Source Files\Integrator</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\Integrator\SynchronousRK1Inst.cc">
+      <Filter>Source Files\Integrator</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\Integrator\SynchronousRK2Inst.cc">
+      <Filter>Source Files\Integrator</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\Integrator\SynchronousRK4Inst.cc">
+      <Filter>Source Files\Integrator</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\Integrator\VerletInst.cc">
+      <Filter>Source Files\Integrator</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\DataOutput\RestartableObject.cc">
+      <Filter>Source Files\DataOutput</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\DataOutput\RestartRegistrar.cc">
+      <Filter>Source Files\DataOutput</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\Utilities\boundingBoxInst.cc">
+      <Filter>Source Files\Utilities</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\Utilities\buildMessage.cc">
+      <Filter>Source Files\Utilities</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\Utilities\coarsenBinnedValuesInst.cc">
+      <Filter>Source Files\Utilities</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\Utilities\DBC.cc">
+      <Filter>Source Files\Utilities</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\Utilities\globalBoundingVolumesInst.cc">
+      <Filter>Source Files\Utilities</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\Utilities\integrateThroughMeshAlongSegmentInst.cc">
+      <Filter>Source Files\Utilities</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\Utilities\iterateIdealHInst.cc">
+      <Filter>Source Files\Utilities</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\Utilities\KeyTraits.cc">
+      <Filter>Source Files\Utilities</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\Utilities\lineSegmentIntersections.cc">
+      <Filter>Source Files\Utilities</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\Utilities\medianPositionInst.cc">
+      <Filter>Source Files\Utilities</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\Utilities\mortonOrderIndicesInst.cc">
+      <Filter>Source Files\Utilities</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\Utilities\nodeBoundingBoxesInst.cc">
+      <Filter>Source Files\Utilities</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\Utilities\nodeOrderingInst.cc">
+      <Filter>Source Files\Utilities</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\Utilities\numberDensityInst.cc">
+      <Filter>Source Files\Utilities</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\Utilities\peanoHilbertOrderIndicesInst.cc">
+      <Filter>Source Files\Utilities</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\Utilities\PeanoHilbertTransform.cc">
+      <Filter>Source Files\Utilities</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\Utilities\pointInPolygon.cc">
+      <Filter>Source Files\Utilities</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\Utilities\pointInPolyhedron.cc">
+      <Filter>Source Files\Utilities</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\Utilities\pointOnPolygon.cc">
+      <Filter>Source Files\Utilities</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\Utilities\pointOnPolyhedron.cc">
+      <Filter>Source Files\Utilities</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\Utilities\Process.cc">
+      <Filter>Source Files\Utilities</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\Utilities\RedistributionRegistrar.cc">
+      <Filter>Source Files\Utilities</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\Utilities\refinePolyhedron.cc">
+      <Filter>Source Files\Utilities</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\Utilities\RegisterMPIDataTypes.cc">
+      <Filter>Source Files\Utilities</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\Utilities\segmentIntersectEdges.cc">
+      <Filter>Source Files\Utilities</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\NodeGenerators\relaxNodeDistributionInst.cc">
+      <Filter>Source Files\NodeGenerator</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\NodeGenerators\fillFacetedVolume.cc">
+      <Filter>Source Files\NodeGenerator</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\NodeGenerators\generateCylDistributionFromRZ.cc">
+      <Filter>Source Files\NodeGenerator</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\SPH\computeHydrostaticEquilibriumPressure.cc">
+      <Filter>Source Files\SPH</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\SPH\computeSPHOmegaGradhCorrectionInst.cc">
+      <Filter>Source Files\SPH</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\SPH\computeSPHSumMassDensityInst.cc">
+      <Filter>Source Files\SPH</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\SPH\computeSumVoronoiCellMassDensityInst.cc">
+      <Filter>Source Files\SPH</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\SPH\SPHHydroBaseInst.cc">
+      <Filter>Source Files\SPH</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\CRKSPH\centerOfMass.cc">
+      <Filter>Source Files\CRKSPH</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\CRKSPH\computeCRKSPHCorrectionsInst.cc">
+      <Filter>Source Files\CRKSPH</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\CRKSPH\computeCRKSPHEvaluationInst.cc">
+      <Filter>Source Files\CRKSPH</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\CRKSPH\computeCRKSPHIntegralInst.cc">
+      <Filter>Source Files\CRKSPH</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\CRKSPH\computeCRKSPHSumMassDensityInst.cc">
+      <Filter>Source Files\CRKSPH</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\CRKSPH\computeHullSumMassDensityInst.cc">
+      <Filter>Source Files\CRKSPH</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\CRKSPH\computeHullVolumesInst.cc">
+      <Filter>Source Files\CRKSPH</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\CRKSPH\computeHVolumesInst.cc">
+      <Filter>Source Files\CRKSPH</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\CRKSPH\computeNeighborHullInst.cc">
+      <Filter>Source Files\CRKSPH</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\CRKSPH\computeVoronoiCentroids.cc">
+      <Filter>Source Files\CRKSPH</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\CRKSPH\CRKSPHHydroBaseInst.cc">
+      <Filter>Source Files\CRKSPH</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\CRKSPH\gradientCRKSPHInst.cc">
+      <Filter>Source Files\CRKSPH</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\CRKSPH\HVolumePolicyInst.cc">
+      <Filter>Source Files\CRKSPH</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\CRKSPH\interpolateCRKSPHInst.cc">
+      <Filter>Source Files\CRKSPH</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\SVPH\CellPressurePolicyInst.cc">
+      <Filter>Source Files\SVPH</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\SVPH\CompatibleFaceSpecificThermalEnergyPolicyInst.cc">
+      <Filter>Source Files\SVPH</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\SVPH\computeSumVoronoiCellMassDensityFromFacesInst.cc">
+      <Filter>Source Files\SVPH</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\SVPH\computeSVPHCorrectionsInst.cc">
+      <Filter>Source Files\SVPH</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\SVPH\computeSVPHCorrectionsOnFacesInst.cc">
+      <Filter>Source Files\SVPH</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\SVPH\gradientFieldListSVPHInst.cc">
+      <Filter>Source Files\SVPH</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\SVPH\MeshIdealHPolicyInst.cc">
+      <Filter>Source Files\SVPH</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\SVPH\sampleFieldListSVPHInst.cc">
+      <Filter>Source Files\SVPH</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\SVPH\SpecificThermalEnergyVolumePolicyInst.cc">
+      <Filter>Source Files\SVPH</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\SVPH\SVPHCorrectionsPolicyInst.cc">
+      <Filter>Source Files\SVPH</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\SVPH\SVPHFacetedHydroBaseInst.cc">
+      <Filter>Source Files\SVPH</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\SVPH\SVPHMassDensityPolicyInst.cc">
+      <Filter>Source Files\SVPH</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\TaylorSPH\TaylorSPHHydroBaseInst.cc">
+      <Filter>Source Files\TaylorSPH</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\TaylorSPH\computeTaylorSPHCorrectionsInst.cc">
+      <Filter>Source Files\TaylorSPH</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\Mesh\computeElementOwner.cc">
+      <Filter>Source Files\Mesh</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\Mesh\computeGeneratorsInst.cc">
+      <Filter>Source Files\Mesh</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\Mesh\findMatchingVertexInst.cc">
+      <Filter>Source Files\Mesh</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\Mesh\generateMeshInst.cc">
+      <Filter>Source Files\Mesh</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\Mesh\LineEdge.cc">
+      <Filter>Source Files\Mesh</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\Mesh\LineFace.cc">
+      <Filter>Source Files\Mesh</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\Mesh\LineMesh.cc">
+      <Filter>Source Files\Mesh</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\Mesh\LineZone.cc">
+      <Filter>Source Files\Mesh</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\Mesh\Mesh.cc">
+      <Filter>Source Files\Mesh</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\Mesh\MeshConstructionUtilities.cc">
+      <Filter>Source Files\Mesh</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\Mesh\MeshPolicyInst.cc">
+      <Filter>Source Files\Mesh</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\Mesh\PolygonalEdge.cc">
+      <Filter>Source Files\Mesh</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\Mesh\PolygonalFace.cc">
+      <Filter>Source Files\Mesh</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\Mesh\PolygonalMesh.cc">
+      <Filter>Source Files\Mesh</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\Mesh\PolygonalZone.cc">
+      <Filter>Source Files\Mesh</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\Mesh\PolyhedralEdge.cc">
+      <Filter>Source Files\Mesh</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\Mesh\PolyhedralFace.cc">
+      <Filter>Source Files\Mesh</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\Mesh\PolyhedralMesh.cc">
+      <Filter>Source Files\Mesh</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\Mesh\PolyhedralZone.cc">
+      <Filter>Source Files\Mesh</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\Damage\computeFragmentFieldInst.cc">
+      <Filter>Source Files\Damage</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\Damage\DamageModelInst.cc">
+      <Filter>Source Files\Damage</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\Damage\LongitudinalSoundSpeedPolicyInst.cc">
+      <Filter>Source Files\Damage</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\Damage\StrainPolicyInst.cc">
+      <Filter>Source Files\Damage</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\Damage\TensorDamageModelInst.cc">
+      <Filter>Source Files\Damage</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\Damage\TensorDamagePolicyInst.cc">
+      <Filter>Source Files\Damage</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\Damage\TensorStrainPolicyInst.cc">
+      <Filter>Source Files\Damage</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\Damage\weibullFlawDistributionInst.cc">
+      <Filter>Source Files\Damage</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\Damage\YoungsModulusPolicyInst.cc">
+      <Filter>Source Files\Damage</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\SolidMaterial\LinearPolynomialEquationOfStateInst.cc">
+      <Filter>Source Files\SolidMaterial</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\SolidMaterial\MurnahanEquationOfStateInst.cc">
+      <Filter>Source Files\SolidMaterial</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\SolidMaterial\PorousEquationOfStateInst.cc">
+      <Filter>Source Files\SolidMaterial</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\SolidMaterial\PorousStrengthModelInst.cc">
+      <Filter>Source Files\SolidMaterial</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\SolidMaterial\SteinbergGuinanStrengthInst.cc">
+      <Filter>Source Files\SolidMaterial</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\SolidMaterial\StrainPorosityInst.cc">
+      <Filter>Source Files\SolidMaterial</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\SolidMaterial\TillotsonEquationOfStateInst.cc">
+      <Filter>Source Files\SolidMaterial</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\SolidSPH\SolidSPHHydroBaseInst.cc">
+      <Filter>Source Files\SolidSPH</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\Strength\BulkModulusPolicyInst.cc">
+      <Filter>Source Files\Strength</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\Strength\DeviatoricStressPolicyInst.cc">
+      <Filter>Source Files\Strength</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\Strength\PlasticStrainPolicyInst.cc">
+      <Filter>Source Files\Strength</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\Strength\ShearModulusPolicyInst.cc">
+      <Filter>Source Files\Strength</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\Strength\SolidFieldNames.cc">
+      <Filter>Source Files\Strength</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\Strength\SolidNodeListInst.cc">
+      <Filter>Source Files\Strength</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\Strength\StrengthSoundSpeedPolicyInst.cc">
+      <Filter>Source Files\Strength</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\Strength\YieldStrengthPolicyInst.cc">
+      <Filter>Source Files\Strength</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\ArtificialConduction\ArtificialConductionInst.cc">
+      <Filter>Source Files\ArtificialConduction</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\ArtificialConduction\ArtificialConductionPolicyInst.cc">
+      <Filter>Source Files\ArtificialConduction</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\CInterface\SpheralC.cc">
+      <Filter>Source Files\CInterface</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\Distributed\BoundingVolumeDistributedBoundaryInst.cc">
+      <Filter>Source Files\Distributed</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\Distributed\Communicator.cc">
+      <Filter>Source Files\Distributed</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\Distributed\DistributeByXPositionInst.cc">
+      <Filter>Source Files\Distributed</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\Distributed\DistributedBoundaryInst.cc">
+      <Filter>Source Files\Distributed</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\Distributed\MortonOrderRedistributeNodesInst.cc">
+      <Filter>Source Files\Distributed</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\Distributed\NestedGridDistributedBoundaryInst.cc">
+      <Filter>Source Files\Distributed</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\Distributed\NestedGridRedistributeNodesInst.cc">
+      <Filter>Source Files\Distributed</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\Distributed\PeanoHilbertOrderRedistributeNodesInst.cc">
+      <Filter>Source Files\Distributed</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\Distributed\RedistributeNodesInst.cc">
+      <Filter>Source Files\Distributed</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\Distributed\SortAndDivideRedistributeNodes1d.cc">
+      <Filter>Source Files\Distributed</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\Distributed\SortAndDivideRedistributeNodes2d.cc">
+      <Filter>Source Files\Distributed</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\Distributed\SortAndDivideRedistributeNodes3d.cc">
+      <Filter>Source Files\Distributed</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\Distributed\SortAndDivideRedistributeNodesInst.cc">
+      <Filter>Source Files\Distributed</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\Distributed\SpaceFillingCurveRedistributeNodesInst.cc">
+      <Filter>Source Files\Distributed</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\Distributed\VoronoiRedistributeNodesInst.cc">
+      <Filter>Source Files\Distributed</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\Distributed\waitAllWithDeadlockDetection.cc">
+      <Filter>Source Files\Distributed</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\Utilities\nodeBoundingBoxes.cc">
+      <Filter>Header Files\Utilities</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\SolidMaterial\GruneisenEquationOfStateInst.cc">
+      <Filter>Source Files\SolidMaterial</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="..\src\DataBase\CopyFieldList.hh">
+      <Filter>Header Files\Database</Filter>
+    </None>
+    <None Include="..\src\DataBase\CompositeFieldListPolicy.hh">
+      <Filter>Header Files\Database</Filter>
+    </None>
+    <None Include="..\src\DataBase\CopyState.hh">
+      <Filter>Header Files\Database</Filter>
+    </None>
+    <None Include="..\src\DataBase\DataBase.hh">
+      <Filter>Header Files\Database</Filter>
+    </None>
+    <None Include="..\src\DataBase\DataBaseInline.hh">
+      <Filter>Header Files\Database</Filter>
+    </None>
+    <None Include="..\src\DataBase\FieldListUpdatePolicyBase.hh">
+      <Filter>Header Files\Database</Filter>
+    </None>
+    <None Include="..\src\DataBase\FieldListUpdatePolicyBaseInline.hh">
+      <Filter>Header Files\Database</Filter>
+    </None>
+    <None Include="..\src\DataBase\FieldUpdatePolicyBase.hh">
+      <Filter>Header Files\Database</Filter>
+    </None>
+    <None Include="..\src\DataBase\FieldUpdatePolicyBaseInline.hh">
+      <Filter>Header Files\Database</Filter>
+    </None>
+    <None Include="..\src\DataBase\IncrementBoundedFieldListInline.hh">
+      <Filter>Header Files\Database</Filter>
+    </None>
+    <None Include="..\src\DataBase\IncrementBoundedFieldList.hh">
+      <Filter>Header Files\Database</Filter>
+    </None>
+    <None Include="..\src\DataBase\IncrementBoundedState.hh">
+      <Filter>Header Files\Database</Filter>
+    </None>
+    <None Include="..\src\DataBase\IncrementBoundedStateInline.hh">
+      <Filter>Header Files\Database</Filter>
+    </None>
+    <None Include="..\src\DataBase\IncrementFieldList.hh">
+      <Filter>Header Files\Database</Filter>
+    </None>
+    <None Include="..\src\DataBase\IncrementState.hh">
+      <Filter>Header Files\Database</Filter>
+    </None>
+    <None Include="..\src\DataBase\ReplaceBoundedFieldList.hh">
+      <Filter>Header Files\Database</Filter>
+    </None>
+    <None Include="..\src\DataBase\ReplaceBoundedFieldListInline.hh">
+      <Filter>Header Files\Database</Filter>
+    </None>
+    <None Include="..\src\DataBase\ReplaceBoundedState.hh">
+      <Filter>Header Files\Database</Filter>
+    </None>
+    <None Include="..\src\DataBase\ReplaceBoundedStateInline.hh">
+      <Filter>Header Files\Database</Filter>
+    </None>
+    <None Include="..\src\DataBase\ReplaceFieldList.hh">
+      <Filter>Header Files\Database</Filter>
+    </None>
+    <None Include="..\src\DataBase\ReplaceState.hh">
+      <Filter>Header Files\Database</Filter>
+    </None>
+    <None Include="..\src\DataBase\State.hh">
+      <Filter>Header Files\Database</Filter>
+    </None>
+    <None Include="..\src\DataBase\StateBase.hh">
+      <Filter>Header Files\Database</Filter>
+    </None>
+    <None Include="..\src\DataBase\StateBaseInline.hh">
+      <Filter>Header Files\Database</Filter>
+    </None>
+    <None Include="..\src\DataBase\StateDerivatives.hh">
+      <Filter>Header Files\Database</Filter>
+    </None>
+    <None Include="..\src\DataBase\StateDerivativesInline.hh">
+      <Filter>Header Files\Database</Filter>
+    </None>
+    <None Include="..\src\DataBase\StateInline.hh">
+      <Filter>Header Files\Database</Filter>
+    </None>
+    <None Include="..\src\DataBase\UpdatePolicyBase.hh">
+      <Filter>Header Files\Database</Filter>
+    </None>
+    <None Include="..\src\DataBase\UpdatePolicyBaseInline.hh">
+      <Filter>Header Files\Database</Filter>
+    </None>
+    <None Include="..\src\Boundary\AxialSymmetryBoundary.hh">
+      <Filter>Header Files\Boundary</Filter>
+    </None>
+    <None Include="..\src\Boundary\Boundary.hh">
+      <Filter>Header Files\Boundary</Filter>
+    </None>
+    <None Include="..\src\Boundary\BoundaryInline.hh">
+      <Filter>Header Files\Boundary</Filter>
+    </None>
+    <None Include="..\src\Boundary\ConstantBoundary.hh">
+      <Filter>Header Files\Boundary</Filter>
+    </None>
+    <None Include="..\src\Boundary\ConstantBoundaryInline.hh">
+      <Filter>Header Files\Boundary</Filter>
+    </None>
+    <None Include="..\src\Boundary\ConstantRVelocityBoundary.hh">
+      <Filter>Header Files\Boundary</Filter>
+    </None>
+    <None Include="..\src\Boundary\ConstantVelocityBoundary.hh">
+      <Filter>Header Files\Boundary</Filter>
+    </None>
+    <None Include="..\src\Boundary\ConstantVelocityBoundaryInline.hh">
+      <Filter>Header Files\Boundary</Filter>
+    </None>
+    <None Include="..\src\Boundary\ConstantXVelocityBoundary.hh">
+      <Filter>Header Files\Boundary</Filter>
+    </None>
+    <None Include="..\src\Boundary\ConstantYVelocityBoundary.hh">
+      <Filter>Header Files\Boundary</Filter>
+    </None>
+    <None Include="..\src\Boundary\ConstantZVelocityBoundary.hh">
+      <Filter>Header Files\Boundary</Filter>
+    </None>
+    <None Include="..\src\Boundary\CylindricalBoundary.hh">
+      <Filter>Header Files\Boundary</Filter>
+    </None>
+    <None Include="..\src\Boundary\CylindricalBoundaryInline.hh">
+      <Filter>Header Files\Boundary</Filter>
+    </None>
+    <None Include="..\src\Boundary\mapPositionThroughPlanes.hh">
+      <Filter>Header Files\Boundary</Filter>
+    </None>
+    <None Include="..\src\Boundary\PeriodicBoundary.hh">
+      <Filter>Header Files\Boundary</Filter>
+    </None>
+    <None Include="..\src\Boundary\PeriodicPlanarBoundary.hh">
+      <Filter>Header Files\Boundary</Filter>
+    </None>
+    <None Include="..\src\Boundary\PlanarBoundary.hh">
+      <Filter>Header Files\Boundary</Filter>
+    </None>
+    <None Include="..\src\Boundary\PlanarBoundaryInline.hh">
+      <Filter>Header Files\Boundary</Filter>
+    </None>
+    <None Include="..\src\Boundary\PlanarSymmetryBoundary.hh">
+      <Filter>Header Files\Boundary</Filter>
+    </None>
+    <None Include="..\src\Boundary\ReflectingBoundary.hh">
+      <Filter>Header Files\Boundary</Filter>
+    </None>
+    <None Include="..\src\Boundary\ReflectingBoundaryInline.hh">
+      <Filter>Header Files\Boundary</Filter>
+    </None>
+    <None Include="..\src\Boundary\RigidBoundary.hh">
+      <Filter>Header Files\Boundary</Filter>
+    </None>
+    <None Include="..\src\Boundary\RigidBoundaryInline.hh">
+      <Filter>Header Files\Boundary</Filter>
+    </None>
+    <None Include="..\src\Boundary\SphericalBoundary.hh">
+      <Filter>Header Files\Boundary</Filter>
+    </None>
+    <None Include="..\src\Boundary\SphericalBoundaryInline.hh">
+      <Filter>Header Files\Boundary</Filter>
+    </None>
+    <None Include="..\src\Boundary\ThreeOneDimensionBoundary.hh">
+      <Filter>Header Files\Boundary</Filter>
+    </None>
+    <None Include="..\src\Gravity\LaplacianMatrixFactory.hh">
+      <Filter>Source Files\Gravity</Filter>
+    </None>
+    <None Include="..\src\Gravity\NBodyGravity.hh">
+      <Filter>Source Files\Gravity</Filter>
+    </None>
+    <None Include="..\src\Gravity\TreeGravity.hh">
+      <Filter>Source Files\Gravity</Filter>
+    </None>
+    <None Include="..\src\Gravity\TreeGravityInline.hh">
+      <Filter>Source Files\Gravity</Filter>
+    </None>
+    <None Include="..\src\NodeGenerators\fillFacetedVolume.hh">
+      <Filter>Source Files\NodeGenerator</Filter>
+    </None>
+    <None Include="..\src\NodeGenerators\generateCylDistributionFromRZ.hh">
+      <Filter>Source Files\NodeGenerator</Filter>
+    </None>
+    <None Include="..\src\NodeGenerators\relaxNodeDistribution.hh">
+      <Filter>Source Files\NodeGenerator</Filter>
+    </None>
+    <None Include="..\src\SolidSPH\SolidSPHHydroBase.hh">
+      <Filter>Source Files\SolidSPH</Filter>
+    </None>
+    <None Include="..\src\SolidSPH\SolidSPHHydroBaseInline.hh">
+      <Filter>Source Files\SolidSPH</Filter>
+    </None>
+    <None Include="..\src\ArtificialViscosity\ArtificialViscosity.hh">
+      <Filter>Header Files\ArtificialViscosity</Filter>
+    </None>
+    <None Include="..\src\ArtificialViscosity\ArtificialViscosityInline.hh">
+      <Filter>Header Files\ArtificialViscosity</Filter>
+    </None>
+    <None Include="..\src\ArtificialViscosity\ArtificialViscosityList.hh">
+      <Filter>Header Files\ArtificialViscosity</Filter>
+    </None>
+    <None Include="..\src\ArtificialViscosity\CheapVonNeumanViscosity.hh">
+      <Filter>Header Files\ArtificialViscosity</Filter>
+    </None>
+    <None Include="..\src\ArtificialViscosity\CRKSPHMonaghanGingoldViscosity.hh">
+      <Filter>Header Files\ArtificialViscosity</Filter>
+    </None>
+    <None Include="..\src\ArtificialViscosity\FiniteVolumeViscosity.hh">
+      <Filter>Header Files\ArtificialViscosity</Filter>
+    </None>
+    <None Include="..\src\ArtificialViscosity\GradPressureViscosity.hh">
+      <Filter>Header Files\ArtificialViscosity</Filter>
+    </None>
+    <None Include="..\src\ArtificialViscosity\MASHVonNeumanViscosity.hh">
+      <Filter>Header Files\ArtificialViscosity</Filter>
+    </None>
+    <None Include="..\src\ArtificialViscosity\MonaghanGingoldKurapatenkoViscosity.hh">
+      <Filter>Header Files\ArtificialViscosity</Filter>
+    </None>
+    <None Include="..\src\ArtificialViscosity\MonaghanGingoldSumViscosity.hh">
+      <Filter>Header Files\ArtificialViscosity</Filter>
+    </None>
+    <None Include="..\src\ArtificialViscosity\MonaghanGingoldViscosity.hh">
+      <Filter>Header Files\ArtificialViscosity</Filter>
+    </None>
+    <None Include="..\src\ArtificialViscosity\MonaghanGingoldViscosityRZ.hh">
+      <Filter>Header Files\ArtificialViscosity</Filter>
+    </None>
+    <None Include="..\src\ArtificialViscosity\MorrisMonaghanReducingViscosity.hh">
+      <Filter>Header Files\ArtificialViscosity</Filter>
+    </None>
+    <None Include="..\src\ArtificialViscosity\NohViscosity.hh">
+      <Filter>Header Files\ArtificialViscosity</Filter>
+    </None>
+    <None Include="..\src\ArtificialViscosity\RadialViscosity.hh">
+      <Filter>Header Files\ArtificialViscosity</Filter>
+    </None>
+    <None Include="..\src\ArtificialViscosity\TensorCRKSPHViscosity.hh">
+      <Filter>Header Files\ArtificialViscosity</Filter>
+    </None>
+    <None Include="..\src\ArtificialViscosity\TensorMonaghanGingoldViscosity.hh">
+      <Filter>Header Files\ArtificialViscosity</Filter>
+    </None>
+    <None Include="..\src\ArtificialViscosity\TensorSVPHViscosity.hh">
+      <Filter>Header Files\ArtificialViscosity</Filter>
+    </None>
+    <None Include="..\src\ArtificialViscosity\VonNeumanViscosity.hh">
+      <Filter>Header Files\ArtificialViscosity</Filter>
+    </None>
+    <None Include="..\src\Hydro\HybridMassDensityPolicyInline.hh">
+      <Filter>Header Files\Hydro</Filter>
+    </None>
+    <None Include="..\src\Hydro\HydroFieldNames.hh">
+      <Filter>Header Files\Hydro</Filter>
+    </None>
+    <None Include="..\src\Hydro\HydroInline.hh">
+      <Filter>Header Files\Hydro</Filter>
+    </None>
+    <None Include="..\src\Hydro\MeshScaledMassDensityPolicy.hh">
+      <Filter>Header Files\Hydro</Filter>
+    </None>
+    <None Include="..\src\Hydro\NonSymmetricSpecificThermalEnergyPolicy.hh">
+      <Filter>Header Files\Hydro</Filter>
+    </None>
+    <None Include="..\src\Hydro\PositionPolicy.hh">
+      <Filter>Header Files\Hydro</Filter>
+    </None>
+    <None Include="..\src\Hydro\PressurePolicy.hh">
+      <Filter>Header Files\Hydro</Filter>
+    </None>
+    <None Include="..\src\Hydro\SecondMomentHourglassControl.hh">
+      <Filter>Header Files\Hydro</Filter>
+    </None>
+    <None Include="..\src\Hydro\SecondMomentHourglassControlInline.hh">
+      <Filter>Header Files\Hydro</Filter>
+    </None>
+    <None Include="..\src\Hydro\SoundSpeedPolicy.hh">
+      <Filter>Header Files\Hydro</Filter>
+    </None>
+    <None Include="..\src\Hydro\SpecificThermalEnergyPolicy.hh">
+      <Filter>Header Files\Hydro</Filter>
+    </None>
+    <None Include="..\src\Hydro\SumVoronoiMassDensityPolicy.hh">
+      <Filter>Header Files\Hydro</Filter>
+    </None>
+    <None Include="..\src\Hydro\ThirdMomentHourglassControl.hh">
+      <Filter>Header Files\Hydro</Filter>
+    </None>
+    <None Include="..\src\Hydro\ThirdMomentHourglassControlInline.hh">
+      <Filter>Header Files\Hydro</Filter>
+    </None>
+    <None Include="..\src\Hydro\TotalHydro.hh">
+      <Filter>Header Files\Hydro</Filter>
+    </None>
+    <None Include="..\src\Hydro\TotalHydroInline.hh">
+      <Filter>Header Files\Hydro</Filter>
+    </None>
+    <None Include="..\src\Hydro\VolumePolicy.hh">
+      <Filter>Header Files\Hydro</Filter>
+    </None>
+    <None Include="..\src\Hydro\VoronoiHourglassControl.hh">
+      <Filter>Header Files\Hydro</Filter>
+    </None>
+    <None Include="..\src\Hydro\VoronoiHourglassControlInline.hh">
+      <Filter>Header Files\Hydro</Filter>
+    </None>
+    <None Include="..\src\Hydro\VoronoiMassDensityPolicy.hh">
+      <Filter>Header Files\Hydro</Filter>
+    </None>
+    <None Include="..\src\Hydro\MashCorrectionPolicy.hh">
+      <Filter>Header Files\Hydro</Filter>
+    </None>
+    <None Include="..\src\CInterface\SpheralPseudoScript.hh">
+      <Filter>Header Files\CInterface</Filter>
+    </None>
+    <None Include="..\src\CRKSPH\centerOfMass.hh">
+      <Filter>Header Files\CRKSPH</Filter>
+    </None>
+    <None Include="..\src\CRKSPH\interpolateCRKSPH.hh">
+      <Filter>Header Files\CRKSPH</Filter>
+    </None>
+    <None Include="..\src\CRKSPH\HVolumePolicy.hh">
+      <Filter>Header Files\CRKSPH</Filter>
+    </None>
+    <None Include="..\src\CRKSPH\HullVolumePolicy.hh">
+      <Filter>Header Files\CRKSPH</Filter>
+    </None>
+    <None Include="..\src\CRKSPH\gradientCRKSPH.hh">
+      <Filter>Header Files\CRKSPH</Filter>
+    </None>
+    <None Include="..\src\CRKSPH\CRKSPHUtilitiesInline.hh">
+      <Filter>Header Files\CRKSPH</Filter>
+    </None>
+    <None Include="..\src\CRKSPH\CRKSPHUtilities.hh">
+      <Filter>Header Files\CRKSPH</Filter>
+    </None>
+    <None Include="..\src\CRKSPH\CRKSPHSpecificThermalEnergyPolicy.hh">
+      <Filter>Header Files\CRKSPH</Filter>
+    </None>
+    <None Include="..\src\CRKSPH\CRKSPHHydroBaseInline.hh">
+      <Filter>Header Files\CRKSPH</Filter>
+    </None>
+    <None Include="..\src\CRKSPH\CRKSPHHydroBase.hh">
+      <Filter>Header Files\CRKSPH</Filter>
+    </None>
+    <None Include="..\src\CRKSPH\computeVoronoiCentroids.hh">
+      <Filter>Header Files\CRKSPH</Filter>
+    </None>
+    <None Include="..\src\CRKSPH\computeNeighborHull.hh">
+      <Filter>Header Files\CRKSPH</Filter>
+    </None>
+    <None Include="..\src\CRKSPH\computeHVolumes.hh">
+      <Filter>Header Files\CRKSPH</Filter>
+    </None>
+    <None Include="..\src\CRKSPH\computeHullVolumes.hh">
+      <Filter>Header Files\CRKSPH</Filter>
+    </None>
+    <None Include="..\src\CRKSPH\computeHullSumMassDensity.hh">
+      <Filter>Header Files\CRKSPH</Filter>
+    </None>
+    <None Include="..\src\CRKSPH\computeCRKSPHSumMassDensity.hh">
+      <Filter>Header Files\CRKSPH</Filter>
+    </None>
+    <None Include="..\src\CRKSPH\computeCRKSPHIntegral.hh">
+      <Filter>Header Files\CRKSPH</Filter>
+    </None>
+    <None Include="..\src\CRKSPH\computeCRKSPHEvaluation.hh">
+      <Filter>Header Files\CRKSPH</Filter>
+    </None>
+    <None Include="..\src\CRKSPH\computeCRKSPHCorrections.hh">
+      <Filter>Header Files\CRKSPH</Filter>
+    </None>
+    <None Include="..\src\Damage\YoungsModulusPolicy.hh">
+      <Filter>Header Files\Damage</Filter>
+    </None>
+    <None Include="..\src\Damage\weibullFlawDistribution.hh">
+      <Filter>Header Files\Damage</Filter>
+    </None>
+    <None Include="..\src\Damage\TensorStrainPolicy.hh">
+      <Filter>Header Files\Damage</Filter>
+    </None>
+    <None Include="..\src\Damage\TensorDamagePolicy.hh">
+      <Filter>Header Files\Damage</Filter>
+    </None>
+    <None Include="..\src\Damage\TensorDamageModelInline.hh">
+      <Filter>Header Files\Damage</Filter>
+    </None>
+    <None Include="..\src\Damage\TensorDamageModel.hh">
+      <Filter>Header Files\Damage</Filter>
+    </None>
+    <None Include="..\src\Damage\StrainPolicy.hh">
+      <Filter>Header Files\Damage</Filter>
+    </None>
+    <None Include="..\src\Damage\ScalarDamagePolicy.hh">
+      <Filter>Header Files\Damage</Filter>
+    </None>
+    <None Include="..\src\Damage\ScalarDamageModel.hh">
+      <Filter>Header Files\Damage</Filter>
+    </None>
+    <None Include="..\src\Damage\oneMinusDamage.hh">
+      <Filter>Header Files\Damage</Filter>
+    </None>
+    <None Include="..\src\Damage\LongitudinalSoundSpeedPolicy.hh">
+      <Filter>Header Files\Damage</Filter>
+    </None>
+    <None Include="..\src\Damage\GradyKippScalarDamage.hh">
+      <Filter>Header Files\Damage</Filter>
+    </None>
+    <None Include="..\src\Damage\EffectiveTensorDamagePolicy.hh">
+      <Filter>Header Files\Damage</Filter>
+    </None>
+    <None Include="..\src\Damage\DamageModel.hh">
+      <Filter>Header Files\Damage</Filter>
+    </None>
+    <None Include="..\src\Damage\DamageModelInline.hh">
+      <Filter>Header Files\Damage</Filter>
+    </None>
+    <None Include="..\src\Damage\DamageGradientPolicy.hh">
+      <Filter>Header Files\Damage</Filter>
+    </None>
+    <None Include="..\src\Damage\DamagedSoundSpeedPolicy.hh">
+      <Filter>Header Files\Damage</Filter>
+    </None>
+    <None Include="..\src\Damage\computeFragmentField.hh">
+      <Filter>Header Files\Damage</Filter>
+    </None>
+    <None Include="..\src\DataOutput\registerWithRestart.hh">
+      <Filter>Header Files\DataOutput</Filter>
+    </None>
+    <None Include="..\src\DataOutput\Restart.hh">
+      <Filter>Header Files\DataOutput</Filter>
+    </None>
+    <None Include="..\src\DataOutput\RestartableObject.hh">
+      <Filter>Header Files\DataOutput</Filter>
+    </None>
+    <None Include="..\src\DataOutput\RestartHandle.hh">
+      <Filter>Header Files\DataOutput</Filter>
+    </None>
+    <None Include="..\src\DataOutput\RestartInline.hh">
+      <Filter>Header Files\DataOutput</Filter>
+    </None>
+    <None Include="..\src\DataOutput\RestartRegistrar.hh">
+      <Filter>Header Files\DataOutput</Filter>
+    </None>
+    <None Include="..\src\DataOutput\RestartRegistrarInline.hh">
+      <Filter>Header Files\DataOutput</Filter>
+    </None>
+    <None Include="..\src\Distributed\BoundingVolumeDistributedBoundary.hh">
+      <Filter>Header Files\Distributed</Filter>
+    </None>
+    <None Include="..\src\Distributed\Communicator.hh">
+      <Filter>Header Files\Distributed</Filter>
+    </None>
+    <None Include="..\src\Distributed\CompareDomainNodesByPosition.hh">
+      <Filter>Header Files\Distributed</Filter>
+    </None>
+    <None Include="..\src\Distributed\DistributeByXPosition.hh">
+      <Filter>Header Files\Distributed</Filter>
+    </None>
+    <None Include="..\src\Distributed\DistributedBoundary.hh">
+      <Filter>Header Files\Distributed</Filter>
+    </None>
+    <None Include="..\src\Distributed\DistributedBoundaryInline.hh">
+      <Filter>Header Files\Distributed</Filter>
+    </None>
+    <None Include="..\src\Distributed\DomainNode.hh">
+      <Filter>Header Files\Distributed</Filter>
+    </None>
+    <None Include="..\src\Distributed\DomainNodeInline.hh">
+      <Filter>Header Files\Distributed</Filter>
+    </None>
+    <None Include="..\src\Distributed\MortonOrderRedistributeNodes.hh">
+      <Filter>Header Files\Distributed</Filter>
+    </None>
+    <None Include="..\src\Distributed\NestedGridDistributedBoundary.hh">
+      <Filter>Header Files\Distributed</Filter>
+    </None>
+    <None Include="..\src\Distributed\NestedGridRedistributeNodes.hh">
+      <Filter>Header Files\Distributed</Filter>
+    </None>
+    <None Include="..\src\Distributed\NestedGridRedistributeNodesInline.hh">
+      <Filter>Header Files\Distributed</Filter>
+    </None>
+    <None Include="..\src\Distributed\NestedGridUtilities.hh">
+      <Filter>Header Files\Distributed</Filter>
+    </None>
+    <None Include="..\src\Distributed\waitAllWithDeadlockDetection.hh">
+      <Filter>Header Files\Distributed</Filter>
+    </None>
+    <None Include="..\src\Distributed\VoronoiRedistributeNodes.hh">
+      <Filter>Header Files\Distributed</Filter>
+    </None>
+    <None Include="..\src\Distributed\SpaceFillingCurveRedistributeNodes.hh">
+      <Filter>Header Files\Distributed</Filter>
+    </None>
+    <None Include="..\src\Distributed\SortAndDivideRedistributeNodesInline.hh">
+      <Filter>Header Files\Distributed</Filter>
+    </None>
+    <None Include="..\src\Distributed\SortAndDivideRedistributeNodes3d.hh">
+      <Filter>Header Files\Distributed</Filter>
+    </None>
+    <None Include="..\src\Distributed\SortAndDivideRedistributeNodes2d.hh">
+      <Filter>Header Files\Distributed</Filter>
+    </None>
+    <None Include="..\src\Distributed\SortAndDivideRedistributeNodes1d.hh">
+      <Filter>Header Files\Distributed</Filter>
+    </None>
+    <None Include="..\src\Distributed\SortAndDivideRedistributeNodes.hh">
+      <Filter>Header Files\Distributed</Filter>
+    </None>
+    <None Include="..\src\Distributed\RedistributeNodesInline.hh">
+      <Filter>Header Files\Distributed</Filter>
+    </None>
+    <None Include="..\src\Distributed\RedistributeNodes.hh">
+      <Filter>Header Files\Distributed</Filter>
+    </None>
+    <None Include="..\src\Distributed\PeanoHilbertOrderRedistributeNodes.hh">
+      <Filter>Header Files\Distributed</Filter>
+    </None>
+    <None Include="..\src\Distributed\ParmetisRedistributeNodesInline.hh">
+      <Filter>Header Files\Distributed</Filter>
+    </None>
+    <None Include="..\src\Distributed\ParmetisRedistributeNodes.hh">
+      <Filter>Header Files\Distributed</Filter>
+    </None>
+    <None Include="..\src\ExternalForce\ConstantAcceleration.hh">
+      <Filter>Header Files\ExternalForce</Filter>
+    </None>
+    <None Include="..\src\ExternalForce\ConstantAccelerationInline.hh">
+      <Filter>Header Files\ExternalForce</Filter>
+    </None>
+    <None Include="..\src\ExternalForce\PointPotentialInline.hh">
+      <Filter>Header Files\ExternalForce</Filter>
+    </None>
+    <None Include="..\src\ExternalForce\PointPotential.hh">
+      <Filter>Header Files\ExternalForce</Filter>
+    </None>
+    <None Include="..\src\ExternalForce\NFWPotentialInline.hh">
+      <Filter>Header Files\ExternalForce</Filter>
+    </None>
+    <None Include="..\src\ExternalForce\NFWPotential.hh">
+      <Filter>Header Files\ExternalForce</Filter>
+    </None>
+    <None Include="..\src\ExternalForce\LinearAccelerationInline.hh">
+      <Filter>Header Files\ExternalForce</Filter>
+    </None>
+    <None Include="..\src\ExternalForce\LinearAcceleration.hh">
+      <Filter>Header Files\ExternalForce</Filter>
+    </None>
+    <None Include="..\src\FileIO\vectorstringUtilities.hh">
+      <Filter>Header Files\FileIO</Filter>
+    </None>
+    <None Include="..\src\FileIO\PyFileIO.hh">
+      <Filter>Header Files\FileIO</Filter>
+    </None>
+    <None Include="..\src\FileIO\HDF5Types.hh">
+      <Filter>Header Files\FileIO</Filter>
+    </None>
+    <None Include="..\src\FileIO\HDF5Traits.hh">
+      <Filter>Header Files\FileIO</Filter>
+    </None>
+    <None Include="..\src\FileIO\HDF5IO.hh">
+      <Filter>Header Files\FileIO</Filter>
+    </None>
+    <None Include="..\src\FileIO\FlatFileIO.hh">
+      <Filter>Header Files\FileIO</Filter>
+    </None>
+    <None Include="..\src\FileIO\FileIOInline.hh">
+      <Filter>Header Files\FileIO</Filter>
+    </None>
+    <None Include="..\src\FileIO\FileIO.hh">
+      <Filter>Header Files\FileIO</Filter>
+    </None>
+    <None Include="..\src\FileIO\DbFileIO.hh">
+      <Filter>Header Files\FileIO</Filter>
+    </None>
+    <None Include="..\src\ArtificialConduction\ArtificialConduction.hh">
+      <Filter>Header Files\ArtificialConduction</Filter>
+    </None>
+    <None Include="..\src\ArtificialConduction\ArtificialConductionPolicy.hh">
+      <Filter>Header Files\ArtificialConduction</Filter>
+    </None>
+    <None Include="..\src\TaylorSPH\computeTaylorSPHCorrections.hh">
+      <Filter>Header Files\TaylorSPH</Filter>
+    </None>
+    <None Include="..\src\TaylorSPH\TaylorSPHHydroBase.hh">
+      <Filter>Header Files\TaylorSPH</Filter>
+    </None>
+    <None Include="..\src\TaylorSPH\TaylorSPHHydroBaseInline.hh">
+      <Filter>Header Files\TaylorSPH</Filter>
+    </None>
+    <None Include="..\src\SVPH\CellPressurePolicy.hh">
+      <Filter>Header Files\SVPH</Filter>
+    </None>
+    <None Include="..\src\SVPH\CompatibleFaceSpecificThermalEnergyPolicy.hh">
+      <Filter>Header Files\SVPH</Filter>
+    </None>
+    <None Include="..\src\SVPH\computeSumVoronoiCellMassDensityFromFaces.hh">
+      <Filter>Header Files\SVPH</Filter>
+    </None>
+    <None Include="..\src\SVPH\computeSVPHCorrections.hh">
+      <Filter>Header Files\SVPH</Filter>
+    </None>
+    <None Include="..\src\SVPH\computeSVPHCorrectionsOnFaces.hh">
+      <Filter>Header Files\SVPH</Filter>
+    </None>
+    <None Include="..\src\SVPH\gradientFieldListSVPH.hh">
+      <Filter>Header Files\SVPH</Filter>
+    </None>
+    <None Include="..\src\SVPH\MeshIdealHPolicy.hh">
+      <Filter>Header Files\SVPH</Filter>
+    </None>
+    <None Include="..\src\SVPH\sampleFieldListSVPH.hh">
+      <Filter>Header Files\SVPH</Filter>
+    </None>
+    <None Include="..\src\SVPH\SpecificThermalEnergyVolumePolicy.hh">
+      <Filter>Header Files\SVPH</Filter>
+    </None>
+    <None Include="..\src\SVPH\SVPHCorrectionsPolicy.hh">
+      <Filter>Header Files\SVPH</Filter>
+    </None>
+    <None Include="..\src\SVPH\SVPHFacetedHydroBaseInline.hh">
+      <Filter>Header Files\SVPH</Filter>
+    </None>
+    <None Include="..\src\SVPH\SVPHFacetedHydroBase.hh">
+      <Filter>Header Files\SVPH</Filter>
+    </None>
+    <None Include="..\src\SVPH\SVPHHydroBase.hh">
+      <Filter>Header Files\SVPH</Filter>
+    </None>
+    <None Include="..\src\SVPH\SVPHHydroBaseInline.hh">
+      <Filter>Header Files\SVPH</Filter>
+    </None>
+    <None Include="..\src\SVPH\SVPHMassDensityPolicy.hh">
+      <Filter>Header Files\SVPH</Filter>
+    </None>
+    <None Include="..\src\Integrator\CheapSynchronousRK2.hh">
+      <Filter>Header Files\Integrator</Filter>
+    </None>
+    <None Include="..\src\Integrator\Integrator.hh">
+      <Filter>Header Files\Integrator</Filter>
+    </None>
+    <None Include="..\src\Integrator\IntegratorInline.hh">
+      <Filter>Header Files\Integrator</Filter>
+    </None>
+    <None Include="..\src\Integrator\PredictorCorrector.hh">
+      <Filter>Header Files\Integrator</Filter>
+    </None>
+    <None Include="..\src\Integrator\SynchronousRK1.hh">
+      <Filter>Header Files\Integrator</Filter>
+    </None>
+    <None Include="..\src\Integrator\SynchronousRK2.hh">
+      <Filter>Header Files\Integrator</Filter>
+    </None>
+    <None Include="..\src\Integrator\SynchronousRK4.hh">
+      <Filter>Header Files\Integrator</Filter>
+    </None>
+    <None Include="..\src\Integrator\Verlet.hh">
+      <Filter>Header Files\Integrator</Filter>
+    </None>
+    <None Include="..\src\Mesh\computeElementOwner.hh">
+      <Filter>Header Files\Mesh</Filter>
+    </None>
+    <None Include="..\src\Mesh\computeGenerators.hh">
+      <Filter>Header Files\Mesh</Filter>
+    </None>
+    <None Include="..\src\Mesh\CounterClockwiseCompareElements.hh">
+      <Filter>Header Files\Mesh</Filter>
+    </None>
+    <None Include="..\src\Mesh\Edge.hh">
+      <Filter>Header Files\Mesh</Filter>
+    </None>
+    <None Include="..\src\Mesh\EdgeInline.hh">
+      <Filter>Header Files\Mesh</Filter>
+    </None>
+    <None Include="..\src\Mesh\Face.hh">
+      <Filter>Header Files\Mesh</Filter>
+    </None>
+    <None Include="..\src\Mesh\FaceInline.hh">
+      <Filter>Header Files\Mesh</Filter>
+    </None>
+    <None Include="..\src\Mesh\findMatchingVertex.hh">
+      <Filter>Header Files\Mesh</Filter>
+    </None>
+    <None Include="..\src\Mesh\generateMesh.hh">
+      <Filter>Header Files\Mesh</Filter>
+    </None>
+    <None Include="..\src\Mesh\Mesh.hh">
+      <Filter>Header Files\Mesh</Filter>
+    </None>
+    <None Include="..\src\Mesh\MeshConstructionUtilities.hh">
+      <Filter>Header Files\Mesh</Filter>
+    </None>
+    <None Include="..\src\Mesh\MeshInline.hh">
+      <Filter>Header Files\Mesh</Filter>
+    </None>
+    <None Include="..\src\Mesh\MeshPolicy.hh">
+      <Filter>Header Files\Mesh</Filter>
+    </None>
+    <None Include="..\src\Mesh\Node.hh">
+      <Filter>Header Files\Mesh</Filter>
+    </None>
+    <None Include="..\src\Mesh\NodeInline.hh">
+      <Filter>Header Files\Mesh</Filter>
+    </None>
+    <None Include="..\src\Mesh\Zone.hh">
+      <Filter>Header Files\Mesh</Filter>
+    </None>
+    <None Include="..\src\Mesh\ZoneInline.hh">
+      <Filter>Header Files\Mesh</Filter>
+    </None>
+    <None Include="..\src\SolidMaterial\ANEOS.hh">
+      <Filter>Header Files\SolidMaterial</Filter>
+    </None>
+    <None Include="..\src\SolidMaterial\ConstantStrength.hh">
+      <Filter>Header Files\SolidMaterial</Filter>
+    </None>
+    <None Include="..\src\SolidMaterial\GruneisenEquationOfState.hh">
+      <Filter>Header Files\SolidMaterial</Filter>
+    </None>
+    <None Include="..\src\SolidMaterial\GruneisenEquationOfStateInline.hh">
+      <Filter>Header Files\SolidMaterial</Filter>
+    </None>
+    <None Include="..\src\SolidMaterial\LinearPolynomialEquationOfState.hh">
+      <Filter>Header Files\SolidMaterial</Filter>
+    </None>
+    <None Include="..\src\SolidMaterial\LinearPolynomialEquationOfStateInline.hh">
+      <Filter>Header Files\SolidMaterial</Filter>
+    </None>
+    <None Include="..\src\SolidMaterial\MurnahanEquationOfState.hh">
+      <Filter>Header Files\SolidMaterial</Filter>
+    </None>
+    <None Include="..\src\SolidMaterial\MurnahanEquationOfStateInline.hh">
+      <Filter>Header Files\SolidMaterial</Filter>
+    </None>
+    <None Include="..\src\SolidMaterial\NullStrength.hh">
+      <Filter>Header Files\SolidMaterial</Filter>
+    </None>
+    <None Include="..\src\SolidMaterial\PolynomialFit.hh">
+      <Filter>Header Files\SolidMaterial</Filter>
+    </None>
+    <None Include="..\src\SolidMaterial\PolynomialFitInline.hh">
+      <Filter>Header Files\SolidMaterial</Filter>
+    </None>
+    <None Include="..\src\SolidMaterial\PorousEquationOfState.hh">
+      <Filter>Header Files\SolidMaterial</Filter>
+    </None>
+    <None Include="..\src\SolidMaterial\PorousStrengthModel.hh">
+      <Filter>Header Files\SolidMaterial</Filter>
+    </None>
+    <None Include="..\src\SolidMaterial\SolidEquationOfState.hh">
+      <Filter>Header Files\SolidMaterial</Filter>
+    </None>
+    <None Include="..\src\SolidMaterial\SolidEquationOfStateInline.hh">
+      <Filter>Header Files\SolidMaterial</Filter>
+    </None>
+    <None Include="..\src\SolidMaterial\SteinbergGuinanLundStrength.hh">
+      <Filter>Header Files\SolidMaterial</Filter>
+    </None>
+    <None Include="..\src\SolidMaterial\SteinbergGuinanStrength.hh">
+      <Filter>Header Files\SolidMaterial</Filter>
+    </None>
+    <None Include="..\src\SolidMaterial\StrainPorosity.hh">
+      <Filter>Header Files\SolidMaterial</Filter>
+    </None>
+    <None Include="..\src\SolidMaterial\StrainPorosityInline.hh">
+      <Filter>Header Files\SolidMaterial</Filter>
+    </None>
+    <None Include="..\src\SolidMaterial\StrengthModel.hh">
+      <Filter>Header Files\SolidMaterial</Filter>
+    </None>
+    <None Include="..\src\SolidMaterial\TillotsonEquationOfState.hh">
+      <Filter>Header Files\SolidMaterial</Filter>
+    </None>
+    <None Include="..\src\SolidMaterial\TillotsonEquationOfStateInline.hh">
+      <Filter>Header Files\SolidMaterial</Filter>
+    </None>
+    <None Include="..\src\Strength\BulkModulusPolicy.hh">
+      <Filter>Header Files\Strength</Filter>
+    </None>
+    <None Include="..\src\Strength\DeviatoricStressPolicy.hh">
+      <Filter>Header Files\Strength</Filter>
+    </None>
+    <None Include="..\src\Strength\effectiveKernelVolume.hh">
+      <Filter>Header Files\Strength</Filter>
+    </None>
+    <None Include="..\src\Strength\PlasticStrainPolicy.hh">
+      <Filter>Header Files\Strength</Filter>
+    </None>
+    <None Include="..\src\Strength\ShearModulusPolicy.hh">
+      <Filter>Header Files\Strength</Filter>
+    </None>
+    <None Include="..\src\Strength\SolidFieldNames.hh">
+      <Filter>Header Files\Strength</Filter>
+    </None>
+    <None Include="..\src\Strength\SolidNodeList.hh">
+      <Filter>Header Files\Strength</Filter>
+    </None>
+    <None Include="..\src\Strength\SolidNodeListInline.hh">
+      <Filter>Header Files\Strength</Filter>
+    </None>
+    <None Include="..\src\Strength\StrengthSoundSpeedPolicy.hh">
+      <Filter>Header Files\Strength</Filter>
+    </None>
+    <None Include="..\src\Strength\YieldStrengthPolicy.hh">
+      <Filter>Header Files\Strength</Filter>
+    </None>
+    <None Include="..\src\Utilities\TreeInline.hh">
+      <Filter>Header Files\Utilities</Filter>
+    </None>
+    <None Include="..\src\Utilities\Tree.hh">
+      <Filter>Header Files\Utilities</Filter>
+    </None>
+    <None Include="..\src\Utilities\timingUtilities.hh">
+      <Filter>Header Files\Utilities</Filter>
+    </None>
+    <None Include="..\src\Utilities\Timer.hh">
+      <Filter>Header Files\Utilities</Filter>
+    </None>
+    <None Include="..\src\Utilities\testBoxIntersection.hh">
+      <Filter>Header Files\Utilities</Filter>
+    </None>
+    <None Include="..\src\Utilities\SpheralFunctions.hh">
+      <Filter>Header Files\Utilities</Filter>
+    </None>
+    <None Include="..\src\Utilities\simpsonsIntegration.hh">
+      <Filter>Header Files\Utilities</Filter>
+    </None>
+    <None Include="..\src\Utilities\segmentIntersectEdges.hh">
+      <Filter>Header Files\Utilities</Filter>
+    </None>
+    <None Include="..\src\Utilities\safeInv.hh">
+      <Filter>Header Files\Utilities</Filter>
+    </None>
+    <None Include="..\src\Utilities\SafeIndexMap.hh">
+      <Filter>Header Files\Utilities</Filter>
+    </None>
+    <None Include="..\src\Utilities\rotationMatrix.hh">
+      <Filter>Header Files\Utilities</Filter>
+    </None>
+    <None Include="..\src\Utilities\removeElements.hh">
+      <Filter>Header Files\Utilities</Filter>
+    </None>
+    <None Include="..\src\Utilities\registerWithRedistribution.hh">
+      <Filter>Header Files\Utilities</Filter>
+    </None>
+    <None Include="..\src\Utilities\RegisterMPIDataTypes.hh">
+      <Filter>Header Files\Utilities</Filter>
+    </None>
+    <None Include="..\src\Utilities\refinePolyhedron.hh">
+      <Filter>Header Files\Utilities</Filter>
+    </None>
+    <None Include="..\src\Utilities\RedistributionRegistrarInline.hh">
+      <Filter>Header Files\Utilities</Filter>
+    </None>
+    <None Include="..\src\Utilities\RedistributionRegistrar.hh">
+      <Filter>Header Files\Utilities</Filter>
+    </None>
+    <None Include="..\src\Utilities\RedistributionNotificationHandle.hh">
+      <Filter>Header Files\Utilities</Filter>
+    </None>
+    <None Include="..\src\Utilities\RedistributionNotification.hh">
+      <Filter>Header Files\Utilities</Filter>
+    </None>
+    <None Include="..\src\Utilities\Process.hh">
+      <Filter>Header Files\Utilities</Filter>
+    </None>
+    <None Include="..\src\Utilities\pointOnPolyhedron.hh">
+      <Filter>Header Files\Utilities</Filter>
+    </None>
+    <None Include="..\src\Utilities\pointOnPolygon.hh">
+      <Filter>Header Files\Utilities</Filter>
+    </None>
+    <None Include="..\src\Utilities\pointInPolyhedron.hh">
+      <Filter>Header Files\Utilities</Filter>
+    </None>
+    <None Include="..\src\Utilities\pointInPolygon.hh">
+      <Filter>Header Files\Utilities</Filter>
+    </None>
+    <None Include="..\src\Utilities\pointDistances.hh">
+      <Filter>Header Files\Utilities</Filter>
+    </None>
+    <None Include="..\src\Utilities\planarReflectingOperator.hh">
+      <Filter>Header Files\Utilities</Filter>
+    </None>
+    <None Include="..\src\Utilities\PeanoHilbertTransform.hh">
+      <Filter>Header Files\Utilities</Filter>
+    </None>
+    <None Include="..\src\Utilities\peanoHilbertOrderIndices.hh">
+      <Filter>Header Files\Utilities</Filter>
+    </None>
+    <None Include="..\src\Utilities\PairComparisons.hh">
+      <Filter>Header Files\Utilities</Filter>
+    </None>
+    <None Include="..\src\Utilities\packElement.hh">
+      <Filter>Header Files\Utilities</Filter>
+    </None>
+    <None Include="..\src\Utilities\numberDensity.hh">
+      <Filter>Header Files\Utilities</Filter>
+    </None>
+    <None Include="..\src\Utilities\nodeOrdering.hh">
+      <Filter>Header Files\Utilities</Filter>
+    </None>
+    <None Include="..\src\Utilities\NodeListHashMap.hh">
+      <Filter>Header Files\Utilities</Filter>
+    </None>
+    <None Include="..\src\Utilities\nodeBoundingBoxesInline.hh">
+      <Filter>Header Files\Utilities</Filter>
+    </None>
+    <None Include="..\src\Utilities\nodeBoundingBoxes.hh">
+      <Filter>Header Files\Utilities</Filter>
+    </None>
+    <None Include="..\src\Utilities\newtonRaphson.hh">
+      <Filter>Header Files\Utilities</Filter>
+    </None>
+    <None Include="..\src\Utilities\mpiUtilities.hh">
+      <Filter>Header Files\Utilities</Filter>
+    </None>
+    <None Include="..\src\Utilities\mortonOrderIndices.hh">
+      <Filter>Header Files\Utilities</Filter>
+    </None>
+    <None Include="..\src\Utilities\medianPosition.hh">
+      <Filter>Header Files\Utilities</Filter>
+    </None>
+    <None Include="..\src\Utilities\log2.hh">
+      <Filter>Header Files\Utilities</Filter>
+    </None>
+    <None Include="..\src\Utilities\lineSegmentIntersections.hh">
+      <Filter>Header Files\Utilities</Filter>
+    </None>
+    <None Include="..\src\Utilities\KeyTraits.hh">
+      <Filter>Header Files\Utilities</Filter>
+    </None>
+    <None Include="..\src\Utilities\iterateIdealH.hh">
+      <Filter>Header Files\Utilities</Filter>
+    </None>
+    <None Include="..\src\Utilities\intpow2.hh">
+      <Filter>Header Files\Utilities</Filter>
+    </None>
+    <None Include="..\src\Utilities\integrateThroughMeshAlongSegment.hh">
+      <Filter>Header Files\Utilities</Filter>
+    </None>
+    <None Include="..\src\Utilities\initializeTau.hh">
+      <Filter>Header Files\Utilities</Filter>
+    </None>
+    <None Include="..\src\Utilities\hashes.hh">
+      <Filter>Header Files\Utilities</Filter>
+    </None>
+    <None Include="..\src\Utilities\globalNodeIDs.hh">
+      <Filter>Header Files\Utilities</Filter>
+    </None>
+    <None Include="..\src\Utilities\globalNodeIDsInline.hh">
+      <Filter>Header Files\Utilities</Filter>
+    </None>
+    <None Include="..\src\Utilities\globalBoundingVolumes.hh">
+      <Filter>Header Files\Utilities</Filter>
+    </None>
+    <None Include="..\src\Utilities\GeometricUtilities.hh">
+      <Filter>Header Files\Utilities</Filter>
+    </None>
+    <None Include="..\src\Utilities\FieldDataTypeTraits.hh">
+      <Filter>Header Files\Utilities</Filter>
+    </None>
+    <None Include="..\src\Utilities\FastMath.hh">
+      <Filter>Header Files\Utilities</Filter>
+    </None>
+    <None Include="..\src\Utilities\fakestl.hh">
+      <Filter>Header Files\Utilities</Filter>
+    </None>
+    <None Include="..\src\Utilities\erff.hh">
+      <Filter>Header Files\Utilities</Filter>
+    </None>
+    <None Include="..\src\Utilities\DBC.hh">
+      <Filter>Header Files\Utilities</Filter>
+    </None>
+    <None Include="..\src\Utilities\DataTypeTraits.hh">
+      <Filter>Header Files\Utilities</Filter>
+    </None>
+    <None Include="..\src\Utilities\CounterClockwiseComparator.hh">
+      <Filter>Header Files\Utilities</Filter>
+    </None>
+    <None Include="..\src\Utilities\computeConvexHull.hh">
+      <Filter>Header Files\Utilities</Filter>
+    </None>
+    <None Include="..\src\Utilities\comparisons.hh">
+      <Filter>Header Files\Utilities</Filter>
+    </None>
+    <None Include="..\src\Utilities\coarsenBinnedValues.hh">
+      <Filter>Header Files\Utilities</Filter>
+    </None>
+    <None Include="..\src\Utilities\boundPointWithinBox.hh">
+      <Filter>Header Files\Utilities</Filter>
+    </None>
+    <None Include="..\src\Utilities\boundingBox.hh">
+      <Filter>Header Files\Utilities</Filter>
+    </None>
+    <None Include="..\src\Utilities\bisectSearch.hh">
+      <Filter>Header Files\Utilities</Filter>
+    </None>
+    <None Include="..\src\Utilities\allReduce.hh">
+      <Filter>Header Files\Utilities</Filter>
+    </None>
+    <None Include="..\src\Utilities\Bessel.hh">
+      <Filter>Header Files\Utilities</Filter>
+    </None>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="..\src\CInterface\SpheralC.h">
+      <Filter>Header Files\CInterface</Filter>
+    </ClInclude>
+  </ItemGroup>
+</Project>

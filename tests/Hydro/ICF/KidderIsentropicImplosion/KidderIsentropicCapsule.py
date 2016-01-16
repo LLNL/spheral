@@ -182,15 +182,12 @@ output("q.limiter")
 #-------------------------------------------------------------------------------
 # Construct the hydro physics object.
 #-------------------------------------------------------------------------------
-hydro = Hydro(WT,
-              WTPi,
-              q,
-              compatibleEnergy,
-              gradhCorrection,
-              sumForMassDensity,
-              HEvolution,
-              hmin,
-              hmax)
+hydro = Hydro(W = WT,
+              Q = q,
+              compatibleEnergyEvolution = compatibleEnergy,
+              gradhCorrection = gradhCorrection,
+              densityUpdate = sumForMassDensity,
+              HUpdate = HEvolution)
 hydro.cfl = cfl
 output("hydro")
 output("hydro.cfl")

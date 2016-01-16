@@ -219,6 +219,7 @@ public:
   void fluidTemperature(FieldSpace::FieldList<Dimension, Scalar>& result) const;
   void fluidSoundSpeed(FieldSpace::FieldList<Dimension, Scalar>& result) const;
   void fluidVolume(FieldSpace::FieldList<Dimension, Scalar>& result) const;
+  void fluidGamma(FieldSpace::FieldList<Dimension, Scalar>& result) const;
   void fluidLinearMomentum(FieldSpace::FieldList<Dimension, Vector>& result) const;
   void fluidTotalEnergy(FieldSpace::FieldList<Dimension, Scalar>& result) const;
 

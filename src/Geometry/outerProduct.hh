@@ -104,6 +104,246 @@ outerProduct(const typename Dimension::Vector& A,
   return _outerProduct<Dimension, typename Dimension::SymTensor>(A, B);
 }
 
+//------------------------------------------------------------------------------
+// Outer product of a rank 3 tensor with a Vector.
+//------------------------------------------------------------------------------
+template<typename Dimension>
+inline
+typename Dimension::FourthRankTensor
+outerProduct(const typename Dimension::ThirdRankTensor& A,
+             const typename Dimension::Vector& B) {
+  typename Dimension::FourthRankTensor C;
+  for (size_t i = 0; i != Dimension::nDim; ++i) {
+    for (size_t j = 0; j != Dimension::nDim; ++j) {
+      for (size_t k = 0; k != Dimension::nDim; ++k) {
+        for (size_t m = 0; m != Dimension::nDim; ++m) {
+          C(i,j,k,m) = A(i,j,k)*B(m);
+        }
+      }
+    }
+  }
+  return C;
+}
+
+template<typename Dimension>
+inline
+typename Dimension::FourthRankTensor
+outerProduct(const typename Dimension::Vector& A,
+             const typename Dimension::ThirdRankTensor& B) {
+  typename Dimension::FourthRankTensor C;
+  for (size_t i = 0; i != Dimension::nDim; ++i) {
+    for (size_t j = 0; j != Dimension::nDim; ++j) {
+      for (size_t k = 0; k != Dimension::nDim; ++k) {
+        for (size_t m = 0; m != Dimension::nDim; ++m) {
+          C(i,j,k,m) = A(i)*B(j,k,m);
+        }
+      }
+    }
+  }
+  return C;
+}
+
+//------------------------------------------------------------------------------
+// Outer product of two rank 2 tensors.
+//------------------------------------------------------------------------------
+template<typename Dimension>
+inline
+typename Dimension::FourthRankTensor
+outerProduct(const typename Dimension::Tensor& A,
+             const typename Dimension::Tensor& B) {
+  typename Dimension::FourthRankTensor C;
+  for (size_t i = 0; i != Dimension::nDim; ++i) {
+    for (size_t j = 0; j != Dimension::nDim; ++j) {
+      for (size_t k = 0; k != Dimension::nDim; ++k) {
+        for (size_t m = 0; m != Dimension::nDim; ++m) {
+          C(i,j,k,m) = A(i,j)*B(k,m);
+        }
+      }
+    }
+  }
+  return C;
+}
+
+template<typename Dimension>
+inline
+typename Dimension::FourthRankTensor
+outerProduct(const typename Dimension::SymTensor& A,
+             const typename Dimension::SymTensor& B) {
+  typename Dimension::FourthRankTensor C;
+  for (size_t i = 0; i != Dimension::nDim; ++i) {
+    for (size_t j = 0; j != Dimension::nDim; ++j) {
+      for (size_t k = 0; k != Dimension::nDim; ++k) {
+        for (size_t m = 0; m != Dimension::nDim; ++m) {
+          C(i,j,k,m) = A(i,j)*B(k,m);
+        }
+      }
+    }
+  }
+  return C;
+}
+
+template<typename Dimension>
+inline
+typename Dimension::FourthRankTensor
+outerProduct(const typename Dimension::Tensor& A,
+             const typename Dimension::SymTensor& B) {
+  typename Dimension::FourthRankTensor C;
+  for (size_t i = 0; i != Dimension::nDim; ++i) {
+    for (size_t j = 0; j != Dimension::nDim; ++j) {
+      for (size_t k = 0; k != Dimension::nDim; ++k) {
+        for (size_t m = 0; m != Dimension::nDim; ++m) {
+          C(i,j,k,m) = A(i,j)*B(k,m);
+        }
+      }
+    }
+  }
+  return C;
+}
+
+template<typename Dimension>
+inline
+typename Dimension::FourthRankTensor
+outerProduct(const typename Dimension::SymTensor& A,
+             const typename Dimension::Tensor& B) {
+  typename Dimension::FourthRankTensor C;
+  for (size_t i = 0; i != Dimension::nDim; ++i) {
+    for (size_t j = 0; j != Dimension::nDim; ++j) {
+      for (size_t k = 0; k != Dimension::nDim; ++k) {
+        for (size_t m = 0; m != Dimension::nDim; ++m) {
+          C(i,j,k,m) = A(i,j)*B(k,m);
+        }
+      }
+    }
+  }
+  return C;
+}
+
+//------------------------------------------------------------------------------
+// Outer product of a rank 4 tensor with a Vector.
+//------------------------------------------------------------------------------
+template<typename Dimension>
+inline
+typename Dimension::FifthRankTensor
+outerProduct(const typename Dimension::FourthRankTensor& A,
+             const typename Dimension::Vector& B) {
+  typename Dimension::FifthRankTensor C;
+  for (size_t i = 0; i != Dimension::nDim; ++i) {
+    for (size_t j = 0; j != Dimension::nDim; ++j) {
+      for (size_t k = 0; k != Dimension::nDim; ++k) {
+        for (size_t m = 0; m != Dimension::nDim; ++m) {
+          for (size_t n = 0; n != Dimension::nDim; ++n) {
+            C(i,j,k,m,n) = A(i,j,k,m)*B(n);
+          }
+        }
+      }
+    }
+  }
+  return C;
+}
+
+template<typename Dimension>
+inline
+typename Dimension::FifthRankTensor
+outerProduct(const typename Dimension::Vector& A,
+             const typename Dimension::FourthRankTensor& B) {
+  typename Dimension::FifthRankTensor C;
+  for (size_t i = 0; i != Dimension::nDim; ++i) {
+    for (size_t j = 0; j != Dimension::nDim; ++j) {
+      for (size_t k = 0; k != Dimension::nDim; ++k) {
+        for (size_t m = 0; m != Dimension::nDim; ++m) {
+          for (size_t n = 0; n != Dimension::nDim; ++n) {
+            C(i,j,k,m,n) = A(i)*B(j,k,m,n);
+          }
+        }
+      }
+    }
+  }
+  return C;
+}
+
+//------------------------------------------------------------------------------
+// Outer product of a rank 3 and rank 2 tensor.
+//------------------------------------------------------------------------------
+template<typename Dimension>
+inline
+typename Dimension::FifthRankTensor
+outerProduct(const typename Dimension::ThirdRankTensor& A,
+             const typename Dimension::Tensor& B) {
+  typename Dimension::FifthRankTensor C;
+  for (size_t i = 0; i != Dimension::nDim; ++i) {
+    for (size_t j = 0; j != Dimension::nDim; ++j) {
+      for (size_t k = 0; k != Dimension::nDim; ++k) {
+        for (size_t m = 0; m != Dimension::nDim; ++m) {
+          for (size_t n = 0; n != Dimension::nDim; ++n) {
+            C(i,j,k,m,n) = A(i,j,k)*B(m,n);
+          }
+        }
+      }
+    }
+  }
+  return C;
+}
+
+template<typename Dimension>
+inline
+typename Dimension::FifthRankTensor
+outerProduct(const typename Dimension::ThirdRankTensor& A,
+             const typename Dimension::SymTensor& B) {
+  typename Dimension::FifthRankTensor C;
+  for (size_t i = 0; i != Dimension::nDim; ++i) {
+    for (size_t j = 0; j != Dimension::nDim; ++j) {
+      for (size_t k = 0; k != Dimension::nDim; ++k) {
+        for (size_t m = 0; m != Dimension::nDim; ++m) {
+          for (size_t n = 0; n != Dimension::nDim; ++n) {
+            C(i,j,k,m,n) = A(i,j,k)*B(m,n);
+          }
+        }
+      }
+    }
+  }
+  return C;
+}
+
+template<typename Dimension>
+inline
+typename Dimension::FifthRankTensor
+outerProduct(const typename Dimension::Tensor& A,
+             const typename Dimension::ThirdRankTensor& B) {
+  typename Dimension::FifthRankTensor C;
+  for (size_t i = 0; i != Dimension::nDim; ++i) {
+    for (size_t j = 0; j != Dimension::nDim; ++j) {
+      for (size_t k = 0; k != Dimension::nDim; ++k) {
+        for (size_t m = 0; m != Dimension::nDim; ++m) {
+          for (size_t n = 0; n != Dimension::nDim; ++n) {
+            C(i,j,k,m,n) = A(i,j)*B(k,m,n);
+          }
+        }
+      }
+    }
+  }
+  return C;
+}
+
+template<typename Dimension>
+inline
+typename Dimension::FifthRankTensor
+outerProduct(const typename Dimension::SymTensor& A,
+             const typename Dimension::ThirdRankTensor& B) {
+  typename Dimension::FifthRankTensor C;
+  for (size_t i = 0; i != Dimension::nDim; ++i) {
+    for (size_t j = 0; j != Dimension::nDim; ++j) {
+      for (size_t k = 0; k != Dimension::nDim; ++k) {
+        for (size_t m = 0; m != Dimension::nDim; ++m) {
+          for (size_t n = 0; n != Dimension::nDim; ++n) {
+            C(i,j,k,m,n) = A(i,j)*B(k,m,n);
+          }
+        }
+      }
+    }
+  }
+  return C;
+}
+
 }
 
 #endif

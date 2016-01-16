@@ -240,9 +240,7 @@ eos2 = GammaLawGasMKS(gamma, mu)
 # Interpolation kernels.
 #-------------------------------------------------------------------------------
 WT = TableKernel(BSplineKernel(), 1000)
-WTPi = WT # TableKernel(HatKernel(1.0, 1.0), 1000)
 output("WT")
-output("WTPi")
 kernelExtent = WT.kernelExtent
 
 #-------------------------------------------------------------------------------
@@ -371,7 +369,8 @@ output("q.balsaraShearCorrection")
 # Construct the hydro physics object.
 #-------------------------------------------------------------------------------
 if SVPH:
-    hydro = HydroConstructor(WT, q,
+    hydro = HydroConstructor(W = WT, 
+                             Q = q,
                              cfl = cfl,
                              compatibleEnergyEvolution = compatibleEnergy,
                              densityUpdate = densityUpdate,
@@ -384,7 +383,8 @@ if SVPH:
                              xmin = Vector(xb0 - (xb1 - xb0), yb0 - (yb1 - yb0), zb0 - (zb1 - zb0)),
                              xmax = Vector(xb1 + (xb1 - xb0), yb1 + (yb1 - yb0), zb1 + (zb1 - zb0)))
 elif CRKSPH:
-    hydro = HydroConstructor(WT, WTPi, q,
+    hydro = HydroConstructor(W = WT, 
+                             Q = q,
                              filter = filter,
                              epsTensile = epsilonTensile,
                              nTensile = nTensile,
@@ -394,9 +394,8 @@ elif CRKSPH:
                              densityUpdate = densityUpdate,
                              HUpdate = HUpdate)
 else:
-    hydro = HydroConstructor(WT,
-                             WTPi,
-                             q,
+    hydro = HydroConstructor(W = WT,
+                             Q = q,
                              cfl = cfl,
                              compatibleEnergyEvolution = compatibleEnergy,
                              gradhCorrection = gradhCorrection,

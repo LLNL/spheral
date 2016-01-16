@@ -20,16 +20,17 @@ buildEigenVector(const Dim<3>::SymTensor& A,
   typedef Dim<3>::Vector Vector;
   typedef Dim<3>::SymTensor Tensor;
 
-  BEGIN_CONTRACT_SCOPE;
-  // Compute an appropriate tolerance for "zero" on the matrix.
-  const double tol = 1.0e-3*std::max(1.0, A.diagonalElements().magnitude());
-  END_CONTRACT_SCOPE;
-
   // First build the matrix we're going to solve.
   const Tensor B(A.xx() - lambda, A.xy(), A.xz(),
                  A.yx(), A.yy() - lambda, A.yz(),
                  A.zx(), A.zy(), A.zz() - lambda);
+
+  BEGIN_CONTRACT_SCOPE
+  // Compute an appropriate tolerance for "zero" on the matrix.
+  const double tol = 1.0e-3*std::max(1.0, A.diagonalElements().magnitude());
   REQUIRE(fuzzyEqual(B.Determinant(), 0.0, tol));
+  END_CONTRACT_SCOPE
+
   const double B0 = B.xx();
   const double B1 = B.xy();
   const double B2 = B.xz();
@@ -81,7 +82,7 @@ buildEigenVector(const Dim<3>::SymTensor& A,
     result.z(beta*x1);
   }
   ENSURE(fuzzyEqual(result.magnitude2(), 1.0, 1.0e-5));
-  ENSURE(fuzzyEqual((B*result).magnitude2(), 0.0, 2.0*tol));
+  ENSURE(fuzzyEqual((B*result).magnitude2(), 0.0, 1.0e-5));
   return result;
 }
 

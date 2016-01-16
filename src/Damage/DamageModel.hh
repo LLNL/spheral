@@ -84,16 +84,12 @@ public:
   //...........................................................................
   // Provide a subset of the required physics package interface.
   // Descendant classes must complete the set!
+  virtual void preStepInitialize(const DataBaseSpace::DataBase<Dimension>& dataBase, 
+                                 State<Dimension>& state,
+                                 StateDerivatives<Dimension>& derivs);
 
-  // Register our state.
   virtual void registerState(DataBaseSpace::DataBase<Dimension>& dataBase,
                              State<Dimension>& state);
-
-  virtual void initialize(const Scalar time, 
-                          const Scalar dt,
-                          const DataBaseSpace::DataBase<Dimension>& dataBase, 
-                          State<Dimension>& state,
-                          StateDerivatives<Dimension>& derivs);
 
   virtual void postStateUpdate(const DataBaseSpace::DataBase<Dimension>& dataBase, 
                                State<Dimension>& state,

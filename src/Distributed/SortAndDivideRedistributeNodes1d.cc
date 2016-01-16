@@ -168,12 +168,12 @@ redistributeNodes(DataBase<Dim<1> >& dataBase,
   }
 
   // Check that all nodes really really have been assigned to a domain.
-  BEGIN_CONTRACT_SCOPE;
+  BEGIN_CONTRACT_SCOPE
   CHECK(newNodeDistribution.size() == nodeDistribution.size());
   for (vector<DomainNode<Dimension> >::iterator itr = newNodeDistribution.begin();
        itr != newNodeDistribution.end();
        ++itr) CHECK(itr->domainID >= 0 && itr->domainID < numProcs);
-  END_CONTRACT_SCOPE;
+  END_CONTRACT_SCOPE
 
   // The nodeDistribution now holds the desired redistribution of the nodes.
   // Go ahead and redistribute them.
