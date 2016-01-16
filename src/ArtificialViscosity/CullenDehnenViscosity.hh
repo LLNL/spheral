@@ -142,6 +142,7 @@ public:
   const FieldSpace::FieldList<Dimension, Scalar>&    CullAlpha2() const;
   const FieldSpace::FieldList<Dimension, Scalar>&    DalphaDt() const;
   const FieldSpace::FieldList<Dimension, Scalar>&    alphaLocal() const;
+  const FieldSpace::FieldList<Dimension, Scalar>&    alpha0() const;
     
 private:
   //--------------------------- Private Interface ---------------------------//
@@ -166,6 +167,7 @@ private:
 
   FieldSpace::FieldList<Dimension, Scalar>    mDalphaDt;     // Time derivative of alpha
   FieldSpace::FieldList<Dimension, Scalar>    mAlphaLocal;   // Alpha local to be filled in derivatives
+  FieldSpace::FieldList<Dimension, Scalar>    mAlpha0;       // The Hopkins form actually evolves alpha0
 };
     
 }
