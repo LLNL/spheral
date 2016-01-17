@@ -613,16 +613,17 @@ finalizeDerivatives(const Scalar time,
         const Scalar alphai = reducingViscosityMultiplierQ(nodeListi, i);
         Scalar& alpha_locali = alpha_local(nodeListi, i);
         if (mboolHopkins) {
-          const Scalar hi = Dimension::nDim/Hi.Trace();  // Harmonic averaging.
+          const Scalar hi = kernelExtent*Dimension::nDim/Hi.Trace();  // Harmonic averaging.
           const Scalar alpha0i = alpha0(nodeListi, i);
           Scalar& alpha_tmpi = alpha_tmp(nodeListi, i);
-          alpha_tmpi = (std::min(divvi, divai) < 0.0 ?
-                        malphMax*std::abs(divai)*safeInvVar(std::abs(divai) + mbetaC*vsigi*vsigi/FastMath::pow2(mfKern*hi)) :
-                        0.0);
+          alpha_tmpi = ((divvi >= 0.0 or divai >= 0.0) ?
+                        0.0 :
+                        malphMax*std::abs(divai)*safeInvVar(std::abs(divai) + mbetaC*vsigi*vsigi/FastMath::pow2(mfKern*hi)));
           const Scalar thpt = FastMath::pow2(mbetaE*FastMath::pow4(1.0 - Ri)*divvi);
-          const Scalar taui = hi/kernelExtent*safeInvVar(2.0*mbetaD*vsigi);
-          alpha_locali = thpt*alpha0i*safeInvVar(thpt + (Si*Si.Transpose()).Trace());
-          DalphaDt(nodeListi, i) = std::min(0.0, alpha0i - alpha_tmpi)*safeInv(taui);
+          // const Scalar taui = hi/kernelExtent*safeInvVar(2.0*mbetaD*vsigi);
+          alpha_locali = std::max(malphMin, thpt*alpha0i*safeInvVar(thpt + (Si*Si.Transpose()).Trace()));
+          // We abuse DalphaDt here to store the new value for alpha0 in the Hopkins approximation.
+          DalphaDt(nodeListi, i) = alpha_tmpi + std::max(0.0, alpha0i - alpha_tmpi)*exp(-mbetaD*dt*abs(vsigi)/(2.0*mfKern*hi));
         } else {
           const Scalar hi = kernelExtent*Dimension::nDim/Hi.Trace();  // Harmonic averaging.
           const Scalar thpt = FastMath::pow2(2.0*FastMath::pow4(1.0 - Ri)*divvi);
