@@ -794,16 +794,21 @@ finalizeDerivatives(const Scalar time,
         const Scalar alph_zeroi = (alph_tmpi >= old_alpha_i) ? alph_tmpi : alph_tmpi + (old_alpha_i-alph_tmpi)*exp(-mbetaD*dt*abs(cull_sigv(nodeListi, i))*invhi/2.0/mfKern);
         //Scalar& alpha_i = cullAlpha2(nodeListi, i);
         Scalar& alpha_i = cullAlpha(nodeListi, i);
-        if(old_alpha_i < alph_loci)
-          alpha_i = alph_loci;  
-        else
-          alpha_i = alph_loci + (old_alpha_i-alph_loci)*exp(-dt*safeInv(taui));
-          // alpha_i = alph_loci + (old_alpha_i-alph_loci)*exp(-dt*safeInv(taui));
+        // if(old_alpha_i < alph_loci)
+        //   alpha_i = alph_loci;  
+        // else
+        //   alpha_i = alph_loci + (old_alpha_i-alph_loci)*exp(-dt*safeInv(taui));
+        //   // alpha_i = alph_loci + (old_alpha_i-alph_loci)*exp(-dt*safeInv(taui));
 
-        if(mboolHopkins)alpha_i = max(cull_etai*alph_zeroi,malphMin);//Use Hopkins Reformulated Alpha
-        if(mboolHopkins)alpha_i = alph_zeroi;//Hopkins evolves alpha_zero, not alpha
+        if (mboolHopkins) {
+          alpha_i = max(cull_etai*alph_zeroi,malphMin);//Use Hopkins Reformulated Alpha
+          DalphaDt(nodeListi, i) = alph_zeroi;
+        } else {
+          alpha_i = std::max(alph_loci, alpha_i);
+          DalphaDt(nodeListi, i) = std::min(0.0, alph_loci - reducingViscosityMultiplierQ(nodeListi, i))*safeInv(taui);
+        }
+        // if(mboolHopkins)alpha_i = alph_zeroi;//Hopkins evolves alpha_zero, not alpha
         alpha_local(nodeListi, i) = alph_loci;
-        DalphaDt(nodeListi, i) = std::min(0.0, alph_loci - reducingViscosityMultiplierQ(nodeListi, i))*safeInv(taui);
 
         /*
           if(i== 10 && nodeListi==0){
