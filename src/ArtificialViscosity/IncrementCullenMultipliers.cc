@@ -73,7 +73,7 @@ update(const KeyType& key,
         const Scalar alphai = std::max(alphaMin, std::min(alphaMax, alpha_local(k, i)));
         rvQ(k, i) = alphai;
         rvL(k, i) = alphai;
-        alpha0(k, i) = std::max(alphaMin, std::min(alphaMax, alpha_tmp(k, i) + multiplier*DalphaDt(k, i)));
+        alpha0(k, i) = DalphaDt(k, i);
       } else {
         // Cullen & Dehnen 2010
         const Scalar alphai = std::max(alphaMin, std::min(alphaMax, max(alpha_local(k, i), rvQ(k, i)) + multiplier*DalphaDt(k, i)));
