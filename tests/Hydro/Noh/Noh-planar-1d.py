@@ -54,7 +54,7 @@ commandLine(KernelConstructor = BSplineKernel,
             aMin = 0.1,
             aMax = 2.0,
             boolCullenViscosity = False,
-            cullenReproducingKernelGradient = False,  # Use reproducing kernels for gradients in Cullen-Dehnen visocosity model
+            cullenUseHydroDerivatives = False,  # Reuse the hydro calculation of DvDx.
             alphMax = 2.0,
             alphMin = 0.02,
             betaC = 0.7,
@@ -356,7 +356,7 @@ if boolReduceViscosity:
     evolveReducingViscosityMultiplier = MorrisMonaghanReducingViscosity(q,nhQ,nhL,aMin,aMax)
     packages.append(evolveReducingViscosityMultiplier)
 elif boolCullenViscosity:
-    evolveCullenViscosityMultiplier = CullenDehnenViscosity(q,WT,alphMax,alphMin,betaC,betaD,betaE,fKern,boolHopkinsCorrection,cullenReproducingKernelGradient)
+    evolveCullenViscosityMultiplier = CullenDehnenViscosity(q,WT,alphMax,alphMin,betaC,betaD,betaE,fKern,boolHopkinsCorrection,cullenUseHydroDerivatives)
     packages.append(evolveCullenViscosityMultiplier)
 
 #-------------------------------------------------------------------------------
