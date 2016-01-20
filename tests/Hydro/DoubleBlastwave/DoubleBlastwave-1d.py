@@ -34,6 +34,8 @@ commandLine(
     linearConsistent = False,
     KernelConstructor = BSplineKernel,
     order = 5,
+    HopkinsConductivity = False,     # For PSPH
+    evolveTotalEnergy = False,       # Only for SPH variants -- evolve total rather than specific energy
 
     # Q
     Qconstructor = MonaghanGingoldViscosity,
@@ -208,6 +210,17 @@ elif CRKSPH:
                              correctionOrder = correctionOrder,
                              densityUpdate = densityUpdate,
                              HUpdate = HUpdate)
+elif PSPH:
+    hydro = HydroConstructor(W = WT,
+                             Q = q,
+                             filter = filter,
+                             cfl = cfl,
+                             compatibleEnergyEvolution = compatibleEnergy,
+                             evolveTotalEnergy = evolveTotalEnergy,
+                             HopkinsConductivity = HopkinsConductivity,
+                             densityUpdate = densityUpdate,
+                             HUpdate = HUpdate,
+                             XSPH = XSPH)
 else:
     hydro = HydroConstructor(W = WT,
                              Q = q,
