@@ -72,6 +72,7 @@ commandLine(KernelConstructor = BSplineKernel,
             etaFoldFrac = 0.2,
             linearInExpansion = False,
             Qlimiter = False,
+            balsaraCorrection = False,
             epsilon2 = 1e-2,
             hmin = 0.0001, 
             hmax = 0.1,
@@ -270,12 +271,14 @@ output("db.numFluidNodeLists")
 q = Qconstructor(Cl, Cq, linearInExpansion)
 q.epsilon2 = epsilon2
 q.limiter = Qlimiter
+q.balsaraShearCorrection = balsaraCorrection
 q.QcorrectionOrder = QcorrectionOrder
 output("q")
 output("q.Cl")
 output("q.Cq")
 output("q.epsilon2")
 output("q.limiter")
+output("q.balsaraShearCorrection")
 output("q.linearInExpansion")
 output("q.quadraticInExpansion")
 

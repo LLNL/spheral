@@ -120,8 +120,6 @@ self.addVonNeumanViscosityMethods(self.VonNeumanViscosity%(dim)id, %(dim)i)
 
         # Methods.
         x.add_method("curlVelocityMagnitude", "double", [refparam(tensor, "DvDx")], is_const=True)
-        x.add_method("ClMultiplier", scalarfieldlist, [], is_const=True)
-        x.add_method("CqMultiplier", scalarfieldlist, [], is_const=True)
         x.add_method("sigma", tensorfieldlist, [], is_const=True)
         x.add_method("gradDivVelocity", vectorfieldlist, [], is_const=True)
         x.add_method("calculateLimiter", tensor, [refparam(vector, "vi"),
@@ -150,6 +148,7 @@ self.addVonNeumanViscosityMethods(self.VonNeumanViscosity%(dim)id, %(dim)i)
         
         x.add_method("CqMultiplier", scalarfieldlist, [])
         x.add_method("ClMultiplier", scalarfieldlist, [])
+        x.add_method("shearCorrection", scalarfieldlist, [])
 
         # Add the abstract methods.
         self.addArtificialViscosityVirtualMethods(x, ndim, True)

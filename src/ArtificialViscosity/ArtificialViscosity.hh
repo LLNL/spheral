@@ -124,8 +124,10 @@ public:
   // Access the FieldList of multiplicative corrections.
   FieldSpace::FieldList<Dimension, Scalar>& ClMultiplier();
   FieldSpace::FieldList<Dimension, Scalar>& CqMultiplier();
+  FieldSpace::FieldList<Dimension, Scalar>& shearCorrection();
   const FieldSpace::FieldList<Dimension, Scalar>& ClMultiplier() const;
   const FieldSpace::FieldList<Dimension, Scalar>& CqMultiplier() const;
+  const FieldSpace::FieldList<Dimension, Scalar>& shearCorrection() const;
 
   // Access the internally computed estimate of sigma:
   // sig^ab = \partial v^a / \partial x^b.
@@ -209,7 +211,7 @@ protected:
   bool mBalsaraShearCorrection;
 
   // Generic multipliers for the linear and quadratic terms.
-  FieldSpace::FieldList<Dimension, Scalar> mClMultiplier, mCqMultiplier;
+  FieldSpace::FieldList<Dimension, Scalar> mClMultiplier, mCqMultiplier, mShearCorrection;
 
   // Parameters for the Q limiter.
   bool mCalculateSigma;

@@ -111,8 +111,9 @@ Piij(const unsigned nodeListi, const unsigned i,
     const Scalar fCqi = this->mCqMultiplier(nodeListi, i);
     const Scalar fClj = this->mClMultiplier(nodeListj, j);
     const Scalar fCqj = this->mCqMultiplier(nodeListj, j);
-    Cl *= 0.5*(fCli + fClj);
-    Cq *= 0.5*(fCqi + fCqj);
+    const Scalar fshear = std::max(this->mShearCorrection(nodeListi, i), this->mShearCorrection(nodeListj, j));
+    Cl *= 0.5*(fCli + fClj)*fshear;
+    Cq *= 0.5*(fCqi + fCqj)*fshear;
 
     // Some more geometry.
     const Scalar xij2 = xij.magnitude2();
