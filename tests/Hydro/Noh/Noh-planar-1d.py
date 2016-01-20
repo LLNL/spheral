@@ -54,7 +54,7 @@ commandLine(KernelConstructor = BSplineKernel,
             aMin = 0.1,
             aMax = 2.0,
             boolCullenViscosity = False,
-            cullenUseHydroDerivatives = False,  # Reuse the hydro calculation of DvDx.
+            cullenUseHydroDerivatives = True,  # Reuse the hydro calculation of DvDx.
             alphMax = 2.0,
             alphMin = 0.02,
             betaC = 0.7,
@@ -323,6 +323,7 @@ elif PSPH:
                              compatibleEnergyEvolution = compatibleEnergy,
                              evolveTotalEnergy = evolveTotalEnergy,
                              HopkinsConductivity = HopkinsConductivity,
+                             correctVelocityGradient = correctVelocityGradient,
                              densityUpdate = densityUpdate,
                              HUpdate = HUpdate,
                              XSPH = XSPH)

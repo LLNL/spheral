@@ -249,7 +249,7 @@ self.addVonNeumanViscosityMethods(self.VonNeumanViscosity%(dim)id, %(dim)i)
                            param("double", "betaE", default_value="1.0"),
                            param("double", "fKern", default_value="0.33333"),
                            param("bool", "boolHopkins", default_value="true"),
-                           param("bool", "useHydroDerivatives", default_value="false")])
+                           param("bool", "useHydroDerivatives", default_value="true")])
 
         # Add the abstract methods.
         generatePhysicsVirtualBindings(x, ndim, False)
