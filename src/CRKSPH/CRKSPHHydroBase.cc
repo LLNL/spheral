@@ -35,10 +35,9 @@
 #include "DataBase/IncrementBoundedState.hh"
 #include "DataBase/ReplaceBoundedState.hh"
 #include "DataBase/CompositeFieldListPolicy.hh"
-#include "CRKSPHSpecificThermalEnergyPolicy.hh"
 #include "HVolumePolicy.hh"
 #include "Hydro/SpecificThermalEnergyPolicy.hh"
-#include "Hydro/NonSymmetricSpecificThermalEnergyPolicy.hh"
+#include "Hydro/SpecificFromTotalThermalEnergyPolicy.hh"
 #include "Hydro/PositionPolicy.hh"
 #include "Hydro/PressurePolicy.hh"
 #include "Hydro/SoundSpeedPolicy.hh"
@@ -115,6 +114,7 @@ CRKSPHHydroBase(const SmoothingScaleBase<Dimension>& smoothingScaleMethod,
                 const double cfl,
                 const bool useVelocityMagnitudeForDt,
                 const bool compatibleEnergyEvolution,
+                const bool evolveTotalEnergy,
                 const bool XSPH,
                 const MassDensityType densityUpdate,
                 const HEvolutionType HUpdate,
@@ -129,6 +129,7 @@ CRKSPHHydroBase(const SmoothingScaleBase<Dimension>& smoothingScaleMethod,
   mCorrectionOrder(correctionOrder),
   mVolumeType(volumeType),
   mCompatibleEnergyEvolution(compatibleEnergyEvolution),
+  mEvolveTotalEnergy(evolveTotalEnergy),
   mXSPH(XSPH),
   mfilter(filter),
   mEpsTensile(epsTensile),
@@ -318,6 +319,10 @@ registerState(DataBase<Dimension>& dataBase,
   }
   // dataBase.resizeFluidFieldList(mSurfNorm, Vector::zero, "Surface Normal", false);
 
+  // We have to choose either compatible or total energy evolution.
+  VERIFY2(not (mCompatibleEnergyEvolution and mEvolveTotalEnergy),
+          "CRKSPH error : you cannot simultaneously use both compatibleEnergyEvolution and evolveTotalEnergy");
+
   // If we're using the compatibile energy discretization, prepare to maintain a copy
   // of the thermal energy.
   dataBase.resizeFluidFieldList(mSpecificThermalEnergy0, 0.0);
@@ -379,15 +384,25 @@ registerState(DataBase<Dimension>& dataBase,
   FieldList<Dimension, Scalar> specificThermalEnergy = dataBase.fluidSpecificThermalEnergy();
   FieldList<Dimension, Vector> velocity = dataBase.fluidVelocity();
   if (compatibleEnergyEvolution()) {
+    // The compatible energy update.
     PolicyPointer thermalEnergyPolicy(new SpecificThermalEnergyPolicy<Dimension>(dataBase));
-    // PolicyPointer thermalEnergyPolicy(new NonSymmetricSpecificThermalEnergyPolicy<Dimension>(dataBase));
-    // PolicyPointer thermalEnergyPolicy(new CRKSPHSpecificThermalEnergyPolicy<Dimension>(dataBase, this->kernel()));
     PolicyPointer velocityPolicy(new IncrementFieldList<Dimension, Vector>(HydroFieldNames::position,
                                                                            HydroFieldNames::specificThermalEnergy));
     state.enroll(specificThermalEnergy, thermalEnergyPolicy);
     state.enroll(velocity, velocityPolicy);
     state.enroll(mSpecificThermalEnergy0);
+
+  } else if (mEvolveTotalEnergy) {
+    // If we're doing total energy, we register the specific energy to advance with the
+    // total energy policy.
+    PolicyPointer epsPolicy(new SpecificFromTotalThermalEnergyPolicy<Dimension>());
+    PolicyPointer velocityPolicy(new IncrementFieldList<Dimension, Vector>());
+    velocityPolicy->addDependency(HydroFieldNames::specificThermalEnergy);
+    state.enroll(specificThermalEnergy, epsPolicy);
+    state.enroll(velocity, velocityPolicy);
+
   } else {
+    // Otherwise we're just time-evolving the specific energy.
     PolicyPointer thermalEnergyPolicy(new IncrementFieldList<Dimension, Scalar>());
     PolicyPointer velocityPolicy(new IncrementFieldList<Dimension, Vector>());
     state.enroll(specificThermalEnergy, thermalEnergyPolicy);
@@ -979,8 +994,6 @@ evaluateDerivatives(const typename Dimension::Scalar time,
               }
 
               // Specific thermal energy evolution.
-              // DepsDti += 0.5*weighti*weightj*(Pj*vij.dot(deltagrad))/mi + mj*workQi; // SPH Q
-              // DepsDtj += 0.5*weighti*weightj*(Pi*vij.dot(deltagrad))/mj + mi*workQj; // SPH Q
               DepsDti += 0.5*weighti*weightj*(Pj*vij.dot(deltagrad) + workQi)/mi;    // CRK Q
               DepsDtj += 0.5*weighti*weightj*(Pi*vij.dot(deltagrad) + workQj)/mj;    // CRK Q
 
@@ -1002,18 +1015,11 @@ evaluateDerivatives(const typename Dimension::Scalar time,
       // Get the time for pairwise interactions.
       const Scalar deltaTimePair = Timing::difference(start, Timing::currentTime())/max(size_t(1), ncalc);
 
-      // // Now we decide how to combine the high-order derivatives with the zeroth.
-      // const Scalar err0i = vel0(nodeListi,i).magnitude2();
-      // const Scalar err1i = vel1(nodeListi,i).magnitude2();
-      // const Scalar psi = min(1.0, err1i/max(1.0e-10, err0i));
-      // CHECK(psi >= 0.0 and psi <= 1.0);
-      // DvDxi = (1.0 - psii)*DvDxi + psii*DvDx0i;
-      // localDvDxi = (1.0 - psii)*localDvDxi + psii*localDvDx0i;
-      // DvDti = (1.0 - psii)*DvDti + psii*DvDt0i;
-      // DepsDti = (1.0 - psii)*DepsDti + psii*DepsDt0i;
-
       // Time evolution of the mass density.
       DrhoDti = -rhoi*DvDxi.Trace();
+
+      // If needed finish the total energy derivative.
+      if (mEvolveTotalEnergy) DepsDti = mi*(vi.dot(DvDti) + DepsDti);
 
       // Complete the moments of the node distribution for use in the ideal H calculation.
       weightedNeighborSumi = Dimension::rootnu(max(0.0, weightedNeighborSumi/Hdeti));

@@ -112,8 +112,8 @@ step(typename Dimension::Scalar maxTime,
   this->finalizeGhostBoundaries();
 
   // Evaluate the derivatives at the midpoint.
-  derivs.Zero();
   this->initializeDerivatives(t + hdt, hdt, state, derivs);
+  derivs.Zero();
   this->evaluateDerivatives(t + hdt, hdt, db, state, derivs);
   this->finalizeDerivatives(t + hdt, hdt, db, state, derivs);
 

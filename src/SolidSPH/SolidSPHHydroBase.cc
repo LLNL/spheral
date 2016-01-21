@@ -216,6 +216,7 @@ registerState(DataBase<Dimension>& dataBase,
   FieldList<Dimension, Scalar> ps;
   FieldList<Dimension, Vector> gradD;
   FieldList<Dimension, int> fragIDs;
+  FieldList<Dimension, int> pTypes;
   size_t nodeListi = 0;
   for (typename DataBase<Dimension>::SolidNodeListIterator itr = dataBase.solidNodeListBegin();
        itr != dataBase.solidNodeListEnd();
@@ -225,6 +226,7 @@ registerState(DataBase<Dimension>& dataBase,
     D.appendField((*itr)->effectiveDamage());
     gradD.appendField((*itr)->damageGradient());
     fragIDs.appendField((*itr)->fragmentIDs());
+    pTypes.appendField((*itr)->particleTypes());
 
     // Make a copy of the beginning plastic strain.
     *mPlasticStrain0[nodeListi] = (*itr)->plasticStrain();
@@ -256,6 +258,9 @@ registerState(DataBase<Dimension>& dataBase,
 
   // Register the fragment IDs.
   state.enroll(fragIDs);
+
+  // Register the particle types.
+  state.enroll(pTypes);
 
   // And finally the intial plastic strain.
   state.enroll(mPlasticStrain0);
@@ -342,6 +347,7 @@ evaluateDerivatives(const typename Dimension::Scalar time,
   const FieldList<Dimension, SymTensor> damage = state.fields(SolidFieldNames::effectiveTensorDamage, SymTensor::zero);
   const FieldList<Dimension, Vector> gradDamage = state.fields(SolidFieldNames::damageGradient, Vector::zero);
   const FieldList<Dimension, int> fragIDs = state.fields(SolidFieldNames::fragmentIDs, int(1));
+  const FieldList<Dimension, int> pTypes = state.fields(SolidFieldNames::particleTypes, int(0));
   CHECK(mass.size() == numNodeLists);
   CHECK(position.size() == numNodeLists);
   CHECK(velocity.size() == numNodeLists);
@@ -356,6 +362,7 @@ evaluateDerivatives(const typename Dimension::Scalar time,
   CHECK(damage.size() == numNodeLists);
   CHECK(gradDamage.size() == numNodeLists);
   CHECK(fragIDs.size() == numNodeLists);
+  CHECK(pTypes.size() == numNodeLists);
 
   // Derivative FieldLists.
   FieldList<Dimension, Scalar> rhoSum = derivatives.fields(ReplaceFieldList<Dimension, Scalar>::prefix() + HydroFieldNames::massDensity, 0.0);
@@ -460,6 +467,7 @@ evaluateDerivatives(const typename Dimension::Scalar time,
       const Scalar Hdeti = Hi.Determinant();
       const Scalar safeOmegai = 1.0/max(tiny, omegai);
       const int fragIDi = fragIDs(nodeListi, i);
+      const int pTypei = pTypes(nodeListi, i);
       CHECK(mi > 0.0);
       CHECK(rhoi > 0.0);
       CHECK(omegai > 0.0);
@@ -528,6 +536,7 @@ evaluateDerivatives(const typename Dimension::Scalar time,
               const Scalar Hdetj = Hj.Determinant();
               const Scalar safeOmegaj = 1.0/max(tiny, omegaj);
               const int fragIDj = fragIDs(nodeListj, j);
+              const int pTypej = pTypes(nodeListj, j);
               CHECK(mj > 0.0);
               CHECK(rhoj > 0.0);
               CHECK(Hdetj > 0.0);
@@ -552,6 +561,9 @@ evaluateDerivatives(const typename Dimension::Scalar time,
 
               // Flag if this is a contiguous material pair or not.
               const bool sameMatij = (nodeListi == nodeListj and fragIDi == fragIDj);
+
+              // Flag if at least one particle is free (0).
+              const bool freeParticle = (pTypei == 0 or pTypej == 0);
 
               // Node displacement.
               const Vector rij = ri - rj;
@@ -652,8 +664,10 @@ evaluateDerivatives(const typename Dimension::Scalar time,
               const SymTensor sigmarhoi = safeOmegai*sigmai/(rhoi*rhoi);
               const SymTensor sigmarhoj = safeOmegaj*sigmaj/(rhoj*rhoj);
               const Vector deltaDvDt = fDeffij*(sigmarhoi*gradWi + sigmarhoj*gradWj) - Qacci - Qaccj;
-              DvDti += mj*deltaDvDt;
-              DvDtj -= mi*deltaDvDt;
+              if (freeParticle) {
+                DvDti += mj*deltaDvDt;
+                DvDtj -= mi*deltaDvDt;
+              }
 
               // Pair-wise portion of grad velocity.
               const Tensor deltaDvDxi = fDeffij*vij.dyad(gradWGi);

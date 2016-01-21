@@ -114,6 +114,14 @@ CqMultiplier() {
     
 template<typename Dimension>
 inline
+FieldSpace::FieldList<Dimension, typename Dimension::Scalar>&
+ArtificialViscosity<Dimension>::
+shearCorrection() {
+  return mShearCorrection;
+}
+    
+template<typename Dimension>
+inline
 const FieldSpace::FieldList<Dimension, typename Dimension::Scalar>&
 ArtificialViscosity<Dimension>::
 ClMultiplier() const {
@@ -126,6 +134,14 @@ const FieldSpace::FieldList<Dimension, typename Dimension::Scalar>&
 ArtificialViscosity<Dimension>::
 CqMultiplier() const {
   return mCqMultiplier;
+}
+    
+template<typename Dimension>
+inline
+const FieldSpace::FieldList<Dimension, typename Dimension::Scalar>&
+ArtificialViscosity<Dimension>::
+shearCorrection() const {
+  return mShearCorrection;
 }
     
 //------------------------------------------------------------------------------

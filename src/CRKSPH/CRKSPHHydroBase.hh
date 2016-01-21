@@ -63,6 +63,7 @@ public:
                   const double cfl,
                   const bool useVelocityMagnitudeForDt,
                   const bool compatibleEnergyEvolution,
+                  const bool evolveTotalEnergy,
                   const bool XSPH,
                   const PhysicsSpace::MassDensityType densityUpdate,
                   const PhysicsSpace::HEvolutionType HUpdate,
@@ -163,6 +164,10 @@ public:
   bool compatibleEnergyEvolution() const;
   void compatibleEnergyEvolution(const bool val);
 
+  // Flag controlling if we evolve total or specific energy.
+  bool evolveTotalEnergy() const;
+  void evolveTotalEnergy(const bool val);
+
   // Flag to determine if we're using the grad h correction.
   bool gradhCorrection() const;
   void gradhCorrection(const bool val);
@@ -253,7 +258,7 @@ private:
   PhysicsSpace::HEvolutionType mHEvolution;
   CRKSPHSpace::CRKOrder mCorrectionOrder;
   CRKSPHSpace::CRKVolumeType mVolumeType;
-  bool mCompatibleEnergyEvolution, mGradhCorrection, mXSPH;
+  bool mCompatibleEnergyEvolution, mEvolveTotalEnergy, mGradhCorrection, mXSPH;
   double mfilter;
   Scalar mEpsTensile, mnTensile;
 

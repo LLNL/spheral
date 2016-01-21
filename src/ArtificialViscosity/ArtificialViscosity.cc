@@ -46,6 +46,7 @@ ArtificialViscosity():
   mBalsaraShearCorrection(false),
   mClMultiplier(FieldSpace::Copy),
   mCqMultiplier(FieldSpace::Copy),
+  mShearCorrection(FieldSpace::Copy),
   mCalculateSigma(false),
   mLimiterSwitch(false),
   mEpsilon2(1.0e-2),
@@ -69,6 +70,7 @@ ArtificialViscosity(Scalar Clinear, Scalar Cquadratic, CRKSPHSpace::CRKOrder Qco
   mBalsaraShearCorrection(false),
   mClMultiplier(FieldSpace::Copy),
   mCqMultiplier(FieldSpace::Copy),
+  mShearCorrection(FieldSpace::Copy),
   mCalculateSigma(false),
   mLimiterSwitch(false),
   mEpsilon2(1.0e-2),
@@ -120,7 +122,8 @@ initialize(const DataBase<Dimension>& dataBase,
 
   // If we are applying the Balsara shear flow correction term, calculate the
   // per node multiplier.
-  if (balsaraShearCorrection()) {
+  dataBase.resizeFluidFieldList(mShearCorrection, 1.0, "Balsara shear correction", true);
+  if (this->balsaraShearCorrection()) {
 
     // State we need.
     const FieldList<Dimension, Scalar> soundSpeed = state.fields(HydroFieldNames::soundSpeed, 0.0);
@@ -145,8 +148,7 @@ initialize(const DataBase<Dimension>& dataBase,
         CHECK(cs > 0.0);
         const Scalar fshear = div/(div + curl + epsilon2()*cs*hmaxinverse);
         CHECK(fshear >= 0.0 and fshear <= 1.0);
-        mClMultiplier(nodeListi, i) *= fshear;
-        mCqMultiplier(nodeListi, i) *= fshear;
+        mShearCorrection(nodeListi, i) = fshear;
       }
     }
   }
@@ -158,6 +160,7 @@ initialize(const DataBase<Dimension>& dataBase,
        ++boundItr) {
     (*boundItr)->applyFieldListGhostBoundary(mClMultiplier);
     (*boundItr)->applyFieldListGhostBoundary(mCqMultiplier);
+    (*boundItr)->applyFieldListGhostBoundary(mShearCorrection);
   }
 }
 
@@ -172,6 +175,7 @@ dumpState(FileIO& file, const string& pathName) const {
   if (mLimiterSwitch) file.write(gradDivVelocity(), pathName + "/gradDivVelocity");
   file.write(mClMultiplier, pathName + "/ClMultiplier");
   file.write(mCqMultiplier, pathName + "/CqMultiplier");
+  file.write(mShearCorrection, pathName + "/shearCorrection");
 }  
 
 //------------------------------------------------------------------------------
@@ -185,6 +189,7 @@ restoreState(const FileIO& file, const string& pathName) {
   if (mLimiterSwitch) file.read(mGradDivVelocity, pathName + "/gradDivVelocity");
   file.read(mClMultiplier, pathName + "/ClMultiplier");
   file.read(mCqMultiplier, pathName + "/CqMultiplier");
+  file.read(mShearCorrection, pathName + "/shearCorrection");
 }
 
 //------------------------------------------------------------------------------

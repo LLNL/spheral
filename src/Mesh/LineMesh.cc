@@ -14,9 +14,7 @@
 #include "Utilities/DBC.hh"
 
 #ifdef USE_MPI
-extern "C" {
 #include "mpi.h"
-}
 #endif
 
 namespace Spheral {

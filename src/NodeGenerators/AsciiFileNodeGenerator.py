@@ -13,8 +13,6 @@ import mpi
 rank = mpi.rank
 procs = mpi.procs
 
-delimiter = ' '
-
 #-------------------------------------------------------------------------------
 # Read in a 2-D setup.
 #-------------------------------------------------------------------------------
@@ -33,7 +31,8 @@ class AsciiFileNodeGenerator2D(NodeGeneratorBase):
                  extraFields = [],
                  initializeBase = True,
                  readFileToMemory = False,
-                 refineNodes = 0):
+                 refineNodes = 0,
+                 delimiter = ' '):
         
         
         self.filename = filename
@@ -165,7 +164,8 @@ class AsciiFileNodeGenerator3D(NodeGeneratorBase):
                  initializeBase = True,
                  readFileToMemory = False,
                  refineNodes = 0,
-                 rejecter=None):
+                 rejecter=None,
+                 delimiter = ' '):
                  
                  
         self.filename = filename

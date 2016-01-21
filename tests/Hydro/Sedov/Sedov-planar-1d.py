@@ -59,7 +59,8 @@ commandLine(nRadial = 50,
             betaE = 1.0,
             fKern = 1.0/3.0,
             boolHopkinsCorrection = True,
-            HopkinsConductivity = False,
+            HopkinsConductivity = False,     # For PSPH
+            evolveTotalEnergy = False,       # Only for SPH variants -- evolve total rather than specific energy
 
             HydroConstructor = SPHHydro,
             hmin = 1e-15,
@@ -289,6 +290,7 @@ elif PSPH:
                              cfl = cfl,
                              useVelocityMagnitudeForDt = useVelocityMagnitudeForDt,
                              compatibleEnergyEvolution = compatibleEnergy,
+                             evolveTotalEnergy = evolveTotalEnergy,
                              gradhCorrection = gradhCorrection,
                              HopkinsConductivity = HopkinsConductivity,
                              densityUpdate = densityUpdate,
@@ -299,6 +301,7 @@ else:
                              Q = q,
                              cfl = cfl,
                              compatibleEnergyEvolution = compatibleEnergy,
+                             evolveTotalEnergy = evolveTotalEnergy,
                              gradhCorrection = gradhCorrection,
                              densityUpdate = densityUpdate,
                              XSPH = XSPH,

@@ -189,6 +189,7 @@ private:
 };
 
 // Declare specializations.
+#ifndef WIN32
 template<> const unsigned GeomTensor<1>::nDimensions;
 template<> const unsigned GeomTensor<2>::nDimensions;
 template<> const unsigned GeomTensor<3>::nDimensions;
@@ -196,6 +197,7 @@ template<> const unsigned GeomTensor<3>::nDimensions;
 template<> const unsigned GeomTensor<1>::numElements;
 template<> const unsigned GeomTensor<2>::numElements;
 template<> const unsigned GeomTensor<3>::numElements;
+#endif
 
 template<> GeomVector<1> GeomTensor<1>::eigenValues() const;
 template<> GeomVector<2> GeomTensor<2>::eigenValues() const;
@@ -406,13 +408,15 @@ template<> double GeomTensor<1>::maxAbsElement() const;
 template<> double GeomTensor<2>::maxAbsElement() const;
 template<> double GeomTensor<3>::maxAbsElement() const;
 
+#ifndef _WIN32
 template<> const GeomTensor<1> GeomTensor<1>::zero;
 template<> const GeomTensor<2> GeomTensor<2>::zero;
 template<> const GeomTensor<3> GeomTensor<3>::zero;
+#endif
 
-template<> const GeomTensor<1> GeomTensor<1>::one;
-template<> const GeomTensor<2> GeomTensor<2>::one;
-template<> const GeomTensor<3> GeomTensor<3>::one;
+//template<> const GeomTensor<1> GeomTensor<1>::one;
+//template<> const GeomTensor<2> GeomTensor<2>::one;
+//template<> const GeomTensor<3> GeomTensor<3>::one;
 
 // Forward declare the global functions.
 template<int nDim> GeomTensor<nDim> operator*(double lhs, const GeomTensor<nDim>& rhs);

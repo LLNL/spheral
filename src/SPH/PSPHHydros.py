@@ -22,7 +22,7 @@ class %(classname)s%(dim)s(PSPHHydroBase%(dim)s):
                  compatibleEnergyEvolution = True,
                  evolveTotalEnergy = False,
                  XSPH = True,
-                 correctVelocityGradient = False,
+                 correctVelocityGradient = True,
                  HopkinsConductivity = False,
                  sumMassDensityOverAllNodeLists = True,
                  densityUpdate = RigorousSumDensity,

@@ -44,6 +44,7 @@ commandLine(KernelConstructor = BSplineKernel,
             SVPH = False,
             CRKSPH = False,
             PSPH = False,
+            evolveTotalEnergy = False,  # Only for SPH variants -- evolve total rather than specific energy
             Qconstructor = MonaghanGingoldViscosity,
             #Qconstructor = TensorMonaghanGingoldViscosity,
             boolReduceViscosity = False,
@@ -53,6 +54,7 @@ commandLine(KernelConstructor = BSplineKernel,
             aMin = 0.1,
             aMax = 2.0,
             boolCullenViscosity = False,
+            cullenUseHydroDerivatives = True,  # Reuse the hydro calculation of DvDx.
             alphMax = 2.0,
             alphMin = 0.02,
             betaC = 0.7,
@@ -70,6 +72,7 @@ commandLine(KernelConstructor = BSplineKernel,
             etaFoldFrac = 0.2,
             linearInExpansion = False,
             Qlimiter = False,
+            balsaraCorrection = False,
             epsilon2 = 1e-2,
             hmin = 0.0001, 
             hmax = 0.1,
@@ -268,12 +271,14 @@ output("db.numFluidNodeLists")
 q = Qconstructor(Cl, Cq, linearInExpansion)
 q.epsilon2 = epsilon2
 q.limiter = Qlimiter
+q.balsaraShearCorrection = balsaraCorrection
 q.QcorrectionOrder = QcorrectionOrder
 output("q")
 output("q.Cl")
 output("q.Cq")
 output("q.epsilon2")
 output("q.limiter")
+output("q.balsaraShearCorrection")
 output("q.linearInExpansion")
 output("q.quadraticInExpansion")
 
@@ -302,6 +307,7 @@ elif CRKSPH:
                              cfl = cfl,
                              useVelocityMagnitudeForDt = useVelocityMagnitudeForDt,
                              compatibleEnergyEvolution = compatibleEnergy,
+                             evolveTotalEnergy = evolveTotalEnergy,
                              XSPH = XSPH,
                              correctionOrder = correctionOrder,
                              volumeType = volumeType,
@@ -316,7 +322,9 @@ elif PSPH:
                              cfl = cfl,
                              useVelocityMagnitudeForDt = useVelocityMagnitudeForDt,
                              compatibleEnergyEvolution = compatibleEnergy,
+                             evolveTotalEnergy = evolveTotalEnergy,
                              HopkinsConductivity = HopkinsConductivity,
+                             correctVelocityGradient = correctVelocityGradient,
                              densityUpdate = densityUpdate,
                              HUpdate = HUpdate,
                              XSPH = XSPH)
@@ -327,6 +335,7 @@ else:
                              cfl = cfl,
                              useVelocityMagnitudeForDt = useVelocityMagnitudeForDt,
                              compatibleEnergyEvolution = compatibleEnergy,
+                             evolveTotalEnergy = evolveTotalEnergy,
                              gradhCorrection = gradhCorrection,
                              correctVelocityGradient = correctVelocityGradient,
                              densityUpdate = densityUpdate,
@@ -352,7 +361,7 @@ if boolReduceViscosity:
     evolveReducingViscosityMultiplier = MorrisMonaghanReducingViscosity(q,nhQ,nhL,aMin,aMax)
     packages.append(evolveReducingViscosityMultiplier)
 elif boolCullenViscosity:
-    evolveCullenViscosityMultiplier = CullenDehnenViscosity(q,WT,alphMax,alphMin,betaC,betaD,betaE,fKern,boolHopkinsCorrection)
+    evolveCullenViscosityMultiplier = CullenDehnenViscosity(q,WT,alphMax,alphMin,betaC,betaD,betaE,fKern,boolHopkinsCorrection,cullenUseHydroDerivatives)
     packages.append(evolveCullenViscosityMultiplier)
 
 #-------------------------------------------------------------------------------
@@ -534,7 +543,7 @@ if graphics:
         volPlot = plotFieldList(hydro.volume(), 
                                 winTitle = "volume",
                                 colorNodeLists = False, plotGhosts = False)
-        plots.append(volPlot)
+        plots.append((volPlot, "Noh-planar-vol.png"))
 
     if boolCullenViscosity:
         cullAlphaPlot = plotFieldList(q.ClMultiplier(),
