@@ -426,21 +426,19 @@ template<> double GeomSymmetricTensor<3>::maxAbsElement() const;
 template<> const GeomSymmetricTensor<1> GeomSymmetricTensor<1>::zero;
 template<> const GeomSymmetricTensor<2> GeomSymmetricTensor<2>::zero;
 template<> const GeomSymmetricTensor<3> GeomSymmetricTensor<3>::zero;
-#endif
 
-//template<> const GeomSymmetricTensor<1> GeomSymmetricTensor<1>::one;
-//template<> const GeomSymmetricTensor<2> GeomSymmetricTensor<2>::one;
-//template<> const GeomSymmetricTensor<3> GeomSymmetricTensor<3>::one;
+template<> const GeomSymmetricTensor<1> GeomSymmetricTensor<1>::one;
+template<> const GeomSymmetricTensor<2> GeomSymmetricTensor<2>::one;
+template<> const GeomSymmetricTensor<3> GeomSymmetricTensor<3>::one;
 
-#ifndef _WIN32
 template<> const double GeomSymmetricTensor<1>::onethird;
 template<> const double GeomSymmetricTensor<2>::onethird;
 template<> const double GeomSymmetricTensor<3>::onethird;
-#endif
 
-//template<> const double GeomSymmetricTensor<1>::sqrt3;
-//template<> const double GeomSymmetricTensor<2>::sqrt3;
-//template<> const double GeomSymmetricTensor<3>::sqrt3;
+template<> const double GeomSymmetricTensor<1>::sqrt3;
+template<> const double GeomSymmetricTensor<2>::sqrt3;
+template<> const double GeomSymmetricTensor<3>::sqrt3;
+#endif
 
 // Forward declare the global functions.
 template<int nDim> GeomSymmetricTensor<nDim> operator*(double lhs, const GeomSymmetricTensor<nDim>& rhs);
