@@ -101,6 +101,7 @@ commandLine(KernelConstructor = BSplineKernel,
             dtverbose = False,
 
             densityUpdate = RigorousSumDensity, # VolumeScaledDensity,
+            evolveTotalEnergy = False,  # Only for SPH variants -- evolve total rather than specific energy
             compatibleEnergy = True,
             gradhCorrection = True,
 
@@ -320,6 +321,7 @@ elif PSPH:
                              filter = filter,
                              cfl = cfl,
                              compatibleEnergyEvolution = compatibleEnergy,
+                             evolveTotalEnergy = evolveTotalEnergy,
                              HopkinsConductivity = HopkinsConductivity,
                              densityUpdate = densityUpdate,
                              HUpdate = HUpdate,
@@ -330,6 +332,7 @@ else:
                              filter = filter,
                              cfl = cfl,
                              compatibleEnergyEvolution = compatibleEnergy,
+                             evolveTotalEnergy = evolveTotalEnergy,
                              gradhCorrection = gradhCorrection,
                              densityUpdate = densityUpdate,
                              HUpdate = HUpdate,
@@ -466,6 +469,7 @@ if graphics:
     # Plot the node positions.
     import Gnuplot
     rPlot = plotNodePositions2d(db, colorNodeLists=0, colorDomains=1)
+    EPlot = plotEHistory(control.conserve)
 
     # Plot the final state.
     rhoPlot, vrPlot, epsPlot, PPlot, HPlot = plotRadialState(db)

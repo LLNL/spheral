@@ -70,6 +70,8 @@ commandLine(seed = "lattice",
             HEvolution = IdealH,
             compatibleEnergy = True,
             gradhCorrection = False,
+            HopkinsConductivity = False,     # For PSPH
+            evolveTotalEnergy = False,       # Only for SPH variants -- evolve total rather than specific energy
 
             restoreCycle = None,
             restartStep = 1000,
@@ -285,11 +287,25 @@ if CRKSPH:
                              XSPH = XSPH,
                              densityUpdate = densityUpdate,
                              HUpdate = HUpdate)
+elif PSPH:
+    hydro = HydroConstructor(W = WT,
+                             Q = q,
+                             filter = filter,
+                             cfl = cfl,
+                             useVelocityMagnitudeForDt = useVelocityMagnitudeForDt,
+                             compatibleEnergyEvolution = compatibleEnergy,
+                             evolveTotalEnergy = evolveTotalEnergy,
+                             gradhCorrection = gradhCorrection,
+                             HopkinsConductivity = HopkinsConductivity,
+                             densityUpdate = densityUpdate,
+                             HUpdate = HUpdate,
+                             XSPH = XSPH)
 else:
     hydro = HydroConstructor(W = WT, 
                              Q = q,
                              cfl = cfl,
                              compatibleEnergyEvolution = compatibleEnergy,
+                             evolveTotalEnergy = evolveTotalEnergy,
                              gradhCorrection = gradhCorrection,
                              densityUpdate = densityUpdate,
                              XSPH = XSPH,

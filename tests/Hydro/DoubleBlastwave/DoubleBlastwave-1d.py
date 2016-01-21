@@ -34,6 +34,8 @@ commandLine(
     linearConsistent = False,
     KernelConstructor = BSplineKernel,
     order = 5,
+    HopkinsConductivity = False,     # For PSPH
+    evolveTotalEnergy = False,       # Only for SPH variants -- evolve total rather than specific energy
 
     # Q
     Qconstructor = MonaghanGingoldViscosity,
@@ -49,6 +51,8 @@ commandLine(
     aMax = 2.0,
     Qhmult = 1.0,
     boolCullenViscosity = False,
+    cullenUseHydroDerivatives = True,  # Reuse the hydro calculation of DvDx.
+    correctVelocityGradient = True,
     alphMax = 2.0,
     alphMin = 0.02,
     betaC = 0.7,
@@ -208,15 +212,29 @@ elif CRKSPH:
                              correctionOrder = correctionOrder,
                              densityUpdate = densityUpdate,
                              HUpdate = HUpdate)
+elif PSPH:
+    hydro = HydroConstructor(W = WT,
+                             Q = q,
+                             filter = filter,
+                             cfl = cfl,
+                             compatibleEnergyEvolution = compatibleEnergy,
+                             evolveTotalEnergy = evolveTotalEnergy,
+                             HopkinsConductivity = HopkinsConductivity,
+                             densityUpdate = densityUpdate,
+                             correctVelocityGradient = correctVelocityGradient,
+                             HUpdate = HUpdate,
+                             XSPH = XSPH)
 else:
     hydro = HydroConstructor(W = WT,
                              Q = q,
                              cfl = cfl,
                              compatibleEnergyEvolution = compatibleEnergy,
+                             evolveTotalEnergy = evolveTotalEnergy,
                              gradhCorrection = gradhCorrection,
                              densityUpdate = densityUpdate,
                              HUpdate = HUpdate,
                              XSPH = XSPH,
+                             correctVelocityGradient = correctVelocityGradient,
                              epsTensile = epsilonTensile,
                              nTensile = nTensile)
 output("hydro")
@@ -231,7 +249,7 @@ if boolReduceViscosity:
     evolveReducingViscosityMultiplier = MorrisMonaghanReducingViscosity(q,nh,aMin,aMax)
     packages.append(evolveReducingViscosityMultiplier)
 elif boolCullenViscosity:
-    evolveCullenViscosityMultiplier = CullenDehnenViscosity(q,WT,alphMax,alphMin,betaC,betaD,betaE,fKern,boolHopkinsCorrection)
+    evolveCullenViscosityMultiplier = CullenDehnenViscosity(q,WT,alphMax,alphMin,betaC,betaD,betaE,fKern,boolHopkinsCorrection,cullenUseHydroDerivatives)
     packages.append(evolveCullenViscosityMultiplier)
 
 #-------------------------------------------------------------------------------

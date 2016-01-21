@@ -135,6 +135,25 @@ fragmentIDs() const {
 }
 
 //------------------------------------------------------------------------------
+// Access the particle type field.
+//------------------------------------------------------------------------------
+template<typename Dimension>
+inline
+FieldSpace::Field<Dimension, int>&
+SolidNodeList<Dimension>::
+particleTypes() {
+  return mParticleTypes;
+}
+
+template<typename Dimension>
+inline
+const FieldSpace::Field<Dimension, int>&
+SolidNodeList<Dimension>::
+particleTypes() const {
+  return mParticleTypes;
+}
+
+//------------------------------------------------------------------------------
 // Access the strength model this solid node list is using.
 //------------------------------------------------------------------------------
 template<typename Dimension>

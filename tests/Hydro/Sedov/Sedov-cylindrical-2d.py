@@ -66,7 +66,8 @@ commandLine(seed = "constantDTheta",
             fKern = 1.0/3.0,
             boolHopkinsCorrection = True,
             cullenReproducingKernelGradient = False,  # Use reproducing kernels for gradients in Cullen-Dehnen visocosity model
-            HopkinsConductivity = False,
+            HopkinsConductivity = False,     # For PSPH
+            evolveTotalEnergy = False,       # Only for SPH variants -- evolve total rather than specific energy
 
             hmin = 1e-15,
             hmax = 1.0,
@@ -342,6 +343,7 @@ elif PSPH:
                              cfl = cfl,
                              useVelocityMagnitudeForDt = useVelocityMagnitudeForDt,
                              compatibleEnergyEvolution = compatibleEnergy,
+                             evolveTotalEnergy = evolveTotalEnergy,
                              gradhCorrection = gradhCorrection,
                              HopkinsConductivity = HopkinsConductivity,
                              densityUpdate = densityUpdate,
@@ -352,6 +354,7 @@ else:
                              Q = q,
                              cfl = cfl,
                              compatibleEnergyEvolution = compatibleEnergy,
+                             evolveTotalEnergy = evolveTotalEnergy,
                              gradhCorrection = gradhCorrection,
                              densityUpdate = densityUpdate,
                              XSPH = XSPH,

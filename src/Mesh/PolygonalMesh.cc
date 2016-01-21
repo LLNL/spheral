@@ -226,6 +226,7 @@ reconstructInternal(const vector<Dim<2>::Vector>& generators,
 #else
     polytope::BoostTessellator<double> tessellator;
 #endif
+    tessellator.tessellate(gens, const_cast<double*>(xmin.begin()), const_cast<double*>(xmax.begin()), tessellation);
 #endif
     tessellator.tessellate(gens, const_cast<double*>(xmin.begin()), const_cast<double*>(xmax.begin()), tessellation);
   }
@@ -334,11 +335,21 @@ reconstructInternal(const vector<Dim<2>::Vector>& generators,
   polytope::Tessellation<2, double> tessellation;
   {
 #ifdef USE_MPI
-    polytope::DistributedTessellator<2, double> tessellator(new polytope::BoostTessellator<double>(),
+    polytope::DistributedTessellator<2, double> tessellator
+#if defined USE_TRIANGLE && ( USE_TRIANGLE>0 )
+      (new polytope::TriangleTessellator<double>(),
+#else
+      (new polytope::BoostTessellator<double>(),
+#endif
                                                             true,     // Manage memory for serial tessellator
                                                             true);    // Build parallel connectivity
 #else
+#if defined USE_TRIANGLE && ( USE_TRIANGLE>0 )
+    polytope::TriangleTessellator<double> tessellator;
+#else
     polytope::BoostTessellator<double> tessellator;
+#endif
+    tessellator.tessellate(gens, const_cast<double*>(xmin.begin()), const_cast<double*>(xmax.begin()), tessellation);
 #endif
     tessellator.tessellate(gens, plcBoundary.points, plcBoundary, tessellation);
   }

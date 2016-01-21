@@ -93,6 +93,23 @@ CRKSPHHydroBase<Dimension>::compatibleEnergyEvolution(const bool val) {
 }
 
 //------------------------------------------------------------------------------
+// Access the flag determining if we're evolving total or specific energy
+//------------------------------------------------------------------------------
+template<typename Dimension>
+inline
+bool
+CRKSPHHydroBase<Dimension>::evolveTotalEnergy() const {
+  return mEvolveTotalEnergy;
+}
+
+template<typename Dimension>
+inline
+void
+CRKSPHHydroBase<Dimension>::evolveTotalEnergy(const bool val) {
+  mEvolveTotalEnergy = val;
+}
+
+//------------------------------------------------------------------------------
 // Access the flag determining if we're using the XSPH algorithm.
 //------------------------------------------------------------------------------
 template<typename Dimension>

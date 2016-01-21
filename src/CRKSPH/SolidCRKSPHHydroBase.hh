@@ -62,6 +62,7 @@ public:
                        const double cfl,
                        const bool useVelocityMagnitudeForDt,
                        const bool compatibleEnergyEvolution,
+                       const bool evolveTotalEnergy,
                        const bool XSPH,
                        const PhysicsSpace::MassDensityType densityUpdate,
                        const PhysicsSpace::HEvolutionType HUpdate,

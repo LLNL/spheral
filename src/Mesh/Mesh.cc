@@ -22,9 +22,7 @@
 #include "NodeList/NodeList.hh"
 
 #ifdef USE_MPI
-extern "C" {
 #include "mpi.h"
-}
 #include "Utilities/packElement.hh"
 #endif
 
@@ -39,7 +37,6 @@ using std::max;
 using std::abs;
 
 using NodeSpace::NodeList;
-
 namespace { // anonymous
 
 #ifdef USE_MPI

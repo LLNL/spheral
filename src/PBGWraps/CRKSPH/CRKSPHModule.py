@@ -366,6 +366,7 @@ self.generateSolidCRKSPHHydroBaseBindings(self.SolidCRKSPHHydroBase%(dim)id, %(d
                            param("double", "cfl", default_value="0.5"),
                            param("int", "useVelocityMagnitudeForDt", default_value="false"),
                            param("int", "compatibleEnergyEvolution", default_value="true"),
+                           param("int", "evolveTotalEnergy", default_value="false"),
                            param("int", "XSPH", default_value="true"),
                            param("MassDensityType", "densityUpdate", default_value="Spheral::PhysicsSpace::RigorousSumDensity"),
                            param("HEvolutionType", "HUpdate", default_value="Spheral::PhysicsSpace::IdealH"),
@@ -427,6 +428,7 @@ self.generateSolidCRKSPHHydroBaseBindings(self.SolidCRKSPHHydroBase%(dim)id, %(d
         x.add_instance_attribute("correctionOrder", "CRKOrder", getter="correctionOrder", setter="correctionOrder")
         x.add_instance_attribute("volumeType", "CRKVolumeType", getter="volumeType", setter="volumeType")
         x.add_instance_attribute("compatibleEnergyEvolution", "bool", getter="compatibleEnergyEvolution", setter="compatibleEnergyEvolution")
+        x.add_instance_attribute("evolveTotalEnergy", "bool", getter="evolveTotalEnergy", setter="evolveTotalEnergy")
         x.add_instance_attribute("XSPH", "bool", getter="XSPH", setter="XSPH")
         x.add_instance_attribute("filter", "double", getter="filter", setter="filter")
 
@@ -522,6 +524,7 @@ self.generateSolidCRKSPHHydroBaseBindings(self.SolidCRKSPHHydroBase%(dim)id, %(d
                            param("double", "cfl", default_value="0.25"),
                            param("int", "useVelocityMagnitudeForDt", default_value="false"),
                            param("int", "compatibleEnergyEvolution", default_value="true"),
+                           param("int", "evolveTotalEnergy", default_value="false"),
                            param("int", "XSPH", default_value="true"),
                            param("MassDensityType", "densityUpdate", default_value="Spheral::PhysicsSpace::RigorousSumDensity"),
                            param("HEvolutionType", "HUpdate", default_value="Spheral::PhysicsSpace::IdealH"),
