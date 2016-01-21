@@ -307,6 +307,7 @@ elif CRKSPH:
                              cfl = cfl,
                              useVelocityMagnitudeForDt = useVelocityMagnitudeForDt,
                              compatibleEnergyEvolution = compatibleEnergy,
+                             evolveTotalEnergy = evolveTotalEnergy,
                              XSPH = XSPH,
                              correctionOrder = correctionOrder,
                              volumeType = volumeType,
@@ -542,7 +543,7 @@ if graphics:
         volPlot = plotFieldList(hydro.volume(), 
                                 winTitle = "volume",
                                 colorNodeLists = False, plotGhosts = False)
-        plots.append(volPlot)
+        plots.append((volPlot, "Noh-planar-vol.png"))
 
     if boolCullenViscosity:
         cullAlphaPlot = plotFieldList(q.ClMultiplier(),
