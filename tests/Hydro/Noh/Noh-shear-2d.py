@@ -81,6 +81,8 @@ commandLine(seed = "lattice",
             hourglassOrder = 0,
             hourglassLimiter = 0,
             hourglassFraction = 0.5,
+            HopkinsConductivity = False,     # For PSPH
+            evolveTotalEnergy = False,       # Only for SPH variants -- evolve total rather than specific energy
 
             IntegratorConstructor = CheapSynchronousRK2Integrator,
             goalTime = 0.6,
@@ -302,6 +304,17 @@ elif CRKSPH:
                              correctionOrder = correctionOrder,
                              densityUpdate = densityUpdate,
                              HUpdate = HUpdate)
+elif PSPH:
+    hydro = HydroConstructor(W = WT,
+                             Q = q,
+                             filter = filter,
+                             cfl = cfl,
+                             compatibleEnergyEvolution = compatibleEnergy,
+                             evolveTotalEnergy = evolveTotalEnergy,
+                             HopkinsConductivity = HopkinsConductivity,
+                             densityUpdate = densityUpdate,
+                             HUpdate = HUpdate,
+                             XSPH = XSPH)
 else:
     hydro = HydroConstructor(W = WT, 
                              Q = q,
@@ -309,6 +322,7 @@ else:
                              cfl = cfl,
                              useVelocityMagnitudeForDt = useVelocityMagnitudeForDt,
                              compatibleEnergyEvolution = compatibleEnergy,
+                             evolveTotalEnergy = evolveTotalEnergy,
                              gradhCorrection = gradhCorrection,
                              densityUpdate = densityUpdate,
                              HUpdate = HUpdate,

@@ -60,7 +60,7 @@ public:
                         const Scalar betaE,
                         const Scalar fKern,
                         const bool boolHopkins,
-                        const bool reproducingKernelGradient);
+                        const bool useHydroDerivatives);
   virtual ~CullenDehnenViscosity();
     
   //............................................................................
@@ -122,7 +122,7 @@ public:
   Scalar betaC() const;
   Scalar fKern() const;
   bool boolHopkins() const;
-  bool reproducingKernelGradient() const;
+  bool useHydroDerivatives() const;
     
   void alphMax(Scalar val);
   void alphMin(Scalar val);
@@ -131,7 +131,7 @@ public:
   void betaC(Scalar val);
   void fKern(Scalar val);
   void boolHopkins(bool val);
-  void reproducingKernelGradient(bool val);
+  void useHydroDerivatives(bool val);
 
   // Access the stored interpolation kernels.
   const KernelSpace::TableKernel<Dimension>& kernel() const;
@@ -142,6 +142,7 @@ public:
   const FieldSpace::FieldList<Dimension, Scalar>&    CullAlpha2() const;
   const FieldSpace::FieldList<Dimension, Scalar>&    DalphaDt() const;
   const FieldSpace::FieldList<Dimension, Scalar>&    alphaLocal() const;
+  const FieldSpace::FieldList<Dimension, Scalar>&    alpha0() const;
     
 private:
   //--------------------------- Private Interface ---------------------------//
@@ -155,7 +156,7 @@ private:
 
   Scalar malphMax, malphMin, mbetaE, mbetaD, mbetaC, mfKern;
   bool mboolHopkins;//Use Hopkins Reformulation
-  bool mReproducingKernelGradient;  // Use reproducing kernels to estimate gradients.
+  bool mUseHydroDerivatives;  // Use the hydro derivatives for DvDx and such
   ArtificialViscosity<Dimension>& myq;
   const KernelSpace::TableKernel<Dimension>& mKernel;
   FieldSpace::FieldList<Dimension, Vector>    mPrevDvDt;//Will enroll as state fields
@@ -166,6 +167,7 @@ private:
 
   FieldSpace::FieldList<Dimension, Scalar>    mDalphaDt;     // Time derivative of alpha
   FieldSpace::FieldList<Dimension, Scalar>    mAlphaLocal;   // Alpha local to be filled in derivatives
+  FieldSpace::FieldList<Dimension, Scalar>    mAlpha0;       // The Hopkins form actually evolves alpha0
 };
     
 }

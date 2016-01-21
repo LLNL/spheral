@@ -15,6 +15,7 @@
 #include "SolidMaterial/SteinbergGuinanStrength.hh"
 #include "SolidMaterial/SteinbergGuinanLundStrength.hh"
 #include "SolidMaterial/JohnsonCookStrength.hh"
+#include "SolidMaterial/CollinsStrength.hh"
 #include "SolidMaterial/PorousEquationOfState.hh"
 #include "SolidMaterial/PorousStrengthModel.hh"
 #include "SolidMaterial/StrainPorosity.hh"
@@ -82,6 +83,10 @@ typedef SteinbergGuinanLundStrength<Dim<3> > SteinbergGuinanLundStrength3d;
 typedef JohnsonCookStrength<Dim<1> > JohnsonCookStrength1d;
 typedef JohnsonCookStrength<Dim<2> > JohnsonCookStrength2d;
 typedef JohnsonCookStrength<Dim<3> > JohnsonCookStrength3d;
+
+typedef CollinsStrength<Dim<1> > CollinsStrength1d;
+typedef CollinsStrength<Dim<2> > CollinsStrength2d;
+typedef CollinsStrength<Dim<3> > CollinsStrength3d;
 
 typedef PorousStrengthModel<Dim<1> > PorousStrengthModel1d;
 typedef PorousStrengthModel<Dim<2> > PorousStrengthModel2d;

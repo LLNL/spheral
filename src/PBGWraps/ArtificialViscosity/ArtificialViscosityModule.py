@@ -120,8 +120,6 @@ self.addVonNeumanViscosityMethods(self.VonNeumanViscosity%(dim)id, %(dim)i)
 
         # Methods.
         x.add_method("curlVelocityMagnitude", "double", [refparam(tensor, "DvDx")], is_const=True)
-        x.add_method("ClMultiplier", scalarfieldlist, [], is_const=True)
-        x.add_method("CqMultiplier", scalarfieldlist, [], is_const=True)
         x.add_method("sigma", tensorfieldlist, [], is_const=True)
         x.add_method("gradDivVelocity", vectorfieldlist, [], is_const=True)
         x.add_method("calculateLimiter", tensor, [refparam(vector, "vi"),
@@ -150,6 +148,7 @@ self.addVonNeumanViscosityMethods(self.VonNeumanViscosity%(dim)id, %(dim)i)
         
         x.add_method("CqMultiplier", scalarfieldlist, [])
         x.add_method("ClMultiplier", scalarfieldlist, [])
+        x.add_method("shearCorrection", scalarfieldlist, [])
 
         # Add the abstract methods.
         self.addArtificialViscosityVirtualMethods(x, ndim, True)
@@ -250,7 +249,7 @@ self.addVonNeumanViscosityMethods(self.VonNeumanViscosity%(dim)id, %(dim)i)
                            param("double", "betaE", default_value="1.0"),
                            param("double", "fKern", default_value="0.33333"),
                            param("bool", "boolHopkins", default_value="true"),
-                           param("bool", "reproducingKernelGradient", default_value="false")])
+                           param("bool", "useHydroDerivatives", default_value="true")])
 
         # Add the abstract methods.
         generatePhysicsVirtualBindings(x, ndim, False)
@@ -263,7 +262,7 @@ self.addVonNeumanViscosityMethods(self.VonNeumanViscosity%(dim)id, %(dim)i)
         x.add_instance_attribute("betaC", "double", getter="betaC", setter="betaC")
         x.add_instance_attribute("fKern", "double", getter="fKern", setter="fKern")
         x.add_instance_attribute("boolHopkins", "bool", getter="boolHopkins", setter="boolHopkins")
-        x.add_instance_attribute("reproducingKernelGradient", "bool", getter="reproducingKernelGradient", setter="reproducingKernelGradient")
+        x.add_instance_attribute("useHydroDerivatives", "bool", getter="useHydroDerivatives", setter="useHydroDerivatives")
 
         # Methods.
         const_ref_return_value(x, me, "%s::PrevDvDt" % me, vectorfieldlist, [], "PrevDvDt")
