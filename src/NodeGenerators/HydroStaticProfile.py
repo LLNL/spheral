@@ -859,8 +859,8 @@ class EarthLikeProfileConstantTemp2d():
         self.soln = []
         self.rho0 = rho0
         
-        from SolidSpheral3d import makeVoidNodeList
-        from SolidSpheral3d import ScalarField
+        from SolidSpheral2d import makeVoidNodeList
+        from SolidSpheral2d import ScalarField
         
         eoscount    = len(eostup)/2
         
