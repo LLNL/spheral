@@ -8,6 +8,7 @@
 #include <iostream>
 #include <algorithm>
 #include "boost/static_assert.hpp"
+#include <assert.h>
 #include "Eigen/Dense"
 
 #include "invertRankNTensor.hh"
@@ -19,10 +20,10 @@ namespace Spheral {
 template<typename Tensor>
 Tensor
 invertRankNTensor(const Tensor& tensor) {
-  BOOST_STATIC_ASSERT(Tensor::nrank % 2 == 0);
+  assert(Tensor::nrank % 2 == 0);
 
   typedef Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic, Eigen::RowMajor> MatrixType;
-  const unsigned dim = pow(Tensor::nDimensions, Tensor::nrank/2);
+  const unsigned dim = (unsigned)std::pow(double(Tensor::nDimensions), int(Tensor::nrank/2));
   MatrixType A(dim, dim);
 
   // Note our convention for how rank N tensors work -- last index changing the fastest.
