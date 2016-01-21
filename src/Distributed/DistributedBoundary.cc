@@ -1498,8 +1498,7 @@ buildReceiveAndGhostNodes(const DataBase<Dimension>& dataBase) {
   // This processor's ID.
   int procID = this->domainID();
   int numProcs = this->numDomains();
-  // This if prevents a dereference of a zero length vector &recvStatus.front()
-  if (numProcs > 1) {
+
   CHECK(procID < numProcs);
 
   // Reserve space for the number of nodes we'll be getting from each domain.
@@ -1531,7 +1530,7 @@ buildReceiveAndGhostNodes(const DataBase<Dimension>& dataBase) {
            ++nodeListItr, ++nodeListID) {
         if (this->nodeListSharedWithDomain(**nodeListItr, neighborProc)) {
           const vector<int>& sendNodes = this->accessDomainBoundaryNodes(**nodeListItr, neighborProc).sendNodes;
-	  CHECK(sendNodes.size() > 0);
+          CHECK(sendNodes.size() > 0);
           numSendNodes[neighborProc][nodeListID] = sendNodes.size();
         }
       }
@@ -1546,7 +1545,8 @@ buildReceiveAndGhostNodes(const DataBase<Dimension>& dataBase) {
   }
 
   // Wait until our receives are satisfied.
-  {
+  // This if prevents a dereference of a zero length vector &recvStatus.front()
+  if (numProcs > 1) {
     const int numRecv = numProcs - 1;
     vector<MPI_Status> recvStatus(numRecv);
     MPI_Waitall(numRecv, &recvRequests.front(), &recvStatus.front());
@@ -1597,7 +1597,6 @@ buildReceiveAndGhostNodes(const DataBase<Dimension>& dataBase) {
     }
   }
 
-  }
   // Fill out the Boundary list of control and ghost nodes with the send and receive
   // nodes on this domain as a courtesy.
   // At the moment this information won't be used for this boundary condition.
@@ -1606,11 +1605,13 @@ buildReceiveAndGhostNodes(const DataBase<Dimension>& dataBase) {
   BEGIN_CONTRACT_SCOPE
   {
     // Ensure we wound up with the correct slices of ghost node indicies.
-    int nodeListID = 0;
-    for (typename DataBase<Dimension>::ConstNodeListIterator nodeListItr = dataBase.nodeListBegin();
-         nodeListItr != dataBase.nodeListEnd();
-         ++nodeListItr, ++nodeListID) {
-      ENSURE((**nodeListItr).numNodes() == firstNewGhostNode[nodeListID]);
+    if (numProcs >1) {
+      int nodeListID = 0;
+      for (typename DataBase<Dimension>::ConstNodeListIterator nodeListItr = dataBase.nodeListBegin();
+           nodeListItr != dataBase.nodeListEnd();
+           ++nodeListItr, ++nodeListID) {
+        ENSURE((**nodeListItr).numNodes() == firstNewGhostNode[nodeListID]);
+      }
     }
   }
   END_CONTRACT_SCOPE
