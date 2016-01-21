@@ -33,6 +33,7 @@ class GenerateNodeDistribution3d(NodeGeneratorBase):
                  phimax = None,
                  zmin = None,
                  zmax = None,
+                 offset = None,
                  nNodePerh = 2.01,
                  SPH = False,
                  rejecter = None):
@@ -66,6 +67,7 @@ class GenerateNodeDistribution3d(NodeGeneratorBase):
                  xmin is not None and
                  xmax is not None)
                 )
+        assert offset is None or len(offset) == 3
 
         self.n1 = n1
         self.n2 = n2
@@ -201,6 +203,13 @@ class GenerateNodeDistribution3d(NodeGeneratorBase):
                                      self.rmax,
                                      self.origin,
                                      self.nNodePerh)
+
+        # If requested, shift the nodes.
+        if offset:
+            for i in xrange(len(self.x)):
+                self.x[i] += offset[0]
+                self.y[i] += offset[1]
+                self.z[i] += offset[2]
 
         # If the user provided a "rejecter", give it a pass
         # at the nodes.
@@ -1772,6 +1781,10 @@ class GenerateIcosahedronMatchingProfile3d(NodeGeneratorBase):
         assert nNodePerh > 0.0
         assert offset is None or len(offset)==3
         
+        self.rejecter = None
+        if rejecter:
+            self.rejecter = rejecter
+        
         import random
         
         if offset is None:
@@ -1879,6 +1892,7 @@ class GenerateIcosahedronMatchingProfile3d(NodeGeneratorBase):
                       [393218,8,2]]
         
         while ri > rmin:
+            
             # create the database of faces and positions
             self.positions      = []     # [index,[point]]
             self.middlePoints   = []  # [i,[key,index]]
@@ -1890,6 +1904,7 @@ class GenerateIcosahedronMatchingProfile3d(NodeGeneratorBase):
             rhoi    = self.densityProfileMethod(ri)
             dr      = pow(self.m0/(rhoi),1.0/3.0)
             dr      = min(dr,ri-rmin)
+            rii = ri - 0.5*dr
             #mshell  = rhoi * 4.0*pi*ri*ri*dr
             mshell  = self.integrateTotalMass(self.densityProfileMethod,
                                               ri-dr, ri,
@@ -1907,6 +1922,14 @@ class GenerateIcosahedronMatchingProfile3d(NodeGeneratorBase):
                              0.0, 0.0, 1.0/hi)
                              
             mi  = mshell / float(nshell)
+            
+            random.seed(nshell)
+            dt = random.random()*pi
+            dt2 = random.random()*pi
+            
+            rot = [[1.0,0.0,0.0],[0.0,cos(dt),-sin(dt)],[0.0,sin(dt),cos(dt)]]
+            rot2 = [[cos(dt2),0.0,sin(dt2)],[0.0,1.0,0.0],[-sin(dt2),0.0,cos(dt2)]]
+            
             if (nshell > 4 and nshell<163):
                 for i in xrange(len(shapeData)):
                     nc  = 0
@@ -1940,22 +1963,62 @@ class GenerateIcosahedronMatchingProfile3d(NodeGeneratorBase):
                     self.createCubicSphere(nr)
                 else:
                     self.createIcoSphere(nr)
+        
+                for n in xrange(len(self.positions)):
+                    self.positions[n] = self.rotater(self.positions[n],rot,rot2)
             elif(nshell==1 and mi> 0.5 * self.m0):
-                self.positions.append([0,0,0])
+                if rejecter:
+                    if rejecter.accept(0,0,0):
+                        self.positions.append([0,0,0])
+                else:
+                    self.positions.append([0,0,0])
             elif(nshell==2):
-                self.positions.append([0,0,1])
-                self.positions.append([0,0,-1])
+                if rejecter:
+                    position1 = self.rotater([0,0,1],rot,rot2)
+                    if rejecter.accept(rii*position1[0],rii*position1[1],rii*position1[2]):
+                        self.positions.append(position1)
+                    position2 = self.rotater([0,0,-1],rot,rot2)
+                    if rejecter.accept(rii*position2[0],rii*position2[1],rii*position2[2]):
+                        self.positions.append(position2)
+                else:
+                    self.positions.append(position1)
+                    self.positions.append(position2)
             elif(nshell==3):
                 t = sqrt(3)/2.0
-                self.positions.append([0,1,0])
-                self.positions.append([t,-0.5,0])
-                self.positions.append([-t,-0.5,0])
+                position1 = self.rotater([0,1,0],rot,rot2)
+                position2 = self.rotater([t,-0.5,0],rot,rot2)
+                position3 = self.rotater([-t,-0.5,0],rot,rot2)
+                if rejecter:
+                    if rejecter.accept(rii*position1[0],rii*position1[1],rii*position1[2]):
+                        self.positions.append(position1)
+                    if rejecter.accept(rii*position2[0],rii*position2[1],rii*position2[2]):
+                        self.positions.append(position2)
+                    if rejecter.accept(rii*position3[0],rii*position3[1],rii*position3[2]):
+                        self.positions.append(position3)
+                else:
+                    self.positions.append(position1)
+                    self.positions.append(position2)
+                    self.positions.append(position3)
             elif(nshell==4):
                 t = sqrt(3.0)/3.0
-                self.positions.append([t,t,t])
-                self.positions.append([t,-t,-t])
-                self.positions.append([-t,-t,t])
-                self.positions.append([-t,t,-t])
+                position1 = self.rotater([t,t,t],rot,rot2)
+                position2 = self.rotater([t,-t,-t],rot,rot2)
+                position3 = self.rotater([-t,-t,t],rot,rot2)
+                position4 = self.rotater([-t,t,-t],rot,rot2)
+                if rejecter:
+                    if rejecter.accept(rii*position1[0],rii*position1[1],rii*position1[2]):
+                        self.positions.append(position1)
+                    if rejecter.accept(rii*position2[0],rii*position2[1],rii*position2[2]):
+                        self.positions.append(position2)
+                    if rejecter.accept(rii*position3[0],rii*position3[1],rii*position3[2]):
+                        self.positions.append(position3)
+                    if rejecter.accept(rii*position4[0],rii*position4[1],rii*position4[2]):
+                        self.positions.append(position4)
+                else:
+                    self.positions.append(position1)
+                    self.positions.append(position2)
+                    self.positions.append(position3)
+                    self.positions.append(position4)
             elif(nshell>=163):
                 # do the spiral thing here
                 
@@ -1974,42 +2037,27 @@ class GenerateIcosahedronMatchingProfile3d(NodeGeneratorBase):
                     y = sin(t)*sin(p)
                     z = cos(t)
                     
+                    position = self.rotater([x,y,z],rot,rot2)
                     
-                    self.positions.append([x,y,z])
+                    x = position[0]
+                    y = position[1]
+                    z = position[2]
+                    
+                    if rejecter:
+                        if rejecter.accept(rii*x,rii*y,rii*z):
+                            self.positions.append([x,y,z])
+                    else:
+                        self.positions.append([x,y,z])
             #mi = self.m0 * (float(nshell)/float(len(self.positions)))
             
-            rii = ri - 0.5*dr
+            
             print "at r=%g, wanted %d; computed %d total nodes with mass=%g" %(rii,nshell,len(self.positions),mi)
             for n in xrange(len(self.positions)):
                 x       = rii*self.positions[n][0]
                 y       = rii*self.positions[n][1]
                 z       = rii*self.positions[n][2]
                 
-                
-                random.seed(nshell)
-                dt = random.random()*pi
-                dt2 = random.random()*pi
-                
-                rot = [[1.0,0.0,0.0],[0.0,cos(dt),-sin(dt)],[0.0,sin(dt),cos(dt)]]
-                rot2 = [[cos(dt2),0.0,sin(dt2)],[0.0,1.0,0.0],[-sin(dt2),0.0,cos(dt2)]]
-                pos = [x,y,z]
-                posp= [0,0,0]
-                for k in xrange(3):
-                    for j in xrange(3):
-                        posp[k] += pos[j]*rot[k][j]
-                
-                x = posp[0]
-                y = posp[1]
-                z = posp[2]
-                
-                pos = [x,y,z]
-                posp= [0,0,0]
-                for k in xrange(3):
-                    for j in xrange(3):
-                        posp[k] += pos[j]*rot2[k][j]
-                x = posp[0]
-                y = posp[1]
-                z = posp[2]
+
                 
                 if(nshell>1):
                     theta   = acos(z/sqrt(x*x+y*y+z*z))
@@ -2020,23 +2068,21 @@ class GenerateIcosahedronMatchingProfile3d(NodeGeneratorBase):
                     theta = (thetaMax - thetaMin)/2.0
                     phi = (phiMax - phiMin)/2.0
                 if (theta<=thetaMax and theta>=thetaMin) and (phi<=phiMax and phi>=phiMin):
-                    self.x.append(x)
-                    self.y.append(y)
-                    self.z.append(z)
-                    self.m.append(mi)
-                    self.H.append(SymTensor3d.one*(1.0/hi))
-            #self.H.append(Hi)
-            
+                    # run a final pass on the rejecter
+                    if rejecter:
+                        if rejecter.accept(x,y,z):
+                            self.x.append(x)
+                            self.y.append(y)
+                            self.z.append(z)
+                            self.m.append(mi)
+                            self.H.append(SymTensor3d.one*(1.0/hi))
+                    else:
+                        self.x.append(x)
+                        self.y.append(y)
+                        self.z.append(z)
+                        self.m.append(mi)
+                        self.H.append(SymTensor3d.one*(1.0/hi))
             ri = max(rmin, ri - dr)
-    
-        # If the user provided a "rejecter", give it a pass
-        # at the nodes.
-        if rejecter:
-            self.x, self.y, self.z, self.m, self.H = rejecter(self.x,
-                                                              self.y,
-                                                              self.z,
-                                                              self.m,
-                                                              self.H)
     
         # If requested, shift the nodes.
         if offset:
@@ -2049,6 +2095,23 @@ class GenerateIcosahedronMatchingProfile3d(NodeGeneratorBase):
         NodeGeneratorBase.__init__(self, True,
                                    self.x, self.y, self.z, self.m, self.H)
         return
+            
+    def rotater(self,pos,rot1,rot2):
+        posp = [0,0,0]
+        for k in xrange(3):
+            for j in xrange(3):
+                posp[k] += pos[j]*rot1[k][j]
+                
+        x = posp[0]
+        y = posp[1]
+        z = posp[2]
+        
+        pos = [x,y,z]
+        posp= [0,0,0]
+        for k in xrange(3):
+            for j in xrange(3):
+                posp[k] += pos[j]*rot2[k][j]
+        return posp
 
     #---------------------------------------------------------------------------
     # Compute the number of vertices for a given shape at a specific refinement

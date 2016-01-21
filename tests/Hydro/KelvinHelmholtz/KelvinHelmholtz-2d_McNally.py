@@ -110,6 +110,8 @@ commandLine(nx1 = 256,
             densityUpdate = RigorousSumDensity, # VolumeScaledDensity,
             compatibleEnergy = True,            # <--- Important!  rigorousBoundaries does not work with the compatibleEnergy algorithm currently.
             gradhCorrection = False,
+            HopkinsConductivity = False,     # For PSPH
+            evolveTotalEnergy = False,       # Only for SPH variants -- evolve total rather than specific energy
 
             useVoronoiOutput = False,
             clearDirectories = False,
@@ -401,6 +403,17 @@ elif CRKSPH:
                              volumeType = volumeType,
                              densityUpdate = densityUpdate,
                              HUpdate = HUpdate)
+elif PSPH:
+    hydro = HydroConstructor(W = WT,
+                             Q = q,
+                             filter = filter,
+                             cfl = cfl,
+                             compatibleEnergyEvolution = compatibleEnergy,
+                             evolveTotalEnergy = evolveTotalEnergy,
+                             HopkinsConductivity = HopkinsConductivity,
+                             densityUpdate = densityUpdate,
+                             HUpdate = HUpdate,
+                             XSPH = XSPH)
 else:
     hydro = HydroConstructor(W = WT,
                              WPi = WTPi,
@@ -408,6 +421,7 @@ else:
                              cfl = cfl,
                              useVelocityMagnitudeForDt = useVelocityMagnitudeForDt,
                              compatibleEnergyEvolution = compatibleEnergy,
+                             evolveTotalEnergy = evolveTotalEnergy,
                              gradhCorrection = gradhCorrection,
                              XSPH = XSPH,
                              densityUpdate = densityUpdate,

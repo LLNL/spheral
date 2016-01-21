@@ -18,6 +18,7 @@ INSTSRCTARGETS = \
 	$(srcdir)/TillotsonEquationOfStateInst.cc.py \
 	$(srcdir)/SteinbergGuinanStrengthInst.cc.py \
 	$(srcdir)/JohnsonCookStrengthInst.cc.py \
+	$(srcdir)/CollinsStrengthInst.cc.py \
 	$(srcdir)/PorousEquationOfStateInst.cc.py \
 	$(srcdir)/PorousStrengthModelInst.cc.py \
 	$(srcdir)/StrainPorosityInst.cc.py \

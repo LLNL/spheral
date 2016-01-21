@@ -121,6 +121,7 @@ SolidCRKSPHHydroBase(const SmoothingScaleBase<Dimension>& smoothingScaleMethod,
                      const double cfl,
                      const bool useVelocityMagnitudeForDt,
                      const bool compatibleEnergyEvolution,
+                     const bool evolveTotalEnergy,
                      const bool XSPH,
                      const PhysicsSpace::MassDensityType densityUpdate,
                      const PhysicsSpace::HEvolutionType HUpdate,
@@ -136,6 +137,7 @@ SolidCRKSPHHydroBase(const SmoothingScaleBase<Dimension>& smoothingScaleMethod,
                              cfl,
                              useVelocityMagnitudeForDt,
                              compatibleEnergyEvolution,
+                             evolveTotalEnergy,
                              XSPH,
                              densityUpdate,
                              HUpdate,
@@ -926,6 +928,9 @@ evaluateDerivatives(const typename Dimension::Scalar time,
 
       // We also adjust the density evolution in the presence of damage.
       if (rho0 > 0.0) DrhoDti = (1.0 - Di)*DrhoDti - 0.25/dt*Di*(rhoi - rho0);
+
+      // If needed finish the total energy derivative.
+      if (this->evolveTotalEnergy()) DepsDti = mi*(vi.dot(DvDti) + DepsDti);
 
       // Increment the work for i.
       worki += Timing::difference(start, Timing::currentTime());

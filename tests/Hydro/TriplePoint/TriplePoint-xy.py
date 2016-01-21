@@ -110,6 +110,8 @@ commandLine(
     densityUpdate = RigorousSumDensity, # VolumeScaledDensity,
     compatibleEnergy = True,
     gradhCorrection = False,
+    HopkinsConductivity = False,     # For PSPH
+    evolveTotalEnergy = False,       # Only for SPH variants -- evolve total rather than specific energy
 
     useVoronoiOutput = False,
     clearDirectories = False,
@@ -131,6 +133,11 @@ elif CRKSPH:
     else:
         HydroConstructor = CRKSPHHydro
     Qconstructor = CRKSPHMonaghanGingoldViscosity
+elif PSPH:
+    if ASPH:
+        HydroConstructor = APSPHHydro
+    else:
+        HydroConstructor = PSPHHydro
 else:
     if ASPH:
         HydroConstructor = ASPHHydro
@@ -337,11 +344,23 @@ elif CRKSPH:
                              XSPH = XSPH,
                              densityUpdate = densityUpdate,
                              HUpdate = HUpdate)
+elif PSPH:
+    hydro = HydroConstructor(W = WT,
+                             Q = q,
+                             filter = filter,
+                             cfl = cfl,
+                             compatibleEnergyEvolution = compatibleEnergy,
+                             evolveTotalEnergy = evolveTotalEnergy,
+                             HopkinsConductivity = HopkinsConductivity,
+                             densityUpdate = densityUpdate,
+                             HUpdate = HUpdate,
+                             XSPH = XSPH)
 else:
     hydro = HydroConstructor(W = WT,
                              Q = q,
                              cfl = cfl,
                              compatibleEnergyEvolution = compatibleEnergy,
+                             evolveTotalEnergy = evolveTotalEnergy,
                              gradhCorrection = gradhCorrection,
                              XSPH = XSPH,
                              densityUpdate = densityUpdate,
