@@ -291,7 +291,7 @@ class KidderIsentropicCapsuleEnforcementBoundary1d(Physics1d):
         DHDt = derivs.symTensorFields("delta " + HydroFieldNames.H)
         DrhoDt = derivs.scalarFields("delta " + HydroFieldNames.massDensity)
         DepsDt = derivs.scalarFields("delta " + HydroFieldNames.specificThermalEnergy)
-        rhoSum = derivs.scalarFields("new " + HydroFieldNames.massDensity)
+        #rhoSum = derivs.scalarFields("new " + HydroFieldNames.massDensity)
         Hideal = derivs.symTensorFields("new " + HydroFieldNames.H)
         XSPHDeltaV = derivs.vectorFields(HydroFieldNames.XSPHDeltaV)
         mass = self.nodes.mass()
@@ -318,7 +318,7 @@ class KidderIsentropicCapsuleEnforcementBoundary1d(Physics1d):
             DHDt[0][i] = Hi*rhoDoti/rhoi
             DrhoDt[0][i] = rhoDoti
             DepsDt[0][i] = (Pdoti - Pi*rhoDoti/rhoi)/(self.gamma1*rhoi)
-            rhoSum[0][i] = rhoi
+            #rhoSum[0][i] = rhoi
             Hideal[0][i] = Hi
             XSPHDeltaV.Zero()
         
