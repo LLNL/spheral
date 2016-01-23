@@ -41,7 +41,7 @@ commandLine(problemName = "KidderIsentropicCapsule",
 
             # Resolution
             nr = 100,             # num radial points
-            nrGhost = 5,          # how deep do we want the Boundaries
+            nrGhost = 10,         # how deep do we want the Boundaries
             nPerh = 2.01,
 
             # Output
@@ -168,11 +168,12 @@ rho = nodes.massDensity()
 eps = nodes.specificThermalEnergy()
 for i in xrange(nodes.numInternalNodes):
     ri = pos[i].x
-    mi = trapezoidalIntegration(answer.rhoInitial, ri - 0.5*dr, ri + 0.5*dr, 200)
-    rho[i] = mi/dr
-    mass[i] = mi
-    eps[i] = trapezoidalIntegration(answer.Pinitial, ri - 0.5*dr, ri + 0.5*dr, 200)/((answer.gamma - 1.0)*mi)
-    #eps[i] = answer.P(0.0, ri)/((answer.gamma - 1.0)*rho[i])
+    #mi = trapezoidalIntegration(answer.rhoInitial, ri - 0.5*dr, ri + 0.5*dr, 200)
+    #rho[i] = mi/dr
+    #eps[i] = trapezoidalIntegration(answer.Pinitial, ri - 0.5*dr, ri + 0.5*dr, 200)/((answer.gamma - 1.0)*mi)
+    rho[i] = answer.rho(0.0, ri)
+    mass[i] = rho[i]*dr
+    eps[i] = answer.P(0.0, ri)/((answer.gamma - 1.0)*rho[i])
 
 #-------------------------------------------------------------------------------
 # Construct a DataBase to hold our node list
