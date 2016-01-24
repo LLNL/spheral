@@ -34,6 +34,7 @@
 #include "Hydro/PositionPolicy.hh"
 #include "Hydro/PressurePolicy.hh"
 #include "Hydro/SoundSpeedPolicy.hh"
+#include "Hydro/GammaPolicy.hh"
 #include "Mesh/MeshPolicy.hh"
 #include "Mesh/generateMesh.hh"
 #include "ArtificialViscosity/ArtificialViscosity.hh"
@@ -114,6 +115,7 @@ SPHHydroBase(const SmoothingScaleBase<Dimension>& smoothingScaleMethod,
   mVolume(FieldSpace::Copy),
   mOmegaGradh(FieldSpace::Copy),
   mSpecificThermalEnergy0(FieldSpace::Copy),
+  mGamma(FieldSpace::Copy),
   mHideal(FieldSpace::Copy),
   mMaxViscousPressure(FieldSpace::Copy),
   mEffViscousPressure(FieldSpace::Copy),
@@ -159,6 +161,7 @@ initializeProblemStartup(DataBase<Dimension>& dataBase) {
   mSoundSpeed = dataBase.newFluidFieldList(0.0, HydroFieldNames::soundSpeed);
   mOmegaGradh = dataBase.newFluidFieldList(1.0, HydroFieldNames::omegaGradh);
   mSpecificThermalEnergy0 = dataBase.newFluidFieldList(0.0, HydroFieldNames::specificThermalEnergy + "0");
+  mGamma = dataBase.newFluidFieldList(0.0, HydroFieldNames::gamma);
   mHideal = dataBase.newFluidFieldList(SymTensor::zero, ReplaceBoundedState<Dimension, Field<Dimension, SymTensor> >::prefix() + HydroFieldNames::H);
   mMaxViscousPressure = dataBase.newFluidFieldList(0.0, HydroFieldNames::maxViscousPressure);
   mEffViscousPressure = dataBase.newFluidFieldList(0.0, HydroFieldNames::effectiveViscousPressure);
@@ -184,6 +187,7 @@ initializeProblemStartup(DataBase<Dimension>& dataBase) {
   // Initialize the pressure and sound speed.
   dataBase.fluidPressure(mPressure);
   dataBase.fluidSoundSpeed(mSoundSpeed);
+  dataBase.fluidGamma(mGamma);
 
   // // In some cases we need the volume per node as well.
   // const bool updateVolume = (this->densityUpdate() == PhysicsSpace::VoronoiCellDensity or
@@ -250,6 +254,7 @@ registerState(DataBase<Dimension>& dataBase,
   // If we're using the compatibile energy discretization, prepare to maintain a copy
   // of the thermal energy.
   dataBase.resizeFluidFieldList(mSpecificThermalEnergy0, 0.0);
+  dataBase.resizeFluidFieldList(mGamma, 0.0, HydroFieldNames::gamma, false);
   if (mCompatibleEnergyEvolution) {
     size_t nodeListi = 0;
     for (typename DataBase<Dimension>::FluidNodeListIterator itr = dataBase.fluidNodeListBegin();
@@ -308,9 +313,12 @@ registerState(DataBase<Dimension>& dataBase,
     PolicyPointer thermalEnergyPolicy(new SpecificThermalEnergyPolicy<Dimension>(dataBase));
     PolicyPointer velocityPolicy(new IncrementFieldList<Dimension, Vector>(HydroFieldNames::position,
                                                                            HydroFieldNames::specificThermalEnergy));
+    PolicyPointer gammaPolicy(new GammaPolicy<Dimension>());
     state.enroll(specificThermalEnergy, thermalEnergyPolicy);
     state.enroll(velocity, velocityPolicy);
     state.enroll(mSpecificThermalEnergy0);
+    state.enroll(mGamma, gammaPolicy);
+    rhoPolicy->addDependency(HydroFieldNames::specificThermalEnergy);
 
   } else if (mEvolveTotalEnergy) {
     // If we're doing total energy, we register the specific energy to advance with the
@@ -770,8 +778,10 @@ evaluateDerivatives(const typename Dimension::Scalar time,
               DepsDti += mj*(Prhoi*vij.dot(gradWi) + workQi);
               DepsDtj += mi*(Prhoj*vij.dot(gradWj) + workQj);
               if (mCompatibleEnergyEvolution) {
-                pairAccelerationsi.push_back(-mj*deltaDvDt);
-                pairAccelerationsj.push_back( mi*deltaDvDt);
+                pairAccelerationsi.push_back(-mj*(Prhoi*gradWi + Prhoj*gradWj));
+                pairAccelerationsi.push_back(-mj*(Qacci + Qaccj));
+                pairAccelerationsj.push_back( mi*(Prhoi*gradWi + Prhoj*gradWj));
+                pairAccelerationsj.push_back( mi*(Qacci + Qaccj));
               }
 
               // Velocity gradient.
@@ -1079,10 +1089,11 @@ applyGhostBoundaries(State<Dimension>& state,
   FieldList<Dimension, Scalar> pressure = state.fields(HydroFieldNames::pressure, 0.0);
   FieldList<Dimension, Scalar> soundSpeed = state.fields(HydroFieldNames::soundSpeed, 0.0);
   FieldList<Dimension, Scalar> omega = state.fields(HydroFieldNames::omegaGradh, 0.0);
-  FieldList<Dimension, Scalar> specificThermalEnergy0;
+  FieldList<Dimension, Scalar> specificThermalEnergy0, gamma;
   if (compatibleEnergyEvolution()) {
     CHECK(state.fieldNameRegistered(HydroFieldNames::specificThermalEnergy + "0"));
     specificThermalEnergy0 = state.fields(HydroFieldNames::specificThermalEnergy + "0", 0.0);
+    gamma = state.fields(HydroFieldNames::gamma, 0.0);
   }
 
   // FieldList<Dimension, Scalar> volume;
@@ -1103,7 +1114,10 @@ applyGhostBoundaries(State<Dimension>& state,
     (*boundaryItr)->applyFieldListGhostBoundary(pressure);
     (*boundaryItr)->applyFieldListGhostBoundary(soundSpeed);
     (*boundaryItr)->applyFieldListGhostBoundary(omega);
-    if (compatibleEnergyEvolution()) (*boundaryItr)->applyFieldListGhostBoundary(specificThermalEnergy0);
+    if (compatibleEnergyEvolution()) {
+      (*boundaryItr)->applyFieldListGhostBoundary(specificThermalEnergy0);
+      (*boundaryItr)->applyFieldListGhostBoundary(gamma);
+    }
     // if (updateVolume) (*boundaryItr)->applyFieldListGhostBoundary(volume);
   }
 }
@@ -1126,8 +1140,11 @@ enforceBoundaries(State<Dimension>& state,
   FieldList<Dimension, Scalar> soundSpeed = state.fields(HydroFieldNames::soundSpeed, 0.0);
   FieldList<Dimension, Scalar> omega = state.fields(HydroFieldNames::omegaGradh, 0.0);
 
-  FieldList<Dimension, Scalar> specificThermalEnergy0;
-  if (compatibleEnergyEvolution()) specificThermalEnergy0 = state.fields(HydroFieldNames::specificThermalEnergy + "0", 0.0);
+  FieldList<Dimension, Scalar> specificThermalEnergy0, gamma;
+  if (compatibleEnergyEvolution()) {
+    specificThermalEnergy0 = state.fields(HydroFieldNames::specificThermalEnergy + "0", 0.0);
+    gamma = state.fields(HydroFieldNames::gamma, 0.0);
+  }
 
   // FieldList<Dimension, Scalar> volume;
   // const bool updateVolume = (this->densityUpdate() == PhysicsSpace::VoronoiCellDensity or
@@ -1147,7 +1164,10 @@ enforceBoundaries(State<Dimension>& state,
     (*boundaryItr)->enforceFieldListBoundary(pressure);
     (*boundaryItr)->enforceFieldListBoundary(soundSpeed);
     (*boundaryItr)->enforceFieldListBoundary(omega);
-    if (compatibleEnergyEvolution()) (*boundaryItr)->enforceFieldListBoundary(specificThermalEnergy0);
+    if (compatibleEnergyEvolution()) {
+      (*boundaryItr)->enforceFieldListBoundary(specificThermalEnergy0);
+      (*boundaryItr)->enforceFieldListBoundary(gamma);
+    }
     // if (updateVolume) (*boundaryItr)->enforceFieldListBoundary(volume);
   }
 }
@@ -1241,6 +1261,7 @@ dumpState(FileIO& file, string pathName) const {
   file.write(mSoundSpeed, pathName + "/soundSpeed");
   file.write(mVolume, pathName + "/volume");
   file.write(mSpecificThermalEnergy0, pathName + "/specificThermalEnergy0");
+  file.write(mGamma, pathName + "/gamma");
   file.write(mHideal, pathName + "/Hideal");
   file.write(mMassDensitySum, pathName + "/massDensitySum");
   file.write(mNormalization, pathName + "/normalization");
@@ -1281,6 +1302,7 @@ restoreState(const FileIO& file, string pathName) {
   file.read(mSoundSpeed, pathName + "/soundSpeed");
   file.read(mVolume, pathName + "/volume");
   file.read(mSpecificThermalEnergy0, pathName + "/specificThermalEnergy0");
+  file.read(mGamma, pathName + "/gamma");
   file.read(mHideal, pathName + "/Hideal");
   file.read(mMassDensitySum, pathName + "/massDensitySum");
   file.read(mNormalization, pathName + "/normalization");

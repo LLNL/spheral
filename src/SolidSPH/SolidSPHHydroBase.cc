@@ -677,8 +677,10 @@ evaluateDerivatives(const typename Dimension::Scalar time,
               DepsDti -= mj*(fDeffij*sigmarhoi.doubledot(deltaDvDxi.Symmetric()) - workQi);
               DepsDtj -= mi*(fDeffij*sigmarhoj.doubledot(deltaDvDxj.Symmetric()) - workQj);
               if (compatibleEnergy) {
-                pairAccelerationsi.push_back( mj*deltaDvDt);
-                pairAccelerationsj.push_back(-mi*deltaDvDt);
+                pairAccelerationsi.push_back( mj*fDeffij*(sigmarhoi*gradWi + sigmarhoj*gradWj));
+                pairAccelerationsi.push_back(-mj*(Qacci + Qaccj));
+                pairAccelerationsj.push_back(-mi*fDeffij*(sigmarhoi*gradWi + sigmarhoj*gradWj));
+                pairAccelerationsj.push_back( mi*(Qacci + Qaccj));
               }
 
               // Velocity gradient.
