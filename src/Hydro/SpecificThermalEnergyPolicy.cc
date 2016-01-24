@@ -284,8 +284,10 @@ update(const KeyType& key,
 
               const Scalar duij = vji12.dot(pai);
               const Scalar dQuij = vji12.dot(pQai);
-              // const Scalar wi = (Ai + Aj == 0.0 ? 0.5 : Ai/(Ai + Aj));
-              const Scalar wi = (duij >= 0.0 ? 0.5 : weighting(ui, uj, mi, mj, duij, dt));
+              const Scalar wi = (duij >= 0.0 ? 
+                                 safeInvVar(Ai)/(safeInvVar(Ai) + safeInvVar(Aj)) :
+                                 (Ai + Aj == 0.0 ? 0.5 : Ai/(Ai + Aj)));
+              // const Scalar wi = (duij >= 0.0 ? 0.5 : weighting(ui, uj, mi, mj, duij, dt));
 
               CHECK(wi >= 0.0 and wi <= 1.0);
               // CHECK(fuzzyEqual(wi + weighting(uj, ui, mj, mi, duij*mi/mj, dt), 1.0, 1.0e-10));
