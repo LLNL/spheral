@@ -564,8 +564,10 @@ evaluateDerivatives(const typename Dimension::Scalar time,
               DepsDti += mj*(engCoef*Fij*safeInv(Pi, tiny)*vij.dot(gradWi) + workQi);
               DepsDtj += mi*(engCoef*Fji*safeInv(Pj, tiny)*vij.dot(gradWj) + workQj);
               if (this->mCompatibleEnergyEvolution) {
-                pairAccelerationsi.push_back(-mj*deltaDvDt);
-                pairAccelerationsj.push_back( mi*deltaDvDt);
+                pairAccelerationsi.push_back(-mj*engCoef*(gradWi*Fij*safeInv(Pi, tiny) + gradWj*Fji*safeInv(Pj, tiny)));
+                pairAccelerationsi.push_back(-mj*(Qacci + Qaccj));
+                pairAccelerationsj.push_back( mi*engCoef*(gradWi*Fij*safeInv(Pi, tiny) + gradWj*Fji*safeInv(Pj, tiny)));
+                pairAccelerationsj.push_back( mi*(Qacci + Qaccj));
               }
 
               //ADD ARITIFICIAL CONDUCTIVITY IN HOPKINS 2014A

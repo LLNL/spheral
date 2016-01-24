@@ -288,6 +288,14 @@ specificThermalEnergy0() const {
 
 template<typename Dimension>
 inline
+const FieldSpace::FieldList<Dimension, typename Dimension::Scalar>&
+SPHHydroBase<Dimension>::
+gamma() const {
+  return mGamma;
+}
+
+template<typename Dimension>
+inline
 const FieldSpace::FieldList<Dimension, typename Dimension::SymTensor>&
 SPHHydroBase<Dimension>::
 Hideal() const {

@@ -842,17 +842,15 @@ evaluateDerivatives(const typename Dimension::Scalar time,
               CHECK(rhoi > 0.0);
               CHECK(rhoj > 0.0);
               Vector deltaDvDti, deltaDvDtj;
-              const Vector forceij = 0.5*weighti*weightj*((Pposi + Pposj)*deltagrad + ((rhoi*rhoi*QPiij.first + rhoj*rhoj*QPiij.second)*deltagrad) -
-                                                          fDeffij*fDeffij*(sigmai + sigmaj)*deltagraddam);                // <- Type III, with CRKSPH Q forces
-              // const Vector forceij = 0.5*weighti*weightj*(((rhoi*rhoi*QPiij.first + rhoj*rhoj*QPiij.second)*deltagrad) -
-              //                                             fDeffij*fDeffij*(sigmai + sigmaj)*deltagraddam);                // <- Type III, with CRKSPH Q forces
-              deltaDvDti = -forceij/mi;
-              deltaDvDtj =  forceij/mj;
-              DvDti += deltaDvDti;
-              DvDtj += deltaDvDtj;
+              const Vector forceij  = 0.5*weighti*weightj*((Pposi + Pposj)*deltagrad - fDeffij*fDeffij*(sigmai + sigmaj)*deltagraddam); // <- Type III
+              const Vector Qforceij = 0.5*weighti*weightj*(rhoi*rhoi*QPiij.first + rhoj*rhoj*QPiij.second)*deltagrad;                   // CRKSPH Q forces
+              DvDti -= (forceij + Qforceij)/mi;
+              DvDtj += (forceij + Qforceij)/mj;
               if (compatibleEnergy) {
-                pairAccelerationsi.push_back(deltaDvDti);
-                pairAccelerationsj.push_back(deltaDvDtj);
+                pairAccelerationsi.push_back(-forceij/mi);
+                pairAccelerationsi.push_back(-Qforceij/mi);
+                pairAccelerationsj.push_back(forceij/mj);
+                pairAccelerationsj.push_back(Qforceij/mj);
               }
 
               // Specific thermal energy evolution.

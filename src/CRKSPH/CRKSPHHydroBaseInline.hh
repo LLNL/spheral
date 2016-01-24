@@ -229,6 +229,14 @@ specificThermalEnergy0() const {
 
 template<typename Dimension>
 inline
+const FieldSpace::FieldList<Dimension, typename Dimension::Scalar>&
+CRKSPHHydroBase<Dimension>::
+gamma() const {
+  return mGamma;
+}
+
+template<typename Dimension>
+inline
 const FieldSpace::FieldList<Dimension, typename Dimension::SymTensor>&
 CRKSPHHydroBase<Dimension>::
 Hideal() const {
@@ -353,62 +361,6 @@ const FieldSpace::FieldList<Dimension, std::vector<typename Dimension::Vector> >
 CRKSPHHydroBase<Dimension>::
 pairAccelerations() const {
   return mPairAccelerations;
-}
-
-template<typename Dimension>
-inline
-const FieldSpace::FieldList<Dimension, typename Dimension::Vector>&
-CRKSPHHydroBase<Dimension>::
-DvDt0() const {
-  return mDvDt0;
-}
-
-template<typename Dimension>
-inline
-const FieldSpace::FieldList<Dimension, typename Dimension::Scalar>&
-CRKSPHHydroBase<Dimension>::
-DmassDensityDt0() const {
-  return mDmassDensityDt0;
-}
-
-template<typename Dimension>
-inline
-const FieldSpace::FieldList<Dimension, typename Dimension::Scalar>&
-CRKSPHHydroBase<Dimension>::
-DspecificThermalEnergyDt0() const {
-  return mDspecificThermalEnergyDt0;
-}
-
-template<typename Dimension>
-inline
-const FieldSpace::FieldList<Dimension, typename Dimension::SymTensor>&
-CRKSPHHydroBase<Dimension>::
-DHDt0() const {
-  return mDHDt0;
-}
-
-template<typename Dimension>
-inline
-const FieldSpace::FieldList<Dimension, typename Dimension::Tensor>&
-CRKSPHHydroBase<Dimension>::
-DvDx0() const {
-  return mDvDx0;
-}
-
-template<typename Dimension>
-inline
-const FieldSpace::FieldList<Dimension, typename Dimension::Tensor>&
-CRKSPHHydroBase<Dimension>::
-internalDvDx0() const {
-  return mInternalDvDx0;
-}
-
-template<typename Dimension>
-inline
-const FieldSpace::FieldList<Dimension, std::vector<typename Dimension::Vector> >&
-CRKSPHHydroBase<Dimension>::
-pairAccelerations0() const {
-  return mPairAccelerations0;
 }
 
 template<typename Dimension>
