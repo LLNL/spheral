@@ -26,6 +26,7 @@ from KidderIsentropicCapsuleBoundary import *
 commandLine(problemName = "KidderIsentropicCapsule",
             KernelConstructor = BSplineKernel,
             IntegratorConstructor = CheapSynchronousRK2Integrator,
+            kernelOrder = 7,
 
             # Timing
             steps = None,
@@ -128,7 +129,10 @@ eos = GammaLawGasMKS(answer.gamma, mu)
 #-------------------------------------------------------------------------------
 # Interpolation kernels.
 #-------------------------------------------------------------------------------
-WT = TableKernel(KernelConstructor(), 1000)
+if KernelConstructor == NBSplineKernel:
+    WT = TableKernel(KernelConstructor(kernelOrder), 1000)
+else:
+    WT = TableKernel(KernelConstructor(), 1000)
 output("WT")
 kernelExtent = WT.kernelExtent
 
@@ -382,6 +386,7 @@ Sans = [answer.S for ri in r]
 
 # The ratio of the entropy to the expected value.
 alpha = [ss/sa for ss, sa in zip(S, Sans)]
+print "Total fractional range of error in entropy: ", (max(alpha) - min(alpha))
 
 # Now plot the suckers.
 if mpi.rank == 0:
