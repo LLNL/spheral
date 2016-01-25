@@ -65,7 +65,7 @@ commandLine(problemName = "KidderIsentropicCapsule",
             PSPH = False,
             solid = False,
             Qconstructor = MonaghanGingoldViscosity,
-            Cq = 1.0,             # Default to zero Q, since this is a shockless problem
+            Cq = 1.0,
             Cl = 1.0,
             Qlimiter = False,
             epsilon2 = 1e-2,
@@ -88,10 +88,13 @@ commandLine(problemName = "KidderIsentropicCapsule",
             betaE = 1.0,
             fKern = 1.0/3.0,
             hopkinsCullenCorrection = True,
+            cullenUseHydroDerivatives = True,
             HopkinsConductivity = False,
             densityUpdate = RigorousSumDensity,
             HUpdate = IdealH,
 
+            clearDirectories = True,
+            dataDirBase = "dumps-Kidder-planar",
             profileASCII = False, # Optionally spew the profiles to an ASCII file
             )
 
@@ -118,7 +121,28 @@ answer = KidderIsentropicCapsuleAnalyticSolution(1, r0, r1, P0, P1, rho1)
 goalTime = goalTau * answer.tau
 print "Capsule collapses at %g, goal time is %g." % (answer.tau, goalTime)
 
-problemName = "%s-%i" % (problemName, nr)
+dataDir = os.path.join(dataDirBase, 
+                       HydroConstructor.__name__,
+                       Qconstructor.__name__,
+                       "nPerh=%f" % nPerh,
+                       "compatibleEnergy=%s" % compatibleEnergy,
+                       "evolveTotalEnergy=%s" % evolveTotalEnergy,
+                       "Cullen=%s" % cullenViscosity,
+                       "filter=%f" % filter,
+                       "nr=%i" % nr)
+restartDir = os.path.join(dataDir, "restarts")
+restartBaseName = os.path.join(restartDir, "Kidder-planar-1d")
+
+#-------------------------------------------------------------------------------
+# Check if the necessary output directories exist.  If not, create them.
+#-------------------------------------------------------------------------------
+import os, sys
+if mpi.rank == 0:
+    if clearDirectories and os.path.exists(dataDir):
+        shutil.rmtree(dataDir)
+    if not os.path.exists(restartDir):
+        os.makedirs(restartDir)
+mpi.barrier()
 
 #-------------------------------------------------------------------------------
 # Material properties.
@@ -274,9 +298,6 @@ output("integrator.dtGrowth")
 output("integrator.rigorousBoundaries")
 output("integrator.domainDecompositionIndependent")
 
-# Hack!
-integrator.cullGhostNodes = False
-
 #-------------------------------------------------------------------------------
 # Create boundary conditions.
 #-------------------------------------------------------------------------------
@@ -340,7 +361,7 @@ integrator.appendPhysicsPackage(rbc1)
 control = SpheralController(integrator, WT,
                             statsStep = statsStep,
                             restartStep = restartStep,
-                            restartBaseName = problemName,
+                            restartBaseName = restartBaseName,
                             initializeDerivatives = True)
 output("control")
 
@@ -431,7 +452,7 @@ if mpi.rank == 0:
 
     # If requested, output the profiles to an ASCII file.
     if profileASCII:
-        f = open(problemName + "_profiles.txt", "w")
+        f = open(os.path.join(dataDir, "Kidder_planar_profiles.txt"), "w")
         f.write((11*"%20s" + "\n") % ("# radius",
                                       "rad velocity (sim)",
                                       "mass density (sim)",
