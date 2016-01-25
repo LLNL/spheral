@@ -30,7 +30,8 @@ commandLine(
     densityUpdate = RigorousSumDensity,
     correctionOrder = LinearOrder,
     compatibleEnergy = True,
-    gradhCorrection = False,
+    gradhCorrection = True,
+    correctVelocityGradient = True,
     linearConsistent = False,
     KernelConstructor = BSplineKernel,
     order = 5,
@@ -52,7 +53,6 @@ commandLine(
     Qhmult = 1.0,
     boolCullenViscosity = False,
     cullenUseHydroDerivatives = True,  # Reuse the hydro calculation of DvDx.
-    correctVelocityGradient = True,
     alphMax = 2.0,
     alphMin = 0.02,
     betaC = 0.7,
