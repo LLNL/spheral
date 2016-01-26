@@ -607,10 +607,9 @@ evaluateDerivatives(const typename Dimension::Scalar time,
       const Scalar& ci = soundSpeed(nodeListi, i);
       const Scalar& omegai = omega(nodeListi, i);
       const Scalar Hdeti = Hi.Determinant();
-      const Scalar safeOmegai = 1.0/max(tiny, omegai);
+      const Scalar safeOmegai = safeInv(omegai, tiny);
       CHECK(mi > 0.0);
       CHECK(rhoi > 0.0);
-      CHECK(omegai > 0.0);
       CHECK(Hdeti > 0.0);
 
       Scalar& rhoSumi = rhoSum(nodeListi, i);
@@ -672,7 +671,7 @@ evaluateDerivatives(const typename Dimension::Scalar time,
               const Scalar& cj = soundSpeed(nodeListj, j);
               const Scalar& omegaj = omega(nodeListj, j);
               const Scalar Hdetj = Hj.Determinant();
-              const Scalar safeOmegaj = 1.0/max(tiny, omegaj);
+              const Scalar safeOmegaj = safeInv(omegaj, tiny);
               CHECK(mj > 0.0);
               CHECK(rhoj > 0.0);
               CHECK(Hdetj > 0.0);
@@ -778,10 +777,8 @@ evaluateDerivatives(const typename Dimension::Scalar time,
               DepsDti += mj*(Prhoi*vij.dot(gradWi) + workQi);
               DepsDtj += mi*(Prhoj*vij.dot(gradWj) + workQj);
               if (mCompatibleEnergyEvolution) {
-                pairAccelerationsi.push_back(-mj*(Prhoi*gradWi + Prhoj*gradWj));
-                pairAccelerationsi.push_back(-mj*(Qacci + Qaccj));
-                pairAccelerationsj.push_back( mi*(Prhoi*gradWi + Prhoj*gradWj));
-                pairAccelerationsj.push_back( mi*(Qacci + Qaccj));
+                pairAccelerationsi.push_back(-mj*deltaDvDt);
+                pairAccelerationsj.push_back( mi*deltaDvDt);
               }
 
               // Velocity gradient.

@@ -842,15 +842,13 @@ evaluateDerivatives(const typename Dimension::Scalar time,
               CHECK(rhoi > 0.0);
               CHECK(rhoj > 0.0);
               Vector deltaDvDti, deltaDvDtj;
-              const Vector forceij  = 0.5*weighti*weightj*((Pposi + Pposj)*deltagrad - fDeffij*fDeffij*(sigmai + sigmaj)*deltagraddam); // <- Type III
-              const Vector Qforceij = 0.5*weighti*weightj*(rhoi*rhoi*QPiij.first + rhoj*rhoj*QPiij.second)*deltagrad;                   // CRKSPH Q forces
-              DvDti -= (forceij + Qforceij)/mi;
-              DvDtj += (forceij + Qforceij)/mj;
+              const Vector forceij  = 0.5*weighti*weightj*(((Pposi + Pposj)*deltagrad - fDeffij*fDeffij*(sigmai + sigmaj)*deltagraddam) + // <- Type III
+                                                           (rhoi*rhoi*QPiij.first + rhoj*rhoj*QPiij.second)*deltagrad);                   // CRKSPH Q forces
+              DvDti -= forceij/mi;
+              DvDtj += forceij/mj;
               if (compatibleEnergy) {
                 pairAccelerationsi.push_back(-forceij/mi);
-                pairAccelerationsi.push_back(-Qforceij/mi);
-                pairAccelerationsj.push_back(forceij/mj);
-                pairAccelerationsj.push_back(Qforceij/mj);
+                pairAccelerationsj.push_back( forceij/mj);
               }
 
               // Specific thermal energy evolution.

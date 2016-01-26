@@ -465,12 +465,11 @@ evaluateDerivatives(const typename Dimension::Scalar time,
       const SymTensor& Si = S(nodeListi, i);
       const Scalar& mui = mu(nodeListi, i);
       const Scalar Hdeti = Hi.Determinant();
-      const Scalar safeOmegai = 1.0/max(tiny, omegai);
+      const Scalar safeOmegai = safeInv(omegai, tiny);
       const int fragIDi = fragIDs(nodeListi, i);
       const int pTypei = pTypes(nodeListi, i);
       CHECK(mi > 0.0);
       CHECK(rhoi > 0.0);
-      CHECK(omegai > 0.0);
       CHECK(Hdeti > 0.0);
 
       Scalar& rhoSumi = rhoSum(nodeListi, i);
@@ -534,7 +533,7 @@ evaluateDerivatives(const typename Dimension::Scalar time,
               const Scalar& omegaj = omega(nodeListj, j);
               const SymTensor& Sj = S(nodeListj, j);
               const Scalar Hdetj = Hj.Determinant();
-              const Scalar safeOmegaj = 1.0/max(tiny, omegaj);
+              const Scalar safeOmegaj = safeInv(omegaj, tiny);
               const int fragIDj = fragIDs(nodeListj, j);
               const int pTypej = pTypes(nodeListj, j);
               CHECK(mj > 0.0);
@@ -677,10 +676,8 @@ evaluateDerivatives(const typename Dimension::Scalar time,
               DepsDti -= mj*(fDeffij*sigmarhoi.doubledot(deltaDvDxi.Symmetric()) - workQi);
               DepsDtj -= mi*(fDeffij*sigmarhoj.doubledot(deltaDvDxj.Symmetric()) - workQj);
               if (compatibleEnergy) {
-                pairAccelerationsi.push_back( mj*fDeffij*(sigmarhoi*gradWi + sigmarhoj*gradWj));
-                pairAccelerationsi.push_back(-mj*(Qacci + Qaccj));
-                pairAccelerationsj.push_back(-mi*fDeffij*(sigmarhoi*gradWi + sigmarhoj*gradWj));
-                pairAccelerationsj.push_back( mi*(Qacci + Qaccj));
+                pairAccelerationsi.push_back( mj*deltaDvDt);
+                pairAccelerationsj.push_back(-mi*deltaDvDt);
               }
 
               // Velocity gradient.
