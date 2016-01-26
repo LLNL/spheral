@@ -147,25 +147,25 @@ commandLine(KernelConstructor = BSplineKernel,
             comparisonFile = "None",
 
             # Parameters for the test acceptance.,
-            L1rho =   0.0442431,   
-            L2rho =   0.225756,    
-            Linfrho = 1.86801,     
-                                                                        
-            L1P =     0.0145765,   
-            L2P =     0.0752078,   
-            LinfP =   0.628499,    
-                                                                        
-            L1v =     0.0225319,   
-            L2v =     0.117997,    
-            Linfv =   0.892562,    
-                                                                        
-            L1eps =   0.00843987,  
-            L2eps =   0.0428431,   
-            Linfeps = 0.328711,    
-                                                            
-            L1h =     0.000311553, 
-            L2h =     0.00128359,  
-            Linfh =   0.00789744,  
+            L1rho =   0.0429382,  
+            L2rho =   0.2137,     
+            Linfrho = 1.7316,     
+                                                                       
+            L1P =     0.0158733,  
+            L2P =     0.0770935,  
+            LinfP =   0.611993,   
+                                                                       
+            L1v =     0.0226381,  
+            L2v =     0.116815,   
+            Linfv =   0.864014,   
+                                                                       
+            L1eps =   0.00984817, 
+            L2eps =   0.0468995,  
+            Linfeps = 0.336063,   
+                                                           
+            L1h =     0.000306102,
+            L2h =     0.00125445, 
+            Linfh =   0.00771623, 
 
             tol = 1.0e-5,
 

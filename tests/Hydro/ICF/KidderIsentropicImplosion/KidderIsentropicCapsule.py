@@ -14,7 +14,7 @@ from SolidSpheral1d import *
 from SpheralTestUtilities import *
 from math import *
 import os
-import sys, string
+import sys, string, shutil
 from numericalIntegration import *
 
 from KidderIsentropicCapsuleAnalyticSolution import *

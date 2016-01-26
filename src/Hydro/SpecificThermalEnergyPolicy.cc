@@ -230,7 +230,7 @@ update(const KeyType& key,
       const Vector& ai = acceleration(nodeListi, i);
       const Vector vi12 = vi + ai*hdt;
       const vector<Vector>& pacci = pairAccelerations(nodeListi, i);
-      CHECK(pacci.size() == 2*connectivityMap.numNeighborsForNode(nodeLists[nodeListi], i) or
+      CHECK(pacci.size() == connectivityMap.numNeighborsForNode(nodeLists[nodeListi], i) or
             NodeListRegistrar<Dimension>::instance().domainDecompositionIndependent());
 
       // Get the connectivity (neighbor set) for this node.
@@ -264,26 +264,21 @@ update(const KeyType& key,
               const Vector vji12 = vj12 - vi12;
               const vector<Vector>& paccj = pairAccelerations(nodeListj, j);
               CHECK(j >= firstGhostNodej or 
-                    paccj.size() == 2*connectivityMap.numNeighborsForNode(nodeLists[nodeListj], j) or
+                    paccj.size() == connectivityMap.numNeighborsForNode(nodeLists[nodeListj], j) or
                     NodeListRegistrar<Dimension>::instance().domainDecompositionIndependent());
 
-              CHECK(offset(nodeListi, i) < pacci.size() - 1);
+              CHECK(offset(nodeListi, i) < pacci.size());
               const Vector& pai =  pacci[offset(nodeListi, i)];
-              const Vector& pQai = pacci[offset(nodeListi, i) + 1];
-              offset(nodeListi, i) += 2;
+              ++offset(nodeListi, i);
 
-              CHECK(offset(nodeListj, j) < paccj.size() - 1);
+              CHECK(offset(nodeListj, j) < paccj.size());
               const Vector& paj =  paccj[offset(nodeListj, j)];
-              const Vector& pQaj = paccj[offset(nodeListj, j) + 1];
-              offset(nodeListj, j) += 2;
+              ++offset(nodeListj, j);
 
               CHECK2(fuzzyEqual(mi*mj*pai.dot(paj) + mi*mi*pai.dot(pai), 0.0, 1.0e-10),
                      "Symmetric forces?  " << i << " " << j << " " << mi << " " << mj << " " << pai << " " << paj << " " << mi*pai << " " << mj*paj);
-              CHECK2(fuzzyEqual(mi*mj*pQai.dot(pQaj) + mi*mi*pQai.dot(pQai), 0.0, 1.0e-10),
-                     "Symmetric Q forces?  " << i << " " << j << " " << mi << " " << mj << " " << pQai << " " << pQaj << " " << mi*pQai << " " << mj*pQaj);
 
               const Scalar duij = vji12.dot(pai);
-              const Scalar dQuij = vji12.dot(pQai);
               const Scalar wi = (Ai + Aj == 0 ? 0.5 :
                                  (duij >= 0.0 ? Aj : Ai)/(Ai + Aj));
               // const Scalar wi = (duij >= 0.0 ? 
@@ -293,8 +288,8 @@ update(const KeyType& key,
 
               CHECK(wi >= 0.0 and wi <= 1.0);
               // CHECK(fuzzyEqual(wi + weighting(uj, ui, mj, mi, duij*mi/mj, dt), 1.0, 1.0e-10));
-              DepsDti += wi*duij + 0.5*dQuij;
-              DepsDtj += ((1.0 - wi)*duij + 0.5*dQuij)*mi/mj;
+              DepsDti += wi*duij;
+              DepsDtj += (1.0 - wi)*duij*mi/mj;
             }
           }
         }

@@ -688,7 +688,7 @@ evaluateDerivatives(const typename Dimension::Scalar time,
          ++itr, ++nodeListi) {
       for (int i = 0; i != (*itr)->numInternalNodes(); ++i) {
         const size_t n = connectivityMap.numNeighborsForNode(*itr, i);
-        pairAccelerations(nodeListi, i).reserve(2*n);
+        pairAccelerations(nodeListi, i).reserve(n);
       }
     }
   }
@@ -934,15 +934,13 @@ evaluateDerivatives(const typename Dimension::Scalar time,
               CHECK(rhoi > 0.0);
               CHECK(rhoj > 0.0);
               // const Vector forceij = 0.5*weighti*weightj*((Pi + Pj)*deltagrad) + mi*mj*(Qacci + Qaccj);    // <- Type III, with SPH Q forces
-              const Vector forceij  = 0.5*weighti*weightj*(Pi + Pj)*deltagrad;                                // <- Type III, with CRKSPH Q forces
-              const Vector Qforceij = 0.5*weighti*weightj*(rhoi*rhoi*QPiij.first + rhoj*rhoj*QPiij.second)*deltagrad;
-              DvDti -= (forceij + Qforceij)/mi;
-              DvDtj += (forceij + Qforceij)/mj;
+              const Vector forceij  = 0.5*weighti*weightj*((Pi + Pj)*deltagrad +                              // <- Type III, with CRKSPH Q forces
+                                                           (rhoi*rhoi*QPiij.first + rhoj*rhoj*QPiij.second)*deltagrad);
+              DvDti -= forceij/mi;
+              DvDtj += forceij/mj;
               if (mCompatibleEnergyEvolution) {
                 pairAccelerationsi.push_back(-forceij/mi);
-                pairAccelerationsi.push_back(-Qforceij/mi);
-                pairAccelerationsj.push_back(forceij/mj);
-                pairAccelerationsj.push_back(Qforceij/mj);
+                pairAccelerationsj.push_back( forceij/mj);
               }
 
               // Specific thermal energy evolution.
@@ -961,7 +959,7 @@ evaluateDerivatives(const typename Dimension::Scalar time,
       const size_t numNeighborsi = connectivityMap.numNeighborsForNode(&nodeList, i);
       CHECK(not mCompatibleEnergyEvolution or NodeListRegistrar<Dimension>::instance().domainDecompositionIndependent() or
             (i >= firstGhostNodei and pairAccelerationsi.size() == 0) or
-            (pairAccelerationsi.size() == 2*numNeighborsi));
+            (pairAccelerationsi.size() == numNeighborsi));
 
       // Get the time for pairwise interactions.
       const Scalar deltaTimePair = Timing::difference(start, Timing::currentTime())/max(size_t(1), ncalc);
