@@ -1149,7 +1149,7 @@ finalize(const typename Dimension::Scalar time,
     FieldList<Dimension, FourthRankTensor> gradm3 = state.fields(HydroFieldNames::gradM3_CRKSPH, FourthRankTensor::zero);
     FieldList<Dimension, FifthRankTensor> gradm4 = state.fields(HydroFieldNames::gradM4_CRKSPH, FifthRankTensor::zero);
     if (mVolumeType == CRKMassOverDensity) {
-      mVolume.assignFields(mass/massDensity);
+      vol.assignFields(mass/massDensity);
     } else if (mVolumeType == CRKSumVolume) {
       computeCRKSPHSumVolume(connectivityMap, W, position, H, vol);
     } else if (mVolumeType == CRKVoronoiVolume) {
@@ -1180,11 +1180,32 @@ finalize(const typename Dimension::Scalar time,
          boundaryItr != this->boundaryEnd();
          ++boundaryItr) (*boundaryItr)->finalizeGhostBoundary();
 
-  // } else if (densityUpdate() == PhysicsSpace::SumDensity) {
-  //   FieldList<Dimension, Scalar> massDensity = state.fields(HydroFieldNames::massDensity, 0.0);
-  //   FieldList<Dimension, Scalar> massDensitySum = derivs.fields(ReplaceFieldList<Dimension, Field<Dimension, Field<Dimension, Scalar> > >::prefix() + 
-  //                                                               HydroFieldNames::massDensity, 0.0);
-  //   massDensity.assignFields(massDensitySum);
+  } else if (densityUpdate() == PhysicsSpace::VoronoiCellDensity) {
+    const TableKernel<Dimension>& W = this->kernel();
+    const ConnectivityMap<Dimension>& connectivityMap = dataBase.connectivityMap();
+    const FieldList<Dimension, Scalar> mass = state.fields(HydroFieldNames::mass, 0.0);
+    const FieldList<Dimension, SymTensor> H = state.fields(HydroFieldNames::H, SymTensor::zero);
+    const FieldList<Dimension, Vector> position = state.fields(HydroFieldNames::position, Vector::zero);
+    FieldList<Dimension, Scalar> massDensity = state.fields(HydroFieldNames::massDensity, 0.0);
+    FieldList<Dimension, Scalar> vol = state.fields(HydroFieldNames::volume, 0.0);
+    if (mVolumeType == CRKMassOverDensity) {
+      vol.assignFields(mass/massDensity);
+    } else if (mVolumeType == CRKSumVolume) {
+      computeCRKSPHSumVolume(connectivityMap, W, position, H, vol);
+    } else if (mVolumeType == CRKVoronoiVolume) {
+      computeVoronoiVolume(position, vol);
+    } else if (mVolumeType == CRKHullVolume) {
+      computeHullVolumes(connectivityMap, W.kernelExtent(), position, H, vol);
+    } else {
+      VERIFY2(false, "Unknown CRK volume weighting.");
+    }
+    massDensity.assignFields(mass/vol);
+    for (ConstBoundaryIterator boundaryItr = this->boundaryBegin(); 
+         boundaryItr != this->boundaryEnd();
+         ++boundaryItr) (*boundaryItr)->applyFieldListGhostBoundary(massDensity);
+    for (ConstBoundaryIterator boundaryItr = this->boundaryBegin(); 
+         boundaryItr != this->boundaryEnd();
+         ++boundaryItr) (*boundaryItr)->finalizeGhostBoundary();
   }
 
   // Add any filtering component to the node movement.
