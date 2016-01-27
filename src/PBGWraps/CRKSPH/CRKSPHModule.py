@@ -33,7 +33,7 @@ self.CRKSPHHydroBase%(dim)id = addObject(self.space, "CRKSPHHydroBase%(dim)id", 
 self.SolidCRKSPHHydroBase%(dim)id = addObject(self.space, "SolidCRKSPHHydroBase%(dim)id", allow_subclassing=True, parent=self.CRKSPHHydroBase%(dim)id)
 ''' % {"dim" : dim})
         self.CRKOrder = self.space.add_enum("CRKOrder", ["ZerothOrder", "LinearOrder", "QuadraticOrder"])
-        self.CRKVolumeType = self.space.add_enum("CRKVolumeType", ["CRKMassOverDensity", "CRKSumVolume", "CRKVoronoiVolume", "CRKHullVolume"])
+        self.CRKVolumeType = self.space.add_enum("CRKVolumeType", ["CRKMassOverDensity", "CRKSumVolume", "CRKVoronoiVolume", "CRKHullVolume", "HVolume"])
 
         return
 
@@ -143,10 +143,20 @@ self.generateSolidCRKSPHHydroBaseBindings(self.SolidCRKSPHHydroBase%(dim)id, %(d
                                 [constrefparam(connectivitymap, "connectivityMap"),
                                  constrefparam(tablekernel, "W"),
                                  constrefparam(vectorfieldlist, "position"),
+                                 constrefparam(scalarfieldlist, "mass"),
                                  constrefparam(symtensorfieldlist, "H"),
                                  refparam(scalarfieldlist, "vol")],
                                 template_parameters = [dim],
                                 custom_name = "computeCRKSPHSumVolume%id" % ndim)
+
+        self.space.add_function("computeOccupancyVolume", None,
+                                [constrefparam(connectivitymap, "connectivityMap"),
+                                 constrefparam(tablekernel, "W"),
+                                 constrefparam(vectorfieldlist, "position"),
+                                 constrefparam(symtensorfieldlist, "H"),
+                                 refparam(scalarfieldlist, "vol")],
+                                template_parameters = [dim],
+                                custom_name = "computeOccupancyVolume%id" % ndim)
 
         self.space.add_function("computeSolidCRKSPHSumMassDensity", None,
                                 [constrefparam(connectivitymap, "connectivityMap"),
@@ -297,7 +307,7 @@ self.generateSolidCRKSPHHydroBaseBindings(self.SolidCRKSPHHydroBase%(dim)id, %(d
 
         # Compute the H scaled volume for each point.
         Spheral.add_function("computeHVolumes", None,
-                             [param("double", "kernelExtent"),
+                             [param("double", "nPerh"),
                               constrefparam(symtensorfieldlist, "H"),
                               refparam(scalarfieldlist, "volume")],
                              docstring = "Compute the H scaled volume for each point.")

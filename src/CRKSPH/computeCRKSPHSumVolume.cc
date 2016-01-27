@@ -24,6 +24,7 @@ void
 computeCRKSPHSumVolume(const ConnectivityMap<Dimension>& connectivityMap,
                        const TableKernel<Dimension>& W,
                        const FieldList<Dimension, typename Dimension::Vector>& position,
+                       const FieldList<Dimension, typename Dimension::Scalar>& mass,
                        const FieldList<Dimension, typename Dimension::SymTensor>& H,
                        FieldList<Dimension, typename Dimension::Scalar>& vol) {
 
@@ -55,6 +56,7 @@ computeCRKSPHSumVolume(const ConnectivityMap<Dimension>& connectivityMap,
 
       // Get the state for node i.
       const Vector& ri = position(nodeListi, i);
+      // const Scalar mi = mass(nodeListi, i);
       const SymTensor& Hi = H(nodeListi, i);
       const Scalar Hdeti = Hi.Determinant();
       const vector<vector<int> >& fullConnectivity = connectivityMap.connectivityForNode(nodeListi, i);
@@ -72,6 +74,7 @@ computeCRKSPHSumVolume(const ConnectivityMap<Dimension>& connectivityMap,
                                                        nodeListj, j,
                                                        firstGhostNodej)) {
             const Vector& rj = position(nodeListj, j);
+            // const Scalar mj = mass(nodeListj, j);
             const SymTensor& Hj = H(nodeListj, j);
             const Scalar Hdetj = Hj.Determinant();
 

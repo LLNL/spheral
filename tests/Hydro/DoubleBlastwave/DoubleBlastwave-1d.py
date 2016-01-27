@@ -16,6 +16,7 @@ commandLine(
     nPerh = 1.25,
     hmin = 1e-10,
     hmax = 1.0,
+    hsmooth = 0.0,    # Optionally smooth the initial discontinuities
             
     # Hydro algorithm.
     SVPH = False,
@@ -154,15 +155,24 @@ output("nodes.numNodes")
 
 # Set the initial conditions.
 eps1, eps2, eps3 = 1000.0/0.4, 0.01/0.4, 100.0/0.4
+hfold = hsmooth*1.0/nx
+def epsfunc(x):
+    if x < 0.1 - hfold:
+        return eps1
+    elif x < 0.1 + hfold:
+        f = 0.5*(sin(0.5*pi*(x - 0.1)/hfold) + 1.0)
+        return (1.0 - f)*eps1 + f*eps2
+    elif x < 0.9 - hfold:
+        return eps2
+    elif x < 0.9 + hfold:
+        f = 0.5*(sin(0.5*pi*(x - 0.9)/hfold) + 1.0)
+        return (1.0 - f)*eps2 + f*eps3
+    else:
+        return eps3
 pos = nodes.positions()
 eps = nodes.specificThermalEnergy()
 for i in xrange(nodes.numInternalNodes):
-    if pos[i].x < 0.1:
-        eps[i] = eps1
-    elif pos[i].x < 0.9:
-        eps[i] = eps2
-    else:
-        eps[i] = eps3
+    eps[i] = epsfunc(pos[i].x)
 
 #-------------------------------------------------------------------------------
 # Construct a DataBase to hold our node list
@@ -299,9 +309,8 @@ output("control")
 #-------------------------------------------------------------------------------
 # Advance to the end time.
 #-------------------------------------------------------------------------------
-if steps:
+if not steps is None:
     control.step(steps)
-    raise RuntimeError, "Completed %i steps" % steps
 
 else:
     rhoPlots = []

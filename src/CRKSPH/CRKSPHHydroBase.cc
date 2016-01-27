@@ -15,11 +15,11 @@
 #include "computeVoronoiVolume.hh"
 #include "computeHullVolumes.hh"
 #include "computeCRKSPHSumVolume.hh"
+#include "computeHVolumes.hh"
 #include "computeCRKSPHSumMassDensity.hh"
 #include "computeCRKSPHMoments.hh"
 #include "computeCRKSPHCorrections.hh"
 #include "computeCRKSPHIntegral.hh"
-#include "computeHVolumes.hh"
 #include "centerOfMass.hh"
 #include "computeVoronoiCentroids.hh"
 #include "volumeSpacing.hh"
@@ -35,7 +35,6 @@
 #include "DataBase/IncrementBoundedState.hh"
 #include "DataBase/ReplaceBoundedState.hh"
 #include "DataBase/CompositeFieldListPolicy.hh"
-#include "HVolumePolicy.hh"
 #include "Hydro/SpecificThermalEnergyPolicy.hh"
 #include "Hydro/SpecificFromTotalThermalEnergyPolicy.hh"
 #include "Hydro/PositionPolicy.hh"
@@ -246,11 +245,14 @@ initializeProblemStartup(DataBase<Dimension>& dataBase) {
     const FieldList<Dimension, Scalar> massDensity = dataBase.fluidMassDensity();
     mVolume.assignFields(mass/massDensity);
   } else if (mVolumeType == CRKSumVolume) {
-    computeCRKSPHSumVolume(connectivityMap, this->kernel(), position, H, mVolume);
+    computeCRKSPHSumVolume(connectivityMap, this->kernel(), position, mass, H, mVolume);
   } else if (mVolumeType == CRKVoronoiVolume) {
     computeVoronoiVolume(position, mVolume);
   } else if (mVolumeType == CRKHullVolume) {
     computeHullVolumes(connectivityMap, W.kernelExtent(), position, H, mVolume);
+  } else if (mVolumeType == HVolume) {
+    const Scalar nPerh = mVolume.nodeListPtrs()[0]->nodesPerSmoothingScale();
+    computeHVolumes(nPerh, H, mVolume);
   } else {
     VERIFY2(false, "Unknown CRK volume weighting.");
   }
@@ -535,11 +537,14 @@ initialize(const typename Dimension::Scalar time,
   if (mVolumeType == CRKMassOverDensity) {
     vol.assignFields(mass/massDensity);
   } else if (mVolumeType == CRKSumVolume) {
-    computeCRKSPHSumVolume(connectivityMap, W, position, H, vol);
+    computeCRKSPHSumVolume(connectivityMap, W, position, mass, H, vol);
   } else if (mVolumeType == CRKVoronoiVolume) {
     computeVoronoiVolume(position, vol);
   } else if (mVolumeType == CRKHullVolume) {
     computeHullVolumes(connectivityMap, W.kernelExtent(), position, H, vol);
+  } else if (mVolumeType == HVolume) {
+    const Scalar nPerh = vol.nodeListPtrs()[0]->nodesPerSmoothingScale();
+    computeHVolumes(nPerh, H, vol);
   } else {
     VERIFY2(false, "Unknown CRK volume weighting.");
   }
@@ -1151,11 +1156,14 @@ finalize(const typename Dimension::Scalar time,
     if (mVolumeType == CRKMassOverDensity) {
       vol.assignFields(mass/massDensity);
     } else if (mVolumeType == CRKSumVolume) {
-      computeCRKSPHSumVolume(connectivityMap, W, position, H, vol);
+      computeCRKSPHSumVolume(connectivityMap, W, position, mass, H, vol);
     } else if (mVolumeType == CRKVoronoiVolume) {
       computeVoronoiVolume(position, vol);
     } else if (mVolumeType == CRKHullVolume) {
       computeHullVolumes(connectivityMap, W.kernelExtent(), position, H, vol);
+    } else if (mVolumeType == HVolume) {
+      const Scalar nPerh = vol.nodeListPtrs()[0]->nodesPerSmoothingScale();
+      computeHVolumes(nPerh, H, vol);
     } else {
       VERIFY2(false, "Unknown CRK volume weighting.");
     }
@@ -1191,11 +1199,14 @@ finalize(const typename Dimension::Scalar time,
     if (mVolumeType == CRKMassOverDensity) {
       vol.assignFields(mass/massDensity);
     } else if (mVolumeType == CRKSumVolume) {
-      computeCRKSPHSumVolume(connectivityMap, W, position, H, vol);
+      computeCRKSPHSumVolume(connectivityMap, W, position, mass, H, vol);
     } else if (mVolumeType == CRKVoronoiVolume) {
       computeVoronoiVolume(position, vol);
     } else if (mVolumeType == CRKHullVolume) {
       computeHullVolumes(connectivityMap, W.kernelExtent(), position, H, vol);
+    } else if (mVolumeType == HVolume) {
+      const Scalar nPerh = vol.nodeListPtrs()[0]->nodesPerSmoothingScale();
+      computeHVolumes(nPerh, H, vol);
     } else {
       VERIFY2(false, "Unknown CRK volume weighting.");
     }

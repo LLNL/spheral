@@ -19,6 +19,7 @@ namespace Spheral {
     computeCRKSPHSumVolume(const NeighborSpace::ConnectivityMap<Dimension>& connectivityMap,
                                 const KernelSpace::TableKernel<Dimension>& W,
                                 const FieldSpace::FieldList<Dimension, typename Dimension::Vector>& position,
+                                const FieldSpace::FieldList<Dimension, typename Dimension::Scalar>& mass,
                                 const FieldSpace::FieldList<Dimension, typename Dimension::SymTensor>& H,
                                 FieldSpace::FieldList<Dimension, typename Dimension::Scalar>& vol);
   }

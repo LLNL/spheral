@@ -396,7 +396,7 @@ initialize(const typename Dimension::Scalar time,
   if (this->volumeType() == CRKMassOverDensity) {
     vol.assignFields(mass/massDensity);
   } else if (this->volumeType() == CRKSumVolume) {
-    computeCRKSPHSumVolume(connectivityMap, W, position, H, vol);
+    computeCRKSPHSumVolume(connectivityMap, W, position, mass, H, vol);
   } else if (this->volumeType() == CRKVoronoiVolume) {
     computeVoronoiVolume(position, vol);
   } else if (this->volumeType() == CRKHullVolume) {
