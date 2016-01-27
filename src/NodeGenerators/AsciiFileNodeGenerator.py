@@ -32,7 +32,8 @@ class AsciiFileNodeGenerator2D(NodeGeneratorBase):
                  initializeBase = True,
                  readFileToMemory = False,
                  refineNodes = 0,
-                 delimiter = ' '):
+                 delimiter = ' ',
+                 offset=None):
         
         
         self.filename = filename
@@ -98,6 +99,10 @@ class AsciiFileNodeGenerator2D(NodeGeneratorBase):
         
         self.H = mpi.bcast(self.H, root=0)
 
+        if offset:
+            for i in xrange(n):
+                self.x[i] += offset[0]
+                self.y[i] += offset[1]
         
         # Initialize the base class.
         if initializeBase:
@@ -165,7 +170,8 @@ class AsciiFileNodeGenerator3D(NodeGeneratorBase):
                  readFileToMemory = False,
                  refineNodes = 0,
                  rejecter=None,
-                 delimiter = ' '):
+                 delimiter = ' ',
+                 offset=None):
                  
                  
         self.filename = filename
@@ -234,6 +240,12 @@ class AsciiFileNodeGenerator3D(NodeGeneratorBase):
         self.H = mpi.bcast(self.H, root=0)
         
         n = mpi.bcast(n,root=0)
+        
+        if offset:
+            for i in xrange(n):
+                self.x[i] += offset[0]
+                self.y[i] += offset[1]
+                self.z[i] += offset[2]
 
         if rejecter:
             self.newH = []
