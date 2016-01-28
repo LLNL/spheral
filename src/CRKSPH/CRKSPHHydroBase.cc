@@ -916,16 +916,19 @@ evaluateDerivatives(const typename Dimension::Scalar time,
               // const Vector Qaccj = 0.5*(QPiij.second*gradWQSPHj);                              // SPH
               // const Scalar workQi = vij.dot(Qacci);                                            // SPH
               // const Scalar workQj = vij.dot(Qaccj);                                            // SPH
-              const Scalar workQi = rhoj*rhoj*QPiij.second.dot(vij).dot(deltagrad);            // CRK
-              const Scalar workQj = rhoi*rhoi*QPiij.first .dot(vij).dot(deltagrad);            // CRK
-              const Scalar Qi = rhoi*rhoi*(QPiij.first. diagonalElements().maxAbsElement());
-              const Scalar Qj = rhoj*rhoj*(QPiij.second.diagonalElements().maxAbsElement());
+              // const Vector Qaccij = 0.25*(rhoi + rhoj)*(rhoi*QPiij.first + rhoj*QPiij.second).dot(deltagrad);    // CRK
+              const Vector Qaccij = 0.5*rhoi*rhoj*(QPiij.first + QPiij.second).dot(deltagrad);    // CRK
+              const Scalar workQij = vij.dot(Qaccij);                                             // CRK
+              // const Scalar workQi = rhoi*rhoj*QPiij.second.dot(vij).dot(deltagrad);            // CRK
+              // const Scalar workQj = rhoi*rhoj*QPiij.first .dot(vij).dot(deltagrad);            // CRK
+              const Scalar Qi = rhoi*rhoj*(QPiij.first. diagonalElements().maxAbsElement());
+              const Scalar Qj = rhoi*rhoj*(QPiij.second.diagonalElements().maxAbsElement());
               maxViscousPressurei = max(maxViscousPressurei, Qi);
               maxViscousPressurej = max(maxViscousPressurej, Qj);
               effViscousPressurei += weightj * Qi * Wj;
               effViscousPressurej += weighti * Qj * Wi;
-              viscousWorki += 0.5*weighti*weightj/mi*workQi;
-              viscousWorkj += 0.5*weighti*weightj/mj*workQj;
+              viscousWorki += 0.5*weighti*weightj/mi*workQij;
+              viscousWorkj += 0.5*weighti*weightj/mj*workQij;
 
               // Velocity gradient.
               const Tensor deltaDvDxi = -weightj*vij.dyad(gradWj);
@@ -941,8 +944,9 @@ evaluateDerivatives(const typename Dimension::Scalar time,
               CHECK(rhoi > 0.0);
               CHECK(rhoj > 0.0);
               // const Vector forceij = 0.5*weighti*weightj*((Pi + Pj)*deltagrad) + mi*mj*(Qacci + Qaccj);    // <- Type III, with SPH Q forces
-              const Vector forceij  = 0.5*weighti*weightj*((Pi + Pj)*deltagrad +                              // <- Type III, with CRKSPH Q forces
-                                                           (rhoi*rhoi*QPiij.first + rhoj*rhoj*QPiij.second)*deltagrad);
+              // const Vector forceij  = 0.5*weighti*weightj*((Pi + Pj)*deltagrad +                              // <- Type III, with CRKSPH Q forces
+              //                                              (rhoi*rhoj*QPiij.first + rhoi*rhoj*QPiij.second)*deltagrad);
+              const Vector forceij  = weighti*weightj*(0.5*(Pi + Pj)*deltagrad + Qaccij);                        // <- Type III, with CRKSPH Q forces
               DvDti -= forceij/mi;
               DvDtj += forceij/mj;
               if (mCompatibleEnergyEvolution) {
@@ -951,8 +955,8 @@ evaluateDerivatives(const typename Dimension::Scalar time,
               }
 
               // Specific thermal energy evolution.
-              DepsDti += 0.5*weighti*weightj*(Pj*vij.dot(deltagrad) + workQi)/mi;    // CRK Q
-              DepsDtj += 0.5*weighti*weightj*(Pi*vij.dot(deltagrad) + workQj)/mj;    // CRK Q
+              DepsDti += 0.5*weighti*weightj*(Pj*vij.dot(deltagrad) + workQij)/mi;    // CRK Q
+              DepsDtj += 0.5*weighti*weightj*(Pi*vij.dot(deltagrad) + workQij)/mj;    // CRK Q
 
               // Estimate of delta v (for XSPH).
               if (mXSPH and (nodeListi == nodeListj)) {
@@ -1177,15 +1181,15 @@ finalize(const typename Dimension::Scalar time,
          ++boundItr) (*boundItr)->finalizeGhostBoundary();
     computeCRKSPHMoments(connectivityMap, W, vol, position, H, this->correctionOrder(), NodeCoupling(), m0, m1, m2, m3, m4, gradm0, gradm1, gradm2, gradm3, gradm4);
     computeCRKSPHCorrections(m0, m1, m2, m3, m4, gradm0, gradm1, gradm2, gradm3, gradm4, this->correctionOrder(), A, B, C, gradA, gradB, gradC);
-    // computeCRKSPHSumMassDensity(connectivityMap, W, position, mass, vol, H, A, B, C, this->correctionOrder(), massDensity);
-    SPHSpace::computeSPHSumMassDensity(connectivityMap, W, true, position, mass, H, massDensity);
-    for (ConstBoundaryIterator boundaryItr = this->boundaryBegin();
-         boundaryItr != this->boundaryEnd();
-         ++boundaryItr) (*boundaryItr)->applyFieldListGhostBoundary(massDensity);
-    for (ConstBoundaryIterator boundaryItr = this->boundaryBegin(); 
-         boundaryItr != this->boundaryEnd();
-         ++boundaryItr) (*boundaryItr)->finalizeGhostBoundary();
-    SPHSpace::correctSPHSumMassDensity(connectivityMap, W, true, position, mass, H, massDensity);
+    computeCRKSPHSumMassDensity(connectivityMap, W, position, mass, vol, H, A, B, C, this->correctionOrder(), massDensity);
+    // SPHSpace::computeSPHSumMassDensity(connectivityMap, W, true, position, mass, H, massDensity);
+    // for (ConstBoundaryIterator boundaryItr = this->boundaryBegin();
+    //      boundaryItr != this->boundaryEnd();
+    //      ++boundaryItr) (*boundaryItr)->applyFieldListGhostBoundary(massDensity);
+    // for (ConstBoundaryIterator boundaryItr = this->boundaryBegin(); 
+    //      boundaryItr != this->boundaryEnd();
+    //      ++boundaryItr) (*boundaryItr)->finalizeGhostBoundary();
+    // SPHSpace::correctSPHSumMassDensity(connectivityMap, W, true, position, mass, H, massDensity);
 
     // FieldList<Dimension, Scalar> vol = dataBase.newFluidFieldList(0.0, "volume");
     // FieldList<Dimension, FacetedVolume> polyvol = dataBase.newFluidFieldList(FacetedVolume(), "poly volume");
