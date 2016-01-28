@@ -220,6 +220,7 @@ elif CRKSPH:
                              cfl = cfl,
                              volumeType = volumeType,
                              compatibleEnergyEvolution = compatibleEnergy,
+                             evolveTotalEnergy = evolveTotalEnergy,
                              XSPH = XSPH,
                              correctionOrder = correctionOrder,
                              densityUpdate = densityUpdate,
