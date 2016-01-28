@@ -289,7 +289,10 @@ output("db.numFluidNodeLists")
 #-------------------------------------------------------------------------------
 # Construct the artificial viscosity.
 #-------------------------------------------------------------------------------
-q = Qconstructor(Cl, Cq, linearInExpansion)
+try:
+   q = Qconstructor(Cl, Cq, linearInExpansion)
+except:
+   q = Qconstructor(Cl, Cq)
 q.epsilon2 = epsilon2
 q.limiter = Qlimiter
 q.balsaraShearCorrection = balsaraCorrection
@@ -300,8 +303,11 @@ output("q.Cq")
 output("q.epsilon2")
 output("q.limiter")
 output("q.balsaraShearCorrection")
-output("q.linearInExpansion")
-output("q.quadraticInExpansion")
+try:
+   output("q.linearInExpansion")
+   output("q.quadraticInExpansion")
+except:
+   pass
 
 #-------------------------------------------------------------------------------
 # Construct the hydro physics object.
