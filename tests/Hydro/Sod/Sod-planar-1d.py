@@ -281,6 +281,7 @@ elif CRKSPH:
                              correctionOrder = correctionOrder,
                              volumeType = volumeType,
                              compatibleEnergyEvolution = compatibleEnergy,
+                             evolveTotalEnergy = evolveTotalEnergy,
                              XSPH = XSPH,
                              densityUpdate = densityUpdate,
                              HUpdate = HUpdate)
