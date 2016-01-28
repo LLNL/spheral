@@ -916,6 +916,7 @@ evaluateDerivatives(const typename Dimension::Scalar time,
               // const Vector Qaccj = 0.5*(QPiij.second*gradWQSPHj);                              // SPH
               // const Scalar workQi = vij.dot(Qacci);                                            // SPH
               // const Scalar workQj = vij.dot(Qaccj);                                            // SPH
+              // const Scalar workQij = 0.5*(workQi + workQj);                                    // SPH
               // const Vector Qaccij = 0.25*(rhoi + rhoj)*(rhoi*QPiij.first + rhoj*QPiij.second).dot(deltagrad);    // CRK
               const Vector Qaccij = 0.5*rhoi*rhoj*(QPiij.first + QPiij.second).dot(deltagrad);    // CRK
               const Scalar workQij = vij.dot(Qaccij);                                             // CRK
@@ -955,6 +956,8 @@ evaluateDerivatives(const typename Dimension::Scalar time,
               }
 
               // Specific thermal energy evolution.
+              // DepsDti += 0.5*weighti*weightj*Pj*vij.dot(deltagrad)/mi + mj*workQi;    // SPH Q
+              // DepsDtj += 0.5*weighti*weightj*Pi*vij.dot(deltagrad)/mj + mi*workQj;    // SPH Q
               DepsDti += 0.5*weighti*weightj*(Pj*vij.dot(deltagrad) + workQij)/mi;    // CRK Q
               DepsDtj += 0.5*weighti*weightj*(Pi*vij.dot(deltagrad) + workQij)/mj;    // CRK Q
 
