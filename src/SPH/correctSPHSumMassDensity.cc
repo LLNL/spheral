@@ -24,7 +24,7 @@ using NodeSpace::NodeList;
 
 template<typename Dimension>
 void
-computeSPHSumMassDensity(const ConnectivityMap<Dimension>& connectivityMap,
+correctSPHSumMassDensity(const ConnectivityMap<Dimension>& connectivityMap,
                          const TableKernel<Dimension>& W,
                          const bool sumOverAllNodeLists,
                          const FieldList<Dimension, typename Dimension::Vector>& position,
@@ -43,10 +43,12 @@ computeSPHSumMassDensity(const ConnectivityMap<Dimension>& connectivityMap,
   typedef typename Dimension::Tensor Tensor;
   typedef typename Dimension::SymTensor SymTensor;
 
-  // Zero out the result.
-  massDensity = 0.0;
-
-  // Walk the FluidNodeLists.
+  // Make a single corrective pass.
+  FieldList<Dimension, Scalar> sumUnity(FieldSpace::Copy);
+  for (size_t nodeListi = 0; nodeListi != numNodeLists; ++nodeListi) {
+    sumUnity.appendNewField("SPH sum unity check", massDensity[nodeListi]->nodeList(), 0.0);
+  }
+  
   for (size_t nodeListi = 0; nodeListi != numNodeLists; ++nodeListi) {
     const NodeList<Dimension>& nodeList = massDensity[nodeListi]->nodeList();
     const int firstGhostNodei = nodeList.firstGhostNode();
@@ -60,12 +62,14 @@ computeSPHSumMassDensity(const ConnectivityMap<Dimension>& connectivityMap,
       // Get the state for node i.
       const Vector& ri = position(nodeListi, i);
       const Scalar mi = mass(nodeListi, i);
+      const Scalar rhoi = massDensity(nodeListi, i);
       const SymTensor& Hi = H(nodeListi, i);
       const Scalar Hdeti = Hi.Determinant();
+      CHECK(rhoi > 0.0);
 
       // Self-contribution.
       const Scalar W0 = W.kernelValue(0.0, Hdeti);
-      massDensity(nodeListi, i) += mi*W0;
+      sumUnity(nodeListi, i) += mi/rhoi*W0;
 
       // Get the neighbors for this node.
       const vector<vector<int> >& fullConnectivity = connectivityMap.connectivityForNode(nodeListi, i);
@@ -84,8 +88,10 @@ computeSPHSumMassDensity(const ConnectivityMap<Dimension>& connectivityMap,
                                                          firstGhostNodej)) {
               const Vector& rj = position(nodeListj, j);
               const Scalar mj = mass(nodeListj, j);
+              const Scalar rhoj = massDensity(nodeListj, j);
               const SymTensor& Hj = H(nodeListj, j);
               const Scalar Hdetj = Hj.Determinant();
+              CHECK(rhoj > 0.0);
 
               // Kernel weighting and gradient.
               const Vector rij = ri - rj;
@@ -95,15 +101,18 @@ computeSPHSumMassDensity(const ConnectivityMap<Dimension>& connectivityMap,
               const Scalar Wj = W.kernelValue(etaj, Hdetj);
 
               // Sum the pair-wise contributions.
-              massDensity(nodeListi, i) += (nodeListi == nodeListj ? mj : mi)*Wj;
-              massDensity(nodeListj, j) += (nodeListi == nodeListj ? mi : mj)*Wi;
+              sumUnity(nodeListi, i) += mj/rhoj*Wj;
+              sumUnity(nodeListj, j) += mi/rhoi*Wi;
             }
           }
         }
       }
-      CHECK(massDensity(nodeListi, i) > 0.0);
+      CHECK(sumUnity(nodeListi, i) > 0.0);
     }
   }
+
+  // Apply the correction.
+  massDensity /= sumUnity;
 }
 
 }

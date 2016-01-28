@@ -12,6 +12,7 @@
 
 #include "SPHHydroBase.hh"
 #include "computeSPHSumMassDensity.hh"
+#include "correctSPHSumMassDensity.hh"
 #include "computeSumVoronoiCellMassDensity.hh"
 #include "computeSPHOmegaGradhCorrection.hh"
 #include "NodeList/SmoothingScaleBase.hh"
@@ -947,13 +948,23 @@ finalize(const typename Dimension::Scalar time,
 
   // Depending on the mass density advancement selected, we may want to replace the 
   // mass density.
-  if (densityUpdate() == PhysicsSpace::RigorousSumDensity) {
+  if (densityUpdate() == PhysicsSpace::RigorousSumDensity or
+      densityUpdate() == PhysicsSpace::CorrectedSumDensity) {
     const ConnectivityMap<Dimension>& connectivityMap = dataBase.connectivityMap();
     const FieldList<Dimension, Vector> position = state.fields(HydroFieldNames::position, Vector::zero);
     const FieldList<Dimension, Scalar> mass = state.fields(HydroFieldNames::mass, 0.0);
     const FieldList<Dimension, SymTensor> H = state.fields(HydroFieldNames::H, SymTensor::zero);
     FieldList<Dimension, Scalar> massDensity = state.fields(HydroFieldNames::massDensity, 0.0);
     computeSPHSumMassDensity(connectivityMap, this->kernel(), mSumMassDensityOverAllNodeLists, position, mass, H, massDensity);
+    if (densityUpdate() == PhysicsSpace::CorrectedSumDensity) {
+      for (ConstBoundaryIterator boundaryItr = this->boundaryBegin();
+           boundaryItr != this->boundaryEnd();
+           ++boundaryItr) (*boundaryItr)->applyFieldListGhostBoundary(massDensity);
+      for (ConstBoundaryIterator boundaryItr = this->boundaryBegin(); 
+           boundaryItr != this->boundaryEnd();
+           ++boundaryItr) (*boundaryItr)->finalizeGhostBoundary();
+      correctSPHSumMassDensity(connectivityMap, this->kernel(), mSumMassDensityOverAllNodeLists, position, mass, H, massDensity);
+    }
   } else if (densityUpdate() == PhysicsSpace::SumDensity) {
     FieldList<Dimension, Scalar> massDensity = state.fields(HydroFieldNames::massDensity, 0.0);
     const FieldList<Dimension, Scalar> massDensitySum = derivs.fields(ReplaceFieldList<Dimension, Field<Dimension, Field<Dimension, Scalar> > >::prefix() + 
