@@ -298,7 +298,8 @@ gamma(const Scalar massDensity,
       const Scalar specificThermalEnergy) const {
     // calculate effective gamma...
     double nDen = massDensity/mAtomicWeight;
-    return mCv + nDen * mR;
+    double Cp = mCv + nDen * mR;
+    return Cp/mCv;
     //VERIFY2(false, "gamma not defined for Tillotson EOS!");
 }
 
