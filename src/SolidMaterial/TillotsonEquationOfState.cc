@@ -297,7 +297,7 @@ TillotsonEquationOfState<Dimension>::
 gamma(const Scalar massDensity,
       const Scalar specificThermalEnergy) const {
     // calculate effective gamma...
-    nDen = massDensity/mAtomicWeight;
+    double nDen = massDensity/mAtomicWeight;
     return mCv + nDen * mR;
     //VERIFY2(false, "gamma not defined for Tillotson EOS!");
 }
