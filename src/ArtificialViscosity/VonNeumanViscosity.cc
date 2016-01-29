@@ -8,7 +8,7 @@
 #include "Field/FieldList.hh"
 #include "Kernel/TableKernel.hh"
 #include "Boundary/Boundary.hh"
-#include "CRKSPH/computeCRKSPHmoments.hh"
+#include "CRKSPH/computeCRKSPHMoments.hh"
 #include "CRKSPH/computeCRKSPHCorrections.hh"
 #include "CRKSPH/gradientCRKSPH.hh"
 #include "Hydro/HydroFieldNames.hh"
