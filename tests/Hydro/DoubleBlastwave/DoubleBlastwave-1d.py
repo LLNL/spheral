@@ -47,6 +47,8 @@ commandLine(
     linearInExpansion = False,
     Qlimiter = False,
     epsilon2 = 1e-4,
+    etaCritFrac = 1.0,
+    etaFoldFrac = 0.2,
   
     boolReduceViscosity = False,
     nh = 5.0,
@@ -231,6 +233,8 @@ elif CRKSPH:
                              correctionOrder = correctionOrder,
                              densityUpdate = densityUpdate,
                              HUpdate = HUpdate)
+    q.etaCritFrac = etaCritFrac
+    q.etaFoldFrac = etaFoldFrac
 elif PSPH:
     hydro = HydroConstructor(W = WT,
                              Q = q,
