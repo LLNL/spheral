@@ -356,7 +356,10 @@ output("db.numFluidNodeLists")
 #-------------------------------------------------------------------------------
 # Construct the artificial viscosity.
 #-------------------------------------------------------------------------------
-q = Qconstructor(Cl, Cq, linearInExpansion)
+try:
+    q = Qconstructor(Cl, Cq, linearInExpansion)
+except:
+    q = Qconstructor(Cl, Cq)
 q.epsilon2 = epsilon2
 q.limiter = Qlimiter
 q.balsaraShearCorrection = balsaraCorrection
@@ -366,8 +369,11 @@ output("q.Cq")
 output("q.epsilon2")
 output("q.limiter")
 output("q.balsaraShearCorrection")
-output("q.linearInExpansion")
-output("q.quadraticInExpansion")
+try:
+    output("q.linearInExpansion")
+    output("q.quadraticInExpansion")
+except:
+    pass
 
 #-------------------------------------------------------------------------------
 # Construct the hydro physics object.
@@ -390,7 +396,6 @@ if SVPH:
                              # xmin = Vector(x0 - 0.5*(x2 - x0), y0 - 0.5*(y2 - y0)),
                              # xmax = Vector(x2 + 0.5*(x2 - x0), y2 + 0.5*(y2 - y0)))
 elif CRKSPH:
-    Wf = NBSplineKernel(9)
     hydro = HydroConstructor(W = WT, 
                              WPi = WTPi, 
                              Q = q,
@@ -398,6 +403,7 @@ elif CRKSPH:
                              cfl = cfl,
                              useVelocityMagnitudeForDt = useVelocityMagnitudeForDt,
                              compatibleEnergyEvolution = compatibleEnergy,
+                             evolveTotalEnergy = evolveTotalEnergy,
                              XSPH = XSPH,
                              correctionOrder = correctionOrder,
                              volumeType = volumeType,
