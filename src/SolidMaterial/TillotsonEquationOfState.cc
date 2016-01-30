@@ -70,6 +70,7 @@ TillotsonEquationOfState(const double referenceDensity,
   mepsVapor(epsVapor),
   mAtomicWeight(atomicWeight),
   mCv(3.0 * constants.molarGasConstant() / atomicWeight),
+  mR(constants.molarGasConstant()),
   mExternalPressure(externalPressure) {
   VERIFY(distinctlyGreaterThan(mAtomicWeight/constants.molarGasConstant(),0.0));
 }
@@ -159,7 +160,10 @@ TillotsonEquationOfState<Dimension>::
 setGammaField(Field<Dimension, Scalar>& gamma,
 	      const Field<Dimension, Scalar>& massDensity,
 	      const Field<Dimension, Scalar>& specificThermalEnergy) const {
-  VERIFY2(false, "gamma not defined for Tillotson EOS!");
+    CHECK(valid());
+    for (int i=0;i!=gamma.size();++i)
+        gamma(i) = this->gamma(massDensity(i),specificThermalEnergy(i));
+  //VERIFY2(false, "gamma not defined for Tillotson EOS!");
 }
 
 //------------------------------------------------------------------------------
@@ -292,7 +296,11 @@ typename Dimension::Scalar
 TillotsonEquationOfState<Dimension>::
 gamma(const Scalar massDensity,
       const Scalar specificThermalEnergy) const {
-  VERIFY2(false, "gamma not defined for Tillotson EOS!");
+    // calculate effective gamma...
+    double nDen = massDensity/mAtomicWeight;
+    double Cp = mCv + nDen * mR;
+    return Cp/mCv;
+    //VERIFY2(false, "gamma not defined for Tillotson EOS!");
 }
 
 //------------------------------------------------------------------------------
