@@ -235,6 +235,7 @@ elif CRKSPH:
                              HUpdate = HUpdate)
     q.etaCritFrac = etaCritFrac
     q.etaFoldFrac = etaFoldFrac
+    q.QcorrectionOrder = correctionOrder
 elif PSPH:
     hydro = HydroConstructor(W = WT,
                              Q = q,
