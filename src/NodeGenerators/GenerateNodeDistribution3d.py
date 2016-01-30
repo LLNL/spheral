@@ -1973,11 +1973,11 @@ class GenerateIcosahedronMatchingProfile3d(NodeGeneratorBase):
                 else:
                     self.positions.append([0,0,0])
             elif(nshell==2):
+                position1 = self.rotater([0,0,1],rot,rot2)
+                position2 = self.rotater([0,0,-1],rot,rot2)
                 if rejecter:
-                    position1 = self.rotater([0,0,1],rot,rot2)
                     if rejecter.accept(rii*position1[0],rii*position1[1],rii*position1[2]):
                         self.positions.append(position1)
-                    position2 = self.rotater([0,0,-1],rot,rot2)
                     if rejecter.accept(rii*position2[0],rii*position2[1],rii*position2[2]):
                         self.positions.append(position2)
                 else:
