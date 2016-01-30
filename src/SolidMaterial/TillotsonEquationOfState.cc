@@ -160,7 +160,6 @@ TillotsonEquationOfState<Dimension>::
 setGammaField(Field<Dimension, Scalar>& gamma,
 	      const Field<Dimension, Scalar>& massDensity,
 	      const Field<Dimension, Scalar>& specificThermalEnergy) const {
-    CHECK(valid());
     for (int i=0;i!=gamma.size();++i)
         gamma(i) = this->gamma(massDensity(i),specificThermalEnergy(i));
   //VERIFY2(false, "gamma not defined for Tillotson EOS!");
