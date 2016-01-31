@@ -457,6 +457,8 @@ computeCRKSPHCorrections(const ConnectivityMap<Dimension>& connectivityMap,
                          FieldList<Dimension, typename Dimension::Vector>& gradAc,
                          FieldList<Dimension, typename Dimension::Tensor>& gradBc) {
 
+  VERIFY2(false, "Implement me!");
+
   // Pre-conditions.
   const size_t numNodeLists = A.size();
   REQUIRE(weight.size() == numNodeLists);

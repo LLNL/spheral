@@ -153,11 +153,22 @@ computeCRKSPHMoments(const ConnectivityMap<Dimension>& connectivityMap,
             const Vector etai = Hi*rij;
             const Vector etaj = Hj*rij;
             const std::pair<double, double> WWi = W.kernelAndGradValue(etai.magnitude(), Hdeti);
-            const Scalar Wi = WWi.first;
-            const Vector gradWi = -(Hi*etai.unitVector())*WWi.second;
             const std::pair<double, double> WWj = W.kernelAndGradValue(etaj.magnitude(), Hdetj);
+            // j
+            const Scalar Wi = WWi.first;
             const Scalar Wj = WWj.first;
-            const Vector gradWj = (Hj*etaj.unitVector())*WWj.second;
+            const Vector gradWj =  (Hj*etaj.unitVector())*WWj.second;
+            const Vector gradWi = -(Hi*etai.unitVector())*WWi.second;
+            // i
+            // const Scalar Wi = WWj.first;
+            // const Scalar Wj = WWi.first;
+            // const Vector gradWj = -(Hi*etai.unitVector())*WWi.second;
+            // const Vector gradWi =  (Hj*etaj.unitVector())*WWj.second;
+            // ij
+            // const Scalar Wij = 0.5*(WWi.first + WWj.first);
+            // const Scalar Wi = Wij, Wj = Wij;
+            // const Vector gradWj = 0.5*((-Hi*etai.unitVector())*WWi.second + (Hj*etaj.unitVector())*WWj.second);
+            // const Vector gradWi = gradWj;
 
             // Zeroth moment. 
             const Scalar wwi = wi*Wi;
