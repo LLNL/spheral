@@ -30,7 +30,17 @@ CRKSPHKernel(const KernelSpace::TableKernel<Dimension>& W,
            const typename Dimension::Vector& Bi,
            const typename Dimension::Tensor& Ci) {
   typedef typename Dimension::Scalar Scalar;
+  typedef typename Dimension::Vector Vector;
   typedef typename Dimension::Tensor Tensor;
+
+  // // Symmetrize eta first, giving us an effective hij.
+  // const Vector etaij = 0.5*(etai + etaj);
+  // const Scalar rijmag = rij.magnitude();
+  // const Scalar hj = rijmag*safeInvVar(etaj.magnitude());
+  // const Scalar hij = rijmag*safeInvVar(etaij.magnitude());
+  // const Scalar Hdetjj = Hdetj*Dimension::pownu(hj/hij);
+  // const Scalar Wij = W(etaij.magnitude(), Hdetjj);
+
   // j
   const Scalar Wij = W(etaj.magnitude(), Hdetj);
   // i
@@ -74,17 +84,31 @@ CRKSPHKernelAndGradient(const KernelSpace::TableKernel<Dimension>& W,
   typedef typename Dimension::Scalar Scalar;
   typedef typename Dimension::Vector Vector;
   typedef typename Dimension::Tensor Tensor;
-  const std::pair<Scalar, Scalar> WWi = W.kernelAndGradValue(etai.magnitude(), Hdeti);
-  const std::pair<Scalar, Scalar> WWj = W.kernelAndGradValue(etaj.magnitude(), Hdetj);
+
+  // // Symmetrize eta first, giving us an effective hij.
+  // const Vector etaij = 0.5*(etaj - etai);
+  // const Scalar rijmag = rij.magnitude();
+  // const Scalar hj = rijmag*safeInvVar(etaj.magnitude());
+  // const Scalar hij = rijmag*safeInvVar(etaij.magnitude());
+  // const Scalar Hdetjj = Hdetj*Dimension::pownu(hj/hij);
+  // const std::pair<Scalar, Scalar> WWj = W.kernelAndGradValue(etaij.magnitude(), Hdetjj);
+  // const Scalar Wij = WWj.first; 
+  // const Vector gradWij = (hj/hij*Hj)*etaij.unitVector() * WWj.second;
+  // std::cerr << " --> " << etai << " " << etaj << " " << etaij << " " << hj << " " << hij << std::endl;
+
   // j
+  const std::pair<Scalar, Scalar> WWj = W.kernelAndGradValue(etaj.magnitude(), Hdetj);
   const Scalar Wij = WWj.first; 
   const Vector gradWij = Hj*etaj.unitVector() * WWj.second;
   gradWSPH = WWj.second;
   // i
+  // const std::pair<Scalar, Scalar> WWi = W.kernelAndGradValue(etai.magnitude(), Hdeti);
   // const Scalar Wij = WWi.first; 
   // const Vector gradWij = Hi*etai.unitVector() * WWi.second;
   // gradWSPH = WWi.second;
   // ij
+  // const std::pair<Scalar, Scalar> WWi = W.kernelAndGradValue(etai.magnitude(), Hdeti);
+  // const std::pair<Scalar, Scalar> WWj = W.kernelAndGradValue(etaj.magnitude(), Hdetj);
   // const Scalar Wij = 0.5*(WWi.first + WWj.first); 
   // const Vector gradWij = 0.5*(Hi*etai.unitVector() * WWi.second +
   //                             Hj*etaj.unitVector() * WWj.second);
