@@ -79,6 +79,7 @@ commandLine(
     steps = None,
     maxSteps = None,
     statsStep = 10,
+    numHIterationsBetweenCycles = 0,
 
     # Output
     clearDirectories = False,
@@ -315,7 +316,8 @@ control = SpheralController(integrator, WT,
                             statsStep = statsStep,
                             restartStep = restartStep,
                             restartBaseName = restartBaseName,
-                            restoreCycle = restoreCycle)
+                            restoreCycle = restoreCycle,
+                            numHIterationsBetweenCycles = numHIterationsBetweenCycles)
 output("control")
 
 #-------------------------------------------------------------------------------
