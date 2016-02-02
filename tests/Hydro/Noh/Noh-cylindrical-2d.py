@@ -273,6 +273,8 @@ output("db.numFluidNodeLists")
 #-------------------------------------------------------------------------------
 if Qconstructor is TensorSVPHViscosity:
     q = Qconstructor(Cl, Cq, fslice)
+elif Qconstructor is VonNeumanViscosity:
+    q = Qconstructor(Cl, Cq)
 else:
     q = Qconstructor(Cl, Cq, linearInExpansion)
 q.epsilon2 = epsilon2
@@ -284,8 +286,11 @@ output("q.Cq")
 output("q.epsilon2")
 output("q.limiter")
 output("q.balsaraShearCorrection")
-output("q.linearInExpansion")
-output("q.quadraticInExpansion")
+try:
+    output("q.linearInExpansion")
+    output("q.quadraticInExpansion")
+except:
+    pass
 
 #-------------------------------------------------------------------------------
 # Construct the hydro physics object.
