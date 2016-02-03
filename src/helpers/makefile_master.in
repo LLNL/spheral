@@ -144,17 +144,17 @@ SPACE := $(EMPTY) $(EMPTY)
 
 #-------------------------------------------------------------------------------
 # Augment the SRCTARGETS with generated instantiation files.
-EXTRAINSTSRCTARGETS=
+EXTRAINSTSRCTARGETS = $(filter-out %Inst.cc.py,$(INSTSRCTARGETS))
 ifeq "@INST1D@" "yes"
-  EXTRAINSTSRCTARGETS += $(subst Inst.cc.py,Inst1d.cc,$(INSTSRCTARGETS))
+  EXTRAINSTSRCTARGETS += $(subst Inst.cc.py,Inst1d.cc,$(filter %Inst.cc.py,$(INSTSRCTARGETS)))
   CXXFLAGS += -DSPHERAL1D
 endif
 ifeq "@INST2D@" "yes"
-  EXTRAINSTSRCTARGETS += $(subst Inst.cc.py,Inst2d.cc,$(INSTSRCTARGETS))
+  EXTRAINSTSRCTARGETS += $(subst Inst.cc.py,Inst2d.cc,$(filter %Inst.cc.py,$(INSTSRCTARGETS)))
   CXXFLAGS += -DSPHERAL2D
 endif
 ifeq "@INST3D@" "yes"
-  EXTRAINSTSRCTARGETS += $(subst Inst.cc.py,Inst3d.cc,$(INSTSRCTARGETS))
+  EXTRAINSTSRCTARGETS += $(subst Inst.cc.py,Inst3d.cc,$(filter %Inst.cc.py,$(INSTSRCTARGETS)))
   CXXFLAGS += -DSPHERAL3D
 endif
 EXTRAINSTOBJS = $(notdir $(EXTRAINSTSRCTARGETS:.cc=.o))

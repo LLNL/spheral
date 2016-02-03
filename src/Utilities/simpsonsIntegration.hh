@@ -33,7 +33,7 @@ simpsonsIntegration(const Function& function,
   const Value dx = (x1 - x0)/numBins;
 
   // Walk the bins and accumulate the answer.
-  for (unsigned i = 0; i != numBins + 1; ++i) {
+  for (i = 0; i != numBins + 1; ++i) {
     integrand = function(x0 + i*dx);
     if (i == 0 or i == numBins) {
       result += integrand;
