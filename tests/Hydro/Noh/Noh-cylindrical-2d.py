@@ -6,11 +6,10 @@
 #
 # W.F. Noh 1987, JCP, 72, 78-120.
 #-------------------------------------------------------------------------------
-import shutil
+import os, shutil
 from math import *
 from Spheral2d import *
 from SpheralTestUtilities import *
-from SpheralGnuPlotUtilities import *
 from GenerateNodeDistribution2d import *
 from CubicNodeGenerator import GenerateSquareNodeDistribution
 from CentroidalVoronoiRelaxation import *
@@ -472,7 +471,7 @@ answer = NohAnalyticSolution.NohSolution(2,
 if graphics:
 
     # Plot the node positions.
-    import Gnuplot
+    from SpheralGnuPlotUtilities import *
     rPlot = plotNodePositions2d(db, colorNodeLists=0, colorDomains=1)
     EPlot = plotEHistory(control.conserve)
 
@@ -546,7 +545,7 @@ if graphics:
     nodes1.pressure(Pf)
     P = mpi.allreduce(list(Pf.internalValues()), mpi.SUM)
     if mpi.rank == 0:
-        from SpheralGnuPlotUtilities import multiSort
+        from SpheralTestUtilities import multiSort
         import Pnorm
         multiSort(r, rho, v, eps, P)
         rans, vans, epsans, rhoans, Pans, hans = answer.solution(control.time(), r)
@@ -568,7 +567,7 @@ if graphics:
 #-------------------------------------------------------------------------------
 if outputFile != "None":
     outputFile = os.path.join(dataDir, outputFile)
-    from SpheralGnuPlotUtilities import multiSort
+    from SpheralTestUtilities import multiSort
     P = ScalarField("pressure", nodes1)
     nodes1.pressure(P)
     xprof = mpi.reduce([x.x for x in nodes1.positions().internalValues()], mpi.SUM)

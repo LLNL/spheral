@@ -4,7 +4,6 @@
 import unittest
 from math import *
 from SpheralTestUtilities import fuzzyEqual
-from SpheralGnuPlotUtilities import *
 
 from Spheral2d import *
 

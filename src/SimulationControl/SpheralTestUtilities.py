@@ -2,6 +2,25 @@
 
 import sys
 from math import *
+from collections import Iterable
+
+#-------------------------------------------------------------------------------
+# Helper method, sort a set of lists by the first one.
+#-------------------------------------------------------------------------------
+def multiSort(*args):
+    # All the lists have to be the same length.
+    for l in args:
+        assert len(l) == len(args[0])
+
+    # This is the obscure zip trick!
+    result = zip(*sorted(zip(*args)))
+
+    # Copy the sorted stuff back to the input arguments.
+    for ilist in xrange(len(args)):
+        for i in xrange(len(args[ilist])):
+            args[ilist][i] = result[ilist][i]
+
+    return
 
 #-------------------------------------------------------------------------------
 # Get the frame of the caller of a routine
@@ -148,7 +167,11 @@ def allValues(fieldList):
 #-------------------------------------------------------------------------------
 def fuzzyEqual(lhs, rhs,
                fuzz = 1.0e-5):
-    return abs(lhs - rhs)/max(1.0, abs(lhs) + abs(rhs)) < fuzz;
+    if isinstance(lhs, Iterable):
+        assert isinstance(rhs, Iterable) and len(lhs) == len(rhs)
+        return min([fuzzyEqual(x, y, fuzz) for (x, y) in zip(lhs, rhs)])
+    else:
+        return abs(lhs - rhs)/max(1.0, abs(lhs) + abs(rhs)) < fuzz;
 
 def fuzzyLessThanOrEqual(lhs, rhs,
                          fuzz = 1.0e-5):

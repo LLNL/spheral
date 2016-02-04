@@ -13,10 +13,9 @@
 # Create a spherical distribution of collisionless points, which will of course 
 # promptly collapse under their own self-gravity.
 #-------------------------------------------------------------------------------
-import shutil
+import os, shutil
 from Spheral3d import *
 from SpheralTestUtilities import *
-from SpheralGnuPlotUtilities import *
 from NodeHistory import *
 from SpheralVisitDump import dumpPhysicsState
 from GenerateNodeDistribution3d import *
@@ -215,7 +214,7 @@ else:
 #-------------------------------------------------------------------------------
 if outputFile != "None":
     outputFile = os.path.join(dataDir, outputFile)
-    from SpheralGnuPlotUtilities import multiSort
+    from SpheralTestUtilities import multiSort
     xprof = mpi.reduce(nodes.positions().internalValues(), mpi.SUM)
     vprof = mpi.reduce(nodes.velocity().internalValues(), mpi.SUM)
     Hprof = mpi.reduce(nodes.Hfield().internalValues(), mpi.SUM)
@@ -224,7 +223,7 @@ if outputFile != "None":
     mof = mortonOrderIndices(db)
     mo = mpi.reduce(mof[0].internalValues(), mpi.SUM)
     if mpi.rank == 0:
-        from SpheralGnuPlotUtilities import multiSort
+        from SpheralTestUtilities import multiSort
         multiSort(mo, xprof, vprof, Hprof, phiprof)
         f = open(outputFile, "w")
         f.write(("# " + 13*"%15s " + "\n") % ("x", "y", "z", "vx", "vy", "vz", "Hxx", "Hxy", "Hxz", "Hyy", "Hyz", "Hzz", "phi"))
