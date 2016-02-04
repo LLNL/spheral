@@ -227,9 +227,9 @@ SILODIR = $(SILODIST:.tar.gz=)
 SILOBUILDDATE = $(patsubst %.tar.gz, .%.date, $(SILODIST))
 
 # Eigen
-EIGENDIST = Eigen-3.2.6.tar.bz2
-EIGENURL = http://bitbucket.org/eigen/eigen/get/3.2.6.tar.bz2
-EIGENDIR = eigen-eigen-c58038c56923
+EIGENDIST = Eigen-3.2.7.tar.bz2
+EIGENURL = http://bitbucket.org/eigen/eigen/get/3.2.7.tar.bz2
+EIGENDIR = eigen-eigen-b30b87236a1b
 EIGENBUILDDATE = .eigen.date
 
 # # Voro++
