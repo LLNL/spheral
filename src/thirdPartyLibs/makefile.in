@@ -26,14 +26,14 @@ AR = ar
 # Targets.
 #-------------------------------------------------------------------------------
 # Python
-PYTHONDIST = Python-2.7.8.tgz
-PYTHONURL = http://www.python.org/ftp/python/2.7.8/$(PYTHONDIST)
+PYTHONDIST = Python-2.7.11.tgz
+PYTHONURL = http://www.python.org/ftp/python/2.7.11/$(PYTHONDIST)
 PYTHONDIR = $(PYTHONDIST:.tgz=)
 PYTHONBUILDDATE = $(patsubst %.tgz, .%.date, $(PYTHONDIST))
 
 # Numpy
-NUMPYDIST = numpy-1.9.1.tar.gz
-NUMPYURL = http://sourceforge.net/projects/numpy/files/NumPy/1.9.1/$(NUMPYDIST)/download
+NUMPYDIST = numpy-1.10.4.tar.gz
+NUMPYURL = http://sourceforge.net/projects/numpy/files/NumPy/1.10.4/$(NUMPYDIST)/download
 NUMPYDIR = $(NUMPYDIST:.tar.gz=)
 NUMPYBUILDDATE = $(patsubst %.tar.gz, .%.date, $(NUMPYDIST))
 
@@ -215,8 +215,8 @@ MPI4PYDIR = $(MPI4PYDIST:.tar.gz=)
 MPI4PYBUILDDATE = $(patsubst %.tar.gz, .%.date, $(MPI4PYDIST))
 
 # HDF5
-HDF5DIST = hdf5-1.8.14.tar.bz2
-HDF5URL = http://www.hdfgroup.org/ftp/HDF5/releases/hdf5-1.8.14/src/$(HDF5DIST)
+HDF5DIST = hdf5-1.8.16.tar.bz2
+HDF5URL = http://www.hdfgroup.org/ftp/HDF5/releases/hdf5-1.8.16/src/$(HDF5DIST)
 HDF5DIR = $(HDF5DIST:.tar.bz2=)
 HDF5BUILDDATE = $(patsubst %.tar.bz2, .%.date, $(HDF5DIST))
 
@@ -227,9 +227,9 @@ SILODIR = $(SILODIST:.tar.gz=)
 SILOBUILDDATE = $(patsubst %.tar.gz, .%.date, $(SILODIST))
 
 # Eigen
-EIGENDIST = Eigen-3.2.6.tar.bz2
-EIGENURL = http://bitbucket.org/eigen/eigen/get/3.2.6.tar.bz2
-EIGENDIR = eigen-eigen-c58038c56923
+EIGENDIST = Eigen-3.2.7.tar.bz2
+EIGENURL = http://bitbucket.org/eigen/eigen/get/3.2.7.tar.bz2
+EIGENDIR = eigen-eigen-b30b87236a1b
 EIGENBUILDDATE = .eigen.date
 
 # # Voro++
@@ -1177,7 +1177,7 @@ $(SILOBUILDDATE):  $(SILODIST) $(HDF5BUILDDATE) $(PYTHONBUILDDATE)
 	rm -fr $(SILODIR)
 	$(GZIP) -dc $(SILODIST) | $(TAR) -xf -
 	$(SHELL) -ec "cd $(SILODIR); \
-	env PATH=$(prefix)/bin:$$PATH CC='$(MPICC)' CXX='$(MPICXX)' CFLAGS='$(MPICCFLAGS) $(CFLAGS)' CXXFLAGS='$(MPICXXFLAGS) $(CXXFLAGS)' $(SILOFLAGS) ./configure --enable-shared=no --enable-fortran=no --prefix=$(prefix) --with-hdf5='$(prefix)/include,$(prefix)/lib' --enable-pythonmodule --enable-silex=no --enable-browser=yes ; \
+	env PATH=$(prefix)/bin:$$PATH CC='$(CC)' CXX='$(CXX)' CFLAGS='$(CFLAGS)' CXXFLAGS='$(CXXFLAGS)' $(SILOFLAGS) ./configure --enable-shared=no --enable-fortran=no --prefix=$(prefix) --with-hdf5='$(prefix)/include,$(prefix)/lib' --enable-silex=no --enable-browser=yes ; \
 	$(MAKE) ; \
 	$(MAKE) install"
 	ln -f -s $(prefix)/lib/Silo.so $(LIBDIR)

@@ -246,7 +246,7 @@ if restoreCycle is None:
                                            rmax = rmax,
                                            rmin = rmin,
                                            nNodePerh = nPerh,
-                                           SPH = SPH)
+                                           SPH = (not ASPH))
 
     if mpi.procs > 1:
         from VoronoiDistributeNodes import distributeNodes2d

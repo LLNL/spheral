@@ -10,11 +10,11 @@
 # R.E. Kidder, Nucl. Fusion 16 (1976), 3-14.
 # Maire, JCP 228 (2009), 6882-6915.
 #===============================================================================
-from Spheral1d import *
+from SolidSpheral1d import *
 from SpheralTestUtilities import *
 from math import *
 import os
-import sys, string
+import sys, string, shutil
 from numericalIntegration import *
 
 from KidderIsentropicCapsuleAnalyticSolution import *
@@ -24,9 +24,9 @@ from KidderIsentropicCapsuleBoundary import *
 # Parameters for the run.
 #-------------------------------------------------------------------------------
 commandLine(problemName = "KidderIsentropicCapsule",
-            NodeListConstructor = SphNodeList,
             KernelConstructor = BSplineKernel,
             IntegratorConstructor = CheapSynchronousRK2Integrator,
+            kernelOrder = 7,
 
             # Timing
             steps = None,
@@ -42,7 +42,7 @@ commandLine(problemName = "KidderIsentropicCapsule",
 
             # Resolution
             nr = 100,             # num radial points
-            nrGhost = 5,          # how deep do we want the Boundaries
+            nrGhost = 10,         # how deep do we want the Boundaries
             nPerh = 2.01,
 
             # Output
@@ -61,8 +61,11 @@ commandLine(problemName = "KidderIsentropicCapsule",
             maxSteps = None,
 
             # LagrangeHydro
+            CRKSPH = False,
+            PSPH = False,
+            solid = False,
             Qconstructor = MonaghanGingoldViscosity,
-            Cq = 1.0,             # Default to zero Q, since this is a shockless problem
+            Cq = 1.0,
             Cl = 1.0,
             Qlimiter = False,
             epsilon2 = 1e-2,
@@ -70,71 +73,112 @@ commandLine(problemName = "KidderIsentropicCapsule",
             hmax = 0.1,
             cfl = 0.5,
             XSPH = True,
+            filter = 0.0,
+            correctionOrder = LinearOrder,
+            volumeType = CRKSumVolume,
             compatibleEnergy = True,
-            gradhCorrection = False,
-            sumForMassDensity = RigorousSumDensity,
-            HEvolution = IdealH,
+            evolveTotalEnergy = False,
+            gradhCorrection = True,
+            correctVelocityGradient = True,
+            cullenViscosity = False,
+            alphMax = 2.0,
+            alphMin = 0.02,
+            betaC = 0.7,
+            betaD = 0.05,
+            betaE = 1.0,
+            fKern = 1.0/3.0,
+            hopkinsCullenCorrection = True,
+            cullenUseHydroDerivatives = True,
+            HopkinsConductivity = False,
+            densityUpdate = RigorousSumDensity,
+            HUpdate = IdealH,
 
-            neighborSearchType = GatherScatter,
-            numGridLevels = 20,
-            topGridCellSize = 2.0,
-            origin = Vector1d(0.0),
-
+            clearDirectories = True,
+            dataDirBase = "dumps-Kidder-planar",
             profileASCII = False, # Optionally spew the profiles to an ASCII file
             )
+
+# Choose our hydro object.
+if CRKSPH:
+    if solid:
+        HydroConstructor = SolidCRKSPHHydro
+    else:
+        HydroConstructor = CRKSPHHydro
+    Qconstructor = CRKSPHMonaghanGingoldViscosity
+elif PSPH:
+   HydroConstructor = PSPHHydro
+else:
+    if solid:
+        HydroConstructor = SolidSPHHydro
+    else:
+        HydroConstructor = SPHHydro
 
 # The dimensionality of the problem: 1 => planar
 #                                    2 => cylindrical
 #                                    3 => spherical
-nu = 1
-
 # Construct the analytic solution for this set up.
-answer = KidderIsentropicCapsuleAnalyticSolution(nu, r0, r1, P0, P1, rho1)
+answer = KidderIsentropicCapsuleAnalyticSolution(1, r0, r1, P0, P1, rho1)
 goalTime = goalTau * answer.tau
 print "Capsule collapses at %g, goal time is %g." % (answer.tau, goalTime)
 
-problemName = "%s-%i" % (problemName, nr)
+dataDir = os.path.join(dataDirBase, 
+                       HydroConstructor.__name__,
+                       Qconstructor.__name__,
+                       "nPerh=%f" % nPerh,
+                       "compatibleEnergy=%s" % compatibleEnergy,
+                       "evolveTotalEnergy=%s" % evolveTotalEnergy,
+                       "Cullen=%s" % cullenViscosity,
+                       "filter=%f" % filter,
+                       "nr=%i" % nr)
+restartDir = os.path.join(dataDir, "restarts")
+restartBaseName = os.path.join(restartDir, "Kidder-planar-1d")
+
+#-------------------------------------------------------------------------------
+# Check if the necessary output directories exist.  If not, create them.
+#-------------------------------------------------------------------------------
+import os, sys
+if mpi.rank == 0:
+    if clearDirectories and os.path.exists(dataDir):
+        shutil.rmtree(dataDir)
+    if not os.path.exists(restartDir):
+        os.makedirs(restartDir)
+mpi.barrier()
 
 #-------------------------------------------------------------------------------
 # Material properties.
 #-------------------------------------------------------------------------------
-gamma = answer.gamma
 mu = 1.0
 eos = GammaLawGasMKS(answer.gamma, mu)
 
 #-------------------------------------------------------------------------------
 # Interpolation kernels.
 #-------------------------------------------------------------------------------
-WT = TableKernel(KernelConstructor(), 1000)
-WTPi = TableKernel(KernelConstructor(), 1000)
+if KernelConstructor == NBSplineKernel:
+    WT = TableKernel(KernelConstructor(kernelOrder), 1000)
+else:
+    WT = TableKernel(KernelConstructor(), 1000)
 output("WT")
-output("WTPi")
 kernelExtent = WT.kernelExtent
 
 #-------------------------------------------------------------------------------
 # Make the NodeList.
 #-------------------------------------------------------------------------------
-nodes = NodeListConstructor("nodes", eos, WT, WTPi)
-nodes.XSPH = XSPH
-nodes.hmin = hmin
-nodes.hmax = hmax
-nodes.nodesPerSmoothingScale = nPerh
+if solid:
+    nodes = makeSolidNodeList("nodes", eos, 
+                              hmin = hmin,
+                              hmax = hmax,
+                              nPerh = nPerh,
+                              kernelExtent = kernelExtent)
+else:
+    nodes = makeFluidNodeList("nodes", eos, 
+                              hmin = hmin,
+                              hmax = hmax,
+                              nPerh = nPerh,
+                              kernelExtent = kernelExtent)
 output("nodes")
 output("nodes.hmin")
 output("nodes.hmax")
 output("nodes.nodesPerSmoothingScale")
-output("nodes.XSPH")
-
-#-------------------------------------------------------------------------------
-# Construct the neighbor object.
-#-------------------------------------------------------------------------------
-neighbor = NestedGridNeighbor(nodes,
-                              neighborSearchType,
-                              numGridLevels,
-                              topGridCellSize,
-                              origin,
-                              kernelExtent)
-nodes.registerNeighbor(neighbor)
 
 #-------------------------------------------------------------------------------
 # Set the node properties.
@@ -152,11 +196,12 @@ rho = nodes.massDensity()
 eps = nodes.specificThermalEnergy()
 for i in xrange(nodes.numInternalNodes):
     ri = pos[i].x
-    mi = trapezoidalIntegration(answer.rhoInitial, ri - 0.5*dr, ri + 0.5*dr, 200)
-    rho[i] = mi/dr
-    mass[i] = mi
-    eps[i] = trapezoidalIntegration(answer.Pinitial, ri - 0.5*dr, ri + 0.5*dr, 200)/((gamma - 1.0)*mi)
-    #eps[i] = answer.P(0.0, ri)/((gamma - 1.0)*rho[i])
+    #mi = trapezoidalIntegration(answer.rhoInitial, ri - 0.5*dr, ri + 0.5*dr, 200)
+    #rho[i] = mi/dr
+    #eps[i] = trapezoidalIntegration(answer.Pinitial, ri - 0.5*dr, ri + 0.5*dr, 200)/((answer.gamma - 1.0)*mi)
+    rho[i] = answer.rho(0.0, ri)
+    mass[i] = rho[i]*dr
+    eps[i] = answer.P(0.0, ri)/((answer.gamma - 1.0)*rho[i])
 
 #-------------------------------------------------------------------------------
 # Construct a DataBase to hold our node list
@@ -182,30 +227,63 @@ output("q.limiter")
 #-------------------------------------------------------------------------------
 # Construct the hydro physics object.
 #-------------------------------------------------------------------------------
-hydro = Hydro(W = WT,
-              Q = q,
-              compatibleEnergyEvolution = compatibleEnergy,
-              gradhCorrection = gradhCorrection,
-              densityUpdate = sumForMassDensity,
-              HUpdate = HEvolution)
-hydro.cfl = cfl
+if CRKSPH:
+    hydro = HydroConstructor(W = WT,
+                             Q = q,
+                             filter = filter,
+                             cfl = cfl,
+                             compatibleEnergyEvolution = compatibleEnergy,
+                             evolveTotalEnergy = evolveTotalEnergy,
+                             XSPH = XSPH,
+                             correctionOrder = correctionOrder,
+                             volumeType = volumeType,
+                             densityUpdate = densityUpdate,
+                             HUpdate = HUpdate)
+elif PSPH:
+    hydro = HydroConstructor(W = WT,
+                             Q = q,
+                             filter = filter,
+                             cfl = cfl,
+                             compatibleEnergyEvolution = compatibleEnergy,
+                             evolveTotalEnergy = evolveTotalEnergy,
+                             HopkinsConductivity = HopkinsConductivity,
+                             correctVelocityGradient = correctVelocityGradient,
+                             densityUpdate = densityUpdate,
+                             HUpdate = HUpdate,
+                             XSPH = XSPH)
+else:
+    hydro = HydroConstructor(W = WT,
+                             Q = q,
+                             filter = filter,
+                             cfl = cfl,
+                             compatibleEnergyEvolution = compatibleEnergy,
+                             evolveTotalEnergy = evolveTotalEnergy,
+                             gradhCorrection = gradhCorrection,
+                             correctVelocityGradient = correctVelocityGradient,
+                             densityUpdate = densityUpdate,
+                             HUpdate = HUpdate,
+                             XSPH = XSPH)
 output("hydro")
 output("hydro.cfl")
 output("hydro.compatibleEnergyEvolution")
-output("hydro.gradhCorrection")
+output("hydro.evolveTotalEnergy")
 output("hydro.HEvolution")
-output("hydro.sumForMassDensity")
-output("hydro.hmin")
-output("hydro.hmax")
-output("hydro.kernel()")
-output("hydro.PiKernel()")
-output("hydro.valid()")
+output("hydro.densityUpdate")
+packages = [hydro]
+
+#-------------------------------------------------------------------------------
+# Optionally construct the reducing viscosity physics object.
+#-------------------------------------------------------------------------------
+if cullenViscosity:
+    evolveCullenViscosityMultiplier = CullenDehnenViscosity(q, WT, alphMax, alphMin, betaC, betaD, betaE, fKern, hopkinsCullenCorrection,  cullenUseHydroDerivatives)
+    packages.append(evolveCullenViscosityMultiplier)
 
 #-------------------------------------------------------------------------------
 # Construct an integrator.
 #-------------------------------------------------------------------------------
 integrator = IntegratorConstructor(db)
-integrator.appendPhysicsPackage(hydro)
+for package in packages:
+    integrator.appendPhysicsPackage(package)
 integrator.lastDt = dt
 integrator.dtMin = dtMin
 integrator.dtMax = dtMax
@@ -213,7 +291,6 @@ integrator.dtGrowth = dtGrowth
 integrator.rigorousBoundaries = rigorousBoundaries
 integrator.domainDecompositionIndependent = domainIndependent
 output("integrator")
-output("integrator.valid()")
 output("integrator.lastDt")
 output("integrator.dtMin")
 output("integrator.dtMax")
@@ -255,28 +332,28 @@ rbc0 = KidderIsentropicCapsuleEnforcementBoundary1d(integrator = integrator,
                                                     hmin = hmin,
                                                     hmax = hmax,
                                                     dr0 = dr)
-# rbc1 = KidderIsentropicCapsuleEnforcementBoundary1d(integrator = integrator,
-#                                                     answer = answer,
-#                                                     nodeList = nodes,
-#                                                     nodeIDs = outerNodes,
-#                                                     interiorNodeIDs = interiorNodes,
-#                                                     hinitial = h0,
-#                                                     hmin = hmin,
-#                                                     hmax = hmax,
-#                                                     dr0 = dr)
+rbc1 = KidderIsentropicCapsuleEnforcementBoundary1d(integrator = integrator,
+                                                    answer = answer,
+                                                    nodeList = nodes,
+                                                    nodeIDs = outerNodes,
+                                                    interiorNodeIDs = interiorNodes,
+                                                    hinitial = h0,
+                                                    hmin = hmin,
+                                                    hmax = hmax,
+                                                    dr0 = dr)
 
-rbc1 = KidderIsentropicCapsuleBoundary1d(innerBoundary = False,
-                                         integrator = integrator,
-                                         answer = answer,
-                                         nodeList = nodes,
-                                         nrGhostNodes = nrGhost,
-                                         dr0 = dr)
+# rbc1 = KidderIsentropicCapsuleBoundary1d(innerBoundary = False,
+#                                          integrator = integrator,
+#                                          answer = answer,
+#                                          nodeList = nodes,
+#                                          nrGhostNodes = nrGhost,
+#                                          dr0 = dr)
 
-## hydro.appendBoundary(rbc0)
-hydro.appendBoundary(rbc1)
+# hydro.appendBoundary(rbc0)
+# hydro.appendBoundary(rbc1)
 
 integrator.appendPhysicsPackage(rbc0)
-# integrator.appendPhysicsPackage(rbc1)
+integrator.appendPhysicsPackage(rbc1)
 
 #-------------------------------------------------------------------------------
 # Make the problem controller.
@@ -284,21 +361,9 @@ integrator.appendPhysicsPackage(rbc0)
 control = SpheralController(integrator, WT,
                             statsStep = statsStep,
                             restartStep = restartStep,
-                            restartBaseName = problemName,
-                            initializeMassDensity = (sumForMassDensity != IntegrateDensity),
+                            restartBaseName = restartBaseName,
                             initializeDerivatives = True)
 output("control")
-
-# Smooth the initial conditions.
-if restoreCycle is not None:
-    control.loadRestartFile(restoreCycle)
-else:
-    control.iterateIdealH()
-    control.smoothState(smoothIters)
-
-## state = State(db, integrator.physicsPackages())
-## derivs = StateDerivatives(db, integrator.physicsPackages())
-## integrator.initialize(state, derivs)
 
 #-------------------------------------------------------------------------------
 # Advance to the end time.
@@ -311,28 +376,26 @@ print "Starting energy (measured, analytic, error): ", (control.conserve.EHistor
 if not steps is None:
     control.step(steps)
 else:
-    if control.time() < goalTime:
-        control.step(5)
-        control.advance(goalTime, maxSteps)
+    control.advance(goalTime, maxSteps)
 
 print "Final energy (measured, analytic, error): ", (control.conserve.EHistory[-1],
                                                      answer.totalEnergy(goalTime),
                                                      (control.conserve.EHistory[-1] - answer.totalEnergy(0.0))/
                                                      answer.totalEnergy(goalTime))
 
-
 #-------------------------------------------------------------------------------
 # Plot the results.
 #-------------------------------------------------------------------------------
-import Gnuplot
+from SpheralGnuPlotUtilities import *
 
 # Simulation results.
 r = mpi.allreduce([x.x for x in nodes.positions().internalValues()], mpi.SUM)
 rho = mpi.allreduce(nodes.massDensity().internalValues(), mpi.SUM)
-P = mpi.allreduce(nodes.pressure().internalValues(), mpi.SUM)
+Pfl = hydro.pressure()
+P = mpi.allreduce(Pfl[0].internalValues(), mpi.SUM)
 v = mpi.allreduce([v.x for v in nodes.velocity().internalValues()], mpi.SUM)
 eps = mpi.allreduce(nodes.specificThermalEnergy().internalValues(), mpi.SUM)
-S = [p/d**gamma for p, d in zip(P, rho)]
+S = [p/d**answer.gamma for p, d in zip(P, rho)]
 
 # Analytic results.
 t = control.time()
@@ -344,6 +407,7 @@ Sans = [answer.S for ri in r]
 
 # The ratio of the entropy to the expected value.
 alpha = [ss/sa for ss, sa in zip(S, Sans)]
+print "Total fractional range of error in entropy: ", (max(alpha) - min(alpha))
 
 # Now plot the suckers.
 if mpi.rank == 0:
@@ -362,33 +426,33 @@ if mpi.rank == 0:
     alphaData = Gnuplot.Data(r, alpha, title="Sim/Expected entropy", inline=True)
     alphaAnsData = Gnuplot.Data(r, [1.0 for x in r], title="Solution", with_="lines", inline=True)
 
-    rhoPlot = Gnuplot.Gnuplot()
+    rhoPlot = generateNewGnuPlot()
     rhoPlot.plot(rhoData)
     rhoPlot.replot(rhoAnsData)
 
-    Pplot = Gnuplot.Gnuplot()
+    Pplot = generateNewGnuPlot()
     Pplot.plot(PData)
     Pplot.replot(PansData)
 
-    Splot = Gnuplot.Gnuplot()
+    Splot = generateNewGnuPlot()
     Splot.plot(SData)
     Splot.replot(SansData)
 
-    vrPlot = Gnuplot.Gnuplot()
+    vrPlot = generateNewGnuPlot()
     vrPlot.plot(vrData)
     vrPlot.replot(vrAnsData)
 
-    epsPlot = Gnuplot.Gnuplot()
+    epsPlot = generateNewGnuPlot()
     epsPlot.plot(epsData)
     epsPlot.replot(epsAnsData)
 
-    alphaPlot = Gnuplot.Gnuplot()
+    alphaPlot = generateNewGnuPlot()
     alphaPlot.plot(alphaData)
     alphaPlot.replot(alphaAnsData)
 
     # If requested, output the profiles to an ASCII file.
     if profileASCII:
-        f = open(problemName + "_profiles.txt", "w")
+        f = open(os.path.join(dataDir, "Kidder_planar_profiles.txt"), "w")
         f.write((11*"%20s" + "\n") % ("# radius",
                                       "rad velocity (sim)",
                                       "mass density (sim)",

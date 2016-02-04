@@ -1,4 +1,5 @@
 from Spheral import *
+from SpheralTestUtilities import fuzzyEqual
 
 import os
 import random
@@ -495,7 +496,7 @@ class FileIOTestBase:
             f.close()
             assert len(v) == len(v0)
             for i in xrange(n):
-                self.failUnless(v[i] == v0[i],
+                self.failUnless(fuzzyEqual(list(v[i]), list(v0[i])),
                                 "%s != %s @ %i of %i in vector<Vector2d> test" %
                                 (str(v[i]), str(v0[i]), i, n))
             self.removeFile(filename)
@@ -523,7 +524,7 @@ class FileIOTestBase:
             f.close()
             assert len(v) == len(v0)
             for i in xrange(n):
-                self.failUnless(v[i] == v0[i],
+                self.failUnless(fuzzyEqual(list(v[i]), list(v0[i])),
                                 "%s != %s @ %i of %i in vector<Vector3d> test" %
                                 (str(v[i]), str(v0[i]), i, n))
             self.removeFile(filename)
@@ -548,7 +549,7 @@ class FileIOTestBase:
             f.close()
             assert len(v) == len(v0)
             for i in xrange(n):
-                self.failUnless(v[i] == v0[i],
+                self.failUnless(fuzzyEqual(list(v[i]), list(v0[i])),
                                 "%s != %s @ %i of %i in vector<Tensor1d> test" %
                                 (str(v[i]), str(v0[i]), i, n))
             self.removeFile(filename)
@@ -576,7 +577,7 @@ class FileIOTestBase:
             f.close()
             assert len(v) == len(v0)
             for i in xrange(n):
-                self.failUnless(v[i] == v0[i],
+                self.failUnless(fuzzyEqual(list(v[i]), list(v0[i])),
                                 "%s != %s @ %i of %i in vector<Tensor2d> test" %
                                 (str(v[i]), str(v0[i]), i, n))
             self.removeFile(filename)
@@ -609,7 +610,7 @@ class FileIOTestBase:
             f.close()
             assert len(v) == len(v0)
             for i in xrange(n):
-                self.failUnless(v[i] == v0[i],
+                self.failUnless(fuzzyEqual(list(v[i]), list(v0[i])),
                                 "%s != %s @ %i of %i in vector<Tensor3d> test" %
                                 (str(v[i]), str(v0[i]), i, n))
             self.removeFile(filename)
@@ -634,7 +635,7 @@ class FileIOTestBase:
             f.close()
             assert len(v) == len(v0)
             for i in xrange(n):
-                self.failUnless(v[i] == v0[i],
+                self.failUnless(fuzzyEqual(list(v[i]), list(v0[i])),
                                 "%s != %s @ %i of %i in vector<SymTensor1d> test" %
                                 (str(v[i]), str(v0[i]), i, n))
             self.removeFile(filename)
@@ -663,7 +664,7 @@ class FileIOTestBase:
             f.close()
             assert len(v) == len(v0)
             for i in xrange(n):
-                self.failUnless(v[i] == v0[i],
+                self.failUnless(fuzzyEqual(list(v[i]), list(v0[i])),
                                 "%s != %s @ %i of %i in vector<SymTensor2d> test" %
                                 (str(v[i]), str(v0[i]), i, n))
             self.removeFile(filename)
@@ -696,7 +697,7 @@ class FileIOTestBase:
             f.close()
             assert len(v) == len(v0)
             for i in xrange(n):
-                self.failUnless(v[i] == v0[i],
+                self.failUnless(fuzzyEqual(list(v[i]), list(v0[i])),
                                 "%s != %s @ %i of %i in vector<SymTensor3d> test" %
                                 (str(v[i]), str(v0[i]), i, n))
             self.removeFile(filename)
@@ -726,7 +727,7 @@ class FileIOTestBase:
             f.close()
             assert len(v) == len(v0)
             for i in xrange(n):
-                self.failUnless(v[i] == v0[i],
+                self.failUnless(fuzzyEqual(list(v[i]), list(v0[i])),
                                 "%s != %s @ %i of %i in vector<ThirdRankTensor2d> test" %
                                 (str(v[i]), str(v0[i]), i, n))
             self.removeFile(filename)
@@ -756,7 +757,7 @@ class FileIOTestBase:
             f.close()
             assert len(v) == len(v0)
             for i in xrange(n):
-                self.failUnless(v[i] == v0[i],
+                self.failUnless(fuzzyEqual(list(v[i]), list(v0[i])),
                                 "%s != %s @ %i of %i in vector<ThirdRankTensor3d> test" %
                                 (str(v[i]), str(v0[i]), i, n))
             self.removeFile(filename)

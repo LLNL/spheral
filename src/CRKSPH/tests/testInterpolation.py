@@ -1,6 +1,9 @@
-#ATS:test(SELF, "--graphics False --nx1 10 --nx2 10 --testDim 1d", label="CRKSPH interpolation test -- 1D (serial)")
-#ATS:test(SELF, "--graphics False --nx1 10 --nx2 10 --testDim 2d", label="CRKSPH interpolation test -- 2D (serial)")
-#ATS:test(SELF, "--graphics False --nx1 10 --nx2 10 --testDim 3d", label="CRKSPH interpolation test -- 3D (serial)")
+#ATS:test(SELF, "--graphics False --nx1 10 --nx2 10 --testDim 1d --testCase linear", label="CRKSPH linear interpolation test -- 1D (serial)")
+#ATS:test(SELF, "--graphics False --nx1 10 --nx2 10 --testDim 2d --testCase linear", label="CRKSPH linear interpolation test -- 2D (serial)")
+#ATS:test(SELF, "--graphics False --nx1 10 --nx2 10 --testDim 3d --testCase linear", label="CRKSPH linear interpolation test -- 3D (serial)")
+#ATS:test(SELF, "--graphics False --nx1 10 --nx2 10 --testDim 1d --testCase quadratic --correctionOrder QuadraticOrder", label="CRKSPH quadratic interpolation test -- 1D (serial)")
+#ATS:test(SELF, "--graphics False --nx1 10 --nx2 10 --testDim 2d --testCase quadratic --correctionOrder QuadraticOrder", label="CRKSPH quadratic interpolation test -- 2D (serial)")
+#ATS:test(SELF, "--graphics False --nx1 10 --nx2 10 --testDim 3d --testCase quadratic --correctionOrder QuadraticOrder", label="CRKSPH quadratic interpolation test -- 3D (serial)")
 #-------------------------------------------------------------------------------
 # A set of tests to compare how different meshless methods interpolate fields.
 #-------------------------------------------------------------------------------
@@ -234,9 +237,7 @@ for i in xrange(nodes1.numInternalNodes):
 # Prepare variables to accumulate the test values.
 #-------------------------------------------------------------------------------
 fSPH = ScalarField("SPH interpolated values", nodes1)
-fCRKSPH = ScalarField("CRKSPH interpolated values", nodes1)
 dfSPH = VectorField("SPH derivative values", nodes1)
-dfCRKSPH = VectorField("CRKSPH derivative values", nodes1)
 
 A_fl = db.newFluidScalarFieldList(0.0, "A")
 B_fl = db.newFluidVectorFieldList(Vector.zero, "B")
@@ -291,20 +292,11 @@ for i in xrange(nodes1.numInternalNodes):
     Hi = H[i]
     Hdeti = H[i].Determinant()
     wi = weight[i]
-    Ai = A[i]
-    Bi = B[i]
-    Ci = C[i]
-    gradAi = gradA[i]
-    gradBi = gradB[i]
-    gradCi = gradC[i]
     fi = f[i]
 
     # Self contribution.
     W0 = WT.kernelValue(0.0, Hdeti)
     fSPH[i] = wi*W0 * fi
-    fCRKSPH[i] = wi*W0*Ai * fi
-    dfCRKSPH[i] = fi * wi*(Ai*Bi*W0 +
-                         gradAi*W0)
 
     # Go over them neighbors.
     neighbors = cm.connectivityForNode(nodes1, i)
@@ -314,8 +306,6 @@ for i in xrange(nodes1.numInternalNodes):
         Hj = H[j]
         Hdetj = H[j].Determinant()
         wj = weight[j]
-        Aj = A[j]
-        Bj = B[j]
         fj = f[j]
 
         # The standard SPH kernel and it's gradient.
@@ -325,41 +315,14 @@ for i in xrange(nodes1.numInternalNodes):
         Wj = WT.kernelValue(etaj.magnitude(), Hdetj)
         gradWj = Hj*etaj.unitVector() * WT.gradValue(etaj.magnitude(), Hdetj)
 
-        # The corrected kernel and it's gradient.
-        WRj = 0.0
-        dummy = 0.0
-        gradWRj = Vector()
-        WRj, dummy = CRKSPHKernelAndGradient(WT,
-                                             correctionOrder,
-                                             rij,
-                                             -etai,
-                                             Hi,
-                                             Hdeti,
-                                             etaj,
-                                             Hj,
-                                             Hdetj,
-                                             Ai,
-                                             Bi,
-                                             Ci,
-                                             gradAi,
-                                             gradBi,
-                                             gradCi,
-                                             gradWRj)
-        assert fuzzyEqual(WRj, CRKSPHKernel(WT, correctionOrder, rij, etai, Hdeti, etaj, Hdetj, Ai, Bi, Ci), 1.0e-5)
-
         # Increment our interpolated values.
         fSPH[i] += fj * wj*Wj
-        fCRKSPH[i] += fj * wj*WRj
 
         # Increment the derivatives.
         dfSPH[i] += fj * wj*gradWj
-        dfCRKSPH[i] += fj * wj*gradWRj
 
-    # We can now apply the integration correction (C) for CRKSPH.
-    #dfCRKSPH[i] += Ci*(fi - fCRKSPH[i])
- 
 #-------------------------------------------------------------------------------
-# We also check the C++ interpolation and gradient methods.
+# Check the C++ interpolation and gradient methods.
 #-------------------------------------------------------------------------------
 f_fl = ScalarFieldList()
 f_fl.appendField(f)
@@ -368,6 +331,8 @@ fCRKSPH_fl = interpolateCRKSPH(f_fl, position_fl, weight_fl, H_fl, A_fl, B_fl, C
 dfCRKSPH_fl = gradientCRKSPH(f_fl, position_fl, weight_fl, H_fl,
                              A_fl, B_fl, C_fl, gradA_fl, gradB_fl, gradC_fl,
                              cm, correctionOrder, WT)
+fCRKSPH = fCRKSPH_fl[0]
+dfCRKSPH = dfCRKSPH_fl[0]
 
 #-------------------------------------------------------------------------------
 # Prepare the answer to check against.
@@ -494,15 +459,6 @@ if graphics:
     p4.title("Error in derivatives")
     p4.refresh()
 
-    p5 = plotFieldList(fCRKSPH_fl, 
-                       winTitle = "C++ CRKSPH interpolation",
-                       colorNodeLists = False)
-
-    p6 = plotFieldList(dfCRKSPH_fl, 
-                       yFunction = "%s.x",
-                       winTitle = "C++ grad CRKSPH",
-                       colorNodeLists = False)
-
     # Plot the kernel shapes as appropriate.
     if testDim == "1d":
         p7 = generateNewGnuPlot()
@@ -554,9 +510,7 @@ if graphics:
                           fields = [fSPH, fCRKSPH, dfSPH, dfCRKSPH,
                                     yans, dyans,
                                     errySPH, erryCRKSPH, errdySPH, errdyCRKSPH],
-                          fieldLists = [weight_fl, 
-                                        A_fl, B_fl, gradA_fl, gradB_fl,
-                                        dfCRKSPH_fl])
+                          fieldLists = [weight_fl, A_fl, B_fl, gradA_fl, gradB_fl])
 
 if plotKernels:
     import Gnuplot

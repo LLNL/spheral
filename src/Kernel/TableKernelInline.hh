@@ -146,7 +146,6 @@ TableKernel<Dimension>::parabolicInterp(const double etaMagnitude,
   if (etaMagnitude < this->mKernelExtent) {
     const int i0 = min(mNumPoints - 3, lowerBound(etaMagnitude));
     const int i1 = i0 + 1;
-    const int i2 = i0 + 2;
     const double deta = etaMagnitude - i1*mStepSize;
     return a[i1]*deta*deta + b[i1]*deta + table[i1];
   } else {

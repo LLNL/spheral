@@ -34,16 +34,13 @@ class KidderIsentropicCapsuleBoundary1d(Boundary1d):
                                  HydroFieldNames.velocity : self.velocityBoundary,
                                  HydroFieldNames.massDensity : self.rhoBoundary,
                                  HydroFieldNames.specificThermalEnergy : self.noopBoundary,
-                                 HydroFieldNames.weight : self.weightBoundary,
                                  HydroFieldNames.pressure : self.pressureBoundary,
                                  HydroFieldNames.soundSpeed : self.noopBoundary,
-                                 HydroFieldNames.positionWeight : self.positionWeightBoundary,
                                  HydroFieldNames.omegaGradh : self.omegaBoundary,
                                  HydroFieldNames.specificThermalEnergy + "0" : self.noopBoundary,
                                  HydroFieldNames.A_CRKSPH : self.noopBoundary,
                                  HydroFieldNames.B_CRKSPH : self.noopBoundary,
                                  HydroFieldNames.C_CRKSPH : self.noopBoundary,
-                                 HydroFieldNames.D_CRKSPH : self.noopBoundary,
                                  HydroFieldNames.gradA_CRKSPH : self.noopBoundary,
                                  HydroFieldNames.gradB_CRKSPH : self.noopBoundary,
                                  }
@@ -61,6 +58,7 @@ class KidderIsentropicCapsuleBoundary1d(Boundary1d):
         boundNodes = self.accessBoundaryNodes(nodeList)
         for i in self.nodeIDs:
             boundNodes.ghostNodes().append(i)
+            boundNodes.controlNodes().append(0)
 
         self.updateGhostNodes(nodeList)
         return
@@ -109,6 +107,7 @@ class KidderIsentropicCapsuleBoundary1d(Boundary1d):
             print "KidderBoundary WARNING: unable to apply boundary condition to %s" % field.name
             return
 
+        print "Apply GHOST to ", field.name
         self.fieldToMethodMap[field.name](field)
         return
 
@@ -137,10 +136,12 @@ class KidderIsentropicCapsuleBoundary1d(Boundary1d):
         assert field.name == HydroFieldNames.mass
         t = self.integrator.currentTime
         pos = self.nodes.positions()
+        print "Applying mass boundary"
         for i in self.nodeIDs:
             rhoi = self.answer.rho(t, pos[i].x)
             field[i] = rhoi * self.dr
             assert field[i] > 0.0
+            print " --> ", i, rhoi, field[i]
         return
 
     #---------------------------------------------------------------------------
@@ -166,15 +167,6 @@ class KidderIsentropicCapsuleBoundary1d(Boundary1d):
         return
 
     #---------------------------------------------------------------------------
-    # Weight.
-    #---------------------------------------------------------------------------
-    def weightBoundary(self, field):
-        assert field.name == HydroFieldNames.weight
-        for i in self.nodeIDs:
-            field[i] = self.dr
-        return
-
-    #---------------------------------------------------------------------------
     # Pressure.
     #---------------------------------------------------------------------------
     def pressureBoundary(self, field):
@@ -183,15 +175,6 @@ class KidderIsentropicCapsuleBoundary1d(Boundary1d):
         pos = self.nodes.positions()
         for i in self.nodeIDs:
             field[i] = self.answer.P(t, pos[i].x)
-        return
-
-    #---------------------------------------------------------------------------
-    # Position weight.
-    #---------------------------------------------------------------------------
-    def positionWeightBoundary(self, field):
-        assert field.name == HydroFieldNames.positionWeight
-        for i in self.nodeIDs:
-            field[i] = 1.0
         return
 
     #---------------------------------------------------------------------------
@@ -258,25 +241,14 @@ class KidderIsentropicCapsuleEnforcementBoundary1d(Physics1d):
         t = self.integrator.currentTime
 
         # Extract the state we're going to set.
-        Key = pair_NodeList1d_string
-        rhoKey = Key(self.nodes, HydroFieldNames.massDensity)
-        posKey = Key(self.nodes, HydroFieldNames.position)
-        epsKey = Key(self.nodes, HydroFieldNames.specificThermalEnergy)
-        velKey = Key(self.nodes, HydroFieldNames.velocity)
-        Hkey = Key(self.nodes, HydroFieldNames.H)
-        Pkey = Key(self.nodes, HydroFieldNames.pressure)
-        csKey = Key(self.nodes, HydroFieldNames.soundSpeed)
-        wKey = Key(self.nodes, HydroFieldNames.weight)
-        mKey = Key(self.nodes, HydroFieldNames.mass)
-        rho = state.scalarField(rhoKey)
-        pos = state.vectorField(posKey)
-        eps = state.scalarField(epsKey)
-        vel = state.vectorField(velKey)
-        H = state.symTensorField(Hkey)
-        P = state.scalarField(Pkey)
-        cs = state.scalarField(csKey)
-        weight = state.scalarField(wKey)
-        mass = state.scalarField(mKey)
+        rho = state.scalarFields(HydroFieldNames.massDensity)
+        pos = state.vectorFields(HydroFieldNames.position)
+        eps = state.scalarFields(HydroFieldNames.specificThermalEnergy)
+        vel = state.vectorFields(HydroFieldNames.velocity)
+        H = state.symTensorFields(HydroFieldNames.H)
+        P = state.scalarFields(HydroFieldNames.pressure)
+        cs = state.scalarFields(HydroFieldNames.soundSpeed)
+        mass = state.scalarFields(HydroFieldNames.mass)
         
         hfrac = self.answer.hfrac(t)
         Hi = SymTensor1d(1.0/max(self.hmin, min(self.hmax, self.hinitial*hfrac)))
@@ -285,19 +257,18 @@ class KidderIsentropicCapsuleEnforcementBoundary1d(Physics1d):
         for k in xrange(len(self.nodeIDs)):
             i = self.nodeIDs[k]
             ri = self.initialRadii[k]*hfrac
-            rhoi = mass[i]/(self.dr0*hfrac)   # self.answer.rho(t, ri)
+            rhoi = mass[0][i]/(self.dr0*hfrac)   # self.answer.rho(t, ri)
             epsi = self.initialEps[k]/(hfrac*hfrac)
             Pi = self.gamma1*rhoi*epsi
             #Pi = self.answer.P(t, ri)
             #epsi = Pi/(self.gamma1*rhoi)
-            rho[i] = rhoi
-            pos[i].x = ri
-            eps[i] = epsi
-            vel[i].x = self.answer.vr(t, ri)
-            H[i] = Hi
-            P[i] = Pi
-            cs[i] = sqrt(self.gamma * self.gamma1 * epsi)
-            weight[i] = mass[i]/rhoi
+            rho[0][i] = rhoi
+            pos[0][i].x = ri
+            eps[0][i] = epsi
+            vel[0][i].x = self.answer.vr(t, ri)
+            H[0][i] = Hi
+            P[0][i] = Pi
+            cs[0][i] = sqrt(self.gamma * self.gamma1 * epsi)
         
         n = self.nodes.neighbor()
         n.updateNodes()        
@@ -313,27 +284,16 @@ class KidderIsentropicCapsuleEnforcementBoundary1d(Physics1d):
         t = self.integrator.currentTime
 
         # Extract the state we're going to set.
-        Key = pair_NodeList1d_string
-        DxDtKey = Key(self.nodes, "delta " + HydroFieldNames.position)
-        DvDtKey = Key(self.nodes, "delta " + HydroFieldNames.velocity)
-        DvDxKey = Key(self.nodes, HydroFieldNames.velocityGradient)
-        internalDvDxKey = Key(self.nodes, HydroFieldNames.internalVelocityGradient)
-        DHDtKey = Key(self.nodes, "delta " + HydroFieldNames.H)
-        DrhoDtKey = Key(self.nodes, "delta " + HydroFieldNames.massDensity)
-        DepsDtKey = Key(self.nodes, "delta " + HydroFieldNames.specificThermalEnergy)
-        rhoSumKey = Key(self.nodes, "new " + HydroFieldNames.massDensity)
-        HidealKey = Key(self.nodes, "new " + HydroFieldNames.H)
-        XSPHDeltaVkey = Key(self.nodes, HydroFieldNames.XSPHDeltaV)
-        DxDt = derivs.vectorField(DxDtKey)
-        DvDt = derivs.vectorField(DvDtKey)
-        DvDx = derivs.tensorField(DvDxKey)
-        internalDvDx = derivs.tensorField(internalDvDxKey)
-        DHDt = derivs.symTensorField(DHDtKey)
-        DrhoDt = derivs.scalarField(DrhoDtKey)
-        DepsDt = derivs.scalarField(DepsDtKey)
-        rhoSum = derivs.scalarField(rhoSumKey)
-        Hideal = derivs.symTensorField(HidealKey)
-        XSPHDeltaV = derivs.vectorField(XSPHDeltaVkey)
+        DxDt = derivs.vectorFields("delta " + HydroFieldNames.position)
+        DvDt = derivs.vectorFields("delta " + HydroFieldNames.velocity)
+        DvDx = derivs.tensorFields(HydroFieldNames.velocityGradient)
+        internalDvDx = derivs.tensorFields(HydroFieldNames.internalVelocityGradient)
+        DHDt = derivs.symTensorFields("delta " + HydroFieldNames.H)
+        DrhoDt = derivs.scalarFields("delta " + HydroFieldNames.massDensity)
+        DepsDt = derivs.scalarFields("delta " + HydroFieldNames.specificThermalEnergy)
+        #rhoSum = derivs.scalarFields("new " + HydroFieldNames.massDensity)
+        Hideal = derivs.symTensorFields("new " + HydroFieldNames.H)
+        XSPHDeltaV = derivs.vectorFields(HydroFieldNames.XSPHDeltaV)
         mass = self.nodes.mass()
 
         hfrac = self.answer.hfrac(t)
@@ -351,15 +311,15 @@ class KidderIsentropicCapsuleEnforcementBoundary1d(Physics1d):
             rhoDoti = self.answer.rhoDot(t, ri)
             Pdoti = self.answer.Pdot(t, ri)
 
-            DxDt[i].x = self.answer.vr(t, ri)
-            DvDt[i].x = self.answer.vrDot(t, ri)
-            DvDx[i] = DvDxi
-            internalDvDx[i] = DvDxi
-            DHDt[i] = Hi*rhoDoti/rhoi
-            DrhoDt[i] = rhoDoti
-            DepsDt[i] = (Pdoti - Pi*rhoDoti/rhoi)/(self.gamma1*rhoi)
-            rhoSum[i] = rhoi
-            Hideal[i] = Hi
+            DxDt[0][i].x = self.answer.vr(t, ri)
+            DvDt[0][i].x = self.answer.vrDot(t, ri)
+            DvDx[0][i] = DvDxi
+            internalDvDx[0][i] = DvDxi
+            DHDt[0][i] = Hi*rhoDoti/rhoi
+            DrhoDt[0][i] = rhoDoti
+            DepsDt[0][i] = (Pdoti - Pi*rhoDoti/rhoi)/(self.gamma1*rhoi)
+            #rhoSum[0][i] = rhoi
+            Hideal[0][i] = Hi
             XSPHDeltaV.Zero()
         
         return

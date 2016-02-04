@@ -36,6 +36,7 @@ enum MassDensityType {
   IntegrateDensity = 3,
   VoronoiCellDensity = 4,
   SumVoronoiCellDensity = 5,
+  CorrectedSumDensity = 6,
 };
 
 enum HEvolutionType {

@@ -134,7 +134,6 @@ if test "`uname -s`" = "AIX"; then
   #GCCXMLDIST="gccxml-0.6.0.tar.bz2"
 else
   GCCXMLDIST="gccxml-cvssnapshot-2008-02-04.tar.bz2"
-  EXTRATHIRDPARTYTARGETS+=" .numpy-1.9.1.date .gnuplot-py-1.8.date"
 fi
 
 # -----------------------------------------------------------------
@@ -212,6 +211,21 @@ AC_ARG_WITH(thirdPartyLibs,
 [
     AC_MSG_RESULT(no)
     BUILDTHIRDPARTYTARGET="thirdPartyLibs"
+])
+
+# -----------------------------------------------------------------
+# Optionally do not build numpy.
+# -----------------------------------------------------------------
+AC_SUBST(BUILDNUMPY)
+AC_MSG_CHECKING(for --without-numpy)
+AC_ARG_WITH(numpy,
+[  --without-numpy .......................... do not build the NumPy third party extension],
+[
+    AC_MSG_RESULT(yes)
+],
+[
+    AC_MSG_RESULT(no)
+    EXTRATHIRDPARTYTARGETS+=" .numpy-1.10.4.date .gnuplot-py-1.8.date"
 ])
 
 # -----------------------------------------------------------------

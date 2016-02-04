@@ -150,14 +150,43 @@ computeCRKSPHMoments(const ConnectivityMap<Dimension>& connectivityMap,
 
             // Kernel weighting and gradient.
             const Vector rij = ri - rj;
-            const Vector etai = Hi*rij;
-            const Vector etaj = Hj*rij;
-            const std::pair<double, double> WWi = W.kernelAndGradValue(etai.magnitude(), Hdeti);
-            const Scalar Wi = WWi.first;
-            const Vector gradWi = -(Hi*etai.unitVector())*WWi.second;
-            const std::pair<double, double> WWj = W.kernelAndGradValue(etaj.magnitude(), Hdetj);
-            const Scalar Wj = WWj.first;
-            const Vector gradWj = (Hj*etaj.unitVector())*WWj.second;
+            Vector etai = Hi*rij;
+            Vector etaj = Hj*rij;
+
+            // Symmetrize eta first, giving us an effective hij.
+            const Vector etaij = 0.5*(etai + etaj);
+            const Scalar rijmag = rij.magnitude();
+            const Scalar hi = rijmag*safeInvVar(etai.magnitude());
+            const Scalar hj = rijmag*safeInvVar(etaj.magnitude());
+            const Scalar hij = rijmag*safeInvVar(etaij.magnitude());
+            const Scalar Hdetii = Hdeti*Dimension::pownu(hi/hij);
+            const Scalar Hdetjj = Hdetj*Dimension::pownu(hj/hij);
+            // cerr << i << " " << etai << " " << etaj << " " << etaij << " " << hi << " " << hj << " " << hij << " " << Hdetii << " " << Hdetjj << endl;
+            const std::pair<double, double> WWi = W.kernelAndGradValue(etaij.magnitude(), Hdetii);
+            const std::pair<double, double> WWj = W.kernelAndGradValue(etaij.magnitude(), Hdetjj);
+            const Scalar Wi = 0.5*(WWi.first + WWj.first);
+            const Scalar Wj = Wi;
+            const Vector gradWj = 0.5*((Hj*etaj.unitVector())*WWj.second +
+                                       (Hi*etai.unitVector())*WWi.second);
+            const Vector gradWi = -gradWj;
+
+            // const std::pair<double, double> WWi = W.kernelAndGradValue(etai.magnitude(), Hdeti);
+            // const std::pair<double, double> WWj = W.kernelAndGradValue(etaj.magnitude(), Hdetj);
+            // // j
+            // const Scalar Wi = WWi.first;
+            // const Scalar Wj = WWj.first;
+            // const Vector gradWj =  (Hj*etaj.unitVector())*WWj.second;
+            // const Vector gradWi = -(Hi*etai.unitVector())*WWi.second;
+            // // i
+            // // const Scalar Wi = WWj.first;
+            // // const Scalar Wj = WWi.first;
+            // // const Vector gradWj = -(Hi*etai.unitVector())*WWi.second;
+            // // const Vector gradWi =  (Hj*etaj.unitVector())*WWj.second;
+            // // ij
+            // // const Scalar Wij = 0.5*(WWi.first + WWj.first);
+            // // const Scalar Wi = Wij, Wj = Wij;
+            // // const Vector gradWj = 0.5*((-Hi*etai.unitVector())*WWi.second + (Hj*etaj.unitVector())*WWj.second);
+            // // const Vector gradWi = gradWj;
 
             // Zeroth moment. 
             const Scalar wwi = wi*Wi;

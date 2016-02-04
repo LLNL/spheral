@@ -1,16 +1,37 @@
+#-------------------------------------------------------------------------------
+# The Planar Noh test case run in 1-D.
+#
+# W.F. Noh 1987, JCP, 72, 78-120.
+#-------------------------------------------------------------------------------
+#
+# Ordinary SPH
+#
 #ATS:t0 = test(      SELF, "--graphics None --clearDirectories True  --checkError True   --restartStep 20", label="Planar Noh problem -- 1-D (serial)")
 #ATS:t1 = testif(t0, SELF, "--graphics None --clearDirectories False --checkError False  --restartStep 20 --restoreCycle 20 --steps 20 --checkRestart True", label="Planar Noh problem -- 1-D (serial) RESTART CHECK")
 #ATS:t2 = test(      SELF, "--graphics None --clearDirectories True  --checkError True  --dataDir 'dumps-planar-restartcheck' --restartStep 20", np=2, label="Planar Noh problem -- 1-D (parallel)")
 #ATS:t3 = testif(t2, SELF, "--graphics None --clearDirectories False --checkError False --dataDir 'dumps-planar-restartcheck' --restartStep 20 --restoreCycle 20 --steps 20 --checkRestart True", np=2, label="Planar Noh problem -- 1-D (parallel) RESTART CHECK")
 #ATS:t4 = test(      SELF, "--graphics None --clearDirectories True  --checkError True  --dataDir 'dumps-planar-reproducing' --domainIndependent True --outputFile 'Noh-planar-1proc-reproducing.txt'", label="Planar Noh problem -- 1-D (serial reproducing test setup)")
 #ATS:t5 = testif(t4, SELF, "--graphics None --clearDirectories False  --checkError True  --dataDir 'dumps-planar-reproducing' --domainIndependent True --outputFile 'Noh-planar-4proc-reproducing.txt' --comparisonFile 'Noh-planar-1proc-reproducing.txt'", np=4, label="Planar Noh problem -- 1-D (4 proc reproducing test)")
-#ATS:t6 = test(      SELF, "--CRKSPH True --cfl 0.25 --graphics None --clearDirectories True  --dataDir 'dumps-planar-CRK' --checkError False --restartStep 20 --steps 40", label="Planar Noh problem with CRK -- 1-D (serial)")
-#ATS:t7 = testif(t6, SELF, "--CRKSPH True --cfl 0.25 --graphics None --clearDirectories False --dataDir 'dumps-planar-CRK' --checkError False --restartStep 20 --restoreCycle 20 --steps 20 --checkRestart True", label="Planar Noh problem with CRK -- 1-D (serial) RESTART CHECK")
-#-------------------------------------------------------------------------------
-# The Planar Noh test case run in 1-D.
 #
-# W.F. Noh 1987, JCP, 72, 78-120.
-#-------------------------------------------------------------------------------
+# Ordinary solid SPH
+#
+#ATS:t100 = test(      SELF, "--solid True --graphics None --clearDirectories True  --checkError True   --restartStep 20", label="Planar Noh problem with solid SPH -- 1-D (serial)")
+#ATS:t101 = testif(t100, SELF, "--solid True --graphics None --clearDirectories False --checkError False  --restartStep 20 --restoreCycle 20 --steps 20 --checkRestart True", label="Planar Noh problem with solid SPH -- 1-D (serial) RESTART CHECK")
+#ATS:t102 = test(      SELF, "--solid True --graphics None --clearDirectories True  --checkError True  --dataDir 'dumps-planar-restartcheck' --restartStep 20", np=2, label="Planar Noh problem with solid SPH -- 1-D (parallel)")
+#ATS:t103 = testif(t102, SELF, "--solid True --graphics None --clearDirectories False --checkError False --dataDir 'dumps-planar-restartcheck' --restartStep 20 --restoreCycle 20 --steps 20 --checkRestart True", np=2, label="Planar Noh problem with solid SPH -- 1-D (parallel) RESTART CHECK")
+#ATS:t104 = test(      SELF, "--solid True --graphics None --clearDirectories True  --checkError True  --dataDir 'dumps-planar-reproducing' --domainIndependent True --outputFile 'Noh-planar-1proc-reproducing.txt'", label="Planar Noh problem with solid SPH -- 1-D (serial reproducing test setup)")
+#ATS:t105 = testif(t104, SELF, "--solid True --graphics None --clearDirectories False  --checkError True  --dataDir 'dumps-planar-reproducing' --domainIndependent True --outputFile 'Noh-planar-4proc-reproducing.txt' --comparisonFile 'Noh-planar-1proc-reproducing.txt'", np=4, label="Planar Noh  problem with solid SPH -- 1-D (4 proc reproducing test)")
+#
+# CRK
+#
+#ATS:t6 = test(      SELF, "--CRKSPH True --cfl 0.25 --KernelConstructor NBSplineKernel --order 7 --nPerh 1.01 --Cl 2.0 --Cq 1.0 --graphics None --clearDirectories True --checkError False --restartStep 20 --steps 40", label="Planar Noh problem with CRK -- 1-D (serial)")
+#ATS:t7 = testif(t6, SELF, "--CRKSPH True --cfl 0.25 --KernelConstructor NBSplineKernel --order 7 --nPerh 1.01 --Cl 2.0 --Cq 1.0 --graphics None --clearDirectories False --checkError False --restartStep 20 --restoreCycle 20 --steps 20 --checkRestart True", label="Planar Noh problem with CRK -- 1-D (serial) RESTART CHECK")
+#
+# PSPH
+#
+#ATS:t8 = test(      SELF, "--PSPH True --graphics None --clearDirectories True --checkError False --restartStep 20 --steps 40", label="Planar Noh problem with PSPH -- 1-D (serial)")
+#ATS:t9 = testif(t8, SELF, "--PSPH True --graphics None --clearDirectories False --checkError False --restartStep 20 --restoreCycle 20 --steps 20 --checkRestart True", label="Planar Noh problem with PSPH -- 1-D (serial) RESTART CHECK")
+
 import os, shutil
 from SolidSpheral1d import *
 from SpheralTestUtilities import *
@@ -126,25 +147,25 @@ commandLine(KernelConstructor = BSplineKernel,
             comparisonFile = "None",
 
             # Parameters for the test acceptance.,
-            L1rho =   0.0434126,
-            L2rho =   0.206929,
-            Linfrho = 1.62872,
-                                                                         
-            L1P =     0.0180305,
-            L2P =     0.0842893,
-            LinfP =   0.645561,
-                                                                         
-            L1v =     0.0228862,
-            L2v =     0.115948,
-            Linfv =   0.842776,
-                                                                         
-            L1eps =   0.0110498,
-            L2eps =   0.0526271,
-            Linfeps = 0.36837,
-                                                             
-            L1h =     0.000318824,
-            L2h =     0.00127697,
-            Linfh =   0.00768513,
+            L1rho =   0.0429382,  
+            L2rho =   0.2137,     
+            Linfrho = 1.7316,     
+                                                                       
+            L1P =     0.0158733,  
+            L2P =     0.0770935,  
+            LinfP =   0.611993,   
+                                                                       
+            L1v =     0.0226381,  
+            L2v =     0.116815,   
+            Linfv =   0.864014,   
+                                                                       
+            L1eps =   0.00984817, 
+            L2eps =   0.0468995,  
+            Linfeps = 0.336063,   
+                                                           
+            L1h =     0.000306102,
+            L2h =     0.00125445, 
+            Linfh =   0.00771623, 
 
             tol = 1.0e-5,
 
@@ -268,7 +289,10 @@ output("db.numFluidNodeLists")
 #-------------------------------------------------------------------------------
 # Construct the artificial viscosity.
 #-------------------------------------------------------------------------------
-q = Qconstructor(Cl, Cq, linearInExpansion)
+try:
+   q = Qconstructor(Cl, Cq, linearInExpansion)
+except:
+   q = Qconstructor(Cl, Cq)
 q.epsilon2 = epsilon2
 q.limiter = Qlimiter
 q.balsaraShearCorrection = balsaraCorrection
@@ -279,8 +303,11 @@ output("q.Cq")
 output("q.epsilon2")
 output("q.limiter")
 output("q.balsaraShearCorrection")
-output("q.linearInExpansion")
-output("q.quadraticInExpansion")
+try:
+   output("q.linearInExpansion")
+   output("q.quadraticInExpansion")
+except:
+   pass
 
 #-------------------------------------------------------------------------------
 # Construct the hydro physics object.
@@ -589,7 +616,7 @@ xprof = mpi.reduce([x.x for x in nodes1.positions().internalValues()], mpi.SUM)
 #-------------------------------------------------------------------------------
 if outputFile != "None":
     outputFile = os.path.join(dataDir, outputFile)
-    from SpheralGnuPlotUtilities import multiSort
+    from SpheralTestUtilities import multiSort
     mof = mortonOrderIndices(db)
     mo = mpi.reduce(mof[0].internalValues(), mpi.SUM)
     mprof = mpi.reduce(nodes1.mass().internalValues(), mpi.SUM)
