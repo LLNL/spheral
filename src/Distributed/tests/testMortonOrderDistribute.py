@@ -4,7 +4,6 @@ import unittest
 
 from Spheral import *
 from testDistributeByPosition2d import TestDistributeByPosition2d
-from SpheralGnuPlotUtilities import *
 
 #===============================================================================
 # Load mpi, and figure out how may domains to set up, and which domain we are.

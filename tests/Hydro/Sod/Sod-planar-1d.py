@@ -247,7 +247,10 @@ output("db.numFluidNodeLists")
 #-------------------------------------------------------------------------------
 # Construct the artificial viscosity.
 #-------------------------------------------------------------------------------
-q = Qconstructor(Cl, Cq, linearInExpansion, quadraticInExpansion)
+try:
+    q = Qconstructor(Cl, Cq, linearInExpansion, quadraticInExpansion)
+except:
+    q = Qconstructor(Cl, Cq)
 q.limiter = Qlimiter
 q.epsilon2 = epsilon2
 output("q")
@@ -255,8 +258,11 @@ output("q.Cl")
 output("q.Cq")
 output("q.limiter")
 output("q.epsilon2")
-output("q.linearInExpansion")
-output("q.quadraticInExpansion")
+try:
+    output("q.linearInExpansion")
+    output("q.quadraticInExpansion")
+except:
+    pass
 
 #-------------------------------------------------------------------------------
 # Construct the hydro physics object.
@@ -281,6 +287,7 @@ elif CRKSPH:
                              correctionOrder = correctionOrder,
                              volumeType = volumeType,
                              compatibleEnergyEvolution = compatibleEnergy,
+                             evolveTotalEnergy = evolveTotalEnergy,
                              XSPH = XSPH,
                              densityUpdate = densityUpdate,
                              HUpdate = HUpdate)
@@ -594,7 +601,7 @@ print "Energy conservation: original=%g, final=%g, error=%g" % (control.conserve
 #-------------------------------------------------------------------------------
 # If requested, write out the state in a global ordering to a file.
 #-------------------------------------------------------------------------------
-from SpheralGnuPlotUtilities import multiSort
+from SpheralTestUtilities import multiSort
 mof = mortonOrderIndices(db)
 mo = createList(mof)
 rhoprof = createList(db.fluidMassDensity)

@@ -880,25 +880,29 @@ class GenerateNodesMatchingProfile2d(NodeGeneratorBase):
         theta = thetaMax - thetaMin
         ri = rmax
         while ri > rmin:
+
+            
             
             # Get the nominal delta r, delta theta, number of nodes, and mass per
             # node at this radius.
             rhoi = densityProfileMethod(ri)
             dr = sqrt(m0/rhoi)
-            arclength = theta*ri
+            rii = ri+dr/2.0
+            rhoi = densityProfileMethod(rii)
+            arclength = theta*rii
             arcmass = arclength*dr*rhoi
             nTheta = max(1, int(arcmass/m0))
             dTheta = theta/nTheta
             mi = arcmass/nTheta
-            hi = nNodePerh*0.5*(dr + ri*dTheta)
+            hi = nNodePerh*0.5*(dr + rii*dTheta)
             Hi = SymTensor2d(1.0/hi, 0.0,
                              0.0, 1.0/hi)
                              
             # Now assign the nodes for this radius.
             for i in xrange(nTheta):
                 thetai = thetaMin + (i + 0.5)*dTheta
-                x.append(ri*cos(thetai))
-                y.append(ri*sin(thetai))
+                x.append(rii*cos(thetai))
+                y.append(rii*sin(thetai))
                 m.append(mi)
                 H.append(Hi)
 

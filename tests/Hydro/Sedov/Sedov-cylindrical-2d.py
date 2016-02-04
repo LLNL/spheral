@@ -344,7 +344,6 @@ elif PSPH:
                              useVelocityMagnitudeForDt = useVelocityMagnitudeForDt,
                              compatibleEnergyEvolution = compatibleEnergy,
                              evolveTotalEnergy = evolveTotalEnergy,
-                             gradhCorrection = gradhCorrection,
                              HopkinsConductivity = HopkinsConductivity,
                              densityUpdate = densityUpdate,
                              HUpdate = HUpdate,

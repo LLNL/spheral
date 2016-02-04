@@ -396,7 +396,7 @@ initialize(const typename Dimension::Scalar time,
   if (this->volumeType() == CRKMassOverDensity) {
     vol.assignFields(mass/massDensity);
   } else if (this->volumeType() == CRKSumVolume) {
-    computeCRKSPHSumVolume(connectivityMap, W, position, H, vol);
+    computeCRKSPHSumVolume(connectivityMap, W, position, mass, H, vol);
   } else if (this->volumeType() == CRKVoronoiVolume) {
     computeVoronoiVolume(position, vol);
   } else if (this->volumeType() == CRKHullVolume) {
@@ -767,10 +767,10 @@ evaluateDerivatives(const typename Dimension::Scalar time,
               // Symmetrized kernel weight and gradient.
               Scalar gWi, gWj, Wi, Wj, gWdami, gWdamj, Wdami, Wdamj;
               Vector gradWi, gradWj, gradWdami, gradWdamj;
-              CRKSPHKernelAndGradient(W, CRKSPHHydroBase<Dimension>::correctionOrder(),  rij, -etai, Hi, Hdeti,  etaj, Hj, Hdetj, Ai, Bi, Ci, gradAi, gradBi, gradCi, Wj, gWj, gradWj);
-              CRKSPHKernelAndGradient(W, CRKSPHHydroBase<Dimension>::correctionOrder(), -rij,  etaj, Hj, Hdetj, -etai, Hi, Hdeti, Aj, Bj, Cj, gradAj, gradBj, gradCj, Wi, gWi, gradWi);
-              CRKSPHKernelAndGradient(W, CRKSPHHydroBase<Dimension>::correctionOrder(),  rij, -etai, Hi, Hdeti,  etaj, Hj, Hdetj, Adami, Bdami, Cdami, gradAdami, gradBdami, gradCdami, Wdamj, gWdamj, gradWdamj);//Replace with Solid form of quadratic Cdami and gradCdami when implemented
-              CRKSPHKernelAndGradient(W, CRKSPHHydroBase<Dimension>::correctionOrder(), -rij,  etaj, Hj, Hdetj, -etai, Hi, Hdeti, Adamj, Bdamj, Cdamj, gradAdamj, gradBdamj, gradCdamj, Wdami, gWdami, gradWdami);
+              CRKSPHKernelAndGradient(W, CRKSPHHydroBase<Dimension>::correctionOrder(),  rij,  etai, Hi, Hdeti,  etaj, Hj, Hdetj, Ai, Bi, Ci, gradAi, gradBi, gradCi, Wj, gWj, gradWj);
+              CRKSPHKernelAndGradient(W, CRKSPHHydroBase<Dimension>::correctionOrder(), -rij, -etaj, Hj, Hdetj, -etai, Hi, Hdeti, Aj, Bj, Cj, gradAj, gradBj, gradCj, Wi, gWi, gradWi);
+              CRKSPHKernelAndGradient(W, CRKSPHHydroBase<Dimension>::correctionOrder(),  rij,  etai, Hi, Hdeti,  etaj, Hj, Hdetj, Adami, Bdami, Cdami, gradAdami, gradBdami, gradCdami, Wdamj, gWdamj, gradWdamj);//Replace with Solid form of quadratic Cdami and gradCdami when implemented
+              CRKSPHKernelAndGradient(W, CRKSPHHydroBase<Dimension>::correctionOrder(), -rij, -etaj, Hj, Hdetj, -etai, Hi, Hdeti, Adamj, Bdamj, Cdamj, gradAdamj, gradBdamj, gradCdamj, Wdami, gWdami, gradWdami);
               const Vector deltagrad = gradWj - gradWi;
               const Vector deltagraddam = gradWdamj - gradWdami;
               const Vector gradWSPHi = (Hi*etai.unitVector())*WQ.gradValue(etai.magnitude(), Hdeti);
@@ -842,17 +842,13 @@ evaluateDerivatives(const typename Dimension::Scalar time,
               CHECK(rhoi > 0.0);
               CHECK(rhoj > 0.0);
               Vector deltaDvDti, deltaDvDtj;
-              const Vector forceij = 0.5*weighti*weightj*((Pposi + Pposj)*deltagrad + ((rhoi*rhoi*QPiij.first + rhoj*rhoj*QPiij.second)*deltagrad) -
-                                                          fDeffij*fDeffij*(sigmai + sigmaj)*deltagraddam);                // <- Type III, with CRKSPH Q forces
-              // const Vector forceij = 0.5*weighti*weightj*(((rhoi*rhoi*QPiij.first + rhoj*rhoj*QPiij.second)*deltagrad) -
-              //                                             fDeffij*fDeffij*(sigmai + sigmaj)*deltagraddam);                // <- Type III, with CRKSPH Q forces
-              deltaDvDti = -forceij/mi;
-              deltaDvDtj =  forceij/mj;
-              DvDti += deltaDvDti;
-              DvDtj += deltaDvDtj;
+              const Vector forceij  = 0.5*weighti*weightj*(((Pposi + Pposj)*deltagrad - fDeffij*fDeffij*(sigmai + sigmaj)*deltagraddam) + // <- Type III
+                                                           (rhoi*rhoi*QPiij.first + rhoj*rhoj*QPiij.second)*deltagrad);                   // CRKSPH Q forces
+              DvDti -= forceij/mi;
+              DvDtj += forceij/mj;
               if (compatibleEnergy) {
-                pairAccelerationsi.push_back(deltaDvDti);
-                pairAccelerationsj.push_back(deltaDvDtj);
+                pairAccelerationsi.push_back(-forceij/mi);
+                pairAccelerationsj.push_back( forceij/mj);
               }
 
               // Specific thermal energy evolution.

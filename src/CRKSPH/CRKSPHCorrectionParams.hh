@@ -16,6 +16,7 @@ enum CRKVolumeType { // Choices for the CRK volume weighting
   CRKSumVolume = 1,
   CRKVoronoiVolume = 2,
   CRKHullVolume = 3,
+  HVolume = 4,
 };
 
 }

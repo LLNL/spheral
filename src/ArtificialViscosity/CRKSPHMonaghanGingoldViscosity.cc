@@ -1,5 +1,8 @@
 //---------------------------------Spheral++----------------------------------//
-// A simple form for the artificial viscosity due to Monaghan & Gingold.
+// Modified form of the standard SPH pair-wise viscosity due to Monaghan &
+// Gingold.  This form is specialized for use with CRKSPH.
+//
+// Created by JMO, Thu Nov 20 14:13:18 PST 2014
 //----------------------------------------------------------------------------//
 #include "CRKSPHMonaghanGingoldViscosity.hh"
 #include "Boundary/Boundary.hh"

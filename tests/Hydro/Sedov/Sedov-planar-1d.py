@@ -39,6 +39,7 @@ commandLine(nRadial = 50,
 
             CRKSPH = False,
             PSPH = False,
+            ASPH = False,  # Selects the H update algorithm -- can be used with CRK, PSPH, SPH, etc.
             Qconstructor = MonaghanGingoldViscosity,
             correctionOrder = LinearOrder,
             densityUpdate = RigorousSumDensity, # VolumeScaledDensity,
@@ -124,11 +125,20 @@ Espike *= 0.5
 #-------------------------------------------------------------------------------
 if CRKSPH:
     Qconstructor = CRKSPHMonaghanGingoldViscosity
-    HydroConstructor = CRKSPHHydro
+    if ASPH:
+        HydroConstructor = ACRKSPHHydro
+    else:
+        HydroConstructor = CRKSPHHydro
 elif PSPH:
-    HydroConstructor = PSPHHydro
+    if ASPH:
+        HydroConstructor = APSPHHydro
+    else:
+        HydroConstructor = PSPHHydro
 else:
-    HydroConstructor = SPHHydro
+    if ASPH:
+        HydroConstructor = ASPHHydro
+    else:
+        HydroConstructor = SPHHydro
 
 #-------------------------------------------------------------------------------
 # Path names.
@@ -291,7 +301,6 @@ elif PSPH:
                              useVelocityMagnitudeForDt = useVelocityMagnitudeForDt,
                              compatibleEnergyEvolution = compatibleEnergy,
                              evolveTotalEnergy = evolveTotalEnergy,
-                             gradhCorrection = gradhCorrection,
                              HopkinsConductivity = HopkinsConductivity,
                              densityUpdate = densityUpdate,
                              HUpdate = HUpdate,

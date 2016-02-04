@@ -51,7 +51,7 @@ namespace {
 //                          const double& mj,
 //                          const double& duij) {
 //   const double uji = uj - ui;
-//   const double result = 0.5*(1.0 + uji/(abs(uji) + 1.0/(1.0 + abs(uji)))*sgn0(duij));
+//   const double result = 0.5*(1.0 + uji/(std::abs(uji) + 1.0/(1.0 + std::abs(uji)))*sgn0(duij));
 //   ENSURE(result >= 0.0 and result <= 1.0);
 //   return result;
 // }
@@ -63,7 +63,7 @@ double standardWeighting(const double& ui,
                          const double& mj,
                          const double& duij) {
   const double uji = uj - ui;
-  const double result = 0.5*(1.0 + uji*sgn0(duij)/(abs(uji) + 0.5));
+  const double result = 0.5*(1.0 + uji*sgn0(duij)/(std::abs(uji) + 0.5));
   ENSURE(result >= 0.0 and result <= 1.0);
   return result;
 }
@@ -84,14 +84,14 @@ double monotonicWeighting(const double& ui,
 
   double result;
   if (uji*DEij >= 0.0) {
-    const double A = min(1.0, max(0.0, uji*mi*safeInv(DEij, 1.0e-50)));
-    const double B = min(1.0, max(0.0, mjInv/(miInv + mjInv)));
+    const double A = std::min(1.0, std::max(0.0, uji*mi*safeInv(DEij, 1.0e-50)));
+    const double B = std::min(1.0, std::max(0.0, mjInv/(miInv + mjInv)));
     CHECK(A >= 0.0 and A <= 1.0);
     CHECK(B >= 0.0 and B <= 1.0);
     result = A + B*(1.0 - A);
   } else {
-    const double A = min(1.0, max(0.0, -uji*mj*safeInv(DEij, 1.0e-50)));
-    const double B = min(1.0, max(0.0, miInv/(miInv + mjInv)));
+    const double A = std::min(1.0, std::max(0.0, -uji*mj*safeInv(DEij, 1.0e-50)));
+    const double B = std::min(1.0, std::max(0.0, miInv/(miInv + mjInv)));
     CHECK(A >= 0.0 and A <= 1.0);
     CHECK(B >= 0.0 and B <= 1.0);
     result = 1.0 - A - B*(1.0 - A);
@@ -116,7 +116,7 @@ double weighting(const double& ui,
   const double mfi = monotonicWeighting(ui, uj, mi, mj, mi*duij*dt);
 
   // Combine them for the final answer.
-  const double chi = abs(ui - uj)/(abs(ui) + abs(uj) + 1.0e-50);
+  const double chi = std::abs(ui - uj)/(std::abs(ui) + std::abs(uj) + 1.0e-50);
   CHECK(chi >= 0.0 and chi <= 1.0);
   return chi*mfi + (1.0 - chi)*fi;
 }
@@ -199,18 +199,17 @@ update(const KeyType& key,
   const FieldList<Dimension, Vector> velocity = state.fields(HydroFieldNames::velocity, Vector::zero);
   const FieldList<Dimension, Vector> acceleration = derivs.fields(IncrementFieldList<Dimension, Vector>::prefix() + HydroFieldNames::velocity, Vector::zero);
   const FieldList<Dimension, Scalar> eps0 = state.fields(HydroFieldNames::specificThermalEnergy + "0", Scalar());
+  const FieldList<Dimension, Scalar> rho = state.fields(HydroFieldNames::massDensity, Scalar());
+  const FieldList<Dimension, Scalar> P = state.fields(HydroFieldNames::pressure, Scalar());
+  const FieldList<Dimension, Scalar> gamma = state.fields(HydroFieldNames::gamma, Scalar());
   const FieldList<Dimension, vector<Vector> > pairAccelerations = derivs.fields(HydroFieldNames::pairAccelerations, vector<Vector>());
   const ConnectivityMap<Dimension>& connectivityMap = mDataBasePtr->connectivityMap();
   const vector<const NodeList<Dimension>*>& nodeLists = connectivityMap.nodeLists();
   CHECK(nodeLists.size() == numFields);
 
   // Prepare a counter to keep track of how we go through the pair-accelerations.
-  FieldList<Dimension, Scalar> DepsDt(FieldSpace::Copy);
-  FieldList<Dimension, int> offset(FieldSpace::Copy);
-  for (size_t nodeListi = 0; nodeListi != numFields; ++nodeListi) {
-    DepsDt.appendNewField("delta E", *nodeLists[nodeListi], 0.0);
-    offset.appendNewField("offset", *nodeLists[nodeListi], 0);
-  }
+  FieldList<Dimension, Scalar> DepsDt = mDataBasePtr->newFluidFieldList(0.0, "delta E");
+  FieldList<Dimension, int> offset = mDataBasePtr->newFluidFieldList(0, "offset");
 
   // Walk all the NodeLists.
   const double hdt = 0.5*multiplier;
@@ -224,9 +223,10 @@ update(const KeyType& key,
 
       // State for node i.
       Scalar& DepsDti = DepsDt(nodeListi, i);
-      const Scalar& mi = mass(nodeListi, i);
+      const Scalar mi = mass(nodeListi, i);
+      const Scalar Ai = std::abs(P(nodeListi, i)/std::pow(rho(nodeListi, i), gamma(nodeListi, i)));
       const Vector& vi = velocity(nodeListi, i);
-      const Scalar& ui = eps0(nodeListi, i);
+      const Scalar ui = eps0(nodeListi, i);
       const Vector& ai = acceleration(nodeListi, i);
       const Vector vi12 = vi + ai*hdt;
       const vector<Vector>& pacci = pairAccelerations(nodeListi, i);
@@ -255,9 +255,10 @@ update(const KeyType& key,
                                                          nodeListj, j,
                                                          firstGhostNodej)) {
               Scalar& DepsDtj = DepsDt(nodeListj, j);
-              const Scalar& mj = mass(nodeListj, j);
+              const Scalar mj = mass(nodeListj, j);
+              const Scalar Aj = std::abs(P(nodeListj, j)/std::pow(rho(nodeListj, j), gamma(nodeListj, j)));
               const Vector& vj = velocity(nodeListj, j);
-              const Scalar& uj = eps0(nodeListj, j);
+              const Scalar uj = eps0(nodeListj, j);
               const Vector& aj = acceleration(nodeListj, j);
               const Vector vj12 = vj + aj*hdt;
               const Vector vji12 = vj12 - vi12;
@@ -267,21 +268,26 @@ update(const KeyType& key,
                     NodeListRegistrar<Dimension>::instance().domainDecompositionIndependent());
 
               CHECK(offset(nodeListi, i) < pacci.size());
-              const Vector& pai = pacci[offset(nodeListi, i)];
+              const Vector& pai =  pacci[offset(nodeListi, i)];
               ++offset(nodeListi, i);
 
               CHECK(offset(nodeListj, j) < paccj.size());
-              const Vector& paj = paccj[offset(nodeListj, j)];
+              const Vector& paj =  paccj[offset(nodeListj, j)];
               ++offset(nodeListj, j);
 
               CHECK2(fuzzyEqual(mi*mj*pai.dot(paj) + mi*mi*pai.dot(pai), 0.0, 1.0e-10),
-                     "Symmetric forces?  " << mi << " " << mj << " " << pai << " " << paj << " " << mi*pai << " " << mj*paj);
+                     "Symmetric forces?  " << i << " " << j << " " << mi << " " << mj << " " << pai << " " << paj << " " << mi*pai << " " << mj*paj);
 
               const Scalar duij = vji12.dot(pai);
-              const Scalar wi = weighting(ui, uj, mi, mj, duij, dt);
+              const Scalar wi = (Ai + Aj == 0 ? 0.5 :
+                                 (duij >= 0.0 ? Aj : Ai)/(Ai + Aj));
+              // const Scalar wi = (duij >= 0.0 ? 
+              //                    safeInvVar(Ai)/(safeInvVar(Ai) + safeInvVar(Aj)) :
+              //                    (Ai + Aj == 0.0 ? 0.5 : Ai/(Ai + Aj)));
+              // const Scalar wi = (duij >= 0.0 ? 0.5 : weighting(ui, uj, mi, mj, duij, dt));
 
               CHECK(wi >= 0.0 and wi <= 1.0);
-              CHECK(fuzzyEqual(wi + weighting(uj, ui, mj, mi, duij*mi/mj, dt), 1.0, 1.0e-10));
+              // CHECK(fuzzyEqual(wi + weighting(uj, ui, mj, mi, duij*mi/mj, dt), 1.0, 1.0e-10));
               DepsDti += wi*duij;
               DepsDtj += (1.0 - wi)*duij*mi/mj;
             }
@@ -290,7 +296,8 @@ update(const KeyType& key,
       }
 
       // Now we can update the energy.
-      CHECK(offset(nodeListi, i) == pacci.size() or NodeListRegistrar<Dimension>::instance().domainDecompositionIndependent());
+      CHECK2(offset(nodeListi, i) == pacci.size() or NodeListRegistrar<Dimension>::instance().domainDecompositionIndependent(),
+             "Bad sizing : (" << nodeListi << " " << i << ") " << offset(nodeListi, i) << " " << pacci.size());
       eps(nodeListi, i) += DepsDti*multiplier;
     }
   }

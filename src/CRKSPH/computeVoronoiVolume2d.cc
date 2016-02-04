@@ -1,7 +1,9 @@
 //---------------------------------Spheral++------------------------------------
 // Compute the volume per point based on the Voronoi tessellation.
 //------------------------------------------------------------------------------
+#ifndef NOPOLYTOPE
 #include "polytope/polytope.hh"
+#endif
 
 #include "computeVoronoiVolume.hh"
 #include "Field/Field.hh"
@@ -25,6 +27,9 @@ void
 computeVoronoiVolume(const FieldList<Dim<2>, Dim<2>::Vector>& position,
                      FieldList<Dim<2>, Dim<2>::Scalar>& vol) {
 
+#ifdef NOPOLYTOPE
+  VERIFY2(false, "computeVoronoiVolumes ERROR: Polytope is not compiled/available.");
+#else
   const unsigned numGens = position.numNodes();
   const unsigned numNodeLists = position.size();
   const unsigned numGensGlobal = allReduce(numGens, MPI_SUM, Communicator::communicator());
@@ -89,6 +94,7 @@ computeVoronoiVolume(const FieldList<Dim<2>, Dim<2>::Vector>& position,
       }
     }
   }
+#endif
 }
 
 }

@@ -136,8 +136,8 @@ interpolateCRKSPH(const FieldSpace::FieldList<Dimension, DataType>& fieldList,
               const Vector etaj = Hj*rij;
 
               // Kernel weight.
-              const Scalar Wj = CRKSPHKernel(W, correctionOrder,  rij, etai, Hdeti, etaj, Hdetj, Ai, Bi, Ci);
-              const Scalar Wi = CRKSPHKernel(W, correctionOrder, -rij, etaj, Hdetj, etai, Hdeti, Aj, Bj, Cj);
+              const Scalar Wj = CRKSPHKernel(W, correctionOrder,  rij,  etai, Hdeti,  etaj, Hdetj, Ai, Bi, Ci);
+              const Scalar Wi = CRKSPHKernel(W, correctionOrder, -rij, -etaj, Hdetj, -etai, Hdeti, Aj, Bj, Cj);
 
               // Increment the pair-wise values.
               resulti += wj*Fj*Wj;

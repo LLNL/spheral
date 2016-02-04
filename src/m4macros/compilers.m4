@@ -74,7 +74,7 @@ NUMPYFLAGS=
 # =======================================================================
 AC_MSG_CHECKING(for compilers)
 AC_ARG_WITH(compilers,
-[  --with-compilers=ARG ..................... (gnu,vacpp,intel,emsolve) choose a compiler suite],
+[  --with-compilers=ARG ..................... (gnu,vacpp,intel,pgi) choose a compiler suite],
 [
    COMPILERS=$withval
 ],
@@ -171,6 +171,30 @@ case $COMPILERS in
       CMAKECXX=g++
       PARMETISCC=$MPICC
       NUMPYFLAGS="--fcompiler=intelem"
+      ;;
+
+   pgi)
+      CC=pgcc
+      CXX=pgCC
+      FORT=mpif90
+      MPICC=mpicc
+      MPICXX=mpicxx
+      PYTHONCC=pgcc
+      PYTHONCXX=pgCC
+      CMAKECC=$CC
+      CMAKECXX=$CXX
+      GCCXMLCC=
+      GCCXMLCXX=
+      CMAKECC=pgcc
+      CMAKECXX=pbCC
+      PARMETISCC=$MPICC
+      NUMPYFLAGS=
+      # 111  - statement is unreachable
+      # 186  - pointless comparison of unsigned integer with zero
+      # 611  - overloaded virtual function
+      CXXFLAGS+=" --display_error_number --diag_suppress 111 --diag_suppress 186 --diag_suppress 611"
+      PYTHONCFLAGS+=" -fPIC"
+      PYTHONCONFFLAGS+=" --enable-shared"
       ;;
 
    *)
@@ -449,6 +473,18 @@ if test -n "`grep 'yes' .cxxtype.out`"; then
 fi
 rm -f .cxxtype.cc .cxxtype.out
 
+# Check for the PGI compiler and version
+cat > .cxxtype.cc << EOF
+#ifdef __PGI
+yes;
+#endif
+EOF
+$CXX -E .cxxtype.cc > .cxxtype.out
+if test -n "`grep 'yes' .cxxtype.out`"; then
+  CXXCOMPILERTYPE=PGI
+fi
+rm -f .cxxtype.cc .cxxtype.out
+
 # Check for KCC
 cat > .cxxtype.cc << EOF
 #ifdef __KAI__
@@ -553,6 +589,11 @@ INTEL)
 #  elif test "$COMPILERVERSION" = "910"; then
 #    JAMTOOLSET="intel-9.1"
 #  fi
+  ;;
+PGI)
+  CFLAGS="$CFLAGS -fPIC"
+  CXXFLAGS="$CXXFLAGS -fPIC"
+  FORTFLAGS="$FORTFLAGS -fPIC"
   ;;
 KAI)
   CXXFLAGS="$CXXFLAGS --restrict -DHAVE_XCPT"

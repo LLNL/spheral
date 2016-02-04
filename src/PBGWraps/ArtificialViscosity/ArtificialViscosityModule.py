@@ -368,7 +368,7 @@ self.addVonNeumanViscosityMethods(self.VonNeumanViscosity%(dim)id, %(dim)i)
         self.addArtificialViscosityVirtualMethods(x, ndim, False)
 
         # Attributes
-        const_ref_return_value(x, me, "%s::viscousEnergy" % me, scalarfieldlist, [], "DvDx")
+        const_ref_return_value(x, me, "%s::viscousEnergy" % me, scalarfieldlist, [], "viscousEnergy")
 
         return
 

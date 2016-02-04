@@ -4,6 +4,7 @@ from Spheral import *
 from math import *
 import numpy
 import os
+from SpheralTestUtilities import multiSort
 
 SpheralGnuPlotCache = []
 
@@ -42,24 +43,6 @@ def generateNewGnuPlot(persist = False):
         return result
     else:
         return fakeGnuplot()
-
-#-------------------------------------------------------------------------------
-# Helper method, sort a set of lists by the first one.
-#-------------------------------------------------------------------------------
-def multiSort(*args):
-    # All the lists have to be the same length.
-    for l in args:
-        assert len(l) == len(args[0])
-
-    # This is the obscure zip trick!
-    result = zip(*sorted(zip(*args)))
-
-    # Copy the sorted stuff back to the input arguments.
-    for ilist in xrange(len(args)):
-        for i in xrange(len(args[ilist])):
-            args[ilist][i] = result[ilist][i]
-
-    return
 
 #-------------------------------------------------------------------------------
 # Since the default Gnuplot.py doesn't support png output, I'll add it here
