@@ -1,0 +1,20 @@
+!
+! declarations for sparse matrices
+!
+! naij        = maximum number of nonzeros
+! nzo         = number of nonzeros
+! iloc        = nonzero row indices
+! ivect       = copy of iloc
+! jloc        = nonzero column indices
+! jvect       = copy of jloc
+! sparse_dfdy = sparse matrix entries
+! amat        = working array for sparse_dfdy combinations
+! iodemax     = maximum number of equations
+
+      integer          naij, iodemax
+      parameter        (naij=500000, iodemax = 3500)
+      integer          iloc(naij),jloc(naij), &
+                       ivect(naij),jvect(naij),nzo
+      double precision sparse_dfdy(naij),amat(naij)
+
+      common /spmtx/   sparse_dfdy,amat,iloc,jloc,ivect,jvect,nzo
