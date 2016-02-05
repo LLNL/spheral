@@ -917,13 +917,14 @@ evaluateDerivatives(const typename Dimension::Scalar time,
               // const Scalar workQi = vij.dot(Qacci);                                            // SPH
               // const Scalar workQj = vij.dot(Qaccj);                                            // SPH
               // const Scalar workQij = 0.5*(workQi + workQj);                                    // SPH
+              const Vector Qaccij = 0.5*(rhoi*rhoi*QPiij.first + rhoj*rhoj*QPiij.second).dot(deltagrad);    // CRK
               // const Vector Qaccij = 0.25*(rhoi + rhoj)*(rhoi*QPiij.first + rhoj*QPiij.second).dot(deltagrad);    // CRK
-              const Vector Qaccij = 0.5*rhoi*rhoj*(QPiij.first + QPiij.second).dot(deltagrad);    // CRK
+              // const Vector Qaccij = 0.5*rhoi*rhoj*(QPiij.first + QPiij.second).dot(deltagrad);    // CRK
               const Scalar workQij = vij.dot(Qaccij);                                             // CRK
               // const Scalar workQi = rhoi*rhoj*QPiij.second.dot(vij).dot(deltagrad);            // CRK
               // const Scalar workQj = rhoi*rhoj*QPiij.first .dot(vij).dot(deltagrad);            // CRK
-              const Scalar Qi = rhoi*rhoj*(QPiij.first. diagonalElements().maxAbsElement());
-              const Scalar Qj = rhoi*rhoj*(QPiij.second.diagonalElements().maxAbsElement());
+              const Scalar Qi = rhoi*rhoi*(QPiij.first. diagonalElements().maxAbsElement());
+              const Scalar Qj = rhoj*rhoj*(QPiij.second.diagonalElements().maxAbsElement());
               maxViscousPressurei = max(maxViscousPressurei, Qi);
               maxViscousPressurej = max(maxViscousPressurej, Qj);
               effViscousPressurei += weightj * Qi * Wj;

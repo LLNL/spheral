@@ -8,6 +8,7 @@ exec_prefix = @exec_prefix@
 includedir =   @includedir@
 libdir = @libdir@
 
+OSNAME = @OSNAME@
 INSTALL = @INSTALL@
 SPHERALBUILDDIR = @SPHERALBUILDDIR@
 PYTHONEXE  = @PYTHON@
