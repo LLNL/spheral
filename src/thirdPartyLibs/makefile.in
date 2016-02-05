@@ -376,6 +376,9 @@ $(PYTHONBUILDDATE):	$(PYTHON) $(PYTHONDIST)
 	@$(MKDIR) $(LIBDIR) $(prefix)/include $(prefix)/bin
 	rm -fr $(PYTHONDIR)
 	$(GZIP) -dc $(PYTHONDIST) | $(TAR) -xf -
+	if test "$(OSNAME)" = "Darwin"; then \
+	$(PATCH) $(PYTHONDIR)/configure $(srcdir)/Python-2.7.11.configure.patch; \
+	fi
 	$(SHELL) -ec "cd $(PYTHONDIR); \
 	env PATH='$(prefix)/bin:$$PATH' CONFIG_SHELL=$(CONFIG_SHELL) CC='$(PYTHONCC)' CXX='$(PYTHONCXX)' CFLAGS='$(PYTHONCFLAGS)' LDFLAGS='$(LDFLAGS)' HAS_HG=no ./configure --disable-ipv6 --with-gcc='$(PYTHONCC)' --with-cxx-main=$(PYTHONCXX) $(PYTHONCONFFLAGS) --prefix=$(prefix)"
 	$(MAKE) -C $(PYTHONDIR) CC='$(PYTHONCC)' CXX='$(PYTHONCXX)' CFLAGS='$(PYTHONCFLAGS)' LDFLAGS='$(LDFLAGS)'
