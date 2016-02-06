@@ -153,8 +153,8 @@ computeCRKSPHMoments(const ConnectivityMap<Dimension>& connectivityMap,
             Vector etai = Hi*rij;
             Vector etaj = Hj*rij;
 
-            const std::pair<double, double> WWi = W.kernelAndGradValue(etai.magnitude(), Hdeti);
-            const std::pair<double, double> WWj = W.kernelAndGradValue(etaj.magnitude(), Hdetj);
+            // const std::pair<double, double> WWi = W.kernelAndGradValue(etai.magnitude(), Hdeti);
+            // const std::pair<double, double> WWj = W.kernelAndGradValue(etaj.magnitude(), Hdetj);
 
             // // j
             // const Scalar Wi = WWi.first;
@@ -168,12 +168,29 @@ computeCRKSPHMoments(const ConnectivityMap<Dimension>& connectivityMap,
             // // const Vector gradWj = -(Hi*etai.unitVector())*WWi.second;
             // // const Vector gradWi =  (Hj*etaj.unitVector())*WWj.second;
 
-            // ij
-            const Scalar Wi = 0.5*(WWi.first + WWj.first);
-            const Scalar Wj = Wi;
-            const Vector gradWj = 0.5*((Hj*etaj.unitVector())*WWj.second +
-                                       (Hi*etai.unitVector())*WWi.second);
-            const Vector gradWi = -gradWj;
+            // // ij
+            // const Scalar Wi = 0.5*(WWi.first + WWj.first);
+            // const Scalar Wj = Wi;
+            // const Vector gradWj = 0.5*((Hj*etaj.unitVector())*WWj.second +
+            //                            (Hi*etai.unitVector())*WWi.second);
+            // const Vector gradWi = -gradWj;
+
+            // max h
+            Scalar Wi, Wj;
+            Vector gradWi, gradWj;
+            if (etai.magnitude2() < etaj.magnitude2()) {
+              const std::pair<double, double> WWi = W.kernelAndGradValue(etai.magnitude(), Hdeti);
+              Wi = WWi.first;
+              gradWi = -(Hi*etai.unitVector())*WWi.second;
+              Wj = Wi;
+              gradWj = -gradWi;
+            } else {
+              const std::pair<double, double> WWj = W.kernelAndGradValue(etaj.magnitude(), Hdetj);
+              Wj = WWj.first;
+              gradWj = (Hj*etaj.unitVector())*WWj.second;
+              Wi = Wj;
+              gradWi = -gradWj;
+            }
 
             // Zeroth moment. 
             const Scalar wwi = wi*Wi;
