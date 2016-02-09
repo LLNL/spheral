@@ -95,24 +95,36 @@ commandLine(
     nx1 = 256,
     ny1 = 64,
 
-    nPerh = 1.51,
+    nPerh = 1.35,
 
     SVPH = False,
     CRKSPH = False,
-    ASPH = False,
-    SPH = True,   # This just chooses the H algorithm -- you can use this with CRKSPH for instance.
+    PSPH = False,
+    ASPH = False,   # This just chooses the H algorithm -- you can use this with CRKSPH for instance.
     filter = 0.0,  # For CRKSPH
+    HopkinsConductivity = False,     # For PSPH
     Qconstructor = MonaghanGingoldViscosity,
     #Qconstructor = TensorMonaghanGingoldViscosity,
+    KernelConstructor = NBSplineKernel,
+    order = 5,
     boolReduceViscosity = False,
-    nh = 5.0,
+    nhQ = 5.0,
+    nhL = 10.0,
+    boolCullenViscosity = False,
+    alphMax = 2.0,
+    alphMin = 0.02,
+    betaC = 0.7,
+    betaD = 0.05,
+    betaE = 1.0,
+    fKern = 1.0/3.0,
+    boolHopkinsCorrection = True,
     aMin = 0.1,
     aMax = 2.0,
     linearConsistent = False,
     fcentroidal = 0.0,
     fcellPressure = 0.0,
     Cl = 1.0, 
-    Cq = 0.75,
+    Cq = 1.0,
     Qlimiter = False,
     balsaraCorrection = False,
     epsilon2 = 1e-2,
@@ -141,13 +153,19 @@ commandLine(
 
     densityUpdate = RigorousSumDensity, # VolumeScaledDensity,
     compatibleEnergy = True,
-    gradhCorrection = False,
+    evolveTotalEnergy = False,
+    gradhCorrection = True,
+    correctVelocityGradient = True,
 
     clearDirectories = False,
-    restoreCycle = None,
+    restoreCycle = -1,
     restartStep = 200,
     dataDir = "dumps-blobtest-2d",
     )
+
+# Check the input.
+assert not (boolReduceViscosity and boolCullenViscosity)
+assert not (compatibleEnergy and evolveTotalEnergy)
 
 # Decide on our hydro algorithm.
 if SVPH:
@@ -156,10 +174,16 @@ if SVPH:
     else:
         HydroConstructor = SVPHFacetedHydro
 elif CRKSPH:
+    Qconstructor = CRKSPHMonaghanGingoldViscosity
     if ASPH:
         HydroConstructor = ACRKSPHHydro
     else:
         HydroConstructor = CRKSPHHydro
+elif PSPH:
+    if ASPH:
+        HydroConstructor = APSPHHydro
+    else:
+        HydroConstructor = PSPHHydro
 else:
     if ASPH:
         HydroConstructor = ASPHHydro
@@ -174,8 +198,11 @@ densityUpdateLabel = {IntegrateDensity : "IntegrateDensity",
 baseDir = os.path.join(dataDir,
                        HydroConstructor.__name__,
                        Qconstructor.__name__,
+                       KernelConstructor.__name__,
                        densityUpdateLabel[densityUpdate],
                        "compatibleEnergy=%s" % compatibleEnergy,
+                       "evolveTotalEnergy=%s" % evolveTotalEnergy,
+                       "Cullen=%s" % boolCullenViscosity,
                        "XSPH=%s" % XSPH,
                        "nPerh=%3.1f" % nPerh,
                        "fcentroidal=%1.3f" % fcentroidal,
@@ -213,12 +240,6 @@ if mpi.rank == 0:
 mpi.barrier()
 
 #-------------------------------------------------------------------------------
-# If we're restarting, find the set of most recent restart files.
-#-------------------------------------------------------------------------------
-if restoreCycle is None:
-    restoreCycle = findLastRestart(restartBaseName)
-
-#-------------------------------------------------------------------------------
 # Material properties.
 #-------------------------------------------------------------------------------
 mu = 1.0
@@ -228,7 +249,10 @@ eos2 = GammaLawGasMKS(gamma, mu)
 #-------------------------------------------------------------------------------
 # Interpolation kernels.
 #-------------------------------------------------------------------------------
-WT = TableKernel(BSplineKernel(), 1000)
+if KernelConstructor==NBSplineKernel:
+  WT = TableKernel(NBSplineKernel(order), 1000)
+else:
+  WT = TableKernel(KernelConstructor(), 1000)
 output("WT")
 kernelExtent = WT.kernelExtent
 
@@ -259,75 +283,74 @@ del nodes
 #-------------------------------------------------------------------------------
 # Set the node properties.
 #-------------------------------------------------------------------------------
-if restoreCycle is None:
 #Blob density is defined to be 10 times the external density
-    rhoblob=rhoext*chi
-    generatorOuter = GenerateNodeDistribution2d(nx1, ny1, rhoext,
-                                                distributionType = "lattice",
-                                                xmin = (xb0, yb0),
-                                                xmax = (xb1, yb1),
-    						rejecter = SphericalRejecter(origin = (bx, by),
-                                                                             radius = br),
-                                                nNodePerh = nPerh,
-                                                SPH = SPH)
-    #generatorOuter = GenerateNodeDistribution2d(nx1, ny1, nz1, rhoext,
-    #                                            distributionType = "lattice",
-    #                                            xmin = (bx-br, by-br, bz-br),
-    #                                            xmax = (bx+br, by+br, bz+br),
-    #       				        rmin = br,
-    #                                            nNodePerh = nPerh,
-    #                                            SPH = SPH)
-    #generatorInner = GenerateNodeDistribution2d(nx1, ny1, nz1, rhoblob,
-    #                                            distributionType = "lattice",
-    #                                            xmin = (xb0, yb0, zb0),
-    #                                            xmax = (xb1, yb1, zb1),
-    #                                            rejecter = SphericalRejecterBlob(origin = (bx, by, bz),
-    #                                                                         radius = br),
-    #                                            nNodePerh = nPerh,
-    #                                            SPH = SPH)
+rhoblob=rhoext*chi
+generatorOuter = GenerateNodeDistribution2d(nx1, ny1, rhoext,
+                                            distributionType = "lattice",
+                                            xmin = (xb0, yb0),
+                                            xmax = (xb1, yb1),
+                                            rejecter = SphericalRejecter(origin = (bx, by),
+                                                                         radius = br),
+                                            nNodePerh = nPerh,
+                                            SPH = (not ASPH))
+#generatorOuter = GenerateNodeDistribution2d(nx1, ny1, nz1, rhoext,
+#                                            distributionType = "lattice",
+#                                            xmin = (bx-br, by-br, bz-br),
+#                                            xmax = (bx+br, by+br, bz+br),
+#       				        rmin = br,
+#                                            nNodePerh = nPerh,
+#                                            SPH = (not ASPH))
+#generatorInner = GenerateNodeDistribution2d(nx1, ny1, nz1, rhoblob,
+#                                            distributionType = "lattice",
+#                                            xmin = (xb0, yb0, zb0),
+#                                            xmax = (xb1, yb1, zb1),
+#                                            rejecter = SphericalRejecterBlob(origin = (bx, by, bz),
+#                                                                         radius = br),
+#                                            nNodePerh = nPerh,
+#                                            SPH = (not ASPH))
 
-    # Figure out a mass matched resolution for the blob.
-    mouter = (xb1 - xb0)*(yb1 - yb0)*rhoext/(nx1*ny1)
-    nxinner = max(2, int(((2*br)**2*rhoblob/mouter)**(1.0/2.0) + 0.5))
-    generatorInner = GenerateNodeDistribution2d(nxinner, nxinner, rhoblob,
-                                                distributionType = "lattice",
-                                                xmin = (bx-br, by-br),
-                                                xmax = (bx+br, by+br),
- 				                originreject = (bx, by),
-           				        rreject = br,
-                                                nNodePerh = nPerh,
-                                                SPH = SPH)
+# Figure out a mass matched resolution for the blob.
+mouter = (xb1 - xb0)*(yb1 - yb0)*rhoext/(nx1*ny1)
+nxinner = max(2, int(((2*br)**2*rhoblob/mouter)**(1.0/2.0) + 0.5))
+generatorInner = GenerateNodeDistribution2d(nxinner, nxinner, rhoblob,
+                                            distributionType = "lattice",
+                                            xmin = (bx-br, by-br),
+                                            xmax = (bx+br, by+br),
+                                            originreject = (bx, by),
+                                            rreject = br,
+                                            nNodePerh = nPerh,
+                                            SPH = (not ASPH))
 
-    if mpi.procs > 1:
-        from VoronoiDistributeNodes import distributeNodes2d
-    else:
-        from DistributeNodes import distributeNodes2d
+if mpi.procs > 1:
+    from VoronoiDistributeNodes import distributeNodes2d
+else:
+    from DistributeNodes import distributeNodes2d
 
-    distributeNodes2d((outerNodes, generatorOuter),
-                      (innerNodes, generatorInner))
-    for nodes in nodeSet:
-        print nodes.name, ":"
-        output("    mpi.reduce(nodes.numInternalNodes, mpi.MIN)")
-        output("    mpi.reduce(nodes.numInternalNodes, mpi.MAX)")
-        output("    mpi.reduce(nodes.numInternalNodes, mpi.SUM)")
-    del nodes
+distributeNodes2d((outerNodes, generatorOuter),
+                  (innerNodes, generatorInner))
+for nodes in nodeSet:
+    print nodes.name, ":"
+    output("    mpi.reduce(nodes.numInternalNodes, mpi.MIN)")
+    output("    mpi.reduce(nodes.numInternalNodes, mpi.MAX)")
+    output("    mpi.reduce(nodes.numInternalNodes, mpi.SUM)")
+del nodes
 
-    # Set node specific thermal energies
-    for (nodes, rho) in ((outerNodes, rhoext),
-                         (innerNodes, rhoblob)):
-        eps0 = Pequi/((gamma - 1.0)*rho)
-        cs = sqrt(gamma*(gamma-1.0)*eps0)
-        nodes.specificThermalEnergy(ScalarField("tmp", nodes, eps0))
-    del nodes
+# Set node specific thermal energies
+for (nodes, rho) in ((outerNodes, rhoext),
+                     (innerNodes, rhoblob)):
+    eps0 = Pequi/((gamma - 1.0)*rho)
+    cs = sqrt(gamma*(gamma-1.0)*eps0)
+    nodes.specificThermalEnergy(ScalarField("tmp", nodes, eps0))
+del nodes
 
-    #for nodes in nodeSet:
-    #  vel = nodes.velocity()
-    #  for i in xrange(nodes.numInternalNodes):
-    #    vel[i]=Vector(velx,vely)
+#for nodes in nodeSet:
+#  vel = nodes.velocity()
+#  for i in xrange(nodes.numInternalNodes):
+#    vel[i]=Vector(velx,vely)
 
-    vel = outerNodes.velocity() #wind velocity
-    for i in xrange(outerNodes.numInternalNodes):
-        vel[i].x = vext
+vel = outerNodes.velocity() #wind velocity
+for i in xrange(outerNodes.numInternalNodes):
+    vel[i].x = vext
 
 #-------------------------------------------------------------------------------
 # Construct a DataBase to hold our node lists
@@ -379,15 +402,29 @@ elif CRKSPH:
                              nTensile = nTensile,
                              cfl = cfl,
                              compatibleEnergyEvolution = compatibleEnergy,
+                             evolveTotalEnergy = evolveTotalEnergy,
                              XSPH = XSPH,
                              densityUpdate = densityUpdate,
                              HUpdate = HUpdate)
+elif PSPH:
+    hydro = HydroConstructor(W = WT,
+                             Q = q,
+                             filter = filter,
+                             cfl = cfl,
+                             compatibleEnergyEvolution = compatibleEnergy,
+                             evolveTotalEnergy = evolveTotalEnergy,
+                             HopkinsConductivity = HopkinsConductivity,
+                             densityUpdate = densityUpdate,
+                             HUpdate = HUpdate,
+                             XSPH = XSPH)
 else:
     hydro = HydroConstructor(W = WT,
                              Q = q,
                              cfl = cfl,
                              compatibleEnergyEvolution = compatibleEnergy,
+                             evolveTotalEnergy = evolveTotalEnergy,
                              gradhCorrection = gradhCorrection,
+                             correctVelocityGradient = correctVelocityGradient,
                              XSPH = XSPH,
                              densityUpdate = densityUpdate,
                              HUpdate = HUpdate,
@@ -406,13 +443,12 @@ packages = [hydro]
 #-------------------------------------------------------------------------------
 # Construct the MMRV physics object.
 #-------------------------------------------------------------------------------
-
 if boolReduceViscosity:
-    #q.reducingViscosityCorrection = True
-    evolveReducingViscosityMultiplier = MorrisMonaghanReducingViscosity(q,nh,aMin,aMax)
-    
+    evolveReducingViscosityMultiplier = MorrisMonaghanReducingViscosity(q,nhQ,nhL,aMin,aMax)
     packages.append(evolveReducingViscosityMultiplier)
-
+elif boolCullenViscosity:
+    evolveCullenViscosityMultiplier = CullenDehnenViscosity(q,WT,alphMax,alphMin,betaC,betaD,betaE,fKern,boolHopkinsCorrection)
+    packages.append(evolveCullenViscosityMultiplier)
 
 #-------------------------------------------------------------------------------
 # Create boundary conditions.
@@ -468,7 +504,7 @@ control = SpheralController(integrator, WT,
                             vizStep = vizCycle,
                             vizTime = vizTime,
                             skipInitialPeriodicWork = (HydroConstructor in (SVPHFacetedHydro, ASVPHFacetedHydro)),
-                            SPH = SPH)
+                            SPH = (not ASPH))
 output("control")
 
 #-------------------------------------------------------------------------------
