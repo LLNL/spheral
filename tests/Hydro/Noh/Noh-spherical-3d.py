@@ -505,7 +505,7 @@ if graphics:
     nodes1.pressure(Pf)
     P = mpi.allreduce(list(Pf.internalValues()), mpi.SUM)
     if mpi.rank == 0:
-        from SpheralTestUtilities import multiSort
+        from SpheralGnuPlotUtilities import multiSort
         import Pnorm
         multiSort(r, rho, v, eps, P)
         rans, vans, epsans, rhoans, Pans, hans = answer.solution(control.time(), r)

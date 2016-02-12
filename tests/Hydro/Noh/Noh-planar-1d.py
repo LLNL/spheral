@@ -616,7 +616,7 @@ xprof = mpi.reduce([x.x for x in nodes1.positions().internalValues()], mpi.SUM)
 #-------------------------------------------------------------------------------
 if outputFile != "None":
     outputFile = os.path.join(dataDir, outputFile)
-    from SpheralTestUtilities import multiSort
+    from SpheralGnuPlotUtilities import multiSort
     mof = mortonOrderIndices(db)
     mo = mpi.reduce(mof[0].internalValues(), mpi.SUM)
     mprof = mpi.reduce(nodes1.mass().internalValues(), mpi.SUM)
