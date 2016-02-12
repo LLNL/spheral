@@ -453,17 +453,17 @@ if mpi.rank == 0:
     # If requested, output the profiles to an ASCII file.
     if profileASCII:
         f = open(os.path.join(dataDir, "Kidder_planar_profiles.txt"), "w")
-        f.write((11*"%20s" + "\n") % ("# radius",
-                                      "rad velocity (sim)",
-                                      "mass density (sim)",
-                                      "pressure (sim)",
-                                      "eps (sim)",
-                                      "entropy (sim)",
-                                      "rad velocity (ans)",
-                                      "mass density (ans)",
-                                      "pressure (ans)",
-                                      "eps (ans)",
-                                      "entropy (ans)"))
+        f.write(("#" + 11*"%20s" + "\n") % ('"radius"',
+                                      '"rad velocity (sim)"',
+                                      '"mass density (sim)"',
+                                      '"pressure (sim)"',
+                                      '"eps (sim)"',
+                                      '"entropy (sim)"',
+                                      '"rad velocity (ans)"',
+                                      '"mass density (ans)"',
+                                      '"pressure (ans)"',
+                                      '"eps (ans)"',
+                                      '"entropy (ans)"'))
 
         # Now write the suckers out.
         for tup in zip(r, v, rho, P, eps, S, vAns, rhoAns, Pans, epsAns, Sans):
