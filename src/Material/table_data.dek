@@ -1,0 +1,32 @@
+! for the tables, in general
+      integer          imax,jmax
+      parameter        (imax = 271, jmax = 101)
+      double precision d(imax),t(jmax)
+
+! for the helmholtz free energy tables
+      double precision f(imax,jmax),fd(imax,jmax), &
+                       ft(imax,jmax),fdd(imax,jmax),ftt(imax,jmax), &
+                       fdt(imax,jmax),fddt(imax,jmax),fdtt(imax,jmax), &
+                       fddtt(imax,jmax)
+
+! for the pressure derivative with density ables
+      double precision dpdf(imax,jmax),dpdfd(imax,jmax), &
+                       dpdft(imax,jmax),dpdfdd(imax,jmax), &
+                       dpdftt(imax,jmax),dpdfdt(imax,jmax)
+
+! for chemical potential tables
+      double precision ef(imax,jmax),efd(imax,jmax), &
+                       eft(imax,jmax),efdd(imax,jmax),eftt(imax,jmax), &
+                       efdt(imax,jmax)
+
+! for the number density tables
+      double precision xf(imax,jmax),xfd(imax,jmax), &
+                       xft(imax,jmax),xfdd(imax,jmax),xftt(imax,jmax), &
+                       xfdt(imax,jmax)
+
+      common /tabledata/ &
+             d,t, &
+             f,fd,ft,fdd,ftt,fdt,fddt,fdtt,fddtt, &
+             dpdf,dpdfd,dpdft,dpdfdd,dpdftt,dpdfdt, &
+             ef,efd,eft,efdd,eftt,efdt, &
+             xf,xfd,xft,xfdd,xftt,xfdt
