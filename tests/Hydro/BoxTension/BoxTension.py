@@ -74,6 +74,8 @@ commandLine(
     betaE = 1.0,
     fKern = 1.0/3.0,
     boolHopkinsCorrection = True,
+    evolveTotalEnergy = False,
+    HopkinsConductivity = False,
 
     linearConsistent = False,
     fcentroidal = 0.0,
@@ -106,6 +108,7 @@ commandLine(
     domainIndependent = False,
     rigorousBoundaries = False,
     dtverbose = False,
+    redistributeStep = 1000,
 
     densityUpdate = RigorousSumDensity, # VolumeScaledDensity,
     correctionOrder = LinearOrder,
@@ -197,9 +200,11 @@ eos2 = GammaLawGasMKS(gamma1, mu)
 # Interpolation kernels.
 #-------------------------------------------------------------------------------
 if KernelConstructor==NBSplineKernel:
-  WT = TableKernel(NBSplineKernel(order), 1000)
+  WBase = NBSplineKernel(order)
 else:
-  WT = TableKernel(KernelConstructor(), 1000)
+  WBase = KernelConstructor()
+WT = TableKernel(WBase,1000)
+WTPi = WT
 output("WT")
 kernelExtent = WT.kernelExtent
 
@@ -334,6 +339,18 @@ elif CRKSPH:
                              correctionOrder = correctionOrder,
                              densityUpdate = densityUpdate,
                              HUpdate = HUpdate)
+elif PSPH:
+    hydro = HydroConstructor(W = WT,
+                             Q = q,
+                             filter = filter,
+                             cfl = cfl,
+                             compatibleEnergyEvolution = compatibleEnergy,
+                             evolveTotalEnergy = evolveTotalEnergy,
+                             HopkinsConductivity = HopkinsConductivity,
+                             densityUpdate = densityUpdate,
+                             HUpdate = HUpdate,
+                             XSPH = XSPH)
+
 else:
     hydro = HydroConstructor(W = WT,
                              Q = q,
@@ -424,17 +441,18 @@ else:
     import SpheralVisitDump
     vizMethod = SpheralVisitDump.dumpPhysicsState
 control = SpheralController(integrator, WT,
+                            initializeDerivatives = True,
                             statsStep = statsStep,
                             restartStep = restartStep,
                             restartBaseName = restartBaseName,
                             restoreCycle = restoreCycle,
+                            redistributeStep = redistributeStep,
                             vizMethod = vizMethod,
                             vizBaseName = vizBaseName,
                             vizDir = vizDir,
                             vizStep = vizCycle,
                             vizTime = vizTime,
-                            skipInitialPeriodicWork = (HydroConstructor in (SVPHFacetedHydro, ASVPHFacetedHydro)),
-                            SPH = SPH)
+                            SPH = (not ASPH))
 output("control")
 
 #-------------------------------------------------------------------------------
