@@ -116,7 +116,7 @@ commandLine(
     gradhCorrection = False,
     serialDump = False,
 
-    useVoronoiOutput = True,
+    useVoronoiOutput = False,
     clearDirectories = False,
     restoreCycle = None,
     restartStep = 200,
