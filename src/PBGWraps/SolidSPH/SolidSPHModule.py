@@ -161,7 +161,7 @@ self.generateSolidSPHHydroBaseBindings(self.SolidSPHHydroBase%(dim)id, %(dim)i)
                            param("int", "sumMassDensityOverAllNodeLists", default_value="false"),
                            param("MassDensityType", "densityUpdate", default_value="Spheral::PhysicsSpace::RigorousSumDensity"),
                            param("HEvolutionType", "HUpdate", default_value="Spheral::PhysicsSpace::IdealH"),
-                           param("double", "epsTensile", default_value="0.3"),
+                           param("double", "epsTensile", default_value="0.0"),
                            param("double", "nTensile", default_value="4.0"),
                            param(vector, "xmin", default_value="%s(-1e10, -1e10, -1e10)" % vector),
                            param(vector, "xmax", default_value="%s( 1e10,  1e10,  1e10)" % vector)])
