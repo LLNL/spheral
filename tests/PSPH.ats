@@ -2,7 +2,7 @@
 # This is an ATS script to coordinate running a series of tests of PSPH.
 cfl = 0.25
 Cl = 1.0
-Cq = 1.0
+Cq = 2.0
 filter = 0.0
 KernelConstructor = "QuinticSplineKernel"
 order = 5
