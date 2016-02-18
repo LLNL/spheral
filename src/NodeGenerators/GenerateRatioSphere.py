@@ -55,6 +55,15 @@ class GenerateRatioSphere2d(NodeGeneratorBase):
         constantN = (distributionType.lower() == "constantntheta")
         Dtheta = thetamax - thetamin
 
+        # Decide the actual drCenter we're going to use to arrive at an integer number of radial bins.
+        if abs(drRatio - 1.0) > 1e-4:
+            neff = max(1, int(log(1.0 - (rmax - rmin)*(1.0 - drRatio)/drCenter)/log(drRatio) + 0.5))
+            drCenter = (rmax - rmin)*(1.0 - drRatio)/(1.0 - drRatio**neff)
+        else:
+            neff = max(1, int((rmax - rmin)/drCenter + 0.5))
+            drCenter = (rmax - rmin)/neff
+        print "Adjusting initial radial spacing to %g in order to create a radial number of bins %i." % (drCenter, neff)
+
         # Work our way out from the center.
         r0 = rmin
         dr = drCenter
