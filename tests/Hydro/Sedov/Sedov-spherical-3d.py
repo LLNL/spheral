@@ -40,14 +40,31 @@ commandLine(seed = "lattice",
             balsaraCorrection = False,
             linearInExpansion = False,
 
-            ASPH = False,     # Only for H evolution, not hydro algorithm
             CRKSPH = False,
+            PSPH = False,
+            ASPH = False,     # Only for H evolution, not hydro algorithm
             Qconstructor = MonaghanGingoldViscosity,
+            correctionOrder = LinearOrder,
             densityUpdate = RigorousSumDensity, # VolumeScaledDensity,
             HUpdate = IdealH,
             filter = 0.0,
+            boolReduceViscosity = False,
+            nh = 5.0,
+            aMin = 0.1,
+            aMax = 2.0,
+            Qhmult = 1.0,
+            boolCullenViscosity = False,
+            alphMax = 2.0,
+            alphMin = 0.02,
+            betaC = 0.7,
+            betaD = 0.05,
+            betaE = 1.0,
+            fKern = 1.0/3.0,
+            boolHopkinsCorrection = True,
+            cullenReproducingKernelGradient = False,  # Use reproducing kernels for gradients in Cullen-Dehnen visocosity model
+            HopkinsConductivity = False,     # For PSPH
+            evolveTotalEnergy = False,       # Only for SPH variants -- evolve total rather than specific energy
 
-            HydroConstructor = SPHHydro,
             hmin = 1e-15,
             hmax = 1.0,
             cfl = 0.5,
@@ -55,6 +72,7 @@ commandLine(seed = "lattice",
             XSPH = False,
             rhomin = 1e-10,
 
+            IntegratorConstructor = CheapSynchronousRK2Integrator,
             steps = None,
             goalTime = None,
             goalRadius = 0.8,
@@ -69,9 +87,8 @@ commandLine(seed = "lattice",
             smoothIters = 0,
             HEvolution = IdealH,
             compatibleEnergy = True,
-            gradhCorrection = False,
-            HopkinsConductivity = False,     # For PSPH
-            evolveTotalEnergy = False,       # Only for SPH variants -- evolve total rather than specific energy
+            gradhCorrection = True,
+            correctVelocityGradient = True,
 
             restoreCycle = None,
             restartStep = 1000,
@@ -86,6 +103,8 @@ if smallPressure:
     P0 = 1.0e-6
     eps0 = P0/((gamma - 1.0)*rho0)
     print "WARNING: smallPressure specified, so setting eps0=%g" % eps0
+
+assert not(boolReduceViscosity and boolCullenViscosity)
 
 # Figure out what our goal time should be.
 import SedovAnalyticSolution
@@ -112,6 +131,11 @@ if CRKSPH:
         HydroConstructor = ACRKSPHHydro
     else:
         HydroConstructor = CRKSPHHydro
+elif PSPH:
+    if ASPH:
+        HydroConstructor = APSPHHydro
+    else:
+        HydroConstructor = PSPHHydro
 else:
     if ASPH:
         HydroConstructor = ASPHHydro
@@ -125,12 +149,10 @@ dataDir = os.path.join(dataRoot,
                        HydroConstructor.__name__,
                        Qconstructor.__name__,
                        "nperh=%4.2f" % nPerh,
-                       "cfl=%f" % cfl,
                        "XSPH=%s" % XSPH,
                        "densityUpdate=%s" % densityUpdate,
                        "compatibleEnergy=%s" % compatibleEnergy,
-                       "gradhCorrection=%s" % gradhCorrection,
-                       "filter=%f" % filter,
+                       "Cullen=%s" % boolCullenViscosity,
                        "seed=%s" % seed,
                        "nx=%i_ny=%i_nz=%i" % (nx, ny, nz))
 restartDir = os.path.join(dataDir, "restarts")
@@ -170,6 +192,7 @@ if KernelConstructor==NBSplineKernel:
 else:
   WT = TableKernel(KernelConstructor(), 1000)
 output("WT")
+kernelExtent = WT.kernelExtent
 
 #-------------------------------------------------------------------------------
 # Create a NodeList and associated Neighbor object.
@@ -177,6 +200,7 @@ output("WT")
 nodes1 = makeFluidNodeList("nodes1", eos, 
                            hmin = hmin,
                            hmax = hmax,
+                           kernelExtent = kernelExtent,
                            nPerh = nPerh,
                            rhoMin = rhomin)
 
@@ -279,12 +303,13 @@ output("q.quadraticInExpansion")
 # Construct the hydro physics object.
 #-------------------------------------------------------------------------------
 if CRKSPH:
-    hydro = HydroConstructor(W = WT, 
+    hydro = HydroConstructor(W = WT,
                              Q = q,
                              filter = filter,
                              cfl = cfl,
                              compatibleEnergyEvolution = compatibleEnergy,
                              XSPH = XSPH,
+                             correctionOrder = correctionOrder,
                              densityUpdate = densityUpdate,
                              HUpdate = HUpdate)
 elif PSPH:
@@ -306,6 +331,7 @@ else:
                              compatibleEnergyEvolution = compatibleEnergy,
                              evolveTotalEnergy = evolveTotalEnergy,
                              gradhCorrection = gradhCorrection,
+                             correctVelocityGradient = correctVelocityGradient,
                              densityUpdate = densityUpdate,
                              XSPH = XSPH,
                              HUpdate = HEvolution)
@@ -319,6 +345,19 @@ output("hydro.densityUpdate")
 output("hydro.HEvolution")
 
 packages = [hydro]
+
+#-------------------------------------------------------------------------------
+# Construct the MMRV physics object.
+#-------------------------------------------------------------------------------
+
+if boolReduceViscosity:
+    evolveReducingViscosityMultiplier = MorrisMonaghanReducingViscosity(q,nh,aMin,aMax)
+    packages.append(evolveReducingViscosityMultiplier)
+elif boolCullenViscosity:
+    evolveCullenViscosityMultiplier = CullenDehnenViscosity(q,WT,alphMax,alphMin,betaC,betaD,betaE,fKern,boolHopkinsCorrection,cullenReproducingKernelGradient)
+    packages.append(evolveCullenViscosityMultiplier)
+
+
 
 #-------------------------------------------------------------------------------
 # Create boundary conditions.
@@ -337,7 +376,7 @@ for p in packages:
 #-------------------------------------------------------------------------------
 # Construct a time integrator, and add the one physics package.
 #-------------------------------------------------------------------------------
-integrator = CheapSynchronousRK2Integrator(db)
+integrator = IntegratorConstructor(db)
 for p in packages:
     integrator.appendPhysicsPackage(p)
 integrator.lastDt = dt
