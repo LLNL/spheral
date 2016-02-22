@@ -22,15 +22,48 @@ namespace FractalSpace
     }
     bool get_debug() const;
     void set_debug(bool& d);
-  static int coordinate(vector <int>& pos,vector <int>& Box,int spacing)
-  {
-    int nx=pos[0]-Box[0];
-    int ny=pos[1]-Box[2];
-    int nz=pos[2]-Box[4];
-    int nxt=(Box[1]-Box[0])/spacing;
-    int nyt=(Box[3]-Box[2])/spacing;
-    return (nx+nxt*(ny+nz*nyt))/spacing;
-  }
+    static int coordinate(vector <int>& pos,vector <int>& Box,int spacing)
+    {
+      int nx=pos[0]-Box[0];
+      int ny=pos[1]-Box[2];
+      int nz=pos[2]-Box[4];
+      int nxt=(Box[1]-Box[0])/spacing;
+      int nyt=(Box[3]-Box[2])/spacing;
+      return (nx+nxt*(ny+nz*nyt))/spacing;
+    }
+     void plus(const vector <int>& vin,int addit,vector <int>& vout)
+    {
+      vout=vin;
+      plus(vout,addit);
+    }
+    static void plus(vector <int>& vect,int add)
+    {
+      for(vector <int>::iterator itr=vect.begin();itr!=vect.end();itr++)
+	(*itr)+=add;
+    }
+    static void times(const vector <int>& vin,int mult,vector <int>& vout)
+    {
+      vout=vin;
+      times(vout,mult);
+    }
+    static void times(vector <int>& vect,int mult)
+    {
+      for(vector <int>::iterator itr=vect.begin();itr!=vect.end();itr++)
+	(*itr)*=mult;
+    }
+    static void divide(const vector <int>& vin,int divisor,vector <int>& vout)
+//     template <class T> static void divide(const vector <T>& vin,T divisor,vector <T>& vout)
+    {
+      vout=vin;
+      divide(vout,divisor);
+    }
+    static void divide(vector <int>& vect,int divisor)
+//     template <class T> static void divide(vector <T>& vect,T divisor)
+    {
+      for(vector <int>::iterator itr=vect.begin();itr!=vect.end();itr++)
+	(*itr)/=divisor;
+    }
+    //     template static void divide(vector <int>& vect,int div)
     static int nr(const int& i,const int& j,const int& k, const int&m)
     {
       return i+(j+k*m)*m;
@@ -54,9 +87,9 @@ namespace FractalSpace
     template <class T> static void add_dens(vector <T>& dens,const T& dm, T& d_x, 
 					    T& d_y, T& d_z)
     {
-//       assert(abs(d_x-0.5) <= 0.5);
-//       assert(abs(d_y-0.5) <= 0.5);
-//       assert(abs(d_z-0.5) <= 0.5);
+      //       assert(abs(d_x-0.5) <= 0.5);
+      //       assert(abs(d_y-0.5) <= 0.5);
+      //       assert(abs(d_z-0.5) <= 0.5);
       if(abs(d_x-0.5) >= 0.5)
 	{
 	  cout << "dx error " << abs(d_x-0.5)-0.5 << "\n";

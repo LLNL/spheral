@@ -5,30 +5,36 @@ namespace FractalSpace
   struct OcTreeNode
   {
     bool full;
-    int* box;
-    OcTreeNode** kids;
+    vector <int> box;
+    vector <OcTreeNode*> kids;
     list <Point*> ppoints;
     OcTreeNode();
     ~OcTreeNode();
   };
   class OcTree{
   private:
-    int VolumeFactor;
+    int RANK;
+    bool Ranky;
+    int nnodes;
+    int fullnodes;
+    int spacing;
     OcTreeNode* rnode;
     void LoadOcTree(int corner,OcTreeNode* pnode);
     void DestroyOcTree(OcTreeNode* pnode);
-    void CollectBoxes(vector <vector<int> >& SSBoxes,OcTreeNode* pnode);
-    void CollectPoints(vector< vector<Point*> >& SSPoints,OcTreeNode* pnode);
-    void CollectBoxesPoints(vector < vector<int> >& SSBoxes,vector < vector<Point*> >& SSPoints ,OcTreeNode* pnode);
+    void CollectBoxes(vector <vector<int> >& SBoxes,OcTreeNode* pnode);
+    void CollectPoints(vector< vector<Point*> >& SPoints,OcTreeNode* pnode);
+    void CollectBoxesPoints(vector < vector<int> >& SBoxes,vector < vector<Point*> >& SPoints ,OcTreeNode* pnode);
+    void DisplayTree(OcTreeNode* pnode,int& TOT,int& NB);
     void Traverse(OcTreeNode* pnode);
   public:
     OcTree();
     ~OcTree();
-    void LoadOcTree(int* BOX,vector <Point*>& pPOINTS,int spacing);
+    void LoadOcTree(vector <int>& BOX,vector <Point*>& pPOINTS,int spacing);
     void DestroyOcTree();
-    void CollectBoxes(vector < vector<int> >& SSBoxes);
-    void CollectPoints(vector < vector<Point*> >& SSPoints);
-    void CollectBoxesPoints(vector < vector<int> >& SSBoxes,vector < vector<Point*> >& SSPoints);
+    void CollectBoxes(vector < vector<int> >& SBoxes);
+    void CollectPoints(vector < vector<Point*> >& SPoints);
+    void CollectBoxesPoints(vector < vector<int> >& SBoxes,vector < vector<Point*> >& SPoints);
+    void DisplayTree(int& TOT,int& NB);
     void Traverse();
   };
 }
