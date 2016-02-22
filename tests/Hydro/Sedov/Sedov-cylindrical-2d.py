@@ -15,7 +15,7 @@ title("2-D integrated hydro test -- planar Sedov problem")
 #-------------------------------------------------------------------------------
 # Generic problem parameters
 #-------------------------------------------------------------------------------
-commandLine(seed = "constantDTheta",
+commandLine(seed = "lattice",
 
             thetaFactor = 0.5,
             azimuthalOffsetFraction = 0.0,
@@ -91,7 +91,8 @@ commandLine(seed = "constantDTheta",
             smoothIters = 0,
             HEvolution = IdealH,
             compatibleEnergy = True,
-            gradhCorrection = False,
+            gradhCorrection = True,
+            correctVelocityGradient = True,
 
             restoreCycle = None,
             restartStep = 1000,
@@ -238,7 +239,7 @@ if restoreCycle is None:
         generator = GenerateNodeDistribution2d(nRadial, nTheta, rho0, seed,
                                                rmin = rmin,
                                                rmax = rmax,
-                                               xmin = Vector(-1,-1),
+                                               xmin = Vector(0,0),
                                                xmax = Vector(1,1),
                                                theta = theta,
                                                azimuthalOffsetFraction = azimuthalOffsetFraction,
@@ -270,7 +271,7 @@ if restoreCycle is None:
                     Wi = 1.0
                 else:
                     Wi = 0.0
-            Ei = Wi*Espike
+            Ei = WiEspike
             epsi = Ei/mass[nodeID]
             eps[nodeID] = epsi
             Wsum += Wi
@@ -355,6 +356,7 @@ else:
                              compatibleEnergyEvolution = compatibleEnergy,
                              evolveTotalEnergy = evolveTotalEnergy,
                              gradhCorrection = gradhCorrection,
+                             correctVelocityGradient = correctVelocityGradient,
                              densityUpdate = densityUpdate,
                              XSPH = XSPH,
                              HUpdate = HEvolution)
