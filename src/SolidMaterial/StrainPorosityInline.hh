@@ -54,6 +54,30 @@ kappa() const {
 
 template<typename Dimension>
 inline
+double
+StrainPorosity<Dimension>::
+gammaS0() const {
+  return mGammaS0;
+}
+
+template<typename Dimension>
+inline
+double
+StrainPorosity<Dimension>::
+cS0() const {
+  return mcS0;
+}
+
+template<typename Dimension>
+inline
+double
+StrainPorosity<Dimension>::
+c0() const {
+  return mc0;
+}
+
+template<typename Dimension>
+inline
 const PorousEquationOfState<Dimension>&
 StrainPorosity<Dimension>::
 porousEOS() const {

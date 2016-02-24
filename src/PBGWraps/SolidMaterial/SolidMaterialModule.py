@@ -772,7 +772,10 @@ def generateStrainPorosityBindings(x, ndim):
                        param("double", "phi0"),
                        param("double", "epsE"),
                        param("double", "epsX"),
-                       param("double", "kappa")])
+                       param("double", "kappa"),
+                       param("double", "gammaS0"),
+                       param("double", "cS0"),
+                       param("double", "c0")])
 
     # Physics interface.
     generatePhysicsVirtualBindings(x, ndim, False)
@@ -793,6 +796,9 @@ def generateStrainPorosityBindings(x, ndim):
     x.add_instance_attribute("epsX", "double", getter="epsX", is_const=True)
     x.add_instance_attribute("epsC", "double", getter="epsC", is_const=True)
     x.add_instance_attribute("kappa", "double", getter="kappa", is_const=True)
+    x.add_instance_attribute("gammaS0", "double", getter="gammaS0", is_const=True)
+    x.add_instance_attribute("cS0", "double", getter="cS0", is_const=True)
+    x.add_instance_attribute("c0", "double", getter="c0", is_const=True)
     const_ref_return_value(x, me, "%s::porousEOS" % me, porouseos, [], "porousEOS")
     const_ref_return_value(x, me, "%s::nodeList" % me, nodelist, [], "nodeList")
     const_ref_return_value(x, me, "%s::alpha" % me, scalarfield, [], "alpha")
