@@ -713,7 +713,7 @@ beginExchangeField(Field<Dimension, DataType>& field) const {
     // Check the receive sizes.
     BEGIN_CONTRACT_SCOPE
     {
-      CHECK(mRecvBuffers.size() == mField2RecvBuffer.size());
+      CHECK2(mRecvBuffers.size() == mField2RecvBuffer.size(), mRecvBuffers.size() << " != " << mField2RecvBuffer.size());
       int totalNumRecvs = 0;
       for (typename list< list< vector<char> > >::const_iterator itr = mRecvBuffers.begin();
            itr != mRecvBuffers.end();
