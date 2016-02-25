@@ -665,7 +665,9 @@ beginExchangeField(Field<Dimension, DataType>& field) const {
   ++mMPIFieldTag;
 
   // We only do work if this is a communicated NodeList on this domain.
-  if (communicatedNodeList(*nodeListPtr)) {
+  // We also skip if this field is already being exchanged.
+  if (communicatedNodeList(*nodeListPtr) and
+      mField2SendBuffer.find(&field) == mField2SendBuffer.end()) {
 
     // Get the map of (domain -> send and receive nodes) for the NodeList
     // of this Field.
