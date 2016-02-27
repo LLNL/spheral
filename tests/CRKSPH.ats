@@ -1,0 +1,79 @@
+#-*-python-*-
+# This is an ATS script to coordinate running a series of tests of CRKSPH.
+cfl = 0.25
+Cl = 2.0
+Cq = 1.0
+filter = 0.0
+KernelConstructor = "NBSplineKernel"
+order = 7
+linearInExpansion = False
+
+#-------------------------------------------------------------------------------
+# Function to add the tests.
+#-------------------------------------------------------------------------------
+def addTests(crk, nPerh, resMultiplier=None):
+    if crk:
+        label = "CRK"
+    else:
+        label = "SPH"
+    if resMultiplier is None:
+        resMultiplier = nPerh
+    test(script = "Hydro/Sod/Sod-planar-1d.py",
+         clas = "--nx1 %i --nx2 %i --CRKSPH %s --KernelConstructor %s --order %i --cfl %g --nPerh %g --Cl %g --Cq %g --linearInExpansion %s --filter %g --graphics True --clearDirectories True --outputFile Sod-planar.ascii" % (int(400*resMultiplier), int(100*resMultiplier), crk, KernelConstructor, order, cfl, nPerh, Cl, Cq, linearInExpansion, filter), 
+         label = "Planar Sod problem -- 1-D (serial %s)" % label)
+    test(script = "Hydro/DoubleBlastwave/DoubleBlastwave-1d.py",
+         clas = "--nx %i --CRKSPH %s --KernelConstructor %s --order %i --cfl %g --nPerh %g --Cl %g --Cq %g --linearInExpansion %s --filter %g --graphics True --clearDirectories True" % (int(400*resMultiplier), crk, KernelConstructor, order, cfl, nPerh, Cl, Cq, linearInExpansion, filter), 
+         label = "Planar double blastwave -- 1-D (400 nodes, serial %s)" % label)
+    test(script = "Hydro/Noh/Noh-planar-1d.py", 
+         clas = "--nx1 %i --CRKSPH %s --KernelConstructor %s --order %i --cfl %g --nPerh %g --Cl %g --Cq %g  --linearInExpansion %s --filter %g --graphics True --clearDirectories True --outputFile Noh-planar.ascii" % (int(100*resMultiplier), crk, KernelConstructor, order, cfl, nPerh, Cl, Cq, linearInExpansion, filter), 
+         label = "Planar Noh problem -- 1-D (serial %s)" % label)
+    test(script = "Hydro/Noh/Noh-cylindrical-2d.py",
+         clas = "--nRadial %i --CRKSPH %s --KernelConstructor %s --order %i --cfl %g --nPerh %g --Cl %g --Cq %g  --linearInExpansion %s --filter %g --graphics True --clearDirectories True --outputFile 'Noh-cylindrical.ascii'" % (int(50*resMultiplier), crk, KernelConstructor, order, cfl, nPerh, Cl, Cq, linearInExpansion, filter), 
+         label = "Cylindrical Noh problem -- 2-D (serial %s)" % label)
+    test(script = "Hydro/Noh/Noh-spherical-3d.py",
+         clas = "--nx %i --ny %i --nz %i --CRKSPH %s --KernelConstructor %s --order %i --cfl %g --nPerh %g --Cl %g --Cq %g  --linearInExpansion %s --filter %g --graphics True --clearDirectories True --outputFile 'Noh-spherical.ascii'" % (int(50*resMultiplier), int(50*resMultiplier), int(50*resMultiplier), crk, KernelConstructor, order, cfl, nPerh, Cl, Cq, linearInExpansion, filter), 
+         label = "Spherical Noh problem -- 3-D (80 proc %s)" % label,
+         np = 80)
+    nx, ny = int(20*resMultiplier), int(100*resMultiplier)
+    test(script = "Hydro/Noh/Noh-shear-2d.py", 
+         clas = "--nx %i --ny %i --CRKSPH %s --KernelConstructor %s --order %i --cfl %g --nPerh %g --Cl %g --Cq %g --filter %g --graphics True --clearDirectories True --outputFile Noh-shear-2d.ascii" % (nx, ny, crk, KernelConstructor, order, cfl, nPerh, Cl, Cq, filter), 
+         label = "Planar Shearing Noh problem -- 2-D (serial %s)" % label)
+    test(script = "Hydro/Sedov/Sedov-planar-1d.py",
+         clas = "--nRadial %i --CRKSPH %s --KernelConstructor %s --order %i --cfl %g --nPerh %g --Cl %g --Cq %g  --linearInExpansion %s --filter %g --graphics True --clearDirectories True --smoothSpike False --outputFile Sedov-planar.ascii" % (int(100*resMultiplier), crk, KernelConstructor, order, cfl, nPerh, Cl, Cq, linearInExpansion, filter), 
+         label = "Planar Sedov problem -- 1-D (serial %s)" % label)
+    test(script = "Hydro/Sedov/Sedov-cylindrical-2d.py",
+         clas = "--nRadial %i --CRKSPH %s --KernelConstructor %s --order %i --cfl %g --nPerh %g --Cl %g --Cq %g  --linearInExpansion %s --filter %g --graphics True --clearDirectories True --smoothSpike False --outputFile Sedov-cylindrical.ascii" % (int(100*resMultiplier), crk, KernelConstructor, order, cfl, nPerh, Cl, Cq, linearInExpansion, filter), 
+         label = "Cylindrical Sedov problem -- 2-D (serial %s)" % label)
+    test(script = "Hydro/Sedov/Sedov-spherical-3d.py",
+         clas = "--nx %i --ny %i --nz %i --CRKSPH %s --KernelConstructor %s --order %i --cfl %g --nPerh %g --Cl %g --Cq %g  --linearInExpansion %s --filter %g --graphics True --clearDirectories True --smoothSpike False --outputFile Sedov-spherical.ascii" % (int(100*resMultiplier), int(100*resMultiplier), int(100*resMultiplier), crk, KernelConstructor, order, cfl, nPerh, Cl, Cq, linearInExpansion, filter), 
+         label = "Spherical Sedov problem -- 3-D (80 proc %s)" % label,
+         np = 80)
+    test(script = "Hydro/GreshoVortex/GreshoVortex.py",
+         clas = "--nx1 %i --ny1 %i --CRKSPH %s --KernelConstructor %s --order %i --cfl %g --nPerh %g --Cl %g --Cq %g  --linearInExpansion %s --filter %g --graphics True --clearDirectories True --goalTime 3.0 --outputFile GreshoVortex.ascii" % (int(64*resMultiplier), int(64*resMultiplier), crk, KernelConstructor, order, cfl, nPerh, Cl, Cq, linearInExpansion, filter), 
+         label = "Gresho vortex problem -- 2-D (4 proc, %s)" % label,
+         np = 4)
+    nx, ny = int(256*resMultiplier), int(128*resMultiplier)
+    test(script = "Hydro/KelvinHelmholtz/KelvinHelmholtz-2d_McNally.py",
+         clas = "--nx1 %i --nx2 %i --ny1 %i --ny2 %i --CRKSPH %s --KernelConstructor %s --order %i --cfl %g --nPerh %g --Cl %g --Cq %g  --linearInExpansion %s --filter %g --clearDirectories True --graphMixing True --mixFile KH_%s_256x256_ats.gnu" % (nx, nx, ny, ny, crk, KernelConstructor, order, cfl, nPerh, Cl, Cq, linearInExpansion, filter, label), 
+         label = "Kelvin-Helmholtz problem -- 2-D (80 proc, %s)" % label,
+         np = 80)
+    nx1, ny1 = int(20*resMultiplier), int(60*resMultiplier)
+    nx2, ny2 = int(40*resMultiplier), int(10*resMultiplier)
+    nx3, ny3 = int(120*resMultiplier), int(30*resMultiplier)
+    test(script = "Hydro/TriplePoint/TriplePoint-xy.py",
+         clas = "--nx1 %i --ny1 %i --nx2 %i --ny2 %i --nx3 %i --ny3 %i --CRKSPH %s --KernelConstructor %s --order %i --cfl %g --nPerh %g --Cl %g --Cq %g  --linearInExpansion %s --filter %g --clearDirectories True --XSPH False" % (nx1, ny1, nx2, ny2, nx3, ny3, crk, KernelConstructor, order, cfl, nPerh, Cl, Cq, linearInExpansion, filter), 
+         label = "Triple-point problem -- 2-D (level 1 mesh, 4 proc, %s)" % label,
+         np = 4)
+    nx1, ny1 = 2*nx1, 2*ny1
+    nx2, ny2 = 2*nx2, 2*ny2
+    nx3, ny3 = 2*nx3, 2*ny3
+    test(script = "Hydro/TriplePoint/TriplePoint-xy.py",
+         clas = "--nx1 %i --ny1 %i --nx2 %i --ny2 %i --nx3 %i --ny3 %i --CRKSPH %s --KernelConstructor %s --order %i --cfl %g --nPerh %g --Cl %g --Cq %g  --linearInExpansion %s --filter %g --clearDirectories True --XSPH False" % (nx1, ny1, nx2, ny2, nx3, ny3, crk, KernelConstructor, order, cfl, nPerh, Cl, Cq, linearInExpansion, filter), 
+         label = "Triple-point problem -- 2-D (level 2 mesh, 20 proc, %s)" % label,
+         np = 20)
+    return
+
+#-------------------------------------------------------------------------------
+# Add the tests.
+#-------------------------------------------------------------------------------
+addTests(True, 1.01, 1)
