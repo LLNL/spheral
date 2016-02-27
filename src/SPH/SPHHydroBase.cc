@@ -741,10 +741,10 @@ evaluateDerivatives(const typename Dimension::Scalar time,
               const pair<Tensor, Tensor> QPiij = Q.Piij(nodeListi, i, nodeListj, j,
                                                         ri, etai, vi, rhoi, ci, Hi,
                                                         rj, etaj, vj, rhoj, cj, Hj);
-              const Vector Qacci = 0.5*safeOmegai*(QPiij.first *gradWQi);
-              const Vector Qaccj = 0.5*safeOmegaj*(QPiij.second*gradWQj);
-              // const Scalar workQi = 0.5*safeOmegai*(QPiij.first *vij).dot(gradWQi);
-              // const Scalar workQj = 0.5*safeOmegaj*(QPiij.second*vij).dot(gradWQj);
+              const Vector Qacci = 0.5*(QPiij.first *gradWQi);
+              const Vector Qaccj = 0.5*(QPiij.second*gradWQj);
+              // const Scalar workQi = 0.5*(QPiij.first *vij).dot(gradWQi);
+              // const Scalar workQj = 0.5*(QPiij.second*vij).dot(gradWQj);
               const Scalar workQi = vij.dot(Qacci);
               const Scalar workQj = vij.dot(Qaccj);
               const Scalar Qi = rhoi*rhoi*(QPiij.first. diagonalElements().maxAbsElement());
@@ -835,8 +835,8 @@ evaluateDerivatives(const typename Dimension::Scalar time,
         DvDxi = DvDxi*Mi;
         localDvDxi = localDvDxi*localMi;
       } else {
-        DvDxi *= safeOmegai/rhoi;
-        localDvDxi *= safeOmegai/rhoi;
+        DvDxi /= rhoi;
+        localDvDxi /= rhoi;
       }
 
       // Evaluate the continuity equation.
