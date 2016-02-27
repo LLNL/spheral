@@ -145,27 +145,29 @@ commandLine(KernelConstructor = BSplineKernel,
             restartBaseName = "Noh-planar-1d",
             outputFile = "None",
             comparisonFile = "None",
+            normOutputFile = "None",
+            writeOutputLabel = True,
 
             # Parameters for the test acceptance.,
-            L1rho =   0.0429382,  
-            L2rho =   0.2137,     
-            Linfrho = 1.7316,     
+            L1rho =   0.0448991,   
+            L2rho =   0.211456,    
+            Linfrho = 1.68195,     
                                                                        
-            L1P =     0.0158733,  
-            L2P =     0.0770935,  
-            LinfP =   0.611993,   
+            L1P =     0.0163364,   
+            L2P =     0.0761254,   
+            LinfP =   0.588151,    
                                                                        
-            L1v =     0.0226381,  
-            L2v =     0.116815,   
-            Linfv =   0.864014,   
+            L1v =     0.0237167,   
+            L2v =     0.11778,     
+            Linfv =   0.840649,    
                                                                        
-            L1eps =   0.00984817, 
-            L2eps =   0.0468995,  
-            Linfeps = 0.336063,   
+            L1eps =   0.00996706,  
+            L2eps =   0.0466259,   
+            Linfeps = 0.32895,     
                                                            
-            L1h =     0.000306102,
-            L2h =     0.00125445, 
-            Linfh =   0.00771623, 
+            L1h =     0.000328843, 
+            L2h =     0.00130955,  
+            Linfh =   0.00781516,  
 
             tol = 1.0e-5,
 
@@ -665,6 +667,17 @@ if mpi.rank == 0:
     print "\tQuantity \t\tL1 \t\t\tL2 \t\t\tLinf"
     failure = False
     hD = []
+
+    if normOutputFile != "None":
+       f = open(normOutputFile, "a")
+       if writeOutputLabel:
+          f.write(("#" + 13*"%17s " + "\n") % ('"nx"',
+                                               '"rho L1"', '"rho L2"', '"rho Linf"',
+                                               '"P L1"',   '"P L2"',   '"P Linf"',
+                                               '"vel L1"', '"vel L2"', '"vel Linf"',
+                                               '"E L1"', '"E L2"', '"E Linf"',
+                                               '"h L1"',   '"h L2"',   '"h Linf"'))
+       f.write("%5i " % nx1)
     for (name, data, ans,
          L1expect, L2expect, Linfexpect) in [("Mass Density", rhoprof, rhoans, L1rho, L2rho, Linfrho),
                                              ("Pressure", Pprof, Pans, L1P, L2P, LinfP),
@@ -678,7 +691,12 @@ if mpi.rank == 0:
         L2 = Pn.gridpnorm(2, rmin, rmax)
         Linf = Pn.gridpnorm("inf", rmin, rmax)
         print "\t%s \t\t%g \t\t%g \t\t%g" % (name, L1, L2, Linf)
+        if normOutputFile != "None":
+           f.write((3*"%16.12e ") % (L1, L2, Linf))
         hD.append([L1,L2,Linf])
+        
+           
+
         if checkError:
             if not fuzzyEqual(L1, L1expect, tol):
                 print "L1 error estimate for %s outside expected bounds: %g != %g" % (name,
@@ -697,6 +715,8 @@ if mpi.rank == 0:
                 failure = True
             if failure:
                 raise ValueError, "Error bounds violated."
+    if normOutputFile != "None":
+       f.write("\n")
                                              
     # print "%d\t %g\t %g\t %g\t %g\t %g\t %g\t %g\t %g\t %g\t %g\t %g\t %g\t" % (nx1,hD[0][0],hD[1][0],hD[2][0],hD[3][0],
     #                                                                             hD[0][1],hD[1][1],hD[2][1],hD[3][1],

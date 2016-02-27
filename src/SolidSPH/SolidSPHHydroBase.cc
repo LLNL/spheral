@@ -623,8 +623,8 @@ evaluateDerivatives(const typename Dimension::Scalar time,
               const pair<Tensor, Tensor> QPiij = Q.Piij(nodeListi, i, nodeListj, j,
                                                         ri, etai, vi, rhoi, ci, Hi,
                                                         rj, etaj, vj, rhoj, cj, Hj);
-              const Vector Qacci = 0.5*safeOmegai*(QPiij.first *gradWQi);
-              const Vector Qaccj = 0.5*safeOmegaj*(QPiij.second*gradWQj);
+              const Vector Qacci = 0.5*(QPiij.first *gradWQi);
+              const Vector Qaccj = 0.5*(QPiij.second*gradWQj);
               const Scalar workQi = vij.dot(Qacci);
               const Scalar workQj = vij.dot(Qaccj);
               const Scalar Qi = rhoi*rhoi*(QPiij.first. diagonalElements().maxAbsElement());
@@ -699,11 +699,11 @@ evaluateDerivatives(const typename Dimension::Scalar time,
               }
 
               // Linear gradient correction term.
-              Mi -= fDeffij*mj*rij.dyad(gradWi);
-              Mj -= fDeffij*mi*rij.dyad(gradWj);
+              Mi -= fDeffij*mj*rij.dyad(gradWGi);
+              Mj -= fDeffij*mi*rij.dyad(gradWGj);
               if (sameMatij) {
-                localMi -= fDeffij*mj*rij.dyad(gradWi);
-                localMj -= fDeffij*mi*rij.dyad(gradWj);
+                localMi -= fDeffij*mj*rij.dyad(gradWGi);
+                localMj -= fDeffij*mi*rij.dyad(gradWGj);
               }
             }
           }
@@ -732,12 +732,17 @@ evaluateDerivatives(const typename Dimension::Scalar time,
           std::abs(Mi.Determinant()) > 1.0e-10 and
           numNeighborsi > Dimension::pownu(2)) {
         Mi = Mi.Inverse();
-        localMi = localMi.Inverse();
         DvDxi = DvDxi*Mi;
+      } else {
+        DvDxi /= rhoi;
+      }
+      if (this->mCorrectVelocityGradient and
+          std::abs(localMi.Determinant()) > 1.0e-10 and
+          numNeighborsi > Dimension::pownu(2)) {
+        localMi = localMi.Inverse();
         localDvDxi = localDvDxi*localMi;
       } else {
-        DvDxi *= safeOmegai/rhoi;
-        localDvDxi *= safeOmegai/rhoi;
+        localDvDxi /= rhoi;
       }
 
       // Evaluate the continuity equation.

@@ -202,8 +202,8 @@ pressure(const Scalar massDensity,
   // phases, and is interpolated between P2 and P4.
 
   double P;
-  const double phi = mb/(1.0 + eps/(meps0*eta*eta));
-  const double chi = 1.0/eta - 1.0;
+  const double phi = mb*safeInvVar(1.0 + eps*safeInvVar(meps0*eta*eta, 1.0e-10), 1.0e-10);
+  const double chi = safeInvVar(eta, 1.0e-10) - 1.0;
 
   if (mu >= 0.0) {
 
@@ -213,7 +213,7 @@ pressure(const Scalar massDensity,
   } else if (eps <= mepsLiquid) {
 
     // Regime 2: expansion, solid : same as 1, only if rho>cutoff density.
-    P = (eta > mEtaMinSolid) ? (ma + phi)*rho*eps + mA*mu + mB*mu*mu : 0.0;
+    P = (ma + phi)*rho*eps + mA*mu + mB*mu*mu;
 
   } else if (eps >= mepsVapor) {
 
@@ -227,7 +227,7 @@ pressure(const Scalar massDensity,
     // Following <strike>Saito et al. we compute P2 and P4 at the epsLiquid and
     // epsVapor specific energies</strike> Melosh (personal communication) we
     // compute P2 and P4 at the given energy.
-    double P2 = (eta > mEtaMinSolid) ? (ma + phi)*rho*eps + mA*mu + mB*mu*mu : 0.;
+    double P2 = (ma + phi)*rho*eps + mA*mu + mB*mu*mu;
     double P4 = ma*rho*eps + 
                (phi*rho*eps + mA*mu*exp(-mbeta*chi))*exp(-malpha*chi*chi);
     P = P2 + (P4 - P2)*(eps - mepsLiquid)/(mepsVapor - mepsLiquid);
@@ -333,11 +333,13 @@ computeDPDrho(const Scalar massDensity,
                eps = std::max(0.0, specificThermalEnergy);
 
   double dPdrho_ad, dPdrho_eps, dPdeps_rho;
-  const double phi = mb/(1.0 + eps/(meps0*eta*eta));
-  const double chi = 1./eta - 1.0;
-  const double dphidrho = (1./rho0)*((2.0*mb*meps0*eps*eta)/
-                                     ((eps+meps0*eta*eta)*(eps+meps0*eta*eta)));
-  const double dphideps = -mb*meps0*eta*eta/((eps+meps0*eta*eta)*(eps+meps0*eta*eta));
+  const double phi = mb*safeInvVar(1.0 + eps*safeInvVar(meps0*eta*eta, 1.0e-10), 1.0e-10);
+  const double chi = safeInvVar(eta, 1.0e-10) - 1.0;
+  // const double dphidrho = (1./rho0)*((2.0*mb*meps0*eps*eta)/
+  //                                    ((eps+meps0*eta*eta)*(eps+meps0*eta*eta)));
+  // const double dphideps = -mb*meps0*eta*eta*safeInvVar((eps+meps0*eta*eta)*(eps+meps0*eta*eta), 1.0e-10);
+  const double dphidrho = 2.0*mb*meps0*eps*eta*safeInvVar(rho0*FastMath::square(eps + meps0*eta*eta), 1.0e-10);
+  const double dphideps = -mb*meps0*(1.0 + meps0*eta*eta)*safeInvVar(FastMath::square(eps + meps0*eta*eta), 1.0e-10);
 
   if (mu >= 0.0) {
 
@@ -348,10 +350,8 @@ computeDPDrho(const Scalar massDensity,
   } else if (eps <= mepsLiquid) {
 
     // Regime 2: expansion, solid : same as 1, but only if rho>cutoff density
-    dPdrho_eps = (eta > mEtaMinSolid) ? 
-              eps*(ma + phi + rho*dphidrho) + (1./rho0)*(mA + 2.0*mB*mu) : 0.0;
-    dPdeps_rho = (eta > mEtaMinSolid) ?
-              rho*(ma + phi + eps*dphideps) : 0.0;
+    dPdrho_eps = eps*(ma + phi + rho*dphidrho) + (1./rho0)*(mA + 2.0*mB*mu);
+    dPdeps_rho = rho*(ma + phi + eps*dphideps);
 
   } else if (eps >= mepsVapor) {
      
@@ -368,14 +368,12 @@ computeDPDrho(const Scalar massDensity,
     // Treated here as a linear combination of the solid and gaseous phases.
     double dP2drho_eps, dP4drho_eps, dP2deps_rho, dP4deps_rho;
 
-    dP2drho_eps = (eta > mEtaMinSolid) ? 
-               eps*(ma + phi + rho*dphidrho) + (1./rho0)*(mA + 2.0*mB*mu) : 0.0;
+    dP2drho_eps = eps*(ma + phi + rho*dphidrho) + (1./rho0)*(mA + 2.0*mB*mu);
     dP4drho_eps = ma*eps + 
               eps*exp(-malpha*chi*chi)*(phi + rho*dphidrho + 2.0*malpha*chi*phi*rho0/rho) + 
               mA*exp(-(malpha*chi*chi+mbeta*chi))*(1./rho0 + rho0*mu*mbeta/(rho*rho) + 
                                                          2.0*rho0*mu*malpha*chi/(rho*rho));
-    dP2deps_rho = (eta > mEtaMinSolid) ?
-               rho*(ma + phi + eps*dphideps) : 0.0;
+    dP2deps_rho = rho*(ma + phi + eps*dphideps);
     dP4deps_rho = rho*(ma + exp(-malpha*chi*chi)*(phi + eps*dphideps));
 
     dPdrho_eps = dP2drho_eps + (dP4drho_eps - dP2drho_eps)*(eps - mepsLiquid)/(mepsVapor - mepsLiquid);
