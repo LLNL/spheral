@@ -3,25 +3,21 @@
 #include "headers.hh"
 namespace FractalSpace
 {
-  OcTreeNode::OcTreeNode()
+  OcTreeNode::OcTreeNode():
+    full(false)
   {
-    full=false;
-    box.assign(6,-12345);
-    kids.assign(8,NULL);
   }
   OcTreeNode::~OcTreeNode()
   {
   }
-  OcTree::OcTree()
+  OcTree::OcTree():
+    nnodes(0),
+    fullnodes(0),
+    rnode(NULL),
+    spacing(1)
   {
     RANK=-1;
     MPI_Comm_rank(MPI_COMM_WORLD,&RANK);
-    Ranky = RANK == 21;
-    Ranky=false;
-    nnodes=0;
-    fullnodes=0;
-    rnode=NULL;
-    spacing=1;
   }
   OcTree::~OcTree()
   {
@@ -42,6 +38,7 @@ namespace FractalSpace
 	    cerr << " badd root node " << ba.what() << " " << RANK << endl;
 	  }
       }
+    rnode->kids.assign(8,NULL);
     rnode->box=BOX;
     rnode->ppoints.assign(pPOINTS.begin(),pPOINTS.end());
     int vol=(BOX[1]-BOX[0])*(BOX[3]-BOX[2])*(BOX[5]-BOX[4]);
@@ -49,8 +46,7 @@ namespace FractalSpace
     if(rnode->full)
       {
 	fullnodes++;
-	if(Ranky)
-	  cerr << " FULL0 " << RANK << " " << vol << " " << rnode->ppoints.size() << " " << endl;
+	cerr << " FULL0 " << RANK << " " << vol << " " << rnode->ppoints.size() << " " << endl;
       }
     if(rnode->ppoints.empty() || rnode->full)
       return;
@@ -68,8 +64,7 @@ namespace FractalSpace
 	}
     for(int corner=0;corner<8;corner++)
       LoadOcTree(corner,rnode);
-    if(Ranky)
-      cerr << " LOAD NODES0 " << RANK << " " << nnodes << " " << fullnodes << " " << vol << " " << pPOINTS.size() << endl;
+    cerr << " LOAD NODES0 " << RANK << " " << nnodes << " " << fullnodes << " " << vol << " " << pPOINTS.size() << endl;
     nnodes=0;
     fullnodes=0;
   }
@@ -77,6 +72,7 @@ namespace FractalSpace
   {
     nnodes++;
     OcTreeNode* knode=pnode->kids[cornera];
+    knode->kids.assign(8,NULL);
     knode->box=pnode->box;
     knode->box[cornera % 2 == 0 ? 1:0]=(pnode->box[0]+pnode->box[1])/2;
     knode->box[(cornera/2) % 2 == 0 ? 3:2]=(pnode->box[2]+pnode->box[3])/2;
@@ -105,8 +101,6 @@ namespace FractalSpace
     if(knode->full)
       {
 	fullnodes++;
-	if(Ranky)
-	  cerr << " FULL " << vol << " " << knode->ppoints.size() << " " << pnode->ppoints.size() << " " << endl;
       }
     if(knode->ppoints.empty() || knode->full)
       return;
@@ -206,8 +200,6 @@ namespace FractalSpace
 	int np=SPoints.size();
 	SPoints.resize(np+1);
 	SPoints[np].assign(rnode->ppoints.begin(),rnode->ppoints.end());
-	if(Ranky)
-	  cerr << " Collect0 " << RANK << " " << nb+1 << " " << np+1 << endl;
 	return;
       }
     for(int k=0;k<8;k++)
@@ -228,8 +220,6 @@ namespace FractalSpace
 	SPoints.resize(np+1);
 	SPoints[np].assign(pnode->ppoints.begin(),pnode->ppoints.end());
 	np++;
-	if(Ranky)
-	  cerr << " Collect " << RANK << " " << nb << " " << np << endl;
 	return;
       }
     for(int k=0;k<8;k++)
@@ -247,8 +237,6 @@ namespace FractalSpace
 	    assert(rnode->ppoints.size() == vol);
 	    TOT+=rnode->ppoints.size();
 	    NB++;
-	    if(Ranky)
-	      cerr << " Display0 " << RANK << " " << TOT << " " << NB << " " << rnode->ppoints.size() << " " << vol << endl;
 	  }
 	else
 	  assert(rnode->ppoints.size() < vol);
@@ -267,8 +255,6 @@ namespace FractalSpace
 	    assert(pnode->ppoints.size() == vol);
 	    TOT+=pnode->ppoints.size();
 	    NB++;
-	    if(Ranky)
-	      cerr << " DisplayA " << RANK << " " << TOT << " " << NB << " " << pnode->ppoints.size() << " " << vol << endl;
 	  }
 	else
 	  if(vol > 0)
