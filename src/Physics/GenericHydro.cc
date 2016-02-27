@@ -204,8 +204,8 @@ dt(const DataBase<Dimension>& dataBase,
             const int j = *jItr;
             const Vector& xj = position(nodeListj, j);
             const Vector& vj = velocity(nodeListj, j);
-            const Scalar vij = std::max(0.0, (vi - vj).dot((xi - xj).unitVector()));
-            const Scalar dtVelDiff = nodeScale/std::max(vij, 1e-30);
+            const Scalar vij = std::max(0.0, (vj - vi).dot((xi - xj).unitVector()));
+            const Scalar dtVelDiff = nodeScale*safeInvVar(vij, 1e-30);
             if (dtVelDiff < minDt) {
               minDt = dtVelDiff;
               reason = "pairwise velocity difference";
