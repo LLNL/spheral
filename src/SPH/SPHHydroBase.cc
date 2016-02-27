@@ -831,11 +831,16 @@ evaluateDerivatives(const typename Dimension::Scalar time,
           std::abs(Mi.Determinant()) > 1.0e-10 and
           numNeighborsi > Dimension::pownu(2)) {
         Mi = Mi.Inverse();
-        localMi = localMi.Inverse();
         DvDxi = DvDxi*Mi;
-        localDvDxi = localDvDxi*localMi;
       } else {
         DvDxi /= rhoi;
+      }
+      if (this->mCorrectVelocityGradient and
+          std::abs(localMi.Determinant()) > 1.0e-10 and
+          numNeighborsi > Dimension::pownu(2)) {
+        localMi = localMi.Inverse();
+        localDvDxi = localDvDxi*localMi;
+      } else {
         localDvDxi /= rhoi;
       }
 
