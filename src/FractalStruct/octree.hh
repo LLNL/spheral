@@ -14,7 +14,6 @@ namespace FractalSpace
   class OcTree{
   private:
     int RANK;
-    bool Ranky;
     int nnodes;
     int fullnodes;
     int spacing;
