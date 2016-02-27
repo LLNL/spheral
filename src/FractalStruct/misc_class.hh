@@ -369,6 +369,16 @@ namespace FractalSpace
 	}
       return;
     }
+    template <class T> void zero_shrink_vector(vector <T>& vec,int size)
+    {
+      vec.clear();
+      vec.resize(size);
+      vec.shrink_to_fit();
+    }
+//     template <T> void shrink_vectors(T vec)
+//     {
+//       for(T vec
+//     }
   };
 }
 #endif

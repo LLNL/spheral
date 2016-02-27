@@ -10,6 +10,7 @@ namespace FractalSpace
 //     bool Ranky = RANK == 21;
 //     Ranky=false;
     int spacing=Misc::pow(2,fractal.get_level_max()-level);
+//     for(int ni=0;ni<2;ni++)
     for(int ni=0;ni<2;ni++)
       {
 	vector <vector <Point*> >hypre_points;
@@ -29,16 +30,20 @@ namespace FractalSpace
 	mem.p_mess->Full_Stop_Do_Not_Argue();
 	cerr << " createBA " << RANK << " " << ni << " " << level  << " " << ni << " " << spacing << endl;
 	if(mem.p_mess->IAmAHypreNode)
-	  hypre_solve_struct(mem,level,SBoxes,SPoints);
+	  {
+	    hypre_solve_struct(mem,level,SBoxes,SPoints);
+	    cerr << " runA " << RANK << " " << ni << " " << level << " " << ni << " " << spacing << endl;
+	    if(ni == 1)
+	      add_buffer_values(mem,level,SBoxes,SPoints);
+	    cerr << " runB " << RANK << " " << ni << " " << level << " " << ni << " " << spacing << endl;
+	  }
 	mem.p_mess->Full_Stop_Do_Not_Argue();
-	cerr << " runaA " << RANK << " " << ni << " " << level << " " << ni << " " << spacing << endl;
+	cerr << " runC " << RANK << " " << ni << " " << level << " " << ni << " " << spacing << endl;
 	mem.p_mess->HypreGroupFree();
 	cerr << " freeA " << RANK << " " << ni << " " << level  << " " << ni << " " << spacing << endl;
 	mem.p_mess->Full_Stop_Do_Not_Argue();
 	SBoxes.clear();
 	SPoints.clear();
-	assert(false);
       }
   }
 }
-// 	mem.p_mess->Full_Stop_Do_Not_Argue();

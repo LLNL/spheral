@@ -15,6 +15,7 @@
 #include <algorithm>
 #include <complex>
 #include <ctime>
+#include <memory>
 #include <random>
 #include <climits>
 #include <cerrno>

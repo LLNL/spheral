@@ -17,7 +17,7 @@ namespace FractalSpace
     RANK=-1;
     MPI_Comm_rank(MPI_COMM_WORLD,&RANK);
     Ranky = RANK == 21;
-//     Ranky=false;
+    Ranky=false;
     nnodes=0;
     fullnodes=0;
     rnode=NULL;
@@ -50,7 +50,7 @@ namespace FractalSpace
       {
 	fullnodes++;
 	if(Ranky)
-	  cerr << " FULL0 " << vol << " " << rnode->ppoints.size() << " " << endl;
+	  cerr << " FULL0 " << RANK << " " << vol << " " << rnode->ppoints.size() << " " << endl;
       }
     if(rnode->ppoints.empty() || rnode->full)
       return;
@@ -69,7 +69,7 @@ namespace FractalSpace
     for(int corner=0;corner<8;corner++)
       LoadOcTree(corner,rnode);
     if(Ranky)
-      cerr << " LOAD NODES " << RANK << " " << nnodes << " " << fullnodes << " " << vol << " " << pPOINTS.size() << endl;
+      cerr << " LOAD NODES0 " << RANK << " " << nnodes << " " << fullnodes << " " << vol << " " << pPOINTS.size() << endl;
     nnodes=0;
     fullnodes=0;
   }
@@ -140,7 +140,7 @@ namespace FractalSpace
   }
   void OcTree::CollectBoxes(vector < vector<int> >& SBoxes)
   {
-    if(rnode->ppoints.empty())
+    if(rnode == NULL)
       return;
     if(rnode->full)
       {
@@ -154,7 +154,7 @@ namespace FractalSpace
   }
   void OcTree::CollectBoxes(vector< vector<int> >& SBoxes,OcTreeNode* pnode)
   {
-    if(pnode->ppoints.empty())
+    if(pnode == NULL)
       return;
     if(pnode->full)
       {
@@ -168,7 +168,7 @@ namespace FractalSpace
   }
   void OcTree::CollectPoints(vector < vector<Point*> >& SPoints)
   {
-    if(rnode->ppoints.empty())
+    if(rnode == NULL)
       return;
     if(rnode->full)
       {
@@ -182,7 +182,7 @@ namespace FractalSpace
   }
   void OcTree::CollectPoints(vector< vector<Point*> >& SPoints,OcTreeNode* pnode)
   {
-    if(pnode->ppoints.empty())
+    if(pnode == NULL)
       return;
     if(pnode->full)
       {
@@ -196,7 +196,7 @@ namespace FractalSpace
   }
   void OcTree::CollectBoxesPoints(vector < vector<int> >& SBoxes,vector < vector<Point*> >& SPoints)
   {
-    if(rnode->ppoints.empty())
+    if(rnode == NULL)
       return;
     if(rnode->full)
       {
@@ -207,7 +207,7 @@ namespace FractalSpace
 	SPoints.resize(np+1);
 	SPoints[np].assign(rnode->ppoints.begin(),rnode->ppoints.end());
 	if(Ranky)
-	  cerr << " Collect0 " << RANK << " " << nb << " " << np << endl;
+	  cerr << " Collect0 " << RANK << " " << nb+1 << " " << np+1 << endl;
 	return;
       }
     for(int k=0;k<8;k++)
@@ -215,7 +215,7 @@ namespace FractalSpace
   }
   void OcTree::CollectBoxesPoints(vector < vector<int> >& SBoxes,vector < vector<Point*> >& SPoints,OcTreeNode* pnode)
   {
-    if(pnode->ppoints.empty())
+    if(pnode == NULL)
       return;
     if(pnode->full)
       {
@@ -223,9 +223,11 @@ namespace FractalSpace
 	SBoxes.resize(nb+1);
 	// 	SBoxes.back()=pnode->box;
 	SBoxes[nb].assign(pnode->box.begin(),pnode->box.end());
+	nb++;
 	int np=SPoints.size();
 	SPoints.resize(np+1);
 	SPoints[np].assign(pnode->ppoints.begin(),pnode->ppoints.end());
+	np++;
 	if(Ranky)
 	  cerr << " Collect " << RANK << " " << nb << " " << np << endl;
 	return;
@@ -245,10 +247,11 @@ namespace FractalSpace
 	    assert(rnode->ppoints.size() == vol);
 	    TOT+=rnode->ppoints.size();
 	    NB++;
+	    if(Ranky)
+	      cerr << " Display0 " << RANK << " " << TOT << " " << NB << " " << rnode->ppoints.size() << " " << vol << endl;
 	  }
 	else
 	  assert(rnode->ppoints.size() < vol);
-// 	cerr << " Display0 " << rnode->full << " " << rnode->ppoints.size() << " " << vol << endl;
 	DisplayTree(rnode,TOT,NB);
       }
   }
@@ -264,10 +267,12 @@ namespace FractalSpace
 	    assert(pnode->ppoints.size() == vol);
 	    TOT+=pnode->ppoints.size();
 	    NB++;
+	    if(Ranky)
+	      cerr << " DisplayA " << RANK << " " << TOT << " " << NB << " " << pnode->ppoints.size() << " " << vol << endl;
 	  }
 	else
-	  assert(pnode->ppoints.size() < vol);
-// 	cerr << " DisplayA " << pnode->full << " " << pnode->ppoints.size() << " " << vol << endl;
+	  if(vol > 0)
+	    assert(pnode->ppoints.size() < vol);
 	for(int k=0;k<8;k++)
 	  DisplayTree(pnode->kids[k],TOT,NB);
       }
