@@ -62,13 +62,19 @@ class GenerateRatioSphere2d(NodeGeneratorBase):
         else:
             neff = max(1, int((rmax - rmin)/drCenter + 0.5))
             drCenter = (rmax - rmin)/neff
-        print "Adjusting initial radial spacing to %g in order to create a radial number of bins %i." % (drCenter, neff)
+        print "Adjusting initial radial spacing to %g in order to create an integer radial number of bins %i." % (drCenter, neff)
 
         # Work our way out from the center.
         r0 = rmin
         dr = drCenter
-        while r0 < rmax:
-            r1 = min(rmax, r0 + dr)
+        for i in xrange(neff):
+            if abs(drRatio - 1.0) > 1e-4:
+                r0 = rmin + drCenter*(1.0 - drRatio**i)/(1.0 - drRatio)
+                r1 = rmin + drCenter*(1.0 - drRatio**(i + 1))/(1.0 - drRatio)
+            else:
+                r0 = rmin + i*drCenter
+                r1 = rmin + (i + 1)*drCenter
+            dr = r1 - r0
             ri = 0.5*(r0 + r1)
             li = Dtheta*ri
             if constantN:
@@ -95,8 +101,6 @@ class GenerateRatioSphere2d(NodeGeneratorBase):
                     runit = Vector2d(xi, yi).unitVector()
                     T = rotationMatrix2d(runit).Transpose()
                     self.H[-1].rotationalTransform(T)
-            r0 = r1
-            dr *= drRatio
 
         # Do a numerical integral to get the expected total mass.
         class integfunc(SimpsonsIntegrationDoubleFunction):
