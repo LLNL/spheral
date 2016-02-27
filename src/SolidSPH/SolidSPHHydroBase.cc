@@ -669,8 +669,8 @@ evaluateDerivatives(const typename Dimension::Scalar time,
               }
 
               // Pair-wise portion of grad velocity.
-              const Tensor deltaDvDxi = vij.dyad(gradWGi);
-              const Tensor deltaDvDxj = vij.dyad(gradWGj);
+              const Tensor deltaDvDxi = fDeffij*vij.dyad(gradWGi);
+              const Tensor deltaDvDxj = fDeffij*vij.dyad(gradWGj);
 
               // Specific thermal energy evolution.
               DepsDti -= mj*(fDeffij*sigmarhoi.doubledot(deltaDvDxi.Symmetric()) - workQi);
@@ -699,11 +699,11 @@ evaluateDerivatives(const typename Dimension::Scalar time,
               }
 
               // Linear gradient correction term.
-              Mi -= mj*rij.dyad(gradWi);
-              Mj -= mi*rij.dyad(gradWj);
+              Mi -= fDeffij*mj*rij.dyad(gradWGi);
+              Mj -= fDeffij*mi*rij.dyad(gradWGj);
               if (sameMatij) {
-                localMi -= mj*rij.dyad(gradWi);
-                localMj -= mi*rij.dyad(gradWj);
+                localMi -= fDeffij*mj*rij.dyad(gradWGi);
+                localMj -= fDeffij*mi*rij.dyad(gradWGj);
               }
             }
           }
