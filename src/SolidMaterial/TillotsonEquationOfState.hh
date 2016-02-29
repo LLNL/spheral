@@ -159,7 +159,7 @@ private:
   //--------------------------- Private Interface ---------------------------//
   double mEtaMinSolid, mEtaMaxSolid,
          ma, mb, mA, mB, malpha, mbeta, meps0, mepsLiquid, mepsVapor,
-         mAtomicWeight, mCv, mR, mGamma, mExternalPressure;
+         mAtomicWeight, mCv, mGamma, mExternalPressure;
 
   // Disallow default constructor
   TillotsonEquationOfState();

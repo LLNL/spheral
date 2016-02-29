@@ -70,7 +70,6 @@ TillotsonEquationOfState(const double referenceDensity,
   mepsVapor(epsVapor),
   mAtomicWeight(atomicWeight),
   mCv(3.0 * constants.molarGasConstant() / atomicWeight),
-  mR(constants.molarGasConstant()),
   mExternalPressure(externalPressure) {
   VERIFY(distinctlyGreaterThan(mAtomicWeight/constants.molarGasConstant(),0.0));
 }
@@ -289,17 +288,44 @@ soundSpeed(const Scalar massDensity,
 
 //------------------------------------------------------------------------------
 // Get gamma.
+// We assume Cp = Cv for the solid phase, Cp = Cv + R in the gaseous phase,
+// and blend the two for liquid.
 //------------------------------------------------------------------------------
 template<typename Dimension>
 typename Dimension::Scalar
 TillotsonEquationOfState<Dimension>::
 gamma(const Scalar massDensity,
       const Scalar specificThermalEnergy) const {
-    // calculate effective gamma...
-    double nDen = massDensity/mAtomicWeight;
-    double Cp = mCv + nDen * mR;
-    return Cp/mCv;
-    //VERIFY2(false, "gamma not defined for Tillotson EOS!");
+  const double eta = this->boundedEta(massDensity),
+               rho0 = this->referenceDensity(),
+               rho = rho0*eta,
+               nDen = rho/mAtomicWeight;
+  CHECK(mCv > 0.0);
+  return 1.0 + mConstants.molarGasConstant()*nDen/mCv;
+
+
+  // if (mu >= 0.0) {
+
+  //   // Regime 1: compression, solid.
+  //   return 1.0;
+
+  // } else if (eps <= mepsLiquid) {
+
+  //   // Regime 2: expansion, solid : same as 1, but only if rho>cutoff density
+  //   return 1.0;
+
+  // } else if (eps >= mepsVapor) {
+     
+  //   // Regime 4: expansion, gaseous.
+
+  // } else {
+
+  //   // Regime 3: expansion, liquid.
+  //   // Treated here as a linear combination of the solid and gaseous phases.
+  //   const double gammaVapor = 1.0 + mConstants.molarGasConstant()*nDen/mCv;
+  //   return 1.0 + (gammaVapor - 1.0)*(eps - mepsLiquid)/(mepsVapor - mepsLiquid);
+
+  // }
 }
 
 //------------------------------------------------------------------------------

@@ -20,13 +20,13 @@ EOSes = [TillotsonEquationOfState(mat, etamin, etamax, units) for mat in mats]
 # Plot the pressure and sound speed for each EOS.
 #-------------------------------------------------------------------------------
 n = 50
-#rhoMin, rhoMax = 0.2, 50.0
-rhoMin, rhoMax = 200.0, 5e4
+rhoMin, rhoMax = 0.2, 50.0
+#rhoMin, rhoMax = 200.0, 5e4
 drho = (rhoMax - rhoMin)/n
 rho = [rhoMin + i*drho for i in xrange(n + 1)]
 
 #epsMin, epsMax = 1.0, 1e15
-epsMin, epsMax = 1.0e-5, 1e10
+epsMin, epsMax = 1.0e-2, 1e2
 deps = (log(epsMax) - log(epsMin))/n
 eps = [exp(log(epsMin) + i*deps) for i in xrange(n + 1)]
 
@@ -39,25 +39,34 @@ for matLabel, eos in zip(mats, EOSes):
     epsf = ScalarField("eps", nodes)
     Pf = ScalarField("P", nodes)
     csf = ScalarField("cs", nodes)
-    P, cs = [], []
+    gamf = ScalarField("gamma", nodes)
+    P, cs, gam = [], [], []
     for rhoi in rho:
         for epsi in eps:
             rhof[0] = rhoi
             epsf[0] = epsi
             eos.setPressure(Pf, rhof, epsf)
             eos.setSoundSpeed(csf, rhof, epsf)
+            eos.setGammaField(gamf, rhof, epsf)
             P.append((rhoi, epsi, Pf[0]))
             cs.append((rhoi, epsi, csf[0]))
+            gam.append((rhoi, epsi, gamf[0]))
     plots.append(Gnuplot.Gnuplot())
     plots.append(Gnuplot.Gnuplot())
-    Pplot = plots[-2]
-    csPlot = plots[-1]
+    plots.append(Gnuplot.Gnuplot())
+    Pplot = plots[-3]
+    csPlot = plots[-2]
+    gamPlot = plots[-1]
     Pplot("set logscale y; set logscale z")
     csPlot("set logscale y; set logscale z")
-    Pdata, csData = Gnuplot.Data(P, inline=True), Gnuplot.Data(cs, inline=True)
+    gamPlot("set logscale y; set logscale z")
+    Pdata, csData, gamData = Gnuplot.Data(P, inline=True), Gnuplot.Data(cs, inline=True), Gnuplot.Data(gam, inline=True)
     Pplot.splot(Pdata, title="%s pressure" % matLabel)
     Pplot.xlabel("rho")
     Pplot.ylabel("eps")
     csPlot.splot(csData, title="%s sound speed" % matLabel)
     csPlot.xlabel("rho")
     csPlot.ylabel("eps")
+    gamPlot.splot(gamData, title="%s gam" % matLabel)
+    gamPlot.xlabel("rho")
+    gamPlot.ylabel("eps")
