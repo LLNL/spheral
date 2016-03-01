@@ -164,7 +164,14 @@ OsborneEquationOfState<Dimension>::
 setGammaField(Field<Dimension, Scalar>& gamma,
 	      const Field<Dimension, Scalar>& massDensity,
 	      const Field<Dimension, Scalar>& specificThermalEnergy) const {
-  VERIFY2(false, "gamma unimplemented for the Osborne equation of state.");
+  CHECK(mCv > 0.0);
+  for (int i = 0; i != gamma.size(); ++i) {
+    const double eta = this->boundedEta(massDensity(i)),
+                 rho0 = this->referenceDensity(),
+                 rho = rho0*eta,
+                 nDen = rho/mAtomicWeight;
+    gamma(i) = 1.0 + mConstants.molarGasConstant()*nDen/mCv;
+  }
 }
 
 //------------------------------------------------------------------------------

@@ -145,7 +145,9 @@ setGammaField(Field<Dimension, Scalar>& gamma,
 	      const Field<Dimension, Scalar>& massDensity,
 	      const Field<Dimension, Scalar>& specificThermalEnergy) const {
   REQUIRE(valid());
-  VERIFY2(false, "MurnahanEquationOfState::gamma UNIMPLEMENTED.");
+  for (int i = 0; i != gamma.size(); ++i) {
+    gamma(i) = this->gamma(massDensity(i), specificThermalEnergy(i));
+  }
 }
 
 //------------------------------------------------------------------------------
@@ -238,8 +240,12 @@ typename Dimension::Scalar
 MurnahanEquationOfState<Dimension>::
 gamma(const Scalar massDensity,
       const Scalar specificThermalEnergy) const {
-  VERIFY2(false, "MurnahanEquationOfState::gamma UNIMPLEMENTED.");
-  return 0.0;
+  const double eta = this->boundedEta(massDensity),
+               rho0 = this->referenceDensity(),
+               rho = rho0*eta,
+               nDen = rho/mAtomicWeight;
+  CHECK(mCv > 0.0);
+  return 1.0 + mConstants.molarGasConstant()*nDen/mCv;
 }
 
 //------------------------------------------------------------------------------
