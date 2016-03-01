@@ -39,7 +39,7 @@ eosSiO2 = GruneisenEquationOfState(rho0,            # ref density (g/cc)
 # Build an ANEOS SiO2 like thing.
 #-------------------------------------------------------------------------------
 izetl = vector_of_int(1, -1)
-initializeANEOS("ANEOS.INPUT", "ANEOS.barf", izetl)
+initializeANEOS("ANEOS.FORSTERITE", "ANEOS.barf", izetl)
 rhoMin, rhoMax = 0.9*etaMin*rho0, 1.1*etaMax*rho0
 Tmin, Tmax = 1.0, 1.0e8
 eosANEOS = ANEOS(0,                 # Material number

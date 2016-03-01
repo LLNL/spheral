@@ -40,15 +40,21 @@ C
 C Provides a wrapper around the ANEOS1 method to insert stuff in the common 
 C block.
 C-------------------------------------------------------------------------------
-      subroutine call_ANEOS1(T, rho, P, E, S, CV, DPDT, DPDR, L)
+      subroutine call_ANEOS1(T, rho, P, E, S, CV, DPDT, DPDR, zbar, L)
 
 C Common block tomfoolery.
       IMPLICIT DOUBLE PRECISION (A-H,O-Z)
       PARAMETER (MATBUF=64)
       COMMON /ANESQT/ SQTS(MATBUF),IPSQTS
+      COMMON /ANEEL/ TEVX,RHOX,ABARX,ZBARM,T32X,FNX
+     &  ,PE,EE,SE,CVE,DPTE,DPRE
+     &  ,NMATSX,IIZX
 
       ipsqts = 1
       sqts(ipsqts) = dsqrt(T)
       call ANEOS1(T, rho, P, E, S, CV, DPDT, DPDR, L)
+
+C We have to dig the atomic weight (ZBARM) out of the common block.  Hope this is right!
+      zbar = ZBARM;
 
       end
