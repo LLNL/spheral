@@ -1,7 +1,7 @@
-#ATS:test(SELF, "--CRKSPH True --cfl 0.25 --Cl 1.0 --Cq 1.0 --clearDirectories True --filter 0.0 --goalTime 3.0", label="Yee CRK, filter=0.0", np=10)
-#ATS:test(SELF, "--CRKSPH True --cfl 0.25 --Cl 1.0 --Cq 1.0 --clearDirectories True --filter 0.01 --goalTime 3.0", label="Yee CRK, filter=0.01", np=10)
-#ATS:test(SELF, "--CRKSPH True --cfl 0.25 --Cl 1.0 --Cq 1.0 --clearDirectories True --filter 0.1 --goalTime 3.0", label="Yee CRK, filter=0.1", np=10)
-#ATS:test(SELF, "--CRKSPH True --cfl 0.25 --Cl 1.0 --Cq 1.0 --clearDirectories True --filter 0.2 --goalTime 3.0", label="Yee CRK, filter=0.2", np=10)
+#ATS:test(SELF, "--CRKSPH True --cfl 0.25 --Cl 1.0 --Cq 1.0 --clearDirectories True --filter 0.0 --goalTime 3.0 --nx1=64 --ny1=64 --outputFile='yee.txt'", label="Yee CRK, 64x64", np=20)
+#ATS:test(SELF, "--CRKSPH True --cfl 0.25 --Cl 1.0 --Cq 1.0 --clearDirectories True --filter 0.0 --goalTime 3.0 --nx1=128 --ny1=128 --outputFile='yee.txt'", label="Yee CRK, 128x128", np=20)
+#ATS:test(SELF, "--CRKSPH True --cfl 0.25 --Cl 1.0 --Cq 1.0 --clearDirectories True --filter 0.0 --goalTime 3.0 --nx1=256 --ny1=256 --outputFile='yee.txt'", label="Yee CRK, 256x256", np=40)
+#ATS:test(SELF, "--CRKSPH True --cfl 0.25 --Cl 1.0 --Cq 1.0 --clearDirectories True --filter 0.0 --goalTime 3.0 --nx1=512 --ny1=512 --outputFile='yee.txt'", label="Yee CRK, 512x512", np=40)
 #-------------------------------------------------------------------------------
 # The Yee-Vortex Test
 #-------------------------------------------------------------------------------
@@ -215,7 +215,9 @@ if restoreCycle is None:
 # Material properties.
 #-------------------------------------------------------------------------------
 mu = 1.0
-eos = GammaLawGasMKS(gamma, mu)
+K = 1.0
+#eos = GammaLawGasMKS(gamma, mu)
+eos = PolytropicEquationOfStateMKS(K,gamma,mu)
 
 #-------------------------------------------------------------------------------
 # Interpolation kernels.
@@ -289,7 +291,7 @@ if restoreCycle is None:
         vely =  xci*exp((1.0-r2)*0.5)*beta/(2.0*pi)
         vel[i] = Vector(velx,vely)
         temp = temp_inf - (gamma-1.0)*beta*exp(1.0-r2)/(8.0*gamma*pi*pi)
-        eps[i] = temp/(gamma-1.0)
+        eps[i] = pow(temp,gamma/(gamma-1.0))/(gamma-1.0)
 
 #-------------------------------------------------------------------------------
 # Construct a DataBase to hold our node lists
@@ -522,9 +524,11 @@ if outputFile != "None":
            r = (Vector(xprof[i],yprof[i]) - Vector(xc, yc)).magnitude()
            r2 = r*r
            temp = temp_inf - (gamma-1.0)*beta*exp(1.0-r2)/(8.0*gamma*pi*pi)
+           yci = yprof[i] - yc
+           xci = xprof[i] - xc
            velxans = -yci*exp((1.0-r2)*0.5)*beta/(2.0*pi)
            velyans =  xci*exp((1.0-r2)*0.5)*beta/(2.0*pi)
-           epsans.append(temp/(gamma-1.0))
+           epsans.append(pow(temp,gamma/(gamma-1.0))/(gamma-1.0))
            rhoans.append(pow(temp,1.0/(gamma-1.0)))
            velans.append(Vector(velxans,velyans).magnitude())
            L1rho = L1rho + abs(rhoans[i]-rhoprof[i])
@@ -533,7 +537,7 @@ if outputFile != "None":
         L1rho = L1rho/len(xprof)
         L1eps = L1eps/len(xprof)
         L1vel = L1vel/len(xprof)
-        with open("Converge.txt.%s" % nPerh, "a") as myfile:
+        with open("converge-CRK-%s.txt" % CRKSPH, "a") as myfile:
           myfile.write("%s\t %s\t %s\t %s\n" % (nx1,L1rho,L1eps,L1vel))
         f = open(outputFile, "w")
         f.write(("# " + 19*"%15s " + "\n") % ("r", "x", "y", "rho", "P", "v", "eps", "h", "mortonOrder", "rhoans", "epsans", "velans",
