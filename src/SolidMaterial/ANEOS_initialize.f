@@ -30,7 +30,9 @@ C      open(12, file=out_filename, status='new')
       klst = 12
 
 C Call the main ANEOS initialization method.
+      print *, "Calling into ANEOS."
       call ANEOS2(1, num, 0, izetl)
+      print *, "Yay!"
 
       end
 
@@ -52,6 +54,7 @@ C Common block tomfoolery.
 
       ipsqts = 1
       sqts(ipsqts) = dsqrt(T)
+      print *, "Calling into ANEOS."
       call ANEOS1(T, rho, P, E, S, CV, DPDT, DPDR, L)
 
 C We have to dig the atomic weight (ZBARM) out of the common block.  Hope this is right!
