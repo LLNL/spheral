@@ -567,7 +567,7 @@ GNU)
      FORTLINK=" -lgfortran"
      CFLAGS="$CFLAGS -fpic -fexceptions"
      CXXFLAGS="$CXXFLAGS -fpic -fexceptions -DHAVE_XCPT -DGNUCXX"
-     FORTFLAGS="$FORTFLAGS -fpic"
+     FORTFLAGS="$FORTFLAGS -fpic" #  -ffpe-trap=invalid,zero,overflow,underflow,denormal
      JAMTOOLSET=gcc
      BOOSTEXT="-$JAMTOOLSET$COMPILERVERSION"
      if test "$OSNAME" = "AIX"; then
