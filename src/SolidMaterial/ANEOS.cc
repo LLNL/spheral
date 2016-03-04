@@ -20,14 +20,8 @@ using namespace std;
 // Fortran baby!
 extern "C" {
   void aneos_initialize_(char* filename, int* num, int* izetl);
-  void call_aneos1_(double* T, double* rho, 
-                    double* P, double* E, double* S, double* CV, double* DPDT, double* DPDR, double* zbar,
-                    int* L);
-
-  // // This struct corresponds to the fortran common block ANESQT.
-  // extern struct {
-  //   double sqts[64], ipsqts;
-  // } anesqt_;
+  void call_aneos_(int* matnum, double* T, double* rho, 
+                   double* P, double* E, double* S, double* CV, double* DPDT, double* DPDR);
 }
 
 namespace Spheral {
@@ -121,16 +115,16 @@ ANEOS(const int materialNumber,
   // Build our lookup table to find eps(rho, T).  We use linear rho vs. log(T) space.
   const double drho = (mRhoMax - mRhoMin)/(mNumRhoVals - 1);
   const double dT = (mTmax - mTmin)/(mNumTvals - 1);
-  double Ti, rhoi, Pi, Si, CVi, DPDTi, DPDRi, zbari;
+  int KPAi;
+  double Ti, rhoi, Pi, Si, CVi, DPDTi, DPDRi;
   CHECK(drho > 0.0);
   CHECK(dT > 0.0);
   for (unsigned i = 0; i != mNumRhoVals; ++i) {
     rhoi = min(mRhoMin + i*drho, mRhoMax) / mRhoConv;
     for (unsigned j = 0; j != mNumTvals; ++j) {
       Ti = exp(min(mTmin + j*dT, mTmax)) / mTconv;
-      call_aneos1_(&Ti, &rhoi,
-                   &Pi, &mSTEvals[i][j], &Si, &CVi, &DPDTi, &DPDRi, &zbari, 
-                   &mMaterialNumber);
+      call_aneos_(&mMaterialNumber, &Ti, &rhoi,
+                  &Pi, &mSTEvals[i][j], &Si, &CVi, &DPDTi, &DPDRi);
       mSTEvals[i][j] = mSTEvals[i][j] * mEconv;
     }
   }
@@ -248,12 +242,12 @@ typename Dimension::Scalar
 ANEOS<Dimension>::
 pressure(const Scalar massDensity,
          const Scalar specificThermalEnergy) const {
-  double Ti, rhoi, Pi, Ei, Si, CVi, DPDTi, DPDRi, zbari;
+  int KPAi;
+  double Ti, rhoi, Pi, Ei, Si, CVi, DPDTi, DPDRi;
   rhoi = max(mRhoMin, min(mRhoMax, massDensity)) / mRhoConv;
   Ti = this->temperature(massDensity, specificThermalEnergy) / mTconv;
-  call_aneos1_(&Ti, &rhoi,
-               &Pi, &Ei, &Si, &CVi, &DPDTi, &DPDRi, &zbari,
-               const_cast<int*>(&mMaterialNumber));
+  call_aneos_(const_cast<int*>(&mMaterialNumber), &Ti, &rhoi,
+              &Pi, &Ei, &Si, &CVi, &DPDTi, &DPDRi);
 
   // That's it.
   Pi *= mPconv;
@@ -304,12 +298,12 @@ typename Dimension::Scalar
 ANEOS<Dimension>::
 specificThermalEnergy(const Scalar massDensity,
                       const Scalar temperature) const {
-  double Ti, rhoi, Pi, Ei, Si, CVi, DPDTi, DPDRi, zbari;
+  int KPAi;
+  double Ti, rhoi, Pi, Ei, Si, CVi, DPDTi, DPDRi;
   rhoi = max(mRhoMin, min(mRhoMax, massDensity)) / mRhoConv;
   Ti = temperature / mTconv;
-  call_aneos1_(&Ti, &rhoi,
-               &Pi, &Ei, &Si, &CVi, &DPDTi, &DPDRi, &zbari,
-               const_cast<int*>(&mMaterialNumber));
+  call_aneos_(const_cast<int*>(&mMaterialNumber), &Ti, &rhoi,
+              &Pi, &Ei, &Si, &CVi, &DPDTi, &DPDRi);
   return Ei * mEconv;
 }
 
@@ -321,12 +315,12 @@ typename Dimension::Scalar
 ANEOS<Dimension>::
 specificHeat(const Scalar massDensity,
              const Scalar temperature) const {
-  double Ti, rhoi, Pi, Ei, Si, CVi, DPDTi, DPDRi, zbari;
+  int KPAi;
+  double Ti, rhoi, Pi, Ei, Si, CVi, DPDTi, DPDRi;
   rhoi = max(mRhoMin, min(mRhoMax, massDensity)) / mRhoConv;
   Ti = temperature / mTconv;
-  call_aneos1_(&Ti, &rhoi,
-               &Pi, &Ei, &Si, &CVi, &DPDTi, &DPDRi, &zbari,
-               const_cast<int*>(&mMaterialNumber));
+  call_aneos_(const_cast<int*>(&mMaterialNumber), &Ti, &rhoi,
+              &Pi, &Ei, &Si, &CVi, &DPDTi, &DPDRi);
   return CVi * mCVconv;
 }
 
@@ -338,13 +332,12 @@ typename Dimension::Scalar
 ANEOS<Dimension>::
 soundSpeed(const Scalar massDensity,
            const Scalar specificThermalEnergy) const {
-  double Ti, rhoi, Pi, Ei, Si, CVi, DPDTi, DPDRi, zbari;
+  int KPAi;
+  double Ti, rhoi, Pi, Ei, Si, CVi, DPDTi, DPDRi;
   rhoi = max(mRhoMin, min(mRhoMax, massDensity)) / mRhoConv;
   Ti = this->temperature(massDensity, specificThermalEnergy) / mTconv;
-  call_aneos1_(&Ti, &rhoi,
-               &Pi, &Ei, &Si, &CVi, &DPDTi, &DPDRi, &zbari,
-               const_cast<int*>(&mMaterialNumber));
-  // CHECK2(DPDRi > 0.0, DPDRi << " " << Pi << " " << Ei);
+  call_aneos_(const_cast<int*>(&mMaterialNumber), &Ti, &rhoi,
+              &Pi, &Ei, &Si, &CVi, &DPDTi, &DPDRi);
   return sqrt(max(1e-10, DPDRi)) * mVelConv;
 }
 
@@ -356,16 +349,18 @@ typename Dimension::Scalar
 ANEOS<Dimension>::
 gamma(const Scalar massDensity,
       const Scalar specificThermalEnergy) const {
-  double Ti, rhoi, Pi, Ei, Si, CVi, DPDTi, DPDRi, zbari;
-  rhoi = max(mRhoMin, min(mRhoMax, massDensity)) / mRhoConv;
-  Ti = this->temperature(massDensity, specificThermalEnergy)/mTconv;
-  call_aneos1_(&Ti, &rhoi,
-               &Pi, &Ei, &Si, &CVi, &DPDTi, &DPDRi, &zbari,
-               const_cast<int*>(&mMaterialNumber));
-  CHECK(zbari > 0.0);
-  CHECK(CVi > 0.0);
-  const double nDen = massDensity/zbari;
-  return 1.0 + mConstants.molarGasConstant()*nDen/(CVi * mCVconv);
+  VERIFY2(false, "Error: ANEOS does not support gamma currently.");
+  return 1.0;
+  // int KPAi;
+  // double Ti, rhoi, Pi, Ei, Si, CVi, DPDTi, DPDRi;
+  // rhoi = max(mRhoMin, min(mRhoMax, massDensity)) / mRhoConv;
+  // Ti = this->temperature(massDensity, specificThermalEnergy)/mTconv;
+  // call_aneos_(const_cast<int*>(&mMaterialNumber), &Ti, &rhoi,
+  //             &Pi, &Ei, &Si, &CVi, &DPDTi, &DPDRi);
+  // CHECK(ZBARi > 0.0);
+  // CHECK(CVi > 0.0);
+  // const double nDen = massDensity/ZBARi;
+  // return 1.0 + mConstants.molarGasConstant()*nDen/(CVi * mCVconv);
 }
 
 //------------------------------------------------------------------------------
@@ -376,12 +371,12 @@ typename Dimension::Scalar
 ANEOS<Dimension>::
 bulkModulus(const Scalar massDensity,
             const Scalar specificThermalEnergy) const {
-  double Ti, rhoi, Pi, Ei, Si, CVi, DPDTi, DPDRi, zbari;
+  int KPAi;
+  double Ti, rhoi, Pi, Ei, Si, CVi, DPDTi, DPDRi;
   rhoi = max(mRhoMin, min(mRhoMax, massDensity)) / mRhoConv;
   Ti = this->temperature(massDensity, specificThermalEnergy) / mTconv;
-  call_aneos1_(&Ti, &rhoi,
-               &Pi, &Ei, &Si, &CVi, &DPDTi, &DPDRi, &zbari,
-               const_cast<int*>(&mMaterialNumber));
+  call_aneos_(const_cast<int*>(&mMaterialNumber), &Ti, &rhoi,
+              &Pi, &Ei, &Si, &CVi, &DPDTi, &DPDRi);
   return std::abs(rhoi * DPDRi * mPconv);
 }
 

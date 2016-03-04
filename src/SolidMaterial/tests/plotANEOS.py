@@ -41,15 +41,15 @@ eosSiO2 = GruneisenEquationOfState(rho0,            # ref density (g/cc)
 izetl = vector_of_int(1, -1)
 initializeANEOS("ANEOS.FORSTERITE", "ANEOS.barf", izetl)
 rhoMin, rhoMax = 0.9*etaMin*rho0, 1.1*etaMax*rho0
-Tmin, Tmax = 1.0, 1.0e8
-eosANEOS = ANEOS(0,                 # Material number
-                 1000,              # num rho vals
-                 1000,              # num T vals
-                 rhoMin,            # minimum density (kg/m^3)
-                 rhoMax,            # maximum density (kg/m^3)
-                 Tmin,              # minimum temperature (K)
-                 Tmax,              # maximum temperature (K)
-                 units)
+Tmin, Tmax = 1.0e3, 1.0e8
+eosANEOS = ANEOS(-1,                 # Material number
+                  1000,              # num rho vals
+                  1000,              # num T vals
+                  rhoMin,            # minimum density (kg/m^3)
+                  rhoMax,            # maximum density (kg/m^3)
+                  Tmin,              # minimum temperature (K)
+                  Tmax,              # maximum temperature (K)
+                  units)
 
 nodes   = makeVoidNodeList("nodes", numInternal=1)
 ef      = ScalarField("eps", nodes)
@@ -70,18 +70,15 @@ eps0ANEOS=ef[0]
 #-------------------------------------------------------------------------------
 # Plot the pressure as a function of (rho, eps)
 #-------------------------------------------------------------------------------
-n = 50
+n = 10
 drho = (rhoMax - rhoMin)/n
 rho = [rhoMin + i*drho for i in xrange(n + 1)]
 
 rhof[0] = rho0
 tempf[0] = 0.1*Tmin
 
-eosANEOS.setSpecificThermalEnergy(ef,rhof,tempf)
-epsMin = ef[0]
-tempf[0] = 1.1*Tmax
-eosANEOS.setSpecificThermalEnergy(ef,rhof,tempf)
-epsMax = ef[0]
+epsMin = eosANEOS.specificThermalEnergy(rho0, 0.1*Tmin)
+epsMax = eosANEOS.specificThermalEnergy(rho0, 1.1*Tmax)
 deps = (epsMax - epsMin)/n
 eps = [epsMin + i*deps for i in xrange(n + 1)]
 
@@ -102,14 +99,9 @@ for rhoi in rho:
     for epsi in eps:
         #PG.append((rhoi, epsi, eosSiO2.pressure(rhoi, epsi - epsMin)))
         #csG.append((rhoi, epsi, eosSiO2.soundSpeed(rhoi, epsi - epsMin)))
-        rhof[0] = rhoi
-        ef[0] = epsi
-        eosANEOS.setPressure(pf,rhof,ef)
-        eosANEOS.setSoundSpeed(cf,rhof,ef)
-
-        print "found ef=%f cf=%f rhof=%f pf=%f" % (ef[0],cf[0],rhof[0],cf[0])
-        PA.append((rhoi, epsi, pf[0]))
-        csA.append((rhoi, epsi, cf[0]))
+        PA.append((rhoi, epsi, eosANEOS.pressure(rhoi,epsi)))
+        csA.append((rhoi, epsi, eosANEOS.soundSpeed(rhoi,epsi)))
+        #print "found rho=%f eps=%f P=%f cs=%f" % (rhoi, epsi, PA[-1][-1], csA[-1][-1])
         #f.write((6*"%20g " + "\n") % (rhoi, epsi, PG[-1][-1], csG[-1][-1], PA[-1][-1], csA[-1][-1]))
 #f.close()
 
