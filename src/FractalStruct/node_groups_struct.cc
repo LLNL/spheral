@@ -22,9 +22,15 @@ namespace FractalSpace
     vector < vector <int> > dataI_out(FractalNodes);
     vector < vector <double> > dataR_out(FractalNodes);
     bool tryit=mem.p_mess->IAmAHypreNode;
-    for(int T=0;T<mem.Touchy.size();T++)
-      if(tryit && mem.Touchy[T] > FractalRank)
-	dataI_in.push_back(mem.Touchy[T]);
+    for(int FR : mem.Touchy)
+      {
+	cerr << " Touchy a " << RANK << " " << FR << endl;
+	if(tryit && FR > FractalRank)
+	  {
+	    dataI_in.push_back(FR);
+	    cerr << " Touchy b " << RANK << " " << FR << endl;
+	  }
+      }
     int ss=dataI_in.size();
     int count=tryit ? 1:0;
     vector <int>counts(FractalNodes,0);
@@ -99,6 +105,7 @@ namespace FractalSpace
 	  if(Ranky)
 	    cerr << " NODES A " << RANK << " "  << FR << " " << mem.p_mess->IHranks[FR] << endl;
 	}
+    mem.p_mess->HypreNodes=mem.p_mess->Hranks.size();
     COUNTER++;
   }
 }
