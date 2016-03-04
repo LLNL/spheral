@@ -84,7 +84,8 @@ ANEOS(const int materialNumber,
   mPconv(1.0),
   mEconv(1.0),
   mCVconv(1.0),
-  mVelConv(1.0) {
+  mVelConv(1.0),
+  mSconv(1.0) {
   VERIFY2(numRhoVals > 1,
           "ANEOS ERROR : specify numRhoVals > 1");
   VERIFY2(numTvals > 1,
@@ -111,6 +112,7 @@ ANEOS(const int materialNumber,
   mEconv = FastMath::square(lconv/tconv);
   mCVconv = mEconv/mTconv;
   mVelConv = lconv/tconv;
+  mSconv = mEconv/mTconv;
 
   // Build our lookup table to find eps(rho, T).
   const double drho = (mRhoMax - mRhoMin)/(mNumRhoVals - 1);
@@ -231,6 +233,20 @@ setBulkModulus(Field<Dimension, Scalar>& bulkModulus,
                const Field<Dimension, Scalar>& specificThermalEnergy) const {
   for (int i = 0; i != bulkModulus.size(); ++i) {
     bulkModulus(i)=this->bulkModulus(massDensity(i), specificThermalEnergy(i));
+  }
+}
+
+//------------------------------------------------------------------------------
+// Set entropy.
+//------------------------------------------------------------------------------
+template<typename Dimension>
+void
+ANEOS<Dimension>::
+setEntropy(Field<Dimension, Scalar>& entropy,
+           const Field<Dimension, Scalar>& massDensity,
+           const Field<Dimension, Scalar>& specificThermalEnergy) const {
+  for (int i = 0; i != entropy.size(); ++i) {
+    entropy(i)=this->entropy(massDensity(i), specificThermalEnergy(i));
   }
 }
 
@@ -378,6 +394,25 @@ bulkModulus(const Scalar massDensity,
   call_aneos_(const_cast<int*>(&mMaterialNumber), &Ti, &rhoi,
               &Pi, &Ei, &Si, &CVi, &DPDTi, &DPDRi);
   return std::abs(rhoi * DPDRi * mPconv);
+}
+
+//------------------------------------------------------------------------------
+// Calculate an entropy.
+//------------------------------------------------------------------------------
+template<typename Dimension>
+typename Dimension::Scalar
+ANEOS<Dimension>::
+entropy(const Scalar massDensity,
+        const Scalar specificThermalEnergy) const {
+  int KPAi;
+  double Ti, rhoi, Pi, Ei, Si, CVi, DPDTi, DPDRi;
+  rhoi = max(mRhoMin, min(mRhoMax, massDensity)) / mRhoConv;
+  Ti = this->temperature(massDensity, specificThermalEnergy) / mTconv;
+  call_aneos_(const_cast<int*>(&mMaterialNumber), &Ti, &rhoi,
+              &Pi, &Ei, &Si, &CVi, &DPDTi, &DPDRi);
+
+  // That's it.
+  Si *= mSconv;
 }
 
 //------------------------------------------------------------------------------

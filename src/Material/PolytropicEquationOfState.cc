@@ -153,6 +153,21 @@ setBulkModulus(Field<Dimension, Scalar>& bulkModulus,
 }
 
 //------------------------------------------------------------------------------
+// Set the entropy.
+//------------------------------------------------------------------------------
+template<typename Dimension>
+void
+PolytropicEquationOfState<Dimension>::
+setEntropy(Field<Dimension, Scalar>& entropy,
+           const Field<Dimension, Scalar>& massDensity,
+           const Field<Dimension, Scalar>& specificThermalEnergy) const {
+  CHECK(valid());
+  for (size_t i = 0; i != massDensity.numElements(); ++i) {
+    entropy(i) = pressure(massDensity(i), specificThermalEnergy(i))*safeInvVar(pow(massDensity(i), mGamma));
+  }
+}
+
+//------------------------------------------------------------------------------
 // Calculate an individual pressure.
 //------------------------------------------------------------------------------
 template<typename Dimension>
@@ -241,6 +256,18 @@ bulkModulus(const Scalar massDensity,
             const Scalar specificThermalEnergy) const {
   CHECK(valid());
   return pressure(massDensity, specificThermalEnergy) + mExternalPressure;
+}
+
+//------------------------------------------------------------------------------
+// Calculate an entropy.
+//------------------------------------------------------------------------------
+template<typename Dimension>
+typename Dimension::Scalar
+PolytropicEquationOfState<Dimension>::
+entropy(const Scalar massDensity,
+        const Scalar specificThermalEnergy) const {
+  CHECK(valid());
+  return this->pressure(massDensity, specificThermalEnergy)*safeInvVar(pow(massDensity, mGamma));
 }
 
 //------------------------------------------------------------------------------

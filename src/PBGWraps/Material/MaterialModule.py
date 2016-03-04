@@ -143,6 +143,9 @@ self.generateIsothermalEquationOfStateBindings(self.IsothermalEquationOfState%(d
         x.add_method("bulkModulus", "double", [param("double", "massDensity"),
                                                param("double", "specificThermalEnergy")],
                      is_const=True)
+        x.add_method("entropy", "double", [param("double", "massDensity"),
+                                           param("double", "specificThermalEnergy")],
+                     is_const=True)
 
         # Add the EOS virual interface.
         generateEquationOfStateVirtualBindings(x, ndim, False)
@@ -192,6 +195,9 @@ self.generateIsothermalEquationOfStateBindings(self.IsothermalEquationOfState%(d
         x.add_method("bulkModulus", "double", [param("double", "massDensity"),
                                                param("double", "specificThermalEnergy")],
                      is_const=True)
+        x.add_method("entropy", "double", [param("double", "massDensity"),
+                                           param("double", "specificThermalEnergy")],
+                     is_const=True)
 
         # Add the EOS virual interface.
         generateEquationOfStateVirtualBindings(x, ndim, False)
@@ -238,6 +244,9 @@ self.generateIsothermalEquationOfStateBindings(self.IsothermalEquationOfState%(d
         x.add_method("bulkModulus", "double", [param("double", "massDensity"),
                                                param("double", "specificThermalEnergy")],
                      is_const=True)
+        x.add_method("entropy", "double", [param("double", "massDensity"),
+                                           param("double", "specificThermalEnergy")],
+                     is_const=True)
 
         # Add the EOS virual interface.
         generateEquationOfStateVirtualBindings(x, ndim, False)
@@ -279,6 +288,10 @@ def generateEquationOfStateVirtualBindings(x, ndim, pureVirtual):
     x.add_method("setBulkModulus", None, [refparam(scalarfield, "bulkModulus"),
                                        constrefparam(scalarfield, "massDensity"),
                                        constrefparam(scalarfield, "specificThermalEnergy")],
+                 is_const=True, is_virtual=True, is_pure_virtual=pureVirtual)
+    x.add_method("setEntropy", None, [refparam(scalarfield, "entropy"),
+                                      constrefparam(scalarfield, "massDensity"),
+                                      constrefparam(scalarfield, "specificThermalEnergy")],
                  is_const=True, is_virtual=True, is_pure_virtual=pureVirtual)
 
     x.add_method("valid", "bool", [], is_const=True, is_virtual=True, is_pure_virtual=pureVirtual)

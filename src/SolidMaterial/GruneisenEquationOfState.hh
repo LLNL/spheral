@@ -78,6 +78,10 @@ public:
                               const FieldSpace::Field<Dimension, Scalar>& massDensity,
                               const FieldSpace::Field<Dimension, Scalar>& specificThermalEnergy) const;
 
+  virtual void setEntropy(FieldSpace::Field<Dimension, Scalar>& entropy,
+                          const FieldSpace::Field<Dimension, Scalar>& massDensity,
+                          const FieldSpace::Field<Dimension, Scalar>& specificThermalEnergy) const;
+
   // We also want the equivalent functions for individual calculations.
   Scalar pressure(const Scalar massDensity,
                   const Scalar specificThermalEnergy) const;
@@ -99,6 +103,9 @@ public:
 
   Scalar bulkModulus(const Scalar massDensity,
                      const Scalar specificThermalEnergy) const;
+
+  Scalar entropy(const Scalar massDensity,
+                 const Scalar specificThermalEnergy) const;
 
   // Access the member data.
   double C0() const;
