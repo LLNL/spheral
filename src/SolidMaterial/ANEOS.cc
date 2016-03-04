@@ -96,9 +96,9 @@ ANEOS(const int materialNumber,
   VERIFY2(Tmin > 0.0,
           "ANEOS ERROR : specify Tmin > 0.0");
 
-  // Convert temperature range to log space.
-  mTmin = log(mTmin);
-  mTmax = log(mTmax);
+  // // Convert temperature range to log space.
+  // mTmin = log(mTmin);
+  // mTmax = log(mTmax);
   
   // Build our unit conversion factors.  After looking through the ANEOS source some it appears to me 
   // that they use mostly CGS units, except for temperatures which are in eV.
@@ -112,7 +112,7 @@ ANEOS(const int materialNumber,
   mCVconv = mEconv/mTconv;
   mVelConv = lconv/tconv;
 
-  // Build our lookup table to find eps(rho, T).  We use linear rho vs. log(T) space.
+  // Build our lookup table to find eps(rho, T).
   const double drho = (mRhoMax - mRhoMin)/(mNumRhoVals - 1);
   const double dT = (mTmax - mTmin)/(mNumTvals - 1);
   int KPAi;
@@ -122,7 +122,7 @@ ANEOS(const int materialNumber,
   for (unsigned i = 0; i != mNumRhoVals; ++i) {
     rhoi = min(mRhoMin + i*drho, mRhoMax) / mRhoConv;
     for (unsigned j = 0; j != mNumTvals; ++j) {
-      Ti = exp(min(mTmin + j*dT, mTmax)) / mTconv;
+      Ti = min(mTmin + j*dT, mTmax) / mTconv;
       call_aneos_(&mMaterialNumber, &Ti, &rhoi,
                   &Pi, &mSTEvals[i][j], &Si, &CVi, &DPDTi, &DPDRi);
       mSTEvals[i][j] = mSTEvals[i][j] * mEconv;
@@ -287,7 +287,7 @@ temperature(const Scalar massDensity,
   //      << "                         " << u << " " << t << endl
   //      << "                         " << num << " " << den << endl
   //      << "                         " << mTmin + (iT0 + t)*dT << endl;
-  return exp(mTmin + (iT0 + t)*dT);
+  return mTmin + (iT0 + t)*dT;
 }
 
 //------------------------------------------------------------------------------
@@ -432,14 +432,14 @@ template<typename Dimension>
 double
 ANEOS<Dimension>::
 Tmin() const {
-  return exp(mTmin);
+  return mTmin;
 }
 
 template<typename Dimension>
 double
 ANEOS<Dimension>::
 Tmax() const {
-  return exp(mTmax);
+  return mTmax;
 }
 
 template<typename Dimension>
