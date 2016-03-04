@@ -189,6 +189,9 @@ def generateLinearPolynomialEquationOfStateBindings(x, ndim):
     x.add_method("bulkModulus", "double", [param("double", "massDensity"),
                                            param("double", "specificThermalEnergy")],
                  is_const=True)
+    x.add_method("entropy", "double", [param("double", "massDensity"),
+                                       param("double", "specificThermalEnergy")],
+                 is_const=True)
 
     # Attributes.
     x.add_instance_attribute("a0", "double", getter="a0", setter="a0")
@@ -253,6 +256,9 @@ def generateGruneisenEquationOfStateBindings(x, ndim):
                  is_const=True)
     x.add_method("bulkModulus", "double", [param("double", "massDensity"),
                                            param("double", "specificThermalEnergy")],
+                 is_const=True)
+    x.add_method("entropy", "double", [param("double", "massDensity"),
+                                       param("double", "specificThermalEnergy")],
                  is_const=True)
 
     # Attributes.
@@ -389,6 +395,9 @@ def generateTillotsonEquationOfStateBindings(x, ndim):
     x.add_method("bulkModulus", "double", [param("double", "massDensity"),
                                            param("double", "specificThermalEnergy")],
                  is_const=True)
+    x.add_method("entropy", "double", [param("double", "massDensity"),
+                                       param("double", "specificThermalEnergy")],
+                 is_const=True)
 
     # Attributes.
     x.add_instance_attribute("etamin_solid", "double", getter="etamin_solid", setter="etamin_solid")
@@ -452,6 +461,9 @@ def generateMurnahanEquationOfStateBindings(x, ndim):
                  is_const=True)
     x.add_method("bulkModulus", "double", [param("double", "massDensity"),
                                            param("double", "specificThermalEnergy")],
+                 is_const=True)
+    x.add_method("entropy", "double", [param("double", "massDensity"),
+                                       param("double", "specificThermalEnergy")],
                  is_const=True)
 
     # Attributes.

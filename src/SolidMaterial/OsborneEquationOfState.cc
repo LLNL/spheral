@@ -190,6 +190,26 @@ setBulkModulus(Field<Dimension, Scalar>& bulkModulus,
 }
 
 //------------------------------------------------------------------------------
+// Set the entropy.
+//------------------------------------------------------------------------------
+template<typename Dimension>
+void
+OsborneEquationOfState<Dimension>::
+setEntropy(Field<Dimension, Scalar>& entropy,
+           const Field<Dimension, Scalar>& massDensity,
+           const Field<Dimension, Scalar>& specificThermalEnergy) const {
+  this->setPressure(entropy, massDensity, specificThermalEnergy);
+  for (size_t i = 0; i != massDensity.numElements(); ++i) {
+    const double eta = this->boundedEta(massDensity(i)),
+                 rho0 = this->referenceDensity(),
+                 rho = rho0*eta,
+                 nDen = rho/mAtomicWeight,
+                 gamma = 1.0 + mConstants.molarGasConstant()*nDen/mCv;
+    entropy(i) *= safeInvVar(pow(massDensity(i), gamma));
+  }
+}
+
+//------------------------------------------------------------------------------
 // Compute (\partial P)/(\partial rho).
 // 
 // This turns out to be 

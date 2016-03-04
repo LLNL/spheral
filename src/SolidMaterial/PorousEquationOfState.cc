@@ -175,6 +175,24 @@ setBulkModulus(Field<Dimension, Scalar>& bulkModulus,
 }
 
 //------------------------------------------------------------------------------
+// Set the entropy.
+//------------------------------------------------------------------------------
+template<typename Dimension>
+void
+PorousEquationOfState<Dimension>::
+setEntropy(Field<Dimension, Scalar>& entropy,
+           const Field<Dimension, Scalar>& massDensity,
+           const Field<Dimension, Scalar>& specificThermalEnergy) const {
+  CHECK(valid());
+  Field<Dimension, Scalar> gamma("gamma", entropy.nodeList());
+  this->setPressure(entropy, massDensity, specificThermalEnergy);
+  this->setGammaField(gamma, massDensity, specificThermalEnergy);
+  for (size_t i = 0; i != massDensity.numElements(); ++i) {
+    entropy(i) *= safeInvVar(pow(massDensity(i), gamma(i)));
+  }
+}
+
+//------------------------------------------------------------------------------
 // Determine if the EOS is in a valid state.
 //------------------------------------------------------------------------------
 template<typename Dimension>

@@ -137,6 +137,21 @@ setBulkModulus(Field<Dimension, Scalar>& bulkModulus,
 }
 
 //------------------------------------------------------------------------------
+// Set the entropy.
+//------------------------------------------------------------------------------
+template<typename Dimension>
+void
+IsothermalEquationOfState<Dimension>::
+setEntropy(Field<Dimension, Scalar>& entropy,
+           const Field<Dimension, Scalar>& massDensity,
+           const Field<Dimension, Scalar>& specificThermalEnergy) const {
+  CHECK(valid());
+  for (size_t i = 0; i != massDensity.numElements(); ++i) {
+    entropy(i) = pressure(massDensity(i), specificThermalEnergy(i))*safeInvVar(massDensity(i));
+  }
+}
+
+//------------------------------------------------------------------------------
 // Calculate an individual pressure.
 //------------------------------------------------------------------------------
 template<typename Dimension>
@@ -218,6 +233,18 @@ bulkModulus(const Scalar massDensity,
             const Scalar specificThermalEnergy) const {
   REQUIRE(valid());
   return pressure(massDensity, specificThermalEnergy) + mExternalPressure;
+}
+
+//------------------------------------------------------------------------------
+// Calculate an entropy.
+//------------------------------------------------------------------------------
+template<typename Dimension>
+typename Dimension::Scalar
+IsothermalEquationOfState<Dimension>::
+entropy(const Scalar massDensity,
+        const Scalar specificThermalEnergy) const {
+  CHECK(valid());
+  return this->pressure(massDensity, specificThermalEnergy)*safeInvVar(massDensity);
 }
 
 //------------------------------------------------------------------------------
