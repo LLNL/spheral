@@ -78,13 +78,15 @@ f.write("""
 #                                "P Grun (dyne)", "cs Grun (cm/sec)", 
 #                                "P ANEOS (dyne)", "cs ANEOS (cm/sec)"))
 
-PG, csG, PA, csA = [], [], [], []
+PG, csG, sG, PA, csA, sA = [], [], [], [], [], []
 for rhoi in rho:
     for epsi in eps:
         PG.append((rhoi, epsi, eosSiO2.pressure(rhoi, epsi - epsMin)))
         csG.append((rhoi, epsi, eosSiO2.soundSpeed(rhoi, epsi - epsMin)))
+        sG.append((rhoi, epsi, eosSiO2.entropy(rhoi, epsi - epsMin)))
         PA.append((rhoi, epsi, eosANEOS.pressure(rhoi,epsi)))
         csA.append((rhoi, epsi, eosANEOS.soundSpeed(rhoi,epsi)))
+        sA.append((rhoi, epsi, eosANEOS.entropy(rhoi,epsi)))
         #print "found rho=%f eps=%f P=%f cs=%f" % (rhoi, epsi, PA[-1][-1], csA[-1][-1])
         #f.write((6*"%20g " + "\n") % (rhoi, epsi, PG[-1][-1], csG[-1][-1], PA[-1][-1], csA[-1][-1]))
 #f.close()
@@ -101,6 +103,12 @@ csGplot.ylabel("eps (erg/g)")
 csGdata = Gnuplot.Data(csG)
 csGplot.splot(csGdata, title="sound speed (Gruneisen)")
 
+sGplot = Gnuplot.Gnuplot()
+sGplot.xlabel("rho (g/cm^3)")
+sGplot.ylabel("eps (erg/g)")
+sGdata = Gnuplot.Data(sG)
+sGplot.splot(sGdata, title="entropy (Gruneisen)")
+
 
 PAplot = Gnuplot.Gnuplot()
 PAplot.xlabel("rho (g/cm^3)")
@@ -113,3 +121,9 @@ csAplot.xlabel("rho (g/cm^3)")
 csAplot.ylabel("eps (erg/g)")
 csAdata = Gnuplot.Data(csA)
 csAplot.splot(csAdata, title="sound speed (ANEOS)")
+
+sAplot = Gnuplot.Gnuplot()
+sAplot.xlabel("rho (g/cm^3)")
+sAplot.ylabel("eps (erg/g)")
+sAdata = Gnuplot.Data(sA)
+sAplot.splot(sAdata, title="entropy (ANEOS)")
