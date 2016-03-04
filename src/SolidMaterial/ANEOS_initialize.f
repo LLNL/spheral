@@ -46,6 +46,12 @@ C-------------------------------------------------------------------------------
       integer matnum
       real*8 T, rho, P, e, s, cv, dpdt, dpdr
 
+c$$$      integer kpa
+c$$$      real*8 fkro, cs
+c$$$      call ANEOS(T, rho, P, e, s, cv, dpdt, dpdr, fkro, cs, kpa, matnum)
+c$$$
+c$$$      print *, " --> ", T, rho, P, e, s, cv, dpdt, dpdr, fkro, cs, kpa
+
 C     the following contains sqrt(t(i)) for vector aneos entry
 C     ipsqts points to current value
       integer IPSQTS,MATBUF

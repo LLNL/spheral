@@ -51,34 +51,18 @@ eosANEOS = ANEOS(-1,                 # Material number
                   Tmax,              # maximum temperature (K)
                   units)
 
-nodes   = makeVoidNodeList("nodes", numInternal=1)
-ef      = ScalarField("eps", nodes)
-Kf      = ScalarField("mod", nodes)
-rhof    = ScalarField("rho", nodes)
-tempf   = ScalarField("temp", nodes)
-pf      = ScalarField("pressure", nodes)
-cf      = ScalarField("sound speed", nodes)
-
-tempf[0] = 1.0
-rhof[0] = rho0
-eosANEOS.setSpecificThermalEnergy(ef,rhof,tempf)
-eps0ANEOS=ef[0]
-
-#eps0ANEOS = eosANEOS.specificThermalEnergy(rho0, 1.0)  # Specific energy at 1K, reference density
-#print "eps0ANEOS = ", eps0ANEOS
+eps0ANEOS = eosANEOS.specificThermalEnergy(rho0, 1.0)  # Specific energy at 1K, reference density
+print "eps0ANEOS = ", eps0ANEOS
 
 #-------------------------------------------------------------------------------
 # Plot the pressure as a function of (rho, eps)
 #-------------------------------------------------------------------------------
-n = 10
+n = 50
 drho = (rhoMax - rhoMin)/n
 rho = [rhoMin + i*drho for i in xrange(n + 1)]
 
-rhof[0] = rho0
-tempf[0] = 0.1*Tmin
-
-epsMin = eosANEOS.specificThermalEnergy(rho0, 0.1*Tmin)
-epsMax = eosANEOS.specificThermalEnergy(rho0, 1.1*Tmax)
+epsMin = eosANEOS.specificThermalEnergy(rhoMin, Tmin)
+epsMax = eosANEOS.specificThermalEnergy(rhoMax, Tmax)
 deps = (epsMax - epsMin)/n
 eps = [epsMin + i*deps for i in xrange(n + 1)]
 
@@ -97,20 +81,32 @@ f.write("""
 PG, csG, PA, csA = [], [], [], []
 for rhoi in rho:
     for epsi in eps:
-        #PG.append((rhoi, epsi, eosSiO2.pressure(rhoi, epsi - epsMin)))
-        #csG.append((rhoi, epsi, eosSiO2.soundSpeed(rhoi, epsi - epsMin)))
+        PG.append((rhoi, epsi, eosSiO2.pressure(rhoi, epsi - epsMin)))
+        csG.append((rhoi, epsi, eosSiO2.soundSpeed(rhoi, epsi - epsMin)))
         PA.append((rhoi, epsi, eosANEOS.pressure(rhoi,epsi)))
         csA.append((rhoi, epsi, eosANEOS.soundSpeed(rhoi,epsi)))
         #print "found rho=%f eps=%f P=%f cs=%f" % (rhoi, epsi, PA[-1][-1], csA[-1][-1])
         #f.write((6*"%20g " + "\n") % (rhoi, epsi, PG[-1][-1], csG[-1][-1], PA[-1][-1], csA[-1][-1]))
 #f.close()
 
+PGplot = Gnuplot.Gnuplot()
+PGplot.xlabel("rho (g/cm^3)")
+PGplot.ylabel("eps (erg/g)")
+PGdata = Gnuplot.Data(PG)
+PGplot.splot(PGdata, title="Pressure (Gruneisen)")
+
+csGplot = Gnuplot.Gnuplot()
+csGplot.xlabel("rho (g/cm^3)")
+csGplot.ylabel("eps (erg/g)")
+csGdata = Gnuplot.Data(csG)
+csGplot.splot(csGdata, title="sound speed (Gruneisen)")
+
+
 PAplot = Gnuplot.Gnuplot()
 PAplot.xlabel("rho (g/cm^3)")
 PAplot.ylabel("eps (erg/g)")
 PAdata = Gnuplot.Data(PA)
 PAplot.splot(PAdata, title="Pressure (ANEOS)")
-
 
 csAplot = Gnuplot.Gnuplot()
 csAplot.xlabel("rho (g/cm^3)")
