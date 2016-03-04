@@ -5,11 +5,9 @@ namespace FractalSpace
 {
   OcTreeNode::OcTreeNode():
     full(false)
-  {
-  }
+  {}
   OcTreeNode::~OcTreeNode()
-  {
-  }
+  {}
   OcTree::OcTree():
     nnodes(0),
     fullnodes(0),
@@ -36,6 +34,7 @@ namespace FractalSpace
 	catch(bad_alloc& ba)
 	  {
 	    cerr << " badd root node " << ba.what() << " " << RANK << endl;
+	    exit(0);
 	  }
       }
     rnode->kids.assign(8,NULL);
@@ -46,7 +45,7 @@ namespace FractalSpace
     if(rnode->full)
       {
 	fullnodes++;
-	cerr << " FULL0 " << RANK << " " << vol << " " << rnode->ppoints.size() << " " << endl;
+// 	cerr << " FULL0 " << RANK << " " << vol << " " << rnode->ppoints.size() << " " << endl;
       }
     if(rnode->ppoints.empty() || rnode->full)
       return;
@@ -60,6 +59,7 @@ namespace FractalSpace
 	  catch(bad_alloc& ba)
 	    {
 	      cerr << " badd root kid " << ba.what() << " " << ni << " " << RANK << endl;
+	      exit(0);
 	    }
 	}
     for(int corner=0;corner<8;corner++)
@@ -82,8 +82,8 @@ namespace FractalSpace
     vol*=(knode->box[5]-knode->box[4]);
     knode->ppoints.clear();
     vector <int>pos(3);
-    list<Point*>::iterator itp=pnode->ppoints.begin();
-    list<Point*>::iterator itpe=pnode->ppoints.end();
+    auto itp=pnode->ppoints.begin();
+    auto itpe=pnode->ppoints.end();
     while(itp!=itpe)
       {
 	(*itp)->get_pos_point(pos);
@@ -114,6 +114,7 @@ namespace FractalSpace
 	  catch(bad_alloc& ba)
 	    {
 	      cerr << " badd node kid " << ba.what() << " " << ni << " " << RANK << endl;
+	      exit(0);
 	    }
 	}
     for(int cornerb=0;cornerb<8;cornerb++)
@@ -273,5 +274,32 @@ namespace FractalSpace
     if(pnode != NULL)
       for(int k=0;k<8;k++)
 	Traverse(pnode->kids[k]);
+  }
+  void OcTree::Consolidate()
+  {
+    if(rnode != NULL && !rnode->full)
+      Consolidate(rnode);
+  }
+  void OcTree::Consolidate(OcTreeNode* pnode)
+  {
+    if(pnode == NULL)
+      return;
+    vector <bool>fully(8,false);
+    for(int k=0;k<8;k++)
+      if(pnode->kids[k] != NULL)
+	fully[k]=pnode->kids[k]->full;
+    if(fully[0] && fully[1] && fully[2] &&fully[3])
+      {
+	for(int b : {1,3,5})
+	  pnode->kids[0]->box[b]=pnode->kids[3]->box[b];
+	for(int k : {1,2,3})
+	  {
+	    pnode->kids[k]->full=false;
+	    std::copy(pnode->kids[k]->ppoints.begin(),pnode->kids[k]->ppoints.begin(),pnode->kids[0]->ppoints.end());
+	    pnode->kids[k]->ppoints.clear();
+	  }
+      }
+    for(int k=0;k<8;k++)
+      Consolidate(pnode->kids[k]);
   }
 }
