@@ -35,26 +35,55 @@ C Call the main ANEOS initialization method.
       end
 
 C-------------------------------------------------------------------------------
-C call_ANEOS1
+C call_ANEOS
 C
-C Provides a wrapper around the ANEOS1 method to insert stuff in the common 
-C block.
+C Provides a wrapper around the ANEOS method used to compute the EOS response.
 C-------------------------------------------------------------------------------
-      subroutine call_ANEOS1(T, rho, P, E, S, CV, DPDT, DPDR, zbar, L)
+      subroutine call_ANEOS(matnum, T, rho, P, e, s, cv, dpdt, dpdr)
 
-C Common block tomfoolery.
-      IMPLICIT DOUBLE PRECISION (A-H,O-Z)
+      implicit none
+
+      integer matnum
+      real*8 T, rho, P, e, s, cv, dpdt, dpdr
+
+C     the following contains sqrt(t(i)) for vector aneos entry
+C     ipsqts points to current value
+      integer IPSQTS,MATBUF
       PARAMETER (MATBUF=64)
-      COMMON /ANESQT/ SQTS(MATBUF),IPSQTS
-      COMMON /ANEEL/ TEVX,RHOX,ABARX,ZBARM,T32X,FNX
-     &  ,PE,EE,SE,CVE,DPTE,DPRE
-     &  ,NMATSX,IIZX
+      real*8 sqts(MATBUF)
+      COMMON /ANESQT/ SQTS,IPSQTS
 
       ipsqts = 1
       sqts(ipsqts) = dsqrt(T)
-      call ANEOS1(T, rho, P, E, S, CV, DPDT, DPDR, L)
-
-C We have to dig the atomic weight (ZBARM) out of the common block.  Hope this is right!
-      zbar = ZBARM;
+      call ANEOS1(T, rho, P, e, s, cv, dpdt, dpdr, matnum)
 
       end
+
+C-------------------------------------------------------------------------------
+C get_ANEOS_atomicWeight
+C
+C Use the stored ANEOS data to compute the atomic weight of the given material.
+C This has to be called after the initialization method above.
+C
+C I've cribbed and reimplemented the stuff in ANEOS2 for DIN(29) since it doesn't
+C seem to be otherwise accessible.
+C-------------------------------------------------------------------------------
+c$$$      subroutine get_ANEOS_atomicWeight(matnum)
+c$$$
+c$$$      implicit none
+c$$$
+c$$$C Crap straight from ANEOS
+c$$$      PARAMETER (MAXMAT=10)
+c$$$      PARAMETER(NINPUT=48) !NINPUT must be a multiple of 8!
+c$$$      COMMON /ANES/  ACK(99*MAXMAT),ZZS(30*MAXMAT),COT(30*MAXMAT)
+c$$$     1 ,FNI(30*MAXMAT),RCT(MAXMAT+1),TCT(MAXMAT+1),RSOL(100*MAXMAT)
+c$$$     2 ,RVAP(100*MAXMAT),TTWO(100*MAXMAT),SAVER(92),BOLTS,EIP(4370)
+c$$$     3 ,LOCSV(MAXMAT+1),LOCKP(MAXMAT+1),LOCKPL(MAXMAT+1),NOTRAD
+c$$$
+c$$$      result = 0.0
+c$$$      do 100 i = iz, izi
+c$$$         IKK = ZZS(I)
+c$$$         IKJ = IKK+(IKK*(IKK+1))/2
+c$$$         TEIP = EIP(IKJ-IKK)           !Atomic weight of species I
+c$$$         result = result + COT(I)*TEIP !mean atomic weight
+c$$$ 100  continue
