@@ -23,6 +23,7 @@ namespace FractalSpace
     void CollectBoxes(vector <vector<int> >& SBoxes,OcTreeNode* pnode);
     void CollectPoints(vector< vector<Point*> >& SPoints,OcTreeNode* pnode);
     void CollectBoxesPoints(vector < vector<int> >& SBoxes,vector < vector<Point*> >& SPoints ,OcTreeNode* pnode);
+    void Consolidate(OcTreeNode* pnode);
     void DisplayTree(OcTreeNode* pnode,int& TOT,int& NB);
     void Traverse(OcTreeNode* pnode);
   public:
@@ -33,6 +34,7 @@ namespace FractalSpace
     void CollectBoxes(vector < vector<int> >& SBoxes);
     void CollectPoints(vector < vector<Point*> >& SPoints);
     void CollectBoxesPoints(vector < vector<int> >& SBoxes,vector < vector<Point*> >& SPoints);
+    void Consolidate();
     void DisplayTree(int& TOT,int& NB);
     void Traverse();
   };
