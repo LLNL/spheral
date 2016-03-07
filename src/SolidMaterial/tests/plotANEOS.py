@@ -7,123 +7,85 @@ units = PhysicalConstants(0.01,  # Unit length in meters
                           1.0)   # Unit time in sec
 
 #-------------------------------------------------------------------------------
-# Build a Gruneisen for SiO2 like materials.
-#-------------------------------------------------------------------------------
-mconv = 1.0
-lconv = 1.0
-tconv = 1.0
-
-rho0 = 2.65               # g/cc
-C0 = 0.36839e6            # cm/s
-S1 = 1.8954               # dimensionless
-S2 = 0.0                  # dimensionless
-S3 = 0.0                  # dimensionless
-gamma0 = 0.9              # dimensionless
-b = 1.0                   # dimensionless
-etaMin = 0.2
-etaMax = 5.0
-
-eosSiO2 = GruneisenEquationOfState(rho0,            # ref density (g/cc)
-                                   etaMin,          # etamin             
-                                   etaMax,          # etamax
-                                   C0,
-                                   S1,
-                                   S2,
-                                   S3,
-                                   gamma0,
-                                   b,
-                                   60.0843,         # atomic weight
-                                   units)
-
-#-------------------------------------------------------------------------------
 # Build an ANEOS SiO2 like thing.
 #-------------------------------------------------------------------------------
-izetl = vector_of_int(1, -1)
-initializeANEOS("ANEOS.FORSTERITE", "ANEOS.barf", izetl)
-rhoMin, rhoMax = 0.9*etaMin*rho0, 1.1*etaMax*rho0
+izetl = vector_of_int(3)
+izetl[0] = -1
+izetl[1] = -2
+izetl[2] = -3
+initializeANEOS("ANEOS.INPUT", "ANEOS.barf", izetl)
+etaMin, etaMax = 0.2, 5.0
 Tmin, Tmax = 1.0e3, 1.0e8
-eosANEOS = ANEOS(0,                 # Material number
-                  100,               # num rho vals
-                  100,               # num T vals
-                  rhoMin,            # minimum density (kg/m^3)
-                  rhoMax,            # maximum density (kg/m^3)
-                  Tmin,              # minimum temperature (K)
-                  Tmax,              # maximum temperature (K)
-                  units)
+rhoMin, rhoMax = 0.1, 20.0
 
-eps0ANEOS = eosANEOS.specificThermalEnergy(rho0, 1.0)  # Specific energy at 1K, reference density
-print "eps0ANEOS = ", eps0ANEOS
+eosSiO2 =       ANEOS(1,                 # Material number (offset sequentially from ANEOS.INPUT)
+                      100,               # num rho vals
+                      100,               # num T vals
+                      rhoMin,            # minimum density (kg/m^3)
+                      rhoMax,            # maximum density (kg/m^3)
+                      Tmin,              # minimum temperature (K)
+                      Tmax,              # maximum temperature (K)
+                      units)
+eosForsterite = ANEOS(2,                 # Material number (offset sequentially from ANEOS.INPUT)
+                      100,               # num rho vals
+                      100,               # num T vals
+                      rhoMin,            # minimum density (kg/m^3)
+                      rhoMax,            # maximum density (kg/m^3)
+                      Tmin,              # minimum temperature (K)
+                      Tmax,              # maximum temperature (K)
+                      units)
+eosWater =      ANEOS(3,                 # Material number (offset sequentially from ANEOS.INPUT)
+                      100,               # num rho vals
+                      100,               # num T vals
+                      rhoMin,            # minimum density (kg/m^3)
+                      rhoMax,            # maximum density (kg/m^3)
+                      Tmin,              # minimum temperature (K)
+                      Tmax,              # maximum temperature (K)
+                      units)
 
 #-------------------------------------------------------------------------------
-# Plot the pressure as a function of (rho, eps)
+# Plot the pressure, entropy, & sound speed as a function of (rho, eps)
 #-------------------------------------------------------------------------------
 n = 50
 drho = (rhoMax - rhoMin)/n
 rho = [rhoMin + i*drho for i in xrange(n + 1)]
 
-epsMin = eosANEOS.specificThermalEnergy(rhoMin, Tmin)
-epsMax = eosANEOS.specificThermalEnergy(rhoMax, Tmax)
-deps = (epsMax - epsMin)/n
-eps = [epsMin + i*deps for i in xrange(n + 1)]
+plots = []
+for eos, label in ((eosSiO2, "SiO2"),
+                   (eosForsterite, "Forsterite"),
+                   (eosWater, "water")):
+    epsMin = eos.specificThermalEnergy(rhoMin, Tmin)
+    epsMax = eos.specificThermalEnergy(rhoMax, Tmax)
+    deps = (epsMax - epsMin)/n
+    eps = [epsMin + i*deps for i in xrange(n + 1)]
 
-# Write the (rho, eps, P, cs) set to a file.
-f = open("SiOS_ANEOS.txt", "w")
-f.write("""
-# ANEOS vs. Gruneisen EOS dump for SiO2 like material (all units CGS).
-#
-# ANEOS eps(1K) = %g
-#
-""" % (eps0ANEOS))
-#f.write((6*'"%20s "' + "\n") % ("rho (g/cm^3)", "eps (erg/g)", 
-#                                "P Grun (dyne)", "cs Grun (cm/sec)", 
-#                                "P ANEOS (dyne)", "cs ANEOS (cm/sec)"))
+    PA, csA, sA = [], [], []
+    for rhoi in rho:
+        for epsi in eps:
+            PA.append((rhoi, epsi, eos.pressure(rhoi,epsi)))
+            csA.append((rhoi, epsi, eos.soundSpeed(rhoi,epsi)))
+            sA.append((rhoi, epsi, eos.entropy(rhoi,epsi)))
 
-PG, csG, sG, PA, csA, sA = [], [], [], [], [], []
-for rhoi in rho:
-    for epsi in eps:
-        PG.append((rhoi, epsi, eosSiO2.pressure(rhoi, epsi - epsMin)))
-        csG.append((rhoi, epsi, eosSiO2.soundSpeed(rhoi, epsi - epsMin)))
-        sG.append((rhoi, epsi, eosSiO2.entropy(rhoi, epsi - epsMin)))
-        PA.append((rhoi, epsi, eosANEOS.pressure(rhoi,epsi)))
-        csA.append((rhoi, epsi, eosANEOS.soundSpeed(rhoi,epsi)))
-        sA.append((rhoi, epsi, eosANEOS.entropy(rhoi,epsi)))
-        #print "found rho=%f eps=%f P=%f cs=%f" % (rhoi, epsi, PA[-1][-1], csA[-1][-1])
-        #f.write((6*"%20g " + "\n") % (rhoi, epsi, PG[-1][-1], csG[-1][-1], PA[-1][-1], csA[-1][-1]))
-#f.close()
+    print "Pressure range for %s    : [%g, %g]" % (label, min([x[2] for x in PA]), max([x[2] for x in PA]))
+    print "Sound speed range for %s : [%g, %g]" % (label, min([x[2] for x in PA]), max([x[2] for x in csA]))
+    print "Entropy range for %s     : [%g, %g]" % (label, min([x[2] for x in PA]), max([x[2] for x in sA]))
 
-PGplot = generateNewGnuPlot()
-PGplot.xlabel("rho (g/cm^3)")
-PGplot.ylabel("eps (erg/g)")
-PGdata = Gnuplot.Data(PG)
-PGplot.splot(PGdata, title="Pressure (Gruneisen)")
+    plots.append(generateNewGnuPlot())
+    plots[-1].xlabel("rho (g/cm^3)")
+    plots[-1].ylabel("eps (erg/g)")
+    PAdata = Gnuplot.Data(PA)
+    plots[-1].splot(PAdata, title="Pressure %s" % label)
 
-csGplot = generateNewGnuPlot()
-csGplot.xlabel("rho (g/cm^3)")
-csGplot.ylabel("eps (erg/g)")
-csGdata = Gnuplot.Data(csG)
-csGplot.splot(csGdata, title="sound speed (Gruneisen)")
+    plots.append(generateNewGnuPlot())
+    plots[-1].xlabel("rho (g/cm^3)")
+    plots[-1].ylabel("eps (erg/g)")
+    csAdata = Gnuplot.Data(csA)
+    plots[-1].splot(csAdata, title="sound speed %s" % label)
+    plots.append(plots[-1])
 
-sGplot = generateNewGnuPlot()
-sGplot.xlabel("rho (g/cm^3)")
-sGplot.ylabel("eps (erg/g)")
-sGdata = Gnuplot.Data(sG)
-sGplot.splot(sGdata, title="entropy (Gruneisen)")
-
-
-PAplot = generateNewGnuPlot()
-PAplot.xlabel("rho (g/cm^3)")
-PAplot.ylabel("eps (erg/g)")
-PAdata = Gnuplot.Data(PA)
-PAplot.splot(PAdata, title="Pressure (ANEOS)")
-
-csAplot = generateNewGnuPlot()
-csAplot.xlabel("rho (g/cm^3)")
-csAplot.ylabel("eps (erg/g)")
-csAdata = Gnuplot.Data(csA)
-csAplot.splot(csAdata, title="sound speed (ANEOS)")
-
-sAplot = generateNewGnuPlot()
-sAplot.xlabel("rho (g/cm^3)")
-sAplot.ylabel("eps (erg/g)")
-sAdata = Gnuplot.Data(sA)
-sAplot.splot(sAdata, title="entropy (ANEOS)")
+    plots.append(generateNewGnuPlot())
+    plots[-1].xlabel("rho (g/cm^3)")
+    plots[-1].ylabel("eps (erg/g)")
+    sAdata = Gnuplot.Data(sA)
+    plots[-1].splot(sAdata, title="entropy %s" % label)
+    plots.append(plots[-1])
