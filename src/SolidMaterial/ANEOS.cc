@@ -413,6 +413,7 @@ entropy(const Scalar massDensity,
 
   // That's it.
   Si *= mSconv;
+  return Si;
 }
 
 //------------------------------------------------------------------------------
