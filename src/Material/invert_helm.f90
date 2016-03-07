@@ -1101,7 +1101,7 @@
 
       subroutine wrapper_invert_helm_ed(npart, in_den_row, &
        in_etot_row, in_abar_row, in_zbar_row, in_temp_row, in_ptot_row, &
-       in_small_temp, in_vsound_row)
+       in_small_temp, in_vsound_row, in_gam1_row, in_stot_row)
       include 'implno.dek'
       include 'const.dek'
       include 'vector_eos.dek'
@@ -1109,7 +1109,8 @@
                 in_den_row(nrowmax),  in_etot_row(nrowmax), &
                 in_abar_row(nrowmax), in_zbar_row(nrowmax), &
                 in_temp_row(nrowmax), in_ptot_row(nrowmax), & 
-				in_vsound_row(nrowmax)
+				in_vsound_row(nrowmax), & in_gam1_row(nrowmax), &
+                in_stot_row(nrowmax)
       double precision in_small_temp
       integer npart, i, j
 
@@ -1131,6 +1132,8 @@
          abar_row(i)=in_abar_row(i)
          zbar_row(i)=in_zbar_row(i)
          temp_row(i)=in_temp_row(i)
+         gam1_row(i)=in_gam1_row(i)
+         stot_row(i)=in_stot_row(i)
       enddo
 
       call invert_helm_ed
@@ -1141,6 +1144,8 @@
          in_temp_row(i)=temp_row(i)
          in_ptot_row(i)=ptot_row(i)
 		 in_vsound_row(i)=cs_row(i)
+         in_gam1_row(i)=gam1_row(i)
+         in_stot_row(i)=stot_row(i)
       enddo
 
       end

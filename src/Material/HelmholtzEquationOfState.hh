@@ -65,6 +65,10 @@ namespace Spheral {
                                         const FieldSpace::Field<Dimension, Scalar>& massDensity,
                                         const FieldSpace::Field<Dimension, Scalar>& specificThermalEnergy) const;
             
+            virtual void setEntropy(FieldSpace::Field<Dimension, Scalar>& entropy,
+                                    const FieldSpace::Field<Dimension, Scalar>& massDensity,
+                                    const FieldSpace::Field<Dimension, Scalar>& specificThermalEnergy) const;
+            
             // Some of the following methods are disabled
             virtual Scalar pressure(const Scalar massDensity,
                                     const Scalar specificThermalEnergy) const { VERIFY2(false, "HelmholtzEquationOfState does not support individual state calls."); }
@@ -83,11 +87,14 @@ namespace Spheral {
             
             // Get the effective gamma (ratio of specific heats) for this eos.
             virtual Scalar gamma(const Scalar massDensity,
-                                 const Scalar specificThermalEnergy) const { VERIFY2(false, "HelmholtzEquationOfState does not support individual state calls."); }
+                                 const Scalar specificThermalEnergy) const;
             
             // Get the bulk modulus.
             virtual Scalar bulkModulus(const Scalar massDensity,
                                        const Scalar specificThermalEnergy) const { VERIFY2(false, "HelmholtzEquationOfState does not support individual state calls."); }
+            
+            virtual Scalar entropy(const Scalar massDensity,
+                                   const Scalar specificThermalEnergy) const;
 
             
             const FieldSpace::Field<Dimension, Scalar>& abar() const;
@@ -109,6 +116,7 @@ namespace Spheral {
             mutable boost::shared_ptr<FieldSpace::Field<Dimension, Scalar> > myPressure;
             mutable boost::shared_ptr<FieldSpace::Field<Dimension, Scalar> > mySoundSpeed;
             mutable boost::shared_ptr<FieldSpace::Field<Dimension, Scalar> > myGamma;
+            mutable boost::shared_ptr<FieldSpace::Field<Dimension, Scalar> > myEntropy;
             
             Scalar mabar0, mzbar0, mPmin, mPmax;
 			mutable Scalar mTmin;
