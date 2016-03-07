@@ -1109,7 +1109,7 @@
                 in_den_row(nrowmax),  in_etot_row(nrowmax), &
                 in_abar_row(nrowmax), in_zbar_row(nrowmax), &
                 in_temp_row(nrowmax), in_ptot_row(nrowmax), & 
-				in_vsound_row(nrowmax), & in_gam1_row(nrowmax), &
+		in_vsound_row(nrowmax), in_gam1_row(nrowmax), &
                 in_stot_row(nrowmax)
       double precision in_small_temp
       integer npart, i, j
