@@ -39,16 +39,17 @@ C call_ANEOS
 C
 C Provides a wrapper around the ANEOS method used to compute the EOS response.
 C-------------------------------------------------------------------------------
-      subroutine call_ANEOS(matnum, T, rho, P, e, s, cv, dpdt, dpdr)
+      subroutine call_ANEOS(matnum, T, rho, P, e, s, cv, dpdt, dpdr, cs)
 
       implicit none
 
-      integer matnum
-      real*8 T, rho, P, e, s, cv, dpdt, dpdr
+      integer matnum, matoffset
+      double precision T, rho, P, e, s, cv, dpdt, dpdr, cs
 
 c$$$      integer kpa
-c$$$      real*8 fkro, cs
-c$$$      call ANEOS(T, rho, P, e, s, cv, dpdt, dpdr, fkro, cs, kpa, matnum)
+c$$$      double precision fkro
+c$$$      call ANEOSD(T, rho, P, e, s, cv, dpdt, dpdr, fkro, cs, kpa, 
+c$$$     &     matnum)
 c$$$
 c$$$      print *, " --> ", T, rho, P, e, s, cv, dpdt, dpdr, fkro, cs, kpa
 
@@ -61,7 +62,12 @@ C     ipsqts points to current value
 
       ipsqts = 1
       sqts(ipsqts) = dsqrt(T)
-      call ANEOS1(T, rho, P, e, s, cv, dpdt, dpdr, matnum)
+      matoffset = 99*(matnum - 1)
+      
+      call ANEOS1(T, rho, P, e, s, cv, dpdt, dpdr, matoffset)
+
+C ANEOS1 didn't compute the sound speed, so heres something.      
+      cs = dsqrt(max(1e-10, dpdr))
 
       end
 
