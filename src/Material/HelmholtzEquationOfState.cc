@@ -31,7 +31,8 @@ extern "C" {
 	void Fortran2(wrapper_invert_helm_ed)(int *npart, double *density,
 						  double *energy, double *abar,
 						  double *zbar, double *temperature,
-						  double *pressure, double *small_temp, double *vsound);
+						  double *pressure, double *small_temp, double *vsound,
+                            double *gamma, double *entropy);
 	
 	void Fortran2(wrapper_helmeos)(int *npart, double *den_row,
 					   double *etot_row, double *abar_row,
