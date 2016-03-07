@@ -317,6 +317,53 @@ namespace Material {
             (*myGamma)[i] = soundSpeed(i) * soundSpeed(i) * massDensity(i) / ((*myPressure)[i] / mPressureinbarye);
         }
     }
+    
+    //------------------------------------------------------------------------------
+    // Set gamma.
+    //------------------------------------------------------------------------------
+    template<typename Dimension>
+    void
+    HelmholtzEquationOfState<Dimension>::
+    setGammaField(Field<Dimension, Scalar>& gamma,
+               const Field<Dimension, Scalar>& massDensity,
+               const Field<Dimension, Scalar>& specificThermalEnergy) const {
+        CHECK(valid());
+        
+        storeFields(massDensity, specificThermalEnergy);
+        
+        /* what follows is a method of breaking up the input to the fortran routine into smaller chunks */
+        
+        int npart = massDensity.numElements();
+        int nblock = NBLOCK;
+        int nrest = npart % nblock;
+        int nloop = (npart - nrest)/nblock;
+        unsigned int k = 0;
+        
+        if(needUpdate){
+            for (unsigned int j=0; j<nloop; ++j)
+            {
+                k = j*nblock;
+                Fortran2(wrapper_invert_helm_ed)(&nblock, &(myMassDensity->at(k)), &(mySpecificThermalEnergy->at(k)),
+                                                 &(myAbar->at(k)), &(myZbar->at(k)), &(myTemperature->at(k)),
+                                                 &(myPressure->at(k)), &mTmin, &(mySoundSpeed->at(k)), &(myGamma->at(k)),
+                                                 &(myEntropy->at(k)));
+            }
+            /* now do the rest */
+            if (nrest > 0)
+            {
+                k = nloop*nblock;
+                Fortran2(wrapper_invert_helm_ed)(&nrest, &(myMassDensity->at(k)), &(mySpecificThermalEnergy->at(k)),
+                                                 &(myAbar->at(k)), &(myZbar->at(k)), &(myTemperature->at(k)),
+                                                 &(myPressure->at(k)), &mTmin, &(mySoundSpeed->at(k)), &(myGamma->at(k)),
+                                                 &(myEntropy->at(k)));
+            }
+            
+        }
+        
+        for (size_t i = 0; i != npart; ++i) {
+            gamma(i) = (*myGamma)[i];
+        }
+    }
 
     //------------------------------------------------------------------------------
     // Set the bulk modulus (rho DP/Drho).  This is just the pressure for a
@@ -353,12 +400,45 @@ namespace Material {
     //------------------------------------------------------------------------------
     template<typename Dimension>
     void
-    ANEOS<Dimension>::
+    HelmholtzEquationOfState<Dimension>::
     setEntropy(Field<Dimension, Scalar>& entropy,
                const Field<Dimension, Scalar>& massDensity,
                const Field<Dimension, Scalar>& specificThermalEnergy) const {
-        for (int i = 0; i != entropy.size(); ++i) {
-            entropy(i)=this->entropy(massDensity(i), specificThermalEnergy(i));
+        CHECK(valid());
+        
+        storeFields(massDensity, specificThermalEnergy);
+        
+        /* what follows is a method of breaking up the input to the fortran routine into smaller chunks */
+        
+        int npart = massDensity.numElements();
+        int nblock = NBLOCK;
+        int nrest = npart % nblock;
+        int nloop = (npart - nrest)/nblock;
+        unsigned int k = 0;
+        
+        if(needUpdate){
+            for (unsigned int j=0; j<nloop; ++j)
+            {
+                k = j*nblock;
+                Fortran2(wrapper_invert_helm_ed)(&nblock, &(myMassDensity->at(k)), &(mySpecificThermalEnergy->at(k)),
+                                                 &(myAbar->at(k)), &(myZbar->at(k)), &(myTemperature->at(k)),
+                                                 &(myPressure->at(k)), &mTmin, &(mySoundSpeed->at(k)), &(myGamma->at(k)),
+                                                 &(myEntropy->at(k)));
+            }
+            /* now do the rest */
+            if (nrest > 0)
+            {
+                k = nloop*nblock;
+                Fortran2(wrapper_invert_helm_ed)(&nrest, &(myMassDensity->at(k)), &(mySpecificThermalEnergy->at(k)),
+                                                 &(myAbar->at(k)), &(myZbar->at(k)), &(myTemperature->at(k)),
+                                                 &(myPressure->at(k)), &mTmin, &(mySoundSpeed->at(k)), &(myGamma->at(k)),
+                                                 &(myEntropy->at(k)));
+            }
+            
+        }
+        
+        for (size_t i = 0; i != npart; ++i) {
+            entropy(i) = (*myEntropy)[i] / mEnergyinergpg;
         }
     }
 
@@ -383,41 +463,6 @@ namespace Material {
     zbar() const {
         //return mzbar;
         return *myZbar;
-    }
-    
-    //------------------------------------------------------------------------------
-    // Get gamma.
-    //------------------------------------------------------------------------------
-    template<typename Dimension>
-    typename Dimension::Scalar
-    HelmholtzEquationOfState<Dimension>::
-    gamma(const Scalar massDensity,
-          const Scalar specificThermalEnergy) const {
-        VERIFY2(false, "Error: helmeos does not support gamma currently.");
-        return 1.0;
-    }
-    
-    //------------------------------------------------------------------------------
-    // Calculate the individual bulk modulus.
-    //------------------------------------------------------------------------------
-    template<typename Dimension>
-    typename Dimension::Scalar
-    HelmholtzEquationOfState<Dimension>::
-    bulkModulus(const Scalar massDensity,
-                const Scalar specificThermalEnergy) const {
-        return 0.0;
-    }
-    
-    //------------------------------------------------------------------------------
-    // Calculate an entropy.
-    //------------------------------------------------------------------------------
-    template<typename Dimension>
-    typename Dimension::Scalar
-    HelmholtzEquationOfState<Dimension>::
-    entropy(const Scalar massDensity,
-            const Scalar specificThermalEnergy) const {
-        
-        return 0.0;
     }
         
     //------------------------------------------------------------------------------
