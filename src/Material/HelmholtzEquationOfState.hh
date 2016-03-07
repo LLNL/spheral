@@ -59,7 +59,7 @@ namespace Spheral {
             
             virtual void setGammaField(FieldSpace::Field<Dimension, Scalar>& gamma,
                                        const FieldSpace::Field<Dimension, Scalar>& massDensity,
-                                       const FieldSpace::Field<Dimension, Scalar>& specificThermalEnergy) const { VERIFY2(false, "HelmholtzEquationOfState does not support this function."); }
+                                       const FieldSpace::Field<Dimension, Scalar>& specificThermalEnergy) const;
 			
             virtual void setBulkModulus(FieldSpace::Field<Dimension, Scalar>& bulkModulus,
                                         const FieldSpace::Field<Dimension, Scalar>& massDensity,
@@ -87,14 +87,14 @@ namespace Spheral {
             
             // Get the effective gamma (ratio of specific heats) for this eos.
             virtual Scalar gamma(const Scalar massDensity,
-                                 const Scalar specificThermalEnergy) const;
+                                 const Scalar specificThermalEnergy) const { VERIFY2(false, "HelmholtzEquationOfState does not support individual state calls."); }
             
             // Get the bulk modulus.
             virtual Scalar bulkModulus(const Scalar massDensity,
                                        const Scalar specificThermalEnergy) const { VERIFY2(false, "HelmholtzEquationOfState does not support individual state calls."); }
             
             virtual Scalar entropy(const Scalar massDensity,
-                                   const Scalar specificThermalEnergy) const;
+                                   const Scalar specificThermalEnergy) const { VERIFY2(false, "HelmholtzEquationOfState does not support individual state calls."); }
 
             
             const FieldSpace::Field<Dimension, Scalar>& abar() const;
