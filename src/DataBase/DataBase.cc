@@ -1072,6 +1072,27 @@ fluidGamma(FieldList<Dimension, typename Dimension::Scalar>& result) const {
 }
 
 //------------------------------------------------------------------------------
+// Return the fluid entropy.
+//------------------------------------------------------------------------------
+template<typename Dimension>
+void
+DataBase<Dimension>::
+fluidEntropy(FieldList<Dimension, typename Dimension::Scalar>& result) const {
+  REQUIRE(valid());
+  this->resizeFluidFieldList(result, 0.0, HydroFieldNames::entropy, false);
+  size_t nodeListi = 0;
+  for (ConstFluidNodeListIterator nodeListItr = fluidNodeListBegin();
+       nodeListItr != fluidNodeListEnd();
+       ++nodeListItr, ++nodeListi) {
+    const EquationOfState<Dimension>& eos = (*nodeListItr)->equationOfState();
+    const Field<Dimension, Scalar>& rho = (*nodeListItr)->massDensity();
+    const Field<Dimension, Scalar>& eps = (*nodeListItr)->specificThermalEnergy();
+    Field<Dimension, Scalar>& entropy = **result.fieldForNodeList(**nodeListItr);
+    eos.setEntropy(entropy, rho, eps);
+  }
+}
+
+//------------------------------------------------------------------------------
 // Return the fluid linear momentum field.
 //------------------------------------------------------------------------------
 template<typename Dimension>

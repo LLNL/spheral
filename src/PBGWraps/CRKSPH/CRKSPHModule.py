@@ -447,7 +447,7 @@ self.generateSolidCRKSPHHydroBaseBindings(self.SolidCRKSPHHydroBase%(dim)id, %(d
         const_ref_return_value(x, me, "%s::pressure" % me, scalarfieldlist, [], "pressure")
         const_ref_return_value(x, me, "%s::soundSpeed" % me, scalarfieldlist, [], "soundSpeed")
         const_ref_return_value(x, me, "%s::specificThermalEnergy0" % me, scalarfieldlist, [], "specificThermalEnergy0")
-        const_ref_return_value(x, me, "%s::gamma" % me, scalarfieldlist, [], "gamma")
+        const_ref_return_value(x, me, "%s::entropy" % me, scalarfieldlist, [], "entropy")
         const_ref_return_value(x, me, "%s::Hideal" % me, symtensorfieldlist, [], "Hideal")
         const_ref_return_value(x, me, "%s::maxViscousPressure" % me, scalarfieldlist, [], "maxViscousPressure")
         const_ref_return_value(x, me, "%s::effectiveViscousPressure" % me, scalarfieldlist, [], "effectiveViscousPressure")

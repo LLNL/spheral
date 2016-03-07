@@ -195,7 +195,7 @@ public:
   const FieldSpace::FieldList<Dimension, Scalar>&    pressure() const;
   const FieldSpace::FieldList<Dimension, Scalar>&    soundSpeed() const;
   const FieldSpace::FieldList<Dimension, Scalar>&    specificThermalEnergy0() const;
-  const FieldSpace::FieldList<Dimension, Scalar>&    gamma() const;
+  const FieldSpace::FieldList<Dimension, Scalar>&    entropy() const;
   const FieldSpace::FieldList<Dimension, SymTensor>& Hideal() const;
   const FieldSpace::FieldList<Dimension, Scalar>&    maxViscousPressure() const;
   const FieldSpace::FieldList<Dimension, Scalar>&    effectiveViscousPressure() const;
@@ -260,7 +260,7 @@ private:
   FieldSpace::FieldList<Dimension, Scalar>    mPressure;
   FieldSpace::FieldList<Dimension, Scalar>    mSoundSpeed;
   FieldSpace::FieldList<Dimension, Scalar>    mSpecificThermalEnergy0;
-  FieldSpace::FieldList<Dimension, Scalar>    mGamma;
+  FieldSpace::FieldList<Dimension, Scalar>    mEntropy;
 
   FieldSpace::FieldList<Dimension, SymTensor> mHideal;
   FieldSpace::FieldList<Dimension, Scalar>    mMaxViscousPressure;

@@ -231,8 +231,8 @@ template<typename Dimension>
 inline
 const FieldSpace::FieldList<Dimension, typename Dimension::Scalar>&
 CRKSPHHydroBase<Dimension>::
-gamma() const {
-  return mGamma;
+entropy() const {
+  return mEntropy;
 }
 
 template<typename Dimension>
