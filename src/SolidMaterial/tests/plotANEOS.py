@@ -42,7 +42,7 @@ izetl = vector_of_int(1, -1)
 initializeANEOS("ANEOS.FORSTERITE", "ANEOS.barf", izetl)
 rhoMin, rhoMax = 0.9*etaMin*rho0, 1.1*etaMax*rho0
 Tmin, Tmax = 1.0e3, 1.0e8
-eosANEOS = ANEOS(-1,                 # Material number
+eosANEOS = ANEOS(0,                 # Material number
                   100,               # num rho vals
                   100,               # num T vals
                   rhoMin,            # minimum density (kg/m^3)
