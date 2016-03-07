@@ -22,6 +22,26 @@ C Declare the arguments.
       character*256 in_filename, out_filename, lineinp
       integer num, izetl(21)
 
+C We'll use a common block to build a mapping from material numbers to offsets
+C to help us in call_ANEOS.
+      integer maxmat
+      parameter (maxmat = 10)
+      integer matnums(maxmat)
+      common /Spheral_ANEOS_params/ matnums
+
+C Local variables.
+      integer i
+
+C Build the offset material list, and check the input.
+      do 10 i = 1, num
+         if (izetl(i) .ge. 0) then
+            print *, "ANEOS_initialize ERROR: make sure all EOS",
+     &           " numbers are negative in initialize list."
+            stop
+         end if
+         matnums(i) = -izetl(i)
+ 10   continue
+
 C Open the files.
       open(10, file=in_filename, status='old')
       open(12, file=out_filename)
@@ -43,7 +63,7 @@ C-------------------------------------------------------------------------------
 
       implicit none
 
-      integer matnum, matoffset
+      integer matnum
       double precision T, rho, P, e, s, cv, dpdt, dpdr, cs
 
 c$$$      integer kpa
@@ -60,9 +80,29 @@ C     ipsqts points to current value
       real*8 sqts(MATBUF)
       COMMON /ANESQT/ SQTS,IPSQTS
 
-      ipsqts = 1
+C We'll use a common block to build a mapping from material numbers to offsets
+C to help us in call_ANEOS.
+      integer maxmat
+      parameter (maxmat = 10)
+      integer matnums(maxmat)
+      common /Spheral_ANEOS_params/ matnums
+
+C Local variables.
+      integer i, matoffset
+
+C Find the material number
+      i = 0
+ 10   i = i + 1
+      if (matnums(i) .eq. matnum) goto 20
+      if (i .eq. maxmat) then
+         print *, "call_ANEOS ERROR: unable to find material ", matnum
+         stop
+      end if
+      goto 10
+
+ 20   ipsqts = 1
       sqts(ipsqts) = dsqrt(T)
-      matoffset = 99*(matnum - 1)
+      matoffset = 99*(i - 1)
       
       call ANEOS1(T, rho, P, e, s, cv, dpdt, dpdr, matoffset)
 

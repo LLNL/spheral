@@ -1,10 +1,10 @@
 from SolidSpheral3d import *
 from SpheralGnuPlotUtilities import *
 
-# We'll work in CGS units.
-units = PhysicalConstants(0.01,  # Unit length in meters
-                          0.001, # Unit mass in kg
-                          1.0)   # Unit time in sec
+# We'll work in CGuS units.
+units = PhysicalConstants(0.01,     # Unit length in meters
+                          0.001,    # Unit mass in kg
+                          1.0e-6)   # Unit time in sec
 
 #-------------------------------------------------------------------------------
 # Build an ANEOS SiO2 like thing.
@@ -72,20 +72,20 @@ for eos, label in ((eosSiO2, "SiO2"),
 
     plots.append(generateNewGnuPlot())
     plots[-1].xlabel("rho (g/cm^3)")
-    plots[-1].ylabel("eps (erg/g)")
+    plots[-1].ylabel("eps (Mb cm^2/g)")
     PAdata = Gnuplot.Data(PA)
     plots[-1].splot(PAdata, title="Pressure %s" % label)
 
     plots.append(generateNewGnuPlot())
     plots[-1].xlabel("rho (g/cm^3)")
-    plots[-1].ylabel("eps (erg/g)")
+    plots[-1].ylabel("eps (Mb cm^2/g)")
     csAdata = Gnuplot.Data(csA)
     plots[-1].splot(csAdata, title="sound speed %s" % label)
     plots.append(plots[-1])
 
     plots.append(generateNewGnuPlot())
     plots[-1].xlabel("rho (g/cm^3)")
-    plots[-1].ylabel("eps (erg/g)")
+    plots[-1].ylabel("eps (Mb cm^2/g)")
     sAdata = Gnuplot.Data(sA)
     plots[-1].splot(sAdata, title="entropy %s" % label)
     plots.append(plots[-1])
