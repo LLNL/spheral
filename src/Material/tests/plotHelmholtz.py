@@ -42,17 +42,21 @@ e = [eMin * exp(de*j) for j in xrange(n+1)]
 
 
 
-P, cs = [], []
+P, cs, gam = [], [], []
 for rhoi in rho:
     for ei in e:
         nRho = ScalarField("testRho", nodes1, rhoi)
         ne = ScalarField("testU", nodes1, ei)
         Pr = ScalarField("testP", nodes1)
+        ng = ScalarField("testGamma", nodes1)
         soundSpeed = ScalarField("testCs", nodes1)
         eos.setPressure(Pr,nRho,ne)
         eos.setSoundSpeed(soundSpeed,nRho,ne)
+        eos.setGammaField(ng,nRho,ne)
         P.append((rhoi, ei, Pr[0]))
         cs.append((rhoi, ei, soundSpeed[0]))
+        gam.append((rhoi,ei,ng[0]))
+        
 
 Pplot = Gnuplot.Gnuplot()
 Pplot("set term x11")
@@ -69,3 +73,11 @@ csplot.xlabel("rho/rho0")
 csplot.ylabel("eps (J/kg)")
 csdata = Gnuplot.Data(cs)
 csplot.splot(csdata, title="sound speed")
+
+gamplot = Gnuplot.Gnuplot()
+gamplot("set term x11")
+gamplot("set logscale xy")
+gamplot.xlabel("rho/rho0")
+gamplot.ylabel("eps (J/kg)")
+gamdata = Gnuplot.Data(gam)
+gamplot.splot(gamdata, title="gamma")
