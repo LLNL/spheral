@@ -81,6 +81,7 @@ namespace Material {
     myPressure(),
     mySoundSpeed(),
     myGamma(),
+    myEntropy(),
     mConstants(constants)
     {
         needUpdate = 1; // flip this on and off later
@@ -140,7 +141,8 @@ namespace Material {
                 k = j*nblock;
                 Fortran2(wrapper_invert_helm_ed)(&nblock, &(myMassDensity->at(k)), &(mySpecificThermalEnergy->at(k)),
                                                  &(myAbar->at(k)), &(myZbar->at(k)), &(myTemperature->at(k)),
-                                                 &(myPressure->at(k)), &mTmin, &(mySoundSpeed->at(k)));
+                                                 &(myPressure->at(k)), &mTmin, &(mySoundSpeed->at(k)), &(myGamma->at(k)),
+                                                 &(myEntropy->at(k)));
             }
             /* now do the rest */
             if (nrest > 0)
@@ -148,7 +150,8 @@ namespace Material {
                 k = nloop*nblock;
                 Fortran2(wrapper_invert_helm_ed)(&nrest, &(myMassDensity->at(k)), &(mySpecificThermalEnergy->at(k)),
                                                  &(myAbar->at(k)), &(myZbar->at(k)), &(myTemperature->at(k)),
-                                                 &(myPressure->at(k)), &mTmin, &(mySoundSpeed->at(k)));
+                                                 &(myPressure->at(k)), &mTmin, &(mySoundSpeed->at(k)), &(myGamma->at(k)),
+                                                 &(myEntropy->at(k)));
             }
             
         }
@@ -185,7 +188,8 @@ namespace Material {
                 k = j*nblock;
                 Fortran2(wrapper_invert_helm_ed)(&nblock, &(myMassDensity->at(k)), &(mySpecificThermalEnergy->at(k)),
                                                  &(myAbar->at(k)), &(myZbar->at(k)), &(myTemperature->at(k)),
-                                                 &(myPressure->at(k)), &mTmin, &(mySoundSpeed->at(k)));
+                                                 &(myPressure->at(k)), &mTmin, &(mySoundSpeed->at(k)), &(myGamma->at(k)),
+                                                 &(myEntropy->at(k)));
             }
             /* now do the rest */
             if (nrest > 0)
@@ -193,7 +197,8 @@ namespace Material {
                 k = nloop*nblock;
                 Fortran2(wrapper_invert_helm_ed)(&nrest, &(myMassDensity->at(k)), &(mySpecificThermalEnergy->at(k)),
                                                  &(myAbar->at(k)), &(myZbar->at(k)), &(myTemperature->at(k)),
-                                                 &(myPressure->at(k)), &mTmin, &(mySoundSpeed->at(k)));
+                                                 &(myPressure->at(k)), &mTmin, &(mySoundSpeed->at(k)), &(myGamma->at(k)),
+                                                 &(myEntropy->at(k)));
             }
             
         }
@@ -292,7 +297,8 @@ namespace Material {
                 k = j*nblock;
                 Fortran2(wrapper_invert_helm_ed)(&nblock, &(myMassDensity->at(k)), &(mySpecificThermalEnergy->at(k)),
                                                  &(myAbar->at(k)), &(myZbar->at(k)), &(myTemperature->at(k)),
-                                                 &(myPressure->at(k)), &mTmin, &(mySoundSpeed->at(k)));
+                                                 &(myPressure->at(k)), &mTmin, &(mySoundSpeed->at(k)), &(myGamma->at(k)),
+                                                 &(myEntropy->at(k)));
             }
             /* now do the rest */
             if (nrest > 0)
@@ -300,7 +306,8 @@ namespace Material {
                 k = nloop*nblock;
                 Fortran2(wrapper_invert_helm_ed)(&nrest, &(myMassDensity->at(k)), &(mySpecificThermalEnergy->at(k)),
                                                  &(myAbar->at(k)), &(myZbar->at(k)), &(myTemperature->at(k)),
-                                                 &(myPressure->at(k)), &mTmin, &(mySoundSpeed->at(k)));
+                                                 &(myPressure->at(k)), &mTmin, &(mySoundSpeed->at(k)), &(myGamma->at(k)),
+                                                 &(myEntropy->at(k)));
             }
             
         }
@@ -340,6 +347,20 @@ namespace Material {
     setUpdateStatus(bool bSet){
         needUpdate = bSet;
     }
+    
+    //------------------------------------------------------------------------------
+    // Set entropy.
+    //------------------------------------------------------------------------------
+    template<typename Dimension>
+    void
+    ANEOS<Dimension>::
+    setEntropy(Field<Dimension, Scalar>& entropy,
+               const Field<Dimension, Scalar>& massDensity,
+               const Field<Dimension, Scalar>& specificThermalEnergy) const {
+        for (int i = 0; i != entropy.size(); ++i) {
+            entropy(i)=this->entropy(massDensity(i), specificThermalEnergy(i));
+        }
+    }
 
 
     //------------------------------------------------------------------------------
@@ -362,6 +383,41 @@ namespace Material {
     zbar() const {
         //return mzbar;
         return *myZbar;
+    }
+    
+    //------------------------------------------------------------------------------
+    // Get gamma.
+    //------------------------------------------------------------------------------
+    template<typename Dimension>
+    typename Dimension::Scalar
+    HelmholtzEquationOfState<Dimension>::
+    gamma(const Scalar massDensity,
+          const Scalar specificThermalEnergy) const {
+        VERIFY2(false, "Error: helmeos does not support gamma currently.");
+        return 1.0;
+    }
+    
+    //------------------------------------------------------------------------------
+    // Calculate the individual bulk modulus.
+    //------------------------------------------------------------------------------
+    template<typename Dimension>
+    typename Dimension::Scalar
+    HelmholtzEquationOfState<Dimension>::
+    bulkModulus(const Scalar massDensity,
+                const Scalar specificThermalEnergy) const {
+        return 0.0;
+    }
+    
+    //------------------------------------------------------------------------------
+    // Calculate an entropy.
+    //------------------------------------------------------------------------------
+    template<typename Dimension>
+    typename Dimension::Scalar
+    HelmholtzEquationOfState<Dimension>::
+    entropy(const Scalar massDensity,
+            const Scalar specificThermalEnergy) const {
+        
+        return 0.0;
     }
         
     //------------------------------------------------------------------------------
@@ -390,6 +446,7 @@ namespace Material {
         myGamma                 = shared_ptr<Field<Dimension, Scalar> >(new Field<Dimension, Scalar>("helmGamma",thisMassDensity.nodeList()));
         myAbar                  = shared_ptr<Field<Dimension, Scalar> >(new Field<Dimension, Scalar>("helmAbar",thisMassDensity.nodeList(),mabar0));
         myZbar                  = shared_ptr<Field<Dimension, Scalar> >(new Field<Dimension, Scalar>("helmZbar",thisMassDensity.nodeList(),mzbar0));
+        myEntropy               = shared_ptr<Field<Dimension, Scalar> >(new Field<Dimension, Scalar>("helmEntropy",thisMassDensity.nodeList()));
         
         for(unsigned int i=0; i!=myMassDensity->numElements(); ++i)
         {
