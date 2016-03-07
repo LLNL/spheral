@@ -1,0 +1,54 @@
+!
+! mathematical and physical constants (in cgs,except e0 which is in ev)
+!
+! the 1986 codta recommended valeus of the physical constants
+! by coehn & taylor
+
+
+! declare
+      double precision pi,a2rad,rad2a,eulercon
+      double precision g,h,hbar,qe,avo,clight,kerg,kev,amu,mn,mp,me, &
+                       rbohr,fine,hion,ev2erg,ssol,asol,weinfre,weinlam, &
+                       rhonuc
+      double precision msol,rsol,lsol,mearth,rearth,ly,pc,au, &
+                       secyer
+
+! math constants
+      parameter        (pi       = 3.1415926535897932384d0, &
+                        eulercon = 0.577215664901532861d0, &
+                        a2rad    = pi/180.0d0,  rad2a = 180.0d0/pi)
+
+! physical constants
+      parameter        (g       = 6.67259d-8, &
+                        h       = 6.6260755d-27, &
+                        hbar    = 0.5d0 * h/pi, &
+                        qe      = 4.8032068d-10, &
+                        avo     = 6.0221367d23, &
+                        clight  = 2.99792458d10, &
+                        kerg    = 1.380658d-16, &
+                        kev     = 8.617385d-5, &
+                        amu     = 1.6605402d-24, &
+                        mn      = 1.6749286d-24, &
+                        mp      = 1.6726231d-24, &
+                        me      = 9.1093897d-28, &
+                        rbohr   = hbar*hbar/(me * qe * qe), &
+                        fine    = qe*qe/(hbar*clight), &
+                        hion    = 13.605698140d0, &
+                        ev2erg  = 1.602177d-12)
+      parameter        (ssol     = 5.67051d-5, &
+                        asol    = 4.0d0 * ssol / clight, &
+                        weinlam = h*clight/(kerg * 4.965114232d0), &
+                        weinfre = 2.821439372d0*kerg/h, &
+                        rhonuc  = 2.342d14)
+
+
+! astronomical constants
+      parameter        (msol    = 1.9892d33, &
+                        rsol    = 6.95997d10, &
+                        lsol    = 3.8268d33, &
+                        mearth  = 5.9764d27, &
+                        rearth  = 6.37d8, &
+                        ly      = 9.460528d17, &
+                        pc      = 3.261633d0 * ly, &
+                        au      = 1.495978921d13, &
+                        secyer  = 3.1558149984d7)
