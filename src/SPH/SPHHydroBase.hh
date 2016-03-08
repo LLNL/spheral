@@ -198,7 +198,7 @@ public:
   const FieldSpace::FieldList<Dimension, Scalar>&    volume() const;
   const FieldSpace::FieldList<Dimension, Scalar>&    omegaGradh() const;
   const FieldSpace::FieldList<Dimension, Scalar>&    specificThermalEnergy0() const;
-  const FieldSpace::FieldList<Dimension, Scalar>&    gamma() const;
+  const FieldSpace::FieldList<Dimension, Scalar>&    entropy() const;
   const FieldSpace::FieldList<Dimension, SymTensor>& Hideal() const;
   const FieldSpace::FieldList<Dimension, Scalar>&    maxViscousPressure() const;
   const FieldSpace::FieldList<Dimension, Scalar>&    effectiveViscousPressure() const;
@@ -253,7 +253,7 @@ protected:
   FieldSpace::FieldList<Dimension, Scalar>    mSoundSpeed;
   FieldSpace::FieldList<Dimension, Scalar>    mOmegaGradh;
   FieldSpace::FieldList<Dimension, Scalar>    mSpecificThermalEnergy0;
-  FieldSpace::FieldList<Dimension, Scalar>    mGamma;
+  FieldSpace::FieldList<Dimension, Scalar>    mEntropy;
 
   FieldSpace::FieldList<Dimension, SymTensor> mHideal;
   FieldSpace::FieldList<Dimension, Scalar>    mMaxViscousPressure;

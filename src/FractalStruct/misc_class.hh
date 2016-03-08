@@ -38,8 +38,8 @@ namespace FractalSpace
     }
     static void plus(vector <int>& vect,int add)
     {
-      for(vector <int>::iterator itr=vect.begin();itr!=vect.end();itr++)
-	(*itr)+=add;
+      for(auto v : vect)
+	v+=add;
     }
     static void times(const vector <int>& vin,int mult,vector <int>& vout)
     {
@@ -48,8 +48,8 @@ namespace FractalSpace
     }
     static void times(vector <int>& vect,int mult)
     {
-      for(vector <int>::iterator itr=vect.begin();itr!=vect.end();itr++)
-	(*itr)*=mult;
+      for(auto v : vect)
+	v*=mult;
     }
     static void divide(const vector <int>& vin,int divisor,vector <int>& vout)
 //     template <class T> static void divide(const vector <T>& vin,T divisor,vector <T>& vout)
@@ -60,8 +60,8 @@ namespace FractalSpace
     static void divide(vector <int>& vect,int divisor)
 //     template <class T> static void divide(vector <T>& vect,T divisor)
     {
-      for(vector <int>::iterator itr=vect.begin();itr!=vect.end();itr++)
-	(*itr)/=divisor;
+      for(auto v : vect)
+	v/=divisor;
     }
     //     template static void divide(vector <int>& vect,int div)
     static int nr(const int& i,const int& j,const int& k, const int&m)

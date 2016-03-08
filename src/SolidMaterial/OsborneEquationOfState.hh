@@ -82,6 +82,10 @@ public:
                               const FieldSpace::Field<Dimension, Scalar>& massDensity,
                               const FieldSpace::Field<Dimension, Scalar>& specificThermalEnergy) const;
 
+  virtual void setEntropy(FieldSpace::Field<Dimension, Scalar>& entropy,
+                          const FieldSpace::Field<Dimension, Scalar>& massDensity,
+                          const FieldSpace::Field<Dimension, Scalar>& specificThermalEnergy) const;
+
   // Access the member data.
   double a1() const;
   double a2pos() const;

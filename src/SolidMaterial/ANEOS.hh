@@ -83,6 +83,10 @@ public:
 			     const FieldSpace::Field<Dimension, Scalar>& massDensity,
 			     const FieldSpace::Field<Dimension, Scalar>& specificThermalEnergy) const;
 
+  virtual void setEntropy(FieldSpace::Field<Dimension, Scalar>& entropy,
+                          const FieldSpace::Field<Dimension, Scalar>& massDensity,
+                          const FieldSpace::Field<Dimension, Scalar>& specificThermalEnergy) const;
+
   // We also want the equivalent functions for individual calculations.
   Scalar pressure(const Scalar massDensity,
                   const Scalar specificThermalEnergy) const;
@@ -106,6 +110,9 @@ public:
   // Get the bulk modulus.
   Scalar bulkModulus(const Scalar massDensity,
                      const Scalar specificThermalEnergy) const;
+
+  Scalar entropy(const Scalar massDensity,
+                 const Scalar specificThermalEnergy) const;
 
   // The valid method.
   virtual bool valid() const;
@@ -137,7 +144,7 @@ private:
   Material::PhysicalConstants mANEOSunits;
 
   // Units conversion from ANEOS.
-  double mRhoConv, mTconv, mPconv, mEconv, mCVconv, mVelConv;
+  double mRhoConv, mTconv, mPconv, mEconv, mCVconv, mVelConv, mSconv;
 
   // Disallow default constructor
   ANEOS();

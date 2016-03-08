@@ -10,7 +10,6 @@ namespace FractalSpace
 			     vector <double>& posx,vector <double>& posy,vector <double>& posz,
 			     vector <double>& velx,vector <double>& vely,vector <double>& velz);
   void assign_density(Group& group, Fractal& fractal);
-  //  void balance_by_particles(Fractal_Memory* PFM);
   void balance_by_particles(Fractal_Memory* PFM,bool withparts);
   void binary_balancing(vector <double>& numbers,double minimum,
 			int Nodes,int length,vector <double>& targets,vector <int>& lowers,vector <int>& uppers);
@@ -84,20 +83,6 @@ namespace FractalSpace
   void hypre_world_create(Fractal_Memory& mem,int level,vector <vector <int> >& SBoxes,
 			 bool buffer_groups);
   void hypre_world_destroy();
-//   bool hypre_ij_numbering(Fractal_Memory& mem,vector <Point*>& hypre_points,const int& level);
-//   bool hypre_ij_numbering(Fractal_Memory& mem,HypHest& HYP,vector <Point*>& hypre_points,const int& level,const bool& buffer_groups);
-//   bool hypre_ij_numbering(Fractal_Memory& mem,Fractal& frac,vector <Point*>& hypre_points,const int& level);
-//   bool hypre_ij_numbering(Fractal_Memory& mem,Fractal& frac,vector <Point*>& hypre_points,const int& level,const bool& buffer_groups);
-//   bool hypre_ij_numbering_selfie(Fractal_Memory& mem,Fractal& frac,vector <Point*>& hypre_points,const int& level);
-//   void hypre_ij_solver(Fractal& fractal,Fractal_Memory& mem,const int& level, const bool& buffer_groups);
-//   void hypre_ij_solver(Fractal& fractal,Fractal_Memory& mem,int level,bool buffer_groups);
-//   void hypre_ij_solver_selfie(Fractal& fractal,Fractal_Memory& mem,int level);
-//   void hypre_ij_solver_pcg(Fractal& fractal,Fractal_Memory& mem,int level);
-//   int hypre_load_balance(Fractal_Memory& mem,vector <Point*>points,bool& load_balance);
-//   int hypre_load_balance(Fractal_Memory& mem,HypHest& HYP,vector <Point*>points,bool& load_balance);
-//   void hypre_send_pots(Fractal_Memory& mem,vector <Point*>& hypre_points,vector <double>& potH,
-// 		       int HYPij_countsBHypreRank,int HYPij_offsetsBHypreRank,int HYPij_countsHypreRank,
-// 		       vector <int>& HYPij_offsets);
   void info_to_slices(Fractal_Memory& mem,Fractal& frac,int lev);
   void info_to_slices_to_pot_init(Fractal_Memory& mem,Fractal& frac,int lev);
   void initial_forces_sharp(Fractal_Memory& fractal_memory,Fractal& fractal);
@@ -131,8 +116,6 @@ namespace FractalSpace
   template <class T> bool overlap(vector <T>& xleft,vector <T>& xright,vector <T>& box);
   template <class T> bool overlap_boxes(vector <T>& xvec,vector <T>& box);
   template <class T> bool overlap_interval(T Imin,T Imax,T Jmin,T Jmax,T& LOW,T& HIGH);
-  //  bool overlap(vector <double>& xleft,vector <double>& xright,vector <double>& yleft,vector <double>& yright);
-  //  bool overlap(vector <double>& xleft,vector <double>& xright,vector <double>& yleftright);
   void particle_lists(vector <vector <Group*> >& all_groups,Fractal& fractal,Fractal& fractal_ghost,Misc& misc);
   void particle_lists_fixed(vector <vector <Group*> >& all_groups,Fractal& fractal,Misc& misc);
   void periodic_solver(Group& group, Fractal_Memory& fractal_memory,Fractal& fractal);

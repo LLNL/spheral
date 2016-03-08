@@ -14,6 +14,7 @@ namespace FractalSpace
   {
     int FractalRank=mem.p_mess->FractalRank;
     int HypreRank=mem.p_mess->HypreRank;
+    cerr << " HYPRE RES 0 " << FractalRank << " " << HypreRank << " " << SBoxes.size() << " " << SPoints.size() << endl;
     HYPRE_StructGrid     grid;
     HYPRE_StructStencil  stencil;
     HYPRE_StructMatrix   Amatrix;
@@ -25,19 +26,28 @@ namespace FractalSpace
     double pi = 4.0*atan(1.0);
     int length=mem.p_fractal->get_grid_length();
     double g_c=4.0*pi/static_cast<double>(length*length)*pow(4.0,-level);
-    int lowerBOX[3];
-    int upperBOX[3];
+//     int lowerBOX[3];
+//     int upperBOX[3];
+    vector < vector <int> > lowerBOX(SBoxes.size());
+    vector < vector <int> > upperBOX(SBoxes.size());
+    vector <int> VOL(SBoxes.size());
     HYPRE_StructGridCreate(mem.p_mess->HypreWorld,3,&grid);
-    for(vector <int> SB : SBoxes)
+    int B=0;
+    for(vector <int>& SB : SBoxes)
       {
 	int ni=0;
+	lowerBOX[B].resize(3);
+	upperBOX[B].resize(3);
+	VOL[B]=1;
 	for(int ni2=0;ni2<6;ni2+=2)
 	  {
-	    lowerBOX[ni]=SB[ni2];
-	    upperBOX[ni]=SB[ni2+1]-1;
+	    lowerBOX[B][ni]=SB[ni2];
+	    upperBOX[B][ni]=SB[ni2+1]-1;
+	    VOL[B]*=upperBOX[B][ni]-lowerBOX[B][ni]+1;
 	    ni++;
 	  }
-	HYPRE_StructGridSetExtents(grid,lowerBOX,upperBOX);
+	HYPRE_StructGridSetExtents(grid,&(*lowerBOX[B].begin()),&(*upperBOX[B].begin()));
+	B++;
       }
     HYPRE_StructGridAssemble(grid);
     HYPRE_StructStencilCreate(3,7,&stencil);
@@ -47,22 +57,13 @@ namespace FractalSpace
     HYPRE_StructMatrixCreate(mem.p_mess->HypreWorld,grid,stencil, &Amatrix);
     HYPRE_StructMatrixInitialize(Amatrix);
     int stencil_indices[7] = {0,1,2,3,4,5,6};
-    int B=0;
-    for(vector <int> SB : SBoxes)
+    B=0;
+    for(vector <Point*>& SP : SPoints)
       {
 	vector <int>pos(3);
 	vector <double>values;
-	int VOL=1;
-	int ni=0;
-	for(int ni2=0;ni2<6;ni2+=2)
-	  {
-	    lowerBOX[ni]=SB[ni2];
-	    upperBOX[ni]=SB[ni2+1]-1;
-	    VOL*=upperBOX[ni]-lowerBOX[ni]+1;
-	    ni++;
-	  }
-	vector <Point*>::iterator p_itr=SPoints[B].begin();
-	for (int i = 0; i < VOL;i++)
+	vector <Point*>::iterator p_itr=SP.begin();
+	for (int i = 0; i < VOL[B];i++)
 	  {
 	    Point* p=*p_itr;
 	    values.push_back(-6.0);
@@ -77,7 +78,7 @@ namespace FractalSpace
 	      }
 	    p_itr++;
 	  }
-	HYPRE_StructMatrixAddToBoxValues(Amatrix,lowerBOX,upperBOX,7,
+	HYPRE_StructMatrixAddToBoxValues(Amatrix,&(*lowerBOX[B].begin()),&(*upperBOX[B].begin()),7,
 				       stencil_indices,&(*values.begin()));
 	values.clear();
 	B++;
@@ -89,21 +90,12 @@ namespace FractalSpace
     HYPRE_StructVectorInitialize(rho);
     HYPRE_StructVectorInitialize(pot);
     B=0;
-    for(vector <int> SB : SBoxes)
+    for(vector <Point*>& SP : SPoints)
       {
 	vector <double>dens_values;
 	vector <double>pot_values;
-	int VOL=1;
-	int ni=0;
-	for(int ni2=0;ni2<6;ni2+=2)
-	  {
-	    lowerBOX[ni]=SB[ni2];
-	    upperBOX[ni]=SB[ni2+1]-1;
-	    VOL*=upperBOX[ni]-lowerBOX[ni]+1;
-	    ni++;
-	  }
-	vector <Point*>::iterator p_itr=SPoints[B].begin();
-	for (int i = 0; i < VOL; i++)
+	vector <Point*>::iterator p_itr=SP.begin();
+	for (int i = 0; i < VOL[B]; i++)
 	  {
 	    vector <int>pos(3);
 	    Point* p=*p_itr;
@@ -119,8 +111,8 @@ namespace FractalSpace
 	    pot_values.push_back(p->get_potential_point());
 	    p_itr++;
 	  }
-	HYPRE_StructVectorAddToBoxValues(rho,lowerBOX,upperBOX,&(*dens_values.begin()));
-	HYPRE_StructVectorAddToBoxValues(pot,lowerBOX,upperBOX,&(*pot_values.begin()));
+	HYPRE_StructVectorAddToBoxValues(rho,&(*lowerBOX[B].begin()),&(*upperBOX[B].begin()),&(*dens_values.begin()));
+	HYPRE_StructVectorAddToBoxValues(pot,&(*lowerBOX[B].begin()),&(*upperBOX[B].begin()),&(*pot_values.begin()));
 	dens_values.clear();
 	pot_values.clear();
 	B++;
@@ -160,22 +152,13 @@ namespace FractalSpace
     HYPRE_StructMatrixDestroy(Amatrix);
     HYPRE_StructVectorDestroy(rho);
     B=0;
-    for(vector <int> SB : SBoxes)
+    for(vector <Point*>& SP : SPoints)
       {
 	vector <double>pot_values;
-	int ni=0;
-	int VOL=1;
-	for(int ni2=0;ni2<6;ni2+=2)
-	  {
-	    lowerBOX[ni]=SB[ni2];
-	    upperBOX[ni]=SB[ni2+1]-1;
-	    VOL*=upperBOX[ni]-lowerBOX[ni]+1;
-	    ni++;
-	  }
-	pot_values.resize(VOL);
-	HYPRE_StructVectorGetBoxValues(pot,lowerBOX,upperBOX,&(*pot_values.begin()));
-	vector <Point*>::iterator p_itr=SPoints[B].begin();
-	for (int i = 0; i < VOL; i++)
+	pot_values.resize(VOL[B]);
+	HYPRE_StructVectorGetBoxValues(pot,&(*lowerBOX[B].begin()),&(*upperBOX[B].begin()),&(*pot_values.begin()));
+	vector <Point*>::iterator p_itr=SP.begin();
+	for (int i = 0; i < VOL[B]; i++)
 	  {
 	    (*p_itr)->set_potential_point(pot_values[i]);
 	    p_itr++;
@@ -184,6 +167,5 @@ namespace FractalSpace
 	B++;
       }
     HYPRE_StructVectorDestroy(pot);
-    add_buffer_values(mem,level,SBoxes,SPoints);
   }
 }

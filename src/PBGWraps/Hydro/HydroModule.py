@@ -103,6 +103,7 @@ self.generateThirdMomentHourglassControlBindings(self.ThirdMomentHourglassContro
         x.add_static_attribute("pairWork", "std::string",  is_const=True)
         x.add_static_attribute("omegaGradh", "std::string",  is_const=True)
         x.add_static_attribute("gamma", "std::string",  is_const=True)
+        x.add_static_attribute("entropy", "std::string",  is_const=True)
         x.add_static_attribute("PSPHcorrection", "std::string",  is_const=True)
         x.add_static_attribute("numberDensitySum", "std::string",  is_const=True)
         x.add_static_attribute("timeStepMask", "std::string",  is_const=True)
