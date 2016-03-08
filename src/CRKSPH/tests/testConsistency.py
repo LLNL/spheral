@@ -341,42 +341,46 @@ for i in xrange(nodes1.numInternalNodes):
         etai = Hi*rij
         etaj = Hj*rij
        
-        #Rk Gradients
+        #SPH Kernels and Gradients
         Wj = WT.kernelValue(etaj.magnitude(), Hdetj) 
         Wi = WT.kernelValue(etai.magnitude(), Hdeti) 
         Wij = 0.5*(Wi+Wj)
         gradWj = Hj*etaj.unitVector() * WT.gradValue(etaj.magnitude(), Hdetj)
         gradWi = Hi*etai.unitVector() * WT.gradValue(etai.magnitude(), Hdeti)
         gradWij = 0.5*(gradWj+gradWi)
-        gradrkWj = Ai*(1.0 + Bi.dot(rij))*gradWij + Ai*Bi*Wij + gradAi*(1.0 + Bi.dot(rij))*Wij
-        for ii in xrange(nDim):
-          for jj in xrange(nDim):
-            indx = jj*nDim + ii
-            gradrkWj[ii] += Ai*Wij*gradBi[indx]*rij[jj]
 
-        Wj = WT.kernelValue((-etai).magnitude(), Hdeti)
-        Wi = WT.kernelValue((-etaj).magnitude(), Hdetj)
-        Wij = 0.5*(Wi+Wj)
-        gradWj = Hj*(-etai).unitVector() * WT.gradValue((-etai).magnitude(), Hdeti)
-        gradWi = Hi*(-etaj).unitVector() * WT.gradValue((-etaj).magnitude(), Hdetj)
-        gradWij = 0.5*(gradWj+gradWi)
-        gradrkWi = Aj*(1.0 + Bj.dot(-rij))*gradWij + Aj*Bj*Wij + gradAj*(1.0 + Bj.dot(-rij))*Wij
-        for ii in xrange(nDim):
-          for jj in xrange(nDim):
-            indx = jj*nDim + ii
-            gradrkWi[ii] += Aj*Wij*gradBj[indx]*(-rij[jj])
+
+        #RK Kernels and Gradients
+
+        #gradrkWj = Ai*(1.0 + Bi.dot(rij))*gradWij + Ai*Bi*Wij + gradAi*(1.0 + Bi.dot(rij))*Wij
+        #for ii in xrange(nDim):
+        #  for jj in xrange(nDim):
+        #    indx = jj*nDim + ii
+        #    gradrkWj[ii] += Ai*Wij*gradBi[indx]*rij[jj]
+
+        #Wj = WT.kernelValue((-etai).magnitude(), Hdeti)
+        #Wi = WT.kernelValue((-etaj).magnitude(), Hdetj)
+        #Wij = 0.5*(Wi+Wj)
+        #gradWj = Hi*(-etai).unitVector() * WT.gradValue((-etai).magnitude(), Hdeti)
+        #gradWi = Hj*(-etaj).unitVector() * WT.gradValue((-etaj).magnitude(), Hdetj)
+        #gradWij = 0.5*(gradWj+gradWi)
+        #gradrkWi = Aj*(1.0 + Bj.dot(-rij))*gradWij + Aj*Bj*Wij + gradAj*(1.0 + Bj.dot(-rij))*Wij
+        #for ii in xrange(nDim):
+        #  for jj in xrange(nDim):
+        #    indx = jj*nDim + ii
+        #    gradrkWi[ii] += Aj*Wij*gradBj[indx]*(-rij[jj])
 
         
-        #grkWi  = 0.0
-        #grkWj  = 0.0 
-        #rkWi   = 0.0
-        #rkWj   = 0.0 
-        #gradrkWi  = Vector.zero
-        #gradrkWj  = Vector.zero
+        grkWi  = 0.0
+        grkWj  = 0.0 
+        rkWi   = 0.0
+        rkWj   = 0.0 
+        gradrkWi  = Vector.zero
+        gradrkWj  = Vector.zero
         #CRKSPHKernelAndGradient(WT, correctionOrder,  rij,  etai, Hi, Hdeti,  etaj, Hj, Hdetj, Ai, Bi, Ci, gradAi, gradBi, gradCi, rkWj, grkWj, gradrkWj)
         #CRKSPHKernelAndGradient(WT, correctionOrder, -rij, -etaj, Hj, Hdetj, -etai, Hi, Hdeti, Aj, Bj, Cj, gradAj, gradBj, gradCj, rkWi, grkWi, gradrkWi)
-        #CRKSPHKernelAndGradient(WT, correctionOrder,  rij,  etai, Hi, Hdeti,  etaj, Hj, Hdetj, Ai, Bi, Ci, gradAi, gradBi, gradCi, gradrkWj)
-        #CRKSPHKernelAndGradient(WT, correctionOrder, -rij, -etaj, Hj, Hdetj, -etai, Hi, Hdeti, Aj, Bj, Cj, gradAj, gradBj, gradCj, gradrkWi)
+        CRKSPHKernelAndGradient(WT, correctionOrder,  rij,  etai, Hi, Hdeti,  etaj, Hj, Hdetj, Ai, Bi, Ci, gradAi, gradBi, gradCi, gradrkWj)
+        CRKSPHKernelAndGradient(WT, correctionOrder, -rij, -etaj, Hj, Hdetj, -etai, Hi, Hdeti, Aj, Bj, Cj, gradAj, gradBj, gradCj, gradrkWi)
         deltagrad = gradrkWj - gradrkWi
         accCRKSPH[i]  -= wi*wj*(0.5*(fi+fj)*deltagrad)/mi;
         accRKSPHI[i]  -= wi*wj*fj*gradrkWj/mi;
