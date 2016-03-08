@@ -405,6 +405,8 @@ x.add_method("newSolidFieldList", "%(result)s", [param("%(value)s", "value", def
         x.add_method("fluidTemperature", None, [refparam(scalarfieldlist, "result")], is_const=True)
         x.add_method("fluidSoundSpeed", None, [refparam(scalarfieldlist, "result")], is_const=True)
         x.add_method("fluidVolume", None, [refparam(scalarfieldlist, "result")], is_const=True)
+        x.add_method("fluidGamma", None, [refparam(scalarfieldlist, "result")], is_const=True)
+        x.add_method("fluidEntropy", None, [refparam(scalarfieldlist, "result")], is_const=True)
         x.add_method("fluidLinearMomentum", None, [refparam(vectorfieldlist, "result")], is_const=True)
         x.add_method("fluidTotalEnergy", None, [refparam(scalarfieldlist, "result")], is_const=True)
 

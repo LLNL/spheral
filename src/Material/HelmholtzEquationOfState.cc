@@ -31,7 +31,8 @@ extern "C" {
 	void Fortran2(wrapper_invert_helm_ed)(int *npart, double *density,
 						  double *energy, double *abar,
 						  double *zbar, double *temperature,
-						  double *pressure, double *small_temp, double *vsound);
+						  double *pressure, double *small_temp, double *vsound,
+                            double *gamma, double *entropy);
 	
 	void Fortran2(wrapper_helmeos)(int *npart, double *den_row,
 					   double *etot_row, double *abar_row,
@@ -81,6 +82,7 @@ namespace Material {
     myPressure(),
     mySoundSpeed(),
     myGamma(),
+    myEntropy(),
     mConstants(constants)
     {
         needUpdate = 1; // flip this on and off later
@@ -140,7 +142,8 @@ namespace Material {
                 k = j*nblock;
                 Fortran2(wrapper_invert_helm_ed)(&nblock, &(myMassDensity->at(k)), &(mySpecificThermalEnergy->at(k)),
                                                  &(myAbar->at(k)), &(myZbar->at(k)), &(myTemperature->at(k)),
-                                                 &(myPressure->at(k)), &mTmin, &(mySoundSpeed->at(k)));
+                                                 &(myPressure->at(k)), &mTmin, &(mySoundSpeed->at(k)), &(myGamma->at(k)),
+                                                 &(myEntropy->at(k)));
             }
             /* now do the rest */
             if (nrest > 0)
@@ -148,7 +151,8 @@ namespace Material {
                 k = nloop*nblock;
                 Fortran2(wrapper_invert_helm_ed)(&nrest, &(myMassDensity->at(k)), &(mySpecificThermalEnergy->at(k)),
                                                  &(myAbar->at(k)), &(myZbar->at(k)), &(myTemperature->at(k)),
-                                                 &(myPressure->at(k)), &mTmin, &(mySoundSpeed->at(k)));
+                                                 &(myPressure->at(k)), &mTmin, &(mySoundSpeed->at(k)), &(myGamma->at(k)),
+                                                 &(myEntropy->at(k)));
             }
             
         }
@@ -185,7 +189,8 @@ namespace Material {
                 k = j*nblock;
                 Fortran2(wrapper_invert_helm_ed)(&nblock, &(myMassDensity->at(k)), &(mySpecificThermalEnergy->at(k)),
                                                  &(myAbar->at(k)), &(myZbar->at(k)), &(myTemperature->at(k)),
-                                                 &(myPressure->at(k)), &mTmin, &(mySoundSpeed->at(k)));
+                                                 &(myPressure->at(k)), &mTmin, &(mySoundSpeed->at(k)), &(myGamma->at(k)),
+                                                 &(myEntropy->at(k)));
             }
             /* now do the rest */
             if (nrest > 0)
@@ -193,7 +198,8 @@ namespace Material {
                 k = nloop*nblock;
                 Fortran2(wrapper_invert_helm_ed)(&nrest, &(myMassDensity->at(k)), &(mySpecificThermalEnergy->at(k)),
                                                  &(myAbar->at(k)), &(myZbar->at(k)), &(myTemperature->at(k)),
-                                                 &(myPressure->at(k)), &mTmin, &(mySoundSpeed->at(k)));
+                                                 &(myPressure->at(k)), &mTmin, &(mySoundSpeed->at(k)), &(myGamma->at(k)),
+                                                 &(myEntropy->at(k)));
             }
             
         }
@@ -292,7 +298,8 @@ namespace Material {
                 k = j*nblock;
                 Fortran2(wrapper_invert_helm_ed)(&nblock, &(myMassDensity->at(k)), &(mySpecificThermalEnergy->at(k)),
                                                  &(myAbar->at(k)), &(myZbar->at(k)), &(myTemperature->at(k)),
-                                                 &(myPressure->at(k)), &mTmin, &(mySoundSpeed->at(k)));
+                                                 &(myPressure->at(k)), &mTmin, &(mySoundSpeed->at(k)), &(myGamma->at(k)),
+                                                 &(myEntropy->at(k)));
             }
             /* now do the rest */
             if (nrest > 0)
@@ -300,7 +307,8 @@ namespace Material {
                 k = nloop*nblock;
                 Fortran2(wrapper_invert_helm_ed)(&nrest, &(myMassDensity->at(k)), &(mySpecificThermalEnergy->at(k)),
                                                  &(myAbar->at(k)), &(myZbar->at(k)), &(myTemperature->at(k)),
-                                                 &(myPressure->at(k)), &mTmin, &(mySoundSpeed->at(k)));
+                                                 &(myPressure->at(k)), &mTmin, &(mySoundSpeed->at(k)), &(myGamma->at(k)),
+                                                 &(myEntropy->at(k)));
             }
             
         }
@@ -308,6 +316,53 @@ namespace Material {
         for (size_t i = 0; i != npart; ++i) {
             soundSpeed(i) = (*mySoundSpeed)[i] / mVelincmps;
             (*myGamma)[i] = soundSpeed(i) * soundSpeed(i) * massDensity(i) / ((*myPressure)[i] / mPressureinbarye);
+        }
+    }
+    
+    //------------------------------------------------------------------------------
+    // Set gamma.
+    //------------------------------------------------------------------------------
+    template<typename Dimension>
+    void
+    HelmholtzEquationOfState<Dimension>::
+    setGammaField(Field<Dimension, Scalar>& gamma,
+               const Field<Dimension, Scalar>& massDensity,
+               const Field<Dimension, Scalar>& specificThermalEnergy) const {
+        CHECK(valid());
+        
+        storeFields(massDensity, specificThermalEnergy);
+        
+        /* what follows is a method of breaking up the input to the fortran routine into smaller chunks */
+        
+        int npart = massDensity.numElements();
+        int nblock = NBLOCK;
+        int nrest = npart % nblock;
+        int nloop = (npart - nrest)/nblock;
+        unsigned int k = 0;
+        
+        if(needUpdate){
+            for (unsigned int j=0; j<nloop; ++j)
+            {
+                k = j*nblock;
+                Fortran2(wrapper_invert_helm_ed)(&nblock, &(myMassDensity->at(k)), &(mySpecificThermalEnergy->at(k)),
+                                                 &(myAbar->at(k)), &(myZbar->at(k)), &(myTemperature->at(k)),
+                                                 &(myPressure->at(k)), &mTmin, &(mySoundSpeed->at(k)), &(myGamma->at(k)),
+                                                 &(myEntropy->at(k)));
+            }
+            /* now do the rest */
+            if (nrest > 0)
+            {
+                k = nloop*nblock;
+                Fortran2(wrapper_invert_helm_ed)(&nrest, &(myMassDensity->at(k)), &(mySpecificThermalEnergy->at(k)),
+                                                 &(myAbar->at(k)), &(myZbar->at(k)), &(myTemperature->at(k)),
+                                                 &(myPressure->at(k)), &mTmin, &(mySoundSpeed->at(k)), &(myGamma->at(k)),
+                                                 &(myEntropy->at(k)));
+            }
+            
+        }
+        
+        for (size_t i = 0; i != npart; ++i) {
+            gamma(i) = (*myGamma)[i];
         }
     }
 
@@ -339,6 +394,53 @@ namespace Material {
     HelmholtzEquationOfState<Dimension>::
     setUpdateStatus(bool bSet){
         needUpdate = bSet;
+    }
+    
+    //------------------------------------------------------------------------------
+    // Set entropy.
+    //------------------------------------------------------------------------------
+    template<typename Dimension>
+    void
+    HelmholtzEquationOfState<Dimension>::
+    setEntropy(Field<Dimension, Scalar>& entropy,
+               const Field<Dimension, Scalar>& massDensity,
+               const Field<Dimension, Scalar>& specificThermalEnergy) const {
+        CHECK(valid());
+        
+        storeFields(massDensity, specificThermalEnergy);
+        
+        /* what follows is a method of breaking up the input to the fortran routine into smaller chunks */
+        
+        int npart = massDensity.numElements();
+        int nblock = NBLOCK;
+        int nrest = npart % nblock;
+        int nloop = (npart - nrest)/nblock;
+        unsigned int k = 0;
+        
+        if(needUpdate){
+            for (unsigned int j=0; j<nloop; ++j)
+            {
+                k = j*nblock;
+                Fortran2(wrapper_invert_helm_ed)(&nblock, &(myMassDensity->at(k)), &(mySpecificThermalEnergy->at(k)),
+                                                 &(myAbar->at(k)), &(myZbar->at(k)), &(myTemperature->at(k)),
+                                                 &(myPressure->at(k)), &mTmin, &(mySoundSpeed->at(k)), &(myGamma->at(k)),
+                                                 &(myEntropy->at(k)));
+            }
+            /* now do the rest */
+            if (nrest > 0)
+            {
+                k = nloop*nblock;
+                Fortran2(wrapper_invert_helm_ed)(&nrest, &(myMassDensity->at(k)), &(mySpecificThermalEnergy->at(k)),
+                                                 &(myAbar->at(k)), &(myZbar->at(k)), &(myTemperature->at(k)),
+                                                 &(myPressure->at(k)), &mTmin, &(mySoundSpeed->at(k)), &(myGamma->at(k)),
+                                                 &(myEntropy->at(k)));
+            }
+            
+        }
+        
+        for (size_t i = 0; i != npart; ++i) {
+            entropy(i) = (*myEntropy)[i] / mEnergyinergpg;
+        }
     }
 
 
@@ -390,6 +492,7 @@ namespace Material {
         myGamma                 = shared_ptr<Field<Dimension, Scalar> >(new Field<Dimension, Scalar>("helmGamma",thisMassDensity.nodeList()));
         myAbar                  = shared_ptr<Field<Dimension, Scalar> >(new Field<Dimension, Scalar>("helmAbar",thisMassDensity.nodeList(),mabar0));
         myZbar                  = shared_ptr<Field<Dimension, Scalar> >(new Field<Dimension, Scalar>("helmZbar",thisMassDensity.nodeList(),mzbar0));
+        myEntropy               = shared_ptr<Field<Dimension, Scalar> >(new Field<Dimension, Scalar>("helmEntropy",thisMassDensity.nodeList()));
         
         for(unsigned int i=0; i!=myMassDensity->numElements(); ++i)
         {

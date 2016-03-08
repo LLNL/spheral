@@ -145,7 +145,9 @@ setGammaField(Field<Dimension, Scalar>& gamma,
 	      const Field<Dimension, Scalar>& massDensity,
 	      const Field<Dimension, Scalar>& specificThermalEnergy) const {
   REQUIRE(valid());
-  VERIFY2(false, "MurnahanEquationOfState::gamma UNIMPLEMENTED.");
+  for (int i = 0; i != gamma.size(); ++i) {
+    gamma(i) = this->gamma(massDensity(i), specificThermalEnergy(i));
+  }
 }
 
 //------------------------------------------------------------------------------
@@ -160,6 +162,21 @@ setBulkModulus(Field<Dimension, Scalar>& bulkModulus,
   REQUIRE(valid());
   for (int i = 0; i != bulkModulus.size(); ++i) {
     bulkModulus(i)=this->bulkModulus(massDensity(i), specificThermalEnergy(i));
+  }
+}
+
+//------------------------------------------------------------------------------
+// Set the entropy.
+//------------------------------------------------------------------------------
+template<typename Dimension>
+void
+MurnahanEquationOfState<Dimension>::
+setEntropy(Field<Dimension, Scalar>& entropy,
+           const Field<Dimension, Scalar>& massDensity,
+           const Field<Dimension, Scalar>& specificThermalEnergy) const {
+  CHECK(valid());
+  for (size_t i = 0; i != massDensity.numElements(); ++i) {
+    entropy(i) = pressure(massDensity(i), specificThermalEnergy(i))*safeInvVar(pow(massDensity(i), gamma(massDensity(i), specificThermalEnergy(i))));
   }
 }
 
@@ -238,8 +255,12 @@ typename Dimension::Scalar
 MurnahanEquationOfState<Dimension>::
 gamma(const Scalar massDensity,
       const Scalar specificThermalEnergy) const {
-  VERIFY2(false, "MurnahanEquationOfState::gamma UNIMPLEMENTED.");
-  return 0.0;
+  const double eta = this->boundedEta(massDensity),
+               rho0 = this->referenceDensity(),
+               rho = rho0*eta,
+               nDen = rho/mAtomicWeight;
+  CHECK(mCv > 0.0);
+  return 1.0 + mConstants.molarGasConstant()*nDen/mCv;
 }
 
 //------------------------------------------------------------------------------
@@ -252,6 +273,18 @@ bulkModulus(const Scalar massDensity,
             const Scalar specificThermalEnergy) const {
   REQUIRE(valid());
   return massDensity * computeDPDrho(massDensity, specificThermalEnergy);
+}
+
+//------------------------------------------------------------------------------
+// Calculate an entropy.
+//------------------------------------------------------------------------------
+template<typename Dimension>
+typename Dimension::Scalar
+MurnahanEquationOfState<Dimension>::
+entropy(const Scalar massDensity,
+        const Scalar specificThermalEnergy) const {
+  CHECK(valid());
+  return this->pressure(massDensity, specificThermalEnergy)*safeInvVar(pow(massDensity, gamma(massDensity, specificThermalEnergy)));
 }
 
 //------------------------------------------------------------------------------

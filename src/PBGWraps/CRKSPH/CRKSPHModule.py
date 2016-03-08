@@ -82,41 +82,41 @@ self.generateSolidCRKSPHHydroBaseBindings(self.SolidCRKSPHHydroBase%(dim)id, %(d
                    2: "Polygon",
                    3: "Polyhedron"}[ndim]
 
-        # # Helper to compute the CRKSPH kernel.
-        # self.space.add_function("CRKSPHKernel", "double", [constrefparam(tablekernel, "W"),
-        #                                                    param("Spheral::CRKSPHSpace::CRKOrder","correctionOrder"),
-        #                                                    constrefparam(vector, "rij"),
-        #                                                    constrefparam(vector, "etai"),
-        #                                                    param("double", "Hdeti"),
-        #                                                    constrefparam(vector, "etaj"),
-        #                                                    param("double", "Hdetj"),
-        #                                                    param("double", "Ai"),
-        #                                                    constrefparam(vector, "Bi"),
-      	# 						   constrefparam(tensor, "Ci")],
-        #                         template_parameters = [dim],
-        #                         custom_name = "CRKSPHKernel%id" % ndim,
-        #                         docstring = "Evaluate the CRKSPH corrected kernel.")
+        # Helper to compute the CRKSPH kernel.
+        self.space.add_function("CRKSPHKernel", "double", [constrefparam(tablekernel, "W"),
+                                                           param("Spheral::CRKSPHSpace::CRKOrder","correctionOrder"),
+                                                           constrefparam(vector, "rij"),
+                                                           constrefparam(vector, "etai"),
+                                                           param("double", "Hdeti"),
+                                                           constrefparam(vector, "etaj"),
+                                                           param("double", "Hdetj"),
+                                                           param("double", "Ai"),
+                                                           constrefparam(vector, "Bi"),
+      							   constrefparam(tensor, "Ci")],
+                                template_parameters = [dim],
+                                custom_name = "CRKSPHKernel%id" % ndim,
+                                docstring = "Evaluate the CRKSPH corrected kernel.")
 
-        # # Simultaneously evaluate the CRKSPH kernel and it's gradient.
-        # self.space.add_function("CRKSPHKernelAndGradient%id" % ndim, None, [constrefparam(tablekernel, "W"),
-        #                                                                     param("Spheral::CRKSPHSpace::CRKOrder","correctionOrder"),
-        #                                                                     constrefparam(vector, "rij"),
-        #                                                                     constrefparam(vector, "etai"),
-        #                                                                     constrefparam(symtensor, "Hi"),
-        #                                                                     param("double", "Hdeti"),
-        #                                                                     constrefparam(vector, "etaj"),
-        #                                                                     constrefparam(symtensor, "Hj"),
-        #                                                                     param("double", "Hdetj"),
-        #                                                                     param("double", "Ai"),
-        #                                                                     constrefparam(vector, "Bi"),
-        #                                                                     constrefparam(tensor, "Ci"),
-        #                                                                     constrefparam(vector, "gradAi"),
-        #                                                                     constrefparam(tensor, "gradBi"),
-        #                                                                     constrefparam(thirdranktensor, "gradCi"),
-        #                                                                     Parameter.new("double*", "WCRKSPH", direction=Parameter.DIRECTION_OUT),
-        #                                                                     Parameter.new("double*", "gradWSPH", direction=Parameter.DIRECTION_OUT),
-        #                                                                     refparam(vector, "gradWCRKSPH")],
-        #                         docstring = "Evaluate the CRKSPH corrected kernel and gradient simultaneously.")
+        # Simultaneously evaluate the CRKSPH kernel and it's gradient.
+        self.space.add_function("CRKSPHKernelAndGradient%id" % ndim, None, [constrefparam(tablekernel, "W"),
+                                                                            param("Spheral::CRKSPHSpace::CRKOrder","correctionOrder"),
+                                                                            constrefparam(vector, "rij"),
+                                                                            constrefparam(vector, "etai"),
+                                                                            constrefparam(symtensor, "Hi"),
+                                                                            param("double", "Hdeti"),
+                                                                            constrefparam(vector, "etaj"),
+                                                                            constrefparam(symtensor, "Hj"),
+                                                                            param("double", "Hdetj"),
+                                                                            param("double", "Ai"),
+                                                                            constrefparam(vector, "Bi"),
+                                                                            constrefparam(tensor, "Ci"),
+                                                                            constrefparam(vector, "gradAi"),
+                                                                            constrefparam(tensor, "gradBi"),
+                                                                            constrefparam(thirdranktensor, "gradCi"),
+                                                                            Parameter.new("double*", "WCRKSPH", direction=Parameter.DIRECTION_OUT),
+                                                                            Parameter.new("double*", "gradWSPH", direction=Parameter.DIRECTION_OUT),
+                                                                            refparam(vector, "gradWCRKSPH")],
+                                docstring = "Evaluate the CRKSPH corrected kernel and gradient simultaneously.")
 
         # CRKSPH sum density.
         self.space.add_function("computeCRKSPHSumMassDensity", None,
@@ -447,7 +447,7 @@ self.generateSolidCRKSPHHydroBaseBindings(self.SolidCRKSPHHydroBase%(dim)id, %(d
         const_ref_return_value(x, me, "%s::pressure" % me, scalarfieldlist, [], "pressure")
         const_ref_return_value(x, me, "%s::soundSpeed" % me, scalarfieldlist, [], "soundSpeed")
         const_ref_return_value(x, me, "%s::specificThermalEnergy0" % me, scalarfieldlist, [], "specificThermalEnergy0")
-        const_ref_return_value(x, me, "%s::gamma" % me, scalarfieldlist, [], "gamma")
+        const_ref_return_value(x, me, "%s::entropy" % me, scalarfieldlist, [], "entropy")
         const_ref_return_value(x, me, "%s::Hideal" % me, symtensorfieldlist, [], "Hideal")
         const_ref_return_value(x, me, "%s::maxViscousPressure" % me, scalarfieldlist, [], "maxViscousPressure")
         const_ref_return_value(x, me, "%s::effectiveViscousPressure" % me, scalarfieldlist, [], "effectiveViscousPressure")

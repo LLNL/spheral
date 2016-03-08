@@ -106,6 +106,9 @@ def generateANEOSBindings(x, ndim):
     x.add_method("bulkModulus", "double", [param("double", "massDensity"),
                                            param("double", "specificThermalEnergy")],
                  is_const=True)
+    x.add_method("entropy", "double", [param("double", "massDensity"),
+                                       param("double", "specificThermalEnergy")],
+                 is_const=True)
 
     # Attributes.
     x.add_instance_attribute("materialNumber", "int", getter="materialNumber", is_const=True)
