@@ -72,6 +72,10 @@ public:
 			     const FieldSpace::Field<Dimension, Scalar>& massDensity,
 			     const FieldSpace::Field<Dimension, Scalar>& specificThermalEnergy) const = 0;
 
+  virtual void setEntropy(FieldSpace::Field<Dimension, Scalar>& entropy,
+                          const FieldSpace::Field<Dimension, Scalar>& massDensity,
+                          const FieldSpace::Field<Dimension, Scalar>& specificThermalEnergy) const = 0;
+
   // The set of constants defining our units.
   const PhysicalConstants& constants() const;
 

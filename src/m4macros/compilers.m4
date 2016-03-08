@@ -554,8 +554,8 @@ DYNLIBFLAG="$SHAREDFLAG"
 
 case $CXXCOMPILERTYPE in 
 GNU)
-  FORTLINK=" -lgfortran"
   if test "$OSNAME" = "Darwin"; then
+     FORTLINK=" -L/opt/local/lib -lf2c"
      CFLAGS="$CFLAGS -fPIC"
      CXXFLAGS="$CXXFLAGS -fPIC -DHAVE_XCPT -DGNUCXX"
      FORTFLAGS="$FORTFLAGS -fPIC"
@@ -564,9 +564,10 @@ GNU)
      JAMTOOLSET=darwin
      LDFLAGS="$LDFLAGS -undefined dynamic_lookup"
   else
+     FORTLINK=" -lgfortran"
      CFLAGS="$CFLAGS -fpic -fexceptions"
      CXXFLAGS="$CXXFLAGS -fpic -fexceptions -DHAVE_XCPT -DGNUCXX"
-     FORTFLAGS="$FORTFLAGS -fpic"
+     FORTFLAGS="$FORTFLAGS -fpic" #  -ffpe-trap=invalid,zero,overflow,underflow,denormal
      JAMTOOLSET=gcc
      BOOSTEXT="-$JAMTOOLSET$COMPILERVERSION"
      if test "$OSNAME" = "AIX"; then
