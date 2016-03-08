@@ -226,21 +226,31 @@ vel = nodes1.velocity()
 mass = nodes1.mass()
 eps = nodes1.specificThermalEnergy()
 H = nodes1.Hfield()
+if thetaFactor == 0.5:
+    xmin = (0.0, 0.0)
+    xmax = (1.0, 1.0)
+elif thetaFactor == 1.0:
+    xmin = (-1.0, 0.0)
+    xmax = (1.0, 1.0)
+else:
+    xmin = (-1.0, -1.0)
+    xmax = (1.0, 1.0)
+
 if restoreCycle is None:
     if seed == "square":
         generator = GenerateSquareNodeDistribution(nRadial,
                                                    nTheta,
                                                    rho0,
-                                                   xmin = Vector(0,0),
-                                                   xmax = Vector(1,1),
+                                                   xmin = xmin,
+                                                   xmax = xmax,
                                                    nNodePerh = nPerh,
                                                    SPH = (not ASPH))
     else:
         generator = GenerateNodeDistribution2d(nRadial, nTheta, rho0, seed,
                                                rmin = rmin,
                                                rmax = rmax,
-                                               xmin = Vector(0,0),
-                                               xmax = Vector(1,1),
+                                               xmin = xmin,
+                                               xmax = xmax,
                                                theta = theta,
                                                azimuthalOffsetFraction = azimuthalOffsetFraction,
                                                nNodePerh = nPerh,
