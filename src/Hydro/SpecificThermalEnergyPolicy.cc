@@ -29,6 +29,8 @@
 
 namespace Spheral {
 
+using std::abs;
+
 using namespace std;
 using DataBaseSpace::DataBase;
 using FieldSpace::Field;
@@ -148,6 +150,37 @@ double weighting(const double& ui,
 //   }
 // }
 
+//------------------------------------------------------------------------------
+// The entropy weighted energy form.
+//------------------------------------------------------------------------------
+inline
+double
+entropyWeighting(const double si,
+                 const double sj,
+                 const double duij) {
+  double result = 0.5;
+  if (abs(duij) > 1.0e-15 and abs(si - sj) > 1.0e-15) {
+    const double smin = min(abs(si), abs(sj));
+    const double smax = max(abs(si), abs(sj));
+    CHECK(smin + smax > 1.0e-15);
+    if (duij > 0.0) {    // Heating
+      if (si > sj) {
+        result = smin/(smin + smax);
+      } else {
+        result = smax/(smin + smax);
+      }
+    } else {             // Cooling
+      if (si > sj) {
+        result = smax/(smin + smax);
+      } else {
+        result = smin/(smin + smax);
+      }
+    }
+  }
+  CHECK(result >= 0.0 and result <= 1.0);
+  return result;
+}
+
 }
 
 //------------------------------------------------------------------------------
@@ -223,7 +256,7 @@ update(const KeyType& key,
       // State for node i.
       Scalar& DepsDti = DepsDt(nodeListi, i);
       const Scalar mi = mass(nodeListi, i);
-      const Scalar Ai = std::abs(entropy(nodeListi, i));
+      const Scalar si = entropy(nodeListi, i);
       const Vector& vi = velocity(nodeListi, i);
       const Scalar ui = eps0(nodeListi, i);
       const Vector& ai = acceleration(nodeListi, i);
@@ -255,7 +288,7 @@ update(const KeyType& key,
                                                          firstGhostNodej)) {
               Scalar& DepsDtj = DepsDt(nodeListj, j);
               const Scalar mj = mass(nodeListj, j);
-              const Scalar Aj = std::abs(entropy(nodeListj, j));
+              const Scalar sj = entropy(nodeListj, j);
               const Vector& vj = velocity(nodeListj, j);
               const Scalar uj = eps0(nodeListj, j);
               const Vector& aj = acceleration(nodeListj, j);
@@ -278,14 +311,13 @@ update(const KeyType& key,
                      "Symmetric forces?  (" << nodeListi << " " << i << ") (" << nodeListj << " " << j << ") " << mi << " " << mj << " " << pai << " " << paj << " " << mi*pai << " " << mj*paj);
 
               const Scalar duij = vji12.dot(pai);
-              const Scalar wi = (Ai + Aj == 0 ? 0.5 :
-                                 (duij >= 0.0 ? Aj : Ai)/(Ai + Aj));
-              // const Scalar wi = (duij >= 0.0 ? 
-              //                    safeInvVar(Ai)/(safeInvVar(Ai) + safeInvVar(Aj)) :
-              //                    (Ai + Aj == 0.0 ? 0.5 : Ai/(Ai + Aj)));
-              // const Scalar wi = (duij >= 0.0 ? 0.5 : weighting(ui, uj, mi, mj, duij, dt));
-
+              const Scalar wi = entropyWeighting(si, sj, duij);
               CHECK(wi >= 0.0 and wi <= 1.0);
+              CHECK(fuzzyEqual(wi + entropyWeighting(sj, si, duij), 1.0, 1.0e-10));
+              // const Scalar wi = ((abs(si) + abs(sj)) == 0.0 ? 0.5 :
+              //                    ((duij <= 0.0) ? abs(si) : abs(sj))/(abs(si) + abs(sj)));
+              // const Scalar wi = (duij >= 0.0 ? 0.5 : weighting(ui, uj, mi, mj, duij, dt));
+              // CHECK(wi >= 0.0 and wi <= 1.0);
               // CHECK(fuzzyEqual(wi + weighting(uj, ui, mj, mi, duij*mi/mj, dt), 1.0, 1.0e-10));
               DepsDti += wi*duij;
               DepsDtj += (1.0 - wi)*duij*mi/mj;
