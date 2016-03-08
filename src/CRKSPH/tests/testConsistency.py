@@ -11,8 +11,8 @@ title("Interpolation tests")
 #-------------------------------------------------------------------------------
 commandLine(
     # Parameters for seeding nodes.
-    nx1 = 50,     
-    nx2 = 50,
+    nx1 = 10,     
+    nx2 = 10,
     rho1 = 1.0,
     rho2 = 1.0,
     eps1 = 0.0,
@@ -278,7 +278,8 @@ computeCRKSPHCorrections(m0_fl, m1_fl, m2_fl, m3_fl, m4_fl, gradm0_fl, gradm1_fl
                          A_fl, B_fl, C_fl, gradA_fl, gradB_fl, gradC_fl)
 
 # Extract the field state for the following calculations.
-positions = position_fl[0]
+#positions = position_fl[0]
+positions = nodes1.positions()
 weight = weight_fl[0]
 mass = mass_fl[0]
 H = H_fl[0]
@@ -344,11 +345,11 @@ for i in xrange(nodes1.numInternalNodes):
             indx = jj*nDim + ii
             gradrkWj[ii] += Ai*Wij*gradBi[indx]*rij[jj]
 
-        Wj = WT.kernelValue(-etai.magnitude(), Hdeti)
-        Wi = WT.kernelValue(-etaj.magnitude(), Hdetj)
+        Wj = WT.kernelValue((-etai).magnitude(), Hdeti)
+        Wi = WT.kernelValue((-etaj).magnitude(), Hdetj)
         Wij = 0.5*(Wi+Wj)
-        gradWj = Hj*-etai.unitVector() * WT.gradValue(-etai.magnitude(), Hdeti)
-        gradWi = Hi*-etaj.unitVector() * WT.gradValue(-etaj.magnitude(), Hdetj)
+        gradWj = Hj*(-etai).unitVector() * WT.gradValue((-etai).magnitude(), Hdeti)
+        gradWi = Hi*(-etaj).unitVector() * WT.gradValue((-etaj).magnitude(), Hdetj)
         gradWij = 0.5*(gradWj+gradWi)
         gradrkWi = Aj*(1.0 + Bj.dot(-rij))*gradWij + Aj*Bj*Wij + gradAj*(1.0 + Bj.dot(-rij))*Wij
         for ii in xrange(nDim):
@@ -363,8 +364,10 @@ for i in xrange(nodes1.numInternalNodes):
         #rkWj   = 0.0 
         #gradrkWi  = Vector.zero
         #gradrkWj  = Vector.zero
-        #CRKSPHKernelAndGradient(WT, correctionOrder,  rij,  etai, Hi, Hdeti,  etaj, Hj, Hdetj, Ai, Bi, Ci, gradAi, gradBi, gradCi, rkWj, grkWj, gradrkWj);
-        #CRKSPHKernelAndGradient(WT, correctionOrder, -rij, -etaj, Hj, Hdetj, -etai, Hi, Hdeti, Aj, Bj, Cj, gradAj, gradBj, gradCj, rkWi, grkWi, gradrkWi);
+        #CRKSPHKernelAndGradient(WT, correctionOrder,  rij,  etai, Hi, Hdeti,  etaj, Hj, Hdetj, Ai, Bi, Ci, gradAi, gradBi, gradCi, rkWj, grkWj, gradrkWj)
+        #CRKSPHKernelAndGradient(WT, correctionOrder, -rij, -etaj, Hj, Hdetj, -etai, Hi, Hdeti, Aj, Bj, Cj, gradAj, gradBj, gradCj, rkWi, grkWi, gradrkWi)
+        #CRKSPHKernelAndGradient(WT, correctionOrder,  rij,  etai, Hi, Hdeti,  etaj, Hj, Hdetj, Ai, Bi, Ci, gradAi, gradBi, gradCi, gradrkWj)
+        #CRKSPHKernelAndGradient(WT, correctionOrder, -rij, -etaj, Hj, Hdetj, -etai, Hi, Hdeti, Aj, Bj, Cj, gradAj, gradBj, gradCj, gradrkWi)
         deltagrad = gradrkWj - gradrkWi
         accCRKSPH[i]  -= wi*wj*(0.5*(fi+fj)*deltagrad)/mi;
         accRKSPHI[i]  += wi*wj*fj*gradrkWi/mi;
@@ -421,7 +424,6 @@ maxaxRKSPHIIerror = max([abs(x) for x in errxRKSPHII])
 maxaxRKSPHIVerror = max([abs(x) for x in errxRKSPHIV])
 maxaxRKSPHVerror = max([abs(x) for x in errxRKSPHV])
 
-print "Maximum errors: CRKSPH = %g, RKSPHI = %g, RKSPHII = %g, RKSPHIV = %g, RKSPHV = %g" % (maxaxCRKSPHerror, maxaxRKSPHIerror, maxaxRKSPHIIerror, maxaxRKSPHIVerror, maxaxRKSPHVerror)
 
 #-------------------------------------------------------------------------------
 # Plot the things.
@@ -431,6 +433,11 @@ if graphics:
     import Gnuplot
     xans = [positions[i].x for i in xrange(nodes1.numInternalNodes)]
 
+    #Initial Pressure Filed
+    initdata = Gnuplot.Data(xans, f.internalValues(),
+                           with_ = "points",
+                           title = "Answer",
+                           inline = True)
     # Interpolated values.
     ansdata = Gnuplot.Data(xans, axans.internalValues(),
                            with_ = "lines",
@@ -482,6 +489,12 @@ if graphics:
                             title = "RKSPH V",
                             inline = True)
 
+    p0 = generateNewGnuPlot()
+    p0.plot(initdata)
+    #p0("set key top left")
+    p0.title("Initial P Field")
+    p0.refresh()
+
     p1 = generateNewGnuPlot()
     p1.plot(ansdata)
     p1.replot(CRKSPHdata)
@@ -502,3 +515,4 @@ if graphics:
     p2.title("Error in acceleration")
     p2.refresh()
 
+print "Maximum errors: CRKSPH = %g, RKSPHI = %g, RKSPHII = %g, RKSPHIV = %g, RKSPHV = %g" % (maxaxCRKSPHerror, maxaxRKSPHIerror, maxaxRKSPHIIerror, maxaxRKSPHIVerror, maxaxRKSPHVerror)
