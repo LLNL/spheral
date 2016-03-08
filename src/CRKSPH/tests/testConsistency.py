@@ -241,6 +241,7 @@ accRKSPHI = VectorField("RKSPH type I interpolated acceleration values", nodes1)
 accRKSPHII = VectorField("RKSPH type II interpolated acceleration values", nodes1)         #Globally Conservative and Inconsistant 
 accRKSPHIV = VectorField("RKSPH type IV interpolated acceleration values", nodes1)         #Locally Conservative and Inconsistant 
 accRKSPHV = VectorField("RKSPH type V interpolated acceleration values", nodes1)           #Non-conservative and Consistent
+accSPH = VectorField("SPH interpolated acceleration values", nodes1)                       #It is what it is
 
 A_fl = db.newFluidScalarFieldList(0.0, "A")
 B_fl = db.newFluidVectorFieldList(Vector.zero, "B")
@@ -264,24 +265,30 @@ db.updateConnectivityMap(True)
 cm = db.connectivityMap()
 position_fl = db.fluidPosition
 mass_fl = db.fluidMass
-weight_fl = db.fluidMass
 H_fl = db.fluidHfield
 
 # Compute the volumes to use as weighting.
-polyvol_fl = db.newFluidFacetedVolumeFieldList(FacetedVolume(), "polyvols")
+weight_fl = db.fluidMass
 #weight_fl = db.newFluidScalarFieldList(1.0, "volume")
-#computeHullVolumes(cm, position_fl, polyvol_fl, weight_fl)
+#computeCRKSPHSumVolume(cm, WT, position_fl, mass_fl, H_fl, weight_fl)
+
+# Now the moments and corrections
 computeCRKSPHMoments(cm, WT, weight_fl, position_fl, H_fl, correctionOrder, NodeCoupling(),
                      m0_fl, m1_fl, m2_fl, m3_fl, m4_fl, gradm0_fl, gradm1_fl, gradm2_fl, gradm3_fl, gradm4_fl)
 computeCRKSPHCorrections(m0_fl, m1_fl, m2_fl, m3_fl, m4_fl, gradm0_fl, gradm1_fl, gradm2_fl, gradm3_fl, gradm4_fl,
                          correctionOrder,
                          A_fl, B_fl, C_fl, gradA_fl, gradB_fl, gradC_fl)
 
+# # Since we use the density for the SPH case, it's worth finding it's sum value.
+# rho_fl = db.fluidMassDensity
+# computeSPHSumMassDensity(cm, WT, True, position_fl, mass_fl, H_fl, rho_fl)
+
 # Extract the field state for the following calculations.
 #positions = position_fl[0]
 positions = nodes1.positions()
 weight = weight_fl[0]
 mass = mass_fl[0]
+rho = nodes1.massDensity()
 H = H_fl[0]
 A = A_fl[0]
 B = B_fl[0]
@@ -299,6 +306,7 @@ for i in xrange(nodes1.numInternalNodes):
     Hdeti = H[i].Determinant()
     wi = weight[i]
     mi = mass[i]
+    rhoi = rho[i]
     fi = f[i]
     Ai = A[i]
     Bi = B[i]
@@ -320,6 +328,7 @@ for i in xrange(nodes1.numInternalNodes):
         wj = weight[j]
         fj = f[j]
         mj = mass[j]
+        rhoj = rho[j]
         Aj = A[j]
         Bj = B[j]
         Cj = C[j]
@@ -375,6 +384,9 @@ for i in xrange(nodes1.numInternalNodes):
         accRKSPHIV[i] -= wi*wj*(fj*gradrkWj - fi*gradrkWi)/mi;
         accRKSPHV[i]  -= wi*wj*(fj-fi)*gradrkWj/mi;
 
+        # And of course SPH.
+        accSPH[i] -= mj*(fi/(rhoi*rhoi) + fj/(rhoj*rhoj))*gradWij
+
 #-------------------------------------------------------------------------------
 # Prepare the answer to check against.
 #-------------------------------------------------------------------------------
@@ -411,18 +423,21 @@ errxRKSPHI  =  ScalarField("RKSPH Type I interpolation error", nodes1)
 errxRKSPHII =  ScalarField("RKSPH Type II interpolation error", nodes1)
 errxRKSPHIV =  ScalarField("RKSPH Type IV interpolation error", nodes1)
 errxRKSPHV  =  ScalarField("RKSPH Type V interpolation error", nodes1)
+errxSPH     =  ScalarField("SPH interpolation error", nodes1)
 for i in xrange(nodes1.numInternalNodes):
     errxCRKSPH[i]  =  accCRKSPH[i][0] - axans[i]
     errxRKSPHI[i]  =  accRKSPHI[i][0] - axans[i]
     errxRKSPHII[i] =  accRKSPHII[i][0] - axans[i]
     errxRKSPHIV[i] =  accRKSPHIV[i][0] - axans[i]
     errxRKSPHV[i]  =  accRKSPHV[i][0] - axans[i]
+    errxSPH[i]     =  accSPH[i][0] - axans[i]
 
 maxaxCRKSPHerror = max([abs(x) for x in errxCRKSPH])
 maxaxRKSPHIerror = max([abs(x) for x in errxRKSPHI])
 maxaxRKSPHIIerror = max([abs(x) for x in errxRKSPHII])
 maxaxRKSPHIVerror = max([abs(x) for x in errxRKSPHIV])
 maxaxRKSPHVerror = max([abs(x) for x in errxRKSPHV])
+maxaxSPHerror = max([abs(x) for x in errxSPH])
 
 
 #-------------------------------------------------------------------------------
@@ -466,6 +481,11 @@ if graphics:
                             title = "RKSPH V",
                             inline = True)
 
+    SPHdata  = Gnuplot.Data(xans, [x.x for x in accSPH.internalValues()],
+                            with_ = "points",
+                            title = "SPH",
+                            inline = True)
+
     errCRKSPHdata  = Gnuplot.Data(xans, errxCRKSPH.internalValues(),
                             with_ = "points",
                             title = "CRKSPH",
@@ -489,6 +509,11 @@ if graphics:
                             title = "RKSPH V",
                             inline = True)
 
+    errSPHdata  = Gnuplot.Data(xans, errxSPH.internalValues(), 
+                               with_ = "points",
+                               title = "SPH",
+                               inline = True)
+
     p0 = generateNewGnuPlot()
     p0.plot(initdata)
     #p0("set key top left")
@@ -502,8 +527,9 @@ if graphics:
     p1.replot(RKSPHIIdata)
     p1.replot(RKSPHIVdata)
     p1.replot(RKSPHVdata)
+    p1.replot(SPHdata)
     p1("set key top left")
-    p1.title("x accelleration values")
+    p1.title("x acceleration values")
     p1.refresh()
 
     p2 = generateNewGnuPlot()
@@ -512,7 +538,16 @@ if graphics:
     p2.replot(errRKSPHIIdata)
     p2.replot(errRKSPHIVdata)
     p2.replot(errRKSPHVdata)
+    p2.replot(errSPHdata)
     p2.title("Error in acceleration")
     p2.refresh()
 
-print "Maximum errors: CRKSPH = %g, RKSPHI = %g, RKSPHII = %g, RKSPHIV = %g, RKSPHV = %g" % (maxaxCRKSPHerror, maxaxRKSPHIerror, maxaxRKSPHIIerror, maxaxRKSPHIVerror, maxaxRKSPHVerror)
+from Pnorm import Pnorm
+xdata = [x.x for x in positions.internalValues()]
+print "L1 errors: CRKSPH = %g, RKSPHI = %g, RKSPHII = %g, RKSPHIV = %g, RKSPHV = %g, SPH = %g" % (Pnorm(errxCRKSPH, xdata).pnorm(1),
+                                                                                                  Pnorm(errxRKSPHI, xdata).pnorm(1),
+                                                                                                  Pnorm(errxRKSPHII, xdata).pnorm(1),
+                                                                                                  Pnorm(errxRKSPHIV, xdata).pnorm(1),
+                                                                                                  Pnorm(errxRKSPHV, xdata).pnorm(1),
+                                                                                                  Pnorm(errxSPH, xdata).pnorm(1))
+print "Maximum errors: CRKSPH = %g, RKSPHI = %g, RKSPHII = %g, RKSPHIV = %g, RKSPHV = %g, SPH = %g" % (maxaxCRKSPHerror, maxaxRKSPHIerror, maxaxRKSPHIIerror, maxaxRKSPHIVerror, maxaxRKSPHVerror, maxaxSPHerror)
