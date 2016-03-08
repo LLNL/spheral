@@ -11,8 +11,8 @@ title("Interpolation tests")
 #-------------------------------------------------------------------------------
 commandLine(
     # Parameters for seeding nodes.
-    nx1 = 10,     
-    nx2 = 10,
+    nx1 = 50,     
+    nx2 = 50,
     rho1 = 1.0,
     rho2 = 1.0,
     eps1 = 0.0,
@@ -370,10 +370,10 @@ for i in xrange(nodes1.numInternalNodes):
         #CRKSPHKernelAndGradient(WT, correctionOrder, -rij, -etaj, Hj, Hdetj, -etai, Hi, Hdeti, Aj, Bj, Cj, gradAj, gradBj, gradCj, gradrkWi)
         deltagrad = gradrkWj - gradrkWi
         accCRKSPH[i]  -= wi*wj*(0.5*(fi+fj)*deltagrad)/mi;
-        accRKSPHI[i]  += wi*wj*fj*gradrkWi/mi;
-        accRKSPHII[i] -= wi*wj*fj*gradrkWi/mi;
-        accRKSPHIV[i] += wi*wj*(fj*gradrkWi - fi*gradrkWj)/mi;
-        accRKSPHV[i]  += wi*wj*(fj-fi)*gradrkWi/mi;
+        accRKSPHI[i]  -= wi*wj*fj*gradrkWj/mi;
+        accRKSPHII[i] += wi*wj*fj*gradrkWj/mi;
+        accRKSPHIV[i] -= wi*wj*(fj*gradrkWj - fi*gradrkWi)/mi;
+        accRKSPHV[i]  -= wi*wj*(fj-fi)*gradrkWj/mi;
 
 #-------------------------------------------------------------------------------
 # Prepare the answer to check against.
