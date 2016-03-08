@@ -271,7 +271,7 @@ if restoreCycle is None:
                     Wi = 1.0
                 else:
                     Wi = 0.0
-            Ei = WiEspike
+            Ei = Wi*Espike
             epsi = Ei/mass[nodeID]
             eps[nodeID] = epsi
             Wsum += Wi
