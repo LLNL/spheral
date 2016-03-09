@@ -312,16 +312,47 @@ gradB = gradB_fl[0]
 gradC = gradC_fl[0]
 
 #-------------------------------------------------------------------------------
-# Measure the interpolated values and gradients.
+# Find the boundary Particles (Assumes Lattice in the generators)
 #-------------------------------------------------------------------------------
+
 isBound = [False]*nodes1.numInternalNodes
+boundIndx = []
+if testDim == "1d":
+  boundIndx = [0,nodes1.numInternalNodes - 1]
+elif testDim == "2d":
+  for iglobal in xrange(nodes1.numInternalNodes):
+     nx = nx1 + nx2
+     ny = nx1 + nx2
+     i = iglobal % nx
+     j = (iglobal // nx) 
+     if i == 0 or i == nx - 1 or j == 0 or j == ny - 1:
+       boundIndx.append(iglobal)
+elif testDim == "3d":
+  for iglobal in xrange(nodes1.numInternalNodes):
+       nx = nx1 + nx2
+       ny = nx1 + nx2
+       nz = nx1 + nx2
+       i = iglobal % nx
+       j = (iglobal // nx) % ny
+       k = iglobal // (nx*ny)
+       if i == 0 or i == nx - 1 or j == 0 or j == ny - 1 or k == 0 or k == nz - 1:
+           boundIndx.append(iglobal)
+
 for i in xrange(nodes1.numInternalNodes):
+  if i in boundIndx:
+    isBound[i] = True
+  else:
     neighbors = cm.connectivityForNode(nodes1, i)
     assert len(neighbors) == 1
     for j in neighbors[0]:
-      if j == 0 or j == nodes1.numInternalNodes - 1 or i == 0 or i == nodes1.numInternalNodes - 1:
+      if j in boundIndx:
         isBound[i] = True
-print isBound  
+        break
+  
+#print isBound  
+#-------------------------------------------------------------------------------
+# Calculate the Acceration for all the RK schemes
+#-------------------------------------------------------------------------------
 for i in xrange(nodes1.numInternalNodes):
     ri = positions[i]
     Hi = H[i]
