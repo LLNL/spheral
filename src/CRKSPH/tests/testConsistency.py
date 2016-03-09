@@ -250,6 +250,8 @@ accRKSPHIV = VectorField("RKSPH type IV interpolated acceleration values", nodes
 accRKSPHV = VectorField("RKSPH type V interpolated acceleration values", nodes1)           #Non-conservative and Consistent
 accSPH = VectorField("SPH interpolated acceleration values", nodes1)                       #It is what it is
 
+accBCRKSPH = VectorField("CRKSPH type III interpolated acceleration values with Bij terms", nodes1)     
+
 fRK = ScalarField("RK interpolated values", nodes1)
 gfRK = VectorField("RK interpolated derivative values", nodes1)
 
@@ -309,6 +311,14 @@ gradC = gradC_fl[0]
 #-------------------------------------------------------------------------------
 # Measure the interpolated values and gradients.
 #-------------------------------------------------------------------------------
+isBound = [False]*nodes1.numInternalNodes
+for i in xrange(nodes1.numInternalNodes):
+    neighbors = cm.connectivityForNode(nodes1, i)
+    assert len(neighbors) == 1
+    for j in neighbors[0]:
+      if j == 0 or j == nodes1.numInternalNodes - 1 or i == 0 or i == nodes1.numInternalNodes - 1:
+        isBound[i] = True
+print isBound  
 for i in xrange(nodes1.numInternalNodes):
     ri = positions[i]
     Hi = H[i]
@@ -333,6 +343,8 @@ for i in xrange(nodes1.numInternalNodes):
     #accRKSPHII[i] =  wi*wi*fi*W0*(Ai*Bi+gradAi)/mi;
     accRKSPHI[i]  = -wi*fi*W0*(Ai*Bi+gradAi)/rhoi;
     accRKSPHII[i] =  wi*fi*W0*(Ai*Bi+gradAi)/rhoi;
+    if isBound[i]:
+          accBCRKSPH[i] -= wi*(fi+fi)*W0*(Ai*Bi+gradAi)/rhoi
 
     # Go over them neighbors.
     neighbors = cm.connectivityForNode(nodes1, i)
@@ -404,7 +416,12 @@ for i in xrange(nodes1.numInternalNodes):
         #accRKSPHIV[i] -= wi*wj*(fj*gradrkWj - fi*gradrkWi)/mi;
         #accRKSPHV[i]  -= wi*wj*(fj-fi)*gradrkWj/mi;
 
-        accCRKSPH[i]  -= wj*(0.5*(fi+fj)*deltagrad)/rhoi;
+        if isBound[i]:
+          accBCRKSPH[i] -= wj*(fi+fj)*gradrkWj/rhoi
+        else:
+          accBCRKSPH[i] -= wj*(0.5*(fi+fj)*deltagrad)/rhoi
+
+        accCRKSPH[i]  -= wj*(0.5*(fi+fj)*deltagrad)/rhoi
         accRKSPHI[i]  -= wj*fj*gradrkWj/rhoi;
         accRKSPHII[i] += wj*fj*gradrkWj/rhoi;
         accRKSPHIV[i] -= wj*(fj*gradrkWj - fi*gradrkWi)/rhoi;
@@ -448,6 +465,7 @@ for i in xrange(nodes1.numInternalNodes):
 #-------------------------------------------------------------------------------
 errfRK      =  ScalarField("RK interpolation error", nodes1)
 errgfRK     =  ScalarField("RK interpolation error", nodes1)
+errxBCRKSPH =  ScalarField("BCRKSPH consistency error", nodes1)
 errxCRKSPH  =  ScalarField("CRKSPH consistency error", nodes1)
 errxRKSPHI  =  ScalarField("RKSPH Type I consistency error", nodes1)
 errxRKSPHII =  ScalarField("RKSPH Type II consistency error", nodes1)
@@ -457,6 +475,9 @@ errxSPH     =  ScalarField("SPH consistency error", nodes1)
 for i in xrange(nodes1.numInternalNodes):
     errfRK[i]      =  fRK[i] - f[i]
     errgfRK[i]     =  gfRK[i][0] - gf[i]
+
+    errxBCRKSPH[i]  =  accBCRKSPH[i][0] - axans[i]
+
     errxCRKSPH[i]  =  accCRKSPH[i][0] - axans[i]
     errxRKSPHI[i]  =  accRKSPHI[i][0] - axans[i]
     errxRKSPHII[i] =  accRKSPHII[i][0] - axans[i]
@@ -466,6 +487,7 @@ for i in xrange(nodes1.numInternalNodes):
 
 maxfRKerror = max([abs(x) for x in errfRK])
 maxgfRKerror = max([abs(x) for x in errgfRK])
+maxaxBCRKSPHerror = max([abs(x) for x in errxBCRKSPH])
 maxaxCRKSPHerror = max([abs(x) for x in errxCRKSPH])
 maxaxRKSPHIerror = max([abs(x) for x in errxRKSPHI])
 maxaxRKSPHIIerror = max([abs(x) for x in errxRKSPHII])
@@ -504,6 +526,10 @@ if graphics:
                            with_ = "lines",
                            title = "Answer",
                            inline = True)
+    BCRKSPHdata  = Gnuplot.Data(xans, [x.x for x in accBCRKSPH.internalValues()],
+                            with_ = "points",
+                            title = "Bij-CRKSPH",
+                            inline = True)
     CRKSPHdata  = Gnuplot.Data(xans, [x.x for x in accCRKSPH.internalValues()],
                             with_ = "points",
                             title = "CRKSPH",
@@ -532,6 +558,10 @@ if graphics:
                             title = "SPH",
                             inline = True)
 
+    errBCRKSPHdata  = Gnuplot.Data(xans, errxBCRKSPH.internalValues(),
+                            with_ = "points",
+                            title = "Bij-CRKSPH",
+                            inline = True)
     errCRKSPHdata  = Gnuplot.Data(xans, errxCRKSPH.internalValues(),
                             with_ = "points",
                             title = "CRKSPH",
@@ -593,14 +623,29 @@ if graphics:
     p2.replot(errSPHdata)
     p2.title("Error in acceleration")
     p2.refresh()
+ 
+    p3 = generateNewGnuPlot()
+    p3.plot(ansdata)
+    p3.replot(CRKSPHdata)
+    p3.replot(BCRKSPHdata)
+    p3("set key top left")
+    p3.title("x acceleration values For CRK Testing Bij")
+    p3.refresh()
+
+    p4 = generateNewGnuPlot()
+    #p4.plot(errCRKSPHdata)
+    p4.plot(errBCRKSPHdata)
+    p4.title("Error in acceleration for CRK testing Bij")
+    p4.refresh()
 
 from Pnorm import Pnorm
 xdata = [x.x for x in positions.internalValues()]
-print "L1 errors: CRKSPH = %g, RKSPH I = %g, RKSPH II = %g, RKSPH IV = %g, RKSPH V = %g, SPH = %g" % (Pnorm(errxCRKSPH, xdata).pnorm(1),
+print "L1 errors: CRKSPH = %g, RKSPH I = %g, RKSPH II = %g, RKSPH IV = %g, RKSPH V = %g, SPH = %g, BCRKSPH = %g" % (Pnorm(errxCRKSPH, xdata).pnorm(1),
                                                                                                   Pnorm(errxRKSPHI, xdata).pnorm(1),
                                                                                                   Pnorm(errxRKSPHII, xdata).pnorm(1),
                                                                                                   Pnorm(errxRKSPHIV, xdata).pnorm(1),
                                                                                                   Pnorm(errxRKSPHV, xdata).pnorm(1),
-                                                                                                  Pnorm(errxSPH, xdata).pnorm(1))
-print "Maximum errors: CRKSPH = %g, RKSPH I = %g, RKSPH II = %g, RKSPH IV = %g, RKSPH V = %g, SPH = %g" % (maxaxCRKSPHerror, maxaxRKSPHIerror, maxaxRKSPHIIerror, maxaxRKSPHIVerror, maxaxRKSPHVerror, maxaxSPHerror)
+                                                                                                  Pnorm(errxSPH, xdata).pnorm(1),
+            											  Pnorm(errxBCRKSPH, xdata).pnorm(1))
+print "Maximum errors: CRKSPH = %g, RKSPH I = %g, RKSPH II = %g, RKSPH IV = %g, RKSPH V = %g, SPH = %g, BCRKSPH = %g" % (maxaxCRKSPHerror, maxaxRKSPHIerror, maxaxRKSPHIIerror, maxaxRKSPHIVerror, maxaxRKSPHVerror, maxaxSPHerror, maxaxBCRKSPHerror)
 print "L1 Interpolation Error RK = %g, Max err = %g, L1 Derivative Error Rk = %g, Max err = %g" % (Pnorm(errfRK, xdata).pnorm(1),maxfRKerror, Pnorm(errgfRK, xdata).pnorm(1),maxgfRKerror)
