@@ -57,6 +57,7 @@ commandLine(
     derivativeTolerance = 5.0e-5,
 
     graphics = True,
+    graphBij = False,
     plotKernels = False,
     outputFile = "None",
     plotSPH = True,
@@ -231,7 +232,7 @@ for i in xrange(nodes1.numInternalNodes):
         gf[i] = m0
     elif testCase == "quadratic":
         f[i] = y2 + m2*x*x
-        gf[i] = m2*x
+        gf[i] = 2.0*m2*x
     elif testCase == "step":
         if x < x1:
             f[i] = y0
@@ -243,14 +244,16 @@ for i in xrange(nodes1.numInternalNodes):
 #-------------------------------------------------------------------------------
 # Prepare variables to accumulate the test values.
 #-------------------------------------------------------------------------------
-accCRKSPH = VectorField("CRKSPH type III interpolated acceleration values", nodes1)        #Locally Conservative and Inconsistant 
-accRKSPHI = VectorField("RKSPH type I interpolated acceleration values", nodes1)           #Non-conservative and Consistent 
+accCRKSPH  = VectorField("CRKSPH type III interpolated acceleration values", nodes1)       #Locally Conservative and Inconsistant 
+accRKSPHI  = VectorField("RKSPH type I interpolated acceleration values", nodes1)          #Non-conservative and Consistent 
 accRKSPHII = VectorField("RKSPH type II interpolated acceleration values", nodes1)         #Globally Conservative and Inconsistant 
 accRKSPHIV = VectorField("RKSPH type IV interpolated acceleration values", nodes1)         #Locally Conservative and Inconsistant 
-accRKSPHV = VectorField("RKSPH type V interpolated acceleration values", nodes1)           #Non-conservative and Consistent
-accSPH = VectorField("SPH interpolated acceleration values", nodes1)                       #It is what it is
+accRKSPHV  = VectorField("RKSPH type V interpolated acceleration values", nodes1)          #Non-conservative and Consistent
+accSPH     = VectorField("SPH interpolated acceleration values", nodes1)                   #It is what it is
 
-accBCRKSPH = VectorField("CRKSPH type III interpolated acceleration values with Bij terms", nodes1)     
+accBCRKSPH  = VectorField("CRKSPH type III interpolated acceleration values with Bij terms", nodes1)     
+accBRKSPHII = VectorField("RKSPH type II interpolated acceleration values with Bij terms", nodes1)     
+accBRKSPHIV = VectorField("RKSPH type IV interpolated acceleration values with Bij terms", nodes1)     
 
 fRK = ScalarField("RK interpolated values", nodes1)
 gfRK = VectorField("RK interpolated derivative values", nodes1)
@@ -334,17 +337,19 @@ for i in xrange(nodes1.numInternalNodes):
     gradBi = gradB[i]
     gradCi = gradC[i]
 
-    # Self contribution.
+    # Self contribution for interpolation
     W0 = WT.kernelValue(0.0, Hdeti)
     fRK[i] = wi*fi*W0*Ai;
     gfRK[i] = wi*fi*W0*(Ai*Bi+gradAi);
-    # Self contribution for acceleration? Gradient at zero is not zero for RK
-    #accRKSPHI[i]  = -wi*wi*fi*W0*(Ai*Bi+gradAi)/mi;
-    #accRKSPHII[i] =  wi*wi*fi*W0*(Ai*Bi+gradAi)/mi;
-    accRKSPHI[i]  = -wi*fi*W0*(Ai*Bi+gradAi)/rhoi;
-    accRKSPHII[i] =  wi*fi*W0*(Ai*Bi+gradAi)/rhoi;
+
+    # Self contribution for acceleration. Gradient at zero is not zero for some RK types.
+    accRKSPHI[i]   = -wi*fi*W0*(Ai*Bi+gradAi)/rhoi;
+    accRKSPHII[i]  =  wi*fi*W0*(Ai*Bi+gradAi)/rhoi;
+    accBRKSPHII[i] =  wi*fi*W0*(Ai*Bi+gradAi)/rhoi;
     if isBound[i]:
-          accBCRKSPH[i] -= wi*(fi+fi)*W0*(Ai*Bi+gradAi)/rhoi
+          accBCRKSPH[i]  -= wi*(fi+fi)*W0*(Ai*Bi+gradAi)/rhoi
+          accBRKSPHIV[i] -= wi*(fi+fi)*W0*(Ai*Bi+gradAi)/rhoi
+      
 
     # Go over them neighbors.
     neighbors = cm.connectivityForNode(nodes1, i)
@@ -379,56 +384,36 @@ for i in xrange(nodes1.numInternalNodes):
 
 
         #RK Kernels and Gradients
-
-        #gradrkWj = Ai*(1.0 + Bi.dot(rij))*gradWij + Ai*Bi*Wij + gradAi*(1.0 + Bi.dot(rij))*Wij
-        #for ii in xrange(nDim):
-        #  for jj in xrange(nDim):
-        #    indx = jj*nDim + ii
-        #    gradrkWj[ii] += Ai*Wij*gradBi[indx]*rij[jj]
-
-        #Wj = WT.kernelValue((-etai).magnitude(), Hdeti)
-        #Wi = WT.kernelValue((-etaj).magnitude(), Hdetj)
-        #Wij = 0.5*(Wi+Wj)
-        #gradWj = Hi*(-etai).unitVector() * WT.gradValue((-etai).magnitude(), Hdeti)
-        #gradWi = Hj*(-etaj).unitVector() * WT.gradValue((-etaj).magnitude(), Hdetj)
-        #gradWij = 0.5*(gradWj+gradWi)
-        #gradrkWi = Aj*(1.0 + Bj.dot(-rij))*gradWij + Aj*Bj*Wij + gradAj*(1.0 + Bj.dot(-rij))*Wij
-        #for ii in xrange(nDim):
-        #  for jj in xrange(nDim):
-        #    indx = jj*nDim + ii
-        #    gradrkWi[ii] += Aj*Wij*gradBj[indx]*(-rij[jj])
-
-        
-        grkWi  = 0.0
-        grkWj  = 0.0 
         rkWj   = CRKSPHKernel(WT, correctionOrder,  rij,  etai, Hdeti,  etaj, Hdetj, Ai, Bi, Ci)
         rkWi   = CRKSPHKernel(WT, correctionOrder, -rij, -etaj, Hdetj, -etai, Hdeti, Aj, Bj, Cj);
         gradrkWi  = Vector.zero
         gradrkWj  = Vector.zero
-        #CRKSPHKernelAndGradient(WT, correctionOrder,  rij,  etai, Hi, Hdeti,  etaj, Hj, Hdetj, Ai, Bi, Ci, gradAi, gradBi, gradCi, rkWj, grkWj, gradrkWj)
-        #CRKSPHKernelAndGradient(WT, correctionOrder, -rij, -etaj, Hj, Hdetj, -etai, Hi, Hdeti, Aj, Bj, Cj, gradAj, gradBj, gradCj, rkWi, grkWi, gradrkWi)
         CRKSPHKernelAndGradient(WT, correctionOrder,  rij,  etai, Hi, Hdeti,  etaj, Hj, Hdetj, Ai, Bi, Ci, gradAi, gradBi, gradCi, gradrkWj)
         CRKSPHKernelAndGradient(WT, correctionOrder, -rij, -etaj, Hj, Hdetj, -etai, Hi, Hdeti, Aj, Bj, Cj, gradAj, gradBj, gradCj, gradrkWi)
         deltagrad = gradrkWj - gradrkWi
-        #accCRKSPH[i]  -= wi*wj*(0.5*(fi+fj)*deltagrad)/mi;
-        #accRKSPHI[i]  -= wi*wj*fj*gradrkWj/mi;
-        #accRKSPHII[i] += wi*wj*fj*gradrkWj/mi;
-        #accRKSPHIV[i] -= wi*wj*(fj*gradrkWj - fi*gradrkWi)/mi;
-        #accRKSPHV[i]  -= wi*wj*(fj-fi)*gradrkWj/mi;
 
-        if isBound[i]:
-          accBCRKSPH[i] -= wj*(fi+fj)*gradrkWj/rhoi
-        else:
-          accBCRKSPH[i] -= wj*(0.5*(fi+fj)*deltagrad)/rhoi
-
-        accCRKSPH[i]  -= wj*(0.5*(fi+fj)*deltagrad)/rhoi
+        #accCRKSPH[i]  -= wj*(0.5*(fi+fj)*deltagrad)/rhoi
+        accCRKSPH[i]  -= (wj*0.5*(fi+fj)*gradrkWj/rhoi - wi*0.5*(fi+fj)*gradrkWi*mj/(mi*rhoj)) #For some reason this is exactly the same as the commented out form to machine precision, keeping things consistent using this form
         accRKSPHI[i]  -= wj*fj*gradrkWj/rhoi;
         accRKSPHII[i] += wj*fj*gradrkWj/rhoi;
-        accRKSPHIV[i] -= wj*(fj*gradrkWj - fi*gradrkWi)/rhoi;
+        #accRKSPHIV[i] -= wj*(fj*gradrkWj - fi*gradrkWi)/rhoi;
+        accRKSPHIV[i] -= (wj*fj*gradrkWj/rhoi - wi*fi*gradrkWi*mj/(rhoj*mi)) #For some reason this is exactly the same as the commented out form to machine precision, keeping things consistent using this form
         accRKSPHV[i]  -= wj*(fj-fi)*gradrkWj/rhoi;
  
         # And of course SPH.
         accSPH[i] -= mj*(fi/(rhoi*rhoi) + fj/(rhoj*rhoj))*gradWij
+
+        #Bij Terms 
+        if isBound[i]:
+          accBCRKSPH[i]  -= wj*(fi+fj)*gradrkWj/rhoi
+          accBRKSPHII[i] += wi*fj*gradrkWi*mj/(mi*rhoj);
+          accBRKSPHIV[i] -= wj*(fi+fj)*gradrkWj/rhoi
+        else:
+          #accBCRKSPH[i] -= wj*(0.5*(fi+fj)*deltagrad)/rhoi
+          accBCRKSPH[i]  -= (wj*0.5*(fi+fj)*gradrkWj/rhoi - wi*0.5*(fi+fj)*gradrkWi*mj/(mi*rhoj)) 
+          accBRKSPHII[i] += wj*fj*gradrkWj/rhoi;
+          #accBRKSPHIV[i] -= wj*(fj*gradrkWj - fi*gradrkWi)/rhoi;
+          accBRKSPHIV[i] -= (wj*fj*gradrkWj/rhoi - wi*fi*gradrkWi*mj/(rhoj*mi)) 
 
         #Check RK interpolation
         fRK[i] += wj*fj*rkWj
@@ -465,18 +450,23 @@ for i in xrange(nodes1.numInternalNodes):
 #-------------------------------------------------------------------------------
 errfRK      =  ScalarField("RK interpolation error", nodes1)
 errgfRK     =  ScalarField("RK interpolation error", nodes1)
-errxBCRKSPH =  ScalarField("BCRKSPH consistency error", nodes1)
 errxCRKSPH  =  ScalarField("CRKSPH consistency error", nodes1)
 errxRKSPHI  =  ScalarField("RKSPH Type I consistency error", nodes1)
 errxRKSPHII =  ScalarField("RKSPH Type II consistency error", nodes1)
 errxRKSPHIV =  ScalarField("RKSPH Type IV consistency error", nodes1)
 errxRKSPHV  =  ScalarField("RKSPH Type V consistency error", nodes1)
 errxSPH     =  ScalarField("SPH consistency error", nodes1)
+
+errxBCRKSPH  =  ScalarField("BCRKSPH consistency error", nodes1)
+errxBRKSPHII =  ScalarField("BRKSPHII consistency error", nodes1)
+errxBRKSPHIV =  ScalarField("BRKSPHIV consistency error", nodes1)
 for i in xrange(nodes1.numInternalNodes):
     errfRK[i]      =  fRK[i] - f[i]
     errgfRK[i]     =  gfRK[i][0] - gf[i]
 
-    errxBCRKSPH[i]  =  accBCRKSPH[i][0] - axans[i]
+    errxBCRKSPH[i]   =  accBCRKSPH[i][0] - axans[i]
+    errxBRKSPHII[i]  =  accBRKSPHII[i][0] - axans[i]
+    errxBRKSPHIV[i]  =  accBRKSPHIV[i][0] - axans[i]
 
     errxCRKSPH[i]  =  accCRKSPH[i][0] - axans[i]
     errxRKSPHI[i]  =  accRKSPHI[i][0] - axans[i]
@@ -487,13 +477,16 @@ for i in xrange(nodes1.numInternalNodes):
 
 maxfRKerror = max([abs(x) for x in errfRK])
 maxgfRKerror = max([abs(x) for x in errgfRK])
-maxaxBCRKSPHerror = max([abs(x) for x in errxBCRKSPH])
 maxaxCRKSPHerror = max([abs(x) for x in errxCRKSPH])
 maxaxRKSPHIerror = max([abs(x) for x in errxRKSPHI])
 maxaxRKSPHIIerror = max([abs(x) for x in errxRKSPHII])
 maxaxRKSPHIVerror = max([abs(x) for x in errxRKSPHIV])
 maxaxRKSPHVerror = max([abs(x) for x in errxRKSPHV])
 maxaxSPHerror = max([abs(x) for x in errxSPH])
+
+maxaxBCRKSPHerror  = max([abs(x) for x in errxBCRKSPH])
+maxaxBRKSPHIIerror = max([abs(x) for x in errxBRKSPHII])
+maxaxBRKSPHIVerror = max([abs(x) for x in errxBRKSPHIV])
 
 
 #-------------------------------------------------------------------------------
@@ -521,15 +514,24 @@ if graphics:
                            with_ = "points",
                            title = "RK Interp Derv",
                            inline = True)
-    # Interpolated values.
     ansdata = Gnuplot.Data(xans, axans.internalValues(),
                            with_ = "lines",
                            title = "Answer",
                            inline = True)
+    #Bij fixed RK data
     BCRKSPHdata  = Gnuplot.Data(xans, [x.x for x in accBCRKSPH.internalValues()],
                             with_ = "points",
                             title = "Bij-CRKSPH",
                             inline = True)
+    BRKSPHIIdata = Gnuplot.Data(xans, [x.x for x in accBRKSPHII.internalValues()],
+                            with_ = "points",
+                            title = "Bij-RKSPHII",
+                            inline = True)
+    BRKSPHIVdata = Gnuplot.Data(xans, [x.x for x in accBRKSPHIV.internalValues()],
+                            with_ = "points",
+                            title = "Bij-RKSPHIV",
+                            inline = True)
+    #RK Schemes Data
     CRKSPHdata  = Gnuplot.Data(xans, [x.x for x in accCRKSPH.internalValues()],
                             with_ = "points",
                             title = "CRKSPH",
@@ -557,11 +559,20 @@ if graphics:
                             with_ = "points",
                             title = "SPH",
                             inline = True)
-
+    #Bij fixed Error Data
     errBCRKSPHdata  = Gnuplot.Data(xans, errxBCRKSPH.internalValues(),
                             with_ = "points",
                             title = "Bij-CRKSPH",
                             inline = True)
+    errBRKSPHIIdata = Gnuplot.Data(xans, errxBRKSPHII.internalValues(),
+                            with_ = "points",
+                            title = "Bij-RKSPHII",
+                            inline = True)
+    errBRKSPHIVdata = Gnuplot.Data(xans, errxBRKSPHIV.internalValues(),
+                            with_ = "points",
+                            title = "Bij-RKSPHIV",
+                            inline = True)
+    #Error Data
     errCRKSPHdata  = Gnuplot.Data(xans, errxCRKSPH.internalValues(),
                             with_ = "points",
                             title = "CRKSPH",
@@ -623,29 +634,60 @@ if graphics:
     p2.replot(errSPHdata)
     p2.title("Error in acceleration")
     p2.refresh()
- 
-    p3 = generateNewGnuPlot()
-    p3.plot(ansdata)
-    p3.replot(CRKSPHdata)
-    p3.replot(BCRKSPHdata)
-    p3("set key top left")
-    p3.title("x acceleration values For CRK Testing Bij")
-    p3.refresh()
+    if graphBij:
+      p3 = generateNewGnuPlot()
+      p3.plot(ansdata)
+      p3.replot(CRKSPHdata)
+      p3.replot(BCRKSPHdata)
+      p3("set key top left")
+      p3.title("x acceleration values For Testing CRK Bij")
+      p3.refresh()
 
-    p4 = generateNewGnuPlot()
-    #p4.plot(errCRKSPHdata)
-    p4.plot(errBCRKSPHdata)
-    p4.title("Error in acceleration for CRK testing Bij")
-    p4.refresh()
+      p4 = generateNewGnuPlot()
+      p4.plot(ansdata)
+      p4.replot(RKSPHIIdata)
+      p4.replot(BRKSPHIIdata)
+      p4("set key top left")
+      p4.title("x acceleration values For Testing RKSPH II Bij")
+      p4.refresh()
+     
+      p5 = generateNewGnuPlot()
+      p5.plot(ansdata)
+      p5.replot(RKSPHIVdata)
+      p5.replot(BRKSPHIVdata)
+      p5("set key top left")
+      p5.title("x acceleration values For Testing RKSPH IV Bij")
+      p5.refresh()
+
+
+      p6 = generateNewGnuPlot()
+      p6.plot(errBCRKSPHdata)
+      p6("set key top left")
+      p6.title("Error in acceleration for Testing CRK Bij")
+      p6.refresh()
+
+      p7 = generateNewGnuPlot()
+      p7.plot(errBRKSPHIIdata)
+      p7("set key top left")
+      p7.title("Error in acceleration for Testing RKSPH II Bij")
+      p7.refresh()
+
+      p8 = generateNewGnuPlot()
+      p8.plot(errBRKSPHIVdata)
+      p8("set key top left")
+      p8.title("Error in acceleration for Testing RKSPH IV Bij")
+      p8.refresh()
 
 from Pnorm import Pnorm
 xdata = [x.x for x in positions.internalValues()]
-print "L1 errors: CRKSPH = %g, RKSPH I = %g, RKSPH II = %g, RKSPH IV = %g, RKSPH V = %g, SPH = %g, BCRKSPH = %g" % (Pnorm(errxCRKSPH, xdata).pnorm(1),
+print "L1 errors: CRKSPH = %g, RKSPH I = %g, RKSPH II = %g, RKSPH IV = %g, RKSPH V = %g, SPH = %g, BCRKSPH = %g, BRKSPHII = %g, BRKSPHIV = %g," % (Pnorm(errxCRKSPH, xdata).pnorm(1),
                                                                                                   Pnorm(errxRKSPHI, xdata).pnorm(1),
                                                                                                   Pnorm(errxRKSPHII, xdata).pnorm(1),
                                                                                                   Pnorm(errxRKSPHIV, xdata).pnorm(1),
                                                                                                   Pnorm(errxRKSPHV, xdata).pnorm(1),
                                                                                                   Pnorm(errxSPH, xdata).pnorm(1),
-            											  Pnorm(errxBCRKSPH, xdata).pnorm(1))
-print "Maximum errors: CRKSPH = %g, RKSPH I = %g, RKSPH II = %g, RKSPH IV = %g, RKSPH V = %g, SPH = %g, BCRKSPH = %g" % (maxaxCRKSPHerror, maxaxRKSPHIerror, maxaxRKSPHIIerror, maxaxRKSPHIVerror, maxaxRKSPHVerror, maxaxSPHerror, maxaxBCRKSPHerror)
+            											  Pnorm(errxBCRKSPH, xdata).pnorm(1),
+            											  Pnorm(errxBRKSPHII, xdata).pnorm(1),
+            											  Pnorm(errxBRKSPHIV, xdata).pnorm(1))
+print "Maximum errors: CRKSPH = %g, RKSPH I = %g, RKSPH II = %g, RKSPH IV = %g, RKSPH V = %g, SPH = %g, BCRKSPH = %g, BRKSPHII = %g, BRKSPHIV = %g" % (maxaxCRKSPHerror, maxaxRKSPHIerror, maxaxRKSPHIIerror, maxaxRKSPHIVerror, maxaxRKSPHVerror, maxaxSPHerror, maxaxBCRKSPHerror, maxaxBRKSPHIIerror, maxaxBRKSPHIVerror)
 print "L1 Interpolation Error RK = %g, Max err = %g, L1 Derivative Error Rk = %g, Max err = %g" % (Pnorm(errfRK, xdata).pnorm(1),maxfRKerror, Pnorm(errgfRK, xdata).pnorm(1),maxgfRKerror)
