@@ -378,8 +378,9 @@ for i in xrange(nodes1.numInternalNodes):
     accRKSPHII[i]  =  wi*fi*W0*(Ai*Bi+gradAi)/rhoi;
     accBRKSPHII[i] =  wi*fi*W0*(Ai*Bi+gradAi)/rhoi;
     if isBound[i]:
-          accBCRKSPH[i]  -= wi*(fi+fi)*W0*(Ai*Bi+gradAi)/rhoi
-          accBRKSPHIV[i] -= wi*(fi+fi)*W0*(Ai*Bi+gradAi)/rhoi
+          accBCRKSPH[i]  = -wi*(fi+fi)*W0*(Ai*Bi+gradAi)/rhoi
+          accBRKSPHIV[i] = -wi*(fi+fi)*W0*(Ai*Bi+gradAi)/rhoi
+          accBRKSPHII[i] = -wi*fi*W0*(Ai*Bi+gradAi)/rhoi;
       
 
     # Go over them neighbors.
@@ -435,9 +436,9 @@ for i in xrange(nodes1.numInternalNodes):
         accSPH[i] -= mj*(fi/(rhoi*rhoi) + fj/(rhoj*rhoj))*gradWij
 
         #Bij Terms 
-        if isBound[i]:
+        if isBound[i] and isBound[j]:
           accBCRKSPH[i]  -= wj*(fi+fj)*gradrkWj/rhoi
-          accBRKSPHII[i] += wi*fj*gradrkWi*mj/(mi*rhoj);
+          accBRKSPHII[i] -= wi*fj*gradrkWi*mj/(mi*rhoj);
           accBRKSPHIV[i] -= wj*(fi+fj)*gradrkWj/rhoi
         else:
           #accBCRKSPH[i] -= wj*(0.5*(fi+fj)*deltagrad)/rhoi
