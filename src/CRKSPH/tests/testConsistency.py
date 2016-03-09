@@ -278,8 +278,8 @@ mass_fl = db.fluidMass
 H_fl = db.fluidHfield
 
 # Compute the volumes to use as weighting.
-#weight_fl = db.fluidMass
-weight_fl = db.newFluidScalarFieldList(1.0, "volume")
+weight_fl = db.fluidMass
+#weight_fl = db.newFluidScalarFieldList(1.0, "volume")
 #computeCRKSPHSumVolume(cm, WT, position_fl, mass_fl, H_fl, weight_fl)
 
 # Now the moments and corrections
@@ -329,8 +329,10 @@ for i in xrange(nodes1.numInternalNodes):
     fRK[i] = wi*fi*W0*Ai;
     gfRK[i] = wi*fi*W0*(Ai*Bi+gradAi);
     # Self contribution for acceleration? Gradient at zero is not zero for RK
-    accRKSPHI[i]  -= wi*wi*fi*W0*(Ai*Bi+gradAi)/mi;
-    accRKSPHII[i] += wi*wi*fi*W0*(Ai*Bi+gradAi)/mi;
+    #accRKSPHI[i]  = -wi*wi*fi*W0*(Ai*Bi+gradAi)/mi;
+    #accRKSPHII[i] =  wi*wi*fi*W0*(Ai*Bi+gradAi)/mi;
+    accRKSPHI[i]  = -wi*fi*W0*(Ai*Bi+gradAi)/rhoi;
+    accRKSPHII[i] =  wi*fi*W0*(Ai*Bi+gradAi)/rhoi;
 
     # Go over them neighbors.
     neighbors = cm.connectivityForNode(nodes1, i)
@@ -396,11 +398,17 @@ for i in xrange(nodes1.numInternalNodes):
         CRKSPHKernelAndGradient(WT, correctionOrder,  rij,  etai, Hi, Hdeti,  etaj, Hj, Hdetj, Ai, Bi, Ci, gradAi, gradBi, gradCi, gradrkWj)
         CRKSPHKernelAndGradient(WT, correctionOrder, -rij, -etaj, Hj, Hdetj, -etai, Hi, Hdeti, Aj, Bj, Cj, gradAj, gradBj, gradCj, gradrkWi)
         deltagrad = gradrkWj - gradrkWi
-        accCRKSPH[i]  -= wi*wj*(0.5*(fi+fj)*deltagrad)/mi;
-        accRKSPHI[i]  -= wi*wj*fj*gradrkWj/mi;
-        accRKSPHII[i] += wi*wj*fj*gradrkWj/mi;
-        accRKSPHIV[i] -= wi*wj*(fj*gradrkWj - fi*gradrkWi)/mi;
-        accRKSPHV[i]  -= wi*wj*(fj-fi)*gradrkWj/mi;
+        #accCRKSPH[i]  -= wi*wj*(0.5*(fi+fj)*deltagrad)/mi;
+        #accRKSPHI[i]  -= wi*wj*fj*gradrkWj/mi;
+        #accRKSPHII[i] += wi*wj*fj*gradrkWj/mi;
+        #accRKSPHIV[i] -= wi*wj*(fj*gradrkWj - fi*gradrkWi)/mi;
+        #accRKSPHV[i]  -= wi*wj*(fj-fi)*gradrkWj/mi;
+
+        accCRKSPH[i]  -= wj*(0.5*(fi+fj)*deltagrad)/rhoi;
+        accRKSPHI[i]  -= wj*fj*gradrkWj/rhoi;
+        accRKSPHII[i] += wj*fj*gradrkWj/rhoi;
+        accRKSPHIV[i] -= wj*(fj*gradrkWj - fi*gradrkWi)/rhoi;
+        accRKSPHV[i]  -= wj*(fj-fi)*gradrkWj/rhoi;
  
         # And of course SPH.
         accSPH[i] -= mj*(fi/(rhoi*rhoi) + fj/(rhoj*rhoj))*gradWij
