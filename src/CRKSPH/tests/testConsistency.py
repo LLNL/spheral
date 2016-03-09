@@ -109,6 +109,7 @@ kernelExtent = WT.kernelExtent
 nodes1 = makeFluidNodeList("nodes1", eos,
                            hmin = hmin,
                            hmax = hmax,
+                           kernelExtent = kernelExtent,
                            nPerh = nPerh)
 output("nodes1")
 output("nodes1.hmin")
@@ -199,6 +200,7 @@ for i in xrange(nodes1.numInternalNodes):
 # Construct a DataBase to hold our node list
 #-------------------------------------------------------------------------------
 db = DataBase()
+db.appendNodeList(nodes1)
 output("db")
 output("db.appendNodeList(nodes1)")
 output("db.numNodeLists")
@@ -221,17 +223,22 @@ if iterateH:
 # Initialize our field.
 #-------------------------------------------------------------------------------
 f = ScalarField("test field", nodes1)
+gf = ScalarField("gradient test field", nodes1)
 for i in xrange(nodes1.numInternalNodes):
     x = nodes1.positions()[i].x
     if testCase == "linear":
         f[i] = y0 + m0*x
+        gf[i] = m0
     elif testCase == "quadratic":
         f[i] = y2 + m2*x*x
+        gf[i] = m2*x
     elif testCase == "step":
         if x < x1:
             f[i] = y0
+            gf[i] = 0.0
         else:
             f[i] = 2*y0
+            gf[i] = 0.0
 
 #-------------------------------------------------------------------------------
 # Prepare variables to accumulate the test values.
@@ -242,6 +249,9 @@ accRKSPHII = VectorField("RKSPH type II interpolated acceleration values", nodes
 accRKSPHIV = VectorField("RKSPH type IV interpolated acceleration values", nodes1)         #Locally Conservative and Inconsistant 
 accRKSPHV = VectorField("RKSPH type V interpolated acceleration values", nodes1)           #Non-conservative and Consistent
 accSPH = VectorField("SPH interpolated acceleration values", nodes1)                       #It is what it is
+
+fRK = ScalarField("RK interpolated values", nodes1)
+gfRK = VectorField("RK interpolated derivative values", nodes1)
 
 A_fl = db.newFluidScalarFieldList(0.0, "A")
 B_fl = db.newFluidVectorFieldList(Vector.zero, "B")
@@ -268,8 +278,8 @@ mass_fl = db.fluidMass
 H_fl = db.fluidHfield
 
 # Compute the volumes to use as weighting.
-weight_fl = db.fluidMass
-#weight_fl = db.newFluidScalarFieldList(1.0, "volume")
+#weight_fl = db.fluidMass
+weight_fl = db.newFluidScalarFieldList(1.0, "volume")
 #computeCRKSPHSumVolume(cm, WT, position_fl, mass_fl, H_fl, weight_fl)
 
 # Now the moments and corrections
@@ -284,8 +294,7 @@ computeCRKSPHCorrections(m0_fl, m1_fl, m2_fl, m3_fl, m4_fl, gradm0_fl, gradm1_fl
 # computeSPHSumMassDensity(cm, WT, True, position_fl, mass_fl, H_fl, rho_fl)
 
 # Extract the field state for the following calculations.
-#positions = position_fl[0]
-positions = nodes1.positions()
+positions = position_fl[0]
 weight = weight_fl[0]
 mass = mass_fl[0]
 rho = nodes1.massDensity()
@@ -317,6 +326,11 @@ for i in xrange(nodes1.numInternalNodes):
 
     # Self contribution.
     W0 = WT.kernelValue(0.0, Hdeti)
+    fRK[i] = wi*fi*W0*Ai;
+    gfRK[i] = wi*fi*W0*(Ai*Bi+gradAi);
+    # Self contribution for acceleration? Gradient at zero is not zero for RK
+    accRKSPHI[i]  -= wi*wi*fi*W0*(Ai*Bi+gradAi)/mi;
+    accRKSPHII[i] += wi*wi*fi*W0*(Ai*Bi+gradAi)/mi;
 
     # Go over them neighbors.
     neighbors = cm.connectivityForNode(nodes1, i)
@@ -373,8 +387,8 @@ for i in xrange(nodes1.numInternalNodes):
         
         grkWi  = 0.0
         grkWj  = 0.0 
-        rkWi   = 0.0
-        rkWj   = 0.0 
+        rkWj   = CRKSPHKernel(WT, correctionOrder,  rij,  etai, Hdeti,  etaj, Hdetj, Ai, Bi, Ci)
+        rkWi   = CRKSPHKernel(WT, correctionOrder, -rij, -etaj, Hdetj, -etai, Hdeti, Aj, Bj, Cj);
         gradrkWi  = Vector.zero
         gradrkWj  = Vector.zero
         #CRKSPHKernelAndGradient(WT, correctionOrder,  rij,  etai, Hi, Hdeti,  etaj, Hj, Hdetj, Ai, Bi, Ci, gradAi, gradBi, gradCi, rkWj, grkWj, gradrkWj)
@@ -387,16 +401,18 @@ for i in xrange(nodes1.numInternalNodes):
         accRKSPHII[i] += wi*wj*fj*gradrkWj/mi;
         accRKSPHIV[i] -= wi*wj*(fj*gradrkWj - fi*gradrkWi)/mi;
         accRKSPHV[i]  -= wi*wj*(fj-fi)*gradrkWj/mi;
-
+ 
         # And of course SPH.
         accSPH[i] -= mj*(fi/(rhoi*rhoi) + fj/(rhoj*rhoj))*gradWij
+
+        #Check RK interpolation
+        fRK[i] += wj*fj*rkWj
+        gfRK[i] += wj*fj*gradrkWj
 
 #-------------------------------------------------------------------------------
 # Prepare the answer to check against.
 #-------------------------------------------------------------------------------
 xans = [positions[i].x for i in xrange(nodes1.numInternalNodes)]
-#yans = ScalarField("interpolation answer", nodes1)
-#dyans = ScalarField("derivative answer", nodes1)
 axans = ScalarField("accelertion answer x component", nodes1)
 ayans = ScalarField("accelertion answer y component", nodes1)
 azans = ScalarField("accelertion answer z component", nodes1)
@@ -422,13 +438,17 @@ for i in xrange(nodes1.numInternalNodes):
 #-------------------------------------------------------------------------------
 # Check our answers accuracy.
 #-------------------------------------------------------------------------------
-errxCRKSPH  =  ScalarField("CRKSPH interpolation error", nodes1)
-errxRKSPHI  =  ScalarField("RKSPH Type I interpolation error", nodes1)
-errxRKSPHII =  ScalarField("RKSPH Type II interpolation error", nodes1)
-errxRKSPHIV =  ScalarField("RKSPH Type IV interpolation error", nodes1)
-errxRKSPHV  =  ScalarField("RKSPH Type V interpolation error", nodes1)
-errxSPH     =  ScalarField("SPH interpolation error", nodes1)
+errfRK      =  ScalarField("RK interpolation error", nodes1)
+errgfRK     =  ScalarField("RK interpolation error", nodes1)
+errxCRKSPH  =  ScalarField("CRKSPH consistency error", nodes1)
+errxRKSPHI  =  ScalarField("RKSPH Type I consistency error", nodes1)
+errxRKSPHII =  ScalarField("RKSPH Type II consistency error", nodes1)
+errxRKSPHIV =  ScalarField("RKSPH Type IV consistency error", nodes1)
+errxRKSPHV  =  ScalarField("RKSPH Type V consistency error", nodes1)
+errxSPH     =  ScalarField("SPH consistency error", nodes1)
 for i in xrange(nodes1.numInternalNodes):
+    errfRK[i]      =  fRK[i] - f[i]
+    errgfRK[i]     =  gfRK[i][0] - gf[i]
     errxCRKSPH[i]  =  accCRKSPH[i][0] - axans[i]
     errxRKSPHI[i]  =  accRKSPHI[i][0] - axans[i]
     errxRKSPHII[i] =  accRKSPHII[i][0] - axans[i]
@@ -436,6 +456,8 @@ for i in xrange(nodes1.numInternalNodes):
     errxRKSPHV[i]  =  accRKSPHV[i][0] - axans[i]
     errxSPH[i]     =  accSPH[i][0] - axans[i]
 
+maxfRKerror = max([abs(x) for x in errfRK])
+maxgfRKerror = max([abs(x) for x in errgfRK])
 maxaxCRKSPHerror = max([abs(x) for x in errxCRKSPH])
 maxaxRKSPHIerror = max([abs(x) for x in errxRKSPHI])
 maxaxRKSPHIIerror = max([abs(x) for x in errxRKSPHII])
@@ -454,8 +476,20 @@ if graphics:
 
     #Initial Pressure Filed
     initdata = Gnuplot.Data(xans, f.internalValues(),
-                           with_ = "points",
+                           with_ = "lines",
                            title = "Answer",
+                           inline = True)
+    interpdata = Gnuplot.Data(xans, fRK.internalValues(),
+                           with_ = "points",
+                           title = "RK Interp",
+                           inline = True)
+    initDervdata = Gnuplot.Data(xans, gf.internalValues(),
+                           with_ = "lines",
+                           title = "Answer",
+                           inline = True)
+    interpDervdata = Gnuplot.Data(xans, [x.x for x in gfRK.internalValues()],
+                           with_ = "points",
+                           title = "RK Interp Derv",
                            inline = True)
     # Interpolated values.
     ansdata = Gnuplot.Data(xans, axans.internalValues(),
@@ -520,9 +554,15 @@ if graphics:
 
     p0 = generateNewGnuPlot()
     p0.plot(initdata)
-    #p0("set key top left")
-    p0.title("Initial P Field")
+    p0.replot(interpdata)
+    p0.title("Initial P Field and Interpolated RK")
     p0.refresh()
+
+    p01 = generateNewGnuPlot()
+    p01.plot(initDervdata)
+    p01.replot(interpDervdata)
+    p01.title("Initial grad P Field and Interpolated RK")
+    p01.refresh()
 
     p1 = generateNewGnuPlot()
     p1.plot(ansdata)
@@ -548,10 +588,11 @@ if graphics:
 
 from Pnorm import Pnorm
 xdata = [x.x for x in positions.internalValues()]
-print "L1 errors: CRKSPH = %g, RKSPHI = %g, RKSPHII = %g, RKSPHIV = %g, RKSPHV = %g, SPH = %g" % (Pnorm(errxCRKSPH, xdata).pnorm(1),
+print "L1 errors: CRKSPH = %g, RKSPH I = %g, RKSPH II = %g, RKSPH IV = %g, RKSPH V = %g, SPH = %g" % (Pnorm(errxCRKSPH, xdata).pnorm(1),
                                                                                                   Pnorm(errxRKSPHI, xdata).pnorm(1),
                                                                                                   Pnorm(errxRKSPHII, xdata).pnorm(1),
                                                                                                   Pnorm(errxRKSPHIV, xdata).pnorm(1),
                                                                                                   Pnorm(errxRKSPHV, xdata).pnorm(1),
                                                                                                   Pnorm(errxSPH, xdata).pnorm(1))
-print "Maximum errors: CRKSPH = %g, RKSPHI = %g, RKSPHII = %g, RKSPHIV = %g, RKSPHV = %g, SPH = %g" % (maxaxCRKSPHerror, maxaxRKSPHIerror, maxaxRKSPHIIerror, maxaxRKSPHIVerror, maxaxRKSPHVerror, maxaxSPHerror)
+print "Maximum errors: CRKSPH = %g, RKSPH I = %g, RKSPH II = %g, RKSPH IV = %g, RKSPH V = %g, SPH = %g" % (maxaxCRKSPHerror, maxaxRKSPHIerror, maxaxRKSPHIIerror, maxaxRKSPHIVerror, maxaxRKSPHVerror, maxaxSPHerror)
+print "L1 Interpolation Error RK = %g, Max err = %g, L1 Derivative Error Rk = %g, Max err = %g" % (Pnorm(errfRK, xdata).pnorm(1),maxfRKerror, Pnorm(errgfRK, xdata).pnorm(1),maxgfRKerror)
