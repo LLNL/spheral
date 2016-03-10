@@ -574,7 +574,20 @@ if outputFile != "None":
     yprof = mpi.reduce([x.y for x in nodes1.positions().internalValues()], mpi.SUM)
     rhoprof = mpi.reduce(nodes1.massDensity().internalValues(), mpi.SUM)
     Pprof = mpi.reduce(P.internalValues(), mpi.SUM)
-    vprof = mpi.reduce([vi.dot(ri.unitVector()) for ri,vi in zip(nodes1.positions().internalValues(),nodes1.velocity().internalValues())],mpi.SUM)
+    #vprof = mpi.reduce(list([vi.dot(ri.unitVector()) for ri,vi in zip(nodes1.positions().internalValues(),nodes1.velocity().internalValues())]),mpi.SUM)
+    rprof = mpi.reduce([ri.magnitude() for ri in nodes1.positions().internalValues()],mpi.SUM)
+    vx = mpi.reduce(list([v.x for v in nodes1.velocity().internalValues()]),mpi.SUM)
+    vy = mpi.reduce([v.y for v in nodes1.velocity().internalValues()],mpi.SUM)
+    np = int(nodes1.numInternalNodes)
+    if np is None:
+        np = 0
+    #print "np=%d" % np
+    np = mpi.reduce(np,mpi.SUM)
+    #print "np=%d" % np
+    vprof = []
+    if mpi.rank == 0:
+        for i in xrange(np):
+            vprof.append(xprof[i]*vx[i]/rprof[i] + yprof[i]*vy[i]/rprof[i])
     #vprof = mpi.reduce([v.x for v in nodes1.velocity().internalValues()], mpi.SUM)
     epsprof = mpi.reduce(nodes1.specificThermalEnergy().internalValues(), mpi.SUM)
     Qprof = mpi.reduce(hydro.viscousWork()[0].internalValues(), mpi.SUM)
@@ -582,7 +595,7 @@ if outputFile != "None":
     mof = mortonOrderIndices(db)
     mo = mpi.reduce(mof[0].internalValues(), mpi.SUM)
     if mpi.rank == 0:
-        rprof = [sqrt(xi*xi + yi*yi) for xi, yi in zip(xprof, yprof)]
+        #rprof = [sqrt(xi*xi + yi*yi) for xi, yi in zip(xprof, yprof)]
         multiSort(rprof, mo, xprof, yprof, rhoprof, Pprof, vprof, epsprof, hprof, Qprof)
         rans, vans, epsans, rhoans, Pans, hans = answer.solution(control.time(), rprof)
         f = open(outputFile, "w")
