@@ -319,7 +319,6 @@ registerState(DataBase<Dimension>& dataBase,
     state.enroll(velocity, velocityPolicy);
     state.enroll(mSpecificThermalEnergy0);
     state.enroll(mEntropy, entropyPolicy);
-    rhoPolicy->addDependency(HydroFieldNames::specificThermalEnergy);
 
   } else if (mEvolveTotalEnergy) {
     // If we're doing total energy, we register the specific energy to advance with the
