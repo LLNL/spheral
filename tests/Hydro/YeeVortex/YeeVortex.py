@@ -217,8 +217,8 @@ if restoreCycle is None:
 #-------------------------------------------------------------------------------
 mu = 1.0
 K = 1.0
-#eos = GammaLawGasMKS(gamma, mu)
-eos = PolytropicEquationOfStateMKS(K,gamma,mu)
+eos = GammaLawGasMKS(gamma, mu)
+#eos = PolytropicEquationOfStateMKS(K,gamma,mu)
 
 #-------------------------------------------------------------------------------
 # Interpolation kernels.
