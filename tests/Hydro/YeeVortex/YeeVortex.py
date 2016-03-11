@@ -33,7 +33,8 @@ class YeeDensity:
         return
     def __call__(self, r):
         r2 = (r.x-self.xc)*(r.x-self.xc)+(r.y-self.yc)*(r.y-self.yc) 
-        temp = self.temp_inf - (self.gamma-1.0)*self.beta*exp(1.0-r2)/(8.0*self.gamma*pi*pi)
+        #temp = self.temp_inf - (self.gamma-1.0)*self.beta*exp(1.0-r2)/(8.0*self.gamma*pi*pi) #Springel
+        temp = self.temp_inf - (self.gamma-1.0)*self.beta*self.beta*exp(1.0-r2)/(8.0*self.gamma*pi*pi)
         return pow(temp,1.0/(self.gamma-1.0))
 
 title("2-D integrated hydro test --  Yee-Vortex Test")
@@ -46,8 +47,8 @@ commandLine(
     gamma = 1.4,
 
     # Translation
-    velTx=0.0,
-    velTy=0.0,
+    vel_infx=0.0,
+    vel_infy=0.0,
 
     # Geometry of Box
     x0 = -5.0,
@@ -282,16 +283,19 @@ if restoreCycle is None:
     vel = nodes.velocity()
     eps = nodes.specificThermalEnergy()
     pos = nodes.positions()
+    rho = nodes.massDensity()
     for i in xrange(nodes.numInternalNodes):
         xi, yi = pos[i]
         xci = (xi-xc)
         yci = (yi-yc)
         r2=xci*xci+yci*yci
-        velx = -yci*exp((1.0-r2)*0.5)*beta/(2.0*pi)
-        vely =  xci*exp((1.0-r2)*0.5)*beta/(2.0*pi)
+        velx = vel_infx-yci*exp((1.0-r2)*0.5)*beta/(2.0*pi)
+        vely = vel_infy+xci*exp((1.0-r2)*0.5)*beta/(2.0*pi)
         vel[i] = Vector(velx,vely)
-        temp = temp_inf - (gamma-1.0)*beta*exp(1.0-r2)/(8.0*gamma*pi*pi)
-        eps[i] = pow(temp,gamma/(gamma-1.0))/(gamma-1.0)
+        #temp = temp_inf - (gamma-1.0)*beta*beta*exp(1.0-r2)/(8.0*gamma*pi*pi)
+        #eps[i] = pow(temp,gamma/(gamma-1.0))/(gamma-1.0)
+        eps[i] = pow(rho[i],(gamma-1.0))/(gamma-1.0)
+        
 
 #-------------------------------------------------------------------------------
 # Construct a DataBase to hold our node lists
@@ -517,28 +521,39 @@ if outputFile != "None":
         L1rho = 0.0
         L1eps = 0.0
         L1vel = 0.0
+        L2rho = 0.0
+        L2eps = 0.0
+        L2vel = 0.0
         epsans = []
         rhoans = []
         velans = []
         for i in xrange(len(xprof)):
            r = (Vector(xprof[i],yprof[i]) - Vector(xc, yc)).magnitude()
            r2 = r*r
-           temp = temp_inf - (gamma-1.0)*beta*exp(1.0-r2)/(8.0*gamma*pi*pi)
+           temp = temp_inf - (gamma-1.0)*beta*beta*exp(1.0-r2)/(8.0*gamma*pi*pi)
            yci = yprof[i] - yc
            xci = xprof[i] - xc
-           velxans = -yci*exp((1.0-r2)*0.5)*beta/(2.0*pi)
-           velyans =  xci*exp((1.0-r2)*0.5)*beta/(2.0*pi)
-           epsans.append(pow(temp,gamma/(gamma-1.0))/(gamma-1.0))
+           velxans = vel_infx-yci*exp((1.0-r2)*0.5)*beta/(2.0*pi)
+           velyans = vel_infy+xci*exp((1.0-r2)*0.5)*beta/(2.0*pi)
+           
+           #epsans.append(pow(temp,gamma/(gamma-1.0))/(gamma-1.0))
+           epsans.append(temp/(gamma-1.0))
            rhoans.append(pow(temp,1.0/(gamma-1.0)))
            velans.append(Vector(velxans,velyans).magnitude())
            L1rho = L1rho + abs(rhoans[i]-rhoprof[i])
            L1eps = L1eps + abs(epsans[i]-epsprof[i])
            L1vel = L1vel + abs(velans[i]-vprof[i])
+           L2rho = L2rho + abs(rhoans[i]-rhoprof[i])*abs(rhoans[i]-rhoprof[i])
+           L2eps = L2eps + abs(epsans[i]-epsprof[i])*abs(epsans[i]-epsprof[i])
+           L2vel = L2vel + abs(velans[i]-vprof[i])*abs(velans[i]-vprof[i])
         L1rho = L1rho/len(xprof)
         L1eps = L1eps/len(xprof)
         L1vel = L1vel/len(xprof)
+        L2rho = L2rho/len(xprof)
+        L2eps = L2eps/len(xprof)
+        L2vel = L2vel/len(xprof)
         with open("converge-CRK-%s.txt" % CRKSPH, "a") as myfile:
-          myfile.write("%s\t %s\t %s\t %s\n" % (nx1,L1rho,L1eps,L1vel))
+          myfile.write("Nx1: %s\t L1rho: %s\t L1eps: %s\t L1vel: %s\t L2rho: %s\t L2eps: %s\t L2vel %s\n" % (nx1,L1rho,L1eps,L1vel,L2rho,L2eps,L2vel))
         f = open(outputFile, "w")
         f.write(("# " + 19*"%15s " + "\n") % ("r", "x", "y", "rho", "P", "v", "eps", "h", "mortonOrder", "rhoans", "epsans", "velans",
                                               "x_uu", "y_uu", "rho_uu", "P_uu", "v_uu", "eps_uu", "h_uu"))
