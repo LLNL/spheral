@@ -1,7 +1,7 @@
-#ATS:test(SELF, "--CRKSPH True --cfl 0.25 --Cl 1.0 --Cq 1.0 --clearDirectories True --filter 0.0 --goalTime 3.0 --nx1=64 --ny1=64 --outputFile='yee.txt'", label="Yee CRK, 64x64", np=20)
-#ATS:test(SELF, "--CRKSPH True --cfl 0.25 --Cl 1.0 --Cq 1.0 --clearDirectories True --filter 0.0 --goalTime 3.0 --nx1=128 --ny1=128 --outputFile='yee.txt'", label="Yee CRK, 128x128", np=20)
-#ATS:test(SELF, "--CRKSPH True --cfl 0.25 --Cl 1.0 --Cq 1.0 --clearDirectories True --filter 0.0 --goalTime 3.0 --nx1=256 --ny1=256 --outputFile='yee.txt'", label="Yee CRK, 256x256", np=40)
-#ATS:test(SELF, "--CRKSPH True --cfl 0.25 --Cl 1.0 --Cq 1.0 --clearDirectories True --filter 0.0 --goalTime 3.0 --nx1=512 --ny1=512 --outputFile='yee.txt'", label="Yee CRK, 512x512", np=40)
+#ATS:test(SELF, "--CRKSPH True --cfl 0.25 --Cl 1.0 --Cq 1.0 --clearDirectories True --filter 0.0 --goalTime 3.0 --nRadial=64 --outputFile='yee.txt'", label="Yee CRK, 64", np=1)
+#ATS:test(SELF, "--CRKSPH True --cfl 0.25 --Cl 1.0 --Cq 1.0 --clearDirectories True --filter 0.0 --goalTime 3.0 --nRadial=128 --outputFile='yee.txt'", label="Yee CRK, 128", np=20)
+#ATS:test(SELF, "--CRKSPH True --cfl 0.25 --Cl 1.0 --Cq 1.0 --clearDirectories True --filter 0.0 --goalTime 3.0 --nRadial=256 --outputFile='yee.txt'", label="Yee CRK, 256", np=40)
+#ATS:test(SELF, "--CRKSPH True --cfl 0.25 --Cl 1.0 --Cq 1.0 --clearDirectories True --filter 0.0 --goalTime 3.0 --nRadial=512 --outputFile='yee.txt'", label="Yee CRK, 512", np=40)
 #-------------------------------------------------------------------------------
 # The Yee-Vortex Test
 #-------------------------------------------------------------------------------
@@ -50,24 +50,21 @@ commandLine(
     vel_infx=0.0,
     vel_infy=0.0,
 
-    # Geometry of Box
-    x0 = -5.0,
-    x1 =  5.0,
-    y0 = -5.0,
-    y1 =  5.0,
-   
-    #Center of Vortex
+    #Center and radius of Vortex
     xc=0.0,
     yc=0.0,
+    rmax = 5.0,
     
+    # The number of radial points on the outside to force with constant BC
+    nbcrind = 10,
+
     #Vortex strength
     beta = 5.0,
     #Tempurature at inf
     temp_inf = 1.0,
 
     # Resolution and node seeding.
-    nx1 = 64,
-    ny1 = 64,
+    nRadial = 64,
     seed = "lattice",
 
     nPerh = 1.51,
@@ -133,7 +130,7 @@ commandLine(
 
     useVoronoiOutput = False,
     clearDirectories = False,
-    restoreCycle = None,
+    restoreCycle = -1,
     restartStep = 200,
     dataDir = "dumps-yeevortex-xy",
     graphics = True,
@@ -183,15 +180,15 @@ baseDir = os.path.join(dataDir,
                        "nPerh=%3.1f" % nPerh,
                        "fcentroidal=%f" % max(fcentroidal, filter),
                        "fcellPressure=%f" % fcellPressure,
-                       "%ix%i" % (nx1, ny1))
+                       str(nRadial))
 restartDir = os.path.join(baseDir, "restarts")
-restartBaseName = os.path.join(restartDir, "yeevortex-xy-%ix%i" % (nx1, ny1))
+restartBaseName = os.path.join(restartDir, "yeevortex-xy-%i" % nRadial)
 
 vizDir = os.path.join(baseDir, "visit")
 if vizTime is None and vizCycle is None:
     vizBaseName = None
 else:
-    vizBaseName = "yeevortex-xy-%ix%i" % (nx1, ny1)
+    vizBaseName = "yeevortex-xy-%i" % nRadial
 
 #-------------------------------------------------------------------------------
 # Check if the necessary output directories exist.  If not, create them.
@@ -205,12 +202,6 @@ if mpi.rank == 0:
     if not os.path.exists(vizDir):
         os.makedirs(vizDir)
 mpi.barrier()
-
-#-------------------------------------------------------------------------------
-# If we're restarting, find the set of most recent restart files.
-#-------------------------------------------------------------------------------
-if restoreCycle is None:
-    restoreCycle = findLastRestart(restartBaseName)
 
 #-------------------------------------------------------------------------------
 # Material properties.
@@ -234,11 +225,11 @@ kernelExtent = WT.kernelExtent
 # Make the NodeLists.
 #-------------------------------------------------------------------------------
 nodes = makeFluidNodeList("fluid", eos,
-                               hmin = hmin,
-                               hmax = hmax,
-                               hminratio = hminratio,
-                               kernelExtent = kernelExtent,
-                               nPerh = nPerh)
+                          hmin = hmin,
+                          hmax = hmax,
+                          hminratio = hminratio,
+                          kernelExtent = kernelExtent,
+                          nPerh = nPerh)
 output("nodes.name")
 output("    nodes.hmin")
 output("    nodes.hmax")
@@ -248,54 +239,49 @@ output("    nodes.nodesPerSmoothingScale")
 #-------------------------------------------------------------------------------
 # Set the node properties.
 #-------------------------------------------------------------------------------
-if restoreCycle is None:
-    rmin = 0.0
-    rmax = sqrt(2.0)*(x1-x0)
-    
-    if(seed=="latticeCylindrical"):
-        rmin = x1-8.0*nPerh/nx1
-        rmax = x1-2.0*nPerh/nx1
-    
-    generator = GenerateNodeDistribution2d(nx1, ny1, rho = YeeDensity(xc,yc,gamma,beta,temp_inf),
-                                           distributionType = seed,
-                                           xmin = (x0, y0),
-                                           xmax = (x1, y1),
-                                           #rmin = 0.0,
-                                           theta = 2.0*pi,
-                                           #rmax = sqrt(2.0)*(x1 - x0),
-                                           rmax = rmax,
-                                           rmin = rmin,
-                                           nNodePerh = nPerh,
-                                           SPH = SPH)
+if seed == "lattice":
+    res = (2*nRadial, 2*nRadial)
+else:
+    res = (nRadial, nRadial)
 
-    if mpi.procs > 1:
-        from VoronoiDistributeNodes import distributeNodes2d
-    else:
-        from DistributeNodes import distributeNodes2d
+generator = GenerateNodeDistribution2d(*res,
+                                       rho = YeeDensity(xc,yc,gamma,beta,temp_inf),
+                                       distributionType = seed,
+                                       xmin = (-rmax, -rmax),
+                                       xmax = (rmax, rmax),
+                                       rmin = 0.0,
+                                       rmax = rmax,
+                                       theta = 2.0*pi,
+                                       nNodePerh = nPerh,
+                                       SPH = SPH)
 
-    distributeNodes2d((nodes, generator))
-    print nodes.name, ":"
-    output("    mpi.reduce(nodes.numInternalNodes, mpi.MIN)")
-    output("    mpi.reduce(nodes.numInternalNodes, mpi.MAX)")
-    output("    mpi.reduce(nodes.numInternalNodes, mpi.SUM)")
+if mpi.procs > 1:
+    from VoronoiDistributeNodes import distributeNodes2d
+else:
+    from DistributeNodes import distributeNodes2d
 
-    #Set IC
-    vel = nodes.velocity()
-    eps = nodes.specificThermalEnergy()
-    pos = nodes.positions()
-    rho = nodes.massDensity()
-    for i in xrange(nodes.numInternalNodes):
-        xi, yi = pos[i]
-        xci = (xi-xc)
-        yci = (yi-yc)
-        r2=xci*xci+yci*yci
-        velx = vel_infx-yci*exp((1.0-r2)*0.5)*beta/(2.0*pi)
-        vely = vel_infy+xci*exp((1.0-r2)*0.5)*beta/(2.0*pi)
-        vel[i] = Vector(velx,vely)
-        #temp = temp_inf - (gamma-1.0)*beta*beta*exp(1.0-r2)/(8.0*gamma*pi*pi)
-        #eps[i] = pow(temp,gamma/(gamma-1.0))/(gamma-1.0)
-        eps[i] = pow(rho[i],(gamma-1.0))/(gamma-1.0)
-        
+distributeNodes2d((nodes, generator))
+print nodes.name, ":"
+output("    mpi.reduce(nodes.numInternalNodes, mpi.MIN)")
+output("    mpi.reduce(nodes.numInternalNodes, mpi.MAX)")
+output("    mpi.reduce(nodes.numInternalNodes, mpi.SUM)")
+
+#Set IC
+vel = nodes.velocity()
+eps = nodes.specificThermalEnergy()
+pos = nodes.positions()
+rho = nodes.massDensity()
+for i in xrange(nodes.numInternalNodes):
+    xi, yi = pos[i]
+    xci = (xi-xc)
+    yci = (yi-yc)
+    r2=xci*xci+yci*yci
+    velx = vel_infx-yci*exp((1.0-r2)*0.5)*beta/(2.0*pi)
+    vely = vel_infy+xci*exp((1.0-r2)*0.5)*beta/(2.0*pi)
+    vel[i] = Vector(velx,vely)
+    #temp = temp_inf - (gamma-1.0)*beta*beta*exp(1.0-r2)/(8.0*gamma*pi*pi)
+    #eps[i] = pow(temp,gamma/(gamma-1.0))/(gamma-1.0)
+    eps[i] = pow(rho[i],(gamma-1.0))/(gamma-1.0)
 
 #-------------------------------------------------------------------------------
 # Construct a DataBase to hold our node lists
@@ -381,29 +367,20 @@ elif boolCullenViscosity:
     evolveCullenViscosityMultiplier = CullenDehnenViscosity(q,WT,alphMax,alphMin,betaC,betaD,betaE,fKern,boolHopkinsCorrection)
     packages.append(evolveCullenViscosityMultiplier)
 
-
 #-------------------------------------------------------------------------------
 # Create boundary conditions.
 #-------------------------------------------------------------------------------
-xPlane0 = Plane(Vector(x0, y0), Vector( 1.0,  0.0))
-xPlane1 = Plane(Vector(x1, y0), Vector(-1.0,  0.0))
-yPlane0 = Plane(Vector(x0, y0), Vector( 0.0,  1.0))
-yPlane1 = Plane(Vector(x0, y1), Vector( 0.0, -1.0))
-
-xbc = PeriodicBoundary(xPlane0, xPlane1)
-ybc = PeriodicBoundary(yPlane0, yPlane1)
-
-xbc0 = ReflectingBoundary(xPlane0)
-xbc1 = ReflectingBoundary(xPlane1)
-ybc0 = ReflectingBoundary(yPlane0)
-ybc1 = ReflectingBoundary(yPlane1)
-
-bcSet = [xbc, ybc]
-#bcSet = [xbc0, xbc1, ybc0, ybc1]
-
+drbound = nbcrind * rmax/nRadial
+pos = nodes.positions()
+boundNodes = vector_of_int()
+for i in xrange(nodes.numInternalNodes):
+    if pos[i].magnitude() > rmax - drbound:
+        boundNodes.append(i)
+print "Selected %i boundary nodes" % mpi.allreduce(len(boundNodes), mpi.SUM)
+denialPlane = Plane(Vector(-2.0*rmax, 0.0), Vector(1.0, 0.0))  # A fake denial plane since we're working in circles.
+bc = ConstantBoundary(nodes, boundNodes, denialPlane)
 for p in packages:
-    for bc in bcSet:
-        p.appendBoundary(bc)
+    p.appendBoundary(bc)
 
 #-------------------------------------------------------------------------------
 # Construct a time integrator, and add the physics packages.
@@ -471,6 +448,7 @@ if useVoronoiOutput:
 else:
     vizMethod = None # default
 control = SpheralController(integrator, WT,
+                            initializeDerivatives = True,
                             statsStep = statsStep,
                             restartStep = restartStep,
                             restartBaseName = restartBaseName,
@@ -553,7 +531,7 @@ if outputFile != "None":
         L2eps = L2eps/len(xprof)
         L2vel = L2vel/len(xprof)
         with open("converge-CRK-%s.txt" % CRKSPH, "a") as myfile:
-          myfile.write("Nx1: %s\t L1rho: %s\t L1eps: %s\t L1vel: %s\t L2rho: %s\t L2eps: %s\t L2vel %s\n" % (nx1,L1rho,L1eps,L1vel,L2rho,L2eps,L2vel))
+          myfile.write("NRadial: %s\t L1rho: %s\t L1eps: %s\t L1vel: %s\t L2rho: %s\t L2eps: %s\t L2vel %s\n" % (nRadial,L1rho,L1eps,L1vel,L2rho,L2eps,L2vel))
         f = open(outputFile, "w")
         f.write(("# " + 19*"%15s " + "\n") % ("r", "x", "y", "rho", "P", "v", "eps", "h", "mortonOrder", "rhoans", "epsans", "velans",
                                               "x_uu", "y_uu", "rho_uu", "P_uu", "v_uu", "eps_uu", "h_uu"))
