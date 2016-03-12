@@ -28,7 +28,6 @@ using namespace std;
 using std::abs;
 using std::min;
 using std::max;
-using NodeSpace::NodeList;
 using FieldSpace::Field;
 using FieldSpace::FieldList;
 using FieldSpace::FieldListBase;

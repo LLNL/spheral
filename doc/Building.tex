@@ -188,7 +188,9 @@ configure --with-compilers=gnu --without-mpi --with-opt=2 --with-dbc=none
 
 \item To build an optimized parallel executable, manually setting the compiler choices:
 \begin{verbatim}
-configure --with-opt=2 --with-dbc=none \ --with-CC=gcc --with-CXX=g++ \ --with-MPICC=mpicc --with-MPICXX=mpiCC
+configure --with-opt=2 --with-dbc=none \
+          --with-CC=gcc --with-CXX=g++ \
+          --with-MPICC=mpicc --with-MPICXX=mpiCC
 \end{verbatim}
 
 \item To build optimized with the intel compiler suite:
@@ -198,7 +200,10 @@ configure --with-compilers=intel --with-opt=2 --with-dbc=none
 
 \item You can override any of the individual compiler choices as needed:
 \begin{verbatim}
-configure --with-compilers=gnu --with-opt=2 --with-dbc=none \ --with-CC=gcc-3.4.3 --with-CXX=g++-3.4.3 \ --with-MPICC=/usr/local/wackycompilerfrontend/mpicc \ --with-MPICXX=/usr/local/wackycompilerfrontend/mpiCC
+configure --with-compilers=gnu --with-opt=2 --with-dbc=none \ 
+          --with-CC=gcc-3.4.3 --with-CXX=g++-3.4.3 \ 
+          --with-MPICC=/usr/local/wackycompilerfrontend/mpicc \ 
+          --with-MPICXX=/usr/local/wackycompilerfrontend/mpiCC
 \end{verbatim}
 
 \end{itemize}
@@ -211,12 +216,16 @@ Once you have configured \Spheral, building is simply a matter of executing {\tt
 %-------------------------------------------------------------------------------
 \section{C++ only builds}
 
-It is also possible to build \Spheral\ as a C++ only target.  In this mode \Spheral\ skips building the third party libraries and python interface, and instead builds only the C++ source code libraries.  The libraries and headers are installed under the \verb.prefix. selected during the configuration process.  Additionally, it is up to the user to provide where the necessary third party libraries are installed via the \verb.EXTRAINCLUDES. and \verb.EXTRALIBS. compile arguments.
+It is also possible to build \Spheral\ as a C++ only target.  In this mode \Spheral\ skips building the third party libraries and python interface, and instead builds only the C++ source code libraries.  The libraries and headers are installed under the \verb.prefix. selected during the configuration process.  Additionally, it is up to the user to provide where the necessary third party libraries are installed via the \verb.EXTRAINCLUDES. and \verb.EXTRALIBS. compile arguments.  Note in this case we must tell \Spheral\ where to find a python executable since we won't be building it locally.  This python executable is used as part of the build proceedure to generate instantiation files, and is not linked to anything in the final C++ libraries.
 
 Consider the following example.  We want to install a C++ only optimized build under \verb./usr/local/Spheral/cxx..  We have previously installed the necessary third party libraries (with their headers) under some place we'll refer to as \verb.TPL_TOP..  We can configure and build as
 
 \begin{verbatim}
-configure --with-cxxonly --without-thirdPartyLibs \ --prefix=/usr/local/Spheral/cxx \ --with-opt=3 --with-dbc=none make EXTRAINCLUDES='-I TPL_TOP/include EXTRALIBS='-L TPL_TOP/lib'
+configure --with-cxxonly --without-thirdPartyLibs \ 
+          --prefix=/usr/local/Spheral/cxx \ 
+          --with-python=/path/to/some/python \
+          --with-opt=3 --with-dbc=none 
+make EXTRAINCLUDES='-I TPL_TOP/include EXTRALIBS='-L TPL_TOP/lib'
 \end{verbatim}
 
 This will resulting \Spheral\ headers will be installed under \verb./usr/local/Spheral/cxx/include. and the corresponding libraries in \verb./usr/local/Spheral/cxx/lib..  Note that in C++ only mode \Spheral\ builds and installs both static and shared versions of the libraries.
