@@ -494,14 +494,10 @@ if outputFile != "None":
     mo = mpi.reduce(mof[0].internalValues(), mpi.SUM)
 
     if mpi.rank == 0:
-        rprof = [sqrt(xi*xi + yi*yi) for xi, yi in zip(xprof, yprof)]
+        import numpy as np
+        from Pnorm import Pnorm
+        rprof = np.array([sqrt(xi*xi + yi*yi) for xi, yi in zip(xprof, yprof)])
         multiSort(rprof, mo, xprof, yprof, rhoprof, Pprof, vprof, epsprof, hprof,velx,vely)
-        L1rho = 0.0
-        L1eps = 0.0
-        L1vel = 0.0
-        L2rho = 0.0
-        L2eps = 0.0
-        L2vel = 0.0
         epsans = []
         rhoans = []
         velans = []
@@ -518,20 +514,18 @@ if outputFile != "None":
            epsans.append(temp/(gamma-1.0))
            rhoans.append(pow(temp,1.0/(gamma-1.0)))
            velans.append(Vector(velxans,velyans).magnitude())
-           L1rho = L1rho + abs(rhoans[i]-rhoprof[i])
-           L1eps = L1eps + abs(epsans[i]-epsprof[i])
-           L1vel = L1vel + abs(velans[i]-vprof[i])
-           L2rho = L2rho + abs(rhoans[i]-rhoprof[i])*abs(rhoans[i]-rhoprof[i])
-           L2eps = L2eps + abs(epsans[i]-epsprof[i])*abs(epsans[i]-epsprof[i])
-           L2vel = L2vel + abs(velans[i]-vprof[i])*abs(velans[i]-vprof[i])
-        L1rho = L1rho/len(xprof)
-        L1eps = L1eps/len(xprof)
-        L1vel = L1vel/len(xprof)
-        L2rho = L2rho/len(xprof)
-        L2eps = L2eps/len(xprof)
-        L2vel = L2vel/len(xprof)
+        L1rho = Pnorm(rhoprof, rprof, rhoans).gridpnorm(1)
+        L2rho = Pnorm(rhoprof, rprof, rhoans).gridpnorm(2)
+        Linfrho = Pnorm(rhoprof, rprof, rhoans).gridpnorm("inf")
+        L1eps = Pnorm(epsprof, rprof, epsans).gridpnorm(1)
+        L2eps = Pnorm(epsprof, rprof, epsans).gridpnorm(2)
+        Linfeps = Pnorm(epsprof, rprof, epsans).gridpnorm("inf")
+        L1vel = Pnorm(vprof, rprof, velans).gridpnorm(1)
+        L2vel = Pnorm(vprof, rprof, velans).gridpnorm(2)
+        Linfvel = Pnorm(vprof, rprof, velans).gridpnorm("inf")
         with open("converge-CRK-%s.txt" % CRKSPH, "a") as myfile:
-          myfile.write("NRadial: %s\t L1rho: %s\t L1eps: %s\t L1vel: %s\t L2rho: %s\t L2eps: %s\t L2vel %s\n" % (nRadial,L1rho,L1eps,L1vel,L2rho,L2eps,L2vel))
+            myfile.write(("#" + 9*"%16s\t " + "%16s\n") % ("nRadial", "L1rho", "L1eps", "L1vel", "L2rho", "L2eps", "L2vel", "Linfrho", "Linfeps", "Linfvel"))
+            myfile.write((9*"%16s\t " + "%16s\n") % (nRadial, L1rho, L1eps, L1vel, L2rho, L2eps, L2vel, Linfrho, Linfeps, Linfvel))
         f = open(outputFile, "w")
         f.write(("# " + 19*"%15s " + "\n") % ("r", "x", "y", "rho", "P", "v", "eps", "h", "mortonOrder", "rhoans", "epsans", "velans",
                                               "x_uu", "y_uu", "rho_uu", "P_uu", "v_uu", "eps_uu", "h_uu"))
