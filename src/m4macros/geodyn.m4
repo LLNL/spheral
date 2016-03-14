@@ -15,7 +15,7 @@ AC_ARG_WITH(geodyn,
 [  --with-geodyn ............................ optionally build the interface to GEODYN (requires the external GEODYN library)],
 [
    AC_MSG_RESULT(yes)
-   GEODYNSRCS="GeodynInst.cc"
+   GEODYNSRCS="GeodynInst.cc.py"
    PYTHONPKGS+=" Geodyn"
 ],
 [
