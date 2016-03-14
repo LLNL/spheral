@@ -34,10 +34,15 @@ class Pnorm:
     #---------------------------------------------------------------------------
     def computeSliceWeighting(self, positionData, rmin, rmax):
 
+        # Make a copy to work on, and sort it.
+        n = len(positionData)
+        rData = zip(positionData[:], range(n))
+        rData.sort()
+
         if rmin is None:
             rmin = min([x[0] for x in rData])
         if rmax is None:
-            rmax = max(rData)
+            rmax = max([x[0] for x in rData])
 
         n = len(positionData)
         weightData = np.zeros(n)
