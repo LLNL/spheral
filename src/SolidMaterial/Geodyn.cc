@@ -141,6 +141,17 @@ setBulkModulus(Field<Dimension, Scalar>& bulkModulus,
 }
 
 //------------------------------------------------------------------------------
+// Set the bulk modulus (rho DP/Drho).
+//------------------------------------------------------------------------------
+template<typename Dimension>
+void
+Geodyn<Dimension>::
+setEntropy(Field<Dimension, Scalar>& bulkModulus,
+           const Field<Dimension, Scalar>& massDensity,
+           const Field<Dimension, Scalar>& specificThermalEnergy) const {
+}
+
+//------------------------------------------------------------------------------
 // valid
 //------------------------------------------------------------------------------
 template<typename Dimension>
