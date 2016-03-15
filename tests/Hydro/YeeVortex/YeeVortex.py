@@ -54,6 +54,9 @@ commandLine(
     xc=0.0,
     yc=0.0,
     rmax = 5.0,
+
+    # How far should we measure the error norms?
+    rmaxnorm = 4.0,
     
     # The number of radial points on the outside to force with constant BC
     nbcrind = 10,
@@ -514,15 +517,15 @@ if outputFile != "None":
            epsans.append(temp/(gamma-1.0))
            rhoans.append(pow(temp,1.0/(gamma-1.0)))
            velans.append(Vector(velxans,velyans).magnitude())
-        L1rho = Pnorm(rhoprof, rprof, rhoans).gridpnorm(1)
-        L2rho = Pnorm(rhoprof, rprof, rhoans).gridpnorm(2)
-        Linfrho = Pnorm(rhoprof, rprof, rhoans).gridpnorm("inf")
-        L1eps = Pnorm(epsprof, rprof, epsans).gridpnorm(1)
-        L2eps = Pnorm(epsprof, rprof, epsans).gridpnorm(2)
-        Linfeps = Pnorm(epsprof, rprof, epsans).gridpnorm("inf")
-        L1vel = Pnorm(vprof, rprof, velans).gridpnorm(1)
-        L2vel = Pnorm(vprof, rprof, velans).gridpnorm(2)
-        Linfvel = Pnorm(vprof, rprof, velans).gridpnorm("inf")
+        L1rho = Pnorm(rhoprof, rprof, rhoans).gridpnorm(1, rmin=0.0, rmax=rmaxnorm)
+        L2rho = Pnorm(rhoprof, rprof, rhoans).gridpnorm(2, rmin=0.0, rmax=rmaxnorm)
+        Linfrho = Pnorm(rhoprof, rprof, rhoans).gridpnorm("inf", rmin=0.0, rmax=rmaxnorm)
+        L1eps = Pnorm(epsprof, rprof, epsans).gridpnorm(1, rmin=0.0, rmax=rmaxnorm)
+        L2eps = Pnorm(epsprof, rprof, epsans).gridpnorm(2, rmin=0.0, rmax=rmaxnorm)
+        Linfeps = Pnorm(epsprof, rprof, epsans).gridpnorm("inf", rmin=0.0, rmax=rmaxnorm)
+        L1vel = Pnorm(vprof, rprof, velans).gridpnorm(1, rmin=0.0, rmax=rmaxnorm)
+        L2vel = Pnorm(vprof, rprof, velans).gridpnorm(2, rmin=0.0, rmax=rmaxnorm)
+        Linfvel = Pnorm(vprof, rprof, velans).gridpnorm("inf", rmin=0.0, rmax=rmaxnorm)
         with open("converge-CRK-%s.txt" % CRKSPH, "a") as myfile:
             myfile.write(("#" + 9*"%16s\t " + "%16s\n") % ("nRadial", "L1rho", "L1eps", "L1vel", "L2rho", "L2eps", "L2vel", "Linfrho", "Linfeps", "Linfvel"))
             myfile.write((9*"%16s\t " + "%16s\n") % (nRadial, L1rho, L1eps, L1vel, L2rho, L2eps, L2vel, Linfrho, Linfeps, Linfvel))
