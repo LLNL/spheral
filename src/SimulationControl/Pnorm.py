@@ -97,7 +97,7 @@ class Pnorm:
         if p == "inf":
             Ln = la.norm(weightData*self.vectorData, np.inf)
         else:
-            Ln = la.norm(weightData*self.vectorData, p)/np.power(max(1e-30, sum(weightData)), 1.0/p)
+            Ln = la.norm(weightData*self.vectorData, p)/max(1e-30, sum(weightData))**(1.0/p)
         return Ln
 
     #---------------------------------------------------------------------------
@@ -112,5 +112,5 @@ class Pnorm:
             Ln = la.norm(weightData*self.vectorData, np.inf)
         else:
             weightData = self.computeGridWeighting(self.positionData, rmin, rmax)
-            Ln = la.norm(weightData*self.vectorData, p)/np.power(max(1e-30, sum(weightData)), 1.0/p)
+            Ln = la.norm(weightData*self.vectorData, p)/max(1e-30, sum(weightData))**(1.0/p)
         return Ln
