@@ -149,25 +149,25 @@ commandLine(KernelConstructor = BSplineKernel,
             writeOutputLabel = True,
 
             # Parameters for the test acceptance.,
-            L1rho =   0.0449326,
-            L2rho =   0.211529,
-            Linfrho = 1.68257,
-
-            L1P =     0.0163499,
-            L2P =     0.0760905,
-            LinfP =   0.586799,
-
-            L1v =     0.0237236,
-            L2v =     0.117778,
-            Linfv =   0.840226,
-
-            L1eps =   0.00999628,
-            L2eps =   0.0466739,
-            Linfeps = 0.328118,
-
-            L1h =     0.000329844,
-            L2h =     0.00131238,
-            Linfh =   0.00782331,              
+            L1rho =   0.0449505,   
+            L2rho =   0.0140237,   
+            Linfrho = 1.68257,     
+                                   
+            L1P =     0.016355,    
+            L2P =     0.0049738,   
+            LinfP =   0.586799,    
+                                   
+            L1v =     0.0237332,   
+            L2v =     0.00825198,  
+            Linfv =   0.840226,    
+                                   
+            L1eps =   0.00999979,  
+            L2eps =   0.00326578,  
+            Linfeps = 0.328118,    
+                                   
+            L1h =     0.000329975, 
+            L2h =     9.90468e-05, 
+            Linfh =   0.00782331,  
 
             tol = 1.0e-5,
 
