@@ -38,7 +38,7 @@ class RestartRegistrar {
 
 public:
   //------------------------===== Public Interface =====-----------------------//
-  typedef std::vector<boost::weak_ptr<RestartHandle> > RestartHandleContainer;
+  typedef std::vector<boost::shared_ptr<RestartHandle> > RestartHandleContainer;
   typedef RestartHandleContainer::const_iterator const_iterator;
   typedef RestartHandleContainer::iterator iterator;
 
