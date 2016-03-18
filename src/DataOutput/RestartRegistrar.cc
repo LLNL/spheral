@@ -64,10 +64,11 @@ registerRestartHandle(boost::shared_ptr<RestartHandle> restartHandlePtr,
                       const unsigned priority) {
   this->removeExpiredPointers();
   CHECK(mPriorities.size() == mRestartHandles.size());
+  boost::weak_ptr<RestartHandle> wptr(restartHandlePtr);
   if (not haveRestartHandle(restartHandlePtr)) {
     priority_iterator itr = upper_bound(mPriorities.begin(), mPriorities.end(), priority);
     const size_t delta = distance(mPriorities.begin(), itr);
-    mRestartHandles.insert(mRestartHandles.begin() + delta, restartHandlePtr);
+    mRestartHandles.insert(mRestartHandles.begin() + delta, wptr);
     mPriorities.insert(itr, priority);
   }
   ENSURE(haveRestartHandle(restartHandlePtr));
@@ -81,8 +82,9 @@ void
 RestartRegistrar::
 unregisterRestartHandle(boost::shared_ptr<RestartHandle> restartHandlePtr) {
   this->removeExpiredPointers();
+  boost::weak_ptr<RestartHandle> wptr(restartHandlePtr);
   VERIFY(haveRestartHandle(restartHandlePtr));
-  iterator itr = find(this->begin(), this->end(), restartHandlePtr);
+  iterator itr = find_if(this->begin(), this->end(), bind2nd(CompareWeakPtr<RestartHandle>(), wptr));
   CHECK(itr != this->end());
   const size_t delta = distance(this->begin(), itr);
   mRestartHandles.erase(itr);
@@ -97,14 +99,12 @@ unregisterRestartHandle(boost::shared_ptr<RestartHandle> restartHandlePtr) {
 bool
 RestartRegistrar::
 haveRestartHandle(const boost::shared_ptr<RestartHandle> restartHandlePtr) const {
-  const_iterator itr = std::find(this->begin(), this->end(), restartHandlePtr);
-  return (itr != this->end());
   // const_iterator itr = std::find_if(this->begin(), this->end(), bind2nd(CompareWeakPtr<RestartHandle>(), restartHandlePtr));
   // return (itr != this->end());
-  // const_iterator itr = this->begin();
-  // while (itr < this->end() and
-  //        itr->lock() != restartHandlePtr) ++itr;
-  // return (itr != this->end());
+  const_iterator itr = this->begin();
+  while (itr < this->end() and
+         itr->lock() != restartHandlePtr) ++itr;
+  return (itr != this->end());
 }
 
 //------------------------------------------------------------------------------
@@ -115,8 +115,7 @@ RestartRegistrar::
 removeExpiredPointers() {
   vector<size_t> expiredIndicies;
   for (size_t i = 0; i != mRestartHandles.size(); ++i) {
-    // If there's only one reference to the object, we're it.  Delete it.
-    if (mRestartHandles[i].use_count() == 1) expiredIndicies.push_back(i);
+    if (mRestartHandles[i].expired()) expiredIndicies.push_back(i);
   }
   removeElements(mRestartHandles, expiredIndicies);
   removeElements(mPriorities, expiredIndicies);
@@ -127,7 +126,7 @@ removeExpiredPointers() {
     ENSURE(mRestartHandles.size() == mPriorities.size());
     for (const_iterator itr = this->begin();
          itr != this->end();
-         ++itr ) ENSURE(itr->use_count() > 1);
+         ++itr ) ENSURE(not itr->expired());
   }
   END_CONTRACT_SCOPE
 }
@@ -138,13 +137,12 @@ removeExpiredPointers() {
 vector<string>
 RestartRegistrar::
 uniqueLabels() const {
-  const_cast<RestartRegistrar*>(this)->removeExpiredPointers();
   vector<string> result;
   unsigned counter = 0;
   for (const_iterator itr = this->begin();
        itr != this->end();
        ++itr) {
-    string l = (**itr).label();
+    string l = itr->lock()->label();
     if (find(result.begin(), result.end(), l) != result.end()) {
       stringstream newlabel;
       newlabel << l << "_" << counter;
@@ -181,7 +179,7 @@ dumpState(FileIO& file) const {
   const vector<string> labels = this->uniqueLabels();
   CHECK(labels.size() == mRestartHandles.size());
   for (size_t i = 0; i != labels.size(); ++i) {
-    mRestartHandles[i]->dumpState(file, labels[i]);
+    mRestartHandles[i].lock()->dumpState(file, labels[i]);
   }
 }
 
@@ -194,7 +192,7 @@ restoreState(const FileIO& file) const {
   const vector<string> labels = this->uniqueLabels();
   CHECK(labels.size() == mRestartHandles.size());
   for (size_t i = 0; i != labels.size(); ++i) {
-    mRestartHandles[i]->restoreState(file, labels[i]);
+    mRestartHandles[i].lock()->restoreState(file, labels[i]);
   }
 }
 
