@@ -88,7 +88,6 @@ commandLine(problemName = "KidderIsentropicCapsule",
             betaE = 1.0,
             fKern = 1.0/3.0,
             hopkinsCullenCorrection = True,
-            cullenUseHydroDerivatives = True,
             HopkinsConductivity = False,
             densityUpdate = RigorousSumDensity,
             HUpdate = IdealH,
@@ -275,7 +274,7 @@ packages = [hydro]
 # Optionally construct the reducing viscosity physics object.
 #-------------------------------------------------------------------------------
 if cullenViscosity:
-    evolveCullenViscosityMultiplier = CullenDehnenViscosity(q, WT, alphMax, alphMin, betaC, betaD, betaE, fKern, hopkinsCullenCorrection,  cullenUseHydroDerivatives)
+    evolveCullenViscosityMultiplier = CullenDehnenViscosity(q, WT, alphMax, alphMin, betaC, betaD, betaE, fKern, hopkinsCullenCorrection)
     packages.append(evolveCullenViscosityMultiplier)
 
 #-------------------------------------------------------------------------------
