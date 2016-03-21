@@ -47,7 +47,6 @@ commandLine(nx1 = 400,
             etaCritFrac = 1.0,
             etaFoldFrac = 0.2,
             boolCullenViscosity = False,
-            cullenUseHydroDerivatives = True,  # Reuse the hydro calculation of DvDx.
             alphMax = 2.0,
             alphMin = 0.02,
             betaC = 0.7,
@@ -328,7 +327,7 @@ if boolReduceViscosity:
     evolveReducingViscosityMultiplier = MorrisMonaghanReducingViscosity(q,nh,nh,aMin,aMax)
     packages.append(evolveReducingViscosityMultiplier)
 elif boolCullenViscosity:
-    evolveCullenViscosityMultiplier = CullenDehnenViscosity(q,WT,alphMax,alphMin,betaC,betaD,betaE,fKern,boolHopkinsCorrection,cullenUseHydroDerivatives)
+    evolveCullenViscosityMultiplier = CullenDehnenViscosity(q,WT,alphMax,alphMin,betaC,betaD,betaE,fKern,boolHopkinsCorrection)
     packages.append(evolveCullenViscosityMultiplier)
 
 #-------------------------------------------------------------------------------

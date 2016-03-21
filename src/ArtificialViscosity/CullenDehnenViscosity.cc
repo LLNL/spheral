@@ -55,8 +55,7 @@ CullenDehnenViscosity(ArtificialViscosity<Dimension>& q,
                       const Scalar betaD, //Parameter = 0.05 Hopkins 2014
                       const Scalar betaE, //Parameter = 1.0 in Hopkins 2014, = 2.0 in Cullen 2010
                       const Scalar fKern, //Parameter = 1/3 Hopkins 2014 for quinitc spline
-                      const bool boolHopkins, //use Hopkins Reformulation
-                      const bool useHydroDerivatives):  // Reuse the hydro derivatives
+                      const bool boolHopkins): //use Hopkins Reformulation
   Physics<Dimension>(),
   mPrevDvDt(FieldSpace::Copy),
   mPrevDivV(FieldSpace::Copy),
@@ -72,7 +71,6 @@ CullenDehnenViscosity(ArtificialViscosity<Dimension>& q,
   mbetaE(betaE),
   mfKern(fKern),
   mboolHopkins(boolHopkins),
-  mUseHydroDerivatives(useHydroDerivatives),
   myq(q),
   mKernel(W),
   mRestart(DataOutput::registerWithRestart(*this)){
@@ -142,14 +140,6 @@ CullenDehnenViscosity<Dimension>::
 boolHopkins(bool val)
 {
     mboolHopkins = val;
-}
-
-template<typename Dimension>
-void
-CullenDehnenViscosity<Dimension>::
-useHydroDerivatives(bool val)
-{
-    mUseHydroDerivatives = val;
 }
 
 //------------------------------------------------------------------------------
@@ -230,10 +220,6 @@ fKern() const{return mfKern;}
 template<typename Dimension>
 bool CullenDehnenViscosity<Dimension>::
 boolHopkins() const{return mboolHopkins;}
-
-template<typename Dimension>
-bool CullenDehnenViscosity<Dimension>::
-useHydroDerivatives() const{return mUseHydroDerivatives;}
 
 template<typename Dimension>
 const FieldList<Dimension, typename Dimension::Scalar>&
@@ -365,332 +351,143 @@ finalizeDerivatives(const Scalar time,
   FieldList<Dimension, Scalar> alpha_local = derivs.fields("Cullen alpha local", 0.0);
   FieldList<Dimension, Scalar> DalphaDt = derivs.fields("Cullen alpha delta", 0.0);
 
-  // Are we reusing the derivatives computed by the hydro or independently calculating them as in Cullen & Dehnen?
-  if (mUseHydroDerivatives) {
+  // We're using the hydro derivatives.
+  const FieldList<Dimension, Vector> DvDt = derivs.fields(IncrementFieldList<Dimension, Vector>::prefix() + HydroFieldNames::velocity, Vector::zero);
+  FieldList<Dimension, Tensor> DvDx = derivs.fields(HydroFieldNames::velocityGradient, Tensor::zero);
 
-    // We're using the hydro derivatives.
-    const FieldList<Dimension, Vector> DvDt = derivs.fields(IncrementFieldList<Dimension, Vector>::prefix() + HydroFieldNames::velocity, Vector::zero);
-    FieldList<Dimension, Tensor> DvDx = derivs.fields(HydroFieldNames::velocityGradient, Tensor::zero);
+  // Apply boundaries to DvDx.
+  for (ConstBoundaryIterator boundaryItr = this->boundaryBegin(); 
+       boundaryItr != this->boundaryEnd();
+       ++boundaryItr) {
+    (*boundaryItr)->applyFieldListGhostBoundary(DvDx);
+  }
+  for (ConstBoundaryIterator boundaryItr = this->boundaryBegin(); 
+       boundaryItr != this->boundaryEnd();
+       ++boundaryItr) (*boundaryItr)->finalizeGhostBoundary();
 
-    // Apply boundaries to DvDx.
-    for (ConstBoundaryIterator boundaryItr = this->boundaryBegin(); 
-         boundaryItr != this->boundaryEnd();
-         ++boundaryItr) {
-      (*boundaryItr)->applyFieldListGhostBoundary(DvDx);
-    }
-    for (ConstBoundaryIterator boundaryItr = this->boundaryBegin(); 
-         boundaryItr != this->boundaryEnd();
-         ++boundaryItr) (*boundaryItr)->finalizeGhostBoundary();
+  // We need to compute the R factor, which involves walking the neighbors.  We can simultaneously compute the signal velocity.
+  FieldList<Dimension, Scalar> R = dataBase.newFluidFieldList(0.0, "Cullen R limiter");
+  FieldList<Dimension, Scalar> vsig = dataBase.newFluidFieldList(0.0, "Cullen signal velocity");
+  for (size_t nodeListi = 0; nodeListi != numNodeLists; ++nodeListi) {
+    const int firstGhostNodei = DvDx[nodeListi]->nodeList().firstGhostNode();
 
-    // We need to compute the R factor, which involves walking the neighbors.  We can simultaneously compute the signal velocity.
-    FieldList<Dimension, Scalar> R = dataBase.newFluidFieldList(0.0, "Cullen R limiter");
-    FieldList<Dimension, Scalar> vsig = dataBase.newFluidFieldList(0.0, "Cullen signal velocity");
-    for (size_t nodeListi = 0; nodeListi != numNodeLists; ++nodeListi) {
-      const int firstGhostNodei = DvDx[nodeListi]->nodeList().firstGhostNode();
+    // Iterate over the nodes in this node list.
+    for (typename ConnectivityMap<Dimension>::const_iterator iItr = connectivityMap.begin(nodeListi);
+         iItr != connectivityMap.end(nodeListi);
+         ++iItr) {
+      const int i = *iItr;
 
-      // Iterate over the nodes in this node list.
-      for (typename ConnectivityMap<Dimension>::const_iterator iItr = connectivityMap.begin(nodeListi);
-           iItr != connectivityMap.end(nodeListi);
-           ++iItr) {
-        const int i = *iItr;
+      // Get the state for node i.
+      const Vector& ri = position(nodeListi, i);
+      const Vector& vi = velocity(nodeListi, i);
+      const SymTensor& Hi = H(nodeListi, i);
+      const Scalar Hdeti = Hi.Determinant();
+      const Scalar mi = mass(nodeListi, i);
+      const Scalar rhoi = massDensity(nodeListi, i);
+      const Scalar divvi = DvDx(nodeListi, i).Trace();
+      const Scalar csi = soundSpeed(nodeListi, i);
+      Scalar& Ri = R(nodeListi, i);
+      Scalar& vsigi = vsig(nodeListi, i);
 
-        // Get the state for node i.
-        const Vector& ri = position(nodeListi, i);
-        const Vector& vi = velocity(nodeListi, i);
-        const SymTensor& Hi = H(nodeListi, i);
-        const Scalar Hdeti = Hi.Determinant();
-        const Scalar mi = mass(nodeListi, i);
-        const Scalar rhoi = massDensity(nodeListi, i);
-        const Scalar divvi = DvDx(nodeListi, i).Trace();
-        const Scalar csi = soundSpeed(nodeListi, i);
-        Scalar& Ri = R(nodeListi, i);
-        Scalar& vsigi = vsig(nodeListi, i);
+      // Neighbors!
+      const vector<vector<int> >& fullConnectivity = connectivityMap.connectivityForNode(nodeListi, i);
+      CHECK(fullConnectivity.size() == numNodeLists);
 
-        // Neighbors!
-        const vector<vector<int> >& fullConnectivity = connectivityMap.connectivityForNode(nodeListi, i);
-        CHECK(fullConnectivity.size() == numNodeLists);
-
-        // Walk the neighbor nodeLists.
-        for (size_t nodeListj = 0; nodeListj != numNodeLists; ++nodeListj) {
+      // Walk the neighbor nodeLists.
+      for (size_t nodeListj = 0; nodeListj != numNodeLists; ++nodeListj) {
       
-          // Connectivity of this node with this NodeList.  We only need to proceed if
-          // there are some nodes in this list.
-          const vector<int>& connectivity = fullConnectivity[nodeListj];
-          if (connectivity.size() > 0) {
-            const int firstGhostNodej = DvDx[nodeListj]->nodeList().firstGhostNode();
+        // Connectivity of this node with this NodeList.  We only need to proceed if
+        // there are some nodes in this list.
+        const vector<int>& connectivity = fullConnectivity[nodeListj];
+        if (connectivity.size() > 0) {
+          const int firstGhostNodej = DvDx[nodeListj]->nodeList().firstGhostNode();
 
-            // Loop over the neighbors.
+          // Loop over the neighbors.
 #pragma vector always
-            for (vector<int>::const_iterator jItr = connectivity.begin();
-                 jItr != connectivity.end();
-                 ++jItr) {
-              const int j = *jItr;
+          for (vector<int>::const_iterator jItr = connectivity.begin();
+               jItr != connectivity.end();
+               ++jItr) {
+            const int j = *jItr;
             
-              // Only proceed if this node pair has not been calculated yet.
-              if (connectivityMap.calculatePairInteraction(nodeListi, i, 
-                                                           nodeListj, j,
-                                                           firstGhostNodej)) {
+            // Only proceed if this node pair has not been calculated yet.
+            if (connectivityMap.calculatePairInteraction(nodeListi, i, 
+                                                         nodeListj, j,
+                                                         firstGhostNodej)) {
 
-                // Get the state for node i.
-                const Vector& rj = position(nodeListj, j);
-                const Vector& vj = velocity(nodeListj, j);
-                const SymTensor& Hj = H(nodeListj, j);
-                const Scalar Hdetj = Hj.Determinant();
-                const Scalar mj = mass(nodeListj, j);
-                const Scalar divvj = DvDx(nodeListj, j).Trace();
-                const Scalar csj = soundSpeed(nodeListj, j);
-                Scalar& Rj = R(nodeListj, j);
-                Scalar& vsigj = vsig(nodeListj, j);
-
-                // Symmetrized kernel weight and gradient.
-                const Vector rij = ri - rj;
-                const Scalar Wi = W(Hi*rij, Hdeti);
-                const Scalar Wj = W(Hj*rij, Hdetj);
-
-                // Compute R.
-                Ri += sgn(divvj)*mj*Wi;
-                Rj += sgn(divvi)*mi*Wj;
-
-                // Check the signal velocity.
-                const Scalar vsigij = 0.5*(csi + csj) - std::min(0.0, (vi - vj).dot(rij.unitVector()));
-                vsigi = std::max(vsigi, vsigij);
-                vsigj = std::max(vsigj, vsigij);
-              }
-            }
-          }
-        }
-
-        // Finish Ri.
-        Ri /= rhoi;
-      }
-    }
-
-    // Now we have DvDx, DvDtDx, R, and vsig.  We can compute the Cullen & Dehnen viscosity coefficients.
-    // We also repurpose 
-    //   mCullAlpha  -> alpha0
-    //   mCullAlpha2 -> alpha_tmp.
-    //   alpha_local -> alpha
-    const FieldList<Dimension, Scalar> prevDivV = state.fields("mPrevDivV", 0.0);
-    const FieldList<Dimension, Scalar> alpha0 = state.fields("mCullAlpha", 0.0);
-    FieldList<Dimension, Scalar> alpha_tmp = derivs.fields("mCullAlpha2", 0.0);
-    for (size_t nodeListi = 0; nodeListi != numNodeLists; ++nodeListi) {
-      const size_t n = DvDx[nodeListi]->numInternalElements();
-      for (size_t i = 0; i != n; ++i) {
-        const SymTensor& Hi = H(nodeListi, i);
-        const Scalar Ri = R(nodeListi, i);
-        const Scalar vsigi = vsig(nodeListi, i);
-        const Tensor DvDxi = DvDx(nodeListi, i);
-        const Scalar divvi = DvDxi.Trace();
-        const Scalar divai = (divvi - prevDivV(nodeListi, i))*safeInvVar(dt);
-        const Tensor Si = DvDxi.Symmetric() - divvi/Dimension::nDim * Tensor::one;
-        const Scalar alphai = reducingViscosityMultiplierQ(nodeListi, i);
-        Scalar& alpha_locali = alpha_local(nodeListi, i);
-        if (mboolHopkins) {
-          const Scalar hi = kernelExtent*Dimension::nDim/Hi.Trace();  // Harmonic averaging.
-          const Scalar alpha0i = alpha0(nodeListi, i);
-          Scalar& alpha_tmpi = alpha_tmp(nodeListi, i);
-          alpha_tmpi = ((divvi >= 0.0 or divai >= 0.0) ?
-                        0.0 :
-                        malphMax*std::abs(divai)*safeInvVar(std::abs(divai) + mbetaC*vsigi*vsigi/FastMath::pow2(mfKern*hi)));
-          const Scalar thpt = FastMath::pow2(mbetaE*FastMath::pow4(1.0 - Ri)*divvi);
-          // const Scalar taui = hi/kernelExtent*safeInvVar(2.0*mbetaD*vsigi);
-          alpha_locali = std::max(malphMin, thpt*alpha0i*safeInvVar(thpt + (Si*Si.Transpose()).Trace()));
-          // We abuse DalphaDt here to store the new value for alpha0 in the Hopkins approximation.
-          DalphaDt(nodeListi, i) = alpha_tmpi + std::max(0.0, alpha0i - alpha_tmpi)*exp(-mbetaD*dt*abs(vsigi)/(2.0*mfKern*hi));
-        } else {
-          const Scalar hi = kernelExtent*Dimension::nDim/Hi.Trace();  // Harmonic averaging.
-          const Scalar thpt = FastMath::pow2(2.0*FastMath::pow4(1.0 - Ri)*divvi);
-          const Scalar zetai = thpt*safeInvVar(thpt + (Si*Si.Transpose()).Trace());
-          const Scalar Ai = zetai*std::max(-divai, 0.0);
-          const Scalar taui = hi*safeInvVar(2.0*mbetaD*vsigi);
-          DalphaDt(nodeListi, i) = std::min(0.0, alpha_locali - alphai)*safeInv(taui);
-          alpha_locali = std::max(alphai, malphMax*hi*hi*Ai*safeInvVar(vsigi*vsigi + hi*hi*Ai));
-        }
-      }
-    }
-
-  } else {
-
-    // The original gradient method of Cullen & Dehnen.
-    // Start our big loop over all FluidNodeLists.
-    size_t nodeListi = 0;
-
-    FieldList<Dimension, Vector> prevDvDt = state.fields("mPrevDvDt", Vector::zero);
-    FieldList<Dimension, Scalar> prevDivV = state.fields("mPrevDivV", 0.0);
-    FieldList<Dimension, Scalar> cullAlpha = state.fields("mCullAlpha", 0.0);
-    FieldList<Dimension, Scalar> prevDivV2 = derivs.fields("mPrevDivV2", 0.0);
-    FieldList<Dimension, Scalar> cullAlpha2 = derivs.fields("mCullAlpha2", 0.0);
-    FieldList<Dimension, Tensor> cull_D = dataBase.newFluidFieldList(Tensor::zero, "Cullen D Tensor");
-    FieldList<Dimension, Tensor> cull_T = dataBase.newFluidFieldList(Tensor::zero, "Cullen T Tensor");
-    FieldList<Dimension, Tensor> cull_Da = dataBase.newFluidFieldList(Tensor::zero, "Cullen another D Tensor for calculating A Tensor");
-    FieldList<Dimension, Scalar> cull_R = dataBase.newFluidFieldList(0.0, "Cullen R Scalar");
-    FieldList<Dimension, Scalar> cull_sigv = dataBase.newFluidFieldList(0.0, "Cullen signal velocity Scalar");
-  
-    for (typename DataBase<Dimension>::ConstFluidNodeListIterator itr = dataBase.fluidNodeListBegin();
-         itr != dataBase.fluidNodeListEnd();
-         ++itr, ++nodeListi) {
-      const NodeList<Dimension>& nodeList = **itr;
-  
-      // Iterate over the internal nodes in this NodeList.
-      for (typename ConnectivityMap<Dimension>::const_iterator iItr = connectivityMap.begin(nodeListi);
-           iItr != connectivityMap.end(nodeListi);
-           ++iItr) {
-        const int i = *iItr;
-  
-        // Get the state for node i.
-        const Vector& ri = position(nodeListi, i);
-        const SymTensor& Hi = H(nodeListi, i);
-        const Scalar Hdeti = Hi.Determinant();
-        const Vector& vi = velocity(nodeListi, i);
-        const Scalar& rhoi = massDensity(nodeListi, i);
-        const Scalar& ci = soundSpeed(nodeListi, i);
-  
-        // Get the connectivity info for this node.
-        const vector< vector<int> >& fullConnectivity = connectivityMap.connectivityForNode(&nodeList, i);
-  
-        // Iterate over the NodeLists.
-        for (size_t nodeListj = 0; nodeListj != numNodeLists; ++nodeListj) {
-  
-          // Connectivity of this node with this NodeList.  We only need to proceed if
-          // there are some nodes in this list.
-          const vector<int>& connectivity = fullConnectivity[nodeListj];
-          if (connectivity.size() > 0) {
-  
-            // Loop over the neighbors.
-#pragma vector always
-            for (vector<int>::const_iterator jItr = connectivity.begin();
-                 jItr != connectivity.end();
-                 ++jItr) {
-              const int j = *jItr;
-  
-              // Get the state for node j
+              // Get the state for node i.
               const Vector& rj = position(nodeListj, j);
-              const Scalar& mj = mass(nodeListj, j);
+              const Vector& vj = velocity(nodeListj, j);
               const SymTensor& Hj = H(nodeListj, j);
               const Scalar Hdetj = Hj.Determinant();
-              const Vector& vj = velocity(nodeListj, j);
-              const Scalar& rhoj = massDensity(nodeListj, j);
-              const Scalar& cj = soundSpeed(nodeListj, j);
-              CHECK(mj > 0.0);
-              CHECK(rhoj > 0.0);
-              CHECK(Hdetj > 0.0);
-  
-              // Node displacement.
-              const Vector rij = ri - rj;
-              const Vector etai = Hi*rij;
-              const Vector etaj = Hj*rij;
-              const Scalar etaMagi = etai.magnitude();
-              const Scalar etaMagj = etaj.magnitude();
-              CHECK(etaMagi >= 0.0);
-              CHECK(etaMagj >= 0.0);
-  
+              const Scalar mj = mass(nodeListj, j);
+              const Scalar divvj = DvDx(nodeListj, j).Trace();
+              const Scalar csj = soundSpeed(nodeListj, j);
+              Scalar& Rj = R(nodeListj, j);
+              Scalar& vsigj = vsig(nodeListj, j);
+
               // Symmetrized kernel weight and gradient.
-              const Vector Hetai = Hi*etai.unitVector();
-              const std::pair<double, double> WWi = W.kernelAndGradValue(etaMagi, Hdeti);
-              const Scalar Wi = WWi.first;
-              const Scalar gWi = WWi.second;
-              const Vector gradWi = gWi*Hetai;
-  
-              const Vector Hetaj = Hj*etaj.unitVector();
-              const std::pair<double, double> WWj = W.kernelAndGradValue(etaMagj, Hdetj);
-              const Scalar Wj = WWj.first;
-              const Scalar gWj = WWj.second;
-              const Vector gradWj = gWj*Hetaj;
-  
-          
-              const Vector dvij= prevDvDt(nodeListi, i) - prevDvDt(nodeListj, j); 
-              const Vector vij = vi - vj;
-              const Scalar til_wij = mj*gWi*safeInv(Hdeti*etaMagi*rhoj);//Cullen weights \tilde{w_{ij}} = w'(|eta_ij|)/|eta_ij|, and W=detH w(|eta|)
-              cull_D(nodeListi,i) += vij.dyad(rij)*til_wij;
-              cull_Da(nodeListi,i) += dvij.dyad(rij)*til_wij;
-              cull_T(nodeListi,i) += rij.selfdyad()*til_wij;
-              const Scalar& divV = prevDivV(nodeListj, j);
-              cull_R(nodeListi,i) += mj*Wi*((0.0 < divV)-(divV < 0.0));
-              Scalar& sigvi= cull_sigv(nodeListi,i);
-              sigvi = max((0.5*(ci+cj)-min(0.0,vij.dot(rij.unitVector()))),sigvi);
+              const Vector rij = ri - rj;
+              const Scalar Wi = W(Hi*rij, Hdeti);
+              const Scalar Wj = W(Hj*rij, Hdetj);
+
+              // Compute R.
+              Ri += sgn(divvj)*mj*Wi;
+              Rj += sgn(divvi)*mi*Wj;
+
+              // Check the signal velocity.
+              const Scalar vsigij = 0.5*(csi + csj) - std::min(0.0, (vi - vj).dot(rij.unitVector()));
+              vsigi = std::max(vsigi, vsigij);
+              vsigj = std::max(vsigj, vsigij);
             }
           }
         }
-        cull_R(nodeListi,i) = cull_R(nodeListi,i)/rhoi;
       }
+
+      // Finish Ri.
+      Ri /= rhoi;
     }
-  
-    for (ConstBoundaryIterator boundaryItr = this->boundaryBegin(); 
-         boundaryItr != this->boundaryEnd();
-         ++boundaryItr) {
-      (*boundaryItr)->applyFieldListGhostBoundary(cull_D);
-      (*boundaryItr)->applyFieldListGhostBoundary(cull_Da);
-      (*boundaryItr)->applyFieldListGhostBoundary(cull_T);
-      (*boundaryItr)->applyFieldListGhostBoundary(cull_R);
-      (*boundaryItr)->applyFieldListGhostBoundary(cull_sigv);
-      (*boundaryItr)->applyFieldListGhostBoundary(prevDvDt);
-      (*boundaryItr)->applyFieldListGhostBoundary(prevDivV);
-      (*boundaryItr)->applyFieldListGhostBoundary(cullAlpha);
-      (*boundaryItr)->applyFieldListGhostBoundary(prevDivV2);
-      (*boundaryItr)->applyFieldListGhostBoundary(cullAlpha2);
-    }
-    for (ConstBoundaryIterator boundaryItr = this->boundaryBegin(); 
-         boundaryItr != this->boundaryEnd();
-         ++boundaryItr) (*boundaryItr)->finalizeGhostBoundary();
-    
-    // Start our big loop over all FluidNodeLists.
-    nodeListi = 0;
-    for (typename DataBase<Dimension>::ConstFluidNodeListIterator itr = dataBase.fluidNodeListBegin();
-         itr != dataBase.fluidNodeListEnd();
-         ++itr, ++nodeListi) {
-      const NodeList<Dimension>& nodeList = **itr;
+  }
 
-      // Iterate over the internal nodes in this NodeList.
-      for (typename ConnectivityMap<Dimension>::const_iterator iItr = connectivityMap.begin(nodeListi);
-           iItr != connectivityMap.end(nodeListi);
-           ++iItr) {
-        const int i = *iItr;
-  
-        const SymTensor& Hi = H(nodeListi, i);
-        const Scalar& ci = soundSpeed(nodeListi, i);
-        const Scalar invhi = Hi.Trace()/(kernelExtent*Dimension::nDim);
-        const Tensor hat_Vi = cull_D(nodeListi, i)*(cull_T(nodeListi, i).Inverse());
-        const Tensor hat_Ai = cull_Da(nodeListi, i)*(cull_T(nodeListi, i).Inverse());
-        //Scalar& div_Vi = prevDivV2(nodeListi, i);
-        Scalar& div_Vi = prevDivV(nodeListi, i);
-        div_Vi = hat_Vi.Trace();
-        const Scalar DdivViDt = (hat_Ai-hat_Vi*hat_Vi).Trace();
-        const Tensor Si = 0.5*(hat_Vi+hat_Vi.Transpose())-div_Vi/Dimension::nDim*Tensor::one;
-        const Scalar cull_etaConsti = pow(abs(mbetaE*pow((1.0-cull_R(nodeListi, i)),4.0)*div_Vi),2.0);
-        const Scalar cull_etai = cull_etaConsti*safeInv(cull_etaConsti+((Si*(Si.Transpose())).Trace()));
-        const Scalar Ai = cull_etai*max(-DdivViDt,0.0);
-        const Scalar alph_loci = malphMax*Ai*safeInv(Ai+cull_sigv(nodeListi, i)*cull_sigv(nodeListi, i)*invhi*invhi);
-        
-        const Scalar taui = safeInv(invhi*2.0*mbetaD*cull_sigv(nodeListi, i));
-        const Scalar old_alpha_i = cullAlpha(nodeListi, i);
-        const Scalar alph_tmpi = (DdivViDt < 0.0 ) ? malphMax*abs(DdivViDt)*safeInv(abs(DdivViDt)+mbetaC*ci*ci*invhi*invhi/mfKern/mfKern): 0.0;
-        const Scalar alph_zeroi = (alph_tmpi >= old_alpha_i) ? alph_tmpi : alph_tmpi + (old_alpha_i-alph_tmpi)*exp(-mbetaD*dt*abs(cull_sigv(nodeListi, i))*invhi/2.0/mfKern);
-        //Scalar& alpha_i = cullAlpha2(nodeListi, i);
-        Scalar& alpha_i = cullAlpha(nodeListi, i);
-        // if(old_alpha_i < alph_loci)
-        //   alpha_i = alph_loci;  
-        // else
-        //   alpha_i = alph_loci + (old_alpha_i-alph_loci)*exp(-dt*safeInv(taui));
-        //   // alpha_i = alph_loci + (old_alpha_i-alph_loci)*exp(-dt*safeInv(taui));
-
-        if (mboolHopkins) {
-          alpha_i = max(cull_etai*alph_zeroi,malphMin);//Use Hopkins Reformulated Alpha
-          DalphaDt(nodeListi, i) = alph_zeroi;
-        } else {
-          alpha_i = std::max(alph_loci, alpha_i);
-          DalphaDt(nodeListi, i) = std::min(0.0, alph_loci - reducingViscosityMultiplierQ(nodeListi, i))*safeInv(taui);
-        }
-        // if(mboolHopkins)alpha_i = alph_zeroi;//Hopkins evolves alpha_zero, not alpha
-        alpha_local(nodeListi, i) = alph_loci;
-
-        /*
-          if(i== 10 && nodeListi==0){
-          //cout << "AFTER i=" << i << " temp_arr=" << temp_arr(nodeListi, i) << endl;
-          //cout << "AFTER i=" << i << " prevDivVi=" << prevDivV(nodeListi, i) << " prevDivVi2=" << prevDivV2(nodeListi, i) << endl;
-          //cout << "AFTER i=" << i << " cullAlpha=" << cullAlpha(nodeListi, i) << " cullAlpha2=" << cullAlpha2(nodeListi, i) <<endl;
-          }
-        */
-  
+  // Now we have DvDx, DvDtDx, R, and vsig.  We can compute the Cullen & Dehnen viscosity coefficients.
+  // We also repurpose 
+  //   mCullAlpha  -> alpha0
+  //   mCullAlpha2 -> alpha_tmp.
+  //   alpha_local -> alpha
+  const FieldList<Dimension, Scalar> prevDivV = state.fields("mPrevDivV", 0.0);
+  const FieldList<Dimension, Scalar> alpha0 = state.fields("mCullAlpha", 0.0);
+  FieldList<Dimension, Scalar> alpha_tmp = derivs.fields("mCullAlpha2", 0.0);
+  for (size_t nodeListi = 0; nodeListi != numNodeLists; ++nodeListi) {
+    const size_t n = DvDx[nodeListi]->numInternalElements();
+    for (size_t i = 0; i != n; ++i) {
+      const SymTensor& Hi = H(nodeListi, i);
+      const Scalar Ri = R(nodeListi, i);
+      const Scalar vsigi = vsig(nodeListi, i);
+      const Tensor DvDxi = DvDx(nodeListi, i);
+      const Scalar divvi = DvDxi.Trace();
+      const Scalar divai = (divvi - prevDivV(nodeListi, i))*safeInvVar(dt);
+      const Tensor Si = DvDxi.Symmetric() - divvi/Dimension::nDim * Tensor::one;
+      const Scalar alphai = reducingViscosityMultiplierQ(nodeListi, i);
+      Scalar& alpha_locali = alpha_local(nodeListi, i);
+      if (mboolHopkins) {
+        const Scalar hi = kernelExtent*Dimension::nDim/Hi.Trace();  // Harmonic averaging.
+        const Scalar alpha0i = alpha0(nodeListi, i);
+        Scalar& alpha_tmpi = alpha_tmp(nodeListi, i);
+        alpha_tmpi = ((divvi >= 0.0 or divai >= 0.0) ?
+                      0.0 :
+                      malphMax*std::abs(divai)*safeInvVar(std::abs(divai) + mbetaC*vsigi*vsigi/FastMath::pow2(mfKern*hi)));
+        const Scalar thpt = FastMath::pow2(mbetaE*FastMath::pow4(1.0 - Ri)*divvi);
+        // const Scalar taui = hi/kernelExtent*safeInvVar(2.0*mbetaD*vsigi);
+        alpha_locali = std::max(malphMin, thpt*alpha0i*safeInvVar(thpt + (Si*Si.Transpose()).Trace()));
+        // We abuse DalphaDt here to store the new value for alpha0 in the Hopkins approximation.
+        DalphaDt(nodeListi, i) = alpha_tmpi + std::max(0.0, alpha0i - alpha_tmpi)*exp(-mbetaD*dt*abs(vsigi)/(2.0*mfKern*hi));
+      } else {
+        const Scalar hi = kernelExtent*Dimension::nDim/Hi.Trace();  // Harmonic averaging.
+        const Scalar thpt = FastMath::pow2(2.0*FastMath::pow4(1.0 - Ri)*divvi);
+        const Scalar zetai = thpt*safeInvVar(thpt + (Si*Si.Transpose()).Trace());
+        const Scalar Ai = zetai*std::max(-divai, 0.0);
+        const Scalar taui = hi*safeInvVar(2.0*mbetaD*vsigi);
+        DalphaDt(nodeListi, i) = std::min(0.0, alpha_locali - alphai)*safeInv(taui);
+        alpha_locali = std::max(alphai, malphMax*hi*hi*Ai*safeInvVar(vsigi*vsigi + hi*hi*Ai));
       }
     }
   }
@@ -710,16 +507,14 @@ finalize(const typename Dimension::Scalar time,
   FieldList<Dimension, Vector> prevDvDt = state.fields("mPrevDvDt", Vector::zero);
   const FieldList<Dimension, Vector> DvDt = derivs.fields(IncrementFieldList<Dimension, Vector>::prefix() + HydroFieldNames::velocity, Vector::zero);
   prevDvDt.assignFields(DvDt);
-  if (mUseHydroDerivatives) {
-    FieldList<Dimension, Scalar> prevDivV = state.fields("mPrevDivV", 0.0);
-    const FieldList<Dimension, Tensor> DvDx = derivs.fields(HydroFieldNames::velocityGradient, Tensor::zero);
-    const unsigned numNodeLists = DvDx.numFields();
-    CHECK(prevDivV.numFields() == numNodeLists);
-    for (unsigned nodeListi = 0; nodeListi != numNodeLists; ++nodeListi) {
-      const unsigned n = DvDx[nodeListi]->numInternalElements();
-      for (unsigned i = 0; i != n; ++i) {
-        prevDivV(nodeListi, i) = DvDx(nodeListi, i).Trace();
-      }
+  FieldList<Dimension, Scalar> prevDivV = state.fields("mPrevDivV", 0.0);
+  const FieldList<Dimension, Tensor> DvDx = derivs.fields(HydroFieldNames::velocityGradient, Tensor::zero);
+  const unsigned numNodeLists = DvDx.numFields();
+  CHECK(prevDivV.numFields() == numNodeLists);
+  for (unsigned nodeListi = 0; nodeListi != numNodeLists; ++nodeListi) {
+    const unsigned n = DvDx[nodeListi]->numInternalElements();
+    for (unsigned i = 0; i != n; ++i) {
+      prevDivV(nodeListi, i) = DvDx(nodeListi, i).Trace();
     }
   }
 }

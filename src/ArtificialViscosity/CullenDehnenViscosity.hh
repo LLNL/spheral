@@ -59,8 +59,7 @@ public:
                         const Scalar betaD,
                         const Scalar betaE,
                         const Scalar fKern,
-                        const bool boolHopkins,
-                        const bool useHydroDerivatives);
+                        const bool boolHopkins);
   virtual ~CullenDehnenViscosity();
     
   //............................................................................
@@ -122,7 +121,6 @@ public:
   Scalar betaC() const;
   Scalar fKern() const;
   bool boolHopkins() const;
-  bool useHydroDerivatives() const;
     
   void alphMax(Scalar val);
   void alphMin(Scalar val);
@@ -131,7 +129,6 @@ public:
   void betaC(Scalar val);
   void fKern(Scalar val);
   void boolHopkins(bool val);
-  void useHydroDerivatives(bool val);
 
   // Access the stored interpolation kernels.
   const KernelSpace::TableKernel<Dimension>& kernel() const;
@@ -156,7 +153,6 @@ private:
 
   Scalar malphMax, malphMin, mbetaE, mbetaD, mbetaC, mfKern;
   bool mboolHopkins;//Use Hopkins Reformulation
-  bool mUseHydroDerivatives;  // Use the hydro derivatives for DvDx and such
   ArtificialViscosity<Dimension>& myq;
   const KernelSpace::TableKernel<Dimension>& mKernel;
   FieldSpace::FieldList<Dimension, Vector>    mPrevDvDt;//Will enroll as state fields
