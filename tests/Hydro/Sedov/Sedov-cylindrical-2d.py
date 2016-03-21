@@ -597,12 +597,7 @@ if graphics:
                                       xFunction = "%s.magnitude()",
                                       plotStyle = "points",
                                       winTitle = "Cullen alpha")
-        cullDalphaPlot = plotFieldList(evolveCullenViscosityMultiplier.DrvAlphaDtQ(),
-                                       xFunction = "%s.magnitude()",
-                                       plotStyle = "points",
-                                       winTitle = "Cullen DalphaDt")
-        plots += [(cullAlphaPlot, "Sedov-planar-Cullen-alpha.png"),
-                  (cullDalphaPlot, "Sedov-planar-Cullen-DalphaDt.png")]
+        plots += [(cullAlphaPlot, "Sedov-planar-Cullen-alpha.png")]
 
     # Make hardcopies of the plots.
     for p, filename in plots:
