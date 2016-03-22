@@ -61,7 +61,6 @@ commandLine(
     ASPH = False,
     filter = 0.0,  # For CRKSPH
     Qconstructor = MonaghanGingoldViscosity,
-    #Qconstructor = TensorMonaghanGingoldViscosity,
     boolReduceViscosity = False,
     nh = 5.0,
     aMin = 0.1,
@@ -131,6 +130,7 @@ if SVPH:
     else:
         HydroConstructor = SVPHFacetedHydro
 elif CRKSPH:
+    Qconstructor = CRKSPHMonaghanGingoldViscosity
     if ASPH:
         HydroConstructor = ACRKSPHHydro
     else:
