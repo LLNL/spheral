@@ -17,9 +17,36 @@ import DistributeNodes
 title("2-D integrated hydro test --  Hydrostatic Equilibrium/Surface Tension Test")
 
 #-------------------------------------------------------------------------------
+# A rejecter for making elliptical regions.
+#-------------------------------------------------------------------------------
+class EllipticalRejecter:
+    def __init__(self, a, b, reverse):
+        self.a = a
+        self.b = b
+        self.reverse = reverse
+        return
+    def __call__(self, x0, y0, m0, H0):
+        x, y, m, H = [], [], [], []
+        for i in xrange(len(x0)):
+            xi = x0[i]
+            yi = y0[i]
+            test = (sqrt(((xi - 0.5)/a)**2 + ((yi - 0.5)/b)**2) <= 1.0)
+            if self.reverse:
+                test = not test
+            if test:
+                x.append(xi)
+                y.append(yi)
+                m.append(m0[i])
+                H.append(H0[i])
+        return x, y, m, H
+
+#-------------------------------------------------------------------------------
 # Generic problem parameters
 #-------------------------------------------------------------------------------
 commandLine(
+    # Should we do the box or ellipse?
+    problem = "box",
+
     # Outer state.
     rho1 = 1.0,
     P1 = 1.0,
@@ -34,7 +61,7 @@ commandLine(
     velx=0.0,
     vely=0.0,
 
-    # Geometry 
+    # Geometry (box)
     x0 = 0.0,
     x1 = 0.25,
     x2 = 0.75,
@@ -43,6 +70,10 @@ commandLine(
     y1 = 0.25,
     y2 = 0.75,
     y3 = 1.0,
+
+    # Geometry (ellipse)
+    a = 0.25,   # axis length in x
+    b = 0.125,  # axis length in y
 
     # Resolution and node seeding.
     nx1 = 100,
@@ -117,11 +148,13 @@ commandLine(
 
     useVoronoiOutput = False,
     clearDirectories = False,
-    restoreCycle = None,
+    restoreCycle = -1,
     restartStep = 200,
     dataDir = "dumps-boxtension-xy",
     )
+
 assert not(boolReduceViscosity and boolCullenViscosity)
+assert problem.lower() in ("box", "ellipse")
 
 # Decide on our hydro algorithm.
 if SVPH:
@@ -152,6 +185,7 @@ densityUpdateLabel = {IntegrateDensity : "IntegrateDensity",
                       RigorousSumDensity : "RigorousSumDensity",
                       SumVoronoiCellDensity : "SumVoronoiCellDensity"}
 baseDir = os.path.join(dataDir,
+                       problem,
                        HydroConstructor.__name__,
                        Qconstructor.__name__,
                        densityUpdateLabel[densityUpdate],
@@ -182,12 +216,6 @@ if mpi.rank == 0:
     if not os.path.exists(vizDir):
         os.makedirs(vizDir)
 mpi.barrier()
-
-#-------------------------------------------------------------------------------
-# If we're restarting, find the set of most recent restart files.
-#-------------------------------------------------------------------------------
-if restoreCycle is None:
-    restoreCycle = findLastRestart(restartBaseName)
 
 #-------------------------------------------------------------------------------
 # Material properties.
@@ -235,7 +263,7 @@ del nodes
 #-------------------------------------------------------------------------------
 # Set the node properties.
 #-------------------------------------------------------------------------------
-if restoreCycle is None:
+if problem.lower() == "box":
     generatorOuter = GenerateNodeDistribution2d(nx1, ny1, rho1,
                                                 distributionType = "lattice",
                                                 xmin = (x0, y0),
@@ -251,39 +279,48 @@ if restoreCycle is None:
                                                 xmax = (x2, y2),
                                                 nNodePerh = nPerh,
                                                 SPH = not ASPH)
+else:
+    generatorOuter = GenerateNodeDistribution2d(nx1, ny1, rho1,
+                                                distributionType = "lattice",
+                                                xmin = (x0, y0),
+                                                xmax = (x3, y3),
+                                                nNodePerh = nPerh,
+                                                rejecter = EllipticalRejecter(a, b, True),
+                                                SPH = not ASPH)
+    generatorInner = GenerateNodeDistribution2d(nx2, ny2, rho2,
+                                                distributionType = "lattice",
+                                                xmin = (x1, y1),
+                                                xmax = (x2, y2),
+                                                nNodePerh = nPerh,
+                                                rejecter = EllipticalRejecter(a, b, False),
+                                                SPH = not ASPH)
+if mpi.procs > 1:
+    from VoronoiDistributeNodes import distributeNodes2d
+else:
+    from DistributeNodes import distributeNodes2d
 
-    if mpi.procs > 1:
-        from VoronoiDistributeNodes import distributeNodes2d
-    else:
-        from DistributeNodes import distributeNodes2d
+distributeNodes2d((outerNodes, generatorOuter),
+                  (innerNodes, generatorInner))
+for nodes in nodeSet:
+    print nodes.name, ":"
+    output("    mpi.reduce(nodes.numInternalNodes, mpi.MIN)")
+    output("    mpi.reduce(nodes.numInternalNodes, mpi.MAX)")
+    output("    mpi.reduce(nodes.numInternalNodes, mpi.SUM)")
+del nodes
 
-    distributeNodes2d((outerNodes, generatorOuter),
-                      (innerNodes, generatorInner))
-    for nodes in nodeSet:
-        print nodes.name, ":"
-        output("    mpi.reduce(nodes.numInternalNodes, mpi.MIN)")
-        output("    mpi.reduce(nodes.numInternalNodes, mpi.MAX)")
-        output("    mpi.reduce(nodes.numInternalNodes, mpi.SUM)")
-    del nodes
+# Set node specific thermal energies
+for (nodes, gamma, rho, P) in ((outerNodes, gamma1, rho1, P1),
+                               (innerNodes, gamma2, rho2, P2)):
+    eps0 = P/((gamma - 1.0)*rho)
+    nodes.specificThermalEnergy(ScalarField("tmp", nodes, eps0))
+del nodes
 
-    # Set node specific thermal energies
-    for (nodes, gamma, rho, P) in ((outerNodes, gamma1, rho1, P1),
-                                   (innerNodes, gamma2, rho2, P2)):
-        eps0 = P/((gamma - 1.0)*rho)
-        nodes.specificThermalEnergy(ScalarField("tmp", nodes, eps0))
-    del nodes
-
-    #for nodes in nodeSet:
-    #  vel = nodes.velocity()
-    #  for i in xrange(nodes.numInternalNodes):
-    #    vel[i]=Vector(velx,vely)
-    vel = outerNodes.velocity()
-    for i in xrange(outerNodes.numInternalNodes):
-        vel[i]=Vector(velx,vely)
-    vel = innerNodes.velocity()
-    for i in xrange(innerNodes.numInternalNodes):
-        vel[i]=Vector(velx,vely)
-
+vel = outerNodes.velocity()
+for i in xrange(outerNodes.numInternalNodes):
+    vel[i]=Vector(velx,vely)
+vel = innerNodes.velocity()
+for i in xrange(innerNodes.numInternalNodes):
+    vel[i]=Vector(velx,vely)
 
 #-------------------------------------------------------------------------------
 # Construct a DataBase to hold our node lists
