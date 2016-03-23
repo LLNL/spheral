@@ -1,6 +1,6 @@
-#ATS:test(SELF, "--CRKSPH=True --nx1=256 --ny1=512 --goalTime=4 --cfl=0.25 --Cl=1.0 --Cq=1.0 --clearDirectories=False --filter=0 --nPerh=1.01  --serialDump=True --compatibleEnergy=True", label="RT crk, 256x512", np=20)
-#ATS:test(SELF, "--CRKSPH=True --nx1=128 --ny1=256 --goalTime=4 --cfl=0.25 --Cl=1.0 --Cq=1.0 --clearDirectories=False --filter=0 --nPerh=1.01  --serialDump=True --compatibleEnergy=True", label="RT crk, 128x256", np=20)
-#ATS:test(SELF, "--CRKSPH=True --nx1=512 --ny1=1028 --goalTime=4 --cfl=0.25 --Cl=1.0 --Cq=1.0 --clearDirectories=False --filter=0 --nPerh=1.01  --serialDump=True --compatibleEnergy=True", label="RT crk, 512x1028", np=20)
+#ATS:test(SELF, "--CRKSPH=False --PSPH=True --KernelConstructor=QuinticSplineKernel --order=5 --goalTime=4 --cfl=0.25 --Cl=1.0 --Cq=1.0 --clearDirectories=False --filter=0 --nPerh=4.01  --serialDump=True --compatibleEnergy=False --evolveTotalEnergy=True --boolCullenViscosity=True --HopkinsConductivity=True", label="comp", np=80)
+
+
 
 #-------------------------------------------------------------------------------
 # This is the basic Rayleigh-Taylor Problem
@@ -114,6 +114,8 @@ commandLine(nx1 = 128,
             densityUpdate = RigorousSumDensity, # VolumeScaledDensity,
             compatibleEnergy = True,            # <--- Important!  rigorousBoundaries does not work with the compatibleEnergy algorithm currently.
             gradhCorrection = False,
+            evolveTotalEnergy= False,
+            HopkinsConductivity=False,
             
             clearDirectories = False,
             restoreCycle = -1,
@@ -125,6 +127,7 @@ commandLine(nx1 = 128,
             comparisonFile = "None",
             
             serialDump = False, #whether to dump a serial ascii file at the end for viz
+            useVoronoiOutput = False,
             
             bArtificialConduction = False,
             arCondAlpha = 0.5,
@@ -315,6 +318,17 @@ elif CRKSPH:
                              correctionOrder = correctionOrder,
                              densityUpdate = densityUpdate,
                              HUpdate = HUpdate)
+elif PSPH:
+    hydro = HydroConstructor(W = WT,
+                             Q = q,
+                             filter = filter,
+                             cfl = cfl,
+                             compatibleEnergyEvolution = compatibleEnergy,
+                             evolveTotalEnergy = evolveTotalEnergy,
+                             HopkinsConductivity = HopkinsConductivity,
+                             densityUpdate = densityUpdate,
+                             HUpdate = HUpdate,
+                             XSPH = XSPH)
 else:
     hydro = HydroConstructor(W = WT,
                              WPi = WTPi,
@@ -323,11 +337,12 @@ else:
                              useVelocityMagnitudeForDt = useVelocityMagnitudeForDt,
                              compatibleEnergyEvolution = compatibleEnergy,
                              gradhCorrection = gradhCorrection,
+                             evolveTotalEnergy = evolveTotalEnergy,
+                             HopkinsConductivity = HopkinsConductivity,
                              XSPH = XSPH,
                              densityUpdate = densityUpdate,
                              HUpdate = HUpdate,
-                             epsTensile = epsilonTensile,
-                             nTensile = nTensile)
+                             epsTensile = epsilonTensile)
 output("hydro")
 output("hydro.kernel()")
 output("hydro.PiKernel()")
@@ -434,6 +449,13 @@ mixlengthhistory = NodeHistory(nodes, [],
 #-------------------------------------------------------------------------------
 # Make the problem controller.
 #-------------------------------------------------------------------------------
+if useVoronoiOutput:
+    import SpheralVoronoiSiloDump
+    vizMethod = SpheralVoronoiSiloDump.dumpPhysicsState
+else:
+    import SpheralPointmeshSiloDump
+    vizMethod = SpheralPointmeshSiloDump.dumpPhysicsState
+
 control = SpheralController(integrator, WT,
                             initializeDerivatives = True,
                             statsStep = statsStep,
@@ -441,6 +463,7 @@ control = SpheralController(integrator, WT,
                             restartBaseName = restartBaseName,
                             restoreCycle = restoreCycle,
                             redistributeStep = None,
+                            vizMethod = vizMethod,
                             vizBaseName = vizBaseName,
                             vizDir = vizDir,
                             vizStep = vizCycle,
@@ -449,8 +472,8 @@ control = SpheralController(integrator, WT,
 output("control")
 
 # Add the periodic work.
-control.appendPeriodicWork(mixlengthhistory.sample, sampleFreq)
-mixlengthhistory.flushHistory()  # <-- in case of restart
+#control.appendPeriodicWork(mixlengthhistory.sample, sampleFreq)
+#mixlengthhistory.flushHistory()  # <-- in case of restart
 
 #-------------------------------------------------------------------------------
 # Advance to the end time.
