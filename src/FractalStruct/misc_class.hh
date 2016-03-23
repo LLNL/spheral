@@ -31,40 +31,37 @@ namespace FractalSpace
       int nyt=(Box[3]-Box[2])/spacing;
       return (nx+nxt*(ny+nz*nyt))/spacing;
     }
-     void plus(const vector <int>& vin,int addit,vector <int>& vout)
+     template <class T> void plus(const vector <T>& vin,T addit,vector <T>& vout)
     {
       vout=vin;
       plus(vout,addit);
     }
-    static void plus(vector <int>& vect,int add)
+    template <class T> static void plus(vector <T>& vect,T add)
     {
-      for(auto v : vect)
+      for(auto &v : vect)
 	v+=add;
     }
-    static void times(const vector <int>& vin,int mult,vector <int>& vout)
+    template <class T> static void times(const vector <T>& vin,T mult,vector <T>& vout)
     {
       vout=vin;
       times(vout,mult);
     }
-    static void times(vector <int>& vect,int mult)
+    template <class T> static void times(vector <T>& vect,T mult)
     {
-      for(auto v : vect)
+      for(auto &v : vect)
 	v*=mult;
     }
-    static void divide(const vector <int>& vin,int divisor,vector <int>& vout)
-//     template <class T> static void divide(const vector <T>& vin,T divisor,vector <T>& vout)
+    template <class T> static void divide(const vector <T>& vin,T divisor,vector <T>& vout)
     {
       vout=vin;
       divide(vout,divisor);
     }
-    static void divide(vector <int>& vect,int divisor)
-//     template <class T> static void divide(vector <T>& vect,T divisor)
+    template <class T> static void divide(vector <T>& vect,T divisor)
     {
-      for(auto v : vect)
+      for(auto &v : vect)
 	v/=divisor;
     }
-    //     template static void divide(vector <int>& vect,int div)
-    static int nr(const int& i,const int& j,const int& k, const int&m)
+    template <class T> static T nr(const T& i,const T& j,const T& k, const T&m)
     {
       return i+(j+k*m)*m;
     }
@@ -375,10 +372,12 @@ namespace FractalSpace
       vec.resize(size);
       vec.shrink_to_fit();
     }
-//     template <T> void shrink_vectors(T vec)
-//     {
-//       for(T vec
-//     }
+    template <class T> void shrink_vectors(vector <vector <T> > vec)
+    {
+      vec.shrink_to_fit();
+      for(vector <T> v : vec)
+	v.shrink_to_fit();
+    }
   };
 }
 #endif
