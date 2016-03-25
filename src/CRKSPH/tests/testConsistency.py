@@ -44,6 +44,10 @@ commandLine(
     y2 = 1.0,
     m2 = 0.5,
 
+    # Cubic coefficients: y = y3 + m3*x^3
+    y3 = 1.0,
+    m3 = 3.0,
+
     gamma = 5.0/3.0,
     mu = 1.0,
 
@@ -63,7 +67,7 @@ commandLine(
     plotSPH = True,
 )
 
-assert testCase in ("linear", "quadratic", "step")
+assert testCase in ("linear", "quadratic", "cubic", "step")
 assert testDim in ("1d", "2d", "3d")
 assert correctionOrder == LinearOrder
 nDim = 1
@@ -233,6 +237,9 @@ for i in xrange(nodes1.numInternalNodes):
     elif testCase == "quadratic":
         f[i] = y2 + m2*x*x
         gf[i] = 2.0*m2*x
+    elif testCase == "cubic":
+        f[i] = y3 + m3*x*x*x
+        gf[i] = 3.0*m3*x*x
     elif testCase == "step":
         if x < x1:
             f[i] = y0
@@ -464,7 +471,11 @@ for i in xrange(nodes1.numInternalNodes):
         ayans[i] = 0.0
         azans[i] = 0.0
     elif testCase == "quadratic":
-        axans[i] = -m2*xans[i]/rho1
+        axans[i] = -2.0*m2*xans[i]/rho1
+        ayans[i] = 0.0
+        azans[i] = 0.0
+    elif testCase == "cubic":
+        axans[i] = -3.0*m3*xans[i]*xans[i]/rho1
         ayans[i] = 0.0
         azans[i] = 0.0
     elif testCase == "step":
@@ -657,6 +668,12 @@ if graphics:
     p1.title("x acceleration values")
     p1.refresh()
 
+    p11 = generateNewGnuPlot()
+    p11.plot(ansdata)
+    p11.replot(CRKSPHdata)
+    p11.title("x CRK acceleration values")
+    p11.refresh()
+
     p2 = generateNewGnuPlot()
     p2.plot(errCRKSPHdata)
     p2.replot(errRKSPHIdata)
@@ -664,8 +681,16 @@ if graphics:
     p2.replot(errRKSPHIVdata)
     p2.replot(errRKSPHVdata)
     p2.replot(errSPHdata)
+    p2("set key top left")
     p2.title("Error in acceleration")
     p2.refresh()
+
+    p22 = generateNewGnuPlot()
+    p22.plot(errCRKSPHdata)
+    p22("set key top left")
+    p22.title("CRK Error in acceleration")
+    p22.refresh()
+
     if graphBij:
       p3 = generateNewGnuPlot()
       p3.plot(ansdata)

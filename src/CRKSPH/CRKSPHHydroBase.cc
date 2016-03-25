@@ -917,11 +917,16 @@ evaluateDerivatives(const typename Dimension::Scalar time,
               // const Scalar workQj = vij.dot(Qaccj);                                            // SPH
               // const Scalar workQij = 0.5*(workQi + workQj);                                    // SPH
               const Vector Qaccij = 0.5*(rhoi*rhoi*QPiij.first + rhoj*rhoj*QPiij.second).dot(deltagrad);    // CRK
+              const Vector QaccVi = (rhoj*rhoj*QPiij.second-rhoi*rhoi*QPiij.first).dot(gradWj);    // RK Type V
+              const Vector QaccVj = (rhoi*rhoi*QPiij.first-rhoj*rhoj*QPiij.second).dot(gradWi);    // RK Type V
+     
               // const Vector Qaccij = 0.25*(rhoi + rhoj)*(rhoi*QPiij.first + rhoj*QPiij.second).dot(deltagrad);    // CRK
               // const Vector Qaccij = 0.5*rhoi*rhoj*(QPiij.first + QPiij.second).dot(deltagrad);    // CRK
               const Scalar workQij = vij.dot(Qaccij);                                             // CRK
               // const Scalar workQi = rhoi*rhoj*QPiij.second.dot(vij).dot(deltagrad);            // CRK
               // const Scalar workQj = rhoi*rhoj*QPiij.first .dot(vij).dot(deltagrad);            // CRK
+              const Scalar workQVi =  vij.dot((rhoj*rhoj*QPiij.second).dot(gradWj)); //RK V Work
+              const Scalar workQVj =  vij.dot((rhoi*rhoi*QPiij.first).dot(gradWi)); //RK V Work
               const Scalar Qi = rhoi*rhoi*(QPiij.first. diagonalElements().maxAbsElement());
               const Scalar Qj = rhoj*rhoj*(QPiij.second.diagonalElements().maxAbsElement());
               maxViscousPressurei = max(maxViscousPressurei, Qi);
@@ -948,8 +953,15 @@ evaluateDerivatives(const typename Dimension::Scalar time,
               // const Vector forceij  = 0.5*weighti*weightj*((Pi + Pj)*deltagrad +                              // <- Type III, with CRKSPH Q forces
               //                                              (rhoi*rhoj*QPiij.first + rhoi*rhoj*QPiij.second)*deltagrad);
               const Vector forceij  = weighti*weightj*(0.5*(Pi + Pj)*deltagrad + Qaccij);                        // <- Type III, with CRKSPH Q forces
-              DvDti -= forceij/mi;
-              DvDtj += forceij/mj;
+              const Vector forceVi  = weighti*weightj*((Pi - Pj)*gradWj + QaccVi);                        // <- Type V, with CRKSPH Q forces, Non-conservative but consistent
+              const Vector forceVj  = weighti*weightj*((Pj - Pi)*gradWi + QaccVj);                        // <- Type V, with CRKSPH Q forces, Non-conservative but consistent
+
+              DvDti -= forceij/mi; //CRK Acceleration
+              DvDtj += forceij/mj; //CRK Acceleration
+ 
+              //DvDti += forceVi/mi; //RK V Acceleration
+              //DvDtj += forceVj/mj; //RK V Acceleration (Note the sign!)
+              
               if (mCompatibleEnergyEvolution) {
                 pairAccelerationsi.push_back(-forceij/mi);
                 pairAccelerationsj.push_back( forceij/mj);
@@ -960,6 +972,9 @@ evaluateDerivatives(const typename Dimension::Scalar time,
               // DepsDtj += 0.5*weighti*weightj*Pi*vij.dot(deltagrad)/mj + mi*workQj;    // SPH Q
               DepsDti += 0.5*weighti*weightj*(Pj*vij.dot(deltagrad) + workQij)/mi;    // CRK Q
               DepsDtj += 0.5*weighti*weightj*(Pi*vij.dot(deltagrad) + workQij)/mj;    // CRK Q
+
+              //DepsDti += weighti*weightj*(Pj*vij.dot(gradWj) + workQVi)/mi;    // RKV Q
+              //DepsDtj -= weighti*weightj*(Pi*vij.dot(gradWi) + workQVj)/mj;    // RKV Q (Note the minus sign!)
 
               // Estimate of delta v (for XSPH).
               if (mXSPH and (nodeListi == nodeListj)) {
