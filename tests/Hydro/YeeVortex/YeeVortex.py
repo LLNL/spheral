@@ -68,7 +68,7 @@ commandLine(
 
     # Resolution and node seeding.
     nRadial = 64,
-    seed = "lattice",
+    seed = "constantDTheta",
 
     nPerh = 1.51,
 
@@ -183,6 +183,7 @@ baseDir = os.path.join(dataDir,
                        "nPerh=%3.1f" % nPerh,
                        "fcentroidal=%f" % max(fcentroidal, filter),
                        "fcellPressure=%f" % fcellPressure,
+                       "seed=%s" % seed,
                        str(nRadial))
 restartDir = os.path.join(baseDir, "restarts")
 restartBaseName = os.path.join(restartDir, "yeevortex-xy-%i" % nRadial)
@@ -480,7 +481,7 @@ else:
 # If requested, write out the state in a global ordering to a file.
 #-------------------------------------------------------------------------------
 if outputFile != "None":
-    outputFile = os.path.join(dataDir, outputFile)
+    outputFile = os.path.join(baseDir, outputFile)
     from SpheralGnuPlotUtilities import multiSort
     P = ScalarField("pressure", nodes)
     nodes.pressure(P)
