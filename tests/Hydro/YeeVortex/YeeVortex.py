@@ -118,7 +118,7 @@ commandLine(
     vizTime = 0.1,
     dt = 0.0001,
     dtMin = 1.0e-5, 
-    dtMax = 0.1,
+    dtMax = 1.0,
     dtGrowth = 2.0,
     maxSteps = None,
     statsStep = 10,
@@ -243,21 +243,30 @@ output("    nodes.nodesPerSmoothingScale")
 #-------------------------------------------------------------------------------
 # Set the node properties.
 #-------------------------------------------------------------------------------
+rmaxbound = rmax + rmax/nRadial*nbcrind
+nr1 = nRadial + nbcrind
 if seed == "lattice":
-    res = (2*nRadial, 2*nRadial)
+    generator = GenerateNodeDistribution2d(2*nr1, 2*nr1,
+                                           rho = YeeDensity(xc,yc,gamma,beta,temp_inf),
+                                           distributionType = seed,
+                                           xmin = (-rmaxbound, -rmaxbound),
+                                           xmax = (rmaxbound, rmaxbound),
+                                           rmin = 0.0,
+                                           rmax = rmaxbound,
+                                           theta = 2.0*pi,
+                                           nNodePerh = nPerh,
+                                           SPH = SPH)
 else:
-    res = (nRadial, nRadial)
-
-generator = GenerateNodeDistribution2d(*res,
-                                       rho = YeeDensity(xc,yc,gamma,beta,temp_inf),
-                                       distributionType = seed,
-                                       xmin = (-rmax, -rmax),
-                                       xmax = (rmax, rmax),
-                                       rmin = 0.0,
-                                       rmax = rmax,
-                                       theta = 2.0*pi,
-                                       nNodePerh = nPerh,
-                                       SPH = SPH)
+    generator = GenerateNodeDistribution2d(nr1, nr1,
+                                           rho = YeeDensity(xc,yc,gamma,beta,temp_inf),
+                                           distributionType = seed,
+                                           xmin = (-rmaxbound, -rmaxbound),
+                                           xmax = (rmaxbound, rmaxbound),
+                                           rmin = 0.0,
+                                           rmax = rmaxbound,
+                                           theta = 2.0*pi,
+                                           nNodePerh = nPerh,
+                                           SPH = SPH)
 
 if mpi.procs > 1:
     from VoronoiDistributeNodes import distributeNodes2d
@@ -374,11 +383,10 @@ elif boolCullenViscosity:
 #-------------------------------------------------------------------------------
 # Create boundary conditions.
 #-------------------------------------------------------------------------------
-drbound = nbcrind * rmax/nRadial
 pos = nodes.positions()
 boundNodes = vector_of_int()
 for i in xrange(nodes.numInternalNodes):
-    if pos[i].magnitude() > rmax - drbound:
+    if pos[i].magnitude() > rmax:
         boundNodes.append(i)
 print "Selected %i boundary nodes" % mpi.allreduce(len(boundNodes), mpi.SUM)
 denialPlane = Plane(Vector(-2.0*rmax, 0.0), Vector(1.0, 0.0))  # A fake denial plane since we're working in circles.
@@ -505,6 +513,7 @@ if outputFile != "None":
         epsans = []
         rhoans = []
         velans = []
+        Pans = []
         for i in xrange(len(xprof)):
            r = (Vector(xprof[i],yprof[i]) - Vector(xc, yc)).magnitude()
            r2 = r*r
@@ -513,11 +522,12 @@ if outputFile != "None":
            xci = xprof[i] - xc
            velxans = vel_infx-yci*exp((1.0-r2)*0.5)*beta/(2.0*pi)
            velyans = vel_infy+xci*exp((1.0-r2)*0.5)*beta/(2.0*pi)
+           rhoi = temp**(1.0/(gamma-1.0))
            
-           #epsans.append(pow(temp,gamma/(gamma-1.0))/(gamma-1.0))
            epsans.append(temp/(gamma-1.0))
-           rhoans.append(pow(temp,1.0/(gamma-1.0)))
+           rhoans.append(rhoi)
            velans.append(Vector(velxans,velyans).magnitude())
+           Pans.append(temp*rhoi)
         L1rho = Pnorm(rhoprof, rprof, rhoans).pnorm(1, rmin=0.0, rmax=rmaxnorm)
         L2rho = Pnorm(rhoprof, rprof, rhoans).pnorm(2, rmin=0.0, rmax=rmaxnorm)
         Linfrho = Pnorm(rhoprof, rprof, rhoans).pnorm("inf", rmin=0.0, rmax=rmaxnorm)
@@ -527,9 +537,12 @@ if outputFile != "None":
         L1vel = Pnorm(vprof, rprof, velans).pnorm(1, rmin=0.0, rmax=rmaxnorm)
         L2vel = Pnorm(vprof, rprof, velans).pnorm(2, rmin=0.0, rmax=rmaxnorm)
         Linfvel = Pnorm(vprof, rprof, velans).pnorm("inf", rmin=0.0, rmax=rmaxnorm)
+        L1P = Pnorm(Pprof, rprof, Pans).pnorm(1, rmin=0.0, rmax=rmaxnorm)
+        L2P = Pnorm(Pprof, rprof, Pans).pnorm(2, rmin=0.0, rmax=rmaxnorm)
+        LinfP = Pnorm(Pprof, rprof, velans).pnorm("inf", rmin=0.0, rmax=rmaxnorm)
         with open("converge-CRK-%s.txt" % CRKSPH, "a") as myfile:
-            myfile.write(("#" + 9*"%16s\t " + "%16s\n") % ("nRadial", "L1rho", "L1eps", "L1vel", "L2rho", "L2eps", "L2vel", "Linfrho", "Linfeps", "Linfvel"))
-            myfile.write((9*"%16s\t " + "%16s\n") % (nRadial, L1rho, L1eps, L1vel, L2rho, L2eps, L2vel, Linfrho, Linfeps, Linfvel))
+            myfile.write(("#" + 12*"%16s\t " + "%16s\n") % ("nRadial", "L1rho", "L1eps", "L1vel", "L2rho", "L2eps", "L2vel", "Linfrho", "Linfeps", "Linfvel", "L1P", "L2P", "LinfP"))
+            myfile.write((12*"%16s\t " + "%16s\n") % (nRadial, L1rho, L1eps, L1vel, L2rho, L2eps, L2vel, Linfrho, Linfeps, Linfvel, L1P, L2P, LinfP))
         f = open(outputFile, "w")
         f.write(("# " + 19*"%15s " + "\n") % ("r", "x", "y", "rho", "P", "v", "eps", "h", "mortonOrder", "rhoans", "epsans", "velans",
                                               "x_uu", "y_uu", "rho_uu", "P_uu", "v_uu", "eps_uu", "h_uu"))
