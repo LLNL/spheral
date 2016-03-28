@@ -3,17 +3,14 @@
 #include "headers.hh"
 namespace FractalSpace
 {
-  void node_groups_struct(Fractal_Memory& mem)
+  void node_groups_struct(Fractal_Memory& mem,vector <int>& counts)
   {
     static int COUNTER=0;
     int FractalNodes=mem.p_mess->FractalNodes;
     int FractalRank=mem.p_mess->FractalRank;
     int RANK=-1;
     MPI_Comm_rank(MPI_COMM_WORLD,&RANK);
-    bool Ranky = RANK == 21;
-    Ranky=true;
-    if(Ranky)
-      cerr << " Enter Node Groups A " << RANK << endl;
+    cerr << " Enter Node Groups A " << RANK << endl;
     mem.p_mess->Full_Stop_Do_Not_Argue();
     vector <int> counts_in(FractalNodes);
     vector <int> counts_out(FractalNodes,0);
@@ -24,23 +21,14 @@ namespace FractalSpace
     bool tryit=mem.p_mess->IAmAHypreNode;
     for(int FR : mem.Touchy)
       {
-	cerr << " Touchy a " << RANK << " " << FR << endl;
+	cerr << " Touchy a " << COUNTER << " " << RANK << " " << FR << endl;
 	if(tryit && FR > FractalRank)
 	  {
 	    dataI_in.push_back(FR);
-	    cerr << " Touchy b " << RANK << " " << FR << endl;
+	    cerr << " Touchy b " << COUNTER << " " << RANK << " " << FR << endl;
 	  }
       }
     int ss=dataI_in.size();
-    int count=tryit ? 1:0;
-    vector <int>counts(FractalNodes,0);
-    if(Ranky)
-      cerr << " Enter Node Groups B " << RANK << endl;
-    mem.p_mess->Full_Stop_Do_Not_Argue();
-    mem.p_mess->How_Many_On_Nodes(count,counts);
-    if(Ranky)
-      cerr << " Enter Node Groups C " << RANK << endl;
-    mem.p_mess->Full_Stop_Do_Not_Argue();
     for(int FR=0;FR<FractalNodes;FR++)
       {
 	if(tryit && counts[FR] > 0)
@@ -102,8 +90,7 @@ namespace FractalSpace
 	{
 	  mem.p_mess->Hranks.push_back(FR);
 	  mem.p_mess->IHranks[FR]=mem.p_mess->Hranks.size()-1;
-	  if(Ranky)
-	    cerr << " NODES A " << RANK << " "  << FR << " " << mem.p_mess->IHranks[FR] << endl;
+	  cerr << " NODES A " << COUNTER << " " << RANK << " "  << FR << " " << mem.p_mess->IHranks[FR] << endl;
 	}
     mem.p_mess->HypreNodes=mem.p_mess->Hranks.size();
     COUNTER++;
