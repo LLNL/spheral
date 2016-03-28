@@ -113,15 +113,18 @@ namespace FractalSpace
   }
   void Point::get_pos_point(vector <int>& pos) const
   {
-//     pos=pos_point;
-    if(pos.size() < 3)
-      pos.resize(3);
-    std::copy(pos_point,pos_point+3,pos.begin());
+    pos.assign(pos_point.begin(),pos_point.begin()+3);
+    // pos=pos_point;
+    // if(pos.size() < 3)
+    //   pos.resize(3);
+    // std::copy(pos_point,pos_point+3,pos.begin());
   }
   void Point::set_pos_point(const vector <int>& pos)
   {
-//     pos_point=pos;
-    std::copy(pos.begin(),pos.begin()+3,pos_point);
+    // for(int p : pos)
+    for(int ni : {0,1,2})
+      pos_point[ni]=pos[ni];
+    // pos_point.assign(pos.begin(),pos.begin()+3);
   }
   void Point::set_pos_point(const int& x,const int& y,const int& z)
   {
@@ -324,14 +327,17 @@ namespace FractalSpace
   void Point::get_force_point(vector <double>& force) const
   {
 //     force=force_point;
-    if(force.size() < 3)
-      force.resize(3);
-    std::copy(force_point,force_point+3,force.begin());
+    force.assign(force_point.begin(),force_point.begin()+3);
+    // if(force.size() < 3)
+    //   force.resize(3);
+    // std::copy(force_point,force_point+3,force.begin());
   }
   void Point::set_force_point(vector <double>& force)
   {
 //     force_point=force;
-    std::copy(force.begin(),force.begin()+3,force_point);
+    for(int ni : {0,1,2})
+      force_point[ni]=force[ni];
+    // std::copy(force.begin(),force.begin()+3,force_point);
   }
   double Point::get_force_point_x() const
   {
@@ -459,14 +465,17 @@ namespace FractalSpace
   void Point::get_point_ud(vector <Point*>& point_6) const
   {
 //     point_6=point_ud;
-    if(point_6.size() < 6)
-      point_6.resize(6);
-    std::copy(point_ud,point_ud+6,point_6.begin());
+    point_6.assign(point_ud.begin(),point_ud.begin()+6);
+    // if(point_6.size() < 6)
+    //   point_6.resize(6);
+    // std::copy(point_ud,point_ud+6,point_6.begin());
   }
   void Point::set_point_ud(vector <Point*>& point_6)
   {
 //     point_ud=point_6;
-    std::copy(point_6.begin(),point_6.begin()+6,point_ud);
+    for(int ni : {0,1,2,3,4,5})
+      point_ud[ni]=point_6[ni];
+    // std::copy(point_6.begin(),point_6.begin()+6,point_ud);
   }
   Point* Point::get_point_up_x() const
   {

@@ -29,11 +29,14 @@ namespace FractalSpace
     double potential_point;
     double density_point;
 //     vector <int> pos_point;
-    int* pos_point;
+    // int* pos_point;
+    array <int,3> pos_point;
 //     vector <Point*> point_ud;
-    Point** point_ud;
-//     vector <double>force_point;
-    double* force_point;
+    // Point** point_ud;
+    array <Point*,6> point_ud;
+    //     vector <double>force_point;
+    // double* force_point;
+    array <double,3> force_point;
     vector <double>force_shear_point;
 //     double* force_shear_point;
         
@@ -82,19 +85,22 @@ namespace FractalSpace
 //       force_point(3,0.0)
     {
 //       force_shear_point=0;
-      point_ud= new Point*[6];
-      std::fill(point_ud,point_ud+6,nothing);
-      pos_point= new int[3];
-      std::fill(pos_point,pos_point+3,-1);
-      force_point= new double[3];
-      std::fill(force_point,force_point+3,0.0);
+      // point_ud= new Point*[6];
+      point_ud.fill(nothing);
+      // std::fill(point_ud,point_ud+6,nothing);
+      // pos_point= new int[3];
+      pos_point.fill(-1);
+      // std::fill(pos_point,pos_point+3,-1);
+      // force_point= new double[3];
+      force_point.fill(0.0);
+      // std::fill(force_point,force_point+3,0.0);
       number_points++;
     }
     ~Point()
     {    
-      delete [] pos_point;
-      delete [] point_ud;
-      delete [] force_point;
+      // delete [] pos_point;
+      // delete [] point_ud;
+      // delete [] force_point;
 //       if(force_shear_point != 0)
 // 	delete [] force_shear_point;
       number_points--;
