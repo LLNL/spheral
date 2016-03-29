@@ -89,7 +89,7 @@ commandLine(seed = "lattice",
             gradhCorrection = True,
             correctVelocityGradient = True,
 
-            restoreCycle = None,
+            restoreCycle = -1,
             restartStep = 1000,
 
             graphics = True,
@@ -172,12 +172,6 @@ if mpi.rank == 0:
 mpi.barrier()
 
 #-------------------------------------------------------------------------------
-# If we're restarting, find the set of most recent restart files.
-#-------------------------------------------------------------------------------
-if restoreCycle is None:
-    restoreCycle = findLastRestart(restartBaseName)
-
-#-------------------------------------------------------------------------------
 # Material properties.
 #-------------------------------------------------------------------------------
 eos = GammaLawGasMKS(gamma, mu)
@@ -206,12 +200,13 @@ nodes1 = makeFluidNodeList("nodes1", eos,
 #-------------------------------------------------------------------------------
 # Set the node properties.
 #-------------------------------------------------------------------------------
-pos = nodes1.positions()
-vel = nodes1.velocity()
-mass = nodes1.mass()
-eps = nodes1.specificThermalEnergy()
-H = nodes1.Hfield()
-if restoreCycle is None:
+if seed.lower() == "icosahedral":
+    generator = GenerateIcosahedronMatchingProfile3d(nx, # Sets nradial
+                                                     rho0, 
+                                                     rmin = 0.0,
+                                                     rmax = 1.0,
+                                                     nNodePerh = nPerh)
+else:
     generator = GenerateNodeDistribution3d(nx, ny, nz,
                                            rho0, seed,
                                            xmin = (0.0, 0.0, 0.0),
@@ -221,57 +216,64 @@ if restoreCycle is None:
                                            nNodePerh = nPerh,
                                            SPH = (not ASPH))
 
-    if mpi.procs > 1:
-        from VoronoiDistributeNodes import distributeNodes3d
-    else:
-        from DistributeNodes import distributeNodes3d
+if mpi.procs > 1:
+    from VoronoiDistributeNodes import distributeNodes3d
+else:
+    from DistributeNodes import distributeNodes3d
 
-    distributeNodes3d((nodes1, generator))
-    output("mpi.reduce(nodes1.numInternalNodes, mpi.MIN)")
-    output("mpi.reduce(nodes1.numInternalNodes, mpi.MAX)")
-    output("mpi.reduce(nodes1.numInternalNodes, mpi.SUM)")
+distributeNodes3d((nodes1, generator))
+output("mpi.reduce(nodes1.numInternalNodes, mpi.MIN)")
+output("mpi.reduce(nodes1.numInternalNodes, mpi.MAX)")
+output("mpi.reduce(nodes1.numInternalNodes, mpi.SUM)")
 
-    # Set the point source of energy.
-    Esum = 0.0
-    if smoothSpike or topHatSpike:
-        Wsum = 0.0
-        for nodeID in xrange(nodes1.numInternalNodes):
-            Hi = H[nodeID]
-            etaij = (Hi*pos[nodeID]).magnitude()
-            if smoothSpike:
-                Wi = WT.kernelValue(etaij/smoothSpikeScale, 1.0)
+# Set the point source of energy.
+if seed != "icosahedral":
+    Espike /= 8.0  # Doing an octant
+pos = nodes1.positions()
+vel = nodes1.velocity()
+mass = nodes1.mass()
+eps = nodes1.specificThermalEnergy()
+H = nodes1.Hfield()
+Esum = 0.0
+if smoothSpike or topHatSpike:
+    Wsum = 0.0
+    for nodeID in xrange(nodes1.numInternalNodes):
+        Hi = H[nodeID]
+        etaij = (Hi*pos[nodeID]).magnitude()
+        if smoothSpike:
+            Wi = WT.kernelValue(etaij/smoothSpikeScale, 1.0)
+        else:
+            if etaij < smoothSpikeScale*kernelExtent:
+                Wi = 1.0
             else:
-                if etaij < smoothSpikeScale*kernelExtent:
-                    Wi = 1.0
-                else:
-                    Wi = 0.0
-            Ei = Wi*Espike/8.0
-            epsi = Ei/mass[nodeID]
-            eps[nodeID] = epsi
-            Wsum += Wi
-        Wsum = mpi.allreduce(Wsum, mpi.SUM)
-        assert Wsum > 0.0
-        for nodeID in xrange(nodes1.numInternalNodes):
-            eps[nodeID] /= Wsum
-            Esum += eps[nodeID]*mass[nodeID]
-            eps[nodeID] += eps0
-    else:
-        i = -1
-        rmin = 1e50
-        for nodeID in xrange(nodes1.numInternalNodes):
-            rij = pos[nodeID].magnitude()
-            if rij < rmin:
-                i = nodeID
-                rmin = rij
-            eps[nodeID] = eps0
-        rminglobal = mpi.allreduce(rmin, mpi.MIN)
-        if fuzzyEqual(rmin, rminglobal):
-            assert i >= 0 and i < nodes1.numInternalNodes
-            eps[i] += Espike/8.0/mass[i]
-            Esum += Espike/8.0
-    Eglobal = mpi.allreduce(Esum, mpi.SUM)
-    print "Initialized a total energy of", Eglobal
-    assert fuzzyEqual(Eglobal, Espike/8.0)
+                Wi = 0.0
+        Ei = Wi*Espike
+        epsi = Ei/mass[nodeID]
+        eps[nodeID] = epsi
+        Wsum += Wi
+    Wsum = mpi.allreduce(Wsum, mpi.SUM)
+    assert Wsum > 0.0
+    for nodeID in xrange(nodes1.numInternalNodes):
+        eps[nodeID] /= Wsum
+        Esum += eps[nodeID]*mass[nodeID]
+        eps[nodeID] += eps0
+else:
+    i = -1
+    rmin = 1e50
+    for nodeID in xrange(nodes1.numInternalNodes):
+        rij = pos[nodeID].magnitude()
+        if rij < rmin:
+            i = nodeID
+            rmin = rij
+        eps[nodeID] = eps0
+    rminglobal = mpi.allreduce(rmin, mpi.MIN)
+    if fuzzyEqual(rmin, rminglobal):
+        assert i >= 0 and i < nodes1.numInternalNodes
+        eps[i] += Espike/mass[i]
+        Esum += Espike
+Eglobal = mpi.allreduce(Esum, mpi.SUM)
+print "Initialized a total energy of", Eglobal
+assert fuzzyEqual(Eglobal, Espike)
 
 #-------------------------------------------------------------------------------
 # Construct a DataBase to hold our node list
@@ -358,16 +360,17 @@ elif boolCullenViscosity:
 #-------------------------------------------------------------------------------
 # Create boundary conditions.
 #-------------------------------------------------------------------------------
-xPlane0 = Plane(Vector(0, 0, 0), Vector(1, 0, 0))
-yPlane0 = Plane(Vector(0, 0, 0), Vector(0, 1, 0))
-zPlane0 = Plane(Vector(0, 0, 0), Vector(0, 0, 1))
-xbc0 = ReflectingBoundary(xPlane0)
-ybc0 = ReflectingBoundary(yPlane0)
-zbc0 = ReflectingBoundary(zPlane0)
+if seed.lower() != "icosahedral":
+    xPlane0 = Plane(Vector(0, 0, 0), Vector(1, 0, 0))
+    yPlane0 = Plane(Vector(0, 0, 0), Vector(0, 1, 0))
+    zPlane0 = Plane(Vector(0, 0, 0), Vector(0, 0, 1))
+    xbc0 = ReflectingBoundary(xPlane0)
+    ybc0 = ReflectingBoundary(yPlane0)
+    zbc0 = ReflectingBoundary(zPlane0)
 
-for p in packages:
-    for bc in (xbc0, ybc0, zbc0):
-        p.appendBoundary(bc)
+    for p in packages:
+        for bc in (xbc0, ybc0, zbc0):
+            p.appendBoundary(bc)
 
 #-------------------------------------------------------------------------------
 # Construct a time integrator, and add the one physics package.
