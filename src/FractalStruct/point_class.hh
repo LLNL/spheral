@@ -20,26 +20,18 @@ namespace FractalSpace
     bool edge_point;
     bool mass_point;
     int number_in_list;
-//     int which_Slice;
-    //
-    int ij_number;
-    vector <int>ij_ud;
+    // int ij_number;
+    // vector <int>ij_ud;
     vector <bool> eureka_adj;
     vector <bool> eureka_dau;
     double potential_point;
     double density_point;
-//     vector <int> pos_point;
-    int* pos_point;
-//     vector <Point*> point_ud;
-    Point** point_ud;
-//     vector <double>force_point;
-    double* force_point;
+    array <int,3> pos_point;
+    array <Point*,6> point_ud;
+    array <double,3> force_point;
     vector <double>force_shear_point;
-//     double* force_shear_point;
-        
   public:
     vector <Particle*> list_particles;
-    //    vector <Particle*> list_other_particles;
     static ofstream* p_FILE;
     static Point* nothing;
     static int number_points;
@@ -77,27 +69,55 @@ namespace FractalSpace
       number_in_list(-1),
       potential_point(0.0),
       density_point(0.0)
-//       pos_point(3,-1),
-//       point_ud(6,nothing),
-//       force_point(3,0.0)
     {
-//       force_shear_point=0;
-      point_ud= new Point*[6];
-      std::fill(point_ud,point_ud+6,nothing);
-      pos_point= new int[3];
-      std::fill(pos_point,pos_point+3,-1);
-      force_point= new double[3];
-      std::fill(force_point,force_point+3,0.0);
+      point_ud.fill(nothing);
+      pos_point.fill(-1);
+      force_point.fill(0.0);
       number_points++;
     }
     ~Point()
     {    
-      delete [] pos_point;
-      delete [] point_ud;
-      delete [] force_point;
-//       if(force_shear_point != 0)
-// 	delete [] force_shear_point;
       number_points--;
+    }
+    bool operator<(const Point* pb)
+    {
+      int dif=get_pos_point_z()-pb->get_pos_point_z();
+      if(dif != 0)
+	return dif < 0;
+      dif=get_pos_point_y()-pb->get_pos_point_y();
+      if(dif != 0)
+	return dif < 0;
+      return (get_pos_point_x()-pb->get_pos_point_x()) < 0;
+    }
+    bool operator==(const Point* pb)
+    {
+      int dif=get_pos_point_z()-pb->get_pos_point_z();
+      if(dif != 0)
+	return false;
+      dif=get_pos_point_y()-pb->get_pos_point_y();
+      if(dif != 0)
+	return false;
+      return (get_pos_point_x()-pb->get_pos_point_x()) == 0;
+    }
+    bool operator!=(const Point* pb)
+    {
+      int dif=get_pos_point_z()-pb->get_pos_point_z();
+      if(dif != 0)
+	return true;
+      dif=get_pos_point_y()-pb->get_pos_point_y();
+      if(dif != 0)
+	return true;
+      return (get_pos_point_x()-pb->get_pos_point_x()) != 0;
+    }
+    bool operator>(const Point* pb)
+    {
+      int dif=get_pos_point_z()-pb->get_pos_point_z();
+      if(dif != 0)
+	return dif > 0;
+      dif=get_pos_point_y()-pb->get_pos_point_y();
+      if(dif != 0)
+	return dif > 0;
+      return (get_pos_point_x()-pb->get_pos_point_x()) > 0;
     }
     Point* get_point_up_x_0() const;
     Point* get_point_up_y_0() const;
@@ -152,15 +172,15 @@ namespace FractalSpace
     void set_passive_point(const bool& value);
     bool get_really_passive() const;
     void set_really_passive(const bool& value);
-    void set_ij_number(const int& count);
-    int get_ij_number() const;
+    // void set_ij_number(const int& count);
+    // int get_ij_number() const;
     void really_clear(vector <Point*>& die);
-    void set_ij_neighbors();
-    void set_ij_neighbors(vector <int>& Box);
-    void get_ij_neighbors(vector <int>& ijud) const;
-    int get_ij_neighbors_size() const;
-    void copy_ij_index(const int& ijc);
-    void get_hypre_info(int& ij_index,vector <int>& ijud,double& rho,double& pot) const;
+    // void set_ij_neighbors();
+    // void set_ij_neighbors(vector <int>& Box);
+    // void get_ij_neighbors(vector <int>& ijud) const;
+    // int get_ij_neighbors_size() const;
+    // void copy_ij_index(const int& ijc);
+    // void get_hypre_info(int& ij_index,vector <int>& ijud,double& rho,double& pot) const;
     bool get_it_is_high() const;
     void set_it_is_high(const bool& value);
     void set_passive_low();

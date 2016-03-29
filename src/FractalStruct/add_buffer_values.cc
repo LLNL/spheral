@@ -6,78 +6,80 @@ namespace FractalSpace
   void add_buffer_values(Fractal_Memory& mem,int level,
 			 vector < vector<int> >& SBoxes,vector < vector<Point*> >& SPoints)
   {
-    int FractalNodes=mem.FractalNodes;
+    int HypreNodes=mem.p_mess->HypreNodes;
     int spacing=Misc::pow(2,mem.p_fractal->get_level_max()-level);
-    vector <int> counts_in(FractalNodes);
-    vector <int> counts_out(FractalNodes,0);
+    // for(int B=0;B<SBoxes.size();B++)
+    //   Misc::times(SBoxes[B],spacing);
+    vector <int> counts_in(HypreNodes);
+    vector <int> counts_out(HypreNodes,0);
     vector <int> dataI_in;
     vector <double> dataR_in;
-    vector < vector <int> > dataI_out(FractalNodes);
-    vector < vector <double> > dataR_out(FractalNodes);
+    vector < vector <int> > dataI_out(HypreNodes);
+    vector < vector <double> > dataR_out(HypreNodes);
     vector <int>pos(3);
-    for(int TW=0;TW<mem.Touchy.size();TW++)
+    // for(int TW=0;TW<mem.Touchy.size();TW++)
+    for(int FR : mem.Touchy)
       {
-	int FR=mem.Touchy[TW];
+	// int FR=mem.Touchy[TW];
+	int HR=mem.p_mess->IHranks[FR];
+	if(HR < 0 )
+	  continue;
 	vector <int>TBBOX=mem.BBoxesLev[FR][level];
-	for(int B=0;B<SBoxes.size();B++)
+	// for(int B=0;B<SBoxes.size();B++)
+	int B=0;
+	for(vector <int>& SB : SBoxes)
 	  {
-	    if(overlap_boxes(TBBOX,SBoxes[B]))
+	    if(overlap_boxes(TBBOX,SB))
 	      {
-		dataI_out[FR].push_back(B);
-		dataI_out[FR].push_back(SBoxes[B][0]);
-		dataI_out[FR].push_back(SBoxes[B][1]);
-		dataI_out[FR].push_back(SBoxes[B][2]);
-		dataI_out[FR].push_back(SBoxes[B][3]);
-		dataI_out[FR].push_back(SBoxes[B][4]);
-		dataI_out[FR].push_back(SBoxes[B][5]);
-		counts_out[FR]++;
+		dataI_out[HR].push_back(B);
+		dataI_out[HR].insert(dataI_out[HR].end(),SB.begin(),SB.end());
+		counts_out[HR]++;
 	      }
+	    B++;
 	  }
       }
     int how_manyI=-1;
     int how_manyR=-1;
     int integers=7;
     int doubles=0;
-    mem.p_mess->Send_Data_Some_How(9,counts_out,counts_in,integers,doubles,
+    mem.p_mess->Send_Data_Some_How(9,mem.p_mess->HypreWorld,counts_out,counts_in,integers,doubles,
 				   dataI_out,dataI_in,how_manyI,
 				   dataR_out,dataR_in,how_manyR);
     counts_out.clear();
     dataI_out.clear();
     dataR_out.clear();
 
-    dataI_out.resize(FractalNodes);
-    dataR_out.resize(FractalNodes);
-    counts_out.assign(FractalNodes,0);
+    dataI_out.resize(HypreNodes);
+    dataR_out.resize(HypreNodes);
+    counts_out.assign(HypreNodes,0);
     int counterI=0;
-    for(int FR=0;FR<FractalNodes;FR++)
+    auto pcounter=dataI_in.begin();
+    for(int HR=0;HR<HypreNodes;HR++)
       {
+	int FR=mem.p_mess->Hranks[HR];
 	vector <int>TBBOX;
 	vector <int>Box_coords(6);
 	vector <int>Blist;
-	for(int c=0;c<counts_in[FR];c++)
+	for(int c=0;c<counts_in[HR];c++)
 	  {
 	    if(c == 0)
 	      {
 		TBBOX=mem.BBoxesLev[FR][level];
 		Blist.clear();
-		for(int B=0;B<SBoxes.size();B++)
-		  {
-		    if(overlap_boxes(TBBOX,SBoxes[B]))
-		      Blist.push_back(B);
-		  }
+		// for(int B=0;B<SBoxes.size();B++)
+		int B=0;
+		for(auto& SB : SBoxes)
+		  if(overlap_boxes(TBBOX,SB))
+		    Blist.push_back(B);
+		B++;
 	      }
-	    int Box_number=dataI_in[counterI];
-	    Box_coords[0]=dataI_in[counterI+1];
-	    Box_coords[1]=dataI_in[counterI+2];
-	    Box_coords[2]=dataI_in[counterI+3];
-	    Box_coords[3]=dataI_in[counterI+4];
-	    Box_coords[4]=dataI_in[counterI+5];
-	    Box_coords[5]=dataI_in[counterI+6];
+	    int Box_number=*pcounter;
+	    std::copy(pcounter+1,pcounter+7,Box_coords.begin());
 	    for(int B=0;B<Blist.size();B++)
 	      {
 		if(!overlap_boxes(Box_coords,SBoxes[Blist[B]]))
 		  continue;
-		for(vector <Point*>::const_iterator p_itr=SPoints[Blist[B]].begin();p_itr<SPoints[Blist[B]].end();p_itr++)
+		for(vector <Point*>::const_iterator p_itr=SPoints[Blist[B]].begin();p_itr!=SPoints[Blist[B]].end();p_itr++)
 		  {
 		    Point* p=*p_itr;
 		    p->get_pos_point(pos);
@@ -89,34 +91,34 @@ namespace FractalSpace
 			p1->get_pos_point(pos);
 			if(!vector_in_box(pos,Box_coords))
 			  continue;
-			dataI_out[FR].push_back(Box_number);
-			dataI_out[FR].push_back(6*Misc::coordinate(pos,Box_coords,spacing) + (ni % 2 == 0 ? ni+1:ni-1));
-			dataR_out[FR].push_back(p1->get_potential_point());
-			counts_out[FR]++;
+			dataI_out[HR].push_back(Box_number);
+			dataI_out[HR].push_back(6*Misc::coordinate(pos,Box_coords,spacing) + (ni % 2 == 0 ? ni+1:ni-1));
+			dataR_out[HR].push_back(p1->get_potential_point());
+			counts_out[HR]++;
 			break;
 		      }
 		  }
 	      }
-	    counterI+=7;
+	    std::advance(pcounter,7);
 	  }
       }
     dataI_in.clear();
     dataR_in.clear();
-    counts_in.assign(FractalNodes,0);
+    counts_in.assign(HypreNodes,0);
     integers=2;
     doubles=1;
     how_manyI=-1;
     how_manyR=-1;
-    mem.p_mess->Send_Data_Some_How(10,counts_out,counts_in,integers,doubles,
+    mem.p_mess->Send_Data_Some_How(10,mem.p_mess->HypreWorld,counts_out,counts_in,integers,doubles,
 				   dataI_out,dataI_in,how_manyI,
 				   dataR_out,dataR_in,how_manyR);
     counts_out.clear();
     dataI_out.clear();
     dataR_out.clear();
     counterI=0;
-    for(int FR=0;FR<FractalNodes;FR++)
+    for(int HR=0;HR<HypreNodes;HR++)
       {
-	for(int c=0;c<counts_in[FR];c++)
+	for(int c=0;c<counts_in[HR];c++)
 	  {
 	    int B=dataI_in[counterI];
 	    int number=dataI_in[counterI+1]/6;
@@ -125,5 +127,7 @@ namespace FractalSpace
 	    counterI+=2;
 	  }
       }
+    for(int B=0;B<SBoxes.size();B++)
+      Misc::divide(SBoxes[B],spacing);
   }
 }

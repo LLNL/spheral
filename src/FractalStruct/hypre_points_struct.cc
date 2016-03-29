@@ -6,10 +6,9 @@ namespace FractalSpace
   void hypre_points_struct(Fractal_Memory& mem,vector <Group*>& groups,
 			   vector < vector <Point*> >& hypre_points,bool buffer_groups,int level)
   {
-//     int RANK=-1;
-//     MPI_Comm_rank(MPI_COMM_WORLD,&RANK);
-//     bool Ranky = RANK == 21;
-//     Ranky=true;
+    static int _COUNTER=-1;
+    int RANK=-1;
+    MPI_Comm_rank(MPI_COMM_WORLD,&RANK);
     vector <int>pos(3);
     vector <int> BOX=mem.BoxesLev[mem.p_mess->FractalRank][level];
     hypre_points.clear();
@@ -27,14 +26,12 @@ namespace FractalSpace
 	      }
 	    if(!hypre_points[ng].empty())
 	      sort3_list(hypre_points[ng],0);
-// 	    if(Ranky)
-// 	      {
-// 		cerr << " GROUPA " << RANK << " " << pgroup->list_points.size();
-// 		cerr << " GROUPS " << ng << " " << hypre_points[ng].size() << endl;
-// 	      }
+	    else
+	      hypre_points.resize(--ng+1);
 	    ng++;
 	  }
       }
-    cerr << " GroupTotal " << RANK << " " << ng << endl;
+    cerr << " GroupTotal " << RANK << " " << ng << " " << _COUNTER << endl;
+    _COUNTER++;
   }
 }

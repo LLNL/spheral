@@ -12,9 +12,13 @@ namespace FractalSpace
   void hypre_solve_struct(Fractal_Memory& mem,int level,
 			  vector < vector<int> >& SBoxes,vector < vector<Point*> >& SPoints)
   {
+    static int _COUNTER=0;
+    int spacing=Misc::pow(2,mem.p_fractal->get_level_max()-level);
     int FractalRank=mem.p_mess->FractalRank;
     int HypreRank=mem.p_mess->HypreRank;
-    cerr << " HYPRE RES 0 " << FractalRank << " " << HypreRank << " " << SBoxes.size() << " " << SPoints.size() << endl;
+    int HypreNodes=mem.p_mess->HypreNodes;
+    cerr << " HYPRE RES 0 " << FractalRank << " "  << _COUNTER << " " << HypreNodes << " " << HypreRank << " " << SBoxes.size() << " " << SPoints.size() << endl;
+    bool Ranky=FractalRank == 31;
     HYPRE_StructGrid     grid;
     HYPRE_StructStencil  stencil;
     HYPRE_StructMatrix   Amatrix;
@@ -26,8 +30,6 @@ namespace FractalSpace
     double pi = 4.0*atan(1.0);
     int length=mem.p_fractal->get_grid_length();
     double g_c=4.0*pi/static_cast<double>(length*length)*pow(4.0,-level);
-//     int lowerBOX[3];
-//     int upperBOX[3];
     vector < vector <int> > lowerBOX(SBoxes.size());
     vector < vector <int> > upperBOX(SBoxes.size());
     vector <int> VOL(SBoxes.size());
@@ -36,13 +38,11 @@ namespace FractalSpace
     for(vector <int>& SB : SBoxes)
       {
 	int ni=0;
-	lowerBOX[B].resize(3);
-	upperBOX[B].resize(3);
 	VOL[B]=1;
 	for(int ni2=0;ni2<6;ni2+=2)
 	  {
-	    lowerBOX[B][ni]=SB[ni2];
-	    upperBOX[B][ni]=SB[ni2+1]-1;
+	    lowerBOX[B].push_back(SB[ni2]/spacing);
+	    upperBOX[B].push_back(SB[ni2+1]/spacing);
 	    VOL[B]*=upperBOX[B][ni]-lowerBOX[B][ni]+1;
 	    ni++;
 	  }
@@ -144,7 +144,7 @@ namespace FractalSpace
     double final_res_norm=-1.0;
     HYPRE_StructPCGGetNumIterations(solver,&num_iterations );
     HYPRE_StructPCGGetFinalRelativeResidualNorm( solver, &final_res_norm );
-    cerr << " HYPRE RES A " << FractalRank << " " << HypreRank << " " << num_iterations << " " << final_res_norm << endl;
+    cerr << " HYPRE RES A " << FractalRank << " " << _COUNTER << " " << HypreRank << " " << HypreNodes << " " << num_iterations << " " << final_res_norm << endl;
     HYPRE_StructPCGDestroy(solver);
     HYPRE_StructPFMGDestroy(precond);
     HYPRE_StructGridDestroy(grid);
@@ -157,15 +157,13 @@ namespace FractalSpace
 	vector <double>pot_values;
 	pot_values.resize(VOL[B]);
 	HYPRE_StructVectorGetBoxValues(pot,&(*lowerBOX[B].begin()),&(*upperBOX[B].begin()),&(*pot_values.begin()));
-	vector <Point*>::iterator p_itr=SP.begin();
-	for (int i = 0; i < VOL[B]; i++)
-	  {
-	    (*p_itr)->set_potential_point(pot_values[i]);
-	    p_itr++;
-	  }
+	int i=0;
+	for(Point* &p : SP)
+	  p->set_potential_point(pot_values[i++]);
 	pot_values.clear();
 	B++;
       }
     HYPRE_StructVectorDestroy(pot);
+    _COUNTER++;
   }
 }
