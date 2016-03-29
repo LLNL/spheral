@@ -10,7 +10,6 @@ namespace FractalSpace
     int FractalRank=mem.p_mess->FractalRank;
     int RANK=-1;
     MPI_Comm_rank(MPI_COMM_WORLD,&RANK);
-    cerr << " Enter Node Groups A " << RANK << endl;
     mem.p_mess->Full_Stop_Do_Not_Argue();
     vector <int> counts_in(FractalNodes);
     vector <int> counts_out(FractalNodes,0);

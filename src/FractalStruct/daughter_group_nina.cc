@@ -88,7 +88,7 @@ namespace FractalSpace
 	    assert(p_point);
 	    Point& point=*p_point;
 	    new_group.list_points.push_back(p_point);
-	    point.set_point_to_number(point_counter);
+	    // point.set_point_to_number(point_counter);
 	    point.set_number_in_list(point_counter);
 	    mem.total_points_used++;
 	    int x=h_x+(p%3)*d_point;

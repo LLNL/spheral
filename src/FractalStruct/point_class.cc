@@ -174,14 +174,14 @@ namespace FractalSpace
   {
     real_pointer=i;
   }
-  void Point::set_point_to_number(const int& i)
-  {
-    point_to_number=i;
-  }
-  int Point::get_point_to_number() const
-  {
-    return point_to_number;
-  }
+  // void Point::set_point_to_number(const int& i)
+  // {
+  //   point_to_number=i;
+  // }
+  // int Point::get_point_to_number() const
+  // {
+  //   return point_to_number;
+  // }
   void Point::set_high_number(const int& i)
   {
     high_number=i;

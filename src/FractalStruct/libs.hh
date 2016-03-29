@@ -19,6 +19,7 @@
 #include <random>
 #include <climits>
 #include <array>
+#include <set>
 #include <cerrno>
 #include <sys/stat.h>
 #include "fftw3-mpi.h"

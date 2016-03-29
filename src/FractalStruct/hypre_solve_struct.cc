@@ -17,8 +17,6 @@ namespace FractalSpace
     int FractalRank=mem.p_mess->FractalRank;
     int HypreRank=mem.p_mess->HypreRank;
     int HypreNodes=mem.p_mess->HypreNodes;
-    cerr << " HYPRE RES 0 " << FractalRank << " "  << _COUNTER << " " << HypreNodes << " " << HypreRank << " " << SBoxes.size() << " " << SPoints.size() << endl;
-    bool Ranky=FractalRank == 31;
     HYPRE_StructGrid     grid;
     HYPRE_StructStencil  stencil;
     HYPRE_StructMatrix   Amatrix;
@@ -144,7 +142,6 @@ namespace FractalSpace
     double final_res_norm=-1.0;
     HYPRE_StructPCGGetNumIterations(solver,&num_iterations );
     HYPRE_StructPCGGetFinalRelativeResidualNorm( solver, &final_res_norm );
-    cerr << " HYPRE RES A " << FractalRank << " " << _COUNTER << " " << HypreRank << " " << HypreNodes << " " << num_iterations << " " << final_res_norm << endl;
     HYPRE_StructPCGDestroy(solver);
     HYPRE_StructPFMGDestroy(precond);
     HYPRE_StructGridDestroy(grid);

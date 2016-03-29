@@ -4,7 +4,7 @@ namespace FractalSpace
 {
   class Point{
     int real_pointer;
-    int point_to_number;
+    // int point_to_number;
     int high_number;
     Point* point_pointer;
     Point* p_daughter_point;
@@ -12,7 +12,6 @@ namespace FractalSpace
     Group* p_in_high_group;
     bool inside;
     bool it_is_high;
-    //
     bool found_it;
     bool really_passive;
     bool passive_point;
@@ -20,8 +19,6 @@ namespace FractalSpace
     bool edge_point;
     bool mass_point;
     int number_in_list;
-    // int ij_number;
-    // vector <int>ij_ud;
     vector <bool> eureka_adj;
     vector <bool> eureka_dau;
     double potential_point;
@@ -52,7 +49,7 @@ namespace FractalSpace
     static vector < vector <int> > cefc;
     Point():
       real_pointer(-1),
-      point_to_number(-1),
+      // point_to_number(-1),
       high_number(-1),
       point_pointer(0),
       p_daughter_point(0),
@@ -74,6 +71,19 @@ namespace FractalSpace
       pos_point.fill(-1);
       force_point.fill(0.0);
       number_points++;
+    }
+    Point(const int& x,const int& y,const int& z)
+    {
+      pos_point[0]=x;
+      pos_point[1]=y;
+      pos_point[2]=z;
+    }
+    Point(const int& x,const int& y,const int& z,const double& pot):
+      potential_point(pot)
+    {
+      pos_point[0]=x;
+      pos_point[1]=y;
+      pos_point[2]=z;
     }
     ~Point()
     {    
@@ -162,8 +172,8 @@ namespace FractalSpace
     int get_pos_point(const int& i) const;
     int get_real_pointer() const;
     void set_real_pointer(const int& i);
-    void set_point_to_number(const int& i);
-    int get_point_to_number() const;
+    // void set_point_to_number(const int& i);
+    // int get_point_to_number() const;
     void set_high_number(const int& i);
     int get_high_number() const;
     bool get_inside() const;

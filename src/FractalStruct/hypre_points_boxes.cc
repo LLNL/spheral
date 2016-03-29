@@ -32,13 +32,11 @@ namespace FractalSpace
 	Misc::divide(BOX,spacing);
 	for(int B : {1,3,5})
 	  BOX[B]++;
-	// cerr << " BOXA " << RANK << " " << BOX[0] << " "  << BOX[1] << " "  << BOX[2] << " "  << BOX[3] << " "  << BOX[4] << " "  << BOX[5] << " " << spacing << endl;
 	OcTree* pHypTree=new OcTree();
 	pHypTree->LoadOcTree(BOX,hp,spacing);
 	int TotalPoints=0;
 	int TotalBoxes=0;
 	pHypTree->DisplayTree(TotalPoints,TotalBoxes);
- 	// cerr << " BOXTotal " << RANK << " " << ni++ << " " << hp.size() << " " << TotalPoints << " " << TotalBoxes << " " << spacing << endl;
 	pHypTree->CollectBoxesPoints(SBoxes,SPoints);
 	delete pHypTree;
       }

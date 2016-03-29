@@ -82,7 +82,7 @@ namespace FractalSpace
 		mem.total_points_used++;
 		Point& point=*p_point;
 		group.list_points.push_back(p_point);
-		point.set_point_to_number(point_counter);
+		// point.set_point_to_number(point_counter);
 		point.set_point_pointer(p_point);
 		point.set_real_pointer(0);
 		point.set_pos_point(gridx*misc.zoom,gridy*misc.zoom,gridz*misc.zoom);

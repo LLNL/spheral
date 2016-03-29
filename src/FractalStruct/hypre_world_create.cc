@@ -9,7 +9,6 @@ namespace FractalSpace
     static int _COUNTER=0;
     int RANK=-1;
     MPI_Comm_rank(MPI_COMM_WORLD,&RANK);
-    cerr << " CREATE A " << RANK << " " << buffer_groups << " " << _COUNTER << endl;
     int FractalRank=mem.p_mess->FractalRank;
     int FractalNodes=mem.p_mess->FractalNodes;
     mem.p_mess->IHranks.assign(FractalNodes,-1);
@@ -45,11 +44,8 @@ namespace FractalSpace
 	    mem.Touchy.push_back(FR);
 	  }
       }
-    cerr << " CREATE B " << RANK << " " << buffer_groups << " " << _COUNTER << endl;
     node_groups_struct(mem,counts);
-    cerr << " CREATE C " << RANK << " " << buffer_groups << " " << _COUNTER << endl;
     mem.p_mess->HypreGroupCreate(mem.p_mess->Hranks);
-    cerr << " CREATE D " << RANK << " " << buffer_groups << " " << _COUNTER << endl;
     _COUNTER++;
   }
 }
