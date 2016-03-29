@@ -214,72 +214,72 @@ namespace FractalSpace
   {
     really_passive=value;
   }
-  void Point::set_ij_number(const int& count)
-  {
-    ij_number=count;
-  }
-  int Point::get_ij_number() const
-  {
-    return ij_number;
-  }
+  // void Point::set_ij_number(const int& count)
+  // {
+  //   ij_number=count;
+  // }
+  // int Point::get_ij_number() const
+  // {
+  //   return ij_number;
+  // }
   void Point::really_clear(vector <Point*>& die)
   {
     vector <Point*>temp;
     die.swap(temp);
   }
-  void Point::set_ij_neighbors()
-  {
-    if(!inside || passive_point)
-      {
-	ij_ud.clear();
-	return;
-      }
-    ij_ud.resize(6);
-    for(int ni=0;ni<6;ni++)
-      {
-	assert(!point_ud[ni]->really_passive);
-	ij_ud[ni]=point_ud[ni]->ij_number;
-      }
-  }
-  void Point::set_ij_neighbors(vector <int>& Box)
-  {
-    if(!inside)
-      {
-	ij_ud.clear();
-	return;
-      }
-    if(pos_point[0] > Box[0] && pos_point[0] < Box[1] &&
-       pos_point[1] > Box[2] && pos_point[1] < Box[3] &&
-       pos_point[2] > Box[4] && pos_point[2] < Box[5])
-      {
-	ij_ud.resize(6);
-	for(int ni=0;ni<6;ni++)
-	  ij_ud[ni]=get_point_ud_0(ni)->ij_number;
-	return;
-      }
-    ij_ud.clear();
-    return;
-  }
-  void Point::get_ij_neighbors(vector <int>& ijud) const
-  {
-    ijud=ij_ud;
-  }
-  int Point::get_ij_neighbors_size() const
-  {
-    return ij_ud.size();
-  }
-  void Point::copy_ij_index(const int& ijc)
-  {
-    ij_ud.resize(1);
-    ij_ud[0]=ijc;
-  }
-  void Point::get_hypre_info(int& ij_index,vector <int>& ijud,double& rho,double& pot) const
-  {
-    ij_index=ij_number;
-    ijud=ij_ud;
-    rho=density_point;
-    pot=potential_point;
-  }
+  // void Point::set_ij_neighbors()
+  // {
+  //   if(!inside || passive_point)
+  //     {
+  // 	ij_ud.clear();
+  // 	return;
+  //     }
+  //   ij_ud.resize(6);
+  //   for(int ni=0;ni<6;ni++)
+  //     {
+  // 	assert(!point_ud[ni]->really_passive);
+  // 	ij_ud[ni]=point_ud[ni]->ij_number;
+  //     }
+  // }
+  // void Point::set_ij_neighbors(vector <int>& Box)
+  // {
+  //   if(!inside)
+  //     {
+  // 	ij_ud.clear();
+  // 	return;
+  //     }
+  //   if(pos_point[0] > Box[0] && pos_point[0] < Box[1] &&
+  //      pos_point[1] > Box[2] && pos_point[1] < Box[3] &&
+  //      pos_point[2] > Box[4] && pos_point[2] < Box[5])
+  //     {
+  // 	ij_ud.resize(6);
+  // 	for(int ni=0;ni<6;ni++)
+  // 	  ij_ud[ni]=get_point_ud_0(ni)->ij_number;
+  // 	return;
+  //     }
+  //   ij_ud.clear();
+  //   return;
+  // }
+  // void Point::get_ij_neighbors(vector <int>& ijud) const
+  // {
+  //   ijud=ij_ud;
+  // }
+  // int Point::get_ij_neighbors_size() const
+  // {
+  //   return ij_ud.size();
+  // }
+  // void Point::copy_ij_index(const int& ijc)
+  // {
+  //   ij_ud.resize(1);
+  //   ij_ud[0]=ijc;
+  // }
+  // void Point::get_hypre_info(int& ij_index,vector <int>& ijud,double& rho,double& pot) const
+  // {
+  //   ij_index=ij_number;
+  //   ijud=ij_ud;
+  //   rho=density_point;
+  //   pot=potential_point;
+  // }
   bool Point::get_it_is_high() const
   {
     return it_is_high;
