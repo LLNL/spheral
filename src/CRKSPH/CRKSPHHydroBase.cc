@@ -781,6 +781,13 @@ evaluateDerivatives(const typename Dimension::Scalar time,
       SymTensor& massSecondMomenti = massSecondMoment(nodeListi, i);
       Scalar& worki = workFieldi(i);
 
+      Vector selfforceIi  = weighti*weighti*Pi*W0*(gradAi);  // <- Type I self-interaction. I think there is no Q term here? Dont know what it would be. 
+      if (order != ZerothOrder) {
+        selfforceIi  = weighti*weighti*Pi*W0*(Ai*Bi+gradAi); //For linear RK (quadratic RK is the same)
+      }
+      //DvDti -= selfforceIi/mi;                             //RK I Acceleration 
+      //DvDti = -weighti*Pi*W0*(Ai*Bi+gradAi)/rhoi;                             //RK I Acceleration 
+
       // Get the connectivity info for this node.
       const vector< vector<int> >& fullConnectivity = connectivityMap.connectivityForNode(&nodeList, i);
 
@@ -917,16 +924,18 @@ evaluateDerivatives(const typename Dimension::Scalar time,
               // const Scalar workQj = vij.dot(Qaccj);                                            // SPH
               // const Scalar workQij = 0.5*(workQi + workQj);                                    // SPH
               const Vector Qaccij = 0.5*(rhoi*rhoi*QPiij.first + rhoj*rhoj*QPiij.second).dot(deltagrad);    // CRK
-              const Vector QaccVi = (rhoj*rhoj*QPiij.second-rhoi*rhoi*QPiij.first).dot(gradWj);    // RK Type V
-              const Vector QaccVj = (rhoi*rhoi*QPiij.first-rhoj*rhoj*QPiij.second).dot(gradWi);    // RK Type V
+              const Vector QaccVi = (rhoi*rhoi*QPiij.first-rhoj*rhoj*QPiij.second).dot(gradWj);    // RK Type V
+              const Vector QaccVj = (rhoj*rhoj*QPiij.second-rhoi*rhoi*QPiij.first).dot(gradWi);    // RK Type V
+              const Vector QaccIi = (rhoj*rhoj*QPiij.second).dot(gradWj);    // RK Type I
+              const Vector QaccIj = (rhoi*rhoi*QPiij.first).dot(gradWi);     // RK Type I
      
               // const Vector Qaccij = 0.25*(rhoi + rhoj)*(rhoi*QPiij.first + rhoj*QPiij.second).dot(deltagrad);    // CRK
               // const Vector Qaccij = 0.5*rhoi*rhoj*(QPiij.first + QPiij.second).dot(deltagrad);    // CRK
               const Scalar workQij = vij.dot(Qaccij);                                             // CRK
               // const Scalar workQi = rhoi*rhoj*QPiij.second.dot(vij).dot(deltagrad);            // CRK
               // const Scalar workQj = rhoi*rhoj*QPiij.first .dot(vij).dot(deltagrad);            // CRK
-              const Scalar workQVi =  vij.dot((rhoj*rhoj*QPiij.second).dot(gradWj)); //RK V Work
-              const Scalar workQVj =  vij.dot((rhoi*rhoi*QPiij.first).dot(gradWi)); //RK V Work
+              const Scalar workQVi =  vij.dot((rhoj*rhoj*QPiij.second).dot(gradWj)); //RK V and RK I Work
+              const Scalar workQVj =  vij.dot((rhoi*rhoi*QPiij.first).dot(gradWi));  //RK V and RK I Work
               const Scalar Qi = rhoi*rhoi*(QPiij.first. diagonalElements().maxAbsElement());
               const Scalar Qj = rhoj*rhoj*(QPiij.second.diagonalElements().maxAbsElement());
               maxViscousPressurei = max(maxViscousPressurei, Qi);
@@ -955,12 +964,20 @@ evaluateDerivatives(const typename Dimension::Scalar time,
               const Vector forceij  = weighti*weightj*(0.5*(Pi + Pj)*deltagrad + Qaccij);                        // <- Type III, with CRKSPH Q forces
               const Vector forceVi  = weighti*weightj*((Pi - Pj)*gradWj + QaccVi);                        // <- Type V, with CRKSPH Q forces, Non-conservative but consistent
               const Vector forceVj  = weighti*weightj*((Pj - Pi)*gradWi + QaccVj);                        // <- Type V, with CRKSPH Q forces, Non-conservative but consistent
+              //const Vector forceIi  = weighti*weightj*(Pj*gradWj + QaccIi);                        // <- Type I, with CRKSPH Q forces, Non-conservative but consistent
+              //const Vector forceIj  = weighti*weightj*(Pi*gradWi + QaccIj);                        // <- Type I, with CRKSPH Q forces, Non-conservative but consistent
+              const Vector forceIi  = weighti*weightj*(Pj*gradWj);                        // <- Type I, with CRKSPH Q forces, Non-conservative but consistent
+              const Vector forceIj  = weighti*weightj*(Pi*gradWi);                        // <- Type I, with CRKSPH Q forces, Non-conservative but consistent
 
               DvDti -= forceij/mi; //CRK Acceleration
               DvDtj += forceij/mj; //CRK Acceleration
  
               //DvDti += forceVi/mi; //RK V Acceleration
               //DvDtj += forceVj/mj; //RK V Acceleration (Note the sign!)
+
+              //DvDti -= forceIi/mi; //RK I Acceleration (DONT FORGET TO UNCOMMENT THE SELF INTERACTION TERM IF USING THIS!)
+              //DvDtj -= forceIj/mj; //RK I Acceleration (Note the sign!)
+              //DvDti -= weightj*Pj*gradWj/rhoi; //RK I Acceleration (DONT FORGET TO UNCOMMENT THE SELF INTERACTION TERM IF USING THIS!)
               
               if (mCompatibleEnergyEvolution) {
                 pairAccelerationsi.push_back(-forceij/mi);
@@ -970,11 +987,15 @@ evaluateDerivatives(const typename Dimension::Scalar time,
               // Specific thermal energy evolution.
               // DepsDti += 0.5*weighti*weightj*Pj*vij.dot(deltagrad)/mi + mj*workQi;    // SPH Q
               // DepsDtj += 0.5*weighti*weightj*Pi*vij.dot(deltagrad)/mj + mi*workQj;    // SPH Q
+
               DepsDti += 0.5*weighti*weightj*(Pj*vij.dot(deltagrad) + workQij)/mi;    // CRK Q
               DepsDtj += 0.5*weighti*weightj*(Pi*vij.dot(deltagrad) + workQij)/mj;    // CRK Q
 
-              //DepsDti += weighti*weightj*(Pj*vij.dot(gradWj) + workQVi)/mi;    // RKV Q
-              //DepsDtj -= weighti*weightj*(Pi*vij.dot(gradWi) + workQVj)/mj;    // RKV Q (Note the minus sign!)
+              //DepsDti += weighti*weightj*(Pj*vij.dot(gradWj) + workQVi)/mi;    // RK V AND RK I (both equations are the same for Type I and V)
+              //DepsDtj -= weighti*weightj*(Pi*vij.dot(gradWi) + workQVj)/mj;    // RK V AND RK I (Note the minus sign!)
+              //DepsDti += weighti*weightj*(Pj*vij.dot(gradWj))/mi;    // RK V AND RK I (both equations are the same for Type I and V)
+              //DepsDtj -= weighti*weightj*(Pi*vij.dot(gradWi))/mj;    // RK V AND RK I (Note the minus sign!)
+              //DepsDti += weightj*(Pj*vij.dot(gradWj))/rhoi;    // RK V AND RK I (both equations are the same for Type I and V)
 
               // Estimate of delta v (for XSPH).
               if (mXSPH and (nodeListi == nodeListj)) {
