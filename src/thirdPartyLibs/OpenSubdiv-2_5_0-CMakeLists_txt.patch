@@ -1,0 +1,8 @@
+297,298c297,300
+< find_package(OpenGL)
+< find_package(OpenGLES)
+---
+> if (NOT NO_OPENGL)
+>     find_package(OpenGL)
+>     find_package(OpenGLES)
+> endif()
