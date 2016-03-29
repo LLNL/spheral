@@ -113,15 +113,18 @@ namespace FractalSpace
   }
   void Point::get_pos_point(vector <int>& pos) const
   {
-//     pos=pos_point;
-    if(pos.size() < 3)
-      pos.resize(3);
-    std::copy(pos_point,pos_point+3,pos.begin());
+    pos.assign(pos_point.begin(),pos_point.begin()+3);
+    // pos=pos_point;
+    // if(pos.size() < 3)
+    //   pos.resize(3);
+    // std::copy(pos_point,pos_point+3,pos.begin());
   }
   void Point::set_pos_point(const vector <int>& pos)
   {
-//     pos_point=pos;
-    std::copy(pos.begin(),pos.begin()+3,pos_point);
+    // for(int p : pos)
+    for(int ni : {0,1,2})
+      pos_point[ni]=pos[ni];
+    // pos_point.assign(pos.begin(),pos.begin()+3);
   }
   void Point::set_pos_point(const int& x,const int& y,const int& z)
   {
@@ -211,72 +214,72 @@ namespace FractalSpace
   {
     really_passive=value;
   }
-  void Point::set_ij_number(const int& count)
-  {
-    ij_number=count;
-  }
-  int Point::get_ij_number() const
-  {
-    return ij_number;
-  }
+  // void Point::set_ij_number(const int& count)
+  // {
+  //   ij_number=count;
+  // }
+  // int Point::get_ij_number() const
+  // {
+  //   return ij_number;
+  // }
   void Point::really_clear(vector <Point*>& die)
   {
     vector <Point*>temp;
     die.swap(temp);
   }
-  void Point::set_ij_neighbors()
-  {
-    if(!inside || passive_point)
-      {
-	ij_ud.clear();
-	return;
-      }
-    ij_ud.resize(6);
-    for(int ni=0;ni<6;ni++)
-      {
-	assert(!point_ud[ni]->really_passive);
-	ij_ud[ni]=point_ud[ni]->ij_number;
-      }
-  }
-  void Point::set_ij_neighbors(vector <int>& Box)
-  {
-    if(!inside)
-      {
-	ij_ud.clear();
-	return;
-      }
-    if(pos_point[0] > Box[0] && pos_point[0] < Box[1] &&
-       pos_point[1] > Box[2] && pos_point[1] < Box[3] &&
-       pos_point[2] > Box[4] && pos_point[2] < Box[5])
-      {
-	ij_ud.resize(6);
-	for(int ni=0;ni<6;ni++)
-	  ij_ud[ni]=get_point_ud_0(ni)->ij_number;
-	return;
-      }
-    ij_ud.clear();
-    return;
-  }
-  void Point::get_ij_neighbors(vector <int>& ijud) const
-  {
-    ijud=ij_ud;
-  }
-  int Point::get_ij_neighbors_size() const
-  {
-    return ij_ud.size();
-  }
-  void Point::copy_ij_index(const int& ijc)
-  {
-    ij_ud.resize(1);
-    ij_ud[0]=ijc;
-  }
-  void Point::get_hypre_info(int& ij_index,vector <int>& ijud,double& rho,double& pot) const
-  {
-    ij_index=ij_number;
-    ijud=ij_ud;
-    rho=density_point;
-    pot=potential_point;
-  }
+  // void Point::set_ij_neighbors()
+  // {
+  //   if(!inside || passive_point)
+  //     {
+  // 	ij_ud.clear();
+  // 	return;
+  //     }
+  //   ij_ud.resize(6);
+  //   for(int ni=0;ni<6;ni++)
+  //     {
+  // 	assert(!point_ud[ni]->really_passive);
+  // 	ij_ud[ni]=point_ud[ni]->ij_number;
+  //     }
+  // }
+  // void Point::set_ij_neighbors(vector <int>& Box)
+  // {
+  //   if(!inside)
+  //     {
+  // 	ij_ud.clear();
+  // 	return;
+  //     }
+  //   if(pos_point[0] > Box[0] && pos_point[0] < Box[1] &&
+  //      pos_point[1] > Box[2] && pos_point[1] < Box[3] &&
+  //      pos_point[2] > Box[4] && pos_point[2] < Box[5])
+  //     {
+  // 	ij_ud.resize(6);
+  // 	for(int ni=0;ni<6;ni++)
+  // 	  ij_ud[ni]=get_point_ud_0(ni)->ij_number;
+  // 	return;
+  //     }
+  //   ij_ud.clear();
+  //   return;
+  // }
+  // void Point::get_ij_neighbors(vector <int>& ijud) const
+  // {
+  //   ijud=ij_ud;
+  // }
+  // int Point::get_ij_neighbors_size() const
+  // {
+  //   return ij_ud.size();
+  // }
+  // void Point::copy_ij_index(const int& ijc)
+  // {
+  //   ij_ud.resize(1);
+  //   ij_ud[0]=ijc;
+  // }
+  // void Point::get_hypre_info(int& ij_index,vector <int>& ijud,double& rho,double& pot) const
+  // {
+  //   ij_index=ij_number;
+  //   ijud=ij_ud;
+  //   rho=density_point;
+  //   pot=potential_point;
+  // }
   bool Point::get_it_is_high() const
   {
     return it_is_high;
@@ -324,14 +327,17 @@ namespace FractalSpace
   void Point::get_force_point(vector <double>& force) const
   {
 //     force=force_point;
-    if(force.size() < 3)
-      force.resize(3);
-    std::copy(force_point,force_point+3,force.begin());
+    force.assign(force_point.begin(),force_point.begin()+3);
+    // if(force.size() < 3)
+    //   force.resize(3);
+    // std::copy(force_point,force_point+3,force.begin());
   }
   void Point::set_force_point(vector <double>& force)
   {
 //     force_point=force;
-    std::copy(force.begin(),force.begin()+3,force_point);
+    for(int ni : {0,1,2})
+      force_point[ni]=force[ni];
+    // std::copy(force.begin(),force.begin()+3,force_point);
   }
   double Point::get_force_point_x() const
   {
@@ -459,14 +465,17 @@ namespace FractalSpace
   void Point::get_point_ud(vector <Point*>& point_6) const
   {
 //     point_6=point_ud;
-    if(point_6.size() < 6)
-      point_6.resize(6);
-    std::copy(point_ud,point_ud+6,point_6.begin());
+    point_6.assign(point_ud.begin(),point_ud.begin()+6);
+    // if(point_6.size() < 6)
+    //   point_6.resize(6);
+    // std::copy(point_ud,point_ud+6,point_6.begin());
   }
   void Point::set_point_ud(vector <Point*>& point_6)
   {
 //     point_ud=point_6;
-    std::copy(point_6.begin(),point_6.begin()+6,point_ud);
+    for(int ni : {0,1,2,3,4,5})
+      point_ud[ni]=point_6[ni];
+    // std::copy(point_6.begin(),point_6.begin()+6,point_ud);
   }
   Point* Point::get_point_up_x() const
   {

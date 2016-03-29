@@ -6,15 +6,14 @@ namespace FractalSpace
   void hypre_points_boxes(vector <vector <Point*> >hypre_points,int spacing,
 			  vector < vector<int> >& SBoxes,vector < vector<Point*> >& SPoints)
   {
-//     int RANK=-1;
-//     MPI_Comm_rank(MPI_COMM_WORLD,&RANK);
-//     bool Ranky= RANK == 21;
-    cerr << " Enter BOXES A " << RANK << " " << hypre_points.size() << endl;
+    static int _COUNTER=0;
+    int RANK=-1;
+    MPI_Comm_rank(MPI_COMM_WORLD,&RANK);
+    bool Ranky= RANK == 31;
     int MAXY=Misc::pow(2,29);
     int MINY=-Misc::pow(2,29);
-    int ni=0;
     MPI_Barrier(MPI_COMM_WORLD);
-    vector <int>BOX(6);
+    int ni=0;
     for(vector <Point*>& hp : hypre_points)
       {
 	vector <int> BOX(6);
@@ -33,15 +32,15 @@ namespace FractalSpace
 	Misc::divide(BOX,spacing);
 	for(int B : {1,3,5})
 	  BOX[B]++;
+	// cerr << " BOXA " << RANK << " " << BOX[0] << " "  << BOX[1] << " "  << BOX[2] << " "  << BOX[3] << " "  << BOX[4] << " "  << BOX[5] << " " << spacing << endl;
 	OcTree* pHypTree=new OcTree();
-	pHypTree->LoadOcTree(BOX,hypre_points[ni],spacing);
+	pHypTree->LoadOcTree(BOX,hp,spacing);
 	int TotalPoints=0;
 	int TotalBoxes=0;
 	pHypTree->DisplayTree(TotalPoints,TotalBoxes);
-// 	cerr << " BOXTotal " << RANK << " " << ni << " " << hypre_points[ni].size() << " " << TotalPoints << " " << TotalBoxes << endl;
+ 	// cerr << " BOXTotal " << RANK << " " << ni++ << " " << hp.size() << " " << TotalPoints << " " << TotalBoxes << " " << spacing << endl;
 	pHypTree->CollectBoxesPoints(SBoxes,SPoints);
 	delete pHypTree;
-	ni++;
       }
     for(vector<int>& SB : SBoxes)
       {
@@ -49,5 +48,7 @@ namespace FractalSpace
 	  SB[B]--;
 	Misc::times(SB,spacing);
       }
+    cerr << " BOXES A " << RANK << " " << hypre_points.size() << " " << _COUNTER << " " << spacing << endl;
+    _COUNTER++;
   }
 }
