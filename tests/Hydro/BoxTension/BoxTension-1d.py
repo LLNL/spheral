@@ -44,11 +44,13 @@ commandLine(
     ny2 = 50,
 
     nPerh = 1.51,
+    KernelConstructor = BSplineKernel,
+    order = 5,
 
     SVPH = False,
     CRKSPH = False,
+    PSPH = False,
     ASPH = False,
-    SPH = True,   # This just chooses the H algorithm -- you can use this with CRKSPH for instance.
     filter = 0.0,  # For CRKSPH
     Qconstructor = MonaghanGingoldViscosity,
     #Qconstructor = TensorMonaghanGingoldViscosity,
@@ -56,6 +58,17 @@ commandLine(
     nh = 5.0,
     aMin = 0.1,
     aMax = 2.0,
+    boolCullenViscosity = False,
+    alphMax = 2.0,
+    alphMin = 0.02,
+    betaC = 0.7,
+    betaD = 0.05,
+    betaE = 1.0,
+    fKern = 1.0/3.0,
+    boolHopkinsCorrection = True,
+    evolveTotalEnergy = False,
+    HopkinsConductivity = False,
+
     linearConsistent = False,
     fcentroidal = 0.0,
     fcellPressure = 0.0,
@@ -89,6 +102,7 @@ commandLine(
     dtverbose = False,
 
     densityUpdate = RigorousSumDensity, # VolumeScaledDensity,
+    correctionOrder = LinearOrder,
     compatibleEnergy = True,
     gradhCorrection = False,
 
@@ -97,7 +111,10 @@ commandLine(
     restartStep = 200,
     dataDir = "dumps-boxtension-1d",
     graphics = True,
+    serialDump = False,
     )
+
+assert not(boolReduceViscosity and boolCullenViscosity)
 
 # Decide on our hydro algorithm.
 if SVPH:
@@ -106,10 +123,16 @@ if SVPH:
     else:
         HydroConstructor = SVPHFacetedHydro
 elif CRKSPH:
+    Qconstructor = CRKSPHMonaghanGingoldViscosity
     if ASPH:
         HydroConstructor = ACRKSPHHydro
     else:
         HydroConstructor = CRKSPHHydro
+elif PSPH:
+    if ASPH:
+        HydroConstructor = APSPHHydro
+    else:
+        HydroConstructor = PSPHHydro
 else:
     if ASPH:
         HydroConstructor = ASPHHydro
@@ -161,7 +184,12 @@ eos2 = GammaLawGasMKS(gamma1, mu)
 #-------------------------------------------------------------------------------
 # Interpolation kernels.
 #-------------------------------------------------------------------------------
-WT = TableKernel(BSplineKernel(), 1000)
+if KernelConstructor==NBSplineKernel:
+  WBase = NBSplineKernel(order)
+else:
+  WBase = KernelConstructor()
+WT = TableKernel(WBase,1000)
+WTPi = WT
 output("WT")
 kernelExtent = WT.kernelExtent
 
@@ -172,16 +200,19 @@ outerNodes1 = makeFluidNodeList("outer1", eos1,
                                 hmin = hmin,
                                 hmax = hmax,
                                 hminratio = hminratio,
+                                kernelExtent = kernelExtent,
                                 nPerh = nPerh)
 outerNodes2 = makeFluidNodeList("outer2", eos1,
                                 hmin = hmin,
                                 hmax = hmax,
                                 hminratio = hminratio,
+                                kernelExtent = kernelExtent,
                                 nPerh = nPerh)
 innerNodes = makeFluidNodeList("inner", eos2,
                                hmin = hmin,
                                hmax = hmax,
                                hminratio = hminratio,
+                               kernelExtent = kernelExtent,
                                nPerh = nPerh)
 nodeSet = (outerNodes1, outerNodes2, innerNodes)
 for nodes in nodeSet:
@@ -263,11 +294,26 @@ elif CRKSPH:
     hydro = HydroConstructor(W = WT, 
                              Q = q,
                              filter = filter,
+                             epsTensile = epsilonTensile,
+                             nTensile = nTensile,
                              cfl = cfl,
                              compatibleEnergyEvolution = compatibleEnergy,
                              XSPH = XSPH,
+                             correctionOrder = correctionOrder,
                              densityUpdate = densityUpdate,
                              HUpdate = HUpdate)
+elif PSPH:
+    hydro = HydroConstructor(W = WT,
+                             Q = q,
+                             filter = filter,
+                             cfl = cfl,
+                             compatibleEnergyEvolution = compatibleEnergy,
+                             evolveTotalEnergy = evolveTotalEnergy,
+                             HopkinsConductivity = HopkinsConductivity,
+                             densityUpdate = densityUpdate,
+                             HUpdate = HUpdate,
+                             XSPH = XSPH)
+
 else:
     hydro = HydroConstructor(W = WT,
                              Q = q,
@@ -298,7 +344,9 @@ if boolReduceViscosity:
     evolveReducingViscosityMultiplier = MorrisMonaghanReducingViscosity(q,nh,aMin,aMax)
     
     packages.append(evolveReducingViscosityMultiplier)
-
+elif boolCullenViscosity:
+    evolveCullenViscosityMultiplier = CullenDehnenViscosity(q,WT,alphMax,alphMin,betaC,betaD,betaE,fKern,boolHopkinsCorrection)
+    packages.append(evolveCullenViscosityMultiplier)
 
 #-------------------------------------------------------------------------------
 # Create boundary conditions.
@@ -351,7 +399,7 @@ control = SpheralController(integrator, WT,
                             restartBaseName = restartBaseName,
                             restoreCycle = restoreCycle,
                             skipInitialPeriodicWork = (HydroConstructor in (SVPHFacetedHydro, ASVPHFacetedHydro)),
-                            SPH = SPH)
+                            SPH = (not ASPH))
 output("control")
 
 #-------------------------------------------------------------------------------
@@ -365,7 +413,44 @@ else:
 print "Energy conservation: original=%g, final=%g, error=%g" % (control.conserve.EHistory[0],
                                                                 control.conserve.EHistory[-1],
                                                                 (control.conserve.EHistory[-1] - control.conserve.EHistory[0])/control.conserve.EHistory[0])
-
+procs = mpi.procs
+rank = mpi.rank
+serialData = []
+pError = []
+rhoError = []
+xdata = []
+velError = []
+i,j = 0,0
+from Pnorm import Pnorm
+for i in xrange(procs):
+    for (nodeL, gamma, rho, P) in ((outerNodes1, gamma1, rho1, P1),
+                                   (outerNodes2, gamma1, rho1, P1),
+                                   (innerNodes, gamma2, rho2, P2)):
+      if rank == i:
+        Pfield = ScalarField("pressure", nodeL)
+        nodeL.pressure(Pfield)
+        for j in xrange(nodeL.numInternalNodes):
+          pError.append(Pfield[j]-P)
+          rhoError.append(nodeL.massDensity()[j] - rho)
+          velError.append(nodeL.velocity()[j][0]) #Velcoity is supposed to be zero
+          xdata.append(nodeL.positions()[j][0])
+          if serialDump:
+            serialData.append([nodeL.positions()[j],3.0/(nodeL.Hfield()[j].Trace()),nodeL.mass()[j],nodeL.massDensity()[j],nodeL.specificThermalEnergy()[j],Pfield[j]])
+serialData = mpi.reduce(serialData,mpi.SUM)
+pError = mpi.reduce(pError,mpi.SUM)
+rhoError = mpi.reduce(rhoError,mpi.SUM)
+velError = mpi.reduce(velError,mpi.SUM)
+xdata = mpi.reduce(xdata,mpi.SUM)
+if rank == 0 and serialDump:
+    f = open(os.path.join(dataDir, "./serialDump.ascii"),'w')
+    for i in xrange(len(serialData)):
+      f.write("{0} {1} {2} {3} {4} {5} {6}\n".format(i,serialData[i][0][0],serialData[i][1],serialData[i][2],serialData[i][3],serialData[i][4], serialData[i][5]))
+    f.close()
+if rank == 0:
+ print len(pError)
+ print "Pressure results: L1 error = %g, L2 Error = %g, L inf Error = %g \n" % (Pnorm(pError, xdata).pnorm(1), Pnorm(pError, xdata).pnorm(2),Pnorm(pError, xdata).pnorm("inf"))
+ print "Density results: L1 error = %g, L2 Error = %g, L inf Error = %g \n" % (Pnorm(rhoError, xdata).pnorm(1), Pnorm(rhoError, xdata).pnorm(2),Pnorm(rhoError, xdata).pnorm("inf"))
+ print "Velocity results: L1 error = %g, L2 Error = %g, L inf Error = %g \n" % (Pnorm(velError, xdata).pnorm(1), Pnorm(velError, xdata).pnorm(2),Pnorm(velError, xdata).pnorm("inf"))
 #-------------------------------------------------------------------------------
 # Plot the results.
 #-------------------------------------------------------------------------------
