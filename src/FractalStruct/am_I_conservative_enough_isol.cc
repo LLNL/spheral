@@ -54,16 +54,7 @@ namespace FractalSpace
     pe*=0.5;
     ke*=0.5;
     double te=pe+ke;
-    vector <double>sums(9);
-    sums[0]=te;
-    sums[1]=pe;
-    sums[2]=ke;
-    sums[3]=p0;
-    sums[4]=p1;
-    sums[5]=p2;
-    sums[6]=m0;
-    sums[7]=m1;
-    sums[8]=m2;
+    vector <double>sums{te,pe,ke,p0,p1,p2,m0,m1,m2};
     PFM->p_mess->Find_Sum_DOUBLE(sums,9);
     FileEnergy << scientific << PFM->time <<  "\t " << PFM->steps << "\t " << 
       te << "\t " << pe << "\t " << ke << "\t " << sums[0] << "\t" << sums[1] << "\t" << sums[2] << "\n";

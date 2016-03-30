@@ -142,6 +142,8 @@ namespace FractalSpace
     double final_res_norm=-1.0;
     HYPRE_StructPCGGetNumIterations(solver,&num_iterations );
     HYPRE_StructPCGGetFinalRelativeResidualNorm( solver, &final_res_norm );
+    if(HypreRank == 0)
+      cerr << " SOLVED A " << _COUNTER << " " << FractalRank << " " << HypreRank << " " << num_iterations << " " << final_res_norm << "\n";
     HYPRE_StructPCGDestroy(solver);
     HYPRE_StructPFMGDestroy(precond);
     HYPRE_StructGridDestroy(grid);

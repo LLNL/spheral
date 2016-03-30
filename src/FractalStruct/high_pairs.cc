@@ -8,8 +8,6 @@ namespace FractalSpace
     //  cerr << " entering high pairs " << "\n";
     int num_high_points=group.get_number_high_points();
     group.list_high.resize(num_high_points);
-    group.list_pair_1.reserve(3*num_high_points);
-    group.list_pair_2.reserve(3*num_high_points);
     group.list_pair_1.clear();
     group.list_pair_2.clear();
     int n_h=0;

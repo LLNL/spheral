@@ -35,7 +35,6 @@ namespace FractalSpace
     double grid_multiplier=misc.grid_multiply;
     int d_point=Misc::pow(2,fractal.get_level_max()-new_group.get_level());
     new_group.set_points_in_group(0);
-    new_group.list_points.reserve(high_group.list_high_points.size()*27);
     //--------------------------------------------------------------------------------------------------------------------------------
     // Loop over all points in a high_group to generate the new points
     //--------------------------------------------------------------------------------------------------------------------------------
