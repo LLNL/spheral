@@ -6,7 +6,25 @@ namespace FractalSpace
 {
   template <class GO_AWAY> void really_clear(vector <GO_AWAY>& die)
   {
-    vector <GO_AWAY> YES_REALLY;
-    die.swap(YES_REALLY);
+    die.clear();
+    die.shrink_to_fit();
+  }
+}
+namespace FractalSpace
+{
+  template <class GO_AWAY> void really_resize(vector <GO_AWAY>& die,int howbig)
+  {
+    die.resize(how_big);
+    die.shrink_to_fit();
+  }
+}
+namespace FractalSpace
+{
+  template <class GO_AWAY> void really_resize2(vector <vector <GO_AWAY> >& die,int howbig)
+  {
+    die.resize(how_big);
+    die.shrink_to_fit();
+    for(vector <auto>& d : die)
+      d.shrink_to_fit();
   }
 }

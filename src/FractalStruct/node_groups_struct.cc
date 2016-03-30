@@ -20,11 +20,11 @@ namespace FractalSpace
     bool tryit=mem.p_mess->IAmAHypreNode;
     for(int FR : mem.Touchy)
       {
-	cerr << " Touchy a " << COUNTER << " " << RANK << " " << FR << endl;
+	cerr << " Touchy a " << COUNTER << " " << RANK << " " << FR << "\n";
 	if(tryit && FR > FractalRank)
 	  {
 	    dataI_in.push_back(FR);
-	    cerr << " Touchy b " << COUNTER << " " << RANK << " " << FR << endl;
+	    cerr << " Touchy b " << COUNTER << " " << RANK << " " << FR << "\n";
 	  }
       }
     int ss=dataI_in.size();
@@ -89,7 +89,7 @@ namespace FractalSpace
 	{
 	  mem.p_mess->Hranks.push_back(FR);
 	  mem.p_mess->IHranks[FR]=mem.p_mess->Hranks.size()-1;
-	  cerr << " NODES A " << COUNTER << " " << RANK << " "  << FR << " " << mem.p_mess->IHranks[FR] << endl;
+	  cerr << " NODES A " << COUNTER << " " << RANK << " "  << FR << " " << mem.p_mess->IHranks[FR] << "\n";
 	}
     mem.p_mess->HypreNodes=mem.p_mess->Hranks.size();
     COUNTER++;

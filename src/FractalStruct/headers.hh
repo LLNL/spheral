@@ -126,6 +126,8 @@ namespace FractalSpace
 		      Fractal_Memory& mem);
   bool rad_compare(Particle* par1,Particle* par2);
   template <class GO_AWAY> void really_clear(vector <GO_AWAY>& die);
+  template <class GO_AWAY> void really_resize(vector <GO_AWAY>& die,int howbig);
+    template <class GO_AWAY> void really_resize2(vector <vector <GO_AWAY> >& die,int howbig);
   bool right_diff(vector <int>& Va,vector <int>& Vb,vector <int>& VD);
   void remove_pseudo_particles(Fractal_Memory& mem,Fractal& frac);
   void scatter_particles(Fractal_Memory& mem,Fractal& frac);

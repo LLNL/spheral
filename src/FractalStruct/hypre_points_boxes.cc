@@ -46,7 +46,7 @@ namespace FractalSpace
 	  SB[B]--;
 	Misc::times(SB,spacing);
       }
-    cerr << " BOXES A " << RANK << " " << hypre_points.size() << " " << _COUNTER << " " << spacing << endl;
+    cerr << " BOXES A " << RANK << " " << hypre_points.size() << " " << _COUNTER << " " << spacing << "\n";
     _COUNTER++;
   }
 }
