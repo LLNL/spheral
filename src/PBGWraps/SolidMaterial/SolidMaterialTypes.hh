@@ -19,6 +19,7 @@
 #include "SolidMaterial/PorousEquationOfState.hh"
 #include "SolidMaterial/PorousStrengthModel.hh"
 #include "SolidMaterial/StrainPorosity.hh"
+#include "SolidMaterial/PhysicsEvolvingMaterialLibrary.hh"
 
 using namespace Spheral::Material;
 
@@ -91,6 +92,10 @@ typedef CollinsStrength<Dim<3> > CollinsStrength3d;
 typedef PorousStrengthModel<Dim<1> > PorousStrengthModel1d;
 typedef PorousStrengthModel<Dim<2> > PorousStrengthModel2d;
 typedef PorousStrengthModel<Dim<3> > PorousStrengthModel3d;
+
+typedef PhysicsEvolvingMaterialLibrary<Dim<1> > PhysicsEvolvingMaterialLibrary1d;
+typedef PhysicsEvolvingMaterialLibrary<Dim<2> > PhysicsEvolvingMaterialLibrary2d;
+typedef PhysicsEvolvingMaterialLibrary<Dim<3> > PhysicsEvolvingMaterialLibrary3d;
 
 }
 }
