@@ -16,9 +16,7 @@
 
 #include "boost/multi_array.hpp"
 
-#include "Material/EquationOfState.hh"
-#include "SolidMaterial/StrengthModel.hh"
-#include "Physics/Physics.hh"
+#include "SolidMaterial/PhysicsEvolvingMaterialLibrary.hh"
 
 // Forward declarations.
 namespace Spheral {
@@ -31,10 +29,7 @@ namespace Spheral {
 namespace SolidMaterial {
 
 template<typename Dimension>
-class Geodyn: 
-    public Material::EquationOfState<Dimension>,
-    public SolidMaterial::StrengthModel<Dimension>,
-    public PhysicsSpace::Physics<Dimension> {
+class Geodyn: public PhysicsEvolvingMaterialLibrary<Dimension> {
 
 public:
   //--------------------------- Public Interface ---------------------------//
