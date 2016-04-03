@@ -94,6 +94,7 @@ commandLine(
     # Resolution and node seeding.
     nx1 = 256,
     ny1 = 64,
+    massMatch = True,   # If False, match spatial resolution in blob
 
     nPerh = 1.35,
 
@@ -207,6 +208,7 @@ baseDir = os.path.join(dataDir,
                        "nPerh=%3.1f" % nPerh,
                        "fcentroidal=%1.3f" % fcentroidal,
                        "fcellPressure = %1.3f" % fcellPressure,
+                       "massMatch=%s" % massMatch,
                        "%ix%i" % (nx1, ny1))
 restartDir = os.path.join(baseDir, "restarts")
 restartBaseName = os.path.join(restartDir, "blob-2d-%ix%i" % (nx1, ny1))
@@ -309,17 +311,27 @@ generatorOuter = GenerateNodeDistribution2d(nx1, ny1, rhoext,
 #                                            nNodePerh = nPerh,
 #                                            SPH = (not ASPH))
 
-# Figure out a mass matched resolution for the blob.
-mouter = (xb1 - xb0)*(yb1 - yb0)*rhoext/(nx1*ny1)
-nxinner = max(2, int(((2*br)**2*rhoblob/mouter)**(1.0/2.0) + 0.5))
-generatorInner = GenerateNodeDistribution2d(nxinner, nxinner, rhoblob,
-                                            distributionType = "lattice",
-                                            xmin = (bx-br, by-br),
-                                            xmax = (bx+br, by+br),
-                                            originreject = (bx, by),
-                                            rreject = br,
-                                            nNodePerh = nPerh,
-                                            SPH = (not ASPH))
+if massMatch:
+    # Figure out a mass matched resolution for the blob.
+    mouter = (xb1 - xb0)*(yb1 - yb0)*rhoext/(nx1*ny1)
+    nxinner = max(2, int(((2*br)**2*rhoblob/mouter)**(1.0/2.0) + 0.5))
+    generatorInner = GenerateNodeDistribution2d(nxinner, nxinner, rhoblob,
+                                                distributionType = "lattice",
+                                                xmin = (bx-br, by-br),
+                                                xmax = (bx+br, by+br),
+                                                originreject = (bx, by),
+                                                rreject = br,
+                                                nNodePerh = nPerh,
+                                                SPH = (not ASPH))
+else:
+    generatorInner = GenerateNodeDistribution2d(nx1, ny1, rhoblob,
+                                                distributionType = "lattice",
+                                                xmin = (xb0, yb0),
+                                                xmax = (xb1, yb1),
+                                                originreject = (bx, by),
+                                                rreject = br,
+                                                nNodePerh = nPerh,
+                                                SPH = (not ASPH))
 
 if mpi.procs > 1:
     from VoronoiDistributeNodes import distributeNodes2d

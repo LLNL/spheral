@@ -104,6 +104,7 @@ commandLine(
     nx1 = 64,
     ny1 = 64,
     nz1 = 256,
+    massMatch = True,   # If False, match spatial resolution in blob
 
     nPerh = 1.35,
 
@@ -217,6 +218,7 @@ baseDir = os.path.join(dataDir,
                        "nPerh=%3.1f" % nPerh,
                        "fcentroidal=%1.3f" % fcentroidal,
                        "fcellPressure = %1.3f" % fcellPressure,
+                       "massMatch=%s" % massMatch,
                        "%ix%ix%i" % (nx1, ny1, nz1))
 restartDir = os.path.join(baseDir, "restarts")
 restartBaseName = os.path.join(restartDir, "blob-3d-%ix%ix%i" % (nx1, ny1, nz1))
@@ -299,7 +301,7 @@ generatorOuter = GenerateNodeDistribution3d(nx1, ny1, nz1, rhoext,
                                             distributionType = "lattice",
                                             xmin = (xb0, yb0, zb0),
                                             xmax = (xb1, yb1, zb1),
-						rejecter = SphericalRejecter(origin = (bx, by, bz),
+                                            rejecter = SphericalRejecter(origin = (bx, by, bz),
                                                                          radius = br),
                                             nNodePerh = nPerh,
                                             SPH = (not ASPH))
@@ -319,17 +321,27 @@ generatorOuter = GenerateNodeDistribution3d(nx1, ny1, nz1, rhoext,
 #                                            nNodePerh = nPerh,
 #                                            SPH = (not ASPH))
 
-# Figure out a mass matched resolution for the blob.
-mouter = (xb1 - xb0)*(yb1 - yb0)*(zb1 - zb0)*rhoext/(nx1*ny1*nz1)
-nxinner = max(2, int(((2*br)**3*rhoblob/mouter)**(1.0/3.0) + 0.5))
-generatorInner = GenerateNodeDistribution3d(nxinner, nxinner, nxinner, rhoblob,
-                                            distributionType = "lattice",
-                                            xmin = (bx-br, by-br, bz-br),
-                                            xmax = (bx+br, by+br, bz+br),
-    			                origin = (bx, by, bz),
-       				        rmax = br,
-                                            nNodePerh = nPerh,
-                                            SPH = (not ASPH))
+if massMatch:
+    # Figure out a mass matched resolution for the blob.
+    mouter = (xb1 - xb0)*(yb1 - yb0)*(zb1 - zb0)*rhoext/(nx1*ny1*nz1)
+    nxinner = max(2, int(((2*br)**3*rhoblob/mouter)**(1.0/3.0) + 0.5))
+    generatorInner = GenerateNodeDistribution3d(nxinner, nxinner, nxinner, rhoblob,
+                                                distributionType = "lattice",
+                                                xmin = (bx-br, by-br, bz-br),
+                                                xmax = (bx+br, by+br, bz+br),
+                                                origin = (bx, by, bz),
+                                                rmax = br,
+                                                nNodePerh = nPerh,
+                                                SPH = (not ASPH))
+else:
+    generatorInner = GenerateNodeDistribution3d(nx1, ny1, nz1, rhoblob,
+                                                distributionType = "lattice",
+                                                xmin = (xb0, yb0, zb0),
+                                                xmax = (xb1, yb1, zb1),
+                                                origin = (bx, by, bz),
+                                                rmax = br,
+                                                nNodePerh = nPerh,
+                                                SPH = (not ASPH))
 
 if mpi.procs > 1:
     from VoronoiDistributeNodes import distributeNodes3d
