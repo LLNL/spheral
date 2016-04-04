@@ -198,8 +198,8 @@ if restoreCycle is None:
 #-------------------------------------------------------------------------------
 mu = 1.0
 eos1 = GammaLawGasMKS(gamma1, mu, minimumPressure = 0.0)
-eos2 = GammaLawGasMKS(gamma1, mu, minimumPressure = 0.0)
-eos3 = GammaLawGasMKS(gamma1, mu, minimumPressure = 0.0)
+eos2 = GammaLawGasMKS(gamma2, mu, minimumPressure = 0.0)
+eos3 = GammaLawGasMKS(gamma3, mu, minimumPressure = 0.0)
 
 #-------------------------------------------------------------------------------
 # Interpolation kernels.
