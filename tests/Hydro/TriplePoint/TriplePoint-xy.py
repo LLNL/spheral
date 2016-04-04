@@ -63,15 +63,25 @@ commandLine(
 
     SVPH = False,
     CRKSPH = False,
+    PSPH = False,
     ASPH = False,
     SPH = True,   # This just chooses the H algorithm -- you can use this with CRKSPH for instance.
     filter = 0.0,  # For CRKSPH
     Qconstructor = MonaghanGingoldViscosity,
     #Qconstructor = TensorMonaghanGingoldViscosity,
     boolReduceViscosity = False,
-    nh = 5.0,
+    nhQ = 5.0,
+    nhL = 10.0,
     aMin = 0.1,
     aMax = 2.0,
+    boolCullenViscosity = False,
+    alphMax = 2.0,
+    alphMin = 0.02,
+    betaC = 0.7,
+    betaD = 0.05,
+    betaE = 1.0,
+    fKern = 1.0/3.0,
+    boolHopkinsCorrection = True,
     linearConsistent = False,
     fcentroidal = 0.0,
     fcellPressure = 0.0,
@@ -121,6 +131,8 @@ commandLine(
     serialDump = False, #whether to dump a serial ascii file at the end for viz
     )
 
+assert not(boolReduceViscosity and boolCullenViscosity)
+
 # Decide on our hydro algorithm.
 if SVPH:
     if ASPH:
@@ -155,6 +167,7 @@ baseDir = os.path.join(dataDir,
                        densityUpdateLabel[densityUpdate],
                        "linearConsistent=%s" % linearConsistent,
                        "XSPH=%s" % XSPH,
+                       "Cullen=%s" % boolCullenViscosity,
                        "nPerh=%3.1f" % nPerh,
                        "fcentroidal=%1.3f" % fcentroidal,
                        "fcellPressure=%1.3f" % fcellPressure,
@@ -381,11 +394,11 @@ packages = [hydro]
 # Construct the MMRV physics object.
 #-------------------------------------------------------------------------------
 if boolReduceViscosity:
-    #q.reducingViscosityCorrection = True
-    evolveReducingViscosityMultiplier = MorrisMonaghanReducingViscosity(q,nh,aMin,aMax)
-    
+    evolveReducingViscosityMultiplier = MorrisMonaghanReducingViscosity(q,nhQ,nhL,aMin,aMax)
     packages.append(evolveReducingViscosityMultiplier)
-
+elif boolCullenViscosity:
+    evolveCullenViscosityMultiplier = CullenDehnenViscosity(q,WT,alphMax,alphMin,betaC,betaD,betaE,fKern,boolHopkinsCorrection)
+    packages.append(evolveCullenViscosityMultiplier)
 
 #-------------------------------------------------------------------------------
 # Create boundary conditions.
