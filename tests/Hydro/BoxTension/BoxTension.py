@@ -222,7 +222,7 @@ mpi.barrier()
 #-------------------------------------------------------------------------------
 mu = 1.0
 eos1 = GammaLawGasMKS(gamma1, mu)
-eos2 = GammaLawGasMKS(gamma1, mu)
+eos2 = GammaLawGasMKS(gamma2, mu)
 
 #-------------------------------------------------------------------------------
 # Interpolation kernels.
