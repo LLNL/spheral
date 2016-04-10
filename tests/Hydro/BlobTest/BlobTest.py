@@ -435,6 +435,7 @@ elif PSPH:
                              cfl = cfl,
                              compatibleEnergyEvolution = compatibleEnergy,
                              evolveTotalEnergy = evolveTotalEnergy,
+			     correctVelocityGradient = correctVelocityGradient,
                              HopkinsConductivity = HopkinsConductivity,
                              densityUpdate = densityUpdate,
                              HUpdate = HUpdate,

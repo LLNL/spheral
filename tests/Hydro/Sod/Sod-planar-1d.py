@@ -133,6 +133,7 @@ dataDir = os.path.join(dataDirBase,
                        "compatibleEnergy=%s" % compatibleEnergy,
                        "correctionOrder=%s" % correctionOrder,
                        "Cullen=%s" % boolCullenViscosity,
+                       "Condc=%s" % HopkinsConductivity,
                        "filter=%f" % filter,
                        "%i" % (nx1 + nx2))
 restartDir = os.path.join(dataDir, "restarts")
