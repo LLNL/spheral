@@ -13,6 +13,7 @@ from SpheralTestUtilities import *
 from SpheralGnuPlotUtilities import *
 from findLastRestart import *
 from GenerateNodeDistribution3d import *
+from CloudMassFraction import *
 
 import mpi
 import DistributeNodes
@@ -172,6 +173,12 @@ commandLine(
     restoreCycle = -1,
     restartStep = 200,
     dataDir = "dumps-blobtest-3d",
+
+    # Parameters for the cloud mass fraction history
+    histfilename = "cloud_mass_history.gnu",
+    rhoThresholdFrac = 0.64,
+    epsThresholdFrac = 0.9,
+    massFracFreq = 10,
     )
 
 # Check the input.
@@ -361,7 +368,6 @@ del nodes
 for (nodes, rho) in ((outerNodes, rhoext),
                      (innerNodes, rhoblob)):
     eps0 = Pequi/((gamma - 1.0)*rho)
-    cs = sqrt(gamma*(gamma-1.0)*eps0)
     nodes.specificThermalEnergy(ScalarField("tmp", nodes, eps0))
 del nodes
 
@@ -527,6 +533,16 @@ output("integrator.rigorousBoundaries")
 output("integrator.verbose")
 
 #-------------------------------------------------------------------------------
+# Build the history object to track the cloud mass fraction.
+#-------------------------------------------------------------------------------
+epsExt = Pequi/((gamma - 1.0)*rhoext)
+massFracHistory = CloudMassFraction(r0 = br,
+                                    rhoThreshold = rhoThresholdFrac * rhoblob,
+                                    epsThreshold = epsThresholdFrac * epsExt,
+                                    nodes = innerNodes,
+                                    filename = os.path.join(baseDir, histfilename))
+
+#-------------------------------------------------------------------------------
 # Make the problem controller.
 #-------------------------------------------------------------------------------
 control = SpheralController(integrator, WT,
@@ -541,6 +557,9 @@ control = SpheralController(integrator, WT,
                             skipInitialPeriodicWork = (HydroConstructor in (SVPHFacetedHydro, ASVPHFacetedHydro)),
                             SPH = (not ASPH))
 output("control")
+
+control.appendPeriodicWork(massFracHistory.sample, massFracFreq)
+massFracHistory.flushHistory()
 
 #-------------------------------------------------------------------------------
 # Advance to the end time.
