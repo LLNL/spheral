@@ -104,7 +104,8 @@ commandLine(
     densityUpdate = RigorousSumDensity, # VolumeScaledDensity,
     correctionOrder = LinearOrder,
     compatibleEnergy = True,
-    gradhCorrection = False,
+    gradhCorrection = True,
+    correctVelocityGradient = True,
 
     clearDirectories = False,
     restoreCycle = None,
@@ -311,6 +312,7 @@ elif PSPH:
                              evolveTotalEnergy = evolveTotalEnergy,
                              HopkinsConductivity = HopkinsConductivity,
                              densityUpdate = densityUpdate,
+                             correctVelocityGradient = correctVelocityGradient,
                              HUpdate = HUpdate,
                              XSPH = XSPH)
 
@@ -320,6 +322,7 @@ else:
                              cfl = cfl,
                              compatibleEnergyEvolution = compatibleEnergy,
                              gradhCorrection = gradhCorrection,
+                             correctVelocityGradient = correctVelocityGradient,
                              XSPH = XSPH,
                              densityUpdate = densityUpdate,
                              HUpdate = HUpdate,

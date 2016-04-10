@@ -129,7 +129,8 @@ commandLine(
 
     densityUpdate = RigorousSumDensity, # VolumeScaledDensity,
     compatibleEnergy = True,
-    gradhCorrection = False,
+    gradhCorrection = True,
+    correctVelocityGradient = True,
 
     useVoronoiOutput = False,
     clearDirectories = False,
@@ -355,6 +356,7 @@ else:
                              cfl = cfl,
                              compatibleEnergyEvolution = compatibleEnergy,
                              gradhCorrection = gradhCorrection,
+                             correctVelocityGradient = correctVelocityGradient,
                              XSPH = XSPH,
                              densityUpdate = densityUpdate,
                              HUpdate = HUpdate,

@@ -83,7 +83,8 @@ commandLine(nRadial = 50,
             smoothIters = 0,
             HEvolution = IdealH,
             compatibleEnergy = True,
-            gradhCorrection = False,
+            gradhCorrection = True,
+            correctVelocityGradient = True,
 
             restoreCycle = None,
             restartStep = 1000,
@@ -301,6 +302,7 @@ elif PSPH:
                              compatibleEnergyEvolution = compatibleEnergy,
                              evolveTotalEnergy = evolveTotalEnergy,
                              HopkinsConductivity = HopkinsConductivity,
+                             correctVelocityGradient = correctVelocityGradient,
                              densityUpdate = densityUpdate,
                              HUpdate = HUpdate,
                              XSPH = XSPH)
@@ -311,6 +313,7 @@ else:
                              compatibleEnergyEvolution = compatibleEnergy,
                              evolveTotalEnergy = evolveTotalEnergy,
                              gradhCorrection = gradhCorrection,
+                             correctVelocityGradient = correctVelocityGradient,
                              densityUpdate = densityUpdate,
                              XSPH = XSPH,
                              HUpdate = HEvolution)
