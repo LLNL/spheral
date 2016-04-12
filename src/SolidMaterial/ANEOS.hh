@@ -132,6 +132,8 @@ public:
   double externalPressure() const;
   void externalPressure(const double x);
 
+  double atomicWeight() const;
+
 private:
   //--------------------------- Private Interface ---------------------------//
   // Tables for the temp->energy lookup.
@@ -145,6 +147,9 @@ private:
 
   // Units conversion from ANEOS.
   double mRhoConv, mTconv, mPconv, mEconv, mCVconv, mVelConv, mSconv;
+
+  // Atomic weight.
+  double mAtomicWeight;
 
   // Disallow default constructor
   ANEOS();
