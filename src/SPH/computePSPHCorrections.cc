@@ -81,15 +81,21 @@ computePSPHCorrections(const ConnectivityMap<Dimension>& connectivityMap,
       const Scalar invhi = (Hi.Trace()/Dimension::nDim);
       const Scalar epsi = specificThermalEnergy(nodeListi, i);
       const Scalar gammai = gamma(nodeListi, i);
+     
+      // Self-contribution!!
+      Scalar W0  = W(0.0, Hdeti);
+      const Scalar xi = (gammai-1.0)*mi*epsi;
+      Scalar gradh0 = invhi*(Dimension::nDim*W0);
+      PSPHpbar(nodeListi, i) = xi*W0;
+      Scalar Nbari = W0;//Averaged Number of particles 
+      Scalar gradPbari = -xi*gradh0;//DpbarDh
+      Scalar gradNbari = -gradh0;//DnbarDh
+      if (computeMassDensity) PSPHmassDensity(nodeListi, i) += mi*W0;
+
 
       // Neighbors!
       const vector<vector<int> >& fullConnectivity = connectivityMap.connectivityForNode(nodeListi, i);
       CHECK(fullConnectivity.size() == numNodeLists);
-
-      
-      Scalar gradPbari=0.0;//DpbarDh
-      Scalar Nbari=0.0;//Averaged Number of particles
-      Scalar gradNbari=0.0;//DnbarDh
 
       // Iterate over the neighbor NodeLists.
       for (int nodeListj = 0; nodeListj != numNodeLists; ++nodeListj) {
@@ -134,7 +140,6 @@ computePSPHCorrections(const ConnectivityMap<Dimension>& connectivityMap,
       PSPHcorrection(nodeListi, i)=gradPbari/max(Dimension::nDim*(gammai-1.0)*Nbari*invhi*fi,tiny);
       CHECK2((gammai-1.0)*epsi >= 0.0, i << " " << gammai << " " << epsi);
       PSPHsoundSpeed(nodeListi, i) = sqrt(std::max(0.0, gammai*(gammai - 1.0)*epsi));
-      if (computeMassDensity) PSPHmassDensity(nodeListi, i) += mi*W(0.0, Hdeti);
     }
   }
 }

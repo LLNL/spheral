@@ -94,6 +94,21 @@ commandLine(asph = False,
             # Hydro
             Qconstructor = MonaghanGingoldViscosity2d,
             #Qconstructor = TensorMonaghanGingoldViscosity2d,
+            KernelConstructor = NBSplineKernel,
+            order = 5,
+            boolReduceViscosity = False,
+            nh = 5.0,
+            aMin = 0.1,
+            aMax = 2.0,
+            Qhmult = 1.0,
+            boolCullenViscosity = False,
+            alphMax = 2.0,
+            alphMin = 0.02,
+            betaC = 0.7,
+            betaD = 0.05,
+            betaE = 1.0,
+            fKern = 1.0/3.0,
+            boolHopkinsCorrection = True,
             Cl = 1.0,
             Cq = 0.75,
             Qlimiter = False,
@@ -164,7 +179,12 @@ else:
 # Data output info.
 dataDir = "owen-%i" % n
 dataDir = os.path.join(dataDir, "fp=%f" % (fractionPressureSupport))
-dataDir = os.path.join(dataDir, "CRK=%s-Balsara=%s-nPerh=%f-compatible=%s" % (CRKSPH,balsaraCorrection,nPerh,compatibleEnergy))
+viscString = "MG"
+if balsaraCorrection:
+    viscString = "Balsara"
+elif boolCullenViscosity:
+    viscString = "Cullen"
+dataDir = os.path.join(dataDir, "CRK=%s-Visc=%s-nPerh=%f-compatible=%s" % (CRKSPH,viscString,nPerh,compatibleEnergy))
 dataDir = os.path.join(dataDir, "Cl=%f-Cq=%f" % (Cl,Cq))
 restartBaseName = "%s/KeplerianDisk-f=%f-n=%i" % (dataDir,
                                                   fractionPressureSupport,
@@ -231,8 +251,8 @@ eos = PolytropicEquationOfStateMKS(fractionPressureSupport*polytropicConstant,
 # Create our interpolation kernels -- one for normal hydro interactions, and
 # one for use with the artificial viscosity
 #-------------------------------------------------------------------------------
-WT = TableKernel(NBSplineKernel(5), 1000)
-WTPi = TableKernel(NBSplineKernel(5), 1000)
+WT = TableKernel(KernelConstructor(order), 1000)
+WTPi = TableKernel(KernelConstructor(order), 1000)
 output('WT')
 output('WTPi')
 
@@ -394,6 +414,17 @@ output("hydro.densityUpdate")
 output("hydro.HEvolution")
 
 packages = [hydro]
+
+
+#-------------------------------------------------------------------------------
+# Construct the MMRV physics object.
+#-------------------------------------------------------------------------------
+if boolReduceViscosity:
+    evolveReducingViscosityMultiplier = MorrisMonaghanReducingViscosity(q,nh,aMin,aMax)
+    packages.append(evolveReducingViscosityMultiplier)
+elif boolCullenViscosity:
+    evolveCullenViscosityMultiplier = CullenDehnenViscosity(q,WTPi,alphMax,alphMin,betaC,betaD,betaE,fKern,boolHopkinsCorrection)
+    packages.append(evolveCullenViscosityMultiplier)
 
 #-------------------------------------------------------------------------------
 # Construct a time integrator, and add the physics packages.
