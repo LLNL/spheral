@@ -59,16 +59,18 @@ for eos, label in ((eosSiO2, "SiO2"),
     deps = (epsMax - epsMin)/n
     eps = [epsMin + i*deps for i in xrange(n + 1)]
 
-    PA, csA, sA = [], [], []
+    PA, csA, sA, gA = [], [], [], []
     for rhoi in rho:
         for epsi in eps:
             PA.append((rhoi, epsi, eos.pressure(rhoi,epsi)))
             csA.append((rhoi, epsi, eos.soundSpeed(rhoi,epsi)))
             sA.append((rhoi, epsi, eos.entropy(rhoi,epsi)))
+            gA.append((rhoi, epsi, eos.gamma(rhoi,epsi)))
 
     print "Pressure range for %s    : [%g, %g]" % (label, min([x[2] for x in PA]), max([x[2] for x in PA]))
     print "Sound speed range for %s : [%g, %g]" % (label, min([x[2] for x in PA]), max([x[2] for x in csA]))
     print "Entropy range for %s     : [%g, %g]" % (label, min([x[2] for x in PA]), max([x[2] for x in sA]))
+    print "Gamma range for %s       : [%g, %g]" % (label, min([x[2] for x in PA]), max([x[2] for x in gA]))
 
     plots.append(generateNewGnuPlot())
     plots[-1].xlabel("rho (g/cm^3)")
@@ -88,4 +90,11 @@ for eos, label in ((eosSiO2, "SiO2"),
     plots[-1].ylabel("eps (Mb cm^2/g)")
     sAdata = Gnuplot.Data(sA)
     plots[-1].splot(sAdata, title="entropy %s" % label)
+    plots.append(plots[-1])
+
+    plots.append(generateNewGnuPlot())
+    plots[-1].xlabel("rho (g/cm^3)")
+    plots[-1].ylabel("eps (Mb cm^2/g)")
+    gAdata = Gnuplot.Data(gA)
+    plots[-1].splot(gAdata, title="gamma %s" % label)
     plots.append(plots[-1])
