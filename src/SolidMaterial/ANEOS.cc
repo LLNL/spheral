@@ -22,6 +22,7 @@ extern "C" {
   void aneos_initialize_(char* filename, int* num, int* izetl);
   void call_aneos_(int* matnum, double* T, double* rho, 
                    double* P, double* E, double* S, double* CV, double* DPDT, double* DPDR, double* cs);
+  void get_aneos_atomicweight_(int* matnum, double* result);
 }
 
 namespace Spheral {
@@ -85,7 +86,8 @@ ANEOS(const int materialNumber,
   mEconv(1.0),
   mCVconv(1.0),
   mVelConv(1.0),
-  mSconv(1.0) {
+  mSconv(1.0),
+  mAtomicWeight(0.0) {
   VERIFY2(numRhoVals > 1,
           "ANEOS ERROR : specify numRhoVals > 1");
   VERIFY2(numTvals > 1,
@@ -101,6 +103,12 @@ ANEOS(const int materialNumber,
   // mTmin = log(mTmin);
   // mTmax = log(mTmax);
   
+  // Look up the atomic weight.
+  get_aneos_atomicweight_(&mMaterialNumber, &mAtomicWeight);
+  cerr << "Looked up atomic weight for " << materialNumber << " to be " << mAtomicWeight << endl;
+  VERIFY2(mAtomicWeight > 0.0, 
+          "ANEOS ERROR : bad atomic weight for material " << mMaterialNumber << " : " << mAtomicWeight);
+
   // Build our unit conversion factors.  After looking through the ANEOS source some it appears to me 
   // that they use mostly CGS units, except for temperatures which are in eV.
   const double lconv = mANEOSunits.unitLengthMeters() / constants.unitLengthMeters(),
@@ -219,7 +227,18 @@ ANEOS<Dimension>::
 setGammaField(Field<Dimension, Scalar>& gamma,
 	      const Field<Dimension, Scalar>& massDensity,
 	      const Field<Dimension, Scalar>& specificThermalEnergy) const {
-  VERIFY2(false, "gamma not defined for ANEOS EOS!");
+  int n = massDensity.numElements();
+  if (n > 0) {
+    Field<Dimension, Scalar> T("temperature", gamma.nodeList()),
+                            cv("cv", gamma.nodeList());
+    this->setTemperature(T, massDensity, specificThermalEnergy);
+    this->setSpecificHeat(cv, massDensity, specificThermalEnergy);
+    Scalar nDen;
+    for (int i = 0; i != n; ++i) {
+      nDen = massDensity(i)/mAtomicWeight;
+      gamma(i) = 1.0 + mConstants.molarGasConstant()*nDen*safeInvVar(cv(i));
+    }
+  }
 }
 
 //------------------------------------------------------------------------------
@@ -366,18 +385,10 @@ typename Dimension::Scalar
 ANEOS<Dimension>::
 gamma(const Scalar massDensity,
       const Scalar specificThermalEnergy) const {
-  VERIFY2(false, "Error: ANEOS does not support gamma currently.");
-  return 1.0;
-  // int KPAi;
-  // double Ti, rhoi, Pi, Ei, Si, CVi, DPDTi, DPDRi;
-  // rhoi = max(mRhoMin, min(mRhoMax, massDensity)) / mRhoConv;
-  // Ti = this->temperature(massDensity, specificThermalEnergy)/mTconv;
-  // call_aneos_(const_cast<int*>(&mMaterialNumber), &Ti, &rhoi,
-  //             &Pi, &Ei, &Si, &CVi, &DPDTi, &DPDRi);
-  // CHECK(ZBARi > 0.0);
-  // CHECK(CVi > 0.0);
-  // const double nDen = massDensity/ZBARi;
-  // return 1.0 + mConstants.molarGasConstant()*nDen/(CVi * mCVconv);
+  const double Ti = this->temperature(massDensity, specificThermalEnergy);
+  const double cvi = this->specificHeat(massDensity, Ti);
+  const double nDen = massDensity/mAtomicWeight;
+  return 1.0 + mConstants.molarGasConstant()*nDen*safeInvVar(cvi);
 }
 
 //------------------------------------------------------------------------------
@@ -501,6 +512,16 @@ void
 ANEOS<Dimension>::
 externalPressure(const double x) {
   mExternalPressure = x;
+}
+
+//------------------------------------------------------------------------------
+// Atomic weight.
+//------------------------------------------------------------------------------
+template<typename Dimension>
+double
+ANEOS<Dimension>::
+atomicWeight() const {
+  return mAtomicWeight;
 }
 
 }

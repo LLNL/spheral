@@ -109,7 +109,8 @@ commandLine(
     correctionOrder = LinearOrder,
     volumeType = CRKSumVolume,
     compatibleEnergy = True,
-    gradhCorrection = False,
+    gradhCorrection = True,
+    correctVelocityGradient = True,
     HopkinsConductivity = False,     # For PSPH
     evolveTotalEnergy = False,       # Only for SPH variants -- evolve total rather than specific energy
 
@@ -351,6 +352,7 @@ elif PSPH:
                              compatibleEnergyEvolution = compatibleEnergy,
                              evolveTotalEnergy = evolveTotalEnergy,
                              HopkinsConductivity = HopkinsConductivity,
+                             correctVelocityGradient = correctVelocityGradient,
                              densityUpdate = densityUpdate,
                              HUpdate = HUpdate,
                              XSPH = XSPH)
@@ -361,6 +363,7 @@ else:
                              compatibleEnergyEvolution = compatibleEnergy,
                              evolveTotalEnergy = evolveTotalEnergy,
                              gradhCorrection = gradhCorrection,
+                             correctVelocityGradient = correctVelocityGradient,
                              XSPH = XSPH,
                              densityUpdate = densityUpdate,
                              HUpdate = HUpdate,
@@ -527,7 +530,7 @@ if graphics:
 # If requested, write out the state in a global ordering to a file.
 #-------------------------------------------------------------------------------
 if outputFile != "None":
-    outputFile = os.path.join(dataDir, outputFile)
+    outputFile = os.path.join(baseDir, outputFile)
     from SpheralGnuPlotUtilities import multiSort
     P = ScalarField("pressure", nodes)
     nodes.pressure(P)

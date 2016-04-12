@@ -13,6 +13,7 @@ from SpheralTestUtilities import *
 from SpheralGnuPlotUtilities import *
 from findLastRestart import *
 from GenerateNodeDistribution3d import *
+from CloudMassFraction import *
 
 import mpi
 import DistributeNodes
@@ -104,6 +105,7 @@ commandLine(
     nx1 = 64,
     ny1 = 64,
     nz1 = 256,
+    massMatch = True,   # If False, match spatial resolution in blob
 
     nPerh = 1.35,
 
@@ -171,6 +173,12 @@ commandLine(
     restoreCycle = -1,
     restartStep = 200,
     dataDir = "dumps-blobtest-3d",
+
+    # Parameters for the cloud mass fraction history
+    histfilename = "cloud_mass_history.gnu",
+    rhoThresholdFrac = 0.64,
+    epsThresholdFrac = 0.9,
+    massFracFreq = 10,
     )
 
 # Check the input.
@@ -217,6 +225,7 @@ baseDir = os.path.join(dataDir,
                        "nPerh=%3.1f" % nPerh,
                        "fcentroidal=%1.3f" % fcentroidal,
                        "fcellPressure = %1.3f" % fcellPressure,
+                       "massMatch=%s" % massMatch,
                        "%ix%ix%i" % (nx1, ny1, nz1))
 restartDir = os.path.join(baseDir, "restarts")
 restartBaseName = os.path.join(restartDir, "blob-3d-%ix%ix%i" % (nx1, ny1, nz1))
@@ -299,7 +308,7 @@ generatorOuter = GenerateNodeDistribution3d(nx1, ny1, nz1, rhoext,
                                             distributionType = "lattice",
                                             xmin = (xb0, yb0, zb0),
                                             xmax = (xb1, yb1, zb1),
-						rejecter = SphericalRejecter(origin = (bx, by, bz),
+                                            rejecter = SphericalRejecter(origin = (bx, by, bz),
                                                                          radius = br),
                                             nNodePerh = nPerh,
                                             SPH = (not ASPH))
@@ -319,17 +328,27 @@ generatorOuter = GenerateNodeDistribution3d(nx1, ny1, nz1, rhoext,
 #                                            nNodePerh = nPerh,
 #                                            SPH = (not ASPH))
 
-# Figure out a mass matched resolution for the blob.
-mouter = (xb1 - xb0)*(yb1 - yb0)*(zb1 - zb0)*rhoext/(nx1*ny1*nz1)
-nxinner = max(2, int(((2*br)**3*rhoblob/mouter)**(1.0/3.0) + 0.5))
-generatorInner = GenerateNodeDistribution3d(nxinner, nxinner, nxinner, rhoblob,
-                                            distributionType = "lattice",
-                                            xmin = (bx-br, by-br, bz-br),
-                                            xmax = (bx+br, by+br, bz+br),
-    			                origin = (bx, by, bz),
-       				        rmax = br,
-                                            nNodePerh = nPerh,
-                                            SPH = (not ASPH))
+if massMatch:
+    # Figure out a mass matched resolution for the blob.
+    mouter = (xb1 - xb0)*(yb1 - yb0)*(zb1 - zb0)*rhoext/(nx1*ny1*nz1)
+    nxinner = max(2, int(((2*br)**3*rhoblob/mouter)**(1.0/3.0) + 0.5))
+    generatorInner = GenerateNodeDistribution3d(nxinner, nxinner, nxinner, rhoblob,
+                                                distributionType = "lattice",
+                                                xmin = (bx-br, by-br, bz-br),
+                                                xmax = (bx+br, by+br, bz+br),
+                                                origin = (bx, by, bz),
+                                                rmax = br,
+                                                nNodePerh = nPerh,
+                                                SPH = (not ASPH))
+else:
+    generatorInner = GenerateNodeDistribution3d(nx1, ny1, nz1, rhoblob,
+                                                distributionType = "lattice",
+                                                xmin = (xb0, yb0, zb0),
+                                                xmax = (xb1, yb1, zb1),
+                                                origin = (bx, by, bz),
+                                                rmax = br,
+                                                nNodePerh = nPerh,
+                                                SPH = (not ASPH))
 
 if mpi.procs > 1:
     from VoronoiDistributeNodes import distributeNodes3d
@@ -343,13 +362,12 @@ for nodes in nodeSet:
     output("    mpi.reduce(nodes.numInternalNodes, mpi.MIN)")
     output("    mpi.reduce(nodes.numInternalNodes, mpi.MAX)")
     output("    mpi.reduce(nodes.numInternalNodes, mpi.SUM)")
-del nodes
+del nodes, generatorOuter, generatorInner
 
 # Set node specific thermal energies
 for (nodes, rho) in ((outerNodes, rhoext),
                      (innerNodes, rhoblob)):
     eps0 = Pequi/((gamma - 1.0)*rho)
-    cs = sqrt(gamma*(gamma-1.0)*eps0)
     nodes.specificThermalEnergy(ScalarField("tmp", nodes, eps0))
 del nodes
 
@@ -423,6 +441,7 @@ elif PSPH:
                              cfl = cfl,
                              compatibleEnergyEvolution = compatibleEnergy,
                              evolveTotalEnergy = evolveTotalEnergy,
+			     correctVelocityGradient = correctVelocityGradient,
                              HopkinsConductivity = HopkinsConductivity,
                              densityUpdate = densityUpdate,
                              HUpdate = HUpdate,
@@ -514,6 +533,16 @@ output("integrator.rigorousBoundaries")
 output("integrator.verbose")
 
 #-------------------------------------------------------------------------------
+# Build the history object to track the cloud mass fraction.
+#-------------------------------------------------------------------------------
+epsExt = Pequi/((gamma - 1.0)*rhoext)
+massFracHistory = CloudMassFraction(r0 = br,
+                                    rhoThreshold = rhoThresholdFrac * rhoblob,
+                                    epsThreshold = epsThresholdFrac * epsExt,
+                                    nodes = innerNodes,
+                                    filename = os.path.join(baseDir, histfilename))
+
+#-------------------------------------------------------------------------------
 # Make the problem controller.
 #-------------------------------------------------------------------------------
 control = SpheralController(integrator, WT,
@@ -528,6 +557,9 @@ control = SpheralController(integrator, WT,
                             skipInitialPeriodicWork = (HydroConstructor in (SVPHFacetedHydro, ASVPHFacetedHydro)),
                             SPH = (not ASPH))
 output("control")
+
+control.appendPeriodicWork(massFracHistory.sample, massFracFreq)
+massFracHistory.flushHistory()
 
 #-------------------------------------------------------------------------------
 # Advance to the end time.
