@@ -362,7 +362,7 @@ for nodes in nodeSet:
     output("    mpi.reduce(nodes.numInternalNodes, mpi.MIN)")
     output("    mpi.reduce(nodes.numInternalNodes, mpi.MAX)")
     output("    mpi.reduce(nodes.numInternalNodes, mpi.SUM)")
-del nodes
+del nodes, generatorOuter, generatorInner
 
 # Set node specific thermal energies
 for (nodes, rho) in ((outerNodes, rhoext),
