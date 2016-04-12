@@ -5,6 +5,8 @@ namespace FractalSpace
 {
   void poisson_solver_struct(Fractal& fractal,Fractal_Memory& mem,const int& level)
   {
+    double timea,timeb,time0,time1,time2,time3,time4,time5,time6,time7,time8;
+    timea=mem.p_mess->Clock();
     static int _COUNTER=0;
     int RANK=-1;
     MPI_Comm_rank(MPI_COMM_WORLD,&RANK);
@@ -12,32 +14,36 @@ namespace FractalSpace
     cerr << "POISSON A " << RANK << " " << level << " " << " " << _COUNTER << "\n";
     for(int ni=0;ni<2;ni++)
       {
-	cerr << "POISSON B " << RANK << " " << level << " " << ni << " " << _COUNTER << "\n";
 	vector <vector <Point*> >hypre_points;
 	vector <vector <Point*> >SPoints;
 	vector <vector <int> >SBoxes;
-	cerr << " HYPRE RES B " <<  RANK << " " << level << " " << ni << " " << _COUNTER << "\n";
+	time0=mem.p_mess->Clock();
 	hypre_points_struct(mem,mem.all_groups[level],hypre_points,ni == 1,level);
-	cerr << " HYPRE RES C " <<  RANK << " " << level << " " << ni << " " << _COUNTER << "\n";
+	time1=mem.p_mess->Clock();
 	hypre_points_boxes(hypre_points,spacing,SBoxes,SPoints);
-	cerr << " HYPRE RES D " <<  RANK << " " << level << " " << ni << " " << _COUNTER << "\n";
+	time2=mem.p_mess->Clock();
 	hypre_points.clear();
 	hypre_world_create(mem,level,SBoxes,ni == 1);
-	cerr << " HYPRE RES E " <<  RANK << " " << level << " " << ni << " " << _COUNTER << "\n";
+	time3=mem.p_mess->Clock();
 	if(mem.p_mess->IAmAHypreNode)
 	  {
+	    time4=mem.p_mess->Clock();
 	    hypre_solve_struct(mem,level,SBoxes,SPoints);
+	    time5=mem.p_mess->Clock();
 	    if(ni == 100)
 	      add_buffer_values(mem,level,SBoxes,SPoints);
-	    cerr << " HYPRE RES F " <<  RANK << " " << level << " " << ni << " " << _COUNTER << "\n";
+	    time6=mem.p_mess->Clock();
 	  }
-	cerr << " HYPRE RES G " <<  RANK << " " << level << " " << ni << " " << _COUNTER << "\n";
+	time7=mem.p_mess->Clock();
 	mem.p_mess->HypreGroupFree();
-	cerr << " HYPRE RES H " <<  RANK << " " << level << " " << ni << " " << _COUNTER << "\n";
+	time8=mem.p_mess->Clock();
 	SBoxes.clear();
 	SPoints.clear();
+	cerr << " HYPRE RES B " <<  RANK << " " << ni << " " << level << " " << _COUNTER;
+	cerr << " " << time1-time0 << " " << time2-time1 << " " << time3-time2 << " " << time5-time4 << " " << time6-time5 <<  " " << time8-time7 << "\n";
 	_COUNTER++;
       }
-    cerr << " HYPRE RES I " <<  RANK << " " << level << " " << " " << _COUNTER << "\n";
+    timeb=mem.p_mess->Clock();
+    cerr << " HYPRE RES C " <<  RANK << " " << level << " " << _COUNTER << " " << timeb-timea << "\n";
   }
 }

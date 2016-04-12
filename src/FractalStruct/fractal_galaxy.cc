@@ -137,7 +137,7 @@ int main(int argc, char* argv[])
   PFM->number_steps_out=20;
   //  PFM->number_steps_out=200000;
   //  PFM->step_length=1.0e-30; ////////////
-  PFM->step_length=1.0e-4;
+  PFM->step_length=1.0e-5;
   //  PFM->step_length=4.0e-5;
   PFM->time=0.0;
   make_me_a_galaxy(FractalRank,NumberParticles,total_mass,masses,G,posx,posy,posz,velx,vely,velz);
