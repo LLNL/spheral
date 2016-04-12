@@ -107,6 +107,8 @@ namespace FractalSpace
   void make_decisions_erika(Misc& misc);
   template <class M, class F>  void make_particles(M& mem,F& frac,int& count,const double& m,const bool& crash);
   void max_predict(Fractal_Memory& fractal_memory,Fractal& fractal,vector <double>& shear_force,double& min_vol);
+  template <class GO_AWAY> void multi_shrink(vector <vector <GO_AWAY> >& die);
+  template <class GO_AWAY> void multi_shrink(vector <vector <vector <GO_AWAY> > >& die);
   void neighbor_easy(vector <Point*>& p);
   void neighbors_nina(Point& point, vector <Point*>& adj);
   void node_groups_struct(Fractal_Memory& mem,vector <int>& counts);
@@ -127,7 +129,8 @@ namespace FractalSpace
   bool rad_compare(Particle* par1,Particle* par2);
   template <class GO_AWAY> void really_clear(vector <GO_AWAY>& die);
   template <class GO_AWAY> void really_resize(vector <GO_AWAY>& die,int howbig);
-    template <class GO_AWAY> void really_resize2(vector <vector <GO_AWAY> >& die,int howbig);
+  template <class GO_AWAY> void really_resize(vector <vector <GO_AWAY> >& die,int howbig);
+  template <class GO_AWAY> void really_resize(vector <vector <vector <GO_AWAY> > >& die,int howbig);
   bool right_diff(vector <int>& Va,vector <int>& Vb,vector <int>& VD);
   void remove_pseudo_particles(Fractal_Memory& mem,Fractal& frac);
   void scatter_particles(Fractal_Memory& mem,Fractal& frac);

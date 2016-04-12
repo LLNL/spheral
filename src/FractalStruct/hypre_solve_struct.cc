@@ -1,12 +1,6 @@
 #include "libs.hh"
 #include "classes.hh"
 #include "headers.hh"
-#ifndef _Hypre_Defined_
-#define _Hypre_Defined_
-#include "_hypre_utilities.h"
-#include "HYPRE_krylov.h"
-#include "HYPRE_struct_ls.h"
-#endif
 namespace FractalSpace
 {
   void hypre_solve_struct(Fractal_Memory& mem,int level,
@@ -60,8 +54,9 @@ namespace FractalSpace
       {
 	vector <int>pos(3);
 	vector <double>values;
-	vector <Point*>::iterator p_itr=SP.begin();
-	for (int i = 0; i < VOL[B];i++)
+	auto p_itr=SP.begin();
+	// for (int i = 0; i < VOL[B];i++)
+	while(p_itr != SP.end())
 	  {
 	    Point* p=*p_itr;
 	    values.push_back(-6.0);
@@ -69,7 +64,7 @@ namespace FractalSpace
 	      {
 		Point* p1=p->get_point_ud(j);
 		p1->get_pos_point(pos);
-		if(p1->get_inside() || pos[j/2] == BBox[j])
+		if(p1->get_inside())
 		  values.push_back(1.0);
 		else
 		  values.push_back(0.0);
@@ -92,8 +87,9 @@ namespace FractalSpace
       {
 	vector <double>dens_values;
 	vector <double>pot_values;
-	vector <Point*>::iterator p_itr=SP.begin();
-	for (int i = 0; i < VOL[B]; i++)
+	// for (int i = 0; i < VOL[B]; i++)
+	auto p_itr=SP.begin();
+	while(p_itr != SP.end())
 	  {
 	    vector <int>pos(3);
 	    Point* p=*p_itr;
@@ -143,13 +139,14 @@ namespace FractalSpace
     HYPRE_StructPCGGetNumIterations(solver,&num_iterations );
     HYPRE_StructPCGGetFinalRelativeResidualNorm( solver, &final_res_norm );
     if(HypreRank == 0)
-      cerr << " SOLVED A " << _COUNTER << " " << FractalRank << " " << HypreRank << " " << num_iterations << " " << final_res_norm << "\n";
+      cerr << " SOLVED A " << _COUNTER << " " << FractalRank << " " << HypreRank << " " << num_iterations << " " << final_res_norm << endl;
     HYPRE_StructPCGDestroy(solver);
     HYPRE_StructPFMGDestroy(precond);
     HYPRE_StructGridDestroy(grid);
     HYPRE_StructStencilDestroy(stencil);
     HYPRE_StructMatrixDestroy(Amatrix);
     HYPRE_StructVectorDestroy(rho);
+    cerr << " SOLVED B " << _COUNTER << " " << FractalRank << " " << HypreRank << endl;
     B=0;
     for(vector <Point*>& SP : SPoints)
       {
@@ -159,10 +156,10 @@ namespace FractalSpace
 	int i=0;
 	for(Point* &p : SP)
 	  p->set_potential_point(pot_values[i++]);
-	pot_values.clear();
 	B++;
       }
     HYPRE_StructVectorDestroy(pot);
     _COUNTER++;
+    cerr << " SOLVED C " << _COUNTER << " " << FractalRank << " " << HypreRank << endl;
   }
 }

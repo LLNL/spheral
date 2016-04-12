@@ -6,7 +6,7 @@ namespace FractalSpace
   void hypre_points_struct(Fractal_Memory& mem,vector <Group*>& groups,
 			   vector < vector <Point*> >& hypre_points,bool buffer_groups,int level)
   {
-    static int _COUNTER=-1;
+    static int _COUNTER=0;
     int RANK=-1;
     MPI_Comm_rank(MPI_COMM_WORLD,&RANK);
     vector <int>pos(3);

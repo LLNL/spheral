@@ -89,7 +89,7 @@ namespace FractalSpace
 	{
 	  mem.p_mess->Hranks.push_back(FR);
 	  mem.p_mess->IHranks[FR]=mem.p_mess->Hranks.size()-1;
-	  cerr << " NODES A " << COUNTER << " " << RANK << " "  << FR << " " << mem.p_mess->IHranks[FR] << "\n";
+	  // cerr << " NODES A " << COUNTER << " " << RANK << " "  << FR << " " << mem.p_mess->IHranks[FR] << "\n";
 	}
     mem.p_mess->HypreNodes=mem.p_mess->Hranks.size();
     COUNTER++;
