@@ -356,6 +356,7 @@ elif PSPH:
                              evolveTotalEnergy = evolveTotalEnergy,
                              HopkinsConductivity = HopkinsConductivity,
                              densityUpdate = densityUpdate,
+                             correctVelocityGradient = correctVelocityGradient,
                              HUpdate = HUpdate,
                              XSPH = XSPH)
 else:

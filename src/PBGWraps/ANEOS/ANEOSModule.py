@@ -119,5 +119,6 @@ def generateANEOSBindings(x, ndim):
     x.add_instance_attribute("Tmin", "double", getter="Tmin", is_const=True)
     x.add_instance_attribute("Tmax", "double", getter="Tmax", is_const=True)
     x.add_instance_attribute("externalPressure", "double", getter="externalPressure", setter="externalPressure")
+    x.add_instance_attribute("atomicWeight", "double", getter="atomicWeight", is_const=True)
 
     return

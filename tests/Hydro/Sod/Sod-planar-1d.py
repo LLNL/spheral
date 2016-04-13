@@ -133,6 +133,7 @@ dataDir = os.path.join(dataDirBase,
                        "compatibleEnergy=%s" % compatibleEnergy,
                        "correctionOrder=%s" % correctionOrder,
                        "Cullen=%s" % boolCullenViscosity,
+                       "Condc=%s" % HopkinsConductivity,
                        "filter=%f" % filter,
                        "%i" % (nx1 + nx2))
 restartDir = os.path.join(dataDir, "restarts")
@@ -512,6 +513,7 @@ Aans = [Pi/rhoi**gammaGas for (Pi, rhoi) in zip(Pans,  rhoans)]
 csAns = [sqrt(gammaGas*Pi/rhoi) for (Pi, rhoi) in zip(Pans,  rhoans)]
 
 if graphics:
+    import Gnuplot
     from SpheralGnuPlotUtilities import *
 
     rhoPlot, velPlot, epsPlot, PPlot, HPlot = plotState(db, plotStyle="lines")
@@ -525,12 +527,25 @@ if graphics:
                              title = "Analytic")
     csPlot.replot(csAnsData)
 
+    Aplot = generateNewGnuPlot()
+    Adata = Gnuplot.Data(xprof, A,
+                         with_ = "lines",
+                         title = "P/rho^\gamma",
+                         inline = True)
+    AansData = Gnuplot.Data(xprof, Aans,
+                         with_ = "lines",
+                         title = "Solution",
+                         inline = True)
+    Aplot.replot(Adata)
+    Aplot.replot(AansData)
+
     plots = [(rhoPlot, "Sod-planar-rho.png"),
              (velPlot, "Sod-planar-vel.png"),
              (epsPlot, "Sod-planar-eps.png"),
              (PPlot, "Sod-planar-P.png"),
              (HPlot, "Sod-planar-h.png"),
-             (csPlot, "Sod-planar-cs.png")]
+             (csPlot, "Sod-planar-cs.png"),
+             (Aplot, "Sod-planar-entropy.png")]
     
     if CRKSPH:
         APlot = plotFieldList(hydro.A(),
@@ -564,31 +579,6 @@ if graphics:
                                   winTitle = "rvAlpha",
                                   colorNodeLists = False)
 
-    # # Plot the specific entropy.
-    # if mpi.rank == 0:
-    #     ll = zip(xprof, A, Aans)
-    #     ll.sort()
-    #     AsimData = Gnuplot.Data(xprof, A,
-    #                             with_ = "points",
-    #                             title = "Simulation",
-    #                             inline = True)
-    #     AansData = Gnuplot.Data(xprof, Aans,
-    #                             with_ = "lines",
-    #                             title = "Analytic",
-    #                             inline = True)
-    #     Aplot = Gnuplot.Gnuplot()
-    #     Aplot.plot(AsimData)
-    #     Aplot.replot(AansData)
-    # else:
-    #     Aplot = fakeGnuplot()
-
-    # # Plot the grad h correction term (omega)
-    # omegaPlot = plotFieldList(db.fluidOmegaGradh,
-    #                           winTitle = "grad h correction",
-    #                           colorNodeLists = False)
-
-    # Some debugging useful plots to pull out the derivatives and check 'em out.
-
     # Make hardcopies of the plots.
     for p, filename in plots:
         p.hardcopy(os.path.join(dataDir, filename), terminal="png")
@@ -616,15 +606,15 @@ if mpi.rank == 0:
     if outputFile != "None":
         outputFile = os.path.join(dataDir, outputFile)
         f = open(outputFile, "w")
-        f.write(("#  " + 17*"'%s' " + "\n") % ("x", "rho", "P", "v", "eps", "h", "mo",
-                                               "rhoans", "Pans", "vans", "hans",
+        f.write(("#  " + 19*"'%s' " + "\n") % ("x", "rho", "P", "v", "eps", "A", "h", "mo",
+                                               "rhoans", "Pans", "vans", "Aans", "hans",
                                                "x_UU", "rho_UU", "P_UU", "v_UU", "eps_UU", "h_UU"))
-        for (xi, rhoi, Pi, vi, epsi, hi, mi,
-             rhoansi, Pansi, vansi, hansi) in zip(xprof, rhoprof, Pprof, vprof, epsprof, hprof, mo,
-                                                  rhoans, Pans, vans, hans):
-            f.write((6*"%16.12e " + "%i " + 4*"%16.12e " + 6*"%i " + '\n') % 
-                    (xi, rhoi, Pi, vi, epsi, hi, mi,
-                     rhoansi, Pansi, vansi, hansi,
+        for (xi, rhoi, Pi, vi, epsi, Ai, hi, mi,
+             rhoansi, Pansi, vansi, Aansi, hansi) in zip(xprof, rhoprof, Pprof, vprof, epsprof, A, hprof, mo,
+                                                         rhoans, Pans, vans, Aans, hans):
+            f.write((7*"%16.12e " + "%i " + 5*"%16.12e " + 6*"%i " + '\n') % 
+                    (xi, rhoi, Pi, vi, epsi, Ai, hi, mi,
+                     rhoansi, Pansi, vansi, Aansi, hansi,
                      unpackElementUL(packElementDouble(xi)),
                      unpackElementUL(packElementDouble(rhoi)),
                      unpackElementUL(packElementDouble(Pi)),
@@ -637,13 +627,12 @@ if mpi.rank == 0:
     print "\tQuantity \t\tL1 \t\t\tL2 \t\t\tLinf"
     failure = False
     hD = []
-    #f = open("MCTesting.txt", "a")
-    #f.write(("CL=%g, Cq=%g \t") %(Cl, Cq))
     for (name, data, ans) in [("Mass Density", rhoprof, rhoans),
-                                             ("Pressure", Pprof, Pans),
-                                             ("Velocity", vprof, vans),
-                                             ("Thermal E", epsprof, uans),
-                                             ("h       ", hprof, hans)]:
+                              ("Pressure", Pprof, Pans),
+                              ("Velocity", vprof, vans),
+                              ("Thermal E", epsprof, uans),
+                              ("Entropy", A, Aans),
+                              ("h       ", hprof, hans)]:
         assert len(data) == len(ans)
         error = [data[i] - ans[i] for i in xrange(len(data))]
         Pn = Pnorm.Pnorm(error, xprof)

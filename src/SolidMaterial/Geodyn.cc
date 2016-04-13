@@ -27,12 +27,10 @@ Geodyn(const Material::PhysicalConstants& constants,
        const double minimumPressure,
        const double maximumPressure,
        const Material::MaterialPressureMinType minPressureType):
-  Material::EquationOfState<Dimension>(constants,
-                                       minimumPressure,
-                                       maximumPressure,
-                                       minPressureType),
-  SolidMaterial::StrengthModel<Dimension>(),
-  PhysicsSpace::Physics<Dimension>(),
+  PhysicsEvolvingMaterialLibrary<Dimension>(constants,
+                                            minimumPressure,
+                                            maximumPressure,
+                                            minPressureType),
   mGeodynUnits(0.01,    // cm expressed as meters.
                0.001,   // g expressed in kg.
                1.0),    // sec in secs.

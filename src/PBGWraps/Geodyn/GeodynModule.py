@@ -28,15 +28,12 @@ class Geodyn:
 
         for dim in self.dims:
             exec('''
-StrengthModel%(dim)id = findObject(self.space, "StrengthModel%(dim)id")
-EquationOfState%(dim)id = findObject(Material, "EquationOfState%(dim)id")
-Physics%(dim)id = findObject(PhysicsSpace, "Physics%(dim)id")
+PhysicsEvolvingMaterialLibrary%(dim)id = findObject(self.space, "PhysicsEvolvingMaterialLibrary%(dim)id")
 
 self.Geodyn%(dim)id = self.space.add_class("Geodyn",
                                            template_parameters=["Spheral::Dim<%(dim)i>"],
                                            custom_name="Geodyn%(dim)id", 
-                                           #parent=[EquationOfState%(dim)id, StrengthModel%(dim)id],
-                                           parent=[Physics%(dim)id, EquationOfState%(dim)id, StrengthModel%(dim)id],
+                                           parent=PhysicsEvolvingMaterialLibrary%(dim)id,
                                            allow_subclassing=True)
 ''' % {"dim" : dim})
 
