@@ -8,7 +8,7 @@ namespace FractalSpace
   {
     static int _COUNTER=0;
     int FractalRank=mem.p_mess->FractalRank;
-    bool Ranky=FractalRank==32;
+    bool Ranky=FractalRank==33;
     cerr << " SOLVED D " << _COUNTER << " " << FractalRank << endl;
     vector <int>BOX=mem.BoxesLev[FractalRank][level];
     vector <int>BBOX=mem.BBoxesLev[FractalRank][level];
@@ -24,16 +24,16 @@ namespace FractalSpace
       {
 	int HR=mem.p_mess->IHranks[FR];
 	assert(HR >= 0);
-	vector <int>PBOX=mem.BBoxesLev[FR][level];
+	vector <int>FRBBOX=mem.BBoxesLev[FR][level];
 	int B=0;
 	for(vector <int>& SB : SBoxes)
 	  {
-	    if(overlap_boxes(PBOX,SB))
+	    if(overlap_boxes(FRBBOX,SB))
 	      {
 		for(Point* &p : SPoints[B])
 		  {
 		    p->get_pos_point(pos);
-		    if(vector_in_box(pos,PBOX))
+		    if(on_edge(pos,FRBBOX))
 		      {
 			dataI_out[HR].push_back(pos[0]);
 			dataI_out[HR].push_back(pos[1]);
@@ -59,8 +59,10 @@ namespace FractalSpace
     counts_out.clear();
     dataI_out.clear();
     dataR_out.clear();
-    std::set<Point*>edgeP;
-    std::pair<std::set<Point*>::iterator,bool> succ;
+    array<int,3>ar3;
+    std::map<array<int,3>,Point*,point_comp> edgeP;
+    std::pair<std::map<array<int,3>,Point*>::iterator,bool> succ;
+    // std::pair<array<int,3>,Point*> pin;
     int inP=0;
     for(Group* &pg : mem.all_groups[level])
       {
@@ -69,9 +71,11 @@ namespace FractalSpace
 	    for(Point* &p : pg->list_points)
 	      {
 		p->get_pos_point(pos);
-		if(!vector_in_box(pos,BOX))
+		if(on_edge(pos,BBOX))
 		  {
-		    succ=edgeP.insert(p);
+		    std::move(pos.begin(),pos.end(),ar3.begin());
+		    // pin(ar3)=p;
+		    succ=edgeP.insert(pap(ar3,p));
 		    assert(succ.second);
 		    // if(Ranky)
 		    //   cerr << " EDGEA " << _COUNTER << " " << FractalRank << " " << pos[0] << " " << pos[1] << " " << pos[2] << endl;
@@ -80,43 +84,49 @@ namespace FractalSpace
 	      }
 	  }
       }
+    if(Ranky)
+      {
+	for(std::map<array<int,3>,Point*>::iterator p=edgeP.begin();p!=edgeP.end();p++)
+	  {
+	    p->second->get_pos_point(pos);
+	    cerr << " EdgePosA " << FractalRank << " " << level << " " << pos[0] << " " << pos[1] << " " << pos[2] << "\n";
+	  }
+      }
     cerr << " SOLVED G " << _COUNTER << " " << FractalRank << " " << inP << " " << edgeP.size() << endl;
-    auto iend=edgeP.end();
     int c1=0;
     int c3=0;
     int found=0;
     int notfound=0;
-    Point* p=new Point;
-    vector <int>posin(3);
+    // Point* p=new Point;
     for(int HR=0;HR<HypreNodes;HR++)
       {
 	for(int c=0;c<counts_in[HR];c++)
 	  {
-	    p->set_pos_point(dataI_in[c3],dataI_in[c3+1],dataI_in[c3+2]);
-	    p->get_pos_point(posin);
-	    // assert(vector_in_box(posin,BBOX));
-	    // assert(!vector_in_box(posin,BOX));
-	    auto it=edgeP.find(p);
-	    if(it != iend)
+	    array <int,3>posin={dataI_in[c3],dataI_in[c3+1],dataI_in[c3+2]};
+	    if(Ranky)
+	      cerr << " EdgePosB " << FractalRank << " " << level << " " << dataI_in[c3]  << " " << dataI_in[c3+1]  << " " << dataI_in[c3+2] << "\n";
+	    std::map<char,int>::iterator it;
+	    std::map<array<int,3>,Point*>::iterator eb=edgeP.find(posin);
+	    if(eb != edgeP.begin())
 	      {
-		if(Ranky)
-		  cerr << " ITISFOUND " ;
-		(*it)->set_potential_point(dataR_in[c1]);
+		Point* PF=eb->second;
+		// if(Ranky)
+		//   cerr << " ITISFOUND " ;
+		PF->set_potential_point(dataR_in[c1]);
 		found++;
 	      }
 	    else
 	      {
-		if(Ranky)
-		  cerr << " NOTFOUND " ;
+		// if(Ranky)
+		//   cerr << " NOTFOUND " ;
 		notfound++;
 	      }
-	    if(Ranky)
-	      cerr << _COUNTER << " " << FractalRank << " " << dataI_in[c3] << " " << dataI_in[c3+1] << " " << dataI_in[c3+2] << endl;
+	    // if(Ranky)
+	    //   cerr << _COUNTER << " " << FractalRank << " " << dataI_in[c3] << " " << dataI_in[c3+1] << " " << dataI_in[c3+2] << endl;
 	    c1++;
 	    c3+=3;
 	  }
       }
-    delete p;
     cerr << " SOLVED H " << _COUNTER << " " << FractalRank << endl;
     cerr << " ADDUP " << _COUNTER << " " << FractalRank << " " << found << " " << notfound << "\n";
     _COUNTER++;
