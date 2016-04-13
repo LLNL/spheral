@@ -89,45 +89,45 @@ namespace FractalSpace
     {    
       number_points--;
     }
-    bool operator<(const Point* pb)
+    bool operator<(const Point& pb)
     {
-      int dif=get_pos_point_z()-pb->get_pos_point_z();
+      int dif=get_pos_point_z()-pb.get_pos_point_z();
       if(dif != 0)
 	return dif < 0;
-      dif=get_pos_point_y()-pb->get_pos_point_y();
+      dif=get_pos_point_y()-pb.get_pos_point_y();
       if(dif != 0)
 	return dif < 0;
-      return (get_pos_point_x()-pb->get_pos_point_x()) < 0;
+      return (get_pos_point_x()-pb.get_pos_point_x()) < 0;
     }
-    bool operator==(const Point* pb)
+    bool operator==(const Point& pb)
     {
-      int dif=get_pos_point_z()-pb->get_pos_point_z();
+      int dif=get_pos_point_z()-pb.get_pos_point_z();
       if(dif != 0)
 	return false;
-      dif=get_pos_point_y()-pb->get_pos_point_y();
+      dif=get_pos_point_y()-pb.get_pos_point_y();
       if(dif != 0)
 	return false;
-      return (get_pos_point_x()-pb->get_pos_point_x()) == 0;
+      return (get_pos_point_x()-pb.get_pos_point_x()) == 0;
     }
-    bool operator!=(const Point* pb)
+    bool operator!=(const Point& pb)
     {
-      int dif=get_pos_point_z()-pb->get_pos_point_z();
+      int dif=get_pos_point_z()-pb.get_pos_point_z();
       if(dif != 0)
 	return true;
-      dif=get_pos_point_y()-pb->get_pos_point_y();
+      dif=get_pos_point_y()-pb.get_pos_point_y();
       if(dif != 0)
 	return true;
-      return (get_pos_point_x()-pb->get_pos_point_x()) != 0;
+      return (get_pos_point_x()-pb.get_pos_point_x()) != 0;
     }
-    bool operator>(const Point* pb)
+    bool operator>(const Point& pb)
     {
-      int dif=get_pos_point_z()-pb->get_pos_point_z();
+      int dif=get_pos_point_z()-pb.get_pos_point_z();
       if(dif != 0)
 	return dif > 0;
-      dif=get_pos_point_y()-pb->get_pos_point_y();
+      dif=get_pos_point_y()-pb.get_pos_point_y();
       if(dif != 0)
 	return dif > 0;
-      return (get_pos_point_x()-pb->get_pos_point_x()) > 0;
+      return (get_pos_point_x()-pb.get_pos_point_x()) > 0;
     }
     Point* get_point_up_x_0() const;
     Point* get_point_up_y_0() const;

@@ -14,10 +14,10 @@ namespace FractalSpace
     //    std::uniform_real_distribution<double> distribution(0.0,1.0);
     double rand_max=(double)RAND_MAX;
     double rmax=30.0;
-    double x_off=1.0;
-    double y_off=-2.0;
-    double z_off=3.0;
-    double slope=-2.0;
+    double x_off=0.0;
+    double y_off=0.0;
+    double z_off=0.0;
+    double slope=-1.8;
     double velratio=0.5;
     double sigratio=0.5;
     velratio*=sqrt(G);

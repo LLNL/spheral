@@ -10,6 +10,7 @@ namespace FractalSpace
   class Point;
   struct OcTreeNode;
   class OcTree;
+  struct point_comp;
 }
 #include "file_class.hh"
 #include "fractal_class.hh"
@@ -19,4 +20,5 @@ namespace FractalSpace
 #include "misc_class.hh"
 #include "particle_class.hh"
 #include "point_class.hh"
+#include "point_comp.hh"
 #include "octree.hh"
