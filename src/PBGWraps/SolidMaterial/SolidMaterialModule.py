@@ -33,7 +33,9 @@ class SolidMaterial:
             exec('''
 EquationOfState%(dim)id = findObject(Material, "EquationOfState%(dim)id")
 Physics%(dim)id = findObject(PhysicsSpace, "Physics%(dim)id")
+
 self.SolidEquationOfState%(dim)id = addObject(space, "SolidEquationOfState%(dim)id", parent=EquationOfState%(dim)id, allow_subclassing=True)
+
 self.PorousEquationOfState%(dim)id = addObject(space, "PorousEquationOfState%(dim)id", parent=self.SolidEquationOfState%(dim)id, allow_subclassing=True)
 self.StrainPorosity%(dim)id = addObject(space, "StrainPorosity%(dim)id", parent=[Physics%(dim)id], allow_subclassing=True)
 
@@ -51,6 +53,8 @@ self.SteinbergGuinanStrength%(dim)id = addObject(space, "SteinbergGuinanStrength
 self.JohnsonCookStrength%(dim)id = addObject(space, "JohnsonCookStrength%(dim)id", parent=self.StrengthModel%(dim)id, allow_subclassing=True)
 self.CollinsStrength%(dim)id = addObject(space, "CollinsStrength%(dim)id", parent=self.StrengthModel%(dim)id, allow_subclassing=True)
 self.PorousStrengthModel%(dim)id = addObject(space, "PorousStrengthModel%(dim)id", parent=self.StrengthModel%(dim)id, allow_subclassing=True)
+
+self.PhysicsEvolvingMaterialLibrary%(dim)id = addObject(space, "PhysicsEvolvingMaterialLibrary%(dim)id", parent=[EquationOfState%(dim)id, Physics%(dim)id, self.StrengthModel%(dim)id], allow_subclassing=True)
 ''' % {"dim" : dim})
 
         return
@@ -82,6 +86,8 @@ generateSteinbergGuinanStrengthBindings(self.SteinbergGuinanStrength%(dim)id, %(
 generateJohnsonCookStrengthBindings(self.JohnsonCookStrength%(dim)id, %(dim)i)
 generateCollinsStrengthBindings(self.CollinsStrength%(dim)id, %(dim)i)
 generatePorousStrengthModelBindings(self.PorousStrengthModel%(dim)id, %(dim)i)
+
+generatePhysicsEvolvingMaterialLibraryBindings(self.PhysicsEvolvingMaterialLibrary%(dim)id, %(dim)i)
 ''' % {"dim" : dim})
 
         return
@@ -820,3 +826,18 @@ def generateStrainPorosityBindings(x, ndim):
 
     return
 
+#---------------------------------------------------------------------------
+# Geodyn
+#---------------------------------------------------------------------------
+def generatePhysicsEvolvingMaterialLibraryBindings(x, ndim):
+
+    dim = "Spheral::Dim< %i >" % ndim
+    me = "Spheral::SolidMaterial::PhysicsEvolvingMaterialLibrary%id" % ndim
+
+    # Constructors.
+    x.add_constructor([constrefparam("PhysicalConstants", "constants"),
+                       param("double", "minimumPressure", default_value="-std::numeric_limits<double>::max()"),
+                       param("double", "maximumPressure", default_value="std::numeric_limits<double>::max()"),
+                       param("MaterialPressureMinType", "minPressureType", default_value="PressureFloor")])
+
+    return

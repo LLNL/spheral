@@ -143,7 +143,8 @@ commandLine(
     densityUpdate = RigorousSumDensity, # VolumeScaledDensity,
     correctionOrder = LinearOrder,
     compatibleEnergy = True,
-    gradhCorrection = False,
+    gradhCorrection = True,
+    correctVelocityGradient = True,
     serialDump = False,
 
     useVoronoiOutput = False,
@@ -222,7 +223,7 @@ mpi.barrier()
 #-------------------------------------------------------------------------------
 mu = 1.0
 eos1 = GammaLawGasMKS(gamma1, mu)
-eos2 = GammaLawGasMKS(gamma1, mu)
+eos2 = GammaLawGasMKS(gamma2, mu)
 
 #-------------------------------------------------------------------------------
 # Interpolation kernels.
@@ -384,6 +385,7 @@ elif PSPH:
                              compatibleEnergyEvolution = compatibleEnergy,
                              evolveTotalEnergy = evolveTotalEnergy,
                              HopkinsConductivity = HopkinsConductivity,
+                             correctVelocityGradient = correctVelocityGradient,
                              densityUpdate = densityUpdate,
                              HUpdate = HUpdate,
                              XSPH = XSPH)
@@ -394,6 +396,7 @@ else:
                              cfl = cfl,
                              compatibleEnergyEvolution = compatibleEnergy,
                              gradhCorrection = gradhCorrection,
+                             correctVelocityGradient = correctVelocityGradient,
                              XSPH = XSPH,
                              densityUpdate = densityUpdate,
                              HUpdate = HUpdate,

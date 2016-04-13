@@ -113,7 +113,8 @@ commandLine(nx1 = 128,
             correctionOrder = LinearOrder, 
             densityUpdate = RigorousSumDensity, # VolumeScaledDensity,
             compatibleEnergy = True,            # <--- Important!  rigorousBoundaries does not work with the compatibleEnergy algorithm currently.
-            gradhCorrection = False,
+            gradhCorrection = True,
+            correctVelocityGradient = True,
             evolveTotalEnergy= False,
             HopkinsConductivity=False,
             
@@ -327,6 +328,7 @@ elif PSPH:
                              evolveTotalEnergy = evolveTotalEnergy,
                              HopkinsConductivity = HopkinsConductivity,
                              densityUpdate = densityUpdate,
+                             correctVelocityGradient = correctVelocityGradient,
                              HUpdate = HUpdate,
                              XSPH = XSPH)
 else:
@@ -337,8 +339,8 @@ else:
                              useVelocityMagnitudeForDt = useVelocityMagnitudeForDt,
                              compatibleEnergyEvolution = compatibleEnergy,
                              gradhCorrection = gradhCorrection,
+                             correctVelocityGradient = correctVelocityGradient,
                              evolveTotalEnergy = evolveTotalEnergy,
-                             HopkinsConductivity = HopkinsConductivity,
                              XSPH = XSPH,
                              densityUpdate = densityUpdate,
                              HUpdate = HUpdate,
