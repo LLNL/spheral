@@ -55,14 +55,13 @@ namespace FractalSpace
     mem.p_mess->Send_Data_Some_How(9,mem.p_mess->HypreWorld,counts_out,counts_in,integers,doubles,
 				   dataI_out,dataI_in,how_manyI,
 				   dataR_out,dataR_in,how_manyR);
-    cerr << " SOLVED F " << _COUNTER << " " << FractalRank << " " << BOX[0]  << " " << BOX[1]  << " " << BOX[2]  << " " << BOX[3]  << " " << BOX[4]  << " " << BOX[5] << endl;
+    cerr << " SOLVED F " << _COUNTER << " " << FractalRank << " " << BOX[0]  << " " << BOX[1]  << " " << BOX[2]  << " " << BOX[3]  << " " << BOX[4]  << " " << BOX[5] << "\n";
     counts_out.clear();
     dataI_out.clear();
     dataR_out.clear();
     array<int,3>ar3;
     std::map<array<int,3>,Point*,point_comp> edgeP;
-    std::pair<std::map<array<int,3>,Point*>::iterator,bool> succ;
-    // std::pair<array<int,3>,Point*> pin;
+    // std::pair<std::map<array<int,3>,Point*>::iterator,bool> succ;
     int inP=0;
     for(Group* &pg : mem.all_groups[level])
       {
@@ -74,22 +73,11 @@ namespace FractalSpace
 		if(on_edge(pos,BBOX))
 		  {
 		    std::move(pos.begin(),pos.end(),ar3.begin());
-		    // pin(ar3)=p;
-		    succ=edgeP.insert(pap(ar3,p));
-		    assert(succ.second);
-		    // if(Ranky)
-		    //   cerr << " EDGEA " << _COUNTER << " " << FractalRank << " " << pos[0] << " " << pos[1] << " " << pos[2] << endl;
+		    // succ=edgeP.insert(pap(ar3,p));
+		    edgeP[ar3]=p;
 		    inP++;
 		  }
 	      }
-	  }
-      }
-    if(Ranky)
-      {
-	for(std::map<array<int,3>,Point*>::iterator p=edgeP.begin();p!=edgeP.end();p++)
-	  {
-	    p->second->get_pos_point(pos);
-	    cerr << " EdgePosA " << FractalRank << " " << level << " " << pos[0] << " " << pos[1] << " " << pos[2] << "\n";
 	  }
       }
     cerr << " SOLVED G " << _COUNTER << " " << FractalRank << " " << inP << " " << edgeP.size() << endl;
@@ -97,7 +85,6 @@ namespace FractalSpace
     int c3=0;
     int found=0;
     int notfound=0;
-    // Point* p=new Point;
     for(int HR=0;HR<HypreNodes;HR++)
       {
 	for(int c=0;c<counts_in[HR];c++)
@@ -107,22 +94,16 @@ namespace FractalSpace
 	      cerr << " EdgePosB " << FractalRank << " " << level << " " << dataI_in[c3]  << " " << dataI_in[c3+1]  << " " << dataI_in[c3+2] << "\n";
 	    std::map<char,int>::iterator it;
 	    std::map<array<int,3>,Point*>::iterator eb=edgeP.find(posin);
-	    if(eb != edgeP.begin())
+	    if(eb != edgeP.end())
 	      {
 		Point* PF=eb->second;
-		// if(Ranky)
-		//   cerr << " ITISFOUND " ;
 		PF->set_potential_point(dataR_in[c1]);
 		found++;
 	      }
 	    else
 	      {
-		// if(Ranky)
-		//   cerr << " NOTFOUND " ;
 		notfound++;
 	      }
-	    // if(Ranky)
-	    //   cerr << _COUNTER << " " << FractalRank << " " << dataI_in[c3] << " " << dataI_in[c3+1] << " " << dataI_in[c3+2] << endl;
 	    c1++;
 	    c3+=3;
 	  }
