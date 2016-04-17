@@ -42,7 +42,12 @@ def resampleNodeList(nodes,
     cm = db.connectivityMap()
 
     # Look for any new nodes we need to kill based on the mask.
-    if not mask is None:
+    # A the same time build the set of nodes in the original NodeList we're going to remove.
+    oldkillNodes = vector_of_int()
+    if mask is None:
+        for i in xrange(nodes.numInternalNodes):
+            oldnodes2kill.append(i)
+    else:
         if etaExclude is None:
             etaExclude = nodes.neighbor().kernelExtent/2
         assert etaExclude > 0.0
@@ -50,16 +55,16 @@ def resampleNodeList(nodes,
         posi = nodes.positions()
         posj = newnodes.positions()
         H = nodes.Hfield()
-        nodes2kill = vector_of_int()
+        newnodes2kill = vector_of_int()
         for i in xrange(newnodes.numInternalNodes):
             fullconnectivity = cm.connectivityForNode(0, i)
             for j in fullconnectivity[1]:
                 eta = (H[i]*(posi[i] - posj[j])).magnitude()
                 if eta < etaExclude:
-                    nodes2kill.append(j)
+                    newnodes2kill.append(j)
 
-        print "Removing %i nodes from new list due to overlap with masked nodes." % mpi.allreduce(len(nodes2kill), mpi.SUM)
-        newnodes.deleteNodes(nodes2kill)
+        print "Removing %i nodes from new list due to overlap with masked nodes." % mpi.allreduce(len(newnodes2kill), mpi.SUM)
+        newnodes.deleteNodes(newnodes2kill)
 
         # Update connectivity and such.
         newnodes.neighbor().updateNodes()
@@ -120,3 +125,5 @@ def resampleNodeList(nodes,
                                      pos1_fl, mass1_fl, H1_fl, bcs)
 
     
+    # Delete all the nodes we're no longer using from the old NodeList.
+    killNodes = vector_of_int()
