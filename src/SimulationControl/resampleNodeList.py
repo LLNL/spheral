@@ -155,8 +155,8 @@ def resampleNodeList(nodes,
     db.appendNodeList(newnodes)
     nodes.neighbor().updateNodes()
     newnodes.neighbor().updateNodes()
-    db.updateConnectivityMap(False)
-    cm = db.connectivityMap()
+    # db.updateConnectivityMap(False)
+    # cm = db.connectivityMap()
 
     # Convert fields we're going to map to conserved values.  This is necessary 'cause the splat operation we're going
     # to use guarantees summing over the input and output field values gives the same value.
@@ -182,38 +182,50 @@ def resampleNodeList(nodes,
 
     # Map stuff from the old to new nodes.
     fls = FieldListSet()
-    mass_fl = ScalarFieldList(Copy)
-    momentum_fl = VectorFieldList(Copy)
-    thermalenergy_fl = ScalarFieldList(Copy)
+    mass_fl = ScalarFieldList()
+    momentum_fl = VectorFieldList()
+    thermalenergy_fl = ScalarFieldList()
     mass_fl.appendField(mass)
     momentum_fl.appendField(momentum)
     thermalenergy_fl.appendField(thermalenergy)
+    mass_fl.copyFields()
+    momentum_fl.copyFields()
+    thermalenergy_fl.copyFields()
     fls.ScalarFieldLists.append(mass_fl)
     fls.VectorFieldLists.append(momentum_fl)
     fls.ScalarFieldLists.append(thermalenergy_fl)
     if solid:
-        S_fl = SymTensorFieldList(Copy)
-        ps_fl = ScalarFieldList(Copy)
-        D_fl = SymTensorFieldList(Copy)
+        S_fl = SymTensorFieldList()
+        ps_fl = ScalarFieldList()
+        D_fl = SymTensorFieldList()
         S_fl.appendField(mS)
         ps_fl.appendField(mps)
         D_fl.appendField(mD)
+        S_fl.copyFields()
+        ps_fl.copyFields()
+        D_fl.copyFields()
         fls.SymTensorFieldLists.append(S_fl)
         fls.ScalarFieldLists.append(ps_fl)
         fls.SymTensorFieldLists.append(D_fl)
 
-    pos0_fl = VectorFieldList(Copy)
-    mass0_fl = ScalarFieldList(Copy)
-    H0_fl = SymTensorFieldList(Copy)
+    pos0_fl = VectorFieldList()
+    mass0_fl = ScalarFieldList()
+    H0_fl = SymTensorFieldList()
     pos0_fl.appendField(nodes.positions())
     mass0_fl.appendField(nodes.mass())
     H0_fl.appendField(nodes.Hfield())
-    pos1_fl = VectorFieldList(Copy)
-    mass1_fl = ScalarFieldList(Copy)
-    H1_fl = SymTensorFieldList(Copy)
+    pos1_fl = VectorFieldList()
+    mass1_fl = ScalarFieldList()
+    H1_fl = SymTensorFieldList()
     pos1_fl.appendField(newnodes.positions())
     mass1_fl.appendField(newnodes.mass())
     H1_fl.appendField(newnodes.Hfield())
+    pos0_fl.copyFields()
+    mass0_fl.copyFields()
+    H0_fl.copyFields()
+    pos1_fl.copyFields()
+    mass1_fl.copyFields()
+    H1_fl.copyFields()
     bcs = vector_of_Boundary()
     for bc in boundaryConditions:
         bcs.append(bc)
@@ -225,19 +237,21 @@ def resampleNodeList(nodes,
 
     # Denormalize the mapped values and fill them in as new values for the nodes.
     nodes.numInternalNodes = nmask + newnodes.numInternalNodes
-    mass1 = newfls.ScalarFieldLists[0]
-    momentum1 = newfls.VectorFieldLists[0]
-    thermalenergy1 = newfls.ScalarFieldLists[1]
+    print nodes.numInternalNodes, newnodes.numInternalNodes
+    mass1 = newfls.ScalarFieldLists[0][0]
+    momentum1 = newfls.VectorFieldLists[0][0]
+    thermalenergy1 = newfls.ScalarFieldLists[1][0]
     for i in xrange(newnodes.numInternalNodes):
         j = nmask + i
         assert mass1[i] > 0.0
+        print j, mass[j], mass1[i]
         mass[j] = mass1[i]
         vel[j] = momentum1[i]/mass1[i]
         eps[j] = thermalenergy1[i]/mass1[i]
     if solid:
-        mS1 = newfls.SymTensorFieldLists[0]
-        mps1 = newfls.ScalarFieldLists[2]
-        mD1 = newfls.SymTensorFieldLists[1]
+        mS1 = newfls.SymTensorFieldLists[0][0]
+        mps1 = newfls.ScalarFieldLists[2][0]
+        mD1 = newfls.SymTensorFieldLists[1][0]
         for i in xrange(newnodes.numInternalNodes):
             j = nmask + i
             assert mass1[i] > 0.0
