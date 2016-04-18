@@ -23,13 +23,45 @@ def resampleNodeList(nodes,
     exec("from SolidSpheral%id import *" % ndim)   # Load the aliases for our dimensionality
     exec("from VoronoiDistributeNodes import distributeNodes%id as distributor" % ndim)
 
+    # Check if we're doing a Solid or FluidNodeList.
+    if isinstance(nodes, SolidNodeList):
+        solid = True
+    elif isinstance(nodes, FluidNodeList):
+        solid = False
+    else:
+        raise RuntimeError, "Unknown NodeList type."
+
     # Build a temporary FluidNodeList we'll use to sample to.
-    newnodes = makeSolidNodeList(name = "zznewnodes", 
-                                 eos = nodes.eos,
-                                 hmin = 1e-10,
-                                 hmax = 1e10,
-                                 xmin = -10*hmax*Vector.one,
-                                 xmax =  10*hmax*Vector.one)
+    if solid:
+        newnodes = makeSolidNodeList(name = "zznewnodes", 
+                                     eos = nodes.eos,
+                                     strength = nodes.strength,
+                                     hmin = 1e-10,
+                                     hmax = 1e10,
+                                     xmin = -10*hmax*Vector.one,
+                                     xmax =  10*hmax*Vector.one)
+        if mask:
+            masknodes = makeSolidNodeList(name = "zznewnodes", 
+                                          eos = nodes.eos,
+                                          strength = nodes.strength,
+                                          hmin = 1e-10,
+                                          hmax = 1e10,
+                                          xmin = -10*hmax*Vector.one,
+                                          xmax =  10*hmax*Vector.one)
+    else:
+        newnodes = makeFluidNodeList(name = "zznewnodes", 
+                                     eos = nodes.eos,
+                                     hmin = 1e-10,
+                                     hmax = 1e10,
+                                     xmin = -10*hmax*Vector.one,
+                                     xmax =  10*hmax*Vector.one)
+        if mask:
+            masknodes = makeFluidNodeList(name = "zznewnodes", 
+                                          eos = nodes.eos,
+                                          hmin = 1e-10,
+                                          hmax = 1e10,
+                                          xmin = -10*hmax*Vector.one,
+                                          xmax =  10*hmax*Vector.one)
     distributor((newnodes, generator))
 
     # Build the connectivity so we can figure out which nodes touch.
@@ -41,8 +73,14 @@ def resampleNodeList(nodes,
     db.updateConnectivityMap(False)
     cm = db.connectivityMap()
 
-    # Look for any new nodes we need to kill based on the mask.
-    # A the same time build the set of nodes in the original NodeList we're going to remove.
+    # If we're masking some points, things get complicated.  The mask nodes are going to persist to the new
+    # nodes, and so we need to not overlay them.  We also want to remove any new nodes that overlap with the
+    # mask nodes, since the masked ones are going to be copied to the new nodes in the end.
+    if mask:
+
+        # Copy the field values from the original masked nodes to the temporary mask set.
+        
+
     oldkillNodes = vector_of_int()
     if mask is None:
         for i in xrange(nodes.numInternalNodes):
