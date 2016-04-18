@@ -13,7 +13,7 @@ namespace FractalSpace
       dif=pa[1]-pb[1];
       if(dif != 0)
 	return dif < 0;
-      return pa[1]-pb[0] < 0;
+      return pa[0]-pb[0] < 0;
     }
   };
 }
