@@ -40,7 +40,8 @@ PYTHONTARGETS = \
 	$(srcdir)/SpheralHadesDump.py \
 	$(srcdir)/siloPointmeshDump.py \
 	$(srcdir)/SpheralPointmeshSiloDump.py \
-	$(srcdir)/PolyhedronFileUtilities.py
+	$(srcdir)/PolyhedronFileUtilities.py \
+	$(srcdir)/resampleNodeList.py
 
 #-------------------------------------------------------------------------------
 include $(BUILDTOP)/helpers/makefile_master

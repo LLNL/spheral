@@ -211,7 +211,7 @@ splatMultipleFieldsMash(const FieldListSet<Dimension>& fieldListSet,
           const Vector rij = ri - rj;
           const Vector etai = Hi*rij;
           const Vector etaj = Hj*rij;
-          CHECK(etai >= 0.0 && etaj >= 0.0);
+          CHECK2(etai >= 0.0 && etaj >= 0.0, etai << " " << etaj);
 
           // Calculate the kernel estimates for each node.
           Scalar Wi = kernel(etai, 1.0);
