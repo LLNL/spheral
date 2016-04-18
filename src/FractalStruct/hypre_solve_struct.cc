@@ -7,6 +7,8 @@ namespace FractalSpace
 			  vector < vector<int> >& SBoxes,vector < vector<Point*> >& SPoints)
   {
     static int _COUNTER=0;
+    static vector <double> Hypre_sum_time(mem.p_fractal->get_level_max()+1,0.0);
+    ofstream& FHT=mem.p_file->DUMPS;
     int spacing=Misc::pow(2,mem.p_fractal->get_level_max()-level);
     int FractalRank=mem.p_mess->FractalRank;
     int HypreRank=mem.p_mess->HypreRank;
@@ -25,7 +27,10 @@ namespace FractalSpace
     vector < vector <int> > lowerBOX(SBoxes.size());
     vector < vector <int> > upperBOX(SBoxes.size());
     vector <int> VOL(SBoxes.size());
+    double time0=mem.p_mess->Clock();
     HYPRE_StructGridCreate(mem.p_mess->HypreWorld,3,&grid);
+    vector <int>pers(3,0);
+    HYPRE_StructGridSetPeriodic(grid,&(*pers.begin()));
     int B=0;
     for(vector <int>& SB : SBoxes)
       {
@@ -42,6 +47,7 @@ namespace FractalSpace
 	B++;
       }
     HYPRE_StructGridAssemble(grid);
+    double time1=mem.p_mess->Clock();
     HYPRE_StructStencilCreate(3,7,&stencil);
     int offsets[7][3] = {{0,0,0},{-1,0,0},{1,0,0},{0,-1,0},{0,1,0},{0,0,-1},{0,0,1}};
     for (int entry = 0; entry < 7; entry++)
@@ -113,6 +119,7 @@ namespace FractalSpace
       }
     HYPRE_StructVectorAssemble(rho);
     HYPRE_StructVectorAssemble(pot);
+    double time2=mem.p_mess->Clock();
     
     HYPRE_StructPCGCreate(mem.p_mess->HypreWorld, &solver);
     HYPRE_StructPCGSetMaxIter(solver, 200 );
@@ -132,21 +139,24 @@ namespace FractalSpace
 			      HYPRE_StructPFMGSolve,
 			      HYPRE_StructPFMGSetup,
 			      precond);
+    double time3=mem.p_mess->Clock();
     HYPRE_StructPCGSetup(solver,Amatrix,rho,pot);
+    double time4=mem.p_mess->Clock();
     HYPRE_StructPCGSolve(solver,Amatrix,rho,pot);
+    double time5=mem.p_mess->Clock();
     int num_iterations=-1;
     double final_res_norm=-1.0;
     HYPRE_StructPCGGetNumIterations(solver,&num_iterations );
     HYPRE_StructPCGGetFinalRelativeResidualNorm( solver, &final_res_norm );
     if(HypreRank == 0)
-      cerr << " SOLVED A " << _COUNTER << " " << FractalRank << " " << HypreRank << " " << num_iterations << " " << final_res_norm << endl;
+      cerr << " SOLVED A " << _COUNTER << " " << FractalRank << " " << HypreRank << " " << num_iterations << " " << final_res_norm << "\n";
     HYPRE_StructPCGDestroy(solver);
     HYPRE_StructPFMGDestroy(precond);
     HYPRE_StructGridDestroy(grid);
     HYPRE_StructStencilDestroy(stencil);
     HYPRE_StructMatrixDestroy(Amatrix);
     HYPRE_StructVectorDestroy(rho);
-    cerr << " SOLVED B " << _COUNTER << " " << FractalRank << " " << HypreRank << endl;
+    cerr << " SOLVED B " << _COUNTER << " " << FractalRank << " " << HypreRank << "\n";
     B=0;
     for(vector <Point*>& SP : SPoints)
       {
@@ -159,7 +169,16 @@ namespace FractalSpace
 	B++;
       }
     HYPRE_StructVectorDestroy(pot);
+    double time6=mem.p_mess->Clock();
     _COUNTER++;
-    cerr << " SOLVED C " << _COUNTER << " " << FractalRank << " " << HypreRank << endl;
+    Hypre_sum_time[level]+=time6-time0;
+    FHT << " Hypre Total " << "\t" << "t" << time6-time0 << "\t" << Hypre_sum_time[level] << "\t" << level << "\t" << mem.steps << "\n";
+    FHT << " Hypre Grid Assemble " << "\t" << time1-time0 << "\n";
+    FHT << " Hypre Data Assemble " << "\t" << time2-time1 << "\n";
+    FHT << " Hypre Solve Assemble " << "\t" << time3-time2 << "\n";
+    FHT << " Hypre Solve Setup " << "\t" << time4-time3 << "\n";
+    FHT << " Hypre Solver Solve " << "\t" << time5-time4 << "\n";
+    FHT << " Hypre Dat Dump " << "\t" << time6-time5 << "\n";
+    cerr << " SOLVED C " << _COUNTER << " " << FractalRank << " " << HypreRank << "\n";
   }
 }
