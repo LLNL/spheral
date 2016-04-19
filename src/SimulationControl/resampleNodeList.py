@@ -230,9 +230,12 @@ def resampleNodeList(nodes,
     for bc in boundaryConditions:
         bcs.append(bc)
     print "Splatting fields..."
+    # newfls = sampleMultipleScalarFieldsMash(fls,
+    #                                  pos0_fl, mass0_fl, H0_fl, W,
+    #                                  pos1_fl, mass1_fl, H1_fl)
     newfls = splatMultipleFieldsMash(fls,
                                      pos0_fl, mass0_fl, H0_fl, W,
-                                     pos1_fl, mass1_fl, H1_fl, bcs)
+                                     pos1_fl, mass1_fl, H1_fl)
     print "Done splatting."
 
     # Denormalize the mapped values and fill them in as new values for the nodes.

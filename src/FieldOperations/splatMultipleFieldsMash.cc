@@ -13,7 +13,6 @@
 #include "Neighbor/Neighbor.hh"
 #include "Kernel/TableKernel.hh"
 #include "Geometry/MathTraits.hh"
-#include "Boundary/Boundary.hh"
 
 #include "Utilities/DBC.hh"
 
@@ -24,7 +23,6 @@ using namespace std;
 using NodeSpace::NodeList;
 using NeighborSpace::Neighbor;
 using KernelSpace::TableKernel;
-using BoundarySpace::Boundary;
 
 //------------------------------------------------------------------------------
 // Return a MASH donated version of the given FieldList at the new positions.
@@ -43,8 +41,7 @@ splatMultipleFieldsMash(const FieldListSet<Dimension>& fieldListSet,
                         const TableKernel<Dimension>& kernel,
                         const FieldList<Dimension, typename Dimension::Vector>& samplePositions,
                         const FieldList<Dimension, typename Dimension::Scalar>& sampleWeight,
-                        const FieldList<Dimension, typename Dimension::SymTensor>& sampleHfield,
-                        const vector<Boundary<Dimension>*>& boundaryConditions) {
+                        const FieldList<Dimension, typename Dimension::SymTensor>& sampleHfield) {
 
   // Some convenient typedefs.
   typedef typename Dimension::Scalar Scalar;

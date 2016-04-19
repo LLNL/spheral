@@ -201,8 +201,8 @@ sampleMultipleFieldsMash(const FieldListSet<Dimension>& fieldListSet,
           const Scalar& weightj = weight(neighborItr);
 
           const Vector rij = ri - rj;
-          const Vector etai = Hi*rij;
-          const Vector etaj = Hj*rij;
+          const Scalar etai = (Hi*rij).magnitude();
+          const Scalar etaj = (Hj*rij).magnitude();
           CHECK(etai >= 0.0 && etaj >= 0.0);
 
           // Calculate the kernel estimates for each node.
