@@ -219,8 +219,7 @@ class FieldOperations:
                                                                      constrefparam(tablekernel, "kernel"),
                                                                      constrefparam(vectorfieldlist, "splatPosition"),
                                                                      constrefparam(scalarfieldlist, "splatWeight"),
-                                                                     constrefparam(symtensorfieldlist, "splatHfield"),
-                                                                     constrefparam(vector_of_Boundary, "boundaryConditions")],
+                                                                     constrefparam(symtensorfieldlist, "splatHfield")],
                            template_parameters = [dim],
                            custom_name = "splatMultipleFieldsMash%id" % ndim)
 

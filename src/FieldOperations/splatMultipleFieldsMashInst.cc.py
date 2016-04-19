@@ -20,8 +20,7 @@ namespace Spheral {
                                       const TableKernel< Dim< %(ndim)s > >& kernel,
                                       const FieldList<Dim< %(ndim)s >, Dim< %(ndim)s >::Vector>& samplePositions,
                                       const FieldList<Dim< %(ndim)s >, Dim< %(ndim)s >::Scalar>& sampleWeight,
-                                      const FieldList<Dim< %(ndim)s >, Dim< %(ndim)s >::SymTensor>& sampleHfield,
-                                      const vector<Boundary<Dim< %(ndim)s > >*>& boundaryConditions);
+                                      const FieldList<Dim< %(ndim)s >, Dim< %(ndim)s >::SymTensor>& sampleHfield);
 
   }
 }
