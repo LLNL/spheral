@@ -247,7 +247,6 @@ def resampleNodeList(nodes,
     for i in xrange(newnodes.numInternalNodes):
         j = nmask + i
         assert mass1[i] > 0.0
-        print j, mass[j], mass1[i]
         mass[j] = mass1[i]
         vel[j] = momentum1[i]/mass1[i]
         eps[j] = thermalenergy1[i]/mass1[i]
