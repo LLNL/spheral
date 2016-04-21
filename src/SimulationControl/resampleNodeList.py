@@ -84,20 +84,34 @@ def resampleNodeList(nodes,
     else:
         raise RuntimeError, "Unknown NodeList type."
 
+    # Check how to set the new neighbor info.
+    if isinstance(nodes._neighbor, NestedGridNeighbor):
+        topGridSize = nodes._neighbor.topGridSize
+        xmin = Vector.zero
+        xmax = Vector.one * topGridSize
+    elif isinstance(nodes._neighbor, TreeNeighbor):
+        xmin = nodes._neighbor.xmin
+        xmax = nodes._neighbor.xmax
+        topGridSize = (xmax - xmin).maxAbsElement()
+    else:
+        raise RuntimeError, "Unknown Neighbor type."
+
     # Build a temporary NodeList we'll use to sample to.
     newnodes = NLF(name = "zza_newnodes", 
                    eos = nodes.eos,
                    hmin = 1e-10,
                    hmax = 1e10,
-                   xmin = -10*nodes.hmax*Vector.one,
-                   xmax =  10*nodes.hmax*Vector.one)
+                   topGridCellSize = topGridSize,
+                   xmin = xmin,
+                   xmax = xmax)
     if mask:
         masknodes = NLF(name = "zzz_masknodes", 
                         eos = nodes.eos,
                         hmin = 1e-10,
                         hmax = 1e10,
-                        xmin = -10*nodes.hmax*Vector.one,
-                        xmax =  10*nodes.hmax*Vector.one)
+                        topGridCellSize = topGridSize,
+                        xmin = xmin,
+                        xmax = xmax)
     distributor((newnodes, generator))
 
     # If we're masking some points, things get complicated.  The mask nodes are going to persist to the new
@@ -161,11 +175,14 @@ def resampleNodeList(nodes,
     # Convert fields we're going to map to conserved values.  This is necessary 'cause the splat operation we're going
     # to use guarantees summing over the input and output field values gives the same value.
     mass = nodes.mass()
+    rho = nodes.massDensity()
+    vol = ScalarField(nodes.mass())
     vel = nodes.velocity()
     eps = nodes.specificThermalEnergy()
     momentum = VectorField(vel)
     thermalenergy = ScalarField(eps)
     for i in xrange(nodes.numNodes):
+        vol[i] /= rho[i] + 1.0e-30
         momentum[i] *= mass[i]
         thermalenergy[i] *= mass[i]
     if solid:
@@ -183,15 +200,19 @@ def resampleNodeList(nodes,
     # Map stuff from the old to new nodes.
     fls = FieldListSet()
     mass_fl = ScalarFieldList()
+    vol_fl = ScalarFieldList()
     momentum_fl = VectorFieldList()
     thermalenergy_fl = ScalarFieldList()
     mass_fl.appendField(mass)
+    vol_fl.appendField(vol)
     momentum_fl.appendField(momentum)
     thermalenergy_fl.appendField(thermalenergy)
     mass_fl.copyFields()
+    vol_fl.copyFields()
     momentum_fl.copyFields()
     thermalenergy_fl.copyFields()
     fls.ScalarFieldLists.append(mass_fl)
+    fls.ScalarFieldLists.append(vol_fl)
     fls.VectorFieldLists.append(momentum_fl)
     fls.ScalarFieldLists.append(thermalenergy_fl)
     if solid:
@@ -230,9 +251,6 @@ def resampleNodeList(nodes,
     for bc in boundaryConditions:
         bcs.append(bc)
     print "Splatting fields..."
-    # newfls = sampleMultipleScalarFieldsMash(fls,
-    #                                  pos0_fl, mass0_fl, H0_fl, W,
-    #                                  pos1_fl, mass1_fl, H1_fl)
     newfls = splatMultipleFieldsMash(fls,
                                      pos0_fl, mass0_fl, H0_fl, W,
                                      pos1_fl, mass1_fl, H1_fl)
@@ -240,19 +258,27 @@ def resampleNodeList(nodes,
 
     # Denormalize the mapped values and fill them in as new values for the nodes.
     nodes.numInternalNodes = nmask + newnodes.numInternalNodes
-    print nodes.numInternalNodes, newnodes.numInternalNodes
+    pos0 = nodes.positions()
+    H0 = nodes.Hfield()
+    pos1 = newnodes.positions()
+    H1 = newnodes.Hfield()
     mass1 = newfls.ScalarFieldLists[0][0]
+    vol1 = newfls.ScalarFieldLists[1][0]
     momentum1 = newfls.VectorFieldLists[0][0]
-    thermalenergy1 = newfls.ScalarFieldLists[1][0]
+    thermalenergy1 = newfls.ScalarFieldLists[2][0]
     for i in xrange(newnodes.numInternalNodes):
         j = nmask + i
         assert mass1[i] > 0.0
+        assert vol[i] > 0.0
+        pos0[j] = pos1[j]
+        H0[j] = H1[j]
         mass[j] = mass1[i]
+        rho[j] = mass1[i]/vol1[i]
         vel[j] = momentum1[i]/mass1[i]
         eps[j] = thermalenergy1[i]/mass1[i]
     if solid:
         mS1 = newfls.SymTensorFieldLists[0][0]
-        mps1 = newfls.ScalarFieldLists[2][0]
+        mps1 = newfls.ScalarFieldLists[3][0]
         mD1 = newfls.SymTensorFieldLists[1][0]
         for i in xrange(newnodes.numInternalNodes):
             j = nmask + i
