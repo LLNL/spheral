@@ -161,13 +161,15 @@ splatMultipleFieldsMash(const FieldListSet<Dimension>& fieldListSet,
   }
   
   FieldList<Dimension, int> flagNodeDone(FieldSpace::Copy);
-  flagNodeDone.copyFields();
+  FieldList<Dimension, Scalar> normalization(FieldSpace::Copy);
   for (typename FieldList<Dimension, Vector>::const_iterator fieldItr = position.begin();
        fieldItr < position.end(); 
        ++fieldItr) {
     flagNodeDone.appendNewField("flag nodes", (*fieldItr)->nodeList(), 0);
+    normalization.appendNewField("normalization", (*fieldItr)->nodeList(), 1.0e-30);
   }
 
+  // This first pass counts the total weight from each donor node, so we can compute the normalization correctly.
   // Loop over all the positions in the donor fieldList.
   for (InternalNodeIterator<Dimension> nodeItr = position.internalNodeBegin();
        nodeItr < position.internalNodeEnd();
@@ -196,7 +198,6 @@ splatMultipleFieldsMash(const FieldListSet<Dimension>& fieldListSet,
 
         // Loop over the refined neighbors, and determine the normalization
         // constant.
-        Scalar totalWeight = 1.0e-30;
         for (RefineNodeIterator<Dimension> neighborItr = samplePositions.refineNodeBegin();
              neighborItr < samplePositions.refineNodeEnd();
              ++neighborItr) {
@@ -238,10 +239,46 @@ splatMultipleFieldsMash(const FieldListSet<Dimension>& fieldListSet,
           }
 
           // Add this nodes contribution to the master value.
-          totalWeight += weightij*Wij;
+          normalization(masterItr) += weightij*Wij;
         }
-        CHECK(totalWeight > 0.0);
-        Scalar normalization = 1.0/totalWeight;
+        CHECK(normalization(masterItr) > 0.0);
+        normalization(masterItr) = 1.0/normalization(masterItr);
+
+        // Flag this master node as done.
+        flagNodeDone(masterItr) = 1;
+      }
+    }
+  }
+
+  // After we're done, all nodes in all NodeLists should be flagged as done.
+  CHECK(flagNodeDone.min() == 1);
+
+  // Now we make a second pass and do the actual splatting.
+  flagNodeDone = 0;
+  for (InternalNodeIterator<Dimension> nodeItr = position.internalNodeBegin();
+       nodeItr < position.internalNodeEnd();
+       ++nodeItr) {
+
+    // Check if this node has been done yet.
+    if (flagNodeDone(nodeItr) == 0) {
+
+      // Set the neighbor info over the positions we're sampling to.
+      position.setMasterNodeLists(position(nodeItr), Hfield(nodeItr));
+      samplePositions.setMasterNodeLists(position(nodeItr), Hfield(nodeItr));
+
+      // Loop over the set of master nodes in the FieldList we're sampling from.
+      for (MasterNodeIterator<Dimension> masterItr = position.masterNodeBegin();
+           masterItr < position.masterNodeEnd();
+           ++masterItr) {
+        CHECK(flagNodeDone(masterItr) == 0);
+   
+        // Sample node (i) state.
+        const Vector& ri = position(masterItr);
+        const SymTensor& Hi = Hfield(masterItr);
+        const Scalar& weighti = weight(masterItr);
+
+        // Refine the set of nodes we're sampling to for this position.
+        samplePositions.setRefineNodeLists(ri, Hi);
 
         // Loop over the refined neighbors again, and do the splat of the donor nodes
         // value to each of the sample nodes.
@@ -287,7 +324,7 @@ splatMultipleFieldsMash(const FieldListSet<Dimension>& fieldListSet,
 
           // Loop over all the FieldLists we're sampling from, and add their contributions
           // to their correspoding result FieldList.
-          const Scalar localWeight = weightij*Wij*normalization;
+          const Scalar localWeight = weightij*Wij*normalization(masterItr);
           for (int i = 0; i < fieldListSet.ScalarFieldLists.size(); ++i) {
             const FieldList<Dimension, Scalar>& fieldList = fieldListSet.ScalarFieldLists[i];
             FieldList<Dimension, Scalar>& result = resultSet.ScalarFieldLists[i];
