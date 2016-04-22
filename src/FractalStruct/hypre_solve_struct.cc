@@ -61,7 +61,6 @@ namespace FractalSpace
 	vector <int>pos(3);
 	vector <double>values;
 	auto p_itr=SP.begin();
-	// for (int i = 0; i < VOL[B];i++)
 	while(p_itr != SP.end())
 	  {
 	    Point* p=*p_itr;
@@ -70,7 +69,7 @@ namespace FractalSpace
 	      {
 		Point* p1=p->get_point_ud(j);
 		p1->get_pos_point(pos);
-		if(p1->get_inside())
+		if(p1->get_inside() || on_edge(pos,BBox))
 		  values.push_back(1.0);
 		else
 		  values.push_back(0.0);
@@ -93,7 +92,6 @@ namespace FractalSpace
       {
 	vector <double>dens_values;
 	vector <double>pot_values;
-	// for (int i = 0; i < VOL[B]; i++)
 	auto p_itr=SP.begin();
 	while(p_itr != SP.end())
 	  {
@@ -172,7 +170,7 @@ namespace FractalSpace
     double time6=mem.p_mess->Clock();
     _COUNTER++;
     Hypre_sum_time[level]+=time6-time0;
-    FHT << " Hypre Total " << "\t" << "t" << time6-time0 << "\t" << Hypre_sum_time[level] << "\t" << level << "\t" << mem.steps << "\n";
+    FHT << " Hypre Total " << "\t" << "\t" << time6-time0 << "\t" << Hypre_sum_time[level] << "\t" << level << "\t" << mem.steps << "\n";
     FHT << " Hypre Grid Assemble " << "\t" << time1-time0 << "\n";
     FHT << " Hypre Data Assemble " << "\t" << time2-time1 << "\n";
     FHT << " Hypre Solve Assemble " << "\t" << time3-time2 << "\n";

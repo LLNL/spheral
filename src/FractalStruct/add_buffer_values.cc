@@ -11,7 +11,7 @@ namespace FractalSpace
     bool Ranky=FractalRank==33;
     cerr << " SOLVED D " << _COUNTER << " " << FractalRank << endl;
     vector <int>BOX=mem.BoxesLev[FractalRank][level];
-    vector <int>BBOX=mem.BBoxesLev[FractalRank][level];
+    // vector <int>BBOX=mem.BBoxesLev[FractalRank][level];
     int HypreNodes=mem.p_mess->HypreNodes;
     vector <int> counts_in(HypreNodes);
     vector <int> counts_out(HypreNodes,0);
@@ -24,16 +24,17 @@ namespace FractalSpace
       {
 	int HR=mem.p_mess->IHranks[FR];
 	assert(HR >= 0);
-	vector <int>FRBBOX=mem.BBoxesLev[FR][level];
+	vector <int>FRPBOX=mem.PBoxesLev[FR][level];
+	vector <int>FRBOX=mem.BoxesLev[FR][level];
 	int B=0;
 	for(vector <int>& SB : SBoxes)
 	  {
-	    if(overlap_boxes(FRBBOX,SB))
+	    if(overlap_boxes(FRPBOX,SB))
 	      {
 		for(Point* &p : SPoints[B])
 		  {
 		    p->get_pos_point(pos);
-		    if(on_edge(pos,FRBBOX))
+		    if(vector_in_box(pos,FRPBOX) && !vector_in_box(pos,FRBOX))
 		      {
 			dataI_out[HR].push_back(pos[0]);
 			dataI_out[HR].push_back(pos[1]);
@@ -70,7 +71,7 @@ namespace FractalSpace
 	    for(Point* &p : pg->list_points)
 	      {
 		p->get_pos_point(pos);
-		if(on_edge(pos,BBOX))
+		if(!vector_in_box(pos,BOX))
 		  {
 		    std::move(pos.begin(),pos.end(),ar3.begin());
 		    // succ=edgeP.insert(pap(ar3,p));
