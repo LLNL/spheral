@@ -160,11 +160,12 @@ splatMultipleFieldsMash(const FieldListSet<Dimension>& fieldListSet,
       resultItr->appendField(Field<Dimension, SymTensor>("splat" + (*fieldItr)->name(), (*fieldItr)->nodeList()));
   }
   
-  vector< vector<bool> > flagNodeDone(position.numFields());
+  FieldList<Dimension, int> flagNodeDone(FieldSpace::Copy);
+  flagNodeDone.copyFields();
   for (typename FieldList<Dimension, Vector>::const_iterator fieldItr = position.begin();
        fieldItr < position.end(); 
        ++fieldItr) {
-    flagNodeDone[fieldItr - position.begin()].resize((*fieldItr)->nodeListPtr()->numInternalNodes(), false);
+    flagNodeDone.appendNewField("flag nodes", (*fieldItr)->nodeList(), 0);
   }
 
   // Loop over all the positions in the donor fieldList.
@@ -173,7 +174,7 @@ splatMultipleFieldsMash(const FieldListSet<Dimension>& fieldListSet,
        ++nodeItr) {
 
     // Check if this node has been done yet.
-    if (!flagNodeDone[nodeItr.fieldID()][nodeItr.nodeID()]) {
+    if (flagNodeDone(nodeItr) == 0) {
 
       // Set the neighbor info over the positions we're sampling to.
       position.setMasterNodeLists(position(nodeItr), Hfield(nodeItr));
@@ -183,7 +184,7 @@ splatMultipleFieldsMash(const FieldListSet<Dimension>& fieldListSet,
       for (MasterNodeIterator<Dimension> masterItr = position.masterNodeBegin();
            masterItr < position.masterNodeEnd();
            ++masterItr) {
-        CHECK(flagNodeDone[masterItr.fieldID()][masterItr.nodeID()] == false);
+        CHECK(flagNodeDone(masterItr) == 0);
    
         // Sample node (i) state.
         const Vector& ri = position(masterItr);
@@ -310,22 +311,13 @@ splatMultipleFieldsMash(const FieldListSet<Dimension>& fieldListSet,
         }
    
         // Flag this master node as done.
-        flagNodeDone[masterItr.fieldID()][masterItr.nodeID()] = true;
+        flagNodeDone(masterItr) = 1;
       }
     }
   }
 
   // After we're done, all nodes in all NodeLists should be flagged as done.
-  for (typename vector< vector<bool> >::const_iterator flagNodeItr = flagNodeDone.begin();
-       flagNodeItr < flagNodeDone.end();
-       ++flagNodeItr) {
-    int checkcount = count(flagNodeItr->begin(), flagNodeItr->end(), false);
-    if (checkcount > 0) {
-      cerr << "Error in FieldList::sampleFieldsMash: Not all values determined on exit "
-           << checkcount << endl;
-    }
-    CHECK(checkcount == 0);
-  }
+  CHECK(flagNodeDone.min() == 1);
 
   return resultSet;
 }
