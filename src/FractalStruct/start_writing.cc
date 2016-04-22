@@ -83,9 +83,9 @@ namespace FractalSpace
 	double ferror=sqrt(pow(difx,2)+pow(dify,2)+pow(difz,2));
 	double err=ferror/abs(frTheory);
 	if(_DOIT)
-	  fprintf(PFPos," E%d %13.6E %13.6E %13.6E %13.6E %13.6E ",err < 0.1,dr,abs(fr),abs(frTheory),ft,ferror); // 20-24
-	// fprintf(PFPos," %13.6E %13.6E %13.6E ",dr,abs(fr),ft); // 24-26
-	// fprintf(PFPos," E %d",(abs(fr)-abs(frTheory))/abs(frTheory) >0.1); //27
+	  fprintf(PFPos," E%d %13.6E %13.6E %13.6E %13.6E %13.6E ",err < 0.1,dr,abs(fr),abs(frTheory),ft,ferror); // 20-25
+	// fprintf(PFPos," %13.6E %13.6E %13.6E ",dr,abs(fr),ft); // 26-27
+	// fprintf(PFPos," E %d",(abs(fr)-abs(frTheory))/abs(frTheory) >0.1); // 28
 	fprintf(PFPos,"\n");
       }
        fflush(PFPos);

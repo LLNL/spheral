@@ -78,7 +78,6 @@ namespace FractalSpace
   {
 //     vector < vector < vector <int> > > BoxesLev;
 //     vector < vector < vector <int> > > BBoxesLev;
-    vector < vector < vector <int> > > PBoxesLev;
     Buffers.resize(FractalNodes);
     BBoxes.resize(FractalNodes);
     PBoxes.resize(FractalNodes);
