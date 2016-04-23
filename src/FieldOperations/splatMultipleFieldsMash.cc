@@ -10,19 +10,32 @@
 #include "Field/Field.hh"
 #include "Field/NodeIterators.hh"
 #include "NodeList/NodeList.hh"
+#include "NodeList/FluidNodeList.hh"
 #include "Neighbor/Neighbor.hh"
 #include "Kernel/TableKernel.hh"
 #include "Geometry/MathTraits.hh"
 
 #include "Utilities/DBC.hh"
 
+#ifdef USE_MPI
+#include "Neighbor/NestedGridNeighbor.hh"
+#include "Distributed/NestedGridDistributedBoundary.hh"
+#include "DataBase/DataBase.hh"
+#endif
+
 namespace Spheral {
 namespace FieldSpace {
 
 using namespace std;
 using NodeSpace::NodeList;
+using NodeSpace::FluidNodeList;
 using NeighborSpace::Neighbor;
 using KernelSpace::TableKernel;
+#ifdef USE_MPI
+using NeighborSpace::NestedGridNeighbor;
+using BoundarySpace::NestedGridDistributedBoundary;
+using DataBaseSpace::DataBase;
+#endif
 
 //------------------------------------------------------------------------------
 // Return a MASH donated version of the given FieldList at the new positions.
@@ -113,6 +126,52 @@ splatMultipleFieldsMash(const FieldListSet<Dimension>& fieldListSet,
     REQUIRE(samplePositions[i]->nodeListPtr() == sampleHfield[i]->nodeListPtr());
   }
 
+#ifdef USE_MPI
+  // Check what sort of DistributedBoundary we should use.
+  VERIFY2(dynamic_cast<const NestedGridNeighbor<Dimension>*>(&(position[0]->nodeListPtr()->neighbor())) != 0,
+          "splatMultipleFieldsMash ERROR: currently only understand how to do parallel with NestedGridNeighbor objects.");
+  NestedGridDistributedBoundary<Dimension>& distributedBoundary = NestedGridDistributedBoundary<Dimension>::instance();
+
+  // Build distributed ghost nodes.
+  DataBase<Dimension> db;
+  for (typename FieldList<Dimension, Vector>::const_iterator fieldItr = position.begin();
+       fieldItr < position.end(); 
+       ++fieldItr) {
+    FluidNodeList<Dimension>& nodeList = dynamic_cast<FluidNodeList<Dimension>&>(const_cast<NodeList<Dimension>&>((*fieldItr)->nodeList()));
+    db.appendNodeList(nodeList);
+    nodeList.numGhostNodes(0);
+    nodeList.neighbor().updateNodes();
+  }
+  for (typename FieldList<Dimension, Vector>::const_iterator fieldItr = samplePositions.begin();
+       fieldItr < samplePositions.end(); 
+       ++fieldItr) {
+    FluidNodeList<Dimension>& nodeList = dynamic_cast<FluidNodeList<Dimension>&>(const_cast<NodeList<Dimension>&>((*fieldItr)->nodeList()));
+    db.appendNodeList(nodeList);
+    nodeList.numGhostNodes(0);
+    nodeList.neighbor().updateNodes();
+  }
+  distributedBoundary.setAllGhostNodes(db);
+  distributedBoundary.applyFieldListGhostBoundary(const_cast<FieldList<Dimension, Scalar>&>(sampleWeight));
+  distributedBoundary.finalizeGhostBoundary();
+  for (typename FieldList<Dimension, Vector>::const_iterator fieldItr = position.begin();
+       fieldItr < position.end(); 
+       ++fieldItr) {
+    const_cast<NodeList<Dimension>&>((*fieldItr)->nodeList()).neighbor().updateNodes();
+  }
+  for (typename FieldList<Dimension, Vector>::const_iterator fieldItr = samplePositions.begin();
+       fieldItr < samplePositions.end(); 
+       ++fieldItr) {
+    const_cast<NodeList<Dimension>&>((*fieldItr)->nodeList()).neighbor().updateNodes();
+  }
+
+  // BLAGO
+  cerr << "Master nodes:" << endl;
+  for (unsigned i = position[0]->nodeList().firstGhostNode(); i != position[0]->nodeList().numNodes(); ++i) cerr << "   " << position(0,i) << endl;
+  cerr << " Slave nodes:" << endl;
+  for (GhostNodeIterator<Dimension> itr = samplePositions.ghostNodeBegin(); itr != samplePositions.ghostNodeEnd(); ++itr) cerr << "   " << samplePositions(itr) << endl;
+  // BLAGO
+#endif
+
   // Return FieldList.
   FieldListSet<Dimension> resultSet;
   resultSet.ScalarFieldLists.resize(fieldListSet.ScalarFieldLists.size());
@@ -198,9 +257,13 @@ splatMultipleFieldsMash(const FieldListSet<Dimension>& fieldListSet,
 
         // Loop over the refined neighbors, and determine the normalization
         // constant.
+        // cerr << position(masterItr) << " : ";
+        unsigned blago = 0;
         for (RefineNodeIterator<Dimension> neighborItr = samplePositions.refineNodeBegin();
              neighborItr < samplePositions.refineNodeEnd();
              ++neighborItr) {
+          // cerr << samplePositions(neighborItr) << " ";
+          ++blago;
 
           // Node j's state.
           const Vector& rj = samplePositions(neighborItr);
@@ -241,8 +304,10 @@ splatMultipleFieldsMash(const FieldListSet<Dimension>& fieldListSet,
           // Add this nodes contribution to the master value.
           normalization(masterItr) += weightij*Wij;
         }
+        // cerr << blago << endl;
         CHECK(normalization(masterItr) > 0.0);
         normalization(masterItr) = 1.0/normalization(masterItr);
+        // cerr << " NORM : " << position(masterItr) << " " << normalization(masterItr) << endl;
 
         // Flag this master node as done.
         flagNodeDone(masterItr) = 1;
@@ -253,43 +318,67 @@ splatMultipleFieldsMash(const FieldListSet<Dimension>& fieldListSet,
   // After we're done, all nodes in all NodeLists should be flagged as done.
   CHECK(flagNodeDone.min() == 1);
 
-  // Now we make a second pass and do the actual splatting.
-  flagNodeDone = 0;
-  for (InternalNodeIterator<Dimension> nodeItr = position.internalNodeBegin();
-       nodeItr < position.internalNodeEnd();
+#ifdef USE_MPI
+  // Apply boundaries to the donor information.
+  distributedBoundary.applyFieldListGhostBoundary(normalization);
+  for (int i = 0; i < fieldListSet.ScalarFieldLists.size(); ++i) {
+    distributedBoundary.applyFieldListGhostBoundary(const_cast<FieldList<Dimension, Scalar>&>(fieldListSet.ScalarFieldLists[i]));
+  }
+  for (int i = 0; i < fieldListSet.VectorFieldLists.size(); ++i) {
+    distributedBoundary.applyFieldListGhostBoundary(const_cast<FieldList<Dimension, Vector>&>(fieldListSet.VectorFieldLists[i]));
+  }
+  for (int i = 0; i < fieldListSet.TensorFieldLists.size(); ++i) {
+    distributedBoundary.applyFieldListGhostBoundary(const_cast<FieldList<Dimension, Tensor>&>(fieldListSet.TensorFieldLists[i]));
+  }
+  for (int i = 0; i < fieldListSet.SymTensorFieldLists.size(); ++i) {
+    distributedBoundary.applyFieldListGhostBoundary(const_cast<FieldList<Dimension, SymTensor>&>(fieldListSet.SymTensorFieldLists[i]));
+  }
+  distributedBoundary.finalizeGhostBoundary();
+#endif
+
+  FieldList<Dimension, int> flagSampleDone(FieldSpace::Copy);
+  for (typename FieldList<Dimension, Vector>::const_iterator fieldItr = samplePositions.begin();
+       fieldItr < samplePositions.end(); 
+       ++fieldItr) {
+    flagSampleDone.appendNewField("flag sample nodes", (*fieldItr)->nodeList(), 0);
+  }
+
+  // Now do a pass over the sampling nodes and splat from the donors.
+  for (InternalNodeIterator<Dimension> nodeItr = samplePositions.internalNodeBegin();
+       nodeItr < samplePositions.internalNodeEnd();
        ++nodeItr) {
 
     // Check if this node has been done yet.
-    if (flagNodeDone(nodeItr) == 0) {
+    if (flagSampleDone(nodeItr) == 0) {
 
       // Set the neighbor info over the positions we're sampling to.
-      position.setMasterNodeLists(position(nodeItr), Hfield(nodeItr));
-      samplePositions.setMasterNodeLists(position(nodeItr), Hfield(nodeItr));
+      position.setMasterNodeLists(samplePositions(nodeItr), sampleHfield(nodeItr));
+      samplePositions.setMasterNodeLists(samplePositions(nodeItr), sampleHfield(nodeItr));
 
       // Loop over the set of master nodes in the FieldList we're sampling from.
-      for (MasterNodeIterator<Dimension> masterItr = position.masterNodeBegin();
-           masterItr < position.masterNodeEnd();
+      for (MasterNodeIterator<Dimension> masterItr = samplePositions.masterNodeBegin();
+           masterItr < samplePositions.masterNodeEnd();
            ++masterItr) {
-        CHECK(flagNodeDone(masterItr) == 0);
+        CHECK(flagSampleDone(masterItr) == 0);
    
         // Sample node (i) state.
-        const Vector& ri = position(masterItr);
-        const SymTensor& Hi = Hfield(masterItr);
-        const Scalar& weighti = weight(masterItr);
+        const Vector& ri = samplePositions(masterItr);
+        const SymTensor& Hi = sampleHfield(masterItr);
+        const Scalar& weighti = sampleWeight(masterItr);
 
-        // Refine the set of nodes we're sampling to for this position.
-        samplePositions.setRefineNodeLists(ri, Hi);
+        // Refine the set of nodes we're donating from to for this position.
+        position.setRefineNodeLists(ri, Hi);
 
         // Loop over the refined neighbors again, and do the splat of the donor nodes
         // value to each of the sample nodes.
-        for (RefineNodeIterator<Dimension> neighborItr = samplePositions.refineNodeBegin();
-             neighborItr < samplePositions.refineNodeEnd();
+        for (RefineNodeIterator<Dimension> neighborItr = position.refineNodeBegin();
+             neighborItr < position.refineNodeEnd();
              ++neighborItr) {
 
           // Node j's state.
-          const Vector& rj = samplePositions(neighborItr);
-          const SymTensor& Hj = sampleHfield(neighborItr);
-          const Scalar& weightj = sampleWeight(neighborItr);
+          const Vector& rj = position(neighborItr);
+          const SymTensor& Hj = Hfield(neighborItr);
+          const Scalar& weightj = weight(neighborItr);
 
           const Vector rij = ri - rj;
           const Scalar etai = (Hi*rij).magnitude();
@@ -309,13 +398,13 @@ splatMultipleFieldsMash(const FieldListSet<Dimension>& fieldListSet,
             break;
 
           case NeighborSpace::Gather:
-            Wij = Wi;
-            weightij = weighti;
+            Wij = Wj;
+            weightij = weightj;
             break;
          
           case NeighborSpace::Scatter:
-            Wij = Wj;
-            weightij = weightj;
+            Wij = Wi;
+            weightij = weighti;
             break;
 
           default:
@@ -324,37 +413,37 @@ splatMultipleFieldsMash(const FieldListSet<Dimension>& fieldListSet,
 
           // Loop over all the FieldLists we're sampling from, and add their contributions
           // to their correspoding result FieldList.
-          const Scalar localWeight = weightij*Wij*normalization(masterItr);
+          const Scalar localWeight = weightij*Wij*normalization(neighborItr);
           for (int i = 0; i < fieldListSet.ScalarFieldLists.size(); ++i) {
             const FieldList<Dimension, Scalar>& fieldList = fieldListSet.ScalarFieldLists[i];
             FieldList<Dimension, Scalar>& result = resultSet.ScalarFieldLists[i];
-            result(neighborItr) += fieldList(masterItr)*localWeight;
+            result(masterItr) += fieldList(neighborItr)*localWeight;
           }
           for (int i = 0; i < fieldListSet.VectorFieldLists.size(); ++i) {
             const FieldList<Dimension, Vector>& fieldList = fieldListSet.VectorFieldLists[i];
             FieldList<Dimension, Vector>& result = resultSet.VectorFieldLists[i];
-            result(neighborItr) += fieldList(masterItr)*localWeight;
+            result(masterItr) += fieldList(neighborItr)*localWeight;
           }
           for (int i = 0; i < fieldListSet.TensorFieldLists.size(); ++i) {
             const FieldList<Dimension, Tensor>& fieldList = fieldListSet.TensorFieldLists[i];
             FieldList<Dimension, Tensor>& result = resultSet.TensorFieldLists[i];
-            result(neighborItr) += fieldList(masterItr)*localWeight;
+            result(masterItr) += fieldList(neighborItr)*localWeight;
           }
           for (int i = 0; i < fieldListSet.SymTensorFieldLists.size(); ++i) {
             const FieldList<Dimension, SymTensor>& fieldList = fieldListSet.SymTensorFieldLists[i];
             FieldList<Dimension, SymTensor>& result = resultSet.SymTensorFieldLists[i];
-            result(neighborItr) += fieldList(masterItr)*localWeight;
+            result(masterItr) += fieldList(neighborItr)*localWeight;
           }
         }
    
         // Flag this master node as done.
-        flagNodeDone(masterItr) = 1;
+        flagSampleDone(masterItr) = 1;
       }
     }
   }
 
   // After we're done, all nodes in all NodeLists should be flagged as done.
-  CHECK(flagNodeDone.min() == 1);
+  CHECK(flagSampleDone.min() == 1);
 
   return resultSet;
 }
