@@ -5,6 +5,7 @@
 //
 // Created by JMO, Thu Mar 28 22:15:53 PST 2002
 //----------------------------------------------------------------------------//
+#include <vector>
 #include "Geometry/MathTraits.hh"
 
 namespace Spheral {
@@ -77,7 +78,8 @@ namespace Spheral {
                             const KernelSpace::TableKernel<Dimension>& kernel,
                             const FieldList<Dimension, typename Dimension::Vector>& samplePositions,
                             const FieldList<Dimension, typename Dimension::Scalar>& sampleWeight,
-                            const FieldList<Dimension, typename Dimension::SymTensor>& sampleHfield);
+                            const FieldList<Dimension, typename Dimension::SymTensor>& sampleHfield,
+                            const std::vector<BoundarySpace::Boundary<Dimension>*>& boundaries);
 
     // Calculate a monotonic smoothed estimate of the given FieldList.
     template<typename Dimension, typename DataType>

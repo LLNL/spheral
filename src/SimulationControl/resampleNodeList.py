@@ -57,8 +57,7 @@ def resampleNodeList(nodes,
                      generator,
                      W,
                      mask = None,
-                     etaExclude = None,
-                     boundaryConditions = []):
+                     etaExclude = None):
 
     # Check our dimensionality
     if isinstance(nodes, SolidSpheral.NodeList1d):
@@ -73,6 +72,9 @@ def resampleNodeList(nodes,
     exec "from SolidSpheral%id import *" % ndim   # Load the aliases for our dimensionality
     ndim = ndim0
     exec "from VoronoiDistributeNodes import distributeNodes%id as distributor" % ndim
+
+    # Clear out any initial ghost nodes.
+    nodes.numGhostNodes = 0
 
     # Check if we're doing a Solid or FluidNodeList.
     if isinstance(nodes, SolidNodeList):
@@ -89,10 +91,14 @@ def resampleNodeList(nodes,
         topGridSize = nodes._neighbor.topGridSize
         xmin = Vector.zero
         xmax = Vector.one * topGridSize
+        if mpi.procs > 1:
+            dbc = NestedGridDistributedBoundary.instance()
     elif isinstance(nodes._neighbor, TreeNeighbor):
         xmin = nodes._neighbor.xmin
         xmax = nodes._neighbor.xmax
         topGridSize = (xmax - xmin).maxAbsElement()
+        if mpi.procs > 1:
+            raise RuntimeError, "Need a parallel policy for TreeNeighbor."
     else:
         raise RuntimeError, "Unknown Neighbor type."
 
@@ -113,6 +119,18 @@ def resampleNodeList(nodes,
                         xmin = xmin,
                         xmax = xmax)
     distributor((newnodes, generator))
+
+    # If we're parallel we need distributed ghost nodes.
+    bcs = vector_of_Boundary()
+    if mpi.procs > 1:
+        db = DataBase()
+        db.appendNodeList(nodes)
+        db.appendNodeList(newnodes)
+        nodes.neighbor().updateNodes()
+        newnodes.neighbor().updateNodes()
+        dbc.setAllGhostNodes(db)
+        dbc.finalizeGhostBoundary()
+        bcs.append(dbc)
 
     # If we're masking some points, things get complicated.  The mask nodes are going to persist to the new
     # nodes, and so we need to not overlay them.  We also want to remove any new nodes that overlap with the
@@ -169,8 +187,6 @@ def resampleNodeList(nodes,
     db.appendNodeList(newnodes)
     nodes.neighbor().updateNodes()
     newnodes.neighbor().updateNodes()
-    # db.updateConnectivityMap(False)
-    # cm = db.connectivityMap()
 
     # Convert fields we're going to map to conserved values.  This is necessary 'cause the splat operation we're going
     # to use guarantees summing over the input and output field values gives the same value.
@@ -247,13 +263,24 @@ def resampleNodeList(nodes,
     pos1_fl.copyFields()
     mass1_fl.copyFields()
     H1_fl.copyFields()
-    bcs = vector_of_Boundary()
-    for bc in boundaryConditions:
-        bcs.append(bc)
+
+    # Apply boundaries to the Fields we're sampling from.
+    for bc in bcs:
+        for fl in fls.ScalarFieldLists:
+            bc.applyFieldListGhostBoundary(fl)
+        for fl in fls.VectorFieldLists:
+            bc.applyFieldListGhostBoundary(fl)
+        for fl in fls.TensorFieldLists:
+            bc.applyFieldListGhostBoundary(fl)
+        for fl in fls.SymTensorFieldLists:
+            bc.applyFieldListGhostBoundary(fl)
+        bc.finalizeGhostBoundary()
+
     print "Splatting fields..."
     newfls = splatMultipleFieldsMash(fls,
                                      pos0_fl, mass0_fl, H0_fl, W,
-                                     pos1_fl, mass1_fl, H1_fl)
+                                     pos1_fl, mass1_fl, H1_fl,
+                                     bcs)
     print "Done splatting."
 
     # Denormalize the mapped values and fill them in as new values for the nodes.
