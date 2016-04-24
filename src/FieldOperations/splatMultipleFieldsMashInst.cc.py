@@ -4,6 +4,7 @@ text = """
 //------------------------------------------------------------------------------
 #include "splatMultipleFieldsMash.cc"
 #include "Geometry/Dimension.hh"
+#include "Boundary/Boundary.hh"
 
 namespace Spheral {
   namespace FieldSpace {
@@ -20,7 +21,8 @@ namespace Spheral {
                                       const TableKernel< Dim< %(ndim)s > >& kernel,
                                       const FieldList<Dim< %(ndim)s >, Dim< %(ndim)s >::Vector>& samplePositions,
                                       const FieldList<Dim< %(ndim)s >, Dim< %(ndim)s >::Scalar>& sampleWeight,
-                                      const FieldList<Dim< %(ndim)s >, Dim< %(ndim)s >::SymTensor>& sampleHfield);
+                                      const FieldList<Dim< %(ndim)s >, Dim< %(ndim)s >::SymTensor>& sampleHfield,
+                                      const std::vector<BoundarySpace::Boundary<Dim< %(ndim)s > >*>& boundaries);
 
   }
 }
