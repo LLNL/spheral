@@ -101,7 +101,7 @@ namespace FractalSpace
 	    for(int ni=0;ni<6;ni++)
 	      {
 		Point* p1=p->get_point_ud(ni);
-		if(p1->get_inside() || pos[ni/2] == BBox[ni])
+		if(p1->get_inside() || on_edge(pos,BBox))
 		  continue;
 		density-=p1->get_potential_point();
 	      }
