@@ -137,7 +137,8 @@ splatMultipleFieldsMash(const FieldListSet<Dimension>& fieldListSet,
   for (typename FieldList<Dimension, Vector>::const_iterator fieldItr = position.begin();
        fieldItr < position.end(); 
        ++fieldItr) {
-    FluidNodeList<Dimension>& nodeList = dynamic_cast<FluidNodeList<Dimension>&>(const_cast<NodeList<Dimension>&>((*fieldItr)->nodeList()));
+    // FluidNodeList<Dimension>& nodeList = dynamic_cast<FluidNodeList<Dimension>&>(const_cast<NodeList<Dimension>&>((*fieldItr)->nodeList()));
+    NodeList<Dimension>& nodeList = const_cast<NodeList<Dimension>&>((*fieldItr)->nodeList());
     db.appendNodeList(nodeList);
     nodeList.numGhostNodes(0);
     nodeList.neighbor().updateNodes();
@@ -145,13 +146,25 @@ splatMultipleFieldsMash(const FieldListSet<Dimension>& fieldListSet,
   for (typename FieldList<Dimension, Vector>::const_iterator fieldItr = samplePositions.begin();
        fieldItr < samplePositions.end(); 
        ++fieldItr) {
-    FluidNodeList<Dimension>& nodeList = dynamic_cast<FluidNodeList<Dimension>&>(const_cast<NodeList<Dimension>&>((*fieldItr)->nodeList()));
+    // FluidNodeList<Dimension>& nodeList = dynamic_cast<FluidNodeList<Dimension>&>(const_cast<NodeList<Dimension>&>((*fieldItr)->nodeList()));
+    NodeList<Dimension>& nodeList = const_cast<NodeList<Dimension>&>((*fieldItr)->nodeList());
     db.appendNodeList(nodeList);
     nodeList.numGhostNodes(0);
     nodeList.neighbor().updateNodes();
   }
   distributedBoundary.setAllGhostNodes(db);
   distributedBoundary.applyFieldListGhostBoundary(const_cast<FieldList<Dimension, Scalar>&>(sampleWeight));
+  distributedBoundary.finalizeGhostBoundary();
+  for (typename FieldList<Dimension, Vector>::const_iterator fieldItr = position.begin();
+       fieldItr < position.end(); 
+       ++fieldItr) {
+    distributedBoundary.updateGhostNodes(const_cast<NodeList<Dimension>&>((*fieldItr)->nodeList()));
+  }
+  for (typename FieldList<Dimension, Vector>::const_iterator fieldItr = samplePositions.begin();
+       fieldItr < samplePositions.end(); 
+       ++fieldItr) {
+    distributedBoundary.updateGhostNodes(const_cast<NodeList<Dimension>&>((*fieldItr)->nodeList()));
+  }
   distributedBoundary.finalizeGhostBoundary();
   for (typename FieldList<Dimension, Vector>::const_iterator fieldItr = position.begin();
        fieldItr < position.end(); 
@@ -165,10 +178,10 @@ splatMultipleFieldsMash(const FieldListSet<Dimension>& fieldListSet,
   }
 
   // BLAGO
-  cerr << "Master nodes:" << endl;
-  for (unsigned i = position[0]->nodeList().firstGhostNode(); i != position[0]->nodeList().numNodes(); ++i) cerr << "   " << position(0,i) << endl;
+  // cerr << "Master nodes:" << endl;
+  // for (unsigned i = position[0]->nodeList().firstGhostNode(); i != position[0]->nodeList().numNodes(); ++i) cerr << "   " << position(0,i) << endl;
   cerr << " Slave nodes:" << endl;
-  for (GhostNodeIterator<Dimension> itr = samplePositions.ghostNodeBegin(); itr != samplePositions.ghostNodeEnd(); ++itr) cerr << "   " << samplePositions(itr) << endl;
+  for (GhostNodeIterator<Dimension> itr = samplePositions.ghostNodeBegin(); itr != samplePositions.ghostNodeEnd(); ++itr) cerr << "   " << samplePositions(itr) << " " << sampleHfield(itr) << endl;
   // BLAGO
 #endif
 
