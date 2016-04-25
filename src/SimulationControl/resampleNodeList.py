@@ -266,6 +266,8 @@ def resampleNodeList(nodes,
 
     # Apply boundaries to the Fields we're sampling from.
     for bc in bcs:
+        bc.applyFieldListGhostBoundary(mass0_fl)
+        bc.applyFieldListGhostBoundary(mass1_fl)
         for fl in fls.ScalarFieldLists:
             bc.applyFieldListGhostBoundary(fl)
         for fl in fls.VectorFieldLists:
