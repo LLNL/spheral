@@ -139,7 +139,7 @@ def resampleNodeList(nodes,
     if mask:
 
         # Copy the field values from the original masked nodes to the temporary mask set.
-        nmask = mask.localSum()
+        nmask = mask.localSumElements()
         print "Copying %i masked nodes from the original NodeList." % nmask
         masknodes.numInternalNodes = nmask
         copyNodeListFields(nodes, masknodes, mask, solid)
@@ -168,7 +168,7 @@ def resampleNodeList(nodes,
         posmask = masknodes.positions()
         Hmask = masknodes.Hfield()
         posnew = newnodes.positions()
-        Hnew = newNodes.Hfield()
+        Hnew = newnodes.Hfield()
         nodes2kill = vector_of_int()
         for i in xrange(masknodes.numInternalNodes):
             fullconnectivity = cm.connectivityForNode(1, i)
@@ -299,8 +299,8 @@ def resampleNodeList(nodes,
         j = nmask + i
         assert mass1[i] > 0.0
         assert vol[i] > 0.0
-        pos0[j] = pos1[j]
-        H0[j] = H1[j]
+        pos0[j] = pos1[i]
+        H0[j] = H1[i]
         mass[j] = mass1[i]
         rho[j] = mass1[i]/vol1[i]
         vel[j] = momentum1[i]/mass1[i]
