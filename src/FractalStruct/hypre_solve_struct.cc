@@ -58,7 +58,7 @@ namespace FractalSpace
     B=0;
     for(vector <Point*>& SP : SPoints)
       {
-	vector <int>pos(3);
+	// vector <int>pos(3);
 	vector <double>values;
 	auto p_itr=SP.begin();
 	while(p_itr != SP.end())
@@ -68,8 +68,9 @@ namespace FractalSpace
 	    for (int j = 0; j < 6; j++)
 	      {
 		Point* p1=p->get_point_ud(j);
-		p1->get_pos_point(pos);
-		if(p1->get_inside() || on_edge(pos,BBox))
+		// p1->get_pos_point(pos);
+		// if(p1->get_inside() || on_edge(pos,BBox))
+		if(p1->get_inside())
 		  values.push_back(1.0);
 		else
 		  values.push_back(0.0);
@@ -92,22 +93,25 @@ namespace FractalSpace
       {
 	vector <double>dens_values;
 	vector <double>pot_values;
-	auto p_itr=SP.begin();
-	while(p_itr != SP.end())
+	// auto p_itr=SP.begin();
+	// while(p_itr != SP.end())
+	for(auto &p : SP)
 	  {
-	    vector <int>pos(3);
-	    Point* p=*p_itr;
+	    // vector <int>pos(3);
+	    // Point* p=*p_itr;
 	    double density=p->get_density_point()*g_c;
 	    for(int ni=0;ni<6;ni++)
 	      {
 		Point* p1=p->get_point_ud(ni);
-		if(p1->get_inside() || on_edge(pos,BBox))
+		// p1->get_pos_point(pos);
+		// if(p1->get_inside() || on_edge(pos,BBox))
+		if(p1->get_inside())
 		  continue;
 		density-=p1->get_potential_point();
 	      }
 	    dens_values.push_back(density);
 	    pot_values.push_back(p->get_potential_point());
-	    p_itr++;
+	    // p_itr++;
 	  }
 	HYPRE_StructVectorAddToBoxValues(rho,&(*lowerBOX[B].begin()),&(*upperBOX[B].begin()),&(*dens_values.begin()));
 	HYPRE_StructVectorAddToBoxValues(pot,&(*lowerBOX[B].begin()),&(*upperBOX[B].begin()),&(*pot_values.begin()));

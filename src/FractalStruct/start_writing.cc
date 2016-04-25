@@ -9,24 +9,27 @@ namespace FractalSpace
 		     vector<double>& posx,vector<double>& posy,vector<double>& posz,
 		     vector<double>& velx,vector<double>& vely,vector<double>& velz,vector<double>& masses)
   {
-    static bool _DOIT=true;
+    static bool _DOIT=false;
     double t1=-PFM->p_mess->Clock();
     FILE* PFPos=PFM->p_file->PFPos;
     vector <double> pf(4);
+    int RANK=PFM->p_mess->FractalRank;
+    vector <int>BOX=PFM->Boxes[RANK];
+    vector <double>RBOX=PFM->RealBoxes[RANK];
     double conv_pot=G/(xmax[0]-xmin[0]);
     double conv_force=conv_pot/(xmax[0]-xmin[0]);
     bool period=PFM->periodic;
     double timevar=PFM->time;
     if(period)
       timevar=PFM->arad;
-    double x0=0.0;
-    double y0=0.0;
-    double z0=0.0;
+    double x0=-1.0;
+    double y0=1.5;
+    double z0=0.5;
     double totalM=1.0e9;
     double centerM=0.0;
     double rmaX=30.0;
     
-    double slopE=-1.8;
+    double slopE=-1.5;
     double slopE2=slopE+2.0;
     double slopE3=slopE+3.0;
     bool isoT=abs(slopE+2.0) < 0.01;
@@ -83,12 +86,12 @@ namespace FractalSpace
 	double ferror=sqrt(pow(difx,2)+pow(dify,2)+pow(difz,2));
 	double err=ferror/abs(frTheory);
 	if(_DOIT)
-	  fprintf(PFPos," E%d %13.6E %13.6E %13.6E %13.6E %13.6E ",err < 0.1,dr,abs(fr),abs(frTheory),ft,ferror); // 20-25
+	  fprintf(PFPos," E%d %13.6E %13.6E %13.6E %13.6E %13.6E ",err > 0.1,dr,abs(fr),abs(frTheory),ft,ferror); // 20-25
 	// fprintf(PFPos," %13.6E %13.6E %13.6E ",dr,abs(fr),ft); // 26-27
 	// fprintf(PFPos," E %d",(abs(fr)-abs(frTheory))/abs(frTheory) >0.1); // 28
 	fprintf(PFPos,"\n");
       }
-       fflush(PFPos);
+    fflush(PFPos);
     t1+=PFM->p_mess->Clock();
     //    PFM->p_file->FileTime << " output time " << PFM->steps << " " << fixed << t1 << "\n";
     fprintf(PFM->p_file->PFTime," output time %5d %10.2E \n",PFM->steps,t1);
