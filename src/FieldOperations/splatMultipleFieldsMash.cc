@@ -14,10 +14,13 @@
 #include "Neighbor/Neighbor.hh"
 #include "Kernel/TableKernel.hh"
 #include "Geometry/MathTraits.hh"
+#include "Boundary/Boundary.hh"
 
 #include "Utilities/DBC.hh"
 
-#include "Boundary/Boundary.hh"
+//BLAGO
+#include "Utilities/globalNodeIDs.hh"
+//BLAGO
 
 namespace Spheral {
 namespace FieldSpace {
@@ -197,7 +200,7 @@ splatMultipleFieldsMash(const FieldListSet<Dimension>& fieldListSet,
         // Sample node (i) state.
         const Vector& ri = position(masterItr);
         const SymTensor& Hi = Hfield(masterItr);
-        const Scalar& weighti = weight(masterItr);
+        const Scalar weighti = weight(masterItr);
 
         // Refine the set of nodes we're sampling to for this position.
         samplePositions.setRefineNodeLists(ri, Hi);
@@ -213,7 +216,7 @@ splatMultipleFieldsMash(const FieldListSet<Dimension>& fieldListSet,
           // Node j's state.
           const Vector& rj = samplePositions(neighborItr);
           const SymTensor& Hj = sampleHfield(neighborItr);
-          const Scalar& weightj = sampleWeight(neighborItr);
+          const Scalar weightj = sampleWeight(neighborItr);
 
           const Vector rij = ri - rj;
           const Scalar etai = (Hi*rij).magnitude();
@@ -224,27 +227,30 @@ splatMultipleFieldsMash(const FieldListSet<Dimension>& fieldListSet,
           Scalar Wi = kernel(etai, 1.0);
           Scalar Wj = kernel(etaj, 1.0);
 
-          // Get the symmetrized kernel weighting for this node pair.
-          Scalar Wij, weightij;
-          switch(neighborItr.nodeListPtr()->neighbor().neighborSearchType()) {
-          case NeighborSpace::GatherScatter:
-            Wij = 0.5*(Wi + Wj);
-            weightij = 0.5*(weighti + weightj);
-            break;
+          const Scalar Wij = max(Wi, Wj);
+          const Scalar weightij = 0.5*(weighti + weightj);
 
-          case NeighborSpace::Gather:
-            Wij = Wi;
-            weightij = weighti;
-            break;
+          // // Get the symmetrized kernel weighting for this node pair.
+          // Scalar Wij, weightij;
+          // switch(neighborItr.nodeListPtr()->neighbor().neighborSearchType()) {
+          // case NeighborSpace::GatherScatter:
+          //   Wij = 0.5*(Wi + Wj);
+          //   weightij = 0.5*(weighti + weightj);
+          //   break;
 
-          case NeighborSpace::Scatter:
-            Wij = Wj;
-            weightij = weightj;
-            break;
+          // case NeighborSpace::Gather:
+          //   Wij = Wi;
+          //   weightij = weighti;
+          //   break;
 
-          default:
-            VERIFY2(false, "Unhandled neighbor search type.");
-          }
+          // case NeighborSpace::Scatter:
+          //   Wij = Wj;
+          //   weightij = weightj;
+          //   break;
+
+          // default:
+          //   VERIFY2(false, "Unhandled neighbor search type.");
+          // }
 
           // Add this nodes contribution to the master value.
           normalization(masterItr) += weightij*Wij;
@@ -276,6 +282,10 @@ splatMultipleFieldsMash(const FieldListSet<Dimension>& fieldListSet,
     flagSampleDone.appendNewField("flag sample nodes", (*fieldItr)->nodeList(), 0);
   }
 
+  //BLAGO
+  const Field<Dimension, int> gids = NodeSpace::globalNodeIDs(samplePositions[0]->nodeList());
+  //BLAGO
+
   // Now do a pass over the sampling nodes and splat from the donors.
   for (InternalNodeIterator<Dimension> nodeItr = samplePositions.internalNodeBegin();
        nodeItr < samplePositions.internalNodeEnd();
@@ -297,7 +307,12 @@ splatMultipleFieldsMash(const FieldListSet<Dimension>& fieldListSet,
         // Sample node (i) state.
         const Vector& ri = samplePositions(masterItr);
         const SymTensor& Hi = sampleHfield(masterItr);
-        const Scalar& weighti = sampleWeight(masterItr);
+        const Scalar weighti = sampleWeight(masterItr);
+
+        // BLAGO
+        const bool barf = (gids(masterItr) == 0);
+        if (barf) cerr << ri << " " << weighti << " " << Hi << endl;
+        // BLAGO
 
         // Refine the set of nodes we're donating from to for this position.
         position.setRefineNodeLists(ri, Hi);
@@ -311,7 +326,7 @@ splatMultipleFieldsMash(const FieldListSet<Dimension>& fieldListSet,
           // Node j's state.
           const Vector& rj = position(neighborItr);
           const SymTensor& Hj = Hfield(neighborItr);
-          const Scalar& weightj = weight(neighborItr);
+          const Scalar weightj = weight(neighborItr);
 
           const Vector rij = ri - rj;
           const Scalar etai = (Hi*rij).magnitude();
@@ -322,27 +337,32 @@ splatMultipleFieldsMash(const FieldListSet<Dimension>& fieldListSet,
           Scalar Wi = kernel(etai, 1.0);
           Scalar Wj = kernel(etaj, 1.0);
 
-          // Get the symmetrized kernel weighting for this node pair.
-          Scalar Wij, weightij;
-          switch(neighborItr.nodeListPtr()->neighbor().neighborSearchType()) {
-          case NeighborSpace::GatherScatter:
-            Wij = 0.5*(Wi + Wj);
-            weightij = 0.5*(weighti + weightj);
-            break;
+          const Scalar Wij = max(Wi, Wj);
+          const Scalar weightij = 0.5*(weighti + weightj);
 
-          case NeighborSpace::Gather:
-            Wij = Wj;
-            weightij = weightj;
-            break;
+          cerr << " --> " << rj << " " << weightj << " " << Hj << " " << weightij << " " << Wij << " " << normalization(neighborItr) << endl;
+
+          // // Get the symmetrized kernel weighting for this node pair.
+          // Scalar Wij, weightij;
+          // switch(neighborItr.nodeListPtr()->neighbor().neighborSearchType()) {
+          // case NeighborSpace::GatherScatter:
+          //   Wij = 0.5*(Wi + Wj);
+          //   weightij = 0.5*(weighti + weightj);
+          //   break;
+
+          // case NeighborSpace::Gather:
+          //   Wij = Wj;
+          //   weightij = weightj;
+          //   break;
          
-          case NeighborSpace::Scatter:
-            Wij = Wi;
-            weightij = weighti;
-            break;
+          // case NeighborSpace::Scatter:
+          //   Wij = Wi;
+          //   weightij = weighti;
+          //   break;
 
-          default:
-            VERIFY2(false, "Unhandled neighbor search type.");
-          }
+          // default:
+          //   VERIFY2(false, "Unhandled neighbor search type.");
+          // }
 
           // Loop over all the FieldLists we're sampling from, and add their contributions
           // to their correspoding result FieldList.
