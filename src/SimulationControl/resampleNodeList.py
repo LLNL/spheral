@@ -295,8 +295,7 @@ def resampleNodeList(nodes,
                                      bcs)
     print "Done splatting."
 
-    # Denormalize the mapped values and fill them in as new values for the nodes.
-    nodes.numInternalNodes = nmask + newnodes.numInternalNodes
+    # Grab the FieldLists
     pos0 = nodes.positions()
     H0 = nodes.Hfield()
     pos1 = newnodes.positions()
@@ -305,6 +304,17 @@ def resampleNodeList(nodes,
     vol1 = newfls.ScalarFieldLists[1][0]
     momentum1 = newfls.VectorFieldLists[0][0]
     thermalenergy1 = newfls.ScalarFieldLists[2][0]
+
+    # Look for any nodes that didn't get any information in the new set and delete them.
+    nodes2kill = vector_of_int()
+    for i in xrange(newnodes.numInternalNodes):
+        if mass1[i] == 0.0:
+            nodes2kill.append(i)
+    if nodes2kill.size() > 0:
+        newnodes.deleteNodes(nodes2kill)
+
+    # Denormalize the mapped values and fill them in as new values for the nodes.
+    nodes.numInternalNodes = nmask + newnodes.numInternalNodes
     for i in xrange(newnodes.numInternalNodes):
         j = nmask + i
         assert mass1[i] > 0.0
