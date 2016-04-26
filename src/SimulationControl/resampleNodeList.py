@@ -140,7 +140,7 @@ def resampleNodeList(nodes,
 
         # Copy the field values from the original masked nodes to the temporary mask set.
         nmask = mask.localSumElements()
-        print "Copying %i masked nodes from the original NodeList." % nmask
+        print "Copying %i masked nodes from the original NodeList." % mpi.allreduce(nmask, mpi.SUM)
         masknodes.numInternalNodes = nmask
         copyNodeListFields(nodes, masknodes, mask, solid)
 
@@ -158,6 +158,11 @@ def resampleNodeList(nodes,
         db.appendNodeList(masknodes)
         newnodes.neighbor().updateNodes()
         masknodes.neighbor().updateNodes()
+        if mpi.procs > 1:
+            dbc.setAllGhostNodes(db)
+            dbc.finalizeGhostBoundary()
+            newnodes.neighbor().updateNodes()
+            masknodes.neighbor().updateNodes()
         db.updateConnectivityMap(False)
         cm = db.connectivityMap()
 
@@ -170,13 +175,13 @@ def resampleNodeList(nodes,
         posnew = newnodes.positions()
         Hnew = newnodes.Hfield()
         nodes2kill = vector_of_int()
-        for i in xrange(masknodes.numInternalNodes):
-            fullconnectivity = cm.connectivityForNode(1, i)
-            for j in fullconnectivity[0]:
-                eta = min((Hmask[i]*(posmask[i] - posnew[j])).magnitude(),
-                          (Hnew[j]*(posmask[i] - posnew[j])).magnitude())
+        for i in xrange(newnodes.numInternalNodes):
+            fullconnectivity = cm.connectivityForNode(0, i)
+            for j in fullconnectivity[1]:
+                eta = min(( Hnew[i]*(posmask[j] - posnew[i])).magnitude(),
+                          (Hmask[j]*(posmask[j] - posnew[i])).magnitude())
                 if eta < etaExclude:
-                    nodes2kill.append(j)
+                    nodes2kill.append(i)
 
         print "Removing %i nodes from new list due to overlap with masked nodes." % mpi.allreduce(len(nodes2kill), mpi.SUM)
         newnodes.deleteNodes(nodes2kill)
@@ -187,6 +192,11 @@ def resampleNodeList(nodes,
     db.appendNodeList(newnodes)
     nodes.neighbor().updateNodes()
     newnodes.neighbor().updateNodes()
+    if mpi.procs > 1:
+        dbc.setAllGhostNodes(db)
+        dbc.finalizeGhostBoundary()
+        nodes.neighbor().updateNodes()
+        newnodes.neighbor().updateNodes()
 
     # Convert fields we're going to map to conserved values.  This is necessary 'cause the splat operation we're going
     # to use guarantees summing over the input and output field values gives the same value.
