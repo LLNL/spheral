@@ -167,7 +167,7 @@ def resampleNodeList(nodes,
         cm = db.connectivityMap()
 
         if etaExclude is None:
-            etaExclude = nodes.neighbor().kernelExtent/2.0
+            etaExclude = 1.0/nodes.nodesPerSmoothingScale
         assert etaExclude > 0.0
 
         posmask = masknodes.positions()
@@ -333,7 +333,7 @@ def resampleNodeList(nodes,
             j = nmask + i
             assert mass1[i] > 0.0
             S[j] = mS1[i]/mass1[i]
-            ps[j] = msp1[i]/mass1[i]
+            ps[j] = mps1[i]/mass1[i]
             D[j] = mD1[i]/mass1[i]
 
     # Insert any masked nodes, and we're done.
