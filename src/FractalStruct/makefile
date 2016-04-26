@@ -1,4 +1,4 @@
-classes = fractal_memory.hh classes.hh point_class.hh group_class.hh fractal_class.hh misc_class.hh particle_class.hh mess.hh file_class.hh octree.hh libs.hh headers.hh classes.hh
+classes = fractal_memory.hh classes.hh point_class.hh group_class.hh fractal_class.hh misc_class.hh particle_class.hh mess.hh file_class.hh octree.hh point_comp.hh libs.hh headers.hh classes.hh
 fopt1 = -pedantic -O3 
 Wopt1 = -Wunused
 gprof = 
@@ -8,26 +8,34 @@ debug=
 verbose = 
 STD = -std=c++0x
 dir   = execs/
+MP = -openmp
 #
 system = intel
-vers = 9
+vers = 11
 #
 compiler = mpiicpc
 PREFIXF = /g/g90/jensv/cplus/fftw-3.3.3/install-intel
-PREFIXH = /g/g90/jensv/cplus/hypre-2.9.0b/src/hypre/intel-global
+PREFIXH = /g/g90/jensv/cplus/HYPREINTEL110/hypre-2.11.0/src/hypre
 #
 ifeq ($(debug),d)
 	fopt1 = -g -pedantic -O0
 endif
 #
+ifeq ($(vers),9)
+	PREFIXH = /g/g90/jensv/cplus/hypre-2.9.0b/src/hypre/intel-global
+endif
 ifeq ($(vers),10)
 	PREFIXH = /g/g90/jensv/cplus/HYPREINTEL101/hypre-2.10.1/src/hypre
 endif
 #
 ifeq ($(system),ibmgnu)
+	MP = -fopenmp
 	compiler = mpicxx
 	PREFIXF = /g/g90/jensv/cplus/fftw-3.3.3/install-ibmgnu
-	PREFIXH = /g/g90/jensv/cplus/hypreibmgnu/hypre-2.9.0b/src/hypre/noglobal
+	PREFIXH = /g/g90/jensv/cplus/HYPREIBM110/hypre-2.11.0/src/hypre
+	ifeq ($(vers),9)
+		PREFIXH = /g/g90/jensv/cplus/hypreibmgnu/hypre-2.9.0b/src/hypre/noglobal
+	endif
 	ifeq ($(vers),10)
 		PREFIXH = /g/g90/jensv/cplus/HYPREIBM101/hypre-2.10.1/src/hypre
 	endif
@@ -37,7 +45,7 @@ head_dir_fftw = $(PREFIXF)/include
 Lopthypre = -L$(PREFIXH)/lib
 head_dir_hypre = $(PREFIXH)/include
 #
-compile = $(compiler) -I $(head_dir_fftw) -I $(head_dir_hypre) $(STD) $(verbose) $(fopt1) $(Wopt1) $(gprof)
+compile = $(compiler) -I $(head_dir_fftw) -I $(head_dir_hypre) $(MP) $(STD) $(verbose) $(fopt1) $(Wopt1) $(gprof)
 #
 parameter_per_file = fractal_memory_parameters_cosmo
 fractal_galaxy_run_o = fractal_galaxy.o
@@ -571,7 +579,6 @@ hypre_points_boxes.o \
 hypre_points_struct.o \
 hypre_solve_struct.o \
 hypre_world_create.o \
-hypre_world_destroy.o \
 node_groups_struct.o \
 poisson_solver_struct.o \
 #

@@ -41,6 +41,7 @@ namespace FractalSpace
     vector < vector < vector <int> > > BBoxesLev;
 //     vector < vector < vector <int> > > HRBoxesLev;
 //     vector < vector < vector <int> > > HSBoxesLev;
+    vector < vector < vector <int> > > PBoxesLev;
     vector < vector <int> > PBoxesLength;
     vector < vector <double> > RealBoxes;
     vector < vector <double> > RealPBoxes;
