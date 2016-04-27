@@ -8,6 +8,8 @@
 
 #include "Utilities/SpheralFunctions.hh"
 #include "Utilities/bisectSearch.hh"
+#include "Utilities/simpsonsIntegration.hh"
+#include "Utilities/safeInv.hh"
 
 namespace Spheral {
 namespace KernelSpace {
@@ -17,45 +19,6 @@ using namespace std;
 //------------------------------------------------------------------------------
 // Sum the Kernel values for the given stepsize.
 //------------------------------------------------------------------------------
-// double
-// sumKernelValues(const TableKernel<Dim<1> >& W,
-//                 const double deta) {
-//   REQUIRE(deta > 0);
-//   double result = 0.0;
-//   double etax = deta;
-//   while (etax < W.kernelExtent()) {
-//     result += 2.0*W(etax, 1.0);
-//     etax += deta;
-//   }
-//   return result;
-// }
-
-// double
-// sumKernelValues(const TableKernel<Dim<2> >& W,
-//                 const double deta) {
-//   REQUIRE(deta > 0);
-//   double result = 0.0;
-//   double etax = deta;
-//   while (etax < W.kernelExtent()) {
-//     result += 2.0*W(etax, 1.0);
-//     etax += deta;
-//   }
-//   return 2.0*M_PI*result;
-// }
-
-// double
-// sumKernelValues(const TableKernel<Dim<3> >& W,
-//                 const double deta) {
-//   REQUIRE(deta > 0);
-//   double result = 0.0;
-//   double etax = deta;
-//   while (etax < W.kernelExtent()) {
-//     result += 2.0*W(etax, 1.0);
-//     etax += deta;
-//   }
-//   return 4.0*M_PI*result;
-// }
-
 inline
 double
 sumKernelValues(const TableKernel<Dim<1> >& W,
@@ -144,6 +107,35 @@ sumKernelValuesAs1D(const KernelType& W,
 }
 
 //------------------------------------------------------------------------------
+// Compute the f1 integral relation for the given zeta = r/h (RZ correction).
+//------------------------------------------------------------------------------
+template<typename KernelType>
+class f1func {
+  const KernelType& W;
+  double etai;
+public:
+  f1func(const KernelType& W, const double etai): W(W), etai(etai) {}
+  double operator()(const double eta) const {
+    return std::abs(eta*safeInvVar(etai))*W.kernelValue(abs(eta - etai), 1.0);
+  }
+};
+
+template<typename KernelType>
+double
+f1Integral(const KernelType& W,
+           const double zeta,
+           const unsigned numbins) {
+  if (zeta < W.kernelExtent()) {
+    return safeInvVar(simpsonsIntegration<f1func<KernelType>, double, double>(f1func<KernelType>(W, zeta), 
+                                                                              zeta - W.kernelExtent(), 
+                                                                              zeta + W.kernelExtent(),
+                                                                              numbins) * W.volumeNormalization());
+  } else {
+    return 1.0;
+  }
+}
+
+//------------------------------------------------------------------------------
 // Construct from a kernel.
 //------------------------------------------------------------------------------
 template<typename Dimension>
@@ -152,21 +144,27 @@ TableKernel<Dimension>::TableKernel(const KernelType& kernel,
                                     const int numPoints,
                                     const double hmult):
   Kernel<Dimension, TableKernel<Dimension> >(),
-  mKernelValues(0),
-  mGradValues(0),
-  mGrad2Values(0),
-  mAkernel(0),
-  mBkernel(0),
-  mAgrad(0),
-  mBgrad(0),
-  mAgrad2(0),
-  mBgrad2(0),
+  mKernelValues(),
+  mGradValues(),
+  mGrad2Values(),
+  mAkernel(),
+  mBkernel(),
+  mAgrad(),
+  mBgrad(),
+  mAgrad2(),
+  mBgrad2(),
   mNumPoints(0),
   mStepSize(0.0),
-  mNperhValues(0),
-  mWsumValues(0),
+  mNperhValues(),
+  mWsumValues(),
   mMinNperh(0.25),
-  mMaxNperh(10.0) {
+  mMaxNperh(10.0),
+  mf1Values(),
+  mAf1(),
+  mBf1(),
+  mf2Values(),
+  mAf2(),
+  mBf2() {
 
   // Pre-conditions.
   VERIFY(numPoints > 0);
@@ -206,19 +204,23 @@ TableKernel<Dimension>::TableKernel(const KernelType& kernel,
     mGrad2Values[i] = correction*kernel.grad2(i*deta, 1.0);
   }
 
+  // If we're a 2D kernel we set the RZ correction information.
+  if (Dimension::nDim == 2) {
+    mf1Values = std::vector<double>(numPoints);
+    mAf1 = std::vector<double>(numPoints);
+    mBf1 = std::vector<double>(numPoints);
+    mf2Values = std::vector<double>(numPoints);
+    mAf2 = std::vector<double>(numPoints);
+    mBf2 = std::vector<double>(numPoints);
+    for (int i = 0; i < numPoints; ++i) {
+      CHECK(i*mStepSize >= 0.0);
+      const double zeta = i*mStepSize;
+      mf1Values[i] = f1Integral(*this, zeta, numPoints);
+    }
+  }
+
   // Set the delta kernel values for internal use.
   this->setParabolicCoeffs();
-
-  // // Adjust the table kernel values to reproduce the volume integral as closely as possible.
-  // const double vol1 = simpsonsVolumeIntegral<Dimension, TableKernel<Dimension> >(*this, 0.0, kernel.kernelExtent(), 10*numPoints);
-  // const double f = 1.0/vol1; // /(this->volumeNormalization());
-  // std::cerr << "Scaling: " << f << " " << vol1 << " " << this->volumeNormalization() << std::endl;
-  // for (int i = 0; i < numPoints; ++i) {
-  //   mKernelValues[i] *= f;
-  // }
-
-  // // Reset the delta kernel values for internal use.
-  // this->setDeltaKernelValues();
 
   // Set the table of n per h values.
   this->setNperhValues();
@@ -259,6 +261,12 @@ operator=(const TableKernel<Dimension>& rhs) {
     mWsumValues =  rhs.mWsumValues;
     mMinNperh = rhs.mMinNperh;
     mMaxNperh = rhs.mMaxNperh;
+    mf1Values = rhs.mf1Values;
+    mAf1 = rhs.mAf1;
+    mBf1 = rhs.mBf1;
+    mf2Values = rhs.mf2Values;
+    mAf2 = rhs.mAf2;
+    mBf2 = rhs.mBf2;
   }
   return *this;
 }

@@ -46,16 +46,16 @@ public:
   void augment(const KernelType& kernel);
 
   // Return the kernel weight for a given normalized distance or position.
-  double kernelValue(double etaMagnitude, double Hdet) const;
+  double kernelValue(const double etaMagnitude, double Hdet) const;
 
   // Return the gradient value for a given normalized distance or position.
-  double gradValue(double etaMagnitude, double Hdet) const;
+  double gradValue(const double etaMagnitude, const double Hdet) const;
 
   // Return the second derivative value for a given normalized distance or position.
-  double grad2Value(double etaMagnitude, double Hdet) const;
+  double grad2Value(const double etaMagnitude, const double Hdet) const;
 
   // Simultaneously return the kernel value and first derivative.
-  std::pair<double, double> kernelAndGradValue(double etaMagnitude, double Hdet) const;
+  std::pair<double, double> kernelAndGradValue(const double etaMagnitude, const double Hdet) const;
 
   // Look up the kernel and first derivative for a set.
   void kernelAndGradValues(const std::vector<double>& etaMagnitudes,
@@ -70,9 +70,20 @@ public:
   // Return the equivalent W sum implied by the given number of nodes per smoothing scale.
   double equivalentWsum(const double nPerh) const;
 
-  // Allow read only access to the node per smoothing scale lookup table.
+  // Look up the f1 and f2 RZ corrections.
+  // Note these methods are only supported for 2D kernels -- other dimensions throw an error.
+  double f1(const double etaMagnitude) const;
+  double f2(const double etaMagnitude) const;
+  std::pair<double, double> f1Andf2(const double etaMagnitude) const;
+
+  // Allow read only access to the tabular data.
+  const std::vector<double>& kernelValues() const;
+  const std::vector<double>& gradValues() const;
+  const std::vector<double>& grad2Values() const;
   const std::vector<double>& nperhValues() const;
   const std::vector<double>& WsumValues() const;
+  const std::vector<double>& f1Values() const;
+  const std::vector<double>& f2Values() const;
 
   // Return the number of points being used in the table.
   int numPoints() const;
@@ -89,6 +100,7 @@ public:
 
 private:
   //--------------------------- Private Interface ---------------------------//
+  // Data for the kernel tabulation.
   std::vector<double> mKernelValues;
   std::vector<double> mGradValues;
   std::vector<double> mGrad2Values;
@@ -98,10 +110,15 @@ private:
   int mNumPoints;
   double mStepSize;
 
+  // Data for the nperh lookup algorithm.
   std::vector<double> mNperhValues;
   std::vector<double> mWsumValues;
   double mMinNperh;
   double mMaxNperh;
+
+  // Data for tabulating the RZ f1 and f2 corrections.
+  std::vector<double> mf1Values, mAf1, mBf1;
+  std::vector<double> mf2Values, mAf2, mBf2;
 
   // Initialize the tabular kernel with the given kernels data.
   template<typename KernelType>

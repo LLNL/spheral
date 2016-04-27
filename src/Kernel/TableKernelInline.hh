@@ -11,7 +11,7 @@ namespace KernelSpace {
 template<typename Dimension>
 inline
 double
-TableKernel<Dimension>::kernelValue(double etaMagnitude, double Hdet) const {
+TableKernel<Dimension>::kernelValue(const double etaMagnitude, const double Hdet) const {
   REQUIRE(etaMagnitude >= 0.0);
   REQUIRE(Hdet >= 0.0);
   return Hdet*parabolicInterp(etaMagnitude, mKernelValues, mAkernel, mBkernel);
@@ -23,7 +23,7 @@ TableKernel<Dimension>::kernelValue(double etaMagnitude, double Hdet) const {
 template<typename Dimension>
 inline
 double
-TableKernel<Dimension>::gradValue(double etaMagnitude, double Hdet) const {
+TableKernel<Dimension>::gradValue(const double etaMagnitude, const double Hdet) const {
   REQUIRE(etaMagnitude >= 0.0);
   REQUIRE(Hdet >= 0.0);
   return Hdet*parabolicInterp(etaMagnitude, mGradValues, mAgrad, mBgrad);
@@ -35,7 +35,7 @@ TableKernel<Dimension>::gradValue(double etaMagnitude, double Hdet) const {
 template<typename Dimension>
 inline
 double
-TableKernel<Dimension>::grad2Value(double etaMagnitude, double Hdet) const {
+TableKernel<Dimension>::grad2Value(const double etaMagnitude, const double Hdet) const {
   REQUIRE(etaMagnitude >= 0.0);
   REQUIRE(Hdet >= 0.0);
   return Hdet*parabolicInterp(etaMagnitude, mGrad2Values, mAgrad2, mBgrad2);
@@ -47,7 +47,7 @@ TableKernel<Dimension>::grad2Value(double etaMagnitude, double Hdet) const {
 template<typename Dimension>
 inline
 std::pair<double, double>
-TableKernel<Dimension>::kernelAndGradValue(double etaMagnitude, double Hdet) const {
+TableKernel<Dimension>::kernelAndGradValue(const double etaMagnitude, const double Hdet) const {
   REQUIRE(etaMagnitude >= 0.0);
   REQUIRE(Hdet >= 0.0);
   return std::make_pair(Hdet*parabolicInterp(etaMagnitude, mKernelValues, mAkernel, mBkernel),
@@ -85,6 +85,61 @@ TableKernel<Dimension>::kernelAndGradValues(const std::vector<double>& etaMagnit
     kernelValues[i] = Hdets[i]*parabolicInterp(etaMagnitudes[i], mKernelValues, mAkernel, mBkernel);
     gradValues[i] = Hdets[i]*parabolicInterp(etaMagnitudes[i], mGradValues, mAgrad, mBgrad);
   }
+}
+
+//------------------------------------------------------------------------------
+// Return the f1 RZ correctiong for a given normalized distance.
+//------------------------------------------------------------------------------
+template<typename Dimension>
+inline
+double
+TableKernel<Dimension>::f1(const double etaMagnitude) const {
+  VERIFY2(false, "TableKernel::f1 lookup only valid for 2D kernels.");
+}
+
+template<>
+inline
+double
+TableKernel<Dim<2> >::f1(const double etaMagnitude) const {
+  REQUIRE(etaMagnitude >= 0.0);
+  return parabolicInterp(etaMagnitude, mf1Values, mAf1, mBf1);
+}
+
+//------------------------------------------------------------------------------
+// Return the f2 RZ correctiong for a given normalized distance.
+//------------------------------------------------------------------------------
+template<typename Dimension>
+inline
+double
+TableKernel<Dimension>::f2(const double etaMagnitude) const {
+  VERIFY2(false, "TableKernel::f2 lookup only valid for 2D kernels.");
+}
+
+template<>
+inline
+double
+TableKernel<Dim<2> >::f2(const double etaMagnitude) const {
+  REQUIRE(etaMagnitude >= 0.0);
+  return parabolicInterp(etaMagnitude, mf2Values, mAf2, mBf2);
+}
+
+//------------------------------------------------------------------------------
+// Return the f1 and f2 RZ values for a given normalized distance.
+//------------------------------------------------------------------------------
+template<typename Dimension>
+inline
+std::pair<double, double>
+TableKernel<Dimension>::f1Andf2(const double etaMagnitude) const {
+  VERIFY2(false, "TableKernel::f1Andf2 lookup only valid for 2D kernels.");
+}
+
+template<>
+inline
+std::pair<double, double>
+TableKernel<Dim<2> >::f1Andf2(const double etaMagnitude) const {
+  REQUIRE(etaMagnitude >= 0.0);
+  return std::make_pair(parabolicInterp(etaMagnitude, mf1Values, mAf1, mBf2),
+                        parabolicInterp(etaMagnitude, mf2Values, mAf2, mBf2));
 }
 
 //------------------------------------------------------------------------------
@@ -154,8 +209,32 @@ TableKernel<Dimension>::parabolicInterp(const double etaMagnitude,
 }
 
 //------------------------------------------------------------------------------
-// Return the tabular lookup data for the nodes per smoothing scale.
+// Return the assorted tabular lookup data.
 //------------------------------------------------------------------------------
+template<typename Dimension>
+inline
+const std::vector<double>&
+TableKernel<Dimension>::
+kernelValues() const {
+  return mKernelValues;
+}
+
+template<typename Dimension>
+inline
+const std::vector<double>&
+TableKernel<Dimension>::
+gradValues() const {
+  return mGradValues;
+}
+
+template<typename Dimension>
+inline
+const std::vector<double>&
+TableKernel<Dimension>::
+grad2Values() const {
+  return mGrad2Values;
+}
+
 template<typename Dimension>
 inline
 const std::vector<double>&
@@ -170,6 +249,22 @@ const std::vector<double>&
 TableKernel<Dimension>::
 WsumValues() const {
   return mWsumValues;
+}
+
+template<typename Dimension>
+inline
+const std::vector<double>&
+TableKernel<Dimension>::
+f1Values() const {
+  return mf1Values;
+}
+
+template<typename Dimension>
+inline
+const std::vector<double>&
+TableKernel<Dimension>::
+f2Values() const {
+  return mf2Values;
 }
 
 }
