@@ -4,6 +4,8 @@
 //
 // Created by JMO, Mon Jun 19 21:06:28 PDT 2000
 //----------------------------------------------------------------------------//
+#include "Eigen/Dense"
+
 #include "TableKernel.hh"
 
 #include "Utilities/SpheralFunctions.hh"
@@ -108,7 +110,8 @@ sumKernelValuesAs1D(const KernelType& W,
 }
 
 //------------------------------------------------------------------------------
-// Compute the f1 integral relation for the given zeta = r/h (RZ correction).
+// Compute the (f1,f2) integrals relation for the given zeta = r/h 
+// (RZ corrections).
 //------------------------------------------------------------------------------
 template<typename KernelType>
 class volfunc {
@@ -190,10 +193,13 @@ TableKernel<Dimension>::TableKernel(const KernelType& kernel,
   mGrad2Values(),
   mAkernel(),
   mBkernel(),
+  mCkernel(),
   mAgrad(),
   mBgrad(),
+  mCgrad(),
   mAgrad2(),
   mBgrad2(),
+  mCgrad2(),
   mNumPoints(0),
   mStepSize(0.0),
   mNperhValues(),
@@ -203,9 +209,11 @@ TableKernel<Dimension>::TableKernel(const KernelType& kernel,
   mf1Values(),
   mAf1(),
   mBf1(),
+  mCf1(),
   mf2Values(),
   mAf2(),
-  mBf2() {
+  mBf2(),
+  mCf2() {
 
   // Pre-conditions.
   VERIFY(numPoints > 0);
@@ -226,12 +234,6 @@ TableKernel<Dimension>::TableKernel(const KernelType& kernel,
   mKernelValues = std::vector<double>(numPoints);
   mGradValues = std::vector<double>(numPoints);
   mGrad2Values = std::vector<double>(numPoints);
-  mAkernel = std::vector<double>(numPoints);
-  mBkernel = std::vector<double>(numPoints);
-  mAgrad = std::vector<double>(numPoints);
-  mBgrad = std::vector<double>(numPoints);
-  mAgrad2 = std::vector<double>(numPoints);
-  mBgrad2 = std::vector<double>(numPoints);
 
   // Fill in the kernel and gradient values.  Note that we will go ahead and fold
   // the normalization constants in here, so we don't have to multiply by them
@@ -248,16 +250,15 @@ TableKernel<Dimension>::TableKernel(const KernelType& kernel,
   // If we're a 2D kernel we set the RZ correction information.
   if (Dimension::nDim == 2) {
     mf1Values = std::vector<double>(numPoints);
-    mAf1 = std::vector<double>(numPoints);
-    mBf1 = std::vector<double>(numPoints);
     mf2Values = std::vector<double>(numPoints);
-    mAf2 = std::vector<double>(numPoints);
-    mBf2 = std::vector<double>(numPoints);
+    mGradf1Values = std::vector<double>(numPoints);
+    mGradf2Values = std::vector<double>(numPoints);
     const double etaMax = this->kernelExtent();
+    this->setParabolicCoeffs();  // Have to do this redundantly so the kernel lookups work next.
+    const double K1d = 0.5/simpsonsIntegration<volfunc<TableKernel<Dimension> >, double, double>(volfunc<TableKernel<Dimension> >(*this), 0.0, etaMax, numPoints);
     for (int i = 0; i < numPoints; ++i) {
       CHECK(i*mStepSize >= 0.0);
       const double zeta = i*mStepSize;
-      const double K1d = 0.5/simpsonsIntegration<volfunc<TableKernel<Dimension> >, double, double>(volfunc<TableKernel<Dimension> >(*this), 0.0, etaMax, numPoints);
       mf1Values[i] = f1Integral(*this, zeta, numPoints)/K1d;
       mf2Values[i] = f2Integral(*this, zeta, numPoints)/K1d;
     }
@@ -295,10 +296,13 @@ operator=(const TableKernel<Dimension>& rhs) {
     mGrad2Values = rhs.mGrad2Values;
     mAkernel = rhs.mAkernel;
     mBkernel = rhs.mBkernel;
+    mCkernel = rhs.mCkernel;
     mAgrad = rhs.mAgrad;
     mBgrad = rhs.mBgrad;
+    mCgrad = rhs.mCgrad;
     mAgrad2 = rhs.mAgrad2;
     mBgrad2 = rhs.mBgrad2;
+    mCgrad2 = rhs.mCgrad2;
     mNumPoints = rhs.mNumPoints;
     mStepSize = rhs.mStepSize;
     mNperhValues = rhs.mNperhValues;
@@ -308,58 +312,60 @@ operator=(const TableKernel<Dimension>& rhs) {
     mf1Values = rhs.mf1Values;
     mAf1 = rhs.mAf1;
     mBf1 = rhs.mBf1;
+    mCf1 = rhs.mCf1;
     mf2Values = rhs.mf2Values;
     mAf2 = rhs.mAf2;
     mBf2 = rhs.mBf2;
+    mCf2 = rhs.mCf2;
   }
   return *this;
 }
 
-//------------------------------------------------------------------------------
-// Linearly combine with another kernel.
-//------------------------------------------------------------------------------
-template<typename Dimension>
-template<typename KernelType>
-void
-TableKernel<Dimension>::augment(const KernelType& kernel) {
+// //------------------------------------------------------------------------------
+// // Linearly combine with another kernel.
+// //------------------------------------------------------------------------------
+// template<typename Dimension>
+// template<typename KernelType>
+// void
+// TableKernel<Dimension>::augment(const KernelType& kernel) {
 
-  // Set the volume normalization and kernel extent.
-  const double norm0 = this->volumeNormalization();
-  const double norm1 = kernel.volumeNormalization();
-  this->setVolumeNormalization(norm0 + norm1);
-  this->setInflectionPoint(0.5*(this->inflectionPoint() + kernel.inflectionPoint()));  // Punting for now.
+//   // Set the volume normalization and kernel extent.
+//   const double norm0 = this->volumeNormalization();
+//   const double norm1 = kernel.volumeNormalization();
+//   this->setVolumeNormalization(norm0 + norm1);
+//   this->setInflectionPoint(0.5*(this->inflectionPoint() + kernel.inflectionPoint()));  // Punting for now.
 
-  // Fill in the kernel and gradient values.  Note that we will go ahead and fold
-  // the normalization constants in here, so we don't have to multiply by them
-  // in the value lookups.
-  const double deta = mStepSize;
-  for (int i = 0; i < mNumPoints; ++i) {
-    CHECK(i*mStepSize >= 0.0);
-    mKernelValues[i] = 0.5*(mKernelValues[i] + kernel(i*deta, 1.0));
-    mGradValues[i] = 0.5*(mGradValues[i] + kernel.grad(i*deta, 1.0));
-    mGrad2Values[i] = 0.5*(mGrad2Values[i] + kernel.grad2(i*deta, 1.0));
-  }
+//   // Fill in the kernel and gradient values.  Note that we will go ahead and fold
+//   // the normalization constants in here, so we don't have to multiply by them
+//   // in the value lookups.
+//   const double deta = mStepSize;
+//   for (int i = 0; i < mNumPoints; ++i) {
+//     CHECK(i*mStepSize >= 0.0);
+//     mKernelValues[i] = 0.5*(mKernelValues[i] + kernel(i*deta, 1.0));
+//     mGradValues[i] = 0.5*(mGradValues[i] + kernel.grad(i*deta, 1.0));
+//     mGrad2Values[i] = 0.5*(mGrad2Values[i] + kernel.grad2(i*deta, 1.0));
+//   }
 
-  // Set the delta kernel values for internal use.
-  this->setParabolicCoeffs();
+//   // Set the delta kernel values for internal use.
+//   this->setParabolicCoeffs();
 
-  // // Adjust the table kernel values to reproduce the volume integral as closely as possible.
-  // const double vol1 = simpsonsVolumeIntegral<Dimension, TableKernel<Dimension> >(*this, 0.0, kernel.kernelExtent(), 10*numPoints);
-  // const double f = 1.0/vol1; // /(this->volumeNormalization());
-  // std::cerr << "Scaling: " << f << " " << vol1 << " " << this->volumeNormalization() << std::endl;
-  // for (int i = 0; i < numPoints; ++i) {
-  //   mKernelValues[i] *= f;
-  // }
+//   // // Adjust the table kernel values to reproduce the volume integral as closely as possible.
+//   // const double vol1 = simpsonsVolumeIntegral<Dimension, TableKernel<Dimension> >(*this, 0.0, kernel.kernelExtent(), 10*numPoints);
+//   // const double f = 1.0/vol1; // /(this->volumeNormalization());
+//   // std::cerr << "Scaling: " << f << " " << vol1 << " " << this->volumeNormalization() << std::endl;
+//   // for (int i = 0; i < numPoints; ++i) {
+//   //   mKernelValues[i] *= f;
+//   // }
 
-  // // Reset the delta kernel values for internal use.
-  // this->setDeltaKernelValues();
+//   // // Reset the delta kernel values for internal use.
+//   // this->setDeltaKernelValues();
 
-  // Set the table of n per h values.
-  this->setNperhValues();
+//   // Set the table of n per h values.
+//   this->setNperhValues();
 
-  // That should be it, so we should have left the kernel in a valid state.
-  ENSURE(valid());
-}
+//   // That should be it, so we should have left the kernel in a valid state.
+//   ENSURE(valid());
+// }
 
 //------------------------------------------------------------------------------
 // Determine the number of nodes per smoothing scale implied by the given
@@ -440,40 +446,100 @@ void
 TableKernel<Dimension>::
 setParabolicCoeffs() {
   
+  typedef Eigen::Matrix<double, 3, 3, Eigen::RowMajor> EMatrix;
+  typedef Eigen::Matrix<double, 3, 1> EVector;
+
+  // Because we do our fit in units of fixed eta step size, our A matrix of x elemements is constant and trivial!
+  EMatrix A;
+  A << 0.0, 0.0, 1.0,
+       1.0, 1.0, 1.0,
+       4.0, 2.0, 1.0;
+  EMatrix Ainv = A.inverse();
+
   // Size stuff up.
   REQUIRE(mNumPoints > 0);
   mAkernel = std::vector<double>(mNumPoints);
   mBkernel = std::vector<double>(mNumPoints);
+  mCkernel = std::vector<double>(mNumPoints);
   mAgrad = std::vector<double>(mNumPoints);
   mBgrad = std::vector<double>(mNumPoints);
+  mCgrad = std::vector<double>(mNumPoints);
   mAgrad2 = std::vector<double>(mNumPoints);
   mBgrad2 = std::vector<double>(mNumPoints);
+  mCgrad2 = std::vector<double>(mNumPoints);
   mAf1 = std::vector<double>(mNumPoints);
   mBf1 = std::vector<double>(mNumPoints);
+  mCf1 = std::vector<double>(mNumPoints);
   mAf2 = std::vector<double>(mNumPoints);
   mBf2 = std::vector<double>(mNumPoints);
+  mCf2 = std::vector<double>(mNumPoints);
+  mAgradf1 = std::vector<double>(mNumPoints);
+  mBgradf1 = std::vector<double>(mNumPoints);
+  mCgradf1 = std::vector<double>(mNumPoints);
+  mAgradf2 = std::vector<double>(mNumPoints);
+  mBgradf2 = std::vector<double>(mNumPoints);
+  mCgradf2 = std::vector<double>(mNumPoints);
 
   // Find the coefficient fits.
   for (int i0 = 0; i0 < mNumPoints - 2; ++i0) {
     const int i1 = i0 + 1;
     const int i2 = i0 + 2;
     CHECK(i2 < mNumPoints);
+    EVector B, C;
 
-    mAkernel[i1] = ((mKernelValues[i2] - mKernelValues[i1])/mStepSize - (mKernelValues[i1] - mKernelValues[i0])/mStepSize)/(2.0*mStepSize);
-    mBkernel[i1] = ((mKernelValues[i2] - mKernelValues[i1]) + (mKernelValues[i1] - mKernelValues[i0]))/(2.0*mStepSize);
+    // Kernel values.
+    B << mKernelValues[i0], mKernelValues[i1], mKernelValues[i2];
+    C = Ainv*B;
+    mAkernel[i1] = C(2);
+    mBkernel[i1] = C(1);
+    mCkernel[i1] = C(0);
 
-    mAgrad[i1] = ((mGradValues[i2] - mGradValues[i1])/mStepSize - (mGradValues[i1] - mGradValues[i0])/mStepSize)/(2.0*mStepSize);
-    mBgrad[i1] = ((mGradValues[i2] - mGradValues[i1]) + (mGradValues[i1] - mGradValues[i0]))/(2.0*mStepSize);
+    // Grad values.
+    B << mGradValues[i0], mGradValues[i1], mGradValues[i2];
+    C = Ainv*B;
+    mAgrad[i1] = C(2);
+    mBgrad[i1] = C(1);
+    mCgrad[i1] = C(0);
 
-    mAgrad2[i1] = ((mGrad2Values[i2] - mGrad2Values[i1])/mStepSize - (mGrad2Values[i1] - mGrad2Values[i0])/mStepSize)/(2.0*mStepSize);
-    mBgrad2[i1] = ((mGrad2Values[i2] - mGrad2Values[i1]) + (mGrad2Values[i1] - mGrad2Values[i0]))/(2.0*mStepSize);
+    // Grad2 values.
+    B << mGrad2Values[i0], mGrad2Values[i1], mGrad2Values[i2];
+    C = Ainv*B;
+    mAgrad2[i1] = C(2);
+    mBgrad2[i1] = C(1);
+    mCgrad2[i1] = C(0);
 
-    mAf1[i1] = ((mf1Values[i2] - mf1Values[i1])/mStepSize - (mf1Values[i1] - mf1Values[i0])/mStepSize)/(2.0*mStepSize);
-    mBf1[i1] = ((mf1Values[i2] - mf1Values[i1]) + (mf1Values[i1] - mf1Values[i0]))/(2.0*mStepSize);
+    // These only apply to 2D kernels, used for RZ models.
+    if (Dimension::nDim == 2) {
 
-    mAf2[i1] = ((mf2Values[i2] - mf2Values[i1])/mStepSize - (mf2Values[i1] - mf2Values[i0])/mStepSize)/(2.0*mStepSize);
-    mBf2[i1] = ((mf2Values[i2] - mf2Values[i1]) + (mf2Values[i1] - mf2Values[i0]))/(2.0*mStepSize);
-}
+      // f1 values.
+      B << mf1Values[i0], mf1Values[i1], mf1Values[i2];
+      C = Ainv*B;
+      mAf1[i1] = C(2);
+      mBf1[i1] = C(1);
+      mCf1[i1] = C(0);
+
+      // f2 values.
+      B << mf2Values[i0], mf2Values[i1], mf2Values[i2];
+      C = Ainv*B;
+      mAf2[i1] = C(2);
+      mBf2[i1] = C(1);
+      mCf2[i1] = C(0);
+
+      // gradf1 values.
+      B << mGradf1Values[i0], mGradf1Values[i1], mGradf1Values[i2];
+      C = Ainv*B;
+      mAgradf1[i1] = C(2);
+      mBgradf1[i1] = C(1);
+      mCgradf1[i1] = C(0);
+
+      // gradf2 values.
+      B << mGradf2Values[i0], mGradf2Values[i1], mGradf2Values[i2];
+      C = Ainv*B;
+      mAgradf2[i1] = C(2);
+      mBgradf2[i1] = C(1);
+      mCgradf2[i1] = C(0);
+    }
+  }
 }
 
 //------------------------------------------------------------------------------
@@ -532,10 +598,13 @@ valid() const {
           mGrad2Values.size() == mNumPoints and
           mAkernel.size() == mNumPoints and
           mBkernel.size() == mNumPoints and
+          mCkernel.size() == mNumPoints and
           mAgrad.size() == mNumPoints and
           mBgrad.size() == mNumPoints and
+          mCgrad.size() == mNumPoints and
           mAgrad2.size() == mNumPoints and
           mBgrad2.size() == mNumPoints and
+          mCgrad2.size() == mNumPoints and
           mStepSize > 0.0);
 }
 

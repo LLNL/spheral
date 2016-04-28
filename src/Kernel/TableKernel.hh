@@ -41,9 +41,9 @@ public:
   // Assignment.
   TableKernel& operator=(const TableKernel& rhs);
 
-  // Linearly combine with another kernel.
-  template<typename KernelType>
-  void augment(const KernelType& kernel);
+  // // Linearly combine with another kernel.
+  // template<typename KernelType>
+  // void augment(const KernelType& kernel);
 
   // Return the kernel weight for a given normalized distance or position.
   double kernelValue(const double etaMagnitude, double Hdet) const;
@@ -74,7 +74,13 @@ public:
   // Note these methods are only supported for 2D kernels -- other dimensions throw an error.
   double f1(const double etaMagnitude) const;
   double f2(const double etaMagnitude) const;
-  std::pair<double, double> f1Andf2(const double etaMagnitude) const;
+  double gradf1(const double etaMagnitude) const;
+  double gradf2(const double etaMagnitude) const;
+  void f1Andf2(const double etaMagnitude,
+               double& f1,
+               double& f2,
+               double& gradf1,
+               double& gradf2) const;
 
   // Allow read only access to the tabular data.
   const std::vector<double>& kernelValues() const;
@@ -84,6 +90,8 @@ public:
   const std::vector<double>& WsumValues() const;
   const std::vector<double>& f1Values() const;
   const std::vector<double>& f2Values() const;
+  const std::vector<double>& gradf1Values() const;
+  const std::vector<double>& gradf2Values() const;
 
   // Return the number of points being used in the table.
   int numPoints() const;
@@ -104,9 +112,9 @@ private:
   std::vector<double> mKernelValues;
   std::vector<double> mGradValues;
   std::vector<double> mGrad2Values;
-  std::vector<double> mAkernel, mBkernel;
-  std::vector<double> mAgrad, mBgrad;
-  std::vector<double> mAgrad2, mBgrad2;
+  std::vector<double> mAkernel, mBkernel, mCkernel;
+  std::vector<double> mAgrad, mBgrad, mCgrad;
+  std::vector<double> mAgrad2, mBgrad2, mCgrad2;
   int mNumPoints;
   double mStepSize;
 
@@ -117,8 +125,10 @@ private:
   double mMaxNperh;
 
   // Data for tabulating the RZ f1 and f2 corrections.
-  std::vector<double> mf1Values, mAf1, mBf1;
-  std::vector<double> mf2Values, mAf2, mBf2;
+  std::vector<double> mf1Values, mAf1, mBf1, mCf1;
+  std::vector<double> mf2Values, mAf2, mBf2, mCf2;
+  std::vector<double> mGradf1Values, mAgradf1, mBgradf1, mCgradf1;
+  std::vector<double> mGradf2Values, mAgradf2, mBgradf2, mCgradf2;
 
   // Initialize the tabular kernel with the given kernels data.
   template<typename KernelType>
@@ -133,7 +143,8 @@ private:
   double parabolicInterp(const double etaMagnitude,
                          const std::vector<double>& table,
                          const std::vector<double>& a,
-                         const std::vector<double>& b) const;
+                         const std::vector<double>& b,
+                         const std::vector<double>& c) const;
 
   // Initialize the table relating Wsum to nodes per smoothing scale.
   void setNperhValues(const bool scaleTo1D = false);
