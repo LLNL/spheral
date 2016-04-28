@@ -42,6 +42,16 @@ BSplineKernel<Dimension>::~BSplineKernel() {
 }
 
 //------------------------------------------------------------------------------
+// Copy constructors
+//------------------------------------------------------------------------------
+template<typename Dimension>
+template<typename OtherDimension>
+inline
+BSplineKernel<Dimension>::
+BSplineKernel(const BSplineKernel<OtherDimension>& rhs) {
+}
+
+//------------------------------------------------------------------------------
 // Return the kernel weight for a given normalized distance.
 //------------------------------------------------------------------------------
 template<typename Dimension>
