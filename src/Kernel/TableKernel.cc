@@ -110,6 +110,16 @@ sumKernelValuesAs1D(const KernelType& W,
 // Compute the f1 integral relation for the given zeta = r/h (RZ correction).
 //------------------------------------------------------------------------------
 template<typename KernelType>
+class volfunc {
+  const KernelType& W;
+public:
+  volfunc(const KernelType& W): W(W) {}
+  double operator()(const double eta) const {
+    return W.kernelValue(eta, 1.0);
+  }
+};
+
+template<typename KernelType>
 class f1func {
   const KernelType& W;
   double etai;
@@ -120,16 +130,19 @@ public:
   }
 };
 
+
 template<typename KernelType>
 double
 f1Integral(const KernelType& W,
            const double zeta,
            const unsigned numbins) {
   if (zeta < W.kernelExtent()) {
+    const double etaMax = W.kernelExtent();
+    const double K1d = 0.5/simpsonsIntegration<volfunc<KernelType>, double, double>(volfunc<KernelType>(W), 0.0, etaMax, numbins);
     return safeInvVar(simpsonsIntegration<f1func<KernelType>, double, double>(f1func<KernelType>(W, zeta), 
-                                                                              zeta - W.kernelExtent(), 
-                                                                              zeta + W.kernelExtent(),
-                                                                              numbins) * W.volumeNormalization());
+                                                                              zeta - etaMax, 
+                                                                              zeta + etaMax,
+                                                                              numbins) * K1d);
   } else {
     return 1.0;
   }
