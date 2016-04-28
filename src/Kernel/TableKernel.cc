@@ -153,14 +153,11 @@ f1Integral(const KernelType& W,
            const double zeta,
            const unsigned numbins) {
   const double etaMax = W.kernelExtent();
-  if (zeta < etaMax) {
-    return safeInvVar(simpsonsIntegration<f1func<KernelType>, double, double>(f1func<KernelType>(W, zeta), 
-                                                                              zeta - etaMax, 
-                                                                              zeta + etaMax,
-                                                                              numbins));
-  } else {
-    return 1.0;
-  }
+  CHECK(zeta <= etaMax);
+  return safeInvVar(simpsonsIntegration<f1func<KernelType>, double, double>(f1func<KernelType>(W, zeta), 
+                                                                            zeta - etaMax, 
+                                                                            zeta + etaMax,
+                                                                            numbins));
 }
 
 template<typename KernelType>
@@ -169,14 +166,11 @@ f2Integral(const KernelType& W,
            const double zeta,
            const unsigned numbins) {
   const double etaMax = W.kernelExtent();
-  if (zeta < etaMax) {
-    return safeInvVar(simpsonsIntegration<f2func<KernelType>, double, double>(f2func<KernelType>(W, zeta), 
-                                                                              zeta - etaMax, 
-                                                                              zeta + etaMax,
-                                                                              numbins));
-  } else {
-    return 1.0;
-  }
+  CHECK(zeta <= etaMax);
+  return safeInvVar(simpsonsIntegration<f2func<KernelType>, double, double>(f2func<KernelType>(W, zeta), 
+                                                                            zeta - etaMax, 
+                                                                            zeta + etaMax,
+                                                                            numbins));
 }
 
 //------------------------------------------------------------------------------
