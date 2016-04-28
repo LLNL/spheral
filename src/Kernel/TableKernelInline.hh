@@ -102,7 +102,7 @@ inline
 double
 TableKernel<Dim<2> >::f1(const double etaMagnitude) const {
   REQUIRE(etaMagnitude >= 0.0);
-  return parabolicInterp(etaMagnitude, mf1Values, mAf1, mBf1);
+  return parabolicInterp(std::min(this->kernelExtent(), etaMagnitude), mf1Values, mAf1, mBf1);
 }
 
 //------------------------------------------------------------------------------
@@ -120,7 +120,7 @@ inline
 double
 TableKernel<Dim<2> >::f2(const double etaMagnitude) const {
   REQUIRE(etaMagnitude >= 0.0);
-  return parabolicInterp(etaMagnitude, mf2Values, mAf2, mBf2);
+  return parabolicInterp(std::min(this->kernelExtent(), etaMagnitude), mf2Values, mAf2, mBf2);
 }
 
 //------------------------------------------------------------------------------
