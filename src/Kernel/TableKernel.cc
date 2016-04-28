@@ -15,6 +15,7 @@ namespace Spheral {
 namespace KernelSpace {
 
 using namespace std;
+using std::abs;
 
 //------------------------------------------------------------------------------
 // Sum the Kernel values for the given stepsize.
@@ -126,7 +127,19 @@ class f1func {
 public:
   f1func(const KernelType& W, const double etai): W(W), etai(etai) {}
   double operator()(const double eta) const {
-    return std::abs(eta*safeInvVar(etai))*W.kernelValue(abs(eta - etai), 1.0);
+    return abs(eta*safeInvVar(etai))*W.kernelValue(abs(eta - etai), 1.0);
+  }
+};
+
+
+template<typename KernelType>
+class f2func {
+  const KernelType& W;
+  double etai;
+public:
+  f2func(const KernelType& W, const double etai): W(W), etai(etai) {}
+  double operator()(const double eta) const {
+    return eta*abs(eta)*safeInvVar(etai*etai)*W.kernelValue(abs(eta - etai), 1.0);
   }
 };
 
@@ -136,10 +149,27 @@ double
 f1Integral(const KernelType& W,
            const double zeta,
            const unsigned numbins) {
-  if (zeta < W.kernelExtent()) {
-    const double etaMax = W.kernelExtent();
+  const double etaMax = W.kernelExtent();
+  if (zeta < etaMax) {
     const double K1d = 0.5/simpsonsIntegration<volfunc<KernelType>, double, double>(volfunc<KernelType>(W), 0.0, etaMax, numbins);
     return safeInvVar(simpsonsIntegration<f1func<KernelType>, double, double>(f1func<KernelType>(W, zeta), 
+                                                                              zeta - etaMax, 
+                                                                              zeta + etaMax,
+                                                                              numbins) * K1d);
+  } else {
+    return 1.0;
+  }
+}
+
+template<typename KernelType>
+double
+f2Integral(const KernelType& W,
+           const double zeta,
+           const unsigned numbins) {
+  const double etaMax = W.kernelExtent();
+  if (zeta < etaMax) {
+    const double K1d = 0.5/simpsonsIntegration<volfunc<KernelType>, double, double>(volfunc<KernelType>(W), 0.0, etaMax, numbins);
+    return safeInvVar(simpsonsIntegration<f2func<KernelType>, double, double>(f2func<KernelType>(W, zeta), 
                                                                               zeta - etaMax, 
                                                                               zeta + etaMax,
                                                                               numbins) * K1d);
@@ -229,6 +259,7 @@ TableKernel<Dimension>::TableKernel(const KernelType& kernel,
       CHECK(i*mStepSize >= 0.0);
       const double zeta = i*mStepSize;
       mf1Values[i] = f1Integral(*this, zeta, numPoints);
+      mf2Values[i] = f2Integral(*this, zeta, numPoints);
     }
   }
 
@@ -417,6 +448,10 @@ setParabolicCoeffs() {
   mBgrad = std::vector<double>(mNumPoints);
   mAgrad2 = std::vector<double>(mNumPoints);
   mBgrad2 = std::vector<double>(mNumPoints);
+  mAf1 = std::vector<double>(mNumPoints);
+  mBf1 = std::vector<double>(mNumPoints);
+  mAf2 = std::vector<double>(mNumPoints);
+  mBf2 = std::vector<double>(mNumPoints);
 
   // Find the coefficient fits.
   for (int i0 = 0; i0 < mNumPoints - 2; ++i0) {
@@ -432,7 +467,13 @@ setParabolicCoeffs() {
 
     mAgrad2[i1] = ((mGrad2Values[i2] - mGrad2Values[i1])/mStepSize - (mGrad2Values[i1] - mGrad2Values[i0])/mStepSize)/(2.0*mStepSize);
     mBgrad2[i1] = ((mGrad2Values[i2] - mGrad2Values[i1]) + (mGrad2Values[i1] - mGrad2Values[i0]))/(2.0*mStepSize);
-  }
+
+    mAf1[i1] = ((mf1Values[i2] - mf1Values[i1])/mStepSize - (mf1Values[i1] - mf1Values[i0])/mStepSize)/(2.0*mStepSize);
+    mBf1[i1] = ((mf1Values[i2] - mf1Values[i1]) + (mf1Values[i1] - mf1Values[i0]))/(2.0*mStepSize);
+
+    mAf2[i1] = ((mf2Values[i2] - mf2Values[i1])/mStepSize - (mf2Values[i1] - mf2Values[i0])/mStepSize)/(2.0*mStepSize);
+    mBf2[i1] = ((mf2Values[i2] - mf2Values[i1]) + (mf2Values[i1] - mf2Values[i0]))/(2.0*mStepSize);
+}
 }
 
 //------------------------------------------------------------------------------
