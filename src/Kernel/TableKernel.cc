@@ -151,11 +151,10 @@ f1Integral(const KernelType& W,
            const unsigned numbins) {
   const double etaMax = W.kernelExtent();
   if (zeta < etaMax) {
-    const double K1d = 0.5/simpsonsIntegration<volfunc<KernelType>, double, double>(volfunc<KernelType>(W), 0.0, etaMax, numbins);
     return safeInvVar(simpsonsIntegration<f1func<KernelType>, double, double>(f1func<KernelType>(W, zeta), 
                                                                               zeta - etaMax, 
                                                                               zeta + etaMax,
-                                                                              numbins) * K1d);
+                                                                              numbins));
   } else {
     return 1.0;
   }
@@ -168,11 +167,10 @@ f2Integral(const KernelType& W,
            const unsigned numbins) {
   const double etaMax = W.kernelExtent();
   if (zeta < etaMax) {
-    const double K1d = 0.5/simpsonsIntegration<volfunc<KernelType>, double, double>(volfunc<KernelType>(W), 0.0, etaMax, numbins);
     return safeInvVar(simpsonsIntegration<f2func<KernelType>, double, double>(f2func<KernelType>(W, zeta), 
                                                                               zeta - etaMax, 
                                                                               zeta + etaMax,
-                                                                              numbins) * K1d);
+                                                                              numbins));
   } else {
     return 1.0;
   }
@@ -255,11 +253,13 @@ TableKernel<Dimension>::TableKernel(const KernelType& kernel,
     mf2Values = std::vector<double>(numPoints);
     mAf2 = std::vector<double>(numPoints);
     mBf2 = std::vector<double>(numPoints);
+    const double etaMax = this->kernelExtent();
     for (int i = 0; i < numPoints; ++i) {
       CHECK(i*mStepSize >= 0.0);
       const double zeta = i*mStepSize;
-      mf1Values[i] = f1Integral(*this, zeta, numPoints);
-      mf2Values[i] = f2Integral(*this, zeta, numPoints);
+      const double K1d = 0.5/simpsonsIntegration<volfunc<TableKernel<Dimension> >, double, double>(volfunc<TableKernel<Dimension> >(*this), 0.0, etaMax, numPoints);
+      mf1Values[i] = f1Integral(*this, zeta, numPoints)/K1d;
+      mf2Values[i] = f2Integral(*this, zeta, numPoints)/K1d;
     }
   }
 
