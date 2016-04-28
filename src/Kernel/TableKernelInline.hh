@@ -68,8 +68,8 @@ TableKernel<Dimension>::kernelAndGradValue(const double etaMagnitude, const doub
     CHECK(i1 >= 1 and i1 <= mNumPoints - 2);
     const double x = etaMagnitude/mStepSize - i0;
     CHECK(x >= 0.0);
-    return std::make_pair(mAkernel[i1] + mBkernel[i1]*x + mCkernel[i1]*x*x,
-                          mAgrad[i1] + mBgrad[i1]*x + mCgrad[i1]*x*x);
+    return std::make_pair(Hdet*(mAkernel[i1] + mBkernel[i1]*x + mCkernel[i1]*x*x),
+                          Hdet*(mAgrad[i1] + mBgrad[i1]*x + mCgrad[i1]*x*x));
   } else {
     return std::make_pair(0.0, 0.0);
   }
