@@ -194,6 +194,11 @@ self.generateTableKernelBindings(self.TableKernel%(dim)s, %(ndim)i)
         vector = "Vector%id" % ndim
         symtensor = "SymTensor%id" % ndim
 
+        # Required copy constructor across dimensions.
+        for otherdim in xrange(1,4):
+            otherx = "Spheral::KernelSpace::" + x.name.replace("%id" % ndim, "%id" % otherdim)
+            x.add_constructor([constrefparam(otherx, "rhs")])
+
         # Methods.
         x.add_method("operator()", "double", [param("double", "etaMagnitude"), param("double", "Hdet")], is_const=True, custom_name = "__call__")
         x.add_method("operator()", "double", [constrefparam(vector, "eta"), param("double", "Hdet")], is_const=True, custom_name="__call__")

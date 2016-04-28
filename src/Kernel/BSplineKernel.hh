@@ -35,6 +35,9 @@ public:
   BSplineKernel();
   ~BSplineKernel();
 
+  // Copy constructor from another dimension.
+  template<typename OtherDimension> BSplineKernel(const BSplineKernel<OtherDimension>& rhs);
+
   // Return the kernel weight for a given normalized distance or position.
   double kernelValue(double etaMagnitude, double Hdet) const;
 
