@@ -182,9 +182,6 @@ TableKernel<Dimension>::TableKernel(const KernelType& kernel,
                                     const int numPoints,
                                     const double hmult):
   Kernel<Dimension, TableKernel<Dimension> >(),
-  mKernelValues(),
-  mGradValues(),
-  mGrad2Values(),
   mAkernel(),
   mBkernel(),
   mCkernel(),
@@ -200,11 +197,9 @@ TableKernel<Dimension>::TableKernel(const KernelType& kernel,
   mWsumValues(),
   mMinNperh(0.25),
   mMaxNperh(10.0),
-  mf1Values(),
   mAf1(),
   mBf1(),
   mCf1(),
-  mf2Values(),
   mAf2(),
   mBf2(),
   mCf2() {
@@ -224,42 +219,41 @@ TableKernel<Dimension>::TableKernel(const KernelType& kernel,
   mStepSize = this->kernelExtent()/(numPoints - 1);
   CHECK(stepSize() > 0.0);
 
-  // Resize the tables for our data.
-  mKernelValues = std::vector<double>(numPoints);
-  mGradValues = std::vector<double>(numPoints);
-  mGrad2Values = std::vector<double>(numPoints);
-
-  // Fill in the kernel and gradient values.  Note that we will go ahead and fold
-  // the normalization constants in here, so we don't have to multiply by them
-  // in the value lookups.
+  // Set the parabolic fit coefficients for kernel and it's gradient.
+  // Note that we will go ahead and fold the normalization constants in here, 
+  // so we don't have to multiply by them in the value lookups.
+  std::vector<double> kernelValues(numPoints);
+  std::vector<double> gradValues(numPoints);
+  std::vector<double> grad2Values(numPoints);
   const double correction = 1.0/Dimension::pownu(hmult);
   const double deta = mStepSize/hmult;
   for (int i = 0; i < numPoints; ++i) {
     CHECK(i*mStepSize >= 0.0);
-    mKernelValues[i] = correction*kernel(i*deta, 1.0);
-    mGradValues[i] = correction*kernel.grad(i*deta, 1.0);
-    mGrad2Values[i] = correction*kernel.grad2(i*deta, 1.0);
+    kernelValues[i] = correction*kernel(i*deta, 1.0);
+    gradValues[i] = correction*kernel.grad(i*deta, 1.0);
+    grad2Values[i] = correction*kernel.grad2(i*deta, 1.0);
   }
+  setParabolicCoeffs(kernelValues, mAkernel, mBkernel, mCkernel);
+  setParabolicCoeffs(gradValues, mAgrad, mBgrad, mCgrad);
+  setParabolicCoeffs(grad2Values, mAgrad2, mBgrad2, mCgrad2);
 
   // If we're a 2D kernel we set the RZ correction information.
   if (Dimension::nDim == 2) {
-    mf1Values = std::vector<double>(numPoints);
-    mf2Values = std::vector<double>(numPoints);
-    mGradf1Values = std::vector<double>(numPoints);
-    mGradf2Values = std::vector<double>(numPoints);
+    std::vector<double> f1Values(numPoints);
+    std::vector<double> f2Values(numPoints);
+    std::vector<double> gradf1Values(numPoints);
+    std::vector<double> gradf2Values(numPoints);
     const double etaMax = this->kernelExtent();
-    this->setParabolicCoeffs();  // Have to do this redundantly so the kernel lookups work next.
     const double K1d = 0.5/simpsonsIntegration<volfunc<TableKernel<Dimension> >, double, double>(volfunc<TableKernel<Dimension> >(*this), 0.0, etaMax, numPoints);
     for (int i = 0; i < numPoints; ++i) {
       CHECK(i*mStepSize >= 0.0);
       const double zeta = i*mStepSize;
-      mf1Values[i] = f1Integral(*this, zeta, numPoints)/K1d;
-      mf2Values[i] = f2Integral(*this, zeta, numPoints)/K1d;
+      f1Values[i] = f1Integral(*this, zeta, numPoints)/K1d;
+      f2Values[i] = f2Integral(*this, zeta, numPoints)/K1d;
     }
+    setParabolicCoeffs(f1Values, mAf1, mBf1, mCf1);
+    setParabolicCoeffs(f2Values, mAf2, mBf2, mCf2);
   }
-
-  // Set the delta kernel values for internal use.
-  this->setParabolicCoeffs();
 
   // Set the table of n per h values.
   this->setNperhValues();
@@ -285,9 +279,6 @@ TableKernel<Dimension>::
 operator=(const TableKernel<Dimension>& rhs) {
   if (this != &rhs) {
     Kernel<Dimension, TableKernel<Dimension> >::operator=(rhs);
-    mKernelValues = rhs.mKernelValues;
-    mGradValues = rhs.mGradValues;
-    mGrad2Values = rhs.mGrad2Values;
     mAkernel = rhs.mAkernel;
     mBkernel = rhs.mBkernel;
     mCkernel = rhs.mCkernel;
@@ -303,11 +294,9 @@ operator=(const TableKernel<Dimension>& rhs) {
     mWsumValues =  rhs.mWsumValues;
     mMinNperh = rhs.mMinNperh;
     mMaxNperh = rhs.mMaxNperh;
-    mf1Values = rhs.mf1Values;
     mAf1 = rhs.mAf1;
     mBf1 = rhs.mBf1;
     mCf1 = rhs.mCf1;
-    mf2Values = rhs.mf2Values;
     mAf2 = rhs.mAf2;
     mBf2 = rhs.mBf2;
     mCf2 = rhs.mCf2;
@@ -438,7 +427,10 @@ equivalentWsum(const double nPerh) const {
 template<typename Dimension>
 void
 TableKernel<Dimension>::
-setParabolicCoeffs() {
+setParabolicCoeffs(const std::vector<double>& table,
+                   std::vector<double>& a,
+                   std::vector<double>& b,
+                   std::vector<double>& c) const {
   
   typedef Eigen::Matrix<double, 3, 3, Eigen::RowMajor> EMatrix;
   typedef Eigen::Matrix<double, 3, 1> EVector;
@@ -452,27 +444,9 @@ setParabolicCoeffs() {
 
   // Size stuff up.
   REQUIRE(mNumPoints > 0);
-  mAkernel = std::vector<double>(mNumPoints);
-  mBkernel = std::vector<double>(mNumPoints);
-  mCkernel = std::vector<double>(mNumPoints);
-  mAgrad = std::vector<double>(mNumPoints);
-  mBgrad = std::vector<double>(mNumPoints);
-  mCgrad = std::vector<double>(mNumPoints);
-  mAgrad2 = std::vector<double>(mNumPoints);
-  mBgrad2 = std::vector<double>(mNumPoints);
-  mCgrad2 = std::vector<double>(mNumPoints);
-  mAf1 = std::vector<double>(mNumPoints);
-  mBf1 = std::vector<double>(mNumPoints);
-  mCf1 = std::vector<double>(mNumPoints);
-  mAf2 = std::vector<double>(mNumPoints);
-  mBf2 = std::vector<double>(mNumPoints);
-  mCf2 = std::vector<double>(mNumPoints);
-  mAgradf1 = std::vector<double>(mNumPoints);
-  mBgradf1 = std::vector<double>(mNumPoints);
-  mCgradf1 = std::vector<double>(mNumPoints);
-  mAgradf2 = std::vector<double>(mNumPoints);
-  mBgradf2 = std::vector<double>(mNumPoints);
-  mCgradf2 = std::vector<double>(mNumPoints);
+  a = std::vector<double>(mNumPoints);
+  b = std::vector<double>(mNumPoints);
+  c = std::vector<double>(mNumPoints);
 
   // Find the coefficient fits.
   for (int i0 = 0; i0 < mNumPoints - 2; ++i0) {
@@ -481,58 +455,11 @@ setParabolicCoeffs() {
     CHECK(i2 < mNumPoints);
     EVector B, C;
 
-    // Kernel values.
-    B << mKernelValues[i0], mKernelValues[i1], mKernelValues[i2];
+    B << table[i0], table[i1], table[i2];
     C = Ainv*B;
-    mAkernel[i1] = C(2);
-    mBkernel[i1] = C(1);
-    mCkernel[i1] = C(0);
-
-    // Grad values.
-    B << mGradValues[i0], mGradValues[i1], mGradValues[i2];
-    C = Ainv*B;
-    mAgrad[i1] = C(2);
-    mBgrad[i1] = C(1);
-    mCgrad[i1] = C(0);
-
-    // Grad2 values.
-    B << mGrad2Values[i0], mGrad2Values[i1], mGrad2Values[i2];
-    C = Ainv*B;
-    mAgrad2[i1] = C(2);
-    mBgrad2[i1] = C(1);
-    mCgrad2[i1] = C(0);
-
-    // These only apply to 2D kernels, used for RZ models.
-    if (Dimension::nDim == 2) {
-
-      // f1 values.
-      B << mf1Values[i0], mf1Values[i1], mf1Values[i2];
-      C = Ainv*B;
-      mAf1[i1] = C(2);
-      mBf1[i1] = C(1);
-      mCf1[i1] = C(0);
-
-      // f2 values.
-      B << mf2Values[i0], mf2Values[i1], mf2Values[i2];
-      C = Ainv*B;
-      mAf2[i1] = C(2);
-      mBf2[i1] = C(1);
-      mCf2[i1] = C(0);
-
-      // gradf1 values.
-      B << mGradf1Values[i0], mGradf1Values[i1], mGradf1Values[i2];
-      C = Ainv*B;
-      mAgradf1[i1] = C(2);
-      mBgradf1[i1] = C(1);
-      mCgradf1[i1] = C(0);
-
-      // gradf2 values.
-      B << mGradf2Values[i0], mGradf2Values[i1], mGradf2Values[i2];
-      C = Ainv*B;
-      mAgradf2[i1] = C(2);
-      mBgradf2[i1] = C(1);
-      mCgradf2[i1] = C(0);
-    }
+    a[i1] = C(2);
+    b[i1] = C(1);
+    c[i1] = C(0);
   }
 }
 
@@ -587,9 +514,6 @@ TableKernel<Dimension>::
 valid() const {
   return (Kernel<Dimension, TableKernel<Dimension> >::valid() and
           mNumPoints > 0 and
-          mKernelValues.size() == mNumPoints and
-          mGradValues.size() == mNumPoints and
-          mGrad2Values.size() == mNumPoints and
           mAkernel.size() == mNumPoints and
           mBkernel.size() == mNumPoints and
           mCkernel.size() == mNumPoints and

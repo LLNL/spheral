@@ -83,15 +83,8 @@ public:
                double& gradf2) const;
 
   // Allow read only access to the tabular data.
-  const std::vector<double>& kernelValues() const;
-  const std::vector<double>& gradValues() const;
-  const std::vector<double>& grad2Values() const;
   const std::vector<double>& nperhValues() const;
   const std::vector<double>& WsumValues() const;
-  const std::vector<double>& f1Values() const;
-  const std::vector<double>& f2Values() const;
-  const std::vector<double>& gradf1Values() const;
-  const std::vector<double>& gradf2Values() const;
 
   // Return the number of points being used in the table.
   int numPoints() const;
@@ -109,9 +102,6 @@ public:
 private:
   //--------------------------- Private Interface ---------------------------//
   // Data for the kernel tabulation.
-  std::vector<double> mKernelValues;
-  std::vector<double> mGradValues;
-  std::vector<double> mGrad2Values;
   std::vector<double> mAkernel, mBkernel, mCkernel;
   std::vector<double> mAgrad, mBgrad, mCgrad;
   std::vector<double> mAgrad2, mBgrad2, mCgrad2;
@@ -125,10 +115,10 @@ private:
   double mMaxNperh;
 
   // Data for tabulating the RZ f1 and f2 corrections.
-  std::vector<double> mf1Values, mAf1, mBf1, mCf1;
-  std::vector<double> mf2Values, mAf2, mBf2, mCf2;
-  std::vector<double> mGradf1Values, mAgradf1, mBgradf1, mCgradf1;
-  std::vector<double> mGradf2Values, mAgradf2, mBgradf2, mCgradf2;
+  std::vector<double> mAf1, mBf1, mCf1;
+  std::vector<double> mAf2, mBf2, mCf2;
+  std::vector<double> mAgradf1, mBgradf1, mCgradf1;
+  std::vector<double> mAgradf2, mBgradf2, mCgradf2;
 
   // Initialize the tabular kernel with the given kernels data.
   template<typename KernelType>
@@ -137,11 +127,13 @@ private:
                              const bool gradientAsKernel);
 
   // Method to initialize the delta kernel values.
-  void setParabolicCoeffs();
+  void setParabolicCoeffs(const std::vector<double>& table,
+                          std::vector<double>& a,
+                          std::vector<double>& b,
+                          std::vector<double>& c) const;
 
   // Generic parabolic interpolation.
   double parabolicInterp(const double etaMagnitude,
-                         const std::vector<double>& table,
                          const std::vector<double>& a,
                          const std::vector<double>& b,
                          const std::vector<double>& c) const;
