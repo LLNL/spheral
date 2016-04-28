@@ -14,7 +14,11 @@ double
 TableKernel<Dimension>::kernelValue(const double etaMagnitude, const double Hdet) const {
   REQUIRE(etaMagnitude >= 0.0);
   REQUIRE(Hdet >= 0.0);
-  return Hdet*parabolicInterp(etaMagnitude, mKernelValues, mAkernel, mBkernel, mCkernel);
+  if (etaMagnitude < this->mKernelExtent) {
+    return Hdet*parabolicInterp(etaMagnitude, mAkernel, mBkernel, mCkernel);
+  } else {
+    return 0.0;
+  }
 }
 
 //------------------------------------------------------------------------------
@@ -26,7 +30,11 @@ double
 TableKernel<Dimension>::gradValue(const double etaMagnitude, const double Hdet) const {
   REQUIRE(etaMagnitude >= 0.0);
   REQUIRE(Hdet >= 0.0);
-  return Hdet*parabolicInterp(etaMagnitude, mGradValues, mAgrad, mBgrad, mCgrad);
+  if (etaMagnitude < this->mKernelExtent) {
+    return Hdet*parabolicInterp(etaMagnitude, mAgrad, mBgrad, mCgrad);
+  } else {
+    return 0.0;
+  }
 }
 
 //------------------------------------------------------------------------------
@@ -38,7 +46,11 @@ double
 TableKernel<Dimension>::grad2Value(const double etaMagnitude, const double Hdet) const {
   REQUIRE(etaMagnitude >= 0.0);
   REQUIRE(Hdet >= 0.0);
-  return Hdet*parabolicInterp(etaMagnitude, mGrad2Values, mAgrad2, mBgrad2, mCgrad2);
+  if (etaMagnitude < this->mKernelExtent) {
+    return Hdet*parabolicInterp(etaMagnitude, mAgrad2, mBgrad2, mCgrad2);
+  } else {
+    return 0.0;
+  }
 }
 
 //------------------------------------------------------------------------------
@@ -61,8 +73,8 @@ TableKernel<Dimension>::kernelAndGradValue(const double etaMagnitude, const doub
   } else {
     return std::make_pair(0.0, 0.0);
   }
-  // return std::make_pair(Hdet*parabolicInterp(etaMagnitude, mKernelValues, mAkernel, mBkernel, mCkernel),
-  //                       Hdet*parabolicInterp(etaMagnitude, mGradValues, mAgrad, mBgrad, mCgrad));
+  // return std::make_pair(Hdet*parabolicInterp(etaMagnitude, mAkernel, mBkernel, mCkernel),
+  //                       Hdet*parabolicInterp(etaMagnitude, mAgrad, mBgrad, mCgrad));
 }
 
 //------------------------------------------------------------------------------
@@ -93,8 +105,8 @@ TableKernel<Dimension>::kernelAndGradValues(const std::vector<double>& etaMagnit
 
   // Fill those suckers in.
   for (size_t i = 0; i != n; ++i) {
-    kernelValues[i] = Hdets[i]*parabolicInterp(etaMagnitudes[i], mKernelValues, mAkernel, mBkernel, mCkernel);
-    gradValues[i] = Hdets[i]*parabolicInterp(etaMagnitudes[i], mGradValues, mAgrad, mBgrad, mCgrad);
+    kernelValues[i] = Hdets[i]*parabolicInterp(etaMagnitudes[i], mAkernel, mBkernel, mCkernel);
+    gradValues[i] = Hdets[i]*parabolicInterp(etaMagnitudes[i], mAgrad, mBgrad, mCgrad);
   }
 }
 
@@ -114,7 +126,7 @@ double
 TableKernel<Dim<2> >::f1(const double etaMagnitude) const {
   REQUIRE(etaMagnitude >= 0.0);
   if (etaMagnitude < this->mKernelExtent - mStepSize) {
-    return parabolicInterp(etaMagnitude, mf1Values, mAf1, mBf1, mCf1);
+    return parabolicInterp(etaMagnitude, mAf1, mBf1, mCf1);
   } else {
     return 1.0;
   }
@@ -135,11 +147,7 @@ inline
 double
 TableKernel<Dim<2> >::f2(const double etaMagnitude) const {
   REQUIRE(etaMagnitude >= 0.0);
-  if (etaMagnitude < this->mKernelExtent - mStepSize) {
-    return parabolicInterp(etaMagnitude, mf2Values, mAf2, mBf2, mCf2);
-  } else {
-    return mf2Values.back();
-  }
+  return parabolicInterp(etaMagnitude, mAf2, mBf2, mCf2);
 }
 
 //------------------------------------------------------------------------------
@@ -157,7 +165,7 @@ inline
 double
 TableKernel<Dim<2> >::gradf1(const double etaMagnitude) const {
   REQUIRE(etaMagnitude >= 0.0);
-  return parabolicInterp(etaMagnitude, mGradf1Values, mAgradf1, mBgradf1, mCgradf1);
+  return parabolicInterp(etaMagnitude, mAgradf1, mBgradf1, mCgradf1);
 }
 
 //------------------------------------------------------------------------------
@@ -175,7 +183,7 @@ inline
 double
 TableKernel<Dim<2> >::gradf2(const double etaMagnitude) const {
   REQUIRE(etaMagnitude >= 0.0);
-  return parabolicInterp(etaMagnitude, mGradf2Values, mAgradf2, mBgradf2, mCgradf2);
+  return parabolicInterp(etaMagnitude, mAgradf2, mBgradf2, mCgradf2);
 }
 
 //------------------------------------------------------------------------------
@@ -201,22 +209,15 @@ TableKernel<Dim<2> >::f1Andf2(const double etaMagnitude,
                               double& gradf1,
                               double& gradf2) const {
   REQUIRE(etaMagnitude >= 0.0);
-  if (etaMagnitude < this->mKernelExtent) {
-    const int i0 = min(mNumPoints - 3, lowerBound(etaMagnitude));
-    const int i1 = i0 + 1;
-    CHECK(i1 >= 1 and i1 <= mNumPoints - 2);
-    const double x = etaMagnitude/mStepSize - i0;
-    CHECK(x >= 0.0);
-    f1 = mAf1[i1] + mBf1[i1]*x + mCf1[i1]*x*x;
-    f2 = mAf2[i1] + mBf2[i1]*x + mCf2[i1]*x*x;
-    gradf1 = mAgradf1[i1] + mBgradf1[i1]*x + mCgradf1[i1]*x*x;
-    gradf2 = mAgradf2[i1] + mBgradf2[i1]*x + mCgradf2[i1]*x*x;
-  } else {
-    f1 = 1.0;
-    f2 = mf2Values.back();
-    gradf1 = 0.0;
-    gradf2 = 0.0;
-  }
+  const int i0 = min(mNumPoints - 3, lowerBound(etaMagnitude));
+  const int i1 = i0 + 1;
+  CHECK(i1 >= 1 and i1 <= mNumPoints - 2);
+  const double x = etaMagnitude/mStepSize - i0;
+  CHECK(x >= 0.0);
+  f1 = mAf1[i1] + mBf1[i1]*x + mCf1[i1]*x*x;
+  f2 = mAf2[i1] + mBf2[i1]*x + mCf2[i1]*x*x;
+  gradf1 = mAgradf1[i1] + mBgradf1[i1]*x + mCgradf1[i1]*x*x;
+  gradf2 = mAgradf2[i1] + mBgradf2[i1]*x + mCgradf2[i1]*x*x;
 }
 
 //------------------------------------------------------------------------------
@@ -269,54 +270,25 @@ template<typename Dimension>
 inline
 double
 TableKernel<Dimension>::parabolicInterp(const double etaMagnitude, 
-                                        const std::vector<double>& table,
                                         const std::vector<double>& a,
                                         const std::vector<double>& b,
                                         const std::vector<double>& c) const {
   REQUIRE(etaMagnitude >= 0.0);
-  REQUIRE(table.size() == mNumPoints);
   REQUIRE(a.size() == mNumPoints);
   REQUIRE(b.size() == mNumPoints);
   REQUIRE(c.size() == mNumPoints);
-  if (etaMagnitude < this->mKernelExtent) {
-    const int i0 = min(mNumPoints - 3, lowerBound(etaMagnitude));
-    const int i1 = i0 + 1;
-    CHECK(i1 >= 1 and i1 <= mNumPoints - 2);
-    const double x = etaMagnitude/mStepSize - i0;
-    CHECK(x >= 0.0);
-    return a[i1] + b[i1]*x + c[i1]*x*x;
-  } else {
-    return table.back();
-  }
+  const double etai = std::min(etaMagnitude, this->mKernelExtent);
+  const int i0 = min(mNumPoints - 3, lowerBound(etaMagnitude));
+  const int i1 = i0 + 1;
+  CHECK(i1 >= 1 and i1 <= mNumPoints - 2);
+  const double x = etaMagnitude/mStepSize - i0;
+  CHECK(x >= 0.0);
+  return a[i1] + b[i1]*x + c[i1]*x*x;
 }
 
 //------------------------------------------------------------------------------
 // Return the assorted tabular lookup data.
 //------------------------------------------------------------------------------
-template<typename Dimension>
-inline
-const std::vector<double>&
-TableKernel<Dimension>::
-kernelValues() const {
-  return mKernelValues;
-}
-
-template<typename Dimension>
-inline
-const std::vector<double>&
-TableKernel<Dimension>::
-gradValues() const {
-  return mGradValues;
-}
-
-template<typename Dimension>
-inline
-const std::vector<double>&
-TableKernel<Dimension>::
-grad2Values() const {
-  return mGrad2Values;
-}
-
 template<typename Dimension>
 inline
 const std::vector<double>&
@@ -331,38 +303,6 @@ const std::vector<double>&
 TableKernel<Dimension>::
 WsumValues() const {
   return mWsumValues;
-}
-
-template<typename Dimension>
-inline
-const std::vector<double>&
-TableKernel<Dimension>::
-f1Values() const {
-  return mf1Values;
-}
-
-template<typename Dimension>
-inline
-const std::vector<double>&
-TableKernel<Dimension>::
-f2Values() const {
-  return mf2Values;
-}
-
-template<typename Dimension>
-inline
-const std::vector<double>&
-TableKernel<Dimension>::
-gradf1Values() const {
-  return mGradf1Values;
-}
-
-template<typename Dimension>
-inline
-const std::vector<double>&
-TableKernel<Dimension>::
-gradf2Values() const {
-  return mGradf2Values;
 }
 
 }
