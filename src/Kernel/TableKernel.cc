@@ -126,11 +126,11 @@ public:
 template<typename KernelType>
 class f1func {
   const KernelType& W;
-  double etai;
+  double zeta;
 public:
-  f1func(const KernelType& W, const double etai): W(W), etai(etai) {}
+  f1func(const KernelType& W, const double zeta): W(W), zeta(zeta) {}
   double operator()(const double eta) const {
-    return abs(eta*safeInvVar(etai))*W.kernelValue(abs(eta - etai), 1.0);
+    return abs(safeInvVar(zeta)*eta)*W.kernelValue(abs(zeta - eta), 1.0);
   }
 };
 
@@ -138,11 +138,11 @@ public:
 template<typename KernelType>
 class f2func {
   const KernelType& W;
-  double etai;
+  double zeta;
 public:
-  f2func(const KernelType& W, const double etai): W(W), etai(etai) {}
+  f2func(const KernelType& W, const double zeta): W(W), zeta(zeta) {}
   double operator()(const double eta) const {
-    return eta*abs(eta)*safeInvVar(etai*etai)*W.kernelValue(abs(eta - etai), 1.0);
+    return safeInvVar(zeta*zeta)*eta*abs(eta)*W.kernelValue(abs(zeta - eta), 1.0);
   }
 };
 
@@ -150,18 +150,17 @@ public:
 template<typename KernelType>
 class gradf1func {
   const KernelType& W;
-  double etai;
+  double zeta;
 public:
-  gradf1func(const KernelType& W, const double etai): W(W), etai(etai) {}
+  gradf1func(const KernelType& W, const double zeta): W(W), zeta(zeta) {}
   double operator()(const double eta) const {
-    const double Wu = W.kernelValue(abs(eta - etai), 1.0);
-    const double gWu = W.gradValue(abs(eta - etai), 1.0);
-    const double f1 = abs(eta*safeInvVar(etai))*Wu;
-    const double gf1inv = safeInvVar(etai*etai)*abs(eta)*Wu - safeInvVar(etai)*abs(eta)*gWu;
+    const double Wu = W.kernelValue(abs(zeta - eta), 1.0);
+    const double gWu = W.gradValue(abs(zeta - eta), 1.0);
+    const double gf1inv = safeInvVar(zeta)*abs(eta)*gWu - safeInvVar(zeta*zeta)*abs(eta)*Wu;
     if (eta < 0.0) {
-      return f1*f1*gf1inv;
+      return -gf1inv;
     } else {
-      return -f1*f1*gf1inv;
+      return gf1inv;
     }
   }
 };
@@ -200,10 +199,10 @@ gradf1Integral(const KernelType& W,
                const unsigned numbins) {
   const double etaMax = W.kernelExtent();
   CHECK(zeta <= etaMax);
-  return safeInvVar(simpsonsIntegration<gradf1func<KernelType>, double, double>(gradf1func<KernelType>(W, zeta), 
-                                                                                zeta - etaMax, 
-                                                                                zeta + etaMax,
-                                                                                numbins));
+  return simpsonsIntegration<gradf1func<KernelType>, double, double>(gradf1func<KernelType>(W, zeta), 
+                                                                     zeta - etaMax, 
+                                                                     zeta + etaMax,
+                                                                     numbins);
 }
 
 //------------------------------------------------------------------------------
@@ -283,11 +282,19 @@ TableKernel<Dimension>::TableKernel(const KernelType& kernel,
       const double zeta = i*mStepSize;
       f1Values[i] = f1Integral(*this, zeta, numPoints)/K1d;
       f2Values[i] = f2Integral(*this, zeta, numPoints)/K1d;
-      gradf1Values[i] = gradf1Integral(*this, zeta, numPoints)/K1d;
+      // gradf1Values[i] = -f1Values[i]*f1Values[i]*gradf1Integral(*this, zeta, numPoints)*K1d;
+    }
+    // For now we do a kludgey numerical estimate of the gradient terms.
+    for (int i = 0; i < numPoints; ++i) {
+      const int i0 = max(i - 1, 0);
+      const int i1 = min(i + 1, numPoints - 1);
+      gradf1Values[i] = (f1Values[i] - f1Values[i0] + f1Values[i1] - f1Values[i])/((i1 - i0)*mStepSize);
+      gradf2Values[i] = (f2Values[i] - f2Values[i0] + f2Values[i1] - f2Values[i])/((i1 - i0)*mStepSize);
     }
     setParabolicCoeffs(f1Values, mAf1, mBf1, mCf1);
     setParabolicCoeffs(f2Values, mAf2, mBf2, mCf2);
     setParabolicCoeffs(gradf1Values, mAgradf1, mBgradf1, mCgradf1);
+    setParabolicCoeffs(gradf2Values, mAgradf2, mBgradf2, mCgradf2);
   }
 
   // Set the table of n per h values.
