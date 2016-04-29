@@ -148,6 +148,26 @@ public:
 
 
 template<typename KernelType>
+class gradf1func {
+  const KernelType& W;
+  double etai;
+public:
+  gradf1func(const KernelType& W, const double etai): W(W), etai(etai) {}
+  double operator()(const double eta) const {
+    const double Wu = W.kernelValue(abs(eta - etai), 1.0);
+    const double gWu = W.gradValue(abs(eta - etai), 1.0);
+    const double f1 = abs(eta*safeInvVar(etai))*Wu;
+    const double gf1inv = safeInvVar(etai*etai)*abs(eta)*Wu - safeInvVar(etai)*abs(eta)*gWu;
+    if (eta < 0.0) {
+      return f1*f1*gf1inv;
+    } else {
+      return -f1*f1*gf1inv;
+    }
+  }
+};
+
+
+template<typename KernelType>
 double
 f1Integral(const KernelType& W,
            const double zeta,
@@ -171,6 +191,19 @@ f2Integral(const KernelType& W,
                                                                             zeta - etaMax, 
                                                                             zeta + etaMax,
                                                                             numbins));
+}
+
+template<typename KernelType>
+double
+gradf1Integral(const KernelType& W,
+               const double zeta,
+               const unsigned numbins) {
+  const double etaMax = W.kernelExtent();
+  CHECK(zeta <= etaMax);
+  return safeInvVar(simpsonsIntegration<gradf1func<KernelType>, double, double>(gradf1func<KernelType>(W, zeta), 
+                                                                                zeta - etaMax, 
+                                                                                zeta + etaMax,
+                                                                                numbins));
 }
 
 //------------------------------------------------------------------------------
@@ -250,9 +283,11 @@ TableKernel<Dimension>::TableKernel(const KernelType& kernel,
       const double zeta = i*mStepSize;
       f1Values[i] = f1Integral(*this, zeta, numPoints)/K1d;
       f2Values[i] = f2Integral(*this, zeta, numPoints)/K1d;
+      gradf1Values[i] = gradf1Integral(*this, zeta, numPoints)/K1d;
     }
     setParabolicCoeffs(f1Values, mAf1, mBf1, mCf1);
     setParabolicCoeffs(f2Values, mAf2, mBf2, mCf2);
+    setParabolicCoeffs(gradf1Values, mAgradf1, mBgradf1, mCgradf1);
   }
 
   // Set the table of n per h values.
