@@ -23,5 +23,10 @@ INSTSRCTARGETS = \
 	$(srcdir)/VonNeumanViscosityInst.cc.py
 SRCTARGETS =
 
+ifeq ("yes", "@INST2D@")
+SRCTARGETS += \
+	$(srcdir)/MonaghanGingoldViscosityRZ.cc
+endif
+
 #-------------------------------------------------------------------------------
 include $(BUILDTOP)/helpers/makefile_master
