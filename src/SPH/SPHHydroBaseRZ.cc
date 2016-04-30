@@ -462,8 +462,8 @@ evaluateDerivatives(const Dim<2>::Scalar time,
               CHECK(rhoRZj > 0.0);
               const double Prhoi = safeOmegai*Peffi*ri.y()/(rhoRZi*rhoRZi);
               const double Prhoj = safeOmegaj*Peffj*rj.y()/(rhoRZj*rhoRZj);
-              const Vector deltaDvDti = -2.0*M_PI*mj*((Prhoi*f1i*gradWi + Prhoj*gradWj) + Qacci + Qaccj);
-              const Vector deltaDvDtj = -2.0*M_PI*mi*((Prhoj*f1j*gradWj + Prhoi*gradWi) + Qaccj + Qacci);
+              const Vector deltaDvDti = -mj*(2.0*M_PI*(Prhoi*f1i*gradWi + Prhoj*gradWj) + Qacci + Qaccj);
+              const Vector deltaDvDtj = -mi*(2.0*M_PI*(Prhoj*f1j*gradWj + Prhoi*gradWi) + Qaccj + Qacci);
               DvDti += deltaDvDti;
               DvDtj += deltaDvDtj;
 
