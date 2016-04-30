@@ -59,15 +59,6 @@ public:
   // Destructor.
   virtual ~SPHHydroBaseRZ();
 
-  // Tasks we do once on problem startup.
-  virtual
-  void initializeProblemStartup(DataBaseSpace::DataBase<Dimension>& dataBase);
-
-  // Register the state Hydro expects to use and evolve.
-  virtual 
-  void registerState(DataBaseSpace::DataBase<Dimension>& dataBase,
-                     State<Dimension>& state);
-
   // Evaluate the derivatives for the principle hydro variables:
   // mass density, velocity, and specific thermal energy.
   virtual
@@ -77,14 +68,6 @@ public:
                            const State<Dimension>& state,
                            StateDerivatives<Dimension>& derivatives) const;
 
-  // Finalize the derivatives.
-  virtual
-  void finalizeDerivatives(const Scalar time,
-                           const Scalar dt,
-                           const DataBaseSpace::DataBase<Dimension>& dataBase,
-                           const State<Dimension>& state,
-                           StateDerivatives<Dimension>& derivs) const;
-
   // Finalize the hydro at the completion of an integration step.
   virtual
   void finalize(const Scalar time,
@@ -93,34 +76,10 @@ public:
                 State<Dimension>& state,
                 StateDerivatives<Dimension>& derivs);
                
-  // Apply boundary conditions to the physics specific fields.
-  virtual
-  void applyGhostBoundaries(State<Dimension>& state,
-                            StateDerivatives<Dimension>& derivs);
-
-  // Enforce boundary conditions for the physics specific fields.
-  virtual
-  void enforceBoundaries(State<Dimension>& state,
-                         StateDerivatives<Dimension>& derivs);
-
-  // The state field lists we're maintaining.
-  const FieldSpace::FieldList<Dimension, Scalar>&    massDensityRZ() const;
-  const FieldSpace::FieldList<Dimension, Scalar>&    f1() const;
-  const FieldSpace::FieldList<Dimension, Scalar>&    f2() const;
-
   //****************************************************************************
   // Methods required for restarting.
   virtual std::string label() const { return "SPHHydroBaseRZ"; }
-  virtual void dumpState(FileIOSpace::FileIO& file, std::string pathName) const;
-  virtual void restoreState(const FileIOSpace::FileIO& file, std::string pathName);
   //****************************************************************************
-
-protected:
-  //---------------------------  Protected Interface ---------------------------//
-  // Some internal scratch fields.
-  FieldSpace::FieldList<Dimension, Scalar>    mMassDensityRZ;
-  FieldSpace::FieldList<Dimension, Scalar>    mf1;
-  FieldSpace::FieldList<Dimension, Scalar>    mf2;
 
 private:
   //--------------------------- Private Interface ---------------------------//
@@ -132,8 +91,6 @@ private:
 
 }
 }
-
-#include "SPHHydroBaseRZInline.hh"
 
 #else
 
