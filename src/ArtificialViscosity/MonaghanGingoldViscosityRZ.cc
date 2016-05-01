@@ -105,18 +105,21 @@ Piij(const unsigned nodeListi, const unsigned i,
   const Scalar mui_neg = min(0.0, mui);
   const Scalar muj_neg = min(0.0, muj);
 
-  const Scalar muri = ri*safeInvVar(etari);
-  const Scalar murj = rj*safeInvVar(etarj);
-  const Scalar muri_neg = vri < 0.0 ? muri : 0.0;
-  const Scalar murj_neg = vrj < 0.0 ? murj : 0.0;
+  const Scalar muri = vri*safeInvVar(etari);
+  const Scalar murj = vrj*safeInvVar(etarj);
+  Scalar muri_neg, murj_neg;
+  if (vri < 0.0 and vrj < 0.0) {
+    muri_neg = muri;
+    murj_neg = murj;
+  }
 
   // The artificial internal energy.
   const Scalar ei = -Cl*csi*(mLinearInExpansion    ? mui + muri                                : mui_neg + muri_neg) +
                      Cq    *(mQuadraticInExpansion ? -(sgn(mui)*mui*mui + sgn(muri)*muri*muri) : mui_neg*mui_neg + muri_neg*muri_neg);
   const Scalar ej = -Cl*csj*(mLinearInExpansion    ? muj + murj                                : muj_neg + murj_neg) +
                      Cq    *(mQuadraticInExpansion ? -(sgn(muj)*muj*muj + sgn(murj)*murj*murj) : muj_neg*muj_neg + murj_neg*murj_neg);
-  CHECK2(ei >= 0.0 or (mLinearInExpansion or mQuadraticInExpansion), ei << " " << csi << " " << mui);
-  CHECK2(ej >= 0.0 or (mLinearInExpansion or mQuadraticInExpansion), ej << " " << csj << " " << muj);
+  CHECK2(ei >= 0.0 or (mLinearInExpansion or mQuadraticInExpansion), ei << " " << csi << " " << mui << " " << muri);
+  CHECK2(ej >= 0.0 or (mLinearInExpansion or mQuadraticInExpansion), ej << " " << csj << " " << muj << " " << murj);
 
   // Now compute the symmetrized artificial viscous pressure.
   return make_pair(ei/rhoRZi*Tensor::one,
