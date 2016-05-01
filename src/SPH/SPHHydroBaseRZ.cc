@@ -280,13 +280,13 @@ evaluateDerivatives(const Dim<2>::Scalar time,
       CHECK(Hdeti > 0.0);
 
       // RZ correction factors for node i.
-      const Scalar zetai = (Hi*ri).y();
-      const Scalar hrInvi = zetai*safeInvVar(ri.y());
+      const Scalar zetai = abs((Hi*ri).y());
+      const Scalar hrInvi = zetai*safeInvVar(abs(ri.y()));
       Scalar f1i, f2i, gradf1i, gradf2i;
       W.f1Andf2(zetai, f1i, f2i, gradf1i, gradf2i);
       gradf1i *= hrInvi;
       gradf2i *= hrInvi;
-      const Scalar circi = 2.0*M_PI*ri.y();
+      const Scalar circi = 2.0*M_PI*abs(ri.y());
       const Scalar circInvi = safeInvVar(circi);
       const Scalar rhoRZi = circi*rhoi;
 
@@ -355,13 +355,13 @@ evaluateDerivatives(const Dim<2>::Scalar time,
               CHECK(Hdetj > 0.0);
 
               // RZ correction factors for node j.
-              const Scalar zetaj = (Hj*rj).y();
-              const Scalar hrInvj = zetaj*safeInvVar(rj.y());
+              const Scalar zetaj = abs((Hj*rj).y());
+              const Scalar hrInvj = zetaj*safeInvVar(abs(rj.y()));
               Scalar f1j, f2j, gradf1j, gradf2j;
               W.f1Andf2(zetaj, f1j, f2j, gradf1j, gradf2j);
               gradf1j *= hrInvj;
               gradf2j *= hrInvj;
-              const Scalar circj = 2.0*M_PI*rj.y();
+              const Scalar circj = 2.0*M_PI*abs(rj.y());
               const Scalar circInvj = safeInvVar(circj);
               const Scalar rhoRZj = circj*rhoj;
 
@@ -460,17 +460,17 @@ evaluateDerivatives(const Dim<2>::Scalar time,
               // Acceleration.
               CHECK(rhoRZi > 0.0);
               CHECK(rhoRZj > 0.0);
-              const double Prhoi = safeOmegai*Peffi*ri.y()/(rhoRZi*rhoRZi);
-              const double Prhoj = safeOmegaj*Peffj*rj.y()/(rhoRZj*rhoRZj);
+              const double Prhoi = safeOmegai*Peffi*abs(ri.y())/(rhoRZi*rhoRZi);
+              const double Prhoj = safeOmegaj*Peffj*abs(rj.y())/(rhoRZj*rhoRZj);
               const Vector deltaDvDti = -mj*(2.0*M_PI*(Prhoi*f1i*gradWi + Prhoj*gradWj) + Qacci + Qaccj);
               const Vector deltaDvDtj = -mi*(2.0*M_PI*(Prhoj*f1j*gradWj + Prhoi*gradWi) + Qaccj + Qacci);
               DvDti += deltaDvDti;
               DvDtj += deltaDvDtj;
 
               // Specific thermal energy evolution.
-              DepsDti += mj*((2.0*M_PI*Peffi*ri.y()/(rhoRZi*rhoRZi)*
+              DepsDti += mj*((2.0*M_PI*Peffi*abs(ri.y())/(rhoRZi*rhoRZi)*
                               (f1i*vi.y() - f2i*vj.y())*gradWi.y() + f1i*(vi.x() - vj.x())*gradWi.x() + (gradf1i*vi.y() - gradf2i*vj.y())*Wi) + workQi);
-              DepsDtj += mi*((2.0*M_PI*Peffj*rj.y()/(rhoRZj*rhoRZj)*
+              DepsDtj += mi*((2.0*M_PI*Peffj*abs(rj.y())/(rhoRZj*rhoRZj)*
                               (f1j*vj.y() - f2j*vi.y())*gradWj.y() + f1j*(vj.x() - vi.x())*gradWj.x() + (gradf1j*vj.y() - gradf2j*vi.y())*Wj) + workQj);
               if (mCompatibleEnergyEvolution) {
                 pairAccelerationsi.push_back(deltaDvDti);
@@ -543,7 +543,7 @@ evaluateDerivatives(const Dim<2>::Scalar time,
       }
 
       // Finish the continuity equation.
-      DrhoDti *= (ri.y() - DvDti.y())*safeInvVar(2.0*M_PI*FastMath::square(ri.y()));
+      DrhoDti *= (abs(ri.y()) - DvDti.y())*safeInvVar(2.0*M_PI*FastMath::square(ri.y()));
 
       // If needed finish the total energy derivative.
       if (mEvolveTotalEnergy) DepsDti = mi*(vi.dot(DvDti) + DepsDti);
@@ -636,9 +636,9 @@ finalize(const Dim<2>::Scalar time,
       for (unsigned i = 0; i != n; ++i) {
         const Vector& xi = position(nodeListi, i);
         const SymTensor& Hi = H(nodeListi, i);
-        const Scalar zetai = (Hi*xi).y();
+        const Scalar zetai = abs((Hi*xi).y());
         const Scalar fi = W.f1(zetai);
-        massDensity(nodeListi, i) *= fi*safeInvVar(2.0*M_PI*xi.y());
+        massDensity(nodeListi, i) *= fi*safeInvVar(2.0*M_PI*abs(xi.y()));
       }
     }
   }

@@ -73,6 +73,7 @@ commandLine(KernelConstructor = BSplineKernel,
 
             CRKSPH = False,
             PSPH = False,
+            SPH = True,       # Choose the H advancement
             evolveTotalEnergy = False,  # Only for SPH variants -- evolve total rather than specific energy
             Qconstructor = MonaghanGingoldViscosityRZ,
             boolReduceViscosity = False,
@@ -165,17 +166,29 @@ if smallPressure:
    eps1 = P0/((gamma - 1.0)*rho1)
    
 if CRKSPH:
-    if solid:
-        HydroConstructor = SolidCRKSPHHydroRZ
-    else:
-        HydroConstructor = CRKSPHHydroRZ
-    Qconstructor = CRKSPHMonaghanGingoldViscosityRZ
-    gradhCorrection = False
+   if solid:
+      if SPH:
+         HydroConstructor = SolidCRKSPHHydroRZ
+      else:
+         HydroConstructor = SolidACRKSPHHydroRZ
+   else:
+      if SPH:
+         HydroConstructor = CRKSPHHydroRZ
+      else:
+         HydroConstructor = ACRKSPHHydroRZ
+      Qconstructor = CRKSPHMonaghanGingoldViscosityRZ
+      gradhCorrection = False
 else:
-    if solid:
-        HydroConstructor = SolidSPHHydroRZ
-    else:
-        HydroConstructor = SPHHydroRZ
+   if solid:
+      if SPH:
+         HydroConstructor = SolidSPHHydroRZ
+      else:
+         HydroConstructor = SolidASPHHydroRZ
+   else:
+      if SPH:
+         HydroConstructor = SPHHydroRZ
+      else:
+         HydroConstructor = ASPHHydroRZ
 
 dataDir = os.path.join(dataDirBase,
                        HydroConstructor.__name__,
@@ -259,7 +272,7 @@ generator = GenerateNodeDistributionRZ(nx1, ny1, rho0, "lattice",
                                        xmin = (x0, y0),
                                        xmax = (x1, y1),
                                        nNodePerh = nPerh,
-                                       SPH = True)
+                                       SPH = SPH)
 
 distributeNodes2d((nodes1, generator))
 output("mpi.reduce(nodes1.numInternalNodes, mpi.MIN)")
@@ -369,10 +382,13 @@ if bArtificialConduction:
 # Create boundary conditions.
 #-------------------------------------------------------------------------------
 if x0 == xwall:
-    xPlane0 = Plane(Vector(0.0, 0.0), Vector(1.0, 0.0))
+    xPlane0 = Plane(Vector(0.0, 0.0), Vector(1.0,  0.0))
+    yPlane1 = Plane(Vector(0.0, y1),  Vector(0.0, -1.0))
     xbc0 = ReflectingBoundary(xPlane0)
+    ybc1 = ReflectingBoundary(yPlane1)
     for p in packages:
        p.appendBoundary(xbc0)
+       p.appendBoundary(ybc1)
 
 #-------------------------------------------------------------------------------
 # Construct an integrator.
@@ -409,7 +425,8 @@ control = SpheralController(integrator, WT,
                             vizDir = vizDir,
                             vizStep = vizCycle,
                             vizTime = vizTime,
-                            vizDerivs = vizDerivs)
+                            vizDerivs = vizDerivs,
+                            SPH = SPH)
 output("control")
 
 #-------------------------------------------------------------------------------
