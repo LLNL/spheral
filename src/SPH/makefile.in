@@ -28,6 +28,8 @@ PYTHONTARGETS = \
 ifeq ("yes", "@INST2D@")
 SRCTARGETS += \
 	$(srcdir)/SPHHydroBaseRZ.cc
+PYTHONTARGETS += \
+	$(srcdir)/SPHHydrosRZ.py
 endif
 ifeq ("yes", "@INST3D@")
 SRCTARGETS += \
