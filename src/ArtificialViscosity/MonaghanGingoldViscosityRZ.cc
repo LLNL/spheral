@@ -89,12 +89,12 @@ Piij(const unsigned nodeListi, const unsigned i,
   Cq *= 0.5*(fCqi + fCqj)*fshear;
 
   // Compute the RZ density and such.
-  const Scalar ri = xi.y();
-  const Scalar rj = xj.y();
+  const Scalar ri = abs(xi.y());
+  const Scalar rj = abs(xj.y());
   const Scalar vri = vi.y();
   const Scalar vrj = vj.y();
-  const Scalar etari = etai.y();
-  const Scalar etarj = etai.y();
+  const Scalar etari = abs(etai.y());
+  const Scalar etarj = abs(etai.y());
   const Scalar rhoRZi = 2.0*M_PI*ri*rhoi;
   const Scalar rhoRZj = 2.0*M_PI*rj*rhoj;
 
