@@ -2,6 +2,7 @@ from SpheralModules.Spheral import *
 from SpheralModules.Spheral.SPHSpace import *
 from SpheralModules.Spheral.NodeSpace import *
 from SpheralModules.Spheral.PhysicsSpace import *
+from SpheralModules.Spheral.BoundarySpace import *
 
 from spheralDimensions import spheralDimensions
 dims = spheralDimensions()
@@ -55,7 +56,8 @@ class %(classname)s(SPHHydroBaseRZ):
                                 nTensile,
                                 xmin,
                                 xmax)
-        self.zaxisBC = ReflectingBoundary2d(Plane2d(Vector2d(0.0, 0.0), Vector(0.0, 1.0)))
+        self.zaxisPlane = Plane2d(Vector2d(0.0, 0.0), Vector2d(0.0, 1.0))
+        self.zaxisBC = ReflectingBoundary2d(self.zaxisPlane)
         self.appendBoundary(self.zaxisBC)
         return
 """
