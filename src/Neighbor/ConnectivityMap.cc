@@ -499,6 +499,8 @@ valid() const {
                << *(itr + 1) << " "
                << mKeys(nodeList, *itr) << " "
                << mKeys(nodeList, *(itr + 1)) << " "
+               << mNodeLists[nodeList]->positions()(*itr) << " "
+               << mNodeLists[nodeList]->positions()(*(itr + 1)) << " "
                << endl;
           for (int i = 0; i != 100; ++i) cerr << mKeys(nodeList, i) << " " << mNodeLists[nodeList]->positions()(i) << " ";
           cerr << endl;
