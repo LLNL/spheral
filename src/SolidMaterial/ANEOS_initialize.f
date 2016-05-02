@@ -155,7 +155,6 @@ C Find the material number
 
  120  matoffset = 99*(i - 1)
       result = ack(matoffset + 29)
-      print *, "Fortran atomic weight : ", result, i
       end
 
 C-------------------------------------------------------------------------------
