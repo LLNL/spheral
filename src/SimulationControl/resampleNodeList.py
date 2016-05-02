@@ -318,7 +318,7 @@ def resampleNodeList(nodes,
     for i in xrange(newnodes.numInternalNodes):
         j = nmask + i
         assert mass1[i] > 0.0
-        assert vol[i] > 0.0
+        assert vol1[i] > 0.0
         pos0[j] = pos1[i]
         H0[j] = H1[i]
         mass[j] = mass1[i]
