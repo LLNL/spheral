@@ -69,8 +69,6 @@ class GenerateStretchedLattice2d(NodeGeneratorBase):
         self.rmax       = rmax
         self.thetaMin   = thetaMin
         self.thetaMax   = thetaMax
-        self.phiMin     = phiMin
-        self.phiMax     = phiMax
         self.nNodePerh  = nNodePerh
         
         self.xmin       = Vector2d(-2.0*rmax,-2.0*rmax)
@@ -185,7 +183,7 @@ class GenerateStretchedLattice2d(NodeGeneratorBase):
     def localPosition(self, i):
         assert i >= 0 and i < len(self.x)
         assert len(self.x) == len(self.y)
-        return Vector3d(self.x[i], self.y[i])
+        return Vector2d(self.x[i], self.y[i])
     
     #---------------------------------------------------------------------------
     # Get the mass for the given node index.
@@ -226,8 +224,8 @@ class GenerateStretchedLattice2d(NodeGeneratorBase):
         for i in xrange(1,nbins):
             r1 = rmin + (i-1)*dr
             r2 = rmin + i*dr
-            result += 0.5*dr*(r2*r2*densityProfileMethod(r2)+r1*r1*densityProfileMethod(r1))
-        result = result * (cos(thetaMin)-cos(thetaMax))
+            result += 0.5*dr*(r2*densityProfileMethod(r2)+r1*densityProfileMethod(r1))
+        result = result * (thetaMax-thetaMin)
         return result
 
     #-------------------------------------------------------------------------------
@@ -252,7 +250,7 @@ class GenerateStretchedLattice2d(NodeGeneratorBase):
 
         hx = 1.0/(nNodePerh*dx)
         hy = 1.0/(nNodePerh*dy)
-        H0 = SymTensor3d(hx, 0.0,
+        H0 = SymTensor2d(hx, 0.0,
                          0.0, hy)
                        
         x = []
