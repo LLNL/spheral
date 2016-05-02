@@ -105,7 +105,6 @@ ANEOS(const int materialNumber,
   
   // Look up the atomic weight.
   get_aneos_atomicweight_(&mMaterialNumber, &mAtomicWeight);
-  cerr << "Looked up atomic weight for " << materialNumber << " to be " << mAtomicWeight << endl;
   VERIFY2(mAtomicWeight > 0.0, 
           "ANEOS ERROR : bad atomic weight for material " << mMaterialNumber << " : " << mAtomicWeight);
 
