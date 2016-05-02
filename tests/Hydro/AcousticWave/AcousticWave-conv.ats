@@ -1,0 +1,23 @@
+#-*-python-*-
+# This is an ATS script to coordinate running convergence tests of the acoustic wave.
+cfl = 0.25
+filter = 0.0
+kernel = "NBSplineKernel"
+order = 5
+
+# These nperh choices correspond to radii in particles of (1.5, 3, 3.6, 4)
+for nPerh in (0.5, 1.0, 1.2, 1.33):
+    for crk, Cl, Cq, label in ((False, 0.0, 0.0, "SPH-ZeroQ"),
+                               (False, 1.0, 1.0, "SPH"),
+                               (True,  0.0, 0.0, "CRK-ZeroQ"),
+                               (True,  1.0, 1.0, "CRK"),
+    ):
+        for nx in (32, 64, 128, 256, 512, 1024, 2048):
+            if nx == 32:
+                writeOutputLabel = True
+            else:
+                writeOutputLabel = False
+            h0 = nPerh/nx
+            test(script = "AcousticWave-1d_gamma2.py",
+                 clas = "--nx %i --A 1e-6 --goalTime 1.0 --CRKSPH %s --cfl %g --nPerh %g --Cl %g --Cq %g --filter %g --graphics False --normOutputFile AcousticWave-%s-nph=%3.1f-convergence.gnu --writeOutputLabel %s --KernelConstructor %s --order %s" % (nx, crk, cfl, nPerh, Cl, Cq, filter, label, nPerh, writeOutputLabel, kernel, order), 
+                 label = "Planar Acoustic problem -- 1-D (serial %s, nx=%i)" % (label, nx))
