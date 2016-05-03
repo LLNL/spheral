@@ -264,8 +264,13 @@ evaluateDerivatives(const Dim<2>::Scalar time,
       size_t ncalc = 0;
 
       // Get the state for node i.
-      const Vector& ri = position(nodeListi, i);
+      const Scalar mi = mass(nodeListi, i);
+      const Vector& posi = position(nodeListi, i);
+      const Scalar ri = abs(posi.y());
+      const Scalar zi = posi.x();
       const Vector& vi = velocity(nodeListi, i);
+      const Scalar vri = vi.y();
+      const Scalar vzi = vi.x();
       const Scalar& rhoi = massDensity(nodeListi, i);
       const Scalar& epsi = specificThermalEnergy(nodeListi, i);
       const Scalar& Pi = pressure(nodeListi, i);
@@ -278,17 +283,16 @@ evaluateDerivatives(const Dim<2>::Scalar time,
       CHECK(Hdeti > 0.0);
 
       // RZ correction factors for node i.
-      const Scalar zetai = abs((Hi*ri).y());
-      const Scalar hrInvi = zetai*safeInvVar(abs(ri.y()));
+      const Scalar zetai = abs((Hi*posi).y());
+      const Scalar hrInvi = zetai*safeInvVar(ri);
       Scalar f1i, f2i, gradf1i, gradf2i;
       // W.f1Andf2(zetai, f1i, f2i, gradf1i, gradf2i);
       f1i = 1.0; f2i = 1.0; gradf1i = 0.0; gradf2i = 0.0;
       gradf1i *= hrInvi;
       gradf2i *= hrInvi;
-      const Scalar circi = 2.0*M_PI*abs(ri.y());
+      const Scalar circi = 2.0*M_PI*ri;
       const Scalar circInvi = safeInvVar(circi);
       const Scalar rhoRZi = f1i*circi*rhoi;
-      const Scalar mi = mass(nodeListi, i);
 
       Scalar& rhoSumi = rhoSum(nodeListi, i);
       Scalar& normi = normalization(nodeListi, i);
@@ -339,8 +343,13 @@ evaluateDerivatives(const Dim<2>::Scalar time,
               ++ncalc;
 
               // Get the state for node j
-              const Vector& rj = position(nodeListj, j);
+              const Scalar mj = mass(nodeListj, j);
+              const Vector& posj = position(nodeListj, j);
+              const Scalar rj = abs(posj.y());
+              const Scalar zj = abs(posj.x());
               const Vector& vj = velocity(nodeListj, j);
+              const Scalar vrj = vj.y();
+              const Scalar vzj = vj.x();
               const Scalar& rhoj = massDensity(nodeListj, j);
               const Scalar& epsj = specificThermalEnergy(nodeListj, j);
               const Scalar& Pj = pressure(nodeListj, j);
@@ -353,17 +362,16 @@ evaluateDerivatives(const Dim<2>::Scalar time,
               CHECK(Hdetj > 0.0);
 
               // RZ correction factors for node j.
-              const Scalar zetaj = abs((Hj*rj).y());
-              const Scalar hrInvj = zetaj*safeInvVar(abs(rj.y()));
+              const Scalar zetaj = abs((Hj*posj).y());
+              const Scalar hrInvj = zetaj*safeInvVar(rj);
               Scalar f1j, f2j, gradf1j, gradf2j;
               // W.f1Andf2(zetaj, f1j, f2j, gradf1j, gradf2j);
               f1j = 1.0; f2j = 1.0; gradf1j = 0.0; gradf2j = 0.0;
               gradf1j *= hrInvj;
               gradf2j *= hrInvj;
-              const Scalar circj = 2.0*M_PI*abs(rj.y());
+              const Scalar circj = 2.0*M_PI*rj;
               const Scalar circInvj = safeInvVar(circj);
               const Scalar rhoRZj = f1j*circj*rhoj;
-              const Scalar mj = mass(nodeListj, j);
 
               Scalar& rhoSumj = rhoSum(nodeListj, j);
               Scalar& normj = normalization(nodeListj, j);
@@ -385,9 +393,9 @@ evaluateDerivatives(const Dim<2>::Scalar time,
               SymTensor& massSecondMomentj = massSecondMoment(nodeListj, j);
 
               // Node displacement.
-              const Vector rij = ri - rj;
-              const Vector etai = Hi*rij;
-              const Vector etaj = Hj*rij;
+              const Vector xij = posi - posj;
+              const Vector etai = Hi*xij;
+              const Vector etaj = Hj*xij;
               const Scalar etaMagi = etai.magnitude();
               const Scalar etaMagj = etaj.magnitude();
               CHECK(etaMagi >= 0.0);
@@ -410,8 +418,8 @@ evaluateDerivatives(const Dim<2>::Scalar time,
 
               // Zero'th and second moment of the node distribution -- used for the
               // ideal H calculation.
-              const double rij2 = rij.magnitude2();
-              const SymTensor thpt = rij.selfdyad()/max(tiny, rij2*FastMath::square(Dimension::pownu12(rij2)));
+              const double xij2 = xij.magnitude2();
+              const SymTensor thpt = xij.selfdyad()/max(tiny, xij2*FastMath::square(Dimension::pownu12(xij2)));
               weightedNeighborSumi += fweightij*std::abs(gWi);
               weightedNeighborSumj += fweightij*std::abs(gWj);
               massSecondMomenti += fweightij*gradWi.magnitude2()*thpt;
@@ -425,21 +433,17 @@ evaluateDerivatives(const Dim<2>::Scalar time,
                 normj += mj/rhoRZj*Wj;
               }
 
-              // Mass density evolution.  Here we sum up DrhoRZ/Dt actually, to be converted at the end.
-              DrhoDti += mj*( (f1i*vi.y() - f2i*vj.y())*gradWi.y() + (gradf1i*vi.y() - gradf2i*vj.y())*Wi + f1i*(vi.x() - vj.x())*gradWi.x())*circInvj;
-              DrhoDtj += mi*( (f1j*vj.y() - f2j*vi.y())*gradWj.y() + (gradf1j*vj.y() - gradf2j*vi.y())*Wj + f1j*(vj.x() - vi.x())*gradWj.x())*circInvi;
-
               // Compute the pair-wise artificial viscosity.
               const Vector vij = vi - vj;
               const pair<Tensor, Tensor> QPiij = Q.Piij(nodeListi, i, nodeListj, j,
-                                                        ri, etai, vi, rhoRZi, ci, Hi,
-                                                        rj, etaj, vj, rhoRZj, cj, Hj);
+                                                        posi, etai, vi, rhoRZi, ci, Hi,
+                                                        posj, etaj, vj, rhoRZj, cj, Hj);
               const Vector Qacci = 0.5*(QPiij.first *gradWQi);
               const Vector Qaccj = 0.5*(QPiij.second*gradWQj);
-              const Scalar workQi = 0.5*(QPiij.first *vij).dot(gradWQi);
-              const Scalar workQj = 0.5*(QPiij.second*vij).dot(gradWQj);
-              // const Scalar workQi = vij.dot(Qacci);
-              // const Scalar workQj = vij.dot(Qaccj);
+              // const Scalar workQi = 0.5*(QPiij.first *vij).dot(gradWQi);
+              // const Scalar workQj = 0.5*(QPiij.second*vij).dot(gradWQj);
+              const Scalar workQi = vij.dot(Qacci);
+              const Scalar workQj = vij.dot(Qaccj);
               const Scalar Qi = rhoRZi*rhoRZi*(QPiij.first. diagonalElements().maxAbsElement());
               const Scalar Qj = rhoRZj*rhoRZj*(QPiij.second.diagonalElements().maxAbsElement());
               maxViscousPressurei = max(maxViscousPressurei, Qi);
@@ -452,20 +456,18 @@ evaluateDerivatives(const Dim<2>::Scalar time,
               // Acceleration.
               CHECK(rhoRZi > 0.0);
               CHECK(rhoRZj > 0.0);
-              const double Prhoi = safeOmegai*Pi*abs(ri.y())*safeInv(rhoRZi*rhoRZi, 1.0e-10);
-              const double Prhoj = safeOmegaj*Pj*abs(rj.y())*safeInv(rhoRZj*rhoRZj, 1.0e-10);
-              const Vector deltaDvDti = -2.0*M_PI*mj*(Prhoi*f1i*gradWi + Prhoj*gradWj + Qacci + Qaccj);
-              const Vector deltaDvDtj = -2.0*M_PI*mi*(Prhoj*f1j*gradWj + Prhoi*gradWi + Qaccj + Qacci);
+              const double Prhoi = safeOmegai*Pi*ri*safeInv(rhoRZi*rhoRZi, 1.0e-10);
+              const double Prhoj = safeOmegaj*Pj*rj*safeInv(rhoRZj*rhoRZj, 1.0e-10);
+              const Vector deltaDvDti = -mj*circInvj*(Prhoi*f1i*gradWi + Prhoj*f1j*gradWj + Qacci + Qaccj);
+              const Vector deltaDvDtj =  mi*circInvi*(Prhoj*f1j*gradWj + Prhoi*f1i*gradWi + Qaccj + Qacci);
               DvDti += deltaDvDti;
               DvDtj += deltaDvDtj;
 
               // Specific thermal energy evolution.
-              DepsDti += mj*(2.0*M_PI*Pi*abs(ri.y())*safeInv(rhoRZi*rhoRZi, 1.0e-10)*
-                             ((f1i*vi.y() - f2i*vj.y())*gradWi.y() + f1i*(vi.x() - vj.x())*gradWi.x() + (gradf1i*vi.y() - gradf2i*vj.y())*Wi) +
-                             workQi*circInvi);
-              DepsDtj += mi*(2.0*M_PI*Pj*abs(rj.y())*safeInv(rhoRZj*rhoRZj, 1.0e-10)*
-                             ((f1j*vj.y() - f2j*vi.y())*gradWj.y() + f1j*(vj.x() - vi.x())*gradWj.x() + (gradf1j*vj.y() - gradf2j*vi.y())*Wj) +
-                             workQj*circInvj);
+              DepsDti += mj*(ri*safeInv(rhoRZi, 1.0e-10)*
+                             ( (f1i*vri - f2i*vrj)*gradWi.y() + f1i*(vzi - vzj)*gradWi.x() + (gradf1i*vri - gradf2i*vrj)*Wi) + workQi);
+              DepsDtj += mi*(rj*safeInv(rhoRZj, 1.0e-10)*
+                             (-(f1j*vrj - f2j*vri)*gradWj.y() - f1j*(vzj - vzi)*gradWi.x() + (gradf1j*vrj - gradf2j*vri)*Wj) + workQj);
               if (mCompatibleEnergyEvolution) {
                 pairAccelerationsi.push_back(deltaDvDti);
                 pairAccelerationsj.push_back(deltaDvDtj);
@@ -483,7 +485,7 @@ evaluateDerivatives(const Dim<2>::Scalar time,
 
               // Estimate of delta v (for XSPH).
               if (mXSPH and (nodeListi == nodeListj)) {
-                const double fXSPH = max(0.0, min(1.0, abs(vij.dot(rij)*safeInv(vij.magnitude()*rij.magnitude()))));
+                const double fXSPH = max(0.0, min(1.0, abs(vij.dot(xij)*safeInv(vij.magnitude()*xij.magnitude()))));
                 CHECK(fXSPH >= 0.0 and fXSPH <= 1.0);
                 XSPHWeightSumi += fXSPH*mj*safeInv(rhoRZj, 1.0e-10)*Wi;
                 XSPHWeightSumj += fXSPH*mi*safeInv(rhoRZi, 1.0e-10)*Wj;
@@ -492,11 +494,11 @@ evaluateDerivatives(const Dim<2>::Scalar time,
               }
 
               // Linear gradient correction term.
-              Mi -= mj*rij.dyad(gradWi);
-              Mj -= mi*rij.dyad(gradWj);
+              Mi -= mj*xij.dyad(gradWi);
+              Mj -= mi*xij.dyad(gradWj);
               if (nodeListi == nodeListj) {
-                localMi -= mj*rij.dyad(gradWi);
-                localMj -= mi*rij.dyad(gradWj);
+                localMi -= mj*xij.dyad(gradWi);
+                localMj -= mi*xij.dyad(gradWj);
               }
             }
           }
@@ -515,17 +517,23 @@ evaluateDerivatives(const Dim<2>::Scalar time,
       normi += mi*safeInv(rhoRZi, 1.0e-10)*W0*Hdeti;
 
       // Finish the acceleration, adding the hoop terms.
-      DvDti.y(DvDti.y() + 2.0*M_PI*Pi*safeInv(rhoRZi, 1.0e-10)*(1.0 - ri.y()*safeInvVar(f1i)*gradf1i));
+      DvDti.y(2.0*M_PI*(DvDti.y() + Pi*safeInv(rhoRZi, 1.0e-10) - Pi*ri*safeInvVar(rhoRZi*f1i)*gradf1i));
+
+      // Finish the specific thermal energy derivative.
+      DepsDti = 2.0*M_PI*Pi*safeInv(rhoRZi, 1.0e-10)*(DepsDti - vri);
+
+      // If needed, convert to the total energy derivative.
+      if (mEvolveTotalEnergy) DepsDti = mi*(vi.dot(DvDti) + DepsDti);
 
       // Finish the gradient of the velocity.
-      CHECK(rhoRZi > 0.0);
+      CHECK(rhoi > 0.0);
       if (this->mCorrectVelocityGradient and
           std::abs(Mi.Determinant()) > 1.0e-10 and
           numNeighborsi > Dimension::pownu(2)) {
         Mi = Mi.Inverse();
         DvDxi = DvDxi*Mi;
       } else {
-        DvDxi /= rhoRZi;
+        DvDxi /= rhoi;
       }
       if (this->mCorrectVelocityGradient and
           std::abs(localMi.Determinant()) > 1.0e-10 and
@@ -533,17 +541,11 @@ evaluateDerivatives(const Dim<2>::Scalar time,
         localMi = localMi.Inverse();
         localDvDxi = localDvDxi*localMi;
       } else {
-        localDvDxi /= rhoRZi;
+        localDvDxi /= rhoi;
       }
 
-      // Finish the continuity equation.
-      // DrhoDti *= (abs(ri.y()) - DvDti.y())*safeInvVar(2.0*M_PI*FastMath::square(ri.y()));
-
-      // Finish the specific thermal energy derivative.
-      DepsDti -= 2.0*M_PI*Pi*safeInv(rhoRZi, 1.0e-10)*vi.y();
-
-      // If needed finish the total energy derivative.
-      if (mEvolveTotalEnergy) DepsDti = mi*(vi.dot(DvDti) + DepsDti);
+      // Evaluation the continuity equation.
+      DrhoDti = -rhoi*DvDxi.Trace();
 
       // Complete the moments of the node distribution for use in the ideal H calculation.
       weightedNeighborSumi = Dimension::rootnu(max(0.0, weightedNeighborSumi/Hdeti));
