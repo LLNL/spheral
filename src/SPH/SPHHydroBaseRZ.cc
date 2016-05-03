@@ -278,7 +278,6 @@ evaluateDerivatives(const Dim<2>::Scalar time,
       const Scalar& ci = soundSpeed(nodeListi, i);
       const Scalar& omegai = omega(nodeListi, i);
       const Scalar Hdeti = Hi.Determinant();
-      const Scalar safeOmegai = safeInv(omegai, tiny);
       CHECK(rhoi > 0.0);
       CHECK(Hdeti > 0.0);
 
@@ -287,12 +286,13 @@ evaluateDerivatives(const Dim<2>::Scalar time,
       const Scalar hrInvi = zetai*safeInvVar(ri);
       Scalar f1i, f2i, gradf1i, gradf2i;
       // W.f1Andf2(zetai, f1i, f2i, gradf1i, gradf2i);
-      f1i = 1.0; f2i = 1.0; gradf1i = 0.0; gradf2i = 0.0;
+      f1i = 1.0; f2i = 1.0;
+      gradf1i = 0.0; gradf2i = 0.0;
       gradf1i *= hrInvi;
       gradf2i *= hrInvi;
       const Scalar circi = 2.0*M_PI*ri;
       const Scalar circInvi = safeInvVar(circi);
-      const Scalar rhoRZi = f1i*circi*rhoi;
+      const Scalar rhoRZi = f1i*rhoi;
 
       Scalar& rhoSumi = rhoSum(nodeListi, i);
       Scalar& normi = normalization(nodeListi, i);
@@ -357,7 +357,6 @@ evaluateDerivatives(const Dim<2>::Scalar time,
               const Scalar& cj = soundSpeed(nodeListj, j);
               const Scalar& omegaj = omega(nodeListj, j);
               const Scalar Hdetj = Hj.Determinant();
-              const Scalar safeOmegaj = safeInv(omegaj, tiny);
               CHECK(rhoj > 0.0);
               CHECK(Hdetj > 0.0);
 
@@ -366,12 +365,13 @@ evaluateDerivatives(const Dim<2>::Scalar time,
               const Scalar hrInvj = zetaj*safeInvVar(rj);
               Scalar f1j, f2j, gradf1j, gradf2j;
               // W.f1Andf2(zetaj, f1j, f2j, gradf1j, gradf2j);
-              f1j = 1.0; f2j = 1.0; gradf1j = 0.0; gradf2j = 0.0;
+              f1j = 1.0; f2j = 1.0;
+              gradf1j = 0.0; gradf2j = 0.0;
               gradf1j *= hrInvj;
               gradf2j *= hrInvj;
               const Scalar circj = 2.0*M_PI*rj;
               const Scalar circInvj = safeInvVar(circj);
-              const Scalar rhoRZj = f1j*circj*rhoj;
+              const Scalar rhoRZj = f1j*rhoj;
 
               Scalar& rhoSumj = rhoSum(nodeListj, j);
               Scalar& normj = normalization(nodeListj, j);
@@ -456,10 +456,10 @@ evaluateDerivatives(const Dim<2>::Scalar time,
               // Acceleration.
               CHECK(rhoRZi > 0.0);
               CHECK(rhoRZj > 0.0);
-              const double Prhoi = safeOmegai*Pi*ri*safeInv(rhoRZi*rhoRZi, 1.0e-10);
-              const double Prhoj = safeOmegaj*Pj*rj*safeInv(rhoRZj*rhoRZj, 1.0e-10);
-              const Vector deltaDvDti = -mj*circInvj*(Prhoi*f1i*gradWi + Prhoj*f1j*gradWj + Qacci + Qaccj);
-              const Vector deltaDvDtj =  mi*circInvi*(Prhoj*f1j*gradWj + Prhoi*f1i*gradWi + Qaccj + Qacci);
+              const double Prhoi = Pi*ri*safeInv(rhoRZi*rhoRZi, 1.0e-10);
+              const double Prhoj = Pj*rj*safeInv(rhoRZj*rhoRZj, 1.0e-10);
+              const Vector deltaDvDti = -mj*(Prhoi*f1i*gradWi + Prhoj*f1j*gradWj + Qacci + Qaccj);
+              const Vector deltaDvDtj =  mi*(Prhoj*f1j*gradWj + Prhoi*f1i*gradWi + Qaccj + Qacci);
               DvDti += deltaDvDti;
               DvDtj += deltaDvDtj;
 
@@ -544,7 +544,7 @@ evaluateDerivatives(const Dim<2>::Scalar time,
         localDvDxi /= rhoi;
       }
 
-      // Evaluation the continuity equation.
+      // Evaluate the continuity equation.
       DrhoDti = -rhoi*DvDxi.Trace();
 
       // Complete the moments of the node distribution for use in the ideal H calculation.

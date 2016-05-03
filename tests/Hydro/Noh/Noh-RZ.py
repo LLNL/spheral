@@ -54,7 +54,6 @@ commandLine(KernelConstructor = BSplineKernel,
             ny1 = 20,
             rho1 = 1.0,
             eps1 = 0.0,
-	    smallPressure = False, #If set to True eps is not zero but small. 
             x0 = 0.0,
             x1 = 1.0,
             xwall = 0.0,
@@ -161,9 +160,6 @@ commandLine(KernelConstructor = BSplineKernel,
             )
 
 assert not(boolReduceViscosity and boolCullenViscosity)
-if smallPressure:
-   P0 = 1.0e-6
-   eps1 = P0/((gamma - 1.0)*rho1)
    
 if CRKSPH:
    if solid:
@@ -384,8 +380,11 @@ if bArtificialConduction:
 #-------------------------------------------------------------------------------
 yPlane1 = Plane(Vector(0.0, y1), Vector(0.0, -1.0))
 ybc1 = ReflectingBoundary(yPlane1)
+xPlane1 = Plane(Vector(x1, 0.0), Vector(-1.0, 0.0))
+xbc1 = ReflectingBoundary(xPlane1)
 for p in packages:
     p.appendBoundary(ybc1)
+    p.appendBoundary(xbc1)
 
 if x0 == xwall:
     xPlane0 = Plane(Vector(x0, 0.0), Vector( 1.0, 0.0))
