@@ -75,6 +75,16 @@ public:
                 DataBaseSpace::DataBase<Dimension>& dataBase,
                 State<Dimension>& state,
                 StateDerivatives<Dimension>& derivs);
+
+  // Apply boundary conditions to the physics specific fields.
+  virtual
+  void applyGhostBoundaries(State<Dimension>& state,
+                            StateDerivatives<Dimension>& derivs);
+
+  // Enforce boundary conditions for the physics specific fields.
+  virtual
+  void enforceBoundaries(State<Dimension>& state,
+                         StateDerivatives<Dimension>& derivs);
                
   //****************************************************************************
   // Methods required for restarting.
