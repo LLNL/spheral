@@ -391,11 +391,9 @@ computeDPDrho(const Scalar massDensity,
   double dPdrho_ad, dPdrho_eps, dPdeps_rho;
   const double phi = mb*safeInvVar(1.0 + eps*safeInvVar(meps0*eta*eta, 1.0e-10), 1.0e-10);
   const double chi = safeInvVar(eta, 1.0e-10) - 1.0;
-  // const double dphidrho = (1./rho0)*((2.0*mb*meps0*eps*eta)/
-  //                                    ((eps+meps0*eta*eta)*(eps+meps0*eta*eta)));
-  // const double dphideps = -mb*meps0*eta*eta*safeInvVar((eps+meps0*eta*eta)*(eps+meps0*eta*eta), 1.0e-10);
-  const double dphidrho = 2.0*mb*meps0*eps*eta*safeInvVar(rho0*FastMath::square(eps + meps0*eta*eta), 1.0e-10);
-  const double dphideps = -mb*meps0*(1.0 + meps0*eta*eta)*safeInvVar(FastMath::square(eps + meps0*eta*eta), 1.0e-10);
+
+  const double dphidrho = 2.0*mb*meps0*eta*eps*safeInvVar(rho0*FastMath::square(eps + meps0*eta*eta), 1.0e-10);
+  const double dphideps = -mb*meps0*eta*eta*safeInvVar(FastMath::square(eps + meps0*eta*eta), 1.0e-10);
 
   if (mu >= 0.0) {
 
