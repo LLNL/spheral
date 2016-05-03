@@ -310,36 +310,41 @@ typename Dimension::Scalar
 TillotsonEquationOfState<Dimension>::
 gamma(const Scalar massDensity,
       const Scalar specificThermalEnergy) const {
+  // const double eta = this->boundedEta(massDensity),
+  //              rho0 = this->referenceDensity(),
+  //              rho = rho0*eta,
+  //              nDen = rho/mAtomicWeight;
+  // CHECK(mCv > 0.0);
+  // return 1.0 + mConstants.molarGasConstant()*nDen/mCv;
+
   const double eta = this->boundedEta(massDensity),
+               mu = eta - 1.0,
                rho0 = this->referenceDensity(),
                rho = rho0*eta,
-               nDen = rho/mAtomicWeight;
-  CHECK(mCv > 0.0);
-  return 1.0 + mConstants.molarGasConstant()*nDen/mCv;
+               eps = std::max(0.0, specificThermalEnergy);   // I'm not sure if this EOS admits negative energies.
+  if (mu >= 0.0) {
 
+    // Regime 1: compression, solid.
+    return 1.0;
 
-  // if (mu >= 0.0) {
+  } else if (eps <= mepsLiquid) {
 
-  //   // Regime 1: compression, solid.
-  //   return 1.0;
+    // Regime 2: expansion, solid : same as 1, but only if rho>cutoff density
+    return 1.0;
 
-  // } else if (eps <= mepsLiquid) {
+  } else if (eps >= mepsVapor) {
+  
+    // Regime 4: expansion, gaseous.
+    return 1.0 + mConstants.molarGasConstant()/mCv;
 
-  //   // Regime 2: expansion, solid : same as 1, but only if rho>cutoff density
-  //   return 1.0;
+  } else {
 
-  // } else if (eps >= mepsVapor) {
-     
-  //   // Regime 4: expansion, gaseous.
+    // Regime 3: expansion, liquid.
+    // Treated here as a linear combination of the solid and gaseous phases.
+    const double gammaVapor = 1.0 + mConstants.molarGasConstant()/mCv;
+    return 1.0 + (gammaVapor - 1.0)*(eps - mepsLiquid)/(mepsVapor - mepsLiquid);
 
-  // } else {
-
-  //   // Regime 3: expansion, liquid.
-  //   // Treated here as a linear combination of the solid and gaseous phases.
-  //   const double gammaVapor = 1.0 + mConstants.molarGasConstant()*nDen/mCv;
-  //   return 1.0 + (gammaVapor - 1.0)*(eps - mepsLiquid)/(mepsVapor - mepsLiquid);
-
-  // }
+  }
 }
 
 //------------------------------------------------------------------------------
@@ -386,11 +391,9 @@ computeDPDrho(const Scalar massDensity,
   double dPdrho_ad, dPdrho_eps, dPdeps_rho;
   const double phi = mb*safeInvVar(1.0 + eps*safeInvVar(meps0*eta*eta, 1.0e-10), 1.0e-10);
   const double chi = safeInvVar(eta, 1.0e-10) - 1.0;
-  // const double dphidrho = (1./rho0)*((2.0*mb*meps0*eps*eta)/
-  //                                    ((eps+meps0*eta*eta)*(eps+meps0*eta*eta)));
-  // const double dphideps = -mb*meps0*eta*eta*safeInvVar((eps+meps0*eta*eta)*(eps+meps0*eta*eta), 1.0e-10);
-  const double dphidrho = 2.0*mb*meps0*eps*eta*safeInvVar(rho0*FastMath::square(eps + meps0*eta*eta), 1.0e-10);
-  const double dphideps = -mb*meps0*(1.0 + meps0*eta*eta)*safeInvVar(FastMath::square(eps + meps0*eta*eta), 1.0e-10);
+
+  const double dphidrho = 2.0*mb*meps0*eta*eps*safeInvVar(rho0*FastMath::square(eps + meps0*eta*eta), 1.0e-10);
+  const double dphideps = -mb*meps0*eta*eta*safeInvVar(FastMath::square(eps + meps0*eta*eta), 1.0e-10);
 
   if (mu >= 0.0) {
 
