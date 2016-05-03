@@ -56,6 +56,7 @@ class sDump(object):
 # Generic problem parameters
 #-------------------------------------------------------------------------------
 commandLine(asph = False,
+            seed = "radial",
 
             n = 100,
             thetaMin = 0.0,
@@ -141,7 +142,7 @@ commandLine(asph = False,
             dtGrowth = 2.0,
             maxSteps = None,
             statsStep = 10,
-            redistributeStep = 500,
+            redistributeStep = None,
             restartStep = 500,
             restoreCycle = None,
             smoothIters = 0,
@@ -150,9 +151,14 @@ commandLine(asph = False,
             
             serialDump = False,
             serialDumpEach = 100,
+
+            histFile = "history.ascii",
+            writeHistory = True,
+            historyInterval = 2.0,
+            clearDirectories = False,
             
             vizCycle = None,
-            vizTime = 0.1,
+            vizTime = 1.0,
             vizMethod = SpheralPointmeshSiloDump.dumpPhysicsState
             )
 
@@ -295,12 +301,22 @@ diskProfile = KeplerianPressureDiskProfile(G0, M0, fractionPressureSupport, poly
 if restoreCycle is None:
     from VoronoiDistributeNodes import distributeNodes2d as distributeNodes
     print "Generating node distribution."
-    generator = GenerateNodesMatchingProfile2d(n, diskProfile,
+    if (seed=="lattice"):
+        from StretchedLattice2d import *
+        generator = GenerateStretchedLattice2d(n,diskProfile,
                                                rmin = rmin,
                                                rmax = rmax,
                                                thetaMin = thetaMin,
                                                thetaMax = thetaMax,
                                                nNodePerh = nPerh)
+    elif (seed=="radial"):
+        generator = GenerateNodesMatchingProfile2d(n, diskProfile,
+                                                   rmin = rmin,
+                                                   rmax = rmax,
+                                                   thetaMin = thetaMin,
+                                                   thetaMax = thetaMax,
+                                                   nNodePerh = nPerh)    
+
     n1 = generator.globalNumNodes()
 
     print "Distributing nodes amongst processors."
@@ -475,8 +491,29 @@ if serialDump:
     control.appendPeriodicWork(dump,serialDumpEach)
 output('control')
 
-# Smooth the initial conditions.
+#-------------------------------------------------------------------------------
+# Function to measure the angular momentum and radial coordinate.
+#-------------------------------------------------------------------------------
+def ParticleHistory(cycle, t, dt):
+    proc = mpi.rank
+    m = diskNodes.mass().internalValues()
+    r = diskNodes.positions().internalValues()
+    v = diskNodes.velocity().internalValues()
+    for i in xrange(len(m)):
+        if i == 100 and proc == 5:
+            rm = r[i].magnitude()
+            vp = (-1.0*r[i].y*v[i].x + r[i].x*v[i].y)/rm
+            am = m[i]*vp
+            with open(os.path.join(dataDir,histFile), "a") as myFile:
+                myFile.write("%g\t%g\t%g\t%g\n" % (t,vp,am,rm))
 
+if writeHistory:
+    control.appendPeriodicTimeWork(ParticleHistory, historyInterval)
+    if os.path.isfile(os.path.join(dataDir,histFile))== False:
+        myFile = open(os.path.join(dataDir,histFile), "w")
+        myFile.write("t\tvp\tam\trm\n")
+        myFile.close()
+        
 
 #-------------------------------------------------------------------------------
 # Advance to the end time.
