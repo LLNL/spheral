@@ -266,7 +266,6 @@ evaluateDerivatives(const Dim<2>::Scalar time,
       // RZ correction factors for node i.
       const Vector& posi = position(nodeListi, i);
       const Scalar ri = abs(posi.y());
-      const Scalar zi = posi.x();
       const SymTensor& Hi = H(nodeListi, i);
       const Scalar zetai = abs((Hi*posi).y());
       const Scalar hrInvi = zetai*safeInvVar(ri);
@@ -344,7 +343,6 @@ evaluateDerivatives(const Dim<2>::Scalar time,
               // RZ correction factors for node j.
               const Vector& posj = position(nodeListj, j);
               const Scalar rj = abs(posj.y());
-              const Scalar zj = abs(posj.x());
               const SymTensor& Hj = H(nodeListj, j);
               const Scalar zetaj = abs((Hj*posj).y());
               const Scalar hrInvj = zetaj*safeInvVar(rj);
@@ -454,12 +452,11 @@ evaluateDerivatives(const Dim<2>::Scalar time,
               // Acceleration.
               CHECK(rhoRZi > 0.0);
               CHECK(rhoRZj > 0.0);
-              const double Prhoi = Pi*ri*safeInv(rhoRZi*rhoRZi, 1.0e-10);
-              const double Prhoj = Pj*rj*safeInv(rhoRZj*rhoRZj, 1.0e-10);
-              const Vector deltaDvDti = -mj*(Prhoi*f1i*gradWi + Prhoj*f1j*gradWj + Qacci + Qaccj);
-              const Vector deltaDvDtj =  mi*(Prhoj*f1j*gradWj + Prhoi*f1i*gradWi + Qaccj + Qacci);
-              DvDti += deltaDvDti;
-              DvDtj += deltaDvDtj;
+              const double Prhoi = f1i*Pi*ri*safeInv(rhoRZi*rhoRZi, 1.0e-10);
+              const double Prhoj = f1j*Pj*rj*safeInv(rhoRZj*rhoRZj, 1.0e-10);
+              const Vector deltaDvDt = Prhoi*gradWi + Prhoj*gradWj + Qacci + Qaccj;
+              DvDti -= mj*deltaDvDt;
+              DvDtj += mi*deltaDvDt;
 
               // Specific thermal energy evolution.
               DepsDti += mj*(ri*safeInv(rhoRZi, 1.0e-10)*
@@ -467,8 +464,8 @@ evaluateDerivatives(const Dim<2>::Scalar time,
               DepsDtj += mi*(rj*safeInv(rhoRZj, 1.0e-10)*
                              (-(f1j*vrj - f2j*vri)*gradWj.y() - f1j*(vzj - vzi)*gradWi.x() + (gradf1j*vrj - gradf2j*vri)*Wj) + workQj);
               if (mCompatibleEnergyEvolution) {
-                pairAccelerationsi.push_back(deltaDvDti);
-                pairAccelerationsj.push_back(deltaDvDtj);
+                pairAccelerationsi.push_back(-mj*deltaDvDt);
+                pairAccelerationsj.push_back( mi*deltaDvDt);
               }
 
               // Velocity gradient.
@@ -515,8 +512,8 @@ evaluateDerivatives(const Dim<2>::Scalar time,
       normi += mi*safeInv(rhoRZi, 1.0e-10)*W0*Hdeti;
 
       // Finish the acceleration, adding the hoop terms.
-      DvDti *= 2.0*M_PI;
       DvDti.y(DvDti.y() + Pi*safeInv(rhoRZi, 1.0e-10) - Pi*ri*safeInvVar(rhoRZi*f1i)*gradf1i);
+      DvDti *= 2.0*M_PI;
 
       // Finish the specific thermal energy derivative.
       DepsDti = 2.0*M_PI*Pi*safeInv(rhoRZi, 1.0e-10)*(DepsDti - vri);
