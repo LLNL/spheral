@@ -459,9 +459,9 @@ evaluateDerivatives(const Dim<2>::Scalar time,
               DvDtj += mi*deltaDvDt;
 
               // Specific thermal energy evolution.
-              DepsDti += mj*(ri*safeInv(rhoRZi, 1.0e-10)*
+              DepsDti += mj*(2.0*M_PI*Pi*ri*safeInv(rhoRZi*rhoRZi, 1.0e-10)*
                              ( (f1i*vri - f2i*vrj)*gradWi.y() + f1i*(vzi - vzj)*gradWi.x() + (gradf1i*vri - gradf2i*vrj)*Wi) + workQi);
-              DepsDtj += mi*(rj*safeInv(rhoRZj, 1.0e-10)*
+              DepsDtj += mi*(2.0*M_PI*Pj*rj*safeInv(rhoRZj*rhoRZj, 1.0e-10)*
                              (-(f1j*vrj - f2j*vri)*gradWj.y() - f1j*(vzj - vzi)*gradWi.x() + (gradf1j*vrj - gradf2j*vri)*Wj) + workQj);
               if (mCompatibleEnergyEvolution) {
                 pairAccelerationsi.push_back(-mj*deltaDvDt);
@@ -517,7 +517,7 @@ evaluateDerivatives(const Dim<2>::Scalar time,
       DvDti *= 2.0*M_PI;
 
       // Finish the specific thermal energy derivative.
-      DepsDti = 2.0*M_PI*Pi*safeInv(rhoRZi, 1.0e-10)*(DepsDti - vri);
+      DepsDti -= 2.0*M_PI*Pi*vri*safeInv(rhoRZi, 1.0e-10);
 
       // If needed, convert to the total energy derivative.
       if (mEvolveTotalEnergy) DepsDti = mi*(vi.dot(DvDti) + DepsDti);
