@@ -209,15 +209,22 @@ TableKernel<Dim<2> >::f1Andf2(const double etaMagnitude,
                               double& gradf1,
                               double& gradf2) const {
   REQUIRE(etaMagnitude >= 0.0);
-  const int i0 = min(mNumPoints - 3, lowerBound(etaMagnitude));
-  const int i1 = i0 + 1;
-  CHECK(i1 >= 1 and i1 <= mNumPoints - 2);
-  const double x = etaMagnitude/mStepSize - i0;
-  CHECK(x >= 0.0);
-  f1 = mAf1[i1] + mBf1[i1]*x + mCf1[i1]*x*x;
-  f2 = mAf2[i1] + mBf2[i1]*x + mCf2[i1]*x*x;
-  gradf1 = mAgradf1[i1] + mBgradf1[i1]*x + mCgradf1[i1]*x*x;
-  gradf2 = mAgradf2[i1] + mBgradf2[i1]*x + mCgradf2[i1]*x*x;
+  if (etaMagnitude < this->mKernelExtent - mStepSize) {
+    const int i0 = min(mNumPoints - 3, lowerBound(etaMagnitude));
+    const int i1 = i0 + 1;
+    CHECK(i1 >= 1 and i1 <= mNumPoints - 2);
+    const double x = etaMagnitude/mStepSize - i0;
+    CHECK(x >= 0.0);
+    f1 = mAf1[i1] + mBf1[i1]*x + mCf1[i1]*x*x;
+    f2 = mAf2[i1] + mBf2[i1]*x + mCf2[i1]*x*x;
+    gradf1 = mAgradf1[i1] + mBgradf1[i1]*x + mCgradf1[i1]*x*x;
+    gradf2 = mAgradf2[i1] + mBgradf2[i1]*x + mCgradf2[i1]*x*x;
+  } else {
+    f1 = 1.0;
+    f2 = 1.0;
+    gradf1 = 0.0;
+    gradf2 = 0.0;
+  }
 }
 
 //------------------------------------------------------------------------------
