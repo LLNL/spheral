@@ -263,36 +263,35 @@ evaluateDerivatives(const Dim<2>::Scalar time,
       const Time start = Timing::currentTime();
       size_t ncalc = 0;
 
-      // Get the state for node i.
-      const Scalar mi = mass(nodeListi, i);
+      // RZ correction factors for node i.
       const Vector& posi = position(nodeListi, i);
       const Scalar ri = abs(posi.y());
       const Scalar zi = posi.x();
-      const Vector& vi = velocity(nodeListi, i);
-      const Scalar vri = vi.y();
-      const Scalar vzi = vi.x();
-      const Scalar& rhoi = massDensity(nodeListi, i);
-      const Scalar& epsi = specificThermalEnergy(nodeListi, i);
-      const Scalar& Pi = pressure(nodeListi, i);
       const SymTensor& Hi = H(nodeListi, i);
-      const Scalar& ci = soundSpeed(nodeListi, i);
-      const Scalar& omegai = omega(nodeListi, i);
-      const Scalar Hdeti = Hi.Determinant();
-      CHECK(rhoi > 0.0);
-      CHECK(Hdeti > 0.0);
-
-      // RZ correction factors for node i.
       const Scalar zetai = abs((Hi*posi).y());
       const Scalar hrInvi = zetai*safeInvVar(ri);
       Scalar f1i, f2i, gradf1i, gradf2i;
-      // W.f1Andf2(zetai, f1i, f2i, gradf1i, gradf2i);
-      f1i = 1.0; f2i = 1.0;
-      gradf1i = 0.0; gradf2i = 0.0;
+      W.f1Andf2(zetai, f1i, f2i, gradf1i, gradf2i);
+      // f1i = 1.0; f2i = 1.0;
+      // gradf1i = 0.0; gradf2i = 0.0;
       gradf1i *= hrInvi;
       gradf2i *= hrInvi;
       const Scalar circi = 2.0*M_PI*ri;
       const Scalar circInvi = safeInvVar(circi);
-      const Scalar rhoRZi = f1i*rhoi;
+      const Scalar rhoi = f1i*massDensity(nodeListi, i);
+      const Scalar rhoRZi = rhoi*circi;
+
+      // Get the state for node i.
+      const Scalar mi = mass(nodeListi, i);
+      const Vector& vi = velocity(nodeListi, i);
+      const Scalar vri = vi.y();
+      const Scalar vzi = vi.x();
+      const Scalar epsi = specificThermalEnergy(nodeListi, i);
+      const Scalar Pi = f1i*pressure(nodeListi, i);
+      const Scalar ci = f1i*soundSpeed(nodeListi, i);
+      const Scalar Hdeti = Hi.Determinant();
+      CHECK(rhoi > 0.0);
+      CHECK(Hdeti > 0.0);
 
       Scalar& rhoSumi = rhoSum(nodeListi, i);
       Scalar& normi = normalization(nodeListi, i);
@@ -342,36 +341,35 @@ evaluateDerivatives(const Dim<2>::Scalar time,
                                                          firstGhostNodej)) {
               ++ncalc;
 
-              // Get the state for node j
-              const Scalar mj = mass(nodeListj, j);
+              // RZ correction factors for node j.
               const Vector& posj = position(nodeListj, j);
               const Scalar rj = abs(posj.y());
               const Scalar zj = abs(posj.x());
-              const Vector& vj = velocity(nodeListj, j);
-              const Scalar vrj = vj.y();
-              const Scalar vzj = vj.x();
-              const Scalar& rhoj = massDensity(nodeListj, j);
-              const Scalar& epsj = specificThermalEnergy(nodeListj, j);
-              const Scalar& Pj = pressure(nodeListj, j);
               const SymTensor& Hj = H(nodeListj, j);
-              const Scalar& cj = soundSpeed(nodeListj, j);
-              const Scalar& omegaj = omega(nodeListj, j);
-              const Scalar Hdetj = Hj.Determinant();
-              CHECK(rhoj > 0.0);
-              CHECK(Hdetj > 0.0);
-
-              // RZ correction factors for node j.
               const Scalar zetaj = abs((Hj*posj).y());
               const Scalar hrInvj = zetaj*safeInvVar(rj);
               Scalar f1j, f2j, gradf1j, gradf2j;
-              // W.f1Andf2(zetaj, f1j, f2j, gradf1j, gradf2j);
-              f1j = 1.0; f2j = 1.0;
-              gradf1j = 0.0; gradf2j = 0.0;
+              W.f1Andf2(zetaj, f1j, f2j, gradf1j, gradf2j);
+              // f1j = 1.0; f2j = 1.0;
+              // gradf1j = 0.0; gradf2j = 0.0;
               gradf1j *= hrInvj;
               gradf2j *= hrInvj;
               const Scalar circj = 2.0*M_PI*rj;
               const Scalar circInvj = safeInvVar(circj);
-              const Scalar rhoRZj = f1j*rhoj;
+              const Scalar rhoj = f1j*massDensity(nodeListj, j);
+              const Scalar rhoRZj = rhoj*circj;
+
+              // Get the state for node j
+              const Scalar mj = mass(nodeListj, j);
+              const Vector& vj = velocity(nodeListj, j);
+              const Scalar vrj = vj.y();
+              const Scalar vzj = vj.x();
+              const Scalar epsj = specificThermalEnergy(nodeListj, j);
+              const Scalar Pj = f1j*pressure(nodeListj, j);
+              const Scalar cj = f1j*soundSpeed(nodeListj, j);
+              const Scalar Hdetj = Hj.Determinant();
+              CHECK(rhoj > 0.0);
+              CHECK(Hdetj > 0.0);
 
               Scalar& rhoSumj = rhoSum(nodeListj, j);
               Scalar& normj = normalization(nodeListj, j);
@@ -517,7 +515,8 @@ evaluateDerivatives(const Dim<2>::Scalar time,
       normi += mi*safeInv(rhoRZi, 1.0e-10)*W0*Hdeti;
 
       // Finish the acceleration, adding the hoop terms.
-      DvDti.y(2.0*M_PI*(DvDti.y() + Pi*safeInv(rhoRZi, 1.0e-10) - Pi*ri*safeInvVar(rhoRZi*f1i)*gradf1i));
+      DvDti *= 2.0*M_PI;
+      DvDti.y(DvDti.y() + Pi*safeInv(rhoRZi, 1.0e-10) - Pi*ri*safeInvVar(rhoRZi*f1i)*gradf1i);
 
       // Finish the specific thermal energy derivative.
       DepsDti = 2.0*M_PI*Pi*safeInv(rhoRZi, 1.0e-10)*(DepsDti - vri);
@@ -545,7 +544,7 @@ evaluateDerivatives(const Dim<2>::Scalar time,
       }
 
       // Evaluate the continuity equation.
-      DrhoDti = -rhoi*DvDxi.Trace();
+      DrhoDti = -f1i*rhoi*DvDxi.Trace();
 
       // Complete the moments of the node distribution for use in the ideal H calculation.
       weightedNeighborSumi = Dimension::rootnu(max(0.0, weightedNeighborSumi/Hdeti));
