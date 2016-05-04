@@ -512,7 +512,8 @@ evaluateDerivatives(const Dim<2>::Scalar time,
       normi += mi*safeInv(rhoRZi, 1.0e-10)*W0*Hdeti;
 
       // Finish the acceleration, adding the hoop terms.
-      DvDti.y(DvDti.y() + Pi*safeInv(rhoRZi, 1.0e-10) - Pi*ri*safeInvVar(rhoRZi*f1i)*gradf1i);
+      // DvDti.y(DvDti.y() + 1.01525*Pi/rhoRZi - Pi*ri/(rhoRZi*f1i)*gradf1i);   // Fiddled with a magic number on the hoop stress term.
+      DvDti.y(DvDti.y() + Pi*safeInv(rhoRZi, 1.0e-10) - Pi*ri*safeInv(rhoRZi*f1i)*gradf1i);
       DvDti *= 2.0*M_PI;
 
       // Finish the specific thermal energy derivative.
