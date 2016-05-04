@@ -159,6 +159,37 @@ double weighting(const double& ui,
 //   }
 // }
 
+//------------------------------------------------------------------------------
+// The entropy weighted energy form.
+//------------------------------------------------------------------------------
+inline
+double
+entropyWeighting(const double si,
+                 const double sj,
+                 const double duij) {
+  double result = 0.5;
+  if (abs(duij) > 1.0e-15 and abs(si - sj) > 1.0e-15) {
+    const double smin = min(abs(si), abs(sj));
+    const double smax = max(abs(si), abs(sj));
+    CHECK(smin + smax > 1.0e-15);
+    if (duij > 0.0) {    // Heating
+      if (si > sj) {
+        result = smin/(smin + smax);
+      } else {
+        result = smax/(smin + smax);
+      }
+    } else {             // Cooling
+      if (si > sj) {
+        result = smax/(smin + smax);
+      } else {
+        result = smin/(smin + smax);
+      }
+    }
+  }
+  CHECK(result >= 0.0 and result <= 1.0);
+  return result;
+}
+
 }
 
 //------------------------------------------------------------------------------
@@ -207,23 +238,18 @@ update(const KeyType& key,
 
   // Get the state fields.
   const FieldList<Dimension, Scalar> mass = state.fields(HydroFieldNames::mass, Scalar());
-  const FieldList<Dimension, Scalar> pressure = state.fields(HydroFieldNames::pressure, Scalar());
-  const FieldList<Dimension, Scalar> rho = state.fields(HydroFieldNames::massDensity, Scalar());
   const FieldList<Dimension, Vector> velocity = state.fields(HydroFieldNames::velocity, Vector::zero);
   const FieldList<Dimension, Vector> acceleration = derivs.fields(IncrementFieldList<Dimension, Vector>::prefix() + HydroFieldNames::velocity, Vector::zero);
   const FieldList<Dimension, Scalar> eps0 = state.fields(HydroFieldNames::specificThermalEnergy + "0", Scalar());
+  const FieldList<Dimension, Scalar> entropy = state.fields(HydroFieldNames::entropy, Scalar());
   const FieldList<Dimension, vector<Vector> > pairAccelerations = derivs.fields(HydroFieldNames::pairAccelerations, vector<Vector>());
   const ConnectivityMap<Dimension>& connectivityMap = mDataBasePtr->connectivityMap();
   const vector<const NodeList<Dimension>*>& nodeLists = connectivityMap.nodeLists();
   CHECK(nodeLists.size() == numFields);
 
   // Prepare a counter to keep track of how we go through the pair-accelerations.
-  FieldList<Dimension, Scalar> DepsDt(FieldSpace::Copy);
-  FieldList<Dimension, int> offset(FieldSpace::Copy);
-  for (size_t nodeListi = 0; nodeListi != numFields; ++nodeListi) {
-    DepsDt.appendNewField("delta E", *nodeLists[nodeListi], 0.0);
-    offset.appendNewField("offset", *nodeLists[nodeListi], 0);
-  }
+  FieldList<Dimension, Scalar> DepsDt = mDataBasePtr->newFluidFieldList(0.0, "delta E");
+  FieldList<Dimension, int> offset = mDataBasePtr->newFluidFieldList(0, "offset");
 
   // Walk all the NodeLists.
   const double hdt = 0.5*multiplier;
@@ -237,11 +263,10 @@ update(const KeyType& key,
 
       // State for node i.
       Scalar& DepsDti = DepsDt(nodeListi, i);
-      const Scalar& mi = mass(nodeListi, i);
-      const Scalar& Pi = pressure(nodeListi, i);
-      const Scalar& rhoi = rho(nodeListi, i);
+      const Scalar mi = mass(nodeListi, i);
+      const Scalar si = entropy(nodeListi, i);
       const Vector& vi = velocity(nodeListi, i);
-      const Scalar& ui = eps0(nodeListi, i);
+      const Scalar ui = eps0(nodeListi, i);
       const Vector& ai = acceleration(nodeListi, i);
       const Vector vi12 = vi + ai*hdt;
       const vector<Vector>& pacci = pairAccelerations(nodeListi, i);
@@ -269,11 +294,10 @@ update(const KeyType& key,
                                                          nodeListj, j,
                                                          firstGhostNodej)) {
               Scalar& DepsDtj = DepsDt(nodeListj, j);
-              const Scalar& mj = mass(nodeListj, j);
-              const Scalar& Pj = pressure(nodeListj, j);
-              const Scalar& rhoj = rho(nodeListj, j);
+              const Scalar mj = mass(nodeListj, j);
+              const Scalar sj = entropy(nodeListj, j);
               const Vector& vj = velocity(nodeListj, j);
-              const Scalar& uj = eps0(nodeListj, j);
+              const Scalar uj = eps0(nodeListj, j);
               const Vector& aj = acceleration(nodeListj, j);
               const Vector vj12 = vj + aj*hdt;
               const vector<Vector>& paccj = pairAccelerations(nodeListj, j);
@@ -289,9 +313,10 @@ update(const KeyType& key,
 
               const Scalar dEij = -(mi*vi12.dot(pai) + mj*vj12.dot(paj));
               const Scalar duij = dEij/mi;
+              const Scalar wi = entropyWeighting(si, sj, duij);
               // const Scalar wi = standardWeighting(ui, uj, mi, mj, duij)
               // const Scalar wi = PoverRho2Weighting(Pi, rhoi, Pj, rhoj);
-              const Scalar wi = weighting(ui, uj, mi, mj, duij, dt);
+              // const Scalar wi = weighting(ui, uj, mi, mj, duij, dt);
 
               CHECK(wi >= 0.0 and wi <= 1.0);
               CHECK(fuzzyEqual(wi + weighting(uj, ui, mj, mi, dEij/mj, dt), 1.0, 1.0e-10));
