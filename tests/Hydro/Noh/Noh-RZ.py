@@ -1,37 +1,8 @@
 #-------------------------------------------------------------------------------
-# The Planar Noh test case run in RZ symmetry.
+# The Noh test case run in RZ symmetry.
 #
 # W.F. Noh 1987, JCP, 72, 78-120.
 #-------------------------------------------------------------------------------
-#
-# Ordinary SPH
-#
-#ATS:t0 = test(      SELF, "--graphics None --clearDirectories True  --checkError True   --restartStep 20", label="Planar Noh problem -- 1-D (serial)")
-#ATS:t1 = testif(t0, SELF, "--graphics None --clearDirectories False --checkError False  --restartStep 20 --restoreCycle 20 --steps 20 --checkRestart True", label="Planar Noh problem -- 1-D (serial) RESTART CHECK")
-#ATS:t2 = test(      SELF, "--graphics None --clearDirectories True  --checkError True  --dataDir 'dumps-planar-restartcheck' --restartStep 20", np=2, label="Planar Noh problem -- 1-D (parallel)")
-#ATS:t3 = testif(t2, SELF, "--graphics None --clearDirectories False --checkError False --dataDir 'dumps-planar-restartcheck' --restartStep 20 --restoreCycle 20 --steps 20 --checkRestart True", np=2, label="Planar Noh problem -- 1-D (parallel) RESTART CHECK")
-#ATS:t4 = test(      SELF, "--graphics None --clearDirectories True  --checkError True  --dataDir 'dumps-planar-reproducing' --domainIndependent True --outputFile 'Noh-planar-1proc-reproducing.txt'", label="Planar Noh problem -- 1-D (serial reproducing test setup)")
-#ATS:t5 = testif(t4, SELF, "--graphics None --clearDirectories False  --checkError True  --dataDir 'dumps-planar-reproducing' --domainIndependent True --outputFile 'Noh-planar-4proc-reproducing.txt' --comparisonFile 'Noh-planar-1proc-reproducing.txt'", np=4, label="Planar Noh problem -- 1-D (4 proc reproducing test)")
-#
-# Ordinary solid SPH
-#
-#ATS:t100 = test(      SELF, "--solid True --graphics None --clearDirectories True  --checkError True   --restartStep 20", label="Planar Noh problem with solid SPH -- 1-D (serial)")
-#ATS:t101 = testif(t100, SELF, "--solid True --graphics None --clearDirectories False --checkError False  --restartStep 20 --restoreCycle 20 --steps 20 --checkRestart True", label="Planar Noh problem with solid SPH -- 1-D (serial) RESTART CHECK")
-#ATS:t102 = test(      SELF, "--solid True --graphics None --clearDirectories True  --checkError True  --dataDir 'dumps-planar-restartcheck' --restartStep 20", np=2, label="Planar Noh problem with solid SPH -- 1-D (parallel)")
-#ATS:t103 = testif(t102, SELF, "--solid True --graphics None --clearDirectories False --checkError False --dataDir 'dumps-planar-restartcheck' --restartStep 20 --restoreCycle 20 --steps 20 --checkRestart True", np=2, label="Planar Noh problem with solid SPH -- 1-D (parallel) RESTART CHECK")
-#ATS:t104 = test(      SELF, "--solid True --graphics None --clearDirectories True  --checkError True  --dataDir 'dumps-planar-reproducing' --domainIndependent True --outputFile 'Noh-planar-1proc-reproducing.txt'", label="Planar Noh problem with solid SPH -- 1-D (serial reproducing test setup)")
-#ATS:t105 = testif(t104, SELF, "--solid True --graphics None --clearDirectories False  --checkError True  --dataDir 'dumps-planar-reproducing' --domainIndependent True --outputFile 'Noh-planar-4proc-reproducing.txt' --comparisonFile 'Noh-planar-1proc-reproducing.txt'", np=4, label="Planar Noh  problem with solid SPH -- 1-D (4 proc reproducing test)")
-#
-# CRK
-#
-#ATS:t6 = test(      SELF, "--CRKSPH True --cfl 0.25 --KernelConstructor NBSplineKernel --order 7 --nPerh 1.01 --Cl 2.0 --Cq 1.0 --graphics None --clearDirectories True --checkError False --restartStep 20 --steps 40", label="Planar Noh problem with CRK -- 1-D (serial)")
-#ATS:t7 = testif(t6, SELF, "--CRKSPH True --cfl 0.25 --KernelConstructor NBSplineKernel --order 7 --nPerh 1.01 --Cl 2.0 --Cq 1.0 --graphics None --clearDirectories False --checkError False --restartStep 20 --restoreCycle 20 --steps 20 --checkRestart True", label="Planar Noh problem with CRK -- 1-D (serial) RESTART CHECK")
-#
-# PSPH
-#
-#ATS:t8 = test(      SELF, "--PSPH True --graphics None --clearDirectories True --checkError False --restartStep 20 --steps 40", label="Planar Noh problem with PSPH -- 1-D (serial)")
-#ATS:t9 = testif(t8, SELF, "--PSPH True --graphics None --clearDirectories False --checkError False --restartStep 20 --restoreCycle 20 --steps 20 --checkRestart True", label="Planar Noh problem with PSPH -- 1-D (serial) RESTART CHECK")
-
 import os, shutil, mpi
 from SolidSpheral2d import *
 from SpheralTestUtilities import *
@@ -42,28 +13,25 @@ if mpi.procs > 1:
 else:
     from DistributeNodes import distributeNodes2d
 
-title("RZ hydro test -- planar Noh problem")
+title("RZ hydro test -- Noh problem")
 
 #-------------------------------------------------------------------------------
 # Generic problem parameters
 #-------------------------------------------------------------------------------
-commandLine(KernelConstructor = BSplineKernel,
+commandLine(problem = "planar",     # one of (planar, cylindrical, spherical)
+            KernelConstructor = BSplineKernel,
             order = 5,
 
-            nx1 = 100,
-            ny1 = 20,
-            rho1 = 1.0,
-            eps1 = 0.0,
-            x0 = 0.0,
-            x1 = 1.0,
-            xwall = 0.0,
-            y0 = 0.0,
-            y1 = 0.2,
-            nPerh = 1.35,
+            nr = 20,
+            nz = 100,
 
-            rho0 = 1.0,
-            vr0 = 0.0, 
-            vz0 = -1.0,
+            r0 = 0.0,
+            r1 = 0.2,
+            z0 = 0.0,
+            z1 = 1.0,
+            zwall = 0.0,
+
+            nPerh = 1.35,
 
             gamma = 5.0/3.0,
             mu = 1.0,
@@ -149,8 +117,6 @@ commandLine(KernelConstructor = BSplineKernel,
             checkEnergy = True,
             restoreCycle = None,
             restartStep = 10000,
-            dataDirBase = "dumps-planar-Noh-RZ",
-            restartBaseName = "Noh-planar-RZ",
             outputFile = "None",
             comparisonFile = "None",
             normOutputFile = "None",
@@ -161,6 +127,16 @@ commandLine(KernelConstructor = BSplineKernel,
 
 assert not(boolReduceViscosity and boolCullenViscosity)
    
+assert problem in ("planar", "cylindrical", "spherical")
+rho0 = 1.0
+eps0 = 0.0
+if problem == "planar":
+    vr0, vz0 = 0.0, -1.0
+elif problem == "cylindrical":
+    vr0, vz0 = -1.0, 0.0
+else:
+    vr0, vz0 = -1.0, -1.0
+
 if CRKSPH:
    if solid:
       if SPH:
@@ -186,7 +162,7 @@ else:
       else:
          HydroConstructor = ASPHHydroRZ
 
-dataDir = os.path.join(dataDirBase,
+dataDir = os.path.join("dumps-%s-Noh-RZ" % problem,
                        HydroConstructor.__name__,
                        Qconstructor.__name__,
                        "nPerh=%f" % nPerh,
@@ -194,7 +170,7 @@ dataDir = os.path.join(dataDirBase,
                        "Cullen=%s" % boolCullenViscosity,
                        "filter=%f" % filter)
 restartDir = os.path.join(dataDir, "restarts")
-restartBaseName = os.path.join(restartDir, "Noh-planar-RZ")
+restartBaseName = os.path.join(restartDir, "Noh-%s-RZ" % problem)
 
 vizDir = os.path.join(dataDir, "visit")
 if vizTime is None and vizCycle is None:
@@ -202,7 +178,8 @@ if vizTime is None and vizCycle is None:
 else:
     vizBaseName = "Noh-planar-RZ"
 
-dx = (x1 - x0)/nx1
+dr = (r1 - r0)/nr
+dz = (z1 - z0)/nz
 
 #-------------------------------------------------------------------------------
 # Check if the necessary output directories exist.  If not, create them.
@@ -264,9 +241,9 @@ output("nodes1.nodesPerSmoothingScale")
 #-------------------------------------------------------------------------------
 # Set the node properties.
 #-------------------------------------------------------------------------------
-generator = GenerateNodeDistributionRZ(nx1, ny1, rho0, "lattice",
-                                       xmin = (x0, y0),
-                                       xmax = (x1, y1),
+generator = GenerateNodeDistributionRZ(nz, nr, rho0, "lattice",
+                                       xmin = (z0, r0),
+                                       xmax = (z1, r1),
                                        nNodePerh = nPerh,
                                        SPH = SPH)
 
@@ -276,15 +253,15 @@ output("mpi.reduce(nodes1.numInternalNodes, mpi.MAX)")
 output("mpi.reduce(nodes1.numInternalNodes, mpi.SUM)")
 
 # Set node specific thermal energies
-nodes1.specificThermalEnergy(ScalarField("tmp", nodes1, eps1))
-nodes1.massDensity(ScalarField("tmp", nodes1, rho1))
+nodes1.specificThermalEnergy(ScalarField("tmp", nodes1, eps0))
+nodes1.massDensity(ScalarField("tmp", nodes1, rho0))
 
 # Set node velocities
 pos = nodes1.positions()
 vel = nodes1.velocity()
 for i in xrange(nodes1.numNodes):
     vel[i].y = vr0
-    if pos[i].x > xwall:
+    if pos[i].x > zwall:
         vel[i].x = vz0
     else:
         vel[i].x = -vz0
@@ -378,19 +355,21 @@ if bArtificialConduction:
 #-------------------------------------------------------------------------------
 # Create boundary conditions.
 #-------------------------------------------------------------------------------
-yPlane1 = Plane(Vector(0.0, y1), Vector(0.0, -1.0))
-ybc1 = ReflectingBoundary(yPlane1)
-xPlane1 = Plane(Vector(x1, 0.0), Vector(-1.0, 0.0))
-xbc1 = ReflectingBoundary(xPlane1)
-for p in packages:
-    p.appendBoundary(ybc1)
-    p.appendBoundary(xbc1)
+bcs = []
+if zwall == z0:
+    zPlaneWall = Plane(Vector(zwall, 0.0), Vector(1.0, 0.0))
+    bcs.append(ReflectingBoundary(zPlaneWall))
 
-if x0 == xwall:
-    xPlane0 = Plane(Vector(x0, 0.0), Vector( 1.0, 0.0))
-    xbc0 = ReflectingBoundary(xPlane0)
+if r0 != 0.0:
+    rPlane0 = Plane(Vector(0.0, r0), Vector(0.0, 1.0))
+    bcs.append(ReflectingBoundary(rPlane0))
+
+rPlane1 = Plane(Vector(0.0, r1), Vector(0.0, -1.0))
+bcs.append(ReflectingBoundary(rPlane1))
+
+for bc in bcs:
     for p in packages:
-       p.appendBoundary(xbc0)
+        p.appendBoundary(bc)
 
 #-------------------------------------------------------------------------------
 # Construct an integrator.
@@ -445,13 +424,27 @@ else:
 #-------------------------------------------------------------------------------
 import mpi
 import NohAnalyticSolution
-rlocal = [pos.y for pos in nodes1.positions().internalValues()]
-r = mpi.reduce(rlocal, mpi.SUM)
-h1 = 1.0/(nPerh*dx)
-answer = NohAnalyticSolution.NohSolution(2,
-                                         r = r,
-                                         v0 = -1.0,
-                                         h0 = 1.0/h1)
+if problem == "planar":
+    xprof = mpi.allreduce([x.x for x in nodes1.positions().internalValues()], mpi.SUM)
+    h1 = 1.0/(nPerh*dz)
+    answer = NohAnalyticSolution.NohSolution(1,
+                                             r = xprof,
+                                             v0 = -1.0,
+                                             h0 = 1.0/h1)
+elif problem == "cylindrical":
+    xprof = mpi.allreduce([x.y for x in nodes1.positions().internalValues()], mpi.SUM)
+    h1 = 1.0/(nPerh*dr)
+    answer = NohAnalyticSolution.NohSolution(2,
+                                             r = xprof,
+                                             v0 = -1.0,
+                                             h0 = 1.0/h1)
+else:
+    xprof = mpi.allreduce([x.magnitude() for x in nodes1.positions().internalValues()], mpi.SUM)
+    h1 = 1.0/(nPerh*dr)
+    answer = NohAnalyticSolution.NohSolution(3,
+                                             r = xprof,
+                                             v0 = -1.0,
+                                             h0 = 1.0/h1)
 
 # Compute the simulated specific entropy.
 rho = mpi.allreduce(nodes1.massDensity().internalValues(), mpi.SUM)
@@ -460,8 +453,7 @@ nodes1.pressure(Pf)
 P = mpi.allreduce(Pf.internalValues(), mpi.SUM)
 A = [Pi/rhoi**gamma for (Pi, rhoi) in zip(P, rho)]
 
-# The analytic solution for the simulated entropy.
-xprof = mpi.allreduce([x.x for x in nodes1.positions().internalValues()], mpi.SUM)
+# Solution profiles.
 xans, vans, uans, rhoans, Pans, hans = answer.solution(control.time(), xprof)
 Aans = [Pi/rhoi**gamma for (Pi, rhoi) in zip(Pans,  rhoans)]
 L1 = 0.0
@@ -471,21 +463,26 @@ L1_tot = L1 / len(rho)
 if mpi.rank == 0 and outputFile != "None":
     print "L1=",L1_tot,"\n"
     with open("Converge.txt", "a") as myfile:
-        myfile.write("%s %s\n" % (nx1, L1_tot))
+        myfile.write("%s %s\n" % (nz, L1_tot))
 
 #-------------------------------------------------------------------------------
 # Plot the final state.
 #-------------------------------------------------------------------------------
 if graphics:
     from SpheralGnuPlotUtilities import *
-    rhoPlot, velPlot, epsPlot, PPlot, HPlot = plotState(db, xFunction="%s.x")
+    if problem == "planar":
+        rhoPlot, velPlot, epsPlot, PPlot, HPlot = plotState(db, xFunction="%s.x", vecyFunction="%s.x", tenyFunction="1.0/%s.xx")
+    elif problem == "cylindrical":
+        rhoPlot, velPlot, epsPlot, PPlot, HPlot = plotState(db, xFunction="%s.y", vecyFunction="%s.y", tenyFunction="1.0/%s.yy")
+    else:
+        rhoPlot, velPlot, epsPlot, PPlot, HPlot = plotRadialState(db)
     plotAnswer(answer, control.time(), rhoPlot, velPlot, epsPlot, PPlot, HPlot)
     EPlot = plotEHistory(control.conserve)
-    plots = [(rhoPlot, "Noh-planar-rho.png"),
-             (velPlot, "Noh-planar-vel.png"),
-             (epsPlot, "Noh-planar-eps.png"),
-             (PPlot, "Noh-planar-P.png"),
-             (HPlot, "Noh-planar-h.png")]
+    plots = [(rhoPlot, "Noh-%s-rho-RZ.png"),
+             (velPlot, "Noh-%s-vel-RZ.png"),
+             (epsPlot, "Noh-%s-eps-RZ.png"),
+             (PPlot, "Noh-%s-P-RZ.png"),
+             (HPlot, "Noh-%s-h-RZ.png")]
 
     # Plot the specific entropy.
     Aplot = generateNewGnuPlot()
@@ -524,11 +521,6 @@ if graphics:
         alphaPlotL = plotFieldList(q.reducingViscosityMultiplierL(),
                                    winTitle = "rvAlphaL",
                                    colorNodeLists = False, plotGhosts = False)
-
-    # # Plot the grad h correction term (omega)
-    # omegaPlot = plotFieldList(hydro.omegaGradh(),
-    #                           winTitle = "grad h correction",
-    #                           colorNodeLists = False)
 
     # Make hardcopies of the plots.
     for p, filename in plots:
@@ -612,7 +604,7 @@ if graphics:
 #                                                '"vel L1"', '"vel L2"', '"vel Linf"',
 #                                                '"E L1"', '"E L2"', '"E Linf"',
 #                                                '"h L1"',   '"h L2"',   '"h Linf"'))
-#        f.write("%5i " % nx1)
+#        f.write("%5i " % nz)
 #     for (name, data, ans,
 #          L1expect, L2expect, Linfexpect) in [("Mass Density", rhoprof, rhoans, L1rho, L2rho, Linfrho),
 #                                              ("Pressure", Pprof, Pans, L1P, L2P, LinfP),
@@ -653,7 +645,7 @@ if graphics:
 #     if normOutputFile != "None":
 #        f.write("\n")
                                              
-#     # print "%d\t %g\t %g\t %g\t %g\t %g\t %g\t %g\t %g\t %g\t %g\t %g\t %g\t" % (nx1,hD[0][0],hD[1][0],hD[2][0],hD[3][0],
+#     # print "%d\t %g\t %g\t %g\t %g\t %g\t %g\t %g\t %g\t %g\t %g\t %g\t %g\t" % (nz,hD[0][0],hD[1][0],hD[2][0],hD[3][0],
 #     #                                                                             hD[0][1],hD[1][1],hD[2][1],hD[3][1],
 #     #                                                                             hD[0][2],hD[1][2],hD[2][2],hD[3][2])
 
