@@ -19,7 +19,7 @@ title("RZ hydro test -- Noh problem")
 # Generic problem parameters
 #-------------------------------------------------------------------------------
 commandLine(problem = "planar",     # one of (planar, cylindrical, spherical)
-            KernelConstructor = BSplineKernel,
+            KernelConstructor = NBSplineKernel,
             order = 5,
 
             nr = 20,
