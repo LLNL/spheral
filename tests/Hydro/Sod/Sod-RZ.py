@@ -113,7 +113,7 @@ commandLine(problem = "planar",     # one of (planar, cylindrical, spherical)
             checkRestart = False,
             checkEnergy = False,
             restoreCycle = -1,
-            restartStep = 10000,
+            restartStep = 100,
             outputFile = "None",
             comparisonFile = "None",
             normOutputFile = "None",
@@ -281,8 +281,8 @@ elif problem == "cylindrical":
                                       SPH = SPH)
 else:
     assert problem == "spherical"
-    rmax1 = 0.0, 1.0
-    rmax2 = 1.0, 2.0
+    rmax1 = 1.0
+    rmax2 = 2.0
     dr2 = (rmax2 - rmax1)/n2
     nrind = 10
     gen1 = GenerateNodeDistributionRZ(n1, n1, rho1, "constantDTheta",
@@ -418,13 +418,14 @@ elif problem == "cylindrical":
 else:
     assert problem == "spherical"
     boundNodes = vector_of_int()
-    for i in xrange(nodes.numInternalNodes):
+    pos = nodes2.positions()
+    for i in xrange(nodes2.numInternalNodes):
         if pos[i].magnitude() > rmax2:
             boundNodes.append(i)
     print "Selected %i boundary nodes" % mpi.allreduce(len(boundNodes), mpi.SUM)
     denialPlane = Plane(Vector(-2.0*rmax2, 0.0), Vector(1.0, 0.0))  # A fake denial plane since we're working in circles.
-    bcs = [ReflectingBoundary(Plane(Vector(z0, r0), Vector( 1.0,  0.0))),
-           ConstantBoundary(nodes, boundNodes, denialPlane)]
+    bcs = [ReflectingBoundary(Plane(Vector(0.0, 0.0), Vector( 1.0,  0.0))),
+           ConstantBoundary(nodes2, boundNodes, denialPlane)]
 
 for bc in bcs:
     for p in packages:
@@ -476,6 +477,7 @@ if not steps is None:
     control.step(steps)
 else:
    control.advance(goalTime, maxSteps)
+   control.dropRestartFile()
 
 #-------------------------------------------------------------------------------
 # Plot the final state.
