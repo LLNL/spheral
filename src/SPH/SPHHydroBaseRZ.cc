@@ -458,8 +458,8 @@ evaluateDerivatives(const Dim<2>::Scalar time,
                                                         posj, etaj, vj, rhoRZj, cj, Hj);
               const Vector Qacci = 0.5*(QPiij.first *gradWQi) * 2.0*M_PI*f1i*ri;
               const Vector Qaccj = 0.5*(QPiij.second*gradWQj) * 2.0*M_PI*f1j*rj;
-              // const Scalar workQi = 0.5*(QPiij.first *vij).dot(gradWQi);
-              // const Scalar workQj = 0.5*(QPiij.second*vij).dot(gradWQj);
+              // const Scalar workQi = 0.5*(QPiij.first *vij).dot(gradWQi) * 2.0*M_PI*f1i*ri;
+              // const Scalar workQj = 0.5*(QPiij.second*vij).dot(gradWQj) * 2.0*M_PI*f1j*rj;
               const Scalar workQi = vij.dot(Qacci);
               const Scalar workQj = vij.dot(Qaccj);
               const Scalar Qi = rhoRZi*rhoRZi*(QPiij.first. diagonalElements().maxAbsElement());
