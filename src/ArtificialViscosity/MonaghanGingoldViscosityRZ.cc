@@ -93,8 +93,8 @@ Piij(const unsigned nodeListi, const unsigned i,
   const Scalar rj = abs(xj.y());
   const Scalar vri = vi.y();
   const Scalar vrj = vj.y();
-  const Scalar zetari = abs((Hi*xi).y());
-  const Scalar zetarj = abs((Hj*xj).y());
+  const Scalar zetai = abs((Hi*xi).y());
+  const Scalar zetaj = abs((Hj*xj).y());
   const Scalar rhoRZi = 2.0*M_PI*ri*rhoi;
   const Scalar rhoRZj = 2.0*M_PI*rj*rhoj;
 
@@ -105,8 +105,8 @@ Piij(const unsigned nodeListi, const unsigned i,
   const Scalar mui_neg = min(0.0, mui);
   const Scalar muj_neg = min(0.0, muj);
 
-  const Scalar muri = vri*safeInvVar(zetari);
-  const Scalar murj = vrj*safeInvVar(zetarj);
+  const Scalar muri = vri*safeInvVar(zetai);
+  const Scalar murj = vrj*safeInvVar(zetaj);
   Scalar muri_neg = 0.0, murj_neg = 0.0;
   if (vri < 0.0 and vrj < 0.0) {
     muri_neg = muri;
