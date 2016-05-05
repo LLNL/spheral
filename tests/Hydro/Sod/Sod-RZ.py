@@ -30,7 +30,7 @@ commandLine(problem = "planar",     # one of (planar, cylindrical, spherical)
 
             nPerh = 1.35,
 
-            gamma = 1.4,
+            gammaGas = 1.4,
             mu = 1.0,
 
             solid = False,    # If true, use the fluid limit of the solid hydro option
@@ -112,7 +112,7 @@ commandLine(problem = "planar",     # one of (planar, cylindrical, spherical)
             checkError = False,
             checkRestart = False,
             checkEnergy = False,
-            restoreCycle = None,
+            restoreCycle = -1,
             restartStep = 10000,
             outputFile = "None",
             comparisonFile = "None",
@@ -182,7 +182,7 @@ mpi.barrier()
 #-------------------------------------------------------------------------------
 # Material properties.
 #-------------------------------------------------------------------------------
-eos = GammaLawGasMKS(gamma, mu)
+eos = GammaLawGasMKS(gammaGas, mu)
 strength = NullStrength()
 
 #-------------------------------------------------------------------------------
@@ -249,8 +249,11 @@ del n
 if problem == "planar":
     r0, r1 = 4.0, 4.2
     z0, z1, z2 = 0.0, 0.5, 1.0
-    nmatch1 = int(float(n1)*(r1 - r0)/(z1 - z0) + 0.5)
     nmatch2 = int(float(n2)*(r1 - r0)/(z2 - z1) + 0.5)
+    if SPH:
+        nmatch1 = int(float(n1)*(r1 - r0)/(z1 - z0) + 0.5)
+    else:
+        nmatch1 = nmatch2
     gen1 = GenerateNodeDistributionRZ(n1, nmatch1, rho1, "lattice",
                                       xmin = (z0, r0),
                                       xmax = (z1, r1),
@@ -471,7 +474,6 @@ output("control")
 #-------------------------------------------------------------------------------
 if not steps is None:
     control.step(steps)
-
 else:
    control.advance(goalTime, maxSteps)
 
@@ -492,6 +494,27 @@ if graphics:
              (epsPlot, "Sod-%s-eps-RZ.png" % problem),
              (PPlot, "Sod-%s-P-RZ.png" % problem),
              (HPlot, "Sod-%s-h-RZ.png" % problem)]
+
+    # If this is the planar problem we can compare with the solution.
+    if problem == "planar":
+        from SodAnalyticSolution import *
+        dz1 = (z1 - z0)/n1
+        dz2 = (z2 - z1)/n2
+        h1 = 1.0/(nPerh*dz1)
+        h2 = 1.0/(nPerh*dz2)
+        answer = SodSolution(nPoints = n1 + n2,
+                             gamma = gammaGas,
+                             rho1 = rho1,
+                             P1 = (gammaGas - 1.0)*rho1*eps1,
+                             rho2 = rho2,
+                             P2 = (gammaGas - 1.0)*rho2*eps2,
+                             x0 = z0,
+                             x1 = z1,
+                             x2 = z2,
+                             h1 = 1.0/h1,
+                             h2 = 1.0/h2)
+        plotAnswer(answer, control.time(),
+                   rhoPlot, velPlot, epsPlot, PPlot, HPlot)
 
 Eerror = (control.conserve.EHistory[-1] - control.conserve.EHistory[0])/control.conserve.EHistory[0]
 print "Total energy error: %g" % Eerror
