@@ -478,11 +478,11 @@ if graphics:
         rhoPlot, velPlot, epsPlot, PPlot, HPlot = plotRadialState(db)
     plotAnswer(answer, control.time(), rhoPlot, velPlot, epsPlot, PPlot, HPlot)
     EPlot = plotEHistory(control.conserve)
-    plots = [(rhoPlot, "Noh-%s-rho-RZ.png"),
-             (velPlot, "Noh-%s-vel-RZ.png"),
-             (epsPlot, "Noh-%s-eps-RZ.png"),
-             (PPlot, "Noh-%s-P-RZ.png"),
-             (HPlot, "Noh-%s-h-RZ.png")]
+    plots = [(rhoPlot, "Noh-%s-rho-RZ.png" % problem),
+             (velPlot, "Noh-%s-vel-RZ.png" % problem),
+             (epsPlot, "Noh-%s-eps-RZ.png" % problem),
+             (PPlot, "Noh-%s-P-RZ.png" % problem),
+             (HPlot, "Noh-%s-h-RZ.png" % problem)]
 
     # Plot the specific entropy.
     Aplot = generateNewGnuPlot()
@@ -504,15 +504,15 @@ if graphics:
         volPlot = plotFieldList(hydro.volume(), 
                                 winTitle = "volume",
                                 colorNodeLists = False, plotGhosts = False)
-        plots.append((volPlot, "Noh-planar-vol.png"))
+        plots.append((volPlot, "Noh-%s-vol.png" % problem))
 
     if boolCullenViscosity:
         cullAlphaPlot = plotFieldList(q.ClMultiplier(),
                                       winTitle = "Cullen alpha")
         cullDalphaPlot = plotFieldList(evolveCullenViscosityMultiplier.DalphaDt(),
                                        winTitle = "Cullen DalphaDt")
-        plots += [(cullAlphaPlot, "Noh-planar-Cullen-alpha.png"),
-                  (cullDalphaPlot, "Noh-planar-Cullen-DalphaDt.png")]
+        plots += [(cullAlphaPlot, "Noh-%s-Cullen-alpha.png" % problem),
+                  (cullDalphaPlot, "Noh-%s-Cullen-DalphaDt.png" % problem)]
 
     if boolReduceViscosity:
         alphaPlotQ = plotFieldList(q.reducingViscosityMultiplierQ(),
