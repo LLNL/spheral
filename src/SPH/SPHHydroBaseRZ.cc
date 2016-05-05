@@ -699,7 +699,8 @@ applyGhostBoundaries(State<Dim<2> >& state,
     const unsigned n = mass[nodeListi]->numElements();
     for (unsigned i = 0; i != n; ++i) {
       const Scalar circi = 2.0*M_PI*abs(pos(nodeListi, i).y());
-      mass(nodeListi, i) *= safeInvVar(circi);
+      CHECK(circi > 0.0);
+      mass(nodeListi, i) /= circi;
     }
   }
 
@@ -735,7 +736,8 @@ enforceBoundaries(State<Dim<2> >& state,
     const unsigned n = mass[nodeListi]->numInternalElements();
     for (unsigned i = 0; i != n; ++i) {
       const Scalar circi = 2.0*M_PI*abs(pos(nodeListi, i).y());
-      mass(nodeListi, i) *= safeInvVar(circi);
+      CHECK(circi > 0.0);
+      mass(nodeListi, i) /= circi;
     }
   }
 
