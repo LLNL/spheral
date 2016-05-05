@@ -22,14 +22,8 @@ commandLine(problem = "planar",     # one of (planar, cylindrical, spherical)
             KernelConstructor = NBSplineKernel,
             order = 5,
 
-            nr = 20,
-            nz = 100,
-
-            r0 = 0.0,
-            r1 = 0.2,
-            z0 = 0.0,
-            z1 = 1.0,
-            zwall = 0.0,
+            n1 = 100,
+            n2 = 20,
 
             nPerh = 1.35,
 
@@ -130,12 +124,6 @@ assert not(boolReduceViscosity and boolCullenViscosity)
 assert problem in ("planar", "cylindrical", "spherical")
 rho0 = 1.0
 eps0 = 0.0
-if problem == "planar":
-    vr0, vz0 = 0.0, -1.0
-elif problem == "cylindrical":
-    vr0, vz0 = -1.0, 0.0
-else:
-    vr0, vz0 = -1.0, -1.0
 
 if CRKSPH:
    if solid:
@@ -177,9 +165,6 @@ if vizTime is None and vizCycle is None:
     vizBaseName = None
 else:
     vizBaseName = "Noh-%s-RZ" % problem
-
-dr = (r1 - r0)/nr
-dz = (z1 - z0)/nz
 
 #-------------------------------------------------------------------------------
 # Check if the necessary output directories exist.  If not, create them.
@@ -241,6 +226,27 @@ output("nodes1.nodesPerSmoothingScale")
 #-------------------------------------------------------------------------------
 # Set the node properties.
 #-------------------------------------------------------------------------------
+if problem == "planar":
+    nz = n1
+    nr = n2
+    z0, z1 = 0.0, 1.0
+    r0, r1 = 5.0, 5.2
+    vz0 = -1.0
+    vr0 = 0.0
+elif problem == "cylindrical":
+    nz = n2
+    nr = n1
+    z0, z1 = 0.0, 0.2
+    r0, r1 = 0.0, 1.0
+    vz0 = 0.0
+    vr0 = -1.0
+else:
+    assert problem == "spherical"
+    nz = n1
+    nr = n2
+    z0, z1 = 0.0, 1.0
+    r0, r1 = 0.0, 1.0
+
 generator = GenerateNodeDistributionRZ(nz, nr, rho0, "lattice",
                                        xmin = (z0, r0),
                                        xmax = (z1, r1),
@@ -259,12 +265,12 @@ nodes1.massDensity(ScalarField("tmp", nodes1, rho0))
 # Set node velocities
 pos = nodes1.positions()
 vel = nodes1.velocity()
-for i in xrange(nodes1.numNodes):
-    vel[i].y = vr0
-    if pos[i].x > zwall:
-        vel[i].x = vz0
-    else:
-        vel[i].x = -vz0
+if problem == "spherical":
+    for i in xrange(nodes1.numNodes):
+        vel[i] = -1.0 * pos[i].unitVector()
+else:
+    for i in xrange(nodes1.numNodes):
+        vel[i] = Vector(vz0, vr0)
 
 #-------------------------------------------------------------------------------
 # Construct a DataBase to hold our node list
@@ -355,19 +361,21 @@ if bArtificialConduction:
 #-------------------------------------------------------------------------------
 # Create boundary conditions.
 #-------------------------------------------------------------------------------
-bcs = []
-if zwall == z0:
-    zPlaneWall = Plane(Vector(zwall, 0.0), Vector(1.0, 0.0))
-    bcs.append(ReflectingBoundary(zPlaneWall))
-
-if r0 != 0.0:
-    rPlane0 = Plane(Vector(0.0, r0), Vector(0.0, 1.0))
-    bcs.append(ReflectingBoundary(rPlane0))
-
-rPlane1 = Plane(Vector(0.0, r1), Vector(0.0, -1.0))
-zPlane1 = Plane(Vector(z1, 0.0), Vector(-1.0, 0.0))
-bcs.append(ReflectingBoundary(rPlane1))
-bcs.append(ReflectingBoundary(zPlane1))
+if problem == "planar":
+    bcs = [ReflectingBoundary(Plane(Vector(z0, r0), Vector( 1.0,  0.0))),
+           ReflectingBoundary(Plane(Vector(z1, r0), Vector(-1.0,  0.0))),
+           ReflectingBoundary(Plane(Vector(z0, r1), Vector( 0.0, -1.0)))]
+    if r0 != 0.0:
+        bcs.append(ReflectingBoundary(Plane(Vector(z0, r0), Vector( 0.0, 1.0))))
+elif problem == "cylindrical":
+    bcs = [ReflectingBoundary(Plane(Vector(z0, r0), Vector( 1.0,  0.0))),
+           ReflectingBoundary(Plane(Vector(z1, r0), Vector(-1.0,  0.0))),
+           ReflectingBoundary(Plane(Vector(z0, r1), Vector( 0.0, -1.0)))]
+else:
+    assert problem == "spherical"
+    bcs = [ReflectingBoundary(Plane(Vector(z0, r0), Vector( 1.0,  0.0))),
+           ReflectingBoundary(Plane(Vector(z1, r0), Vector(-1.0,  0.0))),
+           ReflectingBoundary(Plane(Vector(z0, r1), Vector( 0.0, -1.0)))]
 
 for bc in bcs:
     for p in packages:
@@ -428,21 +436,21 @@ import mpi
 import NohAnalyticSolution
 if problem == "planar":
     xprof = mpi.allreduce([x.x for x in nodes1.positions().internalValues()], mpi.SUM)
-    h1 = 1.0/(nPerh*dz)
+    h1 = 1.0/(nPerh/n1)
     answer = NohAnalyticSolution.NohSolution(1,
                                              r = xprof,
                                              v0 = -1.0,
                                              h0 = 1.0/h1)
 elif problem == "cylindrical":
     xprof = mpi.allreduce([x.y for x in nodes1.positions().internalValues()], mpi.SUM)
-    h1 = 1.0/(nPerh*dr)
+    h1 = 1.0/(nPerh/n1)
     answer = NohAnalyticSolution.NohSolution(2,
                                              r = xprof,
                                              v0 = -1.0,
                                              h0 = 1.0/h1)
 else:
     xprof = mpi.allreduce([x.magnitude() for x in nodes1.positions().internalValues()], mpi.SUM)
-    h1 = 1.0/(nPerh*dr)
+    h1 = 1.0/(nPerh/n1)
     answer = NohAnalyticSolution.NohSolution(3,
                                              r = xprof,
                                              v0 = -1.0,
