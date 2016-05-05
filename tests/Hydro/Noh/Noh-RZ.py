@@ -197,7 +197,7 @@ mpi.barrier()
 #-------------------------------------------------------------------------------
 # Material properties.
 #-------------------------------------------------------------------------------
-eos = GammaLawGasMKS(gamma, mu)
+eos = GammaLawGasMKS(gamma, mu, minimumPressure=0.0)
 strength = NullStrength()
 
 #-------------------------------------------------------------------------------
@@ -365,7 +365,9 @@ if r0 != 0.0:
     bcs.append(ReflectingBoundary(rPlane0))
 
 rPlane1 = Plane(Vector(0.0, r1), Vector(0.0, -1.0))
+zPlane1 = Plane(Vector(z1, 0.0), Vector(-1.0, 0.0))
 bcs.append(ReflectingBoundary(rPlane1))
+bcs.append(ReflectingBoundary(zPlane1))
 
 for bc in bcs:
     for p in packages:
