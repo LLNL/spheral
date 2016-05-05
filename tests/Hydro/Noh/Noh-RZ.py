@@ -114,7 +114,7 @@ commandLine(problem = "planar",     # one of (planar, cylindrical, spherical)
             clearDirectories = True,
             checkError = False,
             checkRestart = False,
-            checkEnergy = True,
+            checkEnergy = False,
             restoreCycle = None,
             restartStep = 10000,
             outputFile = "None",
@@ -649,7 +649,7 @@ if graphics:
 #     #                                                                             hD[0][1],hD[1][1],hD[2][1],hD[3][1],
 #     #                                                                             hD[0][2],hD[1][2],hD[2][2],hD[3][2])
 
-# Eerror = (control.conserve.EHistory[-1] - control.conserve.EHistory[0])/control.conserve.EHistory[0]
-# print "Total energy error: %g" % Eerror
-# if checkEnergy and abs(Eerror) > 1e-13:
-#     raise ValueError, "Energy error outside allowed bounds."
+Eerror = (control.conserve.EHistory[-1] - control.conserve.EHistory[0])/control.conserve.EHistory[0]
+print "Total energy error: %g" % Eerror
+if checkEnergy and abs(Eerror) > 1e-13:
+    raise ValueError, "Energy error outside allowed bounds."

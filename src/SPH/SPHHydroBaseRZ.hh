@@ -59,6 +59,11 @@ public:
   // Destructor.
   virtual ~SPHHydroBaseRZ();
 
+  // Register the state Hydro expects to use and evolve.
+  virtual 
+  void registerState(DataBaseSpace::DataBase<Dimension>& dataBase,
+                     State<Dimension>& state);
+
   // Evaluate the derivatives for the principle hydro variables:
   // mass density, velocity, and specific thermal energy.
   virtual

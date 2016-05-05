@@ -37,7 +37,7 @@
 #include "Hydro/VolumePolicy.hh"
 #include "Hydro/VoronoiMassDensityPolicy.hh"
 #include "Hydro/SumVoronoiMassDensityPolicy.hh"
-#include "Hydro/NonSymmetricSpecificThermalEnergyPolicy.hh"
+#include "Hydro/NonSymmetricSpecificThermalEnergyPolicyRZ.hh"
 #include "Hydro/SpecificFromTotalThermalEnergyPolicy.hh"
 #include "Hydro/PositionPolicy.hh"
 #include "Hydro/PressurePolicy.hh"
@@ -127,6 +127,28 @@ SPHHydroBaseRZ(const SmoothingScaleBase<Dim<2> >& smoothingScaleMethod,
 //------------------------------------------------------------------------------
 SPHHydroBaseRZ::
 ~SPHHydroBaseRZ() {
+}
+
+//------------------------------------------------------------------------------
+// Register the state we need/are going to evolve.
+//------------------------------------------------------------------------------
+void
+SPHHydroBaseRZ::
+registerState(DataBase<Dim<2> >& dataBase,
+              State<Dim<2> >& state) {
+
+  typedef State<Dimension>::PolicyPointer PolicyPointer;
+
+  // The base class does most of it.
+  SPHHydroBase<Dim<2> >::registerState(dataBase, state);
+
+  // Are we using the compatible energy evolution scheme?
+  // If so we need to override the ordinary energy registration with a specialized version.
+  if (mCompatibleEnergyEvolution) {
+    FieldList<Dimension, Scalar> specificThermalEnergy = dataBase.fluidSpecificThermalEnergy();
+    PolicyPointer thermalEnergyPolicy(new NonSymmetricSpecificThermalEnergyPolicyRZ(dataBase));
+    state.enroll(specificThermalEnergy, thermalEnergyPolicy);
+  }
 }
 
 //------------------------------------------------------------------------------
@@ -454,7 +476,7 @@ evaluateDerivatives(const Dim<2>::Scalar time,
               CHECK(rhoRZj > 0.0);
               const double Prhoi = f1i*Pi*ri*safeInv(rhoRZi*rhoRZi, 1.0e-10);
               const double Prhoj = f1j*Pj*rj*safeInv(rhoRZj*rhoRZj, 1.0e-10);
-              const Vector deltaDvDt = Prhoi*gradWi + Prhoj*gradWj + Qacci + Qaccj;
+              const Vector deltaDvDt = 2.0*M_PI*(Prhoi*gradWi + Prhoj*gradWj) + Qacci + Qaccj;
               DvDti -= mj*deltaDvDt;
               DvDtj += mi*deltaDvDt;
 
@@ -513,8 +535,9 @@ evaluateDerivatives(const Dim<2>::Scalar time,
 
       // Finish the acceleration, adding the hoop terms.
       // DvDti.y(DvDti.y() + 1.01525*Pi/rhoRZi - Pi*ri/(rhoRZi*f1i)*gradf1i);   // Fiddled with a magic number on the hoop stress term.
-      DvDti.y(DvDti.y() + Pi*safeInv(rhoRZi, 1.0e-10) - Pi*ri*safeInv(rhoRZi*f1i)*gradf1i);
-      DvDti *= 2.0*M_PI;
+      const Scalar deltaDvDtSelf = 2.0*M_PI*(Pi*safeInv(rhoRZi, 1.0e-10) - Pi*ri*safeInv(rhoRZi*f1i)*gradf1i);
+      DvDti.y(DvDti.y() + deltaDvDtSelf);
+      if (mCompatibleEnergyEvolution) pairAccelerationsi.push_back(Vector(0.0, deltaDvDtSelf));
 
       // Finish the specific thermal energy derivative.
       DepsDti -= 2.0*M_PI*Pi*vri*safeInv(rhoRZi, 1.0e-10);
