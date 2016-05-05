@@ -546,14 +546,14 @@ evaluateDerivatives(const Dim<2>::Scalar time,
       if (mEvolveTotalEnergy) DepsDti = mi*(vi.dot(DvDti) + DepsDti);
 
       // Finish the gradient of the velocity.
-      CHECK(rhoi > 0.0);
+      CHECK(rhoRZi > 0.0);
       if (this->mCorrectVelocityGradient and
           std::abs(Mi.Determinant()) > 1.0e-10 and
           numNeighborsi > Dimension::pownu(2)) {
         Mi = Mi.Inverse();
         DvDxi = DvDxi*Mi;
       } else {
-        DvDxi /= rhoi;
+        DvDxi /= rhoRZi;
       }
       if (this->mCorrectVelocityGradient and
           std::abs(localMi.Determinant()) > 1.0e-10 and
@@ -561,7 +561,7 @@ evaluateDerivatives(const Dim<2>::Scalar time,
         localMi = localMi.Inverse();
         localDvDxi = localDvDxi*localMi;
       } else {
-        localDvDxi /= rhoi;
+        localDvDxi /= rhoRZi;
       }
 
       // Evaluate the continuity equation.
