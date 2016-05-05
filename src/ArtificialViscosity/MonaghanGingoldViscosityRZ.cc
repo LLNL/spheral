@@ -18,6 +18,9 @@ namespace Spheral {
 namespace ArtificialViscositySpace {
 
 using namespace std;
+using std::abs;
+using std::min;
+using std::max;
 
 using DataOutput::Restart;
 using FieldSpace::Field;
