@@ -456,8 +456,8 @@ evaluateDerivatives(const Dim<2>::Scalar time,
               const pair<Tensor, Tensor> QPiij = Q.Piij(nodeListi, i, nodeListj, j,
                                                         posi, etai, vi, rhoRZi, ci, Hi,
                                                         posj, etaj, vj, rhoRZj, cj, Hj);
-              const Vector Qacci = 0.5*(QPiij.first *gradWQi);
-              const Vector Qaccj = 0.5*(QPiij.second*gradWQj);
+              const Vector Qacci = 0.5*(QPiij.first *gradWQi) * 2.0*M_PI*f1i*ri;
+              const Vector Qaccj = 0.5*(QPiij.second*gradWQj) * 2.0*M_PI*f1j*rj;
               // const Scalar workQi = 0.5*(QPiij.first *vij).dot(gradWQi);
               // const Scalar workQj = 0.5*(QPiij.second*vij).dot(gradWQj);
               const Scalar workQi = vij.dot(Qacci);
