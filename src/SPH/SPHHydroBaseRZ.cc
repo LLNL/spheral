@@ -563,7 +563,7 @@ evaluateDerivatives(const Dim<2>::Scalar time,
       }
 
       // Evaluate the continuity equation.
-      DrhoDti = -f1i*rhoi*DvDxi.Trace();
+      DrhoDti = -rhoi*(DvDxi.Trace() + vri/ri);
 
       // Complete the moments of the node distribution for use in the ideal H calculation.
       weightedNeighborSumi = Dimension::rootnu(max(0.0, weightedNeighborSumi/Hdeti));
