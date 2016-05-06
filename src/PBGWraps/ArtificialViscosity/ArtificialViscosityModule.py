@@ -42,7 +42,7 @@ self.VonNeumanViscosity%(dim)id = addObject(space, "VonNeumanViscosity%(dim)id",
 ''' % {"dim" : dim})
 
         if 2 in self.dims:
-            self.MonaghanGingoldViscosityRZ = addObject(space, "MonaghanGingoldViscosityRZ", allow_subclassing=True, parent=self.MonaghanGingoldViscosity2d)
+            self.MonaghanGingoldViscosityGSRZ = addObject(space, "MonaghanGingoldViscosityGSRZ", allow_subclassing=True, parent=self.MonaghanGingoldViscosity2d)
             
         return
 
@@ -65,7 +65,7 @@ self.addVonNeumanViscosityMethods(self.VonNeumanViscosity%(dim)id, %(dim)i)
 ''' % {"dim" : dim})
 
         if 2 in self.dims:
-            self.addMonaghanGingoldViscosityRZMethods()
+            self.addMonaghanGingoldViscosityGSRZMethods()
 
         return
 
@@ -184,11 +184,11 @@ self.addVonNeumanViscosityMethods(self.VonNeumanViscosity%(dim)id, %(dim)i)
         return
     
     #---------------------------------------------------------------------------
-    # Add methods to the MonaghanGingoldViscosityRZ.
+    # Add methods to the MonaghanGingoldViscosityGSRZ.
     #---------------------------------------------------------------------------
-    def addMonaghanGingoldViscosityRZMethods(self):
+    def addMonaghanGingoldViscosityGSRZMethods(self):
 
-        x = self.MonaghanGingoldViscosityRZ
+        x = self.MonaghanGingoldViscosityGSRZ
 
         # Constructors.
         x.add_constructor([param("double", "Clinear", default_value="1.0"),

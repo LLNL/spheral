@@ -36,7 +36,7 @@ self.PSPHHydroBase%(dim)id = addObject(self.space, "PSPHHydroBase%(dim)id", allo
 
         if 2 in dims:
             self.SPHHydroBaseRZ = addObject(self.space, "SPHHydroBaseRZ", allow_subclassing=True, parent=self.SPHHydroBase2d)
-            self.SPHHydroBaseAreaRZ = addObject(self.space, "SPHHydroBaseAreaRZ", allow_subclassing=True, parent=self.SPHHydroBase2d)
+            self.SPHHydroBaseGSRZ = addObject(self.space, "SPHHydroBaseGSRZ", allow_subclassing=True, parent=self.SPHHydroBase2d)
 
         return
 
@@ -54,7 +54,7 @@ self.generatePSPHHydroBaseBindings(self.PSPHHydroBase%(dim)id, %(dim)i)
 
         if 2 in self.dims:
             self.generateSPHHydroBaseRZBindings()
-            self.generateSPHHydroBaseAreaRZBindings()
+            self.generateSPHHydroBaseGSRZBindings()
 
         return
 
@@ -393,12 +393,12 @@ self.generatePSPHHydroBaseBindings(self.PSPHHydroBase%(dim)id, %(dim)i)
         return
 
     #---------------------------------------------------------------------------
-    # Bindings (SPHHydroBaseAreaRZ).
+    # Bindings (SPHHydroBaseGSRZ).
     #---------------------------------------------------------------------------
-    def generateSPHHydroBaseAreaRZBindings(self):
+    def generateSPHHydroBaseGSRZBindings(self):
 
         # Object names.
-        x = self.SPHHydroBaseAreaRZ
+        x = self.SPHHydroBaseGSRZ
         ndim = 2
         me = "Spheral::SPHSpace::SPHHydroBase%id" % ndim
         dim = "Spheral::Dim<%i>" % ndim
