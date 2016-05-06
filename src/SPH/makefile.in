@@ -27,7 +27,8 @@ PYTHONTARGETS = \
 # A few of our target files are only valid for certain dimensions.
 ifeq ("yes", "@INST2D@")
 SRCTARGETS += \
-	$(srcdir)/SPHHydroBaseRZ.cc
+	$(srcdir)/SPHHydroBaseRZ.cc \
+	$(srcdir)/SPHHydroBaseAreaRZ.cc
 PYTHONTARGETS += \
 	$(srcdir)/SPHHydrosRZ.py
 endif
