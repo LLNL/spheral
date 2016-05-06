@@ -303,9 +303,9 @@ class SpheralController(RestartableObject):
             # Do the periodic work.
             self.doPeriodicWork()
 
-        # Force the periodic work to fire at the end of an advance.
-        if maxSteps != 0:
-            self.doPeriodicWork(force=True)
+        # # Force the periodic work to fire at the end of an advance.
+        # if maxSteps != 0:
+        #     self.doPeriodicWork(force=True)
 
         db = self.integrator.dataBase()
         bcs = self.integrator.uniqueBoundaryConditions()
