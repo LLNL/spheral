@@ -146,7 +146,7 @@ else:
          HydroConstructor = SolidASPHHydroRZ
    else:
       if SPH:
-         HydroConstructor = SPHHydroAreaRZ
+         HydroConstructor = SPHHydroRZ
       else:
          HydroConstructor = ASPHHydroRZ
 

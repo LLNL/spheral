@@ -9,7 +9,7 @@ dims = spheralDimensions()
 assert 2 in dims
 
 #-------------------------------------------------------------------------------
-# The generic SPHHydroRZ pattern.
+# The area-weighted SPHHydroRZ objects.
 #-------------------------------------------------------------------------------
 SPHHydroRZFactoryString = """
 class %(classname)s(SPHHydroBaseRZ):
@@ -63,10 +63,10 @@ class %(classname)s(SPHHydroBaseRZ):
 """
 
 #-------------------------------------------------------------------------------
-# The generic SPHHydroAreaRZ pattern.
+# The Garcia-Senz SPHHydroGSRZ objects.
 #-------------------------------------------------------------------------------
-SPHHydroAreaRZFactoryString = """
-class %(classname)s(SPHHydroBaseAreaRZ):
+SPHHydroGSRZFactoryString = """
+class %(classname)s(SPHHydroBaseGSRZ):
 
     def __init__(self,
                  Q,
@@ -124,7 +124,7 @@ exec(SPHHydroRZFactoryString % {"classname"            : "SPHHydroRZ",
 exec(SPHHydroRZFactoryString % {"classname"            : "ASPHHydroRZ",
                                 "smoothingScaleMethod" : "ASPHSmoothingScale"})
 
-exec(SPHHydroAreaRZFactoryString % {"classname"            : "SPHHydroAreaRZ",
-                                    "smoothingScaleMethod" : "SPHSmoothingScale"})
-exec(SPHHydroAreaRZFactoryString % {"classname"            : "ASPHHydroAreaRZ",
-                                    "smoothingScaleMethod" : "ASPHSmoothingScale"})
+exec(SPHHydroGSRZFactoryString % {"classname"            : "SPHHydroGSRZ",
+                                  "smoothingScaleMethod" : "SPHSmoothingScale"})
+exec(SPHHydroGSRZFactoryString % {"classname"            : "ASPHHydroGSRZ",
+                                  "smoothingScaleMethod" : "ASPHSmoothingScale"})
