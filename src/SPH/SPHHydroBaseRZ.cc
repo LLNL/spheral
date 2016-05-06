@@ -190,9 +190,6 @@ evaluateDerivatives(const Dim<2>::Scalar time,
   const FieldList<Dimension, SymTensor> H = state.fields(HydroFieldNames::H, SymTensor::zero);
   const FieldList<Dimension, Scalar> pressure = state.fields(HydroFieldNames::pressure, 0.0);
   const FieldList<Dimension, Scalar> soundSpeed = state.fields(HydroFieldNames::soundSpeed, 0.0);
-  const FieldList<Dimension, Scalar> omega = state.fields(HydroFieldNames::omegaGradh, 0.0);
-
-
   CHECK(mass.size() == numNodeLists);
   CHECK(position.size() == numNodeLists);
   CHECK(velocity.size() == numNodeLists);
@@ -201,7 +198,6 @@ evaluateDerivatives(const Dim<2>::Scalar time,
   CHECK(H.size() == numNodeLists);
   CHECK(pressure.size() == numNodeLists);
   CHECK(soundSpeed.size() == numNodeLists);
-  CHECK(omega.size() == numNodeLists);
 
   // Derivative FieldLists.
   FieldList<Dimension, Scalar> rhoSum = derivatives.fields(ReplaceFieldList<Dimension, Scalar>::prefix() + HydroFieldNames::massDensity, 0.0);
@@ -502,7 +498,7 @@ evaluateDerivatives(const Dim<2>::Scalar time,
               }
 
               // Estimate of delta v (for XSPH).
-              if (mXSPH and (nodeListi == nodeListj)) {
+              if (nodeListi == nodeListj) {
                 const double fXSPH = max(0.0, min(1.0, abs(vij.dot(xij)*safeInv(vij.magnitude()*xij.magnitude()))));
                 CHECK(fXSPH >= 0.0 and fXSPH <= 1.0);
                 XSPHWeightSumi += fXSPH*mj*safeInv(rhoRZj, rhoTiny)*Wi;
@@ -573,13 +569,20 @@ evaluateDerivatives(const Dim<2>::Scalar time,
       massSecondMomenti /= Hdeti*Hdeti;
 
       // Determine the position evolution, based on whether we're doing XSPH or not.
+      XSPHWeightSumi += Hdeti*mi/rhoRZi*W0;
+      CHECK2(XSPHWeightSumi != 0.0, i << " " << XSPHWeightSumi);
       if (mXSPH) {
-        XSPHWeightSumi += Hdeti*mi/rhoRZi*W0;
-        CHECK2(XSPHWeightSumi != 0.0, i << " " << XSPHWeightSumi);
         DxDti = vi + XSPHDeltaVi/max(tiny, XSPHWeightSumi);
       } else {
-        DxDti = vi;
+        DxDti = f1i*vi + (1.0 - f1i)*(vi + XSPHDeltaVi/max(tiny, XSPHWeightSumi));
       }
+      // if (mXSPH) {
+      //   XSPHWeightSumi += Hdeti*mi/rhoRZi*W0;
+      //   CHECK2(XSPHWeightSumi != 0.0, i << " " << XSPHWeightSumi);
+      //   DxDti = vi + XSPHDeltaVi/max(tiny, XSPHWeightSumi);
+      // } else {
+      //   DxDti = vi;
+      // }
 
       // The H tensor evolution.
       DHDti = mSmoothingScaleMethod.smoothingScaleDerivative(Hi,
@@ -716,6 +719,7 @@ applyGhostBoundaries(State<Dim<2> >& state,
     const unsigned n = mass[nodeListi]->numElements();
     for (unsigned i = 0; i != n; ++i) {
       const Scalar circi = 2.0*M_PI*abs(pos(nodeListi, i).y());
+      CHECK(circi > 0.0);
       mass(nodeListi, i) *= circi;
     }
   }
@@ -753,12 +757,12 @@ enforceBoundaries(State<Dim<2> >& state,
     const Scalar nPerh = mass[nodeListi]->nodeList().nodesPerSmoothingScale();
     for (unsigned i = 0; i != n; ++i) {
       Vector& posi = pos(nodeListi, i);
-      const SymTensor& Hi = H(nodeListi, i);
-      const Scalar zetai = (Hi*posi).y();
-      const Scalar ri = posi.y();
-      const Scalar hrInvi = zetai*safeInvVar(ri);
-      const Scalar rmin = 0.5/(nPerh*hrInvi);
-      if (ri < rmin) posi.y(2.0*rmin - ri);
+      // const SymTensor& Hi = H(nodeListi, i);
+      // const Scalar zetai = (Hi*posi).y();
+      // const Scalar ri = posi.y();
+      // const Scalar hrInvi = zetai*safeInvVar(ri);
+      // const Scalar rmin = 0.5/(nPerh*hrInvi);
+      // if (ri < rmin) posi.y(2.0*rmin - ri);
       const Scalar circi = 2.0*M_PI*abs(posi.y());
       mass(nodeListi, i) *= circi;
     }
