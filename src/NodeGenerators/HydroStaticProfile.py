@@ -949,7 +949,7 @@ class EarthLikeProfileConstantTemp2d():
             
             #print "dy, dr, rho, y, r, K = {0:3.3e} {1:3.3e} {2:3.3e} {3:3.3e} {4:3.3e} {5:3.3e}".format(dy,dr,rho,y,r,K)
             
-            dy      = dr*(2.0/rho*y*y - 1.0/r*y - units.G/K*2.0*pi*pow(rho,3.0))
+            dy      = dr*(2.0/rho*y*y - 1.0/r*y - units.G/K*2.0*pi*pow(rho,2.0))
             #self.soln.append([r,rho])
             y       = y + dy
             rho     = rho - y*dr
@@ -1017,7 +1017,7 @@ class EarthLikeProfileConstantTemp2d():
             K       = Kf[0]
             
             #print "dy, dr, rho, y, r, Mt, K = {0:3.3e} {1:3.3e} {2:3.3e} {3:3.3e} {4:3.3e} {5:3.3e} {6:3.3e}".format(dy,dr,rho,y,r,Mt,K)
-            dy      = dr*(2.0/rho*y*y - 1.0/r*y - units.G/K*2.0*pi*pow(rho,3.0))
+            dy      = dr*(2.0/rho*y*y - 1.0/r*y - units.G/K*2.0*pi*pow(rho,2.0))
             #self.soln.append([r,rho])
             y       = y + dy
             rho     = rho + y*dr
