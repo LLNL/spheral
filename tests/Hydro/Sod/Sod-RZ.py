@@ -101,7 +101,7 @@ commandLine(problem = "planar",     # one of (planar, cylindrical, spherical)
             densityUpdate = RigorousSumDensity, # VolumeScaledDensity,
             compatibleEnergy = True,
             gradhCorrection = False,
-            correctVelocityGradient = False,
+            correctVelocityGradient = True,
             domainIndependent = False,
             cullGhostNodes = True,
             
