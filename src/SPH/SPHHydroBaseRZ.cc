@@ -534,6 +534,7 @@ evaluateDerivatives(const Dim<2>::Scalar time,
       // DvDti.y(DvDti.y() + 1.01525*Pi/rhoRZi - Pi*ri/(rhoRZi*f1i)*gradf1i);   // Fiddled with a magic number on the hoop stress term.
       const Scalar deltaDvDtSelf = 2.0*M_PI*(Pi*safeInv(rhoRZi, rhoTiny) - Pi*ri*safeInv(rhoRZi*f1i, rhoTiny)*gradf1i);
       DvDti.y(DvDti.y() + deltaDvDtSelf);
+      // DvDti.y(f1i*f1i*DvDti.y() - 0.5*(1.0 - f1i*f1i)*vri*safeInv(dt));
       if (mCompatibleEnergyEvolution) pairAccelerationsi.push_back(Vector(0.0, deltaDvDtSelf));
 
       // Finish the specific thermal energy derivative.
@@ -574,7 +575,7 @@ evaluateDerivatives(const Dim<2>::Scalar time,
       if (mXSPH) {
         DxDti = vi + XSPHDeltaVi/max(tiny, XSPHWeightSumi);
       } else {
-        DxDti = f1i*vi + (1.0 - f1i)*(vi + XSPHDeltaVi/max(tiny, XSPHWeightSumi));
+        DxDti = f1i*f1i*vi + (1.0 - f1i*f1i)*(vi + XSPHDeltaVi/max(tiny, XSPHWeightSumi));
       }
       // if (mXSPH) {
       //   XSPHWeightSumi += Hdeti*mi/rhoRZi*W0;
@@ -757,12 +758,12 @@ enforceBoundaries(State<Dim<2> >& state,
     const Scalar nPerh = mass[nodeListi]->nodeList().nodesPerSmoothingScale();
     for (unsigned i = 0; i != n; ++i) {
       Vector& posi = pos(nodeListi, i);
-      // const SymTensor& Hi = H(nodeListi, i);
-      // const Scalar zetai = (Hi*posi).y();
-      // const Scalar ri = posi.y();
-      // const Scalar hrInvi = zetai*safeInvVar(ri);
-      // const Scalar rmin = 0.5/(nPerh*hrInvi);
-      // if (ri < rmin) posi.y(2.0*rmin - ri);
+      const SymTensor& Hi = H(nodeListi, i);
+      const Scalar zetai = (Hi*posi).y();
+      const Scalar ri = posi.y();
+      const Scalar hrInvi = zetai*safeInvVar(ri);
+      const Scalar rmin = 0.5/(nPerh*hrInvi);
+      if (ri < rmin) posi.y(2.0*rmin - ri);
       const Scalar circi = 2.0*M_PI*abs(posi.y());
       mass(nodeListi, i) *= circi;
     }
