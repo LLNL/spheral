@@ -50,9 +50,11 @@ def dumpPhysicsState(stateThingy,
         integrator = stateThingy
         dataBase = integrator.dataBase()
         state = eval("State%id(integrator.dataBase(), integrator.physicsPackages())" % integrator.dataBase().nDim)
-        derivs = None
-        if dumpDerivatives:
-            derivs = eval("StateDerivatives%id(integrator.dataBase(), integrator.physicsPackages())" % integrator.dataBase().nDim)
+        derivs = eval("StateDerivatives%id(integrator.dataBase(), integrator.physicsPackages())" % integrator.dataBase().nDim)
+        if dumpGhosts:
+            integrator.setGhostNodes()
+            integrator.applyGhostBoundaries(state, derivs)
+            integrator.finalizeGhostBoundaries()
         currentTime = integrator.currentTime
         currentCycle = integrator.currentCycle
     elif isinstance(stateThingy, eval("State%s" % dim)):
