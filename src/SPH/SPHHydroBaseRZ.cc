@@ -731,7 +731,7 @@ enforceBoundaries(State<Dim<2> >& state,
 
   // Convert the mass to mass/length before BCs are applied.
   FieldList<Dimension, Scalar> mass = state.fields(HydroFieldNames::mass, 0.0);
-  const FieldList<Dimension, Vector> pos = state.fields(HydroFieldNames::position, Vector::zero);
+  FieldList<Dimension, Vector> pos = state.fields(HydroFieldNames::position, Vector::zero);
   const unsigned numNodeLists = mass.numFields();
   for (unsigned nodeListi = 0; nodeListi != numNodeLists; ++nodeListi) {
     const unsigned n = mass[nodeListi]->numInternalElements();
@@ -746,10 +746,20 @@ enforceBoundaries(State<Dim<2> >& state,
   SPHHydroBase<Dim<2> >::enforceBoundaries(state, derivs);
 
   // Scale back to mass.
+  // We also ensure no point approaches the z-axis too closely.
+  FieldList<Dimension, SymTensor> H = state.fields(HydroFieldNames::H, SymTensor::zero);
   for (unsigned nodeListi = 0; nodeListi != numNodeLists; ++nodeListi) {
     const unsigned n = mass[nodeListi]->numInternalElements();
+    const Scalar nPerh = mass[nodeListi]->nodeList().nodesPerSmoothingScale();
     for (unsigned i = 0; i != n; ++i) {
-      const Scalar circi = 2.0*M_PI*abs(pos(nodeListi, i).y());
+      Vector& posi = pos(nodeListi, i);
+      const SymTensor& Hi = H(nodeListi, i);
+      const Scalar zetai = (Hi*posi).y();
+      const Scalar ri = posi.y();
+      const Scalar hrInvi = zetai*safeInvVar(ri);
+      const Scalar rmin = 0.5/(nPerh*hrInvi);
+      if (ri < rmin) posi.y(2.0*rmin - ri);
+      const Scalar circi = 2.0*M_PI*abs(posi.y());
       mass(nodeListi, i) *= circi;
     }
   }
