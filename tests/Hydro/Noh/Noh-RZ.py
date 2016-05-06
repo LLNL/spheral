@@ -231,6 +231,7 @@ if problem == "planar":
     nr = n2
     z0, z1 = 0.0, 1.0
     r0, r1 = 0.0, 0.2
+    rmin, rmax = None, None
     vz0 = -1.0
     vr0 = 0.0
 elif problem == "cylindrical":
@@ -238,18 +239,22 @@ elif problem == "cylindrical":
     nr = n1
     z0, z1 = 0.0, 0.2
     r0, r1 = 0.0, 1.0
+    rmin, rmax = None, None
     vz0 = 0.0
     vr0 = -1.0
 else:
     assert problem == "spherical"
     nz = n1
-    nr = n2
+    nr = n1
+    rmin, rmax = 0.0, 1.0
     z0, z1 = 0.0, 1.0
     r0, r1 = 0.0, 1.0
 
 generator = GenerateNodeDistributionRZ(nz, nr, rho0, "lattice",
                                        xmin = (z0, r0),
                                        xmax = (z1, r1),
+                                       rmin = rmin,
+                                       rmax = rmax,
                                        nNodePerh = nPerh,
                                        SPH = SPH)
 
