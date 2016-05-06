@@ -98,7 +98,7 @@ commandLine(problem = "planar",     # one of (planar, cylindrical, spherical)
             densityUpdate = RigorousSumDensity, # VolumeScaledDensity,
             compatibleEnergy = True,
             gradhCorrection = False,
-            correctVelocityGradient = False,
+            correctVelocityGradient = True,
             domainIndependent = False,
             cullGhostNodes = True,
             
@@ -230,7 +230,7 @@ if problem == "planar":
     nz = n1
     nr = n2
     z0, z1 = 0.0, 1.0
-    r0, r1 = 5.0, 5.2
+    r0, r1 = 0.0, 0.2
     vz0 = -1.0
     vr0 = 0.0
 elif problem == "cylindrical":
