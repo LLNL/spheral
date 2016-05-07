@@ -12,15 +12,15 @@
 // 
 // Created by JMO, Mon Nov 20 15:50:29 PST 2006
 //----------------------------------------------------------------------------//
-#ifndef __Spheral_MonaghanGingoldViscosityRZ_hh__
-#define __Spheral_MonaghanGingoldViscosityRZ_hh__
+#ifndef __Spheral_MonaghanGingoldViscosityGSRZ_hh__
+#define __Spheral_MonaghanGingoldViscosityGSRZ_hh__
 
 #include "MonaghanGingoldViscosity.hh"
 
 namespace Spheral {
 namespace ArtificialViscositySpace {
 
-class MonaghanGingoldViscosityRZ: public MonaghanGingoldViscosity<Dim<2> > {
+class MonaghanGingoldViscosityGSRZ: public MonaghanGingoldViscosity<Dim<2> > {
 public:
   //--------------------------- Public Interface ---------------------------//
   typedef Dim<2> Dimension;
@@ -30,13 +30,13 @@ public:
   typedef Dimension::SymTensor SymTensor;
 
   // Constructors.
-  MonaghanGingoldViscosityRZ(const Scalar Clinear,
-                             const Scalar Cquadratic,
-                             const bool linearInExpansion,
-                             const bool quadraticInExpansion);
+  MonaghanGingoldViscosityGSRZ(const Scalar Clinear,
+                               const Scalar Cquadratic,
+                               const bool linearInExpansion,
+                               const bool quadraticInExpansion);
 
   // Destructor.
-  virtual ~MonaghanGingoldViscosityRZ();
+  virtual ~MonaghanGingoldViscosityGSRZ();
 
   // The required method to compute the artificial viscous P/rho^2.
   virtual std::pair<Tensor, Tensor> Piij(const unsigned nodeListi, const unsigned i, 
@@ -55,11 +55,11 @@ public:
                                          const SymTensor& Hj) const;
 
   // Restart methods.
-  virtual std::string label() const { return "MonaghanGingoldViscosityRZ"; }
+  virtual std::string label() const { return "MonaghanGingoldViscosityGSRZ"; }
 
 private:
   //--------------------------- Private Interface ---------------------------//
-  MonaghanGingoldViscosityRZ();
+  MonaghanGingoldViscosityGSRZ();
 };
 
 }
@@ -70,7 +70,7 @@ private:
 // Forward declaration.
 namespace Spheral {
   namespace ArtificialViscositySpace {
-    class MonaghanGingoldViscosityRZ;
+    class MonaghanGingoldViscosityGSRZ;
   }
 }
 

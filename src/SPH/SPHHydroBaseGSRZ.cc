@@ -1,5 +1,5 @@
 //---------------------------------Spheral++----------------------------------//
-// SPHHydroBaseRZ -- The SPH/ASPH hydrodynamic package for Spheral++,
+// SPHHydroBaseGSRZ -- The SPH/ASPH hydrodynamic package for Spheral++,
 //                   specialized for 2D RZ (cylindrical) geometry.
 //
 // Based on the methodology described in the dissertation
@@ -19,7 +19,7 @@
 #include <map>
 #include <vector>
 
-#include "SPHHydroBaseRZ.hh"
+#include "SPHHydroBaseGSRZ.hh"
 #include "computeSumVoronoiCellMassDensity.hh"
 #include "computeSPHOmegaGradhCorrection.hh"
 #include "NodeList/SmoothingScaleBase.hh"
@@ -81,8 +81,8 @@ using PhysicsSpace::HEvolutionType;
 //------------------------------------------------------------------------------
 // Construct with the given artificial viscosity and kernels.
 //------------------------------------------------------------------------------
-SPHHydroBaseRZ::
-SPHHydroBaseRZ(const SmoothingScaleBase<Dim<2> >& smoothingScaleMethod,
+SPHHydroBaseGSRZ::
+SPHHydroBaseGSRZ(const SmoothingScaleBase<Dim<2> >& smoothingScaleMethod,
                ArtificialViscosity<Dim<2> >& Q,
                const TableKernel<Dim<2> >& W,
                const TableKernel<Dim<2> >& WPi,
@@ -125,15 +125,15 @@ SPHHydroBaseRZ(const SmoothingScaleBase<Dim<2> >& smoothingScaleMethod,
 //------------------------------------------------------------------------------
 // Destructor
 //------------------------------------------------------------------------------
-SPHHydroBaseRZ::
-~SPHHydroBaseRZ() {
+SPHHydroBaseGSRZ::
+~SPHHydroBaseGSRZ() {
 }
 
 //------------------------------------------------------------------------------
 // Register the state we need/are going to evolve.
 //------------------------------------------------------------------------------
 void
-SPHHydroBaseRZ::
+SPHHydroBaseGSRZ::
 registerState(DataBase<Dim<2> >& dataBase,
               State<Dim<2> >& state) {
 
@@ -155,7 +155,7 @@ registerState(DataBase<Dim<2> >& dataBase,
 // Determine the principle derivatives.
 //------------------------------------------------------------------------------
 void
-SPHHydroBaseRZ::
+SPHHydroBaseGSRZ::
 evaluateDerivatives(const Dim<2>::Scalar time,
                     const Dim<2>::Scalar dt,
                     const DataBase<Dim<2> >& dataBase,
@@ -636,7 +636,7 @@ evaluateDerivatives(const Dim<2>::Scalar time,
 // Finalize the hydro.
 //------------------------------------------------------------------------------
 void
-SPHHydroBaseRZ::
+SPHHydroBaseGSRZ::
 finalize(const Dim<2>::Scalar time,
          const Dim<2>::Scalar dt,
          DataBase<Dim<2> >& dataBase,
@@ -692,7 +692,7 @@ finalize(const Dim<2>::Scalar time,
 // Apply the ghost boundary conditions for hydro state fields.
 //------------------------------------------------------------------------------
 void
-SPHHydroBaseRZ::
+SPHHydroBaseGSRZ::
 applyGhostBoundaries(State<Dim<2> >& state,
                      StateDerivatives<Dim<2> >& derivs) {
 
@@ -730,7 +730,7 @@ applyGhostBoundaries(State<Dim<2> >& state,
 // Enforce the boundary conditions for hydro state fields.
 //------------------------------------------------------------------------------
 void
-SPHHydroBaseRZ::
+SPHHydroBaseGSRZ::
 enforceBoundaries(State<Dim<2> >& state,
                   StateDerivatives<Dim<2> >& derivs) {
 

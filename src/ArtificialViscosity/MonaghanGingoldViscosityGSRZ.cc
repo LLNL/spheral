@@ -1,7 +1,7 @@
 //---------------------------------Spheral++----------------------------------//
 // A simple form for the artificial viscosity due to Monaghan & Gingold.
 //----------------------------------------------------------------------------//
-#include "MonaghanGingoldViscosityRZ.hh"
+#include "MonaghanGingoldViscosityGSRZ.hh"
 #include "DataOutput/Restart.hh"
 #include "Field/FieldList.hh"
 #include "DataBase/DataBase.hh"
@@ -37,11 +37,11 @@ using KernelSpace::TableKernel;
 //------------------------------------------------------------------------------
 // Construct with the given value for the linear and quadratic coefficients.
 //------------------------------------------------------------------------------
-MonaghanGingoldViscosityRZ::
-MonaghanGingoldViscosityRZ(const Scalar Clinear,
-                           const Scalar Cquadratic,
-                           const bool linearInExpansion,
-                           const bool quadraticInExpansion):
+MonaghanGingoldViscosityGSRZ::
+MonaghanGingoldViscosityGSRZ(const Scalar Clinear,
+                             const Scalar Cquadratic,
+                             const bool linearInExpansion,
+                             const bool quadraticInExpansion):
   MonaghanGingoldViscosity<Dim<2> >(Clinear,
                                     Cquadratic,
                                     linearInExpansion,
@@ -51,8 +51,8 @@ MonaghanGingoldViscosityRZ(const Scalar Clinear,
 //------------------------------------------------------------------------------
 // Destructor.
 //------------------------------------------------------------------------------
-MonaghanGingoldViscosityRZ::
-~MonaghanGingoldViscosityRZ() {
+MonaghanGingoldViscosityGSRZ::
+~MonaghanGingoldViscosityGSRZ() {
 }
 
 //------------------------------------------------------------------------------
@@ -60,7 +60,7 @@ MonaghanGingoldViscosityRZ::
 //------------------------------------------------------------------------------
 pair<Dim<2>::Tensor,
      Dim<2>::Tensor>
-MonaghanGingoldViscosityRZ::
+MonaghanGingoldViscosityGSRZ::
 Piij(const unsigned nodeListi, const unsigned i, 
      const unsigned nodeListj, const unsigned j,
      const Vector& xi,
