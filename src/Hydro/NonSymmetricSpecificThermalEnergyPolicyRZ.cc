@@ -49,9 +49,9 @@ entropyWeighting(const double si,
                  const double sj,
                  const double duij) {
   double result = 0.5;
-  if (abs(duij) > 1.0e-15 and abs(si - sj) > 1.0e-15) {
-    const double smin = min(abs(si), abs(sj));
-    const double smax = max(abs(si), abs(sj));
+  const double smin = min(abs(si), abs(sj));
+  const double smax = max(abs(si), abs(sj));
+  if (smax > 1.0e-15) {
     CHECK(smin + smax > 1.0e-15);
     if (duij > 0.0) {    // Heating
       if (si > sj) {
@@ -198,7 +198,11 @@ update(const KeyType& key,
 
               CHECK(wi >= 0.0 and wi <= 1.0);
               CHECK2(fuzzyEqual(wi + entropyWeighting(sj, si, dEij/mj), 1.0, 1.0e-10),
-                     wi << " " << entropyWeighting(sj, si, dEij/mj) << " " << (wi + entropyWeighting(sj, si, dEij/mj)));
+                     wi << " "
+                     << entropyWeighting(si, sj, duij) << " "
+                     << entropyWeighting(sj, si, dEij/mj) << " "
+                     << (wi + entropyWeighting(sj, si, dEij/mj)) << " "
+                     << si << " " << sj << " " << duij);
               DepsDti += wi*duij;
               DepsDtj += (1.0 - wi)*dEij/mj;
             }

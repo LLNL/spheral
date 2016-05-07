@@ -90,26 +90,26 @@ class %(classname)s(SPHHydroBaseGSRZ):
         self._smoothingScaleMethod = %(smoothingScaleMethod)s2d()
         if WPi is None:
             WPi = W
-        SPHHydroBaseAreaRZ.__init__(self,
-                                    self._smoothingScaleMethod,
-                                    Q,
-                                    W,
-                                    WPi,
-                                    filter,
-                                    cfl,
-                                    useVelocityMagnitudeForDt,
-                                    compatibleEnergyEvolution,
-                                    evolveTotalEnergy,
-                                    gradhCorrection,
-                                    XSPH,
-                                    correctVelocityGradient,
-                                    sumMassDensityOverAllNodeLists,
-                                    densityUpdate,
-                                    HUpdate,
-                                    epsTensile,
-                                    nTensile,
-                                    xmin,
-                                    xmax)
+        SPHHydroBaseGSRZ.__init__(self,
+                                  self._smoothingScaleMethod,
+                                  Q,
+                                  W,
+                                  WPi,
+                                  filter,
+                                  cfl,
+                                  useVelocityMagnitudeForDt,
+                                  compatibleEnergyEvolution,
+                                  evolveTotalEnergy,
+                                  gradhCorrection,
+                                  XSPH,
+                                  correctVelocityGradient,
+                                  sumMassDensityOverAllNodeLists,
+                                  densityUpdate,
+                                  HUpdate,
+                                  epsTensile,
+                                  nTensile,
+                                  xmin,
+                                  xmax)
         self.zaxisPlane = Plane2d(Vector2d(0.0, 0.0), Vector2d(0.0, 1.0))
         self.zaxisBC = ReflectingBoundary2d(self.zaxisPlane)
         self.appendBoundary(self.zaxisBC)

@@ -168,9 +168,9 @@ entropyWeighting(const double si,
                  const double sj,
                  const double duij) {
   double result = 0.5;
-  if (abs(duij) > 1.0e-15 and abs(si - sj) > 1.0e-15) {
-    const double smin = min(abs(si), abs(sj));
-    const double smax = max(abs(si), abs(sj));
+  const double smin = min(abs(si), abs(sj));
+  const double smax = max(abs(si), abs(sj));
+  if (smax > 1.0e-15) {
     CHECK(smin + smax > 1.0e-15);
     if (duij > 0.0) {    // Heating
       if (si > sj) {
