@@ -1,6 +1,6 @@
 //---------------------------------Spheral++----------------------------------//
-// SPHHydroBaseAreaRZ -- An SPH/ASPH hydrodynamic package for Spheral++,
-//                       specialized for 2D RZ (cylindrical) geometry.
+// SPHHydroBaseRZ -- An SPH/ASPH hydrodynamic package for Spheral++,
+//                   specialized for 2D RZ (cylindrical) geometry.
 //
 // This RZ version is a naive area-weighting implementation, nothing as
 // highfalutin as the Garcia-Senz approach.
@@ -10,8 +10,8 @@
 //
 // Created by JMO, Fri May  6 16:18:36 PDT 2016
 //----------------------------------------------------------------------------//
-#ifndef __Spheral_SPHHydroBaseAreaRZ_hh__
-#define __Spheral_SPHHydroBaseAreaRZ_hh__
+#ifndef __Spheral_SPHHydroBaseRZ_hh__
+#define __Spheral_SPHHydroBaseRZ_hh__
 
 #include <string>
 
@@ -21,7 +21,7 @@
 namespace Spheral {
 namespace SPHSpace {
 
-class SPHHydroBaseAreaRZ: public SPHHydroBase<Dim<2> > {
+class SPHHydroBaseRZ: public SPHHydroBase<Dim<2> > {
 
 public:
   //--------------------------- Public Interface ---------------------------//
@@ -34,7 +34,7 @@ public:
   typedef PhysicsSpace::Physics<Dimension>::ConstBoundaryIterator ConstBoundaryIterator;
 
   // Constructors.
-  SPHHydroBaseAreaRZ(const NodeSpace::SmoothingScaleBase<Dimension>& smoothingScaleMethod,
+  SPHHydroBaseRZ(const NodeSpace::SmoothingScaleBase<Dimension>& smoothingScaleMethod,
                      ArtificialViscositySpace::ArtificialViscosity<Dimension>& Q,
                      const KernelSpace::TableKernel<Dimension>& W,
                      const KernelSpace::TableKernel<Dimension>& WPi,
@@ -55,7 +55,7 @@ public:
                      const Vector& xmax);
 
   // Destructor.
-  virtual ~SPHHydroBaseAreaRZ();
+  virtual ~SPHHydroBaseRZ();
 
   // Register the state Hydro expects to use and evolve.
   virtual 
@@ -91,15 +91,15 @@ public:
                
   //****************************************************************************
   // Methods required for restarting.
-  virtual std::string label() const { return "SPHHydroBaseAreaRZ"; }
+  virtual std::string label() const { return "SPHHydroBaseRZ"; }
   //****************************************************************************
 
 private:
   //--------------------------- Private Interface ---------------------------//
   // No default constructor, copying, or assignment.
-  SPHHydroBaseAreaRZ();
-  SPHHydroBaseAreaRZ(const SPHHydroBaseAreaRZ&);
-  SPHHydroBaseAreaRZ& operator=(const SPHHydroBaseAreaRZ&);
+  SPHHydroBaseRZ();
+  SPHHydroBaseRZ(const SPHHydroBaseRZ&);
+  SPHHydroBaseRZ& operator=(const SPHHydroBaseRZ&);
 };
 
 }
@@ -110,7 +110,7 @@ private:
 // Forward declaration.
 namespace Spheral {
   namespace SPHSpace {
-    class SPHHydroBaseAreaRZ;
+    class SPHHydroBaseRZ;
   }
 }
 

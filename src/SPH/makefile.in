@@ -28,7 +28,7 @@ PYTHONTARGETS = \
 ifeq ("yes", "@INST2D@")
 SRCTARGETS += \
 	$(srcdir)/SPHHydroBaseRZ.cc \
-	$(srcdir)/SPHHydroBaseAreaRZ.cc
+	$(srcdir)/SPHHydroBaseGSRZ.cc
 PYTHONTARGETS += \
 	$(srcdir)/SPHHydrosRZ.py
 endif

@@ -1,6 +1,6 @@
 //---------------------------------Spheral++----------------------------------//
-// SPHHydroBaseRZ -- The SPH/ASPH hydrodynamic package for Spheral++,
-//                   specialized for 2D RZ (cylindrical) geometry.
+// SPHHydroBaseGSRZ -- The SPH/ASPH hydrodynamic package for Spheral++,
+//                     specialized for 2D RZ (cylindrical) geometry.
 //
 // Based on the methodology described in the dissertation
 // de Catalunya Departament de Física i Enginyeria Nuclear, U. P., García Senz, D., (2012).
@@ -12,8 +12,8 @@
 //
 // Created by JMO, Tue Apr 26 16:06:21 PDT 2016
 //----------------------------------------------------------------------------//
-#ifndef __Spheral_SPHHydroBaseRZ_hh__
-#define __Spheral_SPHHydroBaseRZ_hh__
+#ifndef __Spheral_SPHHydroBaseGSRZ_hh__
+#define __Spheral_SPHHydroBaseGSRZ_hh__
 
 #include <string>
 
@@ -23,7 +23,7 @@
 namespace Spheral {
 namespace SPHSpace {
 
-class SPHHydroBaseRZ: public SPHHydroBase<Dim<2> > {
+class SPHHydroBaseGSRZ: public SPHHydroBase<Dim<2> > {
 
 public:
   //--------------------------- Public Interface ---------------------------//
@@ -36,28 +36,28 @@ public:
   typedef PhysicsSpace::Physics<Dimension>::ConstBoundaryIterator ConstBoundaryIterator;
 
   // Constructors.
-  SPHHydroBaseRZ(const NodeSpace::SmoothingScaleBase<Dimension>& smoothingScaleMethod,
-                 ArtificialViscositySpace::ArtificialViscosity<Dimension>& Q,
-                 const KernelSpace::TableKernel<Dimension>& W,
-                 const KernelSpace::TableKernel<Dimension>& WPi,
-                 const double filter,
-                 const double cfl,
-                 const bool useVelocityMagnitudeForDt,
-                 const bool compatibleEnergyEvolution,
-                 const bool evolveTotalEnergy,
-                 const bool gradhCorrection,
-                 const bool XSPH,
-                 const bool correctVelocityGradient,
-                 const bool sumMassDensityOverAllNodeLists,
-                 const PhysicsSpace::MassDensityType densityUpdate,
-                 const PhysicsSpace::HEvolutionType HUpdate,
-                 const double epsTensile,
-                 const double nTensile,
-                 const Vector& xmin,
-                 const Vector& xmax);
+  SPHHydroBaseGSRZ(const NodeSpace::SmoothingScaleBase<Dimension>& smoothingScaleMethod,
+                   ArtificialViscositySpace::ArtificialViscosity<Dimension>& Q,
+                   const KernelSpace::TableKernel<Dimension>& W,
+                   const KernelSpace::TableKernel<Dimension>& WPi,
+                   const double filter,
+                   const double cfl,
+                   const bool useVelocityMagnitudeForDt,
+                   const bool compatibleEnergyEvolution,
+                   const bool evolveTotalEnergy,
+                   const bool gradhCorrection,
+                   const bool XSPH,
+                   const bool correctVelocityGradient,
+                   const bool sumMassDensityOverAllNodeLists,
+                   const PhysicsSpace::MassDensityType densityUpdate,
+                   const PhysicsSpace::HEvolutionType HUpdate,
+                   const double epsTensile,
+                   const double nTensile,
+                   const Vector& xmin,
+                   const Vector& xmax);
 
   // Destructor.
-  virtual ~SPHHydroBaseRZ();
+  virtual ~SPHHydroBaseGSRZ();
 
   // Register the state Hydro expects to use and evolve.
   virtual 
@@ -93,15 +93,15 @@ public:
                
   //****************************************************************************
   // Methods required for restarting.
-  virtual std::string label() const { return "SPHHydroBaseRZ"; }
+  virtual std::string label() const { return "SPHHydroBaseGSRZ"; }
   //****************************************************************************
 
 private:
   //--------------------------- Private Interface ---------------------------//
   // No default constructor, copying, or assignment.
-  SPHHydroBaseRZ();
-  SPHHydroBaseRZ(const SPHHydroBaseRZ&);
-  SPHHydroBaseRZ& operator=(const SPHHydroBaseRZ&);
+  SPHHydroBaseGSRZ();
+  SPHHydroBaseGSRZ(const SPHHydroBaseGSRZ&);
+  SPHHydroBaseGSRZ& operator=(const SPHHydroBaseGSRZ&);
 };
 
 }
@@ -112,7 +112,7 @@ private:
 // Forward declaration.
 namespace Spheral {
   namespace SPHSpace {
-    class SPHHydroBaseRZ;
+    class SPHHydroBaseGSRZ;
   }
 }
 

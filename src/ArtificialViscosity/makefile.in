@@ -25,7 +25,7 @@ SRCTARGETS =
 
 ifeq ("yes", "@INST2D@")
 SRCTARGETS += \
-	$(srcdir)/MonaghanGingoldViscosityRZ.cc
+	$(srcdir)/MonaghanGingoldViscosityGSRZ.cc
 endif
 
 #-------------------------------------------------------------------------------
