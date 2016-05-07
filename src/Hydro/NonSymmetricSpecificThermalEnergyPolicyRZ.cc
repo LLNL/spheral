@@ -191,17 +191,17 @@ update(const KeyType& key,
 
               const Scalar dEij = -(mi*vi12.dot(pai) + mj*vj12.dot(paj));
               const Scalar duij = dEij/mi;
-              const Scalar wi = entropyWeighting(si, sj, duij);
+              const Scalar wi = entropyWeighting(mi*si, mj*sj, duij);
               // const Scalar wi = standardWeighting(ui, uj, mi, mj, duij)
               // const Scalar wi = PoverRho2Weighting(Pi, rhoi, Pj, rhoj);
               // const Scalar wi = weighting(ui, uj, mi, mj, duij, dt);
 
               CHECK(wi >= 0.0 and wi <= 1.0);
-              CHECK2(fuzzyEqual(wi + entropyWeighting(sj, si, dEij/mj), 1.0, 1.0e-10),
+              CHECK2(fuzzyEqual(wi + entropyWeighting(mj*sj, mi*si, dEij/mj), 1.0, 1.0e-10),
                      wi << " "
-                     << entropyWeighting(si, sj, duij) << " "
-                     << entropyWeighting(sj, si, dEij/mj) << " "
-                     << (wi + entropyWeighting(sj, si, dEij/mj)) << " "
+                     << entropyWeighting(mi*si, mj*sj, duij) << " "
+                     << entropyWeighting(mj*sj, mi*si, dEij/mj) << " "
+                     << (wi + entropyWeighting(mj*sj, mi*si, dEij/mj)) << " "
                      << si << " " << sj << " " << duij);
               DepsDti += wi*duij;
               DepsDtj += (1.0 - wi)*dEij/mj;
