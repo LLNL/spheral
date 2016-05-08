@@ -109,15 +109,16 @@ commandLine(problem = "planar",     # one of (planar, cylindrical, spherical)
             checkError = False,
             checkRestart = False,
             checkEnergy = False,
-            restoreCycle = None,
+            restoreCycle = -1,
             restartStep = 10000,
-            outputFile = "None",
             comparisonFile = "None",
             normOutputFile = "None",
             writeOutputLabel = True,
 
             graphics = True,
             )
+
+outputFile = "Noh-%s-RZ.gnu" % problem
 
 assert not(boolReduceViscosity and boolCullenViscosity)
    
@@ -475,10 +476,10 @@ L1 = 0.0
 for i in xrange(len(rho)):
     L1 = L1 + abs(rho[i]-rhoans[i])
 L1_tot = L1 / len(rho)
-if mpi.rank == 0 and outputFile != "None":
-    print "L1=",L1_tot,"\n"
-    with open("Converge.txt", "a") as myfile:
-        myfile.write("%s %s\n" % (nz, L1_tot))
+# if mpi.rank == 0 and outputFile != "None":
+#     print "L1=",L1_tot,"\n"
+#     with open("Converge.txt", "a") as myfile:
+#         myfile.write("%s %s\n" % (nz, L1_tot))
 
 #-------------------------------------------------------------------------------
 # Plot the final state.
@@ -542,63 +543,64 @@ if graphics:
         p.hardcopy(os.path.join(dataDir, filename), terminal="png")
 
 
-# #-------------------------------------------------------------------------------
-# # Measure the difference between the simulation and analytic answer.
-# #-------------------------------------------------------------------------------
-# rmin, rmax = 0.05, 0.35   # Throw away anything with r < rwall to avoid wall heating.
-# rhoprof = mpi.reduce(nodes1.massDensity().internalValues(), mpi.SUM)
-# P = ScalarField("pressure", nodes1)
-# nodes1.pressure(P)
-# Pprof = mpi.reduce(P.internalValues(), mpi.SUM)
-# vprof = mpi.reduce([v.x for v in nodes1.velocity().internalValues()], mpi.SUM)
-# epsprof = mpi.reduce(nodes1.specificThermalEnergy().internalValues(), mpi.SUM)
-# hprof = mpi.reduce([1.0/H.xx for H in nodes1.Hfield().internalValues()], mpi.SUM)
-# xprof = mpi.reduce([x.x for x in nodes1.positions().internalValues()], mpi.SUM)
+#-------------------------------------------------------------------------------
+# Measure the difference between the simulation and analytic answer.
+#-------------------------------------------------------------------------------
+rmin, rmax = 0.05, 0.35   # Throw away anything with r < rwall to avoid wall heating.
+rhoprof = mpi.reduce(nodes1.massDensity().internalValues(), mpi.SUM)
+P = ScalarField("pressure", nodes1)
+nodes1.pressure(P)
+Pprof = mpi.reduce(P.internalValues(), mpi.SUM)
+vprof = mpi.reduce([v.x for v in nodes1.velocity().internalValues()], mpi.SUM)
+epsprof = mpi.reduce(nodes1.specificThermalEnergy().internalValues(), mpi.SUM)
+hprof = mpi.reduce([1.0/H.xx for H in nodes1.Hfield().internalValues()], mpi.SUM)
+xprof = mpi.reduce([x.magnitude() for x in nodes1.positions().internalValues()], mpi.SUM)
 
-# #-------------------------------------------------------------------------------
-# # If requested, write out the state in a global ordering to a file.
-# #-------------------------------------------------------------------------------
-# if outputFile != "None":
-#     outputFile = os.path.join(dataDir, outputFile)
-#     from SpheralGnuPlotUtilities import multiSort
-#     mof = mortonOrderIndices(db)
-#     mo = mpi.reduce(mof[0].internalValues(), mpi.SUM)
-#     mprof = mpi.reduce(nodes1.mass().internalValues(), mpi.SUM)
-#     rhoprof = mpi.reduce(nodes1.massDensity().internalValues(), mpi.SUM)
-#     P = ScalarField("pressure", nodes1)
-#     nodes1.pressure(P)
-#     Pprof = mpi.reduce(P.internalValues(), mpi.SUM)
-#     vprof = mpi.reduce([v.x for v in nodes1.velocity().internalValues()], mpi.SUM)
-#     epsprof = mpi.reduce(nodes1.specificThermalEnergy().internalValues(), mpi.SUM)
-#     hprof = mpi.reduce([1.0/H.xx for H in nodes1.Hfield().internalValues()], mpi.SUM)
-#     if mpi.rank == 0:
-#         multiSort(mo, xprof, rhoprof, Pprof, vprof, epsprof, hprof)
-#         f = open(outputFile, "w")
-#         f.write(("#  " + 20*"'%s' " + "\n") % ("x", "m", "rho", "P", "v", "eps", "h", "mo",
-#                                                "rhoans", "Pans", "vans", "epsans", "hans",
-#                                                "x_UU", "m_UU", "rho_UU", "P_UU", "v_UU", "eps_UU", "h_UU"))
-#         for (xi, mi, rhoi, Pi, vi, epsi, hi, moi,
-#              rhoansi, Pansi, vansi, uansi, hansi) in zip(xprof, mprof, rhoprof, Pprof, vprof, epsprof, hprof, mo,
-#                                                          rhoans, Pans, vans, uans, hans):
-#             f.write((7*"%16.12e " + "%i " + 5*"%16.12e " + 7*"%i " + '\n') % 
-#                     (xi, mi, rhoi, Pi, vi, epsi, hi, moi,
-#                      rhoansi, Pansi, vansi, uansi, hansi,
-#                      unpackElementUL(packElementDouble(xi)),
-#                      unpackElementUL(packElementDouble(mi)),
-#                      unpackElementUL(packElementDouble(rhoi)),
-#                      unpackElementUL(packElementDouble(Pi)),
-#                      unpackElementUL(packElementDouble(vi)),
-#                      unpackElementUL(packElementDouble(epsi)),
-#                      unpackElementUL(packElementDouble(hi))))
-#         f.close()
+#-------------------------------------------------------------------------------
+# If requested, write out the state in a global ordering to a file.
+#-------------------------------------------------------------------------------
+if outputFile != "None":
+    outputFile = os.path.join(dataDir, outputFile)
+    from SpheralGnuPlotUtilities import multiSort
+    mof = mortonOrderIndices(db)
+    mo = mpi.reduce(mof[0].internalValues(), mpi.SUM)
+    mprof = mpi.reduce(nodes1.mass().internalValues(), mpi.SUM)
+    rhoprof = mpi.reduce(nodes1.massDensity().internalValues(), mpi.SUM)
+    P = ScalarField("pressure", nodes1)
+    nodes1.pressure(P)
+    Pprof = mpi.reduce(P.internalValues(), mpi.SUM)
+    vprof = mpi.reduce([v.x for v in nodes1.velocity().internalValues()], mpi.SUM)
+    epsprof = mpi.reduce(nodes1.specificThermalEnergy().internalValues(), mpi.SUM)
+    hprof = mpi.reduce([1.0/H.xx for H in nodes1.Hfield().internalValues()], mpi.SUM)
+    if mpi.rank == 0:
+        multiSort(xprof, rhoprof, Pprof, vprof, epsprof, hprof, mo,
+                  rhoans, Pans, vans, uans, hans)
+        f = open(outputFile, "w")
+        f.write(("#  " + 20*"'%s' " + "\n") % ("x", "m", "rho", "P", "v", "eps", "h", "mo",
+                                               "rhoans", "Pans", "vans", "epsans", "hans",
+                                               "x_UU", "m_UU", "rho_UU", "P_UU", "v_UU", "eps_UU", "h_UU"))
+        for (xi, mi, rhoi, Pi, vi, epsi, hi, moi,
+             rhoansi, Pansi, vansi, uansi, hansi) in zip(xprof, mprof, rhoprof, Pprof, vprof, epsprof, hprof, mo,
+                                                         rhoans, Pans, vans, uans, hans):
+            f.write((7*"%16.12e " + "%i " + 5*"%16.12e " + 7*"%i " + '\n') % 
+                    (xi, mi, rhoi, Pi, vi, epsi, hi, moi,
+                     rhoansi, Pansi, vansi, uansi, hansi,
+                     unpackElementUL(packElementDouble(xi)),
+                     unpackElementUL(packElementDouble(mi)),
+                     unpackElementUL(packElementDouble(rhoi)),
+                     unpackElementUL(packElementDouble(Pi)),
+                     unpackElementUL(packElementDouble(vi)),
+                     unpackElementUL(packElementDouble(epsi)),
+                     unpackElementUL(packElementDouble(hi))))
+        f.close()
 
-#         # #---------------------------------------------------------------------------
-#         # # Also we can optionally compare the current results with another file.
-#         # #---------------------------------------------------------------------------
-#         # if comparisonFile != "None":
-#         #     comparisonFile = os.path.join(dataDir, comparisonFile)
-#         #     import filecmp
-#         #     assert filecmp.cmp(outputFile, comparisonFile)
+        # #---------------------------------------------------------------------------
+        # # Also we can optionally compare the current results with another file.
+        # #---------------------------------------------------------------------------
+        # if comparisonFile != "None":
+        #     comparisonFile = os.path.join(dataDir, comparisonFile)
+        #     import filecmp
+        #     assert filecmp.cmp(outputFile, comparisonFile)
 
 # #------------------------------------------------------------------------------
 # # Compute the error.
@@ -613,7 +615,7 @@ if graphics:
 #     if normOutputFile != "None":
 #        f = open(normOutputFile, "a")
 #        if writeOutputLabel:
-#           f.write(("#" + 13*"%17s " + "\n") % ('"nx"',
+#           f.write(("#" + 13*"%17s " + "\n") % ('"n"',
 #                                                '"rho L1"', '"rho L2"', '"rho Linf"',
 #                                                '"P L1"',   '"P L2"',   '"P Linf"',
 #                                                '"vel L1"', '"vel L2"', '"vel Linf"',
@@ -636,33 +638,31 @@ if graphics:
 #         if normOutputFile != "None":
 #            f.write((3*"%16.12e ") % (L1, L2, Linf))
 #         hD.append([L1,L2,Linf])
-        
-           
 
-#         if checkError:
-#             if not fuzzyEqual(L1, L1expect, tol):
-#                 print "L1 error estimate for %s outside expected bounds: %g != %g" % (name,
-#                                                                                       L1,
-#                                                                                       L1expect)
-#                 failure = True
-#             if not fuzzyEqual(L2, L2expect, tol):
-#                 print "L2 error estimate for %s outside expected bounds: %g != %g" % (name,
-#                                                                                       L2,
-#                                                                                       L2expect)
-#                 failure = True
-#             if not fuzzyEqual(Linf, Linfexpect, tol):
-#                 print "Linf error estimate for %s outside expected bounds: %g != %g" % (name,
-#                                                                                         Linf,
-#                                                                                         Linfexpect)
-#                 failure = True
-#             if failure:
-#                 raise ValueError, "Error bounds violated."
-#     if normOutputFile != "None":
-#        f.write("\n")
+# #         if checkError:
+# #             if not fuzzyEqual(L1, L1expect, tol):
+# #                 print "L1 error estimate for %s outside expected bounds: %g != %g" % (name,
+# #                                                                                       L1,
+# #                                                                                       L1expect)
+# #                 failure = True
+# #             if not fuzzyEqual(L2, L2expect, tol):
+# #                 print "L2 error estimate for %s outside expected bounds: %g != %g" % (name,
+# #                                                                                       L2,
+# #                                                                                       L2expect)
+# #                 failure = True
+# #             if not fuzzyEqual(Linf, Linfexpect, tol):
+# #                 print "Linf error estimate for %s outside expected bounds: %g != %g" % (name,
+# #                                                                                         Linf,
+# #                                                                                         Linfexpect)
+# #                 failure = True
+# #             if failure:
+# #                 raise ValueError, "Error bounds violated."
+# #     if normOutputFile != "None":
+# #        f.write("\n")
                                              
-#     # print "%d\t %g\t %g\t %g\t %g\t %g\t %g\t %g\t %g\t %g\t %g\t %g\t %g\t" % (nz,hD[0][0],hD[1][0],hD[2][0],hD[3][0],
-#     #                                                                             hD[0][1],hD[1][1],hD[2][1],hD[3][1],
-#     #                                                                             hD[0][2],hD[1][2],hD[2][2],hD[3][2])
+# #     # print "%d\t %g\t %g\t %g\t %g\t %g\t %g\t %g\t %g\t %g\t %g\t %g\t %g\t" % (nz,hD[0][0],hD[1][0],hD[2][0],hD[3][0],
+# #     #                                                                             hD[0][1],hD[1][1],hD[2][1],hD[3][1],
+# #     #                                                                             hD[0][2],hD[1][2],hD[2][2],hD[3][2])
 
 Eerror = (control.conserve.EHistory[-1] - control.conserve.EHistory[0])/control.conserve.EHistory[0]
 print "Total energy error: %g" % Eerror
