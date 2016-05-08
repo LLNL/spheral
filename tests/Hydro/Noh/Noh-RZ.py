@@ -251,13 +251,13 @@ else:
     z0, z1 = 0.0, 1.0
     r0, r1 = 0.0, 1.0
 
-generator = GenerateNodeDistributionRZ(nz, nr, rho0, "lattice",
-                                       xmin = (z0, r0),
-                                       xmax = (z1, r1),
-                                       rmin = rmin,
-                                       rmax = rmax,
-                                       nNodePerh = nPerh,
-                                       SPH = SPH)
+generator = RZGenerator(GenerateNodeDistribution2d(nz, nr, rho0, "lattice",
+                                                   xmin = (z0, r0),
+                                                   xmax = (z1, r1),
+                                                   rmin = rmin,
+                                                   rmax = rmax,
+                                                   nNodePerh = nPerh,
+                                                   SPH = SPH))
 
 distributeNodes2d((nodes1, generator))
 output("mpi.reduce(nodes1.numInternalNodes, mpi.MIN)")

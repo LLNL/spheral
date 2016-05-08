@@ -1273,63 +1273,6 @@ class GenerateNodesMatchingYProfile2d(GenerateNodeDistribution2d):
 
 
 #-------------------------------------------------------------------------------
-# Descendant version of above, specialized to adapt the 2-D node distribution
-# into an RZ equivalent.
-#-------------------------------------------------------------------------------
-class GenerateNodeDistributionRZ(GenerateNodeDistribution2d):
-
-    #---------------------------------------------------------------------------
-    # Constructor
-    #---------------------------------------------------------------------------
-    def __init__(self, nRadial, nTheta, rho,
-                 distributionType = "optimal",
-                 xmin = None,
-                 xmax = None,
-                 rmin = None,
-                 rmax = None,
-                 nNodePerh = 2.01,
-                 theta = pi/2.0,
-                 azimuthalOffsetFraction = 0.0,
-                 SPH = False,
-                 rotation = 0.0,
-                 offset = None,
-                 xminreject = None,
-                 xmaxreject = None,
-                 rreject = None,
-                 originreject = None,
-                 reversereject = False,
-                 relaxation = None,
-                 rejecter = None):
-        GenerateNodeDistribution2d.__init__(self,
-                                            nRadial, nTheta, rho,
-                                            distributionType,
-                                            xmin,
-                                            xmax,
-                                            rmin,
-                                            rmax,
-                                            nNodePerh,
-                                            theta,
-                                            azimuthalOffsetFraction,
-                                            SPH,
-                                            rotation,
-                                            offset,
-                                            xminreject,
-                                            xmaxreject,
-                                            rreject,
-                                            originreject,
-                                            reversereject,
-                                            relaxation,
-                                            rejecter)
-
-        # Correct the mass.
-        n = len(self.m)
-        assert len(self.y) == n
-        for i in xrange(n):
-            self.m[i] *= 2.0*pi*self.y[i]
-
-        return
-
-#-------------------------------------------------------------------------------
 # Specialized 2-D NodeGenerator which initializes lattices in a slanted box.
 #-------------------------------------------------------------------------------
 class SlantedBoxNodeDistribution2d(NodeGeneratorBase):
@@ -1431,3 +1374,16 @@ class SlantedBoxNodeDistribution2d(NodeGeneratorBase):
     def localHtensor(self, i):
         assert i >= 0 and i < len(self.H)
         return self.H[i]
+
+#-------------------------------------------------------------------------------
+# Factory function to convert any of the 2D generators to RZ.
+#-------------------------------------------------------------------------------
+def RZGenerator(generator):
+
+    # Correct the mass.
+    n = len(generator.m)
+    assert len(generator.y) == n
+    for i in xrange(n):
+        generator.m[i] *= 2.0*pi*generator.y[i]
+
+    return generator
