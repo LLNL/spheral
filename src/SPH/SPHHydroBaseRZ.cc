@@ -455,10 +455,10 @@ evaluateDerivatives(const Dim<2>::Scalar time,
                                                         posj, etaj, vj, rhoj, cj, Hj);
               const Vector Qacci = 0.5*(QPiij.first *gradWQi);
               const Vector Qaccj = 0.5*(QPiij.second*gradWQj);
-              // const Scalar workQi = 0.5*(QPiij.first *vij).dot(gradWQi) * 2.0*M_PI*f1i*ri;
-              // const Scalar workQj = 0.5*(QPiij.second*vij).dot(gradWQj) * 2.0*M_PI*f1j*rj;
-              const Scalar workQi = vij.dot(Qacci);
-              const Scalar workQj = vij.dot(Qaccj);
+              const Scalar workQi = 0.5*(QPiij.first *vij).dot(gradWQi);
+              const Scalar workQj = 0.5*(QPiij.second*vij).dot(gradWQj);
+              // const Scalar workQi = vij.dot(Qacci);
+              // const Scalar workQj = vij.dot(Qaccj);
               const Scalar Qi = rhoi*rhoi*(QPiij.first. diagonalElements().maxAbsElement());
               const Scalar Qj = rhoj*rhoj*(QPiij.second.diagonalElements().maxAbsElement());
               maxViscousPressurei = max(maxViscousPressurei, Qi);
@@ -719,12 +719,12 @@ enforceBoundaries(State<Dim<2> >& state,
     const Scalar nPerh = mass[nodeListi]->nodeList().nodesPerSmoothingScale();
     for (unsigned i = 0; i != n; ++i) {
       Vector& posi = pos(nodeListi, i);
-      const SymTensor& Hi = H(nodeListi, i);
-      const Scalar zetai = (Hi*posi).y();
-      const Scalar ri = posi.y();
-      const Scalar hrInvi = zetai*safeInvVar(ri);
-      const Scalar rmin = 0.5/(nPerh*hrInvi);
-      if (ri < rmin) posi.y(2.0*rmin - ri);
+      // const SymTensor& Hi = H(nodeListi, i);
+      // const Scalar zetai = (Hi*posi).y();
+      // const Scalar ri = posi.y();
+      // const Scalar hrInvi = zetai*safeInvVar(ri);
+      // const Scalar rmin = 0.5/(nPerh*hrInvi);
+      // if (ri < rmin) posi.y(2.0*rmin - ri);
       const Scalar circi = 2.0*M_PI*abs(posi.y());
       mass(nodeListi, i) *= circi;
     }
