@@ -2,7 +2,7 @@
 # The Sod test case run in RZ symmetry.
 #-------------------------------------------------------------------------------
 import os, shutil, mpi
-from SolidSpheral2d import *
+from SolidSpheralRZ import *
 from SpheralTestUtilities import *
 
 from GenerateNodeDistribution2d import *
@@ -39,7 +39,7 @@ commandLine(problem = "planar",     # one of (planar, cylindrical, spherical)
             PSPH = False,
             SPH = True,       # Choose the H advancement
             evolveTotalEnergy = False,  # Only for SPH variants -- evolve total rather than specific energy
-            Qconstructor = MonaghanGingoldViscosityRZ,
+            Qconstructor = MonaghanGingoldViscosity,
             boolReduceViscosity = False,
             HopkinsConductivity = False,     # For PSPH
             nhQ = 5.0,
@@ -128,27 +128,27 @@ assert problem in ("planar", "cylindrical", "spherical")
 if CRKSPH:
    if solid:
       if SPH:
-         HydroConstructor = SolidCRKSPHHydroRZ
+         HydroConstructor = SolidCRKSPHHydro
       else:
-         HydroConstructor = SolidACRKSPHHydroRZ
+         HydroConstructor = SolidACRKSPHHydro
    else:
       if SPH:
-         HydroConstructor = CRKSPHHydroRZ
+         HydroConstructor = CRKSPHHydro
       else:
-         HydroConstructor = ACRKSPHHydroRZ
-      Qconstructor = CRKSPHMonaghanGingoldViscosityRZ
+         HydroConstructor = ACRKSPHHydro
+      Qconstructor = CRKSPHMonaghanGingoldViscosity
       gradhCorrection = False
 else:
    if solid:
       if SPH:
-         HydroConstructor = SolidSPHHydroRZ
+         HydroConstructor = SolidSPHHydro
       else:
-         HydroConstructor = SolidASPHHydroRZ
+         HydroConstructor = SolidASPHHydro
    else:
       if SPH:
-         HydroConstructor = SPHHydroRZ
+         HydroConstructor = SPHHydro
       else:
-         HydroConstructor = ASPHHydroRZ
+         HydroConstructor = ASPHHydro
 
 dataDir = os.path.join("dumps-%s-Sod-RZ" % problem,
                        HydroConstructor.__name__,
@@ -254,51 +254,51 @@ if problem == "planar":
         nmatch1 = int(float(n1)*(r1 - r0)/(z1 - z0) + 0.5)
     else:
         nmatch1 = nmatch2
-    gen1 = GenerateNodeDistributionRZ(n1, nmatch1, rho1, "lattice",
-                                      xmin = (z0, r0),
-                                      xmax = (z1, r1),
-                                      nNodePerh = nPerh,
-                                      SPH = SPH)
-    gen2 = GenerateNodeDistributionRZ(n2, nmatch2, rho2, "lattice",
-                                      xmin = (z1, r0),
-                                      xmax = (z2, r1),
-                                      nNodePerh = nPerh,
-                                      SPH = SPH)
+    gen1 = RZGenerator(GenerateNodeDistribution2d(n1, nmatch1, rho1, "lattice",
+                                                  xmin = (z0, r0),
+                                                  xmax = (z1, r1),
+                                                  nNodePerh = nPerh,
+                                                  SPH = SPH))
+    gen2 = RZGenerator(GenerateNodeDistribution2d(n2, nmatch2, rho2, "lattice",
+                                                  xmin = (z1, r0),
+                                                  xmax = (z2, r1),
+                                                  nNodePerh = nPerh,
+                                                  SPH = SPH))
 elif problem == "cylindrical":
     r0, r1, r2 = 4.0, 5.0, 6.0,
     z0, z1 = 0.0, 0.2
     nmatch1 = int(float(n1)*(z1 - z0)/(r1 - r0) + 0.5)
     nmatch2 = int(float(n2)*(z1 - z0)/(r2 - r1) + 0.5)
-    gen1 = GenerateNodeDistributionRZ(nmatch1, n1, rho1, "lattice",
-                                      xmin = (z0, r0),
-                                      xmax = (z1, r1),
-                                      nNodePerh = nPerh,
-                                      SPH = SPH)
-    gen2 = GenerateNodeDistributionRZ(nmatch2, n2, rho2, "lattice",
-                                      xmin = (z0, r1),
-                                      xmax = (z1, r2),
-                                      nNodePerh = nPerh,
-                                      SPH = SPH)
+    gen1 = RZGenerator(GenerateNodeDistribution2d(nmatch1, n1, rho1, "lattice",
+                                                  xmin = (z0, r0),
+                                                  xmax = (z1, r1),
+                                                  nNodePerh = nPerh,
+                                                  SPH = SPH))
+    gen2 = RZGenerator(GenerateNodeDistribution2d(nmatch2, n2, rho2, "lattice",
+                                                  xmin = (z0, r1),
+                                                  xmax = (z1, r2),
+                                                  nNodePerh = nPerh,
+                                                  SPH = SPH))
 else:
     assert problem == "spherical"
     rmax1 = 1.0
     rmax2 = 2.0
     dr2 = (rmax2 - rmax1)/n2
     nrind = 10
-    gen1 = GenerateNodeDistributionRZ(n1, n1, rho1, "constantDTheta",
-                                      xmin = (0.0, 0.0),
-                                      xmax = (rmax1, rmax1),
-                                      rmin = 0.0,
-                                      rmax = rmax1,
-                                      nNodePerh = nPerh,
-                                      SPH = SPH)
-    gen2 = GenerateNodeDistributionRZ(n2 + nrind, n2, rho2, "constantDTheta",
-                                      xmin = (0.0, 0.0),
-                                      xmax = (rmax2, rmax2),
-                                      rmin = rmax1,
-                                      rmax = rmax2 + nrind*dr2,
-                                      nNodePerh = nPerh,
-                                      SPH = SPH)
+    gen1 = RZGenerator(GenerateNodeDistribution2d(n1, n1, rho1, "constantDTheta",
+                                                  xmin = (0.0, 0.0),
+                                                  xmax = (rmax1, rmax1),
+                                                  rmin = 0.0,
+                                                  rmax = rmax1,
+                                                  nNodePerh = nPerh,
+                                                  SPH = SPH))
+    gen2 = RZGenerator(GenerateNodeDistribution2d(n2 + nrind, n2, rho2, "constantDTheta",
+                                                  xmin = (0.0, 0.0),
+                                                  xmax = (rmax2, rmax2),
+                                                  rmin = rmax1,
+                                                  rmax = rmax2 + nrind*dr2,
+                                                  nNodePerh = nPerh,
+                                                  SPH = SPH))
 
 distributeNodes2d((nodes1, gen1),
                   (nodes2, gen2))
