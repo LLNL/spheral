@@ -116,6 +116,7 @@ update(const KeyType& key,
 
   // Get the state fields.
   const FieldList<Dimension, Scalar> mass = state.fields(HydroFieldNames::mass, Scalar());
+  const FieldList<Dimension, Vector> position = state.fields(HydroFieldNames::position, Vector::zero);
   const FieldList<Dimension, Vector> velocity = state.fields(HydroFieldNames::velocity, Vector::zero);
   const FieldList<Dimension, Vector> acceleration = derivs.fields(IncrementFieldList<Dimension, Vector>::prefix() + HydroFieldNames::velocity, Vector::zero);
   const FieldList<Dimension, Scalar> eps0 = state.fields(HydroFieldNames::specificThermalEnergy + "0", Scalar());
@@ -141,13 +142,15 @@ update(const KeyType& key,
 
       // State for node i.
       Scalar& DepsDti = DepsDt(nodeListi, i);
-      const Scalar mi = mass(nodeListi, i);
+      const Scalar ri = abs(position(nodeListi, i).y());
+      const Scalar mi = mass(nodeListi, i)/(2.0*M_PI*ri);
       const Scalar si = entropy(nodeListi, i);
       const Vector& vi = velocity(nodeListi, i);
       const Scalar ui = eps0(nodeListi, i);
       const Vector& ai = acceleration(nodeListi, i);
       const Vector vi12 = vi + ai*hdt;
       const vector<Vector>& pacci = pairAccelerations(nodeListi, i);
+      CHECK(ri > 0.0);
       CHECK(pacci.size() == connectivityMap.numNeighborsForNode(nodeLists[nodeListi], i) + 1);
 
       // Get the connectivity (neighbor set) for this node.
@@ -172,13 +175,15 @@ update(const KeyType& key,
                                                          nodeListj, j,
                                                          firstGhostNodej)) {
               Scalar& DepsDtj = DepsDt(nodeListj, j);
-              const Scalar mj = mass(nodeListj, j);
+              const Scalar rj = abs(position(nodeListj, j).y());
+              const Scalar mj = mass(nodeListj, j)/(2.0*M_PI*rj);
               const Scalar sj = entropy(nodeListj, j);
               const Vector& vj = velocity(nodeListj, j);
               const Scalar uj = eps0(nodeListj, j);
               const Vector& aj = acceleration(nodeListj, j);
               const Vector vj12 = vj + aj*hdt;
               const vector<Vector>& paccj = pairAccelerations(nodeListj, j);
+              CHECK(rj > 0.0);
               CHECK(j >= firstGhostNodej or paccj.size() == (connectivityMap.numNeighborsForNode(nodeLists[nodeListj], j) + 1));
 
               CHECK(offset(nodeListi, i) < pacci.size());
@@ -191,17 +196,17 @@ update(const KeyType& key,
 
               const Scalar dEij = -(mi*vi12.dot(pai) + mj*vj12.dot(paj));
               const Scalar duij = dEij/mi;
-              const Scalar wi = entropyWeighting(mi*si, mj*sj, duij);
+              const Scalar wi = entropyWeighting(si, sj, duij);
               // const Scalar wi = standardWeighting(ui, uj, mi, mj, duij)
               // const Scalar wi = PoverRho2Weighting(Pi, rhoi, Pj, rhoj);
               // const Scalar wi = weighting(ui, uj, mi, mj, duij, dt);
 
               CHECK(wi >= 0.0 and wi <= 1.0);
-              CHECK2(fuzzyEqual(wi + entropyWeighting(mj*sj, mi*si, dEij/mj), 1.0, 1.0e-10),
+              CHECK2(fuzzyEqual(wi + entropyWeighting(sj, si, dEij/mj), 1.0, 1.0e-10),
                      wi << " "
-                     << entropyWeighting(mi*si, mj*sj, duij) << " "
-                     << entropyWeighting(mj*sj, mi*si, dEij/mj) << " "
-                     << (wi + entropyWeighting(mj*sj, mi*si, dEij/mj)) << " "
+                     << entropyWeighting(si, sj, duij) << " "
+                     << entropyWeighting(sj, si, dEij/mj) << " "
+                     << (wi + entropyWeighting(sj, si, dEij/mj)) << " "
                      << si << " " << sj << " " << duij);
               DepsDti += wi*duij;
               DepsDtj += (1.0 - wi)*dEij/mj;
