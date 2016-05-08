@@ -4,7 +4,7 @@
 # W.F. Noh 1987, JCP, 72, 78-120.
 #-------------------------------------------------------------------------------
 import os, shutil, mpi
-from SolidSpheral2d import *
+from SolidSpheralRZ import *
 from SpheralTestUtilities import *
 
 from GenerateNodeDistribution2d import *
@@ -129,27 +129,27 @@ eps0 = 0.0
 if CRKSPH:
    if solid:
       if SPH:
-         HydroConstructor = SolidCRKSPHHydroRZ
+         HydroConstructor = SolidCRKSPHHydro
       else:
-         HydroConstructor = SolidACRKSPHHydroRZ
+         HydroConstructor = SolidACRKSPHHydro
    else:
       if SPH:
-         HydroConstructor = CRKSPHHydroRZ
+         HydroConstructor = CRKSPHHydro
       else:
-         HydroConstructor = ACRKSPHHydroRZ
-      Qconstructor = CRKSPHMonaghanGingoldViscosityRZ
+         HydroConstructor = ACRKSPHHydro
+      Qconstructor = CRKSPHMonaghanGingoldViscosity
       gradhCorrection = False
 else:
    if solid:
       if SPH:
-         HydroConstructor = SolidSPHHydroRZ
+         HydroConstructor = SolidSPHHydro
       else:
-         HydroConstructor = SolidASPHHydroRZ
+         HydroConstructor = SolidASPHHydro
    else:
       if SPH:
-         HydroConstructor = SPHHydroRZ
+         HydroConstructor = SPHHydro
       else:
-         HydroConstructor = ASPHHydroRZ
+         HydroConstructor = ASPHHydro
 
 dataDir = os.path.join("dumps-%s-Noh-RZ" % problem,
                        HydroConstructor.__name__,
