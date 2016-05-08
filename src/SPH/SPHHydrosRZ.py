@@ -23,7 +23,7 @@ class %(classname)s(SPHHydroBaseRZ):
                  useVelocityMagnitudeForDt = False,
                  compatibleEnergyEvolution = True,
                  evolveTotalEnergy = False,
-                 gradhCorrection = True,
+                 gradhCorrection = False,
                  XSPH = True,
                  correctVelocityGradient = True,
                  sumMassDensityOverAllNodeLists = True,

@@ -188,6 +188,7 @@ evaluateDerivatives(const Dim<2>::Scalar time,
   const FieldList<Dimension, SymTensor> H = state.fields(HydroFieldNames::H, SymTensor::zero);
   const FieldList<Dimension, Scalar> pressure = state.fields(HydroFieldNames::pressure, 0.0);
   const FieldList<Dimension, Scalar> soundSpeed = state.fields(HydroFieldNames::soundSpeed, 0.0);
+  const FieldList<Dimension, Scalar> omega = state.fields(HydroFieldNames::omegaGradh, 0.0);
   CHECK(mass.size() == numNodeLists);
   CHECK(position.size() == numNodeLists);
   CHECK(velocity.size() == numNodeLists);
@@ -196,6 +197,7 @@ evaluateDerivatives(const Dim<2>::Scalar time,
   CHECK(H.size() == numNodeLists);
   CHECK(pressure.size() == numNodeLists);
   CHECK(soundSpeed.size() == numNodeLists);
+  CHECK(omega.size() == numNodeLists);
 
   // Derivative FieldLists.
   FieldList<Dimension, Scalar> rhoSum = derivatives.fields(ReplaceFieldList<Dimension, Scalar>::prefix() + HydroFieldNames::massDensity, 0.0);
@@ -306,7 +308,9 @@ evaluateDerivatives(const Dim<2>::Scalar time,
       const Scalar epsi = specificThermalEnergy(nodeListi, i);
       const Scalar Pi = f1i*pressure(nodeListi, i);
       const Scalar ci = f1i*soundSpeed(nodeListi, i);
+      const Scalar& omegai = omega(nodeListi, i);
       const Scalar Hdeti = Hi.Determinant();
+      const Scalar safeOmegai = safeInv(omegai, tiny);
       CHECK(rhoi > 0.0);
       CHECK(Hdeti > 0.0);
 
@@ -384,7 +388,9 @@ evaluateDerivatives(const Dim<2>::Scalar time,
               const Scalar epsj = specificThermalEnergy(nodeListj, j);
               const Scalar Pj = f1j*pressure(nodeListj, j);
               const Scalar cj = f1j*soundSpeed(nodeListj, j);
+              const Scalar& omegaj = omega(nodeListj, j);
               const Scalar Hdetj = Hj.Determinant();
+              const Scalar safeOmegaj = safeInv(omegaj, tiny);
               CHECK(rhoj > 0.0);
               CHECK(Hdetj > 0.0);
 
@@ -471,8 +477,8 @@ evaluateDerivatives(const Dim<2>::Scalar time,
               // Acceleration.
               CHECK(rhoi > 0.0);
               CHECK(rhoj > 0.0);
-              const double Prhoi = Pi/(rhoi*rhoi);
-              const double Prhoj = Pj/(rhoj*rhoj);
+              const double Prhoi = safeOmegai*Pi/(rhoi*rhoi);
+              const double Prhoj = safeOmegaj*Pj/(rhoj*rhoj);
               const Vector deltaDvDt = (Prhoi*gradWi + Prhoj*gradWj) + Qacci + Qaccj;
               DvDti -= mRZj*deltaDvDt;
               DvDtj += mRZi*deltaDvDt;
