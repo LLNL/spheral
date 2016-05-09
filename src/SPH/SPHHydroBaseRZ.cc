@@ -146,6 +146,10 @@ registerState(DataBase<Dim<2> >& dataBase,
     FieldList<Dimension, Scalar> specificThermalEnergy = dataBase.fluidSpecificThermalEnergy();
     PolicyPointer thermalEnergyPolicy(new NonSymmetricSpecificThermalEnergyPolicyRZ(dataBase));
     state.enroll(specificThermalEnergy, thermalEnergyPolicy);
+
+    // Get the policy for the position, and add the specific energy as a dependency.
+    PolicyPointer positionPolicy = state.policy(state.buildFieldKey(HydroFieldNames::position, UpdatePolicyBase<Dimension>::wildcard()));
+    positionPolicy->addDependency(HydroFieldNames::specificThermalEnergy);
   }
 }
 
