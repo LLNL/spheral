@@ -45,7 +45,9 @@ namespace {
 //------------------------------------------------------------------------------
 inline
 double
-entropyWeighting(const double si,
+entropyWeighting(const double ri,
+                 const double rj,
+                 const double si,
                  const double sj,
                  const double duij) {
   double result = 0.5;
@@ -67,6 +69,7 @@ entropyWeighting(const double si,
       }
     }
   }
+  // result = 0.5*(result + rj/(ri + rj));
   CHECK(result >= 0.0 and result <= 1.0);
   return result;
 }
@@ -149,6 +152,7 @@ update(const KeyType& key,
       const Scalar ui = eps0(nodeListi, i);
       const Vector& ai = acceleration(nodeListi, i);
       const Vector vi12 = vi + ai*hdt;
+      // vi12.x(vi12.x()/(2.0*M_PI*ri));
       const vector<Vector>& pacci = pairAccelerations(nodeListi, i);
       CHECK(ri > 0.0);
       CHECK(pacci.size() == connectivityMap.numNeighborsForNode(nodeLists[nodeListi], i) + 1);
@@ -182,6 +186,7 @@ update(const KeyType& key,
               const Scalar uj = eps0(nodeListj, j);
               const Vector& aj = acceleration(nodeListj, j);
               const Vector vj12 = vj + aj*hdt;
+              // vj12.x(vj12.x()/(2.0*M_PI*rj));
               const vector<Vector>& paccj = pairAccelerations(nodeListj, j);
               CHECK(rj > 0.0);
               CHECK(j >= firstGhostNodej or paccj.size() == (connectivityMap.numNeighborsForNode(nodeLists[nodeListj], j) + 1));
@@ -196,17 +201,14 @@ update(const KeyType& key,
 
               const Scalar dEij = -(mi*vi12.dot(pai) + mj*vj12.dot(paj));
               const Scalar duij = dEij/mi;
-              const Scalar wi = entropyWeighting(si, sj, duij);
-              // const Scalar wi = standardWeighting(ui, uj, mi, mj, duij)
-              // const Scalar wi = PoverRho2Weighting(Pi, rhoi, Pj, rhoj);
-              // const Scalar wi = weighting(ui, uj, mi, mj, duij, dt);
+              const Scalar wi = entropyWeighting(ri, rj, si, sj, duij);
 
               CHECK(wi >= 0.0 and wi <= 1.0);
-              CHECK2(fuzzyEqual(wi + entropyWeighting(sj, si, dEij/mj), 1.0, 1.0e-10),
+              CHECK2(fuzzyEqual(wi + entropyWeighting(rj, ri, sj, si, dEij/mj), 1.0, 1.0e-10),
                      wi << " "
-                     << entropyWeighting(si, sj, duij) << " "
-                     << entropyWeighting(sj, si, dEij/mj) << " "
-                     << (wi + entropyWeighting(sj, si, dEij/mj)) << " "
+                     << entropyWeighting(ri, rj, si, sj, duij) << " "
+                     << entropyWeighting(rj, ri, sj, si, dEij/mj) << " "
+                     << (wi + entropyWeighting(rj, ri, sj, si, dEij/mj)) << " "
                      << si << " " << sj << " " << duij);
               DepsDti += wi*duij;
               DepsDtj += (1.0 - wi)*dEij/mj;
