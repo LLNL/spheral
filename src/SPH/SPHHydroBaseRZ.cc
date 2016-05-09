@@ -543,6 +543,9 @@ evaluateDerivatives(const Dim<2>::Scalar time,
       // Finish the specific thermal energy evolution.
       DepsDti -= Pi/rhoi*vri/ri;
 
+      // If needed finish the total energy derivative.
+      if (mEvolveTotalEnergy) DepsDti = mi*(vi.dot(DvDti) + DepsDti);
+
       // Complete the moments of the node distribution for use in the ideal H calculation.
       weightedNeighborSumi = Dimension::rootnu(max(0.0, weightedNeighborSumi/Hdeti));
       massSecondMomenti /= Hdeti*Hdeti;
