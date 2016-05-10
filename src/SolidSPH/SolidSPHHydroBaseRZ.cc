@@ -389,11 +389,6 @@ evaluateDerivatives(const Dim<2>::Scalar time,
       CHECK(rhoi > 0.0);
       CHECK(Hdeti > 0.0);
 
-      // Some useful RZ correction factors due to Garcia-Senz etal.
-      const Scalar zetai = abs((Hi*posi).y());
-      const Scalar hrInvi = zetai*safeInvVar(ri);
-      const Scalar f1i = W.f1(zetai);
-
       Scalar& rhoSumi = rhoSum(nodeListi, i);
       Vector& DxDti = DxDt(nodeListi, i);
       Scalar& DrhoDti = DrhoDt(nodeListi, i);
@@ -658,8 +653,11 @@ evaluateDerivatives(const Dim<2>::Scalar time,
       effViscousPressurei /= rhoSumCorrectioni ;
 
       // Finish the acceleration.
-      const Vector deltaDvDti(f1i*Si(1,0)/(rhoi*ri),
-                              f1i*(Si(1,1) - STTi)/(rhoi*ri));
+      const Scalar zetai = abs((Hi*posi).y());
+      const Scalar hri = ri*safeInvVar(zetai);
+      const Scalar riInv = safeInv(ri, 0.01*hri);
+      const Vector deltaDvDti(Si(1,0)/rhoi*riInv,
+                              (Si(1,1) - STTi)/rhoi*riInv);
       DvDti += deltaDvDti;
       pairAccelerationsi.push_back(deltaDvDti);
 
@@ -683,10 +681,10 @@ evaluateDerivatives(const Dim<2>::Scalar time,
       }
 
       // Finish the continuity equation.
-      DrhoDti = -rhoi*(DvDxi.Trace() + f1i*vri/ri);
+      DrhoDti = -rhoi*(DvDxi.Trace() + vri*riInv);
 
       // Finish the specific thermal energy evolution.
-      DepsDti += f1i*(STTi - Pi)/rhoi*vri/ri;
+      DepsDti += (STTi - Pi)/rhoi*vri*riInv;
 
       // If needed finish the total energy derivative.
       if (this->mEvolveTotalEnergy) DepsDti = mi*(vi.dot(DvDti) + DepsDti);
