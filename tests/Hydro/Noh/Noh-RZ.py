@@ -375,8 +375,7 @@ if problem == "planar":
         bcs.append(ReflectingBoundary(Plane(Vector(z0, r0), Vector( 0.0, 1.0))))
 elif problem == "cylindrical":
     bcs = [ReflectingBoundary(Plane(Vector(z0, r0), Vector( 1.0,  0.0))),
-           ReflectingBoundary(Plane(Vector(z1, r0), Vector(-1.0,  0.0))),
-           ReflectingBoundary(Plane(Vector(z0, r1), Vector( 0.0, -1.0)))]
+           ReflectingBoundary(Plane(Vector(z1, r0), Vector(-1.0,  0.0)))]
 else:
     assert problem == "spherical"
     bcs = [ReflectingBoundary(Plane(Vector(z0, r0), Vector( 1.0,  0.0))),
