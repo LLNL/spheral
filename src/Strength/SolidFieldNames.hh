@@ -12,6 +12,7 @@ namespace Spheral {
 
 struct SolidFieldNames {
   static const std::string deviatoricStress;
+  static const std::string deviatoricStressTT;
   static const std::string plasticStrain;
   static const std::string plasticStrainRate;
   static const std::string scalarDamage;

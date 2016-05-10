@@ -9,6 +9,7 @@ from SpheralModules.Spheral.SolidSPHSpace import *
 from SolidNodeLists import *
 from GradyKippTensorDamage import *
 from SolidSPHHydros import *
+from SolidSPHHydrosRZ import *
 
 from spheralDimensions import spheralDimensions
 dims = spheralDimensions()
