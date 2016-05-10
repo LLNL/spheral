@@ -21,6 +21,7 @@
 #include "DamagedNodeCoupling.hh"
 #include "NodeList/SmoothingScaleBase.hh"
 #include "Hydro/HydroFieldNames.hh"
+#include "Hydro/NonSymmetricSpecificThermalEnergyPolicyRZ.hh"
 #include "Strength/SolidFieldNames.hh"
 #include "Strength/SolidNodeList.hh"
 #include "Strength/RZDeviatoricStressPolicy.hh"
@@ -169,6 +170,18 @@ registerState(DataBase<Dim<2> >& dataBase,
   state.enroll(S, deviatoricStressPolicy);
   state.enroll(ps, plasticStrainPolicy);
   state.enroll(mDeviatoricStressTT);
+
+  // Are we using the compatible energy evolution scheme?
+  // If so we need to override the ordinary energy registration with a specialized version.
+  if (mCompatibleEnergyEvolution) {
+    FieldList<Dimension, Scalar> specificThermalEnergy = dataBase.fluidSpecificThermalEnergy();
+    PolicyPointer thermalEnergyPolicy(new NonSymmetricSpecificThermalEnergyPolicyRZ(dataBase));
+    state.enroll(specificThermalEnergy, thermalEnergyPolicy);
+
+    // Get the policy for the position, and add the specific energy as a dependency.
+    PolicyPointer positionPolicy = state.policy(state.buildFieldKey(HydroFieldNames::position, UpdatePolicyBase<Dimension>::wildcard()));
+    positionPolicy->addDependency(HydroFieldNames::specificThermalEnergy);
+  }
 }
 
 //------------------------------------------------------------------------------
