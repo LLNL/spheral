@@ -658,9 +658,8 @@ evaluateDerivatives(const Dim<2>::Scalar time,
       effViscousPressurei /= rhoSumCorrectioni ;
 
       // Finish the acceleration.
-      const SymTensor sigmai = Si - Pi*SymTensor::one;
-      const Vector deltaDvDti(f1i*Si(1,0)/ri,
-                              f1i*(Si(0,0) - STTi)/ri);
+      const Vector deltaDvDti(f1i*Si(1,0)/(rhoi*ri),
+                              f1i*(Si(1,1) - STTi)/(rhoi*ri));
       DvDti += deltaDvDti;
       pairAccelerationsi.push_back(deltaDvDti);
 
