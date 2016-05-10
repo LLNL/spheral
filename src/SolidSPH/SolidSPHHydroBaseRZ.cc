@@ -144,7 +144,6 @@ initializeProblemStartup(DataBase<Dim<2> >& dataBase) {
   mDdeviatoricStressTTDt = dataBase.newFluidFieldList(0.0, IncrementFieldList<Dimension, Scalar>::prefix() + SolidFieldNames::deviatoricStressTT);
 }
 
-
 //------------------------------------------------------------------------------
 // Register the state we need/are going to evolve.
 //------------------------------------------------------------------------------
@@ -164,13 +163,12 @@ registerState(DataBase<Dim<2> >& dataBase,
   // Reregister the deviatoric stress and plastic strain policies to the RZ specialized versions
   // that account for the theta-theta component of the stress.
   FieldList<Dimension, SymTensor> S = state.fields(SolidFieldNames::deviatoricStress, SymTensor::zero);
-  FieldList<Dimension, Scalar> STT = state.fields(SolidFieldNames::deviatoricStressTT, 0.0);
   FieldList<Dimension, Scalar> ps = state.fields(SolidFieldNames::plasticStrain, 0.0);
   PolicyPointer deviatoricStressPolicy(new RZDeviatoricStressPolicy());
   PolicyPointer plasticStrainPolicy(new RZPlasticStrainPolicy());
   state.enroll(S, deviatoricStressPolicy);
   state.enroll(ps, plasticStrainPolicy);
-  state.enroll(STT);
+  state.enroll(mDeviatoricStressTT);
 }
 
 //------------------------------------------------------------------------------
@@ -362,13 +360,13 @@ evaluateDerivatives(const Dim<2>::Scalar time,
       const Vector& vi = velocity(nodeListi, i);
       const Scalar vri = vi.y();
       const Scalar rhoi = massDensity(nodeListi, i);
-      const Scalar rhoRZi = rhoi*circi;
       const Scalar epsi = specificThermalEnergy(nodeListi, i);
       const Scalar Pi = pressure(nodeListi, i);
       const SymTensor& Hi = H(nodeListi, i);
       const Scalar ci = soundSpeed(nodeListi, i);
       const Scalar& omegai = omega(nodeListi, i);
       const SymTensor& Si = S(nodeListi, i);
+      const Scalar STTi = STT(nodeListi, i);
       const Scalar& mui = mu(nodeListi, i);
       const Scalar Hdeti = Hi.Determinant();
       const Scalar safeOmegai = safeInv(omegai, tiny);
@@ -377,6 +375,11 @@ evaluateDerivatives(const Dim<2>::Scalar time,
       CHECK(mi > 0.0);
       CHECK(rhoi > 0.0);
       CHECK(Hdeti > 0.0);
+
+      // Some useful RZ correction factors due to Garcia-Senz etal.
+      const Scalar zetai = abs((Hi*posi).y());
+      const Scalar hrInvi = zetai*safeInvVar(ri);
+      const Scalar f1i = W.f1(zetai);
 
       Scalar& rhoSumi = rhoSum(nodeListi, i);
       Vector& DxDti = DxDt(nodeListi, i);
@@ -436,13 +439,13 @@ evaluateDerivatives(const Dim<2>::Scalar time,
               const Scalar mRZj = mj/circj;
               const Vector& vj = velocity(nodeListj, j);
               const Scalar rhoj = massDensity(nodeListj, j);
-              const Scalar rhoRZj = rhoj*circj;
               const Scalar epsj = specificThermalEnergy(nodeListj, j);
               const Scalar Pj = pressure(nodeListj, j);
               const SymTensor& Hj = H(nodeListj, j);
               const Scalar cj = soundSpeed(nodeListj, j);
               const Scalar& omegaj = omega(nodeListj, j);
               const SymTensor& Sj = S(nodeListj, j);
+              const Scalar STTj = STT(nodeListj, j);
               const Scalar& muj = mu(nodeListj, j);
               const Scalar Hdetj = Hj.Determinant();
               const Scalar safeOmegaj = safeInv(omegaj, tiny);
@@ -527,24 +530,26 @@ evaluateDerivatives(const Dim<2>::Scalar time,
               }
 
               // Contribution to the sum density correction
-              rhoSumCorrectioni += mRZj * WQi / rhoRZj ;
-              rhoSumCorrectionj += mRZi * WQj / rhoRZi ;
+              rhoSumCorrectioni += mRZj * WQi / rhoj ;
+              rhoSumCorrectionj += mRZi * WQj / rhoi ;
 
               // Compute the pair-wise artificial viscosity.
               const Vector vij = vi - vj;
               const pair<Tensor, Tensor> QPiij = Q.Piij(nodeListi, i, nodeListj, j,
-                                                        ri, etai, vi, rhoRZi, ci, Hi,
-                                                        rj, etaj, vj, rhoRZj, cj, Hj);
+                                                        ri, etai, vi, rhoi, ci, Hi,
+                                                        rj, etaj, vj, rhoj, cj, Hj);
               const Vector Qacci = 0.5*(QPiij.first *gradWQi);
               const Vector Qaccj = 0.5*(QPiij.second*gradWQj);
-              const Scalar workQi = vij.dot(Qacci);
-              const Scalar workQj = vij.dot(Qaccj);
+              const Scalar workQi = 0.5*(QPiij.first *vij).dot(gradWQi);
+              const Scalar workQj = 0.5*(QPiij.second*vij).dot(gradWQj);
+              // const Scalar workQi = vij.dot(Qacci);
+              // const Scalar workQj = vij.dot(Qaccj);
               const Scalar Qi = rhoi*rhoi*(QPiij.first. diagonalElements().maxAbsElement());
               const Scalar Qj = rhoj*rhoj*(QPiij.second.diagonalElements().maxAbsElement());
               maxViscousPressurei = max(maxViscousPressurei, Qi);
               maxViscousPressurej = max(maxViscousPressurej, Qj);
-              effViscousPressurei += mRZj*Qi*WQi/rhoRZj;
-              effViscousPressurej += mRZi*Qj*WQj/rhoRZi;
+              effViscousPressurei += mRZj*Qi*WQi/rhoj;
+              effViscousPressurej += mRZi*Qj*WQj/rhoi;
               viscousWorki += mRZj*workQi;
               viscousWorkj += mRZi*workQj;
 
@@ -572,9 +577,9 @@ evaluateDerivatives(const Dim<2>::Scalar time,
               // Acceleration.
               CHECK(rhoi > 0.0);
               CHECK(rhoj > 0.0);
-              const SymTensor sigmarhoi = safeOmegai*sigmai/(rhoRZi*rhoRZi);
-              const SymTensor sigmarhoj = safeOmegaj*sigmaj/(rhoRZj*rhoRZj);
-              const Vector deltaDvDt = fDeffij*(sigmarhoi*gradWi + sigmarhoj*gradWj) - Qacci - Qaccj;   // Need the theta-theta component here
+              const SymTensor sigmarhoi = safeOmegai*sigmai/(rhoi*rhoi);
+              const SymTensor sigmarhoj = safeOmegaj*sigmaj/(rhoj*rhoj);
+              const Vector deltaDvDt = fDeffij*(sigmarhoi*gradWi + sigmarhoj*gradWj) - Qacci - Qaccj;
               if (freeParticle) {
                 DvDti += mRZj*deltaDvDt;
                 DvDtj -= mRZi*deltaDvDt;
@@ -604,10 +609,10 @@ evaluateDerivatives(const Dim<2>::Scalar time,
               if (XSPH and sameMatij) {
                 const double fXSPH = fDeffij*max(0.0, min(1.0, abs(vij.dot(xij)*safeInv(vij.magnitude()*xij.magnitude()))));
                 CHECK(fXSPH >= 0.0 and fXSPH <= 1.0);
-                XSPHWeightSumi += fXSPH*mRZj/rhoRZj*Wi;
-                XSPHWeightSumj += fXSPH*mRZi/rhoRZi*Wj;
-                XSPHDeltaVi -= fXSPH*mRZj/rhoRZj*Wi*vij;
-                XSPHDeltaVj += fXSPH*mRZi/rhoRZi*Wj*vij;
+                XSPHWeightSumi += fXSPH*mRZj/rhoj*Wi;
+                XSPHWeightSumj += fXSPH*mRZi/rhoi*Wj;
+                XSPHDeltaVi -= fXSPH*mRZj/rhoj*Wi*vij;
+                XSPHDeltaVj += fXSPH*mRZi/rhoi*Wj*vij;
               }
 
               // Linear gradient correction term.
@@ -634,10 +639,17 @@ evaluateDerivatives(const Dim<2>::Scalar time,
       rhoSumi /= circi;
 
       // Add the self-contribution to density sum correction.
-      rhoSumCorrectioni += mRZi*WQ0*Hdeti/rhoRZi ;
+      rhoSumCorrectioni += mRZi*WQ0*Hdeti/rhoi ;
 
       // Correct the effective viscous pressure.
       effViscousPressurei /= rhoSumCorrectioni ;
+
+      // Finish the acceleration.
+      const SymTensor sigmai = Si - Pi*SymTensor::one;
+      const Vector deltaDvDti(f1i*Si(1,0)/ri,
+                              f1i*(Si(0,0) - STTi)/ri);
+      DvDti += deltaDvDti;
+      pairAccelerationsi.push_back(deltaDvDti);
 
       // Finish the gradient of the velocity.
       CHECK(rhoi > 0.0);
@@ -647,7 +659,7 @@ evaluateDerivatives(const Dim<2>::Scalar time,
         Mi = Mi.Inverse();
         DvDxi = DvDxi*Mi;
       } else {
-        DvDxi /= rhoRZi;
+        DvDxi /= rhoi;
       }
       if (this->mCorrectVelocityGradient and
           std::abs(localMi.Determinant()) > 1.0e-10 and
@@ -655,17 +667,14 @@ evaluateDerivatives(const Dim<2>::Scalar time,
         localMi = localMi.Inverse();
         localDvDxi = localDvDxi*localMi;
       } else {
-        localDvDxi /= rhoRZi;
+        localDvDxi /= rhoi;
       }
 
-      // Self-contribution to acceleration.
-      pairAccelerationsi.push_back(Vector::zero);
-
       // Finish the continuity equation.
-      DrhoDti = -rhoi*(DvDxi.Trace() + vri/ri);
+      DrhoDti = -rhoi*(DvDxi.Trace() + f1i*vri/ri);
 
       // Finish the specific thermal energy evolution.
-      DepsDti -= mRZi*(-Pi + STT(nodeListi, i))/rhoRZi*vri/ri;
+      DepsDti += f1i*(STTi - Pi)/rhoi*vri/ri;
 
       // If needed finish the total energy derivative.
       if (this->mEvolveTotalEnergy) DepsDti = mi*(vi.dot(DvDti) + DepsDti);
