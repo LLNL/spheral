@@ -6,7 +6,6 @@ from SpheralModules.Spheral.BoundarySpace import *
 
 from spheralDimensions import spheralDimensions
 dims = spheralDimensions()
-assert 2 in dims
 
 #-------------------------------------------------------------------------------
 # The area-weighted SPHHydroRZ objects.
