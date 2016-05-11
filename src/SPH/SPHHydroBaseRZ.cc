@@ -534,7 +534,7 @@ evaluateDerivatives(const Dim<2>::Scalar time,
       // Finish the continuity equation.
       const Scalar zetai = abs((Hi*posi).y());
       const Scalar hri = ri*safeInvVar(zetai);
-      const Scalar riInv = safeInv(ri, 0.01*hri);
+      const Scalar riInv = safeInvVar(ri, 0.05*hri);
       XSPHWeightSumi += Hdeti*mRZi/rhoi*W0;
       CHECK2(XSPHWeightSumi != 0.0, i << " " << XSPHWeightSumi);
       XSPHDeltaVi /= XSPHWeightSumi;
