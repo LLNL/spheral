@@ -293,7 +293,6 @@ evaluateDerivatives(const Dim<2>::Scalar time,
       const Scalar mi = mass(nodeListi, i);
       const Scalar mRZi = mi/circi;
       const Vector& vi = velocity(nodeListi, i);
-      const Scalar vri = vi.y();
       const Scalar rhoi = massDensity(nodeListi, i);
       const Scalar epsi = specificThermalEnergy(nodeListi, i);
       const Scalar Pi = pressure(nodeListi, i);
@@ -537,6 +536,10 @@ evaluateDerivatives(const Dim<2>::Scalar time,
       const Scalar zetai = abs((Hi*posi).y());
       const Scalar hri = ri*safeInvVar(zetai);
       const Scalar riInv = safeInv(ri, 0.01*hri);
+      XSPHWeightSumi += Hdeti*mRZi/rhoi*W0;
+      CHECK2(XSPHWeightSumi != 0.0, i << " " << XSPHWeightSumi);
+      XSPHDeltaVi /= XSPHWeightSumi;
+      const Scalar vri = vi.y() + XSPHDeltaVi.y();
       DrhoDti = -rhoi*(DvDxi.Trace() + vri*riInv);
 
       // Finish the specific thermal energy evolution.
@@ -551,9 +554,10 @@ evaluateDerivatives(const Dim<2>::Scalar time,
 
       // Determine the position evolution, based on whether we're doing XSPH or not.
       if (mXSPH) {
-        XSPHWeightSumi += Hdeti*mRZi/rhoi*W0;
-        CHECK2(XSPHWeightSumi != 0.0, i << " " << XSPHWeightSumi);
-        DxDti = vi + XSPHDeltaVi/max(tiny, XSPHWeightSumi);
+        // XSPHWeightSumi += Hdeti*mRZi/rhoi*W0;
+        // CHECK2(XSPHWeightSumi != 0.0, i << " " << XSPHWeightSumi);
+        // DxDti = vi + XSPHDeltaVi/max(tiny, XSPHWeightSumi);
+        DxDti = vi + XSPHDeltaVi;
       } else {
         DxDti = vi;
       }
