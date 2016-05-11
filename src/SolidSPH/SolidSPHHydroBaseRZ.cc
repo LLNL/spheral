@@ -371,7 +371,6 @@ evaluateDerivatives(const Dim<2>::Scalar time,
       const Scalar mi = mass(nodeListi, i);
       const Scalar mRZi = mi/circi;
       const Vector& vi = velocity(nodeListi, i);
-      const Scalar vri = vi.y();
       const Scalar rhoi = massDensity(nodeListi, i);
       const Scalar epsi = specificThermalEnergy(nodeListi, i);
       const Scalar Pi = pressure(nodeListi, i);
@@ -681,6 +680,10 @@ evaluateDerivatives(const Dim<2>::Scalar time,
       }
 
       // Finish the continuity equation.
+      XSPHWeightSumi += Hdeti*mRZi/rhoi*W0;
+      CHECK2(XSPHWeightSumi != 0.0, i << " " << XSPHWeightSumi);
+      XSPHDeltaVi /= XSPHWeightSumi;
+      const Scalar vri = vi.y() + XSPHDeltaVi.y();
       DrhoDti = -rhoi*(DvDxi.Trace() + vri*riInv);
 
       // Finish the specific thermal energy evolution.
