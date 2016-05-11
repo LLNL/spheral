@@ -613,13 +613,12 @@ evaluateDerivatives(const Dim<2>::Scalar time,
               }
 
               // Estimate of delta v (for XSPH).
-              if (XSPH and sameMatij) {
-                const double fXSPH = fDeffij*max(0.0, min(1.0, abs(vij.dot(xij)*safeInv(vij.magnitude()*xij.magnitude()))));
-                CHECK(fXSPH >= 0.0 and fXSPH <= 1.0);
-                XSPHWeightSumi += fXSPH*mRZj/rhoj*Wi;
-                XSPHWeightSumj += fXSPH*mRZi/rhoi*Wj;
-                XSPHDeltaVi -= fXSPH*mRZj/rhoj*Wi*vij;
-                XSPHDeltaVj += fXSPH*mRZi/rhoi*Wj*vij;
+              if (sameMatij) {
+                const double wXSPHij = 0.5*(mRZi/rhoi*Wi + mRZj/rhoj*Wj);
+                XSPHWeightSumi += wXSPHij;
+                XSPHWeightSumj += wXSPHij;
+                XSPHDeltaVi -= wXSPHij*vij;
+                XSPHDeltaVj += wXSPHij*vij;
               }
 
               // Linear gradient correction term.
@@ -698,9 +697,7 @@ evaluateDerivatives(const Dim<2>::Scalar time,
 
       // Determine the position evolution, based on whether we're doing XSPH or not.
       if (XSPH) {
-        CHECK(XSPHWeightSumi >= 0.0);
-        XSPHWeightSumi += Hdeti*mi/rhoi*W0 + 1.0e-30;
-        DxDti = vi + XSPHDeltaVi/XSPHWeightSumi;
+        DxDti = vi + XSPHDeltaVi;
       } else {
         DxDti = vi;
       }
