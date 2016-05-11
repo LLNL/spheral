@@ -52,7 +52,7 @@ def F(alpha, lamb, R0, R1, n):
 # All (cm, gm, usec) units.
 #-------------------------------------------------------------------------------
 commandLine(nr = 10,                     # Radial resolution of the shell in points
-            seed = "constantDTheta",     # "lattice" or "constantDTheta"
+            seed = "lattice",            # "lattice" or "constantDTheta"
             geometry = "quadrant",       # choose ("quadrant", "full").
             nPerh = 1.35,
             order = 5,                   # Order of the spline kernel
@@ -246,7 +246,7 @@ vel = nodesBe.velocity()
 for i in xrange(nodesBe.numInternalNodes):
     ri = pos[i].magnitude()
     rhat = pos[i].unitVector()
-    vel[i] = -u0 * R0/ri * rhat
+    vel[i] = -u0 * (R0/ri)**2 * rhat
 
 #-------------------------------------------------------------------------------
 # Construct a DataBase to hold our node list
