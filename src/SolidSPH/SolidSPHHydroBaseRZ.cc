@@ -724,7 +724,7 @@ evaluateDerivatives(const Dim<2>::Scalar time,
                                                        i);
 
       // Determine the deviatoric stress evolution.
-      const Scalar deformationTT = vri/ri;
+      const Scalar deformationTT = vi.y()*riInv;
       const SymTensor deformation = localDvDxi.Symmetric();
       const Tensor spin = localDvDxi.SkewSymmetric();
       const SymTensor deviatoricDeformation = deformation - ((deformation.Trace() + deformationTT)/3.0)*SymTensor::one;
