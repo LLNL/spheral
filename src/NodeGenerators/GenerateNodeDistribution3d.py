@@ -864,9 +864,9 @@ class GenerateNodeDistribution3d(NodeGeneratorBase):
 #--------------------------------------------------------------------------------
 # Create cylindrical distributions similar to the RZ generator.
 #--------------------------------------------------------------------------------
-from GenerateNodeDistribution2d import GenerateNodeDistributionRZ
+from GenerateNodeDistribution2d import GenerateNodeDistribution2d, RZGenerator
 from Spheral import generateCylDistributionFromRZ
-class GenerateCylindricalNodeDistribution3d(GenerateNodeDistributionRZ):
+class GenerateCylindricalNodeDistribution3d(NodeGeneratorBase):
 
     def __init__(self, nRadial, nTheta, rho,
                  distributionType = 'optimal',
@@ -878,27 +878,26 @@ class GenerateCylindricalNodeDistribution3d(GenerateNodeDistributionRZ):
                  theta = pi/2.0,
                  phi = 2.0*pi,
                  SPH = False):
-        GenerateNodeDistributionRZ.__init__(self,
-                                            nRadial,
-                                            nTheta,
-                                            rho,
-                                            distributionType,
-                                            xmin,
-                                            xmax,
-                                            rmin,
-                                            rmax,
-                                            nNodePerh,
-                                            theta,
-                                            SPH)
+        gen2d = RZGenerator(GenerateNodeDistribution2d(nRadial,
+                                                       nTheta,
+                                                       rho,
+                                                       distributionType,
+                                                       xmin,
+                                                       xmax,
+                                                       rmin,
+                                                       rmax,
+                                                       nNodePerh,
+                                                       theta,
+                                                       SPH))
         from Spheral import Vector3d, CylindricalBoundary
 
         # The base class already split the nodes up between processors, but
         # we want to handle that ourselves.  Distribute the full set of RZ
         # nodes to every process, then redecompose them below.
-        self.x = mpi.allreduce(self.x[:], mpi.SUM)
-        self.y = mpi.allreduce(self.y[:], mpi.SUM)
-        self.m = mpi.allreduce(self.m[:], mpi.SUM)
-        self.H = mpi.allreduce(self.H[:], mpi.SUM)
+        self.x = mpi.allreduce(gen2d.x[:], mpi.SUM)
+        self.y = mpi.allreduce(gen2d.y[:], mpi.SUM)
+        self.m = mpi.allreduce(gen2d.m[:], mpi.SUM)
+        self.H = mpi.allreduce(gen2d.H[:], mpi.SUM)
         n = len(self.x)
         self.z = [0.0]*n
         self.globalIDs = [0]*n
@@ -960,6 +959,9 @@ class GenerateCylindricalNodeDistribution3d(GenerateNodeDistributionRZ):
         for i in xrange(len(extras)):
             extras[i] = [x for x in extrasVec[i]]
 
+        # Initialize the base.
+        NodeGeneratorBase.__init__(self, True,
+                                   self.x, self.y, self.m, self.H)
         return
 
     #---------------------------------------------------------------------------
