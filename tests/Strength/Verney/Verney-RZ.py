@@ -52,7 +52,7 @@ def F(alpha, lamb, R0, R1, n):
 # All (cm, gm, usec) units.
 #-------------------------------------------------------------------------------
 commandLine(nr = 10,                     # Radial resolution of the shell in points
-            seed = "lattice",            # "lattice" or "constantDTheta"
+            seed = "constantDTheta",     # "lattice" or "constantDTheta"
             geometry = "quadrant",       # choose ("quadrant", "full").
             nPerh = 1.35,
             order = 5,                   # Order of the spline kernel
@@ -147,6 +147,7 @@ dataDir = os.path.join(dataDirBase,
                        HydroConstructor.__name__,
                        Qconstructor.__name__,
                        "densityUpdate=%s" % densityUpdate,
+                       "compatibleEnergy=%s" % compatibleEnergy,
                        seed,
                        geometry,
                        "nr=%i" % nr)
