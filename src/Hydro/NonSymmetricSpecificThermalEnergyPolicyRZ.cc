@@ -146,7 +146,7 @@ update(const KeyType& key,
       // State for node i.
       Scalar& DepsDti = DepsDt(nodeListi, i);
       const Scalar ri = abs(position(nodeListi, i).y());
-      const Scalar mi = mass(nodeListi, i)/(2.0*M_PI*ri);
+      const Scalar mi = mass(nodeListi, i);
       const Scalar si = entropy(nodeListi, i);
       const Vector& vi = velocity(nodeListi, i);
       const Scalar ui = eps0(nodeListi, i);
@@ -180,7 +180,7 @@ update(const KeyType& key,
                                                          firstGhostNodej)) {
               Scalar& DepsDtj = DepsDt(nodeListj, j);
               const Scalar rj = abs(position(nodeListj, j).y());
-              const Scalar mj = mass(nodeListj, j)/(2.0*M_PI*rj);
+              const Scalar mj = mass(nodeListj, j);
               const Scalar sj = entropy(nodeListj, j);
               const Vector& vj = velocity(nodeListj, j);
               const Scalar uj = eps0(nodeListj, j);

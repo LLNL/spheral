@@ -35,7 +35,6 @@
 #include "Hydro/VolumePolicy.hh"
 #include "Hydro/VoronoiMassDensityPolicy.hh"
 #include "Hydro/SumVoronoiMassDensityPolicy.hh"
-#include "Hydro/NonSymmetricSpecificThermalEnergyPolicy.hh"
 #include "Hydro/NonSymmetricSpecificThermalEnergyPolicyRZ.hh"
 #include "Hydro/SpecificFromTotalThermalEnergyPolicy.hh"
 #include "Hydro/PositionPolicy.hh"
@@ -145,7 +144,7 @@ registerState(DataBase<Dim<2> >& dataBase,
   // If so we need to override the ordinary energy registration with a specialized version.
   if (mCompatibleEnergyEvolution) {
     FieldList<Dimension, Scalar> specificThermalEnergy = dataBase.fluidSpecificThermalEnergy();
-    PolicyPointer thermalEnergyPolicy(new NonSymmetricSpecificThermalEnergyPolicy<Dim<2> >(dataBase));
+    PolicyPointer thermalEnergyPolicy(new NonSymmetricSpecificThermalEnergyPolicyRZ(dataBase));
     state.enroll(specificThermalEnergy, thermalEnergyPolicy);
 
     // Get the policy for the position, and add the specific energy as a dependency.
@@ -510,8 +509,8 @@ evaluateDerivatives(const Dim<2>::Scalar time,
       rhoSumi /= circi;
       normi += mRZi/rhoi*W0*Hdeti;
 
-      // // Finish the acceleration.
-      // pairAccelerationsi.push_back(Vector::zero);
+      // Finish the acceleration.
+      pairAccelerationsi.push_back(Vector::zero);
 
       // Finish the gradient of the velocity.
       CHECK(rhoi > 0.0);
