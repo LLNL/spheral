@@ -241,8 +241,8 @@ public:
   virtual void restoreState(const FileIOSpace::FileIO& file, std::string pathName);
   //****************************************************************************
 
-private:
-  //--------------------------- Private Interface ---------------------------//
+protected:
+  //--------------------------- Protected Interface ---------------------------//
   // The method defining how we evolve smoothing scales.
   const NodeSpace::SmoothingScaleBase<Dimension>& mSmoothingScaleMethod;
 
@@ -304,6 +304,8 @@ private:
 
   FieldSpace::FieldList<Dimension, Vector>    mSurfNorm;
 
+private:
+  //--------------------------- Private Interface ---------------------------//
   // The restart registration.
   DataOutput::RestartRegistrationType mRestart;
 

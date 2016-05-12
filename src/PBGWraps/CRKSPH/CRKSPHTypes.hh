@@ -4,6 +4,7 @@
 #include "Geometry/Dimension.hh"
 #include "CRKSPH/CRKSPHUtilities.hh"
 #include "CRKSPH/CRKSPHHydroBase.hh"
+#include "CRKSPH/CRKSPHHydroBaseRZ.hh"
 #include "CRKSPH/SolidCRKSPHHydroBase.hh"
 #include "CRKSPH/computeVoronoiVolume.hh"
 #include "CRKSPH/computeOccupancyVolume.hh"
