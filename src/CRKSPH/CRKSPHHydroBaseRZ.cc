@@ -460,15 +460,14 @@ evaluateDerivatives(const Dim<2>::Scalar time,
               const pair<Tensor, Tensor> QPiij = Q.Piij(nodeListi, i, nodeListj, j,
                                                         posi, etai, vi, rhoi, ci, Hi,
                                                         posj, etaj, vj, rhoj, cj, Hj);
-              const Vector Qaccij = 0.5*(rhoi*rhoi*QPiij.first + rhoj*rhoj*QPiij.second).dot(deltagrad);    // CRK
-     
-              const Scalar workQij = vij.dot(Qaccij);                                             // CRK
+              const Vector Qaccij = (rhoi*rhoi*QPiij.first + rhoj*rhoj*QPiij.second).dot(deltagrad);    // CRK
+              const Scalar workQij = 0.5*(vij.dot(Qaccij));                                             // CRK
               // const Scalar workQi = rhoi*rhoj*QPiij.second.dot(vij).dot(deltagrad);            // CRK
               // const Scalar workQj = rhoi*rhoj*QPiij.first .dot(vij).dot(deltagrad);            // CRK
               const Scalar Qi = rhoi*rhoi*(QPiij.first. diagonalElements().maxAbsElement());
               const Scalar Qj = rhoj*rhoj*(QPiij.second.diagonalElements().maxAbsElement());
-              maxViscousPressurei = max(maxViscousPressurei, Qi);
-              maxViscousPressurej = max(maxViscousPressurej, Qj);
+              maxViscousPressurei = max(maxViscousPressurei, 4.0*Qi);                                 // We need tighter timestep controls on the Q with CRK
+              maxViscousPressurej = max(maxViscousPressurej, 4.0*Qj);
               effViscousPressurei += weightj * Qi * Wj;
               effViscousPressurej += weighti * Qj * Wi;
               viscousWorki += 0.5*weighti*weightj/mi*workQij;
@@ -487,7 +486,7 @@ evaluateDerivatives(const Dim<2>::Scalar time,
               // Acceleration (CRKSPH form).
               CHECK(rhoi > 0.0);
               CHECK(rhoj > 0.0);
-              const Vector forceij  = weighti*weightj*(0.5*(Pi + Pj)*deltagrad + Qaccij); // <- Type III, with CRKSPH Q forces
+              const Vector forceij  = 0.5*weighti*weightj*((Pi + Pj)*deltagrad + Qaccij); // <- Type III, with CRKSPH Q forces
               DvDti -= forceij/mRZi; //CRK Acceleration
               DvDtj += forceij/mRZj; //CRK Acceleration
               if (mCompatibleEnergyEvolution) {
