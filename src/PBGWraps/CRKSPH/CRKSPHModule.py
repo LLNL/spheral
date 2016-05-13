@@ -37,6 +37,7 @@ self.SolidCRKSPHHydroBase%(dim)id = addObject(self.space, "SolidCRKSPHHydroBase%
 
         if 2 in self.dims:
             self.CRKSPHHydroBaseRZ = addObject(self.space, "CRKSPHHydroBaseRZ", allow_subclassing=True, parent=self.CRKSPHHydroBase2d)
+            self.SolidCRKSPHHydroBaseRZ = addObject(self.space, "SolidCRKSPHHydroBaseRZ", allow_subclassing=True, parent=self.SolidCRKSPHHydroBase2d)
 
         return
 
@@ -54,6 +55,7 @@ self.generateSolidCRKSPHHydroBaseBindings(self.SolidCRKSPHHydroBase%(dim)id, %(d
 
         if 2 in self.dims:
             self.generateCRKSPHHydroBaseRZBindings()
+            self.generateSolidCRKSPHHydroBaseRZBindings()
 
         return
 
@@ -619,3 +621,72 @@ self.generateSolidCRKSPHHydroBaseBindings(self.SolidCRKSPHHydroBase%(dim)id, %(d
 
         return
 
+    #---------------------------------------------------------------------------
+    # Bindings (SolidCRKSPHHydroBaseRZ).
+    #---------------------------------------------------------------------------
+    def generateSolidCRKSPHHydroBaseRZBindings(self):
+
+        # Object names.
+        x = self.SolidCRKSPHHydroBaseRZ
+        ndim = 2
+        me = "Spheral::CRKSPHSpace::SolidCRKSPHHydroBaseRZ"
+        dim = "Spheral::Dim<%i>" % ndim
+        vector = "Vector%id" % ndim
+        tensor = "Tensor%id" % ndim
+        symtensor = "SymTensor%id" % ndim
+        fieldbase = "Spheral::FieldSpace::FieldBase%id" % ndim
+        intfield = "Spheral::FieldSpace::IntField%id" % ndim
+        scalarfield = "Spheral::FieldSpace::ScalarField%id" % ndim
+        vectorfield = "Spheral::FieldSpace::VectorField%id" % ndim
+        vector3dfield = "Spheral::FieldSpace::Vector3dField%id" % ndim
+        tensorfield = "Spheral::FieldSpace::TensorField%id" % ndim
+        thirdranktensorfield = "Spheral::FieldSpace::ThirdRankTensorField%id" % ndim
+        vectordoublefield = "Spheral::FieldSpace::VectorDoubleField%id" % ndim
+        vectorvectorfield = "Spheral::FieldSpace::VectorVectorField%id" % ndim
+        vectorsymtensorfield = "Spheral::FieldSpace::VectorSymTensorField%id" % ndim
+        symtensorfield = "Spheral::FieldSpace::SymTensorField%id" % ndim
+        intfieldlist = "Spheral::FieldSpace::IntFieldList%id" % ndim
+        scalarfieldlist = "Spheral::FieldSpace::ScalarFieldList%id" % ndim
+        vectorfieldlist = "Spheral::FieldSpace::VectorFieldList%id" % ndim
+        vector3dfieldlist = "Spheral::FieldSpace::Vector3dFieldList%id" % ndim
+        tensorfieldlist = "Spheral::FieldSpace::TensorFieldList%id" % ndim
+        symtensorfieldlist = "Spheral::FieldSpace::SymTensorFieldList%id" % ndim
+        thirdranktensorfieldlist = "Spheral::FieldSpace::ThirdRankTensorFieldList%id" % ndim
+        vectordoublefieldlist = "Spheral::FieldSpace::VectorDoubleFieldList%id" % ndim
+        vectorvectorfieldlist = "Spheral::FieldSpace::VectorVectorFieldList%id" % ndim
+        vectorsymtensorfieldlist = "Spheral::FieldSpace::VectorSymTensorFieldList%id" % ndim
+        nodelist = "Spheral::NodeSpace::NodeList%id" % ndim
+        state = "Spheral::State%id" % ndim
+        derivatives = "Spheral::StateDerivatives%id" % ndim
+        database = "Spheral::DataBaseSpace::DataBase%id" % ndim
+        connectivitymap = "Spheral::NeighborSpace::ConnectivityMap%id" % ndim
+        key = "pair_NodeList%id_string" % ndim
+        vectorkeys = "vector_of_pair_NodeList%id_string" % ndim
+        tablekernel = "Spheral::KernelSpace::TableKernel%id" % ndim
+        artificialviscosity = "Spheral::ArtificialViscositySpace::ArtificialViscosity%id" % ndim
+        fileio = "Spheral::FileIOSpace::FileIO"
+        smoothingscalebase = "Spheral::NodeSpace::SmoothingScaleBase%id" % ndim
+
+        # Constructors.
+        x.add_constructor([constrefparam(smoothingscalebase, "smoothingScaleMethod"),
+                           refparam(artificialviscosity, "Q"),
+                           constrefparam(tablekernel, "W"),
+                           constrefparam(tablekernel, "WPi"),
+                           param("double", "filter", default_value="0.0"),
+                           param("double", "cfl", default_value="0.25"),
+                           param("int", "useVelocityMagnitudeForDt", default_value="false"),
+                           param("int", "compatibleEnergyEvolution", default_value="true"),
+                           param("int", "evolveTotalEnergy", default_value="false"),
+                           param("int", "XSPH", default_value="true"),
+                           param("MassDensityType", "densityUpdate", default_value="Spheral::PhysicsSpace::RigorousSumDensity"),
+                           param("HEvolutionType", "HUpdate", default_value="Spheral::PhysicsSpace::IdealH"),
+                           param("CRKOrder", "correctionOrder", default_value="Spheral::CRKSPHSpace::LinearOrder"),
+                           param("CRKVolumeType", "volumeType", default_value="Spheral::CRKSPHSpace::CRKSumVolume"),
+                           param("double", "epsTensile", default_value="0.0"),
+                           param("double", "nTensile", default_value="4.0")])
+
+        # Attributes.
+        const_ref_return_value(x, me, "%s::deviatoricStressTT" % me, scalarfieldlist, [], "deviatoricStressTT")
+        const_ref_return_value(x, me, "%s::DdeviatoricStressTTDt" % me, scalarfieldlist, [], "DdeviatoricStressTTDt")
+
+        return

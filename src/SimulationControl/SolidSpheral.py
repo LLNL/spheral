@@ -14,6 +14,11 @@ from SolidSPHHydrosRZ import *
 from spheralDimensions import spheralDimensions
 dims = spheralDimensions()
 
+from spheralDimensions import spheralDimensions
+if 2 in spheralDimensions():
+    from SolidSPHHydrosRZ import *
+    from SolidCRKSPHHydrosRZ import *
+
 # ------------------------------------------------------------------------------
 # Import the SolidMaterial python extensions.
 # ------------------------------------------------------------------------------

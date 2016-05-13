@@ -221,7 +221,7 @@ update(const KeyType& key,
               // const Scalar wi = entropyWeighting(si, sj, duRZij);
 
               CHECK(wi >= 0.0 and wi <= 1.0);
-              CHECK(fuzzyEqual(wi + entropyWeighting(sj, si, zj, zi, dEij/mj), 1.0, 1.0e-10));
+              CHECK(fuzzyEqual(wi + entropyWeighting(sj, si, rj, ri, zj, zi, dEij/mj), 1.0, 1.0e-10));
               DepsDti += wi*duij;
               DepsDtj += (1.0 - wi)*dEij/mj;
             }

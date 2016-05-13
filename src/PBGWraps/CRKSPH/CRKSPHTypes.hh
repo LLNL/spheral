@@ -6,6 +6,7 @@
 #include "CRKSPH/CRKSPHHydroBase.hh"
 #include "CRKSPH/CRKSPHHydroBaseRZ.hh"
 #include "CRKSPH/SolidCRKSPHHydroBase.hh"
+#include "CRKSPH/SolidCRKSPHHydroBaseRZ.hh"
 #include "CRKSPH/computeVoronoiVolume.hh"
 #include "CRKSPH/computeOccupancyVolume.hh"
 #include "CRKSPH/computeCRKSPHSumVolume.hh"
