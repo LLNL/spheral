@@ -55,7 +55,9 @@ commandLine(nr = 10,                     # Radial resolution of the shell in poi
             seed = "constantDTheta",     # "lattice" or "constantDTheta"
             geometry = "quadrant",       # choose ("quadrant", "full").
             nPerh = 1.35,
-            order = 5,                   # Order of the spline kernel
+
+            kernelOrder = 5,
+            nPerh = 1.35,
 
             # Material specific bounds on the mass density.
             etamin = 1e-3,
@@ -195,7 +197,7 @@ strengthModelBe = ConstantStrength(G0, Y0)
 # Create our interpolation kernels -- one for normal hydro interactions, and
 # one for use with the artificial viscosity
 #-------------------------------------------------------------------------------
-WT = TableKernel(NBSplineKernel(order), 1000)
+WT = TableKernel(NBSplineKernel(kernelOrder), 1000)
 output("WT")
 
 #-------------------------------------------------------------------------------
