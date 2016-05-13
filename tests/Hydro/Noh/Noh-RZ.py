@@ -127,18 +127,18 @@ rho0 = 1.0
 eps0 = 0.0
 
 if CRKSPH:
-   if solid:
-      if SPH:
-         HydroConstructor = SolidCRKSPHHydro
-      else:
-         HydroConstructor = SolidACRKSPHHydro
-   else:
-      if SPH:
-         HydroConstructor = CRKSPHHydro
-      else:
-         HydroConstructor = ACRKSPHHydro
-      Qconstructor = CRKSPHMonaghanGingoldViscosity
-      gradhCorrection = False
+    if solid:
+        if SPH:
+            HydroConstructor = SolidCRKSPHHydro
+        else:
+            HydroConstructor = SolidACRKSPHHydro
+    else:
+        if SPH:
+            HydroConstructor = CRKSPHHydro
+        else:
+            HydroConstructor = ACRKSPHHydro
+    Qconstructor = CRKSPHMonaghanGingoldViscosity
+    gradhCorrection = False
 else:
    if solid:
       if SPH:
