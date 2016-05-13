@@ -54,7 +54,6 @@ def F(alpha, lamb, R0, R1, n):
 commandLine(nr = 10,                     # Radial resolution of the shell in points
             seed = "constantDTheta",     # "lattice" or "constantDTheta"
             geometry = "quadrant",       # choose ("quadrant", "full").
-            nPerh = 1.35,
 
             kernelOrder = 5,
             nPerh = 1.35,
