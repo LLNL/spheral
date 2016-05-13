@@ -488,15 +488,15 @@ evaluateDerivatives(const Dim<2>::Scalar time,
               CHECK(rhoi > 0.0);
               CHECK(rhoj > 0.0);
               const Vector forceij  = weighti*weightj*(0.5*(Pi + Pj)*deltagrad + Qaccij); // <- Type III, with CRKSPH Q forces
-              DvDti -= forceij/mi; //CRK Acceleration
-              DvDtj += forceij/mj; //CRK Acceleration
+              DvDti -= forceij/mRZi; //CRK Acceleration
+              DvDtj += forceij/mRZj; //CRK Acceleration
               if (mCompatibleEnergyEvolution) {
-                pairAccelerationsi.push_back(-forceij/mi);
-                pairAccelerationsj.push_back( forceij/mj);
+                pairAccelerationsi.push_back(-forceij/mRZi);
+                pairAccelerationsj.push_back( forceij/mRZj);
               }
 
-              DepsDti += 0.5*weighti*weightj*(Pj*vij.dot(deltagrad) + workQij)/mi;    // CRK Q
-              DepsDtj += 0.5*weighti*weightj*(Pi*vij.dot(deltagrad) + workQij)/mj;    // CRK Q
+              DepsDti += 0.5*weighti*weightj*(Pj*vij.dot(deltagrad) + workQij)/mRZi;    // CRK Q
+              DepsDtj += 0.5*weighti*weightj*(Pi*vij.dot(deltagrad) + workQij)/mRZj;    // CRK Q
 
               // Estimate of delta v (for XSPH).
               if (mXSPH and (nodeListi == nodeListj)) {
