@@ -590,12 +590,12 @@ evaluateDerivatives(const Dim<2>::Scalar time,
               const pair<Tensor, Tensor> QPiij = Q.Piij(nodeListi, i, nodeListj, j,
                                                         posi, etai, vi, rhoi, ci, Hi,
                                                         posj, etaj, vj, rhoj, cj, Hj);
-              const Vector Qaccij = 0.5*(rhoi*rhoi*QPiij.first + rhoj*rhoj*QPiij.second).dot(deltagrad);
-              const Scalar workQij = vij.dot(Qaccij);
+              const Vector Qaccij = (rhoi*rhoi*QPiij.first + rhoj*rhoj*QPiij.second).dot(deltagrad);
+              const Scalar workQij = 0.5*(vij.dot(Qaccij));
               const Scalar Qi = rhoi*rhoi*(QPiij.first. diagonalElements().maxAbsElement());
               const Scalar Qj = rhoj*rhoj*(QPiij.second.diagonalElements().maxAbsElement());
-              maxViscousPressurei = max(maxViscousPressurei, Qi);
-              maxViscousPressurej = max(maxViscousPressurej, Qj);
+              maxViscousPressurei = max(maxViscousPressurei, 4.0*Qi);                                 // We need tighter timestep controls on the Q with CRK
+              maxViscousPressurej = max(maxViscousPressurej, 4.0*Qj);
               effViscousPressurei += weightj * Qi * Wj;
               effViscousPressurej += weighti * Qj * Wi;
               viscousWorki += 0.5*weighti*weightj/mRZi*workQij;
@@ -632,7 +632,7 @@ evaluateDerivatives(const Dim<2>::Scalar time,
               CHECK(rhoi > 0.0);
               CHECK(rhoj > 0.0);
               Vector deltaDvDti, deltaDvDtj;
-              const Vector forceij  = weighti*weightj*(0.5*((Pposi + Pposj)*deltagrad - fDeffij*fDeffij*(sigmai + sigmaj)*deltagraddam) + Qaccij);
+              const Vector forceij  = 0.5*weighti*weightj*((Pposi + Pposj)*deltagrad - fDeffij*fDeffij*(sigmai + sigmaj)*deltagraddam + Qaccij);
               DvDti -= forceij/mRZi;
               DvDtj += forceij/mRZj;
               if (compatibleEnergy) {
