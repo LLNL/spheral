@@ -521,7 +521,7 @@ evaluateDerivatives(const Dim<2>::Scalar time,
       // Time evolution of the mass density.
       const Scalar zetai = abs((Hi*posi).y());
       const Scalar hri = ri*safeInvVar(zetai);
-      const Scalar riInv = safeInvVar(ri, 0.25*hri);
+      const Scalar riInv = safeInvVar(ri, 0.05*hri);
       const Scalar vri = vi.y() + XSPHDeltaVi.y();
       DrhoDti = -rhoi*(DvDxi.Trace() + vri*riInv);
 

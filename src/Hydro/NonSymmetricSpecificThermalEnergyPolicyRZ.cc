@@ -47,28 +47,38 @@ inline
 double
 entropyWeighting(const double si,
                  const double sj,
+                 const double ri,
+                 const double rj,
+                 const double zi,
+                 const double zj,
                  const double duij) {
-  double result = 0.5;
-  const double smin = min(abs(si), abs(sj));
-  const double smax = max(abs(si), abs(sj));
-  if (smax > 1.0e-15) {
-    CHECK(smin + smax > 1.0e-15);
-    if (duij > 0.0) {    // Heating
-      if (si > sj) {
-        result = smin/(smin + smax);
-      } else {
-        result = smax/(smin + smax);
-      }
-    } else {             // Cooling
-      if (si > sj) {
-        result = smax/(smin + smax);
-      } else {
-        result = smin/(smin + smax);
+  if (ri <= 0.0) { //  and fuzzyEqual(zi, zj, 1.0e-8)) {
+    return 0.0;
+  } else if (rj <= 0.0) { // and fuzzyEqual(zi, zj, 1.0e-8)) {
+    return 1.0;
+  } else {
+    double result = 0.5;
+    const double smin = min(abs(si), abs(sj));
+    const double smax = max(abs(si), abs(sj));
+    if (smax > 1.0e-15) {
+      CHECK(smin + smax > 1.0e-15);
+      if (duij > 0.0) {    // Heating
+        if (si > sj) {
+          result = smin/(smin + smax);
+        } else {
+          result = smax/(smin + smax);
+        }
+      } else {             // Cooling
+        if (si > sj) {
+          result = smax/(smin + smax);
+        } else {
+          result = smin/(smin + smax);
+        }
       }
     }
+    CHECK(result >= 0.0 and result <= 1.0);
+    return result;
   }
-  CHECK(result >= 0.0 and result <= 1.0);
-  return result;
 }
 
 }
@@ -143,6 +153,7 @@ update(const KeyType& key,
       // State for node i.
       Scalar& DepsDti = DepsDt(nodeListi, i);
       const Scalar ri = abs(position(nodeListi, i).y());
+      const Scalar zi = position(nodeListi, i).x();
       const Scalar mi = mass(nodeListi, i);
       const Scalar mRZi = mi/(2.0*M_PI*ri);
       const Scalar si = entropy(nodeListi, i);
@@ -178,6 +189,7 @@ update(const KeyType& key,
                                                          firstGhostNodej)) {
               Scalar& DepsDtj = DepsDt(nodeListj, j);
               const Scalar rj = abs(position(nodeListj, j).y());
+              const Scalar zj = position(nodeListj, j).x();
               const Scalar mj = mass(nodeListj, j);
               const Scalar mRZj = mj/(2.0*M_PI*ri);
               const Scalar sj = entropy(nodeListj, j);
@@ -200,7 +212,7 @@ update(const KeyType& key,
 
               const Scalar dEij = -(mi*vi12.dot(pai) + mj*vj12.dot(paj));
               const Scalar duij = dEij/mi;
-              const Scalar wi = entropyWeighting(si, sj, duij);
+              const Scalar wi = entropyWeighting(si, sj, ri, rj, zi, zj, duij);
 
               // const Scalar dERZij = -(mRZi*vi12.dot(pai) + mRZj*vj12.dot(paj));
               // const Scalar duRZij = dERZij/mRZi;
@@ -209,12 +221,7 @@ update(const KeyType& key,
               // const Scalar wi = entropyWeighting(si, sj, duRZij);
 
               CHECK(wi >= 0.0 and wi <= 1.0);
-              CHECK2(fuzzyEqual(wi + entropyWeighting(sj, si, dEij/mj), 1.0, 1.0e-10),
-                     wi << " "
-                     << entropyWeighting(si, sj, duij) << " "
-                     << entropyWeighting(sj, si, dEij/mj) << " "
-                     << (wi + entropyWeighting(sj, si, dEij/mj)) << " "
-                     << si << " " << sj << " " << duij);
+              CHECK(fuzzyEqual(wi + entropyWeighting(sj, si, zj, zi, dEij/mj), 1.0, 1.0e-10));
               DepsDti += wi*duij;
               DepsDtj += (1.0 - wi)*dEij/mj;
             }
