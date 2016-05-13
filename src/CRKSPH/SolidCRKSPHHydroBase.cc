@@ -773,26 +773,18 @@ evaluateDerivatives(const typename Dimension::Scalar time,
               CRKSPHKernelAndGradient(W, CRKSPHHydroBase<Dimension>::correctionOrder(), -rij, -etaj, Hj, Hdetj, -etai, Hi, Hdeti, Adamj, Bdamj, Cdamj, gradAdamj, gradBdamj, gradCdamj, Wdami, gWdami, gradWdami);
               const Vector deltagrad = gradWj - gradWi;
               const Vector deltagraddam = gradWdamj - gradWdami;
-              const Vector gradWSPHi = (Hi*etai.unitVector())*WQ.gradValue(etai.magnitude(), Hdeti);
-              const Vector gradWSPHj = (Hj*etaj.unitVector())*WQ.gradValue(etaj.magnitude(), Hdetj);
+              const Vector gradWSPHi = (Hi*etai.unitVector())*W.gradValue(etai.magnitude(), Hdeti);
+              const Vector gradWSPHj = (Hj*etaj.unitVector())*W.gradValue(etaj.magnitude(), Hdetj);
 
               // Determine how we're applying damage.
               const Scalar fDeffij = coupling(nodeListi, i, nodeListj, j);
               
-              // How different is the damage of these two points?
-              // const Scalar Di = damage(nodeListi, i).Trace() / Dimension::nDim;
-              // const Scalar Dj = damage(nodeListj, j).Trace() / Dimension::nDim;
-              // CHECK(Di >= 0.0 and Di <= 1.0);
-              // CHECK(Dj >= 0.0 and Dj <= 1.0);
-              // const Scalar Ddisc = 1.0 + 8.0*abs(Di - Dj)*safeInv(Di + Dj);
-              const Scalar Ddisc = 1.0; // + damage(nodeListi, i).Trace() + damage(nodeListj, j).Trace();
-
               // Zero'th and second moment of the node distribution -- used for the
               // ideal H calculation.
               const double rij2 = rij.magnitude2();
               const SymTensor thpt = rij.selfdyad()/max(tiny, rij2*FastMath::square(Dimension::pownu12(rij2)));
-              weightedNeighborSumi += fweightij*std::abs(gWi) * Ddisc;
-              weightedNeighborSumj += fweightij*std::abs(gWj) * Ddisc;
+              weightedNeighborSumi += fweightij*std::abs(gWi);
+              weightedNeighborSumj += fweightij*std::abs(gWj);
               massSecondMomenti += fweightij*gradWSPHi.magnitude2()*thpt;
               massSecondMomentj += gradWSPHj.magnitude2()*thpt;
 
@@ -800,16 +792,16 @@ evaluateDerivatives(const typename Dimension::Scalar time,
               const pair<Tensor, Tensor> QPiij = Q.Piij(nodeListi, i, nodeListj, j,
                                                         ri, etai, vi, rhoi, ci, Hi,
                                                         rj, etaj, vj, rhoj, cj, Hj);
-              const Scalar workQi = rhoj*rhoj*QPiij.second.dot(vij).dot(deltagrad);
-              const Scalar workQj = rhoi*rhoi*QPiij.first .dot(vij).dot(deltagrad);
+              const Vector Qaccij = 0.5*(rhoi*rhoi*QPiij.first + rhoj*rhoj*QPiij.second).dot(deltagrad);
+              const Scalar workQij = vij.dot(Qaccij);
               const Scalar Qi = rhoi*rhoi*(QPiij.first. diagonalElements().maxAbsElement());
               const Scalar Qj = rhoj*rhoj*(QPiij.second.diagonalElements().maxAbsElement());
               maxViscousPressurei = max(maxViscousPressurei, Qi);
               maxViscousPressurej = max(maxViscousPressurej, Qj);
               effViscousPressurei += weightj * Qi * Wj;
               effViscousPressurej += weighti * Qj * Wi;
-              viscousWorki += 0.5*weighti*weightj/mi*workQi;
-              viscousWorkj += 0.5*weighti*weightj/mj*workQj;
+              viscousWorki += 0.5*weighti*weightj/mi*workQij;
+              viscousWorkj += 0.5*weighti*weightj/mj*workQij;
 
               // Velocity gradient.
               DvDxi -= weightj*vij.dyad(gradWj);
@@ -842,8 +834,7 @@ evaluateDerivatives(const typename Dimension::Scalar time,
               CHECK(rhoi > 0.0);
               CHECK(rhoj > 0.0);
               Vector deltaDvDti, deltaDvDtj;
-              const Vector forceij  = 0.5*weighti*weightj*(((Pposi + Pposj)*deltagrad - fDeffij*fDeffij*(sigmai + sigmaj)*deltagraddam) + // <- Type III
-                                                           (rhoi*rhoi*QPiij.first + rhoj*rhoj*QPiij.second)*deltagrad);                   // CRKSPH Q forces
+              const Vector forceij  = weighti*weightj*(0.5*((Pposi + Pposj)*deltagrad - fDeffij*fDeffij*(sigmai + sigmaj)*deltagraddam) + Qaccij);
               DvDti -= forceij/mi;
               DvDtj += forceij/mj;
               if (compatibleEnergy) {
@@ -852,11 +843,8 @@ evaluateDerivatives(const typename Dimension::Scalar time,
               }
 
               // Specific thermal energy evolution.
-              DepsDti += 0.5*weighti*weightj*(Pposj*vij.dot(deltagrad) + fDeffij*fDeffij*sigmaj.dot(vij).dot(deltagraddam) + workQi)/mi;
-              DepsDtj += 0.5*weighti*weightj*(Pposi*vij.dot(deltagrad) + fDeffij*fDeffij*sigmai.dot(vij).dot(deltagraddam) + workQj)/mj;
-
-              // DepsDti += 0.5*weighti*weightj*(fDeffij*fDeffij*sigmaj.dot(vij).dot(deltagraddam) + workQi)/mi;
-              // DepsDtj += 0.5*weighti*weightj*(fDeffij*fDeffij*sigmai.dot(vij).dot(deltagraddam) + workQj)/mj;
+              DepsDti += 0.5*weighti*weightj*(Pposj*vij.dot(deltagrad) + fDeffij*fDeffij*sigmaj.dot(vij).dot(deltagraddam) + workQij)/mi;
+              DepsDtj += 0.5*weighti*weightj*(Pposi*vij.dot(deltagrad) + fDeffij*fDeffij*sigmai.dot(vij).dot(deltagraddam) + workQij)/mj;
 
               // Estimate of delta v (for XSPH).
               if (XSPH and (nodeListi == nodeListj)) {
@@ -952,8 +940,6 @@ evaluateDerivatives(const typename Dimension::Scalar time,
       }
     }
   }
-  // // For now make the localDvDx a simple copy of the total.
-  // localDvDx.assignFields(DvDx);
 }
 
 //------------------------------------------------------------------------------
