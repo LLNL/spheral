@@ -1273,86 +1273,6 @@ class GenerateNodesMatchingYProfile2d(GenerateNodeDistribution2d):
 
 
 #-------------------------------------------------------------------------------
-# Descendant version of above, specialized to adapt the 2-D node distribution
-# into a 3-D RZ equivalent.
-#-------------------------------------------------------------------------------
-class GenerateNodeDistributionRZ(GenerateNodeDistribution2d):
-
-    #---------------------------------------------------------------------------
-    # Constructor
-    #---------------------------------------------------------------------------
-    def __init__(self, nRadial, nTheta, rho,
-                 distributionType = "optimal",
-                 xmin = None,
-                 xmax = None,
-                 rmin = None,
-                 rmax = None,
-                 nNodePerh = 2.01,
-                 theta = pi/2.0,
-                 SPH = False):
-        GenerateNodeDistribution2d.__init__(self,
-                                            nRadial,
-                                            nTheta,
-                                            rho,
-                                            distributionType,
-                                            xmin,
-                                            xmax,
-                                            rmin,
-                                            rmax,
-                                            nNodePerh,
-                                            theta,
-                                            SPH)
-
-##         # Correct the mass.
-##         n = len(self.m)
-##         assert len(self.x) == n
-##         for i in xrange(n):
-##             self.m[i] *= self.x[i]
-
-##         # Fix up the H tensors and mass per node for 3-D.
-##         from Spheral import SymTensor3d
-##         n = len(self.H)
-##         assert len(self.m) == n
-##         for i in xrange(n):
-##             ri = self.y[i]
-##             #hxy0 = 1.0/sqrt(self.H[i].Determinant())
-##             hxy0 = 1.0/(self.H[i].eigenValues().minElement())
-##             dphi = CylindricalBoundary.angularSpacing(ri, hxy0, nNodePerh, 2.0)
-##             hz = dphi*ri*nNodePerh
-##             xx = self.H[i].xx
-##             xy = self.H[i].xy
-##             yx = self.H[i].yx
-##             yy = self.H[i].yy
-##             self.H[i] = SymTensor3d(xx, xy, 0.0,
-##                                     yx, yy, 0.0,
-##                                     0.0, 0.0, 1.0/hz)
-##             if SPH:
-##                 h0 = self.H[i].Determinant()**(1.0/3.0)
-##                 self.H[i] = SymTensor3d.one * h0
-
-##            self.m[i] *= nNodePerh/h0
-
-##            li = 1.0/(h0*nNodePerh)
-##            ri = self.y[i] + 1.0e-50
-##            assert ri > 0.0
-##            phi = min(0.5*pi, li/ri)
-##            c = ri*sqrt(2.0*(1.0 - cos(phi)))
-##            gamma = 0.5*(pi - phi)
-##            b = c*sin(gamma)
-##            self.m[i] *= b
-
-        return
-
-##     #---------------------------------------------------------------------------
-##     # Get the position for the given node index.
-##     #---------------------------------------------------------------------------
-##     def localPosition(self, i):
-##         from Spheral import Vector3d
-##         assert i >= 0 and i < len(self.x)
-##         assert len(self.x) == len(self.y)
-##         return Vector3d(self.x[i], self.y[i], 0.0)
-
-#-------------------------------------------------------------------------------
 # Specialized 2-D NodeGenerator which initializes lattices in a slanted box.
 #-------------------------------------------------------------------------------
 class SlantedBoxNodeDistribution2d(NodeGeneratorBase):
@@ -1454,3 +1374,16 @@ class SlantedBoxNodeDistribution2d(NodeGeneratorBase):
     def localHtensor(self, i):
         assert i >= 0 and i < len(self.H)
         return self.H[i]
+
+#-------------------------------------------------------------------------------
+# Factory function to convert any of the 2D generators to RZ.
+#-------------------------------------------------------------------------------
+def RZGenerator(generator):
+
+    # Correct the mass.
+    n = len(generator.m)
+    assert len(generator.y) == n
+    for i in xrange(n):
+        generator.m[i] *= 2.0*pi*generator.y[i]
+
+    return generator

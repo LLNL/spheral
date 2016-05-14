@@ -66,6 +66,7 @@ generateStdVectorBindings(self.vector_of_SolidNodeList%(dim)id, "Spheral::SolidM
     #---------------------------------------------------------------------------
     def generateSolidFieldNamesBindings(self, x):
         x.add_static_attribute("deviatoricStress", "std::string",  is_const=True)
+        x.add_static_attribute("deviatoricStressTT", "std::string",  is_const=True)
         x.add_static_attribute("plasticStrain", "std::string",  is_const=True)
         x.add_static_attribute("scalarDamage", "std::string",  is_const=True)
         x.add_static_attribute("tensorDamage", "std::string",  is_const=True)

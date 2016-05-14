@@ -873,37 +873,14 @@ evaluateDerivatives(const typename Dimension::Scalar time,
               CHECK(etaMagj >= 0.0);
               const Vector vij = vi - vj;
 
-              // // Apply FCT limiting based on the pressure gradient.
-              // // const Scalar gradPij = gradPi.dot(rij);
-              // // const Scalar gradPji = gradPj.dot(rij);
-              // // const Scalar Ri = gradPij/(sgn(gradPji)*max(1.0e-30, abs(gradPji)));
-              // // const Scalar Rj = gradPji/(sgn(gradPij)*max(1.0e-30, abs(gradPij)));
-              // const Scalar dvdxi = DvDxi.dot(rij).dot(rij);
-              // const Scalar dvdxj = DvDxj.dot(rij).dot(rij);
-              // const Scalar Ri = dvdxi/(sgn(dvdxj)*max(1.0e-30, abs(dvdxj)));
-              // const Scalar Rj = dvdxj/(sgn(dvdxi)*max(1.0e-30, abs(dvdxi)));
-              // const Scalar psi = fluxlimiterVL(min(Ri, Rj));
-              
               // Symmetrized kernel weight and gradient.
               Scalar gWi, gWj, Wi, Wj, gW0i, gW0j, W0i, W0j;
               Vector gradWi, gradWj, gradW0i, gradW0j;
               CRKSPHKernelAndGradient(W, order,  rij,  etai, Hi, Hdeti,  etaj, Hj, Hdetj, Ai, Bi, Ci, gradAi, gradBi, gradCi, Wj, gWj, gradWj);
               CRKSPHKernelAndGradient(W, order, -rij, -etaj, Hj, Hdetj, -etai, Hi, Hdeti, Aj, Bj, Cj, gradAj, gradBj, gradCj, Wi, gWi, gradWi);
-              // Wi = W0i + psij*(Wi - W0i);                    // FCT limiting of the kernel
-              // Wj = W0j + psii*(Wj - W0j);                    // FCT limiting of the kernel
-              // gradWi = gradW0i + psij*(gradWi - gradW0i);    // FCT limiting of the gradient
-              // gradWj = gradW0j + psii*(gradWj - gradW0j);    // FCT limiting of the gradient
-              // Wi = Wi + min(psii, psij)*(W0i - Wi);                    // FCT limiting of the kernel
-              // Wj = Wj + min(psij, psii)*(W0j - Wj);                    // FCT limiting of the kernel
-              // gradWi = gradWi + min(psii, psij)*(gradW0i - gradWi);    // FCT limiting of the gradient
-              // gradWj = gradWj + min(psij, psii)*(gradW0j - gradWj);    // FCT limiting of the gradient
-              // const Vector deltagrad0 = gradW0j - gradW0i;
-              // const Vector deltagrad0 = gradW0j - gradW0i;
               const Vector deltagrad = gradWj - gradWi;
               const Vector gradWSPHi = (Hi*etai.unitVector())*W.gradValue(etai.magnitude(), Hdeti);
               const Vector gradWSPHj = (Hj*etaj.unitVector())*W.gradValue(etaj.magnitude(), Hdetj);
-              // const Vector gradWQSPHi = (Hi*etai.unitVector())*WQ.gradValue(etai.magnitude(), Hdeti);
-              // const Vector gradWQSPHj = (Hj*etaj.unitVector())*WQ.gradValue(etaj.magnitude(), Hdetj);
 
               // Zero'th and second moment of the node distribution -- used for the
               // ideal H calculation.
@@ -918,28 +895,20 @@ evaluateDerivatives(const typename Dimension::Scalar time,
               const pair<Tensor, Tensor> QPiij = Q.Piij(nodeListi, i, nodeListj, j,
                                                         ri, etai, vi, rhoi, ci, Hi,
                                                         rj, etaj, vj, rhoj, cj, Hj);
-              // const Vector Qacci = 0.5*(QPiij.first *gradWQSPHi);                              // SPH
-              // const Vector Qaccj = 0.5*(QPiij.second*gradWQSPHj);                              // SPH
-              // const Scalar workQi = vij.dot(Qacci);                                            // SPH
-              // const Scalar workQj = vij.dot(Qaccj);                                            // SPH
-              // const Scalar workQij = 0.5*(workQi + workQj);                                    // SPH
-              const Vector Qaccij = 0.5*(rhoi*rhoi*QPiij.first + rhoj*rhoj*QPiij.second).dot(deltagrad);    // CRK
-              const Vector QaccVi = (rhoi*rhoi*QPiij.first-rhoj*rhoj*QPiij.second).dot(gradWj);    // RK Type V
-              const Vector QaccVj = (rhoj*rhoj*QPiij.second-rhoi*rhoi*QPiij.first).dot(gradWi);    // RK Type V
-              const Vector QaccIi = (rhoj*rhoj*QPiij.second).dot(gradWj);    // RK Type I
-              const Vector QaccIj = (rhoi*rhoi*QPiij.first).dot(gradWi);     // RK Type I
-     
-              // const Vector Qaccij = 0.25*(rhoi + rhoj)*(rhoi*QPiij.first + rhoj*QPiij.second).dot(deltagrad);    // CRK
-              // const Vector Qaccij = 0.5*rhoi*rhoj*(QPiij.first + QPiij.second).dot(deltagrad);    // CRK
-              const Scalar workQij = vij.dot(Qaccij);                                             // CRK
-              // const Scalar workQi = rhoi*rhoj*QPiij.second.dot(vij).dot(deltagrad);            // CRK
-              // const Scalar workQj = rhoi*rhoj*QPiij.first .dot(vij).dot(deltagrad);            // CRK
-              const Scalar workQVi =  vij.dot((rhoj*rhoj*QPiij.second).dot(gradWj)); //RK V and RK I Work
-              const Scalar workQVj =  vij.dot((rhoi*rhoi*QPiij.first).dot(gradWi));  //RK V and RK I Work
+              const Vector Qaccij = (rhoi*rhoi*QPiij.first + rhoj*rhoj*QPiij.second).dot(deltagrad);  // CRK
+              // const Vector QaccVi = (rhoi*rhoi*QPiij.first-rhoj*rhoj*QPiij.second).dot(gradWj);    // RK Type V
+              // const Vector QaccVj = (rhoj*rhoj*QPiij.second-rhoi*rhoi*QPiij.first).dot(gradWi);    // RK Type V
+              // const Vector QaccIi = (rhoj*rhoj*QPiij.second).dot(gradWj);                          // RK Type I
+              // const Vector QaccIj = (rhoi*rhoi*QPiij.first).dot(gradWi);                           // RK Type I
+              const Scalar workQij = 0.5*(vij.dot(Qaccij));
+              // const Scalar workQi = rhoj*rhoj*QPiij.second.dot(vij).dot(deltagrad);                // CRK
+              // const Scalar workQj = rhoi*rhoi*QPiij.first .dot(vij).dot(deltagrad);                // CRK
+              // const Scalar workQVi =  vij.dot((rhoj*rhoj*QPiij.second).dot(gradWj));               //RK V and RK I Work
+              // const Scalar workQVj =  vij.dot((rhoi*rhoi*QPiij.first).dot(gradWi));                //RK V and RK I Work
               const Scalar Qi = rhoi*rhoi*(QPiij.first. diagonalElements().maxAbsElement());
               const Scalar Qj = rhoj*rhoj*(QPiij.second.diagonalElements().maxAbsElement());
-              maxViscousPressurei = max(maxViscousPressurei, Qi);
-              maxViscousPressurej = max(maxViscousPressurej, Qj);
+              maxViscousPressurei = max(maxViscousPressurei, 4.0*Qi);                                 // We need tighter timestep controls on the Q with CRK
+              maxViscousPressurej = max(maxViscousPressurej, 4.0*Qj);
               effViscousPressurei += weightj * Qi * Wj;
               effViscousPressurej += weighti * Qj * Wi;
               viscousWorki += 0.5*weighti*weightj/mi*workQij;
@@ -958,16 +927,11 @@ evaluateDerivatives(const typename Dimension::Scalar time,
               // Acceleration (CRKSPH form).
               CHECK(rhoi > 0.0);
               CHECK(rhoj > 0.0);
-              // const Vector forceij = 0.5*weighti*weightj*((Pi + Pj)*deltagrad) + mi*mj*(Qacci + Qaccj);    // <- Type III, with SPH Q forces
-              // const Vector forceij  = 0.5*weighti*weightj*((Pi + Pj)*deltagrad +                              // <- Type III, with CRKSPH Q forces
-              //                                              (rhoi*rhoj*QPiij.first + rhoi*rhoj*QPiij.second)*deltagrad);
-              const Vector forceij  = weighti*weightj*(0.5*(Pi + Pj)*deltagrad + Qaccij);                        // <- Type III, with CRKSPH Q forces
-              const Vector forceVi  = weighti*weightj*((Pi - Pj)*gradWj + QaccVi);                        // <- Type V, with CRKSPH Q forces, Non-conservative but consistent
-              const Vector forceVj  = weighti*weightj*((Pj - Pi)*gradWi + QaccVj);                        // <- Type V, with CRKSPH Q forces, Non-conservative but consistent
-              const Vector forceIi  = weighti*weightj*(Pj*gradWj + QaccIi);                        // <- Type I, with CRKSPH Q forces, Non-conservative but consistent
-              const Vector forceIj  = weighti*weightj*(Pi*gradWi + QaccIj);                        // <- Type I, with CRKSPH Q forces, Non-conservative but consistent
-              //const Vector forceIi  = weighti*weightj*(Pj*gradWj);                        // <- Type I, with CRKSPH Q forces, Non-conservative but consistent
-              //const Vector forceIj  = weighti*weightj*(Pi*gradWi);                        // <- Type I, with CRKSPH Q forces, Non-conservative but consistent
+              const Vector forceij  = 0.5*weighti*weightj*((Pi + Pj)*deltagrad + Qaccij);                    // <- Type III, with CRKSPH Q forces
+              // const Vector forceVi  = weighti*weightj*((Pi - Pj)*gradWj + QaccVi);                        // <- Type V, with CRKSPH Q forces, Non-conservative but consistent
+              // const Vector forceVj  = weighti*weightj*((Pj - Pi)*gradWi + QaccVj);                        // <- Type V, with CRKSPH Q forces, Non-conservative but consistent
+              // const Vector forceIi  = weighti*weightj*(Pj*gradWj + QaccIi);                               // <- Type I, with CRKSPH Q forces, Non-conservative but consistent
+              // const Vector forceIj  = weighti*weightj*(Pi*gradWi + QaccIj);                               // <- Type I, with CRKSPH Q forces, Non-conservative but consistent
 
               DvDti -= forceij/mi; //CRK Acceleration
               DvDtj += forceij/mj; //CRK Acceleration

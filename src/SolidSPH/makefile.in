@@ -15,5 +15,12 @@ INSTSRCTARGETS = \
 PYTHONTARGETS = \
 	$(srcdir)/SolidSPHHydros.py
 
+ifeq ("yes", "@INST2D@")
+SRCTARGETS += \
+	$(srcdir)/SolidSPHHydroBaseRZ.cc
+PYTHONTARGETS += \
+	$(srcdir)/SolidSPHHydrosRZ.py
+endif
+
 #-------------------------------------------------------------------------------
 include $(BUILDTOP)/helpers/makefile_master
