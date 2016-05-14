@@ -40,6 +40,10 @@ self.TensorSVPHViscosity%(dim)id = addObject(space, "TensorSVPHViscosity%(dim)id
 self.TensorCRKSPHViscosity%(dim)id = addObject(space, "TensorCRKSPHViscosity%(dim)id", allow_subclassing=True, parent=self.TensorMonaghanGingoldViscosity%(dim)id)
 self.VonNeumanViscosity%(dim)id = addObject(space, "VonNeumanViscosity%(dim)id", allow_subclassing=True, parent=self.ArtificialViscosity%(dim)id)
 ''' % {"dim" : dim})
+
+        if 2 in self.dims:
+            self.MonaghanGingoldViscosityGSRZ = addObject(space, "MonaghanGingoldViscosityGSRZ", allow_subclassing=True, parent=self.MonaghanGingoldViscosity2d)
+            
         return
 
     #---------------------------------------------------------------------------
@@ -59,6 +63,10 @@ self.addTensorSVPHViscosityMethods(self.TensorSVPHViscosity%(dim)id, %(dim)i)
 self.addTensorCRKSPHViscosityMethods(self.TensorCRKSPHViscosity%(dim)id, %(dim)i)
 self.addVonNeumanViscosityMethods(self.VonNeumanViscosity%(dim)id, %(dim)i)
 ''' % {"dim" : dim})
+
+        if 2 in self.dims:
+            self.addMonaghanGingoldViscosityGSRZMethods()
+
         return
 
     #---------------------------------------------------------------------------
@@ -172,6 +180,21 @@ self.addVonNeumanViscosityMethods(self.VonNeumanViscosity%(dim)id, %(dim)i)
         # Attributes
         x.add_instance_attribute("linearInExpansion", "bool", getter="linearInExpansion", setter="linearInExpansion")
         x.add_instance_attribute("quadraticInExpansion", "bool", getter="quadraticInExpansion", setter="quadraticInExpansion")
+
+        return
+    
+    #---------------------------------------------------------------------------
+    # Add methods to the MonaghanGingoldViscosityGSRZ.
+    #---------------------------------------------------------------------------
+    def addMonaghanGingoldViscosityGSRZMethods(self):
+
+        x = self.MonaghanGingoldViscosityGSRZ
+
+        # Constructors.
+        x.add_constructor([param("double", "Clinear", default_value="1.0"),
+                           param("double", "Cquadratic", default_value="1.0"),
+                           param("bool", "linearInExpansion", default_value="false"),
+                           param("bool", "quadraticInExpansion", default_value="false")])
 
         return
     

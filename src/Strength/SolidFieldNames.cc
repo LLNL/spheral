@@ -7,6 +7,7 @@
 #include "SolidFieldNames.hh"
 
 const std::string Spheral::SolidFieldNames::deviatoricStress = "deviatoric stress";
+const std::string Spheral::SolidFieldNames::deviatoricStressTT = "deviatoric stress theta theta";
 const std::string Spheral::SolidFieldNames::plasticStrain = "plastic strain";
 const std::string Spheral::SolidFieldNames::plasticStrainRate = "plastic strain rate";
 const std::string Spheral::SolidFieldNames::scalarDamage = "scalar damage";

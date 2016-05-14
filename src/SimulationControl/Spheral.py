@@ -73,6 +73,11 @@ from SolidCRKSPHHydros import *
 from TaylorSPHHydros import *
 from SPHUtilities import *
 
+from spheralDimensions import spheralDimensions
+if 2 in spheralDimensions():
+    from SPHHydrosRZ import *
+    from CRKSPHHydrosRZ import *
+
 # ------------------------------------------------------------------------------
 # Helpful things with strings.
 # ------------------------------------------------------------------------------

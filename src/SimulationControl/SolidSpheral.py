@@ -9,9 +9,15 @@ from SpheralModules.Spheral.SolidSPHSpace import *
 from SolidNodeLists import *
 from GradyKippTensorDamage import *
 from SolidSPHHydros import *
+from SolidSPHHydrosRZ import *
 
 from spheralDimensions import spheralDimensions
 dims = spheralDimensions()
+
+from spheralDimensions import spheralDimensions
+if 2 in spheralDimensions():
+    from SolidSPHHydrosRZ import *
+    from SolidCRKSPHHydrosRZ import *
 
 # ------------------------------------------------------------------------------
 # Import the SolidMaterial python extensions.

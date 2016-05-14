@@ -11,10 +11,14 @@ namespace KernelSpace {
 template<typename Dimension>
 inline
 double
-TableKernel<Dimension>::kernelValue(double etaMagnitude, double Hdet) const {
+TableKernel<Dimension>::kernelValue(const double etaMagnitude, const double Hdet) const {
   REQUIRE(etaMagnitude >= 0.0);
   REQUIRE(Hdet >= 0.0);
-  return Hdet*parabolicInterp(etaMagnitude, mKernelValues, mAkernel, mBkernel);
+  if (etaMagnitude < this->mKernelExtent) {
+    return Hdet*parabolicInterp(etaMagnitude, mAkernel, mBkernel, mCkernel);
+  } else {
+    return 0.0;
+  }
 }
 
 //------------------------------------------------------------------------------
@@ -23,10 +27,14 @@ TableKernel<Dimension>::kernelValue(double etaMagnitude, double Hdet) const {
 template<typename Dimension>
 inline
 double
-TableKernel<Dimension>::gradValue(double etaMagnitude, double Hdet) const {
+TableKernel<Dimension>::gradValue(const double etaMagnitude, const double Hdet) const {
   REQUIRE(etaMagnitude >= 0.0);
   REQUIRE(Hdet >= 0.0);
-  return Hdet*parabolicInterp(etaMagnitude, mGradValues, mAgrad, mBgrad);
+  if (etaMagnitude < this->mKernelExtent) {
+    return Hdet*parabolicInterp(etaMagnitude, mAgrad, mBgrad, mCgrad);
+  } else {
+    return 0.0;
+  }
 }
 
 //------------------------------------------------------------------------------
@@ -35,10 +43,14 @@ TableKernel<Dimension>::gradValue(double etaMagnitude, double Hdet) const {
 template<typename Dimension>
 inline
 double
-TableKernel<Dimension>::grad2Value(double etaMagnitude, double Hdet) const {
+TableKernel<Dimension>::grad2Value(const double etaMagnitude, const double Hdet) const {
   REQUIRE(etaMagnitude >= 0.0);
   REQUIRE(Hdet >= 0.0);
-  return Hdet*parabolicInterp(etaMagnitude, mGrad2Values, mAgrad2, mBgrad2);
+  if (etaMagnitude < this->mKernelExtent) {
+    return Hdet*parabolicInterp(etaMagnitude, mAgrad2, mBgrad2, mCgrad2);
+  } else {
+    return 0.0;
+  }
 }
 
 //------------------------------------------------------------------------------
@@ -47,11 +59,22 @@ TableKernel<Dimension>::grad2Value(double etaMagnitude, double Hdet) const {
 template<typename Dimension>
 inline
 std::pair<double, double>
-TableKernel<Dimension>::kernelAndGradValue(double etaMagnitude, double Hdet) const {
+TableKernel<Dimension>::kernelAndGradValue(const double etaMagnitude, const double Hdet) const {
   REQUIRE(etaMagnitude >= 0.0);
   REQUIRE(Hdet >= 0.0);
-  return std::make_pair(Hdet*parabolicInterp(etaMagnitude, mKernelValues, mAkernel, mBkernel),
-                        Hdet*parabolicInterp(etaMagnitude, mGradValues, mAgrad, mBgrad));
+  if (etaMagnitude < this->mKernelExtent) {
+    const int i0 = min(mNumPoints - 3, lowerBound(etaMagnitude));
+    const int i1 = i0 + 1;
+    CHECK(i1 >= 1 and i1 <= mNumPoints - 2);
+    const double x = etaMagnitude/mStepSize - i0;
+    CHECK(x >= 0.0);
+    return std::make_pair(Hdet*(mAkernel[i1] + mBkernel[i1]*x + mCkernel[i1]*x*x),
+                          Hdet*(mAgrad[i1] + mBgrad[i1]*x + mCgrad[i1]*x*x));
+  } else {
+    return std::make_pair(0.0, 0.0);
+  }
+  // return std::make_pair(Hdet*parabolicInterp(etaMagnitude, mAkernel, mBkernel, mCkernel),
+  //                       Hdet*parabolicInterp(etaMagnitude, mAgrad, mBgrad, mCgrad));
 }
 
 //------------------------------------------------------------------------------
@@ -82,8 +105,125 @@ TableKernel<Dimension>::kernelAndGradValues(const std::vector<double>& etaMagnit
 
   // Fill those suckers in.
   for (size_t i = 0; i != n; ++i) {
-    kernelValues[i] = Hdets[i]*parabolicInterp(etaMagnitudes[i], mKernelValues, mAkernel, mBkernel);
-    gradValues[i] = Hdets[i]*parabolicInterp(etaMagnitudes[i], mGradValues, mAgrad, mBgrad);
+    kernelValues[i] = Hdets[i]*parabolicInterp(etaMagnitudes[i], mAkernel, mBkernel, mCkernel);
+    gradValues[i] = Hdets[i]*parabolicInterp(etaMagnitudes[i], mAgrad, mBgrad, mCgrad);
+  }
+}
+
+//------------------------------------------------------------------------------
+// Return the f1 RZ correctiong for a given normalized distance.
+//------------------------------------------------------------------------------
+template<typename Dimension>
+inline
+double
+TableKernel<Dimension>::f1(const double etaMagnitude) const {
+  VERIFY2(false, "TableKernel::f1 lookup only valid for 2D kernels.");
+}
+
+template<>
+inline
+double
+TableKernel<Dim<2> >::f1(const double etaMagnitude) const {
+  REQUIRE(etaMagnitude >= 0.0);
+  if (etaMagnitude < this->mKernelExtent - mStepSize) {
+    return parabolicInterp(etaMagnitude, mAf1, mBf1, mCf1);
+  } else {
+    return 1.0;
+  }
+}
+
+//------------------------------------------------------------------------------
+// Return the f2 RZ correctiong for a given normalized distance.
+//------------------------------------------------------------------------------
+template<typename Dimension>
+inline
+double
+TableKernel<Dimension>::f2(const double etaMagnitude) const {
+  VERIFY2(false, "TableKernel::f2 lookup only valid for 2D kernels.");
+}
+
+template<>
+inline
+double
+TableKernel<Dim<2> >::f2(const double etaMagnitude) const {
+  REQUIRE(etaMagnitude >= 0.0);
+  return parabolicInterp(etaMagnitude, mAf2, mBf2, mCf2);
+}
+
+//------------------------------------------------------------------------------
+// Return the grad_r f1 RZ correctiong for a given normalized distance.
+//------------------------------------------------------------------------------
+template<typename Dimension>
+inline
+double
+TableKernel<Dimension>::gradf1(const double etaMagnitude) const {
+  VERIFY2(false, "TableKernel::gradf1 lookup only valid for 2D kernels.");
+}
+
+template<>
+inline
+double
+TableKernel<Dim<2> >::gradf1(const double etaMagnitude) const {
+  REQUIRE(etaMagnitude >= 0.0);
+  return parabolicInterp(etaMagnitude, mAgradf1, mBgradf1, mCgradf1);
+}
+
+//------------------------------------------------------------------------------
+// Return the grad_r f2 RZ correctiong for a given normalized distance.
+//------------------------------------------------------------------------------
+template<typename Dimension>
+inline
+double
+TableKernel<Dimension>::gradf2(const double etaMagnitude) const {
+  VERIFY2(false, "TableKernel::gradf2 lookup only valid for 2D kernels.");
+}
+
+template<>
+inline
+double
+TableKernel<Dim<2> >::gradf2(const double etaMagnitude) const {
+  REQUIRE(etaMagnitude >= 0.0);
+  return parabolicInterp(etaMagnitude, mAgradf2, mBgradf2, mCgradf2);
+}
+
+//------------------------------------------------------------------------------
+// Return the (f1, f2, gradf1, gradf2) RZ values for a given normalized distance.
+//------------------------------------------------------------------------------
+template<typename Dimension>
+inline
+void
+TableKernel<Dimension>::f1Andf2(const double etaMagnitude,
+                                double& f1,
+                                double& f2,
+                                double& gradf1,
+                                double& gradf2) const {
+  VERIFY2(false, "TableKernel::f1Andf2 lookup only valid for 2D kernels.");
+}
+
+template<>
+inline
+void
+TableKernel<Dim<2> >::f1Andf2(const double etaMagnitude,
+                              double& f1,
+                              double& f2,
+                              double& gradf1,
+                              double& gradf2) const {
+  REQUIRE(etaMagnitude >= 0.0);
+  if (etaMagnitude < this->mKernelExtent - mStepSize) {
+    const int i0 = min(mNumPoints - 3, lowerBound(etaMagnitude));
+    const int i1 = i0 + 1;
+    CHECK(i1 >= 1 and i1 <= mNumPoints - 2);
+    const double x = etaMagnitude/mStepSize - i0;
+    CHECK(x >= 0.0);
+    f1 = mAf1[i1] + mBf1[i1]*x + mCf1[i1]*x*x;
+    f2 = mAf2[i1] + mBf2[i1]*x + mCf2[i1]*x*x;
+    gradf1 = mAgradf1[i1] + mBgradf1[i1]*x + mCgradf1[i1]*x*x;
+    gradf2 = mAgradf2[i1] + mBgradf2[i1]*x + mCgradf2[i1]*x*x;
+  } else {
+    f1 = 1.0;
+    f2 = 1.0;
+    gradf1 = 0.0;
+    gradf2 = 0.0;
   }
 }
 
@@ -137,24 +277,24 @@ template<typename Dimension>
 inline
 double
 TableKernel<Dimension>::parabolicInterp(const double etaMagnitude, 
-                                        const std::vector<double>& table,
                                         const std::vector<double>& a,
-                                        const std::vector<double>& b) const {
-  REQUIRE(table.size() == mNumPoints);
+                                        const std::vector<double>& b,
+                                        const std::vector<double>& c) const {
+  REQUIRE(etaMagnitude >= 0.0);
   REQUIRE(a.size() == mNumPoints);
   REQUIRE(b.size() == mNumPoints);
-  if (etaMagnitude < this->mKernelExtent) {
-    const int i0 = min(mNumPoints - 3, lowerBound(etaMagnitude));
-    const int i1 = i0 + 1;
-    const double deta = etaMagnitude - i1*mStepSize;
-    return a[i1]*deta*deta + b[i1]*deta + table[i1];
-  } else {
-    return 0.0;
-  }
+  REQUIRE(c.size() == mNumPoints);
+  const double etai = std::min(etaMagnitude, this->mKernelExtent);
+  const int i0 = min(mNumPoints - 3, lowerBound(etaMagnitude));
+  const int i1 = i0 + 1;
+  CHECK(i1 >= 1 and i1 <= mNumPoints - 2);
+  const double x = etaMagnitude/mStepSize - i0;
+  CHECK(x >= 0.0);
+  return a[i1] + b[i1]*x + c[i1]*x*x;
 }
 
 //------------------------------------------------------------------------------
-// Return the tabular lookup data for the nodes per smoothing scale.
+// Return the assorted tabular lookup data.
 //------------------------------------------------------------------------------
 template<typename Dimension>
 inline

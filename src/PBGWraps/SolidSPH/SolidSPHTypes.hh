@@ -3,6 +3,7 @@
 
 #include "Geometry/Dimension.hh"
 #include "SolidSPH/SolidSPHHydroBase.hh"
+#include "SolidSPH/SolidSPHHydroBaseRZ.hh"
 #include "SolidSPH/NodeCoupling.hh"
 #include "SolidSPH/DamagedNodeCoupling.hh"
 

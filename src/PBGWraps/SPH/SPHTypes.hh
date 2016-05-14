@@ -6,6 +6,8 @@
 #include "SPH/PSPHHydroBase.hh"
 #include "SPH/computeSPHSumMassDensity.hh"
 #include "SPH/computeSPHOmegaGradhCorrection.hh"
+#include "SPH/SPHHydroBaseRZ.hh"
+#include "SPH/SPHHydroBaseGSRZ.hh"
 
 namespace Spheral {
 namespace SPHSpace {

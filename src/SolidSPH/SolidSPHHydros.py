@@ -24,7 +24,7 @@ class %(classname)s%(dim)s(SolidSPHHydroBase%(dim)s):
                  useVelocityMagnitudeForDt = False,
                  compatibleEnergyEvolution = True,
                  evolveTotalEnergy = False,
-                 gradhCorrection = True,
+                 gradhCorrection = False,
                  XSPH = True,
                  correctVelocityGradient = True,
                  sumMassDensityOverAllNodeLists = False,
