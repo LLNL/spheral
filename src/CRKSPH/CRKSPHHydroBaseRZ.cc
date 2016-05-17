@@ -323,6 +323,9 @@ evaluateDerivatives(const Dim<2>::Scalar time,
       }
       const Scalar Hdeti = Hi.Determinant();
       const Scalar weighti = volume(nodeListi, i);  // Change CRKSPH weights here if need be!
+      const Scalar zetai = abs((Hi*posi).y());
+      const Scalar hri = ri*safeInvVar(zetai);
+      const Scalar riInv = safeInvVar(ri, 0.05*hri);
       CHECK2(mi > 0.0, i << " " << mi);
       CHECK2(rhoi > 0.0, i << " " << rhoi);
       CHECK2(Ai > 0.0, i << " " << Ai);
@@ -408,6 +411,7 @@ evaluateDerivatives(const Dim<2>::Scalar time,
               }
               const Scalar Hdetj = Hj.Determinant();
               const Scalar weightj = volume(nodeListj, j);     // Change CRKSPH weights here if need be!
+              const Scalar zetaj = abs((Hj*posj).y());
               CHECK(mj > 0.0);
               CHECK(rhoj > 0.0);
               CHECK(Aj > 0.0 or j >= firstGhostNodej);
@@ -498,7 +502,7 @@ evaluateDerivatives(const Dim<2>::Scalar time,
               DepsDtj += 0.5*weighti*weightj*(Pi*vij.dot(deltagrad) + workQij)/mRZj;    // CRK Q
 
               // Estimate of delta v (for XSPH).
-              if (mXSPH and (nodeListi == nodeListj)) {
+              if ((mXSPH and (nodeListi == nodeListj)) or min(zetai, zetaj) < 1.0) {
                 XSPHDeltaVi -= weightj*Wj*vij;
 		XSPHDeltaVj += weighti*Wi*vij;
               }
@@ -518,9 +522,6 @@ evaluateDerivatives(const Dim<2>::Scalar time,
       pairAccelerationsi.push_back(Vector::zero);
 
       // Time evolution of the mass density.
-      const Scalar zetai = abs((Hi*posi).y());
-      const Scalar hri = ri*safeInvVar(zetai);
-      const Scalar riInv = safeInvVar(ri, 0.05*hri);
       const Scalar vri = vi.y() + XSPHDeltaVi.y();
       DrhoDti = -rhoi*(DvDxi.Trace() + vri*riInv);
 

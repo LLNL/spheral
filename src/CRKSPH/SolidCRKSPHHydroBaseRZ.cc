@@ -450,6 +450,9 @@ evaluateDerivatives(const Dim<2>::Scalar time,
       }
       const Scalar Hdeti = Hi.Determinant();
       const Scalar weighti = volume(nodeListi, i);  // Change CRKSPH weights here if need be!
+      const Scalar zetai = abs((Hi*posi).y());
+      const Scalar hri = ri*safeInvVar(zetai);
+      const Scalar riInv = safeInvVar(ri, 0.05*hri);
       CHECK(mi > 0.0);
       CHECK(rhoi > 0.0);
       CHECK(Ai > 0.0);
@@ -533,6 +536,7 @@ evaluateDerivatives(const Dim<2>::Scalar time,
               const Scalar STTj = STT(nodeListj, j);
               const Scalar Hdetj = Hj.Determinant();
               const Scalar weightj = volume(nodeListj, j);     // Change CRKSPH weights here if need be!
+              const Scalar zetaj = abs((Hj*posj).y());
               CHECK(mj > 0.0);
               CHECK(rhoj > 0.0);
               CHECK(Hdetj > 0.0);
@@ -645,7 +649,7 @@ evaluateDerivatives(const Dim<2>::Scalar time,
               DepsDtj += 0.5*weighti*weightj*(Pposi*vij.dot(deltagrad) + fDeffij*fDeffij*sigmai.dot(vij).dot(deltagraddam) + workQij)/mRZj;
 
               // Estimate of delta v (for XSPH).
-              if (XSPH and (nodeListi == nodeListj)) {
+              if ((XSPH and (nodeListi == nodeListj)) or min(zetai, zetaj) < 1.0) {
                 XSPHDeltaVi -= fDeffij*weightj*Wdamj*vij;
 		XSPHDeltaVj += fDeffij*weighti*Wdami*vij;
               }
@@ -695,9 +699,6 @@ evaluateDerivatives(const Dim<2>::Scalar time,
                                                        i);
 
       // Finish the acceleration.
-      const Scalar zetai = abs((Hi*posi).y());
-      const Scalar hri = ri*safeInvVar(zetai);
-      const Scalar riInv = safeInvVar(ri, 0.05*hri);
       const Vector deltaDvDti(Si(1,0)/rhoi*riInv,
                               (Si(1,1) - STTi)/rhoi*riInv);
       DvDti += deltaDvDti;
