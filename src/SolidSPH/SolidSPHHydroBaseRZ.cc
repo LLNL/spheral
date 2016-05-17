@@ -384,6 +384,9 @@ evaluateDerivatives(const Dim<2>::Scalar time,
       const Scalar safeOmegai = safeInv(omegai, tiny);
       const int fragIDi = fragIDs(nodeListi, i);
       const int pTypei = pTypes(nodeListi, i);
+      const Scalar zetai = abs((Hi*posi).y());
+      const Scalar hri = ri*safeInvVar(zetai);
+      const Scalar riInv = safeInvVar(ri, 0.05*hri);
       CHECK(mi > 0.0);
       CHECK(rhoi > 0.0);
       CHECK(Hdeti > 0.0);
@@ -458,6 +461,7 @@ evaluateDerivatives(const Dim<2>::Scalar time,
               const Scalar safeOmegaj = safeInv(omegaj, tiny);
               const int fragIDj = fragIDs(nodeListj, j);
               const int pTypej = pTypes(nodeListj, j);
+              const Scalar zetaj = abs((Hj*posj).y());
               CHECK(mj > 0.0);
               CHECK(rhoj > 0.0);
               CHECK(Hdetj > 0.0);
@@ -613,7 +617,7 @@ evaluateDerivatives(const Dim<2>::Scalar time,
               }
 
               // Estimate of delta v (for XSPH).
-              if (sameMatij) {
+              if (sameMatij or min(zetai, zetaj) < 1.0) {
                 const double wXSPHij = 0.5*(mRZi/rhoi*Wi + mRZj/rhoj*Wj);
                 XSPHWeightSumi += wXSPHij;
                 XSPHWeightSumj += wXSPHij;
@@ -651,9 +655,6 @@ evaluateDerivatives(const Dim<2>::Scalar time,
       effViscousPressurei /= rhoSumCorrectioni ;
 
       // Finish the acceleration.
-      const Scalar zetai = abs((Hi*posi).y());
-      const Scalar hri = ri*safeInvVar(zetai);
-      const Scalar riInv = safeInvVar(ri, 0.05*hri);
       const Vector deltaDvDti(Si(1,0)/rhoi*riInv,
                               (Si(1,1) - STTi)/rhoi*riInv);
       DvDti += deltaDvDti;

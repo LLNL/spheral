@@ -301,6 +301,9 @@ evaluateDerivatives(const Dim<2>::Scalar time,
       const Scalar& omegai = omega(nodeListi, i);
       const Scalar Hdeti = Hi.Determinant();
       const Scalar safeOmegai = safeInv(omegai, tiny);
+      const Scalar zetai = abs((Hi*posi).y());
+      const Scalar hri = ri*safeInvVar(zetai);
+      const Scalar riInv = safeInvVar(ri, 0.05*hri);
       CHECK(rhoi > 0.0);
       CHECK(Hdeti > 0.0);
 
@@ -367,6 +370,7 @@ evaluateDerivatives(const Dim<2>::Scalar time,
               const Scalar& omegaj = omega(nodeListj, j);
               const Scalar Hdetj = Hj.Determinant();
               const Scalar safeOmegaj = safeInv(omegaj, tiny);
+              const Scalar zetaj = abs((Hj*posj).y());
               CHECK(rhoj > 0.0);
               CHECK(Hdetj > 0.0);
 
@@ -477,7 +481,7 @@ evaluateDerivatives(const Dim<2>::Scalar time,
               }
 
               // Estimate of delta v (for XSPH).
-              if (nodeListi == nodeListj) {
+              if (nodeListi == nodeListj or min(zetai, zetaj) < 1.0) {
                 const double wXSPHij = 0.5*(mRZi/rhoi*Wi + mRZj/rhoj*Wj);
                 XSPHWeightSumi += wXSPHij;
                 XSPHWeightSumj += wXSPHij;
@@ -532,9 +536,6 @@ evaluateDerivatives(const Dim<2>::Scalar time,
       }
 
       // Finish the continuity equation.
-      const Scalar zetai = abs((Hi*posi).y());
-      const Scalar hri = ri*safeInvVar(zetai);
-      const Scalar riInv = safeInvVar(ri, 0.05*hri);
       XSPHWeightSumi += Hdeti*mRZi/rhoi*W0;
       CHECK2(XSPHWeightSumi != 0.0, i << " " << XSPHWeightSumi);
       XSPHDeltaVi /= XSPHWeightSumi;
