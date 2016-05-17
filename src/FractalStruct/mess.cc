@@ -1540,45 +1540,6 @@ namespace FractalSpace
     fprintf(p_file->PFFractalMemory," MPI Error %d %d %d %d %d %d %d %d \n",which,test,
 	    MPI_ERR_COMM,MPI_ERR_TYPE,MPI_ERR_COUNT,MPI_ERR_TAG,MPI_ERR_RANK,MPI_SUCCESS);
   }
-//   void Which_Nodes(int count,vector <int>& counts,vector <bool>& YesNo,int ROOT,MPI_Comm& World)
-//   {
-//     bool ThisIsROOT = ROOT == what_is_my_rank(World);
-//     int csize=how_many_nodes(World);
-//     vector <int>Count(1);
-//     Count[0]=count;
-//     if(ThisIsROOT)
-//       counts.resize(csize);
-//     MPI_Gather(&(*(Count.begin())),1,MPI_INT,&(*(counts.begin())),1,MPI_INT,ROOT,World);
-//     int isize=8*sizeof(int);
-//     int batches=(csize-1)/isize+1;
-//     vector <unsigned int> Ucounts(batches,0);
-//     if(ThisIsROOT)
-//       {
-// 	for(int b=0;b<batches;b++)
-// 	  {
-// 	    int n0=(b*csize)/batches;
-// 	    int n1=((b+1)*csize)/batches;
-// 	    for(int n=n1-1;n>=n0;n--)
-// 	      {
-// 		Ucounts[b]*=2;
-// 		if(counts[n] > 0)
-// 		  Ucounts[b]++;
-// 	      }
-// 	  }
-//       }
-//     MPI_Bcast(&(*(Ucounts.begin())),batches,MPI_UNSIGNED,ROOT,World);
-//     YesNo.resize(csize);
-//     for(int b=0;b<batches;b++)
-//       {
-// 	int n0=(b*csize)/batches;
-// 	int n1=((b+1)*csize)/batches;
-// 	for(int n=n0;n<n1;n++)
-// 	  {
-// 	    YesNo[n]=(Ucounts[b] % 2) == 1;
-// 	    Ucounts[b]/=2;
-// 	  }
-//       }
-//   }
   void Mess::my_AllgatherI(vector <int>& paramsend,vector <int>& paramrecv,const int& nsend) const
   {
     int batchsize=1024;
@@ -1717,6 +1678,14 @@ namespace FractalSpace
 	numbers=sumup;
       }
     Full_Stop_Do_Not_Argue();
+  }
+  long int Mess::How_Many_In_Solver(const int S) const
+  {
+    vector <long int> total{S};
+    vector <long int> sumup(1);
+    MPI_Reduce(&(*total.begin()),&(*sumup.begin()),1,MPI_LONG,MPI_SUM,HypreNodes/2,HypreWorld);
+    MPI_Bcast(&(*sumup.begin()),1,MPI_LONG,HypreNodes/2,HypreWorld);
+    return sumup[0];
   }
   void Mess::Send_INT_from_ROOT(vector <int>& numbers,const int& how_long,const int& ROOT) const
   {
