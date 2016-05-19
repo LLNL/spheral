@@ -797,8 +797,14 @@ evaluateDerivatives(const typename Dimension::Scalar time,
               const double Prhoi = safeOmegai*Peffi/(rhoi*rhoi);
               const double Prhoj = safeOmegaj*Peffj/(rhoj*rhoj);
               const Vector deltaDvDt = Prhoi*gradWi + Prhoj*gradWj + Qacci + Qaccj;
+	      const Vector dQ = Qacci + Qaccj;
+	      const Vector dPr = Prhoi*gradWi + Prhoj*gradWj;
               DvDti -= mj*deltaDvDt;
               DvDtj += mi*deltaDvDt;
+	      QForcei -= mj*dQ;
+	      QForcej += mi*dQ;
+	      PForcei -= mj*dPr;
+	      PForcej += mi*dPr;
 
               // Specific thermal energy evolution.
               // const Scalar workQij = 0.5*(mj*workQi + mi*workQj);
