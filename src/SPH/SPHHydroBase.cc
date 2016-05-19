@@ -138,6 +138,8 @@ SPHHydroBase(const SmoothingScaleBase<Dimension>& smoothingScaleMethod,
   mM(FieldSpace::Copy),
   mLocalM(FieldSpace::Copy),
   mPairAccelerations(FieldSpace::Copy),
+  mQForce(FieldSpace::Copy),
+  mPForce(FieldSpace::Copy),
   mRestart(DataOutput::registerWithRestart(*this)) {
 }
 
@@ -184,6 +186,10 @@ initializeProblemStartup(DataBase<Dimension>& dataBase) {
   mPairAccelerations = dataBase.newFluidFieldList(vector<Vector>(), HydroFieldNames::pairAccelerations);
   mM = dataBase.newFluidFieldList(Tensor::zero, HydroFieldNames::M_SPHCorrection);
   mLocalM = dataBase.newFluidFieldList(Tensor::zero, "local " + HydroFieldNames::M_SPHCorrection);
+
+  mQForce = dataBase.newFluidFieldList(Vector::zero,"AV Force");
+  mPForce = dataBase.newFluidFieldList(Vector::zero,"Pr Force");
+  
 
   // Initialize the pressure and sound speed.
   dataBase.fluidPressure(mPressure);
@@ -388,6 +394,9 @@ registerDerivatives(DataBase<Dimension>& dataBase,
   dataBase.resizeFluidFieldList(mLocalM, Tensor::zero, "local " + HydroFieldNames::M_SPHCorrection, false);
   dataBase.resizeFluidFieldList(mPairAccelerations, vector<Vector>(), HydroFieldNames::pairAccelerations, false);
 
+  dataBase.resizeFluidFieldList(mQForce, Vector::zero,"AV Force",false);
+  dataBase.resizeFluidFieldList(mPForce, Vector::zero,"Pr Force",false);
+
   derivs.enroll(mHideal);
   derivs.enroll(mMaxViscousPressure);
   derivs.enroll(mEffViscousPressure);
@@ -414,6 +423,9 @@ registerDerivatives(DataBase<Dimension>& dataBase,
   derivs.enroll(mM);
   derivs.enroll(mLocalM);
   derivs.enroll(mPairAccelerations);
+  
+  derivs.enroll(mQForce);
+  derivs.enroll(mPForce);
 }
 
 //------------------------------------------------------------------------------
@@ -519,6 +531,10 @@ evaluateDerivatives(const typename Dimension::Scalar time,
   FieldList<Dimension, Vector> DxDt = derivatives.fields(IncrementFieldList<Dimension, Vector>::prefix() + HydroFieldNames::position, Vector::zero);
   FieldList<Dimension, Scalar> DrhoDt = derivatives.fields(IncrementFieldList<Dimension, Scalar>::prefix() + HydroFieldNames::massDensity, 0.0);
   FieldList<Dimension, Vector> DvDt = derivatives.fields(IncrementFieldList<Dimension, Vector>::prefix() + HydroFieldNames::velocity, Vector::zero);
+
+  FieldList<Dimension, Vector> QForce = derivatives.fields("AV Force",Vector::zero);
+  FieldList<Dimension, Vector> PForce = derivatives.fields("Pr Force",Vector::zero);
+
   FieldList<Dimension, Scalar> DepsDt = derivatives.fields(IncrementFieldList<Dimension, Scalar>::prefix() + HydroFieldNames::specificThermalEnergy, 0.0);
   FieldList<Dimension, Tensor> DvDx = derivatives.fields(HydroFieldNames::velocityGradient, Tensor::zero);
   FieldList<Dimension, Tensor> localDvDx = derivatives.fields(HydroFieldNames::internalVelocityGradient, Tensor::zero);
@@ -539,6 +555,10 @@ evaluateDerivatives(const typename Dimension::Scalar time,
   CHECK(DxDt.size() == numNodeLists);
   CHECK(DrhoDt.size() == numNodeLists);
   CHECK(DvDt.size() == numNodeLists);
+
+  CHECK(QForce.size() == numNodeLists);
+  CHECK(PForce.size() == numNodeLists);
+
   CHECK(DepsDt.size() == numNodeLists);
   CHECK(DvDx.size() == numNodeLists);
   CHECK(localDvDx.size() == numNodeLists);
@@ -617,6 +637,10 @@ evaluateDerivatives(const typename Dimension::Scalar time,
       Vector& DxDti = DxDt(nodeListi, i);
       Scalar& DrhoDti = DrhoDt(nodeListi, i);
       Vector& DvDti = DvDt(nodeListi, i);
+
+      Vector& QForcei = QForce(nodeListi, i);
+      Vector& PForcei = PForce(nodeListi, i);
+
       Scalar& DepsDti = DepsDt(nodeListi, i);
       Tensor& DvDxi = DvDx(nodeListi, i);
       Tensor& localDvDxi = localDvDx(nodeListi, i);
@@ -680,6 +704,10 @@ evaluateDerivatives(const typename Dimension::Scalar time,
               Scalar& normj = normalization(nodeListj, j);
               Vector& DxDtj = DxDt(nodeListj, j);
               Vector& DvDtj = DvDt(nodeListj, j);
+
+	      Vector& QForcej = QForce(nodeListj, j);
+	      Vector& PForcej = PForce(nodeListj, j);
+
               Scalar& DepsDtj = DepsDt(nodeListj, j);
               Tensor& DvDxj = DvDx(nodeListj, j);
               Tensor& localDvDxj = localDvDx(nodeListj, j);

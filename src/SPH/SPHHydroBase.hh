@@ -221,6 +221,9 @@ public:
   const FieldSpace::FieldList<Dimension, Tensor>&    internalDvDx() const;
   const FieldSpace::FieldList<Dimension, std::vector<Vector> >& pairAccelerations() const;
 
+  const FieldSpace::FieldList<Dimension, Vector>&    QForce() const;
+  const FieldSpace::FieldList<Dimension, Vector>&    PForce() const;
+
   //****************************************************************************
   // Methods required for restarting.
   virtual std::string label() const { return "SPHHydroBase"; }
@@ -282,6 +285,9 @@ protected:
   FieldSpace::FieldList<Dimension, Scalar>    mVolume;
 
   FieldSpace::FieldList<Dimension, std::vector<Vector> > mPairAccelerations;
+
+  FieldSpace::FieldList<Dimension, Vector>    mQForce;
+  FieldSpace::FieldList<Dimension, Vector>    mPForce;
 
 private:
   //--------------------------- Private Interface ---------------------------//
