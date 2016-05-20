@@ -214,6 +214,9 @@ public:
   const FieldSpace::FieldList<Dimension, Tensor>&    internalDvDx() const;
   const FieldSpace::FieldList<Dimension, std::vector<Vector> >& pairAccelerations() const;
 
+  const FieldSpace::FieldList<Dimension, Vector>&    QForce() const;
+  const FieldSpace::FieldList<Dimension, Vector>&    PForce() const;
+
   const FieldSpace::FieldList<Dimension, Scalar>&    A() const;
   const FieldSpace::FieldList<Dimension, Vector>&    B() const;
   const FieldSpace::FieldList<Dimension, Tensor>&    C() const;
@@ -281,6 +284,9 @@ protected:
   FieldSpace::FieldList<Dimension, SymTensor> mDHDt;
   FieldSpace::FieldList<Dimension, Tensor>    mDvDx;
   FieldSpace::FieldList<Dimension, Tensor>    mInternalDvDx;
+
+  FieldSpace::FieldList<Dimension, Vector>    mQForce;
+  FieldSpace::FieldList<Dimension, Vector>    mPForce;
 
   FieldSpace::FieldList<Dimension, std::vector<Vector> > mPairAccelerations;
 

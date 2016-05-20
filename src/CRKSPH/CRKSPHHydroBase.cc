@@ -151,6 +151,8 @@ CRKSPHHydroBase(const SmoothingScaleBase<Dimension>& smoothingScaleMethod,
   mXSPHDeltaV(FieldSpace::Copy),
   mDxDt(FieldSpace::Copy),
   mDvDt(FieldSpace::Copy),
+  mQForce(FieldSpace::Copy),
+  mPForce(FieldSpace::Copy),
   mDmassDensityDt(FieldSpace::Copy),
   mDspecificThermalEnergyDt(FieldSpace::Copy),
   mDHDt(FieldSpace::Copy),
@@ -209,6 +211,8 @@ initializeProblemStartup(DataBase<Dimension>& dataBase) {
   mXSPHDeltaV = dataBase.newFluidFieldList(Vector::zero, HydroFieldNames::XSPHDeltaV);
   mDxDt = dataBase.newFluidFieldList(Vector::zero, IncrementFieldList<Dimension, Field<Dimension, Vector> >::prefix() + HydroFieldNames::position);
   mDvDt = dataBase.newFluidFieldList(Vector::zero, IncrementFieldList<Dimension, Field<Dimension, Vector> >::prefix() + HydroFieldNames::velocity);
+  mQForce = dataBase.newFluidFieldList(Vector::zero,"AV Force");
+  mPForce = dataBase.newFluidFieldList(Vector::zero,"Pr Force");
   mDmassDensityDt = dataBase.newFluidFieldList(0.0, IncrementFieldList<Dimension, Field<Dimension, Scalar> >::prefix() + HydroFieldNames::massDensity);
   mDspecificThermalEnergyDt = dataBase.newFluidFieldList(0.0, IncrementFieldList<Dimension, Field<Dimension, Scalar> >::prefix() + HydroFieldNames::specificThermalEnergy);
   mDHDt = dataBase.newFluidFieldList(SymTensor::zero, IncrementFieldList<Dimension, Field<Dimension, Vector> >::prefix() + HydroFieldNames::H);
@@ -466,6 +470,8 @@ registerDerivatives(DataBase<Dimension>& dataBase,
   dataBase.resizeFluidFieldList(mXSPHDeltaV, Vector::zero, HydroFieldNames::XSPHDeltaV, false);
   dataBase.resizeFluidFieldList(mDxDt, Vector::zero, IncrementFieldList<Dimension, Field<Dimension, Vector> >::prefix() + HydroFieldNames::position, false);
   dataBase.resizeFluidFieldList(mDvDt, Vector::zero, IncrementFieldList<Dimension, Field<Dimension, Vector> >::prefix() + HydroFieldNames::velocity, false);
+  dataBase.resizeFluidFieldList(mQForce, Vector::zero,"AV Force",false);
+  dataBase.resizeFluidFieldList(mPForce, Vector::zero,"Pr Force",false);
   dataBase.resizeFluidFieldList(mDmassDensityDt, 0.0, IncrementFieldList<Dimension, Field<Dimension, Scalar> >::prefix() + HydroFieldNames::massDensity, false);
   dataBase.resizeFluidFieldList(mDspecificThermalEnergyDt, 0.0, IncrementFieldList<Dimension, Field<Dimension, Scalar> >::prefix() + HydroFieldNames::specificThermalEnergy, false);
   dataBase.resizeFluidFieldList(mDHDt, SymTensor::zero, IncrementFieldList<Dimension, Field<Dimension, Vector> >::prefix() + HydroFieldNames::H, false);
@@ -486,6 +492,9 @@ registerDerivatives(DataBase<Dimension>& dataBase,
   // not to duplicate if so.
   if (not derivs.registered(mDxDt)) derivs.enroll(mDxDt);
   if (not derivs.registered(mDvDt)) derivs.enroll(mDvDt);
+
+  derivs.enroll(mQForce);
+  derivs.enroll(mPForce);
 
   derivs.enroll(mDmassDensityDt);
   derivs.enroll(mDspecificThermalEnergyDt);
@@ -658,6 +667,8 @@ evaluateDerivatives(const typename Dimension::Scalar time,
   FieldList<Dimension, Vector> DxDt = derivatives.fields(IncrementFieldList<Dimension, Field<Dimension, Vector> >::prefix() + HydroFieldNames::position, Vector::zero);
   FieldList<Dimension, Scalar> DrhoDt = derivatives.fields(IncrementFieldList<Dimension, Field<Dimension, Scalar> >::prefix() + HydroFieldNames::massDensity, 0.0);
   FieldList<Dimension, Vector> DvDt = derivatives.fields(IncrementFieldList<Dimension, Field<Dimension, Vector> >::prefix() + HydroFieldNames::velocity, Vector::zero);
+  FieldList<Dimension, Vector> QForce = derivatives.fields("AV Force",Vector::zero);
+  FieldList<Dimension, Vector> PForce = derivatives.fields("Pr Force",Vector::zero);
   FieldList<Dimension, Scalar> DepsDt = derivatives.fields(IncrementFieldList<Dimension, Field<Dimension, Scalar> >::prefix() + HydroFieldNames::specificThermalEnergy, 0.0);
   FieldList<Dimension, Tensor> DvDx = derivatives.fields(HydroFieldNames::velocityGradient, Tensor::zero);
   FieldList<Dimension, Tensor> localDvDx = derivatives.fields(HydroFieldNames::internalVelocityGradient, Tensor::zero);
@@ -673,6 +684,8 @@ evaluateDerivatives(const typename Dimension::Scalar time,
   CHECK(DxDt.size() == numNodeLists);
   CHECK(DrhoDt.size() == numNodeLists);
   CHECK(DvDt.size() == numNodeLists);
+  CHECK(QForce.size() == numNodeLists);
+  CHECK(PForce.size() == numNodeLists);
   CHECK(DepsDt.size() == numNodeLists);
   CHECK(DvDx.size() == numNodeLists);
   CHECK(localDvDx.size() == numNodeLists);
@@ -767,6 +780,8 @@ evaluateDerivatives(const typename Dimension::Scalar time,
       Vector& DxDti = DxDt(nodeListi, i);
       Scalar& DrhoDti = DrhoDt(nodeListi, i);
       Vector& DvDti = DvDt(nodeListi, i);
+      Vector& QForcei = QForce(nodeListi, i);
+      Vector& PForcei = PForce(nodeListi, i);
       Scalar& DepsDti = DepsDt(nodeListi, i);
       Tensor& DvDxi = DvDx(nodeListi, i);
       Tensor& localDvDxi = localDvDx(nodeListi, i);
@@ -851,7 +866,9 @@ evaluateDerivatives(const typename Dimension::Scalar time,
 
               Vector& DxDtj = DxDt(nodeListj, j);
               Scalar& DrhoDtj = DrhoDt(nodeListj, j);
-              Vector& DvDtj = DvDt(nodeListj, j);
+              Vector& DvDtj = DvDt(nodeListj, j);	      
+	      Vector& QForcej = QForce(nodeListj, j);
+	      Vector& PForcej = PForce(nodeListj, j);
               Scalar& DepsDtj = DepsDt(nodeListj, j);
               Tensor& DvDxj = DvDx(nodeListj, j);
               Tensor& localDvDxj = localDvDx(nodeListj, j);
@@ -928,13 +945,21 @@ evaluateDerivatives(const typename Dimension::Scalar time,
               CHECK(rhoi > 0.0);
               CHECK(rhoj > 0.0);
               const Vector forceij  = 0.5*weighti*weightj*((Pi + Pj)*deltagrad + Qaccij);                    // <- Type III, with CRKSPH Q forces
-              // const Vector forceVi  = weighti*weightj*((Pi - Pj)*gradWj + QaccVi);                        // <- Type V, with CRKSPH Q forces, Non-conservative but consistent
+              const Vector dQ = Qaccij*0.5*weighti*weighj;
+	      const Vector dPr = 0.5*weighti*weightj*((Pi + Pj)*deltagrad);
+
+	      // const Vector forceVi  = weighti*weightj*((Pi - Pj)*gradWj + QaccVi);                        // <- Type V, with CRKSPH Q forces, Non-conservative but consistent
               // const Vector forceVj  = weighti*weightj*((Pj - Pi)*gradWi + QaccVj);                        // <- Type V, with CRKSPH Q forces, Non-conservative but consistent
               // const Vector forceIi  = weighti*weightj*(Pj*gradWj + QaccIi);                               // <- Type I, with CRKSPH Q forces, Non-conservative but consistent
               // const Vector forceIj  = weighti*weightj*(Pi*gradWi + QaccIj);                               // <- Type I, with CRKSPH Q forces, Non-conservative but consistent
 
               DvDti -= forceij/mi; //CRK Acceleration
               DvDtj += forceij/mj; //CRK Acceleration
+	      QForcei -= dQ/mi;
+	      QForcej += dQ/mj;
+	      PForcei -= dPr/mi;
+	      PForcej += dPr/mj;
+
  
               //DvDti += forceVi/mi; //RK V Acceleration
               //DvDtj += forceVj/mj; //RK V Acceleration
