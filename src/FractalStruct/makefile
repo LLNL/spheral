@@ -4,9 +4,9 @@ Wopt1 = -Wunused
 gprof = 
 debug = 
 verbose = -v
-debug= 
+debug= 	
 verbose = 
-STD = -std=c++0x
+STD = -std=c++11
 dir   = execs/
 MP = -openmp
 #
@@ -30,7 +30,7 @@ endif
 #
 ifeq ($(system),ibmgnu)
 	MP = -fopenmp
-	compiler = mpicxx
+	compiler =  mpig++-4.7.2
 	PREFIXF = /g/g90/jensv/cplus/fftw-3.3.3/install-ibmgnu
 	PREFIXH = /g/g90/jensv/cplus/HYPREIBM110/hypre-2.11.0/src/hypre
 	ifeq ($(vers),9)
@@ -85,6 +85,9 @@ misc_class.o :	misc_class.cc $(classes)
 #
 octree.o :	octree.cc $(classes)
 	$(compile) -c octree.cc
+#
+octreeA.o :	octreeA.cc $(classes)
+	$(compile) -c octreeA.cc
 #
 particle_class.o :	particle_class.cc $(classes)
 	$(compile) -c particle_class.cc
@@ -307,6 +310,9 @@ left_right.o :	left_right.cc $(classes)
 #
 list_buffer.o :	list_buffer.cc $(classes)
 	$(compile) -c list_buffer.cc
+#
+make_me_a_box.o :	make_me_a_box.cc $(classes)
+	$(compile) -c make_me_a_box.cc
 #
 make_me_a_galaxy.o :	make_me_a_galaxy.cc $(classes)
 	$(compile) -c make_me_a_galaxy.cc
