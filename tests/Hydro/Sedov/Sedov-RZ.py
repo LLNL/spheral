@@ -257,7 +257,7 @@ if problem == "planar":
     nz = n1
     nr = n2
     z0, z1 = 0.0, 1.0
-    r0, r1 = 0.0, 0.2
+    r0, r1 = 1.0, 1.2
     rmin, rmax = None, None
 elif problem == "cylindrical":
     nz = n2
@@ -290,10 +290,6 @@ output("mpi.reduce(nodes1.numInternalNodes, mpi.SUM)")
 # Set the point source of energy.
 #-------------------------------------------------------------------------------
 Espike /= 2.0    # Take into account the fact we're doing half-geometry.
-if problem == "planar":
-    Espike /= pi*(r1**2 - r0**2)  # Energy per area
-elif problem == "cylindrical":
-    Espike /= z1 - z0             # Energy per length
 pos = nodes1.positions()
 vel = nodes1.velocity()
 mass = nodes1.mass()
@@ -328,43 +324,26 @@ if smoothSpike or topHatSpike:
         Esum += eps[nodeID]*mass[nodeID]
         eps[nodeID] += eps0
 else:
-    i = -1
-    rmin = 1e50
-    for nodeID in xrange(nodes1.numInternalNodes):
-        if problem == "planar":
-            rmin = min(rmin, pos[nodeID].x)
-        elif problem == "cylindrical":
-            rmin = min(rmin, pos[nodeID].y)
-        else:
-            rmin = min(rmin, pos[nodeID].magnitude())
-    rmin = mpi.allreduce(rmin, mpi.MIN)
-    msum = 0.0
-    for nodeID in xrange(nodes1.numInternalNodes):
-        if problem == "planar":
-            if abs(pos[nodeID].x - rmin)/rmin < 1.0e-5:
-                msum += mass[nodeID]
-        elif problem == "cylindrical":
-            if abs(pos[nodeID].y - rmin)/rmin < 1.0e-5:
-                msum += mass[nodeID]
-        else:
-            if abs(pos[nodeID].y - rmin)/rmin < 1.0e-5:
-                msum += mass[nodeID]
-    msum = mpi.allreduce(msum, mpi.SUM)
-    deps = Espike/msum
-    Esum = 0.0
-    for nodeID in xrange(nodes1.numInternalNodes):
-        if problem == "planar":
-            if abs(pos[nodeID].x - rmin)/rmin < 1.0e-5:
-                eps[nodeID] += deps
-                Esum += mass[nodeID]*deps
-        elif problem == "cylindrical":
-            if abs(pos[nodeID].y - rmin)/rmin < 1.0e-5:
-                eps[nodeID] += deps
-                Esum += mass[nodeID]*deps
-        else:
-            if abs(pos[nodeID].y - rmin)/rmin < 1.0e-5:
-                eps[nodeID] += deps
-                Esum += mass[nodeID]*deps
+    dr = (r1 - r0)/nr
+    dz = (z1 - z0)/nz
+    if problem == "planar":
+        epsi = Espike/(rho0*dz)
+        for i in xrange(nodes1.numInternalNodes):
+            if pos[i].x < z0 + dz:
+                eps[i] += epsi
+                Esum += mass[i]/(2.0*pi*pos[i].y*dr)*epsi
+    elif problem == "cylindrical":
+        epsi = Espike/(rho0*pi*dr*dr)
+        for i in xrange(nodes1.numInternalNodes):
+            if pos[i].y < r0 + dr:
+                eps[i] += epsi
+                Esum += mass[i]/dz*epsi
+    else:
+        epsi = Espike/(rho0*pi*dr*dr*dz)
+        for i in xrange(nodes1.numInternalNodes):
+            if pos[i].magnitude() < sqrt(dr*dr + dz*dz):
+                eps[i] += epsi
+                Esum += mass[i]*epsi
 Eglobal = mpi.allreduce(Esum, mpi.SUM)
 print "Initialized a total energy of", Eglobal
 #assert fuzzyEqual(Eglobal, Espike)
