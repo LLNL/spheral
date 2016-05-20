@@ -228,6 +228,7 @@ namespace FractalSpace
     void calc_fftw_Slices(const int& length_a,const bool& periodic);
     template <class T> void How_Many_On_Nodes(T count,vector <T>& counts) const;
     void MAX_Things_To_Send_Receive_I(vector <int>& counts_out_send,vector <int>& counts_in_send,vector <int>& maxSR);
+    long int How_Many_In_Solver(const int S) const;
     void How_Many_Things_To_Send_I(vector <int>& counts_out_send,vector <int>& counts_in_send);
     void How_Many_Things_To_Send_I(MPI_Comm& World,
 					 vector <int>& counts_out_send,vector <int>& counts_in_send);
