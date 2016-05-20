@@ -945,7 +945,7 @@ evaluateDerivatives(const typename Dimension::Scalar time,
               CHECK(rhoi > 0.0);
               CHECK(rhoj > 0.0);
               const Vector forceij  = 0.5*weighti*weightj*((Pi + Pj)*deltagrad + Qaccij);                    // <- Type III, with CRKSPH Q forces
-              const Vector dQ = Qaccij*0.5*weighti*weighj;
+              const Vector dQ = Qaccij*0.5*weighti*weightj;
 	      const Vector dPr = 0.5*weighti*weightj*((Pi + Pj)*deltagrad);
 
 	      // const Vector forceVi  = weighti*weightj*((Pi - Pj)*gradWj + QaccVi);                        // <- Type V, with CRKSPH Q forces, Non-conservative but consistent
