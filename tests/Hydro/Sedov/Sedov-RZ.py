@@ -31,9 +31,6 @@ commandLine(problem = "planar",     # one of (planar, cylindrical, spherical)
             rho0 = 1.0,
             eps0 = 0.0,
             Espike = 1.0,
-            smoothSpike = True,
-            topHatSpike = False,
-            smoothSpikeScale = 0.5,
 
             solid = False,    # If true, use the fluid limit of the solid hydro option
 
@@ -257,7 +254,7 @@ if problem == "planar":
     nz = n1
     nr = n2
     z0, z1 = 0.0, 1.0
-    r0, r1 = 1.0, 1.2
+    r0, r1 = 0.0, 0.2
     rmin, rmax = None, None
 elif problem == "cylindrical":
     nz = n2
@@ -296,57 +293,36 @@ mass = nodes1.mass()
 eps = nodes1.specificThermalEnergy()
 H = nodes1.Hfield()
 Esum = 0.0
-if smoothSpike or topHatSpike:
-    Wsum = 0.0
-    for nodeID in xrange(nodes1.numInternalNodes):
-        Hi = H[nodeID]
-        if problem == "planar":
-            etaij = (Hi*pos[nodeID]).x
-        elif problem == "cylindrical":
-            etaij = (Hi*pos[nodeID]).y
-        else:
-            etaij = (Hi*pos[nodeID]).magnitude()
-        if smoothSpike:
-            Wi = WT.kernelValue(etaij/smoothSpikeScale, 1.0)
-        else:
-            if etaij < smoothSpikeScale*kernelExtent:
-                Wi = 1.0
-            else:
-                Wi = 0.0
-        Ei = Wi*Espike
-        epsi = Ei/mass[nodeID]
-        eps[nodeID] = epsi
-        Wsum += Wi
-    Wsum = mpi.allreduce(Wsum, mpi.SUM)
-    assert Wsum > 0.0
-    for nodeID in xrange(nodes1.numInternalNodes):
-        eps[nodeID] /= Wsum
-        Esum += eps[nodeID]*mass[nodeID]
-        eps[nodeID] += eps0
+dr = (r1 - r0)/nr
+dz = (z1 - z0)/nz
+msum = 0.0
+if problem == "planar":
+    epsi = Espike/(rho0*dz)
+    for i in xrange(nodes1.numInternalNodes):
+        if pos[i].x < z0 + dz:
+            eps[i] += epsi
+            Esum += mass[i]*epsi
+elif problem == "cylindrical":
+    epsi = Espike/(rho0*pi*dr*dr)
+    for i in xrange(nodes1.numInternalNodes):
+        if pos[i].y < r0 + dr:
+            eps[i] += epsi
+            Esum += mass[i]*epsi
 else:
-    dr = (r1 - r0)/nr
-    dz = (z1 - z0)/nz
-    if problem == "planar":
-        epsi = Espike/(rho0*dz)
-        for i in xrange(nodes1.numInternalNodes):
-            if pos[i].x < z0 + dz:
-                eps[i] += epsi
-                Esum += mass[i]/(2.0*pi*pos[i].y*dr)*epsi
-    elif problem == "cylindrical":
-        epsi = Espike/(rho0*pi*dr*dr)
-        for i in xrange(nodes1.numInternalNodes):
-            if pos[i].y < r0 + dr:
-                eps[i] += epsi
-                Esum += mass[i]/dz*epsi
-    else:
-        epsi = Espike/(rho0*pi*dr*dr*dz)
-        for i in xrange(nodes1.numInternalNodes):
-            if pos[i].magnitude() < sqrt(dr*dr + dz*dz):
-                eps[i] += epsi
-                Esum += mass[i]*epsi
+    epsi = Espike/(rho0*pi*dr*dr*dz)
+    for i in xrange(nodes1.numInternalNodes):
+        if pos[i].magnitude() < sqrt(dr*dr + dz*dz):
+            eps[i] += epsi
+            Esum += mass[i]*epsi
 Eglobal = mpi.allreduce(Esum, mpi.SUM)
-print "Initialized a total energy of", Eglobal
-#assert fuzzyEqual(Eglobal, Espike)
+if problem == "planar":
+    Eexpect = Espike*pi*(r1*r1 - r0*r0)
+elif problem == "cylindrical":
+    Eexpect = Espike*(z1 - z0)
+else:
+    Eexpect = Espike
+print "Initialized a total energy of", Eglobal, Eexpect, Eglobal/Eexpect
+assert fuzzyEqual(Eglobal, Eexpect)
 
 #-------------------------------------------------------------------------------
 # Construct a DataBase to hold our node list
