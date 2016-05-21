@@ -315,11 +315,11 @@ else:
             Esum += mass[i]*epsi
 Eglobal = mpi.allreduce(Esum, mpi.SUM)
 if problem == "planar":
-    Eexpect = Espike*pi*(r1*r1 - r0*r0)
+    Eexpect = 0.5*Espike*pi*(r1*r1 - r0*r0)
 elif problem == "cylindrical":
     Eexpect = Espike*(z1 - z0)
 else:
-    Eexpect = Espike
+    Eexpect = 0.5*Espike
 print "Initialized a total energy of", Eglobal, Eexpect, Eglobal/Eexpect
 assert fuzzyEqual(Eglobal, Eexpect)
 
