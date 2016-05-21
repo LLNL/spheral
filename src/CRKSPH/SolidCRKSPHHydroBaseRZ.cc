@@ -719,7 +719,7 @@ evaluateDerivatives(const Dim<2>::Scalar time,
       DSTTDti = (1.0 - Di)*DSTTDti - 0.25/dt*Di*STTi;
 
       // Time evolution of the mass density.
-      const Scalar vri = vi.y() + XSPHDeltaVi.y();
+      const Scalar vri = vi.y(); // + XSPHDeltaVi.y();
       DrhoDti = -rhoi*(localDvDxi.Trace() + vri*riInv);
 
       // We also adjust the density evolution in the presence of damage.

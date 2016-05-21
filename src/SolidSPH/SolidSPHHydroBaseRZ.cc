@@ -683,7 +683,7 @@ evaluateDerivatives(const Dim<2>::Scalar time,
       XSPHWeightSumi += Hdeti*mRZi/rhoi*W0;
       CHECK2(XSPHWeightSumi != 0.0, i << " " << XSPHWeightSumi);
       XSPHDeltaVi /= XSPHWeightSumi;
-      const Scalar vri = vi.y() + XSPHDeltaVi.y();
+      const Scalar vri = vi.y(); // + XSPHDeltaVi.y();
       DrhoDti = -rhoi*(DvDxi.Trace() + vri*riInv);
 
       // Finish the specific thermal energy evolution.

@@ -522,7 +522,7 @@ evaluateDerivatives(const Dim<2>::Scalar time,
       pairAccelerationsi.push_back(Vector::zero);
 
       // Time evolution of the mass density.
-      const Scalar vri = vi.y() + XSPHDeltaVi.y();
+      const Scalar vri = vi.y(); // + XSPHDeltaVi.y();
       DrhoDti = -rhoi*(DvDxi.Trace() + vri*riInv);
 
       // Finish the specific thermal energy evolution.
