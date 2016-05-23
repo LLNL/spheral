@@ -56,7 +56,6 @@ class sDump(object):
 # Generic problem parameters
 #-------------------------------------------------------------------------------
 commandLine(asph = False,
-            seed = "radial",
 
             n = 100,
             thetaMin = 0.0,
@@ -301,22 +300,12 @@ diskProfile = KeplerianPressureDiskProfile(G0, M0, fractionPressureSupport, poly
 if restoreCycle is None:
     from VoronoiDistributeNodes import distributeNodes2d as distributeNodes
     print "Generating node distribution."
-    if (seed=="lattice"):
-        from StretchedLattice2d import *
-        generator = GenerateStretchedLattice2d(n,diskProfile,
+    generator = GenerateNodesMatchingProfile2d(n, diskProfile,
                                                rmin = rmin,
                                                rmax = rmax,
                                                thetaMin = thetaMin,
                                                thetaMax = thetaMax,
                                                nNodePerh = nPerh)
-    elif (seed=="radial"):
-        generator = GenerateNodesMatchingProfile2d(n, diskProfile,
-                                                   rmin = rmin,
-                                                   rmax = rmax,
-                                                   thetaMin = thetaMin,
-                                                   thetaMax = thetaMax,
-                                                   nNodePerh = nPerh)    
-
     n1 = generator.globalNumNodes()
 
     print "Distributing nodes amongst processors."
@@ -483,6 +472,7 @@ control = SpheralController(integrator, WT,
                             vizDir = vizDir,
                             vizStep = vizCycle,
                             vizTime = vizTime,
+                            vizDerivs = True,
                             restoreCycle = restoreCycle)
 
 
