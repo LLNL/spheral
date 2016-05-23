@@ -13,8 +13,8 @@
 #include "ArtificialViscosity/TensorCRKSPHViscosity.hh"
 #include "ArtificialViscosity/VonNeumanViscosity.hh"
 #include "ArtificialViscosity/MonaghanGingoldViscosityGSRZ.hh"
-#include "ArtificialViscosity/MonaghanGingoldViscosityRZ.hh"
-#include "ArtificialViscosity/CRKSPHMonaghanGingoldViscosityRZ.hh"
+//#include "ArtificialViscosity/MonaghanGingoldViscosityRZ.hh"
+//#include "ArtificialViscosity/CRKSPHMonaghanGingoldViscosityRZ.hh"
 
 namespace Spheral {
 namespace ArtificialViscositySpace {
