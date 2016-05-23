@@ -207,7 +207,7 @@ Piij(const unsigned nodeListi, const unsigned i,
   Scalar muri_neg = 0.0, murj_neg = 0.0;
   if (vri < 0.0 and vrj < 0.0) {
     const Vector vij0 = vi - vj;
-    const Scalar fij = max(0.0, min(1.0, (vij0).dot(vij)*safeInv(vij0.magnitude2())));
+    const Scalar fij = max(0.0, min(1.0, (vij0).dot(vij)*safeInv(vij0.magnitude2(), max(1e-10, eps2*max(csi, csj)))));
     muri_neg = fij*muri;
     murj_neg = fij*murj;
   }
