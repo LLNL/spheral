@@ -43,8 +43,8 @@ self.VonNeumanViscosity%(dim)id = addObject(space, "VonNeumanViscosity%(dim)id",
 
         if 2 in self.dims:
             self.MonaghanGingoldViscosityGSRZ = addObject(space, "MonaghanGingoldViscosityGSRZ", allow_subclassing=True, parent=self.MonaghanGingoldViscosity2d)
-            self.MonaghanGingoldViscosityRZ = addObject(space, "MonaghanGingoldViscosityRZ", allow_subclassing=True, parent=self.MonaghanGingoldViscosity2d)
-            self.CRKSPHMonaghanGingoldViscosityRZ = addObject(space, "CRKSPHMonaghanGingoldViscosityRZ", allow_subclassing=True, parent=self.CRKSPHMonaghanGingoldViscosity2d)
+            #self.MonaghanGingoldViscosityRZ = addObject(space, "MonaghanGingoldViscosityRZ", allow_subclassing=True, parent=self.MonaghanGingoldViscosity2d)
+            #self.CRKSPHMonaghanGingoldViscosityRZ = addObject(space, "CRKSPHMonaghanGingoldViscosityRZ", allow_subclassing=True, parent=self.CRKSPHMonaghanGingoldViscosity2d)
 
         return
 
@@ -68,8 +68,8 @@ self.addVonNeumanViscosityMethods(self.VonNeumanViscosity%(dim)id, %(dim)i)
 
         if 2 in self.dims:
             self.addMonaghanGingoldViscosityRZMethods(self.MonaghanGingoldViscosityGSRZ)
-            self.addMonaghanGingoldViscosityRZMethods(self.MonaghanGingoldViscosityRZ)
-            self.addCRKSPHMonaghanGingoldViscosityRZMethods(self.CRKSPHMonaghanGingoldViscosityRZ)
+            #self.addMonaghanGingoldViscosityRZMethods(self.MonaghanGingoldViscosityRZ)
+            #self.addCRKSPHMonaghanGingoldViscosityRZMethods(self.CRKSPHMonaghanGingoldViscosityRZ)
 
         return
 
