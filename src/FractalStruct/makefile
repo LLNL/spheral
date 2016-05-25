@@ -1,4 +1,4 @@
-classes = fractal_memory.hh classes.hh point_class.hh group_class.hh fractal_class.hh misc_class.hh particle_class.hh mess.hh file_class.hh octree.hh point_comp.hh libs.hh headers.hh classes.hh
+classes = fractal_memory.hh point_class.hh group_class.hh fractal_class.hh misc_class.hh particle_class.hh mess.hh file_class.hh octreehybrid.hh box_comp.hh point_comp.hh libs.hh headers.hh classes.hh
 fopt1 = -pedantic -O3 
 Wopt1 = -Wunused
 gprof = 
@@ -80,14 +80,17 @@ group_class.o :	group_class.cc $(classes)
 mess.o :	mess.cc $(classes)
 	$(compile) -c mess.cc
 #
+messA.o :	messA.cc $(classes)
+	$(compile) -c messA.cc
+#
 misc_class.o :	misc_class.cc $(classes)
 	$(compile) -c misc_class.cc
 #
 octree.o :	octree.cc $(classes)
 	$(compile) -c octree.cc
 #
-octreeA.o :	octreeA.cc $(classes)
-	$(compile) -c octreeA.cc
+octreehybrid.o :	octreehybrid.cc $(classes)
+	$(compile) -c octreehybrid.cc
 #
 particle_class.o :	particle_class.cc $(classes)
 	$(compile) -c particle_class.cc
@@ -513,7 +516,7 @@ fractal_memory.o \
 group_class.o \
 mess.o \
 misc_class.o \
-octree.o \
+octreehybrid.o \
 particle_class.o \
 point_class.o 
 #
@@ -560,7 +563,6 @@ on_edge.o \
 overlap.o \
 potential_start.o \
 power_spectrum.o \
-really_clear.o \
 remove_pseudo_particles.o \
 shrink_cube.o \
 sort3_list.o \
