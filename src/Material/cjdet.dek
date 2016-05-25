@@ -1,0 +1,27 @@
+! communication of the cj, strong, weak, and upstream conditions
+
+      double precision xmass_up(abignet),xmass_cj(abignet), &
+                       xmass_s(abignet),xmass_w(abignet),tz, &
+                       temp_up,den_up,ener_up,pres_up,cs_up,mach, &
+                       mach_sh, &
+                       temp_sh,den_sh,ener_sh,pres_sh,cs_sh,vel_sh, &
+                       temp_cj,den_cj,ener_cj,pres_cj,cs_cj,vel_cj, &
+                       qburn_cj,vel_det, &
+                       temp_swsh,den_swsh,ener_swsh,pres_swsh,cs_swsh, &
+                       vel_swsh, &
+                       temp_s,den_s,ener_s,pres_s,cs_s,vel_s,qburn_s, &
+                       temp_w,den_w,ener_w,pres_w,cs_w,vel_w,qburn_w
+
+      common /upc1/    xmass_up,xmass_cj, &
+                       xmass_s,xmass_w,tz, &
+                       temp_up,den_up,ener_up,pres_up,cs_up,mach, &
+                       mach_sh, &
+                       temp_sh,den_sh,ener_sh,pres_sh,cs_sh,vel_sh, &
+                       temp_cj,den_cj,ener_cj,pres_cj,cs_cj,vel_cj, &
+                       qburn_cj,vel_det, &
+                       temp_swsh,den_swsh,ener_swsh,pres_swsh,cs_swsh, &
+                       vel_swsh, &
+                       temp_s,den_s,ener_s,pres_s,cs_s,vel_s,qburn_s, &
+                       temp_w,den_w,ener_w,pres_w,cs_w,vel_w,qburn_w
+
+
