@@ -67,7 +67,7 @@ commandLine(problem = "planar",     # one of (planar, cylindrical, spherical)
             epsilon2 = 1e-2,
             hmin = 0.0001, 
             hmax = 0.1,
-            hminratio = 0.1,
+            hminratio = 0.02,
             cfl = 0.5,
             useVelocityMagnitudeForDt = False,
             XSPH = True,
@@ -286,7 +286,6 @@ output("mpi.reduce(nodes1.numInternalNodes, mpi.SUM)")
 #-------------------------------------------------------------------------------
 # Set the point source of energy.
 #-------------------------------------------------------------------------------
-Espike /= 2.0    # Take into account the fact we're doing half-geometry.
 pos = nodes1.positions()
 vel = nodes1.velocity()
 mass = nodes1.mass()
@@ -297,7 +296,7 @@ dr = (r1 - r0)/nr
 dz = (z1 - z0)/nz
 msum = 0.0
 if problem == "planar":
-    epsi = Espike/(rho0*dz)
+    epsi = 0.5*Espike/(rho0*dz)
     for i in xrange(nodes1.numInternalNodes):
         if pos[i].x < z0 + dz:
             eps[i] += epsi
@@ -309,18 +308,18 @@ elif problem == "cylindrical":
             eps[i] += epsi
             Esum += mass[i]*epsi
 else:
-    epsi = Espike/(rho0*pi*dr*dr*dz)
+    epsi = 0.5*Espike/(rho0*pi*dr*dr*dz)
     for i in xrange(nodes1.numInternalNodes):
         if pos[i].magnitude() < sqrt(dr*dr + dz*dz):
             eps[i] += epsi
             Esum += mass[i]*epsi
 Eglobal = mpi.allreduce(Esum, mpi.SUM)
 if problem == "planar":
-    Eexpect = Espike*pi*(r1*r1 - r0*r0)
+    Eexpect = 0.5*Espike*pi*(r1*r1 - r0*r0)
 elif problem == "cylindrical":
     Eexpect = Espike*(z1 - z0)
 else:
-    Eexpect = Espike
+    Eexpect = 0.5*Espike
 print "Initialized a total energy of", Eglobal, Eexpect, Eglobal/Eexpect
 assert fuzzyEqual(Eglobal, Eexpect)
 
