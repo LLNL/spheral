@@ -92,6 +92,9 @@ octree.o :	octree.cc $(classes)
 octreehybrid.o :	octreehybrid.cc $(classes)
 	$(compile) -c octreehybrid.cc
 #
+octreehybridA.o :	octreehybridA.cc $(classes)
+	$(compile) -c octreehybridA.cc
+#
 particle_class.o :	particle_class.cc $(classes)
 	$(compile) -c particle_class.cc
 #
@@ -127,6 +130,9 @@ balance_by_particles_cosmo.o :	balance_by_particles_cosmo.cc $(classes)
 #
 binary_balancing.o :	binary_balancing.cc $(classes)
 	$(compile) -c binary_balancing.cc
+#
+box_stats.o :	box_stats.cc $(classes)
+	$(compile) -c box_stats.cc
 #
 buffer_points.o :	buffer_points.cc $(classes)
 	$(compile) -c buffer_points.cc
@@ -266,6 +272,9 @@ hypre_load_balance.o :	hypre_load_balance.cc $(classes)
 hypre_points_boxes.o :	hypre_points_boxes.cc $(classes)
 	$(compile) -c hypre_points_boxes.cc
 #
+hypre_points_boxesA.o :	hypre_points_boxesA.cc $(classes)
+	$(compile) -c hypre_points_boxesA.cc
+#
 hypre_points_struct.o :	hypre_points_struct.cc $(classes)
 	$(compile) -c hypre_points_struct.cc
 #
@@ -280,6 +289,9 @@ hypre_solver_empty.o :	hypre_solver_empty.cc $(classes)
 #
 hypre_solve_struct.o :	hypre_solve_struct.cc $(classes)
 	$(compile) -c hypre_solve_struct.cc
+#
+hypre_solve_structA.o :	hypre_solve_structA.cc $(classes)
+	$(compile) -c hypre_solve_structA.cc
 #
 hypre_world_create.o :	hypre_world_create.cc $(classes)
 	$(compile) -c hypre_world_create.cc
@@ -583,6 +595,7 @@ write_rv.o
 #
 files_hypre_nina_o= \
 add_buffer_values.o \
+box_stats.o \
 hypre_points_boxes.o \
 hypre_points_struct.o \
 hypre_solve_struct.o \

@@ -9,7 +9,8 @@ namespace FractalSpace
     static int _COUNTER=0;
     int RANK=-1;
     MPI_Comm_rank(MPI_COMM_WORLD,&RANK);
-    bool Ranky= RANK == 31;
+    int VOLMIN=-1;
+    double FILLFACTOR=2.0;
     int MAXY=Misc::pow(2,29);
     int MINY=-Misc::pow(2,29);
     MPI_Barrier(MPI_COMM_WORLD);
@@ -33,7 +34,7 @@ namespace FractalSpace
 	for(int B : {1,3,5})
 	  BOX[B]++;
 	OcTree* pHypTree=new OcTree();
-	pHypTree->LoadOcTree(BOX,hp,spacing);
+	pHypTree->LoadOcTree(BOX,hp,spacing,VOLMIN,FILLFACTOR);
 	int TotalPoints=0;
 	int TotalBoxes=0;
 	pHypTree->DisplayTree(TotalPoints,TotalBoxes);
@@ -46,7 +47,7 @@ namespace FractalSpace
 	  SB[B]--;
 	Misc::times(SB,spacing);
       }
-    cerr << " BOXES A " << RANK << " " << hypre_points.size() << " " << _COUNTER << " " << spacing << "\n";
+    // cerr << " BOXES A " << RANK << " " << hypre_points.size() << " " << _COUNTER << " " << spacing << "\n";
     _COUNTER++;
   }
 }

@@ -19,6 +19,8 @@ namespace FractalSpace
     int nnodes;
     int fullnodes;
     int spacing;
+    int VOLMIN;
+    double FILLFACTOR;
     OcTreeNode* rnode;
     void LoadOcTree(int corner,OcTreeNode* pnode);
     void DestroyOcTree(OcTreeNode* pnode);
@@ -31,7 +33,7 @@ namespace FractalSpace
   public:
     OcTree();
     ~OcTree();
-    void LoadOcTree(vector <int>& BOX,vector <Point*>& pPOINTS,int spacing);
+    void LoadOcTree(vector <int>& BOX,vector <Point*>& pPOINTS,int spacing,int VOLMIN,double FILLFACTOR);
     void DestroyOcTree();
     void CollectBoxes(vector < vector<int> >& SBoxes);
     void CollectPoints(vector < vector<Point*> >& SPoints);
