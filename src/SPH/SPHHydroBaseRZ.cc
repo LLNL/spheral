@@ -302,8 +302,8 @@ evaluateDerivatives(const Dim<2>::Scalar time,
       const Scalar Hdeti = Hi.Determinant();
       const Scalar safeOmegai = safeInv(omegai, tiny);
       const Scalar zetai = abs((Hi*posi).y());
-      const Scalar hri = ri*safeInvVar(zetai);
-      const Scalar riInv = safeInvVar(ri, 0.05*hri);
+      const Scalar hri = ri*safeInv(zetai);
+      const Scalar riInv = safeInv(ri, 0.05*hri);
       CHECK(rhoi > 0.0);
       CHECK(Hdeti > 0.0);
 
@@ -539,7 +539,7 @@ evaluateDerivatives(const Dim<2>::Scalar time,
       XSPHWeightSumi += Hdeti*mRZi/rhoi*W0;
       CHECK2(XSPHWeightSumi != 0.0, i << " " << XSPHWeightSumi);
       XSPHDeltaVi /= XSPHWeightSumi;
-      const Scalar vri = vi.y() + XSPHDeltaVi.y();
+      const Scalar vri = vi.y(); // + XSPHDeltaVi.y();
       DrhoDti = -rhoi*(DvDxi.Trace() + vri*riInv);
 
       // Finish the specific thermal energy evolution.
