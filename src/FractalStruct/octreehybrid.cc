@@ -13,7 +13,9 @@ namespace FractalSpace
     nnodes(0),
     fullnodes(0),
     rnode(NULL),
-    spacing(1)
+    spacing(1),
+    VOLMIN(-1),
+    FILLFACTOR(2.0)
   {
     RANK=-1;
     MPI_Comm_rank(MPI_COMM_WORLD,&RANK);
@@ -22,10 +24,12 @@ namespace FractalSpace
   {
     DestroyOcTree();
   }
-  void OcTree::LoadOcTree(vector<int>& BOX,vector <Point*>& pPOINTS,int space=1)
+  void OcTree::LoadOcTree(vector<int>& BOX,vector <Point*>& pPOINTS,int space=1,int VMIN=-1,double FFACTOR=2.0)
   {
     nnodes++;
     spacing=space;
+    VOLMIN=VMIN;
+    FILLFACTOR=FFACTOR;
     if(rnode == NULL)
       {
 	try
@@ -42,16 +46,29 @@ namespace FractalSpace
     rnode->kids.assign(2,NULL);
     rnode->box=BOX;
     rnode->ppoints.assign(pPOINTS.begin(),pPOINTS.end());
-    int vol=(BOX[1]-BOX[0])*(BOX[3]-BOX[2])*(BOX[5]-BOX[4]);
-    rnode->full=rnode->ppoints.size() == vol;
     rnode->empty=rnode->ppoints.empty();
+    if(rnode->empty)
+      {
+	rnode->full=false;
+	return;
+      }
+    int VOL=(BOX[1]-BOX[0])*(BOX[3]-BOX[2])*(BOX[5]-BOX[4]);
+    bool smallVOL=VOL <= VOLMIN;
+    double ff=(double)(rnode->ppoints.size())/(double)(VOL);
+    bool veryFULL= ff >= FILLFACTOR;
+    if(smallVOL || veryFULL)
+      {
+	Point* pFAKE=0;
+	for(int ni=rnode->ppoints.size();ni<VOL;ni++)
+	  rnode->ppoints.push_back(pFAKE);
+      }
+    rnode->full=rnode->ppoints.size() == VOL;
     if(rnode->full)
       {
 	fullnodes++;
 	// cerr << " LOAD NODES0 " << RANK << " " << nnodes << " " << fullnodes << " " << vol << " " << pPOINTS.size() << endl;
+	return;
       }
-    if(rnode->empty || rnode->full)
-      return;
     for(int ni=0;ni<2;ni++)
       if(rnode->kids[ni] == NULL)
 	{
@@ -81,15 +98,15 @@ namespace FractalSpace
     OcTreeNode* knode=pnode->kids[cornera];
     knode->kids.assign(2,NULL);
     knode->box=pnode->box;
-    int DIR=2*knode->dir;
-    knode->box[cornera % 2 == 0 ? DIR+1:DIR]=(pnode->box[DIR]+pnode->box[DIR+1])/2;
-    int vol=(knode->box[1]-knode->box[0]);
-    vol*=(knode->box[3]-knode->box[2]);
-    vol*=(knode->box[5]-knode->box[4]);
+    int dir=knode->dir;
+    int DIR2=2*dir;
+    knode->box[cornera % 2 == 0 ? DIR2+1:DIR2]=(pnode->box[DIR2]+pnode->box[DIR2+1])/2;
     // cerr << " LOADP " << RANK << " " << vol << " " << DIR;
     // cerr << " " << knode->box[0] << " " << knode->box[1] << " " << knode->box[2] << " " << knode->box[3] << " " << knode->box[4] << " " << knode->box[5] << endl;
     knode->ppoints.clear();
     vector <int>pos(3);
+    int MINX=Misc::pow(2,29);
+    int MAXX=-MINX;
     auto itp=pnode->ppoints.begin();
     auto itpe=pnode->ppoints.end();
     while(itp!=itpe)
@@ -103,15 +120,36 @@ namespace FractalSpace
 	  {
 	    knode->ppoints.push_back(*itp);
 	    itp=pnode->ppoints.erase(itp);
+	    MINX=min(MINX,pos[dir]);
+	    MAXX=max(MAXX,pos[dir]);
 	  }
       }
+    knode->box[DIR2]=MINX;
+    knode->box[DIR2+1]=MAXX+1;
+    int vol=(knode->box[1]-knode->box[0]);
+    vol*=(knode->box[3]-knode->box[2]);
+    vol*=(knode->box[5]-knode->box[4]);
     knode->empty=vol == 0 || knode->ppoints.empty();
+    if(knode->empty)
+      {
+	knode->full=false;
+	return;
+      }
+    bool smallVOL=vol <= VOLMIN;
+    double ff=(double)(knode->ppoints.size())/(double)(vol);
+    bool veryFULL= ff >= FILLFACTOR;
+    if(smallVOL || veryFULL)
+      {
+	Point* pFAKE=0;
+	for(int ni=knode->ppoints.size();ni<vol;ni++)
+	  knode->ppoints.push_back(pFAKE);
+      }
     knode->full=vol != 0 && knode->ppoints.size() == vol;
     if(knode->full)
       {
 	fullnodes++;
       }
-    if(knode->empty || knode->full)
+    if(knode->full)
       return;
     for(int ni=0;ni<2;ni++)
       if(knode->kids[ni] == NULL)
