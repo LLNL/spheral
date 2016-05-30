@@ -247,9 +247,9 @@ initializeProblemStartup(DataBase<Dimension>& dataBase) {
     const FieldList<Dimension, Scalar> massDensity = dataBase.fluidMassDensity();
     mVolume.assignFields(mass/massDensity);
   } else if (mVolumeType == CRKSumVolume) {
-    computeCRKSPHSumVolume(connectivityMap, this->kernel(), position, mass, H, mVolume);
+    computeCRKSPHSumVolume(connectivityMap, W, position, mass, H, mVolume);
   } else if (mVolumeType == CRKVoronoiVolume) {
-    computeVoronoiVolume(position, mVolume);
+    computeVoronoiVolume(position, connectivityMap, W.kernelExtent(), mVolume);
   } else if (mVolumeType == CRKHullVolume) {
     computeHullVolumes(connectivityMap, W.kernelExtent(), position, H, mVolume);
   } else if (mVolumeType == HVolume) {
@@ -540,7 +540,7 @@ initialize(const typename Dimension::Scalar time,
   } else if (mVolumeType == CRKSumVolume) {
     computeCRKSPHSumVolume(connectivityMap, W, position, mass, H, vol);
   } else if (mVolumeType == CRKVoronoiVolume) {
-    computeVoronoiVolume(position, vol);
+    computeVoronoiVolume(position, connectivityMap, W.kernelExtent(), vol);
   } else if (mVolumeType == CRKHullVolume) {
     computeHullVolumes(connectivityMap, W.kernelExtent(), position, H, vol);
   } else if (mVolumeType == HVolume) {
@@ -1163,7 +1163,7 @@ finalize(const typename Dimension::Scalar time,
     } else if (mVolumeType == CRKSumVolume) {
       computeCRKSPHSumVolume(connectivityMap, W, position, mass, H, vol);
     } else if (mVolumeType == CRKVoronoiVolume) {
-      computeVoronoiVolume(position, vol);
+      computeVoronoiVolume(position, connectivityMap, W.kernelExtent(), vol);
     } else if (mVolumeType == CRKHullVolume) {
       computeHullVolumes(connectivityMap, W.kernelExtent(), position, H, vol);
     } else if (mVolumeType == HVolume) {
@@ -1214,7 +1214,7 @@ finalize(const typename Dimension::Scalar time,
     } else if (mVolumeType == CRKSumVolume) {
       computeCRKSPHSumVolume(connectivityMap, W, position, mass, H, vol);
     } else if (mVolumeType == CRKVoronoiVolume) {
-      computeVoronoiVolume(position, vol);
+      computeVoronoiVolume(position, connectivityMap, W.kernelExtent(), vol);
     } else if (mVolumeType == CRKHullVolume) {
       computeHullVolumes(connectivityMap, W.kernelExtent(), position, H, vol);
     } else if (mVolumeType == HVolume) {

@@ -144,6 +144,8 @@ self.generateSolidCRKSPHHydroBaseBindings(self.SolidCRKSPHHydroBase%(dim)id, %(d
 
         self.space.add_function("computeVoronoiVolume", None,
                                 [constrefparam(vectorfieldlist, "position"),
+                                 constrefparam(connectivitymap, "connectivityMap"),
+                                 param("double", "kernelExtent"),
                                  refparam(scalarfieldlist, "vol")],
                                 docstring = "Compute the volume per point using a Voronoi tessellation.")
 

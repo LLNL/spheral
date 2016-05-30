@@ -59,3 +59,5 @@ endif
 
 #-------------------------------------------------------------------------------
 include $(BUILDTOP)/helpers/makefile_master
+
+LIBS += -lr3d

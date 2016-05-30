@@ -1,14 +1,15 @@
 //---------------------------------Spheral++------------------------------------
 // Compute the volume per point based on the Voronoi tessellation.
 //------------------------------------------------------------------------------
-#ifndef NOPOLYTOPE
-#include "polytope/polytope.hh"
-#endif
+extern "C" {
+#include "r3d/r2d.h"
+}
 
 #include "computeVoronoiVolume.hh"
 #include "Field/Field.hh"
 #include "Field/FieldList.hh"
 #include "NodeList/NodeList.hh"
+#include "Neighbor/ConnectivityMap.hh"
 #include "Utilities/allReduce.hh"
 
 namespace Spheral {
@@ -19,17 +20,18 @@ using namespace std;
 using FieldSpace::Field;
 using FieldSpace::FieldList;
 using NodeSpace::NodeList;
+using NeighborSpace::Neighbor;
+using NeighborSpace::ConnectivityMap;
 
 //------------------------------------------------------------------------------
 // 2D
 //------------------------------------------------------------------------------
 void
 computeVoronoiVolume(const FieldList<Dim<2>, Dim<2>::Vector>& position,
+                     const ConnectivityMap<Dim<2> >& connectivityMap,
+                     const Dim<2>::Scalar kernelExtent,
                      FieldList<Dim<2>, Dim<2>::Scalar>& vol) {
 
-#ifdef NOPOLYTOPE
-  VERIFY2(false, "computeVoronoiVolumes ERROR: Polytope is not compiled/available.");
-#else
   const unsigned numGens = position.numNodes();
   const unsigned numNodeLists = position.size();
   const unsigned numGensGlobal = allReduce(numGens, MPI_SUM, Communicator::communicator());
@@ -41,60 +43,51 @@ computeVoronoiVolume(const FieldList<Dim<2>, Dim<2>::Vector>& position,
 
   if (numGensGlobal > 0) {
 
-    // Copy the input positions to polytope's convention.
-    // For convenience we gather all ghost node coordinates at the end of the
-    // list.
-    vector<double> coords;
-    coords.reserve(2*numGens);
-    for (unsigned nodeListi = 0; nodeListi != numNodeLists; ++nodeListi) {
-      const unsigned n = position[nodeListi]->numInternalElements();
-      for (unsigned i = 0; i != n; ++i) {
-        const Vector& ri = position(nodeListi, i);
-        std::copy(ri.begin(), ri.end(), std::back_inserter(coords));
-      }
-    }
-    for (unsigned nodeListi = 0; nodeListi != numNodeLists; ++nodeListi) {
-      const unsigned firstGhostNode = position[nodeListi]->nodeListPtr()->firstGhostNode();
-      const unsigned n = position[nodeListi]->nodeListPtr()->numGhostNodes();
-      for (unsigned i = 0; i != n; ++i) {
-        const Vector& ri = position(nodeListi, firstGhostNode + i);
-        std::copy(ri.begin(), ri.end(), std::back_inserter(coords));
-      }
-    }
-    CHECK(coords.size() == 2*numGens);
-
-    // Do the polytope tessellation.
-    polytope::Tessellation<2, double> tessellation;
-    {
-      polytope::TriangleTessellator<double> tessellator;
-      tessellator.tessellateDegenerate(coords, 1.0e-8, tessellation);
-    }
-    CHECK(tessellation.cells.size() == numGens);
-
-    // Now we can extract the areas.
-    const vector<double>& nodes = tessellation.nodes;
-    const vector<vector<unsigned> >& faces = tessellation.faces;
-    unsigned icell = 0;
+    // Walk the points.
     for (unsigned nodeListi = 0; nodeListi != numNodeLists; ++nodeListi) {
       const unsigned n = vol[nodeListi]->numInternalElements();
-      for (unsigned i = 0; i != n; ++i, ++icell) {
+      const Neighbor<Dim<2> >& neighbor = position[nodeListi]->nodeListPtr()->neighbor();
+      for (unsigned i = 0; i != n; ++i) {
         const Vector& ri = position(nodeListi, i);
-        const vector<int>& faceIDs = tessellation.cells[icell];
-        const unsigned nfaces = faceIDs.size();
-        CHECK(nfaces >= 3);
-        Scalar areasum = 0.0;
-        for (unsigned j = 0; j != nfaces; ++j) {
-          int iface = faceIDs[j] < 0 ? ~faceIDs[j] : faceIDs[j];
-          CHECK(faces[iface].size() == 2);
-          const Vector a = Vector(nodes[2*faces[iface][0]], nodes[2*faces[iface][0] + 1]);
-          const Vector b = Vector(nodes[2*faces[iface][1]], nodes[2*faces[iface][1] + 1]);
-          areasum += abs(((a - ri).cross(b - ri)).z());
+        const Vector extenti = neighbor.nodeExtent(i);
+
+        // Grab this points neighbors and build all the planes.
+        vector<r2d_plane> pairPlanes;
+        const vector<vector<int> >& fullConnectivity = connectivityMap.connectivityForNode(nodeListi, i);
+        for (unsigned nodeListj = 0; nodeListj != numNodeLists; ++nodeListj) {
+          for (vector<int>::const_iterator jItr = fullConnectivity[nodeListj].begin();
+               jItr != fullConnectivity[nodeListj].end();
+               ++jItr) {
+            const unsigned j = *jItr;
+            const Vector& rj = position(nodeListj, j);
+
+            // Build the half plane.
+            const Vector nhat = (ri - rj).unitVector();
+            pairPlanes.push_back(r2d_plane());
+            pairPlanes.back().n.x = nhat.x();
+            pairPlanes.back().n.y = nhat.y();
+            pairPlanes.back().d = 0.5*(rj - ri).magnitude();
+          }
         }
-        vol(nodeListi, i) = 0.5*areasum;
+
+        // Start with a bounding box around the H tensor.
+        r2d_poly celli;
+        r2d_rvec2 bounds[2];
+        bounds[0].x = -extenti.x(); bounds[0].y = -extenti.y();
+        bounds[1].x =  extenti.x(); bounds[1].y =  extenti.y();
+        r2d_init_box(&celli, bounds);
+        CHECK2(r2d_is_good(&celli), "Bad polygon!");
+
+        // Clip the local cell.
+        r2d_clip(&celli, &pairPlanes[0], pairPlanes.size());
+
+        // Extract the area.
+        r2d_real voli[1];
+        r2d_reduce(&celli, voli, 0);
+        vol(nodeListi, i) = voli[0];
       }
     }
   }
-#endif
 }
 
 }

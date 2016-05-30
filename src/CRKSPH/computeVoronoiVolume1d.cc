@@ -16,12 +16,15 @@ using namespace std;
 using FieldSpace::Field;
 using FieldSpace::FieldList;
 using NodeSpace::NodeList;
+using NeighborSpace::ConnectivityMap;
 
 //------------------------------------------------------------------------------
 // 1D
 //------------------------------------------------------------------------------
 void
 computeVoronoiVolume(const FieldList<Dim<1>, Dim<1>::Vector>& position,
+                     const ConnectivityMap<Dim<1> >& connectivityMap,
+                     const Dim<1>::Scalar kernelExtent,
                      FieldList<Dim<1>, Dim<1>::Scalar>& vol) {
 
   const unsigned numGens = position.numNodes();
