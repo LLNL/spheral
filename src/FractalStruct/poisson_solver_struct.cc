@@ -20,7 +20,7 @@ namespace FractalSpace
 	time0=mem.p_mess->Clock();
 	hypre_points_struct(mem,mem.all_groups[level],hypre_points,ni == 1,level);
 	time1=mem.p_mess->Clock();
-	hypre_points_boxes(hypre_points,spacing,SBoxes,SPoints);
+	hypre_points_boxes(hypre_points,spacing,ni==1,SBoxes,SPoints);
 	time2=mem.p_mess->Clock();
 	hypre_points.clear();
 	hypre_world_create(mem,level,SBoxes,ni == 1);
