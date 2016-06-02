@@ -75,7 +75,7 @@ namespace FractalSpace
   double Hubble (const double& omega_0, const double& omega_lambda, const double& redshift);
   void hypre_dump(int level,vector <Point*>& hypre_points,ofstream& FH);
   void hypre_eror(FILE* PFH,int level,int ni,int er);
-  void hypre_points_boxes(vector <vector <Point*> >hypre_points,int spacing,
+  void hypre_points_boxes(vector <vector <Point*> >hypre_points,int spacing,bool clever,
 			  vector < vector<int> >& SBoxes,vector < vector<Point*> >& SPoints);
   void hypre_points_struct(Fractal_Memory& mem,vector <Group*>& groups,
 			   vector < vector <Point*> >& hypre_points,bool buffer_groups,int level);
@@ -108,8 +108,6 @@ namespace FractalSpace
   void make_decisions_erika(Misc& misc);
   template <class M, class F>  void make_particles(M& mem,F& frac,int& count,const double& m,const bool& crash);
   void max_predict(Fractal_Memory& fractal_memory,Fractal& fractal,vector <double>& shear_force,double& min_vol);
-  template <class GO_AWAY> void multi_shrink(vector <vector <GO_AWAY> >& die);
-  template <class GO_AWAY> void multi_shrink(vector <vector <vector <GO_AWAY> > >& die);
   void neighbor_easy(vector <Point*>& p);
   void neighbors_nina(Point& point, vector <Point*>& adj);
   void node_groups_struct(Fractal_Memory& mem,vector <int>& counts);
@@ -133,6 +131,7 @@ namespace FractalSpace
   template <class GO_AWAY> void really_resize(vector <vector <GO_AWAY> >& die,int howbig);
   template <class GO_AWAY> void really_resize(vector <vector <vector <GO_AWAY> > >& die,int howbig);
   bool right_diff(vector <int>& Va,vector <int>& Vb,vector <int>& VD);
+  void remove_dupe_points(int spacing,vector<vector<Point*>>& hypre_points,vector<vector<int>>& SBoxes,vector<vector<Point*>>& SPoints);
   void remove_pseudo_particles(Fractal_Memory& mem,Fractal& frac);
   void scatter_particles(Fractal_Memory& mem,Fractal& frac);
   void shrink_cube(double SHRINK,vector <double>& xmin,vector <double>& xmax,Fractal_Memory* PFM,
