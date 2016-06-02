@@ -21,10 +21,11 @@ namespace FractalSpace
   {
     DestroyOcTree();
   }
-  void OcTree::LoadOcTree(vector<int>& BOX,vector <Point*>& pPOINTS,int space=1)
+  void OcTree::LoadOcTree(vector<int>& BOX,vector <Point*>& pPOINTS,int space=1):
+    spacing(space)
   {
     nnodes++;
-    spacing=space;
+    // spacing=space;
     if(rnode == NULL)
       {
 	try
@@ -278,31 +279,31 @@ namespace FractalSpace
       for(int k=0;k<8;k++)
 	Traverse(pnode->kids[k]);
   }
-//   void OcTree::Consolidate()
-//   {
-//     if(rnode != NULL && !rnode->full)
-//       Consolidate(rnode);
-//   }
-//   void OcTree::Consolidate(OcTreeNode* pnode)
-//   {
-//     if(pnode == NULL)
-//       return;
-//     vector <bool>fully(8,false);
-//     for(int k=0;k<8;k++)
-//       if(pnode->kids[k] != NULL)
-// 	fully[k]=pnode->kids[k]->full;
-//     if(fully[0] && fully[1] && fully[2] &&fully[3])
-//       {
-// 	for(int b : {1,3,5})
-// 	  pnode->kids[0]->box[b]=pnode->kids[3]->box[b];
-// 	for(int k : {1,2,3})
-// 	  {
-// 	    pnode->kids[k]->full=false;
-// 	    std::copy(pnode->kids[k]->ppoints.begin(),pnode->kids[k]->ppoints.begin(),pnode->kids[0]->ppoints.end());
-// 	    pnode->kids[k]->ppoints.clear();
-// 	  }
-//       }
-//     for(int k=0;k<8;k++)
-//       Consolidate(pnode->kids[k]);
-//   }
+  // void OcTree::Consolidate()
+  // {
+  //   if(rnode != NULL && !rnode->full && !rnode->ppoints.empty())
+  //     Consolidate(rnode);
+  // }
+  // void OcTree::Consolidate(OcTreeNode* pnode)
+  // {
+  //   if(pnode == NULL)
+  //     return;
+  //   vector <bool>fully(8,false);
+  //   for(int k=0;k<8;k++)
+  //     if(pnode->kids[k] != NULL)
+  // 	fully[k]=pnode->kids[k]->full;
+  //   if(fully[0] && fully[1] && fully[2] &&fully[3])
+  //     {
+  // 	for(int b : {1,3,5})
+  // 	  pnode->kids[0]->box[b]=pnode->kids[3]->box[b];
+  // 	for(int k : {1,2,3})
+  // 	  {
+  // 	    pnode->kids[k]->full=false;
+  // 	    std::copy(pnode->kids[k]->ppoints.begin(),pnode->kids[k]->ppoints.begin(),pnode->kids[0]->ppoints.end());
+  // 	    pnode->kids[k]->ppoints.clear();
+  // 	  }
+  //     }
+  //   for(int k=0;k<8;k++)
+  //     Consolidate(pnode->kids[k]);
+  // }
 }
