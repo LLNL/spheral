@@ -69,6 +69,7 @@ namespace FractalSpace
     // minimum_number**(1/3) is the local resolution in units of the local
     // mean interparticle spacing
     mem.padding = -1 ;
+    // mem.padding = 1 ;
     mem.padding=min(mem.padding,1);
     // if (-1) high cells are selectively padded so that resolution never jumps more than factor of 2.
     // if (padding > 0) each high cell is padded by (2*padding+1)**3 cells.

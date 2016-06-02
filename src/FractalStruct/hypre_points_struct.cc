@@ -31,7 +31,7 @@ namespace FractalSpace
 	    ng++;
 	  }
       }
-    cerr << " GroupTotal " << RANK << " " << ng << " " << _COUNTER << endl;
+    // cerr << " GroupTotal " << RANK << " " << ng << " " << _COUNTER << endl;
     _COUNTER++;
   }
 }

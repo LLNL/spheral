@@ -1,4 +1,4 @@
-classes = fractal_memory.hh point_class.hh group_class.hh fractal_class.hh misc_class.hh particle_class.hh mess.hh file_class.hh octreehybrid.hh box_comp.hh point_comp.hh libs.hh headers.hh classes.hh
+classes = fractal_memory.hh point_class.hh group_class.hh fractal_class.hh misc_class.hh particle_class.hh mess.hh file_class.hh kdtree.hh point_comp.hh libs.hh headers.hh classes.hh
 fopt1 = -pedantic -O3 
 Wopt1 = -Wunused
 gprof = 
@@ -89,11 +89,11 @@ misc_class.o :	misc_class.cc $(classes)
 octree.o :	octree.cc $(classes)
 	$(compile) -c octree.cc
 #
-octreehybrid.o :	octreehybrid.cc $(classes)
-	$(compile) -c octreehybrid.cc
+kdtree.o :	kdtree.cc $(classes)
+	$(compile) -c kdtree.cc
 #
-octreehybridA.o :	octreehybridA.cc $(classes)
-	$(compile) -c octreehybridA.cc
+kdtreeA.o :	kdtreeA.cc $(classes)
+	$(compile) -c kdtreeA.cc
 #
 particle_class.o :	particle_class.cc $(classes)
 	$(compile) -c particle_class.cc
@@ -383,6 +383,9 @@ power_spectrum.o :	power_spectrum.cc $(classes)
 really_clear.o :	really_clear.cc $(classes)
 	$(compile) -c really_clear.cc
 #
+remove_dupe_points.o :	remove_dupe_points.cc $(classes)
+	$(compile) -c remove_dupe_points.cc
+#
 remove_pseudo_particles.o :	remove_pseudo_particles.cc $(classes)
 	$(compile) -c remove_pseudo_particles.cc
 #
@@ -528,7 +531,7 @@ fractal_memory.o \
 group_class.o \
 mess.o \
 misc_class.o \
-octreehybrid.o \
+kdtree.o \
 particle_class.o \
 point_class.o 
 #
@@ -575,6 +578,7 @@ on_edge.o \
 overlap.o \
 potential_start.o \
 power_spectrum.o \
+remove_dupe_points.o \
 remove_pseudo_particles.o \
 shrink_cube.o \
 sort3_list.o \
