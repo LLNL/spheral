@@ -42,6 +42,19 @@ namespace FractalSpace
       return pa[1]-pb[1] < 0;
     }
   };
+  struct point_compb
+  {
+    bool operator()(const array<int,4>& pa,const array<int,4>& pb) const
+    {
+      int dif=pa[2]-pb[2];
+      if(dif != 0)
+	return dif < 0;
+      dif=pa[1]-pb[1];
+      if(dif != 0)
+	return dif < 0;
+      return pa[0]-pb[0] < 0;
+    }
+  };
   struct pointer_comp
   {
     bool operator()(const Point* Pa,const Point* Pb) const
