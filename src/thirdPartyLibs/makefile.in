@@ -304,6 +304,13 @@ OPENSUBDIVURL = https://github.com/PixarAnimationStudios/OpenSubdiv/archive/v2_5
 OPENSUBDIVDIR = $(OPENSUBDIVDIST:.zip=)
 OPENSUBDIVBUILDDATE = $(patsubst %.zip, .%.date, $(OPENSUBDIVDIST))
 
+# R3D
+R3DDIST = r3d.zip
+R3DURL = https://github.com/devonmpowell/r3d/archive/master.zip
+R3DDIR = c/r3d-master
+R3DBUILDDATE = $(patsubst %.zip, .%.date, $(R3DDIST))
+R3DINCDIR = $(prefix)/include/r3d
+
 #-------------------------------------------------------------------------------
 all:	$(PYTHONBUILDDATE) \
 	$(BOOSTDATE) \
@@ -320,6 +327,7 @@ all:	$(PYTHONBUILDDATE) \
 	$(EIGENBUILDDATE) \
 	$(MPMATHBUILDDATE) \
 	$(OPENSUBDIVTARGETS) \
+	$(R3DBUILDDATE) \
 	$(EXTRATHIRDPARTYTARGETS) \
 #	$(HYPREBUILDDATE)
 #	$(FLANNBUILDDATE) \
@@ -358,6 +366,7 @@ clean:
 	       $(FLANNDIR) $(FLANNBUILDDATE) \
 	       $(PCLDIR) $(PCLBUILDDATE) \
 	       $(OPENSUBDIVDIR) $(OPENSUBDIVBUILDDATE) \
+	       $(R3DDIR) $(R3DBUILDDATE) \
 	       $(EXTRATHIRDPARTYTARGETS) \
 	       .*.date
 
@@ -1486,3 +1495,27 @@ $(OPENSUBDIVBUILDDATE):	$(OPENSUBDIVDIST) $(CMAKEEXE)
 	rm -fr $(OPENSUBDIVDIR)
 	touch $(OPENSUBDIVBUILDDATE)
 
+#-------------------------------------------------------------------------------
+# r3d
+#-------------------------------------------------------------------------------
+$(R3DDIST):
+	$(CURL) "$(R3DURL)" > $(R3DDIST)
+
+$(R3DBUILDDATE):	$(R3DDIST)
+	@echo "################################################################################"
+	@echo "# Building $(R3DDIST)"
+	@echo "################################################################################"
+	rm -fr $(R3DDIR) $(R3DINCDIR)
+	@$(MKDIR) -p $(prefix)/bin $(prefix)/lib $(R3DINCDIR)
+	$(UNZIP) -dc $(R3DDIST)
+	env PATH=$(prefix)/bin:$$PATH $(SHELL) -ec "cd $(R3DDIR); \
+	$(MAKE) CC='$(CC)' CFLAGS='$(CFLAGS)'"
+	@if ! test -e $(R3DDIR)/libr3d.a; then \
+	echo "ERROR building R3d."; \
+	rm -f $(R3DBUILDDATE); \
+	exit 1; \
+	fi
+	$(CP) -f $(R3DDIR)/*.h $(R3DINCDIR)
+	$(CP) -f $(R3DDIR)/libr3d.a $(prefix)/lib
+	rm -fr $(R3DDIR)
+	touch $(R3DBUILDDATE)
