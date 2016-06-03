@@ -104,6 +104,13 @@ self.generateSolidSPHHydroBaseBindings(self.SolidSPHHydroBase%(dim)id, %(dim)i)
                            constrefparam(vectorfieldlist, "damageGradient"),
                            constrefparam(symtensorfieldlist, "H")])
 
+        x.add_method("operator()", "double",
+                     [param("unsigned int", "nodeListi"),
+                      param("unsigned int", "i"),
+                      param("unsigned int", "nodeListj"),
+                      param("unsigned int", "j")],
+                     custom_name = "__call__")
+
         return
 
     #---------------------------------------------------------------------------

@@ -246,7 +246,7 @@ computeLinearCRKSPHCorrections(const FieldSpace::FieldList<Dimension, typename D
     for (size_t i = 0; i != n; ++i) {
 
       // Based on the moments we can calculate the CRKSPH corrections terms and their gradients.
-      const SymTensor m2inv = abs(m2(nodeListi, i).Determinant()) > 1.0e-10 ? m2(nodeListi, i).Inverse() : SymTensor::zero;
+      const SymTensor m2inv = abs(m2(nodeListi, i).Determinant()) > 1.0e-5 ? m2(nodeListi, i).Inverse() : SymTensor::zero;
       const Vector m2invm1 = m2inv*m1(nodeListi, i);
       const Scalar Ainv = m0(nodeListi, i) - m2invm1.dot(m1(nodeListi, i));
       CHECK(Ainv != 0.0);
