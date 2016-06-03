@@ -325,7 +325,7 @@ evaluateDerivatives(const Dim<2>::Scalar time,
       const Scalar weighti = volume(nodeListi, i);  // Change CRKSPH weights here if need be!
       const Scalar zetai = abs((Hi*posi).y());
       const Scalar hri = ri*safeInv(zetai);
-      const Scalar riInv = safeInv(ri, 0.05*hri);
+      const Scalar riInv = safeInv(ri, 0.25*hri);
       CHECK2(mi > 0.0, i << " " << mi);
       CHECK2(rhoi > 0.0, i << " " << rhoi);
       CHECK2(Ai > 0.0, i << " " << Ai);
