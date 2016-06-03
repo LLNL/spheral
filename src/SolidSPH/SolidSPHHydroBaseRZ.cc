@@ -590,19 +590,19 @@ evaluateDerivatives(const Dim<2>::Scalar time,
               CHECK(rhoj > 0.0);
               const SymTensor sigmarhoi = safeOmegai*sigmai/(rhoi*rhoi);
               const SymTensor sigmarhoj = safeOmegaj*sigmaj/(rhoj*rhoj);
-              const Vector deltaDvDt = fDeffij*(sigmarhoi*gradWi + sigmarhoj*gradWj) - Qacci - Qaccj;
+              const Vector deltaDvDt = sigmarhoi*gradWi + sigmarhoj*gradWj - Qacci - Qaccj;
               if (freeParticle) {
                 DvDti += mRZj*deltaDvDt;
                 DvDtj -= mRZi*deltaDvDt;
               }
 
               // Pair-wise portion of grad velocity.
-              const Tensor deltaDvDxi = fDeffij*vij.dyad(gradWGi);
-              const Tensor deltaDvDxj = fDeffij*vij.dyad(gradWGj);
+              const Tensor deltaDvDxi = vij.dyad(gradWGi);
+              const Tensor deltaDvDxj = vij.dyad(gradWGj);
 
               // Specific thermal energy evolution.
-              DepsDti -= mRZj*(fDeffij*sigmarhoi.doubledot(deltaDvDxi.Symmetric()) - workQi);
-              DepsDtj -= mRZi*(fDeffij*sigmarhoj.doubledot(deltaDvDxj.Symmetric()) - workQj);
+              DepsDti -= mRZj*(sigmarhoi.doubledot(deltaDvDxi.Symmetric()) - workQi);
+              DepsDtj -= mRZi*(sigmarhoj.doubledot(deltaDvDxj.Symmetric()) - workQj);
               if (compatibleEnergy) {
                 pairAccelerationsi.push_back( mRZj*deltaDvDt);
                 pairAccelerationsj.push_back(-mRZi*deltaDvDt);
@@ -626,11 +626,11 @@ evaluateDerivatives(const Dim<2>::Scalar time,
               }
 
               // Linear gradient correction term.
-              Mi -= fDeffij*mRZj*xij.dyad(gradWGi);
-              Mj -= fDeffij*mRZi*xij.dyad(gradWGj);
+              Mi -= mRZj*xij.dyad(gradWGi);
+              Mj -= mRZi*xij.dyad(gradWGj);
               if (sameMatij) {
-                localMi -= fDeffij*mRZj*xij.dyad(gradWGi);
-                localMj -= fDeffij*mRZi*xij.dyad(gradWGj);
+                localMi -= mRZj*xij.dyad(gradWGi);
+                localMj -= mRZi*xij.dyad(gradWGj);
               }
             }
           }

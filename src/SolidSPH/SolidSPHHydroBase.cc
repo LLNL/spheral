@@ -662,19 +662,19 @@ evaluateDerivatives(const typename Dimension::Scalar time,
               CHECK(rhoj > 0.0);
               const SymTensor sigmarhoi = safeOmegai*sigmai/(rhoi*rhoi);
               const SymTensor sigmarhoj = safeOmegaj*sigmaj/(rhoj*rhoj);
-              const Vector deltaDvDt = fDeffij*(sigmarhoi*gradWi + sigmarhoj*gradWj) - Qacci - Qaccj;
+              const Vector deltaDvDt = sigmarhoi*gradWi + sigmarhoj*gradWj - Qacci - Qaccj;
               if (freeParticle) {
                 DvDti += mj*deltaDvDt;
                 DvDtj -= mi*deltaDvDt;
               }
 
               // Pair-wise portion of grad velocity.
-              const Tensor deltaDvDxi = fDeffij*vij.dyad(gradWGi);
-              const Tensor deltaDvDxj = fDeffij*vij.dyad(gradWGj);
+              const Tensor deltaDvDxi = vij.dyad(gradWGi);
+              const Tensor deltaDvDxj = vij.dyad(gradWGj);
 
               // Specific thermal energy evolution.
-              DepsDti -= mj*(fDeffij*sigmarhoi.doubledot(deltaDvDxi.Symmetric()) - workQi);
-              DepsDtj -= mi*(fDeffij*sigmarhoj.doubledot(deltaDvDxj.Symmetric()) - workQj);
+              DepsDti -= mj*(sigmarhoi.doubledot(deltaDvDxi.Symmetric()) - workQi);
+              DepsDtj -= mi*(sigmarhoj.doubledot(deltaDvDxj.Symmetric()) - workQj);
               if (compatibleEnergy) {
                 pairAccelerationsi.push_back( mj*deltaDvDt);
                 pairAccelerationsj.push_back(-mi*deltaDvDt);
@@ -698,11 +698,11 @@ evaluateDerivatives(const typename Dimension::Scalar time,
               }
 
               // Linear gradient correction term.
-              Mi -= fDeffij*mj*rij.dyad(gradWGi);
-              Mj -= fDeffij*mi*rij.dyad(gradWGj);
+              Mi -= mj*rij.dyad(gradWGi);
+              Mj -= mi*rij.dyad(gradWGj);
               if (sameMatij) {
-                localMi -= fDeffij*mj*rij.dyad(gradWGi);
-                localMj -= fDeffij*mi*rij.dyad(gradWGj);
+                localMi -= mj*rij.dyad(gradWGi);
+                localMj -= mi*rij.dyad(gradWGj);
               }
             }
           }

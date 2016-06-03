@@ -807,8 +807,8 @@ evaluateDerivatives(const typename Dimension::Scalar time,
               DvDxi -= weightj*vij.dyad(gradWj);
               DvDxj += weighti*vij.dyad(gradWi);
               if (nodeListi == nodeListj) {
-                localDvDxi -= fDeffij*weightj*vij.dyad(gradWdamj);
-                localDvDxj += fDeffij*weighti*vij.dyad(gradWdami);
+                localDvDxi -= weightj*vij.dyad(gradWdamj);
+                localDvDxj += weighti*vij.dyad(gradWdami);
               }
 
               // We treat positive and negative pressures distinctly, so split 'em up.
@@ -834,7 +834,7 @@ evaluateDerivatives(const typename Dimension::Scalar time,
               CHECK(rhoi > 0.0);
               CHECK(rhoj > 0.0);
               Vector deltaDvDti, deltaDvDtj;
-              const Vector forceij  = 0.5*weighti*weightj*((Pposi + Pposj)*deltagrad - fDeffij*fDeffij*(sigmai + sigmaj)*deltagraddam + Qaccij);
+              const Vector forceij  = 0.5*weighti*weightj*((Pposi + Pposj)*deltagrad - fDeffij*(sigmai + sigmaj)*deltagraddam + Qaccij);
               DvDti -= forceij/mi;
               DvDtj += forceij/mj;
               if (compatibleEnergy) {
@@ -843,13 +843,13 @@ evaluateDerivatives(const typename Dimension::Scalar time,
               }
 
               // Specific thermal energy evolution.
-              DepsDti += 0.5*weighti*weightj*(Pposj*vij.dot(deltagrad) + fDeffij*fDeffij*sigmaj.dot(vij).dot(deltagraddam) + workQij)/mi;
-              DepsDtj += 0.5*weighti*weightj*(Pposi*vij.dot(deltagrad) + fDeffij*fDeffij*sigmai.dot(vij).dot(deltagraddam) + workQij)/mj;
+              DepsDti += 0.5*weighti*weightj*(Pposj*vij.dot(deltagrad) + fDeffij*sigmaj.dot(vij).dot(deltagraddam) + workQij)/mi;
+              DepsDtj += 0.5*weighti*weightj*(Pposi*vij.dot(deltagrad) + fDeffij*sigmai.dot(vij).dot(deltagraddam) + workQij)/mj;
 
               // Estimate of delta v (for XSPH).
               if (XSPH and (nodeListi == nodeListj)) {
-                XSPHDeltaVi -= fDeffij*weightj*Wdamj*vij;
-		XSPHDeltaVj += fDeffij*weighti*Wdami*vij;
+                XSPHDeltaVi -= weightj*Wdamj*vij;
+		XSPHDeltaVj += weighti*Wdami*vij;
               }
 
             }
