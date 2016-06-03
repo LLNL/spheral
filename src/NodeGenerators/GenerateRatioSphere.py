@@ -254,14 +254,13 @@ class GenerateRatioSphere3d(NodeGeneratorBase):
                                       mpi.rank, mpi.procs)
         self.x = [x + center[0] for x in xvec]
         self.y = [x + center[1] for x in yvec]
-        self.z = [x + center[2] for x in zvec]
         self.m = list(mvec)
         self.H = [SymTensor3d(x) for x in Hvec]
         self.globalIDs = list(globalIDsvec)
         for i in xrange(len(extras)):
             extras[i] = list(extrasVec[i])
 
-        self.center = Vector3d(*center)
+        self.center = Vector2d(*center)
 
         # If the user provided a "rejecter", give it a pass
         # at the nodes.
@@ -273,14 +272,14 @@ class GenerateRatioSphere3d(NodeGeneratorBase):
                                                               self.H)
         # Initialize the base class.
         NodeGeneratorBase.__init__(self, False,
-                                   self.x, self.y, self.z, self.m, self.H)
+                                   self.x, self.y, self.m, self.H)
         return
 
     #---------------------------------------------------------------------------
     # Get the position for the given node index.
     #---------------------------------------------------------------------------
     def localPosition(self, i):
-        return Vector3d(self.x[i], self.y[i], self.z[i])
+        return Vector2d(self.x[i], self.y[i])
 
     #---------------------------------------------------------------------------
     # Get the mass for the given node index.
