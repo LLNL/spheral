@@ -759,7 +759,7 @@ namespace FractalSpace
 	    dataI_out[0].push_back(0);
 	    for(int ints=0;ints<integers;ints++)
 	      {
-		dataI_out[0].push_back(tmpI0[nIdata]);
+		dataI_out[0].push_back(std::move(tmpI0[nIdata]));
 		nIdata++;
 	      }
 	  }
@@ -775,12 +775,12 @@ namespace FractalSpace
 		dataI_out[FR2].push_back(FR);
 		for(int ints=0;ints<integers;ints++)
 		  {
-		    dataI_out[FR2].push_back(dataI_out[FR][nIdata]);
+		    dataI_out[FR2].push_back(move(dataI_out[FR][nIdata]));
 		    nIdata++;
 		  }
 		for(int reals=0;reals<doubles;reals++)
 		  {
-		    dataR_out[FR2].push_back(dataR_out[FR][nRdata]);
+		    dataR_out[FR2].push_back(move(dataR_out[FR][nRdata]));
 		    nRdata++;
 		  }
 		totals++;
@@ -834,12 +834,12 @@ namespace FractalSpace
 		dataI_out[FR1].push_back(FRFrom);
 		for(int nI=0;nI<integers;nI++)
 		  {
-		    dataI_out[FR1].push_back(dataI_in[countI]);
+		    dataI_out[FR1].push_back(std::move(dataI_in[countI]));
 		    countI++;
 		  }
 		for(int nR=0;nR<doubles;nR++)
 		  {
-		    dataR_out[FR1].push_back(dataR_in[countR]);
+		    dataR_out[FR1].push_back(std::move(dataR_in[countR]));
 		    countR++;
 		  }
 	      }
@@ -895,12 +895,12 @@ namespace FractalSpace
 		dataI_out[FR0].push_back(FRFrom);
 		for(int nI=0;nI<integers;nI++)
 		  {
-		    dataI_out[FR0].push_back(dataI_in[countI]);
+		    dataI_out[FR0].push_back(std::move(dataI_in[countI]));
 		    countI++;
 		  }
 		for(int nR=0;nR<doubles;nR++)
 		  {
-		    dataR_out[FR0].push_back(dataR_in[countR]);
+		    dataR_out[FR0].push_back(std::move(dataR_in[countR]));
 		    countR++;
 		  }
 	      }
@@ -951,12 +951,12 @@ namespace FractalSpace
 		counts_in[FRFrom]++;
 		for(int nI=0;nI<integers;nI++)
 		  {
-		    dataI_out[FRFrom].push_back(dataI_in[countI]);
+		    dataI_out[FRFrom].push_back(std::move(dataI_in[countI]));
 		    countI++;
 		  }
 		for(int nR=0;nR<doubles;nR++)
 		  {
-		    dataR_out[FRFrom].push_back(dataR_in[countR]);
+		    dataR_out[FRFrom].push_back(std::move(dataR_in[countR]));
 		    countR++;
 		  }
 	      }
@@ -985,12 +985,12 @@ namespace FractalSpace
 	      {
 		for(int nI=0;nI<integers;nI++)
 		  {
-		    dataI_in.push_back(dataI_out[FR][countI]);
+		    dataI_in.push_back(std::move(dataI_out[FR][countI]));
 		    countI++;
 		  }
 		for(int nR=0;nR<doubles;nR++)
 		  {
-		    dataR_in.push_back(dataR_out[FR][countR]);
+		    dataR_in.push_back(std::move(dataR_out[FR][countR]));
 		    countR++;
 		  }
 	      }
@@ -1036,12 +1036,12 @@ namespace FractalSpace
 		dataI_in.push_back(FR);
 		for(int ints=0;ints<integers;ints++)
 		  {
-		    dataI_in.push_back(dataI_out[FR][nIdata]);
+		    dataI_in.push_back(std::move(dataI_out[FR][nIdata]));
 		    nIdata++;
 		  }
 		for(int reals=0;reals<doubles;reals++)
 		  {
-		    dataR_in.push_back(dataR_out[FR][nRdata]);
+		    dataR_in.push_back(std::move(dataR_out[FR][nRdata]));
 		    nRdata++;
 		  }
 		totals++;
@@ -1073,12 +1073,12 @@ namespace FractalSpace
 	    dataI_out[FR0].push_back(FR);
 	    for(int niI=0;niI<integers;niI++)
 	      {
-		dataI_out[FR0].push_back(dataI_in[counterI]);
+		dataI_out[FR0].push_back(std::move(dataI_in[counterI]));
 		counterI++;
 	      }
 	    for(int niR=0;niR<doubles;niR++)
 	      {
-		dataR_out[FR0].push_back(dataR_in[counterR]);
+		dataR_out[FR0].push_back(std::move(dataR_in[counterR]));
 		counterR++;
 	      }
 	  }
@@ -1129,12 +1129,12 @@ namespace FractalSpace
 		dataI_out[FR1].push_back(FRFrom);
 		for(int nI=0;nI<integers;nI++)
 		  {
-		    dataI_out[FR1].push_back(dataI_in[countI]);
+		    dataI_out[FR1].push_back(std::move(dataI_in[countI]));
 		    countI++;
 		  }
 		for(int nR=0;nR<doubles;nR++)
 		  {
-		    dataR_out[FR1].push_back(dataR_in[countR]);
+		    dataR_out[FR1].push_back(std::move(dataR_in[countR]));
 		    countR++;
 		  }
 	      }
@@ -1190,12 +1190,12 @@ namespace FractalSpace
 		dataI_out[FR2].push_back(FRFrom);
 		for(int nI=0;nI<integers;nI++)
 		  {
-		    dataI_out[FR2].push_back(dataI_in[countI]);
+		    dataI_out[FR2].push_back(std::move(dataI_in[countI]));
 		    countI++;
 		  }
 		for(int nR=0;nR<doubles;nR++)
 		  {
-		    dataR_out[FR2].push_back(dataR_in[countR]);
+		    dataR_out[FR2].push_back(std::move(dataR_in[countR]));
 		    countR++;
 		  }
 	      }
@@ -1253,12 +1253,12 @@ namespace FractalSpace
 		int FR01=FRFrom % FractalNodes01;
 		for(int nI=0;nI<integers;nI++)
 		  {
-		    dataI[FR01].push_back(dataI_in[countI]);
+		    dataI[FR01].push_back(std::move(dataI_in[countI]));
 		    countI++;
 		  }
 		for(int nR=0;nR<doubles;nR++)
 		  {
-		    dataR[FR01].push_back(dataR_in[countR]);
+		    dataR[FR01].push_back(std::move(dataR_in[countR]));
 		    countR++;
 		  }
 	      }
@@ -1337,12 +1337,12 @@ namespace FractalSpace
 	    dataIa_out[HR2].push_back(HR);
 	    for(int ints=0;ints<integers;ints++)
 	      {
-		dataIa_out[HR2].push_back(dataI_out[HR][nIdata]);
+		dataIa_out[HR2].push_back(std::move(dataI_out[HR][nIdata]));
 		nIdata++;
 	      }
 	    for(int reals=0;reals<doubles;reals++)
 	      {
-		dataRa_out[HR2].push_back(dataR_out[HR][nRdata]);
+		dataRa_out[HR2].push_back(std::move(dataR_out[HR][nRdata]));
 		nRdata++;
 	      }
 	  }
@@ -1378,12 +1378,12 @@ namespace FractalSpace
 	    dataIa_out[HR1].push_back(HRFrom);
 	    for(int nI=0;nI<integers;nI++)
 	      {
-		dataIa_out[HR1].push_back(dataIa_in[countI]);
+		dataIa_out[HR1].push_back(std::move(dataIa_in[countI]));
 		countI++;
 	      }
 	    for(int nR=0;nR<doubles;nR++)
 	      {
-		dataRa_out[HR1].push_back(dataRa_in[countR]);
+		dataRa_out[HR1].push_back(std::move(dataRa_in[countR]));
 		countR++;
 	      }
 	  }
@@ -1421,12 +1421,12 @@ namespace FractalSpace
 	    dataIa_out[HR0].push_back(HRFrom);
 	    for(int nI=0;nI<integers;nI++)
 	      {
-		dataIa_out[HR0].push_back(dataIa_in[countI]);
+		dataIa_out[HR0].push_back(move(dataIa_in[countI]));
 		countI++;
 	      }
 	    for(int nR=0;nR<doubles;nR++)
 	      {
-		dataRa_out[HR0].push_back(dataRa_in[countR]);
+		dataRa_out[HR0].push_back(std::move(dataRa_in[countR]));
 		countR++;
 	      }
 	  }
@@ -1461,12 +1461,12 @@ namespace FractalSpace
 	    dataIa_out[HR2].push_back(HRFrom);
 	    for(int nI=0;nI<integers;nI++)
 	      {
-		dataIa_out[HR2].push_back(dataIa_in[countI]);
+		dataIa_out[HR2].push_back(std::move(dataIa_in[countI]));
 		countI++;
 	      }
 	    for(int nR=0;nR<doubles;nR++)
 	      {
-		dataRa_out[HR2].push_back(dataRa_in[countR]);
+		dataRa_out[HR2].push_back(std::move(dataRa_in[countR]));
 		countR++;
 	      }
 	  }
@@ -1497,12 +1497,12 @@ namespace FractalSpace
 	    counts_in[HRFrom]++;
 	    for(int nI=0;nI<integers;nI++)
 	      {
-		dataIa_out[HRFrom].push_back(dataIa_in[countI]);
+		dataIa_out[HRFrom].push_back(std::move(dataIa_in[countI]));
 		countI++;
 	      }
 	    for(int nR=0;nR<doubles;nR++)
 	      {
-		dataRa_out[HRFrom].push_back(dataRa_in[countR]);
+		dataRa_out[HRFrom].push_back(std::move(dataRa_in[countR]));
 		countR++;
 	      }
 	  }
@@ -1519,12 +1519,12 @@ namespace FractalSpace
 	  {
 	    for(int nI=0;nI<integers;nI++)
 	      {
-		dataI_in.push_back(dataIa_out[HR][countI]);
+		dataI_in.push_back(std::move(dataIa_out[HR][countI]));
 		countI++;
 	      }
 	    for(int nR=0;nR<doubles;nR++)
 	      {
-		dataR_in.push_back(dataRa_out[HR][countR]);
+		dataR_in.push_back(std::move(dataRa_out[HR][countR]));
 		countR++;
 	      }
 	  }
@@ -1611,6 +1611,14 @@ namespace FractalSpace
     Find_Sum_DOUBLE_to_ROOT(doubles,how_long,ROOT);
     Send_DOUBLE_from_ROOT(doubles,how_long,ROOT);
   }
+  long int Mess::How_Many_In_Solver(const int S) const
+  {
+    vector <long int> total{S};
+    vector <long int> sumup(1);
+    MPI_Reduce(&(*total.begin()),&(*sumup.begin()),1,MPI_LONG,MPI_SUM,HypreNodes/2,HypreWorld);
+    MPI_Bcast(&(*sumup.begin()),1,MPI_LONG,HypreNodes/2,HypreWorld);
+    return sumup[0];
+  }
   void Mess::Send_INT_from_ROOT(int* numbers,const int& how_long,const int& ROOT) const
   {
     MPI_Bcast(numbers,how_long,MPI_INT,ROOT,FractalWorld);
@@ -1678,14 +1686,6 @@ namespace FractalSpace
 	numbers=sumup;
       }
     Full_Stop_Do_Not_Argue();
-  }
-  long int Mess::How_Many_In_Solver(const int S) const
-  {
-    vector <long int> total{S};
-    vector <long int> sumup(1);
-    MPI_Reduce(&(*total.begin()),&(*sumup.begin()),1,MPI_LONG,MPI_SUM,HypreNodes/2,HypreWorld);
-    MPI_Bcast(&(*sumup.begin()),1,MPI_LONG,HypreNodes/2,HypreWorld);
-    return sumup[0];
   }
   void Mess::Send_INT_from_ROOT(vector <int>& numbers,const int& how_long,const int& ROOT) const
   {
