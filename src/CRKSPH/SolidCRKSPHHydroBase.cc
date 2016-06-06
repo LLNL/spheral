@@ -150,6 +150,7 @@ SolidCRKSPHHydroBase(const SmoothingScaleBase<Dimension>& smoothingScaleMethod,
   mShearModulus(FieldSpace::Copy),
   mYieldStrength(FieldSpace::Copy),
   mPlasticStrain0(FieldSpace::Copy),
+  mHfield0(FieldSpace::Copy),
   mFragIDs(FieldSpace::Reference),
   mAdamage(FieldSpace::Copy),
   mBdamage(FieldSpace::Copy),
@@ -185,6 +186,7 @@ initializeProblemStartup(DataBase<Dimension>& dataBase) {
   mShearModulus = dataBase.newFluidFieldList(0.0, SolidFieldNames::shearModulus);
   mYieldStrength = dataBase.newFluidFieldList(0.0, SolidFieldNames::yieldStrength);
   mPlasticStrain0 = dataBase.newFluidFieldList(0.0, SolidFieldNames::plasticStrain + "0");
+  mHfield0 = dataBase.newFluidFieldList(SymTensor::zero, HydroFieldNames::H + "0");
   mAdamage = dataBase.newFluidFieldList(0.0,              HydroFieldNames::A_CRKSPH + " damage");
   mBdamage = dataBase.newFluidFieldList(Vector::zero,     HydroFieldNames::B_CRKSPH + " damage");
   mCdamage = dataBase.newFluidFieldList(Tensor::zero,     HydroFieldNames::C_CRKSPH + " damage");
@@ -215,6 +217,10 @@ initializeProblemStartup(DataBase<Dimension>& dataBase) {
     (*itr)->shearModulus(*mShearModulus[nodeListi]);
     (*itr)->yieldStrength(*mYieldStrength[nodeListi]);
   }
+
+  // Copy the initial H field to apply to nodes as they become damaged.
+  const FieldList<Dimension, SymTensor> H = dataBase.fluidHfield();
+  mHfield0.assignFields(H);
 }
 
 
@@ -896,6 +902,10 @@ evaluateDerivatives(const typename Dimension::Scalar time,
                                                        nodeListi,
                                                        i);
 
+      // If this node is damaged we begin to force it back to it's original H.
+      const Scalar Di = max(0.0, min(1.0, damage(nodeListi, i).eigenValues().maxElement()));
+      Hideali = (1.0 - Di)*Hideali + Di*mHfield0(nodeListi, i);
+
       // Determine the deviatoric stress evolution.
       const SymTensor deformation = localDvDxi.Symmetric();
       const Tensor spin = localDvDxi.SkewSymmetric();
@@ -904,7 +914,7 @@ evaluateDerivatives(const typename Dimension::Scalar time,
       DSDti = spinCorrection + (2.0*mui)*deviatoricDeformation;
 
       // In the presence of damage, add a term to reduce the stress on this point.
-      const Scalar Di = max(0.0, min(1.0, damage(nodeListi, i).eigenValues().maxElement()));
+      // const Scalar Di = max(0.0, min(1.0, damage(nodeListi, i).eigenValues().maxElement()));
       DSDti = (1.0 - Di)*DSDti - 0.25/dt*Di*Si;
 
       // Time evolution of the mass density.
@@ -1044,6 +1054,7 @@ dumpState(FileIO& file, const string& pathName) const {
   file.write(mShearModulus, pathName + "/shearModulus");
   file.write(mYieldStrength, pathName + "/yieldStrength");
   file.write(mPlasticStrain0, pathName + "/plasticStrain0");
+  file.write(mHfield0, pathName + "/Hfield0");
   file.write(mFragIDs, pathName + "/fragIDs");
   file.write(mAdamage, pathName + "/Adamage");
   file.write(mBdamage, pathName + "/Bdamage");
@@ -1069,6 +1080,7 @@ restoreState(const FileIO& file, const string& pathName) {
   file.read(mShearModulus, pathName + "/shearModulus");
   file.read(mYieldStrength, pathName + "/yieldStrength");
   file.read(mPlasticStrain0, pathName + "/plasticStrain0");
+  file.read(mHfield0, pathName + "/Hfield0");
   file.read(mFragIDs, pathName + "/fragIDs");
   file.read(mAdamage, pathName + "/Adamage");
   file.read(mBdamage, pathName + "/Bdamage");

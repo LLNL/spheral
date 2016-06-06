@@ -146,6 +146,7 @@ SolidSPHHydroBase(const SmoothingScaleBase<Dimension>& smoothingScaleMethod,
   mShearModulus(FieldSpace::Copy),
   mYieldStrength(FieldSpace::Copy),
   mPlasticStrain0(FieldSpace::Copy),
+  mHfield0(FieldSpace::Copy),
   mRestart(DataOutput::registerWithRestart(*this)) {
 }
 
@@ -174,6 +175,7 @@ initializeProblemStartup(DataBase<Dimension>& dataBase) {
   mShearModulus = dataBase.newFluidFieldList(0.0, SolidFieldNames::shearModulus);
   mYieldStrength = dataBase.newFluidFieldList(0.0, SolidFieldNames::yieldStrength);
   mPlasticStrain0 = dataBase.newFluidFieldList(0.0, SolidFieldNames::plasticStrain + "0");
+  mHfield0 = dataBase.newFluidFieldList(SymTensor::zero, HydroFieldNames::H + "0");
 
   // Set the moduli.
   size_t nodeListi = 0;
@@ -184,6 +186,10 @@ initializeProblemStartup(DataBase<Dimension>& dataBase) {
     (*itr)->shearModulus(*mShearModulus[nodeListi]);
     (*itr)->yieldStrength(*mYieldStrength[nodeListi]);
   }
+
+  // Copy the initial H field to apply to nodes as they become damaged.
+  const FieldList<Dimension, SymTensor> H = dataBase.fluidHfield();
+  mHfield0.assignFields(H);
 }
 
 
@@ -784,6 +790,10 @@ evaluateDerivatives(const typename Dimension::Scalar time,
                                                        nodeListi,
                                                        i);
 
+      // If this node is damaged we begin to force it back to it's original H.
+      const Scalar Di = max(0.0, min(1.0, damage(nodeListi, i).eigenValues().maxElement()));
+      Hideali = (1.0 - Di)*Hideali + Di*mHfield0(nodeListi, i);
+
       // Determine the deviatoric stress evolution.
       const SymTensor deformation = localDvDxi.Symmetric();
       const Tensor spin = localDvDxi.SkewSymmetric();
@@ -893,6 +903,7 @@ dumpState(FileIO& file, const string& pathName) const {
   file.write(mShearModulus, pathName + "/shearModulus");
   file.write(mYieldStrength, pathName + "/yieldStrength");
   file.write(mPlasticStrain0, pathName + "/plasticStrain0");
+  file.write(mHfield0, pathName + "/Hfield0");
 }
 
 //------------------------------------------------------------------------------
@@ -911,6 +922,7 @@ restoreState(const FileIO& file, const string& pathName) {
   file.read(mShearModulus, pathName + "/shearModulus");
   file.read(mYieldStrength, pathName + "/yieldStrength");
   file.read(mPlasticStrain0, pathName + "/plasticStrain0");
+  file.read(mHfield0, pathName + "/Hfield0");
 }
 
 }

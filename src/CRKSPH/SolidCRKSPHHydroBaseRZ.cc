@@ -322,6 +322,8 @@ evaluateDerivatives(const Dim<2>::Scalar time,
   CHECK(gradBdamage.size() == numNodeLists);
   CHECK(gradCdamage.size() == numNodeLists or order != QuadraticOrder);
 
+  const FieldList<Dimension, SymTensor>& Hfield0 = this->Hfield0();
+
   // Derivative FieldLists.
   FieldList<Dimension, Vector> DxDt = derivatives.fields(IncrementFieldList<Dimension, Vector>::prefix() + HydroFieldNames::position, Vector::zero);
   FieldList<Dimension, Scalar> DrhoDt = derivatives.fields(IncrementFieldList<Dimension, Scalar>::prefix() + HydroFieldNames::massDensity, 0.0);
@@ -698,6 +700,10 @@ evaluateDerivatives(const Dim<2>::Scalar time,
                                                        nodeListi,
                                                        i);
 
+      // If this node is damaged we begin to force it back to it's original H.
+      const Scalar Di = max(0.0, min(1.0, damage(nodeListi, i).eigenValues().maxElement()));
+      Hideali = (1.0 - Di)*Hideali + Di*Hfield0(nodeListi, i);
+
       // Finish the acceleration.
       const Vector deltaDvDti(Si(1,0)/rhoi*riInv,
                               (Si(1,1) - STTi)/rhoi*riInv);
@@ -714,7 +720,7 @@ evaluateDerivatives(const Dim<2>::Scalar time,
       DSTTDti = 2.0*mui*(deformationTT - (deformation.Trace() + deformationTT)/3.0);
 
       // In the presence of damage, add a term to reduce the stress on this point.
-      const Scalar Di = max(0.0, min(1.0, damage(nodeListi, i).eigenValues().maxElement()));
+      // const Scalar Di = max(0.0, min(1.0, damage(nodeListi, i).eigenValues().maxElement()));
       DSDti = (1.0 - Di)*DSDti - 0.25/dt*Di*Si;
       DSTTDti = (1.0 - Di)*DSTTDti - 0.25/dt*Di*STTi;
 

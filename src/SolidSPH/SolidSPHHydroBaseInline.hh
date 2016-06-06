@@ -55,5 +55,13 @@ plasticStrain0() const {
   return mPlasticStrain0;
 }
 
+template<typename Dimension>
+inline
+const FieldSpace::FieldList<Dimension, typename Dimension::SymTensor>&
+SolidSPHHydroBase<Dimension>::
+Hfield0() const {
+  return mHfield0;
+}
+
 }
 }

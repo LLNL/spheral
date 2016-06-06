@@ -548,6 +548,7 @@ self.generateSolidCRKSPHHydroBaseBindings(self.SolidCRKSPHHydroBase%(dim)id, %(d
                            param("double", "nTensile", default_value="4.0")])
 
         # Attributes.
+        const_ref_return_value(x, me, "%s::Hfield0" % me, symtensorfieldlist, [], "Hfield0")
         const_ref_return_value(x, me, "%s::Adamage" % me, scalarfieldlist, [], "Adamage")
         const_ref_return_value(x, me, "%s::Bdamage" % me, vectorfieldlist, [], "Bdamage")
         const_ref_return_value(x, me, "%s::Cdamage" % me, tensorfieldlist, [], "Cdamage")
