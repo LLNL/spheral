@@ -27,6 +27,7 @@ namespace FractalSpace
 	time3=mem.p_mess->Clock();
 	if(mem.p_mess->IAmAHypreNode)
 	  {
+	    box_stats(mem,level,ni,SBoxes,SPoints);
 	    time4=mem.p_mess->Clock();
 	    hypre_solve_struct(mem,level,SBoxes,SPoints);
 	    time5=mem.p_mess->Clock();

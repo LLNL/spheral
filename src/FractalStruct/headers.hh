@@ -15,6 +15,7 @@ namespace FractalSpace
 			int Nodes,int length,vector <double>& targets,vector <int>& lowers,vector <int>& uppers);
   void binary_balancing(Fractal_Memory* PFM,vector <double>& numbers,double minimum,
 			int Nodes,int length,vector <double>& targets,vector <int>& lowers,vector <int>& uppers);
+  void box_stats(Fractal_Memory& mem,int level,int nb,vector<vector<int>>& SBoxes,vector<vector<Point*>>& SPoints);
   void buffer_points(Group& group, Fractal& fractal,Misc& misc);
   void candidate_points();
   void check_for_edge_trouble(Fractal& fractal);
@@ -154,6 +155,8 @@ namespace FractalSpace
 		     vector<double>& velx,vector<double>& vely,vector<double>& velz,vector<double>& masses);
   template <class M>  void step_simple(M& mem,Fractal& fractal);
   void sum_pot_forces(Fractal& fractal);
+  template <class GO_AWAY> void swapvector(vector<GO_AWAY>& die);
+  template <class GO_AWAY> void swapvector(vector<GO_AWAY>& die,int how_big);
   void take_a_leap_isol(Fractal_Memory* PFM,vector <double>& masses,double G,
 			vector <double>& xmin,vector <double>& xmax,
 			vector <double>& posx,vector <double>& posy,vector <double>& posz,
