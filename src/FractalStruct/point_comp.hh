@@ -42,7 +42,7 @@ namespace FractalSpace
       return pa[1]-pb[1] < 0;
     }
   };
-  struct point_compb
+  struct point_comp4
   {
     bool operator()(const array<int,4>& pa,const array<int,4>& pb) const
     {
