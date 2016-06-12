@@ -9,12 +9,17 @@ namespace FractalSpace
     static int _COUNTER=0;
     int RANK=-1;
     MPI_Comm_rank(MPI_COMM_WORLD,&RANK);
-    int VOLMIN=8;
+    bool RANKY=RANK==21;
+    // if(RANKY)
+    cerr << " ENTER BOXES " << RANK << " " << clever << " " << SBoxes.size() << " " << SPoints.size() << endl;
+    // SBoxes.clear();
+    // SPoints.clear();
+    int VOLMIN=4;
     double FILLFACTOR=2.0;
     int MAXY=Misc::pow(2,29);
     int MINY=-Misc::pow(2,29);
-    MPI_Barrier(MPI_COMM_WORLD);
-    int ni=0;
+    // MPI_Barrier(MPI_COMM_WORLD);
+    // int ni=0;
     for(vector <Point*>& hp : hypre_points)
       {
 	vector <int> BOX(6);
@@ -51,9 +56,12 @@ namespace FractalSpace
 	Misc::times(SB,spacing);
       }
     _COUNTER++;
-    MPI_Barrier(MPI_COMM_WORLD);
+    // MPI_Barrier(MPI_COMM_WORLD);
     cerr << " end of boxes " << RANK << " " << _COUNTER << endl;
+    cerr << " EXIT BOXES A " << RANK << " " << clever << " " << SBoxes.size() << " " << SPoints.size() << endl;
     if((VOLMIN > 1 || FILLFACTOR < 1.0) && clever)
-      remove_dupe_points(spacing,hypre_points,SBoxes,SPoints);
+      any_overlaps(spacing,SBoxes,SPoints);
+    // if(RANKY)
+    cerr << " EXIT BOXES B " << RANK << " " << clever << " " << SBoxes.size() << " " << SPoints.size() << endl;
   }
 }

@@ -19,6 +19,7 @@ namespace FractalSpace
   {
     RANK=-1;
     MPI_Comm_rank(MPI_COMM_WORLD,&RANK);
+    RANKY=RANK==-21;
   }
   KdTree::~KdTree()
   {
@@ -56,7 +57,7 @@ namespace FractalSpace
     bool smallVOL=VOL <= VOLMIN;
     double ff=(double)(rnode->ppoints.size())/(double)(VOL);
     bool veryFULL= ff >= FILLFACTOR;
-    if(smallVOL || veryFULL)
+    if((smallVOL || veryFULL) && VOL > 1)
       FillBox(rnode);
     rnode->full=rnode->ppoints.size() == VOL;
     if(rnode->full)
@@ -134,7 +135,7 @@ namespace FractalSpace
     bool smallVOL=vol <= VOLMIN;
     double ff=(double)(knode->ppoints.size())/(double)(vol);
     bool veryFULL= ff >= FILLFACTOR;
-    if(smallVOL || veryFULL)
+    if((smallVOL || veryFULL) && vol > 1)
       FillBox(knode);
     knode->full=vol != 0 && knode->ppoints.size() == vol;
     if(knode->full)
@@ -167,18 +168,23 @@ namespace FractalSpace
     int vol=(pnode->box[1]-pnode->box[0]);
     vol*=(pnode->box[3]-pnode->box[2]);
     vol*=(pnode->box[5]-pnode->box[4]);
+    if(RANKY)
+      cerr << " FILLA " << vol << " " << pnode->ppoints.size() << endl;
     if(vol == pnode->ppoints.size())
       return;
     vector<int>pos(3);
     array<int,3>ar3;
     std::map<array<int,3>,Point*,point_comp2> boxP;
+    std::pair<std::map<array<int,3>,Point*>::iterator,bool> ret;
     for(auto pp : pnode->ppoints)
       {
 	pp->get_pos_point(pos);
 	std::move(pos.begin(),pos.end(),ar3.begin());
-	boxP.insert(std::pair<array<int,3>,Point*>(ar3,pp));
-	// boxP[ar3]=pp;
+	ret=boxP.insert(std::pair<array<int,3>,Point*>(ar3,pp));
+	assert(ret.second);
       }
+    if(RANKY)
+      cerr << " FILLB " << vol << " " << pnode->ppoints.size() << endl;
     pnode->ppoints.clear();
     Point* pFAKE=0;
     for(int nz=pnode->box[4];nz<pnode->box[5];nz++)
@@ -199,6 +205,8 @@ namespace FractalSpace
       }
     for(auto &mP : boxP)
       pnode->ppoints.push_back(mP.second);
+    if(RANKY)
+      cerr << " FILLC " << vol << " " << pnode->ppoints.size() << endl;
   }
   void KdTree::DestroyKdTree()
   {

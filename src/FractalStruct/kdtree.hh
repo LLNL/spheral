@@ -16,6 +16,7 @@ namespace FractalSpace
   class KdTree{
   private:
     int RANK;
+    bool RANKY;
     int nnodes;
     int fullnodes;
     int spacing;

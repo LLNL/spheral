@@ -9,6 +9,7 @@ namespace FractalSpace
 			     vector <double>& xmin,vector <double>& xmax,double correction,
 			     vector <double>& posx,vector <double>& posy,vector <double>& posz,
 			     vector <double>& velx,vector <double>& vely,vector <double>& velz);
+  void any_overlaps(int spacing,vector<vector<int>>& SBoxes,vector<vector<Point*>>& SPoints);
   void assign_density(Group& group, Fractal& fractal);
   void balance_by_particles(Fractal_Memory* PFM,bool withparts);
   void binary_balancing(vector <double>& numbers,double minimum,
@@ -20,6 +21,7 @@ namespace FractalSpace
   void candidate_points();
   void check_for_edge_trouble(Fractal& fractal);
   bool check_high(Point& point,Fractal& fractal);
+  void clean_overlaps(int spacing,vector<bool>& STrouble,vector<vector<int>>& SBoxes,vector<vector<Point*>>& SPoints);
   void clean_up(Fractal_Memory& mem,Misc& misc,Fractal& fractal);
   bool compare_vectorsX(vector <int> veca,vector <int> vecb);
   bool compare_vectorsY(vector <int> veca,vector <int> vecb);

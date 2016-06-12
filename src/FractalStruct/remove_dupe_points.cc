@@ -5,6 +5,11 @@ namespace FractalSpace
 {
   void remove_dupe_points(int spacing,vector<vector<Point*>>& hypre_points,vector<vector<int>>& SBoxes,vector<vector<Point*>>& SPoints)
   {
+    int RANK=-1;
+    MPI_Comm_rank(MPI_COMM_WORLD,&RANK);
+    bool RANKY=RANK==21;
+    // if(RANKY)
+    cerr << " ENTER DUPES " << RANK << " " << SBoxes.size() << " " << SPoints.size() << endl;
     bool no_overlaps=true;
     std::map<array<int,3>,Point*,point_comp2> dupes;
     vector<int>pos(3);
@@ -32,11 +37,15 @@ namespace FractalSpace
 		      }
 		    std::pair<std::map<array<int,3>,Point*>::iterator,bool> ret;
 		    ret=dupes.insert(std::pair<array<int,3>,Point*>(ar3,pp));
-		    if(!ret.second && pp != 0)
+		    if(!ret.second)
 		      {
 			no_overlaps=false;
-			dupes.erase(ar3);
-			ret=dupes.insert(std::pair<array<int,3>,Point*>(ar3,pp));
+			if(pp != 0)
+			  {
+			    dupes.erase(ar3);
+			    ret=dupes.insert(std::pair<array<int,3>,Point*>(ar3,pp));
+			    assert(ret.second);
+			  }
 		      }
 		    nPb++;  
 		  }
@@ -44,11 +53,12 @@ namespace FractalSpace
 	  }
 	nPa++;
       }
+    if(no_overlaps)
+      return;
     hypre_points.clear();
-    hypre_points.resize(SBoxes.size());
-    nPa=0;
     for(vector<int> &SB : SBoxes)
       {
+	hypre_points.resize(hypre_points.size()+1);
 	for(int nz=SB[4];nz<=SB[5];nz+=spacing)
 	  {
 	    for(int ny=SB[2];ny<=SB[3];ny+=spacing)
@@ -58,14 +68,19 @@ namespace FractalSpace
 		    ar3={{nx,ny,nz}};
 		    std::map<array<int,3>,Point*,point_comp2>::iterator it=dupes.find(ar3);
 		    assert(it != dupes.end());
-		    hypre_points[nPa].push_back(it->second);
+		    hypre_points.back().push_back(it->second);
 		  }
 	      }
 	  }
-	nPa++;
       }
+    // if(RANKY)
+    cerr << " EXIT DUPES A " << RANK << " " << SBoxes.size() << " " << SPoints.size() << endl;
     if(no_overlaps)
       return;
+    // if(RANKY)
+    cerr << " EXIT DUPES B " << RANK << " " << SBoxes.size() << " " << SPoints.size() << endl;
     hypre_points_boxes(hypre_points,spacing,false,SBoxes,SPoints);
+    // if(RANKY)
+    cerr << " EXIT DUPES C " << RANK << " " << SBoxes.size() << " " << SPoints.size() << endl;
   }
 }
