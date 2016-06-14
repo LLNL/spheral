@@ -5,6 +5,7 @@ namespace FractalSpace
 {
   void poisson_solver_struct(Fractal& fractal,Fractal_Memory& mem,const int& level)
   {
+    mem.p_mess->Full_Stop_Do_Not_Argue();
     double timea,timeb,time0,time1,time2,time3,time4,time5,time6,time7,time8;
     timea=mem.p_mess->Clock();
     static int _COUNTER=0;
@@ -20,11 +21,12 @@ namespace FractalSpace
 	time0=mem.p_mess->Clock();
 	hypre_points_struct(mem,mem.all_groups[level],hypre_points,ni == 1,level);
 	time1=mem.p_mess->Clock();
-	hypre_points_boxes(hypre_points,spacing,SBoxes,SPoints);
+	hypre_points_boxes(hypre_points,spacing,ni==1,SBoxes,SPoints);
 	time2=mem.p_mess->Clock();
 	hypre_points.clear();
 	hypre_world_create(mem,level,SBoxes,ni == 1);
 	time3=mem.p_mess->Clock();
+	mem.p_mess->Full_Stop_Do_Not_Argue();
 	if(mem.p_mess->IAmAHypreNode)
 	  {
 	    box_stats(mem,level,ni,SBoxes,SPoints);
@@ -35,6 +37,7 @@ namespace FractalSpace
 	      add_buffer_values(mem,level,SBoxes,SPoints);
 	    time6=mem.p_mess->Clock();
 	  }
+	mem.p_mess->Full_Stop_Do_Not_Argue();
 	time7=mem.p_mess->Clock();
 	mem.p_mess->HypreGroupFree();
 	time8=mem.p_mess->Clock();
@@ -46,8 +49,10 @@ namespace FractalSpace
 	    cerr << " " << time1-time0 << " " << time2-time1 << " " << time3-time2 << " " << time5-time4 << " " << time6-time5 <<  " " << time8-time7 << "\n";
 	  }
 	_COUNTER++;
+	mem.p_mess->Full_Stop_Do_Not_Argue();
       }
     timeb=mem.p_mess->Clock();
     // cerr << " HYPRE RES C " <<  RANK << " " << level << " " << _COUNTER << " " << timeb-timea << "\n";
+    mem.p_mess->Full_Stop_Do_Not_Argue();
   }
 }

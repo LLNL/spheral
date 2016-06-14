@@ -1,4 +1,4 @@
-classes = fractal_memory.hh point_class.hh group_class.hh fractal_class.hh misc_class.hh particle_class.hh mess.hh file_class.hh octreehybrid.hh box_comp.hh point_comp.hh libs.hh headers.hh classes.hh
+classes = fractal_memory.hh point_class.hh group_class.hh fractal_class.hh misc_class.hh particle_class.hh mess.hh file_class.hh kdtree.hh point_comp.hh libs.hh headers.hh classes.hh
 fopt1 = -pedantic -O3 
 Wopt1 = -Wunused
 gprof = 
@@ -89,11 +89,11 @@ misc_class.o :	misc_class.cc $(classes)
 octree.o :	octree.cc $(classes)
 	$(compile) -c octree.cc
 #
-octreehybrid.o :	octreehybrid.cc $(classes)
-	$(compile) -c octreehybrid.cc
+kdtree.o :	kdtree.cc $(classes)
+	$(compile) -c kdtree.cc
 #
-octreehybridA.o :	octreehybridA.cc $(classes)
-	$(compile) -c octreehybridA.cc
+kdtreeA.o :	kdtreeA.cc $(classes)
+	$(compile) -c kdtreeA.cc
 #
 particle_class.o :	particle_class.cc $(classes)
 	$(compile) -c particle_class.cc
@@ -106,6 +106,9 @@ add_buffer_values.o :	add_buffer_values.cc $(classes)
 #
 add_pseudo_particles.o :	add_pseudo_particles.cc $(classes)
 	$(compile) -c add_pseudo_particles.cc
+#
+any_overlaps.o :	any_overlaps.cc $(classes)
+	$(compile) -c any_overlaps.cc
 #
 adj_nina.o :	adj_nina.cc $(classes)
 	$(compile) -c adj_nina.cc
@@ -145,6 +148,9 @@ check_for_edge_trouble.o :	check_for_edge_trouble.cc $(classes)
 #
 check_high.o :	check_high.cc $(classes)
 	$(compile) -c check_high.cc
+#
+clean_overlaps.o :	clean_overlaps.cc $(classes)
+	$(compile) -c clean_overlaps.cc
 #
 clean_up.o :	clean_up.cc $(classes)
 	$(compile) -c clean_up.cc
@@ -383,6 +389,9 @@ power_spectrum.o :	power_spectrum.cc $(classes)
 really_clear.o :	really_clear.cc $(classes)
 	$(compile) -c really_clear.cc
 #
+remove_dupe_points.o :	remove_dupe_points.cc $(classes)
+	$(compile) -c remove_dupe_points.cc
+#
 remove_pseudo_particles.o :	remove_pseudo_particles.cc $(classes)
 	$(compile) -c remove_pseudo_particles.cc
 #
@@ -528,7 +537,7 @@ fractal_memory.o \
 group_class.o \
 mess.o \
 misc_class.o \
-octreehybrid.o \
+kdtree.o \
 particle_class.o \
 point_class.o 
 #
@@ -595,7 +604,9 @@ write_rv.o
 #
 files_hypre_nina_o= \
 add_buffer_values.o \
+any_overlaps.o \
 box_stats.o \
+clean_overlaps.o \
 hypre_points_boxes.o \
 hypre_points_struct.o \
 hypre_solve_struct.o \
@@ -622,8 +633,8 @@ gather_particles.o \
 scatter_particles_find.o \
 slices_to_potf.o 
 #
-fractal_cosmo : 	$(files_class_o) $(files_fractal_nina_o) $(files_hypre_nina_o) $(files_fftw_mpi_nina_o) $(files_mpi_comm_nina_o) fractal_nbody.o $(cosmos_power_file).o $(energy_file).o $(halo_fixed_file).o $(parameter_per_file).o $(particle_cosmo_mpi_file).o $(step_file).o $(velocity_file).o $(wrapper_file).o
-	$(compile) $(Loptfftw) $(Lopthypre) -o $(dir)fractal_nina_cosmo.exe $(files_class_o) $(files_fractal_nina_o) $(files_hypre_nina_o) $(files_fftw_mpi_nina_o) $(files_mpi_comm_nina_o) fractal_nbody.o $(cosmos_power_file).o $(energy_file).o $(halo_fixed_file).o $(parameter_per_file).o $(particle_cosmo_mpi_file).o $(step_file).o $(velocity_file).o $(wrapper_file).o  $(lopthypre) $(loptfftw)
+fractal_cosmo : 	$(files_hypre_nina_o) $(files_class_o) $(files_fractal_nina_o) $(files_fftw_mpi_nina_o) $(files_mpi_comm_nina_o) fractal_nbody.o $(cosmos_power_file).o $(energy_file).o $(halo_fixed_file).o $(parameter_per_file).o $(particle_cosmo_mpi_file).o $(step_file).o $(velocity_file).o $(wrapper_file).o
+	$(compile) $(Loptfftw) $(Lopthypre) -o $(dir)fractal_nina_cosmo.exe $(files_hypre_nina_o) $(files_class_o) $(files_hypre_nina_o) $(files_fftw_mpi_nina_o) $(files_mpi_comm_nina_o) fractal_nbody.o $(cosmos_power_file).o $(energy_file).o $(halo_fixed_file).o $(parameter_per_file).o $(particle_cosmo_mpi_file).o $(step_file).o $(velocity_file).o $(wrapper_file).o  $(lopthypre) $(loptfftw)
 #
-fractal_galaxy :	$(files_class_o) $(files_fractal_nina_o) $(files_hypre_nina_o) $(files_fftw_mpi_nina_o) $(files_mpi_comm_nina_o) $(fractal_galaxy_run_o) $(cosmos_power_file).o $(halo_fixed_file).o
-	$(compile) $(Loptfftw) $(Lopthypre) -o $(dir)fractal_nina_galaxy.exe $(files_class_o) $(files_fractal_nina_o) $(files_hypre_nina_o) $(files_fftw_mpi_nina_o) $(files_mpi_comm_nina_o) $(fractal_galaxy_run_o) $(cosmos_power_file).o $(halo_fixed_file).o $(lopthypre) $(loptfftw)
+fractal_galaxy :	$(files_hypre_nina_o) $(files_class_o) $(files_fractal_nina_o) $(files_fftw_mpi_nina_o) $(files_mpi_comm_nina_o) $(fractal_galaxy_run_o) $(cosmos_power_file).o $(halo_fixed_file).o
+	$(compile) $(Loptfftw) $(Lopthypre) -o $(dir)fractal_nina_galaxy.exe $(files_hypre_nina_o) $(files_class_o) $(files_fractal_nina_o) $(files_fftw_mpi_nina_o) $(files_mpi_comm_nina_o) $(fractal_galaxy_run_o) $(cosmos_power_file).o $(halo_fixed_file).o $(lopthypre) $(loptfftw)

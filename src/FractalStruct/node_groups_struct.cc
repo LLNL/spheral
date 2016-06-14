@@ -20,11 +20,11 @@ namespace FractalSpace
     bool tryit=mem.p_mess->IAmAHypreNode;
     for(int FR : mem.Touchy)
       {
-	cerr << " Touchy a " << COUNTER << " " << RANK << " " << FR << "\n";
+	// cerr << " Touchy a " << COUNTER << " " << RANK << " " << FR << "\n";
 	if(tryit && FR > FractalRank)
 	  {
 	    dataI_in.push_back(FR);
-	    cerr << " Touchy b " << COUNTER << " " << RANK << " " << FR << "\n";
+	    // cerr << " Touchy b " << COUNTER << " " << RANK << " " << FR << "\n";
 	  }
       }
     int ss=dataI_in.size();

@@ -50,6 +50,7 @@ namespace FractalSpace
       }
     HYPRE_StructGridAssemble(grid);
     long int SVT=mem.p_mess->How_Many_In_Solver(sumVOL);
+    long int SBT=mem.p_mess->How_Many_In_Solver(SBoxes.size());
     double time1=mem.p_mess->Clock();
     HYPRE_StructStencilCreate(3,7,&stencil);
     int offsets[7][3] = {{0,0,0},{-1,0,0},{1,0,0},{0,-1,0},{0,1,0},{0,0,-1},{0,0,1}};
@@ -177,15 +178,18 @@ namespace FractalSpace
 	HYPRE_StructVectorGetBoxValues(pot,&(*lowerBOX[B].begin()),&(*upperBOX[B].begin()),&(*pot_values.begin()));
 	int i=0;
 	for(Point* &p : SP)
-	  if(p != 0)
-	    p->set_potential_point(pot_values[i++]);
+	  {
+	    if(p != 0)
+	      p->set_potential_point(pot_values[i]);
+	    i++;
+	  }
 	B++;
       }
     HYPRE_StructVectorDestroy(pot);
     double time6=mem.p_mess->Clock();
     _COUNTER++;
     Hypre_sum_time[level]+=time6-time0;
-    FHT << " Hypre Total " << "\t" << time6-time0 << "\t" << Hypre_sum_time[level] << "\t" << level << "\t" << sumVOL << "\t" << SVT << "\t" << mem.steps << "\n";
+    FHT << " Hypre Total " << "\t" << time6-time0 << "\t" << Hypre_sum_time[level] << "\t" << level << "\t" << sumVOL << "\t" << SVT << "\t" << SBoxes.size() << "\t" << SBT << "\t" << mem.steps << "\n";
     FHT << " Hypre Grid Assemble " << "\t" << time1-time0 << "\n";
     FHT << " Hypre Data Assemble " << "\t" << time2-time1 << "\n";
     FHT << " Hypre Solve Assemble " << "\t" << time3-time2 << "\n";
