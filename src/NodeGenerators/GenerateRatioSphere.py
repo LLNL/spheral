@@ -125,10 +125,10 @@ class GenerateRatioSphere2d(NodeGeneratorBase):
         # If the user provided a "rejecter", give it a pass
         # at the nodes.
         if rejecter:
-            self.x, self.y, self.z, self.m, self.H = rejecter(self.x,
-                                                              self.y,
-                                                              self.m,
-                                                              self.H)
+            self.x, self.y, self.m, self.H = rejecter(self.x,
+                                                      self.y,
+                                                      self.m,
+                                                      self.H)
 
         # Have the base class break up the serial node distribution
         # for parallel cases.
