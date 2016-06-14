@@ -33,15 +33,15 @@ namespace FractalSpace
       {
 	if(counts[FR] > 0 && mem.p_mess->IAmAHypreNode)
 	  {
-	    // vector <int>TBBox=mem.BBoxesLev[FR][level];
-	    // for(vector <int>& SB : SBoxes)
-	    //   {
-	    // 	if(!overlap_boxes(SB,TBBox))
-	    // 	  continue;
-	    // 	mem.Touchy.push_back(FR);
-	    // 	break;
-	    //   }
-	    mem.Touchy.push_back(FR);
+	    vector <int>TBBox=mem.BBoxesLev[FR][level];
+	    for(vector <int>& SB : SBoxes)
+	      {
+	    	if(!overlap_boxes(SB,TBBox))
+	    	  continue;
+	    	mem.Touchy.push_back(FR);
+	    	break;
+	      }
+	    // mem.Touchy.push_back(FR);
 	  }
       }
     node_groups_struct(mem,counts);

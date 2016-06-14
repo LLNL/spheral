@@ -23,11 +23,16 @@ namespace FractalSpace
     for(int ni=0;ni<100;ni++)
       if(counts[ni] > 0)
 	nimax=ni;
+    int sumFAKE=0;
+    for(vector <Point*>& SP : SPoints)
+      for(Point* &p : SP)
+	if(p == 0)
+	  sumFAKE++;
     ofstream& FHT=mem.p_file->DUMPS;
     for(int ni=0;ni<=nimax;ni++)
       {
 	FHT << " BOXSTATS " << mem.p_mess->FractalRank << " " << mem.steps << " " << nb << " " << level << " " << Misc::pow(2,ni) << " " << counts[ni];
-      FHT << " " << SBoxes.size() << " " << sumP << "\n";
+	FHT << " " << SBoxes.size() << " " << sumP << " " << sumFAKE << "\n";
       }
   }
 }
