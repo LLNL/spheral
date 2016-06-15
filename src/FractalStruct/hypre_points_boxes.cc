@@ -7,19 +7,14 @@ namespace FractalSpace
 			  vector < vector<int> >& SBoxes,vector < vector<Point*> >& SPoints)
   {
     static int _COUNTER=0;
+    const int SBstart=SBoxes.size();
     int RANK=-1;
     MPI_Comm_rank(MPI_COMM_WORLD,&RANK);
     bool RANKY=RANK==21;
-    // if(RANKY)
-    cerr << " ENTER BOXES " << RANK << " " << clever << " " << SBoxes.size() << " " << SPoints.size() << endl;
-    // SBoxes.clear();
-    // SPoints.clear();
-    int VOLMIN=4;
+    int VOLMIN=40;
     double FILLFACTOR=2.0;
     int MAXY=Misc::pow(2,29);
     int MINY=-Misc::pow(2,29);
-    // MPI_Barrier(MPI_COMM_WORLD);
-    // int ni=0;
     for(vector <Point*>& hp : hypre_points)
       {
 	vector <int> BOX(6);
@@ -49,19 +44,14 @@ namespace FractalSpace
 	pHypTree->CollectBoxesPoints(SBoxes,SPoints);
 	delete pHypTree;
       }
-    for(vector<int>& SB : SBoxes)
+    for(int SBcount=SBstart;SBcount<SBoxes.size();SBcount++)
       {
 	for(int B : {1,3,5})
-	  SB[B]--;
-	Misc::times(SB,spacing);
+	  SBoxes[SBcount][B]--;
+	Misc::times(SBoxes[SBcount],spacing);
       }
     _COUNTER++;
-    // MPI_Barrier(MPI_COMM_WORLD);
-    cerr << " end of boxes " << RANK << " " << _COUNTER << endl;
-    cerr << " EXIT BOXES A " << RANK << " " << clever << " " << SBoxes.size() << " " << SPoints.size() << endl;
     if((VOLMIN > 1 || FILLFACTOR < 1.0) && clever)
       any_overlaps(spacing,SBoxes,SPoints);
-    // if(RANKY)
-    cerr << " EXIT BOXES B " << RANK << " " << clever << " " << SBoxes.size() << " " << SPoints.size() << endl;
   }
 }

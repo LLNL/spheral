@@ -5,11 +5,6 @@ namespace FractalSpace
 {
   void clean_overlaps(int spacing,vector<bool>& STrouble,vector<vector<int>>& SBoxes,vector<vector<Point*>>& SPoints)
   {
-    int RANK=-1;
-    MPI_Comm_rank(MPI_COMM_WORLD,&RANK);
-    bool RANKY=RANK==21;
-    // if(RANKY)
-    cerr << " ENTER CLEAN OVERLAPS " << RANK << " " << SBoxes.size() << " " << SPoints.size() << endl;
     vector<vector<int>>SBover;
     vector<vector<Point*>>SPover;
     int nBP=0;
@@ -102,37 +97,25 @@ namespace FractalSpace
 	  }
 	nPa++;
       }
-
-
     vector<vector<Point*>>hypre_points(SBover.size());
     SBover.clear();
     SPover.clear();
     for(auto &d : dupes)
-      hypre_points[d.first[3]].push_back(d.second);
-    int counta=0;
-    int countb=0;
-    for(auto &hp : hypre_points)
       {
-	if(countb > counta && hp.size() > 0)
-	  hypre_points[counta].assign(hp.begin(),hp.end());
-	if(hp.size() > 0)
-	  counta++;
-	countb++;
+	hypre_points[d.first[3]].push_back(d.second);
       }
-    hypre_points.resize(counta);
-    cerr << " GO TO BOXES " << RANK << " " << SBoxes.size() << " " << SPoints.size() << endl;
+    dupes.clear();
     hypre_points_boxes(hypre_points,spacing,false,SBoxes,SPoints);
-    cerr << " GO FROM BOXES " << RANK << " " << SBoxes.size() << " " << SPoints.size() << endl;
-    int SBstart=SBoxes.size();
     Point* pFAKE=0;
-    for(int S=SBstart;S<SBoxes.size();S++)
-      for(int np=0;np<SPoints[S].size();np++)
+    for(auto &SP : SPoints)
+      for(int S=0;S<SP.size();S++)
 	{
-	  Point* pwhat=SPoints[S][np];
-	  if(pwhat->get_really_passive())
-	    delete pwhat;
-	  SPoints[S][np]=pFAKE;
+	  Point* p=SP[S];
+	  if(p != 0 && p->get_really_passive())
+	    {
+	      delete p;
+	      SP[S]=pFAKE;
+	    }
 	}
-    cerr << " EXIT CLEAN OVERLAPS " << RANK << " " << SBoxes.size() << " " << SPoints.size() << endl;
   }
 }
