@@ -5,15 +5,9 @@ namespace FractalSpace
 {
   void any_overlaps(int spacing,vector<vector<int>>& SBoxes,vector<vector<Point*>>& SPoints)
   {
-    int RANK=-1;
-    MPI_Comm_rank(MPI_COMM_WORLD,&RANK);
-    // bool RANKY=RANK==21;
-    // if(RANKY)
-    cerr << " ENTER ANY OVERLAPS " << RANK << " " << SBoxes.size() << " " << SPoints.size() << endl;
     bool overlaps=false;
     std::map<array<int,4>,Point*,point_comp4> dupes;
     vector<int>pos(3);
-    // array<int,3>ar3;
     array<int,4>ar4;
     vector<bool>STrouble(SBoxes.size(),false);
     int nPa=0;
@@ -53,9 +47,7 @@ namespace FractalSpace
 	  }
 	nPa++;
       }
-    cerr << " CALL CLEAN OVERLAPS " << RANK << " " << SBoxes.size() << " " << SPoints.size() << endl;
     if(overlaps)
       clean_overlaps(spacing,STrouble,SBoxes,SPoints);
-    cerr << " EXIT ANY OVERLAPS " << RANK << " " << SBoxes.size() << " " << SPoints.size() << endl;
   }
 }
