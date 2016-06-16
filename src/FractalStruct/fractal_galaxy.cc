@@ -38,9 +38,10 @@ int main(int argc, char* argv[])
   if(argc >= 8)
     SHRINK=atof(argv[7]);
   int HYPREMAXONNODE=40000;
+  HYPREMAXONNODE=-1;  // This is really VOLMIN
   if(argc >= 9)
     HYPREMAXONNODE=atoi(argv[8]);
-  double HYPREMULTIPLIER=2.0;
+  double HYPREMULTIPLIER=2.0; // This is really FILLFACTOR
   if(argc >= 10)
     HYPREMULTIPLIER=atof(argv[9]);
   if(Mess::IAMROOT)
@@ -136,7 +137,7 @@ int main(int argc, char* argv[])
   //  PFM->number_steps_total=13;
   PFM->number_steps_out=20;
   //  PFM->number_steps_out=200000;
-  //  PFM->step_length=1.0e-30; ////////////
+  // PFM->step_length=1.0e-30; ////////////
   PFM->step_length=1.0e-5;
   //  PFM->step_length=4.0e-5;
   PFM->time=0.0;

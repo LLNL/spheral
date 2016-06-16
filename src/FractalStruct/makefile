@@ -299,6 +299,9 @@ hypre_solve_struct.o :	hypre_solve_struct.cc $(classes)
 hypre_solve_structA.o :	hypre_solve_structA.cc $(classes)
 	$(compile) -c hypre_solve_structA.cc
 #
+hypre_test_boxes.o :	hypre_test_boxes.cc $(classes)
+	$(compile) -c hypre_test_boxes.cc
+#
 hypre_world_create.o :	hypre_world_create.cc $(classes)
 	$(compile) -c hypre_world_create.cc
 #
@@ -610,6 +613,7 @@ clean_overlaps.o \
 hypre_points_boxes.o \
 hypre_points_struct.o \
 hypre_solve_struct.o \
+hypre_test_boxes.o \
 hypre_world_create.o \
 node_groups_struct.o \
 poisson_solver_struct.o \
