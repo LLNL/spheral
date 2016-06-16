@@ -43,9 +43,10 @@ int main(int argc, char* argv[])
     _mulT_=atoi(argv[6]);
 
   int HYPREMAXONNODE=40000;
+  HYPREMAXONNODE=-1;  // This is really VOLMIN
   if(argc >= 8)
     HYPREMAXONNODE=atoi(argv[7]);
-  double HYPREMULTIPLIER=2.0;
+  double HYPREMULTIPLIER=2.0; // This is really FILLFACTOR
   if(argc >= 9)
     HYPREMULTIPLIER=atof(argv[8]);
 

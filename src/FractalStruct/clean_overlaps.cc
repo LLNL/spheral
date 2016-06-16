@@ -3,7 +3,7 @@
 #include "headers.hh"
 namespace FractalSpace
 {
-  void clean_overlaps(int spacing,vector<bool>& STrouble,vector<vector<int>>& SBoxes,vector<vector<Point*>>& SPoints)
+  void clean_overlaps(Fractal_Memory& mem,int spacing,vector<bool>& STrouble,vector<vector<int>>& SBoxes,vector<vector<Point*>>& SPoints)
   {
     vector<vector<int>>SBover;
     vector<vector<Point*>>SPover;
@@ -32,8 +32,8 @@ namespace FractalSpace
 	nBP++;
       }
     assert(foundit);
-    SBoxes.resize(nBP);
-    SPoints.resize(nBP);
+    SBoxes.resize(Ngood);
+    SPoints.resize(Ngood);
     std::map<array<int,4>,Point*,point_comp4> dupes;
     vector<int>pos(3);
     array<int,4>ar4;
@@ -105,7 +105,7 @@ namespace FractalSpace
 	hypre_points[d.first[3]].push_back(d.second);
       }
     dupes.clear();
-    hypre_points_boxes(hypre_points,spacing,false,SBoxes,SPoints);
+    hypre_points_boxes(mem,hypre_points,spacing,false,SBoxes,SPoints);
     Point* pFAKE=0;
     for(auto &SP : SPoints)
       for(int S=0;S<SP.size();S++)
