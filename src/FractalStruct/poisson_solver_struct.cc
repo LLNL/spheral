@@ -24,7 +24,9 @@ namespace FractalSpace
 	hypre_points_boxes(mem,hypre_points,spacing,ni==1,SBoxes,SPoints);
 	time2=mem.p_mess->Clock();
 	hypre_points.clear();
+	double tt=-mem.p_mess->Clock();
 	hypre_test_boxes(mem,spacing,SBoxes,SPoints);
+	tt+=mem.p_mess->Clock();
 	hypre_world_create(mem,level,SBoxes,ni == 1);
 	time3=mem.p_mess->Clock();
 	mem.p_mess->Full_Stop_Do_Not_Argue();
@@ -44,10 +46,10 @@ namespace FractalSpace
 	time8=mem.p_mess->Clock();
 	SBoxes.clear();
 	SPoints.clear();
-	if(mem.p_mess->HypreRank == 0)
+	if(mem.p_mess->IAmAHypreNode && mem.p_mess->HypreRank == 0 && ni==1)
 	  {
 	    cerr << " HYPRE RES B " <<  RANK << " " << ni << " " << level << " " << _COUNTER;
-	    cerr << " " << time1-time0 << " " << time2-time1 << " " << time3-time2 << " " << time5-time4 << " " << time6-time5 <<  " " << time8-time7 << "\n";
+	    cerr << " " << time1-time0 << " " << time2-time1 << " " << time3-time2 << " " << time5-time4 << " " << time6-time5 <<  " " << time8-time7 << " " << tt << "\n";
 	  }
 	_COUNTER++;
 	mem.p_mess->Full_Stop_Do_Not_Argue();

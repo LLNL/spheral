@@ -10,10 +10,11 @@ namespace FractalSpace
     int nBa=0;
     for(auto &SB : SBoxes)
       {
-	int vol=(SB[1]-SB[0])/spacing+1;
-	vol*=(SB[3]-SB[2])/spacing+1;
-	vol*=(SB[5]-SB[4])/spacing+1;
-	assert(vol == SPoints[nBa].size());
+	int vola=(SB[1]-SB[0])/spacing+1;
+	int volb=(SB[3]-SB[2])/spacing+1;
+	int volc=(SB[5]-SB[4])/spacing+1;
+	assert(!SPoints[nBa].empty());
+	assert(vola > 0 && volb > 0 && volc > 0 && vola*volb*volc == SPoints[nBa].size());
 	int nSa=0;
 	for(int nz=SB[4];nz<=SB[5];nz+=spacing)
 	  {
