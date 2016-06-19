@@ -21,7 +21,11 @@ namespace FractalSpace
 	time0=mem.p_mess->Clock();
 	hypre_points_struct(mem,mem.all_groups[level],hypre_points,ni == 1,level);
 	time1=mem.p_mess->Clock();
-	hypre_points_boxes(mem,hypre_points,spacing,ni==1,SBoxes,SPoints);
+	int VOLMIN=1;
+	double FILLFACTOR=2.0;
+	if(ni == 1)
+	  hypre_best_boxes(mem,hypre_points,spacing,VOLMIN,FILLFACTOR);
+	hypre_points_boxes(mem,hypre_points,spacing,ni==1,VOLMIN,FILLFACTOR,SBoxes,SPoints);
 	time2=mem.p_mess->Clock();
 	hypre_points.clear();
 	double tt=-mem.p_mess->Clock();

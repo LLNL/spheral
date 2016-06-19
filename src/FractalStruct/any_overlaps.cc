@@ -3,7 +3,7 @@
 #include "headers.hh"
 namespace FractalSpace
 {
-  void any_overlaps(Fractal_Memory& mem,int spacing,vector<vector<int>>& SBoxes,vector<vector<Point*>>& SPoints)
+  void any_overlaps(Fractal_Memory& mem,int spacing,int VOLMIN,double FILLFACTOR,vector<vector<int>>& SBoxes,vector<vector<Point*>>& SPoints)
   {
     bool overlaps=false;
     std::map<array<int,4>,Point*,point_comp4> dupes;
@@ -48,6 +48,6 @@ namespace FractalSpace
 	nPa++;
       }
     if(overlaps)
-      clean_overlaps(mem,spacing,STrouble,SBoxes,SPoints);
+      clean_overlaps(mem,spacing,VOLMIN,FILLFACTOR,STrouble,SBoxes,SPoints);
   }
 }
