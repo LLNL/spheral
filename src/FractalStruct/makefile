@@ -269,6 +269,9 @@ highest_level_group.o :	highest_level_group.cc $(classes)
 highest_level_group_other.o :	highest_level_group_other.cc $(classes)
 	$(compile) -c highest_level_group_other.cc
 #
+hypre_best_boxes.o :	hypre_best_boxes.cc $(classes)
+	$(compile) -c hypre_best_boxes.cc
+#
 hypre_dump.o :	hypre_dump.cc $(classes)
 	$(compile) -c hypre_dump.cc
 #
@@ -610,6 +613,7 @@ add_buffer_values.o \
 any_overlaps.o \
 box_stats.o \
 clean_overlaps.o \
+hypre_best_boxes.o \
 hypre_points_boxes.o \
 hypre_points_struct.o \
 hypre_solve_struct.o \

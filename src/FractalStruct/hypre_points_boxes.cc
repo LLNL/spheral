@@ -4,6 +4,7 @@
 namespace FractalSpace
 {
   void hypre_points_boxes(Fractal_Memory& mem,vector <vector <Point*> >hypre_points,int spacing,bool clever,
+			  int VOLMIN,double FILLFACTOR,
 			  vector < vector<int> >& SBoxes,vector < vector<Point*> >& SPoints)
   {
     static int _COUNTER=0;
@@ -12,8 +13,8 @@ namespace FractalSpace
     int RANK=-1;
     MPI_Comm_rank(MPI_COMM_WORLD,&RANK);
     bool RANKY=RANK==21;
-    int VOLMIN=mem.hypre_max_node_load;
-    double FILLFACTOR=mem.hypre_multiplier;
+    // int VOLMIN=mem.hypre_max_node_load;
+    // double FILLFACTOR=mem.hypre_multiplier;
     int MAXY=Misc::pow(2,29);
     int MINY=-Misc::pow(2,29);
     for(vector <Point*>& hp : hypre_points)
@@ -55,7 +56,7 @@ namespace FractalSpace
     //   FHT << "FINISH BOXES A " << _COUNTER <<  " " << SB[0] << " " << SB[1] << " " << SB[2] << " " << SB[3] << " " << SB[4] << " " << SB[5] << "\n";
     _COUNTER++;
     if((VOLMIN > 1 || FILLFACTOR < 1.0) && clever)
-      any_overlaps(mem,spacing,SBoxes,SPoints);
+      any_overlaps(mem,spacing,VOLMIN,FILLFACTOR,SBoxes,SPoints);
     // for(auto &SB : SBoxes)
     //   FHT << "FINISH BOXES B " << _COUNTER <<  " " << SB[0] << " " << SB[1] << " " << SB[2] << " " << SB[3] << " " << SB[4] << " " << SB[5] << "\n";
   }
