@@ -105,7 +105,7 @@ namespace FractalSpace
 	hypre_points[d.first[3]].push_back(d.second);
       }
     dupes.clear();
-    hypre_points_boxes(mem,hypre_points,spacing,false,VOLMIN,FILLFACTOR,SBoxes,SPoints);
+    hypre_points_boxes(mem,hypre_points,spacing,1,2.0,SBoxes,SPoints);
     Point* pFAKE=0;
     for(auto &SP : SPoints)
       for(int S=0;S<SP.size();S++)
