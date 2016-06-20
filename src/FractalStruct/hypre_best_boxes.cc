@@ -9,7 +9,7 @@ namespace FractalSpace
     ofstream& FHT=mem.p_file->DUMPS;
     const double maxFAKES=0.65;
     vector <double>FILLFACTOR{1.0,0.9,0.8,0.7};
-    vector <int>VOLMIN {1,2,4,7,11,16,22,29,37,46,56,67,79,92,106,121,137};
+    vector <int>VOLMIN {1,3,7,13,21,31,43,57,73,91,101,123,147,173,201,231};
     vector<int>MBoxes;
     vector<int>MPoints;
     vector<int>MFakes;
@@ -18,7 +18,7 @@ namespace FractalSpace
 	{
 	  vector<vector<int>>SBoxes;
 	  vector<vector<Point*>>SPoints;
-	  hypre_points_boxes(mem,hypre_points,spacing,true,VM,FF,SBoxes,SPoints);
+	  hypre_points_boxes(mem,hypre_points,spacing,VM,FF,SBoxes,SPoints);
 	  int nPoints=0;
 	  int nFakes=0;
 	  for(auto &SP : SPoints)

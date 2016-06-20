@@ -3,7 +3,7 @@
 #include "headers.hh"
 namespace FractalSpace
 {
-  void hypre_points_boxes(Fractal_Memory& mem,vector <vector <Point*> >hypre_points,int spacing,bool clever,
+  void hypre_points_boxes(Fractal_Memory& mem,vector <vector <Point*> >hypre_points,int spacing,
 			  int VOLMIN,double FILLFACTOR,
 			  vector < vector<int> >& SBoxes,vector < vector<Point*> >& SPoints)
   {
@@ -36,10 +36,7 @@ namespace FractalSpace
 	for(int B : {1,3,5})
 	  BOX[B]++;
 	KdTree* pHypTree=new KdTree();
-	if(clever)
-	  pHypTree->LoadKdTree(BOX,hp,spacing,VOLMIN,FILLFACTOR);
-	else
-	  pHypTree->LoadKdTree(BOX,hp,spacing,-1,2.0);
+	pHypTree->LoadKdTree(BOX,hp,spacing,VOLMIN,FILLFACTOR);
 	int TotalPoints=0;
 	int TotalBoxes=0;
 	pHypTree->DisplayTree(TotalPoints,TotalBoxes);
@@ -55,7 +52,7 @@ namespace FractalSpace
     // for(auto &SB : SBoxes)
     //   FHT << "FINISH BOXES A " << _COUNTER <<  " " << SB[0] << " " << SB[1] << " " << SB[2] << " " << SB[3] << " " << SB[4] << " " << SB[5] << "\n";
     _COUNTER++;
-    if((VOLMIN > 1 || FILLFACTOR < 1.0) && clever)
+    if(VOLMIN > 1 || FILLFACTOR < 1.0)
       any_overlaps(mem,spacing,VOLMIN,FILLFACTOR,SBoxes,SPoints);
     // for(auto &SB : SBoxes)
     //   FHT << "FINISH BOXES B " << _COUNTER <<  " " << SB[0] << " " << SB[1] << " " << SB[2] << " " << SB[3] << " " << SB[4] << " " << SB[5] << "\n";

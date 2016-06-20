@@ -78,7 +78,7 @@ namespace FractalSpace
   void hypre_best_boxes(Fractal_Memory& mem,vector<vector<Point*> >& hypre_points,int spacing,int& VOLbest,double& FILLbest);
   void hypre_dump(int level,vector <Point*>& hypre_points,ofstream& FH);
   void hypre_eror(FILE* PFH,int level,int ni,int er);
-  void hypre_points_boxes(Fractal_Memory& mem,vector <vector <Point*> >hypre_points,int spacing,bool clever,
+  void hypre_points_boxes(Fractal_Memory& mem,vector <vector <Point*> >hypre_points,int spacing,
 			  int VOLMIN,double FILLFACTOR,
 			  vector < vector<int> >& SBoxes,vector < vector<Point*> >& SPoints);
   void hypre_points_struct(Fractal_Memory& mem,vector <Group*>& groups,
