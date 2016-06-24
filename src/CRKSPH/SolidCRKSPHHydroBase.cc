@@ -782,7 +782,7 @@ evaluateDerivatives(const typename Dimension::Scalar time,
               const Vector gradWSPHi = (Hi*etai.unitVector())*W.gradValue(etai.magnitude(), Hdeti);
               const Vector gradWSPHj = (Hj*etaj.unitVector())*W.gradValue(etaj.magnitude(), Hdetj);
 
-              // Find the pair weighting scaling.
+              // Find the damaged pair weighting scaling.
               const double fij = coupling(nodeListi, i, nodeListj, j);
               CHECK(fij >= 0.0 and fij <= 1.0);
 
