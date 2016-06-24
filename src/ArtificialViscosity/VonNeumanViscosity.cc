@@ -121,7 +121,7 @@ initialize(const DataBase<Dimension>& dataBase,
   }
   computeCRKSPHMoments(connectivityMap, W, vol, position, H, correctionOrder, NodeCoupling(), 
                        m0, m1, m2, m3, m4, gradm0, gradm1, gradm2, gradm3, gradm4);
-  computeCRKSPHCorrections(m0, m1, m2, m3, m4, gradm0, gradm1, gradm2, gradm3, gradm4,
+  computeCRKSPHCorrections(m0, m1, m2, m3, m4, gradm0, gradm1, gradm2, gradm3, gradm4, H,
                            correctionOrder, A, B, C, gradA, gradB, gradC);
   const FieldList<Dimension, Tensor> velocityGradient = CRKSPHSpace::gradientCRKSPH(velocity,
                                                                                     position,

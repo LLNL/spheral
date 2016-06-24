@@ -437,6 +437,7 @@ if CRKSPH:
                              Q = q,
                              filter = filter,
                              cfl = cfl,
+                             correctionOrder = ZerothOrder,
                              compatibleEnergyEvolution = compatibleEnergy,
                              XSPH = XSPH,
                              densityUpdate = densityUpdate,
