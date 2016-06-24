@@ -38,6 +38,7 @@
 #include "Utilities/timingUtilities.hh"
 #include "Utilities/safeInv.hh"
 #include "FileIO/FileIO.hh"
+#include "SolidMaterial/SolidEquationOfState.hh"
 
 namespace Spheral {
 namespace SolidSPHSpace {
@@ -48,6 +49,7 @@ using NodeSpace::SmoothingScaleBase;
 using NodeSpace::NodeList;
 using NodeSpace::FluidNodeList;
 using SolidMaterial::SolidNodeList;
+using SolidMaterial::SolidEquationOfState;
 using FileIOSpace::FileIO;
 using ArtificialViscositySpace::ArtificialViscosity;
 using KernelSpace::TableKernel;
@@ -428,10 +430,10 @@ evaluateDerivatives(const typename Dimension::Scalar time,
 
   // Start our big loop over all FluidNodeLists.
   size_t nodeListi = 0;
-  for (typename DataBase<Dimension>::ConstFluidNodeListIterator itr = dataBase.fluidNodeListBegin();
-       itr != dataBase.fluidNodeListEnd();
+  for (typename DataBase<Dimension>::ConstSolidNodeListIterator itr = dataBase.solidNodeListBegin();
+       itr != dataBase.solidNodeListEnd();
        ++itr, ++nodeListi) {
-    const NodeList<Dimension>& nodeList = **itr;
+    const SolidNodeList<Dimension>& nodeList = **itr;
     const int firstGhostNodei = nodeList.firstGhostNode();
     const Scalar hmin = nodeList.hmin();
     const Scalar hmax = nodeList.hmax();
@@ -447,6 +449,15 @@ evaluateDerivatives(const typename Dimension::Scalar time,
 
     // Build the functor we use to compute the effective coupling between nodes.
     DamagedNodeCoupling<Dimension> coupling(damage, gradDamage, H);
+
+    // Check if we can identify a reference density.
+    Scalar rho0 = 0.0;
+    try {
+      rho0 = dynamic_cast<const SolidEquationOfState<Dimension>&>(nodeList.equationOfState()).referenceDensity();
+      // cerr << "Setting reference density to " << rho0 << endl;
+    } catch(...) {
+      // cerr << "BLAGO!" << endl;
+    }
 
     // Iterate over the internal nodes in this NodeList.
     for (typename ConnectivityMap<Dimension>::const_iterator iItr = connectivityMap.begin(nodeListi);
@@ -675,12 +686,12 @@ evaluateDerivatives(const typename Dimension::Scalar time,
               }
 
               // Pair-wise portion of grad velocity.
-              const Tensor deltaDvDxi = vij.dyad(gradWGi);
-              const Tensor deltaDvDxj = vij.dyad(gradWGj);
+              const Tensor deltaDvDxi = fDeffij*vij.dyad(gradWGi);
+              const Tensor deltaDvDxj = fDeffij*vij.dyad(gradWGj);
 
               // Specific thermal energy evolution.
-              DepsDti -= mj*(sigmarhoi.doubledot(deltaDvDxi.Symmetric()) - workQi);
-              DepsDtj -= mi*(sigmarhoj.doubledot(deltaDvDxj.Symmetric()) - workQj);
+              DepsDti -= mj*(fDeffij*sigmarhoi.doubledot(deltaDvDxi.Symmetric()) - workQi);
+              DepsDtj -= mi*(fDeffij*sigmarhoj.doubledot(deltaDvDxj.Symmetric()) - workQj);
               if (compatibleEnergy) {
                 pairAccelerationsi.push_back( mj*deltaDvDt);
                 pairAccelerationsj.push_back(-mi*deltaDvDt);
@@ -793,6 +804,9 @@ evaluateDerivatives(const typename Dimension::Scalar time,
       // If this node is damaged we begin to force it back to it's original H.
       const Scalar Di = max(0.0, min(1.0, damage(nodeListi, i).eigenValues().maxElement()));
       Hideali = (1.0 - Di)*Hideali + Di*mHfield0(nodeListi, i);
+
+      // We also adjust the density evolution in the presence of damage.
+      if (rho0 > 0.0) DrhoDti = (1.0 - Di)*DrhoDti - 0.25/dt*Di*(rhoi - rho0);
 
       // Determine the deviatoric stress evolution.
       const SymTensor deformation = localDvDxi.Symmetric();
