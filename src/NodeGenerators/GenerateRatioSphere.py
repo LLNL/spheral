@@ -19,10 +19,11 @@ class GenerateRatioSphere2d(NodeGeneratorBase):
     # Constructor
     #---------------------------------------------------------------------------
     def __init__(self,
-                 drCenter, drRatio,
+                 drStart, drRatio,
                  rho,
                  rmin,
                  rmax,
+                 startFromCenter = True,
                  thetamin = 0.0,
                  thetamax = 0.5*pi,
                  ntheta = 1,
@@ -32,7 +33,7 @@ class GenerateRatioSphere2d(NodeGeneratorBase):
                  SPH = False,
                  rejecter = None):
 
-        assert drCenter > 0.0
+        assert drStart > 0.0
         assert drRatio > 0.0
         assert nNodePerh > 0.0
         assert rmin >= 0.0
@@ -55,22 +56,25 @@ class GenerateRatioSphere2d(NodeGeneratorBase):
         constantN = (distributionType.lower() == "constantntheta")
         Dtheta = thetamax - thetamin
 
-        # Decide the actual drCenter we're going to use to arrive at an integer number of radial bins.
+        # Decide the actual drStart we're going to use to arrive at an integer number of radial bins.
         if abs(drRatio - 1.0) > 1e-4:
-            neff = max(1, int(log(1.0 - (rmax - rmin)*(1.0 - drRatio)/drCenter)/log(drRatio) + 0.5))
-            drCenter = (rmax - rmin)*(1.0 - drRatio)/(1.0 - drRatio**neff)
+            neff = max(1, int(log(1.0 - (rmax - rmin)*(1.0 - drRatio)/drStart)/log(drRatio) + 0.5))
+            drStart = (rmax - rmin)*(1.0 - drRatio)/(1.0 - drRatio**neff)
         else:
-            neff = max(1, int((rmax - rmin)/drCenter + 0.5))
-            drCenter = (rmax - rmin)/neff
-        print "Adjusting initial radial spacing to %g in order to create an integer radial number of bins %i." % (drCenter, neff)
+            neff = max(1, int((rmax - rmin)/drStart + 0.5))
+            drStart = (rmax - rmin)/neff
+        print "Adjusting initial radial spacing to %g in order to create an integer radial number of bins %i." % (drStart, neff)
 
-        # Work our way out from the center.
-        r0 = rmin
-        dr = drCenter
+        # Step in radius (in or out) until we span the full radial range.
+        dr = drStart
         for i in xrange(neff):
             if abs(drRatio - 1.0) > 1e-4:
-                r0 = rmin + drCenter*(1.0 - drRatio**i)/(1.0 - drRatio)
-                r1 = rmin + drCenter*(1.0 - drRatio**(i + 1))/(1.0 - drRatio)
+                if startFromCenter:
+                    r0 = rmin + drStart*(1.0 - drRatio**i)/(1.0 - drRatio)
+                    r1 = rmin + drStart*(1.0 - drRatio**(i + 1))/(1.0 - drRatio)
+                else:
+                    r0 = rmax - drStart*(1.0 - drRatio**(i + 1))/(1.0 - drRatio)
+                    r1 = rmax - drStart*(1.0 - drRatio**i)/(1.0 - drRatio)
             else:
                 r0 = rmin + i*drCenter
                 r1 = rmin + (i + 1)*drCenter

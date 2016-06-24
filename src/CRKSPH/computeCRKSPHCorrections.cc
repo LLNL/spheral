@@ -215,6 +215,7 @@ computeLinearCRKSPHCorrections(const FieldSpace::FieldList<Dimension, typename D
                                const FieldSpace::FieldList<Dimension, typename Dimension::Vector>& gradm0,
                                const FieldSpace::FieldList<Dimension, typename Dimension::Tensor>& gradm1,
                                const FieldSpace::FieldList<Dimension, typename Dimension::ThirdRankTensor>& gradm2,
+                               const FieldSpace::FieldList<Dimension, typename Dimension::SymTensor>& H,
                                FieldList<Dimension, typename Dimension::Scalar>& A,
                                FieldList<Dimension, typename Dimension::Vector>& B,
                                FieldList<Dimension, typename Dimension::Vector>& gradA,
@@ -227,6 +228,7 @@ computeLinearCRKSPHCorrections(const FieldSpace::FieldList<Dimension, typename D
   REQUIRE(gradm0.size() == numNodeLists);
   REQUIRE(gradm1.size() == numNodeLists);
   REQUIRE(gradm2.size() == numNodeLists);
+  REQUIRE(H.size() == numNodeLists);
   REQUIRE(A.size() == numNodeLists);
   REQUIRE(B.size() == numNodeLists);
   REQUIRE(gradA.size() == numNodeLists);
@@ -246,7 +248,9 @@ computeLinearCRKSPHCorrections(const FieldSpace::FieldList<Dimension, typename D
     for (size_t i = 0; i != n; ++i) {
 
       // Based on the moments we can calculate the CRKSPH corrections terms and their gradients.
-      const SymTensor m2inv = abs(m2(nodeListi, i).Determinant()) > 1.0e-10 ? m2(nodeListi, i).Inverse() : SymTensor::zero;
+      const SymTensor& m2i = m2(nodeListi, i);
+      const Scalar hdet2 = 1.0/FastMath::square(H(nodeListi, i).Determinant());
+      const SymTensor m2inv = abs(m2i.Determinant()) > 1.0e-5*hdet2 ? m2i.Inverse() : SymTensor::zero;
       const Vector m2invm1 = m2inv*m1(nodeListi, i);
       const Scalar Ainv = m0(nodeListi, i) - m2invm1.dot(m1(nodeListi, i));
       CHECK(Ainv != 0.0);
@@ -288,6 +292,7 @@ computeQuadraticCRKSPHCorrections(const FieldSpace::FieldList<Dimension, typenam
                                   const FieldSpace::FieldList<Dimension, typename Dimension::ThirdRankTensor>& gradm2,
                                   const FieldSpace::FieldList<Dimension, typename Dimension::FourthRankTensor>& gradm3,
                                   const FieldSpace::FieldList<Dimension, typename Dimension::FifthRankTensor>& gradm4,
+                                  const FieldSpace::FieldList<Dimension, typename Dimension::SymTensor>& H,
                                   FieldList<Dimension, typename Dimension::Scalar>& A,
                                   FieldList<Dimension, typename Dimension::Vector>& B,
                                   FieldList<Dimension, typename Dimension::Tensor>& C,
@@ -306,6 +311,7 @@ computeQuadraticCRKSPHCorrections(const FieldSpace::FieldList<Dimension, typenam
   REQUIRE(gradm2.size() == numNodeLists);
   REQUIRE(gradm3.size() == numNodeLists);
   REQUIRE(gradm4.size() == numNodeLists);
+  REQUIRE(H.size() == numNodeLists);
   REQUIRE(A.size() == numNodeLists);
   REQUIRE(B.size() == numNodeLists);
   REQUIRE(C.size() == numNodeLists);
@@ -360,7 +366,8 @@ computeQuadraticCRKSPHCorrections(const FieldSpace::FieldList<Dimension, typenam
       const ThirdRankTensor& gm2i = gradm2(nodeListi, i);
       const FourthRankTensor& gm3i = gradm3(nodeListi, i);
       const FifthRankTensor& gm4i = gradm4(nodeListi, i);
-      const SymTensor m2inv = abs(m2i.Determinant()) > 1.0e-15 ? m2i.Inverse() : SymTensor::zero;
+      const Scalar hdet2 = 1.0/FastMath::square(H(nodeListi, i).Determinant());
+      const SymTensor m2inv = abs(m2i.Determinant()) > 1.0e-5*hdet2 ? m2i.Inverse() : SymTensor::zero;
       const FourthRankTensor L = innerProduct<Dimension>(m3i, innerProduct<Dimension>(m2inv, m3i)) - m4i;
 
       // const FourthRankTensor Linv = invertRankNTensor(L);
@@ -694,6 +701,7 @@ computeCRKSPHCorrections(const FieldSpace::FieldList<Dimension, typename Dimensi
                          const FieldSpace::FieldList<Dimension, typename Dimension::ThirdRankTensor>& gradm2,
                          const FieldSpace::FieldList<Dimension, typename Dimension::FourthRankTensor>& gradm3,
                          const FieldSpace::FieldList<Dimension, typename Dimension::FifthRankTensor>& gradm4,
+                         const FieldSpace::FieldList<Dimension, typename Dimension::SymTensor>& H,
                          const CRKOrder correctionOrder,
                          FieldList<Dimension, typename Dimension::Scalar>& A,
                          FieldList<Dimension, typename Dimension::Vector>& B,
@@ -704,9 +712,9 @@ computeCRKSPHCorrections(const FieldSpace::FieldList<Dimension, typename Dimensi
   if(correctionOrder == ZerothOrder){
     computeZerothCRKSPHCorrections(m0,gradm0,A,gradA);
   }else if(correctionOrder == LinearOrder){
-    computeLinearCRKSPHCorrections(m0,m1,m2,gradm0,gradm1,gradm2,A,B,gradA,gradB);
+    computeLinearCRKSPHCorrections(m0,m1,m2,gradm0,gradm1,gradm2,H,A,B,gradA,gradB);
   }else if(correctionOrder == QuadraticOrder){
-    computeQuadraticCRKSPHCorrections(m0,m1,m2,m3,m4,gradm0,gradm1,gradm2,gradm3,gradm4,A,B,C,gradA,gradB,gradC);
+    computeQuadraticCRKSPHCorrections(m0,m1,m2,m3,m4,gradm0,gradm1,gradm2,gradm3,gradm4,H,A,B,C,gradA,gradB,gradC);
   }
 }
 

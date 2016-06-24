@@ -214,6 +214,7 @@ self.generateSolidCRKSPHHydroBaseBindings(self.SolidCRKSPHHydroBase%(dim)id, %(d
                                  constrefparam(thirdranktensorfieldlist, "gradm2"),
                                  constrefparam(fourthranktensorfieldlist, "gradm3"),
                                  constrefparam(fifthranktensorfieldlist, "gradm4"),
+                                 constrefparam(symtensorfieldlist, "H"),
                                  param("Spheral::CRKSPHSpace::CRKOrder","correctionOrder"),
                                  refparam(scalarfieldlist, "A"),
                                  refparam(vectorfieldlist, "B"),

@@ -179,7 +179,7 @@ initialize(const DataBase<Dimension>& dataBase,
   // const FieldList<Dimension, Scalar> massDensity = state.fields(HydroFieldNames::massDensity, 0.0);
   // const FieldList<Dimension, Scalar> vol = mass/massDensity;
   const FieldList<Dimension, Scalar> vol = state.fields(HydroFieldNames::volume, 0.0);
-  CRKSPHSpace::computeCRKSPHCorrections(m0, m1, m2, m3, m4, gradm0, gradm1, gradm2, gradm3, gradm4, correctionOrder, QA, QB, QC, QgradA, QgradB, QgradC);
+  CRKSPHSpace::computeCRKSPHCorrections(m0, m1, m2, m3, m4, gradm0, gradm1, gradm2, gradm3, gradm4, H, correctionOrder, QA, QB, QC, QgradA, QgradB, QgradC);
   for (typename ArtificialViscosity<Dimension>::ConstBoundaryIterator boundItr = boundaryBegin;
        boundItr < boundaryEnd;
        ++boundItr) {
