@@ -76,13 +76,17 @@ namespace FractalSpace
   void high_points(Group& group, Fractal& fractal,Misc& misc);
   double Hubble (const double& omega_0, const double& omega_lambda, const double& redshift);
   void hypre_best_boxes(Fractal_Memory& mem,vector<vector<Point*> >& hypre_points,int spacing,int& VOLbest,double& FILLbest);
+  void hypre_clever_boxes(Fractal_Memory& mem,vector <vector<Point*>>& hypre_points,int spacing,
+			  int VOLMIN,double FILLFACTOR,
+			  vector < vector<int> >& SBoxes,vector < vector<Point*> >& SPoints);
   void hypre_dump(int level,vector <Point*>& hypre_points,ofstream& FH);
   void hypre_eror(FILE* PFH,int level,int ni,int er);
-  void hypre_points_boxes(Fractal_Memory& mem,vector <vector <Point*> >hypre_points,int spacing,
+  void hypre_points_boxes(Fractal_Memory& mem,vector <vector <Point*> >& hypre_points,int spacing,
 			  int VOLMIN,double FILLFACTOR,
 			  vector < vector<int> >& SBoxes,vector < vector<Point*> >& SPoints);
   void hypre_points_struct(Fractal_Memory& mem,vector <Group*>& groups,
 			   vector < vector <Point*> >& hypre_points,bool buffer_groups,int level);
+  void hypre_points_zero(vector<vector<Point*>>& SPoints);
   void hypre_solve_struct(Fractal_Memory& mem,int level,
 			  vector < vector<int> >& SBoxes,vector < vector<Point*> >& SPoints);
   void hypre_test_boxes(Fractal_Memory& mem,int spacing,
