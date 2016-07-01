@@ -189,7 +189,7 @@ namespace FractalSpace
     double time6=mem.p_mess->Clock();
     _COUNTER++;
     Hypre_sum_time[level]+=time6-time0;
-    FHT << " Hypre Total " << "\t" << time6-time0 << "\t" << Hypre_sum_time[level] << "\t" << level << "\t" << sumVOL << "\t" << SVT << "\t" << SBoxes.size() << "\t" << SBT << "\t" << mem.steps << "\n";
+    FHT << " Hypre Total " << FractalRank << " " << time6-time0 << " " << Hypre_sum_time[level] << " L" << level << " " << sumVOL << " " << SVT << " " << SBoxes.size() << " " << SBT << " S" << mem.steps << "\n";
     FHT << " Hypre Grid Assemble " << "\t" << time1-time0 << "\n";
     FHT << " Hypre Data Assemble " << "\t" << time2-time1 << "\n";
     FHT << " Hypre Solve Assemble " << "\t" << time3-time2 << "\n";

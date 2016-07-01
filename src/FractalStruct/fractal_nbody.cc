@@ -41,14 +41,16 @@ int main(int argc, char* argv[])
   int _mulT_=4;
   if(argc >= 7)
     _mulT_=atoi(argv[6]);
+  double PADDING=-1;
+  if(argc >= 8)
+    PADDING=atoi(argv[7])
 
   int HYPREMAXONNODE=40000;
-  HYPREMAXONNODE=-1;  // This is really VOLMIN
-  if(argc >= 8)
-    HYPREMAXONNODE=atoi(argv[7]);
-  double HYPREMULTIPLIER=2.0; // This is really FILLFACTOR
   if(argc >= 9)
-    HYPREMULTIPLIER=atof(argv[8]);
+    HYPREMAXONNODE=atoi(argv[8]);
+  double HYPREMULTIPLIER=2.0;
+  if(argc >= 10)
+    HYPREMULTIPLIER=atof(argv[9]);
 
 
   if(Ranky == 0)
@@ -64,6 +66,8 @@ int main(int argc, char* argv[])
   p_fractal_memory->hypre_max_node_load=HYPREMAXONNODE;
   p_fractal_memory->hypre_multiplier=HYPREMULTIPLIER;
   fractal_memory_parameters(*p_fractal_memory,_inteL_,_mulT_);  
+  PADDING=max(-1,min(1,PADDING));
+  p_fractal_memory->padding=PADDING;
   int FractalRank;
   //  MPI_Comm_rank(MPI_COMM_WORLD,&FractalRank);
   vector <int> BoxA;

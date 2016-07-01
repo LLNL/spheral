@@ -34,6 +34,9 @@ namespace FractalSpace
     assert(foundit);
     SBoxes.resize(Ngood);
     SPoints.resize(Ngood);
+    int sp2=log((double)(spacing)+0.1)/log(2.0);
+    int level=mem.p_fractal->get_level_max()-sp2;
+    box_stats(mem,level,-10,SBoxes,SPoints);
     std::map<array<int,4>,Point*,point_comp4> dupes;
     vector<int>pos(3);
     array<int,4>ar4;
@@ -106,16 +109,6 @@ namespace FractalSpace
       }
     dupes.clear();
     hypre_points_boxes(mem,hypre_points,spacing,1,2.0,SBoxes,SPoints);
-    Point* pFAKE=0;
-    for(auto &SP : SPoints)
-      for(int S=0;S<SP.size();S++)
-	{
-	  Point* p=SP[S];
-	  if(p != 0 && p->get_really_passive())
-	    {
-	      delete p;
-	      SP[S]=pFAKE;
-	    }
-	}
+    hypre_points_zero(SPoints);
   }
 }
