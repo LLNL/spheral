@@ -180,6 +180,7 @@ class GenerateRatioSphere3d(NodeGeneratorBase):
                  rho,
                  rmin,
                  rmax,
+                 startFromCenter = True,
                  thetamin = 0.0,
                  thetamax = 0.5*pi,
                  phi = pi,
@@ -192,7 +193,7 @@ class GenerateRatioSphere3d(NodeGeneratorBase):
 
         assert thetamax <= pi
 
-        self.gen2d = GenerateRatioSphere2d(drCenter, drRatio, rho, rmin, rmax, thetamin, thetamax, ntheta, 
+        self.gen2d = GenerateRatioSphere2d(drCenter, drRatio, rho, rmin, rmax, startFromCenter, thetamin, thetamax, ntheta, 
                                            (0.0, 0.0), distributionType, nNodePerh, SPH)
 
         # The 2D class already split the nodes up between processors, but
