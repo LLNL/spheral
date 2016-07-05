@@ -76,8 +76,8 @@ class GenerateRatioSphere2d(NodeGeneratorBase):
                     r0 = rmax - drStart*(1.0 - drRatio**(i + 1))/(1.0 - drRatio)
                     r1 = rmax - drStart*(1.0 - drRatio**i)/(1.0 - drRatio)
             else:
-                r0 = rmin + i*drCenter
-                r1 = rmin + (i + 1)*drCenter
+                r0 = rmin + i*drStart
+                r1 = rmin + (i + 1)*drStart
             dr = r1 - r0
             ri = 0.5*(r0 + r1)
             li = Dtheta*ri
@@ -259,6 +259,7 @@ class GenerateRatioSphere3d(NodeGeneratorBase):
                                       mpi.rank, mpi.procs)
         self.x = [x + center[0] for x in xvec]
         self.y = [x + center[1] for x in yvec]
+        self.z = [z + center[1] for z in zvec]
         self.m = list(mvec)
         self.H = [SymTensor3d(x) for x in Hvec]
         self.globalIDs = list(globalIDsvec)
@@ -277,14 +278,14 @@ class GenerateRatioSphere3d(NodeGeneratorBase):
                                                               self.H)
         # Initialize the base class.
         NodeGeneratorBase.__init__(self, False,
-                                   self.x, self.y, self.m, self.H)
+                                   self.x, self.y, self.z, self.m, self.H)
         return
 
     #---------------------------------------------------------------------------
     # Get the position for the given node index.
     #---------------------------------------------------------------------------
     def localPosition(self, i):
-        return Vector2d(self.x[i], self.y[i])
+        return Vector3d(self.x[i], self.y[i], self.z[i])
 
     #---------------------------------------------------------------------------
     # Get the mass for the given node index.
@@ -296,7 +297,7 @@ class GenerateRatioSphere3d(NodeGeneratorBase):
     # Get the mass density for the given node index.
     #---------------------------------------------------------------------------
     def localMassDensity(self, i):
-        return self.gen2d.rhofunc((self.localPosition(i) - self.center).magnitude())
+        return self.gen2d.rhofunc((Vector2d(self.x[i], self.y[i]) - self.center).magnitude())
 
     #---------------------------------------------------------------------------
     # Get the H tensor for the given node index.
