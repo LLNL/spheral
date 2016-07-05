@@ -28,6 +28,7 @@ namespace FractalSpace
 			assert(nx == p->get_pos_point_x());
 			assert(ny == p->get_pos_point_y());
 			assert(nz == p->get_pos_point_z());
+			assert(p->get_inside());
 			for(int ni=0;ni<6;ni++)
 			  assert(p->get_point_ud(ni));
 		      }
