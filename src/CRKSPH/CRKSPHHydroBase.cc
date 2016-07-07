@@ -781,11 +781,11 @@ evaluateDerivatives(const typename Dimension::Scalar time,
       SymTensor& massSecondMomenti = massSecondMoment(nodeListi, i);
       Scalar& worki = workFieldi(i);
 
-      const Scalar W0i = W.kernelValue(0.0, Hdeti);
-      Vector selfforceIi  = weighti*weighti*Pi*W0i*(gradAi);  // <- Type I self-interaction. I think there is no Q term here? Dont know what it would be. 
-      if (order != ZerothOrder) {
-        selfforceIi  = weighti*weighti*Pi*W0i*(Ai*Bi+gradAi); //For linear RK (quadratic RK is the same)
-      }
+      // const Scalar W0i = W.kernelValue(0.0, Hdeti);
+      // Vector selfforceIi  = weighti*weighti*Pi*W0i*(gradAi);  // <- Type I self-interaction. I think there is no Q term here? Dont know what it would be. 
+      // if (order != ZerothOrder) {
+      //   selfforceIi  = weighti*weighti*Pi*W0i*(Ai*Bi+gradAi); //For linear RK (quadratic RK is the same)
+      // }
       //DvDti -= selfforceIi/mi;                             //RK I Acceleration 
 
       // Get the connectivity info for this node.
@@ -900,9 +900,9 @@ evaluateDerivatives(const typename Dimension::Scalar time,
               // const Vector QaccVj = (rhoj*rhoj*QPiij.second-rhoi*rhoi*QPiij.first).dot(gradWi);    // RK Type V
               // const Vector QaccIi = (rhoj*rhoj*QPiij.second).dot(gradWj);                          // RK Type I
               // const Vector QaccIj = (rhoi*rhoi*QPiij.first).dot(gradWi);                           // RK Type I
-              const Scalar workQij = 0.5*(vij.dot(Qaccij));
-              // const Scalar workQi = rhoj*rhoj*QPiij.second.dot(vij).dot(deltagrad);                // CRK
-              // const Scalar workQj = rhoi*rhoi*QPiij.first .dot(vij).dot(deltagrad);                // CRK
+              // const Scalar workQij = 0.5*(vij.dot(Qaccij));
+              const Scalar workQi = rhoj*rhoj*QPiij.second.dot(vij).dot(deltagrad);                // CRK
+              const Scalar workQj = rhoi*rhoi*QPiij.first .dot(vij).dot(deltagrad);                // CRK
               // const Scalar workQVi =  vij.dot((rhoj*rhoj*QPiij.second).dot(gradWj));               //RK V and RK I Work
               // const Scalar workQVj =  vij.dot((rhoi*rhoi*QPiij.first).dot(gradWi));                //RK V and RK I Work
               const Scalar Qi = rhoi*rhoi*(QPiij.first. diagonalElements().maxAbsElement());
@@ -911,8 +911,8 @@ evaluateDerivatives(const typename Dimension::Scalar time,
               maxViscousPressurej = max(maxViscousPressurej, 4.0*Qj);
               effViscousPressurei += weightj * Qi * Wj;
               effViscousPressurej += weighti * Qj * Wi;
-              viscousWorki += 0.5*weighti*weightj/mi*workQij;
-              viscousWorkj += 0.5*weighti*weightj/mj*workQij;
+              viscousWorki += 0.5*weighti*weightj/mi*workQi;
+              viscousWorkj += 0.5*weighti*weightj/mj*workQj;
 
               // Velocity gradient.
               const Tensor deltaDvDxi = -weightj*vij.dyad(gradWj);
@@ -951,8 +951,11 @@ evaluateDerivatives(const typename Dimension::Scalar time,
               // DepsDti += 0.5*weighti*weightj*Pj*vij.dot(deltagrad)/mi + mj*workQi;    // SPH Q
               // DepsDtj += 0.5*weighti*weightj*Pi*vij.dot(deltagrad)/mj + mi*workQj;    // SPH Q
 
-              DepsDti += 0.5*weighti*weightj*(Pj*vij.dot(deltagrad) + workQij)/mi;    // CRK Q
-              DepsDtj += 0.5*weighti*weightj*(Pi*vij.dot(deltagrad) + workQij)/mj;    // CRK Q
+              // DepsDti += 0.5*weighti*weightj*(Pj*vij.dot(deltagrad) + workQij)/mi;    // CRK Q
+              // DepsDtj += 0.5*weighti*weightj*(Pi*vij.dot(deltagrad) + workQij)/mj;    // CRK Q
+
+              DepsDti += 0.5*weighti*weightj*(Pj*vij.dot(deltagrad) + workQi)/mi;    // CRK Q
+              DepsDtj += 0.5*weighti*weightj*(Pi*vij.dot(deltagrad) + workQj)/mj;    // CRK Q
 
               //DepsDti += weighti*weightj*(Pj*vij.dot(gradWj) + workQVi)/mi;    // RK V AND RK I (both equations are the same for Type I and V)
               //DepsDtj -= weighti*weightj*(Pi*vij.dot(gradWi) + workQVj)/mj;    // RK V AND RK I (Note the minus sign!)

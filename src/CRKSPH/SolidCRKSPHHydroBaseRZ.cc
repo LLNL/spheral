@@ -598,15 +598,17 @@ evaluateDerivatives(const Dim<2>::Scalar time,
                                                         posi, etai, vi, rhoi, ci, Hi,
                                                         posj, etaj, vj, rhoj, cj, Hj);
               const Vector Qaccij = (rhoi*rhoi*QPiij.first + rhoj*rhoj*QPiij.second).dot(deltagrad);
-              const Scalar workQij = 0.5*(vij.dot(Qaccij));
+              // const Scalar workQij = 0.5*(vij.dot(Qaccij));
+              const Scalar workQi = rhoj*rhoj*QPiij.second.dot(vij).dot(deltagrad);                // CRK
+              const Scalar workQj = rhoi*rhoi*QPiij.first .dot(vij).dot(deltagrad);                // CRK
               const Scalar Qi = rhoi*rhoi*(QPiij.first. diagonalElements().maxAbsElement());
               const Scalar Qj = rhoj*rhoj*(QPiij.second.diagonalElements().maxAbsElement());
               maxViscousPressurei = max(maxViscousPressurei, 4.0*Qi);                                 // We need tighter timestep controls on the Q with CRK
               maxViscousPressurej = max(maxViscousPressurej, 4.0*Qj);
               effViscousPressurei += weightj * Qi * Wj;
               effViscousPressurej += weighti * Qj * Wi;
-              viscousWorki += 0.5*weighti*weightj/mRZi*workQij;
-              viscousWorkj += 0.5*weighti*weightj/mRZj*workQij;
+              viscousWorki += 0.5*weighti*weightj/mRZi*workQi;
+              viscousWorkj += 0.5*weighti*weightj/mRZj*workQj;
 
               // Velocity gradient.
               DvDxi -= weightj*vij.dyad(gradWj);
@@ -646,8 +648,8 @@ evaluateDerivatives(const Dim<2>::Scalar time,
               }
 
               // Specific thermal energy evolution.
-              DepsDti += 0.5*weighti*weightj*(Pposj*vij.dot(deltagrad) + fij*sigmaj.dot(vij).dot(deltagraddam) + workQij)/mRZi;
-              DepsDtj += 0.5*weighti*weightj*(Pposi*vij.dot(deltagrad) + fij*sigmai.dot(vij).dot(deltagraddam) + workQij)/mRZj;
+              DepsDti += 0.5*weighti*weightj*(Pposj*vij.dot(deltagrad) + fij*sigmaj.dot(vij).dot(deltagraddam) + workQi)/mRZi;
+              DepsDtj += 0.5*weighti*weightj*(Pposi*vij.dot(deltagrad) + fij*sigmai.dot(vij).dot(deltagraddam) + workQj)/mRZj;
 
               // Estimate of delta v (for XSPH).
               if (XSPH or min(zetai, zetaj) < 1.0) {

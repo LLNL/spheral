@@ -349,11 +349,11 @@ evaluateDerivatives(const Dim<2>::Scalar time,
       SymTensor& massSecondMomenti = massSecondMoment(nodeListi, i);
       Scalar& worki = workFieldi(i);
 
-      const Scalar W0i = W.kernelValue(0.0, Hdeti);
-      Vector selfforceIi  = weighti*weighti*Pi*W0i*(gradAi);  // <- Type I self-interaction. I think there is no Q term here? Dont know what it would be. 
-      if (order != ZerothOrder) {
-        selfforceIi  = weighti*weighti*Pi*W0i*(Ai*Bi+gradAi); //For linear RK (quadratic RK is the same)
-      }
+      // const Scalar W0i = W.kernelValue(0.0, Hdeti);
+      // Vector selfforceIi  = weighti*weighti*Pi*W0i*(gradAi);  // <- Type I self-interaction. I think there is no Q term here? Dont know what it would be. 
+      // if (order != ZerothOrder) {
+      //   selfforceIi  = weighti*weighti*Pi*W0i*(Ai*Bi+gradAi); //For linear RK (quadratic RK is the same)
+      // }
       //DvDti -= selfforceIi/mi;                             //RK I Acceleration 
 
       // Get the connectivity info for this node.
@@ -465,17 +465,17 @@ evaluateDerivatives(const Dim<2>::Scalar time,
                                                         posi, etai, vi, rhoi, ci, Hi,
                                                         posj, etaj, vj, rhoj, cj, Hj);
               const Vector Qaccij = (rhoi*rhoi*QPiij.first + rhoj*rhoj*QPiij.second).dot(deltagrad);    // CRK
-              const Scalar workQij = 0.5*(vij.dot(Qaccij));                                             // CRK
-              // const Scalar workQi = rhoi*rhoj*QPiij.second.dot(vij).dot(deltagrad);            // CRK
-              // const Scalar workQj = rhoi*rhoj*QPiij.first .dot(vij).dot(deltagrad);            // CRK
+              // const Scalar workQij = 0.5*(vij.dot(Qaccij));                                             // CRK
+              const Scalar workQi = rhoi*rhoj*QPiij.second.dot(vij).dot(deltagrad);            // CRK
+              const Scalar workQj = rhoi*rhoj*QPiij.first .dot(vij).dot(deltagrad);            // CRK
               const Scalar Qi = rhoi*rhoi*(QPiij.first. diagonalElements().maxAbsElement());
               const Scalar Qj = rhoj*rhoj*(QPiij.second.diagonalElements().maxAbsElement());
               maxViscousPressurei = max(maxViscousPressurei, 4.0*Qi);                                 // We need tighter timestep controls on the Q with CRK
               maxViscousPressurej = max(maxViscousPressurej, 4.0*Qj);
               effViscousPressurei += weightj * Qi * Wj;
               effViscousPressurej += weighti * Qj * Wi;
-              viscousWorki += 0.5*weighti*weightj/mi*workQij;
-              viscousWorkj += 0.5*weighti*weightj/mj*workQij;
+              viscousWorki += 0.5*weighti*weightj/mi*workQi;
+              viscousWorkj += 0.5*weighti*weightj/mj*workQj;
 
               // Velocity gradient.
               const Tensor deltaDvDxi = -weightj*vij.dyad(gradWj);
@@ -498,8 +498,8 @@ evaluateDerivatives(const Dim<2>::Scalar time,
                 pairAccelerationsj.push_back( forceij/mRZj);
               }
 
-              DepsDti += 0.5*weighti*weightj*(Pj*vij.dot(deltagrad) + workQij)/mRZi;    // CRK Q
-              DepsDtj += 0.5*weighti*weightj*(Pi*vij.dot(deltagrad) + workQij)/mRZj;    // CRK Q
+              DepsDti += 0.5*weighti*weightj*(Pj*vij.dot(deltagrad) + workQi)/mRZi;    // CRK Q
+              DepsDtj += 0.5*weighti*weightj*(Pi*vij.dot(deltagrad) + workQj)/mRZj;    // CRK Q
 
               // Estimate of delta v (for XSPH).
               if ((mXSPH and (nodeListi == nodeListj)) or min(zetai, zetaj) < 1.0) {
