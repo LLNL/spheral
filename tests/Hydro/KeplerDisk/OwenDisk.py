@@ -134,6 +134,7 @@ commandLine(asph = False,
 
             # Integrator and run time.
             IntegratorConstructor = CheapSynchronousRK2Integrator,
+            steps = None,
             goalTime = 10.0,
             dt = 0.0001,
             dtMin = 1.0e-5,
@@ -508,7 +509,10 @@ if writeHistory:
 #-------------------------------------------------------------------------------
 # Advance to the end time.
 #-------------------------------------------------------------------------------
-control.advance(goalTime)
+if steps is None:
+    control.advance(goalTime)
+else:
+    control.step(steps)
 
 #rPlot = plotNodePositions2d(db, colorNodeLists=0, colorDomains=1)
 #

@@ -605,6 +605,10 @@ evaluateDerivatives(const typename Dimension::Scalar time,
   const TableKernel<Dimension>& WQ = this->PiKernel();
   const Scalar W0 = W.kernelValue(0.0, 1.0);
 
+  // BLAGO!
+  const Scalar m0SurfaceThreshold = 0.9;
+  // BLAGO!
+
   // const NBSplineKernel<Dimension> WfilterBase(9);
   // const TableKernel<Dimension> Wfilter(WfilterBase, 1000, W.kernelExtent()/WfilterBase.kernelExtent());
   // // const HatKernel<Dimension> Wfilter(W.kernelExtent(), W0);
@@ -637,6 +641,8 @@ evaluateDerivatives(const typename Dimension::Scalar time,
   const FieldList<Dimension, Vector> gradA = state.fields(HydroFieldNames::gradA_CRKSPH, Vector::zero);
   const FieldList<Dimension, Tensor> gradB = state.fields(HydroFieldNames::gradB_CRKSPH, Tensor::zero);
   const FieldList<Dimension, ThirdRankTensor> gradC = state.fields(HydroFieldNames::gradC_CRKSPH, ThirdRankTensor::zero);
+  const FieldList<Dimension, Scalar> m0 = state.fields(HydroFieldNames::m0_CRKSPH, 0.0);
+  const FieldList<Dimension, Vector> m1 = state.fields(HydroFieldNames::m1_CRKSPH, Vector::zero);
   // const FieldList<Dimension, Vector> surfNorm = state.fields("Surface Normal", Vector::zero);
   CHECK(mass.size() == numNodeLists);
   CHECK(position.size() == numNodeLists);
@@ -652,6 +658,8 @@ evaluateDerivatives(const typename Dimension::Scalar time,
   CHECK(gradA.size() == numNodeLists);
   CHECK(gradB.size() == numNodeLists or order == ZerothOrder);
   CHECK(gradC.size() == numNodeLists or order != QuadraticOrder);
+  CHECK(m0.size() == numNodeLists);
+  CHECK(m1.size() == numNodeLists);
   // CHECK(surfNorm.size() == numNodeLists);
 
   // Derivative FieldLists.
@@ -743,6 +751,7 @@ evaluateDerivatives(const typename Dimension::Scalar time,
       const Scalar Pi = pressure(nodeListi, i);
       const SymTensor& Hi = H(nodeListi, i);
       const Scalar ci = soundSpeed(nodeListi, i);
+      const Scalar m0i = m0(nodeListi, i);
       const Scalar Ai = A(nodeListi, i);
       const Vector& gradAi = gradA(nodeListi, i);
       if (order != ZerothOrder) {
@@ -763,6 +772,7 @@ evaluateDerivatives(const typename Dimension::Scalar time,
       CHECK2(Ai > 0.0, i << " " << Ai);
       CHECK2(Hdeti > 0.0, i << " " << Hdeti);
       CHECK2(weighti > 0.0, i << " " << weighti);
+      CHECK2(m0i > 0.0, i << " " << m0i);
 
       Vector& DxDti = DxDt(nodeListi, i);
       Scalar& DrhoDti = DrhoDt(nodeListi, i);
@@ -828,6 +838,7 @@ evaluateDerivatives(const typename Dimension::Scalar time,
               const Scalar Pj = pressure(nodeListj, j);
               const SymTensor& Hj = H(nodeListj, j);
               const Scalar cj = soundSpeed(nodeListj, j);
+              const Scalar m0j = m0(nodeListj, j);
               const Scalar Aj = A(nodeListj, j);
               const Vector& gradAj = gradA(nodeListj, j);
               if (order != ZerothOrder) {
@@ -848,6 +859,7 @@ evaluateDerivatives(const typename Dimension::Scalar time,
               CHECK(Aj > 0.0 or j >= firstGhostNodej);
               CHECK(Hdetj > 0.0);
               CHECK(weightj > 0.0);
+              CHECK(m0j > 0.0);
 
               Vector& DxDtj = DxDt(nodeListj, j);
               Scalar& DrhoDtj = DrhoDt(nodeListj, j);

@@ -543,8 +543,8 @@ if outputFile != "None":
         L2P = Pnorm(Pprof, rprof, Pans).pnorm(2, rmin=0.0, rmax=rmaxnorm)
         LinfP = Pnorm(Pprof, rprof, velans).pnorm("inf", rmin=0.0, rmax=rmaxnorm)
         with open("converge-CRK-%s.txt" % CRKSPH, "a") as myfile:
-            myfile.write(("#" + 12*"%16s\t " + "%16s\n") % ("nRadial", "L1rho", "L1eps", "L1vel", "L2rho", "L2eps", "L2vel", "Linfrho", "Linfeps", "Linfvel", "L1P", "L2P", "LinfP"))
-            myfile.write((12*"%16s\t " + "%16s\n") % (nRadial, L1rho, L1eps, L1vel, L2rho, L2eps, L2vel, Linfrho, Linfeps, Linfvel, L1P, L2P, LinfP))
+            myfile.write(("#" + 14*"%16s\t " + "%16s\n") % ("nRadial", "L1rho", "L1eps", "L1vel", "L2rho", "L2eps", "L2vel", "Linfrho", "Linfeps", "Linfvel", "L1P", "L2P", "LinfP", "cycles", "runtime"))
+            myfile.write((14*"%16s\t " + "%16s\n") % (nRadial, L1rho, L1eps, L1vel, L2rho, L2eps, L2vel, Linfrho, Linfeps, Linfvel, L1P, L2P, LinfP, control.totalSteps, control.stepTimer.elapsedTime))
         f = open(outputFile, "w")
         f.write(("# " + 19*"%15s " + "\n") % ("r", "x", "y", "rho", "P", "v", "eps", "h", "mortonOrder", "rhoans", "epsans", "velans",
                                               "x_uu", "y_uu", "rho_uu", "P_uu", "v_uu", "eps_uu", "h_uu"))
