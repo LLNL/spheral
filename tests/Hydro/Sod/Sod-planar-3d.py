@@ -10,12 +10,14 @@ title("1-D integrated hydro test -- planar Sod problem")
 # Generic problem parameters
 #-------------------------------------------------------------------------------
 commandLine(nx1 = 160,
-            ny1 = 32,
-            nz1 = 32,
+            ny1 = 64,
+            nz1 = 64,
 
             nx2 = 100,
-            ny2 = 20,
-            nz2 = 20,
+            ny2 = 40,
+            nz2 = 40,
+
+            initialRotation = 0.0,     # Degrees, optionally rotate and clip the initial positions
 
             rho1 = 1.0,
             rho2 = 0.25,
@@ -29,10 +31,12 @@ commandLine(nx1 = 160,
             x2 = 0.5,
 
             y0 = 0.0,
-            y1 = 0.1,
+            y1 = 0.2,
 
             z0 = 0.0,
-            z1 = 0.1,
+            z1 = 0.2,
+
+            yzplotbuf = 0.0,
 
             hsmooth = 0.0,             # Optionally smooth initial discontinuity
             sumInitialDensity = False, # Optionally sum the initial density before setting the pressure and such
@@ -133,7 +137,8 @@ else:
     else:
         HydroConstructor = SPHHydro
 
-dataDir = os.path.join(dataDirBase, 
+dataDir = os.path.join(dataDirBase,
+                       "rotation=%f" % initialRotation,
                        HydroConstructor.__name__,
                        Qconstructor.__name__,
                        "nPerh=%f" % nPerh,
@@ -389,14 +394,12 @@ yPlane1 = Plane(Vector(x2, y1, z1), Vector( 0.0, -1.0,  0.0))
 zPlane1 = Plane(Vector(x2, y1, z1), Vector( 0.0,  0.0, -1.0))
 
 xbc0 = ReflectingBoundary(xPlane0)
-ybc0 = ReflectingBoundary(yPlane0)
-zbc0 = ReflectingBoundary(zPlane0)
 xbc1 = ReflectingBoundary(xPlane1)
-ybc1 = ReflectingBoundary(yPlane1)
-zbc1 = ReflectingBoundary(zPlane1)
+ybc = PeriodicBoundary(yPlane0, yPlane1)
+zbc = PeriodicBoundary(zPlane0, zPlane1)
 
 for p in packages:
-    for bc in [xbc0, ybc0, zbc0, xbc1, ybc1, zbc1]:
+    for bc in [xbc0, xbc1, ybc, zbc]:
         p.appendBoundary(bc)
 del p, bc
 
@@ -502,12 +505,19 @@ answer = SodSolution(nPoints=nx1 + nx2,
 #db.fluidSoundSpeed(cs)
 cs = hydro.soundSpeed()
 
+# Provide a function to select the points we want to plot.
+def plotFilter(pos):
+    return (pos.y >= y0 + plotbuf and pos.y <= y1 - plotbuf and
+            pos.z >= z0 + plotbuf and pos.z <= z1 - plotbuf)
+
 # Make a flat list from a FieldList
+pos = db.fluidPosition
 def createList(x):
     result = []
     for i in xrange(len(x)):
         for j in xrange(x[i].numInternalElements):
-            result.append(x(i,j))
+            if plotFilter(pos(i,j)):
+                result.append(x(i,j))
     return mpi.allreduce(result)
 
 # Compute the simulated specific entropy.
@@ -526,12 +536,12 @@ if graphics:
     import Gnuplot
     from SpheralGnuPlotUtilities import *
 
-    rhoPlot, velPlot, epsPlot, PPlot, HPlot = plotState(db, plotStyle="points")
+    rhoPlot, velPlot, epsPlot, PPlot, HPlot = plotState(db, plotStyle="points", filterFunc=plotFilter)
     plotAnswer(answer, control.time(),
                rhoPlot, velPlot, epsPlot, PPlot, HPlot)
     pE = plotEHistory(control.conserve)
 
-    csPlot = plotFieldList(cs, winTitle="Sound speed", plotStyle="points")
+    csPlot = plotFieldList(cs, winTitle="Sound speed", plotStyle="points", filterFunc=plotFilter)
     csAnsData = Gnuplot.Data(xans, csAns, 
                              with_ = "lines",
                              title = "Analytic")
@@ -558,34 +568,44 @@ if graphics:
              (Aplot, "Sod-planar-entropy.png")]
     
     if CRKSPH:
+        volPlot = plotFieldList(hydro.volume(),
+                                winTitle = "volume",
+                                plotStyle = "points",
+                                colorNodeLists = False,
+                                filterFunc = plotFilter)
         APlot = plotFieldList(hydro.A(),
                               winTitle = "A",
                               plotStyle = "points",
-                              colorNodeLists = False)
+                              colorNodeLists = False,
+                              filterFunc = plotFilter)
         BPlot = plotFieldList(hydro.B(),
                               yFunction = "%s.x",
                               winTitle = "B",
                               plotStyle = "points",
-                              colorNodeLists = False)
+                              colorNodeLists = False,
+                              filterFunc = plotFilter)
         plots += [(APlot, "Sod-planar-A.png"),
                   (BPlot, "Sod-planar-B.png")]
         derivs = StateDerivatives(db, integrator.physicsPackages())
         drhodt = derivs.scalarFields("delta mass density")
-        pdrhodt = plotFieldList(drhodt, winTitle = "DrhoDt", plotStyle = "points", colorNodeLists=False)
+        pdrhodt = plotFieldList(drhodt, winTitle = "DrhoDt", plotStyle = "points", colorNodeLists=False, filterFunc=plotFilter)
     
     viscPlot = plotFieldList(hydro.maxViscousPressure(),
                              winTitle = "max(rho^2 Piij)",
                              plotStyle = "points",
-                             colorNodeLists = False)
+                             colorNodeLists = False,
+                             filterFunc = plotFilter)
     plots.append((viscPlot, "Sod-planar-viscosity.png"))
     
     if boolCullenViscosity:
         cullAlphaPlot = plotFieldList(q.ClMultiplier(),
                                       plotStyle = "points",
-                                      winTitle = "Cullen alpha")
+                                      winTitle = "Cullen alpha",
+                                      filterFunc = plotFilter)
         cullDalphaPlot = plotFieldList(evolveCullenViscosityMultiplier.DalphaDt(),
                                        plotStyle = "points",
-                                       winTitle = "Cullen DalphaDt")
+                                       winTitle = "Cullen DalphaDt",
+                                       filterFunc = plotFilter)
         plots += [(cullAlphaPlot, "Sod-planar-Cullen-alpha.png"),
                   (cullDalphaPlot, "Sod-planar-Cullen-DalphaDt.png")]
 
@@ -593,7 +613,8 @@ if graphics:
         alphaPlot = plotFieldList(q.ClMultiplier(),
                                   winTitle = "rvAlpha",
                                   plotStyle = "points",
-                                  colorNodeLists = False)
+                                  colorNodeLists = False,
+                                  filterFunc = plotFilter)
 
     # Make hardcopies of the plots.
     for p, filename in plots:

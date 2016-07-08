@@ -421,11 +421,12 @@ yPlane0 = Plane(Vector(x0, y0), Vector( 0.0,  1.0))
 xPlane1 = Plane(Vector(x2, y1), Vector(-1.0,  0.0))
 yPlane1 = Plane(Vector(x2, y1), Vector( 0.0, -1.0))
 
-xbc = PeriodicBoundary(xPlane0, xPlane1)
+xbc0 = ReflectingBoundary(xPlane0)
+xbc1 = ReflectingBoundary(xPlane1)
 ybc = PeriodicBoundary(yPlane0, yPlane1)
 
 for p in packages:
-    for bc in [xbc, ybc]:
+    for bc in [xbc0, xbc1, ybc]:
         p.appendBoundary(bc)
 del p, bc
 
