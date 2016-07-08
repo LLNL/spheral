@@ -10,10 +10,12 @@ title("1-D integrated hydro test -- planar Sod problem")
 # Generic problem parameters
 #-------------------------------------------------------------------------------
 commandLine(nx1 = 200,
-            ny1 = 40,
+            ny1 = 80,
 
             nx2 = 100,
-            ny2 = 20,
+            ny2 = 40,
+
+            initialRotation = 0.0,     # Degrees, optionally rotate and clip the initial positions
 
             rho1 = 1.0,
             rho2 = 0.25,
@@ -27,7 +29,7 @@ commandLine(nx1 = 200,
             x2 = 0.5,
 
             y0 = 0.0,
-            y1 = 0.1,
+            y1 = 0.2,
 
             hsmooth = 0.0,             # Optionally smooth initial discontinuity
             sumInitialDensity = False, # Optionally sum the initial density before setting the pressure and such
@@ -218,16 +220,52 @@ def rho_initial(posi):
 # Set the node properties.
 #-------------------------------------------------------------------------------
 from GenerateNodeDistribution2d import GenerateNodeDistribution2d
-gen1 = GenerateNodeDistribution2d(nx1, ny1, rho_initial, "lattice",
-                                  xmin = (x0, y0),
-                                  xmax = (x1, y1),
-                                  nNodePerh = nPerh,
-                                  SPH = True)
-gen2 = GenerateNodeDistribution2d(nx2, ny2, rho_initial, "lattice",
-                                  xmin = (x1, y0),
-                                  xmax = (x2, y1),
-                                  nNodePerh = nPerh,
-                                  SPH = True)
+if initialRotation == 0.0:
+    gen1 = GenerateNodeDistribution2d(nx1, ny1, rho_initial, "lattice",
+                                      xmin = (x0, y0),
+                                      xmax = (x1, y1),
+                                      nNodePerh = nPerh,
+                                      SPH = True)
+    gen2 = GenerateNodeDistribution2d(nx2, ny2, rho_initial, "lattice",
+                                      xmin = (x1, y0),
+                                      xmax = (x2, y1),
+                                      nNodePerh = nPerh,
+                                      SPH = True)
+else:
+    if x1 - x0 > y1 - y0:
+        dl = 0.5*(x1 - x0)
+        n = nx1
+    else:
+        dl = 0.5*(y1 - x0)
+        n = ny1
+    gen1 = GenerateNodeDistribution2d(n, n, rho1, "lattice",
+                                      xmin = (-dl, -dl),
+                                      xmax = (dl, dl),
+                                      rotation = initialRotation * pi/180.0,
+                                      #offset = (0.5*(x0 + x1), 0.5*(y0 + y1) + 0.5*dl/n),
+                                      offset = (0.5*(x0 + x1), 0.5*(y0 + y1)),
+                                      xminreject = (x0, y0),
+                                      #xmaxreject = (x1, y1),
+                                      xmaxreject = (x1 - 0.001*dl/n, y1 - 0.1*dl/n),
+                                      nNodePerh = nPerh,
+                                      SPH = True)
+    if x2 - x1 > y1 - y0:
+        dl = 0.5*(x2 - x1)
+        n = nx2
+    else:
+        dl = 0.5*(y1 - x0)
+        n = ny2
+    gen2 = GenerateNodeDistribution2d(n, n, rho2, "lattice",
+                                      xmin = (-dl, -dl),
+                                      xmax = (dl, dl),
+                                      rotation = initialRotation * pi/180.0,
+                                      offset = (0.5*(x1 + x2), 0.5*(y0 + y1)),
+                                      #offset = (0.5*(x1 + x2), 0.5*(y0 + y1) + 0.5*dl/n),
+                                      xminreject = (x1, y0),
+                                      #xmaxreject = (x2, y1),
+                                      xmaxreject = (x2 - 0.001*dl/n, y1 - 0.1*dl/n),
+                                      nNodePerh = nPerh,
+                                      SPH = True)
 
 if mpi.procs > 1:
     from VoronoiDistributeNodes import distributeNodes2d
@@ -381,13 +419,11 @@ yPlane0 = Plane(Vector(x0, y0), Vector( 0.0,  1.0))
 xPlane1 = Plane(Vector(x2, y1), Vector(-1.0,  0.0))
 yPlane1 = Plane(Vector(x2, y1), Vector( 0.0, -1.0))
 
-xbc0 = ReflectingBoundary(xPlane0)
-ybc0 = ReflectingBoundary(yPlane0)
-xbc1 = ReflectingBoundary(xPlane1)
-ybc1 = ReflectingBoundary(yPlane1)
+xbc = PeriodicBoundary(xPlane0, xPlane1)
+ybc = PeriodicBoundary(yPlane0, yPlane1)
 
 for p in packages:
-    for bc in [xbc0, ybc0, xbc1, ybc1]:
+    for bc in [xbc, ybc]:
         p.appendBoundary(bc)
 del p, bc
 
