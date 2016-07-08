@@ -507,8 +507,8 @@ cs = hydro.soundSpeed()
 
 # Provide a function to select the points we want to plot.
 def plotFilter(pos):
-    return (pos.y >= y0 + plotbuf and pos.y <= y1 - plotbuf and
-            pos.z >= z0 + plotbuf and pos.z <= z1 - plotbuf)
+    return (pos.y >= y0 + yzplotbuf and pos.y <= y1 - yzplotbuf and
+            pos.z >= z0 + yzplotbuf and pos.z <= z1 - yzplotbuf)
 
 # Make a flat list from a FieldList
 pos = db.fluidPosition
