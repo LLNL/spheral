@@ -43,7 +43,8 @@ class GenerateNodeDistribution2d(NodeGeneratorBase):
                   rmin < rmax and
                   theta is not None and theta > 0.0)) or
                 ((distributionType == "lattice" or
-                  distributionType == "xstaggeredLattice") and
+                  distributionType == "xstaggeredLattice" or
+                  distributionType == "rotatedLattice") and
                  xmin is not None and xmax is not None and
                  xmin[0] < xmax[0] and xmin[1] < xmax[1]) or
                 (distributionType == "offsetCylindrical" and
@@ -137,6 +138,17 @@ class GenerateNodeDistribution2d(NodeGeneratorBase):
                                                        self.rmin,
                                                        self.rmax,
                                                        self.nNodePerh)
+
+        elif distributionType == "rotatedLattice":
+            self.x, self.y, self.m, self.H = \
+                    self.rotatedLatticeDistribution(self.nRadial, # nx
+                                                    self.nTheta,  # ny
+                                                    self.rho,
+                                                    self.xmin,
+                                                    self.xmax,
+                                                    self.rmin,
+                                                    self.rmax,
+                                                    self.nNodePerh)
 
         elif distributionType == "offsetCylindrical":
             self.x, self.y, self.m, self.H = \
@@ -699,6 +711,49 @@ class GenerateNodeDistribution2d(NodeGeneratorBase):
         assert dy > 0.0
         for i in xrange(len(x)):
             x[i] += ddx * (-1.0)**int((y[i] - xmin[1])/dy + 0.1)
+
+        return x, y, m, H
+
+    #---------------------------------------------------------------------------
+    # Seed positions on a rotated lattice.
+    #---------------------------------------------------------------------------
+    def rotatedLatticeDistribution(self, nx, ny, rho,
+                                   xmin = (0.0, 0.0),
+                                   xmax = (1.0, 1.0),
+                                   rmin = None,
+                                   rmax = None,
+                                   nNodePerh = 2.01):
+
+        dx = (xmax[0] - xmin[0])/nx
+        dy = (xmax[1] - xmin[1])/ny
+
+        hx = 1.0/(nNodePerh*dx)
+        hy = 1.0/(nNodePerh*dy)
+        H0 = SymTensor2d(hx, 0.0, 0.0, hy)
+
+        x = []
+        y = []
+        m = []
+        H = []
+
+        for j in xrange(ny + 1):
+            jmod = (j + 1) % 2
+            nxrow = nx + jmod
+            for i in xrange(nxrow):
+                xx = xmin[0] + (i + 0.5 - 0.5*jmod)*dx
+                yy = xmin[1] + j*dy
+                r = sqrt(xx*xx + yy*yy)
+                m0 = dx*dy*rho(Vector2d(xx, yy))
+                if j == 0 or j == ny:
+                    m0 /= 2.0
+                if jmod == 1 and (i == 0 or i == nxrow - 1):
+                    m0 /= 2.0
+                if ((r >= rmin or rmin is None) and
+                    (r <= rmax or rmax is None)):
+                    x.append(xx)
+                    y.append(yy)
+                    m.append(m0)
+                    H.append(H0)
 
         return x, y, m, H
 
