@@ -179,11 +179,18 @@ def plotFieldList(fieldList,
                   winTitle = None,
                   lineTitle = "",
                   xlabel = None,
-                  ylabel = None):
+                  ylabel = None,
+                  filterFunc = None):
 
     if plot is None:
         plot = generateNewGnuPlot()
     SpheralGnuPlotCache.append(plot)
+
+    def nullFilter(pos):
+        return True
+
+    if filterFunc is None:
+        filterFunc = nullFilter
 
     # Gather the fieldList info across all processors to process 0.
     globalNumNodes = []
@@ -191,13 +198,18 @@ def plotFieldList(fieldList,
     globalY = []
     for field in fieldList:
         if plotGhosts:
-            n = field.nodeList().numNodes
-            localX = [eval(xFunction % "x") for x in field.nodeList().positions().allValues()]
-            localY = [eval(yFunction % "y") for y in field.allValues()]
+            xvals = field.nodeList().positions().allValues()
+            yvals = field.allValues()
         else:
-            n = field.nodeList().numInternalNodes
-            localX = [eval(xFunction % "x") for x in field.nodeList().positions().internalValues()]
-            localY = [eval(yFunction % "y") for y in field.internalValues()]
+            xvals = field.nodeList().positions().internalValues()
+            yvals = field.internalValues()
+        localX = []
+        localY = []
+        for x, y in zip(xvals, yvals):
+            if filterFunc(x):
+                localX.append(eval(xFunction % "x"))
+                localY.append(eval(yFunction % "y"))
+        n = len(localX)
         if mpi:
             globalNumNodes.append(mpi.allreduce(n, mpi.SUM))
             globalX.extend(mpi.allreduce(localX, mpi.SUM))
@@ -307,7 +319,8 @@ def plotState(thingus,
               xFunction = "%s.x",
               vecyFunction = "%s.x",
               tenyFunction = "%s.xx ** -1",
-              lineTitle = "Simulation"):
+              lineTitle = "Simulation",
+              filterFunc = None):
 
     dim = type(thingus).__name__[-2:]
     if isinstance(thingus, eval("State%s" % dim)):
@@ -333,7 +346,8 @@ def plotState(thingus,
                             plotStyle = plotStyle,
                             winTitle = "Mass Density",
                             lineTitle = lineTitle,
-                            xlabel="x")
+                            xlabel="x",
+                            filterFunc = filterFunc)
 
     velPlot = plotFieldList(vel,
                             xFunction = xFunction,
@@ -343,7 +357,8 @@ def plotState(thingus,
                             plotStyle = plotStyle,
                             winTitle = "Velocity",
                             lineTitle = lineTitle,
-                            xlabel="x")
+                            xlabel="x",
+                            filterFunc = filterFunc)
 
     epsPlot = plotFieldList(eps,
                             xFunction = xFunction,
@@ -352,7 +367,8 @@ def plotState(thingus,
                             plotStyle = plotStyle,
                             winTitle = "Specific Thermal Energy",
                             lineTitle = lineTitle,
-                            xlabel="x")
+                            xlabel="x",
+                            filterFunc = filterFunc)
 
     PPlot = plotFieldList(P,
                           xFunction = xFunction,
@@ -361,7 +377,8 @@ def plotState(thingus,
                           plotStyle = plotStyle,
                           winTitle = "Pressure",
                           lineTitle = lineTitle,
-                          xlabel="x")
+                          xlabel="x",
+                          filterFunc = filterFunc)
 
     HPlot = plotFieldList(H,
                           xFunction = xFunction,
@@ -371,7 +388,8 @@ def plotState(thingus,
                           plotStyle = plotStyle,
                           winTitle = "Smoothing scale",
                           lineTitle = lineTitle,
-                          xlabel="x")
+                          xlabel="x",
+                          filterFunc = filterFunc)
 
     return rhoPlot, velPlot, epsPlot, PPlot, HPlot
 
@@ -381,7 +399,8 @@ def plotState(thingus,
 def plotRadialState(dataBase,
                     plotGhosts = False,
                     colorNodeLists = False,
-                    lineTitle = "Simulation"):
+                    lineTitle = "Simulation",
+                    filterFunc = None):
 
     rhoPlot = plotFieldList(dataBase.fluidMassDensity,
                             xFunction = "%s.magnitude()",
@@ -390,7 +409,8 @@ def plotRadialState(dataBase,
                             plotStyle = "points",
                             winTitle = "Mass density",
                             lineTitle = lineTitle,
-                            xlabel = "r")
+                            xlabel = "r",
+                            filterFunc = filterFunc)
 
     radialVelocity = radialVelocityFieldList(dataBase.fluidPosition,
                                              dataBase.fluidVelocity)
@@ -401,7 +421,8 @@ def plotRadialState(dataBase,
                             plotStyle = "points",
                             winTitle = " Radial Velocity",
                             lineTitle = lineTitle,
-                            xlabel = "r")
+                            xlabel = "r",
+                            filterFunc = filterFunc)
 
     epsPlot = plotFieldList(dataBase.fluidSpecificThermalEnergy,
                             xFunction = "%s.magnitude()",
@@ -410,7 +431,8 @@ def plotRadialState(dataBase,
                             plotStyle = "points",
                             winTitle = "Specific Thermal Energy",
                             lineTitle = lineTitle,
-                            xlabel = "r")
+                            xlabel = "r",
+                            filterFunc = filterFunc)
 
     fluidPressure = dataBase.newFluidScalarFieldList(0.0, "pressure")
     dataBase.fluidPressure(fluidPressure)
@@ -421,7 +443,8 @@ def plotRadialState(dataBase,
                           plotStyle = "points",
                           winTitle = "Pressure",
                           lineTitle = lineTitle,
-                          xlabel = "r")
+                          xlabel = "r",
+                          filterFunc = filterFunc)
 
     HPlot = plotFieldList(dataBase.fluidHfield,
                           xFunction = "%s.magnitude()",
@@ -431,7 +454,8 @@ def plotRadialState(dataBase,
                           plotStyle = "points",
                           winTitle = "Smoothing scale",
                           lineTitle = lineTitle,
-                          xlabel = "r")
+                          xlabel = "r",
+                          filterFunc = filterFunc)
 
     return rhoPlot, velPlot, epsPlot, PPlot, HPlot
 
