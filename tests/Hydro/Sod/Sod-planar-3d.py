@@ -9,9 +9,9 @@ title("1-D integrated hydro test -- planar Sod problem")
 #-------------------------------------------------------------------------------
 # Generic problem parameters
 #-------------------------------------------------------------------------------
-commandLine(nx1 = 160,
-            ny1 = 32,
-            nz1 = 32,
+commandLine(nx1 = 200,
+            ny1 = 40,
+            nz1 = 40,
 
             nx2 = 100,
             ny2 = 20,
