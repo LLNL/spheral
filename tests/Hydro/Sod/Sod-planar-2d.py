@@ -508,7 +508,7 @@ A = [Pi/rhoi**gammaGas for (Pi, rhoi) in zip(P, rho)]
 
 # The analytic solution for the simulated entropy.
 xprof = [x.x for x in createList(db.fluidPosition)]
-xprof.sort()
+multiSort(xprof, rho, P, A)
 xans, vans, uans, rhoans, Pans, hans = answer.solution(control.time(), xprof)
 Aans = [Pi/rhoi**gammaGas for (Pi, rhoi) in zip(Pans,  rhoans)]
 csAns = [sqrt(gammaGas*Pi/rhoi) for (Pi, rhoi) in zip(Pans,  rhoans)]
@@ -517,6 +517,7 @@ if graphics:
     import Gnuplot
     from SpheralGnuPlotUtilities import *
 
+    rPlot = plotNodePositions2d(db, colorNodeLists=0, colorDomains=1)
     rhoPlot, velPlot, epsPlot, PPlot, HPlot = plotState(db, plotStyle="points")
     plotAnswer(answer, control.time(),
                rhoPlot, velPlot, epsPlot, PPlot, HPlot)
@@ -549,6 +550,10 @@ if graphics:
              (Aplot, "Sod-planar-entropy.png")]
     
     if CRKSPH:
+        volPlot = plotFieldList(hydro.volume(),
+                                winTitle = "volume",
+                                plotStyle = "points",
+                                colorNodeLists = False)
         APlot = plotFieldList(hydro.A(),
                               winTitle = "A",
                               plotStyle = "points",
