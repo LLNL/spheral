@@ -1,6 +1,6 @@
 import os, sys
 import shutil
-from SolidSpheral3d import *
+from SolidSpheral2d import *
 from SpheralTestUtilities import *
 from SodAnalyticSolution import *
 
@@ -9,13 +9,11 @@ title("1-D integrated hydro test -- planar Sod problem")
 #-------------------------------------------------------------------------------
 # Generic problem parameters
 #-------------------------------------------------------------------------------
-commandLine(nx1 = 160,
-            ny1 = 32,
-            nz1 = 32,
+commandLine(nx1 = 200,
+            ny1 = 40,
 
             nx2 = 100,
             ny2 = 20,
-            nz2 = 20,
 
             rho1 = 1.0,
             rho2 = 0.25,
@@ -30,9 +28,6 @@ commandLine(nx1 = 160,
 
             y0 = 0.0,
             y1 = 0.1,
-
-            z0 = 0.0,
-            z1 = 0.1,
 
             hsmooth = 0.0,             # Optionally smooth initial discontinuity
             sumInitialDensity = False, # Optionally sum the initial density before setting the pressure and such
@@ -106,8 +101,8 @@ commandLine(nx1 = 160,
             clearDirectories = False,
             restoreCycle = -1,
             restartStep = 100,
-            dataDirBase = "dumps-Sod-planar-3d",
-            restartBaseName = "Sod-planar-3d-restart",
+            dataDirBase = "dumps-Sod-planar-2d",
+            restartBaseName = "Sod-planar-2d-restart",
             outputFile = "None",
             checkRestart = False,
 
@@ -144,13 +139,13 @@ dataDir = os.path.join(dataDirBase,
                        "filter=%f" % filter,
                        "%i" % (nx1 + nx2))
 restartDir = os.path.join(dataDir, "restarts")
-restartBaseName = os.path.join(restartDir, "Sod-planar-3d-%i" % (nx1 + nx2))
+restartBaseName = os.path.join(restartDir, "Sod-planar-2d-%i" % (nx1 + nx2))
 
 vizDir = os.path.join(dataDir, "visit")
 if vizTime is None and vizCycle is None:
     vizBaseName = None
 else:
-    vizBaseName = "Sod-planar-3d-%i" % (nx1 + nx2)
+    vizBaseName = "Sod-planar-2d-%i" % (nx1 + nx2)
 
 assert numNodeLists in (1, 2)
 
@@ -222,29 +217,29 @@ def rho_initial(posi):
 #-------------------------------------------------------------------------------
 # Set the node properties.
 #-------------------------------------------------------------------------------
-from GenerateNodeDistribution3d import GenerateNodeDistribution3d
-gen1 = GenerateNodeDistribution3d(nx1, ny1, nz1, rho_initial, "lattice",
-                                  xmin = (x0, y0, z0),
-                                  xmax = (x1, y1, z1),
+from GenerateNodeDistribution2d import GenerateNodeDistribution2d
+gen1 = GenerateNodeDistribution2d(nx1, ny1, rho_initial, "lattice",
+                                  xmin = (x0, y0),
+                                  xmax = (x1, y1),
                                   nNodePerh = nPerh,
                                   SPH = True)
-gen2 = GenerateNodeDistribution3d(nx2, ny2, nz2, rho_initial, "lattice",
-                                  xmin = (x1, y0, z0),
-                                  xmax = (x2, y1, z1),
+gen2 = GenerateNodeDistribution2d(nx2, ny2, rho_initial, "lattice",
+                                  xmin = (x1, y0),
+                                  xmax = (x2, y1),
                                   nNodePerh = nPerh,
                                   SPH = True)
 
 if mpi.procs > 1:
-    from VoronoiDistributeNodes import distributeNodes3d
+    from VoronoiDistributeNodes import distributeNodes2d
 else:
-    from DistributeNodes import distributeNodes3d
+    from DistributeNodes import distributeNodes2d
 
 if numNodeLists == 1:
     from CompositeNodeDistribution import CompositeNodeDistribution
     gen = CompositeNodeDistribution(gen1, gen2)
-    distributeNodes3d((nodes1, gen))
+    distributeNodes2d((nodes1, gen))
 else:
-    distributeNodes3d((nodes1, gen1),
+    distributeNodes2d((nodes1, gen1),
                       (nodes2, gen2))
 
 for n in nodeSet:
@@ -381,22 +376,18 @@ if bArtificialConduction:
 #-------------------------------------------------------------------------------
 # Create boundary conditions.
 #-------------------------------------------------------------------------------
-xPlane0 = Plane(Vector(x0, y0, z0), Vector( 1.0,  0.0,  0.0))
-yPlane0 = Plane(Vector(x0, y0, z0), Vector( 0.0,  1.0,  0.0))
-zPlane0 = Plane(Vector(x0, y0, z0), Vector( 0.0,  0.0,  1.0))
-xPlane1 = Plane(Vector(x2, y1, z1), Vector(-1.0,  0.0,  0.0))
-yPlane1 = Plane(Vector(x2, y1, z1), Vector( 0.0, -1.0,  0.0))
-zPlane1 = Plane(Vector(x2, y1, z1), Vector( 0.0,  0.0, -1.0))
+xPlane0 = Plane(Vector(x0, y0), Vector( 1.0,  0.0))
+yPlane0 = Plane(Vector(x0, y0), Vector( 0.0,  1.0))
+xPlane1 = Plane(Vector(x2, y1), Vector(-1.0,  0.0))
+yPlane1 = Plane(Vector(x2, y1), Vector( 0.0, -1.0))
 
 xbc0 = ReflectingBoundary(xPlane0)
 ybc0 = ReflectingBoundary(yPlane0)
-zbc0 = ReflectingBoundary(zPlane0)
 xbc1 = ReflectingBoundary(xPlane1)
 ybc1 = ReflectingBoundary(yPlane1)
-zbc1 = ReflectingBoundary(zPlane1)
 
 for p in packages:
-    for bc in [xbc0, ybc0, zbc0, xbc1, ybc1, zbc1]:
+    for bc in [xbc0, ybc0, xbc1, ybc1]:
         p.appendBoundary(bc)
 del p, bc
 
