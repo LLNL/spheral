@@ -49,6 +49,7 @@ commandLine(nx1 = 160,
             SVPH = False,
             CRKSPH = False,
             PSPH = False,
+            ASPH = True,                # Choose the H evolution -- works with all hydro options
             evolveTotalEnergy = False,  # Only for SPH variants -- evolve total rather than specific energy
             solid = False,    # If true, use the fluid limit of the solid hydro option
             Qconstructor = MonaghanGingoldViscosity,
@@ -122,20 +123,38 @@ commandLine(nx1 = 160,
 
 assert not(boolReduceViscosity and boolCullenViscosity)
 if SVPH:
-    HydroConstructor = SVPHFacetedHydro
+    if ASPH:
+        HydroConstructor = ASVPHFacetedHydro
+    else:
+        HydroConstructor = SVPHFacetedHydro
 elif CRKSPH:
     if solid:
-        HydroConstructor = SolidCRKSPHHydro
+        if ASPH:
+            HydroConstructor = SolidACRKSPHHydro
+        else:
+            HydroConstructor = SolidCRKSPHHydro
     else:
-        HydroConstructor = CRKSPHHydro
+        if ASPH:
+            HydroConstructor = ACRKSPHHydro
+        else:
+            HydroConstructor = CRKSPHHydro
     Qconstructor = CRKSPHMonaghanGingoldViscosity
 elif PSPH:
-    HydroConstructor = PSPHHydro
+    if ASPH:
+        HydroConstructor = APSPHHydro
+    else:
+        HydroConstructor = PSPHHydro
 else:
     if solid:
-        HydroConstructor = SolidSPHHydro
+        if ASPH:
+            HydroConstructor = SolidASPHHydro
+        else:
+            HydroConstructor = SolidSPHHydro
     else:
-        HydroConstructor = SPHHydro
+        if ASPH:
+            HydroConstructor = ASPHHydro
+        else:
+            HydroConstructor = SPHHydro
 
 dataDir = os.path.join(dataDirBase,
                        "rotation=%f" % initialRotation,
@@ -232,12 +251,12 @@ gen1 = GenerateNodeDistribution3d(nx1, ny1, nz1, rho_initial, "lattice",
                                   xmin = (x0, y0, z0),
                                   xmax = (x1, y1, z1),
                                   nNodePerh = nPerh,
-                                  SPH = True)
+                                  SPH = not ASPH)
 gen2 = GenerateNodeDistribution3d(nx2, ny2, nz2, rho_initial, "lattice",
                                   xmin = (x1, y0, z0),
                                   xmax = (x2, y1, z1),
                                   nNodePerh = nPerh,
-                                  SPH = True)
+                                  SPH = not ASPH)
 
 if mpi.procs > 1:
     from VoronoiDistributeNodes import distributeNodes3d
@@ -436,7 +455,7 @@ control = SpheralController(integrator, WT,
                             vizDir = vizDir,
                             vizStep = vizCycle,
                             vizTime = vizTime,
-                            SPH = True)
+                            SPH = not ASPH)
 output("control")
 
 #-------------------------------------------------------------------------------
