@@ -9,9 +9,9 @@ title("1-D integrated hydro test -- planar Sod problem")
 #-------------------------------------------------------------------------------
 # Generic problem parameters
 #-------------------------------------------------------------------------------
-commandLine(nx1 = 160,
-            ny1 = 64,
-            nz1 = 64,
+commandLine(nx1 = 200,
+            ny1 = 80,
+            nz1 = 80,
 
             nx2 = 100,
             ny2 = 40,
@@ -77,7 +77,7 @@ commandLine(nx1 = 160,
             hmin = 1e-10,
             hmax = 1.0,
             cfl = 0.5,
-            XSPH = False,
+            XSPH = True,
             epsilonTensile = 0.0,
             nTensile = 8,
             rhoMin = 0.01,
@@ -546,7 +546,10 @@ A = [Pi/rhoi**gammaGas for (Pi, rhoi) in zip(P, rho)]
 
 # The analytic solution for the simulated entropy.
 xprof = [x.x for x in createList(db.fluidPosition)]
-multiSort(xprof, rho, P, A)
+vprof = [v.x for v in createList(db.fluidVelocity)]
+epsprof = createList(db.fluidSpecificThermalEnergy)
+hprof = [1.0/Hi.xx for Hi in createList(db.fluidHfield)]
+multiSort(xprof, rho, P, A, vprof, epsprof, hprof)
 xans, vans, uans, rhoans, Pans, hans = answer.solution(control.time(), xprof)
 Aans = [Pi/rhoi**gammaGas for (Pi, rhoi) in zip(Pans,  rhoans)]
 csAns = [sqrt(gammaGas*Pi/rhoi) for (Pi, rhoi) in zip(Pans,  rhoans)]
@@ -560,80 +563,11 @@ if graphics:
                rhoPlot, velPlot, epsPlot, PPlot, HPlot)
     pE = plotEHistory(control.conserve)
 
-    csPlot = plotFieldList(cs, winTitle="Sound speed", plotStyle="points", filterFunc=plotFilter)
-    csAnsData = Gnuplot.Data(xans, csAns, 
-                             with_ = "lines",
-                             title = "Analytic")
-    csPlot.replot(csAnsData)
-
-    Aplot = generateNewGnuPlot()
-    Adata = Gnuplot.Data(xprof, A,
-                         with_ = "points",
-                         title = "P/rho^\gamma",
-                         inline = True)
-    AansData = Gnuplot.Data(xprof, Aans,
-                         with_ = "points",
-                         title = "Solution",
-                         inline = True)
-    Aplot.replot(Adata)
-    Aplot.replot(AansData)
-
     plots = [(rhoPlot, "Sod-planar-rho.png"),
              (velPlot, "Sod-planar-vel.png"),
              (epsPlot, "Sod-planar-eps.png"),
              (PPlot, "Sod-planar-P.png"),
-             (HPlot, "Sod-planar-h.png"),
-             (csPlot, "Sod-planar-cs.png"),
-             (Aplot, "Sod-planar-entropy.png")]
-    
-    if CRKSPH:
-        volPlot = plotFieldList(hydro.volume(),
-                                winTitle = "volume",
-                                plotStyle = "points",
-                                colorNodeLists = False,
-                                filterFunc = plotFilter)
-        APlot = plotFieldList(hydro.A(),
-                              winTitle = "A",
-                              plotStyle = "points",
-                              colorNodeLists = False,
-                              filterFunc = plotFilter)
-        BPlot = plotFieldList(hydro.B(),
-                              yFunction = "%s.x",
-                              winTitle = "B",
-                              plotStyle = "points",
-                              colorNodeLists = False,
-                              filterFunc = plotFilter)
-        plots += [(APlot, "Sod-planar-A.png"),
-                  (BPlot, "Sod-planar-B.png")]
-        derivs = StateDerivatives(db, integrator.physicsPackages())
-        drhodt = derivs.scalarFields("delta mass density")
-        pdrhodt = plotFieldList(drhodt, winTitle = "DrhoDt", plotStyle = "points", colorNodeLists=False, filterFunc=plotFilter)
-    
-    viscPlot = plotFieldList(hydro.maxViscousPressure(),
-                             winTitle = "max(rho^2 Piij)",
-                             plotStyle = "points",
-                             colorNodeLists = False,
-                             filterFunc = plotFilter)
-    plots.append((viscPlot, "Sod-planar-viscosity.png"))
-    
-    if boolCullenViscosity:
-        cullAlphaPlot = plotFieldList(q.ClMultiplier(),
-                                      plotStyle = "points",
-                                      winTitle = "Cullen alpha",
-                                      filterFunc = plotFilter)
-        cullDalphaPlot = plotFieldList(evolveCullenViscosityMultiplier.DalphaDt(),
-                                       plotStyle = "points",
-                                       winTitle = "Cullen DalphaDt",
-                                       filterFunc = plotFilter)
-        plots += [(cullAlphaPlot, "Sod-planar-Cullen-alpha.png"),
-                  (cullDalphaPlot, "Sod-planar-Cullen-DalphaDt.png")]
-
-    if boolReduceViscosity:
-        alphaPlot = plotFieldList(q.ClMultiplier(),
-                                  winTitle = "rvAlpha",
-                                  plotStyle = "points",
-                                  colorNodeLists = False,
-                                  filterFunc = plotFilter)
+             (HPlot, "Sod-planar-h.png")]
 
     # Make hardcopies of the plots.
     for p, filename in plots:
@@ -642,3 +576,48 @@ if graphics:
 print "Energy conservation: original=%g, final=%g, error=%g" % (control.conserve.EHistory[0],
                                                                 control.conserve.EHistory[-1],
                                                                 (control.conserve.EHistory[-1] - control.conserve.EHistory[0])/control.conserve.EHistory[0])
+
+#-------------------------------------------------------------------------------
+# If requested, write out the state in a global ordering to a file.
+#-------------------------------------------------------------------------------
+from SpheralGnuPlotUtilities import multiSort
+rmin = x0
+rmax = x2
+if mpi.rank == 0:
+    if outputFile != "None":
+        outputFile = os.path.join(dataDir, outputFile)
+        f = open(outputFile, "w")
+        f.write(("#" + 12*" '%s'" + "\n") % ("x", "rho", "P", "v", "eps", "A", "h", 
+                                             "rhoans", "Pans", "vans", "Aans", "hans"))
+        for (xi, rhoi, Pi, vi, epsi, Ai, hi, 
+             rhoansi, Pansi, vansi, Aansi, hansi) in zip(xprof, rho, P, vprof, epsprof, A, hprof, 
+                                                         rhoans, Pans, vans, Aans, hans):
+            f.write((12*" %16.12e" + '\n') % 
+                    (xi, rhoi, Pi, vi, epsi, Ai, hi, 
+                     rhoansi, Pansi, vansi, Aansi, hansi))
+        f.close()
+
+    import Pnorm
+    print "\tQuantity \t\tL1 \t\t\tL2 \t\t\tLinf"
+    failure = False
+    hD = []
+    for (name, data, ans) in [("Mass Density", rho, rhoans),
+                              ("Pressure", P, Pans),
+                              ("Velocity", vprof, vans),
+                              ("Thermal E", epsprof, uans),
+                              ("Entropy", A, Aans),
+                              ("h       ", hprof, hans)]:
+        assert len(data) == len(ans)
+        error = [data[i] - ans[i] for i in xrange(len(data))]
+        Pn = Pnorm.Pnorm(error, xprof)
+        L1 = Pn.gridpnorm(1, rmin, rmax)
+        L2 = Pn.gridpnorm(2, rmin, rmax)
+        Linf = Pn.gridpnorm("inf", rmin, rmax)
+        print "\t%s \t\t%g \t\t%g \t\t%g" % (name, L1, L2, Linf)
+        #f.write(("\t\t%g") % (L1))
+        hD.append([L1,L2,Linf])
+    #f.write("\n")
+
+    print "%d\t %g\t %g\t %g\t %g\t %g\t %g\t %g\t %g\t %g\t %g\t %g\t %g\t" % (nx1+nx2,hD[0][0],hD[1][0],hD[2][0],hD[3][0],
+                                                                                hD[0][1],hD[1][1],hD[2][1],hD[3][1],
+                                                                                hD[0][2],hD[1][2],hD[2][2],hD[3][2])
