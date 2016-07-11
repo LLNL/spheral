@@ -1903,7 +1903,7 @@ class GenerateIcosahedronMatchingProfile3d(NodeGeneratorBase):
             # and mass per node at this radius.
             rhoi    = self.densityProfileMethod(ri)
             dr      = pow(self.m0/(rhoi),1.0/3.0)
-            dr      = min(dr,ri-rmin)
+            #dr      = min(dr,ri-rmin)
             rii = ri - 0.5*dr
             #mshell  = rhoi * 4.0*pi*ri*ri*dr
             mshell  = self.integrateTotalMass(self.densityProfileMethod,
