@@ -1,0 +1,83 @@
+#-*-python-*-
+# This is an ATS script to coordinate running a series of tests of PSPH.
+cfl = 0.25
+Cl = 1.0
+Cq = 1.0
+filter = 0.0
+KernelConstructor = "QuinticSplineKernel"
+order = 5
+compatibleEnergy = False
+evolveTotalEnergy = True
+boolCullenViscosity = True
+HopkinsConductivity = True
+resMultiplier = 1
+
+#-------------------------------------------------------------------------------
+# Function to add the tests.
+#-------------------------------------------------------------------------------
+def addTests(psph, nPerh, resMultiplier=None):
+    if psph:
+        label = "PSPH"
+    else:
+        label = "SPH"
+    if resMultiplier is None:
+        resMultiplier = nPerh
+    test(script = "Hydro/Sod/Sod-planar-1d.py",
+         clas = "--nx1 %i --nx2 %i --PSPH %s --KernelConstructor %s --order %i --cfl %g --nPerh %g --Cl %g --Cq %g --compatibleEnergy %s --evolveTotalEnergy %s --filter %g --graphics True --clearDirectories True --outputFile Sod-planar.ascii --boolCullenViscosity %s --HopkinsConductivity %s" % (int(400*resMultiplier), int(100*resMultiplier), psph, KernelConstructor, order, cfl, nPerh, Cl, Cq, compatibleEnergy, evolveTotalEnergy, filter, boolCullenViscosity, HopkinsConductivity), 
+         label = "Planar Sod problem -- 1-D (serial %s)" % label)
+    test(script = "Hydro/DoubleBlastwave/DoubleBlastwave-1d.py",
+         clas = "--nx %i --PSPH %s --KernelConstructor %s --order %i --cfl %g --nPerh %g --Cl %g --Cq %g --compatibleEnergy %s --evolveTotalEnergy %s --filter %g --graphics True --clearDirectories True --boolCullenViscosity %s --HopkinsConductivity %s" % (int(400*resMultiplier), psph, KernelConstructor, order, cfl, nPerh, Cl, Cq, compatibleEnergy, evolveTotalEnergy, filter, boolCullenViscosity, HopkinsConductivity), 
+         label = "Planar double blastwave -- 1-D (400 nodes, serial %s)" % label)
+    test(script = "Hydro/Noh/Noh-planar-1d.py", 
+         clas = "--nx1 %i --PSPH %s --KernelConstructor %s --order %i --cfl %g --nPerh %g --Cl %g --Cq %g  --compatibleEnergy %s --evolveTotalEnergy %s --filter %g --graphics True --clearDirectories True --outputFile Noh-planar.ascii --boolCullenViscosity %s  --HopkinsConductivity %s --checkEnergy False --smallPressure True" % (int(100*resMultiplier), psph, KernelConstructor, order, cfl, nPerh, Cl, Cq, compatibleEnergy, evolveTotalEnergy, filter, boolCullenViscosity, HopkinsConductivity), 
+         label = "Planar Noh problem -- 1-D (serial %s)" % label)
+    test(script = "Hydro/Noh/Noh-cylindrical-2d.py",
+         clas = "--nRadial %i --PSPH %s --KernelConstructor %s --order %i --cfl %g --nPerh %g --Cl %g --Cq %g  --compatibleEnergy %s --evolveTotalEnergy %s --filter %g --graphics True --clearDirectories True --outputFile 'Noh-cylindrical.ascii' --boolCullenViscosity %s  --HopkinsConductivity %s --smallPressure True" % (int(50*resMultiplier), psph, KernelConstructor, order, cfl, nPerh, Cl, Cq, compatibleEnergy, evolveTotalEnergy, filter, boolCullenViscosity, HopkinsConductivity), 
+         label = "Cylindrical Noh problem -- 2-D (serial %s)" % label)
+    test(script = "Hydro/Noh/Noh-spherical-3d.py",
+         clas = "--nx %i --ny %i --nz %i --PSPH %s --KernelConstructor %s --order %i --cfl %g --nPerh %g --Cl %g --Cq %g  --compatibleEnergy %s --evolveTotalEnergy %s --filter %g --graphics True --clearDirectories True --outputFile 'Noh-spherical.ascii' --boolCullenViscosity %s  --HopkinsConductivity %s --smallPressure True" % (int(50*resMultiplier), int(50*resMultiplier), int(50*resMultiplier), psph, KernelConstructor, order, cfl, nPerh, Cl, Cq, compatibleEnergy, evolveTotalEnergy, filter, boolCullenViscosity, HopkinsConductivity), 
+         label = "Spherical Noh problem -- 3-D (80 proc %s)" % label,
+         np = 80)
+    nx, ny = int(20*resMultiplier), int(100*resMultiplier)
+    test(script = "Hydro/Noh/Noh-shear-2d.py", 
+         clas = "--nx %i --ny %i --PSPH %s --KernelConstructor %s --order %i --cfl %g --nPerh %g --Cl %g --Cq %g --filter %g --graphics True --clearDirectories True --outputFile Noh-shear-2d.ascii --boolCullenViscosity %s  --HopkinsConductivity %s --compatibleEnergy %s --evolveTotalEnergy %s --smallPressure True" % (nx, ny, psph, KernelConstructor, order, cfl, nPerh, Cl, Cq, filter, boolCullenViscosity, HopkinsConductivity, compatibleEnergy, evolveTotalEnergy), 
+         label = "Planar Shearing Noh problem -- 2-D (serial %s)" % label)
+    test(script = "Hydro/Sedov/Sedov-planar-1d.py",
+         clas = "--nRadial %i --PSPH %s --KernelConstructor %s --order %i --cfl %g --nPerh %g --Cl %g --Cq %g  --compatibleEnergy %s --evolveTotalEnergy %s --filter %g --graphics True --clearDirectories True --smoothSpike False --outputFile Sedov-planar.ascii --boolCullenViscosity %s  --HopkinsConductivity %s --smallPressure True" % (int(50*resMultiplier), psph, KernelConstructor, order, cfl, nPerh, Cl, Cq, compatibleEnergy, evolveTotalEnergy, filter, boolCullenViscosity, HopkinsConductivity), 
+         label = "Planar Sedov problem -- 1-D (serial %s)" % label)
+    test(script = "Hydro/Sedov/Sedov-cylindrical-2d.py",
+         clas = "--nRadial %i --PSPH %s --KernelConstructor %s --order %i --cfl %g --nPerh %g --Cl %g --Cq %g  --compatibleEnergy %s --evolveTotalEnergy %s --filter %g --graphics True --clearDirectories True --smoothSpike False --outputFile Sedov-cylindrical.ascii --boolCullenViscosity %s  --HopkinsConductivity %s --smallPressure True" % (int(50*resMultiplier), psph, KernelConstructor, order, cfl, nPerh, Cl, Cq, compatibleEnergy, evolveTotalEnergy, filter, boolCullenViscosity, HopkinsConductivity), 
+         label = "Cylindrical Sedov problem -- 2-D (serial %s)" % label)
+    test(script = "Hydro/Sedov/Sedov-spherical-3d.py",
+         clas = "--nx %i --ny %i --nz %i --PSPH %s --KernelConstructor %s --order %i --cfl %g --nPerh %g --Cl %g --Cq %g  --compatibleEnergy %s --evolveTotalEnergy %s --filter %g --graphics True --clearDirectories True --smoothSpike False --outputFile Sedov-spherical.ascii --boolCullenViscosity %s  --HopkinsConductivity %s --smallPressure True" % (int(50*resMultiplier), int(50*resMultiplier), int(50*resMultiplier), psph, KernelConstructor, order, cfl, nPerh, Cl, Cq, compatibleEnergy, evolveTotalEnergy, filter, boolCullenViscosity, HopkinsConductivity), 
+         label = "Spherical Sedov problem -- 3-D (80 proc %s)" % label,
+         np = 80)
+    test(script = "Hydro/GreshoVortex/GreshoVortex.py",
+         clas = "--nx1 %i --ny1 %i --PSPH %s --KernelConstructor %s --order %i --cfl %g --nPerh %g --Cl %g --Cq %g  --compatibleEnergy %s --evolveTotalEnergy %s --filter %g --graphics True --clearDirectories True --goalTime 3.0 --outputFile GreshoVortex.ascii --boolCullenViscosity %s  --HopkinsConductivity %s" % (int(64*resMultiplier), int(64*resMultiplier), psph, KernelConstructor, order, cfl, nPerh, Cl, Cq, compatibleEnergy, evolveTotalEnergy, filter, boolCullenViscosity, HopkinsConductivity), 
+         label = "Gresho vortex problem -- 2-D (4 proc, %s)" % label,
+         np = 4)
+    nx, ny = int(256*resMultiplier), int(128*resMultiplier)
+    # test(script = "Hydro/KelvinHelmholtz/KelvinHelmholtz-2d_McNally.py",
+    #      clas = "--nx1 %i --nx2 %i --ny1 %i --ny2 %i --PSPH %s --KernelConstructor %s --order %i --cfl %g --nPerh %g --Cl %g --Cq %g  --compatibleEnergy %s --evolveTotalEnergy %s --filter %g --clearDirectories True --graphMixing True --mixFile KH_%s_256x256_ats.gnu --boolCullenViscosity %s  --HopkinsConductivity %s" % (nx, nx, ny, ny, psph, KernelConstructor, order, cfl, nPerh, Cl, Cq, compatibleEnergy, evolveTotalEnergy, filter, label, boolCullenViscosity, HopkinsConductivity), 
+    #      label = "Kelvin-Helmholtz problem -- 2-D (80 proc, %s)" % label,
+    #      np = 80)
+    # nx1, ny1 = int(20*resMultiplier), int(60*resMultiplier)
+    # nx2, ny2 = int(40*resMultiplier), int(10*resMultiplier)
+    # nx3, ny3 = int(120*resMultiplier), int(30*resMultiplier)
+    # test(script = "Hydro/TriplePoint/TriplePoint-xy.py",
+    #      clas = "--nx1 %i --ny1 %i --nx2 %i --ny2 %i --nx3 %i --ny3 %i --PSPH %s --KernelConstructor %s --order %i --cfl %g --nPerh %g --Cl %g --Cq %g  --compatibleEnergy %s --evolveTotalEnergy %s --filter %g --clearDirectories True --XSPH False --boolCullenViscosity %s  --HopkinsConductivity %s" % (nx1, ny1, nx2, ny2, nx3, ny3, psph, KernelConstructor, order, cfl, nPerh, Cl, Cq, compatibleEnergy, evolveTotalEnergy, filter, boolCullenViscosity, HopkinsConductivity), 
+    #      label = "Triple-point problem -- 2-D (level 1 mesh, 4 proc, %s)" % label,
+    #      np = 4)
+    # nx1, ny1 = 2*nx1, 2*ny1
+    # nx2, ny2 = 2*nx2, 2*ny2
+    # nx3, ny3 = 2*nx3, 2*ny3
+    # test(script = "Hydro/TriplePoint/TriplePoint-xy.py",
+    #      clas = "--nx1 %i --ny1 %i --nx2 %i --ny2 %i --nx3 %i --ny3 %i --PSPH %s --KernelConstructor %s --order %i --cfl %g --nPerh %g --Cl %g --Cq %g  --compatibleEnergy %s --evolveTotalEnergy %s --filter %g --clearDirectories True --XSPH False --boolCullenViscosity %s --HopkinsConductivity %s" % (nx1, ny1, nx2, ny2, nx3, ny3, psph, KernelConstructor, order, cfl, nPerh, Cl, Cq, compatibleEnergy, evolveTotalEnergy, filter, boolCullenViscosity, HopkinsConductivity), 
+    #      label = "Triple-point problem -- 2-D (level 2 mesh, 20 proc, %s)" % label,
+    #      np = 20)
+    return
+
+#-------------------------------------------------------------------------------
+# Add the tests.
+#-------------------------------------------------------------------------------
+addTests(True, 4.01, 1)
