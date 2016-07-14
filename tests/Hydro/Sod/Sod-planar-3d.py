@@ -10,12 +10,12 @@ title("1-D integrated hydro test -- planar Sod problem")
 # Generic problem parameters
 #-------------------------------------------------------------------------------
 commandLine(nx1 = 200,
-            ny1 = 80,
-            nz1 = 80,
+            ny1 = 40,
+            nz1 = 40,
 
             nx2 = 100,
-            ny2 = 40,
-            nz2 = 40,
+            ny2 = 20,
+            nz2 = 20,
 
             initialRotation = 0.0,     # Degrees, optionally rotate and clip the initial positions
 
@@ -31,14 +31,14 @@ commandLine(nx1 = 200,
             x2 = 0.5,
 
             y0 = 0.0,
-            y1 = 0.2,
+            y1 = 0.1,
 
             z0 = 0.0,
-            z1 = 0.2,
+            z1 = 0.1,
 
             yzplotbuf = 0.0,
 
-            hsmooth = 0.0,             # Optionally smooth initial discontinuity
+            hsmooth = 0.5,             # Optionally smooth initial discontinuity
             sumInitialDensity = False, # Optionally sum the initial density before setting the pressure and such
 
             nPerh = 1.25,
@@ -77,7 +77,7 @@ commandLine(nx1 = 200,
             hmin = 1e-10,
             hmax = 1.0,
             cfl = 0.5,
-            XSPH = True,
+            XSPH = False,
             epsilonTensile = 0.0,
             nTensile = 8,
             rhoMin = 0.01,
@@ -228,36 +228,49 @@ nodes2 = makeNL("nodes2", eos,
 nodeSet = [nodes1, nodes2]
 
 #-------------------------------------------------------------------------------
-# A function to specify the density profile.
+# Functions to specify the initial density and specific thermal energy with
+# optional smoothing.
 #-------------------------------------------------------------------------------
 dx1 = (x1 - x0)/nx1
 dx2 = (x2 - x1)/nx2
 hfold = hsmooth*max(dx1, dx2)
-def rho_initial(posi):
-    xi = posi.x
-    if xi <= x1 - hfold:
+def rho_initial(xi):
+    if hfold > 0.0:
+        return rho1 + (rho2 - rho1)/(1.0 + exp(-(xi - x1)/hfold))
+    elif xi <= x1:
         return rho1
-    elif xi > x1 + hfold:
-        return rho2
     else:
-        f = 0.5*(sin(0.5*pi*(xi - x1)/hfold) + 1.0)
-        return (1.0 - f)*rho1 + f*rho2
+        return rho2
+
+def specificEnergy(xi, rhoi):
+    if hfold > 0.0:
+        Pi = P1 + (P2 - P1)/(1.0 + exp((-xi - x1)/hfold))
+    elif xi <= x1:
+        Pi = P1
+    else:
+        Pi = P2
+    return Pi/((gammaGas - 1.0)*rhoi)
 
 #-------------------------------------------------------------------------------
 # Set the node properties.
 #-------------------------------------------------------------------------------
-from GenerateNodeDistribution3d import GenerateNodeDistribution3d
-gen1 = GenerateNodeDistribution3d(nx1, ny1, nz1, rho_initial, "lattice",
-                                  xmin = (x0, y0, z0),
-                                  xmax = (x1, y1, z1),
-                                  nNodePerh = nPerh,
-                                  SPH = not ASPH)
-gen2 = GenerateNodeDistribution3d(nx2, ny2, nz2, rho_initial, "lattice",
-                                  xmin = (x1, y0, z0),
-                                  xmax = (x2, y1, z1),
-                                  nNodePerh = nPerh,
-                                  SPH = not ASPH)
-
+from GenerateNodeProfile import GeneratePlanarNodeProfile3d
+gen1 = GeneratePlanarNodeProfile3d(nx = nx1,
+                                   ny = ny1,
+                                   nz = nz1,
+                                   rho = rho_initial,
+                                   xmin = (x0, y0, z0),
+                                   xmax = (x1, y1, z1),
+                                   nNodePerh = nPerh,
+                                   SPH = not ASPH)
+gen2 = GeneratePlanarNodeProfile3d(nx = nx2,
+                                   ny = ny2,
+                                   nz = nz2,
+                                   rho = rho_initial,
+                                   xmin = (x1, y0, z0),
+                                   xmax = (x2, y1, z1),
+                                   nNodePerh = nPerh,
+                                   SPH = not ASPH)
 if mpi.procs > 1:
     from VoronoiDistributeNodes import distributeNodes3d
 else:
@@ -279,16 +292,6 @@ for n in nodeSet:
 del n
 
 # Set node specific thermal energies
-def specificEnergy(xi, rhoi):
-    if xi <= x1 - hfold:
-        Pi = P1
-    elif xi > x1 + hfold:
-        Pi = P2
-    else:
-        f = 0.5*(sin(0.5*pi*(xi - x1)/hfold) + 1.0)
-        Pi = (1.0 - f)*P1 + f*P2
-    return Pi/((gammaGas - 1.0)*rhoi)
-
 for nodes in nodeSet:
     pos = nodes.positions()
     eps = nodes.specificThermalEnergy()
