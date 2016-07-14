@@ -1,0 +1,303 @@
+classes = fractal_memory.hh classes.hh point_class.hh  group_class.hh fractal_class.hh misc_class.hh particle_class.hh libs.hh headers.hh
+fopt1 = -pedantic -pg -O3
+Wopt1 = -Wall
+fftopt1 = -DNDEBUG
+lopt1 = /usr/bin/cygfftw3-3.dll
+dir   = /usr/bin/
+compile = g++
+cosmos_power_file = cosmos_power
+halo_file = halo_force_sph_harm
+halo_fixed_file = halo_force_flat
+parameter_file = fractal_memory_parameters_cosmo
+particle_file = make_particles_cosmo
+poisson_file = sor_2
+velocity_file = velocities
+energy_file = energy_leapfrog
+step_file = step_leapfrog
+#
+add_dens.o :	add_dens.cc $(classes)
+	$(compile) $(fopt1) $(Wopt1) -c add_dens.cc
+#
+adj_nina.o :	adj_nina.cc $(classes)
+	$(compile) $(fopt1) $(Wopt1) -c adj_nina.cc
+#
+assign_density.o :	assign_density.cc $(classes)
+	$(compile) $(fopt1) $(Wopt1) -c assign_density.cc
+#
+buffer_points.o :	buffer_points.cc $(classes)
+	$(compile) $(fopt1) $(Wopt1) -c buffer_points.cc
+#
+candidate_points.o :	candidate_points.cc $(classes)
+	$(compile) $(fopt1) $(Wopt1) -c candidate_points.cc
+#
+check_for_edge_trouble.o :	check_for_edge_trouble.cc $(classes)
+	$(compile) $(fopt1) $(Wopt1) -c check_for_edge_trouble.cc
+#
+check_high.o :	check_high.cc $(classes)
+	$(compile) $(fopt1) $(Wopt1) -c check_high.cc
+#
+clean_up.o :	clean_up.cc $(classes)
+	$(compile) $(fopt1) $(Wopt1) -c clean_up.cc
+#
+cosmos.o :	cosmos.cc $(classes)
+	$(compile) $(fopt1) $(Wopt1) -c cosmos.cc
+#
+daughter_group_nina.o :	daughter_group_nina.cc $(classes)
+	$(compile) $(fopt1) $(Wopt1) -c daughter_group_nina.cc
+#
+density_edge.o :	density_edge.cc $(classes)
+	$(compile) $(fopt1) $(Wopt1) -c density_edge.cc
+#
+energies.o :	energies.cc $(classes) nbody.hh
+	$(compile) $(fopt1) $(Wopt1) -c energies.cc
+#
+equivalence_class.o :	equivalence_class.cc $(classes)
+	$(compile) $(fopt1) $(Wopt1) -c equivalence_class.cc
+#
+fix_memory.o :	fix_memory.cc $(classes)
+	$(compile) $(fopt1) $(Wopt1) -c fix_memory.cc
+#
+go_ahead_points.o :	go_ahead_points.cc $(classes)
+	$(compile) $(fopt1) $(Wopt1) -c go_ahead_points.cc
+#
+high_pairs.o :	high_pairs.cc $(classes)
+	$(compile) $(fopt1) $(Wopt1) -c high_pairs.cc
+#
+high_points.o :	high_points.cc $(classes)
+	$(compile) $(fopt1) $(Wopt1) -c high_points.cc
+#
+fftw++.o :	fftw++.cc $(classes)
+	$(compile) $(fopt1) $(fftopt1) $(Wopt1) -c fftw++.cc
+#
+force_at_particle_other.o :	force_at_particle_other.cc $(classes)
+	$(compile) $(fopt1) $(Wopt1) -c force_at_particle_other.cc
+#
+force_at_particle.o :	force_at_particle.cc $(classes)
+	$(compile) $(fopt1) $(Wopt1) -c force_at_particle.cc
+#
+force_at_particle_sharp.o :	force_at_particle_sharp.cc $(classes)
+	$(compile) $(fopt1) $(Wopt1) -c force_at_particle_sharp.cc
+#
+force_at_point.o :	force_at_point.cc $(classes)
+	$(compile) $(fopt1) $(Wopt1) -c force_at_point.cc
+#
+force_at_point_initial.o :	force_at_point_initial.cc $(classes)
+	$(compile) $(fopt1) $(Wopt1) -c force_at_point_initial.cc
+#
+force_shear_at_particle.o :	force_shear_at_particle.cc $(classes)
+	$(compile) $(fopt1) $(Wopt1) -c force_shear_at_particle.cc
+#
+force_shear_at_point.o :	force_shear_at_point.cc $(classes)
+	$(compile) $(fopt1) $(Wopt1) -c force_shear_at_point.cc
+#
+force_sum_particle.o :	force_sum_particle.cc $(classes)
+	$(compile) $(fopt1) $(Wopt1) -c force_sum_particle.cc
+#
+force_test.o :	force_test.cc $(classes)
+	$(compile) $(fopt1) $(Wopt1) -c force_test.cc
+#
+fractal_gravity.o :	fractal_gravity.cc  $(classes) 
+	$(compile) $(fopt1) $(Wopt1) -c fractal_gravity.cc
+#
+fractal_gravity_wrapper.o :	fractal_gravity_wrapper.cc  $(classes) 
+	$(compile) $(fopt1) $(Wopt1) -c fractal_gravity_wrapper.cc
+#
+fractal_nbody.o :	fractal_nbody.cc $(classes)
+	$(compile) $(fopt1) $(Wopt1) -c fractal_nbody.cc
+#
+fractal_nbody_per.o :	fractal_nbody_per.cc $(classes)
+	$(compile) $(fopt1) $(Wopt1) -c fractal_nbody_per.cc
+#
+heavies.o :	heavies.cc $(classes)
+	$(compile) $(fopt1) $(Wopt1) -c heavies.cc
+#
+high_groups.o :	high_groups.cc $(classes)
+	$(compile) $(fopt1) $(Wopt1) -c high_groups.cc
+#
+highest_level_group.o :	highest_level_group.cc $(classes)
+	$(compile) $(fopt1) $(Wopt1) -c highest_level_group.cc
+#
+highest_level_group_other.o :	highest_level_group_other.cc $(classes)
+	$(compile) $(fopt1) $(Wopt1) -c highest_level_group_other.cc
+#
+initial_forces.o :	initial_forces.cc $(classes)
+	$(compile) $(fopt1) $(Wopt1) -c initial_forces.cc
+#
+initial_forces_sharp.o :	initial_forces_sharp.cc $(classes)
+	$(compile) $(fopt1) $(fftopt1) $(Wopt1) -c initial_forces_sharp.cc
+#
+isolated_solver.o :	isolated_solver.cc $(classes) 
+	$(compile) $(fopt1) $(fftopt1) $(Wopt1) -c isolated_solver.cc
+#
+interface_fake.o :	interface_fake.cc $(classes) 
+	$(compile) $(fopt1) $(fftopt1) $(Wopt1) -c interface_fake.cc
+#
+it_is_inside.o :	it_is_inside.cc $(classes)
+	$(compile) $(fopt1) $(Wopt1) -c it_is_inside.cc
+#
+list_buffer.o :	list_buffer.cc $(classes)
+	$(compile) $(fopt1) $(Wopt1) -c list_buffer.cc
+#
+make_decisions_erika.o :	make_decisions_erika.cc $(classes)
+	$(compile) $(fopt1) $(Wopt1) -c make_decisions_erika.cc
+#
+make_sphere.o :	make_sphere.cc $(classes)
+	$(compile) $(fopt1) $(Wopt1) -c make_sphere.cc
+#
+max_predict.o :	max_predict.cc $(classes)
+	$(compile) $(fopt1) $(Wopt1) -c max_predict.cc
+#
+neighbor_easy.o :	neighbor_easy.cc $(classes)
+	$(compile) $(fopt1) $(Wopt1) -c neighbor_easy.cc
+#
+neighbors_nina.o :	neighbors_nina.cc $(classes)
+	$(compile) $(fopt1) $(Wopt1) -c neighbors_nina.cc
+#
+nbody_fractal.o :	nbody_fractal.cc $(classes) nbody.hh
+	$(compile) $(fopt1) $(Wopt1) -c nbody_fractal.cc
+#
+offset.o :	offset.cc $(classes)
+	$(compile) $(fopt1) $(Wopt1) -c offset.cc $(classes)
+#
+particle_lists.o :	particle_lists.cc $(classes)
+	$(compile) $(fopt1) $(Wopt1) -c particle_lists.cc
+#
+particle_lists_fixed.o :	particle_lists_fixed.cc $(classes)
+	$(compile) $(fopt1) $(Wopt1) -c particle_lists_fixed.cc
+#
+periodic_solver.o :	periodic_solver.cc $(classes)
+	$(compile) $(fopt1) $(fftopt1) $(Wopt1) -c periodic_solver.cc
+#
+poisson_solver.o :	poisson_solver.cc $(classes)
+	$(compile) $(fopt1) $(Wopt1) -c poisson_solver.cc
+#
+potential_start.o :	potential_start.cc $(classes)
+	$(compile) $(fopt1) $(Wopt1) -c potential_start.cc
+#
+power_spectrum.o :	power_spectrum.cc $(classes)
+	$(compile) $(fopt1) $(fftopt1) $(Wopt1) -c power_spectrum.cc
+#
+pseudo_fractal.o :	pseudo_fractal.cc $(classes)
+	$(compile) $(fopt1) $(Wopt1) -c pseudo_fractal.cc
+#
+sort_3.o :	sort_3.cc $(classes)
+	$(compile) $(fopt1) $(Wopt1) -c sort_3.cc
+#
+split_particle.o :	split_particle.cc $(classes)
+	$(compile) $(fopt1) $(Wopt1) -c split_particle.cc
+#
+sum_prod.o :	sum_prod.cc $(classes)
+	$(compile) $(fopt1) $(Wopt1) -c sum_prod.cc
+#
+sort3_list.o :	sort3_list.cc $(classes)
+	$(compile) $(fopt1) $(Wopt1) -c sort3_list.cc
+#
+std_sort_list_3.o :	std_sort_list_3.cc $(classes)
+	$(compile) $(fopt1) $(Wopt1) -c std_sort_list_3.cc
+#
+sum_up.o :	sum_up.cc $(classes)
+	$(compile) $(fopt1) $(Wopt1) -c sum_up.cc
+#
+take_a_step.o :	take_a_step.cc $(classes) nbody.hh
+	$(compile) $(fopt1) $(Wopt1) -c take_a_step.cc
+#
+test_up_down.o :	test_up_down.cc $(classes)
+	$(compile) $(fopt1) $(Wopt1) -c test_up_down.cc
+#
+test_group.o :	test_group.cc $(classes)
+	$(compile) $(fopt1) $(Wopt1) -c test_group.cc
+#
+test_tree.o :	test_tree.cc $(classes)
+	$(compile) $(fopt1) $(Wopt1) -c test_tree.cc
+#
+tree_start.o :	tree_start.cc $(classes)
+	$(compile) $(fopt1) $(Wopt1) -c tree_start.cc
+#
+try_harder.o :	try_harder.cc $(classes)
+	$(compile) $(fopt1) $(Wopt1) -c try_harder.cc
+#
+update_rv.o :	update_rv.cc $(classes)
+	$(compile) $(fopt1) $(Wopt1) -c update_rv.cc
+#
+write_rv.o :	write_rv.cc $(classes)
+	$(compile) $(fopt1) $(Wopt1) -c write_rv.cc
+#
+$(cosmos_power_file).o :	$(cosmos_power_file).cc $(classes)
+	$(compile) $(fopt1) $(Wopt1) -c $(cosmos_power_file).cc
+#
+$(energy_file).o :	$(energy_file).cc $(classes) 
+	$(compile) $(fopt1) $(Wopt1) -c $(energy_file).cc
+#
+$(halo_file).o :	$(halo_file).cc $(classes)
+	$(compile) $(fopt1) $(Wopt1) -c $(halo_file).cc
+#
+$(halo_fixed_file).o :	$(halo_fixed_file).cc $(classes)
+	$(compile) $(fopt1) $(Wopt1) -c $(halo_fixed_file).cc
+#
+$(parameter_file).o :	$(parameter_file).cc $(classes)
+	$(compile) $(fopt1) $(Wopt1) -c $(parameter_file).cc
+#
+$(particle_file).o :	$(particle_file).cc $(classes)
+	$(compile) $(fopt1) $(Wopt1) -c $(particle_file).cc
+#
+$(poisson_file).o :	$(poisson_file).cc $(classes)
+	$(compile) $(fopt1) $(Wopt1) -c $(poisson_file).cc
+#
+$(step_file).o :	$(step_file).cc $(classes)
+	$(compile) $(fopt1) $(Wopt1) -c $(step_file).cc
+#
+$(velocity_file).o :	$(velocity_file).cc $(classes)
+	$(compile) $(fopt1) $(Wopt1) -c $(velocity_file).cc
+#
+files_fractal_nina_o= \
+adj_nina.o \
+assign_density.o \
+buffer_points.o \
+candidate_points.o \
+check_for_edge_trouble.o \
+check_high.o \
+clean_up.o \
+cosmos.o \
+daughter_group_nina.o \
+equivalence_class.o \
+fftw++.o \
+fix_memory.o \
+force_at_particle.o \
+force_at_particle_other.o \
+force_at_particle_sharp.o \
+force_at_point.o \
+force_at_point_initial.o \
+force_shear_at_particle.o \
+force_shear_at_point.o \
+force_sum_particle.o \
+force_test.o \
+fractal_gravity.o \
+fractal_gravity_wrapper.o \
+go_ahead_points.o \
+heavies.o\
+high_groups.o \
+high_pairs.o \
+high_points.o \
+initial_forces_sharp.o \
+isolated_solver.o \
+list_buffer.o \
+max_predict.o \
+neighbor_easy.o \
+particle_lists.o \
+particle_lists_fixed.o \
+periodic_solver.o \
+poisson_solver.o \
+potential_start.o \
+power_spectrum.o \
+sort3_list.o \
+split_particle.o \
+test_group.o \
+test_tree.o \
+tree_start.o \
+try_harder.o \
+update_rv.o \
+write_rv.o
+#
+fractal_mpi : 	$(files_fractal_nina_o) $(files_step_o) fractal_nbody.o $(cosmos_power_file).o $(energy_file).o $(halo_file).o $(halo_fixed_file).o $(parameter_file).o $(particle_file).o $(poisson_file).o $(step_file).o $(velocity_file).o
+	$(compile) $(lopt1) -o $(dir)fractal_nbody_nina_vector.exe fractal_nbody.o $(cosmos_power_file).o $(energy_file).o $(halo_file).o $(halo_fixed_file).o $(parameter_file).o $(particle_file).o $(poisson_file).o $(step_file).o $(velocity_file).o $(files_fractal_nina_o) $(files_step_o)
+#
