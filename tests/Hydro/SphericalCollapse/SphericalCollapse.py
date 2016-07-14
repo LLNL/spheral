@@ -14,7 +14,7 @@ title("3-D integrated hydro test -- spherical collapse to disk")
 #-------------------------------------------------------------------------------
 # Generic problem parameters
 #-------------------------------------------------------------------------------
-commandLine(seed = "ico",
+commandLine(seed = "lattice",
 
             nx = 50,
             ny = 50,
@@ -24,17 +24,18 @@ commandLine(seed = "ico",
             KernelConstructor = BSplineKernel,
             order = 5,
 
-            M0 = 100.0,
+            M0 = 1.0,
             G0 = 1.0,
-            Rc = 0.25,
+            Rc = 0.01,
             R0 = Vector(0.0,0.0,0.0),
 
             rmin = 0.0,
             rmax = 1.0,
 
-            rho0 = 1.0,
+            fvelSupport = 1.0,
+
+            rho0 = 1.0e-4,
             eps0 = 0.5,
-            omega = 0.01,
             smallPressure = False,
             Espike = 1.0,
             smoothSpike = True,
@@ -208,7 +209,7 @@ if restoreCycle is None:
     if seed == "lattice":
         generator = GenerateNodeDistribution3d(nx, ny, nz,
                                                rho0, seed,
-                                               xmin = (0.0, 0.0, 0.0),
+                                               xmin = (-1.0, -1.0, -1.0),
                                                xmax = (1.0, 1.0, 1.0),
                                                rmin = 0.0,
                                                rmax = 1.0,
@@ -235,18 +236,22 @@ if restoreCycle is None:
     r = nodes1.positions()
     m = nodes1.mass()
     e = nodes1.specificThermalEnergy()
+    omega = sqrt(G0*M0/rmax**3)
     for i in xrange(nodes1.numInternalNodes):
         x = r[i].x
         y = r[i].y
         z = r[i].z
         vx = -omega*y
         vy = omega*x
-        v[i].x = vx
-        v[i].y = vy
+        v[i].x = fvelSupport*vx
+        v[i].y = fvelSupport*vy
         rr = r[i].magnitude()
-        P = rho0*G0*M0*(1.0/rr-1.0/rmax)
-        eps = eps0*P/rho0*(1.0/(gamma-1.0))
-        e[i] = eps
+        rz = sqrt(x*x+y*y)
+        theta = atan2(rz,z)
+        if (rr > 0.0):
+            P = rho0*G0*M0*(1.0/rr-1.0/rmax)*(1.0-fvelSupport*sin(theta))
+            eps = P/rho0*(1.0/(gamma-1.0))
+            e[i] = eps
         
     # Set the point source of energy.
 
