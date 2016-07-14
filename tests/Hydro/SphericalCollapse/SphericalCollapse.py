@@ -24,13 +24,16 @@ commandLine(seed = "ico",
             KernelConstructor = BSplineKernel,
             order = 5,
 
-            M0 = 1000.0,
+            M0 = 100.0,
             G0 = 1.0,
             Rc = 0.25,
             R0 = Vector(0.0,0.0,0.0),
 
+            rmin = 0.0,
+            rmax = 1.0,
+
             rho0 = 1.0,
-            eps0 = 0.0,
+            eps0 = 0.5,
             omega = 0.01,
             smallPressure = False,
             Espike = 1.0,
@@ -106,10 +109,6 @@ commandLine(seed = "ico",
             outputFile = "None",
             )
 
-if smallPressure:
-    P0 = 1.0e-6
-    eps0 = P0/((gamma - 1.0)*rho0)
-    print "WARNING: smallPressure specified, so setting eps0=%g" % eps0
 
 assert not(boolReduceViscosity and boolCullenViscosity)
 
@@ -218,7 +217,7 @@ if restoreCycle is None:
     else:
         generator = GenerateIcosahedronMatchingProfile3d(n=ns,
                                                          densityProfileMethod=rho0,
-                                                         rmin=0.0,rmax=1.0,
+                                                         rmin=rmin,rmax=rmax,
                                                          nNodePerh=nPerh)
 
     if mpi.procs > 1:
@@ -231,17 +230,23 @@ if restoreCycle is None:
     output("mpi.reduce(nodes1.numInternalNodes, mpi.MAX)")
     output("mpi.reduce(nodes1.numInternalNodes, mpi.SUM)")
 
-    # Set the velocities
+    # Set the velocities and energies
     v = nodes1.velocity()
     r = nodes1.positions()
     m = nodes1.mass()
+    e = nodes1.specificThermalEnergy()
     for i in xrange(nodes1.numInternalNodes):
         x = r[i].x
         y = r[i].y
+        z = r[i].z
         vx = -omega*y
         vy = omega*x
         v[i].x = vx
         v[i].y = vy
+        rr = r[i].magnitude()
+        P = rho0*G0*M0*(1.0/rr-1.0/rmax)
+        eps = eps0*P/rho0*(1.0/(gamma-1.0))
+        e[i] = eps
         
     # Set the point source of energy.
 
@@ -343,6 +348,7 @@ elif boolCullenViscosity:
 #-------------------------------------------------------------------------------
 # Construct a time integrator, and add the one physics package.
 #-------------------------------------------------------------------------------
+packages.append(gravity)
 integrator = IntegratorConstructor(db)
 for p in packages:
     integrator.appendPhysicsPackage(p)
@@ -377,6 +383,7 @@ output("control")
 #-------------------------------------------------------------------------------
 # Finally run the problem and plot the results.
 #-------------------------------------------------------------------------------
+
 v = nodes1.velocity()
 r = nodes1.positions()
 m = nodes1.mass()
@@ -404,6 +411,7 @@ else:
 print "Energy conservation: ", ((control.conserve.EHistory[-1] -
                                  control.conserve.EHistory[0])/
                                 control.conserve.EHistory[0])
+
 totalL = 0
 for i in xrange(nodes1.numInternalNodes):
     x = r[i].x
@@ -415,3 +423,4 @@ for i in xrange(nodes1.numInternalNodes):
     totalL += m[i]*sqrt((y*vz-z*vy)**2+(z*vx-x*vz)**2+(x*vy-y*vx)**2)
 
 print "Total L=%e" % totalL
+
