@@ -44,7 +44,8 @@ PYTHONTARGETS = \
 	$(srcdir)/StretchedLattice3d.py \
 	$(srcdir)/SiloPolyMeshGenerator.py \
 	$(srcdir)/GenerateRatioSlab2d.py \
-	$(srcdir)/GenerateRatioSphere.py
+	$(srcdir)/GenerateRatioSphere.py \
+	$(srcdir)/GenerateNodeProfile.py
 
 #-------------------------------------------------------------------------------
 include $(BUILDTOP)/helpers/makefile_master

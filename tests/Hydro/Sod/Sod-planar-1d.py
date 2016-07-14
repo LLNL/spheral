@@ -24,7 +24,7 @@ commandLine(nx1 = 400,
             x1 = 0.0,
             x2 = 0.5,
 
-            hsmooth = 0.0,             # Optionally smooth initial discontinuity
+            hsmooth = 0.5,             # Optionally smooth initial discontinuity, expressed as particle spacings
             sumInitialDensity = False, # Optionally sum the initial density before setting the pressure and such
 
             nPerh = 1.25,
@@ -189,44 +189,59 @@ nodes2 = makeNL("nodes2", eos,
 nodeSet = [nodes1, nodes2]
 
 #-------------------------------------------------------------------------------
-# A function to specify the density profile.
+# Functions to specify the initial density and specific thermal energy with
+# optional smoothing.
 #-------------------------------------------------------------------------------
 dx1 = (x1 - x0)/nx1
 dx2 = (x2 - x1)/nx2
 hfold = hsmooth*max(dx1, dx2)
 def rho_initial(xi):
-    if xi < x1 - hfold:
+    if hfold > 0.0:
+        return rho1 + (rho2 - rho1)/(1.0 + exp(-(xi - x1)/hfold))
+    elif xi <= x1:
         return rho1
-    elif xi > x1 + hfold:
-        return rho2
     else:
-        f = 0.5*(sin(0.5*pi*(xi - x1)/hfold) + 1.0)
-        return (1.0 - f)*rho1 + f*rho2
+        return rho2
+
+def specificEnergy(xi, rhoi):
+    if hfold > 0.0:
+        Pi = P1 + (P2 - P1)/(1.0 + exp((-xi - x1)/hfold))
+    elif xi <= x1:
+        Pi = P1
+    else:
+        Pi = P2
+    return Pi/((gammaGas - 1.0)*rhoi)
 
 #-------------------------------------------------------------------------------
 # Set the node properties.
 #-------------------------------------------------------------------------------
-from DistributeNodes import distributeNodesInRange1d
+from GenerateNodeProfile import GenerateNodeProfile1d
+from VoronoiDistributeNodes import distributeNodes1d
+mi = 0.5*(dx1*rho1 + dx2*rho2)
 if numNodeLists == 1:
-    distributeNodesInRange1d([(nodes1, [(nx1, rho_initial, (x0, x1)), 
-                                        (nx2, rho_initial, (x1, x2))])])
+    gen = GenerateNodeProfile1d(mi = mi,
+                                rho = rho_initial,
+                                xmin = x0,
+                                xmax = x2,
+                                nNodePerh = nPerh)
+    distributeNodes1d((nodes1, gen))
 else:
-    distributeNodesInRange1d([(nodes1, [(nx1, rho_initial, (x0, x1))]),
-                              (nodes2, [(nx2, rho_initial, (x1, x2))])])
+    gen1 = GenerateNodeProfile1d(mi = mi,
+                                 rho = rho_initial,
+                                 xmin = x0,
+                                 xmax = x1,
+                                 nNodePerh = nPerh)
+    gen2 = GenerateNodeProfile1d(mi = mi,
+                                 rho = rho_initial,
+                                 xmin = x1,
+                                 xmax = x2,
+                                 nNodePerh = nPerh)
+    distributeNodes1d((nodes1, gen1),
+                      (nodes2, gen2))
 output("nodes1.numNodes")
 output("nodes2.numNodes")
 
 # Set node specific thermal energies
-def specificEnergy(xi, rhoi):
-    if xi < x1 - hfold:
-        Pi = P1
-    elif xi > x1 + hfold:
-        Pi = P2
-    else:
-        f = 0.5*(sin(0.5*pi*(xi - x1)/hfold) + 1.0)
-        Pi = (1.0 - f)*P1 + f*P2
-    return Pi/((gammaGas - 1.0)*rhoi)
-
 for nodes in nodeSet:
     pos = nodes.positions()
     eps = nodes.specificThermalEnergy()
