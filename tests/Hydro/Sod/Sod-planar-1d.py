@@ -217,21 +217,20 @@ def specificEnergy(xi, rhoi):
 #-------------------------------------------------------------------------------
 from GenerateNodeProfile import GenerateNodeProfile1d
 from VoronoiDistributeNodes import distributeNodes1d
-mi = 0.5*(dx1*rho1 + dx2*rho2)
 if numNodeLists == 1:
-    gen = GenerateNodeProfile1d(mi = mi,
+    gen = GenerateNodeProfile1d(nx = nx1 + nx2,
                                 rho = rho_initial,
                                 xmin = x0,
                                 xmax = x2,
                                 nNodePerh = nPerh)
     distributeNodes1d((nodes1, gen))
 else:
-    gen1 = GenerateNodeProfile1d(mi = mi,
+    gen1 = GenerateNodeProfile1d(nx = nx1,
                                  rho = rho_initial,
                                  xmin = x0,
                                  xmax = x1,
                                  nNodePerh = nPerh)
-    gen2 = GenerateNodeProfile1d(mi = mi,
+    gen2 = GenerateNodeProfile1d(nx = nx2,
                                  rho = rho_initial,
                                  xmin = x1,
                                  xmax = x2,

@@ -3,8 +3,9 @@ import numpy as np
 
 from NodeGeneratorBase import *
 
-from Spheral import Vector1d, Tensor1d, SymTensor1d, \
-     rotationMatrix1d, testPointInBox1d
+from Spheral import (Vector1d, Tensor1d, SymTensor1d,
+                     Vector2d, Tensor2d, SymTensor2d, rotationMatrix2d, testPointInBox2d,
+                     Vector3d, Tensor3d, SymTensor3d, rotationMatrix3d, testPointInBox3d)
 from SpheralTestUtilities import fuzzyEqual
 
 #-------------------------------------------------------------------------------
@@ -17,14 +18,14 @@ class GenerateNodeProfile1d(NodeGeneratorBase):
     # Constructor
     #---------------------------------------------------------------------------
     def __init__(self,
-                 mi,                 # target mass per point
+                 nx,                 # number of points to generate
                  rho,                # density profile
                  xmin,
                  xmax,
                  nNodePerh = 2.01,
                  numbins = 10000):
 
-        assert mi > 0.0
+        assert nx > 0
         assert xmin < xmax
         assert nNodePerh > 0.0
 
@@ -40,6 +41,11 @@ class GenerateNodeProfile1d(NodeGeneratorBase):
         while not ok:
             dx = (xmax - xmin)/numbins
             mcum = np.cumsum(np.array([0.0] + [0.5*dx*(self.rhofunc(xmin + i*dx) + self.rhofunc(xmin + (i + 1)*dx)) for i in xrange(numbins)]))
+
+            # Find the target mass per node.
+            mi = mcum[-1]/nx
+
+            # Do we need to have a finer binning?
             if mcum[-1]/mi > 0.5*numbins:
                 numbins = int(2*mcum[-1]/mi)
                 print "Warning, boosting numbins to %i to increase mass resolution for interpolation" % numbins
@@ -90,6 +96,100 @@ class GenerateNodeProfile1d(NodeGeneratorBase):
     def localPosition(self, i):
         assert i >= 0 and i < len(self.x)
         return Vector1d(self.x[i])
+
+    #---------------------------------------------------------------------------
+    # Get the mass for the given node index.
+    #---------------------------------------------------------------------------
+    def localMass(self, i):
+        assert i >= 0 and i < len(self.m)
+        return self.m[i]
+
+    #---------------------------------------------------------------------------
+    # Get the mass density for the given node index.
+    #---------------------------------------------------------------------------
+    def localMassDensity(self, i):
+        assert i >= 0 and i < len(self.x)
+        return self.rho[i]
+
+    #---------------------------------------------------------------------------
+    # Get the H tensor for the given node index.
+    #---------------------------------------------------------------------------
+    def localHtensor(self, i):
+        assert i >= 0 and i < len(self.H)
+        return self.H[i]
+
+#-------------------------------------------------------------------------------
+# Similarly generate a 1D profile in 2D along the x-direction.
+#-------------------------------------------------------------------------------
+class GeneratePlanarNodeProfile2d(NodeGeneratorBase):
+
+    #---------------------------------------------------------------------------
+    # Constructor
+    #---------------------------------------------------------------------------
+    def __init__(self,
+                 nx,                 # target number of points in x
+                 ny,                 # target number of points in y
+                 rho,                # density profile, must be 1D function
+                 xmin,               # (xmin, ymin) coordinates
+                 xmax,               # (xmax, ymax) coordinates
+                 nNodePerh = 2.01,
+                 numbins = 10000,
+                 SPH = False):
+
+        assert nx > 0
+        assert ny > 0
+        assert xmin[0] < xmax[0]
+        assert xmin[1] < xmax[1]
+        assert nNodePerh > 0.0
+
+        # First use the 1D generator to generate a 1D slice profile along x.
+        gen1d = GenerateNodeProfile1d(nx = nx,
+                                      rho = rho,
+                                      xmin = xmin[0],
+                                      xmax = xmax[0],
+                                      nNodePerh = nNodePerh,
+                                      numbins = numbins)
+
+        # Stitch the 1D profiles back into serial data.
+        gen1d.x = mpi.allreduce(gen1d.x, mpi.SUM)
+        gen1d.m = mpi.allreduce(gen1d.m, mpi.SUM)
+        gen1d.rho = mpi.allreduce(gen1d.rho, mpi.SUM)
+        gen1d.H = mpi.allreduce(gen1d.H, mpi.SUM)
+        n1d = len(gen1d.x)
+
+        # Replicate the 1D slices into the full 2D data.
+        self.x = []
+        self.y = []
+        self.m = []
+        self.rho = []
+        self.H = []
+        dy = (xmax[1] - xmin[1])/ny
+        hyinv = 1.0/(nNodePerh*dy)
+        for iy in xrange(ny):
+            self.x += gen1d.x
+            self.y += [xmin[1] + (iy + 0.5)*dy]*n1d
+            self.m += [mi*(xmax[1] - xmin[1])/ny for mi in gen1d.m]
+            self.rho += gen1d.rho
+            self.H += [SymTensor2d(H1d.xx, 0.0, 0.0, hyinv) for H1d in gen1d.H]
+
+        # Have the base class break up the serial node distribution
+        # for parallel cases.
+        NodeGeneratorBase.__init__(self, True,
+                                   self.x, self.m, self.rho, self.H)
+
+        # If we're forcing round H tensors, do it.
+        if SPH:
+            self.makeHround()
+
+        return
+
+    #---------------------------------------------------------------------------
+    # Get the position for the given node index.
+    #---------------------------------------------------------------------------
+    def localPosition(self, i):
+        assert i >= 0 and i < len(self.x)
+        assert len(self.x) == len(self.y)
+        return Vector2d(self.x[i], self.y[i])
 
     #---------------------------------------------------------------------------
     # Get the mass for the given node index.
