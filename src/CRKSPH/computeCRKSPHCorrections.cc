@@ -251,7 +251,8 @@ computeLinearCRKSPHCorrections(const FieldSpace::FieldList<Dimension, typename D
       const Vector& m1i = m1(nodeListi, i);
       const SymTensor& m2i = m2(nodeListi, i);
       const Scalar hdet2 = 1.0/FastMath::square(H(nodeListi, i).Determinant());
-      const SymTensor m2inv = min(abs(m2i.Determinant()), abs((m2i - m1i.selfdyad()).Determinant())) > 1.0e-4*hdet2 ? m2i.Inverse() : SymTensor::zero;
+      const Scalar m2det = m2i.Determinant();
+      const SymTensor m2inv = abs(m2det) > 1.0e-5*hdet2 ? m2i.Inverse() : SymTensor::zero;
       const Vector m2invm1 = m2inv*m1(nodeListi, i);
       const Scalar Ainv = m0(nodeListi, i) - m2invm1.dot(m1(nodeListi, i));
       CHECK(Ainv != 0.0);
@@ -368,7 +369,8 @@ computeQuadraticCRKSPHCorrections(const FieldSpace::FieldList<Dimension, typenam
       const FourthRankTensor& gm3i = gradm3(nodeListi, i);
       const FifthRankTensor& gm4i = gradm4(nodeListi, i);
       const Scalar hdet2 = 1.0/FastMath::square(H(nodeListi, i).Determinant());
-      const SymTensor m2inv = min(abs(m2i.Determinant()), abs((m2i - m1i.selfdyad()).Determinant())) > 1.0e-4*hdet2 ? m2i.Inverse() : SymTensor::zero;
+      const Scalar m2det = m2i.Determinant();
+      const SymTensor m2inv = abs(m2det) > 1.0e-5*hdet2 ? m2i.Inverse() : SymTensor::zero;
       const FourthRankTensor L = innerProduct<Dimension>(m3i, innerProduct<Dimension>(m2inv, m3i)) - m4i;
 
       // const FourthRankTensor Linv = invertRankNTensor(L);

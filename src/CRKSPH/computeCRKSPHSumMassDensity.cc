@@ -144,7 +144,7 @@ computeCRKSPHSumMassDensity(const ConnectivityMap<Dimension>& connectivityMap,
       // Finalize the density for node i.
       Wj = CRKSPHKernel(W, correctionOrder, Vector::zero, Vector::zero, Hdeti, Vector::zero, Hdeti, Ai, Bi, Ci);
       // Wj = W.kernelValue(0.0, Hdeti);
-      massDensity(nodeListi, i) = max(rhoMin, 
+      massDensity(nodeListi, i) = max(max(rhoMin, mi*Hdeti),
                                       min(rhoMax,
                                           // (massDensity(nodeListi, i) + mi*Wj)));
                                           (massDensity(nodeListi, i) + mi*Vi*Wj)/
