@@ -116,6 +116,7 @@ commandLine(asph = False,
             epsilon2 = 1e-4,
             negligibleSoundSpeed = 1e-5,
             csMultiplier = 0.1,
+            correctionOrder = LinearOrder,
             hmin = 0.004,
             hmax = 10.0,
             hminratio = 0.1,
@@ -398,6 +399,7 @@ elif CRKSPH:
                              compatibleEnergyEvolution = compatibleEnergy,
                              XSPH = XSPH,
                              densityUpdate = densityUpdate,
+                             correctionOrder = correctionOrder,
                              HUpdate = HUpdate)
 else:
     hydro = HydroConstructor(W = WT,
