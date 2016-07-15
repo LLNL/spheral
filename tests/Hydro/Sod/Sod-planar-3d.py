@@ -549,10 +549,12 @@ A = [Pi/rhoi**gammaGas for (Pi, rhoi) in zip(P, rho)]
 
 # The analytic solution for the simulated entropy.
 xprof = [x.x for x in createList(db.fluidPosition)]
-vprof = [v.x for v in createList(db.fluidVelocity)]
+vxprof = [v.x for v in createList(db.fluidVelocity)]
+vyprof = [v.y for v in createList(db.fluidVelocity)]
+vzprof = [v.z for v in createList(db.fluidVelocity)]
 epsprof = createList(db.fluidSpecificThermalEnergy)
 hprof = [1.0/Hi.xx for Hi in createList(db.fluidHfield)]
-multiSort(xprof, rho, P, A, vprof, epsprof, hprof)
+multiSort(xprof, rho, P, A, vxprof, vyprof, vzprof, epsprof, hprof)
 xans, vans, uans, rhoans, Pans, hans = answer.solution(control.time(), xprof)
 Aans = [Pi/rhoi**gammaGas for (Pi, rhoi) in zip(Pans,  rhoans)]
 csAns = [sqrt(gammaGas*Pi/rhoi) for (Pi, rhoi) in zip(Pans,  rhoans)]
@@ -590,13 +592,13 @@ if mpi.rank == 0:
     if outputFile != "None":
         outputFile = os.path.join(dataDir, outputFile)
         f = open(outputFile, "w")
-        f.write(("#" + 12*" '%s'" + "\n") % ("x", "rho", "P", "v", "eps", "A", "h", 
+        f.write(("#" + 14*" '%s'" + "\n") % ("x", "rho", "P", "vx", "vy", "vz", "eps", "A", "h", 
                                              "rhoans", "Pans", "vans", "Aans", "hans"))
-        for (xi, rhoi, Pi, vi, epsi, Ai, hi, 
-             rhoansi, Pansi, vansi, Aansi, hansi) in zip(xprof, rho, P, vprof, epsprof, A, hprof, 
+        for (xi, rhoi, Pi, vxi, vyi, vzi, epsi, Ai, hi, 
+             rhoansi, Pansi, vansi, Aansi, hansi) in zip(xprof, rho, P, vxprof, vyprof, vzprof, epsprof, A, hprof, 
                                                          rhoans, Pans, vans, Aans, hans):
-            f.write((12*" %16.12e" + '\n') % 
-                    (xi, rhoi, Pi, vi, epsi, Ai, hi, 
+            f.write((14*" %16.12e" + '\n') % 
+                    (xi, rhoi, Pi, vxi, vyi, vzi, epsi, Ai, hi, 
                      rhoansi, Pansi, vansi, Aansi, hansi))
         f.close()
 
@@ -606,7 +608,7 @@ if mpi.rank == 0:
     hD = []
     for (name, data, ans) in [("Mass Density", rho, rhoans),
                               ("Pressure", P, Pans),
-                              ("Velocity", vprof, vans),
+                              ("Velocity", vxprof, vans),
                               ("Thermal E", epsprof, uans),
                               ("Entropy", A, Aans),
                               ("h       ", hprof, hans)]:
