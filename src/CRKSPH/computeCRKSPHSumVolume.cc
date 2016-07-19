@@ -60,8 +60,8 @@ computeCRKSPHSumVolume(const ConnectivityMap<Dimension>& connectivityMap,
   typedef typename Dimension::FourthRankTensor FourthRankTensor;
   typedef typename Dimension::FifthRankTensor FifthRankTensor;
 
-  // Get the minimum allowed volume in eta space.
-  const Scalar etaVolMin = Dimension::pownu(0.5*W.kernelExtent()) * volumeElement<Dimension>();
+  // Get the maximum allowed volume in eta space.
+  const Scalar etaVolMax = Dimension::pownu(0.5*W.kernelExtent()) * volumeElement<Dimension>();
 
   // Zero it out.
   vol = 0.0;
@@ -117,7 +117,7 @@ computeCRKSPHSumVolume(const ConnectivityMap<Dimension>& connectivityMap,
       // Add the self-contribution.
       vol(nodeListi, i) += W.kernelValue(0.0, Hdeti);
       CHECK(vol(nodeListi, i) > 0.0);
-      vol(nodeListi, i) = max(etaVolMin/Hdeti, 1.0/vol(nodeListi, i));
+      vol(nodeListi, i) = min(etaVolMax/Hdeti, 1.0/vol(nodeListi, i));
     }
   }
 }
