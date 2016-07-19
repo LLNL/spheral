@@ -1,6 +1,3 @@
-//------------------------------------------------------------------------------
-// Compute the CRKSPH volume summation.
-//------------------------------------------------------------------------------
 #include "computeCRKSPHSumVolume.hh"
 #include "NodeList/NodeList.hh"
 #include "Hydro/HydroFieldNames.hh"
@@ -19,6 +16,28 @@ using KernelSpace::TableKernel;
 using NodeSpace::NodeList;
 using NodeSpace::FluidNodeList;
 
+//------------------------------------------------------------------------------
+// Function to compute the per dimension volume multiplier.
+//------------------------------------------------------------------------------
+namespace {
+template<typename Dimension> double volumeElement();
+
+template<> double volumeElement<Dim<1> >() {
+  return 2.0;
+}
+  
+template<> double volumeElement<Dim<2> >() {
+  return M_PI;
+}
+  
+template<> double volumeElement<Dim<3> >() {
+  return 4.0/3.0*M_PI;
+}
+}
+
+//------------------------------------------------------------------------------
+// Compute the CRKSPH volume summation.
+//------------------------------------------------------------------------------
 template<typename Dimension>
 void
 computeCRKSPHSumVolume(const ConnectivityMap<Dimension>& connectivityMap,
@@ -40,6 +59,9 @@ computeCRKSPHSumVolume(const ConnectivityMap<Dimension>& connectivityMap,
   typedef typename Dimension::ThirdRankTensor ThirdRankTensor;
   typedef typename Dimension::FourthRankTensor FourthRankTensor;
   typedef typename Dimension::FifthRankTensor FifthRankTensor;
+
+  // Get the minimum allowed volume in eta space.
+  const Scalar etaVolMin = Dimension::pownu(0.5*W.kernelExtent()) * volumeElement<Dimension>();
 
   // Zero it out.
   vol = 0.0;
@@ -95,10 +117,9 @@ computeCRKSPHSumVolume(const ConnectivityMap<Dimension>& connectivityMap,
       // Add the self-contribution.
       vol(nodeListi, i) += W.kernelValue(0.0, Hdeti);
       CHECK(vol(nodeListi, i) > 0.0);
-      vol(nodeListi, i) = 1.0/vol(nodeListi, i);
+      vol(nodeListi, i) = max(etaVolMin/Hdeti, 1.0/vol(nodeListi, i));
     }
   }
-
 }
 
 }
