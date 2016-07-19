@@ -127,6 +127,7 @@ commandLine(asph = False,
             densityUpdate = RigorousSumDensity, # VolumeScaledDensity,
             HUpdate = IdealH,
             filter = 0.0,
+            volumeType = CRKSumVolume,
 
             # Timestep constraints
             cfl = 0.5,
@@ -191,7 +192,7 @@ if balsaraCorrection:
     viscString = "Balsara"
 elif boolCullenViscosity:
     viscString = "Cullen"
-dataDir = os.path.join(dataDir, "CRK=%s-Visc=%s-nPerh=%f-compatible=%s" % (CRKSPH,viscString,nPerh,compatibleEnergy))
+dataDir = os.path.join(dataDir, "CRK=%s-Visc=%s-nPerh=%f-compatible=%s-volume=%s" % (CRKSPH,viscString,nPerh,compatibleEnergy,volumeType))
 dataDir = os.path.join(dataDir, "Cl=%f-Cq=%f" % (Cl,Cq))
 restartBaseName = "%s/KeplerianDisk-f=%f-n=%i" % (dataDir,
                                                   fractionPressureSupport,
@@ -400,6 +401,7 @@ elif CRKSPH:
                              XSPH = XSPH,
                              densityUpdate = densityUpdate,
                              correctionOrder = correctionOrder,
+                             volumeType = volumeType,
                              HUpdate = HUpdate)
 else:
     hydro = HydroConstructor(W = WT,
