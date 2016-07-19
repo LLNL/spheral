@@ -144,6 +144,7 @@ self.generateSolidCRKSPHHydroBaseBindings(self.SolidCRKSPHHydroBase%(dim)id, %(d
 
         self.space.add_function("computeVoronoiVolume", None,
                                 [constrefparam(vectorfieldlist, "position"),
+                                 constrefparam(symtensorfieldlist, "H"),
                                  constrefparam(connectivitymap, "connectivityMap"),
                                  param("double", "kernelExtent"),
                                  refparam(scalarfieldlist, "vol")],
