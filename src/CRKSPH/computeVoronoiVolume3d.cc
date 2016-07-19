@@ -28,6 +28,7 @@ using NeighborSpace::ConnectivityMap;
 //------------------------------------------------------------------------------
 void
 computeVoronoiVolume(const FieldList<Dim<3>, Dim<3>::Vector>& position,
+                     const FieldList<Dim<3>, Dim<3>::SymTensor>& H,
                      const ConnectivityMap<Dim<3> >& connectivityMap,
                      const Dim<3>::Scalar kernelExtent,
                      FieldList<Dim<3>, Dim<3>::Scalar>& vol) {

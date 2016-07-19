@@ -404,7 +404,7 @@ initialize(const typename Dimension::Scalar time,
   } else if (this->volumeType() == CRKSumVolume) {
     computeCRKSPHSumVolume(connectivityMap, W, position, mass, H, vol);
   } else if (this->volumeType() == CRKVoronoiVolume) {
-    computeVoronoiVolume(position, connectivityMap, W.kernelExtent(), vol);
+    computeVoronoiVolume(position, H, connectivityMap, W.kernelExtent(), vol);
   } else if (this->volumeType() == CRKHullVolume) {
     computeHullVolumes(connectivityMap, W.kernelExtent(), position, H, vol);
   } else {
