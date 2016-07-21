@@ -63,6 +63,7 @@ commandLine(seed = "lattice",
             boolHopkinsCorrection = True,
             HopkinsConductivity = False,     # For PSPH
             evolveTotalEnergy = False,       # Only for SPH variants -- evolve total rather than specific energy
+            volumeType = CRKSumVolume,       # For CRK
 
             hmin = 1e-15,
             hmax = 1.0,
@@ -312,6 +313,7 @@ if CRKSPH:
                              XSPH = XSPH,
                              correctionOrder = correctionOrder,
                              densityUpdate = densityUpdate,
+                             volumeType = volumeType,
                              HUpdate = HUpdate)
 elif PSPH:
     hydro = HydroConstructor(W = WT,

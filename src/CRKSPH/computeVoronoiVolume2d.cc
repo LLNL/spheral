@@ -55,7 +55,7 @@ computeVoronoiVolume(const FieldList<Dim<2>, Dim<2>::Vector>& position,
     }
     r2d_poly initialCell;
     r2d_init_poly(&initialCell, verts, nverts);
-    CHECK(r2d_is_good(initialCell));
+    CHECK(r2d_is_good(&initialCell));
 
     // Walk the points.
     for (unsigned nodeListi = 0; nodeListi != numNodeLists; ++nodeListi) {
