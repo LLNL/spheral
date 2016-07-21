@@ -24,7 +24,7 @@ using NeighborSpace::Neighbor;
 using NeighborSpace::ConnectivityMap;
 
 //------------------------------------------------------------------------------
-// 2D
+// 3D
 //------------------------------------------------------------------------------
 void
 computeVoronoiVolume(const FieldList<Dim<3>, Dim<3>::Vector>& position,
@@ -44,13 +44,82 @@ computeVoronoiVolume(const FieldList<Dim<3>, Dim<3>::Vector>& position,
 
   if (numGensGlobal > 0) {
 
+    // Build an approximation of the starting kernel shape (in eta space) as an icosahedron.
+    const unsigned nverts = 12;
+    const unsigned nfaces = 20;
+    r3d_int faces[nfaces][3] = {
+      // 5 faces around point 0
+      {0, 11, 5},
+      {0, 5, 1},
+      {0, 1, 7},
+      {0, 7, 10},
+      {0, 10, 11},
+      // 5 adjacent faces
+      {1, 5, 9},
+      {5, 11, 4},
+      {11, 10, 2},
+      {10, 7, 6},
+      {7, 1, 8},
+      // 5 faces around point 3
+      {3, 9, 4},
+      {3, 4, 2},
+      {3, 2, 6},
+      {3, 6, 8},
+      {3, 8, 9},
+      // 5 adjacent faces
+      {4, 9, 5},
+      {2, 4, 11},
+      {6, 2, 10},
+      {8, 6, 7},
+      {9, 8, 1},
+    };
+    r3d_int** facesp = new r3d_int*[nfaces];
+    for (unsigned j = 0; j != nfaces; ++j) {
+      facesp[j] = new r3d_int[3];
+      for (unsigned k = 0; k != 3; ++k) facesp[j][k] = faces[j][k];
+    }
+    r3d_int nvertsperface[nfaces] = {  // Array of number of vertices per face.
+      3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3
+    };
+    const double t = (1.0 + sqrt(5.0)) / 2.0;
+    r3d_rvec3 verts[nverts];           // Array of vertex coordinates.
+    verts[0].x =  -1; verts[0].y =  t; verts[0].z =   0;
+    verts[1].x =   1; verts[1].y =  t; verts[1].z =   0;
+    verts[2].x =  -1; verts[2].y = -t; verts[2].z =   0;
+    verts[3].x =   1; verts[3].y = -t; verts[3].z =   0;
+    verts[4].x =   0; verts[4].y = -1; verts[4].z =   t;
+    verts[5].x =   0; verts[5].y =  1; verts[5].z =   t;
+    verts[6].x =   0; verts[6].y = -1; verts[6].z =  -t;
+    verts[7].x =   0; verts[7].y =  1; verts[7].z =  -t;
+    verts[8].x =   t; verts[8].y =  0; verts[8].z =  -1;
+    verts[9].x =   t; verts[9].y =  0; verts[9].z =   1;
+    verts[10].x = -t; verts[10].y = 0; verts[10].z = -1;
+    verts[11].x = -t; verts[11].y = 0; verts[11].z =  1;
+    r3d_poly initialCell;
+    r3d_init_poly(&initialCell, verts, nverts, facesp, nvertsperface, nfaces);
+    CHECK(r3d_is_good(&initialCell));
+
+    // Scale the icosahedron to have the initial volume of a sphere of radius kernelExtent.
+    r3d_real voli[1];
+    r3d_reduce(&initialCell, voli, 0);
+    CHECK(voli[0] > 0.0);
+    const double volscale = Dim<3>::rootnu(4.0/3.0*M_PI/voli[0])*kernelExtent;
+    r3d_scale(&initialCell, volscale);
+    BEGIN_CONTRACT_SCOPE;
+    {
+      r3d_reduce(&initialCell, voli, 0);
+      CHECK2(fuzzyEqual(voli[0], 4.0/3.0*M_PI*Dim<3>::pownu(kernelExtent), 1.0e-10), voli[0] << " " << 4.0/3.0*M_PI*Dim<3>::pownu(kernelExtent) << " " << volscale);
+    }
+    END_CONTRACT_SCOPE;
+
     // Walk the points.
     for (unsigned nodeListi = 0; nodeListi != numNodeLists; ++nodeListi) {
       const unsigned n = vol[nodeListi]->numInternalElements();
       const Neighbor<Dim<3> >& neighbor = position[nodeListi]->nodeListPtr()->neighbor();
       for (unsigned i = 0; i != n; ++i) {
         const Vector& ri = position(nodeListi, i);
-        const Vector extenti = neighbor.nodeExtent(i);
+        const SymTensor& Hi = H(nodeListi, i);
+        const Scalar Hdeti = Hi.Determinant();
 
         // Grab this points neighbors and build all the planes.
         vector<r3d_plane> pairPlanes;
@@ -63,32 +132,45 @@ computeVoronoiVolume(const FieldList<Dim<3>, Dim<3>::Vector>& position,
             const Vector& rj = position(nodeListj, j);
 
             // Build the half plane.
-            const Vector nhat = (ri - rj).unitVector();
+            const Vector etai = Hi*(ri - rj);
+            CHECK(etai.magnitude2() > 1.0e-5);
+            const Vector nhat = etai.unitVector();
             pairPlanes.push_back(r3d_plane());
             pairPlanes.back().n.x = nhat.x();
             pairPlanes.back().n.y = nhat.y();
             pairPlanes.back().n.z = nhat.z();
-            pairPlanes.back().d = 0.5*(rj - ri).magnitude();
+            pairPlanes.back().d = 0.5*etai.magnitude();
           }
         }
 
-        // Start with a bounding box around the H tensor.
-        r3d_poly celli;
-        r3d_rvec3 bounds[2];
-        bounds[0].x = -extenti.x(); bounds[0].y = -extenti.y(); bounds[0].z = -extenti.z();
-        bounds[1].x =  extenti.x(); bounds[1].y =  extenti.y(); bounds[1].z =  extenti.z();
-        r3d_init_box(&celli, bounds);
+        // // Start with a bounding box around the H tensor.
+        // const Vector extenti = Hi * neighbor.nodeExtent(i);
+        // r3d_poly celli;
+        // r3d_rvec3 bounds[2];
+        // bounds[0].x = -extenti.x(); bounds[0].y = -extenti.y(); bounds[0].z = -extenti.z();
+        // bounds[1].x =  extenti.x(); bounds[1].y =  extenti.y(); bounds[1].z =  extenti.z();
+        // r3d_init_box(&celli, bounds);
+
+        // Start with the initial cell shape (in eta space).
+        r3d_poly celli = initialCell;
+        r3d_reduce(&celli, voli, 0);
         CHECK2(r3d_is_good(&celli), "Bad polyhedron!");
 
         // Clip the local cell.
         r3d_clip(&celli, &pairPlanes[0], pairPlanes.size());
+        r3d_reduce(&celli, voli, 0);
+        CHECK2(r3d_is_good(&celli), "Bad polyhedron!");
 
         // Extract the area.
-        r3d_real voli[1];
         r3d_reduce(&celli, voli, 0);
-        vol(nodeListi, i) = voli[0];
+        CHECK(voli[0] > 0.0);
+        vol(nodeListi, i) = voli[0]/Hdeti;
       }
     }
+
+    // Deallocate that damn memory. I hate this syntax, but don't know enough C to know if there's a better way.
+    for (unsigned j = 0; j != nfaces; ++j) delete[] facesp[j];
+    delete[] facesp;
   }
 }
 
