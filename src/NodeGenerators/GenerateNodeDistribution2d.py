@@ -38,7 +38,8 @@ class GenerateNodeDistribution2d(NodeGeneratorBase):
         assert nTheta > 0
         assert (((distributionType == "optimal" or
                   distributionType == "constantDTheta" or
-                  distributionType == "constantNTheta") and
+                  distributionType == "constantNTheta" or
+                  distributionType == "powerOf2NTheta") and
                  (rmin is not None and rmax is not None and
                   rmin < rmax and
                   theta is not None and theta > 0.0)) or
@@ -108,6 +109,18 @@ class GenerateNodeDistribution2d(NodeGeneratorBase):
             self.x, self.y, self.m, self.H = \
                     self.constantNThetaCylindricalDistribution(self.nRadial,
                                                                self.nTheta,
+                                                               self.rho,
+                                                               self.xmin,
+                                                               self.xmax,
+                                                               self.rmin,
+                                                               self.rmax,
+                                                               self.nNodePerh,
+                                                               self.theta,
+                                                               self.azimuthalOffsetFraction)
+
+        elif distributionType == "powerOf2NTheta":
+            self.x, self.y, self.m, self.H = \
+                    self.powerOf2NThetaCylindricalDistribution(self.nRadial,
                                                                self.rho,
                                                                self.xmin,
                                                                self.xmax,
@@ -466,6 +479,67 @@ class GenerateNodeDistribution2d(NodeGeneratorBase):
                     Hii = Hi
                     Hii.rotationalTransform(rot)
                     H.append(Hii)
+
+        return x, y, m, H
+
+    #---------------------------------------------------------------------------
+    # Seed positions/masses for circular symmetry
+    # This is a modified form of constantDTheta that restricts rings to jump by
+    # powers of 2.
+    #---------------------------------------------------------------------------
+    def powerOf2NThetaCylindricalDistribution(self, nRadial, rho,
+                                              xmin = None,
+                                              xmax = None,
+                                              rmin = 0.0,
+                                              rmax = 1.0,
+                                              nNodePerh = 2.01,
+                                              theta = pi/2.0,
+                                              azimuthalOffsetFraction = 0.0):
+
+        from Spheral import SymTensor2d
+
+        dr = (rmax - rmin)/nRadial
+        x = []
+        y = []
+        m = []
+        H = []
+        
+        h = 1.0/(nNodePerh*dr)
+        Hi = SymTensor2d(h, 0.0, 0.0, h)
+
+        # Figure out the innermost rings nTheta
+        rInner = rmin + i*dr
+        rOuter = rmin + (i + 1)*dr
+        ri = rmin + (i + 0.5)*dr
+        li = theta*ri
+        baseNTheta = max(1, int(li/dr + 0.5))
+
+        for i in xrange(0, nRadial):
+            rInner = rmin + i*dr
+            rOuter = rmin + (i + 1)*dr
+            ri = rmin + (i + 0.5)*dr
+            li = theta*ri
+            nominalNTheta = int(li/dr)
+            nTheta = max(1, baseNTheta * 2**int(nominalNTheta/baseNTheta + 0.5))
+            dTheta = theta/nTheta
+            mRing = (rOuter**2 - rInner**2) * theta/2.0 * rho(Vector2d(ri, 0.0))
+            mi = mRing/nTheta
+            for j in xrange(nTheta):
+                thetai = (j + 0.5 + i*azimuthalOffsetFraction)*dTheta
+                xi = ri*cos(thetai)
+                yi = ri*sin(thetai)
+                use = True
+                if xmin:
+                    if xi < xmin[0] or yi < xmin[1]:
+                        use = False
+                if xmax:
+                    if xi > xmax[0] or yi > xmax[1]:
+                        use = False
+                if use:
+                    x.append(xi)
+                    y.append(yi)
+                    m.append(mi)
+                    H.append(Hi)
 
         return x, y, m, H
 
