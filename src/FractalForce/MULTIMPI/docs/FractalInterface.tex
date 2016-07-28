@@ -1,0 +1,55 @@
+The interface to FractalGravity is so simple that even a government employee can figure it out.
+
+The user has to create a Fractal_Memory object, *PFM, before invoking FractalGravity. 
+*PFM is constructed with a set of parameters that are really obvious. 
+There is a large set of internal parameters for *PFM that can be set by an advanced user.
+Parameters cannot be changed during the simulation. Well, that is not quite true; but don't do it.
+The *PFM object is kept throughout the simulation and is only deleted after the last FractalGravity call.
+All communication between the user and FractalGravity is handled via *PFM.
+
+Before invoking FractalGravity we must construct a Fractal object, *PF, this is hidden from the user.
+*PF gets all its parameters from *PFM.
+The user must feed the particle data to *PF via *PFM.
+The user must specify her computational cube so that FractalGravity can scale the positions down to the unit cube.
+User does no scaling of positions and masses. 
+If isolated BC, particles outside the cube are ignored.
+If periodic BC, particles outside the cube are wrapped into the box.
+The *PF object is deleted after each gravity calculation together with all tree information.
+
+When it is all over, user must call to delete *PFM object.
+
+If user wishes to make changes to the *PFM object, she must first delete the object and then rebuild it with new parameters.
+
+Loadbalancing is dynamic, it is done everytime FractalGravity is invoked. All volumes are boxes.
+Each node is responsible for a volume of the unit cube. If ``balance=0'' each node gets the same size volume. If ``balance=1''
+the balancing algorithm equals a linear combination of the number of particles and the number of points in a volume.
+
+First thing to do is create a Fractal_Memory object and give it the proper parameters.
+This is done once.
+
+  Fractal_Memory* FractalGravityFirstTime(int NumberParticles,
+					  int balance,
+					  int FractalNodes0,
+					  int FractalNodes1,
+					  int FractalNodes2,
+					  int FFTNodes,
+					  bool Periodic,
+					  bool Debug,
+					  int GridLength,
+					  int Padding,
+					  int LevelMax,
+					  int MinimumNumber,
+					  int MaxHypreIterations,
+					  double HypreTolerance,
+					  string BaseDirectory,
+					  string RunIdentifier,
+					  bool TimeTrial,
+					  MPI_Comm& TalkToMe);
+
+Then you can do the real calculation
+
+  void FractalGravity(Fractal_Memory* PFM,int NumberParticles,vector <double>& xmin,vector <double>& xmax, double G)
+
+When you are all finished you need to clean up.
+
+  void FractalGravityFinal(Fractal_Memory* PFM)
