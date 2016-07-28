@@ -513,7 +513,7 @@ def createList(x):
     for i in xrange(len(x)):
         for j in xrange(x[i].numInternalElements):
             result.append(x(i,j))
-    return mpi.allreduce(result)
+    return mpi.allreduce(result, mpi.SUM)
 
 # Compute the simulated specific entropy.
 rho = createList(db.fluidMassDensity)
