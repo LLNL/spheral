@@ -508,9 +508,9 @@ class GenerateNodeDistribution2d(NodeGeneratorBase):
         Hi = SymTensor2d(h, 0.0, 0.0, h)
 
         # Figure out the innermost rings nTheta
-        rInner = rmin + i*dr
-        rOuter = rmin + (i + 1)*dr
-        ri = rmin + (i + 0.5)*dr
+        rInner = rmin
+        rOuter = rmin + dr
+        ri = rmin + 0.5*dr
         li = theta*ri
         baseNTheta = max(1, int(li/dr + 0.5))
 
@@ -519,8 +519,8 @@ class GenerateNodeDistribution2d(NodeGeneratorBase):
             rOuter = rmin + (i + 1)*dr
             ri = rmin + (i + 0.5)*dr
             li = theta*ri
-            nominalNTheta = int(li/dr)
-            nTheta = max(1, baseNTheta * 2**int(nominalNTheta/baseNTheta + 0.5))
+            nominalNTheta = max(1, int(li/dr))
+            nTheta = max(1, baseNTheta * 2**max(0, int(log(nominalNTheta/baseNTheta)/log(2.0))))
             dTheta = theta/nTheta
             mRing = (rOuter**2 - rInner**2) * theta/2.0 * rho(Vector2d(ri, 0.0))
             mi = mRing/nTheta
