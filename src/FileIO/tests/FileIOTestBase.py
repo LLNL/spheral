@@ -1694,6 +1694,22 @@ class FileIOTestBase:
         return
 
     #---------------------------------------------------------------------------
+    # writeObject(list)
+    #---------------------------------------------------------------------------
+    def testWriteObjectList(self):
+        x0 = [49, 492, 59392, 784761, "ackthpt"]
+        f = self.constructor("TestObject", Write)
+        f.writeObject(x0, "FileIOTestBase/TestObject")
+        f.close()
+        f = self.constructor("TestObject", Read)
+        x1 = f.readObject("FileIOTestBase/TestObject")
+        f.close()
+        self.failUnless(x1 == x0,
+                        "%s != %s in list OBJECT test" % (x1, x0))
+        self.removeFile("TestObject")
+        return
+
+    #---------------------------------------------------------------------------
     # writeObject(Vector3d)
     #---------------------------------------------------------------------------
     def testWriteObjectVector3d(self):
