@@ -31,7 +31,8 @@ class GenerateRatioSphere2d(NodeGeneratorBase):
                  distributionType = "constantDTheta",   # one of (constantDTheta, constantNTheta)
                  nNodePerh = 2.01,
                  SPH = False,
-                 rejecter = None):
+                 rejecter = None,
+                 perturbFunc = None):
 
         assert drStart > 0.0
         assert drRatio > 0.0
@@ -45,11 +46,17 @@ class GenerateRatioSphere2d(NodeGeneratorBase):
 
         # Did we get passed a function or a constant for the density?
         if type(rho) == type(1.0):
-            def rhofunc(ri):
+            def rhofunc(posi):
                 return rho
         else:
             rhofunc = rho
         self.rhofunc = rhofunc
+
+        # Do we have a perturbation function?
+        def zeroPerturbation(posi):
+            return posi
+        if not perturbFunc:
+            perturbFunc = zeroPerturbation
 
         self.x, self.y, self.m, self.H = [], [], [], []
 
@@ -86,14 +93,22 @@ class GenerateRatioSphere2d(NodeGeneratorBase):
             else:
                 ntheta = max(1, int(li/dr))
             dtheta = Dtheta/ntheta
-            mring = (r1**2 - r0**2) * 0.5*Dtheta * rhofunc(ri)
-            mi = mring/ntheta
             hr = nNodePerh * dr
             ha = nNodePerh * ri*dtheta
+
             for j in xrange(ntheta):
-                thetai = thetamin + (j + 0.5)*dtheta
-                xi = ri*cos(thetai)
-                yi = ri*sin(thetai)
+                theta0 = j*dtheta
+                theta1 = (j + 1)*dtheta
+                pos0 = perturbFunc(Vector2d(r0*cos(theta0), r0*sin(theta0)))
+                pos1 = perturbFunc(Vector2d(r1*cos(theta0), r1*sin(theta0)))
+                pos2 = perturbFunc(Vector2d(r1*cos(theta1), r1*sin(theta1)))
+                pos3 = perturbFunc(Vector2d(r0*cos(theta1), r0*sin(theta1)))
+                areai = 0.5*((pos1 - pos0).cross(pos2 - pos0).z +
+                             (pos2 - pos0).cross(pos3 - pos0).z)
+                posi = 0.25*(pos0 + pos1 + pos2 + pos3)
+                mi = areai*rho(posi)
+                xi = posi.x
+                yi = posi.y
                 self.x.append(xi + center[0])
                 self.y.append(yi + center[1])
                 self.m.append(mi)
@@ -106,25 +121,25 @@ class GenerateRatioSphere2d(NodeGeneratorBase):
                     T = rotationMatrix2d(runit).Transpose()
                     self.H[-1].rotationalTransform(T)
 
-        # Do a numerical integral to get the expected total mass.
-        class integfunc(SimpsonsIntegrationDoubleFunction):
-            def __init__(self, rho, Dtheta):
-                SimpsonsIntegrationDoubleFunction.__init__(self)
-                self.rho = rho
-                self.Dtheta = Dtheta
-                return
-            def __call__(self, ri):
-                return Dtheta*ri*self.rho(ri)
-        M1 = simpsonsIntegrationDouble(integfunc(rhofunc, Dtheta), rmin, rmax, 10000)
+        # # Do a numerical integral to get the expected total mass.
+        # class integfunc(SimpsonsIntegrationDoubleFunction):
+        #     def __init__(self, rho, Dtheta):
+        #         SimpsonsIntegrationDoubleFunction.__init__(self)
+        #         self.rho = rho
+        #         self.Dtheta = Dtheta
+        #         return
+        #     def __call__(self, ri):
+        #         return Dtheta*ri*self.rho(ri)
+        # M1 = simpsonsIntegrationDouble(integfunc(rhofunc, Dtheta), rmin, rmax, 10000)
 
-        # Make sure the total mass is what we intend it to be, by applying
-        # a multiplier to the particle masses.
-        M0 = sum(self.m)
-        assert M0 > 0.0
-        massCorrection = M1/M0
-        for i in xrange(len(self.m)):
-            self.m[i] *= massCorrection
-        print "Applied a mass correction of %f to ensure total mass is %f." % (massCorrection, M1)
+        # # Make sure the total mass is what we intend it to be, by applying
+        # # a multiplier to the particle masses.
+        # M0 = sum(self.m)
+        # assert M0 > 0.0
+        # massCorrection = M1/M0
+        # for i in xrange(len(self.m)):
+        #     self.m[i] *= massCorrection
+        # print "Applied a mass correction of %f to ensure total mass is %f." % (massCorrection, M1)
 
         # If the user provided a "rejecter", give it a pass
         # at the nodes.

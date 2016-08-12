@@ -623,8 +623,11 @@ evaluateDerivatives(const Dim<2>::Scalar time,
                            Pnegj = min(0.0, Pj);
 
               // Compute the stress tensors.
-              SymTensor sigmai = -Pnegi*SymTensor::one + Si;
-              SymTensor sigmaj = -Pnegj*SymTensor::one + Sj;
+              SymTensor sigmai, sigmaj;
+              if (nodeListi == nodeListj) {
+                sigmai = -Pnegi*SymTensor::one + Si;
+                sigmaj = -Pnegj*SymTensor::one + Sj;
+              }
 
               // // Compute the tensile correction to add to the stress as described in 
               // // Gray, Monaghan, & Swift (Comput. Methods Appl. Mech. Eng., 190, 2001)
@@ -652,11 +655,8 @@ evaluateDerivatives(const Dim<2>::Scalar time,
               DepsDtj += 0.5*weighti*weightj*(Pposi*vij.dot(deltagrad) + fij*sigmai.dot(vij).dot(deltagraddam) + workQj)/mRZj;
 
               // Estimate of delta v (for XSPH).
-              if (XSPH or min(zetai, zetaj) < 1.0) {
-                XSPHDeltaVi -= fij*weightj*Wdamj*vij;
-		XSPHDeltaVj += fij*weighti*Wdami*vij;
-              }
-
+              XSPHDeltaVi -= fij*weightj*Wj*vij;
+              XSPHDeltaVj += fij*weighti*Wi*vij;
             }
           }
         }
