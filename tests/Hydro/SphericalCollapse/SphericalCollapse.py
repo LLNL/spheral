@@ -378,7 +378,7 @@ control = SpheralController(integrator, WT,
                             restartStep = restartStep,
                             restartBaseName = restartBaseName,
                             restoreCycle = restoreCycle,
-                            vizBaseName = "Sedov-spherical-3d-%ix%ix%i" % (nx, ny, nz),
+                            vizBaseName = "SphericalCollapse",
                             vizDir = vizDir,
                             vizStep = vizCycle,
                             vizTime = vizTime,
@@ -411,6 +411,8 @@ if steps is None:
         control.dropRestartFile()
 else:
     control.step(steps)
+
+control.conserve.writeHistory("collapseHistory-CRK-%s" % CRKSPH)
 
 # Output the energy conservation.
 print "Energy conservation: ", ((control.conserve.EHistory[-1] -

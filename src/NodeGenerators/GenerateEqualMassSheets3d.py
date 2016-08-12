@@ -44,8 +44,12 @@ class GenerateEqualMassSheets3d(NodeGeneratorBase):
         if rhoMin is None:
             rhoMin = densityProfileMethod.rhoMin    # hopefully your density method supports this!
 
-        dz = (xmax[0] - xmin[0])*(xmax[1]-xmin[1])/(nx*ny)
+        print xmax
+        print xmin
+        dz = float((xmax[0] - xmin[0])*(xmax[1]-xmin[1]))/(float(nx)*float(ny))
         self.m0 = rhoMin*dz*dz
+
+        #print "dz,m0 = %f,%f" % (dz,self.m0)
 
         xl = []
         yl = []
@@ -55,8 +59,9 @@ class GenerateEqualMassSheets3d(NodeGeneratorBase):
         zz = xmin[2]
         zc = 0
         while (zz<xmax[2]):
-            rho = densityProfileMethod(z)
-            dx = dy = dz = sqrt(rho/self.m0)
+            rho = densityProfileMethod(zz)
+            dx = dy = dz = sqrt(self.m0/rho)
+            print dz
             zz = xmin[2] + (zc+0.5)*dz
             hx = 1.0/(nNodePerh*dx)
             hy = 1.0/(nNodePerh*dy)
@@ -64,8 +69,9 @@ class GenerateEqualMassSheets3d(NodeGeneratorBase):
             H0 = SymTensor3d(hx, 0.0, 0.0,
                              0.0, hy, 0.0,
                              0.0, 0.0, hz)
-            nxz = (xmax[0]-xmin[0])/dx
-            nyz = (xmax[1]-xmin[1])/dy
+            nxz = int((xmax[0]-xmin[0])/dx)
+            nyz = int((xmax[1]-xmin[1])/dy)
+            print "z = %f" % zz
             for i in xrange(nxz):
                 for j in xrange(nyz):
                     xx = xmin[0] + (i+0.5)*dx
@@ -83,7 +89,7 @@ class GenerateEqualMassSheets3d(NodeGeneratorBase):
         self.H = []
         
         for i in xrange(len(xl)):
-            if within(Vector3d(xl[i],yl[i],zl[i]),xmin,xmax):
+            if self.within(Vector3d(xl[i],yl[i],zl[i]),xmin,xmax):
                 self.x.append(xl[i])
                 self.y.append(yl[i])
                 self.z.append(zl[i])
@@ -123,8 +129,8 @@ class GenerateEqualMassSheets3d(NodeGeneratorBase):
     #---------------------------------------------------------------------------
     def localMassDensity(self, i):
         loc = Vector3d(0,0,0)
-        loc = self.localPosition(i) - self.offset
-        return self.densityProfileMethod(loc.magnitude())
+        loc = self.localPosition(i)
+        return self.densityProfileMethod(loc[2])
     
     #---------------------------------------------------------------------------
     # Get the H tensor for the given node index.
