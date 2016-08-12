@@ -42,6 +42,7 @@ PYTHONTARGETS = \
 	$(srcdir)/HydroStaticProfile.py \
 	$(srcdir)/StretchedLattice2d.py \
 	$(srcdir)/StretchedLattice3d.py \
+	$(srcdir)/GenerateEqualMassSheets3d.py \
 	$(srcdir)/SiloPolyMeshGenerator.py \
 	$(srcdir)/GenerateRatioSlab2d.py \
 	$(srcdir)/GenerateRatioSphere.py \
