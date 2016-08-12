@@ -58,11 +58,13 @@ class GenerateEqualMassSheets3d(NodeGeneratorBase):
             
         zz = xmin[2]
         zc = 0
+        rho = densityProfileMethod(zz)
+        dx = dy = dz = sqrt(self.m0/rho)
         while (zz<xmax[2]):
+            #print dz
+            zz = xmin[2] + (zc+0.5)*dz
             rho = densityProfileMethod(zz)
             dx = dy = dz = sqrt(self.m0/rho)
-            print dz
-            zz = xmin[2] + (zc+0.5)*dz
             hx = 1.0/(nNodePerh*dx)
             hy = 1.0/(nNodePerh*dy)
             hz = 1.0/(nNodePerh*dz)
