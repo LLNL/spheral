@@ -59,7 +59,7 @@ rhoProfile = densityProf(scaler)
 
 generator = GenerateEqualMassSheets3d(nr,nr,rhoProfile,Vector.one * rmin,Vector.one * rmax,
                                       nNodePerh = nPerh,
-                                      rhoMin = densityProf(rmax))
+                                      rhoMin = rhoProfile(rmax))
 
 nodes.numInternalNodes = generator.localNumNodes()
 
