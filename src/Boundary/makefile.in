@@ -31,7 +31,8 @@ INSTSRCTARGETS += \
 SRCTARGETS += \
 	$(srcdir)/CylindricalBoundary.cc \
 	$(srcdir)/AxialSymmetryBoundary.cc \
-	$(srcdir)/SphericalBoundary.cc
+	$(srcdir)/SphericalBoundary.cc \
+	$(srcdir)/AxisBoundaryRZ.cc
 endif
 
 #------------------------------------------------------------------------------

@@ -34,7 +34,8 @@ class %(classname)s(SolidSPHHydroBaseRZ):
                  epsTensile = 0.0,
                  nTensile = 4.0,
                  xmin = Vector2d(-1e100, -1e100),
-                 xmax = Vector2d( 1e100,  1e100)):
+                 xmax = Vector2d( 1e100,  1e100),
+                 etaMinAxis = 0.1):
         self._smoothingScaleMethod = %(smoothingScaleMethod)s2d()
         if WPi is None:
             WPi = W
@@ -61,8 +62,7 @@ class %(classname)s(SolidSPHHydroBaseRZ):
                                      nTensile,
                                      xmin,
                                      xmax)
-        self.zaxisPlane = Plane2d(Vector2d(0.0, 0.0), Vector2d(0.0, 1.0))
-        self.zaxisBC = ReflectingBoundary2d(self.zaxisPlane)
+        self.zaxisBC = AxisBoundaryRZ(etaMinAxis)
         self.appendBoundary(self.zaxisBC)
         return
 """
