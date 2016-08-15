@@ -46,7 +46,8 @@ PYTHONTARGETS = \
 	$(srcdir)/SiloPolyMeshGenerator.py \
 	$(srcdir)/GenerateRatioSlab2d.py \
 	$(srcdir)/GenerateRatioSphere.py \
-	$(srcdir)/GenerateNodeProfile.py
+	$(srcdir)/GenerateNodeProfile.py \
+	$(srcdir)/CentroidalGenerator2d.py
 
 #-------------------------------------------------------------------------------
 include $(BUILDTOP)/helpers/makefile_master
