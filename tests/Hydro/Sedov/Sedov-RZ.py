@@ -379,7 +379,8 @@ else:
                              HUpdate = HUpdate,
                              XSPH = XSPH,
                              epsTensile = epsilonTensile,
-                             nTensile = nTensile)
+                             nTensile = nTensile,
+                             etaMinAxis = 1.0)
 output("hydro")
 output("hydro.kernel()")
 output("hydro.PiKernel()")

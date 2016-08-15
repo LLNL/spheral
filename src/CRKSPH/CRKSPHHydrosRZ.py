@@ -29,7 +29,8 @@ class %(classname)s(CRKSPHHydroBaseRZ):
                  correctionOrder = LinearOrder,
                  volumeType = CRKSumVolume,
                  epsTensile = 0.0,
-                 nTensile = 4.0):
+                 nTensile = 4.0,
+                 etaMinAxis = 0.1):
         self._smoothingScaleMethod = %(smoothingScaleMethod)s2d()
         if WPi is None:
             WPi = W
@@ -50,8 +51,7 @@ class %(classname)s(CRKSPHHydroBaseRZ):
                                    volumeType,
                                    epsTensile,
                                    nTensile)
-        self.zaxisPlane = Plane2d(Vector2d(0.0, 0.0), Vector2d(0.0, 1.0))
-        self.zaxisBC = ReflectingBoundary2d(self.zaxisPlane)
+        self.zaxisBC = AxisBoundaryRZ(etaMinAxis)
         self.appendBoundary(self.zaxisBC)
         return
 """
