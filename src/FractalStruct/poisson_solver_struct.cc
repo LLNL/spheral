@@ -5,10 +5,11 @@ namespace FractalSpace
 {
   void poisson_solver_struct(Fractal& fractal,Fractal_Memory& mem,const int& level)
   {
+    ofstream& FHT=mem.p_file->DUMPS;
     static int _COUNTER=0;
     static int _COUNTERA=0;
-    static int VOLA=1;
-    static double FILLA=2.0;
+    static vector<int> VOLA(20,1);
+    static vector<double> FILLA(20,2.0);
     mem.p_mess->Full_Stop_Do_Not_Argue();
     double timea,timeb,time0,time1,time2,time3,time4,time5,time6,time7,time8;
     timea=mem.p_mess->Clock();
@@ -34,14 +35,15 @@ namespace FractalSpace
 		if(_COUNTERA % 10 == 0)
 		  {
 		    hypre_best_boxes(mem,hypre_points,spacing,VOLMIN,FILLFACTOR);
-		    VOLA=VOLMIN;
-		    FILLA=FILLFACTOR;
+		    VOLA[level]=VOLMIN;
+		    FILLA[level]=FILLFACTOR;
 		  }
-		// hypre_clever_boxes(mem,hypre_points,spacing,VOLMIN,FILLFACTOR,SBoxes,SPoints);
-		hypre_points_boxes(mem,hypre_points,spacing,VOLA,FILLA,SBoxes,SPoints);
+		hypre_points_boxes(mem,hypre_points,spacing,VOLA[level],FILLA[level],SBoxes,SPoints);
 	      }
 	    else
 	      hypre_points_boxes(mem,hypre_points,spacing,1,2.0,SBoxes,SPoints);
+	    FHT << " BOX PARAMS A " << VOLA[level] << " " << FILLA[level] << "\n";
+	    box_stats(mem,level,ni,SBoxes,SPoints);
 	  }
 	time2=mem.p_mess->Clock();
 	hypre_points.clear();
@@ -53,7 +55,6 @@ namespace FractalSpace
 	mem.p_mess->Full_Stop_Do_Not_Argue();
 	if(mem.p_mess->IAmAHypreNode)
 	  {
-	    box_stats(mem,level,ni,SBoxes,SPoints);
 	    time4=mem.p_mess->Clock();
 	    hypre_solve_struct(mem,level,SBoxes,SPoints);
 	    time5=mem.p_mess->Clock();

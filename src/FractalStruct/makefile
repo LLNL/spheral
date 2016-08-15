@@ -4,14 +4,15 @@ Wopt1 = -Wunused
 gprof = 
 debug = 
 verbose = -v
-debug= 	
+debug = 	
 verbose = 
 STD = -std=c++11
 dir   = execs/
-MP = -openmp
+MP = -qopenmp
 #
 system = intel
-vers = 11
+fvers = 3
+hvers = 11
 #
 compiler = mpiicpc
 PREFIXF = /g/g90/jensv/cplus/fftw-3.3.3/install-intel
@@ -21,10 +22,14 @@ ifeq ($(debug),d)
 	fopt1 = -g -pedantic -O0
 endif
 #
-ifeq ($(vers),9)
+ifeq ($(fvers),4)
+	PREFIXF = /g/g90/jensv/cplus/fftw-3.3.4/install-intel
+endif
+#
+ifeq ($(hvers),9)
 	PREFIXH = /g/g90/jensv/cplus/hypre-2.9.0b/src/hypre/intel-global
 endif
-ifeq ($(vers),10)
+ifeq ($(hvers),10)
 	PREFIXH = /g/g90/jensv/cplus/HYPREINTEL101/hypre-2.10.1/src/hypre
 endif
 #
@@ -33,10 +38,10 @@ ifeq ($(system),ibmgnu)
 	compiler =  mpig++-4.7.2
 	PREFIXF = /g/g90/jensv/cplus/fftw-3.3.3/install-ibmgnu
 	PREFIXH = /g/g90/jensv/cplus/HYPREIBM110/hypre-2.11.0/src/hypre
-	ifeq ($(vers),9)
+	ifeq ($(hvers),9)
 		PREFIXH = /g/g90/jensv/cplus/hypreibmgnu/hypre-2.9.0b/src/hypre/noglobal
 	endif
-	ifeq ($(vers),10)
+	ifeq ($(hvers),10)
 		PREFIXH = /g/g90/jensv/cplus/HYPREIBM101/hypre-2.10.1/src/hypre
 	endif
 endif
@@ -617,11 +622,10 @@ any_overlaps.o \
 box_stats.o \
 clean_overlaps.o \
 hypre_best_boxes.o \
-hypre_clever_boxes.o \
 hypre_points_boxes.o \
 hypre_points_struct.o \
-hypre_points_zero.o \
 hypre_solve_struct.o \
+hypre_points_zero.o \
 hypre_test_boxes.o \
 hypre_world_create.o \
 node_groups_struct.o \

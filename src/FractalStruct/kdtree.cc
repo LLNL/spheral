@@ -54,10 +54,11 @@ namespace FractalSpace
 	return;
       }
     int VOL=(BOX[1]-BOX[0])*(BOX[3]-BOX[2])*(BOX[5]-BOX[4]);
-    bool smallVOL=VOL <= VOLMIN;
+    rnode->full=rnode->ppoints.size() == VOL;
     double ff=(double)(rnode->ppoints.size())/(double)(VOL);
     bool veryFULL= ff >= FILLFACTOR;
-    if((smallVOL || veryFULL) && VOL > 1)
+    bool smallVOL=VOL <= VOLMIN && ff > 0.499;
+    if(VOL > 1 && !rnode->full && (smallVOL || veryFULL) )
       FillBox(rnode);
     rnode->full=rnode->ppoints.size() == VOL;
     if(rnode->full)
@@ -132,10 +133,11 @@ namespace FractalSpace
 	knode->full=false;
 	return;
       }
-    bool smallVOL=vol <= VOLMIN;
+    knode->full=vol != 0 && knode->ppoints.size() == vol;
     double ff=(double)(knode->ppoints.size())/(double)(vol);
     bool veryFULL= ff >= FILLFACTOR;
-    if((smallVOL || veryFULL) && vol > 1)
+    bool smallVOL=vol <= VOLMIN && ff > 0.499;
+    if(!knode->full && vol > 1 && (smallVOL || veryFULL))
       FillBox(knode);
     knode->full=vol != 0 && knode->ppoints.size() == vol;
     if(knode->full)
@@ -169,7 +171,7 @@ namespace FractalSpace
     vol*=(pnode->box[3]-pnode->box[2]);
     vol*=(pnode->box[5]-pnode->box[4]);
     if(RANKY)
-      cerr << " FILLA " << vol << " " << pnode->ppoints.size() << endl;
+      cerr << " FILLA " << vol << " " << VOLMIN << " " << FILLFACTOR << " " << pnode->ppoints.size() << "\n";
     if(vol == pnode->ppoints.size())
       return;
     vector<int>pos(3);
@@ -184,7 +186,7 @@ namespace FractalSpace
 	assert(ret.second);
       }
     if(RANKY)
-      cerr << " FILLB " << vol << " " << pnode->ppoints.size() << endl;
+      cerr << " FILLB " << vol << " " << VOLMIN << " " << FILLFACTOR << " " << pnode->ppoints.size() << "\n";
     pnode->ppoints.clear();
     Point* pFAKE=0;
     for(int nz=pnode->box[4];nz<pnode->box[5];nz++)
@@ -206,7 +208,7 @@ namespace FractalSpace
     for(auto &mP : boxP)
       pnode->ppoints.push_back(mP.second);
     if(RANKY)
-      cerr << " FILLC " << vol << " " << pnode->ppoints.size() << endl;
+      cerr << " FILLC " << vol << " " << VOLMIN << " " << FILLFACTOR << " " << pnode->ppoints.size() << "\n";
   }
   void KdTree::DestroyKdTree()
   {
