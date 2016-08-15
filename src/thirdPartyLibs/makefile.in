@@ -311,6 +311,12 @@ R3DDIR = c/r3d-master
 R3DBUILDDATE = $(patsubst %.zip, .%.date, $(R3DDIST))
 R3DINCDIR = $(prefix)/include/r3d
 
+# Python Sobol sequence
+PYSOBOLDIST = sobol_dev.zip
+PYSOBOLURL = https://github.com/crankycoder/sobol_seq/archive/dev.zip
+PYSOBOLDIR = c/sobol_seq-dev
+PYSOBOLBUILDDATE = $(patsubst %.zip, .%.date, $(PYSOBOLDIST))
+
 #-------------------------------------------------------------------------------
 all:	$(PYTHONBUILDDATE) \
 	$(BOOSTDATE) \
@@ -1519,3 +1525,26 @@ $(R3DBUILDDATE):	$(R3DDIST)
 	$(CP) -f $(R3DDIR)/libr3d.a $(prefix)/lib
 	rm -fr $(R3DDIR)
 	touch $(R3DBUILDDATE)
+
+#-------------------------------------------------------------------------------
+# Sobol python extension
+#-------------------------------------------------------------------------------
+$(PYSOBOLDIST):
+	$(CURL) "$(PYSOBOLURL)" > $(PYSOBOLDIST)
+
+$(PYSOBOLBUILDDATE):	$(PYTHONBUILDDATE) $(NUMPYBUILDDATE) $(PYSOBOLDIST)
+	@echo "################################################################################"
+	@echo "# Building $(PYSOBOLDIST)"
+	@echo "################################################################################"
+	@$(MKDIR) $(LIBDIR) $(prefix)/include $(prefix)/bin
+	rm -fr $(PYSOBOLDIR)
+	$(UNZIP) -dc $(PYSOBOLDIST)
+	$(SHELL) -ec 'cd $(PYSOBOLDIR); $(CP) -fr sobol $(PYTHONLIBDIR);'
+	@if test -n "`$(PYTHONEXE) -c 'import sobol'`"; then \
+	echo "ERROR building sobol python extension."; \
+	rm -f $(PYSOBOLBUILDDATE); \
+	exit 1; \
+	fi
+	rm -fr $(PYSOBOLDIR)
+	touch $(PYSOBOLBUILDDATE)
+

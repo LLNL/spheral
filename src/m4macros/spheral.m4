@@ -216,7 +216,6 @@ AC_ARG_WITH(thirdPartyLibs,
 # -----------------------------------------------------------------
 # Optionally do not build numpy.
 # -----------------------------------------------------------------
-AC_SUBST(BUILDNUMPY)
 AC_MSG_CHECKING(for --without-numpy)
 AC_ARG_WITH(numpy,
 [  --without-numpy .......................... do not build the NumPy third party extension],
@@ -226,6 +225,20 @@ AC_ARG_WITH(numpy,
 [
     AC_MSG_RESULT(no)
     EXTRATHIRDPARTYTARGETS+=" .numpy-1.10.4.date .gnuplot-py-1.8.date"
+])
+
+# -----------------------------------------------------------------
+# Optionally do not install the python sobol package.
+# -----------------------------------------------------------------
+AC_MSG_CHECKING(for --without-sobol)
+AC_ARG_WITH(sobol,
+[  --without-sobol .......................... do not build the Sobol python third party extension],
+[
+    AC_MSG_RESULT(yes)
+],
+[
+    AC_MSG_RESULT(no)
+    EXTRATHIRDPARTYTARGETS+=" .sobol_dev.date"
 ])
 
 # -----------------------------------------------------------------
