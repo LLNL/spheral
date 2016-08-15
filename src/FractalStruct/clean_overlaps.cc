@@ -5,6 +5,7 @@ namespace FractalSpace
 {
   void clean_overlaps(Fractal_Memory& mem,int spacing,int VOLMIN,double FILLFACTOR,vector<bool>& STrouble,vector<vector<int>>& SBoxes,vector<vector<Point*>>& SPoints)
   {
+    ofstream& FHT=mem.p_file->DUMPS;
     vector<vector<int>>SBover;
     vector<vector<Point*>>SPover;
     int nBP=0;
@@ -36,7 +37,8 @@ namespace FractalSpace
     SPoints.resize(Ngood);
     int sp2=log((double)(spacing)+0.1)/log(2.0);
     int level=mem.p_fractal->get_level_max()-sp2;
-    box_stats(mem,level,-10,SBoxes,SPoints);
+    FHT << " BOX PARAMS B " << VOLMIN << " " << FILLFACTOR << "\n";
+    // box_stats(mem,level,-10,SBoxes,SPoints);
     std::map<array<int,4>,Point*,point_comp4> dupes;
     vector<int>pos(3);
     array<int,4>ar4;
@@ -105,10 +107,17 @@ namespace FractalSpace
     SPover.clear();
     for(auto &d : dupes)
       {
-	hypre_points[d.first[3]].push_back(d.second);
+	// if(d.second != 0)
+	  hypre_points[d.first[3]].push_back(d.second);
       }
     dupes.clear();
+    if(mem.p_mess->FractalRank == -21)
+      cerr << " BOX PARAMS BB " << VOLMIN << " " << FILLFACTOR << "\n";
     hypre_points_boxes(mem,hypre_points,spacing,1,2.0,SBoxes,SPoints);
     hypre_points_zero(SPoints);
+    if(mem.p_mess->FractalRank == -21)
+      cerr << " BOX PARAMS CC " << VOLMIN << " " << FILLFACTOR << "\n";
+    FHT << " BOX PARAMS C " << VOLMIN << " " << FILLFACTOR << "\n";
+    // box_stats(mem,level,-20,SBoxes,SPoints);
   }
 }

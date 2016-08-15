@@ -49,12 +49,8 @@ namespace FractalSpace
 	  SBoxes[SBcount][B]--;
 	Misc::times(SBoxes[SBcount],spacing);
       }
-    // for(auto &SB : SBoxes)
-    //   FHT << "FINISH BOXES A " << _COUNTER <<  " " << SB[0] << " " << SB[1] << " " << SB[2] << " " << SB[3] << " " << SB[4] << " " << SB[5] << "\n";
     _COUNTER++;
     if(VOLMIN > 1 || FILLFACTOR < 1.0)
       any_overlaps(mem,spacing,VOLMIN,FILLFACTOR,SBoxes,SPoints);
-    // for(auto &SB : SBoxes)
-    //   FHT << "FINISH BOXES B " << _COUNTER <<  " " << SB[0] << " " << SB[1] << " " << SB[2] << " " << SB[3] << " " << SB[4] << " " << SB[5] << "\n";
   }
 }
