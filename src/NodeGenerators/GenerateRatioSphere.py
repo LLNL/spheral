@@ -106,7 +106,7 @@ class GenerateRatioSphere2d(NodeGeneratorBase):
                 areai = 0.5*((pos1 - pos0).cross(pos2 - pos0).z +
                              (pos2 - pos0).cross(pos3 - pos0).z)
                 posi = 0.25*(pos0 + pos1 + pos2 + pos3)
-                mi = areai*rho(posi)
+                mi = areai*self.rhofunc(posi)
                 xi = posi.x
                 yi = posi.y
                 self.x.append(xi + center[0])
