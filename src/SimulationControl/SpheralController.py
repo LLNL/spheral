@@ -68,6 +68,7 @@ class SpheralController(RestartableObject):
         self.restartFileConstructor = restartFileConstructor
         self.SPH = SPH
         self.numHIterationsBetweenCycles = numHIterationsBetweenCycles
+        self._break = False
 
         # Determine the dimensionality of this run, based on the integrator.
         self.dim = "%id" % self.integrator.dataBase().nDim
@@ -285,13 +286,20 @@ class SpheralController(RestartableObject):
         return
 
     #--------------------------------------------------------------------------
+    # Allow Spheral to smoothly exit out of the controller loop.
+    #--------------------------------------------------------------------------
+    def stop(self):
+        self._break = True
+        return
+
+    #--------------------------------------------------------------------------
     # Advance the system to the given simulation time.  The user can also
     # specify a max number of steps to take.
     #--------------------------------------------------------------------------
     def advance(self, goalTime, maxSteps=None):
         currentSteps = 0
         while (self.time() < goalTime and
-               (maxSteps == None or currentSteps < maxSteps)):
+               (maxSteps == None or currentSteps < maxSteps) and (self._break == False)):
             self.stepTimer.start()
             self.integrator.step(goalTime)
             if self.numHIterationsBetweenCycles > 0:
