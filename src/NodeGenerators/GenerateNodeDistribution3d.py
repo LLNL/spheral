@@ -955,13 +955,6 @@ class GenerateCylindricalNodeDistribution3d(NodeGeneratorBase):
                 h0 = self.H[-1].Determinant()**(1.0/3.0)
                 self.H[-1] = SymTensor3d.one * h0
 
-            # Convert the mass to the full hoop mass, which will then be used in
-            # generateCylDistributionFromRZ to compute the actual nodal masses.
-            mi = self.m[i]
-            circ = 2.0*pi*yi
-            mhoop = mi*circ
-            self.m[i] = mhoop
-
         assert len(self.m) == n
         assert len(self.H) == n
 
