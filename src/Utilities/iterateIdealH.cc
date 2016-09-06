@@ -45,7 +45,9 @@ iterateIdealH(DataBase<Dimension>& dataBase,
   const clock_t t0 = clock();
 
   // Extract the state we care about.
-  const FieldList<Dimension, Vector> r = dataBase.fluidPosition();
+  const FieldList<Dimension, Vector> pos = dataBase.fluidPosition();
+  FieldList<Dimension, Scalar> m = dataBase.fluidMass();
+  FieldList<Dimension, Scalar> rho = dataBase.fluidMassDensity();
   FieldList<Dimension, SymTensor> H = dataBase.fluidHfield();
 
   // If we're using the fixDeterminant, take a snapshot of the input H determinants.
@@ -117,6 +119,8 @@ iterateIdealH(DataBase<Dimension>& dataBase,
          boundaryItr != boundaries.end();
          ++boundaryItr) {
       (*boundaryItr)->setAllGhostNodes(dataBase);
+      (*boundaryItr)->applyFieldListGhostBoundary(m);
+      (*boundaryItr)->applyFieldListGhostBoundary(rho);
       (*boundaryItr)->finalizeGhostBoundary();
       for (typename DataBase<Dimension>::FluidNodeListIterator nodeListItr = dataBase.fluidNodeListBegin();
            nodeListItr != dataBase.fluidNodeListEnd(); 
@@ -162,8 +166,10 @@ iterateIdealH(DataBase<Dimension>& dataBase,
 
           // Get the state and neighbors for this node.
           const vector<vector<int> >& fullConnectivity = connectivityMap.connectivityForNode(*nodeListItr, i);
-          const Vector& ri = r(nodeListi, i);
+          const Vector& posi = pos(nodeListi, i);
           const SymTensor& Hi = H(nodeListi, i);
+          const Scalar mi = m(nodeListi, i);
+          const Scalar rhoi = rho(nodeListi, i);
 
           // Prepare to accumulate the zeroth and second moments for this node.
           Scalar zerothMoment = 0.0;
@@ -171,7 +177,6 @@ iterateIdealH(DataBase<Dimension>& dataBase,
 
           // Iterate over the neighbor NodeLists.
           for (int nodeListj = 0; nodeListj != numNodeLists; ++nodeListj) {
-            const double fweightij = 1.0; // (nodeListi == nodeListj ? 1.0 : 0.2);
 
             // Neighbors from this NodeList.
             const vector<int>& connectivity = fullConnectivity[nodeListj];
@@ -181,11 +186,27 @@ iterateIdealH(DataBase<Dimension>& dataBase,
               const int j = *jItr;
 
               // Increment the moments.
-              const Vector& rj = r(nodeListj, j);
-              const Vector rij = ri - rj;
-              const Scalar etai = (Hi*rij).magnitude();
+              const Vector& posj = pos(nodeListj, j);
+              const Scalar mj = m(nodeListj, j);
+              const Scalar rhoj = rho(nodeListj, j);
+
+              Scalar fweightij = 1.0;
+              if (nodeListi != nodeListj) {
+                if (dataBase.isRZ) {
+                  const Scalar ri = abs(posi.y());
+                  const Scalar rj = abs(posj.y());
+                  const Scalar mRZi = mi/(2.0*M_PI*ri);
+                  const Scalar mRZj = mj/(2.0*M_PI*rj);
+                  fweightij = mRZj*rhoi/(mRZi*rhoj);
+                } else {
+                  fweightij = mj*rhoi/(mi*rhoj);
+                }
+              }
+                                        
+              const Vector xij = posi - posj;
+              const Scalar etai = (Hi*xij).magnitude();
               const Scalar Wi = std::abs(W.gradValue(etai, 1.0));
-              const SymTensor thpt = rij.selfdyad()/(rij.magnitude2() + 1.0e-10);
+              const SymTensor thpt = xij.selfdyad()/(xij.magnitude2() + 1.0e-10);
               zerothMoment += fweightij*Wi;
               secondMoment += fweightij*FastMath::square(Wi/Dimension::pownu1(etai + 1.0e-10))*thpt;
             }
@@ -194,7 +215,7 @@ iterateIdealH(DataBase<Dimension>& dataBase,
           // Finish the moments and measure the new H.
           zerothMoment = Dimension::rootnu(zerothMoment);
           H1(nodeListi, i) = smoothingScaleMethod.newSmoothingScale(Hi,
-                                                                    ri,
+                                                                    posi,
                                                                     zerothMoment,
                                                                     secondMoment,
                                                                     W,
@@ -304,7 +325,6 @@ iterateIdealH(DataBase<Dimension>& dataBase,
     }
   }
 
-  FieldList<Dimension, Scalar> m = dataBase.fluidMass();
   for (ConstBoundaryIterator boundaryItr = boundaries.begin(); 
        boundaryItr != boundaries.end();
        ++boundaryItr) {

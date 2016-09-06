@@ -803,7 +803,6 @@ evaluateDerivatives(const typename Dimension::Scalar time,
         // there are some nodes in this list.
         const vector<int>& connectivity = fullConnectivity[nodeListj];
         if (connectivity.size() > 0) {
-          const double fweightij = 1.0; // (nodeListi == nodeListj ? 1.0 : 0.2);
           const int firstGhostNodej = nodeLists[nodeListj]->firstGhostNode();
 
           // Loop over the neighbors.
@@ -884,12 +883,13 @@ evaluateDerivatives(const typename Dimension::Scalar time,
 
               // Zero'th and second moment of the node distribution -- used for the
               // ideal H calculation.
+              const double fweightij = nodeListi == nodeListj ? 1.0 : mj*rhoi/(mi*rhoj);
               const double rij2 = rij.magnitude2();
               const SymTensor thpt = rij.selfdyad()/max(tiny, rij2*FastMath::square(Dimension::pownu12(rij2)));
-              weightedNeighborSumi += fweightij*std::abs(gWi);
-              weightedNeighborSumj += fweightij*std::abs(gWj);
-              massSecondMomenti += fweightij*gradWSPHi.magnitude2()*thpt;
-              massSecondMomentj += fweightij*gradWSPHj.magnitude2()*thpt;
+              weightedNeighborSumi +=     fweightij*std::abs(gWi);
+              weightedNeighborSumj += 1.0/fweightij*std::abs(gWj);
+              massSecondMomenti +=     fweightij*gradWSPHi.magnitude2()*thpt;
+              massSecondMomentj += 1.0/fweightij*gradWSPHj.magnitude2()*thpt;
 
               // Compute the artificial viscous pressure (Pi = P/rho^2 actually).
               const pair<Tensor, Tensor> QPiij = Q.Piij(nodeListi, i, nodeListj, j,

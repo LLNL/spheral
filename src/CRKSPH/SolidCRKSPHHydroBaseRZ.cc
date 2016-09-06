@@ -169,6 +169,8 @@ initializeProblemStartup(DataBase<Dim<2> >& dataBase) {
   // Call the ancestor.
   SolidCRKSPHHydroBase<Dimension>::initializeProblemStartup(dataBase);
 
+  dataBase.isRZ = true;
+
   // Create storage for the state we're holding.
   mDeviatoricStressTT = dataBase.newFluidFieldList(0.0, SolidFieldNames::deviatoricStressTT);
   mDdeviatoricStressTTDt = dataBase.newFluidFieldList(0.0, IncrementFieldList<Dimension, Scalar>::prefix() + SolidFieldNames::deviatoricStressTT);
@@ -490,7 +492,6 @@ evaluateDerivatives(const Dim<2>::Scalar time,
         // there are some nodes in this list.
         const vector<int>& connectivity = fullConnectivity[nodeListj];
         if (connectivity.size() > 0) {
-          const double fweightij = 1.0; // (nodeListi == nodeListj ? 1.0 : 0.2);
           const int firstGhostNodej = nodeLists[nodeListj]->firstGhostNode();
 
           // Loop over the neighbors.
@@ -586,12 +587,13 @@ evaluateDerivatives(const Dim<2>::Scalar time,
 
               // Zero'th and second moment of the node distribution -- used for the
               // ideal H calculation.
+              const double fweightij = nodeListi == nodeListj ? 1.0 : mRZj*rhoi/(mRZi*rhoj);
               const double xij2 = xij.magnitude2();
               const SymTensor thpt = xij.selfdyad()/max(tiny, xij2*FastMath::square(Dimension::pownu12(xij2)));
-              weightedNeighborSumi += fweightij*std::abs(gWi);
-              weightedNeighborSumj += fweightij*std::abs(gWj);
-              massSecondMomenti += fweightij*gradWSPHi.magnitude2()*thpt;
-              massSecondMomentj += gradWSPHj.magnitude2()*thpt;
+              weightedNeighborSumi +=     fweightij*std::abs(gWi);
+              weightedNeighborSumj += 1.0/fweightij*std::abs(gWj);
+              massSecondMomenti +=     fweightij*gradWSPHi.magnitude2()*thpt;
+              massSecondMomentj += 1.0/fweightij*gradWSPHj.magnitude2()*thpt;
 
               // Compute the artificial viscous pressure (Pi = P/rho^2 actually).
               const pair<Tensor, Tensor> QPiij = Q.Piij(nodeListi, i, nodeListj, j,
