@@ -880,20 +880,48 @@ class GenerateCylindricalNodeDistribution3d(NodeGeneratorBase):
                  rmax = None,
                  nNodePerh = 2.01,
                  theta = pi/2.0,
-                 phi = 2.0*pi,
-                 SPH = False):
-        gen2d = RZGenerator(GenerateNodeDistribution2d(nRadial,
-                                                       nTheta,
-                                                       rho,
-                                                       distributionType,
-                                                       xmin,
-                                                       xmax,
-                                                       rmin,
-                                                       rmax,
-                                                       nNodePerh,
-                                                       theta,
-                                                       SPH))
+                 azimuthalOffsetFraction = 0.0,
+                 SPH = False,
+                 rotation = 0.0,
+                 offset = None,
+                 xminreject = None,
+                 xmaxreject = None,
+                 rreject = None,
+                 originreject = None,
+                 reversereject = False,
+                 relaxation = None,
+                 rejecter = None,
+                 rejecter3d = None,
+                 phi = 2.0*pi):
+        gen2d = RZGenerator(GenerateNodeDistribution2d(nRadial = nRadial,
+                                                       nTheta = nTheta,
+                                                       rho = rho,
+                                                       distributionType = distributionType,
+                                                       xmin = xmin,
+                                                       xmax = xmax,
+                                                       rmin = rmin,
+                                                       rmax = rmax,
+                                                       nNodePerh = nNodePerh,
+                                                       theta = theta,
+                                                       azimuthalOffsetFraction = azimuthalOffsetFraction,
+                                                       SPH = SPH,
+                                                       rotation = rotation,
+                                                       offset = offset,
+                                                       xminreject = xminreject,
+                                                       xmaxreject = xmaxreject,
+                                                       rreject = rreject,
+                                                       originreject = originreject,
+                                                       reversereject = reversereject,
+                                                       relaxation = relaxation,
+                                                       rejecter = rejecter))
         from Spheral import Vector3d, CylindricalBoundary
+
+        # If the user provided a constant for rho, then use the constantRho
+        # class to provide this value.
+        if type(rho) == type(1.0):
+            self.rho = ConstantRho(rho)
+        else:
+            self.rho = rho
 
         # The base class already split the nodes up between processors, but
         # we want to handle that ourselves.  Distribute the full set of RZ
@@ -927,20 +955,12 @@ class GenerateCylindricalNodeDistribution3d(NodeGeneratorBase):
                 h0 = self.H[-1].Determinant()**(1.0/3.0)
                 self.H[-1] = SymTensor3d.one * h0
 
-            # Convert the mass to the full hoop mass, which will then be used in
-            # generateCylDistributionFromRZ to compute the actual nodal masses.
-            mi = self.m[i]
-            circ = 2.0*pi*yi
-            mhoop = mi*circ
-            self.m[i] = mhoop
-
         assert len(self.m) == n
         assert len(self.H) == n
 
         # Duplicate the nodes from the xy-plane, creating rings of nodes about
         # the x-axis.  We use a C++ helper method for the sake of speed.
         kernelExtent = 2.0
-        extras = []
         xvec = self.vectorFromList(self.x, vector_of_double)
         yvec = self.vectorFromList(self.y, vector_of_double)
         zvec = self.vectorFromList(self.z, vector_of_double)
@@ -948,24 +968,34 @@ class GenerateCylindricalNodeDistribution3d(NodeGeneratorBase):
         Hvec = self.vectorFromList(self.H, vector_of_SymTensor3d)
         globalIDsvec = self.vectorFromList(self.globalIDs, vector_of_int)
         extrasVec = vector_of_vector_of_double()
-        for extra in extras:
-            extrasVec.append(self.vectorFromList(extra, vector_of_double))
         generateCylDistributionFromRZ(xvec, yvec, zvec, mvec, Hvec, globalIDsvec,
                                       extrasVec,
                                       nNodePerh, kernelExtent, phi,
                                       procID, nProcs)
-        self.x = [x for x in xvec]
-        self.y = [x for x in yvec]
-        self.z = [x for x in zvec]
-        self.m = [x for x in mvec]
-        self.H = [SymTensor3d(x) for x in Hvec]
-        self.globalIDs = [x for x in globalIDsvec]
-        for i in xrange(len(extras)):
-            extras[i] = [x for x in extrasVec[i]]
+
+        # Allow some 3D rejecter logic.
+        if rejecter3d:
+            self.x, self.y, self.z, self.m, self.H, self.globalIDs = [], [], [], [], [], []
+            for i in xrange(len(xvec)):
+                if rejecter.accept(xvec[i],yvec[i],zvec[i]):
+                    self.x.append(xvec[i])
+                    self.y.append(yvec[i])
+                    self.z.append(zvec[i])
+                    self.m.append(mvec[i])
+                    self.H.append(SymTensor3d(Hvec[i]))
+                    self.globalIDs.append(globalIDsvec[i])
+
+        else:
+            self.x = [x for x in xvec]
+            self.y = [x for x in yvec]
+            self.z = [x for x in zvec]
+            self.m = [x for x in mvec]
+            self.H = [SymTensor3d(x) for x in Hvec]
+            self.globalIDs = [x for x in globalIDsvec]
 
         # Initialize the base.
-        NodeGeneratorBase.__init__(self, True,
-                                   self.x, self.y, self.m, self.H)
+        NodeGeneratorBase.__init__(self, False,
+                                   self.x, self.y, self.z, self.m, self.H)
         return
 
     #---------------------------------------------------------------------------

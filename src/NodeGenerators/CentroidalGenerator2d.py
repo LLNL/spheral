@@ -23,7 +23,7 @@ class CentroidalGenerator2d(NodeGeneratorBase):
                  boundary,
                  holes = [],
                  maxIterations = 100,
-                 fracTol = 1.0e-2,
+                 fracTol = 1.0e-3,
                  tessellationFileName = None,
                  nNodePerh = 2.01,
                  offset = (0.0, 0.0),
