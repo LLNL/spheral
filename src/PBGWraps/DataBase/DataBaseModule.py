@@ -442,7 +442,10 @@ x.add_method("newSolidFieldList", "%(result)s", [param("%(value)s", "value", def
 
         x.add_instance_attribute("maxKernelExtent", "double", getter="maxKernelExtent", is_const=True)
 
-        x.add_instance_attribute("nDim", "int")
+        x.add_instance_attribute("nDim", "int", is_const=True)
+        x.add_instance_attribute("isRZ", "bool", is_const=True)
+
         x.add_static_attribute("nDim", "int", True)
+        x.add_static_attribute("isRZ", "bool", True)
 
         return

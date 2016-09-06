@@ -41,7 +41,7 @@ title("1-D integrated hydro test -- planar Noh problem")
 #-------------------------------------------------------------------------------
 # Generic problem parameters
 #-------------------------------------------------------------------------------
-commandLine(KernelConstructor = BSplineKernel,
+commandLine(KernelConstructor = NBSplineKernel,
             order = 5,
 
             nx1 = 100,
@@ -51,7 +51,7 @@ commandLine(KernelConstructor = BSplineKernel,
             x0 = 0.0,
             x1 = 1.0,
             xwall = 0.0,
-            nPerh = 1.25,
+            nPerh = 1.35,
             NeighborType = NestedGridNeighbor,
 
             vr0 = -1.0, 
@@ -149,25 +149,25 @@ commandLine(KernelConstructor = BSplineKernel,
             writeOutputLabel = True,
 
             # Parameters for the test acceptance.,
-            L1rho =   0.0449505,   
-            L2rho =   0.0140237,   
-            Linfrho = 1.68257,     
+            L1rho =   0.0484275,   
+            L2rho =   0.0150618,   
+            Linfrho = 1.7729,      
                                    
-            L1P =     0.016355,    
-            L2P =     0.0049738,   
-            LinfP =   0.586799,    
+            L1P =     0.0179288,   
+            L2P =     0.00533577,  
+            LinfP =   0.619003,    
                                    
-            L1v =     0.0237332,   
-            L2v =     0.00825198,  
-            Linfv =   0.840226,    
+            L1v =     0.0249215,   
+            L2v =     0.00824696,  
+            Linfv =   0.849277,    
                                    
-            L1eps =   0.00999979,  
-            L2eps =   0.00326578,  
-            Linfeps = 0.328118,    
+            L1eps =   0.0111308,   
+            L2eps =   0.00338576,  
+            Linfeps = 0.33485,     
                                    
-            L1h =     0.000329975, 
-            L2h =     9.90468e-05, 
-            Linfh =   0.00782331,  
+            L1h =     0.000439456, 
+            L2h =     0.000122126, 
+            Linfh =   0.00862716,  
 
             tol = 1.0e-5,
 
