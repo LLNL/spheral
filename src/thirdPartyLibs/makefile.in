@@ -132,13 +132,13 @@ PETSCBUILDDATE = $(patsubst %.tar.gz, .%.date, $(PETSCDIST))
 
 # petsc4py
 PETSC4PYDIST = petsc4py-0.7.5.tar.gz
-PETSC4PYURL = http://petsc4py.googlecode.com/files/$(PETSC4PYDIST)
+PETSC4PYURL = https://storage.googleapis.com/google-code-archive-downloads/v2/code.google.com/petsc4py/$(PETSC4PYDIST)
 PETSC4PYDIR = $(PETSC4PYDIST:.tar.gz=)
 PETSC4PYBUILDDATE = $(patsubst %.tar.gz, .%.date, $(PETSC4PYDIST))
 
 # Google hash_map.
 HASHMAPDIST = sparsehash-1.1.tar.gz
-HASHMAPURL = http://google-sparsehash.googlecode.com/files/$(HASHMAPDIST)
+HASHMAPURL = https://github.com/sparsehash/sparsehash/archive/$(HASHMAPDIST)
 HASHMAPDIR = $(HASHMAPDIST:.tar.gz=)
 HASHMAPBUILDDATE = $(patsubst %.tar.gz, .%.date, $(HASHMAPDIST))
 
@@ -150,7 +150,7 @@ VISITWRITERBUILDDATE = $(patsubst %.tar.gz, .%.date, $(VISITWRITERDIST))
 
 # ATS testing system.
 ATSDIST = ats-5.2.tar.gz
-ATSURL = http://ats.googlecode.com/files/$(ATSDIST)
+ATSURL = https://storage.googleapis.com/google-code-archive-downloads/v2/code.google.com/ats/$(ATSDIST)
 ATSDIR = $(ATSDIST:.tar.gz=)
 ATSBUILDDATE = $(patsubst %.tar.gz, .%.date, $(ATSDIST))
 
@@ -210,7 +210,7 @@ QHULLDATE = $(patsubst %-src.tgz, .%.date, $(QHULLDIST))
 
 # mpi4py
 MPI4PYDIST = mpi4py-1.3.tar.gz
-MPI4PYURL = http://mpi4py.googlecode.com/files/$(MPI4PYDIST)
+MPI4PYURL = https://bitbucket.org/mpi4py/mpi4py/downloads/$(MPI4PYDIST)
 MPI4PYDIR = $(MPI4PYDIST:.tar.gz=)
 MPI4PYBUILDDATE = $(patsubst %.tar.gz, .%.date, $(MPI4PYDIST))
 
@@ -252,7 +252,7 @@ GMPBUILDDATE = $(patsubst %.tar.bz2, .%.date, $(GMPDIST))
 
 # mpmath -- a python multiprecision math library
 MPMATHDIST = mpmath-0.17.tar.gz
-MPMATHURL = http://mpmath.googlecode.com/files/$(MPMATHDIST)
+MPMATHURL = https://storage.googleapis.com/google-code-archive-downloads/v2/code.google.com/mpmath/$(MPMATHDIST)
 MPMATHDIR = $(MPMATHDIST:.tar.gz=)
 MPMATHBUILDDATE = $(patsubst %.tar.gz, .%.date, $(MPMATHDIST))
 
