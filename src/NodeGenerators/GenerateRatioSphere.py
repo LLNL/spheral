@@ -29,6 +29,7 @@ class GenerateRatioSphere2d(NodeGeneratorBase):
                  ntheta = 1,
                  center = (0.0, 0.0),
                  distributionType = "constantDTheta",   # one of (constantDTheta, constantNTheta)
+                 aspectRatio = 1.0,                     # only for constantDTheta
                  nNodePerh = 2.01,
                  SPH = False,
                  rejecter = None,
@@ -91,7 +92,7 @@ class GenerateRatioSphere2d(NodeGeneratorBase):
             if constantN:
                 ntheta = ntheta
             else:
-                ntheta = max(1, int(li/dr))
+                ntheta = max(1, int(li/dr*aspectRatio))
             dtheta = Dtheta/ntheta
             hr = nNodePerh * dr
             ha = nNodePerh * ri*dtheta
