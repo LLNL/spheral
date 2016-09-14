@@ -569,8 +569,8 @@ if outputFile != "None":
         L2P = Pnorm(Pprof, rprof, Pans).pnorm(2, rmin=rminnorm, rmax=rmaxnorm)
         LinfP = Pnorm(Pprof, rprof, velans).pnorm("inf", rmin=rminnorm, rmax=rmaxnorm)
         with open("convergeNoh3d-CRK-%s-cullen-%s-PSPH-%s.txt" % (CRKSPH,boolCullenViscosity,PSPH), "a") as myfile:
-          myfile.write(("#" + 14*"%16s\t " + "%16s\n") % ("nRadial", "L1rho", "L1eps", "L1vel", "L2rho", "L2eps", "L2vel", "Linfrho", "Linfeps", "Linfvel", "L1P", "L2P", "LinfP", "cycles", "runtime"))
-          myfile.write((14*"%16s\t " + "%16s\n") % (nRadial, L1rho, L1eps, L1vel, L2rho, L2eps, L2vel, Linfrho, Linfeps, Linfvel, L1P, L2P, LinfP, control.totalSteps, control.stepTimer.elapsedTime))
+          myfile.write(("#" + 14*"%16s\t " + "%16s\n") % ("N", "L1rho", "L1eps", "L1vel", "L2rho", "L2eps", "L2vel", "Linfrho", "Linfeps", "Linfvel", "L1P", "L2P", "LinfP", "cycles", "runtime"))
+          myfile.write((14*"%16s\t " + "%16s\n") % (nx, L1rho, L1eps, L1vel, L2rho, L2eps, L2vel, Linfrho, Linfeps, Linfvel, L1P, L2P, LinfP, control.totalSteps, control.stepTimer.elapsedTime))
         
 
         f = open(outputFile, "w")
