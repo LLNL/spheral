@@ -870,50 +870,17 @@ class GenerateNodeDistribution3d(NodeGeneratorBase):
 #--------------------------------------------------------------------------------
 from GenerateNodeDistribution2d import GenerateNodeDistribution2d, RZGenerator
 from Spheral import generateCylDistributionFromRZ
-class GenerateCylindricalNodeDistribution3d(NodeGeneratorBase):
 
-    def __init__(self, nRadial, nTheta, rho,
-                 distributionType = 'optimal',
-                 xmin = None,
-                 xmax = None,
-                 rmin = None,
-                 rmax = None,
+class CylindricalSpunGenerator3d(NodeGeneratorBase):
+
+    def __init__(self,
+                 gen2d,
+                 rho,
                  nNodePerh = 2.01,
-                 theta = pi/2.0,
-                 azimuthalOffsetFraction = 0.0,
                  SPH = False,
-                 rotation = 0.0,
-                 offset = None,
-                 xminreject = None,
-                 xmaxreject = None,
-                 rreject = None,
-                 originreject = None,
-                 reversereject = False,
-                 relaxation = None,
                  rejecter = None,
-                 rejecter3d = None,
                  phi = 2.0*pi):
-        gen2d = RZGenerator(GenerateNodeDistribution2d(nRadial = nRadial,
-                                                       nTheta = nTheta,
-                                                       rho = rho,
-                                                       distributionType = distributionType,
-                                                       xmin = xmin,
-                                                       xmax = xmax,
-                                                       rmin = rmin,
-                                                       rmax = rmax,
-                                                       nNodePerh = nNodePerh,
-                                                       theta = theta,
-                                                       azimuthalOffsetFraction = azimuthalOffsetFraction,
-                                                       SPH = SPH,
-                                                       rotation = rotation,
-                                                       offset = offset,
-                                                       xminreject = xminreject,
-                                                       xmaxreject = xmaxreject,
-                                                       rreject = rreject,
-                                                       originreject = originreject,
-                                                       reversereject = reversereject,
-                                                       relaxation = relaxation,
-                                                       rejecter = rejecter))
+
         from Spheral import Vector3d, CylindricalBoundary
 
         # If the user provided a constant for rho, then use the constantRho
@@ -923,7 +890,7 @@ class GenerateCylindricalNodeDistribution3d(NodeGeneratorBase):
         else:
             self.rho = rho
 
-        # The base class already split the nodes up between processors, but
+        # The 2D generator already split the nodes up between processors, but
         # we want to handle that ourselves.  Distribute the full set of RZ
         # nodes to every process, then redecompose them below.
         self.x = mpi.allreduce(gen2d.x[:], mpi.SUM)
@@ -974,7 +941,7 @@ class GenerateCylindricalNodeDistribution3d(NodeGeneratorBase):
                                       procID, nProcs)
 
         # Allow some 3D rejecter logic.
-        if rejecter3d:
+        if rejecter:
             self.x, self.y, self.z, self.m, self.H, self.globalIDs = [], [], [], [], [], []
             for i in xrange(len(xvec)):
                 if rejecter.accept(xvec[i],yvec[i],zvec[i]):
@@ -1022,6 +989,62 @@ class GenerateCylindricalNodeDistribution3d(NodeGeneratorBase):
     #---------------------------------------------------------------------------
     def localHtensor(self, i):
         return self.H[i]
+
+#-------------------------------------------------------------------------------
+# Backwards compatible version of our 3D spun generator.
+#-------------------------------------------------------------------------------
+class GenerateCylindricalNodeDistribution3d(CylindricalSpunGenerator3d):
+
+    def __init__(self, nRadial, nTheta, rho,
+                 distributionType = 'optimal',
+                 xmin = None,
+                 xmax = None,
+                 rmin = None,
+                 rmax = None,
+                 nNodePerh = 2.01,
+                 theta = pi/2.0,
+                 azimuthalOffsetFraction = 0.0,
+                 SPH = False,
+                 rotation = 0.0,
+                 offset = None,
+                 xminreject = None,
+                 xmaxreject = None,
+                 rreject = None,
+                 originreject = None,
+                 reversereject = False,
+                 relaxation = None,
+                 rejecter = None,
+                 rejecter3d = None,
+                 phi = 2.0*pi):
+        gen2d = RZGenerator(GenerateNodeDistribution2d(nRadial = nRadial,
+                                                       nTheta = nTheta,
+                                                       rho = rho,
+                                                       distributionType = distributionType,
+                                                       xmin = xmin,
+                                                       xmax = xmax,
+                                                       rmin = rmin,
+                                                       rmax = rmax,
+                                                       nNodePerh = nNodePerh,
+                                                       theta = theta,
+                                                       azimuthalOffsetFraction = azimuthalOffsetFraction,
+                                                       SPH = SPH,
+                                                       rotation = rotation,
+                                                       offset = offset,
+                                                       xminreject = xminreject,
+                                                       xmaxreject = xmaxreject,
+                                                       rreject = rreject,
+                                                       originreject = originreject,
+                                                       reversereject = reversereject,
+                                                       relaxation = relaxation,
+                                                       rejecter = rejecter))
+        CylindricalSpunGenerator3d.__init__(self,
+                                            gen2d = gen2d,
+                                            rho = rho,
+                                            nNodePerh = nNodePerh,
+                                            SPH = SPH,
+                                            rejecter = rejecter3d,
+                                            phi = phi)
+        return
 
 #-------------------------------------------------------------------------------
 # Specialized version that generates a sphere matching a radial profile using
