@@ -883,6 +883,8 @@ class CylindricalSpunGenerator3d(NodeGeneratorBase):
 
         from Spheral import Vector3d, CylindricalBoundary
 
+        genRZ = RZGenerator(gen2d)
+
         # If the user provided a constant for rho, then use the constantRho
         # class to provide this value.
         if type(rho) == type(1.0):
@@ -893,10 +895,10 @@ class CylindricalSpunGenerator3d(NodeGeneratorBase):
         # The 2D generator already split the nodes up between processors, but
         # we want to handle that ourselves.  Distribute the full set of RZ
         # nodes to every process, then redecompose them below.
-        self.x = mpi.allreduce(gen2d.x[:], mpi.SUM)
-        self.y = mpi.allreduce(gen2d.y[:], mpi.SUM)
-        self.m = mpi.allreduce(gen2d.m[:], mpi.SUM)
-        self.H = mpi.allreduce(gen2d.H[:], mpi.SUM)
+        self.x = mpi.allreduce(genRZ.x[:], mpi.SUM)
+        self.y = mpi.allreduce(genRZ.y[:], mpi.SUM)
+        self.m = mpi.allreduce(genRZ.m[:], mpi.SUM)
+        self.H = mpi.allreduce(genRZ.H[:], mpi.SUM)
         n = len(self.x)
         self.z = [0.0]*n
         self.globalIDs = [0]*n
@@ -1016,27 +1018,27 @@ class GenerateCylindricalNodeDistribution3d(CylindricalSpunGenerator3d):
                  rejecter = None,
                  rejecter3d = None,
                  phi = 2.0*pi):
-        gen2d = RZGenerator(GenerateNodeDistribution2d(nRadial = nRadial,
-                                                       nTheta = nTheta,
-                                                       rho = rho,
-                                                       distributionType = distributionType,
-                                                       xmin = xmin,
-                                                       xmax = xmax,
-                                                       rmin = rmin,
-                                                       rmax = rmax,
-                                                       nNodePerh = nNodePerh,
-                                                       theta = theta,
-                                                       azimuthalOffsetFraction = azimuthalOffsetFraction,
-                                                       SPH = SPH,
-                                                       rotation = rotation,
-                                                       offset = offset,
-                                                       xminreject = xminreject,
-                                                       xmaxreject = xmaxreject,
-                                                       rreject = rreject,
-                                                       originreject = originreject,
-                                                       reversereject = reversereject,
-                                                       relaxation = relaxation,
-                                                       rejecter = rejecter))
+        gen2d = GenerateNodeDistribution2d(nRadial = nRadial,
+                                           nTheta = nTheta,
+                                           rho = rho,
+                                           distributionType = distributionType,
+                                           xmin = xmin,
+                                           xmax = xmax,
+                                           rmin = rmin,
+                                           rmax = rmax,
+                                           nNodePerh = nNodePerh,
+                                           theta = theta,
+                                           azimuthalOffsetFraction = azimuthalOffsetFraction,
+                                           SPH = SPH,
+                                           rotation = rotation,
+                                           offset = offset,
+                                           xminreject = xminreject,
+                                           xmaxreject = xmaxreject,
+                                           rreject = rreject,
+                                           originreject = originreject,
+                                           reversereject = reversereject,
+                                           relaxation = relaxation,
+                                           rejecter = rejecter)
         CylindricalSpunGenerator3d.__init__(self,
                                             gen2d = gen2d,
                                             rho = rho,
