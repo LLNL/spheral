@@ -61,7 +61,7 @@ namespace Spheral {
                     const SymTensor& Hi = H(nodeListi, i);
                     const Scalar m0i    = m0(nodeListi, i);
                     const Vector& m1i   = m1(nodeListi, i);
-                    const Vector& m1ih  = m1i.unitVector();
+                    const Vector m1ih   = m1i.unitVector();
                     
                     if (m0i < detectThreshold) {
                         // Get neighbors
@@ -79,6 +79,17 @@ namespace Spheral {
                                 // Get the state for node j.
                                 const Vector& rj    = position(nodeListj, j);
                                 const SymTensor& Hj = H(nodeListj, j);
+                                const Vector rji    = rj - ri;  // pointing away from i as does m1
+                                const Vector rjih   = rji.unitVector();
+                                
+                                // Check range
+                                
+                                // Check angle
+                                const cangle = m1ih.dot(rjih);  // because they're both unit vectors!
+                                if (cangle >= cos(sweepAngle))
+                                {
+                                    
+                                }
 
                             }
                         }
