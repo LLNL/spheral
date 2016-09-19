@@ -122,6 +122,10 @@ CRKSPHHydroBase(const SmoothingScaleBase<Dimension>& smoothingScaleMethod,
                 const HEvolutionType HUpdate,
                 const CRKOrder correctionOrder,
                 const CRKVolumeType volumeType,
+                const bool detectSurface,
+                const double detectThreshold,
+                const double sweepAngle,
+                const double detectRange,
                 const double epsTensile,
                 const double nTensile):
   GenericHydro<Dimension>(W, WPi, Q, cfl, useVelocityMagnitudeForDt),
@@ -134,6 +138,10 @@ CRKSPHHydroBase(const SmoothingScaleBase<Dimension>& smoothingScaleMethod,
   mEvolveTotalEnergy(evolveTotalEnergy),
   mXSPH(XSPH),
   mfilter(filter),
+  mDetectSurface(detectSurface),
+  mDetectThresh(detectThreshold),
+  mSweepAngle(sweepAngle),
+  mDetectRange(detectRange),
   mEpsTensile(epsTensile),
   mnTensile(nTensile),
   mTimeStepMask(FieldSpace::Copy),
@@ -235,7 +243,7 @@ initializeProblemStartup(DataBase<Dimension>& dataBase) {
     mGradm4 = dataBase.newFluidFieldList(FifthRankTensor::zero,  HydroFieldNames::gradM4_CRKSPH);
   }
 
-  mSurfNorm = dataBase.newFluidFieldList(Vector::zero, "surfNorm");
+  mSurfNorm = dataBase.newFluidFieldList(0.0, "surfNorm");
 
   // Compute the volumes.
   const TableKernel<Dimension>& W = this->kernel();
@@ -311,7 +319,7 @@ registerState(DataBase<Dimension>& dataBase,
     dataBase.resizeFluidFieldList(mGradm3,   FourthRankTensor::zero,HydroFieldNames::m3_CRKSPH, false);
     dataBase.resizeFluidFieldList(mGradm4,   FifthRankTensor::zero, HydroFieldNames::m4_CRKSPH, false);
   }
-  dataBase.resizeFluidFieldList(mSurfNorm, Vector::zero, "surfNorm", false);
+  dataBase.resizeFluidFieldList(mSurfNorm, 0.0, "surfNorm", false);
 
   // We have to choose either compatible or total energy evolution.
   VERIFY2(not (mCompatibleEnergyEvolution and mEvolveTotalEnergy),
@@ -529,7 +537,7 @@ initialize(const typename Dimension::Scalar time,
   FieldList<Dimension, ThirdRankTensor> gradm2 = state.fields(HydroFieldNames::gradM2_CRKSPH, ThirdRankTensor::zero);
   FieldList<Dimension, FourthRankTensor> gradm3 = state.fields(HydroFieldNames::gradM3_CRKSPH, FourthRankTensor::zero);
   FieldList<Dimension, FifthRankTensor> gradm4 = state.fields(HydroFieldNames::gradM4_CRKSPH, FifthRankTensor::zero);
-  FieldList<Dimension, Vector> surfNorm = state.fields("surfNorm", Vector::zero);
+  FieldList<Dimension, Scalar> surfNorm = state.fields("surfNorm", 0.0);
 
   // Compute the volume per node.
   // Change CRKSPH weights here if need be!
@@ -637,7 +645,7 @@ evaluateDerivatives(const typename Dimension::Scalar time,
   const FieldList<Dimension, Vector> gradA = state.fields(HydroFieldNames::gradA_CRKSPH, Vector::zero);
   const FieldList<Dimension, Tensor> gradB = state.fields(HydroFieldNames::gradB_CRKSPH, Tensor::zero);
   const FieldList<Dimension, ThirdRankTensor> gradC = state.fields(HydroFieldNames::gradC_CRKSPH, ThirdRankTensor::zero);
-  FieldList<Dimension, Vector> surfNorm = state.fields("surfNorm", Vector::zero);
+  const FieldList<Dimension, Scalar> surfNorm = state.fields("surfNorm", 0.0);
   CHECK(mass.size() == numNodeLists);
   CHECK(position.size() == numNodeLists);
   CHECK(velocity.size() == numNodeLists);
@@ -781,7 +789,7 @@ evaluateDerivatives(const typename Dimension::Scalar time,
       SymTensor& massSecondMomenti = massSecondMoment(nodeListi, i);
       Scalar& worki = workFieldi(i);
 
-      Vector& surfNormi = surfNorm(nodeListi, i);
+      //Vector& surfNormi = surfNorm(nodeListi, i);
 
       // const Scalar W0i = W.kernelValue(0.0, Hdeti);
       // Vector selfforceIi  = weighti*weighti*Pi*W0i*(gradAi);  // <- Type I self-interaction. I think there is no Q term here? Dont know what it would be. 
@@ -968,7 +976,7 @@ evaluateDerivatives(const typename Dimension::Scalar time,
                   XSPHDeltaVj += weighti*Wi*vij;
               }
                 
-              surfNormi += rij*Wj*weightj;
+              //surfNormi += rij*Wj*weightj;
             }
           }
         }

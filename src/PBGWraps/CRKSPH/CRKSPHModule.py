@@ -394,6 +394,10 @@ self.generateSolidCRKSPHHydroBaseBindings(self.SolidCRKSPHHydroBase%(dim)id, %(d
                            param("HEvolutionType", "HUpdate", default_value="Spheral::PhysicsSpace::IdealH"),
                            param("CRKOrder", "correctionOrder", default_value="Spheral::CRKSPHSpace::LinearOrder"),
                            param("CRKVolumeType", "volumeType", default_value="Spheral::CRKSPHSpace::CRKSumVolume"),
+                           param("int", "detectSurface", default_value="false"),
+                           param("double", "detectThreshold", default_value="0.9"),
+                           param("double", "sweepAngle", default_value="1.5"),
+                           param("double", "detectRange", default_value="2.0"),
                            param("double", "epsTensile", default_value="0.0"),
                            param("double", "nTensile", default_value="4.0")])
 
@@ -483,7 +487,7 @@ self.generateSolidCRKSPHHydroBaseBindings(self.SolidCRKSPHHydroBase%(dim)id, %(d
         const_ref_return_value(x, me, "%s::gradA" % me, vectorfieldlist, [], "gradA")
         const_ref_return_value(x, me, "%s::gradB" % me, tensorfieldlist, [], "gradB")
         const_ref_return_value(x, me, "%s::gradC" % me, thirdranktensorfieldlist, [], "gradC")
-        const_ref_return_value(x, me, "%s::surfNorm" % me, vectorfieldlist, [], "surfNorm")
+        const_ref_return_value(x, me, "%s::surfNorm" % me, scalarfieldlist, [], "surfNorm")
         const_ref_return_value(x, me, "%s::m0" % me, scalarfieldlist, [], "m0")
         const_ref_return_value(x, me, "%s::m1" % me, vectorfieldlist, [], "m1")
 
