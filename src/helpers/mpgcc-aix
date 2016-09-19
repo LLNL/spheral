@@ -1,0 +1,75 @@
+#!/usr/bin/env python
+#
+# Front end script to compile C++ source with g++ and link with MPI on IBM AIX 5.1.
+# Currently hard wired to use g++-3.2.1 due to the way LC AIX systems are configured.
+#
+# J. Michael Owen, 2003-Jan-27.
+# 
+import string
+
+# Valid arguments
+setValueArgs = {"-cc" : "CXX",
+                "-ccflags" : "GGFLAGS",
+                "-ldflags" : "GGLDFLAGS",
+                "-ccmpiflags" : "CCMPIFLAGS",
+                "-ldmpiflags" : "LDMPIFLAGS",
+                "-verbose" : "chatty"
+                }
+validArgs = setValueArgs.keys()
+
+# Little function to generate a usage statement.
+def printUsage():
+    print "Usage: mpg++ [-cc=<C++ compiler>] <your C++ compiler options>"
+
+# Helper to execute the given command string in the host OS.
+def execCommand(command, chatty):
+    if chatty:
+        print command
+    import os
+    os.system(command)
+
+# Default values for the important vars
+CXX = "gcc-3.4.3"
+GGFLAGS = ""
+GGLDFLAGS = "" # "-L/usr/local/tools/gnu/gcc/3.4.3_aix_5/lib -lg2c -lstdc++ -lm -lgcc_s -lgcc -lc"
+CCMPIFLAGS = "-I/usr/lpp/ppe.poe/include -I/usr/lpp/ssp/css/include -D_THREAD_SAFE"
+LDMPIFLAGS = "-Wl,-binitfini:poe_remote_main -L/usr/lpp/ppe.poe/lib/threads -L/usr/lpp/ppe.poe/lib -L/usr/lpp/ppe.poe/lib/ip -lmpi_r -lvtd_r -lpthreads  -llapi_r"
+chatty = None
+
+import sys
+nargs = len(sys.argv)
+if nargs < 2:
+    printUsage()
+    exit(1)
+
+# Parse arguments.
+compileOnly = False
+passThroughArgs = ""
+for iarg in xrange(1, nargs):
+    arg = sys.argv[iarg]
+
+    # Is the "-c" (compile only) flag being thrown?
+    if arg == "-c":
+        compileOnly = True
+
+    # Is the "-E" (c-preprocessor only) flag being thrown?
+    if arg == "-E":
+        compileOnly = True
+
+    # Is this a parameter for this script?
+    if string.count(arg, "=") == 1:
+        argKey, argValue = arg.split("=")
+        if argKey in validArgs:
+            exec("%s = '%s'" % (setValueArgs[argKey], argValue))
+            #print "Setting " + setValueArgs[argKey] + " to " + argValue
+        else:
+            passThroughArgs += " " + arg
+    else:
+        passThroughArgs += " " + arg
+        
+# Throw that compile statement
+if compileOnly:
+    command = CXX + " " + CCMPIFLAGS + " " + GGFLAGS + " " + passThroughArgs
+else:
+    command = CXX + " " + CCMPIFLAGS + " " + GGFLAGS + " " + passThroughArgs + " " + GGLDFLAGS + " "  + LDMPIFLAGS
+execCommand(command, chatty)
