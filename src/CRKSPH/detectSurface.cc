@@ -42,8 +42,10 @@ namespace Spheral {
             typedef typename Dimension::Vector Vector;
             typedef typename Dimension::Tensor Tensor;
             
+            const Scalar nPerh = m0.nodeListPtrs()[0]->nodesPerSmoothingScale();
+            
             // Zero out surfNorm to get fresh maps at each step
-            surfNorm = 0.0;
+            surfNorm = 0;
             
             // Walk the FluidNodeLists.
             for (size_t nodeListi = 0; nodeListi != numNodeLists; ++nodeListi) {
@@ -62,6 +64,7 @@ namespace Spheral {
                     const Scalar m0i    = m0(nodeListi, i);
                     const Vector& m1i   = m1(nodeListi, i);
                     const Vector m1ih   = m1i.unitVector();
+                    bool particleDetected = 0;
                     
                     if (m0i < detectThreshold) {
                         // Get neighbors
@@ -69,6 +72,7 @@ namespace Spheral {
                         CHECK(fullConnectivity.size() == numNodeLists);
                         // Loop over them
                         for (size_t nodeListj = 0; nodeListj != numNodeLists; ++nodeListj) {
+                            if (particleDetected) break;
                             const vector<int>& connectivity = fullConnectivity[nodeListj];
                             const int firstGhostNodej = m0[nodeListj]->nodeList().firstGhostNode();
                             for (vector<int>::const_iterator jItr = connectivity.begin();
@@ -86,15 +90,17 @@ namespace Spheral {
                                 
                                 // Check angle
                                 const cangle = m1ih.dot(rjih);  // because they're both unit vectors!
-                                if (cangle >= cos(sweepAngle))
-                                {
-                                    
-                                }
-
+                                if ((cangle >= cos(sweepAngle)) && (rji.magnitude() < detectRange)) {
+                                    particleDetected = 1;
+                                    break;
+                                }// needs to be scaled to eta space
                             }
                         }
                     }
-            
+                    
+                    if !(particleDetected) surfNorm(nodeListi, i) = 1;
+                }
+            }
         }
     }
 }
