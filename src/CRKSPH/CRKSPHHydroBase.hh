@@ -193,6 +193,19 @@ public:
 
   Scalar nTensile() const;
   void nTensile(const Scalar val);
+    
+  // Surface detection getters and setters
+    bool detectSurfaces() const;
+    void detectSurfaces(const bool val);
+    
+    double detectThreshold() const;
+    void detectThreshold(const double val);
+    
+    double detectRange() const;
+    void detectRange(const double val);
+    
+    double sweepAngle() const;
+    void sweepAngle(const double val);
 
   // The state field lists we're maintaining.
   const FieldSpace::FieldList<Dimension, int>&       timeStepMask() const;
