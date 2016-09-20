@@ -10,6 +10,10 @@
 #include "Kernel/TableKernel.hh"
 #include "NodeList/NodeList.hh"
 #include "Hydro/HydroFieldNames.hh"
+#include "Geometry/outerProduct.hh"
+#include "Geometry/innerProduct.hh"
+#include "Geometry/innerDoubleProduct.hh"
+#include "Geometry/invertRankNTensor.hh"
 
 namespace Spheral {
     namespace CRKSPH {
@@ -23,12 +27,17 @@ namespace Spheral {
         using NeighborSpace::ConnectivityMap;
         using KernelSpace::TableKernel;
         using NodeSpace::NodeList;
+        using Geometry::outerProduct;
+        using Geometry::innerProduct;
+        using Geometry::innerDoubleProduct;
         
         template<typename Dimension>
         void
         detectSurface(const NeighborSpace::ConnectivityMap<Dimension>& connectivityMap,
                       const FieldSpace::FieldList<Dimension, typename Dimension::Scalar>& m0,
                       const FieldSpace::FieldList<Dimension, typename Dimension::Vector>& m1,
+                      const FieldSpace::FieldList<Dimension, typename Dimension::Vector>& position,
+                      const FieldSpace::FieldList<Dimension, typename Dimension::SymTensor>& H,
                       const double detectThreshold,
                       const double detectRange,
                       const double sweepAngle,
@@ -36,11 +45,14 @@ namespace Spheral {
             // Pre-conditions.
             const size_t numNodeLists = m0.size();
             REQUIRE(m1.size() == numNodeLists);
+            REQUIRE(position.size() == numNodeLists);
+            REQUIRE(H.size() == numNodeLists);
             REQUIRE(surfNorm.size() == numNodeLists);
             
             typedef typename Dimension::Scalar Scalar;
             typedef typename Dimension::Vector Vector;
             typedef typename Dimension::Tensor Tensor;
+            typedef typename Dimension::SymTensor SymTensor;
             
             const Scalar nPerh = m0.nodeListPtrs()[0]->nodesPerSmoothingScale();
             
@@ -85,20 +97,20 @@ namespace Spheral {
                                 const SymTensor& Hj = H(nodeListj, j);
                                 const Vector rji    = rj - ri;  // pointing away from i as does m1
                                 const Vector rjih   = rji.unitVector();
+                                const Scalar etaj   = Hj.dot(rji).magnitude();
                                 
-                                // Check range
                                 
                                 // Check angle
-                                const cangle = m1ih.dot(rjih);  // because they're both unit vectors!
-                                if ((cangle >= cos(sweepAngle)) && (rji.magnitude() < detectRange)) {
+                                const float cangle = m1ih.dot(rjih);  // because they're both unit vectors!
+                                if ((cangle >= cos(sweepAngle)) && (etaj*nPerh < detectRange)) {
                                     particleDetected = 1;
                                     break;
-                                }// needs to be scaled to eta space
+                                }
                             }
                         }
                     }
                     
-                    if !(particleDetected) surfNorm(nodeListi, i) = 1;
+                    if (!particleDetected) surfNorm(nodeListi, i) = 1;
                 }
             }
         }
