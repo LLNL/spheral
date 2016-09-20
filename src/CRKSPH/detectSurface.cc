@@ -16,7 +16,7 @@
 #include "Geometry/invertRankNTensor.hh"
 
 namespace Spheral {
-    namespace CRKSPH {
+    namespace CRKSPHSpace {
         using namespace std;
         using std::min;
         using std::max;

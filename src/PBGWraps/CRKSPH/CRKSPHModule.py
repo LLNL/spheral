@@ -208,6 +208,8 @@ self.generateSolidCRKSPHHydroBaseBindings(self.SolidCRKSPHHydroBase%(dim)id, %(d
                                 [constrefparam(connectivitymap, "connectivityMap"),
                                  constrefparam(scalarfieldlist, "m0"),
                                  constrefparam(vectorfieldlist, "m1"),
+                                 constrefparam(vectorfieldlist, "position"),
+                                 constrefparam(symtensorfieldlist, "H"),
                                  constrefparam("double", "detectThreshold"),
                                  constrefparam("double", "detectRange"),
                                  constrefparam("double", "sweepAngle"),

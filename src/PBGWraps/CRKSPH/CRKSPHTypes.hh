@@ -13,6 +13,7 @@
 #include "CRKSPH/computeCRKSPHSumMassDensity.hh"
 #include "CRKSPH/computeSolidCRKSPHSumMassDensity.hh"
 #include "CRKSPH/computeCRKSPHMoments.hh"
+#include "CRKSPH/detectSurface.hh"
 #include "CRKSPH/computeCRKSPHCorrections.hh"
 #include "CRKSPH/centerOfMass.hh"
 #include "CRKSPH/computeHullVolumes.hh"
