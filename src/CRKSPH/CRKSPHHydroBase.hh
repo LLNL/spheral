@@ -69,6 +69,10 @@ public:
                   const PhysicsSpace::HEvolutionType HUpdate,
                   const CRKSPHSpace::CRKOrder correctionOrder,
                   const CRKSPHSpace::CRKVolumeType volumeType,
+                  const bool detectSurfaces,
+                  const double detectThreshold,
+                  const double sweepAngle,
+                  const double detectRange,
                   const double epsTensile,
                   const double nTensile);
 
@@ -232,7 +236,7 @@ public:
   const FieldList<Dimension, FourthRankTensor>&      gradm3() const;
   const FieldList<Dimension, FifthRankTensor>&       gradm4() const;
 
-  const FieldSpace::FieldList<Dimension, Vector>&    surfNorm() const;
+  const FieldSpace::FieldList<Dimension, Scalar>&    surfNorm() const;
 
   //****************************************************************************
   // Methods required for restarting.
@@ -254,6 +258,8 @@ protected:
   bool mCompatibleEnergyEvolution, mEvolveTotalEnergy, mGradhCorrection, mXSPH;
   double mfilter;
   Scalar mEpsTensile, mnTensile;
+  bool mDetectSurfaces;
+  double mDetectThreshold, mSweepAngle, mDetectRange;
 
   // Some internal scratch fields.
   FieldSpace::FieldList<Dimension, int>       mTimeStepMask;
@@ -302,7 +308,7 @@ protected:
   FieldList<Dimension, FourthRankTensor>      mGradm3;
   FieldList<Dimension, FifthRankTensor>       mGradm4;
 
-  FieldSpace::FieldList<Dimension, Vector>    mSurfNorm;
+  FieldSpace::FieldList<Dimension, Scalar>    mSurfNorm;
 
 private:
   //--------------------------- Private Interface ---------------------------//

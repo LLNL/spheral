@@ -493,7 +493,7 @@ gradm4() const {
 
 template<typename Dimension>
 inline
-const FieldSpace::FieldList<Dimension, typename Dimension::Vector>&
+const FieldSpace::FieldList<Dimension, typename Dimension::Scalar>&
 CRKSPHHydroBase<Dimension>::
 surfNorm() const {
   return mSurfNorm;
