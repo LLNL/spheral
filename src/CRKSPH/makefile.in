@@ -26,6 +26,7 @@ INSTSRCTARGETS = \
 	$(srcdir)/interpolateCRKSPHInst.cc.py \
 	$(srcdir)/gradientCRKSPHInst.cc.py \
 	$(srcdir)/HVolumePolicyInst.cc.py \
+	$(srcdir)/ContinuityVolumePolicyInst.cc.py \
 	$(srcdir)/SolidCRKSPHHydroBaseInst.cc.py
 
 SRCTARGETS = \
