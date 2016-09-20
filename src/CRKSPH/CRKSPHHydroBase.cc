@@ -20,6 +20,7 @@
 #include "SPH/correctSPHSumMassDensity.hh"
 #include "computeCRKSPHSumMassDensity.hh"
 #include "computeCRKSPHMoments.hh"
+#include "detectSurface.hh"
 #include "computeCRKSPHCorrections.hh"
 #include "computeCRKSPHIntegral.hh"
 #include "centerOfMass.hh"
@@ -276,6 +277,7 @@ initializeProblemStartup(DataBase<Dimension>& dataBase) {
   // Compute the corrections.
   computeCRKSPHMoments(connectivityMap, W, mVolume, position, H, correctionOrder(), NodeCoupling(), mM0, mM1, mM2, mM3, mM4, mGradm0, mGradm1, mGradm2, mGradm3, mGradm4);
   computeCRKSPHCorrections(mM0, mM1, mM2, mM3, mM4, mGradm0, mGradm1, mGradm2, mGradm3, mGradm4, H, correctionOrder(), mA, mB, mC, mGradA, mGradB, mGradC);
+  if (mDetectSurfaces) detectSurface(connectivityMap, mM0, mM1, position, H, mDetectThreshold, mDetectRange, mSweepAngle, mSurfNorm);
 
   // Initialize the pressure and sound speed.
   dataBase.fluidPressure(mPressure);
@@ -568,6 +570,7 @@ initialize(const typename Dimension::Scalar time,
 
   computeCRKSPHMoments(connectivityMap, W, vol, position, H, correctionOrder(), NodeCoupling(), m0, m1, m2, m3, m4, gradm0, gradm1, gradm2, gradm3, gradm4);
   computeCRKSPHCorrections(m0, m1, m2, m3, m4, gradm0, gradm1, gradm2, gradm3, gradm4, H, correctionOrder(), A, B, C, gradA, gradB, gradC);
+  if (mDetectSurfaces) detectSurface(connectivityMap, m0, m1, position, H, mDetectThreshold, mDetectRange, mSweepAngle, surfNorm);
 
   for (ConstBoundaryIterator boundItr = this->boundaryBegin();
        boundItr != this->boundaryEnd();
@@ -1173,6 +1176,7 @@ finalize(const typename Dimension::Scalar time,
     FieldList<Dimension, ThirdRankTensor> gradm2 = state.fields(HydroFieldNames::gradM2_CRKSPH, ThirdRankTensor::zero);
     FieldList<Dimension, FourthRankTensor> gradm3 = state.fields(HydroFieldNames::gradM3_CRKSPH, FourthRankTensor::zero);
     FieldList<Dimension, FifthRankTensor> gradm4 = state.fields(HydroFieldNames::gradM4_CRKSPH, FifthRankTensor::zero);
+    FieldList<Dimension, Scalar> surfNorm = state.fields("surfNorm", 0.0);
     if (mVolumeType == CRKMassOverDensity) {
       vol.assignFields(mass/massDensity);
     } else if (mVolumeType == CRKSumVolume) {
@@ -1196,6 +1200,7 @@ finalize(const typename Dimension::Scalar time,
     computeCRKSPHMoments(connectivityMap, W, vol, position, H, this->correctionOrder(), NodeCoupling(), m0, m1, m2, m3, m4, gradm0, gradm1, gradm2, gradm3, gradm4);
     computeCRKSPHCorrections(m0, m1, m2, m3, m4, gradm0, gradm1, gradm2, gradm3, gradm4, H, this->correctionOrder(), A, B, C, gradA, gradB, gradC);
     computeCRKSPHSumMassDensity(connectivityMap, W, position, mass, vol, H, A, B, C, this->correctionOrder(), massDensity);
+    if (mDetectSurfaces) detectSurface(connectivityMap, m0, m1, position, H, mDetectThreshold, mDetectRange, mSweepAngle, surfNorm);
     // SPHSpace::computeSPHSumMassDensity(connectivityMap, W, true, position, mass, H, massDensity);
     // for (ConstBoundaryIterator boundaryItr = this->boundaryBegin();
     //      boundaryItr != this->boundaryEnd();
