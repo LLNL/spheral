@@ -120,6 +120,7 @@ CRKSPHHydroBaseRZ(const SmoothingScaleBase<Dim<2> >& smoothingScaleMethod,
                            HUpdate,
                            correctionOrder,
                            volumeType,
+                           0,0.0,0.0,0.0,
                            epsTensile,
                            nTensile) {
 }

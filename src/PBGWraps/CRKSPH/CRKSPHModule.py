@@ -202,6 +202,18 @@ self.generateSolidCRKSPHHydroBaseBindings(self.SolidCRKSPHHydroBase%(dim)id, %(d
                                  refparam(fifthranktensorfieldlist, "gradm4")],
                                 template_parameters = [dim],
                                 custom_name = "computeCRKSPHMoments%id" % ndim)
+                                
+        # Detect Surfaces
+        self.space.add_function("detectSurface", None,
+                                [constrefparam(connectivitymap, "connectivityMap"),
+                                 constrefparam(scalarfieldlist, "m0"),
+                                 constrefparam(vectorfieldlist, "m1"),
+                                 constrefparam("double", "detectThreshold"),
+                                 constrefparam("double", "detectRange"),
+                                 constrefparam("double", "sweepAngle"),
+                                 refparam(scalarfieldlist, "surfNorm")],
+                                template_parameters = [dim],
+                                custom_name = "detectSurface%id" % ndim)
 
         # CRKSPH corrections.
         self.space.add_function("computeCRKSPHCorrections", None,
@@ -396,7 +408,7 @@ self.generateSolidCRKSPHHydroBaseBindings(self.SolidCRKSPHHydroBase%(dim)id, %(d
                            param("CRKVolumeType", "volumeType", default_value="Spheral::CRKSPHSpace::CRKSumVolume"),
                            param("int", "detectSurfaces", default_value="false"),
                            param("double", "detectThreshold", default_value="0.9"),
-                           param("double", "sweepAngle", default_value="1.5"),
+                           param("double", "sweepAngle", default_value="0.8"),
                            param("double", "detectRange", default_value="2.0"),
                            param("double", "epsTensile", default_value="0.0"),
                            param("double", "nTensile", default_value="4.0")])
