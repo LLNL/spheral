@@ -9,7 +9,24 @@ from GenerateNodeDistribution2d import *
 
 title("Surface Detection Test")
 
-class detectSurface(object):
+class Rejecter(object):
+    def __init__(self,radius):
+        self.radius = radius
+    def __call__(self,x,y,m,H):
+        nX = []
+        nY = []
+        nM = []
+        nH = []
+        for i in xrange(len(x)):
+            ri = sqrt(x[i]*x[i]+y[i]*y[i])
+            if (ri > self.radius):
+                nX.append(x[i])
+                nY.append(y[i])
+                nM.append(m[i])
+                nH.append(H[i])
+        return nX,nY,nM,nH
+
+class dSurface(object):
     def __init__(self,nodes,db,Kern,Bf,Sf,hydro,file):
         self.nodes  = nodes
         self.db     = db
@@ -68,6 +85,7 @@ commandLine(lattice = True,
             gamma   = 5.0/3.0,
             mu      = 1.0,
             rhomin  = 1.0e-8,
+            holeRadius = 0.5,
             
             ASPH    = False,
             CRKSPH  = True,
@@ -79,7 +97,7 @@ commandLine(lattice = True,
             order   = 7,
             
             # Hydro
-            Qconstructor = MonaghanGingoldViscosity2d,
+            Qconstructor        = MonaghanGingoldViscosity2d,
             correctionOrder     = LinearOrder,
             Cl                  = 1.0,
             Cq                  = 2.0,
@@ -94,45 +112,45 @@ commandLine(lattice = True,
             compatibleEnergy    = False,
             gradhCorrection     = False,
             HEvolution          = IdealH,
-            sumForMassDesnity   = RigorousSumDensity,
+            sumForMassDensity   = RigorousSumDensity,
             densityUpdate       = RigorousSumDensity,
             HUpdate             = IdealH,
             linearInExpansion   = False,
             volumeType          = CRKSumVolume,
             
             # Timestep constraints
-            cfl     = 0.5,
-            deltaPhi= 0.01,
-            domainIndependent = False,
+            cfl                 = 0.5,
+            deltaPhi            = 0.01,
+            domainIndependent   = False,
             
             # Integrator
             IntegratorConstructor = CheapSynchronousRK2Integrator,
-            goalTime    = 1.0,
-            dt          = 0.0001,
-            dtMin       = 1.0e-5,
-            dtMax       = 1.0e5,
-            dtGrowth    = 2.0,
-            maxSteps    = None,
-            steps       = None,
-            statsStep   = 10,
-            redistributeStep = 500,
-            restartStep = 500,
-            restoreCycle= None,
-            smoothIters = 0,
-            rigorousBoundaries = True,
-            dtverbose   = False,
+            goalTime            = 1.0,
+            dt                  = 0.0001,
+            dtMin               = 1.0e-5,
+            dtMax               = 1.0e5,
+            dtGrowth            = 2.0,
+            maxSteps            = None,
+            steps               = None,
+            statsStep           = 10,
+            redistributeStep    = 500,
+            restartStep         = 500,
+            restoreCycle        = None,
+            smoothIters         = 0,
+            rigorousBoundaries  = True,
+            dtverbose           = False,
             
-            vizCycle    = 1,
-            vizTime     = 1.0e5,
-            vizMethod   = SpheralPointmeshSiloDump.dumpPhysicsState,
+            vizCycle            = 1,
+            vizTime             = 1.0e5,
+            vizMethod           = SpheralPointmeshSiloDump.dumpPhysicsState,
             
-            clearDirectories = False,
-            renormFile = "renorm.txt",
+            clearDirectories    = False,
+            renormFile          = "renorm.txt",
             
-            detectSurfaces = True,
-            detectRange = 2.0,
-            sweepAngle = pi/4.0,
-            detectTreshold = 0.95,
+            detectSurfaces      = True,
+            detectRange         = 2.0,
+            sweepAngle          = pi/4.0,
+            detectThreshold     = 0.95,
             )
 
 if CRKSPH:
@@ -186,7 +204,10 @@ if KernelConstructor==NBSplineKernel:
     Wbase = NBSplineKernel(order)
 else:
     Wbase = KernelConstructor()
-WT = TableKernel(Wbase, 1000)
+WT = TableKernel(KernelConstructor(order), 1000)
+WTPi = TableKernel(KernelConstructor(order), 1000)
+output('WT')
+output('WTPi')
 kernelExtent = WT.kernelExtent
 output("WT")
 
@@ -210,6 +231,7 @@ if restoreCycle is None:
     if lattice == True:
         xmin = (-1.0, -1.0)
         xmax = (1.0, 1.0)
+        myRejecter = Rejecter(holeRadius)
         generator = GenerateNodeDistribution2d(nx,ny,rho0,"lattice",
                                                rmin = rmin,
                                                rmax = rmax,
@@ -217,7 +239,8 @@ if restoreCycle is None:
                                                xmax = xmax,
                                                theta = 2*pi,
                                                nNodePerh = nPerh,
-                                               SPH = (not ASPH))
+                                               SPH = (not ASPH),
+                                               rejecter = myRejecter)
     if mpi.procs > 1:
         from VoronoiDistributeNodes import distribueNodes2d
     else:
@@ -264,17 +287,18 @@ output("q.quadraticInExpansion")
 #-------------------------------------------------------------------------------
 if CRKSPH:
     hydro = HydroConstructor(W = WT,
+                             WPi = WTPi,
                              Q = q,
                              filter = filter,
                              cfl = cfl,
                              compatibleEnergyEvolution = compatibleEnergy,
                              XSPH = XSPH,
+                             densityUpdate = densityUpdate,
                              correctionOrder = correctionOrder,
                              volumeType = volumeType,
-                             densityUpdate = densityUpdate,
-                             HUpdate = HUpdate,
+                             HUpdate = HEvolution,
                              detectSurfaces = detectSurfaces,
-                             detectTreshold = detectTreshold,
+                             detectThreshold = detectThreshold,
                              sweepAngle = sweepAngle,
                              detectRange = detectRange)
 else:
@@ -303,8 +327,8 @@ packages = [hydro]
 # Construct the surface detection periodic work function
 #-------------------------------------------------------------------------------
 
-ds      = detectSurface(nodes1,db,WT,Bf,Sf,hydro,renormFile)
-dsFreq  = 1
+#ds      = detectSurface(nodes1,db,WT,Bf,Sf,hydro,renormFile)
+#dsFreq  = 1
 
 #-------------------------------------------------------------------------------
 # Construct a time integrator, and add the one physics package.
@@ -341,7 +365,7 @@ control = SpheralController(integrator, WT,
                             SPH = (not ASPH))
 output("control")
 
-control.appendPeriodicWork(ds,dsFreq)
+#control.appendPeriodicWork(ds,dsFreq)
 
 #-------------------------------------------------------------------------------
 # Finally run the problem and plot the results.

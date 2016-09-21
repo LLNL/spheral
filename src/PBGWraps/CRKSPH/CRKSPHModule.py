@@ -409,7 +409,7 @@ self.generateSolidCRKSPHHydroBaseBindings(self.SolidCRKSPHHydroBase%(dim)id, %(d
                            param("CRKOrder", "correctionOrder", default_value="Spheral::CRKSPHSpace::LinearOrder"),
                            param("CRKVolumeType", "volumeType", default_value="Spheral::CRKSPHSpace::CRKSumVolume"),
                            param("int", "detectSurfaces", default_value="false"),
-                           param("double", "detectThreshold", default_value="0.9"),
+                           param("double", "detectThreshold", default_value="0.95"),
                            param("double", "sweepAngle", default_value="0.8"),
                            param("double", "detectRange", default_value="2.0"),
                            param("double", "epsTensile", default_value="0.0"),

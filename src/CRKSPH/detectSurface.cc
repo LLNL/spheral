@@ -56,8 +56,7 @@ namespace Spheral {
             
             const Scalar nPerh = m0.nodeListPtrs()[0]->nodesPerSmoothingScale();
             
-            // Zero out surfNorm to get fresh maps at each step
-            surfNorm = 0;
+
             
             // Walk the FluidNodeLists.
             for (size_t nodeListi = 0; nodeListi != numNodeLists; ++nodeListi) {
@@ -77,6 +76,8 @@ namespace Spheral {
                     const Vector& m1i   = m1(nodeListi, i);
                     const Vector m1ih   = m1i.unitVector();
                     bool particleDetected = 0;
+                    // Zero out surfNorm to get fresh maps at each step
+                    surfNorm(nodeListi, i) = 0;
                     
                     if (m0i < detectThreshold) {
                         // Get neighbors
@@ -110,7 +111,7 @@ namespace Spheral {
                         }
                     }
                     
-                    if (!particleDetected) surfNorm(nodeListi, i) = 1;
+                    if (!particleDetected && m0i < detectThreshold) surfNorm(nodeListi, i) = 1;
                 }
             }
         }
