@@ -26,6 +26,10 @@ class %(classname)s%(dim)s(CRKSPHHydroBase%(dim)s):
                  HUpdate = IdealH,
                  correctionOrder = LinearOrder,
                  volumeType = CRKSumVolume,
+                 detectSurfaces = False,
+                 detectThreshold = 0.95,
+                 sweepAngle = 0.8,
+                 detectRange = 2.0,
                  epsTensile = 0.0,
                  nTensile = 4.0):
         self._smoothingScaleMethod = %(smoothingScaleMethod)s%(dim)s()
@@ -46,6 +50,10 @@ class %(classname)s%(dim)s(CRKSPHHydroBase%(dim)s):
                                         HUpdate,
                                         correctionOrder,
                                         volumeType,
+                                        detectSurfaces,
+                                        detectThreshold,
+                                        sweepAngle,
+                                        detectRange,
                                         epsTensile,
                                         nTensile)
         return
