@@ -411,7 +411,7 @@ self.generateSolidCRKSPHHydroBaseBindings(self.SolidCRKSPHHydroBase%(dim)id, %(d
                            param("int", "detectSurfaces", default_value="false"),
                            param("double", "detectThreshold", default_value="0.95"),
                            param("double", "sweepAngle", default_value="0.8"),
-                           param("double", "detectRange", default_value="2.0"),
+                           param("double", "detectRange", default_value="0.5"),
                            param("double", "epsTensile", default_value="0.0"),
                            param("double", "nTensile", default_value="4.0")])
 

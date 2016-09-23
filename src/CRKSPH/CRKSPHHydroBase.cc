@@ -277,7 +277,7 @@ initializeProblemStartup(DataBase<Dimension>& dataBase) {
   // Compute the corrections.
   computeCRKSPHMoments(connectivityMap, W, mVolume, position, H, correctionOrder(), NodeCoupling(), mM0, mM1, mM2, mM3, mM4, mGradm0, mGradm1, mGradm2, mGradm3, mGradm4);
   computeCRKSPHCorrections(mM0, mM1, mM2, mM3, mM4, mGradm0, mGradm1, mGradm2, mGradm3, mGradm4, H, correctionOrder(), mA, mB, mC, mGradA, mGradB, mGradC);
-  if (mDetectSurfaces) detectSurface(connectivityMap, mM0, mM1, position, H, mDetectThreshold, mDetectRange, mSweepAngle, mSurfNorm);
+  if (mDetectSurfaces) detectSurface(connectivityMap, mM0, mM1, position, H, mDetectThreshold, mDetectRange*W.kernelExtent(), mSweepAngle, mSurfNorm);
 
   // Initialize the pressure and sound speed.
   dataBase.fluidPressure(mPressure);
@@ -570,7 +570,7 @@ initialize(const typename Dimension::Scalar time,
 
   computeCRKSPHMoments(connectivityMap, W, vol, position, H, correctionOrder(), NodeCoupling(), m0, m1, m2, m3, m4, gradm0, gradm1, gradm2, gradm3, gradm4);
   computeCRKSPHCorrections(m0, m1, m2, m3, m4, gradm0, gradm1, gradm2, gradm3, gradm4, H, correctionOrder(), A, B, C, gradA, gradB, gradC);
-  if (mDetectSurfaces) detectSurface(connectivityMap, m0, m1, position, H, mDetectThreshold, mDetectRange, mSweepAngle, surfNorm);
+  if (mDetectSurfaces) detectSurface(connectivityMap, m0, m1, position, H, mDetectThreshold, mDetectRange*W.kernelExtent(), mSweepAngle, surfNorm);
 
   for (ConstBoundaryIterator boundItr = this->boundaryBegin();
        boundItr != this->boundaryEnd();
@@ -1200,7 +1200,7 @@ finalize(const typename Dimension::Scalar time,
     computeCRKSPHMoments(connectivityMap, W, vol, position, H, this->correctionOrder(), NodeCoupling(), m0, m1, m2, m3, m4, gradm0, gradm1, gradm2, gradm3, gradm4);
     computeCRKSPHCorrections(m0, m1, m2, m3, m4, gradm0, gradm1, gradm2, gradm3, gradm4, H, this->correctionOrder(), A, B, C, gradA, gradB, gradC);
     computeCRKSPHSumMassDensity(connectivityMap, W, position, mass, vol, H, A, B, C, this->correctionOrder(), massDensity);
-    if (mDetectSurfaces) detectSurface(connectivityMap, m0, m1, position, H, mDetectThreshold, mDetectRange, mSweepAngle, surfNorm);
+    if (mDetectSurfaces) detectSurface(connectivityMap, m0, m1, position, H, mDetectThreshold, mDetectRange*W.kernelExtent(), mSweepAngle, surfNorm);
     // SPHSpace::computeSPHSumMassDensity(connectivityMap, W, true, position, mass, H, massDensity);
     // for (ConstBoundaryIterator boundaryItr = this->boundaryBegin();
     //      boundaryItr != this->boundaryEnd();
