@@ -96,7 +96,7 @@ commandLine(seed = "lattice",
             restoreCycle = None,
             restartStep = 1000,
 
-            graphics = True,
+            graphics = False,
             useVoronoiOutput = False,
             clearDirectories = False,
             dataRoot = "dumps-cylindrical-Sedov",

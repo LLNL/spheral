@@ -37,7 +37,7 @@ class NodeGeneratorBase:
     # Simple minded method to compute and assign unique global ID ranges to
     # each processor.
     #---------------------------------------------------------------------------
-    def globalIDRange(self, ntot):
+    def globalIDRange(self, ntot):        
         ndomain0 = ntot/procs
         remainder = ntot % procs
         assert remainder < procs
