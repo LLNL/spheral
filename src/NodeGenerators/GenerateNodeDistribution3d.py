@@ -1828,7 +1828,8 @@ class GenerateIcosahedronMatchingProfile3d(NodeGeneratorBase):
                  phiMax = 2.0*pi,
                  nNodePerh = 2.01,
                  offset=None,
-                 rejecter=None):
+                 rejecter=None,
+                 m0 = 0.0):
         
         assert n > 0
         assert rmin < rmax
@@ -1878,9 +1879,13 @@ class GenerateIcosahedronMatchingProfile3d(NodeGeneratorBase):
             (self.totalMass, rmin, rmax, thetaMin, thetaMax, phiMin, phiMax)
 
         # Now set the nominal mass per node.
-        self.m0 = self.totalMass/n
+        if (m0 = 0.0):
+            self.m0 = self.totalMass/n
+        else:
+            self.m0 = m0
+            n = int(self.totalMass/self.m0)
         assert self.m0 > 0.0
-        print "Nominal mass per node of %g." % self.m0
+        print "Nominal mass per node of %g for %d nodes." % (self.m0,n)
         
         from Spheral import SymTensor3d
         self.x = []
