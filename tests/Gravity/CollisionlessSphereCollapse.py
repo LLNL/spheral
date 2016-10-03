@@ -4,8 +4,8 @@
 #ATS:    t2 = test(SELF,       "--nr 10 --numViz 0 --timeStepChoice DynamicalTime --steps=40 --restartStep 20  --dataDir 'Collisionless_Sphere_Collapse_DynamicalTime'  --clearDirectories True --outputFile 'Collisionless_sphere_collapse_DynamicalTime_data.txt' --comparisonFile 'Reference/Collisionless_sphere_collapse_DynamicalTime_data_darwin_20151009.txt'", np=1, label="Collisionless sphere gravitational collapse restart test (serial, dynamical time) INITIAL RUN")
 #ATS:    t3 = testif(t2, SELF, "--nr 10 --numViz 0 --timeStepChoice DynamicalTime --steps 20 --restartStep 100  --dataDir 'Collisionless_Sphere_Collapse_DynamicalTime' --clearDirectories False --outputFile 'Collisionless_sphere_collapse_DynamicalTime_data.txt' --comparisonFile 'Reference/Collisionless_sphere_collapse_DynamicalTime_data_darwin_20151009.txt' --restoreCycle 20 --checkRestart True", np=1, label="Collisionless sphere gravitational collapse restart test (serial, dynamical time) RESTARTED CHECK")
 #ATS:else:
-#ATS:    t0 = test(SELF,       "--nr 10 --numViz 0 --timeStepChoice AccelerationRatio --steps=40 --restartStep 20  --dataDir 'Collisionless_Sphere_Collapse_AccelerationRatio' --clearDirectories True --outputFile 'Collisionless_sphere_collapse_AccelerationRatio_data.txt' --comparisonFile 'Reference/Collisionless_sphere_collapse_AccelerationRatio_data_20151010.txt'", np=1, label="Collisionless sphere gravitational collapse restart test (serial, acceleration ratio) INITIAL RUN")
-#ATS:    t1 = testif(t0, SELF, "--nr 10 --numViz 0 --timeStepChoice AccelerationRatio --steps 20 --restartStep 100 --dataDir 'Collisionless_Sphere_Collapse_AccelerationRatio' --clearDirectories False --outputFile 'Collisionless_sphere_collapse_AccelerationRatio_data.txt' --comparisonFile 'Reference/Collisionless_sphere_collapse_AccelerationRatio_data_20151010.txt' --restoreCycle 20 --checkRestart True", np=1, label="Collisionless sphere gravitational collapse restart test (serial, acceleration ratio) RESTARTED CHECK")
+#ATS:    t0 = test(SELF,       "--nr 10 --numViz 0 --timeStepChoice AccelerationRatio --steps=40 --restartStep 20  --dataDir 'Collisionless_Sphere_Collapse_AccelerationRatio' --clearDirectories True --outputFile 'Collisionless_sphere_collapse_AccelerationRatio_data.txt' --comparisonFile 'Reference/Collisionless_sphere_collapse_AccelerationRatio_data_20161003.txt'", np=1, label="Collisionless sphere gravitational collapse restart test (serial, acceleration ratio) INITIAL RUN")
+#ATS:    t1 = testif(t0, SELF, "--nr 10 --numViz 0 --timeStepChoice AccelerationRatio --steps 20 --restartStep 100 --dataDir 'Collisionless_Sphere_Collapse_AccelerationRatio' --clearDirectories False --outputFile 'Collisionless_sphere_collapse_AccelerationRatio_data.txt' --comparisonFile 'Reference/Collisionless_sphere_collapse_AccelerationRatio_data_20161003.txt' --restoreCycle 20 --checkRestart True", np=1, label="Collisionless sphere gravitational collapse restart test (serial, acceleration ratio) RESTARTED CHECK")
 #ATS:    t2 = test(SELF,       "--nr 10 --numViz 0 --timeStepChoice DynamicalTime --steps=40 --restartStep 20   --dataDir 'Collisionless_Sphere_Collapse_DynamicalTime' --clearDirectories True --outputFile 'Collisionless_sphere_collapse_DynamicalTime_data.txt' --comparisonFile 'Reference/Collisionless_sphere_collapse_DynamicalTime_data_20151010.txt'", np=1, label="Collisionless sphere gravitational collapse restart test (serial, dynamical time) INITIAL RUN")
 #ATS:    t3 = testif(t2, SELF, "--nr 10 --numViz 0 --timeStepChoice DynamicalTime --steps 20 --restartStep 100  --dataDir 'Collisionless_Sphere_Collapse_DynamicalTime' --clearDirectories False --outputFile 'Collisionless_sphere_collapse_DynamicalTime_data.txt' --comparisonFile 'Reference/Collisionless_sphere_collapse_DynamicalTime_data_20151010.txt' --restoreCycle 20 --checkRestart True", np=1, label="Collisionless sphere gravitational collapse restart test (serial, dynamical time) RESTARTED CHECK")
 
@@ -48,7 +48,7 @@ commandLine(
     clearDirectories = False,
     dataDir = "Collisionless_Sphere_Collapse",
     baseNameRoot = "sphere_collapse_%i",
-    restoreCycle = None,
+    restoreCycle = -1,
     restartStep = 100,
     numViz = 200,
     verbosedt = False,
@@ -120,25 +120,24 @@ nodes = makeFluidNodeList("nodes", eos,
                           xmin = -100.0*r0 * Vector.one,
                           xmax =  100.0*r0 * Vector.one)
 
-if restoreCycle is None:
-    generator = GenerateNodeDistribution3d(2*nr, 2*nr, 2*nr, rho0,
-                                           distributionType = "lattice",
-                                           xmin = (-r0, -r0, -r0),
-                                           xmax = ( r0,  r0,  r0),
-                                           rmin = 0.0,
-                                           rmax = r0)
-    distributeNodes3d((nodes, generator))
-    output("mpi.reduce(nodes.numInternalNodes, mpi.MIN)")
-    output("mpi.reduce(nodes.numInternalNodes, mpi.MAX)")
-    output("mpi.reduce(nodes.numInternalNodes, mpi.SUM)")
+generator = GenerateNodeDistribution3d(2*nr, 2*nr, 2*nr, rho0,
+                                       distributionType = "lattice",
+                                       xmin = (-r0, -r0, -r0),
+                                       xmax = ( r0,  r0,  r0),
+                                       rmin = 0.0,
+                                       rmax = r0)
+distributeNodes3d((nodes, generator))
+output("mpi.reduce(nodes.numInternalNodes, mpi.MIN)")
+output("mpi.reduce(nodes.numInternalNodes, mpi.MAX)")
+output("mpi.reduce(nodes.numInternalNodes, mpi.SUM)")
 
-    # Renormalize the node masses to get our desired total mass.
-    mass = nodes.mass()
-    msum = mpi.allreduce(sum(nodes.mass().internalValues()), mpi.SUM)
-    fmass = M0/msum
-    print "Renormalizing masses by ", fmass
-    for i in xrange(nodes.numInternalNodes):
-        mass[i] *= fmass
+# Renormalize the node masses to get our desired total mass.
+mass = nodes.mass()
+msum = mpi.allreduce(sum(nodes.mass().internalValues()), mpi.SUM)
+fmass = M0/msum
+print "Renormalizing masses by ", fmass
+for i in xrange(nodes.numInternalNodes):
+    mass[i] *= fmass
 
 #-------------------------------------------------------------------------------
 # DataBase
@@ -188,15 +187,10 @@ control = SpheralController(integrator, WT,
                             statsStep = statsStep,
                             restartStep = restartStep,
                             restartBaseName = restartBaseName,
+                            restoreCycle = restoreCycle,
                             vizBaseName = baseName,
                             vizDir = visitDir,
                             vizTime = vizTime)
-
-#-------------------------------------------------------------------------------
-# If we're restarting, read in the restart file.
-#-------------------------------------------------------------------------------
-if restoreCycle:
-    control.loadRestartFile(restoreCycle)
 
 #-------------------------------------------------------------------------------
 # Advance to the end time.
