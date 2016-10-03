@@ -17,7 +17,6 @@ import os, shutil
 from Spheral3d import *
 from SpheralTestUtilities import *
 from NodeHistory import *
-from SpheralVisitDump import dumpPhysicsState
 from GenerateNodeDistribution3d import *
 from VoronoiDistributeNodes import distributeNodes3d
 from math import *
@@ -191,8 +190,7 @@ control = SpheralController(integrator, WT,
                             restartBaseName = restartBaseName,
                             vizBaseName = baseName,
                             vizDir = visitDir,
-                            vizTime = vizTime,
-                            vizMethod = dumpPhysicsState)
+                            vizTime = vizTime)
 
 #-------------------------------------------------------------------------------
 # If we're restarting, read in the restart file.
