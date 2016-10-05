@@ -870,38 +870,35 @@ class GenerateNodeDistribution3d(NodeGeneratorBase):
 #--------------------------------------------------------------------------------
 from GenerateNodeDistribution2d import GenerateNodeDistribution2d, RZGenerator
 from Spheral import generateCylDistributionFromRZ
-class GenerateCylindricalNodeDistribution3d(NodeGeneratorBase):
 
-    def __init__(self, nRadial, nTheta, rho,
-                 distributionType = 'optimal',
-                 xmin = None,
-                 xmax = None,
-                 rmin = None,
-                 rmax = None,
+class CylindricalSpunGenerator3d(NodeGeneratorBase):
+
+    def __init__(self,
+                 gen2d,
+                 rho,
                  nNodePerh = 2.01,
-                 theta = pi/2.0,
-                 phi = 2.0*pi,
-                 SPH = False):
-        gen2d = RZGenerator(GenerateNodeDistribution2d(nRadial,
-                                                       nTheta,
-                                                       rho,
-                                                       distributionType,
-                                                       xmin,
-                                                       xmax,
-                                                       rmin,
-                                                       rmax,
-                                                       nNodePerh,
-                                                       theta,
-                                                       SPH))
+                 SPH = False,
+                 rejecter = None,
+                 phi = 2.0*pi):
+
         from Spheral import Vector3d, CylindricalBoundary
 
-        # The base class already split the nodes up between processors, but
+        genRZ = RZGenerator(gen2d)
+
+        # If the user provided a constant for rho, then use the constantRho
+        # class to provide this value.
+        if type(rho) == type(1.0):
+            self.rho = ConstantRho(rho)
+        else:
+            self.rho = rho
+
+        # The 2D generator already split the nodes up between processors, but
         # we want to handle that ourselves.  Distribute the full set of RZ
         # nodes to every process, then redecompose them below.
-        self.x = mpi.allreduce(gen2d.x[:], mpi.SUM)
-        self.y = mpi.allreduce(gen2d.y[:], mpi.SUM)
-        self.m = mpi.allreduce(gen2d.m[:], mpi.SUM)
-        self.H = mpi.allreduce(gen2d.H[:], mpi.SUM)
+        self.x = mpi.allreduce(genRZ.x[:], mpi.SUM)
+        self.y = mpi.allreduce(genRZ.y[:], mpi.SUM)
+        self.m = mpi.allreduce(genRZ.m[:], mpi.SUM)
+        self.H = mpi.allreduce(genRZ.H[:], mpi.SUM)
         n = len(self.x)
         self.z = [0.0]*n
         self.globalIDs = [0]*n
@@ -927,20 +924,12 @@ class GenerateCylindricalNodeDistribution3d(NodeGeneratorBase):
                 h0 = self.H[-1].Determinant()**(1.0/3.0)
                 self.H[-1] = SymTensor3d.one * h0
 
-            # Convert the mass to the full hoop mass, which will then be used in
-            # generateCylDistributionFromRZ to compute the actual nodal masses.
-            mi = self.m[i]
-            circ = 2.0*pi*yi
-            mhoop = mi*circ
-            self.m[i] = mhoop
-
         assert len(self.m) == n
         assert len(self.H) == n
 
         # Duplicate the nodes from the xy-plane, creating rings of nodes about
         # the x-axis.  We use a C++ helper method for the sake of speed.
         kernelExtent = 2.0
-        extras = []
         xvec = self.vectorFromList(self.x, vector_of_double)
         yvec = self.vectorFromList(self.y, vector_of_double)
         zvec = self.vectorFromList(self.z, vector_of_double)
@@ -948,24 +937,34 @@ class GenerateCylindricalNodeDistribution3d(NodeGeneratorBase):
         Hvec = self.vectorFromList(self.H, vector_of_SymTensor3d)
         globalIDsvec = self.vectorFromList(self.globalIDs, vector_of_int)
         extrasVec = vector_of_vector_of_double()
-        for extra in extras:
-            extrasVec.append(self.vectorFromList(extra, vector_of_double))
         generateCylDistributionFromRZ(xvec, yvec, zvec, mvec, Hvec, globalIDsvec,
                                       extrasVec,
                                       nNodePerh, kernelExtent, phi,
                                       procID, nProcs)
-        self.x = [x for x in xvec]
-        self.y = [x for x in yvec]
-        self.z = [x for x in zvec]
-        self.m = [x for x in mvec]
-        self.H = [SymTensor3d(x) for x in Hvec]
-        self.globalIDs = [x for x in globalIDsvec]
-        for i in xrange(len(extras)):
-            extras[i] = [x for x in extrasVec[i]]
+
+        # Allow some 3D rejecter logic.
+        if rejecter:
+            self.x, self.y, self.z, self.m, self.H, self.globalIDs = [], [], [], [], [], []
+            for i in xrange(len(xvec)):
+                if rejecter.accept(xvec[i],yvec[i],zvec[i]):
+                    self.x.append(xvec[i])
+                    self.y.append(yvec[i])
+                    self.z.append(zvec[i])
+                    self.m.append(mvec[i])
+                    self.H.append(SymTensor3d(Hvec[i]))
+                    self.globalIDs.append(globalIDsvec[i])
+
+        else:
+            self.x = [x for x in xvec]
+            self.y = [x for x in yvec]
+            self.z = [x for x in zvec]
+            self.m = [x for x in mvec]
+            self.H = [SymTensor3d(x) for x in Hvec]
+            self.globalIDs = [x for x in globalIDsvec]
 
         # Initialize the base.
-        NodeGeneratorBase.__init__(self, True,
-                                   self.x, self.y, self.m, self.H)
+        NodeGeneratorBase.__init__(self, False,
+                                   self.x, self.y, self.z, self.m, self.H)
         return
 
     #---------------------------------------------------------------------------
@@ -992,6 +991,62 @@ class GenerateCylindricalNodeDistribution3d(NodeGeneratorBase):
     #---------------------------------------------------------------------------
     def localHtensor(self, i):
         return self.H[i]
+
+#-------------------------------------------------------------------------------
+# Backwards compatible version of our 3D spun generator.
+#-------------------------------------------------------------------------------
+class GenerateCylindricalNodeDistribution3d(CylindricalSpunGenerator3d):
+
+    def __init__(self, nRadial, nTheta, rho,
+                 distributionType = 'optimal',
+                 xmin = None,
+                 xmax = None,
+                 rmin = None,
+                 rmax = None,
+                 nNodePerh = 2.01,
+                 theta = pi/2.0,
+                 azimuthalOffsetFraction = 0.0,
+                 SPH = False,
+                 rotation = 0.0,
+                 offset = None,
+                 xminreject = None,
+                 xmaxreject = None,
+                 rreject = None,
+                 originreject = None,
+                 reversereject = False,
+                 relaxation = None,
+                 rejecter = None,
+                 rejecter3d = None,
+                 phi = 2.0*pi):
+        gen2d = GenerateNodeDistribution2d(nRadial = nRadial,
+                                           nTheta = nTheta,
+                                           rho = rho,
+                                           distributionType = distributionType,
+                                           xmin = xmin,
+                                           xmax = xmax,
+                                           rmin = rmin,
+                                           rmax = rmax,
+                                           nNodePerh = nNodePerh,
+                                           theta = theta,
+                                           azimuthalOffsetFraction = azimuthalOffsetFraction,
+                                           SPH = SPH,
+                                           rotation = rotation,
+                                           offset = offset,
+                                           xminreject = xminreject,
+                                           xmaxreject = xmaxreject,
+                                           rreject = rreject,
+                                           originreject = originreject,
+                                           reversereject = reversereject,
+                                           relaxation = relaxation,
+                                           rejecter = rejecter)
+        CylindricalSpunGenerator3d.__init__(self,
+                                            gen2d = gen2d,
+                                            rho = rho,
+                                            nNodePerh = nNodePerh,
+                                            SPH = SPH,
+                                            rejecter = rejecter3d,
+                                            phi = phi)
+        return
 
 #-------------------------------------------------------------------------------
 # Specialized version that generates a sphere matching a radial profile using
@@ -1773,7 +1828,8 @@ class GenerateIcosahedronMatchingProfile3d(NodeGeneratorBase):
                  phiMax = 2.0*pi,
                  nNodePerh = 2.01,
                  offset=None,
-                 rejecter=None):
+                 rejecter=None,
+                 m0 = 0.0):
         
         assert n > 0
         assert rmin < rmax
@@ -1823,9 +1879,13 @@ class GenerateIcosahedronMatchingProfile3d(NodeGeneratorBase):
             (self.totalMass, rmin, rmax, thetaMin, thetaMax, phiMin, phiMax)
 
         # Now set the nominal mass per node.
-        self.m0 = self.totalMass/n
+        if (m0 == 0.0):
+            self.m0 = self.totalMass/n
+        else:
+            self.m0 = m0
+            n = int(self.totalMass/self.m0)
         assert self.m0 > 0.0
-        print "Nominal mass per node of %g." % self.m0
+        print "Nominal mass per node of %g for %d nodes." % (self.m0,n)
         
         from Spheral import SymTensor3d
         self.x = []
@@ -2051,7 +2111,7 @@ class GenerateIcosahedronMatchingProfile3d(NodeGeneratorBase):
             #mi = self.m0 * (float(nshell)/float(len(self.positions)))
             
             
-            print "at r=%g, wanted %d; computed %d total nodes with mass=%g" %(rii,nshell,len(self.positions),mi)
+            print "at r=%3.4g\t wanted %d;\t computed %d total nodes with\t mass=%3.4g" %(rii,nshell,len(self.positions),mi)
             for n in xrange(len(self.positions)):
                 x       = rii*self.positions[n][0]
                 y       = rii*self.positions[n][1]

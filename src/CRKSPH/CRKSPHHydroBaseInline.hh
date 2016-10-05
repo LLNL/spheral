@@ -191,6 +191,73 @@ CRKSPHHydroBase<Dimension>::
 nTensile(const typename Dimension::Scalar val) {
   mnTensile = val;
 }
+    
+//------------------------------------------------------------------------------
+// Surface Detection getters and setters
+//------------------------------------------------------------------------------
+    template<typename Dimension>
+    inline
+    bool
+    CRKSPHHydroBase<Dimension>::
+    detectSurfaces() const {
+        return mDetectSurfaces;
+    }
+    
+    template<typename Dimension>
+    inline
+    void
+    CRKSPHHydroBase<Dimension>::
+    detectSurfaces(const bool val) {
+        mDetectSurfaces = val;
+    }
+    
+    template<typename Dimension>
+    inline
+    double
+    CRKSPHHydroBase<Dimension>::
+    detectThreshold() const {
+        return mDetectThreshold;
+    }
+    
+    template<typename Dimension>
+    inline
+    void
+    CRKSPHHydroBase<Dimension>::
+    detectThreshold(const double val) {
+        mDetectThreshold = val;
+    }
+    
+    template<typename Dimension>
+    inline
+    double
+    CRKSPHHydroBase<Dimension>::
+    detectRange() const {
+        return mDetectRange;
+    }
+    
+    template<typename Dimension>
+    inline
+    void
+    CRKSPHHydroBase<Dimension>::
+    detectRange(const double val) {
+        mDetectRange = val;
+    }
+    
+    template<typename Dimension>
+    inline
+    double
+    CRKSPHHydroBase<Dimension>::
+    sweepAngle() const {
+        return mSweepAngle;
+    }
+    
+    template<typename Dimension>
+    inline
+    void
+    CRKSPHHydroBase<Dimension>::
+    sweepAngle(const double val) {
+        mSweepAngle = val;
+    }
 
 //------------------------------------------------------------------------------
 // The internal state field lists.
@@ -493,7 +560,7 @@ gradm4() const {
 
 template<typename Dimension>
 inline
-const FieldSpace::FieldList<Dimension, typename Dimension::Vector>&
+const FieldSpace::FieldList<Dimension, typename Dimension::Scalar>&
 CRKSPHHydroBase<Dimension>::
 surfNorm() const {
   return mSurfNorm;
