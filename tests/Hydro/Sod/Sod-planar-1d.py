@@ -27,7 +27,7 @@ commandLine(nx1 = 400,
             hsmooth = 0.5,             # Optionally smooth initial discontinuity, expressed as particle spacings
             sumInitialDensity = False, # Optionally sum the initial density before setting the pressure and such
 
-            nPerh = 1.25,
+            nPerh = 1.35,
 
             gammaGas = 5.0/3.0,
             mu = 1.0,
@@ -70,7 +70,7 @@ commandLine(nx1 = 400,
             hourglassOrder = 1,
             hourglassLimiter = 1,
             filter = 0.00,
-            KernelConstructor = BSplineKernel,
+            KernelConstructor = NBSplineKernel,
             order = 5,
             
             bArtificialConduction = False,
