@@ -140,6 +140,8 @@ initializeProblemStartup(DataBase<Dim<2> >& dataBase) {
   // Call the ancestor.
   SolidSPHHydroBase<Dim<2> >::initializeProblemStartup(dataBase);
 
+  dataBase.isRZ = true;
+
   // Create storage for the state we're holding.
   mDeviatoricStressTT = dataBase.newFluidFieldList(0.0, SolidFieldNames::deviatoricStressTT);
   mDdeviatoricStressTTDt = dataBase.newFluidFieldList(0.0, IncrementFieldList<Dimension, Scalar>::prefix() + SolidFieldNames::deviatoricStressTT);
@@ -427,7 +429,6 @@ evaluateDerivatives(const Dim<2>::Scalar time,
         // there are some nodes in this list.
         const vector<int>& connectivity = fullConnectivity[nodeListj];
         if (connectivity.size() > 0) {
-          const double fweightij = 1.0; // (nodeListi == nodeListj ? 1.0 : 0.2);
           const int firstGhostNodej = nodeLists[nodeListj]->firstGhostNode();
 
           // Loop over the neighbors.
@@ -529,12 +530,13 @@ evaluateDerivatives(const Dim<2>::Scalar time,
 
               // Zero'th and second moment of the node distribution -- used for the
               // ideal H calculation.
+              const double fweightij = nodeListi == nodeListj ? 1.0 : mRZj*rhoi/(mRZi*rhoj);
               const double xij2 = xij.magnitude2();
               const SymTensor thpt = xij.selfdyad()/(xij2 + 1.0e-10) / FastMath::square(Dimension::pownu12(xij2 + 1.0e-10));
-              weightedNeighborSumi += fweightij*abs(gWi);
-              weightedNeighborSumj += fweightij*abs(gWj);
-              massSecondMomenti += fweightij*gradWi.magnitude2()*thpt;
-              massSecondMomentj += fweightij*gradWj.magnitude2()*thpt;
+              weightedNeighborSumi +=     fweightij*abs(gWi);
+              weightedNeighborSumj += 1.0/fweightij*abs(gWj);
+              massSecondMomenti +=     fweightij*gradWi.magnitude2()*thpt;
+              massSecondMomentj += 1.0/fweightij*gradWj.magnitude2()*thpt;
 
               // Contribution to the sum density (only if the same material).
               if (nodeListi == nodeListj) {

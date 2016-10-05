@@ -77,6 +77,10 @@ public:
   // Destructor.
   virtual ~CRKSPHHydroBaseRZ();
 
+  // Tasks we do once on problem startup.
+  virtual
+  void initializeProblemStartup(DataBaseSpace::DataBase<Dimension>& dataBase);
+
   // Register the state Hydro expects to use and evolve.
   virtual 
   void registerState(DataBaseSpace::DataBase<Dimension>& dataBase,
