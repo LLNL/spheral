@@ -41,13 +41,14 @@ namespace Spheral {
                       const double detectThreshold,
                       const double detectRange,
                       const double sweepAngle,
-                      FieldSpace::FieldList<Dimension, typename Dimension::Scalar>& surfNorm) {
+                      FieldSpace::FieldList<Dimension, int>& surfacePoint) {
+
             // Pre-conditions.
             const size_t numNodeLists = m0.size();
             REQUIRE(m1.size() == numNodeLists);
             REQUIRE(position.size() == numNodeLists);
             REQUIRE(H.size() == numNodeLists);
-            REQUIRE(surfNorm.size() == numNodeLists);
+            REQUIRE(surfacePoint.size() == numNodeLists);
             
             typedef typename Dimension::Scalar Scalar;
             typedef typename Dimension::Vector Vector;
@@ -76,8 +77,8 @@ namespace Spheral {
                     const Vector& m1i   = m1(nodeListi, i);
                     const Vector m1ih   = m1i.unitVector();
                     bool particleDetected = 0;
-                    // Zero out surfNorm to get fresh maps at each step
-                    surfNorm(nodeListi, i) = 0;
+                    // Zero out surfacePoint to get fresh maps at each step
+                    surfacePoint(nodeListi, i) = 0;
                     
                     if (m0i < detectThreshold) {
                         // Get neighbors
@@ -111,7 +112,7 @@ namespace Spheral {
                         }
                     }
                     
-                    if (!particleDetected && m0i < detectThreshold) surfNorm(nodeListi, i) = 1;
+                    if (!particleDetected && m0i < detectThreshold) surfacePoint(nodeListi, i) = 1;
                 }
             }
         }

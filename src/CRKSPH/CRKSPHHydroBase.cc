@@ -184,7 +184,7 @@ CRKSPHHydroBase(const SmoothingScaleBase<Dimension>& smoothingScaleMethod,
   mGradm2(FieldSpace::Copy),
   mGradm3(FieldSpace::Copy),
   mGradm4(FieldSpace::Copy),
-  mSurfNorm(FieldSpace::Copy),
+  mSurfacePoint(FieldSpace::Copy),
   mRestart(DataOutput::registerWithRestart(*this)) {
 }
 
@@ -246,7 +246,7 @@ initializeProblemStartup(DataBase<Dimension>& dataBase) {
     mGradm4 = dataBase.newFluidFieldList(FifthRankTensor::zero,  HydroFieldNames::gradM4_CRKSPH);
   }
 
-  mSurfNorm = dataBase.newFluidFieldList(0.0, "surfNorm");
+  mSurfacePoint = dataBase.newFluidFieldList(0, HydroFieldNames::surfacePoint);
 
   // Compute the volumes.
   const TableKernel<Dimension>& W = this->kernel();
@@ -279,7 +279,7 @@ initializeProblemStartup(DataBase<Dimension>& dataBase) {
   // Compute the corrections.
   computeCRKSPHMoments(connectivityMap, W, mVolume, position, H, correctionOrder(), NodeCoupling(), mM0, mM1, mM2, mM3, mM4, mGradm0, mGradm1, mGradm2, mGradm3, mGradm4);
   computeCRKSPHCorrections(mM0, mM1, mM2, mM3, mM4, mGradm0, mGradm1, mGradm2, mGradm3, mGradm4, H, correctionOrder(), mA, mB, mC, mGradA, mGradB, mGradC);
-  if (mDetectSurfaces) detectSurface(connectivityMap, mM0, mM1, position, H, mDetectThreshold, mDetectRange*W.kernelExtent(), mSweepAngle, mSurfNorm);
+  if (mDetectSurfaces) detectSurface(connectivityMap, mM0, mM1, position, H, mDetectThreshold, mDetectRange*W.kernelExtent(), mSweepAngle, mSurfacePoint);
 
   // We need to initialize the velocity gradient if we're using the CRKSPH artificial viscosity.
   const FieldList<Dimension, Vector> velocity = dataBase.fluidVelocity();
@@ -328,7 +328,7 @@ registerState(DataBase<Dimension>& dataBase,
     dataBase.resizeFluidFieldList(mGradm3,   FourthRankTensor::zero,HydroFieldNames::m3_CRKSPH, false);
     dataBase.resizeFluidFieldList(mGradm4,   FifthRankTensor::zero, HydroFieldNames::m4_CRKSPH, false);
   }
-  dataBase.resizeFluidFieldList(mSurfNorm, 0.0, "surfNorm", false);
+  dataBase.resizeFluidFieldList(mSurfacePoint, 0, HydroFieldNames::surfacePoint, false);
 
   // We have to choose either compatible or total energy evolution.
   VERIFY2(not (mCompatibleEnergyEvolution and mEvolveTotalEnergy),
@@ -452,7 +452,7 @@ registerState(DataBase<Dimension>& dataBase,
   state.enroll(mGradm2);
   state.enroll(mGradm3);
   state.enroll(mGradm4);
-  state.enroll(mSurfNorm);
+  state.enroll(mSurfacePoint);
 }
 
 //------------------------------------------------------------------------------
@@ -544,13 +544,11 @@ initialize(const typename Dimension::Scalar time,
   FieldList<Dimension, ThirdRankTensor> gradm2 = state.fields(HydroFieldNames::gradM2_CRKSPH, ThirdRankTensor::zero);
   FieldList<Dimension, FourthRankTensor> gradm3 = state.fields(HydroFieldNames::gradM3_CRKSPH, FourthRankTensor::zero);
   FieldList<Dimension, FifthRankTensor> gradm4 = state.fields(HydroFieldNames::gradM4_CRKSPH, FifthRankTensor::zero);
-  FieldList<Dimension, Scalar> surfNorm = state.fields("surfNorm", 0.0);
 
   // Change CRKSPH weights here if need be!
   const FieldList<Dimension, Scalar> vol = state.fields(HydroFieldNames::volume, 0.0);
   computeCRKSPHMoments(connectivityMap, W, vol, position, H, correctionOrder(), NodeCoupling(), m0, m1, m2, m3, m4, gradm0, gradm1, gradm2, gradm3, gradm4);
   computeCRKSPHCorrections(m0, m1, m2, m3, m4, gradm0, gradm1, gradm2, gradm3, gradm4, H, correctionOrder(), A, B, C, gradA, gradB, gradC);
-  if (mDetectSurfaces) detectSurface(connectivityMap, m0, m1, position, H, mDetectThreshold, mDetectRange*W.kernelExtent(), mSweepAngle, surfNorm);
 
   for (ConstBoundaryIterator boundItr = this->boundaryBegin();
        boundItr != this->boundaryEnd();
@@ -627,7 +625,6 @@ evaluateDerivatives(const typename Dimension::Scalar time,
   const FieldList<Dimension, Vector> gradA = state.fields(HydroFieldNames::gradA_CRKSPH, Vector::zero);
   const FieldList<Dimension, Tensor> gradB = state.fields(HydroFieldNames::gradB_CRKSPH, Tensor::zero);
   const FieldList<Dimension, ThirdRankTensor> gradC = state.fields(HydroFieldNames::gradC_CRKSPH, ThirdRankTensor::zero);
-  const FieldList<Dimension, Scalar> surfNorm = state.fields("surfNorm", 0.0);
   CHECK(mass.size() == numNodeLists);
   CHECK(position.size() == numNodeLists);
   CHECK(velocity.size() == numNodeLists);
@@ -642,7 +639,6 @@ evaluateDerivatives(const typename Dimension::Scalar time,
   CHECK(gradA.size() == numNodeLists);
   CHECK(gradB.size() == numNodeLists or order == ZerothOrder);
   CHECK(gradC.size() == numNodeLists or order != QuadraticOrder);
-  CHECK(surfNorm.size() == numNodeLists);
 
   // Derivative FieldLists.
   FieldList<Dimension, Vector> DxDt = derivatives.fields(IncrementFieldList<Dimension, Field<Dimension, Vector> >::prefix() + HydroFieldNames::position, Vector::zero);
@@ -1135,6 +1131,8 @@ finalize(const typename Dimension::Scalar time,
   const FieldList<Dimension, Scalar> mass = state.fields(HydroFieldNames::mass, 0.0);
   const FieldList<Dimension, SymTensor> H = state.fields(HydroFieldNames::H, SymTensor::zero);
   const FieldList<Dimension, Vector> position = state.fields(HydroFieldNames::position, Vector::zero);
+  FieldList<Dimension, Scalar> m0 = state.fields(HydroFieldNames::m0_CRKSPH, 0.0);
+  FieldList<Dimension, Vector> m1 = state.fields(HydroFieldNames::m1_CRKSPH, Vector::zero);
   FieldList<Dimension, Scalar> massDensity = state.fields(HydroFieldNames::massDensity, 0.0);
   FieldList<Dimension, Scalar> vol = state.fields(HydroFieldNames::volume, 0.0);
   if (mVolumeType == CRKMassOverDensity) {
@@ -1167,8 +1165,6 @@ finalize(const typename Dimension::Scalar time,
     FieldList<Dimension, Vector> gradA = state.fields(HydroFieldNames::gradA_CRKSPH, Vector::zero);
     FieldList<Dimension, Tensor> gradB = state.fields(HydroFieldNames::gradB_CRKSPH, Tensor::zero);
     FieldList<Dimension, ThirdRankTensor> gradC = state.fields(HydroFieldNames::gradC_CRKSPH, ThirdRankTensor::zero);
-    FieldList<Dimension, Scalar> m0 = state.fields(HydroFieldNames::m0_CRKSPH, 0.0);
-    FieldList<Dimension, Vector> m1 = state.fields(HydroFieldNames::m1_CRKSPH, Vector::zero);
     FieldList<Dimension, SymTensor> m2 = state.fields(HydroFieldNames::m2_CRKSPH, SymTensor::zero);
     FieldList<Dimension, ThirdRankTensor> m3 = state.fields(HydroFieldNames::m3_CRKSPH, ThirdRankTensor::zero);
     FieldList<Dimension, FourthRankTensor> m4 = state.fields(HydroFieldNames::m4_CRKSPH, FourthRankTensor::zero);
@@ -1177,15 +1173,25 @@ finalize(const typename Dimension::Scalar time,
     FieldList<Dimension, ThirdRankTensor> gradm2 = state.fields(HydroFieldNames::gradM2_CRKSPH, ThirdRankTensor::zero);
     FieldList<Dimension, FourthRankTensor> gradm3 = state.fields(HydroFieldNames::gradM3_CRKSPH, FourthRankTensor::zero);
     FieldList<Dimension, FifthRankTensor> gradm4 = state.fields(HydroFieldNames::gradM4_CRKSPH, FifthRankTensor::zero);
-    FieldList<Dimension, Scalar> surfNorm = state.fields("surfNorm", 0.0);
     computeCRKSPHMoments(connectivityMap, W, vol, position, H, this->correctionOrder(), NodeCoupling(), m0, m1, m2, m3, m4, gradm0, gradm1, gradm2, gradm3, gradm4);
     computeCRKSPHCorrections(m0, m1, m2, m3, m4, gradm0, gradm1, gradm2, gradm3, gradm4, H, this->correctionOrder(), A, B, C, gradA, gradB, gradC);
     computeCRKSPHSumMassDensity(connectivityMap, W, position, mass, vol, H, A, B, C, this->correctionOrder(), massDensity);
-    if (mDetectSurfaces) detectSurface(connectivityMap, m0, m1, position, H, mDetectThreshold, mDetectRange*W.kernelExtent(), mSweepAngle, surfNorm);
 
     for (ConstBoundaryIterator boundaryItr = this->boundaryBegin(); 
          boundaryItr != this->boundaryEnd();
          ++boundaryItr) (*boundaryItr)->applyFieldListGhostBoundary(massDensity);
+    for (ConstBoundaryIterator boundaryItr = this->boundaryBegin(); 
+         boundaryItr != this->boundaryEnd();
+         ++boundaryItr) (*boundaryItr)->finalizeGhostBoundary();
+  }
+
+  // Update the surface point flags.
+  if (mDetectSurfaces) {
+    FieldList<Dimension, int> surfacePoint = state.fields(HydroFieldNames::surfacePoint, 0);
+    detectSurface(connectivityMap, m0, m1, position, H, mDetectThreshold, mDetectRange*W.kernelExtent(), mSweepAngle, surfacePoint);
+    for (ConstBoundaryIterator boundaryItr = this->boundaryBegin(); 
+         boundaryItr != this->boundaryEnd();
+         ++boundaryItr) (*boundaryItr)->applyFieldListGhostBoundary(surfacePoint);
     for (ConstBoundaryIterator boundaryItr = this->boundaryBegin(); 
          boundaryItr != this->boundaryEnd();
          ++boundaryItr) (*boundaryItr)->finalizeGhostBoundary();
@@ -1300,6 +1306,11 @@ applyGhostBoundaries(State<Dimension>& state,
   FieldList<Dimension, Tensor> gradB = state.fields(HydroFieldNames::gradB_CRKSPH, Tensor::zero);
   FieldList<Dimension, ThirdRankTensor> gradC = state.fields(HydroFieldNames::gradC_CRKSPH, ThirdRankTensor::zero);
 
+  FieldList<Dimension, int> surfacePoint;
+  if (mDetectSurfaces) {
+    surfacePoint = state.fields(HydroFieldNames::surfacePoint, 0);
+  }
+
   for (ConstBoundaryIterator boundaryItr = this->boundaryBegin(); 
        boundaryItr != this->boundaryEnd();
        ++boundaryItr) {
@@ -1320,6 +1331,7 @@ applyGhostBoundaries(State<Dimension>& state,
     (*boundaryItr)->applyFieldListGhostBoundary(gradA);
     (*boundaryItr)->applyFieldListGhostBoundary(gradB);
     (*boundaryItr)->applyFieldListGhostBoundary(gradC);
+    if (mDetectSurfaces) (*boundaryItr)->applyFieldListGhostBoundary(surfacePoint);
   }
 }
 
@@ -1354,6 +1366,11 @@ enforceBoundaries(State<Dimension>& state,
   FieldList<Dimension, Tensor> gradB = state.fields(HydroFieldNames::gradB_CRKSPH, Tensor::zero);
   FieldList<Dimension, ThirdRankTensor> gradC = state.fields(HydroFieldNames::gradC_CRKSPH, ThirdRankTensor::zero);
 
+  FieldList<Dimension, int> surfacePoint;
+  if (mDetectSurfaces) {
+    surfacePoint = state.fields(HydroFieldNames::surfacePoint, 0);
+  }
+
   for (ConstBoundaryIterator boundaryItr = this->boundaryBegin(); 
        boundaryItr != this->boundaryEnd();
        ++boundaryItr) {
@@ -1374,6 +1391,7 @@ enforceBoundaries(State<Dimension>& state,
     (*boundaryItr)->enforceFieldListBoundary(gradA);
     (*boundaryItr)->enforceFieldListBoundary(gradB);
     (*boundaryItr)->enforceFieldListBoundary(gradC);
+    if (mDetectSurfaces) (*boundaryItr)->enforceFieldListBoundary(surfacePoint);
   }
 }
 
@@ -1411,7 +1429,7 @@ dumpState(FileIO& file, string pathName) const {
   file.write(mGradA, pathName + "/gradA");
   file.write(mGradB, pathName + "/gradB");
   file.write(mGradC, pathName + "/gradC");
-  file.write(mSurfNorm, pathName + "/surfNorm");
+  file.write(mSurfacePoint, pathName + "/surfacePoint");
 }
 
 //------------------------------------------------------------------------------
@@ -1448,7 +1466,7 @@ restoreState(const FileIO& file, string pathName) {
   file.read(mGradA, pathName + "/gradA");
   file.read(mGradB, pathName + "/gradB");
   file.read(mGradC, pathName + "/gradC");
-  file.read(mSurfNorm, pathName + "/surfNorm");
+  file.read(mSurfacePoint, pathName + "/surfacePoint");
 }
 
 }

@@ -74,6 +74,7 @@ self.generateSolidCRKSPHHydroBaseBindings(self.SolidCRKSPHHydroBase%(dim)id, %(d
         vector = "Vector%id" % ndim
         tensor = "Tensor%id" % ndim
         symtensor = "SymTensor%id" % ndim
+        intfieldlist = "Spheral::FieldSpace::IntFieldList%id" % ndim
         thirdranktensor = "ThirdRankTensor%id" % ndim
         scalarfieldlist = "Spheral::FieldSpace::ScalarFieldList%id" % ndim
         vectorfieldlist = "Spheral::FieldSpace::VectorFieldList%id" % ndim
@@ -213,7 +214,7 @@ self.generateSolidCRKSPHHydroBaseBindings(self.SolidCRKSPHHydroBase%(dim)id, %(d
                                  constrefparam("double", "detectThreshold"),
                                  constrefparam("double", "detectRange"),
                                  constrefparam("double", "sweepAngle"),
-                                 refparam(scalarfieldlist, "surfNorm")],
+                                 refparam(intfieldlist, "surfacePoint")],
                                 template_parameters = [dim],
                                 custom_name = "detectSurface%id" % ndim)
 
@@ -506,7 +507,7 @@ self.generateSolidCRKSPHHydroBaseBindings(self.SolidCRKSPHHydroBase%(dim)id, %(d
         const_ref_return_value(x, me, "%s::gradA" % me, vectorfieldlist, [], "gradA")
         const_ref_return_value(x, me, "%s::gradB" % me, tensorfieldlist, [], "gradB")
         const_ref_return_value(x, me, "%s::gradC" % me, thirdranktensorfieldlist, [], "gradC")
-        const_ref_return_value(x, me, "%s::surfNorm" % me, scalarfieldlist, [], "surfNorm")
+        const_ref_return_value(x, me, "%s::surfacePoint" % me, intfieldlist, [], "surfacePoint")
         const_ref_return_value(x, me, "%s::m0" % me, scalarfieldlist, [], "m0")
         const_ref_return_value(x, me, "%s::m1" % me, vectorfieldlist, [], "m1")
 

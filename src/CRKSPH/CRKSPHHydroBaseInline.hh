@@ -560,10 +560,10 @@ gradm4() const {
 
 template<typename Dimension>
 inline
-const FieldSpace::FieldList<Dimension, typename Dimension::Scalar>&
+const FieldSpace::FieldList<Dimension, int>&
 CRKSPHHydroBase<Dimension>::
-surfNorm() const {
-  return mSurfNorm;
+surfacePoint() const {
+  return mSurfacePoint;
 }
 
 }
