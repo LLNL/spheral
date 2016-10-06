@@ -249,7 +249,7 @@ public:
   const FieldList<Dimension, FourthRankTensor>&      gradm3() const;
   const FieldList<Dimension, FifthRankTensor>&       gradm4() const;
 
-  const FieldSpace::FieldList<Dimension, Scalar>&    surfNorm() const;
+  const FieldSpace::FieldList<Dimension, int>&       surfacePoint() const;
 
   //****************************************************************************
   // Methods required for restarting.
@@ -321,7 +321,7 @@ protected:
   FieldList<Dimension, FourthRankTensor>      mGradm3;
   FieldList<Dimension, FifthRankTensor>       mGradm4;
 
-  FieldSpace::FieldList<Dimension, Scalar>    mSurfNorm;
+  FieldSpace::FieldList<Dimension, int>       mSurfacePoint;
 
 private:
   //--------------------------- Private Interface ---------------------------//

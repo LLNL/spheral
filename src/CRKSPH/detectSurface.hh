@@ -27,7 +27,7 @@ namespace Spheral {
                       const double detectThreshold,
                       const double detectRange,
                       const double sweepAngle,
-                      FieldSpace::FieldList<Dimension, typename Dimension::Scalar>& surfNorm);
+                      FieldSpace::FieldList<Dimension, int>& surfacePoint);
     }
 }
 

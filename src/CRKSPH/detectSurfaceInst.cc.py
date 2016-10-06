@@ -16,7 +16,7 @@ namespace CRKSPHSpace {
                                 const double detectThreshold,
                                 const double detectRange,
                                 const double sweepAngle,
-                                FieldSpace::FieldList< Dim< %(ndim)s >,  Dim< %(ndim)s >::Scalar>& surfNorm);
+                                FieldSpace::FieldList< Dim< %(ndim)s >, int>& surfacePoint);
 }
 }
 """
