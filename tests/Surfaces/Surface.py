@@ -1,3 +1,5 @@
+#ATS:t1 = test(      SELF, "--CRKSPH True --cfl 0.25 --clearDirectories True  --steps=2 --nx=50 --ny=50 --checkAnswer=True --detectSurfaces=True --detectThreshold=0.99 --sweepAngle=pi/4.0 --detectRange=2.0", label="Surface Detection Test -- 2-D (serial)")
+
 from math import *
 import mpi
 import os, sys, shutil
@@ -74,8 +76,8 @@ class dSurface(object):
 # Generic problem parameters
 #-------------------------------------------------------------------------------
 commandLine(lattice = True,
-            nx      = 10,
-            ny      = 10,
+            nx      = 50,
+            ny      = 50,
             rmin    = 0.0,
             rmax    = 1.0,
             nPerh   = 1.01,
@@ -150,7 +152,8 @@ commandLine(lattice = True,
             detectSurfaces      = True,
             detectRange         = 2.0,
             sweepAngle          = pi/4.0,
-            detectThreshold     = 0.95,
+            detectThreshold     = 0.99,
+            checkAnswer         = False,
             )
 
 if CRKSPH:
@@ -374,3 +377,14 @@ if not steps is None:
     control.step(steps)
 else:
     control.advance(goalTime,maxSteps)
+
+if checkAnswer:
+    sp = hydro.surfacePoint()
+    count = 0
+    for i in xrange(nodes1.numInternalNodes):
+        if sp[0][i] == 1:
+            count += 1
+    if not count == 212:
+        raise ValueError, "The surface detection algorithm failed!"
+    else:
+        print "Surface Detection PASSED."
