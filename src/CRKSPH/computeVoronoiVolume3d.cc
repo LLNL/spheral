@@ -29,6 +29,7 @@ using NeighborSpace::ConnectivityMap;
 void
 computeVoronoiVolume(const FieldList<Dim<3>, Dim<3>::Vector>& position,
                      const FieldList<Dim<3>, Dim<3>::SymTensor>& H,
+                     const FieldList<Dim<3>, int>& surfacePoint,
                      const ConnectivityMap<Dim<3> >& connectivityMap,
                      const Dim<3>::Scalar kernelExtent,
                      FieldList<Dim<3>, Dim<3>::Scalar>& vol) {
@@ -117,54 +118,56 @@ computeVoronoiVolume(const FieldList<Dim<3>, Dim<3>::Vector>& position,
       const unsigned n = vol[nodeListi]->numInternalElements();
       const Neighbor<Dim<3> >& neighbor = position[nodeListi]->nodeListPtr()->neighbor();
       for (unsigned i = 0; i != n; ++i) {
-        const Vector& ri = position(nodeListi, i);
-        const SymTensor& Hi = H(nodeListi, i);
-        const Scalar Hdeti = Hi.Determinant();
+        if (surfacePoint(nodeListi, i) == 0) {
+          const Vector& ri = position(nodeListi, i);
+          const SymTensor& Hi = H(nodeListi, i);
+          const Scalar Hdeti = Hi.Determinant();
 
-        // Grab this points neighbors and build all the planes.
-        vector<r3d_plane> pairPlanes;
-        const vector<vector<int> >& fullConnectivity = connectivityMap.connectivityForNode(nodeListi, i);
-        for (unsigned nodeListj = 0; nodeListj != numNodeLists; ++nodeListj) {
-          for (vector<int>::const_iterator jItr = fullConnectivity[nodeListj].begin();
-               jItr != fullConnectivity[nodeListj].end();
-               ++jItr) {
-            const unsigned j = *jItr;
-            const Vector& rj = position(nodeListj, j);
+          // Grab this points neighbors and build all the planes.
+          vector<r3d_plane> pairPlanes;
+          const vector<vector<int> >& fullConnectivity = connectivityMap.connectivityForNode(nodeListi, i);
+          for (unsigned nodeListj = 0; nodeListj != numNodeLists; ++nodeListj) {
+            for (vector<int>::const_iterator jItr = fullConnectivity[nodeListj].begin();
+                 jItr != fullConnectivity[nodeListj].end();
+                 ++jItr) {
+              const unsigned j = *jItr;
+              const Vector& rj = position(nodeListj, j);
 
-            // Build the half plane.
-            const Vector etai = Hi*(ri - rj);
-            CHECK(etai.magnitude2() > 1.0e-5);
-            const Vector nhat = etai.unitVector();
-            pairPlanes.push_back(r3d_plane());
-            pairPlanes.back().n.x = nhat.x();
-            pairPlanes.back().n.y = nhat.y();
-            pairPlanes.back().n.z = nhat.z();
-            pairPlanes.back().d = 0.5*etai.magnitude();
+              // Build the half plane.
+              const Vector etai = Hi*(ri - rj);
+              CHECK(etai.magnitude2() > 1.0e-5);
+              const Vector nhat = etai.unitVector();
+              pairPlanes.push_back(r3d_plane());
+              pairPlanes.back().n.x = nhat.x();
+              pairPlanes.back().n.y = nhat.y();
+              pairPlanes.back().n.z = nhat.z();
+              pairPlanes.back().d = 0.5*etai.magnitude();
+            }
           }
+
+          // // Start with a bounding box around the H tensor.
+          // const Vector extenti = Hi * neighbor.nodeExtent(i);
+          // r3d_poly celli;
+          // r3d_rvec3 bounds[2];
+          // bounds[0].x = -extenti.x(); bounds[0].y = -extenti.y(); bounds[0].z = -extenti.z();
+          // bounds[1].x =  extenti.x(); bounds[1].y =  extenti.y(); bounds[1].z =  extenti.z();
+          // r3d_init_box(&celli, bounds);
+
+          // Start with the initial cell shape (in eta space).
+          r3d_poly celli = initialCell;
+          r3d_reduce(&celli, voli, 0);
+          CHECK2(r3d_is_good(&celli), "Bad polyhedron!");
+
+          // Clip the local cell.
+          r3d_clip(&celli, &pairPlanes[0], pairPlanes.size());
+          r3d_reduce(&celli, voli, 0);
+          CHECK2(r3d_is_good(&celli), "Bad polyhedron!");
+
+          // Extract the area.
+          r3d_reduce(&celli, voli, 0);
+          CHECK(voli[0] > 0.0);
+          vol(nodeListi, i) = voli[0]/Hdeti;
         }
-
-        // // Start with a bounding box around the H tensor.
-        // const Vector extenti = Hi * neighbor.nodeExtent(i);
-        // r3d_poly celli;
-        // r3d_rvec3 bounds[2];
-        // bounds[0].x = -extenti.x(); bounds[0].y = -extenti.y(); bounds[0].z = -extenti.z();
-        // bounds[1].x =  extenti.x(); bounds[1].y =  extenti.y(); bounds[1].z =  extenti.z();
-        // r3d_init_box(&celli, bounds);
-
-        // Start with the initial cell shape (in eta space).
-        r3d_poly celli = initialCell;
-        r3d_reduce(&celli, voli, 0);
-        CHECK2(r3d_is_good(&celli), "Bad polyhedron!");
-
-        // Clip the local cell.
-        r3d_clip(&celli, &pairPlanes[0], pairPlanes.size());
-        r3d_reduce(&celli, voli, 0);
-        CHECK2(r3d_is_good(&celli), "Bad polyhedron!");
-
-        // Extract the area.
-        r3d_reduce(&celli, voli, 0);
-        CHECK(voli[0] > 0.0);
-        vol(nodeListi, i) = voli[0]/Hdeti;
       }
     }
 
