@@ -246,21 +246,34 @@ initializeProblemStartup(DataBase<Dimension>& dataBase) {
     mGradm4 = dataBase.newFluidFieldList(FifthRankTensor::zero,  HydroFieldNames::gradM4_CRKSPH);
   }
 
+  // We need volumes in order to prepare the surface detection.
   mSurfacePoint = dataBase.newFluidFieldList(0, HydroFieldNames::surfacePoint);
-
-  // Compute the volumes.
   const TableKernel<Dimension>& W = this->kernel();
   const ConnectivityMap<Dimension>& connectivityMap = dataBase.connectivityMap();
   const FieldList<Dimension, Scalar> mass = dataBase.fluidMass();
   const FieldList<Dimension, SymTensor> H = dataBase.fluidHfield();
   const FieldList<Dimension, Vector> position = dataBase.fluidPosition();
+  if (mDetectSurfaces) {
+    const FieldList<Dimension, Scalar> massDensity = dataBase.fluidMassDensity();
+    mVolume.assignFields(mass/massDensity);
+    for (ConstBoundaryIterator boundItr = this->boundaryBegin();
+         boundItr != this->boundaryEnd();
+         ++boundItr) (*boundItr)->applyFieldListGhostBoundary(mVolume);
+    for (ConstBoundaryIterator boundItr = this->boundaryBegin();
+         boundItr != this->boundaryEnd();
+         ++boundItr) (*boundItr)->finalizeGhostBoundary();
+    computeCRKSPHMoments(connectivityMap, W, mVolume, position, H, correctionOrder(), NodeCoupling(), mM0, mM1, mM2, mM3, mM4, mGradm0, mGradm1, mGradm2, mGradm3, mGradm4);
+    detectSurface(connectivityMap, mM0, mM1, position, H, mDetectThreshold, mDetectRange*W.kernelExtent(), mSweepAngle, mSurfacePoint);
+  }    
+
+  // Compute the volumes for real.
   if (mVolumeType == CRKMassOverDensity) {
     const FieldList<Dimension, Scalar> massDensity = dataBase.fluidMassDensity();
     mVolume.assignFields(mass/massDensity);
   } else if (mVolumeType == CRKSumVolume) {
     computeCRKSPHSumVolume(connectivityMap, W, position, mass, H, mVolume);
   } else if (mVolumeType == CRKVoronoiVolume) {
-    computeVoronoiVolume(position, H, connectivityMap, W.kernelExtent(), mVolume);
+    computeVoronoiVolume(position, H, mSurfacePoint, connectivityMap, W.kernelExtent(), mVolume);
   } else if (mVolumeType == CRKHullVolume) {
     computeHullVolumes(connectivityMap, W.kernelExtent(), position, H, mVolume);
   } else if (mVolumeType == HVolume) {
@@ -279,7 +292,6 @@ initializeProblemStartup(DataBase<Dimension>& dataBase) {
   // Compute the corrections.
   computeCRKSPHMoments(connectivityMap, W, mVolume, position, H, correctionOrder(), NodeCoupling(), mM0, mM1, mM2, mM3, mM4, mGradm0, mGradm1, mGradm2, mGradm3, mGradm4);
   computeCRKSPHCorrections(mM0, mM1, mM2, mM3, mM4, mGradm0, mGradm1, mGradm2, mGradm3, mGradm4, H, correctionOrder(), mA, mB, mC, mGradA, mGradB, mGradC);
-  if (mDetectSurfaces) detectSurface(connectivityMap, mM0, mM1, position, H, mDetectThreshold, mDetectRange*W.kernelExtent(), mSweepAngle, mSurfacePoint);
 
   // We need to initialize the velocity gradient if we're using the CRKSPH artificial viscosity.
   const FieldList<Dimension, Vector> velocity = dataBase.fluidVelocity();
@@ -1135,12 +1147,13 @@ finalize(const typename Dimension::Scalar time,
   FieldList<Dimension, Vector> m1 = state.fields(HydroFieldNames::m1_CRKSPH, Vector::zero);
   FieldList<Dimension, Scalar> massDensity = state.fields(HydroFieldNames::massDensity, 0.0);
   FieldList<Dimension, Scalar> vol = state.fields(HydroFieldNames::volume, 0.0);
+  FieldList<Dimension, int> surfacePoint = state.fields(HydroFieldNames::surfacePoint, 0);
   if (mVolumeType == CRKMassOverDensity) {
     vol.assignFields(mass/massDensity);
   } else if (mVolumeType == CRKSumVolume) {
     computeCRKSPHSumVolume(connectivityMap, W, position, mass, H, vol);
   } else if (mVolumeType == CRKVoronoiVolume) {
-    computeVoronoiVolume(position, H, connectivityMap, W.kernelExtent(), vol);
+    computeVoronoiVolume(position, H, surfacePoint, connectivityMap, W.kernelExtent(), vol);
   } else if (mVolumeType == CRKHullVolume) {
     computeHullVolumes(connectivityMap, W.kernelExtent(), position, H, vol);
   } else if (mVolumeType == HVolume) {
@@ -1187,7 +1200,6 @@ finalize(const typename Dimension::Scalar time,
 
   // Update the surface point flags.
   if (mDetectSurfaces) {
-    FieldList<Dimension, int> surfacePoint = state.fields(HydroFieldNames::surfacePoint, 0);
     detectSurface(connectivityMap, m0, m1, position, H, mDetectThreshold, mDetectRange*W.kernelExtent(), mSweepAngle, surfacePoint);
     for (ConstBoundaryIterator boundaryItr = this->boundaryBegin(); 
          boundaryItr != this->boundaryEnd();

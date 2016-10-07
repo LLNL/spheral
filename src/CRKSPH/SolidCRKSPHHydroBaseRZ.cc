@@ -17,7 +17,6 @@
 #include "CRKSPHHydroBase.hh"
 #include "CRKSPHUtilities.hh"
 #include "volumeSpacing.hh"
-#include "computeVoronoiVolume.hh"
 #include "computeHullVolumes.hh"
 #include "computeCRKSPHSumVolume.hh"
 #include "computeCRKSPHMoments.hh"
@@ -130,6 +129,10 @@ SolidCRKSPHHydroBaseRZ(const SmoothingScaleBase<Dimension>& smoothingScaleMethod
                        const PhysicsSpace::HEvolutionType HUpdate,
                        const CRKSPHSpace::CRKOrder correctionOrder,
                        const CRKSPHSpace::CRKVolumeType volumeType,
+                       const bool detectSurfaces,
+                       const double detectThreshold,
+                       const double sweepAngle,
+                       const double detectRange,
                        const double epsTensile,
                        const double nTensile):
   SolidCRKSPHHydroBase<Dimension>(smoothingScaleMethod, 
@@ -146,6 +149,10 @@ SolidCRKSPHHydroBaseRZ(const SmoothingScaleBase<Dimension>& smoothingScaleMethod
                                   HUpdate,
                                   correctionOrder,
                                   volumeType,
+                                  detectSurfaces,
+                                  detectThreshold,
+                                  sweepAngle,
+                                  detectRange,
                                   epsTensile,
                                   nTensile),
   mDeviatoricStressTT(FieldSpace::Copy),

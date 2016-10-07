@@ -28,7 +28,11 @@ class %(classname)s(SolidCRKSPHHydroBaseRZ):
                  densityUpdate = RigorousSumDensity,
                  HUpdate = IdealH,
                  correctionOrder = LinearOrder,
-                 volumeType = CRKSumVolume,
+                 volumeType = CRKVoronoiVolume,
+                 detectSurfaces = True,
+                 detectThreshold = 0.05,
+                 sweepAngle = 0.8,
+                 detectRange = 1.0,
                  epsTensile = 0.0,
                  nTensile = 4.0,
                  etaMinAxis = 0.1):
@@ -50,6 +54,10 @@ class %(classname)s(SolidCRKSPHHydroBaseRZ):
                                         HUpdate,
                                         correctionOrder,
                                         volumeType,
+                                        detectSurfaces,
+                                        detectThreshold,
+                                        sweepAngle,
+                                        detectRange,
                                         epsTensile,
                                         nTensile)
         self.zaxisBC = AxisBoundaryRZ(etaMinAxis)
