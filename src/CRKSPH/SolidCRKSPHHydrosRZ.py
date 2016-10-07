@@ -30,9 +30,9 @@ class %(classname)s(SolidCRKSPHHydroBaseRZ):
                  correctionOrder = LinearOrder,
                  volumeType = CRKVoronoiVolume,
                  detectSurfaces = True,
-                 detectThreshold = 0.95,
+                 detectThreshold = 0.05,
                  sweepAngle = 0.8,
-                 detectRange = 0.5,
+                 detectRange = 1.0,
                  epsTensile = 0.0,
                  nTensile = 4.0,
                  etaMinAxis = 0.1):

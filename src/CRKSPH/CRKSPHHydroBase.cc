@@ -256,6 +256,12 @@ initializeProblemStartup(DataBase<Dimension>& dataBase) {
   if (mDetectSurfaces) {
     const FieldList<Dimension, Scalar> massDensity = dataBase.fluidMassDensity();
     mVolume.assignFields(mass/massDensity);
+    for (ConstBoundaryIterator boundItr = this->boundaryBegin();
+         boundItr != this->boundaryEnd();
+         ++boundItr) (*boundItr)->applyFieldListGhostBoundary(mVolume);
+    for (ConstBoundaryIterator boundItr = this->boundaryBegin();
+         boundItr != this->boundaryEnd();
+         ++boundItr) (*boundItr)->finalizeGhostBoundary();
     computeCRKSPHMoments(connectivityMap, W, mVolume, position, H, correctionOrder(), NodeCoupling(), mM0, mM1, mM2, mM3, mM4, mGradm0, mGradm1, mGradm2, mGradm3, mGradm4);
     detectSurface(connectivityMap, mM0, mM1, position, H, mDetectThreshold, mDetectRange*W.kernelExtent(), mSweepAngle, mSurfacePoint);
   }    
