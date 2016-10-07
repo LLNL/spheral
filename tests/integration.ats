@@ -70,3 +70,6 @@ source("Strength/CollidingPlates/CollidingPlates-1d.py")
 
 # Damage tests.
 source("Damage/TensileRod/TensileRod-GradyKipp-1d.py")
+
+# Surface detection test
+source("Surfaces/Surface.py")
