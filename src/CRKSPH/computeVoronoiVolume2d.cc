@@ -29,9 +29,9 @@ using NeighborSpace::ConnectivityMap;
 void
 computeVoronoiVolume(const FieldList<Dim<2>, Dim<2>::Vector>& position,
                      const FieldList<Dim<2>, Dim<2>::SymTensor>& H,
-                     const FieldList<Dim<2>, int>& surfacePoint,
                      const ConnectivityMap<Dim<2> >& connectivityMap,
                      const Dim<2>::Scalar kernelExtent,
+                     FieldList<Dim<2>, int>& surfacePoint,
                      FieldList<Dim<2>, Dim<2>::Scalar>& vol) {
 
   const unsigned numGens = position.numNodes();
@@ -44,6 +44,11 @@ computeVoronoiVolume(const FieldList<Dim<2>, Dim<2>::Vector>& position,
   typedef Dim<2>::FacetedVolume FacetedVolume;
 
   if (numGensGlobal > 0) {
+
+    const Scalar kernelExtent2 = 0.99*kernelExtent*kernelExtent;
+
+    // Start out assuming all points are internal.
+    surfacePoint = 0;
 
     // Build an approximation of the starting kernel shape.
     const unsigned nverts = 32;
@@ -64,42 +69,57 @@ computeVoronoiVolume(const FieldList<Dim<2>, Dim<2>::Vector>& position,
       const Neighbor<Dim<2> >& neighbor = position[nodeListi]->nodeListPtr()->neighbor();
       for (unsigned i = 0; i != n; ++i) {
 
-        if (surfacePoint(nodeListi, i) == 0) {
-          const Vector& ri = position(nodeListi, i);
-          const SymTensor& Hi = H(nodeListi, i);
-          const Scalar Hdeti = Hi.Determinant();
+        const Vector& ri = position(nodeListi, i);
+        const SymTensor& Hi = H(nodeListi, i);
+        const Scalar Hdeti = Hi.Determinant();
 
-          // Grab this points neighbors and build all the planes.
-          vector<r2d_plane> pairPlanes;
-          const vector<vector<int> >& fullConnectivity = connectivityMap.connectivityForNode(nodeListi, i);
-          for (unsigned nodeListj = 0; nodeListj != numNodeLists; ++nodeListj) {
-            for (vector<int>::const_iterator jItr = fullConnectivity[nodeListj].begin();
-                 jItr != fullConnectivity[nodeListj].end();
-                 ++jItr) {
-              const unsigned j = *jItr;
-              const Vector& rj = position(nodeListj, j);
+        // Grab this points neighbors and build all the planes.
+        vector<r2d_plane> pairPlanes;
+        const vector<vector<int> >& fullConnectivity = connectivityMap.connectivityForNode(nodeListi, i);
+        for (unsigned nodeListj = 0; nodeListj != numNodeLists; ++nodeListj) {
+          for (vector<int>::const_iterator jItr = fullConnectivity[nodeListj].begin();
+               jItr != fullConnectivity[nodeListj].end();
+               ++jItr) {
+            const unsigned j = *jItr;
+            const Vector& rj = position(nodeListj, j);
 
-              // Build the half plane.
-              const Vector etai = Hi*(ri - rj);
-              const Vector nhat = etai.unitVector();
-              pairPlanes.push_back(r2d_plane());
-              pairPlanes.back().n.x = nhat.x();
-              pairPlanes.back().n.y = nhat.y();
-              pairPlanes.back().d = 0.5*etai.magnitude();
-            }
+            // Build the half plane.
+            const Vector etai = Hi*(ri - rj);
+            const Vector nhat = etai.unitVector();
+            pairPlanes.push_back(r2d_plane());
+            pairPlanes.back().n.x = nhat.x();
+            pairPlanes.back().n.y = nhat.y();
+            pairPlanes.back().d = 0.5*etai.magnitude();
           }
+        }
 
-          // Start with the initial cell shape (in eta space).
-          r2d_poly celli = initialCell;
-          CHECK2(r2d_is_good(&celli), "Bad polygon!");
+        // Start with the initial cell shape (in eta space).
+        r2d_poly celli = initialCell;
+        CHECK2(r2d_is_good(&celli), "Bad polygon!");
 
-          // Clip the local cell.
-          r2d_clip(&celli, &pairPlanes[0], pairPlanes.size());
+        // Clip the local cell.
+        r2d_clip(&celli, &pairPlanes[0], pairPlanes.size());
 
-          // Extract the area.
+        // Are there any of the original volume vertices left?
+        bool interior = true;
+        {
+          unsigned k = 0;
+          do {
+            interior = (FastMath::square(celli.verts[k].pos.x) + FastMath::square(celli.verts[k].pos.y) < kernelExtent2);
+          } while (interior and ++k != celli.nverts);
+        }
+        if (interior) {
+
+          // This is an interior point -- extract the area.
           r2d_real voli[1];
           r2d_reduce(&celli, voli, 0);
           vol(nodeListi, i) = voli[0]/Hdeti;
+
+        } else {
+
+          // This point touches a free boundary, so flag it.
+          surfacePoint(nodeListi, i) = 1;
+
         }
       }
     }

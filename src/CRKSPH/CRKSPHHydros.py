@@ -26,7 +26,7 @@ class %(classname)s%(dim)s(CRKSPHHydroBase%(dim)s):
                  HUpdate = IdealH,
                  correctionOrder = LinearOrder,
                  volumeType = CRKVoronoiVolume,
-                 detectSurfaces = True,
+                 detectSurfaces = False,
                  detectThreshold = 0.05,
                  sweepAngle = 0.8,
                  detectRange = 1.0,

@@ -5,8 +5,7 @@
 #include "Field/Field.hh"
 #include "Field/FieldList.hh"
 #include "NodeList/NodeList.hh"
-#include "Utilities/allReduce.hh"
-#include "Mesh/Mesh.hh"
+#include "Utilities/PairComparisons.hh"
 
 namespace Spheral {
 namespace CRKSPHSpace {
@@ -24,9 +23,9 @@ using NeighborSpace::ConnectivityMap;
 void
 computeVoronoiVolume(const FieldList<Dim<1>, Dim<1>::Vector>& position,
                      const FieldList<Dim<1>, Dim<1>::SymTensor>& H,
-                     const FieldList<Dim<1>, int>& surfacePoint,
                      const ConnectivityMap<Dim<1> >& connectivityMap,
                      const Dim<1>::Scalar kernelExtent,
+                     FieldList<Dim<1>, int>& surfacePoint,
                      FieldList<Dim<1>, Dim<1>::Scalar>& vol) {
 
   const unsigned numGens = position.numNodes();
@@ -37,47 +36,48 @@ computeVoronoiVolume(const FieldList<Dim<1>, Dim<1>::Vector>& position,
   typedef Dim<1>::SymTensor SymTensor;
   typedef Dim<1>::FacetedVolume FacetedVolume;
 
-  // Copy the input positions to single list.
-  // For convenience we gather all ghost node coordinates at the end of the
-  // list.
-  Vector xmin(1e100), xmax(-1e100);
-  vector<Vector> coords;
+  // Copy the input positions to single list, and sort it.
+  // Note our logic here relies on ghost nodes already being built, including parallel nodes.
+  typedef pair<double, pair<unsigned, unsigned> > PointCoord;
+  vector<PointCoord> coords;
   coords.reserve(numGens);
   for (unsigned nodeListi = 0; nodeListi != numNodeLists; ++nodeListi) {
-    const unsigned n = position[nodeListi]->numInternalElements();
+    const unsigned n = position[nodeListi]->numElements();
     for (unsigned i = 0; i != n; ++i) {
-      coords.push_back(position(nodeListi, i));
-      const Scalar xi = position(nodeListi, i).x();
-      xmin.x(min(xmin.x(), xi));
-      xmax.x(max(xmax.x(), xi));
+      coords.push_back(make_pair(position(nodeListi, i).x(), make_pair(nodeListi, i)));
     }
   }
-  for (unsigned nodeListi = 0; nodeListi != numNodeLists; ++nodeListi) {
-    const unsigned firstGhostNode = position[nodeListi]->nodeListPtr()->firstGhostNode();
-    const unsigned n = position[nodeListi]->nodeListPtr()->numGhostNodes();
-    for (unsigned i = 0; i != n; ++i) {
-      coords.push_back(position(nodeListi, firstGhostNode + i));
-      const Scalar xi = position(nodeListi, firstGhostNode + i).x();
-      xmin.x(min(xmin.x(), xi));
-      xmax.x(max(xmax.x(), xi));
-    }
-  }
-  xmin.x(allReduce(xmin.x(), MPI_MIN, Communicator::communicator()));
-  xmax.x(allReduce(xmax.x(), MPI_MAX, Communicator::communicator()));
-  const Vector delta = 0.01*(xmax - xmin);
-  xmin -= delta;
-  xmax += delta;
-  CHECK(coords.size() == numGens);
+  sort(coords.begin(), coords.end(), ComparePairsByFirstElement<PointCoord>());
 
-  // Do the tessellation.
-  const MeshSpace::Mesh<Dim<1> > mesh(coords, xmin, xmax);
-
-  // Now we can extract the volumes.
-  unsigned icell = 0;
-  for (unsigned nodeListi = 0; nodeListi != numNodeLists; ++nodeListi) {
-    const unsigned n = vol[nodeListi]->numInternalElements();
-    for (unsigned i = 0; i != n; ++i, ++icell) {
-      if (surfacePoint(nodeListi, i) == 0) vol(nodeListi, i) = mesh.zone(icell).volume();
+  // Now walk our sorted point and set the volumes and surface flags.
+  surfacePoint = 0;
+  const vector<NodeList<Dim<1> >*>& nodeListPtrs = position.nodeListPtrs();
+  for (vector<PointCoord>::const_iterator itr = coords.begin();
+       itr != coords.end();
+       ++itr) {
+    const unsigned nodeListi = itr->second.first;
+    const unsigned i = itr->second.second;
+    if (i < nodeListPtrs[nodeListi]->firstGhostNode()) {
+      if (itr == coords.begin() or itr == coords.end()-1) {
+        surfacePoint(nodeListi, i) = 1;
+      } else {
+        const unsigned nodeListj1 = (itr-1)->second.first,
+                       nodeListj2 = (itr+1)->second.first,
+                               j1 = (itr-1)->second.second,
+                               j2 = (itr+1)->second.second;
+        const Scalar Hi = H(nodeListi, i).xx(),
+                    Hj1 = H(nodeListj1, j1).xx(),
+                    Hj2 = H(nodeListj2, j2).xx();
+        const Scalar xij1 = position(nodeListi, i).x() - position(nodeListj1, j1).x(),
+                     xji2 = position(nodeListj2, j2).x() - position(nodeListi, i).x();
+        CHECK(xij1 >= 0.0 and xji2 >= 0.0);
+        const Scalar etamin = min(Hi, min(Hj1, Hj2))*min(xij1, xji2);
+        if (etamin < kernelExtent) {
+          vol(nodeListi, i) = 0.5*(xij1 + xji2);
+        } else {
+          surfacePoint(nodeListi, i) = 1;
+        }
+      }
     }
   }
 }
