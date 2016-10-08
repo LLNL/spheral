@@ -20,9 +20,9 @@ namespace Spheral {
     void
     computeVoronoiVolume(const FieldSpace::FieldList<Dim<1>, Dim<1>::Vector>& position,
                          const FieldSpace::FieldList<Dim<1>, Dim<1>::SymTensor>& H,
-                         const FieldSpace::FieldList<Dim<1>, int>& surfacePoint,
                          const NeighborSpace::ConnectivityMap<Dim<1> >& connectivityMap,
                          const Dim<1>::Scalar kernelExtent,
+                         FieldSpace::FieldList<Dim<1>, int>& surfacePoint,
                          FieldSpace::FieldList<Dim<1>, Dim<1>::Scalar>& vol);
 #endif
 
@@ -31,9 +31,9 @@ namespace Spheral {
     void
     computeVoronoiVolume(const FieldSpace::FieldList<Dim<2>, Dim<2>::Vector>& position,
                          const FieldSpace::FieldList<Dim<2>, Dim<2>::SymTensor>& H,
-                         const FieldSpace::FieldList<Dim<2>, int>& surfacePoint,
                          const NeighborSpace::ConnectivityMap<Dim<2> >& connectivityMap,
                          const Dim<2>::Scalar kernelExtent,
+                         FieldSpace::FieldList<Dim<2>, int>& surfacePoint,
                          FieldSpace::FieldList<Dim<2>, Dim<2>::Scalar>& vol);
 #endif
 
@@ -42,9 +42,9 @@ namespace Spheral {
     void
     computeVoronoiVolume(const FieldSpace::FieldList<Dim<3>, Dim<3>::Vector>& position,
                          const FieldSpace::FieldList<Dim<3>, Dim<3>::SymTensor>& H,
-                         const FieldSpace::FieldList<Dim<3>, int>& surfacePoint,
                          const NeighborSpace::ConnectivityMap<Dim<3> >& connectivityMap,
                          const Dim<3>::Scalar kernelExtent,
+                         FieldSpace::FieldList<Dim<3>, int>& surfacePoint,
                          FieldSpace::FieldList<Dim<3>, Dim<3>::Scalar>& vol);
 #endif
 

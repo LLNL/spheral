@@ -253,15 +253,15 @@ initializeProblemStartup(DataBase<Dimension>& dataBase) {
   const FieldList<Dimension, Scalar> mass = dataBase.fluidMass();
   const FieldList<Dimension, SymTensor> H = dataBase.fluidHfield();
   const FieldList<Dimension, Vector> position = dataBase.fluidPosition();
+  const FieldList<Dimension, Scalar> massDensity = dataBase.fluidMassDensity();
+  mVolume.assignFields(mass/massDensity);
+  for (ConstBoundaryIterator boundItr = this->boundaryBegin();
+       boundItr != this->boundaryEnd();
+       ++boundItr) (*boundItr)->applyFieldListGhostBoundary(mVolume);
+  for (ConstBoundaryIterator boundItr = this->boundaryBegin();
+       boundItr != this->boundaryEnd();
+       ++boundItr) (*boundItr)->finalizeGhostBoundary();
   if (mDetectSurfaces) {
-    const FieldList<Dimension, Scalar> massDensity = dataBase.fluidMassDensity();
-    mVolume.assignFields(mass/massDensity);
-    for (ConstBoundaryIterator boundItr = this->boundaryBegin();
-         boundItr != this->boundaryEnd();
-         ++boundItr) (*boundItr)->applyFieldListGhostBoundary(mVolume);
-    for (ConstBoundaryIterator boundItr = this->boundaryBegin();
-         boundItr != this->boundaryEnd();
-         ++boundItr) (*boundItr)->finalizeGhostBoundary();
     computeCRKSPHMoments(connectivityMap, W, mVolume, position, H, correctionOrder(), NodeCoupling(), mM0, mM1, mM2, mM3, mM4, mGradm0, mGradm1, mGradm2, mGradm3, mGradm4);
     detectSurface(connectivityMap, mM0, mM1, position, H, mDetectThreshold, mDetectRange*W.kernelExtent(), mSweepAngle, mSurfacePoint);
   }    
@@ -273,7 +273,7 @@ initializeProblemStartup(DataBase<Dimension>& dataBase) {
   } else if (mVolumeType == CRKSumVolume) {
     computeCRKSPHSumVolume(connectivityMap, W, position, mass, H, mVolume);
   } else if (mVolumeType == CRKVoronoiVolume) {
-    computeVoronoiVolume(position, H, mSurfacePoint, connectivityMap, W.kernelExtent(), mVolume);
+    computeVoronoiVolume(position, H, connectivityMap, W.kernelExtent(), mSurfacePoint, mVolume);
   } else if (mVolumeType == CRKHullVolume) {
     computeHullVolumes(connectivityMap, W.kernelExtent(), position, H, mVolume);
   } else if (mVolumeType == HVolume) {
@@ -1153,7 +1153,7 @@ finalize(const typename Dimension::Scalar time,
   } else if (mVolumeType == CRKSumVolume) {
     computeCRKSPHSumVolume(connectivityMap, W, position, mass, H, vol);
   } else if (mVolumeType == CRKVoronoiVolume) {
-    computeVoronoiVolume(position, H, surfacePoint, connectivityMap, W.kernelExtent(), vol);
+    computeVoronoiVolume(position, H, connectivityMap, W.kernelExtent(), surfacePoint, vol);
   } else if (mVolumeType == CRKHullVolume) {
     computeHullVolumes(connectivityMap, W.kernelExtent(), position, H, vol);
   } else if (mVolumeType == HVolume) {
@@ -1317,11 +1317,7 @@ applyGhostBoundaries(State<Dimension>& state,
   FieldList<Dimension, Vector> gradA = state.fields(HydroFieldNames::gradA_CRKSPH, Vector::zero);
   FieldList<Dimension, Tensor> gradB = state.fields(HydroFieldNames::gradB_CRKSPH, Tensor::zero);
   FieldList<Dimension, ThirdRankTensor> gradC = state.fields(HydroFieldNames::gradC_CRKSPH, ThirdRankTensor::zero);
-
-  FieldList<Dimension, int> surfacePoint;
-  if (mDetectSurfaces) {
-    surfacePoint = state.fields(HydroFieldNames::surfacePoint, 0);
-  }
+  FieldList<Dimension, int> surfacePoint = state.fields(HydroFieldNames::surfacePoint, 0);
 
   for (ConstBoundaryIterator boundaryItr = this->boundaryBegin(); 
        boundaryItr != this->boundaryEnd();
@@ -1343,7 +1339,7 @@ applyGhostBoundaries(State<Dimension>& state,
     (*boundaryItr)->applyFieldListGhostBoundary(gradA);
     (*boundaryItr)->applyFieldListGhostBoundary(gradB);
     (*boundaryItr)->applyFieldListGhostBoundary(gradC);
-    if (mDetectSurfaces) (*boundaryItr)->applyFieldListGhostBoundary(surfacePoint);
+    (*boundaryItr)->applyFieldListGhostBoundary(surfacePoint);
   }
 }
 
@@ -1377,11 +1373,7 @@ enforceBoundaries(State<Dimension>& state,
   FieldList<Dimension, Vector> gradA = state.fields(HydroFieldNames::gradA_CRKSPH, Vector::zero);
   FieldList<Dimension, Tensor> gradB = state.fields(HydroFieldNames::gradB_CRKSPH, Tensor::zero);
   FieldList<Dimension, ThirdRankTensor> gradC = state.fields(HydroFieldNames::gradC_CRKSPH, ThirdRankTensor::zero);
-
-  FieldList<Dimension, int> surfacePoint;
-  if (mDetectSurfaces) {
-    surfacePoint = state.fields(HydroFieldNames::surfacePoint, 0);
-  }
+  FieldList<Dimension, int> surfacePoint = state.fields(HydroFieldNames::surfacePoint, 0);
 
   for (ConstBoundaryIterator boundaryItr = this->boundaryBegin(); 
        boundaryItr != this->boundaryEnd();
@@ -1403,7 +1395,7 @@ enforceBoundaries(State<Dimension>& state,
     (*boundaryItr)->enforceFieldListBoundary(gradA);
     (*boundaryItr)->enforceFieldListBoundary(gradB);
     (*boundaryItr)->enforceFieldListBoundary(gradC);
-    if (mDetectSurfaces) (*boundaryItr)->enforceFieldListBoundary(surfacePoint);
+    (*boundaryItr)->enforceFieldListBoundary(surfacePoint);
   }
 }
 
