@@ -56,13 +56,12 @@ computeVoronoiVolume(const FieldList<Dim<2>, Dim<2>::Vector>& position,
 
   if (numGensGlobal > 0) {
 
-    const Scalar kernelExtent2 = 0.99*kernelExtent*kernelExtent;
-
     // Start out assuming all points are internal.
     surfacePoint = 0;
 
     // Build an approximation of the starting kernel shape.
-    const unsigned nverts = 32;
+    const unsigned nverts = 18;
+    const Scalar rin2 = 0.25*kernelExtent*kernelExtent * FastMath::square(cos(M_PI/nverts));
     const double dtheta = 2.0*M_PI/nverts;
     r2d_rvec2 verts[nverts];
     for (unsigned j = 0; j != nverts; ++j) {
@@ -117,7 +116,7 @@ computeVoronoiVolume(const FieldList<Dim<2>, Dim<2>::Vector>& position,
         {
           unsigned k = 0;
           do {
-            interior = (FastMath::square(celli.verts[k].pos.x) + FastMath::square(celli.verts[k].pos.y) < kernelExtent2);
+            interior = (FastMath::square(celli.verts[k].pos.x) + FastMath::square(celli.verts[k].pos.y) < rin2);
           } while (interior and ++k != celli.nverts);
         }
         if (interior) {
