@@ -117,6 +117,9 @@ computeVoronoiVolume(const FieldList<Dim<3>, Dim<3>::Vector>& position,
       CHECK2(fuzzyEqual(voli[0], 4.0/3.0*M_PI*Dim<3>::pownu(kernelExtent), 1.0e-10), voli[0] << " " << 4.0/3.0*M_PI*Dim<3>::pownu(kernelExtent) << " " << volscale);
     }
     END_CONTRACT_SCOPE
+    
+    //const Scalar rin = kernelExtent * FastMath::sqrt(15.0*(5.0+FastMath::sqrt(5.0)))/30.0;
+    const Scalar rin2 = kernelExtent2 * (15.0*(5.0+FastMath::sqrt(5.0)))/900.0;
 
     // Walk the points.
     for (unsigned nodeListi = 0; nodeListi != numNodeLists; ++nodeListi) {
@@ -172,7 +175,7 @@ computeVoronoiVolume(const FieldList<Dim<3>, Dim<3>::Vector>& position,
           do {
             interior = (FastMath::square(celli.verts[k].pos.x) +
                         FastMath::square(celli.verts[k].pos.y) + 
-                        FastMath::square(celli.verts[k].pos.z) < kernelExtent2);
+                        FastMath::square(celli.verts[k].pos.z) < rin2);
           } while (interior and ++k != celli.nverts);
         }
         if (interior) {
