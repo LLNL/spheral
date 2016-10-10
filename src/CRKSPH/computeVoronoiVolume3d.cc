@@ -5,6 +5,8 @@ extern "C" {
 #include "r3d/r3d.h"
 }
 
+#include <algorithm>
+
 #include "computeVoronoiVolume.hh"
 #include "Field/Field.hh"
 #include "Field/FieldList.hh"
@@ -22,6 +24,15 @@ using FieldSpace::FieldList;
 using NodeSpace::NodeList;
 using NeighborSpace::Neighbor;
 using NeighborSpace::ConnectivityMap;
+
+namespace {  // anonymous namespace
+//------------------------------------------------------------------------------
+// A special comparator to sort r3d planes by distance.
+//------------------------------------------------------------------------------
+bool compareR3Dplanes(const r3d_plane& lhs, const r3d_plane& rhs) {
+  return lhs.d < rhs.d;
+}
+}           // anonymous namespace
 
 //------------------------------------------------------------------------------
 // 3D
@@ -149,6 +160,7 @@ computeVoronoiVolume(const FieldList<Dim<3>, Dim<3>::Vector>& position,
             pairPlanes.back().d = 0.5*etai.magnitude();
           }
         }
+        std::sort(pairPlanes.begin(), pairPlanes.end(), compareR3Dplanes);
 
         // // Start with a bounding box around the H tensor.
         // const Vector extenti = Hi * neighbor.nodeExtent(i);

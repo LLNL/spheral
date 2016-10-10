@@ -5,6 +5,8 @@ extern "C" {
 #include "r3d/r2d.h"
 }
 
+#include <algorithm>
+
 #include "computeVoronoiVolume.hh"
 #include "Field/Field.hh"
 #include "Field/FieldList.hh"
@@ -22,6 +24,15 @@ using FieldSpace::FieldList;
 using NodeSpace::NodeList;
 using NeighborSpace::Neighbor;
 using NeighborSpace::ConnectivityMap;
+
+namespace {  // anonymous namespace
+//------------------------------------------------------------------------------
+// A special comparator to sort r2d planes by distance.
+//------------------------------------------------------------------------------
+bool compareR2Dplanes(const r2d_plane& lhs, const r2d_plane& rhs) {
+  return lhs.d < rhs.d;
+}
+}           // anonymous namespace
 
 //------------------------------------------------------------------------------
 // 2D
@@ -92,6 +103,7 @@ computeVoronoiVolume(const FieldList<Dim<2>, Dim<2>::Vector>& position,
             pairPlanes.back().d = 0.5*etai.magnitude();
           }
         }
+        std::sort(pairPlanes.begin(), pairPlanes.end(), compareR2Dplanes);
 
         // Start with the initial cell shape (in eta space).
         r2d_poly celli = initialCell;
