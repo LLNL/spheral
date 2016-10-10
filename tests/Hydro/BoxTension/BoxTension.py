@@ -141,6 +141,7 @@ commandLine(
     redistributeStep = 1000,
 
     densityUpdate = RigorousSumDensity, # VolumeScaledDensity,
+    volumeType = CRKSumVolume,
     correctionOrder = LinearOrder,
     compatibleEnergy = True,
     gradhCorrection = True,
@@ -376,6 +377,7 @@ elif CRKSPH:
                              XSPH = XSPH,
                              correctionOrder = correctionOrder,
                              densityUpdate = densityUpdate,
+                             volumeType = volumeType,
                              HUpdate = HUpdate)
 elif PSPH:
     hydro = HydroConstructor(W = WT,
