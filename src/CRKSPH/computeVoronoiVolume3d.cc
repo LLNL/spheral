@@ -159,12 +159,10 @@ computeVoronoiVolume(const FieldList<Dim<3>, Dim<3>::Vector>& position,
 
         // Start with the initial cell shape (in eta space).
         r3d_poly celli = initialCell;
-        r3d_reduce(&celli, voli, 0);
         CHECK2(r3d_is_good(&celli), "Bad polyhedron!");
 
         // Clip the local cell.
         r3d_clip(&celli, &pairPlanes[0], pairPlanes.size());
-        r3d_reduce(&celli, voli, 0);
         CHECK2(r3d_is_good(&celli), "Bad polyhedron!");
 
         // Are there any of the original volume vertices left?
