@@ -53,7 +53,7 @@ computeVoronoiVolume(const FieldList<Dim<2>, Dim<2>::Vector>& position,
 
     // Build an approximation of the starting kernel shape.
     const unsigned nverts = 18;
-    const Scalar rin2 = 0.99*kernelExtent*kernelExtent * FastMath::square(cos(3.14159/nverts));
+    const Scalar rin2 = 0.25*kernelExtent*kernelExtent * FastMath::square(cos(3.14159/nverts));
     const double dtheta = 2.0*M_PI/nverts;
     r2d_rvec2 verts[nverts];
     for (unsigned j = 0; j != nverts; ++j) {
