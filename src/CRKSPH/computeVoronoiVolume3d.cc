@@ -57,7 +57,7 @@ computeVoronoiVolume(const FieldList<Dim<3>, Dim<3>::Vector>& position,
   if (numGensGlobal > 0) {
 
     // (Square) of the distance to a facet in an icosahedon.
-    const Scalar rin2 = 0.99*kernelExtent*kernelExtent * (15.0*(5.0+sqrt(5.0)))/900.0;
+    const Scalar rin2 = 0.25*kernelExtent*kernelExtent * (15.0*(5.0+sqrt(5.0)))/900.0;
 
     // Start out assuming all points are internal.
     surfacePoint = 0;
