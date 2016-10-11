@@ -109,6 +109,7 @@ commandLine(length = 3.0,
             
             CRKSPH = False,
             Qconstructor = MonaghanGingoldViscosity,
+            KernelConstructor = BSplineKernel,
             Cl = 1.0,
             Cq = 1.0,
             linearInExpansion = False,
@@ -118,7 +119,7 @@ commandLine(length = 3.0,
             negligibleSoundSpeed = 1e-5,
             csMultiplier = 1e-4,
             hmin = 1e-5,
-            hmax = 0.1,
+            hmax = 1.0,
             cfl = 0.5,
             useVelocityMagnitudeForDt = False,
             XSPH = False,
@@ -324,10 +325,8 @@ strengthModel = SteinbergGuinanStrength(eos,
 # Create our interpolation kernels -- one for normal hydro interactions, and
 # one for use with the artificial viscosity
 #-------------------------------------------------------------------------------
-WT = TableKernel(BSplineKernel(), 1000)
-WTPi = TableKernel(BSplineKernel(), 1000)
+WT = TableKernel(KernelConstructor(), 1000)
 output("WT")
-output("WTPi")
 
 #-------------------------------------------------------------------------------
 # Create the NodeLists.
