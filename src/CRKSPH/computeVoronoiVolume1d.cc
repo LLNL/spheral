@@ -36,6 +36,8 @@ computeVoronoiVolume(const FieldList<Dim<1>, Dim<1>::Vector>& position,
   typedef Dim<1>::SymTensor SymTensor;
   typedef Dim<1>::FacetedVolume FacetedVolume;
 
+  const Scalar rin = 0.5*kernelExtent;
+
   // Copy the input positions to single list, and sort it.
   // Note our logic here relies on ghost nodes already being built, including parallel nodes.
   typedef pair<double, pair<unsigned, unsigned> > PointCoord;
@@ -72,7 +74,7 @@ computeVoronoiVolume(const FieldList<Dim<1>, Dim<1>::Vector>& position,
                      xji2 = position(nodeListj2, j2).x() - position(nodeListi, i).x();
         CHECK(xij1 >= 0.0 and xji2 >= 0.0);
         const Scalar etamin = min(Hi, min(Hj1, Hj2))*min(xij1, xji2);
-        if (etamin < kernelExtent) {
+        if (etamin < rin) {
           vol(nodeListi, i) = 0.5*(xij1 + xji2);
         } else {
           surfacePoint(nodeListi, i) = 1;
