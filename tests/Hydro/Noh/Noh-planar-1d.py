@@ -469,20 +469,6 @@ control = SpheralController(integrator, WT,
                             restoreCycle = restoreCycle)
 output("control")
 
-# Smooth the initial conditions.
-if restoreCycle is None:
-    control.smoothState(smoothIters)
-    if densityUpdate in (VoronoiCellDensity, SumVoronoiCellDensity):
-        print "Reinitializing node masses."
-        control.voronoiInitializeMass()
-##     rho = db.fluidMassDensity
-##     pos = db.fluidPosition
-##     mass = db.fluidMass
-##     H = db.fluidHfield
-##     db.updateConnectivityMap()
-##     cm = db.connectivityMap()
-##     computeSPHSumMassDensity(cm, WT, pos, mass, H, rho)
-
 #-------------------------------------------------------------------------------
 # Advance to the end time.
 #-------------------------------------------------------------------------------
