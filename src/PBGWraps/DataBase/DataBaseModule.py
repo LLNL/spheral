@@ -355,7 +355,8 @@ self.addDataBaseMethods(self.DataBase%(dim)id, %(dim)i)
                                                    (thirdranktensorfieldlist, thirdranktensor, "%s::zero" % thirdranktensor, "ThirdRankTensor"),
                                                    (fourthranktensorfieldlist, fourthranktensor, "%s::zero" % fourthranktensor, "FourthRankTensor"),
                                                    (fifthranktensorfieldlist, fifthranktensor, "%s::zero" % fifthranktensor, "FifthRankTensor"),
-                                                   (polyvolfieldlist, polyvol, "%s()" % polyvol, "FacetedVolume")]:
+                                                   (polyvolfieldlist, polyvol, "%s()" % polyvol, "FacetedVolume"),
+                                                   (vectordoublefieldlist, "vector_of_double", "vector_of_double()", "vector_of_double")]:
             exec("""
 x.add_method("newGlobalFieldList", "%(result)s", [param("%(value)s", "value", default_value="%(default)s"),
                                                   param("std::string", "name", default_value='"unnamed field list"')],
