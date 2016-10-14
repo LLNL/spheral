@@ -111,8 +111,8 @@ class AsciiFileNodeGenerator2D(NodeGeneratorBase):
             self.vx = []
             self.vy = []
             for i in xrange(len(self.x)):
-                self.vx = 0.0
-                self.vy = 0.0
+                self.vx.append(0.0)
+                self.vy.append(0.0)
     
         # Initialize the base class.
         if initializeBase:
@@ -288,9 +288,9 @@ class AsciiFileNodeGenerator3D(NodeGeneratorBase):
             self.vy = []
             self.vz = []
             for i in xrange(len(self.x)):
-                self.vx = 0.0
-                self.vy = 0.0
-                self.vz = 0.0
+                self.vx.append(0.0)
+                self.vy.append(0.0)
+                self.vz.append(0.0)
 
 
         # Initialize the base class.
