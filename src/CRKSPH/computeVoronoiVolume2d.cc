@@ -18,6 +18,9 @@ namespace Spheral {
 namespace CRKSPHSpace {
 
 using namespace std;
+using std::min;
+using std::max;
+using std::abs;
 
 using FieldSpace::Field;
 using FieldSpace::FieldList;
@@ -40,10 +43,13 @@ bool compareR2Dplanes(const r2d_plane& lhs, const r2d_plane& rhs) {
 void
 computeVoronoiVolume(const FieldList<Dim<2>, Dim<2>::Vector>& position,
                      const FieldList<Dim<2>, Dim<2>::SymTensor>& H,
+                     const FieldSpace::FieldList<Dim<2>, Dim<2>::Scalar>& rho,
+                     const FieldSpace::FieldList<Dim<2>, Dim<2>::Vector>& gradRho,
                      const ConnectivityMap<Dim<2> >& connectivityMap,
                      const Dim<2>::Scalar kernelExtent,
                      FieldList<Dim<2>, int>& surfacePoint,
-                     FieldList<Dim<2>, Dim<2>::Scalar>& vol) {
+                     FieldList<Dim<2>, Dim<2>::Scalar>& vol,
+                     FieldSpace::FieldList<Dim<2>, Dim<2>::Vector>& deltaCentroid) {
 
   const unsigned numGens = position.numNodes();
   const unsigned numNodeLists = position.size();
@@ -74,6 +80,7 @@ computeVoronoiVolume(const FieldList<Dim<2>, Dim<2>::Vector>& position,
     CHECK(r2d_is_good(&initialCell));
 
     // Walk the points.
+    r2d_real voli[1], firstmom[3];
     for (unsigned nodeListi = 0; nodeListi != numNodeLists; ++nodeListi) {
       const unsigned n = vol[nodeListi]->numInternalElements();
       const Neighbor<Dim<2> >& neighbor = position[nodeListi]->nodeListPtr()->neighbor();
@@ -81,9 +88,13 @@ computeVoronoiVolume(const FieldList<Dim<2>, Dim<2>::Vector>& position,
 
         const Vector& ri = position(nodeListi, i);
         const SymTensor& Hi = H(nodeListi, i);
+        const Scalar rhoi = rho(nodeListi, i);
+        const Vector& gradRhoi = gradRho(nodeListi, i);
         const Scalar Hdeti = Hi.Determinant();
 
         // Grab this points neighbors and build all the planes.
+        // We simultaneously build a very conservative limiter for the density gradient.
+        Scalar phi = 1.0;
         vector<r2d_plane> pairPlanes;
         const vector<vector<int> >& fullConnectivity = connectivityMap.connectivityForNode(nodeListi, i);
         for (unsigned nodeListj = 0; nodeListj != numNodeLists; ++nodeListj) {
@@ -92,14 +103,19 @@ computeVoronoiVolume(const FieldList<Dim<2>, Dim<2>::Vector>& position,
                ++jItr) {
             const unsigned j = *jItr;
             const Vector& rj = position(nodeListj, j);
+            const Scalar rhoj = rho(nodeListj, j);
 
             // Build the half plane.
-            const Vector etai = Hi*(ri - rj);
+            const Vector rij = ri - rj;
+            const Vector etai = Hi*rij;
             const Vector nhat = etai.unitVector();
             pairPlanes.push_back(r2d_plane());
             pairPlanes.back().n.x = nhat.x();
             pairPlanes.back().n.y = nhat.y();
             pairPlanes.back().d = 0.5*etai.magnitude();
+
+            // Check the density gradient limiter.
+            phi = min(phi, max(0.0, rij.dot(gradRhoi)*safeInv(rhoi - rhoj)));
           }
         }
         std::sort(pairPlanes.begin(), pairPlanes.end(), compareR2Dplanes);
@@ -122,9 +138,19 @@ computeVoronoiVolume(const FieldList<Dim<2>, Dim<2>::Vector>& position,
         if (interior) {
 
           // This is an interior point -- extract the area.
-          r2d_real voli[1];
           r2d_reduce(&celli, voli, 0);
           vol(nodeListi, i) = voli[0]/Hdeti;
+
+          // Also get the centroid.
+          // Note we have to convert the gradient to eta space, since that's what the polygon is defined in.
+          const SymTensor Hinv = Hi.Inverse();
+          const Vector gradRho_eta = phi*(Hinv*gradRhoi);
+          firstmom[0] = rhoi;
+          firstmom[1] = gradRho_eta.x();
+          firstmom[2] = gradRho_eta.y();
+          r2d_reduce(&celli, firstmom, 1);
+          const Scalar m0 = voli[0]*rhoi;
+          deltaCentroid(nodeListi, i) = Hinv*Vector(firstmom[1], firstmom[2])/m0;
 
         } else {
 

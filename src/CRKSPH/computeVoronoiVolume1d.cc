@@ -21,12 +21,15 @@ using NeighborSpace::ConnectivityMap;
 // 1D
 //------------------------------------------------------------------------------
 void
-computeVoronoiVolume(const FieldList<Dim<1>, Dim<1>::Vector>& position,
-                     const FieldList<Dim<1>, Dim<1>::SymTensor>& H,
-                     const ConnectivityMap<Dim<1> >& connectivityMap,
+computeVoronoiVolume(const FieldSpace::FieldList<Dim<1>, Dim<1>::Vector>& position,
+                     const FieldSpace::FieldList<Dim<1>, Dim<1>::SymTensor>& H,
+                     const FieldSpace::FieldList<Dim<1>, Dim<1>::Scalar>& rho,
+                     const FieldSpace::FieldList<Dim<1>, Dim<1>::Vector>& gradRho,
+                     const NeighborSpace::ConnectivityMap<Dim<1> >& connectivityMap,
                      const Dim<1>::Scalar kernelExtent,
-                     FieldList<Dim<1>, int>& surfacePoint,
-                     FieldList<Dim<1>, Dim<1>::Scalar>& vol) {
+                     FieldSpace::FieldList<Dim<1>, int>& surfacePoint,
+                     FieldSpace::FieldList<Dim<1>, Dim<1>::Scalar>& vol,
+                     FieldSpace::FieldList<Dim<1>, Dim<1>::Vector>& deltaCentroid) {
 
   const unsigned numGens = position.numNodes();
   const unsigned numNodeLists = position.size();
@@ -37,6 +40,9 @@ computeVoronoiVolume(const FieldList<Dim<1>, Dim<1>::Vector>& position,
   typedef Dim<1>::FacetedVolume FacetedVolume;
 
   const Scalar rin = 0.5*kernelExtent;
+
+  // Zero out the deltaCentroid field.
+  deltaCentroid = Vector::zero;
 
   // Copy the input positions to single list, and sort it.
   // Note our logic here relies on ghost nodes already being built, including parallel nodes.
@@ -69,13 +75,23 @@ computeVoronoiVolume(const FieldList<Dim<1>, Dim<1>::Vector>& position,
                                j2 = (itr+1)->second.second;
         const Scalar Hi = H(nodeListi, i).xx(),
                     Hj1 = H(nodeListj1, j1).xx(),
-                    Hj2 = H(nodeListj2, j2).xx();
+                    Hj2 = H(nodeListj2, j2).xx(),
+                   rhoi = rho(nodeListi, i),
+                  rhoj1 = rho(nodeListj1, j1),
+                  rhoj2 = rho(nodeListj2, j2),
+               gradRhoi = gradRho(nodeListi, i).x();
         const Scalar xij1 = position(nodeListi, i).x() - position(nodeListj1, j1).x(),
                      xji2 = position(nodeListj2, j2).x() - position(nodeListi, i).x();
         CHECK(xij1 >= 0.0 and xji2 >= 0.0);
         const Scalar etamin = min(Hi, min(Hj1, Hj2))*min(xij1, xji2);
         if (etamin < rin) {
           vol(nodeListi, i) = 0.5*(xij1 + xji2);
+          const Scalar phi = min(1.0, min(max(0.0, xij1*safeInvVar(rhoi - rhoj1)),
+                                          max(0.0, xji2*safeInvVar(rhoj2 - rhoi))));
+          CHECK(phi >= 0.0 and phi <= 1.0);
+          const Scalar mij1 = 0.5*xij1*(rhoi - phi*gradRhoi*0.25*xij1),
+                       mji2 = 0.5*xji2*(rhoi + phi*gradRhoi*0.25*xji2);
+          deltaCentroid(nodeListi, i).x(0.5*(mji2*xji2 - mij1*xij1));
         } else {
           surfacePoint(nodeListi, i) = 1;
         }

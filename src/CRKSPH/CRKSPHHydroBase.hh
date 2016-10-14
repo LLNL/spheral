@@ -220,6 +220,7 @@ public:
   const FieldSpace::FieldList<Dimension, Scalar>&    weightedNeighborSum() const;
   const FieldSpace::FieldList<Dimension, SymTensor>& massSecondMoment() const;
   const FieldSpace::FieldList<Dimension, Scalar>&    volume() const;
+  const FieldSpace::FieldList<Dimension, Vector>&    massDensityGradient() const;
   const FieldSpace::FieldList<Dimension, Vector>&    XSPHDeltaV() const;
   const FieldSpace::FieldList<Dimension, Vector>&    DxDt() const;
 
@@ -230,6 +231,7 @@ public:
   const FieldSpace::FieldList<Dimension, Tensor>&    DvDx() const;
   const FieldSpace::FieldList<Dimension, Tensor>&    internalDvDx() const;
   const FieldSpace::FieldList<Dimension, std::vector<Vector> >& pairAccelerations() const;
+  const FieldSpace::FieldList<Dimension, Vector>&    deltaCentroid() const;
 
   const FieldSpace::FieldList<Dimension, Scalar>&    A() const;
   const FieldSpace::FieldList<Dimension, Vector>&    B() const;
@@ -290,6 +292,7 @@ protected:
   FieldSpace::FieldList<Dimension, SymTensor> mMassSecondMoment;
 
   FieldSpace::FieldList<Dimension, Scalar>    mVolume;
+  FieldSpace::FieldList<Dimension, Vector>    mMassDensityGradient;
 
   FieldSpace::FieldList<Dimension, Vector>    mXSPHDeltaV;
   FieldSpace::FieldList<Dimension, Vector>    mDxDt;
@@ -300,6 +303,7 @@ protected:
   FieldSpace::FieldList<Dimension, SymTensor> mDHDt;
   FieldSpace::FieldList<Dimension, Tensor>    mDvDx;
   FieldSpace::FieldList<Dimension, Tensor>    mInternalDvDx;
+  FieldSpace::FieldList<Dimension, Vector>    mDeltaCentroid;
 
   FieldSpace::FieldList<Dimension, std::vector<Vector> > mPairAccelerations;
 
