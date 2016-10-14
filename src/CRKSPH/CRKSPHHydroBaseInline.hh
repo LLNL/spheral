@@ -362,6 +362,14 @@ template<typename Dimension>
 inline
 const FieldSpace::FieldList<Dimension, typename Dimension::Vector>&
 CRKSPHHydroBase<Dimension>::
+massDensityGradient() const {
+  return mMassDensityGradient;
+}
+
+template<typename Dimension>
+inline
+const FieldSpace::FieldList<Dimension, typename Dimension::Vector>&
+CRKSPHHydroBase<Dimension>::
 XSPHDeltaV() const {
   return mXSPHDeltaV;
 }
@@ -428,6 +436,14 @@ const FieldSpace::FieldList<Dimension, std::vector<typename Dimension::Vector> >
 CRKSPHHydroBase<Dimension>::
 pairAccelerations() const {
   return mPairAccelerations;
+}
+
+template<typename Dimension>
+inline
+const FieldSpace::FieldList<Dimension, typename Dimension::Vector>&
+CRKSPHHydroBase<Dimension>::
+deltaCentroid() const {
+  return mDeltaCentroid;
 }
 
 template<typename Dimension>

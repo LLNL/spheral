@@ -146,10 +146,13 @@ self.generateSolidCRKSPHHydroBaseBindings(self.SolidCRKSPHHydroBase%(dim)id, %(d
         self.space.add_function("computeVoronoiVolume", None,
                                 [constrefparam(vectorfieldlist, "position"),
                                  constrefparam(symtensorfieldlist, "H"),
+                                 constrefparam(scalarfieldlist, "rho"),
+                                 constrefparam(vectorfieldlist, "gradRho"),
                                  constrefparam(connectivitymap, "connectivityMap"),
                                  param("double", "kernelExtent"),
                                  refparam(intfieldlist, "surfacePoint"),
-                                 refparam(scalarfieldlist, "vol")],
+                                 refparam(scalarfieldlist, "vol"),
+                                 refparam(vectorfieldlist, "deltaCentroid")],
                                 docstring = "Compute the volume per point using a Voronoi tessellation.")
 
         self.space.add_function("computeCRKSPHSumVolume", None,
@@ -492,6 +495,7 @@ self.generateSolidCRKSPHHydroBaseBindings(self.SolidCRKSPHHydroBase%(dim)id, %(d
         const_ref_return_value(x, me, "%s::weightedNeighborSum" % me, scalarfieldlist, [], "weightedNeighborSum")
         const_ref_return_value(x, me, "%s::massSecondMoment" % me, symtensorfieldlist, [], "massSecondMoment")
         const_ref_return_value(x, me, "%s::volume" % me, scalarfieldlist, [], "volume")
+        const_ref_return_value(x, me, "%s::massDensityGradient" % me, vectorfieldlist, [], "massDensityGradient")
         const_ref_return_value(x, me, "%s::XSPHDeltaV" % me, vectorfieldlist, [], "XSPHDeltaV")
         const_ref_return_value(x, me, "%s::DxDt" % me, vectorfieldlist, [], "DxDt")
         const_ref_return_value(x, me, "%s::DvDt" % me, vectorfieldlist, [], "DvDt")
@@ -501,6 +505,7 @@ self.generateSolidCRKSPHHydroBaseBindings(self.SolidCRKSPHHydroBase%(dim)id, %(d
         const_ref_return_value(x, me, "%s::DvDx" % me, tensorfieldlist, [], "DvDx")
         const_ref_return_value(x, me, "%s::internalDvDx" % me, tensorfieldlist, [], "internalDvDx")
         const_ref_return_value(x, me, "%s::pairAccelerations" % me, vectorvectorfieldlist, [], "pairAccelerations")
+        const_ref_return_value(x, me, "%s::deltaCentroid" % me, vectorfieldlist, [], "deltaCentroid")
 
         const_ref_return_value(x, me, "%s::A" % me, scalarfieldlist, [], "A")
         const_ref_return_value(x, me, "%s::B" % me, vectorfieldlist, [], "B")

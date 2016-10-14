@@ -40,10 +40,13 @@ bool compareR3Dplanes(const r3d_plane& lhs, const r3d_plane& rhs) {
 void
 computeVoronoiVolume(const FieldList<Dim<3>, Dim<3>::Vector>& position,
                      const FieldList<Dim<3>, Dim<3>::SymTensor>& H,
+                     const FieldSpace::FieldList<Dim<3>, Dim<3>::Scalar>& rho,
+                     const FieldSpace::FieldList<Dim<3>, Dim<3>::Vector>& gradRho,
                      const ConnectivityMap<Dim<3> >& connectivityMap,
                      const Dim<3>::Scalar kernelExtent,
                      FieldList<Dim<3>, int>& surfacePoint,
-                     FieldList<Dim<3>, Dim<3>::Scalar>& vol) {
+                     FieldList<Dim<3>, Dim<3>::Scalar>& vol,
+                     FieldSpace::FieldList<Dim<3>, Dim<3>::Vector>& deltaCentroid) {
 
   const unsigned numGens = position.numNodes();
   const unsigned numNodeLists = position.size();
@@ -118,7 +121,7 @@ computeVoronoiVolume(const FieldList<Dim<3>, Dim<3>::Vector>& position,
     CHECK(r3d_is_good(&initialCell));
 
     // Scale the icosahedron to have the initial volume of a sphere of radius kernelExtent.
-    r3d_real voli[1];
+    r3d_real voli[1], firstmom[4];
     r3d_reduce(&initialCell, voli, 0);
     CHECK(voli[0] > 0.0);
     const double volscale = Dim<3>::rootnu(4.0/3.0*M_PI/voli[0])*kernelExtent;
@@ -137,9 +140,13 @@ computeVoronoiVolume(const FieldList<Dim<3>, Dim<3>::Vector>& position,
       for (unsigned i = 0; i != n; ++i) {
         const Vector& ri = position(nodeListi, i);
         const SymTensor& Hi = H(nodeListi, i);
+        const Scalar rhoi = rho(nodeListi, i);
+        const Vector& gradRhoi = gradRho(nodeListi, i);
         const Scalar Hdeti = Hi.Determinant();
 
         // Grab this points neighbors and build all the planes.
+        // We simultaneously build a very conservative limiter for the density gradient.
+        Scalar phi = 1.0;
         vector<r3d_plane> pairPlanes;
         const vector<vector<int> >& fullConnectivity = connectivityMap.connectivityForNode(nodeListi, i);
         for (unsigned nodeListj = 0; nodeListj != numNodeLists; ++nodeListj) {
@@ -148,9 +155,11 @@ computeVoronoiVolume(const FieldList<Dim<3>, Dim<3>::Vector>& position,
                ++jItr) {
             const unsigned j = *jItr;
             const Vector& rj = position(nodeListj, j);
+            const Scalar rhoj = rho(nodeListj, j);
 
             // Build the half plane.
-            const Vector etai = Hi*(ri - rj);
+            const Vector rij = ri - rj;
+            const Vector etai = Hi*rij;
             CHECK(etai.magnitude2() > 1.0e-5);
             const Vector nhat = etai.unitVector();
             pairPlanes.push_back(r3d_plane());
@@ -158,6 +167,9 @@ computeVoronoiVolume(const FieldList<Dim<3>, Dim<3>::Vector>& position,
             pairPlanes.back().n.y = nhat.y();
             pairPlanes.back().n.z = nhat.z();
             pairPlanes.back().d = 0.5*etai.magnitude();
+
+            // Check the density gradient limiter.
+            phi = min(phi, max(0.0, rij.dot(gradRhoi)*safeInv(rhoi - rhoj)));
           }
         }
         std::sort(pairPlanes.begin(), pairPlanes.end(), compareR3Dplanes);
@@ -194,6 +206,18 @@ computeVoronoiVolume(const FieldList<Dim<3>, Dim<3>::Vector>& position,
           r3d_reduce(&celli, voli, 0);
           CHECK(voli[0] > 0.0);
           vol(nodeListi, i) = voli[0]/Hdeti;
+
+          // Also get the centroid.
+          // Note we have to convert the gradient to eta space, since that's what the polygon is defined in.
+          const SymTensor Hinv = Hi.Inverse();
+          const Vector gradRho_eta = phi*(Hinv*gradRhoi);
+          firstmom[0] = rhoi;
+          firstmom[1] = gradRho_eta.x();
+          firstmom[2] = gradRho_eta.y();
+          firstmom[3] = gradRho_eta.z();
+          r3d_reduce(&celli, firstmom, 1);
+          const Scalar m0 = voli[0]*rhoi;
+          deltaCentroid(nodeListi, i) = Hinv*Vector(firstmom[1], firstmom[2], firstmom[3])/m0;
 
         } else {
 
