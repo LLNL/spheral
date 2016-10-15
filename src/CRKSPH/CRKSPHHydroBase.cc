@@ -1239,13 +1239,17 @@ finalize(const typename Dimension::Scalar time,
     const FieldList<Dimension, Scalar> soundSpeed = state.fields(HydroFieldNames::soundSpeed, 0.0);
     const FieldList<Dimension, Vector> velocity = state.fields(HydroFieldNames::velocity, Vector::zero);
     const unsigned numNodeLists = position.numFields();
-    Scalar maxmag2, dcmag2;
+    Scalar maxmag2, dcmag2, fi, mi, rhoi, Vi;
     for (unsigned nodeListi = 0; nodeListi != numNodeLists; ++nodeListi) {
       const unsigned n = position[nodeListi]->numInternalElements();
       for (unsigned i = 0; i != n; ++i) {
         dcmag2 = mDeltaCentroid(nodeListi, i).magnitude2();
         maxmag2 = max(FastMath::square(soundSpeed(nodeListi, i)), velocity(nodeListi, i).magnitude2())*dt*dt;
-        position(nodeListi, i) += mfilter*sqrt(min(maxmag2, dcmag2)*safeInvVar(dcmag2))*mDeltaCentroid(nodeListi, i);
+        mi = mass(nodeListi, i);
+        rhoi = massDensity(nodeListi, i);
+        Vi = vol(nodeListi, i);
+        fi = mfilter*max(0.0, min(1.0, max(rhoi*Vi/mi, mi/(Vi*rhoi)) - 1.0));
+        position(nodeListi, i) += fi*sqrt(min(maxmag2, dcmag2)*safeInvVar(dcmag2))*mDeltaCentroid(nodeListi, i);
       }
     }
 

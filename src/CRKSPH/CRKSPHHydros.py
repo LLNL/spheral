@@ -16,7 +16,7 @@ class %(classname)s%(dim)s(CRKSPHHydroBase%(dim)s):
                  Q,
                  W,
                  WPi = None,
-                 filter = 0.0,
+                 filter = 1.0,
                  cfl = 0.25,
                  useVelocityMagnitudeForDt = False,
                  compatibleEnergyEvolution = True,
