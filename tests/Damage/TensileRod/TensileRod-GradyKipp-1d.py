@@ -127,6 +127,7 @@ commandLine(length = 3.0,
             nTensile = 4,
             hybridMassDensityThreshold = 0.01,
             filter = 0.0,
+            volumeType = CRKSumVolume,
 
             IntegratorConstructor = CheapSynchronousRK2Integrator,
             goalTime = 50.0,
@@ -439,6 +440,7 @@ if CRKSPH:
                              compatibleEnergyEvolution = compatibleEnergy,
                              XSPH = XSPH,
                              densityUpdate = densityUpdate,
+                             volumeType = volumeType,
                              HUpdate = HUpdate)
 else:
     hydro = HydroConstructor(W = WT,
