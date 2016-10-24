@@ -47,7 +47,8 @@ PYTHONTARGETS = \
 	$(srcdir)/GenerateRatioSlab2d.py \
 	$(srcdir)/GenerateRatioSphere.py \
 	$(srcdir)/GenerateNodeProfile.py \
-	$(srcdir)/CentroidalGenerator2d.py
+	$(srcdir)/CentroidalGenerator2d.py \
+	$(srcdir)/centroidalRelaxNodes.py
 
 #-------------------------------------------------------------------------------
 include $(BUILDTOP)/helpers/makefile_master
