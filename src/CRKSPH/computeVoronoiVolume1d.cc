@@ -89,9 +89,10 @@ computeVoronoiVolume(const FieldSpace::FieldList<Dim<1>, Dim<1>::Vector>& positi
       gradRhoi = gradRho(nodeListi, i).x();
 
       if (itr == coords.begin()) {
+        dx1 = position(nodeListi, i).x() - xbound0;
         H1 = Hi;
         rho1 = rhoi;
-        dx1 = position(nodeListi, i).x() - xbound0;
+        rho1 = rhoi - gradRhoi*dx1;
       } else {
         nodeListj1 = (itr-1)->second.first;
         j1 = (itr-1)->second.second;
@@ -101,9 +102,9 @@ computeVoronoiVolume(const FieldSpace::FieldList<Dim<1>, Dim<1>::Vector>& positi
       }
 
       if (itr == coords.end()-1) {
-        H2 = Hi;
-        rho2 = rhoi;
         dx2 = xbound1 - position(nodeListi, i).x();
+        H2 = Hi;
+        rho2 = rhoi + gradRhoi*dx2;
       } else {
         nodeListj2 = (itr+1)->second.first;
         j2 = (itr+1)->second.second;
