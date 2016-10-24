@@ -122,13 +122,13 @@ computeVoronoiVolume(const FieldSpace::FieldList<Dim<1>, Dim<1>::Vector>& positi
         CHECK(phi >= 0.0 and phi <= 1.0);
 
         const Scalar b = phi*gradRhoi;
-        const Scalar rho0 = rhoi - 0.5*b*dx1;
-        const Scalar dx = 0.5*(dx1 + dx2);
+        const Scalar rho0 = rhoi - b*dx1;
+        const Scalar dx = dx1 + dx2;
         if (std::abs(b*dx) > 0.05*rho0) {
-          deltaMedian(nodeListi, i).x((sqrt(2.0*rho0*rho0 + b*b*dx*dx + 2.0*b*rho0*dx)/sqrt(2.0) - rho0)*safeInvVar(b) - 0.5*dx1);
+          deltaMedian(nodeListi, i).x((sqrt(2.0*rho0*rho0 + b*b*dx*dx + 2.0*b*rho0*dx)/sqrt(2.0) - rho0)*safeInvVar(b) - dx1);
         } else {
-          const Scalar m1 = 0.5*dx1*(rhoi - phi*gradRhoi*0.25*dx1),
-            m2 = 0.5*dx2*(rhoi + phi*gradRhoi*0.25*dx2);
+          m1 = 0.5*dx1*(rhoi - phi*gradRhoi*0.25*dx1),
+          m2 = 0.5*dx2*(rhoi + phi*gradRhoi*0.25*dx2);
           deltaMedian(nodeListi, i).x(0.5*(m2*dx2 - m1*dx1)/(m1 + m2));
         }
 
