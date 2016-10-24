@@ -44,9 +44,10 @@ computeVoronoiVolume(const FieldList<Dim<3>, Dim<3>::Vector>& position,
                      const FieldSpace::FieldList<Dim<3>, Dim<3>::Vector>& gradRho,
                      const ConnectivityMap<Dim<3> >& connectivityMap,
                      const Dim<3>::Scalar kernelExtent,
+                     const std::vector<Dim<3>::FacetedVolume>& boundaries,
                      FieldList<Dim<3>, int>& surfacePoint,
                      FieldList<Dim<3>, Dim<3>::Scalar>& vol,
-                     FieldSpace::FieldList<Dim<3>, Dim<3>::Vector>& deltaCentroid) {
+                     FieldSpace::FieldList<Dim<3>, Dim<3>::Vector>& deltaMedian) {
 
   const unsigned numGens = position.numNodes();
   const unsigned numNodeLists = position.size();
@@ -217,7 +218,7 @@ computeVoronoiVolume(const FieldList<Dim<3>, Dim<3>::Vector>& position,
           firstmom[3] = gradRho_eta.z();
           r3d_reduce(&celli, firstmom, 1);
           const Scalar m0 = voli[0]*rhoi;
-          deltaCentroid(nodeListi, i) = Hinv*Vector(firstmom[1], firstmom[2], firstmom[3])/m0;
+          deltaMedian(nodeListi, i) = Hinv*Vector(firstmom[1], firstmom[2], firstmom[3])/m0;
 
         } else {
 

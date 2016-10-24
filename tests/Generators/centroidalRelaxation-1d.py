@@ -125,16 +125,15 @@ xPlane1 = Plane(Vector(x1), Vector(-1.0))
 xbc0 = ReflectingBoundary(xPlane0)
 xbc1 = ReflectingBoundary(xPlane1)
 
-boundaries = [xbc0, xbc1]
+boundaries = [] # xbc0, xbc1]
 
 #-------------------------------------------------------------------------------
 # Call the centroidal relaxer.
 #-------------------------------------------------------------------------------
-centroidalRelaxNodes(nodeLists = [nodes],
+centroidalRelaxNodes(nodeListsAndBounds = [(nodes, Box1d(Vector(0.5*(x0 + x1)), 0.5*(x1 - x0)))],
                      W = WT,
                      rho = rhofunc,
-                     #gradrho = gradrhofunc,
-                     boundaries = boundaries,
+                     gradrho = gradrhofunc,
                      maxIterations = iterations,
                      fracTol = tol)
 
