@@ -132,6 +132,7 @@ def centroidalRelaxNodes(nodeListsAndBounds,
             # Compute the new volumes and centroids (note this uses the old rho gradient, not quite right,
             # but expedient/efficient).
             sph.computeVoronoiVolume(pos, H, rho, gradRho, cm, W.kernelExtent, boundingVolumes_vec, surfacePoint, vol, deltaCentroid)
+            print list(surfacePoint[0].internalValues())
             
             # Apply boundary conditions.
             for bc in boundaries:

@@ -63,9 +63,9 @@ computeVoronoiVolume(const FieldSpace::FieldList<Dim<1>, Dim<1>::Vector>& positi
 
   // Prepare some scratch variables.
   unsigned nodeListj1, nodeListj2, j1, j2;
-  Scalar Hi, H1, H2, rhoi, rho1, rho2, gradRhoi, dx1, dx2, etamin, phi, b, rho0, dx, m1, m2,
-    xbound0 = std::numeric_limits<Scalar>::min(),
-    xbound1 = std::numeric_limits<Scalar>::max();
+  Scalar Hi, H1, H2, rhoi, rho1, rho2, gradRhoi, dx1, dx2, etamax, phi, b, rho0, dx, m1, m2,
+    xbound0 = -std::numeric_limits<Scalar>::max(),
+    xbound1 =  std::numeric_limits<Scalar>::max();
 
   // Now walk our sorted point and set the volumes and surface flags.
   surfacePoint = 0;
@@ -91,8 +91,7 @@ computeVoronoiVolume(const FieldSpace::FieldList<Dim<1>, Dim<1>::Vector>& positi
       if (itr == coords.begin()) {
         dx1 = position(nodeListi, i).x() - xbound0;
         H1 = Hi;
-        rho1 = rhoi;
-        rho1 = rhoi - gradRhoi*dx1;
+        rho1 = rhoi; // - gradRhoi*dx1;
       } else {
         nodeListj1 = (itr-1)->second.first;
         j1 = (itr-1)->second.second;
@@ -104,7 +103,7 @@ computeVoronoiVolume(const FieldSpace::FieldList<Dim<1>, Dim<1>::Vector>& positi
       if (itr == coords.end()-1) {
         dx2 = xbound1 - position(nodeListi, i).x();
         H2 = Hi;
-        rho2 = rhoi + gradRhoi*dx2;
+        rho2 = rhoi; //  + gradRhoi*dx2;
       } else {
         nodeListj2 = (itr+1)->second.first;
         j2 = (itr+1)->second.second;
@@ -114,8 +113,8 @@ computeVoronoiVolume(const FieldSpace::FieldList<Dim<1>, Dim<1>::Vector>& positi
       }
 
       CHECK(dx1 >= 0.0 and dx2 >= 0.0);
-      etamin = min(Hi, min(H1, H2))*min(dx1, dx2);
-      if (etamin < rin) {
+      etamax = max(Hi, max(H1, H2))*max(dx1, dx2);
+      if (etamax < rin) {
         vol(nodeListi, i) = 0.5*(dx1 + dx2);
         const Scalar phi = min(1.0, min(max(0.0, dx1*safeInvVar(rhoi - rho1)),
                                         max(0.0, dx2*safeInvVar(rho2 - rhoi))));
