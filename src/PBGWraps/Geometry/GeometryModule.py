@@ -35,6 +35,7 @@ self.FourthRankTensor%(dim)s = addObject(Spheral, "FourthRankTensor%(dim)s")
 self.FifthRankTensor%(dim)s = addObject(Spheral, "FifthRankTensor%(dim)s")
 self.EigenStruct%(dim)s = addObject(Spheral, "EigenStruct%(dim)s")
 self.Plane%(dim)s = addObject(Spheral, "Plane%(dim)s")
+self.vector_of_FacetedVolume%(dim)s = addObject(mod, "vector_of_FacetedVolume%(dim)s", allow_subclassing=True)
 """ % {"dim" : dim})
 
         self.Geom3Vector = addObject(Spheral, "Geom3Vector")
@@ -138,6 +139,10 @@ self.Plane%(dim)s = addObject(Spheral, "Plane%(dim)s")
 
         generateStdVectorBindings(self.vector_of_Facet2d, "Spheral::Facet2d", "vector_of_Facet2d", indexAsPointer=True)
         generateStdVectorBindings(self.vector_of_Facet3d, "Spheral::Facet3d", "vector_of_Facet3d", indexAsPointer=True)
+
+        generateStdVectorBindings(self.vector_of_FacetedVolume1d, "Spheral::Box1d", "vector_of_FacetedVolume1d", indexAsPointer=True)
+        generateStdVectorBindings(self.vector_of_FacetedVolume2d, "Spheral::Polygon", "vector_of_FacetedVolume2d", indexAsPointer=True)
+        generateStdVectorBindings(self.vector_of_FacetedVolume3d, "Spheral::Polyhedron", "vector_of_FacetedVolume3d", indexAsPointer=True)
 
         # Add the free functions.
         for dim in self.dims:

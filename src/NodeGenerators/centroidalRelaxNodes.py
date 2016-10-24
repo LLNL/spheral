@@ -6,7 +6,7 @@ import Spheral
 #-------------------------------------------------------------------------------
 # Centroidally (in mass) relax points allowing a linear density gradient.
 #-------------------------------------------------------------------------------
-def centroidalRelaxNodes(nodeLists,
+def centroidalRelaxNodes(nodeListsAndBounds,
                          W,
                          rho,
                          gradrho = None,
@@ -35,6 +35,14 @@ def centroidalRelaxNodes(nodeLists,
             else:
                 gradrhofunc = gradrho
 
+        # Split out the NodeLists and bounding volumes (if available), depending on what was passed.
+        if type(nodeListsAndBounds[0]) is tuple:
+            nodeLists = [x[0] for x in nodeListsAndBounds]
+            bounds = [x[1] for x in nodeListsAndBounds]
+        else:
+            nodeLists = nodeListsAndBounds
+            bounds = []
+
         # Decide on our dimensionality and import the appropriate aliases.
         assert (isinstance(nodeLists[0], Spheral.NodeList1d) or
                 isinstance(nodeLists[0], Spheral.NodeList2d) or
@@ -46,7 +54,7 @@ def centroidalRelaxNodes(nodeLists,
             import Spheral2d as sph
             ndim = 2
         else:
-            import Spehral3d as sph
+            import Spheral3d as sph
             ndim = 3
 
         # Build a local DataBase.
@@ -92,6 +100,11 @@ def centroidalRelaxNodes(nodeLists,
         for bc in boundaries:
             bound_vec.append(bc)
 
+        # Same thing for the bounding volumes, if available
+        boundingVolumes_vec = sph.vector_of_FacetedVolume()
+        for b in bounds:
+            boundingVolumes_vec.append(b)
+
         # Iterate until we converge or max out.
         iter = 0
         maxdelta = 2.0*fracTol
@@ -118,7 +131,7 @@ def centroidalRelaxNodes(nodeLists,
 
             # Compute the new volumes and centroids (note this uses the old rho gradient, not quite right,
             # but expedient/efficient).
-            sph.computeVoronoiVolume(pos, H, rho, gradRho, cm, W.kernelExtent, surfacePoint, vol, deltaCentroid)
+            sph.computeVoronoiVolume(pos, H, rho, gradRho, cm, W.kernelExtent, boundingVolumes_vec, surfacePoint, vol, deltaCentroid)
             
             # Apply boundary conditions.
             for bc in boundaries:

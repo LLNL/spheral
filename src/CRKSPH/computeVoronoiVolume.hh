@@ -24,9 +24,10 @@ namespace Spheral {
                          const FieldSpace::FieldList<Dim<1>, Dim<1>::Vector>& gradRho,
                          const NeighborSpace::ConnectivityMap<Dim<1> >& connectivityMap,
                          const Dim<1>::Scalar kernelExtent,
+                         const std::vector<Dim<1>::FacetedVolume>& boundaries,
                          FieldSpace::FieldList<Dim<1>, int>& surfacePoint,
                          FieldSpace::FieldList<Dim<1>, Dim<1>::Scalar>& vol,
-                         FieldSpace::FieldList<Dim<1>, Dim<1>::Vector>& deltaCentroid);
+                         FieldSpace::FieldList<Dim<1>, Dim<1>::Vector>& deltaMedian);
 #endif
 
 #ifdef SPHERAL2D
@@ -38,9 +39,10 @@ namespace Spheral {
                          const FieldSpace::FieldList<Dim<2>, Dim<2>::Vector>& gradRho,
                          const NeighborSpace::ConnectivityMap<Dim<2> >& connectivityMap,
                          const Dim<2>::Scalar kernelExtent,
+                         const std::vector<Dim<2>::FacetedVolume>& boundaries,
                          FieldSpace::FieldList<Dim<2>, int>& surfacePoint,
                          FieldSpace::FieldList<Dim<2>, Dim<2>::Scalar>& vol,
-                         FieldSpace::FieldList<Dim<2>, Dim<2>::Vector>& deltaCentroid);
+                         FieldSpace::FieldList<Dim<2>, Dim<2>::Vector>& deltaMedian);
 #endif
 
 #ifdef SPHERAL3D
@@ -52,9 +54,10 @@ namespace Spheral {
                          const FieldSpace::FieldList<Dim<3>, Dim<3>::Vector>& gradRho,
                          const NeighborSpace::ConnectivityMap<Dim<3> >& connectivityMap,
                          const Dim<3>::Scalar kernelExtent,
+                         const std::vector<Dim<3>::FacetedVolume>& boundaries,
                          FieldSpace::FieldList<Dim<3>, int>& surfacePoint,
                          FieldSpace::FieldList<Dim<3>, Dim<3>::Scalar>& vol,
-                         FieldSpace::FieldList<Dim<3>, Dim<3>::Vector>& deltaCentroid);
+                         FieldSpace::FieldList<Dim<3>, Dim<3>::Vector>& deltaMedian);
 #endif
 
   }
