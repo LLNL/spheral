@@ -1,9 +1,11 @@
-import os, shutil
-from Spheral1d import *
+import os, shutil, mpi
+from Spheral2d import *
 from SpheralTestUtilities import *
 from centroidalRelaxNodes import *
+from GenerateNodeDistribution2d import *
+from siloPointmeshDump import *
 
-title("1-D test of centroidal relaxation.")
+title("2-D test of centroidal relaxation.")
 
 #-------------------------------------------------------------------------------
 # Generic problem parameters
@@ -14,15 +16,18 @@ commandLine(KernelConstructor = NBSplineKernel,
             hmin = 1e-5,
             hmax = 1.0,
 
-            # The initial density function coeffients:  rho(x) = a + b*x + c*x^2
+            # The initial density function coeffients:  rho(x) = a + bx*x + by*y
             a = 1.0,
-            b = 0.0,
-            c = 0.0,
+            bx = 0.0,
+            by = 0.0,
 
             # Initial geometry
-            nx = 100,
+            nx = 50,
+            ny = 50,
             x0 = 0.0,
             x1 = 1.0,
+            y0 = 0.0,
+            y1 = 1.0,
             ranfrac = 0.5,
             seed = 14892042,
 
@@ -35,21 +40,17 @@ commandLine(KernelConstructor = NBSplineKernel,
             tol = 1.0e-3,
 
             graphics = True,
+            baseName = "centroidal_relaxation_2d",
             )
 
 #-------------------------------------------------------------------------------
 # Our density and gradient methods.
 #-------------------------------------------------------------------------------
 def rhofunc(posi):
-   if isinstance(posi, Vector):
-      xi = posi.x
-   else:
-      xi = posi
-   return a + b*xi + c*xi*xi
+   return a + bx*posi.x + by * posi.y
 
 def gradrhofunc(posi):
-   xi = posi.x
-   return Vector(b + 2.0*c*xi)
+   return Vector(bx, by)
 
 #-------------------------------------------------------------------------------
 # Create a random number generator.
@@ -77,10 +78,10 @@ output("WT")
 # Make the NodeList.
 #-------------------------------------------------------------------------------
 nodes = makeFluidNodeList("nodes", eos, 
-                           hmin = hmin,
-                           hmax = hmax,
-                           nPerh = nPerh,
-                           kernelExtent = WT.kernelExtent)
+                          hmin = hmin,
+                          hmax = hmax,
+                          nPerh = nPerh,
+                          kernelExtent = WT.kernelExtent)
     
 output("nodes")
 output("nodes.hmin")
@@ -90,23 +91,37 @@ output("nodes.nodesPerSmoothingScale")
 #-------------------------------------------------------------------------------
 # Set the node properties.
 #-------------------------------------------------------------------------------
-from DistributeNodes import distributeNodesInRange1d
-distributeNodesInRange1d([(nodes, nx, a, (x0, x1))],
-                         nPerh = nPerh)
-output("nodes.numNodes")
+generator = GenerateNodeDistribution2d(nx, ny, rhofunc, "lattice",
+                                       xmin = (x0, y0),
+                                       xmax = (x1, y1),
+                                       nNodePerh = nPerh,
+                                       SPH = True)
+
+if mpi.procs > 1:
+    from VoronoiDistributeNodes import distributeNodes2d
+    #from PeanoHilbertDistributeNodes import distributeNodes2d
+else:
+    from DistributeNodes import distributeNodes2d
+
+distributeNodes2d((nodes, generator))
+output("mpi.reduce(nodes.numInternalNodes, mpi.MIN)")
+output("mpi.reduce(nodes.numInternalNodes, mpi.MAX)")
+output("mpi.reduce(nodes.numInternalNodes, mpi.SUM)")
 
 # Randomly jitter the node positions.
 dx = (x1 - x0)/nx
+dy = (y1 - y0)/ny
 pos = nodes.positions()
 for i in xrange(nodes.numInternalNodes):
    pos[i].x += ranfrac * dx * rangen.uniform(-1.0, 1.0)
+   pos[i].y += ranfrac * dy * rangen.uniform(-1.0, 1.0)
 
 # Initialize the mass and densities.
 m = nodes.mass()
 rho = nodes.massDensity()
 for i in xrange(nodes.numNodes):
    rho[i] = rhofunc(pos[i])
-   m[i] = rho[i]*dx
+   m[i] = rho[i]*dx*dy
 
 #-------------------------------------------------------------------------------
 # Construct a DataBase to hold our node list
@@ -120,17 +135,25 @@ output("db.numFluidNodeLists")
 #-------------------------------------------------------------------------------
 # Create boundary conditions.
 #-------------------------------------------------------------------------------
-xPlane0 = Plane(Vector(x0), Vector(1.0))
-xPlane1 = Plane(Vector(x1), Vector(-1.0))
+xPlane0 = Plane(Vector(x0, y0), Vector( 1.0,  0.0))
+xPlane1 = Plane(Vector(x1, y0), Vector(-1.0,  0.0))
+yPlane0 = Plane(Vector(x0, y0), Vector( 0.0,  1.0))
+yPlane1 = Plane(Vector(x1, y1), Vector( 0.0, -1.0))
 xbc0 = ReflectingBoundary(xPlane0)
 xbc1 = ReflectingBoundary(xPlane1)
+ybc0 = ReflectingBoundary(yPlane0)
+ybc1 = ReflectingBoundary(yPlane1)
 
-boundaries = [] # [xbc0, xbc1]
+boundaries = [] # [xbc0, xbc1, ybc0, ybc1]
 
 #-------------------------------------------------------------------------------
 # Call the centroidal relaxer.
 #-------------------------------------------------------------------------------
-vol, surfacePoint = centroidalRelaxNodes(nodeListsAndBounds = [(nodes, Box1d(Vector(0.5*(x0 + x1)), 0.5*(x1 - x0)))],
+bcpoints = vector_of_Vector()
+for p in [Vector(x0, y0), Vector(x1, y0), Vector(x1, y1), Vector(x0, y1)]:
+   bcpoints.append(p)
+boundary = Polygon(bcpoints)
+vol, surfacePoint = centroidalRelaxNodes(nodeListsAndBounds = [(nodes, boundary)],
                                          W = WT,
                                          rho = rhofunc,
                                          gradrho = gradrhofunc,
@@ -138,14 +161,18 @@ vol, surfacePoint = centroidalRelaxNodes(nodeListsAndBounds = [(nodes, Box1d(Vec
                                          boundaries = boundaries,
                                          fracTol = tol)
 
+# Drop a silo file for viz.
+siloPointmeshDump(baseName = baseName,
+                  fields = [nodes.mass(), nodes.massDensity()],
+                  fieldLists = [vol, surfacePoint])
+
 #-------------------------------------------------------------------------------
 # Plot the final state.
 #-------------------------------------------------------------------------------
 if graphics:
     from SpheralGnuPlotUtilities import *
 
-    xprof = mpi.allreduce([x.x for x in pos.internalValues()], mpi.SUM)
-    xprof.sort()
+    rPlot = plotNodePositions2d(db, colorNodeLists=0, colorDomains=1)
 
     # rho
     rhoPlot = plotFieldList(db.fluidMassDensity,
@@ -153,11 +180,6 @@ if graphics:
                             plotStyle = "points",
                             colorNodeLists = False,
                             plotGhosts = False)
-    rhoAns = Gnuplot.Data(xprof, [rhofunc(xi) for xi in xprof],
-                            with_ = "lines",
-                            title = "Solution",
-                            inline = True)
-    rhoPlot.replot(rhoAns)
 
     # mass
     massPlot = plotFieldList(db.fluidMass,
@@ -166,11 +188,3 @@ if graphics:
                              colorNodeLists = False,
                              plotGhosts = False)
 
-    # delta points
-    deltaData = Gnuplot.Data([0.5*(xprof[i] + xprof[i+1]) for i in xrange(len(xprof)-1)],
-                             [xprof[i+1] - xprof[i] for i in xrange(len(xprof)-1)],
-                             with_ = "linespoints",
-                             title = "Delta spacing",
-                             inline = True)
-    deltaPlot = generateNewGnuPlot()
-    deltaPlot.replot(deltaData)
