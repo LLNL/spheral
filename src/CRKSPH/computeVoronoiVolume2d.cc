@@ -6,6 +6,7 @@ extern "C" {
 }
 
 #include <algorithm>
+#include <utility>
 
 #include "computeVoronoiVolume.hh"
 #include "Field/Field.hh"
@@ -13,6 +14,7 @@ extern "C" {
 #include "NodeList/NodeList.hh"
 #include "Neighbor/ConnectivityMap.hh"
 #include "Utilities/allReduce.hh"
+#include "Utilities/newtonRaphson.hh"
 
 namespace Spheral {
 namespace CRKSPHSpace {
@@ -35,6 +37,25 @@ namespace {  // anonymous namespace
 bool compareR2Dplanes(const r2d_plane& lhs, const r2d_plane& rhs) {
   return lhs.d < rhs.d;
 }
+
+//------------------------------------------------------------------------------
+// Functor to return the mass and its derivative for use with our
+// Newton-Raphson iteration.
+// Note we assume here we're working in a unit radius circle (centered on the
+// origin) and the gradient is aligned with and increasing in the x-direction.
+//------------------------------------------------------------------------------
+struct CircleMassAndGradient {
+  double rho0, b;
+  CircleMassAndGradient(const double rho0_in,
+                        const double b_in): rho0(rho0_in),
+                                            b(b_in) {}
+  std::pair<double, double> operator()(const double x) const {
+    CHECK(std::abs(x) <= 1.0);
+    return std::make_pair(0.5*M_PI*rho0 + sqrt(1.0 - x*x)/3.0*(3.0*rho0*x + 2.0*b*(x*x - 1.0)) - rho0*acos(x),
+                          2.0*(rho0 + b*x)*sqrt(1.0 - x*x));
+  }
+};
+
 }           // anonymous namespace
 
 //------------------------------------------------------------------------------
@@ -68,7 +89,7 @@ computeVoronoiVolume(const FieldList<Dim<2>, Dim<2>::Vector>& position,
 
     // Build an approximation of the starting kernel shape.
     const unsigned nverts = 18;
-    const Scalar rin2 = 0.25*kernelExtent*kernelExtent * FastMath::square(cos(M_PI/nverts));
+    const Scalar rin = 0.5*kernelExtent;
     const double dtheta = 2.0*M_PI/nverts;
     r2d_rvec2 verts[nverts];
     for (unsigned j = 0; j != nverts; ++j) {
@@ -129,30 +150,45 @@ computeVoronoiVolume(const FieldList<Dim<2>, Dim<2>::Vector>& position,
         r2d_clip(&celli, &pairPlanes[0], pairPlanes.size());
 
         // Are there any of the original volume vertices left?
+        // While we're at it find the average radius (in eta space) of the polygon.
         bool interior = true;
-        {
-          unsigned k = 0;
-          do {
-            interior = (FastMath::square(celli.verts[k].pos.x) + FastMath::square(celli.verts[k].pos.y) < rin2);
-          } while (interior and ++k != celli.nverts);
+        double Rpoly = 0.0;
+        for (unsigned k = 0; k != celli.nverts; ++k) {
+          const double Ri = sqrt(FastMath::square(celli.verts[k].pos.x) + FastMath::square(celli.verts[k].pos.y));
+          Rpoly += Ri;
+          interior = interior and (Ri < rin);
         }
+        Rpoly /= celli.nverts;
+
         if (interior) {
 
           // This is an interior point -- extract the area.
           r2d_reduce(&celli, voli, 0);
           vol(nodeListi, i) = voli[0]/Hdeti;
 
-          // Also get the centroid.
-          // Note we have to convert the gradient to eta space, since that's what the polygon is defined in.
+          // Convert the gradient to eta space.
           const SymTensor Hinv = Hi.Inverse();
           const Vector gradRho_eta = phi*(Hinv*gradRhoi);
-          firstmom[0] = rhoi;
-          firstmom[1] = gradRho_eta.x();
-          firstmom[2] = gradRho_eta.y();
-          r2d_reduce(&celli, firstmom, 1);
-          const Scalar m0 = voli[0]*rhoi;
-          deltaMedian(nodeListi, i) = Hinv*Vector(firstmom[1], firstmom[2])/m0;
 
+          // If there is a gradient signal compute the median.
+          // Note we convert the gradient here for eta space *and* a unit circle.
+          const Scalar b = phi*gradRho_eta.magnitude() * Rpoly;
+          if (std::abs(b) >= 0.025*rhoi) {
+
+            const Vector gradUnit = gradRho_eta.unitVector();
+            const double tol = 1.0e-5*M_PI*rhoi;
+            deltaMedian(nodeListi, i) = Hinv*gradUnit*newtonRaphson(CircleMassAndGradient(rhoi, b), 0.0, 1.0, tol, tol);
+
+          } else {
+            // Otherwise fall back to the centroid.
+            firstmom[0] = rhoi;
+            firstmom[1] = gradRho_eta.x();
+            firstmom[2] = gradRho_eta.y();
+            r2d_reduce(&celli, firstmom, 1);
+            const Scalar m0 = voli[0]*rhoi;
+            deltaMedian(nodeListi, i) = Hinv*Vector(firstmom[1], firstmom[2])/m0;
+          }
+          
         } else {
 
           // This point touches a free boundary, so flag it.
