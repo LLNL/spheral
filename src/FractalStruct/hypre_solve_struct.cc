@@ -12,7 +12,7 @@ namespace FractalSpace
     int spacing=Misc::pow(2,mem.p_fractal->get_level_max()-level);
     int FractalRank=mem.p_mess->FractalRank;
     int HypreRank=mem.p_mess->HypreRank;
-    int HypreNodes=mem.p_mess->HypreNodes;
+    // int HypreNodes=mem.p_mess->HypreNodes;
     HYPRE_StructGrid     grid;
     HYPRE_StructStencil  stencil;
     HYPRE_StructMatrix   Amatrix;
@@ -20,7 +20,9 @@ namespace FractalSpace
     HYPRE_StructVector   pot;
     HYPRE_StructSolver   solver;
     HYPRE_StructSolver   precond;
-    vector <int>BBox=mem.FRBBoxesLev[level];
+    vector<int>pos(3);
+    vector <int>Box=mem.FRBoxesLev[level];
+    FHT << " HYP BOX " << Box[0] << " " << Box[1] << " " << Box[2] << " " << Box[3] << " " << Box[4] << " " << Box[5] << "\n";
     double pi = 4.0*atan(1.0);
     int length=mem.p_fractal->get_grid_length();
     double g_c=4.0*pi/static_cast<double>(length*length)*pow(4.0,-level);
@@ -42,6 +44,7 @@ namespace FractalSpace
 	    lowerBOX[B].push_back(SB[ni2]/spacing);
 	    upperBOX[B].push_back(SB[ni2+1]/spacing);
 	    VOL[B]*=upperBOX[B][ni]-lowerBOX[B][ni]+1;
+	    assert(VOL[B] > 0);
 	    ni++;
 	  }
 	HYPRE_StructGridSetExtents(grid,&(*lowerBOX[B].begin()),&(*upperBOX[B].begin()));
@@ -69,14 +72,30 @@ namespace FractalSpace
 	    Point* p=*p_itr;
 	    if(p != 0)
 	      {
+		p->get_pos_point(pos);
+		bool itisout=!vector_in_box(pos,Box);
 		values.push_back(-6.0);
 		for (int j = 0; j < 6; j++)
 		  {
-		    Point* p1=p->get_point_ud(j);
+		    Point* p1=p->get_point_ud_0(j);
+		    p1->get_pos_point(pos);
+		    itisout=itisout || !vector_in_box(pos,Box);
 		    if(p1->get_inside())
 		      values.push_back(1.0);
 		    else
 		      values.push_back(0.0);
+		  }
+		if(itisout)
+		  {
+		    p->get_pos_point(pos);
+		    FHT << " POSSA " << pos[0] << " " << pos[1] << " " << pos[2] << "\n";
+		    for (int j = 0; j < 6; j++)
+		      {
+			Point* p1=p->get_point_ud_0(j);
+			p1->get_pos_point(pos);
+			if(!vector_in_box(pos,Box))
+			  FHT << " POSSB " << pos[0] << " " << pos[1] << " " << pos[2] << " " << j << "\n";
+		      }
 		  }
 	      }
 	    else
@@ -161,8 +180,8 @@ namespace FractalSpace
     double final_res_norm=-1.0;
     HYPRE_StructPCGGetNumIterations(solver,&num_iterations );
     HYPRE_StructPCGGetFinalRelativeResidualNorm( solver, &final_res_norm );
-    if(mem.p_mess->IAmAHypreNode && HypreRank == 0)
-      cerr << " SOLVED A " << _COUNTER << " " << FractalRank << " " << HypreRank << " " << num_iterations << " " << final_res_norm << "\n";
+    // if(mem.p_mess->IAmAHypreNode && HypreRank == 0)
+    FHT << " SOLVED A " << level << " " << _COUNTER << " " << FractalRank << " " << HypreRank << " " << num_iterations << " " << final_res_norm << "\n";
     HYPRE_StructPCGDestroy(solver);
     HYPRE_StructPFMGDestroy(precond);
     HYPRE_StructGridDestroy(grid);

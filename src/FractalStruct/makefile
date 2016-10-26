@@ -11,19 +11,19 @@ dir   = execs/
 MP = -qopenmp
 #
 system = intel
-fvers = 3
+fvers = 4
 hvers = 11
 #
 compiler = mpiicpc
-PREFIXF = /g/g90/jensv/cplus/fftw-3.3.3/install-intel
+PREFIXF = /g/g90/jensv/cplus/fftw-3.3.4/install-intel
 PREFIXH = /g/g90/jensv/cplus/HYPREINTEL110/hypre-2.11.0/src/hypre
 #
 ifeq ($(debug),d)
 	fopt1 = -g -pedantic -O0
 endif
 #
-ifeq ($(fvers),4)
-	PREFIXF = /g/g90/jensv/cplus/fftw-3.3.4/install-intel
+ifeq ($(fvers),3)
+	PREFIXF = /g/g90/jensv/cplus/fftw-3.3.3/install-intel
 endif
 #
 ifeq ($(hvers),9)
@@ -36,7 +36,10 @@ endif
 ifeq ($(system),ibmgnu)
 	MP = -fopenmp
 	compiler =  mpig++-4.7.2
-	PREFIXF = /g/g90/jensv/cplus/fftw-3.3.3/install-ibmgnu
+	PREFIXF = /g/g90/jensv/cplus/fftw-3.3.4/install-ibmgnu
+	ifeq ($(fvers),3)
+		PREFIXF = /g/g90/jensv/cplus/fftw-3.3.3/install-ibmgnu
+	endif
 	PREFIXH = /g/g90/jensv/cplus/HYPREIBM110/hypre-2.11.0/src/hypre
 	ifeq ($(hvers),9)
 		PREFIXH = /g/g90/jensv/cplus/hypreibmgnu/hypre-2.9.0b/src/hypre/noglobal
@@ -168,6 +171,9 @@ daughter_group_nina.o :	daughter_group_nina.cc $(classes)
 #
 dens_to_slices.o :	dens_to_slices.cc $(classes)
 	$(compile) -c dens_to_slices.cc
+#
+dump_cosmo_boxes.o :	dump_cosmo_boxes.cc $(classes)
+	$(compile) -c dump_cosmo_boxes.cc
 #
 dump_tree.o :	dump_tree.cc $(classes)
 	$(compile) -c dump_tree.cc
@@ -569,6 +575,7 @@ check_high.o \
 clean_up.o \
 cosmos.o \
 daughter_group_nina.o \
+dump_cosmo_boxes.o \
 dump_tree.o \
 equivalence_class.o \
 find_global_level_max.o \

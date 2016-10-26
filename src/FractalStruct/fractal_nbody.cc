@@ -41,9 +41,9 @@ int main(int argc, char* argv[])
   int _mulT_=4;
   if(argc >= 7)
     _mulT_=atoi(argv[6]);
-  double PADDING=-1;
+  int PADDING=-1;
   if(argc >= 8)
-    PADDING=atoi(argv[7])
+    PADDING=atoi(argv[7]);
 
   int HYPREMAXONNODE=40000;
   if(argc >= 9)
@@ -56,7 +56,7 @@ int main(int argc, char* argv[])
   if(Ranky == 0)
     {
       cout << "starting out " << argc << " " << argv[0] << " " << FRN << " " << _inteL_ << " " << GRL << " " << FR0 << " " << FR1 << " " << FR2;
-      cout << " " << _mulT_ << " " << HYPREMAXONNODE << " " << HYPREMULTIPLIER << "\n";
+      cout << " " << _mulT_ << " " << PADDING << " " << HYPREMAXONNODE << " " << HYPREMULTIPLIER << "\n";
     }
   Fractal_Memory* p_fractal_memory= new Fractal_Memory;
   p_fractal_memory->FractalNodes0=FR0;

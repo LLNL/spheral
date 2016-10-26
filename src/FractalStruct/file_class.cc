@@ -45,6 +45,7 @@ namespace FractalSpace
     fflush(PFFractalMemory);
     fflush(PFTime);
     fflush(PFPos);
+    fflush(PFBox);
     fflush(PFSurface);
   }
 }

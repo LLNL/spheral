@@ -36,6 +36,7 @@ namespace FractalSpace
   double dist1(const double& x,const double& y);
   void dump(Point& point);
   void dump_all_particles(Fractal& fractal);
+  void dump_cosmo_boxes(const int& step,Fractal& fractal);
   void dump_group(Group& group,Misc& misc);
   void dump_tree(Fractal_Memory& fractal_memory,Fractal& fractal);
   void edge_buffer_inside(vector <int>& n,vector <int>& Box,vector <int>& BBox,vector <int>& Buffer,bool& MPIrun,
