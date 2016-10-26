@@ -100,20 +100,26 @@ computeVoronoiVolume(const FieldList<Dim<2>, Dim<2>::Vector>& position,
 
     // Start out assuming all points are internal.
     surfacePoint = 0;
+    const Scalar rin = 0.5*kernelExtent;
 
     // Build an approximation of the starting kernel shape.
     const unsigned nverts = 18;
-    const Scalar rin = 0.5*kernelExtent;
     const double dtheta = 2.0*M_PI/nverts;
-    r2d_rvec2 verts[nverts];
+    vector<Vector> verts(nverts);
     for (unsigned j = 0; j != nverts; ++j) {
       const double theta = j*dtheta;
-      verts[j].x = kernelExtent*cos(theta);
-      verts[j].y = kernelExtent*sin(theta);
+      verts[j].x(kernelExtent*cos(theta));
+      verts[j].y(kernelExtent*sin(theta));
     }
-    r2d_poly initialCell;
-    r2d_init_poly(&initialCell, verts, nverts);
-    CHECK(r2d_is_good(&initialCell));
+    // r2d_rvec2 verts[nverts];
+    // for (unsigned j = 0; j != nverts; ++j) {
+    //   const double theta = j*dtheta;
+    //   verts[j].x = kernelExtent*cos(theta);
+    //   verts[j].y = kernelExtent*sin(theta);
+    // }
+    // r2d_poly initialCell;
+    // r2d_init_poly(&initialCell, verts, nverts);
+    // CHECK(r2d_is_good(&initialCell));
 
     // Walk the points.
     r2d_real voli[1], firstmom[3];
@@ -142,14 +148,13 @@ computeVoronoiVolume(const FieldList<Dim<2>, Dim<2>::Vector>& position,
             const Vector& rj = position(nodeListj, j);
             const Scalar rhoj = rho(nodeListj, j);
 
-            // Build the half plane.
+            // Build the planes for our clipping half-spaces.
             const Vector rij = ri - rj;
-            const Vector etai = Hi*rij;
-            const Vector nhat = etai.unitVector();
+            const Vector nhat = rij.unitVector();
             pairPlanes.push_back(r2d_plane());
             pairPlanes.back().n.x = nhat.x();
             pairPlanes.back().n.y = nhat.y();
-            pairPlanes.back().d = 0.5*etai.magnitude();
+            pairPlanes.back().d = 0.5*rij.magnitude();
 
             // Check the density gradient limiter.
             phi = min(phi, max(0.0, rij.dot(gradRhoi)*safeInv(rhoi - rhoj)));
@@ -158,24 +163,30 @@ computeVoronoiVolume(const FieldList<Dim<2>, Dim<2>::Vector>& position,
         std::sort(pairPlanes.begin(), pairPlanes.end(), compareR2Dplanes);
 
         // Choose our seed cell shape.
-        r2d_poly celli = initialCell;
+        r2d_poly celli;
         if (numBounds == numNodeLists) {
 
           // If we have a boundary, use that for the initial cell shape.
           const vector<Facet>& facets = boundaries[nodeListi].facets();
           const unsigned nfacets = facets.size();
-          r2d_rvec2 verts[nfacets];
+          r2d_rvec2 verts_bound[nfacets];
           for (unsigned j = 0; j != nfacets; ++j) {
-            const Vector& vi = Hi*(facets[j].point1() - ri);
-            verts[j].x = vi.x();
-            verts[j].y = vi.y();
+            const Vector& vi = facets[j].point1() - ri;
+            verts_bound[j].x = vi.x();
+            verts_bound[j].y = vi.y();
           }
-          r2d_init_poly(&celli, verts, nfacets);
+          r2d_init_poly(&celli, verts_bound, nfacets);
 
         } else {
 
           // Otherwise we use our roughly circular type.
-          celli = initialCell;
+          r2d_rvec2 verts_bound[nverts];
+          for (unsigned j = 0; j != nverts; ++j) {
+            const Vector vi = Hinv*verts[j];
+            verts_bound[j].x = vi.x();
+            verts_bound[j].y = vi.y();
+          }
+          r2d_init_poly(&celli, verts_bound, nverts);
 
         }
         CHECK2(r2d_is_good(&celli), "Bad polygon!");
@@ -188,7 +199,7 @@ computeVoronoiVolume(const FieldList<Dim<2>, Dim<2>::Vector>& position,
         bool interior = true;
         double Rpoly = 0.0;
         for (unsigned k = 0; k != celli.nverts; ++k) {
-          const double Ri = sqrt(FastMath::square(celli.verts[k].pos.x) + FastMath::square(celli.verts[k].pos.y));
+          const double Ri = (Hi*Vector(celli.verts[k].pos.x, celli.verts[k].pos.y)).magnitude();
           Rpoly += Ri;
           interior = interior and (Ri < rin);
         }
@@ -198,7 +209,7 @@ computeVoronoiVolume(const FieldList<Dim<2>, Dim<2>::Vector>& position,
 
           // This is an interior point -- extract the area.
           r2d_reduce(&celli, voli, 0);
-          vol(nodeListi, i) = voli[0]/Hdeti;
+          vol(nodeListi, i) = voli[0];
 
           // Convert the gradient to eta space.
           const Vector gradRho_eta = phi*(Hinv*gradRhoi);
@@ -235,10 +246,11 @@ computeVoronoiVolume(const FieldList<Dim<2>, Dim<2>::Vector>& position,
           verts.reserve(celli.nverts);
           vector<vector<unsigned> > facetIndices; // (celli.nverts, vector<unsigned>(2));
           int lastvert = -1, nextvert, ivert = 0, j = 0, k = 0;
+          const Scalar tol = 1.0e-8*sqrt(Hdeti);
           while (k < celli.nverts) {
             if (lastvert == -1 or
-                distance2(celli.verts[ivert], celli.verts[lastvert]) > 1e-3) {
-              verts.push_back(Hinv*Vector(celli.verts[ivert].pos.x, celli.verts[ivert].pos.y) + ri);
+                distance2(celli.verts[ivert], celli.verts[lastvert]) > tol) {
+              verts.push_back(Vector(celli.verts[ivert].pos.x, celli.verts[ivert].pos.y) + ri);
               facetIndices.push_back(vector<unsigned>(2));
               CHECK(facetIndices.size() == j + 1);
               facetIndices[j][0] = j;
