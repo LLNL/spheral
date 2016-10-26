@@ -38,7 +38,8 @@ class SpheralVoronoiSiloDump:
                  baseDirectory = ".",
                  listOfFields = [],
                  listOfFieldLists = [],
-                 boundaries = []):
+                 boundaries = [],
+                 cells = None):
 
         # Store the file name template.
         self.baseFileName = baseFileName
@@ -80,6 +81,12 @@ class SpheralVoronoiSiloDump:
         else:
             assert False
 
+        # Optionally we support the user providing a FieldList of cell geometries.  Not a complete topological mesh,
+        # but good enough for writing out.
+        if not cells is None:
+            assert type(cells) == eval("FacetedVolumeFieldList%s" % self.dimension)
+        self.cells = cells
+
         # Version of the format written by this class.
         self.version = "1.0"
 
@@ -111,82 +118,112 @@ class SpheralVoronoiSiloDump:
 ##         if os.path.exists(filename):
 ##             raise ValueError, "File %s already exists!  Aborting." % filename
 
-        # Build the set of generators from our points.
-        gens = vector_of_double()
-        nDim = eval("Vector%s.nDimensions" % self.dimension)
-        xmin = vector_of_double(nDim,  1e100)
-        xmax = vector_of_double(nDim, -1e100)
-        for nodes in self._nodeLists:
-            pos = nodes.positions()
-            for i in xrange(nodes.numInternalNodes):
-                for j in xrange(nDim):
-                    gens.append(pos[i][j])
-                    xmin[j] = min(xmin[j], pos[i][j])
-                    xmax[j] = max(xmax[j], pos[i][j])
+        # Did the user provide a FieldList of cell geometries already?
+        if self.cells:
 
-        # Check the boundaries for any additional points we want to use for the bounding box.
-        for bound in self._boundaries:
-            try:
-                pb = dynamicCastBoundaryToPlanarBoundary2d(bound)
-                for p in (pb.enterPlane.point, pb.exitPlane.point):
+            # Yep, so we build a disjoint set of cells as a polytope tessellation.
+            mesh = eval("polytope.Tessellation%s()" % self.dimension)
+            nDim = eval("Vector%s.nDimensions" % self.dimension)
+            for nodeListi in xrange(len(self.cells)):
+                n = self.cells[nodeListi].numInternalElements
+                noldcells = mesh.cells.size()
+                mesh.cells.resize(noldcells + n)
+                for i in xrange(n):
+                    verts = self.cells(nodeListi, i).vertices()
+                    facets = self.cells(nodeListi, i).facets()
+                    noldnodes = mesh.nodes.size()/nDim
+                    noldfaces = mesh.faces.size()
+                    mesh.faces.resize(noldfaces + facets.size())
+                    for j in xrange(verts.size()):
+                        for k in xrange(nDim):
+                            mesh.nodes.append(verts[j][k])
+                    for j in xrange(facets.size()):
+                        mesh.cells[noldcells + i].append(noldfaces + j)
+                        ipoints = facets[j].ipoints
+                        for k in ipoints:
+                            mesh.faces[noldfaces + j].append(noldnodes + k)
+
+            # Every zone is unique in this case, so we can punt on the degeneracy check.
+            index2zone = None
+
+        else:
+            # We need to do the full up polytope tessellation.
+            # Build the set of generators from our points.
+            gens = vector_of_double()
+            nDim = eval("Vector%s.nDimensions" % self.dimension)
+            xmin = vector_of_double(nDim,  1e100)
+            xmax = vector_of_double(nDim, -1e100)
+            for nodes in self._nodeLists:
+                pos = nodes.positions()
+                for i in xrange(nodes.numInternalNodes):
                     for j in xrange(nDim):
-                        xmin[j] = min(xmin[j], p[j])
-                        xmax[j] = max(xmax[j], p[j])
-            except:
-                pass
+                        gens.append(pos[i][j])
+                        xmin[j] = min(xmin[j], pos[i][j])
+                        xmax[j] = max(xmax[j], pos[i][j])
 
-        # Globally reduce and puff up a bit.
-        for j in xrange(nDim):
-            xmin[j] = mpi.allreduce(xmin[j], mpi.MIN)
-            xmax[j] = mpi.allreduce(xmax[j], mpi.MAX)
-            delta = 0.01*(xmax[j] - xmin[j])
-            xmin[j] -= delta
-            xmax[j] += delta
+            # Check the boundaries for any additional points we want to use for the bounding box.
+            for bound in self._boundaries:
+                try:
+                    pb = dynamicCastBoundaryToPlanarBoundary2d(bound)
+                    for p in (pb.enterPlane.point, pb.exitPlane.point):
+                        for j in xrange(nDim):
+                            xmin[j] = min(xmin[j], p[j])
+                            xmax[j] = max(xmax[j], p[j])
+                except:
+                    pass
 
-        # Build the PLC.
-        plc = polytope.PLC2d()
-        plc.facets.resize(4)
-        for i in xrange(4):
-            plc.facets[i].resize(2)
-            plc.facets[i][0] = i
-            plc.facets[i][1] = (i + 1) % 4
-        plccoords = vector_of_double(8)
-        plccoords[0] = xmin[0]
-        plccoords[1] = xmin[1]
-        plccoords[2] = xmax[0]
-        plccoords[3] = xmin[1]
-        plccoords[4] = xmax[0]
-        plccoords[5] = xmax[1]
-        plccoords[6] = xmin[0]
-        plccoords[7] = xmax[1]
+            # Globally reduce and puff up a bit.
+            for j in xrange(nDim):
+                xmin[j] = mpi.allreduce(xmin[j], mpi.MIN)
+                xmax[j] = mpi.allreduce(xmax[j], mpi.MAX)
+                delta = 0.01*(xmax[j] - xmin[j])
+                xmin[j] -= delta
+                xmax[j] += delta
 
-        # Blago!
-        # f = open("generators_%i_of_%i.txt" % (mpi.rank, mpi.procs), "w")
-        # f.write("# generators x    y\n")
-        # for i in xrange(len(gens)/2):
-        #     f.write("%g    %g\n" % (gens[2*i], gens[2*i+1]))
-        # f.write("# PLC coords    x     y\n")
-        # for i in xrange(len(plccoords)/2):
-        #     f.write("%g    %g\n" % (plccoords[2*i], plccoords[2*i+1]))
-        # f.close()
-        # Blago!
+            # Build the PLC.
+            plc = polytope.PLC2d()
+            plc.facets.resize(4)
+            for i in xrange(4):
+                plc.facets[i].resize(2)
+                plc.facets[i][0] = i
+                plc.facets[i][1] = (i + 1) % 4
+            plccoords = vector_of_double(8)
+            plccoords[0] = xmin[0]
+            plccoords[1] = xmin[1]
+            plccoords[2] = xmax[0]
+            plccoords[3] = xmin[1]
+            plccoords[4] = xmax[0]
+            plccoords[5] = xmax[1]
+            plccoords[6] = xmin[0]
+            plccoords[7] = xmax[1]
 
-        # Build the tessellation.
-        if self.dimension == "2d":
-            mesh = polytope.Tessellation2d()
-            if "TriangleTessellator2d" in dir(polytope):
-                serial_tessellator = polytope.TriangleTessellator2d()
+            # Blago!
+            # f = open("generators_%i_of_%i.txt" % (mpi.rank, mpi.procs), "w")
+            # f.write("# generators x    y\n")
+            # for i in xrange(len(gens)/2):
+            #     f.write("%g    %g\n" % (gens[2*i], gens[2*i+1]))
+            # f.write("# PLC coords    x     y\n")
+            # for i in xrange(len(plccoords)/2):
+            #     f.write("%g    %g\n" % (plccoords[2*i], plccoords[2*i+1]))
+            # f.close()
+            # Blago!
+
+            # Build the tessellation.
+            if self.dimension == "2d":
+                mesh = polytope.Tessellation2d()
+                if "TriangleTessellator2d" in dir(polytope):
+                    serial_tessellator = polytope.TriangleTessellator2d()
+                else:
+                    assert "BoostTessellator2d" in dir(polytope)
+                    serial_tessellator = polytope.BoostTessellator2d()
             else:
-                assert "BoostTessellator2d" in dir(polytope)
-                serial_tessellator = polytope.BoostTessellator2d()
-        else:
-            assert self.dimension == "3d"
-            raise RuntimeError, "Sorry: 3D tessellation silo dumps are not supported yet."
-        if mpi.procs > 1:
-            tessellator = eval("polytope.DistributedTessellator%s(serial_tessellator, False, True)" % self.dimension)
-        else:
-            tessellator = serial_tessellator
-        index2zone = tessellator.tessellateDegenerate(gens, plccoords, plc, 1.0e-8, mesh)
+                assert self.dimension == "3d"
+                raise RuntimeError, "Sorry: 3D tessellation silo dumps are not supported yet."
+            if mpi.procs > 1:
+                tessellator = eval("polytope.DistributedTessellator%s(serial_tessellator, False, True)" % self.dimension)
+            else:
+                tessellator = serial_tessellator
+            index2zone = tessellator.tessellateDegenerate(gens, plccoords, plc, 1.0e-8, mesh)
 
         # Figure out how many of each type of field we're dumping.
         scalarFields = [x for x in self._fields if isinstance(x, eval("ScalarField%s" % self.dimension))]

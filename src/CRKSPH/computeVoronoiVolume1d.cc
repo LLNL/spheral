@@ -30,7 +30,8 @@ computeVoronoiVolume(const FieldSpace::FieldList<Dim<1>, Dim<1>::Vector>& positi
                      const std::vector<Dim<1>::FacetedVolume>& boundaries,
                      FieldSpace::FieldList<Dim<1>, int>& surfacePoint,
                      FieldSpace::FieldList<Dim<1>, Dim<1>::Scalar>& vol,
-                     FieldSpace::FieldList<Dim<1>, Dim<1>::Vector>& deltaMedian) {
+                     FieldSpace::FieldList<Dim<1>, Dim<1>::Vector>& deltaMedian,
+                     FieldSpace::FieldList<Dim<1>, Dim<1>::FacetedVolume>& cells) {
 
   typedef Dim<1>::Scalar Scalar;
   typedef Dim<1>::Vector Vector;

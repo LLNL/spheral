@@ -47,7 +47,8 @@ computeVoronoiVolume(const FieldList<Dim<3>, Dim<3>::Vector>& position,
                      const std::vector<Dim<3>::FacetedVolume>& boundaries,
                      FieldList<Dim<3>, int>& surfacePoint,
                      FieldList<Dim<3>, Dim<3>::Scalar>& vol,
-                     FieldSpace::FieldList<Dim<3>, Dim<3>::Vector>& deltaMedian) {
+                     FieldSpace::FieldList<Dim<3>, Dim<3>::Vector>& deltaMedian,
+                     FieldSpace::FieldList<Dim<3>, Dim<3>::FacetedVolume>& cells) {
 
   const unsigned numGens = position.numNodes();
   const unsigned numNodeLists = position.size();

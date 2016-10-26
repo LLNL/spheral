@@ -2,6 +2,7 @@ from math import *
 import mpi
 
 import Spheral
+from SpheralVoronoiSiloDump import SpheralVoronoiSiloDump
 
 #-------------------------------------------------------------------------------
 # Centroidally (in mass) relax points allowing a linear density gradient.
@@ -90,6 +91,11 @@ def centroidalRelaxNodes(nodeListsAndBounds,
     gradm3 = db.newFluidFourthRankTensorFieldList(sph.FourthRankTensor.zero, "gradm3")
     gradm4 = db.newFluidFifthRankTensorFieldList(sph.FifthRankTensor.zero, "gradm4")
 
+    if tessellationFileName is None:
+        cells = sph.FacetedVolumeFieldList()
+    else:
+        cells = db.newFluidFacetedVolumeFieldList(sph.FacetedVolume(), "cells")
+
     # Kick start the volume using m/rho.
     for nodeListi, nodes in enumerate(db.fluidNodeLists()):
         for i in xrange(nodes.numInternalNodes):
@@ -131,7 +137,7 @@ def centroidalRelaxNodes(nodeListsAndBounds,
 
         # Compute the new volumes and centroids (note this uses the old rho gradient, not quite right,
         # but expedient/efficient).
-        sph.computeVoronoiVolume(pos, H, rho, gradRho, cm, W.kernelExtent, boundingVolumes_vec, surfacePoint, vol, deltaCentroid)
+        sph.computeVoronoiVolume(pos, H, rho, gradRho, cm, W.kernelExtent, boundingVolumes_vec, surfacePoint, vol, deltaCentroid, cells)
         
         # Apply boundary conditions.
         for bc in boundaries:
@@ -168,5 +174,13 @@ def centroidalRelaxNodes(nodeListsAndBounds,
 
         # Update the H tensors a bit.
         sph.iterateIdealH(db, bound_vec, W, sph.ASPHSmoothingScale(), 2)
+
+    # If requested, dump the final info to a diagnostic viz file.
+    if tessellationFileName:
+        dumper = SpheralVoronoiSiloDump(baseFileName = tessellationFileName,
+                                        listOfFieldLists = [vol, surfacePoint, mass, deltaCentroid],
+                                        boundaries = boundaries,
+                                        cells = cells)
+        dumper.dump(0.0, iter)
 
     return vol, surfacePoint

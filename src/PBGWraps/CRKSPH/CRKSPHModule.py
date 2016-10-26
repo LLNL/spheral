@@ -154,7 +154,8 @@ self.generateSolidCRKSPHHydroBaseBindings(self.SolidCRKSPHHydroBase%(dim)id, %(d
                                  constrefparam(vector_of_FacetedVolume, "boundaries"),
                                  refparam(intfieldlist, "surfacePoint"),
                                  refparam(scalarfieldlist, "vol"),
-                                 refparam(vectorfieldlist, "deltaCentroid")],
+                                 refparam(vectorfieldlist, "deltaCentroid"),
+                                 refparam(polyvolfieldlist, "cells")],
                                 docstring = "Compute the volume per point using a Voronoi tessellation.")
 
         self.space.add_function("computeCRKSPHSumVolume", None,
