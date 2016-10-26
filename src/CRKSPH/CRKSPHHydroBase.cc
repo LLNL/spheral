@@ -275,7 +275,8 @@ initializeProblemStartup(DataBase<Dimension>& dataBase) {
     computeCRKSPHSumVolume(connectivityMap, W, position, mass, H, mVolume);
   } else if (mVolumeType == CRKVoronoiVolume) {
     mVolume.assignFields(mass/massDensity);
-    computeVoronoiVolume(position, H, massDensity, mMassDensityGradient, connectivityMap, W.kernelExtent(), vector<typename Dimension::FacetedVolume>(), mSurfacePoint, mVolume, mDeltaCentroid);
+    FieldList<Dimension, typename Dimension::FacetedVolume> cells;
+    computeVoronoiVolume(position, H, massDensity, mMassDensityGradient, connectivityMap, W.kernelExtent(), vector<typename Dimension::FacetedVolume>(), mSurfacePoint, mVolume, mDeltaCentroid, cells);
   } else if (mVolumeType == CRKHullVolume) {
     computeHullVolumes(connectivityMap, W.kernelExtent(), position, H, mVolume);
   } else if (mVolumeType == HVolume) {
@@ -1169,7 +1170,8 @@ finalize(const typename Dimension::Scalar time,
   } else if (mVolumeType == CRKSumVolume) {
     computeCRKSPHSumVolume(connectivityMap, W, position, mass, H, vol);
   } else if (mVolumeType == CRKVoronoiVolume) {
-    computeVoronoiVolume(position, H, massDensity, gradRho, connectivityMap, W.kernelExtent(), vector<typename Dimension::FacetedVolume>(), surfacePoint, vol, mDeltaCentroid);
+    FieldList<Dimension, typename Dimension::FacetedVolume> cells;
+    computeVoronoiVolume(position, H, massDensity, gradRho, connectivityMap, W.kernelExtent(), vector<typename Dimension::FacetedVolume>(), surfacePoint, vol, mDeltaCentroid, cells);
   } else if (mVolumeType == CRKHullVolume) {
     computeHullVolumes(connectivityMap, W.kernelExtent(), position, H, vol);
   } else if (mVolumeType == HVolume) {

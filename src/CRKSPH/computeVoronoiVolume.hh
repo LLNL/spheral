@@ -27,7 +27,8 @@ namespace Spheral {
                          const std::vector<Dim<1>::FacetedVolume>& boundaries,
                          FieldSpace::FieldList<Dim<1>, int>& surfacePoint,
                          FieldSpace::FieldList<Dim<1>, Dim<1>::Scalar>& vol,
-                         FieldSpace::FieldList<Dim<1>, Dim<1>::Vector>& deltaMedian);
+                         FieldSpace::FieldList<Dim<1>, Dim<1>::Vector>& deltaMedian,
+                         FieldSpace::FieldList<Dim<1>, Dim<1>::FacetedVolume>& cells);
 #endif
 
 #ifdef SPHERAL2D
@@ -42,7 +43,8 @@ namespace Spheral {
                          const std::vector<Dim<2>::FacetedVolume>& boundaries,
                          FieldSpace::FieldList<Dim<2>, int>& surfacePoint,
                          FieldSpace::FieldList<Dim<2>, Dim<2>::Scalar>& vol,
-                         FieldSpace::FieldList<Dim<2>, Dim<2>::Vector>& deltaMedian);
+                         FieldSpace::FieldList<Dim<2>, Dim<2>::Vector>& deltaMedian,
+                         FieldSpace::FieldList<Dim<2>, Dim<2>::FacetedVolume>& cells);
 #endif
 
 #ifdef SPHERAL3D
@@ -57,7 +59,8 @@ namespace Spheral {
                          const std::vector<Dim<3>::FacetedVolume>& boundaries,
                          FieldSpace::FieldList<Dim<3>, int>& surfacePoint,
                          FieldSpace::FieldList<Dim<3>, Dim<3>::Scalar>& vol,
-                         FieldSpace::FieldList<Dim<3>, Dim<3>::Vector>& deltaMedian);
+                         FieldSpace::FieldList<Dim<3>, Dim<3>::Vector>& deltaMedian,
+                         FieldSpace::FieldList<Dim<3>, Dim<3>::FacetedVolume>& cells);
 #endif
 
   }

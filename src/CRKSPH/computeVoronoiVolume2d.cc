@@ -56,6 +56,14 @@ struct CircleMassAndGradient {
   }
 };
 
+//------------------------------------------------------------------------------
+// Define the square distance between two r2d_vertices.
+//------------------------------------------------------------------------------
+double distance2(const r2d_vertex& a, const r2d_vertex& b) {
+  return (FastMath::square(a.pos.x - b.pos.x) +
+          FastMath::square(a.pos.y - b.pos.y));
+}
+
 }           // anonymous namespace
 
 //------------------------------------------------------------------------------
@@ -71,16 +79,22 @@ computeVoronoiVolume(const FieldList<Dim<2>, Dim<2>::Vector>& position,
                      const std::vector<Dim<2>::FacetedVolume>& boundaries,
                      FieldList<Dim<2>, int>& surfacePoint,
                      FieldList<Dim<2>, Dim<2>::Scalar>& vol,
-                     FieldSpace::FieldList<Dim<2>, Dim<2>::Vector>& deltaMedian) {
-
-  const unsigned numGens = position.numNodes();
-  const unsigned numNodeLists = position.size();
-  const unsigned numGensGlobal = allReduce(numGens, MPI_SUM, Communicator::communicator());
+                     FieldSpace::FieldList<Dim<2>, Dim<2>::Vector>& deltaMedian,
+                     FieldSpace::FieldList<Dim<2>, Dim<2>::FacetedVolume>& cells) {
 
   typedef Dim<2>::Scalar Scalar;
   typedef Dim<2>::Vector Vector;
   typedef Dim<2>::SymTensor SymTensor;
   typedef Dim<2>::FacetedVolume FacetedVolume;
+  typedef Dim<2>::FacetedVolume::Facet Facet;
+
+  const unsigned numGens = position.numNodes();
+  const unsigned numNodeLists = position.size();
+  const unsigned numGensGlobal = allReduce(numGens, MPI_SUM, Communicator::communicator());
+  const unsigned numBounds = boundaries.size();
+  const bool returnCells = cells.size() == numNodeLists;
+
+  REQUIRE(numBounds == 0 or numBounds == numNodeLists);
 
   if (numGensGlobal > 0) {
 
@@ -113,6 +127,7 @@ computeVoronoiVolume(const FieldList<Dim<2>, Dim<2>::Vector>& position,
         const Scalar rhoi = rho(nodeListi, i);
         const Vector& gradRhoi = gradRho(nodeListi, i);
         const Scalar Hdeti = Hi.Determinant();
+        const SymTensor Hinv = Hi.Inverse();
 
         // Grab this points neighbors and build all the planes.
         // We simultaneously build a very conservative limiter for the density gradient.
@@ -142,14 +157,33 @@ computeVoronoiVolume(const FieldList<Dim<2>, Dim<2>::Vector>& position,
         }
         std::sort(pairPlanes.begin(), pairPlanes.end(), compareR2Dplanes);
 
-        // Start with the initial cell shape (in eta space).
+        // Choose our seed cell shape.
         r2d_poly celli = initialCell;
+        if (numBounds == numNodeLists) {
+
+          // If we have a boundary, use that for the initial cell shape.
+          const vector<Facet>& facets = boundaries[nodeListi].facets();
+          const unsigned nfacets = facets.size();
+          r2d_rvec2 verts[nfacets];
+          for (unsigned j = 0; j != nfacets; ++j) {
+            const Vector& vi = Hi*(facets[j].point1() - ri);
+            verts[j].x = vi.x();
+            verts[j].y = vi.y();
+          }
+          r2d_init_poly(&celli, verts, nfacets);
+
+        } else {
+
+          // Otherwise we use our roughly circular type.
+          celli = initialCell;
+
+        }
         CHECK2(r2d_is_good(&celli), "Bad polygon!");
 
         // Clip the local cell.
         r2d_clip(&celli, &pairPlanes[0], pairPlanes.size());
 
-        // Are there any of the original volume vertices left?
+        // Check if the final polygon is entirely within our "interior" check radius.
         // While we're at it find the average radius (in eta space) of the polygon.
         bool interior = true;
         double Rpoly = 0.0;
@@ -167,7 +201,6 @@ computeVoronoiVolume(const FieldList<Dim<2>, Dim<2>::Vector>& position,
           vol(nodeListi, i) = voli[0]/Hdeti;
 
           // Convert the gradient to eta space.
-          const SymTensor Hinv = Hi.Inverse();
           const Vector gradRho_eta = phi*(Hinv*gradRhoi);
 
           // If there is a gradient signal compute the median.
@@ -188,13 +221,41 @@ computeVoronoiVolume(const FieldList<Dim<2>, Dim<2>::Vector>& position,
             const Scalar m0 = voli[0]*rhoi;
             deltaMedian(nodeListi, i) = Hinv*Vector(firstmom[1], firstmom[2])/m0;
           }
-          
+
         } else {
 
           // This point touches a free boundary, so flag it.
           surfacePoint(nodeListi, i) = 1;
 
         }
+
+        // If requested, we can return the cell geometries.
+        if (returnCells) {
+          vector<Vector> verts;
+          verts.reserve(celli.nverts);
+          vector<vector<unsigned> > facetIndices; // (celli.nverts, vector<unsigned>(2));
+          int lastvert = -1, nextvert, ivert = 0, j = 0, k = 0;
+          while (k < celli.nverts) {
+            if (lastvert == -1 or
+                distance2(celli.verts[ivert], celli.verts[lastvert]) > 1e-3) {
+              verts.push_back(Hinv*Vector(celli.verts[ivert].pos.x, celli.verts[ivert].pos.y) + ri);
+              facetIndices.push_back(vector<unsigned>(2));
+              CHECK(facetIndices.size() == j + 1);
+              facetIndices[j][0] = j;
+              facetIndices[j][1] = j + 1;
+              ++j;
+            }
+            nextvert = (celli.verts[ivert].pnbrs[0] == lastvert ?
+                        celli.verts[ivert].pnbrs[1] :
+                        celli.verts[ivert].pnbrs[0]);
+            lastvert = ivert;
+            ivert = nextvert;
+            ++k;
+          }
+          facetIndices.back()[1] = 0;
+          cells(nodeListi, i) = FacetedVolume(verts, facetIndices);
+        }
+
       }
     }
   }

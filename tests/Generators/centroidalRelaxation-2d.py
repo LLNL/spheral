@@ -159,12 +159,8 @@ vol, surfacePoint = centroidalRelaxNodes(nodeListsAndBounds = [(nodes, boundary)
                                          gradrho = gradrhofunc,
                                          maxIterations = iterations,
                                          boundaries = boundaries,
-                                         fracTol = tol)
-
-# Drop a silo file for viz.
-siloPointmeshDump(baseName = baseName,
-                  fields = [nodes.mass(), nodes.massDensity()],
-                  fieldLists = [vol, surfacePoint])
+                                         fracTol = tol,
+                                         tessellationFileName = baseName)
 
 #-------------------------------------------------------------------------------
 # Plot the final state.
