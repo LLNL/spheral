@@ -203,7 +203,7 @@ computeVoronoiVolume(const FieldList<Dim<2>, Dim<2>::Vector>& position,
           Rpoly += Ri;
           interior = interior and (Ri < rin);
         }
-        Rpoly /= celli.nverts;
+        Rpoly /= 2.0*celli.nverts;
 
         if (interior) {
 
@@ -231,6 +231,7 @@ computeVoronoiVolume(const FieldList<Dim<2>, Dim<2>::Vector>& position,
 
             // Combine the centroidal and medial movement.  We take the full medial motion and add the
             // orthogonal bit from the centroid.
+            // deltaMedian(nodeListi, i) = 0.5*(deltaMediani + deltaCentroidi);
             deltaMedian(nodeListi, i) = deltaMediani + deltaCentroidi - deltaCentroidi.dot(deltaMediani.unitVector())*deltaCentroidi.unitVector();
             
           } else {
