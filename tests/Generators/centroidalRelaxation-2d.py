@@ -15,6 +15,7 @@ commandLine(KernelConstructor = NBSplineKernel,
             nPerh = 1.01,
             hmin = 1e-5,
             hmax = 1.0,
+            hminratio = 1.0,
 
             # The initial density function coeffients:  rho(x) = a + bx*x + by*y
             a = 1.0,
@@ -80,6 +81,7 @@ output("WT")
 nodes = makeFluidNodeList("nodes", eos, 
                           hmin = hmin,
                           hmax = hmax,
+                          hminratio = hminratio,
                           nPerh = nPerh,
                           kernelExtent = WT.kernelExtent)
     
