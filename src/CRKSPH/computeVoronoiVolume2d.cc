@@ -323,6 +323,14 @@ computeVoronoiVolume(const FieldList<Dim<2>, Dim<2>::Vector>& position,
           // Apply the gradient limiter;
           gradRhoi *= phi;
 
+          // Compute the centroidal motion.
+          firstmom[0] = rhoi;
+          firstmom[1] = gradRhoi.x();
+          firstmom[2] = gradRhoi.y();
+          r2d_reduce(&celli, firstmom, 1);
+          const Scalar m0 = cellIntegral(celli, rhoi, gradRhoi);
+          const Vector deltaCentroidi = Vector(firstmom[1], firstmom[2])/m0;
+
           // Is there a significant density gradient?
           if (sqrt(gradRhoi.magnitude2()*voli[0]) >= 0.025*rhoi) {
 
@@ -333,20 +341,16 @@ computeVoronoiVolume(const FieldList<Dim<2>, Dim<2>::Vector>& position,
             PolygonClippedMassRoot F1(celli, rhoi, gradRhoi, nhat1, 0.5);
             PolygonClippedMassRoot F2(celli, rhoi, gradRhoi, nhat2, 0.5);
             const double x1 = F1.xmin + (F1.xmax - F1.xmin)*bisectRoot(F1, 0.0, 1.0, 1.0e-5, 1.0e-5);
-            const double x2 = F2.xmin + (F2.xmax - F2.xmin)*bisectRoot(F2, 0.0, 1.0, 1.0e-5, 1.0e-5);
-            deltaMedian(nodeListi, i) = x1*nhat1 + x2*nhat2;
+            deltaMedian(nodeListi, i) = x1*nhat1 + deltaCentroidi.dot(nhat2)*nhat2;
+            // const double x2 = F2.xmin + (F2.xmax - F2.xmin)*bisectRoot(F2, 0.0, 1.0, 1.0e-5, 1.0e-5);
+            // deltaMedian(nodeListi, i) = x1*nhat1 + x2*nhat2;
             // cout << " **> " << i << " " << deltaMedian(nodeListi, i) << " " << phi << " " << gradRhoi << " " << x1 << " " << x2 << " " << (x1 - F1.xmin)/(F1.xmax - F1.xmin) << " " << (x2 - F2.xmin)/(F2.xmax - F2.xmin) << endl;
             // cout << "================================================================================" << endl;
 
           } else {
 
             // Otherwise just use the centroid.
-            firstmom[0] = rhoi;
-            firstmom[1] = gradRhoi.x();
-            firstmom[2] = gradRhoi.y();
-            r2d_reduce(&celli, firstmom, 1);
-            const Scalar m0 = cellIntegral(celli, rhoi, gradRhoi);
-            deltaMedian(nodeListi, i) = Vector(firstmom[1], firstmom[2])/m0;
+            deltaMedian(nodeListi, i) = deltaCentroidi;
             // cout << " CENTROIDAL**> " << i << " " << deltaMedian(nodeListi, i) << " " << phi << " " << gradRhoi << endl;
 
           }
