@@ -334,18 +334,28 @@ computeVoronoiVolume(const FieldList<Dim<2>, Dim<2>::Vector>& position,
           // Is there a significant density gradient?
           if (sqrt(gradRhoi.magnitude2()*voli[0]) >= 0.025*rhoi) {
 
-            // If so, we search for the median mass position within the cell.
-            // We search for the median coordinates with reference to the density gradient direction.
+            // BLAGO!
             const Vector nhat1 = gradRhoi.unitVector();
             const Vector nhat2 = Vector(-nhat1.y(), nhat1.x());
             PolygonClippedMassRoot F1(celli, rhoi, gradRhoi, nhat1, 0.5);
-            PolygonClippedMassRoot F2(celli, rhoi, gradRhoi, nhat2, 0.5);
-            const double x1 = F1.xmin + (F1.xmax - F1.xmin)*bisectRoot(F1, 0.0, 1.0, 1.0e-5, 1.0e-5);
-            deltaMedian(nodeListi, i) = x1*nhat1 + deltaCentroidi.dot(nhat2)*nhat2;
-            // const double x2 = F2.xmin + (F2.xmax - F2.xmin)*bisectRoot(F2, 0.0, 1.0, 1.0e-5, 1.0e-5);
-            // deltaMedian(nodeListi, i) = x1*nhat1 + x2*nhat2;
-            // cout << " **> " << i << " " << deltaMedian(nodeListi, i) << " " << phi << " " << gradRhoi << " " << x1 << " " << x2 << " " << (x1 - F1.xmin)/(F1.xmax - F1.xmin) << " " << (x2 - F2.xmin)/(F2.xmax - F2.xmin) << endl;
-            // cout << "================================================================================" << endl;
+            const double dx = 2.0*(F1.xmax - F1.xmin);
+            const double dx1 = -2.0*F1.xmin;
+            const Scalar b = gradRhoi.magnitude();
+            const Scalar rho0 = rhoi - b*dx1;
+            deltaMedian(nodeListi, i) = ((sqrt(2.0*rho0*rho0 + b*b*dx*dx + 2.0*b*rho0*dx)/sqrt(2.0) - rho0)*safeInvVar(b) - dx1)*nhat1 + deltaCentroidi.dot(nhat2)*nhat2;
+
+            // // If so, we search for the median mass position within the cell.
+            // // We search for the median coordinates with reference to the density gradient direction.
+            // const Vector nhat1 = gradRhoi.unitVector();
+            // const Vector nhat2 = Vector(-nhat1.y(), nhat1.x());
+            // PolygonClippedMassRoot F1(celli, rhoi, gradRhoi, nhat1, 0.5);
+            // PolygonClippedMassRoot F2(celli, rhoi, gradRhoi, nhat2, 0.5);
+            // const double x1 = F1.xmin + (F1.xmax - F1.xmin)*bisectRoot(F1, 0.0, 1.0, 1.0e-5, 1.0e-5);
+            // deltaMedian(nodeListi, i) = x1*nhat1 + deltaCentroidi.dot(nhat2)*nhat2;
+            // // const double x2 = F2.xmin + (F2.xmax - F2.xmin)*bisectRoot(F2, 0.0, 1.0, 1.0e-5, 1.0e-5);
+            // // deltaMedian(nodeListi, i) = x1*nhat1 + x2*nhat2;
+            // // cout << " **> " << i << " " << deltaMedian(nodeListi, i) << " " << phi << " " << gradRhoi << " " << x1 << " " << x2 << " " << (x1 - F1.xmin)/(F1.xmax - F1.xmin) << " " << (x2 - F2.xmin)/(F2.xmax - F2.xmin) << endl;
+            // // cout << "================================================================================" << endl;
 
           } else {
 
