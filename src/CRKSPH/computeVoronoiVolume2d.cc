@@ -211,26 +211,33 @@ computeVoronoiVolume(const FieldList<Dim<2>, Dim<2>::Vector>& position,
           r2d_reduce(&celli, voli, 0);
           vol(nodeListi, i) = voli[0];
 
-          // Convert the gradient to eta space.
-          const Vector gradRho_eta = phi*(Hinv*gradRhoi);
+          // Compute the mass weighted centroid.
+          firstmom[0] = rhoi;
+          firstmom[1] = phi*gradRhoi.x();
+          firstmom[2] = phi*gradRhoi.y();
+          r2d_reduce(&celli, firstmom, 1);
+          const Scalar m0 = voli[0]*rhoi;
+          const Vector deltaCentroidi = Hinv*Vector(firstmom[1], firstmom[2])/m0;
 
-          // If there is a gradient signal compute the median.
+          // If there is a measurable gradient compute the median.
           // Note we convert the gradient here for eta space *and* a unit circle.
+          const Vector gradRho_eta = phi*(Hinv*gradRhoi);
           const Scalar b = phi*gradRho_eta.magnitude() * Rpoly;
+          Vector deltaMediani;
           if (std::abs(b) >= 0.025*rhoi) {
-
             const Vector gradUnit = gradRho_eta.unitVector();
             const double tol = 1.0e-5*M_PI*rhoi;
-            deltaMedian(nodeListi, i) = Hinv*gradUnit*newtonRaphson(CircleMassAndGradient(rhoi, b), 0.0, 1.0, tol, tol);
+            deltaMediani = Hinv*gradUnit*newtonRaphson(CircleMassAndGradient(rhoi, b), 0.0, 1.0, tol, tol);
 
+            // Combine the centroidal and medial movement.  We take the full medial motion and add the
+            // orthogonal bit from the centroid.
+            deltaMedian(nodeListi, i) = deltaMediani + deltaCentroidi - deltaCentroidi.dot(deltaMediani.unitVector())*deltaCentroidi.unitVector();
+            
           } else {
-            // Otherwise fall back to the centroid.
-            firstmom[0] = rhoi;
-            firstmom[1] = gradRho_eta.x();
-            firstmom[2] = gradRho_eta.y();
-            r2d_reduce(&celli, firstmom, 1);
-            const Scalar m0 = voli[0]*rhoi;
-            deltaMedian(nodeListi, i) = Hinv*Vector(firstmom[1], firstmom[2])/m0;
+
+            // Otherwise just use the centroid.
+            deltaMedian(nodeListi, i) = deltaCentroidi;
+
           }
 
         } else {
