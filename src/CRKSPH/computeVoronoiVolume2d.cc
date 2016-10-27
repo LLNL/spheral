@@ -14,7 +14,7 @@ extern "C" {
 #include "NodeList/NodeList.hh"
 #include "Neighbor/ConnectivityMap.hh"
 #include "Utilities/allReduce.hh"
-#include "Utilities/newtonRaphson.hh"
+#include "Utilities/bisectRoot.hh"
 
 namespace Spheral {
 namespace CRKSPHSpace {
@@ -56,6 +56,82 @@ struct CircleMassAndGradient {
   }
 };
 
+//------------------------------------------------------------------------------
+// Functor to find the mass in a clipped polygon.
+//------------------------------------------------------------------------------
+struct PolygonClippedMassRoot {
+  r2d_poly* cell0;
+  mutable r2d_poly cell1;
+  double rho0, targetFrac, xmin, xmax, M0;
+  const Dim<2>::Vector& gradrho, searchDirection;
+  mutable r2d_real mom[3];
+  mutable vector<r2d_plane> clipPlane;
+  PolygonClippedMassRoot(r2d_poly& celli,
+                         const double rhoi,
+                         const Dim<2>::Vector& gradrhoi,
+                         const Dim<2>::Vector& searchDirectioni,
+                         const double targetFraction):
+    cell0(&celli),
+    cell1(),
+    rho0(rhoi),
+    targetFrac(targetFraction),
+    xmin(numeric_limits<double>::max()),
+    xmax(-numeric_limits<double>::max()),
+    M0(0.0),
+    gradrho(gradrhoi),
+    searchDirection(searchDirectioni),
+    clipPlane(1) {
+
+    // Find the min/max extent of the polygon along the search direction.
+    double xi;
+    for (unsigned j = 0; j != cell0->nverts; ++j) {
+      xi = cell0->verts[j].pos.x * searchDirectioni.x() + cell0->verts[j].pos.y * searchDirection.y();
+      xmin = min(xmin, xi);
+      xmax = max(xmax, xi);
+    }
+
+    // Compute the total mass of the input polygon.
+    mom[0] = rhoi;
+    mom[1] = gradrhoi.x();
+    mom[2] = gradrhoi.y();
+    r2d_reduce(cell0, mom, 1);
+    M0 = mom[0];
+  }
+
+  double operator()(const double x) const {
+    // Clip the polygon.
+    REQUIRE(x >= 0.0 and x <= 1.0);
+    const double d = xmin + x*(xmax - xmin);
+    if (d < 0.0) {
+      clipPlane[0].n.x = -searchDirection.x();
+      clipPlane[0].n.y = -searchDirection.y();
+      clipPlane[0].d = d;
+    } else {
+      clipPlane[0].n.x = -searchDirection.x();
+      clipPlane[0].n.y = -searchDirection.y();
+      clipPlane[0].d = d;
+    }
+    cell1 = *cell0;
+    r2d_clip(&cell1, &clipPlane[0], 1);
+    cout << "--------------------------------------------------------------------------------" << endl
+         << x << endl
+         << "Cell 0: " << endl;
+    r2d_print(cell0);
+    cout << "Clipped cell:" << endl;
+    r2d_print(&cell1);
+
+    // Integrate the mass in the clipped cell.
+    mom[0] = rho0;
+    mom[1] = gradrho.x();
+    mom[2] = gradrho.y();
+    r2d_reduce(&cell1, mom, 1);
+
+    // Return the difference in the mass ratio vs. the target fraction.
+    cout << " --> " << x << " " << gradrho << " " << mom[0] << " " << M0 << endl;
+    return mom[0]/M0 - targetFrac;
+  }
+};
+  
 //------------------------------------------------------------------------------
 // Define the square distance between two r2d_vertices.
 //------------------------------------------------------------------------------
@@ -131,7 +207,7 @@ computeVoronoiVolume(const FieldList<Dim<2>, Dim<2>::Vector>& position,
         const Vector& ri = position(nodeListi, i);
         const SymTensor& Hi = H(nodeListi, i);
         const Scalar rhoi = rho(nodeListi, i);
-        const Vector& gradRhoi = gradRho(nodeListi, i);
+        Vector gradRhoi = gradRho(nodeListi, i);
         const Scalar Hdeti = Hi.Determinant();
         const SymTensor Hinv = Hi.Inverse();
 
@@ -195,49 +271,49 @@ computeVoronoiVolume(const FieldList<Dim<2>, Dim<2>::Vector>& position,
         r2d_clip(&celli, &pairPlanes[0], pairPlanes.size());
 
         // Check if the final polygon is entirely within our "interior" check radius.
-        // While we're at it find the average radius (in eta space) of the polygon.
         bool interior = true;
-        double Rpoly = 0.0;
-        for (unsigned k = 0; k != celli.nverts; ++k) {
-          const double Ri = (Hi*Vector(celli.verts[k].pos.x, celli.verts[k].pos.y)).magnitude();
-          Rpoly += Ri;
-          interior = interior and (Ri < rin);
+        {
+          unsigned k = 0;
+          while (interior and k != celli.nverts) {
+            interior = (Hi*Vector(celli.verts[k].pos.x, celli.verts[k].pos.y)).magnitude() < rin;
+            ++k;
+          }
         }
-        Rpoly /= 2.0*celli.nverts;
 
         if (interior) {
 
           // This is an interior point -- extract the area.
+          voli[0] = 1.0;
           r2d_reduce(&celli, voli, 0);
           vol(nodeListi, i) = voli[0];
 
-          // Compute the mass weighted centroid.
-          firstmom[0] = rhoi;
-          firstmom[1] = phi*gradRhoi.x();
-          firstmom[2] = phi*gradRhoi.y();
-          r2d_reduce(&celli, firstmom, 1);
-          const Scalar m0 = voli[0]*rhoi;
-          const Vector deltaCentroidi = Hinv*Vector(firstmom[1], firstmom[2])/m0;
+          // Apply the gradient limiter;
+          gradRhoi *= phi;
 
-          // If there is a measurable gradient compute the median.
-          // Note we convert the gradient here for eta space *and* a unit circle.
-          const Vector gradRho_eta = phi*(Hinv*gradRhoi);
-          const Scalar b = phi*gradRho_eta.magnitude() * Rpoly;
-          Vector deltaMediani;
-          if (std::abs(b) >= 0.025*rhoi) {
-            const Vector gradUnit = gradRho_eta.unitVector();
-            const double tol = 1.0e-5*M_PI*rhoi;
-            deltaMediani = Hinv*gradUnit*newtonRaphson(CircleMassAndGradient(rhoi, b), 0.0, 1.0, tol, tol);
+          // Is there a significant density gradient?
+          if (sqrt(gradRhoi.magnitude2()*voli[0]) >= 0.025*rhoi) {
 
-            // Combine the centroidal and medial movement.  We take the full medial motion and add the
-            // orthogonal bit from the centroid.
-            // deltaMedian(nodeListi, i) = 0.5*(deltaMediani + deltaCentroidi);
-            deltaMedian(nodeListi, i) = deltaMediani + deltaCentroidi - deltaCentroidi.dot(deltaMediani.unitVector())*deltaCentroidi.unitVector();
-            
+            // If so, we search for the median mass position within the cell.
+            // We search for the median coordinates with reference to the density gradient direction.
+            const Vector nhat1 = gradRhoi.unitVector();
+            const Vector nhat2 = Vector(-nhat1.y(), nhat1.x());
+            PolygonClippedMassRoot F1(celli, rhoi, gradRhoi, nhat1, 0.5);
+            PolygonClippedMassRoot F2(celli, rhoi, gradRhoi, nhat2, 0.5);
+            const double x1 = F1.xmin + (F1.xmax - F1.xmin)*bisectRoot(F1, 0.0, 1.0, 1.0e-3, 1.0e-3);
+            const double x2 = F2.xmin + (F2.xmax - F2.xmin)*bisectRoot(F2, 0.0, 1.0, 1.0e-3, 1.0e-3);
+            deltaMedian(nodeListi, i) = x1*nhat1 + x2*nhat2;
+            cout << " --> " << i << " " << deltaMedian(nodeListi, i) << " " << phi << " " << gradRhoi << " " << x1 << " " << x2 << " " << (x1 - F1.xmin)/(F1.xmax - F1.xmin) << " " << (x2 - F2.xmin)/(F2.xmax - F2.xmin) << endl;
+            cout << "================================================================================" << endl;
+
           } else {
 
             // Otherwise just use the centroid.
-            deltaMedian(nodeListi, i) = deltaCentroidi;
+            firstmom[0] = rhoi;
+            firstmom[1] = gradRhoi.x();
+            firstmom[2] = gradRhoi.y();
+            r2d_reduce(&celli, firstmom, 1);
+            const Scalar m0 = firstmom[0];
+            deltaMedian(nodeListi, i) = Vector(firstmom[1], firstmom[2])/m0;
 
           }
 
