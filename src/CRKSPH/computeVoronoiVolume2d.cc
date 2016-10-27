@@ -57,6 +57,35 @@ struct CircleMassAndGradient {
 };
 
 //------------------------------------------------------------------------------
+// Integrate a linear function in a polygon.
+// We do this be evaluating it for each triangle,
+// using the handy relation that if f(x,y) is a linear function then the integral
+// \int f(x,y) dx dy in a trianglur region is A*f(xc,yc), where A is the area of the
+// triangle and (xc,yc) the triangle centroid.
+// Note we implicitly use the centroid in our cell coordinates as zero.
+//------------------------------------------------------------------------------
+double cellIntegral(const r2d_poly& cell,
+                    const double a,
+                    const Dim<2>::Vector& b) {
+  double result = 0.0;
+  Dim<2>::Vector cent;
+  int lastvert = -1, nextvert, ivert = 0, k = 0;
+  while (k < cell.nverts) {
+    nextvert = (cell.verts[ivert].pnbrs[0] == lastvert ?
+                cell.verts[ivert].pnbrs[1] :
+                cell.verts[ivert].pnbrs[0]);
+    cent.x((cell.verts[ivert].pos.x + cell.verts[nextvert].pos.x)/3.0);
+    cent.y((cell.verts[ivert].pos.y + cell.verts[nextvert].pos.y)/3.0);
+    result += 0.5*abs(cell.verts[ivert].pos.x * cell.verts[nextvert].pos.y -
+                      cell.verts[ivert].pos.y * cell.verts[nextvert].pos.x)*(a + b.dot(cent));
+    lastvert = ivert;
+    ivert = nextvert;
+    ++k;
+  }
+  return result;
+}
+
+//------------------------------------------------------------------------------
 // Functor to find the mass in a clipped polygon.
 //------------------------------------------------------------------------------
 struct PolygonClippedMassRoot {
@@ -91,11 +120,12 @@ struct PolygonClippedMassRoot {
     }
 
     // Compute the total mass of the input polygon.
-    mom[0] = rhoi;
-    mom[1] = gradrhoi.x();
-    mom[2] = gradrhoi.y();
-    r2d_reduce(cell0, mom, 1);
-    M0 = mom[0];
+    M0 = cellIntegral(*cell0, rho0, gradrho);
+    // mom[0] = rhoi;
+    // mom[1] = gradrhoi.x();
+    // mom[2] = gradrhoi.y();
+    // r2d_reduce(cell0, mom, 1);
+    // M0 = mom[0];
   }
 
   double operator()(const double x) const {
@@ -113,22 +143,23 @@ struct PolygonClippedMassRoot {
     }
     cell1 = *cell0;
     r2d_clip(&cell1, &clipPlane[0], 1);
-    cout << "--------------------------------------------------------------------------------" << endl
-         << x << endl
-         << "Cell 0: " << endl;
-    r2d_print(cell0);
-    cout << "Clipped cell:" << endl;
-    r2d_print(&cell1);
+    // cout << "--------------------------------------------------------------------------------" << endl
+    //      << x << endl
+    //      << "Cell 0: " << endl;
+    // r2d_print(cell0);
+    // cout << "Clipped cell:" << endl;
+    // r2d_print(&cell1);
 
     // Integrate the mass in the clipped cell.
+    const double M1 = cellIntegral(cell1, rho0, gradrho);
     mom[0] = rho0;
     mom[1] = gradrho.x();
     mom[2] = gradrho.y();
     r2d_reduce(&cell1, mom, 1);
 
     // Return the difference in the mass ratio vs. the target fraction.
-    cout << " --> " << x << " " << gradrho << " " << mom[0] << " " << M0 << endl;
-    return mom[0]/M0 - targetFrac;
+    // cout << " --> " << x << " " << gradrho << " " << M1 << " " << M0 << endl;
+    return M1/M0 - targetFrac;
   }
 };
   
@@ -208,6 +239,7 @@ computeVoronoiVolume(const FieldList<Dim<2>, Dim<2>::Vector>& position,
         const SymTensor& Hi = H(nodeListi, i);
         const Scalar rhoi = rho(nodeListi, i);
         Vector gradRhoi = gradRho(nodeListi, i);
+        const Vector grhat = gradRhoi.unitVector();
         const Scalar Hdeti = Hi.Determinant();
         const SymTensor Hinv = Hi.Inverse();
 
@@ -233,7 +265,8 @@ computeVoronoiVolume(const FieldList<Dim<2>, Dim<2>::Vector>& position,
             pairPlanes.back().d = 0.5*rij.magnitude();
 
             // Check the density gradient limiter.
-            phi = min(phi, max(0.0, rij.dot(gradRhoi)*safeInv(rhoi - rhoj)));
+            const Scalar fdir = FastMath::pow4(rij.unitVector().dot(grhat));
+            phi = min(phi, max(0.0, max(1.0 - fdir, rij.dot(gradRhoi)*safeInv(rhoi - rhoj))));
           }
         }
         std::sort(pairPlanes.begin(), pairPlanes.end(), compareR2Dplanes);
@@ -299,11 +332,11 @@ computeVoronoiVolume(const FieldList<Dim<2>, Dim<2>::Vector>& position,
             const Vector nhat2 = Vector(-nhat1.y(), nhat1.x());
             PolygonClippedMassRoot F1(celli, rhoi, gradRhoi, nhat1, 0.5);
             PolygonClippedMassRoot F2(celli, rhoi, gradRhoi, nhat2, 0.5);
-            const double x1 = F1.xmin + (F1.xmax - F1.xmin)*bisectRoot(F1, 0.0, 1.0, 1.0e-3, 1.0e-3);
-            const double x2 = F2.xmin + (F2.xmax - F2.xmin)*bisectRoot(F2, 0.0, 1.0, 1.0e-3, 1.0e-3);
+            const double x1 = F1.xmin + (F1.xmax - F1.xmin)*bisectRoot(F1, 0.0, 1.0, 1.0e-5, 1.0e-5);
+            const double x2 = F2.xmin + (F2.xmax - F2.xmin)*bisectRoot(F2, 0.0, 1.0, 1.0e-5, 1.0e-5);
             deltaMedian(nodeListi, i) = x1*nhat1 + x2*nhat2;
-            cout << " --> " << i << " " << deltaMedian(nodeListi, i) << " " << phi << " " << gradRhoi << " " << x1 << " " << x2 << " " << (x1 - F1.xmin)/(F1.xmax - F1.xmin) << " " << (x2 - F2.xmin)/(F2.xmax - F2.xmin) << endl;
-            cout << "================================================================================" << endl;
+            // cout << " **> " << i << " " << deltaMedian(nodeListi, i) << " " << phi << " " << gradRhoi << " " << x1 << " " << x2 << " " << (x1 - F1.xmin)/(F1.xmax - F1.xmin) << " " << (x2 - F2.xmin)/(F2.xmax - F2.xmin) << endl;
+            // cout << "================================================================================" << endl;
 
           } else {
 
@@ -312,8 +345,9 @@ computeVoronoiVolume(const FieldList<Dim<2>, Dim<2>::Vector>& position,
             firstmom[1] = gradRhoi.x();
             firstmom[2] = gradRhoi.y();
             r2d_reduce(&celli, firstmom, 1);
-            const Scalar m0 = firstmom[0];
+            const Scalar m0 = cellIntegral(celli, rhoi, gradRhoi);
             deltaMedian(nodeListi, i) = Vector(firstmom[1], firstmom[2])/m0;
+            // cout << " CENTROIDAL**> " << i << " " << deltaMedian(nodeListi, i) << " " << phi << " " << gradRhoi << endl;
 
           }
 
@@ -348,7 +382,13 @@ computeVoronoiVolume(const FieldList<Dim<2>, Dim<2>::Vector>& position,
             ivert = nextvert;
             ++k;
           }
+          if ((verts.back() - verts.front()).magnitude2() <= tol) { // The first and last may have snuck in degenerate.
+            verts.pop_back();
+            facetIndices.pop_back();
+          }
           facetIndices.back()[1] = 0;
+          // std::copy(verts.begin(), verts.end(), std::ostream_iterator<Dim<2>::Vector>(std::cout, " "));
+          // std::cout << endl;
           cells(nodeListi, i) = FacetedVolume(verts, facetIndices);
         }
 
