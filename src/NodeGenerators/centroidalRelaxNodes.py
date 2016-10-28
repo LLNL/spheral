@@ -113,8 +113,8 @@ def centroidalRelaxNodes(nodeListsAndBounds,
 
     # Iterate until we converge or max out.
     iter = 0
-    maxdelta = 2.0*fracTol
-    while (iter < 2) or (iter < maxIterations and maxdelta > fracTol):
+    avgdelta = 2.0*fracTol
+    while (iter < 2) or (iter < maxIterations and avgdelta > fracTol):
         iter += 1
 
         # Remove any old ghost nodes info, and update the mass density
@@ -162,15 +162,15 @@ def centroidalRelaxNodes(nodeListsAndBounds,
             gradRho = sph.gradientCRKSPH(rho, pos, vol, H, A, B, C, gradA, gradB, gradC, cm, correctionOrder, W)
         
         # Displace the points and update point masses.
-        maxdelta = 0.0
+        avgdelta = 0.0
         for nodeListi, nodes in enumerate(db.fluidNodeLists()):
             for i in xrange(nodes.numInternalNodes):
                 delta = centroidFrac * deltaCentroid(nodeListi, i)
-                maxdelta = max(maxdelta, delta.magnitude()/vol(nodeListi, i)**(1.0/ndim))
+                avgdelta += delta.magnitude()/vol(nodeListi, i)**(1.0/ndim)
                 pos[nodeListi][i] += delta
                 mass[nodeListi][i] = rho(nodeListi,i)*vol(nodeListi,i)
-        maxdelta = mpi.allreduce(maxdelta, mpi.MAX)
-        print "centroidalRelaxNodes iteration %i, max delta frac %g" % (iter, maxdelta)
+        avgdelta = mpi.allreduce(avgdelta, mpi.SUM)/mpi.allreduce(db.numInternalNodes, mpi.SUM)
+        print "centroidalRelaxNodes iteration %i, avg delta frac %g" % (iter, avgdelta)
 
         # Update the H tensors a bit.
         sph.iterateIdealH(db, bound_vec, W, sph.ASPHSmoothingScale(), 2)

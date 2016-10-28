@@ -199,6 +199,8 @@ computeVoronoiVolume(const FieldList<Dim<2>, Dim<2>::Vector>& position,
   const unsigned numNodeLists = position.size();
   const unsigned numGensGlobal = allReduce(numGens, MPI_SUM, Communicator::communicator());
   const unsigned numBounds = boundaries.size();
+  const bool haveBoundaries = numBounds == numNodeLists;
+  const bool returnSurface = surfacePoint.size() == numNodeLists;
   const bool returnCells = cells.size() == numNodeLists;
 
   REQUIRE(numBounds == 0 or numBounds == numNodeLists);
@@ -270,7 +272,7 @@ computeVoronoiVolume(const FieldList<Dim<2>, Dim<2>::Vector>& position,
 
         // Choose our seed cell shape.
         r2d_poly celli;
-        if (numBounds == numNodeLists) {
+        if (haveBoundaries) {
 
           // If we have a boundary, use that for the initial cell shape.
           const vector<Facet>& facets = boundaries[nodeListi].facets();
@@ -314,24 +316,12 @@ computeVoronoiVolume(const FieldList<Dim<2>, Dim<2>::Vector>& position,
         }
 
         if (interior) {
+          if (returnSurface) surfacePoint(nodeListi, i) = 0;
 
           // This is an interior point -- extract the area.
           voli[0] = 1.0;
           r2d_reduce(&celli, voli, 0);
           vol(nodeListi, i) = voli[0];
-
-          // OK, this is an interior point from the perspective that it was clipped within our critical
-          // radius on all sides.  However, if we have a bounding polygon we may still want to call it a
-          // surface if in fact there are still facets from that bounding polygon on this cell.
-          if (numBounds == numNodeLists) {
-            unsigned j = 0;
-            while (interior and j != celli.nverts) {
-              interior = not pointOnPolygon(ri + Vector(celli.verts[j].pos.x, celli.verts[j].pos.y),
-                                            boundaries[nodeListi].vertices(),
-                                            1.0e-8);
-              ++j;
-            }
-          }
 
           // Apply the gradient limiter;
           gradRhoi *= phi;
@@ -348,55 +338,62 @@ computeVoronoiVolume(const FieldList<Dim<2>, Dim<2>::Vector>& position,
           const Scalar m0 = cellIntegral(doublecelli, rhoi, gradRhoi);
           const Vector deltaCentroidi = Vector(firstmom[1], firstmom[2])/m0;
 
-          if (interior) {
-            surfacePoint(nodeListi, i) = 0;
 
-            // Is there a significant density gradient?
-            if (sqrt(gradRhoi.magnitude2()*voli[0]) >= 0.025*rhoi) {
+          // Is there a significant density gradient?
+          if (sqrt(gradRhoi.magnitude2()*voli[0]) >= 0.025*rhoi) {
 
-              const Vector nhat1 = gradRhoi.unitVector();
-              const Vector nhat2 = Vector(-nhat1.y(), nhat1.x());
-              PolygonClippedMassRoot F1(doublecelli, rhoi, gradRhoi, nhat1, 0.5);
-              const double dx = F1.xmax - F1.xmin;
-              const double dx1 = -F1.xmin;
-              const Scalar b = gradRhoi.magnitude();
-              const Scalar rho0 = rhoi - b*dx1;
-              deltaMedian(nodeListi, i) = ((sqrt(2.0*rho0*rho0 + b*b*dx*dx + 2.0*b*rho0*dx)/sqrt(2.0) - rho0)*safeInvVar(b) - dx1)*nhat1 + deltaCentroidi.dot(nhat2)*nhat2;
+            const Vector nhat1 = gradRhoi.unitVector();
+            const Vector nhat2 = Vector(-nhat1.y(), nhat1.x());
+            PolygonClippedMassRoot F1(doublecelli, rhoi, gradRhoi, nhat1, 0.5);
+            const double dx = F1.xmax - F1.xmin;
+            const double dx1 = -F1.xmin;
+            const Scalar b = gradRhoi.magnitude();
+            const Scalar rho0 = rhoi - b*dx1;
+            deltaMedian(nodeListi, i) = ((sqrt(2.0*rho0*rho0 + b*b*dx*dx + 2.0*b*rho0*dx)/sqrt(2.0) - rho0)*safeInvVar(b) - dx1)*nhat1 + deltaCentroidi.dot(nhat2)*nhat2;
 
-              // // If so, we search for the median mass position within the cell.
-              // // We search for the median coordinates with reference to the density gradient direction.
-              // const Vector nhat1 = gradRhoi.unitVector();
-              // const Vector nhat2 = Vector(-nhat1.y(), nhat1.x());
-              // PolygonClippedMassRoot F1(celli, rhoi, gradRhoi, nhat1, 0.5);
-              // PolygonClippedMassRoot F2(celli, rhoi, gradRhoi, nhat2, 0.5);
-              // const double x1 = F1.xmin + (F1.xmax - F1.xmin)*bisectRoot(F1, 0.0, 1.0, 1.0e-5, 1.0e-5);
-              // deltaMedian(nodeListi, i) = x1*nhat1 + deltaCentroidi.dot(nhat2)*nhat2;
-              // // const double x2 = F2.xmin + (F2.xmax - F2.xmin)*bisectRoot(F2, 0.0, 1.0, 1.0e-5, 1.0e-5);
-              // // deltaMedian(nodeListi, i) = x1*nhat1 + x2*nhat2;
-              // // cout << " **> " << i << " " << deltaMedian(nodeListi, i) << " " << phi << " " << gradRhoi << " " << x1 << " " << x2 << " " << (x1 - F1.xmin)/(F1.xmax - F1.xmin) << " " << (x2 - F2.xmin)/(F2.xmax - F2.xmin) << endl;
-              // // cout << "================================================================================" << endl;
-
-            } else {
-
-              // Otherwise just use the centroid.
-              deltaMedian(nodeListi, i) = deltaCentroidi;
-              // cout << " CENTROIDAL**> " << i << " " << deltaMedian(nodeListi, i) << " " << phi << " " << gradRhoi << endl;
-
-            }
+            // // If so, we search for the median mass position within the cell.
+            // // We search for the median coordinates with reference to the density gradient direction.
+            // const Vector nhat1 = gradRhoi.unitVector();
+            // const Vector nhat2 = Vector(-nhat1.y(), nhat1.x());
+            // PolygonClippedMassRoot F1(celli, rhoi, gradRhoi, nhat1, 0.5);
+            // PolygonClippedMassRoot F2(celli, rhoi, gradRhoi, nhat2, 0.5);
+            // const double x1 = F1.xmin + (F1.xmax - F1.xmin)*bisectRoot(F1, 0.0, 1.0, 1.0e-5, 1.0e-5);
+            // deltaMedian(nodeListi, i) = x1*nhat1 + deltaCentroidi.dot(nhat2)*nhat2;
+            // // const double x2 = F2.xmin + (F2.xmax - F2.xmin)*bisectRoot(F2, 0.0, 1.0, 1.0e-5, 1.0e-5);
+            // // deltaMedian(nodeListi, i) = x1*nhat1 + x2*nhat2;
+            // // cout << " **> " << i << " " << deltaMedian(nodeListi, i) << " " << phi << " " << gradRhoi << " " << x1 << " " << x2 << " " << (x1 - F1.xmin)/(F1.xmax - F1.xmin) << " " << (x2 - F2.xmin)/(F2.xmax - F2.xmin) << endl;
+            // // cout << "================================================================================" << endl;
 
           } else {
-              
-            // This is a point that touches the bounding polygon.  Flag it as surface.
-            surfacePoint(nodeListi, i) = 1;
+
+            // Otherwise just use the centroid.
             deltaMedian(nodeListi, i) = deltaCentroidi;
+            // cout << " CENTROIDAL**> " << i << " " << deltaMedian(nodeListi, i) << " " << phi << " " << gradRhoi << endl;
 
           }
 
+          // OK, this is an interior point from the perspective that it was clipped within our critical
+          // radius on all sides.  However, if we have a bounding polygon we may still want to call it a
+          // surface if in fact there are still facets from that bounding polygon on this cell.
+          if (haveBoundaries and returnSurface) {
+            unsigned j = 0;
+            while (interior and j != celli.nverts) {
+              interior = not pointOnPolygon(ri + Vector(celli.verts[j].pos.x, celli.verts[j].pos.y),
+                                            boundaries[nodeListi].vertices(),
+                                            1.0e-8);
+              ++j;
+            }
+
+            if (not interior) {
+              // This is a point that touches the bounding polygon.  Flag it as surface.
+              surfacePoint(nodeListi, i) = 1;
+            }
+          }
 
         } else {
 
           // This point touches a free boundary, so flag it.
-          surfacePoint(nodeListi, i) = 1;
+          if (returnSurface) surfacePoint(nodeListi, i) = 1;
           deltaMedian(nodeListi, i) = Vector::zero;
 
         }
