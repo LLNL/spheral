@@ -226,6 +226,7 @@ class SpheralVoronoiSiloDump:
             index2zone = tessellator.tessellateDegenerate(gens, plccoords, plc, 1.0e-8, mesh)
 
         # Figure out how many of each type of field we're dumping.
+        intFields = [x for x in self._fields if isinstance(x, eval("IntField%s" % self.dimension))]
         scalarFields = [x for x in self._fields if isinstance(x, eval("ScalarField%s" % self.dimension))]
         vectorFields = [x for x in self._fields if isinstance(x, eval("VectorField%s" % self.dimension))]
         tensorFields = [x for x in self._fields if isinstance(x, eval("TensorField%s" % self.dimension))]
@@ -252,6 +253,7 @@ class SpheralVoronoiSiloDump:
                                  nodeLists = self._nodeLists,
                                  time = simulationTime,
                                  cycle = cycle,
+                                 intFields = intFields,
                                  scalarFields = scalarFields,
                                  vectorFields = vectorFields,
                                  tensorFields = tensorFields,
