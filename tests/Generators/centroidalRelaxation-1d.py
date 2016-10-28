@@ -130,6 +130,9 @@ boundaries = [] # [xbc0, xbc1]
 #-------------------------------------------------------------------------------
 # Call the centroidal relaxer.
 #-------------------------------------------------------------------------------
+# Report the initial mass matching.
+print "Initial mass min/max ratio : ", m.min()/m.max()
+
 vol, surfacePoint = centroidalRelaxNodes(nodeListsAndBounds = [(nodes, Box1d(Vector(0.5*(x0 + x1)), 0.5*(x1 - x0)))],
                                          W = WT,
                                          rho = rhofunc,
@@ -137,6 +140,9 @@ vol, surfacePoint = centroidalRelaxNodes(nodeListsAndBounds = [(nodes, Box1d(Vec
                                          maxIterations = iterations,
                                          boundaries = boundaries,
                                          fracTol = tol)
+
+# Report the final mass matching.
+print "Final mass min/max ratio : ", m.min()/m.max()
 
 #-------------------------------------------------------------------------------
 # Plot the final state.
