@@ -14,7 +14,7 @@ extern "C" {
 #include "NodeList/NodeList.hh"
 #include "Neighbor/ConnectivityMap.hh"
 #include "Utilities/allReduce.hh"
-#include "Utilities/bisectRoot.hh"
+#include "Utilities/pointOnPolygon.hh"
 
 namespace Spheral {
 namespace CRKSPHSpace {
@@ -205,8 +205,6 @@ computeVoronoiVolume(const FieldList<Dim<2>, Dim<2>::Vector>& position,
 
   if (numGensGlobal > 0) {
 
-    // Start out assuming all points are internal.
-    surfacePoint = 0;
     const Scalar rin = 0.5*kernelExtent;
 
     // Build an approximation of the starting kernel shape.
@@ -232,7 +230,6 @@ computeVoronoiVolume(const FieldList<Dim<2>, Dim<2>::Vector>& position,
     r2d_real voli[1], firstmom[3];
     for (unsigned nodeListi = 0; nodeListi != numNodeLists; ++nodeListi) {
       const unsigned n = vol[nodeListi]->numInternalElements();
-      const Neighbor<Dim<2> >& neighbor = position[nodeListi]->nodeListPtr()->neighbor();
       for (unsigned i = 0; i != n; ++i) {
 
         const Vector& ri = position(nodeListi, i);
@@ -323,6 +320,19 @@ computeVoronoiVolume(const FieldList<Dim<2>, Dim<2>::Vector>& position,
           r2d_reduce(&celli, voli, 0);
           vol(nodeListi, i) = voli[0];
 
+          // OK, this is an interior point from the perspective that it was clipped within our critical
+          // radius on all sides.  However, if we have a bounding polygon we may still want to call it a
+          // surface if in fact there are still facets from that bounding polygon on this cell.
+          if (numBounds == numNodeLists) {
+            unsigned j = 0;
+            while (interior and j != celli.nverts) {
+              interior = not pointOnPolygon(ri + Vector(celli.verts[j].pos.x, celli.verts[j].pos.y),
+                                            boundaries[nodeListi].vertices(),
+                                            1.0e-8);
+              ++j;
+            }
+          }
+
           // Apply the gradient limiter;
           gradRhoi *= phi;
 
@@ -338,44 +348,56 @@ computeVoronoiVolume(const FieldList<Dim<2>, Dim<2>::Vector>& position,
           const Scalar m0 = cellIntegral(doublecelli, rhoi, gradRhoi);
           const Vector deltaCentroidi = Vector(firstmom[1], firstmom[2])/m0;
 
-          // Is there a significant density gradient?
-          if (sqrt(gradRhoi.magnitude2()*voli[0]) >= 0.025*rhoi) {
+          if (interior) {
+            surfacePoint(nodeListi, i) = 0;
 
-            // BLAGO!
-            const Vector nhat1 = gradRhoi.unitVector();
-            const Vector nhat2 = Vector(-nhat1.y(), nhat1.x());
-            PolygonClippedMassRoot F1(doublecelli, rhoi, gradRhoi, nhat1, 0.5);
-            const double dx = F1.xmax - F1.xmin;
-            const double dx1 = -F1.xmin;
-            const Scalar b = gradRhoi.magnitude();
-            const Scalar rho0 = rhoi - b*dx1;
-            deltaMedian(nodeListi, i) = ((sqrt(2.0*rho0*rho0 + b*b*dx*dx + 2.0*b*rho0*dx)/sqrt(2.0) - rho0)*safeInvVar(b) - dx1)*nhat1 + deltaCentroidi.dot(nhat2)*nhat2;
+            // Is there a significant density gradient?
+            if (sqrt(gradRhoi.magnitude2()*voli[0]) >= 0.025*rhoi) {
 
-            // // If so, we search for the median mass position within the cell.
-            // // We search for the median coordinates with reference to the density gradient direction.
-            // const Vector nhat1 = gradRhoi.unitVector();
-            // const Vector nhat2 = Vector(-nhat1.y(), nhat1.x());
-            // PolygonClippedMassRoot F1(celli, rhoi, gradRhoi, nhat1, 0.5);
-            // PolygonClippedMassRoot F2(celli, rhoi, gradRhoi, nhat2, 0.5);
-            // const double x1 = F1.xmin + (F1.xmax - F1.xmin)*bisectRoot(F1, 0.0, 1.0, 1.0e-5, 1.0e-5);
-            // deltaMedian(nodeListi, i) = x1*nhat1 + deltaCentroidi.dot(nhat2)*nhat2;
-            // // const double x2 = F2.xmin + (F2.xmax - F2.xmin)*bisectRoot(F2, 0.0, 1.0, 1.0e-5, 1.0e-5);
-            // // deltaMedian(nodeListi, i) = x1*nhat1 + x2*nhat2;
-            // // cout << " **> " << i << " " << deltaMedian(nodeListi, i) << " " << phi << " " << gradRhoi << " " << x1 << " " << x2 << " " << (x1 - F1.xmin)/(F1.xmax - F1.xmin) << " " << (x2 - F2.xmin)/(F2.xmax - F2.xmin) << endl;
-            // // cout << "================================================================================" << endl;
+              const Vector nhat1 = gradRhoi.unitVector();
+              const Vector nhat2 = Vector(-nhat1.y(), nhat1.x());
+              PolygonClippedMassRoot F1(doublecelli, rhoi, gradRhoi, nhat1, 0.5);
+              const double dx = F1.xmax - F1.xmin;
+              const double dx1 = -F1.xmin;
+              const Scalar b = gradRhoi.magnitude();
+              const Scalar rho0 = rhoi - b*dx1;
+              deltaMedian(nodeListi, i) = ((sqrt(2.0*rho0*rho0 + b*b*dx*dx + 2.0*b*rho0*dx)/sqrt(2.0) - rho0)*safeInvVar(b) - dx1)*nhat1 + deltaCentroidi.dot(nhat2)*nhat2;
+
+              // // If so, we search for the median mass position within the cell.
+              // // We search for the median coordinates with reference to the density gradient direction.
+              // const Vector nhat1 = gradRhoi.unitVector();
+              // const Vector nhat2 = Vector(-nhat1.y(), nhat1.x());
+              // PolygonClippedMassRoot F1(celli, rhoi, gradRhoi, nhat1, 0.5);
+              // PolygonClippedMassRoot F2(celli, rhoi, gradRhoi, nhat2, 0.5);
+              // const double x1 = F1.xmin + (F1.xmax - F1.xmin)*bisectRoot(F1, 0.0, 1.0, 1.0e-5, 1.0e-5);
+              // deltaMedian(nodeListi, i) = x1*nhat1 + deltaCentroidi.dot(nhat2)*nhat2;
+              // // const double x2 = F2.xmin + (F2.xmax - F2.xmin)*bisectRoot(F2, 0.0, 1.0, 1.0e-5, 1.0e-5);
+              // // deltaMedian(nodeListi, i) = x1*nhat1 + x2*nhat2;
+              // // cout << " **> " << i << " " << deltaMedian(nodeListi, i) << " " << phi << " " << gradRhoi << " " << x1 << " " << x2 << " " << (x1 - F1.xmin)/(F1.xmax - F1.xmin) << " " << (x2 - F2.xmin)/(F2.xmax - F2.xmin) << endl;
+              // // cout << "================================================================================" << endl;
+
+            } else {
+
+              // Otherwise just use the centroid.
+              deltaMedian(nodeListi, i) = deltaCentroidi;
+              // cout << " CENTROIDAL**> " << i << " " << deltaMedian(nodeListi, i) << " " << phi << " " << gradRhoi << endl;
+
+            }
 
           } else {
-
-            // Otherwise just use the centroid.
+              
+            // This is a point that touches the bounding polygon.  Flag it as surface.
+            surfacePoint(nodeListi, i) = 1;
             deltaMedian(nodeListi, i) = deltaCentroidi;
-            // cout << " CENTROIDAL**> " << i << " " << deltaMedian(nodeListi, i) << " " << phi << " " << gradRhoi << endl;
 
           }
+
 
         } else {
 
           // This point touches a free boundary, so flag it.
           surfacePoint(nodeListi, i) = 1;
+          deltaMedian(nodeListi, i) = Vector::zero;
 
         }
 
@@ -415,6 +437,35 @@ computeVoronoiVolume(const FieldList<Dim<2>, Dim<2>::Vector>& position,
 
       }
     }
+
+    // // Lastly, for any points labeled suface we concoct a sampled median motion by simply interpolating from the surrounding points.
+    // // We'll use a really simple low-order Shepard's function for this.
+    // if (numBounds == 0) {
+    //   for (unsigned nodeListi = 0; nodeListi != numNodeLists; ++nodeListi) {
+    //     const unsigned n = vol[nodeListi]->numInternalElements();
+    //     const Neighbor<Dim<2> >& neighbor = position[nodeListi]->nodeListPtr()->neighbor();
+    //     for (unsigned i = 0; i != n; ++i) {
+    //       const Vector& ri = position(nodeListi, i);
+    //       Scalar wsumi = 0.0;
+    //       const vector<vector<int> >& fullConnectivity = connectivityMap.connectivityForNode(nodeListi, i);
+    //       for (unsigned nodeListj = 0; nodeListj != numNodeLists; ++nodeListj) {
+    //         for (vector<int>::const_iterator jItr = fullConnectivity[nodeListj].begin();
+    //              jItr != fullConnectivity[nodeListj].end();
+    //              ++jItr) {
+    //           const unsigned j = *jItr;
+    //           if (surfacePoint(nodeListj, j) == 0) {
+    //             const Vector& rj = position(nodeListj, j);
+    //             const Scalar wi = safeInvVar((ri - rj).magnitude2());
+    //             wsumi += wi;
+    //             deltaMedian(nodeListi, i) += wi*deltaMedian(nodeListj, j);
+    //           }
+    //         }
+    //       }
+    //       deltaMedian(nodeListi, i) *= safeInvVar(wsumi);
+    //     }
+    //   }
+    // }
+
   }
 }
 
