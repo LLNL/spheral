@@ -151,6 +151,9 @@ boundaries = [] # [xbc0, xbc1, ybc0, ybc1]
 #-------------------------------------------------------------------------------
 # Call the centroidal relaxer.
 #-------------------------------------------------------------------------------
+# Report the initial mass matching.
+print "Initial mass min/max ratio : ", m.min()/m.max()
+
 bcpoints = vector_of_Vector()
 for p in [Vector(x0, y0), Vector(x1, y0), Vector(x1, y1), Vector(x0, y1)]:
    bcpoints.append(p)
@@ -163,6 +166,9 @@ vol, surfacePoint = centroidalRelaxNodes(nodeListsAndBounds = [(nodes, boundary)
                                          boundaries = boundaries,
                                          fracTol = tol,
                                          tessellationFileName = baseName)
+
+# Report the final mass matching.
+print "Final mass min/max ratio : ", m.min()/m.max()
 
 #-------------------------------------------------------------------------------
 # Plot the final state.
