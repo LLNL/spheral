@@ -35,6 +35,7 @@ def siloMeshDump(dirName, mesh,
                  label = "Spheral++ generated mesh",
                  time = 0.0,
                  cycle = 0,
+                 intFields = [],
                  scalarFields = [],
                  vectorFields = [],
                  tensorFields = [],
@@ -62,7 +63,7 @@ def siloMeshDump(dirName, mesh,
 
     # Extract all the fields we're going to write.
     fieldwad = extractFieldComponents(nodeLists, time, cycle,
-                                      scalarFields, vectorFields, tensorFields, symTensorFields)
+                                      intFields, scalarFields, vectorFields, tensorFields, symTensorFields)
 
     # If we have index2zone, remove any redundant values.
     if index2zone:
@@ -105,9 +106,11 @@ def siloMeshDump(dirName, mesh,
 # tensor fields into their components.
 #-------------------------------------------------------------------------------
 def extractFieldComponents(nodeLists, time, cycle,
-                           scalarFields, vectorFields, tensorFields, symTensorFields):
-    result = extractFields(nodeLists, time, cycle, scalarFields,
-                           metaDataScalarField, extractScalarField, dummyScalarField)
+                           intFields, scalarFields, vectorFields, tensorFields, symTensorFields):
+    result = extractFields(nodeLists, time, cycle, intFields,
+                           metaDataIntField, extractIntField, dummyIntField)
+    result += extractFields(nodeLists, time, cycle, scalarFields,
+                            metaDataScalarField, extractScalarField, dummyScalarField)
     result += extractFields(nodeLists, time, cycle, vectorFields,
                             metaDataVectorField, extractVectorField, dummyVectorField)
     result += extractFields(nodeLists, time, cycle, tensorFields,
@@ -348,7 +351,10 @@ def writeDomainMeshSiloFile(dirName, mesh, index2zone, label, nodeLists, time, c
         for name, desc, type, optlistDef, optlistMV, optlistVar, subvars in fieldwad:
             for subname, vals in subvars:
                 if len(vals) > 0:
-                    assert silo.DBPutUcdvar1(db, subname, "MESH", vals, vector_of_double(), centering, varOpts) == 0
+                    if isinstance(vals, vector_of_double):
+                        assert silo.DBPutUcdvar1(db, subname, "MESH", vals, vector_of_double(), centering, varOpts) == 0
+                    elif isinstance(vals, vector_of_int):
+                        assert silo.DBPutUcdvar1(db, subname, "MESH", vals, vector_of_int(), centering, varOpts) == 0
 
     # Write the set of neighbor domains.
     thpt = vector_of_vector_of_int()
@@ -460,6 +466,33 @@ def extractFields(nodeLists, time, cycle, fields,
             result.append((name, varDef, varType, optlistDef, optlistMV, optlistVar, vals))
 
     return result
+
+#-------------------------------------------------------------------------------
+# Int field components.
+#-------------------------------------------------------------------------------
+def extractIntField(name, field, vals, dim):
+    if vals == []:
+        vals = [[name, field]]
+    else:
+        vals[0][1] += field
+    return vals
+
+def dummyIntField(name, n, vals, dim):
+    if vals == []:
+        vals = [[name, vector_of_int(n, 0)]]
+    else:
+        vals[0][1] += vector_of_int(n, 0)
+    return vals
+
+def metaDataIntField(name, time, cycle, dim):
+    optlistDef = None
+    optlistMV = silo.DBoptlist()
+    optlistVar = silo.DBoptlist()
+    for optlist in (optlistMV, optlistVar):
+        assert optlist.addOption(SA._DBOPT_CYCLE, cycle) == 0
+        assert optlist.addOption(SA._DBOPT_DTIME, time) == 0
+        assert optlist.addOption(SA._DBOPT_TENSOR_RANK, SA._DB_VARTYPE_SCALAR) == 0
+    return (None, SA._DB_VARTYPE_SCALAR, optlistDef, optlistMV, optlistVar)
 
 #-------------------------------------------------------------------------------
 # Scalar field components.
