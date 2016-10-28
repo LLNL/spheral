@@ -4,6 +4,7 @@ from SpheralTestUtilities import *
 from centroidalRelaxNodes import *
 from GenerateNodeDistribution2d import *
 from siloPointmeshDump import *
+from fieldStatistics import *
 
 title("2-D test of centroidal relaxation.")
 
@@ -21,6 +22,9 @@ commandLine(KernelConstructor = NBSplineKernel,
             a = 1.0,
             bx = 0.0,
             by = 0.0,
+            cx2 = 0.0,
+            cxy = 0.0,
+            cy2 = 0.0,
 
             # Initial geometry
             nx = 50,
@@ -48,10 +52,11 @@ commandLine(KernelConstructor = NBSplineKernel,
 # Our density and gradient methods.
 #-------------------------------------------------------------------------------
 def rhofunc(posi):
-   return a + bx*posi.x + by * posi.y
+   return a + bx*posi.x + by*posi.y + cx2*posi.x**2 + cxy*posi.x*posi.y + cy2*posi.y**2
 
 def gradrhofunc(posi):
-   return Vector(bx, by)
+   return Vector(bx + 2.0*cx2*posi.x + cxy*posi.y,
+                 by + 2.0*cy2*posi.y + cxy*posi.x)
 
 #-------------------------------------------------------------------------------
 # Create a random number generator.
@@ -152,7 +157,7 @@ boundaries = [] # [xbc0, xbc1, ybc0, ybc1]
 # Call the centroidal relaxer.
 #-------------------------------------------------------------------------------
 # Report the initial mass matching.
-print "Initial mass min/max ratio : ", m.min()/m.max()
+print "Initial mass (min, max, avg, std dev) : ", fieldStatistics(m)
 
 bcpoints = vector_of_Vector()
 for p in [Vector(x0, y0), Vector(x1, y0), Vector(x1, y1), Vector(x0, y1)]:
@@ -168,7 +173,7 @@ vol, surfacePoint = centroidalRelaxNodes(nodeListsAndBounds = [(nodes, boundary)
                                          tessellationFileName = baseName)
 
 # Report the final mass matching.
-print "Final mass min/max ratio : ", m.min()/m.max()
+print "Final mass (min, max, avg, std dev) : ", fieldStatistics(m)
 
 #-------------------------------------------------------------------------------
 # Plot the final state.

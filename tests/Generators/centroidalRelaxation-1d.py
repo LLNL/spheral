@@ -2,6 +2,7 @@ import os, shutil
 from Spheral1d import *
 from SpheralTestUtilities import *
 from centroidalRelaxNodes import *
+from fieldStatistics import *
 
 title("1-D test of centroidal relaxation.")
 
@@ -131,7 +132,7 @@ boundaries = [] # [xbc0, xbc1]
 # Call the centroidal relaxer.
 #-------------------------------------------------------------------------------
 # Report the initial mass matching.
-print "Initial mass min/max ratio : ", m.min()/m.max()
+print "Initial mass (min, max, avg, std dev) : ", fieldStatistics(m)
 
 vol, surfacePoint = centroidalRelaxNodes(nodeListsAndBounds = [(nodes, Box1d(Vector(0.5*(x0 + x1)), 0.5*(x1 - x0)))],
                                          W = WT,
@@ -142,7 +143,7 @@ vol, surfacePoint = centroidalRelaxNodes(nodeListsAndBounds = [(nodes, Box1d(Vec
                                          fracTol = tol)
 
 # Report the final mass matching.
-print "Final mass min/max ratio : ", m.min()/m.max()
+print "Final mass (min, max, avg, std dev) : ", fieldStatistics(m)
 
 #-------------------------------------------------------------------------------
 # Plot the final state.
