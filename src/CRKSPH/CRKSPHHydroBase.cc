@@ -1240,13 +1240,15 @@ finalize(const typename Dimension::Scalar time,
     FieldList<Dimension, Vector> position = state.fields(HydroFieldNames::position, Vector::zero);  // Gotta get a non-const version now.
     const FieldList<Dimension, Scalar> soundSpeed = state.fields(HydroFieldNames::soundSpeed, 0.0);
     const FieldList<Dimension, Vector> velocity = state.fields(HydroFieldNames::velocity, Vector::zero);
+    const FieldList<Dimension, Tensor> DvDx = derivs.fields(HydroFieldNames::velocityGradient, Tensor::zero);
     const unsigned numNodeLists = position.numFields();
     Scalar maxmag2, dcmag2, fi, mi, rhoi, Vi;
     for (unsigned nodeListi = 0; nodeListi != numNodeLists; ++nodeListi) {
       const unsigned n = position[nodeListi]->numInternalElements();
       for (unsigned i = 0; i != n; ++i) {
         dcmag2 = mDeltaCentroid(nodeListi, i).magnitude2();
-        maxmag2 = max(FastMath::square(soundSpeed(nodeListi, i)), velocity(nodeListi, i).magnitude2())*dt*dt;
+        maxmag2 = min(FastMath::square(min(soundSpeed(nodeListi, i), abs(DvDx(nodeListi, i).Trace())/H(nodeListi, i).eigenValues().maxElement())),
+                      velocity(nodeListi, i).magnitude2())*dt*dt;
         mi = mass(nodeListi, i);
         rhoi = massDensity(nodeListi, i);
         Vi = vol(nodeListi, i);
