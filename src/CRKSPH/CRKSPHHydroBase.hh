@@ -220,6 +220,7 @@ public:
   const FieldSpace::FieldList<Dimension, Scalar>&    weightedNeighborSum() const;
   const FieldSpace::FieldList<Dimension, SymTensor>& massSecondMoment() const;
   const FieldSpace::FieldList<Dimension, Scalar>&    volume() const;
+  const FieldSpace::FieldList<Dimension, Scalar>&    volume0() const;
   const FieldSpace::FieldList<Dimension, Vector>&    massDensityGradient() const;
   const FieldSpace::FieldList<Dimension, Vector>&    XSPHDeltaV() const;
   const FieldSpace::FieldList<Dimension, Vector>&    DxDt() const;
@@ -292,6 +293,7 @@ protected:
   FieldSpace::FieldList<Dimension, SymTensor> mMassSecondMoment;
 
   FieldSpace::FieldList<Dimension, Scalar>    mVolume;
+  FieldSpace::FieldList<Dimension, Scalar>    mVolume0;
   FieldSpace::FieldList<Dimension, Vector>    mMassDensityGradient;
 
   FieldSpace::FieldList<Dimension, Vector>    mXSPHDeltaV;
