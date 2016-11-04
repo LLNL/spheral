@@ -68,12 +68,12 @@ class DataOutput:
         x = self.RestartableObject
 
         # Constructors.
-        x.add_constructor([])
-        x.add_constructor([param("int", "priority")])
+        x.add_constructor([param("PyObject*", "pyself", transfer_ownership=False),
+                                 param("int", "priority", default_value="100")])
 
         # Methods.
-        x.add_method("label", "std::string", [], is_const=True, is_pure_virtual=True)
-        x.add_method("dumpState", None, [refparam(fileio, "file"), param("const std::string", "pathName")], is_const=True, is_pure_virtual=True)
-        x.add_method("restoreState", None, [constrefparam(fileio, "file"), param("const std::string", "pathName")], is_pure_virtual=True)
+        x.add_method("label", "std::string", [], is_const=True, is_virtual=True)
+        x.add_method("dumpState", None, [refparam(fileio, "file"), param("const std::string", "pathName")], is_const=True, is_virtual=True)
+        x.add_method("restoreState", None, [constrefparam(fileio, "file"), param("const std::string", "pathName")], is_virtual=True)
 
         return

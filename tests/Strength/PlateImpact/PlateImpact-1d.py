@@ -132,7 +132,7 @@ if readRestartFile and (restoreCycle is None):
 #-------------------------------------------------------------------------------
 # Define a class to track the history of the interface.
 #-------------------------------------------------------------------------------
-class InterfaceHistory(RestartableObject):
+class InterfaceHistory:
 
     def __init__(self,
                  sapphireIndex,
@@ -142,7 +142,7 @@ class InterfaceHistory(RestartableObject):
                  sapphireNodes,
                  tantalumNodes,
                  filename):
-        RestartableObject.__init__(self)
+        self.restart = RestartableObject(self)
         self.sapphireIndex = sapphireIndex
         self.tantalumIndex = tantalumIndex
         self.sapphireProc = sapphireProc

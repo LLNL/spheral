@@ -31,7 +31,7 @@ from SpheralModules.Spheral.KernelSpace import BSplineKernel%(dim)sd
 from SpheralModules import vector_of_Physics%(dim)sd
 """ % {"dim" : dim})
 
-class SpheralController(RestartableObject):
+class SpheralController:
 
     #--------------------------------------------------------------------------
     # Constuctor.
@@ -61,7 +61,7 @@ class SpheralController(RestartableObject):
                  skipInitialPeriodicWork = False,
                  iterateInitialH = True,
                  numHIterationsBetweenCycles = 0):
-        RestartableObject.__init__(self)
+        self.restart = RestartableObject(self)
         self.integrator = integrator
         self.kernel = kernel
         self.restartObjects = restartObjects

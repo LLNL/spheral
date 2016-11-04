@@ -25,22 +25,15 @@ typedef boost::shared_ptr<RestartHandle> RestartRegistrationType;
 // will be counted for restart.
 //------------------------------------------------------------------------------
 template<typename Object>
-RestartRegistrationType
-registerWithRestart(Object& object, 
-                    const unsigned priority = 100);
-
-#ifndef __GCCXML__
-template<typename Object>
 inline
 RestartRegistrationType
 registerWithRestart(Object& object,
-                    const unsigned priority) {
+                    const unsigned priority = 100) {
   RestartRegistrationType handle(new Restart<Object>(object));
   RestartRegistrar& registrar = RestartRegistrar::instance();
   registrar.registerRestartHandle(handle, priority);
   return handle;
 }
-#endif
 
 }
 }
