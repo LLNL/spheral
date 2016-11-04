@@ -7,11 +7,11 @@ import mpi
 # Beware : this thing computes and stores a new field for every sample operation.
 #          That could get memory intensive eventually!
 #-------------------------------------------------------------------------------
-class AngularMomentumHistory(Spheral.RestartableObject):
+class AngularMomentumHistory:
 
     def __init__(self,
                  nodeList):
-        Spheral.RestartableObject.__init__(self)
+        self.restart = Spheral.RestartableObject(self)
         self.nodeList = nodeList
         self.cycleHistory = []
         self.timeHistory = []

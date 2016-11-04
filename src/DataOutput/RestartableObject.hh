@@ -1,24 +1,26 @@
 //---------------------------------Spheral++----------------------------------//
 // RestartableObject
-// This is an object that handles registering it's descendents with the 
-// RestartRegistrar.  The idea here is you just inherit from this bad boy, 
-// and blamo you're restartable.
+//
+// This is an object that handles registering with the RestartRegistrar.
+// RestartableObject is intended as a helper for python classes which want to
+// be restartable.  They can simply do the following in their __init__ method:
+//   self.restart = RestartableObject(self)
+// and they must provide the "label", "dumpState", and "restoreState" methods
+// as usual.
 // This is intended solely for use making Python objects play in our restart
 // setup -- please use the C++ centric methods in registerWithRestart.hh
 // for C++ restarting.
 //
 // Created by JMO, Thu May 28 17:47:48 PDT 2009
 //----------------------------------------------------------------------------//
-#ifndef __Spheral_RestarbableObject__
-#define __Spheral_RestarbableObject__
+#ifndef __Spheral_RestartableObject__
+#define __Spheral_RestartableObject__
 
 #include <string>
 
-#ifndef __GCCXML__
 #include "DataOutput/registerWithRestart.hh"
-#else
-#include "fakestl.hh"
-#endif
+
+#include "Python.h"
 
 // Forward declarations.
 namespace Spheral {
@@ -34,21 +36,23 @@ class RestartableObject {
 
 public:
   //------------------------===== Public Interface =====-----------------------//
-  RestartableObject();
-  RestartableObject(const unsigned priority);
+  RestartableObject(PyObject* self,
+                    const unsigned priority);
   virtual ~RestartableObject();
 
-  // All descendents *must* provide the following.
-  virtual std::string label() const = 0;
-  virtual void dumpState(FileIOSpace::FileIO& file, const std::string pathName) const = 0;
-  virtual void restoreState(const FileIOSpace::FileIO& file, const std::string pathName) = 0;
+  // The methods we are providing for restart.  These simply turn around and call
+  // methods of the same name on "self".
+  virtual std::string label() const;
+  virtual void dumpState(FileIOSpace::FileIO& file, const std::string pathName) const;
+  virtual void restoreState(const FileIOSpace::FileIO& file, const std::string pathName);
 
 private:
   //-----------------------===== Private Interface =====-----------------------//
-#ifndef __GCCXML__
   // The restart registration.
   DataOutput::RestartRegistrationType mRestart;
-#endif
+
+  // The python object we're restarting.
+  PyObject* mSelf;
 };
 
 }

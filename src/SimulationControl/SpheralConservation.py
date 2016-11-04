@@ -19,14 +19,14 @@ from SpheralModules.Spheral.IntegratorSpace import *
 #-------------------------------------------------------------------------------
 # Conservation
 #-------------------------------------------------------------------------------
-class SpheralConservation(RestartableObject):
+class SpheralConservation:
 
     #---------------------------------------------------------------------------
     # Constructor
     #---------------------------------------------------------------------------
     def __init__(self, dataBase,
                  packages = []):
-        RestartableObject.__init__(self)
+        self.restart = RestartableObject(self)
         self.dataBase = dataBase
         self.packages = packages
         self.cycleHistory = []
