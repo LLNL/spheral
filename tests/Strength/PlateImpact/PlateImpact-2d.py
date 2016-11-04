@@ -128,7 +128,7 @@ restoreCycle = findLastRestart(restartBaseName)
 #-------------------------------------------------------------------------------
 # Define a class to track the history of the interface.
 #-------------------------------------------------------------------------------
-class InterfaceHistory(RestartableObject):
+class InterfaceHistory:
 
     def __init__(self,
                  sapphireIndicies,
@@ -136,7 +136,7 @@ class InterfaceHistory(RestartableObject):
                  sapphireNodes,
                  tantalumNodes,
                  filename):
-        RestartableObject.__init__(self)
+        self.restart = RestartableObject(self)
         self.sapphireIndicies = sapphireIndicies
         self.tantalumIndicies = tantalumIndicies
         self.sapphireNodes = sapphireNodes

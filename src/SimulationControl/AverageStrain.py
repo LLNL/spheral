@@ -5,9 +5,9 @@ import mpi
 #-------------------------------------------------------------------------------
 # Sampling function to measure the average strain in the volume of the rod.
 #-------------------------------------------------------------------------------
-class AverageStrain(RestartableObject):
+class AverageStrain:
     def __init__(self, damageModel, filename):
-        RestartableObject.__init__(self)
+        self.restart = RestartableObject(self)
         self.damageModel = damageModel
         self.filename = filename
         self.timeHistory = []

@@ -5,7 +5,7 @@ import mpi
 #-------------------------------------------------------------------------------
 # A class for tracking the history of a given set of nodes.
 #-------------------------------------------------------------------------------
-class NodeHistory(Spheral.RestartableObject):
+class NodeHistory:
 
     def __init__(self,
                  nodeList,
@@ -14,7 +14,7 @@ class NodeHistory(Spheral.RestartableObject):
                  filename,
                  header = None,
                  labels = None):
-        Spheral.RestartableObject.__init__(self)
+        self.restart = Spheral.RestartableObject(self)
         self.nodeList = nodeList
         self.nodeIndicies = nodeIndicies
         self.sampleMethod = sampleMethod
