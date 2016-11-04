@@ -25,13 +25,13 @@ title("3-D Tensile rod strength/damage model test")
 # Stupid little class to override the mass density evolution of the control
 # boundary nodes.
 #-------------------------------------------------------------------------------
-class OverrideNodeProperties(RestartableObject):
+class OverrideNodeProperties:
     def __init__(self,
                  nodeList,
                  rho0,
                  eps0,
                  controlNodeIDs):
-        RestartableObject.__init__(self)
+        self.restart = RestartableObject(self)
         self.nodeList = nodeList
         self.rho0 = rho0
         self.eps0 = eps0
