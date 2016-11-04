@@ -32,10 +32,6 @@ computeCRKSPHSumMassDensity(const ConnectivityMap<Dimension>& connectivityMap,
                             const FieldList<Dimension, typename Dimension::Scalar>& mass,
                             const FieldList<Dimension, typename Dimension::Scalar>& vol,
                             const FieldList<Dimension, typename Dimension::SymTensor>& H,
-                            const FieldList<Dimension, typename Dimension::Scalar>& A,
-                            const FieldList<Dimension, typename Dimension::Vector>& B,
-                            const FieldList<Dimension, typename Dimension::Tensor>& C,
-                            const CRKOrder correctionOrder,
                             FieldList<Dimension, typename Dimension::Scalar>& massDensity) {
 
   // Pre-conditions.
@@ -44,9 +40,6 @@ computeCRKSPHSumMassDensity(const ConnectivityMap<Dimension>& connectivityMap,
   REQUIRE(mass.size() == numNodeLists);
   REQUIRE(vol.size() == numNodeLists);
   REQUIRE(H.size() == numNodeLists);
-  REQUIRE(A.size() == numNodeLists);
-  REQUIRE(B.size() == numNodeLists or correctionOrder == ZerothOrder);
-  REQUIRE(C.size() == numNodeLists or correctionOrder != QuadraticOrder);
 
   typedef typename Dimension::Scalar Scalar;
   typedef typename Dimension::Vector Vector;
@@ -56,16 +49,18 @@ computeCRKSPHSumMassDensity(const ConnectivityMap<Dimension>& connectivityMap,
   typedef typename Dimension::FourthRankTensor FourthRankTensor;
   typedef typename Dimension::FifthRankTensor FifthRankTensor;
 
-  FieldList<Dimension, Scalar> vol1(FieldSpace::Copy);
-  for (size_t nodeListi = 0; nodeListi != numNodeLists; ++nodeListi) {
-    vol1.appendNewField("averaged volume", position[nodeListi]->nodeList(), 0.0);
-  }
-
   // Some scratch variables.
   Scalar Wi, Wj;
   Vector rij, etai, etaj;
   Vector Bi = Vector::zero, Bj = Vector::zero;
   Tensor Ci = Tensor::zero, Cj = Tensor::zero;
+  const Scalar W0 = W.kernelValue(0.0, 1.0);
+
+  FieldList<Dimension, Scalar> wsum(FieldSpace::Copy), vol1(FieldSpace::Copy);
+  for (size_t nodeListi = 0; nodeListi != numNodeLists; ++nodeListi) {
+    wsum.appendNewField("weight sum", position[nodeListi]->nodeList(), 0.0);
+    vol1.appendNewField("sampled volume", position[nodeListi]->nodeList(), 0.0);
+  }
 
   massDensity = 0.0;
   for (size_t nodeListi = 0; nodeListi != numNodeLists; ++nodeListi) {
@@ -85,71 +80,54 @@ computeCRKSPHSumMassDensity(const ConnectivityMap<Dimension>& connectivityMap,
       const Scalar Vi = vol(nodeListi, i);
       const Scalar rhoi = massDensity(nodeListi, i);
       const SymTensor& Hi = H(nodeListi, i);
-      const Scalar Hdeti = Hi.Determinant();
-      const Scalar Ai = A(nodeListi, i);
-      if (correctionOrder != ZerothOrder) {
-        Bi = B(nodeListi, i);
-      }
-      if (correctionOrder == QuadraticOrder) {
-        Ci = C(nodeListi, i);
-      }
+
+      // Loop over the neighbors in just point i's NodeList.
       const vector<vector<int> >& fullConnectivity = connectivityMap.connectivityForNode(nodeListi, i);
+      const vector<int>& connectivity = fullConnectivity[nodeListi];
+      const int firstGhostNodej = massDensity[nodeListi]->nodeList().firstGhostNode();
+      for (vector<int>::const_iterator jItr = connectivity.begin();
+           jItr != connectivity.end();
+           ++jItr) {
+        const int j = *jItr;
 
-      for (size_t nodeListj = 0; nodeListj != numNodeLists; ++nodeListj) {
-        const vector<int>& connectivity = fullConnectivity[nodeListj];
-        const int firstGhostNodej = massDensity[nodeListj]->nodeList().firstGhostNode();
-        for (vector<int>::const_iterator jItr = connectivity.begin();
-             jItr != connectivity.end();
-             ++jItr) {
-          const int j = *jItr;
+        // Check if this node pair has already been calculated.
+        if (connectivityMap.calculatePairInteraction(nodeListi, i, 
+                                                     nodeListi, j,
+                                                     firstGhostNodej)) {
+          const Vector& rj = position(nodeListi, j);
+          const Scalar mj = mass(nodeListi, j);
+          const Scalar Vj = vol(nodeListi, j);
+          const Scalar rhoj = massDensity(nodeListi, j);
+          const SymTensor& Hj = H(nodeListi, j);
 
-          // Check if this node pair has already been calculated.
-          if (connectivityMap.calculatePairInteraction(nodeListi, i, 
-                                                       nodeListj, j,
-                                                       firstGhostNodej)) {
-            const Vector& rj = position(nodeListj, j);
-            const Scalar mj = mass(nodeListj, j);
-            const Scalar Vj = vol(nodeListj, j);
-            const Scalar rhoj = massDensity(nodeListj, j);
-            const SymTensor& Hj = H(nodeListj, j);
-            const Scalar Hdetj = Hj.Determinant();
-            const Scalar Aj = A(nodeListj, j);
-            if (correctionOrder != ZerothOrder) {
-              Bj = B(nodeListj, j);
-            }
-            if (correctionOrder == QuadraticOrder) {
-              Cj = C(nodeListj, j);
-            }
+          // Kernel weighting and gradient.
+          rij = ri - rj;
+          etai = Hi*rij;
+          etaj = Hj*rij;
+          Wi = FastMath::pow8(W.kernelValue(etai.magnitude(), 1.0));
+          Wj = FastMath::pow8(W.kernelValue(etaj.magnitude(), 1.0));
 
-            // Kernel weighting and gradient.
-            rij = ri - rj;
-            etai = Hi*rij;
-            etaj = Hj*rij;
-            Wj = CRKSPHKernel(W, correctionOrder,  rij,  etai, Hdeti,  etaj, Hdetj, Ai, Bi, Ci);
-            Wi = CRKSPHKernel(W, correctionOrder, -rij, -etaj, Hdetj, -etai, Hdeti, Aj, Bj, Cj);
-            // Wj = W.kernelValue(etaj.magnitude(), Hdetj);
-            // Wi = W.kernelValue(etai.magnitude(), Hdeti);
-
-            // Sum the pair-wise contributions.
-            // massDensity(nodeListi, i) += (nodeListi == nodeListj ? mj : mi) * Wj;
-            // massDensity(nodeListj, j) += (nodeListi == nodeListj ? mi : mj) * Wi;
-            massDensity(nodeListi, i) += (nodeListi == nodeListj ? mj : mi) * Vj*Wj;
-            massDensity(nodeListj, j) += (nodeListi == nodeListj ? mi : mj) * Vi*Wi;
-            vol1(nodeListi, i) += Vj*Vj*Wj;
-            vol1(nodeListj, j) += Vi*Vi*Wi;
-          }
+          // Sum the pair-wise contributions.
+          wsum(nodeListi, i) += Vj*Wj;
+          wsum(nodeListi, j) += Vi*Wi;
+          massDensity(nodeListi, i) += mj * Vj*Wj;
+          massDensity(nodeListi, j) += mi * Vi*Wi;
+          vol1(nodeListi, i) += Vj * Vj*Wj;
+          vol1(nodeListi, j) += Vi * Vi*Wi;
         }
       }
   
-      // Finalize the density for node i.
-      Wj = CRKSPHKernel(W, correctionOrder, Vector::zero, Vector::zero, Hdeti, Vector::zero, Hdeti, Ai, Bi, Ci);
-      // Wj = W.kernelValue(0.0, Hdeti);
-      massDensity(nodeListi, i) = max(max(rhoMin, mi*Hdeti),
+      // Finalize the density and volume for node i.
+      wsum(nodeListi, i) += Vi*W0;
+      CHECK(wsum(nodeListi, i) > 0.0);
+      vol1(nodeListi, i) = (vol1(nodeListi, i) + Vi*Vi*W0)/wsum(nodeListi, i);
+      massDensity(nodeListi, i) = max(max(rhoMin, 0.1*mi*H(nodeListi, i).Determinant()),
                                       min(rhoMax,
-                                          // (massDensity(nodeListi, i) + mi*Wj)));
-                                          (massDensity(nodeListi, i) + mi*Vi*Wj)/
-                                          (vol1(nodeListi, i) + Vi*Vi*Wj)));
-      CHECK(massDensity(nodeListi, i) > 0.0);
+                                          (massDensity(nodeListi, i) + mi*Vi*W0)/
+                                          (wsum(nodeListi, i)*vol1(nodeListi, i))));
+      vol1(nodeListi, i) = vol(nodeListi, i); // BLAGO!
+      ENSURE(vol(nodeListi, i) > 0.0);
+      ENSURE(massDensity(nodeListi, i) > 0.0);
     }
   }
 }

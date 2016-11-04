@@ -99,6 +99,7 @@ commandLine(seed = "lattice",
             dtverbose = False,
 
             correctionOrder = LinearOrder,
+            volumeType = CRKSumVolume,
             densityUpdate = RigorousSumDensity, # VolumeScaledDensity,
             compatibleEnergy = True,
             gradhCorrection = True,
@@ -292,6 +293,7 @@ elif CRKSPH:
                              compatibleEnergyEvolution = compatibleEnergy,
                              XSPH = XSPH,
                              correctionOrder = correctionOrder,
+                             volumeType = volumeType,
                              densityUpdate = densityUpdate,
                              HUpdate = HUpdate)
 elif PSPH:

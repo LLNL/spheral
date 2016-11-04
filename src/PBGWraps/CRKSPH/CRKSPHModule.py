@@ -87,6 +87,7 @@ self.generateSolidCRKSPHHydroBaseBindings(self.SolidCRKSPHHydroBase%(dim)id, %(d
         connectivitymap = "Spheral::NeighborSpace::ConnectivityMap%id" % ndim
         tablekernel = "Spheral::KernelSpace::TableKernel%id" % ndim
         vector_of_boundary = "vector_of_Boundary%id" % ndim
+        vector_of_FacetedVolume = "vector_of_FacetedVolume%id" % ndim
         polyvol = {1: "Box1d", 
                    2: "Polygon",
                    3: "Polyhedron"}[ndim]
@@ -135,10 +136,6 @@ self.generateSolidCRKSPHHydroBaseBindings(self.SolidCRKSPHHydroBase%(dim)id, %(d
                                  constrefparam(scalarfieldlist, "mass"),
                                  constrefparam(scalarfieldlist, "vol"),
                                  constrefparam(symtensorfieldlist, "H"),
-                                 constrefparam(scalarfieldlist, "A"),
-                                 constrefparam(vectorfieldlist, "B"),
-                                 constrefparam(tensorfieldlist, "C"),
-                                 param("Spheral::CRKSPHSpace::CRKOrder","correctionOrder"),
                                  refparam(scalarfieldlist, "massDensity")],
                                 template_parameters = [dim],
                                 custom_name = "computeCRKSPHSumMassDensity%id" % ndim)
@@ -146,9 +143,15 @@ self.generateSolidCRKSPHHydroBaseBindings(self.SolidCRKSPHHydroBase%(dim)id, %(d
         self.space.add_function("computeVoronoiVolume", None,
                                 [constrefparam(vectorfieldlist, "position"),
                                  constrefparam(symtensorfieldlist, "H"),
+                                 constrefparam(scalarfieldlist, "rho"),
+                                 constrefparam(vectorfieldlist, "gradRho"),
                                  constrefparam(connectivitymap, "connectivityMap"),
                                  param("double", "kernelExtent"),
-                                 refparam(scalarfieldlist, "vol")],
+                                 constrefparam(vector_of_FacetedVolume, "boundaries"),
+                                 refparam(intfieldlist, "surfacePoint"),
+                                 refparam(scalarfieldlist, "vol"),
+                                 refparam(vectorfieldlist, "deltaCentroid"),
+                                 refparam(polyvolfieldlist, "cells")],
                                 docstring = "Compute the volume per point using a Voronoi tessellation.")
 
         self.space.add_function("computeCRKSPHSumVolume", None,
@@ -399,22 +402,22 @@ self.generateSolidCRKSPHHydroBaseBindings(self.SolidCRKSPHHydroBase%(dim)id, %(d
                            refparam(artificialviscosity, "Q"),
                            constrefparam(tablekernel, "W"),
                            constrefparam(tablekernel, "WPi"),
-                           param("double", "filter", default_value="0.1"),
-                           param("double", "cfl", default_value="0.5"),
-                           param("int", "useVelocityMagnitudeForDt", default_value="false"),
-                           param("int", "compatibleEnergyEvolution", default_value="true"),
-                           param("int", "evolveTotalEnergy", default_value="false"),
-                           param("int", "XSPH", default_value="true"),
-                           param("MassDensityType", "densityUpdate", default_value="Spheral::PhysicsSpace::RigorousSumDensity"),
-                           param("HEvolutionType", "HUpdate", default_value="Spheral::PhysicsSpace::IdealH"),
-                           param("CRKOrder", "correctionOrder", default_value="Spheral::CRKSPHSpace::LinearOrder"),
-                           param("CRKVolumeType", "volumeType", default_value="Spheral::CRKSPHSpace::CRKSumVolume"),
-                           param("int", "detectSurfaces", default_value="false"),
-                           param("double", "detectThreshold", default_value="0.95"),
-                           param("double", "sweepAngle", default_value="0.8"),
-                           param("double", "detectRange", default_value="0.5"),
-                           param("double", "epsTensile", default_value="0.0"),
-                           param("double", "nTensile", default_value="4.0")])
+                           param("double", "filter"),
+                           param("double", "cfl"),
+                           param("int", "useVelocityMagnitudeForDt"),
+                           param("int", "compatibleEnergyEvolution"),
+                           param("int", "evolveTotalEnergy"),
+                           param("int", "XSPH"),
+                           param("MassDensityType", "densityUpdate"),
+                           param("HEvolutionType", "HUpdate"),
+                           param("CRKOrder", "correctionOrder"),
+                           param("CRKVolumeType", "volumeType"),
+                           param("int", "detectSurfaces"),
+                           param("double", "detectThreshold"),
+                           param("double", "sweepAngle"),
+                           param("double", "detectRange"),
+                           param("double", "epsTensile"),
+                           param("double", "nTensile")])
 
         # Override the pure virtal overrides.
         generatePhysicsVirtualBindings(x, ndim, False)
@@ -491,6 +494,7 @@ self.generateSolidCRKSPHHydroBaseBindings(self.SolidCRKSPHHydroBase%(dim)id, %(d
         const_ref_return_value(x, me, "%s::weightedNeighborSum" % me, scalarfieldlist, [], "weightedNeighborSum")
         const_ref_return_value(x, me, "%s::massSecondMoment" % me, symtensorfieldlist, [], "massSecondMoment")
         const_ref_return_value(x, me, "%s::volume" % me, scalarfieldlist, [], "volume")
+        const_ref_return_value(x, me, "%s::massDensityGradient" % me, vectorfieldlist, [], "massDensityGradient")
         const_ref_return_value(x, me, "%s::XSPHDeltaV" % me, vectorfieldlist, [], "XSPHDeltaV")
         const_ref_return_value(x, me, "%s::DxDt" % me, vectorfieldlist, [], "DxDt")
         const_ref_return_value(x, me, "%s::DvDt" % me, vectorfieldlist, [], "DvDt")
@@ -500,6 +504,7 @@ self.generateSolidCRKSPHHydroBaseBindings(self.SolidCRKSPHHydroBase%(dim)id, %(d
         const_ref_return_value(x, me, "%s::DvDx" % me, tensorfieldlist, [], "DvDx")
         const_ref_return_value(x, me, "%s::internalDvDx" % me, tensorfieldlist, [], "internalDvDx")
         const_ref_return_value(x, me, "%s::pairAccelerations" % me, vectorvectorfieldlist, [], "pairAccelerations")
+        const_ref_return_value(x, me, "%s::deltaCentroid" % me, vectorfieldlist, [], "deltaCentroid")
 
         const_ref_return_value(x, me, "%s::A" % me, scalarfieldlist, [], "A")
         const_ref_return_value(x, me, "%s::B" % me, vectorfieldlist, [], "B")
@@ -562,18 +567,22 @@ self.generateSolidCRKSPHHydroBaseBindings(self.SolidCRKSPHHydroBase%(dim)id, %(d
                            refparam(artificialviscosity, "Q"),
                            constrefparam(tablekernel, "W"),
                            constrefparam(tablekernel, "WPi"),
-                           param("double", "filter", default_value="0.0"),
-                           param("double", "cfl", default_value="0.25"),
-                           param("int", "useVelocityMagnitudeForDt", default_value="false"),
-                           param("int", "compatibleEnergyEvolution", default_value="true"),
-                           param("int", "evolveTotalEnergy", default_value="false"),
-                           param("int", "XSPH", default_value="true"),
-                           param("MassDensityType", "densityUpdate", default_value="Spheral::PhysicsSpace::RigorousSumDensity"),
-                           param("HEvolutionType", "HUpdate", default_value="Spheral::PhysicsSpace::IdealH"),
-                           param("CRKOrder", "correctionOrder", default_value="Spheral::CRKSPHSpace::LinearOrder"),
-                           param("CRKVolumeType", "volumeType", default_value="Spheral::CRKSPHSpace::CRKSumVolume"),
-                           param("double", "epsTensile", default_value="0.0"),
-                           param("double", "nTensile", default_value="4.0")])
+                           param("double", "filter"),
+                           param("double", "cfl"),
+                           param("int", "useVelocityMagnitudeForDt"),
+                           param("int", "compatibleEnergyEvolution"),
+                           param("int", "evolveTotalEnergy"),
+                           param("int", "XSPH"),
+                           param("MassDensityType", "densityUpdate"),
+                           param("HEvolutionType", "HUpdate"),
+                           param("CRKOrder", "correctionOrder"),
+                           param("CRKVolumeType", "volumeType"),
+                           param("int", "detectSurfaces"),
+                           param("double", "detectThreshold"),
+                           param("double", "sweepAngle"),
+                           param("double", "detectRange"),
+                           param("double", "epsTensile"),
+                           param("double", "nTensile")])
 
         # Attributes.
         const_ref_return_value(x, me, "%s::Hfield0" % me, symtensorfieldlist, [], "Hfield0")
@@ -637,18 +646,22 @@ self.generateSolidCRKSPHHydroBaseBindings(self.SolidCRKSPHHydroBase%(dim)id, %(d
                            refparam(artificialviscosity, "Q"),
                            constrefparam(tablekernel, "W"),
                            constrefparam(tablekernel, "WPi"),
-                           param("double", "filter", default_value="0.1"),
-                           param("double", "cfl", default_value="0.5"),
-                           param("int", "useVelocityMagnitudeForDt", default_value="false"),
-                           param("int", "compatibleEnergyEvolution", default_value="true"),
-                           param("int", "evolveTotalEnergy", default_value="false"),
-                           param("int", "XSPH", default_value="true"),
-                           param("MassDensityType", "densityUpdate", default_value="Spheral::PhysicsSpace::RigorousSumDensity"),
-                           param("HEvolutionType", "HUpdate", default_value="Spheral::PhysicsSpace::IdealH"),
-                           param("CRKOrder", "correctionOrder", default_value="Spheral::CRKSPHSpace::LinearOrder"),
-                           param("CRKVolumeType", "volumeType", default_value="Spheral::CRKSPHSpace::CRKSumVolume"),
-                           param("double", "epsTensile", default_value="0.0"),
-                           param("double", "nTensile", default_value="4.0")])
+                           param("double", "filter"),
+                           param("double", "cfl"),
+                           param("int", "useVelocityMagnitudeForDt"),
+                           param("int", "compatibleEnergyEvolution"),
+                           param("int", "evolveTotalEnergy"),
+                           param("int", "XSPH"),
+                           param("MassDensityType", "densityUpdate"),
+                           param("HEvolutionType", "HUpdate"),
+                           param("CRKOrder", "correctionOrder"),
+                           param("CRKVolumeType", "volumeType"),
+                           param("int", "detectSurfaces"),
+                           param("double", "detectThreshold"),
+                           param("double", "sweepAngle"),
+                           param("double", "detectRange"),
+                           param("double", "epsTensile"),
+                           param("double", "nTensile")])
 
         return
 
@@ -703,18 +716,22 @@ self.generateSolidCRKSPHHydroBaseBindings(self.SolidCRKSPHHydroBase%(dim)id, %(d
                            refparam(artificialviscosity, "Q"),
                            constrefparam(tablekernel, "W"),
                            constrefparam(tablekernel, "WPi"),
-                           param("double", "filter", default_value="0.0"),
-                           param("double", "cfl", default_value="0.25"),
-                           param("int", "useVelocityMagnitudeForDt", default_value="false"),
-                           param("int", "compatibleEnergyEvolution", default_value="true"),
-                           param("int", "evolveTotalEnergy", default_value="false"),
-                           param("int", "XSPH", default_value="true"),
-                           param("MassDensityType", "densityUpdate", default_value="Spheral::PhysicsSpace::RigorousSumDensity"),
-                           param("HEvolutionType", "HUpdate", default_value="Spheral::PhysicsSpace::IdealH"),
-                           param("CRKOrder", "correctionOrder", default_value="Spheral::CRKSPHSpace::LinearOrder"),
-                           param("CRKVolumeType", "volumeType", default_value="Spheral::CRKSPHSpace::CRKSumVolume"),
-                           param("double", "epsTensile", default_value="0.0"),
-                           param("double", "nTensile", default_value="4.0")])
+                           param("double", "filter"),
+                           param("double", "cfl"),
+                           param("int", "useVelocityMagnitudeForDt"),
+                           param("int", "compatibleEnergyEvolution"),
+                           param("int", "evolveTotalEnergy"),
+                           param("int", "XSPH"),
+                           param("MassDensityType", "densityUpdate"),
+                           param("HEvolutionType", "HUpdate"),
+                           param("CRKOrder", "correctionOrder"),
+                           param("CRKVolumeType", "volumeType"),
+                           param("int", "detectSurfaces"),
+                           param("double", "detectThreshold"),
+                           param("double", "sweepAngle"),
+                           param("double", "detectRange"),
+                           param("double", "epsTensile"),
+                           param("double", "nTensile")])
 
         # Attributes.
         const_ref_return_value(x, me, "%s::deviatoricStressTT" % me, scalarfieldlist, [], "deviatoricStressTT")

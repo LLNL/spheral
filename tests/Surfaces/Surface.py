@@ -118,7 +118,7 @@ commandLine(lattice = True,
             densityUpdate       = RigorousSumDensity,
             HUpdate             = IdealH,
             linearInExpansion   = False,
-            volumeType          = CRKSumVolume,
+            volumeType          = CRKVoronoiVolume,
             
             # Timestep constraints
             cfl                 = 0.5,
@@ -149,7 +149,7 @@ commandLine(lattice = True,
             clearDirectories    = False,
             renormFile          = "renorm.txt",
             
-            detectSurfaces      = True,
+            detectSurfaces      = False,
             detectRange         = 2.0,
             sweepAngle          = pi/4.0,
             detectThreshold     = 0.99,

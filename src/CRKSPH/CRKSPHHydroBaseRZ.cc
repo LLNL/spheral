@@ -14,7 +14,6 @@
 
 #include "CRKSPHHydroBaseRZ.hh"
 #include "CRKSPHUtilities.hh"
-#include "computeVoronoiVolume.hh"
 #include "computeHullVolumes.hh"
 #include "computeCRKSPHSumVolume.hh"
 #include "computeHVolumes.hh"
@@ -104,6 +103,10 @@ CRKSPHHydroBaseRZ(const SmoothingScaleBase<Dim<2> >& smoothingScaleMethod,
                   const HEvolutionType HUpdate,
                   const CRKOrder correctionOrder,
                   const CRKVolumeType volumeType,
+                  const bool detectSurfaces,
+                  const double detectThreshold,
+                  const double sweepAngle,
+                  const double detectRange,
                   const double epsTensile,
                   const double nTensile):
   CRKSPHHydroBase<Dim<2> >(smoothingScaleMethod,
@@ -120,7 +123,10 @@ CRKSPHHydroBaseRZ(const SmoothingScaleBase<Dim<2> >& smoothingScaleMethod,
                            HUpdate,
                            correctionOrder,
                            volumeType,
-                           0,0.0,0.0,0.0,
+                           detectSurfaces,
+                           detectThreshold,
+                           sweepAngle,
+                           detectRange,
                            epsTensile,
                            nTensile) {
 }

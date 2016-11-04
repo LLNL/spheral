@@ -18,7 +18,7 @@ class %(classname)s(CRKSPHHydroBaseRZ):
                  Q,
                  W,
                  WPi = None,
-                 filter = 0.0,
+                 filter = 1.0,
                  cfl = 0.25,
                  useVelocityMagnitudeForDt = False,
                  compatibleEnergyEvolution = True,
@@ -27,7 +27,11 @@ class %(classname)s(CRKSPHHydroBaseRZ):
                  densityUpdate = RigorousSumDensity,
                  HUpdate = IdealH,
                  correctionOrder = LinearOrder,
-                 volumeType = CRKSumVolume,
+                 volumeType = CRKVoronoiVolume,
+                 detectSurfaces = False,
+                 detectThreshold = 0.05,
+                 sweepAngle = 0.8,
+                 detectRange = 1.0,
                  epsTensile = 0.0,
                  nTensile = 4.0,
                  etaMinAxis = 0.1):
@@ -49,6 +53,10 @@ class %(classname)s(CRKSPHHydroBaseRZ):
                                    HUpdate,
                                    correctionOrder,
                                    volumeType,
+                                   detectSurfaces,
+                                   detectThreshold,
+                                   sweepAngle,
+                                   detectRange,
                                    epsTensile,
                                    nTensile)
         self.zaxisBC = AxisBoundaryRZ(etaMinAxis)

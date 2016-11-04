@@ -104,6 +104,16 @@ class AsciiFileNodeGenerator2D(NodeGeneratorBase):
                 self.x[i] += offset[0]
                 self.y[i] += offset[1]
         
+        try:
+            test = self.vx
+        except AttributeError:
+            print "Ascii file did not supply velocities (intentional?)"
+            self.vx = []
+            self.vy = []
+            for i in xrange(len(self.x)):
+                self.vx.append(0.0)
+                self.vy.append(0.0)
+    
         # Initialize the base class.
         if initializeBase:
             fields = tuple([self.x, self.y, self.m, self.rho, self.vx, self.vy, self.eps, self.H] +
@@ -269,6 +279,18 @@ class AsciiFileNodeGenerator3D(NodeGeneratorBase):
             for j in xrange(len(self.fieldNames[0])):
                 name = self.fieldNames[0][j] + 'new'
                 self.__dict__[self.fieldNames[0][j]] = self.__dict__[name]
+
+        try:
+            test = self.vx
+        except AttributeError:
+            print "Ascii file did not supply velocities (intentional?)"
+            self.vx = []
+            self.vy = []
+            self.vz = []
+            for i in xrange(len(self.x)):
+                self.vx.append(0.0)
+                self.vy.append(0.0)
+                self.vz.append(0.0)
 
 
         # Initialize the base class.

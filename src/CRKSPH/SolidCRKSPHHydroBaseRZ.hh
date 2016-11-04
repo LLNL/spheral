@@ -71,6 +71,10 @@ public:
                          const PhysicsSpace::HEvolutionType HUpdate,
                          const CRKSPHSpace::CRKOrder correctionOrder,
                          const CRKSPHSpace::CRKVolumeType volumeType,
+                         const bool detectSurfaces,
+                         const double detectThreshold,
+                         const double sweepAngle,
+                         const double detectRange,
                          const double epsTensile,
                          const double nTensile);
 
