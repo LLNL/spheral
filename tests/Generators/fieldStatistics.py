@@ -8,4 +8,4 @@ def fieldStatistics(f):
     n = mpi.allreduce(f.numInternalElements, mpi.SUM)
     f2avg = mpi.allreduce(sum(f2vals + [0.0]), mpi.SUM)/max(1, n)
     favg = f.sumElements()/max(1, n)
-    return f.min(), f.max(), favg, sqrt(f2avg - favg*favg)
+    return f.min(), f.max(), favg, sqrt(abs(f2avg - favg*favg))
