@@ -1,5 +1,6 @@
 from math import *
 import mpi
+import random
 
 from NodeGeneratorBase import *
 from Spheral import Vector2d, Tensor2d, SymTensor2d, \
@@ -51,17 +52,37 @@ class MedialGenerator2d(NodeGeneratorBase):
                                       eos,
                                       hmin = 1e-10,
                                       hmax = 1e10,
-                                      kernelExtent = 1.0,
-                                      hminratio = WT.kernelExtent,
+                                      kernelExtent = WT.kernelExtent,
+                                      hminratio = 1.0,
                                       nPerh = nNodePerh)
 
-        # Initialize the desired number of generators in the boundary using the Sobol sequence.
+        # Make a first pass looking for the maximum density (roughly).
         pos = nodes.positions()
         mass = nodes.mass()
         rho = nodes.massDensity()
+        H = nodes.Hfield()
         nodes.numInternalNodes = n
         length = max(boundary.xmax.x - boundary.xmin.x,
                      boundary.xmax.y - boundary.xmin.y)
+        rhomax = 0.0
+        seed = 0
+        i = 0
+        while i < n:
+            [coords, seed] = i4_sobol(2, seed)
+            p = boundary.xmin + length*Vector2d(coords[0], coords[1])
+            ihole = 0
+            use = boundary.contains(p, False)
+            if use:
+                while use and ihole < len(holes):
+                    use = not holes[ihole].contains(p, True)
+            if use:
+                rhomax = max(rhomax, rhofunc(p))
+                i += 1
+        rhomax = mpi.allreduce(rhomax, mpi.MAX)
+        print "MedialGenerator: selected a maximum density of ", rhomax
+
+        # Initialize the desired number of generators in the boundary using the Sobol sequence.
+        rangen = random.Random()
         area = boundary.volume
         seed = 0
         i = 0
@@ -74,16 +95,22 @@ class MedialGenerator2d(NodeGeneratorBase):
                 while use and ihole < len(holes):
                     use = not holes[ihole].contains(p, True)
             if use:
-                pos[i] = p
-                rho[i] = rhofunc(p)
-                mass[i] = rho[i] * area/n
-                i += 1
+                rhoi = rhofunc(p)
+                if rangen.uniform(0.0, 1.0) < rhoi/rhomax:
+                    pos[i] = p
+                    rho[i] = rhoi
+                    mass[i] = rhoi * area/n  # Not actually correct, but mass will be updated in centroidalRelaxNodes
+                    hi = nNodePerh * sqrt(area/n)
+                    assert hi > 0.0
+                    H[i] = SymTensor2d(1.0/hi, 0.0, 0.0, 1.0/hi)
+                    i += 1
 
         # Iterate the points toward centroidal relaxation.
         vol, surfacePoint = centroidalRelaxNodes([(nodes, boundary)],
                                                  W = WT,
                                                  rho = rhofunc,
-                                                 #gradrho = gradrho,
+                                                 gradrho = gradrho,
+                                                 maxIterations = maxIterations,
                                                  tessellationFileName = tessellationFileName)
 
         # Now we can fill out the usual Spheral generator info.

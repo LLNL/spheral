@@ -299,8 +299,8 @@ computeVoronoiVolume(const FieldList<Dim<2>, Dim<2>::Vector>& position,
         }
         CHECK2(r2d_is_good(&celli), "Bad polygon!");
 
-        // Make a copy of the unclipped cell geometry for use in the centroidal/median filtering algorithm.
-        r2d_poly doublecelli = celli;
+        // // Make a copy of the unclipped cell geometry for use in the centroidal/median filtering algorithm.
+        // r2d_poly doublecelli = celli;
 
         // Clip the local cell.
         r2d_clip(&celli, &pairPlanes[0], pairPlanes.size());
@@ -326,25 +326,24 @@ computeVoronoiVolume(const FieldList<Dim<2>, Dim<2>::Vector>& position,
           // Apply the gradient limiter;
           gradRhoi *= phi;
 
-          // Clip the original cell geometry again, this time using planes coincident with the neighbor points.
-          for (unsigned j = 0; j != pairPlanes.size(); ++j) pairPlanes[j].d *= 2.0;
-          r2d_clip(&doublecelli, &pairPlanes[0], pairPlanes.size());
+          // // Clip the original cell geometry again, this time using planes coincident with the neighbor points.
+          // for (unsigned j = 0; j != pairPlanes.size(); ++j) pairPlanes[j].d *= 2.0;
+          // r2d_clip(&doublecelli, &pairPlanes[0], pairPlanes.size());
 
           // Compute the centroidal motion.
           firstmom[0] = rhoi;
           firstmom[1] = gradRhoi.x();
           firstmom[2] = gradRhoi.y();
-          r2d_reduce(&doublecelli, firstmom, 1);
-          const Scalar m0 = cellIntegral(doublecelli, rhoi, gradRhoi);
+          r2d_reduce(&celli, firstmom, 1);
+          const Scalar m0 = cellIntegral(celli, rhoi, gradRhoi);
           const Vector deltaCentroidi = Vector(firstmom[1], firstmom[2])/m0;
-
 
           // Is there a significant density gradient?
           if (sqrt(gradRhoi.magnitude2()*voli[0]) >= 0.025*rhoi) {
 
             const Vector nhat1 = gradRhoi.unitVector();
             const Vector nhat2 = Vector(-nhat1.y(), nhat1.x());
-            PolygonClippedMassRoot F1(doublecelli, rhoi, gradRhoi, nhat1, 0.5);
+            PolygonClippedMassRoot F1(celli, rhoi, gradRhoi, nhat1, 0.5);
             const double dx = F1.xmax - F1.xmin;
             const double dx1 = -F1.xmin;
             const Scalar b = gradRhoi.magnitude();
@@ -422,6 +421,7 @@ computeVoronoiVolume(const FieldList<Dim<2>, Dim<2>::Vector>& position,
             ivert = nextvert;
             ++k;
           }
+          CHECK(verts.size() >= 3);
           if ((verts.back() - verts.front()).magnitude2() <= tol) { // The first and last may have snuck in degenerate.
             verts.pop_back();
             facetIndices.pop_back();
