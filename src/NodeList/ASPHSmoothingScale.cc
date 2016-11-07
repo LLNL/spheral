@@ -485,7 +485,7 @@ newSmoothingScale(const SymTensor& H,
     ENSURE(distinctlyGreaterThan(eigenValues.minElement(), 0.0));
     ENSURE(fuzzyGreaterThanOrEqual(1.0/eigenValues.maxElement(), hmin, 1.0e-5));
     ENSURE(fuzzyLessThanOrEqual(1.0/eigenValues.minElement(), hmax, 1.0e-5));
-    ENSURE(fuzzyGreaterThanOrEqual(eigenValues.minElement()/eigenValues.maxElement(), hminratio, 1.e-3));
+    ENSURE2(fuzzyGreaterThanOrEqual(eigenValues.minElement()/eigenValues.maxElement(), hminratio, 1.e-3), (eigenValues.minElement()/eigenValues.maxElement()) << " " << hminratio);
   }
   END_CONTRACT_SCOPE
 

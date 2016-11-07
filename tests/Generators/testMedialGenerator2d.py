@@ -68,8 +68,9 @@ def rhoprofile(posi):
     return exp(-r*r/(rhoscale*rhoscale))
 
 def gradrhoprofile(posi):
+    return Vector.zero
     r = posi.magnitude()
-    return -2.0*r/(rhoscale*rhoscale)*exp(-r*r/(rhoscale*rhoscale))
+    return -2.0*r/(rhoscale*rhoscale)*exp(-max(1e-10, r*r/(rhoscale*rhoscale))) * posi.unitVector()
 
 generator = MedialGenerator2d(n = n,
                               rho = rhoprofile,
