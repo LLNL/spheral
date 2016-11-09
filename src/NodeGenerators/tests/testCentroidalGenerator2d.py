@@ -12,8 +12,8 @@ commandLine(hmin     = 1e-5,
             n3       = 50,
             n4       = 400,
             nPerh   = 2.01,
-            maxIterations = 100,
-            fracTol = 1e-2)
+            maxIterations = 200,
+            fracTol = 1e-3)
 
 #-------------------------------------------------------------------------------
 # Material properties.
@@ -87,8 +87,9 @@ bcpoints1 = vector_of_Vector(n)
 bcpoints2 = vector_of_Vector(n)
 bcfacets = vector_of_vector_of_unsigned(n, vector_of_unsigned(2))
 for i in xrange(n):
-    bcpoints1[i] = Vector(5.0 + 1.5*cos(i*pi/n), 1.5 + 1.5*sin(i*pi/n))
-    bcpoints2[i] = Vector(5.0 + 0.5*cos(i*pi/n), 1.5 + 0.5*sin(i*pi/n))
+    j = n - i - 1
+    bcpoints1[i] = Vector(5.0 + 1.5*cos(i*2.0*pi/n), 1.5 + 1.5*sin(i*2.0*pi/n))
+    bcpoints2[i] = Vector(5.0 + 0.5*cos(i*2.0*pi/n), 1.5 + 0.5*sin(i*2.0*pi/n))
     bcfacets[i][0] = i
     bcfacets[i][1] = (i + 1) % n
 outerCircle = Polygon(bcpoints1, bcfacets)
@@ -112,6 +113,7 @@ def rhoprofile1(posi):
     r = (posi - Vector(1.5,1.5)).magnitude()
     return exp(-r*r/(rhoscale*rhoscale))
 
+print "Generator 1"
 generator1 = CentroidalGenerator2d(n = n1,
                                    rho = rhoprofile1,
                                    boundary = Hboundary,
@@ -120,6 +122,7 @@ generator1 = CentroidalGenerator2d(n = n1,
                                    tessellationFileName = "test_centroidal_nodes1_maxiter=%i_tol=%g" % (maxIterations, fracTol),
                                    nNodePerh = nPerh)
 
+print "Generator 2"
 generator2 = CentroidalGenerator2d(n = n2,
                                    rho = 1.0,
                                    boundary = outerCircle,
@@ -129,14 +132,16 @@ generator2 = CentroidalGenerator2d(n = n2,
                                    tessellationFileName = "test_centroidal_nodes2_maxiter=%i_tol=%g" % (maxIterations, fracTol),
                                    nNodePerh = nPerh)
 
-# generator3 = CentroidalGenerator2d(n = n3,
-#                                    rho = 0.1,
-#                                    boundary = innerCircle,
-#                                    maxIterations = maxIterations,
-#                                    fracTol = fracTol,
-#                                    tessellationFileName = "test_centroidal_nodes3_maxiter=%i_tol=%g" % (maxIterations, fracTol),
-#                                    nNodePerh = nPerh)
+print "Generator 3"
+generator3 = CentroidalGenerator2d(n = n3,
+                                   rho = 0.1,
+                                   boundary = innerCircle,
+                                   maxIterations = maxIterations,
+                                   fracTol = fracTol,
+                                   tessellationFileName = "test_centroidal_nodes3_maxiter=%i_tol=%g" % (maxIterations, fracTol),
+                                   nNodePerh = nPerh)
 
+print "Generator 4"
 generator4 = CentroidalGenerator2d(n = n4,
                                    rho = 0.1,
                                    boundary = outerBox,
@@ -164,5 +169,5 @@ vizfile = siloPointmeshDump(baseName = "test_centroidal_maxiter=%i_tol=%g" % (ma
                                       [x.mass() for x in nodeSet] +
                                       [x.velocity() for x in nodeSet] +
                                       [x.specificThermalEnergy() for x in nodeSet] +
-                                      [x.Hfield() for x in nodes])
+                                      [x.Hfield() for x in nodeSet])
                             )
