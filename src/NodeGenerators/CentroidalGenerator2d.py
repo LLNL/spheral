@@ -58,7 +58,7 @@ class CentroidalGenerator2d(NodeGeneratorBase):
         plc.holes.resize(len(holes))
         for ihole, hole in enumerate(holes):
             offlast = len(plc_coords)/2
-            edges = hole.edges()
+            edges = hole.edges
             vertices = hole.vertices()
             plc.holes[ihole].resize(len(edges))
             for i, edge in enumerate(edges):
@@ -82,7 +82,8 @@ class CentroidalGenerator2d(NodeGeneratorBase):
             use = boundary.contains(p, False)
             if use:
                 while use and ihole < len(holes):
-                    use = not holes[ihole].contains(p, True)
+                    use = not holes[ihole].contains(p, False)
+                    ihole += 1
             if use:
                 generators.append(p.x)
                 generators.append(p.y)
