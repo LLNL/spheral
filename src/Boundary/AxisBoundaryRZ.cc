@@ -56,10 +56,12 @@ AxisBoundaryRZ::setViolationNodes(NodeList<Dimension>& nodeList) {
 
   // Loop over all the internal nodes in the NodeList, and put any that are
   // less than etamin in eta space from the axis in violation.
+  const Vector runit(0.0, 1.0);
   const Field<Dimension, Vector>& positions = nodeList.positions();
   const Field<Dimension, SymTensor>& H = nodeList.Hfield();
   for (int nodeID = 0; nodeID < nodeList.numInternalNodes(); ++nodeID) {
-    const double etari = (H(nodeID)*positions(nodeID)).y();
+    const double Hri = (H(nodeID)*runit).y();
+    const double etari = Hri*positions(nodeID).y();
     if (etari <= mEtaMin) vNodes.push_back(nodeID);
   }
 
@@ -81,17 +83,19 @@ AxisBoundaryRZ::updateViolationNodes(NodeList<Dim<2> >& nodeList) {
   const vector<int>& vNodes = this->violationNodes(nodeList);
 
   // Loop over these nodes, and reset their positions to valid values.
+  const Vector runit(0.0, 1.0);
   Field<Dimension, Vector>& positions = nodeList.positions();
   Field<Dimension, SymTensor>& H = nodeList.Hfield();
   for (vector<int>::const_iterator itr = vNodes.begin();
        itr < vNodes.end();
        ++itr) {
-    Vector etai = H(*itr)*positions(*itr);
-    CHECK(etai.y() <= mEtaMin);
-    etai.y(2.0*mEtaMin - etai.y());
-    CHECK(etai.y() >= mEtaMin);
-    const Vector posi = H(*itr).Inverse() * etai;
-    positions(*itr).y(posi.y());
+    Vector& posi = positions(*itr);
+    const double Hri = (H(*itr)*runit).y();
+    double etari = Hri*posi.y();
+    CHECK(etari <= mEtaMin);
+    etari = 2.0*mEtaMin - etari;
+    CHECK(etari >= mEtaMin);
+    posi.y(etari/Hri);
   }
 
   // Set the Hfield.

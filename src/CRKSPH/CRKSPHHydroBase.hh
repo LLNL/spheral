@@ -69,6 +69,10 @@ public:
                   const PhysicsSpace::HEvolutionType HUpdate,
                   const CRKSPHSpace::CRKOrder correctionOrder,
                   const CRKSPHSpace::CRKVolumeType volumeType,
+                  const bool detectSurfaces,
+                  const double detectThreshold,
+                  const double sweepAngle,
+                  const double detectRange,
                   const double epsTensile,
                   const double nTensile);
 
@@ -189,6 +193,19 @@ public:
 
   Scalar nTensile() const;
   void nTensile(const Scalar val);
+    
+  // Surface detection getters and setters
+    bool detectSurfaces() const;
+    void detectSurfaces(const bool val);
+    
+    double detectThreshold() const;
+    void detectThreshold(const double val);
+    
+    double detectRange() const;
+    void detectRange(const double val);
+    
+    double sweepAngle() const;
+    void sweepAngle(const double val);
 
   // The state field lists we're maintaining.
   const FieldSpace::FieldList<Dimension, int>&       timeStepMask() const;
@@ -232,7 +249,7 @@ public:
   const FieldList<Dimension, FourthRankTensor>&      gradm3() const;
   const FieldList<Dimension, FifthRankTensor>&       gradm4() const;
 
-  const FieldSpace::FieldList<Dimension, Vector>&    surfNorm() const;
+  const FieldSpace::FieldList<Dimension, int>&       surfacePoint() const;
 
   //****************************************************************************
   // Methods required for restarting.
@@ -254,6 +271,8 @@ protected:
   bool mCompatibleEnergyEvolution, mEvolveTotalEnergy, mGradhCorrection, mXSPH;
   double mfilter;
   Scalar mEpsTensile, mnTensile;
+  bool mDetectSurfaces;
+  double mDetectThreshold, mSweepAngle, mDetectRange;
 
   // Some internal scratch fields.
   FieldSpace::FieldList<Dimension, int>       mTimeStepMask;
@@ -302,7 +321,7 @@ protected:
   FieldList<Dimension, FourthRankTensor>      mGradm3;
   FieldList<Dimension, FifthRankTensor>       mGradm4;
 
-  FieldSpace::FieldList<Dimension, Vector>    mSurfNorm;
+  FieldSpace::FieldList<Dimension, int>       mSurfacePoint;
 
 private:
   //--------------------------- Private Interface ---------------------------//

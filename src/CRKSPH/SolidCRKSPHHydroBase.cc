@@ -143,6 +143,7 @@ SolidCRKSPHHydroBase(const SmoothingScaleBase<Dimension>& smoothingScaleMethod,
                              HUpdate,
                              correctionOrder,
                              volumeType,
+                             0,0.0,0.0,0.0,
                              epsTensile,
                              nTensile),
   mDdeviatoricStressDt(FieldSpace::Copy),
@@ -360,8 +361,10 @@ initialize(const typename Dimension::Scalar time,
            State<Dimension>& state,
            StateDerivatives<Dimension>& derivs) {
 
-  // The fluid CRK bit.
-  // Compute the kernel correction fields.
+  // Ancestor method.
+  CRKSPHHydroBase<Dimension>::initialize(time, dt, dataBase, state, derivs);
+
+  // Compute the kernel correction fields with damage.
   const TableKernel<Dimension>& W = this->kernel();
   const ConnectivityMap<Dimension>& connectivityMap = dataBase.connectivityMap();
   const FieldList<Dimension, Scalar> mass = state.fields(HydroFieldNames::mass, 0.0);
@@ -381,12 +384,6 @@ initialize(const typename Dimension::Scalar time,
   FieldList<Dimension, FourthRankTensor> gradm3 = state.fields(HydroFieldNames::gradM3_CRKSPH, FourthRankTensor::zero);
   FieldList<Dimension, FifthRankTensor> gradm4 = state.fields(HydroFieldNames::gradM4_CRKSPH, FifthRankTensor::zero);
 
-  FieldList<Dimension, Scalar> A = state.fields(HydroFieldNames::A_CRKSPH, 0.0);
-  FieldList<Dimension, Vector> B = state.fields(HydroFieldNames::B_CRKSPH, Vector::zero);
-  FieldList<Dimension, Tensor> C = state.fields(HydroFieldNames::C_CRKSPH, Tensor::zero);
-  FieldList<Dimension, Vector> gradA = state.fields(HydroFieldNames::gradA_CRKSPH, Vector::zero);
-  FieldList<Dimension, Tensor> gradB = state.fields(HydroFieldNames::gradB_CRKSPH, Tensor::zero);
-  FieldList<Dimension, ThirdRankTensor> gradC = state.fields(HydroFieldNames::gradC_CRKSPH, ThirdRankTensor::zero);
   FieldList<Dimension, Scalar> Adamage = state.fields(HydroFieldNames::A_CRKSPH + " damage", 0.0);
   FieldList<Dimension, Vector> Bdamage = state.fields(HydroFieldNames::B_CRKSPH + " damage", Vector::zero);
   FieldList<Dimension, Tensor> Cdamage = state.fields(HydroFieldNames::C_CRKSPH + " damage", Tensor::zero);
@@ -395,63 +392,21 @@ initialize(const typename Dimension::Scalar time,
   FieldList<Dimension, ThirdRankTensor> gradCdamage = state.fields(HydroFieldNames::gradC_CRKSPH + " damage", ThirdRankTensor::zero);
   DamagedNodeCouplingWithFrags<Dimension> nodeCoupling(D, gradD, H, fragIDs);
   
-  // Compute the volume per node.
   // Change CRKSPH weights here if need be!
-  FieldList<Dimension, Scalar> vol = state.fields(HydroFieldNames::volume, 0.0);
-  FieldList<Dimension, Scalar> massDensity = state.fields(HydroFieldNames::massDensity, 0.0);
-  if (this->volumeType() == CRKMassOverDensity) {
-    vol.assignFields(mass/massDensity);
-  } else if (this->volumeType() == CRKSumVolume) {
-    computeCRKSPHSumVolume(connectivityMap, W, position, mass, H, vol);
-  } else if (this->volumeType() == CRKVoronoiVolume) {
-    computeVoronoiVolume(position, H, connectivityMap, W.kernelExtent(), vol);
-  } else if (this->volumeType() == CRKHullVolume) {
-    computeHullVolumes(connectivityMap, W.kernelExtent(), position, H, vol);
-  } else {
-    VERIFY2(false, "Unknown CRK volume weighting.");
-  }
-
-  // We need boundary conditions enforced on the volume before we can compute corrections.
-  for (ConstBoundaryIterator boundItr = this->boundaryBegin();
-       boundItr != this->boundaryEnd();
-       ++boundItr) (*boundItr)->applyFieldListGhostBoundary(vol);
-  for (ConstBoundaryIterator boundItr = this->boundaryBegin();
-       boundItr != this->boundaryEnd();
-       ++boundItr) (*boundItr)->finalizeGhostBoundary();
-
-  computeCRKSPHMoments(connectivityMap, W, vol, position, H, this->correctionOrder(), NodeCoupling(), m0, m1, m2, m3, m4, gradm0, gradm1, gradm2, gradm3, gradm4);
-  computeCRKSPHCorrections(m0, m1, m2, m3, m4, gradm0, gradm1, gradm2, gradm3, gradm4, H, this->correctionOrder(), A, B, C, gradA, gradB, gradC);
+  const FieldList<Dimension, Scalar> vol = state.fields(HydroFieldNames::volume, 0.0);
   computeCRKSPHMoments(connectivityMap, W, vol, position, H, this->correctionOrder(), nodeCoupling, m0, m1, m2, m3, m4, gradm0, gradm1, gradm2, gradm3, gradm4);
   computeCRKSPHCorrections(m0, m1, m2, m3, m4, gradm0, gradm1, gradm2, gradm3, gradm4, H, this->correctionOrder(), Adamage, Bdamage, Cdamage, gradAdamage, gradBdamage, gradCdamage);
 
   for (ConstBoundaryIterator boundItr = this->boundaryBegin();
        boundItr != this->boundaryEnd();
        ++boundItr) {
-    (*boundItr)->applyFieldListGhostBoundary(A);
-    (*boundItr)->applyFieldListGhostBoundary(B);
-    (*boundItr)->applyFieldListGhostBoundary(C);
-    (*boundItr)->applyFieldListGhostBoundary(gradA);
-    (*boundItr)->applyFieldListGhostBoundary(gradB);
-    (*boundItr)->applyFieldListGhostBoundary(gradC);
     (*boundItr)->applyFieldListGhostBoundary(Adamage);
     (*boundItr)->applyFieldListGhostBoundary(Bdamage);
     (*boundItr)->applyFieldListGhostBoundary(Cdamage);
     (*boundItr)->applyFieldListGhostBoundary(gradAdamage);
     (*boundItr)->applyFieldListGhostBoundary(gradBdamage);
     (*boundItr)->applyFieldListGhostBoundary(gradCdamage);
-    (*boundItr)->applyFieldListGhostBoundary(massDensity);
   }
-
-  // Get the artificial viscosity and initialize it.
-  ArtificialViscosity<Dimension>& Q = this->artificialViscosity();
-  Q.initialize(dataBase, 
-               state,
-               derivs,
-               this->boundaryBegin(),
-               this->boundaryEnd(),
-               time, 
-               dt,
-               W);
 }
 
 //------------------------------------------------------------------------------
@@ -697,7 +652,6 @@ evaluateDerivatives(const typename Dimension::Scalar time,
         // there are some nodes in this list.
         const vector<int>& connectivity = fullConnectivity[nodeListj];
         if (connectivity.size() > 0) {
-          const double fweightij = 1.0; // (nodeListi == nodeListj ? 1.0 : 0.2);
           const int firstGhostNodej = nodeLists[nodeListj]->firstGhostNode();
 
           // Loop over the neighbors.
@@ -788,12 +742,13 @@ evaluateDerivatives(const typename Dimension::Scalar time,
 
               // Zero'th and second moment of the node distribution -- used for the
               // ideal H calculation.
+              const double fweightij = nodeListi == nodeListj ? 1.0 : mj*rhoi/(mi*rhoj);
               const double rij2 = rij.magnitude2();
               const SymTensor thpt = rij.selfdyad()/max(tiny, rij2*FastMath::square(Dimension::pownu12(rij2)));
-              weightedNeighborSumi += fweightij*std::abs(gWi);
-              weightedNeighborSumj += fweightij*std::abs(gWj);
-              massSecondMomenti += fweightij*gradWSPHi.magnitude2()*thpt;
-              massSecondMomentj += gradWSPHj.magnitude2()*thpt;
+              weightedNeighborSumi +=     fweightij*std::abs(gWi);
+              weightedNeighborSumj += 1.0/fweightij*std::abs(gWj);
+              massSecondMomenti +=     fweightij*gradWSPHi.magnitude2()*thpt;
+              massSecondMomentj += 1.0/fweightij*gradWSPHj.magnitude2()*thpt;
 
               // Compute the artificial viscous pressure (Pi = P/rho^2 actually).
               const pair<Tensor, Tensor> QPiij = Q.Piij(nodeListi, i, nodeListj, j,

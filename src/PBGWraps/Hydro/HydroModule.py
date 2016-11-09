@@ -124,6 +124,7 @@ self.generateThirdMomentHourglassControlBindings(self.ThirdMomentHourglassContro
         x.add_static_attribute("gradA_CRKSPH", "std::string",  is_const=True)
         x.add_static_attribute("gradB_CRKSPH", "std::string",  is_const=True)
         x.add_static_attribute("gradC_CRKSPH", "std::string",  is_const=True)
+        x.add_static_attribute("surfacePoint", "std::string",  is_const=True)
         x.add_static_attribute("M_SPHCorrection", "std::string",  is_const=True)
         x.add_static_attribute("volume", "std::string",  is_const=True)
         x.add_static_attribute("linearMomentum", "std::string",  is_const=True)
