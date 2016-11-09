@@ -29,6 +29,7 @@ class GenerateRatioSphere2d(NodeGeneratorBase):
                  ntheta = 1,
                  center = (0.0, 0.0),
                  distributionType = "constantDTheta",   # one of (constantDTheta, constantNTheta)
+                 aspectRatio = 1.0,                     # only for constantDTheta
                  nNodePerh = 2.01,
                  SPH = False,
                  rejecter = None,
@@ -63,6 +64,8 @@ class GenerateRatioSphere2d(NodeGeneratorBase):
         constantN = (distributionType.lower() == "constantntheta")
         Dtheta = thetamax - thetamin
 
+        nthetamin = max(2, int(Dtheta/(0.5*pi) + 0.5)*2)
+
         # Decide the actual drStart we're going to use to arrive at an integer number of radial bins.
         if abs(drRatio - 1.0) > 1e-4:
             neff = max(1, int(log(1.0 - (rmax - rmin)*(1.0 - drRatio)/drStart)/log(drRatio) + 0.5))
@@ -77,21 +80,21 @@ class GenerateRatioSphere2d(NodeGeneratorBase):
         for i in xrange(neff):
             if abs(drRatio - 1.0) > 1e-4:
                 if startFromCenter:
-                    r0 = rmin + drStart*(1.0 - drRatio**i)/(1.0 - drRatio)
-                    r1 = rmin + drStart*(1.0 - drRatio**(i + 1))/(1.0 - drRatio)
+                    r0 = min(rmax, rmin + drStart*(1.0 - drRatio**i)/(1.0 - drRatio))
+                    r1 = min(rmax, rmin + drStart*(1.0 - drRatio**(i + 1))/(1.0 - drRatio))
                 else:
-                    r0 = rmax - drStart*(1.0 - drRatio**(i + 1))/(1.0 - drRatio)
-                    r1 = rmax - drStart*(1.0 - drRatio**i)/(1.0 - drRatio)
+                    r0 = max(rmin, rmax - drStart*(1.0 - drRatio**(i + 1))/(1.0 - drRatio))
+                    r1 = max(rmin, rmax - drStart*(1.0 - drRatio**i)/(1.0 - drRatio))
             else:
-                r0 = rmin + i*drStart
-                r1 = rmin + (i + 1)*drStart
+                r0 = min(rmax, rmin + i*drStart)
+                r1 = min(rmax, rmin + (i + 1)*drStart)
             dr = r1 - r0
             ri = 0.5*(r0 + r1)
             li = Dtheta*ri
             if constantN:
                 ntheta = ntheta
             else:
-                ntheta = max(1, int(li/dr))
+                ntheta = max(nthetamin, int(li/dr*aspectRatio))
             dtheta = Dtheta/ntheta
             hr = nNodePerh * dr
             ha = nNodePerh * ri*dtheta

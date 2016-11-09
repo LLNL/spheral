@@ -31,7 +31,7 @@ from SpheralModules.Spheral.KernelSpace import BSplineKernel%(dim)sd
 from SpheralModules import vector_of_Physics%(dim)sd
 """ % {"dim" : dim})
 
-class SpheralController(RestartableObject):
+class SpheralController:
 
     #--------------------------------------------------------------------------
     # Constuctor.
@@ -61,7 +61,7 @@ class SpheralController(RestartableObject):
                  skipInitialPeriodicWork = False,
                  iterateInitialH = True,
                  numHIterationsBetweenCycles = 0):
-        RestartableObject.__init__(self)
+        self.restart = RestartableObject(self)
         self.integrator = integrator
         self.kernel = kernel
         self.restartObjects = restartObjects
@@ -166,10 +166,6 @@ class SpheralController(RestartableObject):
         # Set the simulation time.
         self.integrator.currentTime = initialTime
 
-        # If we're starting from scratch, initialize the H tensors.
-        if restoreCycle is None and not skipInitialPeriodicWork and iterateInitialH:
-            self.iterateIdealH()
-
         # Create ghost nodes for the physics packages to initialize with.
         self.integrator.setGhostNodes()
 
@@ -188,6 +184,10 @@ class SpheralController(RestartableObject):
         # If requested, initialize the derivatives.
         if initializeDerivatives:
             self.integrator.evaluateDerivatives(initialTime, 0.0, db, state, derivs)
+
+        # If we're starting from scratch, initialize the H tensors.
+        if restoreCycle is None and not skipInitialPeriodicWork and iterateInitialH:
+            self.iterateIdealH()
 
         # Set up the default periodic work.
         self.appendPeriodicWork(self.printCycleStatus, printStep)

@@ -6,11 +6,12 @@ import mpi
 import numpy as np
 import Spheral2d
 
-class RTMixLength(Spheral2d.RestartableObject):
+class RTMixLength:
 
     def __init__(self, nodes, y0, 
                  percentile = 95.0):  # percent of material above/below where we're measuring the mix length.
         assert percentile >= 0.0 and percentile <= 100.0
+        self.restart = Spheral2d.RestartableObject(self)
         self.nodes = nodes
         self.y0 = y0
         self.percentile = percentile

@@ -6,10 +6,10 @@ import mpi
 ################################################################################
 from SpheralModules.Spheral.DataOutput import RestartableObject
 
-class SpheralTimer(RestartableObject):
+class SpheralTimer:
 
     def __init__(self, label=None):
-        RestartableObject.__init__(self)
+        self.restart = RestartableObject(self)
         self.numInvocations = 0
         self.lastStartTime = 0.0
         self.lastStopTime = 0.0

@@ -74,6 +74,7 @@ self.generateSolidCRKSPHHydroBaseBindings(self.SolidCRKSPHHydroBase%(dim)id, %(d
         vector = "Vector%id" % ndim
         tensor = "Tensor%id" % ndim
         symtensor = "SymTensor%id" % ndim
+        intfieldlist = "Spheral::FieldSpace::IntFieldList%id" % ndim
         thirdranktensor = "ThirdRankTensor%id" % ndim
         scalarfieldlist = "Spheral::FieldSpace::ScalarFieldList%id" % ndim
         vectorfieldlist = "Spheral::FieldSpace::VectorFieldList%id" % ndim
@@ -202,6 +203,20 @@ self.generateSolidCRKSPHHydroBaseBindings(self.SolidCRKSPHHydroBase%(dim)id, %(d
                                  refparam(fifthranktensorfieldlist, "gradm4")],
                                 template_parameters = [dim],
                                 custom_name = "computeCRKSPHMoments%id" % ndim)
+                                
+        # Detect Surfaces
+        self.space.add_function("detectSurface", None,
+                                [constrefparam(connectivitymap, "connectivityMap"),
+                                 constrefparam(scalarfieldlist, "m0"),
+                                 constrefparam(vectorfieldlist, "m1"),
+                                 constrefparam(vectorfieldlist, "position"),
+                                 constrefparam(symtensorfieldlist, "H"),
+                                 constrefparam("double", "detectThreshold"),
+                                 constrefparam("double", "detectRange"),
+                                 constrefparam("double", "sweepAngle"),
+                                 refparam(intfieldlist, "surfacePoint")],
+                                template_parameters = [dim],
+                                custom_name = "detectSurface%id" % ndim)
 
         # CRKSPH corrections.
         self.space.add_function("computeCRKSPHCorrections", None,
@@ -394,6 +409,10 @@ self.generateSolidCRKSPHHydroBaseBindings(self.SolidCRKSPHHydroBase%(dim)id, %(d
                            param("HEvolutionType", "HUpdate", default_value="Spheral::PhysicsSpace::IdealH"),
                            param("CRKOrder", "correctionOrder", default_value="Spheral::CRKSPHSpace::LinearOrder"),
                            param("CRKVolumeType", "volumeType", default_value="Spheral::CRKSPHSpace::CRKSumVolume"),
+                           param("int", "detectSurfaces", default_value="false"),
+                           param("double", "detectThreshold", default_value="0.95"),
+                           param("double", "sweepAngle", default_value="0.8"),
+                           param("double", "detectRange", default_value="0.5"),
                            param("double", "epsTensile", default_value="0.0"),
                            param("double", "nTensile", default_value="4.0")])
 
@@ -453,6 +472,11 @@ self.generateSolidCRKSPHHydroBaseBindings(self.SolidCRKSPHHydroBase%(dim)id, %(d
         x.add_instance_attribute("evolveTotalEnergy", "bool", getter="evolveTotalEnergy", setter="evolveTotalEnergy")
         x.add_instance_attribute("XSPH", "bool", getter="XSPH", setter="XSPH")
         x.add_instance_attribute("filter", "double", getter="filter", setter="filter")
+        x.add_instance_attribute("detectSurfaces", "int", getter="detectSurfaces", setter="detectSurfaces")
+        x.add_instance_attribute("detectThreshold", "double", getter="detectThreshold", setter="detectThreshold")
+        x.add_instance_attribute("detectRange", "double", getter="detectRange", setter="detectRange")
+        x.add_instance_attribute("sweepAngle", "double", getter="sweepAngle", setter="sweepAngle")
+        
 
         const_ref_return_value(x, me, "%s::smoothingScaleMethod" % me, smoothingscalebase, [], "smoothingScaleMethod")
         const_ref_return_value(x, me, "%s::timeStepMask" % me, intfieldlist, [], "timeStepMask")
@@ -483,7 +507,9 @@ self.generateSolidCRKSPHHydroBaseBindings(self.SolidCRKSPHHydroBase%(dim)id, %(d
         const_ref_return_value(x, me, "%s::gradA" % me, vectorfieldlist, [], "gradA")
         const_ref_return_value(x, me, "%s::gradB" % me, tensorfieldlist, [], "gradB")
         const_ref_return_value(x, me, "%s::gradC" % me, thirdranktensorfieldlist, [], "gradC")
-        const_ref_return_value(x, me, "%s::surfNorm" % me, vectorfieldlist, [], "surfNorm")
+        const_ref_return_value(x, me, "%s::surfacePoint" % me, intfieldlist, [], "surfacePoint")
+        const_ref_return_value(x, me, "%s::m0" % me, scalarfieldlist, [], "m0")
+        const_ref_return_value(x, me, "%s::m1" % me, vectorfieldlist, [], "m1")
 
         return
 

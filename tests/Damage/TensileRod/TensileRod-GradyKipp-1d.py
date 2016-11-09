@@ -26,13 +26,13 @@ title("1-D Tensile rod strength/damage model test")
 # Stupid little class to override the mass density evolution of the control
 # boundary nodes.
 #-------------------------------------------------------------------------------
-class OverrideNodeProperties(RestartableObject):
+class OverrideNodeProperties:
     def __init__(self,
                  nodeList,
                  rho0,
                  eps0,
                  controlNodeIDs):
-        RestartableObject.__init__(self)
+        self.restart = RestartableObject(self)
         self.nodeList = nodeList
         self.rho0 = rho0
         self.eps0 = eps0
@@ -153,7 +153,7 @@ commandLine(length = 3.0,
 
             testtol = 1.0e-4,
             clearDirectories = False,
-            referenceFile = "Reference/TensileRod-GradyKipp-1d-1proc-reproducing-20160624.txt",
+            referenceFile = "Reference/TensileRod-GradyKipp-1d-1proc-reproducing-20161003.txt",
             dataDirBase = "dumps-TensileRod-1d",
             outputFile = "None",
             comparisonFile = "None",
@@ -191,9 +191,9 @@ dtSample = dumpFrac*goalTime
 #-------------------------------------------------------------------------------
 # Sampling function to measure the average strain in the volume of the rod.
 #-------------------------------------------------------------------------------
-class AverageStrain(RestartableObject):
+class AverageStrain:
     def __init__(self, damageModel, filename):
-        RestartableObject.__init__(self)
+        self.restart = RestartableObject(self)
         self.damageModel = damageModel
         self.filename = filename
         self.timeHistory = []

@@ -126,7 +126,8 @@ computeSPHOmegaGradhCorrection(const ConnectivityMap<Dimension>& connectivityMap
       }
 
       // Post-conditions.
-      ENSURE(omegaGradh(nodeListi, i) >= 0.0);
+      ENSURE2(i >= nodeList.firstGhostNode() or omegaGradh(nodeListi, i) >= 0.0, 
+              nodeListi << " " << i << " " << nodeList.firstGhostNode() << " " << omegaGradh(nodeListi, i));
     }
   }
 }
