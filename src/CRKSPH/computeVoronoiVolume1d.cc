@@ -64,7 +64,7 @@ computeVoronoiVolume(const FieldSpace::FieldList<Dim<1>, Dim<1>::Vector>& positi
 
   // Prepare some scratch variables.
   unsigned nodeListj1, nodeListj2, j1, j2;
-  Scalar Hi, H1, H2, rhoi, rho1, rho2, gradRhoi, dx1, dx2, etamax, phi, b, rho0, dx, m1, m2,
+  Scalar Hi, H1, H2, rhoi, rho1, rho2, gradRhoi, dx1, dx2, etamax, phi, b, dx, m1, m2,
     xbound0 = -std::numeric_limits<Scalar>::max(),
     xbound1 =  std::numeric_limits<Scalar>::max();
 
@@ -92,55 +92,59 @@ computeVoronoiVolume(const FieldSpace::FieldList<Dim<1>, Dim<1>::Vector>& positi
       if (itr == coords.begin()) {
         dx1 = position(nodeListi, i).x() - xbound0;
         H1 = Hi;
-        rho1 = rhoi; // - gradRhoi*dx1;
+        rho1 = rhoi;
       } else {
         nodeListj1 = (itr-1)->second.first;
         j1 = (itr-1)->second.second;
         H1 = H(nodeListj1, j1).xx();
         rho1 = rho(nodeListj1, j1);
-        dx1 = position(nodeListi, i).x() - position(nodeListj1, j1).x();
+        dx1 = 0.5*(position(nodeListi, i).x() - position(nodeListj1, j1).x());
       }
 
       if (itr == coords.end()-1) {
         dx2 = xbound1 - position(nodeListi, i).x();
         H2 = Hi;
-        rho2 = rhoi; //  + gradRhoi*dx2;
+        rho2 = rhoi;
       } else {
         nodeListj2 = (itr+1)->second.first;
         j2 = (itr+1)->second.second;
         H2 = H(nodeListj2, j2).xx();
         rho2 = rho(nodeListj2, j2);
-        dx2 = position(nodeListj2, j2).x() - position(nodeListi, i).x();
+        dx2 = 0.5*(position(nodeListj2, j2).x() - position(nodeListi, i).x());
       }
 
       CHECK(dx1 >= 0.0 and dx2 >= 0.0);
       etamax = max(Hi, max(H1, H2))*max(dx1, dx2);
       if (etamax < rin) {
-        vol(nodeListi, i) = 0.5*(dx1 + dx2);
-        const Scalar phi = min(1.0, min(max(0.0, dx1*safeInvVar(rhoi - rho1)),
-                                        max(0.0, dx2*safeInvVar(rho2 - rhoi))));
+        vol(nodeListi, i) = dx1 + dx2;
+        const Scalar phi = min(1.0, min(max(0.0, 2.0*dx1*safeInvVar(rhoi - rho1)),
+                                        max(0.0, 2.0*dx2*safeInvVar(rho2 - rhoi))));
         CHECK(phi >= 0.0 and phi <= 1.0);
 
         const Scalar b = phi*gradRhoi;
-        const Scalar rho0 = rhoi - b*dx1;
         const Scalar dx = dx1 + dx2;
-        if (std::abs(b*dx) > 0.05*rho0) {
-          deltaMedian(nodeListi, i).x((sqrt(2.0*rho0*rho0 + b*b*dx*dx + 2.0*b*rho0*dx)/sqrt(2.0) - rho0)*safeInvVar(b) - dx1);
+        
+        if (std::abs(b*dx) > 0.01*rhoi) {
+          if (b > 0.0) {
+            deltaMedian(nodeListi, i).x( (sqrt(abs(rhoi*rhoi + b*rhoi*(dx2 - dx1) + b*b*(dx1*dx1 + dx2*dx2))) - rhoi)/b);
+          } else {
+            deltaMedian(nodeListi, i).x(-(sqrt(abs(rhoi*rhoi + b*rhoi*(dx2 - dx1) + b*b*(dx1*dx1 + dx2*dx2))) + rhoi)/b);
+          }
         } else {
-          m1 = 0.5*dx1*(rhoi - phi*gradRhoi*0.25*dx1),
-          m2 = 0.5*dx2*(rhoi + phi*gradRhoi*0.25*dx2);
-          deltaMedian(nodeListi, i).x(0.5*(m2*dx2 - m1*dx1)/(m1 + m2));
+          m1 = dx1*(rhoi - 0.5*b*dx1);
+          m2 = dx2*(rhoi + 0.5*b*dx2);
+          CHECK(m1 > 0.0 and m2 > 0.0);
+          deltaMedian(nodeListi, i).x((m2*dx2 - m1*dx1)/(m1 + m2));
+          // cerr << "BLAGO : " << m1 << " " << m2 << " " << (m2*dx2 - m1*dx1)/(m1 + m2) << endl;
         }
 
         // {
-        //   const Scalar x0 = -0.5*dx1,
-        //     x1 = 0.5*dx2,
+        //   const Scalar x0 = -dx1,
+        //     x1 = dx2,
         //     xm = deltaMedian(nodeListi, i).x(),
-        //     m1 = (rhoi + b*0.5*x0)*abs(x0),
-        //     m2 = (rhoi + b*0.5*x1)*x1,
-        //     mm1 = (rhoi + b*0.5*(x0 + xm))*(xm - x0),
-        //     mm2 = (rhoi + b*0.5*(x1 + xm))*(x1 - xm);
-        //   cerr << " --> " << i << " " << x0 << " " << x1 << " " << xm << " " << m1 << " " << m2 << " " << mm1 << " " << mm2 << endl;
+        //     m1 = -rhoi*x0 + 0.5*b*x0*x0 + rhoi*xm + 0.5*b*xm*xm,
+        //     m2 = -rhoi*xm + 0.5*b*xm*xm + rhoi*x1 + 0.5*b*x1*x1;
+        //   cerr << " --> " << i << " " << x0 << " " << x1 << " " << xm << " " << m1 << " " << m2 << endl;
         // }
 
       } else {
