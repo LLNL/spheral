@@ -344,11 +344,10 @@ computeVoronoiVolume(const FieldList<Dim<2>, Dim<2>::Vector>& position,
             const Vector nhat1 = gradRhoi.unitVector();
             const Vector nhat2 = Vector(-nhat1.y(), nhat1.x());
             PolygonClippedMassRoot F1(celli, rhoi, gradRhoi, nhat1, 0.5);
-            const double dx = F1.xmax - F1.xmin;
             const double dx1 = -F1.xmin;
+            const double dx2 =  F1.xmax;
             const Scalar b = gradRhoi.magnitude();
-            const Scalar rho0 = rhoi - b*dx1;
-            deltaMedian(nodeListi, i) = ((sqrt(2.0*rho0*rho0 + b*b*dx*dx + 2.0*b*rho0*dx)/sqrt(2.0) - rho0)*safeInvVar(b) - dx1)*nhat1 + deltaCentroidi.dot(nhat2)*nhat2;
+            deltaMedian(nodeListi, i) = (sqrt(abs(rhoi*rhoi + b*rhoi*(dx2 - dx1) + b*b*(dx1*dx1 + dx2*dx2))) - rhoi)/b*nhat1 + deltaCentroidi.dot(nhat2)*nhat2;
 
             // // If so, we search for the median mass position within the cell.
             // // We search for the median coordinates with reference to the density gradient direction.
