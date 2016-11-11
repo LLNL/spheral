@@ -275,11 +275,12 @@ computeVoronoiVolume(const FieldList<Dim<2>, Dim<2>::Vector>& position,
         if (haveBoundaries) {
 
           // If we have a boundary, use that for the initial cell shape.
-          const vector<Facet>& facets = boundaries[nodeListi].facets();
-          const unsigned nfacets = facets.size();
+          CHECK(boundaries[nodeListi].contains(ri));
+          const vector<Vector>& vertices = boundaries[nodeListi].vertices();   // Already sorted in CCW order.
+          const unsigned nfacets = vertices.size();
           r2d_rvec2 verts_bound[nfacets];
           for (unsigned j = 0; j != nfacets; ++j) {
-            const Vector& vi = facets[j].point1() - ri;
+            const Vector& vi = vertices[j] - ri;
             verts_bound[j].x = vi.x();
             verts_bound[j].y = vi.y();
           }
@@ -304,6 +305,7 @@ computeVoronoiVolume(const FieldList<Dim<2>, Dim<2>::Vector>& position,
 
         // Clip the local cell.
         r2d_clip(&celli, &pairPlanes[0], pairPlanes.size());
+        CHECK(celli.nverts > 0);
 
         // Check if the final polygon is entirely within our "interior" check radius.
         bool interior = true;

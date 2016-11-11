@@ -100,7 +100,7 @@ class MedialGenerator2d(NodeGeneratorBase):
                     pos[i] = p
                     rhof[i] = rhoi
                     mass[i] = rhoi * area/n  # Not actually correct, but mass will be updated in centroidalRelaxNodes
-                    hi = nNodePerh * sqrt(area/n)
+                    hi = 2.0 * nNodePerh * sqrt(area/n)
                     assert hi > 0.0
                     H[i] = SymTensor2d(1.0/hi, 0.0, 0.0, 1.0/hi)
                     i += 1
