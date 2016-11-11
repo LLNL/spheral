@@ -105,8 +105,25 @@ class MedialGenerator2d(NodeGeneratorBase):
                     H[i] = SymTensor2d(1.0/hi, 0.0, 0.0, 1.0/hi)
                     i += 1
 
+        # Add the holes to the boundary.
+        points = sph.vector_of_Vector(boundary.vertices())
+        facets = sph.vector_of_vector_of_unsigned(boundary.vertexFacetConnectivity())
+        for hole in holes:
+            ps = hole.vertices()
+            fs = hole.vertexFacetConnectivity()
+            nold = points.size()
+            nnew = nold + ps.size()
+            for p in ps:
+                points.append(p)
+            for f in fs:
+                assert len(f) == 2
+                facets.append(vector_of_unsigned(2))
+                facets[-1][0] = (f[1] + nold) % nnew
+                facets[-1][1] = (f[0] + nold) % nnew
+        bound = sph.Polygon(points, facets)
+
         # Iterate the points toward centroidal relaxation.
-        vol, surfacePoint = centroidalRelaxNodes([(nodes, boundary)],
+        vol, surfacePoint = centroidalRelaxNodes([(nodes, bound)],
                                                  W = WT,
                                                  rho = rhofunc,
                                                  gradrho = gradrho,
