@@ -117,7 +117,7 @@ print "Generator 1"
 generator1 = MedialGenerator2d(n = n1,
                                rho = 1.0, # rhoprofile1,
                                boundary = Hboundary,
-                               maxIterations = maxIterations,
+                               maxIterations = 1, # maxIterations,
                                fracTol = fracTol,
                                tessellationFileName = "test_medial_nodes1_maxiter=%i_tol=%g" % (maxIterations, fracTol),
                                nNodePerh = nPerh)
@@ -126,7 +126,7 @@ print "Generator 2"
 generator2 = MedialGenerator2d(n = n2,
                                rho = 1.0,
                                boundary = outerCircle,
-                               holes = [innerCircle],
+                               #holes = [innerCircle],
                                maxIterations = maxIterations,
                                fracTol = fracTol,
                                tessellationFileName = "test_medial_nodes2_maxiter=%i_tol=%g" % (maxIterations, fracTol),

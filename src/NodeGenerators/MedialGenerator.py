@@ -75,6 +75,7 @@ class MedialGenerator2d(NodeGeneratorBase):
             if use:
                 while use and ihole < len(holes):
                     use = not holes[ihole].contains(p, True)
+                    ihole += 1
             if use:
                 rhomax = max(rhomax, rhofunc(p))
                 i += 1
@@ -94,6 +95,7 @@ class MedialGenerator2d(NodeGeneratorBase):
             if use:
                 while use and ihole < len(holes):
                     use = not holes[ihole].contains(p, True)
+                    ihole += 1
             if use:
                 rhoi = rhofunc(p)
                 if rangen.uniform(0.0, 1.0) < rhoi/rhomax:
@@ -117,7 +119,7 @@ class MedialGenerator2d(NodeGeneratorBase):
                 points.append(p)
             for f in fs:
                 assert len(f) == 2
-                facets.append(vector_of_unsigned(2))
+                facets.append(sph.vector_of_unsigned(2))
                 facets[-1][0] = (f[1] + nold) % nnew
                 facets[-1][1] = (f[0] + nold) % nnew
         bound = sph.Polygon(points, facets)
