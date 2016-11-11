@@ -59,7 +59,7 @@ class MedialGenerator2d(NodeGeneratorBase):
         # Make a first pass looking for the maximum density (roughly).
         pos = nodes.positions()
         mass = nodes.mass()
-        rho = nodes.massDensity()
+        rhof = nodes.massDensity()
         H = nodes.Hfield()
         nodes.numInternalNodes = n
         length = max(boundary.xmax.x - boundary.xmin.x,
@@ -98,7 +98,7 @@ class MedialGenerator2d(NodeGeneratorBase):
                 rhoi = rhofunc(p)
                 if rangen.uniform(0.0, 1.0) < rhoi/rhomax:
                     pos[i] = p
-                    rho[i] = rhoi
+                    rhof[i] = rhoi
                     mass[i] = rhoi * area/n  # Not actually correct, but mass will be updated in centroidalRelaxNodes
                     hi = nNodePerh * sqrt(area/n)
                     assert hi > 0.0
