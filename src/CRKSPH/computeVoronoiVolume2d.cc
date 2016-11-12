@@ -275,7 +275,7 @@ computeVoronoiVolume(const FieldList<Dim<2>, Dim<2>::Vector>& position,
         if (haveBoundaries) {
 
           // If we have a boundary, use that for the initial cell shape.
-          CHECK(boundaries[nodeListi].contains(ri));
+          CHECK2(boundaries[nodeListi].contains(ri), ri);
           const vector<Vector>& vertices = boundaries[nodeListi].vertices();   // Already sorted in CCW order.
           const unsigned nfacets = vertices.size();
           r2d_rvec2 verts_bound[nfacets];
@@ -299,9 +299,6 @@ computeVoronoiVolume(const FieldList<Dim<2>, Dim<2>::Vector>& position,
 
         }
         CHECK2(r2d_is_good(&celli), "Bad polygon!");
-
-        // // Make a copy of the unclipped cell geometry for use in the centroidal/median filtering algorithm.
-        // r2d_poly doublecelli = celli;
 
         // Clip the local cell.
         r2d_clip(&celli, &pairPlanes[0], pairPlanes.size());
@@ -328,17 +325,12 @@ computeVoronoiVolume(const FieldList<Dim<2>, Dim<2>::Vector>& position,
           // Apply the gradient limiter;
           gradRhoi *= phi;
 
-          // // Clip the original cell geometry again, this time using planes coincident with the neighbor points.
-          // for (unsigned j = 0; j != pairPlanes.size(); ++j) pairPlanes[j].d *= 2.0;
-          // r2d_clip(&doublecelli, &pairPlanes[0], pairPlanes.size());
-
           // Compute the centroidal motion.
           firstmom[0] = rhoi;
           firstmom[1] = gradRhoi.x();
           firstmom[2] = gradRhoi.y();
           r2d_reduce(&celli, firstmom, 1);
-          const Scalar m0 = cellIntegral(celli, rhoi, gradRhoi);
-          const Vector deltaCentroidi = Vector(firstmom[1], firstmom[2])/m0;
+          const Vector deltaCentroidi = Vector(firstmom[1], firstmom[2])/firstmom[0];
 
           // Is there a significant density gradient?
           if (sqrt(gradRhoi.magnitude2()*voli[0]) >= 0.025*rhoi) {
