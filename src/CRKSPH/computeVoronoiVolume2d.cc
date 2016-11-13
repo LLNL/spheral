@@ -411,24 +411,43 @@ computeVoronoiVolume(const FieldList<Dim<2>, Dim<2>::Vector>& position,
             }
           } // BLAGO
 
-          // Read out the R2D cell in CCW order.
-          vector<Vector> verts(celli.nverts);
-          int lastvert = -1, nextvert, ivert = 0;
-          for (int j = 0; j != celli.nverts; ++j) {
-            verts[j].x(celli.verts[ivert].pos.x);
-            verts[j].y(celli.verts[ivert].pos.y);
-            nextvert = (celli.verts[ivert].pnbrs[0] == lastvert ?
-                        celli.verts[ivert].pnbrs[1] :
-                        celli.verts[ivert].pnbrs[0]);
-            lastvert = ivert;
-            ivert = nextvert;
+          // Read out the R2D cell in CCW order.  We have to scan for the positive loop of edges though.
+          vector<Vector> verts;
+          vector<int> vertcheck(celli.nverts, 0);
+          {
+            int nextvert, ivert, firstvert;
+            double area = -1.0;
+            while (area < 0.0) {
+              area = 0.0;
+
+              // Find the first unused vertex.
+              firstvert = 0;
+              while (firstvert != celli.nverts and vertcheck[firstvert] == 1) firstvert++;
+              CHECK(firstvert != celli.nverts);
+
+              // Read out the loop of vertices.
+              ivert = firstvert;
+              nextvert = -1;
+              verts.clear();
+              while (nextvert != firstvert) {
+                verts.push_back(Vector(celli.verts[ivert].pos.x,
+                                       celli.verts[ivert].pos.y));
+                vertcheck[ivert] = 1;
+                nextvert = celli.verts[ivert].pnbrs[0];
+                if (barf) cerr << " **> " << (verts.back() + ri) << " " << ivert << " "  << nextvert << endl;
+                area += (celli.verts[ivert].pos.x * celli.verts[nextvert].pos.y -
+                         celli.verts[ivert].pos.y * celli.verts[nextvert].pos.x);
+                ivert = nextvert;
+              }
+            }
+            if (barf) cerr << " area : " << area << endl;
           }
 
           // Flag any redundant vertices to not be used.
-          vector<int> usevert(celli.nverts, 1);
+          vector<int> usevert(verts.size(), 1);
           const Scalar tol = 1.0e-8/sqrt(Hdeti);
-          for (int j = 0; j != celli.nverts - 1; ++j) {
-            for (int k = j + 1; k != celli.nverts; ++k) {
+          for (int j = 0; j != verts.size() - 1; ++j) {
+            for (int k = j + 1; k != verts.size(); ++k) {
               if (usevert[k] == 1 and (verts[j] - verts[k]).magnitude2() < tol) usevert[k] = 0;
             }
           }
@@ -437,7 +456,7 @@ computeVoronoiVolume(const FieldList<Dim<2>, Dim<2>::Vector>& position,
           vector<Vector> uniqueVerts;
           vector<vector<unsigned> > facetIndices;
           int k = 0;
-          for (int j = 0; j != celli.nverts; ++j) {
+          for (int j = 0; j != verts.size(); ++j) {
             if (usevert[j] == 1) {
               uniqueVerts.push_back(ri + verts[j]);
               facetIndices.push_back(vector<unsigned>(2));
@@ -448,15 +467,21 @@ computeVoronoiVolume(const FieldList<Dim<2>, Dim<2>::Vector>& position,
           facetIndices.back()[1] = 0;
           CHECK(uniqueVerts.size() >= 3);
 
-          // Check the dang things are in CCW order.
-          double area = 0.0;
-          for (int j = 0; j != uniqueVerts.size(); ++j) {
-            area += ((uniqueVerts[facetIndices[j][0]] - ri).cross(uniqueVerts[facetIndices[j][1]] - ri)).z();
-          }
-          if (area < 0.0) std::reverse(uniqueVerts.begin(), uniqueVerts.end());
+          // // Check the dang things are in CCW order.
+          // double area = 0.0;
+          // for (int j = 0; j != uniqueVerts.size(); ++j) {
+          //   area += ((uniqueVerts[facetIndices[j][0]] - ri).cross(uniqueVerts[facetIndices[j][1]] - ri)).z();
+          // }
+          // if (area < 0.0) std::reverse(uniqueVerts.begin(), uniqueVerts.end());
 
-          // std::copy(verts.begin(), verts.end(), std::ostream_iterator<Dim<2>::Vector>(std::cout, " "));
-          // std::cout << endl;
+          // if (barf) {
+          //   cout << " --> " << i << " : ";
+          //   std::copy(verts.begin(), verts.end(), std::ostream_iterator<Dim<2>::Vector>(std::cout, " "));
+          //   std::cout << endl;
+          //   cout << " --> " << i << " : ";
+          //   std::copy(uniqueVerts.begin(), uniqueVerts.end(), std::ostream_iterator<Dim<2>::Vector>(std::cout, " "));
+          //   std::cout << endl;
+          // }
           cells(nodeListi, i) = FacetedVolume(uniqueVerts, facetIndices);
           if (barf) cerr << cells(nodeListi, i) << endl;
         }
