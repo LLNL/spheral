@@ -234,6 +234,8 @@ computeVoronoiVolume(const FieldList<Dim<2>, Dim<2>::Vector>& position,
       const unsigned n = vol[nodeListi]->numInternalElements();
       for (unsigned i = 0; i != n; ++i) {
 
+        const bool barf = (i == 11);
+
         const Vector& ri = position(nodeListi, i);
         const SymTensor& Hi = H(nodeListi, i);
         const Scalar rhoi = rho(nodeListi, i);
@@ -241,6 +243,8 @@ computeVoronoiVolume(const FieldList<Dim<2>, Dim<2>::Vector>& position,
         const Vector grhat = gradRhoi.unitVector();
         const Scalar Hdeti = Hi.Determinant();
         const SymTensor Hinv = Hi.Inverse();
+
+        if (barf) cerr << " --> " << i << " " << ri << endl;
 
         // Grab this points neighbors and build all the planes.
         // We simultaneously build a very conservative limiter for the density gradient.
@@ -304,6 +308,8 @@ computeVoronoiVolume(const FieldList<Dim<2>, Dim<2>::Vector>& position,
         r2d_clip(&celli, &pairPlanes[0], pairPlanes.size());
         CHECK(celli.nverts > 0);
 
+        if (barf) r2d_print(&celli);
+
         // Check if the final polygon is entirely within our "interior" check radius.
         bool interior = true;
         {
@@ -331,6 +337,7 @@ computeVoronoiVolume(const FieldList<Dim<2>, Dim<2>::Vector>& position,
           firstmom[2] = gradRhoi.y();
           r2d_reduce(&celli, firstmom, 1);
           const Vector deltaCentroidi = Vector(firstmom[1], firstmom[2])/firstmom[0];
+          if (barf) cerr << "     " << deltaCentroidi << " " << ri + deltaCentroidi << endl;
 
           // Is there a significant density gradient?
           if (sqrt(gradRhoi.magnitude2()*voli[0]) >= 0.025*rhoi) {
@@ -391,38 +398,67 @@ computeVoronoiVolume(const FieldList<Dim<2>, Dim<2>::Vector>& position,
         }
 
         // If requested, we can return the cell geometries.
+        // Note, R2D leaves lots of degeneracies in the cell points/edges, so we do this in two passes.  First,
+        // read all the vertices in CCW order and build a linked list pointing to the next one.  Then we
+        // go over these points and remove any degeneracies by updating just the linked list to loop over
+        // unique vertices.
         if (returnCells) {
-          vector<Vector> verts;
-          verts.reserve(celli.nverts);
-          vector<vector<unsigned> > facetIndices; // (celli.nverts, vector<unsigned>(2));
-          int lastvert = -1, nextvert, ivert = 0, j = 0, k = 0;
-          const Scalar tol = 1.0e-8*sqrt(Hdeti);
-          while (k < celli.nverts) {
-            if (lastvert == -1 or
-                distance2(celli.verts[ivert], celli.verts[lastvert]) > tol) {
-              verts.push_back(Vector(celli.verts[ivert].pos.x, celli.verts[ivert].pos.y) + ri);
-              facetIndices.push_back(vector<unsigned>(2));
-              CHECK(facetIndices.size() == j + 1);
-              facetIndices[j][0] = j;
-              facetIndices[j][1] = j + 1;
-              ++j;
+
+          if (barf) { // BLAGO
+            cerr << "Raw verts: " << endl;
+            for (unsigned j = 0; j != celli.nverts; ++j) {
+              cerr << " --> " << celli.verts[j].pos.x + ri.x() << " " << celli.verts[j].pos.y + ri.y() << endl;
             }
+          } // BLAGO
+
+          // Read out the R2D cell in CCW order.
+          vector<Vector> verts(celli.nverts);
+          int lastvert = -1, nextvert, ivert = 0;
+          for (int j = 0; j != celli.nverts; ++j) {
+            verts[j].x(celli.verts[ivert].pos.x);
+            verts[j].y(celli.verts[ivert].pos.y);
             nextvert = (celli.verts[ivert].pnbrs[0] == lastvert ?
                         celli.verts[ivert].pnbrs[1] :
                         celli.verts[ivert].pnbrs[0]);
             lastvert = ivert;
             ivert = nextvert;
-            ++k;
           }
-          CHECK(verts.size() >= 3);
-          if ((verts.back() - verts.front()).magnitude2() <= tol) { // The first and last may have snuck in degenerate.
-            verts.pop_back();
-            facetIndices.pop_back();
+
+          // Flag any redundant vertices to not be used.
+          vector<int> usevert(celli.nverts, 1);
+          const Scalar tol = 1.0e-8/sqrt(Hdeti);
+          for (int j = 0; j != celli.nverts - 1; ++j) {
+            for (int k = j + 1; k != celli.nverts; ++k) {
+              if (usevert[k] == 1 and (verts[j] - verts[k]).magnitude2() < tol) usevert[k] = 0;
+            }
+          }
+
+          // Now we can read out the vertices we're actually using and build the return polygon.
+          vector<Vector> uniqueVerts;
+          vector<vector<unsigned> > facetIndices;
+          int k = 0;
+          for (int j = 0; j != celli.nverts; ++j) {
+            if (usevert[j] == 1) {
+              uniqueVerts.push_back(ri + verts[j]);
+              facetIndices.push_back(vector<unsigned>(2));
+              facetIndices.back()[0] = k;
+              facetIndices.back()[1] = ++k;
+            }
           }
           facetIndices.back()[1] = 0;
+          CHECK(uniqueVerts.size() >= 3);
+
+          // Check the dang things are in CCW order.
+          double area = 0.0;
+          for (int j = 0; j != uniqueVerts.size(); ++j) {
+            area += ((uniqueVerts[facetIndices[j][0]] - ri).cross(uniqueVerts[facetIndices[j][1]] - ri)).z();
+          }
+          if (area < 0.0) std::reverse(uniqueVerts.begin(), uniqueVerts.end());
+
           // std::copy(verts.begin(), verts.end(), std::ostream_iterator<Dim<2>::Vector>(std::cout, " "));
           // std::cout << endl;
-          cells(nodeListi, i) = FacetedVolume(verts, facetIndices);
+          cells(nodeListi, i) = FacetedVolume(uniqueVerts, facetIndices);
+          if (barf) cerr << cells(nodeListi, i) << endl;
         }
 
       }
