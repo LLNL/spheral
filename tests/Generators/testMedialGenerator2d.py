@@ -173,14 +173,12 @@ def rhoprofile1(posi):
 
 print "Generator 1"
 generator1 = MedialGenerator2d(n = n1,
-                               rho = 1.0, # rhoprofile1,
+                               rho = rhoprofile1,
                                boundary = Hboundary,
-                               maxIterations = 1, # maxIterations,
+                               maxIterations = maxIterations,
                                fracTol = fracTol,
                                tessellationFileName = "test_medial_nodes1_maxiter=%i_tol=%g" % (maxIterations, fracTol),
                                nNodePerh = nPerh)
-
-raise "blago"
 
 print "Generator 2"
 if noholes:
