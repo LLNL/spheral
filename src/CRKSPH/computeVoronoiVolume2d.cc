@@ -235,15 +235,20 @@ computeVoronoiVolume(const FieldList<Dim<2>, Dim<2>::Vector>& position,
       verts[j].x(kernelExtent*cos(theta));
       verts[j].y(kernelExtent*sin(theta));
     }
-    // r2d_rvec2 verts[nverts];
-    // for (unsigned j = 0; j != nverts; ++j) {
-    //   const double theta = j*dtheta;
-    //   verts[j].x = kernelExtent*cos(theta);
-    //   verts[j].y = kernelExtent*sin(theta);
-    // }
-    // r2d_poly initialCell;
-    // r2d_init_poly(&initialCell, verts, nverts);
-    // CHECK(r2d_is_good(&initialCell));
+
+    // If there are boundaries, we build the R2D versions of them once.
+    vector<r2d_poly> boundaries_r2d(numBounds);
+    for (unsigned ibound = 0; ibound != numBounds; ++ibound) {
+      const vector<Vector>& vertices = boundaries[ibound].vertices();   // Already sorted in CCW order.
+      const unsigned nfacets = vertices.size();
+      r2d_rvec2 verts[nfacets];
+      for (unsigned j = 0; j != nfacets; ++j) {
+        verts[j].x = vertices[j].x();
+        verts[j].y = vertices[j].y();
+      }
+      r2d_init_poly(&boundaries_r2d[ibound], verts, nfacets);
+      CHECK2(r2d_is_good(&boundaries_r2d[ibound]), "Bad boundary polygon for bound " << ibound);
+    }
 
     // Walk the points.
     r2d_real firstmom[3];
@@ -295,17 +300,13 @@ computeVoronoiVolume(const FieldList<Dim<2>, Dim<2>::Vector>& position,
         r2d_poly celli;
         if (haveBoundaries) {
 
-          // If we have a boundary, use that for the initial cell shape.
+          // Copy the boundary for this NodeList and shift it so it centers on point i.
           CHECK2(boundaries[nodeListi].contains(ri), nodeListi << " " << i << " @ " << ri);
-          const vector<Vector>& vertices = boundaries[nodeListi].vertices();   // Already sorted in CCW order.
-          const unsigned nfacets = vertices.size();
-          r2d_rvec2 verts_bound[nfacets];
-          for (unsigned j = 0; j != nfacets; ++j) {
-            const Vector& vi = vertices[j] - ri;
-            verts_bound[j].x = vi.x();
-            verts_bound[j].y = vi.y();
-          }
-          r2d_init_poly(&celli, verts_bound, nfacets);
+          celli = boundaries_r2d[nodeListi];
+          r2d_rvec2 shift;
+          shift.x = -ri.x();
+          shift.y = -ri.y();
+          r2d_translate(&celli, shift);
 
         } else {
 
