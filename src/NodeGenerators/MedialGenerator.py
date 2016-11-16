@@ -29,7 +29,8 @@ class MedialGenerator2d(NodeGeneratorBase):
                  tessellationFileName = None,
                  nNodePerh = 2.01,
                  offset = (0.0, 0.0),
-                 rejecter = None):
+                 rejecter = None,
+                 randomseed = 492739149274):
 
         assert n > 0
         assert len(holes) == 0   # Not supported yet, but we'll get there.
@@ -83,7 +84,7 @@ class MedialGenerator2d(NodeGeneratorBase):
         print "MedialGenerator: selected a maximum density of ", rhomax
 
         # Initialize the desired number of generators in the boundary using the Sobol sequence.
-        rangen = random.Random()
+        rangen = random.Random(randomseed)
         area = boundary.volume
         seed = 0
         i = 0

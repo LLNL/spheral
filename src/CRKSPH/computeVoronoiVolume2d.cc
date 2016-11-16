@@ -296,7 +296,7 @@ computeVoronoiVolume(const FieldList<Dim<2>, Dim<2>::Vector>& position,
         if (haveBoundaries) {
 
           // If we have a boundary, use that for the initial cell shape.
-          CHECK2(boundaries[nodeListi].contains(ri), ri);
+          CHECK2(boundaries[nodeListi].contains(ri), nodeListi << " " << i << " @ " << ri);
           const vector<Vector>& vertices = boundaries[nodeListi].vertices();   // Already sorted in CCW order.
           const unsigned nfacets = vertices.size();
           r2d_rvec2 verts_bound[nfacets];
@@ -405,6 +405,12 @@ computeVoronoiVolume(const FieldList<Dim<2>, Dim<2>::Vector>& position,
           if (returnSurface) surfacePoint(nodeListi, i) = 1;
           deltaMedian(nodeListi, i) = Vector::zero;
 
+        }
+
+        // Check if the candidate motion is still in the boundary.  If not, project back.
+        if (haveBoundaries and not boundaries[nodeListi].contains(ri + deltaMedian(nodeListi, i))) {
+          deltaMedian(nodeListi, i) = boundaries[nodeListi].closestPoint(ri + deltaMedian(nodeListi, i)) - ri;
+          // cerr << "Correcting " << nodeListi << " " << i << " to new position " << (ri + deltaMedian(nodeListi, i)) << endl;
         }
 
         // If requested, we can return the cell geometries.
