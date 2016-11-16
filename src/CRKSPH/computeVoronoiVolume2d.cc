@@ -39,6 +39,23 @@ bool compareR2Dplanes(const r2d_plane& lhs, const r2d_plane& rhs) {
 }
 
 //------------------------------------------------------------------------------
+// Find the 1D extent of an R2D cell along the given direction.
+//------------------------------------------------------------------------------
+void findPolygonExtent(double& xmin, double& xmax, const Dim<2>::Vector& nhat, const r2d_poly& celli) {
+  REQUIRE(fuzzyEqual(nhat.magnitude(), 1.0));
+  const unsigned nverts = celli.nverts;
+  double xi;
+  xmin = std::numeric_limits<double>::max();
+  xmax = -std::numeric_limits<double>::max();
+  for (unsigned i = 0; i != nverts; ++i) {
+    xi = (celli.verts[i].pos.x * nhat.x() +
+          celli.verts[i].pos.y * nhat.y());
+    xmin = std::min(xmin, xi);
+    xmax = std::max(xmax, xi);
+  }
+}
+
+//------------------------------------------------------------------------------
 // Functor to return the mass and its derivative for use with our
 // Newton-Raphson iteration.
 // Note we assume here we're working in a unit radius circle (centered on the
@@ -336,9 +353,10 @@ computeVoronoiVolume(const FieldList<Dim<2>, Dim<2>::Vector>& position,
           if (sqrt(gradRhoi.magnitude2()*vol(nodeListi, i)) >= 0.025*rhoi) {
 
             const Vector nhat1 = gradRhoi.unitVector();
-            PolygonClippedMassRoot F1(celli, rhoi, gradRhoi, nhat1, 0.5);
-            const double dx1 = -F1.xmin;
-            const double dx2 =  F1.xmax;
+            double dx1, dx2;
+            findPolygonExtent(dx1, dx2, nhat1, celli);
+            dx1 = -dx1;
+            CHECK(dx1 >= 0. and dx2 >= 0.0);
             const Scalar b = gradRhoi.magnitude();
             deltaMedian(nodeListi, i) = (sqrt(abs(rhoi*rhoi + b*rhoi*(dx2 - dx1) + b*b*(dx1*dx1 + dx2*dx2))) - rhoi)/b*nhat1 -  deltaCentroidi.dot(nhat1)*nhat1 + deltaCentroidi;
 
