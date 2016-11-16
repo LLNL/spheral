@@ -207,7 +207,7 @@ computeVoronoiVolume(const FieldList<Dim<2>, Dim<2>::Vector>& position,
 
   if (numGensGlobal > 0) {
 
-    const Scalar rin = 0.5*kernelExtent;
+    const Scalar rin2 = 0.25*kernelExtent*kernelExtent;
 
     // Build an approximation of the starting kernel shape.
     const unsigned nverts = 18;
@@ -229,7 +229,7 @@ computeVoronoiVolume(const FieldList<Dim<2>, Dim<2>::Vector>& position,
     // CHECK(r2d_is_good(&initialCell));
 
     // Walk the points.
-    r2d_real voli[1], firstmom[3];
+    r2d_real firstmom[3];
     for (unsigned nodeListi = 0; nodeListi != numNodeLists; ++nodeListi) {
       const unsigned n = vol[nodeListi]->numInternalElements();
       for (unsigned i = 0; i != n; ++i) {
@@ -315,7 +315,7 @@ computeVoronoiVolume(const FieldList<Dim<2>, Dim<2>::Vector>& position,
         {
           unsigned k = 0;
           while (interior and k != celli.nverts) {
-            interior = (Hi*Vector(celli.verts[k].pos.x, celli.verts[k].pos.y)).magnitude() < rin;
+            interior = (Hi*Vector(celli.verts[k].pos.x, celli.verts[k].pos.y)).magnitude2() < rin2;
             ++k;
           }
         }
@@ -323,32 +323,24 @@ computeVoronoiVolume(const FieldList<Dim<2>, Dim<2>::Vector>& position,
         if (interior) {
           if (returnSurface) surfacePoint(nodeListi, i) = 0;
 
-          // This is an interior point -- extract the area.
-          voli[0] = 1.0;
-          r2d_reduce(&celli, voli, 0);
-          vol(nodeListi, i) = voli[0];
+          // Compute the centroidal motion and area.
+          r2d_reduce(&celli, firstmom, 1);
+          vol(nodeListi, i) = firstmom[0];
+          const Vector deltaCentroidi = Vector(firstmom[1], firstmom[2])/firstmom[0];
+          // if (barf) cerr << "     " << deltaCentroidi << " " << ri + deltaCentroidi << endl;
 
           // Apply the gradient limiter;
           gradRhoi *= phi;
 
-          // Compute the centroidal motion.
-          firstmom[0] = rhoi;
-          firstmom[1] = gradRhoi.x();
-          firstmom[2] = gradRhoi.y();
-          r2d_reduce(&celli, firstmom, 1);
-          const Vector deltaCentroidi = Vector(firstmom[1], firstmom[2])/firstmom[0];
-          // if (barf) cerr << "     " << deltaCentroidi << " " << ri + deltaCentroidi << endl;
-
           // Is there a significant density gradient?
-          if (sqrt(gradRhoi.magnitude2()*voli[0]) >= 0.025*rhoi) {
+          if (sqrt(gradRhoi.magnitude2()*vol(nodeListi, i)) >= 0.025*rhoi) {
 
             const Vector nhat1 = gradRhoi.unitVector();
-            const Vector nhat2 = Vector(-nhat1.y(), nhat1.x());
             PolygonClippedMassRoot F1(celli, rhoi, gradRhoi, nhat1, 0.5);
             const double dx1 = -F1.xmin;
             const double dx2 =  F1.xmax;
             const Scalar b = gradRhoi.magnitude();
-            deltaMedian(nodeListi, i) = (sqrt(abs(rhoi*rhoi + b*rhoi*(dx2 - dx1) + b*b*(dx1*dx1 + dx2*dx2))) - rhoi)/b*nhat1 + deltaCentroidi.dot(nhat2)*nhat2;
+            deltaMedian(nodeListi, i) = (sqrt(abs(rhoi*rhoi + b*rhoi*(dx2 - dx1) + b*b*(dx1*dx1 + dx2*dx2))) - rhoi)/b*nhat1 -  deltaCentroidi.dot(nhat1)*nhat1 + deltaCentroidi;
 
             // // If so, we search for the median mass position within the cell.
             // // We search for the median coordinates with reference to the density gradient direction.
