@@ -168,6 +168,9 @@ def centroidalRelaxNodes(nodeListsAndBounds,
                 delta = centroidFrac * deltaCentroid(nodeListi, i)
                 avgdelta += delta.magnitude()/vol(nodeListi, i)**(1.0/ndim)
                 pos[nodeListi][i] += delta
+                if bounds and not bounds[nodeListi].contains(pos[nodeListi][i]):
+                    pos[nodeListi][i] = bounds[nodeListi].closestPoint(pos[nodeListi][i])
+                    
                 mass[nodeListi][i] = rho(nodeListi,i)*vol(nodeListi,i)
         avgdelta = mpi.allreduce(avgdelta, mpi.SUM)/mpi.allreduce(db.numInternalNodes, mpi.SUM)
         print "centroidalRelaxNodes iteration %i, avg delta frac %g" % (iter, avgdelta)

@@ -256,6 +256,7 @@ computeVoronoiVolume(const FieldList<Dim<3>, Dim<3>::Vector>& position,
         if (haveBoundaries) {
 
           // Copy the boundary for this NodeList and shift it so it centers on point i.
+          CHECK2(boundaries[nodeListi].contains(ri), nodeListi << " " << i << " @ " << ri);
           celli = boundaries_r3d[nodeListi];
           r3d_rvec3 shift;
           shift.x = -ri.x();
@@ -329,22 +330,27 @@ computeVoronoiVolume(const FieldList<Dim<3>, Dim<3>::Vector>& position,
 
             if (not interior) {
               // This is a point that touches the bounding polygon.  Flag it as surface.
-              surfacePoint(nodeListi, i) = 1;
+              if (returnSurface) surfacePoint(nodeListi, i) = 1;
             }
           }
 
         } else {
 
           // This point touches a free boundary, so flag it.
-          surfacePoint(nodeListi, i) = 1;
+          if (returnSurface) surfacePoint(nodeListi, i) = 1;
+          deltaMedian(nodeListi, i) = Vector::zero;
 
         }
+
+        // Check if the candidate motion is still in the boundary.  If not, project back.
+        if (haveBoundaries and not boundaries[nodeListi].contains(ri + deltaMedian(nodeListi, i))) {
+          deltaMedian(nodeListi, i) = boundaries[nodeListi].closestPoint(ri + deltaMedian(nodeListi, i)) - ri;
+          // cerr << "Correcting " << nodeListi << " " << i << " to new position " << (ri + deltaMedian(nodeListi, i)) << endl;
+        }
+
       }
     }
 
-    // Deallocate that damn memory. I hate this syntax, but don't know enough C to know if there's a better way.
-    for (unsigned j = 0; j != nfaces; ++j) delete[] facesp[j];
-    delete[] facesp;
   }
 }
 
