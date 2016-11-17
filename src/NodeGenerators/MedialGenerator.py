@@ -110,7 +110,7 @@ class MedialGenerator2d(NodeGeneratorBase):
 
         # Add the holes to the boundary.
         points = sph.vector_of_Vector(boundary.vertices())
-        facets = sph.vector_of_vector_of_unsigned(boundary.vertexFacetConnectivity())
+        facets = sph.vector_of_vector_of_unsigned(boundary.facetVertices)
         for hole in holes:
             ps = hole.vertices()
             fs = hole.vertexFacetConnectivity()
