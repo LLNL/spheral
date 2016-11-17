@@ -43,12 +43,14 @@ bool compareR2Dplanes(const r2d_plane& lhs, const r2d_plane& rhs) {
 // non-trivial (include holes) we can't just use r2d_init_poly.
 //------------------------------------------------------------------------------
 void Polygon_to_r2d_poly(r2d_poly& cell_r2d,
-                         const Dim<2>::FacetedVolume& cell_spheral) {
+                         const Dim<2>::FacetedVolume& cell_spheral,
+                         const vector<Dim<2>::FacetedVolume>& holes_spheral) {
   typedef Dim<2>::Vector Vector;
   typedef Dim<2>::FacetedVolume::Facet Facet;
+
+  // Build the outer boundary.
   const vector<Vector>& vertices = cell_spheral.vertices();
   const vector<Facet>& facets = cell_spheral.facets();
-  const vector<vector<unsigned> > facetVertices = cell_spheral.facetVertices();
   const unsigned nverts = vertices.size();
   CHECK(nverts <= R2D_MAX_VERTS);
   CHECK(facets.size() == nverts);
@@ -59,6 +61,25 @@ void Polygon_to_r2d_poly(r2d_poly& cell_r2d,
     cell_r2d.verts[facets[i].ipoint1()].pnbrs[0] = facets[i].ipoint2();
     cell_r2d.verts[facets[i].ipoint2()].pnbrs[1] = facets[i].ipoint1();
   }
+
+  // Add any holes by reversing their geometry order to be CW.
+  const unsigned nholes = holes_spheral.size();
+  for (unsigned ihole = 0; ihole != nholes; ++ihole) {
+    const vector<Vector>& vertices = holes_spheral[ihole].vertices();
+    const vector<Facet>& facets = holes_spheral[ihole].facets();
+    const unsigned nverts_old = cell_r2d.nverts;
+    const unsigned nverts = vertices.size();
+    CHECK(nverts_old + nverts <= R2D_MAX_VERTS);
+    CHECK(facets.size() == nverts);
+    cell_r2d.nverts = nverts_old + nverts;
+    for (unsigned i = 0; i != nverts; ++i) {
+      cell_r2d.verts[nverts_old + i].pos.x = vertices[i].x();
+      cell_r2d.verts[nverts_old + i].pos.y = vertices[i].y();
+      cell_r2d.verts[nverts_old + facets[i].ipoint1()].pnbrs[0] = nverts_old + facets[i].ipoint2();
+      cell_r2d.verts[nverts_old + facets[i].ipoint2()].pnbrs[1] = nverts_old + facets[i].ipoint1();
+    }
+  }
+
   ENSURE2(r2d_is_good(&cell_r2d), "Bad polygon transformation.");
 }
 
@@ -225,6 +246,7 @@ computeVoronoiVolume(const FieldList<Dim<2>, Dim<2>::Vector>& position,
                      const ConnectivityMap<Dim<2> >& connectivityMap,
                      const Dim<2>::Scalar kernelExtent,
                      const std::vector<Dim<2>::FacetedVolume>& boundaries,
+                     const std::vector<std::vector<Dim<2>::FacetedVolume> >& holes,
                      FieldList<Dim<2>, int>& surfacePoint,
                      FieldList<Dim<2>, Dim<2>::Scalar>& vol,
                      FieldSpace::FieldList<Dim<2>, Dim<2>::Vector>& deltaMedian,
@@ -245,6 +267,7 @@ computeVoronoiVolume(const FieldList<Dim<2>, Dim<2>::Vector>& position,
   const bool returnCells = cells.size() == numNodeLists;
 
   REQUIRE(numBounds == 0 or numBounds == numNodeLists);
+  REQUIRE(holes.size() == numBounds);
 
   if (numGensGlobal > 0) {
 
@@ -263,7 +286,7 @@ computeVoronoiVolume(const FieldList<Dim<2>, Dim<2>::Vector>& position,
     // If there are boundaries, we build the R2D versions of them once.
     vector<r2d_poly> boundaries_r2d(numBounds);
     for (unsigned ibound = 0; ibound != numBounds; ++ibound) {
-      Polygon_to_r2d_poly(boundaries_r2d[ibound], boundaries[ibound]);
+      Polygon_to_r2d_poly(boundaries_r2d[ibound], boundaries[ibound], holes[ibound]);
     }
 
     // Walk the points.
@@ -318,6 +341,13 @@ computeVoronoiVolume(const FieldList<Dim<2>, Dim<2>::Vector>& position,
 
           // Copy the boundary for this NodeList and shift it so it centers on point i.
           CHECK2(boundaries[nodeListi].contains(ri), nodeListi << " " << i << " @ " << ri);
+          BEGIN_CONTRACT_SCOPE
+          {
+            for (unsigned ihole = 0; ihole != holes[nodeListi].size(); ++ihole) {
+              CHECK2(not holes[nodeListi][ihole].contains(ri), "Failed hole check: " << nodeListi << " " << i << " @ " << ri);
+            }
+          }
+          END_CONTRACT_SCOPE
           celli = boundaries_r2d[nodeListi];
           r2d_rvec2 shift;
           shift.x = -ri.x();
@@ -425,9 +455,15 @@ computeVoronoiVolume(const FieldList<Dim<2>, Dim<2>::Vector>& position,
         }
 
         // Check if the candidate motion is still in the boundary.  If not, project back.
-        if (haveBoundaries and not boundaries[nodeListi].contains(ri + deltaMedian(nodeListi, i))) {
-          deltaMedian(nodeListi, i) = boundaries[nodeListi].closestPoint(ri + deltaMedian(nodeListi, i)) - ri;
-          // cerr << "Correcting " << nodeListi << " " << i << " to new position " << (ri + deltaMedian(nodeListi, i)) << endl;
+        if (haveBoundaries) {
+          if (not boundaries[nodeListi].contains(ri + deltaMedian(nodeListi, i))) {
+            deltaMedian(nodeListi, i) = boundaries[nodeListi].closestPoint(ri + deltaMedian(nodeListi, i)) - ri;
+          }
+          for (unsigned ihole = 0; ihole != holes[nodeListi].size(); ++ihole) {
+            if (holes[nodeListi][ihole].contains(ri + deltaMedian(nodeListi, i))) {
+              deltaMedian(nodeListi, i) = holes[nodeListi][ihole].closestPoint(ri + deltaMedian(nodeListi, i)) - ri;
+            }
+          }
         }
 
         // If requested, we can return the cell geometries.

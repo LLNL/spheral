@@ -91,15 +91,16 @@ class MedialGenerator2d(NodeGeneratorBase):
         while i < n:
             [coords, seed] = i4_sobol(2, seed)
             p = boundary.xmin + length*Vector2d(coords[0], coords[1])
-            ihole = 0
             use = boundary.contains(p, False)
             if use:
+                ihole = 0
                 while use and ihole < len(holes):
                     use = not holes[ihole].contains(p, True)
                     ihole += 1
             if use:
                 rhoi = rhofunc(p)
                 if rangen.uniform(0.0, 1.0) < rhoi/rhomax:
+                    if i == 55:  print "Initial position from Sobol: ", p   # BLAGO
                     pos[i] = p
                     rhof[i] = rhoi
                     mass[i] = rhoi * area/n  # Not actually correct, but mass will be updated in centroidalRelaxNodes
@@ -108,27 +109,27 @@ class MedialGenerator2d(NodeGeneratorBase):
                     H[i] = SymTensor2d(1.0/hi, 0.0, 0.0, 1.0/hi)
                     i += 1
 
-        # Add the holes to the boundary.
-        points = sph.vector_of_Vector(boundary.vertices())
-        facets = sph.vector_of_vector_of_unsigned(boundary.facetVertices)
-        for hole in holes:
-            ps = hole.vertices()
-            fs = hole.facetVertices
-            nold = points.size()
-            nnew = nold + ps.size()
-            for p in ps:
-                points.append(p)
-            for f in fs:
-                assert len(f) == 2
-                facets.append(sph.vector_of_unsigned(2))
-                facets[-1][0] = nold + f[0]
-                facets[-1][1] = nold + f[1]
-                # facets[-1][0] = nold + f[1]
-                # facets[-1][1] = nold + f[0]
-        bound = sph.Polygon(points, facets)
+        # # Add the holes to the boundary.
+        # points = sph.vector_of_Vector(boundary.vertices())
+        # facets = sph.vector_of_vector_of_unsigned(boundary.facetVertices)
+        # for hole in holes:
+        #     ps = hole.vertices()
+        #     fs = hole.facetVertices
+        #     nold = points.size()
+        #     nnew = nold + ps.size()
+        #     for p in ps:
+        #         points.append(p)
+        #     for f in fs:
+        #         assert len(f) == 2
+        #         facets.append(sph.vector_of_unsigned(2))
+        #         facets[-1][0] = nold + f[0]
+        #         facets[-1][1] = nold + f[1]
+        #         # facets[-1][0] = nold + f[1]
+        #         # facets[-1][1] = nold + f[0]
+        # bound = sph.Polygon(points, facets)
 
         # Iterate the points toward centroidal relaxation.
-        vol, surfacePoint = centroidalRelaxNodes([(nodes, bound)],
+        vol, surfacePoint = centroidalRelaxNodes([(nodes, boundary, holes)],
                                                  W = WT,
                                                  rho = rhofunc,
                                                  gradrho = gradrho,

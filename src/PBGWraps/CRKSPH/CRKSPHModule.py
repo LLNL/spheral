@@ -88,6 +88,7 @@ self.generateSolidCRKSPHHydroBaseBindings(self.SolidCRKSPHHydroBase%(dim)id, %(d
         tablekernel = "Spheral::KernelSpace::TableKernel%id" % ndim
         vector_of_boundary = "vector_of_Boundary%id" % ndim
         vector_of_FacetedVolume = "vector_of_FacetedVolume%id" % ndim
+        vector_of_vector_of_FacetedVolume = "vector_of_vector_of_FacetedVolume%id" % ndim
         polyvol = {1: "Box1d", 
                    2: "Polygon",
                    3: "Polyhedron"}[ndim]
@@ -148,6 +149,7 @@ self.generateSolidCRKSPHHydroBaseBindings(self.SolidCRKSPHHydroBase%(dim)id, %(d
                                  constrefparam(connectivitymap, "connectivityMap"),
                                  param("double", "kernelExtent"),
                                  constrefparam(vector_of_FacetedVolume, "boundaries"),
+                                 constrefparam(vector_of_vector_of_FacetedVolume, "boundaries"),
                                  refparam(intfieldlist, "surfacePoint"),
                                  refparam(scalarfieldlist, "vol"),
                                  refparam(vectorfieldlist, "deltaCentroid"),
