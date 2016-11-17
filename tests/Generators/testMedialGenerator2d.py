@@ -84,7 +84,7 @@ for i in xrange(len(bcpoints)):
 Hboundary = Polygon(bcpoints, bcfacets)
 
 # A couple of concentric circles.
-n = 40
+n = 30
 bcpoints1 = vector_of_Vector(n)
 bcpoints2 = vector_of_Vector(n)
 bcfacets = vector_of_vector_of_unsigned(n, vector_of_unsigned(2))
@@ -173,11 +173,11 @@ def rhoprofile1(posi):
 
 print "Generator 1"
 generator1 = MedialGenerator2d(n = n1,
-                               rho = rhoprofile1,
+                               rho = 1.0, # rhoprofile1,
                                boundary = Hboundary,
                                maxIterations = maxIterations,
                                fracTol = fracTol,
-                               tessellationFileName = "test_medial_nodes1_maxiter=%i_tol=%g" % (maxIterations, fracTol),
+                               #tessellationFileName = "test_medial_nodes1_maxiter=%i_tol=%g" % (maxIterations, fracTol),
                                nNodePerh = nPerh)
 
 print "Generator 2"
@@ -187,14 +187,14 @@ if noholes:
                                         boundary = outerCircle_left,
                                         maxIterations = maxIterations,
                                         fracTol = fracTol,
-                                        tessellationFileName = "test_medial_nodes2_left_maxiter=%i_tol=%g" % (maxIterations, fracTol),
+                                        #tessellationFileName = "test_medial_nodes2_left_maxiter=%i_tol=%g" % (maxIterations, fracTol),
                                         nNodePerh = nPerh)
     generator2_right = MedialGenerator2d(n = n2/2,
                                          rho = 1.0,
                                          boundary = outerCircle_right,
                                          maxIterations = maxIterations,
                                          fracTol = fracTol,
-                                         tessellationFileName = "test_medial_nodes2_right_maxiter=%i_tol=%g" % (maxIterations, fracTol),
+                                         #tessellationFileName = "test_medial_nodes2_right_maxiter=%i_tol=%g" % (maxIterations, fracTol),
                                          nNodePerh = nPerh)
     generator2 = CompositeNodeDistribution(generator2_left, generator2_right)
 else:
@@ -204,7 +204,7 @@ else:
                                    holes = [innerCircle],
                                    maxIterations = maxIterations,
                                    fracTol = fracTol,
-                                   tessellationFileName = "test_medial_nodes2_maxiter=%i_tol=%g" % (maxIterations, fracTol),
+                                   #tessellationFileName = "test_medial_nodes2_maxiter=%i_tol=%g" % (maxIterations, fracTol),
                                    nNodePerh = nPerh)
 
 print "Generator 3"
@@ -213,7 +213,7 @@ generator3 = MedialGenerator2d(n = n3,
                                boundary = innerCircle,
                                maxIterations = maxIterations,
                                fracTol = fracTol,
-                               tessellationFileName = "test_medial_nodes3_maxiter=%i_tol=%g" % (maxIterations, fracTol),
+                               #tessellationFileName = "test_medial_nodes3_maxiter=%i_tol=%g" % (maxIterations, fracTol),
                                nNodePerh = nPerh)
 
 print "Generator 4"
@@ -223,21 +223,21 @@ if noholes:
                                         boundary = outerBox_left,
                                         maxIterations = maxIterations,
                                         fracTol = fracTol,
-                                        tessellationFileName = "test_medial_nodes4_left_maxiter=%i_tol=%g" % (maxIterations, fracTol),
+                                        #tessellationFileName = "test_medial_nodes4_left_maxiter=%i_tol=%g" % (maxIterations, fracTol),
                                         nNodePerh = nPerh)
     generator4_mid = MedialGenerator2d(n = int(n4 * 2.0/9.0),
                                        rho = 0.1,
                                        boundary = outerBox_mid,
                                        maxIterations = maxIterations,
                                        fracTol = fracTol,
-                                       tessellationFileName = "test_medial_nodes4_mid_maxiter=%i_tol=%g" % (maxIterations, fracTol),
+                                       #tessellationFileName = "test_medial_nodes4_mid_maxiter=%i_tol=%g" % (maxIterations, fracTol),
                                        nNodePerh = nPerh)
     generator4_right = MedialGenerator2d(n = int(n4 * 3.0/9.0),
                                          rho = 0.1,
                                          boundary = outerBox_right,
                                          maxIterations = maxIterations,
                                          fracTol = fracTol,
-                                         tessellationFileName = "test_medial_nodes4_right_maxiter=%i_tol=%g" % (maxIterations, fracTol),
+                                         #tessellationFileName = "test_medial_nodes4_right_maxiter=%i_tol=%g" % (maxIterations, fracTol),
                                          nNodePerh = nPerh)
     generator4 = CompositeNodeDistribution(generator4_left, generator4_mid, generator4_right)
 else:
@@ -247,7 +247,7 @@ else:
                                    holes = [Hboundary, outerCircle],
                                    maxIterations = maxIterations,
                                    fracTol = fracTol,
-                                   tessellationFileName = "test_medial_nodes4_maxiter=%i_tol=%g" % (maxIterations, fracTol),
+                                   #tessellationFileName = "test_medial_nodes4_maxiter=%i_tol=%g" % (maxIterations, fracTol),
                                    nNodePerh = nPerh)
 
 distributeNodes((nodes1, generator1),

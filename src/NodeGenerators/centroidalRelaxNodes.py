@@ -19,7 +19,7 @@ def centroidalRelaxNodes(nodeListsAndBounds,
                          tessellationFileName = None):
 
     # Did we get passed a function or a constant for the density?
-    if type(rho) == type(1.0):
+    if type(rho) is float:
         def rhofunc(posi):
             return rho
     else:
@@ -30,33 +30,48 @@ def centroidalRelaxNodes(nodeListsAndBounds,
     if gradrho is None:
         gradrhofunc = None
     else:
-        if type(gradrho) == type(1.0):
+        if type(gradrho) is float:
             def gradrhofunc(posi):
                 return gradrho
         else:
             gradrhofunc = gradrho
 
-    # Split out the NodeLists and bounding volumes (if available), depending on what was passed.
-    if type(nodeListsAndBounds[0]) is tuple:
-        nodeLists = [x[0] for x in nodeListsAndBounds]
-        bounds = [x[1] for x in nodeListsAndBounds]
-    else:
-        nodeLists = nodeListsAndBounds
-        bounds = []
-
     # Decide on our dimensionality and import the appropriate aliases.
-    assert (isinstance(nodeLists[0], Spheral.NodeList1d) or
-            isinstance(nodeLists[0], Spheral.NodeList2d) or
-            isinstance(nodeLists[0], Spheral.NodeList3d))
-    if isinstance(nodeLists[0], Spheral.NodeList1d):
+    assert (isinstance(W, Spheral.TableKernel1d) or
+            isinstance(W, Spheral.TableKernel2d) or
+            isinstance(W, Spheral.TableKernel3d))
+    if isinstance(W, Spheral.TableKernel1d):
         import Spheral1d as sph
         ndim = 1
-    elif isinstance(nodeLists[0], Spheral.NodeList2d):
+    elif isinstance(W, Spheral.TableKernel2d):
         import Spheral2d as sph
         ndim = 2
     else:
         import Spheral3d as sph
         ndim = 3
+
+    # Split out the NodeLists and bounding volumes (if available), depending on what was passed.
+    bounds = sph.vector_of_FacetedVolume()
+    holes = sph.vector_of_vector_of_FacetedVolume()
+    for x in nodeListsAndBounds:
+        if type(nodeListsAndBounds[0]) is tuple:
+            bounds.resize(len(nodeListsAndBounds))
+            holes.resize(len(nodeListsAndBounds))
+    if len(bounds) > 0:
+        nodeLists = []
+        for i, xtup in enumerate(nodeListsAndBounds):
+            if type(xtup) is tuple:
+                nodeLists.append(xtup[0])
+                assert len(xtup) in (2,3)
+                bounds[i] = xtup[1]
+                if len(xtup) == 3:    # Check for holes
+                    assert type(xtup[2]) is list
+                    for x in xtup[2]:
+                        holes[i].append(x)
+            else:
+                nodeLists.append(xtup)
+    else:
+        nodeLists = nodeListsAndBounds
 
     # Build a local DataBase.
     db = sph.DataBase()
@@ -106,11 +121,6 @@ def centroidalRelaxNodes(nodeListsAndBounds,
     for bc in boundaries:
         bound_vec.append(bc)
 
-    # Same thing for the bounding volumes, if available
-    boundingVolumes_vec = sph.vector_of_FacetedVolume()
-    for b in bounds:
-        boundingVolumes_vec.append(b)
-
     # Iterate until we converge or max out.
     iter = 0
     avgdelta = 2.0*fracTol
@@ -137,7 +147,7 @@ def centroidalRelaxNodes(nodeListsAndBounds,
 
         # Compute the new volumes and centroids (note this uses the old rho gradient, not quite right,
         # but expedient/efficient).
-        sph.computeVoronoiVolume(pos, H, rho, gradRho, cm, W.kernelExtent, boundingVolumes_vec, surfacePoint, vol, deltaCentroid, cells)
+        sph.computeVoronoiVolume(pos, H, rho, gradRho, cm, W.kernelExtent, bounds, holes, surfacePoint, vol, deltaCentroid, cells)
         
         # Apply boundary conditions.
         for bc in boundaries:
@@ -166,11 +176,15 @@ def centroidalRelaxNodes(nodeListsAndBounds,
         for nodeListi, nodes in enumerate(db.fluidNodeLists()):
             for i in xrange(nodes.numInternalNodes):
                 delta = centroidFrac * deltaCentroid(nodeListi, i)
+                if bounds:
+                    while not bounds[nodeListi].contains(pos[nodeListi][i] + delta):
+                        delta *= 0.9
+                if holes:
+                    for hole in holes[nodeListi]:
+                        while hole.contains(pos[nodeListi][i] + delta):
+                            delta *= 0.9
                 avgdelta += delta.magnitude()/vol(nodeListi, i)**(1.0/ndim)
                 pos[nodeListi][i] += delta
-                if bounds and not bounds[nodeListi].contains(pos[nodeListi][i]):
-                    pos[nodeListi][i] = bounds[nodeListi].closestPoint(pos[nodeListi][i])
-                    
                 mass[nodeListi][i] = rho(nodeListi,i)*vol(nodeListi,i)
         avgdelta = mpi.allreduce(avgdelta, mpi.SUM)/mpi.allreduce(db.numInternalNodes, mpi.SUM)
         print "centroidalRelaxNodes iteration %i, avg delta frac %g" % (iter, avgdelta)
