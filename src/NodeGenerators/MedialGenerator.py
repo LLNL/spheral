@@ -33,7 +33,7 @@ class MedialGenerator2d(NodeGeneratorBase):
                  randomseed = 492739149274):
 
         assert n > 0
-        assert len(holes) == 0   # Not supported yet, but we'll get there.
+        #assert len(holes) == 0   # Not supported yet, but we'll get there.
 
         # Load our handy 2D aliases.
         import Spheral2d as sph
@@ -113,7 +113,7 @@ class MedialGenerator2d(NodeGeneratorBase):
         facets = sph.vector_of_vector_of_unsigned(boundary.facetVertices)
         for hole in holes:
             ps = hole.vertices()
-            fs = hole.vertexFacetConnectivity()
+            fs = hole.facetVertices
             nold = points.size()
             nnew = nold + ps.size()
             for p in ps:
@@ -121,8 +121,10 @@ class MedialGenerator2d(NodeGeneratorBase):
             for f in fs:
                 assert len(f) == 2
                 facets.append(sph.vector_of_unsigned(2))
-                facets[-1][0] = (f[1] + nold) % nnew
-                facets[-1][1] = (f[0] + nold) % nnew
+                facets[-1][0] = nold + f[0]
+                facets[-1][1] = nold + f[1]
+                # facets[-1][0] = nold + f[1]
+                # facets[-1][1] = nold + f[0]
         bound = sph.Polygon(points, facets)
 
         # Iterate the points toward centroidal relaxation.
