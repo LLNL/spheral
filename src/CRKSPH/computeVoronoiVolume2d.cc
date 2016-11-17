@@ -39,6 +39,30 @@ bool compareR2Dplanes(const r2d_plane& lhs, const r2d_plane& rhs) {
 }
 
 //------------------------------------------------------------------------------
+// Convert a Spheral polygon to an R2D polygon.  Since our polygon may be
+// non-trivial (include holes) we can't just use r2d_init_poly.
+//------------------------------------------------------------------------------
+void Polygon_to_r2d_poly(r2d_poly& cell_r2d,
+                         const Dim<2>::FacetedVolume& cell_spheral) {
+  typedef Dim<2>::Vector Vector;
+  typedef Dim<2>::FacetedVolume::Facet Facet;
+  const vector<Vector>& vertices = cell_spheral.vertices();
+  const vector<Facet>& facets = cell_spheral.facets();
+  const vector<vector<unsigned> > facetVertices = cell_spheral.facetVertices();
+  const unsigned nverts = vertices.size();
+  CHECK(nverts <= R2D_MAX_VERTS);
+  CHECK(facets.size() == nverts);
+  cell_r2d.nverts = nverts;
+  for (unsigned i = 0; i != nverts; ++i) {
+    cell_r2d.verts[i].pos.x = vertices[i].x();
+    cell_r2d.verts[i].pos.y = vertices[i].y();
+    cell_r2d.verts[facets[i].ipoint1()].pnbrs[0] = facets[i].ipoint2();
+    cell_r2d.verts[facets[i].ipoint2()].pnbrs[1] = facets[i].ipoint1();
+  }
+  ENSURE2(r2d_is_good(&cell_r2d), "Bad polygon transformation.");
+}
+
+//------------------------------------------------------------------------------
 // Find the 1D extent of an R2D cell along the given direction.
 //------------------------------------------------------------------------------
 void findPolygonExtent(double& xmin, double& xmax, const Dim<2>::Vector& nhat, const r2d_poly& celli) {
@@ -239,15 +263,7 @@ computeVoronoiVolume(const FieldList<Dim<2>, Dim<2>::Vector>& position,
     // If there are boundaries, we build the R2D versions of them once.
     vector<r2d_poly> boundaries_r2d(numBounds);
     for (unsigned ibound = 0; ibound != numBounds; ++ibound) {
-      const vector<Vector>& vertices = boundaries[ibound].vertices();   // Already sorted in CCW order.
-      const unsigned nfacets = vertices.size();
-      r2d_rvec2 verts[nfacets];
-      for (unsigned j = 0; j != nfacets; ++j) {
-        verts[j].x = vertices[j].x();
-        verts[j].y = vertices[j].y();
-      }
-      r2d_init_poly(&boundaries_r2d[ibound], verts, nfacets);
-      CHECK2(r2d_is_good(&boundaries_r2d[ibound]), "Bad boundary polygon for bound " << ibound);
+      Polygon_to_r2d_poly(boundaries_r2d[ibound], boundaries[ibound]);
     }
 
     // Walk the points.
