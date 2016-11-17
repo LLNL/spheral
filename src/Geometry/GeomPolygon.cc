@@ -407,7 +407,7 @@ GeomPolygon(const vector<GeomPolygon::Vector>& points):
     {
       // Ensure the facet node ordering is correct.
       CounterClockwiseComparator<Vector, vector<Vector> > nodeComparator(mVertices, mVertices[0]);
-      BOOST_FOREACH(const Facet& facet, mFacets) ENSURE(nodeComparator(facet.point1(), facet.point2()) >= 0);
+      BOOST_FOREACH(const Facet& facet, mFacets) ENSURE(nodeComparator(facet.point1(), facet.point2()));
 
       // All normals should be outward facing.
       Vector centroid, vec;
@@ -422,7 +422,7 @@ GeomPolygon(const vector<GeomPolygon::Vector>& points):
       // Ensure the vertices are listed in counter-clockwise order.
       for (unsigned i = 0; i != mVertices.size(); ++i) {
         const unsigned j = (i + 1) % mVertices.size();
-        ENSURE(nodeComparator(i, j) >= 0);
+        ENSURE(nodeComparator(i, j));
       }
 
       // We had better be convex if built from a convex hull.
