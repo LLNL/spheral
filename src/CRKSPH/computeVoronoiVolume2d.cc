@@ -283,11 +283,11 @@ computeVoronoiVolume(const FieldList<Dim<2>, Dim<2>::Vector>& position,
       verts[j].y(kernelExtent*sin(theta));
     }
 
-    // If there are boundaries, we build the R2D versions of them once.
-    vector<r2d_poly> boundaries_r2d(numBounds);
-    for (unsigned ibound = 0; ibound != numBounds; ++ibound) {
-      Polygon_to_r2d_poly(boundaries_r2d[ibound], boundaries[ibound], holes[ibound]);
-    }
+    // // If there are boundaries, we build the R2D versions of them once.
+    // vector<r2d_poly> boundaries_r2d(numBounds);
+    // for (unsigned ibound = 0; ibound != numBounds; ++ibound) {
+    //   Polygon_to_r2d_poly(boundaries_r2d[ibound], boundaries[ibound], holes[ibound]);
+    // }
 
     // Walk the points.
     r2d_real firstmom[3];
@@ -333,39 +333,51 @@ computeVoronoiVolume(const FieldList<Dim<2>, Dim<2>::Vector>& position,
             phi = min(phi, max(0.0, max(1.0 - fdir, rij.dot(gradRhoi)*safeInv(rhoi - rhoj))));
           }
         }
-        std::sort(pairPlanes.begin(), pairPlanes.end(), compareR2Dplanes);
 
-        // Choose our seed cell shape.
-        r2d_poly celli;
+        // If provided boundaries, we implement them as additional neighbor clipping planes.
         if (haveBoundaries) {
-
-          // Copy the boundary for this NodeList and shift it so it centers on point i.
-          CHECK2(boundaries[nodeListi].contains(ri), nodeListi << " " << i << " @ " << ri);
-          BEGIN_CONTRACT_SCOPE
-          {
-            for (unsigned ihole = 0; ihole != holes[nodeListi].size(); ++ihole) {
-              CHECK2(not holes[nodeListi][ihole].contains(ri), "Failed hole check: " << nodeListi << " " << i << " @ " << ri);
+          const vector<Facet>& facets = boundaries[nodeListi].facets();
+          BOOST_FOREACH(const Facet& facet, facets) {
+            const Vector p = facet.closestPoint(ri);
+            const Vector rij = ri - p;
+            if (rij.magnitude2() < kernelExtent*kernelExtent) {
+              const Vector nhat = rij.unitVector();
+              pairPlanes.push_back(r2d_plane());
+              pairPlanes.back().n.x = nhat.x();
+              pairPlanes.back().n.y = nhat.y();
+              pairPlanes.back().d = rij.magnitude();
             }
           }
-          END_CONTRACT_SCOPE
-          celli = boundaries_r2d[nodeListi];
-          r2d_rvec2 shift;
-          shift.x = -ri.x();
-          shift.y = -ri.y();
-          r2d_translate(&celli, shift);
 
-        } else {
-
-          // Otherwise we use our roughly circular type.
-          r2d_rvec2 verts_bound[nverts];
-          for (unsigned j = 0; j != nverts; ++j) {
-            const Vector vi = Hinv*verts[j];
-            verts_bound[j].x = vi.x();
-            verts_bound[j].y = vi.y();
+          // Same thing with holes.
+          BOOST_FOREACH(const FacetedVolume& hole, holes[nodeListi]) {
+            const vector<Facet>& facets = hole.facets();
+            BOOST_FOREACH(const Facet& facet, facets) {
+              const Vector p = facet.closestPoint(ri);
+              const Vector rij = ri - p;
+              if (rij.magnitude2() < kernelExtent*kernelExtent) {
+                const Vector nhat = rij.unitVector();
+                pairPlanes.push_back(r2d_plane());
+                pairPlanes.back().n.x = nhat.x();
+                pairPlanes.back().n.y = nhat.y();
+                pairPlanes.back().d = rij.magnitude();
+              }
+            }
           }
-          r2d_init_poly(&celli, verts_bound, nverts);
-
         }
+
+        // Sort the planes by distance -- let's us clip more efficiently.
+        std::sort(pairPlanes.begin(), pairPlanes.end(), compareR2Dplanes);
+
+        // Initialize our seed cell shape.
+        r2d_poly celli;
+        r2d_rvec2 verts_bound[nverts];
+        for (unsigned j = 0; j != nverts; ++j) {
+          const Vector vi = Hinv*verts[j];
+          verts_bound[j].x = vi.x();
+          verts_bound[j].y = vi.y();
+        }
+        r2d_init_poly(&celli, verts_bound, nverts);
         CHECK2(r2d_is_good(&celli), "Bad polygon!");
 
         // Clip the local cell.
