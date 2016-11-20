@@ -50,10 +50,11 @@ namespace FractalSpace
 	  }
 	time2=mem.p_mess->Clock();
 	hypre_points.clear();
-	double tt=-mem.p_mess->Clock();
-	hypre_test_boxes(mem,spacing,SBoxes,SPoints);
-	tt+=mem.p_mess->Clock();
 	hypre_world_create(mem,level,SBoxes,buffer);
+	double tt=-mem.p_mess->Clock();
+	// if(_COUNTERA % 10 == 0)
+	  // hypre_test_boxes(mem,level,SBoxes,SPoints);
+	tt+=mem.p_mess->Clock();
 	time3=mem.p_mess->Clock();
 	if(mem.p_mess->IAmAHypreNode)
 	  {
