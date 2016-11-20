@@ -344,7 +344,7 @@ computeVoronoiVolume(const FieldList<Dim<2>, Dim<2>::Vector>& position,
             if (rij.magnitude2() < kernelExtent*kernelExtent) {
               Vector nhat = -facet.normal();
               double dscale = sqrt(facet.area());
-              const double d = rij.dot(facet.normal());
+              const double d = rij.dot(nhat);
               nhat = (d > 1e-3*dscale ?
                       nhat :
                       rij.unitVector());
@@ -364,7 +364,7 @@ computeVoronoiVolume(const FieldList<Dim<2>, Dim<2>::Vector>& position,
               if (rij.magnitude2() < kernelExtent*kernelExtent) {
                 Vector nhat = facet.normal();
                 double dscale = sqrt(facet.area());
-                const double d = rij.dot(facet.normal());
+                const double d = rij.dot(nhat);
                 nhat = (d > 1e-3*dscale ?
                         nhat :
                         rij.unitVector());
