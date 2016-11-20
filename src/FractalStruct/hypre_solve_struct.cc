@@ -73,29 +73,29 @@ namespace FractalSpace
 	    if(p != 0)
 	      {
 		p->get_pos_point(pos);
-		bool itisout=!vector_in_box(pos,Box);
 		values.push_back(-6.0);
 		for (int j = 0; j < 6; j++)
 		  {
 		    Point* p1=p->get_point_ud_0(j);
 		    p1->get_pos_point(pos);
-		    itisout=itisout || !vector_in_box(pos,Box);
-		    if(p1->get_inside())
+		    bool good=p1->get_inside();
+		    if(good)
+		      {
+			good=vector_in_box(pos,Box);
+			if(!good)
+			  {
+			    for(auto FR : mem.Touchy)
+			      {
+				good=vector_in_box(pos,mem.BoxesLev[FR][level]);
+				if(good)
+				  break;
+			      }
+			  }
+		      }
+		    if(good)
 		      values.push_back(1.0);
 		    else
 		      values.push_back(0.0);
-		  }
-		if(itisout)
-		  {
-		    p->get_pos_point(pos);
-		    FHT << " POSSA " << pos[0] << " " << pos[1] << " " << pos[2] << "\n";
-		    for (int j = 0; j < 6; j++)
-		      {
-			Point* p1=p->get_point_ud_0(j);
-			p1->get_pos_point(pos);
-			if(!vector_in_box(pos,Box))
-			  FHT << " POSSB " << pos[0] << " " << pos[1] << " " << pos[2] << " " << j << "\n";
-		      }
 		  }
 	      }
 	    else
@@ -134,10 +134,24 @@ namespace FractalSpace
 		double density=p->get_density_point()*g_c;
 		for(int ni=0;ni<6;ni++)
 		  {
-		    Point* p1=p->get_point_ud(ni);
-		    if(p1->get_inside())
-		      continue;
-		    density-=p1->get_potential_point();
+		    Point* p1=p->get_point_ud_0(ni);
+		    bool good=p1->get_inside();
+		    if(good)
+		      {
+			p1->get_pos_point(pos);
+			good=vector_in_box(pos,Box);
+			if(!good)
+			  {
+			    for(auto FR : mem.Touchy)
+			      {
+				good=vector_in_box(pos,mem.BoxesLev[FR][level]);
+				if(good)
+				  break;
+			      }
+			  }
+		      }
+		    if(!good)
+		      density-=p1->get_potential_point();
 		  }
 		dens_values.push_back(density);
 		pot_values.push_back(p->get_potential_point());

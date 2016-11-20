@@ -11,13 +11,21 @@ namespace FractalSpace
     int FR=0;
     for(auto BL : mem.BoxesLev)
       {
-	FHT << " BOXL " << FR++ << " ";
-	for(auto what : BL[level])
-	  FHT << what << " ";
-	FHT << "\n";
+    	FHT << " BOXL " << FR++ << " ";
+    	for(auto what : BL[level])
+    	  FHT << what << " ";
+    	FHT << "\n";
       }
-    int RANK=-1;
-    MPI_Comm_rank(MPI_COMM_WORLD,&RANK);
+    FR=0;
+    for(auto BL : mem.BBoxesLev)
+      {
+    	FHT << " BBOXL " << FR++ << " ";
+    	for(auto what : BL[level])
+    	  FHT << what << " ";
+    	FHT << "\n";
+      }
+    // int RANK=-1;
+    // MPI_Comm_rank(MPI_COMM_WORLD,&RANK);
     vector <int>pos(3);
     vector <int> BOX=mem.BoxesLev[mem.p_mess->FractalRank][level];
     hypre_points.clear();
