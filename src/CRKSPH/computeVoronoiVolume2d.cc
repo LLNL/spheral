@@ -172,12 +172,15 @@ computeVoronoiVolume(const FieldList<Dim<2>, Dim<2>::Vector>& position,
     // Build an approximation of the starting kernel shape.
     const unsigned nverts = 18;
     const double dtheta = 2.0*M_PI/nverts;
-    vector<Vector> verts(nverts);
+    r2d_rvec2 verts[nverts];
     for (unsigned j = 0; j != nverts; ++j) {
       const double theta = j*dtheta;
-      verts[j].x(kernelExtent*cos(theta));
-      verts[j].y(kernelExtent*sin(theta));
+      verts[j].x = kernelExtent*cos(theta);
+      verts[j].y = kernelExtent*sin(theta);
     }
+    r2d_poly initialCell;
+    r2d_init_poly(&initialCell, verts, nverts);
+    CHECK(r2d_is_good(&initialCell));
 
     // Walk the points.
     r2d_real firstmom[3];
@@ -194,7 +197,6 @@ computeVoronoiVolume(const FieldList<Dim<2>, Dim<2>::Vector>& position,
         const Vector grhat = gradRhoi.unitVector();
         const Scalar Hdeti = Hi.Determinant();
         const SymTensor Hinv = Hi.Inverse();
-        const Scalar hi = 0.5*Hinv.Trace();
 
         // if (barf) cerr << " --> " << i << " " << ri << endl;
 
@@ -233,7 +235,7 @@ computeVoronoiVolume(const FieldList<Dim<2>, Dim<2>::Vector>& position,
             Vector rij = ri - p;
             if (rij.magnitude2() < kernelExtent*kernelExtent) {
               Vector nhat;
-              if (rij.magnitude2() < 1.0e-3*facet.area()) {
+              if (rij.magnitude() < 1.0e-3*facet.area()) {
                 rij.Zero();
                 nhat = -facet.normal();
               } else {
@@ -273,15 +275,13 @@ computeVoronoiVolume(const FieldList<Dim<2>, Dim<2>::Vector>& position,
         std::sort(pairPlanes.begin(), pairPlanes.end(), compareR2Dplanes);
 
         // Initialize our seed cell shape.
-        r2d_poly celli;
-        r2d_rvec2 verts_bound[nverts];
-        for (unsigned j = 0; j != nverts; ++j) {
-          const Vector vi = Hinv*verts[j];
-          verts_bound[j].x = vi.x();
-          verts_bound[j].y = vi.y();
+        r2d_poly celli = initialCell;
+        BOOST_FOREACH(r2d_vertex& vert, celli.verts) {
+          const Vector vi = Hinv*Vector(vert.pos.x, vert.pos.y);
+          vert.pos.x = vi.x();
+          vert.pos.y = vi.y();
         }
-        r2d_init_poly(&celli, verts_bound, nverts);
-        CHECK2(r2d_is_good(&celli), "Bad polygon!");
+        CHECK2(r2d_is_good(&celli), "Bad initial polygon!");
 
         // Clip the local cell.
         r2d_clip(&celli, &pairPlanes[0], pairPlanes.size());
@@ -304,6 +304,7 @@ computeVoronoiVolume(const FieldList<Dim<2>, Dim<2>::Vector>& position,
 
           // Compute the centroidal motion and area.
           r2d_reduce(&celli, firstmom, 1);
+          CHECK(firstmom[0] > 0.0);
           vol(nodeListi, i) = firstmom[0];
           const Vector deltaCentroidi = Vector(firstmom[1], firstmom[2])/firstmom[0];
           // if (barf) cerr << "     " << deltaCentroidi << " " << ri + deltaCentroidi << endl;
@@ -322,24 +323,10 @@ computeVoronoiVolume(const FieldList<Dim<2>, Dim<2>::Vector>& position,
             const Scalar b = gradRhoi.magnitude();
             deltaMedian(nodeListi, i) = (sqrt(abs(rhoi*rhoi + b*rhoi*(dx2 - dx1) + b*b*(dx1*dx1 + dx2*dx2))) - rhoi)/b*nhat1 -  deltaCentroidi.dot(nhat1)*nhat1 + deltaCentroidi;
 
-            // // If so, we search for the median mass position within the cell.
-            // // We search for the median coordinates with reference to the density gradient direction.
-            // const Vector nhat1 = gradRhoi.unitVector();
-            // const Vector nhat2 = Vector(-nhat1.y(), nhat1.x());
-            // PolygonClippedMassRoot F1(celli, rhoi, gradRhoi, nhat1, 0.5);
-            // PolygonClippedMassRoot F2(celli, rhoi, gradRhoi, nhat2, 0.5);
-            // const double x1 = F1.xmin + (F1.xmax - F1.xmin)*bisectRoot(F1, 0.0, 1.0, 1.0e-5, 1.0e-5);
-            // deltaMedian(nodeListi, i) = x1*nhat1 + deltaCentroidi.dot(nhat2)*nhat2;
-            // // const double x2 = F2.xmin + (F2.xmax - F2.xmin)*bisectRoot(F2, 0.0, 1.0, 1.0e-5, 1.0e-5);
-            // // deltaMedian(nodeListi, i) = x1*nhat1 + x2*nhat2;
-            // // cout << " **> " << i << " " << deltaMedian(nodeListi, i) << " " << phi << " " << gradRhoi << " " << x1 << " " << x2 << " " << (x1 - F1.xmin)/(F1.xmax - F1.xmin) << " " << (x2 - F2.xmin)/(F2.xmax - F2.xmin) << endl;
-            // // cout << "================================================================================" << endl;
-
           } else {
 
             // Otherwise just use the centroid.
             deltaMedian(nodeListi, i) = deltaCentroidi;
-            // cout << " CENTROIDAL**> " << i << " " << deltaMedian(nodeListi, i) << " " << phi << " " << gradRhoi << endl;
 
           }
 
