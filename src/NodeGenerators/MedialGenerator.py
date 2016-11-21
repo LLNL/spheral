@@ -100,7 +100,6 @@ class MedialGenerator2d(NodeGeneratorBase):
             if use:
                 rhoi = rhofunc(p)
                 if rangen.uniform(0.0, 1.0) < rhoi/rhomax:
-                    if i == 55:  print "Initial position from Sobol: ", p   # BLAGO
                     pos[i] = p
                     rhof[i] = rhoi
                     mass[i] = rhoi * area/n  # Not actually correct, but mass will be updated in centroidalRelaxNodes
