@@ -76,6 +76,7 @@ computeVoronoiVolume(const FieldList<Dim<3>, Dim<3>::Vector>& position,
   typedef Dim<3>::Vector Vector;
   typedef Dim<3>::SymTensor SymTensor;
   typedef Dim<3>::FacetedVolume FacetedVolume;
+  typedef Dim<3>::FacetedVolume::Facet Facet;
 
   const unsigned numGens = position.numNodes();
   const unsigned numNodeLists = position.size();
@@ -165,48 +166,12 @@ computeVoronoiVolume(const FieldList<Dim<3>, Dim<3>::Vector>& position,
     }
     END_CONTRACT_SCOPE;
     
-    // If there are boundaries, we build the R3D versions of them once.
-    vector<r3d_poly> boundaries_r3d(numBounds);
-    for (unsigned ibound = 0; ibound != numBounds; ++ibound) {
-      const vector<Vector>& vertices = boundaries[ibound].vertices();
-      const vector<vector<unsigned> >& facetVertices = boundaries[ibound].facetVertices();
-      const unsigned nfacets = facetVertices.size();
-
-      // Copy the vertices.
-      const unsigned nverts = vertices.size();
-      r3d_rvec3 verts[nverts];
-      for (unsigned j = 0; j != nverts; ++j) {
-        verts[j].x = vertices[j].x();
-        verts[j].y = vertices[j].y();
-        verts[j].z = vertices[j].z();
-      }
-
-      // The faces.
-      const unsigned nfaces = facetVertices.size();
-      r3d_int** faces = new r3d_int*[nfaces];
-      r3d_int numvertsperface[nfaces];
-      for (unsigned k = 0; k != nfaces; ++k) {
-        const unsigned nfaceverts = facetVertices[k].size();
-        numvertsperface[k] = nfaceverts;
-        faces[k] = new r3d_int[nfaceverts];
-        for (unsigned j = 0; j != facetVertices[k].size(); ++j) {
-          faces[k][j] = facetVertices[k][j];
-        }
-      }
-      r3d_init_poly(&boundaries_r3d[ibound], verts, nverts, faces, numvertsperface, nfaces);
-      CHECK2(r3d_is_good(&boundaries_r3d[ibound]), "Bad boundary polyhedron for bound " << ibound);
-
-      // Deallocate that damn memory. I hate this syntax, but don't know enough C to know if there's a better way.
-      for (unsigned j = 0; j != nfaces; ++j) delete[] faces[j];
-      delete[] faces;
-
-    }
-
     // Walk the points.
     for (unsigned nodeListi = 0; nodeListi != numNodeLists; ++nodeListi) {
       const unsigned n = vol[nodeListi]->numInternalElements();
       const Neighbor<Dim<3> >& neighbor = position[nodeListi]->nodeListPtr()->neighbor();
       for (unsigned i = 0; i != n; ++i) {
+
         const Vector& ri = position(nodeListi, i);
         const SymTensor& Hi = H(nodeListi, i);
         const Scalar rhoi = rho(nodeListi, i);
@@ -228,7 +193,7 @@ computeVoronoiVolume(const FieldList<Dim<3>, Dim<3>::Vector>& position,
             const Vector& rj = position(nodeListj, j);
             const Scalar rhoj = rho(nodeListj, j);
 
-            // Build the half plane.
+            // Build the planes for our clipping half-spaces.
             const Vector rij = ri - rj;
             const Vector nhat = rij.unitVector();
             pairPlanes.push_back(r3d_plane());
@@ -242,34 +207,63 @@ computeVoronoiVolume(const FieldList<Dim<3>, Dim<3>::Vector>& position,
             phi = min(phi, max(0.0, max(1.0 - fdir, rij.dot(gradRhoi)*safeInv(rhoi - rhoj))));
           }
         }
+
+        // If provided boundaries, we implement them as additional neighbor clipping planes.
+        if (haveBoundaries) {
+          const vector<Facet>& facets = boundaries[nodeListi].facets();
+          BOOST_FOREACH(const Facet& facet, facets) {
+            const Vector p = facet.closestPoint(ri);
+            Vector rij = ri - p;
+            if (rij.magnitude2() < kernelExtent*kernelExtent) {
+              Vector nhat;
+              if (rij.magnitude2() < 1.0e-3*facet.area()) {
+                rij.Zero();
+                nhat = -facet.normal();
+              } else {
+                nhat = rij.unitVector();
+              }
+              pairPlanes.push_back(r3d_plane());
+              pairPlanes.back().n.x = nhat.x();
+              pairPlanes.back().n.y = nhat.y();
+              pairPlanes.back().n.z = nhat.z();
+              pairPlanes.back().d = rij.magnitude();
+            }
+          }
+
+          // Same thing with holes.
+          BOOST_FOREACH(const FacetedVolume& hole, holes[nodeListi]) {
+            const vector<Facet>& facets = hole.facets();
+            BOOST_FOREACH(const Facet& facet, facets) {
+              const Vector p = facet.closestPoint(ri);
+              Vector rij = ri - p;
+              if (rij.magnitude2() < kernelExtent*kernelExtent) {
+                Vector nhat;
+                if (rij.magnitude2() < 1.0e-3*facet.area()) {
+                  rij.Zero();
+                  nhat = facet.normal();
+                } else {
+                  nhat = rij.unitVector();
+                }
+                pairPlanes.push_back(r3d_plane());
+                pairPlanes.back().n.x = nhat.x();
+                pairPlanes.back().n.y = nhat.y();
+                pairPlanes.back().n.z = nhat.z();
+                pairPlanes.back().d = rij.magnitude();
+              }
+            }
+          }
+        }
+
+        // Sort the planes by distance -- let's us clip more efficiently.
         std::sort(pairPlanes.begin(), pairPlanes.end(), compareR3Dplanes);
 
-        // // Start with a bounding box around the H tensor.
-        // const Vector extenti = Hi * neighbor.nodeExtent(i);
-        // r3d_poly celli;
-        // r3d_rvec3 bounds[2];
-        // bounds[0].x = -extenti.x(); bounds[0].y = -extenti.y(); bounds[0].z = -extenti.z();
-        // bounds[1].x =  extenti.x(); bounds[1].y =  extenti.y(); bounds[1].z =  extenti.z();
-        // r3d_init_box(&celli, bounds);
-
-        // Choose our seed cell shape.
-        r3d_poly celli;
-        if (haveBoundaries) {
-
-          // Copy the boundary for this NodeList and shift it so it centers on point i.
-          CHECK2(boundaries[nodeListi].contains(ri), nodeListi << " " << i << " @ " << ri);
-          celli = boundaries_r3d[nodeListi];
-          r3d_rvec3 shift;
-          shift.x = -ri.x();
-          shift.y = -ri.y();
-          shift.z = -ri.z();
-          r3d_translate(&celli, shift);
-
-        } else {
-
-          // Otherwise start with our icosahedral type.
-          celli = initialCell;
-
+        // Initialize our seed cell shape.
+        r3d_poly celli = initialCell;
+        BOOST_FOREACH(r3d_vertex& vert, celli.verts) {
+          const Vector vi = Hinv*Vector(vert.pos.x, vert.pos.y, vert.pos.z);
+          vert.pos.x = vi.x();
+          vert.pos.y = vi.y();
+          vert.pos.z = vi.z();
         }
         CHECK2(r3d_is_good(&celli), "Bad initial polyhedron!");
 
@@ -277,7 +271,7 @@ computeVoronoiVolume(const FieldList<Dim<3>, Dim<3>::Vector>& position,
         r3d_clip(&celli, &pairPlanes[0], pairPlanes.size());
         CHECK2(r3d_is_good(&celli), "Bad polyhedron!");
 
-        // Are there any of the original volume vertices left?
+        // Check if the final polyhedron is entirely within our "interior" check radius.
         bool interior = true;
         {
           unsigned k = 0;
