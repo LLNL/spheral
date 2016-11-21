@@ -295,7 +295,7 @@ computeVoronoiVolume(const FieldList<Dim<2>, Dim<2>::Vector>& position,
       const unsigned n = vol[nodeListi]->numInternalElements();
       for (unsigned i = 0; i != n; ++i) {
 
-        // const bool barf = (i == 0);
+        // const bool barf = (i == 1);
 
         const Vector& ri = position(nodeListi, i);
         const SymTensor& Hi = H(nodeListi, i);
@@ -339,15 +339,16 @@ computeVoronoiVolume(const FieldList<Dim<2>, Dim<2>::Vector>& position,
         if (haveBoundaries) {
           const vector<Facet>& facets = boundaries[nodeListi].facets();
           BOOST_FOREACH(const Facet& facet, facets) {
-            const Vector p = facet.closestPoint(ri);// - 1.0e-3*min(hi, sqrt(facet.area()))*facet.normal();  // We add a bit of displacement in case ri is on the Facet.
-            const Vector rij = ri - p;
+            const Vector p = facet.closestPoint(ri);
+            Vector rij = ri - p;
             if (rij.magnitude2() < kernelExtent*kernelExtent) {
-              Vector nhat = -facet.normal();
-              double dscale = sqrt(facet.area());
-              const double d = rij.dot(nhat);
-              nhat = (d > 1e-3*dscale ?
-                      nhat :
-                      rij.unitVector());
+              Vector nhat;
+              if (rij.magnitude2() < 1.0e-3*facet.area()) {
+                rij.Zero();
+                nhat = -facet.normal();
+              } else {
+                nhat = rij.unitVector();
+              }
               pairPlanes.push_back(r2d_plane());
               pairPlanes.back().n.x = nhat.x();
               pairPlanes.back().n.y = nhat.y();
@@ -359,15 +360,16 @@ computeVoronoiVolume(const FieldList<Dim<2>, Dim<2>::Vector>& position,
           BOOST_FOREACH(const FacetedVolume& hole, holes[nodeListi]) {
             const vector<Facet>& facets = hole.facets();
             BOOST_FOREACH(const Facet& facet, facets) {
-              const Vector p = facet.closestPoint(ri); //  + 1.0e-3*min(hi, sqrt(facet.area()))*facet.normal();  // We add a bit of displacement in case ri is on the Facet.
-              const Vector rij = ri - p;
+              const Vector p = facet.closestPoint(ri);
+              Vector rij = ri - p;
               if (rij.magnitude2() < kernelExtent*kernelExtent) {
-                Vector nhat = facet.normal();
-                double dscale = sqrt(facet.area());
-                const double d = rij.dot(nhat);
-                nhat = (d > 1e-3*dscale ?
-                        nhat :
-                        rij.unitVector());
+                Vector nhat;
+                if (rij.magnitude2() < 1.0e-3*facet.area()) {
+                  rij.Zero();
+                  nhat = facet.normal();
+                } else {
+                  nhat = rij.unitVector();
+                }
                 pairPlanes.push_back(r2d_plane());
                 pairPlanes.back().n.x = nhat.x();
                 pairPlanes.back().n.y = nhat.y();
