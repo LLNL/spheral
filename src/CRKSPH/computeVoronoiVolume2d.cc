@@ -39,51 +39,6 @@ bool compareR2Dplanes(const r2d_plane& lhs, const r2d_plane& rhs) {
 }
 
 //------------------------------------------------------------------------------
-// Convert a Spheral polygon to an R2D polygon.  Since our polygon may be
-// non-trivial (include holes) we can't just use r2d_init_poly.
-//------------------------------------------------------------------------------
-void Polygon_to_r2d_poly(r2d_poly& cell_r2d,
-                         const Dim<2>::FacetedVolume& cell_spheral,
-                         const vector<Dim<2>::FacetedVolume>& holes_spheral) {
-  typedef Dim<2>::Vector Vector;
-  typedef Dim<2>::FacetedVolume::Facet Facet;
-
-  // Build the outer boundary.
-  const vector<Vector>& vertices = cell_spheral.vertices();
-  const vector<Facet>& facets = cell_spheral.facets();
-  const unsigned nverts = vertices.size();
-  CHECK(nverts <= R2D_MAX_VERTS);
-  CHECK(facets.size() == nverts);
-  cell_r2d.nverts = nverts;
-  for (unsigned i = 0; i != nverts; ++i) {
-    cell_r2d.verts[i].pos.x = vertices[i].x();
-    cell_r2d.verts[i].pos.y = vertices[i].y();
-    cell_r2d.verts[facets[i].ipoint1()].pnbrs[0] = facets[i].ipoint2();
-    cell_r2d.verts[facets[i].ipoint2()].pnbrs[1] = facets[i].ipoint1();
-  }
-
-  // Add any holes by reversing their geometry order to be CW.
-  const unsigned nholes = holes_spheral.size();
-  for (unsigned ihole = 0; ihole != nholes; ++ihole) {
-    const vector<Vector>& vertices = holes_spheral[ihole].vertices();
-    const vector<Facet>& facets = holes_spheral[ihole].facets();
-    const unsigned nverts_old = cell_r2d.nverts;
-    const unsigned nverts = vertices.size();
-    CHECK(nverts_old + nverts <= R2D_MAX_VERTS);
-    CHECK(facets.size() == nverts);
-    cell_r2d.nverts = nverts_old + nverts;
-    for (unsigned i = 0; i != nverts; ++i) {
-      cell_r2d.verts[nverts_old + i].pos.x = vertices[i].x();
-      cell_r2d.verts[nverts_old + i].pos.y = vertices[i].y();
-      cell_r2d.verts[nverts_old + facets[i].ipoint1()].pnbrs[0] = nverts_old + facets[i].ipoint2();
-      cell_r2d.verts[nverts_old + facets[i].ipoint2()].pnbrs[1] = nverts_old + facets[i].ipoint1();
-    }
-  }
-
-  ENSURE2(r2d_is_good(&cell_r2d), "Bad polygon transformation.");
-}
-
-//------------------------------------------------------------------------------
 // Find the 1D extent of an R2D cell along the given direction.
 //------------------------------------------------------------------------------
 void findPolygonExtent(double& xmin, double& xmax, const Dim<2>::Vector& nhat, const r2d_poly& celli) {
@@ -100,138 +55,79 @@ void findPolygonExtent(double& xmin, double& xmax, const Dim<2>::Vector& nhat, c
   }
 }
 
-//------------------------------------------------------------------------------
-// Functor to return the mass and its derivative for use with our
-// Newton-Raphson iteration.
-// Note we assume here we're working in a unit radius circle (centered on the
-// origin) and the gradient is aligned with and increasing in the x-direction.
-//------------------------------------------------------------------------------
-struct CircleMassAndGradient {
-  double rho0, b;
-  CircleMassAndGradient(const double rho0_in,
-                        const double b_in): rho0(rho0_in),
-                                            b(b_in) {}
-  std::pair<double, double> operator()(const double x) const {
-    CHECK(std::abs(x) <= 1.0);
-    return std::make_pair(0.5*M_PI*rho0 + sqrt(1.0 - x*x)/3.0*(3.0*rho0*x + 2.0*b*(x*x - 1.0)) - rho0*acos(x),
-                          2.0*(rho0 + b*x)*sqrt(1.0 - x*x));
-  }
-};
+// //------------------------------------------------------------------------------
+// // Convert a Spheral polygon to an R2D polygon.  Since our polygon may be
+// // non-trivial (include holes) we can't just use r2d_init_poly.
+// //------------------------------------------------------------------------------
+// void Polygon_to_r2d_poly(r2d_poly& cell_r2d,
+//                          const Dim<2>::FacetedVolume& cell_spheral,
+//                          const vector<Dim<2>::FacetedVolume>& holes_spheral) {
+//   typedef Dim<2>::Vector Vector;
+//   typedef Dim<2>::FacetedVolume::Facet Facet;
 
-//------------------------------------------------------------------------------
-// Integrate a linear function in a polygon.
-// We do this be evaluating it for each triangle,
-// using the handy relation that if f(x,y) is a linear function then the integral
-// \int f(x,y) dx dy in a trianglur region is A*f(xc,yc), where A is the area of the
-// triangle and (xc,yc) the triangle centroid.
-// Note we implicitly use the centroid in our cell coordinates as zero.
-//------------------------------------------------------------------------------
-double cellIntegral(const r2d_poly& cell,
-                    const double a,
-                    const Dim<2>::Vector& b) {
-  double result = 0.0;
-  Dim<2>::Vector cent;
-  int lastvert = -1, nextvert, ivert = 0, k = 0;
-  while (k < cell.nverts) {
-    nextvert = (cell.verts[ivert].pnbrs[0] == lastvert ?
-                cell.verts[ivert].pnbrs[1] :
-                cell.verts[ivert].pnbrs[0]);
-    cent.x((cell.verts[ivert].pos.x + cell.verts[nextvert].pos.x)/3.0);
-    cent.y((cell.verts[ivert].pos.y + cell.verts[nextvert].pos.y)/3.0);
-    result += 0.5*abs(cell.verts[ivert].pos.x * cell.verts[nextvert].pos.y -
-                      cell.verts[ivert].pos.y * cell.verts[nextvert].pos.x)*(a + b.dot(cent));
-    lastvert = ivert;
-    ivert = nextvert;
-    ++k;
-  }
-  return result;
-}
+//   // Build the outer boundary.
+//   const vector<Vector>& vertices = cell_spheral.vertices();
+//   const vector<Facet>& facets = cell_spheral.facets();
+//   const unsigned nverts = vertices.size();
+//   CHECK(nverts <= R2D_MAX_VERTS);
+//   CHECK(facets.size() == nverts);
+//   cell_r2d.nverts = nverts;
+//   for (unsigned i = 0; i != nverts; ++i) {
+//     cell_r2d.verts[i].pos.x = vertices[i].x();
+//     cell_r2d.verts[i].pos.y = vertices[i].y();
+//     cell_r2d.verts[facets[i].ipoint1()].pnbrs[0] = facets[i].ipoint2();
+//     cell_r2d.verts[facets[i].ipoint2()].pnbrs[1] = facets[i].ipoint1();
+//   }
 
-//------------------------------------------------------------------------------
-// Functor to find the mass in a clipped polygon.
-//------------------------------------------------------------------------------
-struct PolygonClippedMassRoot {
-  r2d_poly* cell0;
-  mutable r2d_poly cell1;
-  double rho0, targetFrac, xmin, xmax, M0;
-  const Dim<2>::Vector& gradrho, searchDirection;
-  mutable r2d_real mom[3];
-  mutable vector<r2d_plane> clipPlane;
-  PolygonClippedMassRoot(r2d_poly& celli,
-                         const double rhoi,
-                         const Dim<2>::Vector& gradrhoi,
-                         const Dim<2>::Vector& searchDirectioni,
-                         const double targetFraction):
-    cell0(&celli),
-    cell1(),
-    rho0(rhoi),
-    targetFrac(targetFraction),
-    xmin(numeric_limits<double>::max()),
-    xmax(-numeric_limits<double>::max()),
-    M0(0.0),
-    gradrho(gradrhoi),
-    searchDirection(searchDirectioni),
-    clipPlane(1) {
+//   // Add any holes by reversing their geometry order to be CW.
+//   const unsigned nholes = holes_spheral.size();
+//   for (unsigned ihole = 0; ihole != nholes; ++ihole) {
+//     const vector<Vector>& vertices = holes_spheral[ihole].vertices();
+//     const vector<Facet>& facets = holes_spheral[ihole].facets();
+//     const unsigned nverts_old = cell_r2d.nverts;
+//     const unsigned nverts = vertices.size();
+//     CHECK(nverts_old + nverts <= R2D_MAX_VERTS);
+//     CHECK(facets.size() == nverts);
+//     cell_r2d.nverts = nverts_old + nverts;
+//     for (unsigned i = 0; i != nverts; ++i) {
+//       cell_r2d.verts[nverts_old + i].pos.x = vertices[i].x();
+//       cell_r2d.verts[nverts_old + i].pos.y = vertices[i].y();
+//       cell_r2d.verts[nverts_old + facets[i].ipoint1()].pnbrs[0] = nverts_old + facets[i].ipoint2();
+//       cell_r2d.verts[nverts_old + facets[i].ipoint2()].pnbrs[1] = nverts_old + facets[i].ipoint1();
+//     }
+//   }
 
-    // Find the min/max extent of the polygon along the search direction.
-    double xi;
-    for (unsigned j = 0; j != cell0->nverts; ++j) {
-      xi = cell0->verts[j].pos.x * searchDirectioni.x() + cell0->verts[j].pos.y * searchDirection.y();
-      xmin = min(xmin, xi);
-      xmax = max(xmax, xi);
-    }
+//   ENSURE2(r2d_is_good(&cell_r2d), "Bad polygon transformation.");
+// }
 
-    // Compute the total mass of the input polygon.
-    M0 = cellIntegral(*cell0, rho0, gradrho);
-    // mom[0] = rhoi;
-    // mom[1] = gradrhoi.x();
-    // mom[2] = gradrhoi.y();
-    // r2d_reduce(cell0, mom, 1);
-    // M0 = mom[0];
-  }
-
-  double operator()(const double x) const {
-    // Clip the polygon.
-    REQUIRE(x >= 0.0 and x <= 1.0);
-    const double d = xmin + x*(xmax - xmin);
-    if (d < 0.0) {
-      clipPlane[0].n.x = -searchDirection.x();
-      clipPlane[0].n.y = -searchDirection.y();
-      clipPlane[0].d = d;
-    } else {
-      clipPlane[0].n.x = -searchDirection.x();
-      clipPlane[0].n.y = -searchDirection.y();
-      clipPlane[0].d = d;
-    }
-    cell1 = *cell0;
-    r2d_clip(&cell1, &clipPlane[0], 1);
-    // cout << "--------------------------------------------------------------------------------" << endl
-    //      << x << endl
-    //      << "Cell 0: " << endl;
-    // r2d_print(cell0);
-    // cout << "Clipped cell:" << endl;
-    // r2d_print(&cell1);
-
-    // Integrate the mass in the clipped cell.
-    const double M1 = cellIntegral(cell1, rho0, gradrho);
-    mom[0] = rho0;
-    mom[1] = gradrho.x();
-    mom[2] = gradrho.y();
-    r2d_reduce(&cell1, mom, 1);
-
-    // Return the difference in the mass ratio vs. the target fraction.
-    // cout << " --> " << x << " " << gradrho << " " << M1 << " " << M0 << endl;
-    return M1/M0 - targetFrac;
-  }
-};
-  
-//------------------------------------------------------------------------------
-// Define the square distance between two r2d_vertices.
-//------------------------------------------------------------------------------
-double distance2(const r2d_vertex& a, const r2d_vertex& b) {
-  return (FastMath::square(a.pos.x - b.pos.x) +
-          FastMath::square(a.pos.y - b.pos.y));
-}
+// //------------------------------------------------------------------------------
+// // Integrate a linear function in a polygon.
+// // We do this be evaluating it for each triangle,
+// // using the handy relation that if f(x,y) is a linear function then the integral
+// // \int f(x,y) dx dy in a trianglur region is A*f(xc,yc), where A is the area of the
+// // triangle and (xc,yc) the triangle centroid.
+// // Note we implicitly use the centroid in our cell coordinates as zero.
+// //------------------------------------------------------------------------------
+// double cellIntegral(const r2d_poly& cell,
+//                     const double a,
+//                     const Dim<2>::Vector& b) {
+//   double result = 0.0;
+//   Dim<2>::Vector cent;
+//   int lastvert = -1, nextvert, ivert = 0, k = 0;
+//   while (k < cell.nverts) {
+//     nextvert = (cell.verts[ivert].pnbrs[0] == lastvert ?
+//                 cell.verts[ivert].pnbrs[1] :
+//                 cell.verts[ivert].pnbrs[0]);
+//     cent.x((cell.verts[ivert].pos.x + cell.verts[nextvert].pos.x)/3.0);
+//     cent.y((cell.verts[ivert].pos.y + cell.verts[nextvert].pos.y)/3.0);
+//     result += 0.5*abs(cell.verts[ivert].pos.x * cell.verts[nextvert].pos.y -
+//                       cell.verts[ivert].pos.y * cell.verts[nextvert].pos.x)*(a + b.dot(cent));
+//     lastvert = ivert;
+//     ivert = nextvert;
+//     ++k;
+//   }
+//   return result;
+// }
 
 }           // anonymous namespace
 
@@ -282,12 +178,6 @@ computeVoronoiVolume(const FieldList<Dim<2>, Dim<2>::Vector>& position,
       verts[j].x(kernelExtent*cos(theta));
       verts[j].y(kernelExtent*sin(theta));
     }
-
-    // // If there are boundaries, we build the R2D versions of them once.
-    // vector<r2d_poly> boundaries_r2d(numBounds);
-    // for (unsigned ibound = 0; ibound != numBounds; ++ibound) {
-    //   Polygon_to_r2d_poly(boundaries_r2d[ibound], boundaries[ibound], holes[ibound]);
-    // }
 
     // Walk the points.
     r2d_real firstmom[3];
