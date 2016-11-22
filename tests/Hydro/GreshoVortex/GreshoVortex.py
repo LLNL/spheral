@@ -154,7 +154,8 @@ else:
 densityUpdateLabel = {IntegrateDensity : "IntegrateDensity",
                       SumDensity : "SumDensity",
                       RigorousSumDensity : "RigorousSumDensity",
-                      SumVoronoiCellDensity : "SumVoronoiCellDensity"}
+                      SumVoronoiCellDensity : "SumVoronoiCellDensity",
+                      VoronoiCellDensity : "VoronoiCellDensity"}
 baseDir = os.path.join(dataDir,
                        HydroConstructor.__name__,
                        Qconstructor.__name__,
