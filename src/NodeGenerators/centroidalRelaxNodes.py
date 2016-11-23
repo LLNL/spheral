@@ -138,6 +138,8 @@ def centroidalRelaxNodes(nodeListsAndBounds,
         # Create the new ghost nodes.
         for bc in boundaries:
             bc.setAllGhostNodes(db)
+        for bc in boundaries:
+            bc.finalizeGhostBoundary()
         for nodes in db.fluidNodeLists():
             nodes.neighbor().updateNodes()
 
