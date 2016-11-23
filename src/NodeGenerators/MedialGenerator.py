@@ -83,14 +83,12 @@ class MedialGenerator2d(NodeGeneratorBase):
         nodes.numInternalNodes = nlocal
 
         # If necessary probe for a maximum density statistically.
+        rangen = random.Random(randomseed + mpi.rank)
         if not rhomax:
             rhomax = 0.0
-            seed = 0
             nglobal = 0
             while nglobal < n:
-                localseed = seed + mpi.rank
-                [coords, localseed] = i4_sobol(2, localseed)
-                p = boundary.xmin + length*Vector2d(coords[0], coords[1])
+                p = boundary.xmin + length*Vector2d(rangen.random(), rangen.random())
                 use = boundary.contains(p, False)
                 if use:
                     ihole = 0
@@ -103,20 +101,18 @@ class MedialGenerator2d(NodeGeneratorBase):
                 else:
                     i = 0
                 nglobal += mpi.allreduce(i, mpi.SUM)
-                seed += mpi.procs
             rhomax = mpi.allreduce(rhomax, mpi.MAX)
         print "MedialGenerator: selected a maximum density of ", rhomax
 
-        # Initialize the desired number of generators in the boundary using the Sobol sequence.
-        rangen = random.Random(randomseed + mpi.rank)
+        # It's a bit tricky to properly use the Sobol sequence in parallel.  We handle this by searching for the lowest
+        # seeds that give us the desired number of points.
+        seeds = []
         seed = 0
-        nglobal = 0
-        ilocal = 0
-        while nglobal < n:
+        while mpi.allreduce(len(seeds)) < n:
             localseed = seed + mpi.rank
-            [coords, localseed] = i4_sobol(2, localseed)
+            [coords, newseed] = i4_sobol(2, localseed)
             p = boundary.xmin + length*Vector2d(coords[0], coords[1])
-            use = ilocal < nlocal and boundary.contains(p, False)
+            use = boundary.contains(p, False)
             if use:
                 ihole = 0
                 while use and ihole < len(holes):
@@ -125,15 +121,49 @@ class MedialGenerator2d(NodeGeneratorBase):
             if use:
                 rhoi = rhofunc(p)
                 if rangen.random() < rhoi/rhomax:
-                    pos[ilocal] = p
-                    rhof[ilocal] = rhoi
-                    mass[ilocal] = rhoi * vol/n  # Not actually correct, but mass will be updated in centroidalRelaxNodes
-                    hi = min(hmax, 2.0 * nNodePerh * sqrt(vol/n))
-                    assert hi > 0.0
-                    H[ilocal] = SymTensor2d(1.0/hi, 0.0, 0.0, 1.0/hi)
-                    ilocal += 1
-            nglobal = mpi.allreduce(ilocal, mpi.SUM)
+                    seeds.append(localseed)
             seed += mpi.procs
+
+        # Drop the highest value seeds to ensure we have the correct number of total points.
+        nglobal = mpi.allreduce(len(seeds), mpi.SUM)
+        assert n + mpi.procs >= nglobal
+        seeds.sort()
+        seeds = [-1] + seeds
+        while mpi.allreduce(len(seeds)) > n + mpi.procs:
+            maxseed = mpi.allreduce(seeds[-1], mpi.MAX)
+            assert maxseed > -1
+            if seeds[-1] == maxseed:
+                seeds = seeds[:-1]
+        seeds = seeds[1:]
+
+        # Load balance the number of seeds per domain.
+        if len(seeds) > nlocal:
+            extraseeds = seeds[nlocal:]
+        else:
+            extraseeds = []
+        extraseeds = mpi.allreduce(extraseeds, mpi.SUM)
+        seeds = seeds[:nlocal]
+        for iproc in xrange(mpi.procs):
+            ngrab = max(0, nlocal - len(seeds))
+            ntaken = mpi.bcast(ngrab, root=iproc)
+            if mpi.rank == iproc:
+                seeds += extraseeds[:ngrab]
+            extraseeds = extraseeds[ntaken:]
+        assert len(extraseeds) == 0
+        assert len(seeds) == nlocal
+        assert mpi.allreduce(len(seeds)) == n
+
+        # Initialize the desired number of generators in the boundary using the Sobol sequence.
+        for i, seed in enumerate(seeds):
+            [coords, newseed] = i4_sobol(2, seed)
+            p = boundary.xmin + length*Vector2d(coords[0], coords[1])
+            rhoi = rhofunc(p)
+            pos[i] = p
+            rhof[i] = rhoi
+            mass[i] = rhoi * vol/n  # Not actually correct, but mass will be updated in centroidalRelaxNodes
+            hi = min(hmax, 2.0 * nNodePerh * sqrt(vol/n))
+            assert hi > 0.0
+            H[i] = SymTensor2d(1.0/hi, 0.0, 0.0, 1.0/hi)
 
         # Each domain has independently generated the correct number of points, but they are randomly distributed.
         # Before going further it's useful to try and spatially collect the points by domain.
