@@ -53,13 +53,13 @@ class MedialGeneratorBase(NodeGeneratorBase):
         # Some useful geometry.
         box = boundary.xmax - boundary.xmin
         length = box.maxElement()
-        vol = boundary.volume
+        boundvol = boundary.volume
         for hole in holes:
-            vol -= hole.volume
+            boundvol -= hole.volume
         boxvol = 1.0
         for idim in xrange(ndim):
             boxvol *= box[idim]
-        fracOccupied = min(1.0, vol/boxvol)
+        fracOccupied = min(1.0, boxvol/boundvol)
         assert fracOccupied > 0.0 and fracOccupied <= 1.0
 
         # Create a temporary NodeList we'll use store and update positions.
@@ -162,8 +162,8 @@ class MedialGeneratorBase(NodeGeneratorBase):
             rhoi = rhofunc(p)
             pos[i] = p
             rhof[i] = rhoi
-            mass[i] = rhoi * vol/n  # Not actually correct, but mass will be updated in centroidalRelaxNodes
-            hi = min(hmax, 2.0 * nNodePerh * (vol/n)**(1.0/ndim))
+            mass[i] = rhoi * boundvol/n  # Not actually correct, but mass will be updated in centroidalRelaxNodes
+            hi = min(hmax, 2.0 * nNodePerh * (boundvol/n)**(1.0/ndim))
             assert hi > 0.0
             H[i] = sph.SymTensor.one / hi
 
@@ -196,11 +196,9 @@ class MedialGeneratorBase(NodeGeneratorBase):
         for i in xrange(nodes.numInternalNodes):
             self.vol.append(vol(0,i))
             self.surface.append(surfacePoint(0,i))
-            self.pos.append(pos[i])
+            self.pos.append(sph.Vector(pos[i]))
             self.m.append(vol(0,i) * rhofunc(pos[i]))
-            hi = min(hmax, nNodePerh * sqrt(vol(0,i)/pi))
-            assert hi > 0.0
-            self.H.append(sph.SymTensor.one / hi)
+            self.H.append(sph.SymTensor(H[i]))
         assert mpi.allreduce(len(self.vol), mpi.SUM) == n
         assert mpi.allreduce(len(self.surface), mpi.SUM) == n
         assert mpi.allreduce(len(self.pos), mpi.SUM) == n
