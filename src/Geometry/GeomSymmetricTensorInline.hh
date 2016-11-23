@@ -2076,7 +2076,7 @@ inline
 void
 GeomSymmetricTensor<1>::
 rotationalTransform(const GeomTensor<1>& R) {
-  REQUIRE(fuzzyEqual(std::abs(R.Determinant()), 1.0, 1.0e-5));
+  REQUIRE2(fuzzyEqual(std::abs(R.Determinant()), 1.0, 1.0e-5), R);
 }
 
 template<>
@@ -2084,7 +2084,7 @@ inline
 void
 GeomSymmetricTensor<2>::
 rotationalTransform(const GeomTensor<2>& R) {
-  REQUIRE(fuzzyEqual(std::abs(R.Determinant()), 1.0, 1.0e-5));
+  REQUIRE2(fuzzyEqual(std::abs(R.Determinant()), 1.0, 1.0e-5), R);
 
   const double A0 = this->mxx;
   const double A1 = this->mxy;
@@ -2108,7 +2108,7 @@ inline
 void
 GeomSymmetricTensor<3>::
 rotationalTransform(const GeomTensor<3>& R) {
-  REQUIRE(fuzzyEqual(std::abs(R.Determinant()), 1.0, 1.0e-5));
+  REQUIRE2(fuzzyEqual(std::abs(R.Determinant()), 1.0, 1.0e-5), R);
 
   const double A0 = this->mxx;
   const double A1 = this->mxy;
