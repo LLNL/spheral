@@ -10,36 +10,35 @@ from sobol import i4_sobol
 from centroidalRelaxNodes import centroidalRelaxNodes
 
 #-------------------------------------------------------------------------------
-# 2D Generator.  Seeds positions within the given boundary using the Sobol 
-# sequence to create the seeds.
-# Note as currently implemented this code does not necessarily generate 
-# identical output for different numbers of processors!
+# Base MedialGenerator.  This implements the generic 2D/3D algorithm.
 #-------------------------------------------------------------------------------
-class MedialGenerator2d(NodeGeneratorBase):
+class MedialGeneratorBase(NodeGeneratorBase):
 
     #---------------------------------------------------------------------------
     # Constructor.
     #---------------------------------------------------------------------------
     def __init__(self,
+                 ndim,
                  n,
                  rho,
                  boundary,
-                 gradrho = None,
-                 holes = [],
-                 maxIterations = 100,
-                 fracTol = 1.0e-3,
-                 tessellationFileName = None,
-                 nNodePerh = 2.01,
-                 offset = (0.0, 0.0),
-                 rejecter = None,
-                 randomseed = 492739149274,
-                 maxNodesPerDomain = 1000):
+                 gradrho,
+                 holes,
+                 maxIterations,
+                 fracTol,
+                 tessellationFileName,
+                 nNodePerh,
+                 randomseed,
+                 maxNodesPerDomain):
 
+        assert ndim in (2,3)
         assert n > 0
-        #assert len(holes) == 0   # Not supported yet, but we'll get there.
 
         # Load our handy 2D aliases.
-        import Spheral2d as sph
+        if ndim == 2:
+            import Spheral2d as sph
+        else:
+            import Spheral3d as sph
 
         # Did we get passed a function or a constant for the density?
         if type(rho) in (float, int):
@@ -52,12 +51,15 @@ class MedialGenerator2d(NodeGeneratorBase):
         self.rhofunc = rhofunc
 
         # Some useful geometry.
-        length = max(boundary.xmax.x - boundary.xmin.x,
-                     boundary.xmax.y - boundary.xmin.y)
+        box = boundary.xmax - boundary.xmin
+        length = box.maxElement()
         vol = boundary.volume
         for hole in holes:
             vol -= hole.volume
-        fracOccupied = min(1.0, vol/((boundary.xmax.x - boundary.xmin.x)*(boundary.xmax.y - boundary.xmin.y)))
+        boxvol = 1.0
+        for idim in xrange(ndim):
+            boxvol *= box[idim]
+        fracOccupied = min(1.0, vol/boxvol)
         assert fracOccupied > 0.0 and fracOccupied <= 1.0
 
         # Create a temporary NodeList we'll use store and update positions.
@@ -88,7 +90,7 @@ class MedialGenerator2d(NodeGeneratorBase):
             rhomax = 0.0
             nglobal = 0
             while nglobal < n:
-                p = boundary.xmin + length*Vector2d(rangen.random(), rangen.random())
+                p = boundary.xmin + length*sph.Vector(rangen.random(), rangen.random(), rangen.random())
                 use = boundary.contains(p, False)
                 if use:
                     ihole = 0
@@ -110,8 +112,8 @@ class MedialGenerator2d(NodeGeneratorBase):
         seed = 0
         while mpi.allreduce(len(seeds)) < n:
             localseed = seed + mpi.rank
-            [coords, newseed] = i4_sobol(2, localseed)
-            p = boundary.xmin + length*Vector2d(coords[0], coords[1])
+            [coords, newseed] = i4_sobol(ndim, localseed)
+            p = boundary.xmin + length*sph.Vector(*tuple(coords))
             use = boundary.contains(p, False)
             if use:
                 ihole = 0
@@ -155,15 +157,15 @@ class MedialGenerator2d(NodeGeneratorBase):
 
         # Initialize the desired number of generators in the boundary using the Sobol sequence.
         for i, seed in enumerate(seeds):
-            [coords, newseed] = i4_sobol(2, seed)
-            p = boundary.xmin + length*Vector2d(coords[0], coords[1])
+            [coords, newseed] = i4_sobol(ndim, seed)
+            p = boundary.xmin + length*sph.Vector(*tuple(coords))
             rhoi = rhofunc(p)
             pos[i] = p
             rhof[i] = rhoi
             mass[i] = rhoi * vol/n  # Not actually correct, but mass will be updated in centroidalRelaxNodes
-            hi = min(hmax, 2.0 * nNodePerh * sqrt(vol/n))
+            hi = min(hmax, 2.0 * nNodePerh * (vol/n)**(1.0/ndim))
             assert hi > 0.0
-            H[i] = SymTensor2d(1.0/hi, 0.0, 0.0, 1.0/hi)
+            H[i] = sph.SymTensor.one / hi
 
         # Each domain has independently generated the correct number of points, but they are randomly distributed.
         # Before going further it's useful to try and spatially collect the points by domain.
@@ -189,32 +191,85 @@ class MedialGenerator2d(NodeGeneratorBase):
                                                  maxIterations = maxIterations,
                                                  tessellationFileName = tessellationFileName)
 
-        # Now we can fill out the usual Spheral generator info.
-        self.x, self.y, self.m, self.H = [], [], [], []
+        # Store the values the descendent generators will need.
+        self.vol, self.surface, self.pos, self.m, self.H = [], [], [], [], []
         for i in xrange(nodes.numInternalNodes):
-            self.x.append(pos[i].x)
-            self.y.append(pos[i].y)
+            self.vol.append(vol(0,i))
+            self.surface.append(surfacePoint(0,i))
+            self.pos.append(pos[i])
             self.m.append(vol(0,i) * rhofunc(pos[i]))
             hi = min(hmax, nNodePerh * sqrt(vol(0,i)/pi))
             assert hi > 0.0
-            self.H.append(SymTensor2d(1.0/hi, 0.0, 0.0, 1.0/hi))
-        assert mpi.allreduce(len(self.x), mpi.SUM) == n
-        assert mpi.allreduce(len(self.y), mpi.SUM) == n
+            self.H.append(sph.SymTensor.one / hi)
+        assert mpi.allreduce(len(self.vol), mpi.SUM) == n
+        assert mpi.allreduce(len(self.surface), mpi.SUM) == n
+        assert mpi.allreduce(len(self.pos), mpi.SUM) == n
         assert mpi.allreduce(len(self.m), mpi.SUM) == n
         assert mpi.allreduce(len(self.H), mpi.SUM) == n
+
+        return
+
+#-------------------------------------------------------------------------------
+# 2D Generator.  Seeds positions within the given boundary using the Sobol 
+# sequence to create the seeds.
+# Note as currently implemented this code does not necessarily generate 
+# identical output for different numbers of processors!
+#-------------------------------------------------------------------------------
+class MedialGenerator2d(MedialGeneratorBase):
+
+    #---------------------------------------------------------------------------
+    # Constructor.
+    #---------------------------------------------------------------------------
+    def __init__(self,
+                 n,
+                 rho,
+                 boundary,
+                 gradrho = None,
+                 holes = [],
+                 maxIterations = 100,
+                 fracTol = 1.0e-3,
+                 tessellationFileName = None,
+                 nNodePerh = 2.01,
+                 offset = (0.0, 0.0),
+                 rejecter = None,
+                 randomseed = 492739149274,
+                 maxNodesPerDomain = 1000):
+
+        # The base generator does most of the work.
+        MedialGeneratorBase.__init__(self,
+                                     ndim = 2,
+                                     n = n,
+                                     rho = rho,
+                                     boundary = boundary,
+                                     gradrho = gradrho,
+                                     holes = holes,
+                                     maxIterations = maxIterations,
+                                     fracTol = fracTol,
+                                     tessellationFileName = tessellationFileName,
+                                     nNodePerh = nNodePerh,
+                                     randomseed = randomseed,
+                                     maxNodesPerDomain = maxNodesPerDomain)
+
+
+        # Convert to our now regrettable standard coordinate storage for generators.
+        self.x = [x.x + offset[0] for x in self.pos]
+        self.y = [x.y + offset[1] for x in self.pos]
+        del self.pos
 
         # If the user provided a "rejecter", give it a pass
         # at the nodes.
         if rejecter:
-            self.x, self.y, self.m, self.H = rejecter(self.x,
-                                                      self.y,
-                                                      self.m,
-                                                      self.H)
+            self.x, self.y, self.m, self.H, self.vol, self.surface = rejecter(self.x,
+                                                                              self.y,
+                                                                              self.m,
+                                                                              self.H,
+                                                                              self.vol,
+                                                                              self.surface)
 
         # Initialize the base class, taking into account the fact we've already broken
         # up the nodes between domains.
         NodeGeneratorBase.__init__(self, False,
-                                   self.x, self.y, self.m, self.H)
+                                   self.x, self.y, self.m, self.H, self.vol, self.surface)
         return
 
     #---------------------------------------------------------------------------
