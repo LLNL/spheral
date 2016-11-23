@@ -53,6 +53,8 @@ void findPolygonExtent(double& xmin, double& xmax, const Dim<2>::Vector& nhat, c
     xmin = std::min(xmin, xi);
     xmax = std::max(xmax, xi);
   }
+  xmin = std::min(0.0, xmin);
+  xmax = std::max(0.0, xmax);
 }
 
 // //------------------------------------------------------------------------------
@@ -319,7 +321,7 @@ computeVoronoiVolume(const FieldList<Dim<2>, Dim<2>::Vector>& position,
             double dx1, dx2;
             findPolygonExtent(dx1, dx2, nhat1, celli);
             dx1 = -dx1;
-            CHECK(dx1 >= 0. and dx2 >= 0.0);
+            CHECK2(dx1 >= 0.0 and dx2 >= 0.0, nodeListi << " " << i << " " << ri << " " << dx1 << " " << dx2);
             const Scalar b = gradRhoi.magnitude();
             deltaMedian(nodeListi, i) = (sqrt(abs(rhoi*rhoi + b*rhoi*(dx2 - dx1) + b*b*(dx1*dx1 + dx2*dx2))) - rhoi)/b*nhat1 -  deltaCentroidi.dot(nhat1)*nhat1 + deltaCentroidi;
 

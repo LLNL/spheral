@@ -51,6 +51,8 @@ void findPolyhedronExtent(double& xmin, double& xmax, const Dim<3>::Vector& nhat
     xmin = std::min(xmin, xi);
     xmax = std::max(xmax, xi);
   }
+  xmin = std::min(0.0, xmin);
+  xmax = std::max(0.0, xmax);
 }
 
 }           // anonymous namespace
