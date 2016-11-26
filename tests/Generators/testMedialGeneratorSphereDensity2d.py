@@ -5,31 +5,41 @@ from SpheralTestUtilities import *
 from VoronoiDistributeNodes import distributeNodes2d as distributeNodes
 from siloPointmeshDump import *
 
-commandLine(n1       = 5000,
-            rho0     = 1.0,
-            R0       = 10.0,
-            Rc       = 1.0,
-            ncirc    = 360,
-            hmin     = 1e-5,
-            hmax     = 1e6,
-            rhoscale = 0.5,
+commandLine(ncore      = 2000,
+            rhocore0   = 10.0,
+            rhomantle0 = 5.0,
+            Rcore      = 1.0,
+            Rmantle    = 10.0,
+            Rc         = 0.25,
+            ncirc      = 360,
+            hmin       = 1e-5,
+            hmax       = 1e6,
 
-            nPerh   = 2.01,
-            maxIterations = 200,
-            fracTol = 1e-3,
-            noholes = False)     # Optionally avoid using holes in the boundaries.
+            nPerh      = 2.01,
+            maxIterations = 500,
+            fracTol    = 1e-3,
+            noholes    = False)     # Optionally avoid using holes in the boundaries.
 
 #-------------------------------------------------------------------------------
-# The density profile we're going to fit.
+# The density profiles we're going to fit.
 #-------------------------------------------------------------------------------
-def rhoprofile(posi):
+def rhocore(posi):
     r2 = posi.magnitude2()
-    return rho0/(r2 + Rc*Rc)
+    return rhocore0/(r2 + Rc*Rc)
 
-def gradrho(posi):
+def gradrhocore(posi):
     r = posi.magnitude()
     rhat = posi.unitVector()
-    return -2.0*rho0*r/(r*r + Rc*Rc)**2 * rhat
+    return -2.0*rhocore0*r/(r*r + Rc*Rc)**2 * rhat
+
+def rhomantle(posi):
+    r2 = posi.magnitude2()
+    return rhomantle0/r2
+
+def gradrhomantle(posi):
+    r = posi.magnitude()
+    rhat = posi.unitVector()
+    return -2.0*rhomantle0/(r*r*r) * rhat
 
 #-------------------------------------------------------------------------------
 # Material properties.
@@ -47,14 +57,21 @@ output("WT")
 #-------------------------------------------------------------------------------
 # Make the NodeList.
 #-------------------------------------------------------------------------------
-nodes1 = makeFluidNodeList("nodes1", eos,
-                           hmin = hmin,
-                           hmax = hmax,
-                           nPerh = nPerh,
-                           topGridCellSize = 100,
-                           xmin = Vector.one * -100.0,
-                           xmax = Vector.one *  100.0)
-nodeSet = [nodes1]
+nodesCore = makeFluidNodeList("core", eos,
+                              hmin = hmin,
+                              hmax = hmax,
+                              nPerh = nPerh,
+                              topGridCellSize = 100,
+                              xmin = Vector.one * -100.0,
+                              xmax = Vector.one *  100.0)
+nodesMantle = makeFluidNodeList("mantle", eos,
+                                hmin = hmin,
+                                hmax = hmax,
+                                nPerh = nPerh,
+                                topGridCellSize = 100,
+                                xmin = Vector.one * -100.0,
+                                xmax = Vector.one *  100.0)
+nodeSet = [nodesCore, nodesMantle]
 for nodes in nodeSet:
     output("nodes.name")
     output("  nodes.hmin")
@@ -62,58 +79,75 @@ for nodes in nodeSet:
     output("  nodes.nodesPerSmoothingScale")
 
 #-------------------------------------------------------------------------------
-# Make a circular boundary.
+# Make our boundaries.
 #-------------------------------------------------------------------------------
 bcpoints = vector_of_Vector()
 bcfacets = vector_of_vector_of_unsigned()
 for i in xrange(ncirc):
     theta = 2.0*pi/ncirc * i
-    bcpoints.append(Vector(R0*cos(theta), R0*sin(theta)))
+    bcpoints.append(Vector(Rcore*cos(theta), Rcore*sin(theta)))
 for i in xrange(len(bcpoints)):
     bcfacets.append(vector_of_unsigned(2))
     bcfacets[-1][0] = i
     bcfacets[-1][1] = (i + 1) % len(bcpoints)
-boundary = Polygon(bcpoints, bcfacets)
+boundaryCore = Polygon(bcpoints, bcfacets)
+
+for i in xrange(ncirc):
+    bcpoints[i] *= Rmantle/Rcore
+boundaryMantle = Polygon(bcpoints, bcfacets)
 
 #-------------------------------------------------------------------------------
 # Generate them nodes.
 #-------------------------------------------------------------------------------
-generator1 = MedialGenerator2d(n = n1,
-                               rho = rhoprofile,
-                               gradrho = gradrho,   # This is not necessary, but we'll use it if provided
-                               boundary = boundary,
-                               maxIterations = maxIterations,
-                               fracTol = fracTol,
-                               tessellationFileName = "test_medial2d_sphere_density_maxiter=%i_tol=%g" % (maxIterations, fracTol),
-                               nNodePerh = nPerh)
+# First, figure out the appropriate number of nodes we should have in the mantle
+# to mass match those in the core.
+Mcore = pi*rhocore0*(log(Rcore*Rcore + Rc*Rc) - log(Rc*Rc))
+Mmantle = 2.0*pi*rhomantle0*(log(Rmantle) - log(Rcore))
+nmantle = int(Mmantle/Mcore*ncore + 0.5)
+print "  Core mass: ", Mcore
+print "Mantle mass: ", Mmantle
+print "Resulting target point mass and number of points in mantle: ", Mcore/ncore, nmantle
 
-distributeNodes((nodes1, generator1))
+generatorCore = MedialGenerator2d(n = ncore,
+                                  rho = rhocore,
+                                  gradrho = gradrhocore,   # This is not necessary, but we'll use it if provided
+                                  boundary = boundaryCore,
+                                  maxIterations = maxIterations,
+                                  fracTol = fracTol,
+                                  tessellationFileName = "test_medial2d_core_maxiter=%i_tol=%g" % (maxIterations, fracTol),
+                                  nNodePerh = nPerh)
+
+generatorMantle = MedialGenerator2d(n = nmantle,
+                                    rho = rhomantle,
+                                    gradrho = gradrhomantle,   # This is not necessary, but we'll use it if provided
+                                    boundary = boundaryMantle,
+                                    holes = [boundaryCore],
+                                    maxIterations = maxIterations,
+                                    fracTol = fracTol,
+                                    tessellationFileName = "test_medial2d_mantle_maxiter=%i_tol=%g" % (maxIterations, fracTol),
+                                    nNodePerh = nPerh)
+
+distributeNodes((nodesCore, generatorCore),
+                (nodesMantle, generatorMantle))
 
 #-------------------------------------------------------------------------------
 # Drop a viz file for inspection.
 #-------------------------------------------------------------------------------
-Hfield = nodes.Hfield()
-HfieldInv = SymTensorField("H inverse", nodes)
-domainField = IntField("Domain", nodes)
-for i in xrange(nodes.numNodes):
-    HfieldInv[i] = Hfield[i].Inverse()
-    domainField[i] = mpi.rank
+db = DataBase()
+for nodes in nodeSet:
+    db.appendNodeList(nodes)
 vizfile = siloPointmeshDump(baseName = "test_medial_maxiter=%i_tol=%g" % (maxIterations, fracTol),
                             baseDirectory = "test_medial2d_sphere_density",
-                            fields = ([x.massDensity() for x in nodeSet] +
-                                      [x.mass() for x in nodeSet] +
-                                      [x.velocity() for x in nodeSet] +
-                                      [x.specificThermalEnergy() for x in nodeSet] +
-                                      [x.Hfield() for x in nodeSet] +
-                                      [HfieldInv, domainField])
+                            fieldLists = [db.fluidMassDensity,
+                                          db.fluidMass,
+                                          db.fluidVelocity,
+                                          db.fluidSpecificThermalEnergy,
+                                          db.fluidHfield]
                             )
 #-------------------------------------------------------------------------------
 # Plot a few profiles of interest.
 #-------------------------------------------------------------------------------
 from SpheralGnuPlotUtilities import *
-db = DataBase()
-for nodes in nodeSet:
-    db.appendNodeList(nodes)
 massPlot = plotFieldList(db.fluidMass,
                          xFunction = "%s.magnitude()",
                          plotStyle = "points",
@@ -124,3 +158,4 @@ rhoPlot = plotFieldList(db.fluidMassDensity,
                         plotStyle = "points",
                         winTitle = "mass density",
                         colorNodeLists = False, plotGhosts = False)
+rhoPlot("set yrange [1e-2:200]; set logscale y"); rhoPlot.refresh()
