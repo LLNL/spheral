@@ -5,7 +5,7 @@ from SpheralTestUtilities import *
 from VoronoiDistributeNodes import distributeNodes2d as distributeNodes
 from siloPointmeshDump import *
 
-commandLine(n1       = 200,
+commandLine(n1       = 5000,
             rho0     = 1.0,
             R0       = 10.0,
             Rc       = 1.0,
@@ -25,6 +25,11 @@ commandLine(n1       = 200,
 def rhoprofile(posi):
     r2 = posi.magnitude2()
     return rho0/(r2 + Rc*Rc)
+
+def gradrho(posi):
+    r = posi.magnitude()
+    rhat = posi.unitVector()
+    return -2.0*rho0*r/(r*r + Rc*Rc)**2 * rhat
 
 #-------------------------------------------------------------------------------
 # Material properties.
@@ -75,6 +80,7 @@ boundary = Polygon(bcpoints, bcfacets)
 #-------------------------------------------------------------------------------
 generator1 = MedialGenerator2d(n = n1,
                                rho = rhoprofile,
+                               gradrho = gradrho,   # This is not necessary, but we'll use it if provided
                                boundary = boundary,
                                maxIterations = maxIterations,
                                fracTol = fracTol,
@@ -101,3 +107,20 @@ vizfile = siloPointmeshDump(baseName = "test_medial_maxiter=%i_tol=%g" % (maxIte
                                       [x.Hfield() for x in nodeSet] +
                                       [HfieldInv, domainField])
                             )
+#-------------------------------------------------------------------------------
+# Plot a few profiles of interest.
+#-------------------------------------------------------------------------------
+from SpheralGnuPlotUtilities import *
+db = DataBase()
+for nodes in nodeSet:
+    db.appendNodeList(nodes)
+massPlot = plotFieldList(db.fluidMass,
+                         xFunction = "%s.magnitude()",
+                         plotStyle = "points",
+                         winTitle = "mass",
+                         colorNodeLists = False, plotGhosts = False)
+rhoPlot = plotFieldList(db.fluidMassDensity,
+                        xFunction = "%s.magnitude()",
+                        plotStyle = "points",
+                        winTitle = "mass density",
+                        colorNodeLists = False, plotGhosts = False)
