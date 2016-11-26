@@ -110,7 +110,7 @@ class MedialGeneratorBase(NodeGeneratorBase):
         # seeds that give us the desired number of points.
         seeds = []
         seed = 0
-        while mpi.allreduce(len(seeds)) < n:
+        while mpi.allreduce(len(seeds), mpi.SUM) < n:
             localseed = seed + mpi.rank
             [coords, newseed] = i4_sobol(ndim, localseed)
             p = boundary.xmin + length*sph.Vector(*tuple(coords))
@@ -131,7 +131,7 @@ class MedialGeneratorBase(NodeGeneratorBase):
         assert n + mpi.procs >= nglobal
         seeds.sort()
         seeds = [-1] + seeds
-        while mpi.allreduce(len(seeds)) > n + mpi.procs:
+        while mpi.allreduce(len(seeds), mpi.SUM) > n + mpi.procs:
             maxseed = mpi.allreduce(seeds[-1], mpi.MAX)
             assert maxseed > -1
             if seeds[-1] == maxseed:
@@ -153,7 +153,7 @@ class MedialGeneratorBase(NodeGeneratorBase):
             extraseeds = extraseeds[ntaken:]
         assert len(extraseeds) == 0
         assert len(seeds) == nlocal
-        assert mpi.allreduce(len(seeds)) == n
+        assert mpi.allreduce(len(seeds), mpi.SUM) == n
 
         # Initialize the desired number of generators in the boundary using the Sobol sequence.
         for i, seed in enumerate(seeds):
