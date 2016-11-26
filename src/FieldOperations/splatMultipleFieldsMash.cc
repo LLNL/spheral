@@ -259,13 +259,13 @@ splatMultipleFieldsMash(const FieldListSet<Dimension>& fieldListSet,
   }
 
   // After we're done, all nodes in the sampling from NodeLists should be flagged as done.
-  BEGIN_CONTRACT_SCOPE;
+  BEGIN_CONTRACT_SCOPE
   {
     for (InternalNodeIterator<Dimension> nodeItr = position.internalNodeBegin();
          nodeItr != position.internalNodeEnd();
          ++nodeItr) CHECK2(flagNodeDone(nodeItr) == 1, nodeItr.fieldID() << " " << nodeItr.nodeID());
   }
-  END_CONTRACT_SCOPE;
+  END_CONTRACT_SCOPE
 
   // Apply boundaries to the donor information.
   for (typename vector<Boundary<Dimension>*>::const_iterator bcItr = boundaries.begin();
@@ -369,13 +369,13 @@ splatMultipleFieldsMash(const FieldListSet<Dimension>& fieldListSet,
   }
 
   // After we're done, all nodes in the sampling from NodeLists should be flagged as done.
-  BEGIN_CONTRACT_SCOPE;
+  BEGIN_CONTRACT_SCOPE
   {
     for (InternalNodeIterator<Dimension> nodeItr = position.internalNodeBegin();
          nodeItr != position.internalNodeEnd();
          ++nodeItr) CHECK2(flagNodeDone(nodeItr) == 1, nodeItr.fieldID() << " " << nodeItr.nodeID());
   }
-  END_CONTRACT_SCOPE;
+  END_CONTRACT_SCOPE
 
   return resultSet;
 }
