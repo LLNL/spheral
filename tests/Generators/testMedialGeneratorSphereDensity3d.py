@@ -1,17 +1,17 @@
 import mpi
-from Spheral2d import *
+from Spheral3d import *
 from MedialGenerator import *
 from SpheralTestUtilities import *
-from VoronoiDistributeNodes import distributeNodes2d as distributeNodes
+from VoronoiDistributeNodes import distributeNodes3d as distributeNodes
 from siloPointmeshDump import *
 
 commandLine(ncore      = 2000,
             rhocore0   = 10.0,
-            rhomantle0 = 5.0,
+            rhomantle0 = 1.0,
             Rcore      = 1.0,
             Rmantle    = 10.0,
             Rc         = 0.25,
-            ncirc      = 360,
+            nshell     = 300,
             hmin       = 1e-5,
             hmax       = 1e6,
 
@@ -21,8 +21,6 @@ commandLine(ncore      = 2000,
 
 #-------------------------------------------------------------------------------
 # The density profiles we're going to fit.
-# Note we don't have to provide the rho gradient methods, but providing them is
-# probably more accurate and they're trivial to compute for these profiles.
 #-------------------------------------------------------------------------------
 def rhocore(posi):
     r2 = posi.magnitude2()
@@ -81,51 +79,53 @@ for nodes in nodeSet:
 
 #-------------------------------------------------------------------------------
 # Make our boundaries.
+# Here we borrow the spiral shell coding from Cody's generator.  We'll use that
+# to build the convex hull for our boundaries.
 #-------------------------------------------------------------------------------
 bcpoints = vector_of_Vector()
-bcfacets = vector_of_vector_of_unsigned()
-for i in xrange(ncirc):
-    theta = 2.0*pi/ncirc * i
-    bcpoints.append(Vector(Rcore*cos(theta), Rcore*sin(theta)))
-for i in xrange(len(bcpoints)):
-    bcfacets.append(vector_of_unsigned(2))
-    bcfacets[-1][0] = i
-    bcfacets[-1][1] = (i + 1) % len(bcpoints)
-boundaryCore = Polygon(bcpoints, bcfacets)
+for i in xrange(1,nshell+1):
+    h = -1.0+(2.0*(i-1.0)/(nshell-1.0))
+    t = acos(h)
+    if (i>1 and i<nshell):
+        p = (p + 3.8/sqrt(nshell)*1.0/sqrt(1.0-h*h)) % (2.0*pi)
+    else:
+        p = 0
+    bcpoints.append(Vector(Rcore*sin(t)*cos(p),
+                           Rcore*sin(t)*sin(p),
+                           Rcore*cos(t)))
+boundaryCore = Polyhedron(bcpoints)
 
-for i in xrange(ncirc):
+for i in xrange(nshell):
     bcpoints[i] *= Rmantle/Rcore
-boundaryMantle = Polygon(bcpoints, bcfacets)
+boundaryMantle = Polyhedron(bcpoints)
 
 #-------------------------------------------------------------------------------
 # Generate them nodes.
 #-------------------------------------------------------------------------------
 # First, figure out the appropriate number of nodes we should have in the mantle
 # to mass match those in the core.
-Mcore = pi*rhocore0*(log(Rcore*Rcore + Rc*Rc) - log(Rc*Rc))
-Mmantle = 2.0*pi*rhomantle0*(log(Rmantle) - log(Rcore))
+Mcore = 4.0*pi*rhocore0*(Rcore - Rc*atan2(Rcore, Rc))
+Mmantle = 4.0*pi*rhomantle0*(Rmantle - Rcore)
 nmantle = int(Mmantle/Mcore*ncore + 0.5)
 print "  Core mass: ", Mcore
 print "Mantle mass: ", Mmantle
 print "Resulting target point mass and number of points in mantle: ", Mcore/ncore, nmantle
 
-generatorCore = MedialGenerator2d(n = ncore,
+generatorCore = MedialGenerator3d(n = ncore,
                                   rho = rhocore,
                                   gradrho = gradrhocore,   # This is not necessary, but we'll use it if provided
                                   boundary = boundaryCore,
                                   maxIterations = maxIterations,
                                   fracTol = fracTol,
-                                  tessellationFileName = "test_medial2d_core_maxiter=%i_tol=%g" % (maxIterations, fracTol),
                                   nNodePerh = nPerh)
 
-generatorMantle = MedialGenerator2d(n = nmantle,
+generatorMantle = MedialGenerator3d(n = nmantle,
                                     rho = rhomantle,
                                     gradrho = gradrhomantle,   # This is not necessary, but we'll use it if provided
                                     boundary = boundaryMantle,
                                     holes = [boundaryCore],
                                     maxIterations = maxIterations,
                                     fracTol = fracTol,
-                                    tessellationFileName = "test_medial2d_mantle_maxiter=%i_tol=%g" % (maxIterations, fracTol),
                                     nNodePerh = nPerh)
 
 distributeNodes((nodesCore, generatorCore),
@@ -138,7 +138,7 @@ db = DataBase()
 for nodes in nodeSet:
     db.appendNodeList(nodes)
 vizfile = siloPointmeshDump(baseName = "test_medial_maxiter=%i_tol=%g" % (maxIterations, fracTol),
-                            baseDirectory = "test_medial2d_sphere_density",
+                            baseDirectory = "test_medial3d_sphere_density",
                             fieldLists = [db.fluidMassDensity,
                                           db.fluidMass,
                                           db.fluidVelocity,
