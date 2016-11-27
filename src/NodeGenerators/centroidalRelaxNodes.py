@@ -170,7 +170,7 @@ def centroidalRelaxNodes(nodeListsAndBounds,
                                      m0, m1, m2, m3, m4, gradm0, gradm1, gradm2, gradm3, gradm4)
             sph.computeCRKSPHCorrections(m0, m1, m2, m3, m4, gradm0, gradm1, gradm2, gradm3, gradm4, H, correctionOrder,
                                          A, B, C, gradA, gradB, gradC)
-            gradRhof = sph.gradientCRKSPH(rho, pos, vol, H, A, B, C, gradA, gradB, gradC, cm, correctionOrder, W)
+            gradRhof = sph.gradientCRKSPH(rhof, pos, vol, H, A, B, C, gradA, gradB, gradC, cm, correctionOrder, W)
         
         # Displace the points and update point masses.
         avgdelta = 0.0
