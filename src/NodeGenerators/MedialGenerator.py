@@ -174,9 +174,7 @@ class MedialGeneratorBase(NodeGeneratorBase):
             db = sph.DataBase()
             db.appendNodeList(nodes)
             maxNodes = max(maxNodesPerDomain, 2*n/mpi.procs)
-            redistributor = sph.PeanoHilbertOrderRedistributeNodes(0.0,
-                                                                   minNodesPerDomainFraction = 0.0,
-                                                                   maxNodesPerDomainFraction = float(maxNodes)/n)
+            redistributor = sph.PeanoHilbertOrderRedistributeNodes(2.0)
             redistributor.redistributeNodes(db)
             boundaries = [sph.NestedGridDistributedBoundary.instance()]
         else:

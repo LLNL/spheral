@@ -187,12 +187,21 @@ def centroidalRelaxNodes(nodeListsAndBounds,
                             delta *= 0.9
                 avgdelta += delta.magnitude()/vol(nodeListi, i)**(1.0/ndim)
                 pos[nodeListi][i] += delta
+                rho[nodeListi][i] = rhofunc(pos(nodeListi, i))
                 mass[nodeListi][i] = rho(nodeListi,i)*vol(nodeListi,i)
         avgdelta = mpi.allreduce(avgdelta, mpi.SUM)/mpi.allreduce(db.numInternalNodes, mpi.SUM)
         print "centroidalRelaxNodes iteration %i, avg delta frac %g" % (iter, avgdelta)
 
         # Update the H tensors a bit.
         sph.iterateIdealH(db, bound_vec, W, sph.ASPHSmoothingScale(), 2)
+
+    # Make a last pass updating the node data with the final info.
+    for nodeListi, nodes in enumerate(db.fluidNodeLists()):
+        nodes.numGhostNodes = 0
+        nodes.neighbor().updateNodes()
+        for i in xrange(nodes.numInternalNodes):
+            rho[nodeListi][i] = rhofunc(pos(nodeListi, i))
+            mass[nodeListi][i] = rho(nodeListi,i)*vol(nodeListi,i)
 
     # If requested, dump the final info to a diagnostic viz file.
     if tessellationFileName:
