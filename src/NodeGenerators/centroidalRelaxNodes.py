@@ -24,7 +24,6 @@ def centroidalRelaxNodes(nodeListsAndBounds,
             return rho
     else:
         rhofunc = rho
-    rhofunc = rhofunc
 
     # What about the gradrho?  Did we get passed anything?
     if gradrho is None:
@@ -82,10 +81,10 @@ def centroidalRelaxNodes(nodeListsAndBounds,
     pos = db.fluidPosition
     H = db.fluidHfield
     mass = db.fluidMass
-    rho = db.fluidMassDensity
+    rhof = db.fluidMassDensity
 
     # Prepare the storage for the point-wise fields.
-    gradRho = db.newFluidVectorFieldList(sph.Vector.zero, "mass density gradient")
+    gradRhof = db.newFluidVectorFieldList(sph.Vector.zero, "mass density gradient")
     surfacePoint = db.newFluidIntFieldList(0, "surface point")
     vol = db.newFluidScalarFieldList(0.0, "volume")
     deltaCentroid = db.newFluidVectorFieldList(sph.Vector.zero, "delta centroid")
@@ -114,7 +113,7 @@ def centroidalRelaxNodes(nodeListsAndBounds,
     # Kick start the volume using m/rho.
     for nodeListi, nodes in enumerate(db.fluidNodeLists()):
         for i in xrange(nodes.numInternalNodes):
-            vol[nodeListi][i] = mass(nodeListi, i)/rho(nodeListi, i)
+            vol[nodeListi][i] = mass(nodeListi, i)/rhof(nodeListi, i)
 
     # We need the boundaries as a vector for calling iterateIdealH
     bound_vec = sph.vector_of_Boundary()
@@ -133,7 +132,7 @@ def centroidalRelaxNodes(nodeListsAndBounds,
             nodes.neighbor().updateNodes()
 
             for i in xrange(nodes.numInternalNodes):
-                rho[nodeListi][i] = rhofunc(pos(nodeListi, i))
+                rhof[nodeListi][i] = rhofunc(pos(nodeListi, i))
 
         # Create the new ghost nodes.
         for bc in boundaries:
@@ -149,12 +148,12 @@ def centroidalRelaxNodes(nodeListsAndBounds,
 
         # Compute the new volumes and centroids (note this uses the old rho gradient, not quite right,
         # but expedient/efficient).
-        sph.computeVoronoiVolume(pos, H, rho, gradRho, cm, W.kernelExtent, bounds, holes, surfacePoint, vol, deltaCentroid, cells)
+        sph.computeVoronoiVolume(pos, H, rhof, gradRhof, cm, W.kernelExtent, bounds, holes, surfacePoint, vol, deltaCentroid, cells)
         
         # Apply boundary conditions.
         for bc in boundaries:
             bc.applyFieldListGhostBoundary(vol)
-            bc.applyFieldListGhostBoundary(rho)
+            bc.applyFieldListGhostBoundary(rhof)
         for bc in boundaries:
             bc.finalizeGhostBoundary()
 
@@ -163,7 +162,7 @@ def centroidalRelaxNodes(nodeListsAndBounds,
         if gradrhofunc:
             for nodeListi, nodes in enumerate(db.fluidNodeLists()):
                 for i in xrange(nodes.numInternalNodes):
-                    gradRho[nodeListi][i] = gradrhofunc(pos(nodeListi, i))
+                    gradRhof[nodeListi][i] = gradrhofunc(pos(nodeListi, i))
 
         else:
             # Use RK to numerically compute the new mass density gradient.
@@ -171,7 +170,7 @@ def centroidalRelaxNodes(nodeListsAndBounds,
                                      m0, m1, m2, m3, m4, gradm0, gradm1, gradm2, gradm3, gradm4)
             sph.computeCRKSPHCorrections(m0, m1, m2, m3, m4, gradm0, gradm1, gradm2, gradm3, gradm4, H, correctionOrder,
                                          A, B, C, gradA, gradB, gradC)
-            gradRho = sph.gradientCRKSPH(rho, pos, vol, H, A, B, C, gradA, gradB, gradC, cm, correctionOrder, W)
+            gradRhof = sph.gradientCRKSPH(rho, pos, vol, H, A, B, C, gradA, gradB, gradC, cm, correctionOrder, W)
         
         # Displace the points and update point masses.
         avgdelta = 0.0
@@ -187,8 +186,8 @@ def centroidalRelaxNodes(nodeListsAndBounds,
                             delta *= 0.9
                 avgdelta += delta.magnitude()/vol(nodeListi, i)**(1.0/ndim)
                 pos[nodeListi][i] += delta
-                rho[nodeListi][i] = rhofunc(pos(nodeListi, i))
-                mass[nodeListi][i] = rho(nodeListi,i)*vol(nodeListi,i)
+                rhof[nodeListi][i] = rhofunc(pos(nodeListi, i))
+                mass[nodeListi][i] = rhof(nodeListi,i)*vol(nodeListi,i)
         avgdelta = mpi.allreduce(avgdelta, mpi.SUM)/mpi.allreduce(db.numInternalNodes, mpi.SUM)
         print "centroidalRelaxNodes iteration %i, avg delta frac %g" % (iter, avgdelta)
 
@@ -200,8 +199,8 @@ def centroidalRelaxNodes(nodeListsAndBounds,
         nodes.numGhostNodes = 0
         nodes.neighbor().updateNodes()
         for i in xrange(nodes.numInternalNodes):
-            rho[nodeListi][i] = rhofunc(pos(nodeListi, i))
-            mass[nodeListi][i] = rho(nodeListi,i)*vol(nodeListi,i)
+            rhof[nodeListi][i] = rhofunc(pos(nodeListi, i))
+            mass[nodeListi][i] = rhof(nodeListi,i)*vol(nodeListi,i)
 
     # If requested, dump the final info to a diagnostic viz file.
     if tessellationFileName:
