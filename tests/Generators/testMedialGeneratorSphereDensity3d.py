@@ -145,6 +145,7 @@ vizfile = siloPointmeshDump(baseName = "test_medial_maxiter=%i_tol=%g" % (maxIte
                                           db.fluidSpecificThermalEnergy,
                                           db.fluidHfield]
                             )
+
 #-------------------------------------------------------------------------------
 # Plot a few profiles of interest.
 #-------------------------------------------------------------------------------
@@ -160,3 +161,7 @@ rhoPlot = plotFieldList(db.fluidMassDensity,
                         winTitle = "mass density",
                         colorNodeLists = False, plotGhosts = False)
 rhoPlot("set yrange [1e-2:200]; set logscale y"); rhoPlot.refresh()
+
+from fieldStatistics import fieldStatistics
+for nodes in nodeSet:
+    print "Mass statistics for ", nodes.name, " (min, max, avg, std dev) : ", fieldStatistics(nodes.mass())

@@ -382,7 +382,7 @@ class MedialGenerator3d(MedialGeneratorBase):
     #---------------------------------------------------------------------------
     def localMassDensity(self, i):
         assert i >= 0 and i < len(self.H)
-        return self.rhofunc(Vector2d(self.x[i], self.y[i], self.z[i]))
+        return self.rhofunc(Vector3d(self.x[i], self.y[i], self.z[i]))
     
     #---------------------------------------------------------------------------
     # Get the H tensor for the given node index.
