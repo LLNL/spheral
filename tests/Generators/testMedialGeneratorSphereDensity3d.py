@@ -5,7 +5,7 @@ from SpheralTestUtilities import *
 from VoronoiDistributeNodes import distributeNodes3d as distributeNodes
 from siloPointmeshDump import *
 
-commandLine(ncore      = 2000,
+commandLine(ncore      = 10000,
             rhocore0   = 10.0,
             rhomantle0 = 1.0,
             Rcore      = 1.0,
@@ -17,7 +17,7 @@ commandLine(ncore      = 2000,
 
             nPerh      = 2.01,
             maxIterations = 500,
-            fracTol    = 1e-3)
+            fracTol    = 1e-4)
 
 #-------------------------------------------------------------------------------
 # The density profiles we're going to fit.
@@ -161,6 +161,8 @@ rhoPlot = plotFieldList(db.fluidMassDensity,
                         winTitle = "mass density",
                         colorNodeLists = False, plotGhosts = False)
 rhoPlot("set yrange [1e-2:200]; set logscale y"); rhoPlot.refresh()
+massPlot.hardcopy("test_medial3d_mass.png", terminal="png")
+rhoPlot.hardcopy("test_medial3d_rho.png", terminal="png")
 
 from fieldStatistics import fieldStatistics
 for nodes in nodeSet:
