@@ -17,7 +17,7 @@ commandLine(ncore      = 2000,
 
             nPerh      = 2.01,
             maxIterations = 500,
-            fracTol    = 1e-3)
+            fracTol    = 1e-5)
 
 #-------------------------------------------------------------------------------
 # The density profiles we're going to fit.
@@ -160,6 +160,8 @@ rhoPlot = plotFieldList(db.fluidMassDensity,
                         winTitle = "mass density",
                         colorNodeLists = False, plotGhosts = False)
 rhoPlot("set yrange [1e-2:200]; set logscale y"); rhoPlot.refresh()
+massPlot.hardcopy("test_medial2d_mass.png", terminal="png")
+rhoPlot.hardcopy("test_medial2d_rho.png", terminal="png")
 
 from fieldStatistics import fieldStatistics
 for nodes in nodeSet:

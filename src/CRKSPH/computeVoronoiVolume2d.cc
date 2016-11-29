@@ -15,6 +15,7 @@ extern "C" {
 #include "Neighbor/ConnectivityMap.hh"
 #include "Utilities/allReduce.hh"
 #include "Utilities/pointOnPolygon.hh"
+#include "Utilities/FastMath.hh"
 
 namespace Spheral {
 namespace CRKSPHSpace {
@@ -23,6 +24,8 @@ using namespace std;
 using std::min;
 using std::max;
 using std::abs;
+
+using namespace FastMath;
 
 using FieldSpace::Field;
 using FieldSpace::FieldList;
@@ -195,7 +198,7 @@ computeVoronoiVolume(const FieldList<Dim<2>, Dim<2>::Vector>& position,
         const Vector& ri = position(nodeListi, i);
         const SymTensor& Hi = H(nodeListi, i);
         const Scalar rhoi = rho(nodeListi, i);
-        Vector gradRhoi = gradRho(nodeListi, i);
+        const Vector& gradRhoi = gradRho(nodeListi, i);
         const Vector grhat = gradRhoi.unitVector();
         const Scalar Hdeti = Hi.Determinant();
         const SymTensor Hinv = Hi.Inverse();
@@ -225,7 +228,7 @@ computeVoronoiVolume(const FieldList<Dim<2>, Dim<2>::Vector>& position,
 
             // Check the density gradient limiter.
             const Scalar fdir = FastMath::pow4(rij.unitVector().dot(grhat));
-            phi = min(phi, max(0.0, max(1.0 - fdir, rij.dot(gradRhoi)*safeInv(rhoi - rhoj))));
+            // phi = min(phi, max(0.0, max(1.0 - fdir, rij.dot(gradRhoi)*safeInv(rhoi - rhoj))));
           }
         }
 
@@ -311,19 +314,33 @@ computeVoronoiVolume(const FieldList<Dim<2>, Dim<2>::Vector>& position,
           const Vector deltaCentroidi = Vector(firstmom[1], firstmom[2])/firstmom[0];
           // if (barf) cerr << "     " << deltaCentroidi << " " << ri + deltaCentroidi << endl;
 
-          // Apply the gradient limiter;
-          gradRhoi *= phi;
+          // // Apply the gradient limiter;
+          // gradRhoi *= phi;
 
           // Is there a significant density gradient?
-          if (sqrt(gradRhoi.magnitude2()*vol(nodeListi, i)) >= 0.025*rhoi) {
+          if (sqrt(gradRhoi.magnitude2()*vol(nodeListi, i)) >= 1e-8*rhoi) {
 
             const Vector nhat1 = gradRhoi.unitVector();
-            double dx1, dx2;
-            findPolygonExtent(dx1, dx2, nhat1, celli);
-            dx1 = -dx1;
-            CHECK2(dx1 >= 0.0 and dx2 >= 0.0, nodeListi << " " << i << " " << ri << " " << dx1 << " " << dx2);
+            double x1, x2;
+            findPolygonExtent(x1, x2, nhat1, celli);
+            CHECK2(x1 <= 0.0 and x2 >= 0.0, nodeListi << " " << i << " " << ri << " " << x1 << " " << x2);
             const Scalar b = gradRhoi.magnitude();
-            deltaMedian(nodeListi, i) = (sqrt(abs(rhoi*rhoi + b*rhoi*(dx2 - dx1) + b*b*(dx1*dx1 + dx2*dx2))) - rhoi)/b*nhat1 -  deltaCentroidi.dot(nhat1)*nhat1 + deltaCentroidi;
+
+            // This version uses the medial position.
+            const Scalar thpt = sqrt(abs(rhoi*rhoi + rhoi*b*(x1 + x2) + 0.5*b*b*(x1*x1 + x2*x2)));
+            const Scalar xm1 = -(rhoi + thpt)/b;
+            const Scalar xm2 = (-rhoi + thpt)/b;
+            if (xm1 >= x1 and xm1 <= x2) {
+              deltaMedian(nodeListi, i) = xm1*nhat1 - deltaCentroidi.dot(nhat1)*nhat1 + deltaCentroidi;
+            } else {
+              deltaMedian(nodeListi, i) = xm2*nhat1 - deltaCentroidi.dot(nhat1)*nhat1 + deltaCentroidi;
+            }
+
+            // // This version simply tries rho^2 weighting.
+            // deltaMedian(nodeListi, i) = ((0.5*rhoi*(x2*x2 - x1*x1) +
+            //                               2.0/3.0*rhoi*b*(x2*x2*x2 - x1*x1*x1) +
+            //                               0.25*b*b*(x2*x2*x2*x2 - x1*x1*x1*x1))/
+            //                              (pow3(rhoi + b*x2) - pow3(rhoi + b*x1)/(3.0*b)))*nhat1 - deltaCentroidi.dot(nhat1)*nhat1 + deltaCentroidi;
 
           } else {
 
