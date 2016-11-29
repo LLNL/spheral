@@ -16,6 +16,7 @@ commandLine(ncore      = 2000,
             hmax       = 1e6,
 
             nPerh      = 2.01,
+            centroidFrac = 1.0,
             maxIterations = 500,
             fracTol    = 1e-5)
 
@@ -113,6 +114,7 @@ generatorCore = MedialGenerator2d(n = ncore,
                                   rho = rhocore,
                                   gradrho = gradrhocore,   # This is not necessary, but we'll use it if provided
                                   boundary = boundaryCore,
+                                  centroidFrac = centroidFrac,
                                   maxIterations = maxIterations,
                                   fracTol = fracTol,
                                   tessellationFileName = "test_medial2d_core_maxiter=%i_tol=%g" % (maxIterations, fracTol),
@@ -123,6 +125,7 @@ generatorMantle = MedialGenerator2d(n = nmantle,
                                     gradrho = gradrhomantle,   # This is not necessary, but we'll use it if provided
                                     boundary = boundaryMantle,
                                     holes = [boundaryCore],
+                                    centroidFrac = centroidFrac,
                                     maxIterations = maxIterations,
                                     fracTol = fracTol,
                                     tessellationFileName = "test_medial2d_mantle_maxiter=%i_tol=%g" % (maxIterations, fracTol),
