@@ -6,11 +6,13 @@
 #include "Field/FieldList.hh"
 #include "NodeList/NodeList.hh"
 #include "Utilities/PairComparisons.hh"
+#include "Utilities/FastMath.hh"
 
 namespace Spheral {
 namespace CRKSPHSpace {
 
 using namespace std;
+using namespace FastMath;
 
 using FieldSpace::Field;
 using FieldSpace::FieldList;
@@ -66,7 +68,7 @@ computeVoronoiVolume(const FieldSpace::FieldList<Dim<1>, Dim<1>::Vector>& positi
 
   // Prepare some scratch variables.
   unsigned nodeListj1, nodeListj2, j1, j2;
-  Scalar Hi, H1, H2, rhoi, rho1, rho2, gradRhoi, x1, x2, xi, etamax, phi, b, m1, m2, xm1, xm2, thpt, 
+  Scalar Hi, H1, H2, rhoi, rho1, rho2, gradRhoi, x1, x2, xi, etamax, b, xm1, xm2, thpt, 
     xbound0 = -std::numeric_limits<Scalar>::max(),
     xbound1 =  std::numeric_limits<Scalar>::max();
 
@@ -92,7 +94,7 @@ computeVoronoiVolume(const FieldSpace::FieldList<Dim<1>, Dim<1>::Vector>& positi
       rhoi = rho(nodeListi, i);
       gradRhoi = gradRho(nodeListi, i).x();
 
-      phi = 1.0;
+      // phi = 1.0;
       if (itr == coords.begin()) {
         x1 = xbound0 - xi;
         H1 = Hi;
@@ -103,7 +105,7 @@ computeVoronoiVolume(const FieldSpace::FieldList<Dim<1>, Dim<1>::Vector>& positi
         H1 = H(nodeListj1, j1).xx();
         rho1 = rho(nodeListj1, j1);
         x1 = 0.5*(position(nodeListj1, j1).x() - position(nodeListi, i).x());
-        phi = min(phi, max(0.0, gradRhoi*2.0*x1*safeInvVar(rho1 - rhoi)));
+        // phi = min(phi, max(0.0, gradRhoi*2.0*x1*safeInvVar(rho1 - rhoi)));
       }
 
       if (itr == coords.end()-1) {
@@ -116,37 +118,44 @@ computeVoronoiVolume(const FieldSpace::FieldList<Dim<1>, Dim<1>::Vector>& positi
         H2 = H(nodeListj2, j2).xx();
         rho2 = rho(nodeListj2, j2);
         x2 = 0.5*(position(nodeListj2, j2).x() - position(nodeListi, i).x());
-        phi = min(phi, max(0.0, gradRhoi*2.0*x2*safeInvVar(rho2 - rhoi)));
+        // phi = min(phi, max(0.0, gradRhoi*2.0*x2*safeInvVar(rho2 - rhoi)));
       }
 
       CHECK(x1 <= 0.0 and x2 >= 0.0);
-      CHECK(phi >= 0.0 and phi <= 1.0);
+      // CHECK(phi >= 0.0 and phi <= 1.0);
       etamax = max(Hi, max(H1, H2))*max(-x1, x2);
       if (etamax < rin) {
         vol(nodeListi, i) = x2 - x1;
 
-        b = phi*gradRhoi;
+        b = gradRhoi;
         // cerr << " --> " << i << " " << j1 << " " << j2 << " " << gradRhoi << " " << phi << " " << b << " " << x1 << " " << x2 << endl;
         
         if (std::abs(b)*(x2 - x1) > 1e-8*rhoi) {
-          thpt = sqrt(abs(rhoi*rhoi + rhoi*b*(x1 + x2) + 0.5*b*b*(x1*x1 + x2*x2)));
-          xm1 = -(rhoi + thpt)/b;
-          xm2 = (-rhoi + thpt)/b;
-          if (xm1 >= x1 and xm1 <= x2) {
-            deltaMedian(nodeListi, i).x(xm1);
-          } else {
-            deltaMedian(nodeListi, i).x(xm2);
-          }
+
+          // // This version uses the medial position.
+          // thpt = sqrt(abs(rhoi*rhoi + rhoi*b*(x1 + x2) + 0.5*b*b*(x1*x1 + x2*x2)));
+          // xm1 = -(rhoi + thpt)/b;
+          // xm2 = (-rhoi + thpt)/b;
+          // if (xm1 >= x1 and xm1 <= x2) {
+          //   deltaMedian(nodeListi, i).x(xm1);
+          // } else {
+          //   deltaMedian(nodeListi, i).x(xm2);
+          // }
           // cerr << "BLAGO: " << xi << " " << x1 << " " << x2 << " " << b << " " << xm1 << " " << xm2 << " " << deltaMedian(nodeListi, i).x() << " :: "
           //      << rhoi*(xm2 - x1) + 0.5*b*(xm2*xm2 - x1*x1) << " "
           //      << rhoi*(x2 - x1) + 0.5*b*(x2*x2 - x1*x1) << " "
           //      << (rhoi*(xm2 - x1) + 0.5*b*(xm2*xm2 - x1*x1))/(rhoi*(x2 - x1) + 0.5*b*(x2*x2 - x1*x1)) << " "
           //      << endl;
+
+          // This version simply tries rho^2 weighting.
+          deltaMedian(nodeListi, i).x((0.5*rhoi*(x2*x2 - x1*x1) +
+                                       2.0/3.0*rhoi*b*(x2*x2*x2 - x1*x1*x1) +
+                                       0.25*b*b*(x2*x2*x2*x2 - x1*x1*x1*x1))/
+                                      (pow3(rhoi + b*x2) - pow3(rhoi + b*x1)/(3.0*b)));
+
         } else {
-          m1 = -0.5*x1*(rhoi + rhoi + b*x1);
-          m2 =  0.5*x2*(rhoi + rhoi + b*x2);
-          CHECK(m1 > 0.0 and m2 > 0.0);
-          deltaMedian(nodeListi, i).x((m1*x1 + m2*x2)/(m1 + m2));
+          // Fall back to the straight-up centroid.
+          deltaMedian(nodeListi, i).x(0.5*(x2 - x1));
         }
 
         // Check if the candidate motion is still in the boundary.  If not, project back.
