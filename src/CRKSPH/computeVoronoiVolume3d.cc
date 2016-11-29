@@ -14,11 +14,14 @@ extern "C" {
 #include "Neighbor/ConnectivityMap.hh"
 #include "Utilities/allReduce.hh"
 #include "Utilities/pointOnPolyhedron.hh"
+#include "Utilities/FastMath.hh"
 
 namespace Spheral {
 namespace CRKSPHSpace {
 
 using namespace std;
+
+using namespace FastMath;
 
 using FieldSpace::Field;
 using FieldSpace::FieldList;
@@ -296,15 +299,29 @@ computeVoronoiVolume(const FieldList<Dim<3>, Dim<3>::Vector>& position,
           gradRhoi *= phi;
 
           // Is there a significant density gradient?
-          if (gradRhoi.magnitude()*Dim<3>::rootnu(vol(nodeListi, i)) >= 0.025*rhoi) {
+          if (gradRhoi.magnitude()*Dim<3>::rootnu(vol(nodeListi, i)) >= 1e-8*rhoi) {
 
             const Vector nhat1 = gradRhoi.unitVector();
-            double dx1, dx2;
-            findPolyhedronExtent(dx1, dx2, nhat1, celli);
-            dx1 = -dx1;
-            CHECK(dx1 >= 0. and dx2 >= 0.0);
+            double x1, x2;
+            findPolyhedronExtent(x1, x2, nhat1, celli);
+            CHECK2(x1 <= 0.0 and x2 >= 0.0, nodeListi << " " << i << " " << ri << " " << x1 << " " << x2);
             const Scalar b = gradRhoi.magnitude();
-            deltaMedian(nodeListi, i) = (sqrt(abs(rhoi*rhoi + b*rhoi*(dx2 - dx1) + b*b*(dx1*dx1 + dx2*dx2))) - rhoi)/b*nhat1 - deltaCentroidi.dot(nhat1)*nhat1 + deltaCentroidi;
+
+            // This version uses the medial position.
+            const Scalar thpt = sqrt(abs(rhoi*rhoi + rhoi*b*(x1 + x2) + 0.5*b*b*(x1*x1 + x2*x2)));
+            const Scalar xm1 = -(rhoi + thpt)/b;
+            const Scalar xm2 = (-rhoi + thpt)/b;
+            if (xm1 >= x1 and xm1 <= x2) {
+              deltaMedian(nodeListi, i) = xm1*nhat1 - deltaCentroidi.dot(nhat1)*nhat1 + deltaCentroidi;
+            } else {
+              deltaMedian(nodeListi, i) = xm2*nhat1 - deltaCentroidi.dot(nhat1)*nhat1 + deltaCentroidi;
+            }
+
+            // // This version simply tries rho^2 weighting.
+            // deltaMedian(nodeListi, i) = ((0.5*rhoi*(x2*x2 - x1*x1) +
+            //                               2.0/3.0*rhoi*b*(x2*x2*x2 - x1*x1*x1) +
+            //                               0.25*b*b*(x2*x2*x2*x2 - x1*x1*x1*x1))/
+            //                              (pow3(rhoi + b*x2) - pow3(rhoi + b*x1)/(3.0*b)))*nhat1 - deltaCentroidi.dot(nhat1)*nhat1 + deltaCentroidi;
 
           } else {
 
