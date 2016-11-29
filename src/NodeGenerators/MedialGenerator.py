@@ -186,6 +186,7 @@ class MedialGeneratorBase(NodeGeneratorBase):
                                                  rho = rhofunc,
                                                  gradrho = gradrho,
                                                  boundaries = boundaries,
+                                                 fracTol = fracTol,
                                                  maxIterations = maxIterations,
                                                  tessellationFileName = tessellationFileName)
 

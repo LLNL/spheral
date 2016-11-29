@@ -173,7 +173,7 @@ def rhoprofile1(posi):
 
 print "Generator 1"
 generator1 = MedialGenerator2d(n = n1,
-                               rho = 2.0, # rhoprofile1,
+                               rho = rhoprofile1,
                                boundary = Hboundary,
                                maxIterations = maxIterations,
                                fracTol = fracTol,
