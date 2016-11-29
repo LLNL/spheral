@@ -187,7 +187,7 @@ computeVoronoiVolume(const FieldList<Dim<3>, Dim<3>::Vector>& position,
 
         // Grab this points neighbors and build all the planes.
         // We simultaneously build a very conservative limiter for the density gradient.
-        Scalar phi = 1.0;
+        // Scalar phi = 1.0;
         vector<r3d_plane> pairPlanes;
         const vector<vector<int> >& fullConnectivity = connectivityMap.connectivityForNode(nodeListi, i);
         for (unsigned nodeListj = 0; nodeListj != numNodeLists; ++nodeListj) {
@@ -207,9 +207,9 @@ computeVoronoiVolume(const FieldList<Dim<3>, Dim<3>::Vector>& position,
             pairPlanes.back().n.z = nhat.z();
             pairPlanes.back().d = 0.5*rij.magnitude();
 
-            // Check the density gradient limiter.
-            const Scalar fdir = FastMath::pow4(rij.unitVector().dot(grhat));
-            phi = min(phi, max(0.0, max(1.0 - fdir, rij.dot(gradRhoi)*safeInv(rhoi - rhoj))));
+            // // Check the density gradient limiter.
+            // const Scalar fdir = FastMath::pow4(rij.unitVector().dot(grhat));
+            // phi = min(phi, max(0.0, max(1.0 - fdir, rij.dot(gradRhoi)*safeInv(rhoi - rhoj))));
           }
         }
 
@@ -295,8 +295,8 @@ computeVoronoiVolume(const FieldList<Dim<3>, Dim<3>::Vector>& position,
           vol(nodeListi, i) = firstmom[0];
           const Vector deltaCentroidi = Vector(firstmom[1], firstmom[2], firstmom[3])/firstmom[0];
 
-          // Apply the gradient limiter;
-          gradRhoi *= phi;
+          // // Apply the gradient limiter;
+          // gradRhoi *= phi;
 
           // Is there a significant density gradient?
           if (gradRhoi.magnitude()*Dim<3>::rootnu(vol(nodeListi, i)) >= 1e-8*rhoi) {
