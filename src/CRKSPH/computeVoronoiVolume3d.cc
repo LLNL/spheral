@@ -43,11 +43,10 @@ bool compareR3Dplanes(const r3d_plane& lhs, const r3d_plane& rhs) {
 //------------------------------------------------------------------------------
 void findPolyhedronExtent(double& xmin, double& xmax, const Dim<3>::Vector& nhat, const r3d_poly& celli) {
   REQUIRE(fuzzyEqual(nhat.magnitude(), 1.0));
-  const unsigned nverts = celli.nverts;
   double xi;
-  xmin = std::numeric_limits<double>::max();
-  xmax = -std::numeric_limits<double>::max();
-  for (unsigned i = 0; i != nverts; ++i) {
+  xmin = 0.0;
+  xmax = 0.0;
+  for (unsigned i = 0; i != celli.nverts; ++i) {
     xi = (celli.verts[i].pos.x * nhat.x() +
           celli.verts[i].pos.y * nhat.y() +
           celli.verts[i].pos.z * nhat.z());

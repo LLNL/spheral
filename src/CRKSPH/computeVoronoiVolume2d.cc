@@ -46,11 +46,10 @@ bool compareR2Dplanes(const r2d_plane& lhs, const r2d_plane& rhs) {
 //------------------------------------------------------------------------------
 void findPolygonExtent(double& xmin, double& xmax, const Dim<2>::Vector& nhat, const r2d_poly& celli) {
   REQUIRE(fuzzyEqual(nhat.magnitude(), 1.0));
-  const unsigned nverts = celli.nverts;
   double xi;
-  xmin = std::numeric_limits<double>::max();
-  xmax = -std::numeric_limits<double>::max();
-  for (unsigned i = 0; i != nverts; ++i) {
+  xmin = 0.0;
+  xmax = 0.0;
+  for (unsigned i = 0; i != celli.nverts; ++i) {
     xi = (celli.verts[i].pos.x * nhat.x() +
           celli.verts[i].pos.y * nhat.y());
     xmin = std::min(xmin, xi);
@@ -59,6 +58,18 @@ void findPolygonExtent(double& xmin, double& xmax, const Dim<2>::Vector& nhat, c
   xmin = std::min(0.0, xmin);
   xmax = std::max(0.0, xmax);
 }
+
+// // This version fits an ellipse and slices in the chosen direction.
+// void findPolygonExtent(double& xmin, double& xmax, const Dim<2>::Vector& nhat, r2d_poly& celli) {
+//   REQUIRE(fuzzyEqual(nhat.magnitude(), 1.0));
+//   r2d_real moms[6];
+//   r2d_reduce(&celli, moms, 2);
+//   const Dim<2>::SymTensor G2(moms[3], moms[4], moms[4], moms[5]);
+//   Dim<2>::SymTensor G = G2.sqrt();
+//   // G *= sqrt(moms[0]/G.Determinant());
+//   xmax = (G*nhat).magnitude();
+//   xmin = -xmax;
+// }
 
 // //------------------------------------------------------------------------------
 // // Convert a Spheral polygon to an R2D polygon.  Since our polygon may be
