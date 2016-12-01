@@ -49,7 +49,8 @@ PYTHONTARGETS = \
 	$(srcdir)/GenerateNodeProfile.py \
 	$(srcdir)/CentroidalGenerator2d.py \
 	$(srcdir)/centroidalRelaxNodes.py \
-	$(srcdir)/MedialGenerator.py
+	$(srcdir)/MedialGenerator.py \
+	$(srcdir)/MultiScaleMedialGenerator.py
 
 #-------------------------------------------------------------------------------
 include $(BUILDTOP)/helpers/makefile_master
