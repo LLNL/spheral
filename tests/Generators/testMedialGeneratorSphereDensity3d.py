@@ -1,6 +1,6 @@
 import mpi
 from Spheral3d import *
-from MedialGenerator import *
+from MultiScaleMedialGenerator import *
 from SpheralTestUtilities import *
 from VoronoiDistributeNodes import distributeNodes3d as distributeNodes
 from siloPointmeshDump import *
@@ -16,11 +16,14 @@ commandLine(ncore      = 10000,
             hmax       = 1e6,
 
             nPerh      = 2.01,
-            maxIterations = 500,
-            fracTol    = 1e-3)
+            centroidFrac = 1.0,
+            maxIterations = 1000,
+            fracTol    = 1e-5)
 
 #-------------------------------------------------------------------------------
 # The density profiles we're going to fit.
+# Note we don't have to provide the rho gradient methods, but providing them is
+# probably more accurate and they're trivial to compute for these profiles.
 #-------------------------------------------------------------------------------
 def rhocore(posi):
     r2 = posi.magnitude2()
@@ -111,22 +114,24 @@ print "  Core mass: ", Mcore
 print "Mantle mass: ", Mmantle
 print "Resulting target point mass and number of points in mantle: ", Mcore/ncore, nmantle
 
-generatorCore = MedialGenerator3d(n = ncore,
-                                  rho = rhocore,
-                                  gradrho = gradrhocore,   # This is not necessary, but we'll use it if provided
-                                  boundary = boundaryCore,
-                                  maxIterations = maxIterations,
-                                  fracTol = fracTol,
-                                  nNodePerh = nPerh)
+generatorCore = MultiScaleMedialGenerator3d(n = ncore,
+                                            rho = rhocore,
+                                            gradrho = gradrhocore,   # This is not necessary, but we'll use it if provided
+                                            boundary = boundaryCore,
+                                            centroidFrac = centroidFrac,
+                                            maxIterationsPerStage = maxIterations,
+                                            fracTol = fracTol,
+                                            nNodePerh = nPerh)
 
-generatorMantle = MedialGenerator3d(n = nmantle,
-                                    rho = rhomantle,
-                                    gradrho = gradrhomantle,   # This is not necessary, but we'll use it if provided
-                                    boundary = boundaryMantle,
-                                    holes = [boundaryCore],
-                                    maxIterations = maxIterations,
-                                    fracTol = fracTol,
-                                    nNodePerh = nPerh)
+generatorMantle = MultiScaleMedialGenerator3d(n = nmantle,
+                                              rho = rhomantle,
+                                              gradrho = gradrhomantle,   # This is not necessary, but we'll use it if provided
+                                              boundary = boundaryMantle,
+                                              holes = [boundaryCore],
+                                              centroidFrac = centroidFrac,
+                                              maxIterationsPerStage = maxIterations,
+                                              fracTol = fracTol,
+                                              nNodePerh = nPerh)
 
 distributeNodes((nodesCore, generatorCore),
                 (nodesMantle, generatorMantle))

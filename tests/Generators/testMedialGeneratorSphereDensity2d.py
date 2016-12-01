@@ -17,7 +17,7 @@ commandLine(ncore      = 2000,
 
             nPerh      = 2.01,
             centroidFrac = 1.0,
-            maxIterations = 100,
+            maxIterations = 1000,
             fracTol    = 1e-5)
 
 #-------------------------------------------------------------------------------
@@ -148,6 +148,7 @@ vizfile = siloPointmeshDump(baseName = "test_medial_maxiter=%i_tol=%g" % (maxIte
                                           db.fluidSpecificThermalEnergy,
                                           db.fluidHfield]
                             )
+
 #-------------------------------------------------------------------------------
 # Plot a few profiles of interest.
 #-------------------------------------------------------------------------------

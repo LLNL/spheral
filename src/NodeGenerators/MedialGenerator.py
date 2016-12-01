@@ -88,9 +88,11 @@ class MedialGeneratorBase(NodeGeneratorBase):
         nodes.numInternalNodes = nlocal
 
         # If the user provided the starting or seed positions, use 'em.
-        if seedPositions:
-            assert len(seedPositions) == n
-            for i in xrange(n):
+        if seedPositions is not None:
+            nlocal = len(seedPositions)
+            assert mpi.allreduce(nlocal, mpi.SUM) == n
+            nodes.numInternalNodes = nlocal
+            for i in xrange(nlocal):
                 pos[i] = seedPositions[i]
                 rhoi = rhofunc(pos[i])
                 rhof[i] = rhoi

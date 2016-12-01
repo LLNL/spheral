@@ -39,6 +39,9 @@ class MultiScaleMedialGeneratorBase(NodeGeneratorBase):
 
         # Kick things off by generating the coarsest level.
         ntarget = min(n, nstart)
+        tfname = tessellationFileName
+        if tfname:
+            tfname += "_gen000"
         gen = MedialGeneratorBase(ndim = ndim,
                                   n = ntarget,
                                   rho = rho,
@@ -48,7 +51,7 @@ class MultiScaleMedialGeneratorBase(NodeGeneratorBase):
                                   centroidFrac = centroidFrac,
                                   maxIterations = maxIterationsPerStage,
                                   fracTol = fracTol,
-                                  tessellationFileName = tessellationFileName + "_gen000",
+                                  tessellationFileName = tfname,
                                   nNodePerh = nNodePerh,
                                   randomseed = randomseed,
                                   maxNodesPerDomain = maxNodesPerDomain,
@@ -88,6 +91,9 @@ class MultiScaleMedialGeneratorBase(NodeGeneratorBase):
             assert nglobal == ntarget
 
             # Now let the MedialGenerator do its thing.
+            tfname = tessellationFileName
+            if tfname:
+                tfname += "_gen%03i" % igeneration
             gen = MedialGeneratorBase(ndim = ndim,
                                       n = ntarget,
                                       seedPositions = seedPositions,
@@ -96,9 +102,9 @@ class MultiScaleMedialGeneratorBase(NodeGeneratorBase):
                                       gradrho = gradrho,
                                       holes = holes,
                                       centroidFrac = centroidFrac,
-                                      maxIterations = maxIterationsPerStage,
+                                      maxIterations = max(10, maxIterationsPerStage//(2**(ndim*igeneration))),
                                       fracTol = fracTol,
-                                      tessellationFileName = tessellationFileName + "_gen%03i" % igeneration,
+                                      tessellationFileName = tfname,
                                       nNodePerh = nNodePerh,
                                       randomseed = randomseed,
                                       maxNodesPerDomain = maxNodesPerDomain,
@@ -189,7 +195,7 @@ class MultiScaleMedialGenerator2d(MultiScaleMedialGeneratorBase):
                  gradrho = None,
                  holes = [],
                  centroidFrac = 1.0,
-                 maxIterationsPerStage = 100,
+                 maxIterationsPerStage = 1000,
                  fracTol = 1.0e-3,
                  tessellationFileName = None,
                  nNodePerh = 2.01,
@@ -231,15 +237,15 @@ class MultiScaleMedialGenerator3d(MultiScaleMedialGeneratorBase):
                  n,
                  rho,
                  boundary,
-                 nstart = 100,
+                 nstart = 1000,
                  gradrho = None,
                  holes = [],
                  centroidFrac = 1.0,
-                 maxIterationsPerStage = 100,
+                 maxIterationsPerStage = 1000,
                  fracTol = 1.0e-3,
                  tessellationFileName = None,
                  nNodePerh = 2.01,
-                 offset = (0.0, 0.0),
+                 offset = (0.0, 0.0, 0.0),
                  rejecter = None,
                  randomseed = 492739149274,
                  maxNodesPerDomain = 1000,
