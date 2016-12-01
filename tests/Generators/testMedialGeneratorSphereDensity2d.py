@@ -1,6 +1,6 @@
 import mpi
 from Spheral2d import *
-from MedialGenerator import *
+from MultiScaleMedialGenerator import *
 from SpheralTestUtilities import *
 from VoronoiDistributeNodes import distributeNodes2d as distributeNodes
 from siloPointmeshDump import *
@@ -17,7 +17,7 @@ commandLine(ncore      = 2000,
 
             nPerh      = 2.01,
             centroidFrac = 1.0,
-            maxIterations = 500,
+            maxIterations = 100,
             fracTol    = 1e-5)
 
 #-------------------------------------------------------------------------------
@@ -110,26 +110,26 @@ print "  Core mass: ", Mcore
 print "Mantle mass: ", Mmantle
 print "Resulting target point mass and number of points in mantle: ", Mcore/ncore, nmantle
 
-generatorCore = MedialGenerator2d(n = ncore,
-                                  rho = rhocore,
-                                  gradrho = gradrhocore,   # This is not necessary, but we'll use it if provided
-                                  boundary = boundaryCore,
-                                  centroidFrac = centroidFrac,
-                                  maxIterations = maxIterations,
-                                  fracTol = fracTol,
-                                  tessellationFileName = "test_medial2d_core_maxiter=%i_tol=%g" % (maxIterations, fracTol),
-                                  nNodePerh = nPerh)
+generatorCore = MultiScaleMedialGenerator2d(n = ncore,
+                                            rho = rhocore,
+                                            gradrho = gradrhocore,   # This is not necessary, but we'll use it if provided
+                                            boundary = boundaryCore,
+                                            centroidFrac = centroidFrac,
+                                            maxIterationsPerStage = maxIterations,
+                                            fracTol = fracTol,
+                                            tessellationFileName = "test_medial2d_core_maxiter=%i_tol=%g" % (maxIterations, fracTol),
+                                            nNodePerh = nPerh)
 
-generatorMantle = MedialGenerator2d(n = nmantle,
-                                    rho = rhomantle,
-                                    gradrho = gradrhomantle,   # This is not necessary, but we'll use it if provided
-                                    boundary = boundaryMantle,
-                                    holes = [boundaryCore],
-                                    centroidFrac = centroidFrac,
-                                    maxIterations = maxIterations,
-                                    fracTol = fracTol,
-                                    tessellationFileName = "test_medial2d_mantle_maxiter=%i_tol=%g" % (maxIterations, fracTol),
-                                    nNodePerh = nPerh)
+generatorMantle = MultiScaleMedialGenerator2d(n = nmantle,
+                                              rho = rhomantle,
+                                              gradrho = gradrhomantle,   # This is not necessary, but we'll use it if provided
+                                              boundary = boundaryMantle,
+                                              holes = [boundaryCore],
+                                              centroidFrac = centroidFrac,
+                                              maxIterationsPerStage = maxIterations,
+                                              fracTol = fracTol,
+                                              tessellationFileName = "test_medial2d_mantle_maxiter=%i_tol=%g" % (maxIterations, fracTol),
+                                              nNodePerh = nPerh)
 
 distributeNodes((nodesCore, generatorCore),
                 (nodesMantle, generatorMantle))
