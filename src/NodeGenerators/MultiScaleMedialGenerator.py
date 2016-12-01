@@ -156,7 +156,7 @@ class MultiScaleMedialGeneratorBase(NodeGeneratorBase):
             return Vector2d(self.x[i], self.y[i])
         else:
             assert len(self.x) == len(self.z)
-            return Vector2d(self.x[i], self.y[i], self.z[i])
+            return Vector3d(self.x[i], self.y[i], self.z[i])
 
     #---------------------------------------------------------------------------
     # Get the mass for the given node index.
@@ -203,7 +203,7 @@ class MultiScaleMedialGenerator2d(MultiScaleMedialGeneratorBase):
                  rejecter = None,
                  randomseed = 492739149274,
                  maxNodesPerDomain = 1000,
-                 enforceConstantMassPoints = True):
+                 enforceConstantMassPoints = False):
 
         MultiScaleMedialGeneratorBase.__init__(self,
                                                ndim = 2,
@@ -226,7 +226,7 @@ class MultiScaleMedialGenerator2d(MultiScaleMedialGeneratorBase):
         return
 
 #-------------------------------------------------------------------------------
-# 2D
+# 3D
 #-------------------------------------------------------------------------------
 class MultiScaleMedialGenerator3d(MultiScaleMedialGeneratorBase):
 
@@ -237,7 +237,7 @@ class MultiScaleMedialGenerator3d(MultiScaleMedialGeneratorBase):
                  n,
                  rho,
                  boundary,
-                 nstart = 1000,
+                 nstart = 2000,
                  gradrho = None,
                  holes = [],
                  centroidFrac = 1.0,
@@ -249,7 +249,7 @@ class MultiScaleMedialGenerator3d(MultiScaleMedialGeneratorBase):
                  rejecter = None,
                  randomseed = 492739149274,
                  maxNodesPerDomain = 1000,
-                 enforceConstantMassPoints = True):
+                 enforceConstantMassPoints = False):
 
         MultiScaleMedialGeneratorBase.__init__(self,
                                                ndim = 3,

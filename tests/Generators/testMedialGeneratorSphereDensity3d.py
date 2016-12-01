@@ -18,7 +18,7 @@ commandLine(ncore      = 10000,
             nPerh      = 2.01,
             centroidFrac = 1.0,
             maxIterations = 1000,
-            fracTol    = 1e-5)
+            fracTol    = 5e-4)
 
 #-------------------------------------------------------------------------------
 # The density profiles we're going to fit.
