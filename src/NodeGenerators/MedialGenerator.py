@@ -260,7 +260,7 @@ class MedialGenerator2d(MedialGeneratorBase):
                  randomseed = 492739149274,
                  maxNodesPerDomain = 1000,
                  seedPositions = None,
-                 enforceConstantMassPoints = True):
+                 enforceConstantMassPoints = False):
 
         # The base generator does most of the work.
         MedialGeneratorBase.__init__(self,
@@ -357,7 +357,7 @@ class MedialGenerator3d(MedialGeneratorBase):
                  randomseed = 492739149274,
                  maxNodesPerDomain = 1000,
                  seedPositions = None,
-                 enforceConstantMassPoints = True):
+                 enforceConstantMassPoints = False):
 
         # The base generator does most of the work.
         MedialGeneratorBase.__init__(self,
