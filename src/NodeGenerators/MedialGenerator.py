@@ -36,7 +36,7 @@ class MedialGeneratorBase(NodeGeneratorBase):
         assert ndim in (2,3)
         assert n > 0
 
-        # Load our handy 2D aliases.
+        # Load our handy aliases.
         if ndim == 2:
             import Spheral2d as sph
         else:
