@@ -31,7 +31,8 @@ class MedialGeneratorBase(NodeGeneratorBase):
                  nNodePerh,
                  randomseed,
                  maxNodesPerDomain,
-                 seedPositions):
+                 seedPositions,
+                 enforceConstantMassPoints):
 
         assert ndim in (2,3)
         assert n > 0
@@ -223,6 +224,11 @@ class MedialGeneratorBase(NodeGeneratorBase):
         assert mpi.allreduce(len(self.m), mpi.SUM) == n
         assert mpi.allreduce(len(self.H), mpi.SUM) == n
 
+        # If requested, enforce constant mass points.
+        if enforceConstantMassPoints:
+            msum = mpi.allreduce(sum([0.0] + self.m), mpi.SUM)
+            self.m = [msum/n]*len(self.pos)
+
         return
 
 #-------------------------------------------------------------------------------
@@ -251,7 +257,8 @@ class MedialGenerator2d(MedialGeneratorBase):
                  rejecter = None,
                  randomseed = 492739149274,
                  maxNodesPerDomain = 1000,
-                 seedPositions = None):
+                 seedPositions = None,
+                 enforceConstantMassPoints = True):
 
         # The base generator does most of the work.
         MedialGeneratorBase.__init__(self,
@@ -268,8 +275,8 @@ class MedialGenerator2d(MedialGeneratorBase):
                                      nNodePerh = nNodePerh,
                                      randomseed = randomseed,
                                      maxNodesPerDomain = maxNodesPerDomain,
-                                     seedPositions = seedPositions)
-
+                                     seedPositions = seedPositions,
+                                     enforceConstantMassPoints = enforceConstantMassPoints)
 
         # Convert to our now regrettable standard coordinate storage for generators.
         self.x = [x.x + offset[0] for x in self.pos]
@@ -347,7 +354,8 @@ class MedialGenerator3d(MedialGeneratorBase):
                  rejecter = None,
                  randomseed = 492739149274,
                  maxNodesPerDomain = 1000,
-                 seedPositions = None):
+                 seedPositions = None,
+                 enforceConstantMassPoints = True):
 
         # The base generator does most of the work.
         MedialGeneratorBase.__init__(self,
@@ -364,8 +372,8 @@ class MedialGenerator3d(MedialGeneratorBase):
                                      nNodePerh = nNodePerh,
                                      randomseed = randomseed,
                                      maxNodesPerDomain = maxNodesPerDomain,
-                                     seedPositions = seedPositions)
-
+                                     seedPositions = seedPositions,
+                                     enforceConstantMassPoints = enforceConstantMassPoints)
 
         # Convert to our now regrettable standard coordinate storage for generators.
         self.x = [x.x + offset[0] for x in self.pos]

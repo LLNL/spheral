@@ -28,7 +28,8 @@ class MultiScaleMedialGeneratorBase(NodeGeneratorBase):
                  offset,
                  rejecter,
                  randomseed,
-                 maxNodesPerDomain):
+                 maxNodesPerDomain,
+                 enforceConstantMassPoints):
 
         # Load our handy aliases.
         if ndim == 2:
@@ -51,8 +52,8 @@ class MultiScaleMedialGeneratorBase(NodeGeneratorBase):
                                   nNodePerh = nNodePerh,
                                   randomseed = randomseed,
                                   maxNodesPerDomain = maxNodesPerDomain,
+                                  enforceConstantMassPoints = enforceConstantMassPoints,
                                   seedPositions = None)
-
 
         # Iterate from coarse generators to fine until we hit the target number of
         # points.
@@ -100,7 +101,8 @@ class MultiScaleMedialGeneratorBase(NodeGeneratorBase):
                                       tessellationFileName = tessellationFileName + "_gen%03i" % igeneration,
                                       nNodePerh = nNodePerh,
                                       randomseed = randomseed,
-                                      maxNodesPerDomain = maxNodesPerDomain)
+                                      maxNodesPerDomain = maxNodesPerDomain,
+                                      enforceConstantMassPoints = enforceConstantMassPoints)
 
         # Convert to our now regrettable standard coordinate storage for generators.
         self.x = [x.x + offset[0] for x in gen.pos]
@@ -194,7 +196,8 @@ class MultiScaleMedialGenerator2d(MultiScaleMedialGeneratorBase):
                  offset = (0.0, 0.0),
                  rejecter = None,
                  randomseed = 492739149274,
-                 maxNodesPerDomain = 1000):
+                 maxNodesPerDomain = 1000,
+                 enforceConstantMassPoints = True):
 
         MultiScaleMedialGeneratorBase.__init__(self,
                                                ndim = 2,
@@ -212,7 +215,8 @@ class MultiScaleMedialGenerator2d(MultiScaleMedialGeneratorBase):
                                                offset = offset,
                                                rejecter = rejecter,
                                                randomseed = randomseed,
-                                               maxNodesPerDomain = maxNodesPerDomain)
+                                               maxNodesPerDomain = maxNodesPerDomain,
+                                               enforceConstantMassPoints = enforceConstantMassPoints)
         return
 
 #-------------------------------------------------------------------------------
@@ -238,7 +242,8 @@ class MultiScaleMedialGenerator3d(MultiScaleMedialGeneratorBase):
                  offset = (0.0, 0.0),
                  rejecter = None,
                  randomseed = 492739149274,
-                 maxNodesPerDomain = 1000):
+                 maxNodesPerDomain = 1000,
+                 enforceConstantMassPoints = True):
 
         MultiScaleMedialGeneratorBase.__init__(self,
                                                ndim = 3,
@@ -256,6 +261,7 @@ class MultiScaleMedialGenerator3d(MultiScaleMedialGeneratorBase):
                                                offset = offset,
                                                rejecter = rejecter,
                                                randomseed = randomseed,
-                                               maxNodesPerDomain = maxNodesPerDomain)
+                                               maxNodesPerDomain = maxNodesPerDomain,
+                                               enforceConstantMassPoints = enforceConstantMassPoints)
         return
 
