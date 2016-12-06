@@ -1081,7 +1081,7 @@ namespace FractalSpace
     *p_FILE << pos_point[0] << " ";
     *p_FILE << pos_point[1] << " ";
     *p_FILE << pos_point[2] << " ";
-    *p_FILE << density_point << " ";
+    *p_FILE << setprecision(6) << density_point << " ";
     *p_FILE << potential_point << "\n";
   }
   void Point::dumpp(ofstream& FF) const
@@ -1095,7 +1095,7 @@ namespace FractalSpace
     FF << pos_point[0] << " ";
     FF << pos_point[1] << " ";
     FF << pos_point[2] << " ";
-    FF << density_point << " ";
+    FF << setprecision(6) << density_point << " ";
     FF << potential_point << "\n";
   }
   void Point::dumppf() const
@@ -1109,7 +1109,7 @@ namespace FractalSpace
     *p_FILE << pos_point[0] << " ";
     *p_FILE << pos_point[1] << " ";
     *p_FILE << pos_point[2] << " ";
-    *p_FILE << density_point << " ";
+    *p_FILE << setprecision(6) << density_point << " ";
     *p_FILE << potential_point << " ";
     *p_FILE << force_point[0] << " ";
     *p_FILE << force_point[1] << " ";

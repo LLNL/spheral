@@ -33,11 +33,12 @@ namespace FractalSpace
 	nBP++;
       }
     assert(foundit);
+    const int NB=SBoxes.size();
     SBoxes.resize(Ngood);
     SPoints.resize(Ngood);
-    int sp2=log((double)(spacing)+0.1)/log(2.0);
-    int level=mem.p_fractal->get_level_max()-sp2;
-    FHT << " BOX PARAMS B " << VOLMIN << " " << FILLFACTOR << "\n";
+    // int sp2=log((double)(spacing)+0.1)/log(2.0);
+    // int level=mem.p_fractal->get_level_max()-sp2;
+    FHT << " BOX PARAMS B " << VOLMIN << " " << FILLFACTOR << " " << NB << " " << Ngood <<"\n";
     // box_stats(mem,level,-10,SBoxes,SPoints);
     std::map<array<int,4>,Point*,point_comp4> dupes;
     vector<int>pos(3);

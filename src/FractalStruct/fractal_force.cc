@@ -647,6 +647,9 @@ namespace FractalSpace
     fractal.timing(1,26);
     //    write_rv(-14,fractal);
     Full_Stop(fractal_memory,38);
+    if(fractal_memory.periodic &&
+       fractal_memory.steps % fractal_memory.number_steps_out == 0)
+      dump_cosmo_boxes(fractal_memory.steps,fractal);
     fractal.timing_lev(-1,0);
     fractal.timing(-1,28);
     gather_particles(fractal_memory,fractal);
