@@ -7,9 +7,9 @@ namespace FractalSpace
   {
     double time0=-mem.p_mess->Clock();
     ofstream& FHT=mem.p_file->DUMPS;
-    const double maxFAKES=0.65;
-    vector <double>FILLFACTOR{1.0,0.9,0.8,0.7};
-    vector <int>VOLMIN {1,3,7,13,21,31,43,57,73,91,101,123,147,173,201,231};
+    const double maxFAKES=0.5;
+    vector <double>FILLFACTOR{0.8,0.75,0.7,0.65,0.6};
+    vector <int>VOLMIN {31,43,57,73,91,101,123,147,173,201,231,263};
     vector<int>MBoxes;
     vector<int>MPoints;
     vector<int>MFakes;

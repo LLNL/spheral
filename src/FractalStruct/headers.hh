@@ -36,6 +36,7 @@ namespace FractalSpace
   double dist1(const double& x,const double& y);
   void dump(Point& point);
   void dump_all_particles(Fractal& fractal);
+  void dump_cosmo_boxes(const int& step,Fractal& fractal);
   void dump_group(Group& group,Misc& misc);
   void dump_tree(Fractal_Memory& fractal_memory,Fractal& fractal);
   void edge_buffer_inside(vector <int>& n,vector <int>& Box,vector <int>& BBox,vector <int>& Buffer,bool& MPIrun,
@@ -89,7 +90,7 @@ namespace FractalSpace
   void hypre_points_zero(vector<vector<Point*>>& SPoints);
   void hypre_solve_struct(Fractal_Memory& mem,int level,
 			  vector < vector<int> >& SBoxes,vector < vector<Point*> >& SPoints);
-  void hypre_test_boxes(Fractal_Memory& mem,int spacing,
+  void hypre_test_boxes(Fractal_Memory& mem,int level,
 			vector < vector<int> >& SBoxes,vector < vector<Point*> >& SPoints);
   void hypre_world_create(Fractal_Memory& mem,int level,vector <vector <int> >& SBoxes,
 			 bool buffer_groups);
@@ -179,6 +180,8 @@ namespace FractalSpace
   Point* try_harder(Point& point0,const int& ni,const bool& easy);
   void update_rv(Fractal& fractal,const int& param,const double& const1,const double& const2);
   template <class T> bool vector_in_box(vector <T>& xvec,vector <T>& box);
+  bool vector_in_box(Point* p,vector <int>& box);
+  bool vector_in_box(const Point& p,vector <int>& box);
   void velocities(Fractal_Memory& mem,Fractal& frac);
   int which_element(vector <Point*>& vec,int x,int y,int z,bool periodic,int period,ofstream& FF);
   void write_rv(const int& step,Fractal& fractal);

@@ -6,11 +6,15 @@ namespace FractalSpace
   void poisson_solver_struct(Fractal& fractal,Fractal_Memory& mem,const int& level)
   {
     ofstream& FHT=mem.p_file->DUMPS;
+    // FHT << " POINTS DATA A " << level <<"\n";
+    // for(auto g : mem.all_groups[level])
+    //   for(auto p : g->list_points)
+    // 	if(p->get_inside())
+    // 	  p->dumpp();
     static int _COUNTER=0;
     static int _COUNTERA=0;
     static vector<int> VOLA(20,1);
     static vector<double> FILLA(20,2.0);
-    mem.p_mess->Full_Stop_Do_Not_Argue();
     double timea,timeb,time0,time1,time2,time3,time4,time5,time6,time7,time8;
     timea=mem.p_mess->Clock();
     int RANK=-1;
@@ -42,17 +46,16 @@ namespace FractalSpace
 	      }
 	    else
 	      hypre_points_boxes(mem,hypre_points,spacing,1,2.0,SBoxes,SPoints);
-	    FHT << " BOX PARAMS A " << VOLA[level] << " " << FILLA[level] << "\n";
 	    box_stats(mem,level,ni,SBoxes,SPoints);
 	  }
 	time2=mem.p_mess->Clock();
 	hypre_points.clear();
-	double tt=-mem.p_mess->Clock();
-	hypre_test_boxes(mem,spacing,SBoxes,SPoints);
-	tt+=mem.p_mess->Clock();
 	hypre_world_create(mem,level,SBoxes,buffer);
+	double tt=-mem.p_mess->Clock();
+	// if(_COUNTERA % 10 == 0)
+	  // hypre_test_boxes(mem,level,SBoxes,SPoints);
+	tt+=mem.p_mess->Clock();
 	time3=mem.p_mess->Clock();
-	mem.p_mess->Full_Stop_Do_Not_Argue();
 	if(mem.p_mess->IAmAHypreNode)
 	  {
 	    time4=mem.p_mess->Clock();
@@ -62,7 +65,6 @@ namespace FractalSpace
 	      add_buffer_values(mem,level,SBoxes,SPoints);
 	    time6=mem.p_mess->Clock();
 	  }
-	mem.p_mess->Full_Stop_Do_Not_Argue();
 	time7=mem.p_mess->Clock();
 	mem.p_mess->HypreGroupFree();
 	time8=mem.p_mess->Clock();
@@ -74,13 +76,15 @@ namespace FractalSpace
 	    cerr << " " << time1-time0 << " " << time2-time1 << " " << time3-time2 << " " << time5-time4 << " " << time6-time5 <<  " " << time8-time7 << " " << tt << "\n";
 	  }
 	_COUNTER++;
-	mem.p_mess->Full_Stop_Do_Not_Argue();
       }
     timeb=mem.p_mess->Clock();
-    // cerr << " HYPRE RES C " <<  RANK << " " << level << " " << _COUNTER << " " << timeb-timea << "\n";
-    mem.p_mess->Full_Stop_Do_Not_Argue();
     if(level == 1)
       _COUNTERA++;
     _COUNTER++;
+    // FHT << " POINTS DATA C " << level <<"\n";
+    // for(auto g : mem.all_groups[level])
+    //   for(auto p : g->list_points)
+    // 	if(p->get_inside())
+    // 	  p->dumpp();
   }
 }
