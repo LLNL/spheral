@@ -1,0 +1,8 @@
+# -*- mode: python -*-
+# Provide a method of getting the instantiated dimensions from python.
+
+def spheralDimensions():
+    dims_string = "@DIMS@"
+    dims = [int(x) for x in dims_string.split()]
+    return dims
+
