@@ -17,6 +17,7 @@ namespace FractalSpace
     FILE* PFTimeLev;
     FILE* PFTime;
     FILE* PFPos;
+    FILE* PFBox;
     FILE* PFSurface;
     File()
     {}
@@ -58,6 +59,7 @@ namespace FractalSpace
       PFTime=generate_FILE(Directory+"time.d",10000);
       PFTimeLev=PFTime;
       PFPos=generate_FILE(Directory+"pos.d",1000000);
+      PFBox=generate_FILE(Directory+"box.d",1000000);
       PFSurface=generate_FILE(Directory+"surface.d",1000000);
       DUMPS.precision(5);
       FileEnergy.precision(5);
@@ -110,6 +112,7 @@ namespace FractalSpace
       PFTime=generate_FILE(Directory+"time.d",10000);
       PFTimeLev=PFTime;
       PFPos=generate_FILE(Directory+"pos.d",1000000);
+      PFBox=generate_FILE(Directory+"box.d",1000000);
       PFSurface=generate_FILE(Directory+"surface.d",1000000);
       DUMPS.precision(5);
       FileEnergy.precision(5);
@@ -124,6 +127,7 @@ namespace FractalSpace
       fclose(PFFractalMemory);
       fclose(PFTime);
       fclose(PFPos);
+      fclose(PFBox);
       fclose(PFSurface);
     }
     void generate_file(ofstream& File,const string& sfile);
