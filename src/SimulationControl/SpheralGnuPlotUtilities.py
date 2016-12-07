@@ -998,10 +998,13 @@ def plotpmomHistory(conserve):
 # Plot a polygon.
 #-------------------------------------------------------------------------------
 def plotPolygon(polygon,
+                plotVertices = True,
+                plotFacets = True,
                 plotNormals = False,
                 plotCentroid = False,
                 plot = None,
-                persist = False):
+                persist = False,
+                plotLabels = True):
     px = []
     py = []
     for v in polygon.vertices():
@@ -1028,20 +1031,27 @@ def plotPolygon(polygon,
         ndy.append(f.normal.y)
     if plot is None:
         plot = generateNewGnuPlot(persist)
+    if plotLabels:
+        vlabel, flabel, nlabel = "Vertices", "Facets", "Normals"
+    else:
+        vlabel, flabel, nlabel = None, None, None
     dataPoints = Gnuplot.Data(px, py,
                               with_ = "points pt 1 ps 2",
-                              title = "Vertices",
+                              title = vlabel,
                               inline = True)
     dataFacets = Gnuplot.Data(fx, fy, fdx, fdy,
                               with_ = "vectors",
-                              title = "Facets",
+                              title = flabel,
                               inline = True)
     dataNormals = Gnuplot.Data(nx, ny, ndx, ndy,
                                with_ = "vectors",
-                               title = "Normals",
+                               title = nlabel,
                                inline = True)
-    plot.replot(dataPoints)
-    plot.replot(dataFacets)
+    if plotVertices:
+        plot.replot(dataPoints)
+
+    if plotFacets:
+        plot.replot(dataFacets)
 
     if plotNormals:
         plot.replot(dataNormals)
