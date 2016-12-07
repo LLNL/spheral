@@ -61,8 +61,37 @@ bool pointInPolygon(const Dim<2>::Vector& p,
                     const Dim<2>::FacetedVolume& polygon,
                     const bool countBoundary,
                     const double tol) {
+
+  // Do the quick box rejection test.
   if (not testPointInBox(p, polygon.xmin(), polygon.xmax(), tol)) return false;
-  return pointInPolygon(p, polygon.vertices(), countBoundary, tol);
+
+  typedef Dim<2>::Vector Vector;
+  typedef Dim<2>::FacetedVolume::Facet Facet;
+  const vector<Facet>& facets = polygon.facets();
+  const unsigned nfacets = facets.size();
+  CHECK(nfacets >= 3);
+
+  // If there's just one loop it's an easy check.
+  if (facets.back().ipoint2() == 0) {
+    return pointInPolygon(p, polygon.vertices(), countBoundary, tol);
+  }
+
+  // There are multiple loops, so we gotta check each one.
+  bool result = false;
+  unsigned ifacet = 0;
+  while (not result and ifacet < nfacets) {
+    const unsigned ivstart = facets[ifacet].ipoint1();
+    vector<Vector> loop(1, facets[ifacet].point1());
+    while (ifacet < facets.size() and facets[ifacet].ipoint2() != ivstart) {
+      ++ifacet;
+      loop.push_back(facets[ifacet].point1());
+    }
+    ++ifacet;
+    CHECK(loop.size() >= 3);
+    result = pointInPolygon(p, loop, countBoundary, tol);
+  }
+
+  return result;
 }
 
 //------------------------------------------------------------------------------
