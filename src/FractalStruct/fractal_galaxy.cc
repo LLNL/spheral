@@ -49,7 +49,8 @@ int main(int argc, char* argv[])
   if(Mess::IAMROOT)
     {
       cerr << "starting out " << argc << " " << FRN << " " << _inteL_ << " " << GRL << " " << FractalNodes0 << " " << FractalNodes1 << " " << FractalNodes2;
-      cerr << " " << NumberParticles << " " << SHRINK << " " << HYPREMAXONNODE << " " << HYPREMULTIPLIER << "\n";
+      cerr << " " << "NumberParticles" << " " << "SHRINK" << " " << "PADDING" << " " << "HYPREMAXONNODE" << " " << "HYPREMULTIPLIER" << "\n";
+      cerr << " " << NumberParticles << " " << SHRINK << " " << PADDING << " " << HYPREMAXONNODE << " " << HYPREMULTIPLIER << "\n";
       int ar=0;
       while(ar < argc)
 	{
@@ -169,4 +170,5 @@ int main(int argc, char* argv[])
     }
   fractal_memory_content_delete(PFM);
   fractal_memory_delete(PFM);
+  return 0;
 }

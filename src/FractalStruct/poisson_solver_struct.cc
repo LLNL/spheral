@@ -23,6 +23,7 @@ namespace FractalSpace
     // cerr << "POISSON A " << RANK << " " << level << " " << " " << _COUNTER << "\n";
     for(int ni=0;ni<2;ni++)
       {
+	mem.p_mess->IAmAHypreNode=mem.p_mess->count_on_node[2*level+ni];
 	bool buffer=ni==1;
 	vector <vector <Point*> >hypre_points;
 	vector <vector <Point*> >SPoints;
@@ -30,6 +31,8 @@ namespace FractalSpace
 	time0=mem.p_mess->Clock();
 	hypre_points_struct(mem,mem.all_groups[level],hypre_points,buffer,level);
 	time1=mem.p_mess->Clock();
+	if(ni == 1)
+	  hypre_points_clean(mem,level,hypre_points);
 	int VOLMIN=1;
 	double FILLFACTOR=2.0;
 	if(!hypre_points.empty())
@@ -51,11 +54,11 @@ namespace FractalSpace
 	time2=mem.p_mess->Clock();
 	hypre_points.clear();
 	hypre_world_create(mem,level,SBoxes,buffer);
+	time3=mem.p_mess->Clock();
 	double tt=-mem.p_mess->Clock();
 	// if(_COUNTERA % 10 == 0)
-	  // hypre_test_boxes(mem,level,SBoxes,SPoints);
+	// hypre_test_boxes(mem,level,SBoxes,SPoints);
 	tt+=mem.p_mess->Clock();
-	time3=mem.p_mess->Clock();
 	if(mem.p_mess->IAmAHypreNode)
 	  {
 	    time4=mem.p_mess->Clock();
@@ -70,11 +73,11 @@ namespace FractalSpace
 	time8=mem.p_mess->Clock();
 	SBoxes.clear();
 	SPoints.clear();
-	if(mem.p_mess->IAmAHypreNode && mem.p_mess->HypreRank == 0 && buffer)
-	  {
-	    cerr << " HYPRE RES B " <<  RANK << " " << ni << " " << level << " " << _COUNTER;
-	    cerr << " " << time1-time0 << " " << time2-time1 << " " << time3-time2 << " " << time5-time4 << " " << time6-time5 <<  " " << time8-time7 << " " << tt << "\n";
-	  }
+	// if(mem.p_mess->IAmAHypreNode && mem.p_mess->HypreRank == 0 && buffer)
+	//   {
+	FHT << " HYPRE RES B " <<  RANK << " " << ni << " " << level << " " << _COUNTER << " ";
+	FHT << " " << time1-time0 << " " << time2-time1 << " " << time3-time2 << " " << time5-time4 << " " << time6-time5 <<  " " << time8-time7 << " " << tt << "\n";
+	  // }
 	_COUNTER++;
       }
     timeb=mem.p_mess->Clock();

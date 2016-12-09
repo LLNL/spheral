@@ -66,45 +66,30 @@ namespace FractalSpace
     for(vector <Point*>& SP : SPoints)
       {
 	vector <double>values;
-	auto p_itr=SP.begin();
-	while(p_itr != SP.end())
+	// auto p_itr=SP.begin();
+	// while(p_itr != SP.end())
+	for(auto p : SP)
 	  {
-	    Point* p=*p_itr;
-	    if(p != 0)
-	      {
-		p->get_pos_point(pos);
-		values.push_back(-6.0);
-		for (int j = 0; j < 6; j++)
-		  {
-		    Point* p1=p->get_point_ud_0(j);
-		    p1->get_pos_point(pos);
-		    bool good=p1->get_inside();
-		    if(good)
-		      {
-			good=vector_in_box(pos,Box);
-			if(!good)
-			  {
-			    for(auto FR : mem.Touchy)
-			      {
-				good=vector_in_box(pos,mem.BoxesLev[FR][level]);
-				if(good)
-				  break;
-			      }
-			  }
-		      }
-		    if(good)
-		      values.push_back(1.0);
-		    else
-		      values.push_back(0.0);
-		  }
-	      }
-	    else
+	    // Point* p=*p_itr;
+	    if(p == 0 || p->get_trouble())
 	      {
 		values.push_back(1.0);
 		for(int ni=0;ni<6;ni++)
 		  values.push_back(0.0);
 	      }
-	    p_itr++;
+	    else
+	      {
+		values.push_back(-6.0);
+		for (int j = 0; j < 6; j++)
+		  {
+		    Point* p1=p->get_point_ud_0(j);
+		    if(p1->get_inside() && !p1->get_trouble())
+		      values.push_back(1.0);
+		    else
+		      values.push_back(0.0);
+		  }
+	      }
+	    // p_itr++;
 	  }
 	HYPRE_StructMatrixAddToBoxValues(Amatrix,&(*lowerBOX[B].begin()),&(*upperBOX[B].begin()),7,
 					 stencil_indices,&(*values.begin()));
@@ -124,7 +109,7 @@ namespace FractalSpace
 	vector <double>pot_values;
 	for(auto &p : SP)
 	  {
-	    if(p == 0)
+	    if(p == 0 || p->get_trouble())
 	      {
 		dens_values.push_back(1.0);
 		pot_values.push_back(1.0);
@@ -135,22 +120,7 @@ namespace FractalSpace
 		for(int ni=0;ni<6;ni++)
 		  {
 		    Point* p1=p->get_point_ud_0(ni);
-		    bool good=p1->get_inside();
-		    if(good)
-		      {
-			p1->get_pos_point(pos);
-			good=vector_in_box(pos,Box);
-			if(!good)
-			  {
-			    for(auto FR : mem.Touchy)
-			      {
-				good=vector_in_box(pos,mem.BoxesLev[FR][level]);
-				if(good)
-				  break;
-			      }
-			  }
-		      }
-		    if(!good)
+		    if(!p1->get_inside() || p1->get_trouble())
 		      density-=p1->get_potential_point();
 		  }
 		dens_values.push_back(density);
@@ -212,7 +182,7 @@ namespace FractalSpace
 	int i=0;
 	for(Point* &p : SP)
 	  {
-	    if(p != 0)
+	    if(p != 0 && !p->get_trouble())
 	      p->set_potential_point(pot_values[i]);
 	    i++;
 	  }

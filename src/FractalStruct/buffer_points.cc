@@ -17,15 +17,16 @@ namespace FractalSpace
     //--------------------------------------------------------------------------------------------------------------------------------
     if(padd > 0)
       {
+	// for(auto p : group.p_list_really_high)
+	//   Point* p_point(p);
 	for(vector<Point*>::const_iterator point_itr=group.p_list_really_high.begin();point_itr != group.p_list_really_high.end();++point_itr)
 	  {
 	    Point* p_point=*point_itr;
 	    for(int p=0;p < padd;p++)
 	      {
+		// p_point=p_point->get_point_ud_0(0,0)->get_point_ud_0(2,0)->get_point_ud_0(4,0);
 		for(int ni=0;ni<3;ni++)
-		  {
-		    p_point=p_point->get_point_ud_0(ni*2,0);
-		  }
+		  p_point=p_point->get_point_ud_0(ni*2,0);
 	      }
 	    Point* p_point_z=p_point;
 	    for(int pad_z=-padd;pad_z<=padd;++pad_z)
@@ -57,11 +58,17 @@ namespace FractalSpace
 	vector <unsigned int> numbers(8,0);
 	vector <double> pos(3);
 	int p_x,p_y,p_z,n_x,n_y,n_z;
+	// for(auto p : group.p_list_really_high)
+	//   {
+	//     Point& point=*p;
 	for(vector<Point*>::const_iterator point_itr=group.p_list_really_high.begin();point_itr != group.p_list_really_high.end();++point_itr)
 	  {
 	    Point& point=**point_itr;
 	    if(point.list_particles.size() < min_number) continue;
 	    numbers.assign(8,0);
+	    // for(auto part : point.list_particles)
+	    //   {
+	    // 	Particle& particle=*part;
 	    for(vector<Particle*>::const_iterator particle_itr=point.list_particles.begin();particle_itr !=point.list_particles.end();++particle_itr)
 	      {
 		Particle& particle=**particle_itr;
@@ -77,14 +84,14 @@ namespace FractalSpace
 		    point.dump();
 		    particle.dump(*point.p_FILE);
 		    FileFractal << " buffer baddb " << endl;
-		    FileFractal << " buffer baddc " << endl;
-		    FileFractal << " buffer baddd " << endl;
-		    FileFractal << " buffer badde " << endl;
-		    FileFractal << " buffer baddf " << endl;
-		    FileFractal << " buffer baddg " << endl;
-		    FileFractal << " buffer baddh " << endl;
-		    FileFractal << " buffer baddi " << endl;
-		    FileFractal << " buffer baddj " << endl;
+		    // FileFractal << " buffer baddc " << endl;
+		    // FileFractal << " buffer baddd " << endl;
+		    // FileFractal << " buffer badde " << endl;
+		    // FileFractal << " buffer baddf " << endl;
+		    // FileFractal << " buffer baddg " << endl;
+		    // FileFractal << " buffer baddh " << endl;
+		    // FileFractal << " buffer baddi " << endl;
+		    // FileFractal << " buffer baddj " << endl;
 		  }
 		assert(n_x==0 || n_x==1);
 		assert(n_y==0 || n_y==1);
