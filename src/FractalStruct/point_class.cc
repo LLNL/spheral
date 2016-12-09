@@ -38,6 +38,14 @@ namespace FractalSpace
   {
     return mass_point;
   }
+  bool Point::get_trouble() const
+  {
+    return in_trouble;
+  }
+  void Point::set_trouble(bool what)
+  {
+    in_trouble=what;
+  }
   void Point::set_edge_buffer_passive_point(const bool& e,const bool& b,const bool& p)
   {
     edge_point=e;
@@ -111,20 +119,22 @@ namespace FractalSpace
   {
     return p_in_high_group;
   }
+  void Point::get_pos_point(array <int,3>& pos) const
+  {
+    pos=pos_point;
+  }
   void Point::get_pos_point(vector <int>& pos) const
   {
     pos.assign(pos_point.begin(),pos_point.begin()+3);
-    // pos=pos_point;
-    // if(pos.size() < 3)
-    //   pos.resize(3);
-    // std::copy(pos_point,pos_point+3,pos.begin());
+  }
+  void Point::set_pos_point(const array <int,3>& pos)
+  {
+    pos_point=pos;
   }
   void Point::set_pos_point(const vector <int>& pos)
   {
-    // for(int p : pos)
     for(int ni : {0,1,2})
       pos_point[ni]=pos[ni];
-    // pos_point.assign(pos.begin(),pos.begin()+3);
   }
   void Point::set_pos_point(const int& x,const int& y,const int& z)
   {

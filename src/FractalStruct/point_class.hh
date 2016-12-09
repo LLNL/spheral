@@ -18,6 +18,7 @@ namespace FractalSpace
     bool buffer_point;
     bool edge_point;
     bool mass_point;
+    bool in_trouble;
     int number_in_list;
     vector <bool> eureka_adj;
     vector <bool> eureka_dau;
@@ -63,6 +64,7 @@ namespace FractalSpace
       buffer_point(false),
       edge_point(false),
       mass_point(false),
+      in_trouble(false),
       number_in_list(-1),
       potential_point(0.0),
       density_point(0.0)
@@ -142,6 +144,8 @@ namespace FractalSpace
     void set_mass_point(bool what);
     void set_mass_points(bool what);
     bool get_mass_point() const;
+    bool get_trouble() const;
+    void set_trouble(bool what);
     void set_edge_buffer_passive_point(const bool& e,const bool& b,const bool& p);
     void set_edge_buffer_passive_really_point(const bool& e,const bool& b,const bool& p,const bool& r);
     bool get_buffer_point() const;
@@ -159,7 +163,9 @@ namespace FractalSpace
     Group* get_p_in_group() const;
     void set_p_in_high_group(Group* p_g);
     Group* get_p_in_high_group();
+    void get_pos_point(array <int,3>& pos) const;
     void get_pos_point(vector <int>& pos) const;
+    void set_pos_point(const array <int,3>& pos);
     void set_pos_point(const vector <int>& pos);
     void set_pos_point(const int& x,const int& y,const int& z);
     void get_pos_point(int& x,int& y,int& z) const;

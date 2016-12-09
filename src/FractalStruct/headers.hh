@@ -85,6 +85,7 @@ namespace FractalSpace
   void hypre_points_boxes(Fractal_Memory& mem,vector <vector <Point*> >& hypre_points,int spacing,
 			  int VOLMIN,double FILLFACTOR,
 			  vector < vector<int> >& SBoxes,vector < vector<Point*> >& SPoints);
+  void hypre_points_clean(Fractal_Memory& mem,int level,vector< vector<Point*> >& hypre_points);
   void hypre_points_struct(Fractal_Memory& mem,vector <Group*>& groups,
 			   vector < vector <Point*> >& hypre_points,bool buffer_groups,int level);
   void hypre_points_zero(vector<vector<Point*>>& SPoints);
@@ -124,6 +125,8 @@ namespace FractalSpace
   void node_groups_struct(Fractal_Memory& mem,vector <int>& counts);
   double Omega (const double& omega_0, const double& omega_lambda, const double& redshift);
   bool on_edge(vector <int>& pos,vector <int>& Box);
+  bool on_edge(array <int,3>& pos,vector <int>& Box);
+  bool on_edge(Point* p,vector <int>& Box);
   template <class T> bool overlap(vector <T>& xleft,vector <T>& xright,vector <T>& yleft,vector <T>& yright);
   template <class T> bool overlap(vector <T>& xleft,vector <T>& xright,vector <T>& box);
   template <class T> bool overlap_boxes(vector <T>& xvec,vector <T>& box);
@@ -131,6 +134,7 @@ namespace FractalSpace
   void particle_lists(vector <vector <Group*> >& all_groups,Fractal& fractal,Fractal& fractal_ghost,Misc& misc);
   void particle_lists_fixed(vector <vector <Group*> >& all_groups,Fractal& fractal,Misc& misc);
   void periodic_solver(Group& group, Fractal_Memory& fractal_memory,Fractal& fractal);
+  void points_on_nodes(Fractal_Memory& mem);
   void poisson_solver_struct(Fractal& fractal,Fractal_Memory& mem,const int& level);
   void potential_start(Group& group);
   void power_spectrum(fftw_complex* rhoC,int length,vector <double>& variance_rho,vector <double>& variance_pot,
@@ -172,6 +176,7 @@ namespace FractalSpace
 			vector <double>& posx,vector <double>& posy,vector <double>& posz,
 			vector <double>& velx,vector <double>& vely,vector <double>& velz);
   void test_gal(Fractal_Memory& mem,Fractal& fractal);
+  bool test_good_point(Point* p1,Fractal_Memory& mem,int level);
   bool test_group(Group& group);
   bool test_tree(Fractal_Memory& fractal_memory,Fractal& fractal);
   void tree_dump(Fractal_Memory& FM);

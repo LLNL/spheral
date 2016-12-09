@@ -29,6 +29,8 @@ namespace FractalSpace
     vector < vector <int> > Slices;
     vector < vector <int> > BoxS;
     vector < vector <int> > BoxSL;
+    vector < vector <bool> > counts_on_nodes;
+    vector <bool> count_on_node;
     int glength;
     pint start_x;
     pint length_x;
@@ -257,6 +259,7 @@ namespace FractalSpace
     void Send_Data_Hypre_Directions(vector <int>& counts_out,vector <int>& counts_in,const int& integers,const int& doubles,
 					  vector < vector <int> >& dataI_out,vector <int>& dataI_in,int& how_manyI,
 					  vector < vector <double> >& dataR_out,vector <double>& dataR_in,int& how_manyR);
+    template <class GO_AWAY> void really_clear(vector <GO_AWAY>& die);
     void MPI_MYTest(int which,int test) const;
     void Which_Nodes(int count,vector <int>& counts,vector <bool>& YesNo,int ROOT,MPI_Comm& World);
     void my_AllgatherI(vector <int>& paramsend,vector <int>& paramrecv,const int& nsend) const;

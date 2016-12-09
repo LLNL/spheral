@@ -45,7 +45,7 @@ namespace FractalSpace
 	int lev=PFM->p_fractal->particle_list[ni]->get_highest_level();
 	fprintf(PFPos," Out%d %10.2E %6d L%d %13.6E %13.6E %13.6E",PFM->steps,timevar,ni,lev,posx[ni],posy[ni],posz[ni]); // 1-7
 	fprintf(PFPos," %13.6E %13.6E %13.6E %13.6E",velx[ni],vely[ni],velz[ni],masses[ni]); // 8-11
-	fprintf(PFPos," %13.6E %13.6E %13.6E %13.6E ",pot,fx,fy,fz); // 12-15
+	fprintf(PFPos," %13.6E %13.6E %13.6E %13.6E ",abs(pot),fx,fy,fz); // 12-15
  	double dx=posx[ni]-x0;
  	double dy=posy[ni]-y0;
  	double dz=posz[ni]-z0;
@@ -78,18 +78,19 @@ namespace FractalSpace
 	fyT+=-dy*G/dr3*mass;
 	fzT+=-dz*G/dr3*mass;
 	if(_DOIT)
-	  fprintf(PFPos," %13.6E %13.6E %13.6E %13.6E ",potT,fxT,fyT,fzT); //16-19
+	  fprintf(PFPos," %13.6E %13.6E %13.6E %13.6E ",abs(potT),fxT,fyT,fzT); //16-19
 	frTheory-=G*mass/dr2;
 	double difx=fx-fxT;
 	double dify=fy-fyT;
 	double difz=fz-fzT;
 	double ferror=sqrt(pow(difx,2)+pow(dify,2)+pow(difz,2));
-	double err=ferror/abs(frTheory);
+	// double err=ferror/abs(frTheory);
+	double err=abs((pot-potT)/potT);
 	if(_DOIT)
-	  fprintf(PFPos," E%d %13.6E %13.6E %13.6E %13.6E %13.6E ",err > 0.1,dr,abs(fr),abs(frTheory),ft,ferror); // 20-25
+	  fprintf(PFPos," EP%d %13.6E %13.6E %13.6E %13.6E %13.6E ",err > 0.1,dr,abs(fr),abs(frTheory),ft,ferror); // 20-25
 	fprintf(PFPos," %13.6E %13.6E %13.6E ",dr,abs(fr),ft); // 26-27
 	if(_DOIT)
-	  fprintf(PFPos," E %d",(abs(fr)-abs(frTheory))/abs(frTheory) >0.1); // 28
+	  fprintf(PFPos," EF%d",(abs(fr)-abs(frTheory))/abs(frTheory) >0.1); // 28
 	fprintf(PFPos,"\n");
       }
     fflush(PFPos);
