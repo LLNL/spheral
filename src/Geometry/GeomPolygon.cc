@@ -833,6 +833,29 @@ closestPoint(const GeomPolygon::Vector& p) const {
 }
 
 //------------------------------------------------------------------------------
+// += Vector, shift polygon in space
+//------------------------------------------------------------------------------
+GeomPolygon&
+GeomPolygon::
+operator+=(const GeomPolygon::Vector& rhs) {
+  for (auto& v: mVertices) v += rhs;
+  mXmin += rhs;
+  mXmax += rhs;
+  return *this;
+}
+
+//------------------------------------------------------------------------------
+// + Vector, return shifted polygon in space
+//------------------------------------------------------------------------------
+GeomPolygon
+GeomPolygon::
+operator+(const GeomPolygon::Vector& rhs) const {
+  GeomPolygon result(*this);
+  result += rhs;
+  return result;
+}
+
+//------------------------------------------------------------------------------
 // ==
 //------------------------------------------------------------------------------
 bool

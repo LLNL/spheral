@@ -26,8 +26,8 @@ AR = ar
 # Targets.
 #-------------------------------------------------------------------------------
 # Python
-PYTHONDIST = Python-2.7.11.tgz
-PYTHONURL = http://www.python.org/ftp/python/2.7.11/$(PYTHONDIST)
+PYTHONDIST = Python-2.7.12.tgz
+PYTHONURL = http://www.python.org/ftp/python/2.7.12/$(PYTHONDIST)
 PYTHONDIR = $(PYTHONDIST:.tgz=)
 PYTHONBUILDDATE = $(patsubst %.tgz, .%.date, $(PYTHONDIST))
 
@@ -65,8 +65,8 @@ BOOSTPYTHONLIB = libboost_python.$(DYLIBEXT)
 
 # Cmake
 CMAKEEXE = $(prefix)/bin/cmake
-CMAKEDIST = cmake-3.3.0.tar.gz
-CMAKEURL = http://www.cmake.org/files/v3.3/$(CMAKEDIST)
+CMAKEDIST = cmake-3.7.1.tar.gz
+CMAKEURL = http://www.cmake.org/files/v3.7/$(CMAKEDIST)
 CMAKEDIR = $(CMAKEDIST:.tar.gz=)
 
 # Gccxml
@@ -227,9 +227,9 @@ SILODIR = $(SILODIST:.tar.gz=)
 SILOBUILDDATE = $(patsubst %.tar.gz, .%.date, $(SILODIST))
 
 # Eigen
-EIGENDIST = Eigen-3.2.7.tar.bz2
-EIGENURL = http://bitbucket.org/eigen/eigen/get/3.2.7.tar.bz2
-EIGENDIR = eigen-eigen-b30b87236a1b
+EIGENDIST = Eigen-3.3.1.tar.bz2
+EIGENURL = http://bitbucket.org/eigen/eigen/get/3.1.1.tar.bz2
+EIGENDIR = eigen-eigen-43d9075b23ef
 EIGENBUILDDATE = .eigen.date
 
 # # Voro++
@@ -299,8 +299,8 @@ POLYTOPEDIR = $(POLYTOPEDIST:.tar.gz=)
 POLYTOPEBUILDDATE = $(patsubst %.tar.gz, .%.date, $(POLYTOPEDIST))
 
 # OpenSubDiv
-OPENSUBDIVDIST = OpenSubdiv-2_5_0.zip
-OPENSUBDIVURL = https://github.com/PixarAnimationStudios/OpenSubdiv/archive/v2_5_0.zip
+OPENSUBDIVDIST = OpenSubdiv-3_1_0.zip
+OPENSUBDIVURL = https://github.com/PixarAnimationStudios/OpenSubdiv/archive/v3_1_0.zip
 OPENSUBDIVDIR = $(OPENSUBDIVDIST:.zip=)
 OPENSUBDIVBUILDDATE = $(patsubst %.zip, .%.date, $(OPENSUBDIVDIST))
 
@@ -1485,8 +1485,8 @@ $(OPENSUBDIVBUILDDATE):	$(OPENSUBDIVDIST) $(CMAKEEXE)
 	@$(MKDIR) -p $(prefix)/bin $(prefix)/man $(prefix)/lib $(prefix)/include
 	rm -fr $(OPENSUBDIVDIR)
 	$(UNZIP) $(OPENSUBDIVDIST)
-	$(PATCH) $(OPENSUBDIVDIR)/CMakeLists.txt $(srcdir)/OpenSubdiv-2_5_0-CMakeLists_txt.patch
-	$(PATCH) $(OPENSUBDIVDIR)/opensubdiv/osd/CMakeLists.txt $(srcdir)/OpenSubdiv-2_5_0-opensubdiv-osd-CMakeLists_txt.patch
+	#$(PATCH) $(OPENSUBDIVDIR)/CMakeLists.txt $(srcdir)/OpenSubdiv-2_5_0-CMakeLists_txt.patch
+	#$(PATCH) $(OPENSUBDIVDIR)/opensubdiv/osd/CMakeLists.txt $(srcdir)/OpenSubdiv-2_5_0-opensubdiv-osd-CMakeLists_txt.patch
 	$(MKDIR) $(OPENSUBDIVDIR)/build
 	env PATH=$(prefix)/bin:$(PATH) $(SHELL) -ec "cd $(OPENSUBDIVDIR)/build; \
 	$(CMAKEEXE) -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=$(prefix) -DCMAKE_C_COMPILER='$(CC)' -DCMAKE_CXX_COMPILER='$(CXX)' -DCMAKE_C_FLAGS='$(CFLAGS)' -DCMAKE_CXX_FLAGS='$(CXXFLAGS)' -DNO_PYTHON=1 -DNO_EXAMPLES=1 -DNO_REGRESSION=1 -DNO_OMP=1 -DNO_CUDA=1 -DNO_OPENGL=1 -DNO_CLEW=1 .. ; \
