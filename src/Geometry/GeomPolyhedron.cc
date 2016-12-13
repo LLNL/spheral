@@ -695,6 +695,29 @@ closestPoint(const GeomPolyhedron::Vector& p) const {
 }
 
 //------------------------------------------------------------------------------
+// += Vector, shift polyhedron in space
+//------------------------------------------------------------------------------
+GeomPolyhedron&
+GeomPolyhedron::
+operator+=(const GeomPolyhedron::Vector& rhs) {
+  for (auto& v: mVertices) v += rhs;
+  mXmin += rhs;
+  mXmax += rhs;
+  return *this;
+}
+
+//------------------------------------------------------------------------------
+// + Vector, return shifted polyhedron in space
+//------------------------------------------------------------------------------
+GeomPolyhedron
+GeomPolyhedron::
+operator+(const GeomPolyhedron::Vector& rhs) const {
+  GeomPolyhedron result(*this);
+  result += rhs;
+  return result;
+}
+
+//------------------------------------------------------------------------------
 // ==
 //------------------------------------------------------------------------------
 bool
