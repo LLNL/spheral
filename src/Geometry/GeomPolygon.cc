@@ -371,9 +371,9 @@ GeomPolygon(const vector<GeomPolygon::Vector>& points):
     CHECK(points_polytope.size() == 2*points.size());
 
     // Call the polytope method for computing the convex hull.
-    vector<double> low(2, 0.0);
+    double low[2] = {0.0, 0.0};
     // polytope::PLC<2, double> plc = polytope::convexHull_2d(points_polytope, &(*low.begin()), 1.0e-15);
-    vector<vector<int> > plc = convexHull_2d(points_polytope, &(*low.begin()), 1.0e-15);
+    vector<vector<int> > plc = convexHull_2d(points_polytope, low, 1.0e-8);
     const unsigned numVertices = plc.size();
     CHECK(numVertices >= 3);
 
@@ -406,8 +406,8 @@ GeomPolygon(const vector<GeomPolygon::Vector>& points):
     BEGIN_CONTRACT_SCOPE
     {
       // Ensure the facet node ordering is correct.
-      CounterClockwiseComparator<Vector, vector<Vector> > nodeComparator(mVertices, mVertices[0]);
-      BOOST_FOREACH(const Facet& facet, mFacets) ENSURE(nodeComparator(facet.point1(), facet.point2()));
+      CounterClockwiseComparator<Vector, vector<Vector> > nodeComparator(mVertices, this->centroid());
+      BOOST_FOREACH(const Facet& facet, mFacets) ENSURE2(nodeComparator(facet.point1(), facet.point2()), *this);
 
       // All normals should be outward facing.
       Vector centroid, vec;
