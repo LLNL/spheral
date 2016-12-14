@@ -1493,7 +1493,7 @@ $(OPENSUBDIVBUILDDATE):	$(OPENSUBDIVDIST) $(CMAKEEXE)
 	$(MAKE) ; \
 	$(MAKE) install"
 	@if ! test -e $(prefix)/lib/libosdCPU.a -a
--	           -e $(prefix)/lib/libosdutil.a ; then \
+	           -e $(prefix)/lib/libosdutil.a ; then \
 	echo "ERROR building Opensubdiv."; \
 	rm -f $(OPENSUBDIVBUILDDATE); \
 	exit 1; \
