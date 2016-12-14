@@ -347,5 +347,18 @@ class TestPolygon(unittest.TestCase):
         self.failUnless(polygon2 == self.polygon,
                         "Failed to copy construct.")
 
+    #---------------------------------------------------------------------------
+    # Test shift in-place
+    #---------------------------------------------------------------------------
+    def testShiftInPlace(self):
+        shift = Vector(rangen.uniform(-10.0, -10.0),
+                       rangen.uniform(-10.0, -10.0))
+        polygon2 = Polygon(self.polygon)
+        polygon2 += shift
+        for p0, p1 in zip([self.polygon.xmin, self.polygon.xmax] + list(self.polygon.vertices()),
+                          [polygon2.xmin, polygon2.xmax] + list(polygon2.vertices())):
+            pshift = p0 + shift
+            self.failUnless(pshift == p1, "In-place shift point comparison failed: %s != %s" % (pshift, p1))
+
 if __name__ == "__main__":
     unittest.main()
