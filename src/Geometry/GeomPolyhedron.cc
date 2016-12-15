@@ -707,6 +707,16 @@ operator+=(const GeomPolyhedron::Vector& rhs) {
 }
 
 //------------------------------------------------------------------------------
+// -= Vector, shift polyhedron in space
+//------------------------------------------------------------------------------
+GeomPolyhedron&
+GeomPolyhedron::
+operator-=(const GeomPolyhedron::Vector& rhs) {
+  (*this) += -rhs;
+  return *this;
+}
+
+//------------------------------------------------------------------------------
 // + Vector, return shifted polyhedron in space
 //------------------------------------------------------------------------------
 GeomPolyhedron
@@ -715,6 +725,15 @@ operator+(const GeomPolyhedron::Vector& rhs) const {
   GeomPolyhedron result(*this);
   result += rhs;
   return result;
+}
+
+//------------------------------------------------------------------------------
+// - Vector, return shifted polyhedron in space
+//------------------------------------------------------------------------------
+GeomPolyhedron
+GeomPolyhedron::
+operator-(const GeomPolyhedron::Vector& rhs) const {
+  return (*this) + (-rhs);
 }
 
 //------------------------------------------------------------------------------

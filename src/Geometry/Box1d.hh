@@ -77,7 +77,9 @@ public:
 
   // Shift by a Vector delta.
   Box1d& operator+=(const Vector& rhs);
+  Box1d& operator-=(const Vector& rhs);
   Box1d operator+(const Vector& rhs) const;
+  Box1d operator-(const Vector& rhs) const;
 
   // Comparisons.
   bool operator==(const Box1d& rhs) const;

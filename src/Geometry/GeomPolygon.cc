@@ -845,6 +845,16 @@ operator+=(const GeomPolygon::Vector& rhs) {
 }
 
 //------------------------------------------------------------------------------
+// -= Vector, shift polygon in space
+//------------------------------------------------------------------------------
+GeomPolygon&
+GeomPolygon::
+operator-=(const GeomPolygon::Vector& rhs) {
+  (*this) += -rhs;
+  return *this;
+}
+
+//------------------------------------------------------------------------------
 // + Vector, return shifted polygon in space
 //------------------------------------------------------------------------------
 GeomPolygon
@@ -853,6 +863,15 @@ operator+(const GeomPolygon::Vector& rhs) const {
   GeomPolygon result(*this);
   result += rhs;
   return result;
+}
+
+//------------------------------------------------------------------------------
+// - Vector, return shifted polygon in space
+//------------------------------------------------------------------------------
+GeomPolygon
+GeomPolygon::
+operator-(const GeomPolygon::Vector& rhs) const {
+  return (*this) + (-rhs);
 }
 
 //------------------------------------------------------------------------------
