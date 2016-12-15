@@ -256,6 +256,9 @@ class MedialGeneratorBase(NodeGeneratorBase):
             surface = f.readObject("proc%06i/surface" % iproc)
             return pos, m, H, vol, surface
 
+        if cacheFileName is None:
+            return False
+
         if os.path.splitext(cacheFileName) != ".silo":
             cacheFileName += ".silo"
         result = False

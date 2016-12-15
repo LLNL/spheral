@@ -92,7 +92,9 @@ public:
 
   // Shift by a Vector delta.
   GeomPolyhedron& operator+=(const Vector& rhs);
+  GeomPolyhedron& operator-=(const Vector& rhs);
   GeomPolyhedron operator+(const Vector& rhs) const;
+  GeomPolyhedron operator-(const Vector& rhs) const;
 
   // Comparisons.
   bool operator==(const GeomPolyhedron& rhs) const;

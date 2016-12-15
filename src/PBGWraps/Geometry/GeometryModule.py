@@ -661,7 +661,9 @@ self.vector_of_vector_of_FacetedVolume%(dim)s = addObject(mod, "vector_of_vector
                                  custom_name = "vertices")
     
         x.add_inplace_numeric_operator("+=", right = "Vector1d")
+        x.add_inplace_numeric_operator("-=", right = "Vector1d")
         x.add_binary_numeric_operator("+", right = "Vector1d")
+        x.add_binary_numeric_operator("-", right = "Vector1d")
 
         # Comparisons.
         x.add_binary_comparison_operator("==")
@@ -801,7 +803,9 @@ self.vector_of_vector_of_FacetedVolume%(dim)s = addObject(mod, "vector_of_vector
         x.add_method("convex", "bool", [param("double", "tol", default_value="1.0e-8")], is_const=True)
 
         x.add_inplace_numeric_operator("+=", right = "Vector2d")
+        x.add_inplace_numeric_operator("-=", right = "Vector2d")
         x.add_binary_numeric_operator("+", right = "Vector2d")
+        x.add_binary_numeric_operator("-", right = "Vector2d")
 
         # Attributes.
         x.add_instance_attribute("xmin", "Vector2d", getter="xmin", is_const=True)
@@ -883,7 +887,9 @@ self.vector_of_vector_of_FacetedVolume%(dim)s = addObject(mod, "vector_of_vector
         x.add_method("convex", "bool", [param("double", "tol", default_value="1.0e-8")], is_const=True)
 
         x.add_inplace_numeric_operator("+=", right = "Vector3d")
+        x.add_inplace_numeric_operator("-=", right = "Vector3d")
         x.add_binary_numeric_operator("+", right = "Vector3d")
+        x.add_binary_numeric_operator("-", right = "Vector3d")
 
         # Attributes.
         x.add_instance_attribute("xmin", "Vector3d", getter="xmin", is_const=True)
