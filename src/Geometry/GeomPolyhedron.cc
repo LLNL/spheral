@@ -10,8 +10,6 @@
 #include <map>
 #include <limits>
 
-#include "boost/foreach.hpp"
-
 #include "GeomPolyhedron.hh"
 #include "FacetedVolumeUtilities.hh"
 #include "Utilities/removeElements.hh"
@@ -78,7 +76,7 @@ GeomPolyhedron(const vector<GeomPolyhedron::Vector>& points):
     // Copy the point coordinates to a Qhull point array.
     std::vector<coordT> points_qhull;
     points_qhull.reserve(3 * points.size());
-    BOOST_FOREACH(Vector vec, points) {
+    for (const Vector& vec: points) {
       points_qhull.push_back((vec.x() - xmin.x())/fscale);
       points_qhull.push_back((vec.y() - xmin.y())/fscale);
       points_qhull.push_back((vec.z() - xmin.z())/fscale);
@@ -203,7 +201,7 @@ GeomPolyhedron(const vector<GeomPolyhedron::Vector>& points):
     mCentroid = this->centroid();
     if (pointInPolyhedron(mCentroid, *this, false, 1.0e-10)) {
       mRinterior2 = numeric_limits<double>::max();
-      BOOST_FOREACH(const Facet& facet, mFacets) mRinterior2 = min(mRinterior2, facet.distance(mCentroid));
+      for (const Facet& facet: mFacets) mRinterior2 = min(mRinterior2, facet.distance(mCentroid));
       mRinterior2 = FastMath::square(mRinterior2);
     } else {
       mRinterior2 = -1.0;
@@ -218,8 +216,8 @@ GeomPolyhedron(const vector<GeomPolyhedron::Vector>& points):
            itr != mVertices.end();
            ++itr) centroid += *itr;
       centroid /= mVertices.size();
-      BOOST_FOREACH(const Facet& facet, mFacets) ENSURE2((facet.position() - centroid).dot(facet.normal()) >= 0.0,
-                                                         "Inward normal? " << (facet.position() - centroid).dot(facet.normal()) << " " << facet.position() << " " << centroid << " " << facet.normal());
+      for (const Facet& facet: mFacets) ENSURE2((facet.position() - centroid).dot(facet.normal()) >= 0.0,
+                                                "Inward normal? " << (facet.position() - centroid).dot(facet.normal()) << " " << facet.position() << " " << centroid << " " << facet.normal());
 
       // We had better be convex if built from a convex hull.
       ENSURE(convex());
@@ -253,20 +251,19 @@ GeomPolyhedron(const vector<GeomPolyhedron::Vector>& points,
   mRinterior2(-1.0),
   mConvex(false) {
 
-  unsigned i;
   vector<unsigned> indices;
   Vector a, b, normal, centroid;
   mFacets.reserve(facetIndices.size());
 
   // Construct the facets.
-  BOOST_FOREACH(const vector<unsigned>& indices, facetIndices) {
+  for (const vector<unsigned>& indices: facetIndices) {
     VERIFY2(indices.size() > 2, "Need at least two points per facet.");
     VERIFY2(*max_element(indices.begin(), indices.end()) < points.size(),
             "Bad vertex index for facet.");
 
     // Pick three points and construct an arbitrary normal.
     centroid.Zero();
-    BOOST_FOREACH(i, indices) centroid += mVertices[i];
+    for (auto i: indices) centroid += mVertices[i];
     centroid /= indices.size();
     a = mVertices[indices[0]] - centroid;
     b = mVertices[indices[1]] - centroid;
@@ -292,7 +289,7 @@ GeomPolyhedron(const vector<GeomPolyhedron::Vector>& points,
   mCentroid = this->centroid();
   if (pointInPolyhedron(mCentroid, *this, false, 1.0e-10)) {
     mRinterior2 = numeric_limits<double>::max();
-    BOOST_FOREACH(const Facet& facet, mFacets) mRinterior2 = min(mRinterior2, facet.distance(mCentroid));
+    for (const Facet& facet: mFacets) mRinterior2 = min(mRinterior2, facet.distance(mCentroid));
     mRinterior2 = FastMath::square(mRinterior2);
   } else {
     mRinterior2 = -1.0;
@@ -315,9 +312,9 @@ GeomPolyhedron(const GeomPolyhedron& rhs):
   mRinterior2(rhs.mRinterior2),
   mConvex(rhs.mConvex) {
   mFacets.reserve(rhs.mFacets.size());
-  BOOST_FOREACH(const Facet& facet, rhs.mFacets) mFacets.push_back(Facet(mVertices,
-                                                                         facet.ipoints(),
-                                                                         facet.normal()));
+  for (const Facet& facet: rhs.mFacets) mFacets.push_back(Facet(mVertices,
+                                                                facet.ipoints(),
+                                                                facet.normal()));
   ENSURE(mFacets.size() == rhs.mFacets.size());
 }
 
@@ -331,9 +328,9 @@ operator=(const GeomPolyhedron& rhs) {
     mVertices = rhs.mVertices;
     mFacets = vector<Facet>();
     mFacets.reserve(rhs.mFacets.size());
-    BOOST_FOREACH(const Facet& facet, rhs.mFacets) mFacets.push_back(Facet(mVertices,
-                                                                           facet.ipoints(),
-                                                                           facet.normal()));
+    for (const Facet& facet: rhs.mFacets) mFacets.push_back(Facet(mVertices,
+                                                                  facet.ipoints(),
+                                                                  facet.normal()));
     mVertexFacetConnectivity = rhs.mVertexFacetConnectivity;
     mFacetFacetConnectivity = rhs.mVertexFacetConnectivity;
     mVertexUnitNorms = rhs.mVertexUnitNorms;
@@ -405,11 +402,10 @@ bool
 GeomPolyhedron::
 intersect(const GeomPolyhedron& rhs) const {
   if (not testBoxIntersection(mXmin, mXmax, rhs.mXmin, rhs.mXmax)) return false;
-  Vector vec;
-  BOOST_FOREACH(vec, mVertices) {
+  for (const auto& vec: mVertices) {
     if (rhs.contains(vec)) return true;
   }
-  BOOST_FOREACH(vec, rhs.mVertices) {
+  for (const auto& vec: rhs.mVertices) {
     if (this->contains(vec)) return true;
   }
   return false;
@@ -549,7 +545,7 @@ centroid() const {
   unsigned i, j;
   double vol, volsum = 0.0;
   Vector fc;
-  BOOST_FOREACH(const Facet& facet, mFacets) {
+  for (const Facet& facet: mFacets) {
     fc = facet.position();
     vol = facet.area() * facet.normal().dot(facet.point(0) - c0);  // Should be one third of this, but will cancel.
     volsum += vol;
@@ -568,7 +564,7 @@ GeomPolyhedron::
 edges() const {
   vector<pair<unsigned, unsigned> > result;
   unsigned i, j, k, npoints;
-  BOOST_FOREACH(const Facet& facet, mFacets) {
+  for (const Facet& facet: mFacets) {
     const vector<unsigned>& ipoints = facet.ipoints();
     npoints = ipoints.size();
     for (k = 0; k != npoints; ++k) {
@@ -590,7 +586,7 @@ GeomPolyhedron::
 facetVertices() const {
   vector<vector<unsigned> > result;
   if (mVertices.size() > 0) {
-    BOOST_FOREACH(const Facet& facet, mFacets) {
+    for (const Facet& facet: mFacets) {
       vector<unsigned> pts;
       copy(facet.ipoints().begin(), facet.ipoints().end(), back_inserter(pts));
       CHECK(pts.size() == facet.ipoints().size());
@@ -608,7 +604,7 @@ GeomPolyhedron::
 facetNormals() const {
   vector<Vector> result;
   result.reserve(mFacets.size());
-  BOOST_FOREACH(const Facet& facet, mFacets) result.push_back(facet.normal());
+  for (const Facet& facet: mFacets) result.push_back(facet.normal());
   ENSURE(result.size() == mFacets.size());
   return result;
 }
@@ -647,7 +643,7 @@ GeomPolyhedron::
 volume() const {
   double result = 0.0;
   const Vector c = centroid();
-  BOOST_FOREACH(const Facet& facet, mFacets) {
+  for (const Facet& facet: mFacets) {
     result += facet.area() * abs(facet.normal().dot(facet.point(0) - c));
   }
   ENSURE(result >= 0.0);

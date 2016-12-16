@@ -2,7 +2,6 @@
 // ConstantBoundary -- A boundary condition to enforce a constant 
 // velocity on a given set of nodes.
 //----------------------------------------------------------------------------//
-#include "boost/foreach.hpp"
 #include "boost/lexical_cast.hpp"
 #include "boost/algorithm/string.hpp"
 
@@ -451,49 +450,49 @@ dumpState(FileIO& file, string pathName) const {
   file.write(mBoundaryCount, pathName + "/boundaryCount");
 
   vector<std::string> keys;
-  BOOST_FOREACH(const typename IntStorageType::value_type& p, mIntValues) {
+  for (const auto& p: mIntValues) {
     keys.push_back(p.first);
     file.write(p.second, pathName + "/IntValues/" + p.first);
   }
   file.write(keys, pathName + "/IntValues/keys");
 
   keys.clear();
-  BOOST_FOREACH(const typename ScalarStorageType::value_type& p, mScalarValues) {
+  for (const auto& p: mScalarValues) {
     keys.push_back(p.first);
     file.write(p.second, pathName + "/ScalarValues/" + p.first);
   }
   file.write(keys, pathName + "/ScalarValues/keys");
 
   keys.clear();
-  BOOST_FOREACH(const typename VectorStorageType::value_type& p, mVectorValues) {
+  for (const auto& p: mVectorValues) {
     keys.push_back(p.first);
     file.write(p.second, pathName + "/VectorValues/" + p.first);
   }
   file.write(keys, pathName + "/VectorValues/keys");
 
   keys.clear();
-  BOOST_FOREACH(const typename TensorStorageType::value_type& p, mTensorValues) {
+  for (const auto& p: mTensorValues) {
     keys.push_back(p.first);
     file.write(p.second, pathName + "/TensorValues/" + p.first);
   }
   file.write(keys, pathName + "/TensorValues/keys");
 
   keys.clear();
-  BOOST_FOREACH(const typename SymTensorStorageType::value_type& p, mSymTensorValues) {
+  for (const auto& p: mSymTensorValues) {
     keys.push_back(p.first);
     file.write(p.second, pathName + "/SymTensorValues/" + p.first);
   }
   file.write(keys, pathName + "/SymTensorValues/keys");
 
   keys.clear();
-  BOOST_FOREACH(const typename ThirdRankTensorStorageType::value_type& p, mThirdRankTensorValues) {
+  for (const auto& p: mThirdRankTensorValues) {
     keys.push_back(p.first);
     file.write(p.second, pathName + "/ThirdRankTensorValues/" + p.first);
   }
   file.write(keys, pathName + "/ThirdRankTensorValues/keys");
 
   keys.clear();
-  BOOST_FOREACH(const typename VectorScalarStorageType::value_type& p, mVectorScalarValues) {
+  for (const auto& p: mVectorScalarValues) {
     keys.push_back(p.first);
     file.write(p.second, pathName + "/VectorScalarValues/" + p.first);
   }
@@ -514,7 +513,7 @@ restoreState(const FileIO& file, string pathName)  {
   vector<std::string> keys;
   file.read(keys, pathName + "/IntValues/keys");
   mIntValues.clear();
-  BOOST_FOREACH(const std::string key, keys) {
+  for (const auto key: keys) {
     mIntValues[key] = std::vector<int>();
     file.read(mIntValues[key], pathName + "/IntValues/" + key);
   }
@@ -522,7 +521,7 @@ restoreState(const FileIO& file, string pathName)  {
   keys.clear();
   file.read(keys, pathName + "/ScalarValues/keys");
   mScalarValues.clear();
-  BOOST_FOREACH(const std::string key, keys) {
+  for (const auto key: keys) {
     mScalarValues[key] = std::vector<Scalar>();
     file.read(mScalarValues[key], pathName + "/ScalarValues/" + key);
   }
@@ -530,7 +529,7 @@ restoreState(const FileIO& file, string pathName)  {
   keys.clear();
   file.read(keys, pathName + "/VectorValues/keys");
   mVectorValues.clear();
-  BOOST_FOREACH(const std::string key, keys) {
+  for (const auto key: keys) {
     mVectorValues[key] = std::vector<Vector>();
     file.read(mVectorValues[key], pathName + "/VectorValues/" + key);
   }
@@ -538,7 +537,7 @@ restoreState(const FileIO& file, string pathName)  {
   keys.clear();
   file.read(keys, pathName + "/TensorValues/keys");
   mTensorValues.clear();
-  BOOST_FOREACH(const std::string key, keys) {
+  for (const auto key: keys) {
     mTensorValues[key] = std::vector<Tensor>();
     file.read(mTensorValues[key], pathName + "/TensorValues/" + key);
   }
@@ -546,7 +545,7 @@ restoreState(const FileIO& file, string pathName)  {
   keys.clear();
   file.read(keys, pathName + "/SymTensorValues/keys");
   mSymTensorValues.clear();
-  BOOST_FOREACH(const std::string key, keys) {
+  for (const auto key: keys) {
     mSymTensorValues[key] = std::vector<SymTensor>();
     file.read(mSymTensorValues[key], pathName + "/SymTensorValues/" + key);
   }
@@ -554,7 +553,7 @@ restoreState(const FileIO& file, string pathName)  {
   keys.clear();
   file.read(keys, pathName + "/ThirdRankTensorValues/keys");
   mThirdRankTensorValues.clear();
-  BOOST_FOREACH(const std::string key, keys) {
+  for (const auto key: keys) {
     mThirdRankTensorValues[key] = std::vector<ThirdRankTensor>();
     file.read(mThirdRankTensorValues[key], pathName + "/ThirdRankTensorValues/" + key);
   }
@@ -562,7 +561,7 @@ restoreState(const FileIO& file, string pathName)  {
   keys.clear();
   file.read(keys, pathName + "/VectorScalarValues/keys");
   mVectorScalarValues.clear();
-  BOOST_FOREACH(const std::string key, keys) {
+  for (const auto key: keys) {
     mVectorScalarValues[key] = std::vector<std::vector<Scalar> >();
     file.read(mVectorScalarValues[key], pathName + "/VectorScalarValues/" + key);
   }

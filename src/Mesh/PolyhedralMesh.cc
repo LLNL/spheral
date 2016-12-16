@@ -6,7 +6,6 @@
 #include <limits>
 #include <set>
 #include <sstream>
-#include "boost/foreach.hpp"
 
 #ifndef NOPOLYTOPE
 #include "polytope/polytope.hh"
@@ -164,7 +163,7 @@ reconstructInternal(const vector<Dim<3>::Vector>& generators,
       faceEdges.push_back(iedge);
     }
     mFaces.push_back(Face(*this, i, igen, jgen, faceEdges));
-    BOOST_FOREACH(j, tessellation.faceCells[i]) {
+    for (int j: tessellation.faceCells[i]) {
       j = positiveID(j);
       nodeZones[inode].insert(j);
       nodeZones[jnode].insert(j);
@@ -232,7 +231,7 @@ boundingSurface() const {
   unsigned i, j, iglobal, izone;
   map<unsigned, Vector> globalVertexPositions;
   vector<vector<unsigned> > facetIndices;
-  BOOST_FOREACH(const Face& face, mFaces) {
+  for (const Face& face: mFaces) {
     const vector<unsigned>& nodeIDs = face.nodeIDs();
     useFace = (face.zone1ID() == UNSETID or face.zone2ID() == UNSETID);
     i = 0;
@@ -242,7 +241,7 @@ boundingSurface() const {
     }
     if (useFace) {
       vector<unsigned> ids;
-      BOOST_FOREACH(i, nodeIDs) {
+      for (const unsigned i: nodeIDs) {
         CHECK(i < local2globalIDs.size());
         iglobal = local2globalIDs[i];
         CHECK(globalVertexPositions.find(iglobal) == globalVertexPositions.end() or
@@ -320,7 +319,7 @@ boundingSurface() const {
   CHECK(vertices.size() == globalVertexPositions.size());
 
   // Transform the facet node indices to the vertex array numbering.
-  BOOST_FOREACH(vector<unsigned>& indices, facetIndices) {
+  for (vector<unsigned>& indices: facetIndices) {
     CHECK(indices.size() >= 3);
     for (j = 0; j != indices.size(); ++j) {
       CHECK(global2vertexID.find(indices[j]) != global2vertexID.end());
@@ -332,7 +331,7 @@ boundingSurface() const {
   // Post-conditions.
   BEGIN_CONTRACT_SCOPE
   {
-    BOOST_FOREACH(const vector<unsigned>& indices, facetIndices) {
+    for (const vector<unsigned>& indices: facetIndices) {
       ENSURE(indices.size() >= 3);
       ENSURE(*max_element(indices.begin(), indices.end()) < vertices.size());
     }
@@ -359,11 +358,11 @@ createNewMeshElements(const vector<vector<vector<unsigned> > >& newCells) {
   REQUIRE(mNodes.size() <= mNodePositions.size());
   BEGIN_CONTRACT_SCOPE
   {
-    BOOST_FOREACH(const vector<vector<unsigned> >& cellFaces, newCells) {
+    for (const vector<vector<unsigned> >& cellFaces: newCells) {
       REQUIRE(cellFaces.size() >= minFacesPerZone);
-      BOOST_FOREACH(const vector<unsigned>& faceNodes, cellFaces) {
+      for (const vector<unsigned>& faceNodes: cellFaces) {
         REQUIRE(faceNodes.size() >= minNodesPerFace);
-        BOOST_FOREACH(unsigned inode, faceNodes) {
+        for (const unsigned inode: faceNodes) {
           REQUIRE(inode < mNodePositions.size());
         }
       }
@@ -389,12 +388,12 @@ createNewMeshElements(const vector<vector<vector<unsigned> > >& newCells) {
     const vector<vector<unsigned> >& zoneFaces = newCells[i];
     const int newZoneID = numOldZones + i;
     // cerr << "New zone " << newZoneID << " with nodes : ";
-    // BOOST_FOREACH(const vector<unsigned>& faceNodes, zoneFaces) {
+    // for (const vector<unsigned>& faceNodes: zoneFaces) {
     //   copy(faceNodes.begin(), faceNodes.end(), ostream_iterator<unsigned>(cerr, " "));
     //   cerr << " : ";
     // }
     // cerr << endl;
-    BOOST_FOREACH(const vector<unsigned>& faceNodes, zoneFaces) {
+    for (const vector<unsigned>& faceNodes: zoneFaces) {
       // cerr << "Adding face with nodes : ";
       // copy(faceNodes.begin(), faceNodes.end(), ostream_iterator<unsigned>(cerr, " "));
       const FaceHash fhash(faceNodes.begin(), faceNodes.end());
@@ -428,7 +427,7 @@ createNewMeshElements(const vector<vector<vector<unsigned> > >& newCells) {
     const FaceHash& nodes = faceItr->first;
     const unsigned zone1 = positiveID(faceItr->second.first);
     const unsigned zone2 = positiveID(faceItr->second.second);
-    BOOST_FOREACH(unsigned inode, nodes) {
+    for (const unsigned inode: nodes) {
       nodeZones[inode].insert(zone1);
       nodeZones[inode].insert(zone2);
     }
@@ -468,7 +467,7 @@ createNewMeshElements(const vector<vector<vector<unsigned> > >& newCells) {
     const int newZoneID = numOldZones + i;
     const vector<vector<unsigned> >& zoneFaceNodes = newCells[i];
     vector<int> zoneFaces;
-    BOOST_FOREACH(const vector<unsigned>& faceNodes, zoneFaceNodes) {
+    for (const vector<unsigned>& faceNodes: zoneFaceNodes) {
       vector<unsigned> faceEdges;
       const unsigned n = faceNodes.size();
       for (unsigned k = 0; k != n; ++k) {

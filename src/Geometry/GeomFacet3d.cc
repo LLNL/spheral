@@ -1,7 +1,5 @@
 #include <limits>
 
-#include "boost/foreach.hpp"
-
 #include "GeomVector.hh"
 #include "GeomFacet3d.hh"
 #include "Utilities/pointDistances.hh"

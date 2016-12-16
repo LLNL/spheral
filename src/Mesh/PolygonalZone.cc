@@ -56,7 +56,7 @@ Zone(const Mesh<Dim<2> >& mesh,
   BEGIN_CONTRACT_SCOPE
   {
     REQUIRE(mFaceIDs.size() > 2);
-    BOOST_FOREACH(int i, mFaceIDs) {
+    for (const int i: mFaceIDs) {
       int j = (i < 0 ? ~i : i);
       REQUIRE(j < mMeshPtr->mFaces.size());
       REQUIRE(mMeshPtr->mFaces[j].mEdgeIDs.size() == 1);
@@ -66,8 +66,7 @@ Zone(const Mesh<Dim<2> >& mesh,
   END_CONTRACT_SCOPE
   
   // Copy the face IDs as the edge IDs (they are degenerate after all!).
-  int faceID;
-  BOOST_FOREACH(faceID, mFaceIDs) mEdgeIDs.push_back(faceID < 0 ? ~faceID : faceID);
+  for (const int faceID: mFaceIDs) mEdgeIDs.push_back(faceID < 0 ? ~faceID : faceID);
   CHECK(mEdgeIDs.size() == mFaceIDs.size());
 
   // We need the nodes sorted counter-clockwise around the zone.  The faces
@@ -76,7 +75,7 @@ Zone(const Mesh<Dim<2> >& mesh,
   const unsigned numEdges = mEdgeIDs.size();
   int i;
   unsigned j, n1, n2;
-  BOOST_FOREACH(faceID, mFaceIDs) {
+  for (const int faceID: mFaceIDs) {
     i = (faceID < 0 ? ~faceID : faceID);
     n1 = mMeshPtr->mEdges[i].node1ID();
     n2 = mMeshPtr->mEdges[i].node2ID();
@@ -115,7 +114,7 @@ Zone(const Mesh<Dim<2> >& mesh,
     sort(edgeIDs.begin(), edgeIDs.end());
     ENSURE(unique(edgeIDs.begin(), edgeIDs.end()) == edgeIDs.end());
     vector<unsigned> faceIDs;
-    BOOST_FOREACH(i, mFaceIDs) faceIDs.push_back(Mesh<Dim<2> >::positiveID(i));
+    for (const int i: mFaceIDs) faceIDs.push_back(Mesh<Dim<2> >::positiveID(i));
     sort(faceIDs.begin(), faceIDs.end());
     ENSURE(unique(faceIDs.begin(), faceIDs.end()) == faceIDs.end());
 
@@ -124,19 +123,19 @@ Zone(const Mesh<Dim<2> >& mesh,
     CounterClockwiseCompareElements<Edge, Vector> edgeComparator(mMeshPtr->mEdges, mEdgeIDs[0]);
     CounterClockwiseCompareElements<Face, Vector> faceComparator(mMeshPtr->mFaces, faceIDs[0]);
     for (unsigned i = 0; i < faceIDs.size() - 1; ++i) {
-      ENSURE2(nodeComparator(mNodeIDs[i], mNodeIDs[i + 1]) >= 0,
+      ENSURE2(nodeComparator(mNodeIDs[i], mNodeIDs[i + 1]),
               nodeComparator(mNodeIDs[i], mNodeIDs[i + 1]) << " "
               << mMeshPtr->mNodes[mNodeIDs[0]].position() << " "
               << mMeshPtr->mNodes[mNodeIDs[i]].position() << " "
               << mMeshPtr->mNodes[mNodeIDs[i + 1]].position());
-      ENSURE2(edgeComparator(mEdgeIDs[i], mEdgeIDs[i + 1]) >= 0,
+      ENSURE2(edgeComparator(mEdgeIDs[i], mEdgeIDs[i + 1]),
               edgeComparator(mEdgeIDs[i], mEdgeIDs[i + 1]) << " "
               << mMeshPtr->mEdges[mEdgeIDs[0]].position() << " "
               << mMeshPtr->mEdges[mEdgeIDs[i]].position() << " "
               << mMeshPtr->mEdges[mEdgeIDs[i + 1]].position());
       int id1 = Mesh<Dim<2> >::positiveID(mFaceIDs[i]),
           id2 = Mesh<Dim<2> >::positiveID(mFaceIDs[i + 1]);
-      ENSURE2(faceComparator(id1, id2) >= 0,
+      ENSURE2(faceComparator(id1, id2),
               faceComparator(id1, id2) << " "
               << mMeshPtr->mFaces[Mesh<Dim<2> >::positiveID(mFaceIDs[0])].position() << " "
               << mMeshPtr->mFaces[id1].position() << " "

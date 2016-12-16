@@ -13,8 +13,6 @@
 #include "Utilities/pointOnPolygon.hh"
 #include "SolidSPH/DamagedNodeCouplingWithFrags.hh"
 
-#include "boost/foreach.hpp"
-
 #include "polytope/polytope.hh"
 #include "polytope/convexHull_2d.hh"
 
@@ -96,7 +94,7 @@ double hullMassDensity(const std::vector<Dim<2>::Vector>& posInv,
   vector<Vector> pos;
   points_polytope.reserve(2*n);
   pos.reserve(n);
-  BOOST_FOREACH(Vector vec, posInv) {
+  for (const Vector& vec: posInv) {
     points_polytope.push_back((vec.x() - xmin.x())/fscale);
     points_polytope.push_back((vec.y() - xmin.y())/fscale);
     const Scalar mag2 = vec.magnitude2();

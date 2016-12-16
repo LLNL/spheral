@@ -6,7 +6,6 @@
 #include <numeric>
 #include <limits>
 #include <algorithm>
-#include "boost/foreach.hpp"
 
 #include "Utilities/removeElements.hh"
 #include "Utilities/safeInv.hh"
@@ -366,7 +365,7 @@ minimumScale() const {
     const Zone& zone = this->zone(izone);
     const Vector zonePosition = zone.position();
     const std::vector<int>& faces = zone.faceIDs();
-    BOOST_FOREACH(int i, faces) {
+    for (const int i: faces) {
       const Face& face = this->face(i);
       result = std::min(result, (face.position() - zonePosition).magnitude2());
     }

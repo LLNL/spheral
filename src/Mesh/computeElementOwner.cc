@@ -5,7 +5,6 @@
 //
 // Created by JMO, Mon Oct 29 22:01:30 PDT 2012
 //----------------------------------------------------------------------------//
-#include "boost/foreach.hpp"
 #include "Utilities/DBC.hh"
 
 #include "computeElementOwner.hh"
@@ -32,7 +31,7 @@ computeElementOwner(const unsigned numElements,
     const unsigned numDomains = neighborDomains.size();
     for (unsigned idomain = 0; idomain != numDomains; ++idomain) {
       const unsigned neighbor = neighborDomains[idomain];
-      BOOST_FOREACH(unsigned element, sharedElements[idomain]) {
+      for (const unsigned element: sharedElements[idomain]) {
         CHECK(element < numElements);
         result[element] = min(result[element], neighbor);
       }

@@ -8,8 +8,6 @@
 //
 // Created by JMO, Fri Dec 19 14:58:23 PST 2008
 //----------------------------------------------------------------------------//
-#include "boost/foreach.hpp"
-
 #include "mortonOrderIndices.hh"
 #include "globalBoundingVolumes.hh"
 #include "DataBase/DataBase.hh"
@@ -117,7 +115,7 @@ mortonOrderIndices(const FieldList<Dimension, typename Dimension::Vector>& posit
   // Prepare the result.
   FieldList<Dimension, Key> result(FieldSpace::Copy);
   const vector<NodeList<Dimension>*>& nodeListPtrs = positions.nodeListPtrs();
-  BOOST_FOREACH(const NodeList<Dimension>* nodeListPtr, nodeListPtrs) {
+  for (const NodeList<Dimension>* nodeListPtr: nodeListPtrs) {
     result.appendNewField("hashed indices", *nodeListPtr, KeyTraits::zero);
   }
 
