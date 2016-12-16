@@ -6,7 +6,6 @@
 #include <limits>
 #include <set>
 #include <sstream>
-#include "boost/foreach.hpp"
 
 #ifndef NOPOLYTOPE
 #include "polytope/polytope.hh"
@@ -95,7 +94,7 @@ void buildFromPolytope(polytope::Tessellation<2, double>& tessellation,
     mEdges.push_back(Edge(mesh, i, inode, jnode));
     mFaces.push_back(Face(mesh, i, igen, jgen, vector<unsigned>(1, i)));
 
-    BOOST_FOREACH(j, tessellation.faceCells[i]) {
+    for (const int j, tessellation.faceCells[i]) {
       nodeZones[inode].insert(MeshType::positiveID(j));
       nodeZones[jnode].insert(MeshType::positiveID(j));
     }
@@ -125,7 +124,7 @@ void buildFromPolytope(polytope::Tessellation<2, double>& tessellation,
   BEGIN_CONTRACT_SCOPE
   {
     // Make sure any faces on the surface are pointing out of the mesh.
-    BOOST_FOREACH(const Face& face, mFaces) {
+    for (const Face& face: mFaces) {
       ENSURE(face.zone1ID() != UNSETID);
       ENSURE(face.zone2ID() != UNSETID);
       ENSURE(MeshType::positiveID(face.zone2ID()) != UNSETID or face.zone1ID() >= 0);
@@ -414,7 +413,7 @@ boundingSurface() const {
   unsigned i, j, iglobal, jglobal;
   map<unsigned, Vector> globalVertexPositions;
   vector<vector<unsigned> > facetIndices;
-  BOOST_FOREACH(const Face& face, mFaces) {
+  for (const Face& face: mFaces) {
     CHECK(face.mNodeIDs.size() == 2);
     i = face.mNodeIDs[0];
     j = face.mNodeIDs[1];
@@ -493,7 +492,7 @@ boundingSurface() const {
   CHECK(vertices.size() == globalVertexPositions.size());
 
   // Transform the facet node indices to the vertex array numbering.
-  BOOST_FOREACH(vector<unsigned>& indices, facetIndices) {
+  for (vector<unsigned>& indices: facetIndices) {
     CHECK(indices.size() == 2);
     CHECK(global2vertexID.find(indices[0]) != global2vertexID.end());
     CHECK(global2vertexID.find(indices[1]) != global2vertexID.end());
@@ -504,7 +503,7 @@ boundingSurface() const {
   // Post-conditions.
   BEGIN_CONTRACT_SCOPE
   {
-    BOOST_FOREACH(const vector<unsigned>& indices, facetIndices) {
+    for (const vector<unsigned>& indices: facetIndices) {
       ENSURE(indices.size() == 2);
       ENSURE(*max_element(indices.begin(), indices.end()) < vertices.size());
     }
@@ -530,11 +529,11 @@ createNewMeshElements(const vector<vector<vector<unsigned> > >& newCells) {
   REQUIRE(mNodes.size() <= mNodePositions.size());
   BEGIN_CONTRACT_SCOPE
   {
-    BOOST_FOREACH(const vector<vector<unsigned> >& cellFaces, newCells) {
+    for (const vector<vector<unsigned> >& cellFaces: newCells) {
       REQUIRE(cellFaces.size() >= minFacesPerZone);
-      BOOST_FOREACH(const vector<unsigned>& faceNodes, cellFaces) {
+      for (const vector<unsigned>& faceNodes: cellFaces) {
         REQUIRE(faceNodes.size() >= minNodesPerFace);
-        BOOST_FOREACH(unsigned inode, faceNodes) {
+        for (unsigned inode: faceNodes) {
           REQUIRE(inode < mNodePositions.size());
         }
       }
@@ -561,12 +560,12 @@ createNewMeshElements(const vector<vector<vector<unsigned> > >& newCells) {
     const vector<vector<unsigned> >& zoneFaces = newCells[i];
     const int newZoneID = numOldZones + i;
     // cerr << "New zone " << newZoneID << " with nodes : ";
-    // BOOST_FOREACH(const vector<unsigned>& faceNodes, zoneFaces) {
+    // for (const vector<unsigned>& faceNodes: zoneFaces) {
     //   copy(faceNodes.begin(), faceNodes.end(), ostream_iterator<unsigned>(cerr, " "));
     //   cerr << " : ";
     // }
     // cerr << endl;
-    BOOST_FOREACH(const vector<unsigned>& faceNodes, zoneFaces) {
+    for (const vector<unsigned>& faceNodes: zoneFaces) {
       CHECK(faceNodes.size() == 2);
       // cerr << "Adding face with nodes : ";
       // copy(faceNodes.begin(), faceNodes.end(), ostream_iterator<unsigned>(cerr, " "));
@@ -636,7 +635,7 @@ createNewMeshElements(const vector<vector<vector<unsigned> > >& newCells) {
     const int newZoneID = numOldZones + i;
     const vector<vector<unsigned> >& zoneFaceNodes = newCells[i];
     vector<int> zoneFaces;
-    BOOST_FOREACH(const vector<unsigned>& faceNodes, zoneFaceNodes) {
+    for (const vector<unsigned>& faceNodes: zoneFaceNodes) {
       CHECK(faceNodes.size() == 2);
       const unsigned inode1 = faceNodes[0];
       const unsigned inode2 = faceNodes[1];

@@ -12,8 +12,6 @@
 #include <stdio.h>
 #include <stdint.h>
 
-#include "boost/foreach.hpp"
-
 // #include "polytope/polytope.hh"
 // #include "polytope/convexHull_2d.hh"
 
@@ -364,7 +362,7 @@ GeomPolygon(const vector<GeomPolygon::Vector>& points):
     // Copy the point coordinates to a polytope point array.
     vector<double> points_polytope;
     points_polytope.reserve(2 * points.size());
-    BOOST_FOREACH(Vector vec, points) {
+    for (const Vector& vec: points) {
       points_polytope.push_back((vec.x() - xmin.x())/fscale);
       points_polytope.push_back((vec.y() - xmin.y())/fscale);
     }
@@ -407,17 +405,17 @@ GeomPolygon(const vector<GeomPolygon::Vector>& points):
     {
       // Ensure the facet node ordering is correct.
       CounterClockwiseComparator<Vector, vector<Vector> > nodeComparator(mVertices, this->centroid());
-      BOOST_FOREACH(const Facet& facet, mFacets) ENSURE2(nodeComparator(facet.point1(), facet.point2()), *this);
+      for (const Facet& facet: mFacets) ENSURE2(nodeComparator(facet.point1(), facet.point2()), *this);
 
       // All normals should be outward facing.
-      Vector centroid, vec;
-      BOOST_FOREACH(vec, mVertices) centroid += vec;
+      Vector centroid;
+      for (const Vector& vec: mVertices) centroid += vec;
       centroid /= mVertices.size();
-      BOOST_FOREACH(const Facet& facet, mFacets) ENSURE2((0.5*(facet.point1() + facet.point2()) - centroid).dot(facet.normal()) >= 0.0,
-                                                         facet.point1() << " " << facet.point2() << " : "
-                                                         << (0.5*(facet.point1() + facet.point2()) - centroid) << " "
-                                                         << facet.normal() << " : "
-                                                         << (0.5*(facet.point1() + facet.point2()) - centroid).dot(facet.normal()));
+      for (const Facet& facet: mFacets) ENSURE2((0.5*(facet.point1() + facet.point2()) - centroid).dot(facet.normal()) >= 0.0,
+                                                facet.point1() << " " << facet.point2() << " : "
+                                                << (0.5*(facet.point1() + facet.point2()) - centroid) << " "
+                                                << facet.normal() << " : "
+                                                << (0.5*(facet.point1() + facet.point2()) - centroid).dot(facet.normal()));
 
       // Ensure the vertices are listed in counter-clockwise order.
       for (unsigned i = 0; i != mVertices.size(); ++i) {
@@ -431,7 +429,7 @@ GeomPolygon(const vector<GeomPolygon::Vector>& points):
       // Ensure the seed points are contained.
       // Suspending this check for now as floating point accuracy occasionally misfires
       // this check.
-      //      BOOST_FOREACH(vec, points) ENSURE(this->convexContains(vec));
+      //      for (const auto& vec: points) ENSURE(this->convexContains(vec));
     }
     END_CONTRACT_SCOPE
   }
@@ -452,7 +450,7 @@ GeomPolygon(const vector<GeomPolygon::Vector>& points,
   // Construct the facets.
   Vector centroid;
   mFacets.reserve(facetIndices.size());
-  BOOST_FOREACH(vector<unsigned> indices, facetIndices) {
+  for (const vector<unsigned>& indices: facetIndices) {
     VERIFY2(indices.size() == 2, "Need two points per facet : " << indices.size());
     VERIFY2(*max_element(indices.begin(), indices.end()) < points.size(),
             "Bad vertex index for facet.");
@@ -484,7 +482,7 @@ GeomPolygon(const GeomPolygon& rhs):
   mXmax(rhs.mXmax),
   mConvex(rhs.mConvex) {
   mFacets.reserve(rhs.mFacets.size());
-  BOOST_FOREACH(const Facet& facet, rhs.mFacets) {
+  for (const Facet& facet: rhs.mFacets) {
     mFacets.push_back(Facet(mVertices,
                             facet.ipoint1(),
                             facet.ipoint2()));
@@ -502,9 +500,9 @@ operator=(const GeomPolygon& rhs) {
     mVertices = rhs.mVertices;
     mFacets = vector<Facet>();
     mFacets.reserve(rhs.mFacets.size());
-    BOOST_FOREACH(const Facet& facet, rhs.mFacets) mFacets.push_back(Facet(mVertices,
-                                                                           facet.ipoint1(),
-                                                                           facet.ipoint2()));
+    for (const Facet& facet: rhs.mFacets) mFacets.push_back(Facet(mVertices,
+                                                                  facet.ipoint1(),
+                                                                  facet.ipoint2()));
     mVertexFacetConnectivity = rhs.mVertexFacetConnectivity;
     mFacetFacetConnectivity = rhs.mVertexFacetConnectivity;
     mVertexUnitNorms = rhs.mVertexUnitNorms;
@@ -739,7 +737,7 @@ facetVertices() const {
   vector<vector<unsigned> > result;
   vector<unsigned> pts(2);
   if (mVertices.size() > 0) {
-    BOOST_FOREACH(const Facet& facet, mFacets) {
+    for (const Facet& facet: mFacets) {
       pts[0] = facet.ipoint1();
       pts[1] = facet.ipoint2();
       CHECK(pts[0] < mVertices.size());
@@ -761,7 +759,7 @@ reconstruct(const vector<GeomPolygon::Vector>& vertices,
   mVertices = vertices;
   mFacets = vector<Facet>();
   mFacets.reserve(facetVertices.size());
-  BOOST_FOREACH(const vector<unsigned>& ipts, facetVertices) {
+  for (const vector<unsigned>& ipts: facetVertices) {
     CHECK2(ipts.size() == 2, "Bad size:  " << ipts.size());
     mFacets.push_back(Facet(mVertices, ipts[0], ipts[1]));
   }
@@ -780,7 +778,7 @@ GeomPolygon::
 volume() const {
   double result = 0.0;
   const Vector c = centroid();
-  BOOST_FOREACH(const Facet& facet, mFacets) {
+  for (const Facet& facet: mFacets) {
     result += ((facet.point2() - facet.point1()).cross(c - facet.point1())).z();
   }
   ENSURE2(result >= 0.0, result);

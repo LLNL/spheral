@@ -11,8 +11,6 @@
 #include <algorithm>
 #include <set>
 
-#include "boost/foreach.hpp"
-
 #include "computeGenerators.hh"
 #include "Mesh.hh"
 #include "MeshConstructionUtilities.hh"
