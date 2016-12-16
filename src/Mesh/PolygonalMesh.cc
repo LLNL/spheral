@@ -94,7 +94,7 @@ void buildFromPolytope(polytope::Tessellation<2, double>& tessellation,
     mEdges.push_back(Edge(mesh, i, inode, jnode));
     mFaces.push_back(Face(mesh, i, igen, jgen, vector<unsigned>(1, i)));
 
-    for (const int j, tessellation.faceCells[i]) {
+    for (const int j: tessellation.faceCells[i]) {
       nodeZones[inode].insert(MeshType::positiveID(j));
       nodeZones[jnode].insert(MeshType::positiveID(j));
     }
