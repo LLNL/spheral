@@ -572,22 +572,17 @@ bool
 GeomPolygon::
 intersect(const GeomPolygon& rhs) const {
   if (not testBoxIntersection(mXmin, mXmax, rhs.mXmin, rhs.mXmax)) return false;
-  Vector vec;
-  BOOST_FOREACH(vec, mVertices) {
+  for (auto vec: mVertices) {
     if (rhs.contains(vec)) return true;
   }
-  BOOST_FOREACH(vec, rhs.mVertices) {
+  for (auto vec: rhs.mVertices) {
     if (this->contains(vec)) return true;
   }
-  unsigned i0, j0, i1, j1;
-  const unsigned n0 = mVertices.size();
-  const unsigned n1 = rhs.mVertices.size();
-  for (i0 = 0; i0 != n0; ++i0) {
-    j0 = (i0 + 1) % n0;
-    for (i1 = 0; i1 != n1; ++i1) {
-      j1 = (i1 + 1) % n1;
-      if (segmentSegmentIntersection(mVertices[i0], mVertices[j0],
-                                     rhs.mVertices[i1], rhs.mVertices[j1])) return true;
+  const auto& otherFacets = rhs.facets();
+  for (auto& lhsfacet: mFacets) {
+    for (auto& rhsfacet: otherFacets) {
+      if (segmentSegmentIntersection(lhsfacet.point1(), lhsfacet.point2(),
+                                     rhsfacet.point1(), rhsfacet.point2())) return true;
     }
   }
   return false;
