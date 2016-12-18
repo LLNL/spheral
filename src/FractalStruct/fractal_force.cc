@@ -294,6 +294,7 @@ namespace FractalSpace
       {
 	Full_Stop(fractal_memory,41);
 	fractal_memory.global_level_max=find_global_level_max(fractal_memory,fractal);
+	small_exceptions(fractal_memory);
 	points_on_nodes(fractal_memory);
 	for(int level=1;level <= fractal_memory.global_level_max;level++)
 	  {
@@ -312,7 +313,7 @@ namespace FractalSpace
 	      }
 	    Full_Stop(fractal_memory,36);
 	    fractal.timing(-1,31);
-	    poisson_solver_struct(fractal,fractal_memory,level); 		
+	    poisson_solver_struct(fractal,fractal_memory,level);
 	    fractal.timing(1,31);
 	    for(Group* pgroup : fractal_memory.all_groups[level])
 	      {

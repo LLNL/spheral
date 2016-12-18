@@ -45,7 +45,7 @@ int main(int argc, char* argv[])
   if(argc >= 8)
     PADDING=atoi(argv[7]);
 
-  int HYPREMAXONNODE=40000;
+  int HYPREMAXONNODE=-1;
   if(argc >= 9)
     HYPREMAXONNODE=atoi(argv[8]);
   double HYPREMULTIPLIER=2.0;

@@ -10,7 +10,7 @@ namespace FractalSpace
     for(int FR : mem.TouchWhichBoxes)
       if(mem.p_mess->counts_on_nodes[level][2*FR+1])
 	{
-	  FHT << " Touchies " << level << " " << FR << endl;
+	  FHT << " Touchies " << level << " " << FR << "\n";
 	  Touchies.push_back(FR);
 	}
 
@@ -74,7 +74,7 @@ namespace FractalSpace
 	  {
 	    array <int,3>posin={dataI_in[c4],dataI_in[c4+1],dataI_in[c4+2]};
 	    assert(on_edge(posin,BOX));
-	    FHT << " POSIN " << posin[0] << " "  << posin[1] << " "  << posin[2] << endl;
+	    // FHT << " POSIN " << posin[0] << " "  << posin[1] << " "  << posin[2] << "\n";
 	    edgein.insert(pair<array<int,3>,int>(posin,dataI_in[c4+3]));
 	    c4+=4;
 	  }
@@ -87,7 +87,7 @@ namespace FractalSpace
 	if(count == 0)
 	  continue;
 	auto found=edgein.equal_range(ar3);
-	FHT << " FOUND " << count << " " << ar3[0] << " " << ar3[1] << " " << ar3[2] << " ";
+	// FHT << " FOUND " << count << " " << ar3[0] << " " << ar3[1] << " " << ar3[2] << " ";
 	for(int ni=0;ni<6;ni++)
 	  {
 	    Point* p1=p->get_point_ud_0(ni,18);
@@ -103,7 +103,7 @@ namespace FractalSpace
 	      }
 	    if(!success)
 	      p->set_trouble(true);
-	    FHT << ni << " " << ni1 << " " << success << p->get_trouble() << "n";
+	    FHT << ni << " " << ni1 << " " << success << p->get_trouble() << "\n";
 	  }
       }
     

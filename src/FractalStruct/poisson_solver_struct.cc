@@ -31,7 +31,7 @@ namespace FractalSpace
 	time0=mem.p_mess->Clock();
 	hypre_points_struct(mem,mem.all_groups[level],hypre_points,buffer,level);
 	time1=mem.p_mess->Clock();
-	if(ni == 1)
+	if(buffer)
 	  hypre_points_clean(mem,level,hypre_points);
 	int VOLMIN=1;
 	double FILLFACTOR=2.0;
@@ -68,6 +68,8 @@ namespace FractalSpace
 	      add_buffer_values(mem,level,SBoxes,SPoints);
 	    time6=mem.p_mess->Clock();
 	  }
+	if(!mem.periodic)
+	  test_points(mem,SPoints,level);
 	time7=mem.p_mess->Clock();
 	mem.p_mess->HypreGroupFree();
 	time8=mem.p_mess->Clock();
