@@ -8,22 +8,22 @@ namespace FractalSpace
   {
     static int _COUNTER=0;
     ofstream& FHT=mem.p_file->DUMPS;
-    int FR=0;
-    for(auto BL : mem.BoxesLev)
-      {
-    	FHT << " BOXL " << FR++ << " ";
-    	for(auto what : BL[level])
-    	  FHT << what << " ";
-    	FHT << "\n";
-      }
-    FR=0;
-    for(auto BL : mem.BBoxesLev)
-      {
-    	FHT << " BBOXL " << FR++ << " ";
-    	for(auto what : BL[level])
-    	  FHT << what << " ";
-    	FHT << "\n";
-      }
+    // int FR=0;
+    // for(auto BL : mem.BoxesLev)
+    //   {
+    // 	FHT << " BOXL " << FR++ << " ";
+    // 	for(auto what : BL[level])
+    // 	  FHT << what << " ";
+    // 	FHT << "\n";
+    //   }
+    // FR=0;
+    // for(auto BL : mem.BBoxesLev)
+    //   {
+    // 	FHT << " BBOXL " << FR++ << " ";
+    // 	for(auto what : BL[level])
+    // 	  FHT << what << " ";
+    // 	FHT << "\n";
+    //   }
     // int RANK=-1;
     // MPI_Comm_rank(MPI_COMM_WORLD,&RANK);
     vector <int>pos(3);

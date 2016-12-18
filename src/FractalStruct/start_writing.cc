@@ -29,7 +29,7 @@ namespace FractalSpace
     double centerM=0.0;
     double rmaX=30.0;
     
-    double slopE=-1.2;
+    double slopE=-1.8;
     double slopE2=slopE+2.0;
     double slopE3=slopE+3.0;
     bool isoT=abs(slopE+2.0) < 0.01;

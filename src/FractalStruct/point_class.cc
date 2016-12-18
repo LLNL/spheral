@@ -127,6 +127,17 @@ namespace FractalSpace
   {
     pos.assign(pos_point.begin(),pos_point.begin()+3);
   }
+  vector<int> Point::get_pos_point() const
+  {
+    vector<int>pp(3);
+    pp.assign(pos_point.begin(),pos_point.begin()+3);
+    return pp;
+  }
+  array<int,3> Point::get_pos_point_a() const
+  {
+    array<int,3>pp=pos_point;
+    return pp;
+  }
   void Point::set_pos_point(const array <int,3>& pos)
   {
     pos_point=pos;

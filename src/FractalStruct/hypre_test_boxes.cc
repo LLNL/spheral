@@ -81,7 +81,6 @@ namespace FractalSpace
 					touches++;
 					FHT << " OTHERBOX "  << " " << BOXFR[0] << " " << BOXFR[1] << " " << BOXFR[2];
 					FHT << " " << BOXFR[3] << " " << BOXFR[4] << " " << BOXFR[5] << "\n";
-
 				      }
 				  }
 			      }
@@ -102,9 +101,9 @@ namespace FractalSpace
 	  if(overlap_boxes(SBa,SBoxes[nBb]))
 	    {
 	      baad=true;
-	      cerr << " BOX OVERLAP " << mem.p_mess->FractalRank << " " << nBa << " " << nBb << endl;
-	      cerr << SBa[0] <<  " " << SBa[1] <<  " " << SBa[2] <<  " " << SBa[3] <<  " " << SBa[4] <<  " " << SBa[5] << endl;
-	      cerr << SBoxes[nBb][0] <<  " " << SBoxes[nBb][1] <<  " " << SBoxes[nBb][2] <<  " " << SBoxes[nBb][3] <<  " " << SBoxes[nBb][4] <<  " " << SBoxes[nBb][5] << endl;
+	      cerr << " BOX OVERLAP " << mem.p_mess->FractalRank << " " << nBa << " " << nBb << "\n";
+	      cerr << SBa[0] <<  " " << SBa[1] <<  " " << SBa[2] <<  " " << SBa[3] <<  " " << SBa[4] <<  " " << SBa[5] << "\n";
+	      cerr << SBoxes[nBb][0] <<  " " << SBoxes[nBb][1] <<  " " << SBoxes[nBb][2] <<  " " << SBoxes[nBb][3] <<  " " << SBoxes[nBb][4] <<  " " << SBoxes[nBb][5] << "\n";
 	    }
 	nBa++;
       }

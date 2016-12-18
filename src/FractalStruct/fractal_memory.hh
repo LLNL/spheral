@@ -209,6 +209,7 @@ namespace FractalSpace
       moat_0(1),
       minimum_number(8),
       padding(-1),
+      // padding(1),
       level_max(8),
       number_steps_total(113),
       number_steps_out(20),

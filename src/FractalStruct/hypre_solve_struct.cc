@@ -63,15 +63,12 @@ namespace FractalSpace
     HYPRE_StructMatrixInitialize(Amatrix);
     int stencil_indices[7] = {0,1,2,3,4,5,6};
     B=0;
-    for(vector <Point*>& SP : SPoints)
+    for(auto& SP : SPoints)
       {
 	vector <double>values;
-	// auto p_itr=SP.begin();
-	// while(p_itr != SP.end())
 	for(auto p : SP)
 	  {
-	    // Point* p=*p_itr;
-	    if(p == 0 || p->get_trouble())
+	    if(p == 0)
 	      {
 		values.push_back(1.0);
 		for(int ni=0;ni<6;ni++)
@@ -109,7 +106,7 @@ namespace FractalSpace
 	vector <double>pot_values;
 	for(auto &p : SP)
 	  {
-	    if(p == 0 || p->get_trouble())
+	    if(p == 0)
 	      {
 		dens_values.push_back(1.0);
 		pot_values.push_back(1.0);

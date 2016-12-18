@@ -165,6 +165,8 @@ namespace FractalSpace
     Group* get_p_in_high_group();
     void get_pos_point(array <int,3>& pos) const;
     void get_pos_point(vector <int>& pos) const;
+    vector<int> get_pos_point() const;
+    array<int,3> get_pos_point_a() const;
     void set_pos_point(const array <int,3>& pos);
     void set_pos_point(const vector <int>& pos);
     void set_pos_point(const int& x,const int& y,const int& z);
