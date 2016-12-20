@@ -119,6 +119,7 @@ namespace FractalSpace
 			      vector <double>& xvel,vector <double>& yvel,vector <double>& zvel);
   void make_decisions_erika(Misc& misc);
   template <class M, class F>  void make_particles(M& mem,F& frac,int& count,const double& m,const bool& crash);
+  void match_edges(Fractal_Memory& mem,int level);
   void max_predict(Fractal_Memory& fractal_memory,Fractal& fractal,vector <double>& shear_force,double& min_vol);
   void mini_solve(Fractal_Memory& mem,Group* pg);
   void mini_solve1(Point* p,const double& gc);
@@ -190,6 +191,7 @@ namespace FractalSpace
   Point* try_harder(Point& point0,const int& ni,const bool& easy);
   void update_rv(Fractal& fractal,const int& param,const double& const1,const double& const2);
   template <class T> bool vector_in_box(vector <T>& xvec,vector <T>& box);
+  template <class T> bool vector_in_box(array <T,3>& xvec,vector <T>& box);
   bool vector_in_box(Point* p,vector <int>& box);
   bool vector_in_box(const Point& p,vector <int>& box);
   void velocities(Fractal_Memory& mem,Fractal& frac);

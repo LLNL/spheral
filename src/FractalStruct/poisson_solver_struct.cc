@@ -6,21 +6,14 @@ namespace FractalSpace
   void poisson_solver_struct(Fractal& fractal,Fractal_Memory& mem,const int& level)
   {
     ofstream& FHT=mem.p_file->DUMPS;
-    // FHT << " POINTS DATA A " << level <<"\n";
-    // for(auto g : mem.all_groups[level])
-    //   for(auto p : g->list_points)
-    // 	if(p->get_inside())
-    // 	  p->dumpp();
     static int _COUNTER=0;
     static int _COUNTERA=0;
     static vector<int> VOLA(20,1);
     static vector<double> FILLA(20,2.0);
-    double timea,timeb,time0,time1,time2,time3,time4,time5,time6,time7,time8;
-    timea=mem.p_mess->Clock();
+    double time0,time1,time2,time3,time4,time5,time6,time7,time8;
     int RANK=-1;
     MPI_Comm_rank(MPI_COMM_WORLD,&RANK);
     int spacing=Misc::pow(2,fractal.get_level_max()-level);
-    // cerr << "POISSON A " << RANK << " " << level << " " << " " << _COUNTER << "\n";
     for(int ni=0;ni<2;ni++)
       {
 	mem.p_mess->IAmAHypreNode=mem.p_mess->count_on_node[2*level+ni];
@@ -75,21 +68,15 @@ namespace FractalSpace
 	time8=mem.p_mess->Clock();
 	SBoxes.clear();
 	SPoints.clear();
-	// if(mem.p_mess->IAmAHypreNode && mem.p_mess->HypreRank == 0 && buffer)
+	// if(mem.p_mess->IAmAHypreNode && mem.p_mess->HypreRank == 0)
 	//   {
-	FHT << " HYPRE RES B " <<  RANK << " " << ni << " " << level << " " << _COUNTER << " ";
-	FHT << " " << time1-time0 << " " << time2-time1 << " " << time3-time2 << " " << time5-time4 << " " << time6-time5 <<  " " << time8-time7 << " " << tt << "\n";
+	    FHT << " HYPRE RES B " <<  RANK << " " << ni << " " << level << " " << _COUNTER << " ";
+	    FHT << " " << time1-time0 << " " << time2-time1 << " " << time3-time2 << " " << time5-time4 << " " << time6-time5 <<  " " << time8-time7 << " " << tt << "\n";
 	  // }
 	_COUNTER++;
       }
-    timeb=mem.p_mess->Clock();
     if(level == 1)
       _COUNTERA++;
     _COUNTER++;
-    // FHT << " POINTS DATA C " << level <<"\n";
-    // for(auto g : mem.all_groups[level])
-    //   for(auto p : g->list_points)
-    // 	if(p->get_inside())
-    // 	  p->dumpp();
   }
 }
