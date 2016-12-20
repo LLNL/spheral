@@ -246,6 +246,7 @@ namespace FractalSpace
 	    buffer_points(group,fractal,misc);
 	    fractal.timing(1,10);
 	  }
+	// match_edges(fractal_memory,level);
 	int group_counter=0;
 	for(Group* pgroup : fractal_memory.all_groups[level])
 	  {

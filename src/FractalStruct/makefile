@@ -370,6 +370,9 @@ make_me_some_particles.o :	make_me_some_particles.cc $(classes)
 make_sphere.o :	make_sphere.cc $(classes)
 	$(compile) -c make_sphere.cc
 #
+match_edges.o :	match_edges.cc $(classes)
+	$(compile) -c match_edges.cc
+#
 max_predict.o :	max_predict.cc $(classes)
 	$(compile) -c max_predict.cc
 #
@@ -617,6 +620,7 @@ high_points.o \
 left_right.o \
 list_buffer.o \
 make_me_a_galaxy.o \
+match_edges.o \
 max_predict.o \
 neighbor_easy.o \
 on_edge.o \

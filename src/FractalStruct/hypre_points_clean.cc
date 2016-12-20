@@ -10,7 +10,7 @@ namespace FractalSpace
     for(int FR : mem.TouchWhichBoxes)
       if(mem.p_mess->counts_on_nodes[level][2*FR+1])
 	{
-	  FHT << " Touchies " << level << " " << FR << "\n";
+	  // FHT << " Touchies " << level << " " << FR << "\n";
 	  Touchies.push_back(FR);
 	}
 
@@ -103,7 +103,7 @@ namespace FractalSpace
 	      }
 	    if(!success)
 	      p->set_trouble(true);
-	    FHT << ni << " " << ni1 << " " << success << p->get_trouble() << "\n";
+	    // FHT << ni << " " << ni1 << " " << success << p->get_trouble() << "\n";
 	  }
       }
     
