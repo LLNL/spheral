@@ -20,7 +20,9 @@ namespace FractalSpace
     for(int FR : mem.Touchy)
       {
 	int HR=mem.p_mess->IHranks[FR];
-	assert(HR >= 0);
+	if(HR < 0)
+	  continue;
+	// assert(HR >= 0);
 	vector <int>FRPBOX=mem.PBoxesLev[FR][level];
 	vector <int>FRBOX=mem.BoxesLev[FR][level];
 	int B=0;
@@ -86,7 +88,6 @@ namespace FractalSpace
 	for(int c=0;c<counts_in[HR];c++)
 	  {
 	    array <int,3>posin={dataI_in[c3],dataI_in[c3+1],dataI_in[c3+2]};
-	      // std::map<char,int>::iterator it;
 	    std::map<array<int,3>,Point*>::iterator eb=edgeP.find(posin);
 	    if(eb != edgeP.end())
 	      {
