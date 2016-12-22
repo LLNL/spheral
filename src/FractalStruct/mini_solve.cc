@@ -5,7 +5,7 @@ namespace FractalSpace
 {
   void mini_solve(Fractal_Memory& mem,Group* pg)
   {
-    static double pi = 4.0*atan(1.0);
+    static const double pi = 4.0*atan(1.0);
     int lps=pg->list_points.size();
     if(lps > mem.hypre_max_node_load)
       return;
@@ -32,10 +32,8 @@ namespace FractalSpace
     	    if(p->get_inside())
     	      found.push_back(p);
     	  }
-	if(found.size() == 2)
-	  mini_solve2(found[0],found[1],gc);
-	else if(found.size()==1)
-	  mini_solve1(found[0],gc);
+	assert(found.size() == 2);
+	mini_solve2(found[0],found[1],gc);
       }
   }
 }
@@ -46,7 +44,7 @@ namespace FractalSpace
     double sum=0.0;
     for(int ni=0;ni<6;ni++)
       sum+=p->get_point_ud_0(ni)->get_potential_point();
-    p->set_potential_point(sum/6.0-gc*p->get_density_point());
+    p->set_potential_point((sum-gc*p->get_density_point())/6.0);
   }
 }
 namespace FractalSpace

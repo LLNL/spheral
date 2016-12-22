@@ -3,7 +3,7 @@
 #include "headers.hh"
 namespace FractalSpace
 {
-  void hypre_solve_struct(Fractal_Memory& mem,int level,
+  void hypre_solve_struct(bool buffer,Fractal_Memory& mem,int level,
 			  vector < vector<int> >& SBoxes,vector < vector<Point*> >& SPoints)
   {
     static int _COUNTER=0;
@@ -22,7 +22,7 @@ namespace FractalSpace
     HYPRE_StructSolver   precond;
     vector<int>pos(3);
     vector <int>Box=mem.FRBoxesLev[level];
-    FHT << " HYP BOX " << Box[0] << " " << Box[1] << " " << Box[2] << " " << Box[3] << " " << Box[4] << " " << Box[5] << "\n";
+    // FHT << " HYP BOX " << Box[0] << " " << Box[1] << " " << Box[2] << " " << Box[3] << " " << Box[4] << " " << Box[5] << "\n";
     double pi = 4.0*atan(1.0);
     int length=mem.p_fractal->get_grid_length();
     double g_c=4.0*pi/static_cast<double>(length*length)*pow(4.0,-level);

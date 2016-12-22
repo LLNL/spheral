@@ -7,25 +7,8 @@ namespace FractalSpace
 			   vector < vector <Point*> >& hypre_points,bool buffer_groups,int level)
   {
     static int _COUNTER=0;
+    // mem.hypre_max_node_load=min(mem.hypre_max_node_load,45);
     ofstream& FHT=mem.p_file->DUMPS;
-    // int FR=0;
-    // for(auto BL : mem.BoxesLev)
-    //   {
-    // 	FHT << " BOXL " << FR++ << " ";
-    // 	for(auto what : BL[level])
-    // 	  FHT << what << " ";
-    // 	FHT << "\n";
-    //   }
-    // FR=0;
-    // for(auto BL : mem.BBoxesLev)
-    //   {
-    // 	FHT << " BBOXL " << FR++ << " ";
-    // 	for(auto what : BL[level])
-    // 	  FHT << what << " ";
-    // 	FHT << "\n";
-    //   }
-    // int RANK=-1;
-    // MPI_Comm_rank(MPI_COMM_WORLD,&RANK);
     vector <int>pos(3);
     vector <int> BOX=mem.BoxesLev[mem.p_mess->FractalRank][level];
     hypre_points.clear();
@@ -33,6 +16,11 @@ namespace FractalSpace
       {
  	if(buffer_groups == pgroup->get_buffer_group())
 	  {
+	    if(!buffer_groups && pgroup->list_points.size() <= mem.hypre_max_node_load)
+	      {
+		mini_solve(mem,pgroup);
+		continue;
+	      }
 	    hypre_points.resize(hypre_points.size()+1);
 	    for(Point* &p : pgroup->list_points)
 	      {
@@ -46,7 +34,6 @@ namespace FractalSpace
 	      hypre_points.resize(hypre_points.size()-1);
 	  }
       }
-    // cerr << " GroupTotal " << RANK << " " << ng << " " << _COUNTER << endl;
     _COUNTER++;
   }
 }

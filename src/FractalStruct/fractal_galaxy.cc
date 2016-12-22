@@ -43,6 +43,7 @@ int main(int argc, char* argv[])
   int HYPREMAXONNODE=-1;
   if(argc >= 10)
     HYPREMAXONNODE=atoi(argv[9]);
+  HYPREMAXONNODE=min(HYPREMAXONNODE,45);
   double HYPREMULTIPLIER=2.0;
   if(argc >= 11)
     HYPREMULTIPLIER=atof(argv[10]);
