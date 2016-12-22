@@ -61,14 +61,14 @@ namespace FractalSpace
 	if(mem.p_mess->IAmAHypreNode)
 	  {
 	    time4=mem.p_mess->Clock();
-	    hypre_solve_struct(mem,level,SBoxes,SPoints);
+	    hypre_solve_struct(ni==1,mem,level,SBoxes,SPoints);
 	    time5=mem.p_mess->Clock();
 	    if(buffer)
 	      add_buffer_values(mem,level,SBoxes,SPoints);
 	    time6=mem.p_mess->Clock();
 	  }
-	if(!mem.periodic)
-	  test_points(mem,SPoints,level);
+	// if(!mem.periodic)
+	//   test_points(mem,SPoints,level);
 	time7=mem.p_mess->Clock();
 	mem.p_mess->HypreGroupFree();
 	time8=mem.p_mess->Clock();
