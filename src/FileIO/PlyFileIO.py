@@ -31,7 +31,7 @@ def PolyFromPly(filename):
             else:
                 vertices.append(data[:3])
         elif data[0] == "end_header":
-            print "found end_header at line %d, starting read at line %d" % (i,i+1)
+            #print "found end_header at line %d, starting read at line %d" % (i,i+1)
             start = i + 1
         i += 1
     f.close()
@@ -52,8 +52,6 @@ def PolyFromPly(filename):
         for j in xrange(len(indices[i])):
             vuns.append(indices[i][j])
         vindx.append(vuns)
-
-    print indices
 
     shape = Polyhedron(vvert,vindx)
     return shape
