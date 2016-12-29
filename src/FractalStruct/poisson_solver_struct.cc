@@ -36,24 +36,25 @@ namespace FractalSpace
 	if(!hypre_points.empty())
 	  {
 	    // if(buffer)
-	    if(1) ///////////test///////////////
+	      // {
+	    if(_COUNTERA % 10 == 0)
 	      {
-		if(_COUNTERA % 10 == 0)
-		  {
-		    hypre_best_boxes(mem,hypre_points,spacing,VOLMIN,FILLFACTOR);
-		    VOLA[ni][level]=VOLMIN;
-		    FILLA[ni][level]=FILLFACTOR;
-		  }
-		hypre_points_boxes(mem,hypre_points,spacing,VOLA[ni][level],FILLA[ni][level],SBoxes,SPoints);
+		hypre_best_boxes(mem,hypre_points,spacing,VOLMIN,FILLFACTOR);
+		VOLA[ni][level]=VOLMIN;
+		FILLA[ni][level]=FILLFACTOR;
 	      }
-	    else
-	      hypre_points_boxes(mem,hypre_points,spacing,100,0.7,SBoxes,SPoints);
+	    hypre_points_boxes(mem,hypre_points,spacing,VOLA[ni][level],FILLA[ni][level],SBoxes,SPoints);
+	    //   }
+	    // else
+	    //   hypre_points_boxes(mem,hypre_points,spacing,100,0.7,SBoxes,SPoints);
 	    box_stats(mem,level,ni,SBoxes,SPoints);
 	  }
 	time2=mem.p_mess->Clock();
 	hypre_points.clear();
 	hypre_world_create(mem,level,SBoxes,buffer);
 	time3=mem.p_mess->Clock();
+	// if(buffer && mem.hypre_load_balance)
+	//   hypre_load_balance(mem,SBoxes);
 	double tt=-mem.p_mess->Clock();
 	// if(_COUNTERA % 10 == 0)
 	// hypre_test_boxes(mem,level,SBoxes,SPoints);

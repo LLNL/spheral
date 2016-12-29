@@ -41,7 +41,6 @@ namespace FractalSpace
 	    	mem.Touchy.push_back(FR);
 	    	break;
 	      }
-	    // mem.Touchy.push_back(FR);
 	  }
       }
     node_groups_struct(mem,counts);

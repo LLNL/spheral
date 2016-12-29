@@ -89,7 +89,7 @@ namespace FractalSpace
   void hypre_points_struct(Fractal_Memory& mem,vector <Group*>& groups,
 			   vector < vector <Point*> >& hypre_points,bool buffer_groups,int level);
   void hypre_points_zero(vector<vector<Point*>>& SPoints);
-  void hypre_solve_struct(Fractal_Memory& mem,int level,
+  void hypre_solve_struct(bool buffer,Fractal_Memory& mem,int level,
 			  vector < vector<int> >& SBoxes,vector < vector<Point*> >& SPoints);
   void hypre_test_boxes(Fractal_Memory& mem,int level,
 			vector < vector<int> >& SBoxes,vector < vector<Point*> >& SPoints);
@@ -124,6 +124,7 @@ namespace FractalSpace
   void mini_solve(Fractal_Memory& mem,Group* pg);
   void mini_solve1(Point* p,const double& gc);
   void mini_solve2(Point* pa,Point* pb,const double& gc);
+  void mini_solve3(vector<Point*>found,const double& gc);
   void neighbor_easy(vector <Point*>& p);
   void neighbors_nina(Point& point, vector <Point*>& adj);
   void node_groups_struct(Fractal_Memory& mem,vector <int>& counts);

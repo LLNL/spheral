@@ -309,6 +309,14 @@ namespace FractalSpace
   {
     it_is_high=value;
   }
+  bool Point::get_it_is_really_high() const
+  {
+    return it_is_really_high;
+  }
+  void Point::set_it_is_really_high(const bool& value)
+  {
+    it_is_really_high=value;
+  }
   void Point::set_passive_low()
   {
     it_is_high=it_is_high && !passive_point;
