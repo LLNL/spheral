@@ -12,6 +12,7 @@ namespace FractalSpace
     Group* p_in_high_group;
     bool inside;
     bool it_is_high;
+    bool it_is_really_high;
     bool found_it;
     bool really_passive;
     bool passive_point;
@@ -58,6 +59,7 @@ namespace FractalSpace
       p_in_high_group(0),
       inside(false),
       it_is_high(false),
+      it_is_really_high(false),
       found_it(false),
       really_passive(false),
       passive_point(false),
@@ -201,6 +203,8 @@ namespace FractalSpace
     // void get_hypre_info(int& ij_index,vector <int>& ijud,double& rho,double& pot) const;
     bool get_it_is_high() const;
     void set_it_is_high(const bool& value);
+    bool get_it_is_really_high() const;
+    void set_it_is_really_high(const bool& value);
     void set_passive_low();
     void set_inside_high();
     double get_potential_point() const;
