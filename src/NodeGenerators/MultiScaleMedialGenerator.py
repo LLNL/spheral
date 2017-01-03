@@ -29,7 +29,8 @@ class MultiScaleMedialGeneratorBase(NodeGeneratorBase):
                  rejecter,
                  randomseed,
                  maxNodesPerDomain,
-                 enforceConstantMassPoints):
+                 enforceConstantMassPoints,
+                 cacheFileName):
 
         # Load our handy aliases.
         if ndim == 2:
@@ -56,59 +57,69 @@ class MultiScaleMedialGeneratorBase(NodeGeneratorBase):
                                   randomseed = randomseed,
                                   maxNodesPerDomain = maxNodesPerDomain,
                                   enforceConstantMassPoints = enforceConstantMassPoints,
-                                  seedPositions = None)
+                                  seedPositions = None,
+                                  cacheFileName = None)
 
-        # Iterate from coarse generators to fine until we hit the target number of
-        # points.
-        rangen = random.Random(randomseed)
-        igeneration = 0
-        while gen.globalNumNodes() != n:
-            igeneration += 1
+        # If there is an pre-existing cache file, load it instead of doing all the work.
+        if not gen.restoreState(cacheFileName):
 
-            # Split the generators we've created from the last stage.
-            ntarget = min(n, ntarget * 2**ndim)
-            seedPositions = []
-            while mpi.allreduce(len(seedPositions), mpi.SUM) < ntarget:
-                zeta = sph.Vector(rangen.uniform(-0.5, 0.5), rangen.uniform(-0.5, 0.5), rangen.uniform(-0.5, 0.5))
-                for i in xrange(gen.localNumNodes()):
-                    hscale = (gen.vol[i]/pi)**(1.0/ndim)
-                    xi = gen.pos[i] + hscale*zeta
-                    if boundary.contains(xi, False):
-                        use = True
-                        ihole = 0
-                        while use and ihole < len(holes):
-                            use = not holes[ihole].contains(xi, False)
-                            ihole += 1
-                        if use:
-                            seedPositions.append(xi)
-
-            # Remove any excess points.
-            nglobal = mpi.allreduce(len(seedPositions), mpi.SUM)
-            while nglobal > ntarget:
-                if mpi.rank < nglobal - ntarget and len(seedPositions) > 0:
-                    seedPositions = seedPositions[:-1]
+            # Iterate from coarse generators to fine until we hit the target number of
+            # points.
+            rangen = random.Random(randomseed)
+            igeneration = 0
+            while gen.globalNumNodes() != n:
+                igeneration += 1
+        
+                # Split the generators we've created from the last stage.
+                ntarget = min(n, ntarget * 2**ndim)
+                seedPositions = []
+                while mpi.allreduce(len(seedPositions), mpi.SUM) < ntarget:
+                    zeta = sph.Vector(rangen.uniform(-0.5, 0.5), rangen.uniform(-0.5, 0.5), rangen.uniform(-0.5, 0.5))
+                    for i in xrange(gen.localNumNodes()):
+                        hscale = (gen.vol[i]/pi)**(1.0/ndim)
+                        xi = gen.pos[i] + hscale*zeta
+                        if boundary.contains(xi, False):
+                            use = True
+                            ihole = 0
+                            while use and ihole < len(holes):
+                                use = not holes[ihole].contains(xi, False)
+                                ihole += 1
+                            if use:
+                                seedPositions.append(xi)
+        
+                # Remove any excess points.
                 nglobal = mpi.allreduce(len(seedPositions), mpi.SUM)
-            assert nglobal == ntarget
-
-            # Now let the MedialGenerator do its thing.
-            tfname = tessellationFileName
-            if tfname:
-                tfname += "_gen%03i" % igeneration
-            gen = MedialGeneratorBase(ndim = ndim,
-                                      n = ntarget,
-                                      seedPositions = seedPositions,
-                                      rho = rho,
-                                      boundary = boundary,
-                                      gradrho = gradrho,
-                                      holes = holes,
-                                      centroidFrac = centroidFrac,
-                                      maxIterations = max(10, maxIterationsPerStage//(2**(ndim*igeneration))),
-                                      fracTol = fracTol,
-                                      tessellationFileName = tfname,
-                                      nNodePerh = nNodePerh,
-                                      randomseed = randomseed,
-                                      maxNodesPerDomain = maxNodesPerDomain,
-                                      enforceConstantMassPoints = enforceConstantMassPoints)
+                while nglobal > ntarget:
+                    if mpi.rank < nglobal - ntarget and len(seedPositions) > 0:
+                        seedPositions = seedPositions[:-1]
+                    nglobal = mpi.allreduce(len(seedPositions), mpi.SUM)
+                assert nglobal == ntarget
+        
+                # Now let the MedialGenerator do its thing.
+                tfname = tessellationFileName
+                if tfname:
+                    tfname += "_gen%03i" % igeneration
+                gen = MedialGeneratorBase(ndim = ndim,
+                                          n = ntarget,
+                                          seedPositions = seedPositions,
+                                          rho = rho,
+                                          boundary = boundary,
+                                          gradrho = gradrho,
+                                          holes = holes,
+                                          centroidFrac = centroidFrac,
+                                          maxIterations = max(10, maxIterationsPerStage//(2**(ndim*igeneration))),
+                                          fracTol = fracTol,
+                                          tessellationFileName = tfname,
+                                          nNodePerh = nNodePerh,
+                                          randomseed = randomseed,
+                                          maxNodesPerDomain = maxNodesPerDomain,
+                                          enforceConstantMassPoints = enforceConstantMassPoints,
+                                          cacheFileName = None)
+        
+            # If requested, we can store the state of the generator such that it can be
+            # later restored without going through all that work.
+            if cacheFileName:
+                gen.dumpState(cacheFileName)
 
         # Convert to our now regrettable standard coordinate storage for generators.
         self.x = [x.x + offset[0] for x in gen.pos]
@@ -203,7 +214,8 @@ class MultiScaleMedialGenerator2d(MultiScaleMedialGeneratorBase):
                  rejecter = None,
                  randomseed = 492739149274,
                  maxNodesPerDomain = 1000,
-                 enforceConstantMassPoints = False):
+                 enforceConstantMassPoints = False,
+                 cacheFileName = None):
 
         MultiScaleMedialGeneratorBase.__init__(self,
                                                ndim = 2,
@@ -222,7 +234,9 @@ class MultiScaleMedialGenerator2d(MultiScaleMedialGeneratorBase):
                                                rejecter = rejecter,
                                                randomseed = randomseed,
                                                maxNodesPerDomain = maxNodesPerDomain,
-                                               enforceConstantMassPoints = enforceConstantMassPoints)
+                                               enforceConstantMassPoints = enforceConstantMassPoints,
+                                               cacheFileName = cacheFileName)
+
         return
 
 #-------------------------------------------------------------------------------
@@ -249,7 +263,8 @@ class MultiScaleMedialGenerator3d(MultiScaleMedialGeneratorBase):
                  rejecter = None,
                  randomseed = 492739149274,
                  maxNodesPerDomain = 1000,
-                 enforceConstantMassPoints = False):
+                 enforceConstantMassPoints = False,
+                 cacheFileName = None):
 
         MultiScaleMedialGeneratorBase.__init__(self,
                                                ndim = 3,
@@ -268,6 +283,8 @@ class MultiScaleMedialGenerator3d(MultiScaleMedialGeneratorBase):
                                                rejecter = rejecter,
                                                randomseed = randomseed,
                                                maxNodesPerDomain = maxNodesPerDomain,
-                                               enforceConstantMassPoints = enforceConstantMassPoints)
+                                               enforceConstantMassPoints = enforceConstantMassPoints,
+                                               cacheFileName = cacheFileName)
+
         return
 
