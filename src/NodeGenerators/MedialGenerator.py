@@ -1,10 +1,12 @@
 from math import *
+import os
 import mpi
 import random
 
 from NodeGeneratorBase import *
 from Spheral import Vector2d, Tensor2d, SymTensor2d, \
-     rotationMatrix2d, testPointInBox2d
+     rotationMatrix2d, testPointInBox2d, SiloFileIO
+from SpheralModules.Spheral import *
 
 from sobol import i4_sobol
 from centroidalRelaxNodes import centroidalRelaxNodes
@@ -32,7 +34,8 @@ class MedialGeneratorBase(NodeGeneratorBase):
                  randomseed,
                  maxNodesPerDomain,
                  seedPositions,
-                 enforceConstantMassPoints):
+                 enforceConstantMassPoints,
+                 cacheFileName):
 
         assert ndim in (2,3)
         assert n > 0
@@ -65,50 +68,76 @@ class MedialGeneratorBase(NodeGeneratorBase):
         fracOccupied = min(1.0, boxvol/boundvol)
         assert fracOccupied > 0.0 and fracOccupied <= 1.0
 
-        # Create a temporary NodeList we'll use store and update positions.
-        eos = sph.GammaLawGasMKS(2.0, 2.0)
-        WT = sph.TableKernel(sph.NBSplineKernel(7), 1000)
-        hmax = 2.0*length
-        nodes = sph.makeFluidNodeList("tmp generator nodes", 
-                                      eos,
-                                      hmin = 1e-10,
-                                      hmax = hmax,
-                                      kernelExtent = WT.kernelExtent,
-                                      hminratio = 1.0,
-                                      nPerh = nNodePerh,
-                                      topGridCellSize = 2.0*WT.kernelExtent*hmax)
+        # If there is an pre-existing cache file, load it instead of doing all the work.
+        if not self.restoreState(cacheFileName):
 
-        # Make a first pass looking for the maximum density (roughly).
-        pos = nodes.positions()
-        mass = nodes.mass()
-        rhof = nodes.massDensity()
-        H = nodes.Hfield()
-        imin, imax = self.globalIDRange(n)
-        nlocal = imax - imin
-        nodes.numInternalNodes = nlocal
-
-        # If the user provided the starting or seed positions, use 'em.
-        if seedPositions is not None:
-            nlocal = len(seedPositions)
-            assert mpi.allreduce(nlocal, mpi.SUM) == n
+            # Create a temporary NodeList we'll use store and update positions.
+            eos = sph.GammaLawGasMKS(2.0, 2.0)
+            WT = sph.TableKernel(sph.NBSplineKernel(7), 1000)
+            hmax = 2.0*length
+            nodes = sph.makeFluidNodeList("tmp generator nodes", 
+                                          eos,
+                                          hmin = 1e-10,
+                                          hmax = hmax,
+                                          kernelExtent = WT.kernelExtent,
+                                          hminratio = 1.0,
+                                          nPerh = nNodePerh,
+                                          topGridCellSize = 2.0*WT.kernelExtent*hmax)
+        
+            # Make a first pass looking for the maximum density (roughly).
+            pos = nodes.positions()
+            mass = nodes.mass()
+            rhof = nodes.massDensity()
+            H = nodes.Hfield()
+            imin, imax = self.globalIDRange(n)
+            nlocal = imax - imin
             nodes.numInternalNodes = nlocal
-            for i in xrange(nlocal):
-                pos[i] = seedPositions[i]
-                rhoi = rhofunc(pos[i])
-                rhof[i] = rhoi
-                mass[i] = rhoi * boundvol/n  # Not actually correct, but mass will be updated in centroidalRelaxNodes
-                hi = min(hmax, 2.0 * nNodePerh * (boundvol/n)**(1.0/ndim))
-                assert hi > 0.0
-                H[i] = sph.SymTensor.one / hi
-
-        else:
-            # If necessary probe for a maximum density statistically.
-            rangen = random.Random(randomseed + mpi.rank)
-            if not rhomax:
-                rhomax = 0.0
-                nglobal = 0
-                while nglobal < n:
-                    p = boundary.xmin + length*sph.Vector(rangen.random(), rangen.random(), rangen.random())
+        
+            # If the user provided the starting or seed positions, use 'em.
+            if seedPositions is not None:
+                nlocal = len(seedPositions)
+                assert mpi.allreduce(nlocal, mpi.SUM) == n
+                nodes.numInternalNodes = nlocal
+                for i in xrange(nlocal):
+                    pos[i] = seedPositions[i]
+                    rhoi = rhofunc(pos[i])
+                    rhof[i] = rhoi
+                    mass[i] = rhoi * boundvol/n  # Not actually correct, but mass will be updated in centroidalRelaxNodes
+                    hi = min(hmax, 2.0 * nNodePerh * (boundvol/n)**(1.0/ndim))
+                    assert hi > 0.0
+                    H[i] = sph.SymTensor.one / hi
+        
+            else:
+                # If necessary probe for a maximum density statistically.
+                rangen = random.Random(randomseed + mpi.rank)
+                if not rhomax:
+                    rhomax = 0.0
+                    nglobal = 0
+                    while nglobal < n:
+                        p = boundary.xmin + length*sph.Vector(rangen.random(), rangen.random(), rangen.random())
+                        use = boundary.contains(p, False)
+                        if use:
+                            ihole = 0
+                            while use and ihole < len(holes):
+                                use = not holes[ihole].contains(p, True)
+                                ihole += 1
+                        if use:
+                            rhomax = max(rhomax, rhofunc(p))
+                            i = 1
+                        else:
+                            i = 0
+                        nglobal += mpi.allreduce(i, mpi.SUM)
+                    rhomax = mpi.allreduce(rhomax, mpi.MAX)
+                print "MedialGenerator: selected a maximum density of ", rhomax
+            
+                # It's a bit tricky to properly use the Sobol sequence in parallel.  We handle this by searching for the lowest
+                # seeds that give us the desired number of points.
+                seeds = []
+                seed = 0
+                while mpi.allreduce(len(seeds), mpi.SUM) < n:
+                    localseed = seed + mpi.rank
+                    [coords, newseed] = i4_sobol(ndim, localseed)
+                    p = boundary.xmin + length*sph.Vector(*tuple(coords))
                     use = boundary.contains(p, False)
                     if use:
                         ihole = 0
@@ -116,121 +145,188 @@ class MedialGeneratorBase(NodeGeneratorBase):
                             use = not holes[ihole].contains(p, True)
                             ihole += 1
                     if use:
-                        rhomax = max(rhomax, rhofunc(p))
-                        i = 1
-                    else:
-                        i = 0
-                    nglobal += mpi.allreduce(i, mpi.SUM)
-                rhomax = mpi.allreduce(rhomax, mpi.MAX)
-            print "MedialGenerator: selected a maximum density of ", rhomax
-        
-            # It's a bit tricky to properly use the Sobol sequence in parallel.  We handle this by searching for the lowest
-            # seeds that give us the desired number of points.
-            seeds = []
-            seed = 0
-            while mpi.allreduce(len(seeds), mpi.SUM) < n:
-                localseed = seed + mpi.rank
-                [coords, newseed] = i4_sobol(ndim, localseed)
-                p = boundary.xmin + length*sph.Vector(*tuple(coords))
-                use = boundary.contains(p, False)
-                if use:
-                    ihole = 0
-                    while use and ihole < len(holes):
-                        use = not holes[ihole].contains(p, True)
-                        ihole += 1
-                if use:
+                        rhoi = rhofunc(p)
+                        if rangen.random() < rhoi/rhomax:
+                            seeds.append(localseed)
+                    seed += mpi.procs
+            
+                # Drop the highest value seeds to ensure we have the correct number of total points.
+                nglobal = mpi.allreduce(len(seeds), mpi.SUM)
+                assert n + mpi.procs >= nglobal
+                seeds.sort()
+                seeds = [-1] + seeds
+                while mpi.allreduce(len(seeds), mpi.SUM) > n + mpi.procs:
+                    maxseed = mpi.allreduce(seeds[-1], mpi.MAX)
+                    assert maxseed > -1
+                    if seeds[-1] == maxseed:
+                        seeds = seeds[:-1]
+                seeds = seeds[1:]
+            
+                # Load balance the number of seeds per domain.
+                if len(seeds) > nlocal:
+                    extraseeds = seeds[nlocal:]
+                else:
+                    extraseeds = []
+                extraseeds = mpi.allreduce(extraseeds, mpi.SUM)
+                seeds = seeds[:nlocal]
+                for iproc in xrange(mpi.procs):
+                    ngrab = max(0, nlocal - len(seeds))
+                    ntaken = mpi.bcast(ngrab, root=iproc)
+                    if mpi.rank == iproc:
+                        seeds += extraseeds[:ngrab]
+                    extraseeds = extraseeds[ntaken:]
+                assert len(extraseeds) == 0
+                assert len(seeds) == nlocal
+                assert mpi.allreduce(len(seeds), mpi.SUM) == n
+            
+                # Initialize the desired number of generators in the boundary using the Sobol sequence.
+                for i, seed in enumerate(seeds):
+                    [coords, newseed] = i4_sobol(ndim, seed)
+                    p = boundary.xmin + length*sph.Vector(*tuple(coords))
                     rhoi = rhofunc(p)
-                    if rangen.random() < rhoi/rhomax:
-                        seeds.append(localseed)
-                seed += mpi.procs
+                    pos[i] = p
+                    rhof[i] = rhoi
+                    mass[i] = rhoi * boundvol/n  # Not actually correct, but mass will be updated in centroidalRelaxNodes
+                    hi = min(hmax, 2.0 * nNodePerh * (boundvol/n)**(1.0/ndim))
+                    assert hi > 0.0
+                    H[i] = sph.SymTensor.one / hi
         
-            # Drop the highest value seeds to ensure we have the correct number of total points.
-            nglobal = mpi.allreduce(len(seeds), mpi.SUM)
-            assert n + mpi.procs >= nglobal
-            seeds.sort()
-            seeds = [-1] + seeds
-            while mpi.allreduce(len(seeds), mpi.SUM) > n + mpi.procs:
-                maxseed = mpi.allreduce(seeds[-1], mpi.MAX)
-                assert maxseed > -1
-                if seeds[-1] == maxseed:
-                    seeds = seeds[:-1]
-            seeds = seeds[1:]
+                # Each domain has independently generated the correct number of points, but they are randomly distributed.
+                # Before going further it's useful to try and spatially collect the points by domain.
+                # We'll use the Spheral Peano-Hilbert space filling curve implementation to do this.
+                if mpi.procs > 1:
+                    db = sph.DataBase()
+                    db.appendNodeList(nodes)
+                    maxNodes = max(maxNodesPerDomain, 2*n/mpi.procs)
+                    redistributor = sph.PeanoHilbertOrderRedistributeNodes(2.0)
+                    redistributor.redistributeNodes(db)
         
-            # Load balance the number of seeds per domain.
-            if len(seeds) > nlocal:
-                extraseeds = seeds[nlocal:]
-            else:
-                extraseeds = []
-            extraseeds = mpi.allreduce(extraseeds, mpi.SUM)
-            seeds = seeds[:nlocal]
-            for iproc in xrange(mpi.procs):
-                ngrab = max(0, nlocal - len(seeds))
-                ntaken = mpi.bcast(ngrab, root=iproc)
-                if mpi.rank == iproc:
-                    seeds += extraseeds[:ngrab]
-                extraseeds = extraseeds[ntaken:]
-            assert len(extraseeds) == 0
-            assert len(seeds) == nlocal
-            assert mpi.allreduce(len(seeds), mpi.SUM) == n
-        
-            # Initialize the desired number of generators in the boundary using the Sobol sequence.
-            for i, seed in enumerate(seeds):
-                [coords, newseed] = i4_sobol(ndim, seed)
-                p = boundary.xmin + length*sph.Vector(*tuple(coords))
-                rhoi = rhofunc(p)
-                pos[i] = p
-                rhof[i] = rhoi
-                mass[i] = rhoi * boundvol/n  # Not actually correct, but mass will be updated in centroidalRelaxNodes
-                hi = min(hmax, 2.0 * nNodePerh * (boundvol/n)**(1.0/ndim))
-                assert hi > 0.0
-                H[i] = sph.SymTensor.one / hi
-
-            # Each domain has independently generated the correct number of points, but they are randomly distributed.
-            # Before going further it's useful to try and spatially collect the points by domain.
-            # We'll use the Spheral Peano-Hilbert space filling curve implementation to do this.
+            # If we're in parallel we need the parallel boundary.
             if mpi.procs > 1:
-                db = sph.DataBase()
-                db.appendNodeList(nodes)
-                maxNodes = max(maxNodesPerDomain, 2*n/mpi.procs)
-                redistributor = sph.PeanoHilbertOrderRedistributeNodes(2.0)
-                redistributor.redistributeNodes(db)
+                boundaries = [sph.NestedGridDistributedBoundary.instance()]
+            else:
+                boundaries = []
+        
+            # Iterate the points toward centroidal relaxation.
+            vol, surfacePoint = centroidalRelaxNodes([(nodes, boundary, holes)],
+                                                     W = WT,
+                                                     rho = rhofunc,
+                                                     gradrho = gradrho,
+                                                     boundaries = boundaries,
+                                                     fracTol = fracTol,
+                                                     centroidFrac = centroidFrac,
+                                                     maxIterations = maxIterations,
+                                                     tessellationFileName = tessellationFileName)
+        
+            # Store the values the descendent generators will need.
+            self.vol, self.surface, self.pos, self.m, self.H = [], [], [], [], []
+            for i in xrange(nodes.numInternalNodes):
+                self.vol.append(vol(0,i))
+                self.surface.append(surfacePoint(0,i))
+                self.pos.append(sph.Vector(pos[i]))
+                self.m.append(vol(0,i) * rhofunc(pos[i]))
+                self.H.append(sph.SymTensor(H[i]))
+            assert mpi.allreduce(len(self.vol), mpi.SUM) == n
+            assert mpi.allreduce(len(self.surface), mpi.SUM) == n
+            assert mpi.allreduce(len(self.pos), mpi.SUM) == n
+            assert mpi.allreduce(len(self.m), mpi.SUM) == n
+            assert mpi.allreduce(len(self.H), mpi.SUM) == n
+        
+            # If requested, enforce constant mass points.
+            if enforceConstantMassPoints:
+                msum = mpi.allreduce(sum([0.0] + self.m), mpi.SUM)
+                self.m = [msum/n]*len(self.pos)
 
-        # If we're in parallel we need the parallel boundary.
-        if mpi.procs > 1:
-            boundaries = [sph.NestedGridDistributedBoundary.instance()]
+            # If requested, we can store the state of the generator such that it can be
+            # later restored without going through all that work.
+            if cacheFileName:
+                self.dumpState(cacheFileName)
+
+        return
+
+    #---------------------------------------------------------------------------
+    # Try to read the state from a file.
+    #---------------------------------------------------------------------------
+    def restoreState(self, cacheFileName):
+        def readNodeData(f, iproc):
+            pos = f.readObject("proc%06i/pos" % iproc)
+            m = f.readObject("proc%06i/m" % iproc)
+            H = f.readObject("proc%06i/H" % iproc)
+            vol = f.readObject("proc%06i/vol" % iproc)
+            surface = f.readObject("proc%06i/surface" % iproc)
+            return pos, m, H, vol, surface
+
+        if cacheFileName is None:
+            return False
+
+        if os.path.splitext(cacheFileName) != ".silo":
+            cacheFileName += ".silo"
+        result = False
+        if mpi.rank == 0:
+            result = (cacheFileName and os.path.exists(cacheFileName))
+        result = mpi.bcast(result, root=0)
+        if result:
+            print "Restoring MedialGenerator state from %s" % cacheFileName
+            if mpi.rank == 0:
+                f = SiloFileIO(cacheFileName, FileIOSpace.Read)
+                numGeneratingProcs = f.readObject("numGeneratingProcs")
+                
+                # Decide how to divide the generating domains between our current processes.
+                n0 = numGeneratingProcs/mpi.procs
+                remainder = numGeneratingProcs % mpi.procs
+                for iproc in xrange(mpi.procs):
+                    if iproc >= numGeneratingProcs:
+                        imin, imax = 0, 0
+                    else:
+                        imin = iproc*n0 + min(iproc, remainder)
+                        imax = imin + n0
+                        if iproc < remainder:
+                            imax += 1
+                    pos, m, H, vol, surface = [], [], [], [], []
+                    for igenproc in xrange(imin, imax):
+                        posi, mi, Hi, voli, surfacei = readNodeData(f, igenproc)
+                        pos += posi
+                        m += mi
+                        H += Hi
+                        vol += voli
+                        surface += surfacei
+                    if iproc == 0:
+                        self.pos, self.m, self.H, self.vol, self.surface = pos, m, H, vol, surface
+                    else:
+                        mpi.send((pos, m, H, vol, surface), dest=iproc)
+                f.close()
+            else:
+                self.pos, self.m, self.H, self.vol, self.surface = mpi.recv(source=0)[0]
+        return result
+
+    #---------------------------------------------------------------------------
+    # Write the state to a file.
+    #---------------------------------------------------------------------------
+    def dumpState(self, cacheFileName):
+        def writeNodeData(f, iproc, pos, m, H, vol, surface):
+            f.writeObject(pos, "proc%06i/pos" % iproc)
+            f.writeObject(m, "proc%06i/m" % iproc)
+            f.writeObject(H, "proc%06i/H" % iproc)
+            f.writeObject(vol, "proc%06i/vol" % iproc)
+            f.writeObject(surface, "proc%06i/surface" % iproc)
+            return
+
+        if os.path.splitext(cacheFileName) != ".silo":
+            cacheFileName += ".silo"
+        if mpi.rank == 0:
+            dire = os.path.dirname(cacheFileName)
+            if dire and not os.path.exists(dire):
+                os.makedirs(dire)
+            f = SiloFileIO(cacheFileName, FileIOSpace.Create)
+            f.writeObject(mpi.procs, "numGeneratingProcs")
+            writeNodeData(f, 0, self.pos, self.m, self.H, self.vol, self.surface)
+            for iproc in xrange(1, mpi.procs):
+                pos, m, H, vol, surface = mpi.recv(source=iproc)[0]
+                writeNodeData(f, iproc, pos, m, H, vol, surface)
+            f.close()
         else:
-            boundaries = []
-
-        # Iterate the points toward centroidal relaxation.
-        vol, surfacePoint = centroidalRelaxNodes([(nodes, boundary, holes)],
-                                                 W = WT,
-                                                 rho = rhofunc,
-                                                 gradrho = gradrho,
-                                                 boundaries = boundaries,
-                                                 fracTol = fracTol,
-                                                 centroidFrac = centroidFrac,
-                                                 maxIterations = maxIterations,
-                                                 tessellationFileName = tessellationFileName)
-
-        # Store the values the descendent generators will need.
-        self.vol, self.surface, self.pos, self.m, self.H = [], [], [], [], []
-        for i in xrange(nodes.numInternalNodes):
-            self.vol.append(vol(0,i))
-            self.surface.append(surfacePoint(0,i))
-            self.pos.append(sph.Vector(pos[i]))
-            self.m.append(vol(0,i) * rhofunc(pos[i]))
-            self.H.append(sph.SymTensor(H[i]))
-        assert mpi.allreduce(len(self.vol), mpi.SUM) == n
-        assert mpi.allreduce(len(self.surface), mpi.SUM) == n
-        assert mpi.allreduce(len(self.pos), mpi.SUM) == n
-        assert mpi.allreduce(len(self.m), mpi.SUM) == n
-        assert mpi.allreduce(len(self.H), mpi.SUM) == n
-
-        # If requested, enforce constant mass points.
-        if enforceConstantMassPoints:
-            msum = mpi.allreduce(sum([0.0] + self.m), mpi.SUM)
-            self.m = [msum/n]*len(self.pos)
-
+            mpi.send((self.pos, self.m, self.H, self.vol, self.surface), dest=0)
+        mpi.barrier()
         return
 
 #-------------------------------------------------------------------------------
@@ -260,7 +356,8 @@ class MedialGenerator2d(MedialGeneratorBase):
                  randomseed = 492739149274,
                  maxNodesPerDomain = 1000,
                  seedPositions = None,
-                 enforceConstantMassPoints = False):
+                 enforceConstantMassPoints = False,
+                 cacheFileName = None):
 
         # The base generator does most of the work.
         MedialGeneratorBase.__init__(self,
@@ -278,7 +375,8 @@ class MedialGenerator2d(MedialGeneratorBase):
                                      randomseed = randomseed,
                                      maxNodesPerDomain = maxNodesPerDomain,
                                      seedPositions = seedPositions,
-                                     enforceConstantMassPoints = enforceConstantMassPoints)
+                                     enforceConstantMassPoints = enforceConstantMassPoints,
+                                     cacheFileName = cacheFileName)
 
         # Convert to our now regrettable standard coordinate storage for generators.
         self.x = [x.x + offset[0] for x in self.pos]
@@ -357,7 +455,8 @@ class MedialGenerator3d(MedialGeneratorBase):
                  randomseed = 492739149274,
                  maxNodesPerDomain = 1000,
                  seedPositions = None,
-                 enforceConstantMassPoints = False):
+                 enforceConstantMassPoints = False,
+                 cacheFileName = None):
 
         # The base generator does most of the work.
         MedialGeneratorBase.__init__(self,
@@ -375,7 +474,8 @@ class MedialGenerator3d(MedialGeneratorBase):
                                      randomseed = randomseed,
                                      maxNodesPerDomain = maxNodesPerDomain,
                                      seedPositions = seedPositions,
-                                     enforceConstantMassPoints = enforceConstantMassPoints)
+                                     enforceConstantMassPoints = enforceConstantMassPoints,
+                                     cacheFileName = cacheFileName)
 
         # Convert to our now regrettable standard coordinate storage for generators.
         self.x = [x.x + offset[0] for x in self.pos]

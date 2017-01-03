@@ -17,7 +17,8 @@ SRCTARGETS = \
 	$(srcdir)/vectorstringUtilities.cc
 
 PYTHONTARGETS = \
-	$(srcdir)/GzipFileIO.py
+	$(srcdir)/GzipFileIO.py \
+	$(srcdir)/PlyFileIO.py
 
 #-------------------------------------------------------------------------------
 include $(BUILDTOP)/helpers/makefile_master

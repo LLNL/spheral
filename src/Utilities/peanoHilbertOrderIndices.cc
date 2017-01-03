@@ -8,7 +8,6 @@
 //
 // Created by JMO, Sat Dec 20 22:36:58 PST 2008
 //----------------------------------------------------------------------------//
-#include "boost/foreach.hpp"
 #include "boost/assign.hpp"
 
 #include "peanoHilbertOrderIndices.hh"
@@ -421,7 +420,7 @@ peanoHilbertOrderIndices(const FieldList<Dimension, typename Dimension::Vector>&
   // Prepare the result.
   FieldList<Dimension, Key> result(FieldSpace::Copy);
   const vector<NodeList<Dimension>*>& nodeListPtrs = positions.nodeListPtrs();
-  BOOST_FOREACH(const NodeList<Dimension>* nodeListPtr, nodeListPtrs) {
+  for (const NodeList<Dimension>* nodeListPtr: nodeListPtrs) {
     result.appendNewField("hashed indices", *nodeListPtr, KeyTraits::zero);
   }
 

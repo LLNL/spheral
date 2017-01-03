@@ -362,6 +362,19 @@ class TestPolyhedron(unittest.TestCase):
         self.failUnless(polyhedron2 == self.polyhedron,
                         "Failed to copy construct.")
 
+    #---------------------------------------------------------------------------
+    # Test shift in-place
+    #---------------------------------------------------------------------------
+    def testShiftInPlace(self):
+        shift = Vector(rangen.uniform(-10.0, -10.0),
+                       rangen.uniform(-10.0, -10.0))
+        polyhedron2 = Polyhedron(self.polyhedron)
+        polyhedron2 += shift
+        for p0, p1 in zip([self.polyhedron.xmin, self.polyhedron.xmax] + list(self.polyhedron.vertices()),
+                          [polyhedron2.xmin, polyhedron2.xmax] + list(polyhedron2.vertices())):
+            pshift = p0 + shift
+            self.failUnless(pshift == p1, "In-place shift point comparison failed: %s != %s" % (pshift, p1))
+
 
 if __name__ == "__main__":
     unittest.main()

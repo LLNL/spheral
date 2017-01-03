@@ -240,7 +240,7 @@ collapseDegenerateVertices(const std::vector<Vector>& vertices,
                            const Uint tol) {
   using namespace std;
   using namespace boost;
-  typedef tuple<Uint, Uint, Uint> Key;
+  typedef boost::tuple<Uint, Uint, Uint> Key;
 
   unsigned i, j, k;
   const unsigned n = vertices.size();
@@ -392,7 +392,7 @@ exchangeTuples(const std::vector<boost::tuple<T, T, T> >& localKeys,
 #ifdef USE_MPI
   using namespace std;
   using namespace boost;
-  typedef tuple<T, T, T> Key;
+  typedef boost::tuple<T, T, T> Key;
 
   const unsigned numNeighborDomains = neighborDomains.size();
   REQUIRE(sendIndices.size() == numNeighborDomains);

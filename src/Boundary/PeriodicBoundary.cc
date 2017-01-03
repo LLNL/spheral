@@ -6,7 +6,6 @@
 //----------------------------------------------------------------------------//
 
 #include <algorithm>
-#include "boost/foreach.hpp"
 
 #include "PeriodicBoundary.hh"
 #include "Geometry/GeomPlane.hh"
@@ -94,11 +93,10 @@ PeriodicBoundary<Dimension>::setGhostNodes(NodeList<Dimension>& nodeList) {
   BEGIN_CONTRACT_SCOPE
   {
     const unsigned num = nodeList.numNodes();
-    unsigned i;
-    BOOST_FOREACH(i, mPlane1Boundary.controlNodes(nodeList)) { CHECK(i < num); }
-    BOOST_FOREACH(i, mPlane1Boundary.ghostNodes(nodeList)) { CHECK(i < num); }
-    BOOST_FOREACH(i, mPlane2Boundary.controlNodes(nodeList)) { CHECK(i < num); }
-    BOOST_FOREACH(i, mPlane2Boundary.ghostNodes(nodeList)) { CHECK(i < num); }
+    for (unsigned i: mPlane1Boundary.controlNodes(nodeList)) { CHECK(i < num); }
+    for (unsigned i: mPlane1Boundary.ghostNodes(nodeList)) { CHECK(i < num); }
+    for (unsigned i: mPlane2Boundary.controlNodes(nodeList)) { CHECK(i < num); }
+    for (unsigned i: mPlane2Boundary.ghostNodes(nodeList)) { CHECK(i < num); }
   }
   END_CONTRACT_SCOPE
 

@@ -94,6 +94,12 @@ public:
   // Find the point in the polyhedron closest to the given point.
   Vector closestPoint(const Vector& p) const;
 
+  // Shift by a Vector delta.
+  GeomPolygon& operator+=(const Vector& rhs);
+  GeomPolygon& operator-=(const Vector& rhs);
+  GeomPolygon operator+(const Vector& rhs) const;
+  GeomPolygon operator-(const Vector& rhs) const;
+
   // Comparisons.
   bool operator==(const GeomPolygon& rhs) const;
   bool operator!=(const GeomPolygon& rhs) const;

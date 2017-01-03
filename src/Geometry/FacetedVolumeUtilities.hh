@@ -10,7 +10,6 @@
 #include <vector>
 #include <set>
 #include <deque>
-#include "boost/foreach.hpp"
 
 namespace Spheral {
 namespace GeometryUtilities {
@@ -38,7 +37,7 @@ computeAncillaryGeometry(const PolyType& poly,
     for (unsigned fi = 0; fi != nfacets; ++fi) {
       const Facet& facet = facets[fi];
       const vector<unsigned>& ipoints = facet.ipoints();
-      BOOST_FOREACH(const unsigned vi, ipoints) {
+      for (const unsigned vi: ipoints) {
         uniqueFacetIDs[vi].insert(fi);
       }
     }
@@ -52,8 +51,8 @@ computeAncillaryGeometry(const PolyType& poly,
   facetFacetConnectivity = vector<vector<unsigned> >(nfacets);
   {
     vector<set<unsigned> > uniqueFacetIDs(nfacets);
-    BOOST_FOREACH(const vector<unsigned>& vertexFacets, vertexFacetConnectivity) {
-      BOOST_FOREACH(const unsigned fi, vertexFacets) {
+    for (const vector<unsigned>& vertexFacets: vertexFacetConnectivity) {
+      for (const unsigned fi: vertexFacets) {
         uniqueFacetIDs[fi].insert(vertexFacets.begin(), vertexFacets.end());
       }
     }
@@ -67,7 +66,7 @@ computeAncillaryGeometry(const PolyType& poly,
   // Find the normals to the surface at each vertex.
   vertexUnitNormals = vector<Vector>(nverts);
   for (unsigned i = 0; i != nverts; ++i) {
-    BOOST_FOREACH(const unsigned fi, vertexFacetConnectivity[i]) {
+    for (const unsigned fi: vertexFacetConnectivity[i]) {
       vertexUnitNormals[i] += facets[fi].normal()/facets[fi].area();
     }
     vertexUnitNormals[i] = vertexUnitNormals[i].unitVector();

@@ -109,6 +109,7 @@ case $COMPILERS in
          PYTHONCC=$CC
          PYTHONCXX=$CXX
          PARMETISCC=$MPICC
+         CXXFLAGS+=" -std=c++11"
 
       elif test $OSNAME = "Darwin"; then
          CC=clang
@@ -125,7 +126,7 @@ case $COMPILERS in
          PYTHONCC=$CC
          PYTHONCXX=$CXX
          PARMETISCC=$MPICC
-
+         CXXFLAGS+=" -mmacosx-version-min=10.7 -std=c++11 -stdlib=libc++"
       else
          CC=gcc
          CXX=g++
@@ -139,6 +140,7 @@ case $COMPILERS in
          PYTHONCC=$CC
          PYTHONCXX=$CXX
          PARMETISCC=$MPICC
+         CXXFLAGS+=" -std=c++11"
 
       fi
       ;;

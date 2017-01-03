@@ -9,7 +9,6 @@
 
 #include "boost/unordered_map.hpp"
 #include "boost/tuple/tuple_comparison.hpp"
-#include "boost/foreach.hpp"
 #include "boost/functional/hash.hpp"
 #include "boost/bimap.hpp"
 
@@ -1205,7 +1204,7 @@ globalMeshNodeIDs() const {
     for (unsigned k = 0; k != numNeighborDomains; ++k) {
       CHECK(mNeighborDomains[k] < numDomains);
       if (mNeighborDomains[k] < rank) {
-        BOOST_FOREACH(unsigned i, mSharedNodes[k]) {
+        for (const unsigned i: mSharedNodes[k]) {
           CHECK(i < nlocal);
           owner[i] = mNeighborDomains[k];
         }
@@ -1379,14 +1378,14 @@ globalMeshFaceIDs(const vector<unsigned>& globalNodeIDs) const {
   // Now hash the faceIDs based on the global nodes. 
   vector<unsigned> result;
   result.reserve(mFaces.size());
-  BOOST_FOREACH(const Face& face, mFaces) {
+  for (const Face& face: mFaces) {
     const vector<unsigned>& locals = face.nodeIDs();
     vector<unsigned> globals;
     globals.reserve(locals.size());
-    BOOST_FOREACH(unsigned i, locals) globals.push_back(globalNodeIDs[i]);
+    for (const unsigned i: locals) globals.push_back(globalNodeIDs[i]);
     sort(globals.begin(), globals.end());
     size_t seed;
-    BOOST_FOREACH(unsigned i, globals) boost::hash_combine(seed, i);
+    for (const unsigned i: globals) boost::hash_combine(seed, i);
     result.push_back(seed);
   }
 
@@ -1466,7 +1465,7 @@ boundingBox(typename Dimension::Vector& xmin,
 //   unsigned numFaces = globalFaceIDs.size();
 //   vector<MPI_Request> requests;
 //   requests.reserve(2*mNeighborDomains.size());
-//   BOOST_FOREACH(unsigned neighborProc, mNeighborDomains) {
+//   for (unsigned neighborProc: mNeighborDomains) {
 //     requests.push_back(MPI_Request());
 //     MPI_Isend(&numFaces, 1, MPI_UNSIGNED, neighborProc, 1, Communicator::communicator(), &requests.back());
 //     if (numFaces > 0) {
@@ -1480,7 +1479,7 @@ boundingBox(typename Dimension::Vector& xmin,
 //   // them.  We store the local face indices in the order of the sorted global face IDs,
 //   // which should ensure that both processors agree on the face order.
 //   cerr << Process::getRank() << " Mesh::buildAncillaryCommData 4" << endl;
-//   BOOST_FOREACH(unsigned neighborProc, mNeighborDomains) {
+//   for (unsigned neighborProc: mNeighborDomains) {
 //     unsigned numOtherFaces;
 //     MPI_Status recvStatus;
 //     MPI_Recv(&numOtherFaces, 1, MPI_UNSIGNED, neighborProc, 1, Communicator::communicator(), &recvStatus);
@@ -1489,7 +1488,7 @@ boundingBox(typename Dimension::Vector& xmin,
 //       vector<unsigned> otherGlobalFaceIDs(numOtherFaces);
 //       MPI_Recv(&otherGlobalFaceIDs.front(), numOtherFaces, MPI_UNSIGNED, neighborProc, 2, Communicator::communicator(), &recvStatus);
 //       vector<unsigned>::iterator lastItr = sortedGlobalIDs.begin(), itr;
-//       BOOST_FOREACH(unsigned iglobal, otherGlobalFaceIDs) {
+//       for (unsigned iglobal: otherGlobalFaceIDs) {
 //         itr = lower_bound(lastItr, sortedGlobalIDs.end(), iglobal);
 //         if (itr != sortedGlobalIDs.end()) {
 //           mSharedFaces.back().push_back(global2local[iglobal]);
@@ -1519,7 +1518,7 @@ boundingBox(typename Dimension::Vector& xmin,
 //     vector<unsigned> numSharedFaces(mNeighborDomains.size());
 //     vector<vector<unsigned> > globalSharedFaces(mNeighborDomains.size());
 //     for (unsigned idomain = 0; idomain != mNeighborDomains.size(); ++idomain) {
-//       BOOST_FOREACH(unsigned i, mSharedFaces[idomain]) globalSharedFaces[idomain].push_back(globalFaceIDs[i]);
+//       for (unsigned i: mSharedFaces[idomain]) globalSharedFaces[idomain].push_back(globalFaceIDs[i]);
 //     }
 
 //     cerr << Process::getRank() << "Mesh::buildAncillaryCommData 7" << endl;
@@ -1566,7 +1565,7 @@ valid() const {
   std::stringstream result;
 
   // Check that each face has two cells, and has orientation.
-  BOOST_FOREACH(const Face& face, mFaces) {
+  for (const Face& face: mFaces) {
     if (not ((face.zone1ID() <  0 and face.zone2ID() >= 0) or
              (face.zone1ID() >= 0 and face.zone2ID() <  0))) {
       result << "Expected one negative zone ID for face " 

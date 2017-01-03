@@ -246,7 +246,7 @@ computeVoronoiVolume(const FieldList<Dim<2>, Dim<2>::Vector>& position,
         // If provided boundaries, we implement them as additional neighbor clipping planes.
         if (haveBoundaries) {
           const vector<Facet>& facets = boundaries[nodeListi].facets();
-          BOOST_FOREACH(const Facet& facet, facets) {
+          for (const Facet& facet: facets) {
             const Vector p = facet.closestPoint(ri);
             Vector rij = ri - p;
             if (rij.magnitude2() < kernelExtent*kernelExtent) {
@@ -265,9 +265,9 @@ computeVoronoiVolume(const FieldList<Dim<2>, Dim<2>::Vector>& position,
           }
 
           // Same thing with holes.
-          BOOST_FOREACH(const FacetedVolume& hole, holes[nodeListi]) {
+          for (const FacetedVolume& hole: holes[nodeListi]) {
             const vector<Facet>& facets = hole.facets();
-            BOOST_FOREACH(const Facet& facet, facets) {
+            for (const Facet& facet: facets) {
               const Vector p = facet.closestPoint(ri);
               Vector rij = ri - p;
               if (rij.magnitude2() < kernelExtent*kernelExtent) {
@@ -292,7 +292,7 @@ computeVoronoiVolume(const FieldList<Dim<2>, Dim<2>::Vector>& position,
 
         // Initialize our seed cell shape.
         r2d_poly celli = initialCell;
-        BOOST_FOREACH(r2d_vertex& vert, celli.verts) {
+        for (r2d_vertex& vert: celli.verts) {
           const Vector vi = Hinv*Vector(vert.pos.x, vert.pos.y);
           vert.pos.x = vi.x();
           vert.pos.y = vi.y();
