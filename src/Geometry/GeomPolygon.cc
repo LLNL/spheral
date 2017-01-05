@@ -868,6 +868,49 @@ operator-(const GeomPolygon::Vector& rhs) const {
 }
 
 //------------------------------------------------------------------------------
+// *= Scalar, scale polygon
+//------------------------------------------------------------------------------
+GeomPolygon&
+GeomPolygon::
+operator*=(const double rhs) {
+  for (auto& v: mVertices) v *= rhs;
+  this->setBoundingBox();
+  return *this;
+}
+
+//------------------------------------------------------------------------------
+// /= Scalar, scale polygon
+//------------------------------------------------------------------------------
+GeomPolygon&
+GeomPolygon::
+operator/=(const double rhs) {
+  (*this) *= 1.0/rhs;
+  return *this;
+}
+
+//------------------------------------------------------------------------------
+// * Scalar, scale polygon
+//------------------------------------------------------------------------------
+GeomPolygon
+GeomPolygon::
+operator*(const double rhs) const {
+  GeomPolygon result(*this);
+  result *= rhs;
+  return result;
+}
+
+//------------------------------------------------------------------------------
+// / Scalar, scale polygon
+//------------------------------------------------------------------------------
+GeomPolygon
+GeomPolygon::
+operator/(const double rhs) const {
+  GeomPolygon result(*this);
+  result /= rhs;
+  return result;
+}
+
+//------------------------------------------------------------------------------
 // ==
 //------------------------------------------------------------------------------
 bool

@@ -665,6 +665,11 @@ self.vector_of_vector_of_FacetedVolume%(dim)s = addObject(mod, "vector_of_vector
         x.add_binary_numeric_operator("+", right = "Vector1d")
         x.add_binary_numeric_operator("-", right = "Vector1d")
 
+        x.add_inplace_numeric_operator("*=", right = "double")
+        x.add_inplace_numeric_operator("/=", right = "double")
+        x.add_binary_numeric_operator("*", right = "double")
+        x.add_binary_numeric_operator("/", right = "double")
+
         # Comparisons.
         x.add_binary_comparison_operator("==")
         x.add_binary_comparison_operator("!=")
@@ -801,11 +806,17 @@ self.vector_of_vector_of_FacetedVolume%(dim)s = addObject(mod, "vector_of_vector
         x.add_method("reconstruct", None, [constrefparam("vector_of_Vector2d", "vertices"),
                                            constrefparam("vector_of_vector_of_unsigned", "facetVertices")])
         x.add_method("convex", "bool", [param("double", "tol", default_value="1.0e-8")], is_const=True)
+        x.add_method("setBoundingBox", None, [])
 
         x.add_inplace_numeric_operator("+=", right = "Vector2d")
         x.add_inplace_numeric_operator("-=", right = "Vector2d")
         x.add_binary_numeric_operator("+", right = "Vector2d")
         x.add_binary_numeric_operator("-", right = "Vector2d")
+
+        x.add_inplace_numeric_operator("*=", right = "double")
+        x.add_inplace_numeric_operator("/=", right = "double")
+        x.add_binary_numeric_operator("*", right = "double")
+        x.add_binary_numeric_operator("/", right = "double")
 
         # Attributes.
         x.add_instance_attribute("xmin", "Vector2d", getter="xmin", is_const=True)
@@ -885,11 +896,17 @@ self.vector_of_vector_of_FacetedVolume%(dim)s = addObject(mod, "vector_of_vector
                                            constrefparam("vector_of_vector_of_unsigned", "facetVertices"),
                                            constrefparam("vector_of_Vector3d", "facetNormals")])
         x.add_method("convex", "bool", [param("double", "tol", default_value="1.0e-8")], is_const=True)
+        x.add_method("setBoundingBox", None, [])
 
         x.add_inplace_numeric_operator("+=", right = "Vector3d")
         x.add_inplace_numeric_operator("-=", right = "Vector3d")
         x.add_binary_numeric_operator("+", right = "Vector3d")
         x.add_binary_numeric_operator("-", right = "Vector3d")
+
+        x.add_inplace_numeric_operator("*=", right = "double")
+        x.add_inplace_numeric_operator("/=", right = "double")
+        x.add_binary_numeric_operator("*", right = "double")
+        x.add_binary_numeric_operator("/", right = "double")
 
         # Attributes.
         x.add_instance_attribute("xmin", "Vector3d", getter="xmin", is_const=True)
