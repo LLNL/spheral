@@ -71,6 +71,107 @@ void findPolygonExtent(double& xmin, double& xmax, const Dim<2>::Vector& nhat, c
 //   xmin = -xmax;
 // }
 
+//------------------------------------------------------------------------------
+// Return a Spheral GeomPolygon from an R2D polygon.
+//------------------------------------------------------------------------------
+Dim<2>::FacetedVolume
+r2d_poly_to_polygon(const r2d_poly& celli,
+                    const Dim<2>::Vector& offset,
+                    const double tol) {
+
+  // Note, R2D leaves lots of degeneracies in the cell points/edges, so we do this in two passes.  First,
+  // read all the vertices in CCW order and build a linked list pointing to the next one.  Then we
+  // go over these points and remove any degeneracies by updating just the linked list to loop over
+  // unique vertices.
+
+  using std::vector;
+  typedef Dim<2>::Scalar Scalar;
+  typedef Dim<2>::Vector Vector;
+  typedef Dim<2>::SymTensor SymTensor;
+  typedef Dim<2>::FacetedVolume FacetedVolume;
+  typedef Dim<2>::FacetedVolume::Facet Facet;
+
+  // if (barf) { // BLAGO
+  //   cerr << "Raw verts: " << endl;
+  //   for (unsigned j = 0; j != celli.nverts; ++j) {
+  //     cerr << " --> " << celli.verts[j].pos.x + ri.x() << " " << celli.verts[j].pos.y + ri.y() << endl;
+  //   }
+  // } // BLAGO
+
+  // Read out the R2D cell in CCW order.  We have to scan for the positive loop of edges though.
+  vector<Vector> verts;
+  vector<int> vertcheck(celli.nverts, 0);
+  {
+    int nextvert, ivert, firstvert;
+    double area = -1.0;
+    while (area < 0.0) {
+      area = 0.0;
+
+      // Find the first unused vertex.
+      firstvert = 0;
+      while (firstvert != celli.nverts and vertcheck[firstvert] == 1) firstvert++;
+      CHECK(firstvert != celli.nverts);
+
+      // Read out the loop of vertices.
+      ivert = firstvert;
+      nextvert = -1;
+      verts.clear();
+      while (nextvert != firstvert) {
+        verts.push_back(Vector(celli.verts[ivert].pos.x,
+                               celli.verts[ivert].pos.y));
+        vertcheck[ivert] = 1;
+        nextvert = celli.verts[ivert].pnbrs[0];
+        // if (barf) cerr << " **> " << (verts.back() + ri) << " " << ivert << " "  << nextvert << endl;
+        area += (celli.verts[ivert].pos.x * celli.verts[nextvert].pos.y -
+                 celli.verts[ivert].pos.y * celli.verts[nextvert].pos.x);
+        ivert = nextvert;
+      }
+    }
+    // if (barf) cerr << " area : " << area << endl;
+  }
+
+  // Flag any redundant vertices to not be used.
+  vector<int> usevert(verts.size(), 1);
+  for (int j = 0; j != verts.size() - 1; ++j) {
+    for (int k = j + 1; k != verts.size(); ++k) {
+      if (usevert[k] == 1 and (verts[j] - verts[k]).magnitude2() < tol) usevert[k] = 0;
+    }
+  }
+
+  // Now we can read out the vertices we're actually using and build the return polygon.
+  vector<Vector> uniqueVerts;
+  vector<vector<unsigned> > facetIndices;
+  int k = 0;
+  for (int j = 0; j != verts.size(); ++j) {
+    if (usevert[j] == 1) {
+      uniqueVerts.push_back(offset + verts[j]);
+      facetIndices.push_back(vector<unsigned>(2));
+      facetIndices.back()[0] = k;
+      facetIndices.back()[1] = ++k;
+    }
+  }
+  facetIndices.back()[1] = 0;
+  CHECK(uniqueVerts.size() >= 3);
+
+  // // Check the dang things are in CCW order.
+  // double area = 0.0;
+  // for (int j = 0; j != uniqueVerts.size(); ++j) {
+  //   area += ((uniqueVerts[facetIndices[j][0]] - ri).cross(uniqueVerts[facetIndices[j][1]] - ri)).z();
+  // }
+  // if (area < 0.0) std::reverse(uniqueVerts.begin(), uniqueVerts.end());
+
+  // if (barf) {
+  //   cout << " --> " << i << " : ";
+  //   std::copy(verts.begin(), verts.end(), std::ostream_iterator<Dim<2>::Vector>(std::cout, " "));
+  //   std::cout << endl;
+  //   cout << " --> " << i << " : ";
+  //   std::copy(uniqueVerts.begin(), uniqueVerts.end(), std::ostream_iterator<Dim<2>::Vector>(std::cout, " "));
+  //   std::cout << endl;
+  // }
+
+  return FacetedVolume(uniqueVerts, facetIndices);
+}
+
 // //------------------------------------------------------------------------------
 // // Convert a Spheral polygon to an R2D polygon.  Since our polygon may be
 // // non-trivial (include holes) we can't just use r2d_init_poly.
@@ -399,94 +500,7 @@ computeVoronoiVolume(const FieldList<Dim<2>, Dim<2>::Vector>& position,
         }
 
         // If requested, we can return the cell geometries.
-        // Note, R2D leaves lots of degeneracies in the cell points/edges, so we do this in two passes.  First,
-        // read all the vertices in CCW order and build a linked list pointing to the next one.  Then we
-        // go over these points and remove any degeneracies by updating just the linked list to loop over
-        // unique vertices.
-        if (returnCells) {
-
-          // if (barf) { // BLAGO
-          //   cerr << "Raw verts: " << endl;
-          //   for (unsigned j = 0; j != celli.nverts; ++j) {
-          //     cerr << " --> " << celli.verts[j].pos.x + ri.x() << " " << celli.verts[j].pos.y + ri.y() << endl;
-          //   }
-          // } // BLAGO
-
-          // Read out the R2D cell in CCW order.  We have to scan for the positive loop of edges though.
-          vector<Vector> verts;
-          vector<int> vertcheck(celli.nverts, 0);
-          {
-            int nextvert, ivert, firstvert;
-            double area = -1.0;
-            while (area < 0.0) {
-              area = 0.0;
-
-              // Find the first unused vertex.
-              firstvert = 0;
-              while (firstvert != celli.nverts and vertcheck[firstvert] == 1) firstvert++;
-              CHECK(firstvert != celli.nverts);
-
-              // Read out the loop of vertices.
-              ivert = firstvert;
-              nextvert = -1;
-              verts.clear();
-              while (nextvert != firstvert) {
-                verts.push_back(Vector(celli.verts[ivert].pos.x,
-                                       celli.verts[ivert].pos.y));
-                vertcheck[ivert] = 1;
-                nextvert = celli.verts[ivert].pnbrs[0];
-                // if (barf) cerr << " **> " << (verts.back() + ri) << " " << ivert << " "  << nextvert << endl;
-                area += (celli.verts[ivert].pos.x * celli.verts[nextvert].pos.y -
-                         celli.verts[ivert].pos.y * celli.verts[nextvert].pos.x);
-                ivert = nextvert;
-              }
-            }
-            // if (barf) cerr << " area : " << area << endl;
-          }
-
-          // Flag any redundant vertices to not be used.
-          vector<int> usevert(verts.size(), 1);
-          const Scalar tol = 1.0e-8/sqrt(Hdeti);
-          for (int j = 0; j != verts.size() - 1; ++j) {
-            for (int k = j + 1; k != verts.size(); ++k) {
-              if (usevert[k] == 1 and (verts[j] - verts[k]).magnitude2() < tol) usevert[k] = 0;
-            }
-          }
-
-          // Now we can read out the vertices we're actually using and build the return polygon.
-          vector<Vector> uniqueVerts;
-          vector<vector<unsigned> > facetIndices;
-          int k = 0;
-          for (int j = 0; j != verts.size(); ++j) {
-            if (usevert[j] == 1) {
-              uniqueVerts.push_back(ri + verts[j]);
-              facetIndices.push_back(vector<unsigned>(2));
-              facetIndices.back()[0] = k;
-              facetIndices.back()[1] = ++k;
-            }
-          }
-          facetIndices.back()[1] = 0;
-          CHECK(uniqueVerts.size() >= 3);
-
-          // // Check the dang things are in CCW order.
-          // double area = 0.0;
-          // for (int j = 0; j != uniqueVerts.size(); ++j) {
-          //   area += ((uniqueVerts[facetIndices[j][0]] - ri).cross(uniqueVerts[facetIndices[j][1]] - ri)).z();
-          // }
-          // if (area < 0.0) std::reverse(uniqueVerts.begin(), uniqueVerts.end());
-
-          // if (barf) {
-          //   cout << " --> " << i << " : ";
-          //   std::copy(verts.begin(), verts.end(), std::ostream_iterator<Dim<2>::Vector>(std::cout, " "));
-          //   std::cout << endl;
-          //   cout << " --> " << i << " : ";
-          //   std::copy(uniqueVerts.begin(), uniqueVerts.end(), std::ostream_iterator<Dim<2>::Vector>(std::cout, " "));
-          //   std::cout << endl;
-          // }
-          cells(nodeListi, i) = FacetedVolume(uniqueVerts, facetIndices);
-          // if (barf) cerr << cells(nodeListi, i) << endl;
-        }
-
+        if (returnCells) cells(nodeListi, i) = r2d_poly_to_polygon(celli, ri, 1.0e-8/sqrt(Hdeti));
       }
     }
 
