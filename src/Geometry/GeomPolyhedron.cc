@@ -733,6 +733,49 @@ operator-(const GeomPolyhedron::Vector& rhs) const {
 }
 
 //------------------------------------------------------------------------------
+// *= Scalar, scale polyhedron
+//------------------------------------------------------------------------------
+GeomPolyhedron&
+GeomPolyhedron::
+operator*=(const double rhs) {
+  for (auto& v: mVertices) v *= rhs;
+  this->setBoundingBox();
+  return *this;
+}
+
+//------------------------------------------------------------------------------
+// /= Scalar, scale polyhedron
+//------------------------------------------------------------------------------
+GeomPolyhedron&
+GeomPolyhedron::
+operator/=(const double rhs) {
+  (*this) *= 1.0/rhs;
+  return *this;
+}
+
+//------------------------------------------------------------------------------
+// * Scalar, scale polyhedron
+//------------------------------------------------------------------------------
+GeomPolyhedron
+GeomPolyhedron::
+operator*(const double rhs) const {
+  GeomPolyhedron result(*this);
+  result *= rhs;
+  return result;
+}
+
+//------------------------------------------------------------------------------
+// / Scalar, scale polyhedron
+//------------------------------------------------------------------------------
+GeomPolyhedron
+GeomPolyhedron::
+operator/(const double rhs) const {
+  GeomPolyhedron result(*this);
+  result /= rhs;
+  return result;
+}
+
+//------------------------------------------------------------------------------
 // ==
 //------------------------------------------------------------------------------
 bool
