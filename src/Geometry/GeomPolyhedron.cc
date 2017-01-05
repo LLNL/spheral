@@ -807,6 +807,7 @@ void
 GeomPolyhedron::
 setBoundingBox() {
   boundingBox(mVertices, mXmin, mXmax);
+  mConvex = this->convex();
 }
 
 //------------------------------------------------------------------------------
