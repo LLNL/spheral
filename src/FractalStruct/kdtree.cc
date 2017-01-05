@@ -96,6 +96,8 @@ namespace FractalSpace
   }
   void KdTree::LoadKdTree(int cornera,KdTreeNode* pnode)
   {
+    static const int MINX=Misc::pow(2,29);
+    static const int MAXX=-MINX;
     nnodes++;
     KdTreeNode* knode=pnode->kids[cornera];
     knode->kids.assign(2,NULL);
@@ -107,8 +109,8 @@ namespace FractalSpace
     // cerr << " " << knode->box[0] << " " << knode->box[1] << " " << knode->box[2] << " " << knode->box[3] << " " << knode->box[4] << " " << knode->box[5] << endl;
     knode->ppoints.clear();
     vector <int>pos(3);
-    int MINX=Misc::pow(2,29);
-    int MAXX=-MINX;
+    vector<int>KBOXA={MINX,MINX,MINX};
+    vector<int>KBOXB={MAXX,MAXX,MAXX};
     auto itp=pnode->ppoints.begin();
     auto itpe=pnode->ppoints.end();
     while(itp!=itpe)
@@ -122,12 +124,22 @@ namespace FractalSpace
 	  {
 	    knode->ppoints.push_back(*itp);
 	    itp=pnode->ppoints.erase(itp);
-	    MINX=min(MINX,pos[dir]);
-	    MAXX=max(MAXX,pos[dir]);
+	    for(int ni=0;ni<3;ni++)
+	      {
+		KBOXA[ni]=min(KBOXA[ni],pos[ni]);
+		KBOXB[ni]=max(KBOXB[ni],pos[ni]);
+	      }
 	  }
       }
-    knode->box[DIR2]=MINX;
-    knode->box[DIR2+1]=MAXX+1;
+    int ni2=0;
+    for(int ni=0;ni<3;ni++)
+      {
+	knode->box[ni2]=KBOXA[ni];
+	knode->box[ni2+1]=KBOXB[ni]+1;
+	ni2+=2;
+      }
+    // knode->box[DIR2]=MINX;
+    // knode->box[DIR2+1]=MAXX+1;
     int vol=(knode->box[1]-knode->box[0]);
     vol*=(knode->box[3]-knode->box[2]);
     vol*=(knode->box[5]-knode->box[4]);
