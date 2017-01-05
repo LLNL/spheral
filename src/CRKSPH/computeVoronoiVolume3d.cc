@@ -57,6 +57,31 @@ void findPolyhedronExtent(double& xmin, double& xmax, const Dim<3>::Vector& nhat
   xmax = std::max(0.0, xmax);
 }
 
+//------------------------------------------------------------------------------
+// Return a Spheral GeomPolyhedron from an R3D polyhedron.
+//------------------------------------------------------------------------------
+Dim<3>::FacetedVolume
+r3d_poly_to_polyhedron(const r3d_poly& celli,
+                       const Dim<3>::Vector& offset,
+                       const double tol) {
+
+  using std::vector;
+  typedef Dim<3>::Scalar Scalar;
+  typedef Dim<3>::Vector Vector;
+  typedef Dim<3>::SymTensor SymTensor;
+  typedef Dim<3>::FacetedVolume FacetedVolume;
+  typedef Dim<3>::FacetedVolume::Facet Facet;
+
+  // We're going to cheat here a bit.  We know that currently computeVoronoiVolume3d only returns
+  // convex polyhedra, so we'll take the easy way out and just build the convex hull of the
+  // vertices.
+  vector<Vector> verts;
+  for (auto i = 0; i != celli.nverts; ++i) verts.push_back(Vector(celli.verts[i].pos.x,
+                                                                  celli.verts[i].pos.y,
+                                                                  celli.verts[i].pos.z));
+  return FacetedVolume(verts);
+}
+
 }           // anonymous namespace
 
 //------------------------------------------------------------------------------
@@ -361,6 +386,20 @@ computeVoronoiVolume(const FieldList<Dim<3>, Dim<3>::Vector>& position,
           // cerr << "Correcting " << nodeListi << " " << i << " to new position " << (ri + deltaMedian(nodeListi, i)) << endl;
         }
 
+        // Check if the candidate motion is still in the boundary.  If not, project back.
+        if (haveBoundaries) {
+          if (not boundaries[nodeListi].contains(ri + deltaMedian(nodeListi, i))) {
+            deltaMedian(nodeListi, i) = boundaries[nodeListi].closestPoint(ri + deltaMedian(nodeListi, i)) - ri;
+          }
+          for (unsigned ihole = 0; ihole != holes[nodeListi].size(); ++ihole) {
+            if (holes[nodeListi][ihole].contains(ri + deltaMedian(nodeListi, i))) {
+              deltaMedian(nodeListi, i) = holes[nodeListi][ihole].closestPoint(ri + deltaMedian(nodeListi, i)) - ri;
+            }
+          }
+        }
+
+        // If requested, we can return the cell geometries.
+        if (returnCells) cells(nodeListi, i) = r3d_poly_to_polyhedron(celli, ri, 1.0e-8/Dim<3>::rootnu(Hdeti));
       }
     }
 
