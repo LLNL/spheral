@@ -295,6 +295,9 @@ hypre_load_balance.o :	hypre_load_balance.cc $(classes)
 hypre_points_boxes.o :	hypre_points_boxes.cc $(classes)
 	$(compile) -c hypre_points_boxes.cc
 #
+hypre_points_clean.o :	hypre_points_clean.cc $(classes)
+	$(compile) -c hypre_points_clean.cc
+#
 hypre_points_zero.o :	hypre_points_zero.cc $(classes)
 	$(compile) -c hypre_points_zero.cc
 #
@@ -367,8 +370,14 @@ make_me_some_particles.o :	make_me_some_particles.cc $(classes)
 make_sphere.o :	make_sphere.cc $(classes)
 	$(compile) -c make_sphere.cc
 #
+match_edges.o :	match_edges.cc $(classes)
+	$(compile) -c match_edges.cc
+#
 max_predict.o :	max_predict.cc $(classes)
 	$(compile) -c max_predict.cc
+#
+mini_solve.o :	mini_solve.cc $(classes)
+	$(compile) -c mini_solve.cc
 #
 neighbor_easy.o :	neighbor_easy.cc $(classes)
 	$(compile) -c neighbor_easy.cc
@@ -397,11 +406,14 @@ periodic_solver.o :	periodic_solver.cc $(classes)
 periodic_solver_mpi.o :	periodic_solver_mpi.cc $(classes)
 	$(compile) -c periodic_solver_mpi.cc
 #
-potential_start.o :	potential_start.cc $(classes)
-	$(compile) -c potential_start.cc
+points_on_nodes.o :	points_on_nodes.cc $(classes)
+	$(compile) -c points_on_nodes.cc
 #
 poisson_solver_struct.o :	poisson_solver_struct.cc $(classes)
 	$(compile) -c poisson_solver_struct.cc
+#
+potential_start.o :	potential_start.cc $(classes)
+	$(compile) -c potential_start.cc
 #
 power_spectrum.o :	power_spectrum.cc $(classes)
 	$(compile) -c power_spectrum.cc
@@ -435,6 +447,9 @@ shortest_vector.o :	shortest_vector.cc $(classes)
 #
 shrink_cube.o :	shrink_cube.cc $(classes)
 	$(compile) -c shrink_cube.cc
+#
+small_exceptions.o :	small_exceptions.cc $(classes)
+	$(compile) -c small_exceptions.cc
 #
 sor_solver.o :	sor_solver.cc $(classes)
 	$(compile) -c sor_solver.cc
@@ -487,8 +502,14 @@ testfftwS.o :	testfftwS.cc
 test_gal.o :	test_gal.cc $(classes)
 	$(compile) -c test_gal.cc
 #
+test_good_point.o :	test_good_point.cc $(classes)
+	$(compile) -c test_good_point.cc
+#
 test_group.o :	test_group.cc $(classes)
 	$(compile) -c test_group.cc
+#
+test_points.o :	test_points.cc 
+	$(compile) -c test_points.cc
 #
 test_tree.o :	test_tree.cc $(classes)
 	$(compile) -c test_tree.cc
@@ -599,6 +620,7 @@ high_points.o \
 left_right.o \
 list_buffer.o \
 make_me_a_galaxy.o \
+match_edges.o \
 max_predict.o \
 neighbor_easy.o \
 on_edge.o \
@@ -607,6 +629,7 @@ potential_start.o \
 power_spectrum.o \
 remove_pseudo_particles.o \
 shrink_cube.o \
+small_exceptions.o \
 sort3_list.o \
 split_particle.o \
 start_writing.o \
@@ -614,7 +637,9 @@ sum_pot_forces.o \
 take_a_cosmic_leap.o \
 take_a_leap_isol.o \
 test_gal.o \
+test_good_point.o \
 test_group.o \
+test_points.o \
 test_tree.o \
 tree_dump.o \
 tree_start.o \
@@ -630,12 +655,14 @@ box_stats.o \
 clean_overlaps.o \
 hypre_best_boxes.o \
 hypre_points_boxes.o \
+hypre_points_clean.o \
 hypre_points_struct.o \
 hypre_solve_struct.o \
 hypre_points_zero.o \
 hypre_test_boxes.o \
 hypre_world_create.o \
 node_groups_struct.o \
+points_on_nodes.o \
 poisson_solver_struct.o \
 #
 files_hypre_empty_o= \

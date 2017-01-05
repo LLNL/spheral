@@ -8,12 +8,15 @@ namespace FractalSpace
     //--------------------------------------------------------------------------------------------------------------------------------
     // Guess what, as Nina says.
     //--------------------------------------------------------------------------------------------------------------------------------
-    if(point.list_particles.size() < fractal.get_minimum_number()) return false;
+    if(point.list_particles.size() < fractal.get_minimum_number())
+      return false;
     unsigned int np=0;
-    for(vector<Particle*>::const_iterator particle_itr=point.list_particles.begin();particle_itr !=point.list_particles.end();++particle_itr)
+    for(auto &part : point.list_particles)
       {
-	if((*particle_itr)->get_p_highest_level_group() != 0) np++;
-	if(np  >= fractal.get_minimum_number()) return true;
+	if(part->get_p_highest_level_group() != 0)
+	  np++;
+	if(np >= fractal.get_minimum_number())
+	  return true;
       }
     return false;
   }

@@ -40,16 +40,18 @@ int main(int argc, char* argv[])
   double PADDING=-1;
   if(argc >= 9)
     PADDING=atoi(argv[8]);
-  int HYPREMAXONNODE=40000;
+  int HYPREMAXONNODE=-1;
   if(argc >= 10)
     HYPREMAXONNODE=atoi(argv[9]);
+  HYPREMAXONNODE=min(HYPREMAXONNODE,45);
   double HYPREMULTIPLIER=2.0;
   if(argc >= 11)
     HYPREMULTIPLIER=atof(argv[10]);
   if(Mess::IAMROOT)
     {
-      cerr << "starting out " << argc << " " << FRN << " " << _inteL_ << " " << GRL << " " << FractalNodes0 << " " << FractalNodes1 << " " << FractalNodes2;
-      cerr << " " << NumberParticles << " " << SHRINK << " " << HYPREMAXONNODE << " " << HYPREMULTIPLIER << "\n";
+      cerr << "starting out " << argc << " " << FRN << " " << _inteL_ << " " << GRL << " " << FractalNodes0 << " " << FractalNodes1 << " " << FractalNodes2 << "\n";
+      cerr << " " << "NumberParticles" << " " << "SHRINK" << " " << "PADDING" << " " << "HYPREMAXONNODE" << " " << "HYPREMULTIPLIER" << "\n";
+      cerr << " " << NumberParticles << " " << SHRINK << " " << PADDING << " " << HYPREMAXONNODE << " " << HYPREMULTIPLIER << "\n";
       int ar=0;
       while(ar < argc)
 	{
@@ -169,4 +171,5 @@ int main(int argc, char* argv[])
     }
   fractal_memory_content_delete(PFM);
   fractal_memory_delete(PFM);
+  return 0;
 }
