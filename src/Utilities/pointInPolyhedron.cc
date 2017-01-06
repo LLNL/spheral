@@ -11,8 +11,6 @@
 #include "testBoxIntersection.hh"
 #include "pointOnPolyhedron.hh"
 #include "segmentIntersectEdges.hh"
-#include "pointInPolygon.hh"
-#include "rotationMatrix.hh"
 #include "lineSegmentIntersections.hh"
 
 namespace Spheral {
@@ -275,7 +273,11 @@ bool pointInPolyhedron(const Dim<3>::Vector& p,
 //          << testPointInBox(p, polyhedron.xmin(), polyhedron.xmax(), tol) << endl;
 // }
 
-  return ((numIntersections1 % 2 != 0) and (numIntersections2 % 2 != 0) and (numIntersections3 % 2 != 0));
+  // VERIFY2((numIntersections1 % 2)  == (numIntersections2 % 2) and
+  //         (numIntersections1 % 2)  == (numIntersections3 % 2),
+  //         numIntersections1 << " " << numIntersections2 << " " << numIntersections3);
+  // return ((numIntersections1 % 2 != 0) and (numIntersections2 % 2 != 0) and (numIntersections3 % 2 != 0));
+  return (numIntersections1 % 2 != 0);
 }
 
 }
