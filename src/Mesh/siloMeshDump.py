@@ -279,7 +279,7 @@ def writeDomainMeshSiloFile(dirName, mesh, index2zone, label, nodeLists, time, c
         for iface in xrange(numFaces):
             for j in xrange(len(mesh.faces[iface])):
                 faceNodes[iface].append(mesh.faces[iface][j])
-            assert len(faceNodes[-1]) == face.numNodes
+            assert len(faceNodes[iface]) == len(mesh.faces[iface])
         assert len(faceNodes) == numFaces
 
         # Construct the zone-face list.  We use the ones complement of a face ID
