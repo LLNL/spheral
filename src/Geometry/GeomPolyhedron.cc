@@ -644,7 +644,7 @@ volume() const {
   double result = 0.0;
   const Vector c = centroid();
   for (const Facet& facet: mFacets) {
-    result += facet.area() * abs(facet.normal().dot(facet.point(0) - c));
+    result += facet.area() * facet.normal().dot(facet.point(0) - c);
   }
   ENSURE(result >= 0.0);
   return result/3.0;
