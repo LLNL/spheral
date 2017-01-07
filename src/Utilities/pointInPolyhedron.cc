@@ -277,7 +277,12 @@ bool pointInPolyhedron(const Dim<3>::Vector& p,
   //         (numIntersections1 % 2)  == (numIntersections3 % 2),
   //         numIntersections1 << " " << numIntersections2 << " " << numIntersections3);
   // return ((numIntersections1 % 2 != 0) and (numIntersections2 % 2 != 0) and (numIntersections3 % 2 != 0));
-  return (numIntersections1 % 2 != 0);
+
+  // Really all three of these measures should give us the same answer.  However, due to precision and such they can vary.  We punt here a bit and
+  // take the best two out three as our answer.
+  return ((numIntersections1 % 2 != 0 ? 1 : 0) +
+          (numIntersections2 % 2 != 0 ? 1 : 0) +
+          (numIntersections3 % 2 != 0 ? 1 : 0) >= 2);
 }
 
 }
