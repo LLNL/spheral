@@ -1,6 +1,8 @@
 //------------------------------------------------------------------------------
 // A collection of Spheral wrappers for using R2D/R3D methods.
 //------------------------------------------------------------------------------
+#include <tuple>
+
 #include "r3d_utils.hh"
 
 namespace Spheral {
