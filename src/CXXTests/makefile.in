@@ -1,13 +1,16 @@
 # -*-makefile-*-
 # Spheral++ CXXTests package makefile
 #-------------------------------------------------------------------------------
+srcdir = @abs_srcdir@
+VPATH = @abs_srcdir@
+SPHERALTOP = @abs_top_srcdir@
+BUILDTOP = @abs_top_builddir@
+
 PKGNAME = CXXTests
 PKGDIR = $(PKGNAME)/
 LIBTARGET = libSpheral_$(PKGNAME).$(DYLIBEXT)
-SRCTARGETS = \
-	testNodeIteratorsInst.cc
-SPHERALTOP = ..
-ARCH = $(SPHERALARCH)
+INSTSRCTARGETS = \
+	$(srcdir)/testNodeIteratorsInst.cc.py
 
 #-------------------------------------------------------------------------------
-include $(SPHERALTOP)/helpers/makefile_master
+include $(BUILDTOP)/helpers/makefile_master

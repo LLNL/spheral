@@ -7,6 +7,30 @@ namespace Spheral {
 
 using namespace std;
 
+namespace {   // anonymous namespace
+
+//------------------------------------------------------------------------------
+// A class to hold three indices making up a triangular face.
+//------------------------------------------------------------------------------
+struct Face3d {
+  tuple<unsigned, unsigned, unsigned> indices, sorted_indices;
+  Face3d(unsigned i, unsigned j, unsigned k):
+    indices(make_tuple(i, j, k)),
+    sorted_indices(indices) {
+    CHECK(i != j and j != k and i != k);
+    if (get<0>(sorted_indices) > get<1>(sorted_indices)) swap(get<0>(sorted_indices), get<1>(sorted_indices));
+    if (get<0>(sorted_indices) > get<2>(sorted_indices)) swap(get<0>(sorted_indices), get<2>(sorted_indices));
+    if (get<1>(sorted_indices) > get<2>(sorted_indices)) swap(get<1>(sorted_indices), get<2>(sorted_indices));
+    CHECK(get<0>(sorted_indices) < get<1>(sorted_indices) and
+          get<1>(sorted_indices) < get<2>(sorted_indices));
+  }
+  bool operator==(const Face3d& rhs) const { return sorted_indices == rhs.sorted_indices; }
+  bool operator!=(const Face3d& rhs) const { return sorted_indices != rhs.sorted_indices; }
+  bool operator< (const Face3d& rhs) const { return sorted_indices <  rhs.sorted_indices; }
+};
+
+}             // anonymous namespace
+
 //------------------------------------------------------------------------------
 // Return a Spheral Polygon from an R2D polygon.
 //------------------------------------------------------------------------------
@@ -123,8 +147,45 @@ r3d_poly_to_polyhedron(const r3d_poly& celli,
   typedef Dim<3>::SymTensor SymTensor;
   typedef Dim<3>::FacetedVolume FacetedVolume;
   typedef Dim<3>::FacetedVolume::Facet Facet;
+  typedef std::tuple<unsigned, unsigned, unsigned> face;
 
-  return FacetedVolume();
+  // Is there anything to do?
+  if (celli.nverts == 0) return FacetedVolume();
+
+  // Build a unique set of vertices.
+  vector<Vector> verts;
+  vector<unsigned> r3dv2v(celli.nverts);
+  unsigned i, j, k;
+  for (unsigned i = 0; i != celli.nverts; ++i) {
+    const Vector p(celli.verts[i].pos.x,
+                   celli.verts[i].pos.y,
+                   celli.verts[i].pos.z);
+    j = 0;
+    while (j < verts.size() and (verts[j] - p).magnitude2() > tol) ++j;
+    if (j == verts.size()) verts.push_back(p);
+    r3dv2v[i] = j;
+    CHECK(j < r3dv2v.size() and r3dv2v[j] < verts.size());
+  }
+
+  // Now build the unique (triangular) faces.
+  vector<Face3d> faces;
+  for (i = 0; i != celli.nverts; ++i) {
+    faces.push_back(Face3d(r3dv2v[i], r3dv2v[celli.verts[i].pnbrs[0]], r3dv2v[celli.verts[i].pnbrs[1]]));
+    faces.push_back(Face3d(r3dv2v[i], r3dv2v[celli.verts[i].pnbrs[1]], r3dv2v[celli.verts[i].pnbrs[2]]));
+    faces.push_back(Face3d(r3dv2v[i], r3dv2v[celli.verts[i].pnbrs[2]], r3dv2v[celli.verts[i].pnbrs[0]]));
+  }
+  sort(faces.begin(), faces.end());
+  const auto lastUniqueFace = unique(faces.begin(), faces.end());
+  
+  // Copy the unique faces to a single array.
+  vector<vector<unsigned> > faceIndices;
+  for (auto faceItr = faces.begin(); faceItr != lastUniqueFace; ++faceItr) {
+    std::tie(i, j, k) = faceItr->indices;
+    faceIndices.push_back(vector<unsigned>({i, j, k}));
+  }
+
+  // Now we can build the polyhedron.
+  return FacetedVolume(verts, faceIndices);
 }
 
 //------------------------------------------------------------------------------
