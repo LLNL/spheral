@@ -269,6 +269,16 @@ Spheral.add_function("segmentIntersectEdges", "bool", [constrefparam("%(vector)s
                              [constrefparam("Polyhedron", "poly0"), param("int", "numLevels")],
                              docstring = "Return a new Polyhedron based on refining an existing one a given number of levels.")
 
+        # R2D/R3D utilities
+        Spheral.add_function("clipFacetedVolume", "Polygon", 
+                             [constrefparam("Polygon", "poly"),
+                              constrefparam("vector_of_Plane2d", "planes")],
+                             docstring = "Clip a polygon with a set of planes.")
+        Spheral.add_function("clipFacetedVolume", "Polyhedron", 
+                             [constrefparam("Polyhedron", "poly"),
+                              constrefparam("vector_of_Plane3d", "planes")],
+                             docstring = "Clip a polyhedron with a set of planes.")
+
         # Boost.math functions.
         Spheral.add_function("legendre_p", "double", 
                              [param("int", "l"), param("int", "m"), param("double", "x")],
