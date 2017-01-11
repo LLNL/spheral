@@ -58,7 +58,7 @@ self.space.add_function("testGlobalRefineNodeIterators", "std::string",
                         template_parameters = ["%(Dim)s"],
                         custom_name = "testGlobalRefineNodeIterators")
 ''' % {"ndim" : ndim,
-       "Dim"  : "Dim<%i>"})
+       "Dim"  : "Dim<%i>" % ndim})
 
         return
 
