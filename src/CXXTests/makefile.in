@@ -11,6 +11,8 @@ PKGDIR = $(PKGNAME)/
 LIBTARGET = libSpheral_$(PKGNAME).$(DYLIBEXT)
 INSTSRCTARGETS = \
 	$(srcdir)/testNodeIteratorsInst.cc.py
+SRCTARGETS = \
+	$(srcdir)/test_r3d_utils.cc
 
 #-------------------------------------------------------------------------------
 include $(BUILDTOP)/helpers/makefile_master
