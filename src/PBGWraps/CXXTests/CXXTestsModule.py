@@ -19,6 +19,7 @@ class CXXTests:
 
         # Includes.
         mod.add_include('"%s/CXXTests/testNodeIterators.hh"' % topsrcdir)
+        mod.add_include('"%s/CXXTests/test_r3d_utils.hh"' % topsrcdir)
 
         # Namespace.
         Spheral = mod.add_cpp_namespace("Spheral")
@@ -32,6 +33,12 @@ class CXXTests:
     def generateBindings(self, mod):
 
         for ndim in self.dims:
+
+            self.space.add_function("test_polygon_to_r2d_poly", "std::string", [])
+            self.space.add_function("test_r2d_poly_to_polygon", "std::string", [])
+            self.space.add_function("test_polyhedron_to_r3d_poly", "std::string", [])
+            self.space.add_function("test_r3d_poly_to_polyhedron", "std::string", [])
+
             exec('''
 self.space.add_function("testGlobalAllNodeIterators", "std::string",
                         [constrefparam("DataBase%(ndim)id", "dataBase")],
@@ -57,8 +64,11 @@ self.space.add_function("testGlobalRefineNodeIterators", "std::string",
                         [constrefparam("DataBase%(ndim)id", "dataBase")],
                         template_parameters = ["%(Dim)s"],
                         custom_name = "testGlobalRefineNodeIterators")
+
 ''' % {"ndim" : ndim,
        "Dim"  : "Dim<%i>" % ndim})
+
+
 
         return
 
