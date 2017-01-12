@@ -1,0 +1,200 @@
+//------------------------------------------------------------------------------
+// test_r3d_utils
+//
+// A collection of C++ test functions to exercise the r3d_utils methods.
+//
+// Created by JMO, Wed Jan 11 15:14:32 PST 2017
+//------------------------------------------------------------------------------
+#include <vector>
+
+#include "test_r3d_utils.hh"
+#include "Utilities/r3d_utils.hh"
+#include "Geometry/Dimension.hh"
+
+namespace Spheral {
+namespace Testing {
+
+using namespace std;
+
+//------------------------------------------------------------------------------
+// Test converting from polygon -> r2d_poly.
+//------------------------------------------------------------------------------
+std::string test_polygon_to_r2d_poly() {
+
+  typedef Dim<2>::Vector Vector;
+  typedef Dim<2>::FacetedVolume FacetedVolume;
+
+  // Make ouselves an H shaped polygon.
+  vector<Vector> vertices0 = {Vector(0,0),
+                                      Vector(1,0),
+                                      Vector(1,1), 
+                                      Vector(2,1),
+                                      Vector(2,0),
+                                      Vector(3,0),
+                                      Vector(3,3), 
+                                      Vector(2,3), 
+                                      Vector(2,2), 
+                                      Vector(1,2), 
+                                      Vector(1,3), 
+                                      Vector(0,3)};
+  const unsigned nv0 = vertices0.size();
+  vector<vector<unsigned> > facets0(nv0, vector<unsigned>(2));
+  for (unsigned i = 0; i != nv0; ++i) facets0[i] = {i, i+1};
+  facets0[nv0-1][1] = 0;
+  const FacetedVolume polygon0(vertices0, facets0);
+  CHECK(fuzzyEqual(polygon0.volume(), 7.0, 1.0e-10));
+
+  // Convert to a r2d_poly.
+  r2d_poly poly2d;
+  polygon_to_r2d_poly(polygon0, poly2d);
+
+  // Is it correct?
+  if (not r2d_is_good(&poly2d)) return "ERROR: r2d_is_good fails";
+  r2d_real area;
+  r2d_reduce(&poly2d, &area, 0);
+  if (not fuzzyEqual(area, 7.0, 1.0e-10)) return "ERROR: area mismatch: " + to_string(area) + " != 7.0";
+
+  // Must be OK.
+  return "OK";
+}
+    
+//------------------------------------------------------------------------------
+// Test converting from r2d_poly -> polygon.
+//------------------------------------------------------------------------------
+std::string test_r2d_poly_to_polygon() {
+
+  typedef Dim<2>::Vector Vector;
+  typedef Dim<2>::FacetedVolume FacetedVolume;
+
+  // Make ouselves an H shaped polygon.
+  vector<r2d_rvec2> verts0 = {{0,0},
+                              {1,0},
+                              {1,1}, 
+                              {2,1},
+                              {2,0},
+                              {3,0},
+                              {3,3}, 
+                              {2,3}, 
+                              {2,2}, 
+                              {1,2}, 
+                              {1,3}, 
+                              {0,3}};
+  const unsigned nv0 = verts0.size();
+  r2d_poly poly2d;
+  r2d_init_poly(&poly2d, &verts0[0], nv0);
+  CHECK(r2d_is_good(&poly2d));
+
+  // Convert to a polygon.
+  Dim<2>::FacetedVolume polygon;
+  r2d_poly_to_polygon(poly2d, 1.0e-8, polygon);
+
+  // Is it correct?
+  if (not fuzzyEqual(polygon.volume(), 7.0, 1.0e-10)) return "ERROR: area mismatch: " + to_string(polygon.volume()) + " != 7.0";
+
+  // Must be OK.
+  return "OK";
+}
+
+//------------------------------------------------------------------------------
+// Test converting from polyhedron -> r3d_poly.
+//------------------------------------------------------------------------------
+std::string test_polyhedron_to_r3d_poly() {
+
+  typedef Dim<3>::Vector Vector;
+  typedef Dim<3>::FacetedVolume FacetedVolume;
+
+  // Cube test.
+  {
+    vector<Vector> vertices0 = {Vector(1, 1, 1), 
+                                Vector(1, 2, 1),
+                                Vector(2, 1, 1),
+                                Vector(2, 2, 1),
+                                Vector(1, 1, 2), 
+                                Vector(1, 2, 2),
+                                Vector(2, 1, 2),
+                                Vector(2, 2, 2)};
+    const FacetedVolume cube0(vertices0);   // Builds the convex hull.
+    CHECK(fuzzyEqual(cube0.volume(), 1.0, 1.0e-10));
+
+    // Convert to a r3d_poly.
+    r3d_poly cube3d;
+    polyhedron_to_r3d_poly(cube0, cube3d);
+
+    // Is it correct?
+    if (not r3d_is_good(&cube3d)) return "ERROR: r3d_is_good fails for cube";
+    r3d_real vol;
+    r3d_reduce(&cube3d, &vol, 0);
+    if (not fuzzyEqual(vol, 1.0, 1.0e-10)) return "ERROR: volume mismatch for cube: " + to_string(vol) + " != 1.0";
+  }
+
+  // Icosahedron test.
+  {
+    const unsigned nverts = 12;
+    const unsigned nfaces = 20;
+    vector<vector<unsigned> > facets = {
+      // 5 faces around point 0
+      {0, 11, 5},
+      {0, 5, 1},
+      {0, 1, 7},
+      {0, 7, 10},
+      {0, 10, 11},
+      // 5 adjacent faces
+      {1, 5, 9},
+      {5, 11, 4},
+      {11, 10, 2},
+      {10, 7, 6},
+      {7, 1, 8},
+      // 5 faces around point 3
+      {3, 9, 4},
+      {3, 4, 2},
+      {3, 2, 6},
+      {3, 6, 8},
+      {3, 8, 9},
+      // 5 adjacent faces
+      {4, 9, 5},
+      {2, 4, 11},
+      {6, 2, 10},
+      {8, 6, 7},
+      {9, 8, 1},
+    };
+    const double t = (1.0 + sqrt(5.0)) / 2.0;
+    vector<Vector> verts = {           // Array of vertex coordinates.
+      Vector(-1,  t,   0),
+      Vector( 1,  t,   0),
+      Vector(-1, -t,   0),
+      Vector( 1, -t,   0),
+      Vector( 0, -1,   t),
+      Vector( 0,  1,   t),
+      Vector( 0, -1,  -t),
+      Vector( 0,  1,  -t),
+      Vector( t,  0,  -1),
+      Vector( t,  0,   1),
+      Vector(-t,  0,  -1),
+      Vector(-t,  0,   1)
+    };
+    const FacetedVolume ico0(verts, facets);
+
+    // Convert to a r3d_poly.
+    r3d_poly ico3d;
+    polyhedron_to_r3d_poly(ico0, ico3d);
+
+    // Is it correct?
+    if (not r3d_is_good(&ico3d)) return "ERROR: r3d_is_good fails for icosahedron";
+    const double vol0 = ico0.volume();
+    r3d_real vol;
+    r3d_reduce(&ico3d, &vol, 0);
+    if (not fuzzyEqual(vol, vol0, 1.0e-10)) return "ERROR: volume mismatch for icosahedron: " + to_string(vol) + " != " + to_string(vol0);
+  }
+
+  return "OK";
+}
+
+//------------------------------------------------------------------------------
+// Test converting from r3d_poly -> polyhedron.
+//------------------------------------------------------------------------------
+std::string test_r3d_poly_to_polyhedron() {
+  return "OK";
+}
+
+}
+}
