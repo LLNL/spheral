@@ -9,6 +9,9 @@
 namespace Spheral {
 
 using namespace std;
+using std::min;
+using std::max;
+using std::abs;
 
 //------------------------------------------------------------------------------
 // Compare a set of points:
@@ -37,25 +40,18 @@ GeomFacet3d::Vector
 GeomFacet3d::
 position() const {
   const unsigned n = mPoints.size();
+  REQUIRE(n >= 3);
+  Vector result;
   unsigned i, j;
-  double area, areasum = 0.0;
-  Vector c0, result;
-  REQUIRE(n > 0);
-
-  for (i = 0; i != n; ++i) c0 += point(i);
-  c0 /= n;
-
-  // Specialize for triangles, which are easy!
-  if (n == 3) return c0;
-
-  for (i = 0; i != n; ++i) {
+  double circum, dl;
+  for (unsigned i = 0; i != n; ++i) {
     j = (i + 1) % n;
-    area = (point(i) - c0).cross(point(j) - c0).magnitude(); // This is off by a factor of 2 but will cancel.
-    areasum += area;
-    result += area * (c0 + point(i) + point(j));
+    dl = (point(i) - point(j)).magnitude();
+    result += (point(i) + point(j)) * dl;
+    circum += dl;
   }
-  CHECK(areasum > 0.0);
-  return result/(3.0 * areasum);
+  result /= 2.0*circum;
+  return result;
 }
 
 //------------------------------------------------------------------------------
@@ -64,14 +60,14 @@ position() const {
 double
 GeomFacet3d::
 area() const {
-  double result = 0.0;
+  Vector vecsum;
   const Vector cent = this->position();
   unsigned i, j, npts = mPoints.size();
   for (i = 0; i != npts; ++i) {
     j = (i + 1) % npts;
-    result += (point(i) - cent).cross(point(j) - cent).magnitude();
+    vecsum += (point(i) - cent).cross(point(j) - cent);
   }
-  result *= 0.5;
+  const double result = 0.5*vecsum.magnitude();
   ENSURE(result >= 0.0);
   return result;
 }
@@ -117,6 +113,23 @@ closestPoint(const GeomFacet3d::Vector& p) const {
 
   // That's it.
   return result;
+}
+
+//------------------------------------------------------------------------------
+// Check if the facet is planar.
+//------------------------------------------------------------------------------
+bool
+GeomFacet3d::
+planar() const {
+  const auto nv = mPoints.size();
+  if (nv == 3) return true;       // Simple if this is a triangular facet!
+  const auto a = this->area();
+  const auto tol = std::max(1.0e-15, 1.0e-8*a);
+  const auto& verts = *mVerticesPtr;
+  unsigned i = 1;
+  while (i < nv - 1 and
+         abs(abs((verts[mPoints[i]] - verts[mPoints[0]]).cross(verts[mPoints[(i+1)%nv]] - verts[mPoints[0]]).dot(mNormal)) - 1.0) < tol) ++i;
+  return (i == nv - 1);
 }
 
 }

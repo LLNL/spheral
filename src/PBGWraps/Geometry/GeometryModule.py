@@ -737,6 +737,7 @@ self.vector_of_Plane%(dim)s = addObject(mod, "vector_of_Plane%(dim)s", allow_sub
         x.add_method("point", "Vector3d", [param("unsigned int", "index")], is_const=True)
         x.add_method("distance", "double", [constrefparam("Vector3d", "point")], is_const=True)
         x.add_method("closestPoint", "Vector3d", [constrefparam("Vector3d", "point")], is_const=True)
+        x.add_method("planar", "bool", [], is_const=True)
 
         # Attributes.
         x.add_instance_attribute("ipoints", "vector_of_unsigned", getter="ipoints", is_const=True)

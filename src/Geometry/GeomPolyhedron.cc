@@ -19,6 +19,7 @@
 #include "Utilities/PairComparisons.hh"
 #include "Utilities/CounterClockwiseComparator.hh"
 #include "Utilities/pointInPolyhedron.hh"
+#include "Utilities/safeInv.hh"
 
 extern "C" {
 #include "libqhull/qhull_a.h"
@@ -251,8 +252,10 @@ GeomPolyhedron(const vector<GeomPolyhedron::Vector>& points,
   mRinterior2(-1.0),
   mConvex(false) {
 
+  unsigned i, j, n;
+  double dl, circum;
   vector<unsigned> indices;
-  Vector a, b, normal, centroid;
+  Vector normal, ni, centroid;
   mFacets.reserve(facetIndices.size());
 
   // Construct the facets.
@@ -261,16 +264,35 @@ GeomPolyhedron(const vector<GeomPolyhedron::Vector>& points,
     VERIFY2(*max_element(indices.begin(), indices.end()) < points.size(),
             "Bad vertex index for facet.");
 
-    // Pick three points and construct an arbitrary normal.
+    // Figure out the centroid of the facet.
+    n = indices.size();
     centroid.Zero();
-    for (auto i: indices) centroid += mVertices[i];
-    centroid /= indices.size();
-    a = mVertices[indices[0]] - centroid;
-    b = mVertices[indices[1]] - centroid;
-    normal = a.cross(b);
-    VERIFY(normal.magnitude2() > 0.0);
-    normal = normal.unitVector();
+    circum = 0.0;
+    for (i = 0; i != n; ++i) {
+      j = (i + 1) % n;
+      dl = (mVertices[indices[i]] - mVertices[indices[j]]).magnitude();
+      centroid += (mVertices[indices[i]] + mVertices[indices[j]]) * dl;
+      circum += dl;
+    }
+    centroid /= 2.0*circum;
 
+    // Figure out the normal.
+    if (n == 3) {
+
+      // Triangular facets are easy.
+      normal = (mVertices[indices[1]] - mVertices[indices[0]]).cross(mVertices[indices[2]] - mVertices[indices[0]]);
+
+    } else {
+
+      // Figure out the area weighted normal.  No need to divide by the area 'cause we turn it into a unit normal.
+      normal.Zero();
+      for (i = 0; i != n; ++i) {
+        j = (i + 1) % n;
+        normal += (mVertices[indices[i]] - centroid).cross(mVertices[indices[j]] - centroid);
+      }
+    }
+    CHECK2(normal.magnitude2() > 0.0, normal << " " << facetIndices.size());
+    normal = normal.unitVector();
     mFacets.push_back(Facet(mVertices, indices, normal));
   }
   CHECK(mFacets.size() == facetIndices.size());
@@ -287,9 +309,15 @@ GeomPolyhedron(const vector<GeomPolyhedron::Vector>& points,
   // Stash the centroid and inscribed radius for use in containment.  If the centroid is not contained however,
   // we set this internal radius to zero to disable this accelerated containment checking.
   mCentroid = this->centroid();
+
+  // BLAGO!
+  cerr << " --> " << mCentroid << endl;
+  for (const auto& facet: mFacets) cerr << "Facet: " << facet.area() << " " << facet.position() << " " << facet.normal() << endl;
+  // BLAGO!
+
   if (pointInPolyhedron(mCentroid, *this, false, 1.0e-10)) {
     mRinterior2 = numeric_limits<double>::max();
-    for (const Facet& facet: mFacets) mRinterior2 = min(mRinterior2, facet.distance(mCentroid));
+    for (const auto& facet: mFacets) mRinterior2 = min(mRinterior2, facet.distance(mCentroid));
     mRinterior2 = FastMath::square(mRinterior2);
   } else {
     mRinterior2 = -1.0;
@@ -532,27 +560,17 @@ intersect(const std::pair<Vector, Vector>& rhs) const {
 GeomPolyhedron::Vector
 GeomPolyhedron::
 centroid() const {
-  const unsigned n = mVertices.size();
+  // Area weight by the facets.
   Vector result;
-  if (n == 0) return result;
-  CHECK(n >= 4);
-  const Vector c0 = std::accumulate(mVertices.begin(), mVertices.end(), Vector())/n;
-
-  // Specialize for tets, which are easy!
-  if (n == 4) return c0;
-
-  // Walk the facets.  Note we assume all facets are planar here!
-  unsigned i, j;
-  double vol, volsum = 0.0;
-  Vector fc;
-  for (const Facet& facet: mFacets) {
-    fc = facet.position();
-    vol = facet.area() * facet.normal().dot(facet.point(0) - c0);  // Should be one third of this, but will cancel.
-    volsum += vol;
-    result += vol * (0.25*c0 + 0.75*fc);
+  double area, areasum = 0.0;
+  for (const auto& facet: mFacets) {
+    area = facet.area();
+    areasum += area;
+    result += area * facet.position();
+    cerr << " C: " << area << " " << areasum << " " << facet.position() << result << endl;
   }
-  CHECK(volsum > 0.0);
-  result /= volsum;
+  result *= safeInvVar(areasum);
+  cerr << " Cfinal: " << result << endl;
   return result;
 }
 
