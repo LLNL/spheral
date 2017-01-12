@@ -61,6 +61,9 @@ public:
   // Compute the closest point on the facet to the given point.
   Vector closestPoint(const Vector& p) const;
 
+  // Check if the facet is planar.
+  bool planar() const;
+
   // Comparisons.
   bool operator==(const GeomFacet3d& rhs) const;
   bool operator!=(const GeomFacet3d& rhs) const;
