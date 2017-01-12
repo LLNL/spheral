@@ -196,11 +196,12 @@ std::string test_r3d_poly_to_polyhedron() {
 
   typedef Dim<3>::Vector Vector;
   typedef Dim<3>::FacetedVolume FacetedVolume;
+  typedef Dim<3>::FacetedVolume::Facet Facet;
 
   // Cube test.
   {
-    vector<r3d_rvec3> vertices0 = {{1, 1, 1}, 
-                                   {2, 2, 2}};
+    vector<r3d_rvec3> vertices0 = {{0, 0, 0}, 
+                                   {1, 1, 1}};
     r3d_poly cube3d;
     r3d_init_box(&cube3d, &vertices0[0]);
     CHECK(r3d_is_good(&cube3d));
@@ -212,6 +213,22 @@ std::string test_r3d_poly_to_polyhedron() {
     r3d_poly_to_polyhedron(cube3d, 1.0e-8, cube);
 
     // Is it correct?
+    {
+      const vector<Vector> verts = cube.vertices();
+      for (const auto& v: verts) {
+        cerr << " V--> " << v << endl;
+      }
+      const vector<Facet>& facets = cube.facets();
+      for (const auto& facet: facets) {
+        const vector<unsigned>& ip = facet.ipoints();
+        cerr << " F**>";
+        for (const auto& i: ip) cerr << " " << i;
+        cerr << " : ";
+        for (const auto& i: ip) cerr << " " << verts[i];
+        cerr << " : normal " << facet.normal() << endl;
+      }
+      cerr << "Hull volume : " << FacetedVolume(verts).volume() << endl;
+    }
     if (not fuzzyEqual(cube.volume(), 1.0, 1.0e-10)) return "ERROR: volume mismatch for cube: " + to_string(cube.volume()) + " != 1.0";
   }
 
