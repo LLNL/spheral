@@ -34,11 +34,80 @@ struct Face3d {
 }             // anonymous namespace
 
 //------------------------------------------------------------------------------
+// Transform a R2D polygon from a Spheral Polygon.
+//------------------------------------------------------------------------------
+void
+polygon_to_r2d_poly(const Dim<2>::FacetedVolume& poly, r2d_poly& result) {
+
+  using std::vector;
+  typedef Dim<2>::Scalar Scalar;
+  typedef Dim<2>::Vector Vector;
+  typedef Dim<2>::SymTensor SymTensor;
+  typedef Dim<2>::FacetedVolume FacetedVolume;
+  typedef Dim<2>::FacetedVolume::Facet Facet;
+
+  // We use the knowledge here that the polygon vertices are already in CCW order.
+  const vector<Vector>& vertices = poly.vertices();
+  const unsigned nverts = vertices.size();
+  CHECK(nverts <= R2D_MAX_VERTS);
+  vector<r2d_rvec2> verts2d(nverts);
+  for (unsigned i = 0; i != vertices.size(); ++i) {
+    verts2d[i].x = vertices[i].x();
+    verts2d[i].y = vertices[i].y();
+  }
+  r2d_init_poly(&result, &verts2d[0], nverts);
+}
+
+//------------------------------------------------------------------------------
+// Transform a R3D polyhedron from a Spheral Polyhedron.
+//------------------------------------------------------------------------------
+void
+polyhedron_to_r3d_poly(const Dim<3>::FacetedVolume& poly, r3d_poly& result) {
+
+  using std::vector;
+  typedef Dim<3>::Scalar Scalar;
+  typedef Dim<3>::Vector Vector;
+  typedef Dim<3>::SymTensor SymTensor;
+  typedef Dim<3>::FacetedVolume FacetedVolume;
+  typedef Dim<3>::FacetedVolume::Facet Facet;
+
+  const auto& vertices = poly.vertices();
+  const auto& facetVertices = poly.facetVertices();
+  const auto nverts = vertices.size();
+  const auto nfacets = facetVertices.size();
+  CHECK(nverts <= R3D_MAX_VERTS);
+  vector<r3d_rvec3> verts3d(nverts);
+  for (unsigned i = 0; i != nverts; ++i) {
+    verts3d[i].x = vertices[i].x();
+    verts3d[i].y = vertices[i].y();
+    verts3d[i].z = vertices[i].z();
+  }
+  r3d_int numvertsperface[nfacets];
+  r3d_int** faceinds = new r3d_int*[nfacets];
+  for (unsigned i = 0; i != nfacets; ++i) {
+    const unsigned nFacetVerts = facetVertices[i].size();
+    numvertsperface[i] = nFacetVerts;
+    faceinds[i] = new r3d_int[nFacetVerts];
+    for (unsigned j = 0; j != nFacetVerts; ++j) {
+      faceinds[i][j] = facetVertices[i][j];
+    }
+  }
+  r3d_init_poly(&result, &verts3d[0], nverts, faceinds, numvertsperface, nfacets);
+
+  // Clean up.
+  for (unsigned i = 0; i != nfacets; ++i) {
+    delete [] faceinds[i];
+  }
+  delete [] faceinds;
+}
+
+//------------------------------------------------------------------------------
 // Return a Spheral Polygon from an R2D polygon.
 //------------------------------------------------------------------------------
-Dim<2>::FacetedVolume
+void
 r2d_poly_to_polygon(const r2d_poly& celli,
-                    const double tol) {
+                    const double tol,
+                    Dim<2>::FacetedVolume& result) {
 
   // Note, R2D leaves lots of degeneracies in the cell points/edges, so we do this in two passes.  First,
   // read all the vertices in CCW order and build a linked list pointing to the next one.  Then we
@@ -53,7 +122,8 @@ r2d_poly_to_polygon(const r2d_poly& celli,
   typedef Dim<2>::FacetedVolume::Facet Facet;
 
   // Is there anything to do?
-  if (celli.nverts == 0) return FacetedVolume();
+  result = FacetedVolume();
+  if (celli.nverts == 0) return;
 
   // if (barf) { // BLAGO
   //   cerr << "Raw verts: " << endl;
@@ -133,16 +203,17 @@ r2d_poly_to_polygon(const r2d_poly& celli,
   //   std::cout << endl;
   // }
 
-  return FacetedVolume(uniqueVerts, facetIndices);
+  result = FacetedVolume(uniqueVerts, facetIndices);
 }
 
 //------------------------------------------------------------------------------
 // Return a Spheral Polyhedron from an R3D polyhedron.
 //------------------------------------------------------------------------------
-Dim<3>::FacetedVolume
+void
 r3d_poly_to_polyhedron(const r3d_poly& celli,
-                       const double tol) {
-  
+                       const double tol,
+                       Dim<3>::FacetedVolume& result) {
+
   using std::vector;
   typedef Dim<3>::Scalar Scalar;
   typedef Dim<3>::Vector Vector;
@@ -152,7 +223,8 @@ r3d_poly_to_polyhedron(const r3d_poly& celli,
   typedef std::tuple<unsigned, unsigned, unsigned> face;
 
   // Is there anything to do?
-  if (celli.nverts == 0) return FacetedVolume();
+  result = FacetedVolume();
+  if (celli.nverts == 0) return;
 
   // Build a unique set of vertices.
   vector<Vector> verts;
@@ -187,7 +259,7 @@ r3d_poly_to_polyhedron(const r3d_poly& celli,
   }
 
   // Now we can build the polyhedron.
-  return FacetedVolume(verts, faceIndices);
+  result = FacetedVolume(verts, faceIndices);
 }
 
 //------------------------------------------------------------------------------
@@ -203,20 +275,9 @@ Dim<2>::FacetedVolume clipFacetedVolume(const Dim<2>::FacetedVolume& poly,
   const unsigned nplanes = planes.size();
   if (nplanes == 0) return poly;
 
-  // Preconditions.
-  const auto& vertices = poly.vertices();
-  const auto nverts = vertices.size();
-  VERIFY2(nverts < R2D_MAX_VERTS,
-          "clipFacetedVolume ERROR: input polygon contains " << nverts << " vertices which exceeds max allowed " << R2D_MAX_VERTS);
-
   // Construct the R2D version of our polygon.
-  vector<r2d_rvec2> verts2d(nverts);
-  for (unsigned i = 0; i != nverts; ++i) {
-    verts2d[i].x = vertices[i].x();
-    verts2d[i].y = vertices[i].y();
-  }
   r2d_poly poly2d;
-  r2d_init_poly(&poly2d, &verts2d[0], nverts);
+  polygon_to_r2d_poly(poly, poly2d);
 
   // Now the R2D planes.
   vector<r2d_plane> planes2d(nplanes);
@@ -232,10 +293,12 @@ Dim<2>::FacetedVolume clipFacetedVolume(const Dim<2>::FacetedVolume& poly,
   r2d_clip(&poly2d, &planes2d[0], nplanes);
 
   // Copy back to a Spheral polygon.
+  FacetedVolume result;
   r2d_real area;
   r2d_reduce(&poly2d, &area, 0);
   const double tol = 1.0e-10 * area;
-  return r2d_poly_to_polygon(poly2d, tol);
+  r2d_poly_to_polygon(poly2d, tol, result);
+  return result;
 }
 
 //------------------------------------------------------------------------------
@@ -251,39 +314,9 @@ Dim<3>::FacetedVolume clipFacetedVolume(const Dim<3>::FacetedVolume& poly,
   const unsigned nplanes = planes.size();
   if (nplanes == 0) return poly;
 
-  // Preconditions.
-  const auto& vertices = poly.vertices();
-  const auto nverts = vertices.size();
-  VERIFY2(nverts < R3D_MAX_VERTS,
-          "clipFacetedVolume ERROR: input polyhedron contains " << nverts << " vertices which exceeds max allowed " << R3D_MAX_VERTS);
-
   // Construct the R3D version of our polyhedron.
-  const auto& facetVertices = poly.facetVertices();
-  const auto nfacets = facetVertices.size();
-  vector<r3d_rvec3> verts3d(nverts);
-  for (unsigned i = 0; i != nverts; ++i) {
-    verts3d[i].x = vertices[i].x();
-    verts3d[i].y = vertices[i].y();
-    verts3d[i].z = vertices[i].z();
-  }
-  r3d_int numvertsperface[nfacets];
-  r3d_int** faceinds = new r3d_int*[nfacets];
-  for (unsigned i = 0; i != nfacets; ++i) {
-    const unsigned nFacetVerts = facetVertices[i].size();
-    numvertsperface[i] = nFacetVerts;
-    faceinds[i] = new r3d_int[nFacetVerts];
-    for (unsigned j = 0; j != nFacetVerts; ++j) {
-      faceinds[i][j] = facetVertices[i][j];
-    }
-  }
   r3d_poly poly3d;
-  r3d_init_poly(&poly3d, &verts3d[0], nverts, faceinds, numvertsperface, nfacets);
-
-  // Clean up.
-  for (unsigned i = 0; i != nfacets; ++i) {
-    delete [] faceinds[i];
-  }
-  delete [] faceinds;
+  polyhedron_to_r3d_poly(poly, poly3d);
 
   // Now the R3D planes.
   vector<r3d_plane> planes3d(nplanes);
@@ -300,10 +333,12 @@ Dim<3>::FacetedVolume clipFacetedVolume(const Dim<3>::FacetedVolume& poly,
   r3d_clip(&poly3d, &planes3d[0], nplanes);
 
   // Copy back to a Spheral polyhedron.
+  FacetedVolume result;
   r3d_real vol;
   r3d_reduce(&poly3d, &vol, 0);
   const double tol = 1.0e-10 * vol;
-  return r3d_poly_to_polyhedron(poly3d, tol);
+  r3d_poly_to_polyhedron(poly3d, tol, result);
+  return result;
 }
 
 }

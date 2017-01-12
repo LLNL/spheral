@@ -15,13 +15,20 @@ extern "C" {
 namespace Spheral {
 
 //------------------------------------------------------------------------------
-// Convert an r2d_poly/r3d_poly to a Spheral polygon/polyhedron.
+// Convert a Spheral polygon/polyhedron to a r2d_poly/r3d_poly to
 //------------------------------------------------------------------------------
-Dim<2>::FacetedVolume r2d_poly_to_polygon(const r2d_poly& celli,
-                                          const double tol);
+void polygon_to_r2d_poly(const Dim<2>::FacetedVolume& poly, r2d_poly& result);
+void polyhedron_to_r3d_poly(const Dim<3>::FacetedVolume& poly, r3d_poly& result);
 
-Dim<3>::FacetedVolume r3d_poly_to_polyhedron(const r3d_poly& celli,
-                                             const double tol);
+//------------------------------------------------------------------------------
+// Convert a r2d_poly/r3d_poly to a Spheral polygon/polyhedron.
+//------------------------------------------------------------------------------
+void r2d_poly_to_polygon(const r2d_poly& celli,
+                         const double tol,
+                         Dim<2>::FacetedVolume& result);
+void r3d_poly_to_polyhedron(const r3d_poly& celli,
+                            const double tol,
+                            Dim<3>::FacetedVolume& result);
 
 //------------------------------------------------------------------------------
 // Clip a polygon/polyhedron by a series of planes
