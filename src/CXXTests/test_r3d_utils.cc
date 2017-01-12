@@ -193,7 +193,98 @@ std::string test_polyhedron_to_r3d_poly() {
 // Test converting from r3d_poly -> polyhedron.
 //------------------------------------------------------------------------------
 std::string test_r3d_poly_to_polyhedron() {
+
+  typedef Dim<3>::Vector Vector;
+  typedef Dim<3>::FacetedVolume FacetedVolume;
+
+  // Cube test.
+  {
+    vector<r3d_rvec3> vertices0 = {{1, 1, 1}, 
+                                   {2, 2, 2}};
+    r3d_poly cube3d;
+    r3d_init_box(&cube3d, &vertices0[0]);
+    CHECK(r3d_is_good(&cube3d));
+    r3d_real vol0;
+    r3d_reduce(&cube3d, &vol0, 0);
+    CHECK2(fuzzyEqual(vol0, 1.0, 1.0e-10), "Cube volume initialization error: " << vol0);
+
+    FacetedVolume cube;
+    r3d_poly_to_polyhedron(cube3d, 1.0e-8, cube);
+
+    // Is it correct?
+    if (not fuzzyEqual(cube.volume(), 1.0, 1.0e-10)) return "ERROR: volume mismatch for cube: " + to_string(cube.volume()) + " != 1.0";
+  }
+
+  // Icosahedron test.
+  {
+    const unsigned nverts = 12;
+    const unsigned nfaces = 20;
+    r3d_int faces[nfaces][3] = {
+      // 5 faces around point 0
+      {0, 11, 5},
+      {0, 5, 1},
+      {0, 1, 7},
+      {0, 7, 10},
+      {0, 10, 11},
+      // 5 adjacent faces
+      {1, 5, 9},
+      {5, 11, 4},
+      {11, 10, 2},
+      {10, 7, 6},
+      {7, 1, 8},
+      // 5 faces around point 3
+      {3, 9, 4},
+      {3, 4, 2},
+      {3, 2, 6},
+      {3, 6, 8},
+      {3, 8, 9},
+      // 5 adjacent faces
+      {4, 9, 5},
+      {2, 4, 11},
+      {6, 2, 10},
+      {8, 6, 7},
+      {9, 8, 1},
+    };
+    r3d_int** facesp = new r3d_int*[nfaces];
+    for (unsigned j = 0; j != nfaces; ++j) {
+      facesp[j] = new r3d_int[3];
+      for (unsigned k = 0; k != 3; ++k) facesp[j][k] = faces[j][k];
+    }
+    r3d_int nvertsperface[nfaces] = {  // Array of number of vertices per face.
+      3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3
+    };
+    const double t = (1.0 + sqrt(5.0)) / 2.0;
+    vector<r3d_rvec3> verts = {           // Array of vertex coordinates.
+      {-1,  t,   0},
+      { 1,  t,   0},
+      {-1, -t,   0},
+      { 1, -t,   0},
+      { 0, -1,   t},
+      { 0,  1,   t},
+      { 0, -1,  -t},
+      { 0,  1,  -t},
+      { t,  0,  -1},
+      { t,  0,   1},
+      {-t,  0,  -1},
+      {-t,  0,   1}
+    };
+    r3d_poly ico3d;
+    r3d_init_poly(&ico3d, &verts[0], nverts, facesp, nvertsperface, nfaces);
+    CHECK(r3d_is_good(&ico3d));
+
+
+    // Convert to a polyhedron.
+    FacetedVolume ico;
+    r3d_poly_to_polyhedron(ico3d, 1.0e-8, ico);
+
+    // Is it correct?
+    r3d_real vol0;
+    r3d_reduce(&ico3d, &vol0, 0);
+    if (not fuzzyEqual(ico.volume(), vol0, 1.0e-10)) return "ERROR: volume mismatch for icosahedron: " + to_string(ico.volume()) + " != " + to_string(vol0);
+  }
+
   return "OK";
+
 }
 
 }
