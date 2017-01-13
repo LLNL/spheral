@@ -4,6 +4,7 @@
 #include <algorithm>
 #include <set>
 #include <iostream>
+#include <iterator>
 
 #include "r3d_utils.hh"
 
@@ -69,6 +70,15 @@ Face walkR3DFace(const r3d_poly& celli,
   typedef Dim<3>::Vector Vector;
 
   Face result(id[i0], id[i1]);
+
+  // Check if this is a triangular face.  If so, we can skip a lot of work.
+  if (id[celli.verts[i1].pnbrs[0]] == id[i2] or
+      id[celli.verts[i1].pnbrs[1]] == id[i2] or
+      id[celli.verts[i1].pnbrs[2]] == id[i2]) {
+    result.append(id[i2]);
+    result.finalize();
+    return result;
+  }
 
   // Build the normal we check against for the face.
   const Vector fhat = cell_normal(celli, uniqueVerts, id, i0, i1, i2);
@@ -320,7 +330,7 @@ r3d_poly_to_polyhedron(const r3d_poly& celli,
 
   // Build a unique set of vertices.
   vector<Vector> verts;
-  vector<unsigned> r3dv2v(celli.nverts);
+  vector<unsigned> id(celli.nverts);
   unsigned i, j, k;
   for (unsigned i = 0; i != celli.nverts; ++i) {
     const Vector p(celli.verts[i].pos.x,
@@ -329,16 +339,19 @@ r3d_poly_to_polyhedron(const r3d_poly& celli,
     j = 0;
     while (j < verts.size() and (verts[j] - p).magnitude2() > tol) ++j;
     if (j == verts.size()) verts.push_back(p);
-    r3dv2v[i] = j;
-    CHECK(j < r3dv2v.size() and r3dv2v[j] < verts.size());
+    id[i] = j;
+    CHECK(j < id.size() and id[j] < verts.size());
   }
 
   // Now build the unique faces.
   set<Face> faces;
   for (i = 0; i != celli.nverts; ++i) {
-    faces.insert(walkR3DFace(celli, verts, r3dv2v, i, celli.verts[i].pnbrs[0], celli.verts[i].pnbrs[1]));
-    faces.insert(walkR3DFace(celli, verts, r3dv2v, i, celli.verts[i].pnbrs[1], celli.verts[i].pnbrs[2]));
-    faces.insert(walkR3DFace(celli, verts, r3dv2v, i, celli.verts[i].pnbrs[2], celli.verts[i].pnbrs[0]));
+    if (id[i] != id[celli.verts[i].pnbrs[0]] and 
+        id[i] != id[celli.verts[i].pnbrs[1]]) faces.insert(walkR3DFace(celli, verts, id, i, celli.verts[i].pnbrs[0], celli.verts[i].pnbrs[1]));
+    if (id[i] != id[celli.verts[i].pnbrs[1]] and 
+        id[i] != id[celli.verts[i].pnbrs[2]]) faces.insert(walkR3DFace(celli, verts, id, i, celli.verts[i].pnbrs[1], celli.verts[i].pnbrs[2]));
+    if (id[i] != id[celli.verts[i].pnbrs[2]] and 
+        id[i] != id[celli.verts[i].pnbrs[0]]) faces.insert(walkR3DFace(celli, verts, id, i, celli.verts[i].pnbrs[2], celli.verts[i].pnbrs[0]));
   }
   // sort(faces.begin(), faces.end());
   // const auto lastUniqueFace = unique(faces.begin(), faces.end());
