@@ -15,21 +15,82 @@ namespace {   // anonymous namespace
 // A class to hold three indices making up a triangular face.
 //------------------------------------------------------------------------------
 struct Face3d {
-  tuple<unsigned, unsigned, unsigned> indices, sorted_indices;
+  vector<unsigned> indices;
   Face3d(unsigned i, unsigned j, unsigned k):
-    indices(make_tuple(i, j, k)),
-    sorted_indices(indices) {
+    indices({i, j, k}) {
     CHECK(i != j and j != k and i != k);
-    if (get<0>(sorted_indices) > get<1>(sorted_indices)) swap(get<0>(sorted_indices), get<1>(sorted_indices));
-    if (get<0>(sorted_indices) > get<2>(sorted_indices)) swap(get<0>(sorted_indices), get<2>(sorted_indices));
-    if (get<1>(sorted_indices) > get<2>(sorted_indices)) swap(get<1>(sorted_indices), get<2>(sorted_indices));
-    CHECK(get<0>(sorted_indices) < get<1>(sorted_indices) and
-          get<1>(sorted_indices) < get<2>(sorted_indices));
   }
-  bool operator==(const Face3d& rhs) const { return sorted_indices == rhs.sorted_indices; }
-  bool operator!=(const Face3d& rhs) const { return sorted_indices != rhs.sorted_indices; }
-  bool operator< (const Face3d& rhs) const { return sorted_indices <  rhs.sorted_indices; }
+  void append(const unsigned i) { indices.push_back(i); }
+  void finalize() {
+    auto minitr = min_element(indices.begin(), indices.end());
+    vector<unsigned> tmp(minitr, indices.end());
+    tmp.insert(tmp.end(), indices.begin(), minitr);
+    indices = tmp;
+  }
+  bool operator==(const Face3d& rhs) const { return indices == rhs.indices; }
+  bool operator!=(const Face3d& rhs) const { return indices != rhs.indices; }
 };
+
+//------------------------------------------------------------------------------
+// Compute a face normal.
+//------------------------------------------------------------------------------
+Dim<3>::Vector cell_normal(const r3d_poly& celli,
+                           const vector<Dim<3>::Vector>& uniqueVerts,
+                           const vector<unsigned>& id,
+                           unsigned i0,
+                           unsigned i1,
+                           unsigned i2) {
+  return (uniqueVerts[id[i1]] - uniqueVerts[id[i0]]).cross(uniqueVerts[id[i2]] - uniqueVerts[id[i0]]).unitVector();
+}
+
+//------------------------------------------------------------------------------
+// Walk the R3D vertex connectivity 'til the loop closes.
+//------------------------------------------------------------------------------
+Face3d walkR3DFace(const r3d_poly& celli,
+                   const vector<Dim<3>::Vector>& uniqueVerts,
+                   const vector<unsigned>& id,
+                   unsigned i0,
+                   unsigned i1,
+                   unsigned i2) {
+
+  typedef Dim<3>::Vector Vector;
+
+  Face3d result(id[i0], id[i1], id[i2]);
+
+  // Check if this is a triangular face.  If so, we're done.
+  if (Face3d(id[i0], id[i1]) == Face3d(id[celli.verts[i2].pnbrs[0]], id[celli.verts[i2].pnbrs[1]]) or
+      Face3d(id[i0], id[i1]) == Face3d(id[celli.verts[i2].pnbrs[0]], id[celli.verts[i2].pnbrs[2]]) or
+      Face3d(id[i0], id[i1]) == Face3d(id[celli.verts[i2].pnbrs[1]], id[celli.verts[i2].pnbrs[2]])) {
+    return result;
+  }
+
+  // Build the normal.
+  const Vector fhat = cell_normal(celli, uniqueVerts, id, i0, i1, i2);
+
+  // Walk around the cell topology until we arrive back at the starting vertex.
+  unsigned nextvert;
+  do {
+
+    // Look for the next vertex in the plane.
+    CHECK(id[celli.verts[i2].pnbrs[0]] == id[i1] or
+          id[celli.verts[i2].pnbrs[1]] == id[i1] or
+          id[celli.verts[i2].pnbrs[2]] == id[i1]);
+    nextvert = 
+      id[celli.verts[i2].pnbrs[0]] == id[i1] ? (abs(abs(cell_normal(celli, uniqueVerts, id, i1, i2, celli.verts[i2].pnbrs[1]).dot(fhat)) - 1.0) < 1.0e-8 ? celli.verts[i2].pnbrs[1] : celli.verts[i2].pnbrs[2]) :
+      id[celli.verts[i2].pnbrs[1]] == id[i1] ? (abs(abs(cell_normal(celli, uniqueVerts, id, i1, i2, celli.verts[i2].pnbrs[0]).dot(fhat)) - 1.0) < 1.0e-8 ? celli.verts[i2].pnbrs[0] : celli.verts[i2].pnbrs[2]) :
+                                               (abs(abs(cell_normal(celli, uniqueVerts, id, i1, i2, celli.verts[i2].pnbrs[0]).dot(fhat)) - 1.0) < 1.0e-8 ? celli.verts[i2].pnbrs[1] : celli.verts[i2].pnbrs[2]);
+    CHECK(id[celli.verts[nextvert].pnbrs[0]] == id[i2] or
+          id[celli.verts[nextvert].pnbrs[1]] == id[i2] or
+          id[celli.verts[nextvert].pnbrs[2]] == id[i2]);
+    CHECK(abs(abs(cell_normal(celli, uniqueVerts, id, i1, i2, nextvert).dot(fhat)) - 1.0) < 1.0e-8);
+    if (id[nextvert] != id[i0]) result.append(id[nextvert]);
+    i1 = i2;
+    i2 = nextvert;
+  } while (id[nextvert] != id[i0]);
+
+  result.finalize();
+  return result;
+}
 
 }             // anonymous namespace
 
@@ -245,9 +306,13 @@ r3d_poly_to_polyhedron(const r3d_poly& celli,
     CHECK(j < r3dv2v.size() and r3dv2v[j] < verts.size());
   }
 
-  // Now build the unique (triangular) faces.
+  // Now build the unique faces.
   vector<Face3d> faces;
   for (i = 0; i != celli.nverts; ++i) {
+    
+
+
+
     faces.push_back(Face3d(r3dv2v[i], r3dv2v[celli.verts[i].pnbrs[0]], r3dv2v[celli.verts[i].pnbrs[1]]));
     faces.push_back(Face3d(r3dv2v[i], r3dv2v[celli.verts[i].pnbrs[1]], r3dv2v[celli.verts[i].pnbrs[2]]));
     faces.push_back(Face3d(r3dv2v[i], r3dv2v[celli.verts[i].pnbrs[2]], r3dv2v[celli.verts[i].pnbrs[0]]));
