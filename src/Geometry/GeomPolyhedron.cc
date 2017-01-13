@@ -310,11 +310,6 @@ GeomPolyhedron(const vector<GeomPolyhedron::Vector>& points,
   // we set this internal radius to zero to disable this accelerated containment checking.
   mCentroid = this->centroid();
 
-  // BLAGO!
-  cerr << " --> " << mCentroid << endl;
-  for (const auto& facet: mFacets) cerr << "Facet: " << facet.area() << " " << facet.position() << " " << facet.normal() << endl;
-  // BLAGO!
-
   if (pointInPolyhedron(mCentroid, *this, false, 1.0e-10)) {
     mRinterior2 = numeric_limits<double>::max();
     for (const auto& facet: mFacets) mRinterior2 = min(mRinterior2, facet.distance(mCentroid));
@@ -567,10 +562,8 @@ centroid() const {
     area = facet.area();
     areasum += area;
     result += area * facet.position();
-    cerr << " C: " << area << " " << areasum << " " << facet.position() << result << endl;
   }
   result *= safeInvVar(areasum);
-  cerr << " Cfinal: " << result << endl;
   return result;
 }
 

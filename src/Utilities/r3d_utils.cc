@@ -71,63 +71,38 @@ polyhedron_to_r3d_poly(const Dim<3>::FacetedVolume& poly, r3d_poly& result) {
   typedef Dim<3>::FacetedVolume FacetedVolume;
   typedef Dim<3>::FacetedVolume::Facet Facet;
 
-  auto vertices = poly.vertices();
-  const auto& facets = poly.facets();
+  const auto& vertices = poly.vertices();
+  const auto& facetVertices = poly.facetVertices();
   auto nverts = vertices.size();
-  auto nfacets = facets.size();
+  auto nfacets = facetVertices.size();
   CHECK(nverts <= R3D_MAX_VERTS);
 
-  // // Look for any facets that are not planar.  In such cases we need to split
-  // // the facet into its triangular facets.
-  // r3d_int numvertsperface[R3D_MAX_VERTS];
-  // r3d_int** faceinds = new r3d_int*[R3D_MAX_VERTS];
-  // unsigned ifacet3d = 0;
-  // for (unsigned i = 0; i != nfacets; ++i, ++ifacet3d) {
-  //   const auto& ipoints = facets[i].ipoints();
-  //   const auto nfv = ipoints.size();
-      
-  //   if (facets[i].planar()) {
-  //     // If the facet is planar we can directly copy it.
-  //     numvertsperface[ifacet3d] = nfv;
-  //     faceinds[ifacet3d] = new r3d_int[nfv];
-  //     for (unsigned j = 0; j != nfv; ++j) faceinds[ifacet3d][j] = ipoints[j];
+  // First convert the vertices.
+  vector<r3d_rvec3> verts3d(nverts);
+  for (unsigned i = 0; i != nverts; ++i) {
+    verts3d[i].x = vertices[i].x();
+    verts3d[i].y = vertices[i].y();
+    verts3d[i].z = vertices[i].z();
+  }
 
-  //   } else {
-  //     // If the face is not planar, we split it into triangle and copy the individual triangular facets
-  //     // for R3D.
-      
+  // Now the faces.
+  r3d_int numvertsperface[nfacets];
+  r3d_int** faceinds = new r3d_int*[nfacets];
+  for (unsigned i = 0; i != nfacets; ++i) {
+    const unsigned nFacetVerts = facetVertices[i].size();
+    numvertsperface[i] = nFacetVerts;
+    faceinds[i] = new r3d_int[nFacetVerts];
+    for (unsigned j = 0; j != nFacetVerts; ++j) {
+      faceinds[i][j] = facetVertices[i][j];
+    }
+  }
+  r3d_init_poly(&result, &verts3d[0], nverts, faceinds, numvertsperface, nfacets);
 
-  // }
-
-  // for 
-
-  // // First convert the existing vertices.
-  // vector<r3d_rvec3> verts3d(nverts);
-  // for (unsigned i = 0; i != nverts; ++i) {
-  //   verts3d[i].x = vertices[i].x();
-  //   verts3d[i].y = vertices[i].y();
-  //   verts3d[i].z = vertices[i].z();
-  // }
-
-  // // Now the faces.  We may have to introduce new vertices here if the
-  // // Spheral polyhedron face is not planar.
-  // r3d_int numvertsperface[nfacets];
-  // r3d_int** faceinds = new r3d_int*[nfacets];
-  // for (unsigned i = 0; i != nfacets; ++i) {
-  //   const unsigned nFacetVerts = facetVertices[i].size();
-  //   numvertsperface[i] = nFacetVerts;
-  //   faceinds[i] = new r3d_int[nFacetVerts];
-  //   for (unsigned j = 0; j != nFacetVerts; ++j) {
-  //     faceinds[i][j] = facetVertices[i][j];
-  //   }
-  // }
-  // r3d_init_poly(&result, &verts3d[0], nverts, faceinds, numvertsperface, nfacets);
-
-  // // Clean up.
-  // for (unsigned i = 0; i != nfacets; ++i) {
-  //   delete [] faceinds[i];
-  // }
-  // delete [] faceinds;
+  // Clean up.
+  for (unsigned i = 0; i != nfacets; ++i) {
+    delete [] faceinds[i];
+  }
+  delete [] faceinds;
 }
 
 //------------------------------------------------------------------------------
