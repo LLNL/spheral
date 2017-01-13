@@ -215,18 +215,18 @@ std::string test_r3d_poly_to_polyhedron() {
     // Is it correct?
     {
       const vector<Vector> verts = cube.vertices();
-      for (const auto& v: verts) {
-        cerr << " V--> " << v << endl;
-      }
-      const vector<Facet>& facets = cube.facets();
-      for (const auto& facet: facets) {
-        const vector<unsigned>& ip = facet.ipoints();
-        cerr << " F**>";
-        for (const auto& i: ip) cerr << " " << i;
-        cerr << " : ";
-        for (const auto& i: ip) cerr << " " << verts[i];
-        cerr << " : normal " << facet.normal() << endl;
-      }
+      // for (const auto& v: verts) {
+      //   cerr << " V--> " << v << endl;
+      // }
+      // const vector<Facet>& facets = cube.facets();
+      // for (const auto& facet: facets) {
+      //   const vector<unsigned>& ip = facet.ipoints();
+      //   cerr << " F**>";
+      //   for (const auto& i: ip) cerr << " " << i;
+      //   cerr << " : ";
+      //   for (const auto& i: ip) cerr << " " << verts[i];
+      //   cerr << " : normal " << facet.normal() << endl;
+      // }
       cerr << "Hull volume : " << FacetedVolume(verts).volume() << endl;
     }
     if (not fuzzyEqual(cube.volume(), 1.0, 1.0e-10)) return "ERROR: volume mismatch for cube: " + to_string(cube.volume()) + " != 1.0";

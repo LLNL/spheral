@@ -1,7 +1,9 @@
 //------------------------------------------------------------------------------
 // A collection of Spheral wrappers for using R2D/R3D methods.
 //------------------------------------------------------------------------------
-#include <tuple>
+#include <algorithm>
+#include <set>
+#include <iostream>
 
 #include "r3d_utils.hh"
 
@@ -12,13 +14,15 @@ using namespace std;
 namespace {   // anonymous namespace
 
 //------------------------------------------------------------------------------
-// A class to hold three indices making up a triangular face.
+// A class to hold indices making up a planar polygonal face.
+// The finalize method shifts the loop to start with the minimum index to make
+// each loop unique for comparisons.
 //------------------------------------------------------------------------------
-struct Face3d {
+struct Face {
   vector<unsigned> indices;
-  Face3d(unsigned i, unsigned j, unsigned k):
-    indices({i, j, k}) {
-    CHECK(i != j and j != k and i != k);
+  Face(unsigned i, unsigned j):
+    indices({i, j}) {
+    CHECK(i != j);
   }
   void append(const unsigned i) { indices.push_back(i); }
   void finalize() {
@@ -27,9 +31,18 @@ struct Face3d {
     tmp.insert(tmp.end(), indices.begin(), minitr);
     indices = tmp;
   }
-  bool operator==(const Face3d& rhs) const { return indices == rhs.indices; }
-  bool operator!=(const Face3d& rhs) const { return indices != rhs.indices; }
+  bool operator==(const Face& rhs) const { return indices == rhs.indices; }
+  bool operator!=(const Face& rhs) const { return indices != rhs.indices; }
+  bool operator< (const Face& rhs) const { return indices <  rhs.indices; }
 };
+
+std::ostream&
+operator<<(std::ostream& os, const Face& face) {
+  os << "Face[";
+  std::copy(face.indices.begin(), face.indices.end(), std::ostream_iterator<unsigned>(os, " "));
+  os << "]";
+  return os;
+}
 
 //------------------------------------------------------------------------------
 // Compute a face normal.
@@ -46,48 +59,62 @@ Dim<3>::Vector cell_normal(const r3d_poly& celli,
 //------------------------------------------------------------------------------
 // Walk the R3D vertex connectivity 'til the loop closes.
 //------------------------------------------------------------------------------
-Face3d walkR3DFace(const r3d_poly& celli,
-                   const vector<Dim<3>::Vector>& uniqueVerts,
-                   const vector<unsigned>& id,
-                   unsigned i0,
-                   unsigned i1,
-                   unsigned i2) {
+Face walkR3DFace(const r3d_poly& celli,
+                 const vector<Dim<3>::Vector>& uniqueVerts,
+                 const vector<unsigned>& id,
+                 const unsigned i0,
+                 const unsigned i1,
+                 const unsigned i2) {
 
   typedef Dim<3>::Vector Vector;
 
-  Face3d result(id[i0], id[i1], id[i2]);
+  Face result(id[i0], id[i1]);
 
-  // Check if this is a triangular face.  If so, we're done.
-  if (Face3d(id[i0], id[i1]) == Face3d(id[celli.verts[i2].pnbrs[0]], id[celli.verts[i2].pnbrs[1]]) or
-      Face3d(id[i0], id[i1]) == Face3d(id[celli.verts[i2].pnbrs[0]], id[celli.verts[i2].pnbrs[2]]) or
-      Face3d(id[i0], id[i1]) == Face3d(id[celli.verts[i2].pnbrs[1]], id[celli.verts[i2].pnbrs[2]])) {
-    return result;
-  }
-
-  // Build the normal.
+  // Build the normal we check against for the face.
   const Vector fhat = cell_normal(celli, uniqueVerts, id, i0, i1, i2);
 
   // Walk around the cell topology until we arrive back at the starting vertex.
-  unsigned nextvert;
-  do {
-
+  unsigned last = i0, next = i1;
+  while (id[next] != id[i0]) {
     // Look for the next vertex in the plane.
-    CHECK(id[celli.verts[i2].pnbrs[0]] == id[i1] or
-          id[celli.verts[i2].pnbrs[1]] == id[i1] or
-          id[celli.verts[i2].pnbrs[2]] == id[i1]);
-    nextvert = 
-      id[celli.verts[i2].pnbrs[0]] == id[i1] ? (abs(abs(cell_normal(celli, uniqueVerts, id, i1, i2, celli.verts[i2].pnbrs[1]).dot(fhat)) - 1.0) < 1.0e-8 ? celli.verts[i2].pnbrs[1] : celli.verts[i2].pnbrs[2]) :
-      id[celli.verts[i2].pnbrs[1]] == id[i1] ? (abs(abs(cell_normal(celli, uniqueVerts, id, i1, i2, celli.verts[i2].pnbrs[0]).dot(fhat)) - 1.0) < 1.0e-8 ? celli.verts[i2].pnbrs[0] : celli.verts[i2].pnbrs[2]) :
-                                               (abs(abs(cell_normal(celli, uniqueVerts, id, i1, i2, celli.verts[i2].pnbrs[0]).dot(fhat)) - 1.0) < 1.0e-8 ? celli.verts[i2].pnbrs[1] : celli.verts[i2].pnbrs[2]);
-    CHECK(id[celli.verts[nextvert].pnbrs[0]] == id[i2] or
-          id[celli.verts[nextvert].pnbrs[1]] == id[i2] or
-          id[celli.verts[nextvert].pnbrs[2]] == id[i2]);
-    CHECK(abs(abs(cell_normal(celli, uniqueVerts, id, i1, i2, nextvert).dot(fhat)) - 1.0) < 1.0e-8);
-    if (id[nextvert] != id[i0]) result.append(id[nextvert]);
-    i1 = i2;
-    i2 = nextvert;
-  } while (id[nextvert] != id[i0]);
+    CHECK(id[celli.verts[next].pnbrs[0]] == id[last] or
+          id[celli.verts[next].pnbrs[1]] == id[last] or
+          id[celli.verts[next].pnbrs[2]] == id[last]);
+    if (id[celli.verts[next].pnbrs[0]] == id[last]) {                                                                       // Next is either pnbrs[1,2]
+      if (abs(abs(cell_normal(celli, uniqueVerts, id, last, next, celli.verts[next].pnbrs[1]).dot(fhat)) - 1.0) < 1.0e-8) { // Check pnbrs[1]
+        last = next;
+        next = celli.verts[next].pnbrs[1];
+      } else {
+        last = next;
+        next = celli.verts[next].pnbrs[2];
+      }
+    } else if (id[celli.verts[next].pnbrs[1]] == id[last]) {                                                                // Next is either pnbrs[0,2]
+      if (abs(abs(cell_normal(celli, uniqueVerts, id, last, next, celli.verts[next].pnbrs[0]).dot(fhat)) - 1.0) < 1.0e-8) { // Check pnbrs[0]
+        last = next;
+        next = celli.verts[next].pnbrs[0];
+      } else {
+        last = next;
+        next = celli.verts[next].pnbrs[2];
+      }
+    } else {                                                                                                                // Next is either pnbrs[0,1]
+      if (abs(abs(cell_normal(celli, uniqueVerts, id, last, next, celli.verts[next].pnbrs[0]).dot(fhat)) - 1.0) < 1.0e-8) { // Check pnbrs[0]
+        last = next;
+        next = celli.verts[next].pnbrs[0];
+      } else {
+        last = next;
+        next = celli.verts[next].pnbrs[1];
+      }
+    }
+    CHECK(id[celli.verts[next].pnbrs[0]] == id[last] or
+          id[celli.verts[next].pnbrs[1]] == id[last] or
+          id[celli.verts[next].pnbrs[2]] == id[last]);
+    CHECK2(id[next] == id[i0] or
+           abs(abs(cell_normal(celli, uniqueVerts, id, i0, last, next).dot(fhat)) - 1.0) < 1.0e-8,
+           i0 << " " << i1 << " " << i2 << " " << last << " " << next << " " << cell_normal(celli, uniqueVerts, id, i0, last, next) << " " << fhat << " " << cell_normal(celli, uniqueVerts, id, i0, last, next).dot(fhat));
+    if (id[next] != id[i0]) result.append(id[next]);
+  }
 
+  // Arrange the loop in our standard unique order, and we're done.
   result.finalize();
   return result;
 }
@@ -307,25 +334,21 @@ r3d_poly_to_polyhedron(const r3d_poly& celli,
   }
 
   // Now build the unique faces.
-  vector<Face3d> faces;
+  set<Face> faces;
   for (i = 0; i != celli.nverts; ++i) {
-    
-
-
-
-    faces.push_back(Face3d(r3dv2v[i], r3dv2v[celli.verts[i].pnbrs[0]], r3dv2v[celli.verts[i].pnbrs[1]]));
-    faces.push_back(Face3d(r3dv2v[i], r3dv2v[celli.verts[i].pnbrs[1]], r3dv2v[celli.verts[i].pnbrs[2]]));
-    faces.push_back(Face3d(r3dv2v[i], r3dv2v[celli.verts[i].pnbrs[2]], r3dv2v[celli.verts[i].pnbrs[0]]));
+    faces.insert(walkR3DFace(celli, verts, r3dv2v, i, celli.verts[i].pnbrs[0], celli.verts[i].pnbrs[1]));
+    faces.insert(walkR3DFace(celli, verts, r3dv2v, i, celli.verts[i].pnbrs[1], celli.verts[i].pnbrs[2]));
+    faces.insert(walkR3DFace(celli, verts, r3dv2v, i, celli.verts[i].pnbrs[2], celli.verts[i].pnbrs[0]));
   }
-  sort(faces.begin(), faces.end());
-  const auto lastUniqueFace = unique(faces.begin(), faces.end());
+  // sort(faces.begin(), faces.end());
+  // const auto lastUniqueFace = unique(faces.begin(), faces.end());
+
+  cerr << "Final faces:" << endl;
+  for (auto& face: faces) cerr << face << endl;
   
   // Copy the unique faces to a single array.
   vector<vector<unsigned> > faceIndices;
-  for (auto faceItr = faces.begin(); faceItr != lastUniqueFace; ++faceItr) {
-    std::tie(i, j, k) = faceItr->indices;
-    faceIndices.push_back(vector<unsigned>({i, j, k}));
-  }
+  for (const auto& face: faces) faceIndices.push_back(face.indices);
 
   // Now we can build the polyhedron.
   result = FacetedVolume(verts, faceIndices);
