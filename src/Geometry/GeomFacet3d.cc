@@ -115,21 +115,4 @@ closestPoint(const GeomFacet3d::Vector& p) const {
   return result;
 }
 
-//------------------------------------------------------------------------------
-// Check if the facet is planar.
-//------------------------------------------------------------------------------
-bool
-GeomFacet3d::
-planar() const {
-  const auto nv = mPoints.size();
-  if (nv == 3) return true;       // Simple if this is a triangular facet!
-  const auto a = this->area();
-  const auto tol = std::max(1.0e-15, 1.0e-8*a);
-  const auto& verts = *mVerticesPtr;
-  unsigned i = 1;
-  while (i < nv - 1 and
-         abs(abs((verts[mPoints[i]] - verts[mPoints[0]]).cross(verts[mPoints[(i+1)%nv]] - verts[mPoints[0]]).dot(mNormal)) - 1.0) < tol) ++i;
-  return (i == nv - 1);
-}
-
 }
