@@ -43,8 +43,8 @@ position() const {
   REQUIRE(n >= 3);
   Vector result;
   unsigned i, j;
-  double circum, dl;
-  for (unsigned i = 0; i != n; ++i) {
+  double circum = 0.0, dl;
+  for (i = 0; i != n; ++i) {
     j = (i + 1) % n;
     dl = (point(i) - point(j)).magnitude();
     result += (point(i) + point(j)) * dl;
