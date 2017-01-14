@@ -7,6 +7,7 @@
 #include <iterator>
 
 #include "r3d_utils.hh"
+#include "Geometry/GeomPlane.hh"
 
 namespace Spheral {
 
@@ -21,10 +22,7 @@ namespace {   // anonymous namespace
 //------------------------------------------------------------------------------
 struct Face {
   vector<unsigned> indices;
-  Face(unsigned i, unsigned j):
-    indices({i, j}) {
-    CHECK(i != j);
-  }
+  Face(unsigned i): indices({i}) {}
   void append(const unsigned i) { indices.push_back(i); }
   void finalize() {
     auto minitr = min_element(indices.begin(), indices.end());
@@ -48,84 +46,68 @@ operator<<(std::ostream& os, const Face& face) {
 //------------------------------------------------------------------------------
 // Compute a face normal.
 //------------------------------------------------------------------------------
-Dim<3>::Vector cell_normal(const r3d_poly& celli,
-                           const vector<Dim<3>::Vector>& uniqueVerts,
-                           const vector<unsigned>& id,
+Dim<3>::Vector facet_normal(const vector<Dim<3>::Vector>& verts,
                            unsigned i0,
                            unsigned i1,
                            unsigned i2) {
-  return (uniqueVerts[id[i1]] - uniqueVerts[id[i0]]).cross(uniqueVerts[id[i2]] - uniqueVerts[id[i0]]).unitVector();
+  return (verts[i1] - verts[i0]).cross(verts[i2] - verts[i0]).unitVector();
 }
 
 //------------------------------------------------------------------------------
 // Walk the R3D vertex connectivity 'til the loop closes.
 //------------------------------------------------------------------------------
-Face walkR3DFace(const r3d_poly& celli,
-                 const vector<Dim<3>::Vector>& uniqueVerts,
-                 const vector<unsigned>& id,
-                 const unsigned i0,
-                 const unsigned i1,
-                 const unsigned i2) {
+Face findFaceRing(const vector<Dim<3>::Vector>& verts,
+                  const vector<vector<unsigned> > nghbrs,
+                  const GeomPlane<Dim<3> >& facePlane,
+                  const unsigned i0,
+                  const double tol) {
 
   typedef Dim<3>::Vector Vector;
+  typedef GeomPlane<Dim<3> > Plane;
 
-  Face result(id[i0], id[i1]);
+  // cerr << "----------------------------------------------------------------------" << endl;
+  // cerr << i0 << " " << facePlane << endl;
 
-  // Check if this is a triangular face.  If so, we can skip a lot of work.
-  if (id[celli.verts[i1].pnbrs[0]] == id[i2] or
-      id[celli.verts[i1].pnbrs[1]] == id[i2] or
-      id[celli.verts[i1].pnbrs[2]] == id[i2]) {
-    result.append(id[i2]);
-    result.finalize();
-    return result;
+  const Vector& fhat = facePlane.normal();
+
+  // There should be two vertices connected to this one in the plane.  Find the correct
+  // one to start the CCW (viewed from the exterior) loop.
+  vector<unsigned> otherverts;
+  for (auto j: nghbrs[i0]) {
+    if (facePlane.minimumDistance(verts[j]) < tol) otherverts.push_back(j);
+  }
+  CHECK(otherverts.size() == 2);
+  unsigned next;
+  if (facet_normal(verts, i0, otherverts[0], otherverts[1]).dot(fhat) > 0.0) {
+    next = otherverts[0];
+  } else {
+    next = otherverts[1];
   }
 
-  // Build the normal we check against for the face.
-  const Vector fhat = cell_normal(celli, uniqueVerts, id, i0, i1, i2);
+  // cerr << "Stage 1: " << i0 << " " << otherverts[0] << " " << otherverts[1] << " : " << next << endl;
+
+  // Kick off the result.
+  Face result(i0);
 
   // Walk around the cell topology until we arrive back at the starting vertex.
-  unsigned last = i0, next = i1;
-  while (id[next] != id[i0]) {
+  unsigned last = i0;
+  unsigned j, n;
+  while (next != i0) {
+    result.append(next);
+
     // Look for the next vertex in the plane.
-    CHECK(id[celli.verts[next].pnbrs[0]] == id[last] or
-          id[celli.verts[next].pnbrs[1]] == id[last] or
-          id[celli.verts[next].pnbrs[2]] == id[last]);
-    if (id[celli.verts[next].pnbrs[0]] == id[last]) {                                                                       // Next is either pnbrs[1,2]
-      if (abs(abs(cell_normal(celli, uniqueVerts, id, last, next, celli.verts[next].pnbrs[1]).dot(fhat)) - 1.0) < 1.0e-8) { // Check pnbrs[1]
-        last = next;
-        next = celli.verts[next].pnbrs[1];
-      } else {
-        last = next;
-        next = celli.verts[next].pnbrs[2];
-      }
-    } else if (id[celli.verts[next].pnbrs[1]] == id[last]) {                                                                // Next is either pnbrs[0,2]
-      if (abs(abs(cell_normal(celli, uniqueVerts, id, last, next, celli.verts[next].pnbrs[0]).dot(fhat)) - 1.0) < 1.0e-8) { // Check pnbrs[0]
-        last = next;
-        next = celli.verts[next].pnbrs[0];
-      } else {
-        last = next;
-        next = celli.verts[next].pnbrs[2];
-      }
-    } else {                                                                                                                // Next is either pnbrs[0,1]
-      if (abs(abs(cell_normal(celli, uniqueVerts, id, last, next, celli.verts[next].pnbrs[0]).dot(fhat)) - 1.0) < 1.0e-8) { // Check pnbrs[0]
-        last = next;
-        next = celli.verts[next].pnbrs[0];
-      } else {
-        last = next;
-        next = celli.verts[next].pnbrs[1];
-      }
-    }
-    CHECK(id[celli.verts[next].pnbrs[0]] == id[last] or
-          id[celli.verts[next].pnbrs[1]] == id[last] or
-          id[celli.verts[next].pnbrs[2]] == id[last]);
-    CHECK2(id[next] == id[i0] or
-           abs(abs(cell_normal(celli, uniqueVerts, id, i0, last, next).dot(fhat)) - 1.0) < 1.0e-8,
-           i0 << " " << i1 << " " << i2 << " " << last << " " << next << " " << cell_normal(celli, uniqueVerts, id, i0, last, next) << " " << fhat << " " << cell_normal(celli, uniqueVerts, id, i0, last, next).dot(fhat));
-    if (id[next] != id[i0]) result.append(id[next]);
+    j = 0;
+    auto itr = nghbrs[next].begin();
+    while (itr != nghbrs[next].end() and (*itr == last or facePlane.minimumDistance(verts[*itr]) > tol)) ++itr;
+    CHECK(itr != nghbrs[next].end());
+    last = next;
+    next = *itr;
+    // cerr << "  ---> " << last << " " << next << endl;
   }
 
   // Arrange the loop in our standard unique order, and we're done.
   result.finalize();
+  // cerr << "Final ring: " << result << endl;
   return result;
 }
 
@@ -322,17 +304,17 @@ r3d_poly_to_polyhedron(const r3d_poly& celli,
   typedef Dim<3>::SymTensor SymTensor;
   typedef Dim<3>::FacetedVolume FacetedVolume;
   typedef Dim<3>::FacetedVolume::Facet Facet;
-  typedef std::tuple<unsigned, unsigned, unsigned> face;
+  typedef GeomPlane<Dim<3> > Plane;
 
   // Is there anything to do?
   result = FacetedVolume();
   if (celli.nverts == 0) return;
 
-  // Build a unique set of vertices.
+  // Build the unique set of vertices.
   vector<Vector> verts;
   vector<unsigned> id(celli.nverts);
-  unsigned i, j, k;
-  for (unsigned i = 0; i != celli.nverts; ++i) {
+  unsigned i, j, n;
+  for (i = 0; i != celli.nverts; ++i) {
     const Vector p(celli.verts[i].pos.x,
                    celli.verts[i].pos.y,
                    celli.verts[i].pos.z);
@@ -343,15 +325,40 @@ r3d_poly_to_polyhedron(const r3d_poly& celli,
     CHECK(j < id.size() and id[j] < verts.size());
   }
 
+  // Build the vertex->vertex connectivity and vertex-face normals.
+  const unsigned nunique = verts.size();
+  vector<vector<unsigned> > nghbrs(nunique);
+  vector<vector<Vector> > vertexFaceNormals(nunique);
+  for (i = 0; i != celli.nverts; ++i) {
+    j = id[i];
+    if (id[celli.verts[i].pnbrs[0]] != j and find(nghbrs[j].begin(), nghbrs[j].end(), id[celli.verts[i].pnbrs[0]]) == nghbrs[j].end()) nghbrs[j].push_back(id[celli.verts[i].pnbrs[0]]);
+    if (id[celli.verts[i].pnbrs[1]] != j and find(nghbrs[j].begin(), nghbrs[j].end(), id[celli.verts[i].pnbrs[1]]) == nghbrs[j].end()) nghbrs[j].push_back(id[celli.verts[i].pnbrs[1]]);
+    if (id[celli.verts[i].pnbrs[2]] != j and find(nghbrs[j].begin(), nghbrs[j].end(), id[celli.verts[i].pnbrs[2]]) == nghbrs[j].end()) nghbrs[j].push_back(id[celli.verts[i].pnbrs[2]]);
+  }
+  for (i = 0; i != nunique; ++i) {
+    n = nghbrs[i].size();
+    CHECK(n >= 3);
+    for (j = 0; j != n; ++j) vertexFaceNormals[i].push_back(facet_normal(verts, i, nghbrs[i][j], nghbrs[i][(j+1)%n]));
+  }
+
+  // BLAGO
+  for (auto& v: verts) cerr << "V---> " << v << endl;
+  for (auto& nbs: nghbrs) {
+    cerr << "NGB-> ";
+    for (auto i: nbs) cerr << i << " ";
+    cerr << endl;
+  }
+  for (auto& normals: vertexFaceNormals) {
+    cerr << "NRM-> ";
+    for (auto& n: normals) cerr << n << " ";
+    cerr << endl;
+  }
+  // BLAGO
+
   // Now build the unique faces.
   set<Face> faces;
-  for (i = 0; i != celli.nverts; ++i) {
-    if (id[i] != id[celli.verts[i].pnbrs[0]] and 
-        id[i] != id[celli.verts[i].pnbrs[1]]) faces.insert(walkR3DFace(celli, verts, id, i, celli.verts[i].pnbrs[0], celli.verts[i].pnbrs[1]));
-    if (id[i] != id[celli.verts[i].pnbrs[1]] and 
-        id[i] != id[celli.verts[i].pnbrs[2]]) faces.insert(walkR3DFace(celli, verts, id, i, celli.verts[i].pnbrs[1], celli.verts[i].pnbrs[2]));
-    if (id[i] != id[celli.verts[i].pnbrs[2]] and 
-        id[i] != id[celli.verts[i].pnbrs[0]]) faces.insert(walkR3DFace(celli, verts, id, i, celli.verts[i].pnbrs[2], celli.verts[i].pnbrs[0]));
+  for (i = 0; i != nunique; ++i) {
+    for (const auto& nhat: vertexFaceNormals[i]) faces.insert(findFaceRing(verts, nghbrs, Plane(verts[i], nhat), i, tol));
   }
   // sort(faces.begin(), faces.end());
   // const auto lastUniqueFace = unique(faces.begin(), faces.end());
