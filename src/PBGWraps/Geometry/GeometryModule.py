@@ -605,6 +605,7 @@ self.vector_of_Plane%(dim)s = addObject(mod, "vector_of_Plane%(dim)s", allow_sub
         x.add_constructor([])
         x.add_constructor([param(me, "rhs")])
         x.add_constructor([param(vec, "point"), param(vec, "normal")])
+        x.add_constructor([param("vector_of_%s" % vec, "points")])
     
         # Attributes.
         x.add_instance_attribute("point", vec, is_const = False, getter = "point", setter = "point")

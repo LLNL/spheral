@@ -4,10 +4,11 @@
 // Created by JMO, Thu Feb 24 17:26:32 PST 2000
 //----------------------------------------------------------------------------//
 
-#ifndef GeomPlane_HH
-#define GeomPlane_HH
+#ifndef __Spheral_GeomPlane__
+#define __Spheral_GeomPlane__
 
 #include <string>
+#include <vector>
 #include <iostream>
 
 namespace Spheral {
@@ -25,6 +26,9 @@ public:
   GeomPlane();
   GeomPlane(const GeomPlane& rhs);
   GeomPlane(const Vector& point, const Vector& normal);
+
+  // This special constructor finds a plane fitted to a collection of points.
+  explicit GeomPlane(const std::vector<Vector>& points);
 
   // Destructor.
   ~GeomPlane();
@@ -79,14 +83,21 @@ private:
   Vector mNormal;
 };
 
+// Ostream operators.
 template<typename Dimension> std::istream& operator>>(std::istream& is, GeomPlane<Dimension>& vec);
 template<typename Dimension> std::ostream& operator<<(std::ostream& os, const GeomPlane<Dimension>& vec);
 
 }
 
-#ifndef __GCCXML__
 #include "GeomPlaneInline.hh"
-#endif
+#include "Dimension.hh"
+
+// Declare specialized methods.
+namespace Spheral {
+template<> GeomPlane<Dim<1> >::GeomPlane(const std::vector<Dim<1>::Vector>& points);
+template<> GeomPlane<Dim<2> >::GeomPlane(const std::vector<Dim<2>::Vector>& points);
+template<> GeomPlane<Dim<3> >::GeomPlane(const std::vector<Dim<3>::Vector>& points);
+}
 
 #else
 

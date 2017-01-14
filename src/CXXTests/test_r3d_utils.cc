@@ -173,6 +173,7 @@ std::string test_polyhedron_to_r3d_poly() {
       Vector(-t,  0,   1)
     };
     const FacetedVolume ico0(verts, facets);
+    // for (const auto& facet: ico0.facets()) cerr << "Facet normal: " << facet.normal() << endl;
 
     // Convert to a r3d_poly.
     r3d_poly ico3d;
@@ -241,7 +242,6 @@ std::string test_r3d_poly_to_polyhedron() {
     };
     r3d_poly pyramid3d;
     r3d_init_poly(&pyramid3d, &verts[0], nverts, facesp, nvertsperface, nfaces);
-    r3d_print(&pyramid3d);
     CHECK(r3d_is_good(&pyramid3d));
     r3d_real vol0;
     r3d_reduce(&pyramid3d, &vol0, 0);
@@ -313,7 +313,7 @@ std::string test_r3d_poly_to_polyhedron() {
 
     // Convert to a polyhedron.
     FacetedVolume ico;
-    r3d_poly_to_polyhedron(ico3d, 1.0e-10, ico);
+    r3d_poly_to_polyhedron(ico3d, 1.0e-12, ico);
 
     // Is it correct?
     r3d_real vol0;
