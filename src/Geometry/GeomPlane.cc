@@ -182,6 +182,17 @@ GeomPlane<Dimension>::operator!=(const GeomPlane<Dimension>& rhs) const {
 }
 
 //------------------------------------------------------------------------------
+// operator <
+//------------------------------------------------------------------------------
+template<typename Dimension>
+bool
+GeomPlane<Dimension>::operator<(const GeomPlane<Dimension>& rhs) const {
+  return (mPoint < rhs.mPoint   ? true :
+          mNormal < rhs.mNormal ? true:
+                                  false);
+}
+
+//------------------------------------------------------------------------------
 // Test if the plane is below, equal to or above the point (-1, 0, 1).
 //------------------------------------------------------------------------------
 template<typename Dimension>

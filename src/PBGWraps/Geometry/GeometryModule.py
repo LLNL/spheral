@@ -624,6 +624,7 @@ self.vector_of_Plane%(dim)s = addObject(mod, "vector_of_Plane%(dim)s", allow_sub
         # Comparisons.
         x.add_binary_comparison_operator("==")
         x.add_binary_comparison_operator("!=")
+        x.add_binary_comparison_operator("<")
     
         return
 

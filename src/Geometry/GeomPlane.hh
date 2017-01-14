@@ -55,6 +55,7 @@ public:
   bool parallel(const GeomPlane& rhs) const;
   bool operator==(const GeomPlane& rhs) const;
   bool operator!=(const GeomPlane& rhs) const;
+  bool operator<(const GeomPlane& rhs) const;
 
   // Some tests which can applied between a plane and a point.
   // These are only meant as tests for whether a point lies "above" or "below" the
