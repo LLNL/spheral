@@ -212,13 +212,8 @@ GeomPolyhedron(const vector<GeomPolyhedron::Vector>& points):
     BEGIN_CONTRACT_SCOPE
     {
       // All normals should be outward facing.
-      Vector centroid;
-      for (vector<Vector>::const_iterator itr = mVertices.begin();
-           itr != mVertices.end();
-           ++itr) centroid += *itr;
-      centroid /= mVertices.size();
-      for (const Facet& facet: mFacets) ENSURE2((facet.position() - centroid).dot(facet.normal()) >= 0.0,
-                                                "Inward normal? " << (facet.position() - centroid).dot(facet.normal()) << " " << facet.position() << " " << centroid << " " << facet.normal());
+      for (const auto& facet: mFacets) ENSURE2(((facet.position() - mCentroid).dot(facet.normal()) >= 0.0),
+                                               "Inward normal? " << (facet.position() - mCentroid).dot(facet.normal()) << " " << facet.position() << " " << mCentroid << " " << facet.normal());
 
       // We had better be convex if built from a convex hull.
       ENSURE(convex());
