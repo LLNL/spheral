@@ -8,6 +8,8 @@
 
 #include "r3d_utils.hh"
 #include "Geometry/GeomPlane.hh"
+#include "Utilities/CounterClockwiseComparator.hh"
+#include "Utilities/sort_permutation.hh"
 
 namespace Spheral {
 
@@ -108,6 +110,15 @@ Face findFaceRing(const vector<Dim<3>::Vector>& verts,
   // Arrange the loop in our standard unique order, and we're done.
   result.finalize();
   // cerr << "Final ring: " << result << endl;
+  // cerr << "          : ";
+  // for (const auto i: result.indices) cerr << facePlane.minimumDistance(verts[i]) << " ";
+  // cerr << endl;
+  // cerr << "          : ";
+  // for (const auto i: result.indices) cerr << verts[i] << " ";
+  // cerr << endl;
+  // cerr << "          : ";
+  // cerr << facePlane << " ";
+  // cerr << endl;
   return result;
 }
 
@@ -325,7 +336,7 @@ r3d_poly_to_polyhedron(const r3d_poly& celli,
     CHECK(j < id.size() and id[j] < verts.size());
   }
 
-  // Build the vertex->vertex connectivity and vertex-face normals.
+  // Build the vertex->vertex connectivity.
   const unsigned nunique = verts.size();
   vector<vector<unsigned> > nghbrs(nunique);
   vector<vector<Vector> > vertexFaceNormals(nunique);
@@ -335,25 +346,41 @@ r3d_poly_to_polyhedron(const r3d_poly& celli,
     if (id[celli.verts[i].pnbrs[1]] != j and find(nghbrs[j].begin(), nghbrs[j].end(), id[celli.verts[i].pnbrs[1]]) == nghbrs[j].end()) nghbrs[j].push_back(id[celli.verts[i].pnbrs[1]]);
     if (id[celli.verts[i].pnbrs[2]] != j and find(nghbrs[j].begin(), nghbrs[j].end(), id[celli.verts[i].pnbrs[2]]) == nghbrs[j].end()) nghbrs[j].push_back(id[celli.verts[i].pnbrs[2]]);
   }
+
+  // Grab the centroid.
+  const Vector centroid = accumulate(verts.begin(), verts.end(), Vector::zero)/nunique;
+
+  // Build the facet normals around each vertex.  This is complicated by the limitations of the r3d conventions for storing topology.
   for (i = 0; i != nunique; ++i) {
     n = nghbrs[i].size();
     CHECK(n >= 3);
+    if (n > 3) {
+      // Oh boy, this point was degenerate so the ordering of neighbors around the vertex is suspect.  We sort them
+      // in CCW order around point i in a projected plane.  This won't be correct if the local surface is non-convex however.
+      vector<Vector> npoints;
+      for (j = 0; j != n; ++j) npoints.push_back(verts[nghbrs[i][j]] - verts[i]);
+      Plane localplane(npoints);                                                                        // Builds the best-fit local plane
+      if (localplane.normal().dot(verts[i] - centroid) < 0.0) localplane.normal(-localplane.normal());  // Check normal orientation
+      CounterClockwiseComparator<Vector, vector<Vector> > CCW(npoints, localplane.point(), localplane.normal());
+      const auto perm = sort_permutation(npoints, CCW);
+      apply_permutation_in_place(nghbrs[i], perm);
+    }
     for (j = 0; j != n; ++j) vertexFaceNormals[i].push_back(facet_normal(verts, i, nghbrs[i][j], nghbrs[i][(j+1)%n]));
   }
 
-  // BLAGO
-  for (auto& v: verts) cerr << "V---> " << v << endl;
-  for (auto& nbs: nghbrs) {
-    cerr << "NGB-> ";
-    for (auto i: nbs) cerr << i << " ";
-    cerr << endl;
-  }
-  for (auto& normals: vertexFaceNormals) {
-    cerr << "NRM-> ";
-    for (auto& n: normals) cerr << n << " ";
-    cerr << endl;
-  }
-  // BLAGO
+  // // BLAGO
+  // for (auto& v: verts) cerr << "V---> " << v << endl;
+  // for (auto& nbs: nghbrs) {
+  //   cerr << "NGB-> ";
+  //   for (auto i: nbs) cerr << i << " ";
+  //   cerr << endl;
+  // }
+  // for (auto& normals: vertexFaceNormals) {
+  //   cerr << "NRM-> ";
+  //   for (auto& n: normals) cerr << n << " ";
+  //   cerr << endl;
+  // }
+  // // BLAGO
 
   // Now build the unique faces.
   set<Face> faces;
@@ -363,8 +390,8 @@ r3d_poly_to_polyhedron(const r3d_poly& celli,
   // sort(faces.begin(), faces.end());
   // const auto lastUniqueFace = unique(faces.begin(), faces.end());
 
-  cerr << "Final faces:" << endl;
-  for (auto& face: faces) cerr << face << endl;
+  // cerr << "Final faces:" << endl;
+  // for (auto& face: faces) cerr << face << endl;
   
   // Copy the unique faces to a single array.
   vector<vector<unsigned> > faceIndices;
