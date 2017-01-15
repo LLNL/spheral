@@ -299,6 +299,16 @@ std::string test_polyhedron_to_r3d_poly() {
     if (not fuzzyEqual(vol, 1.0, 1.0e-10)) return "ERROR: volume mismatch for cube: " + to_string(vol) + " != 1.0";
   }
 
+  // Pyramid test.
+  {
+    const FacetedVolume pyramid = construct_pyramid_polyhedron();
+    r3d_poly pyramid3d;
+    polyhedron_to_r3d_poly(pyramid, pyramid3d);
+
+    // Is it correct?
+    if (not fuzzyEqual(pyramid.volume(), 1.0/3.0, 1.0e-10)) return "ERROR: volume mismatch for pyramid: " + to_string(pyramid.volume()) + " != 1.0/3.0";
+  }
+
   // Icosahedron test.
   {
     const FacetedVolume ico0 = construct_icosahedron_polyhedron();
@@ -352,7 +362,11 @@ std::string test_r3d_poly_to_polyhedron() {
     r3d_poly_to_polyhedron(pyramid3d, 1.0e-8, pyramid);
 
     // Is it correct?
-    if (not fuzzyEqual(pyramid.volume(), 1.0/3.0, 1.0e-10)) return "ERROR: volume mismatch for pyramid: " + to_string(pyramid.volume()) + " != 1.0/3.0";
+    if (not r3d_is_good(&pyramid3d)) return "ERROR: r3d_is_good fails for pyramid";
+    const double vol0 = pyramid.volume();
+    r3d_real vol;
+    r3d_reduce(&pyramid3d, &vol, 0);
+    if (not fuzzyEqual(vol, vol0, 1.0e-10)) return "ERROR: volume mismatch for pyramid: " + to_string(vol) + " != " + to_string(vol0);
   }
 
   // Icosahedron test.
