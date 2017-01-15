@@ -16,6 +16,178 @@ namespace Testing {
 
 using namespace std;
 
+namespace {  // anonymous
+
+//------------------------------------------------------------------------------
+// Return a pyramid. (r3d)
+//------------------------------------------------------------------------------
+r3d_poly construct_pyramid_r3d() {
+  const unsigned nverts = 5;
+  const unsigned nfaces = 5;
+  vector<r3d_rvec3> verts = {{0, 0, 0}, 
+                             {1, 0, 0},
+                             {1, 1, 0},
+                             {0, 1, 0},
+                             {0.5, 0.5, 1}};
+  r3d_int faces[5][4] = {{0, 3, 2, 1},
+                         {0, 1, 4},
+                         {1, 2, 4},
+                         {2, 3, 4},
+                         {3, 0, 4}};
+  r3d_int** facesp = new r3d_int*[nfaces];
+  for (unsigned j = 0; j != nfaces; ++j) {
+    const unsigned n = (j == 0 ? 4 : 3);
+    facesp[j] = new r3d_int[n];
+    for (unsigned k = 0; k != n; ++k) facesp[j][k] = faces[j][k];
+  }
+  r3d_int nvertsperface[nfaces] = {  // Array of number of vertices per face.
+    4, 3, 3, 3, 3
+  };
+  r3d_poly pyramid3d;
+  r3d_init_poly(&pyramid3d, &verts[0], nverts, facesp, nvertsperface, nfaces);
+  CHECK(r3d_is_good(&pyramid3d));
+  r3d_real vol0;
+  r3d_reduce(&pyramid3d, &vol0, 0);
+  CHECK2(fuzzyEqual(vol0, 1.0/3.0, 1.0e-10), "Pyramid volume initialization error: " << vol0);
+  return pyramid3d;
+}
+
+//------------------------------------------------------------------------------
+// Return a pyramid. (polyhedron)
+//------------------------------------------------------------------------------
+Dim<3>::FacetedVolume construct_pyramid_polyhedron() {
+  typedef Dim<3>::Vector Vector;
+  const unsigned nverts = 5;
+  const unsigned nfaces = 5;
+  vector<Vector> verts = {Vector(0, 0, 0), 
+                          Vector(1, 0, 0),
+                          Vector(1, 1, 0),
+                          Vector(0, 1, 0),
+                          Vector(0.5, 0.5, 1)};
+  vector<vector<unsigned> > faces = {{0, 3, 2, 1},
+                                     {0, 1, 4},
+                                     {1, 2, 4},
+                                     {2, 3, 4},
+                                     {3, 0, 4}};
+  Dim<3>::FacetedVolume pyramid(verts, faces);
+  CHECK2(fuzzyEqual(pyramid.volume(), 1.0/3.0, 1.0e-10), "Pyramid volume initialization error: " << pyramid.volume());
+  return pyramid;
+}
+
+//------------------------------------------------------------------------------
+// Return an icosahedron (r3d)
+//------------------------------------------------------------------------------
+r3d_poly construct_icosahedron_r3d() {
+  const unsigned nverts = 12;
+  const unsigned nfaces = 20;
+  r3d_int faces[nfaces][3] = {
+    // 5 faces around point 0
+    {0, 11, 5},
+    {0, 5, 1},
+    {0, 1, 7},
+    {0, 7, 10},
+    {0, 10, 11},
+    // 5 adjacent faces
+    {1, 5, 9},
+    {5, 11, 4},
+    {11, 10, 2},
+    {10, 7, 6},
+    {7, 1, 8},
+    // 5 faces around point 3
+    {3, 9, 4},
+    {3, 4, 2},
+    {3, 2, 6},
+    {3, 6, 8},
+    {3, 8, 9},
+    // 5 adjacent faces
+    {4, 9, 5},
+    {2, 4, 11},
+    {6, 2, 10},
+    {8, 6, 7},
+    {9, 8, 1},
+  };
+  r3d_int** facesp = new r3d_int*[nfaces];
+  for (unsigned j = 0; j != nfaces; ++j) {
+    facesp[j] = new r3d_int[3];
+    for (unsigned k = 0; k != 3; ++k) facesp[j][k] = faces[j][k];
+  }
+  r3d_int nvertsperface[nfaces] = {  // Array of number of vertices per face.
+    3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3
+  };
+  const double t = (1.0 + sqrt(5.0)) / 2.0;
+  vector<r3d_rvec3> verts = {           // Array of vertex coordinates.
+    {-1,  t,   0},
+    { 1,  t,   0},
+    {-1, -t,   0},
+    { 1, -t,   0},
+    { 0, -1,   t},
+    { 0,  1,   t},
+    { 0, -1,  -t},
+    { 0,  1,  -t},
+    { t,  0,  -1},
+    { t,  0,   1},
+    {-t,  0,  -1},
+    {-t,  0,   1}
+  };
+  r3d_poly ico3d;
+  r3d_init_poly(&ico3d, &verts[0], nverts, facesp, nvertsperface, nfaces);
+  CHECK(r3d_is_good(&ico3d));
+  return ico3d;
+}
+
+//------------------------------------------------------------------------------
+// Return an icosahedron. (polyhedron)
+//------------------------------------------------------------------------------
+Dim<3>::FacetedVolume construct_icosahedron_polyhedron() {
+  typedef Dim<3>::Vector Vector;
+  const unsigned nverts = 12;
+  const unsigned nfaces = 20;
+  vector<vector<unsigned> > facets = {
+    // 5 faces around point 0
+    {0, 11, 5},
+    {0, 5, 1},
+    {0, 1, 7},
+    {0, 7, 10},
+    {0, 10, 11},
+    // 5 adjacent faces
+    {1, 5, 9},
+    {5, 11, 4},
+    {11, 10, 2},
+    {10, 7, 6},
+    {7, 1, 8},
+    // 5 faces around point 3
+    {3, 9, 4},
+    {3, 4, 2},
+    {3, 2, 6},
+    {3, 6, 8},
+    {3, 8, 9},
+    // 5 adjacent faces
+    {4, 9, 5},
+    {2, 4, 11},
+    {6, 2, 10},
+    {8, 6, 7},
+    {9, 8, 1},
+  };
+  const double t = (1.0 + sqrt(5.0)) / 2.0;
+  vector<Vector> verts = {           // Array of vertex coordinates.
+    Vector(-1,  t,   0),
+    Vector( 1,  t,   0),
+    Vector(-1, -t,   0),
+    Vector( 1, -t,   0),
+    Vector( 0, -1,   t),
+    Vector( 0,  1,   t),
+    Vector( 0, -1,  -t),
+    Vector( 0,  1,  -t),
+    Vector( t,  0,  -1),
+    Vector( t,  0,   1),
+    Vector(-t,  0,  -1),
+    Vector(-t,  0,   1)
+  };
+  return Dim<3>::FacetedVolume(verts, facets);
+}
+
+}            // anonymous
+
 //------------------------------------------------------------------------------
 // Test converting from polygon -> r2d_poly.
 //------------------------------------------------------------------------------
@@ -129,51 +301,7 @@ std::string test_polyhedron_to_r3d_poly() {
 
   // Icosahedron test.
   {
-    const unsigned nverts = 12;
-    const unsigned nfaces = 20;
-    vector<vector<unsigned> > facets = {
-      // 5 faces around point 0
-      {0, 11, 5},
-      {0, 5, 1},
-      {0, 1, 7},
-      {0, 7, 10},
-      {0, 10, 11},
-      // 5 adjacent faces
-      {1, 5, 9},
-      {5, 11, 4},
-      {11, 10, 2},
-      {10, 7, 6},
-      {7, 1, 8},
-      // 5 faces around point 3
-      {3, 9, 4},
-      {3, 4, 2},
-      {3, 2, 6},
-      {3, 6, 8},
-      {3, 8, 9},
-      // 5 adjacent faces
-      {4, 9, 5},
-      {2, 4, 11},
-      {6, 2, 10},
-      {8, 6, 7},
-      {9, 8, 1},
-    };
-    const double t = (1.0 + sqrt(5.0)) / 2.0;
-    vector<Vector> verts = {           // Array of vertex coordinates.
-      Vector(-1,  t,   0),
-      Vector( 1,  t,   0),
-      Vector(-1, -t,   0),
-      Vector( 1, -t,   0),
-      Vector( 0, -1,   t),
-      Vector( 0,  1,   t),
-      Vector( 0, -1,  -t),
-      Vector( 0,  1,  -t),
-      Vector( t,  0,  -1),
-      Vector( t,  0,   1),
-      Vector(-t,  0,  -1),
-      Vector(-t,  0,   1)
-    };
-    const FacetedVolume ico0(verts, facets);
-    // for (const auto& facet: ico0.facets()) cerr << "Facet normal: " << facet.normal() << endl;
+    const FacetedVolume ico0 = construct_icosahedron_polyhedron();
 
     // Convert to a r3d_poly.
     r3d_poly ico3d;
@@ -219,34 +347,7 @@ std::string test_r3d_poly_to_polyhedron() {
 
   // Pyramid test.
   {
-    const unsigned nverts = 5;
-    const unsigned nfaces = 5;
-    vector<r3d_rvec3> verts = {{0, 0, 0}, 
-                               {1, 0, 0},
-                               {1, 1, 0},
-                               {0, 1, 0},
-                               {0.5, 0.5, 1}};
-    r3d_int faces[5][4] = {{0, 3, 2, 1},
-                           {0, 1, 4},
-                           {1, 2, 4},
-                           {2, 3, 4},
-                           {3, 0, 4}};
-    r3d_int** facesp = new r3d_int*[nfaces];
-    for (unsigned j = 0; j != nfaces; ++j) {
-      const unsigned n = (j == 0 ? 4 : 3);
-      facesp[j] = new r3d_int[n];
-      for (unsigned k = 0; k != n; ++k) facesp[j][k] = faces[j][k];
-    }
-    r3d_int nvertsperface[nfaces] = {  // Array of number of vertices per face.
-      4, 3, 3, 3, 3
-    };
-    r3d_poly pyramid3d;
-    r3d_init_poly(&pyramid3d, &verts[0], nverts, facesp, nvertsperface, nfaces);
-    CHECK(r3d_is_good(&pyramid3d));
-    r3d_real vol0;
-    r3d_reduce(&pyramid3d, &vol0, 0);
-    CHECK2(fuzzyEqual(vol0, 1.0/3.0, 1.0e-10), "Pyramid volume initialization error: " << vol0);
-
+    r3d_poly pyramid3d = construct_pyramid_r3d();
     FacetedVolume pyramid;
     r3d_poly_to_polyhedron(pyramid3d, 1.0e-8, pyramid);
 
@@ -256,60 +357,7 @@ std::string test_r3d_poly_to_polyhedron() {
 
   // Icosahedron test.
   {
-    const unsigned nverts = 12;
-    const unsigned nfaces = 20;
-    r3d_int faces[nfaces][3] = {
-      // 5 faces around point 0
-      {0, 11, 5},
-      {0, 5, 1},
-      {0, 1, 7},
-      {0, 7, 10},
-      {0, 10, 11},
-      // 5 adjacent faces
-      {1, 5, 9},
-      {5, 11, 4},
-      {11, 10, 2},
-      {10, 7, 6},
-      {7, 1, 8},
-      // 5 faces around point 3
-      {3, 9, 4},
-      {3, 4, 2},
-      {3, 2, 6},
-      {3, 6, 8},
-      {3, 8, 9},
-      // 5 adjacent faces
-      {4, 9, 5},
-      {2, 4, 11},
-      {6, 2, 10},
-      {8, 6, 7},
-      {9, 8, 1},
-    };
-    r3d_int** facesp = new r3d_int*[nfaces];
-    for (unsigned j = 0; j != nfaces; ++j) {
-      facesp[j] = new r3d_int[3];
-      for (unsigned k = 0; k != 3; ++k) facesp[j][k] = faces[j][k];
-    }
-    r3d_int nvertsperface[nfaces] = {  // Array of number of vertices per face.
-      3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3
-    };
-    const double t = (1.0 + sqrt(5.0)) / 2.0;
-    vector<r3d_rvec3> verts = {           // Array of vertex coordinates.
-      {-1,  t,   0},
-      { 1,  t,   0},
-      {-1, -t,   0},
-      { 1, -t,   0},
-      { 0, -1,   t},
-      { 0,  1,   t},
-      { 0, -1,  -t},
-      { 0,  1,  -t},
-      { t,  0,  -1},
-      { t,  0,   1},
-      {-t,  0,  -1},
-      {-t,  0,   1}
-    };
-    r3d_poly ico3d;
-    r3d_init_poly(&ico3d, &verts[0], nverts, facesp, nvertsperface, nfaces);
-    CHECK(r3d_is_good(&ico3d));
+    r3d_poly ico3d = construct_icosahedron_r3d();
 
     // Convert to a polyhedron.
     FacetedVolume ico;
