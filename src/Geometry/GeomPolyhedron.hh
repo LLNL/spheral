@@ -125,6 +125,8 @@ private:
   static FILE* mDevnull;
 };
 
+std::ostream& operator<<(std::ostream& os, const GeomPolyhedron& polygon);
+
 }
 
 #include "GeomPolyhedronInline.hh"

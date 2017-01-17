@@ -220,85 +220,83 @@ r2d_poly_to_polygon(const r2d_poly& celli,
   result = FacetedVolume();
   if (celli.nverts == 0) return;
 
-  // if (barf) { // BLAGO
-  //   cerr << "Raw verts: " << endl;
-  //   for (unsigned j = 0; j != celli.nverts; ++j) {
-  //     cerr << " --> " << celli.verts[j].pos.x + ri.x() << " " << celli.verts[j].pos.y + ri.y() << endl;
-  //   }
-  // } // BLAGO
-
-  // Read out the R2D cell in CCW order.  We have to scan for the positive loop of edges though.
+  // Build the unique set of vertices.
   vector<Vector> verts;
-  vector<int> vertcheck(celli.nverts, 0);
+  vector<unsigned> id(celli.nverts);
+  unsigned i, j, n;
+  for (i = 0; i != celli.nverts; ++i) {
+    const Vector p(celli.verts[i].pos.x,
+                   celli.verts[i].pos.y);
+    j = 0;
+    while (j < verts.size() and (verts[j] - p).magnitude2() > tol) ++j;
+    if (j == verts.size()) verts.push_back(p);
+    id[i] = j;
+    CHECK(j < id.size() and id[j] < verts.size());
+  }
+
+  // Find the centroid.
+  const unsigned nunique = verts.size();
+  CHECK(nunique >= 3);
+  const Vector centroid = std::accumulate(verts.begin(), verts.end(), Vector::zero)/nunique;
+
+  // Build the vertex->vertex connectivity.
+  vector<vector<unsigned> > nghbrs(nunique);
+  vector<vector<Vector> > vertexFaceNormals(nunique);
+  for (i = 0; i != celli.nverts; ++i) {
+    j = id[i];
+    if (id[celli.verts[i].pnbrs[0]] != j and find(nghbrs[j].begin(), nghbrs[j].end(), id[celli.verts[i].pnbrs[0]]) == nghbrs[j].end()) nghbrs[j].push_back(id[celli.verts[i].pnbrs[0]]);
+  }
+
+  // // BLAGO!
+  // {
+  //   cerr << "Unique vertices: " << endl;
+  //   for (unsigned i = 0; i != nunique; ++i) {
+  //     cerr << "                 " << i << "\t" << verts[i] << "\t" << " : ";
+  //     std::copy(nghbrs[i].begin(), nghbrs[i].end(), ostream_iterator<unsigned>(cerr, " "));
+  //     cerr << endl;
+  //   }
+  // }
+  // // BLAGO!
+
+  // Now read out the final cell in CCW order.  We assume the first loop we find that has postive area
+  // (i.e., is in CCW order) is the one we want.
+  vector<Vector> CCWverts;
+  vector<int> vertcheck(nunique, 0);
   {
-    int nextvert, ivert, firstvert;
+    unsigned nextvert, ivert, firstvert;
     double area = -1.0;
     while (area < 0.0) {
-      area = 0.0;
 
       // Find the first unused vertex.
       firstvert = 0;
-      while (firstvert != celli.nverts and vertcheck[firstvert] == 1) firstvert++;
-      CHECK(firstvert != celli.nverts);
+      while (firstvert != nunique and vertcheck[firstvert] == 1) ++firstvert;
+      CHECK(firstvert != nunique);
 
       // Read out the loop of vertices.
       ivert = firstvert;
-      nextvert = -1;
-      verts.clear();
+      nextvert = nunique;
+      CCWverts.clear();
       while (nextvert != firstvert) {
-        verts.push_back(Vector(celli.verts[ivert].pos.x,
-                               celli.verts[ivert].pos.y));
+        CCWverts.push_back(verts[ivert]);
         vertcheck[ivert] = 1;
-        nextvert = celli.verts[ivert].pnbrs[0];
+        nextvert = nghbrs[ivert][0];
         // if (barf) cerr << " **> " << (verts.back() + ri) << " " << ivert << " "  << nextvert << endl;
-        area += (celli.verts[ivert].pos.x * celli.verts[nextvert].pos.y -
-                 celli.verts[ivert].pos.y * celli.verts[nextvert].pos.x);
+        area += (verts[ivert] - centroid).cross(verts[nextvert] - centroid).z();
         ivert = nextvert;
       }
     }
-    // if (barf) cerr << " area : " << area << endl;
   }
+  const unsigned nCCWverts = CCWverts.size();
+  CHECK(nCCWverts >= 3);
 
-  // Flag any redundant vertices to not be used.
-  vector<int> usevert(verts.size(), 1);
-  for (int j = 0; j != verts.size() - 1; ++j) {
-    for (int k = j + 1; k != verts.size(); ++k) {
-      if (usevert[k] == 1 and (verts[j] - verts[k]).magnitude2() < tol) usevert[k] = 0;
-    }
+  // Now we can build our polygon.
+  vector<vector<unsigned> > facetIndices(nCCWverts, vector<unsigned>(2));
+  for (unsigned i = 0; i != verts.size(); ++i) {
+    facetIndices[i][0] = i;
+    facetIndices[i][1] = (i + 1) % nCCWverts;
   }
-
-  // Now we can read out the vertices we're actually using and build the return polygon.
-  vector<Vector> uniqueVerts;
-  vector<vector<unsigned> > facetIndices;
-  int k = 0;
-  for (int j = 0; j != verts.size(); ++j) {
-    if (usevert[j] == 1) {
-      uniqueVerts.push_back(verts[j]);
-      facetIndices.push_back(vector<unsigned>(2));
-      facetIndices.back()[0] = k;
-      facetIndices.back()[1] = ++k;
-    }
-  }
-  facetIndices.back()[1] = 0;
-  CHECK(uniqueVerts.size() >= 3);
-
-  // // Check the dang things are in CCW order.
-  // double area = 0.0;
-  // for (int j = 0; j != uniqueVerts.size(); ++j) {
-  //   area += ((uniqueVerts[facetIndices[j][0]] - ri).cross(uniqueVerts[facetIndices[j][1]] - ri)).z();
-  // }
-  // if (area < 0.0) std::reverse(uniqueVerts.begin(), uniqueVerts.end());
-
-  // if (barf) {
-  //   cout << " --> " << i << " : ";
-  //   std::copy(verts.begin(), verts.end(), std::ostream_iterator<Dim<2>::Vector>(std::cout, " "));
-  //   std::cout << endl;
-  //   cout << " --> " << i << " : ";
-  //   std::copy(uniqueVerts.begin(), uniqueVerts.end(), std::ostream_iterator<Dim<2>::Vector>(std::cout, " "));
-  //   std::cout << endl;
-  // }
-
-  result = FacetedVolume(uniqueVerts, facetIndices);
+  CHECK(facetIndices.back()[1] == 0);
+  result = FacetedVolume(CCWverts, facetIndices);
 }
 
 //------------------------------------------------------------------------------
@@ -354,7 +352,7 @@ r3d_poly_to_polyhedron(const r3d_poly& celli,
   for (i = 0; i != nunique; ++i) {
     n = nghbrs[i].size();
     CHECK(n >= 3);
-    if (n > 3) {
+    if (true) { // (n > 3) {
       // Oh boy, this point was degenerate so the ordering of neighbors around the vertex is suspect.  We sort them
       // in CCW order around point i in a projected plane.  This won't be correct if the local surface is non-convex however.
       vector<Vector> npoints;
@@ -367,6 +365,40 @@ r3d_poly_to_polyhedron(const r3d_poly& celli,
     }
     for (j = 0; j != n; ++j) vertexFaceNormals[i].push_back(facet_normal(verts, i, nghbrs[i][j], nghbrs[i][(j+1)%n]));
   }
+
+
+  //------------------------------------------------------------------------------
+  // This code is a version of Joachim's code, but fails the icosahedron test
+  // // Build the unique Faces.
+  // set<Face> faces;
+  // bool skipface;
+  // unsigned prev, next;
+  // for (i = 0; i != celli.nverts; ++i) {
+  //   for (k = 0; k != 3; ++k) {
+  //     prev = id[i];
+  //     next = id[celli.verts[i].pnbrs[k]];
+  //     Face face(prev);
+  //     skipface = false;
+  //     while (prev != next and next != id[i]) {
+  //       if (id[next] != id[i]) face.append(id[next]);
+  //       j = 0;
+  //       while (j != 3 and id[celli.verts[next].pnbrs[j]] != prev) ++j;
+  //       if (j == 3) {
+  //         skipface = true;
+  //         break;
+  //       }
+  //       prev = next;
+  //       next = id[celli.verts[prev].pnbrs[(j + 1) % 3]];
+  //     }
+  //     if (face.indices.size() == 3) cerr << "FACE: " << skipface << " : " << face << endl;
+  //     if (not skipface and face.indices.size() >= 3) {
+  //       std::reverse(face.indices.begin(), face.indices.end());
+  //       face.finalize();
+  //       faces.insert(face);
+  //     }
+  //   }
+  // }
+  //------------------------------------------------------------------------------
 
   // // BLAGO
   // for (auto& v: verts) cerr << "V---> " << v << endl;
@@ -425,7 +457,7 @@ Dim<2>::FacetedVolume clipFacetedVolume(const Dim<2>::FacetedVolume& poly,
     const Vector& p = planes[i].point();
     planes2d[i].n.x = nhat.x();
     planes2d[i].n.y = nhat.y();
-    planes2d[i].d = p.dot(nhat);
+    planes2d[i].d = -p.dot(nhat);
   }
 
   // Do the deed.
@@ -465,7 +497,7 @@ Dim<3>::FacetedVolume clipFacetedVolume(const Dim<3>::FacetedVolume& poly,
     planes3d[i].n.x = nhat.x();
     planes3d[i].n.y = nhat.y();
     planes3d[i].n.z = nhat.z();
-    planes3d[i].d = p.dot(nhat);
+    planes3d[i].d = -p.dot(nhat);
   }
 
   // Do the deed.

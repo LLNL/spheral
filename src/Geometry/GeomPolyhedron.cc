@@ -838,6 +838,26 @@ convex(const double tol) const {
 }
 
 //------------------------------------------------------------------------------
+// ostream operator.
+//------------------------------------------------------------------------------
+ostream& operator<<(ostream& os, const GeomPolyhedron& polyhedron) {
+  typedef GeomPolyhedron::Vector Vector;
+  typedef GeomPolyhedron::Facet Facet;
+  const vector<Vector>& vertices = polyhedron.vertices();
+  const vector<vector<unsigned> >& facetIndices = polyhedron.facetVertices();
+  os << "Polyhedron( vertices[\n";
+  for (size_t i = 0; i != vertices.size(); ++i) os << "                    " << i << " " << vertices[i] << "\n";
+  os << "            ]\n           facets[\n";
+  for (size_t i = 0; i != facetIndices.size(); ++i) {
+    os << "                    " << i << " [";
+    std::copy(facetIndices[i].begin(), facetIndices[i].end(), ostream_iterator<unsigned>(os, " "));
+    os << "]\n";
+  }
+  os << "])\n";
+  return os;
+}
+
+//------------------------------------------------------------------------------
 // Initialization.
 //------------------------------------------------------------------------------
 FILE* GeomPolyhedron::mDevnull = NULL;

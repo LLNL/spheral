@@ -25,6 +25,12 @@ std::string test_r2d_poly_to_polygon();
 std::string test_polyhedron_to_r3d_poly();
 std::string test_r3d_poly_to_polyhedron();
 
+//------------------------------------------------------------------------------
+// Test clipping.
+//------------------------------------------------------------------------------
+std::string test_clip_polygon();
+std::string test_clip_polyhedron();
+
 }
 }
 

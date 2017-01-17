@@ -19,6 +19,60 @@ using namespace std;
 namespace {  // anonymous
 
 //------------------------------------------------------------------------------
+// Return an H (r2d).
+//------------------------------------------------------------------------------
+r2d_poly construct_H_r2d() {
+  typedef Dim<2>::Vector Vector;
+  typedef Dim<2>::FacetedVolume FacetedVolume;
+
+  // Make ouselves an H shaped polygon.
+  vector<r2d_rvec2> verts0 = {{0,0},
+                              {1,0},
+                              {1,1}, 
+                              {2,1},
+                              {2,0},
+                              {3,0},
+                              {3,3}, 
+                              {2,3}, 
+                              {2,2}, 
+                              {1,2}, 
+                              {1,3}, 
+                              {0,3}};
+  const unsigned nv0 = verts0.size();
+  r2d_poly poly2d;
+  r2d_init_poly(&poly2d, &verts0[0], nv0);
+  CHECK(r2d_is_good(&poly2d));
+  return poly2d;
+}
+
+//------------------------------------------------------------------------------
+// Return an H (polygon).
+//------------------------------------------------------------------------------
+Dim<2>::FacetedVolume construct_H_polygon() {
+  typedef Dim<2>::Vector Vector;
+  typedef Dim<2>::FacetedVolume FacetedVolume;
+  vector<Vector> vertices0 = {Vector(0,0),
+                                      Vector(1,0),
+                                      Vector(1,1), 
+                                      Vector(2,1),
+                                      Vector(2,0),
+                                      Vector(3,0),
+                                      Vector(3,3), 
+                                      Vector(2,3), 
+                                      Vector(2,2), 
+                                      Vector(1,2), 
+                                      Vector(1,3), 
+                                      Vector(0,3)};
+  const unsigned nv0 = vertices0.size();
+  vector<vector<unsigned> > facets0(nv0, vector<unsigned>(2));
+  for (unsigned i = 0; i != nv0; ++i) facets0[i] = {i, i+1};
+  facets0[nv0-1][1] = 0;
+  const FacetedVolume polygon0(vertices0, facets0);
+  CHECK(fuzzyEqual(polygon0.volume(), 7.0, 1.0e-10));
+  return polygon0;
+}
+
+//------------------------------------------------------------------------------
 // Return a pyramid. (r3d)
 //------------------------------------------------------------------------------
 r3d_poly construct_pyramid_r3d() {
@@ -197,24 +251,7 @@ std::string test_polygon_to_r2d_poly() {
   typedef Dim<2>::FacetedVolume FacetedVolume;
 
   // Make ouselves an H shaped polygon.
-  vector<Vector> vertices0 = {Vector(0,0),
-                                      Vector(1,0),
-                                      Vector(1,1), 
-                                      Vector(2,1),
-                                      Vector(2,0),
-                                      Vector(3,0),
-                                      Vector(3,3), 
-                                      Vector(2,3), 
-                                      Vector(2,2), 
-                                      Vector(1,2), 
-                                      Vector(1,3), 
-                                      Vector(0,3)};
-  const unsigned nv0 = vertices0.size();
-  vector<vector<unsigned> > facets0(nv0, vector<unsigned>(2));
-  for (unsigned i = 0; i != nv0; ++i) facets0[i] = {i, i+1};
-  facets0[nv0-1][1] = 0;
-  const FacetedVolume polygon0(vertices0, facets0);
-  CHECK(fuzzyEqual(polygon0.volume(), 7.0, 1.0e-10));
+  const FacetedVolume polygon0 = construct_H_polygon();
 
   // Convert to a r2d_poly.
   r2d_poly poly2d;
@@ -239,22 +276,7 @@ std::string test_r2d_poly_to_polygon() {
   typedef Dim<2>::FacetedVolume FacetedVolume;
 
   // Make ouselves an H shaped polygon.
-  vector<r2d_rvec2> verts0 = {{0,0},
-                              {1,0},
-                              {1,1}, 
-                              {2,1},
-                              {2,0},
-                              {3,0},
-                              {3,3}, 
-                              {2,3}, 
-                              {2,2}, 
-                              {1,2}, 
-                              {1,3}, 
-                              {0,3}};
-  const unsigned nv0 = verts0.size();
-  r2d_poly poly2d;
-  r2d_init_poly(&poly2d, &verts0[0], nv0);
-  CHECK(r2d_is_good(&poly2d));
+  r2d_poly poly2d = construct_H_r2d();
 
   // Convert to a polygon.
   Dim<2>::FacetedVolume polygon;
@@ -385,6 +407,65 @@ std::string test_r3d_poly_to_polyhedron() {
 
   return "OK";
 
+}
+
+//------------------------------------------------------------------------------
+// Test clipping a polygon.
+//------------------------------------------------------------------------------
+std::string test_clip_polygon() {
+
+  typedef Dim<2>::Vector Vector;
+  typedef Dim<2>::FacetedVolume FacetedVolume;
+  typedef GeomPlane<Dim<2> > Plane;
+
+  // Make ouselves an H shaped polygon.
+  const FacetedVolume H = construct_H_polygon();
+
+  // Make some clip planes.
+  vector<Plane> planes = {Plane(Vector(1.5, 1.5), Vector(1, 1).unitVector()),
+                          Plane(Vector(0.0, 1.0), Vector(0, 1))};
+
+  // Clip it!
+  const FacetedVolume Hclip = clipFacetedVolume(H, planes);
+
+  // Is it correct?
+  if (not fuzzyEqual(Hclip.volume(), 3.0, 1.0e-10)) return "ERROR: clipped area mismatch: " + to_string(Hclip.volume()) + " != 3.0";
+
+  // Must be OK.
+  return "OK";
+}
+
+//------------------------------------------------------------------------------
+// Test clipping a polyhedron.
+//------------------------------------------------------------------------------
+std::string test_clip_polyhedron() {
+
+  typedef Dim<3>::Vector Vector;
+  typedef Dim<3>::FacetedVolume FacetedVolume;
+  typedef GeomPlane<Dim<3> > Plane;
+
+  // First figure out the expected volume by clipping an icosahedron.
+  r3d_real vol0;
+  {
+    r3d_poly ico = construct_icosahedron_r3d();
+    r3d_plane planes[3] = {{{1.0, 0.0, 0.0}, 0.0},
+                           {{0.0, 1.0, 0.0}, -0.5},
+                           {{0.0, 0.0, 1.0}, -0.5}};
+    r3d_clip(&ico, planes, 3);
+    r3d_reduce(&ico, &vol0, 0);
+  }
+
+  // Now clip through our interface and see if we get the same answer.
+  const FacetedVolume ico = construct_icosahedron_polyhedron();
+  vector<Plane> clipPlanes = {Plane(Vector(0, 0,   0), Vector(1,0,0)),
+                              Plane(Vector(0, 0.5, 0), Vector(0,1,0)),
+                              Plane(Vector(0, 0, 0.5), Vector(0,0,1))};
+  const FacetedVolume ico_clip = clipFacetedVolume(ico, clipPlanes);
+
+  if (not fuzzyEqual(ico_clip.volume(), vol0, 1.0e-10)) return "ERROR: clipped volume mismatch: " + to_string(ico_clip.volume()) + " != " + to_string(vol0);
+  
+  // Must be OK.
+  return "OK";
 }
 
 }
