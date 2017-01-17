@@ -38,6 +38,9 @@ class CXXTests:
             self.space.add_function("test_r2d_poly_to_polygon", "std::string", [])
             self.space.add_function("test_polyhedron_to_r3d_poly", "std::string", [])
             self.space.add_function("test_r3d_poly_to_polyhedron", "std::string", [])
+            self.space.add_function("test_polygon_to_r2d_poly", "std::string", [])
+            self.space.add_function("test_clip_polygon", "std::string", [])
+            self.space.add_function("test_clip_polyhedron", "std::string", [])
 
             exec('''
 self.space.add_function("testGlobalAllNodeIterators", "std::string",
