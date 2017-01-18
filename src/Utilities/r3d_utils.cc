@@ -249,6 +249,8 @@ r2d_poly_to_polygon(const r2d_poly& celli,
 
   // // BLAGO!
   // {
+  //   cerr << "R2D cell:" << endl;
+  //   r2d_print(const_cast<r2d_poly*>(&celli));
   //   cerr << "Unique vertices: " << endl;
   //   for (unsigned i = 0; i != nunique; ++i) {
   //     cerr << "                 " << i << "\t" << verts[i] << "\t" << " : ";
@@ -276,14 +278,16 @@ r2d_poly_to_polygon(const r2d_poly& celli,
       ivert = firstvert;
       nextvert = nunique;
       CCWverts.clear();
+      area = 0.0;
       while (nextvert != firstvert) {
         CCWverts.push_back(verts[ivert]);
         vertcheck[ivert] = 1;
         nextvert = nghbrs[ivert][0];
-        // if (barf) cerr << " **> " << (verts.back() + ri) << " " << ivert << " "  << nextvert << endl;
+        // cerr << " **> " << (CCWverts.back()) << " " << ivert << " "  << nextvert << endl;
         area += (verts[ivert] - centroid).cross(verts[nextvert] - centroid).z();
         ivert = nextvert;
       }
+      // cerr << "Area: " << area << endl;
     }
   }
   const unsigned nCCWverts = CCWverts.size();
@@ -291,7 +295,7 @@ r2d_poly_to_polygon(const r2d_poly& celli,
 
   // Now we can build our polygon.
   vector<vector<unsigned> > facetIndices(nCCWverts, vector<unsigned>(2));
-  for (unsigned i = 0; i != verts.size(); ++i) {
+  for (unsigned i = 0; i != nCCWverts; ++i) {
     facetIndices[i][0] = i;
     facetIndices[i][1] = (i + 1) % nCCWverts;
   }

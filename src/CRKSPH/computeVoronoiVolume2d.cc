@@ -16,6 +16,7 @@ extern "C" {
 #include "Utilities/allReduce.hh"
 #include "Utilities/pointOnPolygon.hh"
 #include "Utilities/FastMath.hh"
+#include "Utilities/r3d_utils.hh"
 
 namespace Spheral {
 namespace CRKSPHSpace {
@@ -69,181 +70,6 @@ void findPolygonExtent(double& xmin, double& xmax, const Dim<2>::Vector& nhat, c
 //   // G *= sqrt(moms[0]/G.Determinant());
 //   xmax = (G*nhat).magnitude();
 //   xmin = -xmax;
-// }
-
-//------------------------------------------------------------------------------
-// Return a Spheral GeomPolygon from an R2D polygon.
-//------------------------------------------------------------------------------
-Dim<2>::FacetedVolume
-r2d_poly_to_polygon(const r2d_poly& celli,
-                    const Dim<2>::Vector& offset,
-                    const double tol) {
-
-  // Note, R2D leaves lots of degeneracies in the cell points/edges, so we do this in two passes.  First,
-  // read all the vertices in CCW order and build a linked list pointing to the next one.  Then we
-  // go over these points and remove any degeneracies by updating just the linked list to loop over
-  // unique vertices.
-
-  using std::vector;
-  typedef Dim<2>::Scalar Scalar;
-  typedef Dim<2>::Vector Vector;
-  typedef Dim<2>::SymTensor SymTensor;
-  typedef Dim<2>::FacetedVolume FacetedVolume;
-  typedef Dim<2>::FacetedVolume::Facet Facet;
-
-  // if (barf) { // BLAGO
-  //   cerr << "Raw verts: " << endl;
-  //   for (unsigned j = 0; j != celli.nverts; ++j) {
-  //     cerr << " --> " << celli.verts[j].pos.x + ri.x() << " " << celli.verts[j].pos.y + ri.y() << endl;
-  //   }
-  // } // BLAGO
-
-  // Read out the R2D cell in CCW order.  We have to scan for the positive loop of edges though.
-  vector<Vector> verts;
-  vector<int> vertcheck(celli.nverts, 0);
-  {
-    int nextvert, ivert, firstvert;
-    double area = -1.0;
-    while (area < 0.0) {
-      area = 0.0;
-
-      // Find the first unused vertex.
-      firstvert = 0;
-      while (firstvert != celli.nverts and vertcheck[firstvert] == 1) firstvert++;
-      CHECK(firstvert != celli.nverts);
-
-      // Read out the loop of vertices.
-      ivert = firstvert;
-      nextvert = -1;
-      verts.clear();
-      while (nextvert != firstvert) {
-        verts.push_back(Vector(celli.verts[ivert].pos.x,
-                               celli.verts[ivert].pos.y));
-        vertcheck[ivert] = 1;
-        nextvert = celli.verts[ivert].pnbrs[0];
-        // if (barf) cerr << " **> " << (verts.back() + ri) << " " << ivert << " "  << nextvert << endl;
-        area += (celli.verts[ivert].pos.x * celli.verts[nextvert].pos.y -
-                 celli.verts[ivert].pos.y * celli.verts[nextvert].pos.x);
-        ivert = nextvert;
-      }
-    }
-    // if (barf) cerr << " area : " << area << endl;
-  }
-
-  // Flag any redundant vertices to not be used.
-  vector<int> usevert(verts.size(), 1);
-  for (int j = 0; j != verts.size() - 1; ++j) {
-    for (int k = j + 1; k != verts.size(); ++k) {
-      if (usevert[k] == 1 and (verts[j] - verts[k]).magnitude2() < tol) usevert[k] = 0;
-    }
-  }
-
-  // Now we can read out the vertices we're actually using and build the return polygon.
-  vector<Vector> uniqueVerts;
-  vector<vector<unsigned> > facetIndices;
-  int k = 0;
-  for (int j = 0; j != verts.size(); ++j) {
-    if (usevert[j] == 1) {
-      uniqueVerts.push_back(offset + verts[j]);
-      facetIndices.push_back(vector<unsigned>(2));
-      facetIndices.back()[0] = k;
-      facetIndices.back()[1] = ++k;
-    }
-  }
-  facetIndices.back()[1] = 0;
-  CHECK(uniqueVerts.size() >= 3);
-
-  // // Check the dang things are in CCW order.
-  // double area = 0.0;
-  // for (int j = 0; j != uniqueVerts.size(); ++j) {
-  //   area += ((uniqueVerts[facetIndices[j][0]] - ri).cross(uniqueVerts[facetIndices[j][1]] - ri)).z();
-  // }
-  // if (area < 0.0) std::reverse(uniqueVerts.begin(), uniqueVerts.end());
-
-  // if (barf) {
-  //   cout << " --> " << i << " : ";
-  //   std::copy(verts.begin(), verts.end(), std::ostream_iterator<Dim<2>::Vector>(std::cout, " "));
-  //   std::cout << endl;
-  //   cout << " --> " << i << " : ";
-  //   std::copy(uniqueVerts.begin(), uniqueVerts.end(), std::ostream_iterator<Dim<2>::Vector>(std::cout, " "));
-  //   std::cout << endl;
-  // }
-
-  return FacetedVolume(uniqueVerts, facetIndices);
-}
-
-// //------------------------------------------------------------------------------
-// // Convert a Spheral polygon to an R2D polygon.  Since our polygon may be
-// // non-trivial (include holes) we can't just use r2d_init_poly.
-// //------------------------------------------------------------------------------
-// void Polygon_to_r2d_poly(r2d_poly& cell_r2d,
-//                          const Dim<2>::FacetedVolume& cell_spheral,
-//                          const vector<Dim<2>::FacetedVolume>& holes_spheral) {
-//   typedef Dim<2>::Vector Vector;
-//   typedef Dim<2>::FacetedVolume::Facet Facet;
-
-//   // Build the outer boundary.
-//   const vector<Vector>& vertices = cell_spheral.vertices();
-//   const vector<Facet>& facets = cell_spheral.facets();
-//   const unsigned nverts = vertices.size();
-//   CHECK(nverts <= R2D_MAX_VERTS);
-//   CHECK(facets.size() == nverts);
-//   cell_r2d.nverts = nverts;
-//   for (unsigned i = 0; i != nverts; ++i) {
-//     cell_r2d.verts[i].pos.x = vertices[i].x();
-//     cell_r2d.verts[i].pos.y = vertices[i].y();
-//     cell_r2d.verts[facets[i].ipoint1()].pnbrs[0] = facets[i].ipoint2();
-//     cell_r2d.verts[facets[i].ipoint2()].pnbrs[1] = facets[i].ipoint1();
-//   }
-
-//   // Add any holes by reversing their geometry order to be CW.
-//   const unsigned nholes = holes_spheral.size();
-//   for (unsigned ihole = 0; ihole != nholes; ++ihole) {
-//     const vector<Vector>& vertices = holes_spheral[ihole].vertices();
-//     const vector<Facet>& facets = holes_spheral[ihole].facets();
-//     const unsigned nverts_old = cell_r2d.nverts;
-//     const unsigned nverts = vertices.size();
-//     CHECK(nverts_old + nverts <= R2D_MAX_VERTS);
-//     CHECK(facets.size() == nverts);
-//     cell_r2d.nverts = nverts_old + nverts;
-//     for (unsigned i = 0; i != nverts; ++i) {
-//       cell_r2d.verts[nverts_old + i].pos.x = vertices[i].x();
-//       cell_r2d.verts[nverts_old + i].pos.y = vertices[i].y();
-//       cell_r2d.verts[nverts_old + facets[i].ipoint1()].pnbrs[0] = nverts_old + facets[i].ipoint2();
-//       cell_r2d.verts[nverts_old + facets[i].ipoint2()].pnbrs[1] = nverts_old + facets[i].ipoint1();
-//     }
-//   }
-
-//   ENSURE2(r2d_is_good(&cell_r2d), "Bad polygon transformation.");
-// }
-
-// //------------------------------------------------------------------------------
-// // Integrate a linear function in a polygon.
-// // We do this be evaluating it for each triangle,
-// // using the handy relation that if f(x,y) is a linear function then the integral
-// // \int f(x,y) dx dy in a trianglur region is A*f(xc,yc), where A is the area of the
-// // triangle and (xc,yc) the triangle centroid.
-// // Note we implicitly use the centroid in our cell coordinates as zero.
-// //------------------------------------------------------------------------------
-// double cellIntegral(const r2d_poly& cell,
-//                     const double a,
-//                     const Dim<2>::Vector& b) {
-//   double result = 0.0;
-//   Dim<2>::Vector cent;
-//   int lastvert = -1, nextvert, ivert = 0, k = 0;
-//   while (k < cell.nverts) {
-//     nextvert = (cell.verts[ivert].pnbrs[0] == lastvert ?
-//                 cell.verts[ivert].pnbrs[1] :
-//                 cell.verts[ivert].pnbrs[0]);
-//     cent.x((cell.verts[ivert].pos.x + cell.verts[nextvert].pos.x)/3.0);
-//     cent.y((cell.verts[ivert].pos.y + cell.verts[nextvert].pos.y)/3.0);
-//     result += 0.5*abs(cell.verts[ivert].pos.x * cell.verts[nextvert].pos.y -
-//                       cell.verts[ivert].pos.y * cell.verts[nextvert].pos.x)*(a + b.dot(cent));
-//     lastvert = ivert;
-//     ivert = nextvert;
-//     ++k;
-//   }
-//   return result;
 // }
 
 }           // anonymous namespace
@@ -500,7 +326,11 @@ computeVoronoiVolume(const FieldList<Dim<2>, Dim<2>::Vector>& position,
         }
 
         // If requested, we can return the cell geometries.
-        if (returnCells) cells(nodeListi, i) = r2d_poly_to_polygon(celli, ri, 1.0e-8/sqrt(Hdeti));
+        if (returnCells) {
+          r2d_poly_to_polygon(celli, 1.0e-8/sqrt(Hdeti), cells(nodeListi, i));
+          cells(nodeListi, i) += ri;
+          cerr << "Cell " << i << " : " << cells(nodeListi, i) << endl;
+        }
       }
     }
 
