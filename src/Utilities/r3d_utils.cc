@@ -326,7 +326,7 @@ r3d_poly_to_polyhedron(const r3d_poly& celli,
   // Build the unique set of vertices.
   vector<Vector> verts;
   vector<unsigned> id(celli.nverts);
-  unsigned i, j, n;
+  unsigned i, j, k, n;
   for (i = 0; i != celli.nverts; ++i) {
     const Vector p(celli.verts[i].pos.x,
                    celli.verts[i].pos.y,
@@ -338,71 +338,69 @@ r3d_poly_to_polyhedron(const r3d_poly& celli,
     CHECK(j < id.size() and id[j] < verts.size());
   }
 
-  // Build the vertex->vertex connectivity.
-  const unsigned nunique = verts.size();
-  vector<vector<unsigned> > nghbrs(nunique);
-  vector<vector<Vector> > vertexFaceNormals(nunique);
+  // Build the unique Faces.
+  // This bit of code is a version of Joachim's Pouderoux's algorithm.
+  set<Face> faces;
+  bool skipface;
+  unsigned prev, next;
   for (i = 0; i != celli.nverts; ++i) {
-    j = id[i];
-    if (id[celli.verts[i].pnbrs[0]] != j and find(nghbrs[j].begin(), nghbrs[j].end(), id[celli.verts[i].pnbrs[0]]) == nghbrs[j].end()) nghbrs[j].push_back(id[celli.verts[i].pnbrs[0]]);
-    if (id[celli.verts[i].pnbrs[1]] != j and find(nghbrs[j].begin(), nghbrs[j].end(), id[celli.verts[i].pnbrs[1]]) == nghbrs[j].end()) nghbrs[j].push_back(id[celli.verts[i].pnbrs[1]]);
-    if (id[celli.verts[i].pnbrs[2]] != j and find(nghbrs[j].begin(), nghbrs[j].end(), id[celli.verts[i].pnbrs[2]]) == nghbrs[j].end()) nghbrs[j].push_back(id[celli.verts[i].pnbrs[2]]);
-  }
-
-  // Grab the centroid.
-  const Vector centroid = accumulate(verts.begin(), verts.end(), Vector::zero)/nunique;
-
-  // Build the facet normals around each vertex.  This is complicated by the limitations of the r3d conventions for storing topology.
-  for (i = 0; i != nunique; ++i) {
-    n = nghbrs[i].size();
-    CHECK(n >= 3);
-    if (true) { // (n > 3) {
-      // Oh boy, this point was degenerate so the ordering of neighbors around the vertex is suspect.  We sort them
-      // in CCW order around point i in a projected plane.  This won't be correct if the local surface is non-convex however.
-      vector<Vector> npoints;
-      for (j = 0; j != n; ++j) npoints.push_back(verts[nghbrs[i][j]] - verts[i]);
-      Plane localplane(npoints);                                                                        // Builds the best-fit local plane
-      if (localplane.normal().dot(verts[i] - centroid) < 0.0) localplane.normal(-localplane.normal());  // Check normal orientation
-      CounterClockwiseComparator<Vector, vector<Vector> > CCW(npoints, localplane.point(), localplane.normal());
-      const auto perm = sort_permutation(npoints, CCW);
-      apply_permutation_in_place(nghbrs[i], perm);
+    for (k = 0; k != 3; ++k) {
+      Face face(id[i]);
+      prev = i;
+      next = celli.verts[i].pnbrs[k];
+      skipface = false;
+      do {
+        if (id[next] != face.indices.back()) face.append(id[next]);
+        j = 0;
+        while (j != 3 and celli.verts[next].pnbrs[j] != prev) ++j;
+        if (j == 3) {
+          skipface = true;
+          break;
+        }
+        prev = next;
+        next = celli.verts[prev].pnbrs[(j + 1) % 3];
+      } while (prev != i);
+      face.indices.pop_back();  // Due to our logic we insert the same index at the end as the start.
+      // cerr << "FACE: " << skipface << " : " << face << endl;
+      if (not skipface and face.indices.size() >= 3) {
+        std::reverse(face.indices.begin(), face.indices.end());  // The above walk seems to get the vertices in CW order, so switch to CCW.
+        face.finalize();
+        faces.insert(face);
+      }
     }
-    for (j = 0; j != n; ++j) vertexFaceNormals[i].push_back(facet_normal(verts, i, nghbrs[i][j], nghbrs[i][(j+1)%n]));
   }
 
+  // // Grab the centroid.
+  // const Vector centroid = accumulate(verts.begin(), verts.end(), Vector::zero)/nunique;
 
-  //------------------------------------------------------------------------------
-  // This code is a version of Joachim's code, but fails the icosahedron test
-  // // Build the unique Faces.
-  // set<Face> faces;
-  // bool skipface;
-  // unsigned prev, next;
+  // // Build the vertex->vertex connectivity.
+  // const unsigned nunique = verts.size();
+  // vector<vector<unsigned> > nghbrs(nunique);
+  // vector<vector<Vector> > vertexFaceNormals(nunique);
   // for (i = 0; i != celli.nverts; ++i) {
-  //   for (k = 0; k != 3; ++k) {
-  //     prev = id[i];
-  //     next = id[celli.verts[i].pnbrs[k]];
-  //     Face face(prev);
-  //     skipface = false;
-  //     while (prev != next and next != id[i]) {
-  //       if (id[next] != id[i]) face.append(id[next]);
-  //       j = 0;
-  //       while (j != 3 and id[celli.verts[next].pnbrs[j]] != prev) ++j;
-  //       if (j == 3) {
-  //         skipface = true;
-  //         break;
-  //       }
-  //       prev = next;
-  //       next = id[celli.verts[prev].pnbrs[(j + 1) % 3]];
-  //     }
-  //     if (face.indices.size() == 3) cerr << "FACE: " << skipface << " : " << face << endl;
-  //     if (not skipface and face.indices.size() >= 3) {
-  //       std::reverse(face.indices.begin(), face.indices.end());
-  //       face.finalize();
-  //       faces.insert(face);
-  //     }
-  //   }
+  //   j = id[i];
+  //   if (id[celli.verts[i].pnbrs[0]] != j and find(nghbrs[j].begin(), nghbrs[j].end(), id[celli.verts[i].pnbrs[0]]) == nghbrs[j].end()) nghbrs[j].push_back(id[celli.verts[i].pnbrs[0]]);
+  //   if (id[celli.verts[i].pnbrs[1]] != j and find(nghbrs[j].begin(), nghbrs[j].end(), id[celli.verts[i].pnbrs[1]]) == nghbrs[j].end()) nghbrs[j].push_back(id[celli.verts[i].pnbrs[1]]);
+  //   if (id[celli.verts[i].pnbrs[2]] != j and find(nghbrs[j].begin(), nghbrs[j].end(), id[celli.verts[i].pnbrs[2]]) == nghbrs[j].end()) nghbrs[j].push_back(id[celli.verts[i].pnbrs[2]]);
   // }
-  //------------------------------------------------------------------------------
+
+  // // Build the facet normals around each vertex.  This is complicated by the limitations of the r3d conventions for storing topology.
+  // for (i = 0; i != nunique; ++i) {
+  //   n = nghbrs[i].size();
+  //   CHECK(n >= 3);
+  //   if (true) { // (n > 3) {
+  //     // Oh boy, this point was degenerate so the ordering of neighbors around the vertex is suspect.  We sort them
+  //     // in CCW order around point i in a projected plane.  This won't be correct if the local surface is non-convex however.
+  //     vector<Vector> npoints;
+  //     for (j = 0; j != n; ++j) npoints.push_back(verts[nghbrs[i][j]] - verts[i]);
+  //     Plane localplane(npoints);                                                                        // Builds the best-fit local plane
+  //     if (localplane.normal().dot(verts[i] - centroid) < 0.0) localplane.normal(-localplane.normal());  // Check normal orientation
+  //     CounterClockwiseComparator<Vector, vector<Vector> > CCW(npoints, localplane.point(), localplane.normal());
+  //     const auto perm = sort_permutation(npoints, CCW);
+  //     apply_permutation_in_place(nghbrs[i], perm);
+  //   }
+  //   for (j = 0; j != n; ++j) vertexFaceNormals[i].push_back(facet_normal(verts, i, nghbrs[i][j], nghbrs[i][(j+1)%n]));
+  // }
 
   // // BLAGO
   // for (auto& v: verts) cerr << "V---> " << v << endl;
@@ -418,13 +416,13 @@ r3d_poly_to_polyhedron(const r3d_poly& celli,
   // }
   // // BLAGO
 
-  // Now build the unique faces.
-  set<Face> faces;
-  for (i = 0; i != nunique; ++i) {
-    for (const auto& nhat: vertexFaceNormals[i]) faces.insert(findFaceRing(verts, nghbrs, Plane(verts[i], nhat), i, tol));
-  }
-  // sort(faces.begin(), faces.end());
-  // const auto lastUniqueFace = unique(faces.begin(), faces.end());
+  // // Now build the unique faces.
+  // set<Face> faces;
+  // for (i = 0; i != nunique; ++i) {
+  //   for (const auto& nhat: vertexFaceNormals[i]) faces.insert(findFaceRing(verts, nghbrs, Plane(verts[i], nhat), i, tol));
+  // }
+  // // sort(faces.begin(), faces.end());
+  // // const auto lastUniqueFace = unique(faces.begin(), faces.end());
 
   // cerr << "Final faces:" << endl;
   // for (auto& face: faces) cerr << face << endl;
