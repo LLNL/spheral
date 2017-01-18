@@ -6,6 +6,7 @@
 // Created by JMO, Wed Jan 11 15:14:32 PST 2017
 //------------------------------------------------------------------------------
 #include <vector>
+#include <random>
 
 #include "test_r3d_utils.hh"
 #include "Utilities/r3d_utils.hh"
@@ -444,24 +445,41 @@ std::string test_clip_polyhedron() {
   typedef Dim<3>::FacetedVolume FacetedVolume;
   typedef GeomPlane<Dim<3> > Plane;
 
-  // First figure out the expected volume by clipping an icosahedron.
+  // The starting icosahedron.
+  const FacetedVolume ico = construct_icosahedron_polyhedron();
+
+  // Random number generator.
+  std::default_random_engine generator;
+  std::uniform_real_distribution<double> distribution(0.0,1.0);
+
+  // Build our random clip planes.
+  vector<Plane> clipPlanes;
+  const Vector lengths = ico.xmax() - ico.xmin();
+  for (unsigned i = 0; i != 3; ++i) {
+    const Vector p = Vector(ico.xmin() + Vector(lengths(0) * distribution(generator),
+                                                lengths(1) * distribution(generator),
+                                                lengths(2) * distribution(generator)));
+    const Vector nhat = -p.unitVector();
+    clipPlanes.push_back(Plane(p, nhat));
+  }
+
+  // First figure out the expected volume by clipping an r3d icosahedron.
   r3d_real vol0;
   {
-    r3d_poly ico = construct_icosahedron_r3d();
-    r3d_plane planes[3] = {{{1.0, 0.0, 0.0}, 0.0},
-                           {{0.0, 1.0, 0.0}, -0.5},
-                           {{0.0, 0.0, 1.0}, -0.5}};
-    r3d_clip(&ico, planes, 3);
-    r3d_reduce(&ico, &vol0, 0);
+    r3d_poly ico3d = construct_icosahedron_r3d();
+    r3d_plane planes[3];
+    for (unsigned i = 0; i != 3; ++i) {
+      planes[i].n.x = clipPlanes[i].normal().x();
+      planes[i].n.y = clipPlanes[i].normal().y();
+      planes[i].n.z = clipPlanes[i].normal().z();
+      planes[i].d = -clipPlanes[i].normal().dot(clipPlanes[i].point());
+    }
+    r3d_clip(&ico3d, planes, 3);
+    r3d_reduce(&ico3d, &vol0, 0);
   }
 
   // Now clip through our interface and see if we get the same answer.
-  const FacetedVolume ico = construct_icosahedron_polyhedron();
-  vector<Plane> clipPlanes = {Plane(Vector(0, 0,   0), Vector(1,0,0)),
-                              Plane(Vector(0, 0.5, 0), Vector(0,1,0)),
-                              Plane(Vector(0, 0, 0.5), Vector(0,0,1))};
   const FacetedVolume ico_clip = clipFacetedVolume(ico, clipPlanes);
-
   if (not fuzzyEqual(ico_clip.volume(), vol0, 1.0e-10)) return "ERROR: clipped volume mismatch: " + to_string(ico_clip.volume()) + " != " + to_string(vol0);
   
   // Must be OK.
