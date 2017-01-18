@@ -329,7 +329,6 @@ computeVoronoiVolume(const FieldList<Dim<2>, Dim<2>::Vector>& position,
         if (returnCells) {
           r2d_poly_to_polygon(celli, 1.0e-8/sqrt(Hdeti), cells(nodeListi, i));
           cells(nodeListi, i) += ri;
-          cerr << "Cell " << i << " : " << cells(nodeListi, i) << endl;
         }
       }
     }
