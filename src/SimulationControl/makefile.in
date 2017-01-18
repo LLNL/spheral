@@ -39,6 +39,7 @@ PYTHONTARGETS = \
 	$(srcdir)/bisectFunction.py \
 	$(srcdir)/NodeHistory.py \
 	$(srcdir)/AverageStrain.py \
+	$(srcdir)/EulerianTracerHistory.py \
 	$(srcdir)/SpheralHadesDump.py \
 	$(srcdir)/siloPointmeshDump.py \
 	$(srcdir)/SpheralPointmeshSiloDump.py \
