@@ -72,6 +72,29 @@ Dim<2>::FacetedVolume construct_H_polygon() {
   CHECK(fuzzyEqual(polygon0.volume(), 7.0, 1.0e-10));
   return polygon0;
 }
+    
+//------------------------------------------------------------------------------
+// Return a saw-tooth (polygon).
+//------------------------------------------------------------------------------
+
+Dim<2>::FacetedVolume construct_saw_polygon() {
+    typedef Dim<2>::Vector Vector;
+    typedef Dim<2>::FacetedVolume FacetedVolume;
+    vector<Vector> vertices0(11);
+    for(unsigned i = 0; i<5;++i)
+    {
+        vertices0[2*i] = Vector(2.0*i,1.0);
+        vertices0[2*i+1] = Vector(2.0*i+1.0,2.0);
+    }
+    vertices0[9] = Vector(8.0,0.0);
+    vertices0[10] = Vector(0.0,1.0);
+    const unsigned nv0 = vertices0.size();
+    vector<vector<unsigned> > facets0(nv0,vector<unsigned>(2));
+    for (unsigned i = 0; i != nv0; ++i) facets0[i] = {i, i+1};
+    facets0[nv0-1][1] = 0;
+    const FacetedVolume polygon0(vertices0, facets0);
+    return polygon0;
+}
 
 //------------------------------------------------------------------------------
 // Return a pyramid. (r3d)
@@ -431,6 +454,27 @@ std::string test_clip_polygon() {
 
   // Is it correct?
   if (not fuzzyEqual(Hclip.volume(), 3.0, 1.0e-10)) return "ERROR: clipped area mismatch: " + to_string(Hclip.volume()) + " != 3.0";
+    
+  // now try orphaning parts of a saw-tooth
+    /*
+    r2d_poly Spoly;
+    const FacetedVolume S = construct_saw_polygon();
+    polygon_to_r2d_poly(S,Spoly);
+    planes = {Plane(Vector(0,1.5), Vector(0,1).unitVector())};
+    vector<r2d_plane> planes2d(planes.size());
+    for (unsigned i = 0; i != planes.size(); ++i)
+    {
+        const Vector& nhat  = planes[i].normal();
+        const Vector& p     = planes[i].point();
+        planes2d[i].n.x     = nhat.x();
+        planes2d[i].n.y     = nhat.y();
+        planes2d[i].d       = -p.dot(nhat);
+    }
+    
+    r2d_clip(&Spoly,&planes2d[0],planes.size());
+    cout << "\n";
+    r2d_print(&Spoly);
+     */
 
   // Must be OK.
   return "OK";
