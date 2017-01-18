@@ -9,6 +9,7 @@
 #include <numeric>
 #include <map>
 #include <limits>
+#include <iterator>
 
 #include "GeomPolyhedron.hh"
 #include "FacetedVolumeUtilities.hh"
