@@ -205,14 +205,27 @@ class GenerateRatioSphere3d(NodeGeneratorBase):
                  ntheta = 1,
                  center = (0.0, 0.0, 0.0),
                  distributionType = "constantDTheta",   # one of (constantDTheta, constantNTheta)
+                 aspectRatio = 1.0,                     # only for constantDTheta
                  nNodePerh = 2.01,
                  SPH = False,
                  rejecter = None):
 
         assert thetamax <= pi
 
-        self.gen2d = GenerateRatioSphere2d(drCenter, drRatio, rho, rmin, rmax, startFromCenter, thetamin, thetamax, ntheta, 
-                                           (0.0, 0.0), distributionType, nNodePerh, SPH)
+        self.gen2d = GenerateRatioSphere2d(drStart = drCenter, 
+                                           drRatio = drRatio, 
+                                           rho = rho, 
+                                           rmin = rmin, 
+                                           rmax = rmax, 
+                                           startFromCenter = startFromCenter, 
+                                           thetamin = thetamin, 
+                                           thetamax = thetamax, 
+                                           ntheta = ntheta, 
+                                           center = (0.0, 0.0), 
+                                           distributionType = distributionType, 
+                                           aspectRatio = aspectRatio,
+                                           nNodePerh = nNodePerh, 
+                                           SPH = SPH)
 
         # The 2D class already split the nodes up between processors, but
         # we want to handle that ourselves.  Distribute the full set of RZ
