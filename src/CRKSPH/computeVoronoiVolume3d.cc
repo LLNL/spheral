@@ -15,6 +15,7 @@ extern "C" {
 #include "Utilities/allReduce.hh"
 #include "Utilities/pointOnPolyhedron.hh"
 #include "Utilities/FastMath.hh"
+#include "Utilities/r3d_utils.hh"
 
 namespace Spheral {
 namespace CRKSPHSpace {
@@ -57,30 +58,30 @@ void findPolyhedronExtent(double& xmin, double& xmax, const Dim<3>::Vector& nhat
   xmax = std::max(0.0, xmax);
 }
 
-//------------------------------------------------------------------------------
-// Return a Spheral GeomPolyhedron from an R3D polyhedron.
-//------------------------------------------------------------------------------
-Dim<3>::FacetedVolume
-r3d_poly_to_polyhedron(const r3d_poly& celli,
-                       const Dim<3>::Vector& offset,
-                       const double tol) {
+// //------------------------------------------------------------------------------
+// // Return a Spheral GeomPolyhedron from an R3D polyhedron.
+// //------------------------------------------------------------------------------
+// Dim<3>::FacetedVolume
+// r3d_poly_to_polyhedron(const r3d_poly& celli,
+//                        const Dim<3>::Vector& offset,
+//                        const double tol) {
 
-  using std::vector;
-  typedef Dim<3>::Scalar Scalar;
-  typedef Dim<3>::Vector Vector;
-  typedef Dim<3>::SymTensor SymTensor;
-  typedef Dim<3>::FacetedVolume FacetedVolume;
-  typedef Dim<3>::FacetedVolume::Facet Facet;
+//   using std::vector;
+//   typedef Dim<3>::Scalar Scalar;
+//   typedef Dim<3>::Vector Vector;
+//   typedef Dim<3>::SymTensor SymTensor;
+//   typedef Dim<3>::FacetedVolume FacetedVolume;
+//   typedef Dim<3>::FacetedVolume::Facet Facet;
 
-  // We're going to cheat here a bit.  We know that currently computeVoronoiVolume3d only returns
-  // convex polyhedra, so we'll take the easy way out and just build the convex hull of the
-  // vertices.
-  vector<Vector> verts;
-  for (auto i = 0; i != celli.nverts; ++i) verts.push_back(Vector(celli.verts[i].pos.x,
-                                                                  celli.verts[i].pos.y,
-                                                                  celli.verts[i].pos.z));
-  return FacetedVolume(verts);
-}
+//   // We're going to cheat here a bit.  We know that currently computeVoronoiVolume3d only returns
+//   // convex polyhedra, so we'll take the easy way out and just build the convex hull of the
+//   // vertices.
+//   vector<Vector> verts;
+//   for (auto i = 0; i != celli.nverts; ++i) verts.push_back(Vector(celli.verts[i].pos.x,
+//                                                                   celli.verts[i].pos.y,
+//                                                                   celli.verts[i].pos.z));
+//   return FacetedVolume(verts);
+// }
 
 }           // anonymous namespace
 
@@ -399,7 +400,10 @@ computeVoronoiVolume(const FieldList<Dim<3>, Dim<3>::Vector>& position,
         }
 
         // If requested, we can return the cell geometries.
-        if (returnCells) cells(nodeListi, i) = r3d_poly_to_polyhedron(celli, ri, 1.0e-8/Dim<3>::rootnu(Hdeti));
+        if (returnCells) {
+          r3d_poly_to_polyhedron(celli, 1.0e-8/Dim<3>::rootnu(Hdeti), cells(nodeListi, i));
+          cells(nodeListi, i) += ri;
+        }
       }
     }
 
