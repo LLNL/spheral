@@ -265,7 +265,7 @@ def writeDomainMeshSiloFile(dirName, mesh, index2zone, label, nodeLists, time, c
         assert len(shapesize) == numZones
 
         assert silo.DBPutZonelist2(db, zonelistName[nDim], nDim, zoneNodes, 0, 0,
-                                   vector_of_int(numZones, SA._DB_ZONETYPE_POLYHEDRON),
+                                   vector_of_int(numZones, SA._DB_ZONETYPE_POLYGON),
                                    shapesize,
                                    vector_of_int(numZones, 1),
                                    nullOpts) == 0
