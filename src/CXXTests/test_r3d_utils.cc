@@ -459,6 +459,30 @@ std::string test_clip_polygon() {
   // Must be OK.
   return "OK";
 }
+    
+//------------------------------------------------------------------------------
+// Test clipping the saw-tooth and orphaning the blades
+//------------------------------------------------------------------------------
+std::string test_orphan_polygon() {
+    typedef Dim<2>::Vector Vector;
+    typedef Dim<2>::FacetedVolume FacetedVolume;
+    typedef GeomPlane<Dim<2> > Plane;
+    
+    // Make a saw shaped polygon.
+    const FacetedVolume S = construct_saw_polygon();
+    
+    // One clip plane to orphan the blades
+    vector<Plane> planes = {Plane(Vector(0.0,1.5),Vector(0,1))};
+    
+    // Now clip
+    const FacetedVolume Sclip = clipFacetedVolume(S,planes);
+    
+    // Check correctness
+    if (not fuzzyEqual(Sclip.volume(),1.0,1.0e-10)) return "ERROR: orphaned area mismatch: " + to_string(Sclip.volume()) + " != 1.0";
+    
+    // return
+    return "OK";
+}
 
 //------------------------------------------------------------------------------
 // Test clipping a polyhedron.

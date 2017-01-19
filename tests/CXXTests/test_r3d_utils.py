@@ -9,6 +9,7 @@ if "Testing" in dir(sph):
                    sph.Testing.test_polyhedron_to_r3d_poly,
                    sph.Testing.test_r3d_poly_to_polyhedron,
                    sph.Testing.test_clip_polygon,
+                   sph.Testing.test_orphan_polygon,
                    sph.Testing.test_clip_polyhedron):
         print "Testing ", str(method), " : ", method()
         assert method() == "OK"

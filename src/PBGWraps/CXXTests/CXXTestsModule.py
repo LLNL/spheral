@@ -40,6 +40,7 @@ class CXXTests:
             self.space.add_function("test_r3d_poly_to_polyhedron", "std::string", [])
             self.space.add_function("test_polygon_to_r2d_poly", "std::string", [])
             self.space.add_function("test_clip_polygon", "std::string", [])
+            self.space.add_function("test_orphan_polygon", "std::string", [])
             self.space.add_function("test_clip_polyhedron", "std::string", [])
 
             exec('''
