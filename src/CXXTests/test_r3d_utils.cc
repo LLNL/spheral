@@ -454,27 +454,6 @@ std::string test_clip_polygon() {
 
   // Is it correct?
   if (not fuzzyEqual(Hclip.volume(), 3.0, 1.0e-10)) return "ERROR: clipped area mismatch: " + to_string(Hclip.volume()) + " != 3.0";
-    
-  // now try orphaning parts of a saw-tooth
-    /*
-    r2d_poly Spoly;
-    const FacetedVolume S = construct_saw_polygon();
-    polygon_to_r2d_poly(S,Spoly);
-    planes = {Plane(Vector(0,1.5), Vector(0,1).unitVector())};
-    vector<r2d_plane> planes2d(planes.size());
-    for (unsigned i = 0; i != planes.size(); ++i)
-    {
-        const Vector& nhat  = planes[i].normal();
-        const Vector& p     = planes[i].point();
-        planes2d[i].n.x     = nhat.x();
-        planes2d[i].n.y     = nhat.y();
-        planes2d[i].d       = -p.dot(nhat);
-    }
-    
-    r2d_clip(&Spoly,&planes2d[0],planes.size());
-    cout << "\n";
-    r2d_print(&Spoly);
-     */
 
   // Must be OK.
   return "OK";
