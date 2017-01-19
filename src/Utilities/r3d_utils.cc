@@ -262,12 +262,13 @@ r2d_poly_to_polygon(const r2d_poly& celli,
 
   // Now read out the final cell in CCW order.  We assume the first loop we find that has postive area
   // (i.e., is in CCW order) is the one we want.
+  
+
   vector<Vector> CCWverts;
   vector<int> vertcheck(nunique, 0);
   {
     unsigned nextvert, ivert, firstvert;
-    double area = -1.0;
-    while (area < 0.0) {
+    while (CCWverts.size()< verts.size()) {
 
       // Find the first unused vertex.
       firstvert = 0;
@@ -277,21 +278,22 @@ r2d_poly_to_polygon(const r2d_poly& celli,
       // Read out the loop of vertices.
       ivert = firstvert;
       nextvert = nunique;
-      CCWverts.clear();
-      area = 0.0;
+
       while (nextvert != firstvert) {
         CCWverts.push_back(verts[ivert]);
         vertcheck[ivert] = 1;
         nextvert = nghbrs[ivert][0];
         // cerr << " **> " << (CCWverts.back()) << " " << ivert << " "  << nextvert << endl;
-        area += (verts[ivert] - centroid).cross(verts[nextvert] - centroid).z();
         ivert = nextvert;
       }
       // cerr << "Area: " << area << endl;
     }
   }
+
   const unsigned nCCWverts = CCWverts.size();
   CHECK(nCCWverts >= 3);
+ 
+
 
   // Now we can build our polygon.
   vector<vector<unsigned> > facetIndices(nCCWverts, vector<unsigned>(2));
