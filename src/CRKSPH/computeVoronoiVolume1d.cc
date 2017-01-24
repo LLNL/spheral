@@ -132,15 +132,15 @@ computeVoronoiVolume(const FieldSpace::FieldList<Dim<1>, Dim<1>::Vector>& positi
         
         if (std::abs(b)*(x2 - x1) > 1e-8*rhoi) {
 
-          // // This version uses the medial position.
-          // thpt = sqrt(abs(rhoi*rhoi + rhoi*b*(x1 + x2) + 0.5*b*b*(x1*x1 + x2*x2)));
-          // xm1 = -(rhoi + thpt)/b;
-          // xm2 = (-rhoi + thpt)/b;
-          // if (xm1 >= x1 and xm1 <= x2) {
-          //   deltaMedian(nodeListi, i).x(xm1);
-          // } else {
-          //   deltaMedian(nodeListi, i).x(xm2);
-          // }
+          // This version uses the medial position.
+          thpt = sqrt(abs(rhoi*rhoi + rhoi*b*(x1 + x2) + 0.5*b*b*(x1*x1 + x2*x2)));
+          xm1 = -(rhoi + thpt)/b;
+          xm2 = (-rhoi + thpt)/b;
+          if (xm1 >= x1 and xm1 <= x2) {
+            deltaMedian(nodeListi, i).x(xm1);
+          } else {
+            deltaMedian(nodeListi, i).x(xm2);
+          }
           // cerr << "BLAGO: " << xi << " " << x1 << " " << x2 << " " << b << " " << xm1 << " " << xm2 << " " << deltaMedian(nodeListi, i).x() << " :: "
           //      << rhoi*(xm2 - x1) + 0.5*b*(xm2*xm2 - x1*x1) << " "
           //      << rhoi*(x2 - x1) + 0.5*b*(x2*x2 - x1*x1) << " "
@@ -148,10 +148,10 @@ computeVoronoiVolume(const FieldSpace::FieldList<Dim<1>, Dim<1>::Vector>& positi
           //      << endl;
 
           // This version simply tries rho^2 weighting.
-          deltaMedian(nodeListi, i).x((0.5*rhoi*(x2*x2 - x1*x1) +
-                                       2.0/3.0*rhoi*b*(x2*x2*x2 - x1*x1*x1) +
-                                       0.25*b*b*(x2*x2*x2*x2 - x1*x1*x1*x1))/
-                                      (pow3(rhoi + b*x2) - pow3(rhoi + b*x1)/(3.0*b)));
+          //deltaMedian(nodeListi, i).x((0.5*rhoi*(x2*x2 - x1*x1) +
+          //                             2.0/3.0*rhoi*b*(x2*x2*x2 - x1*x1*x1) +
+          //                             0.25*b*b*(x2*x2*x2*x2 - x1*x1*x1*x1))/
+          //                            (pow3(rhoi + b*x2) - pow3(rhoi + b*x1)/(3.0*b)));
 
         } else {
           // Fall back to the straight-up centroid.
