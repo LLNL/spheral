@@ -76,7 +76,7 @@ NUMPYFLAGS=
 # =======================================================================
 AC_MSG_CHECKING(for compilers)
 AC_ARG_WITH(compilers,
-[  --with-compilers=ARG ..................... (gnu,vacpp,intel,pgi) choose a compiler suite],
+[  --with-compilers=ARG ..................... (gnu,clang,vacpp,intel,pgi) choose a compiler suite],
 [
    COMPILERS=$withval
 ],
@@ -111,22 +111,6 @@ case $COMPILERS in
          PARMETISCC=$MPICC
          CXXFLAGS+=" -std=c++11"
 
-      elif test $OSNAME = "Darwin"; then
-         CC=clang
-         CXX=clang++
-         FORT=gfortran
-         MPICC=mpicc
-         MPICXX=mpicxx
-         MPICCFLAGS="-cc=clang"
-         MPICXXFLAGS="-cxx=clang++"
-         CMAKECC=clang
-         CMAKECXX=clang++
-         GCCXMLCC=$CMAKECC
-         GCCXMLCXX=$CMAKECXX
-         PYTHONCC=$CC
-         PYTHONCXX=$CXX
-         PARMETISCC=$MPICC
-         CXXFLAGS+=" -mmacosx-version-min=10.7 -std=c++11 -stdlib=libc++"
       else
          CC=gcc
          CXX=g++
@@ -141,7 +125,30 @@ case $COMPILERS in
          PYTHONCXX=$CXX
          PARMETISCC=$MPICC
          CXXFLAGS+=" -std=c++11"
+         if test $OSNAME = "Darwin"; then
+           CXXFLAGS+=" -mmacosx-version-min=10.7 -stdlib=libc++"
+         fi
+      fi
+      ;;
 
+   clang)
+      CC=clang
+      CXX=clang++
+      FORT=gfortran
+      MPICC=mpicc
+      MPICXX=mpicxx
+      MPICCFLAGS="-cc=clang"
+      MPICXXFLAGS="-cxx=clang++"
+      CMAKECC=clang
+      CMAKECXX=clang++
+      GCCXMLCC=$CMAKECC
+      GCCXMLCXX=$CMAKECXX
+      PYTHONCC=$CC
+      PYTHONCXX=$CXX
+      PARMETISCC=$MPICC
+      CXXFLAGS+=" -std=c++11"
+      if test $OSNAME = "Darwin"; then
+        CXXFLAGS+=" -mmacosx-version-min=10.7 -stdlib=libc++"
       fi
       ;;
 
