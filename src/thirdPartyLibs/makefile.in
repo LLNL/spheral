@@ -227,9 +227,9 @@ SILODIR = $(SILODIST:.tar.gz=)
 SILOBUILDDATE = $(patsubst %.tar.gz, .%.date, $(SILODIST))
 
 # Eigen
-EIGENDIST = Eigen-3.3.1.tar.bz2
-EIGENURL = http://bitbucket.org/eigen/eigen/get/3.1.1.tar.bz2
-EIGENDIR = eigen-eigen-43d9075b23ef
+EIGENDIST = Eigen-3.3.2.tar.bz2
+EIGENURL = http://bitbucket.org/eigen/eigen/get/3.3.2.tar.bz2
+EIGENDIR = eigen-eigen-da9b4e14c255
 EIGENBUILDDATE = .eigen.date
 
 # # Voro++
@@ -1523,7 +1523,7 @@ $(R3DBUILDDATE):	$(R3DDIST)
 	fi
 	$(CP) -f $(R3DDIR)/*.h $(R3DINCDIR)
 	$(CP) -f $(R3DDIR)/libr3d.a $(prefix)/lib
-	rm -fr $(R3DDIR)
+	rm -fr c # $(R3DDIR)
 	touch $(R3DBUILDDATE)
 
 #-------------------------------------------------------------------------------
