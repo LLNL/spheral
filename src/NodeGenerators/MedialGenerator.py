@@ -566,11 +566,20 @@ class MedialSphereGenerator3d(MedialGeneratorBase):
                                                                        offset=offset,
                                                                        rejecter=rejecter)
         n = len(SphericallyConformalMap.positions)
+        # this is a serialized list, so it needs to be broken up to each processor
+        # no degeneracies allowed!
         seedPositions = vector_of_Vector()
-        for i in xrange(n):
-            seedPositions.append(Vector(SphericallyConformalMap.positions[i][0],
-                                        SphericallyConformalMap.positions[i][1],
-                                        SphericallyConformalMap.positions[i][2]))
+        nprocs = mpi.procs
+        nlocal = int(n/nprocs)
+        nrem   = n - nlocal*nprocs
+        myn    = nlocal
+        if mpi.rank == nprocs-1:
+            myn += nrem
+        for i in xrange(myn):
+            j = i + mpi.rank*nlocal
+            seedPositions.append(Vector(SphericallyConformalMap.positions[j][0],
+                                        SphericallyConformalMap.positions[j][1],
+                                        SphericallyConformalMap.positions[j][2]))
         
         
         # Now construct boundaries based on rmin and rmax
