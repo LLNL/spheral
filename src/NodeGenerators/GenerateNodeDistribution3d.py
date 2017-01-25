@@ -1964,7 +1964,7 @@ class GenerateIcosahedronMatchingProfile3d(NodeGeneratorBase):
             rhoi    = self.densityProfileMethod(ri)
             dr      = pow(self.m0/(rhoi),1.0/3.0)
             #dr      = min(dr,ri-rmin)
-            rii = ri - 0.5*dr
+            rii = abs(ri - 0.5*dr)
             # now compute a new dr based on rii
             # this should in theory protect against the half bin radius being
             # below rmin while not sacrificing the mass of the entire shell
