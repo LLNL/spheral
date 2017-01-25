@@ -528,3 +528,138 @@ class MedialGenerator3d(MedialGeneratorBase):
     def localHtensor(self, i):
         assert i >= 0 and i < len(self.H)
         return self.H[i]
+
+#-------------------------------------------------------------------------------
+# 3D Generator.  Seeds positions using the RPRPS algorithm.
+#-------------------------------------------------------------------------------
+class MedialSphereGenerator3d(MedialGeneratorBase):
+    
+    #---------------------------------------------------------------------------
+    # Constructor.
+    #---------------------------------------------------------------------------
+    def __init__(self,
+                 n,
+                 rho,
+                 rmin,
+                 rmax,
+                 gradrho = None,
+                 maxIterations = 100,
+                 centroidFrac = 1.0,
+                 fracTol = 1.0e-3,
+                 tessellationFileName = None,
+                 nNodePerh = 2.01,
+                 offset = (0.0, 0.0, 0.0),
+                 rejecter = None,
+                 randomseed = 492739149274,
+                 maxNodesPerDomain = 1000,
+                 seedPositions = None,
+                 enforceConstantMassPoints = False,
+                 cacheFileName = None):
+        
+        from Spheral3d import vector_of_Vector, Vector
+        from GenerateNodeDistribution3d import GenerateIcosahedronMatchingProfile3d
+        SphericallyConformalMap = GenerateIcosahedronMatchingProfile3d(n=n,
+                                                                       densityProfileMethod=rho,
+                                                                       rmin=rmin,
+                                                                       rmax=rmax,
+                                                                       nNodePerh=nNodePerh,
+                                                                       offset=offset,
+                                                                       rejecter=rejecter)
+        n = len(SphericallyConformalMap.positions)
+        seedPositions = vector_of_Vector()
+        for i in xrange(n):
+            seedPositions.append(Vector(SphericallyConformalMap.positions[i][0],
+                                        SphericallyConformalMap.positions[i][1],
+                                        SphericallyConformalMap.positions[i][2]))
+        
+        
+        # Now construct boundaries based on rmin and rmax
+        bpoints = vector_of_Vector()
+        nshell = 300 # fix this later
+        for i in xrange(1,nshell+1):
+            h = -1.0+(2.0*(i-1.0)/(nshell-1.0))
+            t = acos(h)
+            if (i>1 and i<nshell):
+                p = (p + 3.8/sqrt(nshell)*1.0/sqrt(1.0-h*h)) % (2.0*pi)
+            else:
+                p = 0
+            bpoints.append(Vector(rmax*sin(t)*cos(p),
+                                  rmax*sin(t)*sin(p),
+                                  rmax*cos(t)))
+        bound1 = Polyhedron(bpoints)
+
+        if (rmin > 0.0):
+            for i in xrange(nshell):
+                bpoints[i] *= rmin/rmax
+            bound2 = Polyhedron(bpoints)
+        
+        # The base generator does most of the work.
+        MedialGeneratorBase.__init__(self,
+                                    ndim = 3,
+                                    n = n,
+                                    rho = rho,
+                                    boundary = bound1,
+                                    gradrho = gradrho,
+                                    holes = bound2 if (rmin>0.0) else [],
+                                    centroidFrac = centroidFrac,
+                                    maxIterations = maxIterations,
+                                    fracTol = fracTol,
+                                    tessellationFileName = tessellationFileName,
+                                    nNodePerh = nNodePerh,
+                                    randomseed = randomseed,
+                                    maxNodesPerDomain = maxNodesPerDomain,
+                                    seedPositions = seedPositions,
+                                    enforceConstantMassPoints = enforceConstantMassPoints,
+                                    cacheFileName = cacheFileName)
+    
+        # Convert to our now regrettable standard coordinate storage for generators.
+        self.x = [x.x + offset[0] for x in self.pos]
+        self.y = [x.y + offset[1] for x in self.pos]
+        self.z = [x.z + offset[2] for x in self.pos]
+        del self.pos
+        
+        # If the user provided a "rejecter", give it a pass
+        # at the nodes.
+        if rejecter:
+            self.x, self.y, self.z, self.m, self.H, self.vol, self.surface = rejecter(self.x,
+                                                                                      self.y,
+                                                                                      self.z,
+                                                                                      self.m,
+                                                                                      self.H,
+                                                                                      self.vol,
+                                                                                      self.surface)
+
+        # Initialize the base class, taking into account the fact we've already broken
+        # up the nodes between domains.
+        NodeGeneratorBase.__init__(self, False,
+                                   self.x, self.y, self.z, self.m, self.H, self.vol, self.surface)
+        return
+    
+    #---------------------------------------------------------------------------
+    # Get the position for the given node index.
+    #---------------------------------------------------------------------------
+    def localPosition(self, i):
+        assert i >= 0 and i < len(self.x)
+        assert len(self.x) == len(self.y)
+        return Vector3d(self.x[i], self.y[i], self.z[i])
+    
+    #---------------------------------------------------------------------------
+    # Get the mass for the given node index.
+    #---------------------------------------------------------------------------
+    def localMass(self, i):
+        assert i >= 0 and i < len(self.m)
+        return self.m[i]
+    
+    #---------------------------------------------------------------------------
+    # Get the mass density for the given node index.
+    #---------------------------------------------------------------------------
+    def localMassDensity(self, i):
+        assert i >= 0 and i < len(self.H)
+        return self.rhofunc(Vector3d(self.x[i], self.y[i], self.z[i]))
+    
+    #---------------------------------------------------------------------------
+    # Get the H tensor for the given node index.
+    #---------------------------------------------------------------------------
+    def localHtensor(self, i):
+        assert i >= 0 and i < len(self.H)
+        return self.H[i]
