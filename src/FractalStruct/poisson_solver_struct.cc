@@ -5,6 +5,7 @@ namespace FractalSpace
 {
   void poisson_solver_struct(Fractal& fractal,Fractal_Memory& mem,const int& level)
   {
+    fractal.timing(-1,31);
     ofstream& FHT=mem.p_file->DUMPS;
     static int LEV=-1;
     static int _COUNTER=0;
@@ -35,8 +36,6 @@ namespace FractalSpace
 	double FILLFACTOR=0.7;
 	if(!hypre_points.empty())
 	  {
-	    // if(buffer)
-	      // {
 	    if(_COUNTERA % 10 == 0)
 	      {
 		hypre_best_boxes(mem,hypre_points,spacing,VOLMIN,FILLFACTOR);
@@ -44,17 +43,12 @@ namespace FractalSpace
 		FILLA[ni][level]=FILLFACTOR;
 	      }
 	    hypre_points_boxes(mem,hypre_points,spacing,VOLA[ni][level],FILLA[ni][level],SBoxes,SPoints);
-	    //   }
-	    // else
-	    //   hypre_points_boxes(mem,hypre_points,spacing,100,0.7,SBoxes,SPoints);
 	    box_stats(mem,level,ni,SBoxes,SPoints);
 	  }
 	time2=mem.p_mess->Clock();
 	hypre_points.clear();
 	hypre_world_create(mem,level,SBoxes,buffer);
 	time3=mem.p_mess->Clock();
-	// if(buffer && mem.hypre_load_balance)
-	//   hypre_load_balance(mem,SBoxes);
 	double tt=-mem.p_mess->Clock();
 	// if(_COUNTERA % 10 == 0)
 	// hypre_test_boxes(mem,level,SBoxes,SPoints);
@@ -86,5 +80,6 @@ namespace FractalSpace
       _COUNTERA++;
     _COUNTER++;
     LEV=level;
+    fractal.timing(1,31);
   }
 }

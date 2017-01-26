@@ -17,7 +17,7 @@ namespace FractalSpace
   void binary_balancing(Fractal_Memory* PFM,vector <double>& numbers,double minimum,
 			int Nodes,int length,vector <double>& targets,vector <int>& lowers,vector <int>& uppers);
   void box_stats(Fractal_Memory& mem,int level,int nb,vector<vector<int>>& SBoxes,vector<vector<Point*>>& SPoints);
-  void buffer_points(Group& group, Fractal& fractal,Misc& misc);
+  void buffer_points(Group& group, Fractal& fractal);
   void candidate_points();
   void check_for_edge_trouble(Fractal& fractal);
   bool check_high(Point& point,Fractal& fractal);
@@ -82,6 +82,7 @@ namespace FractalSpace
 			  vector < vector<int> >& SBoxes,vector < vector<Point*> >& SPoints);
   void hypre_dump(int level,vector <Point*>& hypre_points,ofstream& FH);
   void hypre_eror(FILE* PFH,int level,int ni,int er);
+  bool hypre_struct_load_balance(Fractal_Memory& mem,vector<vector<int>>& SBoxes,vector<vector<Point*>>& SPoints,vector<int>& HRout);
   void hypre_points_boxes(Fractal_Memory& mem,vector <vector <Point*> >& hypre_points,int spacing,
 			  int VOLMIN,double FILLFACTOR,
 			  vector < vector<int> >& SBoxes,vector < vector<Point*> >& SPoints);
@@ -121,7 +122,7 @@ namespace FractalSpace
   template <class M, class F>  void make_particles(M& mem,F& frac,int& count,const double& m,const bool& crash);
   void match_edges(Fractal_Memory& mem,int level);
   void max_predict(Fractal_Memory& fractal_memory,Fractal& fractal,vector <double>& shear_force,double& min_vol);
-  void mini_solve(Fractal_Memory& mem,Group* pg);
+  bool mini_solve(Fractal_Memory& mem,Group* pg);
   void mini_solve1(Point* p,const double& gc);
   void mini_solve2(Point* pa,Point* pb,const double& gc);
   void mini_solve3(vector<Point*>found,const double& gc);

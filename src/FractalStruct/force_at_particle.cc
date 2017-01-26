@@ -5,11 +5,8 @@ namespace FractalSpace
 {
   void force_at_particle(Group& group, Fractal& fractal,const bool& conserve)
   { 
+    fractal.timing(-1,8);
     ofstream& FileFractal=fractal.p_file->DUMPS;
-    //    ofstream& FileFractal=fractal.p_file->FileFractal;
-    //    ofstream& FileForce=fractal.p_file->FileForce;
-    //
-    //    if(fractal.get_debug()) FileFractal << " enter force at particle " << &group << " " << group.get_level() << "\n";
     vector <double> dens(8);
     vector <double> weights(8);
     vector <double> pott(8);
@@ -50,7 +47,6 @@ namespace FractalSpace
 		    particle.set_field_pf(sum_pf);
 		    if(sum_pf[0]*sum_pf[1]*sum_pf[2]*sum_pf[3] ==0.0)
 		      particle.dump(FileFractal,pott,f_x,f_y,f_z);
-		    //		    particle.dump(FileForce)
 		  }
 	      }
 	    else
@@ -60,6 +56,6 @@ namespace FractalSpace
 	      }
 	  }
       }
-    //    if(fractal.get_debug()) FileFractal << " exit force at particle " << &group << " " << group.get_level() << "\n";
+    fractal.timing(1,8);
   }
 }

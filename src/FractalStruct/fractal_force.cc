@@ -148,13 +148,11 @@ namespace FractalSpace
     FileFractal << " Total number of particles entering Fractal " << Particle::number_particles << "\n";
     Full_Stop(fractal_memory,33);
     fractal.timing_lev(-1,0);
-    fractal.timing(-1,27);
     scatter_particles(fractal_memory,fractal);
     vector <int> PBoxLength(3);
     fractal.getPBoxLength(PBoxLength);
     int volume=PBoxLength[0]*PBoxLength[1]*PBoxLength[2];
     FileFractal << " particles after scatter " << fractal_memory.p_mess->FractalRank << " " << fractal.get_number_particles() << " " << volume << "\n";
-    fractal.timing(1,27);
     fractal.timing_lev(1,0);
     int jfield=4;
     if(fractal_memory.calc_density_particle) 
@@ -183,21 +181,13 @@ namespace FractalSpace
     misc.p_group_0=p_group; 
     fractal_memory.all_groups.resize(fractal.get_level_max()+1);
     fractal_memory.all_groups[0].push_back(p_group);
-    if(Fractal::first_time_solver && !fractal.get_periodic())
-      {
-	fractal.timing(-1,0);
-	isolated_solver(group,fractal_memory,fractal); 
-	fractal.timing(1,0);
-      }
     Point::p_FILE=&(fractal_memory.p_mess->p_file->DUMPS);
     fractal.timing(-1,46);
     fractal.timing_lev(-2,0);
-    fractal.timing(-1,1);
     if(fractal.get_periodic())
       tree_start(group,fractal,fractal_memory,misc);   
     else
       tree_start_mini(group,fractal,fractal_memory,misc);   
-    fractal.timing(1,1);
     fractal.timing_lev(2,0);
     if(!fractal_memory.start_up)
       {
@@ -206,28 +196,20 @@ namespace FractalSpace
 	Group& group=*misc.p_group_0;
 	group.set_set_scaling(true);
 	group.set_set_dens(true);
-	fractal.timing(-1,3);
+	/*                */	         fractal.timing(-1,3);
 	assign_density(group,fractal); 
-	fractal.timing(1,3);
+	/*                */	         fractal.timing(1,3);
 	if(fractal.get_periodic())
-	  {
-	    fractal.timing(-1,4);
-	    periodic_solver(group,fractal_memory,fractal); 
-	    fractal.timing(1,4);
-	  }
+	  periodic_solver(group,fractal_memory,fractal); 
 	else
-	  {
-	    fractal.timing(-1,5);
-	    isolated_solver(group,fractal_memory,fractal); 
-	    fractal.timing(1,5);
-	  }
-	fractal.timing(-1,7);
+	  isolated_solver(group,fractal_memory,fractal); 
+	/*                */      	fractal.timing(-1,7);
 	force_at_point(group,fractal); 		   
-	fractal.timing(1,7);
-	fractal.timing(-1,8);
+	/*                */    	fractal.timing(1,7);
+	/*                */    	fractal.timing(-1,8);
 	force_at_particle(group,fractal,fractal_memory.momentum_conserve);
+	/*                */    	fractal.timing(1,8);
 	group.set_done_group(true);
-	fractal.timing(1,8);
 	fractal.timing_lev(1,0);
       }
     for(int level=0;level < fractal.get_level_max();level++)
@@ -238,15 +220,12 @@ namespace FractalSpace
 	    Group& group=*pgroup;
 	    assert(group.get_number_high_groups() <= 0);
 	    if(group.get_number_high_groups() == 0) continue;
-	    fractal.timing(-1,9);
 	    high_points(group,fractal,misc);
-	    fractal.timing(1,9);
 	    if(group.get_number_high_points() == 0) continue;
-	    fractal.timing(-1,10);
-	    buffer_points(group,fractal,misc);
-	    fractal.timing(1,10);
+	    buffer_points(group,fractal);
 	  }
-	// match_edges(fractal_memory,level);
+	// if(fractal_memory.padding != 0)
+	//   match_edges(fractal_memory,level);
 	int group_counter=0;
 	for(Group* pgroup : fractal_memory.all_groups[level])
 	  {
@@ -282,10 +261,8 @@ namespace FractalSpace
 	  }
 	fractal.timing_lev(2,level+1);
       }
-    fractal.timing(-1,16);
     bool badd=test_tree(fractal_memory,fractal);
     assert(!badd);
-    fractal.timing(1,16);
     FileFractal << "number of everything after the tree "  << " " << Group::number_groups << " " << Point::number_points << "\n";
     FileFractal << " Total number of particles after the tree " << Particle::number_particles << "\n";
     Fractal* p_fractal_ghost=new Fractal;
@@ -305,17 +282,15 @@ namespace FractalSpace
 		Group& group=*pgroup;
 		group.set_set_scaling(true);
 		group.set_set_dens(true);
-		fractal.timing(-1,19);
+	/*                */	         fractal.timing(-1,19);
 		assign_density(group,fractal); 
-		fractal.timing(1,19);
-		fractal.timing(-1,20);
+	/*                */	         fractal.timing(1,19);
+	/*                */	         fractal.timing(-1,20);
 		potential_start(group); 		
-		fractal.timing(1,20);
+	/*                */	         fractal.timing(1,20);
 	      }
 	    Full_Stop(fractal_memory,36);
-	    fractal.timing(-1,31);
 	    poisson_solver_struct(fractal,fractal_memory,level);
-	    fractal.timing(1,31);
 	    for(Group* pgroup : fractal_memory.all_groups[level])
 	      {
 		Group& group=*pgroup;
