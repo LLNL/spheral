@@ -87,7 +87,7 @@ Dim<2>::FacetedVolume construct_saw_polygon() {
         vertices0[2*i+1] = Vector(2.0*i+1.0,2.0);
     }
     vertices0[9] = Vector(8.0,0.0);
-    vertices0[10] = Vector(0.0,1.0);
+    vertices0[10] = Vector(0.0,0.0);
     reverse(vertices0.begin(),vertices0.end());
     const unsigned nv0 = vertices0.size();
     vector<vector<unsigned> > facets0(nv0,vector<unsigned>(2));
