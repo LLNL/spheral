@@ -5,7 +5,7 @@ namespace FractalSpace
 {
   void hypre_points_clean(Fractal_Memory& mem,int level,vector< vector<Point*> >& hypre_points)
   {
-    ofstream& FHT=mem.p_file->DUMPS;
+    // ofstream& FHT=mem.p_file->DUMPS;
     vector <int>Touchies;
     for(int FR : mem.TouchWhichBoxes)
       if(mem.p_mess->counts_on_nodes[level][2*FR+1])
