@@ -1,7 +1,6 @@
 #include "libs.hh"
 #include "classes.hh"
 #include "headers.hh"
-//
 namespace FractalSpace
 {
   bool Mess::IAMROOT;
@@ -1540,6 +1539,22 @@ namespace FractalSpace
     fprintf(p_file->PFFractalMemory," MPI Error %d %d %d %d %d %d %d %d \n",which,test,
 	    MPI_ERR_COMM,MPI_ERR_TYPE,MPI_ERR_COUNT,MPI_ERR_TAG,MPI_ERR_RANK,MPI_SUCCESS);
   }
+  void Mess::my_AllgatherI(MPI_Comm& World,vector <int>& paramsend,vector <int>& paramrecv,const int& nsend) const
+  {
+    int nodes;
+    MPI_Comm_size(World,&nodes);
+    int batchsize=1024;
+    int ROOT=nodes/2;
+    MPI_Gather(&(*(paramsend.begin())),nsend,MPI_INT,&(*(paramrecv.begin())),nsend,MPI_INT,ROOT,World);
+    int totals=nodes*nsend;
+    int batches=(totals-1)/batchsize+1;
+    for(int B=0;B<batches;B++)
+      {
+	int b0=(B*totals)/batches;
+	int b1=((B+1)*totals)/batches;
+	MPI_Bcast(&(*(paramrecv.begin()+b0)),b1-b0,MPI_INT,ROOT,World);
+      }
+  }
   void Mess::my_AllgatherI(vector <int>& paramsend,vector <int>& paramrecv,const int& nsend) const
   {
     int batchsize=1024;
@@ -1587,6 +1602,12 @@ namespace FractalSpace
     Find_Max_INT_to_ROOT(integers,how_long,ROOT);
     Send_INT_from_ROOT(integers,how_long,ROOT);
   }
+  // void Mess::Find_Max_INT(MPI_Comm& WORLD,vector <int>& integers,const int& how_long) const
+  // {
+  //   int ROOT=ROOTNODE;
+  //   Find_Max_INT_to_ROOT(WORLD,integers,how_long,ROOT);
+  //   Send_INT_from_ROOT(integers,how_long,ROOT);
+  // }
   void Mess::Find_Max_DOUBLE(vector <double>& doubles,const int& how_long) const
   {
     int ROOT=ROOTNODE;

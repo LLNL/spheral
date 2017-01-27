@@ -7,8 +7,8 @@ namespace FractalSpace
 			   vector < vector <Point*> >& hypre_points,bool buffer_groups,int level)
   {
     static int _COUNTER=0;
-    // mem.hypre_max_node_load=min(mem.hypre_max_node_load,45);
-    ofstream& FHT=mem.p_file->DUMPS;
+    mem.hypre_min_node_load=min(mem.hypre_min_node_load,63);
+    // ofstream& FHT=mem.p_file->DUMPS;
     vector <int>pos(3);
     vector <int> BOX=mem.BoxesLev[mem.p_mess->FractalRank][level];
     hypre_points.clear();
@@ -16,11 +16,9 @@ namespace FractalSpace
       {
  	if(buffer_groups == pgroup->get_buffer_group())
 	  {
-	    if(!buffer_groups && pgroup->list_points.size() <= mem.hypre_max_node_load)
-	      {
-		mini_solve(mem,pgroup);
+	    if(!buffer_groups && pgroup->list_points.size() <= mem.hypre_min_node_load)
+	      if(mini_solve(mem,pgroup))
 		continue;
-	      }
 	    hypre_points.resize(hypre_points.size()+1);
 	    for(Point* &p : pgroup->list_points)
 	      {

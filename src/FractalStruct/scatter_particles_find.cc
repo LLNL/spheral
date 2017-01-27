@@ -6,6 +6,7 @@ namespace FractalSpace
   void scatter_particles(Fractal_Memory& mem,Fractal& frac)
   {
     assert(mem.FractalNodes==mem.p_mess->FractalNodes);
+    frac.timing(-1,27);
     vector <double>timing(3);
     timing[0]=-mem.p_mess->Clock();
     ofstream& FF=frac.p_file->DUMPS;
@@ -14,8 +15,8 @@ namespace FractalSpace
 	frac.wrap();
 	add_pseudo_particles(mem,frac);
       }
-    if(!mem.MPIrun)
-      return;
+    // if(!mem.MPIrun)
+    //   return;
     int FractalRank=mem.p_mess->FractalRank;
     int FractalNodes=mem.p_mess->FractalNodes;
     int FractalNodes0=mem.FractalNodes0;
@@ -240,7 +241,6 @@ namespace FractalSpace
 		      }
 		  }
 		Particle* P=&ppt[c];
-		//		assert(P);
 		frac.particle_list.push_back(P);
 		int p4=particle*4;
 		P->set_posmIFR(dataR_in[p4],dataR_in[p4+1],dataR_in[p4+2],dataR_in[p4+3],-1,FR);
@@ -254,5 +254,6 @@ namespace FractalSpace
     fprintf(mem.p_file->PFTime," scatter particles %10.3E %10.3E %10.3E \n",
 	    timing[0],timing[1],timing[2]);
     frac.set_number_particles(frac.particle_list.size());
+    frac.timing(1,27);
   }
 }
