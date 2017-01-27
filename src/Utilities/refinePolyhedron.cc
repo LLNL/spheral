@@ -4,18 +4,11 @@
 // Refine/smooth a polyhedron.
 //
 // We use the Pixar OpenSubdiv package for our work here.  This implementation
-// is based on an example I found in their source:  examples/tessellateObjFile.
+// is based on an example I found in their source:  tutorials/far/tutorial_0/far_tutorial_0.cpp
 //
 // Created by JMO, Tue Mar 18 15:23:04 PDT 2014
+//   revised, JMO, Thu Jan 26 20:56:45 PST 2017
 //----------------------------------------------------------------------------//
-
-// We base this on Pixar's opensubdiv package.
-#ifdef HAVE_OPENSUBDIV
-#include "opensubdiv/osdutil/adaptiveEvaluator.h"
-#include "opensubdiv/osdutil/uniformEvaluator.h"
-#include "opensubdiv/osdutil/topology.h"
-#include "opensubdiv/osd/error.h"
-#endif
 
 #include <vector>
 #include <algorithm>
@@ -23,9 +16,68 @@
 #include "refinePolyhedron.hh"
 #include "Geometry/Dimension.hh"
 
+// We use Pixar's opensubdiv package to do the refinement.
+#ifdef HAVE_OPENSUBDIV
+#include "opensubdiv/far/topologyDescriptor.h"
+#include "opensubdiv/far/primvarRefiner.h"
+#endif
+
 namespace Spheral {
 
 using namespace std;
+using namespace OpenSubdiv;
+
+namespace {   // anonymous 
+
+//------------------------------------------------------------------------------
+// Vertex container implementation.
+// Directly cribbed from the Opensubdiv example.
+struct Vertex {
+
+    // Minimal required interface ----------------------
+    Vertex() { }
+
+    Vertex(Vertex const & src) {
+        _position[0] = src._position[0];
+        _position[1] = src._position[1];
+        _position[2] = src._position[2];
+    }
+
+    // This method added by JMO
+    Vertex(Dim<3>::Vector const & src) {
+        _position[0] = src[0];
+        _position[1] = src[1];
+        _position[2] = src[2];
+    }
+
+    void Clear( void * =0 ) {
+        _position[0]=_position[1]=_position[2]=0.0f;
+    }
+
+    void AddWithWeight(Vertex const & src, float weight) {
+        _position[0]+=weight*src._position[0];
+        _position[1]+=weight*src._position[1];
+        _position[2]+=weight*src._position[2];
+    }
+
+    // Public interface ------------------------------------
+    void SetPosition(float x, float y, float z) {
+        _position[0]=x;
+        _position[1]=y;
+        _position[2]=z;
+    }
+
+    const float * GetPosition() const {
+        return _position;
+    }
+
+private:
+    float _position[3];
+};
+
+//------------------------------------------------------------------------------
+
+}             // anonymous
 
 GeomPolyhedron refinePolyhedron(const GeomPolyhedron& poly0,
                                 const unsigned numLevels) {
@@ -38,11 +90,41 @@ GeomPolyhedron refinePolyhedron(const GeomPolyhedron& poly0,
 
   typedef Dim<3>::Vector Vector;
   typedef GeomPolyhedron::Facet Facet;
+  typedef Far::TopologyDescriptor Descriptor;
 
-  // Start by reading out the Spheral polyhedral data to arrays we're going
+  // Start by reading out the Spheral polyhedral data to an Opensubdiv topology
   // to shove into opensubdiv.
-  const int numVertices0 = poly0.vertices().size();
-  const int numFaces0 = poly0.facets().size();
+  const vector<Vector>& verts0 = poly0.vertices();
+  const vector<vector<unsigned> >& facetVerts0 = poly0.facetVertices();
+  const int numVertices0 = verts0.size();
+  const int numFaces0 = facetVerts0.size();
+  float g_verts[numVertices0][3];
+  int g_vertsperface[numFaces0];
+  int vertsPerFaceSum = 0;
+  {
+    for (unsigned i = 0; i != numVertices0; ++i) {
+      g_verts[i][0] = verts0[i][0];
+      g_verts[i][1] = verts0[i][1];
+      g_verts[i][2] = verts0[i][2];
+    }
+    for (unsigned i = 0; i != numFaces0; ++i) {
+      g_vertsperface[i] = facetVerts0[i].size();
+      vertsPerFaceSum += facetVerts0[i].size();
+    }
+  }
+  int g_vertIndices[vertsPerFaceSum];
+  {
+    unsigned j = 0;
+    for (const auto& inds: facetVerts0) {
+      for (const auto i: inds) {
+        CHECK(j < vertsPerFaceSum);
+        g_vertIndices[j] = i;
+        ++j;
+      }
+    }
+    CHECK(j == vertsPerFaceSum);
+  }
+
   vector<float> positions0(3*numVertices0);
   vector<int> faceVertices0, numVertsPerFace0(numFaces0);
   {
@@ -63,56 +145,64 @@ GeomPolyhedron refinePolyhedron(const GeomPolyhedron& poly0,
   }
     
   // Initialize the OSD topology.
-  OpenSubdiv::OsdUtilSubdivTopology topology0;
-  bool ok;
-  std::string errorMessage;
-  ok = topology0.Initialize(numVertices0, 
-                            &numVertsPerFace0[0], numVertsPerFace0.size(),
-                            &faceVertices0[0], faceVertices0.size(),
-                            numLevels,
-                            &errorMessage);
-  VERIFY2(ok, errorMessage);
+  Sdc::SchemeType type = OpenSubdiv::Sdc::SCHEME_CATMARK;
+  Sdc::Options options;
+  options.SetVtxBoundaryInterpolation(Sdc::Options::VTX_BOUNDARY_EDGE_ONLY);
 
-  // Create a uniform refinement thingus.
-  OpenSubdiv::OsdUtilUniformEvaluator uniformEvaluator;
-  ok = uniformEvaluator.Initialize(topology0, &errorMessage);
-  VERIFY2(ok, errorMessage);
+  Descriptor desc;
+  desc.numVertices  = numVertices0;
+  desc.numFaces     = numFaces0;
+  desc.numVertsPerFace = g_vertsperface;
+  desc.vertIndicesPerFace  = g_vertIndices;
 
-  // Give the evaluator the intial vertex positions to start with.
-  uniformEvaluator.SetCoarsePositions(positions0, &errorMessage);
+  // Instantiate a FarTopologyRefiner from the descriptor
+  Far::TopologyRefiner * refiner = Far::TopologyRefinerFactory<Descriptor>::Create(desc,
+                                                                                   Far::TopologyRefinerFactory<Descriptor>::Options(type, options));
 
-  // Do some refining (the "1" here means single thread).
-  ok = uniformEvaluator.Refine(1, &errorMessage);
-  VERIFY2(ok, errorMessage);
+  // Uniformly refine the topology up to numLevels.
+  refiner->RefineUniform(Far::TopologyRefiner::UniformOptions(numLevels));
 
-  // Extract the refined topology and positions.
-  OpenSubdiv::OsdUtilSubdivTopology topology1;
-  const float *positions1 = NULL;
-  ok = uniformEvaluator.GetRefinedTopology(&topology1, &positions1, &errorMessage);
-  VERIFY2(ok, errorMessage);
+  // Allocate a buffer for vertex primvar data. The buffer length is set to
+  // be the sum of all children vertices up to the highest level of refinement.
+  std::vector<Vertex> vbuffer(refiner->GetNumVerticesTotal());
+  Vertex * verts = &vbuffer[0];
 
-  // // BLAGO!
-  // topology0.WriteObjFile("topology0.obj", &positions0[0], &errorMessage);
-  // topology1.WriteObjFile("topology1.obj", positions1, &errorMessage);
-  // // BLAGO!
+  // Initialize coarse mesh positions
+  int nCoarseVerts = numVertices0;
+  for (unsigned i = 0; i != numVertices0; ++i) {
+    verts[i].SetPosition(verts0[i][0], verts0[i][1], verts0[i][2]);
+  }
 
-  // Construct our new polyhedron.
-  const int numVertices1 = topology1.numVertices,
-            numFacets1 = topology1.nverts.size();
+  // Interpolate vertex primvar data
+  Far::PrimvarRefiner primvarRefiner(*refiner);
+
+  Vertex * src = verts;
+  for (int level = 1; level <= numLevels; ++level) {
+    Vertex * dst = src + refiner->GetLevel(level-1).GetNumVertices();
+    primvarRefiner.Interpolate(level, src, dst);
+    src = dst;
+  }
+
+  // Construct the final refined polyhedron.
+  Far::TopologyLevel const & refLastLevel = refiner->GetLevel(numLevels);
+  const int numVertices1 = refLastLevel.GetNumVertices();
+  const int numFacets1 = refLastLevel.GetNumFaces();
   vector<Vector> vertices1;
   vertices1.reserve(numVertices1);
+  const unsigned firstOfLastVerts = refiner->GetNumVerticesTotal() - numVertices1;
   for (unsigned i = 0; i != numVertices1; ++i) {
-    vertices1.push_back(Vector(positions1[3*i],
-                               positions1[3*i+1],
-                               positions1[3*i+2]));
+    float const * pos = verts[firstOfLastVerts + i].GetPosition();
+    vertices1.push_back(Vector(pos[0],
+                               pos[1],
+                               pos[2]));
   }
   CHECK(vertices1.size() == numVertices1);
   vector<vector<unsigned> > facets1(numFacets1);
-  unsigned k = 0;
   for (unsigned i = 0; i != numFacets1; ++i) {
-    const unsigned nvf = topology1.nverts[i];
+    Far::ConstIndexArray fverts = refLastLevel.GetFaceVertices(i);
+    const unsigned nvf = fverts.size();
     for (unsigned j = 0; j != nvf; ++j) {
-      facets1[i].push_back(topology1.indices[k++]);
+      facets1[i].push_back(fverts[j]);
     }
   }
   GeomPolyhedron poly1(vertices1, facets1);
