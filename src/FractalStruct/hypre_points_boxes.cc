@@ -8,13 +8,11 @@ namespace FractalSpace
 			  vector < vector<int> >& SBoxes,vector < vector<Point*> >& SPoints)
   {
     static int _COUNTER=0;
-    ofstream& FHT=mem.p_file->DUMPS;
+    // ofstream& FHT=mem.p_file->DUMPS;
     const int SBstart=SBoxes.size();
-    int RANK=-1;
-    MPI_Comm_rank(MPI_COMM_WORLD,&RANK);
-    bool RANKY=RANK==21;
-    // int VOLMIN=mem.hypre_max_node_load;
-    // double FILLFACTOR=mem.hypre_multiplier;
+    // int RANK=-1;
+    // MPI_Comm_rank(MPI_COMM_WORLD,&RANK);
+    // bool RANKY=RANK==21;
     int MAXY=Misc::pow(2,29);
     int MINY=-Misc::pow(2,29);
     for(vector <Point*>& hp : hypre_points)

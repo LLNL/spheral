@@ -27,7 +27,7 @@ namespace FractalSpace
     double slopE=-1.8;
     double slopE2=slopE+2.0;
     double slopE3=slopE+3.0;
-    bool isoT=abs(slopE+2.0) < 0.01;
+    // bool isoT=abs(slopE+2.0) < 0.01;
     double consT=G*totalM/(pow(rmaX,slopE3)*slopE2);
     double scalinga=G/(xmax[0]-xmin[0]);
     // for(auto pgroup : mem.all_groups[level])

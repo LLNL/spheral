@@ -22,6 +22,7 @@ namespace FractalSpace
     int min_hypre_group_size;
     bool hypre_load_balance;
 //     int HypreMaxSpecial;
+    int hypre_min_node_load;
     int hypre_max_node_load;
     double hypre_multiplier;
 //     int hypre_max_average_load;
@@ -180,6 +181,7 @@ namespace FractalSpace
       time_trial(true),
       min_hypre_group_size(45),
       hypre_load_balance(false),
+      hypre_min_node_load(45),
       hypre_max_node_load(40000),
       hypre_multiplier(2.0),
       G(1.0),
@@ -230,7 +232,7 @@ namespace FractalSpace
       cut_off(1.0e6),
       cut_off_init(16.0),
       pexp(0.77),
-      step_length(0.01),
+      step_length(0.033),
       omega_start(-1.0),
       lambda_start(-1.0),
       redshift_start(49.0),

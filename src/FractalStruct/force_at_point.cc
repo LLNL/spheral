@@ -5,7 +5,7 @@ namespace FractalSpace
 {
   void force_at_point(Group& group, Fractal& fractal)
   {
-    // worry about group 1 at the edge for isolated BC.
+    fractal.timing(-1,7);
     const double conv=(double)(fractal.get_grid_length())*pow(2.0,group.get_level()-1);
     if(group.get_level() == 0)
       {
@@ -48,5 +48,6 @@ namespace FractalSpace
 	if(!p_point->get_inside() && Point::face[rp])
 	  p_point->copy_force_point_4(Point::cefc[rp]);
       }
+    fractal.timing(1,7);
   }
 }

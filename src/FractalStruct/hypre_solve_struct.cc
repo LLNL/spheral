@@ -61,11 +61,17 @@ namespace FractalSpace
       HYPRE_StructStencilSetElement(stencil,entry,offsets[entry]);
     HYPRE_StructMatrixCreate(mem.p_mess->HypreWorld,grid,stencil, &Amatrix);
     HYPRE_StructMatrixInitialize(Amatrix);
+    HYPRE_StructVectorCreate(mem.p_mess->HypreWorld, grid, &rho);
+    HYPRE_StructVectorCreate(mem.p_mess->HypreWorld, grid, &pot);    
+    HYPRE_StructVectorInitialize(rho);
+    HYPRE_StructVectorInitialize(pot);
     int stencil_indices[7] = {0,1,2,3,4,5,6};
     B=0;
     for(auto& SP : SPoints)
       {
 	vector <double>values;
+	vector <double>dens_values;
+	vector <double>pot_values;
 	for(auto p : SP)
 	  {
 	    if(p == 0)
@@ -73,46 +79,20 @@ namespace FractalSpace
 		values.push_back(1.0);
 		for(int ni=0;ni<6;ni++)
 		  values.push_back(0.0);
-	      }
-	    else
-	      {
-		values.push_back(-6.0);
-		for (int j = 0; j < 6; j++)
-		  {
-		    Point* p1=p->get_point_ud_0(j);
-		    if(p1->get_inside() && !p1->get_trouble())
-		      values.push_back(1.0);
-		    else
-		      values.push_back(0.0);
-		  }
-	      }
-	    // p_itr++;
-	  }
-	HYPRE_StructMatrixAddToBoxValues(Amatrix,&(*lowerBOX[B].begin()),&(*upperBOX[B].begin()),7,
-					 stencil_indices,&(*values.begin()));
-	values.clear();
-	B++;
-      }
-    HYPRE_StructMatrixAssemble(Amatrix);
-    HYPRE_StructVectorCreate(mem.p_mess->HypreWorld, grid, &rho);
-    HYPRE_StructVectorCreate(mem.p_mess->HypreWorld, grid, &pot);
-    
-    HYPRE_StructVectorInitialize(rho);
-    HYPRE_StructVectorInitialize(pot);
-    B=0;
-    for(vector <Point*>& SP : SPoints)
-      {
-	vector <double>dens_values;
-	vector <double>pot_values;
-	for(auto &p : SP)
-	  {
-	    if(p == 0)
-	      {
 		dens_values.push_back(1.0);
 		pot_values.push_back(1.0);
 	      }
 	    else
 	      {
+		values.push_back(-6.0);
+		for (int ni = 0; ni < 6; ni++)
+		  {
+		    Point* p1=p->get_point_ud_0(ni);
+		    if(p1->get_inside() && !p1->get_trouble())
+		      values.push_back(1.0);
+		    else
+		      values.push_back(0.0);
+		  }
 		double density=p->get_density_point()*g_c;
 		for(int ni=0;ni<6;ni++)
 		  {
@@ -124,12 +104,13 @@ namespace FractalSpace
 		pot_values.push_back(p->get_potential_point());
 	      }
 	  }
+	HYPRE_StructMatrixAddToBoxValues(Amatrix,&(*lowerBOX[B].begin()),&(*upperBOX[B].begin()),7,
+					 stencil_indices,&(*values.begin()));
 	HYPRE_StructVectorAddToBoxValues(rho,&(*lowerBOX[B].begin()),&(*upperBOX[B].begin()),&(*dens_values.begin()));
 	HYPRE_StructVectorAddToBoxValues(pot,&(*lowerBOX[B].begin()),&(*upperBOX[B].begin()),&(*pot_values.begin()));
-	dens_values.clear();
-	pot_values.clear();
 	B++;
       }
+    HYPRE_StructMatrixAssemble(Amatrix);
     HYPRE_StructVectorAssemble(rho);
     HYPRE_StructVectorAssemble(pot);
     double time2=mem.p_mess->Clock();
