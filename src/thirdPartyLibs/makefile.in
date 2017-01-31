@@ -307,7 +307,7 @@ OPENSUBDIVBUILDDATE = $(patsubst %.zip, .%.date, $(OPENSUBDIVDIST))
 # R3D
 R3DDIST = r3d.zip
 R3DURL = https://github.com/devonmpowell/r3d/archive/master.zip
-R3DDIR = c/r3d-master
+R3DDIR = r3d-master
 R3DBUILDDATE = $(patsubst %.zip, .%.date, $(R3DDIST))
 R3DINCDIR = $(prefix)/include/r3d
 
@@ -1485,8 +1485,6 @@ $(OPENSUBDIVBUILDDATE):	$(OPENSUBDIVDIST) $(CMAKEEXE)
 	@$(MKDIR) -p $(prefix)/bin $(prefix)/man $(prefix)/lib $(prefix)/include
 	rm -fr $(OPENSUBDIVDIR)
 	$(UNZIP) $(OPENSUBDIVDIST)
-	#$(PATCH) $(OPENSUBDIVDIR)/CMakeLists.txt $(srcdir)/OpenSubdiv-2_5_0-CMakeLists_txt.patch
-	#$(PATCH) $(OPENSUBDIVDIR)/opensubdiv/osd/CMakeLists.txt $(srcdir)/OpenSubdiv-2_5_0-opensubdiv-osd-CMakeLists_txt.patch
 	$(MKDIR) $(OPENSUBDIVDIR)/build
 	env PATH=$(prefix)/bin:$(PATH) $(SHELL) -ec "cd $(OPENSUBDIVDIR)/build; \
 	$(CMAKEEXE) -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=$(prefix) -DCMAKE_C_COMPILER='$(CC)' -DCMAKE_CXX_COMPILER='$(CXX)' -DCMAKE_C_FLAGS='$(CFLAGS)' -DCMAKE_CXX_FLAGS='$(CXXFLAGS)' -DNO_PYTHON=1 -DNO_EXAMPLES=1 -DNO_REGRESSION=1 -DNO_OMP=1 -DNO_CUDA=1 -DNO_OPENGL=1 -DNO_CLEW=1 -DNO_TBB=1 .. ; \
@@ -1502,6 +1500,8 @@ $(OPENSUBDIVBUILDDATE):	$(OPENSUBDIVDIST) $(CMAKEEXE)
 
 #-------------------------------------------------------------------------------
 # r3d
+# Note our patches to the r3d library are just to increase the maximum allowed
+# number of vertices.
 #-------------------------------------------------------------------------------
 $(R3DDIST):
 	$(CURL) "$(R3DURL)" > $(R3DDIST)
@@ -1512,7 +1512,9 @@ $(R3DBUILDDATE):	$(R3DDIST)
 	@echo "################################################################################"
 	rm -fr $(R3DDIR) $(R3DINCDIR)
 	@$(MKDIR) -p $(prefix)/bin $(prefix)/lib $(R3DINCDIR)
-	$(UNZIP) -dc $(R3DDIST)
+	$(UNZIP) $(R3DDIST)
+	$(PATCH) $(R3DDIR)/r2d.h $(srcdir)/r3d_r2d_h.patch
+	$(PATCH) $(R3DDIR)/r3d.h $(srcdir)/r3d_r3d_h.patch
 	env PATH=$(prefix)/bin:$$PATH $(SHELL) -ec "cd $(R3DDIR); \
 	$(MAKE) CC='$(CC)' CFLAGS='$(CFLAGS)'"
 	@if ! test -e $(R3DDIR)/libr3d.a; then \
@@ -1522,7 +1524,7 @@ $(R3DBUILDDATE):	$(R3DDIST)
 	fi
 	$(CP) -f $(R3DDIR)/*.h $(R3DINCDIR)
 	$(CP) -f $(R3DDIR)/libr3d.a $(prefix)/lib
-	rm -fr c # $(R3DDIR)
+	rm -fr $(R3DDIR)
 	touch $(R3DBUILDDATE)
 
 #-------------------------------------------------------------------------------

@@ -96,13 +96,13 @@ case $COMPILERS in
          CXX=g++
          FORT=gfortran
          MPICC=mpicc
-         MPICCFLAGS="-cc=$CC"
+         #MPICCFLAGS="-cc=$CC"
          if test "$MPICXXTEST" != "nope"; then
             MPICXX=mpicxx
-            MPICXXFLAGS="-cxx=$CXX"
+            #MPICXXFLAGS="-cxx=$CXX"
          else
             MPICXX=mpig++
-            MPICXXFLAGS="-cc=$CXX"
+            #MPICXXFLAGS="-cc=$CXX"
          fi
          GCCXMLCC=$CMAKECC
          GCCXMLCXX=$CMAKECXX
