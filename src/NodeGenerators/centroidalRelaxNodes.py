@@ -123,7 +123,7 @@ def centroidalRelaxNodes(nodeListsAndBounds,
     # Iterate until we converge or max out.
     iter = 0
     avgdelta = 2.0*fracTol
-    while (iter < 2) or (iter < maxIterations and avgdelta > fracTol):
+    while (iter < 2) or (iter < maxIterations and avgdelta > fracTol) or mass.min() == 0.0:
         iter += 1
 
         # Remove any old ghost nodes info, and update the mass density
@@ -184,7 +184,8 @@ def centroidalRelaxNodes(nodeListsAndBounds,
                     for hole in holes[nodeListi]:
                         while hole.contains(pos[nodeListi][i] + delta):
                             delta *= 0.9
-                avgdelta += delta.magnitude()/vol(nodeListi, i)**(1.0/ndim)
+                if vol(nodeListi, i) > 0.0:
+                    avgdelta += delta.magnitude()/vol(nodeListi, i)**(1.0/ndim)
                 pos[nodeListi][i] += delta
                 rhof[nodeListi][i] = rhofunc(pos(nodeListi, i))
                 mass[nodeListi][i] = rhof(nodeListi,i)*vol(nodeListi,i)
