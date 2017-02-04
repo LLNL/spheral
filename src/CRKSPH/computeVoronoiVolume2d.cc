@@ -173,12 +173,13 @@ computeVoronoiVolume(const FieldList<Dim<2>, Dim<2>::Vector>& position,
         // If provided boundaries, we implement them as additional neighbor clipping planes.
         if (haveBoundaries) {
           const vector<Facet>& facets = boundaries[nodeListi].facets();
+          CHECK(boundaries[nodeListi].contains(ri));
           for (const Facet& facet: facets) {
             const Vector p = facet.closestPoint(ri);
             Vector rij = ri - p;
             if (rij.magnitude2() < kernelExtent*kernelExtent) {
               Vector nhat;
-              if (rij.magnitude() < 1.0e-3*facet.area()) {
+              if (false) { // (rij.magnitude() < 1.0e-3*facet.area()) {
                 rij.Zero();
                 nhat = -facet.normal();
               } else {
@@ -193,13 +194,14 @@ computeVoronoiVolume(const FieldList<Dim<2>, Dim<2>::Vector>& position,
 
           // Same thing with holes.
           for (const FacetedVolume& hole: holes[nodeListi]) {
+            CHECK(not hole.contains(ri));
             const vector<Facet>& facets = hole.facets();
             for (const Facet& facet: facets) {
               const Vector p = facet.closestPoint(ri);
               Vector rij = ri - p;
               if (rij.magnitude2() < kernelExtent*kernelExtent) {
                 Vector nhat;
-                if (rij.magnitude2() < 1.0e-3*facet.area()) {
+                if (false) { // (rij.magnitude2() < 1.0e-3*facet.area()) {
                   rij.Zero();
                   nhat = facet.normal();
                 } else {
