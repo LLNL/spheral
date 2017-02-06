@@ -20,6 +20,7 @@ def centroidalRelaxNodes(nodeListsAndBounds,
                          fracTol = 1.0e-3,
                          correctionOrder = Spheral.LinearOrder,
                          centroidFrac = 0.5,
+                         tessellationBaseDir = ".",
                          tessellationFileName = None):
 
     # Did we get passed a function or a constant for the density?
@@ -210,6 +211,7 @@ def centroidalRelaxNodes(nodeListsAndBounds,
     # If requested, dump the final info to a diagnostic viz file.
     if tessellationFileName and SpheralVoronoiSiloDump:
         dumper = SpheralVoronoiSiloDump(baseFileName = tessellationFileName,
+                                        baseDirectory = tessellationBaseDir,
                                         listOfFieldLists = [vol, surfacePoint, mass, deltaCentroid],
                                         boundaries = boundaries,
                                         cells = cells)
