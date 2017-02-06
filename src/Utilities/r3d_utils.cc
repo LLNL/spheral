@@ -236,7 +236,7 @@ r2d_poly_to_polygon(const r2d_poly& celli,
 
   // Find the centroid.
   const unsigned nunique = verts.size();
-  CHECK(nunique >= 3);
+  CHECK2(nunique >= 3, "r2d_poly_to_polygon: too few unique nodes: " << nunique);
   const Vector centroid = std::accumulate(verts.begin(), verts.end(), Vector::zero)/nunique;
 
   // Build the vertex->vertex connectivity.
