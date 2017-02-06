@@ -6,6 +6,7 @@ extern "C" {
 }
 
 #include <algorithm>
+#include <utility>
 
 #include "computeVoronoiVolume.hh"
 #include "Field/Field.hh"
@@ -21,6 +22,9 @@ namespace Spheral {
 namespace CRKSPHSpace {
 
 using namespace std;
+using std::min;
+using std::max;
+using std::abs;
 
 using namespace FastMath;
 
@@ -117,6 +121,7 @@ computeVoronoiVolume(const FieldList<Dim<3>, Dim<3>::Vector>& position,
   const bool returnCells = cells.size() == numNodeLists;
 
   REQUIRE(numBounds == 0 or numBounds == numNodeLists);
+  REQUIRE(holes.size() == numBounds);
 
   if (numGensGlobal > 0) {
 
@@ -199,7 +204,6 @@ computeVoronoiVolume(const FieldList<Dim<3>, Dim<3>::Vector>& position,
     // Walk the points.
     for (unsigned nodeListi = 0; nodeListi != numNodeLists; ++nodeListi) {
       const unsigned n = vol[nodeListi]->numInternalElements();
-      const Neighbor<Dim<3> >& neighbor = position[nodeListi]->nodeListPtr()->neighbor();
       for (unsigned i = 0; i != n; ++i) {
 
         const Vector& ri = position(nodeListi, i);
@@ -241,12 +245,13 @@ computeVoronoiVolume(const FieldList<Dim<3>, Dim<3>::Vector>& position,
         // If provided boundaries, we implement them as additional neighbor clipping planes.
         if (haveBoundaries) {
           const vector<Facet>& facets = boundaries[nodeListi].facets();
+          CHECK(boundaries[nodeListi].contains(ri));
           for (const Facet& facet: facets) {
             const Vector p = facet.closestPoint(ri);
             Vector rij = ri - p;
-            if (rij.magnitude2() < kernelExtent*kernelExtent) {
+            if ((Hi*rij).magnitude2() < kernelExtent*kernelExtent) {
               Vector nhat;
-              if (rij.magnitude2() < 1.0e-3*facet.area()) {
+              if (rij.magnitude() < 1.0e-5*facet.area()) {
                 rij.Zero();
                 nhat = -facet.normal();
               } else {
@@ -262,13 +267,14 @@ computeVoronoiVolume(const FieldList<Dim<3>, Dim<3>::Vector>& position,
 
           // Same thing with holes.
           for (const FacetedVolume& hole: holes[nodeListi]) {
+            CHECK(not hole.contains(ri));
             const vector<Facet>& facets = hole.facets();
             for (const Facet& facet: facets) {
               const Vector p = facet.closestPoint(ri);
               Vector rij = ri - p;
-              if (rij.magnitude2() < kernelExtent*kernelExtent) {
+              if ((Hi*rij).magnitude2() < kernelExtent*kernelExtent) {
                 Vector nhat;
-                if (rij.magnitude2() < 1.0e-3*facet.area()) {
+                if (rij.magnitude2() < 1.0e-5*facet.area()) {
                   rij.Zero();
                   nhat = facet.normal();
                 } else {
@@ -379,12 +385,6 @@ computeVoronoiVolume(const FieldList<Dim<3>, Dim<3>::Vector>& position,
           if (returnSurface) surfacePoint(nodeListi, i) = 1;
           deltaMedian(nodeListi, i) = Vector::zero;
 
-        }
-
-        // Check if the candidate motion is still in the boundary.  If not, project back.
-        if (haveBoundaries and not boundaries[nodeListi].contains(ri + deltaMedian(nodeListi, i))) {
-          deltaMedian(nodeListi, i) = boundaries[nodeListi].closestPoint(ri + deltaMedian(nodeListi, i)) - ri;
-          // cerr << "Correcting " << nodeListi << " " << i << " to new position " << (ri + deltaMedian(nodeListi, i)) << endl;
         }
 
         // Check if the candidate motion is still in the boundary.  If not, project back.
