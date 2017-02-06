@@ -131,21 +131,20 @@ computeVoronoiVolume(const FieldList<Dim<2>, Dim<2>::Vector>& position,
       const unsigned n = vol[nodeListi]->numInternalElements();
       for (unsigned i = 0; i != n; ++i) {
 
-        // const bool barf = (i == 1);
-
         const Vector& ri = position(nodeListi, i);
         const SymTensor& Hi = H(nodeListi, i);
         const Scalar rhoi = rho(nodeListi, i);
-        const Vector& gradRhoi = gradRho(nodeListi, i);
+        Vector gradRhoi = gradRho(nodeListi, i);
         const Vector grhat = gradRhoi.unitVector();
         const Scalar Hdeti = Hi.Determinant();
         const SymTensor Hinv = Hi.Inverse();
 
+        // const bool barf = (i == 3005);
         // if (barf) cerr << " --> " << i << " " << ri << endl;
 
         // Grab this points neighbors and build all the planes.
         // We simultaneously build a very conservative limiter for the density gradient.
-        Scalar phi = 1.0;
+        // Scalar phi = 1.0;
         vector<r2d_plane> pairPlanes;
         const vector<vector<int> >& fullConnectivity = connectivityMap.connectivityForNode(nodeListi, i);
         for (unsigned nodeListj = 0; nodeListj != numNodeLists; ++nodeListj) {
@@ -165,7 +164,7 @@ computeVoronoiVolume(const FieldList<Dim<2>, Dim<2>::Vector>& position,
             pairPlanes.back().d = 0.5*rij.magnitude();
 
             // Check the density gradient limiter.
-            const Scalar fdir = FastMath::pow4(rij.unitVector().dot(grhat));
+            // const Scalar fdir = FastMath::pow4(rij.unitVector().dot(grhat));
             // phi = min(phi, max(0.0, max(1.0 - fdir, rij.dot(gradRhoi)*safeInv(rhoi - rhoj))));
           }
         }
@@ -177,9 +176,9 @@ computeVoronoiVolume(const FieldList<Dim<2>, Dim<2>::Vector>& position,
           for (const Facet& facet: facets) {
             const Vector p = facet.closestPoint(ri);
             Vector rij = ri - p;
-            if (rij.magnitude2() < kernelExtent*kernelExtent) {
+            if ((Hi*rij).magnitude2() < kernelExtent*kernelExtent) {
               Vector nhat;
-              if (false) { // (rij.magnitude() < 1.0e-3*facet.area()) {
+              if (rij.magnitude() < 1.0e-5*facet.area()) {
                 rij.Zero();
                 nhat = -facet.normal();
               } else {
@@ -199,9 +198,9 @@ computeVoronoiVolume(const FieldList<Dim<2>, Dim<2>::Vector>& position,
             for (const Facet& facet: facets) {
               const Vector p = facet.closestPoint(ri);
               Vector rij = ri - p;
-              if (rij.magnitude2() < kernelExtent*kernelExtent) {
+              if ((Hi*rij).magnitude2() < kernelExtent*kernelExtent) {
                 Vector nhat;
-                if (false) { // (rij.magnitude2() < 1.0e-3*facet.area()) {
+                if (rij.magnitude2() < 1.0e-5*facet.area()) {
                   rij.Zero();
                   nhat = facet.normal();
                 } else {
@@ -303,7 +302,7 @@ computeVoronoiVolume(const FieldList<Dim<2>, Dim<2>::Vector>& position,
 
             if (not interior) {
               // This is a point that touches the bounding polygon.  Flag it as surface.
-              surfacePoint(nodeListi, i) = 1;
+              if (returnSurface) surfacePoint(nodeListi, i) = 1;
             }
           }
 
