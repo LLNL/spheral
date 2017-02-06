@@ -329,7 +329,7 @@ computeVoronoiVolume(const FieldList<Dim<2>, Dim<2>::Vector>& position,
 
         // If requested, we can return the cell geometries.
         if (returnCells) {
-          r2d_poly_to_polygon(celli, 1.0e-8/sqrt(Hdeti), cells(nodeListi, i));
+          r2d_poly_to_polygon(celli, 1.0e-50/max(1.0, sqrt(Hdeti)), cells(nodeListi, i));
           cells(nodeListi, i) += ri;
         }
       }
