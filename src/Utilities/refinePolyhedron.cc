@@ -25,7 +25,6 @@
 namespace Spheral {
 
 using namespace std;
-using namespace OpenSubdiv;
 
 namespace {   // anonymous 
 
@@ -88,6 +87,7 @@ GeomPolyhedron refinePolyhedron(const GeomPolyhedron& poly0,
 
 #else
 
+  using namespace OpenSubdiv;
   typedef Dim<3>::Vector Vector;
   typedef GeomPolyhedron::Facet Facet;
   typedef Far::TopologyDescriptor Descriptor;
