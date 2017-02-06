@@ -2,7 +2,11 @@ from math import *
 import mpi
 
 import Spheral
-from SpheralVoronoiSiloDump import SpheralVoronoiSiloDump
+try:
+    from SpheralVoronoiSiloDump import SpheralVoronoiSiloDump
+except:
+    print "centroidalRelaxNoddes unable to import SpheralVoronoiSiloDump -- no tessellation output supported."
+    SpheralVoronoiSiloDump = None
 
 #-------------------------------------------------------------------------------
 # Centroidally (in mass) relax points allowing a linear density gradient.
@@ -204,7 +208,7 @@ def centroidalRelaxNodes(nodeListsAndBounds,
             mass[nodeListi][i] = rhof(nodeListi,i)*vol(nodeListi,i)
 
     # If requested, dump the final info to a diagnostic viz file.
-    if tessellationFileName:
+    if tessellationFileName and SpheralVoronoiSiloDump:
         dumper = SpheralVoronoiSiloDump(baseFileName = tessellationFileName,
                                         listOfFieldLists = [vol, surfacePoint, mass, deltaCentroid],
                                         boundaries = boundaries,
