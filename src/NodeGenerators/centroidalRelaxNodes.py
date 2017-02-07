@@ -183,11 +183,11 @@ def centroidalRelaxNodes(nodeListsAndBounds,
             for i in xrange(nodes.numInternalNodes):
                 delta = centroidFrac * deltaCentroid(nodeListi, i)
                 if bounds:
-                    while not bounds[nodeListi].contains(pos[nodeListi][i] + delta):
+                    while not bounds[nodeListi].contains(pos[nodeListi][i] + delta, False):
                         delta *= 0.9
                 if holes:
                     for hole in holes[nodeListi]:
-                        while hole.contains(pos[nodeListi][i] + delta):
+                        while hole.contains(pos[nodeListi][i] + delta, False):
                             delta *= 0.9
                 if vol(nodeListi, i) > 0.0:
                     avgdelta += delta.magnitude()/vol(nodeListi, i)**(1.0/ndim)
