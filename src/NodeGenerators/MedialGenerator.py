@@ -96,6 +96,8 @@ class MedialGeneratorBase(NodeGeneratorBase):
         
             # If the user provided the starting or seed positions, use 'em.
             if seedPositions is not None:
+                hi = min(hmax, 2.0 * (boundvol/n)**(1.0/ndim))
+                assert hi > 0.0
                 nlocal = len(seedPositions)
                 assert mpi.allreduce(nlocal, mpi.SUM) == n
                 nodes.numInternalNodes = nlocal
@@ -104,8 +106,6 @@ class MedialGeneratorBase(NodeGeneratorBase):
                     rhoi = rhofunc(pos[i])
                     rhof[i] = rhoi
                     mass[i] = rhoi * boundvol/n  # Not actually correct, but mass will be updated in centroidalRelaxNodes
-                    hi = min(hmax, 2.0 * nNodePerh * (boundvol/n)**(1.0/ndim))
-                    assert hi > 0.0
                     H[i] = sph.SymTensor.one / hi
         
             else:
@@ -181,6 +181,8 @@ class MedialGeneratorBase(NodeGeneratorBase):
                 assert mpi.allreduce(len(seeds), mpi.SUM) == n
             
                 # Initialize the desired number of generators in the boundary using the Sobol sequence.
+                hi = min(hmax, 2.0 * (boundvol/n)**(1.0/ndim))
+                assert hi > 0.0
                 for i, seed in enumerate(seeds):
                     [coords, newseed] = i4_sobol(ndim, seed)
                     p = boundary.xmin + length*sph.Vector(*tuple(coords))
@@ -188,8 +190,6 @@ class MedialGeneratorBase(NodeGeneratorBase):
                     pos[i] = p
                     rhof[i] = rhoi
                     mass[i] = rhoi * boundvol/n  # Not actually correct, but mass will be updated in centroidalRelaxNodes
-                    hi = min(hmax, 2.0 * nNodePerh * (boundvol/n)**(1.0/ndim))
-                    assert hi > 0.0
                     H[i] = sph.SymTensor.one / hi
         
                 # Each domain has independently generated the correct number of points, but they are randomly distributed.
