@@ -172,7 +172,7 @@ computeVoronoiVolume(const FieldList<Dim<2>, Dim<2>::Vector>& position,
         // If provided boundaries, we implement them as additional neighbor clipping planes.
         if (haveBoundaries) {
           const vector<Facet>& facets = boundaries[nodeListi].facets();
-          CHECK(boundaries[nodeListi].contains(ri));
+          CHECK(boundaries[nodeListi].contains(ri, false));
           for (const Facet& facet: facets) {
             const Vector p = facet.closestPoint(ri);
             Vector rij = ri - p;
@@ -193,7 +193,7 @@ computeVoronoiVolume(const FieldList<Dim<2>, Dim<2>::Vector>& position,
 
           // Same thing with holes.
           for (const FacetedVolume& hole: holes[nodeListi]) {
-            CHECK(not hole.contains(ri));
+            CHECK(not hole.contains(ri, false));
             const vector<Facet>& facets = hole.facets();
             for (const Facet& facet: facets) {
               const Vector p = facet.closestPoint(ri);
@@ -316,11 +316,11 @@ computeVoronoiVolume(const FieldList<Dim<2>, Dim<2>::Vector>& position,
 
         // Check if the candidate motion is still in the boundary.  If not, project back.
         if (haveBoundaries) {
-          if (not boundaries[nodeListi].contains(ri + deltaMedian(nodeListi, i))) {
+          if (not boundaries[nodeListi].contains(ri + deltaMedian(nodeListi, i), false)) {
             deltaMedian(nodeListi, i) = boundaries[nodeListi].closestPoint(ri + deltaMedian(nodeListi, i)) - ri;
           }
           for (unsigned ihole = 0; ihole != holes[nodeListi].size(); ++ihole) {
-            if (holes[nodeListi][ihole].contains(ri + deltaMedian(nodeListi, i))) {
+            if (holes[nodeListi][ihole].contains(ri + deltaMedian(nodeListi, i), false)) {
               deltaMedian(nodeListi, i) = holes[nodeListi][ihole].closestPoint(ri + deltaMedian(nodeListi, i)) - ri;
             }
           }
@@ -328,7 +328,7 @@ computeVoronoiVolume(const FieldList<Dim<2>, Dim<2>::Vector>& position,
 
         // If requested, we can return the cell geometries.
         if (returnCells) {
-          r2d_poly_to_polygon(celli, 1.0e-50/max(1.0, sqrt(Hdeti)), cells(nodeListi, i));
+          r2d_poly_to_polygon(celli, 1.0e-20/max(1.0, sqrt(Hdeti)), cells(nodeListi, i));
           cells(nodeListi, i) += ri;
         }
       }
