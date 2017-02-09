@@ -37,9 +37,9 @@ units = PhysicalConstants(0.01,  # Unit length in m
 #-------------------------------------------------------------------------------
 def F(alpha, lamb, R0, R1, n):
 
-    class integfunc(SimpsonsIntegrationDoubleFunction):
+    class integfunc(ScalarFunctor):
         def __init__(self, R0, R1):
-            SimpsonsIntegrationDoubleFunction.__init__(self)
+            ScalarFunctor.__init__(self)
             self.alpha = R1/R0 - 1.0
             return
         def __call__(self, x):

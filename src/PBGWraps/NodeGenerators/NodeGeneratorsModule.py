@@ -79,6 +79,26 @@ class NodeGenerators:
                               refparam("vector_of_SymTensor3d", "H")],
                              docstring = "Compute stuff useful for a NodeGenerator from a polyhedral mesh in a silo file.")
 
+        # centroidalRelaxNodesImpl.
+        for ndim in self.dims:
+            Spheral.add_function("centroidalRelaxNodesImpl", "unsigned int",
+                                 [refparam("DataBase%id" % ndim, "db"),
+                                  constrefparam("vector_of_FacetedVolume%id" % ndim, "volumeBoundaries"),
+                                  constrefparam("vector_of_vector_of_FacetedVolume%id" % ndim, "holes"),
+                                  constrefparam("TableKernel%id" % ndim, "W"),
+                                  constrefparam("Spheral::PythonBoundFunctors::SpheralFunctor<Vector%id, double>" % ndim, "rhofunc"),
+                                  constrefparam("Spheral::PythonBoundFunctors::SpheralFunctor<Vector%id, Vector%id>" % (ndim, ndim), "gradrhofunc"),
+                                  param("bool", "useGradRhoFunc"),
+                                  refparam("vector_of_Boundary%id" % ndim, "boundaries"),
+                                  param("unsigned int", "maxIterations"),
+                                  param("double", "fracTol"),
+                                  param("CRKOrder", "correctionOrder"),
+                                  param("double", "centroidFrac"),
+                                  refparam("ScalarFieldList%id" % ndim, "vol"),
+                                  refparam("IntFieldList%id" % ndim, "surfacePoint"),
+                                  refparam("FacetedVolumeFieldList%id" % ndim, "cells")],
+                                 docstring = "Use Lloyds algorithm to relax point positions.")
+
         subdims = []
         if 2 in self.dims:
             subdims.append(2)

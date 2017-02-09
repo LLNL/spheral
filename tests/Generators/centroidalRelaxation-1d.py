@@ -24,7 +24,7 @@ commandLine(KernelConstructor = NBSplineKernel,
             nx = 100,
             x0 = 0.0,
             x1 = 1.0,
-            ranfrac = 0.5,
+            ranfrac = 0.25,
             seed = 14892042,
 
             # Material properties
