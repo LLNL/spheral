@@ -11,7 +11,8 @@ PKGDIR = $(PKGNAME)/
 LIBTARGET = libSpheral_$(PKGNAME).$(DYLIBEXT)
 
 INSTSRCTARGETS = \
-	$(srcdir)/relaxNodeDistributionInst.cc.py
+	$(srcdir)/relaxNodeDistributionInst.cc.py \
+	$(srcdir)/centroidalRelaxNodesImplInst.cc.py
 
 SRCTARGETS = \
 	$(srcdir)/generateCylDistributionFromRZ.cc \

@@ -190,9 +190,9 @@ assert fuzzyEqual(Msum, rho1)
 
 # Define the function which we are going to solve for the node positions.
 twopi = 2.0*pi
-class MassFunctor(NewtonRaphsonFunction):
+class MassFunctor(PairScalarFunctor):
     def __init__(self, Mcumulative):
-        NewtonRaphsonFunction.__init__(self)
+        PairScalarFunctor.__init__(self)
         self.Mcumulative = Mcumulative
         return
     def __call__(self, x):

@@ -49,6 +49,7 @@ from SpheralModules.Spheral.CRKSPHSpace import *
 from SpheralModules.Spheral.SVPHSpace import *
 from SpheralModules.Spheral.TaylorSPHSpace import *
 from SpheralModules.Spheral.MeshSpace import *
+from SpheralModules.Spheral.PythonBoundFunctors import *
 
 # ------------------------------------------------------------------------------
 # Import the Material python extensions.

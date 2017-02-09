@@ -63,7 +63,7 @@ TableKernel<Dimension>::kernelAndGradValue(const double etaMagnitude, const doub
   REQUIRE(etaMagnitude >= 0.0);
   REQUIRE(Hdet >= 0.0);
   if (etaMagnitude < this->mKernelExtent) {
-    const int i0 = min(mNumPoints - 3, lowerBound(etaMagnitude));
+    const int i0 = std::min(mNumPoints - 3, lowerBound(etaMagnitude));
     const int i1 = i0 + 1;
     CHECK(i1 >= 1 and i1 <= mNumPoints - 2);
     const double x = etaMagnitude/mStepSize - i0;
@@ -210,7 +210,7 @@ TableKernel<Dim<2> >::f1Andf2(const double etaMagnitude,
                               double& gradf2) const {
   REQUIRE(etaMagnitude >= 0.0);
   if (etaMagnitude < this->mKernelExtent - mStepSize) {
-    const int i0 = min(mNumPoints - 3, lowerBound(etaMagnitude));
+    const int i0 = std::min(mNumPoints - 3, lowerBound(etaMagnitude));
     const int i1 = i0 + 1;
     CHECK(i1 >= 1 and i1 <= mNumPoints - 2);
     const double x = etaMagnitude/mStepSize - i0;
@@ -285,7 +285,7 @@ TableKernel<Dimension>::parabolicInterp(const double etaMagnitude,
   REQUIRE(b.size() == mNumPoints);
   REQUIRE(c.size() == mNumPoints);
   const double etai = std::min(etaMagnitude, this->mKernelExtent);
-  const int i0 = min(mNumPoints - 3, lowerBound(etaMagnitude));
+  const int i0 = std::min(mNumPoints - 3, lowerBound(etaMagnitude));
   const int i1 = i0 + 1;
   CHECK(i1 >= 1 and i1 <= mNumPoints - 2);
   const double x = etaMagnitude/mStepSize - i0;

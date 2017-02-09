@@ -3,7 +3,7 @@ import mpi
 
 from NodeGeneratorBase import *
 
-from Spheral import SimpsonsIntegrationDoubleFunction, simpsonsIntegrationDouble
+from Spheral import ScalarFunctor, simpsonsIntegrationDouble
 from Spheral import Vector2d, Tensor2d, SymTensor2d, CylindricalBoundary, rotationMatrix2d
 from Spheral import Vector3d, Tensor3d, SymTensor3d, CylindricalBoundary, rotationMatrix3d
 from Spheral import CylindricalBoundary, generateCylDistributionFromRZ
@@ -125,9 +125,9 @@ class GenerateRatioSphere2d(NodeGeneratorBase):
                     self.H[-1].rotationalTransform(T)
 
         # # Do a numerical integral to get the expected total mass.
-        # class integfunc(SimpsonsIntegrationDoubleFunction):
+        # class integfunc(ScalarFunctor):
         #     def __init__(self, rho, Dtheta):
-        #         SimpsonsIntegrationDoubleFunction.__init__(self)
+        #         ScalarFunctor.__init__(self)
         #         self.rho = rho
         #         self.Dtheta = Dtheta
         #         return
