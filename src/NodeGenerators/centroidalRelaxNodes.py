@@ -39,12 +39,14 @@ def centroidalRelaxNodes(nodeListsAndBounds,
 
     # Did we get passed a function or a constant for the density?
     if type(rho) is float:
+        rhoConst = True
         class rhofunctor(sph.VectorScalarFunctor):
             def __init__(self):
                 sph.VectorScalarFunctor.__init__(self)
             def __call__(self, posi):
                 return rho
     else:
+        rhoConst = False
         class rhofunctor(sph.VectorScalarFunctor):
             def __init__(self):
                 sph.VectorScalarFunctor.__init__(self)
@@ -125,6 +127,7 @@ def centroidalRelaxNodes(nodeListsAndBounds,
                                               W,
                                               rhofunc,
                                               gradrhofunc,
+                                              rhoConst,
                                               useGradRhoFunc,
                                               bound_vec,
                                               maxIterations,

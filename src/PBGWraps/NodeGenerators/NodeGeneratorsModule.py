@@ -88,6 +88,7 @@ class NodeGenerators:
                                   constrefparam("TableKernel%id" % ndim, "W"),
                                   constrefparam("Spheral::PythonBoundFunctors::SpheralFunctor<Vector%id, double>" % ndim, "rhofunc"),
                                   constrefparam("Spheral::PythonBoundFunctors::SpheralFunctor<Vector%id, Vector%id>" % (ndim, ndim), "gradrhofunc"),
+                                  param("bool", "rhoConst"),
                                   param("bool", "useGradRhoFunc"),
                                   refparam("vector_of_Boundary%id" % ndim, "boundaries"),
                                   param("unsigned int", "maxIterations"),
