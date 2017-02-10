@@ -39,7 +39,7 @@ namespace FractalSpace
     int total_points=accumulate(Points.begin(),Points.end(),0);
     int average_boxes=total_boxes/HypreNodes;
     int average_points=total_points/HypreNodes;
-    FHT << " LOADY " << total_boxes << " " << total_points << " " << average_boxes << " " << average_points << endl;
+    // FHT << " LOADY " << total_boxes << " " << total_points << " " << average_boxes << " " << average_points << endl;
     multimap<int,deque<int>>NodesA;
     for(int HR=0;HR<HypreNodes;HR++)
       {
@@ -47,7 +47,7 @@ namespace FractalSpace
 	NodesA.insert(pair<int,deque<int>>(Points[HR],VHR));
       }
     for(auto M : NodesA)
-      FHT << " CEND " << FractalRank << " " << HypreRank << " " << mem.steps << " " << mem.level << " " << M.first << " " << M.second.front() << " " << maxLOAD << endl;
+      // FHT << " CEND " << FractalRank << " " << HypreRank << " " << mem.steps << " " << mem.level << " " << M.first << " " << M.second.front() << " " << maxLOAD << endl;
     if((--NodesA.end())->first <= maxLOAD)
       return false;
     int enough_spam=false;
@@ -60,12 +60,12 @@ namespace FractalSpace
 	int dd=distance(pstart,pend);
 	while(dd > 0)
 	  {
-	    FHT << " HERE 0 " << distance(pstart,pend) << " " << dd << " " << FractalRank << endl;
+	    // FHT << " HERE 0 " << distance(pstart,pend) << " " << dd << " " << FractalRank << endl;
 	    auto Va=pstart->second;
 	    auto Vb=pend->second;
 	    int aver=(Va.size()*pstart->first+Vb.size()*pend->first)/
 	      (Va.size()+Vb.size());	  
-	    FHT << " HERE A " << dd << " " << pstart->first << " " << pend->first << " " << aver << " " << " " << Va.size() << " " << Vb.size() << " " << FractalRank << endl;
+	    // FHT << " HERE A " << dd << " " << pstart->first << " " << pend->first << " " << aver << " " << " " << Va.size() << " " << Vb.size() << " " << FractalRank << endl;
 	    for(auto V : Vb)
 	      Va.push_back(V);
 	    NodesB.insert(make_pair(aver,Va));
@@ -76,7 +76,6 @@ namespace FractalSpace
 	if(dd == 0)
 	  NodesB.insert(*pstart);
 	NodesA=NodesB;
-	FHT << " HERE C " << tries << " " << NodesA.size() << endl;
 	tries++;
 	enough_spam=(double)(NodesB.begin()->first-(--NodesB.end())->first)/
 	  (double)(NodesB.begin()->first+(--NodesB.end())->first) < spread;
@@ -91,7 +90,7 @@ namespace FractalSpace
 	  {
 	    for(auto HR : mynodes)
 	      {
-		FHT << " Here DD " << HR << " " << Points[HR] << endl;
+		// FHT << " Here DD " << HR << " " << Points[HR] << endl;
 		aver+=Points[HR];
 		go_home=go_home && Points[HR] <= maxLOAD;
 	      }
@@ -111,7 +110,7 @@ namespace FractalSpace
       {
 	can[HR]=max(Points[HR]-averup,0);
 	need[HR]=max(averdown-Points[HR],0);
-	FHT << " CAN NEED A " << HR << " " << can[HR] << " " << need[HR] << endl;
+	// FHT << " CAN NEED A " << HR << " " << can[HR] << " " << need[HR] << endl;
       }
     vector<int>sendto(HypreNodes,0);
     for(int Hsend : mynodes)
@@ -125,21 +124,19 @@ namespace FractalSpace
 	    if(need[Hrec] <= 0 || Hrec == Hsend)
 	      continue;
 	    int send=min(can[Hsend],need[Hrec]);
-	    FHT << " CAN NEED B " << Hsend << " " << Hrec << " " << can[Hsend] << " " << need[Hrec] << " " << send << endl;
+	    // FHT << " CAN NEED B " << Hsend << " " << Hrec << " " << can[Hsend] << " " << need[Hrec] << " " << send << endl;
 	    can[Hsend]-=send;
 	    need[Hrec]-=send;
 	    if(Hsend == HypreRank)
 	      sendto[Hrec]=send;
 	  }
       }
-    FHT << " MYNODES A " << mynodes.size();
     for(auto pN=mynodes.begin();pN!=mynodes.end();pN++)
       if(*pN == HypreRank)
 	{
 	  mynodes.erase(pN);
 	  break;
 	}
-    FHT << " " << mynodes.size() << endl;
     sendto[HypreRank]=-1;
     int number=0;
     multimap <vector<Point*>,int,vector_comp_down>MSP;
@@ -149,16 +146,16 @@ namespace FractalSpace
     for(auto M : MSP)
       {
 	int has=M.first.size();
-	FHT << " MYNODES B " << MSP.size() << " " << has;
+	// FHT << " MYNODES B " << MSP.size() << " " << has;
 	for(auto Hrec : mynodes)
 	  {
-	    FHT << " " << Hrec << " " << sendto[Hrec];
+	    // FHT << " " << Hrec << " " << sendto[Hrec];
 	    if(sendto[Hrec] > 0)
 	      {
 		if(has <= sendto[Hrec]+extra)
 		  {
 		    HRout[M.second]=Hrec;
-		    FHT << " " << M.second << " " << Hrec;;
+		    // FHT << " " << M.second << " " << Hrec;;
 		    sendto[Hrec]-=has;
 		    break;
 		  }
@@ -166,7 +163,7 @@ namespace FractalSpace
 	    else
 	      fewer=true;
 	  }
-	FHT << endl;
+	// FHT << endl;
 	if(!fewer)
 	  continue;
 	auto pN=mynodes.begin();
@@ -178,13 +175,13 @@ namespace FractalSpace
 	      pN++;
 	  }
       }
-    int spam=0;
-    for(auto SP : SPoints)
-      {
-	if(HRout[spam] != HypreRank)
-	  FHT << " SENDIT A " << HypreRank << " " << HRout[spam] << " " << SP.size() << endl;
-	spam++;
-      }
+    // int spam=0;
+    // for(auto SP : SPoints)
+    //   {
+    // 	if(HRout[spam] != HypreRank)
+    // 	  FHT << " SENDIT A " << HypreRank << " " << HRout[spam] << " " << SP.size() << endl;
+    // 	spam++;
+    //   }
     return true;
   }
 }
