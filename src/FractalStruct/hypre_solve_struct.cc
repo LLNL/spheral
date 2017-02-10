@@ -12,7 +12,21 @@ namespace FractalSpace
     int spacing=Misc::pow(2,mem.p_fractal->get_level_max()-level);
     int FractalRank=mem.p_mess->FractalRank;
     int HypreRank=mem.p_mess->HypreRank;
-    // int HypreNodes=mem.p_mess->HypreNodes;
+    int HypreNodes=mem.p_mess->HypreNodes;
+    // cerr << " Solve A " << FractalRank << " " << HypreRank << endl;    
+    vector <int> counts_in(HypreNodes,0);
+    vector <int> counts_out(HypreNodes,0);
+    vector <int> dataI_in;
+    vector <double> dataR_in;
+    vector < vector <int> > dataI_out(HypreNodes);
+    vector < vector <double> > dataR_out(HypreNodes);
+
+    vector<int>HRout(SBoxes.size(),HypreRank);
+    int balance=false;
+    // cerr << " Solve B " << FractalRank << " " << HypreRank << endl;    
+    if(buffer && mem.hypre_load_balance)
+      balance=hypre_struct_load_balance(mem,SBoxes,SPoints,HRout);
+    // cerr << " Solve E " << FractalRank << " " << HypreRank << endl;    
     HYPRE_StructGrid     grid;
     HYPRE_StructStencil  stencil;
     HYPRE_StructMatrix   Amatrix;
@@ -22,7 +36,6 @@ namespace FractalSpace
     HYPRE_StructSolver   precond;
     vector<int>pos(3);
     vector <int>Box=mem.FRBoxesLev[level];
-    // FHT << " HYP BOX " << Box[0] << " " << Box[1] << " " << Box[2] << " " << Box[3] << " " << Box[4] << " " << Box[5] << "\n";
     double pi = 4.0*atan(1.0);
     int length=mem.p_fractal->get_grid_length();
     double g_c=4.0*pi/static_cast<double>(length*length)*pow(4.0,-level);
@@ -35,6 +48,8 @@ namespace FractalSpace
     HYPRE_StructGridSetPeriodic(grid,&(*pers.begin()));
     int sumVOL=0;
     int B=0;
+    int Bstay=0;
+    int Bout=0;
     for(vector <int>& SB : SBoxes)
       {
 	int ni=0;
@@ -47,22 +62,84 @@ namespace FractalSpace
 	    assert(VOL[B] > 0);
 	    ni++;
 	  }
-	HYPRE_StructGridSetExtents(grid,&(*lowerBOX[B].begin()),&(*upperBOX[B].begin()));
-	sumVOL+=VOL[B];
+	if(HRout[B]==HypreRank)
+	  {
+	    HYPRE_StructGridSetExtents(grid,&(*lowerBOX[B].begin()),&(*upperBOX[B].begin()));
+	    sumVOL+=VOL[B];
+	    Bstay++;
+	  }
+	else
+	  {
+	    int HR=HRout[B];
+	    // FHT << " HRA" << " " << HypreRank << " " << HR << " " << Bout << " " << B << " " << VOL[B] << endl;
+	    for(int ni=0;ni<3;ni++)
+	      dataI_out[HR].push_back(lowerBOX[B][ni]);
+	    for(int ni=0;ni<3;ni++)
+	      dataI_out[HR].push_back(upperBOX[B][ni]);
+	    counts_out[HR]++;
+	    Bout++;
+	  }
 	B++;
       }
+    assert(Bstay+Bout==B);
+    int how_manyI=-1;
+    int how_manyR=-1;
+    int integers=6;
+    int doubles=0;
+    if(balance)
+      mem.p_mess->Send_Data_Some_How(38,mem.p_mess->HypreWorld,
+				     counts_out,counts_in,integers,doubles,
+				     dataI_out,dataI_in,how_manyI,
+				     dataR_out,dataR_in,how_manyR);
+    counts_out.clear();
+    dataI_out.clear();
+    dataR_out.clear();
+    int c6=0;
+    int Bget=0;
+    for(int HR=0;HR<HypreNodes;HR++)
+      {
+	for(int c=0;c<counts_in[HR];c++)
+	  {
+	    // FHT << " HRB" << " " << HypreRank << " " << HR << " " << Bget << " " << c6 << endl;
+	    HRout.push_back(-HR-1);
+	    lowerBOX.resize(lowerBOX.size()+1);
+	    upperBOX.resize(upperBOX.size()+1);
+	    VOL.push_back(1);
+	    for(int ni : {0,1,2})
+	      lowerBOX.back().push_back(dataI_in[c6++]);
+	    for(int ni : {0,1,2})
+	      {
+		upperBOX.back().push_back(dataI_in[c6++]);
+		VOL.back()*=upperBOX.back()[ni]-lowerBOX.back()[ni]+1;
+		assert(VOL.back() > 0);
+	      }
+	    HYPRE_StructGridSetExtents(grid,&(*lowerBOX.back().begin()),&(*upperBOX.back().begin()));
+	    sumVOL+=VOL.back();
+	    Bget++;
+	  }
+      }
+    dataI_in.clear();
+    dataR_in.clear();
+    counts_in.clear();
     HYPRE_StructGridAssemble(grid);
     long int SVT=mem.p_mess->How_Many_In_Solver(sumVOL);
-    long int SBT=mem.p_mess->How_Many_In_Solver(SBoxes.size());
+    long int SBT=mem.p_mess->How_Many_In_Solver(Bstay+Bget);
     double time1=mem.p_mess->Clock();
+    
     HYPRE_StructStencilCreate(3,7,&stencil);
     int offsets[7][3] = {{0,0,0},{-1,0,0},{1,0,0},{0,-1,0},{0,1,0},{0,0,-1},{0,0,1}};
     for (int entry = 0; entry < 7; entry++)
       HYPRE_StructStencilSetElement(stencil,entry,offsets[entry]);
+
+    counts_in.resize(HypreNodes,0);
+    counts_out.resize(HypreNodes,0);
+    dataI_out.resize(HypreNodes);
+    dataR_out.resize(HypreNodes);
+    
     HYPRE_StructMatrixCreate(mem.p_mess->HypreWorld,grid,stencil, &Amatrix);
     HYPRE_StructMatrixInitialize(Amatrix);
     HYPRE_StructVectorCreate(mem.p_mess->HypreWorld, grid, &rho);
-    HYPRE_StructVectorCreate(mem.p_mess->HypreWorld, grid, &pot);    
+    HYPRE_StructVectorCreate(mem.p_mess->HypreWorld, grid, &pot);
     HYPRE_StructVectorInitialize(rho);
     HYPRE_StructVectorInitialize(pot);
     int stencil_indices[7] = {0,1,2,3,4,5,6};
@@ -104,20 +181,98 @@ namespace FractalSpace
 		pot_values.push_back(p->get_potential_point());
 	      }
 	  }
+	if(HRout[B] == HypreRank)
+	  {
+	    HYPRE_StructMatrixAddToBoxValues(Amatrix,&(*lowerBOX[B].begin()),&(*upperBOX[B].begin()),7,
+					     stencil_indices,&(*values.begin()));
+	    HYPRE_StructVectorAddToBoxValues(rho,&(*lowerBOX[B].begin()),&(*upperBOX[B].begin()),&(*dens_values.begin()));
+	    HYPRE_StructVectorAddToBoxValues(pot,&(*lowerBOX[B].begin()),&(*upperBOX[B].begin()),&(*pot_values.begin()));
+	  }
+	else
+	  {
+	    int HR=HRout[B];
+	    // FHT << " HRC" << " " << HypreRank << " " << HR << " " << Bout << " " << B << endl;
+	    int knights=dens_values.size();
+	    int ni7=0;
+	    for(int ni=0;ni<knights;ni++)
+	      {
+		dataR_out[HR].push_back(dens_values[ni]);
+		dataR_out[HR].push_back(pot_values[ni]);
+		int NV=0;
+		for(int ni=6;ni>0;ni--)
+		  {
+		    int nn=(int)(values[ni7+ni]+0.01);
+		    NV=2*NV+nn;
+		  }
+		NV*=2;
+		int n0=(int)(values[ni7]+0.01);
+		if(n0 >= 0)
+		  NV++;
+		dataI_out[HR].push_back(NV);
+		ni7+=7;
+		counts_out[HR]++;
+	      }
+	  }
+	B++;
+      }
+    how_manyI=-1;
+    how_manyR=-1;
+    integers=1;
+    doubles=2;
+    if(balance)
+      mem.p_mess->Send_Data_Some_How(48,mem.p_mess->HypreWorld,
+				     counts_out,counts_in,integers,doubles,
+				     dataI_out,dataI_in,how_manyI,
+				     dataR_out,dataR_in,how_manyR);
+    counts_out.clear();
+    dataI_out.clear();
+    dataR_out.clear();
+    int ni=0;
+    int nd=0;
+    B=Bstay+Bout;
+    for(int Bg=0;Bg<Bget;Bg++)
+      {
+	int vol=1;
+	for(int knights : {0,1,2})
+	  vol*=upperBOX[B][knights]-lowerBOX[B][knights]+1;
+	assert(vol == VOL[B]);
+	// FHT << " HRD" << " " << HypreRank << " " << -HRout[B]-1 << " " << Bg <<  " " << B << " " << VOL[B]  << " " << Bget << endl;
+	vector <double>values;
+	vector <double>dens_values;
+	vector <double>pot_values;
+	for(int knights=0;knights<VOL[B];knights++)
+	  {
+	    dens_values.push_back(dataR_in[nd++]);
+	    pot_values.push_back(dataR_in[nd++]);
+	    int NV=dataI_in[ni++];
+	    if(NV % 2 == 1)
+	      values.push_back(1.0);
+	    else
+	      values.push_back(-6.0);
+	    for(int V=0;V<6;V++)
+	      {
+		NV/=2;
+		values.push_back((double)(NV % 2));
+	      }
+	  }
 	HYPRE_StructMatrixAddToBoxValues(Amatrix,&(*lowerBOX[B].begin()),&(*upperBOX[B].begin()),7,
 					 stencil_indices,&(*values.begin()));
 	HYPRE_StructVectorAddToBoxValues(rho,&(*lowerBOX[B].begin()),&(*upperBOX[B].begin()),&(*dens_values.begin()));
 	HYPRE_StructVectorAddToBoxValues(pot,&(*lowerBOX[B].begin()),&(*upperBOX[B].begin()),&(*pot_values.begin()));
 	B++;
+	// FHT << " HRDD" << " " << HypreRank << " " << Bg <<  " " << B << " " << VOL[B] << " " << Bget << endl;
       }
+    dataI_in.clear();
+    dataR_in.clear();
+    counts_in.clear();
     HYPRE_StructMatrixAssemble(Amatrix);
     HYPRE_StructVectorAssemble(rho);
     HYPRE_StructVectorAssemble(pot);
     double time2=mem.p_mess->Clock();
     
     HYPRE_StructPCGCreate(mem.p_mess->HypreWorld, &solver);
-    HYPRE_StructPCGSetMaxIter(solver, 200 );
-    HYPRE_StructPCGSetTol(solver, 1.0e-06 );
+    HYPRE_StructPCGSetMaxIter(solver, mem.maxits );
+    HYPRE_StructPCGSetTol(solver, mem.epsilon_sor );
     HYPRE_StructPCGSetTwoNorm(solver, 1 );
     HYPRE_StructPCGSetRelChange(solver, 0 );
     HYPRE_StructPCGSetPrintLevel(solver, 1 );
@@ -151,22 +306,65 @@ namespace FractalSpace
     HYPRE_StructMatrixDestroy(Amatrix);
     HYPRE_StructVectorDestroy(rho);
     // cerr << " SOLVED B " << _COUNTER << " " << FractalRank << " " << HypreRank << "\n";
+    counts_in.resize(HypreNodes,0);
+    counts_out.resize(HypreNodes,0);
+    dataI_out.resize(HypreNodes);
+    dataR_out.resize(HypreNodes);
     B=0;
-    for(vector <Point*>& SP : SPoints)
+    for(int BOX=0;BOX<lowerBOX.size();BOX++)
       {
 	vector <double>pot_values;
-	pot_values.resize(VOL[B]);
-	HYPRE_StructVectorGetBoxValues(pot,&(*lowerBOX[B].begin()),&(*upperBOX[B].begin()),&(*pot_values.begin()));
-	int i=0;
-	for(Point* &p : SP)
+	pot_values.resize(VOL[BOX]);
+	if(HRout[BOX] == HypreRank)
 	  {
-	    if(p != 0 && !p->get_trouble())
-	      p->set_potential_point(pot_values[i]);
-	    i++;
+	    HYPRE_StructVectorGetBoxValues(pot,&(*lowerBOX[BOX].begin()),&(*upperBOX[BOX].begin()),&(*pot_values.begin()));
+	    int ni=0;
+	    for(Point* &p : SPoints[BOX])
+	      {
+		if(p != 0 && !p->get_trouble())
+		  p->set_potential_point(pot_values[ni]);
+		ni++;
+	      }
+	  }
+	else if(HRout[BOX] < 0)
+	  {
+	    HYPRE_StructVectorGetBoxValues(pot,&(*lowerBOX[BOX].begin()),&(*upperBOX[BOX].begin()),&(*pot_values.begin()));
+	    int HR=-HRout[BOX]-1;
+	    for(int ni=0;ni<VOL[BOX];ni++)
+	      {
+		dataR_out[HR].push_back(pot_values[ni]);
+		counts_out[HR]++;
+	      }
 	  }
 	B++;
       }
     HYPRE_StructVectorDestroy(pot);
+    how_manyI=-1;
+    how_manyR=-1;
+    integers=0;
+    doubles=1;
+    if(balance)
+      mem.p_mess->Send_Data_Some_How(58,mem.p_mess->HypreWorld,
+				     counts_out,counts_in,integers,doubles,
+				     dataI_out,dataI_in,how_manyI,
+				     dataR_out,dataR_in,how_manyR);
+    counts_out.clear();
+    dataI_out.clear();
+    dataR_out.clear();
+    int HR=-1;
+    ni=0;
+    for(auto &SP : SPoints)
+      {
+	HR++;
+	if(HRout[HR] < 0 || HRout[HR] == HypreRank)
+	  continue;
+	for(auto &p : SP)
+	  {
+	    double pot=dataR_in[ni++];
+	    if(p != 0 && !p->get_trouble())
+	      p->set_potential_point(pot);
+	  }
+      }
     double time6=mem.p_mess->Clock();
     _COUNTER++;
     Hypre_sum_time[level]+=time6-time0;
