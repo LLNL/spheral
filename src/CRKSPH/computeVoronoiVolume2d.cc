@@ -7,6 +7,7 @@ extern "C" {
 
 #include <algorithm>
 #include <utility>
+#include <ctime>
 
 #include "computeVoronoiVolume.hh"
 #include "Field/Field.hh"
@@ -105,8 +106,12 @@ computeVoronoiVolume(const FieldList<Dim<2>, Dim<2>::Vector>& position,
   const bool returnSurface = surfacePoint.size() == numNodeLists;
   const bool returnCells = cells.size() == numNodeLists;
 
+  std::clock_t t0, ttotal = std::clock_t(0), tplanes = std::clock_t(0), tclip = std::clock_t(0), tstuff = std::clock_t(0);
+
   REQUIRE(numBounds == 0 or numBounds == numNodeLists);
   REQUIRE(holes.size() == numBounds);
+
+  ttotal = std::clock();
 
   if (numGensGlobal > 0) {
 
@@ -141,6 +146,8 @@ computeVoronoiVolume(const FieldList<Dim<2>, Dim<2>::Vector>& position,
 
         // const bool barf = (i == 3005);
         // if (barf) cerr << " --> " << i << " " << ri << endl;
+
+        t0 = std::clock();
 
         // Grab this points neighbors and build all the planes.
         // We simultaneously build a very conservative limiter for the density gradient.
@@ -218,6 +225,9 @@ computeVoronoiVolume(const FieldList<Dim<2>, Dim<2>::Vector>& position,
         // Sort the planes by distance -- let's us clip more efficiently.
         std::sort(pairPlanes.begin(), pairPlanes.end(), compareR2Dplanes);
 
+        tplanes += std::clock() - t0;
+        t0 = std::clock();
+
         // Initialize our seed cell shape.
         r2d_poly celli = initialCell;
         for (r2d_vertex& vert: celli.verts) {
@@ -232,6 +242,9 @@ computeVoronoiVolume(const FieldList<Dim<2>, Dim<2>::Vector>& position,
         CHECK(celli.nverts > 0);
 
         // if (barf) r2d_print(&celli);
+
+        tclip += std::clock() - t0;
+        t0 = std::clock();
 
         // Check if the final polygon is entirely within our "interior" check radius.
         bool interior = true;
@@ -331,6 +344,8 @@ computeVoronoiVolume(const FieldList<Dim<2>, Dim<2>::Vector>& position,
           r2d_poly_to_polygon(celli, 1.0e-20/max(1.0, sqrt(Hdeti)), cells(nodeListi, i));
           cells(nodeListi, i) += ri;
         }
+
+        tstuff += std::clock() - t0;
       }
     }
 
@@ -363,6 +378,18 @@ computeVoronoiVolume(const FieldList<Dim<2>, Dim<2>::Vector>& position,
     // }
 
   }
+
+  ttotal = std::clock() - ttotal;
+  if (Process::getRank() == 0) cout << "computeVoronoiVolume2d: required " 
+                                    << (tplanes / (double) CLOCKS_PER_SEC) 
+                                    << " for constructing planes, "
+                                    << (tclip / (double) CLOCKS_PER_SEC) 
+                                    << " for clipping, and "
+                                    << (tstuff / (double) CLOCKS_PER_SEC) 
+                                    << " miscellaneous, with a total time of "
+                                    << (ttotal / (double) CLOCKS_PER_SEC) << endl;
+                                
+
 }
 
 }
