@@ -114,11 +114,8 @@ def centroidalRelaxNodes(nodeListsAndBounds,
 
     # Prepare the return FieldLists.
     vol = db.newFluidScalarFieldList(0.0, "volume")
-    surfacePoint = db.newFluidIntFieldList(0, "surface point")
-    if tessellationFileName is None:
-        cells = sph.FacetedVolumeFieldList()
-    else:
-        cells = db.newFluidFacetedVolumeFieldList(sph.FacetedVolume(), "cells")
+    surfacePoint = sph.IntFieldList()
+    cells = sph.FacetedVolumeFieldList()
 
     # We let the C++ method do the heavy lifting.
     iterations = sph.centroidalRelaxNodesImpl(db,
@@ -137,6 +134,15 @@ def centroidalRelaxNodes(nodeListsAndBounds,
                                               vol,
                                               surfacePoint,
                                               cells)
+
+    # Make a final call to computeVoronoiVolume to get the more expensive surfacePoint and cells fields.
+    surfacePoint = db.newFluidIntFieldList(0, "surface point")
+    gradRho = db.newFluidVectorFieldList(sph.Vector.zero, "grad rho")
+    deltaMedian = db.newFluidVectorFieldList(sph.Vector.zero, "delta medial position")
+    if tessellationFileName:
+        cells = db.newFluidFacetedVolumeFieldList(sph.FacetedVolume(), "cells")
+    sph.computeVoronoiVolume(db.fluidPosition, db.fluidHfield, db.fluidMassDensity, gradRho, db.connectivityMap(), W.kernelExtent, bounds, holes, 
+                             surfacePoint, vol, deltaMedian, cells)
 
     # If requested, dump the final info to a diagnostic viz file.
     if tessellationFileName and SpheralVoronoiSiloDump:
