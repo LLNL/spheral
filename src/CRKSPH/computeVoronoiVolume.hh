@@ -47,6 +47,20 @@ namespace Spheral {
                          FieldSpace::FieldList<Dim<2>, Dim<2>::Scalar>& vol,
                          FieldSpace::FieldList<Dim<2>, Dim<2>::Vector>& deltaMedian,
                          FieldSpace::FieldList<Dim<2>, Dim<2>::FacetedVolume>& cells);
+    void
+    computeWeightedVoronoiVolume(const FieldSpace::FieldList<Dim<2>, Dim<2>::Vector>& position,
+                                 const FieldSpace::FieldList<Dim<2>, Dim<2>::SymTensor>& H,
+                                 const FieldSpace::FieldList<Dim<2>, Dim<2>::Scalar>& rho,
+                                 const FieldSpace::FieldList<Dim<2>, Dim<2>::Vector>& gradRho,
+                                 const NeighborSpace::ConnectivityMap<Dim<2> >& connectivityMap,
+                                 const Dim<2>::Scalar kernelExtent,
+                                 const std::vector<Dim<2>::FacetedVolume>& boundaries,
+                                 const std::vector<std::vector<Dim<2>::FacetedVolume> >& holes,
+                                 const FieldSpace::FieldList<Dim<2>, Dim<2>::Scalar>& weight,
+                                 FieldSpace::FieldList<Dim<2>, int>& surfacePoint,
+                                 FieldSpace::FieldList<Dim<2>, Dim<2>::Scalar>& vol,
+                                 FieldSpace::FieldList<Dim<2>, Dim<2>::Vector>& deltaMedian,
+                                 FieldSpace::FieldList<Dim<2>, Dim<2>::FacetedVolume>& cells);
 #endif
 
 #ifdef SPHERAL3D
