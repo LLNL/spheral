@@ -106,20 +106,20 @@ computeVoronoiVolume(const FieldList<Dim<2>, Dim<2>::Vector>& position,
   const bool returnSurface = surfacePoint.size() == numNodeLists;
   const bool returnCells = cells.size() == numNodeLists;
 
-  std::clock_t t0, 
-    ttotal = std::clock_t(0), 
-    tplanes = std::clock_t(0), 
-    tclip = std::clock_t(0), 
-    tinterior = std::clock_t(0),
-    tcentroid = std::clock_t(0),
-    tsurface = std::clock_t(0),
-    tbound = std::clock_t(0),
-    tcell = std::clock_t(0);
+  // std::clock_t t0, 
+  //   ttotal = std::clock_t(0), 
+  //   tplanes = std::clock_t(0), 
+  //   tclip = std::clock_t(0), 
+  //   tinterior = std::clock_t(0),
+  //   tcentroid = std::clock_t(0),
+  //   tsurface = std::clock_t(0),
+  //   tbound = std::clock_t(0),
+  //   tcell = std::clock_t(0);
 
   REQUIRE(numBounds == 0 or numBounds == numNodeLists);
   REQUIRE(holes.size() == numBounds);
 
-  ttotal = std::clock();
+  // ttotal = std::clock();
 
   if (numGensGlobal > 0) {
 
@@ -155,7 +155,7 @@ computeVoronoiVolume(const FieldList<Dim<2>, Dim<2>::Vector>& position,
         // const bool barf = (i == 3005);
         // if (barf) cerr << " --> " << i << " " << ri << endl;
 
-        t0 = std::clock();
+        // t0 = std::clock();
 
         // Grab this points neighbors and build all the planes.
         // We simultaneously build a very conservative limiter for the density gradient.
@@ -233,8 +233,8 @@ computeVoronoiVolume(const FieldList<Dim<2>, Dim<2>::Vector>& position,
         // Sort the planes by distance -- let's us clip more efficiently.
         std::sort(pairPlanes.begin(), pairPlanes.end(), compareR2Dplanes);
 
-        tplanes += std::clock() - t0;
-        t0 = std::clock();
+        // tplanes += std::clock() - t0;
+        // t0 = std::clock();
 
         // Initialize our seed cell shape.
         r2d_poly celli = initialCell;
@@ -251,11 +251,11 @@ computeVoronoiVolume(const FieldList<Dim<2>, Dim<2>::Vector>& position,
 
         // if (barf) r2d_print(&celli);
 
-        tclip += std::clock() - t0;
+        // tclip += std::clock() - t0;
 
         // Check if the final polygon is entirely within our "interior" check radius.
         bool interior = true;
-        t0 = std::clock();
+        // t0 = std::clock();
         {
           unsigned k = 0;
           while (interior and k != celli.nverts) {
@@ -263,10 +263,10 @@ computeVoronoiVolume(const FieldList<Dim<2>, Dim<2>::Vector>& position,
             ++k;
           }
         }
-        tinterior += std::clock() - t0;
+        // tinterior += std::clock() - t0;
 
         if (interior) {
-          t0 = std::clock();
+          // t0 = std::clock();
           if (returnSurface) surfacePoint(nodeListi, i) = 0;
 
           // Compute the centroidal motion and area.
@@ -310,12 +310,12 @@ computeVoronoiVolume(const FieldList<Dim<2>, Dim<2>::Vector>& position,
             deltaMedian(nodeListi, i) = deltaCentroidi;
 
           }
-          tcentroid += std::clock() - t0;
+          // tcentroid += std::clock() - t0;
 
           // OK, this is an interior point from the perspective that it was clipped within our critical
           // radius on all sides.  However, if we have a bounding polygon we may still want to call it a
           // surface if in fact there are still facets from that bounding polygon on this cell.
-          t0 = std::clock();
+          // t0 = std::clock();
           if (haveBoundaries and returnSurface) {
             unsigned j = 0;
             while (interior and j != celli.nverts) {
@@ -330,7 +330,7 @@ computeVoronoiVolume(const FieldList<Dim<2>, Dim<2>::Vector>& position,
               if (returnSurface) surfacePoint(nodeListi, i) = 1;
             }
           }
-          tsurface += std::clock() - t0;
+          // tsurface += std::clock() - t0;
 
         } else {
 
@@ -341,7 +341,7 @@ computeVoronoiVolume(const FieldList<Dim<2>, Dim<2>::Vector>& position,
         }
 
         // Check if the candidate motion is still in the boundary.  If not, project back.
-        t0 = std::clock();
+        // t0 = std::clock();
         if (haveBoundaries) {
           if (not boundaries[nodeListi].contains(ri + deltaMedian(nodeListi, i), false)) {
             deltaMedian(nodeListi, i) = boundaries[nodeListi].closestPoint(ri + deltaMedian(nodeListi, i)) - ri;
@@ -352,14 +352,14 @@ computeVoronoiVolume(const FieldList<Dim<2>, Dim<2>::Vector>& position,
             }
           }
         }
-        tbound += std::clock() - t0;
+        // tbound += std::clock() - t0;
 
         // If requested, we can return the cell geometries.
         if (returnCells) {
-          t0 = std::clock();
+          // t0 = std::clock();
           r2d_poly_to_polygon(celli, 1.0e-20/max(1.0, sqrt(Hdeti)), cells(nodeListi, i));
           cells(nodeListi, i) += ri;
-          tcell += std::clock() - t0;
+          // tcell += std::clock() - t0;
         }
       }
     }
@@ -394,16 +394,16 @@ computeVoronoiVolume(const FieldList<Dim<2>, Dim<2>::Vector>& position,
 
   }
 
-  ttotal = std::clock() - ttotal;
-  if (Process::getRank() == 0) cout << "computeVoronoiVolume2d timing: " 
-                                    << "tplanes=" << (tplanes / (double) CLOCKS_PER_SEC) 
-                                    << " tclip=" << (tclip / (double) CLOCKS_PER_SEC) 
-                                    << " tinterior=" << (tinterior / (double) CLOCKS_PER_SEC) 
-                                    << " tcentroid=" << (tcentroid / (double) CLOCKS_PER_SEC) 
-                                    << " tsurface=" << (tsurface / (double) CLOCKS_PER_SEC) 
-                                    << " tbound=" << (tbound / (double) CLOCKS_PER_SEC) 
-                                    << " tcell=" << (tcell / (double) CLOCKS_PER_SEC) 
-                                    << " ttotal=" << (ttotal / (double) CLOCKS_PER_SEC) << endl;
+  // ttotal = std::clock() - ttotal;
+  // if (Process::getRank() == 0) cout << "computeVoronoiVolume2d timing: " 
+  //                                   << "tplanes=" << (tplanes / (double) CLOCKS_PER_SEC) 
+  //                                   << " tclip=" << (tclip / (double) CLOCKS_PER_SEC) 
+  //                                   << " tinterior=" << (tinterior / (double) CLOCKS_PER_SEC) 
+  //                                   << " tcentroid=" << (tcentroid / (double) CLOCKS_PER_SEC) 
+  //                                   << " tsurface=" << (tsurface / (double) CLOCKS_PER_SEC) 
+  //                                   << " tbound=" << (tbound / (double) CLOCKS_PER_SEC) 
+  //                                   << " tcell=" << (tcell / (double) CLOCKS_PER_SEC) 
+  //                                   << " ttotal=" << (ttotal / (double) CLOCKS_PER_SEC) << endl;
                                 
 
 }
