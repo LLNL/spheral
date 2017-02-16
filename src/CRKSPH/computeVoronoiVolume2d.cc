@@ -495,7 +495,7 @@ computeWeightedVoronoiVolume(const FieldList<Dim<2>, Dim<2>::Vector>& position,
                         // Build the planes for our clipping half-spaces.
                         const Vector rij = ri - rj;
                         const Vector nhat = rij.unitVector();
-                        const Scalar wij = weightj/(weightj+weighti);
+                        const Scalar wij = weighti/(weightj+weighti);
                         pairPlanes.push_back(r2d_plane());
                         pairPlanes.back().n.x = nhat.x();
                         pairPlanes.back().n.y = nhat.y();
