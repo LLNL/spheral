@@ -496,20 +496,6 @@ computeWeightedVoronoiVolume(const FieldList<Dim<3>, Dim<3>::Vector>& position,
     REQUIRE(numBounds == 0 or numBounds == numNodeLists);
     REQUIRE(holes.size() == numBounds);
     
-    // std::clock_t t0,
-    //   ttotal = std::clock_t(0),
-    //   tplanesneighbors = std::clock_t(0),
-    //   tplanesboundaries = std::clock_t(0),
-    //   tplanesort = std::clock_t(0),
-    //   tclip = std::clock_t(0),
-    //   tinterior = std::clock_t(0),
-    //   tcentroid = std::clock_t(0),
-    //   tsurface = std::clock_t(0),
-    //   tbound = std::clock_t(0),
-    //   tcell = std::clock_t(0);
-    
-    // ttotal = std::clock();
-    
     if (numGensGlobal > 0) {
         
         // (Square) of the distance to a facet in an icosahedon.
@@ -602,7 +588,6 @@ computeWeightedVoronoiVolume(const FieldList<Dim<3>, Dim<3>::Vector>& position,
                 const Scalar Hdeti = Hi.Determinant();
                 const SymTensor Hinv = Hi.Inverse();
                 
-                // t0 = std::clock();
                 
                 // Grab this points neighbors and build all the planes.
                 // We simultaneously build a very conservative limiter for the density gradient.
@@ -633,9 +618,6 @@ computeWeightedVoronoiVolume(const FieldList<Dim<3>, Dim<3>::Vector>& position,
                         // phi = min(phi, max(0.0, max(1.0 - fdir, rij.dot(gradRhoi)*safeInv(rhoi - rhoj))));
                     }
                 }
-                
-                // tplanesneighbors += std::clock() - t0;
-                // t0 = std::clock();
                 
                 // If provided boundaries, we implement them as additional neighbor clipping planes.
                 if (haveBoundaries) {
@@ -754,12 +736,6 @@ computeWeightedVoronoiVolume(const FieldList<Dim<3>, Dim<3>::Vector>& position,
                             deltaMedian(nodeListi, i) = xm2*nhat1 - deltaCentroidi.dot(nhat1)*nhat1 + deltaCentroidi;
                         }
                         
-                        // // This version simply tries rho^2 weighting.
-                        // deltaMedian(nodeListi, i) = ((0.5*rhoi*(x2*x2 - x1*x1) +
-                        //                               2.0/3.0*rhoi*b*(x2*x2*x2 - x1*x1*x1) +
-                        //                               0.25*b*b*(x2*x2*x2*x2 - x1*x1*x1*x1))/
-                        //                              (pow3(rhoi + b*x2) - pow3(rhoi + b*x1)/(3.0*b)))*nhat1 - deltaCentroidi.dot(nhat1)*nhat1 + deltaCentroidi;
-                        
                     } else {
                         
                         // Otherwise just use the centroid.
@@ -821,19 +797,7 @@ computeWeightedVoronoiVolume(const FieldList<Dim<3>, Dim<3>::Vector>& position,
         }
         
     }
-    
-    // ttotal = std::clock() - ttotal;
-    // if (Process::getRank() == 0) cout << "computeVoronoiVolume2d timing: " 
-    //                                   << "tplanesneighbors=" << (tplanesneighbors / (double) CLOCKS_PER_SEC) 
-    //                                   << " tplanesboundaries=" << (tplanesboundaries / (double) CLOCKS_PER_SEC) 
-    //                                   << " tplanesort=" << (tplanesort / (double) CLOCKS_PER_SEC) 
-    //                                   << " tclip=" << (tclip / (double) CLOCKS_PER_SEC) 
-    //                                   << " tinterior=" << (tinterior / (double) CLOCKS_PER_SEC) 
-    //                                   << " tcentroid=" << (tcentroid / (double) CLOCKS_PER_SEC) 
-    //                                   << " tsurface=" << (tsurface / (double) CLOCKS_PER_SEC) 
-    //                                   << " tbound=" << (tbound / (double) CLOCKS_PER_SEC) 
-    //                                   << " tcell=" << (tcell / (double) CLOCKS_PER_SEC) 
-    //                                   << " ttotal=" << (ttotal / (double) CLOCKS_PER_SEC) << endl;
+
     
     
 }
