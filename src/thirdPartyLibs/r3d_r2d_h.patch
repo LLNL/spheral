@@ -1,0 +1,4 @@
+93c93
+< #define R2D_MAX_VERTS 64 
+---
+> #define R2D_MAX_VERTS 512
