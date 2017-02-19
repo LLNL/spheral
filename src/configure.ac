@@ -177,4 +177,6 @@ AC_OUTPUT(helpers/makefile_master \
           PythonMPIInterfaces/makefile \
           PBGWraps/makefile \
           PBGWraps/SpheralModulesBindings.py \
+          Pybind11Wraps/makefile \
+          Pybind11Wraps/CXXTypes/makefile \
           SimulationControl/spheralDimensions.py)

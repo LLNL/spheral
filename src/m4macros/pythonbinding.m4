@@ -3,44 +3,36 @@
 # -----------------------------------------------------------------
 AC_DEFUN([SETUP_PYTHONBINDING],[
 
+AC_SUBST(EXTRATHIRDPARTYTARGETS)
 AC_SUBST(PYTHONBINDING)
 AC_SUBST(PYTHONPKGDIR)
 AC_SUBST(PYTHONPKGS)
 AC_SUBST(BOOSTROOT)
 AC_SUBST(BOOSTLIBTARGETS)
-AC_SUBST(BOOSTPYTHONTARGET)
-AC_SUBST(GCCXMLTARGETS)
-AC_SUBST(BPLPATH)
-AC_SUBST(PYSTEPATH)
 AC_SUBST(BPLINCS)
+AC_SUBST(INCS)
 AC_SUBST(PYOPT)
 AC_SUBST(MODULELINK)
 
 PYOPT=""
 BPLINCS=""
 BOOSTLIBTARGETS="math"
-BOOSTPYTHONTARGET=""
+EXTRATHIRDPARTYTARGETS=""
 
 # -----------------------------------------------------------------
-# Configure for using Boost.Python library
+# Configure using pybind11 library for python bindings
 # -----------------------------------------------------------------
-AC_MSG_CHECKING(for --with-bpl)
-AC_ARG_WITH(bpl,
-[  --with-bpl ............................... use Boost.Python wrappings],
+AC_MSG_CHECKING(for --with-pybind11)
+AC_ARG_WITH(pybind11,
+[  --with-pybind11 .......................... use pybind11 wrappings],
 [
     AC_MSG_RESULT(yes)
-    BOOSTPYTHONTARGET="python"
-    GCCXMLTARGETS="$(GCCXMLDATE)"
-    PYTHONBINDING="BPL"
-    PYTHONPKGDIR="BPLWraps"
-    if test "$GEOMETRY_ONLY" = "1"; then
-      PYTHONPKGS="$PYTHONPKGS Geometry Utilities"
-    else
-      PYTHONPKGS="$PYTHONPKGS Geometry DataOutput NodeList NodeIterators Field FieldOperations Kernel SplineKernel Neighbor Material FileIO DataBase Boundary ArtificialViscosity Physics Hydro ExternalForce Gravity Integrator CXXTypes Utilities Python NodeGenerators"
-    fi
-    PYOPT="$PYOPT -w"
-    BPLINCS="-DPYSTE -I\$(BOOSTROOT) -I\$prefix/include/python\$(PYTHONVERSION) \$(patsubst %, -I\$(SRCTOP)/%, \$(CXXPKGS))"
-    MODULELINK="-L\$(LIBDIR) -lboost_python \$(PKGLIBS)"
+    EXTRATHIRDPARTYTARGETS+=" .pybind11-2.0.1.date"
+    PYTHONBINDING="PYBIND11"
+    PYTHONPKGDIR="Pybind11Wraps"
+    PYTHONPKGS+=" CXXTypes"
+    INCS+="-I\$(prefix)/include -I\$prefix/include/python\$(PYTHONVERSION) \$(patsubst %, -I\$(SRCTOP)/%, \$(CXXPKGS))"
+    MODULELINK="-L\$(LIBDIR) \$(PKGLIBS)"
     if test "`uname -s`" = "AIX"; then
        MODULELINK="$MODULELINK -e init\$(PKGNAME)"
        BPLINCS="$BPLINCS -D_WCHAR_T"
@@ -48,7 +40,6 @@ AC_ARG_WITH(bpl,
 ],
 [
     AC_MSG_RESULT(no)
-    GCCXMLTARGETS=""
 ])
 
 AC_MSG_CHECKING(for --without-pybindgen)
@@ -82,14 +73,10 @@ AC_ARG_WITH(boostroot,
   ]
 )
 
-BPLPATH="$LIBDIR"
-
 echo "PYTHONBINDING is $PYTHONBINDING"
 echo "PYTHONPKGDIR is $PYTHONPKGDIR"
 echo "PYTHONPKGS is $PYTHONPKGS"
 echo "PYOPT is $PYOPT"
 echo "BOOSTROOT is $BOOSTROOT"
-echo "BPLPATH is $BPLPATH"
-echo "PYSTEPATH is $PYSTEPATH"
 
 ])

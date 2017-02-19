@@ -12,10 +12,10 @@ LIBTARGET = libSpheral_$(PKGNAME).$(DYLIBEXT)
 SRCTARGETS = \
 	$(srcdir)/RestartRegistrar.cc
 
-ifeq ("no", "@CXXONLY@")
-SRCTARGETS += \
-	$(srcdir)/RestartableObject.cc
-endif
+# ifeq ("no", "@CXXONLY@")
+# SRCTARGETS += \
+# 	$(srcdir)/RestartableObject.cc
+# endif
 
 #-------------------------------------------------------------------------------
 include $(BUILDTOP)/helpers/makefile_master
