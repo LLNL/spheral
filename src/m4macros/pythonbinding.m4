@@ -30,7 +30,7 @@ AC_ARG_WITH(pybind11,
     EXTRATHIRDPARTYTARGETS+=" .pybind11-2.0.1.date"
     PYTHONBINDING="PYBIND11"
     PYTHONPKGDIR="Pybind11Wraps"
-    PYTHONPKGS+=" CXXTypes"
+    PYTHONPKGS+=" CXXTypes Geometry"
     INCS+="-I\$(prefix)/include -I\$prefix/include/python\$(PYTHONVERSION) \$(patsubst %, -I\$(SRCTOP)/%, \$(CXXPKGS))"
     MODULELINK="-L\$(LIBDIR) \$(PKGLIBS)"
     if test "`uname -s`" = "AIX"; then

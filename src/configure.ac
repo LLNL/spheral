@@ -179,4 +179,5 @@ AC_OUTPUT(helpers/makefile_master \
           PBGWraps/SpheralModulesBindings.py \
           Pybind11Wraps/makefile \
           Pybind11Wraps/CXXTypes/makefile \
+          Pybind11Wraps/Geometry/makefile \
           SimulationControl/spheralDimensions.py)
