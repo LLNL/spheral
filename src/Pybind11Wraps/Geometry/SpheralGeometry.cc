@@ -210,6 +210,18 @@ tensorBindings(TensorPB11& tensorPB11, OtherTensorPB11& otherPB11,
 //------------------------------------------------------------------------------
 // The methods common to 3rd, 4th, and 5th rank tensors.
 //------------------------------------------------------------------------------
+  // Define a local trait struct to find the name.
+  template<typename TT> struct TensorTraits;
+  template<> struct TensorTraits<Spheral::GeomThirdRankTensor<1>> { static std::string name() { return "ThirdRankTensor"; } };
+  template<> struct TensorTraits<Spheral::GeomThirdRankTensor<2>> { static std::string name() { return "ThirdRankTensor"; } };
+  template<> struct TensorTraits<Spheral::GeomThirdRankTensor<3>> { static std::string name() { return "ThirdRankTensor"; } };
+  template<> struct TensorTraits<Spheral::GeomFourthRankTensor<1>> { static std::string name() { return "FourthRankTensor"; } };
+  template<> struct TensorTraits<Spheral::GeomFourthRankTensor<2>> { static std::string name() { return "FourthRankTensor"; } };
+  template<> struct TensorTraits<Spheral::GeomFourthRankTensor<3>> { static std::string name() { return "FourthRankTensor"; } };
+  template<> struct TensorTraits<Spheral::GeomFifthRankTensor<1>> { static std::string name() { return "FifthRankTensor"; } };
+  template<> struct TensorTraits<Spheral::GeomFifthRankTensor<2>> { static std::string name() { return "FifthRankTensor"; } };
+  template<> struct TensorTraits<Spheral::GeomFifthRankTensor<3>> { static std::string name() { return "FifthRankTensor"; } };
+
 template<typename TensorPB11,
          typename Tensor>
 void
@@ -230,14 +242,14 @@ rankNTensorBindings(TensorPB11& tensorPB11, Tensor tensor) {
 
     // A nicer print.
     .def("__str__", [](const Tensor& self) {
-        std::string result = "Tensor" + std::to_string(Tensor::nDimensions) + "d(";
+        std::string result = TensorTraits<Tensor>::name() + std::to_string(Tensor::nDimensions) + "d(";
         for (auto val: self) result += (" " + std::to_string(val) + " ");
         result += ")";
         return result;
       }
       )
     .def("__repr__", [](const Tensor& self) {
-        std::string result = "Tensor" + std::to_string(Tensor::nDimensions) + "d(";
+        std::string result = TensorTraits<Tensor>::name() + std::to_string(Tensor::nDimensions) + "d(";
         for (auto val: self) result += (" " + std::to_string(val) + " ");
         result += ")";
         return result;
