@@ -34,7 +34,6 @@ namespace py = pybind11;
 //------------------------------------------------------------------------------
 // 1D
 //------------------------------------------------------------------------------
-#ifdef SPHERAL1D
 PYBIND11_MAKE_OPAQUE(std::vector<Spheral::Dim<1>::Vector>);
 PYBIND11_MAKE_OPAQUE(std::vector<Spheral::Dim<1>::Tensor>);
 PYBIND11_MAKE_OPAQUE(std::vector<Spheral::Dim<1>::SymTensor>);
@@ -44,12 +43,10 @@ PYBIND11_MAKE_OPAQUE(std::vector<Spheral::Dim<1>::FifthRankTensor>);
 PYBIND11_MAKE_OPAQUE(std::vector<Spheral::GeomPlane<Spheral::Dim<1>>>);
 PYBIND11_MAKE_OPAQUE(std::vector<Spheral::Box1d>);
 PYBIND11_MAKE_OPAQUE(std::vector<std::vector<Spheral::Box1d>>);
-#endif
 
 //------------------------------------------------------------------------------
 // 2D
 //------------------------------------------------------------------------------
-#ifdef SPHERAL2D
 PYBIND11_MAKE_OPAQUE(std::vector<Spheral::Dim<2>::Vector>);
 PYBIND11_MAKE_OPAQUE(std::vector<Spheral::Dim<2>::Tensor>);
 PYBIND11_MAKE_OPAQUE(std::vector<Spheral::Dim<2>::SymTensor>);
@@ -60,12 +57,10 @@ PYBIND11_MAKE_OPAQUE(std::vector<Spheral::GeomPlane<Spheral::Dim<2>>>);
 PYBIND11_MAKE_OPAQUE(std::vector<Spheral::GeomFacet2d>);
 PYBIND11_MAKE_OPAQUE(std::vector<Spheral::GeomPolygon>);
 PYBIND11_MAKE_OPAQUE(std::vector<std::vector<Spheral::GeomPolygon>>);
-#endif
 
 //------------------------------------------------------------------------------
 // 3D
 //------------------------------------------------------------------------------
-#ifdef SPHERAL3D
 PYBIND11_MAKE_OPAQUE(std::vector<Spheral::Dim<3>::Vector>);
 PYBIND11_MAKE_OPAQUE(std::vector<Spheral::Dim<3>::Tensor>);
 PYBIND11_MAKE_OPAQUE(std::vector<Spheral::Dim<3>::SymTensor>);
@@ -76,7 +71,6 @@ PYBIND11_MAKE_OPAQUE(std::vector<Spheral::GeomPlane<Spheral::Dim<3>>>);
 PYBIND11_MAKE_OPAQUE(std::vector<Spheral::GeomFacet3d>);
 PYBIND11_MAKE_OPAQUE(std::vector<Spheral::GeomPolyhedron>);
 PYBIND11_MAKE_OPAQUE(std::vector<std::vector<Spheral::GeomPolyhedron>>);
-#endif
 
 namespace {
 //------------------------------------------------------------------------------
@@ -177,7 +171,7 @@ tensorBindings(TensorPB11& tensorPB11, OtherTensorPB11& otherPB11,
     .def("selfDoubledot", &Tensor::selfDoubledot)
     .def("square", &Tensor::square)
     .def("squareElements", &Tensor::squareElements)
-    .def("eigneValues", &Tensor::eigenValues)
+    .def("eigenValues", &Tensor::eigenValues)
     .def("maxAbsElement", &Tensor::maxAbsElement)
 
     // A nicer print.
@@ -196,6 +190,21 @@ tensorBindings(TensorPB11& tensorPB11, OtherTensorPB11& otherPB11,
       }
       )
     ;
+
+    // Dimension dependent constructors.
+    if (Tensor::nDimensions == 1) {
+      tensorPB11.def(py::init<double>(), py::arg("xx")=0.0);
+    } else if (Tensor::nDimensions == 2) {
+      tensorPB11.def(py::init<double, double, double, double>(),
+                     py::arg("xx")=0.0, py::arg("xy")=0.0,
+                     py::arg("yx")=0.0, py::arg("yy")=0.0);
+    } else {
+      CHECK(Tensor::nDimensions == 3);
+      tensorPB11.def(py::init<double, double, double, double, double, double, double, double, double>(),
+                     py::arg("xx")=0.0, py::arg("xy")=0.0, py::arg("xz")=0.0,
+                     py::arg("xy")=0.0, py::arg("yy")=0.0, py::arg("yz")=0.0,
+                     py::arg("zx")=0.0, py::arg("zy")=0.0, py::arg("zz")=0.0);
+    }
 }
 
 //------------------------------------------------------------------------------
@@ -218,6 +227,22 @@ rankNTensorBindings(TensorPB11& tensorPB11, Tensor tensor) {
     .def(py::init<>())
     .def(py::init<double>(), py::arg("val"))
     .def(py::init<const Tensor&>(), py::arg("rhs"))
+
+    // A nicer print.
+    .def("__str__", [](const Tensor& self) {
+        std::string result = "Tensor" + std::to_string(Tensor::nDimensions) + "d(";
+        for (auto val: self) result += (" " + std::to_string(val) + " ");
+        result += ")";
+        return result;
+      }
+      )
+    .def("__repr__", [](const Tensor& self) {
+        std::string result = "Tensor" + std::to_string(Tensor::nDimensions) + "d(";
+        for (auto val: self) result += (" " + std::to_string(val) + " ");
+        result += ")";
+        return result;
+      }
+      )
     ;
 }
 
@@ -236,6 +261,7 @@ geometryBindings(const py::module& m, const std::string& suffix) {
   typedef typename Dimension::ThirdRankTensor ThirdRankTensor;
   typedef typename Dimension::FourthRankTensor FourthRankTensor;
   typedef typename Dimension::FifthRankTensor FifthRankTensor;
+  typedef Spheral::EigenStruct<ndim> EigenStructType;
 
   // Declare the pybind11 types.
   py::class_<Vector> VectorPB11(m, ("Vector" + suffix).c_str(), py::metaclass());
@@ -361,6 +387,83 @@ geometryBindings(const py::module& m, const std::string& suffix) {
   //............................................................................
   // ThirdRankTensor
   rankNTensorBindings(ThirdRankTensorPB11, ThirdRankTensor());
+  ThirdRankTensorPB11
+    .def("__call__", (double (ThirdRankTensor::*)(const typename ThirdRankTensor::size_type,
+                                                  const typename ThirdRankTensor::size_type,
+                                                  const typename ThirdRankTensor::size_type) const) &ThirdRankTensor::operator(), py::is_operator())
+    .def("__call__", [](ThirdRankTensor& self, const int i, const int j, const int k, const double val){
+        VERIFY2(i < ThirdRankTensor::nDimensions and
+                j < ThirdRankTensor::nDimensions and
+                k < ThirdRankTensor::nDimensions,
+                "ThirdRankTensor assignment error : out of bounds index");
+        self(i,j,k) = val;
+      }
+      )
+    ;
+
+  //............................................................................
+  // FourthRankTensor
+  rankNTensorBindings(FourthRankTensorPB11, FourthRankTensor());
+  FourthRankTensorPB11
+    .def("__call__", (double (FourthRankTensor::*)(const typename FourthRankTensor::size_type,
+                                                   const typename FourthRankTensor::size_type,
+                                                   const typename FourthRankTensor::size_type,
+                                                   const typename FourthRankTensor::size_type) const) &FourthRankTensor::operator(), py::is_operator())
+    .def("__call__", [](FourthRankTensor& self, const int i, const int j, const int k, const int m, const double val){
+        VERIFY2(i < FourthRankTensor::nDimensions and
+                j < FourthRankTensor::nDimensions and
+                k < FourthRankTensor::nDimensions and
+                m < FourthRankTensor::nDimensions,
+                "FourthRankTensor assignment error : out of bounds index");
+        self(i,j,k,m) = val;
+      }
+      )
+    ;
+
+  //............................................................................
+  // FifthRankTensor
+  rankNTensorBindings(FifthRankTensorPB11, FifthRankTensor());
+  FifthRankTensorPB11
+    .def("__call__", (double (FifthRankTensor::*)(const typename FifthRankTensor::size_type,
+                                                  const typename FifthRankTensor::size_type,
+                                                  const typename FifthRankTensor::size_type,
+                                                  const typename FifthRankTensor::size_type,
+                                                  const typename FifthRankTensor::size_type) const) &FifthRankTensor::operator(), py::is_operator())
+    .def("__call__", [](FifthRankTensor& self, const int i, const int j, const int k, const int m, const int n, const double val){
+        VERIFY2(i < FifthRankTensor::nDimensions and
+                j < FifthRankTensor::nDimensions and
+                k < FifthRankTensor::nDimensions and
+                m < FifthRankTensor::nDimensions and
+                n < FifthRankTensor::nDimensions,
+                "FifthRankTensor assignment error : out of bounds index");
+        self(i,j,k,m,n) = val;
+      }
+      )
+    ;
+
+  //............................................................................
+  // EigenStruct
+  EigenStructPB11
+
+    .def(py::init<>())
+    .def(py::init<const EigenStructType&>(), py::arg("rhs"))
+    .def_readwrite("eigenValues", &EigenStructType::eigenValues)
+    .def_readwrite("eigenVectors", &EigenStructType::eigenVectors)
+    // A nicer print.
+    .def("__str__", [](const EigenStructType& self) {
+        std::stringstream ss;
+        ss << "EigenStruct" << Dimension::nDim << "d[" << self.eigenValues << ", " << self.eigenVectors << "]";
+        return ss.str();
+      }
+      )
+    .def("__repr__", [](const EigenStructType& self) {
+        std::stringstream ss;
+        ss << "EigenStruct" << Dimension::nDim << "d[" << self.eigenValues << ", " << self.eigenVectors << "]";
+        return ss.str();
+      }
+      )
+    ;
+
 }
 }
 
@@ -370,9 +473,9 @@ geometryBindings(const py::module& m, const std::string& suffix) {
 PYBIND11_PLUGIN(SpheralGeometry) {
   py::module m("SpheralGeometry", "Spheral Geometry module types.");
 
-#ifdef SPHERAL1D
   geometryBindings<1>(m, "1d");
-#endif
+  geometryBindings<2>(m, "2d");
+  geometryBindings<3>(m, "3d");
 
   return m.ptr();
 }
