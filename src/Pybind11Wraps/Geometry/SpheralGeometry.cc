@@ -262,6 +262,7 @@ geometryBindings(const py::module& m, const std::string& suffix) {
   typedef typename Dimension::FourthRankTensor FourthRankTensor;
   typedef typename Dimension::FifthRankTensor FifthRankTensor;
   typedef Spheral::EigenStruct<ndim> EigenStructType;
+  typedef Spheral::GeomPlane<Spheral::Dim<ndim>> PlaneType;
 
   // Declare the pybind11 types.
   py::class_<Vector> VectorPB11(m, ("Vector" + suffix).c_str(), py::metaclass());
@@ -270,7 +271,8 @@ geometryBindings(const py::module& m, const std::string& suffix) {
   py::class_<ThirdRankTensor> ThirdRankTensorPB11(m, ("ThirdRankTensor" + suffix).c_str(), py::metaclass());
   py::class_<FourthRankTensor> FourthRankTensorPB11(m, ("FourthRankTensor" + suffix).c_str(), py::metaclass());
   py::class_<FifthRankTensor> FifthRankTensorPB11(m, ("FifthRankTensor" + suffix).c_str(), py::metaclass());
-  py::class_<Spheral::EigenStruct<ndim>> EigenStructPB11(m, ("EigenStruct" + suffix).c_str());
+  py::class_<EigenStructType> EigenStructPB11(m, ("EigenStruct" + suffix).c_str());
+  py::class_<PlaneType> PlanePB11(m, ("Plane" + suffix).c_str());
 
   //............................................................................
   // Vector
@@ -464,6 +466,31 @@ geometryBindings(const py::module& m, const std::string& suffix) {
       )
     ;
 
+  //............................................................................
+  // Plane
+  PlanePB11
+    .def(py::init<>())
+    .def(py::init<const PlaneType&>(), py::arg("rhs"))
+    .def(py::init<const Vector&, const Vector&>(), py::arg("point"), py::arg("normal"))
+    .def(py::init<const std::vector<Vector>&>(), py::arg("points"))
+    .def_property("point",
+                  (const Vector& (PlaneType::*)() const) &PlaneType::point, 
+                  (void (PlaneType::*)(const Vector&)) &PlaneType::point)
+    .def_property("normal",
+                  (const Vector& (PlaneType::*)() const) &PlaneType::normal, 
+                  (void (PlaneType::*)(const Vector&)) &PlaneType::normal)
+    .def("signedDistance", &PlaneType::signedDistance)
+    .def("minimumDistance", &PlaneType::signedDistance)
+    .def("closestPointOnPlane", &PlaneType::signedDistance)
+    .def("parallel", &PlaneType::parallel)
+    .def("valid", &PlaneType::valid)
+    .def("compare", &PlaneType::compare)
+    .def(-py::self)
+    .def(py::self == py::self)
+    .def(py::self != py::self)
+    .def(py::self <  py::self)
+    ;
+
 }
 }
 
@@ -473,9 +500,109 @@ geometryBindings(const py::module& m, const std::string& suffix) {
 PYBIND11_PLUGIN(SpheralGeometry) {
   py::module m("SpheralGeometry", "Spheral Geometry module types.");
 
+  //............................................................................
+  // Generic dimension objects.
   geometryBindings<1>(m, "1d");
   geometryBindings<2>(m, "2d");
   geometryBindings<3>(m, "3d");
+
+  //............................................................................
+  // Box1d
+  typedef Spheral::Box1d Box;
+  typedef Spheral::GeomVector<1> Vector1d;
+  py::class_<Box>(m, "Box1d")
+
+    // Constructors
+    .def(py::init<>())
+    .def(py::init<const std::vector<Vector1d>&>(), py::arg("points"))
+    .def(py::init<const std::vector<Vector1d>&, const std::vector<std::vector<unsigned>>>(), py::arg("points"), py::arg("facetIndices"))
+    .def(py::init<const Vector1d&, const double>(), py::arg("center"), py::arg("extent"))
+    .def(py::init<const Box&>(), py::arg("rhs"))
+
+    // Attributes
+    .def_property("center", (const Vector1d& (Box::*)() const) &Box::center, (void (Box::*)(const Vector1d&)) &Box::center)
+    .def_property("extent", (double (Box::*)() const) &Box::extent, (void (Box::*)(const double)) &Box::extent)
+    .def_property_readonly("xmin", &Box::xmin)
+    .def_property_readonly("xmax", &Box::xmax)
+    .def_property_readonly("volume", &Box::volume)
+
+    // Methods
+    .def("contains", &Box::contains)
+    .def("convexContains", &Box::convexContains)
+    .def("intersect", (bool (Box::*)(const Box&) const) &Box::intersect)
+    .def("intersect", (bool (Box::*)(const std::pair<Vector1d, Vector1d>&) const) &Box::intersect)
+    .def("convexIntersect", &Box::convexIntersect)
+    .def("distance", &Box::distance)
+    .def("closestPoint", &Box::closestPoint)
+    .def("vertices", &Box::vertices)
+
+    // Operators
+    .def(py::self += Vector1d())
+    .def(py::self -= Vector1d())
+    .def(py::self + Vector1d())
+    .def(py::self - Vector1d())
+
+    .def(py::self *= float())
+    .def(py::self /= float())
+    .def(py::self * float())
+    .def(py::self / float())
+    
+    .def(py::self == py::self)
+    .def(py::self != py::self)
+    ;
+
+  //............................................................................
+  // Polygon
+  typedef Spheral::GeomPolygon Polygon;
+  typedef Spheral::GeomVector<2> Vector2d;
+  py::class_<Polygon>(m, "Polygon")
+
+    // Constructors
+    .def(py::init<>())
+    .def(py::init<const std::vector<Vector2d>&>(), py::arg("points"))
+    .def(py::init<const std::vector<Vector2d>&, const std::vector<std::vector<unsigned>>>(), py::arg("points"), py::arg("facetIndices"))
+    .def(py::init<const Polygon&>(), py::arg("rhs"))
+
+    // Attributes
+    .def_property_readonly("xmin", &Polygon::xmin)
+    .def_property_readonly("xmax", &Polygon::xmax)
+    .def_property_readonly("edges", &Polygon::edges)
+    .def_property_readonly("facetVertices", &Polygon::facetVertices)
+    .def_property_readonly("volume", &Polygon::volume)
+
+    // Methods
+    .def("contains", &Polygon::contains)
+    .def("convexContains", &Polygon::convexContains)
+    .def("intersect", (bool (Polygon::*)(const Polygon&) const) &Polygon::intersect)
+    .def("intersect", (bool (Polygon::*)(const std::pair<Vector2d, Vector2d>&) const) &Polygon::intersect)
+    .def("intersect", (std::vector<Vector2d> (Polygon::*)(const Vector2d&, const Vector2d&) const) &Polygon::intersect)
+    .def("convexIntersect", &Polygon::convexIntersect)
+    .def("vertices", &Polygon::vertices)
+    .def("facets", &Polygon::facets)
+    .def("vertexUnitNorms", &Polygon::vertexUnitNorms)
+    .def("vertexFacetConnectivity", &Polygon::vertexFacetConnectivity)
+    .def("facetFacetConnectivity", &Polygon::facetFacetConnectivity)
+    .def("closestFacet", &Polygon::closestFacet)
+    .def("distance", &Polygon::distance)
+    .def("closestPoint", &Polygon::closestPoint)
+    .def("reconstruct", &Polygon::reconstruct)
+    .def("convex", &Polygon::convex)
+    .def("setBoundingBox", &Polygon::setBoundingBox)
+
+    // Operators
+    .def(py::self += Vector2d())
+    .def(py::self -= Vector2d())
+    .def(py::self + Vector2d())
+    .def(py::self - Vector2d())
+
+    .def(py::self *= float())
+    .def(py::self /= float())
+    .def(py::self * float())
+    .def(py::self / float())
+    
+    .def(py::self == py::self)
+    .def(py::self != py::self)
+    ;
 
   return m.ptr();
 }
