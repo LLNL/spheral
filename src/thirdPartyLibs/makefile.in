@@ -317,6 +317,12 @@ PYSOBOLURL = https://github.com/crankycoder/sobol_seq/archive/dev.zip
 PYSOBOLDIR = c/sobol_seq-dev
 PYSOBOLBUILDDATE = $(patsubst %.zip, .%.date, $(PYSOBOLDIST))
 
+# pybind11
+PYBIND11DIST = pybind11-2.0.1.tar.gz
+PYBIND11URL = https://github.com/pybind/pybind11/archive/v2.0.1.tar.gz
+PYBIND11DIR = $(PYBIND11DIST:.tar.gz=)
+PYBIND11BUILDDATE = $(patsubst %.tar.gz, .%.date, $(PYBIND11DIST))
+
 #-------------------------------------------------------------------------------
 all:	$(PYTHONBUILDDATE) \
 	$(BOOSTDATE) \
@@ -1546,6 +1552,27 @@ $(PYSOBOLBUILDDATE):	$(PYTHONBUILDDATE) $(NUMPYBUILDDATE) $(PYSOBOLDIST)
 	rm -f $(PYSOBOLBUILDDATE); \
 	exit 1; \
 	fi
-	rm -fr $(PYSOBOLDIR)
+	rm -fr c
 	touch $(PYSOBOLBUILDDATE)
 
+#-------------------------------------------------------------------------------
+# pybind11
+#-------------------------------------------------------------------------------
+$(PYBIND11DIST):
+	$(CURL) -k "$(PYBIND11URL)" > $(PYBIND11DIST)
+
+$(PYBIND11BUILDDATE):  $(PYBIND11DIST)
+	@echo "################################################################################"
+	@echo "# Building $(PYBIND11DIST)"
+	@echo "################################################################################"
+	@$(MKDIR) $(LIBDIR) $(prefix)/include
+	rm -fr $(PYBIND11DIR)
+	$(GZIP) -dc $(PYBIND11DIST) | $(TAR) -xf -
+	$(SHELL) -ec 'cd $(PYBIND11DIR)/include; $(CP) -fr pybind11 $(prefix)/include'
+	@if ! test -e $(prefix)/include/pybind11; then \
+	echo "ERROR building PYBIND11."; \
+	rm -f $(PYBIND11BUILDDATE); \
+	exit 1; \
+	fi
+	rm -fr $(PYBIND11DIR)
+	touch $(PYBIND11BUILDDATE)
