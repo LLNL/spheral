@@ -31,7 +31,6 @@ JAMOPTS = @JAMOPTS@
 BOOSTEXT = @BOOSTEXT@
 BOOSTLIBTARGETS = @BOOSTLIBTARGETS@
 BOOSTPYTHONTARGET = @BOOSTPYTHONTARGET@
-GCCXMLTARGETS = @GCCXMLTARGETS@
 DYLIBEXT = @DYLIBEXT@
 SHLIBEXT = @SHLIBEXT@
 EXTRATHIRDPARTYTARGETS = @EXTRATHIRDPARTYTARGETS@
@@ -40,7 +39,6 @@ PETSCTARGETS = @PETSCTARGETS@
 PETSCOPTS = @PETSCOPTS@
 MATPLOTLIBTARGETS = @MATPLOTLIBTARGETS@
 SCIPYTARGETS = @SCIPYTARGETS@
-GCCXMLDIST = @GCCXMLDIST@
 TAUVERSION = # @TAUVERSION@
 TAUTARGET = # @TAUTARGET@
 TAUCONFIGUREFLAGS = # @TAUCONFIGUREFLAGS@
@@ -106,8 +104,6 @@ MPICC = @MPICC@
 MPICXX = @MPICXX@
 PYTHONCC = @PYTHONCC@
 PYTHONCXX = @PYTHONCXX@
-GCCXMLCC = @GCCXMLCC@
-GCCXMLCXX = @GCCXMLCXX@
 CMAKECC = @CMAKECC@
 CMAKECXX = @CMAKECXX@
 TAUCC = # @TAUCC@
@@ -182,8 +178,11 @@ CXXPKGLIBS = $(patsubst %, Spheral_%, @CXXPKGLIBS@)
 PKGLIBS := $(patsubst %, -l%, $(CXXPKGLIBS))
 
 #-------------------------------------------------------------------------------
-# Pybindgen stuff
+# Python binding stuff
+PYTHONPKGS = @PYTHONPKGS@
 PYTHONBINDING = @PYTHONBINDING@
+
+# Pybindgen
 ifeq "$(PYTHONBINDING)" "PYBINDGEN"
   EXTRAINCLUDES += -I$(prefix)/include/python$(PYTHONVERSION)
   FILTEREDPYTHONPKGS = $(filter-out $(PKGNAME), $(filter-out Python, $(PYTHONPKGS)))
@@ -199,17 +198,10 @@ ifeq "$(PYTHONBINDING)" "PYBINDGEN"
   endif
 
 else
-#-------------------------------------------------------------------------------
-# BPL stuff
-  BPLPKGS = @PYTHONPKGS@
-  FILTEREDPYTHONPKGS = $(filter-out $(PKGNAME), $(filter-out Python, $(PYTHONPKGS)))
-  PYSTEBASES = $(PYSTETARGETS:.pyste=)
-  GENERATEDPYSTECPPS = $(patsubst %, $(PKGNAME)/_%.cpp, $(PYSTEBASES))
-  PYSTECPPS = $(patsubst %, .$(PKGNAME)/%, $(PYSTETARGETS:.pyste=.cpp))
-  PYSTEOBJS = $(PYSTETARGETS:.pyste=.o)
-  PYSTEDEPENDS = $(PYSTETARGETS:.pyste=.d)
 
-  BPLOBJS = $(BPLTARGETS:.cpp=.o)
+# Pybind11 
+  EXTRAINCLUDES += -I$(prefix)/include/python$(PYTHONVERSION)
+  FILTEREDPYTHONPKGS = $(filter-out $(PKGNAME), $(filter-out Python, $(PYTHONPKGS)))
 endif
 
 #-------------------------------------------------------------------------------
@@ -383,6 +375,15 @@ $(BPLMODTARGET): $(BPLOBJS) $(OBJS)
 	mkdir -p $(LIBDIR)
 	$(MPICXX) $(MPICXXFLAGS) $(CXXFLAGS) $(PYOPT) $(SHAREDFLAG) $(EXTRAINCLUDES) -o $(BPLMODTARGET) $(BPLOBJS) $(OBJS) $(MODULELINK) $(LDFLAGS) $(LDRPATH) $(LIBS) $(EXTRALIBS) $(DEPENDLIBS) 
 	cp -f $(BPLMODTARGET) $(PYTHONLIBDIR)/Spheral
+
+#-------------------------------------------------------------------------------
+$(PYB11TARGET): $(OBJS)
+	@echo "################################################################################"
+	@echo "# Building module $(PYB11MODTARGET)"
+	@echo "################################################################################"
+	@mkdir -p $(PYTHONLIBDIR)/Spheral
+	$(MPICXX) $(MPICXXFLAGS) $(CXXFLAGS) $(PYOPT) $(SHAREDFLAG) $(EXTRAINCLUDES) -I$(srcdir) -o $(PYB11TARGET) $(OBJS) $(MODULELINK) $(LDFLAGS) $(LDRPATH) $(LIBS) $(EXTRALIBS) $(DEPENDLIBS) $(LDRPATH) $(LDRPATH) $(LIBS) $(LIBS)
+	cp -f $(PYB11TARGET) $(PYTHONLIBDIR)/Spheral
 
 #-------------------------------------------------------------------------------
 $(PBGTARGETDATE):  $(PBGTARGET)
