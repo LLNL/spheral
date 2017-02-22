@@ -8,14 +8,14 @@ namespace FractalSpace
 				 vector<vector<Point*>>& SPoints,
 				 vector<int>& HRout)
   {
-    static const int maxtries=4;
     const int maxLOAD=mem.hypre_max_node_load;
     const int extra=500;
     const double spread=0.1;
+    const int spacing=Misc::pow(2,mem.p_fractal->get_level_max()-mem.level);
     ofstream& FHT=mem.p_file->DUMPS;
-    int FractalRank=mem.p_mess->FractalRank;
     int HypreRank=mem.p_mess->HypreRank;
     int HypreNodes=mem.p_mess->HypreNodes;
+    const int maxtries=max(1.0,log((double)(HypreNodes)+0.1)/log(2.2));
     HRout.assign(SBoxes.size(),HypreRank);
     if(!mem.hypre_load_balance)
       return false;
@@ -39,15 +39,47 @@ namespace FractalSpace
     int total_points=accumulate(Points.begin(),Points.end(),0);
     int average_boxes=total_boxes/HypreNodes;
     int average_points=total_points/HypreNodes;
-    // FHT << " LOADY " << total_boxes << " " << total_points << " " << average_boxes << " " << average_points << endl;
+    FHT << " LOADY " << total_boxes << " " << total_points << " " << average_boxes << " " << average_points << endl;
+    if(*max_element(Points.begin(),Points.end()) <= max(maxLOAD,20000))
+      return false;
+    const int SBtotal=SBoxes.size();
+    for(int BOX=0;BOX<SBtotal;BOX++)
+      {
+	int over=SPoints[BOX].size()-(average_points*9)/10;;
+	if(over <= 0)
+	  continue;
+	int dx=(SBoxes[BOX][1]-SBoxes[BOX][0])/spacing+1;
+	int dy=(SBoxes[BOX][3]-SBoxes[BOX][2])/spacing+1;
+	int layers=(SBoxes[BOX][5]-SBoxes[BOX][4])/spacing+1;
+	int onelayer=dx*dy;
+	int Ineed=(over-1)/onelayer+1;
+	int BZstart=layers-Ineed;
+	vector <int>bigbox=SBoxes[BOX];
+	// FHT << " SPLIT IT A " << HypreRank << " " << mem.steps << " " << mem.level << " " << BOX << " " << over << " " << onelayer << " " << layers << " " << SBoxes.back()[4] << " " << SBoxes.back()[5] << endl;
+	for(int BZ=BZstart;BZ<layers;BZ++)
+	  {
+	    SBoxes.resize(SBoxes.size()+1);
+	    SBoxes.back()=bigbox;
+	    SBoxes.back()[4]+=BZ*spacing;
+	    SBoxes.back()[5]=SBoxes.back()[4];
+	    SPoints.resize(SPoints.size()+1);
+	    for(int sp=BZ*onelayer;sp<(BZ+1)*onelayer;sp++)
+	      SPoints.back().push_back(SPoints[BOX][sp]);
+	    // FHT << " SPLIT IT B " << HypreRank << " " << mem.steps << " " << mem.level << " " << BOX << " " << over << " " << onelayer << " " << layers << " " << BZ << " " << SBoxes.back()[4] << endl;
+	  }
+	SPoints[BOX].resize(BZstart*onelayer);
+	SBoxes[BOX][5]=SBoxes[BOX][4]+(BZstart-1)*spacing;
+	// FHT << " SPLIT IT C " << HypreRank << " " << mem.steps << " " << mem.level << " " << BOX << " " << over << " " << onelayer << " " << layers << " " << SBoxes[BOX][4] << " " << SBoxes[BOX][5] << " " << SBoxes.size() << " " << SPoints.size() << endl;
+      }
+    HRout.assign(SBoxes.size(),HypreRank);
     multimap<int,deque<int>>NodesA;
     for(int HR=0;HR<HypreNodes;HR++)
       {
 	deque<int>VHR{{HR}};
 	NodesA.insert(pair<int,deque<int>>(Points[HR],VHR));
       }
-    for(auto M : NodesA)
-      // FHT << " CEND " << FractalRank << " " << HypreRank << " " << mem.steps << " " << mem.level << " " << M.first << " " << M.second.front() << " " << maxLOAD << endl;
+    // for(auto M : NodesA)
+      // FHT << " CEND " << HypreRank << " " << mem.steps << " " << mem.level << " " << M.first << " " << M.second.front() << " " << maxLOAD << endl;
     if((--NodesA.end())->first <= maxLOAD)
       return false;
     int enough_spam=false;
@@ -60,12 +92,10 @@ namespace FractalSpace
 	int dd=distance(pstart,pend);
 	while(dd > 0)
 	  {
-	    // FHT << " HERE 0 " << distance(pstart,pend) << " " << dd << " " << FractalRank << endl;
 	    auto Va=pstart->second;
 	    auto Vb=pend->second;
 	    int aver=(Va.size()*pstart->first+Vb.size()*pend->first)/
 	      (Va.size()+Vb.size());	  
-	    // FHT << " HERE A " << dd << " " << pstart->first << " " << pend->first << " " << aver << " " << " " << Va.size() << " " << Vb.size() << " " << FractalRank << endl;
 	    for(auto V : Vb)
 	      Va.push_back(V);
 	    NodesB.insert(make_pair(aver,Va));
@@ -90,7 +120,6 @@ namespace FractalSpace
 	  {
 	    for(auto HR : mynodes)
 	      {
-		// FHT << " Here DD " << HR << " " << Points[HR] << endl;
 		aver+=Points[HR];
 		go_home=go_home && Points[HR] <= maxLOAD;
 	      }
@@ -110,7 +139,6 @@ namespace FractalSpace
       {
 	can[HR]=max(Points[HR]-averup,0);
 	need[HR]=max(averdown-Points[HR],0);
-	// FHT << " CAN NEED A " << HR << " " << can[HR] << " " << need[HR] << endl;
       }
     vector<int>sendto(HypreNodes,0);
     for(int Hsend : mynodes)
@@ -124,7 +152,6 @@ namespace FractalSpace
 	    if(need[Hrec] <= 0 || Hrec == Hsend)
 	      continue;
 	    int send=min(can[Hsend],need[Hrec]);
-	    // FHT << " CAN NEED B " << Hsend << " " << Hrec << " " << can[Hsend] << " " << need[Hrec] << " " << send << endl;
 	    can[Hsend]-=send;
 	    need[Hrec]-=send;
 	    if(Hsend == HypreRank)
@@ -146,16 +173,13 @@ namespace FractalSpace
     for(auto M : MSP)
       {
 	int has=M.first.size();
-	// FHT << " MYNODES B " << MSP.size() << " " << has;
 	for(auto Hrec : mynodes)
 	  {
-	    // FHT << " " << Hrec << " " << sendto[Hrec];
 	    if(sendto[Hrec] > 0)
 	      {
 		if(has <= sendto[Hrec]+extra)
 		  {
 		    HRout[M.second]=Hrec;
-		    // FHT << " " << M.second << " " << Hrec;;
 		    sendto[Hrec]-=has;
 		    break;
 		  }
@@ -163,7 +187,6 @@ namespace FractalSpace
 	    else
 	      fewer=true;
 	  }
-	// FHT << endl;
 	if(!fewer)
 	  continue;
 	auto pN=mynodes.begin();
@@ -175,6 +198,14 @@ namespace FractalSpace
 	      pN++;
 	  }
       }
+    for(auto M : MSP)
+      {
+    	FHT << " NBOX " << mem.steps << " " << mem.level << " " << HypreRank << " " << M.first.size() << " " << HRout[M.second] << " " << endl;
+      }
+    // for(auto m : mynodes)
+    //   {
+    // 	FHT << " NFILLED " << mem.steps << " " << mem.level << " " << HypreRank << " " << m << " " << sendto[m] << " " << endl;
+    //   }
     // int spam=0;
     // for(auto SP : SPoints)
     //   {
