@@ -49,16 +49,20 @@ for nodes in nodeSet:
     output("  nodes.nodesPerSmoothingScale")
 
 #-------------------------------------------------------------------------------
-# Make the circle boundary
+# Make an ellipsoidal boundary.
 #-------------------------------------------------------------------------------
-nc = 60
-bcpoints = vector_of_Vector(nc)
-bcfacets = vector_of_vector_of_unsigned(nc,vector_of_unsigned(2))
-for i in xrange(nc):
-    bcpoints[i] = Vector(cos(i*2.0*pi/nc),sin(i*2.0*pi/nc))
-    bcfacets[i][0] = i
-    bcfacets[i][1] = (i+1) % nc
-outerCircle = Polygon(bcpoints,bcfacets)
+nb = 30
+bcpoints1 = vector_of_Vector()
+p = 0
+for i in xrange(1, nb + 1):
+    h = -1.0+(2.0*(i-1.0)/(nb-1.0))
+    t = acos(h)
+    if i > 1 and i < nb:
+        p = (p + 3.8/sqrt(nb)*1.0/sqrt(1.0-h*h)) % (2.0*pi)
+    elif i == n:
+        p = 0
+    bcpoints1.append(Vector3d(sin(t)*cos(p), sin(t)*sin(p), cos(t)))
+surface = Polyhedron(bcpoints1)
 
 #-------------------------------------------------------------------------------
 # Generate them nodes.
@@ -95,13 +99,13 @@ def kern(s,r):
         return a*(0.25*(2.0-r/s)**3.0 - (1.0-r/s)**3.0)
 
 def kernwall(s,r):
-    a = 2.0
-    b = 0.5*(log(a)-log(a/100.0))
+    a = 5.0
+    b = 5.0*a
     q = (s-r)/s
     if (q<=0.0):
-        return a
-    elif (q>0.0 and q<2.0):
-        return a*exp(-b*q)
+        return -b/0.1*q+a
+    elif (q>0.0 and q<0.1):
+        return -a/0.1*q+a
     else:
         return 0.0
 
@@ -122,8 +126,8 @@ nc = 0
 points = []
 forces = []
 
-s1 = rmax
-s0 = rmax/n
+s1 = rmax/1.5
+s0 = s1/(n**(1.0/3.0))
 pw = power
 pw = pw + 1.0
 
@@ -144,14 +148,15 @@ while (nc<n):
             nc += 1
 '''
 while (nc < n):
-    x = random.uniform(-rmax,rmax)
-    y = random.uniform(-rmax,rmax)
-    r = sqrt(x*x+y*y)
+    x = (random.random()*2.0-1.0)*rmax
+    y = (random.random()*2.0-1.0)*rmax
+    z = (random.random()*2.0-1.0)*rmax
+    r = sqrt(x*x+y*y+z*z)
     if (r <= rmax):
         u = random.random()
         s = ((s1**pw - s0**pw)*u + s0**pw)**(1.0/pw)
-        points.append([x,y,s])
-        forces.append([0.0,0.0])
+        points.append([x,y,z,s])
+        forces.append([0.0,0.0,0.0])
         nc += 1
 
 ds = 0.01
@@ -167,44 +172,55 @@ while (dds > fracTol) and (k < maxIterations):
         # get point i
         xi = points[i][0]
         yi = points[i][1]
-        si = points[i][2]
+        zi = points[i][2]
+        ri = Vector3d(xi,yi,zi)
+        si = points[i][3]
         # reset forces
         forces[i][0] = 0.0
         forces[i][1] = 0.0
+        forces[i][2] = 0.0
         for j in xrange(len(points)):
             if (i!=j):
                 # get point j
                 xj = points[j][0]
                 yj = points[j][1]
-                sj = points[j][2]
-                rij = sqrt((xj-xi)**2+(yj-yi)**2)
+                zj = points[j][2]
+                rj = Vector3d(xj,yj,zj)
+                sj = points[j][3]
+                rij = (ri-rj).magnitude()
                 if (rij<=2.0*(sj+si)):
                     # compute force on i from j
                     F = kern(sj,rij)
                     t = atan2(yj-yi,xj-xi)
-                    Fx = F*cos(t)
-                    Fy = F*sin(t)
-                    forces[i][0] += -sj*Fx
-                    forces[i][1] += -sj*Fy
+                    Fx = F*(ri-rj).x/rij
+                    Fy = F*(ri-rj).y/rij
+                    Fz = F*(ri-rj).z/rij
+                    forces[i][0] += sj*Fx
+                    forces[i][1] += sj*Fy
+                    forces[i][2] += sj*Fz
         # add wall forces
-        ri = sqrt(xi*xi+yi*yi)
-        F = kernwall(rmax,ri)
-        t = atan2(yi,xi)
-        Fx = F*cos(t)
-        Fy = F*sin(t)
+        F = kernwall(rmax,ri.magnitude())
+        Fw = F*ri/ri.magnitude()
         #print "[%3.3e,%3.3e] [%3.3e,%3.3e] [%3.3e,%3.3e]" % (xi,yi,-Fx,-Fy,forces[i][0],forces[i][1])
-        forces[i][0] += -Fx
-        forces[i][1] += -Fy
+        forces[i][0] += -Fw.x
+        forces[i][1] += -Fw.y
+        forces[i][2] += -Fw.z
     for i in xrange(len(points)):
         # compute movement for point i
-        dx = forces[i][0] * ds
-        dy = forces[i][1] * ds
-        x0 = points[i][0]
-        y0 = points[i][1]
+        Fw = Vector(forces[i][0],forces[i][1],forces[i][2])
+        Dr = Fw*ds
+        R0 = Vector(points[i][0],points[i][1],points[i][2])
+        R1 = R0+Dr
         
-        maxs = max(maxs,sqrt(dx*dx+dy*dy))
-        points[i][0] += dx
-        points[i][1] += dy
+        if (R1.magnitude() > rmax):
+            while (R1.magnitude() > rmax*(1.0-fracTol)):
+                Dr = Dr - Dr*10.0*fracTol
+                R1 = R0 + Dr
+        
+        maxs = max(maxs,Dr.magnitude())
+        points[i][0] += Dr.x
+        points[i][1] += Dr.y
+        points[i][2] += Dr.z
         
         '''
         if (sqrt((x0+dx)**2+(y0+dy)**2)<=rmax):
@@ -233,12 +249,12 @@ m = nodes1.mass()
 rho = nodes1.massDensity()
 H = nodes1.Hfield()
 for i in xrange(n):
-    r[i] = Vector(points[i][0],points[i][1])
-    s = points[i][2]
+    r[i] = Vector(points[i][0],points[i][1],points[i][2])
+    s = points[i][3]
     m[i] = m0
     rho[i] = m0/s**2
     h = 1.0/(nPerh*s*2.0)
-    H[i] = SymTensor(h,0.0,0.0,h)
+    H[i] = SymTensor.one*h
     #H[i] = SymTensor(0.01,0.0,0.0,0.01)
 
 #-------------------------------------------------------------------------------
@@ -291,7 +307,7 @@ cells = db.newFluidFacetedVolumeFieldList(FacetedVolume(), "cells")
 
 
 bounds = vector_of_FacetedVolume()
-bounds.append(outerCircle)
+bounds.append(surface)
 holes = vector_of_vector_of_FacetedVolume(1)
 
 correctionOrder = 1
@@ -304,14 +320,14 @@ print "computed moments"
 '''
 
 for i in xrange(len(weight[0])):
-    weight[0][i] = points[i][2]
+    weight[0][i] = points[i][3]
 
 computeVoronoiVolume(pos, H, rhof, gradRhof, cm, WT.kernelExtent, bounds, holes,
                      surfacePoint, vol,deltaCentroid, cells)
 
 print "computed volumes"
 
-
+'''
 p = plotPolygon(outerCircle, plotVertices=False, plotLabels=False)
 xmin = -1.5*Vector.one
 xmax = 1.5*Vector.one
@@ -319,12 +335,13 @@ p("set size square; set xrange [%g:%g]; set yrange [%g:%g]" % (xmin.x,xmax.x,xmi
 p.refresh()
 for i in xrange(len(cells[0])):
     plotPolygon(cells[0][i],plot=p,plotVertices=False,plotLabels=False)
-
-computeWeightedVoronoiVolume(pos, H, rhof, gradRhof, cm, WT.kernelExtent, bounds, holes, weight,
-                             surfacePoint, vol,deltaCentroid, cells)
+'''
+#computeWeightedVoronoiVolume(pos, H, rhof, gradRhof, cm, WT.kernelExtent, bounds, holes, weight,
+#                         surfacePoint, vol,deltaCentroid, cells)
                      
 print "computed weighted volumes"
 
+'''
 pp = plotPolygon(outerCircle, plotVertices=False, plotLabels=False)
 xmin = -1.5*Vector.one
 xmax = 1.5*Vector.one
@@ -332,7 +349,7 @@ pp("set size square; set xrange [%g:%g]; set yrange [%g:%g]" % (xmin.x,xmax.x,xm
 pp.refresh()
 for i in xrange(len(cells[0])):
     plotPolygon(cells[0][i],plot=pp,plotVertices=False,plotLabels=False)
-
+'''
 
 
 #-------------------------------------------------------------------------------
@@ -346,7 +363,7 @@ HfieldInv = SymTensorField("H inverse", nodes1)
 Sfield = ScalarField("Size", nodes1, 0.0)
 for i in xrange(nodes1.numNodes):
     HfieldInv[i] = Hfield[i].Inverse()
-    Sfield[i] = pi*(0.5*points[i][2])**2
+    Sfield[i] = pi*(0.5*points[i][3])**2
 
 
 vizfile = siloPointmeshDump(baseName = "test_medial_maxiter=%i_tol=%g" % (maxIterations, fracTol),
