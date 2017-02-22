@@ -73,6 +73,39 @@ PYBIND11_MAKE_OPAQUE(std::vector<Spheral::GeomPolyhedron>);
 PYBIND11_MAKE_OPAQUE(std::vector<std::vector<Spheral::GeomPolyhedron>>);
 
 namespace {
+// Define a local trait struct to find the name.
+template<typename TT> struct TensorTraits;
+
+template<> struct TensorTraits<Spheral::GeomTensor<1>> { static std::string name() { return "Tensor"; } };
+template<> struct TensorTraits<Spheral::GeomTensor<2>> { static std::string name() { return "Tensor"; } };
+template<> struct TensorTraits<Spheral::GeomTensor<3>> { static std::string name() { return "Tensor"; } };
+
+template<> struct TensorTraits<Spheral::GeomSymmetricTensor<1>> { static std::string name() { return "SymTensor"; } };
+template<> struct TensorTraits<Spheral::GeomSymmetricTensor<2>> { static std::string name() { return "SymTensor"; } };
+template<> struct TensorTraits<Spheral::GeomSymmetricTensor<3>> { static std::string name() { return "SymTensor"; } };
+
+template<> struct TensorTraits<Spheral::GeomThirdRankTensor<1>> { static std::string name() { return "ThirdRankTensor"; } };
+template<> struct TensorTraits<Spheral::GeomThirdRankTensor<2>> { static std::string name() { return "ThirdRankTensor"; } };
+template<> struct TensorTraits<Spheral::GeomThirdRankTensor<3>> { static std::string name() { return "ThirdRankTensor"; } };
+
+template<> struct TensorTraits<Spheral::GeomFourthRankTensor<1>> { static std::string name() { return "FourthRankTensor"; } };
+template<> struct TensorTraits<Spheral::GeomFourthRankTensor<2>> { static std::string name() { return "FourthRankTensor"; } };
+template<> struct TensorTraits<Spheral::GeomFourthRankTensor<3>> { static std::string name() { return "FourthRankTensor"; } };
+
+template<> struct TensorTraits<Spheral::GeomFifthRankTensor<1>> { static std::string name() { return "FifthRankTensor"; } };
+template<> struct TensorTraits<Spheral::GeomFifthRankTensor<2>> { static std::string name() { return "FifthRankTensor"; } };
+template<> struct TensorTraits<Spheral::GeomFifthRankTensor<3>> { static std::string name() { return "FifthRankTensor"; } };
+
+// Also a common method of printing tensors.
+template<typename TT>
+std::string
+tensor_string_repr(const TT& t) {
+  std::string result = TensorTraits<TT>::name() + std::to_string(TT::nDimensions) + "d(";
+  for (auto val: t) result += (" " + std::to_string(val) + " ");
+  result += ")";
+  return result;
+}
+  
 //------------------------------------------------------------------------------
 // The methods common to Tensor and SymmetricTensor (both rank 2)
 //------------------------------------------------------------------------------
@@ -113,14 +146,14 @@ tensorBindings(TensorPB11& tensorPB11, OtherTensorPB11& otherPB11,
   
     // Add sequence methods.
     .def("__getitem__", [](const Tensor &s, size_t i) {
-        if (i >= Dimension::nDim) throw py::index_error();
+        if (i >= Tensor::numElements) throw py::index_error();
         return s[i];
       })
     .def("__setitem__", [](Tensor &s, size_t i, float v) {
-        if (i >= Dimension::nDim) throw py::index_error();
+        if (i >= Tensor::numElements) throw py::index_error();
         s[i] = v;
       })
-    .def("__len__", [](const Tensor& self) { return Dimension::nDim * Dimension::nDim ; })
+    .def("__len__", [](const Tensor& self) { return Tensor::numElements; })
 
     // Optional sequence protocol operations
     .def("__iter__", [](const Tensor &s) { return py::make_iterator(s.begin(), s.end()); },
@@ -175,20 +208,8 @@ tensorBindings(TensorPB11& tensorPB11, OtherTensorPB11& otherPB11,
     .def("maxAbsElement", &Tensor::maxAbsElement)
 
     // A nicer print.
-    .def("__str__", [](const Tensor& self) {
-        std::string result = "Tensor" + std::to_string(Dimension::nDim) + "d(";
-        for (auto val: self) result += (" " + std::to_string(val) + " ");
-        result += ")";
-        return result;
-      }
-      )
-    .def("__repr__", [](const Tensor& self) {
-        std::string result = "Tensor" + std::to_string(Dimension::nDim) + "d(";
-        for (auto val: self) result += (" " + std::to_string(val) + " ");
-        result += ")";
-        return result;
-      }
-      )
+    .def("__str__", [](const Tensor& self) { return tensor_string_repr(self); })
+    .def("__repr__", [](const Tensor& self) { return tensor_string_repr(self); })
     ;
 
     // Dimension dependent constructors.
@@ -210,18 +231,6 @@ tensorBindings(TensorPB11& tensorPB11, OtherTensorPB11& otherPB11,
 //------------------------------------------------------------------------------
 // The methods common to 3rd, 4th, and 5th rank tensors.
 //------------------------------------------------------------------------------
-  // Define a local trait struct to find the name.
-  template<typename TT> struct TensorTraits;
-  template<> struct TensorTraits<Spheral::GeomThirdRankTensor<1>> { static std::string name() { return "ThirdRankTensor"; } };
-  template<> struct TensorTraits<Spheral::GeomThirdRankTensor<2>> { static std::string name() { return "ThirdRankTensor"; } };
-  template<> struct TensorTraits<Spheral::GeomThirdRankTensor<3>> { static std::string name() { return "ThirdRankTensor"; } };
-  template<> struct TensorTraits<Spheral::GeomFourthRankTensor<1>> { static std::string name() { return "FourthRankTensor"; } };
-  template<> struct TensorTraits<Spheral::GeomFourthRankTensor<2>> { static std::string name() { return "FourthRankTensor"; } };
-  template<> struct TensorTraits<Spheral::GeomFourthRankTensor<3>> { static std::string name() { return "FourthRankTensor"; } };
-  template<> struct TensorTraits<Spheral::GeomFifthRankTensor<1>> { static std::string name() { return "FifthRankTensor"; } };
-  template<> struct TensorTraits<Spheral::GeomFifthRankTensor<2>> { static std::string name() { return "FifthRankTensor"; } };
-  template<> struct TensorTraits<Spheral::GeomFifthRankTensor<3>> { static std::string name() { return "FifthRankTensor"; } };
-
 template<typename TensorPB11,
          typename Tensor>
 void
@@ -240,21 +249,25 @@ rankNTensorBindings(TensorPB11& tensorPB11, Tensor tensor) {
     .def(py::init<double>(), py::arg("val"))
     .def(py::init<const Tensor&>(), py::arg("rhs"))
 
+    // Add sequence methods.
+    .def("__getitem__", [](const Tensor &s, size_t i) {
+        if (i >= Tensor::numElements) throw py::index_error();
+        return s[i];
+      })
+    .def("__setitem__", [](Tensor &s, size_t i, float v) {
+        if (i >= Tensor::numElements) throw py::index_error();
+        s[i] = v;
+      })
+    .def("__len__", [](const Tensor& self) { return Tensor::numElements; })
+
+    // Optional sequence protocol operations
+    .def("__iter__", [](const Tensor &s) { return py::make_iterator(s.begin(), s.end()); },
+         py::keep_alive<0, 1>() /* Essential: keep object alive while iterator exists */)
+    .def("__contains__", [](const Tensor& self, const double val) { for (const auto elem: self) { if (elem == val) return true; } return false; })
+
     // A nicer print.
-    .def("__str__", [](const Tensor& self) {
-        std::string result = TensorTraits<Tensor>::name() + std::to_string(Tensor::nDimensions) + "d(";
-        for (auto val: self) result += (" " + std::to_string(val) + " ");
-        result += ")";
-        return result;
-      }
-      )
-    .def("__repr__", [](const Tensor& self) {
-        std::string result = TensorTraits<Tensor>::name() + std::to_string(Tensor::nDimensions) + "d(";
-        for (auto val: self) result += (" " + std::to_string(val) + " ");
-        result += ")";
-        return result;
-      }
-      )
+    .def("__str__", [](const Tensor& self) { return tensor_string_repr(self); })
+    .def("__repr__", [](const Tensor& self) { return tensor_string_repr(self); })
     ;
 }
 
@@ -309,11 +322,11 @@ geometryBindings(const py::module& m, const std::string& suffix) {
     
     // Add sequence methods.
     .def("__getitem__", [](const Vector &s, size_t i) {
-        if (i >= Dimension::nDim) throw py::index_error();
+        if (i >= Vector::numElements) throw py::index_error();
         return s[i];
       })
     .def("__setitem__", [](Vector &s, size_t i, float v) {
-        if (i >= Dimension::nDim) throw py::index_error();
+        if (i >= Vector::numElements) throw py::index_error();
         s[i] = v;
       })
     .def("__len__", [](const Vector& self) { return Dimension::nDim; })
