@@ -30,6 +30,7 @@
 #include "Utilities/DataTypeTraits.hh"
 
 namespace py = pybind11;
+using namespace pybind11::literals;
 
 //------------------------------------------------------------------------------
 // 1D
@@ -276,7 +277,7 @@ rankNTensorBindings(TensorPB11& tensorPB11, Tensor tensor) {
 //------------------------------------------------------------------------------
 template<int ndim>
 void
-geometryBindings(const py::module& m, const std::string& suffix) {
+geometryBindings(py::module& m, const std::string& suffix) {
 
   // Define types.
   typedef Spheral::Dim<ndim> Dimension;
@@ -516,6 +517,120 @@ geometryBindings(const py::module& m, const std::string& suffix) {
     .def(py::self <  py::self)
     ;
 
+  //............................................................................
+  // Geometry functions
+  m.def("invertRankNTensor", Spheral::invertRankNTensor<Tensor>);
+  m.def("invertRankNTensor", Spheral::invertRankNTensor<SymTensor>);
+  m.def("invertRankNTensor", Spheral::invertRankNTensor<FourthRankTensor>);
+
+  // Inner product (double)
+  m.def("innerProduct", (Vector (*)(const double&, const Vector&)) Geometry::innerProduct<Vector>);
+  m.def("innerProduct", (Vector (*)(const Vector&, const double&)) Geometry::innerProduct<Vector>);
+  m.def("innerProduct", (Tensor (*)(const double&, const Tensor&)) Geometry::innerProduct<Tensor>);
+  m.def("innerProduct", (Tensor (*)(const Tensor&, const double&)) Geometry::innerProduct<Tensor>);
+  m.def("innerProduct", (SymTensor (*)(const double&, const SymTensor&)) Geometry::innerProduct<SymTensor>);
+  m.def("innerProduct", (SymTensor (*)(const SymTensor&, const double&)) Geometry::innerProduct<SymTensor>);
+  m.def("innerProduct", (ThirdRankTensor (*)(const double&, const ThirdRankTensor&)) Geometry::innerProduct<ThirdRankTensor>);
+  m.def("innerProduct", (ThirdRankTensor (*)(const ThirdRankTensor&, const double&)) Geometry::innerProduct<ThirdRankTensor>);
+  m.def("innerProduct", (FourthRankTensor (*)(const double&, const FourthRankTensor&)) Geometry::innerProduct<FourthRankTensor>);
+  m.def("innerProduct", (FourthRankTensor (*)(const FourthRankTensor&, const double&)) Geometry::innerProduct<FourthRankTensor>);
+  m.def("innerProduct", (FifthRankTensor (*)(const double&, const FifthRankTensor&)) Geometry::innerProduct<FifthRankTensor>);
+  m.def("innerProduct", (FifthRankTensor (*)(const FifthRankTensor&, const double&)) Geometry::innerProduct<FifthRankTensor>);
+
+  // Inner product (Vector)
+  m.def("innerProduct", (double (*)(const Vector&, const Vector&)) Geometry::innerProduct<Dimension>);
+  m.def("innerProduct", (Vector (*)(const Vector&, const Tensor&)) Geometry::innerProduct<Dimension>);
+  m.def("innerProduct", (Vector (*)(const Tensor&, const Vector&)) Geometry::innerProduct<Dimension>);
+  m.def("innerProduct", (Vector (*)(const Vector&, const SymTensor&)) Geometry::innerProduct<Dimension>);
+  m.def("innerProduct", (Vector (*)(const SymTensor&, const Vector&)) Geometry::innerProduct<Dimension>);
+  m.def("innerProduct", (Tensor (*)(const Vector&, const ThirdRankTensor&)) Geometry::innerProduct<Dimension>);
+  m.def("innerProduct", (Tensor (*)(const ThirdRankTensor&, const Vector&)) Geometry::innerProduct<Dimension>);
+  m.def("innerProduct", (ThirdRankTensor (*)(const Vector&, const FourthRankTensor&)) Geometry::innerProduct<Dimension>);
+  m.def("innerProduct", (ThirdRankTensor (*)(const FourthRankTensor&, const Vector&)) Geometry::innerProduct<Dimension>);
+
+  // Inner product (Tensor)
+  m.def("innerProduct", (Tensor (*)(const Tensor&, const Tensor&)) Geometry::innerProduct<Dimension>);
+  m.def("innerProduct", (Tensor (*)(const Tensor&, const SymTensor&)) Geometry::innerProduct<Dimension>);
+  m.def("innerProduct", (Tensor (*)(const SymTensor&, const Tensor&)) Geometry::innerProduct<Dimension>);
+  m.def("innerProduct", (ThirdRankTensor (*)(const Tensor&, const ThirdRankTensor&)) Geometry::innerProduct<Dimension>);
+  m.def("innerProduct", (ThirdRankTensor (*)(const ThirdRankTensor&, const Tensor&)) Geometry::innerProduct<Dimension>);
+  m.def("innerProduct", (FourthRankTensor (*)(const Tensor&, const FourthRankTensor&)) Geometry::innerProduct<Dimension>);
+  m.def("innerProduct", (FourthRankTensor (*)(const FourthRankTensor&, const Tensor&)) Geometry::innerProduct<Dimension>);
+
+  // Inner product (ThirdRankTensor)
+  m.def("innerProduct", (FourthRankTensor (*)(const ThirdRankTensor&, const ThirdRankTensor&)) Geometry::innerProduct<Dimension>);
+  m.def("innerProduct", (FifthRankTensor (*)(const ThirdRankTensor&, const FourthRankTensor&)) Geometry::innerProduct<Dimension>);
+  m.def("innerProduct", (FifthRankTensor (*)(const FourthRankTensor&, const ThirdRankTensor&)) Geometry::innerProduct<Dimension>);
+
+  // Outer product (double)
+  m.def("outerProduct", (Vector (*)(const double&, const Vector&)) Geometry::outerProduct<Vector>);
+  m.def("outerProduct", (Vector (*)(const Vector&, const double&)) Geometry::outerProduct<Vector>);
+  m.def("outerProduct", (Tensor (*)(const double&, const Tensor&)) Geometry::outerProduct<Tensor>);
+  m.def("outerProduct", (Tensor (*)(const Tensor&, const double&)) Geometry::outerProduct<Tensor>);
+  m.def("outerProduct", (SymTensor (*)(const double&, const SymTensor&)) Geometry::outerProduct<SymTensor>);
+  m.def("outerProduct", (SymTensor (*)(const SymTensor&, const double&)) Geometry::outerProduct<SymTensor>);
+  m.def("outerProduct", (ThirdRankTensor (*)(const double&, const ThirdRankTensor&)) Geometry::outerProduct<ThirdRankTensor>);
+  m.def("outerProduct", (ThirdRankTensor (*)(const ThirdRankTensor&, const double&)) Geometry::outerProduct<ThirdRankTensor>);
+  m.def("outerProduct", (FourthRankTensor (*)(const double&, const FourthRankTensor&)) Geometry::outerProduct<FourthRankTensor>);
+  m.def("outerProduct", (FourthRankTensor (*)(const FourthRankTensor&, const double&)) Geometry::outerProduct<FourthRankTensor>);
+  m.def("outerProduct", (FifthRankTensor (*)(const double&, const FifthRankTensor&)) Geometry::outerProduct<FifthRankTensor>);
+  m.def("outerProduct", (FifthRankTensor (*)(const FifthRankTensor&, const double&)) Geometry::outerProduct<FifthRankTensor>);
+
+  // Outer product (Vector)
+  m.def("outerProduct", (Tensor (*)(const Vector&, const Vector&)) Geometry::outerProduct<Dimension>);
+  m.def("outerProduct", (ThirdRankTensor (*)(const Vector&, const Tensor&)) Geometry::outerProduct<Dimension>);
+  m.def("outerProduct", (ThirdRankTensor (*)(const Tensor&, const Vector&)) Geometry::outerProduct<Dimension>);
+  m.def("outerProduct", (ThirdRankTensor (*)(const Vector&, const SymTensor&)) Geometry::outerProduct<Dimension>);
+  m.def("outerProduct", (ThirdRankTensor (*)(const SymTensor&, const Vector&)) Geometry::outerProduct<Dimension>);
+  m.def("outerProduct", (FourthRankTensor (*)(const Vector&, const ThirdRankTensor&)) Geometry::outerProduct<Dimension>);
+  m.def("outerProduct", (FourthRankTensor (*)(const ThirdRankTensor&, const Vector&)) Geometry::outerProduct<Dimension>);
+  m.def("outerProduct", (FifthRankTensor (*)(const Vector&, const FourthRankTensor&)) Geometry::outerProduct<Dimension>);
+  m.def("outerProduct", (FifthRankTensor (*)(const FourthRankTensor&, const Vector&)) Geometry::outerProduct<Dimension>);
+
+  // Outer product (Tensor)
+  m.def("outerProduct", (FourthRankTensor (*)(const Tensor&, const Tensor&)) Geometry::outerProduct<Dimension>);
+  m.def("outerProduct", (FourthRankTensor (*)(const Tensor&, const SymTensor&)) Geometry::outerProduct<Dimension>);
+  m.def("outerProduct", (FourthRankTensor (*)(const SymTensor&, const Tensor&)) Geometry::outerProduct<Dimension>);
+  m.def("outerProduct", (FifthRankTensor (*)(const Tensor&, const ThirdRankTensor&)) Geometry::outerProduct<Dimension>);
+  m.def("outerProduct", (FifthRankTensor (*)(const ThirdRankTensor&, const Tensor&)) Geometry::outerProduct<Dimension>);
+
+  // Outer product (SymTensor)
+  m.def("outerProduct", (FourthRankTensor (*)(const SymTensor&, const SymTensor&)) Geometry::outerProduct<Dimension>);
+  m.def("outerProduct", (FifthRankTensor (*)(const SymTensor&, const ThirdRankTensor&)) Geometry::outerProduct<Dimension>);
+  m.def("outerProduct", (FifthRankTensor (*)(const ThirdRankTensor&, const SymTensor&)) Geometry::outerProduct<Dimension>);
+
+  // Inner double product (Tensor)
+  m.def("innerDoubleProduct", (double (*)(const Tensor&, const Tensor&)) Geometry::innerDoubleProduct<Dimension>);
+  m.def("innerDoubleProduct", (double (*)(const Tensor&, const SymTensor&)) Geometry::innerDoubleProduct<Dimension>);
+  m.def("innerDoubleProduct", (double (*)(const SymTensor&, const Tensor&)) Geometry::innerDoubleProduct<Dimension>);
+  m.def("innerDoubleProduct", (Vector (*)(const Tensor&, const ThirdRankTensor&)) Geometry::innerDoubleProduct<Dimension>);
+  m.def("innerDoubleProduct", (Vector (*)(const ThirdRankTensor&, const Tensor&)) Geometry::innerDoubleProduct<Dimension>);
+  m.def("innerDoubleProduct", (Tensor (*)(const Tensor&, const FourthRankTensor&)) Geometry::innerDoubleProduct<Dimension>);
+  m.def("innerDoubleProduct", (Tensor (*)(const FourthRankTensor&, const Tensor&)) Geometry::innerDoubleProduct<Dimension>);
+  m.def("innerDoubleProduct", (ThirdRankTensor (*)(const Tensor&, const FifthRankTensor&)) Geometry::innerDoubleProduct<Dimension>);
+  m.def("innerDoubleProduct", (ThirdRankTensor (*)(const FifthRankTensor&, const Tensor&)) Geometry::innerDoubleProduct<Dimension>);
+
+  // Inner double product (SymTensor)
+  m.def("innerDoubleProduct", (double (*)(const SymTensor&, const SymTensor&)) Geometry::innerDoubleProduct<Dimension>);
+  m.def("innerDoubleProduct", (Vector (*)(const SymTensor&, const ThirdRankTensor&)) Geometry::innerDoubleProduct<Dimension>);
+  m.def("innerDoubleProduct", (Vector (*)(const ThirdRankTensor&, const SymTensor&)) Geometry::innerDoubleProduct<Dimension>);
+  m.def("innerDoubleProduct", (Tensor (*)(const SymTensor&, const FourthRankTensor&)) Geometry::innerDoubleProduct<Dimension>);
+  m.def("innerDoubleProduct", (Tensor (*)(const FourthRankTensor&, const SymTensor&)) Geometry::innerDoubleProduct<Dimension>);
+  m.def("innerDoubleProduct", (ThirdRankTensor (*)(const SymTensor&, const FifthRankTensor&)) Geometry::innerDoubleProduct<Dimension>);
+  m.def("innerDoubleProduct", (ThirdRankTensor (*)(const FifthRankTensor&, const SymTensor&)) Geometry::innerDoubleProduct<Dimension>);
+
+  // Inner double product (ThirdRankTensor)
+  m.def("innerDoubleProduct", (Tensor (*)(const ThirdRankTensor&, const ThirdRankTensor&)) Geometry::innerDoubleProduct<Dimension>);
+  m.def("innerDoubleProduct", (ThirdRankTensor (*)(const ThirdRankTensor&, const FourthRankTensor&)) Geometry::innerDoubleProduct<Dimension>);
+  m.def("innerDoubleProduct", (ThirdRankTensor (*)(const FourthRankTensor&, const ThirdRankTensor&)) Geometry::innerDoubleProduct<Dimension>);
+  m.def("innerDoubleProduct", (FourthRankTensor (*)(const ThirdRankTensor&, const FifthRankTensor&)) Geometry::innerDoubleProduct<Dimension>);
+  m.def("innerDoubleProduct", (FourthRankTensor (*)(const FifthRankTensor&, const ThirdRankTensor&)) Geometry::innerDoubleProduct<Dimension>);
+
+  // Inner double product (FourthRankTensor)
+  m.def("innerDoubleProduct", (FourthRankTensor (*)(const FourthRankTensor&, const FourthRankTensor&)) Geometry::innerDoubleProduct<Dimension>);
+  m.def("innerDoubleProduct", (FifthRankTensor (*)(const FourthRankTensor&, const FifthRankTensor&)) Geometry::innerDoubleProduct<Dimension>);
+  m.def("innerDoubleProduct", (FifthRankTensor (*)(const FifthRankTensor&, const FourthRankTensor&)) Geometry::innerDoubleProduct<Dimension>);
+
 }
 }
 
@@ -602,6 +717,7 @@ PYBIND11_PLUGIN(SpheralGeometry) {
     .def("intersect", (bool (Polygon::*)(const std::pair<Vector2d, Vector2d>&) const) &Polygon::intersect)
     .def("intersect", (std::vector<Vector2d> (Polygon::*)(const Vector2d&, const Vector2d&) const) &Polygon::intersect)
     .def("convexIntersect", &Polygon::convexIntersect)
+    .def("centroid", &Polygon::centroid)
     .def("vertices", &Polygon::vertices)
     .def("facets", &Polygon::facets)
     .def("vertexUnitNorms", &Polygon::vertexUnitNorms)
@@ -619,6 +735,60 @@ PYBIND11_PLUGIN(SpheralGeometry) {
     .def(py::self -= Vector2d())
     .def(py::self + Vector2d())
     .def(py::self - Vector2d())
+
+    .def(py::self *= float())
+    .def(py::self /= float())
+    .def(py::self * float())
+    .def(py::self / float())
+    
+    .def(py::self == py::self)
+    .def(py::self != py::self)
+    ;
+
+  //............................................................................
+  // Polyhedron
+  typedef Spheral::GeomPolyhedron Polyhedron;
+  typedef Spheral::GeomVector<3> Vector3d;
+  py::class_<Polyhedron>(m, "Polyhedron")
+
+    // Constructors
+    .def(py::init<>())
+    .def(py::init<const std::vector<Vector3d>&>(), py::arg("points"))
+    .def(py::init<const std::vector<Vector3d>&, const std::vector<std::vector<unsigned>>>(), py::arg("points"), py::arg("facetIndices"))
+    .def(py::init<const Polyhedron&>(), py::arg("rhs"))
+
+    // Attributes
+    .def_property_readonly("xmin", &Polyhedron::xmin)
+    .def_property_readonly("xmax", &Polyhedron::xmax)
+    .def_property_readonly("edges", &Polyhedron::edges)
+    .def_property_readonly("facetVertices", &Polyhedron::facetVertices)
+    .def_property_readonly("facetNormals", &Polyhedron::facetNormals)
+    .def_property_readonly("volume", &Polyhedron::volume)
+
+    // Methods
+    .def("contains", &Polyhedron::contains)
+    .def("convexContains", &Polyhedron::convexContains)
+    .def("intersect", (bool (Polyhedron::*)(const Polyhedron&) const) &Polyhedron::intersect)
+    .def("intersect", (bool (Polyhedron::*)(const std::pair<Vector3d, Vector3d>&) const) &Polyhedron::intersect)
+    .def("convexIntersect", &Polyhedron::convexIntersect)
+    .def("centroid", &Polyhedron::centroid)
+    .def("vertices", &Polyhedron::vertices)
+    .def("facets", &Polyhedron::facets)
+    .def("vertexUnitNorms", &Polyhedron::vertexUnitNorms)
+    .def("vertexFacetConnectivity", &Polyhedron::vertexFacetConnectivity)
+    .def("facetFacetConnectivity", &Polyhedron::facetFacetConnectivity)
+    .def("closestFacet", &Polyhedron::closestFacet)
+    .def("distance", &Polyhedron::distance)
+    .def("closestPoint", &Polyhedron::closestPoint)
+    .def("reconstruct", &Polyhedron::reconstruct)
+    .def("convex", &Polyhedron::convex)
+    .def("setBoundingBox", &Polyhedron::setBoundingBox)
+
+    // Operators
+    .def(py::self += Vector3d())
+    .def(py::self -= Vector3d())
+    .def(py::self + Vector3d())
+    .def(py::self - Vector3d())
 
     .def(py::self *= float())
     .def(py::self /= float())
