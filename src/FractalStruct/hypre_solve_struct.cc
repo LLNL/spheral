@@ -13,7 +13,6 @@ namespace FractalSpace
     int FractalRank=mem.p_mess->FractalRank;
     int HypreRank=mem.p_mess->HypreRank;
     int HypreNodes=mem.p_mess->HypreNodes;
-    // cerr << " Solve A " << FractalRank << " " << HypreRank << endl;    
     vector <int> counts_in(HypreNodes,0);
     vector <int> counts_out(HypreNodes,0);
     vector <int> dataI_in;
@@ -23,10 +22,8 @@ namespace FractalSpace
 
     vector<int>HRout(SBoxes.size(),HypreRank);
     int balance=false;
-    // cerr << " Solve B " << FractalRank << " " << HypreRank << endl;    
     if(buffer && mem.hypre_load_balance)
       balance=hypre_struct_load_balance(mem,SBoxes,SPoints,HRout);
-    // cerr << " Solve E " << FractalRank << " " << HypreRank << endl;    
     HYPRE_StructGrid     grid;
     HYPRE_StructStencil  stencil;
     HYPRE_StructMatrix   Amatrix;
@@ -375,6 +372,23 @@ namespace FractalSpace
     FHT << " Hypre Solve Setup " << "\t" << time4-time3 << "\n";
     FHT << " Hypre Solver Solve " << "\t" << time5-time4 << "\n";
     FHT << " Hypre Data Dump " << "\t" << time6-time5 << "\n";
+    if(buffer)
+      {
+	int Pstay=0;
+	int Pout=0;
+	int Pget=0;
+	for(int ni=0;ni<HRout.size();ni++)
+	  {
+	    if(HRout[ni] == HypreRank)
+	      Pstay+=VOL[ni];
+	    else if(HRout[ni] < 0)
+	      Pget+=VOL[ni];
+	    else
+	      Pout+=VOL[ni];
+	  }
+	FHT << " NODE COUNTS " << mem.level << " " << mem.steps << " " << HypreRank << " " << Bstay+Bout << " " << Bstay+Bget << " " << Bstay << " " << Bout << " " << Bget <<"\n";
+	FHT << " POINT COUNTS " << mem.level << " " << mem.steps << " " << HypreRank << " " << Pstay+Pout << " " << Pstay+Pget << " " << Pstay << " " << Pout << " " << Pget <<"\n";
+      }
     // cerr << " SOLVED C " << _COUNTER << " " << FractalRank << " " << HypreRank << "\n";
   }
 }
