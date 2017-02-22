@@ -161,6 +161,10 @@ tensorBindings(TensorPB11& tensorPB11, OtherTensorPB11& otherPB11,
          py::keep_alive<0, 1>() /* Essential: keep object alive while iterator exists */)
     .def("__contains__", [](const Tensor& self, const double val) { for (const auto elem: self) { if (elem == val) return true; } return false; })
 
+    // We like in index with operator()
+    .def("__call__", (double (Tensor::*)(const typename Tensor::size_type,
+                                         const typename Tensor::size_type) const) &Tensor::operator(), py::is_operator())
+
     // Operators.
     .def(-py::self)
     .def(py::self + py::self)
@@ -206,6 +210,7 @@ tensorBindings(TensorPB11& tensorPB11, OtherTensorPB11& otherPB11,
     .def("square", &Tensor::square)
     .def("squareElements", &Tensor::squareElements)
     .def("eigenValues", &Tensor::eigenValues)
+    .def("rotationalTransform", &Tensor::rotationalTransform)
     .def("maxAbsElement", &Tensor::maxAbsElement)
 
     // A nicer print.
@@ -335,6 +340,9 @@ geometryBindings(py::module& m, const std::string& suffix) {
     // Optional sequence protocol operations
     .def("__iter__", [](const Vector &s) { return py::make_iterator(s.begin(), s.end()); },
          py::keep_alive<0, 1>() /* Essential: keep object alive while iterator exists */)
+
+    // We like in index with operator()
+    .def("__call__", (double (Vector::*)(typename Vector::size_type) const) &Vector::operator(), py::is_operator())
 
     .def("Zero", &Vector::Zero)
     
