@@ -27,6 +27,7 @@
 #include "Geometry/innerProduct.hh"
 #include "Geometry/outerProduct.hh"
 #include "Geometry/innerDoubleProduct.hh"
+#include "Field/Field.hh"
 #include "Utilities/DataTypeTraits.hh"
 
 namespace py = pybind11;
@@ -306,6 +307,17 @@ geometryBindings(py::module& m, const std::string& suffix) {
   py::class_<PlaneType> PlanePB11(m, ("Plane" + suffix).c_str());
 
   //............................................................................
+  // The STL containers of Geometry objects.
+  py::bind_vector<std::vector<Vector>>(m, "vector_of_Vector" + suffix);
+  py::bind_vector<std::vector<Tensor>>(m, "vector_of_Tensor" + suffix);
+  py::bind_vector<std::vector<SymTensor>>(m, "vector_of_SymTensor" + suffix);
+  py::bind_vector<std::vector<ThirdRankTensor>>(m, "vector_of_ThirdRankTensor" + suffix);
+  py::bind_vector<std::vector<FourthRankTensor>>(m, "vector_of_FourthRankTensor" + suffix);
+  py::bind_vector<std::vector<FifthRankTensor>>(m, "vector_of_FifthRankTensor" + suffix);
+  py::bind_vector<std::vector<PlaneType>>(m, "vector_of_Plane" + suffix);
+  py::bind_vector<std::vector<typename Dimension::FacetedVolume>>(m, "vector_of_FacetedVolume" + suffix);
+
+  //............................................................................
   // Vector
   VectorPB11
 
@@ -530,6 +542,7 @@ geometryBindings(py::module& m, const std::string& suffix) {
   m.def("invertRankNTensor", Spheral::invertRankNTensor<Tensor>);
   m.def("invertRankNTensor", Spheral::invertRankNTensor<SymTensor>);
   m.def("invertRankNTensor", Spheral::invertRankNTensor<FourthRankTensor>);
+  m.def("computeEigenValues", Spheral::computeEigenValues<Dimension>);
 
   // Inner product (double)
   m.def("innerProduct", (Vector (*)(const double&, const Vector&)) Geometry::innerProduct<Vector>);
@@ -806,6 +819,11 @@ PYBIND11_PLUGIN(SpheralGeometry) {
     .def(py::self == py::self)
     .def(py::self != py::self)
     ;
+
+  //............................................................................
+  // The STL containers of 2D and 3D facets.
+  py::bind_vector<std::vector<Spheral::GeomFacet2d>>(m, "vector_of_Facet2d");
+  py::bind_vector<std::vector<Spheral::GeomFacet3d>>(m, "vector_of_Facet3d");
 
   return m.ptr();
 }
