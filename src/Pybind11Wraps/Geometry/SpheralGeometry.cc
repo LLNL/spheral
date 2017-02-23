@@ -221,17 +221,17 @@ tensorBindings(TensorPB11& tensorPB11, OtherTensorPB11& otherPB11,
 
     // Dimension dependent constructors.
     if (Tensor::nDimensions == 1) {
-      tensorPB11.def(py::init<double>(), py::arg("xx")=0.0);
+      tensorPB11.def(py::init<double>(), "xx"_a=0.0);
     } else if (Tensor::nDimensions == 2) {
       tensorPB11.def(py::init<double, double, double, double>(),
-                     py::arg("xx")=0.0, py::arg("xy")=0.0,
-                     py::arg("yx")=0.0, py::arg("yy")=0.0);
+                     "xx"_a=0.0, "xy"_a=0.0,
+                     "yx"_a=0.0, "yy"_a=0.0);
     } else {
       CHECK(Tensor::nDimensions == 3);
       tensorPB11.def(py::init<double, double, double, double, double, double, double, double, double>(),
-                     py::arg("xx")=0.0, py::arg("xy")=0.0, py::arg("xz")=0.0,
-                     py::arg("xy")=0.0, py::arg("yy")=0.0, py::arg("yz")=0.0,
-                     py::arg("zx")=0.0, py::arg("zy")=0.0, py::arg("zz")=0.0);
+                     "xx"_a=0.0, "xy"_a=0.0, "xz"_a=0.0,
+                     "xy"_a=0.0, "yy"_a=0.0, "yz"_a=0.0,
+                     "zx"_a=0.0, "zy"_a=0.0, "zz"_a=0.0);
     }
 }
 
@@ -253,8 +253,8 @@ rankNTensorBindings(TensorPB11& tensorPB11, Tensor tensor) {
     
     // Constructors.
     .def(py::init<>())
-    .def(py::init<double>(), py::arg("val"))
-    .def(py::init<const Tensor&>(), py::arg("rhs"))
+    .def(py::init<double>(), "val"_a)
+    .def(py::init<const Tensor&>(), "rhs"_a)
 
     // Add sequence methods.
     .def("__getitem__", [](const Tensor &s, size_t i) {
@@ -330,7 +330,7 @@ geometryBindings(py::module& m, const std::string& suffix) {
     // Constructors.
     .def(py::init<>())
     .def(py::init<const Vector&>())
-    .def(py::init<double, double, double>(), py::arg("x"), py::arg("y")=0.0, py::arg("z")=0.0)
+    .def(py::init<double, double, double>(), "x"_a, "y"_a=0.0, "z"_a=0.0)
     // .def(py::init<double, double, double>(), "x"_a, "y"_a=0.0, "z"_a=0.0)
     
     // x, y, z
@@ -494,7 +494,7 @@ geometryBindings(py::module& m, const std::string& suffix) {
   EigenStructPB11
 
     .def(py::init<>())
-    .def(py::init<const EigenStructType&>(), py::arg("rhs"))
+    .def(py::init<const EigenStructType&>(), "rhs"_a)
     .def_readwrite("eigenValues", &EigenStructType::eigenValues)
     .def_readwrite("eigenVectors", &EigenStructType::eigenVectors)
     // A nicer print.
@@ -516,9 +516,9 @@ geometryBindings(py::module& m, const std::string& suffix) {
   // Plane
   PlanePB11
     .def(py::init<>())
-    .def(py::init<const PlaneType&>(), py::arg("rhs"))
-    .def(py::init<const Vector&, const Vector&>(), py::arg("point"), py::arg("normal"))
-    .def(py::init<const std::vector<Vector>&>(), py::arg("points"))
+    .def(py::init<const PlaneType&>(), "rhs"_a)
+    .def(py::init<const Vector&, const Vector&>(), "point"_a, "normal"_a)
+    .def(py::init<const std::vector<Vector>&>(), "points"_a)
     .def_property("point",
                   (const Vector& (PlaneType::*)() const) &PlaneType::point, 
                   (void (PlaneType::*)(const Vector&)) &PlaneType::point)
@@ -675,10 +675,10 @@ PYBIND11_PLUGIN(SpheralGeometry) {
 
     // Constructors
     .def(py::init<>())
-    .def(py::init<const std::vector<Vector1d>&>(), py::arg("points"))
-    .def(py::init<const std::vector<Vector1d>&, const std::vector<std::vector<unsigned>>>(), py::arg("points"), py::arg("facetIndices"))
-    .def(py::init<const Vector1d&, const double>(), py::arg("center"), py::arg("extent"))
-    .def(py::init<const Box&>(), py::arg("rhs"))
+    .def(py::init<const std::vector<Vector1d>&>(), "points"_a)
+    .def(py::init<const std::vector<Vector1d>&, const std::vector<std::vector<unsigned>>>(), "points"_a, "facetIndices"_a)
+    .def(py::init<const Vector1d&, const double>(), "center"_a, "extent"_a)
+    .def(py::init<const Box&>(), "rhs"_a)
 
     // Attributes
     .def_property("center", (const Vector1d& (Box::*)() const) &Box::center, (void (Box::*)(const Vector1d&)) &Box::center)
@@ -720,9 +720,9 @@ PYBIND11_PLUGIN(SpheralGeometry) {
 
     // Constructors
     .def(py::init<>())
-    .def(py::init<const std::vector<Vector2d>&>(), py::arg("points"))
-    .def(py::init<const std::vector<Vector2d>&, const std::vector<std::vector<unsigned>>>(), py::arg("points"), py::arg("facetIndices"))
-    .def(py::init<const Polygon&>(), py::arg("rhs"))
+    .def(py::init<const std::vector<Vector2d>&>(), "points"_a)
+    .def(py::init<const std::vector<Vector2d>&, const std::vector<std::vector<unsigned>>>(), "points"_a, "facetIndices"_a)
+    .def(py::init<const Polygon&>(), "rhs"_a)
 
     // Attributes
     .def_property_readonly("xmin", &Polygon::xmin)
@@ -774,9 +774,9 @@ PYBIND11_PLUGIN(SpheralGeometry) {
 
     // Constructors
     .def(py::init<>())
-    .def(py::init<const std::vector<Vector3d>&>(), py::arg("points"))
-    .def(py::init<const std::vector<Vector3d>&, const std::vector<std::vector<unsigned>>>(), py::arg("points"), py::arg("facetIndices"))
-    .def(py::init<const Polyhedron&>(), py::arg("rhs"))
+    .def(py::init<const std::vector<Vector3d>&>(), "points"_a)
+    .def(py::init<const std::vector<Vector3d>&, const std::vector<std::vector<unsigned>>>(), "points"_a, "facetIndices"_a)
+    .def(py::init<const Polyhedron&>(), "rhs"_a)
 
     // Attributes
     .def_property_readonly("xmin", &Polyhedron::xmin)
