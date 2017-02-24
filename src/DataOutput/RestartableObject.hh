@@ -20,8 +20,6 @@
 
 #include "DataOutput/registerWithRestart.hh"
 
-#include "Python.h"
-
 // Forward declarations.
 namespace Spheral {
   namespace FileIOSpace {
@@ -36,23 +34,18 @@ class RestartableObject {
 
 public:
   //------------------------===== Public Interface =====-----------------------//
-  RestartableObject(PyObject* self,
-                    const unsigned priority);
+  RestartableObject(const unsigned priority);
   virtual ~RestartableObject();
 
-  // The methods we are providing for restart.  These simply turn around and call
-  // methods of the same name on "self".
-  virtual std::string label() const;
-  virtual void dumpState(FileIOSpace::FileIO& file, const std::string pathName) const;
-  virtual void restoreState(const FileIOSpace::FileIO& file, const std::string pathName);
+  // The methods we are providing for restart.
+  virtual std::string label() const = 0;
+  virtual void dumpState(FileIOSpace::FileIO& file, const std::string pathName) const = 0;
+  virtual void restoreState(const FileIOSpace::FileIO& file, const std::string pathName) = 0;
 
 private:
   //-----------------------===== Private Interface =====-----------------------//
   // The restart registration.
   DataOutput::RestartRegistrationType mRestart;
-
-  // The python object we're restarting.
-  PyObject* mSelf;
 };
 
 }
