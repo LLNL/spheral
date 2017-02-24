@@ -12,22 +12,6 @@
 #include "RestartableObject.hh"
 #include "FileIO/FileIO.hh"
 
-// These types are defined in our pybindgen generated code.
-#ifndef _PyBindGenWrapperFlags_defined_
-#define _PyBindGenWrapperFlags_defined_
-typedef enum _PyBindGenWrapperFlags {
-   PYBINDGEN_WRAPPER_FLAG_NONE = 0,
-   PYBINDGEN_WRAPPER_FLAG_OBJECT_NOT_OWNED = (1<<0),
-} PyBindGenWrapperFlags;
-#endif
-typedef struct {
-    PyObject_HEAD
-    Spheral::FileIOSpace::FileIO *obj;
-    PyObject *inst_dict;
-    PyBindGenWrapperFlags flags:8;
-} PySpheralFileIOSpaceFileIO;
-extern PyTypeObject PySpheralFileIOSpaceFileIO_Type;
-
 namespace Spheral {
 namespace DataOutput {
 
@@ -35,10 +19,8 @@ namespace DataOutput {
 // Constructor.
 //------------------------------------------------------------------------------
 RestartableObject::
-RestartableObject(PyObject* self,
-                  const unsigned priority):
-  mRestart(DataOutput::registerWithRestart(*this, priority)),
-  mSelf(self) {
+RestartableObject(const unsigned priority):
+  mRestart(DataOutput::registerWithRestart(*this, priority)) {
 }
 
 //------------------------------------------------------------------------------
@@ -46,50 +28,6 @@ RestartableObject(PyObject* self,
 //------------------------------------------------------------------------------
 RestartableObject::
 ~RestartableObject() {
-}
-
-//------------------------------------------------------------------------------
-// label
-//------------------------------------------------------------------------------
-std::string
-RestartableObject::
-label() const {
-  PyObject* pylabel = PyObject_CallMethod(mSelf, (char*) "label", NULL);
-  VERIFY2(pylabel != NULL,
-          "RestartableObject::label ERROR: must provide label method.");
-  VERIFY2(PyString_Check(pylabel),
-          "RestartableObject::label ERROR: label method must return a string.");
-  std::string result = PyString_AsString(pylabel);
-  Py_DECREF(pylabel);
-  return result;
-}
-
-//------------------------------------------------------------------------------
-// dumpState
-//------------------------------------------------------------------------------
-void
-RestartableObject::
-dumpState(FileIOSpace::FileIO& file, const std::string pathName) const {
-  PySpheralFileIOSpaceFileIO* py_file = PyObject_GC_New(PySpheralFileIOSpaceFileIO, &PySpheralFileIOSpaceFileIO_Type);
-  py_file->inst_dict = NULL;
-  py_file->obj = &file;
-  PyObject* result = PyObject_CallMethod(mSelf, (char*) "dumpState", (char*) "Os", py_file, pathName.c_str());
-  VERIFY2(result != NULL,
-          "RestartableObject::dumpState ERROR encountered calling python dumpState method.");
-}
-
-//------------------------------------------------------------------------------
-// restoreState
-//------------------------------------------------------------------------------
-void
-RestartableObject::
-restoreState(const FileIOSpace::FileIO& file, const std::string pathName) {
-  PySpheralFileIOSpaceFileIO* py_file = PyObject_GC_New(PySpheralFileIOSpaceFileIO, &PySpheralFileIOSpaceFileIO_Type);
-  py_file->inst_dict = NULL;
-  py_file->obj = const_cast<FileIOSpace::FileIO*>(&file);
-  PyObject* result = PyObject_CallMethod(mSelf, (char*) "restoreState", (char*) "Os", py_file, pathName.c_str());
-  VERIFY2(result != NULL,
-          "RestartableObject::restoreState ERROR encountered calling python restoreState method.");
 }
 
 }

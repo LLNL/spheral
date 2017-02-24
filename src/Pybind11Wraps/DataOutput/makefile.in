@@ -1,5 +1,5 @@
 # -*-makefile-*-
-# Spheral++ DataOutput package makefile
+# Spheral++ DataOutput pybind11 package makefile
 #-------------------------------------------------------------------------------
 srcdir = @abs_srcdir@
 VPATH = @abs_srcdir@
@@ -8,14 +8,11 @@ BUILDTOP = @abs_top_builddir@
 
 PKGNAME = DataOutput
 PKGDIR = $(PKGNAME)/
-LIBTARGET = libSpheral_$(PKGNAME).$(DYLIBEXT)
-SRCTARGETS = \
-	$(srcdir)/RestartRegistrar.cc
+PYB11TARGET = Spheral$(PKGNAME).$(SHLIBEXT)
 
-ifeq ("no", "@CXXONLY@")
 SRCTARGETS += \
-	$(srcdir)/RestartableObject.cc
-endif
+	$(srcdir)/SpheralDataOutput.cc
 
-#-------------------------------------------------------------------------------
+#------------------------------------------------------------------------------
 include $(BUILDTOP)/helpers/makefile_master
+EXTRALIBS += $(LDRPATH)

@@ -9,13 +9,11 @@ AC_SUBST(PYTHONPKGDIR)
 AC_SUBST(PYTHONPKGS)
 AC_SUBST(BOOSTROOT)
 AC_SUBST(BOOSTLIBTARGETS)
-AC_SUBST(BPLINCS)
 AC_SUBST(INCS)
 AC_SUBST(PYOPT)
 AC_SUBST(MODULELINK)
 
 PYOPT=""
-BPLINCS=""
 BOOSTLIBTARGETS="math"
 EXTRATHIRDPARTYTARGETS=""
 
@@ -30,12 +28,11 @@ AC_ARG_WITH(pybind11,
     EXTRATHIRDPARTYTARGETS+=" .pybind11-2.0.1.date"
     PYTHONBINDING="PYBIND11"
     PYTHONPKGDIR="Pybind11Wraps"
-    PYTHONPKGS+=" CXXTypes Geometry Silo"
+    PYTHONPKGS+=" CXXTypes Geometry Silo DataOuput"
     INCS+="-I\$(prefix)/include -I\$prefix/include/python\$(PYTHONVERSION) \$(patsubst %, -I\$(SRCTOP)/%, \$(CXXPKGS))"
     MODULELINK="-L\$(LIBDIR) \$(PKGLIBS)"
     if test "`uname -s`" = "AIX"; then
        MODULELINK="$MODULELINK -e init\$(PKGNAME)"
-       BPLINCS="$BPLINCS -D_WCHAR_T"
     fi
 ],
 [
