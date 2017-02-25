@@ -137,19 +137,108 @@ void dimensionBindings(py::module& m, const std::string suffix) {
     .def_property_readonly("W0", &HatKernel<Dimension>::eta0)
     ;
 
+  //............................................................................
+  // Sinc
   py::class_<SincKernel<Dimension>> sincPB11(m, ("SincKernel" + suffix).c_str());
+  genericKernelBindings<Dimension, SincKernel<Dimension>>(m, suffix, sincPB11);
+  sincPB11.def(py::init<double>(), "extent"_a);
+
+  //............................................................................
+  // NSinc
   py::class_<NSincPolynomialKernel<Dimension>> nsincPB11(m, ("NSincPolynomialKernel" + suffix).c_str());
+  genericKernelBindings<Dimension, NSincPolynomialKernel<Dimension>>(m, suffix, nsincPB11);
+  nsincPB11.def(py::init<int>(), "order"_a);
+
+  //............................................................................
+  // NBSpline
   py::class_<NBSplineKernel<Dimension>> nbsplinePB11(m, ("NBSplineKernel" + suffix).c_str());
+  genericKernelBindings<Dimension, NBSplineKernel<Dimension>>(m, suffix, nbsplinePB11);
+  nbsplinePB11
+    .def(py::init<int>(), "order"_a)
+    .def("factorial", &NBSplineKernel<Dimension>::factorial)
+    .def("binomialCoefficient", &NBSplineKernel<Dimension>::binomialCoefficient)
+    .def("oneSidedPowerFunction", &NBSplineKernel<Dimension>::oneSidedPowerFunction)
+    .def_property("order", &NBSplineKernel<Dimension>::order, &NBSplineKernel<Dimension>::setOrder)
+    ;
+
+  //............................................................................
+  // QuarticSpline
   py::class_<QuarticSplineKernel<Dimension>> quarticsplinePB11(m, ("QuarticSplineKernel" + suffix).c_str());
+  genericKernelBindings<Dimension, QuarticSplineKernel<Dimension>>(m, suffix, quarticsplinePB11);
+  quarticsplinePB11.def(py::init<>());
+
+  //............................................................................
+  // QuinticSpline
   py::class_<QuinticSplineKernel<Dimension>> quinticsplinePB11(m, ("QuinticSplineKernel" + suffix).c_str());
+  genericKernelBindings<Dimension, QuinticSplineKernel<Dimension>>(m, suffix, quinticsplinePB11);
+  quinticsplinePB11.def(py::init<>());
+
+  //............................................................................
+  // WendlandC2
   py::class_<WendlandC2Kernel<Dimension>> wc2PB11(m, ("WendlandC2Kernel" + suffix).c_str());
+  genericKernelBindings<Dimension, WendlandC2Kernel<Dimension>>(m, suffix, wc2PB11);
+  wc2PB11.def(py::init<>());
+
+  //............................................................................
+  // WendlandC4
   py::class_<WendlandC4Kernel<Dimension>> wc4PB11(m, ("WendlandC4Kernel" + suffix).c_str());
+  genericKernelBindings<Dimension, WendlandC4Kernel<Dimension>>(m, suffix, wc4PB11);
+  wc4PB11.def(py::init<>());
+
+  //............................................................................
+  // WendlandC6
   py::class_<WendlandC6Kernel<Dimension>> wc6PB11(m, ("WendlandC6Kernel" + suffix).c_str());
+  genericKernelBindings<Dimension, WendlandC6Kernel<Dimension>>(m, suffix, wc6PB11);
+  wc6PB11.def(py::init<>());
+
+  //............................................................................
+  // ExpInv
   py::class_<ExpInvKernel<Dimension>> expinvPB11(m, ("ExpInvKernel" + suffix).c_str());
+  genericKernelBindings<Dimension, ExpInvKernel<Dimension>>(m, suffix, expinvPB11);
+  expinvPB11.def(py::init<>());
+
+  //............................................................................
+  // TableKernel
   py::class_<TableKernel<Dimension>> tablePB11(m, ("TableKernel" + suffix).c_str());
+  genericKernelBindings<Dimension, TableKernel<Dimension>>(m, suffix, tablePB11);
+  tablePB11
 
-  //
+    // Constructors
+    .def(py::init<BSplineKernel<Dimension>, int, double>(), "kernel"_a, "numPoints"_a=1000, "hmult"_a=1.0)
+    .def(py::init<W4SplineKernel<Dimension>, int, double>(), "kernel"_a, "numPoints"_a=1000, "hmult"_a=1.0)
+    .def(py::init<GaussianKernel<Dimension>, int, double>(), "kernel"_a, "numPoints"_a=1000, "hmult"_a=1.0)
+    .def(py::init<SuperGaussianKernel<Dimension>, int, double>(), "kernel"_a, "numPoints"_a=1000, "hmult"_a=1.0)
+    .def(py::init<PiGaussianKernel<Dimension>, int, double>(), "kernel"_a, "numPoints"_a=1000, "hmult"_a=1.0)
+    .def(py::init<HatKernel<Dimension>, int, double>(), "kernel"_a, "numPoints"_a=1000, "hmult"_a=1.0)
+    .def(py::init<SincKernel<Dimension>, int, double>(), "kernel"_a, "numPoints"_a=1000, "hmult"_a=1.0)
+    .def(py::init<NSincPolynomialKernel<Dimension>, int, double>(), "kernel"_a, "numPoints"_a=1000, "hmult"_a=1.0)
+    .def(py::init<QuarticSplineKernel<Dimension>, int, double>(), "kernel"_a, "numPoints"_a=1000, "hmult"_a=1.0)
+    .def(py::init<QuinticSplineKernel<Dimension>, int, double>(), "kernel"_a, "numPoints"_a=1000, "hmult"_a=1.0)
+    .def(py::init<NBSplineKernel<Dimension>, int, double>(), "kernel"_a, "numPoints"_a=1000, "hmult"_a=1.0)
+    .def(py::init<WendlandC2Kernel<Dimension>, int, double>(), "kernel"_a, "numPoints"_a=1000, "hmult"_a=1.0)
+    .def(py::init<WendlandC4Kernel<Dimension>, int, double>(), "kernel"_a, "numPoints"_a=1000, "hmult"_a=1.0)
+    .def(py::init<WendlandC6Kernel<Dimension>, int, double>(), "kernel"_a, "numPoints"_a=1000, "hmult"_a=1.0)
 
+    // Methods
+    .def("kernelAndGradValue", &TableKernel<Dimension>::kernelAndGradValue)
+    .def("kernelAndGradValues", &TableKernel<Dimension>::kernelAndGradValues)
+    .def("equivalentNodesPerSmoothingScale", &TableKernel<Dimension>::equivalentNodesPerSmoothingScale)
+    .def("equivalentWsum", &TableKernel<Dimension>::equivalentWsum)
+    .def("f1", &TableKernel<Dimension>::f1)
+    .def("f2", &TableKernel<Dimension>::f2)
+    .def("gradf1", &TableKernel<Dimension>::gradf1)
+    .def("gradf2", &TableKernel<Dimension>::gradf2)
+    .def("f1Andf2", &TableKernel<Dimension>::f1Andf2)
+    .def("lowerBound", &TableKernel<Dimension>::lowerBound)
+    .def("valid", &TableKernel<Dimension>::valid)
+
+    // Attributes
+    .def_property_readonly("nperhValues", &TableKernel<Dimension>::nperhValues)
+    .def_property_readonly("WsumValues", &TableKernel<Dimension>::WsumValues)
+    .def_property_readonly("numPoints", &TableKernel<Dimension>::numPoints)
+    .def_property_readonly("stepSize", &TableKernel<Dimension>::stepSize)
+    .def_property_readonly("stepSizeInv", &TableKernel<Dimension>::stepSizeInv)
+    ;
 }
 
 } // anonymous
@@ -160,17 +249,21 @@ void dimensionBindings(py::module& m, const std::string suffix) {
 PYBIND11_PLUGIN(SpheralKernel) {
   py::module m("SpheralKernel", "Spheral Kernel module.");
 
+  // //............................................................................
+  // // imports
+  // py::object vector_of_double = (py::object) py::module::import("SpheralCXXTypes").attr("vector_of_double");
+
   //............................................................................
   // Per dimension bindings.
 #ifdef SPHERAL1D
   dimensionBindings<Spheral::Dim<1>>(m, "1d");
 #endif
-// #ifdef SPHERAL2D
-//   dimensionBindings<Spheral::Dim<2>>(m, "2d");
-// #endif
-// #ifdef SPHERAL3D
-//   dimensionBindings<Spheral::Dim<3>>(m, "3d");
-// #endif
+#ifdef SPHERAL2D
+  dimensionBindings<Spheral::Dim<2>>(m, "2d");
+#endif
+#ifdef SPHERAL3D
+  dimensionBindings<Spheral::Dim<3>>(m, "3d");
+#endif
 
   return m.ptr();
 }
