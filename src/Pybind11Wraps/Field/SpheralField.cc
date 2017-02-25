@@ -22,7 +22,7 @@ namespace {  // anonymous
 //------------------------------------------------------------------------------
 // Bind methods to Field objects.
 //------------------------------------------------------------------------------
-template<typename Dimension, typename FieldObj, typename PB11Obj>
+template<typename Dimension, typename Obj, typename PB11Obj>
 void fieldBindings(py::module& m, const std::string suffix, PB11Obj& obj) {
 
   using Spheral::NodeSpace::NodeList;
@@ -31,45 +31,45 @@ void fieldBindings(py::module& m, const std::string suffix, PB11Obj& obj) {
 
     // Constructors
     .def(py::init<std::string>(), "name"_a)
-    .def(py::init<std::string, const FieldObj&>(), "name"_a, "field"_a)
+    .def(py::init<std::string, const Obj&>(), "name"_a, "field"_a)
     .def(py::init<std::string, const NodeList<Dimension>&>(), "name"_a, "nodeList"_a)
-    .def(py::init<std::string, const NodeList<Dimension>&, typename FieldObj::value_type>(), "name"_a, "nodeList"_a, "value"_a)
-    .def(py::init<const FieldObj&>(), "field"_a)
+    .def(py::init<std::string, const NodeList<Dimension>&, typename Obj::value_type>(), "name"_a, "nodeList"_a, "value"_a)
+    .def(py::init<const Obj&>(), "field"_a)
 
     // Methods
-    .def("Zero", &FieldObj::Zero)
-    .def("valid", &FieldObj::valid)
-    .def("internalValues", &FieldObj::internalValues)
-    .def("ghostValues", &FieldObj::ghostValues)
-    .def("allValues", &FieldObj::allValues)
+    .def("Zero", &Obj::Zero)
+    .def("valid", &Obj::valid)
+    .def("internalValues", &Obj::internalValues)
+    .def("ghostValues", &Obj::ghostValues)
+    .def("allValues", &Obj::allValues)
 
     // Comparisons
     .def(py::self == py::self)
     .def(py::self != py::self)
     
     // Sequence operations
-    .def("__getitem__", [](const FieldObj &s, size_t i) {
+    .def("__getitem__", [](const Obj &s, size_t i) {
         if (i >= s.size()) throw py::index_error();
         return s[i];
       })
-    .def("__setitem__", [](FieldObj &s, size_t i, typename FieldObj::value_type& v) {
+    .def("__setitem__", [](Obj &s, size_t i, typename Obj::value_type& v) {
         if (i >= s.size()) throw py::index_error();
         s[i] = v;
       })
-    .def("__len__", [](const FieldObj& self) { return self.size(); })
-    .def("__iter__", [](const FieldObj &s) { return py::make_iterator(s.begin(), s.end()); },
+    .def("__len__", [](const Obj& self) { return self.size(); })
+    .def("__iter__", [](const Obj &s) { return py::make_iterator(s.begin(), s.end()); },
          py::keep_alive<0, 1>() /* Essential: keep object alive while iterator exists */)
-    .def("__contains__", [](const FieldObj& self, const typename FieldObj::value_type& val) { for (const auto& elem: self) { if (elem == val) return true; } return false; })
+    .def("__contains__", [](const Obj& self, const typename Obj::value_type& val) { for (const auto& elem: self) { if (elem == val) return true; } return false; })
 
     // We like in index with operator()
-    .def("__call__", (typename FieldObj::value_type& (FieldObj::*)(int)) &FieldObj::operator(), py::is_operator(), py::return_value_policy::reference_internal)
+    .def("__call__", (typename Obj::value_type& (Obj::*)(int)) &Obj::operator(), py::is_operator(), py::return_value_policy::reference_internal)
 
     // FieldBase methods, since we currently don't expose the FieldBase to python.
-    .def("size", &FieldObj::size)
+    .def("size", &Obj::size)
   
     // Attributes
-    .def_property_readonly("numElements", &FieldObj::numElements)
-    .def_property_readonly("numInternalElements", &FieldObj::numInternalElements)
+    .def_property_readonly("numElements", &Obj::numElements)
+    .def_property_readonly("numInternalElements", &Obj::numInternalElements)
 
     ;
 }
@@ -78,29 +78,133 @@ void fieldBindings(py::module& m, const std::string suffix, PB11Obj& obj) {
 // Bind numeric methods to Field objects, since only some Fields support such
 // operations.
 //------------------------------------------------------------------------------
-template<typename Dimension, typename FieldObj, typename PB11Obj>
+template<typename Dimension, typename Obj, typename PB11Obj>
 void fieldNumericBindings(py::module& m, const std::string suffix, PB11Obj& obj) {
 
   obj
-    .def("applyMin", &FieldObj::applyMin)
-    .def("applyMax", &FieldObj::applyMax)
-    .def("sumElements", &FieldObj::sumElements)
-    .def("min", &FieldObj::min)
-    .def("max", &FieldObj::max)
-    .def("localSumElements", &FieldObj::localSumElements)
-    .def("localMin", &FieldObj::localMin)
-    .def("localMax", &FieldObj::localMax)
-    .def("string", (std::string (FieldObj::*)(const int) const) &FieldObj::string, "precision"_a=20)
-    .def("string", (void (FieldObj::*)(const std::string&)) &FieldObj::string)
+    .def("applyMin", &Obj::applyMin)
+    .def("applyMax", &Obj::applyMax)
+    .def("sumElements", &Obj::sumElements)
+    .def("min", &Obj::min)
+    .def("max", &Obj::max)
+    .def("localSumElements", &Obj::localSumElements)
+    .def("localMin", &Obj::localMin)
+    .def("localMax", &Obj::localMax)
+    .def("string", (std::string (Obj::*)(const int) const) &Obj::string, "precision"_a=20)
+    .def("string", (void (Obj::*)(const std::string&)) &Obj::string)
     
     .def(py::self + py::self)
     .def(py::self - py::self)
     .def(py::self += py::self)
     .def(py::self -= py::self)
-    .def(py::self + typename FieldObj::value_type())
-    .def(py::self - typename FieldObj::value_type())
-    .def(py::self += typename FieldObj::value_type())
-    .def(py::self -= typename FieldObj::value_type())
+    .def(py::self + typename Obj::value_type())
+    .def(py::self - typename Obj::value_type())
+    .def(py::self += typename Obj::value_type())
+    .def(py::self -= typename Obj::value_type())
+
+    .def(py::self *= float())
+    .def(py::self /= float())
+    .def(py::self *= double())
+    .def(py::self /= double())
+
+    .def(py::self <  py::self)
+    .def(py::self >  py::self)
+    .def(py::self <= py::self)
+    .def(py::self >= py::self)
+
+    ;
+}
+
+//------------------------------------------------------------------------------
+// Bind methods to FieldList objects.
+//------------------------------------------------------------------------------
+template<typename Dimension, typename Obj, typename PB11Obj>
+void fieldlistBindings(py::module& m, const std::string suffix, PB11Obj& obj) {
+
+  typedef typename Dimension::Scalar Scalar;
+  typedef typename Dimension::Vector Vector;
+  typedef typename Dimension::Tensor Tensor;
+  typedef typename Dimension::SymTensor SymTensor;
+
+  using Spheral::NodeSpace::NodeList;
+
+  obj
+
+    // Constructors
+    .def(py::init<>())
+    .def(py::init<FieldStorageType>(), "aStorageType"_a)
+
+    // Methods
+    .def("copyFields", &Obj::copyFields)
+    .def("haveField", &Obj::haveField)
+    .def("haveNodeList", &Obj::haveNodeList)
+    .def("assignFields", &Obj::assignFields)
+    .def("appendField", &Obj::appendField)
+    .def("deleteField", &Obj::deleteField)
+    .def("appendNewField", &Obj::appendNewField)
+    .def("setMasterNodeLists", (void (Obj::*)(const Vector&, const SymTensor&) const) &Obj::setMasterNodeLists)
+    .def("setMasterNodeLists", (void (Obj::*)(const Vector&) const) &Obj::setMasterNodeLists)
+    .def("setRefineNodeLists", (void (Obj::*)(const Vector&, const SymTensor&) const) &Obj::setRefineNodeLists)
+    .def("setRefineNodeLists", (void (Obj::*)(const Vector&) const) &Obj::setRefineNodeLists)
+    .def("Zero", &Obj::Zero)
+    .def("nodeListPtrs", &Obj::nodeListPtrs)
+    .def("fieldForNodeList", [](const Obj& self, const NodeList<Dimension>& x) { return *(self.fieldForNodeList(x)); })
+
+    // Comparisons
+    .def(py::self == py::self)
+    .def(py::self != py::self)
+    
+    // Sequence operations
+    .def("__getitem__", [](const Obj &s, size_t i) {
+        if (i >= s.size()) throw py::index_error();
+        return s[i];
+      })
+    .def("__setitem__", [](Obj &s, size_t i, typename Obj::value_type v) {
+        if (i >= s.size()) throw py::index_error();
+        *(s.begin() + i) = v;
+      })
+    .def("__len__", [](const Obj& self) { return self.size(); })
+    .def("__iter__", [](const Obj &s) { return py::make_iterator(s.begin(), s.end()); },
+         py::keep_alive<0, 1>() /* Essential: keep object alive while iterator exists */)
+    .def("__contains__", [](const Obj& self, const typename Obj::value_type& val) { for (const auto& elem: self) { if (elem == val) return true; } return false; })
+
+    // We like in index with operator()
+    .def("__call__", (typename Obj::FieldDataType& (Obj::*)(unsigned, unsigned)) &Obj::operator(), py::is_operator(), py::return_value_policy::reference_internal)
+
+    // FieldBase methods, since we currently don't expose the FieldBase to python.
+    .def("size", &Obj::size)
+  
+    // Attributes
+    .def_property_readonly("storageType", &Obj::storageType)
+    .def_property_readonly("numFields", &Obj::numFields)
+    .def_property_readonly("numNodes", &Obj::numNodes)
+    .def_property_readonly("numInternalNodes", &Obj::numInternalNodes)
+    .def_property_readonly("numGhostNodes", &Obj::numGhostNodes)
+
+    ;
+}
+
+//------------------------------------------------------------------------------
+// Bind numeric methods to FieldList objects, since only some Fields support such
+// operations.
+//------------------------------------------------------------------------------
+template<typename Dimension, typename Obj, typename PB11Obj>
+void fieldlistNumericBindings(py::module& m, const std::string suffix, PB11Obj& obj) {
+
+  obj
+    .def("applyMin", &Obj::applyMin)
+    .def("applyMax", &Obj::applyMax)
+    .def("sumElements", &Obj::sumElements)
+    .def("min", &Obj::min)
+    .def("max", &Obj::max)
+    .def("localSumElements", &Obj::localSumElements)
+    .def("localMin", &Obj::localMin)
+    .def("localMax", &Obj::localMax)
+    
+    .def(py::self +  py::self)
+    .def(py::self -  py::self)
+    .def(py::self += py::self)
+    .def(py::self -= py::self)
 
     .def(py::self *= float())
     .def(py::self /= float())
@@ -179,18 +283,82 @@ void dimensionBindings(py::module& m, const std::string suffix) {
   fieldBindings<Dimension, Field<Dimension, std::vector<SymTensor>>>(m, suffix, vectorsymtensorfieldPB11);
 
   //............................................................................
+  // numeric FieldLists
+  py::class_<FieldList<Dimension, int>> intfieldlistPB11(m, ("IntFieldList" + suffix).c_str());
+  py::class_<FieldList<Dimension, uint64_t>> ullfieldlistPB11(m, ("ULLFieldList" + suffix).c_str());
+  py::class_<FieldList<Dimension, Scalar>> scalarfieldlistPB11(m, ("ScalarFieldList" + suffix).c_str());
+  py::class_<FieldList<Dimension, Vector>> vectorfieldlistPB11(m, ("VectorFieldList" + suffix).c_str());
+  py::class_<FieldList<Dimension, Tensor>> tensorfieldlistPB11(m, ("TensorFieldList" + suffix).c_str());
+  py::class_<FieldList<Dimension, SymTensor>> symtensorfieldlistPB11(m, ("SymTensorFieldList" + suffix).c_str());
+  py::class_<FieldList<Dimension, ThirdRankTensor>> thirdranktensorfieldlistPB11(m, ("ThirdRankTensorFieldList" + suffix).c_str());
+  py::class_<FieldList<Dimension, FourthRankTensor>> fourthranktensorfieldlistPB11(m, ("FourthRankTensorFieldList" + suffix).c_str());
+  py::class_<FieldList<Dimension, FifthRankTensor>> fifthranktensorfieldlistPB11(m, ("FifthRankTensorFieldList" + suffix).c_str());
+
+  fieldlistBindings<Dimension, FieldList<Dimension, int>>(m, suffix, intfieldlistPB11);
+  fieldlistBindings<Dimension, FieldList<Dimension, uint64_t>>(m, suffix, ullfieldlistPB11);
+  fieldlistBindings<Dimension, FieldList<Dimension, Scalar>>(m, suffix, scalarfieldlistPB11);
+  fieldlistBindings<Dimension, FieldList<Dimension, Vector>>(m, suffix, vectorfieldlistPB11);
+  fieldlistBindings<Dimension, FieldList<Dimension, Tensor>>(m, suffix, tensorfieldlistPB11);
+  fieldlistBindings<Dimension, FieldList<Dimension, SymTensor>>(m, suffix, symtensorfieldlistPB11);
+  fieldlistBindings<Dimension, FieldList<Dimension, ThirdRankTensor>>(m, suffix, thirdranktensorfieldlistPB11);
+  fieldlistBindings<Dimension, FieldList<Dimension, FourthRankTensor>>(m, suffix, fourthranktensorfieldlistPB11);
+  fieldlistBindings<Dimension, FieldList<Dimension, FifthRankTensor>>(m, suffix, fifthranktensorfieldlistPB11);
+
+  fieldlistNumericBindings<Dimension, FieldList<Dimension, int>>(m, suffix, intfieldlistPB11);
+  fieldlistNumericBindings<Dimension, FieldList<Dimension, uint64_t>>(m, suffix, ullfieldlistPB11);
+  fieldlistNumericBindings<Dimension, FieldList<Dimension, Scalar>>(m, suffix, scalarfieldlistPB11);
+  fieldlistNumericBindings<Dimension, FieldList<Dimension, Vector>>(m, suffix, vectorfieldlistPB11);
+  fieldlistNumericBindings<Dimension, FieldList<Dimension, Tensor>>(m, suffix, tensorfieldlistPB11);
+  fieldlistNumericBindings<Dimension, FieldList<Dimension, SymTensor>>(m, suffix, symtensorfieldlistPB11);
+  fieldlistNumericBindings<Dimension, FieldList<Dimension, ThirdRankTensor>>(m, suffix, thirdranktensorfieldlistPB11);
+  fieldlistNumericBindings<Dimension, FieldList<Dimension, FourthRankTensor>>(m, suffix, fourthranktensorfieldlistPB11);
+  fieldlistNumericBindings<Dimension, FieldList<Dimension, FifthRankTensor>>(m, suffix, fifthranktensorfieldlistPB11);
+
+  //............................................................................
+  // non-numeric Fields
+  py::class_<FieldList<Dimension, FacetedVolume>> facetedvolumefieldlistPB11(m, ("FacetedVolumeField" + suffix).c_str());
+  py::class_<FieldList<Dimension, std::vector<Scalar>>> vectorscalarfieldlistPB11(m, ("VectorScalarField" + suffix).c_str());
+  py::class_<FieldList<Dimension, std::vector<Vector>>> vectorvectorfieldlistPB11(m, ("VectorVectorField" + suffix).c_str());
+  py::class_<FieldList<Dimension, std::vector<Tensor>>> vectortensorfieldlistPB11(m, ("VectorTensorField" + suffix).c_str());
+  py::class_<FieldList<Dimension, std::vector<SymTensor>>> vectorsymtensorfieldlistPB11(m, ("VectorSymTensorField" + suffix).c_str());
+
+  fieldlistBindings<Dimension, FieldList<Dimension, FacetedVolume>>(m, suffix, facetedvolumefieldlistPB11);
+  fieldlistBindings<Dimension, FieldList<Dimension, std::vector<Scalar>>>(m, suffix, vectorscalarfieldlistPB11);
+  fieldlistBindings<Dimension, FieldList<Dimension, std::vector<Vector>>>(m, suffix, vectorvectorfieldlistPB11);
+  fieldlistBindings<Dimension, FieldList<Dimension, std::vector<Tensor>>>(m, suffix, vectortensorfieldlistPB11);
+  fieldlistBindings<Dimension, FieldList<Dimension, std::vector<SymTensor>>>(m, suffix, vectorsymtensorfieldlistPB11);
+
+  //............................................................................
+  // FieldListSet
+  py::class_<FieldListSet<Dimension>>(m, ("FieldListSet" + suffix).c_str())
+    
+    // Constructors
+    .def(py::init<>())
+
+    // Attributes
+    .def_readwrite("ScalarFieldLists", &FieldListSet<Dimension>::ScalarFieldLists)
+    .def_readwrite("VectorFieldLists", &FieldListSet<Dimension>::VectorFieldLists)
+    .def_readwrite("TensorFieldLists", &FieldListSet<Dimension>::TensorFieldLists)
+    .def_readwrite("SymTensorFieldLists", &FieldListSet<Dimension>::SymTensorFieldLists)
+    ;
+
+  //............................................................................
   // STL containers
-  // py::bind_vector<std::vector<NodeList<Dimension>*>>(m, "vector_of_NodeList" + suffix);
-  // py::bind_vector<std::vector<FluidNodeList<Dimension>*>>(m, "vector_of_FluidNodeList" + suffix);
+  py::bind_vector<std::vector<Field<Dimension, Scalar>>>(m, "vector_of_ScalarField" + suffix);
+  py::bind_vector<std::vector<Field<Dimension, Vector>>>(m, "vector_of_VectorField" + suffix);
+  py::bind_vector<std::vector<Field<Dimension, Tensor>>>(m, "vector_of_TensorField" + suffix);
+  py::bind_vector<std::vector<Field<Dimension, SymTensor>>>(m, "vector_of_SymTensorField" + suffix);
+  py::bind_vector<std::vector<Field<Dimension, ThirdRankTensor>>>(m, "vector_of_ThirdRankTensorField" + suffix);
+  py::bind_vector<std::vector<Field<Dimension, FourthRankTensor>>>(m, "vector_of_FourthRankTensorField" + suffix);
+  py::bind_vector<std::vector<Field<Dimension, FifthRankTensor>>>(m, "vector_of_FifthRankTensorField" + suffix);
 
-  // //............................................................................
-  // // Methods
-  // m.def("generateVoidNodes", &generateVoidNodes<Dimension>);
-  // m.def("zerothNodalMoment", &nthNodalMoment<Dimension, 0U>);
-  // m.def("firstNodalMoment", &nthNodalMoment<Dimension, 1>);
-  // m.def("secondNodalMoment", &nthNodalMoment<Dimension, 2U>);
-  // m.def("zerothAndFirstNodalMoments", &zerothAndFirstNodalMoments<Dimension>);
-
+  py::bind_vector<std::vector<Field<Dimension, Scalar>*>>(m, "vector_of_ScalarFieldPtr" + suffix);
+  py::bind_vector<std::vector<Field<Dimension, Vector>*>>(m, "vector_of_VectorFieldPtr" + suffix);
+  py::bind_vector<std::vector<Field<Dimension, Tensor>*>>(m, "vector_of_TensorFieldPtr" + suffix);
+  py::bind_vector<std::vector<Field<Dimension, SymTensor>*>>(m, "vector_of_SymTensorFieldPtr" + suffix);
+  py::bind_vector<std::vector<Field<Dimension, ThirdRankTensor>*>>(m, "vector_of_ThirdRankTensorFieldPtr" + suffix);
+  py::bind_vector<std::vector<Field<Dimension, FourthRankTensor>*>>(m, "vector_of_FourthRankTensorFieldPtr" + suffix);
+  py::bind_vector<std::vector<Field<Dimension, FifthRankTensor>*>>(m, "vector_of_FifthRankTensorFieldPtr" + suffix);
 }
 
 } // anonymous
@@ -213,12 +381,12 @@ PYBIND11_PLUGIN(SpheralField) {
 #ifdef SPHERAL1D
   dimensionBindings<Spheral::Dim<1>>(m, "1d");
 #endif
-// #ifdef SPHERAL2D
-//   dimensionBindings<Spheral::Dim<2>>(m, "2d");
-// #endif
-// #ifdef SPHERAL3D
-//   dimensionBindings<Spheral::Dim<3>>(m, "3d");
-// #endif
+#ifdef SPHERAL2D
+  dimensionBindings<Spheral::Dim<2>>(m, "2d");
+#endif
+#ifdef SPHERAL3D
+  dimensionBindings<Spheral::Dim<3>>(m, "3d");
+#endif
 
   return m.ptr();
 }
