@@ -160,10 +160,11 @@ public:
 };
 
 //------------------------------------------------------------------------------
-// PySmoothingScaleBase
+// PySmoothingScale
+// Common methods for SmoothingScaleBase, SPHSmoothingScale, & ASPHSmoothingScale
 //------------------------------------------------------------------------------
 template<typename Dimension, class SSBase>
-class PySmoothingScaleBase: public SSBase {
+class PySmoothingScale: public SSBase {
 public:
   using SSBase::SSBase;  // inherit constructors
 
@@ -271,6 +272,52 @@ zerothAndFirstNodalMoments(const std::vector<NodeList<Dimension>*>& nodeLists,
 }
 
 namespace {  // anonymous
+
+//------------------------------------------------------------------------------
+// Bind methods to Smoothing scale objects.
+//------------------------------------------------------------------------------
+template<typename Dimension, typename SSObj, typename PB11Obj>
+void smoothingScaleObjectBindings(py::module& m, const std::string suffix, PB11Obj& obj) {
+
+  typedef typename Dimension::Scalar Scalar;
+  typedef typename Dimension::Vector Vector;
+  typedef typename Dimension::Tensor Tensor;
+  typedef typename Dimension::SymTensor SymTensor;
+
+  obj
+
+    // Constructors
+    .def(py::init<>())
+
+    // Methods
+    .def("newSmoothingScaleAndDerivative", &SSObj::newSmoothingScaleAndDerivative)
+
+    // Virtual methods
+    .def("smoothingScaleDerivative", &SSObj::smoothingScaleDerivative)
+    .def("newSmoothingScale", &SSObj::newSmoothingScale)
+    .def("idealSmoothingScale",
+         (SymTensor (SSObj::*)(const SymTensor&,
+                               const Vector&,
+                               const Scalar,
+                               const SymTensor&,
+                               const Spheral::KernelSpace::TableKernel<Dimension>&,
+                               const Scalar,
+                               const Scalar,
+                               const Scalar,
+                               const Scalar,
+                               const Spheral::NeighborSpace::ConnectivityMap<Dimension>&,
+                               const unsigned,
+                               const unsigned) const) &SSObj::idealSmoothingScale)
+    .def("idealSmoothingScale",
+         (SymTensor (SSObj::*)(const SymTensor&,
+                               const Spheral::MeshSpace::Mesh<Dimension>&,
+                               const typename Spheral::MeshSpace::Mesh<Dimension>::Zone&,
+                               const Scalar,
+                               const Scalar,
+                               const Scalar,
+                               const Scalar) const) &SSObj::idealSmoothingScale)
+    ;
+}
 
 //------------------------------------------------------------------------------
 // Per dimension bindings.
@@ -434,39 +481,40 @@ void dimensionBindings(py::module& m, const std::string suffix) {
   //............................................................................
   // SmoothingScaleBase
   py::class_<SmoothingScaleBase<Dimension>,
-             PySmoothingScaleBase<Dimension, SmoothingScaleBase<Dimension>>>(m, ("SmoothingScaleBase" + suffix).c_str())
+             PySmoothingScale<Dimension, SmoothingScaleBase<Dimension>>> SmoothingScaleBasePB11(m, ("SmoothingScaleBase" + suffix).c_str());
+  smoothingScaleObjectBindings<Dimension, SmoothingScaleBase<Dimension>>(m, suffix, SmoothingScaleBasePB11);
 
-    // Constructors
-    .def(py::init<>())
+  //............................................................................
+  // FixedSmoothingScale
+  py::class_<FixedSmoothingScale<Dimension>, SmoothingScaleBase<Dimension>, 
+             PySmoothingScale<Dimension, FixedSmoothingScale<Dimension>>> FixedSmoothingScalePB11(m, ("FixedSmoothingScale" + suffix).c_str());
+  smoothingScaleObjectBindings<Dimension, FixedSmoothingScale<Dimension>>(m, suffix, FixedSmoothingScalePB11);
 
-    // Methods
-    .def("newSmoothingScaleAndDerivative", &SmoothingScaleBase<Dimension>::newSmoothingScaleAndDerivative)
+  //............................................................................
+  // SPHSmoothingScale
+  py::class_<SPHSmoothingScale<Dimension>, SmoothingScaleBase<Dimension>, 
+             PySmoothingScale<Dimension, SPHSmoothingScale<Dimension>>> SPHSmoothingScalePB11(m, ("SPHSmoothingScale" + suffix).c_str());
+  smoothingScaleObjectBindings<Dimension, SPHSmoothingScale<Dimension>>(m, suffix, SPHSmoothingScalePB11);
 
-    // Virtual methods
-    .def("smoothingScaleDerivative", &SmoothingScaleBase<Dimension>::smoothingScaleDerivative)
-    .def("newSmoothingScale", &SmoothingScaleBase<Dimension>::newSmoothingScale)
-    .def("idealSmoothingScale",
-         (SymTensor (SmoothingScaleBase<Dimension>::*)(const SymTensor&,
-                                                       const Vector&,
-                                                       const Scalar,
-                                                       const SymTensor&,
-                                                       const Spheral::KernelSpace::TableKernel<Dimension>&,
-                                                       const Scalar,
-                                                       const Scalar,
-                                                       const Scalar,
-                                                       const Scalar,
-                                                       const Spheral::NeighborSpace::ConnectivityMap<Dimension>&,
-                                                       const unsigned,
-                                                       const unsigned) const) &SmoothingScaleBase<Dimension>::idealSmoothingScale)
-    .def("idealSmoothingScale",
-         (SymTensor (SmoothingScaleBase<Dimension>::*)(const SymTensor&,
-                                                       const Spheral::MeshSpace::Mesh<Dimension>&,
-                                                       const typename Spheral::MeshSpace::Mesh<Dimension>::Zone&,
-                                                       const Scalar,
-                                                       const Scalar,
-                                                       const Scalar,
-                                                       const Scalar) const) &SmoothingScaleBase<Dimension>::idealSmoothingScale)
-    ;
+  //............................................................................
+  // ASPHSmoothingScale
+  py::class_<ASPHSmoothingScale<Dimension>, SmoothingScaleBase<Dimension>, 
+             PySmoothingScale<Dimension, ASPHSmoothingScale<Dimension>>> ASPHSmoothingScalePB11(m, ("ASPHSmoothingScale" + suffix).c_str());
+  smoothingScaleObjectBindings<Dimension, ASPHSmoothingScale<Dimension>>(m, suffix, ASPHSmoothingScalePB11);
+
+  //............................................................................
+  // STL containers
+  py::bind_vector<std::vector<NodeList<Dimension>*>>(m, "vector_of_NodeList" + suffix);
+  py::bind_vector<std::vector<FluidNodeList<Dimension>*>>(m, "vector_of_FluidNodeList" + suffix);
+
+  //............................................................................
+  // Methods
+  m.def("generateVoidNodes", &generateVoidNodes<Dimension>);
+  m.def("zerothNodalMoment", &nthNodalMoment<Dimension, 0U>);
+  m.def("firstNodalMoment", &nthNodalMoment<Dimension, 1>);
+  m.def("secondNodalMoment", &nthNodalMoment<Dimension, 2U>);
+  m.def("zerothAndFirstNodalMoments", &zerothAndFirstNodalMoments<Dimension>);
+
 }
 
 } // anonymous
@@ -488,6 +536,12 @@ PYBIND11_PLUGIN(SpheralNodeList) {
   // Per dimension bindings.
 #ifdef SPHERAL1D
   dimensionBindings<Spheral::Dim<1>>(m, "1d");
+#endif
+#ifdef SPHERAL2D
+  dimensionBindings<Spheral::Dim<2>>(m, "2d");
+#endif
+#ifdef SPHERAL3D
+  dimensionBindings<Spheral::Dim<3>>(m, "3d");
 #endif
 
   return m.ptr();
