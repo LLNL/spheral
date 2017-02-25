@@ -268,6 +268,12 @@ void dimensionBindings(py::module& m, const std::string suffix) {
   fieldNumericBindings<Dimension, Field<Dimension, FourthRankTensor>>(m, suffix, fourthranktensorfieldPB11);
   fieldNumericBindings<Dimension, Field<Dimension, FifthRankTensor>>(m, suffix, fifthranktensorfieldPB11);
 
+  // A couple of extra methods for SymTensor Fields.
+  symtensorfieldPB11
+    .def("applyScalarMin", &Field<Dimension, SymTensor>::applyScalarMin)
+    .def("applyScalarMax", &Field<Dimension, SymTensor>::applyScalarMax)
+    ;
+
   //............................................................................
   // non-numeric Fields
   py::class_<Field<Dimension, FacetedVolume>> facetedvolumefieldPB11(m, ("FacetedVolumeField" + suffix).c_str());
@@ -313,6 +319,12 @@ void dimensionBindings(py::module& m, const std::string suffix) {
   fieldlistNumericBindings<Dimension, FieldList<Dimension, ThirdRankTensor>>(m, suffix, thirdranktensorfieldlistPB11);
   fieldlistNumericBindings<Dimension, FieldList<Dimension, FourthRankTensor>>(m, suffix, fourthranktensorfieldlistPB11);
   fieldlistNumericBindings<Dimension, FieldList<Dimension, FifthRankTensor>>(m, suffix, fifthranktensorfieldlistPB11);
+
+  // A couple of extra methods for SymTensor FieldLists.
+  symtensorfieldlistPB11
+    .def("applyScalarMin", &FieldList<Dimension, SymTensor>::applyScalarMin)
+    .def("applyScalarMax", &FieldList<Dimension, SymTensor>::applyScalarMax)
+    ;
 
   //............................................................................
   // non-numeric Fields
