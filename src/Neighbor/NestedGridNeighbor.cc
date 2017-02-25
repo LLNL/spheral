@@ -334,18 +334,18 @@ setMasterList(const GeomPlane<Dimension>& enterPlane,
 
           // Add the nodes affecting these grid cells (if we haven't already 
           // done so.)
-          const vector<int> neighborIndicies = findNestedNeighbors(warpGridCellMin,
+          const vector<int> neighborIndices = findNestedNeighbors(warpGridCellMin,
                                                                    gridLevelID);
           {
-            for (vector<int>::const_iterator idItr = neighborIndicies.begin();
-                 idItr < neighborIndicies.end();
+            for (vector<int>::const_iterator idItr = neighborIndices.begin();
+                 idItr < neighborIndices.end();
                  ++idItr) coarseNeighborList.push_back(*idItr);
           }
           {
-            const vector<int> neighborIndicies = findNestedNeighbors(warpGridCellMax,
+            const vector<int> neighborIndices = findNestedNeighbors(warpGridCellMax,
                                                                      gridLevelID);
-            for (vector<int>::const_iterator idItr = neighborIndicies.begin();
-                 idItr < neighborIndicies.end();
+            for (vector<int>::const_iterator idItr = neighborIndices.begin();
+                 idItr < neighborIndices.end();
                  ++idItr) coarseNeighborList.push_back(*idItr);
           }
 
@@ -396,17 +396,17 @@ setMasterList(const GeomPlane<Dimension>& enterPlane,
           // For each grid cell in this range, add it's node to the master 
           // lists.
           {
-            const vector<int> neighborIndicies = findNestedNeighbors(warpGridCellMin,
+            const vector<int> neighborIndices = findNestedNeighbors(warpGridCellMin,
                                                                      gridLevelID);
-            for (vector<int>::const_iterator idItr = neighborIndicies.begin();
-                 idItr < neighborIndicies.end();
+            for (vector<int>::const_iterator idItr = neighborIndices.begin();
+                 idItr < neighborIndices.end();
                  ++idItr) masterNodeList.push_back(*idItr);
           }
           {
-            const vector<int> neighborIndicies = findNestedNeighbors(warpGridCellMax,
+            const vector<int> neighborIndices = findNestedNeighbors(warpGridCellMax,
                                                                      gridLevelID);
-            for (vector<int>::const_iterator idItr = neighborIndicies.begin();
-                 idItr < neighborIndicies.end();
+            for (vector<int>::const_iterator idItr = neighborIndices.begin();
+                 idItr < neighborIndices.end();
                  ++idItr) masterNodeList.push_back(*idItr);
           }
 	}
@@ -496,7 +496,7 @@ NestedGridNeighbor<Dimension>::
 findNestedNeighbors(const GridCellIndex<Dimension>& gridCell, 
 		    int gridLevel) const {
 
-  // Vector of node indicies which we're going to build up.
+  // Vector of node indices which we're going to build up.
   vector<int> result;
 
   // The grid cell range for the base grid level.
@@ -833,7 +833,7 @@ NestedGridNeighbor<Dimension>::valid() const {
 //     }
 //     for (int i = 0; i != nodes.numNodes(); ++i) {
 //       if (nodeIDs[i] != i) {
-//         cerr << "NestedGridNeighbor::valid : oct tree node indicies wrong?" << endl;
+//         cerr << "NestedGridNeighbor::valid : oct tree node indices wrong?" << endl;
 //         return false;
 //       }
 //     }
