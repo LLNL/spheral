@@ -43,9 +43,9 @@ CRKSPHKernel(const KernelSpace::TableKernel<Dimension>& W,
   // const Scalar Wij = (etai.magnitude2() < etaj.magnitude2() ?
   //                     W(etai.magnitude(), Hdeti) :
   //                     W(etaj.magnitude(), Hdetj));
-  if (correctionOrder == ZerothOrder) {
+  if (correctionOrder == CRKOrder::ZerothOrder) {
     return Ai*Wij;
-  } else if(correctionOrder == LinearOrder) {
+  } else if(correctionOrder == CRKOrder::LinearOrder) {
     return Ai*(1.0 + Bi.dot(rij))*Wij;
   } else {   //correctionOrder == QuadraticOrder
     return Ai*(1.0 + Bi.dot(rij) + Geometry::innerDoubleProduct<Dimension>(Ci, rij.selfdyad()))*Wij;
@@ -114,10 +114,10 @@ CRKSPHKernelAndGradient(const KernelSpace::TableKernel<Dimension>& W,
   //   gradWSPH = WWj.second;
   // }
 
-  if (correctionOrder == ZerothOrder) {
+  if (correctionOrder == CRKOrder::ZerothOrder) {
     WCRKSPH = Ai*Wij;
     gradWCRKSPH = Ai*gradWij + gradAi*Wij;
-  } else if(correctionOrder == LinearOrder) {
+  } else if(correctionOrder == CRKOrder::LinearOrder) {
     WCRKSPH = Ai*(1.0 + Bi.dot(rij))*Wij;
     gradWCRKSPH = Ai*(1.0 + Bi.dot(rij))*gradWij + Ai*Bi*Wij + gradAi*(1.0 + Bi.dot(rij))*Wij;
     for (size_t ii = 0; ii != Dimension::nDim; ++ii) {
@@ -125,7 +125,7 @@ CRKSPHKernelAndGradient(const KernelSpace::TableKernel<Dimension>& W,
         gradWCRKSPH(ii) += Ai*Wij*gradBi(jj,ii)*rij(jj);
       }
     }
-  } else {  //correctionOrder == QuadraticOrder
+  } else {  //correctionOrder == CRKOrder::QuadraticOrder
     WCRKSPH = Ai*(1.0 + Bi.dot(rij) + Geometry::innerDoubleProduct<Dimension>(Ci, rij.selfdyad()))*Wij;
     gradWCRKSPH = Ai*(1.0 + Bi.dot(rij) + Geometry::innerDoubleProduct<Dimension>(Ci, rij.selfdyad()))*gradWij + Ai*Bi*Wij;
     gradWCRKSPH += gradAi*(1.0 + Bi.dot(rij) + Geometry::innerDoubleProduct<Dimension>(Ci, rij.selfdyad()))*Wij;
