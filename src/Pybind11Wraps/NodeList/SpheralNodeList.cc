@@ -528,8 +528,8 @@ PYBIND11_PLUGIN(SpheralNodeList) {
   //............................................................................
   // NodeType
   py::enum_<Spheral::NodeSpace::NodeType>(m, "NodeType")
-    .value("InternalNode", Spheral::NodeSpace::InternalNode)
-    .value("GhostNode", Spheral::NodeSpace::GhostNode)
+    .value("InternalNode", Spheral::NodeSpace::NodeType::InternalNode)
+    .value("GhostNode", Spheral::NodeSpace::NodeType::GhostNode)
     .export_values();
 
   //............................................................................
