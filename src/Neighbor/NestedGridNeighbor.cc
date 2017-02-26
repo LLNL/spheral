@@ -514,9 +514,9 @@ findNestedNeighbors(const GridCellIndex<Dimension>& gridCell,
       // Find the range of grid cells on this grid level that overlap
       // this gridcells potential neighbor influence.
       translateGridCellRange(baseMin, baseMax, gridLevel, currentGridLevel, targetMin, targetMax);
-      const int radius = (searchType == GatherScatter ? mGridCellInfluenceRadius * intpow2(max(0, currentGridLevel - gridLevel)) :
-			  searchType == Gather ?        mGridCellInfluenceRadius / intpow2(max(0, gridLevel - currentGridLevel)) + 1 :
-                                                        mGridCellInfluenceRadius);
+      const int radius = (searchType == NeighborSearchType::GatherScatter ? mGridCellInfluenceRadius * intpow2(max(0, currentGridLevel - gridLevel)) :
+			  searchType == NeighborSearchType::Gather ?        mGridCellInfluenceRadius / intpow2(max(0, gridLevel - currentGridLevel)) + 1 :
+                                                                            mGridCellInfluenceRadius);
       targetMin -= radius;
       targetMax += radius;
       CHECK(targetMin <= targetMax);

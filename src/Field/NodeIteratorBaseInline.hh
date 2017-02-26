@@ -158,7 +158,7 @@ inline
 bool
 NodeIteratorBase<Dimension>::
 internalNode() const {
-  return nodeListPtr()->nodeType(nodeID()) == NodeSpace::InternalNode;
+  return nodeListPtr()->nodeType(nodeID()) == NodeSpace::NodeType::InternalNode;
 }
 
 //------------------------------------------------------------------------------
@@ -169,7 +169,7 @@ inline
 bool
 NodeIteratorBase<Dimension>::
 ghostNode() const {
-  return nodeListPtr()->nodeType(nodeID()) == NodeSpace::GhostNode;
+  return nodeListPtr()->nodeType(nodeID()) == NodeSpace::NodeType::GhostNode;
 }
 
 //------------------------------------------------------------------------------
