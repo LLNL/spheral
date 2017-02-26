@@ -20,7 +20,7 @@ namespace Spheral {
 namespace Spheral {
 namespace Material {
 
-enum MaterialPressureMinType {
+enum class MaterialPressureMinType {
   PressureFloor = 0,
   ZeroPressure = 1,
 };

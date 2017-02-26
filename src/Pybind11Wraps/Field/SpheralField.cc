@@ -384,8 +384,8 @@ PYBIND11_PLUGIN(SpheralField) {
   //............................................................................
   // FieldStorageType
   py::enum_<Spheral::FieldSpace::FieldStorageType>(m, "FieldStorageType")
-    .value("Reference", Spheral::FieldSpace::Reference)
-    .value("Copyo", Spheral::FieldSpace::Copy)
+    .value("Reference", Spheral::FieldSpace::FieldStorageType::Reference)
+    .value("Copyo", Spheral::FieldSpace::FieldStorageType::Copy)
     .export_values();
 
   //............................................................................
