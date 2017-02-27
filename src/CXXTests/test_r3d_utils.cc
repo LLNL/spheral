@@ -40,7 +40,7 @@ r2d_poly construct_H_r2d() {
                               {1,3}, 
                               {0,3}};
   const unsigned nv0 = verts0.size();
-  r2d_poly poly2d;
+  r2d_poly poly2d = r2d_init_empty_poly();
   r2d_init_poly(&poly2d, &verts0[0], nv0);
   CHECK(r2d_is_good(&poly2d));
   return poly2d;
@@ -76,7 +76,6 @@ Dim<2>::FacetedVolume construct_H_polygon() {
 //------------------------------------------------------------------------------
 // Return a saw-tooth (polygon).
 //------------------------------------------------------------------------------
-
 Dim<2>::FacetedVolume construct_saw_polygon() {
     typedef Dim<2>::Vector Vector;
     typedef Dim<2>::FacetedVolume FacetedVolume;
@@ -122,7 +121,7 @@ r3d_poly construct_pyramid_r3d() {
   r3d_int nvertsperface[nfaces] = {  // Array of number of vertices per face.
     4, 3, 3, 3, 3
   };
-  r3d_poly pyramid3d;
+  r3d_poly pyramid3d = r3d_init_empty_poly();
   r3d_init_poly(&pyramid3d, &verts[0], nverts, facesp, nvertsperface, nfaces);
   CHECK(r3d_is_good(&pyramid3d));
   r3d_real vol0;
@@ -208,7 +207,7 @@ r3d_poly construct_icosahedron_r3d() {
     {-t,  0,  -1},
     {-t,  0,   1}
   };
-  r3d_poly ico3d;
+  r3d_poly ico3d = r3d_init_empty_poly();
   r3d_init_poly(&ico3d, &verts[0], nverts, facesp, nvertsperface, nfaces);
   CHECK(r3d_is_good(&ico3d));
   return ico3d;
@@ -289,6 +288,7 @@ std::string test_polygon_to_r2d_poly() {
   if (not fuzzyEqual(area, 7.0, 1.0e-10)) return "ERROR: area mismatch: " + to_string(area) + " != 7.0";
 
   // Must be OK.
+  r2d_free_poly(&poly2d);
   return "OK";
 }
     
@@ -311,6 +311,7 @@ std::string test_r2d_poly_to_polygon() {
   if (not fuzzyEqual(polygon.volume(), 7.0, 1.0e-10)) return "ERROR: area mismatch: " + to_string(polygon.volume()) + " != 7.0";
 
   // Must be OK.
+  r2d_free_poly(&poly2d);
   return "OK";
 }
 
@@ -336,13 +337,17 @@ std::string test_polyhedron_to_r3d_poly() {
     CHECK(fuzzyEqual(cube0.volume(), 1.0, 1.0e-10));
 
     // Convert to a r3d_poly.
-    r3d_poly cube3d;
+    r3d_poly cube3d = r3d_init_empty_poly();
     polyhedron_to_r3d_poly(cube0, cube3d);
 
     // Is it correct?
-    if (not r3d_is_good(&cube3d)) return "ERROR: r3d_is_good fails for cube";
+    if (not r3d_is_good(&cube3d)) {
+      r3d_free_poly(&cube3d);
+      return "ERROR: r3d_is_good fails for cube";
+    }
     r3d_real vol;
     r3d_reduce(&cube3d, &vol, 0);
+    r3d_free_poly(&cube3d);
     if (not fuzzyEqual(vol, 1.0, 1.0e-10)) return "ERROR: volume mismatch for cube: " + to_string(vol) + " != 1.0";
   }
 
@@ -353,7 +358,14 @@ std::string test_polyhedron_to_r3d_poly() {
     polyhedron_to_r3d_poly(pyramid, pyramid3d);
 
     // Is it correct?
-    if (not fuzzyEqual(pyramid.volume(), 1.0/3.0, 1.0e-10)) return "ERROR: volume mismatch for pyramid: " + to_string(pyramid.volume()) + " != 1.0/3.0";
+    if (not r3d_is_good(&pyramid3d)) {
+      r3d_free_poly(&pyramid3d);
+      return "ERROR: r3d_is_good fails for cube";
+    }
+    r3d_real vol;
+    r3d_reduce(&pyramid3d, &vol, 0);
+    r3d_free_poly(&pyramid3d);
+    if (not fuzzyEqual(vol, 1.0/3.0, 1.0e-10)) return "ERROR: volume mismatch for pyramid: " + to_string(vol) + " != 1.0/3.0";
   }
 
   // Icosahedron test.
@@ -361,14 +373,18 @@ std::string test_polyhedron_to_r3d_poly() {
     const FacetedVolume ico0 = construct_icosahedron_polyhedron();
 
     // Convert to a r3d_poly.
-    r3d_poly ico3d;
+    r3d_poly ico3d = r3d_init_empty_poly();
     polyhedron_to_r3d_poly(ico0, ico3d);
 
     // Is it correct?
-    if (not r3d_is_good(&ico3d)) return "ERROR: r3d_is_good fails for icosahedron";
+    if (not r3d_is_good(&ico3d)) {
+      r3d_free_poly(&ico3d);
+      return "ERROR: r3d_is_good fails for icosahedron";
+    }
     const double vol0 = ico0.volume();
     r3d_real vol;
     r3d_reduce(&ico3d, &vol, 0);
+    r3d_free_poly(&ico3d);
     if (not fuzzyEqual(vol, vol0, 1.0e-10)) return "ERROR: volume mismatch for icosahedron: " + to_string(vol) + " != " + to_string(vol0);
   }
 
@@ -388,7 +404,7 @@ std::string test_r3d_poly_to_polyhedron() {
   {
     vector<r3d_rvec3> vertices0 = {{0, 0, 0}, 
                                    {1, 1, 1}};
-    r3d_poly cube3d;
+    r3d_poly cube3d = r3d_init_empty_poly();
     r3d_init_box(&cube3d, &vertices0[0]);
     CHECK(r3d_is_good(&cube3d));
     r3d_real vol0;
@@ -397,6 +413,7 @@ std::string test_r3d_poly_to_polyhedron() {
 
     FacetedVolume cube;
     r3d_poly_to_polyhedron(cube3d, 1.0e-8, cube);
+    r3d_free_poly(&cube3d);
 
     // Is it correct?
     if (not fuzzyEqual(cube.volume(), 1.0, 1.0e-10)) return "ERROR: volume mismatch for cube: " + to_string(cube.volume()) + " != 1.0";
@@ -409,10 +426,14 @@ std::string test_r3d_poly_to_polyhedron() {
     r3d_poly_to_polyhedron(pyramid3d, 1.0e-8, pyramid);
 
     // Is it correct?
-    if (not r3d_is_good(&pyramid3d)) return "ERROR: r3d_is_good fails for pyramid";
+    if (not r3d_is_good(&pyramid3d)) {
+      r3d_free_poly(&pyramid3d);
+      return "ERROR: r3d_is_good fails for pyramid";
+    }
     const double vol0 = pyramid.volume();
     r3d_real vol;
     r3d_reduce(&pyramid3d, &vol, 0);
+    r3d_free_poly(&pyramid3d);
     if (not fuzzyEqual(vol, vol0, 1.0e-10)) return "ERROR: volume mismatch for pyramid: " + to_string(vol) + " != " + to_string(vol0);
   }
 
@@ -427,6 +448,7 @@ std::string test_r3d_poly_to_polyhedron() {
     // Is it correct?
     r3d_real vol0;
     r3d_reduce(&ico3d, &vol0, 0);
+    r3d_free_poly(&ico3d);
     if (not fuzzyEqual(ico.volume(), vol0, 1.0e-10)) return "ERROR: volume mismatch for icosahedron: " + to_string(ico.volume()) + " != " + to_string(vol0);
   }
 
