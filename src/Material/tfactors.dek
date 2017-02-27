@@ -1,0 +1,38 @@
+
+! common block for popular temperature factors in the
+! nuclear reaction rates
+
+      double precision t9,t92,t93,t94,t95,t96,t912,t932,t952,t972,t913, &
+                       t923,t943,t953,t973,t9113,t914,t934,t954,t974, &
+                       t915,t935,t945,t965,t917,t927,t947,t918,t938, &
+                       t958,t9i,t9i2,t9i3,t9i12,t9i32,t9i52,t9i72,t9i13, &
+                       t9i23,t9i43,t9i53,t9i14,t9i34,t9i54,t9i15,t9i35, &
+                       t9i45,t9i65,t9i17,t9i27,t9i47,t9i18,t9i38,t9i58, &
+                       t916,t976,t9i76
+
+      common /tfactc1/ t9,t92,t93,t94,t95,t96,t912,t932,t952,t972,t913, &
+                       t923,t943,t953,t973,t9113,t914,t934,t954,t974, &
+                       t915,t935,t945,t965,t917,t927,t947,t918,t938, &
+                       t958,t9i,t9i2,t9i3,t9i12,t9i32,t9i52,t9i72,t9i13, &
+                       t9i23,t9i43,t9i53,t9i14,t9i34,t9i54,t9i15,t9i35, &
+                       t9i45,t9i65,t9i17,t9i27,t9i47,t9i18,t9i38,t9i58, &
+                       t916,t976,t9i76
+
+
+      double precision  oneth,twoth,fourth,fiveth,elvnth,fivfour,onesix, &
+                        fivsix,sevsix,onefif,sixfif,onesev,twosev, &
+                        foursev
+      parameter        (oneth   = 1.0d0/3.0d0, &
+                        twoth   = 2.0d0/3.0d0, &
+                        fourth  = 4.0d0/3.0d0, &
+                        fiveth  = 5.0d0/3.0d0, &
+                        elvnth  = 11.0d0/3.0d0, &
+                        fivfour = 1.25d0, &
+                        onesix  = 1.0d0/6.0d0, &
+                        fivsix  = 5.0d0/6.0d0, &
+                        sevsix  = 7.0d0/6.0d0, &
+                        onefif  = 0.2d0, &
+                        sixfif  = 1.2d0, &
+                        onesev  = 1.0d0/7.0d0, &
+                        twosev  = 2.0d0/7.0d0, &
+                        foursev = 4.0d0/7.0d0)
