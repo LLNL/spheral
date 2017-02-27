@@ -178,6 +178,7 @@ void dimensionBindings(py::module& m, const std::string suffix) {
   typedef typename Dimension::Vector Vector;
   typedef typename Dimension::Tensor Tensor;
   typedef typename Dimension::SymTensor SymTensor;
+  typedef Spheral::GeomPlane<Dimension> Plane;
   using Spheral::NodeSpace::NodeList;
 
   //............................................................................
@@ -272,6 +273,30 @@ void dimensionBindings(py::module& m, const std::string suffix) {
 
     // Methods
     .def("nodeExtentField", &NT::nodeExtentField)
+    .def("nodeList", (const NodeList<Dimension>& (NT::*)() const) &NT::nodeList)
+    .def("nodeList", (void (NT::*)(NodeList<Dimension>&)) &NT::nodeList)
+    .def("unregisterNodeList", &NT::unregisterNodeList)
+    .def("nodeExtent", &NT::nodeExtent)
+    .def("setNodeExtents", (void (NT::*)()) &NT::setNodeExtents)
+    .def("setNodeExtents", (void (NT::*)(const std::vector<int>&)) &NT::setNodeExtents)
+    .def("setInternalNodeExtents", &NT::setInternalNodeExtents)
+    .def("setGhostNodeExtents", &NT::setGhostNodeExtents)
+    .def("precullList", &NT::precullList)
+    .def("precullForLocalNodeList", &NT::precullForLocalNodeList)
+    .def_static("HExtent", (Vector (NT::*)(const Scalar&, const double)) &NT::HExtent, "H"_a, "kernelExtent"_a)
+    // .def_static("HExtent", (Vector (NT::*)(const SymTensor&, const double)) &NT::HExtent, "H"_a, "kernelExtent"_a)
+
+    // Virtual methods
+    .def("setMasterList", (void (NT::*)(int)) &NT::setMasterList, "nodeID"_a)
+    .def("setMasterList", (void (NT::*)(const Vector&, const Scalar&)) &NT::setMasterList, "position"_a, "h"_a)
+    .def("setMasterList", (void (NT::*)(const Vector&, const SymTensor&)) &NT::setMasterList, "position"_a, "H"_a)
+    .def("setMasterList", (void (NT::*)(const Vector&)) &NT::setMasterList, "position"_a)
+    .def("setMasterList", (void (NT::*)(const Plane&, const Plane&)) &NT::setMasterList, "enterPlane"_a, "exitPlane"_a)
+    .def("setRefineNeighborList", (void (NT::*)(int)) &NT::setRefineNeighborList, "nodeID"_a)
+    .def("setRefineNeighborList", (void (NT::*)(const Vector&, const Scalar&)) &NT::setRefineNeighborList, "position"_a, "h"_a)
+    .def("setRefineNeighborList", (void (NT::*)(const Vector&, const SymTensor&)) &NT::setRefineNeighborList, "position"_a, "H"_a)
+    .def("setRefineNeighborList", (void (NT::*)(const Vector&)) &NT::setRefineNeighborList, "position"_a)
+    .def("valid", &NT::valid)
 
     ;
 
