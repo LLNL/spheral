@@ -313,6 +313,49 @@ void dimensionBindings(py::module& m, const std::string suffix) {
     .def_property_readonly("refineNeighborList", &NT::refineNeighborList)
     ;
 
+  //............................................................................
+  // NestedGridNeighbor
+  typedef NestedGridNeighbor<Dimension> NGT;
+  py::class_<NGT, NT, PyNeighbor<Dimension, NGT>> nestedgridneighborPB11(m, ("NestedGridNeighbor" + suffix).c_str());
+  virtualNeighborBindings<Dimension, NGT>(m, suffix, nestedgridneighborPB11);
+  nestedgridneighborPB11
+    
+    // Constructors
+    .def(py::init<NodeList<Dimension>&, const NeighborSearchType, int, double, Vector, double, int>(),
+         "nodeList"_a,
+         "searchType"_a = NeighborSearchType::GatherScatter,
+         "numGridLevels"_a = 31,
+         "topGridCellSize"_a = 100.0,
+         "origin"_a = Vector::zero,
+         "kernelExtent"_a = 2.0,
+         "gridCellInfluenceRadius"_a = 1)
+
+    // Methods
+    .def("gridLevel", (int (NGT::*)(int) const) &NGT::gridLevel)
+    .def("gridCellIndex", (GCI (NGT::*)(int, int) const) &NGT::gridCellIndex, "nodeID"_a, "gridLevel"_a)
+    .def("gridCellIndex", (GCI (NGT::*)(const Vector&, int) const) &NGT::gridCellIndex, "position"_a, "gridLevel"_a)
+    .def("translateGridCellRange", &NGT::translateGridCellRange)
+    .def("cellOccupied", &NGT::cellOccupied)
+    .def("occupiedGridCells", (const std::vector<std::vector<GCI>>& (NGT::*)() const) &NGT::occupiedGridCells)
+    .def("occupiedGridCells", (const std::vector<GCI>& (NGT::*)(const int) const) &NGT::occupiedGridCells, "gridLevelID")
+    .def("headOfGridCell", &NGT::headOfGridCell)
+    .def("nextNodeInCell", &NGT::nextNodeInCell, "nodeID"_a)
+    .def("internalNodesInCell", &NGT::internalNodesInCell)
+    .def("nodesInCell", &NGT::nodesInCell)
+    .def("appendNodesInCell", &NGT::appendNodesInCell)
+    .def("occupiedGridCellsInRange", &NGT::occupiedGridCellsInRange)
+    .def("gridNormal", &NGT::gridNormal)
+    .def("mapGridCell", &NGT::mapGridCell)
+    .def("setNestedMasterList", (void (NGT::*)(const GCI&, const int)) &NGT::setNestedMasterList, "gridCell"_a, "gridLevel"_a)
+    .def("findNestedNeighbors", &NGT::findNestedNeighbors)
+
+    // Attributes
+    .def_property("numGridLevels",
+                  (int (NGT::*)() const) &NGT::numGridLevels,
+                  (void (NGT::*)(int)) &NGT::numGridLevels)
+
+    ;
+
 }
 
 } // anonymous
