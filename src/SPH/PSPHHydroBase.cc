@@ -110,8 +110,8 @@ PSPHHydroBase(const SmoothingScaleBase<Dimension>& smoothingScaleMethod,
                           xmin,
                           xmax),
   mHopkinsConductivity(HopkinsConductivity),
-  mGamma(FieldSpace::Copy),
-  mPSPHcorrection(FieldSpace::Copy) {
+  mGamma(FieldSpace::FieldStorageType::Copy),
+  mPSPHcorrection(FieldSpace::FieldStorageType::Copy) {
 }
 
 //------------------------------------------------------------------------------
@@ -192,7 +192,7 @@ preStepInitialize(const DataBase<Dimension>& dataBase,
   FieldList<Dimension, Scalar> cs = state.fields(HydroFieldNames::soundSpeed, 0.0);
   FieldList<Dimension, Scalar> PSPHcorrection = state.fields(HydroFieldNames::PSPHcorrection, 0.0);
   computePSPHCorrections(connectivityMap, W, mass, position, specificThermalEnergy, gamma, H, 
-                         (this->mDensityUpdate != PhysicsSpace::IntegrateDensity),
+                         (this->mDensityUpdate != PhysicsSpace::MassDensityType::IntegrateDensity),
                          rho, P, cs, PSPHcorrection);
   for (ConstBoundaryIterator boundItr = this->boundaryBegin();
        boundItr != this->boundaryEnd();
@@ -237,7 +237,7 @@ postStateUpdate(const DataBase<Dimension>& dataBase,
   FieldList<Dimension, Scalar> cs = state.fields(HydroFieldNames::soundSpeed, 0.0);
   FieldList<Dimension, Scalar> PSPHcorrection = state.fields(HydroFieldNames::PSPHcorrection, 0.0);
   computePSPHCorrections(connectivityMap, W, mass, position, specificThermalEnergy, gamma, H,
-                         (this->mDensityUpdate != PhysicsSpace::IntegrateDensity),
+                         (this->mDensityUpdate != PhysicsSpace::MassDensityType::IntegrateDensity),
                          rho, P, cs, PSPHcorrection);
   for (ConstBoundaryIterator boundItr = this->boundaryBegin();
        boundItr != this->boundaryEnd();
