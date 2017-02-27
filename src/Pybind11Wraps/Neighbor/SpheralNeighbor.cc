@@ -283,8 +283,8 @@ void dimensionBindings(py::module& m, const std::string suffix) {
     .def("setGhostNodeExtents", &NT::setGhostNodeExtents)
     .def("precullList", &NT::precullList)
     .def("precullForLocalNodeList", &NT::precullForLocalNodeList)
-    .def_static("HExtent", (Vector (NT::*)(const Scalar&, const double)) &NT::HExtent, "H"_a, "kernelExtent"_a)
-    // .def_static("HExtent", (Vector (NT::*)(const SymTensor&, const double)) &NT::HExtent, "H"_a, "kernelExtent"_a)
+    .def_static("HExtent", (Vector (*)(const Scalar&, const double)) &NT::HExtent) //, "H"_a, "kernelExtent"_a)
+    .def_static("HExtent", (Vector (*)(const SymTensor&, const double)) &NT::HExtent, "H"_a, "kernelExtent"_a)
 
     // Virtual methods
     .def("setMasterList", (void (NT::*)(int)) &NT::setMasterList, "nodeID"_a)
@@ -298,6 +298,19 @@ void dimensionBindings(py::module& m, const std::string suffix) {
     .def("setRefineNeighborList", (void (NT::*)(const Vector&)) &NT::setRefineNeighborList, "position"_a)
     .def("valid", &NT::valid)
 
+    // Attributes
+    .def_property("neighborSearchType",
+                  (NeighborSearchType (NT::*)() const) &NT::neighborSearchType,
+                  (void (NT::*)(NeighborSearchType)) &NT::neighborSearchType)
+    .def_property("kernelExtent",
+                  (double (NT::*)() const) &NT::kernelExtent,
+                  (void (NT::*)(double)) &NT::kernelExtent)
+    .def_property_readonly("numMaster", &NT::numMaster)
+    .def_property_readonly("numCoarse", &NT::numCoarse)
+    .def_property_readonly("numRefine", &NT::numRefine)
+    .def_property_readonly("masterList", &NT::masterList)
+    .def_property_readonly("coarseNeighborList", &NT::coarseNeighborList)
+    .def_property_readonly("refineNeighborList", &NT::refineNeighborList)
     ;
 
 }
