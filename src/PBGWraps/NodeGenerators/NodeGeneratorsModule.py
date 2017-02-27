@@ -106,11 +106,14 @@ class NodeGenerators:
         if 3 in self.dims:
             subdims.append(3)
         for ndim in subdims:
+            dim = "Spheral::Dim<%i>" % ndim
             poly = "Spheral::" + {2 : "Polygon", 3 : "Polyhedron"}[ndim]
+            vector_of_facetedvolume = "vector_of_FacetedVolume%id" % ndim
             vector = "Vector%id" % ndim
             database = "Spheral::DataBaseSpace::DataBase%id" % ndim
             boundary = "Spheral::BoundarySpace::Boundary%id" % ndim
             vector_of_boundary = "vector_of_Boundary%id" % ndim
+            vector_of_Vector = "vector_of_Vector%id" % ndim
             tablekernel = "Spheral::KernelSpace::TableKernel%id" % ndim
             smoothingscalebase = "Spheral::NodeSpace::SmoothingScaleBase%id" % ndim
             weightingfunctor = "Spheral::WeightingFunctor%id" % ndim
@@ -127,6 +130,20 @@ class NodeGenerators:
                                   param("int", "maxIterations", default_value="100"),
                                   param("double", "tolerance", default_value="1.0e-4")],
                                  docstring = "Iteratively relax a set of nodes within a boundary.")
+
+            Spheral.add_function("compactFacetedVolumes", "unsigned int",
+                                 [refparam(vector_of_facetedvolume, "shapes"),
+                                  refparam(vector_of_Vector, "centers"),
+                                  refparam("vector_of_int", "flags"),
+                                  constrefparam(poly, "surface"),
+                                  param("double", "depthmax"),
+                                  param("unsigned int", "surfaceIterations"),
+                                  param("unsigned int", "maxIterations"),
+                                  param("double", "dispfrac"),
+                                  param("double", "maxoverlapfrac")],
+                                 template_parameters = [dim],
+                                 custom_name = "compactFacetedVolumes%id" % ndim,
+                                 docstring = "Iteratively compact a set of shapes into surface polygon/polyhedron.")
 
         return
 

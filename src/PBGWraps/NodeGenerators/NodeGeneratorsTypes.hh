@@ -6,6 +6,7 @@
 #include "NodeGenerators/relaxNodeDistribution.hh"
 #include "NodeGenerators/readSiloPolyMesh.hh"
 #include "NodeGenerators/centroidalRelaxNodesImpl.hh"
+#include "NodeGenerators/compactFacetedVolumes.hh"
 #include "Geometry/Dimension.hh"
 
 namespace Spheral {

@@ -140,7 +140,6 @@ polygon_to_r2d_poly(const Dim<2>::FacetedVolume& poly, r2d_poly& result) {
   // We use the knowledge here that the polygon vertices are already in CCW order.
   const vector<Vector>& vertices = poly.vertices();
   const unsigned nverts = vertices.size();
-  CHECK(nverts <= R2D_MAX_VERTS);
   vector<r2d_rvec2> verts2d(nverts);
   for (unsigned i = 0; i != vertices.size(); ++i) {
     verts2d[i].x = vertices[i].x();
@@ -166,7 +165,6 @@ polyhedron_to_r3d_poly(const Dim<3>::FacetedVolume& poly, r3d_poly& result) {
   const auto& facetVertices = poly.facetVertices();
   auto nverts = vertices.size();
   auto nfacets = facetVertices.size();
-  CHECK(nverts <= R3D_MAX_VERTS);
 
   // First convert the vertices.
   vector<r3d_rvec3> verts3d(nverts);
@@ -451,7 +449,7 @@ Dim<2>::FacetedVolume clipFacetedVolume(const Dim<2>::FacetedVolume& poly,
   if (nplanes == 0) return poly;
 
   // Construct the R2D version of our polygon.
-  r2d_poly poly2d;
+  r2d_poly poly2d = r2d_init_empty_poly();
   polygon_to_r2d_poly(poly, poly2d);
 
   // Now the R2D planes.
@@ -473,6 +471,7 @@ Dim<2>::FacetedVolume clipFacetedVolume(const Dim<2>::FacetedVolume& poly,
   r2d_reduce(&poly2d, &area, 0);
   const double tol = 1.0e-10 * area;
   r2d_poly_to_polygon(poly2d, tol, result);
+  r2d_free_poly(&poly2d);
   return result;
 }
 
@@ -490,7 +489,7 @@ Dim<3>::FacetedVolume clipFacetedVolume(const Dim<3>::FacetedVolume& poly,
   if (nplanes == 0) return poly;
 
   // Construct the R3D version of our polyhedron.
-  r3d_poly poly3d;
+  r3d_poly poly3d = r3d_init_empty_poly();
   polyhedron_to_r3d_poly(poly, poly3d);
 
   // Now the R3D planes.
@@ -513,6 +512,7 @@ Dim<3>::FacetedVolume clipFacetedVolume(const Dim<3>::FacetedVolume& poly,
   r3d_reduce(&poly3d, &vol, 0);
   const double tol = 1.0e-10 * vol;
   r3d_poly_to_polyhedron(poly3d, tol, result);
+  r3d_free_poly(&poly3d);
   return result;
 }
 

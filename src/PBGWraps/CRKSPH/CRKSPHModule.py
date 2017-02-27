@@ -155,6 +155,22 @@ self.generateSolidCRKSPHHydroBaseBindings(self.SolidCRKSPHHydroBase%(dim)id, %(d
                                  refparam(vectorfieldlist, "deltaCentroid"),
                                  refparam(polyvolfieldlist, "cells")],
                                 docstring = "Compute the volume per point using a Voronoi tessellation.")
+                                
+        self.space.add_function("computeWeightedVoronoiVolume", None,
+                                [constrefparam(vectorfieldlist, "position"),
+                                 constrefparam(symtensorfieldlist, "H"),
+                                 constrefparam(scalarfieldlist, "rho"),
+                                 constrefparam(vectorfieldlist, "gradRho"),
+                                 constrefparam(connectivitymap, "connectivityMap"),
+                                 param("double", "kernelExtent"),
+                                 constrefparam(vector_of_FacetedVolume, "boundaries"),
+                                 constrefparam(vector_of_vector_of_FacetedVolume, "boundaries"),
+                                 constrefparam(scalarfieldlist, "weight"),
+                                 refparam(intfieldlist, "surfacePoint"),
+                                 refparam(scalarfieldlist, "vol"),
+                                 refparam(vectorfieldlist, "deltaCentroid"),
+                                 refparam(polyvolfieldlist, "cells")],
+                                docstring = "Compute the volume per point using a Weighted Voronoi tessellation.")
 
         self.space.add_function("computeCRKSPHSumVolume", None,
                                 [constrefparam(connectivitymap, "connectivityMap"),
