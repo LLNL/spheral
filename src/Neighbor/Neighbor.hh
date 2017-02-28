@@ -28,7 +28,7 @@ namespace Spheral {
 namespace Spheral {
 namespace NeighborSpace {
 
-enum NeighborSearchType {
+enum class NeighborSearchType {
   None = 0,
   Gather = 1,
   Scatter = 2,

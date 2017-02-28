@@ -137,17 +137,17 @@ gradDivVectorFieldListGolden2
             Vector gWij;
             Tensor g2Wij;
             switch((*fieldList.begin())->nodeListPtr()->neighbor().neighborSearchType()) {
-            case NeighborSpace::GatherScatter:
+            case NeighborSpace::NeighborSearchType::GatherScatter:
               gWij = 0.5*(gWi + gWj);
               g2Wij = 0.5*(g2Wi + g2Wj);
               break;
 
-            case NeighborSpace::Gather:
+            case NeighborSpace::NeighborSearchType::Gather:
               gWij = gWi;
               g2Wij = g2Wi;
               break;
 
-            case NeighborSpace::Scatter:
+            case NeighborSpace::NeighborSearchType::Scatter:
               gWij = gWj;
               g2Wij = g2Wj;
               break;
@@ -317,17 +317,17 @@ gradDivVectorFieldListGolden2
 //             Vector gWij;
 //             Tensor g2Wij;
 //             switch((*fieldList.begin())->nodeListPtr()->neighbor().neighborSearchType()) {
-//             case Neighbor<Dimension>::GatherScatter:
+//             case Neighbor<Dimension>::NeighborSearchType::GatherScatter:
 //               gWij = 0.5*(gWi + gWj);
 //               g2Wij = 0.5*(g2Wi + g2Wj);
 //               break;
 
-//             case Neighbor<Dimension>::Gather:
+//             case Neighbor<Dimension>::NeighborSearchType::Gather:
 //               gWij = gWi;
 //               g2Wij = g2Wi;
 //               break;
 
-//             case Neighbor<Dimension>::Scatter:
+//             case Neighbor<Dimension>::NeighborSearchType::Scatter:
 //               gWij = gWj;
 //               g2Wij = g2Wj;
 //               break;

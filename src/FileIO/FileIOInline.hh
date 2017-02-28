@@ -19,7 +19,7 @@ FileIO::write(const FieldSpace::FieldList<Dimension, DataType>& fieldList,
 
   // Is the FieldList responsible for it's own memory?  If so, we have to 
   // provide additional information so it can properly restore itself.
-  if (fieldList.storageType() == FieldSpace::Copy) {
+  if (fieldList.storageType() == FieldSpace::FieldStorageType::Copy) {
     if (fieldList.numFields() > 0) {
       std::stringstream names;
       for (typename FieldSpace::FieldList<Dimension, DataType>::const_iterator fieldItr = fieldList.begin();
@@ -61,7 +61,7 @@ FileIO::read(FieldSpace::FieldList<Dimension, DataType>& fieldList,
 
   // Is the FieldList responsible for it's own memory?  If so, we have to 
   // first make sure it has memory for each of the NodeLists it's defined against.
-  if (fieldList.storageType() == FieldSpace::Copy) {
+  if (fieldList.storageType() == FieldSpace::FieldStorageType::Copy) {
     // We need the NodeListRegistrar.
     const NodeListRegistrar<Dimension>& registrar = NodeListRegistrar<Dimension>::instance();
     const size_t numNodeLists = registrar.numNodeLists();

@@ -71,8 +71,14 @@ self.GenericBodyForce%(dim)id = addObject(space, "GenericBodyForce%(dim)id", all
 self.vector_of_Physics%(dim)id = addObject(mod, "vector_of_Physics%(dim)id", allow_subclassing=True)
 ''' % {"dim" : dim})
 
-        self.MassDensityType = space.add_enum("MassDensityType", ["SumDensity", "RigorousSumDensity", "HybridSumDensity", "IntegrateDensity", "VoronoiCellDensity", "SumVoronoiCellDensity", "CorrectedSumDensity"])
-        self.HEvolutionType = space.add_enum("HEvolutionType", ["IdealH", "IntegrateH"])
+        self.MassDensityType = space.add_enum("MassDensityType", ["MassDensityType::SumDensity",
+                                                                  "MassDensityType::RigorousSumDensity",
+                                                                  "MassDensityType::HybridSumDensity",
+                                                                  "MassDensityType::IntegrateDensity",
+                                                                  "MassDensityType::VoronoiCellDensity",
+                                                                  "MassDensityType::SumVoronoiCellDensity",
+                                                                  "MassDensityType::CorrectedSumDensity"])
+        self.HEvolutionType = space.add_enum("HEvolutionType", ["HEvolutionType::IdealH", "HEvolutionType::IntegrateH"])
 
         return
 

@@ -26,6 +26,9 @@ include $(BUILDTOP)/helpers/makefile_master
 # Include the python path.
 INCS += -I$(PYTHONROOT)/include/python$(PYTHONVERSION)
 
+# Need silo
+LIBS += -lsiloh5 -lhdf5 $(LDRPATH)
+
 # Postgres includes and libs -- should not be necessary.
 #EXTRAINCLUDES = -I/usr/include/postgresql/libpq++ -I/usr/include/postgresql
 #EXTRALIBS = -lpq++ -lpq

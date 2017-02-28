@@ -75,25 +75,25 @@ TaylorSPHHydroBase(const SmoothingScaleBase<Dimension>& smoothingScaleMethod,
   mHEvolution(HUpdate),
   mCompatibleEnergyEvolution(compatibleEnergyEvolution),
   mXSPH(XSPH),
-  mTimeStepMask(FieldSpace::Copy),
-  mPressure(FieldSpace::Copy),
-  mSoundSpeed(FieldSpace::Copy),
-  mSpecificThermalEnergy0(FieldSpace::Copy),
-  mHideal(FieldSpace::Copy),
-  mMaxViscousPressure(FieldSpace::Copy),
-  mWeightedNeighborSum(FieldSpace::Copy),
-  mMassSecondMoment(FieldSpace::Copy),
-  mXSPHWeightSum(FieldSpace::Copy),
-  mXSPHDeltaV(FieldSpace::Copy),
-  mDxDt(FieldSpace::Copy),
-  mDvDt(FieldSpace::Copy),
-  mDmassDensityDt(FieldSpace::Copy),
-  mDspecificThermalEnergyDt(FieldSpace::Copy),
-  mDHDt(FieldSpace::Copy),
-  mDvDx(FieldSpace::Copy),
-  mInternalDvDx(FieldSpace::Copy),
-  mPairAccelerations(FieldSpace::Copy),
-  mD(FieldSpace::Copy),
+  mTimeStepMask(FieldSpace::FieldStorageType::Copy),
+  mPressure(FieldSpace::FieldStorageType::Copy),
+  mSoundSpeed(FieldSpace::FieldStorageType::Copy),
+  mSpecificThermalEnergy0(FieldSpace::FieldStorageType::Copy),
+  mHideal(FieldSpace::FieldStorageType::Copy),
+  mMaxViscousPressure(FieldSpace::FieldStorageType::Copy),
+  mWeightedNeighborSum(FieldSpace::FieldStorageType::Copy),
+  mMassSecondMoment(FieldSpace::FieldStorageType::Copy),
+  mXSPHWeightSum(FieldSpace::FieldStorageType::Copy),
+  mXSPHDeltaV(FieldSpace::FieldStorageType::Copy),
+  mDxDt(FieldSpace::FieldStorageType::Copy),
+  mDvDt(FieldSpace::FieldStorageType::Copy),
+  mDmassDensityDt(FieldSpace::FieldStorageType::Copy),
+  mDspecificThermalEnergyDt(FieldSpace::FieldStorageType::Copy),
+  mDHDt(FieldSpace::FieldStorageType::Copy),
+  mDvDx(FieldSpace::FieldStorageType::Copy),
+  mInternalDvDx(FieldSpace::FieldStorageType::Copy),
+  mPairAccelerations(FieldSpace::FieldStorageType::Copy),
+  mD(FieldSpace::FieldStorageType::Copy),
   mRestart(DataOutput::registerWithRestart(*this)) {
 }
 
@@ -188,10 +188,10 @@ registerState(DataBase<Dimension>& dataBase,
                                                                       (*itr)->rhoMax()));
     const Scalar hmaxInv = 1.0/(*itr)->hmax();
     const Scalar hminInv = 1.0/(*itr)->hmin();
-    if (HEvolution() == PhysicsSpace::IntegrateH) {
+    if (HEvolution() == PhysicsSpace::HEvolutionType::IntegrateH) {
       Hpolicy->push_back(new IncrementBoundedState<Dimension, SymTensor, Scalar>(hmaxInv, hminInv));
     } else {
-      CHECK(HEvolution() == PhysicsSpace::IdealH);
+      CHECK(HEvolution() == PhysicsSpace::HEvolutionType::IdealH);
       Hpolicy->push_back(new ReplaceBoundedState<Dimension, SymTensor, Scalar>(hmaxInv, hminInv));
     }
   }
