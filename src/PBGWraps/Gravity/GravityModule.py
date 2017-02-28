@@ -38,7 +38,8 @@ self.NBodyGravity%(dim)id = addObject(space, "NBodyGravity%(dim)id", allow_subcl
         if 3 in self.dims:
             self.OctTreeGravity =  addObject(space, "OctTreeGravity", allow_subclassing=True, parent=genericbodyforce3d)
 
-        self.GravityTimeStepType = space.add_enum("GravityTimeStepType", ["GravityTimeStepType::AccelerationRatio", "GravityTimeStepType::DynamicalTime"])
+        self.GravityTimeStepType = space.add_enum("GravityTimeStepType", [("AccelerationRatio", "Spheral::GravitySpace::GravityTimeStepType::AccelerationRatio"),
+                                                                          ("DynamicalTime", "Spheral::GravitySpace::GravityTimeStepType::DynamicalTime")])
 
         return
 
