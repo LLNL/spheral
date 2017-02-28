@@ -276,21 +276,13 @@ initializeProblemStartup(DataBase<Dimension>& dataBase) {
   } else if (mVolumeType == CRKVolumeType::CRKVoronoiVolume) {
     mVolume.assignFields(mass/massDensity);
     FieldList<Dimension, typename Dimension::FacetedVolume> cells;
-<<<<<<< variant A
-    computeVoronoiVolume(position, H, massDensity, mMassDensityGradient, connectivityMap, W.kernelExtent(), vector<typename Dimension::FacetedVolume>(),  vector<vector<typename Dimension::FacetedVolume> >(), mSurfacePoint, mVolume, mDeltaCentroid, cells);
-  } else if (mVolumeType == CRKVolumeType::CRKHullVolume) {
->>>>>>> variant B
     computeVoronoiVolume(position, H, massDensity, mMassDensityGradient, connectivityMap, W.kernelExtent(), 
                          vector<typename Dimension::FacetedVolume>(),               // no boundaries
                          vector<vector<typename Dimension::FacetedVolume> >(),      // no holes
                          FieldList<Dimension, typename Dimension::Scalar>(),        // no weights
                          mSurfacePoint, mVolume, mDeltaCentroid, 
                          cells);                                                    // no return cells
-  } else if (mVolumeType == CRKHullVolume) {
-####### Ancestor
-    computeVoronoiVolume(position, H, massDensity, mMassDensityGradient, connectivityMap, W.kernelExtent(), vector<typename Dimension::FacetedVolume>(),  vector<vector<typename Dimension::FacetedVolume> >(), mSurfacePoint, mVolume, mDeltaCentroid, cells);
-  } else if (mVolumeType == CRKHullVolume) {
-======= end
+  } else if (mVolumeType == CRKVolumeType::CRKHullVolume) {
     computeHullVolumes(connectivityMap, W.kernelExtent(), position, H, mVolume);
   } else if (mVolumeType == CRKVolumeType::HVolume) {
     const Scalar nPerh = mVolume.nodeListPtrs()[0]->nodesPerSmoothingScale();
@@ -1181,6 +1173,7 @@ finalize(const typename Dimension::Scalar time,
   } else if (mVolumeType == CRKVolumeType::CRKSumVolume) {
     computeCRKSPHSumVolume(connectivityMap, W, position, mass, H, vol);
   } else if (mVolumeType == CRKVolumeType::CRKVoronoiVolume) {
+    FieldList<Dimension, typename Dimension::FacetedVolume> cells;
     computeVoronoiVolume(position, H, massDensity, gradRho, connectivityMap, W.kernelExtent(), 
                          vector<typename Dimension::FacetedVolume>(),                // no boundaries
                          vector<vector<typename Dimension::FacetedVolume> >(),       // no holes
