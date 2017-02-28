@@ -30,7 +30,7 @@ namespace Spheral {
             
             // Constructors
             ArtificialConduction(const KernelSpace::TableKernel<Dimension>& W,
-                                 const Scalar alphaArCond, const CRKSPHSpace::CRKOrder ACcorrectionOrder = CRKSPHSpace::LinearOrder);
+                                 const Scalar alphaArCond, const CRKSPHSpace::CRKOrder ACcorrectionOrder = CRKSPHSpace::CRKOrder::LinearOrder);
             
             // Destructor
             virtual ~ArtificialConduction();

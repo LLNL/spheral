@@ -23,7 +23,7 @@ ConnectivityMap(const NodeListIterator& begin,
   mOffsets(),
   mConnectivity(),
   mNodeTraversalIndices(),
-  mKeys(FieldSpace::Copy) {
+  mKeys(FieldSpace::FieldStorageType::Copy) {
 
   // The private method does the grunt work of filling in the connectivity once we have
   // established the set of NodeLists.

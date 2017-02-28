@@ -29,7 +29,7 @@ namespace Spheral {
 namespace PhysicsSpace {
 
 // Many hydro algorithms have these sorts of choices for the mass density and H.
-enum MassDensityType {
+enum class MassDensityType {
   SumDensity = 0,
   RigorousSumDensity = 1,
   HybridSumDensity = 2,
@@ -39,7 +39,7 @@ enum MassDensityType {
   CorrectedSumDensity = 6,
 };
 
-enum HEvolutionType {
+enum class HEvolutionType {
   IdealH = 0,
   IntegrateH = 1,
 };

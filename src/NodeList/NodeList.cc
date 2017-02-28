@@ -394,9 +394,9 @@ NodeType
 NodeList<Dimension>::nodeType(int i) const {
   CHECK(i >=0 && i < numNodes());
   if (i < firstGhostNode()) {
-    return InternalNode;
+    return NodeType::InternalNode;
   } else {
-    return GhostNode;
+    return NodeType::GhostNode;
   }
 }
 

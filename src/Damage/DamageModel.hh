@@ -42,7 +42,7 @@ namespace Spheral {
 namespace Spheral {
 namespace PhysicsSpace {
 
-enum EffectiveFlawAlgorithm {
+enum class EffectiveFlawAlgorithm {
   FullSpectrumFlaws = 0,
   MinFlaw = 1,
   MaxFlaw = 2,

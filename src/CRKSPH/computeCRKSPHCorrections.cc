@@ -490,12 +490,12 @@ computeCRKSPHCorrections(const ConnectivityMap<Dimension>& connectivityMap,
 
   // We can derive everything in terms of the zeroth, first, and second moments 
   // of the local positions.
-  FieldList<Dimension, Scalar> m0(FieldSpace::Copy), m0c(FieldSpace::Copy);
-  FieldList<Dimension, Vector> m1(FieldSpace::Copy), m1c(FieldSpace::Copy);
-  FieldList<Dimension, SymTensor> m2(FieldSpace::Copy), m2c(FieldSpace::Copy);
-  FieldList<Dimension, Vector> gradm0(FieldSpace::Copy), gradm0c(FieldSpace::Copy);
-  FieldList<Dimension, Tensor> gradm1(FieldSpace::Copy), gradm1c(FieldSpace::Copy);
-  FieldList<Dimension, ThirdRankTensor> gradm2(FieldSpace::Copy), gradm2c(FieldSpace::Copy);
+  FieldList<Dimension, Scalar> m0(FieldSpace::FieldStorageType::Copy), m0c(FieldSpace::FieldStorageType::Copy);
+  FieldList<Dimension, Vector> m1(FieldSpace::FieldStorageType::Copy), m1c(FieldSpace::FieldStorageType::Copy);
+  FieldList<Dimension, SymTensor> m2(FieldSpace::FieldStorageType::Copy), m2c(FieldSpace::FieldStorageType::Copy);
+  FieldList<Dimension, Vector> gradm0(FieldSpace::FieldStorageType::Copy), gradm0c(FieldSpace::FieldStorageType::Copy);
+  FieldList<Dimension, Tensor> gradm1(FieldSpace::FieldStorageType::Copy), gradm1c(FieldSpace::FieldStorageType::Copy);
+  FieldList<Dimension, ThirdRankTensor> gradm2(FieldSpace::FieldStorageType::Copy), gradm2c(FieldSpace::FieldStorageType::Copy);
   for (size_t nodeListi = 0; nodeListi != numNodeLists; ++nodeListi) {
     const NodeList<Dimension>& nodeList = A[nodeListi]->nodeList();
     m0.appendNewField("zeroth moment", nodeList, 0.0);
@@ -712,11 +712,11 @@ computeCRKSPHCorrections(const FieldSpace::FieldList<Dimension, typename Dimensi
                          FieldList<Dimension, typename Dimension::Vector>& gradA,
                          FieldList<Dimension, typename Dimension::Tensor>& gradB,
                          FieldList<Dimension, typename Dimension::ThirdRankTensor>& gradC) {
-  if(correctionOrder == ZerothOrder){
+  if(correctionOrder == CRKOrder::ZerothOrder){
     computeZerothCRKSPHCorrections(m0,gradm0,A,gradA);
-  }else if(correctionOrder == LinearOrder){
+  }else if(correctionOrder == CRKOrder::LinearOrder){
     computeLinearCRKSPHCorrections(m0,m1,m2,gradm0,gradm1,gradm2,H,A,B,gradA,gradB);
-  }else if(correctionOrder == QuadraticOrder){
+  }else if(correctionOrder == CRKOrder::QuadraticOrder){
     computeQuadraticCRKSPHCorrections(m0,m1,m2,m3,m4,gradm0,gradm1,gradm2,gradm3,gradm4,H,A,B,C,gradA,gradB,gradC);
   }
 }

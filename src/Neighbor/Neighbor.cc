@@ -260,7 +260,7 @@ precullList(const Vector& minMasterPosition, const Vector& maxMasterPosition,
   const Field<Dimension, Vector>& nodeExtents = nodeExtentField();
 
   // What kind of preculling we're doing determines the applied test.
-  if (neighborSearchType() == GatherScatter) {
+  if (neighborSearchType() == NeighborSearchType::GatherScatter) {
     
     // Gather-Scatter.
     for (typename vector<int>::const_iterator coarseItr = coarseList.begin();
@@ -281,7 +281,7 @@ precullList(const Vector& minMasterPosition, const Vector& maxMasterPosition,
       if (gatherTest or scatterTest) cullList.push_back(j);
     }
 
-  } else if (neighborSearchType() == Gather) {
+  } else if (neighborSearchType() == NeighborSearchType::Gather) {
 
     // Gather.
     for (typename vector<int>::const_iterator coarseItr = coarseList.begin();
@@ -299,7 +299,7 @@ precullList(const Vector& minMasterPosition, const Vector& maxMasterPosition,
   } else {
 
     // Scatter.
-    CHECK(neighborSearchType() == Scatter);
+    CHECK(neighborSearchType() == NeighborSearchType::Scatter);
     for (typename vector<int>::const_iterator coarseItr = coarseList.begin();
          coarseItr != coarseList.end();
          ++coarseItr) {
@@ -370,7 +370,7 @@ bool
 Neighbor<Dimension>::
 valid() const {
   return (kernelExtent() > 0.0 and
-          neighborSearchType() != None);
+          neighborSearchType() != NeighborSearchType::None);
 }
 
 // //------------------------------------------------------------------------------

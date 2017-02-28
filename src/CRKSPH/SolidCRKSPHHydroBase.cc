@@ -152,19 +152,19 @@ SolidCRKSPHHydroBase(const SmoothingScaleBase<Dimension>& smoothingScaleMethod,
                              detectRange,
                              epsTensile,
                              nTensile),
-  mDdeviatoricStressDt(FieldSpace::Copy),
-  mBulkModulus(FieldSpace::Copy),
-  mShearModulus(FieldSpace::Copy),
-  mYieldStrength(FieldSpace::Copy),
-  mPlasticStrain0(FieldSpace::Copy),
-  mHfield0(FieldSpace::Copy),
-  mFragIDs(FieldSpace::Reference),
-  mAdamage(FieldSpace::Copy),
-  mBdamage(FieldSpace::Copy),
-  mCdamage(FieldSpace::Copy),
-  mGradAdamage(FieldSpace::Copy),
-  mGradBdamage(FieldSpace::Copy),
-  mGradCdamage(FieldSpace::Copy),
+  mDdeviatoricStressDt(FieldSpace::FieldStorageType::Copy),
+  mBulkModulus(FieldSpace::FieldStorageType::Copy),
+  mShearModulus(FieldSpace::FieldStorageType::Copy),
+  mYieldStrength(FieldSpace::FieldStorageType::Copy),
+  mPlasticStrain0(FieldSpace::FieldStorageType::Copy),
+  mHfield0(FieldSpace::FieldStorageType::Copy),
+  mFragIDs(FieldSpace::FieldStorageType::Reference),
+  mAdamage(FieldSpace::FieldStorageType::Copy),
+  mBdamage(FieldSpace::FieldStorageType::Copy),
+  mCdamage(FieldSpace::FieldStorageType::Copy),
+  mGradAdamage(FieldSpace::FieldStorageType::Copy),
+  mGradBdamage(FieldSpace::FieldStorageType::Copy),
+  mGradCdamage(FieldSpace::FieldStorageType::Copy),
   mRestart(DataOutput::registerWithRestart(*this)) {
 }
 
@@ -206,7 +206,7 @@ initializeProblemStartup(DataBase<Dimension>& dataBase) {
   mBdamage.assignFields(this->B());
   mGradAdamage.assignFields(this->gradA());
   mGradBdamage.assignFields(this->gradB());
-  if (this->correctionOrder() == QuadraticOrder) {
+  if (this->correctionOrder() == CRKOrder::QuadraticOrder) {
     mCdamage.assignFields(this->C());
     mGradCdamage.assignFields(this->gradC());
   }
@@ -255,7 +255,7 @@ registerState(DataBase<Dimension>& dataBase,
   dataBase.resizeFluidFieldList(mBdamage,     Vector::zero,    HydroFieldNames::B_CRKSPH + " damage", false);
   dataBase.resizeFluidFieldList(mGradAdamage, Vector::zero,    HydroFieldNames::gradA_CRKSPH + " damage", false);
   dataBase.resizeFluidFieldList(mGradBdamage, Tensor::zero,    HydroFieldNames::gradB_CRKSPH + " damage", false);
-  if (this->correctionOrder() == QuadraticOrder) {
+  if (this->correctionOrder() == CRKOrder::QuadraticOrder) {
     dataBase.resizeFluidFieldList(mCdamage,     Tensor::zero,    HydroFieldNames::C_CRKSPH + " damage", false);
     dataBase.resizeFluidFieldList(mGradCdamage, ThirdRankTensor::zero, HydroFieldNames::gradC_CRKSPH + " damage", false);
   }
@@ -491,16 +491,16 @@ evaluateDerivatives(const typename Dimension::Scalar time,
   CHECK(fragIDs.size() == numNodeLists);
   CHECK(A.size() == numNodeLists);
   CHECK(B.size() == numNodeLists);
-  CHECK(C.size() == numNodeLists or order != QuadraticOrder);
+  CHECK(C.size() == numNodeLists or order != CRKOrder::QuadraticOrder);
   CHECK(gradA.size() == numNodeLists);
   CHECK(gradB.size() == numNodeLists);
-  CHECK(gradC.size() == numNodeLists or order != QuadraticOrder);
+  CHECK(gradC.size() == numNodeLists or order != CRKOrder::QuadraticOrder);
   CHECK(Adamage.size() == numNodeLists);
   CHECK(Bdamage.size() == numNodeLists);
-  CHECK(Cdamage.size() == numNodeLists or order != QuadraticOrder);
+  CHECK(Cdamage.size() == numNodeLists or order != CRKOrder::QuadraticOrder);
   CHECK(gradAdamage.size() == numNodeLists);
   CHECK(gradBdamage.size() == numNodeLists);
-  CHECK(gradCdamage.size() == numNodeLists or order != QuadraticOrder);
+  CHECK(gradCdamage.size() == numNodeLists or order != CRKOrder::QuadraticOrder);
 
   // Derivative FieldLists.
   FieldList<Dimension, Vector> DxDt = derivatives.fields(IncrementFieldList<Dimension, Vector>::prefix() + HydroFieldNames::position, Vector::zero);
@@ -610,13 +610,13 @@ evaluateDerivatives(const typename Dimension::Scalar time,
       const Vector& gradAi = gradA(nodeListi, i);
       const Scalar Adami = Adamage(nodeListi, i);
       const Vector& gradAdami = gradAdamage(nodeListi, i);
-      if (order != ZerothOrder) {
+      if (order != CRKOrder::ZerothOrder) {
         Bi = B(nodeListi, i);
         gradBi = gradB(nodeListi, i);
         Bdami = Bdamage(nodeListi, i);
         gradBdami = gradBdamage(nodeListi, i);
       }
-      if (order == QuadraticOrder) {
+      if (order == CRKOrder::QuadraticOrder) {
         Ci = C(nodeListi, i);
         gradCi = gradC(nodeListi, i);
         Cdami = Cdamage(nodeListi, i);
@@ -686,13 +686,13 @@ evaluateDerivatives(const typename Dimension::Scalar time,
               const Vector& gradAj = gradA(nodeListj, j);
               const Scalar Adamj = Adamage(nodeListj, j);
               const Vector& gradAdamj = gradAdamage(nodeListj, j);
-              if (order != ZerothOrder) {
+              if (order != CRKOrder::ZerothOrder) {
                 Bj = B(nodeListj, j);
                 gradBj = gradB(nodeListj, j);
                 Bdamj = Bdamage(nodeListj, j);
                 gradBdamj = gradBdamage(nodeListj, j);
               }
-              if (order == QuadraticOrder) {
+              if (order == CRKOrder::QuadraticOrder) {
                 Cj = C(nodeListj, j);
                 gradCj = gradC(nodeListj, j);
                 Cdamj = Cdamage(nodeListj, j);

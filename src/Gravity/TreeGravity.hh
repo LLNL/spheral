@@ -25,7 +25,7 @@ namespace FileIOSpace {
 
 namespace GravitySpace {
 
-enum GravityTimeStepType {
+enum class GravityTimeStepType {
   AccelerationRatio = 0,
   DynamicalTime = 1,
 };

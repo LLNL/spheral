@@ -136,8 +136,8 @@ evaluateDerivatives(const Scalar time,
 
   // Prepare the effective damage for computation.
   Field<Dimension, Scalar> normalization("normalization", *nodeListPtr, 0.0);
-  if (mEffDamageAlgorithm == Max or
-      mEffDamageAlgorithm == Copy) Deff = D;
+  if (mEffDamageAlgorithm == EffectiveDamageAlgorithm::Max or
+      mEffDamageAlgorithm == EffectiveDamageAlgorithm::Copy) Deff = D;
 
   // Iterate over the internal nodes in this NodeList.
   for (typename ConnectivityMap<Dimension>::const_iterator iItr = connectivityMap.begin(nodeListi);
@@ -210,12 +210,12 @@ evaluateDerivatives(const Scalar time,
 
           // Increment the effective damage.
           switch(mEffDamageAlgorithm) {
-          case Max:
+          case EffectiveDamageAlgorithm::Max:
             if (Dmagj * Dimension::nDim > Deffi.Trace()) Deffi = Dj;
             if (Dmagi * Dimension::nDim > Deffj.Trace()) Deffj = Di;
             break;
 
-          case Sampled:
+          case EffectiveDamageAlgorithm::Sampled:
             normalizationi += Wi;
             normalizationj += Wj;
             Deffi += Wi * Dj;
@@ -233,7 +233,7 @@ evaluateDerivatives(const Scalar time,
 
     // Finish the effective damage by adding in the self-contribution and 
     // normalizing the sucker.
-    if (mEffDamageAlgorithm == Sampled) {
+    if (mEffDamageAlgorithm == EffectiveDamageAlgorithm::Sampled) {
       CHECK(normalizationi >= 0.0);
       const double Wi = W.kernelValue(0.0, Hdeti);
       Deffi = (Deffi + Dmagi*Wi*Di)/(normalizationi + Dmagi*Wi + tiny);
