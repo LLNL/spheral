@@ -229,11 +229,11 @@ evaluateDerivatives(const Dim<2>::Scalar time,
   CHECK(pressure.size() == numNodeLists);
   CHECK(soundSpeed.size() == numNodeLists);
   CHECK(A.size() == numNodeLists);
-  CHECK(B.size() == numNodeLists or order == ZerothOrder);
-  CHECK(C.size() == numNodeLists or order != QuadraticOrder);
+  CHECK(B.size() == numNodeLists or order == CRKOrder::ZerothOrder);
+  CHECK(C.size() == numNodeLists or order != CRKOrder::QuadraticOrder);
   CHECK(gradA.size() == numNodeLists);
-  CHECK(gradB.size() == numNodeLists or order == ZerothOrder);
-  CHECK(gradC.size() == numNodeLists or order != QuadraticOrder);
+  CHECK(gradB.size() == numNodeLists or order == CRKOrder::ZerothOrder);
+  CHECK(gradC.size() == numNodeLists or order != CRKOrder::QuadraticOrder);
   // CHECK(surfNorm.size() == numNodeLists);
 
   // Derivative FieldLists.
@@ -330,11 +330,11 @@ evaluateDerivatives(const Dim<2>::Scalar time,
       const Scalar ci = soundSpeed(nodeListi, i);
       const Scalar Ai = A(nodeListi, i);
       const Vector& gradAi = gradA(nodeListi, i);
-      if (order != ZerothOrder) {
+      if (order != CRKOrder::ZerothOrder) {
         Bi = B(nodeListi, i);
         gradBi = gradB(nodeListi, i);
       }
-      if (order == QuadraticOrder) {
+      if (order == CRKOrder::QuadraticOrder) {
         Ci = C(nodeListi, i);
         gradCi = gradC(nodeListi, i);
       }
@@ -417,11 +417,11 @@ evaluateDerivatives(const Dim<2>::Scalar time,
               const Scalar cj = soundSpeed(nodeListj, j);
               const Scalar Aj = A(nodeListj, j);
               const Vector& gradAj = gradA(nodeListj, j);
-              if (order != ZerothOrder) {
+              if (order != CRKOrder::ZerothOrder) {
                 Bj = B(nodeListj, j);
                 gradBj = gradB(nodeListj, j);
               }
-              if (order == QuadraticOrder) {
+              if (order == CRKOrder::QuadraticOrder) {
                 Cj = C(nodeListj, j);
                 gradCj = gradC(nodeListj, j);
               }
@@ -619,8 +619,8 @@ finalize(const Dim<2>::Scalar time,
 
   // If we're going to do the summation density, we need to convert the mass
   // to mass per unit length first.
-  if (densityUpdate() == PhysicsSpace::RigorousSumDensity or
-      densityUpdate() == PhysicsSpace::CorrectedSumDensity) {
+  if (densityUpdate() == PhysicsSpace::MassDensityType::RigorousSumDensity or
+      densityUpdate() == PhysicsSpace::MassDensityType::CorrectedSumDensity) {
     FieldList<Dimension, Scalar> mass = state.fields(HydroFieldNames::mass, 0.0);
     const FieldList<Dimension, Vector> pos = state.fields(HydroFieldNames::position, Vector::zero);
     const unsigned numNodeLists = mass.numFields();
@@ -638,8 +638,8 @@ finalize(const Dim<2>::Scalar time,
 
   // Now convert back to true masses and mass densities.  We also apply the RZ
   // correction factor to the mass density.
-  if (densityUpdate() == PhysicsSpace::RigorousSumDensity or
-      densityUpdate() == PhysicsSpace::CorrectedSumDensity) {
+  if (densityUpdate() == PhysicsSpace::MassDensityType::RigorousSumDensity or
+      densityUpdate() == PhysicsSpace::MassDensityType::CorrectedSumDensity) {
     const TableKernel<Dimension>& W = this->kernel();
     const FieldList<Dimension, Vector> position = state.fields(HydroFieldNames::position, Vector::zero);
     const FieldList<Dimension, SymTensor> H = state.fields(HydroFieldNames::H, SymTensor::zero);

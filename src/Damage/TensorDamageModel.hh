@@ -45,7 +45,7 @@ namespace Spheral {
 namespace PhysicsSpace {
 
 // Enum for selecting the method of defining the tensor strain.
-enum TensorStrainAlgorithm {
+enum class TensorStrainAlgorithm {
   BenzAsphaug = 0,
   StrainHistory = 1,
   MeloshRyanAsphaug = 2,
@@ -54,7 +54,7 @@ enum TensorStrainAlgorithm {
 };
 
 // Enum for selecting the method of defining the effective tensor damage.
-enum EffectiveDamageAlgorithm {
+enum class EffectiveDamageAlgorithm {
   Copy = 0,
   Max = 1,
   Sampled = 2,

@@ -20,7 +20,7 @@
 namespace Spheral {
 namespace FileIOSpace {
 
-enum FlatFileFormat {
+enum class FlatFileFormat {
   ascii = 0,
   binary = 1
 };
@@ -30,7 +30,7 @@ public:
   //--------------------------- Public Interface ---------------------------//
   // Constructors.
   FlatFileIO();
-  FlatFileIO(const std::string fileName, AccessType access, FlatFileFormat format=ascii);
+  FlatFileIO(const std::string fileName, AccessType access, FlatFileFormat format=FlatFileFormat::ascii);
   FlatFileIO(const std::string fileName, int access, int format=0);
 
   // Destructor.

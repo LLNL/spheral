@@ -98,16 +98,16 @@ gradient(const FieldList<Dimension, DataType>& fieldList,
           // Get the symmetrized kernel gradient for this node pair.
           Vector gradWij;
           switch((*fieldList.begin())->nodeListPtr()->neighbor().neighborSearchType()) {
-          case NeighborSpace::GatherScatter:
+          case NeighborSpace::NeighborSearchType::GatherScatter:
             gradWij = 0.5*(Hi*etaiNorm*kernel.grad(etai, Hi) + 
                            Hj*etajNorm*kernel.grad(etaj, Hj));
             break;
 
-          case NeighborSpace::Gather:
+          case NeighborSpace::NeighborSearchType::Gather:
             gradWij = Hi*etaiNorm*kernel.grad(etai, Hi);
             break;
 
-          case NeighborSpace::Scatter:
+          case NeighborSpace::NeighborSearchType::Scatter:
             gradWij = Hj*etajNorm*kernel.grad(etaj, Hj);
             break;
 

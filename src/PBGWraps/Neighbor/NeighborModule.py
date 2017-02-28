@@ -85,10 +85,10 @@ generateStdVectorBindings(self.vector_of_vector_of_GridCellIndex%(ndim)id, "vect
                            param("int", "zIndex")])
 
         # Methods.
-        x.add_method("setIndicies", None, [param("int", "xIndex")])
-        x.add_method("setIndicies", None, [param("int", "xIndex"),
+        x.add_method("setIndices", None, [param("int", "xIndex")])
+        x.add_method("setIndices", None, [param("int", "xIndex"),
                                            param("int", "yIndex")])
-        x.add_method("setIndicies", None, [param("int", "xIndex"),
+        x.add_method("setIndices", None, [param("int", "xIndex"),
                                            param("int", "yIndex"),
                                            param("int", "zIndex")])
         x.add_method("operator()", "int", [param("int", "index")], is_const=True, custom_name="__call__")

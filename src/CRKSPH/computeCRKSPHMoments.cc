@@ -65,7 +65,7 @@ computeCRKSPHMoments(const ConnectivityMap<Dimension>& connectivityMap,
   REQUIRE(gradm0.size() == numNodeLists);
   REQUIRE(gradm1.size() == numNodeLists);
   REQUIRE(gradm2.size() == numNodeLists);
-  if (correctionOrder == QuadraticOrder) {
+  if (correctionOrder == CRKOrder::QuadraticOrder) {
     REQUIRE(m3.size() == numNodeLists);
     REQUIRE(m4.size() == numNodeLists);
     REQUIRE(gradm3.size() == numNodeLists);
@@ -87,7 +87,7 @@ computeCRKSPHMoments(const ConnectivityMap<Dimension>& connectivityMap,
   gradm0 = Vector::zero;
   gradm1 = Tensor::zero;
   gradm2 = ThirdRankTensor::zero;
-  if (correctionOrder == QuadraticOrder) {
+  if (correctionOrder == CRKOrder::QuadraticOrder) {
     m3 = ThirdRankTensor::zero;
     m4 = FourthRankTensor::zero;
     gradm3 = FourthRankTensor::zero;
@@ -236,7 +236,7 @@ computeCRKSPHMoments(const ConnectivityMap<Dimension>& connectivityMap,
 
             // We only need the next moments if doing quadratic CRK.  We avoid it otherwise
             // since this is a lot of memory and expense.
-            if (correctionOrder == QuadraticOrder) {
+            if (correctionOrder == CRKOrder::QuadraticOrder) {
 
               // Third Moment
               for (size_t ii = 0; ii != Dimension::nDim; ++ii) {

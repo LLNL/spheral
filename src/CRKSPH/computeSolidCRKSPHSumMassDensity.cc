@@ -51,7 +51,7 @@ computeSolidCRKSPHSumMassDensity(const ConnectivityMap<Dimension>& connectivityM
   const Scalar W0 = W.kernelValue(0.0, 1.0);
 
   // Prepare to sum the correction.
-  FieldList<Dimension, Scalar> m0(FieldSpace::Copy);
+  FieldList<Dimension, Scalar> m0(FieldSpace::FieldStorageType::Copy);
   for (size_t nodeListi = 0; nodeListi != numNodeLists; ++nodeListi) {
     m0.appendNewField("zeroth correction", position[nodeListi]->nodeList(), 0.0);
   }

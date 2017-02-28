@@ -155,8 +155,8 @@ SolidCRKSPHHydroBaseRZ(const SmoothingScaleBase<Dimension>& smoothingScaleMethod
                                   detectRange,
                                   epsTensile,
                                   nTensile),
-  mDeviatoricStressTT(FieldSpace::Copy),
-  mDdeviatoricStressTTDt(FieldSpace::Copy) {
+  mDeviatoricStressTT(FieldSpace::FieldStorageType::Copy),
+  mDdeviatoricStressTTDt(FieldSpace::FieldStorageType::Copy) {
 }
 
 //------------------------------------------------------------------------------
@@ -320,16 +320,16 @@ evaluateDerivatives(const Dim<2>::Scalar time,
   CHECK(fragIDs.size() == numNodeLists);
   CHECK(A.size() == numNodeLists);
   CHECK(B.size() == numNodeLists);
-  CHECK(C.size() == numNodeLists or order != QuadraticOrder);
+  CHECK(C.size() == numNodeLists or order != CRKOrder::QuadraticOrder);
   CHECK(gradA.size() == numNodeLists);
   CHECK(gradB.size() == numNodeLists);
-  CHECK(gradC.size() == numNodeLists or order != QuadraticOrder);
+  CHECK(gradC.size() == numNodeLists or order != CRKOrder::QuadraticOrder);
   CHECK(Adamage.size() == numNodeLists);
   CHECK(Bdamage.size() == numNodeLists);
-  CHECK(Cdamage.size() == numNodeLists or order != QuadraticOrder);
+  CHECK(Cdamage.size() == numNodeLists or order != CRKOrder::QuadraticOrder);
   CHECK(gradAdamage.size() == numNodeLists);
   CHECK(gradBdamage.size() == numNodeLists);
-  CHECK(gradCdamage.size() == numNodeLists or order != QuadraticOrder);
+  CHECK(gradCdamage.size() == numNodeLists or order != CRKOrder::QuadraticOrder);
 
   const FieldList<Dimension, SymTensor>& Hfield0 = this->Hfield0();
 
@@ -447,13 +447,13 @@ evaluateDerivatives(const Dim<2>::Scalar time,
       const Vector& gradAi = gradA(nodeListi, i);
       const Scalar Adami = Adamage(nodeListi, i);
       const Vector& gradAdami = gradAdamage(nodeListi, i);
-      if (order != ZerothOrder) {
+      if (order != CRKOrder::ZerothOrder) {
         Bi = B(nodeListi, i);
         gradBi = gradB(nodeListi, i);
         Bdami = Bdamage(nodeListi, i);
         gradBdami = gradBdamage(nodeListi, i);
       }
-      if (order == QuadraticOrder) {
+      if (order == CRKOrder::QuadraticOrder) {
         Ci = C(nodeListi, i);
         gradCi = gradC(nodeListi, i);
         Cdami = Cdamage(nodeListi, i);
@@ -530,13 +530,13 @@ evaluateDerivatives(const Dim<2>::Scalar time,
               const Vector& gradAj = gradA(nodeListj, j);
               const Scalar Adamj = Adamage(nodeListj, j);
               const Vector& gradAdamj = gradAdamage(nodeListj, j);
-              if (order != ZerothOrder) {
+              if (order != CRKOrder::ZerothOrder) {
                 Bj = B(nodeListj, j);
                 gradBj = gradB(nodeListj, j);
                 Bdamj = Bdamage(nodeListj, j);
                 gradBdamj = gradBdamage(nodeListj, j);
               }
-              if (order == QuadraticOrder) {
+              if (order == CRKOrder::QuadraticOrder) {
                 Cj = C(nodeListj, j);
                 gradCj = gradC(nodeListj, j);
                 Cdamj = Cdamage(nodeListj, j);
@@ -786,8 +786,8 @@ finalize(const Dim<2>::Scalar time,
 
   // If we're going to do the summation density, we need to convert the mass
   // to mass per unit length first.
-  if (densityUpdate() == PhysicsSpace::RigorousSumDensity or
-      densityUpdate() == PhysicsSpace::CorrectedSumDensity) {
+  if (densityUpdate() == PhysicsSpace::MassDensityType::RigorousSumDensity or
+      densityUpdate() == PhysicsSpace::MassDensityType::CorrectedSumDensity) {
     FieldList<Dimension, Scalar> mass = state.fields(HydroFieldNames::mass, 0.0);
     const FieldList<Dimension, Vector> pos = state.fields(HydroFieldNames::position, Vector::zero);
     const unsigned numNodeLists = mass.numFields();
@@ -805,8 +805,8 @@ finalize(const Dim<2>::Scalar time,
 
   // Now convert back to true masses and mass densities.  We also apply the RZ
   // correction factor to the mass density.
-  if (densityUpdate() == PhysicsSpace::RigorousSumDensity or
-      densityUpdate() == PhysicsSpace::CorrectedSumDensity) {
+  if (densityUpdate() == PhysicsSpace::MassDensityType::RigorousSumDensity or
+      densityUpdate() == PhysicsSpace::MassDensityType::CorrectedSumDensity) {
     const TableKernel<Dimension>& W = this->kernel();
     const FieldList<Dimension, Vector> position = state.fields(HydroFieldNames::position, Vector::zero);
     const FieldList<Dimension, SymTensor> H = state.fields(HydroFieldNames::H, SymTensor::zero);
