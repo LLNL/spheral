@@ -7,7 +7,7 @@
 
 #include "Geometry/Dimension.hh"
 #include "DataOutput/RestartRegistrar.hh"
-#include "DataOutput/RestartableObject.hh"
+#include "RestartableObject.hh"
 #include "FileIO/FileIO.hh"
 
 namespace py = pybind11;

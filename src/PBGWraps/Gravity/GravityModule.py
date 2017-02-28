@@ -38,7 +38,7 @@ self.NBodyGravity%(dim)id = addObject(space, "NBodyGravity%(dim)id", allow_subcl
         if 3 in self.dims:
             self.OctTreeGravity =  addObject(space, "OctTreeGravity", allow_subclassing=True, parent=genericbodyforce3d)
 
-        self.GravityTimeStepType = space.add_enum("GravityTimeStepType", ["AccelerationRatio", "DynamicalTime"])
+        self.GravityTimeStepType = space.add_enum("GravityTimeStepType", ["GravityTimeStepType::AccelerationRatio", "GravityTimeStepType::DynamicalTime"])
 
         return
 
@@ -165,7 +165,7 @@ self.generateNBodyGravityBindings(self.NBodyGravity%(dim)id, %(dim)i)
                            param("double", "softeningLength"),
                            param("double", "opening", default_value="0.5"),
                            param("double", "ftimestep", default_value="0.1"),
-                           param("GravityTimeStepType", "timeStepChoice", default_value="Spheral::GravitySpace::AccelerationRatio")])
+                           param("GravityTimeStepType", "timeStepChoice", default_value="Spheral::GravitySpace::GravityTimeStepType::AccelerationRatio")])
 
         # Wrap the generic physics methods.
         generatePhysicsVirtualBindings(x, ndim, False)
