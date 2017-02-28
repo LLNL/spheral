@@ -10,12 +10,10 @@ PKGNAME = SimulationControl
 PKGDIR = $(PKGNAME)/
 PYTHONTARGETS = \
 	spheralDimensions.py \
-	$(srcdir)/Spheral.py \
 	$(srcdir)/Spheral1d.py \
 	$(srcdir)/Spheral2d.py \
 	$(srcdir)/Spheral3d.py \
 	$(srcdir)/SpheralRZ.py \
-	$(srcdir)/SolidSpheral.py \
 	$(srcdir)/SolidSpheral1d.py \
 	$(srcdir)/SolidSpheral2d.py \
 	$(srcdir)/SolidSpheral3d.py \

@@ -22,7 +22,8 @@ class Material:
         space = Spheral.add_cpp_namespace("Material")
 
         # Expose types.
-        self.MaterialPressureMinType = space.add_enum("MaterialPressureMinType", ["MaterialPressureMinType::PressureFloor", "MaterialPressureMinType::ZeroPressure"])
+        self.MaterialPressureMinType = space.add_enum("MaterialPressureMinType", [("PressureFloor", "Spheral::Material::MaterialPressureMinType::PressureFloor"),
+                                                                                  ("ZeroPressure", "Spheral::Material::MaterialPressureMinType::ZeroPressure")])
         self.PhysicalConstants = addObject(space, "PhysicalConstants", allow_subclassing=True)
         for dim in self.dims:
             exec('''

@@ -65,13 +65,14 @@ self.FileIOTemplateTypes += [
         self.SiloFileIO = addObject(space, "SiloFileIO", parent=self.FileIO, allow_subclassing=True)
         self.PyFileIO = addObject(space, "PyFileIO", parent=self.FileIO, allow_subclassing=True)
         
-        self.AccessType = space.add_enum("AccessType", ["AccessType::Undefined",
-                                                        "AccessType::Create",
-                                                        "AccessType::Read",
-                                                        "AccessType::Write",
-                                                        "AccessType::ReadWrite"])
+        self.AccessType = space.add_enum("AccessType", [("Undefined", "Spheral::FileIOSpace::AccessType::Undefined"),
+                                                        ("Create", "Spheral::FileIOSpace::AccessType::Create"),
+                                                        ("Read", "Spheral::FileIOSpace::AccessType::Read"),
+                                                        ("Write", "Spheral::FileIOSpace::AccessType::Write"),
+                                                        ("ReadWrite", "Spheral::FileIOSpace::AccessType::ReadWrite")])
 
-        self.FlatFileFormat = space.add_enum("FlatFileFormat", ["FlatFileFormat::ascii", "FlatFileFormat::binary"])
+        self.FlatFileFormat = space.add_enum("FlatFileFormat", [("ascii", "Spheral::FileIOSpace::FlatFileFormat::ascii"),
+                                                                ("binary", "Spheral::FileIOSpace::FlatFileFormat::binary")])
 
         return
 

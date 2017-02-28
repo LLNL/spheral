@@ -32,8 +32,14 @@ generichydro%(dim)id = findObject(PhysicsSpace, "GenericHydro%(dim)id")
 self.CRKSPHHydroBase%(dim)id = addObject(self.space, "CRKSPHHydroBase%(dim)id", allow_subclassing=True, parent=generichydro%(dim)id)
 self.SolidCRKSPHHydroBase%(dim)id = addObject(self.space, "SolidCRKSPHHydroBase%(dim)id", allow_subclassing=True, parent=self.CRKSPHHydroBase%(dim)id)
 ''' % {"dim" : dim})
-        self.CRKOrder = self.space.add_enum("CRKOrder", ["CRKOrder::ZerothOrder", "CRKOrder::LinearOrder", "CRKOrder::QuadraticOrder"])
-        self.CRKVolumeType = self.space.add_enum("CRKVolumeType", ["CRKVolumeType::CRKMassOverDensity", "CRKVolumeType::CRKSumVolume", "CRKVolumeType::CRKVoronoiVolume", "CRKVolumeType::CRKHullVolume", "CRKVolumeType::HVolume"])
+        self.CRKOrder = self.space.add_enum("CRKOrder", [("ZerothOrder",    "Spheral::CRKSPHSpace::CRKOrder::ZerothOrder"),
+                                                         ("LinearOrder",    "Spheral::CRKSPHSpace::CRKOrder::LinearOrder"),
+                                                         ("QuadraticOrder", "Spheral::CRKSPHSpace::CRKOrder::QuadraticOrder")])
+        self.CRKVolumeType = self.space.add_enum("CRKVolumeType", [("CRKMassOverDensity", "Spheral::CRKSPHSpace::CRKVolumeType::CRKMassOverDensity"),
+                                                                   ("CRKSumVolume",       "Spheral::CRKSPHSpace::CRKVolumeType::CRKSumVolume"),
+                                                                   ("CRKVoronoiVolume",   "Spheral::CRKSPHSpace::CRKVolumeType::CRKVoronoiVolume"),
+                                                                   ("CRKHullVolume",      "Spheral::CRKSPHSpace::CRKVolumeType::CRKHullVolume"),
+                                                                   ("HVolume",            "Spheral::CRKSPHSpace::CRKVolumeType::HVolume")])
 
         if 2 in self.dims:
             self.CRKSPHHydroBaseRZ = addObject(self.space, "CRKSPHHydroBaseRZ", allow_subclassing=True, parent=self.CRKSPHHydroBase2d)
