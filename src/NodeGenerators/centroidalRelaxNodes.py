@@ -142,6 +142,7 @@ def centroidalRelaxNodes(nodeListsAndBounds,
     if tessellationFileName:
         cells = db.newFluidFacetedVolumeFieldList(sph.FacetedVolume(), "cells")
     sph.computeVoronoiVolume(db.fluidPosition, db.fluidHfield, db.fluidMassDensity, gradRho, db.connectivityMap(), W.kernelExtent, bounds, holes, 
+                             sph.ScalarFieldList(),   # no weights
                              surfacePoint, vol, deltaMedian, cells)
 
     # If requested, dump the final info to a diagnostic viz file.

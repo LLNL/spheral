@@ -118,6 +118,7 @@ centroidalRelaxNodesImpl(DataBaseSpace::DataBase<Dimension>& db,
     // Compute the new volumes and centroids (note this uses the old rho gradient, not quite right,
     // but expedient/efficient).
     CRKSPHSpace::computeVoronoiVolume(pos, H, rhof, gradRhof, cm, W.kernelExtent(), volumeBoundaries, holes, 
+                                      FieldList<Dimension, typename Dimension::Scalar>(),  // no weights
                                       surfacePoint, vol, deltaCentroid, dummyCells);
      
     // Apply boundary conditions.
@@ -185,6 +186,7 @@ centroidalRelaxNodesImpl(DataBaseSpace::DataBase<Dimension>& db,
   if (cells.size() > 0) {
     const auto& cm = db.connectivityMap();
     CRKSPHSpace::computeVoronoiVolume(pos, H, rhof, gradRhof, cm, W.kernelExtent(), volumeBoundaries, holes, 
+                                      FieldList<Dimension, typename Dimension::Scalar>(),  // no weights
                                       surfacePoint, vol, deltaCentroid, cells);
   }
 

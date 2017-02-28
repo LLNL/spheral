@@ -323,6 +323,7 @@ for i in xrange(len(weight[0])):
     weight[0][i] = points[i][3]
 
 computeVoronoiVolume(pos, H, rhof, gradRhof, cm, WT.kernelExtent, bounds, holes,
+                     ScalarFieldList(),
                      surfacePoint, vol,deltaCentroid, cells)
 
 print "computed volumes"
