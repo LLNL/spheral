@@ -125,17 +125,17 @@ gradDivVectorFieldListSimple
             Scalar Wij;
             Vector gWij;
             switch((*fieldList.begin())->nodeListPtr()->neighbor().neighborSearchType()) {
-            case NeighborSpace::GatherScatter:
+            case NeighborSpace::NeighborSearchType::GatherScatter:
               Wij = 0.5*(Wi + Wj);
               gWij = 0.5*(gWi + gWj);
               break;
 
-            case NeighborSpace::Gather:
+            case NeighborSpace::NeighborSearchType::Gather:
               Wij = Wi;
               gWij = gWi;
               break;
 
-            case NeighborSpace::Scatter:
+            case NeighborSpace::NeighborSearchType::Scatter:
               Wij = Wj;
               gWij = gWj;
               break;

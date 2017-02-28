@@ -73,7 +73,7 @@ self.generateArtificialConductionBindings(self.ArtificialConduction%(dim)id, %(d
         # Constructor.
         x.add_constructor([constrefparam(tablekernel, "W"),
                            param("double", "arCondAlpha", default_value="0.5"),
-                           param("CRKOrder", "ACcorrectionOrder", default_value="Spheral::CRKSPHSpace::LinearOrder")])
+                           param("CRKOrder", "ACcorrectionOrder", default_value="Spheral::CRKSPHSpace::CRKOrder::LinearOrder")])
         # Attributes.
         x.add_instance_attribute("ACcorrectionOrder", "CRKOrder", getter="ACcorrectionOrder", setter="ACcorrectionOrder")
                            

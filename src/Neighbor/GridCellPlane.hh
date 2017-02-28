@@ -1,6 +1,6 @@
 //---------------------------------Spheral++----------------------------------//
 // GridCellPlane -- define an integer version of a plane in terms of 
-// GridCellIndicies.
+// GridCellIndices.
 //
 // Created by:  JMO, Wed Mar  8 21:43:23 PST 2000
 //----------------------------------------------------------------------------//
