@@ -23,7 +23,7 @@ class Field:
         Spheral = mod.add_cpp_namespace("Spheral")
         space = Spheral.add_cpp_namespace("FieldSpace")
 
-        self.FieldStorageType = space.add_enum("FieldStorageType", ["Reference", "Copy"])
+        self.FieldStorageType = space.add_enum("FieldStorageType", ["FieldStorageType::Reference", "FieldStorageType::Copy"])
 
         for ndim in self.dims:
             exec("""

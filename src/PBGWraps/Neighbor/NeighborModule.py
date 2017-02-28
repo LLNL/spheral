@@ -25,7 +25,10 @@ class Neighbor:
         space = Spheral.add_cpp_namespace("NeighborSpace")
 
         # Expose types.
-        self.NeighborSearchType = space.add_enum("NeighborSearchType", ["None", "Gather", "Scatter", "GatherScatter"])
+        self.NeighborSearchType = space.add_enum("NeighborSearchType", ["NeighborSearchType::None",
+                                                                        "NeighborSearchType::Gather",
+                                                                        "NeighborSearchType::Scatter",
+                                                                        "NeighborSearchType::GatherScatter"])
 
         for ndim in self.dims:
             exec("""
@@ -276,7 +279,7 @@ generateStdVectorBindings(self.vector_of_vector_of_GridCellIndex%(ndim)id, "vect
 
         # Constructors.
         x.add_constructor([refparam(nodelist, "nodeList"),
-                           param("NeighborSearchType", "searchType", default_value="Spheral::NeighborSpace::GatherScatter"),
+                           param("NeighborSearchType", "searchType", default_value="Spheral::NeighborSpace::NeighborSearchType::GatherScatter"),
                            param("int", "numGridLevels", default_value="31"),
                            param("double", "topGridCellSize", default_value="100.0"),
                            param(vector, "origin", default_value="%s()" % vector),
