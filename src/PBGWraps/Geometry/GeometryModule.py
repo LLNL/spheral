@@ -134,10 +134,18 @@ self.vector_of_Plane%(dim)s = addObject(mod, "vector_of_Plane%(dim)s", allow_sub
         # Add Polygon methods.
         self.addFacet2dMethods(self.Facet2d)
         self.addPolygonMethods(self.Polygon)
+        self.space.add_function("aggregateFacetedVolumes", "Spheral::Polygon",
+                                [constrefparam("vector_of_FacetedVolume2d", "loops")],
+                                template_parameters = ["Spheral::Dim<2>"],
+                                custom_name = "aggregateFacetedVolumes")
 
         # Add Polyhedron methods.
         self.addFacet3dMethods(self.Facet3d)
         self.addPolyhedronMethods(self.Polyhedron)
+        self.space.add_function("aggregateFacetedVolumes", "Spheral::Polyhedron",
+                                [constrefparam("vector_of_FacetedVolume3d", "loops")],
+                                template_parameters = ["Spheral::Dim<3>"],
+                                custom_name = "aggregateFacetedVolumes")
 
         generateStdVectorBindings(self.vector_of_Facet2d, "Spheral::Facet2d", "vector_of_Facet2d", indexAsPointer=True)
         generateStdVectorBindings(self.vector_of_Facet3d, "Spheral::Facet3d", "vector_of_Facet3d", indexAsPointer=True)
