@@ -44,184 +44,50 @@ In this chapter, we're going to step through the process of writing a generic py
 
 Since Spheral is driven primarily by python scripts, all of the ordinary python packages are available as needed. Our first task is to identify which python packages we'll require to successfully simulate and analyze our desired problem. In addition to the math package and some shell driving packages, we'll need to import all of the classes and methods provided by the Spheral2d namespace, assuming we've built from the source without explicitly excluding 2d in our configuration.
 
-\begin{lstlisting}[firstnumber=last]
-import os, sys, shutil
-from math import *
-from Spheral2d import *
-\end{lstlisting}
+\lstinputlisting[language=Python, firstline=1, lastline=3,firstnumber=last]{example.py}
 
 We'll need some kind of generator that places particles into the simulation. The choice of generator here is entirely dependent on the nature of our initial conditions. Our chosen problem is fairly generic, so we'll stick with the generic generator class.
 
-\begin{lstlisting}[firstnumber=last]
-from GenerateNodeDistribution2d import *
-\end{lstlisting}
+\lstinputlisting[language=Python, firstline=4, lastline=4,firstnumber=last]{example.py}
 
 Now throw a title onto our problem and we're ready to start scripting!
 
-\begin{lstlisting}[firstnumber=last]
-
-title(``2-D integrated hydro test - planar Sedov problem'')
-\end{lstlisting}
+\lstinputlisting[language=Python, firstline=5, lastline=6,firstnumber=last]{example.py}
 
 \section{Command Line Control}
 
 Through the commandLine function, Spheral provides users with absolute control over every detail of their script without rewrites. Essentially any python object can be controlled via the command line with this function. In our demonstration simulation, we'll enable only a few important parameters for command line control, and these can be added in whichever order is most useful. We'll start with some simple geometrical parameters.
 
-\begin{lstlisting}[firstnumber=last]
-
-commandLine(nRadial = 50,	# number of radial bins/particles
-			nTheta = 50,	# number of theta bins/particles
-			rmin = 0.0,		# minimum radius
-			rmax = 1.0,		# maximum radius
-			nPerh = 1.51,	# particle neighbor count
-\end{lstlisting}
+\lstinputlisting[language=Python, firstline=7, lastline=12,firstnumber=last]{example.py}
 
 We also have control here over the kernel choice. By default, Spheral has quite a number of kernel choices, but the simplest for our purposes is the 5th order b-spline. Adding this to our commandLine function will allow us to change it later without having to change our script. We are also going to control the exact order of our b-spline with the NBSplineKernel class that consumes an arbitrary order parameter.
 
-\begin{lstlisting}[firstnumber=last]
-
-			KernelConstructor = NBSplineKernel,
-			order = 5,
-\end{lstlisting}
+\lstinputlisting[language=Python, firstline=13, lastline=15,firstnumber=last]{example.py}
 
 Now we can add some useful parameters to control the physics of our problem. We're going to want to control the initial density and energy of our unshocked material, as well as the closure parameters for our equation of state ($\gamma$ and $\mu$ for a gamma-law EOS).
 
-\begin{lstlisting}[firstnumber=last]
-
-			rho0 = 1.0,
-			eps0 = 0.0,
-			gamma = 5.0/3.0
-			mu = 1.0,
-\end{lstlisting}
+\lstinputlisting[language=Python, firstline=16, lastline=20,firstnumber=last]{example.py}
 
 The standard hydro parameters, such as the artificial viscosity coefficients, the minimum and maximum allowed particle extents, are settable in the hydro constructor methods, and so we'll add those to our commandLine function as well. Spheral also includes an exact energy conserving formulation of the hydro equations, controlled by the constructor parameter \textit{compatibleEnergy}.
 
-\begin{lstlisting}[firstnumber=last]
-
-			Cl = 1.0,
-			Cq = 0.75,
-			hmin = 1e-15,
-			hmax = 1.0,
-			cfl = 0.5,
-			rhomin = 1e-10,
-			
-			HydroConstructor = SPHHydro,
-			Qconstructor = MonaghanGingoldViscosity,
-			balsaraCorrection = False,
-			linearInExpansion = False,
-			densityUpdate = RigorousSumDensity,
-			HEvolution = IdealH,
-			compatibleEnergy = True,
-\end{lstlisting}
+\lstinputlisting[language=Python, firstline=21, lastline=35,firstnumber=last]{example.py}
 
 Spheral also has a wide variety of time integrator choices. For this problem, we're going to use cheap synchronous Runge Kutta 2, and we'll also want to be able to drive most of the integrator choices from the command line. We will also control from command line parameters the frequency of restart drops with the parameter \textit{restartStep}.
 
-\begin{lstlisting}[firstnumber=last]
-
-			IntegratorConstructor = CheapSynchronousRK2Integrator,
-			steps = None,
-			goalTime = 1.0,
-			dt = 1e-8,
-			dtMin = 1e-8,
-			dtMax = None,
-			dtGrowth = 2.0,
-			restoreCycle = None,
-			restartStep = 1000,
-\end{lstlisting}
+\lstinputlisting[language=Python, firstline=36, lastline=45,firstnumber=last]{example.py}
 
 The last parameter we'll add to our command line is the name of our data directory. This is the location where all of our restarts and visualization files would go.
 
-\begin{lstlisting}[firstnumber=last]
-
-			dataDir = "dumps-sedov2d")
-\end{lstlisting}
+\lstinputlisting[language=Python, firstline=46, lastline=47,firstnumber=last]{example.py}
 
 \section{Scripting Directory Creation}
 
 With the \textit{os} and \textit{shutil} packages, we'll create the data directories for our simulation to write to that are descriptive enough to tell at a glance what the values of many of our simulations parameters were at runtime.
 
-\begin{lstlisting}[firstnumber=last]
-
-dataDir = os.path.join(dataDir,
-						HydroConstructor.__name__,
-						Qconstructor.__name__,
-						``nperh=%4.2f'' % nPerh,
- 						``compatibleEnergy=\%s'' \% compatibleEnergy,
-						``nr=%i_nt=%i'' % (nRadial, nTheta))
-
-restartDir = os.path.join(dataDir, ``restarts'')
-vizDir = os.path.join(dataDir, ``visit'')
-restartBaseName = os.path.join(restartDir, ``sedov-2d-%i'' % nRadial)
-						
-if not os.path.exists(restartDir):
-	os.makedirs(restartDir)
-if not os.path.exists(vizDir):
-	os.makedirs(vizDir)
-\end{lstlisting}
+\lstinputlisting[language=Python, firstline=48, lastline=63,firstnumber=last]{example.py}
 
 \section{Completed Script}
 
-\begin{lstlisting}
-import os, sys, shutil
-from math import *
-from Spheral2d import *
-
-commandLine(nRadial = 50,	# number of radial bins/particles
-			nTheta = 50,	# number of theta bins/particles
-			rmin = 0.0,		# minimum radius
-			rmax = 1.0,		# maximum radius
-			nPerh = 1.51,	# particle neighbor count
-
-			KernelConstructor = NBSplineKernel,
-			order = 5,
-			
-			rho0 = 1.0,
-			eps0 = 0.0,
-			gamma = 5.0/3.0
-			mu = 1.0,
-
-			Cl = 1.0,
-			Cq = 0.75,
-			hmin = 1e-15,
-			hmax = 1.0,
-			cfl = 0.5,
-			rhomin = 1e-10,
-			
-			HydroConstructor = SPHHydro,
-			Qconstructor = MonaghanGingoldViscosity,
-			balsaraCorrection = False,
-			linearInExpansion = False,
-			densityUpdate = RigorousSumDensity,
-			HEvolution = IdealH,
-			compatibleEnergy = True,
-
-			IntegratorConstructor = CheapSynchronousRK2Integrator,
-			steps = None,
-			goalTime = 1.0,
-			dt = 1e-8,
-			dtMin = 1e-8,
-			dtMax = None,
-			dtGrowth = 2.0,
-			restoreCycle = None,
-			restartStep = 1000,
-
-			dataDir = "dumps-sedov2d")
-
-dataDir = os.path.join(dataDir,
-						HydroConstructor.__name__,
-						Qconstructor.__name__,
-						``nperh=%4.2f'' % nPerh,
- 						``compatibleEnergy=\%s'' \% compatibleEnergy,
-						``nr=%i_nt=%i'' % (nRadial, nTheta))
-
-restartDir = os.path.join(dataDir, ``restarts'')
-vizDir = os.path.join(dataDir, ``visit'')
-restartBaseName = os.path.join(restartDir, ``sedov-2d-%i'' % nRadial)
-						
-if not os.path.exists(restartDir):
-	os.makedirs(restartDir)
-if not os.path.exists(vizDir):
-	os.makedirs(vizDir)
-\end{lstlisting}
+\lstinputlisting[language=Python]{example.py}
 
 \end{document}
