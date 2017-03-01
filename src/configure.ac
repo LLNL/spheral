@@ -178,6 +178,7 @@ AC_OUTPUT(helpers/makefile_master \
           PBGWraps/makefile \
           PBGWraps/SpheralModulesBindings.py \
           Pybind11Wraps/makefile \
+          Pybind11Wraps/Spheral.py \
           Pybind11Wraps/CXXTypes/makefile \
           Pybind11Wraps/Geometry/makefile \
           Pybind11Wraps/Silo/makefile \
