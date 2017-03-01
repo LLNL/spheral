@@ -25,10 +25,10 @@ class Neighbor:
         space = Spheral.add_cpp_namespace("NeighborSpace")
 
         # Expose types.
-        self.NeighborSearchType = space.add_enum("NeighborSearchType", ["NeighborSearchType::None",
-                                                                        "NeighborSearchType::Gather",
-                                                                        "NeighborSearchType::Scatter",
-                                                                        "NeighborSearchType::GatherScatter"])
+        self.NeighborSearchType = space.add_enum("NeighborSearchType", [("None", "Spheral::NeighborSpace::NeighborSearchType::None"),
+                                                                        ("Gather", "Spheral::NeighborSpace::NeighborSearchType::Gather"),
+                                                                        ("Scatter", "Spheral::NeighborSpace::NeighborSearchType::Scatter"),
+                                                                        ("GatherScatter", "Spheral::NeighborSpace::NeighborSearchType::GatherScatter")])
 
         for ndim in self.dims:
             exec("""

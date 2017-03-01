@@ -1065,6 +1065,7 @@ $(PYBINDGENBUILDDATE):	$(PYTHONBUILDDATE) $(PYBINDGENDIST)
 	@echo "################################################################################"
 	rm -fr $(PYBINDGENDIR)
 	$(GZIP) -dc $(PYBINDGENDIST) | $(TAR) -xf -
+	$(PATCH) $(PYBINDGENDIR)/pybindgen/enum.py $(srcdir)/pybindgen_enum_py.patch
 	$(CP) -r $(PYBINDGENDIR)/pybindgen $(PYTHONLIBDIR)
 	@if test -n "`$(PYTHONEXE) -c 'import pybindgen'`"; then \
 	echo "ERROR building PYBINDGEN python extension."; \
