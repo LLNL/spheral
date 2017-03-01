@@ -5,7 +5,7 @@ import unittest
 from math import *
 from SpheralTestUtilities import fuzzyEqual
 
-from SpheralGeometry import *
+from Spheral import *
 
 # Create a global random number generator.
 import random
