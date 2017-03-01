@@ -67,23 +67,23 @@ FlatFileIO::open(const string fileName, AccessType access) {
   // Build the file opening mode.
   ios::openmode mode;
   switch(access) {
-  case Create:
+  case AccessType::Create:
     mode = ios::out; //ios::trunc;
     break;
-  case Read:
+  case AccessType::Read:
     mode = ios::in;
     break;
-  case Write:
+  case AccessType::Write:
     mode = ios::out;
     break;
-  case ReadWrite:
+  case AccessType::ReadWrite:
     mode = ios::in | ios::out;
     break;
   default:
     VERIFY2(false, "Unhandled case in switch!");
   }
 
-  if (mFileFormat == binary) mode = mode | ios::binary;
+  if (mFileFormat == FlatFileFormat::binary) mode = mode | ios::binary;
 
   // Open a file stream and attach it to this objects pointer.
   mFilePtr = new fstream(fileName.c_str(), mode);
@@ -1000,7 +1000,7 @@ readGenericVector(vector<DataType>& value,
 bool
 FlatFileIO::readyToWrite() const {
   return (mFilePtr != 0 &&
-	  (access() == Write || access() == ReadWrite || access() == Create));
+	  (access() == AccessType::Write || access() == AccessType::ReadWrite || access() == AccessType::Create));
 }
 
 //------------------------------------------------------------------------------
@@ -1009,7 +1009,7 @@ FlatFileIO::readyToWrite() const {
 bool
 FlatFileIO::readyToRead() const {
   return (mFilePtr != 0 && 
-	  (access() == Read || access() == ReadWrite || access() == Create));
+	  (access() == AccessType::Read || access() == AccessType::ReadWrite || access() == AccessType::Create));
 }
 
 //------------------------------------------------------------------------------

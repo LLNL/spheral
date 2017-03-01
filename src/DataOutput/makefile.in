@@ -13,8 +13,10 @@ SRCTARGETS = \
 	$(srcdir)/RestartRegistrar.cc
 
 ifeq ("no", "@CXXONLY@")
+ifeq ("PYBINDGEN", "@PYTHONBINDING@")
 SRCTARGETS += \
 	$(srcdir)/RestartableObject.cc
+endif
 endif
 
 #-------------------------------------------------------------------------------

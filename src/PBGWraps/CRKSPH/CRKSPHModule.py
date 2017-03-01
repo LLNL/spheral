@@ -32,8 +32,8 @@ generichydro%(dim)id = findObject(PhysicsSpace, "GenericHydro%(dim)id")
 self.CRKSPHHydroBase%(dim)id = addObject(self.space, "CRKSPHHydroBase%(dim)id", allow_subclassing=True, parent=generichydro%(dim)id)
 self.SolidCRKSPHHydroBase%(dim)id = addObject(self.space, "SolidCRKSPHHydroBase%(dim)id", allow_subclassing=True, parent=self.CRKSPHHydroBase%(dim)id)
 ''' % {"dim" : dim})
-        self.CRKOrder = self.space.add_enum("CRKOrder", ["ZerothOrder", "LinearOrder", "QuadraticOrder"])
-        self.CRKVolumeType = self.space.add_enum("CRKVolumeType", ["CRKMassOverDensity", "CRKSumVolume", "CRKVoronoiVolume", "CRKHullVolume", "HVolume"])
+        self.CRKOrder = self.space.add_enum("CRKOrder", ["CRKOrder::ZerothOrder", "CRKOrder::LinearOrder", "CRKOrder::QuadraticOrder"])
+        self.CRKVolumeType = self.space.add_enum("CRKVolumeType", ["CRKVolumeType::CRKMassOverDensity", "CRKVolumeType::CRKSumVolume", "CRKVolumeType::CRKVoronoiVolume", "CRKVolumeType::CRKHullVolume", "CRKVolumeType::HVolume"])
 
         if 2 in self.dims:
             self.CRKSPHHydroBaseRZ = addObject(self.space, "CRKSPHHydroBaseRZ", allow_subclassing=True, parent=self.CRKSPHHydroBase2d)

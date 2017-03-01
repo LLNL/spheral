@@ -9,7 +9,7 @@ from SpheralTestUtilities import fuzzyEqual
 from spheralDimensions import spheralDimensions
 dims = spheralDimensions()
 
-from Spheral import *
+from SpheralGeometry import *
 
 # Create a global random number generator.
 import random

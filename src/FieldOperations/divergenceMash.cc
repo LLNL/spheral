@@ -99,18 +99,18 @@ divergenceMash(const FieldList<Dimension, DataType>& fieldList,
           Scalar Wij;
           Vector gradWij;
           switch((*fieldList.begin())->nodeListPtr()->neighbor().neighborSearchType()) {
-          case NeighborSpace::GatherScatter:
+          case NeighborSpace::NeighborSearchType::GatherScatter:
             Wij = 0.5*(kernel(etai, 1.0) + kernel(etaj, 1.0));
             gradWij = 0.5*(Hi*etaiNorm*kernel.grad(etai, 1.0) + 
                            Hj*etajNorm*kernel.grad(etaj, 1.0));
             break;
 
-          case NeighborSpace::Gather:
+          case NeighborSpace::NeighborSearchType::Gather:
             Wij = kernel(etai, 1.0);
             gradWij = Hi*etaiNorm*kernel.grad(etai, 1.0);
             break;
 
-          case NeighborSpace::Scatter:
+          case NeighborSpace::NeighborSearchType::Scatter:
             Wij = kernel(etaj, 1.0);
             gradWij = Hj*etajNorm*kernel.grad(etaj, 1.0);
             break;

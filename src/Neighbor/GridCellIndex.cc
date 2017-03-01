@@ -1,5 +1,5 @@
 //---------------------------------Spheral++----------------------------------//
-// GridCellIndex -- a simple little class to hold the gridcell indicies for
+// GridCellIndex -- a simple little class to hold the gridcell indices for
 // a gridcell in each dimension.  Basically an integer version of the
 // GeomVector<Dimension> class.
 //

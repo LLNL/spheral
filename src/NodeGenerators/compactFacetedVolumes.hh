@@ -1,6 +1,8 @@
 #ifndef __Spheral_compactFacetedVolumes__
 #define __Spheral_compactFacetedVolumes__
 
+#include <vector>
+
 //------------------------------------------------------------------------------
 // Push FacetedVolume shapes together inside a surface, but excluding mutual
 // overlap.

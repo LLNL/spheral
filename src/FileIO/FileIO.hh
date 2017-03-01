@@ -33,7 +33,7 @@ namespace Spheral {
 namespace FileIOSpace {
 
 // Define the standard file access types.
-enum AccessType {
+enum class AccessType {
   Undefined = -1,
   Create = 0,
   Read = 1,

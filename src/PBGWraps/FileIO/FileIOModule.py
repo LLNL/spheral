@@ -65,14 +65,13 @@ self.FileIOTemplateTypes += [
         self.SiloFileIO = addObject(space, "SiloFileIO", parent=self.FileIO, allow_subclassing=True)
         self.PyFileIO = addObject(space, "PyFileIO", parent=self.FileIO, allow_subclassing=True)
         
-        self.AccessType = space.add_enum("AccessType", 
-                                         ["Undefined",
-                                          "Create",
-                                          "Read",
-                                          "Write",
-                                          "ReadWrite"])
+        self.AccessType = space.add_enum("AccessType", ["AccessType::Undefined",
+                                                        "AccessType::Create",
+                                                        "AccessType::Read",
+                                                        "AccessType::Write",
+                                                        "AccessType::ReadWrite"])
 
-        self.FlatFileFormat = space.add_enum("FlatFileFormat", ["ascii", "binary"])
+        self.FlatFileFormat = space.add_enum("FlatFileFormat", ["FlatFileFormat::ascii", "FlatFileFormat::binary"])
 
         return
 
@@ -178,7 +177,7 @@ self.FileIOTemplateTypes += [
         x.add_constructor([])
         x.add_constructor([param("std::string", "filename"),
                            param("AccessType", "access"),
-                           param("FlatFileFormat", "format", default_value="Spheral::FileIOSpace::ascii")])
+                           param("FlatFileFormat", "format", default_value="Spheral::FileIOSpace::FlatFileFormat::ascii")])
 
 
         # Methods.

@@ -268,7 +268,7 @@ FieldSpace::FieldList<Dimension, DataType>
 DataBase<Dimension>::
 newGlobalFieldList(const DataType value,
                    const typename FieldSpace::Field<Dimension, DataType>::FieldName name) const {
-  FieldSpace::FieldList<Dimension, DataType> result(FieldSpace::Copy);
+  FieldSpace::FieldList<Dimension, DataType> result(FieldSpace::FieldStorageType::Copy);
   for (ConstNodeListIterator nodeListItr = nodeListBegin();
        nodeListItr != nodeListEnd();
        ++nodeListItr) {
@@ -290,7 +290,7 @@ FieldSpace::FieldList<Dimension, DataType>
 DataBase<Dimension>::
 newFluidFieldList(const DataType value,
                   const typename FieldSpace::Field<Dimension, DataType>::FieldName name) const {
-  FieldSpace::FieldList<Dimension, DataType> result(FieldSpace::Copy);
+  FieldSpace::FieldList<Dimension, DataType> result(FieldSpace::FieldStorageType::Copy);
   for (ConstFluidNodeListIterator nodeListItr = fluidNodeListBegin();
        nodeListItr != fluidNodeListEnd();
        ++nodeListItr) {
@@ -312,7 +312,7 @@ FieldSpace::FieldList<Dimension, DataType>
 DataBase<Dimension>::
 newSolidFieldList(const DataType value,
                   const typename FieldSpace::Field<Dimension, DataType>::FieldName name) const {
-  FieldSpace::FieldList<Dimension, DataType> result(FieldSpace::Copy);
+  FieldSpace::FieldList<Dimension, DataType> result(FieldSpace::FieldStorageType::Copy);
   for (ConstSolidNodeListIterator nodeListItr = solidNodeListBegin();
        nodeListItr != solidNodeListEnd();
        ++nodeListItr) {
@@ -336,7 +336,7 @@ resizeGlobalFieldList(FieldSpace::FieldList<Dimension, DataType>& fieldList,
                       const DataType value,
                       const typename FieldSpace::Field<Dimension, DataType>::FieldName name,
                       const bool resetValues) const {
-  VERIFY((fieldList.storageType() == FieldSpace::Copy));
+  VERIFY((fieldList.storageType() == FieldSpace::FieldStorageType::Copy));
 
   // First check if it's necessary to resize the FieldList.
   bool reinitialize = fieldList.numFields() != numNodeLists();
@@ -375,7 +375,7 @@ resizeFluidFieldList(FieldSpace::FieldList<Dimension, DataType>& fieldList,
                      const DataType value,
                      const typename FieldSpace::Field<Dimension, DataType>::FieldName name,
                      const bool resetValues) const {
-  VERIFY((fieldList.storageType() == FieldSpace::Copy));
+  VERIFY((fieldList.storageType() == FieldSpace::FieldStorageType::Copy));
 
   // First check if it's necessary to resize the FieldList.
   bool reinitialize = fieldList.numFields() != numFluidNodeLists();
@@ -414,7 +414,7 @@ resizeSolidFieldList(FieldSpace::FieldList<Dimension, DataType>& fieldList,
                      const DataType value,
                      const typename FieldSpace::Field<Dimension, DataType>::FieldName name,
                      const bool resetValues) const {
-  VERIFY((fieldList.storageType() == FieldSpace::Copy));
+  VERIFY((fieldList.storageType() == FieldSpace::FieldStorageType::Copy));
 
   // First check if it's necessary to resize the FieldList.
   bool reinitialize = fieldList.numFields() != numSolidNodeLists();

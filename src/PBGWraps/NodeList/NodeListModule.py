@@ -25,7 +25,7 @@ class NodeList:
         self.space = Spheral.add_cpp_namespace("NodeSpace")
 
         # Expose types.
-        self.NodeType = self.space.add_enum("NodeType", ["InternalNode", "GhostNode"])
+        self.NodeType = self.space.add_enum("NodeType", ["NodeType::InternalNode", "NodeType::GhostNode"])
 
         for ndim in self.dims:
             exec("""

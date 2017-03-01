@@ -57,3 +57,5 @@ PYTHONTARGETS = \
 #-------------------------------------------------------------------------------
 include $(BUILDTOP)/helpers/makefile_master
 
+# Need silo
+LIBS += -lsiloh5 -lhdf5 $(LDRPATH)
