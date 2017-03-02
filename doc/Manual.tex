@@ -204,22 +204,55 @@ This script is now ready to run using the command
 
 \chapter{NodeLists and FieldLists}
 
-\chapter{Kernels}
-\section{The SPH Kernel}
-
-\chapter{Equations of State}
-
-\chapter{Generators}
-
-\section{1d}
-\section{2d}
-\section{3d}
-
 \chapter{Hydro}
 
 \section{SPHydro}
 \section{ASPH}
 \section{CRKSPH}
 \section{PSPH - Unsupported}
+
+\chapter{Solids and Strength}
+
+\chapter{Boundaries}
+
+\chapter{Available Functions}
+\section{Kernels}
+
+\textit{src/Kernel}
+
+SPH uses overlapping basis functions (kernels) to reconstitute continuum fields.
+These kernels have compact support (i.e. they terminate at a finite distance) and are usually center-weighted. 
+Some of the kernels included in \sph\ are:
+\begin{itemize}
+\item b-spline
+\item quartic spline
+\item quintic spline
+\item sinc function
+\item guassian
+\item Wendland C2, C4, and C6
+\end{itemize}
+
+\section{Equations of State}
+
+\textit{src/Material, src/SolidMaterial}
+
+Some of the most commonly used fluid equations of state include:
+\begin{itemize}
+\item Gamma-Law
+\item Polytropic
+\item Isothermal
+\item Helmholtz Free Energy - Requires the \textit{with-helmholtz} configure flag
+\end{itemize}
+
+\sph\ also provides solid equations of state through the ANEOS and Tillotson EOS interfaces.
+ANEOS requires the \textit{with-aneos} configure flag.
+
+\section{Generators}
+
+\textit{src/NodeGenerators}
+
+\section{Integrators}
+
+\textit{src/Integrator}
 
 \end{document}
