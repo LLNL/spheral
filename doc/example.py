@@ -2,9 +2,9 @@ import os, sys, shutil, mpi
 from math import *
 from Spheral2d import *
 from GenerateNodeDistribution2d import *
+from SpheralTestUtilities import *
 
 title("Sedov 2d Test")
-
 commandLine(nRadial = 50,	# number of radial bins/particles
             nTheta = 50,	# number of theta bins/particles
             rmin = 0.0,		# minimum radius
@@ -104,7 +104,7 @@ xmin = (-1.0, -1.0)
 xmax = (1.0, 1.0)
 
 if restoreCycle is None:
-    generator = GenerateNodeDistribution2d(nRadial, nTheta, rho0, seed="lattice",
+    generator = GenerateNodeDistribution2d(nRadial, nTheta, rho0, "lattice",
                                            rmin = rmin,
                                            rmax = rmax,
                                            xmin = xmin,
@@ -215,13 +215,13 @@ output("integrator.dtMax")
 # Build the controller.
 #-------------------------------------------------------------------------------
 control = SpheralController(integrator, WT,
-                            statsStep = statsStep,
                             restartStep = restartStep,
                             restartBaseName = restartBaseName,
                             restoreCycle = restoreCycle,
                             vizMethod = None,
                             vizBaseName = "Sedov-2d-%ix%i" % (nRadial, nTheta),
                             vizDir = vizDir,
+                            vizTime = 10.0,
                             SPH = True)
 output("control")
 
