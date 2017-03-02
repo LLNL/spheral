@@ -27,6 +27,7 @@
 #include "Geometry/innerProduct.hh"
 #include "Geometry/outerProduct.hh"
 #include "Geometry/innerDoubleProduct.hh"
+#include "Geometry/aggregateFacetedVolumes.hh"
 #include "Field/Field.hh"
 #include "Utilities/DataTypeTraits.hh"
 
@@ -819,6 +820,11 @@ PYBIND11_PLUGIN(SpheralGeometry) {
     .def(py::self == py::self)
     .def(py::self != py::self)
     ;
+
+  //............................................................................
+  // aggregateFacetedVolumes
+  m.def("aggregateFacetedVolumes", &Spheral::aggregateFacetedVolumes<Spheral::Dim<2>>);
+  m.def("aggregateFacetedVolumes", &Spheral::aggregateFacetedVolumes<Spheral::Dim<3>>);
 
   //............................................................................
   // The STL containers of 2D and 3D facets.
