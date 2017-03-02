@@ -52,73 +52,73 @@ public:
   }
 
   virtual void setMasterList(const Vector& position, const Scalar& H) override {
-    PYBIND11_OVERLOAD(void,                 // Return type
-                      NeighborBase,         // Parent class
-                      setMasterList,        // name of method
-                      position, H           // arguments
+    PYBIND11_OVERLOAD_PURE(void,                 // Return type
+                           NeighborBase,         // Parent class
+                           setMasterList,        // name of method
+                           position, H           // arguments
       );
   }
 
   virtual void setMasterList(const Vector& position, const SymTensor& H) override {
-    PYBIND11_OVERLOAD(void,                 // Return type
-                      NeighborBase,         // Parent class
-                      setMasterList,        // name of method
-                      position, H           // arguments
+    PYBIND11_OVERLOAD_PURE(void,                 // Return type
+                           NeighborBase,         // Parent class
+                           setMasterList,        // name of method
+                           position, H           // arguments
       );
   }
 
   virtual void setRefineNeighborList(const Vector& position, const Scalar& H) override {
-    PYBIND11_OVERLOAD(void,                 // Return type
-                      NeighborBase,         // Parent class
-                      setRefineNeighborList,// name of method
-                      position, H           // arguments
+    PYBIND11_OVERLOAD_PURE(void,                 // Return type
+                           NeighborBase,         // Parent class
+                           setRefineNeighborList,// name of method
+                           position, H           // arguments
       );
   }
 
   virtual void setRefineNeighborList(const Vector& position, const SymTensor& H) override {
-    PYBIND11_OVERLOAD(void,                 // Return type
-                      NeighborBase,         // Parent class
-                      setRefineNeighborList,// name of method
-                      position, H           // arguments
+    PYBIND11_OVERLOAD_PURE(void,                 // Return type
+                           NeighborBase,         // Parent class
+                           setRefineNeighborList,// name of method
+                           position, H           // arguments
       );
   }
 
   virtual void setMasterList(const Vector& position) override {
-    PYBIND11_OVERLOAD(void,                 // Return type
-                      NeighborBase,         // Parent class
-                      setMasterList,        // name of method
-                      position              // arguments
+    PYBIND11_OVERLOAD_PURE(void,                 // Return type
+                           NeighborBase,         // Parent class
+                           setMasterList,        // name of method
+                           position              // arguments
       );
   }
 
   virtual void setRefineNeighborList(const Vector& position) override {
-    PYBIND11_OVERLOAD(void,                 // Return type
-                      NeighborBase,         // Parent class
-                      setRefineNeighborList,// name of method
-                      position              // arguments
+    PYBIND11_OVERLOAD_PURE(void,                 // Return type
+                           NeighborBase,         // Parent class
+                           setRefineNeighborList,// name of method
+                           position              // arguments
       );
   }
 
   virtual void setMasterList(const Plane& enterPlane, const Plane& exitPlane) override {
-    PYBIND11_OVERLOAD(void,                 // Return type
-                      NeighborBase,         // Parent class
-                      setMasterList,        // name of method
-                      enterPlane, exitPlane // arguments
+    PYBIND11_OVERLOAD_PURE(void,                 // Return type
+                           NeighborBase,         // Parent class
+                           setMasterList,        // name of method
+                           enterPlane, exitPlane // arguments
       );
   }
 
   virtual void updateNodes() override {
-    PYBIND11_OVERLOAD(void,                 // Return type
-                      NeighborBase,         // Parent class
-                      updateNodes,        // name of method
+    PYBIND11_OVERLOAD_PURE(void,                 // Return type
+                           NeighborBase,         // Parent class
+                           updateNodes,        // name of method
       );
   }
 
   virtual void updateNodes(const std::vector<int>& nodeIDs) override {
-    PYBIND11_OVERLOAD(void,                 // Return type
-                      NeighborBase,         // Parent class
-                      updateNodes,          // name of method
-                      nodeIDs               // arguments
+    PYBIND11_OVERLOAD_PURE(void,                 // Return type
+                           NeighborBase,         // Parent class
+                           updateNodes,          // name of method
+                           nodeIDs               // arguments
       );
   }
 
