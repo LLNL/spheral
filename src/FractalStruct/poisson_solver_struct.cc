@@ -53,6 +53,9 @@ namespace FractalSpace
 	// if(_COUNTERA % 10 == 0)
 	// hypre_test_boxes(mem,level,SBoxes,SPoints);
 	tt+=mem.p_mess->Clock();
+	time4=time3;
+	time5=time3;
+	time6=time3;
 	if(mem.p_mess->IAmAHypreNode)
 	  {
 	    time4=mem.p_mess->Clock();
@@ -69,11 +72,11 @@ namespace FractalSpace
 	time8=mem.p_mess->Clock();
 	SBoxes.clear();
 	SPoints.clear();
-	// if(mem.p_mess->IAmAHypreNode && mem.p_mess->HypreRank == 0)
-	//   {
+	if(mem.p_mess->IAmAHypreNode)
+	  {
 	    FHT << " HYPRE RES B " <<  RANK << " " << ni << " " << level << " " << _COUNTERA << " ";
 	    FHT << " " << time1-time0 << " " << time2-time1 << " " << time3-time2 << " " << time5-time4 << " " << time6-time5 <<  " " << time8-time7 << " " << tt << "\n";
-	  // }
+	  }
 	_COUNTER++;
       }
     if(level < LEV)

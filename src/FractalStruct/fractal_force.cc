@@ -215,6 +215,7 @@ namespace FractalSpace
     for(int level=0;level < fractal.get_level_max();level++)
       {
 	fractal.timing_lev(-2,level+1);
+	fractal_memory.level=level;
 	for(Group* pgroup : fractal_memory.all_groups[level])
 	  {
 	    Group& group=*pgroup;
@@ -277,6 +278,7 @@ namespace FractalSpace
 	for(int level=1;level <= fractal_memory.global_level_max;level++)
 	  {
 	    fractal.timing_lev(-1,level);
+	    fractal_memory.level=level;
 	    for(Group* pgroup : fractal_memory.all_groups[level])
 	      {
 		Group& group=*pgroup;
@@ -323,6 +325,7 @@ namespace FractalSpace
       {
 	for(int level=0;level <= fractal_memory.global_level_max;level++)
 	  {
+	    fractal_memory.level=level;
 	    for(Group* pgroup : fractal_memory.all_groups[level])
 	      force_shear_at_point(*pgroup,fractal);
 	  }
