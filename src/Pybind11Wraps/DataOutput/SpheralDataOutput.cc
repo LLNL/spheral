@@ -26,27 +26,27 @@ public:
   using RestartableObject::RestartableObject;  // inherit constructors
 
   virtual std::string label() const override {
-    PYBIND11_OVERLOAD(std::string,          // Return type
-                      RestartableObject,    // Parent class
-                      label,                // name of method
+    PYBIND11_OVERLOAD_PURE(std::string,          // Return type
+                           RestartableObject,    // Parent class
+                           label,                // name of method
       );                        // arguments
   }
 
   virtual void dumpState(FileIOSpace::FileIO& file, const std::string pathName) const override {
-    PYBIND11_OVERLOAD(void,                 // Return type
-                      RestartableObject,    // Parent class
-                      dumpState,            // name of method
-                      file,                 // arguments
-                      pathName
+    PYBIND11_OVERLOAD_PURE(void,                 // Return type
+                           RestartableObject,    // Parent class
+                           dumpState,            // name of method
+                           file,                 // arguments
+                           pathName
       );
   }
 
   virtual void restoreState(const FileIOSpace::FileIO& file, const std::string pathName) override {
-    PYBIND11_OVERLOAD(void,                 // Return type
-                      RestartableObject,    // Parent class
-                      restoreState,         // name of method
-                      file,                 // arguments
-                      pathName
+    PYBIND11_OVERLOAD_PURE(void,                 // Return type
+                           RestartableObject,    // Parent class
+                           restoreState,         // name of method
+                           file,                 // arguments
+                           pathName
       );
   }
 };
