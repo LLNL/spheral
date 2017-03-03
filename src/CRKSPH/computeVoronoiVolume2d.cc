@@ -136,7 +136,7 @@ computeVoronoiVolume(const FieldList<Dim<2>, Dim<2>::Vector>& position,
       verts[j].x = kernelExtent*cos(theta);
       verts[j].y = kernelExtent*sin(theta);
     }
-    r2d_poly initialCell = r2d_init_empty_poly();
+    r2d_poly initialCell;
     r2d_init_poly(&initialCell, verts, nverts);
     CHECK(r2d_is_good(&initialCell));
 
@@ -242,11 +242,11 @@ computeVoronoiVolume(const FieldList<Dim<2>, Dim<2>::Vector>& position,
         // t0 = std::clock();
 
         // Initialize our seed cell shape.  If we have a boundary use that, otherwise the nominal kernel boundary.
-        r2d_poly celli = r2d_init_empty_poly();
+        r2d_poly celli;
         if (false) { // haveBoundaries) {
           polygon_to_r2d_poly(boundaries[nodeListi] - ri, celli);
         } else {
-          r2d_copy_poly(&celli, &initialCell);
+          celli = initialCell;
           for (unsigned k = 0; k != celli.nverts; ++k) {
             r2d_vertex& vert = celli.verts[k];
             const Vector vi = Hinv*Vector(vert.pos.x, vert.pos.y);
@@ -372,7 +372,6 @@ computeVoronoiVolume(const FieldList<Dim<2>, Dim<2>::Vector>& position,
           cells(nodeListi, i) += ri;
           // tcell += std::clock() - t0;
         }
-        r2d_free_poly(&celli);
       }
     }
 
@@ -404,7 +403,6 @@ computeVoronoiVolume(const FieldList<Dim<2>, Dim<2>::Vector>& position,
     //   }
     // }
 
-    r2d_free_poly(&initialCell);
   }
 
   // ttotal = std::clock() - ttotal;

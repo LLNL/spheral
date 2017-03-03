@@ -197,7 +197,7 @@ computeVoronoiVolume(const FieldList<Dim<3>, Dim<3>::Vector>& position,
     verts[9].x =   t; verts[9].y =  0; verts[9].z =   1;
     verts[10].x = -t; verts[10].y = 0; verts[10].z = -1;
     verts[11].x = -t; verts[11].y = 0; verts[11].z =  1;
-    r3d_poly initialCell = r3d_init_empty_poly();
+    r3d_poly initialCell;
     r3d_init_poly(&initialCell, verts, nverts, facesp, nvertsperface, nfaces);
     CHECK(r3d_is_good(&initialCell));
 
@@ -326,11 +326,11 @@ computeVoronoiVolume(const FieldList<Dim<3>, Dim<3>::Vector>& position,
         // t0 = std::clock();
 
         // Initialize our seed cell shape.  If we have a boundary use that, otherwise the nominal kernel boundary.
-        r3d_poly celli = r3d_init_empty_poly();
+        r3d_poly celli;
         if (false) { // (haveBoundaries) {
           polyhedron_to_r3d_poly(boundaries[nodeListi] - ri, celli);
         } else {
-          r3d_copy_poly(&celli, &initialCell);
+          celli = initialCell;
           for (unsigned k = 0; k != celli.nverts; ++k) {
             r3d_vertex& vert = celli.verts[k];
             const Vector vi = Hinv*Vector(vert.pos.x, vert.pos.y, vert.pos.z);
@@ -454,10 +454,8 @@ computeVoronoiVolume(const FieldList<Dim<3>, Dim<3>::Vector>& position,
           cells(nodeListi, i) += ri;
           // tcell += std::clock() - t0;
         }
-        r3d_free_poly(&celli);
       }
     }
-    r3d_free_poly(&initialCell);
   }
 
   // ttotal = std::clock() - ttotal;
