@@ -17,6 +17,9 @@
 
 namespace Spheral {
 
+// Forward declare the polyhedron.
+class GeomPolyhedron;  
+
 class GeomFacet3d {
 public:
   //--------------------------- Public Interface ---------------------------//
@@ -70,6 +73,9 @@ private:
   const std::vector<Vector>* mVerticesPtr;
   std::vector<unsigned> mPoints;
   Vector mNormal;
+
+  // Make Polyhedron a friend.
+  friend GeomPolyhedron;
 };
 
 // Provide an ostream operator for GeomFacet3d.
