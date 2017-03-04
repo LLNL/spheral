@@ -1,9 +1,10 @@
-#include <vector>
-#include <string>
-
+// Put Python includes first to avoid compile warnings about redefining _POSIX_C_SOURCE
 #include "pybind11/pybind11.h"
 #include "pybind11/stl_bind.h"
 #include "pybind11/operators.h"
+
+#include <vector>
+#include <string>
 
 #include "Geometry/Dimension.hh"
 #include "DataOutput/RestartRegistrar.hh"
@@ -12,6 +13,8 @@
 
 namespace py = pybind11;
 using namespace pybind11::literals;
+
+using namespace Spheral::DataOutput;
 
 namespace Spheral {
 namespace DataOutput {
@@ -24,27 +27,27 @@ public:
   using RestartableObject::RestartableObject;  // inherit constructors
 
   virtual std::string label() const override {
-    PYBIND11_OVERLOAD(std::string,          // Return type
-                      RestartableObject,    // Parent class
-                      label,                // name of method
+    PYBIND11_OVERLOAD_PURE(std::string,          // Return type
+                           RestartableObject,    // Parent class
+                           label,                // name of method
       );                        // arguments
   }
 
   virtual void dumpState(FileIOSpace::FileIO& file, const std::string pathName) const override {
-    PYBIND11_OVERLOAD(void,                 // Return type
-                      RestartableObject,    // Parent class
-                      dumpState,            // name of method
-                      file,                 // arguments
-                      pathName
+    PYBIND11_OVERLOAD_PURE(void,                 // Return type
+                           RestartableObject,    // Parent class
+                           dumpState,            // name of method
+                           file,                 // arguments
+                           pathName
       );
   }
 
   virtual void restoreState(const FileIOSpace::FileIO& file, const std::string pathName) override {
-    PYBIND11_OVERLOAD(void,                 // Return type
-                      RestartableObject,    // Parent class
-                      restoreState,         // name of method
-                      file,                 // arguments
-                      pathName
+    PYBIND11_OVERLOAD_PURE(void,                 // Return type
+                           RestartableObject,    // Parent class
+                           restoreState,         // name of method
+                           file,                 // arguments
+                           pathName
       );
   }
 };
@@ -60,22 +63,22 @@ PYBIND11_PLUGIN(SpheralDataOutput) {
 
   //............................................................................
   // RestartRegistrar
-  py::class_<Spheral::DataOutput::RestartRegistrar, std::unique_ptr<Spheral::DataOutput::RestartRegistrar, py::nodelete>>(m, "RestartRegistrar", py::metaclass())
-    .def_property_readonly_static("instance", &Spheral::DataOutput::RestartRegistrar::instance)
-    .def("removeExpiredPointers", &Spheral::DataOutput::RestartRegistrar::removeExpiredPointers)
-    .def("uniqueLabels", &Spheral::DataOutput::RestartRegistrar::uniqueLabels)
-    .def("printLabels", &Spheral::DataOutput::RestartRegistrar::printLabels)
-    .def("dumpState", &Spheral::DataOutput::RestartRegistrar::dumpState)
-    .def("restoreState", &Spheral::DataOutput::RestartRegistrar::restoreState)
+  py::class_<RestartRegistrar, std::unique_ptr<RestartRegistrar, py::nodelete>>(m, "RestartRegistrar", py::metaclass())
+    .def_property_readonly_static("instance", &RestartRegistrar::instance)
+    .def("removeExpiredPointers", &RestartRegistrar::removeExpiredPointers)
+    .def("uniqueLabels", &RestartRegistrar::uniqueLabels)
+    .def("printLabels", &RestartRegistrar::printLabels)
+    .def("dumpState", &RestartRegistrar::dumpState)
+    .def("restoreState", &RestartRegistrar::restoreState)
     ;
 
   //............................................................................
   // RestartableObject
-  py::class_<Spheral::DataOutput::RestartableObject, Spheral::DataOutput::PyRestartableObject>(m, "RestartableObject")
+  py::class_<RestartableObject, PyRestartableObject>(m, "RestartableObject")
     .def(py::init<unsigned>(), "priority"_a)
-    .def("label", &Spheral::DataOutput::RestartableObject::label)
-    .def("dumpState", &Spheral::DataOutput::RestartableObject::dumpState)
-    .def("restoreState", &Spheral::DataOutput::RestartableObject::restoreState)
+    .def("label", &RestartableObject::label)
+    .def("dumpState", &RestartableObject::dumpState)
+    .def("restoreState", &RestartableObject::restoreState)
     ;
 
   return m.ptr();
