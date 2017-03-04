@@ -321,20 +321,16 @@ GeomPolyhedron(const vector<GeomPolyhedron::Vector>& points,
 GeomPolyhedron::
 GeomPolyhedron(const GeomPolyhedron& rhs):
   mVertices(rhs.mVertices),
-  mFacets(),
+  mFacets(rhs.mFacets),
+  mVertexUnitNorms(rhs.mVertexUnitNorms),
   mVertexFacetConnectivity(rhs.mVertexFacetConnectivity),
   mFacetFacetConnectivity(rhs.mFacetFacetConnectivity),
-  mVertexUnitNorms(rhs.mVertexUnitNorms),
   mXmin(rhs.mXmin),
   mXmax(rhs.mXmax),
   mCentroid(rhs.mCentroid),
   mRinterior2(rhs.mRinterior2),
   mConvex(rhs.mConvex) {
-  mFacets.reserve(rhs.mFacets.size());
-  for (const Facet& facet: rhs.mFacets) mFacets.push_back(Facet(mVertices,
-                                                                facet.ipoints(),
-                                                                facet.normal()));
-  ENSURE(mFacets.size() == rhs.mFacets.size());
+  for (Facet& facet: mFacets) facet.mVerticesPtr = &mVertices;
 }
 
 //------------------------------------------------------------------------------

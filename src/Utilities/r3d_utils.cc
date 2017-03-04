@@ -449,7 +449,7 @@ Dim<2>::FacetedVolume clipFacetedVolume(const Dim<2>::FacetedVolume& poly,
   if (nplanes == 0) return poly;
 
   // Construct the R2D version of our polygon.
-  r2d_poly poly2d = r2d_init_empty_poly();
+  r2d_poly poly2d;
   polygon_to_r2d_poly(poly, poly2d);
 
   // Now the R2D planes.
@@ -471,7 +471,6 @@ Dim<2>::FacetedVolume clipFacetedVolume(const Dim<2>::FacetedVolume& poly,
   r2d_reduce(&poly2d, &area, 0);
   const double tol = 1.0e-10 * area;
   r2d_poly_to_polygon(poly2d, tol, result);
-  r2d_free_poly(&poly2d);
   return result;
 }
 
@@ -489,7 +488,7 @@ Dim<3>::FacetedVolume clipFacetedVolume(const Dim<3>::FacetedVolume& poly,
   if (nplanes == 0) return poly;
 
   // Construct the R3D version of our polyhedron.
-  r3d_poly poly3d = r3d_init_empty_poly();
+  r3d_poly poly3d;
   polyhedron_to_r3d_poly(poly, poly3d);
 
   // Now the R3D planes.
@@ -512,7 +511,6 @@ Dim<3>::FacetedVolume clipFacetedVolume(const Dim<3>::FacetedVolume& poly,
   r3d_reduce(&poly3d, &vol, 0);
   const double tol = 1.0e-10 * vol;
   r3d_poly_to_polyhedron(poly3d, tol, result);
-  r3d_free_poly(&poly3d);
   return result;
 }
 
