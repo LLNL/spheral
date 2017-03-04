@@ -284,6 +284,10 @@ void dimensionBindings(py::module& m, const std::string suffix) {
     .def_property_readonly("numNeighbors", &DB::numNeighbors)
     .def_property_readonly("maxKernelExtent", &DB::maxKernelExtent)
 
+    // For backwards compatibility, we provide attribute-like access to the static attributes.
+    .def_property_readonly("nDim", []() { return DB::nDim; })
+    .def_property_readonly("isRZ", []() { return DB::isRZ; })
+
     // Static attributes
     .def_readonly_static("nDim", &DB::nDim)
     .def_readonly_static("isRZ", &DB::isRZ)
