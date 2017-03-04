@@ -81,5 +81,19 @@ namespace FractalSpace
       return Pa->get_pos_point_x()-Pb->get_pos_point_x() < 0;
     }
   };
+  struct vector_comp_up
+  {
+    template <class T> bool operator()(const vector<T*> vA,const vector<T*> vB) const
+    {
+      return vA.size() < vB.size();
+    }
+  };
+  struct vector_comp_down
+  {
+    template <class T> bool operator()(const vector<T*> vA,const vector<T*> vB) const
+    {
+      return -vA.size() < -vB.size();
+    }
+  };
 }
 #endif
