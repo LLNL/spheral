@@ -17,6 +17,7 @@
 #include <complex>
 #include <ctime>
 #include <map>
+#include <deque>
 #include <climits>
 #include <array>
 #include <random>

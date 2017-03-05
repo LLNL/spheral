@@ -39,7 +39,7 @@ namespace FractalSpace
     int total_points=accumulate(Points.begin(),Points.end(),0);
     int average_boxes=total_boxes/HypreNodes;
     int average_points=total_points/HypreNodes;
-    FHT << " LOADY " << total_boxes << " " << total_points << " " << average_boxes << " " << average_points << endl;
+    FHT << " LOADY " << total_boxes << " " << total_points << " " << average_boxes << " " << average_points << "\n";
     if(*max_element(Points.begin(),Points.end()) <= max(maxLOAD,20000))
       return false;
     const int SBtotal=SBoxes.size();
@@ -198,10 +198,10 @@ namespace FractalSpace
 	      pN++;
 	  }
       }
-    for(auto M : MSP)
-      {
-    	FHT << " NBOX " << mem.steps << " " << mem.level << " " << HypreRank << " " << M.first.size() << " " << HRout[M.second] << " " << endl;
-      }
+    // for(auto M : MSP)
+    //   {
+    // 	FHT << " NBOX " << mem.steps << " " << mem.level << " " << HypreRank << " " << M.first.size() << " " << HRout[M.second] << " " << endl;
+    //   }
     // for(auto m : mynodes)
     //   {
     // 	FHT << " NFILLED " << mem.steps << " " << mem.level << " " << HypreRank << " " << m << " " << sendto[m] << " " << endl;

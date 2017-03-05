@@ -121,6 +121,7 @@ namespace FractalSpace
     double time;
     double total_mass;
     int steps;
+    int level;
     //
     int crash_levels;
     double crash_pow;
@@ -252,6 +253,7 @@ namespace FractalSpace
       time(2.0/3.0),
       total_mass(1.0),
       steps(0),
+      level(-10),
       //
       crash_levels(0),
       crash_pow(1.0),
