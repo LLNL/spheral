@@ -398,7 +398,7 @@ GeomPolygon(const vector<GeomPolygon::Vector>& points):
     setBoundingBox();
 
     // Compute the ancillary geometry.
-    GeometryUtilities::computeAncillaryGeometry(*this, mVertexFacetConnectivity, mFacetFacetConnectivity, mVertexUnitNorms);
+    GeometryUtilities::computeAncillaryGeometry(*this, mVertexFacetConnectivity, mFacetFacetConnectivity, mVertexUnitNorms, false);
 
     // Post-conditions.
     BEGIN_CONTRACT_SCOPE
@@ -465,7 +465,7 @@ GeomPolygon(const vector<GeomPolygon::Vector>& points,
   mConvex = this->convex();
 
   // Compute the ancillary geometry.
-  GeometryUtilities::computeAncillaryGeometry(*this, mVertexFacetConnectivity, mFacetFacetConnectivity, mVertexUnitNorms);
+  GeometryUtilities::computeAncillaryGeometry(*this, mVertexFacetConnectivity, mFacetFacetConnectivity, mVertexUnitNorms, false);
 }
 
 //------------------------------------------------------------------------------
@@ -759,9 +759,9 @@ reconstruct(const vector<GeomPolygon::Vector>& vertices,
   }
   setBoundingBox();
   mConvex = this->convex();
-  GeometryUtilities::computeAncillaryGeometry(*this, mVertexFacetConnectivity, mFacetFacetConnectivity, mVertexUnitNorms);
+  GeometryUtilities::computeAncillaryGeometry(*this, mVertexFacetConnectivity, mFacetFacetConnectivity, mVertexUnitNorms, false);
   ENSURE(mFacets.size() == facetVertices.size());
-  ENSURE(mFacetFacetConnectivity.size() == mFacets.size());
+  ENSURE(mFacetFacetConnectivity.size() == 0); // mFacets.size());
 }
 
 //------------------------------------------------------------------------------

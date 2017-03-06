@@ -1,3 +1,5 @@
+#include "FacetedVolumeUtilities.hh"
+
 namespace Spheral {
 
 //------------------------------------------------------------------------------
@@ -35,6 +37,13 @@ inline
 const std::vector<std::vector<unsigned> >&
 GeomPolyhedron::
 facetFacetConnectivity() const {
+  if (mFacetFacetConnectivity.size() == 0) {
+    GeometryUtilities::computeAncillaryGeometry(*this, 
+                                                const_cast<std::vector<std::vector<unsigned>>&>(mVertexFacetConnectivity), 
+                                                const_cast<std::vector<std::vector<unsigned>>&>(mFacetFacetConnectivity),
+                                                const_cast<std::vector<Vector>&>(mVertexUnitNorms), 
+                                                true);
+  }
   return mFacetFacetConnectivity;
 }
 

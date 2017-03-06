@@ -6,6 +6,9 @@
 //
 // Created by JMO, Sun Mar 23 11:24:18 PDT 2014
 //----------------------------------------------------------------------------//
+#ifndef __Spheral_Geometry_computeAncillaryGeometry__
+#define __Spheral_Geometry_computeAncillaryGeometry__
+
 #include <algorithm>
 #include <vector>
 #include <set>
@@ -15,11 +18,13 @@ namespace Spheral {
 namespace GeometryUtilities {
 
 template<typename PolyType>
+inline
 void
 computeAncillaryGeometry(const PolyType& poly,
                          std::vector<std::vector<unsigned> >& vertexFacetConnectivity,
                          std::vector<std::vector<unsigned> >& facetFacetConnectivity,
-                         std::vector<typename PolyType::Vector>& vertexUnitNormals) {
+                         std::vector<typename PolyType::Vector>& vertexUnitNormals,
+                         bool computeFacetFacetConnectivity) {
 
   using namespace std;
   typedef typename PolyType::Vector Vector;
@@ -46,18 +51,22 @@ computeAncillaryGeometry(const PolyType& poly,
   CHECK(vertexFacetConnectivity.size() == nverts);
 
   // Construct the facet->facet connectivity.
-  facetFacetConnectivity = vector<vector<unsigned> >(nfacets);
-  for (const vector<unsigned>& vertexFacets: vertexFacetConnectivity) {
-    for (const unsigned fi: vertexFacets) {
-      std::copy(vertexFacets.begin(), vertexFacets.end(), std::back_inserter(facetFacetConnectivity[fi]));
+  if (computeFacetFacetConnectivity) {
+    facetFacetConnectivity = vector<vector<unsigned> >(nfacets);
+    for (const vector<unsigned>& vertexFacets: vertexFacetConnectivity) {
+      for (const unsigned fi: vertexFacets) {
+        std::copy(vertexFacets.begin(), vertexFacets.end(), std::back_inserter(facetFacetConnectivity[fi]));
+      }
     }
+    for (unsigned i = 0; i != nfacets; ++i) {
+      std::sort(facetFacetConnectivity[i].begin(), facetFacetConnectivity[i].end());
+      facetFacetConnectivity[i].erase(std::unique(facetFacetConnectivity[i].begin(), facetFacetConnectivity[i].end()), facetFacetConnectivity[i].end());
+      CHECK(find(facetFacetConnectivity[i].begin(), facetFacetConnectivity[i].end(), i) != facetFacetConnectivity[i].end());
+    }
+    CHECK(facetFacetConnectivity.size() == nfacets);
+  } else {
+    facetFacetConnectivity.clear();
   }
-  for (unsigned i = 0; i != nfacets; ++i) {
-    std::sort(facetFacetConnectivity[i].begin(), facetFacetConnectivity[i].end());
-    facetFacetConnectivity[i].erase(std::unique(facetFacetConnectivity[i].begin(), facetFacetConnectivity[i].end()), facetFacetConnectivity[i].end());
-    CHECK(find(facetFacetConnectivity[i].begin(), facetFacetConnectivity[i].end(), i) != facetFacetConnectivity[i].end());
-  }
-  CHECK(facetFacetConnectivity.size() == nfacets);
 
   // Find the normals to the surface at each vertex.
   vertexUnitNormals = vector<Vector>(nverts);
@@ -72,3 +81,5 @@ computeAncillaryGeometry(const PolyType& poly,
 
 }
 }
+
+#endif
