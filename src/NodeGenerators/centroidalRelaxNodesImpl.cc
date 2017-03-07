@@ -155,6 +155,7 @@ centroidalRelaxNodesImpl(DataBaseSpace::DataBase<Dimension>& db,
     avgdelta = 0.0;
     for (unsigned nodeListi = 0U; nodeListi != numNodeLists; ++nodeListi) {
       const auto n = rhof[nodeListi]->numInternalElements();
+      const auto hmax = rhof[nodeListi]->nodeListPtr()->hmax();
       for (auto i = 0U; i != n; ++i) {
         auto delta = centroidFrac * deltaCentroid(nodeListi, i);
         if (useBounds) {
@@ -167,7 +168,7 @@ centroidalRelaxNodesImpl(DataBaseSpace::DataBase<Dimension>& db,
         }
         if (vol(nodeListi, i) > 0.0) {
           avgdelta += delta.magnitude()/Dimension::rootnu(vol(nodeListi, i));
-          H(nodeListi, i) = SymTensor::one / (2.0*Dimension::rootnu(vol(nodeListi, i)));  // Not correct, but hopefully good enough for our iterative Voronoi purposes.
+          H(nodeListi, i) = SymTensor::one / std::min(hmax, 2.0*Dimension::rootnu(vol(nodeListi, i)));  // Not correct, but hopefully good enough for our iterative Voronoi purposes.
         }
         pos(nodeListi, i) += delta;
         rhof(nodeListi, i) = rhofunc(pos(nodeListi, i));
