@@ -92,7 +92,7 @@ centroidalRelaxNodesImpl(DataBaseSpace::DataBase<Dimension>& db,
   // Iterate until we converge or max out.
   unsigned iter = 0;
   double avgdelta = 2.0*fracTol;
-  while (iter < 2 or (iter < maxIterations and (avgdelta > fracTol or mass.min() == 0.0))) {
+  while (iter < 2 or (iter < maxIterations and (avgdelta > fracTol))) { //  or mass.min() == 0.0))) {
     iter += 1;
 
     // Remove any old ghost nodes info, and update the mass density
