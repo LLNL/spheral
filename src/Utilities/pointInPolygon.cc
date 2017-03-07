@@ -195,20 +195,20 @@ bool pointInPolygon(const Dim<3>::Vector& p,
   // Prerequisites.
   const unsigned npts = ipoints.size();
   unsigned i, j, k;
-  BEGIN_CONTRACT_SCOPE
-  {
-    REQUIRE(ipoints.size() > 2);
-    const double normmag = normal.magnitude();
-    Vector normi;
-    for (i = 1; i != npts; ++i) {
-      j = (i + 1) % npts;
-      k = (i + 2) % npts;
-      normi = (vertices[ipoints[j]] - vertices[ipoints[i]]).cross(vertices[ipoints[k]] - vertices[ipoints[i]]);
-      REQUIRE2(fuzzyEqual(abs(normi.dot(normal)), normmag*normi.magnitude(), 1.0e-5), normi << " " << normal << " " << normi.dot(normal) << " " << normi.dot(normal));
-    }
-    // REQUIRE2(fuzzyEqual(pointPlaneDistance(p, vertices[ipoints[0]], normal.unitVector()), 0.0, 1.0e-3), pointPlaneDistance(p, vertices[ipoints[0]], normal.unitVector()));
-  }
-  END_CONTRACT_SCOPE
+  // BEGIN_CONTRACT_SCOPE
+  // {
+  //   REQUIRE(ipoints.size() > 2);
+  //   const double normmag = normal.magnitude();
+  //   Vector normi;
+  //   for (i = 1; i != npts; ++i) {
+  //     j = (i + 1) % npts;
+  //     k = (i + 2) % npts;
+  //     normi = (vertices[ipoints[j]] - vertices[ipoints[i]]).cross(vertices[ipoints[k]] - vertices[ipoints[i]]);
+  //     REQUIRE2(fuzzyEqual(abs(normi.dot(normal)), normmag*normi.magnitude(), 1.0e-5), normi << " " << normal << " " << normi.dot(normal) << " " << normmag*normi.magnitude());
+  //   }
+  //   // REQUIRE2(fuzzyEqual(pointPlaneDistance(p, vertices[ipoints[0]], normal.unitVector()), 0.0, 1.0e-3), pointPlaneDistance(p, vertices[ipoints[0]], normal.unitVector()));
+  // }
+  // END_CONTRACT_SCOPE
 
   bool result = false;
 
