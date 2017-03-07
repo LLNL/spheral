@@ -13,7 +13,7 @@ namespace BoundarySpace {
 // PyAbstractBoundary
 //------------------------------------------------------------------------------
 template<typename Dimension, class BoundaryBase>
-class PyBoundary: public BoundaryBase {
+class PyAbstractBoundary: public BoundaryBase {
 public:
   using BoundaryBase::BoundaryBase;  // inherit constructors
 
@@ -23,6 +23,7 @@ public:
   typedef Spheral::GeomPlane<Dimension> Plane;
   using Spheral::NodeSpace::NodeList;
   using Spheral::FieldSpace::Field;
+  using Spheral::FieldSpace::FieldList;
 
   virtual void setAllGhostNodes(DataBase<Dimension>& dataBase) override {
     PYBIND11_OVERLOAD(void,         // Return type

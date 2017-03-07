@@ -1,8 +1,12 @@
 //------------------------------------------------------------------------------
-// Trampoline classes for the Boundary types.
+// Trampoline classes for Boundary interface.
+// This one inherits from the abstract interface and just overrides the pure
+// virtual methods.
 //------------------------------------------------------------------------------
 #ifndef __Spheral_PyBoundary__
 #define __Spheral_PyBoundary__
+
+#include "Geometry/GeomPlane.hh"
 
 namespace Spheral {
 namespace BoundarySpace {
@@ -19,100 +23,146 @@ public:
   typedef typename Dimension::Vector Vector;
   typedef typename Dimension::SymTensor SymTensor;
   typedef Spheral::GeomPlane<Dimension> Plane;
+  using Spheral::NodeSpace::NodeList;
+  using Spheral::FieldSpace::Field;
+  using Spheral::FieldSpace::FieldList;
 
-  virtual void setMasterList(int nodeID) override {
+  virtual void setGhostNodes(NodeList<Dimension>& nodeList) override {
     PYBIND11_OVERLOAD(void,         // Return type
-                      BoundaryBase, // Parent class
-                      setMasterList,// name of method
-                      nodeID        // arguments
+                           BoundaryBase, // Parent class
+                           setGhostNodes,// name of method
+                           nodeList      // arguments
       );
   }
 
-  virtual void setRefineBoundaryList(int nodeID) override {
-    PYBIND11_OVERLOAD(void,                 // Return type
-                      BoundaryBase,         // Parent class
-                      setRefineBoundaryList,// name of method
-                      nodeID                // arguments
+  virtual void updateGhostNodes(NodeList<Dimension>& nodeList) override {
+    PYBIND11_OVERLOAD(void,         // Return type
+                           BoundaryBase, // Parent class
+                           updateGhostNodes,// name of method
+                           nodeList      // arguments
       );
   }
 
-  virtual void setMasterList(const Vector& position, const Scalar& H) override {
-    PYBIND11_OVERLOAD_PURE(void,                 // Return type
-                           BoundaryBase,         // Parent class
-                           setMasterList,        // name of method
-                           position, H           // arguments
+  virtual void applyGhostBoundary(Field<Dimension, int>& field) const override {
+    PYBIND11_OVERLOAD(void,         // Return type
+                           BoundaryBase, // Parent class
+                           applyGhostBoundary,// name of method
+                           field      // arguments
       );
   }
 
-  virtual void setMasterList(const Vector& position, const SymTensor& H) override {
-    PYBIND11_OVERLOAD_PURE(void,                 // Return type
-                           BoundaryBase,         // Parent class
-                           setMasterList,        // name of method
-                           position, H           // arguments
+  virtual void applyGhostBoundary(Field<Dimension, Scalar>& field) const override {
+    PYBIND11_OVERLOAD(void,         // Return type
+                           BoundaryBase, // Parent class
+                           applyGhostBoundary,// name of method
+                           field      // arguments
       );
   }
 
-  virtual void setRefineBoundaryList(const Vector& position, const Scalar& H) override {
-    PYBIND11_OVERLOAD_PURE(void,                 // Return type
-                           BoundaryBase,         // Parent class
-                           setRefineBoundaryList,// name of method
-                           position, H           // arguments
+  virtual void applyGhostBoundary(Field<Dimension, Vector>& field) const override {
+    PYBIND11_OVERLOAD(void,         // Return type
+                           BoundaryBase, // Parent class
+                           applyGhostBoundary,// name of method
+                           field      // arguments
       );
   }
 
-  virtual void setRefineBoundaryList(const Vector& position, const SymTensor& H) override {
-    PYBIND11_OVERLOAD_PURE(void,                 // Return type
-                           BoundaryBase,         // Parent class
-                           setRefineBoundaryList,// name of method
-                           position, H           // arguments
+  virtual void applyGhostBoundary(Field<Dimension, Tensor>& field) const override {
+    PYBIND11_OVERLOAD(void,         // Return type
+                           BoundaryBase, // Parent class
+                           applyGhostBoundary,// name of method
+                           field      // arguments
       );
   }
 
-  virtual void setMasterList(const Vector& position) override {
-    PYBIND11_OVERLOAD_PURE(void,                 // Return type
-                           BoundaryBase,         // Parent class
-                           setMasterList,        // name of method
-                           position              // arguments
+  virtual void applyGhostBoundary(Field<Dimension, SymTensor>& field) const override {
+    PYBIND11_OVERLOAD(void,         // Return type
+                           BoundaryBase, // Parent class
+                           applyGhostBoundary,// name of method
+                           field      // arguments
       );
   }
 
-  virtual void setRefineBoundaryList(const Vector& position) override {
-    PYBIND11_OVERLOAD_PURE(void,                 // Return type
-                           BoundaryBase,         // Parent class
-                           setRefineBoundaryList,// name of method
-                           position              // arguments
+  virtual void applyGhostBoundary(Field<Dimension, ThirdRankTensor>& field) const override {
+    PYBIND11_OVERLOAD(void,         // Return type
+                           BoundaryBase, // Parent class
+                           applyGhostBoundary,// name of method
+                           field      // arguments
       );
   }
 
-  virtual void setMasterList(const Plane& enterPlane, const Plane& exitPlane) override {
-    PYBIND11_OVERLOAD_PURE(void,                 // Return type
-                           BoundaryBase,         // Parent class
-                           setMasterList,        // name of method
-                           enterPlane, exitPlane // arguments
+  virtual void applyGhostBoundary(Field<Dimension, std::vector<Scalar>>& field) const override {
+    PYBIND11_OVERLOAD(void,         // Return type
+                           BoundaryBase, // Parent class
+                           applyGhostBoundary,// name of method
+                           field      // arguments
       );
   }
 
-  virtual void updateNodes() override {
-    PYBIND11_OVERLOAD_PURE(void,                 // Return type
-                           BoundaryBase,         // Parent class
-                           updateNodes,        // name of method
+  virtual void setViolationNodes(NodeList<Dimension>& nodeList) override {
+    PYBIND11_OVERLOAD(void,         // Return type
+                           BoundaryBase, // Parent class
+                           setViolationNodes,// name of method
+                           nodeList      // arguments
       );
   }
 
-  virtual void updateNodes(const std::vector<int>& nodeIDs) override {
-    PYBIND11_OVERLOAD_PURE(void,                 // Return type
-                           BoundaryBase,         // Parent class
-                           updateNodes,          // name of method
-                           nodeIDs               // arguments
+  virtual void updateViolationNodes(NodeList<Dimension>& nodeList) override {
+    PYBIND11_OVERLOAD(void,         // Return type
+                           BoundaryBase, // Parent class
+                           updateViolationNodes,// name of method
+                           nodeList      // arguments
       );
   }
 
-  virtual bool valid() const override {
-    PYBIND11_OVERLOAD(bool,                 // Return type
-                      BoundaryBase,         // Parent class
-                      valid                 // name of method
+  virtual void enforceBoundary(Field<Dimension, int>& field) const override {
+    PYBIND11_OVERLOAD(void,         // Return type
+                           BoundaryBase, // Parent class
+                           enforceBoundary,// name of method
+                           field      // arguments
       );
   }
+
+  virtual void enforceBoundary(Field<Dimension, Scalar>& field) const override {
+    PYBIND11_OVERLOAD(void,         // Return type
+                           BoundaryBase, // Parent class
+                           enforceBoundary,// name of method
+                           field      // arguments
+      );
+  }
+
+  virtual void enforceBoundary(Field<Dimension, Vector>& field) const override {
+    PYBIND11_OVERLOAD(void,         // Return type
+                           BoundaryBase, // Parent class
+                           enforceBoundary,// name of method
+                           field      // arguments
+      );
+  }
+
+  virtual void enforceBoundary(Field<Dimension, Tensor>& field) const override {
+    PYBIND11_OVERLOAD(void,         // Return type
+                           BoundaryBase, // Parent class
+                           enforceBoundary,// name of method
+                           field      // arguments
+      );
+  }
+
+  virtual void enforceBoundary(Field<Dimension, SymTensor>& field) const override {
+    PYBIND11_OVERLOAD(void,         // Return type
+                           BoundaryBase, // Parent class
+                           enforceBoundary,// name of method
+                           field      // arguments
+      );
+  }
+
+  virtual void enforceBoundary(Field<Dimension, ThirdRankTensor>& field) const override {
+    PYBIND11_OVERLOAD(void,         // Return type
+                           BoundaryBase, // Parent class
+                           enforceBoundary,// name of method
+                           field      // arguments
+      );
+  }
+
 };
 
 }
