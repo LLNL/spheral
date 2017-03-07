@@ -22,6 +22,9 @@
 #include "Boundary/AxialSymmetryBoundary.hh"
 #include "Boundary/AxisBoundaryRZ.hh"
 
+#include "PyAbstractBoundary.hh"
+#include "PyBoundary.hh"
+
 namespace py = pybind11;
 using namespace pybind11::literals;
 
@@ -42,120 +45,6 @@ PYBIND11_MAKE_OPAQUE(std::vector<Boundary<Spheral::Dim<2>>*>);
 //------------------------------------------------------------------------------
 PYBIND11_MAKE_OPAQUE(std::vector<Boundary<Spheral::Dim<3>>*>);
 
-namespace Spheral {
-namespace BoundarySpace {
-
-//------------------------------------------------------------------------------
-// PyAbstractBoundary
-//------------------------------------------------------------------------------
-template<typename Dimension, class BoundaryBase>
-class PyBoundary: public BoundaryBase {
-public:
-  using BoundaryBase::BoundaryBase;  // inherit constructors
-
-  typedef typename Dimension::Scalar Scalar;
-  typedef typename Dimension::Vector Vector;
-  typedef typename Dimension::SymTensor SymTensor;
-  typedef Spheral::GeomPlane<Dimension> Plane;
-
-  virtual void setMasterList(int nodeID) override {
-    PYBIND11_OVERLOAD(void,         // Return type
-                      BoundaryBase, // Parent class
-                      setMasterList,// name of method
-                      nodeID        // arguments
-      );
-  }
-
-  virtual void setRefineBoundaryList(int nodeID) override {
-    PYBIND11_OVERLOAD(void,                 // Return type
-                      BoundaryBase,         // Parent class
-                      setRefineBoundaryList,// name of method
-                      nodeID                // arguments
-      );
-  }
-
-  virtual void setMasterList(const Vector& position, const Scalar& H) override {
-    PYBIND11_OVERLOAD_PURE(void,                 // Return type
-                           BoundaryBase,         // Parent class
-                           setMasterList,        // name of method
-                           position, H           // arguments
-      );
-  }
-
-  virtual void setMasterList(const Vector& position, const SymTensor& H) override {
-    PYBIND11_OVERLOAD_PURE(void,                 // Return type
-                           BoundaryBase,         // Parent class
-                           setMasterList,        // name of method
-                           position, H           // arguments
-      );
-  }
-
-  virtual void setRefineBoundaryList(const Vector& position, const Scalar& H) override {
-    PYBIND11_OVERLOAD_PURE(void,                 // Return type
-                           BoundaryBase,         // Parent class
-                           setRefineBoundaryList,// name of method
-                           position, H           // arguments
-      );
-  }
-
-  virtual void setRefineBoundaryList(const Vector& position, const SymTensor& H) override {
-    PYBIND11_OVERLOAD_PURE(void,                 // Return type
-                           BoundaryBase,         // Parent class
-                           setRefineBoundaryList,// name of method
-                           position, H           // arguments
-      );
-  }
-
-  virtual void setMasterList(const Vector& position) override {
-    PYBIND11_OVERLOAD_PURE(void,                 // Return type
-                           BoundaryBase,         // Parent class
-                           setMasterList,        // name of method
-                           position              // arguments
-      );
-  }
-
-  virtual void setRefineBoundaryList(const Vector& position) override {
-    PYBIND11_OVERLOAD_PURE(void,                 // Return type
-                           BoundaryBase,         // Parent class
-                           setRefineBoundaryList,// name of method
-                           position              // arguments
-      );
-  }
-
-  virtual void setMasterList(const Plane& enterPlane, const Plane& exitPlane) override {
-    PYBIND11_OVERLOAD_PURE(void,                 // Return type
-                           BoundaryBase,         // Parent class
-                           setMasterList,        // name of method
-                           enterPlane, exitPlane // arguments
-      );
-  }
-
-  virtual void updateNodes() override {
-    PYBIND11_OVERLOAD_PURE(void,                 // Return type
-                           BoundaryBase,         // Parent class
-                           updateNodes,        // name of method
-      );
-  }
-
-  virtual void updateNodes(const std::vector<int>& nodeIDs) override {
-    PYBIND11_OVERLOAD_PURE(void,                 // Return type
-                           BoundaryBase,         // Parent class
-                           updateNodes,          // name of method
-                           nodeIDs               // arguments
-      );
-  }
-
-  virtual bool valid() const override {
-    PYBIND11_OVERLOAD(bool,                 // Return type
-                      BoundaryBase,         // Parent class
-                      valid                 // name of method
-      );
-  }
-};
-
-}
-}
-
 namespace {  // anonymous
 
 //------------------------------------------------------------------------------
@@ -172,20 +61,30 @@ void virtualBoundaryBindings(py::module& m, const std::string suffix, PB11Obj& o
   obj
 
     // Methods
-    .def("setMasterList", (void (Obj::*)(const Vector&, const Scalar&)) &Obj::setMasterList, "position"_a, "h"_a)
-    .def("setMasterList", (void (Obj::*)(const Vector&, const SymTensor&)) &Obj::setMasterList, "position"_a, "H"_a)
-    .def("setMasterList", (void (Obj::*)(const Vector&)) &Obj::setMasterList, "position"_a)
-    
-    .def("setRefineBoundaryList", (void (Obj::*)(const Vector&, const Scalar&)) &Obj::setRefineBoundaryList, "position"_a, "h"_a)
-    .def("setRefineBoundaryList", (void (Obj::*)(const Vector&, const SymTensor&)) &Obj::setRefineBoundaryList, "position"_a, "H"_a)
-    .def("setRefineBoundaryList", (void (Obj::*)(const Vector&)) &Obj::setRefineBoundaryList, "position"_a)
+    .def("setAllGhostNodes", &Obj::setAllGhostNodes)
+    .def("setAllViolationNodes", &Obj::setAllViolationNodes)
+    .def("cullGhostNodes", &Obj::cullGhostNodes)
+    .def("setGhostNodes", &Obj::setGhostNodes)
+    .def("updateGhostNodes", &Obj::updateGhostNodes)
 
-    .def("setMasterList", (void (Obj::*)(const Plane&, const Plane&)) &Obj::setMasterList, "enterPlane"_a, "exitPlane"_a)
+    .def("applyGhostBoundary", (void (Obj::*)(Field<Dimension, int>&) const) &Obj::applyGhostBoundary, "field"_a)
+    .def("applyGhostBoundary", (void (Obj::*)(Field<Dimension, Scalar>&) const) &Obj::applyGhostBoundary, "field"_a)
+    .def("applyGhostBoundary", (void (Obj::*)(Field<Dimension, Vector>&) const) &Obj::applyGhostBoundary, "field"_a)
+    .def("applyGhostBoundary", (void (Obj::*)(Field<Dimension, Tensor>&) const) &Obj::applyGhostBoundary, "field"_a)
+    .def("applyGhostBoundary", (void (Obj::*)(Field<Dimension, SymTensor>&) const) &Obj::applyGhostBoundary, "field"_a)
+    .def("applyGhostBoundary", (void (Obj::*)(Field<Dimension, ThirdRankTensor>&) const) &Obj::applyGhostBoundary, "field"_a)
+    .def("applyGhostBoundary", (void (Obj::*)(Field<Dimension, std::vector<Scalar>>&) const) &Obj::applyGhostBoundary, "field"_a)
 
-    .def("updateNodes", (void (Obj::*)()) &Obj::updateNodes)
-    .def("updateNodes", (void (Obj::*)(const std::vector<int>&)) &Obj::updateNodes, "nodeIDs"_a)
+    .def("setViolationNodes", &Obj::setViolationNodes)
+    .def("updateViolationNodes", &Obj::updateViolationNodes)
 
-    .def("valid", &Obj::valid)
+    .def("enforceBoundary", (void (Obj::*)(Field<Dimension, int>&) const) &Obj::enforceBoundary, "field"_a)
+    .def("enforceBoundary", (void (Obj::*)(Field<Dimension, Scalar>&) const) &Obj::enforceBoundary, "field"_a)
+    .def("enforceBoundary", (void (Obj::*)(Field<Dimension, Vector>&) const) &Obj::enforceBoundary, "field"_a)
+    .def("enforceBoundary", (void (Obj::*)(Field<Dimension, Tensor>&) const) &Obj::enforceBoundary, "field"_a)
+    .def("enforceBoundary", (void (Obj::*)(Field<Dimension, SymTensor>&) const) &Obj::enforceBoundary, "field"_a)
+    .def("enforceBoundary", (void (Obj::*)(Field<Dimension, ThirdRankTensor>&) const) &Obj::enforceBoundary, "field"_a)
+
     ;
 }
 
@@ -203,91 +102,11 @@ void dimensionBindings(py::module& m, const std::string suffix) {
   using Spheral::NodeSpace::NodeList;
 
   //............................................................................
-  // GridCellIndex
-  typedef GridCellIndex<Dimension> GCI;
-  py::class_<GCI>(m, ("GridCellIndex" + suffix).c_str())
-
-    // Constructors
-    .def(py::init<>())
-    .def(py::init<int>(), "xIndex"_a)
-    .def(py::init<int, int>(), "xIndex"_a, "yIndex"_a)
-    .def(py::init<int, int, int>(), "xIndex"_a, "yIndex"_a, "zIndex"_a)
-    .def(py::init<const GCI&>(), "rhs"_a)
-
-    // Methods
-    .def("setIndices", (void (GCI::*)(int)) &GCI::setIndices, "xIndex"_a)
-    .def("setIndices", (void (GCI::*)(int, int)) &GCI::setIndices, "xIndex"_a, "yIndex"_a)
-    .def("setIndices", (void (GCI::*)(int, int, int)) &GCI::setIndices, "xIndex"_a, "yIndex"_a, "zIndex"_a)
-    .def("dot", &GCI::dot)
-    .def("compare", &GCI::compare)
-    .def("inRange", &GCI::inRange)
-    .def("magnitude", &GCI::magnitude)
-    .def("minElement", &GCI::minElement)
-    .def("maxElement", &GCI::maxElement)
-    .def("sumElements", &GCI::sumElements)
-    .def("productElements", &GCI::productElements)
-    .def("indexMin", &GCI::indexMin)
-    .def("indexMax", &GCI::indexMax)
-
-    // Operators
-    .def("__call__", (int (GCI::*)(int) const) &GCI::operator(), "index"_a, py::is_operator())
-    .def(-py::self)
-    .def(py::self + py::self)
-    .def(py::self - py::self)
-    .def(py::self + int())
-    .def(py::self - int())
-    .def(py::self * int())
-    .def(py::self / int())
-
-    // Comparisons
-    .def(py::self == py::self)
-    .def(py::self != py::self)
-    .def(py::self <  py::self)
-    .def(py::self >  py::self)
-    .def(py::self <= py::self)
-    .def(py::self >= py::self)
-
-    // Attributes
-    .def_property("xIndex", (int (GCI::*)() const) &GCI::xIndex, (void (GCI::*)(int)) &GCI::xIndex)
-    .def_property("yIndex", (int (GCI::*)() const) &GCI::yIndex, (void (GCI::*)(int)) &GCI::yIndex)
-    .def_property("zIndex", (int (GCI::*)() const) &GCI::zIndex, (void (GCI::*)(int)) &GCI::zIndex)
-    ;
-
-  //............................................................................
-  // GridCellPlane
-  typedef GridCellPlane<Dimension> GCP;
-  py::class_<GCP>(m, ("GridCellPlane" + suffix).c_str())
-
-    // Constructors
-    .def(py::init<>())
-    .def(py::init<const GCP&>(), "rhs"_a)
-    .def(py::init<const GCI&, const GCI&>(), "point"_a, "normal"_a)
-
-    // Methods
-    .def("minimumDistance", &GCP::minimumDistance)
-    .def("coplanar", &GCP::coplanar)
-    .def("parallel", &GCP::parallel)
-    .def("valid", &GCP::valid)
-
-    // Comparisons
-    .def(py::self == py::self)
-    .def(py::self != py::self)
-    .def(py::self >  GCI())
-    .def(py::self <  GCI())
-    .def(py::self >= GCI())
-    .def(py::self <= GCI())
-
-    // Attributes
-    .def_property("point", &GCP::point, &GCP::setPoint)
-    .def_property("normal", &GCP::normal, &GCP::setNormal)
-    ;
-
-  //............................................................................
   // Boundary
   typedef Boundary<Dimension> NT;
-  py::class_<NT, PyBoundary<Dimension, NT>> neighborPB11(m, ("Boundary" + suffix).c_str());
-  virtualBoundaryBindings<Dimension, NT>(m, suffix, neighborPB11);
-  neighborPB11
+  py::class_<NT, PyAbstractBoundary<Dimension, NT>> boundaryPB11(m, ("Boundary" + suffix).c_str());
+  virtualBoundaryBindings<Dimension, NT>(m, suffix, boundaryPB11);
+  boundaryPB11
     
     // Constructors
     .def(py::init<NodeList<Dimension>&, const BoundarySearchType, const double>(), "nodeList"_a, "searchType"_a, "kernelExtent"_a)
@@ -327,105 +146,6 @@ void dimensionBindings(py::module& m, const std::string suffix) {
     ;
 
   //............................................................................
-  // NestedGridBoundary
-  typedef NestedGridBoundary<Dimension> NGT;
-  py::class_<NGT, NT, PyBoundary<Dimension, NGT>> nestedgridneighborPB11(m, ("NestedGridBoundary" + suffix).c_str());
-  virtualBoundaryBindings<Dimension, NGT>(m, suffix, nestedgridneighborPB11);
-  nestedgridneighborPB11
-    
-    // Constructors
-    .def(py::init<NodeList<Dimension>&, const BoundarySearchType, int, double, Vector, double, int>(),
-         "nodeList"_a,
-         "searchType"_a = BoundarySearchType::GatherScatter,
-         "numGridLevels"_a = 31,
-         "topGridCellSize"_a = 100.0,
-         "origin"_a = Vector::zero,
-         "kernelExtent"_a = 2.0,
-         "gridCellInfluenceRadius"_a = 1)
-
-    // Methods
-    .def("gridLevel", (int (NGT::*)(int) const) &NGT::gridLevel)
-    .def("gridCellIndex", (GCI (NGT::*)(int, int) const) &NGT::gridCellIndex, "nodeID"_a, "gridLevel"_a)
-    .def("gridCellIndex", (GCI (NGT::*)(const Vector&, int) const) &NGT::gridCellIndex, "position"_a, "gridLevel"_a)
-    .def("translateGridCellRange", &NGT::translateGridCellRange)
-    .def("cellOccupied", &NGT::cellOccupied)
-    .def("occupiedGridCells", (const std::vector<std::vector<GCI>>& (NGT::*)() const) &NGT::occupiedGridCells)
-    .def("occupiedGridCells", (const std::vector<GCI>& (NGT::*)(const int) const) &NGT::occupiedGridCells, "gridLevelID")
-    .def("headOfGridCell", &NGT::headOfGridCell)
-    .def("nextNodeInCell", &NGT::nextNodeInCell, "nodeID"_a)
-    .def("internalNodesInCell", &NGT::internalNodesInCell)
-    .def("nodesInCell", &NGT::nodesInCell)
-    .def("appendNodesInCell", &NGT::appendNodesInCell)
-    .def("occupiedGridCellsInRange", &NGT::occupiedGridCellsInRange)
-    .def("gridNormal", &NGT::gridNormal)
-    .def("mapGridCell", &NGT::mapGridCell)
-    .def("setNestedMasterList", (void (NGT::*)(const GCI&, const int)) &NGT::setNestedMasterList, "gridCell"_a, "gridLevel"_a)
-    .def("findNestedBoundarys", &NGT::findNestedBoundarys)
-
-    // Virtual methods
-    .def("setMasterList", (void (NGT::*)(int)) &NT::setMasterList, "nodeID"_a)
-    .def("setRefineBoundaryList", (void (NGT::*)(int)) &NT::setRefineBoundaryList, "nodeID"_a)
-
-    // Attributes
-    .def_property("numGridLevels",
-                  (int (NGT::*)() const) &NGT::numGridLevels,
-                  (void (NGT::*)(int)) &NGT::numGridLevels)
-
-    ;
-
-  //............................................................................
-  // TreeBoundary
-  typedef TreeBoundary<Dimension> TN;
-  py::class_<TN, NT, PyBoundary<Dimension, TN>> treeneighborPB11(m, ("TreeBoundary" + suffix).c_str());
-  virtualBoundaryBindings<Dimension, TN>(m, suffix, treeneighborPB11);
-  treeneighborPB11
-    
-    // Constructors
-    .def(py::init<NodeList<Dimension>&, const BoundarySearchType, double, Vector, Vector>(),
-         "nodeList"_a,
-         "searchType"_a,
-         "kernelExtent"_a,
-         "xmin"_a,
-         "xmax"_a)
-
-    // Methods
-    .def("gridLevel", (unsigned (TN::*)(const double&) const) &TN::gridLevel, "h"_a)
-    .def("gridLevel", (unsigned (TN::*)(const SymTensor&) const) &TN::gridLevel, "H"_a)
-    .def("dumpTree", &TN::dumpTree)
-    .def("dumpTreeStatistics", &TN::dumpTreeStatistics)
-
-    // Attributes
-    .def_property_readonly("xmin", &TN::xmin)
-    .def_property_readonly("xmax", &TN::xmax)
-    .def_property_readonly("boxLength", &TN::boxLength)
-    ;
-
-  //............................................................................
-  // ConnectivityMap
-  typedef ConnectivityMap<Dimension> CM;
-  py::class_<CM>(m, ("ConnectivityMap" + suffix).c_str())
-
-    // Constructors
-    .def(py::init<>())
-
-    // Methods
-    .def("patchConnectivity", &CM::patchConnectivity, "flags"_a, "old2new"_a)
-    .def("connectivityForNode", (const std::vector<std::vector<int>>& (CM::*)(const NodeList<Dimension>*, const int) const) &CM::connectivityForNode, "nodeList"_a, "nodeID"_a)
-    .def("connectivityForNode", (const std::vector<std::vector<int>>& (CM::*)(const int, const int) const) &CM::connectivityForNode, "nodeListID"_a, "nodeID"_a)
-    .def("connectivityIntersectionForNodes", &CM::connectivityIntersectionForNodes)
-    .def("connectivityUnionForNodes", &CM::connectivityUnionForNodes)
-    .def("numBoundarysForNode", (int (CM::*)(const NodeList<Dimension>*, const int) const) &CM::numBoundarysForNode, "nodeList"_a, "nodeID"_a)
-    .def("numBoundarysForNode", (int (CM::*)(const int, const int) const) &CM::numBoundarysForNode, "nodeListID"_a, "nodeID"_a)
-    .def("calculatePairInteraction", &CM::calculatePairInteraction)
-    .def("nodeList", &CM::nodeList)
-    .def("nodeListIndex", &CM::nodeListIndex)
-    .def("valid", &CM::valid)
-
-    // Attributes
-    .def_property_readonly("buildGhostConnectivity", &CM::buildGhostConnectivity)
-    ;
-
-  //............................................................................
   // The STL containers of Boundary objects.
   py::bind_vector<std::vector<GCI>>(m, "vector_of_GridCellIndex" + suffix);
   py::bind_vector<std::vector<std::vector<GCI>>>(m, "vector_of_vector_of_GridCellIndex" + suffix);
@@ -440,25 +160,16 @@ PYBIND11_PLUGIN(SpheralBoundary) {
   py::module m("SpheralBoundary", "Spheral Boundary module.");
 
   //............................................................................
-  // BoundarySearchType
-  py::enum_<Spheral::BoundarySpace::BoundarySearchType>(m, "BoundarySearchType")
-    .value("None",          Spheral::BoundarySpace::BoundarySearchType::None)
-    .value("Gather",        Spheral::BoundarySpace::BoundarySearchType::Gather)
-    .value("Scatter",       Spheral::BoundarySpace::BoundarySearchType::Scatter)
-    .value("GatherScatter", Spheral::BoundarySpace::BoundarySearchType::GatherScatter)
-    .export_values();
-
-  //............................................................................
   // Per dimension bindings.
 #ifdef SPHERAL1D
   dimensionBindings<Spheral::Dim<1>>(m, "1d");
 #endif
-#ifdef SPHERAL2D
-  dimensionBindings<Spheral::Dim<2>>(m, "2d");
-#endif
-#ifdef SPHERAL3D
-  dimensionBindings<Spheral::Dim<3>>(m, "3d");
-#endif
+// #ifdef SPHERAL2D
+//   dimensionBindings<Spheral::Dim<2>>(m, "2d");
+// #endif
+// #ifdef SPHERAL3D
+//   dimensionBindings<Spheral::Dim<3>>(m, "3d");
+// #endif
 
   return m.ptr();
 }
