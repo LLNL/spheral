@@ -5,6 +5,17 @@
 #define __Spheral_PyAbstractBoundary__
 
 #include "Geometry/GeomPlane.hh"
+#include "NodeList/NodeList.hh"
+#include "Field/Field.hh"
+#include "Field/FieldList.hh"
+#include "DataBase/DataBase.hh"
+#include "Mesh/Mesh.hh"
+
+using Spheral::NodeSpace::NodeList;
+using Spheral::FieldSpace::Field;
+using Spheral::FieldSpace::FieldList;
+using Spheral::DataBaseSpace::DataBase;
+using Spheral::MeshSpace::Mesh;
 
 namespace Spheral {
 namespace BoundarySpace {
@@ -19,11 +30,10 @@ public:
 
   typedef typename Dimension::Scalar Scalar;
   typedef typename Dimension::Vector Vector;
+  typedef typename Dimension::Tensor Tensor;
   typedef typename Dimension::SymTensor SymTensor;
+  typedef typename Dimension::ThirdRankTensor ThirdRankTensor;
   typedef Spheral::GeomPlane<Dimension> Plane;
-  using Spheral::NodeSpace::NodeList;
-  using Spheral::FieldSpace::Field;
-  using Spheral::FieldSpace::FieldList;
 
   virtual void setAllGhostNodes(DataBase<Dimension>& dataBase) override {
     PYBIND11_OVERLOAD(void,         // Return type
@@ -235,7 +245,7 @@ public:
       );
   }
 
-  virtual void swapFaceValues(Field<Dimension, std::vector<Scalar>>& field, cons Mesh<Dimension>& mesh) const override {
+  virtual void swapFaceValues(Field<Dimension, std::vector<Scalar>>& field, const Mesh<Dimension>& mesh) const override {
     PYBIND11_OVERLOAD(void,           // Return type
                       BoundaryBase,   // Parent class
                       swapFaceValues, // name of method
@@ -243,7 +253,7 @@ public:
       );
   }
 
-  virtual void swapFaceValues(Field<Dimension, std::vector<Vector>>& field, cons Mesh<Dimension>& mesh) const override {
+  virtual void swapFaceValues(Field<Dimension, std::vector<Vector>>& field, const Mesh<Dimension>& mesh) const override {
     PYBIND11_OVERLOAD(void,           // Return type
                       BoundaryBase,   // Parent class
                       swapFaceValues, // name of method
@@ -265,7 +275,7 @@ public:
       );
   }
 
-  virtual void reset(const DataBase<Dimension>& dataBase) const override {
+  virtual void reset(const DataBase<Dimension>& dataBase) override {
     PYBIND11_OVERLOAD(void,         // Return type
                       BoundaryBase, // Parent class
                       reset,        // name of method
@@ -289,7 +299,7 @@ public:
   }
 
   virtual bool meshGhostNodes() const override {
-    PYBIND11_OVERLOAD(void,         // Return type
+    PYBIND11_OVERLOAD(bool,         // Return type
                       BoundaryBase, // Parent class
                       meshGhostNodes// name of method
       );
