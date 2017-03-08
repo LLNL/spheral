@@ -190,4 +190,5 @@ AC_OUTPUT(helpers/makefile_master \
           Pybind11Wraps/Material/makefile \
           Pybind11Wraps/FileIO/makefile \
           Pybind11Wraps/DataBase/makefile \
+          Pybind11Wraps/Boundary/makefile \
           SimulationControl/spheralDimensions.py)

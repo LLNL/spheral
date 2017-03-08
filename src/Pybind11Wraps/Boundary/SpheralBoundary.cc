@@ -55,7 +55,9 @@ void virtualBoundaryBindings(py::module& m, const std::string suffix, PB11Obj& o
 
   typedef typename Dimension::Scalar Scalar;
   typedef typename Dimension::Vector Vector;
+  typedef typename Dimension::Tensor Tensor;
   typedef typename Dimension::SymTensor SymTensor;
+  typedef typename Dimension::ThirdRankTensor ThirdRankTensor;
   typedef Spheral::GeomPlane<Dimension> Plane;
 
   obj
@@ -85,6 +87,22 @@ void virtualBoundaryBindings(py::module& m, const std::string suffix, PB11Obj& o
     .def("enforceBoundary", (void (Obj::*)(Field<Dimension, SymTensor>&) const) &Obj::enforceBoundary, "field"_a)
     .def("enforceBoundary", (void (Obj::*)(Field<Dimension, ThirdRankTensor>&) const) &Obj::enforceBoundary, "field"_a)
 
+    .def("enforceBoundary", (void (Obj::*)(std::vector<int>&, const Mesh<Dimension>&) const) &Obj::enforceBoundary, "faceField"_a, "mesh"_a)
+    .def("enforceBoundary", (void (Obj::*)(std::vector<Scalar>&, const Mesh<Dimension>&) const) &Obj::enforceBoundary, "faceField"_a, "mesh"_a)
+    .def("enforceBoundary", (void (Obj::*)(std::vector<Vector>&, const Mesh<Dimension>&) const) &Obj::enforceBoundary, "faceField"_a, "mesh"_a)
+    .def("enforceBoundary", (void (Obj::*)(std::vector<Tensor>&, const Mesh<Dimension>&) const) &Obj::enforceBoundary, "faceField"_a, "mesh"_a)
+    .def("enforceBoundary", (void (Obj::*)(std::vector<SymTensor>&, const Mesh<Dimension>&) const) &Obj::enforceBoundary, "faceField"_a, "mesh"_a)
+    .def("enforceBoundary", (void (Obj::*)(std::vector<ThirdRankTensor>&, const Mesh<Dimension>&) const) &Obj::enforceBoundary, "faceField"_a, "mesh"_a)
+
+    .def("swapFaceValues", (void (Obj::*)(Field<Dimension, std::vector<Scalar>>&, const Mesh<Dimension>&) const) &Obj::swapFaceValues, "field"_a, "mesh"_a)
+    .def("swapFaceValues", (void (Obj::*)(Field<Dimension, std::vector<Vector>>&, const Mesh<Dimension>&) const) &Obj::swapFaceValues, "field"_a, "mesh"_a)
+
+    .def("initializeProblemStartup", &Obj::initializeProblemStartup)
+    .def("finalizeGhostBoundary", &Obj::finalizeGhostBoundary)
+    .def("reset", &Obj::reset)
+    .def("numGhostNodes", &Obj::numGhostNodes)
+    .def("clip", &Obj::clip)
+    .def("meshGhostNodes", &Obj::meshGhostNodes)
     ;
 }
 
@@ -103,52 +121,29 @@ void dimensionBindings(py::module& m, const std::string suffix) {
 
   //............................................................................
   // Boundary
-  typedef Boundary<Dimension> NT;
-  py::class_<NT, PyAbstractBoundary<Dimension, NT>> boundaryPB11(m, ("Boundary" + suffix).c_str());
-  virtualBoundaryBindings<Dimension, NT>(m, suffix, boundaryPB11);
+  typedef Boundary<Dimension> Bound;
+  py::class_<Bound, PyAbstractBoundary<Dimension, Bound>> boundaryPB11(m, ("Boundary" + suffix).c_str());
+  virtualBoundaryBindings<Dimension, Bound>(m, suffix, boundaryPB11);
   boundaryPB11
     
     // Constructors
-    .def(py::init<NodeList<Dimension>&, const BoundarySearchType, const double>(), "nodeList"_a, "searchType"_a, "kernelExtent"_a)
+    .def(py::init<>())
 
     // Methods
-    .def("nodeExtentField", &NT::nodeExtentField)
-    .def("nodeList", (const NodeList<Dimension>& (NT::*)() const) &NT::nodeList)
-    .def("nodeList", (void (NT::*)(NodeList<Dimension>&)) &NT::nodeList)
-    .def("unregisterNodeList", &NT::unregisterNodeList)
-    .def("nodeExtent", &NT::nodeExtent)
-    .def("setNodeExtents", (void (NT::*)()) &NT::setNodeExtents)
-    .def("setNodeExtents", (void (NT::*)(const std::vector<int>&)) &NT::setNodeExtents)
-    .def("setInternalNodeExtents", &NT::setInternalNodeExtents)
-    .def("setGhostNodeExtents", &NT::setGhostNodeExtents)
-    .def("precullList", &NT::precullList)
-    .def("precullForLocalNodeList", &NT::precullForLocalNodeList)
-    .def_static("HExtent", (Vector (*)(const Scalar&, const double)) &NT::HExtent) //, "H"_a, "kernelExtent"_a)
-    .def_static("HExtent", (Vector (*)(const SymTensor&, const double)) &NT::HExtent, "H"_a, "kernelExtent"_a)
+    .def("haveNodeList", &Bound::haveNodeList)
+    ;
 
-    // Virtual methods
-    .def("setMasterList", (void (NT::*)(int)) &NT::setMasterList, "nodeID"_a)
-    .def("setRefineBoundaryList", (void (NT::*)(int)) &NT::setRefineBoundaryList, "nodeID"_a)
-
-    // Attributes
-    .def_property("neighborSearchType",
-                  (BoundarySearchType (NT::*)() const) &NT::neighborSearchType,
-                  (void (NT::*)(BoundarySearchType)) &NT::neighborSearchType)
-    .def_property("kernelExtent",
-                  (double (NT::*)() const) &NT::kernelExtent,
-                  (void (NT::*)(double)) &NT::kernelExtent)
-    .def_property_readonly("numMaster", &NT::numMaster)
-    .def_property_readonly("numCoarse", &NT::numCoarse)
-    .def_property_readonly("numRefine", &NT::numRefine)
-    .def_property_readonly("masterList", &NT::masterList)
-    .def_property_readonly("coarseBoundaryList", &NT::coarseBoundaryList)
-    .def_property_readonly("refineBoundaryList", &NT::refineBoundaryList)
+  //............................................................................
+  // Boundary::BoundaryNodes
+  py::class_<typename Bound::BoundaryNodes>(m, ("BoundaryNodes" + suffix).c_str())
+    .def_readwrite("controlNodes", &Bound::BoundaryNodes::controlNodes)
+    .def_readwrite("ghostNodes", &Bound::BoundaryNodes::ghostNodes)
+    .def_readwrite("violationNodes", &Bound::BoundaryNodes::violationNodes)
     ;
 
   //............................................................................
   // The STL containers of Boundary objects.
-  py::bind_vector<std::vector<GCI>>(m, "vector_of_GridCellIndex" + suffix);
-  py::bind_vector<std::vector<std::vector<GCI>>>(m, "vector_of_vector_of_GridCellIndex" + suffix);
+  py::bind_vector<std::vector<Bound*>>(m, "vector_of_Boundary" + suffix);
 }
 
 } // anonymous

@@ -8,6 +8,12 @@
 
 #include "Geometry/GeomPlane.hh"
 
+using Spheral::NodeSpace::NodeList;
+using Spheral::FieldSpace::Field;
+using Spheral::FieldSpace::FieldList;
+using Spheral::DataBaseSpace::DataBase;
+using Spheral::MeshSpace::Mesh;
+
 namespace Spheral {
 namespace BoundarySpace {
 
@@ -21,11 +27,10 @@ public:
 
   typedef typename Dimension::Scalar Scalar;
   typedef typename Dimension::Vector Vector;
+  typedef typename Dimension::Tensor Tensor;
   typedef typename Dimension::SymTensor SymTensor;
+  typedef typename Dimension::ThirdRankTensor ThirdRankTensor;
   typedef Spheral::GeomPlane<Dimension> Plane;
-  using Spheral::NodeSpace::NodeList;
-  using Spheral::FieldSpace::Field;
-  using Spheral::FieldSpace::FieldList;
 
   virtual void setGhostNodes(NodeList<Dimension>& nodeList) override {
     PYBIND11_OVERLOAD(void,         // Return type
