@@ -24,6 +24,8 @@
 
 #include "PyAbstractBoundary.hh"
 #include "PyBoundary.hh"
+#include "PyPlanarBoundary.hh"
+#include "Pybind11Wraps/DataOutput/PyRestartMethods.hh"
 
 namespace py = pybind11;
 using namespace pybind11::literals;
@@ -103,6 +105,8 @@ void virtualBoundaryBindings(py::module& m, const std::string suffix, PB11Obj& o
     .def("numGhostNodes", &Obj::numGhostNodes)
     .def("clip", &Obj::clip)
     .def("meshGhostNodes", &Obj::meshGhostNodes)
+
+    .def("addNodeList", &Obj::addNodeList)
     ;
 }
 
@@ -130,7 +134,24 @@ void dimensionBindings(py::module& m, const std::string suffix) {
     .def(py::init<>())
 
     // Methods
+    .def("boundaryNodeMap", &Bound::boundaryNodeMap)
     .def("haveNodeList", &Bound::haveNodeList)
+
+    .def("controlNodes", &Bound::controlNodes, "nodeList"_a)
+    .def("ghostNodes", &Bound::ghostNodes, "nodeList"_a)
+    .def("violationNodes", &Bound::violationNodes, "nodeList"_a)
+
+    .def("applyFieldListGhostBoundary", (void (Bound::*)(FieldList<Dimension, Scalar>&) const) &Bound::applyFieldListGhostBoundary, "fieldList"_a)
+    .def("applyFieldListGhostBoundary", (void (Bound::*)(FieldList<Dimension, Vector>&) const) &Bound::applyFieldListGhostBoundary, "fieldList"_a)
+    .def("applyFieldListGhostBoundary", (void (Bound::*)(FieldList<Dimension, Tensor>&) const) &Bound::applyFieldListGhostBoundary, "fieldList"_a)
+    .def("applyFieldListGhostBoundary", (void (Bound::*)(FieldList<Dimension, SymTensor>&) const) &Bound::applyFieldListGhostBoundary, "fieldList"_a)
+
+    .def("enforceFieldListBoundary", (void (Bound::*)(FieldList<Dimension, Scalar>&) const) &Bound::enforceFieldListBoundary, "fieldList"_a)
+    .def("enforceFieldListBoundary", (void (Bound::*)(FieldList<Dimension, Vector>&) const) &Bound::enforceFieldListBoundary, "fieldList"_a)
+    .def("enforceFieldListBoundary", (void (Bound::*)(FieldList<Dimension, Tensor>&) const) &Bound::enforceFieldListBoundary, "fieldList"_a)
+    .def("enforceFieldListBoundary", (void (Bound::*)(FieldList<Dimension, SymTensor>&) const) &Bound::enforceFieldListBoundary, "fieldList"_a)
+
+    .def("accessBoundaryNodes", (typename Bound::BoundaryNodes& (Bound::*)(NodeList<Dimension>&)) &Bound::accessBoundaryNodes, "nodeList"_a)
     ;
 
   //............................................................................
@@ -139,6 +160,28 @@ void dimensionBindings(py::module& m, const std::string suffix) {
     .def_readwrite("controlNodes", &Bound::BoundaryNodes::controlNodes)
     .def_readwrite("ghostNodes", &Bound::BoundaryNodes::ghostNodes)
     .def_readwrite("violationNodes", &Bound::BoundaryNodes::violationNodes)
+    ;
+
+  //............................................................................
+  // PlanarBoundary
+  typedef PlanarBoundary<Dimension> PB;
+  py::class_<PB,
+             PyPlanarBoundary<Dimension, PyAbstractBoundary<Dimension, PB>>,
+             Spheral::PyRestartMethods<PB>> pbPB11(m, ("PlanarBoundary" + suffix).c_str());
+  // virtualBoundaryBindings<Dimension, Bound>(m, suffix, boundaryPB11);
+  Spheral::restartMethodBindings<PB>(m, pbPB11);
+  pbPB11
+
+    // Constructors
+    .def(py::init<>())
+    .def(py::init<const Plane&, const Plane&>(), "enterPlane"_a, "exitPlane"_a)
+    .def("setGhostNodes", (void (PB::*)(NodeList<Dimension>&, const std::vector<int>&)) &PB::setGhostNodes, "nodeList"_a, "presetControlNodes"_a)
+    .def("mapPosition", &PB::mapPosition)
+    .def("facesOnPlane", &PB::facesOnPlane)
+
+    // Attributes
+    .def_property("enterPlane", &PB::enterPlane, &PB::setEnterPlane)
+    .def_property("exitPlane", &PB::exitPlane, &PB::setExitPlane)
     ;
 
   //............................................................................
