@@ -63,6 +63,9 @@ class MedialGeneratorBase(NodeGeneratorBase):
         boundvol = boundary.volume
         for hole in holes:
             boundvol -= hole.volume
+        if boundvol <= 0.0:
+            # The holes were not entirely contained in the bounding volume, so we punt.
+            boundvol = 0.5*boundary.volume
         boxvol = 1.0
         for idim in xrange(ndim):
             boxvol *= box[idim]
@@ -75,7 +78,7 @@ class MedialGeneratorBase(NodeGeneratorBase):
             # Create a temporary NodeList we'll use store and update positions.
             eos = sph.GammaLawGasMKS(2.0, 2.0)
             WT = sph.TableKernel(sph.NBSplineKernel(7), 1000)
-            hmax = 2.0*length
+            hmax = 2.0*(boundvol/pi*n)**(1.0/ndim)
             nodes = sph.makeFluidNodeList("tmp generator nodes", 
                                           eos,
                                           hmin = 1e-10,
@@ -96,7 +99,7 @@ class MedialGeneratorBase(NodeGeneratorBase):
         
             # If the user provided the starting or seed positions, use 'em.
             if seedPositions is not None:
-                hi = min(hmax, 2.0 * (boundvol/n)**(1.0/ndim))
+                hi = min(hmax, 2.0 * (boundvol/(pi*n))**(1.0/ndim))
                 assert hi > 0.0
                 nlocal = len(seedPositions)
                 assert mpi.allreduce(nlocal, mpi.SUM) == n
@@ -181,7 +184,7 @@ class MedialGeneratorBase(NodeGeneratorBase):
                 assert mpi.allreduce(len(seeds), mpi.SUM) == n
             
                 # Initialize the desired number of generators in the boundary using the Sobol sequence.
-                hi = min(hmax, 2.0 * (boundvol/n)**(1.0/ndim))
+                hi = min(hmax, 2.0 * (boundvol/(pi*n))**(1.0/ndim))
                 assert hi > 0.0
                 for i, seed in enumerate(seeds):
                     [coords, newseed] = i4_sobol(ndim, seed)
