@@ -175,13 +175,33 @@ void dimensionBindings(py::module& m, const std::string suffix) {
     // Constructors
     .def(py::init<>())
     .def(py::init<const Plane&, const Plane&>(), "enterPlane"_a, "exitPlane"_a)
-    .def("setGhostNodes", (void (PB::*)(NodeList<Dimension>&, const std::vector<int>&)) &PB::setGhostNodes, "nodeList"_a, "presetControlNodes"_a)
     .def("mapPosition", &PB::mapPosition)
     .def("facesOnPlane", &PB::facesOnPlane)
+
+    // Virtual methods
+    .def("setGhostNodes", (void (PB::*)(NodeList<Dimension>&)) &PB::setGhostNodes, "nodeList"_a)
+    .def("updateGhostNodes", (void (PB::*)(NodeList<Dimension>&)) &PB::updateGhostNodes, "nodeList"_a)
+    .def("setViolationNodes", (void (PB::*)(NodeList<Dimension>&)) &PB::setViolationNodes, "nodeList"_a)
+    .def("updateViolationNodes", (void (PB::*)(NodeList<Dimension>&)) &PB::updateViolationNodes, "nodeList"_a)
+    .def("setGhostNodes", (void (PB::*)(NodeList<Dimension>&, const std::vector<int>&)) &PB::setGhostNodes, "nodeList"_a, "presetControlNodes"_a)
+    .def("clip", &PB::clip)
+    .def("valid", &PB::valid)
 
     // Attributes
     .def_property("enterPlane", &PB::enterPlane, &PB::setEnterPlane)
     .def_property("exitPlane", &PB::exitPlane, &PB::setExitPlane)
+    ;
+
+  //............................................................................
+  // ReflectingBoundary
+  typedef ReflectingBoundary<Dimension> RB;
+  py::class_<RB,
+             PyBoundary<Dimension, PyAbstractBoundary<Dimension, RB>>> rbPB11(m, ("ReflectingBoundary" + suffix).c_str());
+  virtualBoundaryBindings<Dimension, RB>(m, suffix, rbPB11);
+  rbPB11
+
+    // Constructors
+    .def(py::init<>())
     ;
 
   //............................................................................
