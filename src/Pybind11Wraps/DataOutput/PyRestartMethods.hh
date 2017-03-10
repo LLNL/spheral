@@ -8,6 +8,8 @@
 #include "pybind11/stl_bind.h"
 #include "pybind11/operators.h"
 
+#include "FileIO/FileIO.hh"
+
 namespace py = pybind11;
 using namespace pybind11::literals;
 
