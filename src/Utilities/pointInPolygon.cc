@@ -157,10 +157,10 @@ bool pointInPolygon(const Dim<3>::Vector& p,
 
     } else if (abs(normal.y()) >= abs(normal.x()) and abs(normal.y()) >= abs(normal.z())) {
 
-      // y plane -- use (x,z) coordinates.
+      // y plane -- use (z,x) coordinates.
       for (i = 0, j = npts - 1; i < npts; j = i++) {
-        if ( ((vertices[i].z() > pz) != (vertices[j].z() > pz)) &&
-             (px < (vertices[j].x() - vertices[i].x()) * (pz - vertices[i].z()) / (vertices[j].z() - vertices[i].z()) + vertices[i].x()) )
+        if ( ((vertices[i].x() > px) != (vertices[j].x() > px)) &&
+             (pz < (vertices[j].z() - vertices[i].z()) * (px - vertices[i].x()) / (vertices[j].x() - vertices[i].x()) + vertices[i].z()) )
           result = not result;
       }
 
@@ -247,10 +247,10 @@ bool pointInPolygon(const Dim<3>::Vector& p,
 
     } else if (abs(normal.y()) >= abs(normal.x()) and abs(normal.y()) >= abs(normal.z())) {
 
-      // y plane -- use (x,z) coordinates.
+      // y plane -- use (z,x) coordinates.
       for (i = 0, j = npts - 1; i < npts; j = i++) {
-        if ( ((vertices[ipoints[i]].z() > pz) != (vertices[ipoints[j]].z() > pz)) &&
-             (px < (vertices[ipoints[j]].x() - vertices[ipoints[i]].x()) * (pz - vertices[ipoints[i]].z()) / (vertices[ipoints[j]].z() - vertices[ipoints[i]].z()) + vertices[ipoints[i]].x()) )
+        if ( ((vertices[ipoints[i]].x() > px) != (vertices[ipoints[j]].x() > px)) &&
+             (pz < (vertices[ipoints[j]].z() - vertices[ipoints[i]].z()) * (px - vertices[ipoints[i]].x()) / (vertices[ipoints[j]].x() - vertices[ipoints[i]].x()) + vertices[ipoints[i]].z()) )
           result = not result;
       }
 
