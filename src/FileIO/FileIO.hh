@@ -15,11 +15,11 @@
 #include <string>
 #include <sstream>
 
+#include "Geometry/Dimension.hh"
+
 #ifndef CXXONLY
 #include "Python.h"
 #endif
-
-#include "Geometry/Dimension.hh"
 
 namespace Spheral {
   template<typename Dimension> class GeomPlane;

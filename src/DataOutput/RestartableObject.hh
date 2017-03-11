@@ -16,11 +16,11 @@
 #ifndef __Spheral_RestartableObject__
 #define __Spheral_RestartableObject__
 
+#include "Python.h"
+
 #include <string>
 
 #include "DataOutput/registerWithRestart.hh"
-
-#include "Python.h"
 
 // Forward declarations.
 namespace Spheral {

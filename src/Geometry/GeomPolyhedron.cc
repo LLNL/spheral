@@ -196,7 +196,7 @@ GeomPolyhedron(const vector<GeomPolyhedron::Vector>& points):
     setBoundingBox();
 
     // Compute the ancillary geometry.
-    GeometryUtilities::computeAncillaryGeometry(*this, mVertexFacetConnectivity, mFacetFacetConnectivity, mVertexUnitNorms);
+    GeometryUtilities::computeAncillaryGeometry(*this, mVertexFacetConnectivity, mFacetFacetConnectivity, mVertexUnitNorms, false);
 
     // Stash the centroid and inscribed radius for use in containment.  If the centroid is not contained however,
     // we set this internal radius to zero to disable this accelerated containment checking.
@@ -300,7 +300,7 @@ GeomPolyhedron(const vector<GeomPolyhedron::Vector>& points,
   mConvex = this->convex();
 
   // Compute the ancillary geometry.
-  GeometryUtilities::computeAncillaryGeometry(*this, mVertexFacetConnectivity, mFacetFacetConnectivity, mVertexUnitNorms);
+  GeometryUtilities::computeAncillaryGeometry(*this, mVertexFacetConnectivity, mFacetFacetConnectivity, mVertexUnitNorms, false);
 
   // Stash the centroid and inscribed radius for use in containment.  If the centroid is not contained however,
   // we set this internal radius to zero to disable this accelerated containment checking.
@@ -633,9 +633,9 @@ reconstruct(const vector<GeomPolyhedron::Vector>& vertices,
   }
   setBoundingBox();
   mConvex = this->convex();
-  GeometryUtilities::computeAncillaryGeometry(*this, mVertexFacetConnectivity, mFacetFacetConnectivity, mVertexUnitNorms);
+  GeometryUtilities::computeAncillaryGeometry(*this, mVertexFacetConnectivity, mFacetFacetConnectivity, mVertexUnitNorms, false);
   ENSURE(mFacets.size() == numFacets);
-  ENSURE(mFacetFacetConnectivity.size() == numFacets);
+  ENSURE(mFacetFacetConnectivity.size() == 0); // numFacets);
 }
 
 //------------------------------------------------------------------------------
