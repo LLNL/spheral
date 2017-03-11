@@ -9,13 +9,11 @@
 #include "Field/Field.hh"
 #include "Field/FieldList.hh"
 #include "DataBase/DataBase.hh"
-#include "Mesh/Mesh.hh"
 
 using Spheral::NodeSpace::NodeList;
 using Spheral::FieldSpace::Field;
 using Spheral::FieldSpace::FieldList;
 using Spheral::DataBaseSpace::DataBase;
-using Spheral::MeshSpace::Mesh;
 
 namespace Spheral {
 namespace BoundarySpace {
@@ -197,70 +195,6 @@ public:
       );
   }
 
-  virtual void enforceBoundary(std::vector<int>& faceField, const Mesh<Dimension>& mesh) const override {
-    PYBIND11_OVERLOAD(void,            // Return type
-                      BoundaryBase,    // Parent class
-                      enforceBoundary, // name of method
-                      faceField, mesh  // arguments
-      );
-  }
-
-  virtual void enforceBoundary(std::vector<Scalar>& faceField, const Mesh<Dimension>& mesh) const override {
-    PYBIND11_OVERLOAD(void,            // Return type
-                      BoundaryBase,    // Parent class
-                      enforceBoundary, // name of method
-                      faceField, mesh  // arguments
-      );
-  }
-
-  virtual void enforceBoundary(std::vector<Vector>& faceField, const Mesh<Dimension>& mesh) const override {
-    PYBIND11_OVERLOAD(void,            // Return type
-                      BoundaryBase,    // Parent class
-                      enforceBoundary, // name of method
-                      faceField, mesh  // arguments
-      );
-  }
-
-  virtual void enforceBoundary(std::vector<Tensor>& faceField, const Mesh<Dimension>& mesh) const override {
-    PYBIND11_OVERLOAD(void,            // Return type
-                      BoundaryBase,    // Parent class
-                      enforceBoundary, // name of method
-                      faceField, mesh  // arguments
-      );
-  }
-
-  virtual void enforceBoundary(std::vector<SymTensor>& faceField, const Mesh<Dimension>& mesh) const override {
-    PYBIND11_OVERLOAD(void,            // Return type
-                      BoundaryBase,    // Parent class
-                      enforceBoundary, // name of method
-                      faceField, mesh  // arguments
-      );
-  }
-
-  virtual void enforceBoundary(std::vector<ThirdRankTensor>& faceField, const Mesh<Dimension>& mesh) const override {
-    PYBIND11_OVERLOAD(void,            // Return type
-                      BoundaryBase,    // Parent class
-                      enforceBoundary, // name of method
-                      faceField, mesh  // arguments
-      );
-  }
-
-  virtual void swapFaceValues(Field<Dimension, std::vector<Scalar>>& field, const Mesh<Dimension>& mesh) const override {
-    PYBIND11_OVERLOAD(void,           // Return type
-                      BoundaryBase,   // Parent class
-                      swapFaceValues, // name of method
-                      field, mesh     // arguments
-      );
-  }
-
-  virtual void swapFaceValues(Field<Dimension, std::vector<Vector>>& field, const Mesh<Dimension>& mesh) const override {
-    PYBIND11_OVERLOAD(void,           // Return type
-                      BoundaryBase,   // Parent class
-                      swapFaceValues, // name of method
-                      field, mesh     // arguments
-                      );
-  }
-
   virtual void initializeProblemStartup() override {
     PYBIND11_OVERLOAD(void,         // Return type
                       BoundaryBase, // Parent class
@@ -295,13 +229,6 @@ public:
                       BoundaryBase, // Parent class
                       clip,         // name of method
                       xmin, xmax    // arguments
-      );
-  }
-
-  virtual bool meshGhostNodes() const override {
-    PYBIND11_OVERLOAD(bool,         // Return type
-                      BoundaryBase, // Parent class
-                      meshGhostNodes// name of method
       );
   }
 
