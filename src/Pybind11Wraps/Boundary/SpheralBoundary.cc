@@ -65,11 +65,11 @@ void virtualBoundaryBindings(py::module& m, const std::string suffix, PB11Obj& o
   obj
 
     // Methods
-    .def("setAllGhostNodes", &Obj::setAllGhostNodes)
-    .def("setAllViolationNodes", &Obj::setAllViolationNodes)
-    .def("cullGhostNodes", &Obj::cullGhostNodes)
-    .def("setGhostNodes", &Obj::setGhostNodes)
-    .def("updateGhostNodes", &Obj::updateGhostNodes)
+    .def("setAllGhostNodes", (void (Obj::*)(DataBase<Dimension>&)) &Obj::setAllGhostNodes, "dataBase"_a)
+    .def("setAllViolationNodes", (void (Obj::*)(DataBase<Dimension>&)) &Obj::setAllViolationNodes, "dataBase"_a)
+    .def("cullGhostNodes", (void (Obj::*)(const FieldList<Dimension, int>&, FieldList<Dimension, int>&, std::vector<int>&)) &Obj::cullGhostNodes, "flagSet"_a, "old2newIndexMap"_a, "numNodesRemoved"_a)
+    .def("setGhostNodes", (void (Obj::*)(NodeList<Dimension>&)) &Obj::setGhostNodes, "nodeList"_a)
+    .def("updateGhostNodes", (void (Obj::*)(NodeList<Dimension>&)) &Obj::updateGhostNodes)
 
     .def("applyGhostBoundary", (void (Obj::*)(Field<Dimension, int>&) const) &Obj::applyGhostBoundary, "field"_a)
     .def("applyGhostBoundary", (void (Obj::*)(Field<Dimension, Scalar>&) const) &Obj::applyGhostBoundary, "field"_a)
