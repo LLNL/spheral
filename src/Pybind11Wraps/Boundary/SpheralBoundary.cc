@@ -23,6 +23,7 @@
 #include "Boundary/AxisBoundaryRZ.hh"
 
 #include "PyAbstractBoundary.hh"
+#include "PyAbstractBoundaryMesh.hh"
 #include "PyBoundary.hh"
 #include "PyPlanarBoundary.hh"
 #include "Pybind11Wraps/DataOutput/PyRestartMethods.hh"
@@ -89,22 +90,11 @@ void virtualBoundaryBindings(py::module& m, const std::string suffix, PB11Obj& o
     .def("enforceBoundary", (void (Obj::*)(Field<Dimension, SymTensor>&) const) &Obj::enforceBoundary, "field"_a)
     .def("enforceBoundary", (void (Obj::*)(Field<Dimension, ThirdRankTensor>&) const) &Obj::enforceBoundary, "field"_a)
 
-    .def("enforceBoundary", (void (Obj::*)(std::vector<int>&, const Mesh<Dimension>&) const) &Obj::enforceBoundary, "faceField"_a, "mesh"_a)
-    .def("enforceBoundary", (void (Obj::*)(std::vector<Scalar>&, const Mesh<Dimension>&) const) &Obj::enforceBoundary, "faceField"_a, "mesh"_a)
-    .def("enforceBoundary", (void (Obj::*)(std::vector<Vector>&, const Mesh<Dimension>&) const) &Obj::enforceBoundary, "faceField"_a, "mesh"_a)
-    .def("enforceBoundary", (void (Obj::*)(std::vector<Tensor>&, const Mesh<Dimension>&) const) &Obj::enforceBoundary, "faceField"_a, "mesh"_a)
-    .def("enforceBoundary", (void (Obj::*)(std::vector<SymTensor>&, const Mesh<Dimension>&) const) &Obj::enforceBoundary, "faceField"_a, "mesh"_a)
-    .def("enforceBoundary", (void (Obj::*)(std::vector<ThirdRankTensor>&, const Mesh<Dimension>&) const) &Obj::enforceBoundary, "faceField"_a, "mesh"_a)
-
-    .def("swapFaceValues", (void (Obj::*)(Field<Dimension, std::vector<Scalar>>&, const Mesh<Dimension>&) const) &Obj::swapFaceValues, "field"_a, "mesh"_a)
-    .def("swapFaceValues", (void (Obj::*)(Field<Dimension, std::vector<Vector>>&, const Mesh<Dimension>&) const) &Obj::swapFaceValues, "field"_a, "mesh"_a)
-
     .def("initializeProblemStartup", &Obj::initializeProblemStartup)
     .def("finalizeGhostBoundary", &Obj::finalizeGhostBoundary)
     .def("reset", &Obj::reset)
     .def("numGhostNodes", &Obj::numGhostNodes)
     .def("clip", &Obj::clip)
-    .def("meshGhostNodes", &Obj::meshGhostNodes)
 
     .def("addNodeList", &Obj::addNodeList)
     ;
@@ -120,13 +110,16 @@ void dimensionBindings(py::module& m, const std::string suffix) {
   typedef typename Dimension::Vector Vector;
   typedef typename Dimension::Tensor Tensor;
   typedef typename Dimension::SymTensor SymTensor;
+  typedef typename Dimension::ThirdRankTensor ThirdRankTensor;
   typedef Spheral::GeomPlane<Dimension> Plane;
   using Spheral::NodeSpace::NodeList;
 
   //............................................................................
   // Boundary
   typedef Boundary<Dimension> Bound;
-  py::class_<Bound, PyAbstractBoundary<Dimension, Bound>> boundaryPB11(m, ("Boundary" + suffix).c_str());
+  py::class_<Bound,
+             PyAbstractBoundary<Dimension, Bound>,
+             PyAbstractBoundaryMesh<Dimension, Bound>> boundaryPB11(m, ("Boundary" + suffix).c_str());
   virtualBoundaryBindings<Dimension, Bound>(m, suffix, boundaryPB11);
   boundaryPB11
     
@@ -152,6 +145,18 @@ void dimensionBindings(py::module& m, const std::string suffix) {
     .def("enforceFieldListBoundary", (void (Bound::*)(FieldList<Dimension, SymTensor>&) const) &Bound::enforceFieldListBoundary, "fieldList"_a)
 
     .def("accessBoundaryNodes", (typename Bound::BoundaryNodes& (Bound::*)(NodeList<Dimension>&)) &Bound::accessBoundaryNodes, "nodeList"_a)
+
+    .def("enforceBoundary", (void (Bound::*)(std::vector<int>&, const Mesh<Dimension>&) const) &Bound::enforceBoundary, "faceField"_a, "mesh"_a)
+    .def("enforceBoundary", (void (Bound::*)(std::vector<Scalar>&, const Mesh<Dimension>&) const) &Bound::enforceBoundary, "faceField"_a, "mesh"_a)
+    .def("enforceBoundary", (void (Bound::*)(std::vector<Vector>&, const Mesh<Dimension>&) const) &Bound::enforceBoundary, "faceField"_a, "mesh"_a)
+    .def("enforceBoundary", (void (Bound::*)(std::vector<Tensor>&, const Mesh<Dimension>&) const) &Bound::enforceBoundary, "faceField"_a, "mesh"_a)
+    .def("enforceBoundary", (void (Bound::*)(std::vector<SymTensor>&, const Mesh<Dimension>&) const) &Bound::enforceBoundary, "faceField"_a, "mesh"_a)
+    .def("enforceBoundary", (void (Bound::*)(std::vector<ThirdRankTensor>&, const Mesh<Dimension>&) const) &Bound::enforceBoundary, "faceField"_a, "mesh"_a)
+
+    .def("swapFaceValues", (void (Bound::*)(Field<Dimension, std::vector<Scalar>>&, const Mesh<Dimension>&) const) &Bound::swapFaceValues, "field"_a, "mesh"_a)
+    .def("swapFaceValues", (void (Bound::*)(Field<Dimension, std::vector<Vector>>&, const Mesh<Dimension>&) const) &Bound::swapFaceValues, "field"_a, "mesh"_a)
+
+    .def("meshGhostNodes", &Bound::meshGhostNodes)
     ;
 
   //............................................................................
@@ -164,44 +169,63 @@ void dimensionBindings(py::module& m, const std::string suffix) {
 
   //............................................................................
   // PlanarBoundary
-  typedef PlanarBoundary<Dimension> PB;
-  py::class_<PB,
-             PyPlanarBoundary<Dimension, PyAbstractBoundary<Dimension, PB>>,
-             Spheral::PyRestartMethods<PB>> pbPB11(m, ("PlanarBoundary" + suffix).c_str());
+  typedef PlanarBoundary<Dimension> PlanarB;
+  py::class_<PlanarB,
+             PyPlanarBoundary<Dimension, PyAbstractBoundary<Dimension, PlanarB>>,
+             Spheral::PyRestartMethods<PlanarB>> pbPB11(m, ("PlanarBoundary" + suffix).c_str());
   // virtualBoundaryBindings<Dimension, Bound>(m, suffix, boundaryPB11);
-  Spheral::restartMethodBindings<PB>(m, pbPB11);
+  Spheral::restartMethodBindings<PlanarB>(m, pbPB11);
   pbPB11
 
     // Constructors
     .def(py::init<>())
     .def(py::init<const Plane&, const Plane&>(), "enterPlane"_a, "exitPlane"_a)
-    .def("mapPosition", &PB::mapPosition)
-    .def("facesOnPlane", &PB::facesOnPlane)
+    .def("mapPosition", &PlanarB::mapPosition)
+    .def("facesOnPlane", &PlanarB::facesOnPlane)
 
     // Virtual methods
-    .def("setGhostNodes", (void (PB::*)(NodeList<Dimension>&)) &PB::setGhostNodes, "nodeList"_a)
-    .def("updateGhostNodes", (void (PB::*)(NodeList<Dimension>&)) &PB::updateGhostNodes, "nodeList"_a)
-    .def("setViolationNodes", (void (PB::*)(NodeList<Dimension>&)) &PB::setViolationNodes, "nodeList"_a)
-    .def("updateViolationNodes", (void (PB::*)(NodeList<Dimension>&)) &PB::updateViolationNodes, "nodeList"_a)
-    .def("setGhostNodes", (void (PB::*)(NodeList<Dimension>&, const std::vector<int>&)) &PB::setGhostNodes, "nodeList"_a, "presetControlNodes"_a)
-    .def("clip", &PB::clip)
-    .def("valid", &PB::valid)
+    .def("setGhostNodes", (void (PlanarB::*)(NodeList<Dimension>&)) &PlanarB::setGhostNodes, "nodeList"_a)
+    .def("updateGhostNodes", (void (PlanarB::*)(NodeList<Dimension>&)) &PlanarB::updateGhostNodes, "nodeList"_a)
+    .def("setViolationNodes", (void (PlanarB::*)(NodeList<Dimension>&)) &PlanarB::setViolationNodes, "nodeList"_a)
+    .def("updateViolationNodes", (void (PlanarB::*)(NodeList<Dimension>&)) &PlanarB::updateViolationNodes, "nodeList"_a)
+    .def("setGhostNodes", (void (PlanarB::*)(NodeList<Dimension>&, const std::vector<int>&)) &PlanarB::setGhostNodes, "nodeList"_a, "presetControlNodes"_a)
+    .def("clip", &PlanarB::clip)
+    .def("valid", &PlanarB::valid)
 
     // Attributes
-    .def_property("enterPlane", &PB::enterPlane, &PB::setEnterPlane)
-    .def_property("exitPlane", &PB::exitPlane, &PB::setExitPlane)
+    .def_property("enterPlane", &PlanarB::enterPlane, &PlanarB::setEnterPlane)
+    .def_property("exitPlane", &PlanarB::exitPlane, &PlanarB::setExitPlane)
     ;
 
   //............................................................................
   // ReflectingBoundary
-  typedef ReflectingBoundary<Dimension> RB;
-  py::class_<RB,
-             PyBoundary<Dimension, PyAbstractBoundary<Dimension, RB>>> rbPB11(m, ("ReflectingBoundary" + suffix).c_str());
-  virtualBoundaryBindings<Dimension, RB>(m, suffix, rbPB11);
+  typedef ReflectingBoundary<Dimension> ReflectB;
+  py::class_<ReflectB, PlanarB,
+             PyBoundary<Dimension, PyAbstractBoundary<Dimension, ReflectB>>> rbPB11(m, ("ReflectingBoundary" + suffix).c_str());
+  virtualBoundaryBindings<Dimension, ReflectB>(m, suffix, rbPB11);
+  Spheral::restartMethodBindings<PlanarB>(m, rbPB11);
   rbPB11
 
     // Constructors
     .def(py::init<>())
+    .def(py::init<const Plane&>(), "plane"_a)
+
+    // Attributes
+    .def_property_readonly("reflectOperator", &ReflectB::reflectOperator)
+    ;
+
+  //............................................................................
+  // RigidBoundary
+  typedef RigidBoundary<Dimension> RigidB;
+  py::class_<RigidB, PlanarB,
+             PyBoundary<Dimension, PyAbstractBoundary<Dimension, RigidB>>> rigidbPB11(m, ("RigidBoundary" + suffix).c_str());
+  virtualBoundaryBindings<Dimension, RigidB>(m, suffix, rigidbPB11);
+  Spheral::restartMethodBindings<RigidB>(m, rigidbPB11);
+  rigidbPB11
+
+    // Constructors
+    .def(py::init<>())
+    .def(py::init<const Plane&>(), "plane"_a)
     ;
 
   //............................................................................
