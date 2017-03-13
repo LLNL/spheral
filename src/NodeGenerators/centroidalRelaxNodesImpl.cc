@@ -1,6 +1,8 @@
 //------------------------------------------------------------------------------
 // Implement Lloyd's algorithm for centroidal relaxation of fluid points.
 //------------------------------------------------------------------------------
+#include <ctime>
+
 #include "centroidalRelaxNodesImpl.hh"
 #include "CRKSPH/computeVoronoiVolume.hh"
 #include "CRKSPH/computeCRKSPHMoments.hh"
@@ -89,10 +91,14 @@ centroidalRelaxNodesImpl(DataBaseSpace::DataBase<Dimension>& db,
     }
   }
 
+  // // Update the H tensors a bit.
+  // iterateIdealH(db, boundaries, W, NodeSpace::ASPHSmoothingScale<Dimension>(), 5);
+
   // Iterate until we converge or max out.
   unsigned iter = 0;
   double avgdelta = 2.0*fracTol;
   while (iter < 2 or (iter < maxIterations and (avgdelta > fracTol))) { //  or mass.min() == 0.0))) {
+    std::clock_t t0 = std::clock();
     iter += 1;
 
     // Remove any old ghost nodes info, and update the mass density
@@ -112,14 +118,30 @@ centroidalRelaxNodesImpl(DataBaseSpace::DataBase<Dimension>& db,
     for (auto& nodes: db.fluidNodeListPtrs()) nodes->neighbor().updateNodes();
 
     // Compute the new connectivity.
+    std::clock_t tcm = std::clock();
     db.updateConnectivityMap(false);
     const auto& cm = db.connectivityMap();
+    tcm = std::clock() - tcm;
+    { // BLAGO
+      double avgneighbors = 0.0;
+      unsigned ntot = 0;
+      for (auto nodeListi = 0U; nodeListi != numNodeLists; ++nodeListi) {
+        const auto n = rhof[nodeListi]->numInternalElements();
+        ntot += n;
+        for (auto i = 0U; i != n; ++i) avgneighbors += cm.numNeighborsForNode(nodeListi, i);
+      }
+      ntot = allReduce(ntot, MPI_SUM, Communicator::communicator());
+      avgneighbors = allReduce(avgneighbors, MPI_SUM, Communicator::communicator())/ntot;
+      if (Process::getRank() == 0) cerr << "Avergage number of neighbors per node: " << avgneighbors << " " << ntot << endl;
+    } // BLAGO
 
     // Compute the new volumes and centroids (note this uses the old rho gradient, not quite right,
     // but expedient/efficient).
+    std::clock_t tvoro = std::clock();
     CRKSPHSpace::computeVoronoiVolume(pos, H, rhof, gradRhof, cm, W.kernelExtent(), volumeBoundaries, holes, 
                                       FieldList<Dimension, typename Dimension::Scalar>(),  // no weights
                                       surfacePoint, vol, deltaCentroid, dummyCells);
+    tvoro = std::clock() - tvoro;
      
     // Apply boundary conditions.
     for (auto& bc: boundaries) {
@@ -177,7 +199,10 @@ centroidalRelaxNodesImpl(DataBaseSpace::DataBase<Dimension>& db,
     }
     avgdelta = (allReduce(avgdelta, MPI_SUM, Communicator::communicator())/
                 allReduce(db.numInternalNodes(), MPI_SUM, Communicator::communicator()));
-    if (Process::getRank() == 0) cout << "centroidalRelaxNodes iteration " << iter << " avg delta frac " << avgdelta << endl;
+    if (Process::getRank() == 0) cerr << "centroidalRelaxNodes iteration " << iter << ", avg delta frac " << avgdelta 
+                                      << ", required " << ((std::clock() - t0)/CLOCKS_PER_SEC) 
+                                      << " seconds (" << (tvoro/CLOCKS_PER_SEC) << " in compuetVoronoiVolume, "
+                                      << (tcm/CLOCKS_PER_SEC) << " in ConnectivityMap)." << endl;
         
     // // Update the H tensors a bit.
     // iterateIdealH(db, boundaries, W, NodeSpace::ASPHSmoothingScale<Dimension>(), 2);
