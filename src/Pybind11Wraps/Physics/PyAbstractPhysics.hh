@@ -1,0 +1,89 @@
+//------------------------------------------------------------------------------
+// Trampoline classes for abstract Physics interface.
+//------------------------------------------------------------------------------
+#ifndef __Spheral_PyAbstractPhysics__
+#define __Spheral_PyAbstractPhysics__
+
+#include "Geometry/GeomPlane.hh"
+#include "NodeList/NodeList.hh"
+#include "Field/Field.hh"
+#include "Field/FieldList.hh"
+#include "DataBase/DataBase.hh"
+
+using Spheral::NodeSpace::NodeList;
+using Spheral::FieldSpace::Field;
+using Spheral::FieldSpace::FieldList;
+using Spheral::DataBaseSpace::DataBase;
+
+namespace Spheral {
+namespace PhysicsSpace {
+
+//------------------------------------------------------------------------------
+// PyAbstractPhysics
+//------------------------------------------------------------------------------
+template<typename Dimension, class PhysicsBase>
+class PyAbstractPhysics: public PhysicsBase {
+public:
+  using PhysicsBase::PhysicsBase;  // inherit constructors
+
+  typedef typename Dimension::Scalar Scalar;
+  typedef typename Dimension::Vector Vector;
+  typedef typename Dimension::Tensor Tensor;
+  typedef typename Dimension::SymTensor SymTensor;
+  typedef typename Dimension::ThirdRankTensor ThirdRankTensor;
+  typedef typename Physics<Dimension>::TimeStepType TimeStepType;
+
+  virtual void evaluateDerivatives(const Scalar time,
+                                   const Scalar dt,
+                                   const DataBase<Dimension>& dataBase,
+                                   const State<Dimension>& state,
+                                   StateDerivatives<Dimension>& derivs) const override {
+    PYBIND11_OVERLOAD_PURE(void,                // Return type
+                           PhysicsBase,         // Parent class
+                           evaluateDerivatives, // name of method
+                           time, dt, dataBase, state, derivs   // arguments
+      );
+  }
+
+  virtual TimeStepType dt(const DataBase<Dimension>& dataBase,
+                          const State<Dimension>& state,
+                          const StateDerivatives<Dimension>& derivs,
+                          const Scalar currentTime) const override {
+    PYBIND11_OVERLOAD_PURE(TimeStepType,        // Return type
+                           PhysicsBase,         // Parent class
+                           dt,                  // name of method
+                           dataBase, state, derivs, currentTime   // arguments
+      );
+  }
+
+  virtual void registerState(DataBase<Dimension>& dataBase,
+                             State<Dimension>& state) override {
+    PYBIND11_OVERLOAD_PURE(void,                // Return type
+                           PhysicsBase,         // Parent class
+                           registerState,       // name of method
+                           dataBase, state   // arguments
+      );
+  }
+
+  virtual void registerDerivatives(DataBase<Dimension>& dataBase,
+                                   StateDerivatives<Dimension>& derivs) override {
+    PYBIND11_OVERLOAD_PURE(void,                // Return type
+                           PhysicsBase,         // Parent class
+                           registerDerivatives, // name of method
+                           dataBase, derivs   // arguments
+      );
+  }
+
+  virtual std::string label() const override {
+    PYBIND11_OVERLOAD_PURE(std::string,         // Return type
+                           PhysicsBase,         // Parent class
+                           label // name of method
+      );
+  }
+
+};
+
+}
+}
+
+#endif
