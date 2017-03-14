@@ -142,6 +142,10 @@ def generatePorousEquationOfStateBindings(x, ndim):
     const_ref_return_value(x, me, "%s::solidEOS" % me, solideos, [], "solidEOS")
     const_ref_return_value(x, me, "%s::alpha" % me, scalarfield, [], "alpha")
 
+    # Attributes.
+    x.add_instance_attribute("alpha0", "double", getter="alpha0", setter="alpha0")
+    x.add_instance_attribute("c0", "double", getter="c0", setter="c0")
+
     return
 
 #---------------------------------------------------------------------------
