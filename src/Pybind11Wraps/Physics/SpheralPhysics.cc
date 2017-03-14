@@ -57,6 +57,16 @@ void virtualPhysicsBindings(py::module& m, PB11Obj& obj) {
     .def("registerState", &Obj::registerState, "dataBase"_a, "state"_a)
     .def("registerDerivatives", &Obj::registerDerivatives, "dataBase"_a, "state"_a)
     .def("label", &Obj::label)
+    .def("applyGhostBoundaries", &Obj::applyGhostBoundaries)
+    .def("enforceBoundaries", &Obj::enforceBoundaries)
+    .def("initialize", &Obj::initialize)
+    .def("finalize", &Obj::finalize)
+    .def("finalizeDerivatives", &Obj::finalizeDerivatives)
+    .def("postStateUpdate", &Obj::postStateUpdate)
+    .def("requireConnectivity", &Obj::requireConnectivity)
+    .def("requireGhostConnectivity", &Obj::requireGhostConnectivity)
+    .def("extraEnergy", &Obj::extraEnergy)
+    .def("extraMomentum", &Obj::extraMomentum)
 
     ;
 }
@@ -77,10 +87,10 @@ void dimensionBindings(py::module& m, const std::string suffix) {
 
   //............................................................................
   // Physics
-  typedef Physics<Dimension> Phy;
-  py::class_<Phy,
-             PyAbstractPhysics<Dimension, Phy>> phyPB11(m, ("Physics" + suffix).c_str());
-  virtualPhysicsBindings<Dimension, Phy>(m, phyPB11);
+  typedef Physics<Dimension> Phys;
+  py::class_<Phys,
+             PyAbstractPhysics<Dimension, Phys>> phyPB11(m, ("Physics" + suffix).c_str());
+  virtualPhysicsBindings<Dimension, Phys>(m, phyPB11);
   phyPB11
     
     // Constructors
@@ -89,7 +99,7 @@ void dimensionBindings(py::module& m, const std::string suffix) {
 
   //............................................................................
   // The STL containers of Physics objects.
-  py::bind_vector<std::vector<Phy*>>(m, "vector_of_Physics" + suffix);
+  py::bind_vector<std::vector<Phys*>>(m, "vector_of_Physics" + suffix);
 }
 
 } // anonymous
