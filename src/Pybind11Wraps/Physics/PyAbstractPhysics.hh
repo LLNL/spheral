@@ -42,7 +42,7 @@ public:
                            PhysicsBase,         // Parent class
                            evaluateDerivatives, // name of method
                            time, dt, dataBase, state, derivs   // arguments
-      );
+                           );
   }
 
   virtual TimeStepType dt(const DataBase<Dimension>& dataBase,
@@ -53,7 +53,7 @@ public:
                            PhysicsBase,         // Parent class
                            dt,                  // name of method
                            dataBase, state, derivs, currentTime   // arguments
-      );
+                           );
   }
 
   virtual void registerState(DataBase<Dimension>& dataBase,
@@ -62,7 +62,7 @@ public:
                            PhysicsBase,         // Parent class
                            registerState,       // name of method
                            dataBase, state   // arguments
-      );
+                           );
   }
 
   virtual void registerDerivatives(DataBase<Dimension>& dataBase,
@@ -71,14 +71,106 @@ public:
                            PhysicsBase,         // Parent class
                            registerDerivatives, // name of method
                            dataBase, derivs   // arguments
-      );
+                           );
   }
 
   virtual std::string label() const override {
     PYBIND11_OVERLOAD_PURE(std::string,         // Return type
                            PhysicsBase,         // Parent class
                            label // name of method
-      );
+                           );
+  }
+
+  virtual void applyGhostBoundaries(State<Dimension>& state,
+                                    StateDerivatives<Dimension>& derivs) override {
+    PYBIND11_OVERLOAD(void,                // Return type
+                      PhysicsBase,         // Parent class
+                      applyGhostBoundaries, // name of method
+                      state, derivs        // arguments
+                      );
+  }
+
+  virtual void enforceBoundaries(State<Dimension>& state,
+                                 StateDerivatives<Dimension>& derivs) override {
+    PYBIND11_OVERLOAD(void,                // Return type
+                      PhysicsBase,         // Parent class
+                      enforceBoundaries, // name of method
+                      state, derivs        // arguments
+                      );
+  }
+
+  virtual void initialize(const Scalar time,
+                          const Scalar dt,
+                          const DataBase<Dimension>& dataBase,
+                          State<Dimension>& state,
+                          StateDerivatives<Dimension>& derivs) override {
+    PYBIND11_OVERLOAD(void,                // Return type
+                      PhysicsBase,         // Parent class
+                      initialize, // name of method
+                      time, dt, dataBase, state, derivs        // arguments
+                      );
+  }
+
+  virtual void finalize(const Scalar time,
+                        const Scalar dt,
+                        DataBase<Dimension>& dataBase,
+                        State<Dimension>& state,
+                        StateDerivatives<Dimension>& derivs) override {
+    PYBIND11_OVERLOAD(void,                // Return type
+                      PhysicsBase,         // Parent class
+                      finalize, // name of method
+                      time, dt, dataBase, state, derivs        // arguments
+                      );
+  }
+
+  virtual void finalizeDerivatives(const Scalar time,
+                                   const Scalar dt,
+                                   const DataBase<Dimension>& dataBase,
+                                   const State<Dimension>& state,
+                                   StateDerivatives<Dimension>& derivs) const override {
+    PYBIND11_OVERLOAD(void,                // Return type
+                      PhysicsBase,         // Parent class
+                      finalizeDerivatives, // name of method
+                      time, dt, dataBase, state, derivs        // arguments
+                      );
+  }
+
+  virtual void postStateUpdate(const DataBase<Dimension>& dataBase,
+                               State<Dimension>& state,
+                               const StateDerivatives<Dimension>& derivs) const override {
+    PYBIND11_OVERLOAD(void,                // Return type
+                      PhysicsBase,         // Parent class
+                      postStateUpdate, // name of method
+                      dataBase, state, derivs        // arguments
+                      );
+  }
+
+  virtual bool requireConnectivity() const override {
+    PYBIND11_OVERLOAD(bool,                // Return type
+                      PhysicsBase,         // Parent class
+                      requireConnectivity, // name of method
+                      );
+  }
+
+  virtual bool requireGhostConnectivity() const override {
+    PYBIND11_OVERLOAD(bool,                // Return type
+                      PhysicsBase,         // Parent class
+                      requireGhostConnectivity, // name of method
+                      );
+  }
+
+  virtual Scalar extraEnergy() const override {
+    PYBIND11_OVERLOAD(Scalar,                // Return type
+                      PhysicsBase,         // Parent class
+                      extraEnergy, // name of method
+                      );
+  }
+
+  virtual Vector extraMomentum() const override {
+    PYBIND11_OVERLOAD(Vector,                // Return type
+                      PhysicsBase,         // Parent class
+                      extraMomentum, // name of method
+                      );
   }
 
 };
