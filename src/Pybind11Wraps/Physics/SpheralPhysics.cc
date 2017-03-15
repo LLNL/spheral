@@ -24,6 +24,39 @@ using namespace pybind11::literals;
 using namespace Spheral;
 using namespace Spheral::PhysicsSpace;
 
+namespace Spheral {
+namespace PhysicsSpace {
+
+//------------------------------------------------------------------------------
+// PyGenericHydro
+//------------------------------------------------------------------------------
+template<typename Dimension>
+class PyGenericHydro: public PyAbstractPhysics<Dimension, GenericHydro<Dimension>> {
+public:
+  typedef PyAbstractPhysics<Dimension, GenericHydro<Dimension>> PyAP;
+  using PyAP::PyAP;  // inherit constructors
+
+  typedef typename Dimension::Scalar Scalar;
+  typedef typename Dimension::Vector Vector;
+  typedef typename Dimension::Tensor Tensor;
+  typedef typename Dimension::SymTensor SymTensor;
+  typedef typename Dimension::ThirdRankTensor ThirdRankTensor;
+  typedef typename Physics<Dimension>::TimeStepType TimeStepType;
+  virtual TimeStepType dt(const DataBase<Dimension>& dataBase,
+                          const State<Dimension>& state,
+                          const StateDerivatives<Dimension>& derivs,
+                          const Scalar currentTime) const override {
+    PYBIND11_OVERLOAD(TimeStepType,        // Return type
+                      GenericHydro<Dimension>,                  // Parent class
+                      dt,                  // name of method
+                      dataBase, state, derivs, currentTime   // arguments
+                      );
+  }
+};
+
+}
+}
+
 //------------------------------------------------------------------------------
 // 1D
 //------------------------------------------------------------------------------
@@ -115,7 +148,7 @@ void dimensionBindings(py::module& m, const std::string suffix) {
   // GenericHydro
   typedef GenericHydro<Dimension> GH;
   py::class_<GH, Phys,
-             PyAbstractPhysics<Dimension, GH>> ghPB11(m, ("GenericHydro" + suffix).c_str());
+             Spheral::PhysicsSpace::PyGenericHydro<Dimension>> ghPB11(m, ("GenericHydro" + suffix).c_str());
   //  virtualPhysicsBindings<Dimension, Phys>(m, ghPB11);
   ghPB11
 
@@ -147,6 +180,26 @@ void dimensionBindings(py::module& m, const std::string suffix) {
     .def_property_readonly("maxActualNeighbor", &GH::maxActualNeighbor)
     .def_property_readonly("averageActualNeighbor", &GH::averageActualNeighbor)
     ;
+
+  //............................................................................
+  // GenericBodyForce
+  // typedef GenericBodyForce<Dimension> GBF;
+  // py::class_<GBF, Phys,
+  //            PyAbstractPhysics<Dimension, GBF>> gbfPB11(m, ("GenericBodyForce" + suffix).c_str());
+  // //  virtualPhysicsBindings<Dimension, Phys>(m, ghPB11);
+  // gbfPB11
+
+  //   // Constructors
+  //   .def(py::init<>())
+
+  //   // Methods
+  //   .def("DxDt", &GBF::DxDt)
+  //   .def("DvDt", &GBF::DvDt)
+
+  //   // Virtual methods
+  //   .def("registerState", &GBF::registerState)
+  //   .def("registerDerivatives", &GBF::registerDerivatives)
+  //   ;
 
   //............................................................................
   // The STL containers of Physics objects.
