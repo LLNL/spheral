@@ -16,6 +16,8 @@
 
 #include "PyAbstractPhysics.hh"
 #include "PyPhysics.hh"
+#include "PyGenericHydro.hh"
+#include "PyGenericBodyForce.hh"
 #include "Pybind11Wraps/DataOutput/PyRestartMethods.hh"
 
 namespace py = pybind11;
@@ -23,39 +25,6 @@ using namespace pybind11::literals;
 
 using namespace Spheral;
 using namespace Spheral::PhysicsSpace;
-
-namespace Spheral {
-namespace PhysicsSpace {
-
-//------------------------------------------------------------------------------
-// PyGenericHydro
-//------------------------------------------------------------------------------
-template<typename Dimension>
-class PyGenericHydro: public PyAbstractPhysics<Dimension, GenericHydro<Dimension>> {
-public:
-  typedef PyAbstractPhysics<Dimension, GenericHydro<Dimension>> PyAP;
-  using PyAP::PyAP;  // inherit constructors
-
-  typedef typename Dimension::Scalar Scalar;
-  typedef typename Dimension::Vector Vector;
-  typedef typename Dimension::Tensor Tensor;
-  typedef typename Dimension::SymTensor SymTensor;
-  typedef typename Dimension::ThirdRankTensor ThirdRankTensor;
-  typedef typename Physics<Dimension>::TimeStepType TimeStepType;
-  virtual TimeStepType dt(const DataBase<Dimension>& dataBase,
-                          const State<Dimension>& state,
-                          const StateDerivatives<Dimension>& derivs,
-                          const Scalar currentTime) const override {
-    PYBIND11_OVERLOAD(TimeStepType,        // Return type
-                      GenericHydro<Dimension>,                  // Parent class
-                      dt,                  // name of method
-                      dataBase, state, derivs, currentTime   // arguments
-                      );
-  }
-};
-
-}
-}
 
 //------------------------------------------------------------------------------
 // 1D
@@ -148,7 +117,7 @@ void dimensionBindings(py::module& m, const std::string suffix) {
   // GenericHydro
   typedef GenericHydro<Dimension> GH;
   py::class_<GH, Phys,
-             Spheral::PhysicsSpace::PyGenericHydro<Dimension>> ghPB11(m, ("GenericHydro" + suffix).c_str());
+             PyGenericHydro<Dimension>> ghPB11(m, ("GenericHydro" + suffix).c_str());
   //  virtualPhysicsBindings<Dimension, Phys>(m, ghPB11);
   ghPB11
 
@@ -183,23 +152,23 @@ void dimensionBindings(py::module& m, const std::string suffix) {
 
   //............................................................................
   // GenericBodyForce
-  // typedef GenericBodyForce<Dimension> GBF;
-  // py::class_<GBF, Phys,
-  //            PyAbstractPhysics<Dimension, GBF>> gbfPB11(m, ("GenericBodyForce" + suffix).c_str());
-  // //  virtualPhysicsBindings<Dimension, Phys>(m, ghPB11);
-  // gbfPB11
+  typedef GenericBodyForce<Dimension> GBF;
+  py::class_<GBF, Phys,
+             PyGenericBodyForce<Dimension>> gbfPB11(m, ("GenericBodyForce" + suffix).c_str());
+  //  virtualPhysicsBindings<Dimension, Phys>(m, ghPB11);
+  gbfPB11
 
-  //   // Constructors
-  //   .def(py::init<>())
+    // Constructors
+    .def(py::init<>())
 
-  //   // Methods
-  //   .def("DxDt", &GBF::DxDt)
-  //   .def("DvDt", &GBF::DvDt)
+    // Methods
+    .def("DxDt", &GBF::DxDt)
+    .def("DvDt", &GBF::DvDt)
 
-  //   // Virtual methods
-  //   .def("registerState", &GBF::registerState)
-  //   .def("registerDerivatives", &GBF::registerDerivatives)
-  //   ;
+    // Virtual methods
+    .def("registerState", &GBF::registerState)
+    .def("registerDerivatives", &GBF::registerDerivatives)
+    ;
 
   //............................................................................
   // The STL containers of Physics objects.
@@ -223,15 +192,13 @@ PYBIND11_PLUGIN(SpheralPhysics) {
   dimensionBindings<Spheral::Dim<1>>(m, "1d");
 #endif
 
-// #ifdef SPHERAL2D
-//   dimensionBindings<Spheral::Dim<2>>(m, "2d");
-//   twoDimensionalBindings(m);
-// #endif
+#ifdef SPHERAL2D
+  dimensionBindings<Spheral::Dim<2>>(m, "2d");
+#endif
 
-// #ifdef SPHERAL3D
-//   dimensionBindings<Spheral::Dim<3>>(m, "3d");
-//   threeDimensionalBindings(m);
-// #endif
+#ifdef SPHERAL3D
+  dimensionBindings<Spheral::Dim<3>>(m, "3d");
+#endif
 
   return m.ptr();
 }
