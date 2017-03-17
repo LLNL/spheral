@@ -46,25 +46,13 @@ void virtualArtificialViscosityBindings(py::module& m, PB11Obj& obj) {
   typedef typename Dimension::ThirdRankTensor ThirdRankTensor;
 
   obj
-
-    // Methods
     .def("initialize", &Obj::initialize, "dataBase"_a, "state"_a, "derivs"_a, "boundaryBegin"_a, "boundaryEnd"_a, "time"_a, "dt"_a, "W"_a)
     .def("Piij", &Obj::Piij, "xi"_a, "etai"_a, "vi"_a, "rhoi"_a, "csi"_a, "Hi"_a, "xj"_a, "etaj"_a, "vj"_a, "rhoj"_a, "csj"_a, "Hj"_a)
     .def("registerState", &Obj::registerState, "dataBase"_a, "state"_a)
     .def("registerDerivatives", &Obj::registerDerivatives, "dataBase"_a, "state"_a)
     .def("label", &Obj::label)
-    .def("applyGhostBoundaries", &Obj::applyGhostBoundaries, "state"_a, "derivs"_a)
-    .def("enforceBoundaries", &Obj::enforceBoundaries, "state"_a, "derivs"_a)
-    .def("initializeProblemStartup", &Obj::initializeProblemStartup)
-    .def("preStepInitialize", &Obj::preStepInitialize, "dataBase"_a, "state"_a, "derivs"_a)
-    .def("initialize", &Obj::initialize, "time"_a, "dt"_a, "dataBase"_a, "state"_a, "derivs"_a)
-    .def("finalize", &Obj::finalize, "time"_a, "dt"_a, "dataBase"_a, "state"_a, "derivs"_a)
-    .def("finalizeDerivatives", &Obj::finalizeDerivatives, "time"_a, "dt"_a, "dataBase"_a, "state"_a, "derivs"_a)
-    .def("postStateUpdate", &Obj::postStateUpdate, "dataBase"_a, "state"_a, "derivs"_a)
-    .def("requireConnectivity", &Obj::requireConnectivity)
-    .def("requireGhostConnectivity", &Obj::requireGhostConnectivity)
-    .def("extraEnergy", &Obj::extraEnergy)
-    .def("extraMomentum", &Obj::extraMomentum)
+    .def("dumpState", &Obj::dumpState, "file"_a, "pathName"_a)
+    .def("restoreState", &Obj::dumpState, "file"_a, "pathName"_a)
     ;
 }
 
@@ -86,14 +74,14 @@ void dimensionBindings(py::module& m, const std::string suffix) {
 
   //............................................................................
   // ArtificialViscosity
-  typedef ArtificialViscosity<Dimension> Phys;
-  py::class_<Phys,
-             PyAbstractArtificialViscosity<Dimension, Phys>> phyPB11(m, ("ArtificialViscosity" + suffix).c_str());
-  virtualArtificialViscosityBindings<Dimension, Phys>(m, phyPB11);
-  phyPB11
+  typedef ArtificialViscosity<Dimension> AV;
+  py::class_<AV,
+             PyAbstractArtificialViscosity<Dimension, AV>> avPB11(m, ("ArtificialViscosity" + suffix).c_str());
+  virtualArtificialViscosityBindings<Dimension, Phys>(m, avPB11);
+  avPB11
     
     // Constructors
-    .def(py::init<>())
+    .def(py::init<>(const Scalar, const Scalar, const CRKSPHSpace::CRKorder), "Clinear"_a, "Cquadratic"_a, "QcorrectionOrder"_a=CRKSPHSpace::CRKOrder::LinearOrder)
 
     // Methods
     .def("appendBoundary", &Phys::appendBoundary, "boundary"_a)
@@ -101,8 +89,10 @@ void dimensionBindings(py::module& m, const std::string suffix) {
     .def("clearBoundaries", &Phys::clearBoundaries)
     .def("haveBoundary", &Phys::haveBoundary, "boundary"_a)
     .def("boundaryConditions", &Phys::boundaryConditions)
-    ;
 
+    // Attributes
+    .def_property("Cl", (Scalar (AV::*)() const) &AV::Cl, (void (AV::*)(Scalar)) &AV::Cl)
+    ;
 }
 
 } // anonymous
