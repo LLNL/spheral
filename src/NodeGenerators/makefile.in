@@ -13,7 +13,8 @@ LIBTARGET = libSpheral_$(PKGNAME).$(DYLIBEXT)
 INSTSRCTARGETS = \
 	$(srcdir)/relaxNodeDistributionInst.cc.py \
 	$(srcdir)/centroidalRelaxNodesImplInst.cc.py \
-	$(srcdir)/compactFacetedVolumesInst.cc.py
+	$(srcdir)/compactFacetedVolumesInst.cc.py \
+	$(srcdir)/chooseRandomNonoverlappingCenterInst.cc.py
 
 SRCTARGETS = \
 	$(srcdir)/generateCylDistributionFromRZ.cc \
