@@ -1042,6 +1042,11 @@ namespace FractalSpace
     fyz[4]=p->force_shear_point[4];
     fzz[4]=p->force_shear_point[5];
   }
+  void Point::clean_shear()
+  {
+    vector<double>King_Arthur;
+    force_shear_point.swap(King_Arthur);
+  }
   void Point::get_field_values(vector <double>& pott) const
   {
     pott[0]=potential_point;

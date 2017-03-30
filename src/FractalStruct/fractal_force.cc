@@ -264,6 +264,7 @@ namespace FractalSpace
       }
     bool badd=test_tree(fractal_memory,fractal);
     assert(!badd);
+    clean_groups(fractal_memory);
     FileFractal << "number of everything after the tree "  << " " << Group::number_groups << " " << Point::number_points << "\n";
     FileFractal << " Total number of particles after the tree " << Particle::number_particles << "\n";
     Fractal* p_fractal_ghost=new Fractal;
@@ -331,6 +332,7 @@ namespace FractalSpace
 	  }
 	force_shear_at_particle(fractal_memory,fractal);
       }
+    // clean_shear(fractal_memory);
     groups_level(fractal,fractal_memory.all_groups);
     fractal.timing(-1,44);
     if(fractal_memory.steps % fractal_memory.number_steps_out == 0)
