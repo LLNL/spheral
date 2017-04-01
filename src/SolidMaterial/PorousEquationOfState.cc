@@ -28,7 +28,9 @@ PorousEquationOfState(const Material::EquationOfState<Dimension>& solidEOS):
                                        solidEOS.maximumPressure(),
                                        solidEOS.minimumPressureType()),
   mSolidEOS(solidEOS),
-  mAlphaPtr(0) {
+  mAlphaPtr(0),
+  mAlpha0(0.0),
+  mC0(0.0) {
 }
 
 //------------------------------------------------------------------------------
@@ -119,6 +121,10 @@ setSpecificHeat(Field<Dimension, Scalar>& specificHeat,
 
 //------------------------------------------------------------------------------
 // Set the sound speed.
+// Based on the relation in 
+// Collins, G. S., Melosh, H. J., & Wünnemann, K. (2011). Improvements to the ɛ-α porous compaction model for simulating impacts into
+// high-porosity solar system objects. International Journal of Impact Engineering, 38(6), 434–439. 
+// http://doi.org/10.1016/j.ijimpeng.2010.10.013
 //------------------------------------------------------------------------------
 template<typename Dimension>
 void
@@ -130,8 +136,15 @@ setSoundSpeed(Field<Dimension, Scalar>& soundSpeed,
   REQUIRE(massDensity.nodeListPtr() == soundSpeed.nodeListPtr());
   REQUIRE(specificThermalEnergy.nodeListPtr() == soundSpeed.nodeListPtr());
   REQUIRE(mAlphaPtr->nodeListPtr() == soundSpeed.nodeListPtr());
+  REQUIRE(mAlpha0 > 1.0 and mC0 > 0.0);
   const Field<Dimension, Scalar> rhoS = (*mAlphaPtr)*massDensity;
   mSolidEOS.setSoundSpeed(soundSpeed, rhoS, specificThermalEnergy);
+  
+  // Now apply the porosity modifier.
+  const unsigned n = soundSpeed.numInternalElements();
+  for (unsigned i = 0; i != n; ++i) {
+    soundSpeed(i) += ((*mAlphaPtr)(i) - 1.0)*safeInv(mAlpha0 - 1.0)*(mC0 - soundSpeed(i));
+  }
 }
 
 //------------------------------------------------------------------------------
@@ -226,6 +239,40 @@ void
 PorousEquationOfState<Dimension>::
 alpha(const FieldSpace::Field<Dimension, typename Dimension::Scalar>& x) {
   mAlphaPtr = &x;
+}
+
+//------------------------------------------------------------------------------
+// alpha0
+//------------------------------------------------------------------------------
+template<typename Dimension>
+typename Dimension::Scalar
+PorousEquationOfState<Dimension>::
+alpha0() const {
+  return mAlpha0;
+}
+
+template<typename Dimension>
+void
+PorousEquationOfState<Dimension>::
+alpha0(const typename Dimension::Scalar x) {
+  mAlpha0 = x;
+}
+
+//------------------------------------------------------------------------------
+// c0
+//------------------------------------------------------------------------------
+template<typename Dimension>
+typename Dimension::Scalar
+PorousEquationOfState<Dimension>::
+c0() const {
+  return mC0;
+}
+
+template<typename Dimension>
+void
+PorousEquationOfState<Dimension>::
+c0(const typename Dimension::Scalar x) {
+  mC0 = x;
 }
 
 }
