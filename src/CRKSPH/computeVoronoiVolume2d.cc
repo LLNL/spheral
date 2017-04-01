@@ -136,7 +136,7 @@ computeVoronoiVolume(const FieldList<Dim<2>, Dim<2>::Vector>& position,
       verts[j].x = kernelExtent*cos(theta);
       verts[j].y = kernelExtent*sin(theta);
     }
-    r2d_poly initialCell = r2d_init_empty_poly();
+    r2d_poly initialCell;
     r2d_init_poly(&initialCell, verts, nverts);
     CHECK(r2d_is_good(&initialCell));
 
@@ -242,11 +242,11 @@ computeVoronoiVolume(const FieldList<Dim<2>, Dim<2>::Vector>& position,
         // t0 = std::clock();
 
         // Initialize our seed cell shape.  If we have a boundary use that, otherwise the nominal kernel boundary.
-        r2d_poly celli = r2d_init_empty_poly();
+        r2d_poly celli;
         if (false) { // haveBoundaries) {
           polygon_to_r2d_poly(boundaries[nodeListi] - ri, celli);
         } else {
-          r2d_copy_poly(&celli, &initialCell);
+          celli = initialCell;
           for (unsigned k = 0; k != celli.nverts; ++k) {
             r2d_vertex& vert = celli.verts[k];
             const Vector vi = Hinv*Vector(vert.pos.x, vert.pos.y);
@@ -259,6 +259,11 @@ computeVoronoiVolume(const FieldList<Dim<2>, Dim<2>::Vector>& position,
         // Clip the local cell.
         r2d_clip(&celli, &pairPlanes[0], pairPlanes.size());
         CHECK(celli.nverts > 0);
+        r2d_reduce(&celli, firstmom, 1);
+        CHECK(firstmom[0] > 0.0);
+        vol(nodeListi, i) = firstmom[0];
+        const Vector deltaCentroidi = Vector(firstmom[1], firstmom[2])/firstmom[0];
+        deltaMedian(nodeListi, i) = deltaCentroidi;
 
         // if (barf) r2d_print(&celli);
 
@@ -279,13 +284,6 @@ computeVoronoiVolume(const FieldList<Dim<2>, Dim<2>::Vector>& position,
         if (interior) {
           // t0 = std::clock();
           if (returnSurface) surfacePoint(nodeListi, i) = 0;
-
-          // Compute the centroidal motion and area.
-          r2d_reduce(&celli, firstmom, 1);
-          CHECK(firstmom[0] > 0.0);
-          vol(nodeListi, i) = firstmom[0];
-          const Vector deltaCentroidi = Vector(firstmom[1], firstmom[2])/firstmom[0];
-          // if (barf) cerr << "     " << deltaCentroidi << " " << ri + deltaCentroidi << endl;
 
           // // Apply the gradient limiter;
           // gradRhoi *= phi;
@@ -314,12 +312,6 @@ computeVoronoiVolume(const FieldList<Dim<2>, Dim<2>::Vector>& position,
             //                               2.0/3.0*rhoi*b*(x2*x2*x2 - x1*x1*x1) +
             //                               0.25*b*b*(x2*x2*x2*x2 - x1*x1*x1*x1))/
             //                              (pow3(rhoi + b*x2) - pow3(rhoi + b*x1)/(3.0*b)))*nhat1 - deltaCentroidi.dot(nhat1)*nhat1 + deltaCentroidi;
-
-          } else {
-
-            // Otherwise just use the centroid.
-            deltaMedian(nodeListi, i) = deltaCentroidi;
-
           }
           // tcentroid += std::clock() - t0;
 
@@ -347,7 +339,6 @@ computeVoronoiVolume(const FieldList<Dim<2>, Dim<2>::Vector>& position,
 
           // This point touches a free boundary, so flag it.
           if (returnSurface) surfacePoint(nodeListi, i) = 1;
-          deltaMedian(nodeListi, i) = Vector::zero;
 
         }
 
@@ -372,7 +363,6 @@ computeVoronoiVolume(const FieldList<Dim<2>, Dim<2>::Vector>& position,
           cells(nodeListi, i) += ri;
           // tcell += std::clock() - t0;
         }
-        r2d_free_poly(&celli);
       }
     }
 
@@ -404,7 +394,6 @@ computeVoronoiVolume(const FieldList<Dim<2>, Dim<2>::Vector>& position,
     //   }
     // }
 
-    r2d_free_poly(&initialCell);
   }
 
   // ttotal = std::clock() - ttotal;

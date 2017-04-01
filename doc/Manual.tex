@@ -12,6 +12,8 @@
 \def\ie{{\rm i.e.,}}
 \def\deg{{$^{\circ}$}}
 
+\newcommand{\inv}[1]{\frac{1}{#1}}
+
 \newcommand{\be}{\begin{equation}}
 \newcommand{\ee}{\end{equation}}
 \newcommand{\ba}{\begin{eqnarray}}
@@ -206,7 +208,22 @@ This script is now ready to run using the command
 
 \chapter{Hydro}
 
-\section{SPHydro}
+\section{SPH}
+
+The traditional SPH hydro algorithm solves the inviscid Euler equations in discrete form, with discretization on mass:
+
+\ba
+\rho_i &=& \sum_j m_j W_{ij}\\
+\dot{v_i} &=& - \sum_j \frac{m_j}{\rho_i\rho_j}\left(P_i+P_j\right)\nabla W_{ij}\\
+\dot{u_i} &=& \sum_j \frac{m_j}{\rho_i\rho_j}P_j\left(v_i+v_j\right)\nabla W_{ij}
+\ea
+
+
+The regular intensive variables are density and internal energy. 
+Shock capturing is achieved via artificial viscosity, typically of the Monaghan \& Gingold form.
+
+
+
 \section{ASPH}
 \section{CRKSPH}
 \section{PSPH - Unsupported}
@@ -231,6 +248,7 @@ Some of the kernels included in \sph\ are:
 \item guassian
 \item Wendland C2, C4, and C6
 \end{itemize}
+Any kernel choice is also compatible with ASPH and CRKSPH.
 
 \section{Equations of State}
 

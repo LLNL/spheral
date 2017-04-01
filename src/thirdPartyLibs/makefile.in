@@ -306,7 +306,7 @@ OPENSUBDIVBUILDDATE = $(patsubst %.zip, .%.date, $(OPENSUBDIVDIST))
 
 # R3D
 R3DDIST = r3d.zip
-R3DURL = https://github.com/jmikeowen/r3d/archive/master.zip
+R3DURL = https://github.com/devonmpowell/r3d/archive/master.zip
 R3DDIR = r3d-master
 R3DBUILDDATE = $(patsubst %.zip, .%.date, $(R3DDIST))
 R3DINCDIR = $(prefix)/include/r3d
@@ -1520,8 +1520,8 @@ $(R3DBUILDDATE):	$(R3DDIST)
 	rm -fr $(R3DDIR) $(R3DINCDIR)
 	@$(MKDIR) -p $(prefix)/bin $(prefix)/lib $(R3DINCDIR)
 	$(UNZIP) $(R3DDIST)
-	#$(PATCH) $(R3DDIR)/r2d.h $(srcdir)/r3d_r2d_h.patch
-	#$(PATCH) $(R3DDIR)/r3d.h $(srcdir)/r3d_r3d_h.patch
+	$(PATCH) $(R3DDIR)/r2d.h $(srcdir)/r3d_r2d_h.patch
+	$(PATCH) $(R3DDIR)/r3d.h $(srcdir)/r3d_r3d_h.patch
 	env PATH=$(prefix)/bin:$$PATH $(SHELL) -ec "cd $(R3DDIR); \
 	$(MAKE) CC='$(CC)' CFLAGS='$(CFLAGS)'"
 	@if ! test -e $(R3DDIR)/libr3d.a; then \

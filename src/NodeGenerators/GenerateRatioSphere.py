@@ -3,7 +3,6 @@ import mpi
 
 from NodeGeneratorBase import *
 
-from Spheral import ScalarFunctor, simpsonsIntegrationDouble
 from Spheral import Vector2d, Tensor2d, SymTensor2d, CylindricalBoundary, rotationMatrix2d
 from Spheral import Vector3d, Tensor3d, SymTensor3d, CylindricalBoundary, rotationMatrix3d
 from Spheral import CylindricalBoundary, generateCylDistributionFromRZ

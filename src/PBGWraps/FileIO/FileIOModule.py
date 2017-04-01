@@ -43,6 +43,7 @@ self.FileIOTemplateTypes += [
         ("Spheral::FieldSpace::SymTensorFieldList%(dim)s", ["%(Dim)s", "SymTensor%(dim)s"]),
         ("Spheral::FieldSpace::ThirdRankTensorFieldList%(dim)s", ["%(Dim)s", "ThirdRankTensor%(dim)s"]),
         ("Spheral::FieldSpace::IntFieldList%(dim)s", ["%(Dim)s", "int"]),
+        ("Spheral::FieldSpace::VectorDoubleFieldList%(dim)s", ["%(Dim)s", "vector_of_double"]),
         ]""" % {"dim" : "%id" % ndim,
                 "Dim" : "Spheral::Dim<%i>" % ndim})
         self.FileIOTypes += ["vector_of_int", "vector_of_double", "vector_of_string",

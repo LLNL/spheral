@@ -87,16 +87,6 @@ unsigned compactFacetedVolumes(std::vector<typename Dimension::FacetedVolume>& s
     } else {
       pos[i] = xghost;
     }
-    // double Ri = 0.0;
-    // if (flags[i] == 1) {
-    //   for (const auto& v: shapes[i].vertices()) {
-    //     Ri = std::max(Ri, (v - centers[i]).magnitude());
-    //   }
-    // } else {
-    //   for (const auto& v: shapes[i].vertices()) {
-    //     Ri = std::max(Ri, v.magnitude());
-    //   }
-    // }
     double Ri = Dimension::rootnu(shapes[i].volume()/M_PI);
     radius[i] = Ri;
     H[i] = SymTensor::one / (2.0*Ri);
@@ -119,8 +109,6 @@ unsigned compactFacetedVolumes(std::vector<typename Dimension::FacetedVolume>& s
 
       // Update the neighbor info.
       neighbor.updateNodes();
-      // db.updateConnectivityMap(false);
-      // const NeighborSpace::ConnectivityMap<Dimension>& cm = db.connectivityMap();
 
       // Add the repulsive component from the asteroid surface.
       t0 = std::clock();
@@ -142,15 +130,8 @@ unsigned compactFacetedVolumes(std::vector<typename Dimension::FacetedVolume>& s
       for (auto i = imin; i < imax; ++i) {
         if (flags[i] == 3) {
           const FacetedVolume bi = shapes[i] + centers[i];
-          // const vector<vector<int>>& neighbors = cm.connectivityForNode(0, i);
-          // CHECK(neighbors.size() == 1);
-          // for (auto j: neighbors[0]) {
-          // for (auto j = 0; j != nshapes; ++j) {
           neighbor.setMasterList(i);
           neighbor.setRefineNeighborList(i);
-          // cout << "numNeighbors: " << neighbor.numRefine() << " : ";
-          // std::copy(neighbor.refineNeighborBegin(), neighbor.refineNeighborEnd(), std::ostream_iterator<int>(std::cout, " "));
-          // cout << endl;
           for (auto jitr = neighbor.refineNeighborBegin(); jitr != neighbor.refineNeighborEnd(); ++jitr) {
             const auto j = *jitr;
             if (j != i) {

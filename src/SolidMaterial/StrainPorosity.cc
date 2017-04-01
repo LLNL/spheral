@@ -70,6 +70,8 @@ StrainPorosity(PorousEquationOfState<Dimension>& porousEOS,
           "ERROR : kappa required to be in range kappa = [0.0, 1.0]");
   mEpsC = 2.0*(1.0 - mAlpha0*exp(mKappa*(mEpsX - mEpsE)))/(mKappa*mAlpha0*exp(mKappa*(mEpsX - mEpsE))) + mEpsX;
   mPorousEOS.alpha(mAlpha);
+  mPorousEOS.alpha0(mAlpha0);
+  mPorousEOS.c0(c0);
   mPorousStrength.alpha(mAlpha);
   ENSURE(mPorousEOS.valid());
 }
