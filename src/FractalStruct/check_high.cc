@@ -20,4 +20,21 @@ namespace FractalSpace
       }
     return false;
   }
+  bool check_high(Point& point,Fractal_Memory& mem)
+  {
+    //--------------------------------------------------------------------------------------------------------------------------------
+    // Guess what, as Nina says.
+    //--------------------------------------------------------------------------------------------------------------------------------
+    if(point.list_particles.size() < mem.minimum_number_var[mem.level])
+      return false;
+    unsigned int np=0;
+    for(auto &part : point.list_particles)
+      {
+	if(part->get_p_highest_level_group() != 0)
+	  np++;
+	if(np >= mem.minimum_number_var[mem.level])
+	  return true;
+      }
+    return false;
+  }
 }
