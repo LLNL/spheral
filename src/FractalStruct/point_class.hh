@@ -288,6 +288,7 @@ namespace FractalSpace
 				       vector <double>& fyy,vector <double>& fyz,vector <double>& fzz) const;
     void get_field_values(vector <double>& pott) const;
     void get_density_points(vector <double>& dens);
+    void clean_shear();
     void dumpy() const;
     void dumpd() const;
     void dumpp() const;

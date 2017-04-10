@@ -80,6 +80,7 @@ namespace FractalSpace
     int grid_length;
     int moat_0;
     unsigned int minimum_number;
+    array<int,16>minimum_number_var;
     int padding;
     int level_max;
     int number_steps_total;
@@ -156,8 +157,7 @@ namespace FractalSpace
     vector <int> masks_level_init;
     //
     vector < vector<Group*> > all_groups;
-//     vector < vector<Group*> > all_buffer_groups;
-//     vector < vector<Group*> > all_inside_groups;
+
     Misc* p_misc; 
     Fractal* p_fractal;
     Mess* p_mess;
@@ -210,7 +210,7 @@ namespace FractalSpace
       number_particles(262144),
       grid_length(128),
       moat_0(1),
-      minimum_number(8),
+      minimum_number(10),
       padding(-1),
       // padding(1),
       level_max(8),
@@ -265,8 +265,9 @@ namespace FractalSpace
       p_misc=0;
       p_fractal=0;
       p_file=0;
-      hypre_solver="AMG";
-      hypre_precond="AMG";
+      minimum_number_var={{8,8,7,7,6,6,6,5,5,5,4,4,4,4,4,4}};
+      hypre_solver="PCG";
+      hypre_precond="PFMG";
       global_level_max=level_max;
       padding=min(padding,1);
       split_particles= force_max > 0.0;
