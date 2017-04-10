@@ -865,7 +865,8 @@ class GenerateNodesMatchingProfile2d(NodeGeneratorBase):
                  thetaMin = 0.0,
                  thetaMax = pi/2.0,
                  nNodePerh = 2.01,
-                 offset = [0,0]):
+                 offset = [0,0],
+                 m0 = 0.0):
         
         assert n > 0
         assert rmin < rmax
@@ -873,6 +874,7 @@ class GenerateNodesMatchingProfile2d(NodeGeneratorBase):
         assert thetaMin >= 0.0 and thetaMin <= 2.0*pi
         assert thetaMax >= 0.0 and thetaMax <= 2.0*pi
         assert nNodePerh > 0.0
+        assert m0 >= 0.0
         
         self.n = n
         self.rmin = rmin
@@ -898,6 +900,8 @@ class GenerateNodesMatchingProfile2d(NodeGeneratorBase):
 
         # Now set the nominal mass per node.
         self.m0 = self.totalMass/(self.n*self.n*pi)
+        if (m0 > 0.0):
+            self.m0 = m0
         assert self.m0 > 0.0
         print "Nominal mass per node of %g." % self.m0
 
