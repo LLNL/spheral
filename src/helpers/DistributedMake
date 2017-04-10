@@ -1,0 +1,130 @@
+#!/usr/bin/env pyMPI
+#-------------------------------------------------------------------------------
+# A really simple script to facilitate building in parallel on distributed
+# machines.  This is a pyMPI script, and so depends on pyMPI being available
+# to work.
+#-------------------------------------------------------------------------------
+
+import mpi
+import os, sys, string
+
+class DistributedMake:
+
+    #===========================================================================
+    # Constructor.
+    #===========================================================================
+    def __init__(self, argv):
+        self.task = mpi.rank
+        self.ntasks = mpi.procs
+        self.masterTaskRank = 0
+        self.masterTask = (self.task == self.masterTaskRank)
+        self.ready = "*ready*"
+        self.done = "*done*"
+        self.error = "*error*"
+        if not self.parseArgs(argv, True):
+            self.printUsage()
+            exit
+        return
+
+    #===========================================================================
+    # Parse command line arguments.
+    #===========================================================================
+    def parseArgs(self, argv,
+                  chatty = False):
+
+        # The set of command line arguments we recognize, with default values.
+        keywords = {"buildDirectories": None,
+                    "numLocalTasks": 2,
+                    "make": "'gmake'",
+                    "target": "'all'",
+                    }
+
+        # Set everything to their defaults to begin.
+        for key in keywords:
+            exec("self.%s = %s" % (key, keywords[key]))
+
+        # Look for valid command line args to DistributedMake.  We have to be
+        # forgiving here, 'cause there might be lots of crap on the command line,
+        # not all of which is intended for us.
+        for thingy in argv[1:]:
+            try:
+                key, val = tuple(string.split(thingy, "="))
+                if key in keywords:
+                    exec("self.%s = %s" % (key, val))
+            except:
+                print "DistributedMake Warning: ignoring unrecognized argument %s" % thingy
+
+        # Echo the full state to stdout.
+        if chatty:
+            for key in keywords:
+                print "  %s = %s" % (key, str(eval("self.%s" % key)))
+
+        # Check that required arguments have been set.
+        if self.buildDirectories is None:
+            return False
+        else:
+            return True
+
+    #===========================================================================
+    # Print a helpful usage message.
+    #===========================================================================
+    def printUsage(self):
+        print """
+        Usage:  DistributedMake blah blah blah.
+        Note:  This a pyMPI based python script, and therefore pyMPI must be available
+               in your path to use DistributedMake.
+        """
+        return
+
+    #===========================================================================
+    # Perform a parallel build over the directories.
+    #===========================================================================
+    def build(self):
+        
+        # The master process dishes out the tasks to all the workers.
+        if self.masterTask:
+            ibuild = 0
+            nbuild = len(self.buildDirectories)
+            while ibuild < nbuild:
+
+                # Wait 'til someone tells us that they're ready to build.
+                msg, status = mpi.recv()
+                task = status.source
+                if msg == self.ready:
+                    mpi.send(self.buildDirectories[ibuild], task)
+                    ibuild += 1
+                else:
+                    raise "ERROR: Master build process received a message of %s from task %i" % (msg, task)
+
+            # Once we've built all the specified targets, notify all processes we're done.
+            ndone = 0
+            while ndone < self.ntasks - 1:
+                msg, status = mpi.recv()
+                task = status.source
+                mpi.send(self.done, task)
+                ndone += 1
+
+        else:
+
+            # I'm a worker process.  Tell the master process we're ready to go,
+            # and wait 'til it tells us what to do.
+            msg = self.ready
+            while msg != self.done and msg != self.error:
+                mpi.send(msg, self.masterTaskRank)
+                msg, status = mpi.recv(self.masterTaskRank)
+
+                if msg != self.done:
+                    # We have presumably received a build directory.  Execute
+                    # the appropriate build command.
+                    command = "%s all -j %i -C %s" % (self.make, self.numLocalTasks, msg)
+                    status = os.system(command)
+                    if status:
+                        msg = self.error
+                    else:
+                        msg = self.ready
+
+        return
+
+# Build a DistributedMake object.
+dm = DistributedMake(sys.argv)
+dm.build()
