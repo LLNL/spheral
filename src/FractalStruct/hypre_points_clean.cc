@@ -62,10 +62,10 @@ namespace FractalSpace
     mem.p_mess->Send_Data_Some_How(12,mem.p_mess->FractalWorld,counts_out,counts_in,integers,doubles,
 				   dataI_out,dataI_in,how_manyI,
 				   dataR_out,dataR_in,how_manyR);
-    counts_out.clear();
+    // counts_out.clear();
+    clean_vector(counts_out);
     dataI_out.clear();
     dataR_out.clear();
-    dataR_in.clear();
     std::multimap<array<int,3>,int,point_comp2> edgein;
     int c4=0;
     for(int FR=0;FR<FractalNodes;FR++)
@@ -79,7 +79,8 @@ namespace FractalSpace
 	    c4+=4;
 	  }
       }
-    dataI_in.clear();
+    // dataI_in.clear();
+    clean_vector(dataI_in);
     for(auto &p : edgies)
       {
 	p->get_pos_point(ar3);
