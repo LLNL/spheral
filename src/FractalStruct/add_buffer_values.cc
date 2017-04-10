@@ -22,7 +22,6 @@ namespace FractalSpace
 	int HR=mem.p_mess->IHranks[FR];
 	if(HR < 0)
 	  continue;
-	// assert(HR >= 0);
 	vector <int>FRPBOX=mem.PBoxesLev[FR][level];
 	vector <int>FRBOX=mem.BoxesLev[FR][level];
 	int B=0;
@@ -55,7 +54,8 @@ namespace FractalSpace
     mem.p_mess->Send_Data_Some_How(9,mem.p_mess->HypreWorld,counts_out,counts_in,integers,doubles,
 				   dataI_out,dataI_in,how_manyI,
 				   dataR_out,dataR_in,how_manyR);
-    counts_out.clear();
+    // counts_out.clear();
+    clean_vector(counts_out);
     dataI_out.clear();
     dataR_out.clear();
     array<int,3>ar3;

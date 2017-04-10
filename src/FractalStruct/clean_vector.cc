@@ -13,4 +13,6 @@ namespace FractalSpace
 {
   template void clean_vector(vector <double>& vec);
   template void clean_vector(vector <int>& vec);
+  template void clean_vector(vector <Point*>& vec);
+  template void clean_vector(vector <Particle*>& vec);
 }

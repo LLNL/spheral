@@ -101,9 +101,6 @@ namespace FractalSpace
 				       dataR_out,dataR_in,how_manyR);
 	dataI_out.clear();
 	dataR_out.clear();      
-    
-	int number_group=-1;
-	int number_point=-1;
 	int counterIR=0;
 	for(int FR=0;FR<FractalNodes;FR++)
 	  {
