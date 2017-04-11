@@ -201,7 +201,7 @@ centroidalRelaxNodesImpl(DataBaseSpace::DataBase<Dimension>& db,
                 allReduce(db.numInternalNodes(), MPI_SUM, Communicator::communicator()));
     if (Process::getRank() == 0) cerr << "centroidalRelaxNodes iteration " << iter << ", avg delta frac " << avgdelta 
                                       << ", required " << ((std::clock() - t0)/CLOCKS_PER_SEC) 
-                                      << " seconds (" << (tvoro/CLOCKS_PER_SEC) << " in compuetVoronoiVolume, "
+                                      << " seconds (" << (tvoro/CLOCKS_PER_SEC) << " in computeVoronoiVolume, "
                                       << (tcm/CLOCKS_PER_SEC) << " in ConnectivityMap)." << endl;
         
     // // Update the H tensors a bit.
