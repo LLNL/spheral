@@ -18,7 +18,7 @@ class %(classname)s(SPHHydroBaseRZ):
                  W,
                  WPi = None,
                  filter = 0.0,
-                 cfl = 0.5,
+                 cfl = 0.25,
                  useVelocityMagnitudeForDt = False,
                  compatibleEnergyEvolution = True,
                  evolveTotalEnergy = False,
