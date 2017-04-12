@@ -133,6 +133,11 @@ dt(const DataBase<Dimension>& dataBase,
   const ConnectivityMap<Dimension>& connectivityMap = dataBase.connectivityMap(this->requireGhostConnectivity());
   const int numNodeLists = connectivityMap.nodeLists().size();
 
+  // Check for deviatoric stress.
+  const bool haveDS = state.fieldNameRegistered(SolidFieldNames::deviatoricStress);
+  FieldList<Dimension, SymTensor> S;
+  if (haveDS) S = state.fields(SolidFieldNames::deviatoricStress, SymTensor::zero);
+
   // Check if the longitudinal sound speed is registered.
   const bool haveLongCs = state.fieldNameRegistered(SolidFieldNames::longitudinalSoundSpeed);
   FieldList<Dimension, Scalar> csl;
@@ -163,6 +168,11 @@ dt(const DataBase<Dimension>& dataBase,
     const bool useCsl = haveLongCs and csl.haveNodeList(fluidNodeList);
     const Field<Dimension, Scalar>* cslptr;
     if (useCsl) cslptr = *csl.fieldForNodeList(fluidNodeList);
+
+    // Check if we have a deviatoric stress for this material.
+    const bool useS = haveDS and S.haveNodeList(fluidNodeList);
+    const Field<Dimension, SymTensor>* Sptr;
+    if (useS) Sptr = *S.fieldForNodeList(fluidNodeList);
 
     for (typename ConnectivityMap<Dimension>::const_iterator iItr = connectivityMap.begin(nodeListi);
          iItr != connectivityMap.end(nodeListi);
@@ -195,6 +205,16 @@ dt(const DataBase<Dimension>& dataBase,
           }
         }
 
+        // Deviatoric stress limit.
+        if (useS) {
+          const Scalar csS = sqrt((*Sptr)(i).eigenValues().maxAbsElement()/rho(nodeListi, i));
+          const double SDt = nodeScale/(csS + FLT_MIN);
+          if (SDt < minDt) {
+            minDt = SDt;
+            reason = "deviatoric stress effective sound speed limit";
+          }
+        }
+
         // Artificial viscosity effective sound speed.
         CHECK(rho(nodeListi, i) > 0.0);
         const Scalar csq = sqrt(maxViscousPressure(nodeListi, i)/rho(nodeListi, i));
@@ -224,7 +244,8 @@ dt(const DataBase<Dimension>& dataBase,
             const int j = *jItr;
             const Vector& xj = position(nodeListj, j);
             const Vector& vj = velocity(nodeListj, j);
-            const Scalar vij = std::max(0.0, (vj - vi).dot((xi - xj).unitVector()));
+            // const Scalar vij = std::abs((vj - vi).dot((xi - xj).unitVector()));
+            const Scalar vij = (vi - vj).magnitude();
             const Scalar dtVelDiff = nodeScale*safeInvVar(vij, 1e-30);
             if (dtVelDiff < minDt) {
               minDt = dtVelDiff;
