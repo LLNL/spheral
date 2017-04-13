@@ -6,10 +6,6 @@
 #ifndef __Spheral__FileIO_hh__
 #define __Spheral__FileIO_hh__
 
-#ifndef CXXONLY
-#include "Python.h"
-#endif
-
 #ifndef __GCCXML__
 #include <vector>
 #else
@@ -20,6 +16,10 @@
 #include <sstream>
 
 #include "Geometry/Dimension.hh"
+
+#ifndef CXXONLY
+#include "Python.h"
+#endif
 
 namespace Spheral {
   template<typename Dimension> class GeomPlane;

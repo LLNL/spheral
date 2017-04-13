@@ -1,12 +1,13 @@
+// Put Python includes first to avoid compile warnings about redefining _POSIX_C_SOURCE
+#include "pybind11/pybind11.h"
+#include "pybind11/stl_bind.h"
+#include "pybind11/operators.h"
+
 #include <vector>
 #include <map>
 #include <set>
 #include <string>
 #include <sstream>
-
-#include "pybind11/pybind11.h"
-#include "pybind11/stl_bind.h"
-#include "pybind11/operators.h"
 
 #include "Geometry/Dimension.hh"
 #include "Geometry/GeomVector.hh"
@@ -27,6 +28,7 @@
 #include "Geometry/innerProduct.hh"
 #include "Geometry/outerProduct.hh"
 #include "Geometry/innerDoubleProduct.hh"
+#include "Geometry/aggregateFacetedVolumes.hh"
 #include "Field/Field.hh"
 #include "Utilities/DataTypeTraits.hh"
 
@@ -819,6 +821,11 @@ PYBIND11_PLUGIN(SpheralGeometry) {
     .def(py::self == py::self)
     .def(py::self != py::self)
     ;
+
+  //............................................................................
+  // aggregateFacetedVolumes
+  m.def("aggregateFacetedVolumes", &Spheral::aggregateFacetedVolumes<Spheral::Dim<2>>);
+  m.def("aggregateFacetedVolumes", &Spheral::aggregateFacetedVolumes<Spheral::Dim<3>>);
 
   //............................................................................
   // The STL containers of 2D and 3D facets.
