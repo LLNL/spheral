@@ -38,10 +38,9 @@ namespace FractalSpace
     //--------------------------------------------------------------------------------------------------------------------------------
     // Loop over all points in a high_group to generate the new points
     //--------------------------------------------------------------------------------------------------------------------------------
-    for(vector<Point*>::const_iterator high_point_itr=high_group.list_high_points.begin();
-	high_point_itr != high_group.list_high_points.end();++high_point_itr)
+    for(Point* &phigh_point : high_group.list_high_points)
       {
-	Point& high_point=**high_point_itr;
+	Point& high_point=*phigh_point;
 	//--------------------------------------------------------------------------------------------------------------------------------
 	// Do a search for the 26 neighbor high_points of the high_point
 	//--------------------------------------------------------------------------------------------------------------------------------
@@ -100,7 +99,7 @@ namespace FractalSpace
 	    if(p==0)
 	      {
 		high_point.set_p_daughter_point(p_point); 
-		point.set_point_pointer(*high_point_itr);
+		point.set_point_pointer(phigh_point);
 	      }
 	    p_point_tmp[p]=p_point;
 	    assert(p_point_tmp[p]);
@@ -122,9 +121,8 @@ namespace FractalSpace
 	double ah_x=h_x;
 	double ah_y=h_y;
 	double ah_z=h_z;
-	for(vector <Particle*>::const_iterator particle_itr=high_point.list_particles.begin();particle_itr !=high_point.list_particles.end();++particle_itr)
+	for(Particle* &p : high_point.list_particles)
 	  {
-	    Particle* p=*particle_itr;
 	    p->get_pos(pos);
 	    int p_x=static_cast<int>(pos[0]*grid_multiplier-ah_x)/d_point;
 	    int p_y=static_cast<int>(pos[1]*grid_multiplier-ah_y)/d_point;
@@ -140,34 +138,30 @@ namespace FractalSpace
     fractal.timing(-1,15);
     if(new_group.list_points.size() != 27)
       {
-	for(vector <Point*>::const_iterator point_itr=new_group.list_points.begin();point_itr != new_group.list_points.end();++point_itr)
+	for(Point* &ppoint : new_group.list_points)
 	  {
-	    Point& point=**point_itr;
-	    if(point.get_point_up_x() == 0)
-	      point.set_point_up_x(try_harder(point,14,false));
-	    if(point.get_point_up_y() == 0)
-	      point.set_point_up_y(try_harder(point,16,false));
-	    if(point.get_point_up_z() == 0)
-	      point.set_point_up_z(try_harder(point,22,false));
+	    if(ppoint->get_point_up_x() == 0)
+	      ppoint->set_point_up_x(try_harder(*ppoint,14,false));
+	    if(ppoint->get_point_up_y() == 0)
+	      ppoint->set_point_up_y(try_harder(*ppoint,16,false));
+	    if(ppoint->get_point_up_z() == 0)
+	      ppoint->set_point_up_z(try_harder(*ppoint,22,false));
 	  }
       }
     fractal.timing(1,15);
     fractal.timing(-1,14);
-    for(vector <Point*>::const_iterator point_itr=new_group.list_points.begin();point_itr != new_group.list_points.end();++point_itr)
+    for(Point* &ppoint : new_group.list_points)
       {
 	//--------------------------------------------------------------------------------------------------------------------------------
 	// Move up in order to find point_down_x etc.
 	//--------------------------------------------------------------------------------------------------------------------------------
-	Point& point=**point_itr;
-	point.down_from_up();
+	ppoint->down_from_up();
       }
-    for(vector<Point*>::const_iterator high_point_itr=high_group.list_high_points.begin();
-	high_point_itr != high_group.list_high_points.end();++high_point_itr)
+    for(Point* &p_high_point : high_group.list_high_points)
       {
 	//--------------------------------------------------------------------------------------------------------------------------------
 	// In the corners of the new 3x3 cube point to the point in the mother group that is at the same position
 	//--------------------------------------------------------------------------------------------------------------------------------
-	Point* p_high_point=*high_point_itr;
 	if(p_high_point == 0)
 	  fprintf(PFDau,"high point wrong \n");
 	Point* p_point=p_high_point->get_p_daughter_point();

@@ -57,7 +57,8 @@ def resampleNodeList(nodes,
                      generator,
                      W,
                      mask = None,
-                     etaExclude = None):
+                     etaExclude = None,
+                     removeUnusedNodes = True):
 
     # Check our dimensionality
     if isinstance(nodes, SolidSpheral.NodeList1d):
@@ -305,36 +306,42 @@ def resampleNodeList(nodes,
     momentum1 = newfls.VectorFieldLists[0][0]
     thermalenergy1 = newfls.ScalarFieldLists[2][0]
 
-    # Look for any nodes that didn't get any information in the new set and delete them.
-    nodes2kill = vector_of_int()
-    for i in xrange(newnodes.numInternalNodes):
-        if mass1[i] == 0.0:
-            nodes2kill.append(i)
-    if nodes2kill.size() > 0:
-        newnodes.deleteNodes(nodes2kill)
-
     # Denormalize the mapped values and fill them in as new values for the nodes.
     nodes.numInternalNodes = nmask + newnodes.numInternalNodes
     for i in xrange(newnodes.numInternalNodes):
         j = nmask + i
-        assert mass1[i] > 0.0
-        assert vol1[i] > 0.0
         pos0[j] = pos1[i]
         H0[j] = H1[i]
-        mass[j] = mass1[i]
-        rho[j] = mass1[i]/vol1[i]
-        vel[j] = momentum1[i]/mass1[i]
-        eps[j] = thermalenergy1[i]/mass1[i]
+        if mass1[i] > 0.0:
+            assert vol1[i] > 0.0
+            mass[j] = mass1[i]
+            rho[j] = mass1[i]/vol1[i]
+            vel[j] = momentum1[i]/mass1[i]
+            eps[j] = thermalenergy1[i]/mass1[i]
+        else:
+            mass[j] = newnodes.mass()[i]
+            rho[j] = newnodes.massDensity()[i]
+            vel[j] = newnodes.velocity()[i]
+            eps[j] = newnodes.specificThermalEnergy()[i]
     if solid:
         mS1 = newfls.SymTensorFieldLists[0][0]
         mps1 = newfls.ScalarFieldLists[3][0]
         mD1 = newfls.SymTensorFieldLists[1][0]
         for i in xrange(newnodes.numInternalNodes):
             j = nmask + i
-            assert mass1[i] > 0.0
-            S[j] = mS1[i]/mass1[i]
-            ps[j] = mps1[i]/mass1[i]
-            D[j] = mD1[i]/mass1[i]
+            if mass1[i] > 0.0:
+                S[j] = mS1[i]/mass1[i]
+                ps[j] = mps1[i]/mass1[i]
+                D[j] = mD1[i]/mass1[i]
+
+    # Look for any nodes that didn't get any information in the new set and delete them.
+    if removeUnusedNodes:
+        nodes2kill = vector_of_int()
+        for i in xrange(newnodes.numInternalNodes):
+            if mass1[i] == 0.0:
+                nodes2kill.append(i)
+        if nodes2kill.size() > 0:
+            newnodes.deleteNodes(nodes2kill)
 
     # Insert any masked nodes, and we're done.
     if mask:

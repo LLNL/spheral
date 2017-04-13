@@ -7,7 +7,6 @@ namespace FractalSpace
   {
     static bool printit=true;
     printit=false;
-//     int FractalRank=mem.p_mess->FractalRank;
     int FractalNodes=mem.p_mess->FractalNodes;
     ofstream& FF=mem.p_file->DUMPS;
     int zoom=Misc::pow(2,frac.get_level_max());
@@ -21,61 +20,21 @@ namespace FractalSpace
 	length_S*=2;
 	length_S2=length_S+2;
       }
-    //    for(int nx=0;nx<length_1;nx++)
-    //      cerr << " TESTS " << FractalRank << " " << nx << " " << mem.p_mess->WhichSlice[nx] << "\n";
-
     vector <int> pos_point(3);
-    vector <int>counts_in;
-    vector <int>counts_out;
-    vector <vector <int> > dataI_out;
-    vector <vector <double> > dataR_out;
-    vector <int> dataI_in;
-    vector <double> dataR_in;
-    counts_out.assign(FractalNodes,0);
-    for(vector <Point*>::const_iterator point_itr=group.list_points.begin();point_itr != group.list_points.end();++point_itr)
-      {
-	Point* p_point=*point_itr;
-	if(p_point->get_passive_point())
-	  continue;
-	if(!p_point->get_mass_point())
-	  continue;
-	p_point->get_pos_point(pos_point);
-	int nx=(pos_point[0]/zoom+length_1) % length_1;
-	int S=mem.p_mess->WhichSlice[nx];
-	counts_out[S]++;
-      }
     fprintf(mem.p_file->PFTime," dens to slices ");
-//     double time1=-mem.p_mess->Clock();
-//     vector <int>maxSR;
-//     mem.p_mess->MAX_Things_To_Send_Receive_I(counts_out,counts_in,maxSR);
-//     time1+=mem.p_mess->Clock();
-//     fprintf(mem.p_file->PFTime," %3d %8.3E ",-1,time1);
-//     int maxOUT=maxSR[0]*2;
-//     int maxIN=maxSR[1]*2;
-//     int maxINOUT=max(maxOUT,maxIN);
-//     int maxIO=6000000;
-//     counts_in.clear();
-//     counts_out.clear();
-//     //
-//     int LOOPS=(maxINOUT-1)/maxIO+1;
-//     FF << " LOOPS " << maxIO << " " << maxOUT << " " << maxIN << " " << LOOPS << "\n";
     int LOOPS=((length_1*length_1)/(512*512))+1;
-    //    LOOPS=1;
     for(int LOOP=0;LOOP<LOOPS;LOOP++)
       {
 	double time1=-mem.p_mess->Clock();
-	dataI_out.clear();
-	dataR_out.clear();
-	dataI_in.clear();
-	dataR_in.clear();
-	dataI_out.resize(FractalNodes);
-	dataR_out.resize(FractalNodes);
-	counts_out.assign(FractalNodes,0);
-	counts_in.assign(FractalNodes,0);
+	vector <int>counts_in;
+	vector <int>counts_out(FractalNodes,0);;
+	vector <vector <int> > dataI_out(FractalNodes);
+	vector <vector <double> > dataR_out(FractalNodes);
+	vector <int> dataI_in;
+	vector <double> dataR_in;
 	int loop_count=0;
-	for(vector <Point*>::const_iterator point_itr=group.list_points.begin();point_itr != group.list_points.end();++point_itr)
+	for(auto &p_point : group.list_points)
 	  {
-	    Point* p_point=*point_itr;
 	    bool doit=loop_count % LOOPS == LOOP && !p_point->get_passive_point() && p_point->get_mass_point();
 	    if(doit)
 	      {
@@ -101,6 +60,7 @@ namespace FractalSpace
 				       dataI_out,dataI_in,how_manyI,
 				       dataR_out,dataR_in,how_manyR);
 	mem.p_file->note(true," dens to slices c ");
+	clean_vector(counts_out);
 	dataI_out.clear();
 	dataR_out.clear();      
 	if(LOOP == 0)

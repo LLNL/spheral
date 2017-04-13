@@ -12,7 +12,8 @@ namespace FractalSpace
     int FractalRank=mem.p_mess->FractalRank;
     int FractalNodes=mem.p_mess->FractalNodes;
     mem.p_mess->IHranks.assign(FractalNodes,-1);
-    mem.p_mess->Hranks.clear();
+    // mem.p_mess->Hranks.clear();
+    clean_vector(mem.p_mess->Hranks);
     mem.p_mess->IAmAHypreNode=!SBoxes.empty();
     if(!buffer_groups)
       {

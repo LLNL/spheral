@@ -60,7 +60,7 @@ namespace FractalSpace
       {
 	double ff=(double)(rnode->ppoints.size())/(double)(VOL);
 	bool veryFULL= ff >= FILLFACTOR;
-	bool smallVOL=(VOL <= VOLMIN && ff > 0.49) || VOL <= V8;
+	bool smallVOL=(VOL <= VOLMIN && ff > 0.249) || VOL <= V8;
 	if(smallVOL || veryFULL  )
 	  FillBox(rnode);
       }
@@ -153,7 +153,7 @@ namespace FractalSpace
     const double V8=0;
     double ff=(double)(knode->ppoints.size())/(double)(vol);
     bool veryFULL= ff >= FILLFACTOR;
-    bool smallVOL=(vol <= VOLMIN && ff > 0.499) || vol <= V8;
+    bool smallVOL=(vol <= VOLMIN && ff > 0.249) || vol <= V8;
     if((VOLMIN > 1 || FILLFACTOR < 1.0) && !knode->full && vol > 1 && (smallVOL || veryFULL))
       FillBox(knode);
     knode->full=vol != 0 && knode->ppoints.size() == vol;

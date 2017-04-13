@@ -145,6 +145,16 @@ class NodeGenerators:
                                  custom_name = "compactFacetedVolumes%id" % ndim,
                                  docstring = "Iteratively compact a set of shapes into surface polygon/polyhedron.")
 
+            Spheral.add_function("chooseRandomNonoverlappingCenter", "unsigned int",
+                                 [refparam(vector, "result"),
+                                  constrefparam(poly, "trialShape"),
+                                  constrefparam(poly, "boundary"),
+                                  constrefparam(vector_of_facetedvolume, "existingShapes"),
+                                  param("unsigned int", "maxTries")],
+                                 template_parameters = [dim],
+                                 custom_name = "chooseRandomNonoverlappingCenter%id" % ndim,
+                                 docstring = "Search for a non-overlapping position for a shape in a set of shapes inside a surface polygon/polyhedron.")
+
         return
 
     #---------------------------------------------------------------------------

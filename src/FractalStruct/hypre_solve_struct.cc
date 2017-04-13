@@ -83,12 +83,14 @@ namespace FractalSpace
     int how_manyR=-1;
     int integers=6;
     int doubles=0;
+    double timeM0=-mem.p_mess->Clock();
     if(balance)
       mem.p_mess->Send_Data_Some_How(38,mem.p_mess->HypreWorld,
 				     counts_out,counts_in,integers,doubles,
 				     dataI_out,dataI_in,how_manyI,
 				     dataR_out,dataR_in,how_manyR);
-    counts_out.clear();
+    // counts_out.clear();
+    clean_vector(counts_out);
     dataI_out.clear();
     dataR_out.clear();
     int c6=0;
@@ -115,9 +117,13 @@ namespace FractalSpace
 	    Bget++;
 	  }
       }
-    dataI_in.clear();
-    dataR_in.clear();
-    counts_in.clear();
+    // dataI_in.clear();
+    // dataR_in.clear();
+    clean_vector(dataI_in);
+    clean_vector(dataR_in);
+    // counts_in.clear();
+    clean_vector(counts_in);
+    timeM0+=mem.p_mess->Clock();
     HYPRE_StructGridAssemble(grid);
     long int SVT=mem.p_mess->How_Many_In_Solver(sumVOL);
     long int SBT=mem.p_mess->How_Many_In_Solver(Bstay+Bget);
@@ -216,12 +222,14 @@ namespace FractalSpace
     how_manyR=-1;
     integers=1;
     doubles=2;
+    double timeM1=-mem.p_mess->Clock();
     if(balance)
       mem.p_mess->Send_Data_Some_How(48,mem.p_mess->HypreWorld,
 				     counts_out,counts_in,integers,doubles,
 				     dataI_out,dataI_in,how_manyI,
 				     dataR_out,dataR_in,how_manyR);
-    counts_out.clear();
+    // counts_out.clear();
+    clean_vector(counts_out);
     dataI_out.clear();
     dataR_out.clear();
     int ni=0;
@@ -259,9 +267,13 @@ namespace FractalSpace
 	B++;
 	// FHT << " HRDD" << " " << HypreRank << " " << Bg <<  " " << B << " " << VOL[B] << " " << Bget << endl;
       }
-    dataI_in.clear();
-    dataR_in.clear();
-    counts_in.clear();
+    // dataI_in.clear();
+    // dataR_in.clear();
+    // counts_in.clear();
+    clean_vector(dataI_in);
+    clean_vector(dataR_in);
+    clean_vector(counts_in);
+    timeM1+=mem.p_mess->Clock();
     HYPRE_StructMatrixAssemble(Amatrix);
     HYPRE_StructVectorAssemble(rho);
     HYPRE_StructVectorAssemble(pot);
@@ -340,12 +352,14 @@ namespace FractalSpace
     how_manyR=-1;
     integers=0;
     doubles=1;
+    double timeM2=-mem.p_mess->Clock();
     if(balance)
       mem.p_mess->Send_Data_Some_How(58,mem.p_mess->HypreWorld,
 				     counts_out,counts_in,integers,doubles,
 				     dataI_out,dataI_in,how_manyI,
 				     dataR_out,dataR_in,how_manyR);
-    counts_out.clear();
+    // counts_out.clear();
+    clean_vector(counts_out);
     dataI_out.clear();
     dataR_out.clear();
     int HR=-1;
@@ -362,9 +376,11 @@ namespace FractalSpace
 	      p->set_potential_point(pot);
 	  }
       }
+    timeM2+=mem.p_mess->Clock();
     double time6=mem.p_mess->Clock();
     _COUNTER++;
     Hypre_sum_time[level]+=time6-time0;
+    double timeM=timeM0+timeM1+timeM2;
     FHT << " Hypre Total " << FractalRank << " " << time6-time0 << " " << Hypre_sum_time[level] << " L " << level << " " << sumVOL << " " << SVT << " " << SBoxes.size() << " " << SBT << " S " << mem.steps << "\n";
     FHT << " Hypre Grid Assemble " << "\t" << time1-time0 << "\n";
     FHT << " Hypre Data Assemble " << "\t" << time2-time1 << "\n";
@@ -372,6 +388,7 @@ namespace FractalSpace
     FHT << " Hypre Solve Setup " << "\t" << time4-time3 << "\n";
     FHT << " Hypre Solver Solve " << "\t" << time5-time4 << "\n";
     FHT << " Hypre Data Dump " << "\t" << time6-time5 << "\n";
+    FHT << " Hypre MPI Stuff " << "\t" << timeM  << "\t" << timeM0 << "\t" << timeM1 << "\t" << timeM2 << "\n";
     if(buffer)
       {
 	int Pstay=0;
