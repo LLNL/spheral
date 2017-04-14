@@ -11,7 +11,7 @@
 #include <vector>
 
 #include "SolidSPHHydroBase.hh"
-#include "DamagedNodeCoupling.hh"
+#include "DamagedNodeCouplingWithFrags.hh"
 #include "SPH/SPHHydroBase.hh"
 #include "NodeList/SmoothingScaleBase.hh"
 #include "Hydro/HydroFieldNames.hh"
@@ -448,7 +448,7 @@ evaluateDerivatives(const typename Dimension::Scalar time,
     Field<Dimension, Scalar>& workFieldi = nodeList.work();
 
     // Build the functor we use to compute the effective coupling between nodes.
-    DamagedNodeCoupling<Dimension> coupling(damage, gradDamage, H);
+    DamagedNodeCouplingWithFrags<Dimension> coupling(damage, gradDamage, H, fragIDs);
 
     // Check if we can identify a reference density.
     Scalar rho0 = 0.0;

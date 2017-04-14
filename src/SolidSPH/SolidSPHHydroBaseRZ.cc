@@ -18,7 +18,7 @@
 #include <vector>
 
 #include "SolidSPHHydroBaseRZ.hh"
-#include "DamagedNodeCoupling.hh"
+#include "DamagedNodeCouplingWithFrags.hh"
 #include "NodeList/SmoothingScaleBase.hh"
 #include "Hydro/HydroFieldNames.hh"
 #include "Hydro/NonSymmetricSpecificThermalEnergyPolicyRZ.hh"
@@ -356,7 +356,7 @@ evaluateDerivatives(const Dim<2>::Scalar time,
     Field<Dimension, Scalar>& workFieldi = nodeList.work();
 
     // Build the functor we use to compute the effective coupling between nodes.
-    DamagedNodeCoupling<Dimension> coupling(damage, gradDamage, H);
+    DamagedNodeCouplingWithFrags<Dimension> coupling(damage, gradDamage, H, fragIDs);
 
     // Iterate over the internal nodes in this NodeList.
     for (ConnectivityMap<Dimension>::const_iterator iItr = connectivityMap.begin(nodeListi);
