@@ -635,6 +635,7 @@ evaluateDerivatives(const typename Dimension::Scalar time,
       SymTensor& massSecondMomenti = massSecondMoment(nodeListi, i);
       Scalar& worki = workFieldi(i);
 
+	double maxvp = maxViscousPressurei;
       // Get the connectivity info for this node.
       const vector< vector<int> >& fullConnectivity = connectivityMap.connectivityForNode(&nodeList, i);
 
@@ -651,9 +652,10 @@ evaluateDerivatives(const typename Dimension::Scalar time,
 
 	  double time1 = omp_get_wtime();
 	  auto jItr0 = connectivity.begin();
-	  #pragma omp parallel for reduction(-:DvDti,DvDxi,localDvDxi,XSPHDeltaVi,Mi,localMi) \
+          
+	  #pragma omp parallel for ordered  reduction(-:DvDti,DvDxi,localDvDxi,XSPHDeltaVi,Mi,localMi) \
 	  reduction(+:ncalc,weightedNeighborSumi,massSecondMomenti,rhoSumi,normi,viscousWorki, \
-	  DepsDti, XSPHWeightSumi,effViscousPressurei ) reduction(max:maxViscousPressurei)
+	  DepsDti, XSPHWeightSumi,effViscousPressurei ) reduction(max:maxvp)
           for( int jct=0; jct<std::distance(connectivity.begin(),connectivity.end()); ++jct )
 	  {
 	     const int j = *(jItr0+jct);
@@ -751,7 +753,7 @@ evaluateDerivatives(const typename Dimension::Scalar time,
               const Scalar workQj = vij.dot(Qaccj);
               const Scalar Qi = rhoi*rhoi*(QPiij.first. diagonalElements().maxAbsElement());
               const Scalar Qj = rhoj*rhoj*(QPiij.second.diagonalElements().maxAbsElement());
-              maxViscousPressurei = max(maxViscousPressurei, Qi);
+              maxvp = max(maxvp, Qi);
               maxViscousPressurej = max(maxViscousPressurej, Qj);
               effViscousPressurei += mj/rhoj * Qi * Wi;
               effViscousPressurej += mi/rhoi * Qj * Wj;
@@ -780,7 +782,7 @@ evaluateDerivatives(const typename Dimension::Scalar time,
               DepsDti += mj*(Prhoi*vij.dot(gradWi) + workQi);
               DepsDtj += mi*(Prhoj*vij.dot(gradWj) + workQj);
               if (mCompatibleEnergyEvolution) {
-                #pragma omp critical
+                #pragma omp ordered
 		{
 		   pairAccelerationsi.push_back(-mj*deltaDvDt);
                    pairAccelerationsj.push_back( mi*deltaDvDt);
@@ -816,6 +818,7 @@ evaluateDerivatives(const typename Dimension::Scalar time,
               }
             }
           } // end of inner loop over jct
+	  maxViscousPressurei = maxvp;
         }
       }
       const size_t numNeighborsi = connectivityMap.numNeighborsForNode(&nodeList, i);
