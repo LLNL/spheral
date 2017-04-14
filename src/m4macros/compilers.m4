@@ -146,24 +146,26 @@ case $COMPILERS in
       PYTHONCC=$CC
       PYTHONCXX=$CXX
       PARMETISCC=$MPICC
-      CXXFLAGS+=" -std=c++11"
+      CXXFLAGS+=" -std=c++11 -fopenmp"
       if test $OSNAME = "Darwin"; then
         CXXFLAGS+=" -mmacosx-version-min=10.7 -stdlib=libc++"
       fi
       ;;
 
    vacpp)
-      CC=/usr/local/tools/compilers/ibm/xlc-8.0.0.12a
-      CXX=/usr/local/tools/compilers/ibm/xlC-8.0.0.12a
-      MPICC=/usr/local/tools/compilers/ibm/mpxlc-8.0.0.12a
-      MPICXX=/usr/local/tools/compilers/ibm/mpxlC-8.0.0.12a 
+      CC=xlc
+      CXX=xlC
+      MPICC=mpixlc
+      MPICXX=mpixlC 
       CMAKECC=$CC
       CMAKECXX=$CXX
-      GCCXMLCC=gcc-3.2.3
-      GCCXMLCXX=g++-3.2.3
+      GCCXMLCC=/usr/tcetmp/packages/gcc/gcc-4.9.3/bin/gcc
+      GCCXMLCXX=/usr/tcetmp/packages/gcc/gcc-4.9.3/bin/g++
       PYTHONCC=$CC
       PYTHONCXX=$CXX
       PARMETISCC=$MPICC
+      CFLAGS+=" "
+      CXXFLAGS+=" -qsmp=omp -std=c++11 -qnoxlcompatmacros  -DEIGEN_DONT_ALIGN -DEIGEN_DONT_VECTORIZE "
       ;;
 
    intel)
