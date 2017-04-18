@@ -575,7 +575,7 @@ evaluateDerivatives(const typename Dimension::Scalar time,
               SymTensor& massSecondMomentj = massSecondMoment(nodeListj, j);
 
               // Flag if this is a contiguous material pair or not.
-              const bool sameMatij = (nodeListi == nodeListj and fragIDi == fragIDj);
+              const bool sameMatij = true; // (nodeListi == nodeListj and fragIDi == fragIDj);
 
               // Flag if at least one particle is free (0).
               const bool freeParticle = (pTypei == 0 or pTypej == 0);
@@ -617,7 +617,7 @@ evaluateDerivatives(const typename Dimension::Scalar time,
 
               // Zero'th and second moment of the node distribution -- used for the
               // ideal H calculation.
-              const double fweightij = nodeListi == nodeListj ? 1.0 : mj*rhoi/(mi*rhoj);
+              const double fweightij = sameMatij ? 1.0 : mj*rhoi/(mi*rhoj);
               const double rij2 = rij.magnitude2();
               const SymTensor thpt = rij.selfdyad()/(rij2 + 1.0e-10) / FastMath::square(Dimension::pownu12(rij2 + 1.0e-10));
               weightedNeighborSumi +=     fweightij*abs(gWi);
