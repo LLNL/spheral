@@ -524,7 +524,7 @@ rm -f .cxxtype.cc .cxxtype.out
 
 # Set the flag for passing arguments to the linker.
 LDPASSTHROUGH=""
-if test $CXXCOMPILERTYPE = "GNU" -o $CXXCOMPILERTYPE = "INTEL"; then
+if test $CXXCOMPILERTYPE = "GNU" -o $CXXCOMPILERTYPE = "INTEL" -o $CXXCOMPILERTYPE = "VACPP"; then
   LDPASSTHROUGH="-Wl,"
 fi
 
