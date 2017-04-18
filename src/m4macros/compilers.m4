@@ -625,7 +625,7 @@ VACPP)
   FORTFLAGS="$FORTFLAGS -fpic"
   SHAREDFLAG="$SHAREDFLAG -G -qmkshrobj"
   DEPFLAG="-M -E"
-  DEPENDRULES="dependrules.aix"
+  #DEPENDRULES="dependrules.aix"
   CFLAGS="$CFLAGS -g"
   JAMTOOLSET=vacpp 
   BOOSTEXT="-xlc"
