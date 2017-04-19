@@ -76,7 +76,7 @@ NUMPYFLAGS=
 # =======================================================================
 AC_MSG_CHECKING(for compilers)
 AC_ARG_WITH(compilers,
-[  --with-compilers=ARG ..................... (gnu,clang,vacpp,intel,pgi) choose a compiler suite],
+[  --with-compilers=ARG ..................... (gnu,clang,clang-ibm,vacpp,intel,pgi) choose a compiler suite],
 [
    COMPILERS=$withval
 ],
@@ -150,6 +150,24 @@ case $COMPILERS in
       if test $OSNAME = "Darwin"; then
         CXXFLAGS+=" -mmacosx-version-min=10.7 -stdlib=libc++"
       fi
+      ;;
+
+   clang-ibm)
+      CC=clang
+      CXX=clang++
+      FORT=gfortran
+      MPICC=mpicc
+      MPICXX=mpiCC
+      MPICCFLAGS=
+      MPICXXFLAGS=
+      CMAKECC=clang
+      CMAKECXX=clang++
+      GCCXMLCC=$CMAKECC
+      GCCXMLCXX=$CMAKECXX
+      PYTHONCC=$CC
+      PYTHONCXX=$CXX
+      PARMETISCC=$MPICC
+      CXXFLAGS+=" -std=c++11 -DEIGEN_DONT_VECTORIZE"
       ;;
 
    vacpp)
