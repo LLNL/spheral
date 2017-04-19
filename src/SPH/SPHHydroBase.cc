@@ -650,7 +650,9 @@ evaluateDerivatives(const typename Dimension::Scalar time,
 
           // Loop over the neighbors.
 
+#ifdef _OPENMP
 	  double time1 = omp_get_wtime();
+#endif
 	  auto jItr0 = connectivity.begin();
           
 	  #pragma omp parallel for ordered  reduction(-:DvDti,DvDxi,localDvDxi,XSPHDeltaVi,Mi,localMi) \

@@ -146,7 +146,7 @@ case $COMPILERS in
       PYTHONCC=$CC
       PYTHONCXX=$CXX
       PARMETISCC=$MPICC
-      CXXFLAGS+=" -std=c++11 -fopenmp"
+      CXXFLAGS+=" -std=c++11"
       if test $OSNAME = "Darwin"; then
         CXXFLAGS+=" -mmacosx-version-min=10.7 -stdlib=libc++"
       fi
@@ -165,7 +165,7 @@ case $COMPILERS in
       PYTHONCXX=$CXX
       PARMETISCC=$MPICC
       CFLAGS+=" "
-      CXXFLAGS+=" -qsmp=omp -std=c++11 -qnoxlcompatmacros  -DEIGEN_DONT_ALIGN -DEIGEN_DONT_VECTORIZE "
+      CXXFLAGS+=" -std=c++11 -qnoxlcompatmacros  -DEIGEN_DONT_ALIGN -DEIGEN_DONT_VECTORIZE "
       ;;
 
    intel)
@@ -663,5 +663,24 @@ if test "$OSNAME" = "Darwin"; then
 fi
 
 AC_MSG_RESULT($JAMTOOLSET)
+
+# =======================================================================
+# openmp or not
+# =======================================================================
+AC_MSG_CHECKING(for openmp)
+AC_ARG_WITH(openmp,
+[  --with-openmp .............................. should we enable openmp],
+[
+   AC_MSG_RESULT(yes)
+   if test $CXXCOMPILERTYPE = "VACPP"; then
+      CXXFLAGS+="  -qsmp=omp"
+   else
+      CXXFLAGS+="  -fopenmp"
+   fi
+],
+[
+   AC_MSG_RESULT(no)
+]
+)
 
 ])
