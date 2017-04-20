@@ -28,7 +28,9 @@ namespace FractalSpace
 	vector <vector <Point*> >SPoints;
 	vector <vector <int> >SBoxes;
 	time0=mem.p_mess->Clock();
-	hypre_points_struct(mem,mem.all_groups[level],hypre_points,buffer,level);
+	bool single=buffer;
+	single=false;
+	hypre_points_struct(single,mem,mem.all_groups[level],hypre_points,buffer,level);
 	time1=mem.p_mess->Clock();
 	if(buffer)
 	  hypre_points_clean(mem,level,hypre_points);
@@ -70,8 +72,8 @@ namespace FractalSpace
 	time7=mem.p_mess->Clock();
 	mem.p_mess->HypreGroupFree();
 	time8=mem.p_mess->Clock();
-	SBoxes.clear();
-	SPoints.clear();
+	// SBoxes.clear();
+	// SPoints.clear();
 	if(mem.p_mess->IAmAHypreNode)
 	  {
 	    FHT << " HYPRE RES B " <<  RANK << " " << ni << " " << level << " " << _COUNTERA << " ";

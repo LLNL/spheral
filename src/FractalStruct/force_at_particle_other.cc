@@ -19,22 +19,27 @@ namespace FractalSpace
     vector <double> pos(3);
     for(int level=0;level <= fractal.get_level_max();level++)
       {
-	for(vector <Group*>::const_iterator group_itr=all_groups[level].begin();
-	    group_itr!=all_groups[level].end();group_itr++)
+	// for(vector <Group*>::const_iterator group_itr=all_groups[level].begin();
+	//     group_itr!=all_groups[level].end();group_itr++)
+	for(auto &p_group : all_groups[level]);
 	  {
-	    Group* p_group=*group_itr;
+	    // Group* p_group=*group_itr;
 	    Group& group=*p_group;
 	    double d_inv=pow(2.0,group.get_level()-fractal.get_level_max());
 	    const  double scale=(double)(fractal.get_grid_length()*Misc::pow(2,fractal.get_level_max()));
 	    //
-	    for(vector<Point*>::const_iterator point_itr=group.list_points.begin();point_itr !=group.list_points.end();++point_itr)
+	    // for(vector<Point*>::const_iterator point_itr=group.list_points.begin();point_itr !=group.list_points.end();++point_itr)
+	    for(auto &ppoint : group.list_points)
 	      {
-		Point& point=**point_itr;
+		// Point& point=**point_itr;
+		Point& point=*ppoint;
 		bool not_yet=true;
 		//
-		for(vector<Particle*>::const_iterator particle_itr=point.list_other_particles.begin();particle_itr !=point.list_other_particles.end();++particle_itr)
+		// for(vector<Particle*>::const_iterator particle_itr=point.list_other_particles.begin();particle_itr !=point.list_other_particles.end();++particle_itr)
+		for(auto &p : point.list_other_particles)
 		  {
-		    Particle& particle=**particle_itr;
+		    // Particle& particle=**particle_itr;
+		    Particle& particle=*p;
 		    if(!particle.get_real_particle())
 		      continue;
 		      if(particle.get_p_highest_level_group() != 0)
@@ -62,7 +67,8 @@ namespace FractalSpace
 			particle.set_field_pf(0.0);
 		      }
 		  }
-		point.list_other_particles.clear();
+		// point.list_other_particles.clear();
+		clean_vector(point.list_other_particles);
 	      }
 	  }
       }

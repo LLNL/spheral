@@ -1,4 +1,4 @@
-TEXSOURCE = Building.tex
+TEXSOURCE = Building.tex Manual.tex
 
 all:	$(TEXSOURCE:.tex=.dvi)
 pdf:	$(TEXSOURCE:.tex=.pdf)
@@ -7,13 +7,13 @@ html:   $(TEXSOURCE:.tex=.html)
 
 force_build:
 
-%.dvi:	force_build
-	latex $*.tex
-	latex $*.tex
-
 %.pdf:	$(TEXSOURCE)
 	pdflatex $*.tex
 	pdflatex $*.tex
+
+%.dvi:	force_build
+	latex $*.tex
+	latex $*.tex
 
 %.html: $(TEXSOURCE)
 	latex2html $*.tex

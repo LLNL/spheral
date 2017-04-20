@@ -25,6 +25,7 @@ using namespace std;
 #include "ArtificialViscosity/ArtificialViscosity.hh"
 #include "Hydro/HydroFieldNames.hh"
 #include "Neighbor/ConnectivityMap.hh"
+#include "Strength/SolidFieldNames.hh"
 
 namespace Spheral {
 namespace PhysicsSpace {
@@ -125,12 +126,22 @@ dt(const DataBase<Dimension>& dataBase,
   const FieldList<Dimension, Scalar> rho = state.fields(HydroFieldNames::massDensity, 0.0);
   const FieldList<Dimension, Scalar> eps = state.fields(HydroFieldNames::specificThermalEnergy, Scalar());
   const FieldList<Dimension, SymTensor> H = state.fields(HydroFieldNames::H, SymTensor::zero);
-  const FieldList<Dimension, Scalar> soundSpeed = state.fields(HydroFieldNames::soundSpeed, 0.0);
+  const FieldList<Dimension, Scalar> cs = state.fields(HydroFieldNames::soundSpeed, 0.0);
   const FieldList<Dimension, Scalar> maxViscousPressure = derivs.fields(HydroFieldNames::maxViscousPressure, 0.0);
   const FieldList<Dimension, Tensor> DvDx = derivs.fields(HydroFieldNames::velocityGradient, Tensor::zero);
   const FieldList<Dimension, Vector> DvDt = derivs.fields(IncrementState<Dimension, Field<Dimension, Vector> >::prefix() + HydroFieldNames::velocity, Vector::zero);
   const ConnectivityMap<Dimension>& connectivityMap = dataBase.connectivityMap(this->requireGhostConnectivity());
   const int numNodeLists = connectivityMap.nodeLists().size();
+
+  // Check for deviatoric stress.
+  const bool haveDS = state.fieldNameRegistered(SolidFieldNames::deviatoricStress);
+  FieldList<Dimension, SymTensor> S;
+  if (haveDS) S = state.fields(SolidFieldNames::deviatoricStress, SymTensor::zero);
+
+  // Check if the longitudinal sound speed is registered.
+  const bool haveLongCs = state.fieldNameRegistered(SolidFieldNames::longitudinalSoundSpeed);
+  FieldList<Dimension, Scalar> csl;
+  if (haveLongCs) csl = state.fields(SolidFieldNames::longitudinalSoundSpeed, 0.0);
 
   // Initialize the return value to some impossibly high value.
   Scalar minDt = FLT_MAX;
@@ -139,7 +150,7 @@ dt(const DataBase<Dimension>& dataBase,
   Scalar lastMinDt = minDt;
   int lastNodeID;
   string lastNodeListName, reason;
-  Scalar lastNodeScale, lastCs, lastRho, lastEps, lastDivVelocity, lastShearVelocity;
+  Scalar lastNodeScale, lastCs, lastCsl = 0.0, lastRho, lastEps, lastDivVelocity, lastShearVelocity;
   Vector lastVelocity, lastAcc;
 
   // Loop over every fluid node.
@@ -152,6 +163,16 @@ dt(const DataBase<Dimension>& dataBase,
     CHECK(nPerh > 0.0);
     // const Scalar kernelExtent = fluidNodeList.neighbor().kernelExtent();
     // CHECK(kernelExtent > 0.0);
+
+    // Check if we have a longitudinal sound speed for this material.
+    const bool useCsl = haveLongCs and csl.haveNodeList(fluidNodeList);
+    const Field<Dimension, Scalar>* cslptr;
+    if (useCsl) cslptr = *csl.fieldForNodeList(fluidNodeList);
+
+    // Check if we have a deviatoric stress for this material.
+    const bool useS = haveDS and S.haveNodeList(fluidNodeList);
+    const Field<Dimension, SymTensor>* Sptr;
+    if (useS) Sptr = *S.fieldForNodeList(fluidNodeList);
 
     for (typename ConnectivityMap<Dimension>::const_iterator iItr = connectivityMap.begin(nodeListi);
          iItr != connectivityMap.end(nodeListi);
@@ -169,10 +190,29 @@ dt(const DataBase<Dimension>& dataBase,
         //     const Scalar nodeScale = nodeExtent(nodeListi, i).minElement()/kernelExtent;
 
         // Sound speed limit.
-        const double csDt = nodeScale/(soundSpeed(nodeListi, i) + FLT_MIN);
+        const double csDt = nodeScale/(cs(nodeListi, i) + FLT_MIN);
         if (csDt < minDt) {
           minDt = csDt;
           reason = "sound speed limit";
+        }
+
+        // Longitudinal sound speed limit.
+        if (useCsl) {
+          const double csDt = nodeScale/((*cslptr)(i) + FLT_MIN);
+          if (csDt < minDt) {
+            minDt = csDt;
+            reason = "longitudinal sound speed limit";
+          }
+        }
+
+        // Deviatoric stress limit.
+        if (useS) {
+          const Scalar csS = sqrt((*Sptr)(i).eigenValues().maxAbsElement()/rho(nodeListi, i));
+          const double SDt = nodeScale/(csS + FLT_MIN);
+          if (SDt < minDt) {
+            minDt = SDt;
+            reason = "deviatoric stress effective sound speed limit";
+          }
         }
 
         // Artificial viscosity effective sound speed.
@@ -204,7 +244,8 @@ dt(const DataBase<Dimension>& dataBase,
             const int j = *jItr;
             const Vector& xj = position(nodeListj, j);
             const Vector& vj = velocity(nodeListj, j);
-            const Scalar vij = std::max(0.0, (vj - vi).dot((xi - xj).unitVector()));
+            // const Scalar vij = std::abs((vj - vi).dot((xi - xj).unitVector()));
+            const Scalar vij = (vi - vj).magnitude();
             const Scalar dtVelDiff = nodeScale*safeInvVar(vij, 1e-30);
             if (dtVelDiff < minDt) {
               minDt = dtVelDiff;
@@ -254,7 +295,8 @@ dt(const DataBase<Dimension>& dataBase,
           lastNodeID = i;
           lastNodeListName = fluidNodeList.name();
           lastNodeScale = nodeScale;
-          lastCs = soundSpeed(nodeListi, i);
+          lastCs = cs(nodeListi, i);
+          if (useCsl) lastCsl = (*cslptr)(i);
           lastAcc = DvDt(nodeListi, i);
           //      lastCsq = csq;
           lastRho = rho(nodeListi, i);
@@ -268,21 +310,18 @@ dt(const DataBase<Dimension>& dataBase,
   }
 
   stringstream reasonStream;
-  reasonStream << "mindt = " << minDt << endl
-	       << reason << endl
+  reasonStream << "mindt = " << minDt << "\n"
+	       << reason << "\n"
                << "  (nodeList, node) = (" << lastNodeListName << ", " << lastNodeID << ") | "
-               << "  h = " << lastNodeScale << endl
-               << "  cs = " << lastCs << endl
-               << "  acc = " << lastAcc << endl
-//               << " csq = " << lastCsq << endl
-               << "  rho = " << lastRho << endl
-               << "  eps = " << lastEps << endl
-               << "  velocity = " << lastVelocity << endl
-               << "  dtcs = " << lastNodeScale/(lastCs + FLT_MIN) << endl
-               << "  divVelocity = " << lastDivVelocity << endl
-//               << "  dtcsq = " << lastNodeScale/(lastCsq + FLT_MIN) << endl
-//                << "  dtdivV = " << 1.0/(fabs(lastDivVelocity) + FLT_MIN) << endl
-//                << "  shearVelocity = " << lastShearVelocity << endl
+               << "  h = " << lastNodeScale << "\n"
+               << "  cs = " << lastCs << "\n";
+  if (haveLongCs) reasonStream << "  csl = " << lastCsl << "\n";
+  reasonStream << "  acc = " << lastAcc << "\n"
+               << "  rho = " << lastRho << "\n"
+               << "  eps = " << lastEps << "\n"
+               << "  velocity = " << lastVelocity << "\n"
+               << "  dtcs = " << lastNodeScale/(lastCs + FLT_MIN) << "\n"
+               << "  divVelocity = " << lastDivVelocity << "\n"
                << ends;
 
   // Now build the result.

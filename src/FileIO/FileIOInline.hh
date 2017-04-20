@@ -116,26 +116,28 @@ void
 FileIO::write(const FieldSpace::Field<Dimension, std::vector<DataType> >& field,
               const std::string pathName) {
 
-  // Serialize the elements into a flat array, with an ancillary array holding
-  // the number of elements per node.
+  // Build an array with the number of elements per node, and count the total number of elements.
   std::vector<int> numElementsPerNode;
-  std::vector<DataType> elements;
-  int totalNumElements = 0;
+  size_t totalNumElements = size_t(0);
   for (typename FieldSpace::Field<Dimension, std::vector<DataType> >::const_iterator itr = field.internalBegin();
        itr != field.internalEnd();
        ++itr) {
     const int ni = (*itr).size();
-    const int newElementsSize = elements.size() + ni;
     totalNumElements += ni;
     numElementsPerNode.push_back(ni);
-    elements.reserve(newElementsSize);
-    for (typename std::vector<DataType>::const_iterator eitr = (*itr).begin();
-         eitr != (*itr).end();
-         ++eitr) elements.push_back(*eitr);
-    CHECK(elements.size() == newElementsSize);
   }
   CHECK(numElementsPerNode.size() == field.nodeList().numInternalNodes());
-  CHECK(elements.size() == totalNumElements);
+
+  // Serialize the elements into a flat array.
+  std::vector<DataType> elements(totalNumElements);
+  size_t offset = size_t(0);
+  for (typename FieldSpace::Field<Dimension, std::vector<DataType> >::const_iterator itr = field.internalBegin();
+       itr != field.internalEnd();
+       ++itr) {
+    std::copy(itr->begin(), itr->end(), elements.begin() + offset);
+    offset += itr->size();
+  }
+  CHECK(offset == totalNumElements);
 
   // Now we can use the available methods for writing vector<>'s to store
   // the data.

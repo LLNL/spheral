@@ -8,8 +8,6 @@ namespace FractalSpace
     static int COUNTER=0;
     int FractalNodes=mem.p_mess->FractalNodes;
     int FractalRank=mem.p_mess->FractalRank;
-    int RANK=-1;
-    MPI_Comm_rank(MPI_COMM_WORLD,&RANK);
     mem.p_mess->Full_Stop_Do_Not_Argue();
     vector <int> counts_in(FractalNodes);
     vector <int> counts_out(FractalNodes,0);
@@ -19,14 +17,8 @@ namespace FractalSpace
     vector < vector <double> > dataR_out(FractalNodes);
     bool tryit=mem.p_mess->IAmAHypreNode;
     for(int FR : mem.Touchy)
-      {
-	// cerr << " Touchy a " << COUNTER << " " << RANK << " " << FR << "\n";
-	if(tryit && FR > FractalRank)
-	  {
-	    dataI_in.push_back(FR);
-	    // cerr << " Touchy b " << COUNTER << " " << RANK << " " << FR << "\n";
-	  }
-      }
+      if(tryit && FR > FractalRank)
+	dataI_in.push_back(FR);
     int ss=dataI_in.size();
     for(int FR=0;FR<FractalNodes;FR++)
       {
@@ -36,7 +28,8 @@ namespace FractalSpace
 	    counts_out[FR]=ss;
 	  }
       }
-    dataI_in.clear();
+    // dataI_in.clear();
+    clean_vector(dataI_in);
     int how_manyI=-1;
     int how_manyR=-1;
     int integers=1;
@@ -44,7 +37,8 @@ namespace FractalSpace
     mem.p_mess->Send_Data_Some_How(8,counts_out,counts_in,integers,doubles,
 				   dataI_out,dataI_in,how_manyI,
 				   dataR_out,dataR_in,how_manyR);
-    counts_out.clear();
+    clean_vector(counts_out);
+    // counts_out.clear();
     dataI_out.clear();
     dataR_out.clear();
     vector <int> list_pair_1;
@@ -61,8 +55,10 @@ namespace FractalSpace
 	    counterI++;
 	  }
       }
-    dataI_in.clear();
-    dataR_in.clear();
+    clean_vector(dataI_in);
+    clean_vector(dataR_in);
+    // dataI_in.clear();
+    // dataR_in.clear();
     for(int i=0; i < counterI; ++i)
       {
 	int j=list_pair_1[i];
@@ -74,14 +70,17 @@ namespace FractalSpace
 	if(j != k) 
 	  head_number[j]=k;
       }
-    list_pair_1.clear();
-    list_pair_2.clear();
+    clean_vector(list_pair_1);
+    clean_vector(list_pair_2);
+    // list_pair_1.clear();
+    // list_pair_2.clear();
     for (int j=0;j < FractalNodes; ++j)
       {
 	while(head_number[j] != head_number[head_number[j]])
 	  head_number[j]=head_number[head_number[j]];
       }
-    mem.p_mess->Hranks.clear();
+    // mem.p_mess->Hranks.clear();
+    clean_vector(mem.p_mess->Hranks);
     int myhead=head_number[FractalRank];
     mem.p_mess->IHranks.resize(FractalNodes);
     for(int FR=0;FR<FractalNodes;FR++)
@@ -89,9 +88,19 @@ namespace FractalSpace
 	{
 	  mem.p_mess->Hranks.push_back(FR);
 	  mem.p_mess->IHranks[FR]=mem.p_mess->Hranks.size()-1;
-	  // cerr << " NODES A " << COUNTER << " " << RANK << " "  << FR << " " << mem.p_mess->IHranks[FR] << "\n";
 	}
+    if(!mem.p_mess->IAmAHypreNode)
+      {
+	// mem.p_mess->Hranks.clear();
+	clean_vector(mem.p_mess->Hranks);
+	mem.p_mess->IHranks.assign(FractalNodes,-1);
+      }
     mem.p_mess->HypreNodes=mem.p_mess->Hranks.size();
+    // vector<int>freenodes;
+    // for(int FR=0;FR<FractalNodes;FR++)
+    //   if(counts[FR] == 0)
+    // 	freenodes.push_back(FR);
+    
     COUNTER++;
   }
 }
