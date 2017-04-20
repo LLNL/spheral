@@ -89,7 +89,8 @@ namespace FractalSpace
 				     counts_out,counts_in,integers,doubles,
 				     dataI_out,dataI_in,how_manyI,
 				     dataR_out,dataR_in,how_manyR);
-    counts_out.clear();
+    // counts_out.clear();
+    clean_vector(counts_out);
     dataI_out.clear();
     dataR_out.clear();
     int c6=0;
@@ -116,9 +117,12 @@ namespace FractalSpace
 	    Bget++;
 	  }
       }
-    dataI_in.clear();
-    dataR_in.clear();
-    counts_in.clear();
+    // dataI_in.clear();
+    // dataR_in.clear();
+    clean_vector(dataI_in);
+    clean_vector(dataR_in);
+    // counts_in.clear();
+    clean_vector(counts_in);
     timeM0+=mem.p_mess->Clock();
     HYPRE_StructGridAssemble(grid);
     long int SVT=mem.p_mess->How_Many_In_Solver(sumVOL);
@@ -224,7 +228,8 @@ namespace FractalSpace
 				     counts_out,counts_in,integers,doubles,
 				     dataI_out,dataI_in,how_manyI,
 				     dataR_out,dataR_in,how_manyR);
-    counts_out.clear();
+    // counts_out.clear();
+    clean_vector(counts_out);
     dataI_out.clear();
     dataR_out.clear();
     int ni=0;
@@ -262,9 +267,12 @@ namespace FractalSpace
 	B++;
 	// FHT << " HRDD" << " " << HypreRank << " " << Bg <<  " " << B << " " << VOL[B] << " " << Bget << endl;
       }
-    dataI_in.clear();
-    dataR_in.clear();
-    counts_in.clear();
+    // dataI_in.clear();
+    // dataR_in.clear();
+    // counts_in.clear();
+    clean_vector(dataI_in);
+    clean_vector(dataR_in);
+    clean_vector(counts_in);
     timeM1+=mem.p_mess->Clock();
     HYPRE_StructMatrixAssemble(Amatrix);
     HYPRE_StructVectorAssemble(rho);
@@ -350,7 +358,8 @@ namespace FractalSpace
 				     counts_out,counts_in,integers,doubles,
 				     dataI_out,dataI_in,how_manyI,
 				     dataR_out,dataR_in,how_manyR);
-    counts_out.clear();
+    // counts_out.clear();
+    clean_vector(counts_out);
     dataI_out.clear();
     dataR_out.clear();
     int HR=-1;

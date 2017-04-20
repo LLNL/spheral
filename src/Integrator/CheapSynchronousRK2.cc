@@ -88,7 +88,6 @@ step(typename Dimension::Scalar maxTime,
   DataBase<Dimension>& db = this->accessDataBase();
 
   // Initalize the integrator.
-  state.timeAdvanceOnly(true);
   this->preStepInitialize(state, derivs);
   // this->initializeDerivatives(t, 0.0, state, derivs);
 
@@ -97,14 +96,14 @@ step(typename Dimension::Scalar maxTime,
                                    min(this->dtMax(), maxTime - t),
                                    state,
                                    derivs);
+  const double hdt = 0.5*dt;
 
   // Copy the beginning of step state.
   State<Dimension> state0(state);
   state0.copyState();
-  state0.timeAdvanceOnly(false);
 
   // Trial advance the state to the mid timestep point.
-  const double hdt = 0.5*dt;
+  state.timeAdvanceOnly(true);
   state.update(derivs, hdt, t, hdt);
   this->currentTime(t + hdt);
   this->applyGhostBoundaries(state, derivs);
@@ -112,8 +111,8 @@ step(typename Dimension::Scalar maxTime,
   this->finalizeGhostBoundaries();
 
   // Evaluate the derivatives at the midpoint.
-  this->initializeDerivatives(t + hdt, hdt, state, derivs);
   derivs.Zero();
+  this->initializeDerivatives(t + hdt, hdt, state, derivs);
   this->evaluateDerivatives(t + hdt, hdt, db, state, derivs);
   this->finalizeDerivatives(t + hdt, hdt, db, state, derivs);
 

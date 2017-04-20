@@ -289,7 +289,7 @@ class GenerateRatioSphere3d(NodeGeneratorBase):
                                       mpi.rank, mpi.procs)
         self.x = [x + center[0] for x in xvec]
         self.y = [x + center[1] for x in yvec]
-        self.z = [z + center[1] for z in zvec]
+        self.z = [z + center[2] for z in zvec]
         self.m = list(mvec)
         self.H = [SymTensor3d(x) for x in Hvec]
         self.globalIDs = list(globalIDsvec)
