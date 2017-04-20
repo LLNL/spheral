@@ -45,4 +45,4 @@ PYTHONTARGETS = \
 
 #-------------------------------------------------------------------------------
 include $(BUILDTOP)/helpers/makefile_master
-LIBS += $(OPENSUBDIVLIBS) $(OPENSUBDIVLIBS)
+LIBS += $(OPENSUBDIVLIBS) $(OPENSUBDIVLIBS) -lr3d
