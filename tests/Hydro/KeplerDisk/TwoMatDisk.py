@@ -154,9 +154,12 @@ commandLine(asph = False,
             serialDumpEach = 100,
 
             histFile = "history.ascii",
-            writeHistory = True,
+            writeHistory = False,
             historyInterval = 2.0,
             clearDirectories = False,
+
+            outputFile = "None",
+            comparisonFile = "None",
             
             vizCycle = None,
             vizTime = 1.0,
@@ -504,3 +507,63 @@ if steps is None:
     control.advance(goalTime)
 else:
     control.step(steps)
+
+if outputFile != "None":
+    outputFile = os.path.join(dataDir, outputFile)
+    from SpheralGnuPlotUtilities import multiSort
+    P1 = ScalarField("pressure",diskNodes1)
+    P2 = ScalarField("pressure",diskNodes2)
+    diskNodes1.pressure(P1)
+    diskNodes2.pressure(P2)
+
+    xprof1 = mpi.reduce([x.x for x in diskNodes1.positions().internalValues()], mpi.SUM)
+    yprof1 = mpi.reduce([y.y for y in diskNodes1.positions().internalValues()], mpi.SUM)
+    rhoprof1 = mpi.reduce(diskNodes1.massDensity().internalValues(), mpi.SUM)
+    Pprof1 = mpi.reduce(P1.internalValues(), mpi.SUM)
+    rprof1 = mpi.reduce([ri.magnitude() for ri in diskNodes1.positions().internalValues()], mpi.SUM)
+    vx1 = mpi.reduce([v.x for v in diskNodes1.velocity().internalValues()], mpi.SUM)
+    vy1 = mpi.reduce([v.y for v in diskNodes1.velocity().internalValues()], mpi.SUM)
+
+    xprof2 = mpi.reduce([x.x for x in diskNodes2.positions().internalValues()], mpi.SUM)
+    yprof2 = mpi.reduce([y.y for y in diskNodes2.positions().internalValues()], mpi.SUM)
+    rhoprof2 = mpi.reduce(diskNodes2.massDensity().internalValues(), mpi.SUM)
+    Pprof2 = mpi.reduce(P2.internalValues(), mpi.SUM)
+    rprof2 = mpi.reduce([ri.magnitude() for ri in diskNodes2.positions().internalValues()], mpi.SUM)
+    vx2 = mpi.reduce([v.x for v in diskNodes2.velocity().internalValues()], mpi.SUM)
+    vy2 = mpi.reduce([v.y for v in diskNodes2.velocity().internalValues()], mpi.SUM)
+
+    np1 = int(diskNodes1.numInternalNodes)
+    np2 = int(diskNodes2.numInternalNodes)
+    if np1 is None:
+        np1 = 0
+    np1 = mpi.reduce(np1,mpi.SUM)
+    if np2 is None:
+        np2 = 0
+    np2 = mpi.reduce(np2,mpi.SUM)
+
+    vprof1 = []
+    vprof2 = []
+    if mpi.rank == 0:
+        for i in xrange(np1):
+            vprof1.append(xprof1[i]*vx1[i]/rprof1[i]+yprof1[i]*vy1[i]/rprof1[i])
+        for i in xrange(np2):
+            vprof2.append(xprof2[i]*vx2[i]/rprof2[i]+yprof2[i]*vy2[i]/rprof2[i])
+
+    mof = mortonOrderIndices(db)
+    mo1 = mpi.reduce(mof[0].internalValues(),mpi.SUM)
+    mo2 = mpi.reduce(mof[1].internalValues(),mpi.SUM)
+    if mpi.rank == 0:
+        multiSort(rprof1,mo1,xprof1,yprof1,rhoprof1,Pprof1,vprof1)
+        multiSort(rprof2,mo2,xprof2,yprof2,rhoprof2,Pprof2,vprof2)
+        f = open(outputFile, "w")
+        f.write("r x y rho P v mortonOrder\n")
+        for (ri, xi, yi, rhoi, Pi, vi, mi) in zip(rprof1,xprof1,yprof1,rhoprof1,Pprof1,vprof1,mo1):
+            f.write((7*"%16.12e "+"\n") % (ri,xi,yi,rhoi,Pi,vi,mi))
+        for (ri, xi, yi, rhoi, Pi, vi, mi) in zip(rprof2,xprof2,yprof2,rhoprof2,Pprof2,vprof2,mo2):
+            f.write((7*"%16.12e "+"\n") % (ri,xi,yi,rhoi,Pi,vi,mi))
+        
+        f.close()
+        if comparisonFile != "None":
+            comparisonFile = os.path.join(dataDir, comparisonFile)
+            import filecmp
+            assert filecmp.cmp(outputFile,comparisonFile)
