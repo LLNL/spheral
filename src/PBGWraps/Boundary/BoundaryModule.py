@@ -93,9 +93,9 @@ self.vecBound%(ndim)id = addObject(mod, "vector_of_Boundary%(ndim)id", allow_sub
 
         if 2 in self.dims:
             self.ConstantYVelocityBoundary2d = addObject(self.space, "ConstantYVelocityBoundary2d", parent=self.ConstantVelocityBoundary2d)
-            self.AxisBoundaryRZ = addObject(self.space, "AxisBoundaryRZ", parent=self.ReflectingBoundary2d)
 
         if 3 in self.dims:
+            self.AxisBoundaryRZ = addObject(self.space, "AxisBoundaryRZ", parent=self.ReflectingBoundary2d)
             self.ConstantYVelocityBoundary3d = addObject(self.space, "ConstantYVelocityBoundary3d", parent=self.ConstantVelocityBoundary3d)
             self.ConstantZVelocityBoundary3d = addObject(self.space, "ConstantZVelocityBoundary3d", parent=self.ConstantVelocityBoundary3d)
             self.SphericalBoundary = addObject(self.space, "SphericalBoundary", parent=self.Boundary3d)
@@ -128,9 +128,9 @@ self.space.add_function("dynamicCastBoundary",
 
         if 2 in self.dims:
             self.generateConstantYVelocityBoundaryBindings(self.ConstantYVelocityBoundary2d, 2)
-            self.generateAxisBoundaryRZBindings(self.AxisBoundaryRZ)
 
         if 3 in self.dims:
+            self.generateAxisBoundaryRZBindings(self.AxisBoundaryRZ)
             self.generateConstantYVelocityBoundaryBindings(self.ConstantYVelocityBoundary3d, 3)
             self.generateConstantZVelocityBoundaryBindings(self.ConstantZVelocityBoundary3d, 3)
             self.generateSphericalBoundaryBindings(self.SphericalBoundary)
@@ -815,7 +815,7 @@ self.space.add_function("dynamicCastBoundary",
         mesh = "Spheral::MeshSpace::" + {1 : "LineMesh", 2 : "PolygonalMesh", 3 : "PolyhedralMesh"}[ndim]
 
         # Constructors.
-        x.add_constructor([param("double", "etamin", default_value="0.1")])
+        x.add_constructor([param("const double", "etamin", default_value="0.1")])
 
         # Attributes.
         x.add_instance_attribute("etamin", "double", getter="etamin", setter="etamin")
