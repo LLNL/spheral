@@ -76,7 +76,7 @@ NUMPYFLAGS=
 # =======================================================================
 AC_MSG_CHECKING(for compilers)
 AC_ARG_WITH(compilers,
-[  --with-compilers=ARG ..................... (gnu,clang,vacpp,intel,pgi) choose a compiler suite],
+[  --with-compilers=ARG ..................... (gnu,clang,clang-ibm,vacpp,intel,pgi) choose a compiler suite],
 [
    COMPILERS=$withval
 ],
@@ -136,9 +136,9 @@ case $COMPILERS in
       CXX=clang++
       FORT=gfortran
       MPICC=mpicc
-      MPICXX=mpicxx
+      MPICXX=mpiCC
       MPICCFLAGS="-cc=clang"
-      MPICXXFLAGS="-cxx=clang++"
+      MPICXXFLAGS="-cc=clang++"
       CMAKECC=clang
       CMAKECXX=clang++
       GCCXMLCC=$CMAKECC
@@ -152,18 +152,38 @@ case $COMPILERS in
       fi
       ;;
 
-   vacpp)
-      CC=/usr/local/tools/compilers/ibm/xlc-8.0.0.12a
-      CXX=/usr/local/tools/compilers/ibm/xlC-8.0.0.12a
-      MPICC=/usr/local/tools/compilers/ibm/mpxlc-8.0.0.12a
-      MPICXX=/usr/local/tools/compilers/ibm/mpxlC-8.0.0.12a 
-      CMAKECC=$CC
-      CMAKECXX=$CXX
-      GCCXMLCC=gcc-3.2.3
-      GCCXMLCXX=g++-3.2.3
+   clang-ibm)
+      CC=clang
+      CXX=clang++
+      FORT=gfortran
+      MPICC=mpicc
+      MPICXX=mpiCC
+      MPICCFLAGS=
+      MPICXXFLAGS=
+      CMAKECC=clang
+      CMAKECXX=clang++
+      GCCXMLCC=$CMAKECC
+      GCCXMLCXX=$CMAKECXX
       PYTHONCC=$CC
       PYTHONCXX=$CXX
       PARMETISCC=$MPICC
+      CXXFLAGS+=" -std=c++11 -DEIGEN_DONT_VECTORIZE"
+      ;;
+
+   vacpp)
+      CC=xlc
+      CXX=xlC
+      MPICC=mpixlc
+      MPICXX=mpixlC 
+      CMAKECC=$CC
+      CMAKECXX=$CXX
+      GCCXMLCC=/usr/tcetmp/packages/gcc/gcc-4.9.3/bin/gcc
+      GCCXMLCXX=/usr/tcetmp/packages/gcc/gcc-4.9.3/bin/g++
+      PYTHONCC=$CC
+      PYTHONCXX=$CXX
+      PARMETISCC=$MPICC
+      CFLAGS+=" "
+      CXXFLAGS+=" -std=c++11 -qnoxlcompatmacros  -DEIGEN_DONT_ALIGN -DEIGEN_DONT_VECTORIZE "
       ;;
 
    intel)
@@ -522,7 +542,7 @@ rm -f .cxxtype.cc .cxxtype.out
 
 # Set the flag for passing arguments to the linker.
 LDPASSTHROUGH=""
-if test $CXXCOMPILERTYPE = "GNU" -o $CXXCOMPILERTYPE = "INTEL"; then
+if test $CXXCOMPILERTYPE = "GNU" -o $CXXCOMPILERTYPE = "INTEL" -o $CXXCOMPILERTYPE = "VACPP"; then
   LDPASSTHROUGH="-Wl,"
 fi
 
@@ -623,7 +643,7 @@ VACPP)
   FORTFLAGS="$FORTFLAGS -fpic"
   SHAREDFLAG="$SHAREDFLAG -G -qmkshrobj"
   DEPFLAG="-M -E"
-  DEPENDRULES="dependrules.aix"
+  #DEPENDRULES="dependrules.aix"
   CFLAGS="$CFLAGS -g"
   JAMTOOLSET=vacpp 
   BOOSTEXT="-xlc"
@@ -661,5 +681,24 @@ if test "$OSNAME" = "Darwin"; then
 fi
 
 AC_MSG_RESULT($JAMTOOLSET)
+
+# =======================================================================
+# openmp or not
+# =======================================================================
+AC_MSG_CHECKING(for openmp)
+AC_ARG_WITH(openmp,
+[  --with-openmp .............................. should we enable openmp],
+[
+   AC_MSG_RESULT(yes)
+   if test $CXXCOMPILERTYPE = "VACPP"; then
+      CXXFLAGS+="  -qsmp=omp"
+   else
+      CXXFLAGS+="  -fopenmp"
+   fi
+],
+[
+   AC_MSG_RESULT(no)
+]
+)
 
 ])
