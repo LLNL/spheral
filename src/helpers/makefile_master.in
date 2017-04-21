@@ -254,7 +254,7 @@ force_build:
 	$(MPICXX) $(MPICXXFLAGS) $(CXXFLAGS) $(PYOPT) $(EXTRAFLAGS) -c $< -o $(*F)Wrap.o
 
 %.o: %.cc
-	$(MPICXX) $(MPICXXFLAGS) $(CXXFLAGS) $(PYOPT) $(EXTRAFLAGS) -c $< -o $(*F).o
+	$(MPICXX) $(MPICXXFLAGS) $(CXXFLAGS) $(OPTFLAGS) $(EXTRAFLAGS) -c $< -o $(*F).o
 
 %.o: %.f
 	$(FORT) $(FORTFLAGS) $(OPTFLAGS) $(EXTRAFLAGS) -c $< -o $(*F).o
