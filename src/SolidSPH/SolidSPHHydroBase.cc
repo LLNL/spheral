@@ -859,6 +859,7 @@ applyGhostBoundaries(State<Dimension>& state,
   FieldList<Dimension, Scalar> mu = state.fields(SolidFieldNames::shearModulus, 0.0);
   FieldList<Dimension, Scalar> Y = state.fields(SolidFieldNames::yieldStrength, 0.0);
   FieldList<Dimension, int> fragIDs = state.fields(SolidFieldNames::fragmentIDs, int(1));
+  FieldList<Dimension, int> pTypes = state.fields(SolidFieldNames::particleTypes, int(0));
 
   for (ConstBoundaryIterator boundaryItr = this->boundaryBegin(); 
        boundaryItr != this->boundaryEnd();
@@ -868,6 +869,7 @@ applyGhostBoundaries(State<Dimension>& state,
     (*boundaryItr)->applyFieldListGhostBoundary(mu);
     (*boundaryItr)->applyFieldListGhostBoundary(Y);
     (*boundaryItr)->applyFieldListGhostBoundary(fragIDs);
+    (*boundaryItr)->applyFieldListGhostBoundary(pTypes);
   }
 }
 
@@ -889,6 +891,7 @@ enforceBoundaries(State<Dimension>& state,
   FieldList<Dimension, Scalar> mu = state.fields(SolidFieldNames::shearModulus, 0.0);
   FieldList<Dimension, Scalar> Y = state.fields(SolidFieldNames::yieldStrength, 0.0);
   FieldList<Dimension, int> fragIDs = state.fields(SolidFieldNames::fragmentIDs, int(1));
+  FieldList<Dimension, int> pTypes = state.fields(SolidFieldNames::particleTypes, int(0));
 
   for (ConstBoundaryIterator boundaryItr = this->boundaryBegin(); 
        boundaryItr != this->boundaryEnd();
@@ -898,6 +901,7 @@ enforceBoundaries(State<Dimension>& state,
     (*boundaryItr)->enforceFieldListBoundary(mu);
     (*boundaryItr)->enforceFieldListBoundary(Y);
     (*boundaryItr)->enforceFieldListBoundary(fragIDs);
+    (*boundaryItr)->enforceFieldListBoundary(pTypes);
   }
 }
 
