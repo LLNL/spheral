@@ -16,6 +16,10 @@ PYTHONPKGS = @PYTHONPKGS@
 PBGPKGS = @PYTHONPKGS@
 SPHERALMODULES = SpheralModules
 
+PYTHONTARGETS = \
+	$(srcdir)/Spheral.py \
+	$(srcdir)/SolidSpheral.py
+
 #-------------------------------------------------------------------------------
 include $(BUILDTOP)/helpers/makefile_master
 LIBS += -lsiloh5 -lhdf5 $(LDRPATH)

@@ -665,7 +665,9 @@ beginExchangeField(Field<Dimension, DataType>& field) const {
   ++mMPIFieldTag;
 
   // We only do work if this is a communicated NodeList on this domain.
-  if (communicatedNodeList(*nodeListPtr)) {
+  // We also skip if this field is already being exchanged.
+  if (communicatedNodeList(*nodeListPtr) and
+      mField2SendBuffer.find(&field) == mField2SendBuffer.end()) {
 
     // Get the map of (domain -> send and receive nodes) for the NodeList
     // of this Field.
@@ -713,7 +715,7 @@ beginExchangeField(Field<Dimension, DataType>& field) const {
     // Check the receive sizes.
     BEGIN_CONTRACT_SCOPE
     {
-      CHECK(mRecvBuffers.size() == mField2RecvBuffer.size());
+      CHECK2(mRecvBuffers.size() == mField2RecvBuffer.size(), mRecvBuffers.size() << " != " << mField2RecvBuffer.size());
       int totalNumRecvs = 0;
       for (typename list< list< vector<char> > >::const_iterator itr = mRecvBuffers.begin();
            itr != mRecvBuffers.end();

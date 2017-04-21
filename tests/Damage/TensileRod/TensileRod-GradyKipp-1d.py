@@ -1,13 +1,7 @@
-#ATS:if SYS_TYPE.startswith('darwin'):
-#ATS:    t10 = test(SELF, "--graphics False --clearDirectories True --domainIndependent True --outputFile 'TensileRod-GradyKipp-1d-1proc-reproducing.txt' --referenceFile 'Reference/TensileRod-GradyKipp-1d-1proc-reproducing-darwin-20160103.txt'", np=1, label="Tensile rod domain independence test SERIAL RUN")
-#ATS:    t11 = testif(t10, SELF, "--graphics False --clearDirectories False --domainIndependent True --outputFile 'TensileRod-GradyKipp-1d-4proc-reproducing.txt' --comparisonFile 'TensileRod-GradyKipp-1d-1proc-reproducing.txt' --referenceFile 'Reference/TensileRod-GradyKipp-1d-1proc-reproducing-darwin-20160103.txt'", np=4, label="Tensile rod domain independence test 4 DOMAIN RUN")
-#ATS:    t12 = testif(t10, SELF, "--graphics False --clearDirectories False --domainIndependent True --outputFile 'TensileRod-GradyKipp-1d-1proc-reproducing-restart.txt' --comparisonFile 'TensileRod-GradyKipp-1d-1proc-reproducing.txt' --restoreCycle 500 --referenceFile 'Reference/TensileRod-GradyKipp-1d-1proc-reproducing-darwin-20160103.txt'", np=1, label="Tensile rod domain independence test SERIAL RESTART RUN")
-#ATS:    t13 = testif(t11, SELF, "--graphics False --clearDirectories False --domainIndependent True --outputFile 'TensileRod-GradyKipp-1d-4proc-reproducing-restart.txt' --comparisonFile 'TensileRod-GradyKipp-1d-1proc-reproducing.txt' --restoreCycle 500 --referenceFile 'Reference/TensileRod-GradyKipp-1d-1proc-reproducing-darwin-20160103.txt'", np=4, label="Tensile rod domain independence test 4 DOMAIN RESTART RUN")
-#ATS:else:
-#ATS:    t10 = test(SELF, "--graphics False --clearDirectories True --domainIndependent True --outputFile 'TensileRod-GradyKipp-1d-1proc-reproducing.txt'", np=1, label="Tensile rod domain independence test SERIAL RUN")
-#ATS:    t11 = testif(t10, SELF, "--graphics False --clearDirectories False --domainIndependent True --outputFile 'TensileRod-GradyKipp-1d-4proc-reproducing.txt' --comparisonFile 'TensileRod-GradyKipp-1d-1proc-reproducing.txt'", np=4, label="Tensile rod domain independence test 4 DOMAIN RUN")
-#ATS:    t12 = testif(t10, SELF, "--graphics False --clearDirectories False --domainIndependent True --outputFile 'TensileRod-GradyKipp-1d-1proc-reproducing-restart.txt' --comparisonFile 'TensileRod-GradyKipp-1d-1proc-reproducing.txt' --restoreCycle 500", np=1, label="Tensile rod domain independence test SERIAL RESTART RUN")
-#ATS:    t13 = testif(t11, SELF, "--graphics False --clearDirectories False --domainIndependent True --outputFile 'TensileRod-GradyKipp-1d-4proc-reproducing-restart.txt' --comparisonFile 'TensileRod-GradyKipp-1d-1proc-reproducing.txt' --restoreCycle 500", np=4, label="Tensile rod domain independence test 4 DOMAIN RESTART RUN")
+#ATS:t10 = test(SELF, "--graphics False --clearDirectories True --domainIndependent True --outputFile 'TensileRod-GradyKipp-1d-1proc-reproducing.txt'", np=1, label="Tensile rod domain independence test SERIAL RUN")
+#ATS:t11 = testif(t10, SELF, "--graphics False --clearDirectories False --domainIndependent True --outputFile 'TensileRod-GradyKipp-1d-4proc-reproducing.txt' --comparisonFile 'TensileRod-GradyKipp-1d-1proc-reproducing.txt'", np=4, label="Tensile rod domain independence test 4 DOMAIN RUN")
+#ATS:t12 = testif(t10, SELF, "--graphics False --clearDirectories False --domainIndependent True --outputFile 'TensileRod-GradyKipp-1d-1proc-reproducing-restart.txt' --comparisonFile 'TensileRod-GradyKipp-1d-1proc-reproducing.txt' --restoreCycle 500", np=1, label="Tensile rod domain independence test SERIAL RESTART RUN")
+#ATS:t13 = testif(t11, SELF, "--graphics False --clearDirectories False --domainIndependent True --outputFile 'TensileRod-GradyKipp-1d-4proc-reproducing-restart.txt' --comparisonFile 'TensileRod-GradyKipp-1d-1proc-reproducing.txt' --restoreCycle 500", np=4, label="Tensile rod domain independence test 4 DOMAIN RESTART RUN")
 #-------------------------------------------------------------------------------
 # A rod of stainless steel undergoing tensile strain.  This is intended as a
 # test of the cracking/failure models.
@@ -32,13 +26,13 @@ title("1-D Tensile rod strength/damage model test")
 # Stupid little class to override the mass density evolution of the control
 # boundary nodes.
 #-------------------------------------------------------------------------------
-class OverrideNodeProperties(RestartableObject):
+class OverrideNodeProperties:
     def __init__(self,
                  nodeList,
                  rho0,
                  eps0,
                  controlNodeIDs):
-        RestartableObject.__init__(self)
+        self.restart = RestartableObject(self)
         self.nodeList = nodeList
         self.rho0 = rho0
         self.eps0 = eps0
@@ -115,6 +109,7 @@ commandLine(length = 3.0,
             
             CRKSPH = False,
             Qconstructor = MonaghanGingoldViscosity,
+            KernelConstructor = BSplineKernel,
             Cl = 1.0,
             Cq = 1.0,
             linearInExpansion = False,
@@ -124,7 +119,7 @@ commandLine(length = 3.0,
             negligibleSoundSpeed = 1e-5,
             csMultiplier = 1e-4,
             hmin = 1e-5,
-            hmax = 0.1,
+            hmax = 1.0,
             cfl = 0.5,
             useVelocityMagnitudeForDt = False,
             XSPH = False,
@@ -132,6 +127,7 @@ commandLine(length = 3.0,
             nTensile = 4,
             hybridMassDensityThreshold = 0.01,
             filter = 0.0,
+            volumeType = CRKSumVolume,
 
             IntegratorConstructor = CheapSynchronousRK2Integrator,
             goalTime = 50.0,
@@ -159,7 +155,7 @@ commandLine(length = 3.0,
 
             testtol = 1.0e-4,
             clearDirectories = False,
-            referenceFile = "Reference/TensileRod-GradyKipp-1d-1proc-reproducing-20160104.txt",
+            referenceFile = "Reference/TensileRod-GradyKipp-1d-1proc-reproducing-20161003.txt",
             dataDirBase = "dumps-TensileRod-1d",
             outputFile = "None",
             comparisonFile = "None",
@@ -197,9 +193,9 @@ dtSample = dumpFrac*goalTime
 #-------------------------------------------------------------------------------
 # Sampling function to measure the average strain in the volume of the rod.
 #-------------------------------------------------------------------------------
-class AverageStrain(RestartableObject):
+class AverageStrain:
     def __init__(self, damageModel, filename):
-        RestartableObject.__init__(self)
+        self.restart = RestartableObject(self)
         self.damageModel = damageModel
         self.filename = filename
         self.timeHistory = []
@@ -330,10 +326,8 @@ strengthModel = SteinbergGuinanStrength(eos,
 # Create our interpolation kernels -- one for normal hydro interactions, and
 # one for use with the artificial viscosity
 #-------------------------------------------------------------------------------
-WT = TableKernel(BSplineKernel(), 1000)
-WTPi = TableKernel(BSplineKernel(), 1000)
+WT = TableKernel(KernelConstructor(), 1000)
 output("WT")
-output("WTPi")
 
 #-------------------------------------------------------------------------------
 # Create the NodeLists.
@@ -446,6 +440,7 @@ if CRKSPH:
                              compatibleEnergyEvolution = compatibleEnergy,
                              XSPH = XSPH,
                              densityUpdate = densityUpdate,
+                             volumeType = volumeType,
                              HUpdate = HUpdate)
 else:
     hydro = HydroConstructor(W = WT,
@@ -651,7 +646,7 @@ if graphics:
 # If requested, write out the state in a global ordering to a file.
 #-------------------------------------------------------------------------------
 if outputFile != "None":
-    from SpheralGnuPlotUtilities import multiSort
+    from SpheralTestUtilities import multiSort
     state = State(db, integrator.physicsPackages())
     outputFile = os.path.join(dataDir, outputFile)
     pos = state.vectorFields(HydroFieldNames.position)

@@ -159,7 +159,9 @@ TillotsonEquationOfState<Dimension>::
 setGammaField(Field<Dimension, Scalar>& gamma,
 	      const Field<Dimension, Scalar>& massDensity,
 	      const Field<Dimension, Scalar>& specificThermalEnergy) const {
-  VERIFY2(false, "gamma not defined for Tillotson EOS!");
+    for (int i=0;i!=gamma.size();++i)
+        gamma(i) = this->gamma(massDensity(i),specificThermalEnergy(i));
+  //VERIFY2(false, "gamma not defined for Tillotson EOS!");
 }
 
 //------------------------------------------------------------------------------
@@ -174,6 +176,20 @@ setBulkModulus(Field<Dimension, Scalar>& bulkModulus,
                const Field<Dimension, Scalar>& specificThermalEnergy) const {
   for (int i = 0; i != bulkModulus.size(); ++i) {
     bulkModulus(i)=this->bulkModulus(massDensity(i), specificThermalEnergy(i));
+  }
+}
+
+//------------------------------------------------------------------------------
+// Set the entropy.
+//------------------------------------------------------------------------------
+template<typename Dimension>
+void
+TillotsonEquationOfState<Dimension>::
+setEntropy(Field<Dimension, Scalar>& entropy,
+           const Field<Dimension, Scalar>& massDensity,
+           const Field<Dimension, Scalar>& specificThermalEnergy) const {
+  for (size_t i = 0; i != massDensity.numElements(); ++i) {
+    entropy(i) = pressure(massDensity(i), specificThermalEnergy(i))*safeInvVar(pow(massDensity(i), gamma(massDensity(i), specificThermalEnergy(i))));
   }
 }
 
@@ -199,8 +215,8 @@ pressure(const Scalar massDensity,
   // phases, and is interpolated between P2 and P4.
 
   double P;
-  const double phi = mb/(1.0 + eps/(meps0*eta*eta));
-  const double chi = 1.0/eta - 1.0;
+  const double phi = mb*safeInvVar(1.0 + eps*safeInvVar(meps0*eta*eta, 1.0e-10), 1.0e-10);
+  const double chi = safeInvVar(eta, 1.0e-10) - 1.0;
 
   if (mu >= 0.0) {
 
@@ -210,7 +226,7 @@ pressure(const Scalar massDensity,
   } else if (eps <= mepsLiquid) {
 
     // Regime 2: expansion, solid : same as 1, only if rho>cutoff density.
-    P = (eta > mEtaMinSolid) ? (ma + phi)*rho*eps + mA*mu + mB*mu*mu : 0.0;
+    P = (ma + phi)*rho*eps + mA*mu + mB*mu*mu;
 
   } else if (eps >= mepsVapor) {
 
@@ -224,7 +240,7 @@ pressure(const Scalar massDensity,
     // Following <strike>Saito et al. we compute P2 and P4 at the epsLiquid and
     // epsVapor specific energies</strike> Melosh (personal communication) we
     // compute P2 and P4 at the given energy.
-    double P2 = (eta > mEtaMinSolid) ? (ma + phi)*rho*eps + mA*mu + mB*mu*mu : 0.;
+    double P2 = (ma + phi)*rho*eps + mA*mu + mB*mu*mu;
     double P4 = ma*rho*eps + 
                (phi*rho*eps + mA*mu*exp(-mbeta*chi))*exp(-malpha*chi*chi);
     P = P2 + (P4 - P2)*(eps - mepsLiquid)/(mepsVapor - mepsLiquid);
@@ -286,13 +302,49 @@ soundSpeed(const Scalar massDensity,
 
 //------------------------------------------------------------------------------
 // Get gamma.
+// We assume Cp = Cv for the solid phase, Cp = Cv + R in the gaseous phase,
+// and blend the two for liquid.
 //------------------------------------------------------------------------------
 template<typename Dimension>
 typename Dimension::Scalar
 TillotsonEquationOfState<Dimension>::
 gamma(const Scalar massDensity,
       const Scalar specificThermalEnergy) const {
-  VERIFY2(false, "gamma not defined for Tillotson EOS!");
+  // const double eta = this->boundedEta(massDensity),
+  //              rho0 = this->referenceDensity(),
+  //              rho = rho0*eta,
+  //              nDen = rho/mAtomicWeight;
+  // CHECK(mCv > 0.0);
+  // return 1.0 + mConstants.molarGasConstant()*nDen/mCv;
+
+  const double eta = this->boundedEta(massDensity),
+               mu = eta - 1.0,
+               rho0 = this->referenceDensity(),
+               rho = rho0*eta,
+               eps = std::max(0.0, specificThermalEnergy);   // I'm not sure if this EOS admits negative energies.
+  if (mu >= 0.0) {
+
+    // Regime 1: compression, solid.
+    return 1.0;
+
+  } else if (eps <= mepsLiquid) {
+
+    // Regime 2: expansion, solid : same as 1, but only if rho>cutoff density
+    return 1.0;
+
+  } else if (eps >= mepsVapor) {
+  
+    // Regime 4: expansion, gaseous.
+    return 1.0 + mConstants.molarGasConstant()/mCv;
+
+  } else {
+
+    // Regime 3: expansion, liquid.
+    // Treated here as a linear combination of the solid and gaseous phases.
+    const double gammaVapor = 1.0 + mConstants.molarGasConstant()/mCv;
+    return 1.0 + (gammaVapor - 1.0)*(eps - mepsLiquid)/(mepsVapor - mepsLiquid);
+
+  }
 }
 
 //------------------------------------------------------------------------------
@@ -304,6 +356,17 @@ TillotsonEquationOfState<Dimension>::
 bulkModulus(const Scalar massDensity,
             const Scalar specificThermalEnergy) const {
   return massDensity * computeDPDrho(massDensity, specificThermalEnergy);
+}
+
+//------------------------------------------------------------------------------
+// Calculate an entropy.
+//------------------------------------------------------------------------------
+template<typename Dimension>
+typename Dimension::Scalar
+TillotsonEquationOfState<Dimension>::
+entropy(const Scalar massDensity,
+        const Scalar specificThermalEnergy) const {
+  return this->pressure(massDensity, specificThermalEnergy)*safeInvVar(pow(massDensity, gamma(massDensity, specificThermalEnergy)));
 }
 
 //------------------------------------------------------------------------------
@@ -326,11 +389,11 @@ computeDPDrho(const Scalar massDensity,
                eps = std::max(0.0, specificThermalEnergy);
 
   double dPdrho_ad, dPdrho_eps, dPdeps_rho;
-  const double phi = mb/(1.0 + eps/(meps0*eta*eta));
-  const double chi = 1./eta - 1.0;
-  const double dphidrho = (1./rho0)*((2.0*mb*meps0*eps*eta)/
-                                     ((eps+meps0*eta*eta)*(eps+meps0*eta*eta)));
-  const double dphideps = -mb*meps0*eta*eta/((eps+meps0*eta*eta)*(eps+meps0*eta*eta));
+  const double phi = mb*safeInvVar(1.0 + eps*safeInvVar(meps0*eta*eta, 1.0e-10), 1.0e-10);
+  const double chi = safeInvVar(eta, 1.0e-10) - 1.0;
+
+  const double dphidrho = 2.0*mb*meps0*eta*eps*safeInvVar(rho0*FastMath::square(eps + meps0*eta*eta), 1.0e-10);
+  const double dphideps = -mb*meps0*eta*eta*safeInvVar(FastMath::square(eps + meps0*eta*eta), 1.0e-10);
 
   if (mu >= 0.0) {
 
@@ -341,10 +404,8 @@ computeDPDrho(const Scalar massDensity,
   } else if (eps <= mepsLiquid) {
 
     // Regime 2: expansion, solid : same as 1, but only if rho>cutoff density
-    dPdrho_eps = (eta > mEtaMinSolid) ? 
-              eps*(ma + phi + rho*dphidrho) + (1./rho0)*(mA + 2.0*mB*mu) : 0.0;
-    dPdeps_rho = (eta > mEtaMinSolid) ?
-              rho*(ma + phi + eps*dphideps) : 0.0;
+    dPdrho_eps = eps*(ma + phi + rho*dphidrho) + (1./rho0)*(mA + 2.0*mB*mu);
+    dPdeps_rho = rho*(ma + phi + eps*dphideps);
 
   } else if (eps >= mepsVapor) {
      
@@ -361,14 +422,12 @@ computeDPDrho(const Scalar massDensity,
     // Treated here as a linear combination of the solid and gaseous phases.
     double dP2drho_eps, dP4drho_eps, dP2deps_rho, dP4deps_rho;
 
-    dP2drho_eps = (eta > mEtaMinSolid) ? 
-               eps*(ma + phi + rho*dphidrho) + (1./rho0)*(mA + 2.0*mB*mu) : 0.0;
+    dP2drho_eps = eps*(ma + phi + rho*dphidrho) + (1./rho0)*(mA + 2.0*mB*mu);
     dP4drho_eps = ma*eps + 
               eps*exp(-malpha*chi*chi)*(phi + rho*dphidrho + 2.0*malpha*chi*phi*rho0/rho) + 
               mA*exp(-(malpha*chi*chi+mbeta*chi))*(1./rho0 + rho0*mu*mbeta/(rho*rho) + 
                                                          2.0*rho0*mu*malpha*chi/(rho*rho));
-    dP2deps_rho = (eta > mEtaMinSolid) ?
-               rho*(ma + phi + eps*dphideps) : 0.0;
+    dP2deps_rho = rho*(ma + phi + eps*dphideps);
     dP4deps_rho = rho*(ma + exp(-malpha*chi*chi)*(phi + eps*dphideps));
 
     dPdrho_eps = dP2drho_eps + (dP4drho_eps - dP2drho_eps)*(eps - mepsLiquid)/(mepsVapor - mepsLiquid);

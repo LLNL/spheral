@@ -16,7 +16,7 @@ class %(classname)s%(dim)s(CRKSPHHydroBase%(dim)s):
                  Q,
                  W,
                  WPi = None,
-                 filter = 0.0,
+                 filter = 1.0,
                  cfl = 0.25,
                  useVelocityMagnitudeForDt = False,
                  compatibleEnergyEvolution = True,
@@ -25,7 +25,11 @@ class %(classname)s%(dim)s(CRKSPHHydroBase%(dim)s):
                  densityUpdate = RigorousSumDensity,
                  HUpdate = IdealH,
                  correctionOrder = LinearOrder,
-                 volumeType = CRKSumVolume,
+                 volumeType = CRKVoronoiVolume,
+                 detectSurfaces = False,
+                 detectThreshold = 0.05,
+                 sweepAngle = 0.8,
+                 detectRange = 1.0,
                  epsTensile = 0.0,
                  nTensile = 4.0):
         self._smoothingScaleMethod = %(smoothingScaleMethod)s%(dim)s()
@@ -46,6 +50,10 @@ class %(classname)s%(dim)s(CRKSPHHydroBase%(dim)s):
                                         HUpdate,
                                         correctionOrder,
                                         volumeType,
+                                        detectSurfaces,
+                                        detectThreshold,
+                                        sweepAngle,
+                                        detectRange,
                                         epsTensile,
                                         nTensile)
         return

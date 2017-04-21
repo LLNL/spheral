@@ -22,16 +22,46 @@ namespace FractalSpace
     }
     bool get_debug() const;
     void set_debug(bool& d);
-  static int coordinate(vector <int>& pos,vector <int>& Box,int spacing)
-  {
-    int nx=pos[0]-Box[0];
-    int ny=pos[1]-Box[2];
-    int nz=pos[2]-Box[4];
-    int nxt=(Box[1]-Box[0])/spacing;
-    int nyt=(Box[3]-Box[2])/spacing;
-    return (nx+nxt*(ny+nz*nyt))/spacing;
-  }
-    static int nr(const int& i,const int& j,const int& k, const int&m)
+    static int coordinate(vector <int>& pos,vector <int>& Box,int spacing)
+    {
+      int nx=pos[0]-Box[0];
+      int ny=pos[1]-Box[2];
+      int nz=pos[2]-Box[4];
+      int nxt=(Box[1]-Box[0])/spacing;
+      int nyt=(Box[3]-Box[2])/spacing;
+      return (nx+nxt*(ny+nz*nyt))/spacing;
+    }
+     template <class T> void plus(const vector <T>& vin,T addit,vector <T>& vout)
+    {
+      vout=vin;
+      plus(vout,addit);
+    }
+    template <class T> static void plus(vector <T>& vect,T add)
+    {
+      for(auto &v : vect)
+	v+=add;
+    }
+    template <class T> static void times(const vector <T>& vin,T mult,vector <T>& vout)
+    {
+      vout=vin;
+      times(vout,mult);
+    }
+    template <class T> static void times(vector <T>& vect,T mult)
+    {
+      for(auto &v : vect)
+	v*=mult;
+    }
+    template <class T> static void divide(const vector <T>& vin,T divisor,vector <T>& vout)
+    {
+      vout=vin;
+      divide(vout,divisor);
+    }
+    template <class T> static void divide(vector <T>& vect,T divisor)
+    {
+      for(auto &v : vect)
+	v/=divisor;
+    }
+    template <class T> static T nr(const T& i,const T& j,const T& k, const T&m)
     {
       return i+(j+k*m)*m;
     }
@@ -54,9 +84,9 @@ namespace FractalSpace
     template <class T> static void add_dens(vector <T>& dens,const T& dm, T& d_x, 
 					    T& d_y, T& d_z)
     {
-//       assert(abs(d_x-0.5) <= 0.5);
-//       assert(abs(d_y-0.5) <= 0.5);
-//       assert(abs(d_z-0.5) <= 0.5);
+      //       assert(abs(d_x-0.5) <= 0.5);
+      //       assert(abs(d_y-0.5) <= 0.5);
+      //       assert(abs(d_z-0.5) <= 0.5);
       if(abs(d_x-0.5) >= 0.5)
 	{
 	  cout << "dx error " << abs(d_x-0.5)-0.5 << "\n";
@@ -335,6 +365,18 @@ namespace FractalSpace
 	  first+=stride;
 	}
       return;
+    }
+    template <class T> void zero_shrink_vector(vector <T>& vec,int size)
+    {
+      vec.clear();
+      vec.resize(size);
+      vec.shrink_to_fit();
+    }
+    template <class T> void shrink_vectors(vector <vector <T> > vec)
+    {
+      vec.shrink_to_fit();
+      for(vector <T> v : vec)
+	v.shrink_to_fit();
     }
   };
 }

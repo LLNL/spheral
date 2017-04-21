@@ -79,17 +79,41 @@ class NodeGenerators:
                               refparam("vector_of_SymTensor3d", "H")],
                              docstring = "Compute stuff useful for a NodeGenerator from a polyhedral mesh in a silo file.")
 
+        # centroidalRelaxNodesImpl.
+        for ndim in self.dims:
+            Spheral.add_function("centroidalRelaxNodesImpl", "unsigned int",
+                                 [refparam("DataBase%id" % ndim, "db"),
+                                  constrefparam("vector_of_FacetedVolume%id" % ndim, "volumeBoundaries"),
+                                  constrefparam("vector_of_vector_of_FacetedVolume%id" % ndim, "holes"),
+                                  constrefparam("TableKernel%id" % ndim, "W"),
+                                  constrefparam("Spheral::PythonBoundFunctors::SpheralFunctor<Vector%id, double>" % ndim, "rhofunc"),
+                                  constrefparam("Spheral::PythonBoundFunctors::SpheralFunctor<Vector%id, Vector%id>" % (ndim, ndim), "gradrhofunc"),
+                                  param("bool", "rhoConst"),
+                                  param("bool", "useGradRhoFunc"),
+                                  refparam("vector_of_Boundary%id" % ndim, "boundaries"),
+                                  param("unsigned int", "maxIterations"),
+                                  param("double", "fracTol"),
+                                  param("CRKOrder", "correctionOrder"),
+                                  param("double", "centroidFrac"),
+                                  refparam("ScalarFieldList%id" % ndim, "vol"),
+                                  refparam("IntFieldList%id" % ndim, "surfacePoint"),
+                                  refparam("FacetedVolumeFieldList%id" % ndim, "cells")],
+                                 docstring = "Use Lloyds algorithm to relax point positions.")
+
         subdims = []
         if 2 in self.dims:
             subdims.append(2)
         if 3 in self.dims:
             subdims.append(3)
         for ndim in subdims:
+            dim = "Spheral::Dim<%i>" % ndim
             poly = "Spheral::" + {2 : "Polygon", 3 : "Polyhedron"}[ndim]
+            vector_of_facetedvolume = "vector_of_FacetedVolume%id" % ndim
             vector = "Vector%id" % ndim
             database = "Spheral::DataBaseSpace::DataBase%id" % ndim
             boundary = "Spheral::BoundarySpace::Boundary%id" % ndim
             vector_of_boundary = "vector_of_Boundary%id" % ndim
+            vector_of_Vector = "vector_of_Vector%id" % ndim
             tablekernel = "Spheral::KernelSpace::TableKernel%id" % ndim
             smoothingscalebase = "Spheral::NodeSpace::SmoothingScaleBase%id" % ndim
             weightingfunctor = "Spheral::WeightingFunctor%id" % ndim
@@ -106,6 +130,30 @@ class NodeGenerators:
                                   param("int", "maxIterations", default_value="100"),
                                   param("double", "tolerance", default_value="1.0e-4")],
                                  docstring = "Iteratively relax a set of nodes within a boundary.")
+
+            Spheral.add_function("compactFacetedVolumes", "unsigned int",
+                                 [refparam(vector_of_facetedvolume, "shapes"),
+                                  refparam(vector_of_Vector, "centers"),
+                                  refparam("vector_of_int", "flags"),
+                                  constrefparam(poly, "surface"),
+                                  param("double", "depthmax"),
+                                  param("unsigned int", "surfaceIterations"),
+                                  param("unsigned int", "maxIterations"),
+                                  param("double", "dispfrac"),
+                                  param("double", "maxoverlapfrac")],
+                                 template_parameters = [dim],
+                                 custom_name = "compactFacetedVolumes%id" % ndim,
+                                 docstring = "Iteratively compact a set of shapes into surface polygon/polyhedron.")
+
+            Spheral.add_function("chooseRandomNonoverlappingCenter", "unsigned int",
+                                 [refparam(vector, "result"),
+                                  constrefparam(poly, "trialShape"),
+                                  constrefparam(poly, "boundary"),
+                                  constrefparam(vector_of_facetedvolume, "existingShapes"),
+                                  param("unsigned int", "maxTries")],
+                                 template_parameters = [dim],
+                                 custom_name = "chooseRandomNonoverlappingCenter%id" % ndim,
+                                 docstring = "Search for a non-overlapping position for a shape in a set of shapes inside a surface polygon/polyhedron.")
 
         return
 

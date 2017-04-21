@@ -65,7 +65,7 @@ computeCRKSPHMoments(const ConnectivityMap<Dimension>& connectivityMap,
   REQUIRE(gradm0.size() == numNodeLists);
   REQUIRE(gradm1.size() == numNodeLists);
   REQUIRE(gradm2.size() == numNodeLists);
-  if (correctionOrder == QuadraticOrder) {
+  if (correctionOrder == CRKOrder::QuadraticOrder) {
     REQUIRE(m3.size() == numNodeLists);
     REQUIRE(m4.size() == numNodeLists);
     REQUIRE(gradm3.size() == numNodeLists);
@@ -87,7 +87,7 @@ computeCRKSPHMoments(const ConnectivityMap<Dimension>& connectivityMap,
   gradm0 = Vector::zero;
   gradm1 = Tensor::zero;
   gradm2 = ThirdRankTensor::zero;
-  if (correctionOrder == QuadraticOrder) {
+  if (correctionOrder == CRKOrder::QuadraticOrder) {
     m3 = ThirdRankTensor::zero;
     m4 = FourthRankTensor::zero;
     gradm3 = FourthRankTensor::zero;
@@ -150,14 +150,47 @@ computeCRKSPHMoments(const ConnectivityMap<Dimension>& connectivityMap,
 
             // Kernel weighting and gradient.
             const Vector rij = ri - rj;
-            const Vector etai = Hi*rij;
-            const Vector etaj = Hj*rij;
+            Vector etai = Hi*rij;
+            Vector etaj = Hj*rij;
+
             const std::pair<double, double> WWi = W.kernelAndGradValue(etai.magnitude(), Hdeti);
-            const Scalar Wi = WWi.first;
-            const Vector gradWi = -(Hi*etai.unitVector())*WWi.second;
             const std::pair<double, double> WWj = W.kernelAndGradValue(etaj.magnitude(), Hdetj);
-            const Scalar Wj = WWj.first;
-            const Vector gradWj = (Hj*etaj.unitVector())*WWj.second;
+
+            // // j
+            // const Scalar Wi = WWi.first;
+            // const Scalar Wj = WWj.first;
+            // const Vector gradWj =  (Hj*etaj.unitVector())*WWj.second;
+            // const Vector gradWi = -(Hi*etai.unitVector())*WWi.second;
+
+            // // i
+            // // const Scalar Wi = WWj.first;
+            // // const Scalar Wj = WWi.first;
+            // // const Vector gradWj = -(Hi*etai.unitVector())*WWi.second;
+            // // const Vector gradWi =  (Hj*etaj.unitVector())*WWj.second;
+
+            // ij
+            const Scalar Wi = 0.5*(WWi.first + WWj.first);
+            const Scalar Wj = Wi;
+            const Vector gradWj = 0.5*((Hj*etaj.unitVector())*WWj.second +
+                                       (Hi*etai.unitVector())*WWi.second);
+            const Vector gradWi = -gradWj;
+
+            // // max h
+            // Scalar Wi, Wj;
+            // Vector gradWi, gradWj;
+            // if (etai.magnitude2() < etaj.magnitude2()) {
+            //   const std::pair<double, double> WWi = W.kernelAndGradValue(etai.magnitude(), Hdeti);
+            //   Wi = WWi.first;
+            //   gradWi = -(Hi*etai.unitVector())*WWi.second;
+            //   Wj = Wi;
+            //   gradWj = -gradWi;
+            // } else {
+            //   const std::pair<double, double> WWj = W.kernelAndGradValue(etaj.magnitude(), Hdetj);
+            //   Wj = WWj.first;
+            //   gradWj = (Hj*etaj.unitVector())*WWj.second;
+            //   Wi = Wj;
+            //   gradWi = -gradWj;
+            // }
 
             // Zeroth moment. 
             const Scalar wwi = wi*Wi;
@@ -203,7 +236,7 @@ computeCRKSPHMoments(const ConnectivityMap<Dimension>& connectivityMap,
 
             // We only need the next moments if doing quadratic CRK.  We avoid it otherwise
             // since this is a lot of memory and expense.
-            if (correctionOrder == QuadraticOrder) {
+            if (correctionOrder == CRKOrder::QuadraticOrder) {
 
               // Third Moment
               for (size_t ii = 0; ii != Dimension::nDim; ++ii) {

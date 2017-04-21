@@ -1,7 +1,7 @@
-#ATS:test(SELF, "--CRKSPH True --cfl 0.25 --Cl 1.0 --Cq 1.0 --clearDirectories True --filter 0.0 --goalTime 3.0", label="Yee CRK, filter=0.0", np=10)
-#ATS:test(SELF, "--CRKSPH True --cfl 0.25 --Cl 1.0 --Cq 1.0 --clearDirectories True --filter 0.01 --goalTime 3.0", label="Yee CRK, filter=0.01", np=10)
-#ATS:test(SELF, "--CRKSPH True --cfl 0.25 --Cl 1.0 --Cq 1.0 --clearDirectories True --filter 0.1 --goalTime 3.0", label="Yee CRK, filter=0.1", np=10)
-#ATS:test(SELF, "--CRKSPH True --cfl 0.25 --Cl 1.0 --Cq 1.0 --clearDirectories True --filter 0.2 --goalTime 3.0", label="Yee CRK, filter=0.2", np=10)
+#ATS:test(SELF, "--CRKSPH True --cfl 0.25 --Cl 1.0 --Cq 1.0 --clearDirectories True --filter 0.0 --goalTime 3.0 --nRadial=64 --outputFile='yee.txt'", label="Yee CRK, 64", np=1)
+#ATS:test(SELF, "--CRKSPH True --cfl 0.25 --Cl 1.0 --Cq 1.0 --clearDirectories True --filter 0.0 --goalTime 3.0 --nRadial=128 --outputFile='yee.txt'", label="Yee CRK, 128", np=20)
+#ATS:test(SELF, "--CRKSPH True --cfl 0.25 --Cl 1.0 --Cq 1.0 --clearDirectories True --filter 0.0 --goalTime 3.0 --nRadial=256 --outputFile='yee.txt'", label="Yee CRK, 256", np=40)
+#ATS:test(SELF, "--CRKSPH True --cfl 0.25 --Cl 1.0 --Cq 1.0 --clearDirectories True --filter 0.0 --goalTime 3.0 --nRadial=512 --outputFile='yee.txt'", label="Yee CRK, 512", np=40)
 #-------------------------------------------------------------------------------
 # The Yee-Vortex Test
 #-------------------------------------------------------------------------------
@@ -33,7 +33,8 @@ class YeeDensity:
         return
     def __call__(self, r):
         r2 = (r.x-self.xc)*(r.x-self.xc)+(r.y-self.yc)*(r.y-self.yc) 
-        temp = self.temp_inf - (self.gamma-1.0)*self.beta*exp(1.0-r2)/(8.0*self.gamma*pi*pi)
+        #temp = self.temp_inf - (self.gamma-1.0)*self.beta*exp(1.0-r2)/(8.0*self.gamma*pi*pi) #Springel
+        temp = self.temp_inf - (self.gamma-1.0)*self.beta*self.beta*exp(1.0-r2)/(8.0*self.gamma*pi*pi)
         return pow(temp,1.0/(self.gamma-1.0))
 
 title("2-D integrated hydro test --  Yee-Vortex Test")
@@ -46,28 +47,28 @@ commandLine(
     gamma = 1.4,
 
     # Translation
-    velTx=0.0,
-    velTy=0.0,
+    vel_infx=0.0,
+    vel_infy=0.0,
 
-    # Geometry of Box
-    x0 = -5.0,
-    x1 =  5.0,
-    y0 = -5.0,
-    y1 =  5.0,
-   
-    #Center of Vortex
+    #Center and radius of Vortex
     xc=0.0,
     yc=0.0,
+    rmax = 5.0,
+
+    # How far should we measure the error norms?
+    rmaxnorm = 5.0,
     
+    # The number of radial points on the outside to force with constant BC
+    nbcrind = 10,
+
     #Vortex strength
     beta = 5.0,
     #Tempurature at inf
     temp_inf = 1.0,
 
     # Resolution and node seeding.
-    nx1 = 64,
-    ny1 = 64,
-    seed = "lattice",
+    nRadial = 64,
+    seed = "constantDTheta",
 
     nPerh = 1.51,
 
@@ -117,7 +118,7 @@ commandLine(
     vizTime = 0.1,
     dt = 0.0001,
     dtMin = 1.0e-5, 
-    dtMax = 0.1,
+    dtMax = 1.0,
     dtGrowth = 2.0,
     maxSteps = None,
     statsStep = 10,
@@ -128,11 +129,15 @@ commandLine(
 
     densityUpdate = RigorousSumDensity, # VolumeScaledDensity,
     compatibleEnergy = True,
-    gradhCorrection = False,
+    gradhCorrection = True,
+    HopkinsConductivity = False,   # For PSPH
+    correctVelocityGradient = True,
+    evolveTotalEnergy = False,
+    XPSH=False,
 
     useVoronoiOutput = False,
     clearDirectories = False,
-    restoreCycle = None,
+    restoreCycle = -1,
     restartStep = 200,
     dataDir = "dumps-yeevortex-xy",
     graphics = True,
@@ -182,15 +187,16 @@ baseDir = os.path.join(dataDir,
                        "nPerh=%3.1f" % nPerh,
                        "fcentroidal=%f" % max(fcentroidal, filter),
                        "fcellPressure=%f" % fcellPressure,
-                       "%ix%i" % (nx1, ny1))
+                       "seed=%s" % seed,
+                       str(nRadial))
 restartDir = os.path.join(baseDir, "restarts")
-restartBaseName = os.path.join(restartDir, "yeevortex-xy-%ix%i" % (nx1, ny1))
+restartBaseName = os.path.join(restartDir, "yeevortex-xy-%i" % nRadial)
 
 vizDir = os.path.join(baseDir, "visit")
 if vizTime is None and vizCycle is None:
     vizBaseName = None
 else:
-    vizBaseName = "yeevortex-xy-%ix%i" % (nx1, ny1)
+    vizBaseName = "yeevortex-xy-%i" % nRadial
 
 #-------------------------------------------------------------------------------
 # Check if the necessary output directories exist.  If not, create them.
@@ -206,16 +212,12 @@ if mpi.rank == 0:
 mpi.barrier()
 
 #-------------------------------------------------------------------------------
-# If we're restarting, find the set of most recent restart files.
-#-------------------------------------------------------------------------------
-if restoreCycle is None:
-    restoreCycle = findLastRestart(restartBaseName)
-
-#-------------------------------------------------------------------------------
 # Material properties.
 #-------------------------------------------------------------------------------
 mu = 1.0
+K = 1.0
 eos = GammaLawGasMKS(gamma, mu)
+#eos = PolytropicEquationOfStateMKS(K,gamma,mu)
 
 #-------------------------------------------------------------------------------
 # Interpolation kernels.
@@ -231,11 +233,11 @@ kernelExtent = WT.kernelExtent
 # Make the NodeLists.
 #-------------------------------------------------------------------------------
 nodes = makeFluidNodeList("fluid", eos,
-                               hmin = hmin,
-                               hmax = hmax,
-                               hminratio = hminratio,
-                               kernelExtent = kernelExtent,
-                               nPerh = nPerh)
+                          hmin = hmin,
+                          hmax = hmax,
+                          hminratio = hminratio,
+                          kernelExtent = kernelExtent,
+                          nPerh = nPerh)
 output("nodes.name")
 output("    nodes.hmin")
 output("    nodes.hmax")
@@ -245,51 +247,58 @@ output("    nodes.nodesPerSmoothingScale")
 #-------------------------------------------------------------------------------
 # Set the node properties.
 #-------------------------------------------------------------------------------
-if restoreCycle is None:
-    rmin = 0.0
-    rmax = sqrt(2.0)*(x1-x0)
-    
-    if(seed=="latticeCylindrical"):
-        rmin = x1-8.0*nPerh/nx1
-        rmax = x1-2.0*nPerh/nx1
-    
-    generator = GenerateNodeDistribution2d(nx1, ny1, rho = YeeDensity(xc,yc,gamma,beta,temp_inf),
+rmaxbound = rmax + rmax/nRadial*nbcrind
+nr1 = nRadial + nbcrind
+if seed == "lattice":
+    generator = GenerateNodeDistribution2d(2*nr1, 2*nr1,
+                                           rho = YeeDensity(xc,yc,gamma,beta,temp_inf),
                                            distributionType = seed,
-                                           xmin = (x0, y0),
-                                           xmax = (x1, y1),
-                                           #rmin = 0.0,
+                                           xmin = (-rmaxbound, -rmaxbound),
+                                           xmax = (rmaxbound, rmaxbound),
+                                           rmin = 0.0,
+                                           rmax = rmaxbound,
                                            theta = 2.0*pi,
-                                           #rmax = sqrt(2.0)*(x1 - x0),
-                                           rmax = rmax,
-                                           rmin = rmin,
+                                           nNodePerh = nPerh,
+                                           SPH = SPH)
+else:
+    generator = GenerateNodeDistribution2d(nr1, nr1,
+                                           rho = YeeDensity(xc,yc,gamma,beta,temp_inf),
+                                           distributionType = seed,
+                                           xmin = (-rmaxbound, -rmaxbound),
+                                           xmax = (rmaxbound, rmaxbound),
+                                           rmin = 0.0,
+                                           rmax = rmaxbound,
+                                           theta = 2.0*pi,
                                            nNodePerh = nPerh,
                                            SPH = SPH)
 
-    if mpi.procs > 1:
-        from VoronoiDistributeNodes import distributeNodes2d
-    else:
-        from DistributeNodes import distributeNodes2d
+if mpi.procs > 1:
+    from VoronoiDistributeNodes import distributeNodes2d
+else:
+    from DistributeNodes import distributeNodes2d
 
-    distributeNodes2d((nodes, generator))
-    print nodes.name, ":"
-    output("    mpi.reduce(nodes.numInternalNodes, mpi.MIN)")
-    output("    mpi.reduce(nodes.numInternalNodes, mpi.MAX)")
-    output("    mpi.reduce(nodes.numInternalNodes, mpi.SUM)")
+distributeNodes2d((nodes, generator))
+print nodes.name, ":"
+output("    mpi.reduce(nodes.numInternalNodes, mpi.MIN)")
+output("    mpi.reduce(nodes.numInternalNodes, mpi.MAX)")
+output("    mpi.reduce(nodes.numInternalNodes, mpi.SUM)")
 
-    #Set IC
-    vel = nodes.velocity()
-    eps = nodes.specificThermalEnergy()
-    pos = nodes.positions()
-    for i in xrange(nodes.numInternalNodes):
-        xi, yi = pos[i]
-        xci = (xi-xc)
-        yci = (yi-yc)
-        r2=xci*xci+yci*yci
-        velx = -yci*exp((1.0-r2)*0.5)*beta/(2.0*pi)
-        vely =  xci*exp((1.0-r2)*0.5)*beta/(2.0*pi)
-        vel[i] = Vector(velx,vely)
-        temp = temp_inf - (gamma-1.0)*beta*exp(1.0-r2)/(8.0*gamma*pi*pi)
-        eps[i] = temp/(gamma-1.0)
+#Set IC
+vel = nodes.velocity()
+eps = nodes.specificThermalEnergy()
+pos = nodes.positions()
+rho = nodes.massDensity()
+for i in xrange(nodes.numInternalNodes):
+    xi, yi = pos[i]
+    xci = (xi-xc)
+    yci = (yi-yc)
+    r2=xci*xci+yci*yci
+    velx = vel_infx-yci*exp((1.0-r2)*0.5)*beta/(2.0*pi)
+    vely = vel_infy+xci*exp((1.0-r2)*0.5)*beta/(2.0*pi)
+    vel[i] = Vector(velx,vely)
+    #temp = temp_inf - (gamma-1.0)*beta*beta*exp(1.0-r2)/(8.0*gamma*pi*pi)
+    #eps[i] = pow(temp,gamma/(gamma-1.0))/(gamma-1.0)
+    eps[i] = pow(rho[i],(gamma-1.0))/(gamma-1.0)
 
 #-------------------------------------------------------------------------------
 # Construct a DataBase to hold our node lists
@@ -344,12 +353,25 @@ elif CRKSPH:
                              XSPH = XSPH,
                              densityUpdate = densityUpdate,
                              HUpdate = HUpdate)
+elif PSPH:
+    hydro = HydroConstructor(W=WT,
+                             Q=q,
+                             filter=filter,
+                             cfl=cfl,
+                             compatibleEnergyEvolution=compatibleEnergy,
+                             evolveTotalEnergy=evolveTotalEnergy,
+                             HopkinsConductivity=HopkinsConductivity,
+                             correctVelocityGradient=correctVelocityGradient,
+                             densityUpdate=densityUpdate,
+                             HUpdate=HUpdate,
+                             XSPH=XPSH)
 else:
     hydro = HydroConstructor(W = WT,
                              Q = q,
                              cfl = cfl,
                              compatibleEnergyEvolution = compatibleEnergy,
                              gradhCorrection = gradhCorrection,
+                             correctVelocityGradient = correctVelocityGradient,
                              XSPH = XSPH,
                              densityUpdate = densityUpdate,
                              HUpdate = HUpdate,
@@ -375,29 +397,19 @@ elif boolCullenViscosity:
     evolveCullenViscosityMultiplier = CullenDehnenViscosity(q,WT,alphMax,alphMin,betaC,betaD,betaE,fKern,boolHopkinsCorrection)
     packages.append(evolveCullenViscosityMultiplier)
 
-
 #-------------------------------------------------------------------------------
 # Create boundary conditions.
 #-------------------------------------------------------------------------------
-xPlane0 = Plane(Vector(x0, y0), Vector( 1.0,  0.0))
-xPlane1 = Plane(Vector(x1, y0), Vector(-1.0,  0.0))
-yPlane0 = Plane(Vector(x0, y0), Vector( 0.0,  1.0))
-yPlane1 = Plane(Vector(x0, y1), Vector( 0.0, -1.0))
-
-xbc = PeriodicBoundary(xPlane0, xPlane1)
-ybc = PeriodicBoundary(yPlane0, yPlane1)
-
-xbc0 = ReflectingBoundary(xPlane0)
-xbc1 = ReflectingBoundary(xPlane1)
-ybc0 = ReflectingBoundary(yPlane0)
-ybc1 = ReflectingBoundary(yPlane1)
-
-bcSet = [xbc, ybc]
-#bcSet = [xbc0, xbc1, ybc0, ybc1]
-
+pos = nodes.positions()
+boundNodes = vector_of_int()
+for i in xrange(nodes.numInternalNodes):
+    if pos[i].magnitude() > rmax:
+        boundNodes.append(i)
+print "Selected %i boundary nodes" % mpi.allreduce(len(boundNodes), mpi.SUM)
+denialPlane = Plane(Vector(-2.0*rmax, 0.0), Vector(1.0, 0.0))  # A fake denial plane since we're working in circles.
+bc = ConstantBoundary(nodes, boundNodes, denialPlane)
 for p in packages:
-    for bc in bcSet:
-        p.appendBoundary(bc)
+    p.appendBoundary(bc)
 
 #-------------------------------------------------------------------------------
 # Construct a time integrator, and add the physics packages.
@@ -465,6 +477,7 @@ if useVoronoiOutput:
 else:
     vizMethod = None # default
 control = SpheralController(integrator, WT,
+                            initializeDerivatives = True,
                             statsStep = statsStep,
                             restartStep = restartStep,
                             restartBaseName = restartBaseName,
@@ -493,7 +506,7 @@ else:
 # If requested, write out the state in a global ordering to a file.
 #-------------------------------------------------------------------------------
 if outputFile != "None":
-    outputFile = os.path.join(dataDir, outputFile)
+    outputFile = os.path.join(baseDir, outputFile)
     from SpheralGnuPlotUtilities import multiSort
     P = ScalarField("pressure", nodes)
     nodes.pressure(P)
@@ -510,31 +523,43 @@ if outputFile != "None":
     mo = mpi.reduce(mof[0].internalValues(), mpi.SUM)
 
     if mpi.rank == 0:
-        rprof = [sqrt(xi*xi + yi*yi) for xi, yi in zip(xprof, yprof)]
+        import numpy as np
+        from Pnorm import Pnorm
+        rprof = np.array([sqrt(xi*xi + yi*yi) for xi, yi in zip(xprof, yprof)])
         multiSort(rprof, mo, xprof, yprof, rhoprof, Pprof, vprof, epsprof, hprof,velx,vely)
-        L1rho = 0.0
-        L1eps = 0.0
-        L1vel = 0.0
         epsans = []
         rhoans = []
         velans = []
+        Pans = []
         for i in xrange(len(xprof)):
            r = (Vector(xprof[i],yprof[i]) - Vector(xc, yc)).magnitude()
            r2 = r*r
-           temp = temp_inf - (gamma-1.0)*beta*exp(1.0-r2)/(8.0*gamma*pi*pi)
-           velxans = -yci*exp((1.0-r2)*0.5)*beta/(2.0*pi)
-           velyans =  xci*exp((1.0-r2)*0.5)*beta/(2.0*pi)
+           temp = temp_inf - (gamma-1.0)*beta*beta*exp(1.0-r2)/(8.0*gamma*pi*pi)
+           yci = yprof[i] - yc
+           xci = xprof[i] - xc
+           velxans = vel_infx-yci*exp((1.0-r2)*0.5)*beta/(2.0*pi)
+           velyans = vel_infy+xci*exp((1.0-r2)*0.5)*beta/(2.0*pi)
+           rhoi = temp**(1.0/(gamma-1.0))
+           
            epsans.append(temp/(gamma-1.0))
-           rhoans.append(pow(temp,1.0/(gamma-1.0)))
+           rhoans.append(rhoi)
            velans.append(Vector(velxans,velyans).magnitude())
-           L1rho = L1rho + abs(rhoans[i]-rhoprof[i])
-           L1eps = L1eps + abs(epsans[i]-epsprof[i])
-           L1vel = L1vel + abs(velans[i]-vprof[i])
-        L1rho = L1rho/len(xprof)
-        L1eps = L1eps/len(xprof)
-        L1vel = L1vel/len(xprof)
-        with open("Converge.txt.%s" % nPerh, "a") as myfile:
-          myfile.write("%s\t %s\t %s\t %s\n" % (nx1,L1rho,L1eps,L1vel))
+           Pans.append(temp*rhoi)
+        L1rho = Pnorm(rhoprof, rprof, rhoans).pnorm(1, rmin=0.0, rmax=rmaxnorm)
+        L2rho = Pnorm(rhoprof, rprof, rhoans).pnorm(2, rmin=0.0, rmax=rmaxnorm)
+        Linfrho = Pnorm(rhoprof, rprof, rhoans).pnorm("inf", rmin=0.0, rmax=rmaxnorm)
+        L1eps = Pnorm(epsprof, rprof, epsans).pnorm(1, rmin=0.0, rmax=rmaxnorm)
+        L2eps = Pnorm(epsprof, rprof, epsans).pnorm(2, rmin=0.0, rmax=rmaxnorm)
+        Linfeps = Pnorm(epsprof, rprof, epsans).pnorm("inf", rmin=0.0, rmax=rmaxnorm)
+        L1vel = Pnorm(vprof, rprof, velans).pnorm(1, rmin=0.0, rmax=rmaxnorm)
+        L2vel = Pnorm(vprof, rprof, velans).pnorm(2, rmin=0.0, rmax=rmaxnorm)
+        Linfvel = Pnorm(vprof, rprof, velans).pnorm("inf", rmin=0.0, rmax=rmaxnorm)
+        L1P = Pnorm(Pprof, rprof, Pans).pnorm(1, rmin=0.0, rmax=rmaxnorm)
+        L2P = Pnorm(Pprof, rprof, Pans).pnorm(2, rmin=0.0, rmax=rmaxnorm)
+        LinfP = Pnorm(Pprof, rprof, velans).pnorm("inf", rmin=0.0, rmax=rmaxnorm)
+        with open("converge-CRK-%s-cullen-%s-PSPH-%s.txt" % (CRKSPH,boolCullenViscosity,PSPH), "a") as myfile:
+            myfile.write(("#" + 14*"%16s\t " + "%16s\n") % ("nRadial", "L1rho", "L1eps", "L1vel", "L2rho", "L2eps", "L2vel", "Linfrho", "Linfeps", "Linfvel", "L1P", "L2P", "LinfP", "cycles", "runtime"))
+            myfile.write((14*"%16s\t " + "%16s\n") % (nRadial, L1rho, L1eps, L1vel, L2rho, L2eps, L2vel, Linfrho, Linfeps, Linfvel, L1P, L2P, LinfP, control.totalSteps, control.stepTimer.elapsedTime))
         f = open(outputFile, "w")
         f.write(("# " + 19*"%15s " + "\n") % ("r", "x", "y", "rho", "P", "v", "eps", "h", "mortonOrder", "rhoans", "epsans", "velans",
                                               "x_uu", "y_uu", "rho_uu", "P_uu", "v_uu", "eps_uu", "h_uu"))

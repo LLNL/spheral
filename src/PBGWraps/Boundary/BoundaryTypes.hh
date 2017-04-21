@@ -16,6 +16,7 @@
 #include "Boundary/SphericalBoundary.hh"
 #include "Boundary/CylindricalBoundary.hh"
 #include "Boundary/AxialSymmetryBoundary.hh"
+#include "Boundary/AxisBoundaryRZ.hh"
 
 #include "PBGWraps/referenceAsPointer.hh"
 

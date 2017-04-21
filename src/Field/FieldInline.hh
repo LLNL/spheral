@@ -10,6 +10,7 @@
 #include "Field/NodeIterators.hh"
 #include "Utilities/packElement.hh"
 #include "Utilities/removeElements.hh"
+#include "Utilities/safeInv.hh"
 #include "Distributed/Communicator.hh"
 
 #ifdef USE_MPI
@@ -616,8 +617,7 @@ operator/(const Field<Dimension, typename Dimension::Scalar>& rhs) const {
   Field<Dimension, DataType> result(*this);
   const unsigned n = this->numElements();
   for (unsigned i = 0; i != n; ++i) {
-    CHECK(rhs(i) != 0.0);
-    result(i) /= rhs(i);
+    result(i) *= safeInvVar(rhs(i), 1.0e-60);
   }
   return result;
 }
@@ -635,8 +635,7 @@ operator/=(const Field<Dimension, typename Dimension::Scalar>& rhs) {
   REQUIRE(this->nodeListPtr() == rhs.nodeListPtr());
   const unsigned n = this->numElements();
   for (int i = 0; i < n; ++i) {
-    REQUIRE(rhs(i) != 0.0);
-    (*this)(i) /= rhs(i);
+    (*this)(i) *= safeInvVar(rhs(i), 1.0e-60);
   }
   return *this;
 }
@@ -668,7 +667,6 @@ operator/=(const Scalar& rhs) {
   REQUIRE(rhs != 0.0);
   const unsigned n = this->numElements();
   for (int i = 0; i < n; ++i) {
-    CHECK(rhs != 0.0);
     (*this)(i) /= rhs;
   }
   return *this;

@@ -12,8 +12,6 @@
 #include "Field/NodeIterators.hh"
 #include "Utilities/DBC.hh"
 
-#include "boost/foreach.hpp"
-
 namespace Spheral {
 namespace PhysicsSpace {
 
@@ -35,7 +33,7 @@ ConstantAcceleration(const Vector a0,
   ma0(a0),
   mNodeListPtr(&nodeList),
   mFlags("constant acceleration flags for " + nodeList.name(), nodeList, 0) {
-  BOOST_FOREACH(const int i, indices) {
+  for (const int i: indices) {
     mFlags(i) = 1;
   }
 }

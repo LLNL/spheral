@@ -46,6 +46,14 @@ plasticStrain0() const {
 
 template<typename Dimension>
 inline
+const FieldSpace::FieldList<Dimension, typename Dimension::SymTensor>&
+SolidCRKSPHHydroBase<Dimension>::
+Hfield0() const {
+  return mHfield0;
+}
+
+template<typename Dimension>
+inline
 const FieldSpace::FieldList<Dimension, typename Dimension::Scalar>&
 SolidCRKSPHHydroBase<Dimension>::
 Adamage() const {

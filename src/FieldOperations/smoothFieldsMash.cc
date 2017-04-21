@@ -116,15 +116,15 @@ smoothFieldsMash(const FieldList<Dimension, DataType>& fieldList,
           // Get the symmetrized kernel weighting for this node pair.
           Scalar Wij;
           switch(neighborItr.nodeListPtr()->neighbor().neighborSearchType()) {
-          case NeighborSpace::GatherScatter:
+          case NeighborSpace::NeighborSearchType::GatherScatter:
             Wij = 0.5*(Wi + Wj);
             break;
 
-          case NeighborSpace::Gather:
+          case NeighborSpace::NeighborSearchType::Gather:
             Wij = Wi;
             break;
 
-          case NeighborSpace::Scatter:
+          case NeighborSpace::NeighborSearchType::Scatter:
             Wij = Wj;
             break;
 

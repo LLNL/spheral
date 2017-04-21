@@ -105,16 +105,16 @@ smoothFieldsMash2(const FieldList<Dimension, DataType>& fieldList,
           // Get the symmetrized kernel weighting for this node pair.
           Scalar Wij;
           switch((*fieldList.begin())->nodeListPtr()->neighbor().neighborSearchType()) {
-          case NeighborSpace::GatherScatter:
+          case NeighborSpace::NeighborSearchType::GatherScatter:
             Wij = 0.5*(kernel(etai, 1.0) + 
                        kernel(etaj, 1.0));
             break;
 
-          case NeighborSpace::Gather:
+          case NeighborSpace::NeighborSearchType::Gather:
             Wij = kernel(etai, 1.0);
             break;
 
-          case NeighborSpace::Scatter:
+          case NeighborSpace::NeighborSearchType::Scatter:
             Wij = kernel(etaj, 1.0);
             break;
 
@@ -157,16 +157,16 @@ smoothFieldsMash2(const FieldList<Dimension, DataType>& fieldList,
           // Get the symmetrized kernel weighting for this node pair.
           Scalar Wij0;
           switch((*fieldList.begin())->nodeListPtr()->neighbor().neighborSearchType()) {
-          case NeighborSpace::GatherScatter:
+          case NeighborSpace::NeighborSearchType::GatherScatter:
             Wij0 = 0.5*(kernel(etai, 1.0) + 
                         kernel(etaj, 1.0));
             break;
 
-          case NeighborSpace::Gather:
+          case NeighborSpace::NeighborSearchType::Gather:
             Wij0 = kernel(etai, 1.0);
             break;
 
-          case NeighborSpace::Scatter:
+          case NeighborSpace::NeighborSearchType::Scatter:
             Wij0 = kernel(etaj, 1.0);
             break;
 
@@ -258,16 +258,16 @@ smoothFieldsMash2(const FieldList<Dimension, DataType>& fieldList,
           // Get the symmetrized kernel weighting for this node pair.
           Scalar Wij;
           switch((*fieldList.begin())->nodeListPtr()->neighbor().neighborSearchType()) {
-          case NeighborSpace::GatherScatter:
+          case NeighborSpace::NeighborSearchType::GatherScatter:
             Wij = 0.5*(kernel(etai, 1.0) +
                        kernel(etaj, 1.0))*(a(masterItr) + b(masterItr)*rij.x());
             break;
 
-          case NeighborSpace::Gather:
+          case NeighborSpace::NeighborSearchType::Gather:
             Wij = kernel(etai, 1.0)*(a(masterItr) + b(masterItr)*rij.x());
             break;
 
-          case NeighborSpace::Scatter:
+          case NeighborSpace::NeighborSearchType::Scatter:
             Wij = kernel(etaj, 1.0)*(a(masterItr) + b(masterItr)*rij.x());
             break;
 

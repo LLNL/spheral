@@ -2,13 +2,13 @@
 from math import *
 from Spheral import *
 
-class Wintegral(SimpsonsIntegrationDoubleFunction):
+class Wintegral(ScalarFunctor):
     def __init__(self, W, ndim, useGradientAsKernel):
         assert ndim in (1, 2, 3)
         self.W = W
         self.ndim = ndim
         self.useGradientAsKernel = useGradientAsKernel
-        SimpsonsIntegrationDoubleFunction.__init__(self)
+        ScalarFunctor.__init__(self)
         return
     def __call__(self, x):
         if self.useGradientAsKernel:

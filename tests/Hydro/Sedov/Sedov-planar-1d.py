@@ -39,6 +39,7 @@ commandLine(nRadial = 50,
 
             CRKSPH = False,
             PSPH = False,
+            ASPH = False,  # Selects the H update algorithm -- can be used with CRK, PSPH, SPH, etc.
             Qconstructor = MonaghanGingoldViscosity,
             correctionOrder = LinearOrder,
             densityUpdate = RigorousSumDensity, # VolumeScaledDensity,
@@ -51,7 +52,6 @@ commandLine(nRadial = 50,
             aMax = 2.0,
             Qhmult = 1.0,
             boolCullenViscosity = False,
-            cullenReproducingKernelGradient = False,  # Use reproducing kernels for gradients in Cullen-Dehnen visocosity model
             alphMax = 2.0,
             alphMin = 0.02,
             betaC = 0.7,
@@ -83,7 +83,8 @@ commandLine(nRadial = 50,
             smoothIters = 0,
             HEvolution = IdealH,
             compatibleEnergy = True,
-            gradhCorrection = False,
+            gradhCorrection = True,
+            correctVelocityGradient = True,
 
             restoreCycle = None,
             restartStep = 1000,
@@ -124,11 +125,20 @@ Espike *= 0.5
 #-------------------------------------------------------------------------------
 if CRKSPH:
     Qconstructor = CRKSPHMonaghanGingoldViscosity
-    HydroConstructor = CRKSPHHydro
+    if ASPH:
+        HydroConstructor = ACRKSPHHydro
+    else:
+        HydroConstructor = CRKSPHHydro
 elif PSPH:
-    HydroConstructor = PSPHHydro
+    if ASPH:
+        HydroConstructor = APSPHHydro
+    else:
+        HydroConstructor = PSPHHydro
 else:
-    HydroConstructor = SPHHydro
+    if ASPH:
+        HydroConstructor = ASPHHydro
+    else:
+        HydroConstructor = SPHHydro
 
 #-------------------------------------------------------------------------------
 # Path names.
@@ -291,8 +301,8 @@ elif PSPH:
                              useVelocityMagnitudeForDt = useVelocityMagnitudeForDt,
                              compatibleEnergyEvolution = compatibleEnergy,
                              evolveTotalEnergy = evolveTotalEnergy,
-                             gradhCorrection = gradhCorrection,
                              HopkinsConductivity = HopkinsConductivity,
+                             correctVelocityGradient = correctVelocityGradient,
                              densityUpdate = densityUpdate,
                              HUpdate = HUpdate,
                              XSPH = XSPH)
@@ -303,6 +313,7 @@ else:
                              compatibleEnergyEvolution = compatibleEnergy,
                              evolveTotalEnergy = evolveTotalEnergy,
                              gradhCorrection = gradhCorrection,
+                             correctVelocityGradient = correctVelocityGradient,
                              densityUpdate = densityUpdate,
                              XSPH = XSPH,
                              HUpdate = HEvolution)
@@ -320,14 +331,12 @@ packages = [hydro]
 #-------------------------------------------------------------------------------
 # Construct the MMRV physics object.
 #-------------------------------------------------------------------------------
-
 if boolReduceViscosity:
     evolveReducingViscosityMultiplier = MorrisMonaghanReducingViscosity(q,nh,aMin,aMax)
     packages.append(evolveReducingViscosityMultiplier)
 elif boolCullenViscosity:
-    evolveCullenViscosityMultiplier = CullenDehnenViscosity(q,WT,alphMax,alphMin,betaC,betaD,betaE,fKern,boolHopkinsCorrection,cullenReproducingKernelGradient)
+    evolveCullenViscosityMultiplier = CullenDehnenViscosity(q,WT,alphMax,alphMin,betaC,betaD,betaE,fKern,boolHopkinsCorrection)
     packages.append(evolveCullenViscosityMultiplier)
-
 
 #-------------------------------------------------------------------------------
 # Create boundary conditions.
@@ -477,10 +486,7 @@ if graphics:
     if boolCullenViscosity:
         cullAlphaPlot = plotFieldList(q.ClMultiplier(),
                                       winTitle = "Cullen alpha")
-        cullDalphaPlot = plotFieldList(evolveCullenViscosityMultiplier.DrvAlphaDtQ(),
-                                       winTitle = "Cullen DalphaDt")
-        plots += [(cullAlphaPlot, "Sedov-planar-Cullen-alpha.png"),
-                  (cullDalphaPlot, "Sedov-planar-Cullen-DalphaDt.png")]
+        plots += [(cullAlphaPlot, "Sedov-planar-Cullen-alpha.png")]
 
     # Make hardcopies of the plots.
     for p, filename in plots:

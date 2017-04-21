@@ -1,11 +1,12 @@
 //---------------------------------Spheral++----------------------------------//
 // A simple form for the artificial viscosity due to Monaghan & Gingold.
-// This version specialized for cylindrical (RZ) coordinates.
 // References: 
 //   Monaghan, J. J, & Gingold, R. A. 1983, J. Comput. Phys., 52, 374
 //   Monaghan, J. J. 1992, ARA&A, 30, 543
 //
-// Created by JMO, Mon Nov 20 15:50:29 PST 2006
+// This form specialized for use with the area-weighted RZ formalism.
+// 
+// Created by JMO, Sat May 21 16:15:44 PDT 2016
 //----------------------------------------------------------------------------//
 #ifndef __Spheral_MonaghanGingoldViscosityRZ_hh__
 #define __Spheral_MonaghanGingoldViscosityRZ_hh__
@@ -25,17 +26,29 @@ public:
   typedef Dimension::SymTensor SymTensor;
 
   // Constructors.
-  MonaghanGingoldViscosityRZ(Scalar Clinear, Scalar Cquadratic);
+  MonaghanGingoldViscosityRZ(const Scalar Clinear,
+                             const Scalar Cquadratic,
+                             const bool linearInExpansion,
+                             const bool quadraticInExpansion);
 
   // Destructor.
   virtual ~MonaghanGingoldViscosityRZ();
 
-  // Method to apply the viscous acceleration, work, and pressure, to the derivatives
-  // all in one step (efficiency and all).
-  virtual void viscousEffects(const DataBaseSpace::DataBase<Dimension>& dataBase,
-                              const NeighborSpace::ConnectivityMap<Dimension>& connectivityMap,
-                              const State<Dimension>& state,
-                              StateDerivatives<Dimension>& derivatives) const;
+  // The required method to compute the artificial viscous P/rho^2.
+  virtual std::pair<Tensor, Tensor> Piij(const unsigned nodeListi, const unsigned i, 
+                                         const unsigned nodeListj, const unsigned j,
+                                         const Vector& xi,
+                                         const Vector& etai,
+                                         const Vector& vi,
+                                         const Scalar rhoi,
+                                         const Scalar csi,
+                                         const SymTensor& Hi,
+                                         const Vector& xj,
+                                         const Vector& etaj,
+                                         const Vector& vj,
+                                         const Scalar rhoj,
+                                         const Scalar csj,
+                                         const SymTensor& Hj) const;
 
   // Restart methods.
   virtual std::string label() const { return "MonaghanGingoldViscosityRZ"; }

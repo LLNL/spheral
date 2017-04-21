@@ -6,6 +6,7 @@
 // Created by J. Michael Owen, Sun Oct 30 15:36:33 PST 2005
 //----------------------------------------------------------------------------//
 #include <algorithm>
+#include <ctime>
 
 #include "ConnectivityMap.hh"
 #include "NodeList/NodeList.hh"
@@ -40,7 +41,7 @@ ConnectivityMap():
   mBuildGhostConnectivity(false),
   mConnectivity(),
   mNodeTraversalIndices(),
-  mKeys(FieldSpace::Copy) {
+  mKeys(FieldSpace::FieldStorageType::Copy) {
 }
 
 //------------------------------------------------------------------------------
@@ -499,6 +500,8 @@ valid() const {
                << *(itr + 1) << " "
                << mKeys(nodeList, *itr) << " "
                << mKeys(nodeList, *(itr + 1)) << " "
+               << mNodeLists[nodeList]->positions()(*itr) << " "
+               << mNodeLists[nodeList]->positions()(*(itr + 1)) << " "
                << endl;
           for (int i = 0; i != 100; ++i) cerr << mKeys(nodeList, i) << " " << mNodeLists[nodeList]->positions()(i) << " ";
           cerr << endl;
@@ -539,6 +542,7 @@ computeConnectivity() {
   END_CONTRACT_SCOPE
 
   const bool domainDecompIndependent = NodeListRegistrar<Dimension>::instance().domainDecompositionIndependent();
+  // std::clock_t tpre = std::clock();
 
   // Build ourselves a temporary DataBase with the set of NodeLists.
   // Simultaneously find the maximum kernel extent.
@@ -615,8 +619,13 @@ computeConnectivity() {
   vector<vector<pair<int, Key> > > keys;
   Vector rij;
   Scalar eta2i, eta2j;
+  // tpre = std::clock() - tpre;
 
   // Iterate over the NodeLists.
+  // std::clock_t t0, 
+  //   tmaster = std::clock_t(0), 
+  //   trefine = std::clock_t(0), 
+  //   twalk = std::clock_t(0);
   CHECK(mConnectivity.size() == connectivitySize);
   for (iiNodeList = 0; iiNodeList != numNodeLists; ++iiNodeList) {
 
@@ -626,11 +635,13 @@ computeConnectivity() {
       if (flagNodeDone(iiNodeList, ii) == 0) {
       
         // Set the master nodes.
+        // t0 = std::clock();
         Neighbor<Dimension>::setMasterNeighborGroup(position(iiNodeList, ii),
                                                     H(iiNodeList, ii),
                                                     mNodeLists.begin(),
                                                     mNodeLists.end(),
                                                     mNodeLists[iiNodeList]->neighbor().kernelExtent());
+        // tmaster += std::clock() - t0;
 
         // Iterate over the full of NodeLists again to work on the master nodes.
         for (iNodeList = 0; iNodeList != numNodeLists; ++iNodeList) {
@@ -666,9 +677,12 @@ computeConnectivity() {
                 firstGhostNodej = mNodeLists[jNodeList]->firstGhostNode();
 
                 // Set the refine neighbors.
+                // t0 = std::clock();
                 neighborj.setRefineNeighborList(ri, Hi);
+                // trefine += std::clock() - t0;
 
                 // Iterate over the neighbors in this NodeList.
+                // t0 = std::clock();
                 for (neighborItr = neighborj.refineNeighborBegin();
                      neighborItr != neighborj.refineNeighborEnd();
                      ++neighborItr) {
@@ -704,6 +718,7 @@ computeConnectivity() {
                     }
                   }
                 }
+                // twalk += std::clock() - t0;
               }
               CHECK(neighbors.size() == numNodeLists);
               CHECK(keys.size() == numNodeLists);
@@ -846,6 +861,16 @@ computeConnectivity() {
       }
     }
   }
+
+  // {
+  //   tpre = allReduce(unsigned(tpre), MPI_SUM, Communicator::communicator()) / Process::getTotalNumberOfProcesses() / CLOCKS_PER_SEC;
+  //   tmaster = allReduce(unsigned(tmaster), MPI_SUM, Communicator::communicator()) / Process::getTotalNumberOfProcesses() / CLOCKS_PER_SEC;
+  //   trefine = allReduce(unsigned(trefine), MPI_SUM, Communicator::communicator()) / Process::getTotalNumberOfProcesses() / CLOCKS_PER_SEC;
+  //   twalk = allReduce(unsigned(twalk), MPI_SUM, Communicator::communicator()) / Process::getTotalNumberOfProcesses() / CLOCKS_PER_SEC;
+  //   if (Process::getRank() == 0) {
+  //     std::cerr << "ConnectivityMap timings (pre, master, refine, walk) = " << tpre << " " << tmaster << " " << trefine << " " << twalk << std::endl;
+  //   }
+  // }
 
   // Post conditions.
   BEGIN_CONTRACT_SCOPE

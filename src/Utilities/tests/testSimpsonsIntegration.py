@@ -13,11 +13,11 @@ rangen = random.Random()
 # Implement a simple linear function in x.
 # y = a + b*x
 #===============================================================================
-class LinearFunction(SimpsonsIntegrationDoubleFunction):
+class LinearFunction(ScalarScalarFunctor):
     def __init__(self, a, b):
         self.a = a
         self.b = b
-        SimpsonsIntegrationDoubleFunction.__init__(self)
+        ScalarScalarFunctor.__init__(self)
         return
     def __call__(self, x):
         return self.a + self.b*x
@@ -26,12 +26,12 @@ class LinearFunction(SimpsonsIntegrationDoubleFunction):
 # Implement a quadratic function in x.
 # y = a + b*x * c*x^2
 #===============================================================================
-class QuadraticFunction(SimpsonsIntegrationDoubleFunction):
+class QuadraticFunction(ScalarScalarFunctor):
     def __init__(self, a, b, c):
         self.a = a
         self.b = b
         self.c = c
-        SimpsonsIntegrationDoubleFunction.__init__(self)
+        ScalarScalarFunctor.__init__(self)
         return
     def __call__(self, x):
         return self.a + (self.b + self.c*x)*x

@@ -298,6 +298,101 @@ closestPoint(const GeomVector<1>& p) const {
 }
 
 //------------------------------------------------------------------------------
+// += Vector, shift box in space
+//------------------------------------------------------------------------------
+inline
+Box1d&
+Box1d::
+operator+=(const Box1d::Vector& rhs) {
+  mCenter += rhs;
+  mVertices[0] += rhs;
+  mVertices[1] += rhs;
+  return *this;
+}
+
+//------------------------------------------------------------------------------
+// -= Vector, shift box in space
+//------------------------------------------------------------------------------
+inline
+Box1d&
+Box1d::
+operator-=(const Box1d::Vector& rhs) {
+  (*this) += -rhs;
+  return *this;
+}
+
+//------------------------------------------------------------------------------
+// + Vector, return shifted box in space
+//------------------------------------------------------------------------------
+inline
+Box1d
+Box1d::
+operator+(const Box1d::Vector& rhs) const {
+  Box1d result(*this);
+  result += rhs;
+  return result;
+}
+
+//------------------------------------------------------------------------------
+// - Vector, return shifted box in space
+//------------------------------------------------------------------------------
+inline
+Box1d
+Box1d::
+operator-(const Box1d::Vector& rhs) const {
+  return (*this) + (-rhs);
+}
+
+//------------------------------------------------------------------------------
+// *= Scalar, scale box
+//------------------------------------------------------------------------------
+inline
+Box1d&
+Box1d::
+operator*=(const double rhs) {
+  mCenter *= rhs;
+  mExtent *= rhs;
+  mVertices[0] *= rhs;
+  mVertices[1] *= rhs;
+  return *this;
+}
+
+//------------------------------------------------------------------------------
+// /= Scalar, scale box
+//------------------------------------------------------------------------------
+inline
+Box1d&
+Box1d::
+operator/=(const double rhs) {
+  (*this) *= 1.0/rhs;
+  return *this;
+}
+
+//------------------------------------------------------------------------------
+// * Scalar, scale box
+//------------------------------------------------------------------------------
+inline
+Box1d
+Box1d::
+operator*(const double rhs) const {
+  Box1d result(*this);
+  result *= rhs;
+  return result;
+}
+
+//------------------------------------------------------------------------------
+// / Scalar, scale box
+//------------------------------------------------------------------------------
+inline
+Box1d
+Box1d::
+operator/(const double rhs) const {
+  Box1d result(*this);
+  result /= rhs;
+  return result;
+}
+
+//------------------------------------------------------------------------------
 // ==
 //------------------------------------------------------------------------------
 inline

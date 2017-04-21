@@ -110,8 +110,8 @@ PSPHHydroBase(const SmoothingScaleBase<Dimension>& smoothingScaleMethod,
                           xmin,
                           xmax),
   mHopkinsConductivity(HopkinsConductivity),
-  mGamma(FieldSpace::Copy),
-  mPSPHcorrection(FieldSpace::Copy) {
+  mGamma(FieldSpace::FieldStorageType::Copy),
+  mPSPHcorrection(FieldSpace::FieldStorageType::Copy) {
 }
 
 //------------------------------------------------------------------------------
@@ -192,7 +192,7 @@ preStepInitialize(const DataBase<Dimension>& dataBase,
   FieldList<Dimension, Scalar> cs = state.fields(HydroFieldNames::soundSpeed, 0.0);
   FieldList<Dimension, Scalar> PSPHcorrection = state.fields(HydroFieldNames::PSPHcorrection, 0.0);
   computePSPHCorrections(connectivityMap, W, mass, position, specificThermalEnergy, gamma, H, 
-                         (this->mDensityUpdate != PhysicsSpace::IntegrateDensity),
+                         (this->mDensityUpdate != PhysicsSpace::MassDensityType::IntegrateDensity),
                          rho, P, cs, PSPHcorrection);
   for (ConstBoundaryIterator boundItr = this->boundaryBegin();
        boundItr != this->boundaryEnd();
@@ -237,7 +237,7 @@ postStateUpdate(const DataBase<Dimension>& dataBase,
   FieldList<Dimension, Scalar> cs = state.fields(HydroFieldNames::soundSpeed, 0.0);
   FieldList<Dimension, Scalar> PSPHcorrection = state.fields(HydroFieldNames::PSPHcorrection, 0.0);
   computePSPHCorrections(connectivityMap, W, mass, position, specificThermalEnergy, gamma, H,
-                         (this->mDensityUpdate != PhysicsSpace::IntegrateDensity),
+                         (this->mDensityUpdate != PhysicsSpace::MassDensityType::IntegrateDensity),
                          rho, P, cs, PSPHcorrection);
   for (ConstBoundaryIterator boundItr = this->boundaryBegin();
        boundItr != this->boundaryEnd();
@@ -435,7 +435,6 @@ evaluateDerivatives(const typename Dimension::Scalar time,
         // there are some nodes in this list.
         const vector<int>& connectivity = fullConnectivity[nodeListj];
         if (connectivity.size() > 0) {
-          const double fweightij = 1.0; // (nodeListi == nodeListj ? 1.0 : 0.2);
           const int firstGhostNodej = nodeLists[nodeListj]->firstGhostNode();
 
           // Loop over the neighbors.
@@ -510,12 +509,13 @@ evaluateDerivatives(const typename Dimension::Scalar time,
 
               // Zero'th and second moment of the node distribution -- used for the
               // ideal H calculation.
+              const double fweightij = nodeListi == nodeListj ? 1.0 : mj*rhoi/(mi*rhoj);
               const double rij2 = rij.magnitude2();
               const SymTensor thpt = rij.selfdyad()*safeInv(rij2*FastMath::square(Dimension::pownu12(rij2)), tiny);
-              weightedNeighborSumi += fweightij*std::abs(gWi);
-              weightedNeighborSumj += fweightij*std::abs(gWj);
-              massSecondMomenti += fweightij*gradWi.magnitude2()*thpt;
-              massSecondMomentj += fweightij*gradWj.magnitude2()*thpt;
+              weightedNeighborSumi +=     fweightij*std::abs(gWi);
+              weightedNeighborSumj += 1.0/fweightij*std::abs(gWj);
+              massSecondMomenti +=     fweightij*gradWi.magnitude2()*thpt;
+              massSecondMomentj += 1.0/fweightij*gradWj.magnitude2()*thpt;
 
               // Contribution to the sum density.
               if (nodeListi == nodeListj) {
@@ -602,12 +602,11 @@ evaluateDerivatives(const typename Dimension::Scalar time,
 
               // Estimate of delta v (for XSPH).
               if (this->mXSPH and (nodeListi == nodeListj)) {
-                const double fXSPH = max(0.0, min(1.0, abs(vij.dot(rij)*safeInv(vij.magnitude()*rij.magnitude()))));
-                CHECK(fXSPH >= 0.0 and fXSPH <= 1.0);
-                XSPHWeightSumi += fXSPH*mj/rhoj*Wi;
-                XSPHWeightSumj += fXSPH*mi/rhoi*Wj;
-                XSPHDeltaVi -= fXSPH*mj/rhoj*Wi*vij;
-                XSPHDeltaVj += fXSPH*mi/rhoi*Wj*vij;
+                const double wXSPHij = 0.5*(mi/rhoi*Wi + mj/rhoj*Wj);
+                XSPHWeightSumi += wXSPHij;
+                XSPHWeightSumj += wXSPHij;
+                XSPHDeltaVi -= wXSPHij*vij;
+                XSPHDeltaVj += wXSPHij*vij;
               }
 
               // Linear gradient correction term.

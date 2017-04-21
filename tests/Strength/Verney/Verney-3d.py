@@ -33,9 +33,9 @@ units = PhysicalConstants(0.01,  # Unit length in m
 #-------------------------------------------------------------------------------
 def F(alpha, lamb, R0, R1, n):
 
-    class integfunc(SimpsonsIntegrationDoubleFunction):
+    class integfunc(ScalarFunctor):
         def __init__(self, R0, R1):
-            SimpsonsIntegrationDoubleFunction.__init__(self)
+            ScalarFunctor.__init__(self)
             self.alpha = R1/R0 - 1.0
             self.thpt = 3.0*(self.alpha +
                              self.alpha*self.alpha +
@@ -54,7 +54,9 @@ def F(alpha, lamb, R0, R1, n):
 commandLine(nr = 10,              # Radial resolution of the shell in points
             seed = "lattice",     # "lattice" or "icosahedral"
             geometry = "octant",  # choose ("octant", "full").  "octant" not valid with "icosahedral" seed
-            nPerh = 2.01,
+
+            kernelOrder = 5,
+            nPerh = 1.35,
 
             # Material specific bounds on the mass density.
             etamin = 1e-3,
@@ -79,7 +81,7 @@ commandLine(nr = 10,              # Radial resolution of the shell in points
             hmax = 10.0,
             cfl = 0.25,
             useVelocityMagnitudeForDt = False,
-            XSPH = False,
+            XSPH = True,
             epsilonTensile = 0.0,
             nTensile = 4,
             filter = 0.0,
@@ -144,9 +146,10 @@ else:
 
 # Directories.
 dataDir = os.path.join(dataDirBase,
-                       str(HydroConstructor).split("'")[1].split(".")[-1],
-                       str(Qconstructor).split("'")[1].split(".")[-1],
+                       HydroConstructor.__name__,
+                       Qconstructor.__name__,
                        "densityUpdate=%s" % densityUpdate,
+                       "compatibleEnergy=%s" % compatibleEnergy,
                        seed,
                        geometry,
                        "nr=%i" % nr)
@@ -194,7 +197,7 @@ strengthModelBe = ConstantStrength(G0, Y0)
 # Create our interpolation kernels -- one for normal hydro interactions, and
 # one for use with the artificial viscosity
 #-------------------------------------------------------------------------------
-WT = TableKernel(BSplineKernel(), 1000)
+WT = TableKernel(NBSplineKernel(kernelOrder), 1000)
 output("WT")
 
 #-------------------------------------------------------------------------------

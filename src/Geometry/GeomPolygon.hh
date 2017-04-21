@@ -94,12 +94,26 @@ public:
   // Find the point in the polyhedron closest to the given point.
   Vector closestPoint(const Vector& p) const;
 
+  // Shift by a Vector delta.
+  GeomPolygon& operator+=(const Vector& rhs);
+  GeomPolygon& operator-=(const Vector& rhs);
+  GeomPolygon operator+(const Vector& rhs) const;
+  GeomPolygon operator-(const Vector& rhs) const;
+
+  // Scale by a scalar.
+  GeomPolygon& operator*=(const double rhs);
+  GeomPolygon& operator/=(const double rhs);
+  GeomPolygon operator*(const double rhs) const;
+  GeomPolygon operator/(const double rhs) const;
   // Comparisons.
   bool operator==(const GeomPolygon& rhs) const;
   bool operator!=(const GeomPolygon& rhs) const;
 
   // Test if the polygon is convex.
   bool convex(const double tol = 1.0e-8) const;
+
+  // Set the bounding box.
+  void setBoundingBox();
 
 private:
   //--------------------------- Private Interface ---------------------------//
@@ -109,9 +123,6 @@ private:
   std::vector<std::vector<unsigned> > mVertexFacetConnectivity, mFacetFacetConnectivity;
   Vector mXmin, mXmax;
   bool mConvex;
-
-  // Set the bounding box.
-  void setBoundingBox();
 
   static FILE* mDevnull;
 };

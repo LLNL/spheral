@@ -28,8 +28,8 @@ struct CompareWeakPtr: public binary_function<boost::weak_ptr<T>, boost::weak_pt
   typedef typename binary_function<boost::weak_ptr<T>, boost::weak_ptr<T>, bool>::first_argument_type first_argument_type;
   typedef typename binary_function<boost::weak_ptr<T>, boost::weak_ptr<T>, bool>::second_argument_type second_argument_type;
   typedef typename binary_function<boost::weak_ptr<T>, boost::weak_ptr<T>, bool>::result_type result_type;
-  result_type operator()(const boost::weak_ptr<T>& lhs,
-                         const boost::weak_ptr<T>& rhs) const {
+  result_type operator()(const boost::weak_ptr<T> lhs,
+                         const boost::weak_ptr<T> rhs) const {
     return lhs.lock() == rhs.lock();
   }
 };
@@ -60,16 +60,18 @@ instancePtr() {
 //------------------------------------------------------------------------------
 void
 RestartRegistrar::
-registerRestartHandle(boost::shared_ptr<RestartHandle>& restartHandlePtr,
+registerRestartHandle(boost::shared_ptr<RestartHandle> restartHandlePtr,
                       const unsigned priority) {
+  this->removeExpiredPointers();
+  CHECK(mPriorities.size() == mRestartHandles.size());
   boost::weak_ptr<RestartHandle> wptr(restartHandlePtr);
-  if (not haveRestartHandle(wptr)) {
-    priority_iterator itr = lower_bound(mPriorities.begin(), mPriorities.end(), priority);
+  if (not haveRestartHandle(restartHandlePtr)) {
+    priority_iterator itr = upper_bound(mPriorities.begin(), mPriorities.end(), priority);
     const size_t delta = distance(mPriorities.begin(), itr);
     mRestartHandles.insert(mRestartHandles.begin() + delta, wptr);
     mPriorities.insert(itr, priority);
   }
-  ENSURE(haveRestartHandle(wptr));
+  ENSURE(haveRestartHandle(restartHandlePtr));
   ENSURE(mRestartHandles.size() == mPriorities.size());
 }
 
@@ -78,15 +80,16 @@ registerRestartHandle(boost::shared_ptr<RestartHandle>& restartHandlePtr,
 //------------------------------------------------------------------------------
 void
 RestartRegistrar::
-unregisterRestartHandle(boost::shared_ptr<RestartHandle>& restartHandlePtr) {
+unregisterRestartHandle(boost::shared_ptr<RestartHandle> restartHandlePtr) {
+  this->removeExpiredPointers();
   boost::weak_ptr<RestartHandle> wptr(restartHandlePtr);
-  VERIFY(haveRestartHandle(wptr));
+  VERIFY(haveRestartHandle(restartHandlePtr));
   iterator itr = find_if(this->begin(), this->end(), bind2nd(CompareWeakPtr<RestartHandle>(), wptr));
   CHECK(itr != this->end());
   const size_t delta = distance(this->begin(), itr);
   mRestartHandles.erase(itr);
   mPriorities.erase(mPriorities.begin() + delta);
-  ENSURE(not haveRestartHandle(wptr));
+  ENSURE(not haveRestartHandle(restartHandlePtr));
   ENSURE(mRestartHandles.size() == mPriorities.size());
 }
 
@@ -95,12 +98,12 @@ unregisterRestartHandle(boost::shared_ptr<RestartHandle>& restartHandlePtr) {
 //------------------------------------------------------------------------------
 bool
 RestartRegistrar::
-haveRestartHandle(const boost::weak_ptr<RestartHandle>& restartHandlePtr) const {
+haveRestartHandle(const boost::shared_ptr<RestartHandle> restartHandlePtr) const {
   // const_iterator itr = std::find_if(this->begin(), this->end(), bind2nd(CompareWeakPtr<RestartHandle>(), restartHandlePtr));
   // return (itr != this->end());
   const_iterator itr = this->begin();
   while (itr < this->end() and
-         itr->lock() != restartHandlePtr.lock()) ++itr;
+         itr->lock() != restartHandlePtr) ++itr;
   return (itr != this->end());
 }
 

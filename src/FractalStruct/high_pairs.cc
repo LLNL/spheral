@@ -5,17 +5,13 @@ namespace FractalSpace
 {
   void high_pairs(Group& group)
   {
-    //  cerr << " entering high pairs " << "\n";
     int num_high_points=group.get_number_high_points();
     group.list_high.resize(num_high_points);
-    group.list_pair_1.reserve(3*num_high_points);
-    group.list_pair_2.reserve(3*num_high_points);
     group.list_pair_1.clear();
     group.list_pair_2.clear();
     int n_h=0;
-    for(vector <Point*>::const_iterator point_itr= group.list_points.begin();point_itr != group.list_points.end();++point_itr)
+    for(auto &p_point : group.list_points)
       {
-	Point* p_point=*point_itr;
 	if(p_point->get_it_is_high())
 	  {
 	    group.list_high[n_h]=p_point;

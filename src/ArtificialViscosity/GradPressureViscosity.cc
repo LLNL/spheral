@@ -23,7 +23,7 @@ GradPressureViscosity<Dimension>::
 GradPressureViscosity():
   ArtificialViscosity<Dimension>(),
   mKernelPtr(0),
-  mWeight(FieldSpace::Reference) {
+  mWeight(FieldSpace::FieldStorageType::Reference) {
 }
 
 //------------------------------------------------------------------------------
@@ -34,7 +34,7 @@ GradPressureViscosity<Dimension>::
 GradPressureViscosity(Scalar Clinear, Scalar Cquadratic):
   ArtificialViscosity<Dimension>(Clinear, Cquadratic),
   mKernelPtr(0),
-  mWeight(FieldSpace::Reference) {
+  mWeight(FieldSpace::FieldStorageType::Reference) {
 }
 
 //------------------------------------------------------------------------------

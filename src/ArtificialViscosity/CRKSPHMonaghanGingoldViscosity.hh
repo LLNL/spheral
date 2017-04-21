@@ -74,11 +74,13 @@ public:
   // Restart methods.
   virtual std::string label() const { return "CRKSPHMonaghanGingoldViscosity"; }
 
-private:
+protected:
   //--------------------------- Private Interface ---------------------------//
   double mEtaCritFrac, mEtaFoldFrac, mEtaCrit, mEtaFold;
   FieldSpace::FieldList<Dimension, Tensor> mGradVel;
 
+private:
+  //--------------------------- Private Interface ---------------------------//
   CRKSPHMonaghanGingoldViscosity();
   CRKSPHMonaghanGingoldViscosity(const CRKSPHMonaghanGingoldViscosity&);
   CRKSPHMonaghanGingoldViscosity& operator=(const CRKSPHMonaghanGingoldViscosity&) const;

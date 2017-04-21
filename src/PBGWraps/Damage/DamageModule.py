@@ -25,18 +25,20 @@ class Damage:
         Spheral = mod.add_cpp_namespace("Spheral")
         PhysicsSpace = Spheral.add_cpp_namespace("PhysicsSpace")
 
-        self.TensorStrainAlgorithm = space.add_enum("TensorStrainAlgorithm", ["BenzAsphaug",
-                                                                              "StrainHistory",
-                                                                              "MeloshRyanAsphaug",
-                                                                              "PlasticStrain",
-                                                                              "PseudoPlasticStrain"])
-        self.EffectiveDamageAlgorithm = space.add_enum("EffectiveDamageAlgorithm", ["Copy", "Max", "Sampled"])
+        self.TensorStrainAlgorithm = space.add_enum("TensorStrainAlgorithm", [("BenzAsphaug", "Spheral::PhysicsSpace::TensorStrainAlgorithm::BenzAsphaug"),
+                                                                              ("StrainHistory", "Spheral::PhysicsSpace::TensorStrainAlgorithm::StrainHistory"),
+                                                                              ("MeloshRyanAsphaug", "Spheral::PhysicsSpace::TensorStrainAlgorithm::MeloshRyanAsphaug"),
+                                                                              ("PlasticStrain", "Spheral::PhysicsSpace::TensorStrainAlgorithm::PlasticStrain"),
+                                                                              ("PseudoPlasticStrain", "Spheral::PhysicsSpace::TensorStrainAlgorithm::PseudoPlasticStrain")])
+        self.EffectiveDamageAlgorithm = space.add_enum("EffectiveDamageAlgorithm", [("Copy", "Spheral::PhysicsSpace::EffectiveDamageAlgorithm::Copy"),
+                                                                                    ("Max", "Spheral::PhysicsSpace::EffectiveDamageAlgorithm::Max"),
+                                                                                    ("Sampled", "Spheral::PhysicsSpace::EffectiveDamageAlgorithm::Sampled")])
 
-        self.EffectiveFlawAlgorithm = space.add_enum("EffectiveFlawAlgorithm", ["FullSpectrumFlaws",
-                                                                                "MinFlaw",
-                                                                                "MaxFlaw",
-                                                                                "InverseSumFlaws",
-                                                                                "SampledFlaws"])
+        self.EffectiveFlawAlgorithm = space.add_enum("EffectiveFlawAlgorithm", [("FullSpectrumFlaws", "Spheral::PhysicsSpace::EffectiveFlawAlgorithm::FullSpectrumFlaws"),
+                                                                                ("MinFlaw", "Spheral::PhysicsSpace::EffectiveFlawAlgorithm::MinFlaw"),
+                                                                                ("MaxFlaw", "Spheral::PhysicsSpace::EffectiveFlawAlgorithm::MaxFlaw"),
+                                                                                ("InverseSumFlaws", "Spheral::PhysicsSpace::EffectiveFlawAlgorithm::InverseSumFlaws"),
+                                                                                ("SampledFlaws", "Spheral::PhysicsSpace::EffectiveFlawAlgorithm::SampledFlaws")])
 
         for dim in self.dims:
             exec('''

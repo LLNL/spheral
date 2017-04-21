@@ -73,15 +73,15 @@ namespace FractalSpace
   double Hubble (const double& omega_0, const double& omega_lambda, const double& redshift);
   void hypre_dump(int level,vector <Point*>& hypre_points,ofstream& FH);
   void hypre_eror(FILE* PFH,int level,int ni,int er);
-  bool hypre_ij_numbering(Fractal_Memory& mem,vector <Point*>& hypre_points,const int& level);
-  bool hypre_ij_numbering(Fractal_Memory& mem,HypHest& HYP,vector <Point*>& hypre_points,const int& level);
-  bool hypre_ij_numbering(Fractal_Memory& mem,Fractal& frac,vector <Point*>& hypre_points,const int& level);
-  bool hypre_ij_numbering(Fractal_Memory& mem,Fractal& frac,vector <Point*>& hypre_points,const int& level,bool buffer_groups);
-  bool hypre_ij_numbering_selfie(Fractal_Memory& mem,Fractal& frac,vector <Point*>& hypre_points,const int& level);
-  void hypre_ij_solver(Fractal& fractal,Fractal_Memory& mem,const int& level);
-  void hypre_ij_solver(Fractal& fractal,Fractal_Memory& mem,int level,bool buffer_groups);
-  void hypre_ij_solver_selfie(Fractal& fractal,Fractal_Memory& mem,int level);
-  void hypre_ij_solver_pcg(Fractal& fractal,Fractal_Memory& mem,int level);
+//   bool hypre_ij_numbering(Fractal_Memory& mem,vector <Point*>& hypre_points,const int& level);
+  bool hypre_ij_numbering(Fractal_Memory& mem,HypHest& HYP,vector <Point*>& hypre_points,const int& level,const bool& buffer_groups);
+//   bool hypre_ij_numbering(Fractal_Memory& mem,Fractal& frac,vector <Point*>& hypre_points,const int& level);
+//   bool hypre_ij_numbering(Fractal_Memory& mem,Fractal& frac,vector <Point*>& hypre_points,const int& level,const bool& buffer_groups);
+//   bool hypre_ij_numbering_selfie(Fractal_Memory& mem,Fractal& frac,vector <Point*>& hypre_points,const int& level);
+  void hypre_ij_solver(Fractal& fractal,Fractal_Memory& mem,const int& level, const bool& buffer_groups);
+//   void hypre_ij_solver(Fractal& fractal,Fractal_Memory& mem,int level,bool buffer_groups);
+//   void hypre_ij_solver_selfie(Fractal& fractal,Fractal_Memory& mem,int level);
+//   void hypre_ij_solver_pcg(Fractal& fractal,Fractal_Memory& mem,int level);
   int hypre_load_balance(Fractal_Memory& mem,vector <Point*>points,bool& load_balance);
   int hypre_load_balance(Fractal_Memory& mem,HypHest& HYP,vector <Point*>points,bool& load_balance);
   void hypre_send_pots(Fractal_Memory& mem,vector <Point*>& hypre_points,vector <double>& potH,
@@ -133,6 +133,7 @@ namespace FractalSpace
 		      Fractal_Memory& mem);
   bool rad_compare(Particle* par1,Particle* par2);
   template <class GO_AWAY> void really_clear(vector <GO_AWAY>& die);
+  template <class GO_AWAY> void really_clear(vector<vector <GO_AWAY>>& die);
   bool right_diff(vector <int>& Va,vector <int>& Vb,vector <int>& VD);
   void remove_pseudo_particles(Fractal_Memory& mem,Fractal& frac);
   void scatter_particles(Fractal_Memory& mem,Fractal& frac);
@@ -172,5 +173,6 @@ namespace FractalSpace
   void velocities(Fractal_Memory& mem,Fractal& frac);
   int which_element(vector <Point*>& vec,int x,int y,int z,bool periodic,int period,ofstream& FF);
   void write_rv(const int& step,Fractal& fractal);
+  void write_rv(const int& step,Fractal& fractal,string tag);
 }
 

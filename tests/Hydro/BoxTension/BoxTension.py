@@ -17,9 +17,36 @@ import DistributeNodes
 title("2-D integrated hydro test --  Hydrostatic Equilibrium/Surface Tension Test")
 
 #-------------------------------------------------------------------------------
+# A rejecter for making elliptical regions.
+#-------------------------------------------------------------------------------
+class EllipticalRejecter:
+    def __init__(self, a, b, reverse):
+        self.a = a
+        self.b = b
+        self.reverse = reverse
+        return
+    def __call__(self, x0, y0, m0, H0):
+        x, y, m, H = [], [], [], []
+        for i in xrange(len(x0)):
+            xi = x0[i]
+            yi = y0[i]
+            test = (sqrt(((xi - 0.5)/a)**2 + ((yi - 0.5)/b)**2) <= 1.0)
+            if self.reverse:
+                test = not test
+            if test:
+                x.append(xi)
+                y.append(yi)
+                m.append(m0[i])
+                H.append(H0[i])
+        return x, y, m, H
+
+#-------------------------------------------------------------------------------
 # Generic problem parameters
 #-------------------------------------------------------------------------------
 commandLine(
+    # Should we do the box or ellipse?
+    problem = "box",
+
     # Outer state.
     rho1 = 1.0,
     P1 = 1.0,
@@ -34,7 +61,7 @@ commandLine(
     velx=0.0,
     vely=0.0,
 
-    # Geometry 
+    # Geometry (box)
     x0 = 0.0,
     x1 = 0.25,
     x2 = 0.75,
@@ -43,6 +70,10 @@ commandLine(
     y1 = 0.25,
     y2 = 0.75,
     y3 = 1.0,
+
+    # Geometry (ellipse)
+    a = 0.25,   # axis length in x
+    b = 0.125,  # axis length in y
 
     # Resolution and node seeding.
     nx1 = 100,
@@ -61,7 +92,6 @@ commandLine(
     ASPH = False,
     filter = 0.0,  # For CRKSPH
     Qconstructor = MonaghanGingoldViscosity,
-    #Qconstructor = TensorMonaghanGingoldViscosity,
     boolReduceViscosity = False,
     nh = 5.0,
     aMin = 0.1,
@@ -74,6 +104,8 @@ commandLine(
     betaE = 1.0,
     fKern = 1.0/3.0,
     boolHopkinsCorrection = True,
+    evolveTotalEnergy = False,
+    HopkinsConductivity = False,
 
     linearConsistent = False,
     fcentroidal = 0.0,
@@ -106,20 +138,25 @@ commandLine(
     domainIndependent = False,
     rigorousBoundaries = False,
     dtverbose = False,
+    redistributeStep = 1000,
 
     densityUpdate = RigorousSumDensity, # VolumeScaledDensity,
+    volumeType = CRKSumVolume,
     correctionOrder = LinearOrder,
     compatibleEnergy = True,
-    gradhCorrection = False,
+    gradhCorrection = True,
+    correctVelocityGradient = True,
     serialDump = False,
 
-    useVoronoiOutput = True,
+    useVoronoiOutput = False,
     clearDirectories = False,
-    restoreCycle = None,
+    restoreCycle = -1,
     restartStep = 200,
     dataDir = "dumps-boxtension-xy",
     )
+
 assert not(boolReduceViscosity and boolCullenViscosity)
+assert problem.lower() in ("box", "ellipse")
 
 # Decide on our hydro algorithm.
 if SVPH:
@@ -128,6 +165,7 @@ if SVPH:
     else:
         HydroConstructor = SVPHFacetedHydro
 elif CRKSPH:
+    Qconstructor = CRKSPHMonaghanGingoldViscosity
     if ASPH:
         HydroConstructor = ACRKSPHHydro
     else:
@@ -149,6 +187,7 @@ densityUpdateLabel = {IntegrateDensity : "IntegrateDensity",
                       RigorousSumDensity : "RigorousSumDensity",
                       SumVoronoiCellDensity : "SumVoronoiCellDensity"}
 baseDir = os.path.join(dataDir,
+                       problem,
                        HydroConstructor.__name__,
                        Qconstructor.__name__,
                        densityUpdateLabel[densityUpdate],
@@ -181,25 +220,21 @@ if mpi.rank == 0:
 mpi.barrier()
 
 #-------------------------------------------------------------------------------
-# If we're restarting, find the set of most recent restart files.
-#-------------------------------------------------------------------------------
-if restoreCycle is None:
-    restoreCycle = findLastRestart(restartBaseName)
-
-#-------------------------------------------------------------------------------
 # Material properties.
 #-------------------------------------------------------------------------------
 mu = 1.0
 eos1 = GammaLawGasMKS(gamma1, mu)
-eos2 = GammaLawGasMKS(gamma1, mu)
+eos2 = GammaLawGasMKS(gamma2, mu)
 
 #-------------------------------------------------------------------------------
 # Interpolation kernels.
 #-------------------------------------------------------------------------------
 if KernelConstructor==NBSplineKernel:
-  WT = TableKernel(NBSplineKernel(order), 1000)
+  WBase = NBSplineKernel(order)
 else:
-  WT = TableKernel(KernelConstructor(), 1000)
+  WBase = KernelConstructor()
+WT = TableKernel(WBase,1000)
+WTPi = WT
 output("WT")
 kernelExtent = WT.kernelExtent
 
@@ -230,7 +265,7 @@ del nodes
 #-------------------------------------------------------------------------------
 # Set the node properties.
 #-------------------------------------------------------------------------------
-if restoreCycle is None:
+if problem.lower() == "box":
     generatorOuter = GenerateNodeDistribution2d(nx1, ny1, rho1,
                                                 distributionType = "lattice",
                                                 xmin = (x0, y0),
@@ -246,39 +281,48 @@ if restoreCycle is None:
                                                 xmax = (x2, y2),
                                                 nNodePerh = nPerh,
                                                 SPH = not ASPH)
+else:
+    generatorOuter = GenerateNodeDistribution2d(nx1, ny1, rho1,
+                                                distributionType = "lattice",
+                                                xmin = (x0, y0),
+                                                xmax = (x3, y3),
+                                                nNodePerh = nPerh,
+                                                rejecter = EllipticalRejecter(a, b, True),
+                                                SPH = not ASPH)
+    generatorInner = GenerateNodeDistribution2d(nx2, ny2, rho2,
+                                                distributionType = "lattice",
+                                                xmin = (x1, y1),
+                                                xmax = (x2, y2),
+                                                nNodePerh = nPerh,
+                                                rejecter = EllipticalRejecter(a, b, False),
+                                                SPH = not ASPH)
+if mpi.procs > 1:
+    from VoronoiDistributeNodes import distributeNodes2d
+else:
+    from DistributeNodes import distributeNodes2d
 
-    if mpi.procs > 1:
-        from VoronoiDistributeNodes import distributeNodes2d
-    else:
-        from DistributeNodes import distributeNodes2d
+distributeNodes2d((outerNodes, generatorOuter),
+                  (innerNodes, generatorInner))
+for nodes in nodeSet:
+    print nodes.name, ":"
+    output("    mpi.reduce(nodes.numInternalNodes, mpi.MIN)")
+    output("    mpi.reduce(nodes.numInternalNodes, mpi.MAX)")
+    output("    mpi.reduce(nodes.numInternalNodes, mpi.SUM)")
+del nodes
 
-    distributeNodes2d((outerNodes, generatorOuter),
-                      (innerNodes, generatorInner))
-    for nodes in nodeSet:
-        print nodes.name, ":"
-        output("    mpi.reduce(nodes.numInternalNodes, mpi.MIN)")
-        output("    mpi.reduce(nodes.numInternalNodes, mpi.MAX)")
-        output("    mpi.reduce(nodes.numInternalNodes, mpi.SUM)")
-    del nodes
+# Set node specific thermal energies
+for (nodes, gamma, rho, P) in ((outerNodes, gamma1, rho1, P1),
+                               (innerNodes, gamma2, rho2, P2)):
+    eps0 = P/((gamma - 1.0)*rho)
+    nodes.specificThermalEnergy(ScalarField("tmp", nodes, eps0))
+del nodes
 
-    # Set node specific thermal energies
-    for (nodes, gamma, rho, P) in ((outerNodes, gamma1, rho1, P1),
-                                   (innerNodes, gamma2, rho2, P2)):
-        eps0 = P/((gamma - 1.0)*rho)
-        nodes.specificThermalEnergy(ScalarField("tmp", nodes, eps0))
-    del nodes
-
-    #for nodes in nodeSet:
-    #  vel = nodes.velocity()
-    #  for i in xrange(nodes.numInternalNodes):
-    #    vel[i]=Vector(velx,vely)
-    vel = outerNodes.velocity()
-    for i in xrange(outerNodes.numInternalNodes):
-        vel[i]=Vector(velx,vely)
-    vel = innerNodes.velocity()
-    for i in xrange(innerNodes.numInternalNodes):
-        vel[i]=Vector(velx,vely)
-
+vel = outerNodes.velocity()
+for i in xrange(outerNodes.numInternalNodes):
+    vel[i]=Vector(velx,vely)
+vel = innerNodes.velocity()
+for i in xrange(innerNodes.numInternalNodes):
+    vel[i]=Vector(velx,vely)
 
 #-------------------------------------------------------------------------------
 # Construct a DataBase to hold our node lists
@@ -333,13 +377,28 @@ elif CRKSPH:
                              XSPH = XSPH,
                              correctionOrder = correctionOrder,
                              densityUpdate = densityUpdate,
+                             volumeType = volumeType,
                              HUpdate = HUpdate)
+elif PSPH:
+    hydro = HydroConstructor(W = WT,
+                             Q = q,
+                             filter = filter,
+                             cfl = cfl,
+                             compatibleEnergyEvolution = compatibleEnergy,
+                             evolveTotalEnergy = evolveTotalEnergy,
+                             HopkinsConductivity = HopkinsConductivity,
+                             correctVelocityGradient = correctVelocityGradient,
+                             densityUpdate = densityUpdate,
+                             HUpdate = HUpdate,
+                             XSPH = XSPH)
+
 else:
     hydro = HydroConstructor(W = WT,
                              Q = q,
                              cfl = cfl,
                              compatibleEnergyEvolution = compatibleEnergy,
                              gradhCorrection = gradhCorrection,
+                             correctVelocityGradient = correctVelocityGradient,
                              XSPH = XSPH,
                              densityUpdate = densityUpdate,
                              HUpdate = HUpdate,
@@ -364,8 +423,6 @@ if boolReduceViscosity:
 elif boolCullenViscosity:
     evolveCullenViscosityMultiplier = CullenDehnenViscosity(q,WT,alphMax,alphMin,betaC,betaD,betaE,fKern,boolHopkinsCorrection)
     packages.append(evolveCullenViscosityMultiplier)
-
-
 
 #-------------------------------------------------------------------------------
 # Create boundary conditions.
@@ -424,17 +481,18 @@ else:
     import SpheralVisitDump
     vizMethod = SpheralVisitDump.dumpPhysicsState
 control = SpheralController(integrator, WT,
+                            initializeDerivatives = True,
                             statsStep = statsStep,
                             restartStep = restartStep,
                             restartBaseName = restartBaseName,
                             restoreCycle = restoreCycle,
+                            redistributeStep = redistributeStep,
                             vizMethod = vizMethod,
                             vizBaseName = vizBaseName,
                             vizDir = vizDir,
                             vizStep = vizCycle,
                             vizTime = vizTime,
-                            skipInitialPeriodicWork = (HydroConstructor in (SVPHFacetedHydro, ASVPHFacetedHydro)),
-                            SPH = SPH)
+                            SPH = (not ASPH))
 output("control")
 
 #-------------------------------------------------------------------------------

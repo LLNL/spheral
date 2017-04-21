@@ -22,6 +22,7 @@ INSTSRCTARGETS = \
 	$(srcdir)/PorousEquationOfStateInst.cc.py \
 	$(srcdir)/PorousStrengthModelInst.cc.py \
 	$(srcdir)/StrainPorosityInst.cc.py \
+	$(srcdir)/PhysicsEvolvingMaterialLibraryInst.cc.py \
 	$(ANEOSSRCS) \
 	$(GEODYNSRCS)
 

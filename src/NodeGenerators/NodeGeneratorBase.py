@@ -4,7 +4,7 @@ import mpi
 rank = mpi.rank
 procs = mpi.procs
 
-from Spheral import Vector2d, SymTensor2d, Vector3d, SymTensor3d, rotationMatrix2d, rotationMatrix3d
+from Spheral import Vector1d, SymTensor1d, Vector2d, SymTensor2d, Vector3d, SymTensor3d, rotationMatrix2d, rotationMatrix3d
 
 #-------------------------------------------------------------------------------
 # NodeGeneratorBase.
@@ -37,7 +37,7 @@ class NodeGeneratorBase:
     # Simple minded method to compute and assign unique global ID ranges to
     # each processor.
     #---------------------------------------------------------------------------
-    def globalIDRange(self, ntot):
+    def globalIDRange(self, ntot):        
         ndomain0 = ntot/procs
         remainder = ntot % procs
         assert remainder < procs
@@ -149,7 +149,8 @@ class NodeGeneratorBase:
         return 0.0
 
     def localVelocity(self, i):
-        return {type(SymTensor2d.zero) : Vector2d.zero,
+        return {type(SymTensor1d.zero) : Vector1d.zero,
+                type(SymTensor2d.zero) : Vector2d.zero,
                 type(SymTensor3d.zero) : Vector3d.zero}[type(self.H[0])]
 
 #-------------------------------------------------------------------------------

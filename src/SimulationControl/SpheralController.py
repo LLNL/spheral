@@ -31,7 +31,7 @@ from SpheralModules.Spheral.KernelSpace import BSplineKernel%(dim)sd
 from SpheralModules import vector_of_Physics%(dim)sd
 """ % {"dim" : dim})
 
-class SpheralController(RestartableObject):
+class SpheralController:
 
     #--------------------------------------------------------------------------
     # Constuctor.
@@ -61,13 +61,14 @@ class SpheralController(RestartableObject):
                  skipInitialPeriodicWork = False,
                  iterateInitialH = True,
                  numHIterationsBetweenCycles = 0):
-        RestartableObject.__init__(self)
+        self.restart = RestartableObject(self)
         self.integrator = integrator
         self.kernel = kernel
         self.restartObjects = restartObjects
         self.restartFileConstructor = restartFileConstructor
         self.SPH = SPH
         self.numHIterationsBetweenCycles = numHIterationsBetweenCycles
+        self._break = False
 
         # Determine the dimensionality of this run, based on the integrator.
         self.dim = "%id" % self.integrator.dataBase().nDim
@@ -165,10 +166,6 @@ class SpheralController(RestartableObject):
         # Set the simulation time.
         self.integrator.currentTime = initialTime
 
-        # If we're starting from scratch, initialize the H tensors.
-        if restoreCycle is None and not skipInitialPeriodicWork and iterateInitialH:
-            self.iterateIdealH()
-
         # Create ghost nodes for the physics packages to initialize with.
         self.integrator.setGhostNodes()
 
@@ -187,6 +184,10 @@ class SpheralController(RestartableObject):
         # If requested, initialize the derivatives.
         if initializeDerivatives:
             self.integrator.evaluateDerivatives(initialTime, 0.0, db, state, derivs)
+
+        # If we're starting from scratch, initialize the H tensors.
+        if restoreCycle is None and not skipInitialPeriodicWork and iterateInitialH:
+            self.iterateIdealH()
 
         # Set up the default periodic work.
         self.appendPeriodicWork(self.printCycleStatus, printStep)
@@ -285,13 +286,20 @@ class SpheralController(RestartableObject):
         return
 
     #--------------------------------------------------------------------------
+    # Allow Spheral to smoothly exit out of the controller loop.
+    #--------------------------------------------------------------------------
+    def stop(self):
+        self._break = True
+        return
+
+    #--------------------------------------------------------------------------
     # Advance the system to the given simulation time.  The user can also
     # specify a max number of steps to take.
     #--------------------------------------------------------------------------
     def advance(self, goalTime, maxSteps=None):
         currentSteps = 0
         while (self.time() < goalTime and
-               (maxSteps == None or currentSteps < maxSteps)):
+               (maxSteps == None or currentSteps < maxSteps) and (self._break == False)):
             self.stepTimer.start()
             self.integrator.step(goalTime)
             if self.numHIterationsBetweenCycles > 0:
@@ -303,9 +311,9 @@ class SpheralController(RestartableObject):
             # Do the periodic work.
             self.doPeriodicWork()
 
-#         # Force the periodic work to fire at the end of an advance.
-#         if maxSteps != 0:
-#             self.doPeriodicWork(force=True)
+        # Force the periodic work to fire at the end of an advance.
+        if maxSteps != 0:
+            self.doPeriodicWork(force=True)
 
         db = self.integrator.dataBase()
         bcs = self.integrator.uniqueBoundaryConditions()
@@ -687,7 +695,6 @@ precedeDistributed += [BoundarySpace.PeriodicBoundary%(dim)sd,
                 Time = None,
                 dt = None):
         mpi.barrier()
-        self.integrator.setGhostNodes()
         self.vizMethod(self.integrator,
                        baseFileName = self.vizBaseName,
                        baseDirectory = self.vizDir,

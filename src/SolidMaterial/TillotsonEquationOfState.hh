@@ -84,6 +84,10 @@ public:
 			     const FieldSpace::Field<Dimension, Scalar>& massDensity,
 			     const FieldSpace::Field<Dimension, Scalar>& specificThermalEnergy) const;
 
+  virtual void setEntropy(FieldSpace::Field<Dimension, Scalar>& entropy,
+                          const FieldSpace::Field<Dimension, Scalar>& massDensity,
+                          const FieldSpace::Field<Dimension, Scalar>& specificThermalEnergy) const;
+
   // Access the member data.
   double etamin_solid() const;
   double etamax_solid() const;
@@ -154,6 +158,9 @@ public:
 
   Scalar bulkModulus(const Scalar massDensity,
                      const Scalar specificThermalEnergy) const;
+
+  Scalar entropy(const Scalar massDensity,
+                 const Scalar specificThermalEnergy) const;
 
 private:
   //--------------------------- Private Interface ---------------------------//

@@ -220,9 +220,9 @@ class FieldOperations:
                                                                      constrefparam(vectorfieldlist, "splatPosition"),
                                                                      constrefparam(scalarfieldlist, "splatWeight"),
                                                                      constrefparam(symtensorfieldlist, "splatHfield"),
-                                                                     constrefparam(vector_of_Boundary, "boundaryConditions")],
+                                                                     constrefparam(vector_of_Boundary, "boundaries")],
                            template_parameters = [dim],
-                           custom_name = "splatMultipleScalarFieldsMash%id" % ndim)
+                           custom_name = "splatMultipleFieldsMash%id" % ndim)
 
         # gradient
         space.add_function("gradient", vectorfieldlist, [constrefparam(scalarfieldlist, "fieldList"),

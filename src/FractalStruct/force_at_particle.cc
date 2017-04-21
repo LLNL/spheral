@@ -5,11 +5,8 @@ namespace FractalSpace
 {
   void force_at_particle(Group& group, Fractal& fractal,const bool& conserve)
   { 
+    fractal.timing(-1,8);
     ofstream& FileFractal=fractal.p_file->DUMPS;
-    //    ofstream& FileFractal=fractal.p_file->FileFractal;
-    //    ofstream& FileForce=fractal.p_file->FileForce;
-    //
-    //    if(fractal.get_debug()) FileFractal << " enter force at particle " << &group << " " << group.get_level() << "\n";
     vector <double> dens(8);
     vector <double> weights(8);
     vector <double> pott(8);
@@ -23,15 +20,14 @@ namespace FractalSpace
     double d_inv=pow(2.0,group.get_level()-fractal.get_level_max());
     const  double scale=(double)(fractal.get_grid_length()*Misc::pow(2,fractal.get_level_max()));
     //
-    for(vector<Point*>::const_iterator point_itr=group.list_points.begin();point_itr !=group.list_points.end();++point_itr)
+    for(auto &p : group.list_points)
       {
-	Point& point=**point_itr;
+	Point& point=*p;
 	if(point.list_particles.empty()) continue;
 	bool not_yet=true;
-	//
-	for(vector<Particle*>::const_iterator particle_itr=point.list_particles.begin();particle_itr !=point.list_particles.end();++particle_itr)
+	for(auto &part : point.list_particles)
 	  {
-	    Particle& particle=**particle_itr;
+	    Particle& particle=*part;
 	    if(!particle.get_real_particle())
 	      continue;
 	    if(particle.get_p_highest_level_group() != 0)
@@ -51,7 +47,6 @@ namespace FractalSpace
 		    particle.set_field_pf(sum_pf);
 		    if(sum_pf[0]*sum_pf[1]*sum_pf[2]*sum_pf[3] ==0.0)
 		      particle.dump(FileFractal,pott,f_x,f_y,f_z);
-		    //		    particle.dump(FileForce)
 		  }
 	      }
 	    else
@@ -61,6 +56,6 @@ namespace FractalSpace
 	      }
 	  }
       }
-    //    if(fractal.get_debug()) FileFractal << " exit force at particle " << &group << " " << group.get_level() << "\n";
+    fractal.timing(1,8);
   }
 }

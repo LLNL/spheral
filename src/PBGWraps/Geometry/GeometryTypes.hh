@@ -22,6 +22,7 @@
 #include "Geometry/innerProduct.hh"
 #include "Geometry/outerProduct.hh"
 #include "Geometry/innerDoubleProduct.hh"
+#include "Geometry/aggregateFacetedVolumes.hh"
 #include "Utilities/DataTypeTraits.hh"
 
 using namespace Spheral;
@@ -73,6 +74,18 @@ typedef GeomPolyhedron Polyhedron;
 
 typedef std::vector<Spheral::Facet2d> vector_of_Facet2d;
 typedef std::vector<Spheral::Facet3d> vector_of_Facet3d;
+
+typedef std::vector<Spheral::Box1d> vector_of_FacetedVolume1d;
+typedef std::vector<Spheral::Polygon> vector_of_FacetedVolume2d;
+typedef std::vector<Spheral::Polyhedron> vector_of_FacetedVolume3d;
+
+typedef std::vector<std::vector<Spheral::Box1d> > vector_of_vector_of_FacetedVolume1d;
+typedef std::vector<std::vector<Spheral::Polygon> > vector_of_vector_of_FacetedVolume2d;
+typedef std::vector<std::vector<Spheral::Polyhedron> > vector_of_vector_of_FacetedVolume3d;
+
+typedef std::vector<Spheral::Plane1d> vector_of_Plane1d;
+typedef std::vector<Spheral::Plane2d> vector_of_Plane2d;
+typedef std::vector<Spheral::Plane3d> vector_of_Plane3d;
 
 //------------------------------------------------------------------------------
 // Sequence methods for geometric types.

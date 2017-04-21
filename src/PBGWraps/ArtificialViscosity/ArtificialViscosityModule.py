@@ -40,6 +40,12 @@ self.TensorSVPHViscosity%(dim)id = addObject(space, "TensorSVPHViscosity%(dim)id
 self.TensorCRKSPHViscosity%(dim)id = addObject(space, "TensorCRKSPHViscosity%(dim)id", allow_subclassing=True, parent=self.TensorMonaghanGingoldViscosity%(dim)id)
 self.VonNeumanViscosity%(dim)id = addObject(space, "VonNeumanViscosity%(dim)id", allow_subclassing=True, parent=self.ArtificialViscosity%(dim)id)
 ''' % {"dim" : dim})
+
+        if 2 in self.dims:
+            self.MonaghanGingoldViscosityGSRZ = addObject(space, "MonaghanGingoldViscosityGSRZ", allow_subclassing=True, parent=self.MonaghanGingoldViscosity2d)
+            #self.MonaghanGingoldViscosityRZ = addObject(space, "MonaghanGingoldViscosityRZ", allow_subclassing=True, parent=self.MonaghanGingoldViscosity2d)
+            #self.CRKSPHMonaghanGingoldViscosityRZ = addObject(space, "CRKSPHMonaghanGingoldViscosityRZ", allow_subclassing=True, parent=self.CRKSPHMonaghanGingoldViscosity2d)
+
         return
 
     #---------------------------------------------------------------------------
@@ -59,6 +65,12 @@ self.addTensorSVPHViscosityMethods(self.TensorSVPHViscosity%(dim)id, %(dim)i)
 self.addTensorCRKSPHViscosityMethods(self.TensorCRKSPHViscosity%(dim)id, %(dim)i)
 self.addVonNeumanViscosityMethods(self.VonNeumanViscosity%(dim)id, %(dim)i)
 ''' % {"dim" : dim})
+
+        if 2 in self.dims:
+            self.addMonaghanGingoldViscosityRZMethods(self.MonaghanGingoldViscosityGSRZ)
+            #self.addMonaghanGingoldViscosityRZMethods(self.MonaghanGingoldViscosityRZ)
+            #self.addCRKSPHMonaghanGingoldViscosityRZMethods(self.CRKSPHMonaghanGingoldViscosityRZ)
+
         return
 
     #---------------------------------------------------------------------------
@@ -95,7 +107,7 @@ self.addVonNeumanViscosityMethods(self.VonNeumanViscosity%(dim)id, %(dim)i)
         # Constructors.
         x.add_constructor([param("double", "Clinear", default_value="1.0"),
                            param("double", "Cquadratic", default_value="1.0"),
-                           param("CRKOrder", "QcorrectionOrder", default_value="Spheral::CRKSPHSpace::LinearOrder")])
+                           param("CRKOrder", "QcorrectionOrder", default_value="Spheral::CRKSPHSpace::CRKOrder::LinearOrder")])
 
         # Attributes.
         x.add_instance_attribute("Cl", "double", getter="Cl", setter="Cl")
@@ -176,6 +188,19 @@ self.addVonNeumanViscosityMethods(self.VonNeumanViscosity%(dim)id, %(dim)i)
         return
     
     #---------------------------------------------------------------------------
+    # Add methods to the MonaghanGingoldViscosityRZ specializations.
+    #---------------------------------------------------------------------------
+    def addMonaghanGingoldViscosityRZMethods(self, x):
+
+        # Constructors.
+        x.add_constructor([param("double", "Clinear", default_value="1.0"),
+                           param("double", "Cquadratic", default_value="1.0"),
+                           param("bool", "linearInExpansion", default_value="false"),
+                           param("bool", "quadraticInExpansion", default_value="false")])
+
+        return
+    
+    #---------------------------------------------------------------------------
     # Add methods to the CRKSPHMonaghanGingoldViscosity.
     #---------------------------------------------------------------------------
     def addCRKSPHMonaghanGingoldViscosityMethods(self, x, ndim):
@@ -197,6 +222,19 @@ self.addVonNeumanViscosityMethods(self.VonNeumanViscosity%(dim)id, %(dim)i)
 
         return
     
+    #---------------------------------------------------------------------------
+    # Add methods to the CRKSPHMonaghanGingoldViscosityRZ.
+    #---------------------------------------------------------------------------
+    def addCRKSPHMonaghanGingoldViscosityRZMethods(self, x):
+
+        # Constructors.
+        x.add_constructor([param("double", "Clinear", default_value="1.0"),
+                           param("double", "Cquadratic", default_value="1.0"),
+                           param("bool", "linearInExpansion", default_value="false"),
+                           param("bool", "quadraticInExpansion", default_value="false"),
+                           param("double", "etaCritFrac", default_value="1.0"),
+                           param("double", "etaFoldFrac", default_value="0.2")])
+
     #---------------------------------------------------------------------------
     # Add methods to the MorrsMonaghanReducingViscosity.
     #---------------------------------------------------------------------------
@@ -248,8 +286,7 @@ self.addVonNeumanViscosityMethods(self.VonNeumanViscosity%(dim)id, %(dim)i)
                            param("double", "betaD", default_value="0.05"),
                            param("double", "betaE", default_value="1.0"),
                            param("double", "fKern", default_value="0.33333"),
-                           param("bool", "boolHopkins", default_value="true"),
-                           param("bool", "useHydroDerivatives", default_value="true")])
+                           param("bool", "boolHopkins", default_value="true")])
 
         # Add the abstract methods.
         generatePhysicsVirtualBindings(x, ndim, False)
@@ -262,7 +299,6 @@ self.addVonNeumanViscosityMethods(self.VonNeumanViscosity%(dim)id, %(dim)i)
         x.add_instance_attribute("betaC", "double", getter="betaC", setter="betaC")
         x.add_instance_attribute("fKern", "double", getter="fKern", setter="fKern")
         x.add_instance_attribute("boolHopkins", "bool", getter="boolHopkins", setter="boolHopkins")
-        x.add_instance_attribute("useHydroDerivatives", "bool", getter="useHydroDerivatives", setter="useHydroDerivatives")
 
         # Methods.
         const_ref_return_value(x, me, "%s::PrevDvDt" % me, vectorfieldlist, [], "PrevDvDt")
@@ -368,7 +404,7 @@ self.addVonNeumanViscosityMethods(self.VonNeumanViscosity%(dim)id, %(dim)i)
         self.addArtificialViscosityVirtualMethods(x, ndim, False)
 
         # Attributes
-        const_ref_return_value(x, me, "%s::viscousEnergy" % me, scalarfieldlist, [], "DvDx")
+        const_ref_return_value(x, me, "%s::viscousEnergy" % me, scalarfieldlist, [], "viscousEnergy")
 
         return
 

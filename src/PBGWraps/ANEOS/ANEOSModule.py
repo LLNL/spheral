@@ -75,7 +75,7 @@ def generateANEOSBindings(x, ndim):
                        param("double", "externalPressure", default_value="0.0"),
                        param("double", "minimumPressure", default_value="-std::numeric_limits<double>::max()"),
                        param("double", "maximumPressure", default_value="std::numeric_limits<double>::max()"),
-                       param("MaterialPressureMinType", "minPressureType", default_value="PressureFloor")])
+                       param("MaterialPressureMinType", "minPressureType", default_value="Spheral::Material::MaterialPressureMinType::PressureFloor")])
 
     # Generic EOS interface.
     generateEquationOfStateVirtualBindings(x, ndim, False)
@@ -106,6 +106,9 @@ def generateANEOSBindings(x, ndim):
     x.add_method("bulkModulus", "double", [param("double", "massDensity"),
                                            param("double", "specificThermalEnergy")],
                  is_const=True)
+    x.add_method("entropy", "double", [param("double", "massDensity"),
+                                       param("double", "specificThermalEnergy")],
+                 is_const=True)
 
     # Attributes.
     x.add_instance_attribute("materialNumber", "int", getter="materialNumber", is_const=True)
@@ -116,5 +119,6 @@ def generateANEOSBindings(x, ndim):
     x.add_instance_attribute("Tmin", "double", getter="Tmin", is_const=True)
     x.add_instance_attribute("Tmax", "double", getter="Tmax", is_const=True)
     x.add_instance_attribute("externalPressure", "double", getter="externalPressure", setter="externalPressure")
+    x.add_instance_attribute("atomicWeight", "double", getter="atomicWeight", is_const=True)
 
     return

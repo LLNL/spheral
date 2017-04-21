@@ -59,7 +59,7 @@ computeSPHSumMassDensity(const ConnectivityMap<Dimension>& connectivityMap,
 
       // Get the state for node i.
       const Vector& ri = position(nodeListi, i);
-      const Scalar& mi = mass(nodeListi, i);
+      const Scalar mi = mass(nodeListi, i);
       const SymTensor& Hi = H(nodeListi, i);
       const Scalar Hdeti = Hi.Determinant();
 
@@ -83,7 +83,7 @@ computeSPHSumMassDensity(const ConnectivityMap<Dimension>& connectivityMap,
                                                          nodeListj, j,
                                                          firstGhostNodej)) {
               const Vector& rj = position(nodeListj, j);
-              const Scalar& mj = mass(nodeListj, j);
+              const Scalar mj = mass(nodeListj, j);
               const SymTensor& Hj = H(nodeListj, j);
               const Scalar Hdetj = Hj.Determinant();
 

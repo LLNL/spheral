@@ -95,6 +95,7 @@ self.vecBound%(ndim)id = addObject(mod, "vector_of_Boundary%(ndim)id", allow_sub
             self.ConstantYVelocityBoundary2d = addObject(self.space, "ConstantYVelocityBoundary2d", parent=self.ConstantVelocityBoundary2d)
 
         if 3 in self.dims:
+            self.AxisBoundaryRZ = addObject(self.space, "AxisBoundaryRZ", parent=self.ReflectingBoundary2d)
             self.ConstantYVelocityBoundary3d = addObject(self.space, "ConstantYVelocityBoundary3d", parent=self.ConstantVelocityBoundary3d)
             self.ConstantZVelocityBoundary3d = addObject(self.space, "ConstantZVelocityBoundary3d", parent=self.ConstantVelocityBoundary3d)
             self.SphericalBoundary = addObject(self.space, "SphericalBoundary", parent=self.Boundary3d)
@@ -129,6 +130,7 @@ self.space.add_function("dynamicCastBoundary",
             self.generateConstantYVelocityBoundaryBindings(self.ConstantYVelocityBoundary2d, 2)
 
         if 3 in self.dims:
+            self.generateAxisBoundaryRZBindings(self.AxisBoundaryRZ)
             self.generateConstantYVelocityBoundaryBindings(self.ConstantYVelocityBoundary3d, 3)
             self.generateConstantZVelocityBoundaryBindings(self.ConstantZVelocityBoundary3d, 3)
             self.generateSphericalBoundaryBindings(self.SphericalBoundary)
@@ -778,3 +780,49 @@ self.space.add_function("dynamicCastBoundary",
         generateBoundaryVirtualBindings(x, ndim, False)
 
         return
+
+    #---------------------------------------------------------------------------
+    # AxisBoundaryRZ bindings.
+    #---------------------------------------------------------------------------
+    def generateAxisBoundaryRZBindings(self, x):
+
+        # Object names.
+        ndim = 2
+        me = "AxisBoundaryRZ"
+        vector = "Vector%id" % ndim
+        tensor = "Tensor%id" % ndim
+        symtensor = "SymTensor%id" % ndim
+        plane = "Plane%id" % ndim
+        intfield = "Spheral::FieldSpace::IntField%id" % ndim
+        scalarfield = "Spheral::FieldSpace::ScalarField%id" % ndim
+        vectorfield = "Spheral::FieldSpace::VectorField%id" % ndim
+        tensorfield = "Spheral::FieldSpace::TensorField%id" % ndim
+        thirdranktensorfield = "Spheral::FieldSpace::ThirdRankTensorField%id" % ndim
+        vectordoublefield = "Spheral::FieldSpace::VectorDoubleField%id" % ndim
+        symtensorfield = "Spheral::FieldSpace::SymTensorField%id" % ndim
+        intfieldlist = "Spheral::FieldSpace::IntFieldList%id" % ndim
+        scalarfieldlist = "Spheral::FieldSpace::ScalarFieldList%id" % ndim
+        vectorfieldlist = "Spheral::FieldSpace::VectorFieldList%id" % ndim
+        tensorfieldlist = "Spheral::FieldSpace::TensorFieldList%id" % ndim
+        symtensorfieldlist = "Spheral::FieldSpace::SymTensorFieldList%id" % ndim
+        thirdranktensorfieldlist = "Spheral::FieldSpace::ThirdRankTensorFieldList%id" % ndim
+        nodelist = "Spheral::NodeSpace::NodeList%id" % ndim
+        state = "State%id" % ndim
+        derivatives = "StateDerivatives%id" % ndim
+        database = "Spheral::DataBaseSpace::DataBase%id" % ndim
+        connectivitymap = "Spheral::NeighborSpace::ConnectivityMap%id" % ndim
+        fileio = "Spheral::FileIOSpace::FileIO"
+        mesh = "Spheral::MeshSpace::" + {1 : "LineMesh", 2 : "PolygonalMesh", 3 : "PolyhedralMesh"}[ndim]
+
+        # Constructors.
+        x.add_constructor([param("const double", "etamin", default_value="0.1")])
+
+        # Attributes.
+        x.add_instance_attribute("etamin", "double", getter="etamin", setter="etamin")
+
+        # Override the abstract interface.
+        x.add_method("setViolationNodes", None, [refparam(nodelist, "nodeList")], is_virtual=True)
+        x.add_method("updateViolationNodes", None, [refparam(nodelist, "nodeList")], is_virtual=True)
+
+        return
+

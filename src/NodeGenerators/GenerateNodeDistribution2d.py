@@ -38,12 +38,14 @@ class GenerateNodeDistribution2d(NodeGeneratorBase):
         assert nTheta > 0
         assert (((distributionType == "optimal" or
                   distributionType == "constantDTheta" or
-                  distributionType == "constantNTheta") and
+                  distributionType == "constantNTheta" or
+                  distributionType == "powerOf2NTheta") and
                  (rmin is not None and rmax is not None and
                   rmin < rmax and
                   theta is not None and theta > 0.0)) or
                 ((distributionType == "lattice" or
-                  distributionType == "xstaggeredLattice") and
+                  distributionType == "xstaggeredLattice" or
+                  distributionType == "rotatedLattice") and
                  xmin is not None and xmax is not None and
                  xmin[0] < xmax[0] and xmin[1] < xmax[1]) or
                 (distributionType == "offsetCylindrical" and
@@ -116,6 +118,18 @@ class GenerateNodeDistribution2d(NodeGeneratorBase):
                                                                self.theta,
                                                                self.azimuthalOffsetFraction)
 
+        elif distributionType == "powerOf2NTheta":
+            self.x, self.y, self.m, self.H = \
+                    self.powerOf2NThetaCylindricalDistribution(self.nRadial,
+                                                               self.rho,
+                                                               self.xmin,
+                                                               self.xmax,
+                                                               self.rmin,
+                                                               self.rmax,
+                                                               self.nNodePerh,
+                                                               self.theta,
+                                                               self.azimuthalOffsetFraction)
+
         elif distributionType == "lattice":
             self.x, self.y, self.m, self.H = \
                     self.latticeDistribution(self.nRadial, # nx
@@ -137,6 +151,17 @@ class GenerateNodeDistribution2d(NodeGeneratorBase):
                                                        self.rmin,
                                                        self.rmax,
                                                        self.nNodePerh)
+
+        elif distributionType == "rotatedLattice":
+            self.x, self.y, self.m, self.H = \
+                    self.rotatedLatticeDistribution(self.nRadial, # nx
+                                                    self.nTheta,  # ny
+                                                    self.rho,
+                                                    self.xmin,
+                                                    self.xmax,
+                                                    self.rmin,
+                                                    self.rmax,
+                                                    self.nNodePerh)
 
         elif distributionType == "offsetCylindrical":
             self.x, self.y, self.m, self.H = \
@@ -458,6 +483,67 @@ class GenerateNodeDistribution2d(NodeGeneratorBase):
         return x, y, m, H
 
     #---------------------------------------------------------------------------
+    # Seed positions/masses for circular symmetry
+    # This is a modified form of constantDTheta that restricts rings to jump by
+    # powers of 2.
+    #---------------------------------------------------------------------------
+    def powerOf2NThetaCylindricalDistribution(self, nRadial, rho,
+                                              xmin = None,
+                                              xmax = None,
+                                              rmin = 0.0,
+                                              rmax = 1.0,
+                                              nNodePerh = 2.01,
+                                              theta = pi/2.0,
+                                              azimuthalOffsetFraction = 0.0):
+
+        from Spheral import SymTensor2d
+
+        dr = (rmax - rmin)/nRadial
+        x = []
+        y = []
+        m = []
+        H = []
+        
+        h = 1.0/(nNodePerh*dr)
+        Hi = SymTensor2d(h, 0.0, 0.0, h)
+
+        # Figure out the innermost rings nTheta
+        rInner = rmin
+        rOuter = rmin + dr
+        ri = rmin + 0.5*dr
+        li = theta*ri
+        baseNTheta = max(1, int(li/dr + 0.5))
+
+        for i in xrange(0, nRadial):
+            rInner = rmin + i*dr
+            rOuter = rmin + (i + 1)*dr
+            ri = rmin + (i + 0.5)*dr
+            li = theta*ri
+            nominalNTheta = max(1, int(li/dr))
+            nTheta = max(1, baseNTheta * 2**max(0, int(log(float(nominalNTheta)/float(baseNTheta))/log(2.0))))
+            dTheta = theta/nTheta
+            mRing = (rOuter**2 - rInner**2) * theta/2.0 * rho(Vector2d(ri, 0.0))
+            mi = mRing/nTheta
+            for j in xrange(nTheta):
+                thetai = (j + 0.5 + i*azimuthalOffsetFraction)*dTheta
+                xi = ri*cos(thetai)
+                yi = ri*sin(thetai)
+                use = True
+                if xmin:
+                    if xi < xmin[0] or yi < xmin[1]:
+                        use = False
+                if xmax:
+                    if xi > xmax[0] or yi > xmax[1]:
+                        use = False
+                if use:
+                    x.append(xi)
+                    y.append(yi)
+                    m.append(mi)
+                    H.append(Hi)
+
+        return x, y, m, H
+
+    #---------------------------------------------------------------------------
     # Seed positions between circles of different radii and centers!
     #---------------------------------------------------------------------------
     def offsetCylindricalDistribution(self, nr, ny, rho,
@@ -703,6 +789,49 @@ class GenerateNodeDistribution2d(NodeGeneratorBase):
         return x, y, m, H
 
     #---------------------------------------------------------------------------
+    # Seed positions on a rotated lattice.
+    #---------------------------------------------------------------------------
+    def rotatedLatticeDistribution(self, nx, ny, rho,
+                                   xmin = (0.0, 0.0),
+                                   xmax = (1.0, 1.0),
+                                   rmin = None,
+                                   rmax = None,
+                                   nNodePerh = 2.01):
+
+        dx = (xmax[0] - xmin[0])/nx
+        dy = (xmax[1] - xmin[1])/ny
+
+        hx = 1.0/(nNodePerh*dx)
+        hy = 1.0/(nNodePerh*dy)
+        H0 = SymTensor2d(hx, 0.0, 0.0, hy)
+
+        x = []
+        y = []
+        m = []
+        H = []
+
+        for j in xrange(ny + 1):
+            jmod = (j + 1) % 2
+            nxrow = nx + jmod
+            for i in xrange(nxrow):
+                xx = xmin[0] + (i + 0.5 - 0.5*jmod)*dx
+                yy = xmin[1] + j*dy
+                r = sqrt(xx*xx + yy*yy)
+                m0 = dx*dy*rho(Vector2d(xx, yy))
+                if j == 0 or j == ny:
+                    m0 /= 2.0
+                if jmod == 1 and (i == 0 or i == nxrow - 1):
+                    m0 /= 2.0
+                if ((r >= rmin or rmin is None) and
+                    (r <= rmax or rmax is None)):
+                    x.append(xx)
+                    y.append(yy)
+                    m.append(m0)
+                    H.append(H0)
+
+        return x, y, m, H
+
+    #---------------------------------------------------------------------------
     # Compute the area between offset circles in the given y range.
     #---------------------------------------------------------------------------
     def _areaBetweenOffsetCircles(self,
@@ -736,7 +865,8 @@ class GenerateNodesMatchingProfile2d(NodeGeneratorBase):
                  thetaMin = 0.0,
                  thetaMax = pi/2.0,
                  nNodePerh = 2.01,
-                 offset = [0,0]):
+                 offset = [0,0],
+                 m0 = 0.0):
         
         assert n > 0
         assert rmin < rmax
@@ -744,6 +874,7 @@ class GenerateNodesMatchingProfile2d(NodeGeneratorBase):
         assert thetaMin >= 0.0 and thetaMin <= 2.0*pi
         assert thetaMax >= 0.0 and thetaMax <= 2.0*pi
         assert nNodePerh > 0.0
+        assert m0 >= 0.0
         
         self.n = n
         self.rmin = rmin
@@ -769,6 +900,8 @@ class GenerateNodesMatchingProfile2d(NodeGeneratorBase):
 
         # Now set the nominal mass per node.
         self.m0 = self.totalMass/(self.n*self.n*pi)
+        if (m0 > 0.0):
+            self.m0 = m0
         assert self.m0 > 0.0
         print "Nominal mass per node of %g." % self.m0
 
@@ -880,25 +1013,29 @@ class GenerateNodesMatchingProfile2d(NodeGeneratorBase):
         theta = thetaMax - thetaMin
         ri = rmax
         while ri > rmin:
+
+            
             
             # Get the nominal delta r, delta theta, number of nodes, and mass per
             # node at this radius.
             rhoi = densityProfileMethod(ri)
             dr = sqrt(m0/rhoi)
-            arclength = theta*ri
+            rii = ri+dr/2.0
+            rhoi = densityProfileMethod(rii)
+            arclength = theta*rii
             arcmass = arclength*dr*rhoi
             nTheta = max(1, int(arcmass/m0))
             dTheta = theta/nTheta
             mi = arcmass/nTheta
-            hi = nNodePerh*0.5*(dr + ri*dTheta)
+            hi = nNodePerh*0.5*(dr + rii*dTheta)
             Hi = SymTensor2d(1.0/hi, 0.0,
                              0.0, 1.0/hi)
                              
             # Now assign the nodes for this radius.
             for i in xrange(nTheta):
                 thetai = thetaMin + (i + 0.5)*dTheta
-                x.append(ri*cos(thetai))
-                y.append(ri*sin(thetai))
+                x.append(rii*cos(thetai))
+                y.append(rii*sin(thetai))
                 m.append(mi)
                 H.append(Hi)
 
@@ -1269,86 +1406,6 @@ class GenerateNodesMatchingYProfile2d(GenerateNodeDistribution2d):
 
 
 #-------------------------------------------------------------------------------
-# Descendant version of above, specialized to adapt the 2-D node distribution
-# into a 3-D RZ equivalent.
-#-------------------------------------------------------------------------------
-class GenerateNodeDistributionRZ(GenerateNodeDistribution2d):
-
-    #---------------------------------------------------------------------------
-    # Constructor
-    #---------------------------------------------------------------------------
-    def __init__(self, nRadial, nTheta, rho,
-                 distributionType = "optimal",
-                 xmin = None,
-                 xmax = None,
-                 rmin = None,
-                 rmax = None,
-                 nNodePerh = 2.01,
-                 theta = pi/2.0,
-                 SPH = False):
-        GenerateNodeDistribution2d.__init__(self,
-                                            nRadial,
-                                            nTheta,
-                                            rho,
-                                            distributionType,
-                                            xmin,
-                                            xmax,
-                                            rmin,
-                                            rmax,
-                                            nNodePerh,
-                                            theta,
-                                            SPH)
-
-##         # Correct the mass.
-##         n = len(self.m)
-##         assert len(self.x) == n
-##         for i in xrange(n):
-##             self.m[i] *= self.x[i]
-
-##         # Fix up the H tensors and mass per node for 3-D.
-##         from Spheral import SymTensor3d
-##         n = len(self.H)
-##         assert len(self.m) == n
-##         for i in xrange(n):
-##             ri = self.y[i]
-##             #hxy0 = 1.0/sqrt(self.H[i].Determinant())
-##             hxy0 = 1.0/(self.H[i].eigenValues().minElement())
-##             dphi = CylindricalBoundary.angularSpacing(ri, hxy0, nNodePerh, 2.0)
-##             hz = dphi*ri*nNodePerh
-##             xx = self.H[i].xx
-##             xy = self.H[i].xy
-##             yx = self.H[i].yx
-##             yy = self.H[i].yy
-##             self.H[i] = SymTensor3d(xx, xy, 0.0,
-##                                     yx, yy, 0.0,
-##                                     0.0, 0.0, 1.0/hz)
-##             if SPH:
-##                 h0 = self.H[i].Determinant()**(1.0/3.0)
-##                 self.H[i] = SymTensor3d.one * h0
-
-##            self.m[i] *= nNodePerh/h0
-
-##            li = 1.0/(h0*nNodePerh)
-##            ri = self.y[i] + 1.0e-50
-##            assert ri > 0.0
-##            phi = min(0.5*pi, li/ri)
-##            c = ri*sqrt(2.0*(1.0 - cos(phi)))
-##            gamma = 0.5*(pi - phi)
-##            b = c*sin(gamma)
-##            self.m[i] *= b
-
-        return
-
-##     #---------------------------------------------------------------------------
-##     # Get the position for the given node index.
-##     #---------------------------------------------------------------------------
-##     def localPosition(self, i):
-##         from Spheral import Vector3d
-##         assert i >= 0 and i < len(self.x)
-##         assert len(self.x) == len(self.y)
-##         return Vector3d(self.x[i], self.y[i], 0.0)
-
-#-------------------------------------------------------------------------------
 # Specialized 2-D NodeGenerator which initializes lattices in a slanted box.
 #-------------------------------------------------------------------------------
 class SlantedBoxNodeDistribution2d(NodeGeneratorBase):
@@ -1450,3 +1507,16 @@ class SlantedBoxNodeDistribution2d(NodeGeneratorBase):
     def localHtensor(self, i):
         assert i >= 0 and i < len(self.H)
         return self.H[i]
+
+#-------------------------------------------------------------------------------
+# Factory function to convert any of the 2D generators to RZ.
+#-------------------------------------------------------------------------------
+def RZGenerator(generator):
+
+    # Correct the mass.
+    n = len(generator.m)
+    assert len(generator.y) == n
+    for i in xrange(n):
+        generator.m[i] *= 2.0*pi*generator.y[i]
+
+    return generator

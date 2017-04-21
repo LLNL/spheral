@@ -24,7 +24,7 @@ using FieldSpace::FieldList;
 //------------------------------------------------------------------------------
 FileIO::FileIO():
   mFileName(""),
-  mAccess(Undefined),
+  mAccess(AccessType::Undefined),
   mFileOpen(false)
 #ifndef CXXONLY
   ,

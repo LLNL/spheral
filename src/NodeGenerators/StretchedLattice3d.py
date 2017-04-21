@@ -9,7 +9,7 @@ from Spheral import pair_double_double
 
 from Spheral import vector_of_int, vector_of_double, vector_of_SymTensor3d, vector_of_vector_of_double
 from SpheralTestUtilities import *
-from Spheral import NewtonRaphsonFunction, newtonRaphsonFindRoot
+from Spheral import PairScalarFunctor, newtonRaphsonFindRoot
 from SpheralGnuPlotUtilities import multiSort
 
 import mpi
@@ -21,9 +21,9 @@ nProcs = mpi.procs
 #-------------------------------------------------------------------------------
 class GenerateStretchedLattice3d(NodeGeneratorBase):
 
-    class nrFunc(NewtonRaphsonFunction):
+    class nrFunc(PairScalarFunctor):
         def __init__(self,k,rho0,r0,eta,rp,rho,dr):
-            NewtonRaphsonFunction.__init__(self)
+            PairScalarFunctor.__init__(self)
             self.k = k
             self.rho0 = rho0
             self.r0 = r0

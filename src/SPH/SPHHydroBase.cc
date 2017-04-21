@@ -12,6 +12,7 @@
 
 #include "SPHHydroBase.hh"
 #include "computeSPHSumMassDensity.hh"
+#include "correctSPHSumMassDensity.hh"
 #include "computeSumVoronoiCellMassDensity.hh"
 #include "computeSPHOmegaGradhCorrection.hh"
 #include "NodeList/SmoothingScaleBase.hh"
@@ -34,6 +35,7 @@
 #include "Hydro/PositionPolicy.hh"
 #include "Hydro/PressurePolicy.hh"
 #include "Hydro/SoundSpeedPolicy.hh"
+#include "Hydro/EntropyPolicy.hh"
 #include "Mesh/MeshPolicy.hh"
 #include "Mesh/generateMesh.hh"
 #include "ArtificialViscosity/ArtificialViscosity.hh"
@@ -108,33 +110,34 @@ SPHHydroBase(const SmoothingScaleBase<Dimension>& smoothingScaleMethod,
   mnTensile(nTensile),
   mxmin(xmin),
   mxmax(xmax),
-  mTimeStepMask(FieldSpace::Copy),
-  mPressure(FieldSpace::Copy),
-  mSoundSpeed(FieldSpace::Copy),
-  mVolume(FieldSpace::Copy),
-  mOmegaGradh(FieldSpace::Copy),
-  mSpecificThermalEnergy0(FieldSpace::Copy),
-  mHideal(FieldSpace::Copy),
-  mMaxViscousPressure(FieldSpace::Copy),
-  mEffViscousPressure(FieldSpace::Copy),
-  mMassDensityCorrection(FieldSpace::Copy),
-  mViscousWork(FieldSpace::Copy),
-  mMassDensitySum(FieldSpace::Copy),
-  mNormalization(FieldSpace::Copy),
-  mWeightedNeighborSum(FieldSpace::Copy),
-  mMassSecondMoment(FieldSpace::Copy),
-  mXSPHWeightSum(FieldSpace::Copy),
-  mXSPHDeltaV(FieldSpace::Copy),
-  mDxDt(FieldSpace::Copy),
-  mDvDt(FieldSpace::Copy),
-  mDmassDensityDt(FieldSpace::Copy),
-  mDspecificThermalEnergyDt(FieldSpace::Copy),
-  mDHDt(FieldSpace::Copy),
-  mDvDx(FieldSpace::Copy),
-  mInternalDvDx(FieldSpace::Copy),
-  mM(FieldSpace::Copy),
-  mLocalM(FieldSpace::Copy),
-  mPairAccelerations(FieldSpace::Copy),
+  mTimeStepMask(FieldSpace::FieldStorageType::Copy),
+  mPressure(FieldSpace::FieldStorageType::Copy),
+  mSoundSpeed(FieldSpace::FieldStorageType::Copy),
+  mVolume(FieldSpace::FieldStorageType::Copy),
+  mOmegaGradh(FieldSpace::FieldStorageType::Copy),
+  mSpecificThermalEnergy0(FieldSpace::FieldStorageType::Copy),
+  mEntropy(FieldSpace::FieldStorageType::Copy),
+  mHideal(FieldSpace::FieldStorageType::Copy),
+  mMaxViscousPressure(FieldSpace::FieldStorageType::Copy),
+  mEffViscousPressure(FieldSpace::FieldStorageType::Copy),
+  mMassDensityCorrection(FieldSpace::FieldStorageType::Copy),
+  mViscousWork(FieldSpace::FieldStorageType::Copy),
+  mMassDensitySum(FieldSpace::FieldStorageType::Copy),
+  mNormalization(FieldSpace::FieldStorageType::Copy),
+  mWeightedNeighborSum(FieldSpace::FieldStorageType::Copy),
+  mMassSecondMoment(FieldSpace::FieldStorageType::Copy),
+  mXSPHWeightSum(FieldSpace::FieldStorageType::Copy),
+  mXSPHDeltaV(FieldSpace::FieldStorageType::Copy),
+  mDxDt(FieldSpace::FieldStorageType::Copy),
+  mDvDt(FieldSpace::FieldStorageType::Copy),
+  mDmassDensityDt(FieldSpace::FieldStorageType::Copy),
+  mDspecificThermalEnergyDt(FieldSpace::FieldStorageType::Copy),
+  mDHDt(FieldSpace::FieldStorageType::Copy),
+  mDvDx(FieldSpace::FieldStorageType::Copy),
+  mInternalDvDx(FieldSpace::FieldStorageType::Copy),
+  mM(FieldSpace::FieldStorageType::Copy),
+  mLocalM(FieldSpace::FieldStorageType::Copy),
+  mPairAccelerations(FieldSpace::FieldStorageType::Copy),
   mRestart(DataOutput::registerWithRestart(*this)) {
 }
 
@@ -159,6 +162,7 @@ initializeProblemStartup(DataBase<Dimension>& dataBase) {
   mSoundSpeed = dataBase.newFluidFieldList(0.0, HydroFieldNames::soundSpeed);
   mOmegaGradh = dataBase.newFluidFieldList(1.0, HydroFieldNames::omegaGradh);
   mSpecificThermalEnergy0 = dataBase.newFluidFieldList(0.0, HydroFieldNames::specificThermalEnergy + "0");
+  mEntropy = dataBase.newFluidFieldList(0.0, HydroFieldNames::entropy);
   mHideal = dataBase.newFluidFieldList(SymTensor::zero, ReplaceBoundedState<Dimension, Field<Dimension, SymTensor> >::prefix() + HydroFieldNames::H);
   mMaxViscousPressure = dataBase.newFluidFieldList(0.0, HydroFieldNames::maxViscousPressure);
   mEffViscousPressure = dataBase.newFluidFieldList(0.0, HydroFieldNames::effectiveViscousPressure);
@@ -184,6 +188,7 @@ initializeProblemStartup(DataBase<Dimension>& dataBase) {
   // Initialize the pressure and sound speed.
   dataBase.fluidPressure(mPressure);
   dataBase.fluidSoundSpeed(mSoundSpeed);
+  dataBase.fluidEntropy(mEntropy);
 
   // // In some cases we need the volume per node as well.
   // const bool updateVolume = (this->densityUpdate() == PhysicsSpace::VoronoiCellDensity or
@@ -237,8 +242,8 @@ registerState(DataBase<Dimension>& dataBase,
   dataBase.resizeFluidFieldList(mOmegaGradh, 1.0, HydroFieldNames::omegaGradh);
 
   // We may need the volume per node as well.
-  const bool updateVolume = (this->densityUpdate() == PhysicsSpace::VoronoiCellDensity or
-                             this->densityUpdate() == PhysicsSpace::SumVoronoiCellDensity);
+  const bool updateVolume = (this->densityUpdate() == PhysicsSpace::MassDensityType::VoronoiCellDensity or
+                             this->densityUpdate() == PhysicsSpace::MassDensityType::SumVoronoiCellDensity);
   if (updateVolume) {
     dataBase.resizeFluidFieldList(mVolume, 0.0, HydroFieldNames::volume, false);
   }
@@ -250,6 +255,7 @@ registerState(DataBase<Dimension>& dataBase,
   // If we're using the compatibile energy discretization, prepare to maintain a copy
   // of the thermal energy.
   dataBase.resizeFluidFieldList(mSpecificThermalEnergy0, 0.0);
+  dataBase.resizeFluidFieldList(mEntropy, 0.0, HydroFieldNames::entropy, false);
   if (mCompatibleEnergyEvolution) {
     size_t nodeListi = 0;
     for (typename DataBase<Dimension>::FluidNodeListIterator itr = dataBase.fluidNodeListBegin();
@@ -278,10 +284,10 @@ registerState(DataBase<Dimension>& dataBase,
                                                                       (*itr)->rhoMax()));
     const Scalar hmaxInv = 1.0/(*itr)->hmax();
     const Scalar hminInv = 1.0/(*itr)->hmin();
-    if (HEvolution() == PhysicsSpace::IntegrateH) {
+    if (HEvolution() == PhysicsSpace::HEvolutionType::IntegrateH) {
       Hpolicy->push_back(new IncrementBoundedState<Dimension, SymTensor, Scalar>(hmaxInv, hminInv));
     } else {
-      CHECK(HEvolution() == PhysicsSpace::IdealH);
+      CHECK(HEvolution() == PhysicsSpace::HEvolutionType::IdealH);
       Hpolicy->push_back(new ReplaceBoundedState<Dimension, SymTensor, Scalar>(hmaxInv, hminInv));
     }
   }
@@ -308,9 +314,11 @@ registerState(DataBase<Dimension>& dataBase,
     PolicyPointer thermalEnergyPolicy(new SpecificThermalEnergyPolicy<Dimension>(dataBase));
     PolicyPointer velocityPolicy(new IncrementFieldList<Dimension, Vector>(HydroFieldNames::position,
                                                                            HydroFieldNames::specificThermalEnergy));
+    PolicyPointer entropyPolicy(new EntropyPolicy<Dimension>());
     state.enroll(specificThermalEnergy, thermalEnergyPolicy);
     state.enroll(velocity, velocityPolicy);
     state.enroll(mSpecificThermalEnergy0);
+    state.enroll(mEntropy, entropyPolicy);
 
   } else if (mEvolveTotalEnergy) {
     // If we're doing total energy, we register the specific energy to advance with the
@@ -599,10 +607,9 @@ evaluateDerivatives(const typename Dimension::Scalar time,
       const Scalar& ci = soundSpeed(nodeListi, i);
       const Scalar& omegai = omega(nodeListi, i);
       const Scalar Hdeti = Hi.Determinant();
-      const Scalar safeOmegai = 1.0/max(tiny, omegai);
+      const Scalar safeOmegai = safeInv(omegai, tiny);
       CHECK(mi > 0.0);
       CHECK(rhoi > 0.0);
-      CHECK(omegai > 0.0);
       CHECK(Hdeti > 0.0);
 
       Scalar& rhoSumi = rhoSum(nodeListi, i);
@@ -637,7 +644,6 @@ evaluateDerivatives(const typename Dimension::Scalar time,
         // there are some nodes in this list.
         const vector<int>& connectivity = fullConnectivity[nodeListj];
         if (connectivity.size() > 0) {
-          const double fweightij = 1.0; // (nodeListi == nodeListj ? 1.0 : 0.2);
           const int firstGhostNodej = nodeLists[nodeListj]->firstGhostNode();
 
           // Loop over the neighbors.
@@ -664,7 +670,7 @@ evaluateDerivatives(const typename Dimension::Scalar time,
               const Scalar& cj = soundSpeed(nodeListj, j);
               const Scalar& omegaj = omega(nodeListj, j);
               const Scalar Hdetj = Hj.Determinant();
-              const Scalar safeOmegaj = 1.0/max(tiny, omegaj);
+              const Scalar safeOmegaj = safeInv(omegaj, tiny);
               CHECK(mj > 0.0);
               CHECK(rhoj > 0.0);
               CHECK(Hdetj > 0.0);
@@ -686,6 +692,9 @@ evaluateDerivatives(const typename Dimension::Scalar time,
               Vector& XSPHDeltaVj = XSPHDeltaV(nodeListj, j);
               Scalar& weightedNeighborSumj = weightedNeighborSum(nodeListj, j);
               SymTensor& massSecondMomentj = massSecondMoment(nodeListj, j);
+
+              // Flag if this is a contiguous material pair or not.
+              const bool sameMatij = true; // (nodeListi == nodeListj and fragIDi == fragIDj);
 
               // Node displacement.
               const Vector rij = ri - rj;
@@ -713,12 +722,13 @@ evaluateDerivatives(const typename Dimension::Scalar time,
 
               // Zero'th and second moment of the node distribution -- used for the
               // ideal H calculation.
+              const double fweightij = sameMatij ? 1.0 : mj*rhoi/(mi*rhoj);
               const double rij2 = rij.magnitude2();
               const SymTensor thpt = rij.selfdyad()/max(tiny, rij2*FastMath::square(Dimension::pownu12(rij2)));
-              weightedNeighborSumi += fweightij*std::abs(gWi);
-              weightedNeighborSumj += fweightij*std::abs(gWj);
-              massSecondMomenti += fweightij*gradWi.magnitude2()*thpt;
-              massSecondMomentj += fweightij*gradWj.magnitude2()*thpt;
+              weightedNeighborSumi +=     fweightij*std::abs(gWi);
+              weightedNeighborSumj += 1.0/fweightij*std::abs(gWj);
+              massSecondMomenti +=     fweightij*gradWi.magnitude2()*thpt;
+              massSecondMomentj += 1.0/fweightij*gradWj.magnitude2()*thpt;
 
               // Contribution to the sum density.
               if (nodeListi == nodeListj) {
@@ -733,10 +743,10 @@ evaluateDerivatives(const typename Dimension::Scalar time,
               const pair<Tensor, Tensor> QPiij = Q.Piij(nodeListi, i, nodeListj, j,
                                                         ri, etai, vi, rhoi, ci, Hi,
                                                         rj, etaj, vj, rhoj, cj, Hj);
-              const Vector Qacci = 0.5*safeOmegai*(QPiij.first *gradWQi);
-              const Vector Qaccj = 0.5*safeOmegaj*(QPiij.second*gradWQj);
-              // const Scalar workQi = 0.5*safeOmegai*(QPiij.first *vij).dot(gradWQi);
-              // const Scalar workQj = 0.5*safeOmegaj*(QPiij.second*vij).dot(gradWQj);
+              const Vector Qacci = 0.5*(QPiij.first *gradWQi);
+              const Vector Qaccj = 0.5*(QPiij.second*gradWQj);
+              // const Scalar workQi = 0.5*(QPiij.first *vij).dot(gradWQi);
+              // const Scalar workQj = 0.5*(QPiij.second*vij).dot(gradWQj);
               const Scalar workQi = vij.dot(Qacci);
               const Scalar workQj = vij.dot(Qaccj);
               const Scalar Qi = rhoi*rhoi*(QPiij.first. diagonalElements().maxAbsElement());
@@ -779,25 +789,24 @@ evaluateDerivatives(const typename Dimension::Scalar time,
               const Tensor deltaDvDxj = mi*vij.dyad(gradWj);
               DvDxi -= deltaDvDxi;
               DvDxj -= deltaDvDxj;
-              if (nodeListi == nodeListj) {
+              if (sameMatij) {
                 localDvDxi -= deltaDvDxi;
                 localDvDxj -= deltaDvDxj;
               }
 
               // Estimate of delta v (for XSPH).
-              if (mXSPH and (nodeListi == nodeListj)) {
-                const double fXSPH = max(0.0, min(1.0, abs(vij.dot(rij)*safeInv(vij.magnitude()*rij.magnitude()))));
-                CHECK(fXSPH >= 0.0 and fXSPH <= 1.0);
-                XSPHWeightSumi += fXSPH*mj/rhoj*Wi;
-                XSPHWeightSumj += fXSPH*mi/rhoi*Wj;
-                XSPHDeltaVi -= fXSPH*mj/rhoj*Wi*vij;
-                XSPHDeltaVj += fXSPH*mi/rhoi*Wj*vij;
+              if (mXSPH and (sameMatij)) {
+                const double wXSPHij = 0.5*(mi/rhoi*Wi + mj/rhoj*Wj);
+                XSPHWeightSumi += wXSPHij;
+                XSPHWeightSumj += wXSPHij;
+                XSPHDeltaVi -= wXSPHij*vij;
+                XSPHDeltaVj += wXSPHij*vij;
               }
 
               // Linear gradient correction term.
               Mi -= mj*rij.dyad(gradWi);
               Mj -= mi*rij.dyad(gradWj);
-              if (nodeListi == nodeListj) {
+              if (sameMatij) {
                 localMi -= mj*rij.dyad(gradWi);
                 localMj -= mi*rij.dyad(gradWj);
               }
@@ -823,12 +832,17 @@ evaluateDerivatives(const typename Dimension::Scalar time,
           std::abs(Mi.Determinant()) > 1.0e-10 and
           numNeighborsi > Dimension::pownu(2)) {
         Mi = Mi.Inverse();
-        localMi = localMi.Inverse();
         DvDxi = DvDxi*Mi;
+      } else {
+        DvDxi /= rhoi;
+      }
+      if (this->mCorrectVelocityGradient and
+          std::abs(localMi.Determinant()) > 1.0e-10 and
+          numNeighborsi > Dimension::pownu(2)) {
+        localMi = localMi.Inverse();
         localDvDxi = localDvDxi*localMi;
       } else {
-        DvDxi *= safeOmegai/rhoi;
-        localDvDxi *= safeOmegai/rhoi;
+        localDvDxi /= rhoi;
       }
 
       // Evaluate the continuity equation.
@@ -940,19 +954,29 @@ finalize(const typename Dimension::Scalar time,
 
   // Depending on the mass density advancement selected, we may want to replace the 
   // mass density.
-  if (densityUpdate() == PhysicsSpace::RigorousSumDensity) {
+  if (densityUpdate() == PhysicsSpace::MassDensityType::RigorousSumDensity or
+      densityUpdate() == PhysicsSpace::MassDensityType::CorrectedSumDensity) {
     const ConnectivityMap<Dimension>& connectivityMap = dataBase.connectivityMap();
     const FieldList<Dimension, Vector> position = state.fields(HydroFieldNames::position, Vector::zero);
     const FieldList<Dimension, Scalar> mass = state.fields(HydroFieldNames::mass, 0.0);
     const FieldList<Dimension, SymTensor> H = state.fields(HydroFieldNames::H, SymTensor::zero);
     FieldList<Dimension, Scalar> massDensity = state.fields(HydroFieldNames::massDensity, 0.0);
     computeSPHSumMassDensity(connectivityMap, this->kernel(), mSumMassDensityOverAllNodeLists, position, mass, H, massDensity);
-  } else if (densityUpdate() == PhysicsSpace::SumDensity) {
+    if (densityUpdate() == PhysicsSpace::MassDensityType::CorrectedSumDensity) {
+      for (ConstBoundaryIterator boundaryItr = this->boundaryBegin();
+           boundaryItr != this->boundaryEnd();
+           ++boundaryItr) (*boundaryItr)->applyFieldListGhostBoundary(massDensity);
+      for (ConstBoundaryIterator boundaryItr = this->boundaryBegin(); 
+           boundaryItr != this->boundaryEnd();
+           ++boundaryItr) (*boundaryItr)->finalizeGhostBoundary();
+      correctSPHSumMassDensity(connectivityMap, this->kernel(), mSumMassDensityOverAllNodeLists, position, mass, H, massDensity);
+    }
+  } else if (densityUpdate() == PhysicsSpace::MassDensityType::SumDensity) {
     FieldList<Dimension, Scalar> massDensity = state.fields(HydroFieldNames::massDensity, 0.0);
     const FieldList<Dimension, Scalar> massDensitySum = derivs.fields(ReplaceFieldList<Dimension, Field<Dimension, Field<Dimension, Scalar> > >::prefix() + 
                                                                       HydroFieldNames::massDensity, 0.0);
     massDensity.assignFields(massDensitySum);
-  } else if (densityUpdate() == PhysicsSpace::HybridSumDensity) {
+  } else if (densityUpdate() == PhysicsSpace::MassDensityType::HybridSumDensity) {
     FieldList<Dimension, Scalar> massDensity = state.fields(HydroFieldNames::massDensity, 0.0);
     const FieldList<Dimension, Scalar> massDensitySum = derivs.fields(ReplaceFieldList<Dimension, Field<Dimension, Field<Dimension, Scalar> > >::prefix() + 
                                                                       HydroFieldNames::massDensity, 0.0);
@@ -964,13 +988,13 @@ finalize(const typename Dimension::Scalar time,
         if (normalization(nodeListi, i) > 0.95) massDensity(nodeListi, i) = massDensitySum(nodeListi, i);
       }
     }
-  } else if (densityUpdate() == PhysicsSpace::VoronoiCellDensity) {
+  } else if (densityUpdate() == PhysicsSpace::MassDensityType::VoronoiCellDensity) {
     this->updateVolume(state, false);
     const FieldList<Dimension, Scalar> mass = state.fields(HydroFieldNames::mass, 0.0);
     const FieldList<Dimension, Scalar> volume = state.fields(HydroFieldNames::volume, 0.0);
     FieldList<Dimension, Scalar> massDensity = state.fields(HydroFieldNames::massDensity, 0.0);
     massDensity = mass / volume;
-  } else if (densityUpdate() == PhysicsSpace::SumVoronoiCellDensity) {
+  } else if (densityUpdate() == PhysicsSpace::MassDensityType::SumVoronoiCellDensity) {
     this->updateVolume(state, true);
     const ConnectivityMap<Dimension>& connectivityMap = dataBase.connectivityMap();
     const FieldList<Dimension, Vector> position = state.fields(HydroFieldNames::position, Vector::zero);
@@ -1079,15 +1103,16 @@ applyGhostBoundaries(State<Dimension>& state,
   FieldList<Dimension, Scalar> pressure = state.fields(HydroFieldNames::pressure, 0.0);
   FieldList<Dimension, Scalar> soundSpeed = state.fields(HydroFieldNames::soundSpeed, 0.0);
   FieldList<Dimension, Scalar> omega = state.fields(HydroFieldNames::omegaGradh, 0.0);
-  FieldList<Dimension, Scalar> specificThermalEnergy0;
+  FieldList<Dimension, Scalar> specificThermalEnergy0, entropy;
   if (compatibleEnergyEvolution()) {
     CHECK(state.fieldNameRegistered(HydroFieldNames::specificThermalEnergy + "0"));
     specificThermalEnergy0 = state.fields(HydroFieldNames::specificThermalEnergy + "0", 0.0);
+    entropy = state.fields(HydroFieldNames::entropy, 0.0);
   }
 
   // FieldList<Dimension, Scalar> volume;
-  // const bool updateVolume = (this->densityUpdate() == PhysicsSpace::VoronoiCellDensity or
-  //                            this->densityUpdate() == PhysicsSpace::SumVoronoiCellDensity);
+  // const bool updateVolume = (this->densityUpdate() == PhysicsSpace::MassDensityType::VoronoiCellDensity or
+  //                            this->densityUpdate() == PhysicsSpace::MassDensityType::SumVoronoiCellDensity);
   // if (updateVolume) {
   //   CHECK(state.fieldNameRegistered(HydroFieldNames::volume));
   //   volume = state.fields(HydroFieldNames::volume, 0.0);
@@ -1103,7 +1128,10 @@ applyGhostBoundaries(State<Dimension>& state,
     (*boundaryItr)->applyFieldListGhostBoundary(pressure);
     (*boundaryItr)->applyFieldListGhostBoundary(soundSpeed);
     (*boundaryItr)->applyFieldListGhostBoundary(omega);
-    if (compatibleEnergyEvolution()) (*boundaryItr)->applyFieldListGhostBoundary(specificThermalEnergy0);
+    if (compatibleEnergyEvolution()) {
+      (*boundaryItr)->applyFieldListGhostBoundary(specificThermalEnergy0);
+      (*boundaryItr)->applyFieldListGhostBoundary(entropy);
+    }
     // if (updateVolume) (*boundaryItr)->applyFieldListGhostBoundary(volume);
   }
 }
@@ -1126,12 +1154,15 @@ enforceBoundaries(State<Dimension>& state,
   FieldList<Dimension, Scalar> soundSpeed = state.fields(HydroFieldNames::soundSpeed, 0.0);
   FieldList<Dimension, Scalar> omega = state.fields(HydroFieldNames::omegaGradh, 0.0);
 
-  FieldList<Dimension, Scalar> specificThermalEnergy0;
-  if (compatibleEnergyEvolution()) specificThermalEnergy0 = state.fields(HydroFieldNames::specificThermalEnergy + "0", 0.0);
+  FieldList<Dimension, Scalar> specificThermalEnergy0, entropy;
+  if (compatibleEnergyEvolution()) {
+    specificThermalEnergy0 = state.fields(HydroFieldNames::specificThermalEnergy + "0", 0.0);
+    entropy = state.fields(HydroFieldNames::entropy, 0.0);
+  }
 
   // FieldList<Dimension, Scalar> volume;
-  // const bool updateVolume = (this->densityUpdate() == PhysicsSpace::VoronoiCellDensity or
-  //                            this->densityUpdate() == PhysicsSpace::SumVoronoiCellDensity);
+  // const bool updateVolume = (this->densityUpdate() == PhysicsSpace::MassDensityType::VoronoiCellDensity or
+  //                            this->densityUpdate() == PhysicsSpace::MassDensityType::SumVoronoiCellDensity);
   // if (updateVolume) {
   //   CHECK(state.fieldNameRegistered(HydroFieldNames::volume));
   //   volume = state.fields(HydroFieldNames::volume, 0.0);
@@ -1147,7 +1178,10 @@ enforceBoundaries(State<Dimension>& state,
     (*boundaryItr)->enforceFieldListBoundary(pressure);
     (*boundaryItr)->enforceFieldListBoundary(soundSpeed);
     (*boundaryItr)->enforceFieldListBoundary(omega);
-    if (compatibleEnergyEvolution()) (*boundaryItr)->enforceFieldListBoundary(specificThermalEnergy0);
+    if (compatibleEnergyEvolution()) {
+      (*boundaryItr)->enforceFieldListBoundary(specificThermalEnergy0);
+      (*boundaryItr)->enforceFieldListBoundary(entropy);
+    }
     // if (updateVolume) (*boundaryItr)->enforceFieldListBoundary(volume);
   }
 }
@@ -1241,6 +1275,7 @@ dumpState(FileIO& file, string pathName) const {
   file.write(mSoundSpeed, pathName + "/soundSpeed");
   file.write(mVolume, pathName + "/volume");
   file.write(mSpecificThermalEnergy0, pathName + "/specificThermalEnergy0");
+  file.write(mEntropy, pathName + "/entropy");
   file.write(mHideal, pathName + "/Hideal");
   file.write(mMassDensitySum, pathName + "/massDensitySum");
   file.write(mNormalization, pathName + "/normalization");
@@ -1281,6 +1316,7 @@ restoreState(const FileIO& file, string pathName) {
   file.read(mSoundSpeed, pathName + "/soundSpeed");
   file.read(mVolume, pathName + "/volume");
   file.read(mSpecificThermalEnergy0, pathName + "/specificThermalEnergy0");
+  file.read(mEntropy, pathName + "/entropy");
   file.read(mHideal, pathName + "/Hideal");
   file.read(mMassDensitySum, pathName + "/massDensitySum");
   file.read(mNormalization, pathName + "/normalization");

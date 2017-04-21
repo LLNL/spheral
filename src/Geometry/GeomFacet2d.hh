@@ -17,6 +17,9 @@
 
 namespace Spheral {
 
+// Forward declare the polygon.
+class GeomPolygon;
+
 class GeomFacet2d {
 public:
   //--------------------------- Public Interface ---------------------------//
@@ -75,6 +78,9 @@ private:
   const std::vector<Vector>* mVerticesPtr;
   std::vector<unsigned> mPoints;
   Vector mNormal;
+
+  // Make polygon a friend.
+  friend GeomPolygon;
 };
 
 // Provide an ostream operator for GeomFacet2d.

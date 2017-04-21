@@ -55,14 +55,13 @@ Zone(const Mesh<Dim<3> >& mesh,
   BEGIN_CONTRACT_SCOPE
   {
     REQUIRE(mFaceIDs.size() > 3);
-    BOOST_FOREACH(int i, mFaceIDs) REQUIRE((i < 0 ? ~i : i) < mMeshPtr->mFaces.size());
+    for (const int i: mFaceIDs) REQUIRE((i < 0 ? ~i : i) < mMeshPtr->mFaces.size());
   }
   END_CONTRACT_SCOPE
   
   // Construct the edge and node IDs.
-  int faceID;
   unsigned i;
-  BOOST_FOREACH(faceID, mFaceIDs) {
+  for (const int faceID: mFaceIDs) {
     i = faceID < 0 ? ~faceID : faceID;
     const Face& face = mMeshPtr->mFaces[i];
     const vector<unsigned>& edgeIDs = face.edgeIDs();
@@ -91,7 +90,7 @@ Dim<3>::Vector
 Mesh<Dim<3> >::Zone::
 position() const {
   Vector result;
-  BOOST_FOREACH(int i, mFaceIDs) result += mMeshPtr->mFaces[i < 0 ? ~i : i].position();
+  for (const int i: mFaceIDs) result += mMeshPtr->mFaces[i < 0 ? ~i : i].position();
   result /= mFaceIDs.size();
   return result;
 }
@@ -106,11 +105,10 @@ Mesh<Dim<3> >::Zone::
 volume() const {
   double result = 0.0;
   const Vector xzone = this->position();
-  int faceID;
   unsigned i;
   double faceArea;
   Vector xface, faceHat;
-  BOOST_FOREACH(faceID, mFaceIDs) {
+  for (const int faceID: mFaceIDs) {
     i = faceID < 0 ? ~faceID : faceID;
     const Face& face = mMeshPtr->mFaces[i];
     xface = face.position();

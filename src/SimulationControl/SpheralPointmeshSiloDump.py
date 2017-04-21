@@ -45,14 +45,17 @@ def dumpPhysicsState(stateThingy,
                      boundaries = None):
 
     # What did we get passed?
+    t0 = time.time()
     dim = type(stateThingy).__name__[-2:]
     if isinstance(stateThingy, eval("Integrator%s" % dim)):
         integrator = stateThingy
         dataBase = integrator.dataBase()
         state = eval("State%id(integrator.dataBase(), integrator.physicsPackages())" % integrator.dataBase().nDim)
-        derivs = None
-        if dumpDerivatives:
-            derivs = eval("StateDerivatives%id(integrator.dataBase(), integrator.physicsPackages())" % integrator.dataBase().nDim)
+        derivs = eval("StateDerivatives%id(integrator.dataBase(), integrator.physicsPackages())" % integrator.dataBase().nDim)
+        if dumpGhosts:
+            integrator.setGhostNodes()
+            integrator.applyGhostBoundaries(state, derivs)
+            integrator.finalizeGhostBoundaries()
         currentTime = integrator.currentTime
         currentCycle = integrator.currentCycle
     elif isinstance(stateThingy, eval("State%s" % dim)):
@@ -133,6 +136,7 @@ def dumpPhysicsState(stateThingy,
         pass
 
     # Dump the sucker.
+    t1 = time.time()
     fullBaseName = baseFileName + "-time=%g-cycle=%i" % (currentTime, currentCycle)
     siloPointmeshDump(baseName = fullBaseName,
                       baseDirectory = baseDirectory,
@@ -148,6 +152,9 @@ def dumpPhysicsState(stateThingy,
         mf = open(masterFileName, "a")
         mf.write("%s\n" % (fullBaseName + ".silo"))
         mf.close()
+
+    t2 = time.time()
+    print "SpheralPointMeshSiloDump: spent %g seconds on preliminaries, %g writing files." % (t1 - t0, t2 - t1)
 
     return
 

@@ -4,6 +4,7 @@ from Spheral import *
 from math import *
 import numpy
 import os
+from SpheralTestUtilities import multiSort
 
 SpheralGnuPlotCache = []
 
@@ -42,24 +43,6 @@ def generateNewGnuPlot(persist = False):
         return result
     else:
         return fakeGnuplot()
-
-#-------------------------------------------------------------------------------
-# Helper method, sort a set of lists by the first one.
-#-------------------------------------------------------------------------------
-def multiSort(*args):
-    # All the lists have to be the same length.
-    for l in args:
-        assert len(l) == len(args[0])
-
-    # This is the obscure zip trick!
-    result = zip(*sorted(zip(*args)))
-
-    # Copy the sorted stuff back to the input arguments.
-    for ilist in xrange(len(args)):
-        for i in xrange(len(args[ilist])):
-            args[ilist][i] = result[ilist][i]
-
-    return
 
 #-------------------------------------------------------------------------------
 # Since the default Gnuplot.py doesn't support png output, I'll add it here
@@ -196,11 +179,18 @@ def plotFieldList(fieldList,
                   winTitle = None,
                   lineTitle = "",
                   xlabel = None,
-                  ylabel = None):
+                  ylabel = None,
+                  filterFunc = None):
 
     if plot is None:
         plot = generateNewGnuPlot()
     SpheralGnuPlotCache.append(plot)
+
+    def nullFilter(pos):
+        return True
+
+    if filterFunc is None:
+        filterFunc = nullFilter
 
     # Gather the fieldList info across all processors to process 0.
     globalNumNodes = []
@@ -208,13 +198,18 @@ def plotFieldList(fieldList,
     globalY = []
     for field in fieldList:
         if plotGhosts:
-            n = field.nodeList().numNodes
-            localX = [eval(xFunction % "x") for x in field.nodeList().positions().allValues()]
-            localY = [eval(yFunction % "y") for y in field.allValues()]
+            xvals = field.nodeList().positions().allValues()
+            yvals = field.allValues()
         else:
-            n = field.nodeList().numInternalNodes
-            localX = [eval(xFunction % "x") for x in field.nodeList().positions().internalValues()]
-            localY = [eval(yFunction % "y") for y in field.internalValues()]
+            xvals = field.nodeList().positions().internalValues()
+            yvals = field.internalValues()
+        localX = []
+        localY = []
+        for x, y in zip(xvals, yvals):
+            if filterFunc(x):
+                localX.append(eval(xFunction % "x"))
+                localY.append(eval(yFunction % "y"))
+        n = len(localX)
         if mpi:
             globalNumNodes.append(mpi.allreduce(n, mpi.SUM))
             globalX.extend(mpi.allreduce(localX, mpi.SUM))
@@ -324,7 +319,8 @@ def plotState(thingus,
               xFunction = "%s.x",
               vecyFunction = "%s.x",
               tenyFunction = "%s.xx ** -1",
-              lineTitle = "Simulation"):
+              lineTitle = "Simulation",
+              filterFunc = None):
 
     dim = type(thingus).__name__[-2:]
     if isinstance(thingus, eval("State%s" % dim)):
@@ -350,7 +346,8 @@ def plotState(thingus,
                             plotStyle = plotStyle,
                             winTitle = "Mass Density",
                             lineTitle = lineTitle,
-                            xlabel="x")
+                            xlabel="x",
+                            filterFunc = filterFunc)
 
     velPlot = plotFieldList(vel,
                             xFunction = xFunction,
@@ -360,7 +357,8 @@ def plotState(thingus,
                             plotStyle = plotStyle,
                             winTitle = "Velocity",
                             lineTitle = lineTitle,
-                            xlabel="x")
+                            xlabel="x",
+                            filterFunc = filterFunc)
 
     epsPlot = plotFieldList(eps,
                             xFunction = xFunction,
@@ -369,7 +367,8 @@ def plotState(thingus,
                             plotStyle = plotStyle,
                             winTitle = "Specific Thermal Energy",
                             lineTitle = lineTitle,
-                            xlabel="x")
+                            xlabel="x",
+                            filterFunc = filterFunc)
 
     PPlot = plotFieldList(P,
                           xFunction = xFunction,
@@ -378,7 +377,8 @@ def plotState(thingus,
                           plotStyle = plotStyle,
                           winTitle = "Pressure",
                           lineTitle = lineTitle,
-                          xlabel="x")
+                          xlabel="x",
+                          filterFunc = filterFunc)
 
     HPlot = plotFieldList(H,
                           xFunction = xFunction,
@@ -388,7 +388,8 @@ def plotState(thingus,
                           plotStyle = plotStyle,
                           winTitle = "Smoothing scale",
                           lineTitle = lineTitle,
-                          xlabel="x")
+                          xlabel="x",
+                          filterFunc = filterFunc)
 
     return rhoPlot, velPlot, epsPlot, PPlot, HPlot
 
@@ -398,7 +399,8 @@ def plotState(thingus,
 def plotRadialState(dataBase,
                     plotGhosts = False,
                     colorNodeLists = False,
-                    lineTitle = "Simulation"):
+                    lineTitle = "Simulation",
+                    filterFunc = None):
 
     rhoPlot = plotFieldList(dataBase.fluidMassDensity,
                             xFunction = "%s.magnitude()",
@@ -407,7 +409,8 @@ def plotRadialState(dataBase,
                             plotStyle = "points",
                             winTitle = "Mass density",
                             lineTitle = lineTitle,
-                            xlabel = "r")
+                            xlabel = "r",
+                            filterFunc = filterFunc)
 
     radialVelocity = radialVelocityFieldList(dataBase.fluidPosition,
                                              dataBase.fluidVelocity)
@@ -418,7 +421,8 @@ def plotRadialState(dataBase,
                             plotStyle = "points",
                             winTitle = " Radial Velocity",
                             lineTitle = lineTitle,
-                            xlabel = "r")
+                            xlabel = "r",
+                            filterFunc = filterFunc)
 
     epsPlot = plotFieldList(dataBase.fluidSpecificThermalEnergy,
                             xFunction = "%s.magnitude()",
@@ -427,7 +431,8 @@ def plotRadialState(dataBase,
                             plotStyle = "points",
                             winTitle = "Specific Thermal Energy",
                             lineTitle = lineTitle,
-                            xlabel = "r")
+                            xlabel = "r",
+                            filterFunc = filterFunc)
 
     fluidPressure = dataBase.newFluidScalarFieldList(0.0, "pressure")
     dataBase.fluidPressure(fluidPressure)
@@ -438,7 +443,8 @@ def plotRadialState(dataBase,
                           plotStyle = "points",
                           winTitle = "Pressure",
                           lineTitle = lineTitle,
-                          xlabel = "r")
+                          xlabel = "r",
+                          filterFunc = filterFunc)
 
     HPlot = plotFieldList(dataBase.fluidHfield,
                           xFunction = "%s.magnitude()",
@@ -448,7 +454,8 @@ def plotRadialState(dataBase,
                           plotStyle = "points",
                           winTitle = "Smoothing scale",
                           lineTitle = lineTitle,
-                          xlabel = "r")
+                          xlabel = "r",
+                          filterFunc = filterFunc)
 
     return rhoPlot, velPlot, epsPlot, PPlot, HPlot
 
@@ -991,10 +998,13 @@ def plotpmomHistory(conserve):
 # Plot a polygon.
 #-------------------------------------------------------------------------------
 def plotPolygon(polygon,
+                plotVertices = True,
+                plotFacets = True,
                 plotNormals = False,
                 plotCentroid = False,
                 plot = None,
-                persist = False):
+                persist = False,
+                plotLabels = True):
     px = []
     py = []
     for v in polygon.vertices():
@@ -1021,20 +1031,27 @@ def plotPolygon(polygon,
         ndy.append(f.normal.y)
     if plot is None:
         plot = generateNewGnuPlot(persist)
+    if plotLabels:
+        vlabel, flabel, nlabel = "Vertices", "Facets", "Normals"
+    else:
+        vlabel, flabel, nlabel = None, None, None
     dataPoints = Gnuplot.Data(px, py,
                               with_ = "points pt 1 ps 2",
-                              title = "Vertices",
+                              title = vlabel,
                               inline = True)
     dataFacets = Gnuplot.Data(fx, fy, fdx, fdy,
                               with_ = "vectors",
-                              title = "Facets",
+                              title = flabel,
                               inline = True)
     dataNormals = Gnuplot.Data(nx, ny, ndx, ndy,
                                with_ = "vectors",
-                               title = "Normals",
+                               title = nlabel,
                                inline = True)
-    plot.replot(dataPoints)
-    plot.replot(dataFacets)
+    if plotVertices:
+        plot.replot(dataPoints)
+
+    if plotFacets:
+        plot.replot(dataFacets)
 
     if plotNormals:
         plot.replot(dataNormals)

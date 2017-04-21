@@ -49,7 +49,7 @@ namespace Spheral {
 namespace Spheral {
 namespace NodeSpace {
 
-enum NodeType {
+enum class NodeType {
   InternalNode = 0,
   GhostNode = 1
 };

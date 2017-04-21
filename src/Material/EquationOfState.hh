@@ -20,7 +20,7 @@ namespace Spheral {
 namespace Spheral {
 namespace Material {
 
-enum MaterialPressureMinType {
+enum class MaterialPressureMinType {
   PressureFloor = 0,
   ZeroPressure = 1,
 };
@@ -71,6 +71,10 @@ public:
   virtual void setBulkModulus(FieldSpace::Field<Dimension, Scalar>& bulkModulus,
 			     const FieldSpace::Field<Dimension, Scalar>& massDensity,
 			     const FieldSpace::Field<Dimension, Scalar>& specificThermalEnergy) const = 0;
+
+  virtual void setEntropy(FieldSpace::Field<Dimension, Scalar>& entropy,
+                          const FieldSpace::Field<Dimension, Scalar>& massDensity,
+                          const FieldSpace::Field<Dimension, Scalar>& specificThermalEnergy) const = 0;
 
   // The set of constants defining our units.
   const PhysicalConstants& constants() const;

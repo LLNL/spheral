@@ -19,7 +19,7 @@ namespace Spheral {
 
   template<typename Dimension>
   void
-  computeHVolumes(const typename Dimension::Scalar kernelExtent,
+  computeHVolumes(const typename Dimension::Scalar nPerh,
                   const FieldSpace::FieldList<Dimension, typename Dimension::SymTensor>& H,
                   FieldSpace::FieldList<Dimension, typename Dimension::Scalar>& volume);
 }

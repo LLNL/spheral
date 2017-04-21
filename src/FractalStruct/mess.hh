@@ -29,6 +29,8 @@ namespace FractalSpace
     vector < vector <int> > Slices;
     vector < vector <int> > BoxS;
     vector < vector <int> > BoxSL;
+    vector < vector <bool> > counts_on_nodes;
+    vector <bool> count_on_node;
     int glength;
     pint start_x;
     pint length_x;
@@ -228,6 +230,7 @@ namespace FractalSpace
     void calc_fftw_Slices(const int& length_a,const bool& periodic);
     template <class T> void How_Many_On_Nodes(T count,vector <T>& counts) const;
     void MAX_Things_To_Send_Receive_I(vector <int>& counts_out_send,vector <int>& counts_in_send,vector <int>& maxSR);
+    long int How_Many_In_Solver(const int S) const;
     void How_Many_Things_To_Send_I(vector <int>& counts_out_send,vector <int>& counts_in_send);
     void How_Many_Things_To_Send_I(MPI_Comm& World,
 					 vector <int>& counts_out_send,vector <int>& counts_in_send);
@@ -256,18 +259,23 @@ namespace FractalSpace
     void Send_Data_Hypre_Directions(vector <int>& counts_out,vector <int>& counts_in,const int& integers,const int& doubles,
 					  vector < vector <int> >& dataI_out,vector <int>& dataI_in,int& how_manyI,
 					  vector < vector <double> >& dataR_out,vector <double>& dataR_in,int& how_manyR);
+    template <class GO_AWAY> void really_clear(vector <GO_AWAY>& die);
     void MPI_MYTest(int which,int test) const;
     void Which_Nodes(int count,vector <int>& counts,vector <bool>& YesNo,int ROOT,MPI_Comm& World);
+    void my_AllgatherI(MPI_Comm& World,vector <int>& paramsend,vector <int>& paramrecv,const int& nsend) const;
     void my_AllgatherI(vector <int>& paramsend,vector <int>& paramrecv,const int& nsend) const;
     void my_AllgatherI(vector <long>& paramsend,vector <long>& paramrecv,const int& nsend) const;
     void my_AllgatherR(vector <double>& paramsend,vector <double>& paramrecv,const int& nsend) const;
     void calc_total_particles(const int& NP);
+    void Find_Max_INT(MPI_Comm& World,vector <int>& integers,const int& how_long) const;
     void Find_Max_INT(vector <int>& integers,const int& how_long) const;
     void Find_Max_DOUBLE(vector <double>& doubles,const int& how_long) const;
     void Find_Sum_LONG_INT(vector <long int>& integers,const int& how_long) const;
     void Find_Sum_INT(vector <int>& integers,const int& how_long) const;
     void Find_Sum_DOUBLE(vector <double>& doubles,const int& how_long) const;
+    void Send_INT_from_ROOT(MPI_Comm& World,int* numbers,const int& how_long,const int& ROOT) const;
     void Send_INT_from_ROOT(int* numbers,const int& how_long,const int& ROOT) const;
+    void Find_Max_INT_to_ROOT(MPI_Comm& World,vector <int>& numbers,const int& how_long,const int& ROOT) const;
     void Find_Max_INT_to_ROOT(vector <int>& numbers,const int& how_long,const int& ROOT) const;
     void Find_Max_DOUBLE_to_ROOT(vector <double>& numbers,const int& how_long,const int& ROOT) const;
     void Find_Sum_FLOAT_to_ROOT(vector <float>& numbers,const int& how_long,const int& ROOT,MPI_Comm& World) const;

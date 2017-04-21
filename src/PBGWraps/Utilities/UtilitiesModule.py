@@ -16,12 +16,19 @@ class Utilities:
         # Includes.
         mod.add_include('"%s/UtilitiesTypes.hh"' % srcdir)
         self.Spheral = mod.add_cpp_namespace("Spheral")
+        self.PythonBoundFunctors = self.Spheral.add_cpp_namespace("PythonBoundFunctors")
         self.NodeSpace = self.Spheral.add_cpp_namespace("NodeSpace")
 
         # Expose types.
-        self.NewtonRaphsonFunction = addObject(mod, "NewtonRaphsonFunction", allow_subclassing=True)
-        self.SimpsonsIntegrationDoubleFunction = addObject(mod, "SimpsonsIntegrationDoubleFunction", allow_subclassing=True)
         self.KeyTraits = addObject(mod, "KeyTraits", allow_subclassing=True)
+        self.ScalarScalarFunctor = addObject(self.PythonBoundFunctors, "SpheralFunctor", template_parameters=["double", "double"], custom_name="ScalarScalarFunctor", allow_subclassing=True)
+        self.ScalarPairScalarFunctor = addObject(self.PythonBoundFunctors, "SpheralFunctor", template_parameters=["double", "std::pair<double, double>"], custom_name="ScalarPairScalarFunctor", allow_subclassing=True)
+        for ndim in self.dims:
+            exec("""
+self.VectorScalarFunctor%(ndim)id = addObject(self.PythonBoundFunctors, "SpheralFunctor", template_parameters=["Vector%(ndim)id", "double"], custom_name="VectorScalarFunctor%(ndim)id", allow_subclassing=True)
+self.VectorVectorFunctor%(ndim)id = addObject(self.PythonBoundFunctors, "SpheralFunctor", template_parameters=["Vector%(ndim)id", "Vector%(ndim)id"], custom_name="VectorVectorFunctor%(ndim)id", allow_subclassing=True)
+self.VectorPairScalarFunctor%(ndim)id = addObject(self.PythonBoundFunctors, "SpheralFunctor", template_parameters=["Vector%(ndim)id", "std::pair<double, double>"], custom_name="VectorPairScalarFunctor%(ndim)id", allow_subclassing=True)
+""" % {"ndim" : ndim})
 
         return
 
@@ -32,27 +39,19 @@ class Utilities:
 
         Spheral = mod.add_cpp_namespace("Spheral")
 
-        self.NewtonRaphsonFunction.add_constructor([])
-        self.NewtonRaphsonFunction.add_method("__call__", "pair_double_double",
-                                              [param("double", "x")],
-                                              is_const=True,
-                                              is_pure_virtual=True)
-
-        self.SimpsonsIntegrationDoubleFunction.add_constructor([])
-        self.SimpsonsIntegrationDoubleFunction.add_method("__call__", "double",
-                                                          [param("double", "x")],
-                                                          is_const=True,
-                                                          is_pure_virtual=True)
+        # Add the functors.
+        self.addFunctorBindings(self.ScalarScalarFunctor,       "double",   "double")
+        self.addFunctorBindings(self.ScalarPairScalarFunctor,   "double",   "pair_double_double")
 
         Spheral.add_function("erff", "double", [param("double", "x")], docstring="You know, the error function.")
-        Spheral.add_function("newtonRaphsonFindRoot", "double", [constrefparam("NewtonRaphsonFunction", "function"),
+        Spheral.add_function("newtonRaphsonFindRoot", "double", [constrefparam("Spheral::PythonBoundFunctors::SpheralFunctor<double, std::pair<double, double> >", "function"),
                                                                  param("float", "x1"),
                                                                  param("float", "x2"),
                                                                  param("float", "xaccuracy", default_value="1.0e-15"),
                                                                  param("float", "yaccuracy", default_value="1.0e-15"),
                                                                  param("int", "maxIterations", default_value="100")],
                              docstring="Newton-Raphson root finder.")
-        Spheral.add_function("simpsonsIntegrationDouble", "double", [constrefparam("SimpsonsIntegrationDoubleFunction", "function"),
+        Spheral.add_function("simpsonsIntegrationDouble", "double", [constrefparam("Spheral::PythonBoundFunctors::SpheralFunctor<double, double>", "function"),
                                                                      param("double", "x0"),
                                                                      param("double", "x1"),
                                                                      param("unsigned int", "numBins")],
@@ -269,6 +268,16 @@ Spheral.add_function("segmentIntersectEdges", "bool", [constrefparam("%(vector)s
                              [constrefparam("Polyhedron", "poly0"), param("int", "numLevels")],
                              docstring = "Return a new Polyhedron based on refining an existing one a given number of levels.")
 
+        # R2D/R3D utilities
+        Spheral.add_function("clipFacetedVolume", "Polygon", 
+                             [constrefparam("Polygon", "poly"),
+                              constrefparam("vector_of_Plane2d", "planes")],
+                             docstring = "Clip a polygon with a set of planes.")
+        Spheral.add_function("clipFacetedVolume", "Polyhedron", 
+                             [constrefparam("Polyhedron", "poly"),
+                              constrefparam("vector_of_Plane3d", "planes")],
+                             docstring = "Clip a polyhedron with a set of planes.")
+
         # Boost.math functions.
         Spheral.add_function("legendre_p", "double", 
                              [param("int", "l"), param("int", "m"), param("double", "x")],
@@ -314,6 +323,11 @@ Spheral.add_function("segmentIntersectEdges", "bool", [constrefparam("%(vector)s
 
         Spheral = self.Spheral
         NodeSpace = self.NodeSpace
+
+        # Dimension dependent functor bindings.
+        self.addFunctorBindings(eval("self.VectorScalarFunctor%id" % ndim), "Vector%id" % ndim, "double")
+        self.addFunctorBindings(eval("self.VectorVectorFunctor%id" % ndim), "Vector%id" % ndim, "Vector%id" % ndim)
+        self.addFunctorBindings(eval("self.VectorPairScalarFunctor%id" % ndim), "Vector%id" % ndim, "pair_double_double")
 
         # Expose methods.
         NodeSpace.add_function("numGlobalNodes", "int", [constrefparam(nodelist, "nodes")],
@@ -431,6 +445,17 @@ Spheral.add_function("segmentIntersectEdges", "bool", [constrefparam("%(vector)s
                              custom_name = "planarReflectingOperator%id" % ndim,
                              docstring = "Generate the planar reflection transformation for th given plane.")
 
+        return
+
+    #---------------------------------------------------------------------------
+    # functor bindings.
+    #---------------------------------------------------------------------------
+    def addFunctorBindings(self, F, argval, retval):
+        F.add_constructor([])
+        F.add_method("__call__", retval,
+                     [param(argval, "x")],
+                     is_const=True,
+                     is_pure_virtual=True)
         return
 
     #---------------------------------------------------------------------------

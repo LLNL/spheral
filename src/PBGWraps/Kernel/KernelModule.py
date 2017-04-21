@@ -154,7 +154,7 @@ self.generateTableKernelBindings(self.TableKernel%(dim)s, %(ndim)i)
             x.add_constructor([constrefparam(W, "kernel"),
                                param("int", "numPoints", default_value="1000"),
                                param("double", "hmult", default_value="1.0")])
-            x.add_method("augment", None, [constrefparam(W, "W")])
+            #x.add_method("augment", None, [constrefparam(W, "W")])
 
         # Methods.
         x.add_method("kernelAndGradValue", "pair_double_double", [param("double", "etaMagnitude"), param("double", "Hdet")], is_const=True)
@@ -164,6 +164,15 @@ self.generateTableKernelBindings(self.TableKernel%(dim)s, %(ndim)i)
                                                    refparam("vector_of_double", "gradValues"),], is_const=True)
         x.add_method("equivalentNodesPerSmoothingScale", "double", [param("double", "Wsum")], is_const=True)
         x.add_method("equivalentWsum", "double", [param("double", "nPerh")], is_const=True)
+        x.add_method("f1", "double", [param("double", "etaMagnitude")], is_const=True)
+        x.add_method("f2", "double", [param("double", "etaMagnitude")], is_const=True)
+        x.add_method("gradf1", "double", [param("double", "etaMagnitude")], is_const=True)
+        x.add_method("gradf2", "double", [param("double", "etaMagnitude")], is_const=True)
+        x.add_method("f1Andf2", None, [param("double", "etaMagnitude"),
+                                       refparam("double", "f1"),
+                                       refparam("double", "f2"),
+                                       refparam("double", "gradf1"),
+                                       refparam("double", "gradf2")], is_const=True)
         x.add_method("lowerBound", "int", [param("double", "etaMagnitude")], is_const=True)
         x.add_method("valid", "bool", [], is_const=True, is_virtual=True)
 

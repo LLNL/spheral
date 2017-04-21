@@ -87,7 +87,7 @@ def _ConstantStrengthFactory(*args,
         if mu0 is None:
             mu0 = SpheralMaterialPropertiesLib[mat]["mu0"]
         if Y0 is None:
-            Y0 = SpheralMaterialPropertiesLib[mat]["mu0"]
+            Y0 = SpheralMaterialPropertiesLib[mat]["Y0"]
     
         # Figure out the conversions to the requested units.
         lconv = CGS.unitLengthMeters / units.unitLengthMeters
