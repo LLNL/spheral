@@ -62,4 +62,6 @@ endif
 #-------------------------------------------------------------------------------
 include $(BUILDTOP)/helpers/makefile_master
 
+ifeq ("yes", "@USE_R3D@")
 LIBS += -lr3d
+endif
