@@ -6,12 +6,8 @@ namespace FractalSpace
 {
   void tree_start_mini(Group& group, Fractal& fractal,Fractal_Memory& mem,Misc& misc)
   {
-    //    bool dumpit=mem.p_mess->FractalRank == mem.p_mess->FractalNodes-1;
-    //    dumpit=false;
-    //    int minimum=fractal.get_minimum_number();
-    //    minimum=1;
+    fractal.timing(-1,1);
     ofstream& FileFractal=fractal.p_file->DUMPS;
-    //    ofstream* p_FilePoint=&fractal.p_file->DUMPS;
     double a_grid_length=(double)fractal.get_grid_length();
     vector <int>Boxu(6);
     vector <Point*>ud(6);
@@ -23,8 +19,6 @@ namespace FractalSpace
     mem.total_points_used=0;
     Point* p_point=0;
     Point* new_points=0;
-    //    FileFractal << " generating points in treestart" << "\n";
-    //    FileFractal << " Boxes in node " << "\n";
     vector <double> RealBox;
     fractal.getRealBox(RealBox);
     Misc::vector_print(RealBox,FileFractal);
@@ -219,7 +213,6 @@ namespace FractalSpace
 		mem.total_points_used++;
 		Point& point=*p_point;
 		group.list_points.push_back(p_point);
-		point.set_point_to_number(point_counter);
 		point.set_point_pointer(p_point);
 		point.set_real_pointer(0);
 		point.set_pos_point(gridx*misc.zoom,gridy*misc.zoom,gridz*misc.zoom);
@@ -230,8 +223,6 @@ namespace FractalSpace
 		point.set_inside(inside);
 		point.set_edge_buffer_passive_point(edge,buff,pass);
 		point.set_number_in_list(point_counter);
-		//		point.set_FILE(p_FilePoint);
-		//		FileFractal << " insides " << gridx << " " << gridy << " " << gridz << " " << inside << "\n";
 		point_counter++;
 	      }
 	  }
@@ -307,7 +298,6 @@ namespace FractalSpace
 	    assert(real_point[grid]);
 	    p_point->list_particles.push_back(p);
 	    partsin++;
-	    //	    FileFractal << " doit " << particle << " " << p << " " << p_point << " " << grid << " " << grid_x << " " << grid_y << " " << grid_z << "\n";
 	  }
 	else
 	  {
@@ -327,5 +317,6 @@ namespace FractalSpace
     FileFractal << "exit treestart" << "\n";
     t3=fractal.p_mess->Clock();
     FileFractal << "tree time " << t1-t0 << "\t" << t2-t1 << "\t" << t3-t2 << "\n";
+    fractal.timing(1,1);
   }
 }

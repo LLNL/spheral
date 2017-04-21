@@ -473,7 +473,8 @@ class TensorTestBase:
         result = self.lhs.squareElements()
         for row in xrange(self.TensorType.nDimensions):
             for col in xrange(self.TensorType.nDimensions):
-                assert result(row, col) == self.lhs(row, col)**2
+                self.failUnless(fuzzyEqual(result(row, col), self.lhs(row, col)**2),
+                                "Square matrix elements failure: %g != %g" % (result(row, col), self.lhs(row, col)**2))
         return
 
     def testRotation(self):

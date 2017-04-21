@@ -355,7 +355,8 @@ self.addDataBaseMethods(self.DataBase%(dim)id, %(dim)i)
                                                    (thirdranktensorfieldlist, thirdranktensor, "%s::zero" % thirdranktensor, "ThirdRankTensor"),
                                                    (fourthranktensorfieldlist, fourthranktensor, "%s::zero" % fourthranktensor, "FourthRankTensor"),
                                                    (fifthranktensorfieldlist, fifthranktensor, "%s::zero" % fifthranktensor, "FifthRankTensor"),
-                                                   (polyvolfieldlist, polyvol, "%s()" % polyvol, "FacetedVolume")]:
+                                                   (polyvolfieldlist, polyvol, "%s()" % polyvol, "FacetedVolume"),
+                                                   (vectordoublefieldlist, "vector_of_double", "vector_of_double()", "vector_of_double")]:
             exec("""
 x.add_method("newGlobalFieldList", "%(result)s", [param("%(value)s", "value", default_value="%(default)s"),
                                                   param("std::string", "name", default_value='"unnamed field list"')],
@@ -405,6 +406,8 @@ x.add_method("newSolidFieldList", "%(result)s", [param("%(value)s", "value", def
         x.add_method("fluidTemperature", None, [refparam(scalarfieldlist, "result")], is_const=True)
         x.add_method("fluidSoundSpeed", None, [refparam(scalarfieldlist, "result")], is_const=True)
         x.add_method("fluidVolume", None, [refparam(scalarfieldlist, "result")], is_const=True)
+        x.add_method("fluidGamma", None, [refparam(scalarfieldlist, "result")], is_const=True)
+        x.add_method("fluidEntropy", None, [refparam(scalarfieldlist, "result")], is_const=True)
         x.add_method("fluidLinearMomentum", None, [refparam(vectorfieldlist, "result")], is_const=True)
         x.add_method("fluidTotalEnergy", None, [refparam(scalarfieldlist, "result")], is_const=True)
 
@@ -440,7 +443,10 @@ x.add_method("newSolidFieldList", "%(result)s", [param("%(value)s", "value", def
 
         x.add_instance_attribute("maxKernelExtent", "double", getter="maxKernelExtent", is_const=True)
 
-        x.add_instance_attribute("nDim", "int")
+        x.add_instance_attribute("nDim", "int", is_const=True)
+        x.add_instance_attribute("isRZ", "bool", is_const=True)
+
         x.add_static_attribute("nDim", "int", True)
+        x.add_static_attribute("isRZ", "bool", True)
 
         return

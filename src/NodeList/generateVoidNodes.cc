@@ -8,7 +8,6 @@
 // nodes.
 //------------------------------------------------------------------------------
 #include <algorithm>
-#include "boost/foreach.hpp"
 
 #include "generateVoidNodes.hh"
 #include "Field/Field.hh"
@@ -30,7 +29,6 @@ using namespace std;
 using std::abs;
 using std::min;
 using std::max;
-using NodeSpace::NodeList;
 using FieldSpace::Field;
 using FieldSpace::FieldList;
 using NeighborSpace::ConnectivityMap;
@@ -128,7 +126,7 @@ void generateVoidNodes(const vector<typename Dimension::Vector>& generators,
     // Look for any faces of this node's cell across which we 
     // should be generating a void point.
     const vector<int>& faceIDs = mesh.zone(i).faceIDs();
-    BOOST_FOREACH(int faceID, faceIDs) {
+    for (const int faceID: faceIDs) {
       const typename Mesh<Dimension>::Face& face = mesh.face(faceID);
       j = Mesh<Dimension>::positiveID(face.oppositeZoneID(i));
       CHECK(j == Mesh<Dimension>::UNSETID or j < generators.size());

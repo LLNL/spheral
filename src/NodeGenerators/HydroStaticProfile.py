@@ -216,18 +216,24 @@ class EarthLikeProfileConstantTemp3d():
                 d = 1.0
                 iter = 0
                 #print "old rho was %f" % rho
+                rhoold = rho
+                #rho = 10.0*rho
                 while ((abs(d)>tol) and (iter < 1000)):
+                    if (d>1.0 and iter ==1 ):
+                        print "i think eos just changed?"
+                        #rho = 10.0*rhoold
                     rhof[0] = rho
                     eos.setSpecificThermalEnergy(ef,rhof,tempf)
                     eos.setPressure(Pf,rhof,ef)
                     eos.setBulkModulus(Kf,rhof,ef)
                     Pn = Pf[0]
-                    #print "Pn=%e" % Pn
                     Kn = Kf[0]
                     d = (Pn-P)/Kn
+                    #print "Pn=%e Kn=%e d=%e rho=%e e=%e" % (Pn,Kn,d,rho,ef[0])
                     rho *= (1.0-d)
                     iter += 1
-            #print "new rho is %f after %d iterations, d was %f" % (rho,iter,d)
+                #print "new rho is %f after %d iterations, d was %f" % (rho,iter,d)
+                    
 
 
             rhof[0] = rho
@@ -236,16 +242,17 @@ class EarthLikeProfileConstantTemp3d():
             eos.setBulkModulus(Kf,rhof,ef)
             K       = Kf[0]
             
-            #print "dy, dr, rho, y, r, K = {0:3.3e} {1:3.3e} {2:3.3e} {3:3.3e} {4:3.3e} {5:3.3e}".format(dy,dr,rho,y,r,K)
-            
-            dy      = dr*(2.0/rho*y*y - 2.0/r*y - units.G/K*4.0*pi*pow(rho,3.0))
+            print "dy, dr, rho, y, r, K = {0:3.3e} {1:3.3e} {2:3.3e} {3:3.3e} {4:3.3e} {5:3.3e}".format(dy,dr,rho,y,r,K)
+
+            dy      = dr*(3.0/rho*y*y - 2.0/r*y - units.G/K*4.0*pi*pow(rho,3.0))
             #self.soln.append([r,rho])
-            y       = y + dy
-            rho     = rho - y*dr
             r       = r - dr
+            if (r>0):
+                rho = rho - y*dr
+                y   = y + dy
             step    += 1
         
-        #print "Now Forward..."
+        print "\n\n\n\nNow Forward...\n\n\n\n"
         # got central density, now solve outward until Mtot = M0
         self.soln.append([0,rho])
         Mt  = 0
@@ -287,6 +294,8 @@ class EarthLikeProfileConstantTemp3d():
                 iter = 0
                 #print "old rho was %f" % rho
                 while ((abs(d)>tol) and (iter < 1000)):
+                    if (abs(d) > 1 and iter ==1):
+                        print "i think the eos just changed?"
                     rhof[0] = rho
                     eos.setSpecificThermalEnergy(ef,rhof,tempf)
                     eos.setPressure(Pf,rhof,ef)
@@ -305,8 +314,8 @@ class EarthLikeProfileConstantTemp3d():
             eos.setBulkModulus(Kf,rhof,ef)
             K       = Kf[0]
             
-            #print "dy, dr, rho, y, r, Mt, K = {0:3.3e} {1:3.3e} {2:3.3e} {3:3.3e} {4:3.3e} {5:3.3e} {6:3.3e}".format(dy,dr,rho,y,r,Mt,K)
-            dy      = dr*(2.0/rho*y*y - 2.0/r*y - units.G/K*4.0*pi*pow(rho,3.0))
+            print "dy, dr, rho, y, r, Mt, K = {0:3.3e} {1:3.3e} {2:3.3e} {3:3.3e} {4:3.3e} {5:3.3e} {6:3.3e}".format(dy,dr,rho,y,r,Mt,K)
+            dy      = dr*(3.0/rho*y*y - 2.0/r*y - units.G/K*4.0*pi*pow(rho,3.0))
             #self.soln.append([r,rho])
             y       = y + dy
             rho     = rho + y*dr
@@ -949,7 +958,7 @@ class EarthLikeProfileConstantTemp2d():
             
             #print "dy, dr, rho, y, r, K = {0:3.3e} {1:3.3e} {2:3.3e} {3:3.3e} {4:3.3e} {5:3.3e}".format(dy,dr,rho,y,r,K)
             
-            dy      = dr*(2.0/rho*y*y - 1.0/r*y - units.G/K*2.0*pi*pow(rho,3.0))
+            dy      = dr*(2.0/rho*y*y - 1.0/r*y - units.G/K*2.0*pi*pow(rho,2.0))
             #self.soln.append([r,rho])
             y       = y + dy
             rho     = rho - y*dr
@@ -1017,7 +1026,7 @@ class EarthLikeProfileConstantTemp2d():
             K       = Kf[0]
             
             #print "dy, dr, rho, y, r, Mt, K = {0:3.3e} {1:3.3e} {2:3.3e} {3:3.3e} {4:3.3e} {5:3.3e} {6:3.3e}".format(dy,dr,rho,y,r,Mt,K)
-            dy      = dr*(2.0/rho*y*y - 1.0/r*y - units.G/K*2.0*pi*pow(rho,3.0))
+            dy      = dr*(2.0/rho*y*y - 1.0/r*y - units.G/K*2.0*pi*pow(rho,2.0))
             #self.soln.append([r,rho])
             y       = y + dy
             rho     = rho + y*dr

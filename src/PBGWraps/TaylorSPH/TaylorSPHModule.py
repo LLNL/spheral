@@ -132,7 +132,7 @@ self.generateTaylorSPHHydroBaseBindings(self.TaylorSPHHydroBase%(dim)id, %(dim)i
                            param("int", "useVelocityMagnitudeForDt", default_value="false"),
                            param("int", "compatibleEnergyEvolution", default_value="true"),
                            param("int", "XSPH", default_value="true"),
-                           param("HEvolutionType", "HUpdate", default_value="Spheral::PhysicsSpace::IdealH")])
+                           param("HEvolutionType", "HUpdate", default_value="Spheral::PhysicsSpace::HEvolutionType::IdealH")])
 
         # Methods.
         x.add_method("initializeProblemStartup", None, [refparam(database, "dataBase")], is_virtual=True)

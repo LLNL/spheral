@@ -41,19 +41,22 @@ int main(int argc, char* argv[])
   int _mulT_=4;
   if(argc >= 7)
     _mulT_=atoi(argv[6]);
-
-  int HYPREMAXONNODE=40000;
+  int PADDING=-1;
   if(argc >= 8)
-    HYPREMAXONNODE=atoi(argv[7]);
-  double HYPREMULTIPLIER=2.0;
+    PADDING=atoi(argv[7]);
+
+  int HYPREMAXONNODE=10000000;
   if(argc >= 9)
-    HYPREMULTIPLIER=atof(argv[8]);
+    HYPREMAXONNODE=atoi(argv[8]);
+  double HYPREMULTIPLIER=2.0;
+  if(argc >= 10)
+    HYPREMULTIPLIER=atof(argv[9]);
 
 
   if(Ranky == 0)
     {
       cout << "starting out " << argc << " " << argv[0] << " " << FRN << " " << _inteL_ << " " << GRL << " " << FR0 << " " << FR1 << " " << FR2;
-      cout << " " << _mulT_ << " " << HYPREMAXONNODE << " " << HYPREMULTIPLIER << "\n";
+      cout << " " << _mulT_ << " " << PADDING << " " << HYPREMAXONNODE << " " << HYPREMULTIPLIER << "\n";
     }
   Fractal_Memory* p_fractal_memory= new Fractal_Memory;
   p_fractal_memory->FractalNodes0=FR0;
@@ -63,6 +66,8 @@ int main(int argc, char* argv[])
   p_fractal_memory->hypre_max_node_load=HYPREMAXONNODE;
   p_fractal_memory->hypre_multiplier=HYPREMULTIPLIER;
   fractal_memory_parameters(*p_fractal_memory,_inteL_,_mulT_);  
+  PADDING=max(-1,min(1,PADDING));
+  p_fractal_memory->padding=PADDING;
   int FractalRank;
   //  MPI_Comm_rank(MPI_COMM_WORLD,&FractalRank);
   vector <int> BoxA;
@@ -83,19 +88,13 @@ int main(int argc, char* argv[])
   int FR=p_mess->FractalRank;
   string RUN=p_fractal_memory->RUN;
   File* p_file=new File(BD,FRN,FR,RUN);
-  //  p_file->FileFractal << " before A " << BoxA[0] << " " << BoxA[1] << " " << BoxA[2] << " " << BoxA[3] << " " << BoxA[4] << " " << BoxA[5] << "\n";
   p_fractal_memory->p_file=p_file;
   p_fractal_memory->p_mess->p_file=p_file;
   FractalRank=p_mess->FractalRank;
   fractal_force_init(p_fractal_memory);
-  BoxA=p_fractal_memory->Boxes[FractalRank];
-  p_file->FileFractal << " before B " << BoxA[0] << " " << BoxA[1] << " " << BoxA[2] << " " << BoxA[3] << " " << BoxA[4] << " " << BoxA[5] << "\n";
   Fractal* p_fractal=new Fractal(*p_fractal_memory);
-  BoxA=p_fractal_memory->Boxes[FractalRank];
   vector <int> BoxB;
   p_fractal->getBox(BoxB);
-  p_file->FileFractal << " before C " << BoxA[0] << " " << BoxA[1] << " " << BoxA[2] << " " << BoxA[3] << " " << BoxA[4] << " " << BoxA[5] << "\n";
-  p_file->FileFractal << " before D " << BoxB[0] << " " << BoxB[1] << " " << BoxB[2] << " " << BoxB[3] << " " << BoxB[4] << " " << BoxB[5] << "\n";
   int result=fractal_force_wrapper(p_fractal_memory,p_fractal);
   delete p_mess;
   p_mess=0;

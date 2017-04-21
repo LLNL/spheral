@@ -17,6 +17,7 @@ INSTSRCTARGETS = \
 	$(srcdir)/PressurePolicyInst.cc.py \
 	$(srcdir)/SoundSpeedPolicyInst.cc.py \
 	$(srcdir)/GammaPolicyInst.cc.py \
+	$(srcdir)/EntropyPolicyInst.cc.py \
 	$(srcdir)/SpecificThermalEnergyPolicyInst.cc.py \
 	$(srcdir)/SpecificFromTotalThermalEnergyPolicyInst.cc.py \
 	$(srcdir)/NonSymmetricSpecificThermalEnergyPolicyInst.cc.py \
@@ -30,6 +31,11 @@ INSTSRCTARGETS = \
 ifneq (,$(filter "yes", "@INST1D@" "@INST2D@"))
 INSTSRCTARGETS += \
 	$(srcdir)/SecondMomentHourglassControlInst.cc.py
+endif
+
+ifeq ("yes", "@INST2D@")
+SRCTARGETS += \
+	$(srcdir)/NonSymmetricSpecificThermalEnergyPolicyRZ.cc
 endif
 
 #-------------------------------------------------------------------------------

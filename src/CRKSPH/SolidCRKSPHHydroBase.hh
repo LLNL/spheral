@@ -68,6 +68,10 @@ public:
                        const PhysicsSpace::HEvolutionType HUpdate,
                        const CRKSPHSpace::CRKOrder correctionOrder,
                        const CRKSPHSpace::CRKVolumeType volumeType,
+                       const bool detectSurfaces,
+                       const double detectThreshold,
+                       const double sweepAngle,
+                       const double detectRange,
                        const double epsTensile,
                        const double nTensile);
 
@@ -121,6 +125,7 @@ public:
   const FieldSpace::FieldList<Dimension, Scalar>& shearModulus() const;
   const FieldSpace::FieldList<Dimension, Scalar>& yieldStrength() const;
   const FieldSpace::FieldList<Dimension, Scalar>& plasticStrain0() const;
+  const FieldSpace::FieldList<Dimension, SymTensor>& Hfield0() const;
   const FieldSpace::FieldList<Dimension, int>& fragIDs() const;
 
   const FieldSpace::FieldList<Dimension, Scalar>&          Adamage() const;
@@ -146,6 +151,7 @@ private:
   FieldSpace::FieldList<Dimension, Scalar> mShearModulus;
   FieldSpace::FieldList<Dimension, Scalar> mYieldStrength;
   FieldSpace::FieldList<Dimension, Scalar> mPlasticStrain0;
+  FieldSpace::FieldList<Dimension, SymTensor> mHfield0;
   FieldSpace::FieldList<Dimension, int> mFragIDs;
 
   FieldSpace::FieldList<Dimension, Scalar>          mAdamage;

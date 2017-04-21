@@ -3,7 +3,6 @@ import mpi
 
 from NodeGeneratorBase import *
 
-from Spheral import SimpsonsIntegrationDoubleFunction, simpsonsIntegrationDouble
 from Spheral import Vector2d, Tensor2d, SymTensor2d, CylindricalBoundary, rotationMatrix2d
 from Spheral import Vector3d, Tensor3d, SymTensor3d, CylindricalBoundary, rotationMatrix3d
 from Spheral import CylindricalBoundary, generateCylDistributionFromRZ
@@ -19,20 +18,23 @@ class GenerateRatioSphere2d(NodeGeneratorBase):
     # Constructor
     #---------------------------------------------------------------------------
     def __init__(self,
-                 drCenter, drRatio,
+                 drStart, drRatio,
                  rho,
                  rmin,
                  rmax,
+                 startFromCenter = True,
                  thetamin = 0.0,
                  thetamax = 0.5*pi,
                  ntheta = 1,
                  center = (0.0, 0.0),
                  distributionType = "constantDTheta",   # one of (constantDTheta, constantNTheta)
+                 aspectRatio = 1.0,                     # only for constantDTheta
                  nNodePerh = 2.01,
                  SPH = False,
-                 rejecter = None):
+                 rejecter = None,
+                 perturbFunc = None):
 
-        assert drCenter > 0.0
+        assert drStart > 0.0
         assert drRatio > 0.0
         assert nNodePerh > 0.0
         assert rmin >= 0.0
@@ -44,37 +46,71 @@ class GenerateRatioSphere2d(NodeGeneratorBase):
 
         # Did we get passed a function or a constant for the density?
         if type(rho) == type(1.0):
-            def rhofunc(ri):
+            def rhofunc(posi):
                 return rho
         else:
             rhofunc = rho
         self.rhofunc = rhofunc
+
+        # Do we have a perturbation function?
+        def zeroPerturbation(posi):
+            return posi
+        if not perturbFunc:
+            perturbFunc = zeroPerturbation
 
         self.x, self.y, self.m, self.H = [], [], [], []
 
         constantN = (distributionType.lower() == "constantntheta")
         Dtheta = thetamax - thetamin
 
-        # Work our way out from the center.
-        r0 = rmin
-        dr = drCenter
-        while r0 < rmax:
-            r1 = min(rmax, r0 + dr)
+        nthetamin = max(2, int(Dtheta/(0.5*pi) + 0.5)*2)
+
+        # Decide the actual drStart we're going to use to arrive at an integer number of radial bins.
+        if abs(drRatio - 1.0) > 1e-4:
+            neff = max(1, int(log(1.0 - (rmax - rmin)*(1.0 - drRatio)/drStart)/log(drRatio) + 0.5))
+            drStart = (rmax - rmin)*(1.0 - drRatio)/(1.0 - drRatio**neff)
+        else:
+            neff = max(1, int((rmax - rmin)/drStart + 0.5))
+            drStart = (rmax - rmin)/neff
+        print "Adjusting initial radial spacing to %g in order to create an integer radial number of bins %i." % (drStart, neff)
+
+        # Step in radius (in or out) until we span the full radial range.
+        dr = drStart
+        for i in xrange(neff):
+            if abs(drRatio - 1.0) > 1e-4:
+                if startFromCenter:
+                    r0 = min(rmax, rmin + drStart*(1.0 - drRatio**i)/(1.0 - drRatio))
+                    r1 = min(rmax, rmin + drStart*(1.0 - drRatio**(i + 1))/(1.0 - drRatio))
+                else:
+                    r0 = max(rmin, rmax - drStart*(1.0 - drRatio**(i + 1))/(1.0 - drRatio))
+                    r1 = max(rmin, rmax - drStart*(1.0 - drRatio**i)/(1.0 - drRatio))
+            else:
+                r0 = min(rmax, rmin + i*drStart)
+                r1 = min(rmax, rmin + (i + 1)*drStart)
+            dr = r1 - r0
             ri = 0.5*(r0 + r1)
             li = Dtheta*ri
             if constantN:
                 ntheta = ntheta
             else:
-                ntheta = max(1, int(li/dr))
+                ntheta = max(nthetamin, int(li/dr*aspectRatio))
             dtheta = Dtheta/ntheta
-            mring = (r1**2 - r0**2) * 0.5*Dtheta * rhofunc(ri)
-            mi = mring/ntheta
             hr = nNodePerh * dr
             ha = nNodePerh * ri*dtheta
+
             for j in xrange(ntheta):
-                thetai = thetamin + (j + 0.5)*dtheta
-                xi = ri*cos(thetai)
-                yi = ri*sin(thetai)
+                theta0 = j*dtheta
+                theta1 = (j + 1)*dtheta
+                pos0 = perturbFunc(Vector2d(r0*cos(theta0), r0*sin(theta0)))
+                pos1 = perturbFunc(Vector2d(r1*cos(theta0), r1*sin(theta0)))
+                pos2 = perturbFunc(Vector2d(r1*cos(theta1), r1*sin(theta1)))
+                pos3 = perturbFunc(Vector2d(r0*cos(theta1), r0*sin(theta1)))
+                areai = 0.5*((pos1 - pos0).cross(pos2 - pos0).z +
+                             (pos2 - pos0).cross(pos3 - pos0).z)
+                posi = 0.25*(pos0 + pos1 + pos2 + pos3)
+                mi = areai*self.rhofunc(posi)
+                xi = posi.x
+                yi = posi.y
                 self.x.append(xi + center[0])
                 self.y.append(yi + center[1])
                 self.m.append(mi)
@@ -86,36 +122,34 @@ class GenerateRatioSphere2d(NodeGeneratorBase):
                     runit = Vector2d(xi, yi).unitVector()
                     T = rotationMatrix2d(runit).Transpose()
                     self.H[-1].rotationalTransform(T)
-            r0 = r1
-            dr *= drRatio
 
-        # Do a numerical integral to get the expected total mass.
-        class integfunc(SimpsonsIntegrationDoubleFunction):
-            def __init__(self, rho, Dtheta):
-                SimpsonsIntegrationDoubleFunction.__init__(self)
-                self.rho = rho
-                self.Dtheta = Dtheta
-                return
-            def __call__(self, ri):
-                return Dtheta*ri*self.rho(ri)
-        M1 = simpsonsIntegrationDouble(integfunc(rhofunc, Dtheta), rmin, rmax, 10000)
+        # # Do a numerical integral to get the expected total mass.
+        # class integfunc(ScalarFunctor):
+        #     def __init__(self, rho, Dtheta):
+        #         ScalarFunctor.__init__(self)
+        #         self.rho = rho
+        #         self.Dtheta = Dtheta
+        #         return
+        #     def __call__(self, ri):
+        #         return Dtheta*ri*self.rho(ri)
+        # M1 = simpsonsIntegrationDouble(integfunc(rhofunc, Dtheta), rmin, rmax, 10000)
 
-        # Make sure the total mass is what we intend it to be, by applying
-        # a multiplier to the particle masses.
-        M0 = sum(self.m)
-        assert M0 > 0.0
-        massCorrection = M1/M0
-        for i in xrange(len(self.m)):
-            self.m[i] *= massCorrection
-        print "Applied a mass correction of %f to ensure total mass is %f." % (massCorrection, M1)
+        # # Make sure the total mass is what we intend it to be, by applying
+        # # a multiplier to the particle masses.
+        # M0 = sum(self.m)
+        # assert M0 > 0.0
+        # massCorrection = M1/M0
+        # for i in xrange(len(self.m)):
+        #     self.m[i] *= massCorrection
+        # print "Applied a mass correction of %f to ensure total mass is %f." % (massCorrection, M1)
 
         # If the user provided a "rejecter", give it a pass
         # at the nodes.
         if rejecter:
-            self.x, self.y, self.z, self.m, self.H = rejecter(self.x,
-                                                              self.y,
-                                                              self.m,
-                                                              self.H)
+            self.x, self.y, self.m, self.H = rejecter(self.x,
+                                                      self.y,
+                                                      self.m,
+                                                      self.H)
 
         # Have the base class break up the serial node distribution
         # for parallel cases.
@@ -163,20 +197,34 @@ class GenerateRatioSphere3d(NodeGeneratorBase):
                  rho,
                  rmin,
                  rmax,
+                 startFromCenter = True,
                  thetamin = 0.0,
                  thetamax = 0.5*pi,
                  phi = pi,
                  ntheta = 1,
                  center = (0.0, 0.0, 0.0),
                  distributionType = "constantDTheta",   # one of (constantDTheta, constantNTheta)
+                 aspectRatio = 1.0,                     # only for constantDTheta
                  nNodePerh = 2.01,
                  SPH = False,
                  rejecter = None):
 
         assert thetamax <= pi
 
-        self.gen2d = GenerateRatioSphere2d(drCenter, drRatio, rho, rmin, rmax, thetamin, thetamax, ntheta, 
-                                           (0.0, 0.0), distributionType, nNodePerh, SPH)
+        self.gen2d = GenerateRatioSphere2d(drStart = drCenter, 
+                                           drRatio = drRatio, 
+                                           rho = rho, 
+                                           rmin = rmin, 
+                                           rmax = rmax, 
+                                           startFromCenter = startFromCenter, 
+                                           thetamin = thetamin, 
+                                           thetamax = thetamax, 
+                                           ntheta = ntheta, 
+                                           center = (0.0, 0.0), 
+                                           distributionType = distributionType, 
+                                           aspectRatio = aspectRatio,
+                                           nNodePerh = nNodePerh, 
+                                           SPH = SPH)
 
         # The 2D class already split the nodes up between processors, but
         # we want to handle that ourselves.  Distribute the full set of RZ
@@ -241,14 +289,14 @@ class GenerateRatioSphere3d(NodeGeneratorBase):
                                       mpi.rank, mpi.procs)
         self.x = [x + center[0] for x in xvec]
         self.y = [x + center[1] for x in yvec]
-        self.z = [x + center[2] for x in zvec]
+        self.z = [z + center[2] for z in zvec]
         self.m = list(mvec)
         self.H = [SymTensor3d(x) for x in Hvec]
         self.globalIDs = list(globalIDsvec)
         for i in xrange(len(extras)):
             extras[i] = list(extrasVec[i])
 
-        self.center = Vector3d(*center)
+        self.center = Vector2d(*center)
 
         # If the user provided a "rejecter", give it a pass
         # at the nodes.
@@ -279,7 +327,7 @@ class GenerateRatioSphere3d(NodeGeneratorBase):
     # Get the mass density for the given node index.
     #---------------------------------------------------------------------------
     def localMassDensity(self, i):
-        return self.gen2d.rhofunc((self.localPosition(i) - self.center).magnitude())
+        return self.gen2d.rhofunc((Vector2d(self.x[i], self.y[i]) - self.center).magnitude())
 
     #---------------------------------------------------------------------------
     # Get the H tensor for the given node index.

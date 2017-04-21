@@ -94,12 +94,12 @@ step(typename Dimension::Scalar maxTime,
                                    min(this->dtMax(), maxTime - t),
                                    state,
                                    derivs);
+  const double hdt = 0.5*dt;
 
   // Zero out the derivatives.
   derivs.Zero();
 
   // Evaluate the beginning of step derivatives.
-  const double hdt = 0.5*dt;
   this->initializeDerivatives(t, hdt, state, derivs);
   this->evaluateDerivatives(t, hdt, db, state, derivs);
   this->finalizeDerivatives(t, hdt, db, state, derivs);
@@ -110,6 +110,7 @@ step(typename Dimension::Scalar maxTime,
 
   // Trial advance the state to the mid timestep point.
   state.update(derivs, hdt, t, hdt);
+  this->currentTime(t + hdt);
   this->applyGhostBoundaries(state, derivs);
   this->postStateUpdate(db, state, derivs);
   this->finalizeGhostBoundaries();
@@ -125,6 +126,7 @@ step(typename Dimension::Scalar maxTime,
   // this->copyGhostState(state, state0);
   state.assign(state0);
   state.update(derivs, dt, t, dt);
+  this->currentTime(t + dt);
   this->applyGhostBoundaries(state, derivs);
   this->postStateUpdate(db, state, derivs);
   this->finalizeGhostBoundaries();

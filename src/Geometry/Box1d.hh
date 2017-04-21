@@ -75,6 +75,18 @@ public:
   // Compute the volume.
   double volume() const;
 
+  // Shift by a Vector delta.
+  Box1d& operator+=(const Vector& rhs);
+  Box1d& operator-=(const Vector& rhs);
+  Box1d operator+(const Vector& rhs) const;
+  Box1d operator-(const Vector& rhs) const;
+
+  // Scale by a scalar.
+  Box1d& operator*=(const double rhs);
+  Box1d& operator/=(const double rhs);
+  Box1d operator*(const double rhs) const;
+  Box1d operator/(const double rhs) const;
+
   // Comparisons.
   bool operator==(const Box1d& rhs) const;
   bool operator!=(const Box1d& rhs) const;

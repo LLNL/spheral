@@ -40,14 +40,31 @@ commandLine(seed = "lattice",
             balsaraCorrection = False,
             linearInExpansion = False,
 
-            ASPH = False,     # Only for H evolution, not hydro algorithm
             CRKSPH = False,
+            PSPH = False,
+            ASPH = False,     # Only for H evolution, not hydro algorithm
             Qconstructor = MonaghanGingoldViscosity,
+            correctionOrder = LinearOrder,
             densityUpdate = RigorousSumDensity, # VolumeScaledDensity,
             HUpdate = IdealH,
             filter = 0.0,
+            boolReduceViscosity = False,
+            nh = 5.0,
+            aMin = 0.1,
+            aMax = 2.0,
+            Qhmult = 1.0,
+            boolCullenViscosity = False,
+            alphMax = 2.0,
+            alphMin = 0.02,
+            betaC = 0.7,
+            betaD = 0.05,
+            betaE = 1.0,
+            fKern = 1.0/3.0,
+            boolHopkinsCorrection = True,
+            HopkinsConductivity = False,     # For PSPH
+            evolveTotalEnergy = False,       # Only for SPH variants -- evolve total rather than specific energy
+            volumeType = CRKSumVolume,       # For CRK
 
-            HydroConstructor = SPHHydro,
             hmin = 1e-15,
             hmax = 1.0,
             cfl = 0.5,
@@ -55,6 +72,7 @@ commandLine(seed = "lattice",
             XSPH = False,
             rhomin = 1e-10,
 
+            IntegratorConstructor = CheapSynchronousRK2Integrator,
             steps = None,
             goalTime = None,
             goalRadius = 0.8,
@@ -69,11 +87,10 @@ commandLine(seed = "lattice",
             smoothIters = 0,
             HEvolution = IdealH,
             compatibleEnergy = True,
-            gradhCorrection = False,
-            HopkinsConductivity = False,     # For PSPH
-            evolveTotalEnergy = False,       # Only for SPH variants -- evolve total rather than specific energy
+            gradhCorrection = True,
+            correctVelocityGradient = True,
 
-            restoreCycle = None,
+            restoreCycle = -1,
             restartStep = 1000,
 
             graphics = True,
@@ -86,6 +103,8 @@ if smallPressure:
     P0 = 1.0e-6
     eps0 = P0/((gamma - 1.0)*rho0)
     print "WARNING: smallPressure specified, so setting eps0=%g" % eps0
+
+assert not(boolReduceViscosity and boolCullenViscosity)
 
 # Figure out what our goal time should be.
 import SedovAnalyticSolution
@@ -112,6 +131,11 @@ if CRKSPH:
         HydroConstructor = ACRKSPHHydro
     else:
         HydroConstructor = CRKSPHHydro
+elif PSPH:
+    if ASPH:
+        HydroConstructor = APSPHHydro
+    else:
+        HydroConstructor = PSPHHydro
 else:
     if ASPH:
         HydroConstructor = ASPHHydro
@@ -125,12 +149,10 @@ dataDir = os.path.join(dataRoot,
                        HydroConstructor.__name__,
                        Qconstructor.__name__,
                        "nperh=%4.2f" % nPerh,
-                       "cfl=%f" % cfl,
                        "XSPH=%s" % XSPH,
                        "densityUpdate=%s" % densityUpdate,
                        "compatibleEnergy=%s" % compatibleEnergy,
-                       "gradhCorrection=%s" % gradhCorrection,
-                       "filter=%f" % filter,
+                       "Cullen=%s" % boolCullenViscosity,
                        "seed=%s" % seed,
                        "nx=%i_ny=%i_nz=%i" % (nx, ny, nz))
 restartDir = os.path.join(dataDir, "restarts")
@@ -151,12 +173,6 @@ if mpi.rank == 0:
 mpi.barrier()
 
 #-------------------------------------------------------------------------------
-# If we're restarting, find the set of most recent restart files.
-#-------------------------------------------------------------------------------
-if restoreCycle is None:
-    restoreCycle = findLastRestart(restartBaseName)
-
-#-------------------------------------------------------------------------------
 # Material properties.
 #-------------------------------------------------------------------------------
 eos = GammaLawGasMKS(gamma, mu)
@@ -170,6 +186,7 @@ if KernelConstructor==NBSplineKernel:
 else:
   WT = TableKernel(KernelConstructor(), 1000)
 output("WT")
+kernelExtent = WT.kernelExtent
 
 #-------------------------------------------------------------------------------
 # Create a NodeList and associated Neighbor object.
@@ -177,18 +194,20 @@ output("WT")
 nodes1 = makeFluidNodeList("nodes1", eos, 
                            hmin = hmin,
                            hmax = hmax,
+                           kernelExtent = kernelExtent,
                            nPerh = nPerh,
                            rhoMin = rhomin)
 
 #-------------------------------------------------------------------------------
 # Set the node properties.
 #-------------------------------------------------------------------------------
-pos = nodes1.positions()
-vel = nodes1.velocity()
-mass = nodes1.mass()
-eps = nodes1.specificThermalEnergy()
-H = nodes1.Hfield()
-if restoreCycle is None:
+if seed.lower() == "icosahedral":
+    generator = GenerateIcosahedronMatchingProfile3d(nx, # Sets nradial
+                                                     rho0, 
+                                                     rmin = 0.0,
+                                                     rmax = 1.0,
+                                                     nNodePerh = nPerh)
+else:
     generator = GenerateNodeDistribution3d(nx, ny, nz,
                                            rho0, seed,
                                            xmin = (0.0, 0.0, 0.0),
@@ -198,57 +217,64 @@ if restoreCycle is None:
                                            nNodePerh = nPerh,
                                            SPH = (not ASPH))
 
-    if mpi.procs > 1:
-        from VoronoiDistributeNodes import distributeNodes3d
-    else:
-        from DistributeNodes import distributeNodes3d
+if mpi.procs > 1:
+    from VoronoiDistributeNodes import distributeNodes3d
+else:
+    from DistributeNodes import distributeNodes3d
 
-    distributeNodes3d((nodes1, generator))
-    output("mpi.reduce(nodes1.numInternalNodes, mpi.MIN)")
-    output("mpi.reduce(nodes1.numInternalNodes, mpi.MAX)")
-    output("mpi.reduce(nodes1.numInternalNodes, mpi.SUM)")
+distributeNodes3d((nodes1, generator))
+output("mpi.reduce(nodes1.numInternalNodes, mpi.MIN)")
+output("mpi.reduce(nodes1.numInternalNodes, mpi.MAX)")
+output("mpi.reduce(nodes1.numInternalNodes, mpi.SUM)")
 
-    # Set the point source of energy.
-    Esum = 0.0
-    if smoothSpike or topHatSpike:
-        Wsum = 0.0
-        for nodeID in xrange(nodes1.numInternalNodes):
-            Hi = H[nodeID]
-            etaij = (Hi*pos[nodeID]).magnitude()
-            if smoothSpike:
-                Wi = WT.kernelValue(etaij/smoothSpikeScale, 1.0)
+# Set the point source of energy.
+if seed != "icosahedral":
+    Espike /= 8.0  # Doing an octant
+pos = nodes1.positions()
+vel = nodes1.velocity()
+mass = nodes1.mass()
+eps = nodes1.specificThermalEnergy()
+H = nodes1.Hfield()
+Esum = 0.0
+if smoothSpike or topHatSpike:
+    Wsum = 0.0
+    for nodeID in xrange(nodes1.numInternalNodes):
+        Hi = H[nodeID]
+        etaij = (Hi*pos[nodeID]).magnitude()
+        if smoothSpike:
+            Wi = WT.kernelValue(etaij/smoothSpikeScale, 1.0)
+        else:
+            if etaij < smoothSpikeScale*kernelExtent:
+                Wi = 1.0
             else:
-                if etaij < smoothSpikeScale*kernelExtent:
-                    Wi = 1.0
-                else:
-                    Wi = 0.0
-            Ei = Wi*Espike/8.0
-            epsi = Ei/mass[nodeID]
-            eps[nodeID] = epsi
-            Wsum += Wi
-        Wsum = mpi.allreduce(Wsum, mpi.SUM)
-        assert Wsum > 0.0
-        for nodeID in xrange(nodes1.numInternalNodes):
-            eps[nodeID] /= Wsum
-            Esum += eps[nodeID]*mass[nodeID]
-            eps[nodeID] += eps0
-    else:
-        i = -1
-        rmin = 1e50
-        for nodeID in xrange(nodes1.numInternalNodes):
-            rij = pos[nodeID].magnitude()
-            if rij < rmin:
-                i = nodeID
-                rmin = rij
-            eps[nodeID] = eps0
-        rminglobal = mpi.allreduce(rmin, mpi.MIN)
-        if fuzzyEqual(rmin, rminglobal):
-            assert i >= 0 and i < nodes1.numInternalNodes
-            eps[i] += Espike/8.0/mass[i]
-            Esum += Espike/8.0
-    Eglobal = mpi.allreduce(Esum, mpi.SUM)
-    print "Initialized a total energy of", Eglobal
-    assert fuzzyEqual(Eglobal, Espike/8.0)
+                Wi = 0.0
+        Ei = Wi*Espike
+        epsi = Ei/mass[nodeID]
+        eps[nodeID] = epsi
+        Wsum += Wi
+    Wsum = mpi.allreduce(Wsum, mpi.SUM)
+    assert Wsum > 0.0
+    for nodeID in xrange(nodes1.numInternalNodes):
+        eps[nodeID] /= Wsum
+        Esum += eps[nodeID]*mass[nodeID]
+        eps[nodeID] += eps0
+else:
+    i = -1
+    rmin = 1e50
+    for nodeID in xrange(nodes1.numInternalNodes):
+        rij = pos[nodeID].magnitude()
+        if rij < rmin:
+            i = nodeID
+            rmin = rij
+        eps[nodeID] = eps0
+    rminglobal = mpi.allreduce(rmin, mpi.MIN)
+    if fuzzyEqual(rmin, rminglobal):
+        assert i >= 0 and i < nodes1.numInternalNodes
+        eps[i] += Espike/mass[i]
+        Esum += Espike
+Eglobal = mpi.allreduce(Esum, mpi.SUM)
+print "Initialized a total energy of", Eglobal
+assert fuzzyEqual(Eglobal, Espike)
 
 #-------------------------------------------------------------------------------
 # Construct a DataBase to hold our node list
@@ -279,13 +305,15 @@ output("q.quadraticInExpansion")
 # Construct the hydro physics object.
 #-------------------------------------------------------------------------------
 if CRKSPH:
-    hydro = HydroConstructor(W = WT, 
+    hydro = HydroConstructor(W = WT,
                              Q = q,
                              filter = filter,
                              cfl = cfl,
                              compatibleEnergyEvolution = compatibleEnergy,
                              XSPH = XSPH,
+                             correctionOrder = correctionOrder,
                              densityUpdate = densityUpdate,
+                             volumeType = volumeType,
                              HUpdate = HUpdate)
 elif PSPH:
     hydro = HydroConstructor(W = WT,
@@ -295,8 +323,8 @@ elif PSPH:
                              useVelocityMagnitudeForDt = useVelocityMagnitudeForDt,
                              compatibleEnergyEvolution = compatibleEnergy,
                              evolveTotalEnergy = evolveTotalEnergy,
-                             gradhCorrection = gradhCorrection,
                              HopkinsConductivity = HopkinsConductivity,
+                             correctVelocityGradient = correctVelocityGradient,
                              densityUpdate = densityUpdate,
                              HUpdate = HUpdate,
                              XSPH = XSPH)
@@ -307,6 +335,7 @@ else:
                              compatibleEnergyEvolution = compatibleEnergy,
                              evolveTotalEnergy = evolveTotalEnergy,
                              gradhCorrection = gradhCorrection,
+                             correctVelocityGradient = correctVelocityGradient,
                              densityUpdate = densityUpdate,
                              XSPH = XSPH,
                              HUpdate = HEvolution)
@@ -322,23 +351,34 @@ output("hydro.HEvolution")
 packages = [hydro]
 
 #-------------------------------------------------------------------------------
+# Construct the MMRV physics object.
+#-------------------------------------------------------------------------------
+if boolReduceViscosity:
+    evolveReducingViscosityMultiplier = MorrisMonaghanReducingViscosity(q,nh,aMin,aMax)
+    packages.append(evolveReducingViscosityMultiplier)
+elif boolCullenViscosity:
+    evolveCullenViscosityMultiplier = CullenDehnenViscosity(q,WT,alphMax,alphMin,betaC,betaD,betaE,fKern,boolHopkinsCorrection)
+    packages.append(evolveCullenViscosityMultiplier)
+
+#-------------------------------------------------------------------------------
 # Create boundary conditions.
 #-------------------------------------------------------------------------------
-xPlane0 = Plane(Vector(0, 0, 0), Vector(1, 0, 0))
-yPlane0 = Plane(Vector(0, 0, 0), Vector(0, 1, 0))
-zPlane0 = Plane(Vector(0, 0, 0), Vector(0, 0, 1))
-xbc0 = ReflectingBoundary(xPlane0)
-ybc0 = ReflectingBoundary(yPlane0)
-zbc0 = ReflectingBoundary(zPlane0)
+if seed.lower() != "icosahedral":
+    xPlane0 = Plane(Vector(0, 0, 0), Vector(1, 0, 0))
+    yPlane0 = Plane(Vector(0, 0, 0), Vector(0, 1, 0))
+    zPlane0 = Plane(Vector(0, 0, 0), Vector(0, 0, 1))
+    xbc0 = ReflectingBoundary(xPlane0)
+    ybc0 = ReflectingBoundary(yPlane0)
+    zbc0 = ReflectingBoundary(zPlane0)
 
-for p in packages:
-    for bc in (xbc0, ybc0, zbc0):
-        p.appendBoundary(bc)
+    for p in packages:
+        for bc in (xbc0, ybc0, zbc0):
+            p.appendBoundary(bc)
 
 #-------------------------------------------------------------------------------
 # Construct a time integrator, and add the one physics package.
 #-------------------------------------------------------------------------------
-integrator = CheapSynchronousRK2Integrator(db)
+integrator = IntegratorConstructor(db)
 for p in packages:
     integrator.appendPhysicsPackage(p)
 integrator.lastDt = dt

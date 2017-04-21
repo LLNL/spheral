@@ -42,19 +42,19 @@ ArtificialViscosity<Dimension>::
 ArtificialViscosity():
   mClinear(1.0),
   mCquadratic(1.0),
-  mQcorrectionOrder(CRKSPHSpace::LinearOrder),  
+  mQcorrectionOrder(CRKSPHSpace::CRKOrder::LinearOrder),  
   mBalsaraShearCorrection(false),
-  mClMultiplier(FieldSpace::Copy),
-  mCqMultiplier(FieldSpace::Copy),
-  mShearCorrection(FieldSpace::Copy),
+  mClMultiplier(FieldSpace::FieldStorageType::Copy),
+  mCqMultiplier(FieldSpace::FieldStorageType::Copy),
+  mShearCorrection(FieldSpace::FieldStorageType::Copy),
   mCalculateSigma(false),
   mLimiterSwitch(false),
   mEpsilon2(1.0e-2),
   mNegligibleSoundSpeed(1e-10),
   mCsMultiplier(1e-2),
   mEnergyMultiplier(1.0),
-  mSigma(FieldSpace::Copy),
-  mGradDivVelocity(FieldSpace::Copy),
+  mSigma(FieldSpace::FieldStorageType::Copy),
+  mGradDivVelocity(FieldSpace::FieldStorageType::Copy),
   mRestart(DataOutput::registerWithRestart(*this)) {
 }
 
@@ -68,17 +68,17 @@ ArtificialViscosity(Scalar Clinear, Scalar Cquadratic, CRKSPHSpace::CRKOrder Qco
   mCquadratic(Cquadratic),
   mQcorrectionOrder(QcorrectionOrder), 
   mBalsaraShearCorrection(false),
-  mClMultiplier(FieldSpace::Copy),
-  mCqMultiplier(FieldSpace::Copy),
-  mShearCorrection(FieldSpace::Copy),
+  mClMultiplier(FieldSpace::FieldStorageType::Copy),
+  mCqMultiplier(FieldSpace::FieldStorageType::Copy),
+  mShearCorrection(FieldSpace::FieldStorageType::Copy),
   mCalculateSigma(false),
   mLimiterSwitch(false),
   mEpsilon2(1.0e-2),
   mNegligibleSoundSpeed(1e-10),
   mCsMultiplier(1e-2),
   mEnergyMultiplier(1.0),
-  mSigma(FieldSpace::Copy),
-  mGradDivVelocity(FieldSpace::Copy),
+  mSigma(FieldSpace::FieldStorageType::Copy),
+  mGradDivVelocity(FieldSpace::FieldStorageType::Copy),
   mRestart(DataOutput::registerWithRestart(*this)) {
 }
 

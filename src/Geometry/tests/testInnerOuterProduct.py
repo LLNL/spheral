@@ -513,8 +513,8 @@ class TestDoubleInnerProduct(unittest.TestCase):
                     for i in xrange(dim):
                         for j in xrange(dim):
                             answer += x(i,j)*y(j,i)
-                    self.failUnless(result == answer, "Mismatch: %s != %s" % (result, answer))
-                    self.failUnless(result2 == answer, "Mismatch: %s != %s" % (result2, answer))
+                    self.failUnless(abs(result - answer) < 1.0e-10, "Mismatch: %s != %s" % (result, answer))
+                    self.failUnless(abs(result2 - answer) < 1.0e-10, "Mismatch: %s != %s" % (result2, answer))
         return
 
     #---------------------------------------------------------------------------

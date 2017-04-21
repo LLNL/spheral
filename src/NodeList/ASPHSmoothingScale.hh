@@ -39,7 +39,7 @@ public:
                            const Scalar hmin,
                            const Scalar hmax,
                            const Scalar hminratio,
-                           const Scalar nPerh) const;
+                           const Scalar nPerh) const override;
   
   // Return a new H, with limiting based on the old value.
   virtual
@@ -55,7 +55,7 @@ public:
                     const Scalar nPerh,
                     const NeighborSpace::ConnectivityMap<Dimension>& connectivityMap,
                     const unsigned nodeListi,
-                    const unsigned i) const;
+                    const unsigned i) const override;
 
   // Determine an "ideal" H for the given moments.
   virtual
@@ -71,7 +71,7 @@ public:
                       const Scalar nPerh,
                       const NeighborSpace::ConnectivityMap<Dimension>& connectivityMap,
                       const unsigned nodeListi,
-                      const unsigned i) const;
+                      const unsigned i) const override;
 
   // Compute the new H tensors for a tessellation.
   virtual SymTensor
@@ -81,7 +81,7 @@ public:
                       const Scalar hmin,
                       const Scalar hmax,
                       const Scalar hminratio,
-                      const Scalar nPerh) const;
+                      const Scalar nPerh) const override;
 };
 
 // We explicitly specialize the time derivatives.

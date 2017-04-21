@@ -66,6 +66,7 @@ generateStdVectorBindings(self.vector_of_SolidNodeList%(dim)id, "Spheral::SolidM
     #---------------------------------------------------------------------------
     def generateSolidFieldNamesBindings(self, x):
         x.add_static_attribute("deviatoricStress", "std::string",  is_const=True)
+        x.add_static_attribute("deviatoricStressTT", "std::string",  is_const=True)
         x.add_static_attribute("plasticStrain", "std::string",  is_const=True)
         x.add_static_attribute("scalarDamage", "std::string",  is_const=True)
         x.add_static_attribute("tensorDamage", "std::string",  is_const=True)
@@ -122,7 +123,7 @@ generateStdVectorBindings(self.vector_of_SolidNodeList%(dim)id, "Spheral::SolidM
 
         const_ref_return_value(x, me, "%s::deviatoricStress" % me, symtensorfield, [], "deviatoricStress")
         const_ref_return_value(x, me, "%s::plasticStrain" % me, scalarfield, [], "plasticStrain")
-        const_ref_return_value(x, me, "%s::plasticStrainRate" % me, scalarfield, [], "plasticStrain")
+        const_ref_return_value(x, me, "%s::plasticStrainRate" % me, scalarfield, [], "plasticStrainRate")
         const_ref_return_value(x, me, "%s::damage" % me, symtensorfield, [], "damage")
         const_ref_return_value(x, me, "%s::effectiveDamage" % me, symtensorfield, [], "effectiveDamage")
         const_ref_return_value(x, me, "%s::damageGradient" % me, vectorfield, [], "damageGradient")

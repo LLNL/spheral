@@ -5,6 +5,12 @@
 # This scenario is based on the v=205 m/sec example in
 # Eakins & Thadhani, Journal of Applied Physics, 100, 073503 (2006)
 #-------------------------------------------------------------------------------
+#
+# The following ATS setup is to generate reference data for the SpheralC tests.
+#
+#ATS:test(SELF, "--steps 100 --compatibleEnergy False --baseDir 2D_1proc_ref --siloSnapShotFile Spheral_state_snapshot_1proc", np=1, label="Generate 1 proc reference data")
+#ATS:test(SELF, "--steps 100 --compatibleEnergy False --baseDir 2D_8proc_ref --siloSnapShotFile Spheral_state_snapshot_8proc", np=8, label="Generate 8 proc reference data")
+
 from math import *
 import mpi
 
@@ -23,8 +29,6 @@ title("2D Cu taylor anvil impact strength test")
 # Generic problem parameters
 # All (cm, gm, usec) units.
 #-------------------------------------------------------------------------------
-units = PhysicalConstants
-
 commandLine(seed = "lattice",
 
             # Geometry
@@ -69,7 +73,8 @@ commandLine(seed = "lattice",
             epsilonTensile = 0.0,
             nTensile = 4,
             rigorousBoundaries = False,
-            gradhCorrection = False,
+            gradhCorrection = True,
+            correctVelocityGradient = True,
 
             # Simulation control
             goalTime = 150.0,
@@ -87,6 +92,9 @@ commandLine(seed = "lattice",
             vizTime = 1.0,
             baseDir = "dumps-TaylorImpact-2d",
             verbosedt = False,
+
+            # Should we generate a state snapshot on completion?
+            siloSnapShotFile = "",
             )
 
 if CRKSPH:
@@ -317,6 +325,7 @@ else:
                              cfl = cfl,
                              compatibleEnergyEvolution = compatibleEnergy,
                              gradhCorrection = gradhCorrection,
+                             correctVelocityGradient = correctVelocityGradient,
                              densityUpdate = densityUpdate,
                              HUpdate = HUpdate,
                              XSPH = XSPH,
@@ -394,3 +403,52 @@ if not steps is None:
     control.step(steps)
 else:
     control.advance(goalTime, maxSteps)
+
+#-------------------------------------------------------------------------------
+# If requested, generate table output of the full results.
+#-------------------------------------------------------------------------------
+if siloSnapShotFile:
+    from siloPointmeshDump import siloPointmeshDump
+    print "Generating snapshot in silo files."
+
+    # First generate the state and derivatives.
+    state = State(db, integrator.physicsPackages())
+    derivs = StateDerivatives(db, integrator.physicsPackages())
+    derivs.Zero()
+    integrator.preStepInitialize(state, derivs)
+    dt = integrator.selectDt(dtmin, dtmax, state, derivs)
+    integrator.initializeDerivatives(control.time() + dt, dt, state, derivs)
+    integrator.evaluateDerivatives(control.time() + dt, dt, db, state, derivs)
+    integrator.finalizeDerivatives(control.time() + dt, dt, db, state, derivs)
+
+    # Grab the fields and their derivatives.
+    mass = state.scalarFields(HydroFieldNames.mass)
+    rho = state.scalarFields(HydroFieldNames.massDensity)
+    pos = state.vectorFields(HydroFieldNames.position)
+    eps = state.scalarFields(HydroFieldNames.specificThermalEnergy)
+    vel = state.vectorFields(HydroFieldNames.velocity)
+    H = state.symTensorFields(HydroFieldNames.H)
+    P = state.scalarFields(HydroFieldNames.pressure)
+    S = state.symTensorFields(SolidFieldNames.deviatoricStress)
+    cs = state.scalarFields(HydroFieldNames.soundSpeed)
+    K = state.scalarFields(SolidFieldNames.bulkModulus)
+    mu = state.scalarFields(SolidFieldNames.shearModulus)
+    Y = state.scalarFields(SolidFieldNames.yieldStrength)
+    ps = state.scalarFields(SolidFieldNames.plasticStrain)
+    massSum = derivs.scalarFields("new " + HydroFieldNames.massDensity)
+    DrhoDt = derivs.scalarFields("delta " + HydroFieldNames.massDensity)
+    DvelDt = derivs.vectorFields("delta " + HydroFieldNames.velocity)
+    DepsDt = derivs.scalarFields("delta " + HydroFieldNames.specificThermalEnergy)
+    DvelDx = derivs.tensorFields(HydroFieldNames.velocityGradient)
+    DHDt = derivs.symTensorFields("delta " + HydroFieldNames.H)
+    Hideal = derivs.symTensorFields("new " + HydroFieldNames.H)
+    DSDt = derivs.symTensorFields("delta " + SolidFieldNames.deviatoricStress)
+
+    # Write the sucker.
+    siloPointmeshDump(siloSnapShotFile, 
+                      fieldLists = [mass, rho, pos, eps, vel, H, P, S, cs, K, mu, Y, ps,
+                                    massSum, DrhoDt, DvelDt, DepsDt, DvelDx, DHDt, Hideal, DSDt],
+                      baseDirectory = dataDir,
+                      label = "Spheral++ snapshot of state and derivatives.",
+                      time = control.time(),
+                      cycle = control.totalSteps)

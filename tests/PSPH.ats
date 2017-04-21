@@ -4,7 +4,7 @@ cfl = 0.25
 Cl = 1.0
 Cq = 1.0
 filter = 0.0
-KernelConstructor = "NBSplineKernel"
+KernelConstructor = "QuinticSplineKernel"
 order = 5
 compatibleEnergy = False
 evolveTotalEnergy = True
@@ -57,27 +57,27 @@ def addTests(psph, nPerh, resMultiplier=None):
          label = "Gresho vortex problem -- 2-D (4 proc, %s)" % label,
          np = 4)
     nx, ny = int(256*resMultiplier), int(128*resMultiplier)
-    test(script = "Hydro/KelvinHelmholtz/KelvinHelmholtz-2d_McNally.py",
-         clas = "--nx1 %i --nx2 %i --ny1 %i --ny2 %i --PSPH %s --KernelConstructor %s --order %i --cfl %g --nPerh %g --Cl %g --Cq %g  --compatibleEnergy %s --evolveTotalEnergy %s --filter %g --clearDirectories True --graphMixing True --mixFile KH_%s_256x256_ats.gnu --boolCullenViscosity %s  --HopkinsConductivity %s" % (nx, nx, ny, ny, psph, KernelConstructor, order, cfl, nPerh, Cl, Cq, compatibleEnergy, evolveTotalEnergy, filter, label, boolCullenViscosity, HopkinsConductivity), 
-         label = "Kelvin-Helmholtz problem -- 2-D (80 proc, %s)" % label,
-         np = 80)
-    nx1, ny1 = int(20*resMultiplier), int(60*resMultiplier)
-    nx2, ny2 = int(40*resMultiplier), int(10*resMultiplier)
-    nx3, ny3 = int(120*resMultiplier), int(30*resMultiplier)
-    test(script = "Hydro/TriplePoint/TriplePoint-xy.py",
-         clas = "--nx1 %i --ny1 %i --nx2 %i --ny2 %i --nx3 %i --ny3 %i --PSPH %s --KernelConstructor %s --order %i --cfl %g --nPerh %g --Cl %g --Cq %g  --compatibleEnergy %s --evolveTotalEnergy %s --filter %g --clearDirectories True --XSPH False --boolCullenViscosity %s  --HopkinsConductivity %s" % (nx1, ny1, nx2, ny2, nx3, ny3, psph, KernelConstructor, order, cfl, nPerh, Cl, Cq, compatibleEnergy, evolveTotalEnergy, filter, boolCullenViscosity, HopkinsConductivity), 
-         label = "Triple-point problem -- 2-D (level 1 mesh, 4 proc, %s)" % label,
-         np = 4)
-    nx1, ny1 = 2*nx1, 2*ny1
-    nx2, ny2 = 2*nx2, 2*ny2
-    nx3, ny3 = 2*nx3, 2*ny3
-    test(script = "Hydro/TriplePoint/TriplePoint-xy.py",
-         clas = "--nx1 %i --ny1 %i --nx2 %i --ny2 %i --nx3 %i --ny3 %i --PSPH %s --KernelConstructor %s --order %i --cfl %g --nPerh %g --Cl %g --Cq %g  --compatibleEnergy %s --evolveTotalEnergy %s --filter %g --clearDirectories True --XSPH False --boolCullenViscosity %s --HopkinsConductivity %s" % (nx1, ny1, nx2, ny2, nx3, ny3, psph, KernelConstructor, order, cfl, nPerh, Cl, Cq, compatibleEnergy, evolveTotalEnergy, filter, boolCullenViscosity, HopkinsConductivity), 
-         label = "Triple-point problem -- 2-D (level 2 mesh, 20 proc, %s)" % label,
-         np = 20)
+    # test(script = "Hydro/KelvinHelmholtz/KelvinHelmholtz-2d_McNally.py",
+    #      clas = "--nx1 %i --nx2 %i --ny1 %i --ny2 %i --PSPH %s --KernelConstructor %s --order %i --cfl %g --nPerh %g --Cl %g --Cq %g  --compatibleEnergy %s --evolveTotalEnergy %s --filter %g --clearDirectories True --graphMixing True --mixFile KH_%s_256x256_ats.gnu --boolCullenViscosity %s  --HopkinsConductivity %s" % (nx, nx, ny, ny, psph, KernelConstructor, order, cfl, nPerh, Cl, Cq, compatibleEnergy, evolveTotalEnergy, filter, label, boolCullenViscosity, HopkinsConductivity), 
+    #      label = "Kelvin-Helmholtz problem -- 2-D (80 proc, %s)" % label,
+    #      np = 80)
+    # nx1, ny1 = int(20*resMultiplier), int(60*resMultiplier)
+    # nx2, ny2 = int(40*resMultiplier), int(10*resMultiplier)
+    # nx3, ny3 = int(120*resMultiplier), int(30*resMultiplier)
+    # test(script = "Hydro/TriplePoint/TriplePoint-xy.py",
+    #      clas = "--nx1 %i --ny1 %i --nx2 %i --ny2 %i --nx3 %i --ny3 %i --PSPH %s --KernelConstructor %s --order %i --cfl %g --nPerh %g --Cl %g --Cq %g  --compatibleEnergy %s --evolveTotalEnergy %s --filter %g --clearDirectories True --XSPH False --boolCullenViscosity %s  --HopkinsConductivity %s" % (nx1, ny1, nx2, ny2, nx3, ny3, psph, KernelConstructor, order, cfl, nPerh, Cl, Cq, compatibleEnergy, evolveTotalEnergy, filter, boolCullenViscosity, HopkinsConductivity), 
+    #      label = "Triple-point problem -- 2-D (level 1 mesh, 4 proc, %s)" % label,
+    #      np = 4)
+    # nx1, ny1 = 2*nx1, 2*ny1
+    # nx2, ny2 = 2*nx2, 2*ny2
+    # nx3, ny3 = 2*nx3, 2*ny3
+    # test(script = "Hydro/TriplePoint/TriplePoint-xy.py",
+    #      clas = "--nx1 %i --ny1 %i --nx2 %i --ny2 %i --nx3 %i --ny3 %i --PSPH %s --KernelConstructor %s --order %i --cfl %g --nPerh %g --Cl %g --Cq %g  --compatibleEnergy %s --evolveTotalEnergy %s --filter %g --clearDirectories True --XSPH False --boolCullenViscosity %s --HopkinsConductivity %s" % (nx1, ny1, nx2, ny2, nx3, ny3, psph, KernelConstructor, order, cfl, nPerh, Cl, Cq, compatibleEnergy, evolveTotalEnergy, filter, boolCullenViscosity, HopkinsConductivity), 
+    #      label = "Triple-point problem -- 2-D (level 2 mesh, 20 proc, %s)" % label,
+    #      np = 20)
     return
 
 #-------------------------------------------------------------------------------
 # Add the tests.
 #-------------------------------------------------------------------------------
-addTests(True, 1.3466667, 1)
+addTests(True, 4.01, 1)

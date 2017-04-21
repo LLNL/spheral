@@ -20,14 +20,9 @@ using namespace std;
 // Fortran baby!
 extern "C" {
   void aneos_initialize_(char* filename, int* num, int* izetl);
-  void call_aneos1_(double* T, double* rho, 
-                    double* P, double* E, double* S, double* CV, double* DPDT, double* DPDR, 
-                    int* L);
-
-  // // This struct corresponds to the fortran common block ANESQT.
-  // extern struct {
-  //   double sqts[64], ipsqts;
-  // } anesqt_;
+  void call_aneos_(int* matnum, double* T, double* rho, 
+                   double* P, double* E, double* S, double* CV, double* DPDT, double* DPDR, double* cs);
+  void get_aneos_atomicweight_(int* matnum, double* result);
 }
 
 namespace Spheral {
@@ -90,7 +85,9 @@ ANEOS(const int materialNumber,
   mPconv(1.0),
   mEconv(1.0),
   mCVconv(1.0),
-  mVelConv(1.0) {
+  mVelConv(1.0),
+  mSconv(1.0),
+  mAtomicWeight(0.0) {
   VERIFY2(numRhoVals > 1,
           "ANEOS ERROR : specify numRhoVals > 1");
   VERIFY2(numTvals > 1,
@@ -102,10 +99,15 @@ ANEOS(const int materialNumber,
   VERIFY2(Tmin > 0.0,
           "ANEOS ERROR : specify Tmin > 0.0");
 
-  // Convert temperature range to log space.
-  mTmin = log(mTmin);
-  mTmax = log(mTmax);
+  // // Convert temperature range to log space.
+  // mTmin = log(mTmin);
+  // mTmax = log(mTmax);
   
+  // Look up the atomic weight.
+  get_aneos_atomicweight_(&mMaterialNumber, &mAtomicWeight);
+  VERIFY2(mAtomicWeight > 0.0, 
+          "ANEOS ERROR : bad atomic weight for material " << mMaterialNumber << " : " << mAtomicWeight);
+
   // Build our unit conversion factors.  After looking through the ANEOS source some it appears to me 
   // that they use mostly CGS units, except for temperatures which are in eV.
   const double lconv = mANEOSunits.unitLengthMeters() / constants.unitLengthMeters(),
@@ -117,20 +119,21 @@ ANEOS(const int materialNumber,
   mEconv = FastMath::square(lconv/tconv);
   mCVconv = mEconv/mTconv;
   mVelConv = lconv/tconv;
+  mSconv = mEconv/(mconv*mTconv);
 
-  // Build our lookup table to find eps(rho, T).  We use linear rho vs. log(T) space.
+  // Build our lookup table to find eps(rho, T).
   const double drho = (mRhoMax - mRhoMin)/(mNumRhoVals - 1);
   const double dT = (mTmax - mTmin)/(mNumTvals - 1);
-  double Ti, rhoi, Pi, Si, CVi, DPDTi, DPDRi;
+  int KPAi;
+  double Ti, rhoi, Pi, Si, CVi, DPDTi, DPDRi, csi;
   CHECK(drho > 0.0);
   CHECK(dT > 0.0);
   for (unsigned i = 0; i != mNumRhoVals; ++i) {
     rhoi = min(mRhoMin + i*drho, mRhoMax) / mRhoConv;
     for (unsigned j = 0; j != mNumTvals; ++j) {
-      Ti = exp(min(mTmin + j*dT, mTmax)) / mTconv;
-      call_aneos1_(&Ti, &rhoi,
-                   &Pi, &mSTEvals[i][j], &Si, &CVi, &DPDTi, &DPDRi,
-                   &mMaterialNumber);
+      Ti = min(mTmin + j*dT, mTmax) / mTconv;
+      call_aneos_(&mMaterialNumber, &Ti, &rhoi,
+                  &Pi, &mSTEvals[i][j], &Si, &CVi, &DPDTi, &DPDRi, &csi);
       mSTEvals[i][j] = mSTEvals[i][j] * mEconv;
     }
   }
@@ -223,7 +226,18 @@ ANEOS<Dimension>::
 setGammaField(Field<Dimension, Scalar>& gamma,
 	      const Field<Dimension, Scalar>& massDensity,
 	      const Field<Dimension, Scalar>& specificThermalEnergy) const {
-  VERIFY2(false, "gamma not defined for ANEOS EOS!");
+  int n = massDensity.numElements();
+  if (n > 0) {
+    Field<Dimension, Scalar> T("temperature", gamma.nodeList()),
+                            cv("cv", gamma.nodeList());
+    this->setTemperature(T, massDensity, specificThermalEnergy);
+    this->setSpecificHeat(cv, massDensity, specificThermalEnergy);
+    Scalar nDen;
+    for (int i = 0; i != n; ++i) {
+      nDen = massDensity(i)/mAtomicWeight;
+      gamma(i) = 1.0 + mConstants.molarGasConstant()*nDen*safeInvVar(cv(i));
+    }
+  }
 }
 
 //------------------------------------------------------------------------------
@@ -241,6 +255,20 @@ setBulkModulus(Field<Dimension, Scalar>& bulkModulus,
 }
 
 //------------------------------------------------------------------------------
+// Set entropy.
+//------------------------------------------------------------------------------
+template<typename Dimension>
+void
+ANEOS<Dimension>::
+setEntropy(Field<Dimension, Scalar>& entropy,
+           const Field<Dimension, Scalar>& massDensity,
+           const Field<Dimension, Scalar>& specificThermalEnergy) const {
+  for (int i = 0; i != entropy.size(); ++i) {
+    entropy(i)=this->entropy(massDensity(i), specificThermalEnergy(i));
+  }
+}
+
+//------------------------------------------------------------------------------
 // Calculate an individual pressure.
 //------------------------------------------------------------------------------
 template<typename Dimension>
@@ -248,12 +276,12 @@ typename Dimension::Scalar
 ANEOS<Dimension>::
 pressure(const Scalar massDensity,
          const Scalar specificThermalEnergy) const {
-  double Ti, rhoi, Pi, Ei, Si, CVi, DPDTi, DPDRi;
+  int KPAi;
+  double Ti, rhoi, Pi, Ei, Si, CVi, DPDTi, DPDRi, csi;
   rhoi = max(mRhoMin, min(mRhoMax, massDensity)) / mRhoConv;
   Ti = this->temperature(massDensity, specificThermalEnergy) / mTconv;
-  call_aneos1_(&Ti, &rhoi,
-               &Pi, &Ei, &Si, &CVi, &DPDTi, &DPDRi,
-               const_cast<int*>(&mMaterialNumber));
+  call_aneos_(const_cast<int*>(&mMaterialNumber), &Ti, &rhoi,
+              &Pi, &Ei, &Si, &CVi, &DPDTi, &DPDRi, &csi);
 
   // That's it.
   Pi *= mPconv;
@@ -293,7 +321,7 @@ temperature(const Scalar massDensity,
   //      << "                         " << u << " " << t << endl
   //      << "                         " << num << " " << den << endl
   //      << "                         " << mTmin + (iT0 + t)*dT << endl;
-  return exp(mTmin + (iT0 + t)*dT);
+  return mTmin + (iT0 + t)*dT;
 }
 
 //------------------------------------------------------------------------------
@@ -304,12 +332,12 @@ typename Dimension::Scalar
 ANEOS<Dimension>::
 specificThermalEnergy(const Scalar massDensity,
                       const Scalar temperature) const {
-  double Ti, rhoi, Pi, Ei, Si, CVi, DPDTi, DPDRi;
+  int KPAi;
+  double Ti, rhoi, Pi, Ei, Si, CVi, DPDTi, DPDRi, csi;
   rhoi = max(mRhoMin, min(mRhoMax, massDensity)) / mRhoConv;
   Ti = temperature / mTconv;
-  call_aneos1_(&Ti, &rhoi,
-               &Pi, &Ei, &Si, &CVi, &DPDTi, &DPDRi,
-               const_cast<int*>(&mMaterialNumber));
+  call_aneos_(const_cast<int*>(&mMaterialNumber), &Ti, &rhoi,
+              &Pi, &Ei, &Si, &CVi, &DPDTi, &DPDRi, &csi);
   return Ei * mEconv;
 }
 
@@ -321,12 +349,12 @@ typename Dimension::Scalar
 ANEOS<Dimension>::
 specificHeat(const Scalar massDensity,
              const Scalar temperature) const {
-  double Ti, rhoi, Pi, Ei, Si, CVi, DPDTi, DPDRi;
+  int KPAi;
+  double Ti, rhoi, Pi, Ei, Si, CVi, DPDTi, DPDRi, csi;
   rhoi = max(mRhoMin, min(mRhoMax, massDensity)) / mRhoConv;
   Ti = temperature / mTconv;
-  call_aneos1_(&Ti, &rhoi,
-               &Pi, &Ei, &Si, &CVi, &DPDTi, &DPDRi,
-               const_cast<int*>(&mMaterialNumber));
+  call_aneos_(const_cast<int*>(&mMaterialNumber), &Ti, &rhoi,
+              &Pi, &Ei, &Si, &CVi, &DPDTi, &DPDRi, &csi);
   return CVi * mCVconv;
 }
 
@@ -338,14 +366,14 @@ typename Dimension::Scalar
 ANEOS<Dimension>::
 soundSpeed(const Scalar massDensity,
            const Scalar specificThermalEnergy) const {
-  double Ti, rhoi, Pi, Ei, Si, CVi, DPDTi, DPDRi;
+  int KPAi;
+  double Ti, rhoi, Pi, Ei, Si, CVi, DPDTi, DPDRi, csi;
   rhoi = max(mRhoMin, min(mRhoMax, massDensity)) / mRhoConv;
   Ti = this->temperature(massDensity, specificThermalEnergy) / mTconv;
-  call_aneos1_(&Ti, &rhoi,
-               &Pi, &Ei, &Si, &CVi, &DPDTi, &DPDRi,
-               const_cast<int*>(&mMaterialNumber));
-  // CHECK2(DPDRi > 0.0, DPDRi << " " << Pi << " " << Ei);
-  return sqrt(max(1e-10, DPDRi)) * mVelConv;
+  call_aneos_(const_cast<int*>(&mMaterialNumber), &Ti, &rhoi,
+              &Pi, &Ei, &Si, &CVi, &DPDTi, &DPDRi, &csi);
+  return csi * mVelConv;
+  // return sqrt(max(1e-10, DPDRi)) * mVelConv;
 }
 
 //------------------------------------------------------------------------------
@@ -356,7 +384,10 @@ typename Dimension::Scalar
 ANEOS<Dimension>::
 gamma(const Scalar massDensity,
       const Scalar specificThermalEnergy) const {
-  VERIFY2(false, "gamma not defined for ANEOS EOS!");
+  const double Ti = this->temperature(massDensity, specificThermalEnergy);
+  const double cvi = this->specificHeat(massDensity, Ti);
+  const double nDen = massDensity/mAtomicWeight;
+  return 1.0 + mConstants.molarGasConstant()*nDen*safeInvVar(cvi);
 }
 
 //------------------------------------------------------------------------------
@@ -367,13 +398,33 @@ typename Dimension::Scalar
 ANEOS<Dimension>::
 bulkModulus(const Scalar massDensity,
             const Scalar specificThermalEnergy) const {
-  double Ti, rhoi, Pi, Ei, Si, CVi, DPDTi, DPDRi;
+  int KPAi;
+  double Ti, rhoi, Pi, Ei, Si, CVi, DPDTi, DPDRi, csi;
   rhoi = max(mRhoMin, min(mRhoMax, massDensity)) / mRhoConv;
   Ti = this->temperature(massDensity, specificThermalEnergy) / mTconv;
-  call_aneos1_(&Ti, &rhoi,
-               &Pi, &Ei, &Si, &CVi, &DPDTi, &DPDRi,
-               const_cast<int*>(&mMaterialNumber));
+  call_aneos_(const_cast<int*>(&mMaterialNumber), &Ti, &rhoi,
+              &Pi, &Ei, &Si, &CVi, &DPDTi, &DPDRi, &csi);
   return std::abs(rhoi * DPDRi * mPconv);
+}
+
+//------------------------------------------------------------------------------
+// Calculate an entropy.
+//------------------------------------------------------------------------------
+template<typename Dimension>
+typename Dimension::Scalar
+ANEOS<Dimension>::
+entropy(const Scalar massDensity,
+        const Scalar specificThermalEnergy) const {
+  int KPAi;
+  double Ti, rhoi, Pi, Ei, Si, CVi, DPDTi, DPDRi, csi;
+  rhoi = max(mRhoMin, min(mRhoMax, massDensity)) / mRhoConv;
+  Ti = this->temperature(massDensity, specificThermalEnergy) / mTconv;
+  call_aneos_(const_cast<int*>(&mMaterialNumber), &Ti, &rhoi,
+              &Pi, &Ei, &Si, &CVi, &DPDTi, &DPDRi, &csi);
+
+  // That's it.
+  Si *= mSconv;
+  return Si;
 }
 
 //------------------------------------------------------------------------------
@@ -428,14 +479,14 @@ template<typename Dimension>
 double
 ANEOS<Dimension>::
 Tmin() const {
-  return exp(mTmin);
+  return mTmin;
 }
 
 template<typename Dimension>
 double
 ANEOS<Dimension>::
 Tmax() const {
-  return exp(mTmax);
+  return mTmax;
 }
 
 template<typename Dimension>
@@ -460,6 +511,16 @@ void
 ANEOS<Dimension>::
 externalPressure(const double x) {
   mExternalPressure = x;
+}
+
+//------------------------------------------------------------------------------
+// Atomic weight.
+//------------------------------------------------------------------------------
+template<typename Dimension>
+double
+ANEOS<Dimension>::
+atomicWeight() const {
+  return mAtomicWeight;
 }
 
 }

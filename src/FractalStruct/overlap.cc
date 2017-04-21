@@ -45,7 +45,7 @@ namespace FractalSpace
 }
 namespace FractalSpace
 {
-  template <class T> T number_in_box(vector <T>& xvec,vector <T>& box)
+  template <class T> bool vector_in_box(array <T,3>& xvec,vector <T>& box)
   {
     return (xvec[0] <= box[1] && xvec[0] >= box[0] && 
 	    xvec[1] <= box[3] && xvec[1] >= box[2] &&
@@ -54,9 +54,45 @@ namespace FractalSpace
 }
 namespace FractalSpace
 {
-  template int number_in_box(vector <int>& xvec,vector <int>& box);
-  template double number_in_box(vector <double>& xvec,vector <double>& box);
+  template bool vector_in_box(array <int,3>& xvec,vector <int>& box);
+  template bool vector_in_box(array <double,3>& xvec,vector <double>& box);
 }
+namespace FractalSpace
+{
+  bool vector_in_box(Point* p,vector <int>& box)
+  {
+    vector <int>xvec(3);
+    p->get_pos_point(xvec);
+    return (xvec[0] <= box[1] && xvec[0] >= box[0] && 
+	    xvec[1] <= box[3] && xvec[1] >= box[2] &&
+	    xvec[2] <= box[5] && xvec[2] >= box[4]);
+  }
+}
+namespace FractalSpace
+{
+  bool vector_in_box(const Point& p,vector <int>& box)
+  {
+    vector <int>xvec(3);
+    p.get_pos_point(xvec);
+    return (xvec[0] <= box[1] && xvec[0] >= box[0] && 
+	    xvec[1] <= box[3] && xvec[1] >= box[2] &&
+	    xvec[2] <= box[5] && xvec[2] >= box[4]);
+  }
+}
+// namespace FractalSpace
+// {
+//   template <class T> T number_in_box(vector <T>& xvec,vector <T>& box)
+//   {
+//     return (xvec[0] <= box[1] && xvec[0] >= box[0] && 
+// 	    xvec[1] <= box[3] && xvec[1] >= box[2] &&
+// 	    xvec[2] <= box[5] && xvec[2] >= box[4]);
+//   }
+// }
+// namespace FractalSpace
+// {
+//   template int number_in_box(vector <int>& xvec,vector <int>& box);
+//   template double number_in_box(vector <double>& xvec,vector <double>& box);
+// }
 namespace FractalSpace
 {
   template <class T> bool overlap_boxes(vector <T>& boxa,vector <T>& boxb)

@@ -7,7 +7,6 @@ import shutil
 from math import *
 from Spheral3d import *
 from SpheralTestUtilities import *
-from SpheralGnuPlotUtilities import *
 from findLastRestart import *
 from GenerateNodeDistribution3d import *
 
@@ -100,9 +99,11 @@ commandLine(seed = "lattice",
             dtverbose = False,
 
             correctionOrder = LinearOrder,
+            volumeType = CRKSumVolume,
             densityUpdate = RigorousSumDensity, # VolumeScaledDensity,
             compatibleEnergy = True,
             gradhCorrection = True,
+            correctVelocityGradient = True,
 
             clearDirectories = False,
             restoreCycle = None,
@@ -149,6 +150,7 @@ dataDir = os.path.join(dataDir,
                        "nPerh=%f" % nPerh,
                        "compatibleEnergy=%s" % compatibleEnergy,
                        "boolCullenViscosity=%s" % boolCullenViscosity,
+                       "CRKSPH=%s" % CRKSPH,
                        "filter=%f" % filter,
                        "nx=%i_ny=%i_nz=%i" % (nx, ny, nz))
 restartDir = os.path.join(dataDir, "restarts")
@@ -291,6 +293,7 @@ elif CRKSPH:
                              compatibleEnergyEvolution = compatibleEnergy,
                              XSPH = XSPH,
                              correctionOrder = correctionOrder,
+                             volumeType = volumeType,
                              densityUpdate = densityUpdate,
                              HUpdate = HUpdate)
 elif PSPH:
@@ -301,6 +304,7 @@ elif PSPH:
                              compatibleEnergyEvolution = compatibleEnergy,
                              evolveTotalEnergy = evolveTotalEnergy,
                              HopkinsConductivity = HopkinsConductivity,
+                             correctVelocityGradient = correctVelocityGradient,
                              densityUpdate = densityUpdate,
                              HUpdate = HUpdate,
                              XSPH = XSPH)
@@ -311,6 +315,7 @@ else:
                              compatibleEnergyEvolution = compatibleEnergy,
                              evolveTotalEnergy = evolveTotalEnergy,
                              gradhCorrection = gradhCorrection,
+                             correctVelocityGradient = correctVelocityGradient,
                              densityUpdate = densityUpdate,
                              HUpdate = HUpdate,
                              XSPH = XSPH,
@@ -329,13 +334,12 @@ packages = [hydro]
 #-------------------------------------------------------------------------------
 # Construct the MMRV physics object.
 #-------------------------------------------------------------------------------
-
 if boolReduceViscosity:
     #q.reducingViscosityCorrection = True
     evolveReducingViscosityMultiplier = MorrisMonaghanReducingViscosity(q,nhQ,nhL,aMin,aMax)
     packages.append(evolveReducingViscosityMultiplier)
 elif boolCullenViscosity:
-    evolveCullenViscosityMultiplier = CullenDehnenViscosity(q,WTPi,alphMax,alphMin,betaC,betaD,betaE,fKern,boolHopkinsCorrection)
+    evolveCullenViscosityMultiplier = CullenDehnenViscosity(q,WT,alphMax,alphMin,betaC,betaD,betaE,fKern,boolHopkinsCorrection)
     packages.append(evolveCullenViscosityMultiplier)
 
 #-------------------------------------------------------------------------------
@@ -446,7 +450,7 @@ if mpi.rank == 0:
 if graphics:
 
     # Plot the node positions.
-    import Gnuplot
+    from SpheralGnuPlotUtilities import *
 
     # Plot the final state.
     rhoPlot, vrPlot, epsPlot, PPlot, HPlot = plotRadialState(db)
@@ -530,25 +534,48 @@ if graphics:
 #-------------------------------------------------------------------------------
 # If requested, write out the state in a global ordering to a file.
 #-------------------------------------------------------------------------------
+rmaxnorm = 0.35
+rminnorm = 0.05
+
 if outputFile != "None":
     outputFile = os.path.join(dataDir, outputFile)
-    from SpheralGnuPlotUtilities import multiSort
+    from SpheralTestUtilities import multiSort
     P = ScalarField("pressure", nodes1)
     nodes1.pressure(P)
     xprof = mpi.reduce([x.x for x in nodes1.positions().internalValues()], mpi.SUM)
     yprof = mpi.reduce([x.y for x in nodes1.positions().internalValues()], mpi.SUM)
     zprof = mpi.reduce([x.z for x in nodes1.positions().internalValues()], mpi.SUM)
+    rprof = mpi.reduce([ri.magnitude() for ri in nodes1.positions().internalValues()],mpi.SUM)
     rhoprof = mpi.reduce(nodes1.massDensity().internalValues(), mpi.SUM)
     Pprof = mpi.reduce(P.internalValues(), mpi.SUM)
-    vprof = mpi.reduce([v.magnitude() for v in nodes1.velocity().internalValues()], mpi.SUM)
+    vprof = mpi.reduce([vi.dot(ri.unitVector()) for ri,vi in zip(nodes1.positions().internalValues(),nodes1.velocity().internalValues())],mpi.SUM)
+    #vprof = mpi.reduce([v.magnitude() for v in nodes1.velocity().internalValues()], mpi.SUM)
     epsprof = mpi.reduce(nodes1.specificThermalEnergy().internalValues(), mpi.SUM)
     hprof = mpi.reduce([1.0/sqrt(H.Determinant()) for H in nodes1.Hfield().internalValues()], mpi.SUM)
     mof = mortonOrderIndices(db)
     mo = mpi.reduce(mof[0].internalValues(), mpi.SUM)
     if mpi.rank == 0:
-        rprof = [sqrt(xi*xi + yi*yi + zi*zi) for xi, yi, zi in zip(xprof, yprof, zprof)]
-        multiSort(rprof, mo, xprof, yprof, rhoprof, Pprof, vprof, epsprof, hprof)
+        from Pnorm import Pnorm
+        multiSort(rprof, mo, xprof, yprof, zprof, rhoprof, Pprof, vprof, epsprof, hprof)
         rans, vans, epsans, rhoans, Pans, hans = answer.solution(control.time(), rprof)
+        velans = vans
+        L1rho = Pnorm(rhoprof, rprof, rhoans).pnorm(1, rmin=rminnorm, rmax=rmaxnorm) 
+        L2rho = Pnorm(rhoprof, rprof, rhoans).pnorm(2, rmin=rminnorm, rmax=rmaxnorm)
+        Linfrho = Pnorm(rhoprof, rprof, rhoans).pnorm("inf", rmin=rminnorm, rmax=rmaxnorm)
+        L1eps = Pnorm(epsprof, rprof, epsans).pnorm(1, rmin=rminnorm, rmax=rmaxnorm)
+        L2eps = Pnorm(epsprof, rprof, epsans).pnorm(2, rmin=rminnorm, rmax=rmaxnorm)
+        Linfeps = Pnorm(epsprof, rprof, epsans).pnorm("inf", rmin=rminnorm, rmax=rmaxnorm)
+        L1vel = Pnorm(vprof, rprof, velans).pnorm(1, rmin=rminnorm, rmax=rmaxnorm)
+        L2vel = Pnorm(vprof, rprof, velans).pnorm(2, rmin=rminnorm, rmax=rmaxnorm)
+        Linfvel = Pnorm(vprof, rprof, velans).pnorm("inf", rmin=rminnorm, rmax=rmaxnorm)
+        L1P = Pnorm(Pprof, rprof, Pans).pnorm(1, rmin=rminnorm, rmax=rmaxnorm)
+        L2P = Pnorm(Pprof, rprof, Pans).pnorm(2, rmin=rminnorm, rmax=rmaxnorm)
+        LinfP = Pnorm(Pprof, rprof, velans).pnorm("inf", rmin=rminnorm, rmax=rmaxnorm)
+        with open("convergeNoh3d-CRK-%s-cullen-%s-PSPH-%s.txt" % (CRKSPH,boolCullenViscosity,PSPH), "a") as myfile:
+          myfile.write(("#" + 14*"%16s\t " + "%16s\n") % ("N", "L1rho", "L1eps", "L1vel", "L2rho", "L2eps", "L2vel", "Linfrho", "Linfeps", "Linfvel", "L1P", "L2P", "LinfP", "cycles", "runtime"))
+          myfile.write((14*"%16s\t " + "%16s\n") % (nx, L1rho, L1eps, L1vel, L2rho, L2eps, L2vel, Linfrho, Linfeps, Linfvel, L1P, L2P, LinfP, control.totalSteps, control.stepTimer.elapsedTime))
+        
+
         f = open(outputFile, "w")
         f.write(("# " + 22*"%15s " + "\n") % ("r", "x", "y", "z", "rho", "P", "v", "eps", "h", "mortonOrder",
                                               "rhoans", "Pans", "vans", "epsans",

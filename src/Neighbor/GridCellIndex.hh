@@ -42,9 +42,9 @@ public:
   void yIndex(int y);
   void zIndex(int z);
 
-  void setIndicies(int xIndex);
-  void setIndicies(int xIndex, int yIndex);
-  void setIndicies(int xIndex, int yIndex, int zIndex);
+  void setIndices(int xIndex);
+  void setIndices(int xIndex, int yIndex);
+  void setIndices(int xIndex, int yIndex, int zIndex);
 
   int operator()(int i) const;
   int& operator()(int i);
@@ -115,9 +115,9 @@ template<> void GridCellIndex<Dim<2> >::yIndex(int);
 template<> void GridCellIndex<Dim<3> >::yIndex(int);
 template<> void GridCellIndex<Dim<3> >::zIndex(int);
 
-template<> void GridCellIndex<Dim<1> >::setIndicies(int);
-template<> void GridCellIndex<Dim<2> >::setIndicies(int, int);
-template<> void GridCellIndex<Dim<3> >::setIndicies(int, int, int);
+template<> void GridCellIndex<Dim<1> >::setIndices(int);
+template<> void GridCellIndex<Dim<2> >::setIndices(int, int);
+template<> void GridCellIndex<Dim<3> >::setIndices(int, int, int);
 
 template<> GridCellIndex<Dim<1> > GridCellIndex<Dim<1> >::operator-() const;
 template<> GridCellIndex<Dim<2> > GridCellIndex<Dim<2> >::operator-() const;

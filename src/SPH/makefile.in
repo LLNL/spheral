@@ -11,6 +11,7 @@ PKGDIR = $(PKGNAME)/
 LIBTARGET = libSpheral_$(PKGNAME).$(DYLIBEXT)
 INSTSRCTARGETS = \
 	$(srcdir)/computeSPHSumMassDensityInst.cc.py \
+	$(srcdir)/correctSPHSumMassDensityInst.cc.py \
 	$(srcdir)/computeSPHOmegaGradhCorrectionInst.cc.py \
 	$(srcdir)/computePSPHCorrectionsInst.cc.py \
 	$(srcdir)/computeSumVoronoiCellMassDensityInst.cc.py \
@@ -24,6 +25,13 @@ PYTHONTARGETS = \
 	$(srcdir)/FacetedSurfaceASPHHydro.py
 
 # A few of our target files are only valid for certain dimensions.
+ifeq ("yes", "@INST2D@")
+SRCTARGETS += \
+	$(srcdir)/SPHHydroBaseRZ.cc \
+	$(srcdir)/SPHHydroBaseGSRZ.cc
+PYTHONTARGETS += \
+	$(srcdir)/SPHHydrosRZ.py
+endif
 ifeq ("yes", "@INST3D@")
 SRCTARGETS += \
 	$(srcdir)/computeHydrostaticEquilibriumPressure.cc

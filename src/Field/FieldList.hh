@@ -45,7 +45,7 @@ namespace Spheral {
 namespace FieldSpace {
 
 // An enum for selecting how Fields are stored in FieldLists.
-enum FieldStorageType {
+enum class FieldStorageType {
   Reference = 0,
   Copy = 1
 };

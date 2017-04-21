@@ -16,23 +16,27 @@ using NodeSpace::NodeList;
 
 namespace {
 //------------------------------------------------------------------------------
-// Define a trait class to compute the H volume in each dimension.
+// Define a dimension specialized method to compute the H volume.
 //------------------------------------------------------------------------------
-template<typename SymTensor> double Hvol(const SymTensor& H);
-
 // 1D
-template<> double Hvol<Dim<1>::SymTensor>(const Dim<1>::SymTensor& H) {
-  return 2.0/H.xx();
+inline
+double Hvol(const Dim<1>::SymTensor& H,
+            const Dim<1>::Scalar nPerh) {
+  return 1.0/(nPerh*H.xx());
 }
 
 // 2D
-template<> double Hvol<Dim<2>::SymTensor>(const Dim<2>::SymTensor& H) {
-  return M_PI/H.Determinant();
+inline
+double Hvol(const Dim<2>::SymTensor& H,
+            const Dim<2>::Scalar nPerh) {
+  return 0.25*M_PI/(nPerh*H).Determinant();
 }
 
 // 3D
-template<> double Hvol<Dim<3>::SymTensor>(const Dim<3>::SymTensor& H) {
-  return 4.0/3.0*M_PI/H.Determinant();
+inline
+double Hvol(const Dim<3>::SymTensor& H,
+            const Dim<3>::Scalar nPerh) {
+  return 0.125*4.0/3.0*M_PI/(nPerh*H).Determinant();
 }
 
 }
@@ -42,18 +46,17 @@ template<> double Hvol<Dim<3>::SymTensor>(const Dim<3>::SymTensor& H) {
 //------------------------------------------------------------------------------
 template<typename Dimension>
 void
-computeHVolumes(const typename Dimension::Scalar kernelExtent,
+computeHVolumes(const typename Dimension::Scalar nPerh,
                 const FieldList<Dimension, typename Dimension::SymTensor>& H,
                 FieldList<Dimension, typename Dimension::Scalar>& volume) {
 
   // Pre-conditions.
   const size_t numNodeLists = volume.size();
+  REQUIRE(nPerh > 0.0);
   REQUIRE(H.size() == numNodeLists);
 
   typedef typename Dimension::Scalar Scalar;
   typedef typename Dimension::SymTensor SymTensor;
-
-  const Scalar kernelpow = Dimension::pownu(kernelExtent);
 
   // Walk the FluidNodeLists.
   for (size_t nodeListi = 0; nodeListi != numNodeLists; ++nodeListi) {
@@ -61,9 +64,8 @@ computeHVolumes(const typename Dimension::Scalar kernelExtent,
     // Iterate over the nodes in this node list.
     const unsigned n = volume[nodeListi]->numInternalElements();
     for (unsigned i = 0; i != n; ++i) {
-      volume(nodeListi, i) = kernelpow * Hvol(H(nodeListi, i));
+      volume(nodeListi, i) = Hvol(H(nodeListi, i), nPerh);
     }
-
   }
 }
 

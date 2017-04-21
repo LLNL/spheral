@@ -25,7 +25,10 @@ class Neighbor:
         space = Spheral.add_cpp_namespace("NeighborSpace")
 
         # Expose types.
-        self.NeighborSearchType = space.add_enum("NeighborSearchType", ["None", "Gather", "Scatter", "GatherScatter"])
+        self.NeighborSearchType = space.add_enum("NeighborSearchType", [("None", "Spheral::NeighborSpace::NeighborSearchType::None"),
+                                                                        ("Gather", "Spheral::NeighborSpace::NeighborSearchType::Gather"),
+                                                                        ("Scatter", "Spheral::NeighborSpace::NeighborSearchType::Scatter"),
+                                                                        ("GatherScatter", "Spheral::NeighborSpace::NeighborSearchType::GatherScatter")])
 
         for ndim in self.dims:
             exec("""
@@ -85,10 +88,10 @@ generateStdVectorBindings(self.vector_of_vector_of_GridCellIndex%(ndim)id, "vect
                            param("int", "zIndex")])
 
         # Methods.
-        x.add_method("setIndicies", None, [param("int", "xIndex")])
-        x.add_method("setIndicies", None, [param("int", "xIndex"),
+        x.add_method("setIndices", None, [param("int", "xIndex")])
+        x.add_method("setIndices", None, [param("int", "xIndex"),
                                            param("int", "yIndex")])
-        x.add_method("setIndicies", None, [param("int", "xIndex"),
+        x.add_method("setIndices", None, [param("int", "xIndex"),
                                            param("int", "yIndex"),
                                            param("int", "zIndex")])
         x.add_method("operator()", "int", [param("int", "index")], is_const=True, custom_name="__call__")
@@ -276,7 +279,7 @@ generateStdVectorBindings(self.vector_of_vector_of_GridCellIndex%(ndim)id, "vect
 
         # Constructors.
         x.add_constructor([refparam(nodelist, "nodeList"),
-                           param("NeighborSearchType", "searchType", default_value="Spheral::NeighborSpace::GatherScatter"),
+                           param("NeighborSearchType", "searchType", default_value="Spheral::NeighborSpace::NeighborSearchType::GatherScatter"),
                            param("int", "numGridLevels", default_value="31"),
                            param("double", "topGridCellSize", default_value="100.0"),
                            param(vector, "origin", default_value="%s()" % vector),

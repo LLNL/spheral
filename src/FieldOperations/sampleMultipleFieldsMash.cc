@@ -201,8 +201,8 @@ sampleMultipleFieldsMash(const FieldListSet<Dimension>& fieldListSet,
           const Scalar& weightj = weight(neighborItr);
 
           const Vector rij = ri - rj;
-          const Vector etai = Hi*rij;
-          const Vector etaj = Hj*rij;
+          const Scalar etai = (Hi*rij).magnitude();
+          const Scalar etaj = (Hj*rij).magnitude();
           CHECK(etai >= 0.0 && etaj >= 0.0);
 
           // Calculate the kernel estimates for each node.
@@ -212,17 +212,17 @@ sampleMultipleFieldsMash(const FieldListSet<Dimension>& fieldListSet,
           // Get the symmetrized kernel weighting for this node pair.
           Scalar Wij, weightij;
           switch(masterItr.nodeListPtr()->neighbor().neighborSearchType()) {
-          case NeighborSpace::GatherScatter:
+          case NeighborSpace::NeighborSearchType::GatherScatter:
             Wij = 0.5*(Wi + Wj);
             weightij = 0.5*(weighti + weightj);
             break;
 
-          case NeighborSpace::Gather:
+          case NeighborSpace::NeighborSearchType::Gather:
             Wij = Wi;
             weightij = weighti;
             break;
 
-          case NeighborSpace::Scatter:
+          case NeighborSpace::NeighborSearchType::Scatter:
             Wij = Wj;
             weightij = weightj;
             break;

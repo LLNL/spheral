@@ -10,8 +10,14 @@ PKGNAME = DataOutput
 PKGDIR = $(PKGNAME)/
 LIBTARGET = libSpheral_$(PKGNAME).$(DYLIBEXT)
 SRCTARGETS = \
-	$(srcdir)/RestartRegistrar.cc \
+	$(srcdir)/RestartRegistrar.cc
+
+ifeq ("no", "@CXXONLY@")
+ifeq ("PYBINDGEN", "@PYTHONBINDING@")
+SRCTARGETS += \
 	$(srcdir)/RestartableObject.cc
+endif
+endif
 
 #-------------------------------------------------------------------------------
 include $(BUILDTOP)/helpers/makefile_master

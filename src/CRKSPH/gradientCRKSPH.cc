@@ -47,10 +47,10 @@ gradientCRKSPH(const FieldSpace::FieldList<Dimension, DataType>& fieldList,
   REQUIRE(weight.size() == numNodeLists);
   REQUIRE(H.size() == numNodeLists);
   REQUIRE(B.size() == numNodeLists);
-  REQUIRE(C.size() == numNodeLists or correctionOrder != QuadraticOrder);
+  REQUIRE(C.size() == numNodeLists or correctionOrder != CRKOrder::QuadraticOrder);
   REQUIRE(gradA.size() == numNodeLists);
-  REQUIRE(gradB.size() == numNodeLists or correctionOrder == ZerothOrder);
-  REQUIRE(gradC.size() == numNodeLists or correctionOrder != QuadraticOrder);
+  REQUIRE(gradB.size() == numNodeLists or correctionOrder == CRKOrder::ZerothOrder);
+  REQUIRE(gradC.size() == numNodeLists or correctionOrder != CRKOrder::QuadraticOrder);
 
   typedef typename Dimension::Scalar Scalar;
   typedef typename Dimension::Vector Vector;
@@ -88,11 +88,11 @@ gradientCRKSPH(const FieldSpace::FieldList<Dimension, DataType>& fieldList,
       const Scalar Hdeti = Hi.Determinant();
       const Scalar& Ai = A(nodeListi, i);
       const Vector& gradAi = gradA(nodeListi, i);
-      if (correctionOrder != ZerothOrder) {
+      if (correctionOrder != CRKOrder::ZerothOrder) {
         Bi = B(nodeListi, i);
         gradBi = gradB(nodeListi, i);
       }
-      if (correctionOrder == QuadraticOrder) {
+      if (correctionOrder == CRKOrder::QuadraticOrder) {
         Ci = C(nodeListi, i);
         gradCi = gradC(nodeListi, i);
       }
@@ -141,11 +141,11 @@ gradientCRKSPH(const FieldSpace::FieldList<Dimension, DataType>& fieldList,
 	      const Scalar Hdetj = Hj.Determinant();
 	      const Scalar& Aj = A(nodeListj, j);
 	      const Vector& gradAj = gradA(nodeListj, j);
-              if (correctionOrder != ZerothOrder) {
+              if (correctionOrder != CRKOrder::ZerothOrder) {
                 Bj = B(nodeListj, j);
                 gradBj = gradB(nodeListj, j);
               }
-              if (correctionOrder == QuadraticOrder) {
+              if (correctionOrder == CRKOrder::QuadraticOrder) {
                 Cj = C(nodeListj, j);
                 gradCj = gradC(nodeListj, j);
               }
@@ -160,8 +160,8 @@ gradientCRKSPH(const FieldSpace::FieldList<Dimension, DataType>& fieldList,
               // Kernel weight and gradient.
               Scalar Wi, gWi, Wj, gWj;
               Vector gradWi, gradWj;
-              CRKSPHKernelAndGradient(W, correctionOrder,  rij, -etai, Hi, Hdeti,  etaj, Hj, Hdetj, Ai, Bi, Ci, gradAi, gradBi, gradCi, Wj, gWj, gradWj);
-              CRKSPHKernelAndGradient(W, correctionOrder, -rij,  etaj, Hj, Hdetj, -etai, Hi, Hdeti, Aj, Bj, Cj, gradAj, gradBj, gradCj, Wi, gWi, gradWi);
+              CRKSPHKernelAndGradient(W, correctionOrder,  rij,  etai, Hi, Hdeti,  etaj, Hj, Hdetj, Ai, Bi, Ci, gradAi, gradBi, gradCi, Wj, gWj, gradWj);
+              CRKSPHKernelAndGradient(W, correctionOrder, -rij, -etaj, Hj, Hdetj, -etai, Hi, Hdeti, Aj, Bj, Cj, gradAj, gradBj, gradCj, Wi, gWi, gradWi);
 
 	      // Increment the pair-wise gradients.
 	      gradFi += wj*Fj*gradWj;

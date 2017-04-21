@@ -117,6 +117,7 @@ public:
   const FieldSpace::FieldList<Dimension, Scalar>& shearModulus() const;
   const FieldSpace::FieldList<Dimension, Scalar>& yieldStrength() const;
   const FieldSpace::FieldList<Dimension, Scalar>& plasticStrain0() const;
+  const FieldSpace::FieldList<Dimension, SymTensor>& Hfield0() const;
 
   //****************************************************************************
   // Methods required for restarting.
@@ -136,6 +137,7 @@ private:
   FieldSpace::FieldList<Dimension, Scalar> mShearModulus;
   FieldSpace::FieldList<Dimension, Scalar> mYieldStrength;
   FieldSpace::FieldList<Dimension, Scalar> mPlasticStrain0;
+  FieldSpace::FieldList<Dimension, SymTensor> mHfield0;
 
   // The restart registration.
   DataOutput::RestartRegistrationType mRestart;

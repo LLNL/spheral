@@ -6,11 +6,10 @@
 #
 # W.F. Noh 1987, JCP, 72, 78-120.
 #-------------------------------------------------------------------------------
-import shutil
+import os, shutil
 from math import *
 from Spheral2d import *
 from SpheralTestUtilities import *
-from SpheralGnuPlotUtilities import *
 from GenerateNodeDistribution2d import *
 from CubicNodeGenerator import GenerateSquareNodeDistribution
 from CentroidalVoronoiRelaxation import *
@@ -104,6 +103,7 @@ commandLine(KernelConstructor = BSplineKernel,
             evolveTotalEnergy = False,  # Only for SPH variants -- evolve total rather than specific energy
             compatibleEnergy = True,
             gradhCorrection = True,
+            correctVelocityGradient = True,
 
             useVoronoiOutput = False,
             clearDirectories = False,
@@ -273,6 +273,8 @@ output("db.numFluidNodeLists")
 #-------------------------------------------------------------------------------
 if Qconstructor is TensorSVPHViscosity:
     q = Qconstructor(Cl, Cq, fslice)
+elif Qconstructor is VonNeumanViscosity:
+    q = Qconstructor(Cl, Cq)
 else:
     q = Qconstructor(Cl, Cq, linearInExpansion)
 q.epsilon2 = epsilon2
@@ -284,8 +286,11 @@ output("q.Cq")
 output("q.epsilon2")
 output("q.limiter")
 output("q.balsaraShearCorrection")
-output("q.linearInExpansion")
-output("q.quadraticInExpansion")
+try:
+    output("q.linearInExpansion")
+    output("q.quadraticInExpansion")
+except:
+    pass
 
 #-------------------------------------------------------------------------------
 # Construct the hydro physics object.
@@ -323,6 +328,7 @@ elif PSPH:
                              compatibleEnergyEvolution = compatibleEnergy,
                              evolveTotalEnergy = evolveTotalEnergy,
                              HopkinsConductivity = HopkinsConductivity,
+                             correctVelocityGradient = correctVelocityGradient,
                              densityUpdate = densityUpdate,
                              HUpdate = HUpdate,
                              XSPH = XSPH)
@@ -334,6 +340,7 @@ else:
                              compatibleEnergyEvolution = compatibleEnergy,
                              evolveTotalEnergy = evolveTotalEnergy,
                              gradhCorrection = gradhCorrection,
+                             correctVelocityGradient = correctVelocityGradient,
                              densityUpdate = densityUpdate,
                              HUpdate = HUpdate,
                              XSPH = XSPH,
@@ -352,14 +359,12 @@ packages = [hydro]
 #-------------------------------------------------------------------------------
 # Construct the MMRV physics object.
 #-------------------------------------------------------------------------------
-
 if boolReduceViscosity:
     evolveReducingViscosityMultiplier = MorrisMonaghanReducingViscosity(q,nhQ,nhL,aMin,aMax)
     packages.append(evolveReducingViscosityMultiplier)
 elif boolCullenViscosity:
     evolveCullenViscosityMultiplier = CullenDehnenViscosity(q,WT,alphMax,alphMin,betaC,betaD,betaE,fKern,boolHopkinsCorrection)
     packages.append(evolveCullenViscosityMultiplier)
-
 
 #-------------------------------------------------------------------------------
 # Create boundary conditions.
@@ -467,7 +472,7 @@ answer = NohAnalyticSolution.NohSolution(2,
 if graphics:
 
     # Plot the node positions.
-    import Gnuplot
+    from SpheralGnuPlotUtilities import *
     rPlot = plotNodePositions2d(db, colorNodeLists=0, colorDomains=1)
     EPlot = plotEHistory(control.conserve)
 
@@ -541,7 +546,7 @@ if graphics:
     nodes1.pressure(Pf)
     P = mpi.allreduce(list(Pf.internalValues()), mpi.SUM)
     if mpi.rank == 0:
-        from SpheralGnuPlotUtilities import multiSort
+        from SpheralTestUtilities import multiSort
         import Pnorm
         multiSort(r, rho, v, eps, P)
         rans, vans, epsans, rhoans, Pans, hans = answer.solution(control.time(), r)
@@ -570,14 +575,28 @@ if outputFile != "None":
     yprof = mpi.reduce([x.y for x in nodes1.positions().internalValues()], mpi.SUM)
     rhoprof = mpi.reduce(nodes1.massDensity().internalValues(), mpi.SUM)
     Pprof = mpi.reduce(P.internalValues(), mpi.SUM)
-    vprof = mpi.reduce([v.x for v in nodes1.velocity().internalValues()], mpi.SUM)
+    #vprof = mpi.reduce(list([vi.dot(ri.unitVector()) for ri,vi in zip(nodes1.positions().internalValues(),nodes1.velocity().internalValues())]),mpi.SUM)
+    rprof = mpi.reduce([ri.magnitude() for ri in nodes1.positions().internalValues()],mpi.SUM)
+    vx = mpi.reduce(list([v.x for v in nodes1.velocity().internalValues()]),mpi.SUM)
+    vy = mpi.reduce([v.y for v in nodes1.velocity().internalValues()],mpi.SUM)
+    np = int(nodes1.numInternalNodes)
+    if np is None:
+        np = 0
+    #print "np=%d" % np
+    np = mpi.reduce(np,mpi.SUM)
+    #print "np=%d" % np
+    vprof = []
+    if mpi.rank == 0:
+        for i in xrange(np):
+            vprof.append(xprof[i]*vx[i]/rprof[i] + yprof[i]*vy[i]/rprof[i])
+    #vprof = mpi.reduce([v.x for v in nodes1.velocity().internalValues()], mpi.SUM)
     epsprof = mpi.reduce(nodes1.specificThermalEnergy().internalValues(), mpi.SUM)
     Qprof = mpi.reduce(hydro.viscousWork()[0].internalValues(), mpi.SUM)
     hprof = mpi.reduce([1.0/sqrt(H.Determinant()) for H in nodes1.Hfield().internalValues()], mpi.SUM)
     mof = mortonOrderIndices(db)
     mo = mpi.reduce(mof[0].internalValues(), mpi.SUM)
     if mpi.rank == 0:
-        rprof = [sqrt(xi*xi + yi*yi) for xi, yi in zip(xprof, yprof)]
+        #rprof = [sqrt(xi*xi + yi*yi) for xi, yi in zip(xprof, yprof)]
         multiSort(rprof, mo, xprof, yprof, rhoprof, Pprof, vprof, epsprof, hprof, Qprof)
         rans, vans, epsans, rhoans, Pans, hans = answer.solution(control.time(), rprof)
         f = open(outputFile, "w")

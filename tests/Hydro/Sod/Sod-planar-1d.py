@@ -24,10 +24,10 @@ commandLine(nx1 = 400,
             x1 = 0.0,
             x2 = 0.5,
 
-            hsmooth = 0.0,             # Optionally smooth initial discontinuity
+            hsmooth = 0.5,             # Optionally smooth initial discontinuity, expressed as particle spacings
             sumInitialDensity = False, # Optionally sum the initial density before setting the pressure and such
 
-            nPerh = 1.25,
+            nPerh = 1.35,
 
             gammaGas = 5.0/3.0,
             mu = 1.0,
@@ -47,7 +47,6 @@ commandLine(nx1 = 400,
             etaCritFrac = 1.0,
             etaFoldFrac = 0.2,
             boolCullenViscosity = False,
-            cullenUseHydroDerivatives = True,  # Reuse the hydro calculation of DvDx.
             alphMax = 2.0,
             alphMin = 0.02,
             betaC = 0.7,
@@ -71,7 +70,7 @@ commandLine(nx1 = 400,
             hourglassOrder = 1,
             hourglassLimiter = 1,
             filter = 0.00,
-            KernelConstructor = BSplineKernel,
+            KernelConstructor = NBSplineKernel,
             order = 5,
             
             bArtificialConduction = False,
@@ -134,6 +133,7 @@ dataDir = os.path.join(dataDirBase,
                        "compatibleEnergy=%s" % compatibleEnergy,
                        "correctionOrder=%s" % correctionOrder,
                        "Cullen=%s" % boolCullenViscosity,
+                       "Condc=%s" % HopkinsConductivity,
                        "filter=%f" % filter,
                        "%i" % (nx1 + nx2))
 restartDir = os.path.join(dataDir, "restarts")
@@ -189,44 +189,58 @@ nodes2 = makeNL("nodes2", eos,
 nodeSet = [nodes1, nodes2]
 
 #-------------------------------------------------------------------------------
-# A function to specify the density profile.
+# Functions to specify the initial density and specific thermal energy with
+# optional smoothing.
 #-------------------------------------------------------------------------------
 dx1 = (x1 - x0)/nx1
 dx2 = (x2 - x1)/nx2
 hfold = hsmooth*max(dx1, dx2)
 def rho_initial(xi):
-    if xi < x1 - hfold:
+    if hfold > 0.0:
+        return rho1 + (rho2 - rho1)/(1.0 + exp(-(xi - x1)/hfold))
+    elif xi <= x1:
         return rho1
-    elif xi > x1 + hfold:
-        return rho2
     else:
-        f = 0.5*(sin(0.5*pi*(xi - x1)/hfold) + 1.0)
-        return (1.0 - f)*rho1 + f*rho2
+        return rho2
+
+def specificEnergy(xi, rhoi):
+    if hfold > 0.0:
+        Pi = P1 + (P2 - P1)/(1.0 + exp((-xi - x1)/hfold))
+    elif xi <= x1:
+        Pi = P1
+    else:
+        Pi = P2
+    return Pi/((gammaGas - 1.0)*rhoi)
 
 #-------------------------------------------------------------------------------
 # Set the node properties.
 #-------------------------------------------------------------------------------
-from DistributeNodes import distributeNodesInRange1d
+from GenerateNodeProfile import GenerateNodeProfile1d
+from VoronoiDistributeNodes import distributeNodes1d
 if numNodeLists == 1:
-    distributeNodesInRange1d([(nodes1, [(nx1, rho_initial, (x0, x1)), 
-                                        (nx2, rho_initial, (x1, x2))])])
+    gen = GenerateNodeProfile1d(nx = nx1 + nx2,
+                                rho = rho_initial,
+                                xmin = x0,
+                                xmax = x2,
+                                nNodePerh = nPerh)
+    distributeNodes1d((nodes1, gen))
 else:
-    distributeNodesInRange1d([(nodes1, [(nx1, rho_initial, (x0, x1))]),
-                              (nodes2, [(nx2, rho_initial, (x1, x2))])])
+    gen1 = GenerateNodeProfile1d(nx = nx1,
+                                 rho = rho_initial,
+                                 xmin = x0,
+                                 xmax = x1,
+                                 nNodePerh = nPerh)
+    gen2 = GenerateNodeProfile1d(nx = nx2,
+                                 rho = rho_initial,
+                                 xmin = x1,
+                                 xmax = x2,
+                                 nNodePerh = nPerh)
+    distributeNodes1d((nodes1, gen1),
+                      (nodes2, gen2))
 output("nodes1.numNodes")
 output("nodes2.numNodes")
 
 # Set node specific thermal energies
-def specificEnergy(xi, rhoi):
-    if xi < x1 - hfold:
-        Pi = P1
-    elif xi > x1 + hfold:
-        Pi = P2
-    else:
-        f = 0.5*(sin(0.5*pi*(xi - x1)/hfold) + 1.0)
-        Pi = (1.0 - f)*P1 + f*P2
-    return Pi/((gammaGas - 1.0)*rhoi)
-
 for nodes in nodeSet:
     pos = nodes.positions()
     eps = nodes.specificThermalEnergy()
@@ -247,7 +261,10 @@ output("db.numFluidNodeLists")
 #-------------------------------------------------------------------------------
 # Construct the artificial viscosity.
 #-------------------------------------------------------------------------------
-q = Qconstructor(Cl, Cq, linearInExpansion, quadraticInExpansion)
+try:
+    q = Qconstructor(Cl, Cq, linearInExpansion, quadraticInExpansion)
+except:
+    q = Qconstructor(Cl, Cq)
 q.limiter = Qlimiter
 q.epsilon2 = epsilon2
 output("q")
@@ -255,8 +272,11 @@ output("q.Cl")
 output("q.Cq")
 output("q.limiter")
 output("q.epsilon2")
-output("q.linearInExpansion")
-output("q.quadraticInExpansion")
+try:
+    output("q.linearInExpansion")
+    output("q.quadraticInExpansion")
+except:
+    pass
 
 #-------------------------------------------------------------------------------
 # Construct the hydro physics object.
@@ -281,6 +301,7 @@ elif CRKSPH:
                              correctionOrder = correctionOrder,
                              volumeType = volumeType,
                              compatibleEnergyEvolution = compatibleEnergy,
+                             evolveTotalEnergy = evolveTotalEnergy,
                              XSPH = XSPH,
                              densityUpdate = densityUpdate,
                              HUpdate = HUpdate)
@@ -321,7 +342,7 @@ if boolReduceViscosity:
     evolveReducingViscosityMultiplier = MorrisMonaghanReducingViscosity(q,nh,nh,aMin,aMax)
     packages.append(evolveReducingViscosityMultiplier)
 elif boolCullenViscosity:
-    evolveCullenViscosityMultiplier = CullenDehnenViscosity(q,WT,alphMax,alphMin,betaC,betaD,betaE,fKern,boolHopkinsCorrection,cullenUseHydroDerivatives)
+    evolveCullenViscosityMultiplier = CullenDehnenViscosity(q,WT,alphMax,alphMin,betaC,betaD,betaE,fKern,boolHopkinsCorrection)
     packages.append(evolveCullenViscosityMultiplier)
 
 #-------------------------------------------------------------------------------
@@ -492,7 +513,7 @@ def createList(x):
     for i in xrange(len(x)):
         for j in xrange(x[i].numInternalElements):
             result.append(x(i,j))
-    return mpi.allreduce(result)
+    return mpi.allreduce(result, mpi.SUM)
 
 # Compute the simulated specific entropy.
 rho = createList(db.fluidMassDensity)
@@ -506,6 +527,7 @@ Aans = [Pi/rhoi**gammaGas for (Pi, rhoi) in zip(Pans,  rhoans)]
 csAns = [sqrt(gammaGas*Pi/rhoi) for (Pi, rhoi) in zip(Pans,  rhoans)]
 
 if graphics:
+    import Gnuplot
     from SpheralGnuPlotUtilities import *
 
     rhoPlot, velPlot, epsPlot, PPlot, HPlot = plotState(db, plotStyle="lines")
@@ -519,12 +541,25 @@ if graphics:
                              title = "Analytic")
     csPlot.replot(csAnsData)
 
+    Aplot = generateNewGnuPlot()
+    Adata = Gnuplot.Data(xprof, A,
+                         with_ = "lines",
+                         title = "P/rho^\gamma",
+                         inline = True)
+    AansData = Gnuplot.Data(xprof, Aans,
+                         with_ = "lines",
+                         title = "Solution",
+                         inline = True)
+    Aplot.replot(Adata)
+    Aplot.replot(AansData)
+
     plots = [(rhoPlot, "Sod-planar-rho.png"),
              (velPlot, "Sod-planar-vel.png"),
              (epsPlot, "Sod-planar-eps.png"),
              (PPlot, "Sod-planar-P.png"),
              (HPlot, "Sod-planar-h.png"),
-             (csPlot, "Sod-planar-cs.png")]
+             (csPlot, "Sod-planar-cs.png"),
+             (Aplot, "Sod-planar-entropy.png")]
     
     if CRKSPH:
         APlot = plotFieldList(hydro.A(),
@@ -558,31 +593,6 @@ if graphics:
                                   winTitle = "rvAlpha",
                                   colorNodeLists = False)
 
-    # # Plot the specific entropy.
-    # if mpi.rank == 0:
-    #     ll = zip(xprof, A, Aans)
-    #     ll.sort()
-    #     AsimData = Gnuplot.Data(xprof, A,
-    #                             with_ = "points",
-    #                             title = "Simulation",
-    #                             inline = True)
-    #     AansData = Gnuplot.Data(xprof, Aans,
-    #                             with_ = "lines",
-    #                             title = "Analytic",
-    #                             inline = True)
-    #     Aplot = Gnuplot.Gnuplot()
-    #     Aplot.plot(AsimData)
-    #     Aplot.replot(AansData)
-    # else:
-    #     Aplot = fakeGnuplot()
-
-    # # Plot the grad h correction term (omega)
-    # omegaPlot = plotFieldList(db.fluidOmegaGradh,
-    #                           winTitle = "grad h correction",
-    #                           colorNodeLists = False)
-
-    # Some debugging useful plots to pull out the derivatives and check 'em out.
-
     # Make hardcopies of the plots.
     for p, filename in plots:
         p.hardcopy(os.path.join(dataDir, filename), terminal="png")
@@ -610,15 +620,15 @@ if mpi.rank == 0:
     if outputFile != "None":
         outputFile = os.path.join(dataDir, outputFile)
         f = open(outputFile, "w")
-        f.write(("#  " + 17*"'%s' " + "\n") % ("x", "rho", "P", "v", "eps", "h", "mo",
-                                               "rhoans", "Pans", "vans", "hans",
+        f.write(("#  " + 19*"'%s' " + "\n") % ("x", "rho", "P", "v", "eps", "A", "h", "mo",
+                                               "rhoans", "Pans", "vans", "Aans", "hans",
                                                "x_UU", "rho_UU", "P_UU", "v_UU", "eps_UU", "h_UU"))
-        for (xi, rhoi, Pi, vi, epsi, hi, mi,
-             rhoansi, Pansi, vansi, hansi) in zip(xprof, rhoprof, Pprof, vprof, epsprof, hprof, mo,
-                                                  rhoans, Pans, vans, hans):
-            f.write((6*"%16.12e " + "%i " + 4*"%16.12e " + 6*"%i " + '\n') % 
-                    (xi, rhoi, Pi, vi, epsi, hi, mi,
-                     rhoansi, Pansi, vansi, hansi,
+        for (xi, rhoi, Pi, vi, epsi, Ai, hi, mi,
+             rhoansi, Pansi, vansi, Aansi, hansi) in zip(xprof, rhoprof, Pprof, vprof, epsprof, A, hprof, mo,
+                                                         rhoans, Pans, vans, Aans, hans):
+            f.write((7*"%16.12e " + "%i " + 5*"%16.12e " + 6*"%i " + '\n') % 
+                    (xi, rhoi, Pi, vi, epsi, Ai, hi, mi,
+                     rhoansi, Pansi, vansi, Aansi, hansi,
                      unpackElementUL(packElementDouble(xi)),
                      unpackElementUL(packElementDouble(rhoi)),
                      unpackElementUL(packElementDouble(Pi)),
@@ -631,13 +641,12 @@ if mpi.rank == 0:
     print "\tQuantity \t\tL1 \t\t\tL2 \t\t\tLinf"
     failure = False
     hD = []
-    #f = open("MCTesting.txt", "a")
-    #f.write(("CL=%g, Cq=%g \t") %(Cl, Cq))
     for (name, data, ans) in [("Mass Density", rhoprof, rhoans),
-                                             ("Pressure", Pprof, Pans),
-                                             ("Velocity", vprof, vans),
-                                             ("Thermal E", epsprof, uans),
-                                             ("h       ", hprof, hans)]:
+                              ("Pressure", Pprof, Pans),
+                              ("Velocity", vprof, vans),
+                              ("Thermal E", epsprof, uans),
+                              ("Entropy", A, Aans),
+                              ("h       ", hprof, hans)]:
         assert len(data) == len(ans)
         error = [data[i] - ans[i] for i in xrange(len(data))]
         Pn = Pnorm.Pnorm(error, xprof)

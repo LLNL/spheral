@@ -19,6 +19,7 @@
 #endif
 
 #include "Boundary.hh"
+#include "Geometry/GeomPlane.hh"
 
 namespace Spheral {
   template<typename Dimension> class GeomPlane;

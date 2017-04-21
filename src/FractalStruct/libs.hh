@@ -4,6 +4,7 @@
 #include <cstdlib>
 #include <cstdint>
 #include <iostream>
+#include <iomanip>
 #include <fstream>
 #include <list>
 #include <string>
@@ -15,10 +16,16 @@
 #include <algorithm>
 #include <complex>
 #include <ctime>
-#include <random>
+#include <map>
+#include <deque>
 #include <climits>
+#include <array>
+#include <random>
 #include <cerrno>
 #include <sys/stat.h>
 #include "fftw3-mpi.h"
+#include "_hypre_utilities.h"
+#include "HYPRE_krylov.h"
+#include "HYPRE_struct_ls.h"
 using namespace std;
 

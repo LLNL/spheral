@@ -10,14 +10,14 @@ PKGNAME = SimulationControl
 PKGDIR = $(PKGNAME)/
 PYTHONTARGETS = \
 	spheralDimensions.py \
-	$(srcdir)/Spheral.py \
 	$(srcdir)/Spheral1d.py \
 	$(srcdir)/Spheral2d.py \
 	$(srcdir)/Spheral3d.py \
-	$(srcdir)/SolidSpheral.py \
+	$(srcdir)/SpheralRZ.py \
 	$(srcdir)/SolidSpheral1d.py \
 	$(srcdir)/SolidSpheral2d.py \
 	$(srcdir)/SolidSpheral3d.py \
+	$(srcdir)/SolidSpheralRZ.py \
 	$(srcdir)/SpheralPickle.py \
 	$(srcdir)/SpheralTestUtilities.py \
 	$(srcdir)/SpheralTimer.py \
@@ -37,10 +37,12 @@ PYTHONTARGETS = \
 	$(srcdir)/bisectFunction.py \
 	$(srcdir)/NodeHistory.py \
 	$(srcdir)/AverageStrain.py \
+	$(srcdir)/EulerianTracerHistory.py \
 	$(srcdir)/SpheralHadesDump.py \
 	$(srcdir)/siloPointmeshDump.py \
 	$(srcdir)/SpheralPointmeshSiloDump.py \
-	$(srcdir)/PolyhedronFileUtilities.py
+	$(srcdir)/PolyhedronFileUtilities.py \
+	$(srcdir)/resampleNodeList.py
 
 #-------------------------------------------------------------------------------
 include $(BUILDTOP)/helpers/makefile_master

@@ -10,6 +10,7 @@
 #include "Field/Field.hh"
 #include "Field/NodeIterators.hh"
 #include "NodeList/NodeList.hh"
+#include "NodeList/FluidNodeList.hh"
 #include "Neighbor/Neighbor.hh"
 #include "Kernel/TableKernel.hh"
 #include "Geometry/MathTraits.hh"
@@ -22,6 +23,7 @@ namespace FieldSpace {
 
 using namespace std;
 using NodeSpace::NodeList;
+using NodeSpace::FluidNodeList;
 using NeighborSpace::Neighbor;
 using KernelSpace::TableKernel;
 using BoundarySpace::Boundary;
@@ -44,7 +46,7 @@ splatMultipleFieldsMash(const FieldListSet<Dimension>& fieldListSet,
                         const FieldList<Dimension, typename Dimension::Vector>& samplePositions,
                         const FieldList<Dimension, typename Dimension::Scalar>& sampleWeight,
                         const FieldList<Dimension, typename Dimension::SymTensor>& sampleHfield,
-                        const vector<Boundary<Dimension>*>& boundaryConditions) {
+                        const vector<Boundary<Dimension>*>& boundaries) {
 
   // Some convenient typedefs.
   typedef typename Dimension::Scalar Scalar;
@@ -163,13 +165,16 @@ splatMultipleFieldsMash(const FieldListSet<Dimension>& fieldListSet,
       resultItr->appendField(Field<Dimension, SymTensor>("splat" + (*fieldItr)->name(), (*fieldItr)->nodeList()));
   }
   
-  FieldList<Dimension, int> flagNodeDone(FieldSpace::Copy);
+  FieldList<Dimension, int> flagNodeDone(FieldSpace::FieldStorageType::Copy);
+  FieldList<Dimension, Scalar> normalization(FieldSpace::FieldStorageType::Copy);
   for (typename FieldList<Dimension, Vector>::const_iterator fieldItr = position.begin();
        fieldItr < position.end(); 
        ++fieldItr) {
-    flagNodeDone.appendNewField("flag nodes done", (*fieldItr)->nodeList(), 0);
+    flagNodeDone.appendNewField("flag nodes", (*fieldItr)->nodeList(), 0);
+    normalization.appendNewField("normalization", (*fieldItr)->nodeList(), 1.0e-30);
   }
 
+  // This first pass counts the total weight from each donor node, so we can compute the normalization correctly.
   // Loop over all the positions in the donor fieldList.
   for (InternalNodeIterator<Dimension> nodeItr = position.internalNodeBegin();
        nodeItr < position.internalNodeEnd();
@@ -186,19 +191,18 @@ splatMultipleFieldsMash(const FieldListSet<Dimension>& fieldListSet,
       for (MasterNodeIterator<Dimension> masterItr = position.masterNodeBegin();
            masterItr < position.masterNodeEnd();
            ++masterItr) {
-        CHECK(flagNodeDone[masterItr.fieldID()][masterItr.nodeID()] == 0);
+        CHECK(flagNodeDone(masterItr) == 0);
    
         // Sample node (i) state.
         const Vector& ri = position(masterItr);
         const SymTensor& Hi = Hfield(masterItr);
-        const Scalar& weighti = weight(masterItr);
+        const Scalar weighti = weight(masterItr);
 
         // Refine the set of nodes we're sampling to for this position.
         samplePositions.setRefineNodeLists(ri, Hi);
 
         // Loop over the refined neighbors, and determine the normalization
         // constant.
-        Scalar totalWeight = 1.0e-30;
         for (RefineNodeIterator<Dimension> neighborItr = samplePositions.refineNodeBegin();
              neighborItr < samplePositions.refineNodeEnd();
              ++neighborItr) {
@@ -206,120 +210,172 @@ splatMultipleFieldsMash(const FieldListSet<Dimension>& fieldListSet,
           // Node j's state.
           const Vector& rj = samplePositions(neighborItr);
           const SymTensor& Hj = sampleHfield(neighborItr);
-          const Scalar& weightj = sampleWeight(neighborItr);
+          const Scalar weightj = sampleWeight(neighborItr);
 
           const Vector rij = ri - rj;
-          const Vector etai = Hi*rij;
-          const Vector etaj = Hj*rij;
-          CHECK(etai >= 0.0 && etaj >= 0.0);
+          const Scalar etai = (Hi*rij).magnitude();
+          const Scalar etaj = (Hj*rij).magnitude();
+          CHECK2(etai >= 0.0 && etaj >= 0.0, etai << " " << etaj);
 
           // Calculate the kernel estimates for each node.
           Scalar Wi = kernel(etai, 1.0);
           Scalar Wj = kernel(etaj, 1.0);
 
-          // Get the symmetrized kernel weighting for this node pair.
-          Scalar Wij, weightij;
-          switch(neighborItr.nodeListPtr()->neighbor().neighborSearchType()) {
-          case NeighborSpace::GatherScatter:
-            Wij = 0.5*(Wi + Wj);
-            weightij = 0.5*(weighti + weightj);
-            break;
+          const Scalar Wij = max(Wi, Wj);
+          const Scalar weightij = 0.5*(weighti + weightj);
 
-          case NeighborSpace::Gather:
-            Wij = Wi;
-            weightij = weighti;
-            break;
+          // // Get the symmetrized kernel weighting for this node pair.
+          // Scalar Wij, weightij;
+          // switch(neighborItr.nodeListPtr()->neighbor().neighborSearchType()) {
+          // case NeighborSpace::GatherScatter:
+          //   Wij = 0.5*(Wi + Wj);
+          //   weightij = 0.5*(weighti + weightj);
+          //   break;
 
-          case NeighborSpace::Scatter:
-            Wij = Wj;
-            weightij = weightj;
-            break;
+          // case NeighborSpace::Gather:
+          //   Wij = Wi;
+          //   weightij = weighti;
+          //   break;
 
-          default:
-            VERIFY2(false, "Unhandled neighbor search type.");
-          }
+          // case NeighborSpace::Scatter:
+          //   Wij = Wj;
+          //   weightij = weightj;
+          //   break;
+
+          // default:
+          //   VERIFY2(false, "Unhandled neighbor search type.");
+          // }
 
           // Add this nodes contribution to the master value.
-          totalWeight += weightij*Wij;
+          normalization(masterItr) += weightij*Wij;
         }
-        CHECK(totalWeight > 0.0);
-        Scalar normalization = 1.0/totalWeight;
+        CHECK(normalization(masterItr) > 0.0);
+        normalization(masterItr) = 1.0/normalization(masterItr);
 
-        // Loop over the refined neighbors again, and do the splat of the donor nodes
-        // value to each of the sample nodes.
-        for (RefineNodeIterator<Dimension> neighborItr = samplePositions.refineNodeBegin();
-             neighborItr < samplePositions.refineNodeEnd();
-             ++neighborItr) {
-
-          // Node j's state.
-          const Vector& rj = samplePositions(neighborItr);
-          const SymTensor& Hj = sampleHfield(neighborItr);
-          const Scalar& weightj = sampleWeight(neighborItr);
-
-          const Vector rij = ri - rj;
-          const Vector etai = Hi*rij;
-          const Vector etaj = Hj*rij;
-          CHECK(etai >= 0.0 && etaj >= 0.0);
-       
-          // Calculate the kernel estimates for each node.
-          Scalar Wi = kernel(etai, 1.0);
-          Scalar Wj = kernel(etaj, 1.0);
-
-          // Get the symmetrized kernel weighting for this node pair.
-          Scalar Wij, weightij;
-          switch(neighborItr.nodeListPtr()->neighbor().neighborSearchType()) {
-          case NeighborSpace::GatherScatter:
-            Wij = 0.5*(Wi + Wj);
-            weightij = 0.5*(weighti + weightj);
-            break;
-
-          case NeighborSpace::Gather:
-            Wij = Wi;
-            weightij = weighti;
-            break;
-         
-          case NeighborSpace::Scatter:
-            Wij = Wj;
-            weightij = weightj;
-            break;
-
-          default:
-            VERIFY2(false, "Unhandled neighbor search type.");
-          }
-
-          // Loop over all the FieldLists we're sampling from, and add their contributions
-          // to their correspoding result FieldList.
-          const Scalar localWeight = weightij*Wij*normalization;
-          for (int i = 0; i < fieldListSet.ScalarFieldLists.size(); ++i) {
-            const FieldList<Dimension, Scalar>& fieldList = fieldListSet.ScalarFieldLists[i];
-            FieldList<Dimension, Scalar>& result = resultSet.ScalarFieldLists[i];
-            result(neighborItr) += fieldList(masterItr)*localWeight;
-          }
-          for (int i = 0; i < fieldListSet.VectorFieldLists.size(); ++i) {
-            const FieldList<Dimension, Vector>& fieldList = fieldListSet.VectorFieldLists[i];
-            FieldList<Dimension, Vector>& result = resultSet.VectorFieldLists[i];
-            result(neighborItr) += fieldList(masterItr)*localWeight;
-          }
-          for (int i = 0; i < fieldListSet.TensorFieldLists.size(); ++i) {
-            const FieldList<Dimension, Tensor>& fieldList = fieldListSet.TensorFieldLists[i];
-            FieldList<Dimension, Tensor>& result = resultSet.TensorFieldLists[i];
-            result(neighborItr) += fieldList(masterItr)*localWeight;
-          }
-          for (int i = 0; i < fieldListSet.SymTensorFieldLists.size(); ++i) {
-            const FieldList<Dimension, SymTensor>& fieldList = fieldListSet.SymTensorFieldLists[i];
-            FieldList<Dimension, SymTensor>& result = resultSet.SymTensorFieldLists[i];
-            result(neighborItr) += fieldList(masterItr)*localWeight;
-          }
-        }
-   
         // Flag this master node as done.
-        flagNodeDone[masterItr.fieldID()][masterItr.nodeID()] = 1;
+        flagNodeDone(masterItr) = 1;
       }
     }
   }
 
-  // After we're done, all nodes in all NodeLists should be flagged as done.
-  ENSURE(flagNodeDone.min() == 1);
+  // After we're done, all nodes in the sampling from NodeLists should be flagged as done.
+  BEGIN_CONTRACT_SCOPE
+  {
+    for (InternalNodeIterator<Dimension> nodeItr = position.internalNodeBegin();
+         nodeItr != position.internalNodeEnd();
+         ++nodeItr) CHECK2(flagNodeDone(nodeItr) == 1, nodeItr.fieldID() << " " << nodeItr.nodeID());
+  }
+  END_CONTRACT_SCOPE
+
+  // Apply boundaries to the donor information.
+  for (typename vector<Boundary<Dimension>*>::const_iterator bcItr = boundaries.begin();
+       bcItr != boundaries.end();
+       ++bcItr) {
+    (*bcItr)->applyFieldListGhostBoundary(normalization);
+    (*bcItr)->finalizeGhostBoundary();
+  }
+
+  // Iterate over the masters again and do the splatting.
+  flagNodeDone = 0;
+  for (AllNodeIterator<Dimension> nodeItr = position.nodeBegin();
+       nodeItr < position.nodeEnd();
+       ++nodeItr) {
+    CHECK(flagNodeDone(nodeItr) == 0);
+
+    // Set the neighbor info over the positions we're sampling to.
+    position.setMasterNodeLists(position(nodeItr), Hfield(nodeItr));
+    samplePositions.setMasterNodeLists(position(nodeItr), Hfield(nodeItr));
+
+    // Sample node (i) state.
+    const Vector& ri = position(nodeItr);
+    const SymTensor& Hi = Hfield(nodeItr);
+    const Scalar weighti = weight(nodeItr);
+
+    // Refine the set of nodes we're donating from to for this position.
+    samplePositions.setRefineNodeLists(ri, Hi);
+
+    // Loop over the refined neighbors again, and do the splat of the donor node
+    // values to each of the sample nodes.
+    for (RefineNodeIterator<Dimension> neighborItr = samplePositions.refineNodeBegin();
+         neighborItr < samplePositions.refineNodeEnd();
+         ++neighborItr) {
+
+      // Node j's state.
+      const Vector& rj = samplePositions(neighborItr);
+      const SymTensor& Hj = sampleHfield(neighborItr);
+      const Scalar weightj = sampleWeight(neighborItr);
+
+      const Vector rij = ri - rj;
+      const Scalar etai = (Hi*rij).magnitude();
+      const Scalar etaj = (Hj*rij).magnitude();
+      CHECK(etai >= 0.0 && etaj >= 0.0);
+       
+      // Calculate the kernel estimates for each node.
+      Scalar Wi = kernel(etai, 1.0);
+      Scalar Wj = kernel(etaj, 1.0);
+
+      const Scalar Wij = max(Wi, Wj);
+      const Scalar weightij = 0.5*(weighti + weightj);
+
+      // // Get the symmetrized kernel weighting for this node pair.
+      // Scalar Wij, weightij;
+      // switch(neighborItr.nodeListPtr()->neighbor().neighborSearchType()) {
+      // case NeighborSpace::GatherScatter:
+      //   Wij = 0.5*(Wi + Wj);
+      //   weightij = 0.5*(weighti + weightj);
+      //   break;
+
+      // case NeighborSpace::Gather:
+      //   Wij = Wj;
+      //   weightij = weightj;
+      //   break;
+         
+      // case NeighborSpace::Scatter:
+      //   Wij = Wi;
+      //   weightij = weighti;
+      //   break;
+
+      // default:
+      //   VERIFY2(false, "Unhandled neighbor search type.");
+      // }
+
+      // Loop over all the FieldLists we're sampling from, and add their contributions
+      // to their correspoding result FieldList.
+      const Scalar localWeight = weightij*Wij*normalization(nodeItr);
+      for (int i = 0; i < fieldListSet.ScalarFieldLists.size(); ++i) {
+        const FieldList<Dimension, Scalar>& fieldList = fieldListSet.ScalarFieldLists[i];
+        FieldList<Dimension, Scalar>& result = resultSet.ScalarFieldLists[i];
+        result(neighborItr) += fieldList(nodeItr)*localWeight;
+      }
+      for (int i = 0; i < fieldListSet.VectorFieldLists.size(); ++i) {
+        const FieldList<Dimension, Vector>& fieldList = fieldListSet.VectorFieldLists[i];
+        FieldList<Dimension, Vector>& result = resultSet.VectorFieldLists[i];
+        result(neighborItr) += fieldList(nodeItr)*localWeight;
+      }
+      for (int i = 0; i < fieldListSet.TensorFieldLists.size(); ++i) {
+        const FieldList<Dimension, Tensor>& fieldList = fieldListSet.TensorFieldLists[i];
+        FieldList<Dimension, Tensor>& result = resultSet.TensorFieldLists[i];
+        result(neighborItr) += fieldList(nodeItr)*localWeight;
+      }
+      for (int i = 0; i < fieldListSet.SymTensorFieldLists.size(); ++i) {
+        const FieldList<Dimension, SymTensor>& fieldList = fieldListSet.SymTensorFieldLists[i];
+        FieldList<Dimension, SymTensor>& result = resultSet.SymTensorFieldLists[i];
+        result(neighborItr) += fieldList(nodeItr)*localWeight;
+      }
+    }
+   
+    // Flag this master node as done.
+    flagNodeDone(nodeItr) = 1;
+  }
+
+  // After we're done, all nodes in the sampling from NodeLists should be flagged as done.
+  BEGIN_CONTRACT_SCOPE
+  {
+    for (InternalNodeIterator<Dimension> nodeItr = position.internalNodeBegin();
+         nodeItr != position.internalNodeEnd();
+         ++nodeItr) CHECK2(flagNodeDone(nodeItr) == 1, nodeItr.fieldID() << " " << nodeItr.nodeID());
+  }
+  END_CONTRACT_SCOPE
 
   return resultSet;
 }

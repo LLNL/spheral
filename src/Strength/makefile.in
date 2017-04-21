@@ -25,5 +25,11 @@ INSTSRCTARGETS = \
 PYTHONTARGETS = \
 	$(srcdir)/SolidNodeLists.py
 
+ifeq ("yes", "@INST2D@")
+SRCTARGETS += \
+	$(srcdir)/RZDeviatoricStressPolicy.cc \
+	$(srcdir)/RZPlasticStrainPolicy.cc
+endif
+
 #-------------------------------------------------------------------------------
 include $(BUILDTOP)/helpers/makefile_master

@@ -5,8 +5,9 @@ namespace FractalSpace
 {
   void isolated_solver(Group& group,Fractal_Memory& mem,Fractal& frac)
   {
-
+    frac.timing(-1,5);
     static bool printit=true;
+    Fractal::first_time_solver=false;
     printit=false;
     ofstream& FileFFT=frac.p_file->DUMPS;
     FileFFT << "entering isolated " << "\n";
@@ -14,11 +15,6 @@ namespace FractalSpace
     int length_11=length_1+1;
     int length_2=2*length_1;
     int length_22=length_11*2;
-    if(Fractal::first_time_solver)
-      {
-	Fractal::first_time_solver=false;
-	return;
-      }
     Full_Stop(mem,34);
     frac.timing(-1,24);
     dens_to_slices(group,mem,frac);
@@ -104,6 +100,7 @@ namespace FractalSpace
     frac.timing(1,24);
     FileFFT << "exiting isolated " << "\n";
     printit=false;
+    frac.timing(1,5);
   }
 }
  

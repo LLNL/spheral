@@ -1,6 +1,3 @@
-//------------------------------------------------------------------------------
-// Compute the CRKSPH volume summation.
-//------------------------------------------------------------------------------
 #include "computeCRKSPHSumVolume.hh"
 #include "NodeList/NodeList.hh"
 #include "Hydro/HydroFieldNames.hh"
@@ -19,11 +16,34 @@ using KernelSpace::TableKernel;
 using NodeSpace::NodeList;
 using NodeSpace::FluidNodeList;
 
+//------------------------------------------------------------------------------
+// Function to compute the per dimension volume multiplier.
+//------------------------------------------------------------------------------
+namespace {
+template<typename Dimension> double volumeElement();
+
+template<> double volumeElement<Dim<1> >() {
+  return 2.0;
+}
+  
+template<> double volumeElement<Dim<2> >() {
+  return M_PI;
+}
+  
+template<> double volumeElement<Dim<3> >() {
+  return 4.0/3.0*M_PI;
+}
+}
+
+//------------------------------------------------------------------------------
+// Compute the CRKSPH volume summation.
+//------------------------------------------------------------------------------
 template<typename Dimension>
 void
 computeCRKSPHSumVolume(const ConnectivityMap<Dimension>& connectivityMap,
                        const TableKernel<Dimension>& W,
                        const FieldList<Dimension, typename Dimension::Vector>& position,
+                       const FieldList<Dimension, typename Dimension::Scalar>& mass,
                        const FieldList<Dimension, typename Dimension::SymTensor>& H,
                        FieldList<Dimension, typename Dimension::Scalar>& vol) {
 
@@ -40,6 +60,9 @@ computeCRKSPHSumVolume(const ConnectivityMap<Dimension>& connectivityMap,
   typedef typename Dimension::FourthRankTensor FourthRankTensor;
   typedef typename Dimension::FifthRankTensor FifthRankTensor;
 
+  // Get the maximum allowed volume in eta space.
+  const Scalar etaVolMax = Dimension::pownu(0.5*W.kernelExtent()) * volumeElement<Dimension>();
+
   // Zero it out.
   vol = 0.0;
 
@@ -55,6 +78,7 @@ computeCRKSPHSumVolume(const ConnectivityMap<Dimension>& connectivityMap,
 
       // Get the state for node i.
       const Vector& ri = position(nodeListi, i);
+      // const Scalar mi = mass(nodeListi, i);
       const SymTensor& Hi = H(nodeListi, i);
       const Scalar Hdeti = Hi.Determinant();
       const vector<vector<int> >& fullConnectivity = connectivityMap.connectivityForNode(nodeListi, i);
@@ -72,6 +96,7 @@ computeCRKSPHSumVolume(const ConnectivityMap<Dimension>& connectivityMap,
                                                        nodeListj, j,
                                                        firstGhostNodej)) {
             const Vector& rj = position(nodeListj, j);
+            // const Scalar mj = mass(nodeListj, j);
             const SymTensor& Hj = H(nodeListj, j);
             const Scalar Hdetj = Hj.Determinant();
 
@@ -92,10 +117,9 @@ computeCRKSPHSumVolume(const ConnectivityMap<Dimension>& connectivityMap,
       // Add the self-contribution.
       vol(nodeListi, i) += W.kernelValue(0.0, Hdeti);
       CHECK(vol(nodeListi, i) > 0.0);
-      vol(nodeListi, i) = 1.0/vol(nodeListi, i);
+      vol(nodeListi, i) = min(etaVolMax/Hdeti, 1.0/vol(nodeListi, i));
     }
   }
-
 }
 
 }

@@ -69,7 +69,7 @@ SiloFileIO::open(const string fileName, AccessType access) {
     fullFileName += ".silo";
   }
 
-  if (access == Read) {
+  if (access == AccessType::Read) {
     mFilePtr = DBOpen(fullFileName.c_str(), DB_HDF5, DB_READ);
   } else {
     mFilePtr = DBCreate(fullFileName.c_str(), DB_CLOBBER, DB_LOCAL, "Spheral++ restart file.", DB_HDF5);
@@ -142,7 +142,7 @@ SiloFileIO::write(const double value, const string pathName) {
 void
 SiloFileIO::write(const string value, const string pathName) {
   const char* cvalue = value.c_str();
-  int dims[1] = {strlen(cvalue)};
+  int dims[1] = {int(strlen(cvalue))};
   this->write(dims[0], pathName + "/size");
   if (dims[0] > 0) {
     const string varname = this->setDir(pathName + "/value");
@@ -474,7 +474,7 @@ SiloFileIO::read(Dim<3>::ThirdRankTensor& value, const string pathName) const {
 //------------------------------------------------------------------------------
 void
 SiloFileIO::write(const vector<int>& value, const string pathName) {
-  int dims[1] = {value.size()};
+  int dims[1] = {int(value.size())};
   this->write(dims[0], pathName + "/size");
   if (dims[0] > 0) {
     const string varname = this->setDir(pathName + "/value");
@@ -488,7 +488,7 @@ SiloFileIO::write(const vector<int>& value, const string pathName) {
 //------------------------------------------------------------------------------
 void
 SiloFileIO::write(const vector<double>& value, const string pathName) {
-  int dims[1] = {value.size()};
+  int dims[1] = {int(value.size())};
   this->write(dims[0], pathName + "/size");
   if (dims[0] > 0) {
     const string varname = this->setDir(pathName + "/value");

@@ -69,6 +69,10 @@ public:
                   const PhysicsSpace::HEvolutionType HUpdate,
                   const CRKSPHSpace::CRKOrder correctionOrder,
                   const CRKSPHSpace::CRKVolumeType volumeType,
+                  const bool detectSurfaces,
+                  const double detectThreshold,
+                  const double sweepAngle,
+                  const double detectRange,
                   const double epsTensile,
                   const double nTensile);
 
@@ -189,12 +193,26 @@ public:
 
   Scalar nTensile() const;
   void nTensile(const Scalar val);
+    
+  // Surface detection getters and setters
+    bool detectSurfaces() const;
+    void detectSurfaces(const bool val);
+    
+    double detectThreshold() const;
+    void detectThreshold(const double val);
+    
+    double detectRange() const;
+    void detectRange(const double val);
+    
+    double sweepAngle() const;
+    void sweepAngle(const double val);
 
   // The state field lists we're maintaining.
   const FieldSpace::FieldList<Dimension, int>&       timeStepMask() const;
   const FieldSpace::FieldList<Dimension, Scalar>&    pressure() const;
   const FieldSpace::FieldList<Dimension, Scalar>&    soundSpeed() const;
   const FieldSpace::FieldList<Dimension, Scalar>&    specificThermalEnergy0() const;
+  const FieldSpace::FieldList<Dimension, Scalar>&    entropy() const;
   const FieldSpace::FieldList<Dimension, SymTensor>& Hideal() const;
   const FieldSpace::FieldList<Dimension, Scalar>&    maxViscousPressure() const;
   const FieldSpace::FieldList<Dimension, Scalar>&    effectiveViscousPressure() const;
@@ -202,6 +220,8 @@ public:
   const FieldSpace::FieldList<Dimension, Scalar>&    weightedNeighborSum() const;
   const FieldSpace::FieldList<Dimension, SymTensor>& massSecondMoment() const;
   const FieldSpace::FieldList<Dimension, Scalar>&    volume() const;
+  const FieldSpace::FieldList<Dimension, Scalar>&    volume0() const;
+  const FieldSpace::FieldList<Dimension, Vector>&    massDensityGradient() const;
   const FieldSpace::FieldList<Dimension, Vector>&    XSPHDeltaV() const;
   const FieldSpace::FieldList<Dimension, Vector>&    DxDt() const;
 
@@ -212,14 +232,7 @@ public:
   const FieldSpace::FieldList<Dimension, Tensor>&    DvDx() const;
   const FieldSpace::FieldList<Dimension, Tensor>&    internalDvDx() const;
   const FieldSpace::FieldList<Dimension, std::vector<Vector> >& pairAccelerations() const;
-
-  const FieldSpace::FieldList<Dimension, Vector>&    DvDt0() const;
-  const FieldSpace::FieldList<Dimension, Scalar>&    DmassDensityDt0() const;
-  const FieldSpace::FieldList<Dimension, Scalar>&    DspecificThermalEnergyDt0() const;
-  const FieldSpace::FieldList<Dimension, SymTensor>& DHDt0() const;
-  const FieldSpace::FieldList<Dimension, Tensor>&    DvDx0() const;
-  const FieldSpace::FieldList<Dimension, Tensor>&    internalDvDx0() const;
-  const FieldSpace::FieldList<Dimension, std::vector<Vector> >& pairAccelerations0() const;
+  const FieldSpace::FieldList<Dimension, Vector>&    deltaCentroid() const;
 
   const FieldSpace::FieldList<Dimension, Scalar>&    A() const;
   const FieldSpace::FieldList<Dimension, Vector>&    B() const;
@@ -239,7 +252,7 @@ public:
   const FieldList<Dimension, FourthRankTensor>&      gradm3() const;
   const FieldList<Dimension, FifthRankTensor>&       gradm4() const;
 
-  const FieldSpace::FieldList<Dimension, Vector>&    surfNorm() const;
+  const FieldSpace::FieldList<Dimension, int>&       surfacePoint() const;
 
   //****************************************************************************
   // Methods required for restarting.
@@ -248,8 +261,8 @@ public:
   virtual void restoreState(const FileIOSpace::FileIO& file, std::string pathName);
   //****************************************************************************
 
-private:
-  //--------------------------- Private Interface ---------------------------//
+protected:
+  //--------------------------- Protected Interface ---------------------------//
   // The method defining how we evolve smoothing scales.
   const NodeSpace::SmoothingScaleBase<Dimension>& mSmoothingScaleMethod;
 
@@ -261,12 +274,15 @@ private:
   bool mCompatibleEnergyEvolution, mEvolveTotalEnergy, mGradhCorrection, mXSPH;
   double mfilter;
   Scalar mEpsTensile, mnTensile;
+  bool mDetectSurfaces;
+  double mDetectThreshold, mSweepAngle, mDetectRange;
 
   // Some internal scratch fields.
   FieldSpace::FieldList<Dimension, int>       mTimeStepMask;
   FieldSpace::FieldList<Dimension, Scalar>    mPressure;
   FieldSpace::FieldList<Dimension, Scalar>    mSoundSpeed;
   FieldSpace::FieldList<Dimension, Scalar>    mSpecificThermalEnergy0;
+  FieldSpace::FieldList<Dimension, Scalar>    mEntropy;
 
   FieldSpace::FieldList<Dimension, SymTensor> mHideal;
   FieldSpace::FieldList<Dimension, Scalar>    mMaxViscousPressure;
@@ -277,6 +293,8 @@ private:
   FieldSpace::FieldList<Dimension, SymTensor> mMassSecondMoment;
 
   FieldSpace::FieldList<Dimension, Scalar>    mVolume;
+  FieldSpace::FieldList<Dimension, Scalar>    mVolume0;
+  FieldSpace::FieldList<Dimension, Vector>    mMassDensityGradient;
 
   FieldSpace::FieldList<Dimension, Vector>    mXSPHDeltaV;
   FieldSpace::FieldList<Dimension, Vector>    mDxDt;
@@ -287,16 +305,9 @@ private:
   FieldSpace::FieldList<Dimension, SymTensor> mDHDt;
   FieldSpace::FieldList<Dimension, Tensor>    mDvDx;
   FieldSpace::FieldList<Dimension, Tensor>    mInternalDvDx;
-
-  FieldSpace::FieldList<Dimension, Vector>    mDvDt0;
-  FieldSpace::FieldList<Dimension, Scalar>    mDmassDensityDt0;
-  FieldSpace::FieldList<Dimension, Scalar>    mDspecificThermalEnergyDt0;
-  FieldSpace::FieldList<Dimension, SymTensor> mDHDt0;
-  FieldSpace::FieldList<Dimension, Tensor>    mDvDx0;
-  FieldSpace::FieldList<Dimension, Tensor>    mInternalDvDx0;
+  FieldSpace::FieldList<Dimension, Vector>    mDeltaCentroid;
 
   FieldSpace::FieldList<Dimension, std::vector<Vector> > mPairAccelerations;
-  FieldSpace::FieldList<Dimension, std::vector<Vector> > mPairAccelerations0;
 
   FieldSpace::FieldList<Dimension, Scalar>    mA;
   FieldSpace::FieldList<Dimension, Vector>    mB;
@@ -316,8 +327,10 @@ private:
   FieldList<Dimension, FourthRankTensor>      mGradm3;
   FieldList<Dimension, FifthRankTensor>       mGradm4;
 
-  FieldSpace::FieldList<Dimension, Vector>    mSurfNorm;
+  FieldSpace::FieldList<Dimension, int>       mSurfacePoint;
 
+private:
+  //--------------------------- Private Interface ---------------------------//
   // The restart registration.
   DataOutput::RestartRegistrationType mRestart;
 

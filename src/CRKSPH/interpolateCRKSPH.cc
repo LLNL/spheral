@@ -44,8 +44,8 @@ interpolateCRKSPH(const FieldSpace::FieldList<Dimension, DataType>& fieldList,
   REQUIRE(weight.size() == numNodeLists);
   REQUIRE(H.size() == numNodeLists);
   REQUIRE(A.size() == numNodeLists);
-  REQUIRE(B.size() == numNodeLists or correctionOrder == ZerothOrder);
-  REQUIRE(C.size() == numNodeLists or correctionOrder != QuadraticOrder);
+  REQUIRE(B.size() == numNodeLists or correctionOrder == CRKOrder::ZerothOrder);
+  REQUIRE(C.size() == numNodeLists or correctionOrder != CRKOrder::QuadraticOrder);
 
   typedef typename Dimension::Scalar Scalar;
   typedef typename Dimension::Vector Vector;
@@ -79,8 +79,8 @@ interpolateCRKSPH(const FieldSpace::FieldList<Dimension, DataType>& fieldList,
       const SymTensor& Hi = H(nodeListi, i);
       const Scalar Hdeti = Hi.Determinant();
       const Scalar& Ai = A(nodeListi, i);
-      if (correctionOrder != ZerothOrder) Bi = B(nodeListi, i);
-      if (correctionOrder == QuadraticOrder) Ci = C(nodeListi, i);
+      if (correctionOrder != CRKOrder::ZerothOrder) Bi = B(nodeListi, i);
+      if (correctionOrder == CRKOrder::QuadraticOrder) Ci = C(nodeListi, i);
       const DataType& Fi = fieldList(nodeListi, i);
       DataType& resulti = result(nodeListi, i);
 
@@ -125,8 +125,8 @@ interpolateCRKSPH(const FieldSpace::FieldList<Dimension, DataType>& fieldList,
               const SymTensor& Hj = H(nodeListj, j);
               const Scalar Hdetj = Hj.Determinant();
               const Scalar& Aj = A(nodeListj, j);
-              if (correctionOrder != ZerothOrder) Bj = B(nodeListj, j);
-              if (correctionOrder == QuadraticOrder) Cj = C(nodeListj, j);
+              if (correctionOrder != CRKOrder::ZerothOrder) Bj = B(nodeListj, j);
+              if (correctionOrder == CRKOrder::QuadraticOrder) Cj = C(nodeListj, j);
               const DataType& Fj = fieldList(nodeListj, j);
               DataType& resultj = result(nodeListj, j);
 
@@ -136,8 +136,8 @@ interpolateCRKSPH(const FieldSpace::FieldList<Dimension, DataType>& fieldList,
               const Vector etaj = Hj*rij;
 
               // Kernel weight.
-              const Scalar Wj = CRKSPHKernel(W, correctionOrder,  rij, etai, Hdeti, etaj, Hdetj, Ai, Bi, Ci);
-              const Scalar Wi = CRKSPHKernel(W, correctionOrder, -rij, etaj, Hdetj, etai, Hdeti, Aj, Bj, Cj);
+              const Scalar Wj = CRKSPHKernel(W, correctionOrder,  rij,  etai, Hdeti,  etaj, Hdetj, Ai, Bi, Ci);
+              const Scalar Wi = CRKSPHKernel(W, correctionOrder, -rij, -etaj, Hdetj, -etai, Hdeti, Aj, Bj, Cj);
 
               // Increment the pair-wise values.
               resulti += wj*Fj*Wj;

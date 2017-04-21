@@ -36,10 +36,6 @@ AC_SUBST(CXXONLY)
 LDRPATH=
 HEADERDIR=
 
-# Prepare for user selected third party targets.
-AC_SUBST(EXTRATHIRDPARTYTARGETS)
-EXTRATHIRDPARTYTARGETS=""
-
 AC_MSG_CHECKING(for spheral build directory)
 #SPHERALBUILDDIR=`echo $PWD | sed -e "s/\/spheral\/src$//g;"`
 SPHERALBUILDDIR=`echo $PWD`
@@ -94,11 +90,11 @@ AIXSHELL=""
 CONFIG_SHELL=$SHELL
 AC_MSG_CHECKING(python.exp required for linking)
 
+LIBS=
 if test "`uname -s`" = "AIX"; then
   #IMPMODS="$CXXPKGS"
   #PYFFLEENTRY="-e initlibPyffle"
   #MAKEIMPORTFILE=$srcdir/helpers/generateImportFile"
-  LIBS=
 
   # 32 bit
   #AIXLIBS="/lib/crt0.o -lm"
@@ -134,7 +130,6 @@ if test "`uname -s`" = "AIX"; then
   #GCCXMLDIST="gccxml-0.6.0.tar.bz2"
 else
   GCCXMLDIST="gccxml-cvssnapshot-2008-02-04.tar.bz2"
-  EXTRATHIRDPARTYTARGETS+=" .numpy-1.9.1.date .gnuplot-py-1.8.date"
 fi
 
 # -----------------------------------------------------------------
@@ -215,6 +210,34 @@ AC_ARG_WITH(thirdPartyLibs,
 ])
 
 # -----------------------------------------------------------------
+# Optionally do not build numpy.
+# -----------------------------------------------------------------
+AC_MSG_CHECKING(for --without-numpy)
+AC_ARG_WITH(numpy,
+[  --without-numpy .......................... do not build the NumPy third party extension],
+[
+    AC_MSG_RESULT(yes)
+],
+[
+    AC_MSG_RESULT(no)
+    EXTRATHIRDPARTYTARGETS+=" .numpy-1.10.4.date .gnuplot-py-1.8.date"
+])
+
+# -----------------------------------------------------------------
+# Optionally do not install the python sobol package.
+# -----------------------------------------------------------------
+AC_MSG_CHECKING(for --without-sobol)
+AC_ARG_WITH(sobol,
+[  --without-sobol .......................... do not build the Sobol python third party extension],
+[
+    AC_MSG_RESULT(yes)
+],
+[
+    AC_MSG_RESULT(no)
+    EXTRATHIRDPARTYTARGETS+=" .sobol_dev.date"
+])
+
+# -----------------------------------------------------------------
 # Optionally do a cxxonly build.
 # -----------------------------------------------------------------
 AC_MSG_CHECKING(for --with-cxxonly)
@@ -231,7 +254,7 @@ AC_ARG_WITH(cxxonly,
 [
    AC_MSG_RESULT(no)
    CXXONLY="no"
-   ALL="\$(PYTHONTARGETS) \$(LIBTARGET) \$(STATICLIBTARGET) \$(MODTARGET) \$(BPLMODTARGET) \$(PBGMODTARGET) \$(STATICPBGMODTARGET) \$(EXETARGETS) \$(THIRDPARTYLIBTARGET) \$(INCTARGETS) \$(INSTALLTARGETS)"
+   ALL="\$(PYTHONTARGETS) \$(LIBTARGET) \$(STATICLIBTARGET) \$(MODTARGET) \$(BPLMODTARGET) \$(PBGMODTARGET) \$(PYB11TARGET) \$(STATICPBGMODTARGET) \$(EXETARGETS) \$(THIRDPARTYLIBTARGET) \$(INCTARGETS) \$(INSTALLTARGETS)"
    ALLTOP="$PYTHONPKGDIR \$(CXXPKGS) pycompileall"
 ]
 )

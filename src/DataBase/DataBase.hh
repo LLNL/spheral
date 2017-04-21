@@ -58,6 +58,7 @@ public:
   // It is convenient to be able to query the DataBase for the problem
   // dimensionality for Python.
   static int nDim;
+  static bool isRZ;
 
   // Constructors.
   DataBase();
@@ -220,6 +221,7 @@ public:
   void fluidSoundSpeed(FieldSpace::FieldList<Dimension, Scalar>& result) const;
   void fluidVolume(FieldSpace::FieldList<Dimension, Scalar>& result) const;
   void fluidGamma(FieldSpace::FieldList<Dimension, Scalar>& result) const;
+  void fluidEntropy(FieldSpace::FieldList<Dimension, Scalar>& result) const;
   void fluidLinearMomentum(FieldSpace::FieldList<Dimension, Vector>& result) const;
   void fluidTotalEnergy(FieldSpace::FieldList<Dimension, Scalar>& result) const;
 

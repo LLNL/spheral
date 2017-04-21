@@ -56,7 +56,10 @@ shearModulus(Field<Dimension, Scalar>& shearModulus,
   mSolidStrength.shearModulus(shearModulus, rhoS, specificThermalEnergy, pressure);
 
   // Now apply the porosity modifier.
-  shearModulus /= *mAlphaPtr;
+  const unsigned n = shearModulus.numInternalElements();
+  for (unsigned i = 0; i != n; ++i) {
+    shearModulus(i) /= (*mAlphaPtr)(i);
+  }
 }
 
 //------------------------------------------------------------------------------
@@ -83,7 +86,10 @@ yieldStrength(Field<Dimension, Scalar>& yieldStrength,
   mSolidStrength.yieldStrength(yieldStrength, rhoS, specificThermalEnergy, pressure, plasticStrain, plasticStrainRate);
 
   // Now apply the porosity modifier.
-  yieldStrength /= *mAlphaPtr;
+  const unsigned n = yieldStrength.numInternalElements();
+  for (unsigned i = 0; i != n; ++i) {
+    yieldStrength(i) /= (*mAlphaPtr)(i);
+  }
 }
 
 //------------------------------------------------------------------------------

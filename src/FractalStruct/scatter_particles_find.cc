@@ -6,6 +6,7 @@ namespace FractalSpace
   void scatter_particles(Fractal_Memory& mem,Fractal& frac)
   {
     assert(mem.FractalNodes==mem.p_mess->FractalNodes);
+    frac.timing(-1,27);
     vector <double>timing(3);
     timing[0]=-mem.p_mess->Clock();
     ofstream& FF=frac.p_file->DUMPS;
@@ -14,8 +15,6 @@ namespace FractalSpace
 	frac.wrap();
 	add_pseudo_particles(mem,frac);
       }
-    if(!mem.MPIrun)
-      return;
     int FractalRank=mem.p_mess->FractalRank;
     int FractalNodes=mem.p_mess->FractalNodes;
     int FractalNodes0=mem.FractalNodes0;
@@ -59,7 +58,8 @@ namespace FractalSpace
 	DB=2.0/static_cast<double>(mem.grid_length);
 	DBI=2;
       }
-    frac.particle_list.clear();
+    // frac.particle_list.clear();
+    clean_vector(frac.particle_list);
     int field_length=4;
     if(mem.calc_density_particle)
       field_length=5;
@@ -70,24 +70,16 @@ namespace FractalSpace
     int how_manyR=-1;
     int integers=1;
     int doubles=4;
-    mem.p_mess->parts_tmp.clear();
+    clean_vector(mem.p_mess->parts_tmp);
     int LOOPS=3;
     for(int LOOP=0;LOOP<LOOPS;LOOP++)
       {
-	vector <int> counts_out;
-	vector <vector <int> > dataI_out;
-	vector <vector <double> > dataR_out;
+	vector <int> counts_out(FractalNodes,0);
+	vector <vector <int> > dataI_out(FractalNodes);
+	vector <vector <double> > dataR_out(FractalNodes);
 	vector <int> counts_in;
 	vector <double> dataR_in;
 	vector <int> dataI_in;
-	counts_out.assign(FractalNodes,0);
-	counts_in.assign(FractalNodes,0);
-	dataI_out.clear();
-	dataR_out.clear();
-	dataI_out.resize(FractalNodes);
-	dataR_out.resize(FractalNodes);
-	dataI_in.clear();
-	dataR_in.clear();
 	for(int particle=0; particle < frac.get_number_particles_world(); ++particle)
 	  {
 	    if(particle % LOOPS == LOOP)
@@ -145,7 +137,6 @@ namespace FractalSpace
 		      }
 		  }
 		Particle* P=&pt[c];
-		//		assert(P);
 		frac.particle_list.push_back(P);
 		int p4=particle*4;
 		P->set_posmIFR(dataR_in[p4],dataR_in[p4+1],dataR_in[p4+2],dataR_in[p4+3],dataI_in[particle],FR);
@@ -158,7 +149,8 @@ namespace FractalSpace
     timing[1]+=mem.p_mess->Clock();
     timing[2]=-mem.p_mess->Clock();
     frac.set_number_particles(frac.particle_list.size());
-    mem.TouchWhichBoxes.clear();
+    // mem.TouchWhichBoxes.clear();
+    clean_vector(mem.TouchWhichBoxes);
     integers=0;
     how_manyI=-1;
     how_manyR=-1;
@@ -174,25 +166,18 @@ namespace FractalSpace
     int TBsize=mem.TouchWhichBoxes.size();
     FF << " IBOX " << mem.RealIBoxes[FractalRank][0] << " " << mem.RealIBoxes[FractalRank][1] << " " << mem.RealIBoxes[FractalRank][2] << " ";
     FF << mem.RealIBoxes[FractalRank][3] << " " << mem.RealIBoxes[FractalRank][4] << " " << mem.RealIBoxes[FractalRank][5] << "\n";
-    mem.p_mess->parts_tmpp.clear();
+    // mem.p_mess->parts_tmpp.clear();
+    clean_vector(mem.p_mess->parts_tmpp);
     //    LOOPS=1;
     LOOPS=9;
     for(int LOOP=0;LOOP<LOOPS;LOOP++)
       {
-	vector <int> counts_out;
-	vector <vector <int> > dataI_out;
-	vector <vector <double> > dataR_out;
+	vector <int> counts_out(FractalNodes,0);
+	vector <vector <int> > dataI_out(FractalNodes);
+	vector <vector <double> > dataR_out(FractalNodes);
 	vector <int> counts_in;
 	vector <double> dataR_in;
 	vector <int> dataI_in;
-	counts_out.assign(FractalNodes,0);
-	counts_in.assign(FractalNodes,0);
-	dataI_out.clear();
-	dataR_out.clear();
-	dataI_out.resize(FractalNodes);
-	dataR_out.resize(FractalNodes);
-	dataI_in.clear();
-	dataR_in.clear();
 	for(int particle=0; particle < frac.get_number_particles(); ++particle)
 	  {
 	    if(particle % LOOPS == LOOP)
@@ -240,7 +225,6 @@ namespace FractalSpace
 		      }
 		  }
 		Particle* P=&ppt[c];
-		//		assert(P);
 		frac.particle_list.push_back(P);
 		int p4=particle*4;
 		P->set_posmIFR(dataR_in[p4],dataR_in[p4+1],dataR_in[p4+2],dataR_in[p4+3],-1,FR);
@@ -254,5 +238,6 @@ namespace FractalSpace
     fprintf(mem.p_file->PFTime," scatter particles %10.3E %10.3E %10.3E \n",
 	    timing[0],timing[1],timing[2]);
     frac.set_number_particles(frac.particle_list.size());
+    frac.timing(1,27);
   }
 }

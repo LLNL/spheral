@@ -28,7 +28,6 @@ using namespace std;
 using std::abs;
 using std::min;
 using std::max;
-using NodeSpace::NodeList;
 using FieldSpace::Field;
 using FieldSpace::FieldList;
 using FieldSpace::FieldListBase;
@@ -73,9 +72,9 @@ nthNodalMoment(const NodeListIterator nodeListBegin,
 
   // Build up the FieldLists of positions, H's, and the first moment that we're going
   // to build.
-  FieldList<Dimension, Vector> pos(FieldSpace::Reference);
-  FieldList<Dimension, SymTensor> H(FieldSpace::Reference);
-  FieldList<Dimension, Moment> result(FieldSpace::Copy);
+  FieldList<Dimension, Vector> pos(FieldSpace::FieldStorageType::Reference);
+  FieldList<Dimension, SymTensor> H(FieldSpace::FieldStorageType::Reference);
+  FieldList<Dimension, Moment> result(FieldSpace::FieldStorageType::Copy);
   for (NodeListIterator itr = nodeListBegin; itr != nodeListEnd; ++itr) {
     const NodeList<Dimension>& nodes = **itr;
     pos.appendField(nodes.positions());
@@ -144,8 +143,8 @@ zerothAndFirstNodalMoments(const NodeListIterator nodeListBegin,
 
   // Build up the FieldLists of positions, H's, and the moments that we're going
   // to build.
-  FieldList<Dimension, Vector> pos(FieldSpace::Reference);
-  FieldList<Dimension, SymTensor> H(FieldSpace::Reference);
+  FieldList<Dimension, Vector> pos(FieldSpace::FieldStorageType::Reference);
+  FieldList<Dimension, SymTensor> H(FieldSpace::FieldStorageType::Reference);
   for (NodeListIterator itr = nodeListBegin; itr != nodeListEnd; ++itr) {
     const NodeList<Dimension>& nodes = **itr;
     pos.appendField(nodes.positions());

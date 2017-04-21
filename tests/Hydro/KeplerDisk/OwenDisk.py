@@ -94,6 +94,21 @@ commandLine(asph = False,
             # Hydro
             Qconstructor = MonaghanGingoldViscosity2d,
             #Qconstructor = TensorMonaghanGingoldViscosity2d,
+            KernelConstructor = NBSplineKernel,
+            order = 5,
+            boolReduceViscosity = False,
+            nh = 5.0,
+            aMin = 0.1,
+            aMax = 2.0,
+            Qhmult = 1.0,
+            boolCullenViscosity = False,
+            alphMax = 2.0,
+            alphMin = 0.02,
+            betaC = 0.7,
+            betaD = 0.05,
+            betaE = 1.0,
+            fKern = 1.0/3.0,
+            boolHopkinsCorrection = True,
             Cl = 1.0,
             Cq = 0.75,
             Qlimiter = False,
@@ -101,8 +116,9 @@ commandLine(asph = False,
             epsilon2 = 1e-4,
             negligibleSoundSpeed = 1e-5,
             csMultiplier = 0.1,
+            correctionOrder = LinearOrder,
             hmin = 0.004,
-            hmax = 10.0,
+            hmax = 0.5,
             hminratio = 0.1,
             compatibleEnergy = True,
             gradhCorrection = False,
@@ -111,6 +127,7 @@ commandLine(asph = False,
             densityUpdate = RigorousSumDensity, # VolumeScaledDensity,
             HUpdate = IdealH,
             filter = 0.0,
+            volumeType = CRKSumVolume,
 
             # Timestep constraints
             cfl = 0.5,
@@ -119,6 +136,7 @@ commandLine(asph = False,
 
             # Integrator and run time.
             IntegratorConstructor = CheapSynchronousRK2Integrator,
+            steps = None,
             goalTime = 10.0,
             dt = 0.0001,
             dtMin = 1.0e-5,
@@ -126,7 +144,7 @@ commandLine(asph = False,
             dtGrowth = 2.0,
             maxSteps = None,
             statsStep = 10,
-            redistributeStep = 500,
+            redistributeStep = None,
             restartStep = 500,
             restoreCycle = None,
             smoothIters = 0,
@@ -135,9 +153,14 @@ commandLine(asph = False,
             
             serialDump = False,
             serialDumpEach = 100,
+
+            histFile = "history.ascii",
+            writeHistory = True,
+            historyInterval = 2.0,
+            clearDirectories = False,
             
             vizCycle = None,
-            vizTime = 0.1,
+            vizTime = 1.0,
             vizMethod = SpheralPointmeshSiloDump.dumpPhysicsState
             )
 
@@ -164,7 +187,12 @@ else:
 # Data output info.
 dataDir = "owen-%i" % n
 dataDir = os.path.join(dataDir, "fp=%f" % (fractionPressureSupport))
-dataDir = os.path.join(dataDir, "CRK=%s-Balsara=%s-nPerh=%f-compatible=%s" % (CRKSPH,balsaraCorrection,nPerh,compatibleEnergy))
+viscString = "MG"
+if balsaraCorrection:
+    viscString = "Balsara"
+elif boolCullenViscosity:
+    viscString = "Cullen"
+dataDir = os.path.join(dataDir, "CRK=%s-Visc=%s-nPerh=%f-compatible=%s-volume=%s" % (CRKSPH,viscString,nPerh,compatibleEnergy,volumeType))
 dataDir = os.path.join(dataDir, "Cl=%f-Cq=%f" % (Cl,Cq))
 restartBaseName = "%s/KeplerianDisk-f=%f-n=%i" % (dataDir,
                                                   fractionPressureSupport,
@@ -231,8 +259,8 @@ eos = PolytropicEquationOfStateMKS(fractionPressureSupport*polytropicConstant,
 # Create our interpolation kernels -- one for normal hydro interactions, and
 # one for use with the artificial viscosity
 #-------------------------------------------------------------------------------
-WT = TableKernel(NBSplineKernel(5), 1000)
-WTPi = TableKernel(NBSplineKernel(5), 1000)
+WT = TableKernel(KernelConstructor(order), 1000)
+WTPi = TableKernel(KernelConstructor(order), 1000)
 output('WT')
 output('WTPi')
 
@@ -372,6 +400,8 @@ elif CRKSPH:
                              compatibleEnergyEvolution = compatibleEnergy,
                              XSPH = XSPH,
                              densityUpdate = densityUpdate,
+                             correctionOrder = correctionOrder,
+                             volumeType = volumeType,
                              HUpdate = HUpdate)
 else:
     hydro = HydroConstructor(W = WT,
@@ -394,6 +424,17 @@ output("hydro.densityUpdate")
 output("hydro.HEvolution")
 
 packages = [hydro]
+
+
+#-------------------------------------------------------------------------------
+# Construct the MMRV physics object.
+#-------------------------------------------------------------------------------
+if boolReduceViscosity:
+    evolveReducingViscosityMultiplier = MorrisMonaghanReducingViscosity(q,nh,aMin,aMax)
+    packages.append(evolveReducingViscosityMultiplier)
+elif boolCullenViscosity:
+    evolveCullenViscosityMultiplier = CullenDehnenViscosity(q,WTPi,alphMax,alphMin,betaC,betaD,betaE,fKern,boolHopkinsCorrection)
+    packages.append(evolveCullenViscosityMultiplier)
 
 #-------------------------------------------------------------------------------
 # Construct a time integrator, and add the physics packages.
@@ -436,6 +477,7 @@ control = SpheralController(integrator, WT,
                             vizDir = vizDir,
                             vizStep = vizCycle,
                             vizTime = vizTime,
+                            vizDerivs = True,
                             restoreCycle = restoreCycle)
 
 
@@ -444,13 +486,37 @@ if serialDump:
     control.appendPeriodicWork(dump,serialDumpEach)
 output('control')
 
-# Smooth the initial conditions.
+#-------------------------------------------------------------------------------
+# Function to measure the angular momentum and radial coordinate.
+#-------------------------------------------------------------------------------
+def ParticleHistory(cycle, t, dt):
+    proc = mpi.rank
+    m = diskNodes.mass().internalValues()
+    r = diskNodes.positions().internalValues()
+    v = diskNodes.velocity().internalValues()
+    for i in xrange(len(m)):
+        if i == 100 and proc == 5:
+            rm = r[i].magnitude()
+            vp = (-1.0*r[i].y*v[i].x + r[i].x*v[i].y)/rm
+            am = m[i]*vp
+            with open(os.path.join(dataDir,histFile), "a") as myFile:
+                myFile.write("%g\t%g\t%g\t%g\n" % (t,vp,am,rm))
 
+if writeHistory:
+    control.appendPeriodicTimeWork(ParticleHistory, historyInterval)
+    if os.path.isfile(os.path.join(dataDir,histFile))== False:
+        myFile = open(os.path.join(dataDir,histFile), "w")
+        myFile.write("t\tvp\tam\trm\n")
+        myFile.close()
+        
 
 #-------------------------------------------------------------------------------
 # Advance to the end time.
 #-------------------------------------------------------------------------------
-control.advance(goalTime)
+if steps is None:
+    control.advance(goalTime)
+else:
+    control.step(steps)
 
 #rPlot = plotNodePositions2d(db, colorNodeLists=0, colorDomains=1)
 #

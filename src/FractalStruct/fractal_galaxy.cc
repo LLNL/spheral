@@ -37,16 +37,20 @@ int main(int argc, char* argv[])
   double SHRINK=0.0;
   if(argc >= 8)
     SHRINK=atof(argv[7]);
-  int HYPREMAXONNODE=40000;
+  double PADDING=-1;
   if(argc >= 9)
-    HYPREMAXONNODE=atoi(argv[8]);
-  double HYPREMULTIPLIER=2.0;
+    PADDING=atoi(argv[8]);
+  int HYPREMAXONNODE=10000000;
   if(argc >= 10)
-    HYPREMULTIPLIER=atof(argv[9]);
+    HYPREMAXONNODE=atoi(argv[9]);
+  double HYPREMULTIPLIER=2.0;
+  if(argc >= 11)
+    HYPREMULTIPLIER=atof(argv[10]);
   if(Mess::IAMROOT)
     {
-      cerr << "starting out " << argc << " " << FRN << " " << _inteL_ << " " << GRL << " " << FractalNodes0 << " " << FractalNodes1 << " " << FractalNodes2;
-      cerr << " " << NumberParticles << " " << SHRINK << " " << HYPREMAXONNODE << " " << HYPREMULTIPLIER << "\n";
+      cerr << "starting out " << argc << " " << FRN << " " << _inteL_ << " " << GRL << " " << FractalNodes0 << " " << FractalNodes1 << " " << FractalNodes2 << "\n";
+      cerr << " " << "NumberParticles" << " " << "SHRINK" << " " << "PADDING" << " " << "HYPREMAXONNODE" << " " << "HYPREMULTIPLIER" << "\n";
+      cerr << " " << NumberParticles << " " << SHRINK << " " << PADDING << " " << HYPREMAXONNODE << " " << HYPREMULTIPLIER << "\n";
       int ar=0;
       while(ar < argc)
 	{
@@ -63,7 +67,7 @@ int main(int argc, char* argv[])
   int GridLength=GRL;
   //  if(GRL < 64)
   //    GridLength=256; ///////////////////////////////////
-  int Padding=-1;
+  // int Padding=-1;
   int LevelMax=10;
   //  int LevelMax=0; /////////////////////////
   int MinimumNumber=8;
@@ -87,7 +91,7 @@ int main(int argc, char* argv[])
   PFM->setPeriodic(Periodic);
   PFM->setDebug(Debug);
   PFM->setGridLength(GridLength);
-  PFM->setPadding(Padding);
+  PFM->setPadding(PADDING);
   PFM->setLevelMax(LevelMax);
   PFM->setMinimumNumber(MinimumNumber);
   PFM->setHypreIterations(MaxHypreIterations);
@@ -136,8 +140,8 @@ int main(int argc, char* argv[])
   //  PFM->number_steps_total=13;
   PFM->number_steps_out=20;
   //  PFM->number_steps_out=200000;
-  //  PFM->step_length=1.0e-30; ////////////
-  PFM->step_length=1.0e-4;
+  // PFM->step_length=1.0e-30; ////////////
+  PFM->step_length=1.0e-5;
   //  PFM->step_length=4.0e-5;
   PFM->time=0.0;
   make_me_a_galaxy(FractalRank,NumberParticles,total_mass,masses,G,posx,posy,posz,velx,vely,velz);
@@ -166,4 +170,5 @@ int main(int argc, char* argv[])
     }
   fractal_memory_content_delete(PFM);
   fractal_memory_delete(PFM);
+  return 0;
 }

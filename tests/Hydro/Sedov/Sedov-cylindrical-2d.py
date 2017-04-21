@@ -15,7 +15,7 @@ title("2-D integrated hydro test -- planar Sedov problem")
 #-------------------------------------------------------------------------------
 # Generic problem parameters
 #-------------------------------------------------------------------------------
-commandLine(seed = "constantDTheta",
+commandLine(seed = "lattice",
 
             thetaFactor = 0.5,
             azimuthalOffsetFraction = 0.0,
@@ -65,7 +65,6 @@ commandLine(seed = "constantDTheta",
             betaE = 1.0,
             fKern = 1.0/3.0,
             boolHopkinsCorrection = True,
-            cullenReproducingKernelGradient = False,  # Use reproducing kernels for gradients in Cullen-Dehnen visocosity model
             HopkinsConductivity = False,     # For PSPH
             evolveTotalEnergy = False,       # Only for SPH variants -- evolve total rather than specific energy
 
@@ -91,12 +90,13 @@ commandLine(seed = "constantDTheta",
             smoothIters = 0,
             HEvolution = IdealH,
             compatibleEnergy = True,
-            gradhCorrection = False,
+            gradhCorrection = True,
+            correctVelocityGradient = True,
 
             restoreCycle = None,
             restartStep = 1000,
 
-            graphics = True,
+            graphics = False,
             useVoronoiOutput = False,
             clearDirectories = False,
             dataRoot = "dumps-cylindrical-Sedov",
@@ -225,21 +225,31 @@ vel = nodes1.velocity()
 mass = nodes1.mass()
 eps = nodes1.specificThermalEnergy()
 H = nodes1.Hfield()
+if thetaFactor == 0.5:
+    xmin = (0.0, 0.0)
+    xmax = (1.0, 1.0)
+elif thetaFactor == 1.0:
+    xmin = (-1.0, 0.0)
+    xmax = (1.0, 1.0)
+else:
+    xmin = (-1.0, -1.0)
+    xmax = (1.0, 1.0)
+
 if restoreCycle is None:
     if seed == "square":
         generator = GenerateSquareNodeDistribution(nRadial,
                                                    nTheta,
                                                    rho0,
-                                                   xmin = Vector(0,0),
-                                                   xmax = Vector(1,1),
+                                                   xmin = xmin,
+                                                   xmax = xmax,
                                                    nNodePerh = nPerh,
                                                    SPH = (not ASPH))
     else:
         generator = GenerateNodeDistribution2d(nRadial, nTheta, rho0, seed,
                                                rmin = rmin,
                                                rmax = rmax,
-                                               xmin = Vector(-1,-1),
-                                               xmax = Vector(1,1),
+                                               xmin = xmin,
+                                               xmax = xmax,
                                                theta = theta,
                                                azimuthalOffsetFraction = azimuthalOffsetFraction,
                                                nNodePerh = nPerh,
@@ -344,9 +354,9 @@ elif PSPH:
                              useVelocityMagnitudeForDt = useVelocityMagnitudeForDt,
                              compatibleEnergyEvolution = compatibleEnergy,
                              evolveTotalEnergy = evolveTotalEnergy,
-                             gradhCorrection = gradhCorrection,
                              HopkinsConductivity = HopkinsConductivity,
                              densityUpdate = densityUpdate,
+                             correctVelocityGradient = correctVelocityGradient,
                              HUpdate = HUpdate,
                              XSPH = XSPH)
 else:
@@ -356,6 +366,7 @@ else:
                              compatibleEnergyEvolution = compatibleEnergy,
                              evolveTotalEnergy = evolveTotalEnergy,
                              gradhCorrection = gradhCorrection,
+                             correctVelocityGradient = correctVelocityGradient,
                              densityUpdate = densityUpdate,
                              XSPH = XSPH,
                              HUpdate = HEvolution)
@@ -373,15 +384,12 @@ packages = [hydro]
 #-------------------------------------------------------------------------------
 # Construct the MMRV physics object.
 #-------------------------------------------------------------------------------
-
 if boolReduceViscosity:
     evolveReducingViscosityMultiplier = MorrisMonaghanReducingViscosity(q,nh,aMin,aMax)
     packages.append(evolveReducingViscosityMultiplier)
 elif boolCullenViscosity:
-    evolveCullenViscosityMultiplier = CullenDehnenViscosity(q,WT,alphMax,alphMin,betaC,betaD,betaE,fKern,boolHopkinsCorrection,cullenReproducingKernelGradient)
+    evolveCullenViscosityMultiplier = CullenDehnenViscosity(q,WT,alphMax,alphMin,betaC,betaD,betaE,fKern,boolHopkinsCorrection)
     packages.append(evolveCullenViscosityMultiplier)
-
-
 
 #-------------------------------------------------------------------------------
 # Create boundary conditions.
@@ -586,12 +594,7 @@ if graphics:
                                       xFunction = "%s.magnitude()",
                                       plotStyle = "points",
                                       winTitle = "Cullen alpha")
-        cullDalphaPlot = plotFieldList(evolveCullenViscosityMultiplier.DrvAlphaDtQ(),
-                                       xFunction = "%s.magnitude()",
-                                       plotStyle = "points",
-                                       winTitle = "Cullen DalphaDt")
-        plots += [(cullAlphaPlot, "Sedov-planar-Cullen-alpha.png"),
-                  (cullDalphaPlot, "Sedov-planar-Cullen-DalphaDt.png")]
+        plots += [(cullAlphaPlot, "Sedov-planar-Cullen-alpha.png")]
 
     # Make hardcopies of the plots.
     for p, filename in plots:

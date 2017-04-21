@@ -41,7 +41,7 @@ using NodeSpace::FluidNodeList;
 template<typename Dimension>
 TensorCRKSPHViscosity<Dimension>::
 TensorCRKSPHViscosity(Scalar Clinear, Scalar Cquadratic):
-  mGradVel(FieldSpace::Copy),
+  mGradVel(FieldSpace::FieldStorageType::Copy),
   TensorMonaghanGingoldViscosity<Dimension>(Clinear, Cquadratic) {
 }
 

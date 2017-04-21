@@ -12,8 +12,6 @@
 #include <stdio.h>
 #include <stdint.h>
 
-#include "boost/foreach.hpp"
-
 // #include "polytope/polytope.hh"
 // #include "polytope/convexHull_2d.hh"
 
@@ -364,16 +362,16 @@ GeomPolygon(const vector<GeomPolygon::Vector>& points):
     // Copy the point coordinates to a polytope point array.
     vector<double> points_polytope;
     points_polytope.reserve(2 * points.size());
-    BOOST_FOREACH(Vector vec, points) {
+    for (const Vector& vec: points) {
       points_polytope.push_back((vec.x() - xmin.x())/fscale);
       points_polytope.push_back((vec.y() - xmin.y())/fscale);
     }
     CHECK(points_polytope.size() == 2*points.size());
 
     // Call the polytope method for computing the convex hull.
-    vector<double> low(2, 0.0);
+    double low[2] = {0.0, 0.0};
     // polytope::PLC<2, double> plc = polytope::convexHull_2d(points_polytope, &(*low.begin()), 1.0e-15);
-    vector<vector<int> > plc = convexHull_2d(points_polytope, &(*low.begin()), 1.0e-15);
+    vector<vector<int> > plc = convexHull_2d(points_polytope, low, 1.0e-8);
     const unsigned numVertices = plc.size();
     CHECK(numVertices >= 3);
 
@@ -400,29 +398,29 @@ GeomPolygon(const vector<GeomPolygon::Vector>& points):
     setBoundingBox();
 
     // Compute the ancillary geometry.
-    GeometryUtilities::computeAncillaryGeometry(*this, mVertexFacetConnectivity, mFacetFacetConnectivity, mVertexUnitNorms);
+    GeometryUtilities::computeAncillaryGeometry(*this, mVertexFacetConnectivity, mFacetFacetConnectivity, mVertexUnitNorms, false);
 
     // Post-conditions.
     BEGIN_CONTRACT_SCOPE
     {
       // Ensure the facet node ordering is correct.
-      CounterClockwiseComparator<Vector, vector<Vector> > nodeComparator(mVertices, mVertices[0]);
-      BOOST_FOREACH(const Facet& facet, mFacets) ENSURE(nodeComparator(facet.point1(), facet.point2()) >= 0);
+      CounterClockwiseComparator<Vector, vector<Vector> > nodeComparator(mVertices, this->centroid());
+      for (const Facet& facet: mFacets) ENSURE2(nodeComparator(facet.point1(), facet.point2()), *this);
 
       // All normals should be outward facing.
-      Vector centroid, vec;
-      BOOST_FOREACH(vec, mVertices) centroid += vec;
+      Vector centroid;
+      for (const Vector& vec: mVertices) centroid += vec;
       centroid /= mVertices.size();
-      BOOST_FOREACH(const Facet& facet, mFacets) ENSURE2((0.5*(facet.point1() + facet.point2()) - centroid).dot(facet.normal()) >= 0.0,
-                                                         facet.point1() << " " << facet.point2() << " : "
-                                                         << (0.5*(facet.point1() + facet.point2()) - centroid) << " "
-                                                         << facet.normal() << " : "
-                                                         << (0.5*(facet.point1() + facet.point2()) - centroid).dot(facet.normal()));
+      for (const Facet& facet: mFacets) ENSURE2((0.5*(facet.point1() + facet.point2()) - centroid).dot(facet.normal()) >= 0.0,
+                                                facet.point1() << " " << facet.point2() << " : "
+                                                << (0.5*(facet.point1() + facet.point2()) - centroid) << " "
+                                                << facet.normal() << " : "
+                                                << (0.5*(facet.point1() + facet.point2()) - centroid).dot(facet.normal()));
 
       // Ensure the vertices are listed in counter-clockwise order.
       for (unsigned i = 0; i != mVertices.size(); ++i) {
         const unsigned j = (i + 1) % mVertices.size();
-        ENSURE(nodeComparator(i, j) >= 0);
+        ENSURE(nodeComparator(i, j));
       }
 
       // We had better be convex if built from a convex hull.
@@ -431,7 +429,7 @@ GeomPolygon(const vector<GeomPolygon::Vector>& points):
       // Ensure the seed points are contained.
       // Suspending this check for now as floating point accuracy occasionally misfires
       // this check.
-      //      BOOST_FOREACH(vec, points) ENSURE(this->convexContains(vec));
+      //      for (const auto& vec: points) ENSURE(this->convexContains(vec));
     }
     END_CONTRACT_SCOPE
   }
@@ -452,7 +450,7 @@ GeomPolygon(const vector<GeomPolygon::Vector>& points,
   // Construct the facets.
   Vector centroid;
   mFacets.reserve(facetIndices.size());
-  BOOST_FOREACH(vector<unsigned> indices, facetIndices) {
+  for (const vector<unsigned>& indices: facetIndices) {
     VERIFY2(indices.size() == 2, "Need two points per facet : " << indices.size());
     VERIFY2(*max_element(indices.begin(), indices.end()) < points.size(),
             "Bad vertex index for facet.");
@@ -467,7 +465,7 @@ GeomPolygon(const vector<GeomPolygon::Vector>& points,
   mConvex = this->convex();
 
   // Compute the ancillary geometry.
-  GeometryUtilities::computeAncillaryGeometry(*this, mVertexFacetConnectivity, mFacetFacetConnectivity, mVertexUnitNorms);
+  GeometryUtilities::computeAncillaryGeometry(*this, mVertexFacetConnectivity, mFacetFacetConnectivity, mVertexUnitNorms, false);
 }
 
 //------------------------------------------------------------------------------
@@ -476,20 +474,14 @@ GeomPolygon(const vector<GeomPolygon::Vector>& points,
 GeomPolygon::
 GeomPolygon(const GeomPolygon& rhs):
   mVertices(rhs.mVertices),
-  mFacets(),
+  mFacets(rhs.mFacets),
+  mVertexUnitNorms(rhs.mVertexUnitNorms),
   mVertexFacetConnectivity(rhs.mVertexFacetConnectivity),
   mFacetFacetConnectivity(rhs.mFacetFacetConnectivity),
-  mVertexUnitNorms(rhs.mVertexUnitNorms),
   mXmin(rhs.mXmin),
   mXmax(rhs.mXmax),
   mConvex(rhs.mConvex) {
-  mFacets.reserve(rhs.mFacets.size());
-  BOOST_FOREACH(const Facet& facet, rhs.mFacets) {
-    mFacets.push_back(Facet(mVertices,
-                            facet.ipoint1(),
-                            facet.ipoint2()));
-  }
-  ENSURE(mFacets.size() == rhs.mFacets.size());
+  for (Facet& facet: mFacets) facet.mVerticesPtr = &mVertices;
 }
 
 //------------------------------------------------------------------------------
@@ -502,9 +494,9 @@ operator=(const GeomPolygon& rhs) {
     mVertices = rhs.mVertices;
     mFacets = vector<Facet>();
     mFacets.reserve(rhs.mFacets.size());
-    BOOST_FOREACH(const Facet& facet, rhs.mFacets) mFacets.push_back(Facet(mVertices,
-                                                                           facet.ipoint1(),
-                                                                           facet.ipoint2()));
+    for (const Facet& facet: rhs.mFacets) mFacets.push_back(Facet(mVertices,
+                                                                  facet.ipoint1(),
+                                                                  facet.ipoint2()));
     mVertexFacetConnectivity = rhs.mVertexFacetConnectivity;
     mFacetFacetConnectivity = rhs.mVertexFacetConnectivity;
     mVertexUnitNorms = rhs.mVertexUnitNorms;
@@ -572,22 +564,17 @@ bool
 GeomPolygon::
 intersect(const GeomPolygon& rhs) const {
   if (not testBoxIntersection(mXmin, mXmax, rhs.mXmin, rhs.mXmax)) return false;
-  Vector vec;
-  BOOST_FOREACH(vec, mVertices) {
+  for (auto vec: mVertices) {
     if (rhs.contains(vec)) return true;
   }
-  BOOST_FOREACH(vec, rhs.mVertices) {
+  for (auto vec: rhs.mVertices) {
     if (this->contains(vec)) return true;
   }
-  unsigned i0, j0, i1, j1;
-  const unsigned n0 = mVertices.size();
-  const unsigned n1 = rhs.mVertices.size();
-  for (i0 = 0; i0 != n0; ++i0) {
-    j0 = (i0 + 1) % n0;
-    for (i1 = 0; i1 != n1; ++i1) {
-      j1 = (i1 + 1) % n1;
-      if (segmentSegmentIntersection(mVertices[i0], mVertices[j0],
-                                     rhs.mVertices[i1], rhs.mVertices[j1])) return true;
+  const auto& otherFacets = rhs.facets();
+  for (auto& lhsfacet: mFacets) {
+    for (auto& rhsfacet: otherFacets) {
+      if (segmentSegmentIntersection(lhsfacet.point1(), lhsfacet.point2(),
+                                     rhsfacet.point1(), rhsfacet.point2())) return true;
     }
   }
   return false;
@@ -744,7 +731,7 @@ facetVertices() const {
   vector<vector<unsigned> > result;
   vector<unsigned> pts(2);
   if (mVertices.size() > 0) {
-    BOOST_FOREACH(const Facet& facet, mFacets) {
+    for (const Facet& facet: mFacets) {
       pts[0] = facet.ipoint1();
       pts[1] = facet.ipoint2();
       CHECK(pts[0] < mVertices.size());
@@ -766,15 +753,15 @@ reconstruct(const vector<GeomPolygon::Vector>& vertices,
   mVertices = vertices;
   mFacets = vector<Facet>();
   mFacets.reserve(facetVertices.size());
-  BOOST_FOREACH(const vector<unsigned>& ipts, facetVertices) {
+  for (const vector<unsigned>& ipts: facetVertices) {
     CHECK2(ipts.size() == 2, "Bad size:  " << ipts.size());
     mFacets.push_back(Facet(mVertices, ipts[0], ipts[1]));
   }
   setBoundingBox();
   mConvex = this->convex();
-  GeometryUtilities::computeAncillaryGeometry(*this, mVertexFacetConnectivity, mFacetFacetConnectivity, mVertexUnitNorms);
+  GeometryUtilities::computeAncillaryGeometry(*this, mVertexFacetConnectivity, mFacetFacetConnectivity, mVertexUnitNorms, false);
   ENSURE(mFacets.size() == facetVertices.size());
-  ENSURE(mFacetFacetConnectivity.size() == mFacets.size());
+  ENSURE(mFacetFacetConnectivity.size() == 0); // mFacets.size());
 }
 
 //------------------------------------------------------------------------------
@@ -785,7 +772,7 @@ GeomPolygon::
 volume() const {
   double result = 0.0;
   const Vector c = centroid();
-  BOOST_FOREACH(const Facet& facet, mFacets) {
+  for (const Facet& facet: mFacets) {
     result += ((facet.point2() - facet.point1()).cross(c - facet.point1())).z();
   }
   ENSURE2(result >= 0.0, result);
@@ -833,6 +820,91 @@ closestPoint(const GeomPolygon::Vector& p) const {
 }
 
 //------------------------------------------------------------------------------
+// += Vector, shift polygon in space
+//------------------------------------------------------------------------------
+GeomPolygon&
+GeomPolygon::
+operator+=(const GeomPolygon::Vector& rhs) {
+  for (auto& v: mVertices) v += rhs;
+  mXmin += rhs;
+  mXmax += rhs;
+  return *this;
+}
+
+//------------------------------------------------------------------------------
+// -= Vector, shift polygon in space
+//------------------------------------------------------------------------------
+GeomPolygon&
+GeomPolygon::
+operator-=(const GeomPolygon::Vector& rhs) {
+  (*this) += -rhs;
+  return *this;
+}
+
+//------------------------------------------------------------------------------
+// + Vector, return shifted polygon in space
+//------------------------------------------------------------------------------
+GeomPolygon
+GeomPolygon::
+operator+(const GeomPolygon::Vector& rhs) const {
+  GeomPolygon result(*this);
+  result += rhs;
+  return result;
+}
+
+//------------------------------------------------------------------------------
+// - Vector, return shifted polygon in space
+//------------------------------------------------------------------------------
+GeomPolygon
+GeomPolygon::
+operator-(const GeomPolygon::Vector& rhs) const {
+  return (*this) + (-rhs);
+}
+
+//------------------------------------------------------------------------------
+// *= Scalar, scale polygon
+//------------------------------------------------------------------------------
+GeomPolygon&
+GeomPolygon::
+operator*=(const double rhs) {
+  for (auto& v: mVertices) v *= rhs;
+  this->setBoundingBox();
+  return *this;
+}
+
+//------------------------------------------------------------------------------
+// /= Scalar, scale polygon
+//------------------------------------------------------------------------------
+GeomPolygon&
+GeomPolygon::
+operator/=(const double rhs) {
+  (*this) *= 1.0/rhs;
+  return *this;
+}
+
+//------------------------------------------------------------------------------
+// * Scalar, scale polygon
+//------------------------------------------------------------------------------
+GeomPolygon
+GeomPolygon::
+operator*(const double rhs) const {
+  GeomPolygon result(*this);
+  result *= rhs;
+  return result;
+}
+
+//------------------------------------------------------------------------------
+// / Scalar, scale polygon
+//------------------------------------------------------------------------------
+GeomPolygon
+GeomPolygon::
+operator/(const double rhs) const {
+  GeomPolygon result(*this);
+  result /= rhs;
+  return result;
+}
+
+//------------------------------------------------------------------------------
 // ==
 //------------------------------------------------------------------------------
 bool
@@ -864,6 +936,7 @@ void
 GeomPolygon::
 setBoundingBox() {
   boundingBox(mVertices, mXmin, mXmax);
+  mConvex = this->convex();
 }
 
 //------------------------------------------------------------------------------

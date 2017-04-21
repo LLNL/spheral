@@ -21,26 +21,36 @@ bisectSearch(const IteratorType& begin,
              const IteratorType& end,
              const DataType& val) {
   const int n = std::distance(begin, end);
-  REQUIRE(n > 1);
-  const bool ascnd = (*(end - 1) >= *begin);
-  int jl = -1;
-  int ju = n;
-  while (ju - jl > 1) {
-    const int jm = (ju + jl)/2;
-    if ((val >= *(begin + jm)) == ascnd) {
-      jl = jm;
-    } else {
-      ju = jm;
+  if (n > 1) {
+    const bool ascnd = (*(end - 1) >= *begin);
+    int jl = -1;
+    int ju = n;
+    while (ju - jl > 1) {
+      const int jm = (ju + jl)/2;
+      if ((val >= *(begin + jm)) == ascnd) {
+        jl = jm;
+      } else {
+        ju = jm;
+      }
     }
-  }
 
-  // Post conditions.
-  ENSURE(ju - jl == 1);
-  ENSURE((jl == -1 and (val <= *begin) == ascnd) or
-         (jl == n - 1 and (val >= *(end - 1)) == ascnd) or
-         (((val >= *(begin + jl)) == ascnd) and
-          ((val <= *(begin + ju)) == ascnd)));
-  return jl;
+    // Post conditions.
+    ENSURE(ju - jl == 1);
+    ENSURE((jl == -1 and (val <= *begin) == ascnd) or
+           (jl == n - 1 and (val >= *(end - 1)) == ascnd) or
+           (((val >= *(begin + jl)) == ascnd) and
+            ((val <= *(begin + ju)) == ascnd)));
+    return jl;
+
+  } else if (n == 1) {
+    if (val <= *begin) {
+      return -1;
+    } else {
+      return 0;
+    }
+  } else {
+    return -1;
+  }
 }
 
 // Specialized for a std::vector for backwards compatibility.

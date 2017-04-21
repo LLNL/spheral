@@ -25,13 +25,13 @@ title("2-D Tensile rod strength/damage model test")
 # Stupid little class to override the mass density evolution of the control
 # boundary nodes.
 #-------------------------------------------------------------------------------
-class OverrideNodeProperties(RestartableObject):
+class OverrideNodeProperties:
     def __init__(self,
                  nodeList,
                  rho0,
                  eps0,
                  controlNodeIDs):
-        RestartableObject.__init__(self)
+        self.restart = RestartableObject(self)
         self.nodeList = nodeList
         self.rho0 = rho0
         self.eps0 = eps0
@@ -152,7 +152,7 @@ commandLine(seed = "lattice",
             domainIndependent = False,
             dtverbose = False,
 
-            restoreCycle = None,
+            restoreCycle = -1,
             restartStep = 500,
 
             plotFlaws = False,
@@ -200,9 +200,9 @@ dtSample = dumpFrac*goalTime
 #-------------------------------------------------------------------------------
 # Sampling function to measure the average strain in the volume of the rod.
 #-------------------------------------------------------------------------------
-class AverageStrain(RestartableObject):
+class AverageStrain:
     def __init__(self, damageModel, filename):
-        RestartableObject.__init__(self)
+        self.restart = RestartableObject(self)
         self.damageModel = damageModel
         self.filename = filename
         self.timeHistory = []
@@ -277,12 +277,6 @@ if mpi.rank == 0:
 mpi.barrier()
 
 #-------------------------------------------------------------------------------
-# If we're restarting, find the set of most recent restart files.
-#-------------------------------------------------------------------------------
-if restoreCycle is None:
-    restoreCycle = findLastRestart(restartBaseName)
-
-#-------------------------------------------------------------------------------
 # Stainless steel material properties.
 #-------------------------------------------------------------------------------
 eos = GruneisenEquationOfState(rho0,    # reference density  
@@ -353,37 +347,36 @@ nodeSet = [nodes]
 # Set node properties (positions, masses, H's, etc.)
 #-------------------------------------------------------------------------------
 eps0 = 0.0
-if restoreCycle is None:
-    print "Generating node distribution."
-    from GenerateNodeDistribution2d import *
-    from VoronoiDistributeNodes import distributeNodes2d as distributor
-    generator = GenerateNodeDistribution2d(nx,
-                                           ny,
-                                           rho0,
-                                           seed,
-                                           xmin = (-0.5*xlength, -0.5*ylength),
-                                           xmax = (0.5*xlength, 0.5*ylength),
-                                           nNodePerh = nPerh)
-    distributor((nodes, generator))
-    output("mpi.reduce(nodes.numInternalNodes, mpi.MIN)")
-    output("mpi.reduce(nodes.numInternalNodes, mpi.MAX)")
-    output("mpi.reduce(nodes.numInternalNodes, mpi.SUM)")
+print "Generating node distribution."
+from GenerateNodeDistribution2d import *
+from VoronoiDistributeNodes import distributeNodes2d as distributor
+generator = GenerateNodeDistribution2d(nx,
+                                       ny,
+                                       rho0,
+                                       seed,
+                                       xmin = (-0.5*xlength, -0.5*ylength),
+                                       xmax = (0.5*xlength, 0.5*ylength),
+                                       nNodePerh = nPerh)
+distributor((nodes, generator))
+output("mpi.reduce(nodes.numInternalNodes, mpi.MIN)")
+output("mpi.reduce(nodes.numInternalNodes, mpi.MAX)")
+output("mpi.reduce(nodes.numInternalNodes, mpi.SUM)")
 
-    # # Set node specific thermal energies
-    # eps0 = eos.specificThermalEnergy(rho0, 300.0)
-    # nodes.specificThermalEnergy(ScalarField("tmp", nodes, eps0))
+# # Set node specific thermal energies
+# eps0 = eos.specificThermalEnergy(rho0, 300.0)
+# nodes.specificThermalEnergy(ScalarField("tmp", nodes, eps0))
 
-    # Set node velocites.
+# Set node velocites.
+for i in xrange(nodes.numInternalNodes):
+    nodes.velocity()[i].x = nodes.positions()[i].x/(0.5*xlength)*v0
+
+# Set an initial damage if requested.
+if initialBreakRadius > 0.0:
+    pos = nodes.positions()
+    D = nodes.damage()
     for i in xrange(nodes.numInternalNodes):
-        nodes.velocity()[i].x = nodes.positions()[i].x/(0.5*xlength)*v0
-
-    # Set an initial damage if requested.
-    if initialBreakRadius > 0.0:
-        pos = nodes.positions()
-        D = nodes.damage()
-        for i in xrange(nodes.numInternalNodes):
-            if abs(pos[i].x) < initialBreakRadius:
-                D[i] = SymTensor.one
+        if abs(pos[i].x) < initialBreakRadius:
+            D[i] = SymTensor.one
 
 #-------------------------------------------------------------------------------
 # Construct a DataBase to hold our node list

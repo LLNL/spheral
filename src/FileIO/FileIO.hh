@@ -6,6 +6,10 @@
 #ifndef __Spheral__FileIO_hh__
 #define __Spheral__FileIO_hh__
 
+#ifndef CXXONLY
+#include "Python.h"
+#endif
+
 #ifndef __GCCXML__
 #include <vector>
 #else
@@ -14,10 +18,6 @@
 
 #include <string>
 #include <sstream>
-
-#ifndef CXXONLY
-#include "Python.h"
-#endif
 
 #include "Geometry/Dimension.hh"
 
@@ -33,7 +33,7 @@ namespace Spheral {
 namespace FileIOSpace {
 
 // Define the standard file access types.
-enum AccessType {
+enum class AccessType {
   Undefined = -1,
   Create = 0,
   Read = 1,

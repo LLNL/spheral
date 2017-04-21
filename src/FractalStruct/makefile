@@ -1,34 +1,50 @@
-classes = fractal_memory.hh classes.hh point_class.hh group_class.hh fractal_class.hh misc_class.hh particle_class.hh mess.hh file_class.hh octree.hh libs.hh headers.hh classes.hh
+classes = fractal_memory.hh point_class.hh group_class.hh fractal_class.hh misc_class.hh particle_class.hh mess.hh file_class.hh kdtree.hh point_comp.hh libs.hh headers.hh classes.hh
 fopt1 = -pedantic -O3 
 Wopt1 = -Wunused
 gprof = 
 debug = 
 verbose = -v
-debug= 
+debug = 	
 verbose = 
-STD = -std=c++0x
+STD = -std=c++11
 dir   = execs/
+MP = -qopenmp
 #
 system = intel
-vers = 9
+fvers = 4
+hvers = 11
 #
 compiler = mpiicpc
-PREFIXF = /g/g90/jensv/cplus/fftw-3.3.3/install-intel
-PREFIXH = /g/g90/jensv/cplus/hypre-2.9.0b/src/hypre/intel-global
+PREFIXF = /g/g90/jensv/cplus/fftw-3.3.4/install-intel
+PREFIXH = /g/g90/jensv/cplus/HYPREINTEL110/hypre-2.11.0/src/hypre
 #
 ifeq ($(debug),d)
 	fopt1 = -g -pedantic -O0
 endif
 #
-ifeq ($(vers),10)
+ifeq ($(fvers),3)
+	PREFIXF = /g/g90/jensv/cplus/fftw-3.3.3/install-intel
+endif
+#
+ifeq ($(hvers),9)
+	PREFIXH = /g/g90/jensv/cplus/hypre-2.9.0b/src/hypre/intel-global
+endif
+ifeq ($(hvers),10)
 	PREFIXH = /g/g90/jensv/cplus/HYPREINTEL101/hypre-2.10.1/src/hypre
 endif
 #
 ifeq ($(system),ibmgnu)
-	compiler = mpicxx
-	PREFIXF = /g/g90/jensv/cplus/fftw-3.3.3/install-ibmgnu
-	PREFIXH = /g/g90/jensv/cplus/hypreibmgnu/hypre-2.9.0b/src/hypre/noglobal
-	ifeq ($(vers),10)
+	MP = -fopenmp
+	compiler =  mpig++-4.7.2
+	PREFIXF = /g/g90/jensv/cplus/fftw-3.3.4/install-ibmgnu
+	ifeq ($(fvers),3)
+		PREFIXF = /g/g90/jensv/cplus/fftw-3.3.3/install-ibmgnu
+	endif
+	PREFIXH = /g/g90/jensv/cplus/HYPREIBM110/hypre-2.11.0/src/hypre
+	ifeq ($(hvers),9)
+		PREFIXH = /g/g90/jensv/cplus/hypreibmgnu/hypre-2.9.0b/src/hypre/noglobal
+	endif
+	ifeq ($(hvers),10)
 		PREFIXH = /g/g90/jensv/cplus/HYPREIBM101/hypre-2.10.1/src/hypre
 	endif
 endif
@@ -37,7 +53,7 @@ head_dir_fftw = $(PREFIXF)/include
 Lopthypre = -L$(PREFIXH)/lib
 head_dir_hypre = $(PREFIXH)/include
 #
-compile = $(compiler) -I $(head_dir_fftw) -I $(head_dir_hypre) $(STD) $(verbose) $(fopt1) $(Wopt1) $(gprof)
+compile = $(compiler) -I $(head_dir_fftw) -I $(head_dir_hypre) $(MP) $(STD) $(verbose) $(fopt1) $(Wopt1) $(gprof)
 #
 parameter_per_file = fractal_memory_parameters_cosmo
 fractal_galaxy_run_o = fractal_galaxy.o
@@ -72,11 +88,20 @@ group_class.o :	group_class.cc $(classes)
 mess.o :	mess.cc $(classes)
 	$(compile) -c mess.cc
 #
+messA.o :	messA.cc $(classes)
+	$(compile) -c messA.cc
+#
 misc_class.o :	misc_class.cc $(classes)
 	$(compile) -c misc_class.cc
 #
 octree.o :	octree.cc $(classes)
 	$(compile) -c octree.cc
+#
+kdtree.o :	kdtree.cc $(classes)
+	$(compile) -c kdtree.cc
+#
+kdtreeA.o :	kdtreeA.cc $(classes)
+	$(compile) -c kdtreeA.cc
 #
 particle_class.o :	particle_class.cc $(classes)
 	$(compile) -c particle_class.cc
@@ -89,6 +114,9 @@ add_buffer_values.o :	add_buffer_values.cc $(classes)
 #
 add_pseudo_particles.o :	add_pseudo_particles.cc $(classes)
 	$(compile) -c add_pseudo_particles.cc
+#
+any_overlaps.o :	any_overlaps.cc $(classes)
+	$(compile) -c any_overlaps.cc
 #
 adj_nina.o :	adj_nina.cc $(classes)
 	$(compile) -c adj_nina.cc
@@ -114,6 +142,9 @@ balance_by_particles_cosmo.o :	balance_by_particles_cosmo.cc $(classes)
 binary_balancing.o :	binary_balancing.cc $(classes)
 	$(compile) -c binary_balancing.cc
 #
+box_stats.o :	box_stats.cc $(classes)
+	$(compile) -c box_stats.cc
+#
 buffer_points.o :	buffer_points.cc $(classes)
 	$(compile) -c buffer_points.cc
 #
@@ -126,6 +157,9 @@ check_for_edge_trouble.o :	check_for_edge_trouble.cc $(classes)
 check_high.o :	check_high.cc $(classes)
 	$(compile) -c check_high.cc
 #
+clean_overlaps.o :	clean_overlaps.cc $(classes)
+	$(compile) -c clean_overlaps.cc
+#
 clean_up.o :	clean_up.cc $(classes)
 	$(compile) -c clean_up.cc
 #
@@ -137,6 +171,9 @@ daughter_group_nina.o :	daughter_group_nina.cc $(classes)
 #
 dens_to_slices.o :	dens_to_slices.cc $(classes)
 	$(compile) -c dens_to_slices.cc
+#
+dump_cosmo_boxes.o :	dump_cosmo_boxes.cc $(classes)
+	$(compile) -c dump_cosmo_boxes.cc
 #
 dump_tree.o :	dump_tree.cc $(classes)
 	$(compile) -c dump_tree.cc
@@ -243,6 +280,12 @@ highest_level_group.o :	highest_level_group.cc $(classes)
 highest_level_group_other.o :	highest_level_group_other.cc $(classes)
 	$(compile) -c highest_level_group_other.cc
 #
+hypre_best_boxes.o :	hypre_best_boxes.cc $(classes)
+	$(compile) -c hypre_best_boxes.cc
+#
+hypre_clever_boxes.o :	hypre_clever_boxes.cc $(classes)
+	$(compile) -c hypre_clever_boxes.cc
+#
 hypre_dump.o :	hypre_dump.cc $(classes)
 	$(compile) -c hypre_dump.cc
 #
@@ -251,6 +294,12 @@ hypre_load_balance.o :	hypre_load_balance.cc $(classes)
 #
 hypre_points_boxes.o :	hypre_points_boxes.cc $(classes)
 	$(compile) -c hypre_points_boxes.cc
+#
+hypre_points_clean.o :	hypre_points_clean.cc $(classes)
+	$(compile) -c hypre_points_clean.cc
+#
+hypre_points_zero.o :	hypre_points_zero.cc $(classes)
+	$(compile) -c hypre_points_zero.cc
 #
 hypre_points_struct.o :	hypre_points_struct.cc $(classes)
 	$(compile) -c hypre_points_struct.cc
@@ -266,6 +315,12 @@ hypre_solver_empty.o :	hypre_solver_empty.cc $(classes)
 #
 hypre_solve_struct.o :	hypre_solve_struct.cc $(classes)
 	$(compile) -c hypre_solve_struct.cc
+#
+hypre_solve_structA.o :	hypre_solve_structA.cc $(classes)
+	$(compile) -c hypre_solve_structA.cc
+#
+hypre_test_boxes.o :	hypre_test_boxes.cc $(classes)
+	$(compile) -c hypre_test_boxes.cc
 #
 hypre_world_create.o :	hypre_world_create.cc $(classes)
 	$(compile) -c hypre_world_create.cc
@@ -300,6 +355,9 @@ left_right.o :	left_right.cc $(classes)
 list_buffer.o :	list_buffer.cc $(classes)
 	$(compile) -c list_buffer.cc
 #
+make_me_a_box.o :	make_me_a_box.cc $(classes)
+	$(compile) -c make_me_a_box.cc
+#
 make_me_a_galaxy.o :	make_me_a_galaxy.cc $(classes)
 	$(compile) -c make_me_a_galaxy.cc
 #
@@ -312,8 +370,14 @@ make_me_some_particles.o :	make_me_some_particles.cc $(classes)
 make_sphere.o :	make_sphere.cc $(classes)
 	$(compile) -c make_sphere.cc
 #
+match_edges.o :	match_edges.cc $(classes)
+	$(compile) -c match_edges.cc
+#
 max_predict.o :	max_predict.cc $(classes)
 	$(compile) -c max_predict.cc
+#
+mini_solve.o :	mini_solve.cc $(classes)
+	$(compile) -c mini_solve.cc
 #
 neighbor_easy.o :	neighbor_easy.cc $(classes)
 	$(compile) -c neighbor_easy.cc
@@ -342,17 +406,23 @@ periodic_solver.o :	periodic_solver.cc $(classes)
 periodic_solver_mpi.o :	periodic_solver_mpi.cc $(classes)
 	$(compile) -c periodic_solver_mpi.cc
 #
-potential_start.o :	potential_start.cc $(classes)
-	$(compile) -c potential_start.cc
+points_on_nodes.o :	points_on_nodes.cc $(classes)
+	$(compile) -c points_on_nodes.cc
 #
 poisson_solver_struct.o :	poisson_solver_struct.cc $(classes)
 	$(compile) -c poisson_solver_struct.cc
+#
+potential_start.o :	potential_start.cc $(classes)
+	$(compile) -c potential_start.cc
 #
 power_spectrum.o :	power_spectrum.cc $(classes)
 	$(compile) -c power_spectrum.cc
 #
 really_clear.o :	really_clear.cc $(classes)
 	$(compile) -c really_clear.cc
+#
+remove_dupe_points.o :	remove_dupe_points.cc $(classes)
+	$(compile) -c remove_dupe_points.cc
 #
 remove_pseudo_particles.o :	remove_pseudo_particles.cc $(classes)
 	$(compile) -c remove_pseudo_particles.cc
@@ -377,6 +447,9 @@ shortest_vector.o :	shortest_vector.cc $(classes)
 #
 shrink_cube.o :	shrink_cube.cc $(classes)
 	$(compile) -c shrink_cube.cc
+#
+small_exceptions.o :	small_exceptions.cc $(classes)
+	$(compile) -c small_exceptions.cc
 #
 sor_solver.o :	sor_solver.cc $(classes)
 	$(compile) -c sor_solver.cc
@@ -429,8 +502,14 @@ testfftwS.o :	testfftwS.cc
 test_gal.o :	test_gal.cc $(classes)
 	$(compile) -c test_gal.cc
 #
+test_good_point.o :	test_good_point.cc $(classes)
+	$(compile) -c test_good_point.cc
+#
 test_group.o :	test_group.cc $(classes)
 	$(compile) -c test_group.cc
+#
+test_points.o :	test_points.cc 
+	$(compile) -c test_points.cc
 #
 test_tree.o :	test_tree.cc $(classes)
 	$(compile) -c test_tree.cc
@@ -499,7 +578,7 @@ fractal_memory.o \
 group_class.o \
 mess.o \
 misc_class.o \
-octree.o \
+kdtree.o \
 particle_class.o \
 point_class.o 
 #
@@ -517,6 +596,7 @@ check_high.o \
 clean_up.o \
 cosmos.o \
 daughter_group_nina.o \
+dump_cosmo_boxes.o \
 dump_tree.o \
 equivalence_class.o \
 find_global_level_max.o \
@@ -540,15 +620,16 @@ high_points.o \
 left_right.o \
 list_buffer.o \
 make_me_a_galaxy.o \
+match_edges.o \
 max_predict.o \
 neighbor_easy.o \
 on_edge.o \
 overlap.o \
 potential_start.o \
 power_spectrum.o \
-really_clear.o \
 remove_pseudo_particles.o \
 shrink_cube.o \
+small_exceptions.o \
 sort3_list.o \
 split_particle.o \
 start_writing.o \
@@ -556,7 +637,9 @@ sum_pot_forces.o \
 take_a_cosmic_leap.o \
 take_a_leap_isol.o \
 test_gal.o \
+test_good_point.o \
 test_group.o \
+test_points.o \
 test_tree.o \
 tree_dump.o \
 tree_start.o \
@@ -567,12 +650,19 @@ write_rv.o
 #
 files_hypre_nina_o= \
 add_buffer_values.o \
+any_overlaps.o \
+box_stats.o \
+clean_overlaps.o \
+hypre_best_boxes.o \
 hypre_points_boxes.o \
+hypre_points_clean.o \
 hypre_points_struct.o \
 hypre_solve_struct.o \
+hypre_points_zero.o \
+hypre_test_boxes.o \
 hypre_world_create.o \
-hypre_world_destroy.o \
 node_groups_struct.o \
+points_on_nodes.o \
 poisson_solver_struct.o \
 #
 files_hypre_empty_o= \
@@ -594,8 +684,10 @@ gather_particles.o \
 scatter_particles_find.o \
 slices_to_potf.o 
 #
-fractal_cosmo : 	$(files_class_o) $(files_fractal_nina_o) $(files_hypre_nina_o) $(files_fftw_mpi_nina_o) $(files_mpi_comm_nina_o) fractal_nbody.o $(cosmos_power_file).o $(energy_file).o $(halo_fixed_file).o $(parameter_per_file).o $(particle_cosmo_mpi_file).o $(step_file).o $(velocity_file).o $(wrapper_file).o
+
+fractal_cosmo : 	 $(files_hypre_nina_o) $(files_class_o) $(files_fractal_nina_o) $(files_fftw_mpi_nina_o) $(files_mpi_comm_nina_o) fractal_nbody.o $(cosmos_power_file).o $(energy_file).o $(halo_fixed_file).o $(parameter_per_file).o $(particle_cosmo_mpi_file).o $(step_file).o $(velocity_file).o $(wrapper_file).o
 	$(compile) $(Loptfftw) $(Lopthypre) -o $(dir)fractal_nina_cosmo.exe $(files_class_o) $(files_fractal_nina_o) $(files_hypre_nina_o) $(files_fftw_mpi_nina_o) $(files_mpi_comm_nina_o) fractal_nbody.o $(cosmos_power_file).o $(energy_file).o $(halo_fixed_file).o $(parameter_per_file).o $(particle_cosmo_mpi_file).o $(step_file).o $(velocity_file).o $(wrapper_file).o  $(lopthypre) $(loptfftw)
+
 #
-fractal_galaxy :	$(files_class_o) $(files_fractal_nina_o) $(files_hypre_nina_o) $(files_fftw_mpi_nina_o) $(files_mpi_comm_nina_o) $(fractal_galaxy_run_o) $(cosmos_power_file).o $(halo_fixed_file).o
-	$(compile) $(Loptfftw) $(Lopthypre) -o $(dir)fractal_nina_galaxy.exe $(files_class_o) $(files_fractal_nina_o) $(files_hypre_nina_o) $(files_fftw_mpi_nina_o) $(files_mpi_comm_nina_o) $(fractal_galaxy_run_o) $(cosmos_power_file).o $(halo_fixed_file).o $(lopthypre) $(loptfftw)
+fractal_galaxy :	$(files_hypre_nina_o) $(files_class_o) $(files_fractal_nina_o) $(files_fftw_mpi_nina_o) $(files_mpi_comm_nina_o) $(fractal_galaxy_run_o) $(cosmos_power_file).o $(halo_fixed_file).o
+	$(compile) $(Loptfftw) $(Lopthypre) -o $(dir)fractal_nina_galaxy.exe $(files_hypre_nina_o) $(files_class_o) $(files_fractal_nina_o) $(files_fftw_mpi_nina_o) $(files_mpi_comm_nina_o) $(fractal_galaxy_run_o) $(cosmos_power_file).o $(halo_fixed_file).o $(lopthypre) $(loptfftw)

@@ -39,7 +39,7 @@ NBodyGravity<Dimension>::
 NBodyGravity(const double plummerSofteningLength,
              const double maxDeltaVelocity,
              const double G):
-  mPotential(FieldSpace::Copy),
+  mPotential(FieldSpace::FieldStorageType::Copy),
   mExtraEnergy(0.0),
   mMaxDeltaVelocityFactor(maxDeltaVelocity),
   mSofteningLength(plummerSofteningLength),

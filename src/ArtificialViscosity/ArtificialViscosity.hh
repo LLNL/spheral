@@ -70,7 +70,7 @@ public:
   // Constructors.
   ArtificialViscosity(const Scalar Clinear,
                       const Scalar Cquadratic,
-                      const CRKSPHSpace::CRKOrder QcorrectionOrder = CRKSPHSpace::LinearOrder);
+                      const CRKSPHSpace::CRKOrder QcorrectionOrder = CRKSPHSpace::CRKOrder::LinearOrder);
 
   // Destructor.
   virtual ~ArtificialViscosity();

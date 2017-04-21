@@ -106,16 +106,16 @@ divergencePairWise
             // Get the symmetrized kernel weighting for this node pair.
             Scalar Wij;
             switch((*fieldList.begin())->nodeListPtr()->neighbor().neighborSearchType()) {
-            case NeighborSpace::GatherScatter:
+            case NeighborSpace::NeighborSearchType::GatherScatter:
               Wij = 0.5*(kernel(etai, Hi) + 
                          kernel(etaj, Hj));
               break;
 
-            case NeighborSpace::Gather:
+            case NeighborSpace::NeighborSearchType::Gather:
               Wij = kernel(etai, Hi);
               break;
 
-            case NeighborSpace::Scatter:
+            case NeighborSpace::NeighborSearchType::Scatter:
               Wij = kernel(etaj, Hj);
               break;
 

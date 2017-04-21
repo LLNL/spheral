@@ -74,19 +74,31 @@ public:
 			     const FieldSpace::Field<Dimension, Scalar>& massDensity,
 			     const FieldSpace::Field<Dimension, Scalar>& specificThermalEnergy) const;
 
+  virtual void setEntropy(FieldSpace::Field<Dimension, Scalar>& entropy,
+                          const FieldSpace::Field<Dimension, Scalar>& massDensity,
+                          const FieldSpace::Field<Dimension, Scalar>& specificThermalEnergy) const;
+
   // Check if the underlying SolidEquationOfState is valid.
   virtual bool valid() const;
   //............................................................................
 
   // Access the material parameters.
   const Material::EquationOfState<Dimension>& solidEOS() const;
+
   const FieldSpace::Field<Dimension, Scalar>& alpha() const;
   void alpha(const FieldSpace::Field<Dimension, Scalar>& x);
+
+  Scalar alpha0() const;
+  void alpha0(const Scalar x);
+
+  Scalar c0() const;
+  void c0(const Scalar x);
 
 private:
   //--------------------------- Private Interface ---------------------------//
   const Material::EquationOfState<Dimension>& mSolidEOS;
   const FieldSpace::Field<Dimension, Scalar>* mAlphaPtr;
+  Scalar mAlpha0, mC0;   // Set by the porous physics package.
 
   // Disallow default constructor
   PorousEquationOfState();

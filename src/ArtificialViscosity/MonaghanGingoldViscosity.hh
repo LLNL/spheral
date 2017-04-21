@@ -59,10 +59,12 @@ public:
   // Restart methods.
   virtual std::string label() const { return "MonaghanGingoldViscosity"; }
 
-private:
-  //--------------------------- Private Interface ---------------------------//
+protected:
+  //--------------------------- Protected Interface ---------------------------//
   bool mLinearInExpansion, mQuadraticInExpansion;
 
+private:
+  //--------------------------- Private Interface ---------------------------//
   MonaghanGingoldViscosity();
   MonaghanGingoldViscosity(const MonaghanGingoldViscosity&);
   MonaghanGingoldViscosity& operator=(const MonaghanGingoldViscosity&) const;

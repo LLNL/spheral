@@ -1,11 +1,18 @@
 //---------------------------------Spheral++----------------------------------//
 // StrainPorosity.hh
 //
-// An implementation of strain-alpha porosity model described in
+// An implementation of strain-alpha porosity model described in two papers:
+//
 // Wunnemann, Collins, & Melosh, Icarus, 180, 514-527 (2006)
 // "A strain-based porosity model for use in hydrocode simulations of impacts
 //  and implications for transient crater growth in porous targets"
 //
+// Collins, G. S., Melosh, H. J., & Wünnemann, K. (2011).
+// "Improvements to the ɛ-α porous compaction model for simulating impacts into
+// high-porosity solar system objects.
+// International Journal of Impact Engineering, 38(6), 434–439.
+// http://doi.org/10.1016/j.ijimpeng.2010.10.013
+// 
 // This model assumes you will provide a solid EOS which will be modified.
 // The underlying actualy solid EOS should provide the reference density, which
 // will be treated here as the compacted true solid reference density.
@@ -52,7 +59,10 @@ public:
                  const double phi0,                               // Initial porosity
                  const double epsE,                               // Elastic-plastic transition strain
                  const double epsX,                               // Threshold strain between compaction regimes
-                 const double kappa);                             // Compaction rate
+                 const double kappa,                              // Compaction rate
+                 const double gammaS0,                            // Reference gamma at full density
+                 const double cS0,                                // Reference sound speed at full density
+                 const double c0);                                // Reference sound speed at initial porosity
   virtual ~StrainPorosity();
 
   //............................................................................
@@ -97,6 +107,9 @@ public:
   double epsX() const;
   double epsC() const;
   double kappa() const;
+  double gammaS0() const;
+  double cS0() const;
+  double c0() const;
   const PorousEquationOfState<Dimension>& porousEOS() const;
   const PorousStrengthModel<Dimension>& porousStrength() const;
   const NodeSpace::NodeList<Dimension>& nodeList() const;
@@ -107,7 +120,7 @@ public:
 
 private:
   //--------------------------- Private Interface ---------------------------//
-  double mAlpha0, mEpsE, mEpsX, mKappa, mEpsC;
+  double mAlpha0, mEpsE, mEpsX, mKappa, mEpsC, mGammaS0, mcS0, mc0;
   PorousEquationOfState<Dimension>& mPorousEOS;
   PorousStrengthModel<Dimension>& mPorousStrength;
   const NodeSpace::NodeList<Dimension>& mNodeList;

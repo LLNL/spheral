@@ -33,7 +33,9 @@ class SolidMaterial:
             exec('''
 EquationOfState%(dim)id = findObject(Material, "EquationOfState%(dim)id")
 Physics%(dim)id = findObject(PhysicsSpace, "Physics%(dim)id")
+
 self.SolidEquationOfState%(dim)id = addObject(space, "SolidEquationOfState%(dim)id", parent=EquationOfState%(dim)id, allow_subclassing=True)
+
 self.PorousEquationOfState%(dim)id = addObject(space, "PorousEquationOfState%(dim)id", parent=self.SolidEquationOfState%(dim)id, allow_subclassing=True)
 self.StrainPorosity%(dim)id = addObject(space, "StrainPorosity%(dim)id", parent=[Physics%(dim)id], allow_subclassing=True)
 
@@ -51,6 +53,8 @@ self.SteinbergGuinanStrength%(dim)id = addObject(space, "SteinbergGuinanStrength
 self.JohnsonCookStrength%(dim)id = addObject(space, "JohnsonCookStrength%(dim)id", parent=self.StrengthModel%(dim)id, allow_subclassing=True)
 self.CollinsStrength%(dim)id = addObject(space, "CollinsStrength%(dim)id", parent=self.StrengthModel%(dim)id, allow_subclassing=True)
 self.PorousStrengthModel%(dim)id = addObject(space, "PorousStrengthModel%(dim)id", parent=self.StrengthModel%(dim)id, allow_subclassing=True)
+
+self.PhysicsEvolvingMaterialLibrary%(dim)id = addObject(space, "PhysicsEvolvingMaterialLibrary%(dim)id", parent=[EquationOfState%(dim)id, Physics%(dim)id, self.StrengthModel%(dim)id], allow_subclassing=True)
 ''' % {"dim" : dim})
 
         return
@@ -82,6 +86,8 @@ generateSteinbergGuinanStrengthBindings(self.SteinbergGuinanStrength%(dim)id, %(
 generateJohnsonCookStrengthBindings(self.JohnsonCookStrength%(dim)id, %(dim)i)
 generateCollinsStrengthBindings(self.CollinsStrength%(dim)id, %(dim)i)
 generatePorousStrengthModelBindings(self.PorousStrengthModel%(dim)id, %(dim)i)
+
+generatePhysicsEvolvingMaterialLibraryBindings(self.PhysicsEvolvingMaterialLibrary%(dim)id, %(dim)i)
 ''' % {"dim" : dim})
 
         return
@@ -104,7 +110,7 @@ def generateSolidEquationOfStateBindings(x, ndim):
                        constrefparam("PhysicalConstants", "constants"),
                        param("double", "minimumPressure", default_value="-std::numeric_limits<double>::max()"),
                        param("double", "maximumPressure", default_value="std::numeric_limits<double>::max()"),
-                       param("MaterialPressureMinType", "minPressureType", default_value="PressureFloor")])
+                       param("MaterialPressureMinType", "minPressureType", default_value="MaterialPressureMinType::PressureFloor")])
 
     # Methods.
     x.add_method("boundedEta", "double", [param("double", "rho")], is_const=True)
@@ -136,6 +142,10 @@ def generatePorousEquationOfStateBindings(x, ndim):
     const_ref_return_value(x, me, "%s::solidEOS" % me, solideos, [], "solidEOS")
     const_ref_return_value(x, me, "%s::alpha" % me, scalarfield, [], "alpha")
 
+    # Attributes.
+    x.add_instance_attribute("alpha0", "double", getter="alpha0", setter="alpha0")
+    x.add_instance_attribute("c0", "double", getter="c0", setter="c0")
+
     return
 
 #---------------------------------------------------------------------------
@@ -159,7 +169,7 @@ def generateLinearPolynomialEquationOfStateBindings(x, ndim):
                        param("double", "externalPressure", default_value="0.0"),
                        param("double", "minimumPressure", default_value="-std::numeric_limits<double>::max()"),
                        param("double", "maximumPressure", default_value="std::numeric_limits<double>::max()"),
-                       param("MaterialPressureMinType", "minPressureType", default_value="PressureFloor")])
+                       param("MaterialPressureMinType", "minPressureType", default_value="MaterialPressureMinType::PressureFloor")])
 
     # Generic EOS interface.
     generateEquationOfStateVirtualBindings(x, ndim, False)
@@ -188,6 +198,9 @@ def generateLinearPolynomialEquationOfStateBindings(x, ndim):
                  is_const=True)
     x.add_method("bulkModulus", "double", [param("double", "massDensity"),
                                            param("double", "specificThermalEnergy")],
+                 is_const=True)
+    x.add_method("entropy", "double", [param("double", "massDensity"),
+                                       param("double", "specificThermalEnergy")],
                  is_const=True)
 
     # Attributes.
@@ -224,7 +237,7 @@ def generateGruneisenEquationOfStateBindings(x, ndim):
                        param("double", "externalPressure", default_value="0.0"),
                        param("double", "minimumPressure", default_value="-std::numeric_limits<double>::max()"),
                        param("double", "maximumPressure", default_value="std::numeric_limits<double>::max()"),
-                       param("MaterialPressureMinType", "minPressureType", default_value="PressureFloor")])
+                       param("MaterialPressureMinType", "minPressureType", default_value="MaterialPressureMinType::PressureFloor")])
 
     # Generic EOS interface.
     generateEquationOfStateVirtualBindings(x, ndim, False)
@@ -253,6 +266,9 @@ def generateGruneisenEquationOfStateBindings(x, ndim):
                  is_const=True)
     x.add_method("bulkModulus", "double", [param("double", "massDensity"),
                                            param("double", "specificThermalEnergy")],
+                 is_const=True)
+    x.add_method("entropy", "double", [param("double", "massDensity"),
+                                       param("double", "specificThermalEnergy")],
                  is_const=True)
 
     # Attributes.
@@ -294,7 +310,7 @@ def generateOsborneEquationOfStateBindings(x, ndim):
                        param("double", "externalPressure", default_value="0.0"),
                        param("double", "minimumPressure", default_value="-std::numeric_limits<double>::max()"),
                        param("double", "maximumPressure", default_value="std::numeric_limits<double>::max()"),
-                       param("MaterialPressureMinType", "minPressureType", default_value="PressureFloor")])
+                       param("MaterialPressureMinType", "minPressureType", default_value="MaterialPressureMinType::PressureFloor")])
 
     # Generic EOS interface.
     generateEquationOfStateVirtualBindings(x, ndim, False)
@@ -348,7 +364,7 @@ def generateTillotsonEquationOfStateBindings(x, ndim):
                        param("double", "externalPressure", default_value="0.0"),
                        param("double", "minimumPressure", default_value="-std::numeric_limits<double>::max()"),
                        param("double", "maximumPressure", default_value="std::numeric_limits<double>::max()"),
-                       param("MaterialPressureMinType", "minPressureType", default_value="PressureFloor")])
+                       param("MaterialPressureMinType", "minPressureType", default_value="MaterialPressureMinType::PressureFloor")])
 
     # Generic EOS interface.
     generateEquationOfStateVirtualBindings(x, ndim, False)
@@ -389,6 +405,9 @@ def generateTillotsonEquationOfStateBindings(x, ndim):
     x.add_method("bulkModulus", "double", [param("double", "massDensity"),
                                            param("double", "specificThermalEnergy")],
                  is_const=True)
+    x.add_method("entropy", "double", [param("double", "massDensity"),
+                                       param("double", "specificThermalEnergy")],
+                 is_const=True)
 
     # Attributes.
     x.add_instance_attribute("etamin_solid", "double", getter="etamin_solid", setter="etamin_solid")
@@ -423,7 +442,7 @@ def generateMurnahanEquationOfStateBindings(x, ndim):
                        param("double", "externalPressure", default_value="0.0"),
                        param("double", "minimumPressure", default_value="-std::numeric_limits<double>::max()"),
                        param("double", "maximumPressure", default_value="std::numeric_limits<double>::max()"),
-                       param("MaterialPressureMinType", "minPressureType", default_value="PressureFloor")])
+                       param("MaterialPressureMinType", "minPressureType", default_value="MaterialPressureMinType::PressureFloor")])
 
     # Generic EOS interface.
     generateEquationOfStateVirtualBindings(x, ndim, False)
@@ -452,6 +471,9 @@ def generateMurnahanEquationOfStateBindings(x, ndim):
                  is_const=True)
     x.add_method("bulkModulus", "double", [param("double", "massDensity"),
                                            param("double", "specificThermalEnergy")],
+                 is_const=True)
+    x.add_method("entropy", "double", [param("double", "massDensity"),
+                                       param("double", "specificThermalEnergy")],
                  is_const=True)
 
     # Attributes.
@@ -772,7 +794,10 @@ def generateStrainPorosityBindings(x, ndim):
                        param("double", "phi0"),
                        param("double", "epsE"),
                        param("double", "epsX"),
-                       param("double", "kappa")])
+                       param("double", "kappa"),
+                       param("double", "gammaS0"),
+                       param("double", "cS0"),
+                       param("double", "c0")])
 
     # Physics interface.
     generatePhysicsVirtualBindings(x, ndim, False)
@@ -793,6 +818,9 @@ def generateStrainPorosityBindings(x, ndim):
     x.add_instance_attribute("epsX", "double", getter="epsX", is_const=True)
     x.add_instance_attribute("epsC", "double", getter="epsC", is_const=True)
     x.add_instance_attribute("kappa", "double", getter="kappa", is_const=True)
+    x.add_instance_attribute("gammaS0", "double", getter="gammaS0", is_const=True)
+    x.add_instance_attribute("cS0", "double", getter="cS0", is_const=True)
+    x.add_instance_attribute("c0", "double", getter="c0", is_const=True)
     const_ref_return_value(x, me, "%s::porousEOS" % me, porouseos, [], "porousEOS")
     const_ref_return_value(x, me, "%s::nodeList" % me, nodelist, [], "nodeList")
     const_ref_return_value(x, me, "%s::alpha" % me, scalarfield, [], "alpha")
@@ -802,3 +830,18 @@ def generateStrainPorosityBindings(x, ndim):
 
     return
 
+#---------------------------------------------------------------------------
+# Geodyn
+#---------------------------------------------------------------------------
+def generatePhysicsEvolvingMaterialLibraryBindings(x, ndim):
+
+    dim = "Spheral::Dim< %i >" % ndim
+    me = "Spheral::SolidMaterial::PhysicsEvolvingMaterialLibrary%id" % ndim
+
+    # Constructors.
+    x.add_constructor([constrefparam("PhysicalConstants", "constants"),
+                       param("double", "minimumPressure", default_value="-std::numeric_limits<double>::max()"),
+                       param("double", "maximumPressure", default_value="std::numeric_limits<double>::max()"),
+                       param("MaterialPressureMinType", "minPressureType", default_value="MaterialPressureMinType::PressureFloor")])
+
+    return

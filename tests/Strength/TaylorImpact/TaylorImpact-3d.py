@@ -5,6 +5,12 @@
 # This scenario is based on the v=205 m/sec example in
 # Eakins & Thadhani, Journal of Applied Physics, 100, 073503 (2006)
 #-------------------------------------------------------------------------------
+#
+# The following ATS setup is to generate reference data for the SpheralC tests.
+#
+#ATS:test(SELF, "--steps 100 --compatibleEnergy False --baseDir 3D_1proc_ref --siloSnapShotFile Spheral_state_snapshot_1proc", np=1, label="Generate 1 proc reference data")
+#ATS:test(SELF, "--steps 100 --compatibleEnergy False --baseDir 3D_8proc_ref --siloSnapShotFile Spheral_state_snapshot_8proc", np=8, label="Generate 8 proc reference data")
+
 from math import *
 import mpi
 
@@ -67,7 +73,8 @@ commandLine(seed = "cylindrical",
             epsilonTensile = 0.0,
             nTensile = 4,
             rigorousBoundaries = False,
-            gradhCorrection = False,
+            gradhCorrection = True,
+            correctVelocityGradient = True,
 
             # Simulation control
             goalTime = 150.0,
@@ -331,6 +338,7 @@ else:
                              cfl = cfl,
                              compatibleEnergyEvolution = compatibleEnergy,
                              gradhCorrection = gradhCorrection,
+                             correctVelocityGradient = correctVelocityGradient,
                              densityUpdate = densityUpdate,
                              HUpdate = HUpdate,
                              XSPH = XSPH,
@@ -420,8 +428,9 @@ if siloSnapShotFile:
     state = State(db, integrator.physicsPackages())
     derivs = StateDerivatives(db, integrator.physicsPackages())
     derivs.Zero()
-    integrator.initialize(state, derivs)
+    integrator.preStepInitialize(state, derivs)
     dt = integrator.selectDt(dtmin, dtmax, state, derivs)
+    integrator.initializeDerivatives(control.time() + dt, dt, state, derivs)
     integrator.evaluateDerivatives(control.time() + dt, dt, db, state, derivs)
     integrator.finalizeDerivatives(control.time() + dt, dt, db, state, derivs)
 
