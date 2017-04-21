@@ -13,6 +13,7 @@
 #include "segmentIntersectEdges.hh"
 #include "lineSegmentIntersections.hh"
 #include "rotationMatrix.hh"
+#include "boost/random/uniform_real_distribution.hpp"
 
 namespace Spheral {
 
@@ -51,7 +52,7 @@ bool pointInPolyhedron(const Dim<3>::Vector& p,
   // Pick a random rotation to apply to these rays.
   std::random_device rd;  //Will be used to obtain a seed for the random number engine
   std::mt19937 gen(rd()); //Standard mersenne_twister_engine seeded with rd()
-  std::uniform_real_distribution<> dis(-1.0, 1.0);
+  boost::random::uniform_real_distribution<> dis(-1.0, 1.0);
   // const Tensor RT = rotationMatrix(Vector(dis(gen), dis(gen), dis(gen)).unitVector());
   // p1 = p + RT*p1;
   // p2 = p + RT*p2;

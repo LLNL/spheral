@@ -1234,10 +1234,10 @@ localSamplingBoundingVolume(typename Dimension::Vector& centroid,
 
   // Find our local bounds.
   centroid = Vector();
-  xminNodes = DBL_MAX;
-  xmaxNodes = -DBL_MAX;
-  xminSample = DBL_MAX;
-  xmaxSample = -DBL_MAX;
+  xminNodes = FLT_MAX;
+  xmaxNodes = -FLT_MAX;
+  xminSample = FLT_MAX;
+  xmaxSample = -FLT_MAX;
   size_t count = 0;
   const FieldList<Dimension, Vector> positions = this->globalPosition();
   const FieldList<Dimension, Vector> extent = this->globalNodeExtent();

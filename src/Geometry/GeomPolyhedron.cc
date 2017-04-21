@@ -22,9 +22,13 @@
 #include "Utilities/pointInPolyhedron.hh"
 #include "Utilities/safeInv.hh"
 
+#ifdef __IBMCPP__
 extern "C" {
-#include "libqhull/qhull_a.h"
+#endif
+  #include "libqhull/qhull_a.h"
+#ifdef __IBMCPP__
 }
+#endif
 
 namespace Spheral {
 
@@ -573,7 +577,7 @@ edges() const {
     for (k = 0; k != npoints; ++k) {
       i = ipoints[k];
       j = ipoints[(k + 1) % npoints];
-      result.push_back(i < j ? make_pair(i, j) : make_pair(j, i));
+      result.push_back(i < j ? pair<unsigned,unsigned>(i, j) : pair<unsigned,unsigned>(j, i));
     }
   }
   sort(result.begin(), result.end(), ComparePairs<pair<unsigned, unsigned> >());
