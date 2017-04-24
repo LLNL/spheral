@@ -22,13 +22,9 @@
 #include "Utilities/pointInPolyhedron.hh"
 #include "Utilities/safeInv.hh"
 
-#ifdef __IBMCPP__
 extern "C" {
-#endif
   #include "libqhull/qhull_a.h"
-#ifdef __IBMCPP__
 }
-#endif
 
 namespace Spheral {
 
