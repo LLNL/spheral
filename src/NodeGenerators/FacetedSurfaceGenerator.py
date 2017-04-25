@@ -52,7 +52,10 @@ class PolyhedralSurfaceGenerator(NodeGeneratorBase):
         imin0, imax0 = self.globalIDRange(ntot0)
 
         # Build the intial positions.
-        pos = fillFacetedVolume(surface, nx, mpi.rank, mpi.procs)
+        pos0 = fillFacetedVolume(surface, nx, mpi.rank, mpi.procs)
+
+        # Something strange here...
+        pos = [p for p in pos0 if surface.contains(p)]
         nsurface = mpi.allreduce(len(pos), mpi.SUM)
 
         # Apply any rejecter.
@@ -140,12 +143,7 @@ def VFSurfaceGenerator(filename,
         if refineFactor != 0:
             surface = refinePolyhedron(surface, refineFactor)
         if scaleFactor != 1.0:
-            verts = surface.vertices()
-            facets = surface.facetVertices
-            newverts = vector_of_Vector(verts.size())
-            for i in xrange(verts.size()):
-                newverts[i] = verts[i] * scaleFactor
-            surface = Polyhedron(newverts, facets)
+            surface *= scaleFactor
     surface = mpi.bcast(surface, 0)
     return PolyhedralSurfaceGenerator(surface, rho, nx, nNodePerh, SPH, rejecter)
 
