@@ -1173,10 +1173,9 @@ $(HDF5BUILDDATE):  $(HDF5DIST)
 	@$(MKDIR) $(LIBDIR) $(prefix)/include $(prefix)/bin
 	rm -fr $(HDF5DIR)
 	$(BZIP2) -dc $(HDF5DIST) | $(TAR) -xf -
+	$(PATCH) $(HDF5DIR)/bin/config.guess $(srcdir)/config.guess-hdf5-1.8.16.patch
+	$(PATCH) $(HDF5DIR)/bin/config.sub $(srcdir)/config.sub-hdf5-1.8.16.patch
 	$(SHELL) -ec "cd $(HDF5DIR); \
-        wget -O config.guess 'http://git.savannah.gnu.org/gitweb/?p=config.git;a=blob_plain;f=config.guess;hb=HEAD'; \
-	wget -O config.sub 'http://git.savannah.gnu.org/gitweb/?p=config.git;a=blob_plain;f=config.sub;hb=HEAD'; \
-	mv config.* bin/.; \
 	env CC='$(CC)' CXX='$(CXX)' CFLAGS='$(CFLAGS)' CXXFLAGS='$(CXXFLAGS)' ./configure --prefix=$(prefix) $(HDF5FLAGS) ; \
 	rm -f test.conf ; \
 	$(MAKE) ; \
@@ -1203,9 +1202,9 @@ $(SILOBUILDDATE):  $(SILODIST) $(HDF5BUILDDATE) $(PYTHONBUILDDATE)
 	@$(MKDIR) $(LIBDIR) $(prefix)/include $(prefix)/bin
 	rm -fr $(SILODIR)
 	$(GZIP) -dc $(SILODIST) | $(TAR) -xf -
+	$(PATCH) $(SILODIR)/config.guess $(srcdir)/config.guess-silo-4.10.2-bsd.patch
+	$(PATCH) $(SILODIR)/config.sub $(srcdir)/config.sub-silo-4.10.2-bsd.patch
 	$(SHELL) -ec "cd $(SILODIR); \
-        wget -O config.guess 'http://git.savannah.gnu.org/gitweb/?p=config.git;a=blob_plain;f=config.guess;hb=HEAD'; \
-        wget -O config.sub 'http://git.savannah.gnu.org/gitweb/?p=config.git;a=blob_plain;f=config.sub;hb=HEAD'; \
         mv config.* config/.; \
 	env PATH=$(prefix)/bin:$$PATH CC='$(CC)' CXX='$(CXX)' CFLAGS='$(CFLAGS)' CXXFLAGS='$(CXXFLAGS)' $(SILOFLAGS) ./configure --enable-shared=no --enable-fortran=no --prefix=$(prefix) --with-hdf5='$(prefix)/include,$(prefix)/lib' --enable-silex=no --enable-browser=yes ; \
 	$(MAKE) ; \
