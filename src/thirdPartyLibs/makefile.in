@@ -1202,10 +1202,9 @@ $(SILOBUILDDATE):  $(SILODIST) $(HDF5BUILDDATE) $(PYTHONBUILDDATE)
 	@$(MKDIR) $(LIBDIR) $(prefix)/include $(prefix)/bin
 	rm -fr $(SILODIR)
 	$(GZIP) -dc $(SILODIST) | $(TAR) -xf -
-	$(PATCH) $(SILODIR)/config.guess $(srcdir)/config.guess-silo-4.10.2-bsd.patch
-	$(PATCH) $(SILODIR)/config.sub $(srcdir)/config.sub-silo-4.10.2-bsd.patch
+	$(PATCH) $(SILODIR)/config/config.guess $(srcdir)/config.guess-silo-4.10.2-bsd.patch
+	$(PATCH) $(SILODIR)/config/config.sub $(srcdir)/config.sub-silo-4.10.2-bsd.patch
 	$(SHELL) -ec "cd $(SILODIR); \
-        mv config.* config/.; \
 	env PATH=$(prefix)/bin:$$PATH CC='$(CC)' CXX='$(CXX)' CFLAGS='$(CFLAGS)' CXXFLAGS='$(CXXFLAGS)' $(SILOFLAGS) ./configure --enable-shared=no --enable-fortran=no --prefix=$(prefix) --with-hdf5='$(prefix)/include,$(prefix)/lib' --enable-silex=no --enable-browser=yes ; \
 	$(MAKE) ; \
 	$(MAKE) install"
