@@ -316,7 +316,7 @@ siloPointmeshDump(baseName = "GreshoOverlay_initial_nodes",
 #------------------------------------------------------------------------------
 # Make a different generator to map to.
 #------------------------------------------------------------------------------
-generator2 = GenerateNodeDistribution2d(int(1.3*nx1), int(1.3*ny1), rho,
+generator2 = GenerateNodeDistribution2d(int(2*nx1), int(2*ny1), rho,
                                         distributionType = seed,
                                         xmin = (x0, y0),
                                         xmax = (x1, y1),

@@ -296,6 +296,14 @@ Spheral.add_function("segmentIntersectEdges", "bool", [constrefparam("%(vector)s
                              [constrefparam("Polyhedron", "poly"),
                               constrefparam("vector_of_Plane3d", "planes")],
                              docstring = "Clip a polyhedron with a set of planes.")
+        Spheral.add_function("clippedVolume", "double", 
+                             [constrefparam("Polygon", "poly"),
+                              constrefparam("vector_of_Plane2d", "planes")],
+                             docstring = "Return the area of a polygon clipped with a set of planes.")
+        Spheral.add_function("clippedVolume", "double", 
+                             [constrefparam("Polyhedron", "poly"),
+                              constrefparam("vector_of_Plane3d", "planes")],
+                             docstring = "Return the volume of a polyhedron clipped with a set of planes.")
 
         # Boost.math functions.
         Spheral.add_function("legendre_p", "double", 

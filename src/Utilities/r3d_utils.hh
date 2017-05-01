@@ -39,6 +39,15 @@ Dim<2>::FacetedVolume clipFacetedVolume(const Dim<2>::FacetedVolume& poly,
 Dim<3>::FacetedVolume clipFacetedVolume(const Dim<3>::FacetedVolume& poly,
                                         const std::vector<GeomPlane<Dim<3> > >& planes);
 
+//------------------------------------------------------------------------------
+// Return the volume of the clipped region.
+//------------------------------------------------------------------------------
+double clippedVolume(const Dim<2>::FacetedVolume& poly,
+                     const std::vector<GeomPlane<Dim<2> > >& planes);
+
+double clippedVolume(const Dim<3>::FacetedVolume& poly,
+                     const std::vector<GeomPlane<Dim<3> > >& planes);
+
 }
 
 #endif
