@@ -162,7 +162,7 @@ overlayRemapFields(const vector<Boundary<Dimension>*>& boundaries,
         vector<Plane> planes;
         planes.reserve(facets.size());
         for (const Facet& facet: facets) planes.push_back(Plane(facet.position(), -facet.normal()));
-        const Scalar Vi = clipFacetedVolume(donorCells(i), planes).volume();
+        const Scalar Vi = clippedVolume(donorCells(i), planes);
         if (Vi > 0.0) {
           intersectIndices(i).push_back(j);
           intersectVols(i).push_back(Vi);
