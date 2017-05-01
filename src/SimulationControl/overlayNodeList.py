@@ -105,6 +105,7 @@ def overlayNodeList(nodes,
     # Convert fields we're going to map to conserved values.  This is necessary 'cause the splat operation we're going
     # to use guarantees summing over the input and output field values gives the same value.
     pos0 = nodes.positions()
+    H0 = nodes.Hfield()
     mass0 = nodes.mass()
     rho0 = nodes.massDensity()
     vol0 = ScalarField(nodes.mass())
@@ -128,6 +129,7 @@ def overlayNodeList(nodes,
             mps0[i] *= mass0[i]
             mD0[i] *= mass0[i]
     pos1 = newnodes.positions()
+    H1 = newnodes.Hfield()
     mass1 = newnodes.mass()
     rho1 = newnodes.massDensity()
     vol1 = ScalarField(newnodes.mass())

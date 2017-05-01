@@ -23,6 +23,7 @@ using NodeSpace::FluidNodeList;
 using DataBaseSpace::DataBase;
 using NeighborSpace::ConnectivityMap;
 using BoundarySpace::Boundary;
+using NeighborSpace::Neighbor;
 
 template<typename Dimension>
 void
@@ -88,13 +89,15 @@ overlayRemapFields(const vector<Boundary<Dimension>*>& boundaries,
     VERIFY2(acceptorNodeListPtr == NULL or acceptorNodeListPtr == field->nodeListPtr(), "overlayRemapFields ERROR: all acceptor fields must be on same NodeList.");
     acceptorNodeListPtr = field->nodeListPtr();
   }
+  Neighbor<Dimension>& neighborD = donorNodeListPtr->neighbor();
+  Neighbor<Dimension>& neighborA = acceptorNodeListPtr->neighbor();
 
   // Build the donor volumes.
   Field<Dimension, FacetedVolume> donorCells("donor cells", *donorNodeListPtr);
   {
     DataBase<Dimension> db;
     db.appendNodeList(*dynamic_cast<FluidNodeList<Dimension>*>(const_cast<NodeList<Dimension>*>(donorNodeListPtr)));
-    donorNodeListPtr->neighbor().updateNodes();
+    neighborD.updateNodes();
     for (Boundary<Dimension>* boundPtr: boundaries) boundPtr->setAllGhostNodes(db);
     for (Boundary<Dimension>* boundPtr: boundaries) boundPtr->finalizeGhostBoundary();
     db.updateConnectivityMap(false);
@@ -107,20 +110,16 @@ overlayRemapFields(const vector<Boundary<Dimension>*>& boundaries,
     FieldList<Dimension, int> surfacePoint = db.newFluidFieldList(0, "surface point");
     FieldList<Dimension, Scalar> vol = db.newFluidFieldList(0.0, "volume");
     FieldList<Dimension, Vector> deltaMedian = db.newFluidFieldList(Vector::zero, "displacement");
-    FieldList<Dimension, FacetedVolume> cells_fl = db.newFluidFieldList(FacetedVolume(), "cells"); // (FieldSpace::FieldStorageType::Reference);
-    //cells_fl.appendField(donorCells);
-    const vector<FacetedVolume> bounds;
-    const vector<vector<FacetedVolume>> holes;
-    cerr << "Going into computeVoronoiVolume 1" << endl;
+    FieldList<Dimension, FacetedVolume> cells_fl(FieldSpace::FieldStorageType::Reference);
+    cells_fl.appendField(donorCells);
     CRKSPHSpace::computeVoronoiVolume(position, H, rho, gradrho, cm, 2.0, vector<FacetedVolume>(), vector<vector<FacetedVolume>>(), weight,
                                       surfacePoint, vol, deltaMedian, cells_fl);
-    cerr << "Done" << endl;
   }
     
   // Build the acceptor volumes.
   Field<Dimension, FacetedVolume> acceptorCells("acceptor cells", *acceptorNodeListPtr);
   {
-    acceptorNodeListPtr->neighbor().updateNodes();
+    neighborA.updateNodes();
     DataBase<Dimension> db;
     db.appendNodeList(*dynamic_cast<FluidNodeList<Dimension>*>(const_cast<NodeList<Dimension>*>(acceptorNodeListPtr)));
     db.updateConnectivityMap(false);
@@ -135,25 +134,30 @@ overlayRemapFields(const vector<Boundary<Dimension>*>& boundaries,
     FieldList<Dimension, Vector> deltaMedian = db.newFluidFieldList(Vector::zero, "displacement");
     FieldList<Dimension, FacetedVolume> cells_fl(FieldSpace::FieldStorageType::Reference);
     cells_fl.appendField(acceptorCells);
-    cerr << "Going into computeVoronoiVolume 2" << endl;
     CRKSPHSpace::computeVoronoiVolume(position, H, rho, gradrho, cm, 2.0, vector<FacetedVolume>(), vector<vector<FacetedVolume>>(), weight,
                                       surfacePoint, vol, deltaMedian, cells_fl);
-    cerr << "Done" << endl;
   }
 
-  // We're going to deliberately avoid using Neighbor operations, so for now this is an N^2 check for overlap.
-  // Makes for short but very inefficient code!
+  // Look for intersecting node volumes.
   const unsigned nD = donorNodeListPtr->numInternalNodes(), nA = acceptorNodeListPtr->numInternalNodes();
   const Field<Dimension, Vector>& posD = donorNodeListPtr->positions();
+  const Field<Dimension, SymTensor>& HD = donorNodeListPtr->Hfield();
+  const Field<Dimension, Vector>& posA = acceptorNodeListPtr->positions();
+  const Field<Dimension, SymTensor>& HA = acceptorNodeListPtr->Hfield();
   Field<Dimension, vector<unsigned>> intersectIndices("intersection indices", *donorNodeListPtr);
   Field<Dimension, vector<Scalar>> intersectVols("intesection volumes", *donorNodeListPtr);
   for (unsigned i = 0; i != nD; ++i) {
-    for (unsigned j = 0; j != nA; ++j) {
+    neighborA.setMasterList(posD(i), HD(i));
+    neighborA.setRefineNeighborList(posD(i), HD(i));
+    for (typename Neighbor<Dimension>::const_iterator jitr = neighborA.refineNeighborBegin();
+         jitr != neighborA.refineNeighborEnd();
+         ++jitr) {
+      const int j = *jitr;
       if (donorCells(i).intersect(acceptorCells(j))) {
         const vector<Facet>& facets = acceptorCells(j).facets();
         vector<Plane> planes;
         planes.reserve(facets.size());
-        for (const Facet& facet: facets) planes.push_back(Plane(facet.position(), facet.normal()));
+        for (const Facet& facet: facets) planes.push_back(Plane(facet.position(), -facet.normal()));
         const Scalar Vi = clipFacetedVolume(donorCells(i), planes).volume();
         if (Vi > 0.0) {
           intersectIndices(i).push_back(j);
@@ -166,15 +170,15 @@ overlayRemapFields(const vector<Boundary<Dimension>*>& boundaries,
   // Now we can go through and splat the conserved values from the donor to acceptor volumes.
   for (unsigned i = 0; i != nD; ++i) {
     const unsigned n = intersectIndices(i).size();
-    CHECK(intersectVols.size() == n);
+    CHECK(intersectVols(i).size() == n);
     const Scalar voltotInv = safeInv(accumulate(intersectVols(i).begin(), intersectVols(i).end(), 0.0));
     for (unsigned k = 0; k != n; ++k) {
       const unsigned j = intersectIndices(i)[k];
       const Scalar f = intersectVols(i)[k]*voltotInv;
-      for (unsigned kk = 0; kk != nScalarFields; ++k) (*scalarAcceptorFields[kk])(j) += f*(*scalarDonorFields[kk])(j);
-      for (unsigned kk = 0; kk != nVectorFields; ++k) (*vectorAcceptorFields[kk])(j) += f*(*vectorDonorFields[kk])(j);
-      for (unsigned kk = 0; kk != nTensorFields; ++k) (*tensorAcceptorFields[kk])(j) += f*(*tensorDonorFields[kk])(j);
-      for (unsigned kk = 0; kk != nSymTensorFields; ++k) (*symTensorAcceptorFields[kk])(j) += f*(*symTensorDonorFields[kk])(j);
+      for (unsigned kk = 0; kk != nScalarFields; ++kk) (*scalarAcceptorFields[kk])(j) += f*(*scalarDonorFields[kk])(i);
+      for (unsigned kk = 0; kk != nVectorFields; ++kk) (*vectorAcceptorFields[kk])(j) += f*(*vectorDonorFields[kk])(i);
+      for (unsigned kk = 0; kk != nTensorFields; ++kk) (*tensorAcceptorFields[kk])(j) += f*(*tensorDonorFields[kk])(i);
+      for (unsigned kk = 0; kk != nSymTensorFields; ++kk) (*symTensorAcceptorFields[kk])(j) += f*(*symTensorDonorFields[kk])(i);
     }
   }
 }
