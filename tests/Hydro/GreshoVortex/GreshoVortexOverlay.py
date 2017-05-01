@@ -14,6 +14,8 @@ from findLastRestart import *
 from GenerateNodeDistribution2d import *
 from CubicNodeGenerator import GenerateSquareNodeDistribution
 from CentroidalVoronoiRelaxation import *
+from siloPointmeshDump import siloPointmeshDump
+from SpheralConservation import SpheralConservation
 
 import mpi
 import DistributeNodes
@@ -281,10 +283,40 @@ for i in xrange(nodes.numInternalNodes):
     eps0 = Pi/((gamma - 1.0)*rho)
     eps[i]=eps0
 
+#-------------------------------------------------------------------------------
+# Construct a DataBase to hold our node lists
+#-------------------------------------------------------------------------------
+db = DataBase()
+output("db")
+db.appendNodeList(nodes)
+output("db.numNodeLists")
+output("db.numFluidNodeLists")
+
+#------------------------------------------------------------------------------
+# Build the conservation check.
+#------------------------------------------------------------------------------
+conserve = SpheralConservation(db)
+print "Initial conservation check:"
+for lab, q in (("M", conserve.massHistory), 
+               ("pmom.x", [x.x for x in conserve.pmomHistory]), 
+               ("pmom.y", [x.y for x in conserve.pmomHistory]), 
+               ("KE", conserve.KEHistory),
+               ("TE", conserve.TEHistory), 
+               ("E", conserve.EHistory)):
+    print "%10s: %g %s" % (lab, (q[-1] - q[0])/q[0], q)
+
+#------------------------------------------------------------------------------
+# Write the starting conditions.
+#------------------------------------------------------------------------------
+siloPointmeshDump(baseName = "GreshoOverlay_initial_nodes",
+                  fields = [nodes.mass(), nodes.Hfield(),
+                            nodes.velocity(), nodes.specificThermalEnergy()],
+                  baseDirectory = "GreshoOverlay_initial_nodes")
+
 #------------------------------------------------------------------------------
 # Make a different generator to map to.
 #------------------------------------------------------------------------------
-generator2 = GenerateNodeDistribution2d(2*nx1, 2*ny1, rho,
+generator2 = GenerateNodeDistribution2d(int(1.3*nx1), int(1.3*ny1), rho,
                                         distributionType = seed,
                                         xmin = (x0, y0),
                                         xmax = (x1, y1),
@@ -300,3 +332,24 @@ generator2 = GenerateNodeDistribution2d(2*nx1, 2*ny1, rho,
 from overlayNodeList import overlayNodeList
 overlayNodeList(nodes, generator2,
                 removeUnusedNodes = False)
+
+#------------------------------------------------------------------------------
+# Conservation check.
+#------------------------------------------------------------------------------
+conserve.updateHistory()
+print "Final conservation check:"
+for lab, q in (("M", conserve.massHistory), 
+               ("pmom.x", [x.x for x in conserve.pmomHistory]), 
+               ("pmom.y", [x.y for x in conserve.pmomHistory]), 
+               ("KE", conserve.KEHistory),
+               ("TE", conserve.TEHistory), 
+               ("E", conserve.EHistory)):
+    print "%10s: %g %s" % (lab, (q[-1] - q[0])/q[0], q)
+
+#------------------------------------------------------------------------------
+# Write the overlayed results.
+#------------------------------------------------------------------------------
+siloPointmeshDump(baseName = "GreshoOverlay_overlay_nodes",
+                  fields = [nodes.mass(), nodes.Hfield(),
+                            nodes.velocity(), nodes.specificThermalEnergy()],
+                  baseDirectory = "GreshoOverlay_overlay_nodes")
