@@ -61,33 +61,37 @@ overlayRemapFields(const vector<Boundary<Dimension>*>& boundaries,
     VERIFY2(donorNodeListPtr == NULL or donorNodeListPtr == field->nodeListPtr(), "overlayRemapFields ERROR: all donor fields must be on same NodeList.");
     donorNodeListPtr = field->nodeListPtr();
   }
-  for (const Field<Dimension, Scalar>* field: scalarDonorFields) {
+  for (const Field<Dimension, Vector>* field: vectorDonorFields) {
     VERIFY2(donorNodeListPtr == NULL or donorNodeListPtr == field->nodeListPtr(), "overlayRemapFields ERROR: all donor fields must be on same NodeList.");
     donorNodeListPtr = field->nodeListPtr();
   }
-  for (const Field<Dimension, Scalar>* field: scalarDonorFields) {
+  for (const Field<Dimension, Tensor>* field: tensorDonorFields) {
     VERIFY2(donorNodeListPtr == NULL or donorNodeListPtr == field->nodeListPtr(), "overlayRemapFields ERROR: all donor fields must be on same NodeList.");
     donorNodeListPtr = field->nodeListPtr();
   }
-  for (const Field<Dimension, Scalar>* field: scalarDonorFields) {
+  for (const Field<Dimension, SymTensor>* field: symTensorDonorFields) {
     VERIFY2(donorNodeListPtr == NULL or donorNodeListPtr == field->nodeListPtr(), "overlayRemapFields ERROR: all donor fields must be on same NodeList.");
     donorNodeListPtr = field->nodeListPtr();
   }
-  for (const Field<Dimension, Scalar>* field: scalarAcceptorFields) {
+  for (Field<Dimension, Scalar>* field: scalarAcceptorFields) {
     VERIFY2(acceptorNodeListPtr == NULL or acceptorNodeListPtr == field->nodeListPtr(), "overlayRemapFields ERROR: all acceptor fields must be on same NodeList.");
     acceptorNodeListPtr = field->nodeListPtr();
+    *field = 0.0;
   }
-  for (const Field<Dimension, Scalar>* field: scalarAcceptorFields) {
+  for (Field<Dimension, Vector>* field: vectorAcceptorFields) {
     VERIFY2(acceptorNodeListPtr == NULL or acceptorNodeListPtr == field->nodeListPtr(), "overlayRemapFields ERROR: all acceptor fields must be on same NodeList.");
     acceptorNodeListPtr = field->nodeListPtr();
+    *field = Vector::zero;
   }
-  for (const Field<Dimension, Scalar>* field: scalarAcceptorFields) {
+  for (Field<Dimension, Tensor>* field: tensorAcceptorFields) {
     VERIFY2(acceptorNodeListPtr == NULL or acceptorNodeListPtr == field->nodeListPtr(), "overlayRemapFields ERROR: all acceptor fields must be on same NodeList.");
     acceptorNodeListPtr = field->nodeListPtr();
+    *field = Tensor::zero;
   }
-  for (const Field<Dimension, Scalar>* field: scalarAcceptorFields) {
+  for (Field<Dimension, SymTensor>* field: symTensorAcceptorFields) {
     VERIFY2(acceptorNodeListPtr == NULL or acceptorNodeListPtr == field->nodeListPtr(), "overlayRemapFields ERROR: all acceptor fields must be on same NodeList.");
     acceptorNodeListPtr = field->nodeListPtr();
+    *field = SymTensor::zero;
   }
   Neighbor<Dimension>& neighborD = donorNodeListPtr->neighbor();
   Neighbor<Dimension>& neighborA = acceptorNodeListPtr->neighbor();
