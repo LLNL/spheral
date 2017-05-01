@@ -30,6 +30,7 @@
 #include "Utilities/pointInPolyhedron.hh"
 #include "Utilities/pointOnPolyhedron.hh"
 #include "Utilities/refinePolyhedron.hh"
+#include "Utilities/overlayRemapFields.hh"
 
 #ifndef NOR3D
 #include "Utilities/r3d_utils.hh"

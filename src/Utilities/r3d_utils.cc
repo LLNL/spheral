@@ -18,6 +18,22 @@ using namespace std;
 namespace {   // anonymous namespace
 
 //------------------------------------------------------------------------------
+// A special comparator to sort r2d planes by distance.
+//------------------------------------------------------------------------------
+inline
+bool compareR2Dplanes(const r2d_plane& lhs, const r2d_plane& rhs) {
+  return lhs.d < rhs.d;
+}
+
+//------------------------------------------------------------------------------
+// A special comparator to sort r3d planes by distance.
+//------------------------------------------------------------------------------
+inline
+bool compareR3Dplanes(const r3d_plane& lhs, const r3d_plane& rhs) {
+  return lhs.d < rhs.d;
+}
+
+//------------------------------------------------------------------------------
 // A class to hold indices making up a planar polygonal face.
 // The finalize method shifts the loop to start with the minimum index to make
 // each loop unique for comparisons.
@@ -462,6 +478,9 @@ Dim<2>::FacetedVolume clipFacetedVolume(const Dim<2>::FacetedVolume& poly,
     planes2d[i].d = -p.dot(nhat);
   }
 
+  // Sort the planes by distance.
+  sort(planes2d.begin(), planes2d.end(), compareR2Dplanes);
+
   // Do the deed.
   r2d_clip(&poly2d, &planes2d[0], nplanes);
 
@@ -501,6 +520,9 @@ Dim<3>::FacetedVolume clipFacetedVolume(const Dim<3>::FacetedVolume& poly,
     planes3d[i].n.z = nhat.z();
     planes3d[i].d = -p.dot(nhat);
   }
+
+  // Sort the planes by distance.
+  sort(planes3d.begin(), planes3d.end(), compareR3Dplanes);
 
   // Do the deed.
   r3d_clip(&poly3d, &planes3d[0], nplanes);
