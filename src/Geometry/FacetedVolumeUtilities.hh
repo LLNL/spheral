@@ -13,6 +13,7 @@
 #include <vector>
 #include <set>
 #include <deque>
+#include "Utilities/safeInv.hh"
 
 namespace Spheral {
 namespace GeometryUtilities {
@@ -72,7 +73,7 @@ computeAncillaryGeometry(const PolyType& poly,
   vertexUnitNormals = vector<Vector>(nverts);
   for (unsigned i = 0; i != nverts; ++i) {
     for (const unsigned fi: vertexFacetConnectivity[i]) {
-      vertexUnitNormals[i] += facets[fi].normal()/facets[fi].area();
+      vertexUnitNormals[i] += facets[fi].normal()*safeInvVar(facets[fi].area());
     }
     vertexUnitNormals[i] = vertexUnitNormals[i].unitVector();
   }

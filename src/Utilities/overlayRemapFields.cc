@@ -122,8 +122,10 @@ overlayRemapFields(const vector<Boundary<Dimension>*>& boundaries,
     FieldList<Dimension, Vector> deltaMedian = db.newFluidFieldList(Vector::zero, "displacement");
     FieldList<Dimension, FacetedVolume> cells_fl(FieldSpace::FieldStorageType::Reference);
     cells_fl.appendField(localDonorCells);
-    CRKSPHSpace::computeVoronoiVolume(position, H, rho, gradrho, cm, 2.0, vector<FacetedVolume>(), vector<vector<FacetedVolume>>(), weight,
+    CRKSPHSpace::computeVoronoiVolume(position, H, rho, gradrho, cm, 4.0/donorNodeListPtr->nodesPerSmoothingScale(), vector<FacetedVolume>(), vector<vector<FacetedVolume>>(), weight,
                                       surfacePoint, vol, deltaMedian, cells_fl);
+    const_cast<NodeList<Dimension>*>(donorNodeListPtr)->numGhostNodes(0);
+    neighborD.updateNodes();
   }
     
   // Build the acceptor volumes.
@@ -147,13 +149,18 @@ overlayRemapFields(const vector<Boundary<Dimension>*>& boundaries,
     FieldList<Dimension, Vector> deltaMedian = db.newFluidFieldList(Vector::zero, "displacement");
     FieldList<Dimension, FacetedVolume> cells_fl(FieldSpace::FieldStorageType::Reference);
     cells_fl.appendField(localAcceptorCells);
-    CRKSPHSpace::computeVoronoiVolume(position, H, rho, gradrho, cm, 2.0, vector<FacetedVolume>(), vector<vector<FacetedVolume>>(), weight,
+    CRKSPHSpace::computeVoronoiVolume(position, H, rho, gradrho, cm, 4.0/acceptorNodeListPtr->nodesPerSmoothingScale(), vector<FacetedVolume>(), vector<vector<FacetedVolume>>(), weight,
                                       surfacePoint, vol, deltaMedian, cells_fl);
+    const_cast<NodeList<Dimension>*>(acceptorNodeListPtr)->numGhostNodes(0);
+    neighborA.updateNodes();
   }
 
   const Field<Dimension, Vector>& posD = donorNodeListPtr->positions();
   const Field<Dimension, SymTensor>& HD = donorNodeListPtr->Hfield();
+
 #ifdef USE_MPI
+  //..........................................................................
+  // Parallel version
   // Pack up and broadcast our donor volumes to everyone else.
   vector<char> localPackedDonorCells;
   packElement(nD, localPackedDonorCells);
@@ -161,15 +168,12 @@ overlayRemapFields(const vector<Boundary<Dimension>*>& boundaries,
   for (auto i = 0; i != nD; ++i) packElement(posD(i), localPackedDonorCells);
   for (auto i = 0; i != nD; ++i) packElement(HD(i), localPackedDonorCells);
   unsigned nlocalpack = localPackedDonorCells.size();
-#endif
 
   // Prepare buffers for asynchronous sends.
-#ifdef USE_MPI
   vector<unsigned> sendBufsizes;
   vector<MPI_Request> sendRequests;
   sendBufsizes.reserve(4*nprocs);
   sendRequests.reserve(4*nprocs);
-#endif
 
   // Look for intersecting node volumes.
   vector<vector<unsigned>> intersectDonorIndices(nprocs);                 // index of donor node    [domain][donorID]
@@ -180,7 +184,6 @@ overlayRemapFields(const vector<Boundary<Dimension>*>& boundaries,
     if (myproc == 0) cerr << "Intersecting domain " << iproc << " of " << nprocs << "..." << endl;
 
     // Get the other processes donor info.
-#ifdef USE_MPI
     unsigned npack = nlocalpack;
     MPI_Bcast(&npack, 1, MPI_UNSIGNED, iproc, Communicator::communicator());
     vector<char> buffer(npack);
@@ -196,7 +199,6 @@ overlayRemapFields(const vector<Boundary<Dimension>*>& boundaries,
     for (auto i = 0; i != donorN; ++i) unpackElement(donorPos[i], bufItr, buffer.end());
     for (auto i = 0; i != donorN; ++i) unpackElement(donorH[i], bufItr, buffer.end());
     CHECK(bufItr == buffer.end());
-#endif
 
     for (unsigned i = 0; i != donorN; ++i) {
       neighborA.setMasterList(donorPos[i], donorH[i]);
@@ -227,7 +229,6 @@ overlayRemapFields(const vector<Boundary<Dimension>*>& boundaries,
     }
 
     // Send to each process the donors we are using from them, along with the total volume intersected for each donor.
-#ifdef USE_MPI
     {
       const unsigned n = intersectDonorIndices[iproc].size();
       CHECK(intersectVols[iproc].size() == n);
@@ -242,7 +243,6 @@ overlayRemapFields(const vector<Boundary<Dimension>*>& boundaries,
         MPI_Isend(&(*sendBuffers.back().begin()), sendBufsizes[iproc], MPI_CHAR, iproc, 21, Communicator::communicator(), &sendRequests.back());
       }
     }
-#endif
   }
 
   // Get the receive information about our donors from other domains.
@@ -250,7 +250,6 @@ overlayRemapFields(const vector<Boundary<Dimension>*>& boundaries,
   // We accumulate the total intersected volume for each donor node to the voltot field.
   vector<vector<unsigned>> donorNodeIDs(nprocs);
   Field<Dimension, Scalar> voltot("intersected volume totals", *donorNodeListPtr);
-#ifdef USE_MPI
   for (unsigned iproc = 0; iproc != nprocs; ++iproc) {
     unsigned bufsize;
     MPI_Status recvStatus;
@@ -271,11 +270,9 @@ overlayRemapFields(const vector<Boundary<Dimension>*>& boundaries,
       CHECK(bufItr == buffer.end());
     }
   }
-#endif
 
   // Now we know the total volume intersected for each of our donor nodes, and which domains need that donor info.
   // Send the donor information to each domain.
-#ifdef USE_MPI
   for (unsigned iproc = 0; iproc != nprocs; ++iproc) {
     const unsigned n = donorNodeIDs[iproc].size();
     if (n > 0) {
@@ -294,10 +291,8 @@ overlayRemapFields(const vector<Boundary<Dimension>*>& boundaries,
       MPI_Isend(&sendBuffers.back()[0], sendBufsizes.back(), MPI_CHAR, iproc, 31, Communicator::communicator(), &sendRequests.back());
     }
   }
-#endif
-  
+
   // Finally get the total donor information from each domain and splat onto our acceptors.
-#ifdef USE_MPI
   vector<Scalar> scalarDonorValues(nScalarFields);
   vector<Vector> vectorDonorValues(nVectorFields);
   vector<Tensor> tensorDonorValues(nTensorFields);
@@ -335,29 +330,58 @@ overlayRemapFields(const vector<Boundary<Dimension>*>& boundaries,
       CHECK(bufItr == buffer.end());
     }
   }
-#endif
 
   // Finally, wait 'til all our communication is completed before exiting.
-#ifdef USE_MPI
   unsigned numSendRequests = sendRequests.size();
   vector<MPI_Status> sendStatus(numSendRequests);
   MPI_Waitall(numSendRequests, &(*sendRequests.begin()), &(*sendStatus.begin()));
+
+#else
+  //..........................................................................
+  // Non-parallel version.
+
+  // Look for intersecting node volumes.
+  Field<Dimension, vector<unsigned>> intersectIndices("intersection indices", *donorNodeListPtr);
+  Field<Dimension, vector<Scalar>> intersectVols("intesection volumes", *donorNodeListPtr);
+  for (unsigned i = 0; i != nD; ++i) {
+    neighborA.setMasterList(posD(i), HD(i));
+    neighborA.setRefineNeighborList(posD(i), HD(i));
+    for (typename Neighbor<Dimension>::const_iterator jitr = neighborA.refineNeighborBegin();
+         jitr != neighborA.refineNeighborEnd();
+         ++jitr) {
+      const int j = *jitr;
+      if (localDonorCells(i).intersect(localAcceptorCells(j))) {
+        const vector<Facet>& facets = localAcceptorCells(j).facets();
+        vector<Plane> planes;
+        planes.reserve(facets.size());
+        for (const Facet& facet: facets) planes.push_back(Plane(facet.position(), -facet.normal()));
+        const Scalar Vi = clippedVolume(localDonorCells(i), planes);
+        if (Vi > 0.0) {
+          // cerr << "   " << i << " -> " << j << " : " << Vi << " " << Vi/localDonorCells(i).volume() << endl;
+          intersectIndices(i).push_back(j);
+          intersectVols(i).push_back(Vi);
+        }
+      }
+    }
+  }
+
+  // Now we can go through and splat the conserved values from the donor to acceptor volumes.
+  for (unsigned i = 0; i != nD; ++i) {
+    const unsigned n = intersectIndices(i).size();
+    CHECK(intersectVols(i).size() == n);
+    const Scalar voltotInv = safeInv(accumulate(intersectVols(i).begin(), intersectVols(i).end(), 0.0));
+    for (unsigned k = 0; k != n; ++k) {
+      const unsigned j = intersectIndices(i)[k];
+      const Scalar f = intersectVols(i)[k]*voltotInv;
+      for (unsigned kk = 0; kk != nScalarFields; ++kk) (*scalarAcceptorFields[kk])(j) += f*(*scalarDonorFields[kk])(i);
+      for (unsigned kk = 0; kk != nVectorFields; ++kk) (*vectorAcceptorFields[kk])(j) += f*(*vectorDonorFields[kk])(i);
+      for (unsigned kk = 0; kk != nTensorFields; ++kk) (*tensorAcceptorFields[kk])(j) += f*(*tensorDonorFields[kk])(i);
+      for (unsigned kk = 0; kk != nSymTensorFields; ++kk) (*symTensorAcceptorFields[kk])(j) += f*(*symTensorDonorFields[kk])(i);
+    }
+  }
+
 #endif
 
-  // // Now we can go through and splat the conserved values from the donor to acceptor volumes.
-  // for (unsigned i = 0; i != nD; ++i) {
-  //   const unsigned n = intersectIndices(i).size();
-  //   CHECK(intersectVols(i).size() == n);
-  //   const Scalar voltotInv = safeInv(accumulate(intersectVols(i).begin(), intersectVols(i).end(), 0.0));
-  //   for (unsigned k = 0; k != n; ++k) {
-  //     const unsigned j = intersectIndices(i)[k];
-  //     const Scalar f = intersectVols(i)[k]*voltotInv;
-  //     for (unsigned kk = 0; kk != nScalarFields; ++kk) (*scalarAcceptorFields[kk])(j) += f*(*scalarDonorFields[kk])(i);
-  //     for (unsigned kk = 0; kk != nVectorFields; ++kk) (*vectorAcceptorFields[kk])(j) += f*(*vectorDonorFields[kk])(i);
-  //     for (unsigned kk = 0; kk != nTensorFields; ++kk) (*tensorAcceptorFields[kk])(j) += f*(*tensorDonorFields[kk])(i);
-  //     for (unsigned kk = 0; kk != nSymTensorFields; ++kk) (*symTensorAcceptorFields[kk])(j) += f*(*symTensorDonorFields[kk])(i);
-  //   }
-  // }
 }
 
 }
