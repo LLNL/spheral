@@ -126,6 +126,7 @@ overlayRemapFields(const vector<Boundary<Dimension>*>& boundaries,
                                       surfacePoint, vol, deltaMedian, cells_fl);
     const_cast<NodeList<Dimension>*>(donorNodeListPtr)->numGhostNodes(0);
     neighborD.updateNodes();
+    // cerr << "Donor volume range: " << vol.min() << " " << vol.max() << endl;
   }
     
   // Build the acceptor volumes.
@@ -153,10 +154,12 @@ overlayRemapFields(const vector<Boundary<Dimension>*>& boundaries,
                                       surfacePoint, vol, deltaMedian, cells_fl);
     const_cast<NodeList<Dimension>*>(acceptorNodeListPtr)->numGhostNodes(0);
     neighborA.updateNodes();
+    // cerr << "Acceptor volume range: " << vol.min() << " " << vol.max() << endl;
   }
 
   const Field<Dimension, Vector>& posD = donorNodeListPtr->positions();
   const Field<Dimension, SymTensor>& HD = donorNodeListPtr->Hfield();
+  // const Field<Dimension, Vector>& posA = acceptorNodeListPtr->positions();
 
 #ifdef USE_MPI
   //..........................................................................
@@ -270,6 +273,7 @@ overlayRemapFields(const vector<Boundary<Dimension>*>& boundaries,
       CHECK(bufItr == buffer.end());
     }
   }
+  // cerr << "Volume intersection totals min/max: " << voltot.min() << " " << voltot.max() << endl;
 
   // Now we know the total volume intersected for each of our donor nodes, and which domains need that donor info.
   // Send the donor information to each domain.
@@ -297,6 +301,7 @@ overlayRemapFields(const vector<Boundary<Dimension>*>& boundaries,
   vector<Vector> vectorDonorValues(nVectorFields);
   vector<Tensor> tensorDonorValues(nTensorFields);
   vector<SymTensor> symTensorDonorValues(nSymTensorFields);
+
   for (unsigned iproc = 0; iproc != nprocs; ++iproc) {
     const unsigned ndonors = intersectDonorIndices[iproc].size();
     if (ndonors > 0) {
@@ -321,6 +326,9 @@ overlayRemapFields(const vector<Boundary<Dimension>*>& boundaries,
           const unsigned j = intersectAcceptorIndices[iproc][i][k];
           const double volj = intersectVols[iproc][i][k];
           const Scalar f = volj/voltoti;
+          // if ((posA(j) - Vector(0.35,0.35,0.25)).magnitude() < 1e-5) {
+          //   cerr << " --> " << i << " " << j << " " << voltoti << " " << volj << " " << f << endl;
+          // }
           for (unsigned kk = 0; kk != nScalarFields; ++kk) (*scalarAcceptorFields[kk])(j) += f*scalarDonorValues[kk];
           for (unsigned kk = 0; kk != nVectorFields; ++kk) (*vectorAcceptorFields[kk])(j) += f*vectorDonorValues[kk];
           for (unsigned kk = 0; kk != nTensorFields; ++kk) (*tensorAcceptorFields[kk])(j) += f*tensorDonorValues[kk];
@@ -356,8 +364,9 @@ overlayRemapFields(const vector<Boundary<Dimension>*>& boundaries,
         planes.reserve(facets.size());
         for (const Facet& facet: facets) planes.push_back(Plane(facet.position(), -facet.normal()));
         const Scalar Vi = clippedVolume(localDonorCells(i), planes);
+        // if (i == 451) cerr << " --> " << i << " " << j << " " << Vi << " " << localDonorCells(i).volume() << " " << localAcceptorCells(j).volume() << endl;
         if (Vi > 0.0) {
-          // cerr << "   " << i << " -> " << j << " : " << Vi << " " << Vi/localDonorCells(i).volume() << endl;
+          // if (i == 0 and j == 0) cerr << "   " << i << " -> " << j << " : " << Vi << " " << Vi/localDonorCells(i).volume() << endl;
           intersectIndices(i).push_back(j);
           intersectVols(i).push_back(Vi);
         }
@@ -365,11 +374,26 @@ overlayRemapFields(const vector<Boundary<Dimension>*>& boundaries,
     }
   }
 
+  // cerr << "Node 0: " << endl
+  //      << "        ";
+  // copy(intersectIndices(0).begin(), intersectIndices(0).end(), std::ostream_iterator<unsigned>(cerr, " "));
+  // cerr << endl
+  //      << "        ";
+  // copy(intersectVols(0).begin(), intersectVols(0).end(), std::ostream_iterator<double>(cerr, " "));
+  // cerr << endl
+  //      << "        " << std::accumulate(intersectVols(0).begin(), intersectVols(0).end(), 0.0) << endl;
+
   // Now we can go through and splat the conserved values from the donor to acceptor volumes.
+  // double voltotmin = DBL_MAX, voltotmax = DBL_MIN;
   for (unsigned i = 0; i != nD; ++i) {
     const unsigned n = intersectIndices(i).size();
     CHECK(intersectVols(i).size() == n);
     const Scalar voltotInv = safeInv(accumulate(intersectVols(i).begin(), intersectVols(i).end(), 0.0));
+    // voltotmin = min(voltotmin, accumulate(intersectVols(i).begin(), intersectVols(i).end(), 0.0));
+    // voltotmax = max(voltotmax, accumulate(intersectVols(i).begin(), intersectVols(i).end(), 0.0));
+    // if (accumulate(intersectVols(i).begin(), intersectVols(i).end(), 0.0) < 1.0e-4) {
+    //   cerr << "Strange node: " << i << " " << posD(i) << " " << accumulate(intersectVols(i).begin(), intersectVols(i).end(), 0.0) << endl;
+    // }
     for (unsigned k = 0; k != n; ++k) {
       const unsigned j = intersectIndices(i)[k];
       const Scalar f = intersectVols(i)[k]*voltotInv;
@@ -379,6 +403,7 @@ overlayRemapFields(const vector<Boundary<Dimension>*>& boundaries,
       for (unsigned kk = 0; kk != nSymTensorFields; ++kk) (*symTensorAcceptorFields[kk])(j) += f*(*symTensorDonorFields[kk])(i);
     }
   }
+  // cerr << "Volume intersection totals min/max: " << voltotmin << " " << voltotmax << endl;
 
 #endif
 

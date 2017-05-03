@@ -48,28 +48,23 @@ class PolyhedralSurfaceGenerator(NodeGeneratorBase):
                             0.0, hy, 0.0,
                             0.0, 0.0, hz)
 
-        # Determine the range of indices this domain will check.
-        imin0, imax0 = self.globalIDRange(ntot0)
-
         # Build the intial positions.
         pos0 = fillFacetedVolume(surface, nx, mpi.rank, mpi.procs)
 
         # Something strange here...
-        pos = [p for p in pos0 if surface.contains(p)]
+        pos = pos0 # [p for p in pos0 if surface.contains(p)]
         nsurface = mpi.allreduce(len(pos), mpi.SUM)
 
         # Apply any rejecter.
+        print "Applying rejection..."
         if rejecter:
-            self.x, self.y, self.z = [], [], []
-            for ri in pos:
-                if rejecter.accept(ri.x, ri.y, ri.z):
-                    self.x.append(ri.x)
-                    self.y.append(ri.y)
-                    self.z.append(ri.z)
+            mask = [rejecter.accept(ri.x, ri.y, ri.z) for ri in pos]
         else:
-            self.x = [ri.x for ri in pos]
-            self.y = [ri.y for ri in pos]
-            self.z = [ri.z for ri in pos]
+            mask = [True]*len(pos)
+        n0 = len(pos)
+        self.x = [pos[i].x for i in xrange(n0) if mask[i]]
+        self.y = [pos[i].y for i in xrange(n0) if mask[i]]
+        self.z = [pos[i].z for i in xrange(n0) if mask[i]]
         n = len(self.x)
 
         # Pick a mass per point so we get exactly the correct total mass inside the surface
