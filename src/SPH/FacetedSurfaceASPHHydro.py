@@ -70,22 +70,6 @@ class FacetedSurfaceASPHSmoothingScale(ASPHSmoothingScale):
                             nodeListi,
                             i):
 
-        # Find the effective surface normal we want to use.
-        fhat = Vector()
-        verts = self.surface.vertices()
-        facets = self.surface.facets()
-        vertNorms = self.surface.vertexUnitNorms()
-        hashi = hash(tuple(pos))
-        assert hashi in self.poshash2facet
-        facet = facets[self.poshash2facet[hashi]]
-        # fhat = facet.normal/max(1.0e-10, (pos - facet.position).magnitude2())
-        # for i in facet.ipoints:
-        #     fhat += vertNorms[i]/max(1.0e-10, (pos - verts[i]).magnitude2())
-        # fhat = fhat.unitVector()
-        fhat = facet.normal
-        T1 = rotationMatrix(fhat)
-        
-        # Now decompose the trial H tensor and align hmin with the surface normal.
         H0 = ASPHSmoothingScale.idealSmoothingScale(self,
                                                     H,
                                                     pos,
@@ -99,18 +83,37 @@ class FacetedSurfaceASPHSmoothingScale(ASPHSmoothingScale):
                                                     connectivityMap,
                                                     nodeListi,
                                                     i)
-        Heigen = H0.eigenVectors()
-        if ((Heigen.eigenValues.x > Heigen.eigenValues.y) and
-            (Heigen.eigenValues.x > Heigen.eigenValues.z)):
-            hvec = Heigen.eigenVectors.getColumn(0)
-        elif ((Heigen.eigenValues.y > Heigen.eigenValues.x) and
-              (Heigen.eigenValues.y > Heigen.eigenValues.z)):
-            hvec = Heigen.eigenVectors.getColumn(1)
-        else:
-            hvec = Heigen.eigenVectors.getColumn(2)
-        T0 = rotationMatrix(hvec)
-        H0.rotationalTransform(T0)
-        H0.rotationalTransform(T1.Transpose())
+
+        if self.nodes2facets[i] >= 0:
+
+            # Find the effective surface normal we want to use.
+            fhat = Vector()
+            verts = self.surface.vertices()
+            facets = self.surface.facets()
+            vertNorms = self.surface.vertexUnitNorms()
+            hashi = hash(tuple(pos))
+            assert hashi in self.poshash2facet
+            facet = facets[self.poshash2facet[hashi]]
+            # fhat = facet.normal/max(1.0e-10, (pos - facet.position).magnitude2())
+            # for i in facet.ipoints:
+            #     fhat += vertNorms[i]/max(1.0e-10, (pos - verts[i]).magnitude2())
+            # fhat = fhat.unitVector()
+            fhat = facet.normal
+            T1 = rotationMatrix(fhat)
+            
+            # Now decompose the trial H tensor and align hmin with the surface normal.
+            Heigen = H0.eigenVectors()
+            if ((Heigen.eigenValues.x > Heigen.eigenValues.y) and
+                (Heigen.eigenValues.x > Heigen.eigenValues.z)):
+                hvec = Heigen.eigenVectors.getColumn(0)
+            elif ((Heigen.eigenValues.y > Heigen.eigenValues.x) and
+                  (Heigen.eigenValues.y > Heigen.eigenValues.z)):
+                hvec = Heigen.eigenVectors.getColumn(1)
+            else:
+                hvec = Heigen.eigenVectors.getColumn(2)
+            T0 = rotationMatrix(hvec)
+            H0.rotationalTransform(T0)
+            H0.rotationalTransform(T1.Transpose())
         return H0
 
 #-------------------------------------------------------------------------------
@@ -183,15 +186,16 @@ class FacetedSurfaceASPHHydro(SPHHydroBase):
         pos = posfl[0]
         n = pos.numInternalElements
         for i in xrange(n):
-            rmin = 1e300
-            fimin = None
-            for fi in facets2facets[nodes2facets[i]]:
-                r = facets[fi].distance(pos[i])
-                if r < rmin:
-                    rmin = r
-                    fimin = fi
-            nodes2facets[i] = fimin
-            poshash2facet[hash(tuple(pos[i]))] = fimin
+            if nodes2facets[i] >= 0:
+                rmin = 1e300
+                fimin = None
+                for fi in facets2facets[nodes2facets[i]]:
+                    r = facets[fi].distance(pos[i])
+                    if r < rmin:
+                        rmin = r
+                        fimin = fi
+                nodes2facets[i] = fimin
+                poshash2facet[hash(tuple(pos[i]))] = fimin
 
         self._smoothingScaleMethod.poshash2facet = poshash2facet
         SPHHydroBase.initialize(self, t, dt, dataBase, state, derivs)
