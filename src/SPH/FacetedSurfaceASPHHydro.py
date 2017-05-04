@@ -119,9 +119,11 @@ class FacetedSurfaceASPHSmoothingScale(ASPHSmoothingScale):
 #-------------------------------------------------------------------------------
 # The specialized hydro object using our very particular method of H adaptation.
 #-------------------------------------------------------------------------------
-class FacetedSurfaceASPHHydro(SPHHydroBase):
+class FacetedSurfaceASPHHydro(Physics):
 
+    #---------------------------------------------------------------------------
     # Constructor.
+    #---------------------------------------------------------------------------
     def __init__(self,
                  surface,
                  nodes2facets,
@@ -143,35 +145,116 @@ class FacetedSurfaceASPHHydro(SPHHydroBase):
                  nTensile = 4.0,
                  xmin = Vector(-1e100, -1e100, -1e100),
                  xmax = Vector( 1e100,  1e100,  1e100)):
+        Physics.__init__(self)
         self._smoothingScaleMethod = FacetedSurfaceASPHSmoothingScale(surface, nodes2facets)
         if xmin is None:
             xmin = Vector.one
-        SPHHydroBase.__init__(self,
-                              self._smoothingScaleMethod,
-                              Q = Q,
-                              W = W,
-                              WPi = WPi,
-                              filter = filter,
-                              cfl = cfl,
-                              useVelocityMagnitudeForDt = useVelocityMagnitudeForDt,
-                              compatibleEnergyEvolution = compatibleEnergyEvolution,
-                              evolveTotalEnergy = evolveTotalEnergy,
-                              gradhCorrection = gradhCorrection,
-                              XSPH = XSPH,
-                              correctVelocityGradient = correctVelocityGradient,
-                              sumMassDensityOverAllNodeLists = sumMassDensityOverAllNodeLists,
-                              densityUpdate = densityUpdate,
-                              HUpdate = HUpdate,
-                              epsTensile = epsTensile,
-                              nTensile = nTensile,
-                              xmin = xmin,
-                              xmax = xmax)
+        self.hydro = SolidSPHHydroBase(self._smoothingScaleMethod,
+                                       Q = Q,
+                                       W = W,
+                                       WPi = WPi,
+                                       WGrad = W,
+                                       filter = filter,
+                                       cfl = cfl,
+                                       useVelocityMagnitudeForDt = useVelocityMagnitudeForDt,
+                                       compatibleEnergyEvolution = compatibleEnergyEvolution,
+                                       evolveTotalEnergy = evolveTotalEnergy,
+                                       gradhCorrection = gradhCorrection,
+                                       XSPH = XSPH,
+                                       correctVelocityGradient = correctVelocityGradient,
+                                       sumMassDensityOverAllNodeLists = sumMassDensityOverAllNodeLists,
+                                       densityUpdate = densityUpdate,
+                                       HUpdate = HUpdate,
+                                       epsTensile = epsTensile,
+                                       nTensile = nTensile,
+                                       xmin = xmin,
+                                       xmax = xmax)
         return
 
+    #---------------------------------------------------------------------------
+    # initializeProblemStartup
+    #---------------------------------------------------------------------------
+    def initializeProblemStartup(self, db):
+        self.hydro.initializeProblemStartup(db)
+
+    #---------------------------------------------------------------------------
+    # registerState
+    #---------------------------------------------------------------------------
+    def registerState(self, db, state):
+        self.hydro.registerState(db, state)
+
+    #---------------------------------------------------------------------------
+    # registerDerivatives
+    #---------------------------------------------------------------------------
+    def registerDerivatives(self, db, derivs):
+        self.hydro.registerDerivatives(db, derivs)
+
+    #---------------------------------------------------------------------------
+    # evaluateDerivatives
+    #---------------------------------------------------------------------------
+    def evaluateDerivatives(self, t, dt, db, state, derivs):
+        self.hydro.evaluateDerivatives(t, dt, db, state, derivs)
+
+    #---------------------------------------------------------------------------
+    # finalizeDerivatives
+    #---------------------------------------------------------------------------
+    def finalizeDerivatives(self, t, dt, db, state, derivs):
+        self.hydro.finalizeDerivatives(t, dt, db, state, derivs)
+
+    #---------------------------------------------------------------------------
+    # finalize
+    #---------------------------------------------------------------------------
+    def finalize(self, t, dt, db, state, derivs):
+        self.hydro.finalize(t, dt, db, state, derivs)
+
+    #---------------------------------------------------------------------------
+    # applyGhostBoundaries
+    #---------------------------------------------------------------------------
+    def applyGhostBoundaries(self, state, derivs):
+        self.hydro.applyGhostBoundaries(state, derivs)
+
+    #---------------------------------------------------------------------------
+    # enforceBoundaries
+    #---------------------------------------------------------------------------
+    def enforceBoundaries(self, state, derivs):
+        self.hydro.enforceBoundaries(state, derivs)
+
+    #---------------------------------------------------------------------------
+    # boundaryConditions
+    #---------------------------------------------------------------------------
+    def boundaryConditions(self):
+        return self.hydro.boundaryConditions()
+
+    #---------------------------------------------------------------------------
+    # appendBoundary
+    #---------------------------------------------------------------------------
+    def appendBoundary(self, bc):
+        self.hydro.appendBoundary(bc)
+
+    #---------------------------------------------------------------------------
+    # prependBoundary
+    #---------------------------------------------------------------------------
+    def prependBoundary(self, bc):
+        self.hydro.prependBoundary(bc)
+
+    #---------------------------------------------------------------------------
+    # haveBoundary
+    #---------------------------------------------------------------------------
+    def haveBoundary(self, bc):
+        return self.hydro.haveBoundary(bc)
+
+    #---------------------------------------------------------------------------
+    # clearBoundaries
+    #---------------------------------------------------------------------------
+    def clearBoundaries(self):
+        self.hydro.clearBoundaries()
+
+    #---------------------------------------------------------------------------
     # Override the pre-evaluateDerivative initialize step to update the 
     # node->facet mapping and build a lookup based on hashed position.  This
     # is necessary 'cause we don't pass the node index into the idealSmoothingScale 
     # algorithm above.
+    #---------------------------------------------------------------------------
     def initialize(self, t, dt, dataBase, state, derivs):
         surface = self._smoothingScaleMethod.surface
         facets = surface.facets()
@@ -198,7 +281,7 @@ class FacetedSurfaceASPHHydro(SPHHydroBase):
                 poshash2facet[hash(tuple(pos[i]))] = fimin
 
         self._smoothingScaleMethod.poshash2facet = poshash2facet
-        SPHHydroBase.initialize(self, t, dt, dataBase, state, derivs)
+        self.hydro.initialize(t, dt, dataBase, state, derivs)
         return
 
     # We need to restart some information in addition to the standard hydro variables.
@@ -207,11 +290,89 @@ class FacetedSurfaceASPHHydro(SPHHydroBase):
 
     def dumpState(self, file, path):
         file.write(self._smoothingScaleMethod.nodes2facets, path + "/nodes2facets")
-        SPHHydroBase.dumpState(self, file, path)
+        self.hydro.dumpState(file, path)
         return
 
     def restoreState(self, file, path):
         file.read(self._smoothingScaleMethod.nodes2facets, path + "/nodes2facets")
-        SPHHydroBase.restoreState(self, file, path)
+        self.hydro.restoreState(file, path)
         return
+
+    #---------------------------------------------------------------------------
+    # cfl
+    #---------------------------------------------------------------------------
+    @property
+    def cfl(self):
+        return self.hydro.cfl
+
+    @cfl.setter
+    def cfl(self, x):
+        self.hydro.cfl = x
+
+    #---------------------------------------------------------------------------
+    # useVelocityMagnitudeForDt
+    #---------------------------------------------------------------------------
+    @property
+    def useVelocityMagnitudeForDt(self):
+        return self.hydro.useVelocityMagnitudeForDt
+
+    @useVelocityMagnitudeForDt.setter
+    def useVelocityMagnitudeForDt(self, x):
+        self.hydro.useVelocityMagnitudeForDt = x
+
+    #---------------------------------------------------------------------------
+    # HEvolution
+    #---------------------------------------------------------------------------
+    @property
+    def HEvolution(self):
+        return self.hydro.HEvolution
+
+    @HEvolution.setter
+    def HEvolution(self, x):
+        self.hydro.HEvolution = x
+
+    #---------------------------------------------------------------------------
+    # sumForMassDensity
+    #---------------------------------------------------------------------------
+    @property
+    def sumForMassDensity(self):
+        return self.hydro.sumForMassDensity
+
+    @sumForMassDensity.setter
+    def sumForMassDensity(self, x):
+        self.hydro.sumForMassDensity = x
+
+    #---------------------------------------------------------------------------
+    # compatibleEnergyEvolution
+    #---------------------------------------------------------------------------
+    @property
+    def compatibleEnergyEvolution(self):
+        return self.hydro.compatibleEnergyEvolution
+
+    @compatibleEnergyEvolution.setter
+    def compatibleEnergyEvolution(self, x):
+        self.hydro.compatibleEnergyEvolution = x
+
+    #---------------------------------------------------------------------------
+    # gradhCorrection
+    #---------------------------------------------------------------------------
+    @property
+    def gradhCorrection(self):
+        return self.hydro.gradhCorrection
+
+    @gradhCorrection.setter
+    def gradhCorrection(self, x):
+        self.hydro.gradhCorrection = x
+
+    #---------------------------------------------------------------------------
+    # kernel
+    #---------------------------------------------------------------------------
+    def kernel(self):
+        self.hydro.kernel()
+
+    #---------------------------------------------------------------------------
+    # PiKernel
+    #---------------------------------------------------------------------------
+    def PiKernel(self):
+        self.hydro.PiKernel()
 
