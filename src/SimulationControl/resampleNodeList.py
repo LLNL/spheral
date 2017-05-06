@@ -92,14 +92,17 @@ def resampleNodeList(nodes,
         topGridSize = nodes._neighbor.topGridSize
         xmin = Vector.zero
         xmax = Vector.one * topGridSize
+        NeighborType = NestedGridNeighbor
         if mpi.procs > 1:
             dbc = NestedGridDistributedBoundary.instance()
     elif isinstance(nodes._neighbor, TreeNeighbor):
         xmin = nodes._neighbor.xmin
         xmax = nodes._neighbor.xmax
         topGridSize = (xmax - xmin).maxAbsElement()
+        NeighborType = TreeNeighbor
         if mpi.procs > 1:
-            raise RuntimeError, "Need a parallel policy for TreeNeighbor."
+            dbc = BoundingVolumeDistributedBoundary.instance()
+            #raise RuntimeError, "Need a parallel policy for TreeNeighbor."
     else:
         raise RuntimeError, "Unknown Neighbor type."
 
@@ -108,6 +111,7 @@ def resampleNodeList(nodes,
                    eos = nodes.eos,
                    hmin = 1e-10,
                    hmax = 1e10,
+                   NeighborType = NeighborType,
                    topGridCellSize = topGridSize,
                    xmin = xmin,
                    xmax = xmax)
@@ -116,6 +120,7 @@ def resampleNodeList(nodes,
                         eos = nodes.eos,
                         hmin = 1e-10,
                         hmax = 1e10,
+                        NeighborType = NeighborType,
                         topGridCellSize = topGridSize,
                         xmin = xmin,
                         xmax = xmax)

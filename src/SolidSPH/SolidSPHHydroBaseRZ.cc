@@ -18,7 +18,7 @@
 #include <vector>
 
 #include "SolidSPHHydroBaseRZ.hh"
-#include "DamagedNodeCoupling.hh"
+#include "DamagedNodeCouplingWithFrags.hh"
 #include "NodeList/SmoothingScaleBase.hh"
 #include "Hydro/HydroFieldNames.hh"
 #include "Hydro/NonSymmetricSpecificThermalEnergyPolicyRZ.hh"
@@ -356,7 +356,7 @@ evaluateDerivatives(const Dim<2>::Scalar time,
     Field<Dimension, Scalar>& workFieldi = nodeList.work();
 
     // Build the functor we use to compute the effective coupling between nodes.
-    DamagedNodeCoupling<Dimension> coupling(damage, gradDamage, H);
+    DamagedNodeCouplingWithFrags<Dimension> coupling(damage, gradDamage, H, fragIDs);
 
     // Iterate over the internal nodes in this NodeList.
     for (ConnectivityMap<Dimension>::const_iterator iItr = connectivityMap.begin(nodeListi);
@@ -488,7 +488,7 @@ evaluateDerivatives(const Dim<2>::Scalar time,
               SymTensor& massSecondMomentj = massSecondMoment(nodeListj, j);
 
               // Flag if this is a contiguous material pair or not.
-              const bool sameMatij = (nodeListi == nodeListj and fragIDi == fragIDj);
+              const bool sameMatij = true; // (nodeListi == nodeListj and fragIDi == fragIDj);
 
               // Flag if at least one particle is free (0).
               const bool freeParticle = (pTypei == 0 or pTypej == 0);
@@ -530,7 +530,7 @@ evaluateDerivatives(const Dim<2>::Scalar time,
 
               // Zero'th and second moment of the node distribution -- used for the
               // ideal H calculation.
-              const double fweightij = nodeListi == nodeListj ? 1.0 : mRZj*rhoi/(mRZi*rhoj);
+              const double fweightij = sameMatij ? 1.0 : mRZj*rhoi/(mRZi*rhoj);
               const double xij2 = xij.magnitude2();
               const SymTensor thpt = xij.selfdyad()/(xij2 + 1.0e-10) / FastMath::square(Dimension::pownu12(xij2 + 1.0e-10));
               weightedNeighborSumi +=     fweightij*abs(gWi);

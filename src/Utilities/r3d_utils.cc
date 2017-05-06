@@ -18,6 +18,22 @@ using namespace std;
 namespace {   // anonymous namespace
 
 //------------------------------------------------------------------------------
+// A special comparator to sort r2d planes by distance.
+//------------------------------------------------------------------------------
+inline
+bool compareR2Dplanes(const r2d_plane& lhs, const r2d_plane& rhs) {
+  return lhs.d < rhs.d;
+}
+
+//------------------------------------------------------------------------------
+// A special comparator to sort r3d planes by distance.
+//------------------------------------------------------------------------------
+inline
+bool compareR3Dplanes(const r3d_plane& lhs, const r3d_plane& rhs) {
+  return lhs.d < rhs.d;
+}
+
+//------------------------------------------------------------------------------
 // A class to hold indices making up a planar polygonal face.
 // The finalize method shifts the loop to start with the minimum index to make
 // each loop unique for comparisons.
@@ -232,18 +248,24 @@ r2d_poly_to_polygon(const r2d_poly& celli,
     CHECK(j < id.size() and id[j] < verts.size());
   }
 
-  // Find the centroid.
+  // If the input was degenerate, we just kick back an empty polygon.
   const unsigned nunique = verts.size();
-  CHECK2(nunique >= 3, "r2d_poly_to_polygon: too few unique nodes: " << nunique);
+  if (nunique < 3) return;
+
+  // Find the centroid.
+  // CHECK2(nunique >= 3, "r2d_poly_to_polygon: too few unique nodes: " << nunique);
   const Vector centroid = std::accumulate(verts.begin(), verts.end(), Vector::zero)/nunique;
 
   // Build the vertex->vertex connectivity.
   vector<vector<unsigned> > nghbrs(nunique);
-  vector<vector<Vector> > vertexFaceNormals(nunique);
   for (i = 0; i != celli.nverts; ++i) {
     j = id[i];
-    if (id[celli.verts[i].pnbrs[0]] != j and find(nghbrs[j].begin(), nghbrs[j].end(), id[celli.verts[i].pnbrs[0]]) == nghbrs[j].end()) nghbrs[j].push_back(id[celli.verts[i].pnbrs[0]]);
+    if (id[celli.verts[i].pnbrs[0]] != j) nghbrs[j].push_back(id[celli.verts[i].pnbrs[0]]);
   }
+  // for (i = 0; i != celli.nverts; ++i) {
+  //   j = id[i];
+  //   if (id[celli.verts[i].pnbrs[0]] != j and find(nghbrs[j].begin(), nghbrs[j].end(), id[celli.verts[i].pnbrs[0]]) == nghbrs[j].end()) nghbrs[j].push_back(id[celli.verts[i].pnbrs[0]]);
+  // }
 
   // // BLAGO!
   // {
@@ -277,7 +299,7 @@ r2d_poly_to_polygon(const r2d_poly& celli,
       ivert = firstvert;
       nextvert = nunique;
 
-      while (nextvert != firstvert) {
+      while (nextvert != firstvert and CCWverts.size() < verts.size()) {
         CCWverts.push_back(verts[ivert]);
         vertcheck[ivert] = 1;
         nextvert = nghbrs[ivert][0];
@@ -290,8 +312,6 @@ r2d_poly_to_polygon(const r2d_poly& celli,
 
   const unsigned nCCWverts = CCWverts.size();
   CHECK(nCCWverts >= 3);
- 
-
 
   // Now we can build our polygon.
   vector<vector<unsigned> > facetIndices(nCCWverts, vector<unsigned>(2));
@@ -462,6 +482,9 @@ Dim<2>::FacetedVolume clipFacetedVolume(const Dim<2>::FacetedVolume& poly,
     planes2d[i].d = -p.dot(nhat);
   }
 
+  // Sort the planes by distance.
+  sort(planes2d.begin(), planes2d.end(), compareR2Dplanes);
+
   // Do the deed.
   r2d_clip(&poly2d, &planes2d[0], nplanes);
 
@@ -502,6 +525,9 @@ Dim<3>::FacetedVolume clipFacetedVolume(const Dim<3>::FacetedVolume& poly,
     planes3d[i].d = -p.dot(nhat);
   }
 
+  // Sort the planes by distance.
+  sort(planes3d.begin(), planes3d.end(), compareR3Dplanes);
+
   // Do the deed.
   r3d_clip(&poly3d, &planes3d[0], nplanes);
 
@@ -512,6 +538,85 @@ Dim<3>::FacetedVolume clipFacetedVolume(const Dim<3>::FacetedVolume& poly,
   const double tol = 1.0e-10 * vol;
   r3d_poly_to_polyhedron(poly3d, tol, result);
   return result;
+}
+
+//------------------------------------------------------------------------------
+// Volume of the cliped polygon
+//------------------------------------------------------------------------------
+double clippedVolume(const Dim<2>::FacetedVolume& poly,
+                     const std::vector<GeomPlane<Dim<2> > >& planes) {
+
+  typedef Dim<2>::Vector Vector;
+  typedef Dim<2>::FacetedVolume FacetedVolume;
+
+  // Is there anything to do?
+  const unsigned nplanes = planes.size();
+  if (nplanes == 0) return poly.volume();
+
+  // Construct the R2D version of our polygon.
+  r2d_poly poly2d;
+  polygon_to_r2d_poly(poly, poly2d);
+
+  // Now the R2D planes.
+  vector<r2d_plane> planes2d(nplanes);
+  for (unsigned i = 0; i != nplanes; ++i) {
+    const Vector& nhat = planes[i].normal();
+    const Vector& p = planes[i].point();
+    planes2d[i].n.x = nhat.x();
+    planes2d[i].n.y = nhat.y();
+    planes2d[i].d = -p.dot(nhat);
+  }
+
+  // Sort the planes by distance.
+  sort(planes2d.begin(), planes2d.end(), compareR2Dplanes);
+
+  // Do the deed.
+  r2d_clip(&poly2d, &planes2d[0], nplanes);
+
+  // Return the volume.
+  r2d_real area;
+  r2d_reduce(&poly2d, &area, 0);
+  return double(area);
+}
+
+//------------------------------------------------------------------------------
+// Volume of the clipped polyhedron
+//------------------------------------------------------------------------------
+double clippedVolume(const Dim<3>::FacetedVolume& poly,
+                     const std::vector<GeomPlane<Dim<3> > >& planes) {
+
+  typedef Dim<3>::Vector Vector;
+  typedef Dim<3>::FacetedVolume FacetedVolume;
+
+  // Is there anything to do?
+  const unsigned nplanes = planes.size();
+  if (nplanes == 0) return poly.volume();
+
+  // Construct the R3D version of our polyhedron.
+  r3d_poly poly3d;
+  polyhedron_to_r3d_poly(poly, poly3d);
+
+  // Now the R3D planes.
+  vector<r3d_plane> planes3d(nplanes);
+  for (unsigned i = 0; i != nplanes; ++i) {
+    const Vector& nhat = planes[i].normal();
+    const Vector& p = planes[i].point();
+    planes3d[i].n.x = nhat.x();
+    planes3d[i].n.y = nhat.y();
+    planes3d[i].n.z = nhat.z();
+    planes3d[i].d = -p.dot(nhat);
+  }
+
+  // Sort the planes by distance.
+  sort(planes3d.begin(), planes3d.end(), compareR3Dplanes);
+
+  // Do the deed.
+  r3d_clip(&poly3d, &planes3d[0], nplanes);
+
+  // Return the volume.
+  r3d_real vol;
+  r3d_reduce(&poly3d, &vol, 0);
+  return double(vol);
 }
 
 }

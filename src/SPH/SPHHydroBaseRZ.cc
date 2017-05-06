@@ -401,6 +401,9 @@ evaluateDerivatives(const Dim<2>::Scalar time,
               Scalar& weightedNeighborSumj = weightedNeighborSum(nodeListj, j);
               SymTensor& massSecondMomentj = massSecondMoment(nodeListj, j);
 
+              // Flag if this is a contiguous material pair or not.
+              const bool sameMatij = true; // (nodeListi == nodeListj and fragIDi == fragIDj);
+
               // Node displacement.
               const Vector xij = posi - posj;
               const Vector etai = Hi*xij;
@@ -427,7 +430,7 @@ evaluateDerivatives(const Dim<2>::Scalar time,
 
               // Zero'th and second moment of the node distribution -- used for the
               // ideal H calculation.
-              const double fweightij = nodeListi == nodeListj ? 1.0 : mRZj*rhoi/(mRZi*rhoj);
+              const double fweightij = sameMatij ? 1.0 : mRZj*rhoi/(mRZi*rhoj);
               const double xij2 = xij.magnitude2();
               const SymTensor thpt = xij.selfdyad()/max(tiny, xij2*FastMath::square(Dimension::pownu12(xij2)));
               weightedNeighborSumi +=     fweightij*std::abs(gWi);
@@ -485,13 +488,13 @@ evaluateDerivatives(const Dim<2>::Scalar time,
               const Tensor deltaDvDxj = mRZi*vij.dyad(gradWj);
               DvDxi -= deltaDvDxi;
               DvDxj -= deltaDvDxj;
-              if (nodeListi == nodeListj) {
+              if (sameMatij) {
                 localDvDxi -= deltaDvDxi;
                 localDvDxj -= deltaDvDxj;
               }
 
               // Estimate of delta v (for XSPH).
-              if (nodeListi == nodeListj or min(zetai, zetaj) < 1.0) {
+              if (sameMatij or min(zetai, zetaj) < 1.0) {
                 const double wXSPHij = 0.5*(mRZi/rhoi*Wi + mRZj/rhoj*Wj);
                 XSPHWeightSumi += wXSPHij;
                 XSPHWeightSumj += wXSPHij;
@@ -502,7 +505,7 @@ evaluateDerivatives(const Dim<2>::Scalar time,
               // Linear gradient correction term.
               Mi -= mRZj*xij.dyad(gradWi);
               Mj -= mRZi*xij.dyad(gradWj);
-              if (nodeListi == nodeListj) {
+              if (sameMatij) {
                 localMi -= mRZj*xij.dyad(gradWi);
                 localMj -= mRZi*xij.dyad(gradWj);
               }

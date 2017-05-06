@@ -131,6 +131,7 @@ namespace FractalSpace
   void mini_solve1(Point* p,const double& gc);
   void mini_solve2(Point* pa,Point* pb,const double& gc);
   void mini_solve3(vector<Point*>found,const double& gc);
+  void move_small_boxes(Fractal_Memory& mem,vector<int>& Boxes,vector<vector<Point*>>& SPoints,vector<int>& HRout);
   void neighbor_easy(vector <Point*>& p);
   void neighbors_nina(Point& point, vector <Point*>& adj);
   void node_groups_struct(Fractal_Memory& mem,vector <int>& counts);
