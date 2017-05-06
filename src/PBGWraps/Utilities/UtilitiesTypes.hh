@@ -3,6 +3,7 @@
 
 #include <utility>
 
+#include "Geometry/Dimension.hh"
 #include "boost/math/special_functions/legendre.hpp"
 #include "Utilities/Functors.hh"
 #include "Utilities/erff.hh"
@@ -29,7 +30,26 @@
 #include "Utilities/pointInPolyhedron.hh"
 #include "Utilities/pointOnPolyhedron.hh"
 #include "Utilities/refinePolyhedron.hh"
+#include "Utilities/overlayRemapFields.hh"
+
+#ifndef NOR3D
 #include "Utilities/r3d_utils.hh"
+#else
+//------------------------------------------------------------------------------
+// Stub these methods out when we're not allowing R3D.
+//------------------------------------------------------------------------------
+namespace Spheral {
+  inline Dim<2>::FacetedVolume clipFacetedVolume(const Dim<2>::FacetedVolume& poly,
+                                                 const std::vector<GeomPlane<Dim<2> > >& planes) {
+    VERIFY2(false, "ERROR: clipFacetedVolume unavailable without R3D.");
+  }
+
+  inline Dim<3>::FacetedVolume clipFacetedVolume(const Dim<3>::FacetedVolume& poly,
+                                                 const std::vector<GeomPlane<Dim<3> > >& planes) {
+    VERIFY2(false, "ERROR: clipFacetedVolume unavailable without R3D.");
+  }
+}
+#endif
 
 typedef std::pair<double, double> pair_double_double;
 using namespace Spheral::FieldSpace;

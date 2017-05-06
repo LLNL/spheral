@@ -1,10 +1,6 @@
 //---------------------------------Spheral++------------------------------------
 // Compute the volume per point based on the Voronoi tessellation.
 //------------------------------------------------------------------------------
-extern "C" {
-#include "r3d/r3d.h"
-}
-
 #include <algorithm>
 #include <utility>
 #include <ctime>
@@ -18,7 +14,13 @@ extern "C" {
 #include "Utilities/pointOnPolyhedron.hh"
 #include "Utilities/FastMath.hh"
 #include "Utilities/pointDistances.hh"
+
+#ifndef NOR3D
+extern "C" {
+#include "r3d/r3d.h"
+}
 #include "Utilities/r3d_utils.hh"
+#endif
 
 namespace Spheral {
 namespace CRKSPHSpace {
@@ -36,11 +38,13 @@ using NodeSpace::NodeList;
 using NeighborSpace::Neighbor;
 using NeighborSpace::ConnectivityMap;
 
+#ifndef NOR3D
 namespace {  // anonymous namespace
 
 //------------------------------------------------------------------------------
 // A special comparator to sort r3d planes by distance.
 //------------------------------------------------------------------------------
+inline
 bool compareR3Dplanes(const r3d_plane& lhs, const r3d_plane& rhs) {
   return lhs.d < rhs.d;
 }
@@ -48,6 +52,7 @@ bool compareR3Dplanes(const r3d_plane& lhs, const r3d_plane& rhs) {
 //------------------------------------------------------------------------------
 // Find the 1D extent of an R3D cell along the given direction.
 //------------------------------------------------------------------------------
+inline
 void findPolyhedronExtent(double& xmin, double& xmax, const Dim<3>::Vector& nhat, const r3d_poly& celli) {
   REQUIRE(fuzzyEqual(nhat.magnitude(), 1.0));
   double xi;
@@ -90,6 +95,7 @@ void findPolyhedronExtent(double& xmin, double& xmax, const Dim<3>::Vector& nhat
 // }
 
 }           // anonymous namespace
+#endif
 
 //------------------------------------------------------------------------------
 // 3D
@@ -108,6 +114,10 @@ computeVoronoiVolume(const FieldList<Dim<3>, Dim<3>::Vector>& position,
                      FieldList<Dim<3>, Dim<3>::Scalar>& vol,
                      FieldSpace::FieldList<Dim<3>, Dim<3>::Vector>& deltaMedian,
                      FieldSpace::FieldList<Dim<3>, Dim<3>::FacetedVolume>& cells) {
+
+#ifdef NOR3D
+  VERIFY2(false, "ERROR: computeVoronoiVolume requires compilation with R3D third party library.");
+#else
 
   typedef Dim<3>::Scalar Scalar;
   typedef Dim<3>::Vector Vector;
@@ -436,7 +446,7 @@ computeVoronoiVolume(const FieldList<Dim<3>, Dim<3>::Vector>& position,
         // If requested, we can return the cell geometries.
         if (returnCells) {
           // t0 = std::clock();
-          r3d_poly_to_polyhedron(celli, 1.0e-20/max(1.0, Dim<3>::rootnu(Hdeti)), cells(nodeListi, i));
+          r3d_poly_to_polyhedron(celli, 1.0e-35/max(1.0, Dim<3>::rootnu(Hdeti)), cells(nodeListi, i));
           cells(nodeListi, i) += ri;
           // tcell += std::clock() - t0;
         }
@@ -456,6 +466,7 @@ computeVoronoiVolume(const FieldList<Dim<3>, Dim<3>::Vector>& position,
   //                                   << " tbound=" << (tbound / (double) CLOCKS_PER_SEC) 
   //                                   << " tcell=" << (tcell / (double) CLOCKS_PER_SEC) 
   //                                   << " ttotal=" << (ttotal / (double) CLOCKS_PER_SEC) << endl;
+#endif
 }
     
 }
