@@ -394,13 +394,13 @@ void threeDimensionalBindings(py::module& m) {
   //............................................................................
   // SphericalBoundary
   py::class_<SphericalBoundary, 
-             PyBoundary<Dim<3>, PyAbstractBoundary<Dim<3>, SphericalBoundary>>> sphericalbPB11(m, "SphericalBoundary");
-  virtualBoundaryBindings<Dim<3>, SphericalBoundary>(m, sphericalbPB11);
+             PyBoundary<Dimension, PyAbstractBoundary<Dimension, SphericalBoundary>>> sphericalbPB11(m, "SphericalBoundary");
+  virtualBoundaryBindings<Dimension, SphericalBoundary>(m, sphericalbPB11);
   Spheral::restartMethodBindings<SphericalBoundary>(m, sphericalbPB11);
   sphericalbPB11
 
     // Constructors
-    .def(py::init<DataBase<Dim<3>>&>(), "dataBase"_a)
+    .def(py::init<DataBase<Dimension>&>(), "dataBase"_a)
 
     // Methods
     .def("reflectOperator", &SphericalBoundary::reflectOperator)
@@ -409,13 +409,13 @@ void threeDimensionalBindings(py::module& m) {
   //............................................................................
   // CylindricalBoundary
   py::class_<CylindricalBoundary, 
-             PyBoundary<Dim<3>, PyAbstractBoundary<Dim<3>, CylindricalBoundary>>> cylindricalbPB11(m, "CylindricalBoundary");
-  virtualBoundaryBindings<Dim<3>, CylindricalBoundary>(m, cylindricalbPB11);
+             PyBoundary<Dimension, PyAbstractBoundary<Dimension, CylindricalBoundary>>> cylindricalbPB11(m, "CylindricalBoundary");
+  virtualBoundaryBindings<Dimension, CylindricalBoundary>(m, cylindricalbPB11);
   Spheral::restartMethodBindings<CylindricalBoundary>(m, cylindricalbPB11);
   cylindricalbPB11
 
     // Constructors
-    .def(py::init<DataBase<Dim<3>>&>(), "dataBase"_a)
+    .def(py::init<DataBase<Dimension>&>(), "dataBase"_a)
 
     // Static methods
     .def_static("reflectOperator", &CylindricalBoundary::reflectOperator, "r0"_a, "r1"_a)

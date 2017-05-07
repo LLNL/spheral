@@ -16,7 +16,25 @@
 namespace py = pybind11;
 using namespace pybind11::literals;
 
+using namespace Spheral;
 using namespace Spheral::FieldSpace;
+
+//------------------------------------------------------------------------------
+// 1D
+//------------------------------------------------------------------------------
+typedef Field<Dim<1>, Dim<1>::Scalar> ScalarField1d;
+typedef Field<Dim<1>, Dim<1>::Vector> VectorField1d;
+typedef Field<Dim<1>, Dim<1>::Tensor> TensorField1d;
+typedef Field<Dim<1>, Dim<1>::SymTensor> SymTensorField1d;
+PYBIND11_MAKE_OPAQUE(std::vector<ScalarField1d>);
+PYBIND11_MAKE_OPAQUE(std::vector<VectorField1d>);
+PYBIND11_MAKE_OPAQUE(std::vector<TensorField1d>);
+PYBIND11_MAKE_OPAQUE(std::vector<SymTensorField1d>);
+
+PYBIND11_MAKE_OPAQUE(std::vector<ScalarField1d*>);
+PYBIND11_MAKE_OPAQUE(std::vector<VectorField1d*>);
+PYBIND11_MAKE_OPAQUE(std::vector<TensorField1d*>);
+PYBIND11_MAKE_OPAQUE(std::vector<SymTensorField1d*>);
 
 namespace {  // anonymous
 
