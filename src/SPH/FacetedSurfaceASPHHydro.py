@@ -84,7 +84,7 @@ class FacetedSurfaceASPHSmoothingScale(ASPHSmoothingScale):
                                                     nodeListi,
                                                     i)
 
-        if self.nodes2facets[i] >= 0:
+        if nodeListi == self.imat and self.nodes2facets[i] >= 0:
 
             # Find the effective surface normal we want to use.
             fhat = Vector()
@@ -147,6 +147,7 @@ class FacetedSurfaceASPHHydro(Physics):
                  xmax = Vector( 1e100,  1e100,  1e100)):
         Physics.__init__(self)
         self._smoothingScaleMethod = FacetedSurfaceASPHSmoothingScale(surface, nodes2facets)
+        self._smoothingScaleMethod.imat = None
         if xmin is None:
             xmin = Vector.one
         self.hydro = SolidSPHHydroBase(self._smoothingScaleMethod,
@@ -170,6 +171,12 @@ class FacetedSurfaceASPHHydro(Physics):
                                        xmin = xmin,
                                        xmax = xmax)
         return
+
+    #---------------------------------------------------------------------------
+    # dt
+    #---------------------------------------------------------------------------
+    def dt(self, db, state, derivs, t):
+        return self.hydro.dt(db, state, derivs, t)
 
     #---------------------------------------------------------------------------
     # initializeProblemStartup
@@ -260,13 +267,22 @@ class FacetedSurfaceASPHHydro(Physics):
         facets = surface.facets()
         nodes2facets = self._smoothingScaleMethod.nodes2facets
         facets2facets = surface.facetFacetConnectivity()
+        posfl = state.vectorFields(HydroFieldNames.position)
+
+        # Figure out which NodeList is the one we're pinning to the facets.
+        if self._smoothingScaleMethod.imat is None:
+            imat = 0
+            while imat < len(posfl) and posfl[imat].nodeList().name != nodes2facets.nodeList().name:
+                imat += 1
+            assert imat < len(posfl)
+            self._smoothingScaleMethod.imat = imat
+        imat = self._smoothingScaleMethod.imat
 
         # First update the node->facet info.  We assume here the node can't have moved
         # too much since the last update.
         poshash2facet = {}
-        posfl = state.vectorFields(HydroFieldNames.position)
-        assert len(posfl) == 1
-        pos = posfl[0]
+        #assert len(posfl) == 1
+        pos = posfl[imat]
         n = pos.numInternalElements
         for i in xrange(n):
             if nodes2facets[i] >= 0:
