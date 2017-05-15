@@ -193,4 +193,5 @@ AC_OUTPUT(helpers/makefile_master \
           Pybind11Wraps/Boundary/makefile \
           Pybind11Wraps/Physics/makefile \
           Pybind11Wraps/ArtificialViscosity/makefile \
+          Pybind11Wraps/Hydro/makefile \
           SimulationControl/spheralDimensions.py)
