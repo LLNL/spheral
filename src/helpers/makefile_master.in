@@ -312,6 +312,10 @@ ifneq "$(PBGTARGET)" ""
 -include $(notdir $(PBGTARGET:.py=.py.d))
 endif
 
+ifneq "$(PYB11ARGET)" ""
+-include $(notdir $(PYB11TARGET:.cc=.d))
+endif
+
 #-------------------------------------------------------------------------------
 $(LIBTARGET): $(OBJS) $(PYFFLEOBJS) $(EXETARGETS)
 	@echo "################################################################################"
@@ -434,7 +438,7 @@ docs:
 
 #-------------------------------------------------------------------------------
 clean:
-	rm -fr $(LIBTARGET) $(STATICLIBTARGET) $(MODTARGET) $(PBGMODTARGET) $(STATICPBGMODTARGET) $(EXETARGETS) $(OBJS) $(BPLOBJS) $(OBJS:.o=.d) $(BPLOBJS:.o=.d) $(PBGTARGETDATE) $(PBGSRCS) $(PBGOBJS) $(PBGMODSRCS) $(PYSTEOBJS) $(PYSTECPPS) $(LASTPYSTEMAKE) .$(PKGNAME) $(PYTHONDATEFILE) $(PBGTARGETS:.py=.C) $(PBGTARGET:.py=.py.d) $(notdir $(EXTRAINSTSRCTARGETS)) $(EXTRAINSTOBJS) $(EXTRAINSTOBJS:.o=.d)
+	rm -fr $(LIBTARGET) $(STATICLIBTARGET) $(MODTARGET) $(PBGMODTARGET) $(STATICPBGMODTARGET) $(EXETARGETS) $(OBJS) $(BPLOBJS) $(OBJS:.o=.d) $(BPLOBJS:.o=.d) $(PBGTARGETDATE) $(PBGSRCS) $(PBGOBJS) $(PBGMODSRCS) $(PYSTEOBJS) $(PYSTECPPS) $(LASTPYSTEMAKE) .$(PKGNAME) $(PYTHONDATEFILE) $(PBGTARGETS:.py=.C) $(PBGTARGET:.py=.py.d) $(PYB11TARGET:.cc=.$(SHLIBEXT)) $(notdir $(EXTRAINSTSRCTARGETS)) $(EXTRAINSTOBJS) $(EXTRAINSTOBJS:.o=.d)
 
 #-------------------------------------------------------------------------------
 spotless:
