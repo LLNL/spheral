@@ -180,6 +180,7 @@ PKGLIBS := $(patsubst %, -l%, $(CXXPKGLIBS))
 #-------------------------------------------------------------------------------
 # Python binding stuff
 PYTHONBINDING = @PYTHONBINDING@
+PYTHONPKGDIR = @PYTHONPKGDIR@
 
 # Pybindgen
 ifeq "$(PYTHONBINDING)" "PYBINDGEN"
