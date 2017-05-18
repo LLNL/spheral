@@ -5,6 +5,7 @@
 #include "Utilities/pointDistances.hh"
 #include "Utilities/pointInPolygon.hh"
 #include "Utilities/lineSegmentIntersections.hh"
+#include "Utilities/safeInv.hh"
 
 namespace Spheral {
 
@@ -50,7 +51,7 @@ position() const {
     result += (point(i) + point(j)) * dl;
     circum += dl;
   }
-  result /= 2.0*circum;
+  result *= safeInvVar(2.0*circum);
   return result;
 }
 
