@@ -62,6 +62,10 @@
 The vast majority of \sph's backend is written in c++, and through bindings is scripted to run in native python. 
 This manual gives a brief overview of some of the various classes and methods defined within \sph\ and provides example code snippets outlining their usage.
 
+\section{Conventions}
+
+Throughout this manual, some doubly indexed variables refer to the difference of that variable between those indices, as in $W_{ij}=W(h_i,|\vec{r_{ij}}|)$, where $\vec{r_{ij}} = \vec{r_i}-\vec{r_j}$.
+
 \chapter{Your First Spheral Script}
 
 \lstset{basicstyle=\small,style=myCustomPythonStyle}
@@ -217,7 +221,6 @@ The traditional SPH hydro algorithm solves the inviscid Euler equations in discr
 \dot{v_i} &=& - \sum_j \frac{m_j}{\rho_i\rho_j}\left(P_i+P_j\right)\nabla W_{ij}\\
 \dot{u_i} &=& \sum_j \frac{m_j}{\rho_i\rho_j}P_j\left(v_i+v_j\right)\nabla W_{ij}
 \ea
-
 
 The regular intensive variables are density and internal energy. 
 Shock capturing is achieved via artificial viscosity, typically of the Monaghan \& Gingold form.
