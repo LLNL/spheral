@@ -2,7 +2,7 @@ import shutil
 from math import *
 from Spheral2d import *
 from SpheralTestUtilities import *
-from SpheralGnuPlotUtilities import *
+#from SpheralGnuPlotUtilities import *
 from findLastRestart import *
 from GenerateNodeDistribution2d import *
 from CompositeNodeDistribution import *
@@ -13,17 +13,19 @@ import DistributeNodes
 
 title("Convection Test in 2D")
 
-class ExponentialDensity:
+class GravDensity:
     def __init__(self,
-                 y1,
                  rho0,
-                 alpha):
+                 g,gamma):
         self.y1 = y1
-        self.rho0 = rho0
-        self.alpha = alpha
+        self.rho0 = rho0**(gamma-1.0)
+        self.g = g
+        self.gamma = gamma
+        self.c = (gamma-1.0)/gamma
+        self.d = 1.0/(gamma-1.0)
         return
     def __call__(self, r):
-        return self.rho0*exp(self.alpha*(r.y - self.y1))
+        return (self.rho0-self.g*self.c*r.y)**(self.d)
 
 #-------------------------------------------------------------------------------
 # Generic problem parameters
@@ -133,14 +135,13 @@ else:
         HydroConstructor = SPHHydro
 
 dataDir = os.path.join(dataDir,
-                       "S=%g" % (S),
-                       "vx1=%g-vx2=%g" % (abs(vx1), abs(vx2)),
+                       "vx=%g" % (abs(vx)),
                        str(HydroConstructor).split("'")[1].split(".")[-1],
                        "densityUpdate=%s" % (densityUpdate),
                        "XSPH=%s" % XSPH,
                        "filter=%s" % filter,
                        "%s-Cl=%g-Cq=%g" % (str(Qconstructor).split("'")[1].split(".")[-1], Cl, Cq),
-                       "%ix%i" % (nx1, ny1 + ny2),
+                       "%ix%i" % (nx, ny),
                        "nPerh=%g-Qhmult=%g" % (nPerh, Qhmult))
 restartDir = os.path.join(dataDir, "restarts")
 vizDir = os.path.join(dataDir, "visit")
@@ -192,12 +193,7 @@ nodes1 = makeFluidNodeList("High density gas", eos,
                            hmax = hmax,
                            hminratio = hminratio,
                            nPerh = nPerh)
-nodes2 = makeFluidNodeList("Low density gas", eos,
-                           hmin = hmin,
-                           hmax = hmax,
-                           hminratio = hminratio,
-                           nPerh = nPerh)
-nodeSet = [nodes1, nodes2]
+nodeSet = [nodes1]
 for nodes in nodeSet:
     output("nodes.name")
     output("nodes.hmin")
@@ -209,47 +205,28 @@ for nodes in nodeSet:
 # Set the node properties.
 #-------------------------------------------------------------------------------
 if restoreCycle is None:
-    generator1 = GenerateNodeDistribution2d(nx1, ny1,
-                                            rho = ExponentialDensity(y1,
-                                                                     rho0/S,
-                                                                     g0/((gamma - 1.0)*eps0)),
-                                            distributionType = "lattice",
-                                            xmin = (x0,y0),
-                                            xmax = (x1,y1),
+    generator = GenerateNodeDistribution2d(nx, ny,
+                                           rho = GravDensity(rho0,
+                                                             -g0,gamma),
+                                           distributionType = "lattice",
+                                           xmin = (x0,y0),
+                                           xmax = (x1,y1),
 
-                                            nNodePerh = nPerh,
-                                            SPH = SPH)
-    generator2 = GenerateNodeDistribution2d(nx2, ny2,
-                                            rho = ExponentialDensity(y1,
-                                                                     rho0,
-                                                                     g0*S/((gamma - 1.0)*eps0)),
-                                            distributionType = "lattice",
-                                            xmin = (x0,y1),
-                                            xmax = (x1,y2),
-                                            nNodePerh = nPerh,
-                                            SPH = SPH)
+                                           nNodePerh = nPerh,
+                                           SPH = SPH)
 
     if mpi.procs > 1:
         from VoronoiDistributeNodes import distributeNodes2d
     else:
         from DistributeNodes import distributeNodes2d
 
-    distributeNodes2d((nodes1, generator1),
-                      (nodes2, generator2))
+    distributeNodes2d((nodes1, generator))
 
-    # A helpful method for setting y displacement.
-    def dy(ri):
-        thpt = alpha*cos(2.0*pi*ri.x*freq)
-        return thpt*exp(-beta*abs(ri.y-y1))
 
     # Finish initial conditions.
     nodes1.specificThermalEnergy(ScalarField("tmp", nodes1, eps0))
-    nodes2.specificThermalEnergy(ScalarField("tmp", nodes2, eps0/S))
-    for nodes in (nodes1,nodes2):
-        pos = nodes.positions()
-        vel = nodes.velocity()
-        for i in xrange(nodes.numInternalNodes):
-            pos[i].y += dy(pos[i])
+    pos = nodes1.positions()
+    vel = nodes1.velocity()
 
 #-------------------------------------------------------------------------------
 # Construct a DataBase to hold our node list
@@ -352,12 +329,9 @@ if bArtificialConduction:
 # Construct the gravitational acceleration object.
 #-------------------------------------------------------------------------------
 nodeIndicies1 = vector_of_int()
-nodeIndicies2 = vector_of_int()
 
 for i in xrange(nodes1.numInternalNodes):
     nodeIndicies1.append(i)
-for i in xrange(nodes2.numInternalNodes):
-    nodeIndicies2.append(i)
 
 #nodeIndicies1.extend(range(nodes1.numInternalNodes))
 #nodeIndicies2.extend(range(nodes2.numInternalNodes))
@@ -365,12 +339,8 @@ for i in xrange(nodes2.numInternalNodes):
 gravity1 = ConstantAcceleration2d(Vector2d(0.0, g0),
                                   nodes1,
                                   nodeIndicies1)
-gravity2 = ConstantAcceleration2d(Vector2d(0.0, g0),
-                                  nodes2,
-                                  nodeIndicies2)
 
 packages.append(gravity1)
-packages.append(gravity2)
 
 #-------------------------------------------------------------------------------
 # Create boundary conditions.
@@ -378,12 +348,10 @@ packages.append(gravity2)
 xp1 = Plane(Vector(x0, y0), Vector( 1.0, 0.0))
 xp2 = Plane(Vector(x1, y0), Vector(-1.0, 0.0))
 yp1 = Plane(Vector(x0, y0), Vector(0.0,  1.0))
-yp2 = Plane(Vector(x0, y2), Vector(0.0, -1.0))
 xbc = PeriodicBoundary(xp1, xp2)
 #ybc = PeriodicBoundary(yp1, yp2)
 ybc1 = ReflectingBoundary(yp1)
-ybc2 = ReflectingBoundary(yp2)
-bcSet = [xbc, ybc1, ybc2]
+bcSet = [xbc, ybc1]
 #bcSet = [xbc,ybc1]
 
 for bc in bcSet:
