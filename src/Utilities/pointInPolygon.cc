@@ -67,31 +67,34 @@ bool pointInPolygon(const Dim<2>::Vector& p,
 
   typedef Dim<2>::Vector Vector;
   typedef Dim<2>::FacetedVolume::Facet Facet;
+  const vector<Vector>& pverts = polygon.vertices();
   const vector<Facet>& facets = polygon.facets();
   const unsigned nfacets = facets.size();
   CHECK(nfacets >= 3);
 
   // If there's just one loop it's an easy check.
   if (facets.back().ipoint2() == 0) {
-    return pointInPolygon(p, polygon.vertices(), countBoundary, tol);
+    vector<Vector> verts(pverts.begin(), pverts.end());
+    verts.push_back(verts[0]);
+    return pointInPolygon(p, verts, countBoundary, tol);
   }
 
-  // There are multiple loops, so we gotta check each one.
-  bool result = false;
+  // If there are multiple loops, we can still do them in one go, but we have to
+  // insert (0,0) coordinates between loops.  See the discussion at the above
+  // website source for all this for more information.
+  vector<Vector> verts(1, Vector::zero);
+  verts.reserve(int(1.05*pverts.size()));
   unsigned ifacet = 0;
-  while (not result and ifacet < nfacets) {
+  while (ifacet < nfacets) {
     const unsigned ivstart = facets[ifacet].ipoint1();
-    vector<Vector> loop(1, facets[ifacet].point1());
-    while (ifacet < facets.size() and facets[ifacet].ipoint2() != ivstart) {
+    while (ifacet < nfacets and facets[ifacet].ipoint2() != ivstart) {
+      verts.push_back(facets[ifacet].point1());
       ++ifacet;
-      loop.push_back(facets[ifacet].point1());
     }
-    ++ifacet;
-    CHECK(loop.size() >= 3);
-    result = pointInPolygon(p, loop, countBoundary, tol);
+    verts.push_back(pverts[ivstart]);
+    verts.push_back(Vector::zero);
   }
-
-  return result;
+  return pointInPolygon(p, verts, countBoundary, tol);
 }
 
 //------------------------------------------------------------------------------
