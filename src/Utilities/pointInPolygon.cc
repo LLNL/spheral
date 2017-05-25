@@ -25,15 +25,8 @@ using namespace std;
 // test for efficiency.
 //------------------------------------------------------------------------------
 bool pointInPolygon(const Dim<2>::Vector& p,
-                    const std::vector<Dim<2>::Vector>& vertices,
-                    const bool countBoundary,
-                    const double tol) {
+                    const std::vector<Dim<2>::Vector>& vertices) {
   typedef Dim<2>::Vector Vector;
-
-  // Check if the point is on the boundary (within tolerance).
-  // The succeeding code sometimes (but uniquely) includes boundary points, so 
-  // we need to check for boundary first.
-  if (countBoundary and pointOnPolygon(p, vertices, tol)) return true;
 
   // Now we do the test of casting a semi-infinite ray in the x direction from 
   // the point and counting intersections with the polygon.
@@ -65,6 +58,9 @@ bool pointInPolygon(const Dim<2>::Vector& p,
   // Do the quick box rejection test.
   if (not testPointInBox(p, polygon.xmin(), polygon.xmax(), tol)) return false;
 
+  // Check if the point is on the boundary (within tolerance).
+  if (pointOnPolygon(p, polygon, tol)) return countBoundary;
+
   typedef Dim<2>::Vector Vector;
   typedef Dim<2>::FacetedVolume::Facet Facet;
   const vector<Vector>& pverts = polygon.vertices();
@@ -76,7 +72,7 @@ bool pointInPolygon(const Dim<2>::Vector& p,
   if (facets.back().ipoint2() == 0) {
     vector<Vector> verts(pverts.begin(), pverts.end());
     verts.push_back(verts[0]);
-    return pointInPolygon(p, verts, countBoundary, tol);
+    return pointInPolygon(p, verts);
   }
 
   // If there are multiple loops, we can still do them in one go, but we have to
@@ -86,15 +82,17 @@ bool pointInPolygon(const Dim<2>::Vector& p,
   verts.reserve(int(1.05*pverts.size()));
   unsigned ifacet = 0;
   while (ifacet < nfacets) {
-    const unsigned ivstart = facets[ifacet].ipoint1();
-    while (ifacet < nfacets and facets[ifacet].ipoint2() != ivstart) {
-      verts.push_back(facets[ifacet].point1());
+    const unsigned istart = facets[ifacet].ipoint1();
+    verts.push_back(pverts[istart]);
+    while (ifacet < nfacets and facets[ifacet].ipoint2() != istart) {
+      verts.push_back(facets[ifacet].point2());
       ++ifacet;
     }
-    verts.push_back(pverts[ivstart]);
+    verts.push_back(pverts[istart]);
     verts.push_back(Vector::zero);
+    ++ifacet;
   }
-  return pointInPolygon(p, verts, countBoundary, tol);
+  return pointInPolygon(p, verts);
 }
 
 //------------------------------------------------------------------------------

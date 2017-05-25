@@ -22,9 +22,7 @@ namespace Spheral {
 // test for efficiency.
 //------------------------------------------------------------------------------
 bool pointInPolygon(const Dim<2>::Vector& p,
-                    const std::vector<Dim<2>::Vector>& vertices,
-                    const bool countBoundary = false,
-                    const double tol = 1.0e-10);
+                    const std::vector<Dim<2>::Vector>& vertices);
 
 //------------------------------------------------------------------------------
 // Test a polygon (2-D).
