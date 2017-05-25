@@ -256,14 +256,9 @@ Spheral.add_function("globalBoundingVolumes", None, [constrefparam("DataBase%(di
                                      ("Polyhedron", "polyhedron", "Vector3d")):
             exec("""
 Spheral.add_function("pointOn%(volume)s", "bool", [constrefparam("%(vector)s", "p"),
-                                                   constrefparam("vector_of_%(vector)s", "vertices"),
+                                                   constrefparam("%(volume)s", "%(name)s"),
                                                    param("double", "tol", default_value="1.0e-10")],
                      docstring = "Test if the given point is on the boundary of a %(name)s specified by it's vertices.")
-Spheral.add_function("pointIn%(volume)s", "bool", [constrefparam("%(vector)s", "p"),
-                                                   constrefparam("vector_of_%(vector)s", "vertices"),
-                                                   param("bool", "countBoundary", default_value="false"),
-                                                   param("double", "tol", default_value="1.0e-10")],
-                     docstring = "Test if the given point is contained withing a %(name)s specified by it's vertices.")
 Spheral.add_function("pointIn%(volume)s", "bool", [constrefparam("%(vector)s", "p"),
                                                    constrefparam("%(volume)s", "%(name)s"),
                                                    param("bool", "countBoundary", default_value="false"),
