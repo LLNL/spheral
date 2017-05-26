@@ -206,8 +206,7 @@ for nodes in nodeSet:
 #-------------------------------------------------------------------------------
 if restoreCycle is None:
     generator = GenerateNodeDistribution2d(nx, ny,
-                                           rho = GravDensity(rho0,
-                                                             -g0,gamma),
+                                           rho = rho0,
                                            distributionType = "lattice",
                                            xmin = (x0,y0),
                                            xmax = (x1,y1),
@@ -227,6 +226,12 @@ if restoreCycle is None:
     nodes1.specificThermalEnergy(ScalarField("tmp", nodes1, eps0))
     pos = nodes1.positions()
     vel = nodes1.velocity()
+    ene = nodes1.specificThermalEnergy()
+    for i in xrange(nodes1.numInternalNodes):
+        yi = pos[i].y
+        Pi = g0*rho0*(yi-y1)
+        ui = Pi/(gamma-1.0)/rho0
+        ene[i] = ui
 
 #-------------------------------------------------------------------------------
 # Construct a DataBase to hold our node list
