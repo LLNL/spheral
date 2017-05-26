@@ -13,19 +13,30 @@ import DistributeNodes
 
 title("Convection Test in 2D")
 
-class GravDensity:
-    def __init__(self,
-                 rho0,
-                 g,gamma):
-        self.y1 = y1
-        self.rho0 = rho0**(gamma-1.0)
-        self.g = g
-        self.gamma = gamma
-        self.c = (gamma-1.0)/gamma
-        self.d = 1.0/(gamma-1.0)
+class RadiativeLosses(Physics):
+    def __init__(self):
+        Physics.__init__(self)
+        self.du = 0.0
+        self.dtRL = 1.0e12
+
+    def initializeProblemStartup(self,db):
         return
-    def __call__(self, r):
-        return (self.rho0-self.g*self.c*r.y)**(self.d)
+    def evaluateDerivatives(self,t,dt,db,state,derivs):
+        # do most of the work here
+        return
+    def dt(self,db,state,derivs,t):
+        return pair_double_string(self.dtRL, "flux limit")
+    def registerState(self, dt, state):
+        state.enroll(self.abundArray)
+        return
+    def registerDerivatives(self, db, derivs):
+        return
+    def label(self):
+        return "RadiativeLossesPackage"
+    def initialize(self, t, dt, db, state, derivs):
+        return
+    def finalize(self, t, dt, db, state, derivs):
+        return
 
 #-------------------------------------------------------------------------------
 # Generic problem parameters
@@ -181,7 +192,7 @@ eos = GammaLawGasMKS(gamma, mu)
 #-------------------------------------------------------------------------------
 # Interpolation kernels.
 #-------------------------------------------------------------------------------
-WT = TableKernel(BSplineKernel(), 1000)
+WT = TableKernel(NBSplineKernel(5), 1000)
 output("WT")
 kernelExtent = WT.kernelExtent
 
