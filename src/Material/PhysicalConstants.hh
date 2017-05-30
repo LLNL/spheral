@@ -65,6 +65,7 @@ private:
   static const double kBMKS;
   static const double RgasMKS;
   static const double NAvogadro;
+  static const double StefanBoltzmannMKS;
 
 };
 

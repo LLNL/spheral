@@ -14,12 +14,13 @@ import DistributeNodes
 title("Convection Test in 2D")
 
 class RadiativeLosses(Physics):
-    def __init__(self,rhoMax):
+    def __init__(self,rhoMax,units):
         Physics.__init__(self)
         self.du = 0.0
         self.dtRL = 1.0e12
         self.rhoMax = rhoMax
         self.radTemp = db.newFluidScalarFieldList(0.0,"radiationTemperature")
+        self.units = units
 
     def initializeProblemStartup(self,db):
         return
@@ -28,7 +29,6 @@ class RadiativeLosses(Physics):
     def dt(self,db,state,derivs,t):
         return pair_double_string(self.dtRL, "flux limit")
     def registerState(self, dt, state):
-        state.enroll(self.abundArray)
         return
     def registerDerivatives(self, db, derivs):
         return
@@ -41,21 +41,28 @@ class RadiativeLosses(Physics):
         db.fluidTemperature(self.radTemp)
         density         = state.scalarFields(HydroFieldNames.massDensity)
         specificEnergy  = state.scalarFields(HydroFieldNames.specificThermalEnergy)
-        Hfield          = state.Hfield(HydroFieldNames.Hfield)
+        mass            = state.scalarFields(HydroFieldNames.mass)
         for f in self.radTemp:
             f.name = "radiationTemperature"
         
         for n in xrange(db.numNodeLists):
             npart = 0
             for i in xrange(len(self.radTemp[n])):
-                if (density[n][i] <= self.rhoMax):
+                if (density[n][i] <= self.rhoMax and density[n][i] > 0.0):
                     # half sphere radiating upward
-                    R  = Hfield[n][i]
+                    M  = mass[n][i]
+                    print "M=%f" % M
+                    rho = density[n][i]
+                    print "rho=%f" % rho
+                    R  = (M/rho)**(1.0/3.0)
+                    print "R=%f" % R
                     R2 = R*R
                     T  = self.radTemp[n][i]
                     T4 = T*T*T*T
-                    s  = units.stefanBoltzmannConstant
-                    du = dt*2.0*pi*s*R2*T4
+                    s  = self.units.stefanBoltzmannConstant()
+                    du = dt*2.0*pi*s*R2*T4/M
+                    specificEnergy[n][i] -= du
+                    # figure out the time stepping later
                     npart += 1
         
         return
@@ -66,6 +73,7 @@ class RadiativeLosses(Physics):
 commandLine(nx = 100,
             ny = 100,
             rho0 = 1.0,
+            rhoM = 0.5, # density below which to radiate
             eps0 = 1.0,
             x0 = 0.0,
             x1 = 1.0,
@@ -344,6 +352,11 @@ output("hydro.HEvolution")
 
 packages = [hydro]
 
+#-------------------------------------------------------------------------------
+# Construct the Radiative Losses object
+#-------------------------------------------------------------------------------
+RL = RadiativeLosses(rhoM,units)
+packages.append(RL)
 #-------------------------------------------------------------------------------
 # Construct the MMRV physics object.
 #-------------------------------------------------------------------------------
