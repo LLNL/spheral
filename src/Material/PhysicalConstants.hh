@@ -36,6 +36,7 @@ public:
   double molarGasConstant() const;
   double kelvinsToEnergyPerMole() const;
   double unitMassDensity() const;
+  double stefanBoltzmannConstant() const;
 
 private:
   //--------------------------- Private Interface ---------------------------//
@@ -52,6 +53,7 @@ private:
   const double MolarGasConstant;
   const double KelvinsToEnergyPerMole;
   const double UnitMassDensity;
+  const double Sigma;
 
   // The reference MKS data we base our values on.
   static const double mpMKS;

@@ -14,15 +14,16 @@ import DistributeNodes
 title("Convection Test in 2D")
 
 class RadiativeLosses(Physics):
-    def __init__(self):
+    def __init__(self,rhoMax):
         Physics.__init__(self)
         self.du = 0.0
         self.dtRL = 1.0e12
+        self.rhoMax = rhoMax
+        self.radTemp = db.newFluidScalarFieldList(0.0,"radiationTemperature")
 
     def initializeProblemStartup(self,db):
         return
     def evaluateDerivatives(self,t,dt,db,state,derivs):
-        # do most of the work here
         return
     def dt(self,db,state,derivs,t):
         return pair_double_string(self.dtRL, "flux limit")
@@ -36,6 +37,27 @@ class RadiativeLosses(Physics):
     def initialize(self, t, dt, db, state, derivs):
         return
     def finalize(self, t, dt, db, state, derivs):
+        # do most of the work here
+        db.fluidTemperature(self.radTemp)
+        density         = state.scalarFields(HydroFieldNames.massDensity)
+        specificEnergy  = state.scalarFields(HydroFieldNames.specificThermalEnergy)
+        Hfield          = state.Hfield(HydroFieldNames.Hfield)
+        for f in self.radTemp:
+            f.name = "radiationTemperature"
+        
+        for n in xrange(db.numNodeLists):
+            npart = 0
+            for i in xrange(len(self.radTemp[n])):
+                if (density[n][i] <= self.rhoMax):
+                    # half sphere radiating upward
+                    R  = Hfield[n][i]
+                    R2 = R*R
+                    T  = self.radTemp[n][i]
+                    T4 = T*T*T*T
+                    s  = units.stefanBoltzmannConstant
+                    du = dt*2.0*pi*s*R2*T4
+                    npart += 1
+        
         return
 
 #-------------------------------------------------------------------------------
