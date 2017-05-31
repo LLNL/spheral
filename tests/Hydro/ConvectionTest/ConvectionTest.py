@@ -51,16 +51,18 @@ class RadiativeLosses(Physics):
                 if (density[n][i] <= self.rhoMax and density[n][i] > 0.0):
                     # half sphere radiating upward
                     M  = mass[n][i]
-                    print "M=%f" % M
+                    #print "M=%f" % M
                     rho = density[n][i]
-                    print "rho=%f" % rho
+                    #print "rho=%f" % rho
                     R  = (M/rho)**(1.0/3.0)
-                    print "R=%f" % R
+                    #print "R=%f" % R
                     R2 = R*R
                     T  = self.radTemp[n][i]
                     T4 = T*T*T*T
-                    s  = self.units.stefanBoltzmannConstant()
+                    #s  = self.units.stefanBoltzmannConstant
+                    s = 5.67e-8
                     du = dt*2.0*pi*s*R2*T4/M
+                    #print "temp = %3.3e u = %3.3e du = %3.3e" % (T,specificEnergy[n][i],du)
                     specificEnergy[n][i] -= du
                     # figure out the time stepping later
                     npart += 1
@@ -83,7 +85,7 @@ commandLine(nx = 100,
             kr = 1.0, # total effective opacity (1/k_therm + 1/k_rad)
             P1 = 2.5,
             vx = 0.0,
-            g0 = -2.0,
+            g0 = -2.0e8,
             w0 = 0.1,
             
             gamma = 5.0/3.0,
@@ -188,6 +190,10 @@ restartDir = os.path.join(dataDir, "restarts")
 vizDir = os.path.join(dataDir, "visit")
 restartBaseName = os.path.join(restartDir, "Convection-Test-2d")
 vizBaseName = "Convection-Test-2d"
+
+
+units = PhysicalConstants(1.0,1.0,1.0)
+
 
 #-------------------------------------------------------------------------------
 # CRKSPH Switches to ensure consistency
