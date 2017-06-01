@@ -80,7 +80,6 @@ self.generateIsothermalEquationOfStateBindings(self.IsothermalEquationOfState%(d
         x.add_instance_attribute("NAvogadro", "double", getter="Navogadro", is_const=True)
         x.add_instance_attribute("molarGasConstant", "double", getter="molarGasConstant", is_const=True)
         x.add_instance_attribute("kelvinsToEnergyPerMole", "double", getter="kelvinsToEnergyPerMole", is_const=True)
-        x.add_instance_attribute("unitMassDensity", "double", getter="unitMassDensity", is_const=True)
         x.add_instance_attribute("stefanBoltzmannConstant", "double", getter="stefanBoltzmannConstant", is_const=True)
 
         return
