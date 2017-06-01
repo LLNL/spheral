@@ -1174,10 +1174,7 @@ $(HDF5BUILDDATE):  $(HDF5DIST)
 	@$(MKDIR) $(LIBDIR) $(prefix)/include $(prefix)/bin
 	rm -fr $(HDF5DIR)
 	$(BZIP2) -dc $(HDF5DIST) | $(TAR) -xf -
-	$(SHELL) -ec "cd $(HDF5DIR); \
-        wget -O config.guess 'http://git.savannah.gnu.org/gitweb/?p=config.git;a=blob_plain;f=config.guess;hb=HEAD'; \
-	wget -O config.sub 'http://git.savannah.gnu.org/gitweb/?p=config.git;a=blob_plain;f=config.sub;hb=HEAD'; \
-	mv config.* bin/.; \
+	$(SHELL) -ec "cd $(HDF5DIR); cp ~/config.guess bin/.; cp ~/config.sub bin/.; \
 	env CC='$(CC)' CXX='$(CXX)' CFLAGS='$(CFLAGS)' CXXFLAGS='$(CXXFLAGS)' ./configure --prefix=$(prefix) $(HDF5FLAGS) ; \
 	rm -f test.conf ; \
 	$(MAKE) ; \
@@ -1190,7 +1187,8 @@ $(HDF5BUILDDATE):  $(HDF5DIST)
 	fi
 	rm -fr $(HDF5DIR)
 	touch $(HDF5BUILDDATE)
-
+#        wget -O config.guess 'http://git.savannah.gnu.org/gitweb/?p=config.git;a=blob_plain;f=config.guess;hb=HEAD'; 
+#        wget -O config.sub 'http://git.savannah.gnu.org/gitweb/?p=config.git;a=blob_plain;f=config.sub;hb=HEAD'; 
 #-------------------------------------------------------------------------------
 # SILO
 #-------------------------------------------------------------------------------
@@ -1204,10 +1202,7 @@ $(SILOBUILDDATE):  $(SILODIST) $(HDF5BUILDDATE) $(PYTHONBUILDDATE)
 	@$(MKDIR) $(LIBDIR) $(prefix)/include $(prefix)/bin
 	rm -fr $(SILODIR)
 	$(GZIP) -dc $(SILODIST) | $(TAR) -xf -
-	$(SHELL) -ec "cd $(SILODIR); \
-        wget -O config.guess 'http://git.savannah.gnu.org/gitweb/?p=config.git;a=blob_plain;f=config.guess;hb=HEAD'; \
-        wget -O config.sub 'http://git.savannah.gnu.org/gitweb/?p=config.git;a=blob_plain;f=config.sub;hb=HEAD'; \
-        mv config.* config/.; \
+	$(SHELL) -ec "cd $(SILODIR); cp ~/config.guess config/.; cp ~/config.sub config/.; \
 	env PATH=$(prefix)/bin:$$PATH CC='$(CC)' CXX='$(CXX)' CFLAGS='$(CFLAGS)' CXXFLAGS='$(CXXFLAGS)' $(SILOFLAGS) ./configure --enable-shared=no --enable-fortran=no --prefix=$(prefix) --with-hdf5='$(prefix)/include,$(prefix)/lib' --enable-silex=no --enable-browser=yes ; \
 	$(MAKE) ; \
 	$(MAKE) install"
