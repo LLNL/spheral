@@ -111,6 +111,22 @@ case $COMPILERS in
          PARMETISCC=$MPICC
          CXXFLAGS+=" -std=c++11"
 
+      elif test $OSNAME = "Darwin"; then
+         CC=clang
+         CXX=clang++
+         FORT=gfortran
+         MPICC=mpicc
+         MPICXX=mpicxx
+         MPICCFLAGS="-cc=clang"
+         MPICXXFLAGS="-cxx=clang++"
+         CMAKECC=clang
+         CMAKECXX=clang++
+         GCCXMLCC=$CMAKECC
+         GCCXMLCXX=$CMAKECXX
+         PYTHONCC=$CC
+         PYTHONCXX=$CXX
+         PARMETISCC=$MPICC
+         CXXFLAGS+=" -mmacosx-version-min=10.7 -std=c++11"
       else
          CC=gcc
          CXX=g++
