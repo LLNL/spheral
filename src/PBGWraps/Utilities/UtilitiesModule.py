@@ -143,8 +143,14 @@ Spheral.add_function("globalBoundingVolumes", None, [constrefparam("DataBase%(di
                                  custom_name = "segmentSegmentIntersection"),
 
         # These methods are only valid in 2d and 3d.
-        for dim in ("2d", "3d"):
-            vector = "Vector%s" % dim
+        for ndim in (2, 3):
+            dim = "Dim<%i>" % ndim
+            vector = "Vector%id" % ndim
+            vector_of_boundary = "vector_of_Boundary%id" % ndim
+            vector_of_scalarfieldptr = "vector_of_ScalarFieldPtr%id" % ndim
+            vector_of_vectorfieldptr = "vector_of_VectorFieldPtr%id" % ndim
+            vector_of_tensorfieldptr = "vector_of_TensorFieldPtr%id" % ndim
+            vector_of_symTensorfieldptr = "vector_of_SymTensorFieldPtr%id" % ndim
             Spheral.add_function("pointPlaneDistance", "double", 
                                  [constrefparam(vector, "point"),
                                   constrefparam(vector, "origin"),
@@ -157,6 +163,19 @@ Spheral.add_function("globalBoundingVolumes", None, [constrefparam("DataBase%(di
                                  template_parameters = [vector],
                                  custom_name = "closestPointOnSegment",
                                  docstring = "Find the closest point on a line segment (a0,a1) to point (p).")
+            Spheral.add_function("overlayRemapFields", None,
+                                 [constrefparam(vector_of_boundary, "boundaries"),
+                                  constrefparam(vector_of_scalarfieldptr, "scalarDonorFields"),
+                                  constrefparam(vector_of_vectorfieldptr, "vectorDonorFields"),
+                                  constrefparam(vector_of_tensorfieldptr, "tensorDonorFields"),
+                                  constrefparam(vector_of_symTensorfieldptr, "symTensorDonorFields"),
+                                  refparam(vector_of_scalarfieldptr, "scalarAcceptorFields"),
+                                  refparam(vector_of_vectorfieldptr, "vectorAcceptorFields"),
+                                  refparam(vector_of_tensorfieldptr, "tensorAcceptorFields"),
+                                  refparam(vector_of_symTensorfieldptr, "symTensorAcceptorFields")],
+                                 template_parameters = [dim],
+                                 custom_name = "overlayRemapFields",
+                                 docstring = "Do a simple donor overlay using geometric intersection.")
 
         # Closest point in plane to a point.
         Spheral.add_function("closestPointOnPlane", "Vector3d",
@@ -237,14 +256,9 @@ Spheral.add_function("globalBoundingVolumes", None, [constrefparam("DataBase%(di
                                      ("Polyhedron", "polyhedron", "Vector3d")):
             exec("""
 Spheral.add_function("pointOn%(volume)s", "bool", [constrefparam("%(vector)s", "p"),
-                                                   constrefparam("vector_of_%(vector)s", "vertices"),
+                                                   constrefparam("%(volume)s", "%(name)s"),
                                                    param("double", "tol", default_value="1.0e-10")],
                      docstring = "Test if the given point is on the boundary of a %(name)s specified by it's vertices.")
-Spheral.add_function("pointIn%(volume)s", "bool", [constrefparam("%(vector)s", "p"),
-                                                   constrefparam("vector_of_%(vector)s", "vertices"),
-                                                   param("bool", "countBoundary", default_value="false"),
-                                                   param("double", "tol", default_value="1.0e-10")],
-                     docstring = "Test if the given point is contained withing a %(name)s specified by it's vertices.")
 Spheral.add_function("pointIn%(volume)s", "bool", [constrefparam("%(vector)s", "p"),
                                                    constrefparam("%(volume)s", "%(name)s"),
                                                    param("bool", "countBoundary", default_value="false"),
@@ -277,6 +291,14 @@ Spheral.add_function("segmentIntersectEdges", "bool", [constrefparam("%(vector)s
                              [constrefparam("Polyhedron", "poly"),
                               constrefparam("vector_of_Plane3d", "planes")],
                              docstring = "Clip a polyhedron with a set of planes.")
+        Spheral.add_function("clippedVolume", "double", 
+                             [constrefparam("Polygon", "poly"),
+                              constrefparam("vector_of_Plane2d", "planes")],
+                             docstring = "Return the area of a polygon clipped with a set of planes.")
+        Spheral.add_function("clippedVolume", "double", 
+                             [constrefparam("Polyhedron", "poly"),
+                              constrefparam("vector_of_Plane3d", "planes")],
+                             docstring = "Return the volume of a polyhedron clipped with a set of planes.")
 
         # Boost.math functions.
         Spheral.add_function("legendre_p", "double", 

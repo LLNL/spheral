@@ -117,6 +117,15 @@ double
 PhysicalConstants::kelvinsToEnergyPerMole() const {
   return KelvinsToEnergyPerMole;
 }
+    
+//------------------------------------------------------------------------------
+// Stefan-Boltzmann's constant
+//------------------------------------------------------------------------------
+inline
+double
+PhysicalConstants::stefanBoltzmannConstant() const {
+    return Sigma;
+}
 
 }
 }
