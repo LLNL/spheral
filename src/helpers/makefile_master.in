@@ -180,6 +180,7 @@ PKGLIBS := $(patsubst %, -l%, $(CXXPKGLIBS))
 #-------------------------------------------------------------------------------
 # Python binding stuff
 PYTHONBINDING = @PYTHONBINDING@
+PYTHONPKGDIR = @PYTHONPKGDIR@
 
 # Pybindgen
 ifeq "$(PYTHONBINDING)" "PYBINDGEN"
@@ -312,6 +313,10 @@ ifneq "$(PBGTARGET)" ""
 -include $(notdir $(PBGTARGET:.py=.py.d))
 endif
 
+ifneq "$(PYB11ARGET)" ""
+-include $(notdir $(PYB11TARGET:.cc=.d))
+endif
+
 #-------------------------------------------------------------------------------
 $(LIBTARGET): $(OBJS) $(PYFFLEOBJS) $(EXETARGETS)
 	@echo "################################################################################"
@@ -378,7 +383,7 @@ $(BPLMODTARGET): $(BPLOBJS) $(OBJS)
 #-------------------------------------------------------------------------------
 $(PYB11TARGET): $(OBJS)
 	@echo "################################################################################"
-	@echo "# Building module $(PYB11MODTARGET)"
+	@echo "# Building module $(PYB11TARGET)"
 	@echo "################################################################################"
 	@mkdir -p $(PYTHONLIBDIR)/Spheral
 	$(MPICXX) $(MPICXXFLAGS) $(CXXFLAGS) $(PYOPT) $(SHAREDFLAG) $(EXTRAINCLUDES) -I$(srcdir) -o $(PYB11TARGET) $(OBJS) $(MODULELINK) $(LDFLAGS) $(LDRPATH) $(LIBS) $(EXTRALIBS) $(DEPENDLIBS) $(LDRPATH) $(LDRPATH) $(LIBS) $(LIBS)
@@ -434,7 +439,7 @@ docs:
 
 #-------------------------------------------------------------------------------
 clean:
-	rm -fr $(LIBTARGET) $(STATICLIBTARGET) $(MODTARGET) $(PBGMODTARGET) $(STATICPBGMODTARGET) $(EXETARGETS) $(OBJS) $(BPLOBJS) $(OBJS:.o=.d) $(BPLOBJS:.o=.d) $(PBGTARGETDATE) $(PBGSRCS) $(PBGOBJS) $(PBGMODSRCS) $(PYSTEOBJS) $(PYSTECPPS) $(LASTPYSTEMAKE) .$(PKGNAME) $(PYTHONDATEFILE) $(PBGTARGETS:.py=.C) $(PBGTARGET:.py=.py.d) $(notdir $(EXTRAINSTSRCTARGETS)) $(EXTRAINSTOBJS) $(EXTRAINSTOBJS:.o=.d)
+	rm -fr $(LIBTARGET) $(STATICLIBTARGET) $(MODTARGET) $(PBGMODTARGET) $(STATICPBGMODTARGET) $(EXETARGETS) $(OBJS) $(BPLOBJS) $(OBJS:.o=.d) $(BPLOBJS:.o=.d) $(PBGTARGETDATE) $(PBGSRCS) $(PBGOBJS) $(PBGMODSRCS) $(PYSTEOBJS) $(PYSTECPPS) $(LASTPYSTEMAKE) .$(PKGNAME) $(PYTHONDATEFILE) $(PBGTARGETS:.py=.C) $(PBGTARGET:.py=.py.d) $(PYB11TARGET:.cc=.$(SHLIBEXT)) $(notdir $(EXTRAINSTSRCTARGETS)) $(EXTRAINSTOBJS) $(EXTRAINSTOBJS:.o=.d)
 
 #-------------------------------------------------------------------------------
 spotless:
