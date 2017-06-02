@@ -17,6 +17,24 @@ PYOPT=""
 BOOSTLIBTARGETS="math"
 EXTRATHIRDPARTYTARGETS=""
 
+AC_MSG_CHECKING(for --without-pybindgen)
+AC_ARG_WITH(pybindgen,
+[  --without-pybindgen ...................... do not use pybindgen wrappings],
+[
+    AC_MSG_RESULT(yes)
+],
+[
+    AC_MSG_RESULT(no)
+    PYTHONBINDING="PYBINDGEN"
+    PYTHONPKGDIR="PBGWraps"
+    PYTHONPKGS="Geometry CXXTypes Silo DataOutput NodeList Field Kernel Neighbor Material FileIO DataBase Boundary Physics ArtificialViscosity Hydro ExternalForce Gravity Integrator Utilities NodeGenerators FieldOperations SPH CRKSPH SVPH TaylorSPH Mesh Damage SolidMaterial SolidSPH Strength ArtificialConduction $PYTHONPKGS"
+    PYOPT="$PYOPT"
+    MODULELINK="-L\$(LIBDIR) \$(PKGLIBS)"
+    if test "`uname -s`" = "AIX"; then
+       MODULELINK="$MODULELINK -e init\$(PKGNAME)"
+    fi
+])
+
 # -----------------------------------------------------------------
 # Configure using pybind11 library for python bindings
 # -----------------------------------------------------------------
@@ -37,24 +55,6 @@ AC_ARG_WITH(pybind11,
 ],
 [
     AC_MSG_RESULT(no)
-])
-
-AC_MSG_CHECKING(for --without-pybindgen)
-AC_ARG_WITH(pybindgen,
-[  --without-pybindgen ...................... do not use pybindgen wrappings],
-[
-    AC_MSG_RESULT(yes)
-],
-[
-    AC_MSG_RESULT(no)
-    PYTHONBINDING="PYBINDGEN"
-    PYTHONPKGDIR="PBGWraps"
-    PYTHONPKGS="Geometry CXXTypes Silo DataOutput NodeList Field Kernel Neighbor Material FileIO DataBase Boundary Physics ArtificialViscosity Hydro ExternalForce Gravity Integrator Utilities NodeGenerators FieldOperations SPH CRKSPH SVPH TaylorSPH Mesh Damage SolidMaterial SolidSPH Strength ArtificialConduction $PYTHONPKGS"
-    PYOPT="$PYOPT"
-    MODULELINK="-L\$(LIBDIR) \$(PKGLIBS)"
-    if test "`uname -s`" = "AIX"; then
-       MODULELINK="$MODULELINK -e init\$(PKGNAME)"
-    fi
 ])
 
 AC_MSG_CHECKING(for --with-boostroot)
