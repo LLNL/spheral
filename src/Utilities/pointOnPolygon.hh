@@ -10,7 +10,7 @@
 
 namespace Spheral {
   bool pointOnPolygon(const Dim<2>::Vector& p,
-                      const std::vector<Dim<2>::Vector>& vertices,
+                      const Dim<2>::FacetedVolume& polygon,
                       const double tol = 1.0e-10);
 }
 #endif

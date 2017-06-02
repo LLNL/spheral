@@ -146,7 +146,7 @@ case $COMPILERS in
       PYTHONCC=$CC
       PYTHONCXX=$CXX
       PARMETISCC=$MPICC
-      CXXFLAGS+=" -std=c++11"
+      CXXFLAGS+=" -std=c++11 -Wno-undefined-var-template"
       if test $OSNAME = "Darwin"; then
         CXXFLAGS+=" -mmacosx-version-min=10.7 -stdlib=libc++"
       fi

@@ -25,15 +25,8 @@ using namespace std;
 // test for efficiency.
 //------------------------------------------------------------------------------
 bool pointInPolygon(const Dim<2>::Vector& p,
-                    const std::vector<Dim<2>::Vector>& vertices,
-                    const bool countBoundary,
-                    const double tol) {
+                    const std::vector<Dim<2>::Vector>& vertices) {
   typedef Dim<2>::Vector Vector;
-
-  // Check if the point is on the boundary (within tolerance).
-  // The succeeding code sometimes (but uniquely) includes boundary points, so 
-  // we need to check for boundary first.
-  if (countBoundary and pointOnPolygon(p, vertices, tol)) return true;
 
   // Now we do the test of casting a semi-infinite ray in the x direction from 
   // the point and counting intersections with the polygon.
@@ -65,33 +58,41 @@ bool pointInPolygon(const Dim<2>::Vector& p,
   // Do the quick box rejection test.
   if (not testPointInBox(p, polygon.xmin(), polygon.xmax(), tol)) return false;
 
+  // Check if the point is on the boundary (within tolerance).
+  if (pointOnPolygon(p, polygon, tol)) return countBoundary;
+
   typedef Dim<2>::Vector Vector;
   typedef Dim<2>::FacetedVolume::Facet Facet;
+  const vector<Vector>& pverts = polygon.vertices();
   const vector<Facet>& facets = polygon.facets();
   const unsigned nfacets = facets.size();
   CHECK(nfacets >= 3);
 
   // If there's just one loop it's an easy check.
   if (facets.back().ipoint2() == 0) {
-    return pointInPolygon(p, polygon.vertices(), countBoundary, tol);
+    vector<Vector> verts(pverts.begin(), pverts.end());
+    verts.push_back(verts[0]);
+    return pointInPolygon(p, verts);
   }
 
-  // There are multiple loops, so we gotta check each one.
-  bool result = false;
+  // If there are multiple loops, we can still do them in one go, but we have to
+  // insert (0,0) coordinates between loops.  See the discussion at the above
+  // website source for all this for more information.
+  vector<Vector> verts(1, Vector::zero);
+  verts.reserve(int(1.05*pverts.size()));
   unsigned ifacet = 0;
-  while (not result and ifacet < nfacets) {
-    const unsigned ivstart = facets[ifacet].ipoint1();
-    vector<Vector> loop(1, facets[ifacet].point1());
-    while (ifacet < facets.size() and facets[ifacet].ipoint2() != ivstart) {
+  while (ifacet < nfacets) {
+    const unsigned istart = facets[ifacet].ipoint1();
+    verts.push_back(pverts[istart]);
+    while (ifacet < nfacets and facets[ifacet].ipoint2() != istart) {
+      verts.push_back(facets[ifacet].point2());
       ++ifacet;
-      loop.push_back(facets[ifacet].point1());
     }
+    verts.push_back(pverts[istart]);
+    verts.push_back(Vector::zero);
     ++ifacet;
-    CHECK(loop.size() >= 3);
-    result = pointInPolygon(p, loop, countBoundary, tol);
   }
-
-  return result;
+  return pointInPolygon(p, verts);
 }
 
 //------------------------------------------------------------------------------
