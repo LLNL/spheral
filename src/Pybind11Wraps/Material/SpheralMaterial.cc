@@ -429,6 +429,7 @@ PYBIND11_PLUGIN(SpheralMaterial) {
     .def_property_readonly("Navogadro", &PhysicalConstants::Navogadro)
     .def_property_readonly("molarGasConstant", &PhysicalConstants::molarGasConstant)
     .def_property_readonly("kelvinsToEnergyPerMole", &PhysicalConstants::kelvinsToEnergyPerMole)
+    .def_property_readonly("stefanBoltzmannConstant", &PhysicalConstants::stefanBoltzmannConstant)
     ;
 
   //............................................................................
