@@ -283,7 +283,9 @@ class RPRPSGenerator3d(NodeGeneratorBase):
                         self.positions.append(position4)
             elif(nshell>=163):
                 if (nshell > mpi.procs):
-                    npp = nshell/(mpi.procs-1)
+                    npp = nshell
+                    if mpi.procs > 1:
+                        npp = nshell/(mpi.procs -1)
                     print "npp = %d"%npp
                     p = 0
                     if(rank>0 and rank*npp!=nshell):
