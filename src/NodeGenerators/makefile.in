@@ -53,7 +53,8 @@ PYTHONTARGETS = \
 	$(srcdir)/CentroidalGenerator2d.py \
 	$(srcdir)/centroidalRelaxNodes.py \
 	$(srcdir)/MedialGenerator.py \
-	$(srcdir)/MultiScaleMedialGenerator.py
+	$(srcdir)/MultiScaleMedialGenerator.py \
+	$(srcdir)/RecursivePrimitiveRefinementGenerator.py
 
 #-------------------------------------------------------------------------------
 include $(BUILDTOP)/helpers/makefile_master
