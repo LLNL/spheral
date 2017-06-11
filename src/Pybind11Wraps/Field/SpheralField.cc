@@ -1,9 +1,10 @@
-#include <vector>
-#include <string>
-
+// Put Python includes first to avoid compile warnings about redefining _POSIX_C_SOURCE
 #include "pybind11/pybind11.h"
 #include "pybind11/stl_bind.h"
 #include "pybind11/operators.h"
+
+#include <vector>
+#include <string>
 
 #include "Geometry/Dimension.hh"
 #include "Field/FieldBase.hh"
@@ -15,7 +16,59 @@
 namespace py = pybind11;
 using namespace pybind11::literals;
 
+using namespace Spheral;
 using namespace Spheral::FieldSpace;
+
+//------------------------------------------------------------------------------
+// 1D
+//------------------------------------------------------------------------------
+typedef Field<Dim<1>, Dim<1>::Scalar> ScalarField1d;
+typedef Field<Dim<1>, Dim<1>::Vector> VectorField1d;
+typedef Field<Dim<1>, Dim<1>::Tensor> TensorField1d;
+typedef Field<Dim<1>, Dim<1>::SymTensor> SymTensorField1d;
+PYBIND11_MAKE_OPAQUE(std::vector<ScalarField1d>);
+PYBIND11_MAKE_OPAQUE(std::vector<VectorField1d>);
+PYBIND11_MAKE_OPAQUE(std::vector<TensorField1d>);
+PYBIND11_MAKE_OPAQUE(std::vector<SymTensorField1d>);
+
+PYBIND11_MAKE_OPAQUE(std::vector<ScalarField1d*>);
+PYBIND11_MAKE_OPAQUE(std::vector<VectorField1d*>);
+PYBIND11_MAKE_OPAQUE(std::vector<TensorField1d*>);
+PYBIND11_MAKE_OPAQUE(std::vector<SymTensorField1d*>);
+
+//------------------------------------------------------------------------------
+// 2D
+//------------------------------------------------------------------------------
+typedef Field<Dim<2>, Dim<2>::Scalar> ScalarField2d;
+typedef Field<Dim<2>, Dim<2>::Vector> VectorField2d;
+typedef Field<Dim<2>, Dim<2>::Tensor> TensorField2d;
+typedef Field<Dim<2>, Dim<2>::SymTensor> SymTensorField2d;
+PYBIND11_MAKE_OPAQUE(std::vector<ScalarField2d>);
+PYBIND11_MAKE_OPAQUE(std::vector<VectorField2d>);
+PYBIND11_MAKE_OPAQUE(std::vector<TensorField2d>);
+PYBIND11_MAKE_OPAQUE(std::vector<SymTensorField2d>);
+
+PYBIND11_MAKE_OPAQUE(std::vector<ScalarField2d*>);
+PYBIND11_MAKE_OPAQUE(std::vector<VectorField2d*>);
+PYBIND11_MAKE_OPAQUE(std::vector<TensorField2d*>);
+PYBIND11_MAKE_OPAQUE(std::vector<SymTensorField2d*>);
+
+//------------------------------------------------------------------------------
+// 3D
+//------------------------------------------------------------------------------
+typedef Field<Dim<3>, Dim<3>::Scalar> ScalarField3d;
+typedef Field<Dim<3>, Dim<3>::Vector> VectorField3d;
+typedef Field<Dim<3>, Dim<3>::Tensor> TensorField3d;
+typedef Field<Dim<3>, Dim<3>::SymTensor> SymTensorField3d;
+PYBIND11_MAKE_OPAQUE(std::vector<ScalarField3d>);
+PYBIND11_MAKE_OPAQUE(std::vector<VectorField3d>);
+PYBIND11_MAKE_OPAQUE(std::vector<TensorField3d>);
+PYBIND11_MAKE_OPAQUE(std::vector<SymTensorField3d>);
+
+PYBIND11_MAKE_OPAQUE(std::vector<ScalarField3d*>);
+PYBIND11_MAKE_OPAQUE(std::vector<VectorField3d*>);
+PYBIND11_MAKE_OPAQUE(std::vector<TensorField3d*>);
+PYBIND11_MAKE_OPAQUE(std::vector<SymTensorField3d*>);
 
 namespace {  // anonymous
 
