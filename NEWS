@@ -1,3 +1,10 @@
+Release notes for 2.0.10.
+
+Another minor release keeping up with maintainence and third party package
+updates.  These days I actually recommend just downloading a snapshot of the
+source code repot, but I'll cut another interim release as well.
+
+================================================================================
 Release notes for 2.0.9.
 
 Mostly minor fixes and third party updates.  There is a fair amount of interim
