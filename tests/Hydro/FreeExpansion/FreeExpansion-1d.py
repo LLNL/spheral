@@ -43,6 +43,7 @@ commandLine(nx1 = 100,
 
             nPerh = 1.51,
 
+            order = 3,
             Qconstructor = MonaghanGingoldViscosity,
             Cl = 1.0,
             Cq = 1.0,
@@ -50,7 +51,7 @@ commandLine(nx1 = 100,
             Qlimiter = False,
             epsilon2 = 1e-2,
             hmin = 0.0001, 
-            hmax = 0.1,
+            hmax = 1.0,
             cfl = 0.5,
             XSPH = False,
             epsilonTensile = 0.0,
@@ -65,7 +66,7 @@ commandLine(nx1 = 100,
             goalTime = 0.5,
             dt = 0.0001,
             dtMin = 1.0e-5, 
-            dtMax = 0.1,
+            dtMax = 100.0,
             dtGrowth = 2.0,
             dtverbose = False,
             rigorousBoundaries = False,
@@ -124,7 +125,7 @@ eos = GammaLawGasMKS(gamma, mu)
 #-------------------------------------------------------------------------------
 # Interpolation kernels.
 #-------------------------------------------------------------------------------
-WT = TableKernel(BSplineKernel(), 10000)
+WT = TableKernel(NBSplineKernel(order), 1000)
 output("WT")
 
 #-------------------------------------------------------------------------------
@@ -292,12 +293,12 @@ if graphics == "gnu":
                                 winTitle = "volume",
                                 colorNodeLists = False)
     elif CRKSPH:
-        A0=hydro.A0()
+        A=hydro.A()
 	print("ARRAY LENGTH:")
-        print(A0[0].__len__())
+        print(A[0].__len__())
         tmp=[]
-        for i in range(A0[0].__len__()):
-		tmp.append(A0[0][i])
+        for i in range(A[0].__len__()):
+		tmp.append(A[0][i])
         A=np.array(tmp)
         #ret=smooth(A,11,'hamming') 
         CoeffBx = Gnuplot.Data(A,
@@ -309,15 +310,12 @@ if graphics == "gnu":
         p0.plot(CoeffBx)
         p0.title("COEFF")
         p0.refresh()
-        #print(A0.size())
-        #A=np.array(A0)
+        #print(A.size())
+        #A=np.array(A)
         #ret=smooth(A,11,'hamming')
         volPlot = plotFieldList(hydro.volume(),
                                 winTitle = "volume",
                                 colorNodeLists = False)
-        A0Plot = plotFieldList(hydro.A0(),
-                               winTitle = "A0",
-                               colorNodeLists = False)
         APlot = plotFieldList(hydro.A(),
                               winTitle = "A",
                               colorNodeLists = False)
@@ -349,11 +347,10 @@ if outputFile != "None":
     labels = ["x", "m", "rho", "P", "v", "eps", "h"]
     stuff = [xprof, mprof, rhoprof, Pprof, vprof, epsprof, hprof]
     if CRKSPH:
-        A0prof = mpi.reduce(hydro.A0()[0].internalValues(), mpi.SUM)
         Aprof = mpi.reduce(hydro.A()[0].internalValues(), mpi.SUM)
         Bprof = mpi.reduce([x.x for x in hydro.B()[0].internalValues()], mpi.SUM)
-        labels += ["A0", "A", "B"]
-        stuff += [A0prof, Aprof, Bprof]
+        labels += ["A", "B"]
+        stuff += [Aprof, Bprof]
 
     if mpi.rank == 0:
         multiSort(*tuple(stuff))
