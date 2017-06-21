@@ -133,3 +133,27 @@ def writePolyhedronOFF(poly, filename):
     # That's it.
     f.close()
     return
+
+#-------------------------------------------------------------------------------
+# Write an STL shape file from a list of polyhedra.
+#-------------------------------------------------------------------------------
+def writePolyhedraSTL(polys,
+                      names,
+                      filename):
+    assert len(polys) == len(names)
+    f = open(filename, "w")
+    for name, poly in zip(names, polys):
+        verts = poly.vertices()
+        facets = poly.facets()
+        f.write("solid %s\n" % name)
+        for facet in facets:
+            ipoints = facet.ipoints
+            f.write("  facet normal %e %e %e\n" % tuple(facet.normal))
+            f.write("    outer loop\n")
+            for i in ipoints:
+                f.write("      vertex %e %e %e\n" % tuple(verts[i]))
+            f.write("    endloop\n")
+            f.write("  endfacet\n")
+        f.write("endsolid\n")
+    f.close()
+    return
