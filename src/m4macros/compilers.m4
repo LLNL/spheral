@@ -206,8 +206,8 @@ case $COMPILERS in
       CC=icc
       CXX=icpc
       FORT=ifort
-      MPICC=mpiicc
-      MPICXX=mpiicpc
+      MPICC=mpicc # mpiicc
+      MPICXX=mpicxx # mpiicpc
       PYTHONCC=icc
       PYTHONCXX=icpc
       CMAKECC=$CC
@@ -217,6 +217,7 @@ case $COMPILERS in
       CMAKECC=gcc
       CMAKECXX=g++
       PARMETISCC=$MPICC
+      CXXFLAGS+=" -std=c++11"
       NUMPYFLAGS="--fcompiler=intelem"
       ;;
 

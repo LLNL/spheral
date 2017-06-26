@@ -1,12 +1,16 @@
 #-------------------------------------------------------------------------------
-# 1D Free expansion of gas into a vacuum.
+# 2D Free expansion of gas into a vacuum.
+# We follow the expansion of a circular or tophat like configuration.
 #-------------------------------------------------------------------------------
 from math import *
-from Spheral1d import *
+from Spheral2d import *
 from SpheralTestUtilities import *
 import mpi
 import os, shutil
 import numpy as np
+from GenerateNodeDistribution2d import *
+from VoronoiDistributeNodes import distributeNodes2d
+
 #import matplotlib.pyplot as plt
 
 def smooth(x,window_len=11,window='hanning'):
@@ -26,14 +30,14 @@ def smooth(x,window_len=11,window='hanning'):
     y=np.convolve(w/w.sum(),s,mode='same')
     return y[window_len:-window_len+1]
 
-title("Free expansion test.")
+title("2D free expansion test.")
 
 #-------------------------------------------------------------------------------
 # Generic problem parameters
 #-------------------------------------------------------------------------------
-commandLine(nx1 = 100,
-            x0 = 0.0,
-            x1 = 1.0,
+commandLine(nr = 100,
+            r0 = 0.0,
+            r1 = 1.0,
 
             rho1 = 1.0,
             eps1 = 1.0,
@@ -52,7 +56,7 @@ commandLine(nx1 = 100,
             epsilon2 = 1e-2,
             hmin = 0.0001, 
             hmax = 1.0,
-            cfl = 0.5,
+            cfl = 0.25,
             XSPH = False,
             epsilonTensile = 0.0,
             nTensile = 4,
@@ -79,11 +83,13 @@ commandLine(nx1 = 100,
             gradhCorrection = True,
             linearConsistent = False,
 
-            restoreCycle = None,
-            restartStep = 10000,
-            clearDirectories = True,
-            dataDirBase = "dumps-planar-FreeExpansion-1d",
-            outputFile = "FreeExpansion-planar-1d.gnu",
+            restoreCycle = -1,
+            restartStep = 100,
+            vizCycle = None,
+            vizTime = 1.0,
+            clearDirectories = False,
+            dataDirBase = "dumps-cylindrical-FreeExpansion-2d",
+            outputFile = "FreeExpansion-cylindrical-2d.gnu",
 
             graphics = "gnu",
             )
@@ -99,11 +105,13 @@ else:
     HydroConstructor = SPHHydro
 
 dataDir = os.path.join(dataDirBase,
-                       str(HydroConstructor).split("'")[1].split(".")[-1],
-                       str(Qconstructor).split("'")[1].split(".")[-1],
-                       "nx=%i" % nx1)
+                       HydroConstructor.__name__,
+                       Qconstructor.__name__,
+                       "nr=%i" % nr)
 restartDir = os.path.join(dataDir, "restarts")
-restartBaseName = os.path.join(restartDir, "AcousticWave-planar-1d-%i" % nx1)
+restartBaseName = os.path.join(restartDir, "FreeExpansion-cylindrical-2d-%i" % nr)
+vizDir = os.path.join(dataDir, "visit")
+vizBaseName = "FreeExpansion-cylindrical-2d-%i" % nr
 
 #-------------------------------------------------------------------------------
 # Check if the necessary output directories exist.  If not, create them.
@@ -114,6 +122,8 @@ if mpi.rank == 0:
         shutil.rmtree(dataDir)
     if not os.path.exists(restartDir):
         os.makedirs(restartDir)
+    if not os.path.exists(vizDir):
+        os.makedirs(vizDir)
 mpi.barrier()
 
 #-------------------------------------------------------------------------------
@@ -143,27 +153,34 @@ output("nodes1.nodesPerSmoothingScale")
 #-------------------------------------------------------------------------------
 # Set the node properties.
 #-------------------------------------------------------------------------------
-from DistributeNodes import distributeNodesInRange1d
-distributeNodesInRange1d([(nodes1, nx1, rho1, (x0, x1))],
-                         nPerh = nPerh)
-nNodesThisDomain1 = nodes1.numInternalNodes
-output("nodes1.numNodes")
+generator = GenerateNodeDistribution2d(nr, 1, rho1, "constantDTheta",
+                                       rmin = r0,
+                                       rmax = r1,
+                                       xmin = (0,0),
+                                       xmax = (r1,r1),
+                                       theta = 0.5*pi,
+                                       nNodePerh = nPerh,
+                                       SPH = True)
+distributeNodes2d((nodes1, generator))
+output("mpi.reduce(nodes1.numInternalNodes, mpi.MIN)")
+output("mpi.reduce(nodes1.numInternalNodes, mpi.MAX)")
+output("mpi.reduce(nodes1.numInternalNodes, mpi.SUM)")
 
 eps = nodes1.specificThermalEnergy(ScalarField("tmp", nodes1, eps1))
 
-# Compute the summation correction for the density, and apply it to the mass per point.
-mass = nodes1.mass()
-dx = (x1 - x0)/nx1
-m0 = rho1*dx
-Hdet0 = 1.0/(nPerh*dx)
-rhoscale = m0*WT.kernelValue(0.0, Hdet0)
-deta = 1.0/nPerh
-for i in xrange(1, int(WT.kernelExtent * (nPerh + 1))):
-    rhoscale += 2.0*m0*WT.kernelValue(i*deta, Hdet0)
-rhoscale = rho1/rhoscale
-print "Compute analytic rho scaling of %16.12e." % rhoscale
-for i in xrange(nodes1.numInternalNodes):
-    mass[i] *= rhoscale
+# # Compute the summation correction for the density, and apply it to the mass per point.
+# mass = nodes1.mass()
+# dx = (x1 - x0)/nx1
+# m0 = rho1*dx
+# Hdet0 = 1.0/(nPerh*dx)
+# rhoscale = m0*WT.kernelValue(0.0, Hdet0)
+# deta = 1.0/nPerh
+# for i in xrange(1, int(WT.kernelExtent * (nPerh + 1))):
+#     rhoscale += 2.0*m0*WT.kernelValue(i*deta, Hdet0)
+# rhoscale = rho1/rhoscale
+# print "Compute analytic rho scaling of %16.12e." % rhoscale
+# for i in xrange(nodes1.numInternalNodes):
+#     mass[i] *= rhoscale
 
 #-------------------------------------------------------------------------------
 # Construct a DataBase to hold our node list
@@ -233,9 +250,12 @@ output("hydro")
 #-------------------------------------------------------------------------------
 # Create boundary conditions.
 #-------------------------------------------------------------------------------
-xPlane0 = Plane(Vector(x0), Vector( 1.0))
+xPlane0 = Plane(Vector(0, 0), Vector(1, 0))
+yPlane0 = Plane(Vector(0, 0), Vector(0, 1))
 xbc = ReflectingBoundary(xPlane0)
+ybc = ReflectingBoundary(yPlane0)
 hydro.appendBoundary(xbc)
+hydro.appendBoundary(ybc)
 
 #-------------------------------------------------------------------------------
 # Construct a time integrator.
@@ -263,7 +283,11 @@ control = SpheralController(integrator, WT,
                             statsStep = statsStep,
                             restartStep = restartStep,
                             restartBaseName = restartBaseName,
-                            restoreCycle = restoreCycle)
+                            restoreCycle = restoreCycle,
+                            vizBaseName = vizBaseName,
+                            vizDir = vizDir,
+                            vizStep = vizCycle,
+                            vizTime = vizTime)
 output("control")
 
 #-------------------------------------------------------------------------------
@@ -283,83 +307,68 @@ xprof = mpi.reduce(xlocal, mpi.SUM)
 if graphics == "gnu":
     from SpheralGnuPlotUtilities import *
     state = State(db, integrator.physicsPackages())
-    rhoPlot, velPlot, epsPlot, PPlot, HPlot = plotState(state)
+    rhoPlot, velPlot, epsPlot, PPlot, HPlot = plotRadialState(db)
     cs = state.scalarFields(HydroFieldNames.soundSpeed)
-    csPlot = plotFieldList(cs, winTitle="Sound speed", colorNodeLists=False)
+    csPlot = plotFieldList(cs, xFunction="%s.magnitude()", winTitle="Sound speed", colorNodeLists=False)
     EPlot = plotEHistory(control.conserve)
 
     if SVPH:
         volPlot = plotFieldList(hydro.volume(),
+                                xFunction="%s.magnitude()",
                                 winTitle = "volume",
                                 colorNodeLists = False)
     elif CRKSPH:
-        A=hydro.A()
-	print("ARRAY LENGTH:")
-        print(A[0].__len__())
-        tmp=[]
-        for i in range(A[0].__len__()):
-		tmp.append(A[0][i])
-        A=np.array(tmp)
-        #ret=smooth(A,11,'hamming') 
-        CoeffBx = Gnuplot.Data(A,
-                               with_ = "points",
-                               #with_ = "lines",
-                               title = "Bx",
-                               inline = True)
-        p0 = generateNewGnuPlot()
-        p0.plot(CoeffBx)
-        p0.title("COEFF")
-        p0.refresh()
-        #print(A.size())
-        #A=np.array(A)
-        #ret=smooth(A,11,'hamming')
         volPlot = plotFieldList(hydro.volume(),
+                                xFunction="%s.magnitude()",
                                 winTitle = "volume",
                                 colorNodeLists = False)
         APlot = plotFieldList(hydro.A(),
+                              xFunction="%s.magnitude()",
                               winTitle = "A",
                               colorNodeLists = False)
         BPlot = plotFieldList(hydro.B(),
-                              yFunction = "%s.x",
-                              winTitle = "B",
+                              xFunction="%s.magnitude()",
+                              yFunction = "%s.magnitude()",
+                              winTitle = "|B|",
                               colorNodeLists = False)
 
     else:
         omegaPlot = plotFieldList(hydro.omegaGradh(),
+                                  xFunction="%s.magnitude()",
                                   winTitle = "grad h correction",
                                   colorNodeLists = False)
 
-#-------------------------------------------------------------------------------
-# If requested, write out the state in a global ordering to a file.
-#-------------------------------------------------------------------------------
-if outputFile != "None":
-    outputFile = os.path.join(dataDir, outputFile)
-    from SpheralGnuPlotUtilities import multiSort
-    mprof = mpi.reduce(nodes1.mass().internalValues(), mpi.SUM)
-    rhoprof = mpi.reduce(nodes1.massDensity().internalValues(), mpi.SUM)
-    P = ScalarField("pressure", nodes1)
-    nodes1.pressure(P)
-    Pprof = mpi.reduce(P.internalValues(), mpi.SUM)
-    vprof = mpi.reduce([v.x for v in nodes1.velocity().internalValues()], mpi.SUM)
-    epsprof = mpi.reduce(nodes1.specificThermalEnergy().internalValues(), mpi.SUM)
-    hprof = mpi.reduce([1.0/H.xx for H in nodes1.Hfield().internalValues()], mpi.SUM)
+# #-------------------------------------------------------------------------------
+# # If requested, write out the state in a global ordering to a file.
+# #-------------------------------------------------------------------------------
+# if outputFile != "None":
+#     outputFile = os.path.join(dataDir, outputFile)
+#     from SpheralGnuPlotUtilities import multiSort
+#     mprof = mpi.reduce(nodes1.mass().internalValues(), mpi.SUM)
+#     rhoprof = mpi.reduce(nodes1.massDensity().internalValues(), mpi.SUM)
+#     P = ScalarField("pressure", nodes1)
+#     nodes1.pressure(P)
+#     Pprof = mpi.reduce(P.internalValues(), mpi.SUM)
+#     vprof = mpi.reduce([v.x for v in nodes1.velocity().internalValues()], mpi.SUM)
+#     epsprof = mpi.reduce(nodes1.specificThermalEnergy().internalValues(), mpi.SUM)
+#     hprof = mpi.reduce([1.0/H.xx for H in nodes1.Hfield().internalValues()], mpi.SUM)
 
-    labels = ["x", "m", "rho", "P", "v", "eps", "h"]
-    stuff = [xprof, mprof, rhoprof, Pprof, vprof, epsprof, hprof]
-    if CRKSPH:
-        Aprof = mpi.reduce(hydro.A()[0].internalValues(), mpi.SUM)
-        Bprof = mpi.reduce([x.x for x in hydro.B()[0].internalValues()], mpi.SUM)
-        labels += ["A", "B"]
-        stuff += [Aprof, Bprof]
+#     labels = ["x", "m", "rho", "P", "v", "eps", "h"]
+#     stuff = [xprof, mprof, rhoprof, Pprof, vprof, epsprof, hprof]
+#     if CRKSPH:
+#         Aprof = mpi.reduce(hydro.A()[0].internalValues(), mpi.SUM)
+#         Bprof = mpi.reduce([x.x for x in hydro.B()[0].internalValues()], mpi.SUM)
+#         labels += ["A", "B"]
+#         stuff += [Aprof, Bprof]
 
-    if mpi.rank == 0:
-        multiSort(*tuple(stuff))
-        f = open(outputFile, "w")
-        f.write(("#  " + len(labels)*"'%s' " + "\n") % tuple(labels))
-        for tup in zip(*tuple(stuff)):
-            assert len(tup) == len(labels)
-            f.write((len(tup)*"%16.12e " + "\n") % tup)
-        f.close()
+#     if mpi.rank == 0:
+#         multiSort(*tuple(stuff))
+#         f = open(outputFile, "w")
+#         f.write(("#  " + len(labels)*"'%s' " + "\n") % tuple(labels))
+#         for tup in zip(*tuple(stuff)):
+#             assert len(tup) == len(labels)
+#             f.write((len(tup)*"%16.12e " + "\n") % tup)
+#         f.close()
 
 #------------------------------------------------------------------------------
 # Check the energy error.

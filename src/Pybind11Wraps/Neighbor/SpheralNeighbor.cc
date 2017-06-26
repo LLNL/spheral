@@ -1,9 +1,10 @@
-#include <vector>
-#include <string>
-
+// Put Python includes first to avoid compile warnings about redefining _POSIX_C_SOURCE
 #include "pybind11/pybind11.h"
 #include "pybind11/stl_bind.h"
 #include "pybind11/operators.h"
+
+#include <vector>
+#include <string>
 
 #include "Geometry/Dimension.hh"
 #include "Geometry/GeomPlane.hh"
@@ -18,6 +19,24 @@ namespace py = pybind11;
 using namespace pybind11::literals;
 
 using namespace Spheral::NeighborSpace;
+
+//------------------------------------------------------------------------------
+// 1D
+//------------------------------------------------------------------------------
+PYBIND11_MAKE_OPAQUE(std::vector<Spheral::NeighborSpace::GridCellIndex<Spheral::Dim<1>>>);
+PYBIND11_MAKE_OPAQUE(std::vector<std::vector<Spheral::NeighborSpace::GridCellIndex<Spheral::Dim<1>>>>);
+
+//------------------------------------------------------------------------------
+// 2D
+//------------------------------------------------------------------------------
+PYBIND11_MAKE_OPAQUE(std::vector<Spheral::NeighborSpace::GridCellIndex<Spheral::Dim<2>>>);
+PYBIND11_MAKE_OPAQUE(std::vector<std::vector<Spheral::NeighborSpace::GridCellIndex<Spheral::Dim<2>>>>);
+
+//------------------------------------------------------------------------------
+// 3D
+//------------------------------------------------------------------------------
+PYBIND11_MAKE_OPAQUE(std::vector<Spheral::NeighborSpace::GridCellIndex<Spheral::Dim<3>>>);
+PYBIND11_MAKE_OPAQUE(std::vector<std::vector<Spheral::NeighborSpace::GridCellIndex<Spheral::Dim<3>>>>);
 
 namespace Spheral {
 namespace NeighborSpace {
@@ -52,73 +71,73 @@ public:
   }
 
   virtual void setMasterList(const Vector& position, const Scalar& H) override {
-    PYBIND11_OVERLOAD(void,                 // Return type
-                      NeighborBase,         // Parent class
-                      setMasterList,        // name of method
-                      position, H           // arguments
+    PYBIND11_OVERLOAD_PURE(void,                 // Return type
+                           NeighborBase,         // Parent class
+                           setMasterList,        // name of method
+                           position, H           // arguments
       );
   }
 
   virtual void setMasterList(const Vector& position, const SymTensor& H) override {
-    PYBIND11_OVERLOAD(void,                 // Return type
-                      NeighborBase,         // Parent class
-                      setMasterList,        // name of method
-                      position, H           // arguments
+    PYBIND11_OVERLOAD_PURE(void,                 // Return type
+                           NeighborBase,         // Parent class
+                           setMasterList,        // name of method
+                           position, H           // arguments
       );
   }
 
   virtual void setRefineNeighborList(const Vector& position, const Scalar& H) override {
-    PYBIND11_OVERLOAD(void,                 // Return type
-                      NeighborBase,         // Parent class
-                      setRefineNeighborList,// name of method
-                      position, H           // arguments
+    PYBIND11_OVERLOAD_PURE(void,                 // Return type
+                           NeighborBase,         // Parent class
+                           setRefineNeighborList,// name of method
+                           position, H           // arguments
       );
   }
 
   virtual void setRefineNeighborList(const Vector& position, const SymTensor& H) override {
-    PYBIND11_OVERLOAD(void,                 // Return type
-                      NeighborBase,         // Parent class
-                      setRefineNeighborList,// name of method
-                      position, H           // arguments
+    PYBIND11_OVERLOAD_PURE(void,                 // Return type
+                           NeighborBase,         // Parent class
+                           setRefineNeighborList,// name of method
+                           position, H           // arguments
       );
   }
 
   virtual void setMasterList(const Vector& position) override {
-    PYBIND11_OVERLOAD(void,                 // Return type
-                      NeighborBase,         // Parent class
-                      setMasterList,        // name of method
-                      position              // arguments
+    PYBIND11_OVERLOAD_PURE(void,                 // Return type
+                           NeighborBase,         // Parent class
+                           setMasterList,        // name of method
+                           position              // arguments
       );
   }
 
   virtual void setRefineNeighborList(const Vector& position) override {
-    PYBIND11_OVERLOAD(void,                 // Return type
-                      NeighborBase,         // Parent class
-                      setRefineNeighborList,// name of method
-                      position              // arguments
+    PYBIND11_OVERLOAD_PURE(void,                 // Return type
+                           NeighborBase,         // Parent class
+                           setRefineNeighborList,// name of method
+                           position              // arguments
       );
   }
 
   virtual void setMasterList(const Plane& enterPlane, const Plane& exitPlane) override {
-    PYBIND11_OVERLOAD(void,                 // Return type
-                      NeighborBase,         // Parent class
-                      setMasterList,        // name of method
-                      enterPlane, exitPlane // arguments
+    PYBIND11_OVERLOAD_PURE(void,                 // Return type
+                           NeighborBase,         // Parent class
+                           setMasterList,        // name of method
+                           enterPlane, exitPlane // arguments
       );
   }
 
   virtual void updateNodes() override {
-    PYBIND11_OVERLOAD(void,                 // Return type
-                      NeighborBase,         // Parent class
-                      updateNodes,        // name of method
+    PYBIND11_OVERLOAD_PURE(void,                 // Return type
+                           NeighborBase,         // Parent class
+                           updateNodes,        // name of method
       );
   }
 
   virtual void updateNodes(const std::vector<int>& nodeIDs) override {
-    PYBIND11_OVERLOAD(void,                 // Return type
-                      NeighborBase,         // Parent class
-                      updateNodes,          // name of method
-                      nodeIDs               // arguments
+    PYBIND11_OVERLOAD_PURE(void,                 // Return type
+                           NeighborBase,         // Parent class
+                           updateNodes,          // name of method
+                           nodeIDs               // arguments
       );
   }
 
@@ -149,12 +168,10 @@ void virtualNeighborBindings(py::module& m, const std::string suffix, PB11Obj& o
   obj
 
     // Methods
-    .def("setMasterList", (void (Obj::*)(int)) &Obj::setMasterList)
     .def("setMasterList", (void (Obj::*)(const Vector&, const Scalar&)) &Obj::setMasterList, "position"_a, "h"_a)
     .def("setMasterList", (void (Obj::*)(const Vector&, const SymTensor&)) &Obj::setMasterList, "position"_a, "H"_a)
     .def("setMasterList", (void (Obj::*)(const Vector&)) &Obj::setMasterList, "position"_a)
     
-    .def("setRefineNeighborList", (void (Obj::*)(int)) &Obj::setRefineNeighborList)
     .def("setRefineNeighborList", (void (Obj::*)(const Vector&, const Scalar&)) &Obj::setRefineNeighborList, "position"_a, "h"_a)
     .def("setRefineNeighborList", (void (Obj::*)(const Vector&, const SymTensor&)) &Obj::setRefineNeighborList, "position"_a, "H"_a)
     .def("setRefineNeighborList", (void (Obj::*)(const Vector&)) &Obj::setRefineNeighborList, "position"_a)
@@ -288,15 +305,7 @@ void dimensionBindings(py::module& m, const std::string suffix) {
 
     // Virtual methods
     .def("setMasterList", (void (NT::*)(int)) &NT::setMasterList, "nodeID"_a)
-    .def("setMasterList", (void (NT::*)(const Vector&, const Scalar&)) &NT::setMasterList, "position"_a, "h"_a)
-    .def("setMasterList", (void (NT::*)(const Vector&, const SymTensor&)) &NT::setMasterList, "position"_a, "H"_a)
-    .def("setMasterList", (void (NT::*)(const Vector&)) &NT::setMasterList, "position"_a)
-    .def("setMasterList", (void (NT::*)(const Plane&, const Plane&)) &NT::setMasterList, "enterPlane"_a, "exitPlane"_a)
     .def("setRefineNeighborList", (void (NT::*)(int)) &NT::setRefineNeighborList, "nodeID"_a)
-    .def("setRefineNeighborList", (void (NT::*)(const Vector&, const Scalar&)) &NT::setRefineNeighborList, "position"_a, "h"_a)
-    .def("setRefineNeighborList", (void (NT::*)(const Vector&, const SymTensor&)) &NT::setRefineNeighborList, "position"_a, "H"_a)
-    .def("setRefineNeighborList", (void (NT::*)(const Vector&)) &NT::setRefineNeighborList, "position"_a)
-    .def("valid", &NT::valid)
 
     // Attributes
     .def_property("neighborSearchType",
@@ -349,6 +358,10 @@ void dimensionBindings(py::module& m, const std::string suffix) {
     .def("setNestedMasterList", (void (NGT::*)(const GCI&, const int)) &NGT::setNestedMasterList, "gridCell"_a, "gridLevel"_a)
     .def("findNestedNeighbors", &NGT::findNestedNeighbors)
 
+    // Virtual methods
+    .def("setMasterList", (void (NGT::*)(int)) &NT::setMasterList, "nodeID"_a)
+    .def("setRefineNeighborList", (void (NGT::*)(int)) &NT::setRefineNeighborList, "nodeID"_a)
+
     // Attributes
     .def_property("numGridLevels",
                   (int (NGT::*)() const) &NGT::numGridLevels,
@@ -356,6 +369,62 @@ void dimensionBindings(py::module& m, const std::string suffix) {
 
     ;
 
+  //............................................................................
+  // TreeNeighbor
+  typedef TreeNeighbor<Dimension> TN;
+  py::class_<TN, NT, PyNeighbor<Dimension, TN>> treeneighborPB11(m, ("TreeNeighbor" + suffix).c_str());
+  virtualNeighborBindings<Dimension, TN>(m, suffix, treeneighborPB11);
+  treeneighborPB11
+    
+    // Constructors
+    .def(py::init<NodeList<Dimension>&, const NeighborSearchType, double, Vector, Vector>(),
+         "nodeList"_a,
+         "searchType"_a,
+         "kernelExtent"_a,
+         "xmin"_a,
+         "xmax"_a)
+
+    // Methods
+    .def("gridLevel", (unsigned (TN::*)(const double&) const) &TN::gridLevel, "h"_a)
+    .def("gridLevel", (unsigned (TN::*)(const SymTensor&) const) &TN::gridLevel, "H"_a)
+    .def("dumpTree", &TN::dumpTree)
+    .def("dumpTreeStatistics", &TN::dumpTreeStatistics)
+
+    // Attributes
+    .def_property_readonly("xmin", &TN::xmin)
+    .def_property_readonly("xmax", &TN::xmax)
+    .def_property_readonly("boxLength", &TN::boxLength)
+    ;
+
+  //............................................................................
+  // ConnectivityMap
+  typedef ConnectivityMap<Dimension> CM;
+  py::class_<CM>(m, ("ConnectivityMap" + suffix).c_str())
+
+    // Constructors
+    .def(py::init<>())
+
+    // Methods
+    .def("patchConnectivity", &CM::patchConnectivity, "flags"_a, "old2new"_a)
+    .def("connectivityForNode", (const std::vector<std::vector<int>>& (CM::*)(const NodeList<Dimension>*, const int) const) &CM::connectivityForNode, "nodeList"_a, "nodeID"_a)
+    .def("connectivityForNode", (const std::vector<std::vector<int>>& (CM::*)(const int, const int) const) &CM::connectivityForNode, "nodeListID"_a, "nodeID"_a)
+    .def("connectivityIntersectionForNodes", &CM::connectivityIntersectionForNodes)
+    .def("connectivityUnionForNodes", &CM::connectivityUnionForNodes)
+    .def("numNeighborsForNode", (int (CM::*)(const NodeList<Dimension>*, const int) const) &CM::numNeighborsForNode, "nodeList"_a, "nodeID"_a)
+    .def("numNeighborsForNode", (int (CM::*)(const int, const int) const) &CM::numNeighborsForNode, "nodeListID"_a, "nodeID"_a)
+    .def("calculatePairInteraction", &CM::calculatePairInteraction)
+    .def("nodeList", &CM::nodeList)
+    .def("nodeListIndex", &CM::nodeListIndex)
+    .def("valid", &CM::valid)
+
+    // Attributes
+    .def_property_readonly("buildGhostConnectivity", &CM::buildGhostConnectivity)
+    ;
+
+  //............................................................................
+  // The STL containers of Neighbor objects.
+  py::bind_vector<std::vector<GCI>>(m, "vector_of_GridCellIndex" + suffix);
+  py::bind_vector<std::vector<std::vector<GCI>>>(m, "vector_of_vector_of_GridCellIndex" + suffix);
 }
 
 } // anonymous
@@ -380,12 +449,12 @@ PYBIND11_PLUGIN(SpheralNeighbor) {
 #ifdef SPHERAL1D
   dimensionBindings<Spheral::Dim<1>>(m, "1d");
 #endif
-// #ifdef SPHERAL2D
-//   dimensionBindings<Spheral::Dim<2>>(m, "2d");
-// #endif
-// #ifdef SPHERAL3D
-//   dimensionBindings<Spheral::Dim<3>>(m, "3d");
-// #endif
+#ifdef SPHERAL2D
+  dimensionBindings<Spheral::Dim<2>>(m, "2d");
+#endif
+#ifdef SPHERAL3D
+  dimensionBindings<Spheral::Dim<3>>(m, "3d");
+#endif
 
   return m.ptr();
 }

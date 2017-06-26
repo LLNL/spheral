@@ -1,12 +1,14 @@
+// Put Python includes first to avoid compile warnings about redefining _POSIX_C_SOURCE
+#include "pybind11/pybind11.h"
+#include "pybind11/stl_bind.h"
+#include "pybind11/operators.h"
+
 #include <vector>
 #include <map>
 #include <set>
 #include <string>
 
 #include <limits.h>
-
-#include "pybind11/pybind11.h"
-#include "pybind11/stl_bind.h"
 
 namespace py = pybind11;
 

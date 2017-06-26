@@ -17,28 +17,6 @@ PYOPT=""
 BOOSTLIBTARGETS="math"
 EXTRATHIRDPARTYTARGETS=""
 
-# -----------------------------------------------------------------
-# Configure using pybind11 library for python bindings
-# -----------------------------------------------------------------
-AC_MSG_CHECKING(for --with-pybind11)
-AC_ARG_WITH(pybind11,
-[  --with-pybind11 .......................... use pybind11 wrappings],
-[
-    AC_MSG_RESULT(yes)
-    EXTRATHIRDPARTYTARGETS+=" .pybind11-2.0.1.date"
-    PYTHONBINDING="PYBIND11"
-    PYTHONPKGDIR="Pybind11Wraps"
-    PYTHONPKGS+=" CXXTypes Geometry Silo DataOutput NodeList Field Kernel Neighbor"
-    INCS+="-I\$(prefix)/include -I\$prefix/include/python\$(PYTHONVERSION) \$(patsubst %, -I\$(SRCTOP)/%, \$(CXXPKGS))"
-    MODULELINK="-L\$(LIBDIR) \$(PKGLIBS)"
-    if test "`uname -s`" = "AIX"; then
-       MODULELINK="$MODULELINK -e init\$(PKGNAME)"
-    fi
-],
-[
-    AC_MSG_RESULT(no)
-])
-
 AC_MSG_CHECKING(for --without-pybindgen)
 AC_ARG_WITH(pybindgen,
 [  --without-pybindgen ...................... do not use pybindgen wrappings],
@@ -55,6 +33,28 @@ AC_ARG_WITH(pybindgen,
     if test "`uname -s`" = "AIX"; then
        MODULELINK="$MODULELINK -e init\$(PKGNAME)"
     fi
+])
+
+# -----------------------------------------------------------------
+# Configure using pybind11 library for python bindings
+# -----------------------------------------------------------------
+AC_MSG_CHECKING(for --with-pybind11)
+AC_ARG_WITH(pybind11,
+[  --with-pybind11 .......................... use pybind11 wrappings],
+[
+    AC_MSG_RESULT(yes)
+    EXTRATHIRDPARTYTARGETS+=" .pybind11-2.0.1.date"
+    PYTHONBINDING="PYBIND11"
+    PYTHONPKGDIR="Pybind11Wraps"
+    PYTHONPKGS+=" CXXTypes Geometry Silo DataOutput NodeList Field Kernel Neighbor Material FileIO DataBase Boundary Physics ArtificialViscosity Hydro"
+    INCS+="-I\$(prefix)/include -I\$prefix/include/python\$(PYTHONVERSION) \$(patsubst %, -I\$(SRCTOP)/%, \$(CXXPKGS))"
+    MODULELINK="-L\$(LIBDIR) \$(PKGLIBS)"
+    if test "`uname -s`" = "AIX"; then
+       MODULELINK="$MODULELINK -e init\$(PKGNAME)"
+    fi
+],
+[
+    AC_MSG_RESULT(no)
 ])
 
 AC_MSG_CHECKING(for --with-boostroot)
