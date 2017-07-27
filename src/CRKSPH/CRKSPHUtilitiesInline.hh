@@ -33,19 +33,10 @@ CRKSPHKernel(const KernelSpace::TableKernel<Dimension>& W,
   typedef typename Dimension::Vector Vector;
   typedef typename Dimension::Tensor Tensor;
 
-  // j
-  // const Scalar Wij = W(etaj.magnitude(), Hdetj);
-  // i
-  // const Scalar Wij = W(etai.magnitude(), Hdeti);
-  // ij
   const Scalar Wij = 0.5*(W(etai.magnitude(), Hdeti) + W(etaj.magnitude(), Hdetj));
-  // max h
-  // const Scalar Wij = (etai.magnitude2() < etaj.magnitude2() ?
-  //                     W(etai.magnitude(), Hdeti) :
-  //                     W(etaj.magnitude(), Hdetj));
   if (correctionOrder == CRKOrder::ZerothOrder) {
     return Ai*Wij;
-  } else if(correctionOrder == CRKOrder::LinearOrder) {
+  } else if (correctionOrder == CRKOrder::LinearOrder) {
     return Ai*(1.0 + Bi.dot(rij))*Wij;
   } else {   //correctionOrder == QuadraticOrder
     return Ai*(1.0 + Bi.dot(rij) + Geometry::innerDoubleProduct<Dimension>(Ci, rij.selfdyad()))*Wij;
@@ -117,7 +108,7 @@ CRKSPHKernelAndGradient(const KernelSpace::TableKernel<Dimension>& W,
   if (correctionOrder == CRKOrder::ZerothOrder) {
     WCRKSPH = Ai*Wij;
     gradWCRKSPH = Ai*gradWij + gradAi*Wij;
-  } else if(correctionOrder == CRKOrder::LinearOrder) {
+  } else if (correctionOrder == CRKOrder::LinearOrder) {
     WCRKSPH = Ai*(1.0 + Bi.dot(rij))*Wij;
     gradWCRKSPH = Ai*(1.0 + Bi.dot(rij))*gradWij + Ai*Bi*Wij + gradAi*(1.0 + Bi.dot(rij))*Wij;
     for (size_t ii = 0; ii != Dimension::nDim; ++ii) {
