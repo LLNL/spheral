@@ -65,6 +65,7 @@ commandLine(nr = 100,
             SVPH = False,
             CRKSPH = False,
             TSPH = False,
+            correctionOrder = LinearOrder,
             IntegratorConstructor = CheapSynchronousRK2Integrator,
             steps = None,
             goalTime = 0.5,
@@ -84,7 +85,7 @@ commandLine(nr = 100,
             linearConsistent = False,
 
             restoreCycle = -1,
-            restartStep = 100,
+            restartStep = 50,
             vizCycle = None,
             vizTime = 1.0,
             clearDirectories = False,
@@ -98,7 +99,7 @@ if SVPH:
     HydroConstructor = SVPHFacetedHydro
 elif CRKSPH:
     HydroConstructor = CRKSPHHydro
-    Qconstructor = CRKSPHMonaghanGingoldViscosity
+    #Qconstructor = CRKSPHMonaghanGingoldViscosity
 elif TSPH:
     HydroConstructor = TaylorSPHHydro
 else:
@@ -225,7 +226,8 @@ elif CRKSPH:
                              compatibleEnergyEvolution = compatibleEnergy,
                              XSPH = XSPH,
                              densityUpdate = densityUpdate,
-                             HUpdate = HUpdate)
+                             HUpdate = HUpdate,
+                             correctionOrder = correctionOrder)
 
 elif TSPH:
     hydro = HydroConstructor(W = WT, 
@@ -276,6 +278,27 @@ output("integrator.dtGrowth")
 output("integrator.rigorousBoundaries")
 
 #-------------------------------------------------------------------------------
+#  Some helpful viz diagnostics
+#-------------------------------------------------------------------------------
+# Bmin = ScalarField("Bmin", nodes1)
+# Bmax = ScalarField("Bmax", nodes1)
+# Agradmin = ScalarField("Agradmin", nodes1)
+# Agradmax = ScalarField("Agradmax", nodes1)
+# Bgradmin = ScalarField("Bgradmin", nodes1)
+# Bgradmax = ScalarField("Bgradmax", nodes1)
+# def updateDiagnostics(*args):
+#     B = hydro.B()
+#     Agrad = hydro.gradA()
+#     Bgrad = hydro.gradB()
+#     for i in xrange(nodes1.numInternalNodes):
+#         Bmin[i] = B(0, i).minElement()
+#         Bmax[i] = B(0, i).maxElement()
+#         Agradmin[i] = Agrad(0, i).minElement()
+#         Agradmax[i] = Agrad(0, i).maxElement()
+#         Bgradmin[i] = Bgrad(0, i).eigenValues().minElement()
+#         Bgradmax[i] = Bgrad(0, i).eigenValues().maxElement()
+
+#-------------------------------------------------------------------------------
 # Make the problem controller.
 #-------------------------------------------------------------------------------
 print "Making controller."
@@ -288,7 +311,14 @@ control = SpheralController(integrator, WT,
                             vizDir = vizDir,
                             vizStep = vizCycle,
                             vizTime = vizTime)
+                            # vizFields = [Bmin,
+                            #              Bmax,
+                            #              Agradmin,
+                            #              Agradmax,
+                            #              Bgradmin,
+                            #              Bgradmax])
 output("control")
+#control.appendPeriodicWork(updateDiagnostics, 1)
 
 #-------------------------------------------------------------------------------
 # Advance to the end time.
