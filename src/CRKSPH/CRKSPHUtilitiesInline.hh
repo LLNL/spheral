@@ -9,9 +9,32 @@
 #include "Geometry/innerDoubleProduct.hh"
 #include "Geometry/innerProduct.hh"
 #include "CRKSPHCorrectionParams.hh"
+#include "Geometry/Dimension.hh"
 
 namespace Spheral {
 namespace CRKSPHSpace {
+
+namespace CRKSPH_private {
+
+// Use a trait class to hide/optimize the application of limits to the CRK kernel corrections.
+template<typename Dimension> struct CRKKernelTraits;
+
+// 1D
+template<> struct CRKKernelTraits<Dim<1>> {
+  static double Cmax() { return 2.0; }
+};
+
+// 2D
+template<> struct CRKKernelTraits<Dim<2>> {
+  static double Cmax() { return 4.0; }
+};
+
+// 3D
+template<> struct CRKKernelTraits<Dim<3>> {
+  static double Cmax() { return 8.0; }
+};
+
+}
 
 //------------------------------------------------------------------------------
 // Compute the corrected kernel value.
@@ -35,11 +58,14 @@ CRKSPHKernel(const KernelSpace::TableKernel<Dimension>& W,
 
   const Scalar Wij = 0.5*(W(etai.magnitude(), Hdeti) + W(etaj.magnitude(), Hdetj));
   if (correctionOrder == CRKOrder::ZerothOrder) {
-    return Ai*Wij;
+    return std::min(CRKSPH_private::CRKKernelTraits<Dimension>::Cmax(), 
+                    Ai)*Wij;
   } else if (correctionOrder == CRKOrder::LinearOrder) {
-    return Ai*(1.0 + Bi.dot(rij))*Wij;
+    return std::min(CRKSPH_private::CRKKernelTraits<Dimension>::Cmax(), 
+                    Ai*(1.0 + Bi.dot(rij)))*Wij;
   } else {   //correctionOrder == QuadraticOrder
-    return Ai*(1.0 + Bi.dot(rij) + Geometry::innerDoubleProduct<Dimension>(Ci, rij.selfdyad()))*Wij;
+    return std::min(CRKSPH_private::CRKKernelTraits<Dimension>::Cmax(), 
+                    Ai*(1.0 + Bi.dot(rij) + Geometry::innerDoubleProduct<Dimension>(Ci, rij.selfdyad())))*Wij;
   }
 }
 
@@ -78,51 +104,40 @@ CRKSPHKernelAndGradient(const KernelSpace::TableKernel<Dimension>& W,
   const Vector gradWij = 0.5*(Hi*etai.unitVector() * WWi.second + Hj*etaj.unitVector() * WWj.second);
   gradWSPH = 0.5*(WWi.second + WWj.second);
 
-  // j
-  // const std::pair<Scalar, Scalar> WWj = W.kernelAndGradValue(etaj.magnitude(), Hdetj);
-  // const Scalar Wij = WWj.first; 
-  // const Vector gradWij = Hj*etaj.unitVector() * WWj.second;
-  // gradWSPH = WWj.second;
-
-  // i
-  // const std::pair<Scalar, Scalar> WWi = W.kernelAndGradValue(etai.magnitude(), Hdeti);
-  // const Scalar Wij = WWi.first; 
-  // const Vector gradWij = Hi*etai.unitVector() * WWi.second;
-  // gradWSPH = WWi.second;
-
-  // // max h
-  // Scalar Wij;
-  // Vector gradWij;
-  // if (etai.magnitude2() < etaj.magnitude2()) {
-  //   const std::pair<Scalar, Scalar> WWi = W.kernelAndGradValue(etai.magnitude(), Hdeti);
-  //   Wij = WWi.first;
-  //   gradWij = Hi*etai.unitVector() * WWi.second;
-  //   gradWSPH = WWi.second;
-  // } else {
-  //   const std::pair<Scalar, Scalar> WWj = W.kernelAndGradValue(etaj.magnitude(), Hdetj);
-  //   Wij = WWj.first;
-  //   gradWij = Hj*etaj.unitVector() * WWj.second;
-  //   gradWSPH = WWj.second;
-  // }
-
   if (correctionOrder == CRKOrder::ZerothOrder) {
-    WCRKSPH = Ai*Wij;
-    gradWCRKSPH = Ai*gradWij + gradAi*Wij;
+    const double correction = std::min(CRKSPH_private::CRKKernelTraits<Dimension>::Cmax(), Ai);
+    WCRKSPH = correction*Wij;
+    gradWCRKSPH = correction*gradWij;
+    if (correction < CRKSPH_private::CRKKernelTraits<Dimension>::Cmax()) {
+      gradWCRKSPH += gradAi*Wij;
+    }
+
   } else if (correctionOrder == CRKOrder::LinearOrder) {
-    WCRKSPH = Ai*(1.0 + Bi.dot(rij))*Wij;
-    gradWCRKSPH = Ai*(1.0 + Bi.dot(rij))*gradWij + Ai*Bi*Wij + gradAi*(1.0 + Bi.dot(rij))*Wij;
-    for (size_t ii = 0; ii != Dimension::nDim; ++ii) {
-      for (size_t jj = 0; jj != Dimension::nDim; ++jj) {
-        gradWCRKSPH(ii) += Ai*Wij*gradBi(jj,ii)*rij(jj);
+    const double correction = std::min(CRKSPH_private::CRKKernelTraits<Dimension>::Cmax(),
+                                       Ai*(1.0 + Bi.dot(rij)));
+    WCRKSPH = correction*Wij;
+    gradWCRKSPH = correction*gradWij;
+    if (correction < CRKSPH_private::CRKKernelTraits<Dimension>::Cmax()) {
+      gradWCRKSPH += Ai*Bi*Wij + gradAi*(1.0 + Bi.dot(rij))*Wij;
+      for (size_t ii = 0; ii != Dimension::nDim; ++ii) {
+        for (size_t jj = 0; jj != Dimension::nDim; ++jj) {
+          gradWCRKSPH(ii) += Ai*Wij*gradBi(jj,ii)*rij(jj);
+        }
       }
     }
+
   } else {  //correctionOrder == CRKOrder::QuadraticOrder
-    WCRKSPH = Ai*(1.0 + Bi.dot(rij) + Geometry::innerDoubleProduct<Dimension>(Ci, rij.selfdyad()))*Wij;
-    gradWCRKSPH = Ai*(1.0 + Bi.dot(rij) + Geometry::innerDoubleProduct<Dimension>(Ci, rij.selfdyad()))*gradWij + Ai*Bi*Wij;
-    gradWCRKSPH += gradAi*(1.0 + Bi.dot(rij) + Geometry::innerDoubleProduct<Dimension>(Ci, rij.selfdyad()))*Wij;
-    gradWCRKSPH += Ai*(Geometry::innerProduct<Dimension>(rij,gradBi))*Wij;
-    gradWCRKSPH += Ai*(Geometry::innerDoubleProduct<Dimension>(rij.selfdyad(),gradCi))*Wij;
-    gradWCRKSPH += 2.0*Ai*(Geometry::innerProduct<Dimension>(rij,Ci))*Wij;
+    const double correction = std::min(CRKSPH_private::CRKKernelTraits<Dimension>::Cmax(),
+                                       Ai*(1.0 + Bi.dot(rij) + Geometry::innerDoubleProduct<Dimension>(Ci, rij.selfdyad())));
+    WCRKSPH = correction*Wij;
+    gradWCRKSPH = correction*gradWij;
+    if (correction < CRKSPH_private::CRKKernelTraits<Dimension>::Cmax()) {
+      gradWCRKSPH += Ai*Bi*Wij;
+      gradWCRKSPH += gradAi*(1.0 + Bi.dot(rij) + Geometry::innerDoubleProduct<Dimension>(Ci, rij.selfdyad()))*Wij;
+      gradWCRKSPH += Ai*(Geometry::innerProduct<Dimension>(rij,gradBi))*Wij;
+      gradWCRKSPH += Ai*(Geometry::innerDoubleProduct<Dimension>(rij.selfdyad(),gradCi))*Wij;
+      gradWCRKSPH += 2.0*Ai*(Geometry::innerProduct<Dimension>(rij,Ci))*Wij;
+    }
   }
 }
 

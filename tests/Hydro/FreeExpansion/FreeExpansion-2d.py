@@ -338,6 +338,8 @@ if graphics == "gnu":
                                   winTitle = "grad h correction",
                                   colorNodeLists = False)
 
+    rPlot = plotNodePositions2d(db, colorNodeLists=0, colorDomains=0)
+
 # #-------------------------------------------------------------------------------
 # # If requested, write out the state in a global ordering to a file.
 # #-------------------------------------------------------------------------------
