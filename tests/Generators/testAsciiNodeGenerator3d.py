@@ -146,20 +146,15 @@ if mpi.rank == 0:
 mpi.barrier()
 
 #-------------------------------------------------------------------------------
-# If we're restarting, find the set of most recent restart files.
-#-------------------------------------------------------------------------------
-restoreCycle = findLastRestart(restartBaseName)
-#restoreCycle = None
-
-#-------------------------------------------------------------------------------
 # Material properties.
 #-------------------------------------------------------------------------------
 units = WDUnits()
 Pmin = 1e-6
 Pmax = 1e35
 Tmin = 100.0
-eos = HelmholtzEquationOfState(units,Pmin,Pmax,Tmin)
-#eos = GammaLawEquationOfState(4.0/3.0,1.0)
+#eos = HelmholtzEquationOfState(units,Pmin,Pmax,Tmin)
+eos = GammaLawGas(4.0/3.0,1.0,
+                  constants = units)
 
 #-------------------------------------------------------------------------------
 # Interpolation kernels.
@@ -187,24 +182,24 @@ output("nodes1.nodesPerSmoothingScale")
 #-------------------------------------------------------------------------------
 # Generate them nodes.
 #-------------------------------------------------------------------------------
-if restoreCycle is None:
-    generator1 = AsciiFileNodeGenerator3D(filename=star1,
-                                          materialName = "Default",
-                                          nNodePerh = nPerh,
-                                          nodes=nodes1)
+generator1 = AsciiFileNodeGenerator3D(filename=star1,
+                                      materialName = "Default",
+                                      nNodePerh = nPerh,
+                                      nodes=nodes1)
 
-    #msum = mpi.allreduce(sum(generator1.m + [0.0]), mpi.SUM)
-    #assert msum > 0.0
-    #print "Found star1 mass = %g." % (msum)
-    
-    #ehash1,eheps1 = hashEnergy(generator1)
+#msum = mpi.allreduce(sum(generator1.m + [0.0]), mpi.SUM)
+#assert msum > 0.0
+#print "Found star1 mass = %g." % (msum)
 
-    distributeNodes((nodes1, generator1))
-    
-    for i in xrange(nodes1.numInternalNodes):
-        nodes1.specificThermalEnergy()[i] = generator1.eps[i]
-    
-    #energyHash(nodes1,ehash1,eheps1)
+#ehash1,eheps1 = hashEnergy(generator1)
+
+distributeNodes((nodes1, generator1))
+
+eps = nodes1.specificThermalEnergy()
+for i in xrange(nodes1.numInternalNodes):
+    eps[i] = generator1.eps[i]
+
+#energyHash(nodes1,ehash1,eheps1)
 
 #-------------------------------------------------------------------------------
 # Construct a DataBase to hold our node list
