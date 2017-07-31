@@ -131,7 +131,7 @@ class AsciiFileNodeGenerator2D(NodeGeneratorBase):
         if nodes:
             n0 = len(self.x)
             nodes.numInternalNodes = n0
-            for name in ['x', 'y', 'm', 'rho', 'vx', 'vy', 'eps'] + extraFields:
+            for name in ['x', 'y', 'z', 'm', 'rho', 'vx', 'vy', 'vz', 'eps'] + extraFields:
                 stuff = self.__dict__[name]
                 assert len(stuff) == n0
                 field = ScalarField2d("generator_" + name, nodes)
@@ -140,8 +140,8 @@ class AsciiFileNodeGenerator2D(NodeGeneratorBase):
                 self.__dict__[name] = field
             # H is a SymTensor, so do it separately.
             field = SymTensorField2d("generator_H", nodes)
-                for i in xrange(n0):
-                    field[i] = self.H[i]
+            for i in xrange(n0):
+                field[i] = self.H[i]
             self.H = field
 
         return
@@ -337,8 +337,8 @@ class AsciiFileNodeGenerator3D(NodeGeneratorBase):
                 self.__dict__[name] = field
             # H is a SymTensor, so do it separately.
             field = SymTensorField3d("generator_H", nodes)
-                for i in xrange(n0):
-                    field[i] = self.H[i]
+            for i in xrange(n0):
+                field[i] = self.H[i]
             self.H = field
 
         return
