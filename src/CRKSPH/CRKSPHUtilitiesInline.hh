@@ -21,8 +21,8 @@ template<typename Dimension> struct CRKKernelTraits;
 
 // 1D
 template<> struct CRKKernelTraits<Dim<1>> {
-  static double Cmin() { return -100.0; }
-  static double Cmax() { return 100.0; }
+  static double Cmin() { return 0.5; }
+  static double Cmax() { return 2.0; }
 };
 
 // 2D
@@ -67,6 +67,7 @@ CRKSPHKernel(const KernelSpace::TableKernel<Dimension>& W,
   } else if (correctionOrder == CRKOrder::LinearOrder) {
     return std::max(CRKSPH_private::CRKKernelTraits<Dimension>::Cmin(), 
                     std::min(CRKSPH_private::CRKKernelTraits<Dimension>::Cmax(), 
+                             Ai*(1.0 + Bi.dot(rij))))*Wij;
   } else {   //correctionOrder == QuadraticOrder
     return std::max(CRKSPH_private::CRKKernelTraits<Dimension>::Cmin(), 
                     std::min(CRKSPH_private::CRKKernelTraits<Dimension>::Cmax(), 
@@ -113,7 +114,7 @@ CRKSPHKernelAndGradient(const KernelSpace::TableKernel<Dimension>& W,
     const double correction0 = Ai;
     const double correction = std::max(CRKSPH_private::CRKKernelTraits<Dimension>::Cmin(), 
                                        std::min(CRKSPH_private::CRKKernelTraits<Dimension>::Cmax(),
-                                                correction));
+                                                correction0));
     WCRKSPH = correction*Wij;
     gradWCRKSPH = correction*gradWij;
     if (correction0 > CRKSPH_private::CRKKernelTraits<Dimension>::Cmin() and
@@ -125,7 +126,7 @@ CRKSPHKernelAndGradient(const KernelSpace::TableKernel<Dimension>& W,
     const double correction0 = Ai*(1.0 + Bi.dot(rij));
     const double correction = std::max(CRKSPH_private::CRKKernelTraits<Dimension>::Cmin(), 
                                        std::min(CRKSPH_private::CRKKernelTraits<Dimension>::Cmax(),
-                                                correction));
+                                                correction0));
     WCRKSPH = correction*Wij;
     gradWCRKSPH = correction*gradWij;
     if (correction0 > CRKSPH_private::CRKKernelTraits<Dimension>::Cmin() and
@@ -142,7 +143,7 @@ CRKSPHKernelAndGradient(const KernelSpace::TableKernel<Dimension>& W,
     const double correction0 = Ai*(1.0 + Bi.dot(rij) + Geometry::innerDoubleProduct<Dimension>(Ci, rij.selfdyad()));
     const double correction = std::max(CRKSPH_private::CRKKernelTraits<Dimension>::Cmin(), 
                                        std::min(CRKSPH_private::CRKKernelTraits<Dimension>::Cmax(),
-                                                correction));
+                                                correction0));
     WCRKSPH = correction*Wij;
     gradWCRKSPH = correction*gradWij;
     if (correction0 > CRKSPH_private::CRKKernelTraits<Dimension>::Cmin() and
