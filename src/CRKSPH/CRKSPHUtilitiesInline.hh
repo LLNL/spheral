@@ -21,16 +21,19 @@ template<typename Dimension> struct CRKKernelTraits;
 
 // 1D
 template<> struct CRKKernelTraits<Dim<1>> {
-  static double Cmax() { return 2.0; }
+  static double Cmin() { return -100.0; }
+  static double Cmax() { return 100.0; }
 };
 
 // 2D
 template<> struct CRKKernelTraits<Dim<2>> {
+  static double Cmin() { return 0.5; }
   static double Cmax() { return 4.0; }
 };
 
 // 3D
 template<> struct CRKKernelTraits<Dim<3>> {
+  static double Cmin() { return 0.5; }
   static double Cmax() { return 8.0; }
 };
 
@@ -58,14 +61,16 @@ CRKSPHKernel(const KernelSpace::TableKernel<Dimension>& W,
 
   const Scalar Wij = 0.5*(W(etai.magnitude(), Hdeti) + W(etaj.magnitude(), Hdetj));
   if (correctionOrder == CRKOrder::ZerothOrder) {
-    return std::min(CRKSPH_private::CRKKernelTraits<Dimension>::Cmax(), 
-                    Ai)*Wij;
+    return std::max(CRKSPH_private::CRKKernelTraits<Dimension>::Cmin(), 
+                    std::min(CRKSPH_private::CRKKernelTraits<Dimension>::Cmax(), 
+                             Ai))*Wij;
   } else if (correctionOrder == CRKOrder::LinearOrder) {
-    return std::min(CRKSPH_private::CRKKernelTraits<Dimension>::Cmax(), 
-                    Ai*(1.0 + Bi.dot(rij)))*Wij;
+    return std::max(CRKSPH_private::CRKKernelTraits<Dimension>::Cmin(), 
+                    std::min(CRKSPH_private::CRKKernelTraits<Dimension>::Cmax(), 
   } else {   //correctionOrder == QuadraticOrder
-    return std::min(CRKSPH_private::CRKKernelTraits<Dimension>::Cmax(), 
-                    Ai*(1.0 + Bi.dot(rij) + Geometry::innerDoubleProduct<Dimension>(Ci, rij.selfdyad())))*Wij;
+    return std::max(CRKSPH_private::CRKKernelTraits<Dimension>::Cmin(), 
+                    std::min(CRKSPH_private::CRKKernelTraits<Dimension>::Cmax(), 
+                             Ai*(1.0 + Bi.dot(rij) + Geometry::innerDoubleProduct<Dimension>(Ci, rij.selfdyad()))))*Wij;
   }
 }
 
@@ -105,19 +110,26 @@ CRKSPHKernelAndGradient(const KernelSpace::TableKernel<Dimension>& W,
   gradWSPH = 0.5*(WWi.second + WWj.second);
 
   if (correctionOrder == CRKOrder::ZerothOrder) {
-    const double correction = std::min(CRKSPH_private::CRKKernelTraits<Dimension>::Cmax(), Ai);
+    const double correction0 = Ai;
+    const double correction = std::max(CRKSPH_private::CRKKernelTraits<Dimension>::Cmin(), 
+                                       std::min(CRKSPH_private::CRKKernelTraits<Dimension>::Cmax(),
+                                                correction));
     WCRKSPH = correction*Wij;
     gradWCRKSPH = correction*gradWij;
-    if (correction < CRKSPH_private::CRKKernelTraits<Dimension>::Cmax()) {
+    if (correction0 > CRKSPH_private::CRKKernelTraits<Dimension>::Cmin() and
+        correction0 < CRKSPH_private::CRKKernelTraits<Dimension>::Cmax()) {
       gradWCRKSPH += gradAi*Wij;
     }
 
   } else if (correctionOrder == CRKOrder::LinearOrder) {
-    const double correction = std::min(CRKSPH_private::CRKKernelTraits<Dimension>::Cmax(),
-                                       Ai*(1.0 + Bi.dot(rij)));
+    const double correction0 = Ai*(1.0 + Bi.dot(rij));
+    const double correction = std::max(CRKSPH_private::CRKKernelTraits<Dimension>::Cmin(), 
+                                       std::min(CRKSPH_private::CRKKernelTraits<Dimension>::Cmax(),
+                                                correction));
     WCRKSPH = correction*Wij;
     gradWCRKSPH = correction*gradWij;
-    if (correction < CRKSPH_private::CRKKernelTraits<Dimension>::Cmax()) {
+    if (correction0 > CRKSPH_private::CRKKernelTraits<Dimension>::Cmin() and
+        correction0 < CRKSPH_private::CRKKernelTraits<Dimension>::Cmax()) {
       gradWCRKSPH += Ai*Bi*Wij + gradAi*(1.0 + Bi.dot(rij))*Wij;
       for (size_t ii = 0; ii != Dimension::nDim; ++ii) {
         for (size_t jj = 0; jj != Dimension::nDim; ++jj) {
@@ -127,11 +139,14 @@ CRKSPHKernelAndGradient(const KernelSpace::TableKernel<Dimension>& W,
     }
 
   } else {  //correctionOrder == CRKOrder::QuadraticOrder
-    const double correction = std::min(CRKSPH_private::CRKKernelTraits<Dimension>::Cmax(),
-                                       Ai*(1.0 + Bi.dot(rij) + Geometry::innerDoubleProduct<Dimension>(Ci, rij.selfdyad())));
+    const double correction0 = Ai*(1.0 + Bi.dot(rij) + Geometry::innerDoubleProduct<Dimension>(Ci, rij.selfdyad()));
+    const double correction = std::max(CRKSPH_private::CRKKernelTraits<Dimension>::Cmin(), 
+                                       std::min(CRKSPH_private::CRKKernelTraits<Dimension>::Cmax(),
+                                                correction));
     WCRKSPH = correction*Wij;
     gradWCRKSPH = correction*gradWij;
-    if (correction < CRKSPH_private::CRKKernelTraits<Dimension>::Cmax()) {
+    if (correction0 > CRKSPH_private::CRKKernelTraits<Dimension>::Cmin() and
+        correction0 < CRKSPH_private::CRKKernelTraits<Dimension>::Cmax()) {
       gradWCRKSPH += Ai*Bi*Wij;
       gradWCRKSPH += gradAi*(1.0 + Bi.dot(rij) + Geometry::innerDoubleProduct<Dimension>(Ci, rij.selfdyad()))*Wij;
       gradWCRKSPH += Ai*(Geometry::innerProduct<Dimension>(rij,gradBi))*Wij;
