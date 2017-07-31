@@ -5,7 +5,8 @@ from NodeGeneratorBase import *
 
 from Spheral import Vector2d, Vector3d
 from Spheral import Tensor2d, Tensor3d
-from Spheral import SymTensor2d, SymTensor3d
+from Spheral import ScalarField2d, ScalarField3d
+from Spheral import SymTensor2d, SymTensor3d, SymTensorField2d, SymTensorField3d
 from Spheral import CylindricalBoundary
 from Spheral import vector_of_double, vector_of_int, vector_of_SymTensor3d, vector_of_vector_of_double
 
@@ -200,7 +201,8 @@ class AsciiFileNodeGenerator3D(NodeGeneratorBase):
                  refineNodes = 0,
                  rejecter=None,
                  delimiter = ' ',
-                 offset=None):
+                 offset=None,
+                 nodes=None):
                  
                  
         self.filename = filename
@@ -328,7 +330,7 @@ class AsciiFileNodeGenerator3D(NodeGeneratorBase):
         if nodes:
             n0 = len(self.x)
             nodes.numInternalNodes = n0
-            for name in ['x', 'y', 'm', 'rho', 'vx', 'vy', 'eps'] + extraFields:
+            for name in ['x', 'y', 'z', 'm', 'rho', 'vx', 'vy', 'vz', 'eps'] + extraFields:
                 stuff = self.__dict__[name]
                 assert len(stuff) == n0
                 field = ScalarField3d("generator_" + name, nodes)
