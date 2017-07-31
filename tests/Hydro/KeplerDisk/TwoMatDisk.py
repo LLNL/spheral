@@ -158,6 +158,8 @@ commandLine(asph = False,
             historyInterval = 2.0,
             clearDirectories = False,
 
+            dataDir = "twomat-%i",
+
             outputFile = "None",
             comparisonFile = "None",
             
@@ -188,7 +190,7 @@ else:
         HydroConstructor = SPHHydro
 
 # Data output info.
-dataDir = "twomat-%i" % n
+dataDir = dataDir % n
 viscString = "MG"
 if balsaraCorrection:
     viscString = "Balsara"
