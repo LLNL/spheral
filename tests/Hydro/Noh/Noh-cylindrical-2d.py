@@ -1,5 +1,5 @@
-#ATS:test(SELF, "--CRKSPH=True --nRadial=100 --cfl=0.25 --Cl=1.0 --Cq=1.0 --clearDirectories=True --filter=0.0 --nPerh=2.01 --graphics False", label="KH CRK, nPerh=2.0", np=20)
-#ATS:test(SELF, "--CRKSPH=False --nRadial=100 --cfl=0.25 --Cl=1.0 --Cq=1.0 --clearDirectories=True --filter=0.0 --nPerh=2.01 --graphics False", label="KH CRK, nPerh=2.0", np=20)
+#ATS:test(SELF, "--CRKSPH=True --nRadial=100 --cfl=0.25 --Cl=1.0 --Cq=1.0 --clearDirectories=True --filter=0.0 --nPerh=2.01 --graphics False", label="Noh cylindrical CRK, nPerh=2.0", np=20)
+#ATS:test(SELF, "--CRKSPH=False --nRadial=100 --cfl=0.25 --Cl=1.0 --Cq=1.0 --clearDirectories=True --filter=0.0 --nPerh=2.01 --graphics False", label="Noh cylindrical CRK, nPerh=2.0", np=20)
 
 #-------------------------------------------------------------------------------
 # The Cylindrical Noh test case run in 2-D.
