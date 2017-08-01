@@ -5,7 +5,6 @@
 #include "interpolateCRKSPH.hh"
 #include "computeCRKSPHMoments.hh"
 #include "computeCRKSPHCorrections.hh"
-#include "CRKSPHUtilities.hh"
 #include "CRKSPHCorrectionParams.hh"
 #include "NodeList/NodeList.hh"
 #include "Hydro/HydroFieldNames.hh"
