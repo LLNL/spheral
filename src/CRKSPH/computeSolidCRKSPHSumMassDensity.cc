@@ -2,7 +2,6 @@
 // Compute the CRKSPH mass density summation.
 //------------------------------------------------------------------------------
 #include "computeSolidCRKSPHSumMassDensity.hh"
-#include "CRKSPHUtilities.hh"
 #include "Field/FieldList.hh"
 #include "Neighbor/ConnectivityMap.hh"
 #include "Kernel/TableKernel.hh"
