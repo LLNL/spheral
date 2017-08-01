@@ -188,18 +188,18 @@ initializeProblemStartup(DataBase<Dimension>& dataBase) {
   CRKSPHHydroBase<Dimension>::initializeProblemStartup(dataBase);
 
   // Create storage for the state we're holding.
-  mDdeviatoricStressDt = dataBase.newFluidFieldList(SymTensor::zero, IncrementFieldList<Dimension, Vector>::prefix() + SolidFieldNames::deviatoricStress);
-  mBulkModulus = dataBase.newFluidFieldList(0.0, SolidFieldNames::bulkModulus);
-  mShearModulus = dataBase.newFluidFieldList(0.0, SolidFieldNames::shearModulus);
-  mYieldStrength = dataBase.newFluidFieldList(0.0, SolidFieldNames::yieldStrength);
-  mPlasticStrain0 = dataBase.newFluidFieldList(0.0, SolidFieldNames::plasticStrain + "0");
-  mHfield0 = dataBase.newFluidFieldList(SymTensor::zero, HydroFieldNames::H + "0");
-  mAdamage = dataBase.newFluidFieldList(0.0,              HydroFieldNames::A_CRKSPH + " damage");
-  mBdamage = dataBase.newFluidFieldList(Vector::zero,     HydroFieldNames::B_CRKSPH + " damage");
-  mCdamage = dataBase.newFluidFieldList(Tensor::zero,     HydroFieldNames::C_CRKSPH + " damage");
-  mGradAdamage = dataBase.newFluidFieldList(Vector::zero, HydroFieldNames::gradA_CRKSPH + " damage");
-  mGradBdamage = dataBase.newFluidFieldList(Tensor::zero, HydroFieldNames::gradB_CRKSPH + " damage");
-  mGradCdamage = dataBase.newFluidFieldList(ThirdRankTensor::zero, HydroFieldNames::gradC_CRKSPH + " damage");
+  mDdeviatoricStressDt = dataBase.newSolidFieldList(SymTensor::zero, IncrementFieldList<Dimension, Vector>::prefix() + SolidFieldNames::deviatoricStress);
+  mBulkModulus = dataBase.newSolidFieldList(0.0, SolidFieldNames::bulkModulus);
+  mShearModulus = dataBase.newSolidFieldList(0.0, SolidFieldNames::shearModulus);
+  mYieldStrength = dataBase.newSolidFieldList(0.0, SolidFieldNames::yieldStrength);
+  mPlasticStrain0 = dataBase.newSolidFieldList(0.0, SolidFieldNames::plasticStrain + "0");
+  mHfield0 = dataBase.newSolidFieldList(SymTensor::zero, HydroFieldNames::H + "0");
+  mAdamage = dataBase.newSolidFieldList(0.0,              HydroFieldNames::A_CRKSPH + " damage");
+  mBdamage = dataBase.newSolidFieldList(Vector::zero,     HydroFieldNames::B_CRKSPH + " damage");
+  mCdamage = dataBase.newSolidFieldList(Tensor::zero,     HydroFieldNames::C_CRKSPH + " damage");
+  mGradAdamage = dataBase.newSolidFieldList(Vector::zero, HydroFieldNames::gradA_CRKSPH + " damage");
+  mGradBdamage = dataBase.newSolidFieldList(Tensor::zero, HydroFieldNames::gradB_CRKSPH + " damage");
+  mGradCdamage = dataBase.newSolidFieldList(ThirdRankTensor::zero, HydroFieldNames::gradC_CRKSPH + " damage");
 
   // Copy the standard CRK corrections to the damage forms.
   mAdamage.assignFields(this->A());
