@@ -22,7 +22,7 @@
 #include "CRKSPH/computeOccupancyVolume.hh"
 #include "CRKSPH/gradientCRKSPH.hh"
 #include "CRKSPH/interpolateCRKSPH.hh"
-#include "SolidSPH/NodeCoupling.hh"
+#include "SPH/NodeCoupling.hh"
 
 namespace Spheral {
 namespace CRKSPHSpace {

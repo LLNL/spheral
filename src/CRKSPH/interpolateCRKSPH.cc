@@ -7,7 +7,7 @@
 #include "Neighbor/ConnectivityMap.hh"
 #include "Kernel/TableKernel.hh"
 #include "NodeList/NodeList.hh"
-#include "SolidSPH/NodeCoupling.hh"
+#include "SPH/NodeCoupling.hh"
 #include "CRKSPHUtilities.hh"
 
 namespace Spheral {

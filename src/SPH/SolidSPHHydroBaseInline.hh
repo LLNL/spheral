@@ -1,5 +1,5 @@
 namespace Spheral {
-namespace SolidSPHSpace {
+namespace SPHSpace {
 
 //------------------------------------------------------------------------------
 // Access the kernel used for artificial viscosity gradients.

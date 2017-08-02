@@ -44,7 +44,7 @@ namespace Spheral {
 }
 
 namespace Spheral {
-namespace SolidSPHSpace {
+namespace SPHSpace {
 
 class SolidSPHHydroBaseRZ: public SolidSPHHydroBase<Dim<2> > {
 
@@ -159,7 +159,7 @@ private:
 
 // Forward declaration.
 namespace Spheral {
-  namespace SolidSPHSpace {
+  namespace SPHSpace {
     class SolidSPHHydroBaseRZ;
   }
 }

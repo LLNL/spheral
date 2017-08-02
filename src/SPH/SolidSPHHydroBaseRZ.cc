@@ -43,7 +43,7 @@
 #include "FileIO/FileIO.hh"
 
 namespace Spheral {
-namespace SolidSPHSpace {
+namespace SPHSpace {
 
 using namespace std;
 using SPHSpace::SPHHydroBase;
