@@ -77,7 +77,7 @@ self.generateTensorDamageModelBindings(self.TensorDamageModel%(dim)id, %(dim)i)
 
         me = "Spheral::PhysicsSpace::DamageModel%id" % ndim
         dim = "Spheral::Dim<%i> " % ndim
-        solidnodelist = "Spheral::SolidMaterial::SolidNodeList%id" % ndim
+        solidnodelist = "Spheral::NodeSpace::SolidNodeList%id" % ndim
         vectordoublefield = "Spheral::FieldSpace::VectorDoubleField%id" % ndim
         database = "Spheral::DataBaseSpace::DataBase%id" % ndim
         state = "Spheral::State%id" % ndim
@@ -162,7 +162,7 @@ self.generateTensorDamageModelBindings(self.TensorDamageModel%(dim)id, %(dim)i)
 
         me = "Spheral::PhysicsSpace::TensorDamageModel%id" % ndim
         dim = "Spheral::Dim<%i> " % ndim
-        solidnodelist = "Spheral::SolidMaterial::SolidNodeList%id" % ndim
+        solidnodelist = "Spheral::NodeSpace::SolidNodeList%id" % ndim
         vectordoublefield = "Spheral::FieldSpace::VectorDoubleField%id" % ndim
         database = "Spheral::DataBaseSpace::DataBase%id" % ndim
         state = "Spheral::State%id" % ndim

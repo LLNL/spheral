@@ -57,7 +57,7 @@ public:
   typedef FieldSpace::Field<Dimension, std::vector<double> > FlawStorageType;
 
   // Constructors, destructor.
-  ScalarDamageModel(SolidMaterial::SolidNodeList<Dimension>& nodeList,
+  ScalarDamageModel(NodeSpace::SolidNodeList<Dimension>& nodeList,
                     NodeSpace::FluidNodeList<Dimension>& damagedNodeList,
                     const double kernelExtent,
                     const double crackGrowthMultiplier,

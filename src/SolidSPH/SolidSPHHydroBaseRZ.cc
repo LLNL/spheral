@@ -23,7 +23,7 @@
 #include "Hydro/HydroFieldNames.hh"
 #include "Hydro/NonSymmetricSpecificThermalEnergyPolicyRZ.hh"
 #include "Strength/SolidFieldNames.hh"
-#include "Strength/SolidNodeList.hh"
+#include "NodeList/SolidNodeList.hh"
 #include "Strength/RZDeviatoricStressPolicy.hh"
 #include "Strength/RZPlasticStrainPolicy.hh"
 #include "DataBase/State.hh"
@@ -50,7 +50,7 @@ using SPHSpace::SPHHydroBase;
 using NodeSpace::SmoothingScaleBase;
 using NodeSpace::NodeList;
 using NodeSpace::FluidNodeList;
-using SolidMaterial::SolidNodeList;
+using NodeSpace::SolidNodeList;
 using FileIOSpace::FileIO;
 using ArtificialViscositySpace::ArtificialViscosity;
 using KernelSpace::TableKernel;

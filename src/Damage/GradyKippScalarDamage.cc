@@ -17,7 +17,7 @@
 
 #include "GradyKippScalarDamage.hh"
 #include "SolidFieldNames.hh"
-#include "SolidNodeList.hh"
+#include "NodeList/SolidNodeList.hh"
 #include "ScalarDamagePolicy.hh"
 #include "weibullFlawDistribution.hh"
 #include "DataBase/DataBase.hh"
@@ -33,7 +33,7 @@ namespace PhysicsSpace {
 using namespace std;
 using namespace Spheral::FieldSpace;
 using NodeSpace::FluidNodeList;
-using SolidMaterial::SolidNodeList;
+using NodeSpace::SolidNodeList;
 using Material::EquationOfState;
 using FileIOSpace::FileIO;
 using KernelSpace::TableKernel;

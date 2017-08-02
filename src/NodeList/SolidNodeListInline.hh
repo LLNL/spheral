@@ -1,5 +1,5 @@
 namespace Spheral {
-namespace SolidMaterial {
+namespace NodeSpace {
 
 //------------------------------------------------------------------------------
 // Access the deviatoric stress field.

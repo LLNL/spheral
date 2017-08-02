@@ -8,7 +8,7 @@
 
 #include "TensorStrainPolicy.hh"
 #include "NodeList/NodeList.hh"
-#include "Strength/SolidNodeList.hh"
+#include "NodeList/SolidNodeList.hh"
 #include "Strength/SolidFieldNames.hh"
 #include "Hydro/HydroFieldNames.hh"
 #include "DataBase/UpdatePolicyBase.hh"
@@ -27,7 +27,7 @@ using namespace std;
 
 using FieldSpace::Field;
 using NodeSpace::NodeList;
-using SolidMaterial::SolidNodeList;
+using NodeSpace::SolidNodeList;
 using KernelSpace::TableKernel;
 using PhysicsSpace::TensorStrainAlgorithm;
 
