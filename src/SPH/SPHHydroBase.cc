@@ -10,6 +10,10 @@
 #include <map>
 #include <vector>
 
+#ifdef _OPENMP
+#include "omp.h"
+#endif
+
 #include "SPHHydroBase.hh"
 #include "computeSPHSumMassDensity.hh"
 #include "correctSPHSumMassDensity.hh"
@@ -469,6 +473,7 @@ evaluateDerivatives(const typename Dimension::Scalar time,
                     const State<Dimension>& state,
                     StateDerivatives<Dimension>& derivatives) const {
 
+  //static double totalLoopTime = 0.0;
   // Get the ArtificialViscosity.
   ArtificialViscosity<Dimension>& Q = this->artificialViscosity();
 
@@ -579,19 +584,16 @@ evaluateDerivatives(const typename Dimension::Scalar time,
     const Scalar hminratio = nodeList.hminratio();
     const int maxNumNeighbors = nodeList.maxNumNeighbors();
     const Scalar nPerh = nodeList.nodesPerSmoothingScale();
-
     // The scale for the tensile correction.
     const Scalar WnPerh = W(1.0/nPerh, 1.0);
 
     // Get the work field for this NodeList.
     Field<Dimension, Scalar>& workFieldi = nodeList.work();
 
-    // Iterate over the internal nodes in this NodeList.
     for (typename ConnectivityMap<Dimension>::const_iterator iItr = connectivityMap.begin(nodeListi);
          iItr != connectivityMap.end(nodeListi);
          ++iItr) {
       const int i = *iItr;
-
       // Prepare to accumulate the time.
       const Time start = Timing::currentTime();
       size_t ncalc = 0;
@@ -634,12 +636,13 @@ evaluateDerivatives(const typename Dimension::Scalar time,
       SymTensor& massSecondMomenti = massSecondMoment(nodeListi, i);
       Scalar& worki = workFieldi(i);
 
+	Scalar maxvp = maxViscousPressurei;
       // Get the connectivity info for this node.
       const vector< vector<int> >& fullConnectivity = connectivityMap.connectivityForNode(&nodeList, i);
 
       // Iterate over the NodeLists.
       for (size_t nodeListj = 0; nodeListj != numNodeLists; ++nodeListj) {
-
+	
         // Connectivity of this node with this NodeList.  We only need to proceed if
         // there are some nodes in this list.
         const vector<int>& connectivity = fullConnectivity[nodeListj];
@@ -647,18 +650,29 @@ evaluateDerivatives(const typename Dimension::Scalar time,
           const int firstGhostNodej = nodeLists[nodeListj]->firstGhostNode();
 
           // Loop over the neighbors.
-#pragma vector always
-          for (vector<int>::const_iterator jItr = connectivity.begin();
-               jItr != connectivity.end();
-               ++jItr) {
-            const int j = *jItr;
 
+	  auto jItr0 = connectivity.begin();
+          auto jItr1 = connectivity.end();
+#ifdef _OPENMP
+
+          //double time1 = omp_get_wtime();
+
+          #pragma omp parallel for   \
+          reduction(max: maxvp) \
+          reduction(+: ncalc, weightedNeighborSumi, rhoSumi, normi,  \
+                  effViscousPressurei, viscousWorki, DepsDti, XSPHWeightSumi ) \
+          reduction(vecadd: DvDti, XSPHDeltaVi ) \
+          reduction(symtensadd: massSecondMomenti ) \
+	  reduction(tensadd: Mi, localMi, DvDxi, localDvDxi)
+#endif
+          for( int jct=0; jct<std::distance(jItr0,jItr1); ++jct )
+	  {
+	     const int j = *(jItr0+jct);
             // Only proceed if this node pair has not been calculated yet.
             if (connectivityMap.calculatePairInteraction(nodeListi, i, 
                                                          nodeListj, j,
                                                          firstGhostNodej)) {
-              ++ncalc;
-
+              ncalc++; 
               // Get the state for node j
               const Vector& rj = position(nodeListj, j);
               const Scalar& mj = mass(nodeListj, j);
@@ -727,7 +741,7 @@ evaluateDerivatives(const typename Dimension::Scalar time,
               const SymTensor thpt = rij.selfdyad()/max(tiny, rij2*FastMath::square(Dimension::pownu12(rij2)));
               weightedNeighborSumi +=     fweightij*std::abs(gWi);
               weightedNeighborSumj += 1.0/fweightij*std::abs(gWj);
-              massSecondMomenti +=     fweightij*gradWi.magnitude2()*thpt;
+	      massSecondMomenti +=     fweightij*gradWi.magnitude2()*thpt;
               massSecondMomentj += 1.0/fweightij*gradWj.magnitude2()*thpt;
 
               // Contribution to the sum density.
@@ -751,7 +765,7 @@ evaluateDerivatives(const typename Dimension::Scalar time,
               const Scalar workQj = vij.dot(Qaccj);
               const Scalar Qi = rhoi*rhoi*(QPiij.first. diagonalElements().maxAbsElement());
               const Scalar Qj = rhoj*rhoj*(QPiij.second.diagonalElements().maxAbsElement());
-              maxViscousPressurei = max(maxViscousPressurei, Qi);
+              maxvp = max(maxvp, Qi);
               maxViscousPressurej = max(maxViscousPressurej, Qj);
               effViscousPressurei += mj/rhoj * Qi * Wi;
               effViscousPressurej += mi/rhoi * Qj * Wj;
@@ -772,7 +786,7 @@ evaluateDerivatives(const typename Dimension::Scalar time,
               const double Prhoi = safeOmegai*Peffi/(rhoi*rhoi);
               const double Prhoj = safeOmegaj*Peffj/(rhoj*rhoj);
               const Vector deltaDvDt = Prhoi*gradWi + Prhoj*gradWj + Qacci + Qaccj;
-              DvDti -= mj*deltaDvDt;
+	      DvDti += -mj*deltaDvDt;
               DvDtj += mi*deltaDvDt;
 
               // Specific thermal energy evolution.
@@ -780,38 +794,46 @@ evaluateDerivatives(const typename Dimension::Scalar time,
               DepsDti += mj*(Prhoi*vij.dot(gradWi) + workQi);
               DepsDtj += mi*(Prhoj*vij.dot(gradWj) + workQj);
               if (mCompatibleEnergyEvolution) {
-                pairAccelerationsi.push_back(-mj*deltaDvDt);
-                pairAccelerationsj.push_back( mi*deltaDvDt);
+		{
+		   pairAccelerationsi.push_back(-mj*deltaDvDt);
+                   pairAccelerationsj.push_back( mi*deltaDvDt);
+                }
               }
+
 
               // Velocity gradient.
               const Tensor deltaDvDxi = mj*vij.dyad(gradWi);
               const Tensor deltaDvDxj = mi*vij.dyad(gradWj);
-              DvDxi -= deltaDvDxi;
+	      DvDxi += -deltaDvDxi; 
               DvDxj -= deltaDvDxj;
               if (sameMatij) {
-                localDvDxi -= deltaDvDxi;
+                localDvDxi += -deltaDvDxi; 
                 localDvDxj -= deltaDvDxj;
               }
 
               // Estimate of delta v (for XSPH).
               if (mXSPH and (sameMatij)) {
                 const double wXSPHij = 0.5*(mi/rhoi*Wi + mj/rhoj*Wj);
-                XSPHWeightSumi += wXSPHij;
+		XSPHWeightSumi += wXSPHij;
                 XSPHWeightSumj += wXSPHij;
                 XSPHDeltaVi -= wXSPHij*vij;
                 XSPHDeltaVj += wXSPHij*vij;
               }
 
               // Linear gradient correction term.
-              Mi -= mj*rij.dyad(gradWi);
+	      Mi += -mj*rij.dyad(gradWi);
               Mj -= mi*rij.dyad(gradWj);
               if (sameMatij) {
-                localMi -= mj*rij.dyad(gradWi);
+                localMi += -mj*rij.dyad(gradWi);
                 localMj -= mi*rij.dyad(gradWj);
               }
             }
-          }
+          } // end of inner loop over jct, end of OpenMP loop
+	  maxViscousPressurei = max(maxViscousPressurei,maxvp);
+	  //#ifdef _OPENMP
+	  //totalLoopTime += omp_get_wtime() - time1;
+          //printf("loop time %lf\n", totalLoopTime );
+          //#endif
         }
       }
       const size_t numNeighborsi = connectivityMap.numNeighborsForNode(&nodeList, i);
@@ -821,7 +843,6 @@ evaluateDerivatives(const typename Dimension::Scalar time,
 
       // Get the time for pairwise interactions.
       const Scalar deltaTimePair = Timing::difference(start, Timing::currentTime())/(ncalc + 1.0e-30);
-
       // Add the self-contribution to density sum.
       rhoSumi += mi*W0*Hdeti;
       normi += mi/rhoi*W0*Hdeti;
