@@ -21,7 +21,6 @@ INSTSRCTARGETS = \
 
 PYTHONTARGETS = \
 	$(srcdir)/SPHHydros.py \
-	$(srcdir)/SolidSPHHydros.py \
 	$(srcdir)/PSPHHydros.py \
 	$(srcdir)/SPHUtilities.py \
 	$(srcdir)/FacetedSurfaceASPHHydro.py

@@ -7,7 +7,6 @@ from Spheral import *
 from SpheralModules.Spheral.SolidMaterial import *
 from SolidNodeLists import *
 from GradyKippTensorDamage import *
-from SolidSPHHydros import *
 from SolidSPHHydrosRZ import *
 
 from spheralDimensions import spheralDimensions
