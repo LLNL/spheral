@@ -33,6 +33,7 @@ class NodeList:
 self.NodeListRegistrar%(dim)s = addObject(Spheral, "NodeListRegistrar%(dim)s", is_singleton=True);
 self.NodeList%(dim)s = addObject(self.space, "NodeList%(dim)s", allow_subclassing=True)
 self.FluidNodeList%(dim)s = addObject(self.space, "FluidNodeList%(dim)s", allow_subclassing=True, parent=self.NodeList%(dim)s)
+self.SolidNodeList%(dim)s = addObject(self.space, "SolidNodeList%(dim)s", allow_subclassing=True, parent=self.FluidNodeList%(dim)s)
 self.SmoothingScaleBase%(dim)s = addObject(self.space, "SmoothingScaleBase%(dim)s", allow_subclassing=True)
 
 self.FixedSmoothingScale%(dim)s = addObject(self.space, "FixedSmoothingScale%(dim)s", allow_subclassing=True, parent=self.SmoothingScaleBase%(dim)s)
@@ -48,6 +49,8 @@ self.vector_of_pair_NodeList%(dim)s_string = addObject(mod, "vector_of_pair_Node
 
 self.vector_of_NodeList%(dim)s_iterator = addObject(mod, "vector_of_NodeList%(dim)s_iterator", allow_subclassing=True)
 self.vector_of_FluidNodeList%(dim)s_iterator = addObject(mod, "vector_of_FluidNodeList%(dim)s_iterator", allow_subclassing=True)
+self.vector_of_SolidNodeList%(dim)s = addObject(mod, "vector_of_SolidNodeList%(dim)s", allow_subclassing=True)
+self.vector_of_SolidNodeList%(dim)s_iterator = addObject(mod, "vector_of_SolidNodeList%(dim)s_iterator", allow_subclassing=True)
 
 """ % {"ndim" : ndim,
        "dim"  : "%id" % ndim})
@@ -65,6 +68,7 @@ self.vector_of_FluidNodeList%(dim)s_iterator = addObject(mod, "vector_of_FluidNo
 self.addNodeListRegistrarMethods(self.NodeListRegistrar%(dim)s, %(ndim)s)
 self.addNodeListMethods(self.NodeList%(dim)s, %(ndim)s)
 self.addFluidNodeListMethods(self.FluidNodeList%(dim)s, %(ndim)s)
+self.addSolidNodeListBindings(self.SolidNodeList%(dim)s, %(ndim)s)
 self.addSmoothingScaleBaseMethods(self.SmoothingScaleBase%(dim)s, %(ndim)s)
 self.addSmoothingScaleBaseDescendentMethods(self.FixedSmoothingScale%(dim)s, %(ndim)s)
 self.addSmoothingScaleBaseDescendentMethods(self.SPHSmoothingScale%(dim)s, %(ndim)s)
@@ -72,6 +76,7 @@ self.addSmoothingScaleBaseDescendentMethods(self.ASPHSmoothingScale%(dim)s, %(nd
 
 generateStdVectorBindings(self.vector_of_NodeList%(dim)s, "Spheral::NodeSpace::NodeList%(dim)s*", "vector_of_NodeList%(dim)s")
 generateStdVectorBindings(self.vector_of_FluidNodeList%(dim)s, "Spheral::NodeSpace::FluidNodeList%(dim)s*", "vector_of_FluidNodeList%(dim)s")
+generateStdVectorBindings(self.vector_of_SolidNodeList%(dim)s, "Spheral::NodeSpace::SolidNodeList%(dim)s*", "vector_of_SolidNodeList%(dim)s")
 
 generateStdPairBindings(self.pair_NodeList%(dim)s_string,
                         "const Spheral::NodeSpace::NodeList%(dim)s*",
@@ -308,6 +313,57 @@ self.space.add_function("zerothAndFirstNodalMoments", None,
         # Attributes.
         x.add_instance_attribute("rhoMin", "double", getter="rhoMin", setter="rhoMin")
         x.add_instance_attribute("rhoMax", "double", getter="rhoMax", setter="rhoMax")
+
+    #---------------------------------------------------------------------------
+    # SolidNodeList
+    #---------------------------------------------------------------------------
+    def addSolidNodeListBindings(self, x, ndim):
+
+        me = "Spheral::NodeSpace::SolidNodeList%id" % ndim
+        intfield = "Spheral::FieldSpace::IntField%id" % ndim
+        scalarfield = "Spheral::FieldSpace::ScalarField%id" % ndim
+        vectorfield = "Spheral::FieldSpace::VectorField%id" % ndim
+        symtensorfield = "Spheral::FieldSpace::SymTensorField%id" % ndim
+        smoothingscalebase = "Spheral::NodeSpace::SmoothingScaleBase%id" % ndim
+        equationofstate = "Spheral::Material::EquationOfState%id" % ndim
+        strengthmodel = "Spheral::SolidMaterial::StrengthModel%id" % ndim
+        tablekernel = "Spheral::KernelSpace::TableKernel%id" % ndim
+        fileio = "Spheral::FileIOSpace::FileIO"
+
+        # Constructors.
+        x.add_constructor([param("std::string", "name"),
+                           refparam(equationofstate, "eos"),
+                           refparam(strengthmodel, "strength"),
+                           param("int", "numInternal", default_value="0"),
+                           param("int", "numGhost", default_value="0"),
+                           param("double", "hmin", default_value="0.0"),
+                           param("double", "hmax", default_value="1.0e100"),
+                           param("double", "hminratio", default_value="0.1"),
+                           param("double", "nPerh", default_value="2.01"),
+                           param("int", "maxNumNeighbors", default_value="500"),
+                           param("double", "rhoMin", default_value="1.0e-10"),
+                           param("double", "rhoMax", default_value="1.0e100")])
+
+        # Methods.
+        x.add_method("soundSpeed", None, [refparam(scalarfield, "result")], is_const=True, is_virtual=True)
+        x.add_method("bulkModulus", None, [refparam(scalarfield, "result")], is_const=True, is_virtual=True)
+        x.add_method("shearModulus", None, [refparam(scalarfield, "result")], is_const=True, is_virtual=True)
+        x.add_method("yieldStrength", None, [refparam(scalarfield, "result")], is_const=True, is_virtual=True)
+
+        const_ref_return_value(x, me, "%s::deviatoricStress" % me, symtensorfield, [], "deviatoricStress")
+        const_ref_return_value(x, me, "%s::plasticStrain" % me, scalarfield, [], "plasticStrain")
+        const_ref_return_value(x, me, "%s::plasticStrainRate" % me, scalarfield, [], "plasticStrainRate")
+        const_ref_return_value(x, me, "%s::damage" % me, symtensorfield, [], "damage")
+        const_ref_return_value(x, me, "%s::effectiveDamage" % me, symtensorfield, [], "effectiveDamage")
+        const_ref_return_value(x, me, "%s::damageGradient" % me, vectorfield, [], "damageGradient")
+        const_ref_return_value(x, me, "%s::fragmentIDs" % me, intfield, [], "fragmentIDs")
+        const_ref_return_value(x, me, "%s::strengthModel" % me, strengthmodel, [], "strengthModel")
+
+        x.add_method("label", "std::string", [], is_const=True, is_virtual=True)
+        x.add_method("dumpState", None, [refparam(fileio, "FileIO"), refparam("std::string", "pathName")], is_const=True, is_virtual=True)
+        x.add_method("restoreState", None, [constrefparam(fileio, "FileIO"), refparam("std::string", "pathName")], is_virtual=True)
+
+        return
 
     #---------------------------------------------------------------------------
     # Add methods to SmoothingScaleBase.

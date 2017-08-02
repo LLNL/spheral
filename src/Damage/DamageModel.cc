@@ -15,7 +15,7 @@
 #include "LongitudinalSoundSpeedPolicy.hh"
 #include "DamagedSoundSpeedPolicy.hh"
 #include "Strength/SolidFieldNames.hh"
-#include "Strength/SolidNodeList.hh"
+#include "NodeList/SolidNodeList.hh"
 #include "DataBase/DataBase.hh"
 #include "DataBase/State.hh"
 #include "DataBase/StateDerivatives.hh"
@@ -33,7 +33,7 @@ namespace PhysicsSpace {
 
 using namespace std;
 
-using SolidMaterial::SolidNodeList;
+using NodeSpace::SolidNodeList;
 using Material::EquationOfState;
 using FileIOSpace::FileIO;
 using DataBaseSpace::DataBase;

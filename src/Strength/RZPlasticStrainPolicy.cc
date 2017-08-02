@@ -6,7 +6,7 @@
 // Created by JMO, Mon May  9 14:09:12 PDT 2016
 //----------------------------------------------------------------------------//
 #include "RZPlasticStrainPolicy.hh"
-#include "SolidNodeList.hh"
+#include "NodeList/SolidNodeList.hh"
 #include "SolidFieldNames.hh"
 #include "Hydro/HydroFieldNames.hh"
 #include "DataBase/UpdatePolicyBase.hh"
@@ -27,7 +27,7 @@ using namespace std;
 using NodeSpace::NodeList;
 using FieldSpace::Field;
 using FieldSpace::FieldList;
-using SolidMaterial::SolidNodeList;
+using NodeSpace::SolidNodeList;
 
 //------------------------------------------------------------------------------
 // Helper method to compute the J2 constant from the deviatoric stress.

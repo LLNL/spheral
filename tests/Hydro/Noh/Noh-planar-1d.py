@@ -224,7 +224,6 @@ mpi.barrier()
 # Material properties.
 #-------------------------------------------------------------------------------
 eos = GammaLawGasMKS(gamma, mu)
-strength = NullStrength()
 
 #-------------------------------------------------------------------------------
 # Interpolation kernels.
@@ -241,7 +240,7 @@ output("WT")
 # Make the NodeList.
 #-------------------------------------------------------------------------------
 if solid:
-    nodes1 = makeSolidNodeList("nodes1", eos, strength,
+    nodes1 = makeSolidNodeList("nodes1", eos, 
                                hmin = hmin,
                                hmax = hmax,
                                nPerh = nPerh,

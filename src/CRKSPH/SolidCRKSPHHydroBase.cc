@@ -25,7 +25,7 @@
 #include "NodeList/SmoothingScaleBase.hh"
 #include "Hydro/HydroFieldNames.hh"
 #include "Strength/SolidFieldNames.hh"
-#include "Strength/SolidNodeList.hh"
+#include "NodeList/SolidNodeList.hh"
 #include "Strength/DeviatoricStressPolicy.hh"
 #include "Strength/BulkModulusPolicy.hh"
 #include "Strength/PlasticStrainPolicy.hh"
@@ -57,7 +57,7 @@ using namespace std;
 using NodeSpace::SmoothingScaleBase;
 using NodeSpace::NodeList;
 using NodeSpace::FluidNodeList;
-using SolidMaterial::SolidNodeList;
+using NodeSpace::SolidNodeList;
 using SolidMaterial::SolidEquationOfState;
 using FileIOSpace::FileIO;
 using ArtificialViscositySpace::ArtificialViscosity;

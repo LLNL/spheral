@@ -16,7 +16,7 @@
 
 #include "NodeList/NodeList.hh"
 #include "NodeList/FluidNodeList.hh"
-#include "Strength/SolidNodeList.hh"
+#include "NodeList/SolidNodeList.hh"
 #include "Field/NodeIterators.hh"
 #include "Neighbor/ConnectivityMap.hh"
 
@@ -49,8 +49,8 @@ public:
   typedef typename std::vector<NodeSpace::FluidNodeList<Dimension>*>::iterator FluidNodeListIterator;
   typedef typename std::vector<NodeSpace::FluidNodeList<Dimension>*>::const_iterator ConstFluidNodeListIterator;
 
-  typedef typename std::vector<SolidMaterial::SolidNodeList<Dimension>*>::iterator SolidNodeListIterator;
-  typedef typename std::vector<SolidMaterial::SolidNodeList<Dimension>*>::const_iterator ConstSolidNodeListIterator;
+  typedef typename std::vector<NodeSpace::SolidNodeList<Dimension>*>::iterator SolidNodeListIterator;
+  typedef typename std::vector<NodeSpace::SolidNodeList<Dimension>*>::const_iterator ConstSolidNodeListIterator;
 
   typedef NeighborSpace::ConnectivityMap<Dimension> ConnectivityMapType;
   typedef boost::shared_ptr<ConnectivityMapType> ConnectivityMapPtr;
@@ -163,11 +163,11 @@ public:
   ConnectivityMapPtr connectivityMapPtr(const bool computeGhostConnectivity) const;
 
   // Methods to add, remove, and verify NodeLists.
-  void appendNodeList(SolidMaterial::SolidNodeList<Dimension>& nodeList);
+  void appendNodeList(NodeSpace::SolidNodeList<Dimension>& nodeList);
   void appendNodeList(NodeSpace::FluidNodeList<Dimension>& nodeList);
   void appendNodeList(NodeSpace::NodeList<Dimension>& nodeList);
 
-  void deleteNodeList(SolidMaterial::SolidNodeList<Dimension>& nodeList);
+  void deleteNodeList(NodeSpace::SolidNodeList<Dimension>& nodeList);
   void deleteNodeList(NodeSpace::FluidNodeList<Dimension>& nodeList);
   void deleteNodeList(NodeSpace::NodeList<Dimension>& nodeList);
 
@@ -176,7 +176,7 @@ public:
   // Allow const access to the list of NodeList pointers.
   const std::vector<NodeSpace::NodeList<Dimension>*>& nodeListPtrs() const;
   const std::vector<NodeSpace::FluidNodeList<Dimension>*>& fluidNodeListPtrs() const;
-  const std::vector<SolidMaterial::SolidNodeList<Dimension>*>& solidNodeListPtrs() const;
+  const std::vector<NodeSpace::SolidNodeList<Dimension>*>& solidNodeListPtrs() const;
 
   // Provide convenience functions for manipulating the neighbor information
   // of the NodeLists.
@@ -298,7 +298,7 @@ private:
   std::vector<NodeSpace::FluidNodeList<Dimension>*> mFluidNodeListPtrs;
   std::vector<NodeSpace::NodeList<Dimension>*> mFluidNodeListAsNodeListPtrs;
 
-  std::vector<SolidMaterial::SolidNodeList<Dimension>*> mSolidNodeListPtrs;
+  std::vector<NodeSpace::SolidNodeList<Dimension>*> mSolidNodeListPtrs;
   std::vector<NodeSpace::NodeList<Dimension>*> mSolidNodeListAsNodeListPtrs;
 
   mutable ConnectivityMapPtr mConnectivityMapPtr;

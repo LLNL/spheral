@@ -29,7 +29,7 @@
 #include "Hydro/HydroFieldNames.hh"
 #include "Hydro/NonSymmetricSpecificThermalEnergyPolicyRZ.hh"
 #include "Strength/SolidFieldNames.hh"
-#include "Strength/SolidNodeList.hh"
+#include "NodeList/SolidNodeList.hh"
 #include "Strength/RZDeviatoricStressPolicy.hh"
 #include "Strength/RZPlasticStrainPolicy.hh"
 #include "Strength/BulkModulusPolicy.hh"
@@ -61,7 +61,7 @@ using namespace std;
 using NodeSpace::SmoothingScaleBase;
 using NodeSpace::NodeList;
 using NodeSpace::FluidNodeList;
-using SolidMaterial::SolidNodeList;
+using NodeSpace::SolidNodeList;
 using SolidMaterial::SolidEquationOfState;
 using FileIOSpace::FileIO;
 using ArtificialViscositySpace::ArtificialViscosity;

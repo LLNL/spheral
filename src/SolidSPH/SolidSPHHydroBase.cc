@@ -16,7 +16,7 @@
 #include "NodeList/SmoothingScaleBase.hh"
 #include "Hydro/HydroFieldNames.hh"
 #include "Strength/SolidFieldNames.hh"
-#include "Strength/SolidNodeList.hh"
+#include "NodeList/SolidNodeList.hh"
 #include "Strength/DeviatoricStressPolicy.hh"
 #include "Strength/BulkModulusPolicy.hh"
 #include "Strength/PlasticStrainPolicy.hh"
@@ -48,7 +48,7 @@ using SPHSpace::SPHHydroBase;
 using NodeSpace::SmoothingScaleBase;
 using NodeSpace::NodeList;
 using NodeSpace::FluidNodeList;
-using SolidMaterial::SolidNodeList;
+using NodeSpace::SolidNodeList;
 using SolidMaterial::SolidEquationOfState;
 using FileIOSpace::FileIO;
 using ArtificialViscositySpace::ArtificialViscosity;
@@ -430,10 +430,10 @@ evaluateDerivatives(const typename Dimension::Scalar time,
 
   // Start our big loop over all FluidNodeLists.
   size_t nodeListi = 0;
-  for (typename DataBase<Dimension>::ConstSolidNodeListIterator itr = dataBase.solidNodeListBegin();
-       itr != dataBase.solidNodeListEnd();
+  for (typename DataBase<Dimension>::ConstFluidNodeListIterator itr = dataBase.fluidNodeListBegin();
+       itr != dataBase.fluidNodeListEnd();
        ++itr, ++nodeListi) {
-    const SolidNodeList<Dimension>& nodeList = **itr;
+    const FluidNodeList<Dimension>& nodeList = **itr;
     const int firstGhostNodei = nodeList.firstGhostNode();
     const Scalar hmin = nodeList.hmin();
     const Scalar hmax = nodeList.hmax();

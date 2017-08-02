@@ -16,10 +16,10 @@ namespace Spheral {
 }
 
 namespace Spheral {
-namespace SolidMaterial {
+namespace NodeSpace {
 
 template<typename Dimension>
-class SolidNodeList: public NodeSpace::FluidNodeList<Dimension> {
+class SolidNodeList: public FluidNodeList<Dimension> {
 public:
   //--------------------------- Public Interface ---------------------------//
   typedef typename Dimension::Scalar Scalar;
@@ -30,7 +30,7 @@ public:
   // Constructors.
   SolidNodeList(std::string name,
                 Material::EquationOfState<Dimension>& eos,
-                StrengthModel<Dimension>& strength,
+                SolidMaterial::StrengthModel<Dimension>& strength,
                 const int numInternal,
                 const int numGhost,
                 const Scalar hmin,
@@ -103,7 +103,7 @@ private:
 #endif
 
   // Pointer to the associated strength object.
-  StrengthModel<Dimension>& mStrength;
+  SolidMaterial::StrengthModel<Dimension>& mStrength;
 
   // No default constructor or copying.
   SolidNodeList();

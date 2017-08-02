@@ -38,7 +38,7 @@ using boost::shared_ptr;
 
 using NodeSpace::NodeList;
 using NodeSpace::FluidNodeList;
-using SolidMaterial::SolidNodeList;
+using NodeSpace::SolidNodeList;
 using FieldSpace::Field;
 using FieldSpace::FieldList;
 using KernelSpace::TableKernel;
