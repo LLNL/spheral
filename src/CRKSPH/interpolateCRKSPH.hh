@@ -4,7 +4,7 @@
 #ifndef __Spheral__interpolateCRKSPH__
 #define __Spheral__interpolateCRKSPH__
 
-#include "SolidSPH/NodeCoupling.hh"
+#include "SPH/NodeCoupling.hh"
 #include "CRKSPHCorrectionParams.hh"
 
 namespace Spheral {

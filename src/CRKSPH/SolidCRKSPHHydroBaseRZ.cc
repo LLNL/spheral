@@ -51,7 +51,7 @@
 #include "Utilities/timingUtilities.hh"
 #include "Utilities/safeInv.hh"
 #include "FileIO/FileIO.hh"
-#include "SolidSPH/DamagedNodeCouplingWithFrags.hh"
+#include "SPH/DamagedNodeCouplingWithFrags.hh"
 #include "SolidMaterial/SolidEquationOfState.hh"
 
 namespace Spheral {

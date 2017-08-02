@@ -36,7 +36,7 @@ namespace Spheral {
 }
 
 namespace Spheral {
-namespace SolidSPHSpace {
+namespace SPHSpace {
 
 template<typename Dimension>
 class SolidSPHHydroBase: public SPHSpace::SPHHydroBase<Dimension> {
@@ -160,7 +160,7 @@ private:
 
 // Forward declaration.
 namespace Spheral {
-  namespace SolidSPHSpace {
+  namespace SPHSpace {
     template<typename Dimension> class SolidSPHHydroBase;
   }
 }
