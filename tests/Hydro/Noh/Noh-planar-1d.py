@@ -359,20 +359,21 @@ elif PSPH:
                              HUpdate = HUpdate,
                              XSPH = XSPH)
 else:
-    hydro = HydroConstructor(W = WT,
-                             Q = q,
-                             filter = filter,
-                             cfl = cfl,
-                             useVelocityMagnitudeForDt = useVelocityMagnitudeForDt,
-                             compatibleEnergyEvolution = compatibleEnergy,
-                             evolveTotalEnergy = evolveTotalEnergy,
-                             gradhCorrection = gradhCorrection,
-                             correctVelocityGradient = correctVelocityGradient,
-                             densityUpdate = densityUpdate,
-                             HUpdate = HUpdate,
-                             XSPH = XSPH,
-                             epsTensile = epsilonTensile,
-                             nTensile = nTensile)
+    hydro = SPH(dataBase = db,
+                W = WT,
+                Q = q,
+                filter = filter,
+                cfl = cfl,
+                useVelocityMagnitudeForDt = useVelocityMagnitudeForDt,
+                compatibleEnergyEvolution = compatibleEnergy,
+                evolveTotalEnergy = evolveTotalEnergy,
+                gradhCorrection = gradhCorrection,
+                correctVelocityGradient = correctVelocityGradient,
+                densityUpdate = densityUpdate,
+                HUpdate = HUpdate,
+                XSPH = XSPH,
+                epsTensile = epsilonTensile,
+                nTensile = nTensile)
 output("hydro")
 output("hydro.kernel()")
 output("hydro.PiKernel()")
