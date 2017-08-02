@@ -115,7 +115,7 @@ commandLine(KernelConstructor = BSplineKernel,
             outputFile = "None",
             comparisonFile = "None",
 
-            graphics = True,
+            graphics = False,
             )
 
 assert not(boolReduceViscosity and boolCullenViscosity)
