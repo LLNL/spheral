@@ -688,7 +688,7 @@ AC_MSG_RESULT($JAMTOOLSET)
 # =======================================================================
 AC_MSG_CHECKING(for openmp)
 AC_ARG_WITH(openmp,
-[  --with-openmp .............................. should we enable openmp],
+[  --with-openmp ........................... should we enable openmp],
 [
    AC_MSG_RESULT(yes)
    if test $CXXCOMPILERTYPE = "VACPP"; then
@@ -701,5 +701,27 @@ AC_ARG_WITH(openmp,
    AC_MSG_RESULT(no)
 ]
 )
+
+# gprof
+AC_MSG_CHECKING(for --with-gprof)
+AC_ARG_WITH(gprof,
+[  --with-gprof ............................. compile with gprof stuff turned on],
+[
+  AC_MSG_RESULT(yes)
+  if test "$CXXCOMPILERTYPE" = "GNU"; then
+    PYTHONCFLAGS+=" -pg"
+    CFLAGS+=" -pg"
+    CXXFLAGS+=" -pg"
+    LDFLAGS+=" -pg"
+  elif test "$CXXCOMPILERTYPE" = "INTEL"; then
+    PYTHONCFLAGS+=" -p -g"
+    CFLAGS+=" -p -g"
+    CXXFLAGS+=" -p -g"
+    LDFLAGS+=" -pg"
+  fi
+],
+[
+  AC_MSG_RESULT(no)
+])
 
 ])
