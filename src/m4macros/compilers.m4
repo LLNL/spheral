@@ -156,8 +156,8 @@ case $COMPILERS in
       CC=clang
       CXX=clang++
       FORT=gfortran
-      MPICC=mpicc
-      MPICXX=mpiCC
+      MPICC=mpiclang
+      MPICXX=mpiclang++
       MPICCFLAGS=
       MPICXXFLAGS=
       CMAKECC=clang

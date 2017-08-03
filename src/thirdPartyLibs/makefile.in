@@ -216,7 +216,7 @@ MPI4PYBUILDDATE = $(patsubst %.tar.gz, .%.date, $(MPI4PYDIST))
 
 # HDF5
 HDF5DIST = hdf5-1.8.16.tar.bz2
-HDF5URL = http://www.hdfgroup.org/ftp/HDF5/releases/hdf5-1.8.16/src/$(HDF5DIST)
+HDF5URL = http://www.hdfgroup.org/ftp/HDF5/releases/hdf5-1.8/hdf5-1.8.16/src/$(HDF5DIST)
 HDF5DIR = $(HDF5DIST:.tar.bz2=)
 HDF5BUILDDATE = $(patsubst %.tar.bz2, .%.date, $(HDF5DIST))
 
@@ -1523,6 +1523,7 @@ $(R3DBUILDDATE):	$(R3DDIST)
 	$(UNZIP) $(R3DDIST)
 	$(PATCH) $(R3DDIR)/r2d.h $(srcdir)/r3d_r2d_h.patch
 	$(PATCH) $(R3DDIR)/r3d.h $(srcdir)/r3d_r3d_h.patch
+	$(PATCH) $(R3DDIR)/r3d.c $(srcdir)/r3d_r3d_c.patch
 	env PATH=$(prefix)/bin:$$PATH $(SHELL) -ec "cd $(R3DDIR); \
 	$(MAKE) CC='$(CC)' CFLAGS='$(CFLAGS)'"
 	@if ! test -e $(R3DDIR)/libr3d.a; then \
