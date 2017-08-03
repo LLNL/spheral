@@ -70,7 +70,6 @@ from SPHHydros import *
 from PSPHHydros import *
 from SVPHHydros import *
 from CRKSPHHydros import *
-from SolidCRKSPHHydros import *
 from TaylorSPHHydros import *
 from SPHUtilities import *
 
