@@ -24,15 +24,15 @@
 #
 # CRK
 #
-#ATS:t200 = test(      SELF, "--CRKSPH True --cfl 0.25 --KernelConstructor NBSplineKernel --order 7 --nPerh 1.01 --Cl 2.0 --Cq 1.0 --graphics None --clearDirectories True --checkError False --restartStep 20 --steps 40", label="Planar Noh problem with CRK -- 1-D (serial)")
-#ATS:t201 = testif(t200, SELF, "--CRKSPH True --cfl 0.25 --KernelConstructor NBSplineKernel --order 7 --nPerh 1.01 --Cl 2.0 --Cq 1.0 --graphics None --clearDirectories False --checkError False --restartStep 20 --restoreCycle 20 --steps 20 --checkRestart True", label="Planar Noh problem with CRK -- 1-D (serial) RESTART CHECK")
-#ATS:t202 = test(      SELF, "--CRKSPH True --cfl 0.25 --KernelConstructor NBSplineKernel --order 7 --nPerh 1.01 --Cl 2.0 --Cq 1.0 --graphics None --clearDirectories True  --checkError False  --dataDir 'dumps-planar-CRK-reproducing' --domainIndependent True --outputFile 'Noh-planar-1proc-reproducing.txt'", label="Planar Noh problem with CRK -- 1-D (serial reproducing test setup)")
-#ATS:t203 = testif(t202, SELF, "--CRKSPH True --cfl 0.25 --KernelConstructor NBSplineKernel --order 7 --nPerh 1.01 --Cl 2.0 --Cq 1.0 --graphics None --clearDirectories False  --checkError False  --dataDir 'dumps-planar-CRK-reproducing' --domainIndependent True --outputFile 'Noh-planar-4proc-reproducing.txt' --comparisonFile 'Noh-planar-1proc-reproducing.txt'", np=4, label="Planar Noh problem with CRK -- 1-D (4 proc reproducing test)")
+#ATS:t200 = test(      SELF, "--crksph True --cfl 0.25 --KernelConstructor NBSplineKernel --order 7 --nPerh 1.01 --Cl 2.0 --Cq 1.0 --graphics None --clearDirectories True --checkError False --restartStep 20 --steps 40", label="Planar Noh problem with CRK -- 1-D (serial)")
+#ATS:t201 = testif(t200, SELF, "--crksph True --cfl 0.25 --KernelConstructor NBSplineKernel --order 7 --nPerh 1.01 --Cl 2.0 --Cq 1.0 --graphics None --clearDirectories False --checkError False --restartStep 20 --restoreCycle 20 --steps 20 --checkRestart True", label="Planar Noh problem with CRK -- 1-D (serial) RESTART CHECK")
+#ATS:t202 = test(      SELF, "--crksph True --cfl 0.25 --KernelConstructor NBSplineKernel --order 7 --nPerh 1.01 --Cl 2.0 --Cq 1.0 --graphics None --clearDirectories True  --checkError False  --dataDir 'dumps-planar-CRK-reproducing' --domainIndependent True --outputFile 'Noh-planar-1proc-reproducing.txt'", label="Planar Noh problem with CRK -- 1-D (serial reproducing test setup)")
+#ATS:t203 = testif(t202, SELF, "--crksph True --cfl 0.25 --KernelConstructor NBSplineKernel --order 7 --nPerh 1.01 --Cl 2.0 --Cq 1.0 --graphics None --clearDirectories False  --checkError False  --dataDir 'dumps-planar-CRK-reproducing' --domainIndependent True --outputFile 'Noh-planar-4proc-reproducing.txt' --comparisonFile 'Noh-planar-1proc-reproducing.txt'", np=4, label="Planar Noh problem with CRK -- 1-D (4 proc reproducing test)")
 #
 # PSPH
 #
-#ATS:t300 = test(      SELF, "--PSPH True --graphics None --clearDirectories True --checkError False --restartStep 20 --steps 40", label="Planar Noh problem with PSPH -- 1-D (serial)")
-#ATS:t301 = testif(t300, SELF, "--PSPH True --graphics None --clearDirectories False --checkError False --restartStep 20 --restoreCycle 20 --steps 20 --checkRestart True", label="Planar Noh problem with PSPH -- 1-D (serial) RESTART CHECK")
+#ATS:t300 = test(      SELF, "--psph True --graphics None --clearDirectories True --checkError False --restartStep 20 --steps 40", label="Planar Noh problem with PSPH -- 1-D (serial)")
+#ATS:t301 = testif(t300, SELF, "--psph True --graphics None --clearDirectories False --checkError False --restartStep 20 --restoreCycle 20 --steps 20 --checkRestart True", label="Planar Noh problem with PSPH -- 1-D (serial) RESTART CHECK")
 
 import os, shutil
 from SolidSpheral1d import *
@@ -64,9 +64,9 @@ commandLine(KernelConstructor = NBSplineKernel,
 
             solid = False,    # If true, use the fluid limit of the solid hydro option
 
-            SVPH = False,
-            CRKSPH = False,
-            PSPH = False,
+            svph = False,
+            crksph = False,
+            psph = False,
             evolveTotalEnergy = False,  # Only for SPH variants -- evolve total rather than specific energy
             Qconstructor = MonaghanGingoldViscosity,
             #Qconstructor = TensorMonaghanGingoldViscosity,
@@ -177,28 +177,24 @@ commandLine(KernelConstructor = NBSplineKernel,
             )
 assert not(boolReduceViscosity and boolCullenViscosity)
 if smallPressure:
-   P0 = 1.0e-6
-   eps1 = P0/((gamma - 1.0)*rho1)
+    P0 = 1.0e-6
+    eps1 = P0/((gamma - 1.0)*rho1)
    
-if SVPH:
-    HydroConstructor = SVPHFacetedHydro
-elif CRKSPH:
-    if solid:
-        HydroConstructor = SolidCRKSPHHydro
-    else:
-        HydroConstructor = CRKSPHHydro
+if svph:
+    hydroname = "SVPH"
+elif crksph:
+    hydroname = "CRKSPH"
     Qconstructor = CRKSPHMonaghanGingoldViscosity
     gradhCorrection = False
-elif PSPH:
-   HydroConstructor = PSPHHydro
+elif psph:
+    hydroname = "PSPH"
 else:
-    if solid:
-        HydroConstructor = SolidSPHHydro
-    else:
-        HydroConstructor = SPHHydro
+    hydroname = "SPH"
+if solid:
+    hydroname = "Solid" + hydroname
 
 dataDir = os.path.join(dataDirBase,
-                       HydroConstructor.__name__,
+                       hydroname,
                        Qconstructor.__name__,
                        "nPerh=%f" % nPerh,
                        "compatibleEnergy=%s" % compatibleEnergy,
@@ -315,49 +311,51 @@ except:
 #-------------------------------------------------------------------------------
 # Construct the hydro physics object.
 #-------------------------------------------------------------------------------
-if SVPH:
-    hydro = HydroConstructor(W = WT,
-                             Q = q,
-                             cfl = cfl,
-                             useVelocityMagnitudeForDt = useVelocityMagnitudeForDt,
-                             compatibleEnergyEvolution = compatibleEnergy,
-                             densityUpdate = densityUpdate,
-                             XSVPH = XSPH,
-                             linearConsistent = linearConsistent,
-                             generateVoid = False,
-                             HUpdate = HUpdate,
-                             fcentroidal = fcentroidal,
-                             fcellPressure = fcellPressure,
-                             xmin = Vector(-100.0),
-                             xmax = Vector( 100.0))
-elif CRKSPH:
-    hydro = HydroConstructor(W = WT,
-                             Q = q,
-                             filter = filter,
-                             cfl = cfl,
-                             useVelocityMagnitudeForDt = useVelocityMagnitudeForDt,
-                             compatibleEnergyEvolution = compatibleEnergy,
-                             evolveTotalEnergy = evolveTotalEnergy,
-                             XSPH = XSPH,
-                             correctionOrder = correctionOrder,
-                             volumeType = volumeType,
-                             densityUpdate = densityUpdate,
-                             HUpdate = HUpdate)
+if svph:
+    hydro = SVPH(dataBase = db,
+                 W = WT,
+                 Q = q,
+                 cfl = cfl,
+                 useVelocityMagnitudeForDt = useVelocityMagnitudeForDt,
+                 compatibleEnergyEvolution = compatibleEnergy,
+                 densityUpdate = densityUpdate,
+                 XSVPH = XSPH,
+                 linearConsistent = linearConsistent,
+                 generateVoid = False,
+                 HUpdate = HUpdate,
+                 fcentroidal = fcentroidal,
+                 fcellPressure = fcellPressure,
+                 xmin = Vector(-100.0),
+                 xmax = Vector( 100.0))
+elif crksph:
+    hydro = CRKSPH(dataBase = db,
+                   W = WT,
+                   Q = q,
+                   filter = filter,
+                   cfl = cfl,
+                   useVelocityMagnitudeForDt = useVelocityMagnitudeForDt,
+                   compatibleEnergyEvolution = compatibleEnergy,
+                   evolveTotalEnergy = evolveTotalEnergy,
+                   XSPH = XSPH,
+                   correctionOrder = correctionOrder,
+                   volumeType = volumeType,
+                   densityUpdate = densityUpdate,
+                   HUpdate = HUpdate)
     q.etaCritFrac = etaCritFrac
     q.etaFoldFrac = etaFoldFrac
-elif PSPH:
-    hydro = HydroConstructor(W = WT,
-                             Q = q,
-                             filter = filter,
-                             cfl = cfl,
-                             useVelocityMagnitudeForDt = useVelocityMagnitudeForDt,
-                             compatibleEnergyEvolution = compatibleEnergy,
-                             evolveTotalEnergy = evolveTotalEnergy,
-                             HopkinsConductivity = HopkinsConductivity,
-                             correctVelocityGradient = correctVelocityGradient,
-                             densityUpdate = densityUpdate,
-                             HUpdate = HUpdate,
-                             XSPH = XSPH)
+elif psph:
+    hydro = PSPH(dataBase = db,
+                 W = WT,
+                 Q = q,
+                 filter = filter,
+                 cfl = cfl,
+                 useVelocityMagnitudeForDt = useVelocityMagnitudeForDt,
+                 compatibleEnergyEvolution = compatibleEnergy,
+                 evolveTotalEnergy = evolveTotalEnergy,
+                 correctVelocityGradient = correctVelocityGradient,
+                 densityUpdate = densityUpdate,
+                 HUpdate = HUpdate,
+                 XSPH = XSPH)
 else:
     hydro = SPH(dataBase = db,
                 W = WT,
@@ -556,7 +554,7 @@ if graphics:
     Aplot.refresh()
     plots.append((Aplot, "Noh-planar-A.png"))
     
-    if CRKSPH:
+    if crksph:
         volPlot = plotFieldList(hydro.volume(), 
                                 winTitle = "volume",
                                 colorNodeLists = False, plotGhosts = False)
