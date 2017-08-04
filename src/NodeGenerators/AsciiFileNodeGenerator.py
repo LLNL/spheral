@@ -5,7 +5,8 @@ from NodeGeneratorBase import *
 
 from Spheral import Vector2d, Vector3d
 from Spheral import Tensor2d, Tensor3d
-from Spheral import SymTensor2d, SymTensor3d
+from Spheral import ScalarField2d, ScalarField3d
+from Spheral import SymTensor2d, SymTensor3d, SymTensorField2d, SymTensorField3d
 from Spheral import CylindricalBoundary
 from Spheral import vector_of_double, vector_of_int, vector_of_SymTensor3d, vector_of_vector_of_double
 
@@ -33,13 +34,15 @@ class AsciiFileNodeGenerator2D(NodeGeneratorBase):
                  readFileToMemory = False,
                  refineNodes = 0,
                  delimiter = ' ',
-                 offset=None):
+                 offset = None,
+                 nodes = None):
         
         
         self.filename = filename
         self.nPerh = nNodePerh
         self.SPH = SPH
         self.extraFields = extraFields
+        self.nodes = nodes
         
         # For now we restrict to reading from a single (serial) file.
         allfiles = mpi.allreduce([filename], mpi.SUM)
@@ -119,12 +122,29 @@ class AsciiFileNodeGenerator2D(NodeGeneratorBase):
             fields = tuple([self.x, self.y, self.m, self.rho, self.vx, self.vy, self.eps, self.H] +
                            [self.__dict__[x] for x in extraFields])
             NodeGeneratorBase.__init__(self, self.serialfile, *fields)
-
         
         # Apply the requested number of refinements.
         for i in xrange(refineNodes):
             refineNodes2d(self)
         
+        # Finally, if the user provided a NodeList convert all our stored data to Fields
+        # in order to have them follow the nodes around during redistribution.
+        if nodes:
+            n0 = len(self.x)
+            nodes.numInternalNodes = n0
+            for name in ['x', 'y', 'z', 'm', 'rho', 'vx', 'vy', 'vz', 'eps'] + extraFields:
+                stuff = self.__dict__[name]
+                assert len(stuff) == n0
+                field = ScalarField2d("generator_" + name, nodes)
+                for i in xrange(n0):
+                    field[i] = stuff[i]
+                self.__dict__[name] = field
+            # H is a SymTensor, so do it separately.
+            field = SymTensorField2d("generator_H", nodes)
+            for i in xrange(n0):
+                field[i] = self.H[i]
+            self.H = field
+
         return
 
 
@@ -181,7 +201,8 @@ class AsciiFileNodeGenerator3D(NodeGeneratorBase):
                  refineNodes = 0,
                  rejecter=None,
                  delimiter = ' ',
-                 offset=None):
+                 offset=None,
+                 nodes=None):
                  
                  
         self.filename = filename
@@ -303,6 +324,24 @@ class AsciiFileNodeGenerator3D(NodeGeneratorBase):
         # Apply the requested number of refinements.
         for i in xrange(refineNodes):
             refineNodes3d(self)
+
+        # Finally, if the user provided a NodeList convert all our stored data to Fields
+        # in order to have them follow the nodes around during redistribution.
+        if nodes:
+            n0 = len(self.x)
+            nodes.numInternalNodes = n0
+            for name in ['x', 'y', 'z', 'm', 'rho', 'vx', 'vy', 'vz', 'eps'] + extraFields:
+                stuff = self.__dict__[name]
+                assert len(stuff) == n0
+                field = ScalarField3d("generator_" + name, nodes)
+                for i in xrange(n0):
+                    field[i] = stuff[i]
+                self.__dict__[name] = field
+            # H is a SymTensor, so do it separately.
+            field = SymTensorField3d("generator_H", nodes)
+            for i in xrange(n0):
+                field[i] = self.H[i]
+            self.H = field
 
         return
 

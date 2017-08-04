@@ -77,7 +77,7 @@ public:
   typedef FieldSpace::Field<Dimension, std::vector<double> > FlawStorageType;
 
   // Constructors, destructor.
-  TensorDamageModel(SolidMaterial::SolidNodeList<Dimension>& nodeList,
+  TensorDamageModel(NodeSpace::SolidNodeList<Dimension>& nodeList,
                     const TensorStrainAlgorithm strainAlgorithm,
                     const EffectiveDamageAlgorithm effDamageAlgorithm,
                     const bool useDamageGradient,

@@ -22,7 +22,7 @@
 #include "CRKSPH/computeOccupancyVolume.hh"
 #include "CRKSPH/gradientCRKSPH.hh"
 #include "CRKSPH/interpolateCRKSPH.hh"
-#include "SolidSPH/NodeCoupling.hh"
+#include "SPH/NodeCoupling.hh"
 
 namespace Spheral {
 namespace CRKSPHSpace {
@@ -43,71 +43,77 @@ typedef SolidCRKSPHHydroBase<Dim<3> > SolidCRKSPHHydroBase3d;
 //------------------------------------------------------------------------------
 inline
 void
-CRKSPHKernelAndGradient1d(const KernelSpace::TableKernel<Dim<1> >& W,
-                        const CRKOrder correctionOrder,
-                        const Dim<1>::Vector& rij,
-                        const Dim<1>::Vector& etai,
-                        const Dim<1>::SymTensor& Hi,
-                        const Dim<1>::Scalar& Hdeti,
-                        const Dim<1>::Vector& etaj,
-                        const Dim<1>::SymTensor& Hj,
-                        const Dim<1>::Scalar& Hdetj,
-                        const Dim<1>::Scalar& Ai,
-                        const Dim<1>::Vector& Bi,
-                        const Dim<1>::Tensor& Ci,
-                        const Dim<1>::Vector& gradAi,
-                        const Dim<1>::Tensor& gradBi,
-                        const Dim<1>::ThirdRankTensor& gradCi,
-                        Dim<1>::Scalar* WCRKSPH,
-                        Dim<1>::Scalar* gradWSPH,
-                        Dim<1>::Vector& gradWCRKSPH) {
-  return CRKSPHKernelAndGradient(W, correctionOrder, rij, etai, Hi, Hdeti, etaj, Hj, Hdetj, Ai, Bi, Ci, gradAi, gradBi, gradCi, *WCRKSPH, *gradWSPH, gradWCRKSPH);
+CRKSPHKernelAndGradient1d(Dim<1>::Scalar* WCRKSPH,
+                          Dim<1>::Scalar* gradWSPH,
+                          Dim<1>::Vector& gradWCRKSPH,
+                          const KernelSpace::TableKernel<Dim<1> >& W,
+                          const CRKOrder correctionOrder,
+                          const Dim<1>::Vector& rij,
+                          const Dim<1>::Vector& etai,
+                          const Dim<1>::SymTensor& Hi,
+                          const Dim<1>::Scalar& Hdeti,
+                          const Dim<1>::Vector& etaj,
+                          const Dim<1>::SymTensor& Hj,
+                          const Dim<1>::Scalar& Hdetj,
+                          const Dim<1>::Scalar& Ai,
+                          const Dim<1>::Vector& Bi,
+                          const Dim<1>::Tensor& Ci,
+                          const Dim<1>::Vector& gradAi,
+                          const Dim<1>::Tensor& gradBi,
+                          const Dim<1>::ThirdRankTensor& gradCi,
+                          const Dim<1>::Scalar correctionMin = std::numeric_limits<Dim<1>::Scalar>::lowest(),
+                          const Dim<1>::Scalar correctionMax = std::numeric_limits<Dim<1>::Scalar>::max()) {
+  return CRKSPHKernelAndGradient(*WCRKSPH, *gradWSPH, gradWCRKSPH, W, correctionOrder, rij, etai, Hi, Hdeti, etaj, Hj, Hdetj, Ai, Bi, Ci, gradAi, gradBi, gradCi, correctionMin, correctionMax);
 }
 
 inline
 void
-CRKSPHKernelAndGradient2d(const KernelSpace::TableKernel<Dim<2> >& W,
-                        const CRKOrder correctionOrder,
-                        const Dim<2>::Vector& rij,
-                        const Dim<2>::Vector& etai,
-                        const Dim<2>::SymTensor& Hi,
-                        const Dim<2>::Scalar& Hdeti,
-                        const Dim<2>::Vector& etaj,
-                        const Dim<2>::SymTensor& Hj,
-                        const Dim<2>::Scalar& Hdetj,
-                        const Dim<2>::Scalar& Ai,
-                        const Dim<2>::Vector& Bi,
-                        const Dim<2>::Tensor& Ci,
-                        const Dim<2>::Vector& gradAi,
-                        const Dim<2>::Tensor& gradBi,
-                        const Dim<2>::ThirdRankTensor& gradCi,
-                        Dim<2>::Scalar* WCRKSPH,
-                        Dim<2>::Scalar* gradWSPH,
-                        Dim<2>::Vector& gradWCRKSPH) {
-  return CRKSPHKernelAndGradient(W, correctionOrder, rij, etai, Hi, Hdeti, etaj, Hj, Hdetj, Ai, Bi, Ci, gradAi, gradBi, gradCi, *WCRKSPH, *gradWSPH, gradWCRKSPH);
+CRKSPHKernelAndGradient2d(Dim<2>::Scalar* WCRKSPH,
+                          Dim<2>::Scalar* gradWSPH,
+                          Dim<2>::Vector& gradWCRKSPH,
+                          const KernelSpace::TableKernel<Dim<2> >& W,
+                          const CRKOrder correctionOrder,
+                          const Dim<2>::Vector& rij,
+                          const Dim<2>::Vector& etai,
+                          const Dim<2>::SymTensor& Hi,
+                          const Dim<2>::Scalar& Hdeti,
+                          const Dim<2>::Vector& etaj,
+                          const Dim<2>::SymTensor& Hj,
+                          const Dim<2>::Scalar& Hdetj,
+                          const Dim<2>::Scalar& Ai,
+                          const Dim<2>::Vector& Bi,
+                          const Dim<2>::Tensor& Ci,
+                          const Dim<2>::Vector& gradAi,
+                          const Dim<2>::Tensor& gradBi,
+                          const Dim<2>::ThirdRankTensor& gradCi,
+                          const Dim<2>::Scalar correctionMin = std::numeric_limits<Dim<2>::Scalar>::lowest(),
+                          const Dim<2>::Scalar correctionMax = std::numeric_limits<Dim<2>::Scalar>::max()) {
+  return CRKSPHKernelAndGradient(*WCRKSPH, *gradWSPH, gradWCRKSPH, W, correctionOrder, rij, etai, Hi, Hdeti, etaj, Hj, Hdetj, Ai, Bi, Ci, gradAi, gradBi, gradCi, correctionMin, correctionMax);
 }
 
 inline
 void
-CRKSPHKernelAndGradient3d(const KernelSpace::TableKernel<Dim<3> >& W,
-                        const CRKOrder correctionOrder,
-                        const Dim<3>::Vector& rij,
-                        const Dim<3>::Vector& etai,
-                        const Dim<3>::SymTensor& Hi,
-                        const Dim<3>::Scalar& Hdeti,
-                        const Dim<3>::Vector& etaj,
-                        const Dim<3>::SymTensor& Hj,
-                        const Dim<3>::Scalar& Hdetj,
-                        const Dim<3>::Scalar& Ai,
-                        const Dim<3>::Vector& Bi,
-                        const Dim<3>::Tensor& Ci,
-                        const Dim<3>::Vector& gradAi,
-                        const Dim<3>::Tensor& gradBi,
-                        const Dim<3>::ThirdRankTensor& gradCi,
-                        Dim<3>::Scalar* WCRKSPH,
-                        Dim<3>::Scalar* gradWSPH,
-                        Dim<3>::Vector& gradWCRKSPH) {
-  return CRKSPHKernelAndGradient(W, correctionOrder, rij, etai, Hi, Hdeti, etaj, Hj, Hdetj, Ai, Bi, Ci, gradAi, gradBi, gradCi, *WCRKSPH, *gradWSPH, gradWCRKSPH);
+CRKSPHKernelAndGradient3d(Dim<3>::Scalar* WCRKSPH,
+                          Dim<3>::Scalar* gradWSPH,
+                          Dim<3>::Vector& gradWCRKSPH,
+                          const KernelSpace::TableKernel<Dim<3> >& W,
+                          const CRKOrder correctionOrder,
+                          const Dim<3>::Vector& rij,
+                          const Dim<3>::Vector& etai,
+                          const Dim<3>::SymTensor& Hi,
+                          const Dim<3>::Scalar& Hdeti,
+                          const Dim<3>::Vector& etaj,
+                          const Dim<3>::SymTensor& Hj,
+                          const Dim<3>::Scalar& Hdetj,
+                          const Dim<3>::Scalar& Ai,
+                          const Dim<3>::Vector& Bi,
+                          const Dim<3>::Tensor& Ci,
+                          const Dim<3>::Vector& gradAi,
+                          const Dim<3>::Tensor& gradBi,
+                          const Dim<3>::ThirdRankTensor& gradCi,
+                          const Dim<3>::Scalar correctionMin = std::numeric_limits<Dim<3>::Scalar>::lowest(),
+                          const Dim<3>::Scalar correctionMax = std::numeric_limits<Dim<3>::Scalar>::max()) {
+  return CRKSPHKernelAndGradient(*WCRKSPH, *gradWSPH, gradWCRKSPH, W, correctionOrder, rij, etai, Hi, Hdeti, etaj, Hj, Hdetj, Ai, Bi, Ci, gradAi, gradBi, gradCi, correctionMin, correctionMax);
 }
 
 // //------------------------------------------------------------------------------

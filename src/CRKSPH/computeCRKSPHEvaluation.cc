@@ -3,7 +3,6 @@
 //------------------------------------------------------------------------------
 #include <stdio.h>
 #include "computeCRKSPHEvaluation.hh"
-#include "CRKSPHUtilities.hh"
 #include "Field/Field.hh"
 #include "Field/FieldList.hh"
 #include "Neighbor/ConnectivityMap.hh"

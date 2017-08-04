@@ -7,7 +7,7 @@
 #include "Neighbor/ConnectivityMap.hh"
 #include "Kernel/TableKernel.hh"
 #include "NodeList/NodeList.hh"
-#include "SolidSPH/NodeCoupling.hh"
+#include "SPH/NodeCoupling.hh"
 #include "CRKSPHUtilities.hh"
 
 namespace Spheral {
@@ -136,8 +136,8 @@ interpolateCRKSPH(const FieldSpace::FieldList<Dimension, DataType>& fieldList,
               const Vector etaj = Hj*rij;
 
               // Kernel weight.
-              const Scalar Wj = CRKSPHKernel(W, correctionOrder,  rij,  etai, Hdeti,  etaj, Hdetj, Ai, Bi, Ci);
-              const Scalar Wi = CRKSPHKernel(W, correctionOrder, -rij, -etaj, Hdetj, -etai, Hdeti, Aj, Bj, Cj);
+              const Scalar Wj = CRKSPHKernel(W, correctionOrder,  rij,  etai, Hdeti,  etaj, Hdetj, Ai, Bi, Ci, -1e100, 1e100);
+              const Scalar Wi = CRKSPHKernel(W, correctionOrder, -rij, -etaj, Hdetj, -etai, Hdeti, Aj, Bj, Cj, -1e100, 1e100);
 
               // Increment the pair-wise values.
               resulti += wj*Fj*Wj;

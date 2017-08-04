@@ -5,7 +5,7 @@ text = """
 #include "SolidNodeList.cc"
 
 namespace Spheral {
-  namespace SolidMaterial {
+  namespace NodeSpace {
     template class SolidNodeList< Dim< %(ndim)s > >;
   }
 }

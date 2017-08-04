@@ -34,8 +34,7 @@ SRCTARGETS = \
 	$(srcdir)/centerOfMass.cc
 
 PYTHONTARGETS = \
-	$(srcdir)/CRKSPHHydros.py \
-	$(srcdir)/SolidCRKSPHHydros.py
+	$(srcdir)/CRKSPHHydros.py
 
 # A few of our target files are only valid for certain dimensions.
 ifeq ("yes", "@INST1D@")
@@ -50,8 +49,7 @@ SRCTARGETS += \
 	$(srcdir)/CRKSPHHydroBaseRZ.cc \
 	$(srcdir)/SolidCRKSPHHydroBaseRZ.cc
 PYTHONTARGETS += \
-	$(srcdir)/CRKSPHHydrosRZ.py \
-	$(srcdir)/SolidCRKSPHHydrosRZ.py
+	$(srcdir)/CRKSPHHydrosRZ.py
 endif
 
 ifeq ("yes", "@INST3D@")

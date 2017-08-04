@@ -170,7 +170,6 @@ AC_OUTPUT(helpers/makefile_master \
           Mesh/makefile \
           Damage/makefile \
           SolidMaterial/makefile \
-          SolidSPH/makefile \
           Strength/makefile \
           ArtificialConduction/makefile \
           CXXTests/makefile \

@@ -195,17 +195,24 @@ public:
   void nTensile(const Scalar val);
     
   // Surface detection getters and setters
-    bool detectSurfaces() const;
-    void detectSurfaces(const bool val);
+  bool detectSurfaces() const;
+  void detectSurfaces(const bool val);
     
-    double detectThreshold() const;
-    void detectThreshold(const double val);
+  double detectThreshold() const;
+  void detectThreshold(const double val);
     
-    double detectRange() const;
-    void detectRange(const double val);
+  double detectRange() const;
+  void detectRange(const double val);
     
-    double sweepAngle() const;
-    void sweepAngle(const double val);
+  double sweepAngle() const;
+  void sweepAngle(const double val);
+
+  // Limits to impose on node by node corrections.
+  double correctionMin() const;
+  void correctionMin(const double val);
+
+  double correctionMax() const;
+  void correctionMax(const double val);
 
   // The state field lists we're maintaining.
   const FieldSpace::FieldList<Dimension, int>&       timeStepMask() const;
@@ -276,6 +283,7 @@ protected:
   Scalar mEpsTensile, mnTensile;
   bool mDetectSurfaces;
   double mDetectThreshold, mSweepAngle, mDetectRange;
+  double mCorrectionMin, mCorrectionMax;
 
   // Some internal scratch fields.
   FieldSpace::FieldList<Dimension, int>       mTimeStepMask;

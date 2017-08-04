@@ -18,7 +18,7 @@
 #include "Utilities/DBC.hh"
 
 namespace Spheral {
-namespace SolidMaterial {
+namespace NodeSpace {
 
 using namespace std;
 
@@ -26,7 +26,6 @@ using Material::EquationOfState;
 using FieldSpace::Field;
 using FieldSpace::FieldList;
 using FileIOSpace::FileIO;
-using NodeSpace::FluidNodeList;
 
 //------------------------------------------------------------------------------
 // Construct with the given EOS object, along with optional numInternal nodes,

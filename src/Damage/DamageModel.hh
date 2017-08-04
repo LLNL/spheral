@@ -21,7 +21,7 @@
 namespace Spheral {
   template<typename Dimension> class State;
   template<typename Dimension> class StateDerivatives;
-  namespace SolidMaterial {
+  namespace NodeSpace {
     template<typename Dimension> class SolidNodeList;
   }
   namespace DataBaseSpace {
@@ -65,7 +65,7 @@ public:
   typedef FieldSpace::Field<Dimension, std::vector<double> > FlawStorageType;
 
   // Constructors, destructor.
-  DamageModel(SolidMaterial::SolidNodeList<Dimension>& nodeList,
+  DamageModel(NodeSpace::SolidNodeList<Dimension>& nodeList,
               const KernelSpace::TableKernel<Dimension>& W,
               const double crackGrowthMultiplier,
               const EffectiveFlawAlgorithm flawAlgorithm,
@@ -104,8 +104,8 @@ public:
   const std::vector<double> flawsForNode(const size_t index) const;
 
   // Access the SolidNodeList we're damaging.
-  SolidMaterial::SolidNodeList<Dimension>& nodeList();
-  const SolidMaterial::SolidNodeList<Dimension>& nodeList() const;
+  NodeSpace::SolidNodeList<Dimension>& nodeList();
+  const NodeSpace::SolidNodeList<Dimension>& nodeList() const;
 
   // Access the kernel.
   const KernelSpace::TableKernel<Dimension>& kernel() const;
@@ -157,7 +157,7 @@ protected:
 private:
   //--------------------------- Private Interface ---------------------------//
 #ifndef __GCCXML__
-  SolidMaterial::SolidNodeList<Dimension>& mNodeList;
+  NodeSpace::SolidNodeList<Dimension>& mNodeList;
   const KernelSpace::TableKernel<Dimension>& mW;
   double mCrackGrowthMultiplier;
   EffectiveFlawAlgorithm mEffectiveFlawAlgorithm;

@@ -109,13 +109,18 @@ self.generateSolidCRKSPHHydroBaseBindings(self.SolidCRKSPHHydroBase%(dim)id, %(d
                                                            param("double", "Hdetj"),
                                                            param("double", "Ai"),
                                                            constrefparam(vector, "Bi"),
-      							   constrefparam(tensor, "Ci")],
+      							   constrefparam(tensor, "Ci"),
+                                                           param("double", "correctionMin", default_value = "std::numeric_limits<double>::lowest()"),
+                                                           param("double", "correctionMax", default_value = "std::numeric_limits<double>::max()")],
                                 template_parameters = [dim],
                                 custom_name = "CRKSPHKernel%id" % ndim,
                                 docstring = "Evaluate the CRKSPH corrected kernel.")
 
         # Simultaneously evaluate the CRKSPH kernel and it's gradient.
-        self.space.add_function("CRKSPHKernelAndGradient%id" % ndim, None, [constrefparam(tablekernel, "W"),
+        self.space.add_function("CRKSPHKernelAndGradient%id" % ndim, None, [Parameter.new("double*", "WCRKSPH", direction=Parameter.DIRECTION_OUT),
+                                                                            Parameter.new("double*", "gradWSPH", direction=Parameter.DIRECTION_OUT),
+                                                                            refparam(vector, "gradWCRKSPH"),
+                                                                            constrefparam(tablekernel, "W"),
                                                                             param("Spheral::CRKSPHSpace::CRKOrder","correctionOrder"),
                                                                             constrefparam(vector, "rij"),
                                                                             constrefparam(vector, "etai"),
@@ -130,9 +135,8 @@ self.generateSolidCRKSPHHydroBaseBindings(self.SolidCRKSPHHydroBase%(dim)id, %(d
                                                                             constrefparam(vector, "gradAi"),
                                                                             constrefparam(tensor, "gradBi"),
                                                                             constrefparam(thirdranktensor, "gradCi"),
-                                                                            Parameter.new("double*", "WCRKSPH", direction=Parameter.DIRECTION_OUT),
-                                                                            Parameter.new("double*", "gradWSPH", direction=Parameter.DIRECTION_OUT),
-                                                                            refparam(vector, "gradWCRKSPH")],
+                                                                            param("double", "correctionMin", default_value = "std::numeric_limits<double>::lowest()"),
+                                                                            param("double", "correctionMax", default_value = "std::numeric_limits<double>::max()")],
                                 docstring = "Evaluate the CRKSPH corrected kernel and gradient simultaneously.")
 
         # CRKSPH sum density.

@@ -14,16 +14,12 @@ SRCTARGETS = \
 	$(srcdir)/SolidFieldNames.cc
 
 INSTSRCTARGETS = \
-	$(srcdir)/SolidNodeListInst.cc.py \
 	$(srcdir)/DeviatoricStressPolicyInst.cc.py \
 	$(srcdir)/PlasticStrainPolicyInst.cc.py \
 	$(srcdir)/BulkModulusPolicyInst.cc.py \
 	$(srcdir)/ShearModulusPolicyInst.cc.py \
 	$(srcdir)/YieldStrengthPolicyInst.cc.py \
 	$(srcdir)/StrengthSoundSpeedPolicyInst.cc.py
-
-PYTHONTARGETS = \
-	$(srcdir)/SolidNodeLists.py
 
 ifeq ("yes", "@INST2D@")
 SRCTARGETS += \

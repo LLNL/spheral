@@ -6,7 +6,7 @@ text = """
 #include "Geometry/Dimension.hh"
 
 namespace Spheral {
-  namespace SolidSPHSpace {
+  namespace SPHSpace {
     template class SolidSPHHydroBase< Dim< %(ndim)s > >;
   }
 }

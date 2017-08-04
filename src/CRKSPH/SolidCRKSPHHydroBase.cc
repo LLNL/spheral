@@ -25,7 +25,7 @@
 #include "NodeList/SmoothingScaleBase.hh"
 #include "Hydro/HydroFieldNames.hh"
 #include "Strength/SolidFieldNames.hh"
-#include "Strength/SolidNodeList.hh"
+#include "NodeList/SolidNodeList.hh"
 #include "Strength/DeviatoricStressPolicy.hh"
 #include "Strength/BulkModulusPolicy.hh"
 #include "Strength/PlasticStrainPolicy.hh"
@@ -47,7 +47,7 @@
 #include "Utilities/timingUtilities.hh"
 #include "Utilities/safeInv.hh"
 #include "FileIO/FileIO.hh"
-#include "SolidSPH/DamagedNodeCouplingWithFrags.hh"
+#include "SPH/DamagedNodeCouplingWithFrags.hh"
 #include "SolidMaterial/SolidEquationOfState.hh"
 
 namespace Spheral {
@@ -57,7 +57,7 @@ using namespace std;
 using NodeSpace::SmoothingScaleBase;
 using NodeSpace::NodeList;
 using NodeSpace::FluidNodeList;
-using SolidMaterial::SolidNodeList;
+using NodeSpace::SolidNodeList;
 using SolidMaterial::SolidEquationOfState;
 using FileIOSpace::FileIO;
 using ArtificialViscositySpace::ArtificialViscosity;
@@ -188,18 +188,18 @@ initializeProblemStartup(DataBase<Dimension>& dataBase) {
   CRKSPHHydroBase<Dimension>::initializeProblemStartup(dataBase);
 
   // Create storage for the state we're holding.
-  mDdeviatoricStressDt = dataBase.newFluidFieldList(SymTensor::zero, IncrementFieldList<Dimension, Vector>::prefix() + SolidFieldNames::deviatoricStress);
-  mBulkModulus = dataBase.newFluidFieldList(0.0, SolidFieldNames::bulkModulus);
-  mShearModulus = dataBase.newFluidFieldList(0.0, SolidFieldNames::shearModulus);
-  mYieldStrength = dataBase.newFluidFieldList(0.0, SolidFieldNames::yieldStrength);
-  mPlasticStrain0 = dataBase.newFluidFieldList(0.0, SolidFieldNames::plasticStrain + "0");
-  mHfield0 = dataBase.newFluidFieldList(SymTensor::zero, HydroFieldNames::H + "0");
-  mAdamage = dataBase.newFluidFieldList(0.0,              HydroFieldNames::A_CRKSPH + " damage");
-  mBdamage = dataBase.newFluidFieldList(Vector::zero,     HydroFieldNames::B_CRKSPH + " damage");
-  mCdamage = dataBase.newFluidFieldList(Tensor::zero,     HydroFieldNames::C_CRKSPH + " damage");
-  mGradAdamage = dataBase.newFluidFieldList(Vector::zero, HydroFieldNames::gradA_CRKSPH + " damage");
-  mGradBdamage = dataBase.newFluidFieldList(Tensor::zero, HydroFieldNames::gradB_CRKSPH + " damage");
-  mGradCdamage = dataBase.newFluidFieldList(ThirdRankTensor::zero, HydroFieldNames::gradC_CRKSPH + " damage");
+  mDdeviatoricStressDt = dataBase.newSolidFieldList(SymTensor::zero, IncrementFieldList<Dimension, Vector>::prefix() + SolidFieldNames::deviatoricStress);
+  mBulkModulus = dataBase.newSolidFieldList(0.0, SolidFieldNames::bulkModulus);
+  mShearModulus = dataBase.newSolidFieldList(0.0, SolidFieldNames::shearModulus);
+  mYieldStrength = dataBase.newSolidFieldList(0.0, SolidFieldNames::yieldStrength);
+  mPlasticStrain0 = dataBase.newSolidFieldList(0.0, SolidFieldNames::plasticStrain + "0");
+  mHfield0 = dataBase.newSolidFieldList(SymTensor::zero, HydroFieldNames::H + "0");
+  mAdamage = dataBase.newSolidFieldList(0.0,              HydroFieldNames::A_CRKSPH + " damage");
+  mBdamage = dataBase.newSolidFieldList(Vector::zero,     HydroFieldNames::B_CRKSPH + " damage");
+  mCdamage = dataBase.newSolidFieldList(Tensor::zero,     HydroFieldNames::C_CRKSPH + " damage");
+  mGradAdamage = dataBase.newSolidFieldList(Vector::zero, HydroFieldNames::gradA_CRKSPH + " damage");
+  mGradBdamage = dataBase.newSolidFieldList(Tensor::zero, HydroFieldNames::gradB_CRKSPH + " damage");
+  mGradCdamage = dataBase.newSolidFieldList(ThirdRankTensor::zero, HydroFieldNames::gradC_CRKSPH + " damage");
 
   // Copy the standard CRK corrections to the damage forms.
   mAdamage.assignFields(this->A());
@@ -442,6 +442,8 @@ evaluateDerivatives(const typename Dimension::Scalar time,
   const bool XSPH = this->XSPH();
   const Scalar epsTensile = this->epsilonTensile();
   const CRKOrder order = this->correctionOrder();
+  const double correctionMin = this->correctionMin();
+  const double correctionMax = this->correctionMax();
 
   // The connectivity.
   const ConnectivityMap<Dimension>& connectivityMap = dataBase.connectivityMap();
@@ -733,10 +735,10 @@ evaluateDerivatives(const typename Dimension::Scalar time,
               // Symmetrized kernel weight and gradient.
               Scalar gWi, gWj, Wi, Wj, gWdami, gWdamj, Wdami, Wdamj;
               Vector gradWi, gradWj, gradWdami, gradWdamj;
-              CRKSPHKernelAndGradient(W, CRKSPHHydroBase<Dimension>::correctionOrder(),  rij,  etai, Hi, Hdeti,  etaj, Hj, Hdetj, Ai, Bi, Ci, gradAi, gradBi, gradCi, Wj, gWj, gradWj);
-              CRKSPHKernelAndGradient(W, CRKSPHHydroBase<Dimension>::correctionOrder(), -rij, -etaj, Hj, Hdetj, -etai, Hi, Hdeti, Aj, Bj, Cj, gradAj, gradBj, gradCj, Wi, gWi, gradWi);
-              CRKSPHKernelAndGradient(W, CRKSPHHydroBase<Dimension>::correctionOrder(),  rij,  etai, Hi, Hdeti,  etaj, Hj, Hdetj, Adami, Bdami, Cdami, gradAdami, gradBdami, gradCdami, Wdamj, gWdamj, gradWdamj); //Replace with Solid form of quadratic Cdami and gradCdami when implemented
-              CRKSPHKernelAndGradient(W, CRKSPHHydroBase<Dimension>::correctionOrder(), -rij, -etaj, Hj, Hdetj, -etai, Hi, Hdeti, Adamj, Bdamj, Cdamj, gradAdamj, gradBdamj, gradCdamj, Wdami, gWdami, gradWdami);
+              CRKSPHKernelAndGradient(Wj, gWj, gradWj, W, CRKSPHHydroBase<Dimension>::correctionOrder(),  rij,  etai, Hi, Hdeti,  etaj, Hj, Hdetj, Ai, Bi, Ci, gradAi, gradBi, gradCi, correctionMin, correctionMax);
+              CRKSPHKernelAndGradient(Wi, gWi, gradWi, W, CRKSPHHydroBase<Dimension>::correctionOrder(), -rij, -etaj, Hj, Hdetj, -etai, Hi, Hdeti, Aj, Bj, Cj, gradAj, gradBj, gradCj, correctionMin, correctionMax);
+              CRKSPHKernelAndGradient(Wdamj, gWdamj, gradWdamj, W, CRKSPHHydroBase<Dimension>::correctionOrder(),  rij,  etai, Hi, Hdeti,  etaj, Hj, Hdetj, Adami, Bdami, Cdami, gradAdami, gradBdami, gradCdami, correctionMin, correctionMax);
+              CRKSPHKernelAndGradient(Wdami, gWdami, gradWdami, W, CRKSPHHydroBase<Dimension>::correctionOrder(), -rij, -etaj, Hj, Hdetj, -etai, Hi, Hdeti, Adamj, Bdamj, Cdamj, gradAdamj, gradBdamj, gradCdamj, correctionMin, correctionMax);
               const Vector deltagrad = gradWj - gradWi;
               const Vector deltagraddam = gradWdamj - gradWdami;
               const Vector gradWSPHi = (Hi*etai.unitVector())*W.gradValue(etai.magnitude(), Hdeti);
