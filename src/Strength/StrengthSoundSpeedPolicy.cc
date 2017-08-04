@@ -5,7 +5,7 @@
 #include "StrengthSoundSpeedPolicy.hh"
 #include "Hydro/HydroFieldNames.hh"
 #include "Strength/SolidFieldNames.hh"
-#include "Strength/SolidNodeList.hh"
+#include "NodeList/SolidNodeList.hh"
 #include "DataBase/UpdatePolicyBase.hh"
 #include "DataBase/IncrementState.hh"
 #include "DataBase/ReplaceState.hh"
@@ -21,7 +21,7 @@ namespace Spheral {
 
 using NodeSpace::NodeList;
 using NodeSpace::FluidNodeList;
-using SolidMaterial::SolidNodeList;
+using NodeSpace::SolidNodeList;
 using FieldSpace::FieldList;
 using SolidMaterial::StrengthModel;
 

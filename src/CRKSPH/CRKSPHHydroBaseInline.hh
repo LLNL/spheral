@@ -195,70 +195,105 @@ nTensile(const typename Dimension::Scalar val) {
 //------------------------------------------------------------------------------
 // Surface Detection getters and setters
 //------------------------------------------------------------------------------
-    template<typename Dimension>
-    inline
-    bool
-    CRKSPHHydroBase<Dimension>::
-    detectSurfaces() const {
-        return mDetectSurfaces;
-    }
-    
-    template<typename Dimension>
-    inline
-    void
-    CRKSPHHydroBase<Dimension>::
-    detectSurfaces(const bool val) {
-        mDetectSurfaces = val;
-    }
-    
-    template<typename Dimension>
-    inline
-    double
-    CRKSPHHydroBase<Dimension>::
-    detectThreshold() const {
-        return mDetectThreshold;
-    }
-    
-    template<typename Dimension>
-    inline
-    void
-    CRKSPHHydroBase<Dimension>::
-    detectThreshold(const double val) {
-        mDetectThreshold = val;
-    }
-    
-    template<typename Dimension>
-    inline
-    double
-    CRKSPHHydroBase<Dimension>::
-    detectRange() const {
-        return mDetectRange;
-    }
-    
-    template<typename Dimension>
-    inline
-    void
-    CRKSPHHydroBase<Dimension>::
-    detectRange(const double val) {
-        mDetectRange = val;
-    }
-    
-    template<typename Dimension>
-    inline
-    double
-    CRKSPHHydroBase<Dimension>::
-    sweepAngle() const {
-        return mSweepAngle;
-    }
-    
-    template<typename Dimension>
-    inline
-    void
-    CRKSPHHydroBase<Dimension>::
-    sweepAngle(const double val) {
-        mSweepAngle = val;
-    }
+template<typename Dimension>
+inline
+bool
+CRKSPHHydroBase<Dimension>::
+detectSurfaces() const {
+    return mDetectSurfaces;
+}
 
+template<typename Dimension>
+inline
+void
+CRKSPHHydroBase<Dimension>::
+detectSurfaces(const bool val) {
+    mDetectSurfaces = val;
+}
+
+template<typename Dimension>
+inline
+double
+CRKSPHHydroBase<Dimension>::
+detectThreshold() const {
+    return mDetectThreshold;
+}
+
+template<typename Dimension>
+inline
+void
+CRKSPHHydroBase<Dimension>::
+detectThreshold(const double val) {
+    mDetectThreshold = val;
+}
+
+template<typename Dimension>
+inline
+double
+CRKSPHHydroBase<Dimension>::
+detectRange() const {
+    return mDetectRange;
+}
+
+template<typename Dimension>
+inline
+void
+CRKSPHHydroBase<Dimension>::
+detectRange(const double val) {
+    mDetectRange = val;
+}
+
+template<typename Dimension>
+inline
+double
+CRKSPHHydroBase<Dimension>::
+sweepAngle() const {
+    return mSweepAngle;
+}
+
+template<typename Dimension>
+inline
+void
+CRKSPHHydroBase<Dimension>::
+sweepAngle(const double val) {
+    mSweepAngle = val;
+}
+
+//------------------------------------------------------------------------------
+// Per node correction limits.
+//------------------------------------------------------------------------------
+template<typename Dimension>
+inline
+double
+CRKSPHHydroBase<Dimension>::
+correctionMin() const {
+  return mCorrectionMin;
+}
+
+template<typename Dimension>
+inline
+void
+CRKSPHHydroBase<Dimension>::
+correctionMin(const double val) {
+  mCorrectionMin = val;
+}
+    
+template<typename Dimension>
+inline
+double
+CRKSPHHydroBase<Dimension>::
+correctionMax() const {
+  return mCorrectionMax;
+}
+
+template<typename Dimension>
+inline
+void
+CRKSPHHydroBase<Dimension>::
+correctionMax(const double val) {
+  mCorrectionMax = val;
+}
+    
 //------------------------------------------------------------------------------
 // The internal state field lists.
 //------------------------------------------------------------------------------

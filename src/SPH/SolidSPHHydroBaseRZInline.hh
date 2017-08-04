@@ -1,5 +1,5 @@
 namespace Spheral {
-namespace SolidSPHSpace {
+namespace SPHSpace {
 
 //------------------------------------------------------------------------------
 // The internal state field lists.
