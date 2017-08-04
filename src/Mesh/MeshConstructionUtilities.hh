@@ -769,7 +769,7 @@ extendElementHashSets(const typename Hash2KeyMap::key_type& key,
 inline
 std::pair<unsigned, unsigned>
 hashEdge(const unsigned i, const unsigned j) {
-  return i < j ? std::pair<unsigned,unsigned>(i, j) : std::pair<unsigned,unsigned>(j, i);
+  return i < j ? std::make_pair(i, j) : std::make_pair(j, i);
 }
 
 template<typename T>

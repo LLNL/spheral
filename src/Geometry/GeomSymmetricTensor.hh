@@ -426,12 +426,15 @@ template<> double GeomSymmetricTensor<3>::maxAbsElement() const;
 template<> const GeomSymmetricTensor<1> GeomSymmetricTensor<1>::zero;
 template<> const GeomSymmetricTensor<2> GeomSymmetricTensor<2>::zero;
 template<> const GeomSymmetricTensor<3> GeomSymmetricTensor<3>::zero;
+
 template<> const GeomSymmetricTensor<1> GeomSymmetricTensor<1>::one;
 template<> const GeomSymmetricTensor<2> GeomSymmetricTensor<2>::one;
 template<> const GeomSymmetricTensor<3> GeomSymmetricTensor<3>::one;
+
 template<> const double GeomSymmetricTensor<1>::onethird;
 template<> const double GeomSymmetricTensor<2>::onethird;
 template<> const double GeomSymmetricTensor<3>::onethird;
+
 template<> const double GeomSymmetricTensor<1>::sqrt3;
 template<> const double GeomSymmetricTensor<2>::sqrt3;
 template<> const double GeomSymmetricTensor<3>::sqrt3;
