@@ -146,14 +146,14 @@ VoronoiHourglassControl(const TableKernel<Dimension>& W,
   mLimiter(limiter),
   mFraction(fraction),
   mMask(mask),
-  mA(FieldSpace::FieldStorageType::Copy),
-  mWeight(FieldSpace::FieldStorageType::Copy),
-  mGradRho(FieldSpace::FieldStorageType::Copy),
-  mB(FieldSpace::FieldStorageType::Copy),
-  mC(FieldSpace::FieldStorageType::Copy),
-  mGradA(FieldSpace::FieldStorageType::Copy),
-  mD(FieldSpace::FieldStorageType::Copy),
-  mGradB(FieldSpace::FieldStorageType::Copy) {
+  mA(FieldSpace::FieldStorageType::CopyFields),
+  mWeight(FieldSpace::FieldStorageType::CopyFields),
+  mGradRho(FieldSpace::FieldStorageType::CopyFields),
+  mB(FieldSpace::FieldStorageType::CopyFields),
+  mC(FieldSpace::FieldStorageType::CopyFields),
+  mGradA(FieldSpace::FieldStorageType::CopyFields),
+  mD(FieldSpace::FieldStorageType::CopyFields),
+  mGradB(FieldSpace::FieldStorageType::CopyFields) {
 }
 
 //------------------------------------------------------------------------------

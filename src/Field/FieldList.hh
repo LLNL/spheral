@@ -46,7 +46,7 @@ namespace FieldSpace {
 
 // An enum for selecting how Fields are stored in FieldLists.
 enum class FieldStorageType {
-  ReferenceFiels = 0,
+  ReferenceFields = 0,
   CopyFields = 1
 };
 

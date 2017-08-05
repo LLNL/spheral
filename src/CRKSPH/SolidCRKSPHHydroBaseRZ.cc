@@ -155,8 +155,8 @@ SolidCRKSPHHydroBaseRZ(const SmoothingScaleBase<Dimension>& smoothingScaleMethod
                                   detectRange,
                                   epsTensile,
                                   nTensile),
-  mDeviatoricStressTT(FieldSpace::FieldStorageType::Copy),
-  mDdeviatoricStressTTDt(FieldSpace::FieldStorageType::Copy) {
+  mDeviatoricStressTT(FieldSpace::FieldStorageType::CopyFields),
+  mDdeviatoricStressTTDt(FieldSpace::FieldStorageType::CopyFields) {
 }
 
 //------------------------------------------------------------------------------
