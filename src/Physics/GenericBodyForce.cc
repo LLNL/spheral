@@ -25,8 +25,8 @@ template<typename Dimension>
 GenericBodyForce<Dimension>::
 GenericBodyForce():
   Physics<Dimension>(),
-  mDxDt(FieldSpace::FieldStorageType::Copy),
-  mDvDt(FieldSpace::FieldStorageType::Copy) {
+  mDxDt(FieldSpace::FieldStorageType::CopyFields),
+  mDvDt(FieldSpace::FieldStorageType::CopyFields) {
 }
 
 //------------------------------------------------------------------------------

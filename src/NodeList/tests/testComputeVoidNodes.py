@@ -53,8 +53,8 @@ for nodes in [nodes1, nodes2, nodes3]:
     nodeLists.append(nodes)
     nodes.neighbor().updateNodes()
 W = TableKernel(BSplineKernel(), 1000)
-mom0 = ScalarFieldList(FieldListBase.Copy)
-mom1 = VectorFieldList(FieldListBase.Copy)
+mom0 = ScalarFieldList(CopyFields)
+mom1 = VectorFieldList(CopyFields)
 zerothAndFirstNodalMoments(nodeLists, W, True, mom0, mom1)
 
 siloMeshDump("voidNodeTest", mesh,

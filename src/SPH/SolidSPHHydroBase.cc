@@ -143,12 +143,12 @@ SolidSPHHydroBase(const SmoothingScaleBase<Dimension>& smoothingScaleMethod,
                           xmin,
                           xmax),
   mGradKernel(WGrad),
-  mDdeviatoricStressDt(FieldSpace::FieldStorageType::Copy),
-  mBulkModulus(FieldSpace::FieldStorageType::Copy),
-  mShearModulus(FieldSpace::FieldStorageType::Copy),
-  mYieldStrength(FieldSpace::FieldStorageType::Copy),
-  mPlasticStrain0(FieldSpace::FieldStorageType::Copy),
-  mHfield0(FieldSpace::FieldStorageType::Copy),
+  mDdeviatoricStressDt(FieldSpace::FieldStorageType::CopyFields),
+  mBulkModulus(FieldSpace::FieldStorageType::CopyFields),
+  mShearModulus(FieldSpace::FieldStorageType::CopyFields),
+  mYieldStrength(FieldSpace::FieldStorageType::CopyFields),
+  mPlasticStrain0(FieldSpace::FieldStorageType::CopyFields),
+  mHfield0(FieldSpace::FieldStorageType::CopyFields),
   mRestart(DataOutput::registerWithRestart(*this)) {
 }
 

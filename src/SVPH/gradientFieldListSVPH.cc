@@ -87,11 +87,11 @@ gradientFieldListSVPH(const FieldList<Dimension, DataType>& fieldList,
   typedef typename MathTraits<Dimension, DataType>::GradientType GradientType;
 
   // Prepare the result and some work fields.
-  FieldList<Dimension, GradientType> result(FieldSpace::FieldStorageType::Copy);
-  FieldList<Dimension, Scalar> volume(FieldSpace::FieldStorageType::Copy);
-  FieldList<Dimension, Scalar> A(FieldSpace::FieldStorageType::Copy);
-  FieldList<Dimension, Vector> B(FieldSpace::FieldStorageType::Copy);
-  FieldList<Dimension, Tensor> gradB(FieldSpace::FieldStorageType::Copy);
+  FieldList<Dimension, GradientType> result(FieldSpace::FieldStorageType::CopyFields);
+  FieldList<Dimension, Scalar> volume(FieldSpace::FieldStorageType::CopyFields);
+  FieldList<Dimension, Scalar> A(FieldSpace::FieldStorageType::CopyFields);
+  FieldList<Dimension, Vector> B(FieldSpace::FieldStorageType::CopyFields);
+  FieldList<Dimension, Tensor> gradB(FieldSpace::FieldStorageType::CopyFields);
   for (size_t nodeListi = 0; nodeListi != numNodeLists; ++nodeListi) {
     const NodeList<Dimension>& nodeList = fieldList[nodeListi]->nodeList();
     result.appendNewField("SVPH gradient of " + fieldList[nodeListi]->name(), nodeList, GradientType());
