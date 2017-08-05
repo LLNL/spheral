@@ -46,8 +46,8 @@ namespace FieldSpace {
 
 // An enum for selecting how Fields are stored in FieldLists.
 enum class FieldStorageType {
-  Reference = 0,
-  Copy = 1
+  ReferenceFiels = 0,
+  CopyFields = 1
 };
 
 template<typename Dimension, typename DataType>
