@@ -120,7 +120,7 @@ overlayRemapFields(const vector<Boundary<Dimension>*>& boundaries,
     FieldList<Dimension, int> surfacePoint = db.newFluidFieldList(0, "surface point");
     FieldList<Dimension, Scalar> vol = db.newFluidFieldList(0.0, "volume");
     FieldList<Dimension, Vector> deltaMedian = db.newFluidFieldList(Vector::zero, "displacement");
-    FieldList<Dimension, FacetedVolume> cells_fl(FieldSpace::FieldStorageType::Reference);
+    FieldList<Dimension, FacetedVolume> cells_fl(FieldSpace::FieldStorageType::ReferenceFields);
     cells_fl.appendField(localDonorCells);
     CRKSPHSpace::computeVoronoiVolume(position, H, rho, gradrho, cm, 4.0/donorNodeListPtr->nodesPerSmoothingScale(), vector<FacetedVolume>(), vector<vector<FacetedVolume>>(), weight,
                                       surfacePoint, vol, deltaMedian, cells_fl);
@@ -148,7 +148,7 @@ overlayRemapFields(const vector<Boundary<Dimension>*>& boundaries,
     FieldList<Dimension, int> surfacePoint = db.newFluidFieldList(0, "surface point");
     FieldList<Dimension, Scalar> vol = db.newFluidFieldList(0.0, "volume");
     FieldList<Dimension, Vector> deltaMedian = db.newFluidFieldList(Vector::zero, "displacement");
-    FieldList<Dimension, FacetedVolume> cells_fl(FieldSpace::FieldStorageType::Reference);
+    FieldList<Dimension, FacetedVolume> cells_fl(FieldSpace::FieldStorageType::ReferenceFields);
     cells_fl.appendField(localAcceptorCells);
     CRKSPHSpace::computeVoronoiVolume(position, H, rho, gradrho, cm, 4.0/acceptorNodeListPtr->nodesPerSmoothingScale(), vector<FacetedVolume>(), vector<vector<FacetedVolume>>(), weight,
                                       surfacePoint, vol, deltaMedian, cells_fl);

@@ -38,7 +38,6 @@ computeCRKSPHEvaluation(const ConnectivityMap<Dimension>& connectivityMap,
                        size_t nodeListi, const int i, typename Dimension::Vector reval,
                        const bool coupleNodeLists, typename Dimension::Scalar& WCRKSPH, typename Dimension::Vector& gradWCRKSPH){
 
-
   typedef typename Dimension::Scalar Scalar;
   typedef typename Dimension::Vector Vector;
   typedef typename Dimension::Tensor Tensor;
@@ -89,7 +88,6 @@ computeCRKSPHEvaluation(const ConnectivityMap<Dimension>& connectivityMap,
   Vector gradA0 = Vector::zero;
   Vector gradA = Vector::zero;
   Tensor gradB = Tensor::zero;
-
 
   // Neighbors!
   bool first_time=true;//Used as a flag to include self contribution
@@ -150,7 +148,6 @@ computeCRKSPHEvaluation(const ConnectivityMap<Dimension>& connectivityMap,
       }
     }
   }
-
   // Based on the moments we can calculate the CRKSPH corrections terms and their gradients.
   //if (i < firstGhostNodei) {
   CHECK2(abs(m2.Determinant()) > 1.0e-30, i << " " << m0 << " " << m2 << " " << m2.Determinant());
@@ -163,6 +160,7 @@ computeCRKSPHEvaluation(const ConnectivityMap<Dimension>& connectivityMap,
   B = -m2invm1;
   gradA0 = -FastMath::square(A0)*gradm0;
   gradA = -A*A*gradm0;
+
   for (size_t ii = 0; ii != Dimension::nDim; ++ii) {
     for (size_t jj = 0; jj != Dimension::nDim; ++jj) {
       for (size_t kk = 0; kk != Dimension::nDim; ++kk) {
@@ -178,6 +176,7 @@ computeCRKSPHEvaluation(const ConnectivityMap<Dimension>& connectivityMap,
       }
     }
   }
+
   // // BLAGO!
   // // Force only zeroth corrections.
   // A = A0;
@@ -200,7 +199,6 @@ computeCRKSPHEvaluation(const ConnectivityMap<Dimension>& connectivityMap,
 
 
   
-
 }
 
 }
