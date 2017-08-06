@@ -41,7 +41,7 @@ ConnectivityMap():
   mBuildGhostConnectivity(false),
   mConnectivity(),
   mNodeTraversalIndices(),
-  mKeys(FieldSpace::FieldStorageType::Copy) {
+  mKeys(FieldSpace::FieldStorageType::CopyFields) {
 }
 
 //------------------------------------------------------------------------------

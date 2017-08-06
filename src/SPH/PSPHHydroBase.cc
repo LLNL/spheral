@@ -110,8 +110,8 @@ PSPHHydroBase(const SmoothingScaleBase<Dimension>& smoothingScaleMethod,
                           xmin,
                           xmax),
   mHopkinsConductivity(HopkinsConductivity),
-  mGamma(FieldSpace::FieldStorageType::Copy),
-  mPSPHcorrection(FieldSpace::FieldStorageType::Copy) {
+  mGamma(FieldSpace::FieldStorageType::CopyFields),
+  mPSPHcorrection(FieldSpace::FieldStorageType::CopyFields) {
 }
 
 //------------------------------------------------------------------------------
