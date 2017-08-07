@@ -298,8 +298,8 @@ elif psph:
                  XSPH = XSPH,
                  ASPH = asph)
 else:
-    hydro = SPH(W = WT,
-                Q = q,
+    hydro = SPH(dataBase = db,
+                W = WT,
                 filter = filter,
                 cfl = cfl,
                 compatibleEnergyEvolution = compatibleEnergy,
