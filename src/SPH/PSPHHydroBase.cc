@@ -3,14 +3,7 @@
 //
 // Created by JMO, Wed Dec 16 20:52:02 PST 2015
 //----------------------------------------------------------------------------//
-#include <limits.h>
-#include <float.h>
-#include <algorithm>
-#include <fstream>
-#include <map>
-#include <vector>
-
-#include "PSPHHydroBase.hh"
+#include "FileIO/FileIO.hh"
 #include "computeSPHSumMassDensity.hh"
 #include "computeSumVoronoiCellMassDensity.hh"
 #include "computePSPHCorrections.hh"
@@ -44,9 +37,17 @@
 #include "Utilities/timingUtilities.hh"
 #include "Utilities/safeInv.hh"
 #include "Utilities/globalBoundingVolumes.hh"
-#include "FileIO/FileIO.hh"
 #include "Mesh/Mesh.hh"
 #include "CRKSPH/volumeSpacing.hh"
+
+#include "PSPHHydroBase.hh"
+
+#include <limits.h>
+#include <float.h>
+#include <algorithm>
+#include <fstream>
+#include <map>
+#include <vector>
 
 namespace Spheral {
 namespace SPHSpace {

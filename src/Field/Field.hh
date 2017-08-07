@@ -11,15 +11,10 @@
 #ifndef __Spheral_Field_hh__
 #define __Spheral_Field_hh__
 
-#include <string>
-
-#ifndef __GCCXML__
-#include <vector>
-#else
-#include "fakestl.hh"
-#endif
-
 #include "FieldBase.hh"
+
+#include <string>
+#include <vector>
 
 namespace Spheral {
   template<typename Dimension> class NodeIteratorBase;

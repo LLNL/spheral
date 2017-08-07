@@ -3,14 +3,7 @@
 //
 // Created by JMO, Fri Jul 30 11:07:33 PDT 2010
 //----------------------------------------------------------------------------//
-#include <limits.h>
-#include <float.h>
-#include <algorithm>
-#include <fstream>
-#include <map>
-#include <vector>
-
-#include "SolidSPHHydroBase.hh"
+#include "FileIO/FileIO.hh"
 #include "DamagedNodeCouplingWithFrags.hh"
 #include "SPH/SPHHydroBase.hh"
 #include "NodeList/SmoothingScaleBase.hh"
@@ -37,8 +30,16 @@
 #include "Neighbor/ConnectivityMap.hh"
 #include "Utilities/timingUtilities.hh"
 #include "Utilities/safeInv.hh"
-#include "FileIO/FileIO.hh"
 #include "SolidMaterial/SolidEquationOfState.hh"
+
+#include "SolidSPHHydroBase.hh"
+
+#include <limits.h>
+#include <float.h>
+#include <algorithm>
+#include <fstream>
+#include <map>
+#include <vector>
 
 namespace Spheral {
 namespace SPHSpace {

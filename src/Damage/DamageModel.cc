@@ -5,11 +5,7 @@
 //
 // Created by JMO, Thu Sep 29 13:31:57 PDT 2005
 //----------------------------------------------------------------------------//
-#include <string>
-#include <vector>
-
-#include "boost/shared_ptr.hpp"
-
+#include "FileIO/FileIO.hh"
 #include "DamageModel.hh"
 #include "YoungsModulusPolicy.hh"
 #include "LongitudinalSoundSpeedPolicy.hh"
@@ -20,13 +16,17 @@
 #include "DataBase/State.hh"
 #include "DataBase/StateDerivatives.hh"
 #include "Hydro/HydroFieldNames.hh"
-#include "FileIO/FileIO.hh"
 #include "Field/FieldList.hh"
 #include "Boundary/Boundary.hh"
 #include "Kernel/TableKernel.hh"
 #include "Neighbor/ConnectivityMap.hh"
 #include "Utilities/GeometricUtilities.hh"
 #include "Utilities/safeInv.hh"
+
+#include "boost/shared_ptr.hpp"
+
+#include <string>
+#include <vector>
 
 namespace Spheral {
 namespace PhysicsSpace {

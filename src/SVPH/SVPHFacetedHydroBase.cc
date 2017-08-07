@@ -3,12 +3,7 @@
 //
 // Created by JMO, Sun Jul 28 20:57:01 PDT 2013
 //----------------------------------------------------------------------------//
-#include <algorithm>
-#include <fstream>
-#include <map>
-#include <vector>
-
-#include "SVPHFacetedHydroBase.hh"
+#include "FileIO/FileIO.hh"
 #include "computeSVPHCorrectionsOnFaces.hh"
 #include "SVPHCorrectionsPolicy.hh"
 #include "computeSumVoronoiCellMassDensityFromFaces.hh"
@@ -44,9 +39,15 @@
 #include "Utilities/timingUtilities.hh"
 #include "Utilities/safeInv.hh"
 #include "Utilities/globalBoundingVolumes.hh"
-#include "FileIO/FileIO.hh"
 #include "Mesh/Mesh.hh"
 #include "Material/EquationOfState.hh"
+
+#include "SVPHFacetedHydroBase.hh"
+
+#include <algorithm>
+#include <fstream>
+#include <map>
+#include <vector>
 
 namespace Spheral {
 namespace SVPHSpace {

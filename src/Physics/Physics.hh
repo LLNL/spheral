@@ -9,12 +9,7 @@
 #ifndef Physics_HH
 #define Physics_HH
 
-#ifndef __GCCXML__
 #include <vector>
-#else
-#include "fakestl.hh"
-#endif
-
 #include <string>
 
 namespace Spheral {

@@ -1,7 +1,7 @@
 //---------------------------------Spheral++----------------------------------//
 // A simple form for the artificial viscosity due to Monaghan & Gingold.
 //----------------------------------------------------------------------------//
-#include "VonNeumanViscosity.hh"
+#include "FileIO/FileIO.hh"
 #include "DataBase/DataBase.hh"
 #include "DataBase/State.hh"
 #include "DataBase/StateDerivatives.hh"
@@ -12,7 +12,8 @@
 #include "CRKSPH/computeCRKSPHCorrections.hh"
 #include "CRKSPH/gradientCRKSPH.hh"
 #include "Hydro/HydroFieldNames.hh"
-#include "FileIO/FileIO.hh"
+
+#include "VonNeumanViscosity.hh"
 
 namespace Spheral {
 namespace ArtificialViscositySpace {

@@ -14,12 +14,12 @@
 #ifndef __Spheral_GeomVector_default_hh__
 #define __Spheral_GeomVector_default_hh__
 
-#include <iostream>
-
 #include "Geometry/GeomVector_fwd.hh"
 #include "Geometry/GeomTensor_fwd.hh"
 #include "Geometry/GeomSymmetricTensor_fwd.hh"
 #include "GeomVectorBase_default.hh"
+
+#include <iostream>
 
 namespace Spheral {
 

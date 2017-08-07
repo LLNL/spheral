@@ -7,13 +7,13 @@
 #ifndef __Spheral_TreeGravity__
 #define __Spheral_TreeGravity__
 
-#include <stdint.h>
-#include "boost/unordered_map.hpp"
-#include "boost/unordered_set.hpp"
-
 #include "Geometry/Dimension.hh"
 #include "Physics/GenericBodyForce.hh"
 #include "Field/FieldList.hh"
+
+#include <stdint.h>
+#include "boost/unordered_map.hpp"
+#include "boost/unordered_set.hpp"
 
 namespace Spheral {
 
