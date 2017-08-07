@@ -1,5 +1,6 @@
 from SpheralModules.Spheral import *
 from SpheralModules.Spheral.SPHSpace import *
+from SpheralModules.Spheral.ArtificialViscositySpace import *
 from SpheralModules.Spheral.NodeSpace import *
 from SpheralModules.Spheral.PhysicsSpace import *
 
@@ -134,9 +135,9 @@ for dim in dims:
 # Provide a factory function to return the appropriate SPH hydro.
 #-------------------------------------------------------------------------------
 def SPH(dataBase,
-        Q,
         W,
         WPi = None,
+        Q = None,
         filter = 0.0,
         cfl = 0.25,
         useVelocityMagnitudeForDt = False,
@@ -177,27 +178,33 @@ def SPH(dataBase,
         else:
             Constructor = eval("SPHHydro%id" % ndim)
 
+    # Artificial viscosity.
+    if not Q:
+        Q = eval("MonaghanGingoldViscosity%id()" % ndim)
+
     # Build and return the thing.
     xmin = (ndim,) + xmin
     xmax = (ndim,) + xmax
-    return Constructor(Q = Q,
-                       W = W,
-                       WPi = WPi,
-                       filter = filter,
-                       cfl = cfl,
-                       useVelocityMagnitudeForDt = useVelocityMagnitudeForDt,
-                       compatibleEnergyEvolution = compatibleEnergyEvolution,
-                       evolveTotalEnergy = evolveTotalEnergy,
-                       gradhCorrection = gradhCorrection,
-                       XSPH = XSPH,
-                       correctVelocityGradient = correctVelocityGradient,
-                       sumMassDensityOverAllNodeLists = sumMassDensityOverAllNodeLists,
-                       densityUpdate = densityUpdate,
-                       HUpdate = HUpdate,
-                       epsTensile = epsTensile,
-                       nTensile = nTensile,
-                       xmin = eval("Vector%id(%g, %g, %g)" % xmin),
-                       xmax = eval("Vector%id(%g, %g, %g)" % xmax))
+    result = Constructor(Q = Q,
+                         W = W,
+                         WPi = WPi,
+                         filter = filter,
+                         cfl = cfl,
+                         useVelocityMagnitudeForDt = useVelocityMagnitudeForDt,
+                         compatibleEnergyEvolution = compatibleEnergyEvolution,
+                         evolveTotalEnergy = evolveTotalEnergy,
+                         gradhCorrection = gradhCorrection,
+                         XSPH = XSPH,
+                         correctVelocityGradient = correctVelocityGradient,
+                         sumMassDensityOverAllNodeLists = sumMassDensityOverAllNodeLists,
+                         densityUpdate = densityUpdate,
+                         HUpdate = HUpdate,
+                         epsTensile = epsTensile,
+                         nTensile = nTensile,
+                         xmin = eval("Vector%id(%g, %g, %g)" % xmin),
+                         xmax = eval("Vector%id(%g, %g, %g)" % xmax))
+    result.Q = Q
+    return result
 
 #-------------------------------------------------------------------------------
 # Provide a shorthand ASPH factory.
