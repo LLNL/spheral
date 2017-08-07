@@ -11,12 +11,7 @@
 //
 // Created by JMO, Thu Sep 29 15:42:05 PDT 2005
 //----------------------------------------------------------------------------//
-#include <string>
-#include <vector>
-#include <algorithm>
-
-#include "boost/shared_ptr.hpp"
-
+#include "FileIO/FileIO.hh"
 #include "TensorDamageModel.hh"
 #include "TensorStrainPolicy.hh"
 #include "TensorDamagePolicy.hh"
@@ -29,10 +24,15 @@
 #include "DataBase/StateDerivatives.hh"
 #include "DataBase/ReplaceState.hh"
 #include "Hydro/HydroFieldNames.hh"
-#include "FileIO/FileIO.hh"
 #include "Field/FieldList.hh"
 #include "Boundary/Boundary.hh"
 #include "Neighbor/Neighbor.hh"
+
+#include "boost/shared_ptr.hpp"
+
+#include <string>
+#include <vector>
+#include <algorithm>
 
 namespace Spheral {
 namespace PhysicsSpace {

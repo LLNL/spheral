@@ -1,7 +1,7 @@
 //---------------------------------Spheral++----------------------------------//
 // A simple form of the reducing artificial viscosity from Morris & Monaghan.
 //----------------------------------------------------------------------------//
-#include "MorrisMonaghanReducingViscosity.hh"
+#include "FileIO/FileIO.hh"
 #include "DataOutput/Restart.hh"
 #include "Field/FieldList.hh"
 #include "DataBase/DataBase.hh"
@@ -14,7 +14,8 @@
 #include "Hydro/HydroFieldNames.hh"
 #include "DataBase/IncrementState.hh"
 #include "DataBase/IncrementBoundedFieldList.hh"
-#include "FileIO/FileIO.hh"
+
+#include "MorrisMonaghanReducingViscosity.hh"
 
 namespace Spheral {
 namespace ArtificialViscositySpace {

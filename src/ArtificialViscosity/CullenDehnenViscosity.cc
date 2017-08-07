@@ -1,7 +1,7 @@
 //---------------------------------Spheral++----------------------------------//
 // Cullen adn Dehnen Viscosity 
 //----------------------------------------------------------------------------//
-#include "CullenDehnenViscosity.hh"
+#include "FileIO/FileIO.hh"
 #include "DataOutput/Restart.hh"
 #include "Field/FieldList.hh"
 #include "DataBase/DataBase.hh"
@@ -16,10 +16,11 @@
 #include "DataBase/IncrementState.hh"
 #include "DataBase/IncrementFieldList.hh"
 #include "DataBase/IncrementBoundedFieldList.hh"
-#include "FileIO/FileIO.hh"
 #include "CRKSPH/CRKSPHUtilities.hh"
 #include "CRKSPH/computeCRKSPHMoments.hh"
 #include "CRKSPH/computeCRKSPHCorrections.hh"
+
+#include "CullenDehnenViscosity.hh"
 
 namespace Spheral {
 namespace ArtificialViscositySpace {

@@ -10,16 +10,12 @@
 #ifndef __Spheral__FieldSpace__FieldList_hh__
 #define __Spheral__FieldSpace__FieldList_hh__
 
-#ifndef __GCCXML__
+#include "FieldListBase.hh"
+
 #include <vector>
 #include <list>
 #include <map>
 #include "boost/shared_ptr.hpp"
-#else
-#include "fakestl.hh"
-#endif
-
-#include "FieldListBase.hh"
 
 // Forward declarations.
 namespace Spheral {

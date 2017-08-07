@@ -2,10 +2,7 @@
 // ArtificialViscosity -- The base class for all ArtificialViscosities in 
 // Spheral++.
 //----------------------------------------------------------------------------//
-
-#include <algorithm>
-
-#include "ArtificialViscosity.hh"
+#include "FileIO/FileIO.hh"
 #include "Hydro/HydroFieldNames.hh"
 #include "Boundary/Boundary.hh"
 #include "Kernel/TableKernel.hh"
@@ -15,7 +12,10 @@
 #include "Neighbor/ConnectivityMap.hh"
 #include "Utilities/rotationMatrix.hh"
 #include "Utilities/GeometricUtilities.hh"
-#include "FileIO/FileIO.hh"
+
+#include "ArtificialViscosity.hh"
+
+#include <algorithm>
 
 using namespace std;
 

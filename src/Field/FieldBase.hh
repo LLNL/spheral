@@ -6,10 +6,10 @@
 #ifndef __Spheral_FieldBase_hh__
 #define __Spheral_FieldBase_hh__
 
+#include "boost/shared_ptr.hpp"
+
 #include <string>
 #include <vector>
-
-#include "boost/shared_ptr.hpp"
 
 namespace Spheral {
   namespace NodeSpace {

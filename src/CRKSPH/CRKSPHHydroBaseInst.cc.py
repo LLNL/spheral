@@ -2,8 +2,8 @@ text = """
 //------------------------------------------------------------------------------
 // Explict instantiation.
 //------------------------------------------------------------------------------
-#include "Geometry/Dimension.hh"
 #include "CRKSPHHydroBase.cc"
+#include "Geometry/Dimension.hh"
 
 namespace Spheral {
   namespace CRKSPHSpace {

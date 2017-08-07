@@ -5,16 +5,16 @@
 //
 // Created by JMO, Thu Mar  2 21:34:25 PST 2000
 //----------------------------------------------------------------------------//
-
-#include "PlanarBoundary.hh"
+#include "FileIO/FileIO.hh"
 #include "mapPositionThroughPlanes.hh"
 #include "Geometry/GeomPlane.hh"
 #include "NodeList/FluidNodeList.hh"
-#include "FileIO/FileIO.hh"
 #include "Mesh/Mesh.hh"
 
 #include "Utilities/DBC.hh"
 #include "Utilities/allReduce.hh"
+
+#include "PlanarBoundary.hh"
 
 namespace Spheral {
 namespace BoundarySpace {

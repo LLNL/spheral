@@ -14,13 +14,9 @@
 #ifndef __Spheral_TensorDamageModel_hh__
 #define __Spheral_TensorDamageModel_hh__
 
-#ifndef __GCCXML__
-#include <vector>
-#else
-#include "fakestl.hh"
-#endif
-
 #include "DamageModel.hh"
+
+#include <vector>
 
 // Forward declarations.
 namespace Spheral {

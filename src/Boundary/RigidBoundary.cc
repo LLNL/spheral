@@ -4,13 +4,13 @@
 //
 // Created by JMO, Wed Feb 16 21:01:02 PST 2000
 //----------------------------------------------------------------------------//
-
-#include "RigidBoundary.hh"
+#include "FileIO/FileIO.hh"
 #include "Geometry/GeomPlane.hh"
 #include "Field/Field.hh"
 #include "Hydro/HydroFieldNames.hh"
-#include "FileIO/FileIO.hh"
 #include "Utilities/DBC.hh"
+
+#include "RigidBoundary.hh"
 
 using namespace std;
 

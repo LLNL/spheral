@@ -7,18 +7,13 @@
 #ifndef DataBase_HH
 #define DataBase_HH
 
-#ifndef __GCCXML__
-#include <vector>
-#include "boost/shared_ptr.hpp"
-#else
-#include "fakestl.hh"
-#endif
-
 #include "NodeList/NodeList.hh"
 #include "NodeList/FluidNodeList.hh"
 #include "NodeList/SolidNodeList.hh"
 #include "Field/NodeIterators.hh"
 #include "Neighbor/ConnectivityMap.hh"
+
+#include <vector>
 
 namespace Spheral {
   namespace FieldSpace {
