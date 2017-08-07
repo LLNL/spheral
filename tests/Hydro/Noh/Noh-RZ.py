@@ -497,7 +497,7 @@ if graphics:
     Aplot.refresh()
     plots.append((Aplot, "Noh-planar-A.png"))
     
-    if CRKSPH:
+    if crksph:
         volPlot = plotFieldList(hydro.volume(), 
                                 winTitle = "volume",
                                 colorNodeLists = False, plotGhosts = False)
