@@ -270,27 +270,11 @@ output("db.numNodeLists")
 output("db.numFluidNodeLists")
 
 #-------------------------------------------------------------------------------
-# Construct the artificial viscosity.
-#-------------------------------------------------------------------------------
-q = Qconstructor(Cl, Cq)
-q.epsilon2 = epsilon2
-q.limiter = Qlimiter
-q.balsaraShearCorrection = balsaraCorrection
-q.QcorrectionOrder = QcorrectionOrder
-output("q")
-output("q.Cl")
-output("q.Cq")
-output("q.epsilon2")
-output("q.limiter")
-output("q.balsaraShearCorrection")
-
-#-------------------------------------------------------------------------------
 # Construct the hydro physics object.
 #-------------------------------------------------------------------------------
 if crksph:
     hydro = CRKSPHRZ(dataBase = db,
                      W = WT,
-                     Q = q,
                      filter = filter,
                      cfl = cfl,
                      useVelocityMagnitudeForDt = useVelocityMagnitudeForDt,
@@ -306,7 +290,6 @@ if crksph:
 else:
     hydro = SPHRZ(dataBase = db,
                   W = WT,
-                  Q = q,
                   filter = filter,
                   cfl = cfl,
                   useVelocityMagnitudeForDt = useVelocityMagnitudeForDt,
@@ -328,6 +311,23 @@ output("hydro.densityUpdate")
 output("hydro.HEvolution")
 
 packages = [hydro]
+
+#-------------------------------------------------------------------------------
+# Set the artificial viscosity parameters.
+#-------------------------------------------------------------------------------
+q = hydro.Q
+q.Cl = Cl
+q.Cq = Cq
+q.epsilon2 = epsilon2
+q.limiter = Qlimiter
+q.balsaraShearCorrection = balsaraCorrection
+q.QcorrectionOrder = QcorrectionOrder
+output("q")
+output("q.Cl")
+output("q.Cq")
+output("q.epsilon2")
+output("q.limiter")
+output("q.balsaraShearCorrection")
 
 #-------------------------------------------------------------------------------
 # Construct the MMRV physics object.
