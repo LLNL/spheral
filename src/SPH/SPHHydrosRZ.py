@@ -218,7 +218,8 @@ def SPHRZ(dataBase,
 
     # We use the provided DataBase to sniff out what sort of NodeLists are being
     # used, and based on this determine which SPH object to build.
-    assert dataBase.nDim == 2
+    ndim = dataBase.nDim
+    assert ndim == 2
     nfluid = dataBase.numFluidNodeLists
     nsolid = dataBase.numSolidNodeLists
     if nsolid > 0 and nsolid != nfluid:
