@@ -381,7 +381,9 @@ def SPH(dataBase,
 
     # Artificial viscosity.
     if not Q:
-        Q = eval("MonaghanGingoldViscosity%id()" % ndim)
+        Cl = 1.0*(W.kernelExtent/2.0)
+        Cq = 1.0*(W.kernelExtent/2.0)**2
+        Q = eval("MonaghanGingoldViscosity%id(Clinear=%g, Cquadratic=%g)" % (ndim, Cl, Cq))
 
     # Build and return the thing.
     xmin = (ndim,) + xmin

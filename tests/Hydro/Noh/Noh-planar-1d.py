@@ -68,8 +68,6 @@ commandLine(KernelConstructor = NBSplineKernel,
             crksph = False,
             psph = False,
             evolveTotalEnergy = False,  # Only for SPH variants -- evolve total rather than specific energy
-            Qconstructor = MonaghanGingoldViscosity,
-            #Qconstructor = TensorMonaghanGingoldViscosity,
             boolReduceViscosity = False,
             HopkinsConductivity = False,     # For PSPH
             nhQ = 5.0,
@@ -184,8 +182,6 @@ if svph:
     hydroname = "SVPH"
 elif crksph:
     hydroname = "CRKSPH"
-    Qconstructor = CRKSPHMonaghanGingoldViscosity
-    gradhCorrection = False
 elif psph:
     hydroname = "PSPH"
 else:
@@ -195,7 +191,6 @@ if solid:
 
 dataDir = os.path.join(dataDirBase,
                        hydroname,
-                       Qconstructor.__name__,
                        "nPerh=%f" % nPerh,
                        "compatibleEnergy=%s" % compatibleEnergy,
                        "Cullen=%s" % boolCullenViscosity,
@@ -316,8 +311,8 @@ elif crksph:
                    volumeType = volumeType,
                    densityUpdate = densityUpdate,
                    HUpdate = HUpdate)
-    q.etaCritFrac = etaCritFrac
-    q.etaFoldFrac = etaFoldFrac
+    hydro.Q.etaCritFrac = etaCritFrac
+    hydro.Q.etaFoldFrac = etaFoldFrac
 elif psph:
     hydro = PSPH(dataBase = db,
                  W = WT,
