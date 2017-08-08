@@ -10,14 +10,10 @@
 #ifndef __Spheral_PyFileIO_hh__
 #define __Spheral_PyFileIO_hh__
 
-#ifndef __GCCXML__
-#include <vector>
-#else
-#include "fakestl.hh"
-#endif
-
 #include "FileIO/FileIO.hh"
 #include "Geometry/Dimension.hh"
+
+#include <vector>
 
 namespace Spheral {
 namespace FileIOSpace {
