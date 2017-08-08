@@ -9,20 +9,11 @@
 #define __Spheral_RestartRegistrar__
 
 #include "RestartHandle.hh"
-
-#ifndef __GCCXML__
-#include <vector>
-#include <string>
-
-#include "boost/smart_ptr.hpp"
-#include "boost/weak_ptr.hpp"
-
 #include "Utilities/DBC.hh"
 
-#else
-#include "fakestl.hh"
-#include "BPLWraps/fakeboost.hh"
-#endif
+#include <vector>
+#include <string>
+#include <memory> // std::shared_ptr, std::weak_ptr
 
 // Forward declarations.
 namespace Spheral {
@@ -38,7 +29,7 @@ class RestartRegistrar {
 
 public:
   //------------------------===== Public Interface =====-----------------------//
-  typedef std::vector<boost::weak_ptr<RestartHandle> > RestartHandleContainer;
+  typedef std::vector<std::weak_ptr<RestartHandle> > RestartHandleContainer;
   typedef RestartHandleContainer::const_iterator const_iterator;
   typedef RestartHandleContainer::iterator iterator;
 
@@ -47,10 +38,10 @@ public:
   static RestartRegistrar* instancePtr();
 
   // Methods for registering a RestartHandle.
-  void registerRestartHandle(boost::shared_ptr<RestartHandle> restartHandlePtr,
+  void registerRestartHandle(std::shared_ptr<RestartHandle> restartHandlePtr,
 			     const unsigned priority);
-  void unregisterRestartHandle(boost::shared_ptr<RestartHandle> restartHandlePtr);
-  bool haveRestartHandle(const boost::shared_ptr<RestartHandle> restartHandlePtr) const;
+  void unregisterRestartHandle(std::shared_ptr<RestartHandle> restartHandlePtr);
+  bool haveRestartHandle(const std::shared_ptr<RestartHandle> restartHandlePtr) const;
 
   // Eliminate any pointers to expired objects.
   void removeExpiredPointers();
