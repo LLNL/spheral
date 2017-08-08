@@ -8,10 +8,10 @@
 // Created by JMO, Tue Dec 27 22:12:00 PST 2005
 //----------------------------------------------------------------------------//
 
-#include <string>
-
 #include "PyFileIO.hh"
 #include "Utilities/DBC.hh"
+
+#include <string>
 
 namespace Spheral {
 namespace FileIOSpace {
