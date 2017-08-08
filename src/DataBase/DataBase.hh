@@ -48,7 +48,7 @@ public:
   typedef typename std::vector<NodeSpace::SolidNodeList<Dimension>*>::const_iterator ConstSolidNodeListIterator;
 
   typedef NeighborSpace::ConnectivityMap<Dimension> ConnectivityMapType;
-  typedef boost::shared_ptr<ConnectivityMapType> ConnectivityMapPtr;
+  typedef std::shared_ptr<ConnectivityMapType> ConnectivityMapPtr;
   
   // It is convenient to be able to query the DataBase for the problem
   // dimensionality for Python.

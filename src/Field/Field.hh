@@ -62,7 +62,7 @@ public:
         const std::vector<DataType>& array);
   Field(const NodeSpace::NodeList<Dimension>& nodeList, const Field& field);
   Field(const Field& field);
-  virtual boost::shared_ptr<FieldBase<Dimension> > clone() const;
+  virtual std::shared_ptr<FieldBase<Dimension> > clone() const;
 
   // Destructor.
   virtual ~Field();

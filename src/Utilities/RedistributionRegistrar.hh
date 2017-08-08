@@ -9,19 +9,10 @@
 #define __Spheral_RedistributionRegistrar__
 
 #include "RedistributionNotificationHandle.hh"
-
-#ifndef __GCCXML__
-#include <vector>
-
-#include "boost/smart_ptr.hpp"
-#include "boost/weak_ptr.hpp"
-
 #include "Utilities/DBC.hh"
 
-#else
-#include "fakestl.hh"
-#include "BPLWraps/fakeboost.hh"
-#endif
+#include <vector>
+#include <memory>
 
 namespace Spheral {
 
@@ -29,7 +20,7 @@ class RedistributionRegistrar {
 
 public:
   //------------------------===== Public Interface =====-----------------------//
-  typedef std::vector<boost::weak_ptr<RedistributionNotificationHandle> > RedistributionNotificationHandleContainer;
+  typedef std::vector<std::weak_ptr<RedistributionNotificationHandle> > RedistributionNotificationHandleContainer;
   typedef RedistributionNotificationHandleContainer::const_iterator const_iterator;
   typedef RedistributionNotificationHandleContainer::iterator iterator;
 
@@ -38,9 +29,9 @@ public:
   static RedistributionRegistrar* instancePtr();
 
   // Methods for registering a RedistributionNotificationHandle.
-  void registerRedistributionNotificationHandle(boost::shared_ptr<RedistributionNotificationHandle> redistributionHandlePtr);
-  void unregisterRedistributionNotificationHandle(boost::shared_ptr<RedistributionNotificationHandle> redistributionHandlePtr);
-  bool haveRedistributionNotificationHandle(boost::weak_ptr<RedistributionNotificationHandle> redistributionHandlePtr) const;
+  void registerRedistributionNotificationHandle(std::shared_ptr<RedistributionNotificationHandle> redistributionHandlePtr);
+  void unregisterRedistributionNotificationHandle(std::shared_ptr<RedistributionNotificationHandle> redistributionHandlePtr);
+  bool haveRedistributionNotificationHandle(std::weak_ptr<RedistributionNotificationHandle> redistributionHandlePtr) const;
 
   // Eliminate any pointers to expired objects.
   void removeExpiredPointers();
