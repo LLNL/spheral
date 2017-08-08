@@ -6,10 +6,9 @@
 #ifndef __Spheral_FieldBase_hh__
 #define __Spheral_FieldBase_hh__
 
-#include "boost/shared_ptr.hpp"
-
 #include <string>
 #include <vector>
+#include <memory>
 
 namespace Spheral {
   namespace NodeSpace {
@@ -36,7 +35,7 @@ public:
   FieldBase(FieldName name,
             const Spheral::NodeSpace::NodeList<Dimension>& nodeList);
   FieldBase(const FieldBase& fieldBase);
-  virtual boost::shared_ptr<FieldBase> clone() const = 0;
+  virtual std::shared_ptr<FieldBase> clone() const = 0;
 
   // Destructor.
   virtual ~FieldBase();

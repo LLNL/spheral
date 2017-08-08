@@ -233,7 +233,7 @@ protected:
   Vector mXmin, mXmax;
 
   // The mesh.
-  typedef boost::shared_ptr<MeshSpace::Mesh<Dimension> > MeshPtr;
+  typedef std::shared_ptr<MeshSpace::Mesh<Dimension> > MeshPtr;
   MeshPtr mMeshPtr;
 
   // Some internal scratch fields.

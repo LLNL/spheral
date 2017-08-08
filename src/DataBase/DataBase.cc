@@ -4,9 +4,6 @@
 //
 // Created by JMO, Sun Feb  6 13:44:49 PST 2000
 //----------------------------------------------------------------------------//
-
-#include <algorithm>
-
 #include "DataBase.hh"
 #include "Geometry/Dimension.hh"
 #include "Field/NodeIterators.hh"
@@ -21,8 +18,10 @@
 #include "Utilities/globalBoundingVolumes.hh"
 #include "Utilities/allReduce.hh"
 #include "Distributed/Communicator.hh"
-
 #include "Utilities/DBC.hh"
+
+#include <algorithm>
+#include <memory>
 
 #ifdef USE_MPI
 extern "C" {
@@ -34,7 +33,7 @@ namespace Spheral {
 namespace DataBaseSpace {
 
 using namespace std;
-using boost::shared_ptr;
+using std::shared_ptr;
 
 using NodeSpace::NodeList;
 using NodeSpace::FluidNodeList;
@@ -80,7 +79,7 @@ operator=(const DataBase<Dimension>& rhs) {
     mFluidNodeListAsNodeListPtrs = rhs.mFluidNodeListAsNodeListPtrs;
     mSolidNodeListPtrs = rhs.mSolidNodeListPtrs;
     mSolidNodeListAsNodeListPtrs = rhs.mSolidNodeListAsNodeListPtrs;
-    mConnectivityMapPtr = boost::shared_ptr<ConnectivityMap<Dimension> >(new ConnectivityMap<Dimension>());
+    mConnectivityMapPtr = std::shared_ptr<ConnectivityMap<Dimension> >(new ConnectivityMap<Dimension>());
   }
   ENSURE(valid());
   return *this;

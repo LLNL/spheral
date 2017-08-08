@@ -74,7 +74,7 @@ FieldList(const FieldList<Dimension, DataType>& rhs):
     for (typename FieldCacheType::const_iterator itr = rhs.mFieldCache.begin();
          itr != rhs.mFieldCache.end();
          ++itr) {
-      boost::shared_ptr<Field<Dimension, DataType> > newField(new Field<Dimension, DataType>(**itr));
+      std::shared_ptr<Field<Dimension, DataType> > newField(new Field<Dimension, DataType>(**itr));
       mFieldCache.push_back(newField);
     }
 
@@ -152,7 +152,7 @@ operator=(const FieldList<Dimension, DataType>& rhs) {
       for (typename FieldCacheType::const_iterator itr = rhs.mFieldCache.begin();
          itr != rhs.mFieldCache.end();
          ++itr) {
-        boost::shared_ptr<Field<Dimension, DataType> > newField(new Field<Dimension, DataType>(**itr));
+        std::shared_ptr<Field<Dimension, DataType> > newField(new Field<Dimension, DataType>(**itr));
         mFieldCache.push_back(newField);
       }
 
@@ -219,7 +219,7 @@ FieldList<Dimension, DataType>::copyFields() {
     iterator itr = begin();
     typename FieldListBase<Dimension>::iterator baseItr = begin_base();
     for (; itr != end(); ++itr, ++baseItr) {
-      boost::shared_ptr<Field<Dimension, DataType> > newField(new Field<Dimension, DataType>(**itr));
+      std::shared_ptr<Field<Dimension, DataType> > newField(new Field<Dimension, DataType>(**itr));
       mFieldCache.push_back(newField);
       *itr = mFieldCache.back().get();
       *baseItr = mFieldCache.back().get();
@@ -301,7 +301,7 @@ FieldList<Dimension, DataType>::appendField(const Field<Dimension, DataType>& fi
     break;
 
   case FieldStorageType::CopyFields:
-    boost::shared_ptr<Field<Dimension, DataType> > newField(new Field<Dimension, DataType>(field));
+    std::shared_ptr<Field<Dimension, DataType> > newField(new Field<Dimension, DataType>(field));
     mFieldCache.push_back(newField);
     mFieldPtrs.insert(orderItr, newField.get());
     mFieldBasePtrs.insert(mFieldBasePtrs.begin() + delta, newField.get());
@@ -375,7 +375,7 @@ appendNewField(const typename FieldSpace::Field<Dimension, DataType>::FieldName 
   VERIFY(mStorageType == FieldStorageType::CopyFields);
 
   // Create the field in our cache.
-  mFieldCache.push_back(boost::shared_ptr<Field<Dimension, DataType> >(new FieldSpace::Field<Dimension, DataType>(name, nodeList, value)));
+  mFieldCache.push_back(std::shared_ptr<Field<Dimension, DataType> >(new FieldSpace::Field<Dimension, DataType>(name, nodeList, value)));
   FieldSpace::Field<Dimension, DataType>* fieldPtr = mFieldCache.back().get();
 
   // Determine the order this Field should be in.

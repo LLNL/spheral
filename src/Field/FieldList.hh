@@ -15,7 +15,7 @@
 #include <vector>
 #include <list>
 #include <map>
-#include "boost/shared_ptr.hpp"
+#include <memory>
 
 // Forward declarations.
 namespace Spheral {
@@ -256,7 +256,7 @@ public:
 private:
   //--------------------------- Private Interface ---------------------------//
 #ifndef __GCCXML__
-  typedef std::list<boost::shared_ptr<Field<Dimension, DataType> > > FieldCacheType;
+  typedef std::list<std::shared_ptr<Field<Dimension, DataType> > > FieldCacheType;
   typedef std::map<const NodeSpace::NodeList<Dimension>*, int> HashMapType;
 
   std::vector<ElementType> mFieldPtrs;
