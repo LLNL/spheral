@@ -45,7 +45,7 @@ nodeOrdering(const FieldSpace::FieldList<Dimension, DataType>& criteria) {
   typedef KeyTraits::Key Key;
 
   // Prepare the result.
-  FieldList<Dimension, int> result(FieldSpace::FieldStorageType::Copy);
+  FieldList<Dimension, int> result(FieldSpace::FieldStorageType::CopyFields);
 
   // Parallel info.
   const int procID = Process::getRank();

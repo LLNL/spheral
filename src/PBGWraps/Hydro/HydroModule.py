@@ -279,7 +279,7 @@ self.generateThirdMomentHourglassControlBindings(self.ThirdMomentHourglassContro
                            param("unsigned int", "order", default_value="1"),
                            param("unsigned int", "limiter", default_value="1"),
                            param("double", "fraction", default_value="0.5"),
-                           param(intfieldlist, "mask", default_value=("%s(FieldSpace::Copy)" % intfieldlist))])
+                           param(intfieldlist, "mask", default_value=("%s(FieldSpace::CopyFields)" % intfieldlist))])
 
         # Methods.
         const_ref_return_value(x, me, "%s::mask" % me, intfieldlist, [], "mask")

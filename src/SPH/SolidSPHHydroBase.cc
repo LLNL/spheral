@@ -3,14 +3,7 @@
 //
 // Created by JMO, Fri Jul 30 11:07:33 PDT 2010
 //----------------------------------------------------------------------------//
-#include <limits.h>
-#include <float.h>
-#include <algorithm>
-#include <fstream>
-#include <map>
-#include <vector>
-
-#include "SolidSPHHydroBase.hh"
+#include "FileIO/FileIO.hh"
 #include "DamagedNodeCouplingWithFrags.hh"
 #include "SPH/SPHHydroBase.hh"
 #include "NodeList/SmoothingScaleBase.hh"
@@ -37,8 +30,16 @@
 #include "Neighbor/ConnectivityMap.hh"
 #include "Utilities/timingUtilities.hh"
 #include "Utilities/safeInv.hh"
-#include "FileIO/FileIO.hh"
 #include "SolidMaterial/SolidEquationOfState.hh"
+
+#include "SolidSPHHydroBase.hh"
+
+#include <limits.h>
+#include <float.h>
+#include <algorithm>
+#include <fstream>
+#include <map>
+#include <vector>
 
 namespace Spheral {
 namespace SPHSpace {
@@ -143,12 +144,12 @@ SolidSPHHydroBase(const SmoothingScaleBase<Dimension>& smoothingScaleMethod,
                           xmin,
                           xmax),
   mGradKernel(WGrad),
-  mDdeviatoricStressDt(FieldSpace::FieldStorageType::Copy),
-  mBulkModulus(FieldSpace::FieldStorageType::Copy),
-  mShearModulus(FieldSpace::FieldStorageType::Copy),
-  mYieldStrength(FieldSpace::FieldStorageType::Copy),
-  mPlasticStrain0(FieldSpace::FieldStorageType::Copy),
-  mHfield0(FieldSpace::FieldStorageType::Copy),
+  mDdeviatoricStressDt(FieldSpace::FieldStorageType::CopyFields),
+  mBulkModulus(FieldSpace::FieldStorageType::CopyFields),
+  mShearModulus(FieldSpace::FieldStorageType::CopyFields),
+  mYieldStrength(FieldSpace::FieldStorageType::CopyFields),
+  mPlasticStrain0(FieldSpace::FieldStorageType::CopyFields),
+  mHfield0(FieldSpace::FieldStorageType::CopyFields),
   mRestart(DataOutput::registerWithRestart(*this)) {
 }
 
@@ -859,6 +860,7 @@ applyGhostBoundaries(State<Dimension>& state,
   FieldList<Dimension, Scalar> mu = state.fields(SolidFieldNames::shearModulus, 0.0);
   FieldList<Dimension, Scalar> Y = state.fields(SolidFieldNames::yieldStrength, 0.0);
   FieldList<Dimension, int> fragIDs = state.fields(SolidFieldNames::fragmentIDs, int(1));
+  FieldList<Dimension, int> pTypes = state.fields(SolidFieldNames::particleTypes, int(0));
 
   for (ConstBoundaryIterator boundaryItr = this->boundaryBegin(); 
        boundaryItr != this->boundaryEnd();
@@ -868,6 +870,7 @@ applyGhostBoundaries(State<Dimension>& state,
     (*boundaryItr)->applyFieldListGhostBoundary(mu);
     (*boundaryItr)->applyFieldListGhostBoundary(Y);
     (*boundaryItr)->applyFieldListGhostBoundary(fragIDs);
+    (*boundaryItr)->applyFieldListGhostBoundary(pTypes);
   }
 }
 
@@ -889,6 +892,7 @@ enforceBoundaries(State<Dimension>& state,
   FieldList<Dimension, Scalar> mu = state.fields(SolidFieldNames::shearModulus, 0.0);
   FieldList<Dimension, Scalar> Y = state.fields(SolidFieldNames::yieldStrength, 0.0);
   FieldList<Dimension, int> fragIDs = state.fields(SolidFieldNames::fragmentIDs, int(1));
+  FieldList<Dimension, int> pTypes = state.fields(SolidFieldNames::particleTypes, int(0));
 
   for (ConstBoundaryIterator boundaryItr = this->boundaryBegin(); 
        boundaryItr != this->boundaryEnd();
@@ -898,6 +902,7 @@ enforceBoundaries(State<Dimension>& state,
     (*boundaryItr)->enforceFieldListBoundary(mu);
     (*boundaryItr)->enforceFieldListBoundary(Y);
     (*boundaryItr)->enforceFieldListBoundary(fragIDs);
+    (*boundaryItr)->enforceFieldListBoundary(pTypes);
   }
 }
 

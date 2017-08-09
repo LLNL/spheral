@@ -11,8 +11,6 @@ from GradyKippTensorDamage import *
 from spheralDimensions import spheralDimensions
 dims = spheralDimensions()
 
-from spheralDimensions import spheralDimensions
-
 # ------------------------------------------------------------------------------
 # Import the SolidMaterial python extensions.
 # ------------------------------------------------------------------------------

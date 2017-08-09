@@ -15,6 +15,8 @@
 #include "Utilities/SpheralFunctions.hh"
 #include "Utilities/DBC.hh"
 
+#include <memory>
+
 #define Fortran2(x) x##_
 #define NBLOCK 100
 
@@ -56,7 +58,7 @@ namespace Material {
     
     using FieldSpace::Field;
     using NodeSpace::NodeList;
-    using boost::shared_ptr;
+    using std::shared_ptr;
 
 
     template<typename Dimension>

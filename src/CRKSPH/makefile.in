@@ -48,8 +48,6 @@ SRCTARGETS += \
 SRCTARGETS += \
 	$(srcdir)/CRKSPHHydroBaseRZ.cc \
 	$(srcdir)/SolidCRKSPHHydroBaseRZ.cc
-PYTHONTARGETS += \
-	$(srcdir)/CRKSPHHydrosRZ.py
 endif
 
 ifeq ("yes", "@INST3D@")

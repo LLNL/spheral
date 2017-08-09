@@ -36,7 +36,7 @@ Communicator::
 Communicator()
 #ifdef USE_MPI
   : mCommunicator() {
-  MPI_Comm_dup(MPI_COMM_WORLD, &mCommunicator);
+  mCommunicator = MPI_COMM_WORLD;
 #else
 {
 #endif

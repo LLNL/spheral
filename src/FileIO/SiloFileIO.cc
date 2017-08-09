@@ -3,11 +3,11 @@
 //
 // Created by JMO, Sat Feb  7 23:06:03 PST 2015
 //----------------------------------------------------------------------------//
-#include <algorithm>
-#include "boost/algorithm/string/replace.hpp"
-
 #include "SiloFileIO.hh"
 #include "Field/Field.hh"
+
+#include "boost/algorithm/string/replace.hpp"
+#include <algorithm>
 
 namespace Spheral {
 namespace FileIOSpace {

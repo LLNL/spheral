@@ -1501,99 +1501,103 @@ buildReceiveAndGhostNodes(const DataBase<Dimension>& dataBase) {
   int procID = this->domainID();
   int numProcs = this->numDomains();
 
-  CHECK(procID < numProcs);
-
-  // Reserve space for the number of nodes we'll be getting from each domain.
   const int numNodeLists = dataBase.numNodeLists();
-  vector<vector<int> > numSendNodes(numProcs), numRecvNodes(numProcs);
-  for (int neighborProc = 0; neighborProc != numProcs; ++neighborProc) {
-    numSendNodes[neighborProc].resize(size_t(numNodeLists), 0);
-    numRecvNodes[neighborProc].resize(size_t(numNodeLists), 0);
-  }
+  vector<int> firstNewGhostNode(numNodeLists);
 
-  // Post receives for how many nodes we'll be getting from each domain per
-  // NodeList.
-  vector<MPI_Request> recvRequests;
-  recvRequests.reserve(numProcs - 1);
-  for (int neighborProc = 0; neighborProc != numProcs; ++neighborProc) {
-    if (neighborProc != procID) {
-      recvRequests.push_back(MPI_Request());
-      MPI_Irecv(&numRecvNodes[neighborProc].front(), numNodeLists, MPI_INT, neighborProc, 1001, Communicator::communicator(), &(recvRequests.back()));
+  // This if prevents a dereference of a zero length vector &recvStatus.front()
+  if (numProcs > 1) {
+    CHECK(procID < numProcs);
+
+    // Reserve space for the number of nodes we'll be getting from each domain.
+    vector<vector<int> > numSendNodes(numProcs), numRecvNodes(numProcs);
+    for (int neighborProc = 0; neighborProc != numProcs; ++neighborProc) {
+      numSendNodes[neighborProc].resize(size_t(numNodeLists), 0);
+      numRecvNodes[neighborProc].resize(size_t(numNodeLists), 0);
     }
-  }
-  CHECK(recvRequests.size() == numProcs - 1);
 
-  // Determine how many nodes per NodeList we're sending to each domain.
-  for (int neighborProc = 0; neighborProc != numProcs; ++neighborProc) {
-    if (neighborProc != procID) {
-      int nodeListID = 0;
-      for (typename DataBase<Dimension>::ConstNodeListIterator nodeListItr = dataBase.nodeListBegin();
-           nodeListItr != dataBase.nodeListEnd();
-           ++nodeListItr, ++nodeListID) {
-        if (this->nodeListSharedWithDomain(**nodeListItr, neighborProc)) {
-          const vector<int>& sendNodes = this->accessDomainBoundaryNodes(**nodeListItr, neighborProc).sendNodes;
-          CHECK(sendNodes.size() > 0);
-          numSendNodes[neighborProc][nodeListID] = sendNodes.size();
+    // Post receives for how many nodes we'll be getting from each domain per
+    // NodeList.
+    vector<MPI_Request> recvRequests;
+    recvRequests.reserve(numProcs - 1);
+    for (int neighborProc = 0; neighborProc != numProcs; ++neighborProc) {
+      if (neighborProc != procID) {
+        recvRequests.push_back(MPI_Request());
+        MPI_Irecv(&numRecvNodes[neighborProc].front(), numNodeLists, MPI_INT, neighborProc, 1001, Communicator::communicator(), &(recvRequests.back()));
+      }
+    }
+    CHECK(recvRequests.size() == numProcs - 1);
+
+    // Determine how many nodes per NodeList we're sending to each domain.
+    for (int neighborProc = 0; neighborProc != numProcs; ++neighborProc) {
+      if (neighborProc != procID) {
+        int nodeListID = 0;
+        for (typename DataBase<Dimension>::ConstNodeListIterator nodeListItr = dataBase.nodeListBegin();
+             nodeListItr != dataBase.nodeListEnd();
+             ++nodeListItr, ++nodeListID) {
+          if (this->nodeListSharedWithDomain(**nodeListItr, neighborProc)) {
+            const vector<int>& sendNodes = this->accessDomainBoundaryNodes(**nodeListItr, neighborProc).sendNodes;
+            CHECK(sendNodes.size() > 0);
+            numSendNodes[neighborProc][nodeListID] = sendNodes.size();
+          }
         }
       }
     }
-  }
 
-  // Send everyone the sizes.
-  for (int neighborProc = 0; neighborProc != numProcs; ++neighborProc) {
-    if (neighborProc != procID) {
-      MPI_Send(&numSendNodes[neighborProc].front(), numNodeLists, MPI_INT, neighborProc, 1001, Communicator::communicator());
-    }
-  }
-
-  // Wait until our receives are satisfied.
-  // This if prevents a dereference of a zero length vector &recvStatus.front()
-  if (numProcs > 1) {
-    const int numRecv = numProcs - 1;
-    vector<MPI_Status> recvStatus(numRecv);
-    MPI_Waitall(numRecv, &recvRequests.front(), &recvStatus.front());
-  }
-
-  // Count up the total number of new nodes we'll require for each NodeList.
-  vector<int> numNewGhostNodes(size_t(numNodeLists), 0);
-  for (int neighborProc = 0; neighborProc != numProcs; ++neighborProc) {
-    for (int nodeListID = 0; nodeListID != numNodeLists; ++nodeListID) {
-      numNewGhostNodes[nodeListID] += numRecvNodes[neighborProc][nodeListID];
-    }
-  }
-
-  // Allocate the new ghost nodes on each NodeList in one shot.
-  vector<int> firstNewGhostNode(numNodeLists);
-  {
-    int nodeListID = 0;
-    for (typename DataBase<Dimension>::ConstNodeListIterator nodeListItr = dataBase.nodeListBegin();
-         nodeListItr != dataBase.nodeListEnd();
-         ++nodeListItr, ++nodeListID) {
-      firstNewGhostNode[nodeListID] = (**nodeListItr).numNodes();
-      if (numNewGhostNodes[nodeListID] > 0) {
-        const int currentNumGhostNodes = (**nodeListItr).numGhostNodes();
-        (**nodeListItr).numGhostNodes(currentNumGhostNodes + numNewGhostNodes[nodeListID]);
+    // Send everyone the sizes.
+    for (int neighborProc = 0; neighborProc != numProcs; ++neighborProc) {
+      if (neighborProc != procID) {
+        MPI_Send(&numSendNodes[neighborProc].front(), numNodeLists, MPI_INT, neighborProc, 1001, Communicator::communicator());
       }
     }
-  }
 
-  // Associate a slice of the new ghost nodes with each communicating domain, filling in the 
-  // the receive indicies appropriately.
-  for (int neighborProc = 0; neighborProc != numProcs; ++neighborProc) {
-    if (neighborProc != procID) {
+    // Wait until our receives are satisfied.
+    // This if prevents a dereference of a zero length vector &recvStatus.front()
+    if (numProcs > 1) {
+      const int numRecv = numProcs - 1;
+      vector<MPI_Status> recvStatus(numRecv);
+      MPI_Waitall(numRecv, &recvRequests.front(), &recvStatus.front());
+    }
+
+    // Count up the total number of new nodes we'll require for each NodeList.
+    vector<int> numNewGhostNodes(size_t(numNodeLists), 0);
+    for (int neighborProc = 0; neighborProc != numProcs; ++neighborProc) {
+      for (int nodeListID = 0; nodeListID != numNodeLists; ++nodeListID) {
+        numNewGhostNodes[nodeListID] += numRecvNodes[neighborProc][nodeListID];
+      }
+    }
+
+    // Allocate the new ghost nodes on each NodeList in one shot.
+    {
       int nodeListID = 0;
       for (typename DataBase<Dimension>::ConstNodeListIterator nodeListItr = dataBase.nodeListBegin();
            nodeListItr != dataBase.nodeListEnd();
            ++nodeListItr, ++nodeListID) {
-        if (numRecvNodes[neighborProc][nodeListID] > 0) {
-          DomainBoundaryNodes& domainNodes = openDomainBoundaryNodes(&(**nodeListItr), neighborProc);
-          vector<int>& recvNodes = domainNodes.receiveNodes;
-          recvNodes.reserve(numRecvNodes[neighborProc][nodeListID]);
-          for (int i = firstNewGhostNode[nodeListID]; 
-               i != firstNewGhostNode[nodeListID] + numRecvNodes[neighborProc][nodeListID];
-               ++i) recvNodes.push_back(i);
-          CHECK(recvNodes.size() == numRecvNodes[neighborProc][nodeListID]);
-          firstNewGhostNode[nodeListID] += numRecvNodes[neighborProc][nodeListID];
+        firstNewGhostNode[nodeListID] = (**nodeListItr).numNodes();
+        if (numNewGhostNodes[nodeListID] > 0) {
+          const int currentNumGhostNodes = (**nodeListItr).numGhostNodes();
+          (**nodeListItr).numGhostNodes(currentNumGhostNodes + numNewGhostNodes[nodeListID]);
+        }
+      }
+    }
+
+    // Associate a slice of the new ghost nodes with each communicating domain, filling in the 
+    // the receive indicies appropriately.
+    for (int neighborProc = 0; neighborProc != numProcs; ++neighborProc) {
+      if (neighborProc != procID) {
+        int nodeListID = 0;
+        for (typename DataBase<Dimension>::ConstNodeListIterator nodeListItr = dataBase.nodeListBegin();
+             nodeListItr != dataBase.nodeListEnd();
+             ++nodeListItr, ++nodeListID) {
+          if (numRecvNodes[neighborProc][nodeListID] > 0) {
+            DomainBoundaryNodes& domainNodes = openDomainBoundaryNodes(&(**nodeListItr), neighborProc);
+            vector<int>& recvNodes = domainNodes.receiveNodes;
+            recvNodes.reserve(numRecvNodes[neighborProc][nodeListID]);
+            for (int i = firstNewGhostNode[nodeListID]; 
+                 i != firstNewGhostNode[nodeListID] + numRecvNodes[neighborProc][nodeListID];
+                 ++i) recvNodes.push_back(i);
+            CHECK(recvNodes.size() == numRecvNodes[neighborProc][nodeListID]);
+            firstNewGhostNode[nodeListID] += numRecvNodes[neighborProc][nodeListID];
+          }
         }
       }
     }

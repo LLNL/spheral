@@ -1,4 +1,4 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup>
     <Filter Include="Source Files">
@@ -24,6 +24,9 @@
     <ClCompile Include="..\..\src\ArtificialViscosity\CRKSPHMonaghanGingoldViscosityInst.cc.3.cc">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\src\ArtificialViscosity\CRKSPHMonaghanGingoldViscosityRZ.cc">
+      <Filter>Source Files</Filter>
+    </ClCompile>
     <ClCompile Include="..\..\src\ArtificialViscosity\FiniteVolumeViscosityInst.cc.2.cc">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -34,6 +37,12 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="..\..\src\ArtificialViscosity\MonaghanGingoldViscosityInst.cc.3.cc">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\ArtificialViscosity\MonaghanGingoldViscosityRZ.cc">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\ArtificialViscosity\MonaghanGingoldViscosityGSRZ.cc">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="..\..\src\ArtificialViscosity\MorrisMonaghanReducingViscosityInst.cc.2.cc">
@@ -72,6 +81,12 @@
     <ClCompile Include="..\..\src\ArtificialViscosity\CullenDehnenViscosityInst.cc.2.cc">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\src\ArtificialViscosity\IncrementCullenMultipliersInst.cc.2.cc">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\ArtificialViscosity\IncrementCullenMultipliersInst.cc.3.cc">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="..\..\src\ArtificialViscosity\ArtificialViscosity.hh">
@@ -87,6 +102,9 @@
       <Filter>Header Files</Filter>
     </None>
     <None Include="..\..\src\ArtificialViscosity\CRKSPHMonaghanGingoldViscosity.hh">
+      <Filter>Header Files</Filter>
+    </None>
+    <None Include="..\..\src\ArtificialViscosity\CRKSPHMonaghanGingoldViscosityRZ.hh">
       <Filter>Header Files</Filter>
     </None>
     <None Include="..\..\src\ArtificialViscosity\FiniteVolumeViscosity.hh">
@@ -108,6 +126,9 @@
       <Filter>Header Files</Filter>
     </None>
     <None Include="..\..\src\ArtificialViscosity\MonaghanGingoldViscosityRZ.hh">
+      <Filter>Header Files</Filter>
+    </None>
+    <None Include="..\..\src\ArtificialViscosity\MonaghanGingoldViscosityGSRZ.hh">
       <Filter>Header Files</Filter>
     </None>
     <None Include="..\..\src\ArtificialViscosity\MorrisMonaghanReducingViscosity.hh">
@@ -161,6 +182,9 @@
       <Filter>Inst Files</Filter>
     </CustomBuild>
     <CustomBuild Include="..\..\src\ArtificialViscosity\VonNeumanViscosityInst.cc.py">
+      <Filter>Inst Files</Filter>
+    </CustomBuild>
+    <CustomBuild Include="..\..\src\ArtificialViscosity\IncrementCullenMultipliersInst.cc.py">
       <Filter>Inst Files</Filter>
     </CustomBuild>
   </ItemGroup>

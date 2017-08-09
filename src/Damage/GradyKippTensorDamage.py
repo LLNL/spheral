@@ -27,7 +27,7 @@ GradyKippTensorDamageBenzAsphaug is constructed with the following arguments:
         kernel              : (required) the interpolation kernel to use
         seed                : (optional) random number seed for flaw generation.
         strainAlgorithm     : (optional) defaults to "PsuedoPlasticStrain"
-        effectiveDamageAlgorithm : (optional) defaults to "Copy".
+        effectiveDamageAlgorithm : (optional) defaults to "CopyDamage".
         useDamageGradient   : (optional) defaults to "True"
         crackGrowthMultiplier : (optional) defaults to "0.4"
         flawAlgorithm       : (optional) defaults to "FullSpectrumFlaws"
@@ -51,7 +51,7 @@ GradyKippTensorDamageOwen is constructed with the following arguments:
         seed                : (optional) random number seed for flaw generation.
         volumeMultiplier    : (optional) Multiplies the total volume.
         strainAlgorithm     : (optional) defaults to "PsuedoPlasticStrain"
-        effectiveDamageAlgorithm : (optional) defaults to "Copy".
+        effectiveDamageAlgorithm : (optional) defaults to "CopyDamage".
         useDamageGradient   : (optional) defaults to "True"
         crackGrowthMultiplier : (optional) defaults to "0.4"
         flawAlgorithm       : (optional) defaults to "FullSpectrumFlaws"
@@ -79,8 +79,8 @@ class GradyKippTensorDamageBenzAsphaug%(dim)s(TensorDamageModel%(dim)s):
 
         # Arguments needed to build the damage model.
         damage_kwargs = {"nodeList"                 : None,
-                         "strainAlgorithm"          : BenzAsphaug,
-                         "effectiveDamageAlgorithm" : 0,  # Copy
+                         "strainAlgorithm"          : BenzAsphaugStrain,
+                         "effectiveDamageAlgorithm" : CopyDamage,
                          "useDamageGradient"        : True,
                          "kernel"                   : None,
                          "crackGrowthMultiplier"    : 0.4,
@@ -216,8 +216,8 @@ class GradyKippTensorDamageOwen%(dim)s(TensorDamageModel%(dim)s):
 
         # Arguments needed to build the damage model.
         damage_kwargs = {"nodeList"                 : None,
-                         "strainAlgorithm"          : BenzAsphaug,
-                         "effectiveDamageAlgorithm" : 0, # Copy,
+                         "strainAlgorithm"          : BenzAsphaugStrain,
+                         "effectiveDamageAlgorithm" : CopyDamage,
                          "useDamageGradient"        : True,
                          "kernel"                   : None,
                          "crackGrowthMultiplier"    : 0.4,

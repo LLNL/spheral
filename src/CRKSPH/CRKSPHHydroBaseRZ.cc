@@ -5,14 +5,7 @@
 //
 // Created by JMO, Thu May 12 15:25:24 PDT 2016
 //----------------------------------------------------------------------------//
-#include <limits.h>
-#include <float.h>
-#include <algorithm>
-#include <fstream>
-#include <map>
-#include <vector>
-
-#include "CRKSPHHydroBaseRZ.hh"
+#include "FileIO/FileIO.hh"
 #include "CRKSPHUtilities.hh"
 #include "computeHullVolumes.hh"
 #include "computeCRKSPHSumVolume.hh"
@@ -54,13 +47,19 @@
 #include "Utilities/safeInv.hh"
 #include "Utilities/newtonRaphson.hh"
 #include "Utilities/SpheralFunctions.hh"
-#include "FileIO/FileIO.hh"
-
 #include "SPH/computeSPHSumMassDensity.hh"
 #include "Geometry/innerProduct.hh"
 #include "Geometry/outerProduct.hh"
-
 #include "Kernel/NBSplineKernel.hh"
+
+#include "CRKSPHHydroBaseRZ.hh"
+
+#include <limits.h>
+#include <float.h>
+#include <algorithm>
+#include <fstream>
+#include <map>
+#include <vector>
 
 namespace Spheral {
 namespace CRKSPHSpace {

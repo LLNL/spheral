@@ -108,6 +108,12 @@
     <ClCompile Include="..\..\src\Kernel\ExpInvKernelInst.cc.3.cc">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\src\Kernel\WendlandC2KernelInst.cc.2.cc">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\Kernel\WendlandC2KernelInst.cc.3.cc">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <CustomBuild Include="..\..\src\Kernel\BSplineKernelInst.cc.py">
@@ -156,6 +162,9 @@
       <Filter>Inst Files</Filter>
     </CustomBuild>
     <CustomBuild Include="..\..\src\Kernel\WendlandC6KernelInst.cc.py">
+      <Filter>Inst Files</Filter>
+    </CustomBuild>
+    <CustomBuild Include="..\..\src\Kernel\WendlandC2KernelInst.cc.py">
       <Filter>Inst Files</Filter>
     </CustomBuild>
   </ItemGroup>
