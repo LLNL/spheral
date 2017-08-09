@@ -5,16 +5,15 @@
 //
 // Created by JMO, Wed May 27 13:44:32 PDT 2009
 //----------------------------------------------------------------------------//
+#include "RestartRegistrar.hh"
+#include "Utilities/removeElements.hh"
 
 #include <algorithm>
 #include <functional>
 #include <iostream>
 #include <sstream>
-#include "RestartRegistrar.hh"
-#include "Utilities/removeElements.hh"
 
 using namespace std;
-
 using Spheral::FileIOSpace::FileIO;
 
 namespace Spheral {
@@ -24,12 +23,12 @@ namespace DataOutput {
 // Weak pointers don't have operator==, so we have to provide something.
 //------------------------------------------------------------------------------
 template<typename T>
-struct CompareWeakPtr: public binary_function<boost::weak_ptr<T>, boost::weak_ptr<T>, bool> {
-  typedef typename binary_function<boost::weak_ptr<T>, boost::weak_ptr<T>, bool>::first_argument_type first_argument_type;
-  typedef typename binary_function<boost::weak_ptr<T>, boost::weak_ptr<T>, bool>::second_argument_type second_argument_type;
-  typedef typename binary_function<boost::weak_ptr<T>, boost::weak_ptr<T>, bool>::result_type result_type;
-  result_type operator()(const boost::weak_ptr<T> lhs,
-                         const boost::weak_ptr<T> rhs) const {
+struct CompareWeakPtr: public binary_function<std::weak_ptr<T>, std::weak_ptr<T>, bool> {
+  typedef typename binary_function<std::weak_ptr<T>, std::weak_ptr<T>, bool>::first_argument_type first_argument_type;
+  typedef typename binary_function<std::weak_ptr<T>, std::weak_ptr<T>, bool>::second_argument_type second_argument_type;
+  typedef typename binary_function<std::weak_ptr<T>, std::weak_ptr<T>, bool>::result_type result_type;
+  result_type operator()(const std::weak_ptr<T> lhs,
+                         const std::weak_ptr<T> rhs) const {
     return lhs.lock() == rhs.lock();
   }
 };
@@ -60,11 +59,11 @@ instancePtr() {
 //------------------------------------------------------------------------------
 void
 RestartRegistrar::
-registerRestartHandle(boost::shared_ptr<RestartHandle> restartHandlePtr,
+registerRestartHandle(std::shared_ptr<RestartHandle> restartHandlePtr,
                       const unsigned priority) {
   this->removeExpiredPointers();
   CHECK(mPriorities.size() == mRestartHandles.size());
-  boost::weak_ptr<RestartHandle> wptr(restartHandlePtr);
+  std::weak_ptr<RestartHandle> wptr(restartHandlePtr);
   if (not haveRestartHandle(restartHandlePtr)) {
     priority_iterator itr = upper_bound(mPriorities.begin(), mPriorities.end(), priority);
     const size_t delta = distance(mPriorities.begin(), itr);
@@ -80,9 +79,9 @@ registerRestartHandle(boost::shared_ptr<RestartHandle> restartHandlePtr,
 //------------------------------------------------------------------------------
 void
 RestartRegistrar::
-unregisterRestartHandle(boost::shared_ptr<RestartHandle> restartHandlePtr) {
+unregisterRestartHandle(std::shared_ptr<RestartHandle> restartHandlePtr) {
   this->removeExpiredPointers();
-  boost::weak_ptr<RestartHandle> wptr(restartHandlePtr);
+  std::weak_ptr<RestartHandle> wptr(restartHandlePtr);
   VERIFY(haveRestartHandle(restartHandlePtr));
   iterator itr = find_if(this->begin(), this->end(), bind2nd(CompareWeakPtr<RestartHandle>(), wptr));
   CHECK(itr != this->end());
@@ -98,7 +97,7 @@ unregisterRestartHandle(boost::shared_ptr<RestartHandle> restartHandlePtr) {
 //------------------------------------------------------------------------------
 bool
 RestartRegistrar::
-haveRestartHandle(const boost::shared_ptr<RestartHandle> restartHandlePtr) const {
+haveRestartHandle(const std::shared_ptr<RestartHandle> restartHandlePtr) const {
   // const_iterator itr = std::find_if(this->begin(), this->end(), bind2nd(CompareWeakPtr<RestartHandle>(), restartHandlePtr));
   // return (itr != this->end());
   const_iterator itr = this->begin();

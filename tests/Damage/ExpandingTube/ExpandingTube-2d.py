@@ -60,7 +60,7 @@ commandLine(
     # Parameters for the damage model.
     DamageModelConstructor = GradyKippTensorDamageOwen,
     strainType = PseudoPlasticStrain,
-    effectiveDamage = Copy,
+    effectiveDamage = CopyDamage,
     effectiveFlawAlgorithm = FullSpectrumFlaws,
     useDamageGradient = True,
     kWeibullSteelFactor = 1.0,

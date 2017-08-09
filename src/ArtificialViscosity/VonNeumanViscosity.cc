@@ -1,7 +1,7 @@
 //---------------------------------Spheral++----------------------------------//
 // A simple form for the artificial viscosity due to Monaghan & Gingold.
 //----------------------------------------------------------------------------//
-#include "VonNeumanViscosity.hh"
+#include "FileIO/FileIO.hh"
 #include "DataBase/DataBase.hh"
 #include "DataBase/State.hh"
 #include "DataBase/StateDerivatives.hh"
@@ -12,7 +12,8 @@
 #include "CRKSPH/computeCRKSPHCorrections.hh"
 #include "CRKSPH/gradientCRKSPH.hh"
 #include "Hydro/HydroFieldNames.hh"
-#include "FileIO/FileIO.hh"
+
+#include "VonNeumanViscosity.hh"
 
 namespace Spheral {
 namespace ArtificialViscositySpace {
@@ -32,7 +33,7 @@ template<typename Dimension>
 VonNeumanViscosity<Dimension>::
 VonNeumanViscosity(Scalar Clinear, Scalar Cquadratic):
   ArtificialViscosity<Dimension>(Clinear, Cquadratic),
-  mViscousEnergy(FieldSpace::FieldStorageType::Copy) {
+  mViscousEnergy(FieldSpace::FieldStorageType::CopyFields) {
 }
 
 //------------------------------------------------------------------------------
@@ -94,13 +95,13 @@ initialize(const DataBase<Dimension>& dataBase,
   FieldList<Dimension, Scalar> m0 = dataBase.newFluidFieldList(0.0, HydroFieldNames::m0_CRKSPH);
   FieldList<Dimension, Vector> m1 = dataBase.newFluidFieldList(Vector::zero, HydroFieldNames::m1_CRKSPH);
   FieldList<Dimension, SymTensor> m2 = dataBase.newFluidFieldList(SymTensor::zero, HydroFieldNames::m2_CRKSPH);
-  FieldList<Dimension, ThirdRankTensor> m3(FieldSpace::FieldStorageType::Copy);
-  FieldList<Dimension, FourthRankTensor> m4(FieldSpace::FieldStorageType::Copy);
+  FieldList<Dimension, ThirdRankTensor> m3(FieldSpace::FieldStorageType::CopyFields);
+  FieldList<Dimension, FourthRankTensor> m4(FieldSpace::FieldStorageType::CopyFields);
   FieldList<Dimension, Vector> gradm0 = dataBase.newFluidFieldList(Vector::zero, HydroFieldNames::gradM0_CRKSPH);
   FieldList<Dimension, Tensor> gradm1 = dataBase.newFluidFieldList(Tensor::zero, HydroFieldNames::gradM1_CRKSPH);
   FieldList<Dimension, ThirdRankTensor> gradm2 = dataBase.newFluidFieldList(ThirdRankTensor::zero, HydroFieldNames::gradM2_CRKSPH);
-  FieldList<Dimension, FourthRankTensor> gradm3(FieldSpace::FieldStorageType::Copy);
-  FieldList<Dimension, FifthRankTensor> gradm4(FieldSpace::FieldStorageType::Copy);
+  FieldList<Dimension, FourthRankTensor> gradm3(FieldSpace::FieldStorageType::CopyFields);
+  FieldList<Dimension, FifthRankTensor> gradm4(FieldSpace::FieldStorageType::CopyFields);
   FieldList<Dimension, Scalar> A = dataBase.newFluidFieldList(0.0, "Q A");
   FieldList<Dimension, Vector> B;
   FieldList<Dimension, Tensor> C;

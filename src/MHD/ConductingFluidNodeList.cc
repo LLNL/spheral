@@ -256,7 +256,7 @@ resistivity() const
 
 
 //----------------------------------------------------------------------------
-const boost::shared_ptr<UpdatePolicyBase<Dim<3>, Field<Dim<3>, Dim<3>::Scalar> > >&
+const std::shared_ptr<UpdatePolicyBase<Dim<3>, Field<Dim<3>, Dim<3>::Scalar> > >&
 ConductingFluidNodeList::
 resistivityPolicy() const
 {
@@ -266,7 +266,7 @@ resistivityPolicy() const
 
 
 //----------------------------------------------------------------------------
-boost::shared_ptr<UpdatePolicyBase<Dim<3>, Field<Dim<3>, Dim<3>::Scalar> > >&
+std::shared_ptr<UpdatePolicyBase<Dim<3>, Field<Dim<3>, Dim<3>::Scalar> > >&
 ConductingFluidNodeList::
 resistivityPolicy() 
 {

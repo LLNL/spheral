@@ -8,10 +8,10 @@
 #ifndef __Spheral_CompositeFieldListPolicy_hh__
 #define __Spheral_CompositeFieldListPolicy_hh__
 
-#include <vector>
-#include "boost/shared_ptr.hpp"
-#include "boost/ptr_container/ptr_vector.hpp"
 #include "FieldListUpdatePolicyBase.hh"
+
+#include <vector>
+#include <memory> // unique_ptr/shared_ptr
 
 namespace Spheral {
 
@@ -23,7 +23,7 @@ class CompositeFieldListPolicy: public FieldListUpdatePolicyBase<Dimension, Valu
 public:
   //--------------------------- Public Interface ---------------------------//
   // Useful typedefs
-  typedef typename boost::shared_ptr<UpdatePolicyBase<Dimension> > PolicyPointer;
+  typedef typename std::shared_ptr<UpdatePolicyBase<Dimension> > PolicyPointer;
   typedef typename FieldListUpdatePolicyBase<Dimension, ValueType>::KeyType KeyType;
 
   // Constructors, destructor.
@@ -57,7 +57,7 @@ public:
 
 private:
   //--------------------------- Private Interface ---------------------------//
-  boost::ptr_vector<UpdatePolicyBase<Dimension> > mPolicyPtrs;
+  std::vector<std::unique_ptr<UpdatePolicyBase<Dimension>>> mPolicyPtrs;
 
   CompositeFieldListPolicy(const CompositeFieldListPolicy& rhs);
   CompositeFieldListPolicy& operator=(const CompositeFieldListPolicy& rhs);

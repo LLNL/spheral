@@ -1,7 +1,7 @@
 //---------------------------------Spheral++----------------------------------//
 // Cullen adn Dehnen Viscosity 
 //----------------------------------------------------------------------------//
-#include "CullenDehnenViscosity.hh"
+#include "FileIO/FileIO.hh"
 #include "DataOutput/Restart.hh"
 #include "Field/FieldList.hh"
 #include "DataBase/DataBase.hh"
@@ -16,10 +16,11 @@
 #include "DataBase/IncrementState.hh"
 #include "DataBase/IncrementFieldList.hh"
 #include "DataBase/IncrementBoundedFieldList.hh"
-#include "FileIO/FileIO.hh"
 #include "CRKSPH/CRKSPHUtilities.hh"
 #include "CRKSPH/computeCRKSPHMoments.hh"
 #include "CRKSPH/computeCRKSPHCorrections.hh"
+
+#include "CullenDehnenViscosity.hh"
 
 namespace Spheral {
 namespace ArtificialViscositySpace {
@@ -57,13 +58,13 @@ CullenDehnenViscosity(ArtificialViscosity<Dimension>& q,
                       const Scalar fKern, //Parameter = 1/3 Hopkins 2014 for quinitc spline
                       const bool boolHopkins): //use Hopkins Reformulation
   Physics<Dimension>(),
-  mPrevDvDt(FieldSpace::FieldStorageType::Copy),
-  mPrevDivV(FieldSpace::FieldStorageType::Copy),
-  mCullAlpha(FieldSpace::FieldStorageType::Copy),
-  mPrevDivV2(FieldSpace::FieldStorageType::Copy),
-  mCullAlpha2(FieldSpace::FieldStorageType::Copy),
-  mDalphaDt(FieldSpace::FieldStorageType::Copy),
-  mAlphaLocal(FieldSpace::FieldStorageType::Copy),
+  mPrevDvDt(FieldSpace::FieldStorageType::CopyFields),
+  mPrevDivV(FieldSpace::FieldStorageType::CopyFields),
+  mCullAlpha(FieldSpace::FieldStorageType::CopyFields),
+  mPrevDivV2(FieldSpace::FieldStorageType::CopyFields),
+  mCullAlpha2(FieldSpace::FieldStorageType::CopyFields),
+  mDalphaDt(FieldSpace::FieldStorageType::CopyFields),
+  mAlphaLocal(FieldSpace::FieldStorageType::CopyFields),
   malphMax(alphMax),
   malphMin(alphMin),
   mbetaC(betaC),

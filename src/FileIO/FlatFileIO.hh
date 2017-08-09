@@ -6,16 +6,11 @@
 #ifndef FlatFileIO_HH
 #define FlatFileIO_HH
 
-#ifndef __GCCXML__
-#include <vector>
-#else
-#include "fakestl.hh"
-#endif
+#include "FileIO.hh"
 
+#include <vector>
 #include <string>
 #include <fstream>
-
-#include "FileIO.hh"
 
 namespace Spheral {
 namespace FileIOSpace {

@@ -30,6 +30,12 @@
     <ClCompile Include="..\..\src\SolidMaterial\MurnahanEquationOfStateInst.cc.3.cc">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\src\SolidMaterial\PhysicsEvolvingMaterialLibraryInst.cc.2.cc">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\SolidMaterial\PhysicsEvolvingMaterialLibraryInst.cc.3.cc">
+      <Filter>Source Files</Filter>
+    </ClCompile>
     <ClCompile Include="..\..\src\SolidMaterial\PorousEquationOfStateInst.cc.2.cc">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -66,6 +72,12 @@
     <ClCompile Include="..\..\src\SolidMaterial\OsborneEquationOfStateInst.cc.3.cc">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\src\SolidMaterial\CollinsStrengthInst.cc.2.cc">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\SolidMaterial\CollinsStrengthInst.cc.3.cc">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="..\..\src\SolidMaterial\ANEOS.hh">
@@ -93,6 +105,9 @@
       <Filter>Header Files</Filter>
     </None>
     <None Include="..\..\src\SolidMaterial\NullStrength.hh">
+      <Filter>Header Files</Filter>
+    </None>
+    <None Include="..\..\src\SolidMaterial\PhysicsEvolvingMaterialLibrary.hh">
       <Filter>Header Files</Filter>
     </None>
     <None Include="..\..\src\SolidMaterial\PolynomialFit.hh">
@@ -148,6 +163,9 @@
     <CustomBuild Include="..\..\src\SolidMaterial\OsborneEquationOfStateInst.cc.py">
       <Filter>Inst Files</Filter>
     </CustomBuild>
+    <CustomBuild Include="..\..\src\SolidMaterial\PhysicsEvolvingMaterialLibraryInst.cc.py">
+      <Filter>Inst Files</Filter>
+    </CustomBuild>
     <CustomBuild Include="..\..\src\SolidMaterial\PorousEquationOfStateInst.cc.py">
       <Filter>Inst Files</Filter>
     </CustomBuild>
@@ -163,5 +181,6 @@
     <CustomBuild Include="..\..\src\SolidMaterial\TillotsonEquationOfStateInst.cc.py">
       <Filter>Inst Files</Filter>
     </CustomBuild>
+    <CustomBuild Include="..\..\src\SolidMaterial\CollinsStrengthInst.cc.py" />
   </ItemGroup>
 </Project>

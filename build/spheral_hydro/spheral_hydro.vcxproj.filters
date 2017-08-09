@@ -21,6 +21,9 @@
     <ClCompile Include="..\..\src\Hydro\NonSymmetricSpecificThermalEnergyPolicyInst.cc.3.cc">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\src\Hydro\NonSymmetricSpecificThermalEnergyPolicyRZ.cc">
+      <Filter>Source Files</Filter>
+    </ClCompile>
     <ClCompile Include="..\..\src\Hydro\PositionPolicyInst.cc.2.cc">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -75,6 +78,20 @@
     <ClCompile Include="..\..\src\Hydro\VoronoiMassDensityPolicyInst.cc.3.cc">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\src\Hydro\GammaPolicyInst.cc.2.cc">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\Hydro\GammaPolicyInst.cc.3.cc">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\Hydro\SpecificFromTotalThermalEnergyPolicyInst.cc.2.cc">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\Hydro\SpecificFromTotalThermalEnergyPolicyInst.cc.3.cc">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\Hydro\EntropyPolicyInst.cc.2.cc" />
+    <ClCompile Include="..\..\src\Hydro\EntropyPolicyInst.cc.3.cc" />
   </ItemGroup>
   <ItemGroup>
     <None Include="..\..\src\Hydro\HybridMassDensityPolicyInline.hh">
@@ -93,6 +110,9 @@
       <Filter>Header Files</Filter>
     </None>
     <None Include="..\..\src\Hydro\NonSymmetricSpecificThermalEnergyPolicy.hh">
+      <Filter>Header Files</Filter>
+    </None>
+    <None Include="..\..\src\Hydro\NonSymmetricSpecificThermalEnergyPolicyRZ.hh">
       <Filter>Header Files</Filter>
     </None>
     <None Include="..\..\src\Hydro\PositionPolicy.hh">
@@ -172,5 +192,12 @@
     <CustomBuild Include="..\..\src\Hydro\VoronoiMassDensityPolicyInst.cc.py">
       <Filter>Inst Files</Filter>
     </CustomBuild>
+    <CustomBuild Include="..\..\src\Hydro\GammaPolicyInst.cc.py">
+      <Filter>Inst Files</Filter>
+    </CustomBuild>
+    <CustomBuild Include="..\..\src\Hydro\SpecificFromTotalThermalEnergyPolicyInst.cc.py">
+      <Filter>Inst Files</Filter>
+    </CustomBuild>
+    <CustomBuild Include="..\..\src\Hydro\EntropyPolicyInst.cc.py" />
   </ItemGroup>
 </Project>

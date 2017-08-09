@@ -132,7 +132,7 @@ update(const KeyType& key,
       // Update the effective strain according to the specified algorithm.
       switch(mStrainType) {
 
-      case(PhysicsSpace::TensorStrainAlgorithm::BenzAsphaug):
+      case(PhysicsSpace::TensorStrainAlgorithm::BenzAsphaugStrain):
         CHECK(E(i) >= 0.0);
         stateField(i) = (S(i) - P(i)*SymTensor::one)/(E(i) + tiny); // thpt);
         break;
@@ -141,7 +141,7 @@ update(const KeyType& key,
         stateField(i) = strain(i);
         break;
 
-      case(PhysicsSpace::TensorStrainAlgorithm::MeloshRyanAsphaug):
+      case(PhysicsSpace::TensorStrainAlgorithm::MeloshRyanAsphaugStrain):
         stateField(i) = ((K(i) - 2.0*mu(i)/Dimension::nDim)*volstrain*SymTensor::one + 2.0*mu(i)*strain(i))/(E(i) + tiny); // thpt);
         break;
 

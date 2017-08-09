@@ -4,10 +4,9 @@
 //
 // Created by JMO, Sat Sep 18 10:50:42 PDT 1999
 //----------------------------------------------------------------------------//
-#include "FluidNodeList.hh"
+#include "FileIO/FileIO.hh"
 #include "SmoothingScaleBase.hh"
 #include "Material/EquationOfState.hh"
-#include "FileIO/FileIO.hh"
 #include "Hydro/HydroFieldNames.hh"
 #include "DataBase/DataBase.hh"
 #include "DataBase/IncrementState.hh"
@@ -18,6 +17,8 @@
 #include "DataBase/StateDerivatives.hh"
 #include "Neighbor/ConnectivityMap.hh"
 #include "Utilities/safeInv.hh"
+
+#include "FluidNodeList.hh"
 
 using namespace std;
 

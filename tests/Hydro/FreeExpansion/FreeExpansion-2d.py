@@ -49,11 +49,6 @@ commandLine(nr = 100,
 
             order = 3,
             Qconstructor = MonaghanGingoldViscosity,
-            Cl = 1.0,
-            Cq = 1.0,
-            linearInExpansion = False,
-            Qlimiter = False,
-            epsilon2 = 1e-2,
             hmin = 0.0001, 
             hmax = 1.0,
             cfl = 0.25,
@@ -62,9 +57,8 @@ commandLine(nr = 100,
             nTensile = 4,
             filter = 0.0,
 
-            SVPH = False,
-            CRKSPH = False,
-            TSPH = False,
+            svph = False,
+            crksph = False,
             correctionOrder = LinearOrder,
             IntegratorConstructor = CheapSynchronousRK2Integrator,
             steps = None,
@@ -95,19 +89,15 @@ commandLine(nr = 100,
             graphics = "gnu",
             )
 
-if SVPH:
-    HydroConstructor = SVPHFacetedHydro
-elif CRKSPH:
-    HydroConstructor = CRKSPHHydro
-    #Qconstructor = CRKSPHMonaghanGingoldViscosity
-elif TSPH:
-    HydroConstructor = TaylorSPHHydro
+if svph:
+    hydroname = "SVPH"
+elif crksph:
+    hydroname = "CRKSPH"
 else:
-    HydroConstructor = SPHHydro
+    hydroname = "SPH"
 
 dataDir = os.path.join(dataDirBase,
-                       HydroConstructor.__name__,
-                       Qconstructor.__name__,
+                       hydroname,
                        "nr=%i" % nr)
 restartDir = os.path.join(dataDir, "restarts")
 restartBaseName = os.path.join(restartDir, "FreeExpansion-cylindrical-2d-%i" % nr)
@@ -193,60 +183,41 @@ output("db.numNodeLists")
 output("db.numFluidNodeLists")
 
 #-------------------------------------------------------------------------------
-# Construct the artificial viscosity.
-#-------------------------------------------------------------------------------
-q = Qconstructor(Cl, Cq, linearInExpansion = linearInExpansion)
-q.epsilon2 = epsilon2
-q.limiter = Qlimiter
-output("q")
-output("q.Cl")
-output("q.Cq")
-output("q.epsilon2")
-output("q.limiter")
-
-#-------------------------------------------------------------------------------
 # Construct the hydro physics object.
 #-------------------------------------------------------------------------------
-if SVPH:
-    hydro = HydroConstructor(W = WT, 
-                             Q = q,
-                             cfl = cfl,
-                             compatibleEnergyEvolution = compatibleEnergy,
-                             XSVPH = XSPH,
-                             linearConsistent = linearConsistent,
-                             densityUpdate = densityUpdate,
-                             HUpdate = HUpdate,
-                             xmin = Vector(-100.0),
-                             xmax = Vector( 100.0))
-elif CRKSPH:
-    hydro = HydroConstructor(W = WT, 
-                             Q = q,
-                             filter = filter,
-                             cfl = cfl,
-                             compatibleEnergyEvolution = compatibleEnergy,
-                             XSPH = XSPH,
-                             densityUpdate = densityUpdate,
-                             HUpdate = HUpdate,
-                             correctionOrder = correctionOrder)
+if svph:
+    hydro = SVPH(dataBase = db,
+                 W = WT, 
+                 cfl = cfl,
+                 compatibleEnergyEvolution = compatibleEnergy,
+                 XSVPH = XSPH,
+                 linearConsistent = linearConsistent,
+                 densityUpdate = densityUpdate,
+                 HUpdate = HUpdate,
+                 xmin = Vector(-100.0),
+                 xmax = Vector( 100.0))
+elif crksph:
+    hydro = CRKSPH(dataBase = db,
+                   W = WT, 
+                   filter = filter,
+                   cfl = cfl,
+                   compatibleEnergyEvolution = compatibleEnergy,
+                   XSPH = XSPH,
+                   densityUpdate = densityUpdate,
+                   HUpdate = HUpdate,
+                   correctionOrder = correctionOrder)
 
-elif TSPH:
-    hydro = HydroConstructor(W = WT, 
-                             Q = q,
-                             cfl = cfl,
-                             compatibleEnergyEvolution = compatibleEnergy,
-                             XSPH = XSPH,
-                             HUpdate = HUpdate)
 else:
-    hydro = HydroConstructor(W = WT, 
-                             Q = q,
-                             cfl = cfl,
-                             compatibleEnergyEvolution = compatibleEnergy,
-                             gradhCorrection = gradhCorrection,
-                             XSPH = XSPH,
-                             densityUpdate = densityUpdate,
-                             HUpdate = HUpdate,
-                             epsTensile = epsilonTensile,
-                             nTensile = nTensile)
+    hydro = SPH(dataBase = db,
+                W = WT, 
+                cfl = cfl,
+                compatibleEnergyEvolution = compatibleEnergy,
+                gradhCorrection = gradhCorrection,
+                XSPH = XSPH,
+                densityUpdate = densityUpdate,
+                HUpdate = HUpdate,
+                epsTensile = epsilonTensile,
+                nTensile = nTensile)
 output("hydro")
 
 #-------------------------------------------------------------------------------

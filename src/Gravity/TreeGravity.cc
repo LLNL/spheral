@@ -4,13 +4,7 @@
 //
 // Created by JMO, 2013-06-12
 //----------------------------------------------------------------------------//
-#include <cstdio>
-#include <cstdlib>
-#include <cstring>
-#include <sstream>
-#include <iostream>
-#include <algorithm>
-
+#include "FileIO/FileIO.hh"
 #include "TreeGravity.hh"
 #include "DataBase/DataBase.hh"
 #include "DataBase/IncrementState.hh"
@@ -26,7 +20,13 @@
 #include "Field/Field.hh"
 #include "Distributed/Communicator.hh"
 #include "Utilities/DBC.hh"
-#include "FileIO/FileIO.hh"
+
+#include <cstdio>
+#include <cstdlib>
+#include <cstring>
+#include <sstream>
+#include <iostream>
+#include <algorithm>
 
 namespace Spheral {
 namespace GravitySpace {
@@ -110,7 +110,7 @@ TreeGravity(const double G,
   mXmin(),
   mXmax(),
   mTree(),
-  mPotential(FieldSpace::FieldStorageType::Copy),
+  mPotential(FieldSpace::FieldStorageType::CopyFields),
   mExtraEnergy(0.0),
   mNodeListMax(0),
   mimax(0),

@@ -2,13 +2,13 @@
 // ConstantRVelocityBoundary -- A boundary condition to enforce a constant 
 // velocity on a given set of nodes.
 //----------------------------------------------------------------------------//
-#include "ConstantRVelocityBoundary.hh"
+#include "FileIO/FileIO.hh"
 #include "Field/FieldList.hh"
 #include "Field/Field.hh"
 #include "Hydro/HydroFieldNames.hh"
-#include "FileIO/FileIO.hh"
-
 #include "Utilities/DBC.hh"
+
+#include "ConstantRVelocityBoundary.hh"
 
 namespace Spheral {
 namespace BoundarySpace {

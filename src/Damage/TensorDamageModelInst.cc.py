@@ -2,8 +2,8 @@ text = """
 //------------------------------------------------------------------------------
 // Instantiations.
 //------------------------------------------------------------------------------
-#include "Geometry/Dimension.hh"
 #include "TensorDamageModel.cc"
+#include "Geometry/Dimension.hh"
 
 namespace Spheral {
   template class PhysicsSpace::TensorDamageModel<Dim< %(ndim)s > >;
