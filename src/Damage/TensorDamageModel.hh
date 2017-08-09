@@ -14,13 +14,9 @@
 #ifndef __Spheral_TensorDamageModel_hh__
 #define __Spheral_TensorDamageModel_hh__
 
-#ifndef __GCCXML__
-#include <vector>
-#else
-#include "fakestl.hh"
-#endif
-
 #include "DamageModel.hh"
+
+#include <vector>
 
 // Forward declarations.
 namespace Spheral {
@@ -46,18 +42,18 @@ namespace PhysicsSpace {
 
 // Enum for selecting the method of defining the tensor strain.
 enum class TensorStrainAlgorithm {
-  BenzAsphaug = 0,
+  BenzAsphaugStrain = 0,
   StrainHistory = 1,
-  MeloshRyanAsphaug = 2,
+  MeloshRyanAsphaugStrain = 2,
   PlasticStrain = 3,
   PseudoPlasticStrain = 4,
 };
 
 // Enum for selecting the method of defining the effective tensor damage.
 enum class EffectiveDamageAlgorithm {
-  Copy = 0,
-  Max = 1,
-  Sampled = 2,
+  CopyDamage = 0,
+  MaxDamage = 1,
+  SampledDamage = 2,
 };
 
 template<typename Dimension>

@@ -6,9 +6,10 @@
 #ifndef __Spheral_EquationOfState_hh__
 #define __Spheral_EquationOfState_hh__
 
-#include <limits>
 #include "PhysicalConstants.hh"
 #include "Utilities/DBC.hh"
+
+#include <limits>
 
 // Forward declarations.
 namespace Spheral {

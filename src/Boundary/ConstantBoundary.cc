@@ -2,18 +2,19 @@
 // ConstantBoundary -- A boundary condition to enforce a constant 
 // velocity on a given set of nodes.
 //----------------------------------------------------------------------------//
-#include "boost/lexical_cast.hpp"
-#include "boost/algorithm/string.hpp"
-
-#include "ConstantBoundary.hh"
+#include "FileIO/FileIO.hh"
 #include "Boundary.hh"
 #include "mapPositionThroughPlanes.hh"
 #include "Field/FieldList.hh"
 #include "Field/Field.hh"
 #include "Field/FieldBase.hh"
-#include "FileIO/FileIO.hh"
 #include "Utilities/planarReflectingOperator.hh"
 #include "Utilities/DBC.hh"
+
+#include "ConstantBoundary.hh"
+
+#include "boost/lexical_cast.hpp"
+#include "boost/algorithm/string.hpp"
 
 namespace Spheral {
 namespace BoundarySpace {

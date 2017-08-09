@@ -492,7 +492,8 @@ self.generateSolidCRKSPHHydroBaseBindings(self.SolidCRKSPHHydroBase%(dim)id, %(d
         x.add_instance_attribute("detectThreshold", "double", getter="detectThreshold", setter="detectThreshold")
         x.add_instance_attribute("detectRange", "double", getter="detectRange", setter="detectRange")
         x.add_instance_attribute("sweepAngle", "double", getter="sweepAngle", setter="sweepAngle")
-        
+        x.add_instance_attribute("correctionMin", "double", getter="correctionMin", setter="correctionMin")
+        x.add_instance_attribute("correctionMax", "double", getter="correctionMax", setter="correctionMax")
 
         const_ref_return_value(x, me, "%s::smoothingScaleMethod" % me, smoothingscalebase, [], "smoothingScaleMethod")
         const_ref_return_value(x, me, "%s::timeStepMask" % me, intfieldlist, [], "timeStepMask")

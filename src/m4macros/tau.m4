@@ -139,25 +139,6 @@ AC_ARG_WITH(tauflags,
   AC_MSG_RESULT(Defaulting to $TAUCONFIGUREFLAGS)
 ])
 
-# We sneak the gprof setup in here 'cause we're lazy...
-AC_MSG_CHECKING(for --with-gprof)
-AC_ARG_WITH(gprof,
-[  --with-gprof ............................. compile with gprof stuff turned on],
-[
-  AC_MSG_RESULT(yes)
-  if test "$CXXCOMPILERTYPE" = "GNU"; then
-    OPT="$OPT -pg"
-    DISTRIBUTEDOPT="$DISTRIBUTEDOPT -pg"
-  fi
-  if test "$CXXCOMPILERTYPE" = "INTEL"; then
-    OPT="$OPT -p -g"
-    DISTRIBUTEDOPT="$DISTRIBUTEDOPT -p -g"
-  fi
-],
-[
-  AC_MSG_RESULT(no)
-])
-
 
 
 ])

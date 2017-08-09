@@ -68,8 +68,6 @@ commandLine(KernelConstructor = NBSplineKernel,
             crksph = False,
             psph = False,
             evolveTotalEnergy = False,  # Only for SPH variants -- evolve total rather than specific energy
-            Qconstructor = MonaghanGingoldViscosity,
-            #Qconstructor = TensorMonaghanGingoldViscosity,
             boolReduceViscosity = False,
             HopkinsConductivity = False,     # For PSPH
             nhQ = 5.0,
@@ -184,8 +182,6 @@ if svph:
     hydroname = "SVPH"
 elif crksph:
     hydroname = "CRKSPH"
-    Qconstructor = CRKSPHMonaghanGingoldViscosity
-    gradhCorrection = False
 elif psph:
     hydroname = "PSPH"
 else:
@@ -195,7 +191,6 @@ if solid:
 
 dataDir = os.path.join(dataDirBase,
                        hydroname,
-                       Qconstructor.__name__,
                        "nPerh=%f" % nPerh,
                        "compatibleEnergy=%s" % compatibleEnergy,
                        "Cullen=%s" % boolCullenViscosity,
@@ -286,35 +281,11 @@ output("db.numNodeLists")
 output("db.numFluidNodeLists")
 
 #-------------------------------------------------------------------------------
-# Construct the artificial viscosity.
-#-------------------------------------------------------------------------------
-try:
-   q = Qconstructor(Cl, Cq, linearInExpansion)
-except:
-   q = Qconstructor(Cl, Cq)
-q.epsilon2 = epsilon2
-q.limiter = Qlimiter
-q.balsaraShearCorrection = balsaraCorrection
-q.QcorrectionOrder = QcorrectionOrder
-output("q")
-output("q.Cl")
-output("q.Cq")
-output("q.epsilon2")
-output("q.limiter")
-output("q.balsaraShearCorrection")
-try:
-   output("q.linearInExpansion")
-   output("q.quadraticInExpansion")
-except:
-   pass
-
-#-------------------------------------------------------------------------------
 # Construct the hydro physics object.
 #-------------------------------------------------------------------------------
 if svph:
     hydro = SVPH(dataBase = db,
                  W = WT,
-                 Q = q,
                  cfl = cfl,
                  useVelocityMagnitudeForDt = useVelocityMagnitudeForDt,
                  compatibleEnergyEvolution = compatibleEnergy,
@@ -330,7 +301,6 @@ if svph:
 elif crksph:
     hydro = CRKSPH(dataBase = db,
                    W = WT,
-                   Q = q,
                    filter = filter,
                    cfl = cfl,
                    useVelocityMagnitudeForDt = useVelocityMagnitudeForDt,
@@ -341,12 +311,11 @@ elif crksph:
                    volumeType = volumeType,
                    densityUpdate = densityUpdate,
                    HUpdate = HUpdate)
-    q.etaCritFrac = etaCritFrac
-    q.etaFoldFrac = etaFoldFrac
+    hydro.Q.etaCritFrac = etaCritFrac
+    hydro.Q.etaFoldFrac = etaFoldFrac
 elif psph:
     hydro = PSPH(dataBase = db,
                  W = WT,
-                 Q = q,
                  filter = filter,
                  cfl = cfl,
                  useVelocityMagnitudeForDt = useVelocityMagnitudeForDt,
@@ -359,7 +328,6 @@ elif psph:
 else:
     hydro = SPH(dataBase = db,
                 W = WT,
-                Q = q,
                 filter = filter,
                 cfl = cfl,
                 useVelocityMagnitudeForDt = useVelocityMagnitudeForDt,
@@ -382,6 +350,28 @@ output("hydro.HEvolution")
 
 packages = [hydro]
 
+#-------------------------------------------------------------------------------
+# Set the artificial viscosity parameters.
+#-------------------------------------------------------------------------------
+q = hydro.Q
+q.Cl = Cl
+q.Cq = Cq
+q.epsilon2 = epsilon2
+q.limiter = Qlimiter
+q.balsaraShearCorrection = balsaraCorrection
+q.QcorrectionOrder = QcorrectionOrder
+output("q")
+output("q.Cl")
+output("q.Cq")
+output("q.epsilon2")
+output("q.limiter")
+output("q.balsaraShearCorrection")
+try:
+    q.linearInExpansion = linearInExpansion
+    output("q.linearInExpansion")
+    output("q.quadraticInExpansion")
+except:
+   pass
 
 #-------------------------------------------------------------------------------
 # Construct the MMRV physics object.

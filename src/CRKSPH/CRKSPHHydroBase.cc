@@ -3,14 +3,7 @@
 //
 // Created by JMO, Mon Jul 19 22:11:09 PDT 2010
 //----------------------------------------------------------------------------//
-#include <limits.h>
-#include <float.h>
-#include <algorithm>
-#include <fstream>
-#include <map>
-#include <vector>
-
-#include "CRKSPHHydroBase.hh"
+#include "FileIO/FileIO.hh"
 #include "CRKSPHUtilities.hh"
 #include "computeVoronoiVolume.hh"
 #include "computeHullVolumes.hh"
@@ -55,13 +48,19 @@
 #include "Utilities/safeInv.hh"
 #include "Utilities/newtonRaphson.hh"
 #include "Utilities/SpheralFunctions.hh"
-#include "FileIO/FileIO.hh"
-
 #include "SPH/computeSPHSumMassDensity.hh"
 #include "Geometry/innerProduct.hh"
 #include "Geometry/outerProduct.hh"
-
 #include "Kernel/NBSplineKernel.hh"
+
+#include "CRKSPHHydroBase.hh"
+
+#include <limits.h>
+#include <float.h>
+#include <algorithm>
+#include <fstream>
+#include <map>
+#include <vector>
 
 namespace Spheral {
 namespace CRKSPHSpace {
@@ -146,47 +145,47 @@ CRKSPHHydroBase(const SmoothingScaleBase<Dimension>& smoothingScaleMethod,
   mDetectThreshold(detectThreshold),
   mSweepAngle(sweepAngle),
   mDetectRange(detectRange),
-  mCorrectionMin(0.25),
-  mCorrectionMax(2.0),
-  mTimeStepMask(FieldSpace::FieldStorageType::Copy),
-  mPressure(FieldSpace::FieldStorageType::Copy),
-  mSoundSpeed(FieldSpace::FieldStorageType::Copy),
-  mSpecificThermalEnergy0(FieldSpace::FieldStorageType::Copy),
-  mEntropy(FieldSpace::FieldStorageType::Copy),
-  mHideal(FieldSpace::FieldStorageType::Copy),
-  mMaxViscousPressure(FieldSpace::FieldStorageType::Copy),
-  mEffViscousPressure(FieldSpace::FieldStorageType::Copy),
-  mViscousWork(FieldSpace::FieldStorageType::Copy),
-  mVolume(FieldSpace::FieldStorageType::Copy),
-  mMassDensityGradient(FieldSpace::FieldStorageType::Copy),
-  mWeightedNeighborSum(FieldSpace::FieldStorageType::Copy),
-  mMassSecondMoment(FieldSpace::FieldStorageType::Copy),
-  mXSPHDeltaV(FieldSpace::FieldStorageType::Copy),
-  mDxDt(FieldSpace::FieldStorageType::Copy),
-  mDvDt(FieldSpace::FieldStorageType::Copy),
-  mDmassDensityDt(FieldSpace::FieldStorageType::Copy),
-  mDspecificThermalEnergyDt(FieldSpace::FieldStorageType::Copy),
-  mDHDt(FieldSpace::FieldStorageType::Copy),
-  mDvDx(FieldSpace::FieldStorageType::Copy),
-  mInternalDvDx(FieldSpace::FieldStorageType::Copy),
-  mPairAccelerations(FieldSpace::FieldStorageType::Copy),
-  mA(FieldSpace::FieldStorageType::Copy),
-  mB(FieldSpace::FieldStorageType::Copy),
-  mC(FieldSpace::FieldStorageType::Copy),
-  mGradA(FieldSpace::FieldStorageType::Copy),
-  mGradB(FieldSpace::FieldStorageType::Copy),
-  mGradC(FieldSpace::FieldStorageType::Copy),
-  mM0(FieldSpace::FieldStorageType::Copy),
-  mM1(FieldSpace::FieldStorageType::Copy),
-  mM2(FieldSpace::FieldStorageType::Copy),
-  mM3(FieldSpace::FieldStorageType::Copy),
-  mM4(FieldSpace::FieldStorageType::Copy),
-  mGradm0(FieldSpace::FieldStorageType::Copy),
-  mGradm1(FieldSpace::FieldStorageType::Copy),
-  mGradm2(FieldSpace::FieldStorageType::Copy),
-  mGradm3(FieldSpace::FieldStorageType::Copy),
-  mGradm4(FieldSpace::FieldStorageType::Copy),
-  mSurfacePoint(FieldSpace::FieldStorageType::Copy),
+  mCorrectionMin(std::numeric_limits<Scalar>::lowest()),
+  mCorrectionMax(std::numeric_limits<Scalar>::max()),
+  mTimeStepMask(FieldSpace::FieldStorageType::CopyFields),
+  mPressure(FieldSpace::FieldStorageType::CopyFields),
+  mSoundSpeed(FieldSpace::FieldStorageType::CopyFields),
+  mSpecificThermalEnergy0(FieldSpace::FieldStorageType::CopyFields),
+  mEntropy(FieldSpace::FieldStorageType::CopyFields),
+  mHideal(FieldSpace::FieldStorageType::CopyFields),
+  mMaxViscousPressure(FieldSpace::FieldStorageType::CopyFields),
+  mEffViscousPressure(FieldSpace::FieldStorageType::CopyFields),
+  mViscousWork(FieldSpace::FieldStorageType::CopyFields),
+  mVolume(FieldSpace::FieldStorageType::CopyFields),
+  mMassDensityGradient(FieldSpace::FieldStorageType::CopyFields),
+  mWeightedNeighborSum(FieldSpace::FieldStorageType::CopyFields),
+  mMassSecondMoment(FieldSpace::FieldStorageType::CopyFields),
+  mXSPHDeltaV(FieldSpace::FieldStorageType::CopyFields),
+  mDxDt(FieldSpace::FieldStorageType::CopyFields),
+  mDvDt(FieldSpace::FieldStorageType::CopyFields),
+  mDmassDensityDt(FieldSpace::FieldStorageType::CopyFields),
+  mDspecificThermalEnergyDt(FieldSpace::FieldStorageType::CopyFields),
+  mDHDt(FieldSpace::FieldStorageType::CopyFields),
+  mDvDx(FieldSpace::FieldStorageType::CopyFields),
+  mInternalDvDx(FieldSpace::FieldStorageType::CopyFields),
+  mPairAccelerations(FieldSpace::FieldStorageType::CopyFields),
+  mA(FieldSpace::FieldStorageType::CopyFields),
+  mB(FieldSpace::FieldStorageType::CopyFields),
+  mC(FieldSpace::FieldStorageType::CopyFields),
+  mGradA(FieldSpace::FieldStorageType::CopyFields),
+  mGradB(FieldSpace::FieldStorageType::CopyFields),
+  mGradC(FieldSpace::FieldStorageType::CopyFields),
+  mM0(FieldSpace::FieldStorageType::CopyFields),
+  mM1(FieldSpace::FieldStorageType::CopyFields),
+  mM2(FieldSpace::FieldStorageType::CopyFields),
+  mM3(FieldSpace::FieldStorageType::CopyFields),
+  mM4(FieldSpace::FieldStorageType::CopyFields),
+  mGradm0(FieldSpace::FieldStorageType::CopyFields),
+  mGradm1(FieldSpace::FieldStorageType::CopyFields),
+  mGradm2(FieldSpace::FieldStorageType::CopyFields),
+  mGradm3(FieldSpace::FieldStorageType::CopyFields),
+  mGradm4(FieldSpace::FieldStorageType::CopyFields),
+  mSurfacePoint(FieldSpace::FieldStorageType::CopyFields),
   mRestart(DataOutput::registerWithRestart(*this)) {
 }
 
@@ -383,8 +382,8 @@ registerState(DataBase<Dimension>& dataBase,
   // in order to enforce NodeList dependent limits.
   FieldList<Dimension, Scalar> massDensity = dataBase.fluidMassDensity();
   FieldList<Dimension, SymTensor> Hfield = dataBase.fluidHfield();
-  boost::shared_ptr<CompositeFieldListPolicy<Dimension, Scalar> > rhoPolicy(new CompositeFieldListPolicy<Dimension, Scalar>());
-  boost::shared_ptr<CompositeFieldListPolicy<Dimension, SymTensor> > Hpolicy(new CompositeFieldListPolicy<Dimension, SymTensor>());
+  std::shared_ptr<CompositeFieldListPolicy<Dimension, Scalar> > rhoPolicy(new CompositeFieldListPolicy<Dimension, Scalar>());
+  std::shared_ptr<CompositeFieldListPolicy<Dimension, SymTensor> > Hpolicy(new CompositeFieldListPolicy<Dimension, SymTensor>());
   for (typename DataBase<Dimension>::FluidNodeListIterator itr = dataBase.fluidNodeListBegin();
        itr != dataBase.fluidNodeListEnd();
        ++itr) {
@@ -652,6 +651,7 @@ evaluateDerivatives(const typename Dimension::Scalar time,
   const FieldList<Dimension, Vector> gradA = state.fields(HydroFieldNames::gradA_CRKSPH, Vector::zero);
   const FieldList<Dimension, Tensor> gradB = state.fields(HydroFieldNames::gradB_CRKSPH, Tensor::zero);
   const FieldList<Dimension, ThirdRankTensor> gradC = state.fields(HydroFieldNames::gradC_CRKSPH, ThirdRankTensor::zero);
+  const FieldList<Dimension, int> surfacePoint = state.fields(HydroFieldNames::surfacePoint, 0);
   CHECK(mass.size() == numNodeLists);
   CHECK(position.size() == numNodeLists);
   CHECK(velocity.size() == numNodeLists);
@@ -666,6 +666,7 @@ evaluateDerivatives(const typename Dimension::Scalar time,
   CHECK(gradA.size() == numNodeLists);
   CHECK(gradB.size() == numNodeLists or order == CRKOrder::ZerothOrder);
   CHECK(gradC.size() == numNodeLists or order != CRKOrder::QuadraticOrder);
+  CHECK(surfacePoint.size() == numNodeLists);
 
   // Derivative FieldLists.
   FieldList<Dimension, Vector> DxDt = derivatives.fields(IncrementFieldList<Dimension, Field<Dimension, Vector> >::prefix() + HydroFieldNames::position, Vector::zero);
@@ -715,6 +716,8 @@ evaluateDerivatives(const typename Dimension::Scalar time,
   }
 
   // Some scratch variables.
+  Scalar Ai, Aj;
+  Vector gradAi, gradAj;
   Vector Bi = Vector::zero, Bj = Vector::zero;
   Tensor Ci = Tensor::zero, Cj = Tensor::zero;
   Tensor gradBi = Tensor::zero, gradBj = Tensor::zero;
@@ -758,15 +761,24 @@ evaluateDerivatives(const typename Dimension::Scalar time,
       const Scalar Pi = pressure(nodeListi, i);
       const SymTensor& Hi = H(nodeListi, i);
       const Scalar ci = soundSpeed(nodeListi, i);
-      const Scalar Ai = A(nodeListi, i);
-      const Vector& gradAi = gradA(nodeListi, i);
-      if (order != CRKOrder::ZerothOrder) {
-        Bi = B(nodeListi, i);
-        gradBi = gradB(nodeListi, i);
-      }
-      if (order == CRKOrder::QuadraticOrder) {
-        Ci = C(nodeListi, i);
-        gradCi = gradC(nodeListi, i);
+      if (surfacePoint(nodeListi, i) == 0) {
+        Ai = A(nodeListi, i);
+        gradAi = gradA(nodeListi, i);
+        if (order != CRKOrder::ZerothOrder) {
+          Bi = B(nodeListi, i);
+          gradBi = gradB(nodeListi, i);
+        }
+        if (order == CRKOrder::QuadraticOrder) {
+          Ci = C(nodeListi, i);
+          gradCi = gradC(nodeListi, i);
+        }
+      } else {
+        Ai = 1.0;
+        Bi = Vector::zero;
+        Ci = Tensor::zero;
+        gradAi = Vector::zero;
+        gradBi = Tensor::zero;
+        gradCi = ThirdRankTensor::zero;
       }
       const Scalar Hdeti = Hi.Determinant();
       // const Scalar weighti = mi/rhoi;  // Change CRKSPH weights here if need be!
@@ -845,15 +857,24 @@ evaluateDerivatives(const typename Dimension::Scalar time,
               const Scalar Pj = pressure(nodeListj, j);
               const SymTensor& Hj = H(nodeListj, j);
               const Scalar cj = soundSpeed(nodeListj, j);
-              const Scalar Aj = A(nodeListj, j);
-              const Vector& gradAj = gradA(nodeListj, j);
-              if (order != CRKOrder::ZerothOrder) {
-                Bj = B(nodeListj, j);
-                gradBj = gradB(nodeListj, j);
-              }
-              if (order == CRKOrder::QuadraticOrder) {
-                Cj = C(nodeListj, j);
-                gradCj = gradC(nodeListj, j);
+              if (surfacePoint(nodeListj, j) == 0) {
+                Aj = A(nodeListj, j);
+                gradAj = gradA(nodeListj, j);
+                if (order != CRKOrder::ZerothOrder) {
+                  Bj = B(nodeListj, j);
+                  gradBj = gradB(nodeListj, j);
+                }
+                if (order == CRKOrder::QuadraticOrder) {
+                  Cj = C(nodeListj, j);
+                  gradCj = gradC(nodeListj, j);
+                }
+              } else {
+                Aj = 1.0;
+                Bj = Vector::zero;
+                Cj = Tensor::zero;
+                gradAj = Vector::zero;
+                gradBj = Tensor::zero;
+                gradCj = ThirdRankTensor::zero;
               }
               const Scalar Hdetj = Hj.Determinant();
               // const Scalar weightj = mj/rhoj;     // Change CRKSPH weights here if need be!

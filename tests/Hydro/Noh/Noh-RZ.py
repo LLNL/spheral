@@ -32,13 +32,11 @@ commandLine(problem = "planar",     # one of (planar, cylindrical, spherical)
 
             solid = False,    # If true, use the fluid limit of the solid hydro option
 
-            CRKSPH = False,
-            PSPH = False,
-            SPH = True,       # Choose the H advancement
+            crksph = False,
+            sph = True,       # Choose the H advancement
             evolveTotalEnergy = False,  # Only for SPH variants -- evolve total rather than specific energy
             Qconstructor = MonaghanGingoldViscosity,
             boolReduceViscosity = False,
-            HopkinsConductivity = False,     # For PSPH
             nhQ = 5.0,
             nhL = 10.0,
             aMin = 0.1,
@@ -126,33 +124,17 @@ assert problem in ("planar", "cylindrical", "spherical")
 rho0 = 1.0
 eps0 = 0.0
 
-if CRKSPH:
-    if solid:
-        if SPH:
-            HydroConstructor = SolidCRKSPHHydro
-        else:
-            HydroConstructor = SolidACRKSPHHydro
-    else:
-        if SPH:
-            HydroConstructor = CRKSPHHydro
-        else:
-            HydroConstructor = ACRKSPHHydro
+if crksph:
+    hydroname = "CRKSPH"
     Qconstructor = CRKSPHMonaghanGingoldViscosity
     gradhCorrection = False
 else:
-   if solid:
-      if SPH:
-         HydroConstructor = SolidSPHHydro
-      else:
-         HydroConstructor = SolidASPHHydro
-   else:
-      if SPH:
-         HydroConstructor = SPHHydro
-      else:
-         HydroConstructor = ASPHHydro
+    hydroname = "SPH"
+if solid:
+    hydroname = "Solid" + hydroname
 
 dataDir = os.path.join("dumps-%s-Noh-RZ" % problem,
-                       HydroConstructor.__name__,
+                       hydroname,
                        Qconstructor.__name__,
                        "nPerh=%f" % nPerh,
                        "compatibleEnergy=%s" % compatibleEnergy,
@@ -288,9 +270,54 @@ output("db.numNodeLists")
 output("db.numFluidNodeLists")
 
 #-------------------------------------------------------------------------------
-# Construct the artificial viscosity.
+# Construct the hydro physics object.
 #-------------------------------------------------------------------------------
-q = Qconstructor(Cl, Cq)
+if crksph:
+    hydro = CRKSPHRZ(dataBase = db,
+                     W = WT,
+                     filter = filter,
+                     cfl = cfl,
+                     useVelocityMagnitudeForDt = useVelocityMagnitudeForDt,
+                     compatibleEnergyEvolution = compatibleEnergy,
+                     evolveTotalEnergy = evolveTotalEnergy,
+                     XSPH = XSPH,
+                     correctionOrder = correctionOrder,
+                     volumeType = volumeType,
+                     densityUpdate = densityUpdate,
+                     HUpdate = HUpdate)
+    q.etaCritFrac = etaCritFrac
+    q.etaFoldFrac = etaFoldFrac
+else:
+    hydro = SPHRZ(dataBase = db,
+                  W = WT,
+                  filter = filter,
+                  cfl = cfl,
+                  useVelocityMagnitudeForDt = useVelocityMagnitudeForDt,
+                  compatibleEnergyEvolution = compatibleEnergy,
+                  evolveTotalEnergy = evolveTotalEnergy,
+                  gradhCorrection = gradhCorrection,
+                  correctVelocityGradient = correctVelocityGradient,
+                  densityUpdate = densityUpdate,
+                  HUpdate = HUpdate,
+                  XSPH = XSPH,
+                  epsTensile = epsilonTensile,
+                  nTensile = nTensile)
+output("hydro")
+output("hydro.kernel()")
+output("hydro.PiKernel()")
+output("hydro.cfl")
+output("hydro.compatibleEnergyEvolution")
+output("hydro.densityUpdate")
+output("hydro.HEvolution")
+
+packages = [hydro]
+
+#-------------------------------------------------------------------------------
+# Set the artificial viscosity parameters.
+#-------------------------------------------------------------------------------
+q = hydro.Q
+q.Cl = Cl
+q.Cq = Cq
 q.epsilon2 = epsilon2
 q.limiter = Qlimiter
 q.balsaraShearCorrection = balsaraCorrection
@@ -301,49 +328,6 @@ output("q.Cq")
 output("q.epsilon2")
 output("q.limiter")
 output("q.balsaraShearCorrection")
-
-#-------------------------------------------------------------------------------
-# Construct the hydro physics object.
-#-------------------------------------------------------------------------------
-if CRKSPH:
-    hydro = HydroConstructor(W = WT,
-                             Q = q,
-                             filter = filter,
-                             cfl = cfl,
-                             useVelocityMagnitudeForDt = useVelocityMagnitudeForDt,
-                             compatibleEnergyEvolution = compatibleEnergy,
-                             evolveTotalEnergy = evolveTotalEnergy,
-                             XSPH = XSPH,
-                             correctionOrder = correctionOrder,
-                             volumeType = volumeType,
-                             densityUpdate = densityUpdate,
-                             HUpdate = HUpdate)
-    q.etaCritFrac = etaCritFrac
-    q.etaFoldFrac = etaFoldFrac
-else:
-    hydro = HydroConstructor(W = WT,
-                             Q = q,
-                             filter = filter,
-                             cfl = cfl,
-                             useVelocityMagnitudeForDt = useVelocityMagnitudeForDt,
-                             compatibleEnergyEvolution = compatibleEnergy,
-                             evolveTotalEnergy = evolveTotalEnergy,
-                             gradhCorrection = gradhCorrection,
-                             correctVelocityGradient = correctVelocityGradient,
-                             densityUpdate = densityUpdate,
-                             HUpdate = HUpdate,
-                             XSPH = XSPH,
-                             epsTensile = epsilonTensile,
-                             nTensile = nTensile)
-output("hydro")
-output("hydro.kernel()")
-output("hydro.PiKernel()")
-output("hydro.cfl")
-output("hydro.compatibleEnergyEvolution")
-output("hydro.densityUpdate")
-output("hydro.HEvolution")
-
-packages = [hydro]
 
 #-------------------------------------------------------------------------------
 # Construct the MMRV physics object.
@@ -513,7 +497,7 @@ if graphics:
     Aplot.refresh()
     plots.append((Aplot, "Noh-planar-A.png"))
     
-    if CRKSPH:
+    if crksph:
         volPlot = plotFieldList(hydro.volume(), 
                                 winTitle = "volume",
                                 colorNodeLists = False, plotGhosts = False)

@@ -230,7 +230,7 @@ globalNodeIDs(const NodeListIterator& begin,
 
   // Prepare the result.
   const size_t numNodeLists = std::distance(begin, end);
-  FieldSpace::FieldList<Dimension, int> result(FieldSpace::FieldStorageType::Copy);
+  FieldSpace::FieldList<Dimension, int> result(FieldSpace::FieldStorageType::CopyFields);
   for (NodeListIterator itr = begin; itr != end; ++itr) {
     result.appendField(FieldSpace::Field<Dimension, int>("global IDs", **itr));
   }

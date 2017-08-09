@@ -7,14 +7,10 @@
 #ifndef __Spheral_TableKernel_hh__
 #define __Spheral_TableKernel_hh__
 
-#ifndef __GCCXML__
-#include <vector>
-#else
-#include "fakestl.hh"
-#endif
-
 #include "Kernel.hh"
 #include "Geometry/Dimension.hh"
+
+#include <vector>
 
 namespace Spheral {
 namespace KernelSpace {

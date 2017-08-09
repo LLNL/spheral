@@ -2,10 +2,7 @@
 // ArtificialViscosity -- The base class for all ArtificialViscosities in 
 // Spheral++.
 //----------------------------------------------------------------------------//
-
-#include <algorithm>
-
-#include "ArtificialViscosity.hh"
+#include "FileIO/FileIO.hh"
 #include "Hydro/HydroFieldNames.hh"
 #include "Boundary/Boundary.hh"
 #include "Kernel/TableKernel.hh"
@@ -15,7 +12,10 @@
 #include "Neighbor/ConnectivityMap.hh"
 #include "Utilities/rotationMatrix.hh"
 #include "Utilities/GeometricUtilities.hh"
-#include "FileIO/FileIO.hh"
+
+#include "ArtificialViscosity.hh"
+
+#include <algorithm>
 
 using namespace std;
 
@@ -44,17 +44,17 @@ ArtificialViscosity():
   mCquadratic(1.0),
   mQcorrectionOrder(CRKSPHSpace::CRKOrder::LinearOrder),  
   mBalsaraShearCorrection(false),
-  mClMultiplier(FieldSpace::FieldStorageType::Copy),
-  mCqMultiplier(FieldSpace::FieldStorageType::Copy),
-  mShearCorrection(FieldSpace::FieldStorageType::Copy),
+  mClMultiplier(FieldSpace::FieldStorageType::CopyFields),
+  mCqMultiplier(FieldSpace::FieldStorageType::CopyFields),
+  mShearCorrection(FieldSpace::FieldStorageType::CopyFields),
   mCalculateSigma(false),
   mLimiterSwitch(false),
   mEpsilon2(1.0e-2),
   mNegligibleSoundSpeed(1e-10),
   mCsMultiplier(1e-2),
   mEnergyMultiplier(1.0),
-  mSigma(FieldSpace::FieldStorageType::Copy),
-  mGradDivVelocity(FieldSpace::FieldStorageType::Copy),
+  mSigma(FieldSpace::FieldStorageType::CopyFields),
+  mGradDivVelocity(FieldSpace::FieldStorageType::CopyFields),
   mRestart(DataOutput::registerWithRestart(*this)) {
 }
 
@@ -68,17 +68,17 @@ ArtificialViscosity(Scalar Clinear, Scalar Cquadratic, CRKSPHSpace::CRKOrder Qco
   mCquadratic(Cquadratic),
   mQcorrectionOrder(QcorrectionOrder), 
   mBalsaraShearCorrection(false),
-  mClMultiplier(FieldSpace::FieldStorageType::Copy),
-  mCqMultiplier(FieldSpace::FieldStorageType::Copy),
-  mShearCorrection(FieldSpace::FieldStorageType::Copy),
+  mClMultiplier(FieldSpace::FieldStorageType::CopyFields),
+  mCqMultiplier(FieldSpace::FieldStorageType::CopyFields),
+  mShearCorrection(FieldSpace::FieldStorageType::CopyFields),
   mCalculateSigma(false),
   mLimiterSwitch(false),
   mEpsilon2(1.0e-2),
   mNegligibleSoundSpeed(1e-10),
   mCsMultiplier(1e-2),
   mEnergyMultiplier(1.0),
-  mSigma(FieldSpace::FieldStorageType::Copy),
-  mGradDivVelocity(FieldSpace::FieldStorageType::Copy),
+  mSigma(FieldSpace::FieldStorageType::CopyFields),
+  mGradDivVelocity(FieldSpace::FieldStorageType::CopyFields),
   mRestart(DataOutput::registerWithRestart(*this)) {
 }
 

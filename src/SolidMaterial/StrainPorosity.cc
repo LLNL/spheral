@@ -3,8 +3,7 @@
 // 
 // See header for references and such.
 //----------------------------------------------------------------------------//
-
-#include "StrainPorosity.hh"
+#include "FileIO/FileIO.hh"
 #include "Field/Field.hh"
 #include "Hydro/HydroFieldNames.hh"
 #include "Strength/SolidFieldNames.hh"
@@ -12,7 +11,8 @@
 #include "DataBase/IncrementState.hh"
 #include "DataBase/IncrementBoundedState.hh"
 #include "DataBase/IncrementFieldList.hh"
-#include "FileIO/FileIO.hh"
+
+#include "StrainPorosity.hh"
 
 namespace Spheral {
 namespace SolidMaterial {

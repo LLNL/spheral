@@ -45,7 +45,7 @@ computeSPHOmegaGradhCorrection(const ConnectivityMap<Dimension>& connectivityMap
   omegaGradh = 0.0;
 
   // Prepare a FieldList to hold the sum gradient.
-  FieldList<Dimension, Scalar> gradsum(FieldSpace::FieldStorageType::Copy);
+  FieldList<Dimension, Scalar> gradsum(FieldSpace::FieldStorageType::CopyFields);
   for (size_t nodeListi = 0; nodeListi != numNodeLists; ++nodeListi) {
     const NodeList<Dimension>& nodeList = omegaGradh[nodeListi]->nodeList();
     gradsum.appendNewField("sum of the gradient", nodeList, 0.0);
