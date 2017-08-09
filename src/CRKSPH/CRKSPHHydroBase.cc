@@ -651,6 +651,7 @@ evaluateDerivatives(const typename Dimension::Scalar time,
   const FieldList<Dimension, Vector> gradA = state.fields(HydroFieldNames::gradA_CRKSPH, Vector::zero);
   const FieldList<Dimension, Tensor> gradB = state.fields(HydroFieldNames::gradB_CRKSPH, Tensor::zero);
   const FieldList<Dimension, ThirdRankTensor> gradC = state.fields(HydroFieldNames::gradC_CRKSPH, ThirdRankTensor::zero);
+  const FieldList<Dimension, int> surfacePoint = state.fields(HydroFieldNames::surfacePoint, 0);
   CHECK(mass.size() == numNodeLists);
   CHECK(position.size() == numNodeLists);
   CHECK(velocity.size() == numNodeLists);
@@ -665,6 +666,7 @@ evaluateDerivatives(const typename Dimension::Scalar time,
   CHECK(gradA.size() == numNodeLists);
   CHECK(gradB.size() == numNodeLists or order == CRKOrder::ZerothOrder);
   CHECK(gradC.size() == numNodeLists or order != CRKOrder::QuadraticOrder);
+  CHECK(surfacePoint.size() == numNodeLists);
 
   // Derivative FieldLists.
   FieldList<Dimension, Vector> DxDt = derivatives.fields(IncrementFieldList<Dimension, Field<Dimension, Vector> >::prefix() + HydroFieldNames::position, Vector::zero);
@@ -714,6 +716,8 @@ evaluateDerivatives(const typename Dimension::Scalar time,
   }
 
   // Some scratch variables.
+  Scalar Ai, Aj;
+  Vector gradAi, gradAj;
   Vector Bi = Vector::zero, Bj = Vector::zero;
   Tensor Ci = Tensor::zero, Cj = Tensor::zero;
   Tensor gradBi = Tensor::zero, gradBj = Tensor::zero;
@@ -757,15 +761,24 @@ evaluateDerivatives(const typename Dimension::Scalar time,
       const Scalar Pi = pressure(nodeListi, i);
       const SymTensor& Hi = H(nodeListi, i);
       const Scalar ci = soundSpeed(nodeListi, i);
-      const Scalar Ai = A(nodeListi, i);
-      const Vector& gradAi = gradA(nodeListi, i);
-      if (order != CRKOrder::ZerothOrder) {
-        Bi = B(nodeListi, i);
-        gradBi = gradB(nodeListi, i);
-      }
-      if (order == CRKOrder::QuadraticOrder) {
-        Ci = C(nodeListi, i);
-        gradCi = gradC(nodeListi, i);
+      if (surfacePoint(nodeListi, i) == 0) {
+        Ai = A(nodeListi, i);
+        gradAi = gradA(nodeListi, i);
+        if (order != CRKOrder::ZerothOrder) {
+          Bi = B(nodeListi, i);
+          gradBi = gradB(nodeListi, i);
+        }
+        if (order == CRKOrder::QuadraticOrder) {
+          Ci = C(nodeListi, i);
+          gradCi = gradC(nodeListi, i);
+        }
+      } else {
+        Ai = 1.0;
+        Bi = Vector::zero;
+        Ci = Tensor::zero;
+        gradAi = Vector::zero;
+        gradBi = Tensor::zero;
+        gradCi = ThirdRankTensor::zero;
       }
       const Scalar Hdeti = Hi.Determinant();
       // const Scalar weighti = mi/rhoi;  // Change CRKSPH weights here if need be!
@@ -844,15 +857,24 @@ evaluateDerivatives(const typename Dimension::Scalar time,
               const Scalar Pj = pressure(nodeListj, j);
               const SymTensor& Hj = H(nodeListj, j);
               const Scalar cj = soundSpeed(nodeListj, j);
-              const Scalar Aj = A(nodeListj, j);
-              const Vector& gradAj = gradA(nodeListj, j);
-              if (order != CRKOrder::ZerothOrder) {
-                Bj = B(nodeListj, j);
-                gradBj = gradB(nodeListj, j);
-              }
-              if (order == CRKOrder::QuadraticOrder) {
-                Cj = C(nodeListj, j);
-                gradCj = gradC(nodeListj, j);
+              if (surfacePoint(nodeListj, j) == 0) {
+                Aj = A(nodeListj, j);
+                gradAj = gradA(nodeListj, j);
+                if (order != CRKOrder::ZerothOrder) {
+                  Bj = B(nodeListj, j);
+                  gradBj = gradB(nodeListj, j);
+                }
+                if (order == CRKOrder::QuadraticOrder) {
+                  Cj = C(nodeListj, j);
+                  gradCj = gradC(nodeListj, j);
+                }
+              } else {
+                Aj = 1.0;
+                Bj = Vector::zero;
+                Cj = Tensor::zero;
+                gradAj = Vector::zero;
+                gradBj = Tensor::zero;
+                gradCj = ThirdRankTensor::zero;
               }
               const Scalar Hdetj = Hj.Determinant();
               // const Scalar weightj = mj/rhoj;     // Change CRKSPH weights here if need be!
