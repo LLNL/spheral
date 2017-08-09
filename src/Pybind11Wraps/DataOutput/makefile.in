@@ -1,0 +1,19 @@
+# -*-makefile-*-
+# Spheral++ DataOutput pybind11 package makefile
+#-------------------------------------------------------------------------------
+srcdir = @abs_srcdir@
+VPATH = @abs_srcdir@
+SPHERALTOP = @abs_top_srcdir@
+BUILDTOP = @abs_top_builddir@
+
+PKGNAME = DataOutput
+PKGDIR = $(PKGNAME)/
+PYB11TARGET = Spheral$(PKGNAME).$(SHLIBEXT)
+
+SRCTARGETS += \
+	$(srcdir)/RestartableObject.cc \
+	$(srcdir)/SpheralDataOutput.cc
+
+#------------------------------------------------------------------------------
+include $(BUILDTOP)/helpers/makefile_master
+EXTRALIBS += $(LDRPATH)
