@@ -164,13 +164,13 @@ computeCRKSPHEvaluation(const ConnectivityMap<Dimension>& connectivityMap,
   for (size_t ii = 0; ii != Dimension::nDim; ++ii) {
     for (size_t jj = 0; jj != Dimension::nDim; ++jj) {
       for (size_t kk = 0; kk != Dimension::nDim; ++kk) {
-        gradA(ii) += A*A*m2inv(jj,kk)*m1(kk)*gradm1(jj,ii);
-        gradA(ii) += A*A*m2inv(jj,kk)*gradm1(kk,ii)*m1(jj);
-        gradB(ii,jj) -= m2inv(ii,kk)*gradm1(kk,jj);
+        // gradA(ii) += A*A*m2inv(jj,kk)*m1(kk)*gradm1(jj,ii);
+        // gradA(ii) += A*A*m2inv(jj,kk)*gradm1(kk,ii)*m1(jj);
+        // gradB(ii,jj) -= m2inv(ii,kk)*gradm1(kk,jj);
         for (size_t ll = 0; ll != Dimension::nDim; ++ll) {
           for (size_t mm = 0; mm != Dimension::nDim; ++mm) {
-            gradA(ii) -= A*A*m2inv(jj,kk)*gradm2(kk,ll,ii)*m2inv(ll,mm)*m1(mm)*m1(jj);
-            gradB(ii,jj) += m2inv(ii,kk)*gradm2(kk,ll,jj)*m2inv(ll,mm)*m1(mm);
+            // gradA(ii) -= A*A*m2inv(jj,kk)*gradm2(kk,ll,ii)*m2inv(ll,mm)*m1(mm)*m1(jj);
+            // gradB(ii,jj) += m2inv(ii,kk)*gradm2(kk,ll,jj)*m2inv(ll,mm)*m1(mm);
           }
         }
       }
