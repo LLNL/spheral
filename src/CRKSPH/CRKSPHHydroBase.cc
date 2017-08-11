@@ -990,7 +990,6 @@ evaluateDerivatives(const typename Dimension::Scalar time,
               // DepsDti += 0.5*weighti*weightj*(Pj*vij.dot(deltagrad) + workQij)/mi;    // CRK Q
               // DepsDtj += 0.5*weighti*weightj*(Pi*vij.dot(deltagrad) + workQij)/mj;    // CRK Q
 
-              const Scalar Pij = 0.5*(Pi + Pj);
               const Scalar DTEDtij = 0.5*weighti*weightj*(Pj*vij.dot(deltagrad) + workQi + 
                                                           Pi*vij.dot(deltagrad) + workQj);
               const Scalar fTEi = entropyWeighting(si, sj, DTEDtij);
