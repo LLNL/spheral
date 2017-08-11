@@ -132,9 +132,8 @@ gradientCRKSPH(const FieldSpace::FieldList<Dimension, DataType>& fieldList,
                                                                        firstGhostNodej)) {
 
               // The pair-wise modified weighting.
-              const Scalar wij = 0.5*(weight(nodeListi, i) + weight(nodeListj, j));
-              const Scalar wi = fij*wij;
-              const Scalar wj = fij*wij;
+              const Scalar wi = fij*weight(nodeListi, i);
+              const Scalar wj = fij*weight(nodeListj, j);
 
 	      // Get the state for node j.
 	      const Vector& rj = position(nodeListj, j);

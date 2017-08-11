@@ -21,6 +21,7 @@
 #include "volumeSpacing.hh"
 #include "NodeList/SmoothingScaleBase.hh"
 #include "Hydro/HydroFieldNames.hh"
+#include "Hydro/entropyWeightingFunction.hh"
 #include "Physics/GenericHydro.hh"
 #include "DataBase/State.hh"
 #include "DataBase/StateDerivatives.hh"
@@ -307,7 +308,7 @@ initializeProblemStartup(DataBase<Dimension>& dataBase) {
   const ArtificialViscosity<Dimension>& Q = this->artificialViscosity();
   mDvDx.assignFields(CRKSPHSpace::gradientCRKSPH(velocity, position, mVolume, H, mA, mB, mC, mGradA, mGradB, mGradC, connectivityMap, correctionOrder(), W, NodeCoupling()));
 
-  // Initialize the pressure and sound speed.
+  // Initialize the pressure, sound speed, and entropy.
   dataBase.fluidPressure(mPressure);
   dataBase.fluidSoundSpeed(mSoundSpeed);
   dataBase.fluidEntropy(mEntropy);
@@ -328,6 +329,7 @@ registerState(DataBase<Dimension>& dataBase,
   dataBase.resizeFluidFieldList(mTimeStepMask, 1, HydroFieldNames::timeStepMask);
   // dataBase.fluidPressure(mPressure);
   // dataBase.fluidSoundSpeed(mSoundSpeed);
+  dataBase.resizeFluidFieldList(mEntropy,    0.0,                   HydroFieldNames::entropy, false);
   dataBase.resizeFluidFieldList(mPressure,   0.0,                   HydroFieldNames::pressure, false);
   dataBase.resizeFluidFieldList(mSoundSpeed, 0.0,                   HydroFieldNames::soundSpeed, false);
   dataBase.resizeFluidFieldList(mVolume,     0.0,                   HydroFieldNames::volume, false);
@@ -358,7 +360,6 @@ registerState(DataBase<Dimension>& dataBase,
   // If we're using the compatibile energy discretization, prepare to maintain a copy
   // of the thermal energy.
   dataBase.resizeFluidFieldList(mSpecificThermalEnergy0, 0.0);
-  dataBase.resizeFluidFieldList(mEntropy, 0.0, HydroFieldNames::entropy, false);
   if (mCompatibleEnergyEvolution) {
     size_t nodeListi = 0;
     for (typename DataBase<Dimension>::FluidNodeListIterator itr = dataBase.fluidNodeListBegin();
@@ -411,6 +412,10 @@ registerState(DataBase<Dimension>& dataBase,
     state.enroll(position, positionPolicy);
   }
 
+  // Register the entropy.
+  PolicyPointer entropyPolicy(new EntropyPolicy<Dimension>());
+  state.enroll(mEntropy, entropyPolicy);
+
   // Are we using the compatible energy evolution scheme?
   FieldList<Dimension, Scalar> specificThermalEnergy = dataBase.fluidSpecificThermalEnergy();
   FieldList<Dimension, Vector> velocity = dataBase.fluidVelocity();
@@ -419,11 +424,9 @@ registerState(DataBase<Dimension>& dataBase,
     PolicyPointer thermalEnergyPolicy(new SpecificThermalEnergyPolicy<Dimension>(dataBase));
     PolicyPointer velocityPolicy(new IncrementFieldList<Dimension, Vector>(HydroFieldNames::position,
                                                                            HydroFieldNames::specificThermalEnergy));
-    PolicyPointer entropyPolicy(new EntropyPolicy<Dimension>());
     state.enroll(specificThermalEnergy, thermalEnergyPolicy);
     state.enroll(velocity, velocityPolicy);
     state.enroll(mSpecificThermalEnergy0);
-    state.enroll(mEntropy, entropyPolicy);
 
   } else if (mEvolveTotalEnergy) {
     // If we're doing total energy, we register the specific energy to advance with the
@@ -642,6 +645,7 @@ evaluateDerivatives(const typename Dimension::Scalar time,
   const FieldList<Dimension, Vector> velocity = state.fields(HydroFieldNames::velocity, Vector::zero);
   const FieldList<Dimension, Scalar> massDensity = state.fields(HydroFieldNames::massDensity, 0.0);
   const FieldList<Dimension, Scalar> specificThermalEnergy = state.fields(HydroFieldNames::specificThermalEnergy, 0.0);
+  const FieldList<Dimension, Scalar> entropy = state.fields(HydroFieldNames::entropy, Scalar());
   const FieldList<Dimension, SymTensor> H = state.fields(HydroFieldNames::H, SymTensor::zero);
   const FieldList<Dimension, Scalar> pressure = state.fields(HydroFieldNames::pressure, 0.0);
   const FieldList<Dimension, Scalar> soundSpeed = state.fields(HydroFieldNames::soundSpeed, 0.0);
@@ -656,6 +660,7 @@ evaluateDerivatives(const typename Dimension::Scalar time,
   CHECK(velocity.size() == numNodeLists);
   CHECK(massDensity.size() == numNodeLists);
   CHECK(specificThermalEnergy.size() == numNodeLists);
+  CHECK(entropy.size() == numNodeLists);
   CHECK(H.size() == numNodeLists);
   CHECK(pressure.size() == numNodeLists);
   CHECK(soundSpeed.size() == numNodeLists);
@@ -756,6 +761,7 @@ evaluateDerivatives(const typename Dimension::Scalar time,
       const Vector& vi = velocity(nodeListi, i);
       const Scalar rhoi = massDensity(nodeListi, i);
       const Scalar epsi = specificThermalEnergy(nodeListi, i);
+      const Scalar si = entropy(nodeListi, i);
       const Scalar Pi = pressure(nodeListi, i);
       const SymTensor& Hi = H(nodeListi, i);
       const Scalar ci = soundSpeed(nodeListi, i);
@@ -843,6 +849,7 @@ evaluateDerivatives(const typename Dimension::Scalar time,
               const Vector& vj = velocity(nodeListj, j);
               const Scalar rhoj = massDensity(nodeListj, j);
               const Scalar epsj = specificThermalEnergy(nodeListj, j);
+              const Scalar sj = entropy(nodeListj, j);
               const Scalar Pj = pressure(nodeListj, j);
               const SymTensor& Hj = H(nodeListj, j);
               const Scalar cj = soundSpeed(nodeListj, j);
@@ -934,14 +941,14 @@ evaluateDerivatives(const typename Dimension::Scalar time,
               const Scalar Qj = rhoj*rhoj*(QPiij.second.diagonalElements().maxAbsElement());
               maxViscousPressurei = max(maxViscousPressurei, 4.0*Qi);                                 // We need tighter timestep controls on the Q with CRK
               maxViscousPressurej = max(maxViscousPressurej, 4.0*Qj);
-              effViscousPressurei += wj * Qi * Wj;
-              effViscousPressurej += wi * Qj * Wi;
-              viscousWorki += 0.5*wi*wj/mi*workQi;
-              viscousWorkj += 0.5*wi*wj/mj*workQj;
+              effViscousPressurei += weightj * Qi * Wj;
+              effViscousPressurej += weighti * Qj * Wi;
+              viscousWorki += 0.5*weighti*weightj/mi*workQi;
+              viscousWorkj += 0.5*weighti*weightj/mj*workQj;
 
               // Velocity gradient.
-              const Tensor deltaDvDxi = -wj*vij.dyad(gradWj);
-              const Tensor deltaDvDxj =  wi*vij.dyad(gradWi);
+              const Tensor deltaDvDxi = -weightj*vij.dyad(gradWj);
+              const Tensor deltaDvDxj =  weighti*vij.dyad(gradWi);
               DvDxi += deltaDvDxi;
               DvDxj += deltaDvDxj;
               if (nodeListi == nodeListj) {
@@ -950,17 +957,17 @@ evaluateDerivatives(const typename Dimension::Scalar time,
               }
 
               // Mass density gradient.
-              gradRhoi += wj*(rhoj - rhoi)*gradWj;
-              gradRhoj += wi*(rhoi - rhoj)*gradWi;
+              gradRhoi += weightj*(rhoj - rhoi)*gradWj;
+              gradRhoj += weighti*(rhoi - rhoj)*gradWi;
 
               // Acceleration (CRKSPH form).
               CHECK(rhoi > 0.0);
               CHECK(rhoj > 0.0);
-              const Vector forceij  = 0.5*wi*wj*((Pi + Pj)*deltagrad + Qaccij);                    // <- Type III, with CRKSPH Q forces
-              // const Vector forceVi  = wi*wj*((Pi - Pj)*gradWj + QaccVi);                        // <- Type V, with CRKSPH Q forces, Non-conservative but consistent
-              // const Vector forceVj  = wi*wj*((Pj - Pi)*gradWi + QaccVj);                        // <- Type V, with CRKSPH Q forces, Non-conservative but consistent
-              // const Vector forceIi  = wi*wj*(Pj*gradWj + QaccIi);                               // <- Type I, with CRKSPH Q forces, Non-conservative but consistent
-              // const Vector forceIj  = wi*wj*(Pi*gradWi + QaccIj);                               // <- Type I, with CRKSPH Q forces, Non-conservative but consistent
+              const Vector forceij  = 0.5*weighti*weightj*((Pi + Pj)*deltagrad + Qaccij);                    // <- Type III, with CRKSPH Q forces
+              // const Vector forceVi  = weighti*weightj*((Pi - Pj)*gradWj + QaccVi);                        // <- Type V, with CRKSPH Q forces, Non-conservative but consistent
+              // const Vector forceVj  = weighti*weightj*((Pj - Pi)*gradWi + QaccVj);                        // <- Type V, with CRKSPH Q forces, Non-conservative but consistent
+              // const Vector forceIi  = weighti*weightj*(Pj*gradWj + QaccIi);                               // <- Type I, with CRKSPH Q forces, Non-conservative but consistent
+              // const Vector forceIj  = weighti*weightj*(Pi*gradWi + QaccIj);                               // <- Type I, with CRKSPH Q forces, Non-conservative but consistent
 
               DvDti -= forceij/mi; //CRK Acceleration
               DvDtj += forceij/mj; //CRK Acceleration
@@ -977,25 +984,32 @@ evaluateDerivatives(const typename Dimension::Scalar time,
               }
 
               // Specific thermal energy evolution.
-              // DepsDti += 0.5*wi*wj*Pj*vij.dot(deltagrad)/mi + mj*workQi;    // SPH Q
-              // DepsDtj += 0.5*wi*wj*Pi*vij.dot(deltagrad)/mj + mi*workQj;    // SPH Q
+              // DepsDti += 0.5*weighti*weightj*Pj*vij.dot(deltagrad)/mi + mj*workQi;    // SPH Q
+              // DepsDtj += 0.5*weighti*weightj*Pi*vij.dot(deltagrad)/mj + mi*workQj;    // SPH Q
 
-              // DepsDti += 0.5*wi*wj*(Pj*vij.dot(deltagrad) + workQij)/mi;    // CRK Q
-              // DepsDtj += 0.5*wi*wj*(Pi*vij.dot(deltagrad) + workQij)/mj;    // CRK Q
+              // DepsDti += 0.5*weighti*weightj*(Pj*vij.dot(deltagrad) + workQij)/mi;    // CRK Q
+              // DepsDtj += 0.5*weighti*weightj*(Pi*vij.dot(deltagrad) + workQij)/mj;    // CRK Q
 
-              DepsDti += 0.5*wi*wj*(Pj*vij.dot(deltagrad) + workQi)/mi;    // CRK Q
-              DepsDtj += 0.5*wi*wj*(Pi*vij.dot(deltagrad) + workQj)/mj;    // CRK Q
+              const Scalar Pij = 0.5*(Pi + Pj);
+              const Scalar DTEDtij = 0.5*weighti*weightj*(Pj*vij.dot(deltagrad) + workQi + 
+                                                          Pi*vij.dot(deltagrad) + workQj);
+              const Scalar fTEi = entropyWeighting(si, sj, DTEDtij);
+              DepsDti += fTEi*        DTEDtij/mi;
+              DepsDtj += (1.0 - fTEi)*DTEDtij/mj;
 
-              //DepsDti += wi*wj*(Pj*vij.dot(gradWj) + workQVi)/mi;    // RK V AND RK I (both equations are the same for Type I and V)
-              //DepsDtj -= wi*wj*(Pi*vij.dot(gradWi) + workQVj)/mj;    // RK V AND RK I (Note the minus sign!)
+              // DepsDti += 0.5*weighti*weightj*(Pj*vij.dot(deltagrad) + workQi)/mi;    // CRK Q
+              // DepsDtj += 0.5*weighti*weightj*(Pi*vij.dot(deltagrad) + workQj)/mj;    // CRK Q
+
+              //DepsDti += weighti*weightj*(Pj*vij.dot(gradWj) + workQVi)/mi;    // RK V AND RK I (both equations are the same for Type I and V)
+              //DepsDtj -= weighti*weightj*(Pi*vij.dot(gradWi) + workQVj)/mj;    // RK V AND RK I (Note the minus sign!)
 
               // Estimate of delta v (for XSPH).
               if (mXSPH and (nodeListi == nodeListj)) {
-                  XSPHDeltaVi -= wj*Wj*vij;
-                  XSPHDeltaVj += wi*Wi*vij;
+                  XSPHDeltaVi -= weightj*Wj*vij;
+                  XSPHDeltaVj += weighti*Wi*vij;
               }
                 
-              //surfNormi += rij*Wj*wj;
+              //surfNormi += rij*Wj*weightj;
             }
           }
         }
@@ -1289,11 +1303,11 @@ applyGhostBoundaries(State<Dimension>& state,
   FieldList<Dimension, Vector> velocity = state.fields(HydroFieldNames::velocity, Vector::zero);
   FieldList<Dimension, Scalar> pressure = state.fields(HydroFieldNames::pressure, 0.0);
   FieldList<Dimension, Scalar> soundSpeed = state.fields(HydroFieldNames::soundSpeed, 0.0);
+  FieldList<Dimension, Scalar> entropy = state.fields(HydroFieldNames::entropy, 0.0);
 
-  FieldList<Dimension, Scalar> specificThermalEnergy0, entropy;
+  FieldList<Dimension, Scalar> specificThermalEnergy0;
   if (compatibleEnergyEvolution()) {
     specificThermalEnergy0 = state.fields(HydroFieldNames::specificThermalEnergy + "0", 0.0);
-    entropy = state.fields(HydroFieldNames::entropy, 0.0);
   }
 
   FieldList<Dimension, Scalar> A = state.fields(HydroFieldNames::A_CRKSPH, 0.0);
@@ -1314,9 +1328,9 @@ applyGhostBoundaries(State<Dimension>& state,
     (*boundaryItr)->applyFieldListGhostBoundary(velocity);
     (*boundaryItr)->applyFieldListGhostBoundary(pressure);
     (*boundaryItr)->applyFieldListGhostBoundary(soundSpeed);
+    (*boundaryItr)->applyFieldListGhostBoundary(entropy);
     if (compatibleEnergyEvolution()) {
       (*boundaryItr)->applyFieldListGhostBoundary(specificThermalEnergy0);
-      (*boundaryItr)->applyFieldListGhostBoundary(entropy);
     }
     (*boundaryItr)->applyFieldListGhostBoundary(A);
     (*boundaryItr)->applyFieldListGhostBoundary(B);
@@ -1345,11 +1359,11 @@ enforceBoundaries(State<Dimension>& state,
   FieldList<Dimension, Vector> velocity = state.fields(HydroFieldNames::velocity, Vector::zero);
   FieldList<Dimension, Scalar> pressure = state.fields(HydroFieldNames::pressure, 0.0);
   FieldList<Dimension, Scalar> soundSpeed = state.fields(HydroFieldNames::soundSpeed, 0.0);
+  FieldList<Dimension, Scalar> entropy = state.fields(HydroFieldNames::entropy, 0.0);
 
-  FieldList<Dimension, Scalar> specificThermalEnergy0, entropy;
+  FieldList<Dimension, Scalar> specificThermalEnergy0;
   if (compatibleEnergyEvolution()) {
     specificThermalEnergy0 = state.fields(HydroFieldNames::specificThermalEnergy + "0", 0.0);
-    entropy = state.fields(HydroFieldNames::entropy, 0.0);
   }
 
   FieldList<Dimension, Scalar> A = state.fields(HydroFieldNames::A_CRKSPH, 0.0);
@@ -1370,9 +1384,9 @@ enforceBoundaries(State<Dimension>& state,
     (*boundaryItr)->enforceFieldListBoundary(velocity);
     (*boundaryItr)->enforceFieldListBoundary(pressure);
     (*boundaryItr)->enforceFieldListBoundary(soundSpeed);
+    (*boundaryItr)->enforceFieldListBoundary(entropy);
     if (compatibleEnergyEvolution()) {
       (*boundaryItr)->enforceFieldListBoundary(specificThermalEnergy0);
-      (*boundaryItr)->enforceFieldListBoundary(entropy);
     }
     (*boundaryItr)->enforceFieldListBoundary(A);
     (*boundaryItr)->enforceFieldListBoundary(B);
