@@ -145,9 +145,9 @@ computeCRKSPHMoments(const ConnectivityMap<Dimension>& connectivityMap,
             CHECK(fij >= 0.0 and fij <= 1.0);
 
             // Node weighting with pair-wise coupling.
-            const Scalar wmax = 10.0*min(weight(nodeListi, i), weight(nodeListj, j));
-            const Scalar wi = min(wmax, weight(nodeListi, i));
-            const Scalar wj = min(wmax, weight(nodeListj, j));
+            const Scalar wij = 0.5*(weight(nodeListi, i) + weight(nodeListj, j));
+            const Scalar wi = wij;
+            const Scalar wj = wij;
 
             // Kernel weighting and gradient.
             const Vector rij = ri - rj;

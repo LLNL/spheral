@@ -868,9 +868,9 @@ evaluateDerivatives(const typename Dimension::Scalar time,
               CHECK(weightj > 0.0);
 
               // We limit how discrepant the internode weighting can be.
-              const Scalar wijmax = 10.0*min(weighti, weightj);
-              const Scalar wi = min(wijmax, weighti);
-              const Scalar wj = min(wijmax, weightj);
+              const Scalar wij = 0.5*(weighti + weightj);
+              const Scalar wi = wij;
+              const Scalar wj = wij;
 
               Vector& DxDtj = DxDt(nodeListj, j);
               Scalar& DrhoDtj = DrhoDt(nodeListj, j);
