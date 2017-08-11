@@ -12,6 +12,7 @@
 
 #include "SpecificThermalEnergyPolicy.hh"
 #include "HydroFieldNames.hh"
+#include "entropyWeightingFunction.hh"
 #include "NodeList/NodeList.hh"
 #include "NodeList/FluidNodeList.hh"
 #include "DataBase/DataBase.hh"
@@ -149,37 +150,6 @@ double weighting(const double& ui,
 //     return monotonicWeighting(ui, uj, mi, mj, mi*duij*dt);
 //   }
 // }
-
-//------------------------------------------------------------------------------
-// The entropy weighted energy form.
-//------------------------------------------------------------------------------
-inline
-double
-entropyWeighting(const double si,
-                 const double sj,
-                 const double duij) {
-  double result = 0.5;
-  const double smin = min(abs(si), abs(sj));
-  const double smax = max(abs(si), abs(sj));
-  if (smax > 1.0e-15) {
-    CHECK(smin + smax > 1.0e-15);
-    if (duij > 0.0) {    // Heating
-      if (si > sj) {
-        result = smin/(smin + smax);
-      } else {
-        result = smax/(smin + smax);
-      }
-    } else {             // Cooling
-      if (si > sj) {
-        result = smax/(smin + smax);
-      } else {
-        result = smin/(smin + smax);
-      }
-    }
-  }
-  CHECK(result >= 0.0 and result <= 1.0);
-  return result;
-}
 
 }
 

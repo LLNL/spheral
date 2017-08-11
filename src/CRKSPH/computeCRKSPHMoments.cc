@@ -106,6 +106,7 @@ computeCRKSPHMoments(const ConnectivityMap<Dimension>& connectivityMap,
       const int i = *iItr;
 
       // Get the state for node i.
+      const Scalar wi = weight(nodeListi, i);
       const Vector& ri = position(nodeListi, i);
       const SymTensor& Hi = H(nodeListi, i);
       const Scalar Hdeti = Hi.Determinant();
@@ -136,6 +137,7 @@ computeCRKSPHMoments(const ConnectivityMap<Dimension>& connectivityMap,
                                                        firstGhostNodej)) {
 
             // State of node j.
+            const Scalar wj = weight(nodeListj, j);
             const Vector& rj = position(nodeListj, j);
             const SymTensor& Hj = H(nodeListj, j);
             const Scalar Hdetj = Hj.Determinant();
@@ -143,11 +145,6 @@ computeCRKSPHMoments(const ConnectivityMap<Dimension>& connectivityMap,
             // Find the pair weighting scaling.
             const double fij = nodeCoupling(nodeListi, i, nodeListj, j);
             CHECK(fij >= 0.0 and fij <= 1.0);
-
-            // Node weighting with pair-wise coupling.
-            const Scalar wij = 0.5*(weight(nodeListi, i) + weight(nodeListj, j));
-            const Scalar wi = wij;
-            const Scalar wj = wij;
 
             // Kernel weighting and gradient.
             const Vector rij = ri - rj;
