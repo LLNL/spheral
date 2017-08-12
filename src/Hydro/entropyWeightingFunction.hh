@@ -17,7 +17,7 @@ double
 entropyWeighting(const double si,
                  const double sj,
                  const double duij) {
-  const double smin = std::min(si, sj);
+  const double smin = std::min(0.0, std::min(si, sj));
   const double ssi = si - smin;
   const double ssj = sj - smin;
   CHECK(ssi >= 0.0 and ssj >= 0.0);

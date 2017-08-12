@@ -17,6 +17,7 @@
 #include "Physics/GenericHydro.hh"
 #include "NodeList/SmoothingScaleBase.hh"
 #include "Hydro/HydroFieldNames.hh"
+#include "Hydro/entropyWeightingFunction.hh"
 #include "Strength/SolidFieldNames.hh"
 #include "NodeList/SolidNodeList.hh"
 #include "Strength/DeviatoricStressPolicy.hh"
@@ -459,6 +460,7 @@ evaluateDerivatives(const typename Dimension::Scalar time,
   const FieldList<Dimension, Vector> velocity = state.fields(HydroFieldNames::velocity, Vector::zero);
   const FieldList<Dimension, Scalar> massDensity = state.fields(HydroFieldNames::massDensity, 0.0);
   const FieldList<Dimension, Scalar> specificThermalEnergy = state.fields(HydroFieldNames::specificThermalEnergy, 0.0);
+  const FieldList<Dimension, Scalar> entropy = state.fields(HydroFieldNames::entropy, Scalar());
   const FieldList<Dimension, SymTensor> H = state.fields(HydroFieldNames::H, SymTensor::zero);
   const FieldList<Dimension, Scalar> pressure = state.fields(HydroFieldNames::pressure, 0.0);
   const FieldList<Dimension, Scalar> soundSpeed = state.fields(HydroFieldNames::soundSpeed, 0.0);
@@ -484,6 +486,7 @@ evaluateDerivatives(const typename Dimension::Scalar time,
   CHECK(velocity.size() == numNodeLists);
   CHECK(massDensity.size() == numNodeLists);
   CHECK(specificThermalEnergy.size() == numNodeLists);
+  CHECK(entropy.size() == numNodeLists);
   CHECK(H.size() == numNodeLists);
   CHECK(pressure.size() == numNodeLists);
   CHECK(soundSpeed.size() == numNodeLists);
@@ -604,6 +607,7 @@ evaluateDerivatives(const typename Dimension::Scalar time,
       const Vector& vi = velocity(nodeListi, i);
       const Scalar& rhoi = massDensity(nodeListi, i);
       const Scalar& epsi = specificThermalEnergy(nodeListi, i);
+      const Scalar si = entropy(nodeListi, i);
       const Scalar& Pi = pressure(nodeListi, i);
       const SymTensor& Hi = H(nodeListi, i);
       const Scalar& ci = soundSpeed(nodeListi, i);
@@ -682,6 +686,7 @@ evaluateDerivatives(const typename Dimension::Scalar time,
               const Vector& vj = velocity(nodeListj, j);
               const Scalar& rhoj = massDensity(nodeListj, j);
               const Scalar& epsj = specificThermalEnergy(nodeListj, j);
+              const Scalar sj = entropy(nodeListj, j);
               const Scalar& Pj = pressure(nodeListj, j);
               const SymTensor& Hj = H(nodeListj, j);
               const Scalar& cj = soundSpeed(nodeListj, j);
@@ -817,8 +822,12 @@ evaluateDerivatives(const typename Dimension::Scalar time,
               }
 
               // Specific thermal energy evolution.
-              DepsDti += 0.5*weighti*weightj*(Pposj*vij.dot(deltagrad) + fij*sigmaj.dot(vij).dot(deltagraddam) + workQi)/mi;
-              DepsDtj += 0.5*weighti*weightj*(Pposi*vij.dot(deltagrad) + fij*sigmai.dot(vij).dot(deltagraddam) + workQj)/mj;
+              const Scalar DTEDtij = 0.5*weighti*weightj*(Pposj*vij.dot(deltagrad) + fij*sigmaj.dot(vij).dot(deltagraddam) + workQi +
+                                                          Pposi*vij.dot(deltagrad) + fij*sigmai.dot(vij).dot(deltagraddam) + workQj);
+              // const Scalar DTEDtij = forceij.dot(vij);
+              const Scalar fTEi = entropyWeighting(si, sj, DTEDtij);
+              DepsDti += fTEi*        DTEDtij/mi;
+              DepsDtj += (1.0 - fTEi)*DTEDtij/mj;
 
               // Estimate of delta v (for XSPH).
               XSPHDeltaVi -= fij*weightj*Wj*vij;
