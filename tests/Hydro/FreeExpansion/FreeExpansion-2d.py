@@ -45,10 +45,6 @@ commandLine(nr = 100,
             gamma = 5.0/3.0,
             mu = 1.0,
 
-            nPerh = 1.51,
-
-            order = 3,
-            Qconstructor = MonaghanGingoldViscosity,
             hmin = 0.0001, 
             hmax = 1.0,
             cfl = 0.25,
@@ -91,10 +87,16 @@ commandLine(nr = 100,
 
 if svph:
     hydroname = "SVPH"
+    nPerh = 1.51
+    order = 3
 elif crksph:
     hydroname = "CRKSPH"
+    nPerh = 1.51
+    order = 5
 else:
     hydroname = "SPH"
+    nPerh = 1.51
+    order = 5
 
 dataDir = os.path.join(dataDirBase,
                        hydroname,
@@ -189,6 +191,7 @@ if svph:
     hydro = SVPH(dataBase = db,
                  W = WT, 
                  cfl = cfl,
+                 useVelocityMagnitudeForDt = True,
                  compatibleEnergyEvolution = compatibleEnergy,
                  XSVPH = XSPH,
                  linearConsistent = linearConsistent,
@@ -201,6 +204,7 @@ elif crksph:
                    W = WT, 
                    filter = filter,
                    cfl = cfl,
+                   useVelocityMagnitudeForDt = True,
                    compatibleEnergyEvolution = compatibleEnergy,
                    XSPH = XSPH,
                    densityUpdate = densityUpdate,
@@ -211,6 +215,7 @@ else:
     hydro = SPH(dataBase = db,
                 W = WT, 
                 cfl = cfl,
+                useVelocityMagnitudeForDt = True,
                 compatibleEnergyEvolution = compatibleEnergy,
                 gradhCorrection = gradhCorrection,
                 XSPH = XSPH,

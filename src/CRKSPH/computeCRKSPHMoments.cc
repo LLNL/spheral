@@ -106,13 +106,13 @@ computeCRKSPHMoments(const ConnectivityMap<Dimension>& connectivityMap,
       const int i = *iItr;
 
       // Get the state for node i.
-      const Scalar wi = weight(nodeListi, i);
+      const Scalar weighti = weight(nodeListi, i);
       const Vector& ri = position(nodeListi, i);
       const SymTensor& Hi = H(nodeListi, i);
       const Scalar Hdeti = Hi.Determinant();
 
       // Self contribution.
-      const Scalar wwi = weight(nodeListi, i)*W(0.0, 1.0);
+      const Scalar wwi = weighti*W(0.0, 1.0);
       m0(nodeListi, i) += wwi;
       gradm1(nodeListi, i) += Tensor::one*wwi;
 
@@ -137,10 +137,15 @@ computeCRKSPHMoments(const ConnectivityMap<Dimension>& connectivityMap,
                                                        firstGhostNodej)) {
 
             // State of node j.
-            const Scalar wj = weight(nodeListj, j);
+            const Scalar weightj = weight(nodeListj, j);
             const Vector& rj = position(nodeListj, j);
             const SymTensor& Hj = H(nodeListj, j);
             const Scalar Hdetj = Hj.Determinant();
+
+            // Find the effective weights of i->j and j->i.
+            const Scalar wmaxij = 100.0*std::min(weighti, weightj);
+            const Scalar wi = std::min(wmaxij, 0.5*(weighti + weightj));
+            const Scalar wj = wi;
 
             // Find the pair weighting scaling.
             const double fij = nodeCoupling(nodeListi, i, nodeListj, j);

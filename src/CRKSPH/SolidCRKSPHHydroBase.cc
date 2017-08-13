@@ -728,6 +728,11 @@ evaluateDerivatives(const typename Dimension::Scalar time,
               Scalar& weightedNeighborSumj = weightedNeighborSum(nodeListj, j);
               SymTensor& massSecondMomentj = massSecondMoment(nodeListj, j);
 
+              // Find the effective weights of i->j and j->i.
+              const Scalar wmaxij = 100.0*std::min(weighti, weightj);
+              const Scalar wi = std::min(0.5*(weighti + weightj),  wmaxij);
+              const Scalar wj = wi;
+
               // Node displacement.
               const Vector rij = ri - rj;
               const Vector etai = Hi*rij;
@@ -776,16 +781,16 @@ evaluateDerivatives(const typename Dimension::Scalar time,
               const Scalar Qj = rhoj*rhoj*(QPiij.second.diagonalElements().maxAbsElement());
               maxViscousPressurei = max(maxViscousPressurei, 4.0*Qi);                                 // We need tighter timestep controls on the Q with CRK
               maxViscousPressurej = max(maxViscousPressurej, 4.0*Qj);
-              effViscousPressurei += weightj * Qi * Wj;
-              effViscousPressurej += weighti * Qj * Wi;
-              viscousWorki += 0.5*weighti*weightj/mi*workQi;
-              viscousWorkj += 0.5*weighti*weightj/mj*workQj;
+              effViscousPressurei += wj * Qi * Wj;
+              effViscousPressurej += wi * Qj * Wi;
+              viscousWorki += 0.5*wi*wj/mi*workQi;
+              viscousWorkj += 0.5*wi*wj/mj*workQj;
 
               // Velocity gradient.
-              DvDxi -= weightj*vij.dyad(gradWj);
-              DvDxj += weighti*vij.dyad(gradWi);
-              localDvDxi -= fij*weightj*vij.dyad(gradWdamj);
-              localDvDxj += fij*weighti*vij.dyad(gradWdami);
+              DvDxi -= wj*vij.dyad(gradWj);
+              DvDxj += wi*vij.dyad(gradWi);
+              localDvDxi -= fij*wj*vij.dyad(gradWdamj);
+              localDvDxj += fij*wi*vij.dyad(gradWdami);
 
               // We treat positive and negative pressures distinctly, so split 'em up.
               const Scalar Pposi = max(0.0, Pi),
@@ -813,7 +818,7 @@ evaluateDerivatives(const typename Dimension::Scalar time,
               CHECK(rhoi > 0.0);
               CHECK(rhoj > 0.0);
               Vector deltaDvDti, deltaDvDtj;
-              const Vector forceij  = 0.5*weighti*weightj*((Pposi + Pposj)*deltagrad - fij*(sigmai + sigmaj)*deltagraddam + Qaccij);
+              const Vector forceij  = 0.5*wi*wj*((Pposi + Pposj)*deltagrad - fij*(sigmai + sigmaj)*deltagraddam + Qaccij);
               DvDti -= forceij/mi;
               DvDtj += forceij/mj;
               if (compatibleEnergy) {
@@ -822,16 +827,16 @@ evaluateDerivatives(const typename Dimension::Scalar time,
               }
 
               // Specific thermal energy evolution.
-              const Scalar DTEDtij = 0.5*weighti*weightj*(Pposj*vij.dot(deltagrad) + fij*sigmaj.dot(vij).dot(deltagraddam) + workQi +
-                                                          Pposi*vij.dot(deltagrad) + fij*sigmai.dot(vij).dot(deltagraddam) + workQj);
+              const Scalar DTEDtij = 0.5*wi*wj*(Pposj*vij.dot(deltagrad) + fij*sigmaj.dot(vij).dot(deltagraddam) + workQi +
+                                                Pposi*vij.dot(deltagrad) + fij*sigmai.dot(vij).dot(deltagraddam) + workQj);
               // const Scalar DTEDtij = forceij.dot(vij);
               const Scalar fTEi = entropyWeighting(si, sj, DTEDtij);
               DepsDti += fTEi*        DTEDtij/mi;
               DepsDtj += (1.0 - fTEi)*DTEDtij/mj;
 
               // Estimate of delta v (for XSPH).
-              XSPHDeltaVi -= fij*weightj*Wj*vij;
-              XSPHDeltaVj += fij*weighti*Wi*vij;
+              XSPHDeltaVi -= fij*wj*Wj*vij;
+              XSPHDeltaVj += fij*wi*Wi*vij;
             }
           }
         }
