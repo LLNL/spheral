@@ -108,6 +108,7 @@ commandLine(seed = "lattice",
             initialBreakRadius = 0.0,
             
             crksph = False,
+            ASPH = True,
             hmin = 1e-5,
             hmax = 1.0,
             hminratio = 0.05,
