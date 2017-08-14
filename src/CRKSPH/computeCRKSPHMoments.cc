@@ -143,8 +143,7 @@ computeCRKSPHMoments(const ConnectivityMap<Dimension>& connectivityMap,
             const Scalar Hdetj = Hj.Determinant();
 
             // Find the effective weights of i->j and j->i.
-            const Scalar wmaxij = 100.0*std::min(weighti, weightj);
-            const Scalar wi = std::min(wmaxij, 0.5*(weighti + weightj));
+            const Scalar wi = 0.5*(weighti + weightj);
             const Scalar wj = wi;
 
             // Find the pair weighting scaling.

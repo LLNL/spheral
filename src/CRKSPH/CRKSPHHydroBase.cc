@@ -884,8 +884,7 @@ evaluateDerivatives(const typename Dimension::Scalar time,
               Vector& gradRhoj = gradRho(nodeListj, j);
 
               // Find the effective weights of i->j and j->i.
-              const Scalar wmaxij = 100.0*std::min(weighti, weightj);
-              const Scalar wi = std::min(0.5*(weighti + weightj),  wmaxij);
+              const Scalar wi = 0.5*(weighti + weightj);
               const Scalar wj = wi;
 
               // Node displacement.
