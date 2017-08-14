@@ -435,6 +435,7 @@ evaluateDerivatives(const typename Dimension::Scalar time,
   // The kernels and such.
   const TableKernel<Dimension>& W = this->kernel();
   const TableKernel<Dimension>& WQ = this->PiKernel();
+  const Scalar W0 = W.kernelValue(0.0, 1.0);
   const SmoothingScaleBase<Dimension>& smoothingScaleMethod = this->smoothingScaleMethod();
 
   // A few useful constants we'll use in the following loop.
@@ -481,6 +482,7 @@ evaluateDerivatives(const typename Dimension::Scalar time,
   const FieldList<Dimension, Vector> gradAdamage = state.fields(HydroFieldNames::gradA_CRKSPH + " damage", Vector::zero);
   const FieldList<Dimension, Tensor> gradBdamage = state.fields(HydroFieldNames::gradB_CRKSPH + " damage", Tensor::zero);
   const FieldList<Dimension, ThirdRankTensor> gradCdamage = state.fields(HydroFieldNames::gradC_CRKSPH + " damage", ThirdRankTensor::zero);
+  const FieldList<Dimension, int> surfacePoint = state.fields(HydroFieldNames::surfacePoint, 0);
   CHECK(mass.size() == numNodeLists);
   CHECK(position.size() == numNodeLists);
   CHECK(velocity.size() == numNodeLists);
@@ -507,6 +509,7 @@ evaluateDerivatives(const typename Dimension::Scalar time,
   CHECK(gradAdamage.size() == numNodeLists);
   CHECK(gradBdamage.size() == numNodeLists);
   CHECK(gradCdamage.size() == numNodeLists or order != CRKOrder::QuadraticOrder);
+  CHECK(surfacePoint.size() == numNodeLists);
 
   // Derivative FieldLists.
   FieldList<Dimension, Vector> DxDt = derivatives.fields(IncrementFieldList<Dimension, Vector>::prefix() + HydroFieldNames::position, Vector::zero);
@@ -559,6 +562,7 @@ evaluateDerivatives(const typename Dimension::Scalar time,
   Tensor Ci = Tensor::zero, Cj = Tensor::zero, Cdami = Tensor::zero, Cdamj = Tensor::zero;
   Tensor gradBi = Tensor::zero, gradBj = Tensor::zero, gradBdami = Tensor::zero, gradBdamj = Tensor::zero;
   ThirdRankTensor gradCi = ThirdRankTensor::zero, gradCj = ThirdRankTensor::zero, gradCdami = ThirdRankTensor::zero, gradCdamj = ThirdRankTensor::zero;
+  Vector deltagradi, deltagradj, deltagraddami, deltagraddamj;
 
   // Start our big loop over all FluidNodeLists.
   size_t nodeListi = 0;
@@ -654,6 +658,15 @@ evaluateDerivatives(const typename Dimension::Scalar time,
       SymTensor& massSecondMomenti = massSecondMoment(nodeListi, i);
       SymTensor& DSDti = DSDt(nodeListi, i);
       Scalar& worki = workFieldi(i);
+
+      // If this is a surface point, it's straight RK and there are self-contributions.
+      if (surfacePoint(nodeListi, i) == 1) {
+        Vector selfforceIi  = weighti*weighti*Pi*W0*(gradAi);  // <- Type I self-interaction. I think there is no Q term here? Dont know what it would be. 
+        if (order != CRKOrder::ZerothOrder) {
+          selfforceIi = weighti*weighti*Pi*W0*(Ai*Bi+gradAi); //For linear RK (quadratic RK is the same)
+        }
+        DvDti -= selfforceIi/mi;                             //RK I Acceleration 
+      }
 
       // Get the connectivity info for this node.
       const vector< vector<int> >& fullConnectivity = connectivityMap.connectivityForNode(&nodeList, i);
@@ -752,8 +765,10 @@ evaluateDerivatives(const typename Dimension::Scalar time,
               CRKSPHKernelAndGradient(Wi, gWi, gradWi, W, CRKSPHHydroBase<Dimension>::correctionOrder(), -rij, -etaj, Hj, Hdetj, -etai, Hi, Hdeti, Aj, Bj, Cj, gradAj, gradBj, gradCj, correctionMin, correctionMax);
               CRKSPHKernelAndGradient(Wdamj, gWdamj, gradWdamj, W, CRKSPHHydroBase<Dimension>::correctionOrder(),  rij,  etai, Hi, Hdeti,  etaj, Hj, Hdetj, Adami, Bdami, Cdami, gradAdami, gradBdami, gradCdami, correctionMin, correctionMax);
               CRKSPHKernelAndGradient(Wdami, gWdami, gradWdami, W, CRKSPHHydroBase<Dimension>::correctionOrder(), -rij, -etaj, Hj, Hdetj, -etai, Hi, Hdeti, Adamj, Bdamj, Cdamj, gradAdamj, gradBdamj, gradCdamj, correctionMin, correctionMax);
-              const Vector deltagrad = gradWj - gradWi;
-              const Vector deltagraddam = gradWdamj - gradWdami;
+              deltagradi = surfacePoint(nodeListi, i) == 1 ?  gradWj : gradWj - gradWi;
+              deltagradj = surfacePoint(nodeListj, j) == 1 ? -gradWi : gradWj - gradWi;
+              deltagraddami = surfacePoint(nodeListi, i) == 1 ?  gradWdamj : gradWdamj - gradWdami;
+              deltagraddamj = surfacePoint(nodeListj, j) == 1 ? -gradWdami : gradWdamj - gradWdami;
               const Vector gradWSPHi = (Hi*etai.unitVector())*W.gradValue(etai.magnitude(), Hdeti);
               const Vector gradWSPHj = (Hj*etaj.unitVector())*W.gradValue(etaj.magnitude(), Hdetj);
 
@@ -775,10 +790,11 @@ evaluateDerivatives(const typename Dimension::Scalar time,
               const pair<Tensor, Tensor> QPiij = Q.Piij(nodeListi, i, nodeListj, j,
                                                         ri, etai, vi, rhoi, ci, Hi,
                                                         rj, etaj, vj, rhoj, cj, Hj);
-              const Vector Qaccij = (rhoi*rhoi*QPiij.first + rhoj*rhoj*QPiij.second).dot(deltagrad);
+              const Vector Qaccij = (rhoi*rhoi*QPiij.first + rhoj*rhoj*QPiij.second).dot(deltagradi);
+              const Vector Qaccji = (rhoi*rhoi*QPiij.first + rhoj*rhoj*QPiij.second).dot(deltagradj);
               // const Scalar workQij = 0.5*(vij.dot(Qaccij));
-              const Scalar workQi = rhoj*rhoj*QPiij.second.dot(vij).dot(deltagrad);                // CRK
-              const Scalar workQj = rhoi*rhoi*QPiij.first .dot(vij).dot(deltagrad);                // CRK
+              const Scalar workQi = rhoj*rhoj*QPiij.second.dot(vij).dot(deltagradi);                // CRK
+              const Scalar workQj = rhoi*rhoi*QPiij.first .dot(vij).dot(deltagradj);                // CRK
               const Scalar Qi = rhoi*rhoi*(QPiij.first. diagonalElements().maxAbsElement());
               const Scalar Qj = rhoj*rhoj*(QPiij.second.diagonalElements().maxAbsElement());
               maxViscousPressurei = max(maxViscousPressurei, 4.0*Qi);                                 // We need tighter timestep controls on the Q with CRK
@@ -820,17 +836,18 @@ evaluateDerivatives(const typename Dimension::Scalar time,
               CHECK(rhoi > 0.0);
               CHECK(rhoj > 0.0);
               Vector deltaDvDti, deltaDvDtj;
-              const Vector forceij  = 0.5*wi*wj*((Pposi + Pposj)*deltagrad - fij*(sigmai + sigmaj)*deltagraddam + Qaccij);
+              const Vector forceij  = 0.5*wi*wj*((Pposi + Pposj)*deltagradi - fij*(sigmai + sigmaj)*deltagraddami + Qaccij);
+              const Vector forceji  = 0.5*wi*wj*((Pposi + Pposj)*deltagradj - fij*(sigmai + sigmaj)*deltagraddamj + Qaccji);
               DvDti -= forceij/mi;
-              DvDtj += forceij/mj;
+              DvDtj += forceji/mj;
               if (compatibleEnergy) {
                 pairAccelerationsi.push_back(-forceij/mi);
-                pairAccelerationsj.push_back( forceij/mj);
+                pairAccelerationsj.push_back( forceji/mj);
               }
 
               // Specific thermal energy evolution.
-              const Scalar DTEDtij = 0.5*wi*wj*(Pposj*vij.dot(deltagrad) + fij*sigmaj.dot(vij).dot(deltagraddam) + workQi +
-                                                Pposi*vij.dot(deltagrad) + fij*sigmai.dot(vij).dot(deltagraddam) + workQj);
+              const Scalar DTEDtij = 0.5*wi*wj*(Pposj*vij.dot(deltagradi) + fij*sigmaj.dot(vij).dot(deltagraddami) + workQi +
+                                                Pposi*vij.dot(deltagradj) + fij*sigmai.dot(vij).dot(deltagraddamj) + workQj);
               // const Scalar DTEDtij = forceij.dot(vij);
               const Scalar fTEi = entropyWeighting(si, sj, DTEDtij);
               DepsDti += fTEi*        DTEDtij/mi;

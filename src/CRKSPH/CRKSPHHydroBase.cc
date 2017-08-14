@@ -655,6 +655,7 @@ evaluateDerivatives(const typename Dimension::Scalar time,
   const FieldList<Dimension, Vector> gradA = state.fields(HydroFieldNames::gradA_CRKSPH, Vector::zero);
   const FieldList<Dimension, Tensor> gradB = state.fields(HydroFieldNames::gradB_CRKSPH, Tensor::zero);
   const FieldList<Dimension, ThirdRankTensor> gradC = state.fields(HydroFieldNames::gradC_CRKSPH, ThirdRankTensor::zero);
+  const FieldList<Dimension, int> surfacePoint = state.fields(HydroFieldNames::surfacePoint, 0);
   CHECK(mass.size() == numNodeLists);
   CHECK(position.size() == numNodeLists);
   CHECK(velocity.size() == numNodeLists);
@@ -670,6 +671,7 @@ evaluateDerivatives(const typename Dimension::Scalar time,
   CHECK(gradA.size() == numNodeLists);
   CHECK(gradB.size() == numNodeLists or order == CRKOrder::ZerothOrder);
   CHECK(gradC.size() == numNodeLists or order != CRKOrder::QuadraticOrder);
+  CHECK(surfacePoint.size() == numNodeLists);
 
   // Derivative FieldLists.
   FieldList<Dimension, Vector> DxDt = derivatives.fields(IncrementFieldList<Dimension, Field<Dimension, Vector> >::prefix() + HydroFieldNames::position, Vector::zero);
@@ -725,6 +727,7 @@ evaluateDerivatives(const typename Dimension::Scalar time,
   Tensor Ci = Tensor::zero, Cj = Tensor::zero;
   Tensor gradBi = Tensor::zero, gradBj = Tensor::zero;
   ThirdRankTensor gradCi = ThirdRankTensor::zero, gradCj = ThirdRankTensor::zero;
+  Vector deltagradi, deltagradj;
 
   // Start our big loop over all FluidNodeLists.
   size_t nodeListi = 0;
@@ -801,14 +804,14 @@ evaluateDerivatives(const typename Dimension::Scalar time,
       Vector& gradRhoi = gradRho(nodeListi, i);
       Scalar& worki = workFieldi(i);
 
-      //Vector& surfNormi = surfNorm(nodeListi, i);
-
-      // const Scalar W0i = W.kernelValue(0.0, Hdeti);
-      // Vector selfforceIi  = weighti*weighti*Pi*W0i*(gradAi);  // <- Type I self-interaction. I think there is no Q term here? Dont know what it would be. 
-      // if (order != CRKOrder::ZerothOrder) {
-      //   selfforceIi  = weighti*weighti*Pi*W0i*(Ai*Bi+gradAi); //For linear RK (quadratic RK is the same)
-      // }
-      //DvDti -= selfforceIi/mi;                             //RK I Acceleration 
+      // If this is a surface point, it's straight RK and there are self-contributions.
+      if (surfacePoint(nodeListi, i) == 1) {
+        Vector selfforceIi  = weighti*weighti*Pi*W0*(gradAi);  // <- Type I self-interaction. I think there is no Q term here? Dont know what it would be. 
+        if (order != CRKOrder::ZerothOrder) {
+          selfforceIi = weighti*weighti*Pi*W0*(Ai*Bi+gradAi); //For linear RK (quadratic RK is the same)
+        }
+        DvDti -= selfforceIi/mi;                             //RK I Acceleration 
+      }
 
       // Get the connectivity info for this node.
       const vector< vector<int> >& fullConnectivity = connectivityMap.connectivityForNode(&nodeList, i);
@@ -905,7 +908,8 @@ evaluateDerivatives(const typename Dimension::Scalar time,
               Vector gradWi, gradWj, gradW0i, gradW0j;
               CRKSPHKernelAndGradient(Wj, gWj, gradWj, W, order,  rij,  etai, Hi, Hdeti,  etaj, Hj, Hdetj, Ai, Bi, Ci, gradAi, gradBi, gradCi, mCorrectionMin, mCorrectionMax);
               CRKSPHKernelAndGradient(Wi, gWi, gradWi, W, order, -rij, -etaj, Hj, Hdetj, -etai, Hi, Hdeti, Aj, Bj, Cj, gradAj, gradBj, gradCj, mCorrectionMin, mCorrectionMax);
-              const Vector deltagrad = gradWj - gradWi;
+              deltagradi = surfacePoint(nodeListi, i) == 1 ?  gradWj : gradWj - gradWi;
+              deltagradj = surfacePoint(nodeListj, j) == 1 ? -gradWi : gradWj - gradWi;
               const Vector gradWSPHi = (Hi*etai.unitVector())*W.gradValue(etai.magnitude(), Hdeti);
               const Vector gradWSPHj = (Hj*etaj.unitVector())*W.gradValue(etaj.magnitude(), Hdetj);
 
@@ -923,14 +927,11 @@ evaluateDerivatives(const typename Dimension::Scalar time,
               const pair<Tensor, Tensor> QPiij = Q.Piij(nodeListi, i, nodeListj, j,
                                                         ri, etai, vi, rhoi, ci, Hi,
                                                         rj, etaj, vj, rhoj, cj, Hj);
-              const Vector Qaccij = (rhoi*rhoi*QPiij.first + rhoj*rhoj*QPiij.second).dot(deltagrad);  // CRK
-              // const Vector QaccVi = (rhoi*rhoi*QPiij.first-rhoj*rhoj*QPiij.second).dot(gradWj);    // RK Type V
-              // const Vector QaccVj = (rhoj*rhoj*QPiij.second-rhoi*rhoi*QPiij.first).dot(gradWi);    // RK Type V
-              // const Vector QaccIi = (rhoj*rhoj*QPiij.second).dot(gradWj);                          // RK Type I
-              // const Vector QaccIj = (rhoi*rhoi*QPiij.first).dot(gradWi);                           // RK Type I
+              const Vector Qaccij = (rhoi*rhoi*QPiij.first + rhoj*rhoj*QPiij.second).dot(deltagradi);
+              const Vector Qaccji = (rhoi*rhoi*QPiij.first + rhoj*rhoj*QPiij.second).dot(deltagradj);
               // const Scalar workQij = 0.5*(vij.dot(Qaccij));
-              const Scalar workQi = rhoj*rhoj*QPiij.second.dot(vij).dot(deltagrad);                // CRK
-              const Scalar workQj = rhoi*rhoi*QPiij.first .dot(vij).dot(deltagrad);                // CRK
+              const Scalar workQi = rhoj*rhoj*QPiij.second.dot(vij).dot(deltagradi);                // CRK
+              const Scalar workQj = rhoi*rhoi*QPiij.first .dot(vij).dot(deltagradj);                // CRK
               // const Scalar workQVi =  vij.dot((rhoj*rhoj*QPiij.second).dot(gradWj));               //RK V and RK I Work
               // const Scalar workQVj =  vij.dot((rhoi*rhoi*QPiij.first).dot(gradWi));                //RK V and RK I Work
               const Scalar Qi = rhoi*rhoi*(QPiij.first. diagonalElements().maxAbsElement());
@@ -959,24 +960,15 @@ evaluateDerivatives(const typename Dimension::Scalar time,
               // Acceleration (CRKSPH form).
               CHECK(rhoi > 0.0);
               CHECK(rhoj > 0.0);
-              const Vector forceij  = 0.5*wi*wj*((Pi + Pj)*deltagrad + Qaccij);                    // <- Type III, with CRKSPH Q forces
-              // const Vector forceVi  = wi*wj*((Pi - Pj)*gradWj + QaccVi);                        // <- Type V, with CRKSPH Q forces, Non-conservative but consistent
-              // const Vector forceVj  = wi*wj*((Pj - Pi)*gradWi + QaccVj);                        // <- Type V, with CRKSPH Q forces, Non-conservative but consistent
-              // const Vector forceIi  = wi*wj*(Pj*gradWj + QaccIi);                               // <- Type I, with CRKSPH Q forces, Non-conservative but consistent
-              // const Vector forceIj  = wi*wj*(Pi*gradWi + QaccIj);                               // <- Type I, with CRKSPH Q forces, Non-conservative but consistent
+              const Vector forceij  = 0.5*wi*wj*((Pi + Pj)*deltagradi + Qaccij);                    // <- Type III, with CRKSPH Q forces
+              const Vector forceji  = 0.5*wi*wj*((Pi + Pj)*deltagradj + Qaccji);                    // <- Type III, with CRKSPH Q forces
 
               DvDti -= forceij/mi; //CRK Acceleration
-              DvDtj += forceij/mj; //CRK Acceleration
+              DvDtj += forceji/mj; //CRK Acceleration
  
-              //DvDti += forceVi/mi; //RK V Acceleration
-              //DvDtj += forceVj/mj; //RK V Acceleration
-
-              //DvDti -= forceIi/mi; //RK I Acceleration (DONT FORGET TO UNCOMMENT THE SELF INTERACTION TERM IF USING THIS!)
-              //DvDtj -= forceIj/mj; //RK I Acceleration 
-              
               if (mCompatibleEnergyEvolution) {
                 pairAccelerationsi.push_back(-forceij/mi);
-                pairAccelerationsj.push_back( forceij/mj);
+                pairAccelerationsj.push_back( forceji/mj);
               }
 
               // Specific thermal energy evolution.
@@ -986,8 +978,8 @@ evaluateDerivatives(const typename Dimension::Scalar time,
               // DepsDti += 0.5*wi*wj*(Pj*vij.dot(deltagrad) + workQij)/mi;    // CRK Q
               // DepsDtj += 0.5*wi*wj*(Pi*vij.dot(deltagrad) + workQij)/mj;    // CRK Q
 
-              const Scalar DTEDtij = 0.5*wi*wj*(Pj*vij.dot(deltagrad) + workQi + 
-                                                Pi*vij.dot(deltagrad) + workQj);
+              const Scalar DTEDtij = 0.5*wi*wj*(Pj*vij.dot(deltagradi) + workQi + 
+                                                Pi*vij.dot(deltagradj) + workQj);
               // const Scalar DTEDtij = forceij.dot(vij);
               const Scalar fTEi = entropyWeighting(si, sj, DTEDtij);
               DepsDti += fTEi*        DTEDtij/mi;
