@@ -132,8 +132,7 @@ gradientCRKSPH(const FieldSpace::FieldList<Dimension, DataType>& fieldList,
                                                                        firstGhostNodej)) {
 
               // Find the effective weights of i->j and j->i.
-              const Scalar wmaxij = 100.0*std::min(weight(nodeListi, i), weight(nodeListj, j));
-              const Scalar wi = fij*std::min(0.5*(weight(nodeListi, i) + weight(nodeListj, j)),  wmaxij);
+              const Scalar wi = fij*0.5*(weight(nodeListi, i) + weight(nodeListj, j));
               const Scalar wj = wi;
 
 	      // Get the state for node j.
