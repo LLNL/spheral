@@ -729,9 +729,11 @@ evaluateDerivatives(const typename Dimension::Scalar time,
               SymTensor& massSecondMomentj = massSecondMoment(nodeListj, j);
 
               // Find the effective weights of i->j and j->i.
-              const Scalar wmaxij = 100.0*std::min(weighti, weightj);
-              const Scalar wi = std::min(0.5*(weighti + weightj),  wmaxij);
-              const Scalar wj = wi;
+              // const Scalar wi = 2.0*weighti*weightj/(weighti + weightj);
+              // const Scalar wi = 0.5*(weighti + weightj);
+              // const Scalar wj = wi;
+              const Scalar wi = weighti;
+              const Scalar wj = weightj;
 
               // Node displacement.
               const Vector rij = ri - rj;
