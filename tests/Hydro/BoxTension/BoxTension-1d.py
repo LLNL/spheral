@@ -395,12 +395,20 @@ if graphics:
     if crksph:
         APlot = plotFieldList(hydro.A(),
                               winTitle = "A",
+                              plotStyle = "points",
                               colorNodeLists = False)
         BPlot = plotFieldList(hydro.B(),
                               yFunction = "%s.x",
                               winTitle = "B",
+                              plotStyle = "points",
+                              colorNodeLists = False)
+        spPlot = plotFieldList(hydro.surfacePoint(),
+                              winTitle = "surface point",
+                              plotStyle = "points",
                               colorNodeLists = False)
 
     cs = db.newFluidScalarFieldList(0.0, "sound speed")
     db.fluidSoundSpeed(cs)
-    csPlot = plotFieldList(cs, winTitle="Sound speed")
+    csPlot = plotFieldList(cs,
+                           plotStyle = "points",
+                           winTitle="Sound speed")
