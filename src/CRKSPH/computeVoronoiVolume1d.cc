@@ -195,6 +195,7 @@ computeVoronoiVolume(const FieldSpace::FieldList<Dim<1>, Dim<1>::Vector>& positi
       }
     }
   }
+
 }
 
 }
