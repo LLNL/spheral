@@ -660,10 +660,10 @@ evaluateDerivatives(const typename Dimension::Scalar time,
       Scalar& worki = workFieldi(i);
 
       // If this is a surface point, it's straight RK and there are self-contributions.
-      if (surfacePoint(nodeListi, i) == 1) {
-        Vector selfforceIi  = weighti*weighti*Pi*W0*(gradAi);  // <- Type I self-interaction. I think there is no Q term here? Dont know what it would be. 
+      if (surfacePoint(nodeListi, i) != 0) {
+        Vector selfforceIi  = weighti*weighti*(Si - Pi*SymTensor::one)*W0*(gradAi);  // <- Type I self-interaction. I think there is no Q term here? Dont know what it would be. 
         if (order != CRKOrder::ZerothOrder) {
-          selfforceIi = weighti*weighti*Pi*W0*(Ai*Bi+gradAi); //For linear RK (quadratic RK is the same)
+          selfforceIi = weighti*weighti*(Si - Pi*SymTensor::one)*W0*(Ai*Bi+gradAi); //For linear RK (quadratic RK is the same)
         }
         DvDti -= selfforceIi/mi;                             //RK I Acceleration 
       }
@@ -765,10 +765,10 @@ evaluateDerivatives(const typename Dimension::Scalar time,
               CRKSPHKernelAndGradient(Wi, gWi, gradWi, W, CRKSPHHydroBase<Dimension>::correctionOrder(), -rij, -etaj, Hj, Hdetj, -etai, Hi, Hdeti, Aj, Bj, Cj, gradAj, gradBj, gradCj, correctionMin, correctionMax);
               CRKSPHKernelAndGradient(Wdamj, gWdamj, gradWdamj, W, CRKSPHHydroBase<Dimension>::correctionOrder(),  rij,  etai, Hi, Hdeti,  etaj, Hj, Hdetj, Adami, Bdami, Cdami, gradAdami, gradBdami, gradCdami, correctionMin, correctionMax);
               CRKSPHKernelAndGradient(Wdami, gWdami, gradWdami, W, CRKSPHHydroBase<Dimension>::correctionOrder(), -rij, -etaj, Hj, Hdetj, -etai, Hi, Hdeti, Adamj, Bdamj, Cdamj, gradAdamj, gradBdamj, gradCdamj, correctionMin, correctionMax);
-              deltagradi = surfacePoint(nodeListi, i) == 1 ?  gradWj : gradWj - gradWi;
-              deltagradj = surfacePoint(nodeListj, j) == 1 ? -gradWi : gradWj - gradWi;
-              deltagraddami = surfacePoint(nodeListi, i) == 1 ?  gradWdamj : gradWdamj - gradWdami;
-              deltagraddamj = surfacePoint(nodeListj, j) == 1 ? -gradWdami : gradWdamj - gradWdami;
+              deltagradi = surfacePoint(nodeListi, i) != 0 ?  gradWj : gradWj - gradWi;
+              deltagradj = surfacePoint(nodeListj, j) != 0 ? -gradWi : gradWj - gradWi;
+              deltagraddami = surfacePoint(nodeListi, i) != 0 ?  gradWdamj : gradWdamj - gradWdami;
+              deltagraddamj = surfacePoint(nodeListj, j) != 0 ? -gradWdami : gradWdamj - gradWdami;
               const Vector gradWSPHi = (Hi*etai.unitVector())*W.gradValue(etai.magnitude(), Hdeti);
               const Vector gradWSPHj = (Hj*etaj.unitVector())*W.gradValue(etaj.magnitude(), Hdetj);
 
