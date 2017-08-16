@@ -271,7 +271,6 @@ computeVoronoiVolume(const FieldList<Dim<2>, Dim<2>::Vector>& position,
         CHECK(celli.nverts > 0);
         r2d_reduce(&celli, firstmom, 1);
         CHECK(firstmom[0] > 0.0);
-        vol(nodeListi, i) = firstmom[0];
         const Vector deltaCentroidi = Vector(firstmom[1], firstmom[2])/firstmom[0];
         deltaMedian(nodeListi, i) = deltaCentroidi;
 
@@ -294,6 +293,9 @@ computeVoronoiVolume(const FieldList<Dim<2>, Dim<2>::Vector>& position,
         if (interior) {
           // t0 = std::clock();
           if (returnSurface) surfacePoint(nodeListi, i) = 0;
+
+          // We only use the volume result if interior.
+          vol(nodeListi, i) = firstmom[0];
 
           // // Apply the gradient limiter;
           // gradRhoi *= phi;
