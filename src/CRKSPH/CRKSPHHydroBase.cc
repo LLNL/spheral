@@ -1183,6 +1183,7 @@ finalize(const typename Dimension::Scalar time,
   } else if (mVolumeType == CRKVolumeType::CRKSumVolume) {
     computeCRKSPHSumVolume(connectivityMap, W, position, mass, H, vol);
   } else if (mVolumeType == CRKVolumeType::CRKVoronoiVolume) {
+    vol.assignFields(mass/massDensity);
     FieldList<Dimension, typename Dimension::FacetedVolume> cells;
     computeVoronoiVolume(position, H, massDensity, gradRho, connectivityMap, W.kernelExtent(), 
                          vector<typename Dimension::FacetedVolume>(),                // no boundaries
