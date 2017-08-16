@@ -77,6 +77,7 @@ commandLine(
     rigorousBoundaries = False,
     dtverbose = False,
 
+    volumeType = CRKVoronoiVolume,
     densityUpdate = RigorousSumDensity, # VolumeScaledDensity,
     correctionOrder = LinearOrder,
     compatibleEnergy = True,
@@ -238,6 +239,7 @@ elif crksph:
                    compatibleEnergyEvolution = compatibleEnergy,
                    XSPH = XSPH,
                    correctionOrder = correctionOrder,
+                   volumeType = volumeType,
                    densityUpdate = densityUpdate,
                    HUpdate = HUpdate,
                    ASPH = asph)
@@ -391,6 +393,10 @@ if graphics:
 
     rhoPlot, velPlot, epsPlot, PPlot, HPlot = plotState(db, plotGhosts=True)
     pE = plotEHistory(control.conserve)
+    massPlot = plotFieldList(db.fluidMass,
+                             winTitle = "mass",
+                             plotStyle = "points",
+                             colorNodeLists = False)
 
     if crksph:
         APlot = plotFieldList(hydro.A(),
@@ -402,6 +408,10 @@ if graphics:
                               winTitle = "B",
                               plotStyle = "points",
                               colorNodeLists = False)
+        volPlot = plotFieldList(hydro.volume(),
+                                winTitle = "volume",
+                                plotStyle = "points",
+                                colorNodeLists = False)
         spPlot = plotFieldList(hydro.surfacePoint(),
                               winTitle = "surface point",
                               plotStyle = "points",
