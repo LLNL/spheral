@@ -3,7 +3,7 @@
 #-------------------------------------------------------------------------------
 import shutil
 from math import *
-from Spheral1d import *
+from SolidSpheral1d import *
 from SpheralTestUtilities import *
 from SpheralGnuPlotUtilities import *
 
@@ -46,9 +46,10 @@ commandLine(
     crksph = False,
     psph = False,
     asph = False,
-    filter = 0.0,  # For CRKSPH
+    filter = 0.0,   # For CRKSPH
     evolveTotalEnergy = False,
     HopkinsConductivity = False,
+    solid = False,  # Try out the solid form of the hydro
 
     linearConsistent = False,
     fcentroidal = 0.0,
@@ -149,24 +150,28 @@ output("WT")
 #-------------------------------------------------------------------------------
 # Make the NodeLists.
 #-------------------------------------------------------------------------------
-outerNodes1 = makeFluidNodeList("outer1", eos1,
-                                hmin = hmin,
-                                hmax = hmax,
-                                hminratio = hminratio,
-                                kernelExtent = WT.kernelExtent,
-                                nPerh = nPerh)
-outerNodes2 = makeFluidNodeList("outer2", eos1,
-                                hmin = hmin,
-                                hmax = hmax,
-                                hminratio = hminratio,
-                                kernelExtent = WT.kernelExtent,
-                                nPerh = nPerh)
-innerNodes = makeFluidNodeList("inner", eos2,
-                               hmin = hmin,
-                               hmax = hmax,
-                               hminratio = hminratio,
-                               kernelExtent = WT.kernelExtent,
-                               nPerh = nPerh)
+if solid:
+    MNL = makeSolidNodeList
+else:
+    MNL = makeFluidNodeList
+outerNodes1 = MNL("outer1", eos1,
+                  hmin = hmin,
+                  hmax = hmax,
+                  hminratio = hminratio,
+                  kernelExtent = WT.kernelExtent,
+                  nPerh = nPerh)
+outerNodes2 = MNL("outer2", eos1,
+                  hmin = hmin,
+                  hmax = hmax,
+                  hminratio = hminratio,
+                  kernelExtent = WT.kernelExtent,
+                  nPerh = nPerh)
+innerNodes = MNL("inner", eos2,
+                 hmin = hmin,
+                 hmax = hmax,
+                 hminratio = hminratio,
+                 kernelExtent = WT.kernelExtent,
+                 nPerh = nPerh)
 nodeSet = (outerNodes1, outerNodes2, innerNodes)
 for nodes in nodeSet:
     output("nodes.name")
