@@ -118,7 +118,7 @@ interpolateCRKSPH(const FieldSpace::FieldList<Dimension, DataType>& fieldList,
 
               // Find the effective weights of i->j and j->i.
               // const Scalar wi = fij*2.0*weight(nodeListi, i)*weight(nodeListj, j)/(weight(nodeListi, i) + weight(nodeListj, j));
-              // const Scalar wi = fij*0.5*(weight(nodeListi, i) + weight(nodeListj, j));
+              // // const Scalar wi = fij*0.5*(weight(nodeListi, i) + weight(nodeListj, j));
               // const Scalar wj = wi;
               const Scalar wi = fij*weight(nodeListi, i);
               const Scalar wj = fij*weight(nodeListj, j);

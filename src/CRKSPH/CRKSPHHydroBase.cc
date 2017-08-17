@@ -885,7 +885,7 @@ evaluateDerivatives(const typename Dimension::Scalar time,
 
               // Find the effective weights of i->j and j->i.
               // const Scalar wi = 2.0*weighti*weightj/(weighti + weightj);
-              // const Scalar wi = 0.5*(weighti + weightj);
+              // // const Scalar wi = 0.5*(weighti + weightj);
               // const Scalar wj = wi;
               const Scalar wi = weighti;
               const Scalar wj = weightj;
