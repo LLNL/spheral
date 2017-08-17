@@ -768,12 +768,12 @@ evaluateDerivatives(const typename Dimension::Scalar time,
               const Vector gradWSPHj = (Hj*etaj.unitVector())*W.gradValue(etaj.magnitude(), Hdetj);
 
               // Find the damaged pair weighting scaling.
-              const double fij = 1.0; // coupling(nodeListi, i, nodeListj, j);
+              const double fij = coupling(nodeListi, i, nodeListj, j);
               CHECK(fij >= 0.0 and fij <= 1.0);
 
               // Find the effective weights of i->j and j->i.
-              const Scalar wi = fij*weighti;
-              const Scalar wj = fij*weightj;
+              const Scalar wi = weighti;
+              const Scalar wj = weightj;
 
               // Zero'th and second moment of the node distribution -- used for the
               // ideal H calculation.
@@ -806,8 +806,8 @@ evaluateDerivatives(const typename Dimension::Scalar time,
               // Velocity gradient.
               DvDxi -= wj*vij.dyad(gradWj);
               DvDxj += wi*vij.dyad(gradWi);
-              localDvDxi -= wj*vij.dyad(gradWdamj);
-              localDvDxj += wi*vij.dyad(gradWdami);
+              localDvDxi -= fij*wj*vij.dyad(gradWdamj);
+              localDvDxj += fij*wi*vij.dyad(gradWdami);
 
               // We treat positive and negative pressures distinctly, so split 'em up.
               const Scalar Pposi = max(0.0, Pi),
@@ -835,8 +835,8 @@ evaluateDerivatives(const typename Dimension::Scalar time,
               CHECK(rhoi > 0.0);
               CHECK(rhoj > 0.0);
               Vector deltaDvDti, deltaDvDtj;
-              const Vector forceij  = 0.5*wi*wj*((Pposi + Pposj)*deltagradi - (sigmai + sigmaj)*deltagraddami + Qaccij);
-              const Vector forceji  = 0.5*wi*wj*((Pposi + Pposj)*deltagradj - (sigmai + sigmaj)*deltagraddamj + Qaccji);
+              const Vector forceij  = 0.5*wi*wj*((Pposi + Pposj)*deltagradi - fij*(sigmai + sigmaj)*deltagraddami + Qaccij);
+              const Vector forceji  = 0.5*wi*wj*((Pposi + Pposj)*deltagradj - fij*(sigmai + sigmaj)*deltagraddamj + Qaccji);
               DvDti -= forceij/mi;
               DvDtj += forceji/mj;
               if (compatibleEnergy) {
@@ -845,16 +845,19 @@ evaluateDerivatives(const typename Dimension::Scalar time,
               }
 
               // Specific thermal energy evolution.
-              const Scalar DTEDtij = 0.5*wi*wj*(Pposj*vij.dot(deltagradi) + sigmaj.dot(vij).dot(deltagraddami) + workQi +
-                                                Pposi*vij.dot(deltagradj) + sigmai.dot(vij).dot(deltagraddamj) + workQj);
-              // const Scalar DTEDtij = forceij.dot(vij);
-              const Scalar fTEi = entropyWeighting(si, sj, DTEDtij);
-              DepsDti += fTEi*        DTEDtij/mi;
-              DepsDtj += (1.0 - fTEi)*DTEDtij/mj;
+              DepsDti += 0.5*wi*wj*(Pposj*vij.dot(deltagradi) + fij*sigmaj.dot(vij).dot(deltagraddami) + workQi)/mi;
+              DepsDtj += 0.5*wi*wj*(Pposi*vij.dot(deltagradj) + fij*sigmai.dot(vij).dot(deltagraddamj) + workQj)/mj;
+
+              // const Scalar DTEDtij = 0.5*wi*wj*(Pposj*vij.dot(deltagradi) + fij*sigmaj.dot(vij).dot(deltagraddami) + workQi +
+              //                                   Pposi*vij.dot(deltagradj) + fij*sigmai.dot(vij).dot(deltagraddamj) + workQj);
+              // // const Scalar DTEDtij = forceij.dot(vij);
+              // const Scalar fTEi = entropyWeighting(si, sj, DTEDtij);
+              // DepsDti += fTEi*        DTEDtij/mi;
+              // DepsDtj += (1.0 - fTEi)*DTEDtij/mj;
 
               // Estimate of delta v (for XSPH).
-              XSPHDeltaVi -= wj*Wj*vij;
-              XSPHDeltaVj += wi*Wi*vij;
+              XSPHDeltaVi -= fij*wj*Wj*vij;
+              XSPHDeltaVj += fij*wi*Wi*vij;
             }
           }
         }
