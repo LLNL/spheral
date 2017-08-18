@@ -1,0 +1,245 @@
+from SpheralModules.Spheral.CRKSPHSpace import *
+from SpheralModules.Spheral.NodeSpace import *
+from SpheralModules.Spheral.PhysicsSpace import *
+from SpheralModules.Spheral.KernelSpace import *
+
+from spheralDimensions import spheralDimensions
+dims = spheralDimensions()
+
+#-------------------------------------------------------------------------------
+# The generic CRKSPHHydro pattern.
+#-------------------------------------------------------------------------------
+CRKSPHHydroFactoryString = """
+class %(classname)s%(dim)s(CRKSPHHydroBase%(dim)s):
+
+    def __init__(self,
+                 Q,
+                 W,
+                 WPi = None,
+                 filter = 1.0,
+                 cfl = 0.25,
+                 useVelocityMagnitudeForDt = False,
+                 compatibleEnergyEvolution = True,
+                 evolveTotalEnergy = False,
+                 XSPH = True,
+                 densityUpdate = RigorousSumDensity,
+                 HUpdate = IdealH,
+                 correctionOrder = LinearOrder,
+                 volumeType = CRKVoronoiVolume,
+                 detectSurfaces = False,
+                 detectThreshold = 0.05,
+                 sweepAngle = 0.8,
+                 detectRange = 1.0,
+                 epsTensile = 0.0,
+                 nTensile = 4.0):
+        self._smoothingScaleMethod = %(smoothingScaleMethod)s%(dim)s()
+        if WPi is None:
+            WPi = W
+        CRKSPHHydroBase%(dim)s.__init__(self,
+                                        self._smoothingScaleMethod,
+                                        Q,
+                                        W,
+                                        WPi,
+                                        filter,
+                                        cfl,
+                                        useVelocityMagnitudeForDt,
+                                        compatibleEnergyEvolution,
+                                        evolveTotalEnergy,
+                                        XSPH,
+                                        densityUpdate,
+                                        HUpdate,
+                                        correctionOrder,
+                                        volumeType,
+                                        detectSurfaces,
+                                        detectThreshold,
+                                        sweepAngle,
+                                        detectRange,
+                                        epsTensile,
+                                        nTensile)
+        return
+"""
+
+#-------------------------------------------------------------------------------
+# The generic SolidCRKSPHHydro pattern.
+#-------------------------------------------------------------------------------
+SolidCRKSPHHydroFactoryString = """
+class %(classname)s%(dim)s(SolidCRKSPHHydroBase%(dim)s):
+
+    def __init__(self,
+                 Q,
+                 W,
+                 WPi = None,
+                 filter = 1.0,
+                 cfl = 0.25,
+                 useVelocityMagnitudeForDt = False,
+                 compatibleEnergyEvolution = True,
+                 evolveTotalEnergy = False,
+                 XSPH = True,
+                 densityUpdate = RigorousSumDensity,
+                 HUpdate = IdealH,
+                 correctionOrder = LinearOrder,
+                 volumeType = CRKVoronoiVolume,
+                 detectSurfaces = False,
+                 detectThreshold = 0.05,
+                 sweepAngle = 0.8,
+                 detectRange = 1.0,
+                 epsTensile = 0.0,
+                 nTensile = 4.0):
+        self._smoothingScaleMethod = %(smoothingScaleMethod)s%(dim)s()
+        if WPi is None:
+            WPi = W
+        SolidCRKSPHHydroBase%(dim)s.__init__(self,
+                                             self._smoothingScaleMethod,
+                                             Q,
+                                             W,
+                                             WPi,
+                                             filter,
+                                             cfl,
+                                             useVelocityMagnitudeForDt,
+                                             compatibleEnergyEvolution,
+                                             evolveTotalEnergy,
+                                             XSPH,
+                                             densityUpdate,
+                                             HUpdate,
+                                             correctionOrder,
+                                             volumeType,
+                                             detectSurfaces,
+                                             detectThreshold,
+                                             sweepAngle,
+                                             detectRange,
+                                             epsTensile,
+                                             nTensile)
+        return
+"""
+
+#-------------------------------------------------------------------------------
+# Make 'em.
+#-------------------------------------------------------------------------------
+for dim in dims:
+    exec(CRKSPHHydroFactoryString % {"dim"                  : "%id" % dim,
+                                     "classname"            : "CRKSPHHydro",
+                                     "smoothingScaleMethod" : "SPHSmoothingScale"})
+    exec(CRKSPHHydroFactoryString % {"dim"                  : "%id" % dim,
+                                     "classname"            : "ACRKSPHHydro",
+                                     "smoothingScaleMethod" : "ASPHSmoothingScale"})
+
+    exec(SolidCRKSPHHydroFactoryString % {"dim"                  : "%id" % dim,
+                                          "classname"            : "SolidCRKSPHHydro",
+                                          "smoothingScaleMethod" : "SPHSmoothingScale"})
+    exec(SolidCRKSPHHydroFactoryString % {"dim"                  : "%id" % dim,
+                                          "classname"            : "SolidACRKSPHHydro",
+                                          "smoothingScaleMethod" : "ASPHSmoothingScale"})
+
+#-------------------------------------------------------------------------------
+# Provide a factory function to return the appropriate CRKSPH hydro.
+#-------------------------------------------------------------------------------
+def CRKSPH(dataBase,
+           Q,
+           W,
+           WPi = None,
+           filter = 0.0,
+           cfl = 0.25,
+           useVelocityMagnitudeForDt = False,
+           compatibleEnergyEvolution = True,
+           evolveTotalEnergy = False,
+           XSPH = True,
+           densityUpdate = RigorousSumDensity,
+           HUpdate = IdealH,
+           correctionOrder = LinearOrder,
+           volumeType = CRKVoronoiVolume,
+           detectSurfaces = False,
+           detectThreshold = 0.05,
+           sweepAngle = 0.8,
+           detectRange = 1.0,
+           epsTensile = 0.0,
+           nTensile = 4.0,
+           ASPH = False):
+
+    # We use the provided DataBase to sniff out what sort of NodeLists are being
+    # used, and based on this determine which SPH object to build.
+    ndim = dataBase.nDim
+    nfluid = dataBase.numFluidNodeLists
+    nsolid = dataBase.numSolidNodeLists
+    if nsolid > 0 and nsolid != nfluid:
+        print "CRKSPH Error: you have provided both solid and fluid NodeLists, which is currently not supported."
+        print "             If you want some fluids active, provide SolidNodeList without a strength option specfied,"
+        print "             which will result in fluid behaviour for those nodes."
+        raise RuntimeError, "Cannot mix solid and fluid NodeLists."
+
+    # Decide on the hydro object.
+    if nsolid > 0:
+        if ASPH:
+            Constructor = eval("SolidACRKSPHHydro%id" % ndim)
+        else:
+            Constructor = eval("SolidCRKSPHHydro%id" % ndim)
+    else:
+        if ASPH:
+            Constructor = eval("ACRKSPHHydro%id" % ndim)
+        else:
+            Constructor = eval("CRKSPHHydro%id" % ndim)
+
+    # Build and return the thing.
+    return Constructor(Q = Q,
+                       W = W,
+                       WPi = WPi,
+                       filter = filter,
+                       cfl = cfl,
+                       useVelocityMagnitudeForDt = useVelocityMagnitudeForDt,
+                       compatibleEnergyEvolution = compatibleEnergyEvolution,
+                       evolveTotalEnergy = evolveTotalEnergy,
+                       XSPH = XSPH,
+                       densityUpdate = densityUpdate,
+                       HUpdate = HUpdate,
+                       correctionOrder = correctionOrder,
+                       volumeType = volumeType,
+                       detectSurfaces = detectSurfaces,
+                       detectThreshold = detectThreshold,
+                       sweepAngle = sweepAngle,
+                       detectRange = detectRange,
+                       epsTensile = epsTensile,
+                       nTensile = nTensile)
+
+#-------------------------------------------------------------------------------
+# Provide a shorthand ACRKSPH factory.
+#-------------------------------------------------------------------------------
+def ACRKSPH(dataBase,
+            Q,
+            W,
+            WPi = None,
+            filter = 0.0,
+            cfl = 0.25,
+            useVelocityMagnitudeForDt = False,
+            compatibleEnergyEvolution = True,
+            evolveTotalEnergy = False,
+            XSPH = True,
+            densityUpdate = RigorousSumDensity,
+            HUpdate = IdealH,
+            correctionOrder = LinearOrder,
+            volumeType = CRKVoronoiVolume,
+            detectSurfaces = False,
+            detectThreshold = 0.05,
+            sweepAngle = 0.8,
+            detectRange = 1.0,
+            epsTensile = 0.0,
+            nTensile = 4.0):
+    return CRKSPH(dataBase = dataBase,
+                  Q = Q,
+                  W = W,
+                  WPi = WPi,
+                  filter = filter,
+                  cfl = cfl,
+                  useVelocityMagnitudeForDt = useVelocityMagnitudeForDt,
+                  compatibleEnergyEvolution = compatibleEnergyEvolution,
+                  evolveTotalEnergy = evolveTotalEnergy,
+                  XSPH = XSPH,
+                  densityUpdate = densityUpdate,
+                  HUpdate = HUpdate,
+                  correctionOrder = correctionOrder,
+                  volumeType = volumeType,
+                  detectSurfaces = detectSurfaces,
+                  detectThreshold = detectThreshold,
+                  sweepAngle = sweepAngle,
+                  detectRange = detectRange,
+                  epsTensile = epsTensile,
+                  nTensile = nTensile,
+                  ASPH = True)
