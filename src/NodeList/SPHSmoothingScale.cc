@@ -132,7 +132,7 @@ idealSmoothingScale(const SymTensor& H,
                     const unsigned i) const {
 
   // Pre-conditions.
-  REQUIRE2(fuzzyEqual(H.Trace(), Dimension::nDim*H.xx(), 1.0e-5), H << " : " << H.Trace() << " " << Dimension::nDim*H.xx());
+  // REQUIRE2(fuzzyEqual(H.Trace(), Dimension::nDim*H.xx(), 1.0e-5), H << " : " << H.Trace() << " " << Dimension::nDim*H.xx());
   REQUIRE2(zerothMoment >= 0.0, zerothMoment);
 
   // Count how many neighbors we currently sample by gather.
