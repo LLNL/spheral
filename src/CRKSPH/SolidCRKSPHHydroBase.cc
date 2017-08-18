@@ -161,12 +161,6 @@ SolidCRKSPHHydroBase(const SmoothingScaleBase<Dimension>& smoothingScaleMethod,
   mPlasticStrain0(FieldSpace::FieldStorageType::CopyFields),
   mHfield0(FieldSpace::FieldStorageType::CopyFields),
   mFragIDs(FieldSpace::FieldStorageType::ReferenceFields),
-  mAdamage(FieldSpace::FieldStorageType::CopyFields),
-  mBdamage(FieldSpace::FieldStorageType::CopyFields),
-  mCdamage(FieldSpace::FieldStorageType::CopyFields),
-  mGradAdamage(FieldSpace::FieldStorageType::CopyFields),
-  mGradBdamage(FieldSpace::FieldStorageType::CopyFields),
-  mGradCdamage(FieldSpace::FieldStorageType::CopyFields),
   mRestart(DataOutput::registerWithRestart(*this)) {
 }
 
@@ -196,22 +190,6 @@ initializeProblemStartup(DataBase<Dimension>& dataBase) {
   mYieldStrength = dataBase.newSolidFieldList(0.0, SolidFieldNames::yieldStrength);
   mPlasticStrain0 = dataBase.newSolidFieldList(0.0, SolidFieldNames::plasticStrain + "0");
   mHfield0 = dataBase.newSolidFieldList(SymTensor::zero, HydroFieldNames::H + "0");
-  mAdamage = dataBase.newSolidFieldList(0.0,              HydroFieldNames::A_CRKSPH + " damage");
-  mBdamage = dataBase.newSolidFieldList(Vector::zero,     HydroFieldNames::B_CRKSPH + " damage");
-  mCdamage = dataBase.newSolidFieldList(Tensor::zero,     HydroFieldNames::C_CRKSPH + " damage");
-  mGradAdamage = dataBase.newSolidFieldList(Vector::zero, HydroFieldNames::gradA_CRKSPH + " damage");
-  mGradBdamage = dataBase.newSolidFieldList(Tensor::zero, HydroFieldNames::gradB_CRKSPH + " damage");
-  mGradCdamage = dataBase.newSolidFieldList(ThirdRankTensor::zero, HydroFieldNames::gradC_CRKSPH + " damage");
-
-  // Copy the standard CRK corrections to the damage forms.
-  mAdamage.assignFields(this->A());
-  mBdamage.assignFields(this->B());
-  mGradAdamage.assignFields(this->gradA());
-  mGradBdamage.assignFields(this->gradB());
-  if (this->correctionOrder() == CRKOrder::QuadraticOrder) {
-    mCdamage.assignFields(this->C());
-    mGradCdamage.assignFields(this->gradC());
-  }
 
   size_t nodeListi = 0;
   for (typename DataBase<Dimension>::SolidNodeListIterator itr = dataBase.solidNodeListBegin();
@@ -252,15 +230,6 @@ registerState(DataBase<Dimension>& dataBase,
   dataBase.resizeFluidFieldList(mShearModulus, 0.0, SolidFieldNames::shearModulus, false);
   dataBase.resizeFluidFieldList(mYieldStrength, 0.0, SolidFieldNames::yieldStrength, false);
   dataBase.resizeFluidFieldList(mPlasticStrain0, 0.0, SolidFieldNames::plasticStrain + "0", false);
-
-  dataBase.resizeFluidFieldList(mAdamage,     0.0,             HydroFieldNames::A_CRKSPH + " damage", false);
-  dataBase.resizeFluidFieldList(mBdamage,     Vector::zero,    HydroFieldNames::B_CRKSPH + " damage", false);
-  dataBase.resizeFluidFieldList(mGradAdamage, Vector::zero,    HydroFieldNames::gradA_CRKSPH + " damage", false);
-  dataBase.resizeFluidFieldList(mGradBdamage, Tensor::zero,    HydroFieldNames::gradB_CRKSPH + " damage", false);
-  if (this->correctionOrder() == CRKOrder::QuadraticOrder) {
-    dataBase.resizeFluidFieldList(mCdamage,     Tensor::zero,    HydroFieldNames::C_CRKSPH + " damage", false);
-    dataBase.resizeFluidFieldList(mGradCdamage, ThirdRankTensor::zero, HydroFieldNames::gradC_CRKSPH + " damage", false);
-  }
 
   // Grab the normal Hydro's registered version of the sound speed.
   FieldList<Dimension, Scalar> cs = state.fields(HydroFieldNames::soundSpeed, 0.0);
@@ -312,18 +281,6 @@ registerState(DataBase<Dimension>& dataBase,
 
   // And finally the intial plastic strain.
   state.enroll(mPlasticStrain0);
-
-  // Register the CRKSPH correction fields.
-  // We deliberately make these non-dynamic here.  This corrections are computed
-  // during CRKSPHHydroBase::initialize, not as part of our usual state update.
-  // This is necessary 'cause we need boundary conditions *and* the current set of
-  // neighbors before we compute these suckers.
-  state.enroll(mAdamage);
-  state.enroll(mBdamage);
-  state.enroll(mCdamage);
-  state.enroll(mGradAdamage);
-  state.enroll(mGradBdamage);
-  state.enroll(mGradCdamage);
 }
 
 //------------------------------------------------------------------------------
@@ -354,66 +311,6 @@ registerDerivatives(DataBase<Dimension>& dataBase,
     SolidNodeList<Dimension>* solidNodeListPtr = dynamic_cast<SolidNodeList<Dimension>*>(*itr);
     CHECK(solidNodeListPtr != 0);
     derivs.enroll(solidNodeListPtr->plasticStrainRate());
-  }
-}
-
-//------------------------------------------------------------------------------
-// Initialize the hydro before evaluating derivatives.
-//------------------------------------------------------------------------------
-template<typename Dimension>
-void
-SolidCRKSPHHydroBase<Dimension>::
-initialize(const typename Dimension::Scalar time,
-           const typename Dimension::Scalar dt,
-           const DataBase<Dimension>& dataBase,
-           State<Dimension>& state,
-           StateDerivatives<Dimension>& derivs) {
-
-  // Ancestor method.
-  CRKSPHHydroBase<Dimension>::initialize(time, dt, dataBase, state, derivs);
-
-  // Compute the kernel correction fields with damage.
-  const TableKernel<Dimension>& W = this->kernel();
-  const ConnectivityMap<Dimension>& connectivityMap = dataBase.connectivityMap();
-  const FieldList<Dimension, Scalar> mass = state.fields(HydroFieldNames::mass, 0.0);
-  const FieldList<Dimension, Vector> position = state.fields(HydroFieldNames::position, Vector::zero);
-  const FieldList<Dimension, SymTensor> H = state.fields(HydroFieldNames::H, SymTensor::zero);
-  const FieldList<Dimension, SymTensor> D = state.fields(SolidFieldNames::effectiveTensorDamage, SymTensor::zero);
-  const FieldList<Dimension, Vector> gradD = state.fields(SolidFieldNames::damageGradient, Vector::zero);
-  const FieldList<Dimension, int> fragIDs = state.fields(SolidFieldNames::fragmentIDs, int(1));
-  FieldList<Dimension, Scalar> m0 = state.fields(HydroFieldNames::m0_CRKSPH, 0.0);
-  FieldList<Dimension, Vector> m1 = state.fields(HydroFieldNames::m1_CRKSPH, Vector::zero);
-  FieldList<Dimension, SymTensor> m2 = state.fields(HydroFieldNames::m2_CRKSPH, SymTensor::zero);
-  FieldList<Dimension, ThirdRankTensor> m3 = state.fields(HydroFieldNames::m3_CRKSPH, ThirdRankTensor::zero);
-  FieldList<Dimension, FourthRankTensor> m4 = state.fields(HydroFieldNames::m4_CRKSPH, FourthRankTensor::zero);
-  FieldList<Dimension, Vector> gradm0 = state.fields(HydroFieldNames::gradM0_CRKSPH, Vector::zero);
-  FieldList<Dimension, Tensor> gradm1 = state.fields(HydroFieldNames::gradM1_CRKSPH, Tensor::zero);
-  FieldList<Dimension, ThirdRankTensor> gradm2 = state.fields(HydroFieldNames::gradM2_CRKSPH, ThirdRankTensor::zero);
-  FieldList<Dimension, FourthRankTensor> gradm3 = state.fields(HydroFieldNames::gradM3_CRKSPH, FourthRankTensor::zero);
-  FieldList<Dimension, FifthRankTensor> gradm4 = state.fields(HydroFieldNames::gradM4_CRKSPH, FifthRankTensor::zero);
-
-  FieldList<Dimension, Scalar> Adamage = state.fields(HydroFieldNames::A_CRKSPH + " damage", 0.0);
-  FieldList<Dimension, Vector> Bdamage = state.fields(HydroFieldNames::B_CRKSPH + " damage", Vector::zero);
-  FieldList<Dimension, Tensor> Cdamage = state.fields(HydroFieldNames::C_CRKSPH + " damage", Tensor::zero);
-  FieldList<Dimension, Vector> gradAdamage = state.fields(HydroFieldNames::gradA_CRKSPH + " damage", Vector::zero);
-  FieldList<Dimension, Tensor> gradBdamage = state.fields(HydroFieldNames::gradB_CRKSPH + " damage", Tensor::zero);
-  FieldList<Dimension, ThirdRankTensor> gradCdamage = state.fields(HydroFieldNames::gradC_CRKSPH + " damage", ThirdRankTensor::zero);
-  DamagedNodeCouplingWithFrags<Dimension> nodeCoupling(D, gradD, H, fragIDs);
-  
-  // Change CRKSPH weights here if need be!
-  const FieldList<Dimension, Scalar> vol = state.fields(HydroFieldNames::volume, 0.0);
-  computeCRKSPHMoments(connectivityMap, W, vol, position, H, this->correctionOrder(), nodeCoupling, m0, m1, m2, m3, m4, gradm0, gradm1, gradm2, gradm3, gradm4);
-  computeCRKSPHCorrections(m0, m1, m2, m3, m4, gradm0, gradm1, gradm2, gradm3, gradm4, H, this->correctionOrder(), Adamage, Bdamage, Cdamage, gradAdamage, gradBdamage, gradCdamage);
-
-  for (ConstBoundaryIterator boundItr = this->boundaryBegin();
-       boundItr != this->boundaryEnd();
-       ++boundItr) {
-    (*boundItr)->applyFieldListGhostBoundary(Adamage);
-    (*boundItr)->applyFieldListGhostBoundary(Bdamage);
-    (*boundItr)->applyFieldListGhostBoundary(Cdamage);
-    (*boundItr)->applyFieldListGhostBoundary(gradAdamage);
-    (*boundItr)->applyFieldListGhostBoundary(gradBdamage);
-    (*boundItr)->applyFieldListGhostBoundary(gradCdamage);
   }
 }
 
@@ -476,12 +373,6 @@ evaluateDerivatives(const typename Dimension::Scalar time,
   const FieldList<Dimension, Vector> gradA = state.fields(HydroFieldNames::gradA_CRKSPH, Vector::zero);
   const FieldList<Dimension, Tensor> gradB = state.fields(HydroFieldNames::gradB_CRKSPH, Tensor::zero);
   const FieldList<Dimension, ThirdRankTensor> gradC = state.fields(HydroFieldNames::gradC_CRKSPH, ThirdRankTensor::zero);
-  const FieldList<Dimension, Scalar> Adamage = state.fields(HydroFieldNames::A_CRKSPH + " damage", 0.0);
-  const FieldList<Dimension, Vector> Bdamage = state.fields(HydroFieldNames::B_CRKSPH + " damage", Vector::zero);
-  const FieldList<Dimension, Tensor> Cdamage = state.fields(HydroFieldNames::C_CRKSPH + " damage", Tensor::zero);
-  const FieldList<Dimension, Vector> gradAdamage = state.fields(HydroFieldNames::gradA_CRKSPH + " damage", Vector::zero);
-  const FieldList<Dimension, Tensor> gradBdamage = state.fields(HydroFieldNames::gradB_CRKSPH + " damage", Tensor::zero);
-  const FieldList<Dimension, ThirdRankTensor> gradCdamage = state.fields(HydroFieldNames::gradC_CRKSPH + " damage", ThirdRankTensor::zero);
   const FieldList<Dimension, int> surfacePoint = state.fields(HydroFieldNames::surfacePoint, 0);
   CHECK(mass.size() == numNodeLists);
   CHECK(position.size() == numNodeLists);
@@ -503,12 +394,6 @@ evaluateDerivatives(const typename Dimension::Scalar time,
   CHECK(gradA.size() == numNodeLists);
   CHECK(gradB.size() == numNodeLists);
   CHECK(gradC.size() == numNodeLists or order != CRKOrder::QuadraticOrder);
-  CHECK(Adamage.size() == numNodeLists);
-  CHECK(Bdamage.size() == numNodeLists);
-  CHECK(Cdamage.size() == numNodeLists or order != CRKOrder::QuadraticOrder);
-  CHECK(gradAdamage.size() == numNodeLists);
-  CHECK(gradBdamage.size() == numNodeLists);
-  CHECK(gradCdamage.size() == numNodeLists or order != CRKOrder::QuadraticOrder);
   CHECK(surfacePoint.size() == numNodeLists);
 
   // Derivative FieldLists.
@@ -558,13 +443,13 @@ evaluateDerivatives(const typename Dimension::Scalar time,
   }
 
   // Some scratch variables.
-  Scalar Ai, Aj, Adami, Adamj;
-  Vector gradAi, gradAj, gradAdami, gradAdamj;
-  Vector Bi = Vector::zero, Bj = Vector::zero, Bdami = Vector::zero, Bdamj = Vector::zero;
-  Tensor Ci = Tensor::zero, Cj = Tensor::zero, Cdami = Tensor::zero, Cdamj = Tensor::zero;
-  Tensor gradBi = Tensor::zero, gradBj = Tensor::zero, gradBdami = Tensor::zero, gradBdamj = Tensor::zero;
-  ThirdRankTensor gradCi = ThirdRankTensor::zero, gradCj = ThirdRankTensor::zero, gradCdami = ThirdRankTensor::zero, gradCdamj = ThirdRankTensor::zero;
-  Vector deltagradi, deltagradj, deltagraddami, deltagraddamj;
+  Scalar Ai, Aj;
+  Vector gradAi, gradAj;
+  Vector Bi = Vector::zero, Bj = Vector::zero;
+  Tensor Ci = Tensor::zero, Cj = Tensor::zero;
+  Tensor gradBi = Tensor::zero, gradBj = Tensor::zero;
+  ThirdRankTensor gradCi = ThirdRankTensor::zero, gradCj = ThirdRankTensor::zero;
+  Vector deltagradi, deltagradj;
 
   // Start our big loop over all FluidNodeLists.
   size_t nodeListi = 0;
@@ -621,19 +506,13 @@ evaluateDerivatives(const typename Dimension::Scalar time,
       const Scalar& mui = mu(nodeListi, i);
       Ai = A(nodeListi, i);
       gradAi = gradA(nodeListi, i);
-      Adami = Adamage(nodeListi, i);
-      gradAdami = gradAdamage(nodeListi, i);
       if (order != CRKOrder::ZerothOrder) {
         Bi = B(nodeListi, i);
         gradBi = gradB(nodeListi, i);
-        Bdami = Bdamage(nodeListi, i);
-        gradBdami = gradBdamage(nodeListi, i);
       }
       if (order == CRKOrder::QuadraticOrder) {
         Ci = C(nodeListi, i);
         gradCi = gradC(nodeListi, i);
-        Cdami = Cdamage(nodeListi, i);
-        gradCdami = gradCdamage(nodeListi, i);
       }
       const Scalar Hdeti = Hi.Determinant();
       const Scalar weighti = volume(nodeListi, i);  // Change CRKSPH weights here if need be!
@@ -707,19 +586,13 @@ evaluateDerivatives(const typename Dimension::Scalar time,
               const Scalar& cj = soundSpeed(nodeListj, j);
               Aj = A(nodeListj, j);
               gradAj = gradA(nodeListj, j);
-              Adamj = Adamage(nodeListj, j);
-              gradAdamj = gradAdamage(nodeListj, j);
               if (order != CRKOrder::ZerothOrder) {
                 Bj = B(nodeListj, j);
                 gradBj = gradB(nodeListj, j);
-                Bdamj = Bdamage(nodeListj, j);
-                gradBdamj = gradBdamage(nodeListj, j);
               }
               if (order == CRKOrder::QuadraticOrder) {
                 Cj = C(nodeListj, j);
                 gradCj = gradC(nodeListj, j);
-                Cdamj = Cdamage(nodeListj, j);
-                gradCdamj = gradCdamage(nodeListj, j);
               }
               const SymTensor& Sj = S(nodeListj, j);
               const Scalar Hdetj = Hj.Determinant();
@@ -754,16 +627,12 @@ evaluateDerivatives(const typename Dimension::Scalar time,
               const Vector vij = vi - vj;
 
               // Symmetrized kernel weight and gradient.
-              Scalar gWi, gWj, Wi, Wj, gWdami, gWdamj, Wdami, Wdamj;
-              Vector gradWi, gradWj, gradWdami, gradWdamj;
+              Scalar gWi, gWj, Wi, Wj;
+              Vector gradWi, gradWj;
               CRKSPHKernelAndGradient(Wj, gWj, gradWj, W, CRKSPHHydroBase<Dimension>::correctionOrder(),  rij,  etai, Hi, Hdeti,  etaj, Hj, Hdetj, Ai, Bi, Ci, gradAi, gradBi, gradCi, correctionMin, correctionMax);
               CRKSPHKernelAndGradient(Wi, gWi, gradWi, W, CRKSPHHydroBase<Dimension>::correctionOrder(), -rij, -etaj, Hj, Hdetj, -etai, Hi, Hdeti, Aj, Bj, Cj, gradAj, gradBj, gradCj, correctionMin, correctionMax);
-              CRKSPHKernelAndGradient(Wdamj, gWdamj, gradWdamj, W, CRKSPHHydroBase<Dimension>::correctionOrder(),  rij,  etai, Hi, Hdeti,  etaj, Hj, Hdetj, Adami, Bdami, Cdami, gradAdami, gradBdami, gradCdami, correctionMin, correctionMax);
-              CRKSPHKernelAndGradient(Wdami, gWdami, gradWdami, W, CRKSPHHydroBase<Dimension>::correctionOrder(), -rij, -etaj, Hj, Hdetj, -etai, Hi, Hdeti, Adamj, Bdamj, Cdamj, gradAdamj, gradBdamj, gradCdamj, correctionMin, correctionMax);
               deltagradi = surfacePoint(nodeListi, i) == 0 ? gradWj - gradWi :  gradWj;
               deltagradj = surfacePoint(nodeListj, j) == 0 ? gradWj - gradWi : -gradWi;
-              deltagraddami = surfacePoint(nodeListi, i) == 0 ? gradWdamj - gradWdami :  gradWdamj;
-              deltagraddamj = surfacePoint(nodeListj, j) == 0 ? gradWdamj - gradWdami : -gradWdami;
               const Vector gradWSPHi = (Hi*etai.unitVector())*W.gradValue(etai.magnitude(), Hdeti);
               const Vector gradWSPHj = (Hj*etaj.unitVector())*W.gradValue(etaj.magnitude(), Hdetj);
 
@@ -809,8 +678,8 @@ evaluateDerivatives(const typename Dimension::Scalar time,
               // Velocity gradient.
               DvDxi -= wj*vij.dyad(gradWj);
               DvDxj += wi*vij.dyad(gradWi);
-              localDvDxi -= fij*wj*vij.dyad(gradWdamj);
-              localDvDxj += fij*wi*vij.dyad(gradWdami);
+              localDvDxi -= fij*wj*vij.dyad(gradWj);
+              localDvDxj += fij*wi*vij.dyad(gradWi);
 
               // We treat positive and negative pressures distinctly, so split 'em up.
               const Scalar Pposi = max(0.0, Pi),
@@ -838,8 +707,8 @@ evaluateDerivatives(const typename Dimension::Scalar time,
               CHECK(rhoi > 0.0);
               CHECK(rhoj > 0.0);
               Vector deltaDvDti, deltaDvDtj;
-              const Vector forceij  = 0.5*wi*wj*((Pposi + Pposj)*deltagradi - fij*(sigmai + sigmaj)*deltagraddami + Qaccij);
-              const Vector forceji  = 0.5*wi*wj*((Pposi + Pposj)*deltagradj - fij*(sigmai + sigmaj)*deltagraddamj + Qaccji);
+              const Vector forceij  = 0.5*wi*wj*((Pposi + Pposj)*deltagradi - fij*(sigmai + sigmaj)*deltagradi + Qaccij);
+              const Vector forceji  = 0.5*wi*wj*((Pposi + Pposj)*deltagradj - fij*(sigmai + sigmaj)*deltagradj + Qaccji);
               DvDti -= forceij/mi;
               DvDtj += forceji/mj;
               if (compatibleEnergy) {
@@ -848,11 +717,11 @@ evaluateDerivatives(const typename Dimension::Scalar time,
               }
 
               // Specific thermal energy evolution.
-              DepsDti += 0.5*wi*wj*(Pposj*vij.dot(deltagradi) + fij*sigmaj.dot(vij).dot(deltagraddami) + workQi)/mi;
-              DepsDtj += 0.5*wi*wj*(Pposi*vij.dot(deltagradj) + fij*sigmai.dot(vij).dot(deltagraddamj) + workQj)/mj;
+              DepsDti += 0.5*wi*wj*(Pposj*vij.dot(deltagradi) + fij*sigmaj.dot(vij).dot(deltagradi) + workQi)/mi;
+              DepsDtj += 0.5*wi*wj*(Pposi*vij.dot(deltagradj) + fij*sigmai.dot(vij).dot(deltagradj) + workQj)/mj;
 
-              // const Scalar DTEDtij = 0.5*wi*wj*(Pposj*vij.dot(deltagradi) + fij*sigmaj.dot(vij).dot(deltagraddami) + workQi +
-              //                                   Pposi*vij.dot(deltagradj) + fij*sigmai.dot(vij).dot(deltagraddamj) + workQj);
+              // const Scalar DTEDtij = 0.5*wi*wj*(Pposj*vij.dot(deltagradi) + fij*sigmaj.dot(vij).dot(deltagradi) + workQi +
+              //                                   Pposi*vij.dot(deltagradj) + fij*sigmai.dot(vij).dot(deltagradj) + workQj);
               // // const Scalar DTEDtij = forceij.dot(vij);
               // const Scalar fTEi = entropyWeighting(si, sj, DTEDtij);
               // DepsDti += fTEi*        DTEDtij/mi;
@@ -974,13 +843,6 @@ applyGhostBoundaries(State<Dimension>& state,
   FieldList<Dimension, Scalar> Y = state.fields(SolidFieldNames::yieldStrength, 0.0);
   FieldList<Dimension, int> fragIDs = state.fields(SolidFieldNames::fragmentIDs, int(1));
 
-  FieldList<Dimension, Scalar> Adamage = state.fields(HydroFieldNames::A_CRKSPH + " damage", 0.0);
-  FieldList<Dimension, Vector> Bdamage = state.fields(HydroFieldNames::B_CRKSPH + " damage", Vector::zero);
-  FieldList<Dimension, Tensor> Cdamage = state.fields(HydroFieldNames::C_CRKSPH + " damage", Tensor::zero);
-  FieldList<Dimension, Vector> gradAdamage = state.fields(HydroFieldNames::gradA_CRKSPH + " damage", Vector::zero);
-  FieldList<Dimension, Tensor> gradBdamage = state.fields(HydroFieldNames::gradB_CRKSPH + " damage", Tensor::zero);
-  FieldList<Dimension, ThirdRankTensor> gradCdamage = state.fields(HydroFieldNames::gradC_CRKSPH + " damage", ThirdRankTensor::zero);
-
   for (ConstBoundaryIterator boundaryItr = this->boundaryBegin(); 
        boundaryItr != this->boundaryEnd();
        ++boundaryItr) {
@@ -989,12 +851,6 @@ applyGhostBoundaries(State<Dimension>& state,
     (*boundaryItr)->applyFieldListGhostBoundary(mu);
     (*boundaryItr)->applyFieldListGhostBoundary(Y);
     (*boundaryItr)->applyFieldListGhostBoundary(fragIDs);
-    (*boundaryItr)->applyFieldListGhostBoundary(Adamage);
-    (*boundaryItr)->applyFieldListGhostBoundary(Bdamage);
-    (*boundaryItr)->applyFieldListGhostBoundary(Cdamage);
-    (*boundaryItr)->applyFieldListGhostBoundary(gradAdamage);
-    (*boundaryItr)->applyFieldListGhostBoundary(gradBdamage);
-    (*boundaryItr)->applyFieldListGhostBoundary(gradCdamage);
   }
 }
 
@@ -1017,13 +873,6 @@ enforceBoundaries(State<Dimension>& state,
   FieldList<Dimension, Scalar> Y = state.fields(SolidFieldNames::yieldStrength, 0.0);
   FieldList<Dimension, int> fragIDs = state.fields(SolidFieldNames::fragmentIDs, int(1));
 
-  FieldList<Dimension, Scalar> Adamage = state.fields(HydroFieldNames::A_CRKSPH + " damage", 0.0);
-  FieldList<Dimension, Vector> Bdamage = state.fields(HydroFieldNames::B_CRKSPH + " damage", Vector::zero);
-  FieldList<Dimension, Tensor> Cdamage = state.fields(HydroFieldNames::C_CRKSPH + " damage", Tensor::zero);
-  FieldList<Dimension, Vector> gradAdamage = state.fields(HydroFieldNames::gradA_CRKSPH + " damage", Vector::zero);
-  FieldList<Dimension, Tensor> gradBdamage = state.fields(HydroFieldNames::gradB_CRKSPH + " damage", Tensor::zero);
-  FieldList<Dimension, ThirdRankTensor> gradCdamage = state.fields(HydroFieldNames::gradC_CRKSPH + " damage", ThirdRankTensor::zero);
-
   for (ConstBoundaryIterator boundaryItr = this->boundaryBegin(); 
        boundaryItr != this->boundaryEnd();
        ++boundaryItr) {
@@ -1032,12 +881,6 @@ enforceBoundaries(State<Dimension>& state,
     (*boundaryItr)->enforceFieldListBoundary(mu);
     (*boundaryItr)->enforceFieldListBoundary(Y);
     (*boundaryItr)->enforceFieldListBoundary(fragIDs);
-    (*boundaryItr)->enforceFieldListBoundary(Adamage);
-    (*boundaryItr)->enforceFieldListBoundary(Bdamage);
-    (*boundaryItr)->enforceFieldListBoundary(Cdamage);
-    (*boundaryItr)->enforceFieldListBoundary(gradAdamage);
-    (*boundaryItr)->enforceFieldListBoundary(gradBdamage);
-    (*boundaryItr)->enforceFieldListBoundary(gradCdamage);
   }
 }
 
@@ -1059,12 +902,6 @@ dumpState(FileIO& file, const string& pathName) const {
   file.write(mPlasticStrain0, pathName + "/plasticStrain0");
   file.write(mHfield0, pathName + "/Hfield0");
   file.write(mFragIDs, pathName + "/fragIDs");
-  file.write(mAdamage, pathName + "/Adamage");
-  file.write(mBdamage, pathName + "/Bdamage");
-  file.write(mBdamage, pathName + "/Cdamage");
-  file.write(mGradAdamage, pathName + "/gradAdamage");
-  file.write(mGradBdamage, pathName + "/gradBdamage");
-  file.write(mGradBdamage, pathName + "/gradCdamage");
 }
 
 //------------------------------------------------------------------------------
@@ -1085,12 +922,6 @@ restoreState(const FileIO& file, const string& pathName) {
   file.read(mPlasticStrain0, pathName + "/plasticStrain0");
   file.read(mHfield0, pathName + "/Hfield0");
   file.read(mFragIDs, pathName + "/fragIDs");
-  file.read(mAdamage, pathName + "/Adamage");
-  file.read(mBdamage, pathName + "/Bdamage");
-  file.read(mBdamage, pathName + "/Cdamage");
-  file.read(mGradAdamage, pathName + "/gradAdamage");
-  file.read(mGradBdamage, pathName + "/gradBdamage");
-  file.read(mGradBdamage, pathName + "/gradCdamage");
 }
 
 }

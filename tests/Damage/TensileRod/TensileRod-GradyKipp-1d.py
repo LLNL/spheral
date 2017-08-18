@@ -10,7 +10,6 @@
 #-------------------------------------------------------------------------------
 from SolidSpheral1d import *
 from SpheralTestUtilities import *
-from SpheralVisitDump import dumpPhysicsState
 from identifyFragments import identifyFragments, fragmentProperties
 from math import *
 import os, shutil
@@ -151,8 +150,8 @@ commandLine(length = 3.0,
 
 if crksph:
     hydroname = "CRKSPH"
-    nPerh = 1.01
-    order = 7
+    nPerh = 1.51
+    order = 5
 else:
     hydroname = "SPH"
     nPerh = 1.51
@@ -169,7 +168,6 @@ dataDir = os.path.join(dataDirBase,
                        "nx=%i" % nx,
                        "k=%4.2f_m=%4.2f" % (kWeibull, mWeibull))
 restartDir = os.path.join(dataDir, "restarts")
-visitDir = os.path.join(dataDir, "visit")
 restartBaseName = os.path.join(restartDir, "TensileRod-%i" % nx)
 
 xmin = -0.5*length
@@ -255,8 +253,6 @@ if mpi.rank == 0:
         shutil.rmtree(dataDir)
     if not os.path.exists(restartDir):
         os.makedirs(restartDir)
-    if not os.path.exists(visitDir):
-        os.makedirs(visitDir)
 mpi.barrier()
 
 #-------------------------------------------------------------------------------
