@@ -15,6 +15,7 @@
 
 #ifndef __GCCXML__
 #include <vector>
+#include "uvm_allocator.hh"
 #else
 #include "fakestl.hh"
 #endif
@@ -230,7 +231,8 @@ private:
   //--------------------------- Private Interface ---------------------------//
   // Private Data
 #ifndef __GCCXML__
-  std::vector<DataType> mDataArray;
+//  std::vector<DataType> mDataArray;
+    std::vector<DataType,uvm_allocator::UVMAllocator<DataType>()> mDataArray;
 #endif
   bool mValid;
 

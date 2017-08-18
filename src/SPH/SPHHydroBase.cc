@@ -654,9 +654,16 @@ evaluateDerivatives(const typename Dimension::Scalar time,
 	  auto jItr0 = connectivity.begin();
           auto jItr1 = connectivity.end();
 #ifdef _OPENMP
+	  //#pragma omp target data map(to:mass[:numNodeLists])
+	  //#pragma omp target parallel for
+	          for( int jct=0; jct<std::distance(jItr0,jItr1); ++jct )
+          {
+             const int j = *(jItr0+jct);
 
-          //double time1 = omp_get_wtime();
-
+              const Scalar& mj = mass(nodeListj, j);
+		printf( "%d %lf\n", j, mj );
+	  }
+ 
           #pragma omp parallel for   \
           reduction(max: maxvp) \
           reduction(+: ncalc, weightedNeighborSumi, rhoSumi, normi,  \
