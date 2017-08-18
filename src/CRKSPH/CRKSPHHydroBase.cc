@@ -889,10 +889,10 @@ evaluateDerivatives(const typename Dimension::Scalar time,
 
               // Find the effective weights of i->j and j->i.
               // const Scalar wi = 2.0*weighti*weightj/(weighti + weightj);
-              // // const Scalar wi = 0.5*(weighti + weightj);
-              // const Scalar wj = wi;
-              const Scalar wi = weighti;
-              const Scalar wj = weightj;
+              const Scalar wi = 0.5*(weighti + weightj);
+              const Scalar wj = wi;
+              // const Scalar wi = weighti;
+              // const Scalar wj = weightj;
 
               // Node displacement.
               const Vector rij = ri - rj;
@@ -987,8 +987,11 @@ evaluateDerivatives(const typename Dimension::Scalar time,
               // DepsDti += fTEi*        DTEDtij/mi;
               // DepsDtj += (1.0 - fTEi)*DTEDtij/mj;
 
-              DepsDti += 0.5*wi*wj*(Pj*vij.dot(deltagradi) + workQi)/mi;    // CRK Q
-              DepsDtj += 0.5*wi*wj*(Pi*vij.dot(deltagradj) + workQj)/mj;    // CRK Q
+              DepsDti += 0.25*wi*wj*((Pi + Pj)*vij.dot(deltagradi) + workQi)/mi;    // CRK Q
+              DepsDtj += 0.25*wi*wj*((Pi + Pj)*vij.dot(deltagradj) + workQj)/mj;    // CRK Q
+
+              // DepsDti += 0.5*wi*wj*(Pj*vij.dot(deltagradi) + workQi)/mi;    // CRK Q
+              // DepsDtj += 0.5*wi*wj*(Pi*vij.dot(deltagradj) + workQj)/mj;    // CRK Q
 
               //DepsDti += wi*wj*(Pj*vij.dot(gradWj) + workQVi)/mi;    // RK V AND RK I (both equations are the same for Type I and V)
               //DepsDtj -= wi*wj*(Pi*vij.dot(gradWi) + workQVj)/mj;    // RK V AND RK I (Note the minus sign!)
@@ -1018,6 +1021,7 @@ evaluateDerivatives(const typename Dimension::Scalar time,
         deltagradi = gradWj;
         const Vector forceij  = weighti*weighti*Pi*deltagradi;                    // <- Type III, with CRKSPH Q forces
         DvDti -= forceij/mi;
+        DepsDti += 0.25*weighti*weighti*Pi*vi.dot(deltagradi)/mi;                 // CRK Q
       }
 
       // Get the time for pairwise interactions.
