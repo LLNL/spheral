@@ -15,6 +15,9 @@
 
 #include <string>
 #include <vector>
+#ifdef USE_UVM
+#include "uvm_allocator.hh"
+#endif
 
 namespace Spheral {
   template<typename Dimension> class NodeIteratorBase;
@@ -225,7 +228,10 @@ private:
   //--------------------------- Private Interface ---------------------------//
   // Private Data
 #ifndef __GCCXML__
+#ifndef USE_UVM
   std::vector<DataType> mDataArray;
+#else
+  std::vector<DataType,UVMAllocator<DataType>()> mDataArray;
 #endif
   bool mValid;
 
