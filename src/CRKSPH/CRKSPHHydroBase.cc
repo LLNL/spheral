@@ -284,7 +284,7 @@ initializeProblemStartup(DataBase<Dimension>& dataBase) {
                          FieldList<Dimension, typename Dimension::Scalar>(),        // no weights
                          mSurfacePoint, mVolume, mDeltaCentroid,                    // return values
                          cells);                                                    // no return cells
-    flagSurfaceNeighbors(mSurfacePoint, connectivityMap);
+    // flagSurfaceNeighbors(mSurfacePoint, connectivityMap);
   } else if (mVolumeType == CRKVolumeType::CRKHullVolume) {
     computeHullVolumes(connectivityMap, W.kernelExtent(), position, H, mVolume);
   } else if (mVolumeType == CRKVolumeType::HVolume) {
@@ -653,6 +653,7 @@ evaluateDerivatives(const typename Dimension::Scalar time,
   const FieldList<Dimension, Tensor> gradB = state.fields(HydroFieldNames::gradB_CRKSPH, Tensor::zero);
   const FieldList<Dimension, ThirdRankTensor> gradC = state.fields(HydroFieldNames::gradC_CRKSPH, ThirdRankTensor::zero);
   const FieldList<Dimension, int> surfacePoint = state.fields(HydroFieldNames::surfacePoint, 0);
+  const FieldList<Dimension, Vector> m1 = state.fields(HydroFieldNames::m1_CRKSPH, Vector::zero);
   CHECK(mass.size() == numNodeLists);
   CHECK(position.size() == numNodeLists);
   CHECK(velocity.size() == numNodeLists);
@@ -669,6 +670,7 @@ evaluateDerivatives(const typename Dimension::Scalar time,
   CHECK(gradB.size() == numNodeLists or order == CRKOrder::ZerothOrder);
   CHECK(gradC.size() == numNodeLists or order != CRKOrder::QuadraticOrder);
   CHECK(surfacePoint.size() == numNodeLists);
+  CHECK(m1.size() == numNodeLists);
 
   // Derivative FieldLists.
   FieldList<Dimension, Vector> DxDt = derivatives.fields(IncrementFieldList<Dimension, Field<Dimension, Vector> >::prefix() + HydroFieldNames::position, Vector::zero);
@@ -724,6 +726,8 @@ evaluateDerivatives(const typename Dimension::Scalar time,
   Tensor Ci = Tensor::zero, Cj = Tensor::zero;
   Tensor gradBi = Tensor::zero, gradBj = Tensor::zero;
   ThirdRankTensor gradCi = ThirdRankTensor::zero, gradCj = ThirdRankTensor::zero;
+  Scalar gWi, gWj, Wi, Wj, gW0i, gW0j, W0i, W0j;
+  Vector gradWi, gradWj, gradW0i, gradW0j;
   Vector deltagradi, deltagradj;
 
   // Start our big loop over all FluidNodeLists.
@@ -801,7 +805,7 @@ evaluateDerivatives(const typename Dimension::Scalar time,
       Vector& gradRhoi = gradRho(nodeListi, i);
       Scalar& worki = workFieldi(i);
 
-      // // If this is a surface point, it's straight RK and there are self-contributions.
+      // If this is a surface point, it's straight RK and there are self-contributions.
       // if (surfacePoint(nodeListi, i) != 0) {
       //   Vector selfforceIi  = weighti*weighti*Pi*W0*gradAi;  // <- Type I self-interaction. I think there is no Q term here? Dont know what it would be. 
       //   if (order != CRKOrder::ZerothOrder) {
@@ -901,8 +905,6 @@ evaluateDerivatives(const typename Dimension::Scalar time,
               const Vector vij = vi - vj;
 
               // Symmetrized kernel weight and gradient.
-              Scalar gWi, gWj, Wi, Wj, gW0i, gW0j, W0i, W0j;
-              Vector gradWi, gradWj, gradW0i, gradW0j;
               CRKSPHKernelAndGradient(Wj, gWj, gradWj, W, order,  rij,  etai, Hi, Hdeti,  etaj, Hj, Hdetj, Ai, Bi, Ci, gradAi, gradBi, gradCi, mCorrectionMin, mCorrectionMax);
               CRKSPHKernelAndGradient(Wi, gWi, gradWi, W, order, -rij, -etaj, Hj, Hdetj, -etai, Hi, Hdeti, Aj, Bj, Cj, gradAj, gradBj, gradCj, mCorrectionMin, mCorrectionMax);
               deltagradi = gradWj - gradWi;
@@ -977,16 +979,16 @@ evaluateDerivatives(const typename Dimension::Scalar time,
               // DepsDti += 0.5*wi*wj*(Pj*vij.dot(deltagrad) + workQij)/mi;    // CRK Q
               // DepsDtj += 0.5*wi*wj*(Pi*vij.dot(deltagrad) + workQij)/mj;    // CRK Q
 
-              const Scalar DTEDtij = 0.5*wi*wj*(Pj*vij.dot(deltagradi) + workQi + 
-                                                Pi*vij.dot(deltagradj) + workQj);
-              // const Scalar DTEDtij = forceij.dot(vij);
-              // const Scalar fTEi = entropyWeighting(si, sj, DTEDtij);
-              const Scalar fTEi = min(mi, mj)/max(mi, mj) < 1e6 ? mi/(mi + mj) : entropyWeighting(si, sj, DTEDtij);
-              DepsDti += fTEi*        DTEDtij/mi;
-              DepsDtj += (1.0 - fTEi)*DTEDtij/mj;
+              // const Scalar DTEDtij = 0.5*wi*wj*(Pj*vij.dot(deltagradi) + workQi + 
+              //                                   Pi*vij.dot(deltagradj) + workQj);
+              // // const Scalar DTEDtij = forceij.dot(vij);
+              // // const Scalar fTEi = entropyWeighting(si, sj, DTEDtij);
+              // const Scalar fTEi = min(mi, mj)/max(mi, mj) < 1e6 ? mi/(mi + mj) : entropyWeighting(si, sj, DTEDtij);
+              // DepsDti += fTEi*        DTEDtij/mi;
+              // DepsDtj += (1.0 - fTEi)*DTEDtij/mj;
 
-              // DepsDti += 0.5*wi*wj*(Pj*vij.dot(deltagradi) + workQi)/mi;    // CRK Q
-              // DepsDtj += 0.5*wi*wj*(Pi*vij.dot(deltagradj) + workQj)/mj;    // CRK Q
+              DepsDti += 0.5*wi*wj*(Pj*vij.dot(deltagradi) + workQi)/mi;    // CRK Q
+              DepsDtj += 0.5*wi*wj*(Pi*vij.dot(deltagradj) + workQj)/mj;    // CRK Q
 
               //DepsDti += wi*wj*(Pj*vij.dot(gradWj) + workQVi)/mi;    // RK V AND RK I (both equations are the same for Type I and V)
               //DepsDtj -= wi*wj*(Pi*vij.dot(gradWi) + workQVj)/mj;    // RK V AND RK I (Note the minus sign!)
@@ -1006,6 +1008,17 @@ evaluateDerivatives(const typename Dimension::Scalar time,
       CHECK(not mCompatibleEnergyEvolution or NodeListRegistrar<Dimension>::instance().domainDecompositionIndependent() or
             (i >= firstGhostNodei and pairAccelerationsi.size() == 0) or
             (pairAccelerationsi.size() == numNeighborsi));
+
+      // If this is a surface point, we add a vacuum interaction with a virtual point just off of the surface.
+      if (surfacePoint(nodeListi, i) == 1) {
+        const Vector nhat = m1(nodeListi, i).unitVector();
+        const Vector rij = Hi.Inverse()*nhat/nPerh;
+        const Vector etai = Hi*rij;
+        CRKSPHKernelAndGradient(Wj, gWj, gradWj, W, order,  rij,  etai, Hi, Hdeti,  etai, Hi, Hdeti, Ai, Bi, Ci, gradAi, gradBi, gradCi, mCorrectionMin, mCorrectionMax);
+        deltagradi = gradWj;
+        const Vector forceij  = weighti*weighti*Pi*deltagradi;                    // <- Type III, with CRKSPH Q forces
+        DvDti -= forceij/mi;
+      }
 
       // Get the time for pairwise interactions.
       const Scalar deltaTimePair = Timing::difference(start, Timing::currentTime())/max(size_t(1), ncalc);
@@ -1191,7 +1204,7 @@ finalize(const typename Dimension::Scalar time,
                          FieldList<Dimension, typename Dimension::Scalar>(),         // no weights
                          surfacePoint, vol, mDeltaCentroid,                          // return values
                          cells);                                                     // no return cells
-    flagSurfaceNeighbors(surfacePoint, connectivityMap);
+    // flagSurfaceNeighbors(surfacePoint, connectivityMap);
   } else if (mVolumeType == CRKVolumeType::CRKHullVolume) {
     computeHullVolumes(connectivityMap, W.kernelExtent(), position, H, vol);
   } else if (mVolumeType == CRKVolumeType::HVolume) {
