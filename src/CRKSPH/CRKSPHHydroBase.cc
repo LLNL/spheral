@@ -282,7 +282,7 @@ initializeProblemStartup(DataBase<Dimension>& dataBase) {
                          vector<typename Dimension::FacetedVolume>(),               // no boundaries
                          vector<vector<typename Dimension::FacetedVolume> >(),      // no holes
                          FieldList<Dimension, typename Dimension::Scalar>(),        // no weights
-                         mSurfacePoint, mVolume, mDeltaCentroid, 
+                         mSurfacePoint, mVolume, mDeltaCentroid,                    // return values
                          cells);                                                    // no return cells
     flagSurfaceNeighbors(mSurfacePoint, connectivityMap);
   } else if (mVolumeType == CRKVolumeType::CRKHullVolume) {
@@ -801,14 +801,14 @@ evaluateDerivatives(const typename Dimension::Scalar time,
       Vector& gradRhoi = gradRho(nodeListi, i);
       Scalar& worki = workFieldi(i);
 
-      // If this is a surface point, it's straight RK and there are self-contributions.
-      if (surfacePoint(nodeListi, i) != 0) {
-        Vector selfforceIi  = weighti*weighti*Pi*W0*gradAi;  // <- Type I self-interaction. I think there is no Q term here? Dont know what it would be. 
-        if (order != CRKOrder::ZerothOrder) {
-          selfforceIi = weighti*weighti*Pi*W0*(Ai*Bi+gradAi); //For linear RK (quadratic RK is the same)
-        }
-        DvDti -= selfforceIi/mi;                             //RK I Acceleration 
-      }
+      // // If this is a surface point, it's straight RK and there are self-contributions.
+      // if (surfacePoint(nodeListi, i) != 0) {
+      //   Vector selfforceIi  = weighti*weighti*Pi*W0*gradAi;  // <- Type I self-interaction. I think there is no Q term here? Dont know what it would be. 
+      //   if (order != CRKOrder::ZerothOrder) {
+      //     selfforceIi = weighti*weighti*Pi*W0*(Ai*Bi+gradAi); //For linear RK (quadratic RK is the same)
+      //   }
+      //   DvDti += selfforceIi/mi;                             //RK I Acceleration 
+      // }
 
       // Get the connectivity info for this node.
       const vector< vector<int> >& fullConnectivity = connectivityMap.connectivityForNode(&nodeList, i);
@@ -905,8 +905,10 @@ evaluateDerivatives(const typename Dimension::Scalar time,
               Vector gradWi, gradWj, gradW0i, gradW0j;
               CRKSPHKernelAndGradient(Wj, gWj, gradWj, W, order,  rij,  etai, Hi, Hdeti,  etaj, Hj, Hdetj, Ai, Bi, Ci, gradAi, gradBi, gradCi, mCorrectionMin, mCorrectionMax);
               CRKSPHKernelAndGradient(Wi, gWi, gradWi, W, order, -rij, -etaj, Hj, Hdetj, -etai, Hi, Hdeti, Aj, Bj, Cj, gradAj, gradBj, gradCj, mCorrectionMin, mCorrectionMax);
-              deltagradi = surfacePoint(nodeListi, i) == 0 ? gradWj - gradWi :  gradWj;
-              deltagradj = surfacePoint(nodeListj, j) == 0 ? gradWj - gradWi : -gradWi;
+              deltagradi = gradWj - gradWi;
+              deltagradj = gradWj - gradWi;
+              // deltagradi = surfacePoint(nodeListi, i) == 0 ? gradWj - gradWi :  gradWj;
+              // deltagradj = surfacePoint(nodeListj, j) == 0 ? gradWj - gradWi : -gradWi;
               const Vector gradWSPHi = (Hi*etai.unitVector())*W.gradValue(etai.magnitude(), Hdeti);
               const Vector gradWSPHj = (Hj*etaj.unitVector())*W.gradValue(etaj.magnitude(), Hdetj);
 
@@ -975,15 +977,16 @@ evaluateDerivatives(const typename Dimension::Scalar time,
               // DepsDti += 0.5*wi*wj*(Pj*vij.dot(deltagrad) + workQij)/mi;    // CRK Q
               // DepsDtj += 0.5*wi*wj*(Pi*vij.dot(deltagrad) + workQij)/mj;    // CRK Q
 
-              // const Scalar DTEDtij = 0.5*wi*wj*(Pj*vij.dot(deltagradi) + workQi + 
-              //                                   Pi*vij.dot(deltagradj) + workQj);
-              // // const Scalar DTEDtij = forceij.dot(vij);
+              const Scalar DTEDtij = 0.5*wi*wj*(Pj*vij.dot(deltagradi) + workQi + 
+                                                Pi*vij.dot(deltagradj) + workQj);
+              // const Scalar DTEDtij = forceij.dot(vij);
               // const Scalar fTEi = entropyWeighting(si, sj, DTEDtij);
-              // DepsDti += fTEi*        DTEDtij/mi;
-              // DepsDtj += (1.0 - fTEi)*DTEDtij/mj;
+              const Scalar fTEi = min(mi, mj)/max(mi, mj) < 1e6 ? mi/(mi + mj) : entropyWeighting(si, sj, DTEDtij);
+              DepsDti += fTEi*        DTEDtij/mi;
+              DepsDtj += (1.0 - fTEi)*DTEDtij/mj;
 
-              DepsDti += 0.5*wi*wj*(Pj*vij.dot(deltagradi) + workQi)/mi;    // CRK Q
-              DepsDtj += 0.5*wi*wj*(Pi*vij.dot(deltagradj) + workQj)/mj;    // CRK Q
+              // DepsDti += 0.5*wi*wj*(Pj*vij.dot(deltagradi) + workQi)/mi;    // CRK Q
+              // DepsDtj += 0.5*wi*wj*(Pi*vij.dot(deltagradj) + workQj)/mj;    // CRK Q
 
               //DepsDti += wi*wj*(Pj*vij.dot(gradWj) + workQVi)/mi;    // RK V AND RK I (both equations are the same for Type I and V)
               //DepsDtj -= wi*wj*(Pi*vij.dot(gradWi) + workQVj)/mj;    // RK V AND RK I (Note the minus sign!)
@@ -1186,7 +1189,7 @@ finalize(const typename Dimension::Scalar time,
                          vector<typename Dimension::FacetedVolume>(),                // no boundaries
                          vector<vector<typename Dimension::FacetedVolume> >(),       // no holes
                          FieldList<Dimension, typename Dimension::Scalar>(),         // no weights
-                         surfacePoint, vol, mDeltaCentroid, 
+                         surfacePoint, vol, mDeltaCentroid,                          // return values
                          cells);                                                     // no return cells
     flagSurfaceNeighbors(surfacePoint, connectivityMap);
   } else if (mVolumeType == CRKVolumeType::CRKHullVolume) {
