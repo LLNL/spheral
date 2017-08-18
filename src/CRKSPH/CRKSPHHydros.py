@@ -329,27 +329,33 @@ def CRKSPH(dataBase,
         Cq = 1.0*(W.kernelExtent/4.0)**2
         Q = eval("CRKSPHMonaghanGingoldViscosity%id(Clinear=%g, Cquadratic=%g)" % (ndim, Cl, Cq))
 
-    # Build and return the thing.
-    result =  Constructor(Q = Q,
-                          W = W,
-                          WPi = WPi,
-                          filter = filter,
-                          cfl = cfl,
-                          useVelocityMagnitudeForDt = useVelocityMagnitudeForDt,
-                          compatibleEnergyEvolution = compatibleEnergyEvolution,
-                          evolveTotalEnergy = evolveTotalEnergy,
-                          XSPH = XSPH,
-                          densityUpdate = densityUpdate,
-                          HUpdate = HUpdate,
-                          correctionOrder = correctionOrder,
-                          volumeType = volumeType,
-                          detectSurfaces = detectSurfaces,
-                          detectThreshold = detectThreshold,
-                          sweepAngle = sweepAngle,
-                          detectRange = detectRange,
-                          epsTensile = epsTensile,
-                          nTensile = nTensile)
+    # Build the thing.
+    result = Constructor(Q = Q,
+                         W = W,
+                         WPi = WPi,
+                         filter = filter,
+                         cfl = cfl,
+                         useVelocityMagnitudeForDt = useVelocityMagnitudeForDt,
+                         compatibleEnergyEvolution = compatibleEnergyEvolution,
+                         evolveTotalEnergy = evolveTotalEnergy,
+                         XSPH = XSPH,
+                         densityUpdate = densityUpdate,
+                         HUpdate = HUpdate,
+                         correctionOrder = correctionOrder,
+                         volumeType = volumeType,
+                         detectSurfaces = detectSurfaces,
+                         detectThreshold = detectThreshold,
+                         sweepAngle = sweepAngle,
+                         detectRange = detectRange,
+                         epsTensile = epsTensile,
+                         nTensile = nTensile)
     result.Q = Q
+
+    # Build the special void boundary condition.
+    result.voidbc = eval("CRKSPHVoidBoundary%id(result.surfacePoint(), result.m1())" % ndim)
+    result.appendBoundary(result.voidbc)
+
+    # Store the Q and special BC as attributes, and return the thing.
     return result
 
 #-------------------------------------------------------------------------------

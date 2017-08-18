@@ -65,6 +65,7 @@ commandLine(nr = 100,
             dtMax = 100.0,
             dtGrowth = 2.0,
             dtverbose = False,
+            domainIndependent = False,
             rigorousBoundaries = False,
             maxSteps = None,
             statsStep = 1,
@@ -192,7 +193,7 @@ if svph:
     hydro = SVPH(dataBase = db,
                  W = WT, 
                  cfl = cfl,
-                 useVelocityMagnitudeForDt = False,
+                 useVelocityMagnitudeForDt = True,
                  compatibleEnergyEvolution = compatibleEnergy,
                  XSVPH = XSPH,
                  linearConsistent = linearConsistent,
@@ -205,19 +206,20 @@ elif crksph:
                    W = WT, 
                    filter = filter,
                    cfl = cfl,
-                   useVelocityMagnitudeForDt = False,
+                   useVelocityMagnitudeForDt = True,
                    compatibleEnergyEvolution = compatibleEnergy,
                    XSPH = XSPH,
                    volumeType = volumeType,
                    densityUpdate = densityUpdate,
                    HUpdate = HUpdate,
+                   detectSurfaces = True,
                    correctionOrder = correctionOrder)
 
 else:
     hydro = SPH(dataBase = db,
                 W = WT, 
                 cfl = cfl,
-                useVelocityMagnitudeForDt = False,
+                useVelocityMagnitudeForDt = True,
                 compatibleEnergyEvolution = compatibleEnergy,
                 gradhCorrection = gradhCorrection,
                 XSPH = XSPH,
@@ -246,6 +248,7 @@ integrator.lastDt = dt
 integrator.dtMin = dtMin
 integrator.dtMax = dtMax
 integrator.dtGrowth = dtGrowth
+integrator.domainDecompositionIndependent = domainIndependent
 integrator.rigorousBoundaries = rigorousBoundaries
 integrator.verbose = dtverbose
 output("integrator")
@@ -253,6 +256,7 @@ output("integrator.lastDt")
 output("integrator.dtMin")
 output("integrator.dtMax")
 output("integrator.dtGrowth")
+output("integrator.domainDecompositionIndependent")
 output("integrator.rigorousBoundaries")
 
 #-------------------------------------------------------------------------------
@@ -281,6 +285,7 @@ output("integrator.rigorousBoundaries")
 #-------------------------------------------------------------------------------
 print "Making controller."
 control = SpheralController(integrator, WT,
+                            SPH = True,
                             statsStep = statsStep,
                             restartStep = restartStep,
                             restartBaseName = restartBaseName,
@@ -324,25 +329,33 @@ if graphics == "gnu":
         volPlot = plotFieldList(hydro.volume(),
                                 xFunction="%s.magnitude()",
                                 winTitle = "volume",
+                                plotStyle = "points",
                                 colorNodeLists = False)
     elif crksph:
         volPlot = plotFieldList(hydro.volume(),
                                 xFunction="%s.magnitude()",
                                 winTitle = "volume",
+                                plotStyle = "points",
+                                plotGhosts = True,
                                 colorNodeLists = False)
         APlot = plotFieldList(hydro.A(),
                               xFunction="%s.magnitude()",
                               winTitle = "A",
+                              plotStyle = "points",
+                              plotGhosts = True,
                               colorNodeLists = False)
         BPlot = plotFieldList(hydro.B(),
                               xFunction="%s.magnitude()",
                               yFunction = "%s.magnitude()",
                               winTitle = "|B|",
+                              plotStyle = "points",
+                              plotGhosts = True,
                               colorNodeLists = False)
         splot = plotFieldList(hydro.surfacePoint(),
                               xFunction="%s.magnitude()",
                               winTitle = "surface point",
                               plotStyle = "points",
+                              plotGhosts = True,
                               colorNodeLists = False)
 
     else:

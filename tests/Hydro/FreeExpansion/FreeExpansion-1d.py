@@ -261,11 +261,11 @@ if graphics == "gnu":
     csPlot = plotFieldList(cs, winTitle="Sound speed", colorNodeLists=False)
     EPlot = plotEHistory(control.conserve)
 
-    if SVPH:
+    if svph:
         volPlot = plotFieldList(hydro.volume(),
                                 winTitle = "volume",
                                 colorNodeLists = False)
-    elif CRKSPH:
+    elif crksph:
         A=hydro.A()
 	print("ARRAY LENGTH:")
         print(A[0].__len__())
@@ -295,6 +295,9 @@ if graphics == "gnu":
         BPlot = plotFieldList(hydro.B(),
                               yFunction = "%s.x",
                               winTitle = "B",
+                              colorNodeLists = False)
+        splot = plotFieldList(hydro.surfacePoint(),
+                              winTitle = "surface point",
                               colorNodeLists = False)
 
     else:
