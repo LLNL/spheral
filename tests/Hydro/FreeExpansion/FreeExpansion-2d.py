@@ -55,6 +55,7 @@ commandLine(nr = 100,
 
             svph = False,
             crksph = False,
+            volumeType = CRKVoronoiVolume,
             correctionOrder = LinearOrder,
             IntegratorConstructor = CheapSynchronousRK2Integrator,
             steps = None,
@@ -191,7 +192,7 @@ if svph:
     hydro = SVPH(dataBase = db,
                  W = WT, 
                  cfl = cfl,
-                 useVelocityMagnitudeForDt = True,
+                 useVelocityMagnitudeForDt = False,
                  compatibleEnergyEvolution = compatibleEnergy,
                  XSVPH = XSPH,
                  linearConsistent = linearConsistent,
@@ -204,9 +205,10 @@ elif crksph:
                    W = WT, 
                    filter = filter,
                    cfl = cfl,
-                   useVelocityMagnitudeForDt = True,
+                   useVelocityMagnitudeForDt = False,
                    compatibleEnergyEvolution = compatibleEnergy,
                    XSPH = XSPH,
+                   volumeType = volumeType,
                    densityUpdate = densityUpdate,
                    HUpdate = HUpdate,
                    correctionOrder = correctionOrder)
@@ -215,7 +217,7 @@ else:
     hydro = SPH(dataBase = db,
                 W = WT, 
                 cfl = cfl,
-                useVelocityMagnitudeForDt = True,
+                useVelocityMagnitudeForDt = False,
                 compatibleEnergyEvolution = compatibleEnergy,
                 gradhCorrection = gradhCorrection,
                 XSPH = XSPH,
@@ -318,12 +320,12 @@ if graphics == "gnu":
     csPlot = plotFieldList(cs, xFunction="%s.magnitude()", winTitle="Sound speed", colorNodeLists=False)
     EPlot = plotEHistory(control.conserve)
 
-    if SVPH:
+    if svph:
         volPlot = plotFieldList(hydro.volume(),
                                 xFunction="%s.magnitude()",
                                 winTitle = "volume",
                                 colorNodeLists = False)
-    elif CRKSPH:
+    elif crksph:
         volPlot = plotFieldList(hydro.volume(),
                                 xFunction="%s.magnitude()",
                                 winTitle = "volume",
@@ -336,6 +338,11 @@ if graphics == "gnu":
                               xFunction="%s.magnitude()",
                               yFunction = "%s.magnitude()",
                               winTitle = "|B|",
+                              colorNodeLists = False)
+        splot = plotFieldList(hydro.surfacePoint(),
+                              xFunction="%s.magnitude()",
+                              winTitle = "surface point",
+                              plotStyle = "points",
                               colorNodeLists = False)
 
     else:
