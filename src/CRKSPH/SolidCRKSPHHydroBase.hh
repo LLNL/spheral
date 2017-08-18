@@ -92,14 +92,6 @@ public:
   void registerDerivatives(DataBaseSpace::DataBase<Dimension>& dataBase,
                            StateDerivatives<Dimension>& derivs);
 
-  // Initialize the Hydro before we start a derivative evaluation.
-  virtual
-  void initialize(const Scalar time,
-                  const Scalar dt,
-                  const DataBaseSpace::DataBase<Dimension>& dataBase,
-                  State<Dimension>& state,
-                  StateDerivatives<Dimension>& derivs);
-                          
   // Evaluate the derivatives for the principle hydro variables:
   // mass density, velocity, and specific thermal energy.
   virtual
@@ -128,13 +120,6 @@ public:
   const FieldSpace::FieldList<Dimension, SymTensor>& Hfield0() const;
   const FieldSpace::FieldList<Dimension, int>& fragIDs() const;
 
-  const FieldSpace::FieldList<Dimension, Scalar>&          Adamage() const;
-  const FieldSpace::FieldList<Dimension, Vector>&          Bdamage() const;
-  const FieldSpace::FieldList<Dimension, Tensor>&          Cdamage() const;
-  const FieldSpace::FieldList<Dimension, Vector>&          gradAdamage() const;
-  const FieldSpace::FieldList<Dimension, Tensor>&          gradBdamage() const;
-  const FieldSpace::FieldList<Dimension, ThirdRankTensor>& gradCdamage() const;
-
   //****************************************************************************
   // Methods required for restarting.
   virtual std::string label() const { return "SolidCRKSPHHydroBase"; }
@@ -153,13 +138,6 @@ private:
   FieldSpace::FieldList<Dimension, Scalar> mPlasticStrain0;
   FieldSpace::FieldList<Dimension, SymTensor> mHfield0;
   FieldSpace::FieldList<Dimension, int> mFragIDs;
-
-  FieldSpace::FieldList<Dimension, Scalar>          mAdamage;
-  FieldSpace::FieldList<Dimension, Vector>          mBdamage;
-  FieldSpace::FieldList<Dimension, Tensor>          mCdamage;
-  FieldSpace::FieldList<Dimension, Vector>          mGradAdamage;
-  FieldSpace::FieldList<Dimension, Tensor>          mGradBdamage;
-  FieldSpace::FieldList<Dimension, ThirdRankTensor> mGradCdamage;
 
   // The restart registration.
   DataOutput::RestartRegistrationType mRestart;
