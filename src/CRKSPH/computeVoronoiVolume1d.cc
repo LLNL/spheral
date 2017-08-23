@@ -147,7 +147,7 @@ computeVoronoiVolume(const FieldSpace::FieldList<Dim<1>, Dim<1>::Vector>& positi
       CHECK(x1 <= 0.0 and x2 >= 0.0);
       // CHECK(phi >= 0.0 and phi <= 1.0);
       etamax = max(Hi, max(H1, H2))*max(-x1, x2);
-      if (surfacePoint(nodeListi, i) == 0 and etamax < rin) {
+      if (etamax < rin) {
         vol(nodeListi, i) = x2 - x1;
 
         b = gradRhoi;
