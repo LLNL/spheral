@@ -696,7 +696,7 @@ AC_ARG_WITH(openmp,
       CXXFLAGS+=" -qsmp=omp"
    else
       CXXFLAGS+=" -fopenmp"
-#      EXTRAFLAGS+="  -fopenmp-targets=nvptx64-nvidia-gpu -fopenmp-implicit-declare-target"
+      EXTRAFLAGS+=" -DUSE_UVM  -fopenmp-targets=nvptx64-nvidia-gpu -fopenmp-implicit-declare-target"
    fi
 ],
 [
