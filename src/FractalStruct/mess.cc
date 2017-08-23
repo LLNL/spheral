@@ -1,7 +1,6 @@
 #include "libs.hh"
 #include "classes.hh"
 #include "headers.hh"
-//
 namespace FractalSpace
 {
   bool Mess::IAMROOT;
@@ -176,7 +175,8 @@ namespace FractalSpace
 	assert(each < 12);
       }
     IAmAnFFTNode=false;
-    Franks.clear();
+    // Franks.clear();
+    clean_vector(Franks);
     ItIsAnFFTNode.assign(FractalNodes,false);
     for(int FN=0;FN<FFTNodes;FN++)
       {
@@ -400,7 +400,8 @@ namespace FractalSpace
     double time0=Clock();
     How_Many_Things_To_Send_I(counts_out_send,counts_in_send);
     double time1=Clock();
-    maxSR.clear();
+    // maxSR.clear();
+    clean_vector(maxSR);
     maxSR.push_back(std::accumulate(counts_out_send.begin(),counts_out_send.end(),0));
     maxSR.push_back(std::accumulate(counts_in_send.begin(),counts_in_send.end(),0));
     double time2=Clock();
@@ -741,8 +742,10 @@ namespace FractalSpace
     ofstream& FF=p_file->DUMPS;
     int FractalNodes01=FractalNodes0*FractalNodes1;
     int FractalRank2=FractalRank/FractalNodes01;
-    dataI_in.clear();
-    dataR_in.clear();
+    // dataI_in.clear();
+    // dataR_in.clear();
+    clean_vector(dataI_in);
+    clean_vector(dataR_in);
     vector <int>countsa_out(FractalNodes2,0);
     vector <int>countsa_in(FractalNodes2);
     int totals=0;
@@ -751,7 +754,8 @@ namespace FractalSpace
     try
       {
 	vector <int> tmpI0=dataI_out[0];
-	dataI_out[0].clear();
+	// dataI_out[0].clear();
+	clean_vector(dataI_out[0]);
 	nIdata=0;
 	countsa_out[0]+=counts_out[0];
 	for(int ni=0;ni<counts_out[0];ni++)
@@ -763,7 +767,8 @@ namespace FractalSpace
 		nIdata++;
 	      }
 	  }
-	tmpI0.clear();
+	// tmpI0.clear();
+	clean_vector(tmpI0);
 	for(int FR=1;FR<FractalNodes;FR++)
 	  {
 	    int FR2=FR/FractalNodes01;
@@ -785,8 +790,10 @@ namespace FractalSpace
 		  }
 		totals++;
 	      }
-	    dataI_out[FR].clear();
-	    dataR_out[FR].clear();
+	    // dataI_out[FR].clear();
+	    // dataR_out[FR].clear();
+	    clean_vector(dataI_out[FR]);
+	    clean_vector(dataR_out[FR]);
 	  }
 	dataI_out.resize(FractalNodes2);
 	dataR_out.resize(FractalNodes2);
@@ -858,8 +865,10 @@ namespace FractalSpace
     Full_Stop_Do_Not_Argue(MComms[1]);
     countsa_in.assign(FractalNodes1,0);
     How_Many_Things_To_Send_I(MComms[1],countsa_out,countsa_in);
-    dataI_in.clear();
-    dataR_in.clear();
+    // dataI_in.clear();
+    // dataR_in.clear();
+    clean_vector(dataI_in);
+    clean_vector(dataR_in);
 
     total_in=0;
     total_out=0;
@@ -919,8 +928,10 @@ namespace FractalSpace
     Full_Stop_Do_Not_Argue(MComms[0]);
     countsa_in.assign(FractalNodes0,0);
     How_Many_Things_To_Send_I(MComms[0],countsa_out,countsa_in);
-    dataI_in.clear();
-    dataR_in.clear();
+    // dataI_in.clear();
+    // dataR_in.clear();
+    clean_vector(dataI_in);
+    clean_vector(dataR_in);
     total_in=0;
     total_out=0;
     for(int FR0=0;FR0<FractalNodes0;FR0++)
@@ -971,8 +982,10 @@ namespace FractalSpace
 	FF << endl;
 	assert(0);
       }
-    dataI_in.clear();
-    dataR_in.clear();
+    // dataI_in.clear();
+    // dataR_in.clear();
+    clean_vector(dataI_in);
+    clean_vector(dataR_in);
     how_manyI=0;
     how_manyR=0;
     try
@@ -1018,8 +1031,10 @@ namespace FractalSpace
     ofstream& FF=p_file->DUMPS;
     int FractalNodes01=FractalNodes0*FractalNodes1;
     int FractalRank0=FractalRank % FractalNodes0;
-    dataI_in.clear();
-    dataR_in.clear();
+    // dataI_in.clear();
+    // dataR_in.clear();
+    clean_vector(dataI_in);
+    clean_vector(dataR_in);
     vector <int>countsa_out(FractalNodes0,0);
     vector <int>countsa_in(FractalNodes0);
     int totals=0;
@@ -1092,8 +1107,10 @@ namespace FractalSpace
 	FF << endl;
 	assert(0);
       }
-    dataI_in.clear();
-    dataR_in.clear();
+    // dataI_in.clear();
+    // dataR_in.clear();
+    clean_vector(dataI_in);
+    clean_vector(dataR_in);
     How_Many_Things_To_Send_I(MComms[0],countsa_out,countsa_in);
 
     int total_in=0;
@@ -1153,8 +1170,10 @@ namespace FractalSpace
     Full_Stop_Do_Not_Argue(MComms[1]);
     countsa_in.assign(FractalNodes1,0);
     How_Many_Things_To_Send_I(MComms[1],countsa_out,countsa_in);
-    dataI_in.clear();
-    dataR_in.clear();
+    // dataI_in.clear();
+    // dataR_in.clear();
+    clean_vector(dataI_in);
+    clean_vector(dataR_in);
 
     total_in=0;
     total_out=0;
@@ -1214,8 +1233,10 @@ namespace FractalSpace
     Full_Stop_Do_Not_Argue(MComms[2]);
     countsa_in.assign(FractalNodes2,0);
     How_Many_Things_To_Send_I(MComms[2],countsa_out,countsa_in);
-    dataI_in.clear();
-    dataR_in.clear();
+    // dataI_in.clear();
+    // dataR_in.clear();
+    clean_vector(dataI_in);
+    clean_vector(dataR_in);
     total_in=0;
     total_out=0;
     for(int FR2=0;FR2<FractalNodes2;FR2++)
@@ -1351,8 +1372,10 @@ namespace FractalSpace
     dataR_out.clear();
     How_Many_Things_To_Send_I(HComms[2],countsa_out,countsa_in);
 
-    dataIa_in.clear();
-    dataRa_in.clear();
+    // dataIa_in.clear();
+    // dataRa_in.clear();
+    clean_vector(dataIa_in);
+    clean_vector(dataRa_in);
 
     Send_Data_Somewhere_No_Block(HComms[2],countsa_out,countsa_in,
 				 integers+1,doubles,
@@ -1392,8 +1415,10 @@ namespace FractalSpace
     Full_Stop_Do_Not_Argue(HComms[1]);
     countsa_in.assign(HypreLong1,0);
     How_Many_Things_To_Send_I(HComms[1],countsa_out,countsa_in);
-    dataIa_in.clear();
-    dataRa_in.clear();
+    // dataIa_in.clear();
+    // dataRa_in.clear();
+    clean_vector(dataIa_in);
+    clean_vector(dataRa_in);
 
     Send_Data_Somewhere_No_Block(HComms[1],countsa_out,countsa_in,
 				 integers+2,doubles,
@@ -1435,8 +1460,10 @@ namespace FractalSpace
     Full_Stop_Do_Not_Argue(HComms[0]);
     countsa_in.assign(HypreLong0,0);
     How_Many_Things_To_Send_I(HComms[0],countsa_out,countsa_in);
-    dataIa_in.clear();
-    dataRa_in.clear();
+    // dataIa_in.clear();
+    // dataRa_in.clear();
+    clean_vector(dataIa_in);
+    clean_vector(dataRa_in);
     Send_Data_Somewhere_No_Block(HComms[0],countsa_out,countsa_in,
 				 integers+2,doubles,
 				 dataIa_out,dataIa_in,how_manyI,
@@ -1475,8 +1502,10 @@ namespace FractalSpace
     Full_Stop_Do_Not_Argue(HComms[2]);
     countsa_in.assign(HypreLong2,0);
     How_Many_Things_To_Send_I(HComms[2],countsa_out,countsa_in);
-    dataIa_in.clear();
-    dataRa_in.clear();
+    // dataIa_in.clear();
+    // dataRa_in.clear();
+    clean_vector(dataIa_in);
+    clean_vector(dataRa_in);
     Send_Data_Somewhere_No_Block(HComms[2],countsa_out,countsa_in,
 				 integers+1,doubles,
 				 dataIa_out,dataIa_in,how_manyI,
@@ -1507,8 +1536,10 @@ namespace FractalSpace
 	      }
 	  }
       }
-    dataI_in.clear();
-    dataR_in.clear();
+    // dataI_in.clear();
+    // dataR_in.clear();
+    clean_vector(dataI_in);
+    clean_vector(dataR_in);
     how_manyI=0;
     how_manyR=0;
     for(int HR=0;HR<HypreNodes;HR++)
@@ -1539,6 +1570,22 @@ namespace FractalSpace
       return;
     fprintf(p_file->PFFractalMemory," MPI Error %d %d %d %d %d %d %d %d \n",which,test,
 	    MPI_ERR_COMM,MPI_ERR_TYPE,MPI_ERR_COUNT,MPI_ERR_TAG,MPI_ERR_RANK,MPI_SUCCESS);
+  }
+  void Mess::my_AllgatherI(MPI_Comm& World,vector <int>& paramsend,vector <int>& paramrecv,const int& nsend) const
+  {
+    int nodes;
+    MPI_Comm_size(World,&nodes);
+    int batchsize=1024;
+    int ROOT=nodes/2;
+    MPI_Gather(&(*(paramsend.begin())),nsend,MPI_INT,&(*(paramrecv.begin())),nsend,MPI_INT,ROOT,World);
+    int totals=nodes*nsend;
+    int batches=(totals-1)/batchsize+1;
+    for(int B=0;B<batches;B++)
+      {
+	int b0=(B*totals)/batches;
+	int b1=((B+1)*totals)/batches;
+	MPI_Bcast(&(*(paramrecv.begin()+b0)),b1-b0,MPI_INT,ROOT,World);
+      }
   }
   void Mess::my_AllgatherI(vector <int>& paramsend,vector <int>& paramrecv,const int& nsend) const
   {
@@ -1587,6 +1634,12 @@ namespace FractalSpace
     Find_Max_INT_to_ROOT(integers,how_long,ROOT);
     Send_INT_from_ROOT(integers,how_long,ROOT);
   }
+  // void Mess::Find_Max_INT(MPI_Comm& WORLD,vector <int>& integers,const int& how_long) const
+  // {
+  //   int ROOT=ROOTNODE;
+  //   Find_Max_INT_to_ROOT(WORLD,integers,how_long,ROOT);
+  //   Send_INT_from_ROOT(integers,how_long,ROOT);
+  // }
   void Mess::Find_Max_DOUBLE(vector <double>& doubles,const int& how_long) const
   {
     int ROOT=ROOTNODE;

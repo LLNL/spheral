@@ -58,6 +58,9 @@ source("../src/Mesh/tests/testLineMesh.py")
 # source("../src/Mesh/tests/testPolygonalMesh.py")   # Suspended until we fix the polytope with Spheral issues.
 # source("../src/Mesh/tests/testPolyhedralMesh.py")  # Suspended until we fix the polytope with Spheral issues.
 
+# C++ unit tests.
+source("CXXTests/test_r3d_utils.py")
+
 # Hydro tests
 source("Hydro/HydroTests.ats")
 

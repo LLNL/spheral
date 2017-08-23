@@ -375,6 +375,5 @@ class TestPolyhedron(unittest.TestCase):
             pshift = p0 + shift
             self.failUnless(pshift == p1, "In-place shift point comparison failed: %s != %s" % (pshift, p1))
 
-
 if __name__ == "__main__":
     unittest.main()

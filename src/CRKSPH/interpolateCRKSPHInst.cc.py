@@ -4,7 +4,7 @@ text = """
 //------------------------------------------------------------------------------
 #include "interpolateCRKSPH.cc"
 #include "Geometry/Dimension.hh"
-#include "SolidSPH/NodeCoupling.hh"
+#include "SPH/NodeCoupling.hh"
 
 namespace Spheral {
   namespace CRKSPHSpace {

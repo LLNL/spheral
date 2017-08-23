@@ -53,6 +53,7 @@ AC_SUBST(SHAREDFLAG)
 AC_SUBST(LDPASSTHROUGH)
 
 AC_SUBST(CXXFLAGS)
+AC_SUBST(EXTRAFLAGS)
 AC_SUBST(FORTFLAGS)
 AC_SUBST(CFLAGS)
 AC_SUBST(MPICCFLAGS)
@@ -76,7 +77,7 @@ NUMPYFLAGS=
 # =======================================================================
 AC_MSG_CHECKING(for compilers)
 AC_ARG_WITH(compilers,
-[  --with-compilers=ARG ..................... (gnu,vacpp,intel,pgi) choose a compiler suite],
+[  --with-compilers=ARG ..................... (gnu,clang,clang-ibm,vacpp,intel,pgi) choose a compiler suite],
 [
    COMPILERS=$withval
 ],
@@ -96,13 +97,13 @@ case $COMPILERS in
          CXX=g++
          FORT=gfortran
          MPICC=mpicc
-         MPICCFLAGS="-cc=$CC"
+         #MPICCFLAGS="-cc=$CC"
          if test "$MPICXXTEST" != "nope"; then
             MPICXX=mpicxx
-            MPICXXFLAGS="-cxx=$CXX"
+            #MPICXXFLAGS="-cxx=$CXX"
          else
             MPICXX=mpig++
-            MPICXXFLAGS="-cc=$CXX"
+            #MPICXXFLAGS="-cc=$CXX"
          fi
          GCCXMLCC=$CMAKECC
          GCCXMLCXX=$CMAKECXX
@@ -111,22 +112,6 @@ case $COMPILERS in
          PARMETISCC=$MPICC
          CXXFLAGS+=" -std=c++11"
 
-      elif test $OSNAME = "Darwin"; then
-         CC=clang
-         CXX=clang++
-         FORT=gfortran
-         MPICC=mpicc
-         MPICXX=mpicxx
-         MPICCFLAGS="-cc=clang"
-         MPICXXFLAGS="-cxx=clang++"
-         CMAKECC=clang
-         CMAKECXX=clang++
-         GCCXMLCC=$CMAKECC
-         GCCXMLCXX=$CMAKECXX
-         PYTHONCC=$CC
-         PYTHONCXX=$CXX
-         PARMETISCC=$MPICC
-         CXXFLAGS+=" -mmacosx-version-min=10.7 -std=c++11 -stdlib=libc++"
       else
          CC=gcc
          CXX=g++
@@ -141,30 +126,73 @@ case $COMPILERS in
          PYTHONCXX=$CXX
          PARMETISCC=$MPICC
          CXXFLAGS+=" -std=c++11"
-
+         if test $OSNAME = "Darwin"; then
+           CXXFLAGS+=" -mmacosx-version-min=10.7 -stdlib=libc++"
+         fi
       fi
       ;;
 
-   vacpp)
-      CC=/usr/local/tools/compilers/ibm/xlc-8.0.0.12a
-      CXX=/usr/local/tools/compilers/ibm/xlC-8.0.0.12a
-      MPICC=/usr/local/tools/compilers/ibm/mpxlc-8.0.0.12a
-      MPICXX=/usr/local/tools/compilers/ibm/mpxlC-8.0.0.12a 
-      CMAKECC=$CC
-      CMAKECXX=$CXX
-      GCCXMLCC=gcc-3.2.3
-      GCCXMLCXX=g++-3.2.3
+   clang)
+      CC=clang
+      CXX=clang++
+      FORT=gfortran
+      MPICC=mpicc
+      MPICXX=mpiCC
+      MPICCFLAGS="-cc=clang"
+      MPICXXFLAGS="-cc=clang++"
+      CMAKECC=clang
+      CMAKECXX=clang++
+      GCCXMLCC=$CMAKECC
+      GCCXMLCXX=$CMAKECXX
       PYTHONCC=$CC
       PYTHONCXX=$CXX
       PARMETISCC=$MPICC
+      CXXFLAGS+=" -std=c++11 -Wno-undefined-var-template"
+      if test $OSNAME = "Darwin"; then
+        CXXFLAGS+=" -mmacosx-version-min=10.7 -stdlib=libc++"
+      fi
+      ;;
+
+   clang-ibm)
+      CC=clang
+      CXX=clang++
+      FORT=gfortran
+      MPICC=mpiclang
+      MPICXX=mpiclang++
+      MPICCFLAGS=
+      MPICXXFLAGS=
+      CMAKECC=clang
+      CMAKECXX=clang++
+      GCCXMLCC=$CMAKECC
+      GCCXMLCXX=$CMAKECXX
+      PYTHONCC=$CC
+      PYTHONCXX=$CXX
+      PARMETISCC=$MPICC
+      CXXFLAGS+=" -std=c++11 -DEIGEN_DONT_VECTORIZE"
+      ;;
+
+   vacpp)
+      CC=xlc
+      CXX=xlC
+      MPICC=mpixlc
+      MPICXX=mpixlC 
+      CMAKECC=$CC
+      CMAKECXX=$CXX
+      GCCXMLCC=/usr/tcetmp/packages/gcc/gcc-4.9.3/bin/gcc
+      GCCXMLCXX=/usr/tcetmp/packages/gcc/gcc-4.9.3/bin/g++
+      PYTHONCC=$CC
+      PYTHONCXX=$CXX
+      PARMETISCC=$MPICC
+      CFLAGS+=" "
+      CXXFLAGS+=" -std=c++11 -qnoxlcompatmacros  -DEIGEN_DONT_ALIGN -DEIGEN_DONT_VECTORIZE "
       ;;
 
    intel)
       CC=icc
       CXX=icpc
       FORT=ifort
-      MPICC=mpiicc
-      MPICXX=mpiicpc
+      MPICC=mpicc # mpiicc
+      MPICXX=mpicxx # mpiicpc
       PYTHONCC=icc
       PYTHONCXX=icpc
       CMAKECC=$CC
@@ -174,6 +202,7 @@ case $COMPILERS in
       CMAKECC=gcc
       CMAKECXX=g++
       PARMETISCC=$MPICC
+      CXXFLAGS+=" -std=c++11"
       NUMPYFLAGS="--fcompiler=intelem"
       ;;
 
@@ -515,7 +544,7 @@ rm -f .cxxtype.cc .cxxtype.out
 
 # Set the flag for passing arguments to the linker.
 LDPASSTHROUGH=""
-if test $CXXCOMPILERTYPE = "GNU" -o $CXXCOMPILERTYPE = "INTEL"; then
+if test $CXXCOMPILERTYPE = "GNU" -o $CXXCOMPILERTYPE = "INTEL" -o $CXXCOMPILERTYPE = "VACPP"; then
   LDPASSTHROUGH="-Wl,"
 fi
 
@@ -616,7 +645,7 @@ VACPP)
   FORTFLAGS="$FORTFLAGS -fpic"
   SHAREDFLAG="$SHAREDFLAG -G -qmkshrobj"
   DEPFLAG="-M -E"
-  DEPENDRULES="dependrules.aix"
+  #DEPENDRULES="dependrules.aix"
   CFLAGS="$CFLAGS -g"
   JAMTOOLSET=vacpp 
   BOOSTEXT="-xlc"
@@ -654,5 +683,47 @@ if test "$OSNAME" = "Darwin"; then
 fi
 
 AC_MSG_RESULT($JAMTOOLSET)
+
+# =======================================================================
+# openmp or not
+# =======================================================================
+AC_MSG_CHECKING(for openmp)
+AC_ARG_WITH(openmp,
+[  --with-openmp ........................... should we enable openmp],
+[
+   AC_MSG_RESULT(yes)
+   if test $CXXCOMPILERTYPE = "VACPP"; then
+      CXXFLAGS+=" -qsmp=omp"
+   else
+      CXXFLAGS+=" -fopenmp"
+      EXTRAFLAGS+="  -fopenmp-targets=nvptx64-nvidia-gpu -fopenmp-implicit-declare-target"
+   fi
+],
+[
+   AC_MSG_RESULT(no)
+]
+)
+
+# gprof
+AC_MSG_CHECKING(for --with-gprof)
+AC_ARG_WITH(gprof,
+[  --with-gprof ............................. compile with gprof stuff turned on],
+[
+  AC_MSG_RESULT(yes)
+  if test "$CXXCOMPILERTYPE" = "GNU"; then
+    PYTHONCFLAGS+=" -pg"
+    CFLAGS+=" -pg"
+    CXXFLAGS+=" -pg"
+    LDFLAGS+=" -pg"
+  elif test "$CXXCOMPILERTYPE" = "INTEL"; then
+    PYTHONCFLAGS+=" -p -g"
+    CFLAGS+=" -p -g"
+    CXXFLAGS+=" -p -g"
+    LDFLAGS+=" -pg"
+  fi
+],
+[
+  AC_MSG_RESULT(no)
+])
 
 ])

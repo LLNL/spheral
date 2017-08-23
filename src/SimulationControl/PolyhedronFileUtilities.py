@@ -1,7 +1,7 @@
 #-------------------------------------------------------------------------------
 # A set of methods to help reading and writing Spheral Polyhedra to/from files.
 #-------------------------------------------------------------------------------
-from Spheral3d import Vector, Tensor, SymTensor, Polyhedron, \
+from Spheral3d import Vector, Tensor, SymTensor, Polygon, Polyhedron, \
     vector_of_Vector, vector_of_unsigned, vector_of_vector_of_unsigned
 
 #-------------------------------------------------------------------------------
@@ -34,6 +34,7 @@ def readPolyhedronOBJ(filename):
 
 #-------------------------------------------------------------------------------
 # Write an OBJ (vertex-facet labeled) shape file from a polyhedron.
+# Generalized for polygons now as well.
 # NOTE!!  These things seem to count from 1 rather than 0 for indices!
 #-------------------------------------------------------------------------------
 def writePolyhedronOBJ(poly, filename, forceTriangles=False):
@@ -42,16 +43,26 @@ def writePolyhedronOBJ(poly, filename, forceTriangles=False):
     facets = poly.facets()
     for v in verts:
         f.write("v %g %g %g\n" % (v.x, v.y, v.z))
-    for facet in facets:
-        ipoints = facet.ipoints
+    if isinstance(poly, Polygon):
+        i0 = facets[0].ipoint1
+        i = 0
         f.write("f")
-        if forceTriangles and len(ipoints > 3):
-            for j in xrange(1, len(ipoints)-1):
-                f.write(" %i %i %i\n" % (0, j, j+1))
-        else:
-            for i in ipoints:
-                f.write(" %i" % (i + 1))
-        f.write("\n")
+        while i < len(facets):
+            f.write(" %i" % (facets[i].ipoint1 + 1))
+            i += 1
+            if i < len(facets) and facets[i].ipoint1 == i0:
+                f.write("\nf")
+    else:
+        for facet in facets:
+            ipoints = facet.ipoints
+            f.write("f")
+            if forceTriangles and len(ipoints > 3):
+                for j in xrange(1, len(ipoints)-1):
+                    f.write(" %i %i %i\n" % (0, j, j+1))
+            else:
+                for i in ipoints:
+                    f.write(" %i" % (i + 1))
+    f.write("\n")
     f.close()
     return
 
@@ -120,5 +131,29 @@ def writePolyhedronOFF(poly, filename):
         f.write("\n")
 
     # That's it.
+    f.close()
+    return
+
+#-------------------------------------------------------------------------------
+# Write an STL shape file from a list of polyhedra.
+#-------------------------------------------------------------------------------
+def writePolyhedraSTL(polys,
+                      names,
+                      filename):
+    assert len(polys) == len(names)
+    f = open(filename, "w")
+    for name, poly in zip(names, polys):
+        verts = poly.vertices()
+        facets = poly.facets()
+        f.write("solid %s\n" % name)
+        for facet in facets:
+            ipoints = facet.ipoints
+            f.write("  facet normal %e %e %e\n" % tuple(facet.normal))
+            f.write("    outer loop\n")
+            for i in ipoints:
+                f.write("      vertex %e %e %e\n" % tuple(verts[i]))
+            f.write("    endloop\n")
+            f.write("  endfacet\n")
+        f.write("endsolid\n")
     f.close()
     return

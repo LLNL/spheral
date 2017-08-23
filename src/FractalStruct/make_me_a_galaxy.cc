@@ -17,9 +17,9 @@ namespace FractalSpace
     double x_off=-1.0;
     double y_off=1.5;
     double z_off=0.5;
-    double slope=-1.5;
-    double velratio=0.5;
-    double sigratio=0.5;
+    double slope=-1.8;
+    double velratio=0.8;
+    double sigratio=0.4;
     velratio*=sqrt(G);
     sigratio*=sqrt(G);
     double slope3=slope+3.0;
@@ -62,6 +62,13 @@ namespace FractalSpace
 	allok=false;
 	//	masses[ni]=m;
       }
+    //
+    // masses.assign(numbers,1.0e-20);
+    // masses[0]=2.0;
+    // posx[0]=x_off;
+    // posy[0]=y_off;
+    // posz[0]=z_off;
+    //
     assert(allok);
   }
 }

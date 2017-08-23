@@ -7,14 +7,17 @@ namespace FractalSpace
   {
     double time0=-mem.p_mess->Clock();
     ofstream& FHT=mem.p_file->DUMPS;
-    const double maxFAKES=0.5;
-    vector <double>FILLFACTOR{0.8,0.75,0.7,0.65,0.6};
-    vector <int>VOLMIN {31,43,57,73,91,101,123,147,173,201,231,263};
+    // const double maxFAKES=0.5;
+    // const vector <double>FILLFACTOR{0.8,0.75,0.7,0.65,0.6};
+    // const vector <int>VOLMIN {31,43,57,73,91,101,123,147,173,201,231,263};
+    const double maxFAKES=0.6;
+    const vector <double>FILLFACTOR{0.8,0.7,0.6};
+    const vector <int>VOLMIN {64,96,144,216,324,486,729,1094};
     vector<int>MBoxes;
     vector<int>MPoints;
     vector<int>MFakes;
-    for(double &FF : FILLFACTOR)
-      for(int &VM : VOLMIN)
+    for(double FF : FILLFACTOR)
+      for(int VM : VOLMIN)
 	{
 	  vector<vector<int>>SBoxes;
 	  vector<vector<Point*>>SPoints;
@@ -40,8 +43,8 @@ namespace FractalSpace
     FILLbest=2.0;
     int minBOXES=999999;
     int nB=0;
-    for(auto &FF : FILLFACTOR)
-      for(auto &VM : VOLMIN)
+    for(auto FF : FILLFACTOR)
+      for(auto VM : VOLMIN)
 	{
 	  if(MBoxes[nB] < minBOXES)
 	    {

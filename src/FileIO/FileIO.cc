@@ -4,13 +4,14 @@
 // Created by J. Michael Owen, Wed Feb  7 22:59:14 PST 2001
 //----------------------------------------------------------------------------//
 
-#include <cstring>
-#include "boost/algorithm/string.hpp"
-
 #include "FileIO.hh"
 #include "Field/Field.hh"
 #include "Field/FieldList.hh"
 #include "Utilities/DBC.hh"
+
+#include "boost/algorithm/string.hpp"
+
+#include <cstring>
 
 namespace Spheral {
 namespace FileIOSpace {
@@ -24,7 +25,7 @@ using FieldSpace::FieldList;
 //------------------------------------------------------------------------------
 FileIO::FileIO():
   mFileName(""),
-  mAccess(Undefined),
+  mAccess(AccessType::Undefined),
   mFileOpen(false)
 #ifndef CXXONLY
   ,

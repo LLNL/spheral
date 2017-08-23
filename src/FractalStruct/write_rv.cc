@@ -23,7 +23,7 @@ namespace FractalSpace
 	vector <double> vel(3);
 	vector <double> pf(4);
 	particle.get_pos(pos);
-	fprintf(PFPos," Out%d %7d %10.6E %10.6E %10.6E",step,n,pos[0],pos[1],pos[2]);
+	fprintf(PFPos," Out %d %7d %10.6E %10.6E %10.6E",step,n,pos[0],pos[1],pos[2]);
 	if(nphase >= 6)
 	  particle.get_vel(vel);
 	else
@@ -40,9 +40,9 @@ namespace FractalSpace
 	      }
 	    else
 	      mlevel=-1;
-	    fprintf(PFPos," M%d",mlevel);
+	    fprintf(PFPos," M %d",mlevel);
 	  }
-	fprintf(PFPos," L%d",plevel);
+	fprintf(PFPos," L %d",plevel);
 	if(nfield >= 4)
 	  particle.get_field_pf(pf);
 	else

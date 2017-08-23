@@ -22,6 +22,7 @@ namespace FractalSpace
     int min_hypre_group_size;
     bool hypre_load_balance;
 //     int HypreMaxSpecial;
+    int hypre_min_node_load;
     int hypre_max_node_load;
     double hypre_multiplier;
 //     int hypre_max_average_load;
@@ -79,6 +80,7 @@ namespace FractalSpace
     int grid_length;
     int moat_0;
     unsigned int minimum_number;
+    array<int,16>minimum_number_var;
     int padding;
     int level_max;
     int number_steps_total;
@@ -120,6 +122,7 @@ namespace FractalSpace
     double time;
     double total_mass;
     int steps;
+    int level;
     //
     int crash_levels;
     double crash_pow;
@@ -154,8 +157,7 @@ namespace FractalSpace
     vector <int> masks_level_init;
     //
     vector < vector<Group*> > all_groups;
-//     vector < vector<Group*> > all_buffer_groups;
-//     vector < vector<Group*> > all_inside_groups;
+
     Misc* p_misc; 
     Fractal* p_fractal;
     Mess* p_mess;
@@ -180,6 +182,7 @@ namespace FractalSpace
       time_trial(true),
       min_hypre_group_size(45),
       hypre_load_balance(false),
+      hypre_min_node_load(45),
       hypre_max_node_load(40000),
       hypre_multiplier(2.0),
       G(1.0),
@@ -209,6 +212,8 @@ namespace FractalSpace
       moat_0(1),
       minimum_number(8),
       padding(-1),
+      // padding(1),
+      // level_max(8),
       level_max(8),
       number_steps_total(113),
       number_steps_out(20),
@@ -229,7 +234,7 @@ namespace FractalSpace
       cut_off(1.0e6),
       cut_off_init(16.0),
       pexp(0.77),
-      step_length(0.01),
+      step_length(0.033),
       omega_start(-1.0),
       lambda_start(-1.0),
       redshift_start(49.0),
@@ -249,6 +254,7 @@ namespace FractalSpace
       time(2.0/3.0),
       total_mass(1.0),
       steps(0),
+      level(-10),
       //
       crash_levels(0),
       crash_pow(1.0),
@@ -260,8 +266,9 @@ namespace FractalSpace
       p_misc=0;
       p_fractal=0;
       p_file=0;
-      hypre_solver="AMG";
-      hypre_precond="AMG";
+      minimum_number_var={{8,8,7,7,6,6,6,5,5,5,4,4,4,4,4,4}};
+      hypre_solver="PCG";
+      hypre_precond="PFMG";
       global_level_max=level_max;
       padding=min(padding,1);
       split_particles= force_max > 0.0;

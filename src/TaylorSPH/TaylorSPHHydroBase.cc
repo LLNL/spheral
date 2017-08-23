@@ -75,25 +75,25 @@ TaylorSPHHydroBase(const SmoothingScaleBase<Dimension>& smoothingScaleMethod,
   mHEvolution(HUpdate),
   mCompatibleEnergyEvolution(compatibleEnergyEvolution),
   mXSPH(XSPH),
-  mTimeStepMask(FieldSpace::Copy),
-  mPressure(FieldSpace::Copy),
-  mSoundSpeed(FieldSpace::Copy),
-  mSpecificThermalEnergy0(FieldSpace::Copy),
-  mHideal(FieldSpace::Copy),
-  mMaxViscousPressure(FieldSpace::Copy),
-  mWeightedNeighborSum(FieldSpace::Copy),
-  mMassSecondMoment(FieldSpace::Copy),
-  mXSPHWeightSum(FieldSpace::Copy),
-  mXSPHDeltaV(FieldSpace::Copy),
-  mDxDt(FieldSpace::Copy),
-  mDvDt(FieldSpace::Copy),
-  mDmassDensityDt(FieldSpace::Copy),
-  mDspecificThermalEnergyDt(FieldSpace::Copy),
-  mDHDt(FieldSpace::Copy),
-  mDvDx(FieldSpace::Copy),
-  mInternalDvDx(FieldSpace::Copy),
-  mPairAccelerations(FieldSpace::Copy),
-  mD(FieldSpace::Copy),
+  mTimeStepMask(FieldSpace::FieldStorageType::CopyFields),
+  mPressure(FieldSpace::FieldStorageType::CopyFields),
+  mSoundSpeed(FieldSpace::FieldStorageType::CopyFields),
+  mSpecificThermalEnergy0(FieldSpace::FieldStorageType::CopyFields),
+  mHideal(FieldSpace::FieldStorageType::CopyFields),
+  mMaxViscousPressure(FieldSpace::FieldStorageType::CopyFields),
+  mWeightedNeighborSum(FieldSpace::FieldStorageType::CopyFields),
+  mMassSecondMoment(FieldSpace::FieldStorageType::CopyFields),
+  mXSPHWeightSum(FieldSpace::FieldStorageType::CopyFields),
+  mXSPHDeltaV(FieldSpace::FieldStorageType::CopyFields),
+  mDxDt(FieldSpace::FieldStorageType::CopyFields),
+  mDvDt(FieldSpace::FieldStorageType::CopyFields),
+  mDmassDensityDt(FieldSpace::FieldStorageType::CopyFields),
+  mDspecificThermalEnergyDt(FieldSpace::FieldStorageType::CopyFields),
+  mDHDt(FieldSpace::FieldStorageType::CopyFields),
+  mDvDx(FieldSpace::FieldStorageType::CopyFields),
+  mInternalDvDx(FieldSpace::FieldStorageType::CopyFields),
+  mPairAccelerations(FieldSpace::FieldStorageType::CopyFields),
+  mD(FieldSpace::FieldStorageType::CopyFields),
   mRestart(DataOutput::registerWithRestart(*this)) {
 }
 
@@ -179,8 +179,8 @@ registerState(DataBase<Dimension>& dataBase,
   // in order to enforce NodeList dependent limits.
   FieldList<Dimension, Scalar> massDensity = dataBase.fluidMassDensity();
   FieldList<Dimension, SymTensor> Hfield = dataBase.fluidHfield();
-  boost::shared_ptr<CompositeFieldListPolicy<Dimension, Scalar> > rhoPolicy(new CompositeFieldListPolicy<Dimension, Scalar>());
-  boost::shared_ptr<CompositeFieldListPolicy<Dimension, SymTensor> > Hpolicy(new CompositeFieldListPolicy<Dimension, SymTensor>());
+  std::shared_ptr<CompositeFieldListPolicy<Dimension, Scalar> > rhoPolicy(new CompositeFieldListPolicy<Dimension, Scalar>());
+  std::shared_ptr<CompositeFieldListPolicy<Dimension, SymTensor> > Hpolicy(new CompositeFieldListPolicy<Dimension, SymTensor>());
   for (typename DataBase<Dimension>::FluidNodeListIterator itr = dataBase.fluidNodeListBegin();
        itr != dataBase.fluidNodeListEnd();
        ++itr) {
@@ -188,10 +188,10 @@ registerState(DataBase<Dimension>& dataBase,
                                                                       (*itr)->rhoMax()));
     const Scalar hmaxInv = 1.0/(*itr)->hmax();
     const Scalar hminInv = 1.0/(*itr)->hmin();
-    if (HEvolution() == PhysicsSpace::IntegrateH) {
+    if (HEvolution() == PhysicsSpace::HEvolutionType::IntegrateH) {
       Hpolicy->push_back(new IncrementBoundedState<Dimension, SymTensor, Scalar>(hmaxInv, hminInv));
     } else {
-      CHECK(HEvolution() == PhysicsSpace::IdealH);
+      CHECK(HEvolution() == PhysicsSpace::HEvolutionType::IdealH);
       Hpolicy->push_back(new ReplaceBoundedState<Dimension, SymTensor, Scalar>(hmaxInv, hminInv));
     }
   }

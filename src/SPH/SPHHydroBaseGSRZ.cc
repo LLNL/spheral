@@ -12,14 +12,7 @@
 //
 // Created by JMO, Tue Apr 26 16:06:21 PDT 2016
 //----------------------------------------------------------------------------//
-#include <limits.h>
-#include <float.h>
-#include <algorithm>
-#include <fstream>
-#include <map>
-#include <vector>
-
-#include "SPHHydroBaseGSRZ.hh"
+#include "FileIO/FileIO.hh"
 #include "computeSumVoronoiCellMassDensity.hh"
 #include "computeSPHOmegaGradhCorrection.hh"
 #include "NodeList/SmoothingScaleBase.hh"
@@ -54,9 +47,17 @@
 #include "Utilities/timingUtilities.hh"
 #include "Utilities/safeInv.hh"
 #include "Utilities/globalBoundingVolumes.hh"
-#include "FileIO/FileIO.hh"
 #include "Mesh/Mesh.hh"
 #include "CRKSPH/volumeSpacing.hh"
+
+#include "SPHHydroBaseGSRZ.hh"
+
+#include <limits.h>
+#include <float.h>
+#include <algorithm>
+#include <fstream>
+#include <map>
+#include <vector>
 
 namespace Spheral {
 namespace SPHSpace {
@@ -645,8 +646,8 @@ finalize(const Dim<2>::Scalar time,
 
   // If we're going to do the SPH summation density, we need to convert the mass
   // to mass per unit length first.
-  if (densityUpdate() == PhysicsSpace::RigorousSumDensity or
-      densityUpdate() == PhysicsSpace::CorrectedSumDensity) {
+  if (densityUpdate() == PhysicsSpace::MassDensityType::RigorousSumDensity or
+      densityUpdate() == PhysicsSpace::MassDensityType::CorrectedSumDensity) {
     FieldList<Dimension, Scalar> mass = state.fields(HydroFieldNames::mass, 0.0);
     const FieldList<Dimension, Vector> pos = state.fields(HydroFieldNames::position, Vector::zero);
     const unsigned numNodeLists = mass.numFields();
@@ -664,8 +665,8 @@ finalize(const Dim<2>::Scalar time,
 
   // Now convert back to true masses and mass densities.  We also apply the RZ
   // correction factor to the mass density.
-  if (densityUpdate() == PhysicsSpace::RigorousSumDensity or
-      densityUpdate() == PhysicsSpace::CorrectedSumDensity) {
+  if (densityUpdate() == PhysicsSpace::MassDensityType::RigorousSumDensity or
+      densityUpdate() == PhysicsSpace::MassDensityType::CorrectedSumDensity) {
     const TableKernel<Dimension>& W = this->kernel();
     const FieldList<Dimension, Vector> position = state.fields(HydroFieldNames::position, Vector::zero);
     const FieldList<Dimension, SymTensor> H = state.fields(HydroFieldNames::H, SymTensor::zero);

@@ -110,7 +110,7 @@ def generateSolidEquationOfStateBindings(x, ndim):
                        constrefparam("PhysicalConstants", "constants"),
                        param("double", "minimumPressure", default_value="-std::numeric_limits<double>::max()"),
                        param("double", "maximumPressure", default_value="std::numeric_limits<double>::max()"),
-                       param("MaterialPressureMinType", "minPressureType", default_value="PressureFloor")])
+                       param("MaterialPressureMinType", "minPressureType", default_value="MaterialPressureMinType::PressureFloor")])
 
     # Methods.
     x.add_method("boundedEta", "double", [param("double", "rho")], is_const=True)
@@ -142,6 +142,10 @@ def generatePorousEquationOfStateBindings(x, ndim):
     const_ref_return_value(x, me, "%s::solidEOS" % me, solideos, [], "solidEOS")
     const_ref_return_value(x, me, "%s::alpha" % me, scalarfield, [], "alpha")
 
+    # Attributes.
+    x.add_instance_attribute("alpha0", "double", getter="alpha0", setter="alpha0")
+    x.add_instance_attribute("c0", "double", getter="c0", setter="c0")
+
     return
 
 #---------------------------------------------------------------------------
@@ -165,7 +169,7 @@ def generateLinearPolynomialEquationOfStateBindings(x, ndim):
                        param("double", "externalPressure", default_value="0.0"),
                        param("double", "minimumPressure", default_value="-std::numeric_limits<double>::max()"),
                        param("double", "maximumPressure", default_value="std::numeric_limits<double>::max()"),
-                       param("MaterialPressureMinType", "minPressureType", default_value="PressureFloor")])
+                       param("MaterialPressureMinType", "minPressureType", default_value="MaterialPressureMinType::PressureFloor")])
 
     # Generic EOS interface.
     generateEquationOfStateVirtualBindings(x, ndim, False)
@@ -233,7 +237,7 @@ def generateGruneisenEquationOfStateBindings(x, ndim):
                        param("double", "externalPressure", default_value="0.0"),
                        param("double", "minimumPressure", default_value="-std::numeric_limits<double>::max()"),
                        param("double", "maximumPressure", default_value="std::numeric_limits<double>::max()"),
-                       param("MaterialPressureMinType", "minPressureType", default_value="PressureFloor")])
+                       param("MaterialPressureMinType", "minPressureType", default_value="MaterialPressureMinType::PressureFloor")])
 
     # Generic EOS interface.
     generateEquationOfStateVirtualBindings(x, ndim, False)
@@ -306,7 +310,7 @@ def generateOsborneEquationOfStateBindings(x, ndim):
                        param("double", "externalPressure", default_value="0.0"),
                        param("double", "minimumPressure", default_value="-std::numeric_limits<double>::max()"),
                        param("double", "maximumPressure", default_value="std::numeric_limits<double>::max()"),
-                       param("MaterialPressureMinType", "minPressureType", default_value="PressureFloor")])
+                       param("MaterialPressureMinType", "minPressureType", default_value="MaterialPressureMinType::PressureFloor")])
 
     # Generic EOS interface.
     generateEquationOfStateVirtualBindings(x, ndim, False)
@@ -360,7 +364,7 @@ def generateTillotsonEquationOfStateBindings(x, ndim):
                        param("double", "externalPressure", default_value="0.0"),
                        param("double", "minimumPressure", default_value="-std::numeric_limits<double>::max()"),
                        param("double", "maximumPressure", default_value="std::numeric_limits<double>::max()"),
-                       param("MaterialPressureMinType", "minPressureType", default_value="PressureFloor")])
+                       param("MaterialPressureMinType", "minPressureType", default_value="MaterialPressureMinType::PressureFloor")])
 
     # Generic EOS interface.
     generateEquationOfStateVirtualBindings(x, ndim, False)
@@ -438,7 +442,7 @@ def generateMurnahanEquationOfStateBindings(x, ndim):
                        param("double", "externalPressure", default_value="0.0"),
                        param("double", "minimumPressure", default_value="-std::numeric_limits<double>::max()"),
                        param("double", "maximumPressure", default_value="std::numeric_limits<double>::max()"),
-                       param("MaterialPressureMinType", "minPressureType", default_value="PressureFloor")])
+                       param("MaterialPressureMinType", "minPressureType", default_value="MaterialPressureMinType::PressureFloor")])
 
     # Generic EOS interface.
     generateEquationOfStateVirtualBindings(x, ndim, False)
@@ -838,6 +842,6 @@ def generatePhysicsEvolvingMaterialLibraryBindings(x, ndim):
     x.add_constructor([constrefparam("PhysicalConstants", "constants"),
                        param("double", "minimumPressure", default_value="-std::numeric_limits<double>::max()"),
                        param("double", "maximumPressure", default_value="std::numeric_limits<double>::max()"),
-                       param("MaterialPressureMinType", "minPressureType", default_value="PressureFloor")])
+                       param("MaterialPressureMinType", "minPressureType", default_value="MaterialPressureMinType::PressureFloor")])
 
     return

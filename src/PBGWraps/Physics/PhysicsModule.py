@@ -71,8 +71,15 @@ self.GenericBodyForce%(dim)id = addObject(space, "GenericBodyForce%(dim)id", all
 self.vector_of_Physics%(dim)id = addObject(mod, "vector_of_Physics%(dim)id", allow_subclassing=True)
 ''' % {"dim" : dim})
 
-        self.MassDensityType = space.add_enum("MassDensityType", ["SumDensity", "RigorousSumDensity", "HybridSumDensity", "IntegrateDensity", "VoronoiCellDensity", "SumVoronoiCellDensity", "CorrectedSumDensity"])
-        self.HEvolutionType = space.add_enum("HEvolutionType", ["IdealH", "IntegrateH"])
+        self.MassDensityType = space.add_enum("MassDensityType", [("SumDensity", "Spheral::PhysicsSpace::MassDensityType::SumDensity"),
+                                                                  ("RigorousSumDensity", "Spheral::PhysicsSpace::MassDensityType::RigorousSumDensity"),
+                                                                  ("HybridSumDensity", "Spheral::PhysicsSpace::MassDensityType::HybridSumDensity"),
+                                                                  ("IntegrateDensity", "Spheral::PhysicsSpace::MassDensityType::IntegrateDensity"),
+                                                                  ("VoronoiCellDensity", "Spheral::PhysicsSpace::MassDensityType::VoronoiCellDensity"),
+                                                                  ("SumVoronoiCellDensity", "Spheral::PhysicsSpace::MassDensityType::SumVoronoiCellDensity"),
+                                                                  ("CorrectedSumDensity", "Spheral::PhysicsSpace::MassDensityType::CorrectedSumDensity")])
+        self.HEvolutionType = space.add_enum("HEvolutionType", [("IdealH", "Spheral::PhysicsSpace::HEvolutionType::IdealH"),
+                                                                ("IntegrateH", "Spheral::PhysicsSpace::HEvolutionType::IntegrateH")])
 
         return
 

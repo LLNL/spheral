@@ -6,20 +6,26 @@
 //
 // Created by JMO, Sun Mar 23 11:24:18 PDT 2014
 //----------------------------------------------------------------------------//
+#ifndef __Spheral_Geometry_computeAncillaryGeometry__
+#define __Spheral_Geometry_computeAncillaryGeometry__
+
 #include <algorithm>
 #include <vector>
 #include <set>
 #include <deque>
+#include "Utilities/safeInv.hh"
 
 namespace Spheral {
 namespace GeometryUtilities {
 
 template<typename PolyType>
+inline
 void
 computeAncillaryGeometry(const PolyType& poly,
                          std::vector<std::vector<unsigned> >& vertexFacetConnectivity,
                          std::vector<std::vector<unsigned> >& facetFacetConnectivity,
-                         std::vector<typename PolyType::Vector>& vertexUnitNormals) {
+                         std::vector<typename PolyType::Vector>& vertexUnitNormals,
+                         bool computeFacetFacetConnectivity) {
 
   using namespace std;
   typedef typename PolyType::Vector Vector;
@@ -32,42 +38,42 @@ computeAncillaryGeometry(const PolyType& poly,
 
   // Find the facets surrounding each vertex.
   vertexFacetConnectivity = vector<vector<unsigned> >(nverts);
-  {
-    vector<set<unsigned> > uniqueFacetIDs(nverts);
-    for (unsigned fi = 0; fi != nfacets; ++fi) {
-      const Facet& facet = facets[fi];
-      const vector<unsigned>& ipoints = facet.ipoints();
-      for (const unsigned vi: ipoints) {
-        uniqueFacetIDs[vi].insert(fi);
-      }
+  for (unsigned fi = 0; fi != nfacets; ++fi) {
+    const Facet& facet = facets[fi];
+    const vector<unsigned>& ipoints = facet.ipoints();
+    for (const unsigned vi: ipoints) {
+      vertexFacetConnectivity[vi].push_back(fi);
     }
-    for (unsigned i = 0; i != nverts; ++i) {
-      vertexFacetConnectivity[i].assign(uniqueFacetIDs[i].begin(), uniqueFacetIDs[i].end());
-    }
+  }
+  for (unsigned i = 0; i != nverts; ++i) {
+    std::sort(vertexFacetConnectivity[i].begin(), vertexFacetConnectivity[i].end());
+    vertexFacetConnectivity[i].erase(std::unique(vertexFacetConnectivity[i].begin(), vertexFacetConnectivity[i].end()), vertexFacetConnectivity[i].end());
   }
   CHECK(vertexFacetConnectivity.size() == nverts);
 
   // Construct the facet->facet connectivity.
-  facetFacetConnectivity = vector<vector<unsigned> >(nfacets);
-  {
-    vector<set<unsigned> > uniqueFacetIDs(nfacets);
+  if (computeFacetFacetConnectivity) {
+    facetFacetConnectivity = vector<vector<unsigned> >(nfacets);
     for (const vector<unsigned>& vertexFacets: vertexFacetConnectivity) {
       for (const unsigned fi: vertexFacets) {
-        uniqueFacetIDs[fi].insert(vertexFacets.begin(), vertexFacets.end());
+        std::copy(vertexFacets.begin(), vertexFacets.end(), std::back_inserter(facetFacetConnectivity[fi]));
       }
     }
     for (unsigned i = 0; i != nfacets; ++i) {
-      facetFacetConnectivity[i].assign(uniqueFacetIDs[i].begin(), uniqueFacetIDs[i].end());
+      std::sort(facetFacetConnectivity[i].begin(), facetFacetConnectivity[i].end());
+      facetFacetConnectivity[i].erase(std::unique(facetFacetConnectivity[i].begin(), facetFacetConnectivity[i].end()), facetFacetConnectivity[i].end());
       CHECK(find(facetFacetConnectivity[i].begin(), facetFacetConnectivity[i].end(), i) != facetFacetConnectivity[i].end());
     }
+    CHECK(facetFacetConnectivity.size() == nfacets);
+  } else {
+    facetFacetConnectivity.clear();
   }
-  CHECK(facetFacetConnectivity.size() == nfacets);
 
   // Find the normals to the surface at each vertex.
   vertexUnitNormals = vector<Vector>(nverts);
   for (unsigned i = 0; i != nverts; ++i) {
     for (const unsigned fi: vertexFacetConnectivity[i]) {
-      vertexUnitNormals[i] += facets[fi].normal()/facets[fi].area();
+      vertexUnitNormals[i] += facets[fi].normal()*safeInvVar(facets[fi].area());
     }
     vertexUnitNormals[i] = vertexUnitNormals[i].unitVector();
   }
@@ -76,3 +82,5 @@ computeAncillaryGeometry(const PolyType& poly,
 
 }
 }
+
+#endif

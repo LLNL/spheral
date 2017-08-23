@@ -16,20 +16,12 @@ namespace FractalSpace
     int LOOPS=3;
     for(int LOOP=0;LOOP<LOOPS;LOOP++)
       {
-	vector <int> counts_out;
-	vector <vector <int> > dataI_out;
-	vector <vector <double> > dataR_out;
+	vector <int> counts_out(FractalNodes,0);
+	vector <vector <int> > dataI_out(FractalNodes);
+	vector <vector <double> > dataR_out(FractalNodes);
 	vector <int> counts_in;
 	vector <double> dataR_in;
 	vector <int> dataI_in;
-	counts_out.assign(FractalNodes,0);
-	counts_in.assign(FractalNodes,0);
-	dataI_out.clear();
-	dataR_out.clear();
-	dataI_out.resize(FractalNodes);
-	dataR_out.resize(FractalNodes);
-	dataI_in.clear();
-	dataR_in.clear();
 	int number=-1;
 	int FR=-1;
 	for(int particle=0; particle < frac.get_number_particles(); ++particle)
@@ -92,7 +84,8 @@ namespace FractalSpace
     //    FF << " gather " << how_manyI << " " << frac.particle_list_world.size() << "\n";
     frac.set_number_particles((totalI/2));
     frac.particle_list=frac.particle_list_world;
-    frac.particle_list_world.clear();
+    // frac.particle_list_world.clear();
+    clean_vector(frac.particle_list_world);
     size_t totaltmp=mem.p_mess->parts_tmp.size();
     size_t totaltmpp=mem.p_mess->parts_tmpp.size();
     for(int FR=0;FR<totaltmp;FR++)
@@ -100,13 +93,15 @@ namespace FractalSpace
 	Particle* pt=mem.p_mess->parts_tmp[FR];
 	delete [] pt;
       }
-    mem.p_mess->parts_tmp.clear();
+    // mem.p_mess->parts_tmp.clear();
+    clean_vector(mem.p_mess->parts_tmp);
     for(int FR=0;FR<totaltmpp;FR++)
       {
 	Particle* ptp=mem.p_mess->parts_tmpp[FR];
 	delete [] ptp;
       }
-    mem.p_mess->parts_tmpp.clear();
+    // mem.p_mess->parts_tmpp.clear();
+    clean_vector(mem.p_mess->parts_tmpp);
     remove_pseudo_particles(mem,frac);
     frac.particle_list.resize((totalI/2));
     frac.set_number_particles((totalI/2));

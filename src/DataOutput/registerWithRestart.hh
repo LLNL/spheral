@@ -17,7 +17,7 @@ namespace DataOutput {
 // The data type any client classes must hold onto if they want to register for 
 // restarting.
 //------------------------------------------------------------------------------
-typedef boost::shared_ptr<RestartHandle> RestartRegistrationType;
+typedef std::shared_ptr<RestartHandle> RestartRegistrationType;
 
 //------------------------------------------------------------------------------
 // Register the given object for Restart.  Such classes should store the 

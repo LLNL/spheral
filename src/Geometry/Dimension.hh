@@ -13,8 +13,6 @@
 #ifndef __Spheral_Dim_hh__
 #define __Spheral_Dim_hh__
 
-#include <cmath>
-
 #include "GeomVector.hh"
 #include "GeomTensor.hh"
 #include "GeomSymmetricTensor.hh"
@@ -26,6 +24,8 @@
 #include "GeomPolygon.hh"
 #include "GeomPolyhedron.hh"
 #include "Utilities/FastMath.hh"
+
+#include <cmath>
 
 namespace Spheral {
 

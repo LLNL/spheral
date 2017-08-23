@@ -7,23 +7,23 @@
 // Created by JMO, Wed Sep  8 21:54:50 PDT 1999
 //----------------------------------------------------------------------------//
 
-#include <algorithm>
-
+#include "FileIO/FileIO.hh"
 #include "Geometry/Dimension.hh"
-#include "NodeList.hh"
 #include "NodeListRegistrar.hh"
 #include "Field/Field.hh"
 #include "Field/NodeIterators.hh"
 #include "Neighbor/Neighbor.hh"
 #include "DataBase/State.hh"
-#include "FileIO/FileIO.hh"
 #include "Kernel/TableKernel.hh"
 #include "Utilities/DBC.hh"
 #include "Utilities/packElement.hh"
-
 #include "Hydro/HydroFieldNames.hh"
 #include "DataBase/IncrementState.hh"
 #include "DataBase/ReplaceState.hh"
+
+#include "NodeList.hh"
+
+#include <algorithm>
 
 namespace Spheral {
 namespace NodeSpace {
@@ -394,9 +394,9 @@ NodeType
 NodeList<Dimension>::nodeType(int i) const {
   CHECK(i >=0 && i < numNodes());
   if (i < firstGhostNode()) {
-    return InternalNode;
+    return NodeType::InternalNode;
   } else {
-    return GhostNode;
+    return NodeType::GhostNode;
   }
 }
 

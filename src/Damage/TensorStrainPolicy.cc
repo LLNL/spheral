@@ -8,7 +8,7 @@
 
 #include "TensorStrainPolicy.hh"
 #include "NodeList/NodeList.hh"
-#include "Strength/SolidNodeList.hh"
+#include "NodeList/SolidNodeList.hh"
 #include "Strength/SolidFieldNames.hh"
 #include "Hydro/HydroFieldNames.hh"
 #include "DataBase/UpdatePolicyBase.hh"
@@ -27,7 +27,7 @@ using namespace std;
 
 using FieldSpace::Field;
 using NodeSpace::NodeList;
-using SolidMaterial::SolidNodeList;
+using NodeSpace::SolidNodeList;
 using KernelSpace::TableKernel;
 using PhysicsSpace::TensorStrainAlgorithm;
 
@@ -110,7 +110,7 @@ update(const KeyType& key,
     // Begin the big bonanza of options!
 
     // PseudoPlasticStrain.
-    if (mStrainType == PhysicsSpace::PseudoPlasticStrain) {
+    if (mStrainType == PhysicsSpace::TensorStrainAlgorithm::PseudoPlasticStrain) {
 
       strain(i) += multiplier*safeInv(mu(i), 1.0e-10)*DSDt(i);
       stateField(i) = strain(i);
@@ -132,25 +132,25 @@ update(const KeyType& key,
       // Update the effective strain according to the specified algorithm.
       switch(mStrainType) {
 
-      case(PhysicsSpace::BenzAsphaug):
+      case(PhysicsSpace::TensorStrainAlgorithm::BenzAsphaugStrain):
         CHECK(E(i) >= 0.0);
         stateField(i) = (S(i) - P(i)*SymTensor::one)/(E(i) + tiny); // thpt);
         break;
 
-      case(PhysicsSpace::StrainHistory):
+      case(PhysicsSpace::TensorStrainAlgorithm::StrainHistory):
         stateField(i) = strain(i);
         break;
 
-      case(PhysicsSpace::MeloshRyanAsphaug):
+      case(PhysicsSpace::TensorStrainAlgorithm::MeloshRyanAsphaugStrain):
         stateField(i) = ((K(i) - 2.0*mu(i)/Dimension::nDim)*volstrain*SymTensor::one + 2.0*mu(i)*strain(i))/(E(i) + tiny); // thpt);
         break;
 
-      case(PhysicsSpace::PlasticStrain):
+      case(PhysicsSpace::TensorStrainAlgorithm::PlasticStrain):
         stateField(i) = plasticStrain(i)*SymTensor::one;
         break;
 
       default:
-        VERIFY2(false, "TensorStrainPolicy ERROR:  no update for case " << mStrainType << "!");
+        VERIFY2(false, "TensorStrainPolicy ERROR:  no update for case " << static_cast<int>(mStrainType) << "!");
         break;
 
       }

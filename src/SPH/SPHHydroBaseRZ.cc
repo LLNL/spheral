@@ -10,14 +10,7 @@
 //
 // Created by JMO, Fri May  6 16:18:36 PDT 2016
 //----------------------------------------------------------------------------//
-#include <limits.h>
-#include <float.h>
-#include <algorithm>
-#include <fstream>
-#include <map>
-#include <vector>
-
-#include "SPHHydroBaseRZ.hh"
+#include "FileIO/FileIO.hh"
 #include "computeSumVoronoiCellMassDensity.hh"
 #include "computeSPHOmegaGradhCorrection.hh"
 #include "NodeList/SmoothingScaleBase.hh"
@@ -52,9 +45,17 @@
 #include "Utilities/timingUtilities.hh"
 #include "Utilities/safeInv.hh"
 #include "Utilities/globalBoundingVolumes.hh"
-#include "FileIO/FileIO.hh"
 #include "Mesh/Mesh.hh"
 #include "CRKSPH/volumeSpacing.hh"
+
+#include "SPHHydroBaseRZ.hh"
+
+#include <limits.h>
+#include <float.h>
+#include <algorithm>
+#include <fstream>
+#include <map>
+#include <vector>
 
 namespace Spheral {
 namespace SPHSpace {
@@ -401,6 +402,9 @@ evaluateDerivatives(const Dim<2>::Scalar time,
               Scalar& weightedNeighborSumj = weightedNeighborSum(nodeListj, j);
               SymTensor& massSecondMomentj = massSecondMoment(nodeListj, j);
 
+              // Flag if this is a contiguous material pair or not.
+              const bool sameMatij = true; // (nodeListi == nodeListj and fragIDi == fragIDj);
+
               // Node displacement.
               const Vector xij = posi - posj;
               const Vector etai = Hi*xij;
@@ -427,7 +431,7 @@ evaluateDerivatives(const Dim<2>::Scalar time,
 
               // Zero'th and second moment of the node distribution -- used for the
               // ideal H calculation.
-              const double fweightij = nodeListi == nodeListj ? 1.0 : mRZj*rhoi/(mRZi*rhoj);
+              const double fweightij = sameMatij ? 1.0 : mRZj*rhoi/(mRZi*rhoj);
               const double xij2 = xij.magnitude2();
               const SymTensor thpt = xij.selfdyad()/max(tiny, xij2*FastMath::square(Dimension::pownu12(xij2)));
               weightedNeighborSumi +=     fweightij*std::abs(gWi);
@@ -485,13 +489,13 @@ evaluateDerivatives(const Dim<2>::Scalar time,
               const Tensor deltaDvDxj = mRZi*vij.dyad(gradWj);
               DvDxi -= deltaDvDxi;
               DvDxj -= deltaDvDxj;
-              if (nodeListi == nodeListj) {
+              if (sameMatij) {
                 localDvDxi -= deltaDvDxi;
                 localDvDxj -= deltaDvDxj;
               }
 
               // Estimate of delta v (for XSPH).
-              if (nodeListi == nodeListj or min(zetai, zetaj) < 1.0) {
+              if (sameMatij or min(zetai, zetaj) < 1.0) {
                 const double wXSPHij = 0.5*(mRZi/rhoi*Wi + mRZj/rhoj*Wj);
                 XSPHWeightSumi += wXSPHij;
                 XSPHWeightSumj += wXSPHij;
@@ -502,7 +506,7 @@ evaluateDerivatives(const Dim<2>::Scalar time,
               // Linear gradient correction term.
               Mi -= mRZj*xij.dyad(gradWi);
               Mj -= mRZi*xij.dyad(gradWj);
-              if (nodeListi == nodeListj) {
+              if (sameMatij) {
                 localMi -= mRZj*xij.dyad(gradWi);
                 localMj -= mRZi*xij.dyad(gradWj);
               }
@@ -629,8 +633,8 @@ finalize(const Dim<2>::Scalar time,
 
   // If we're going to do the SPH summation density, we need to convert the mass
   // to mass per unit length first.
-  if (densityUpdate() == PhysicsSpace::RigorousSumDensity or
-      densityUpdate() == PhysicsSpace::CorrectedSumDensity) {
+  if (densityUpdate() == PhysicsSpace::MassDensityType::RigorousSumDensity or
+      densityUpdate() == PhysicsSpace::MassDensityType::CorrectedSumDensity) {
     FieldList<Dimension, Scalar> mass = state.fields(HydroFieldNames::mass, 0.0);
     const FieldList<Dimension, Vector> pos = state.fields(HydroFieldNames::position, Vector::zero);
     const unsigned numNodeLists = mass.numFields();
@@ -648,8 +652,8 @@ finalize(const Dim<2>::Scalar time,
 
   // Now convert back to true masses and mass densities.  We also apply the RZ
   // correction factor to the mass density.
-  if (densityUpdate() == PhysicsSpace::RigorousSumDensity or
-      densityUpdate() == PhysicsSpace::CorrectedSumDensity) {
+  if (densityUpdate() == PhysicsSpace::MassDensityType::RigorousSumDensity or
+      densityUpdate() == PhysicsSpace::MassDensityType::CorrectedSumDensity) {
     const TableKernel<Dimension>& W = this->kernel();
     const FieldList<Dimension, Vector> position = state.fields(HydroFieldNames::position, Vector::zero);
     const FieldList<Dimension, SymTensor> H = state.fields(HydroFieldNames::H, SymTensor::zero);

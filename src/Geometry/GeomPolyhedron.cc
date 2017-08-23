@@ -9,6 +9,7 @@
 #include <numeric>
 #include <map>
 #include <limits>
+#include <iterator>
 
 #include "GeomPolyhedron.hh"
 #include "FacetedVolumeUtilities.hh"
@@ -19,6 +20,7 @@
 #include "Utilities/PairComparisons.hh"
 #include "Utilities/CounterClockwiseComparator.hh"
 #include "Utilities/pointInPolyhedron.hh"
+#include "Utilities/safeInv.hh"
 
 extern "C" {
 #include "libqhull/qhull_a.h"
@@ -194,7 +196,7 @@ GeomPolyhedron(const vector<GeomPolyhedron::Vector>& points):
     setBoundingBox();
 
     // Compute the ancillary geometry.
-    GeometryUtilities::computeAncillaryGeometry(*this, mVertexFacetConnectivity, mFacetFacetConnectivity, mVertexUnitNorms);
+    GeometryUtilities::computeAncillaryGeometry(*this, mVertexFacetConnectivity, mFacetFacetConnectivity, mVertexUnitNorms, false);
 
     // Stash the centroid and inscribed radius for use in containment.  If the centroid is not contained however,
     // we set this internal radius to zero to disable this accelerated containment checking.
@@ -211,13 +213,8 @@ GeomPolyhedron(const vector<GeomPolyhedron::Vector>& points):
     BEGIN_CONTRACT_SCOPE
     {
       // All normals should be outward facing.
-      Vector centroid;
-      for (vector<Vector>::const_iterator itr = mVertices.begin();
-           itr != mVertices.end();
-           ++itr) centroid += *itr;
-      centroid /= mVertices.size();
-      for (const Facet& facet: mFacets) ENSURE2((facet.position() - centroid).dot(facet.normal()) >= 0.0,
-                                                "Inward normal? " << (facet.position() - centroid).dot(facet.normal()) << " " << facet.position() << " " << centroid << " " << facet.normal());
+      for (const auto& facet: mFacets) ENSURE2(((facet.position() - mCentroid).dot(facet.normal()) >= 0.0),
+                                               "Inward normal? " << (facet.position() - mCentroid).dot(facet.normal()) << " " << facet.position() << " " << mCentroid << " " << facet.normal());
 
       // We had better be convex if built from a convex hull.
       ENSURE(convex());
@@ -251,8 +248,10 @@ GeomPolyhedron(const vector<GeomPolyhedron::Vector>& points,
   mRinterior2(-1.0),
   mConvex(false) {
 
+  unsigned i, j, n;
+  double dl, circum;
   vector<unsigned> indices;
-  Vector a, b, normal, centroid;
+  Vector normal, ni, centroid;
   mFacets.reserve(facetIndices.size());
 
   // Construct the facets.
@@ -261,16 +260,35 @@ GeomPolyhedron(const vector<GeomPolyhedron::Vector>& points,
     VERIFY2(*max_element(indices.begin(), indices.end()) < points.size(),
             "Bad vertex index for facet.");
 
-    // Pick three points and construct an arbitrary normal.
+    // Figure out the centroid of the facet.
+    n = indices.size();
     centroid.Zero();
-    for (auto i: indices) centroid += mVertices[i];
-    centroid /= indices.size();
-    a = mVertices[indices[0]] - centroid;
-    b = mVertices[indices[1]] - centroid;
-    normal = a.cross(b);
-    VERIFY(normal.magnitude2() > 0.0);
-    normal = normal.unitVector();
+    circum = 0.0;
+    for (i = 0; i != n; ++i) {
+      j = (i + 1) % n;
+      dl = (mVertices[indices[i]] - mVertices[indices[j]]).magnitude();
+      centroid += (mVertices[indices[i]] + mVertices[indices[j]]) * dl;
+      circum += dl;
+    }
+    centroid /= 2.0*circum;
 
+    // Figure out the normal.
+    if (n == 3) {
+
+      // Triangular facets are easy.
+      normal = (mVertices[indices[1]] - mVertices[indices[0]]).cross(mVertices[indices[2]] - mVertices[indices[0]]);
+
+    } else {
+
+      // Figure out the area weighted normal.  No need to divide by the area 'cause we turn it into a unit normal.
+      normal.Zero();
+      for (i = 0; i != n; ++i) {
+        j = (i + 1) % n;
+        normal += (mVertices[indices[i]] - centroid).cross(mVertices[indices[j]] - centroid);
+      }
+    }
+    CHECK2(normal.magnitude2() > 0.0, normal << " " << facetIndices.size());
+    normal = normal.unitVector();
     mFacets.push_back(Facet(mVertices, indices, normal));
   }
   CHECK(mFacets.size() == facetIndices.size());
@@ -282,14 +300,15 @@ GeomPolyhedron(const vector<GeomPolyhedron::Vector>& points,
   mConvex = this->convex();
 
   // Compute the ancillary geometry.
-  GeometryUtilities::computeAncillaryGeometry(*this, mVertexFacetConnectivity, mFacetFacetConnectivity, mVertexUnitNorms);
+  GeometryUtilities::computeAncillaryGeometry(*this, mVertexFacetConnectivity, mFacetFacetConnectivity, mVertexUnitNorms, false);
 
   // Stash the centroid and inscribed radius for use in containment.  If the centroid is not contained however,
   // we set this internal radius to zero to disable this accelerated containment checking.
   mCentroid = this->centroid();
+
   if (pointInPolyhedron(mCentroid, *this, false, 1.0e-10)) {
     mRinterior2 = numeric_limits<double>::max();
-    for (const Facet& facet: mFacets) mRinterior2 = min(mRinterior2, facet.distance(mCentroid));
+    for (const auto& facet: mFacets) mRinterior2 = min(mRinterior2, facet.distance(mCentroid));
     mRinterior2 = FastMath::square(mRinterior2);
   } else {
     mRinterior2 = -1.0;
@@ -302,20 +321,16 @@ GeomPolyhedron(const vector<GeomPolyhedron::Vector>& points,
 GeomPolyhedron::
 GeomPolyhedron(const GeomPolyhedron& rhs):
   mVertices(rhs.mVertices),
-  mFacets(),
+  mFacets(rhs.mFacets),
+  mVertexUnitNorms(rhs.mVertexUnitNorms),
   mVertexFacetConnectivity(rhs.mVertexFacetConnectivity),
   mFacetFacetConnectivity(rhs.mFacetFacetConnectivity),
-  mVertexUnitNorms(rhs.mVertexUnitNorms),
   mXmin(rhs.mXmin),
   mXmax(rhs.mXmax),
   mCentroid(rhs.mCentroid),
   mRinterior2(rhs.mRinterior2),
   mConvex(rhs.mConvex) {
-  mFacets.reserve(rhs.mFacets.size());
-  for (const Facet& facet: rhs.mFacets) mFacets.push_back(Facet(mVertices,
-                                                                facet.ipoints(),
-                                                                facet.normal()));
-  ENSURE(mFacets.size() == rhs.mFacets.size());
+  for (Facet& facet: mFacets) facet.mVerticesPtr = &mVertices;
 }
 
 //------------------------------------------------------------------------------
@@ -532,27 +547,15 @@ intersect(const std::pair<Vector, Vector>& rhs) const {
 GeomPolyhedron::Vector
 GeomPolyhedron::
 centroid() const {
-  const unsigned n = mVertices.size();
+  // Area weight by the facets.
   Vector result;
-  if (n == 0) return result;
-  CHECK(n >= 4);
-  const Vector c0 = std::accumulate(mVertices.begin(), mVertices.end(), Vector())/n;
-
-  // Specialize for tets, which are easy!
-  if (n == 4) return c0;
-
-  // Walk the facets.  Note we assume all facets are planar here!
-  unsigned i, j;
-  double vol, volsum = 0.0;
-  Vector fc;
-  for (const Facet& facet: mFacets) {
-    fc = facet.position();
-    vol = facet.area() * facet.normal().dot(facet.point(0) - c0);  // Should be one third of this, but will cancel.
-    volsum += vol;
-    result += vol * (0.25*c0 + 0.75*fc);
+  double area, areasum = 0.0;
+  for (const auto& facet: mFacets) {
+    area = facet.area();
+    areasum += area;
+    result += area * facet.position();
   }
-  CHECK(volsum > 0.0);
-  result /= volsum;
+  result *= safeInvVar(areasum);
   return result;
 }
 
@@ -630,9 +633,9 @@ reconstruct(const vector<GeomPolyhedron::Vector>& vertices,
   }
   setBoundingBox();
   mConvex = this->convex();
-  GeometryUtilities::computeAncillaryGeometry(*this, mVertexFacetConnectivity, mFacetFacetConnectivity, mVertexUnitNorms);
+  GeometryUtilities::computeAncillaryGeometry(*this, mVertexFacetConnectivity, mFacetFacetConnectivity, mVertexUnitNorms, false);
   ENSURE(mFacets.size() == numFacets);
-  ENSURE(mFacetFacetConnectivity.size() == numFacets);
+  ENSURE(mFacetFacetConnectivity.size() == 0); // numFacets);
 }
 
 //------------------------------------------------------------------------------
@@ -644,7 +647,7 @@ volume() const {
   double result = 0.0;
   const Vector c = centroid();
   for (const Facet& facet: mFacets) {
-    result += facet.area() * abs(facet.normal().dot(facet.point(0) - c));
+    result += facet.area() * facet.normal().dot(facet.point(0) - c);
   }
   ENSURE(result >= 0.0);
   return result/3.0;
@@ -733,6 +736,49 @@ operator-(const GeomPolyhedron::Vector& rhs) const {
 }
 
 //------------------------------------------------------------------------------
+// *= Scalar, scale polyhedron
+//------------------------------------------------------------------------------
+GeomPolyhedron&
+GeomPolyhedron::
+operator*=(const double rhs) {
+  for (auto& v: mVertices) v *= rhs;
+  this->setBoundingBox();
+  return *this;
+}
+
+//------------------------------------------------------------------------------
+// /= Scalar, scale polyhedron
+//------------------------------------------------------------------------------
+GeomPolyhedron&
+GeomPolyhedron::
+operator/=(const double rhs) {
+  (*this) *= 1.0/rhs;
+  return *this;
+}
+
+//------------------------------------------------------------------------------
+// * Scalar, scale polyhedron
+//------------------------------------------------------------------------------
+GeomPolyhedron
+GeomPolyhedron::
+operator*(const double rhs) const {
+  GeomPolyhedron result(*this);
+  result *= rhs;
+  return result;
+}
+
+//------------------------------------------------------------------------------
+// / Scalar, scale polyhedron
+//------------------------------------------------------------------------------
+GeomPolyhedron
+GeomPolyhedron::
+operator/(const double rhs) const {
+  GeomPolyhedron result(*this);
+  result /= rhs;
+  return result;
+}
+
+//------------------------------------------------------------------------------
 // ==
 //------------------------------------------------------------------------------
 bool
@@ -764,6 +810,7 @@ void
 GeomPolyhedron::
 setBoundingBox() {
   boundingBox(mVertices, mXmin, mXmax);
+  mConvex = this->convex();
 }
 
 //------------------------------------------------------------------------------
@@ -785,6 +832,26 @@ convex(const double tol) const {
     ++vertexItr;
   }
   return result;
+}
+
+//------------------------------------------------------------------------------
+// ostream operator.
+//------------------------------------------------------------------------------
+ostream& operator<<(ostream& os, const GeomPolyhedron& polyhedron) {
+  typedef GeomPolyhedron::Vector Vector;
+  typedef GeomPolyhedron::Facet Facet;
+  const vector<Vector>& vertices = polyhedron.vertices();
+  const vector<vector<unsigned> >& facetIndices = polyhedron.facetVertices();
+  os << "Polyhedron( vertices[\n";
+  for (size_t i = 0; i != vertices.size(); ++i) os << "                    " << i << " " << vertices[i] << "\n";
+  os << "            ]\n           facets[\n";
+  for (size_t i = 0; i != facetIndices.size(); ++i) {
+    os << "                    " << i << " [";
+    std::copy(facetIndices[i].begin(), facetIndices[i].end(), ostream_iterator<unsigned>(os, " "));
+    os << "]\n";
+  }
+  os << "])\n";
+  return os;
 }
 
 //------------------------------------------------------------------------------

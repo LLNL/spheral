@@ -3,11 +3,11 @@
 //
 // Created by JMO, Sat Feb  7 23:06:03 PST 2015
 //----------------------------------------------------------------------------//
-#include <algorithm>
-#include "boost/algorithm/string/replace.hpp"
-
 #include "SiloFileIO.hh"
 #include "Field/Field.hh"
+
+#include "boost/algorithm/string/replace.hpp"
+#include <algorithm>
 
 namespace Spheral {
 namespace FileIOSpace {
@@ -69,7 +69,7 @@ SiloFileIO::open(const string fileName, AccessType access) {
     fullFileName += ".silo";
   }
 
-  if (access == Read) {
+  if (access == AccessType::Read) {
     mFilePtr = DBOpen(fullFileName.c_str(), DB_HDF5, DB_READ);
   } else {
     mFilePtr = DBCreate(fullFileName.c_str(), DB_CLOBBER, DB_LOCAL, "Spheral++ restart file.", DB_HDF5);

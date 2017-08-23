@@ -9,15 +9,11 @@
 #ifndef __Spheral_NodeList__
 #define __Spheral_NodeList__
 
-#include <string>
+#include "DataOutput/registerWithRestart.hh"
 
-#ifndef __GCCXML__
+#include <string>
 #include <list>
 #include <vector>
-#include "DataOutput/registerWithRestart.hh"
-#else
-#include "fakestl.hh"
-#endif
 
 namespace Spheral {
   template<typename Dimension> class AllNodeIterator;
@@ -49,7 +45,7 @@ namespace Spheral {
 namespace Spheral {
 namespace NodeSpace {
 
-enum NodeType {
+enum class NodeType {
   InternalNode = 0,
   GhostNode = 1
 };

@@ -27,6 +27,11 @@ SRCTARGETS = \
 	$(srcdir)/refinePolyhedron.cc \
 	$(srcdir)/coarsenBinnedValuesInst.cc
 
+ifeq ("yes", "@USE_R3D@")
+SRCTARGETS += \
+	$(srcdir)/r3d_utils.cc
+endif
+
 INSTSRCTARGETS = \
 	$(srcdir)/iterateIdealHInst.cc.py \
 	$(srcdir)/mortonOrderIndicesInst.cc.py \
@@ -39,9 +44,22 @@ INSTSRCTARGETS = \
 	$(srcdir)/numberDensityInst.cc.py \
 	$(srcdir)/medianPositionInst.cc.py
 
+# A few of our target files are only valid for certain dimensions.
+ifneq (,$(filter "yes", "@INST2D@" "@INST3D@"))
+INSTSRCTARGETS += \
+	$(srcdir)/overlayRemapFieldsInst.cc.py
+endif
+
 PYTHONTARGETS = \
 	$(srcdir)/fitspline.py
 
 #-------------------------------------------------------------------------------
 include $(BUILDTOP)/helpers/makefile_master
+
+ifeq ("yes", "@USE_OPENSUBDIV@")
 LIBS += $(OPENSUBDIVLIBS) $(OPENSUBDIVLIBS)
+endif
+
+ifeq ("yes", "@USE_R3D@")
+LIBS += -lr3d
+endif

@@ -5,16 +5,15 @@
 //
 // Created by JMO, Wed Aug 25 22:23:35 2004
 //----------------------------------------------------------------------------//
-
-#include <algorithm>
-#include <sstream>
-
 #include "StateBase.hh"
 #include "Field/Field.hh"
 #include "Field/FieldList.hh"
 #include "Neighbor/ConnectivityMap.hh"
 #include "Mesh/Mesh.hh"
 #include "Utilities/DBC.hh"
+
+#include <algorithm>
+#include <sstream>
 
 namespace Spheral {
 
@@ -24,7 +23,7 @@ using FieldSpace::Field;
 using FieldSpace::FieldBase;
 using FieldSpace::FieldList;
 using MeshSpace::Mesh;
-using boost::shared_ptr;
+using std::shared_ptr;
 
 //------------------------------------------------------------------------------
 // Default constructor.

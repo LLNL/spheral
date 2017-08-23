@@ -5,13 +5,13 @@
 namespace Spheral {
 namespace CRKSPHSpace {
 
-enum CRKOrder {//Used to assign the order of the corrections
+enum class CRKOrder : int {//Used to assign the order of the corrections
   ZerothOrder = 0,
   LinearOrder = 1,
   QuadraticOrder = 2
 };
 
-enum CRKVolumeType { // Choices for the CRK volume weighting
+enum class CRKVolumeType : int { // Choices for the CRK volume weighting
   CRKMassOverDensity = 0,
   CRKSumVolume = 1,
   CRKVoronoiVolume = 2,

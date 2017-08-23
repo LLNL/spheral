@@ -11,7 +11,10 @@ PKGDIR = $(PKGNAME)/
 LIBTARGET = libSpheral_$(PKGNAME).$(DYLIBEXT)
 
 INSTSRCTARGETS = \
-	$(srcdir)/relaxNodeDistributionInst.cc.py
+	$(srcdir)/relaxNodeDistributionInst.cc.py \
+	$(srcdir)/centroidalRelaxNodesImplInst.cc.py \
+	$(srcdir)/compactFacetedVolumesInst.cc.py \
+	$(srcdir)/chooseRandomNonoverlappingCenterInst.cc.py
 
 SRCTARGETS = \
 	$(srcdir)/generateCylDistributionFromRZ.cc \
@@ -50,8 +53,11 @@ PYTHONTARGETS = \
 	$(srcdir)/CentroidalGenerator2d.py \
 	$(srcdir)/centroidalRelaxNodes.py \
 	$(srcdir)/MedialGenerator.py \
-	$(srcdir)/MultiScaleMedialGenerator.py
+	$(srcdir)/MultiScaleMedialGenerator.py \
+	$(srcdir)/RecursivePrimitiveRefinementGenerator.py
 
 #-------------------------------------------------------------------------------
 include $(BUILDTOP)/helpers/makefile_master
 
+# Need silo
+LIBS += -lsiloh5 -lhdf5 $(LDRPATH)

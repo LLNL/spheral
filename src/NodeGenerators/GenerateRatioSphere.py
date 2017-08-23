@@ -3,7 +3,6 @@ import mpi
 
 from NodeGeneratorBase import *
 
-from Spheral import SimpsonsIntegrationDoubleFunction, simpsonsIntegrationDouble
 from Spheral import Vector2d, Tensor2d, SymTensor2d, CylindricalBoundary, rotationMatrix2d
 from Spheral import Vector3d, Tensor3d, SymTensor3d, CylindricalBoundary, rotationMatrix3d
 from Spheral import CylindricalBoundary, generateCylDistributionFromRZ
@@ -125,9 +124,9 @@ class GenerateRatioSphere2d(NodeGeneratorBase):
                     self.H[-1].rotationalTransform(T)
 
         # # Do a numerical integral to get the expected total mass.
-        # class integfunc(SimpsonsIntegrationDoubleFunction):
+        # class integfunc(ScalarFunctor):
         #     def __init__(self, rho, Dtheta):
-        #         SimpsonsIntegrationDoubleFunction.__init__(self)
+        #         ScalarFunctor.__init__(self)
         #         self.rho = rho
         #         self.Dtheta = Dtheta
         #         return
@@ -205,14 +204,27 @@ class GenerateRatioSphere3d(NodeGeneratorBase):
                  ntheta = 1,
                  center = (0.0, 0.0, 0.0),
                  distributionType = "constantDTheta",   # one of (constantDTheta, constantNTheta)
+                 aspectRatio = 1.0,                     # only for constantDTheta
                  nNodePerh = 2.01,
                  SPH = False,
                  rejecter = None):
 
         assert thetamax <= pi
 
-        self.gen2d = GenerateRatioSphere2d(drCenter, drRatio, rho, rmin, rmax, startFromCenter, thetamin, thetamax, ntheta, 
-                                           (0.0, 0.0), distributionType, nNodePerh, SPH)
+        self.gen2d = GenerateRatioSphere2d(drStart = drCenter, 
+                                           drRatio = drRatio, 
+                                           rho = rho, 
+                                           rmin = rmin, 
+                                           rmax = rmax, 
+                                           startFromCenter = startFromCenter, 
+                                           thetamin = thetamin, 
+                                           thetamax = thetamax, 
+                                           ntheta = ntheta, 
+                                           center = (0.0, 0.0), 
+                                           distributionType = distributionType, 
+                                           aspectRatio = aspectRatio,
+                                           nNodePerh = nNodePerh, 
+                                           SPH = SPH)
 
         # The 2D class already split the nodes up between processors, but
         # we want to handle that ourselves.  Distribute the full set of RZ
@@ -277,7 +289,7 @@ class GenerateRatioSphere3d(NodeGeneratorBase):
                                       mpi.rank, mpi.procs)
         self.x = [x + center[0] for x in xvec]
         self.y = [x + center[1] for x in yvec]
-        self.z = [z + center[1] for z in zvec]
+        self.z = [z + center[2] for z in zvec]
         self.m = list(mvec)
         self.H = [SymTensor3d(x) for x in Hvec]
         self.globalIDs = list(globalIDsvec)

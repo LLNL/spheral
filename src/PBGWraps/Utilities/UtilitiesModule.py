@@ -16,12 +16,19 @@ class Utilities:
         # Includes.
         mod.add_include('"%s/UtilitiesTypes.hh"' % srcdir)
         self.Spheral = mod.add_cpp_namespace("Spheral")
+        self.PythonBoundFunctors = self.Spheral.add_cpp_namespace("PythonBoundFunctors")
         self.NodeSpace = self.Spheral.add_cpp_namespace("NodeSpace")
 
         # Expose types.
-        self.NewtonRaphsonFunction = addObject(mod, "NewtonRaphsonFunction", allow_subclassing=True)
-        self.SimpsonsIntegrationDoubleFunction = addObject(mod, "SimpsonsIntegrationDoubleFunction", allow_subclassing=True)
         self.KeyTraits = addObject(mod, "KeyTraits", allow_subclassing=True)
+        self.ScalarScalarFunctor = addObject(self.PythonBoundFunctors, "SpheralFunctor", template_parameters=["double", "double"], custom_name="ScalarScalarFunctor", allow_subclassing=True)
+        self.ScalarPairScalarFunctor = addObject(self.PythonBoundFunctors, "SpheralFunctor", template_parameters=["double", "std::pair<double, double>"], custom_name="ScalarPairScalarFunctor", allow_subclassing=True)
+        for ndim in self.dims:
+            exec("""
+self.VectorScalarFunctor%(ndim)id = addObject(self.PythonBoundFunctors, "SpheralFunctor", template_parameters=["Vector%(ndim)id", "double"], custom_name="VectorScalarFunctor%(ndim)id", allow_subclassing=True)
+self.VectorVectorFunctor%(ndim)id = addObject(self.PythonBoundFunctors, "SpheralFunctor", template_parameters=["Vector%(ndim)id", "Vector%(ndim)id"], custom_name="VectorVectorFunctor%(ndim)id", allow_subclassing=True)
+self.VectorPairScalarFunctor%(ndim)id = addObject(self.PythonBoundFunctors, "SpheralFunctor", template_parameters=["Vector%(ndim)id", "std::pair<double, double>"], custom_name="VectorPairScalarFunctor%(ndim)id", allow_subclassing=True)
+""" % {"ndim" : ndim})
 
         return
 
@@ -32,27 +39,19 @@ class Utilities:
 
         Spheral = mod.add_cpp_namespace("Spheral")
 
-        self.NewtonRaphsonFunction.add_constructor([])
-        self.NewtonRaphsonFunction.add_method("__call__", "pair_double_double",
-                                              [param("double", "x")],
-                                              is_const=True,
-                                              is_pure_virtual=True)
-
-        self.SimpsonsIntegrationDoubleFunction.add_constructor([])
-        self.SimpsonsIntegrationDoubleFunction.add_method("__call__", "double",
-                                                          [param("double", "x")],
-                                                          is_const=True,
-                                                          is_pure_virtual=True)
+        # Add the functors.
+        self.addFunctorBindings(self.ScalarScalarFunctor,       "double",   "double")
+        self.addFunctorBindings(self.ScalarPairScalarFunctor,   "double",   "pair_double_double")
 
         Spheral.add_function("erff", "double", [param("double", "x")], docstring="You know, the error function.")
-        Spheral.add_function("newtonRaphsonFindRoot", "double", [constrefparam("NewtonRaphsonFunction", "function"),
+        Spheral.add_function("newtonRaphsonFindRoot", "double", [constrefparam("Spheral::PythonBoundFunctors::SpheralFunctor<double, std::pair<double, double> >", "function"),
                                                                  param("float", "x1"),
                                                                  param("float", "x2"),
                                                                  param("float", "xaccuracy", default_value="1.0e-15"),
                                                                  param("float", "yaccuracy", default_value="1.0e-15"),
                                                                  param("int", "maxIterations", default_value="100")],
                              docstring="Newton-Raphson root finder.")
-        Spheral.add_function("simpsonsIntegrationDouble", "double", [constrefparam("SimpsonsIntegrationDoubleFunction", "function"),
+        Spheral.add_function("simpsonsIntegrationDouble", "double", [constrefparam("Spheral::PythonBoundFunctors::SpheralFunctor<double, double>", "function"),
                                                                      param("double", "x0"),
                                                                      param("double", "x1"),
                                                                      param("unsigned int", "numBins")],
@@ -144,20 +143,40 @@ Spheral.add_function("globalBoundingVolumes", None, [constrefparam("DataBase%(di
                                  custom_name = "segmentSegmentIntersection"),
 
         # These methods are only valid in 2d and 3d.
-        for dim in ("2d", "3d"):
-            vector = "Vector%s" % dim
-            Spheral.add_function("pointPlaneDistance", "double", 
-                                 [constrefparam(vector, "point"),
-                                  constrefparam(vector, "origin"),
-                                  constrefparam(vector, "unitNormal")],
-                                 template_parameters = [vector],
-                                 custom_name = "pointPlaneDistance",
-                                 docstring="Compute the distance from (point) to the plane defined by (origin, unitNormal).")
-            Spheral.add_function("closestPointOnSegment", vector,
-                                 [constrefparam(vector, "p"), constrefparam(vector, "a0"), constrefparam(vector, "a1")],
-                                 template_parameters = [vector],
-                                 custom_name = "closestPointOnSegment",
-                                 docstring = "Find the closest point on a line segment (a0,a1) to point (p).")
+        for ndim in (2, 3):
+            if ndim in self.dims:
+                dim = "Dim<%i>" % ndim
+                vector = "Vector%id" % ndim
+                vector_of_boundary = "vector_of_Boundary%id" % ndim
+                vector_of_scalarfieldptr = "vector_of_ScalarFieldPtr%id" % ndim
+                vector_of_vectorfieldptr = "vector_of_VectorFieldPtr%id" % ndim
+                vector_of_tensorfieldptr = "vector_of_TensorFieldPtr%id" % ndim
+                vector_of_symTensorfieldptr = "vector_of_SymTensorFieldPtr%id" % ndim
+                Spheral.add_function("pointPlaneDistance", "double", 
+                                     [constrefparam(vector, "point"),
+                                      constrefparam(vector, "origin"),
+                                      constrefparam(vector, "unitNormal")],
+                                     template_parameters = [vector],
+                                     custom_name = "pointPlaneDistance",
+                                     docstring="Compute the distance from (point) to the plane defined by (origin, unitNormal).")
+                Spheral.add_function("closestPointOnSegment", vector,
+                                     [constrefparam(vector, "p"), constrefparam(vector, "a0"), constrefparam(vector, "a1")],
+                                     template_parameters = [vector],
+                                     custom_name = "closestPointOnSegment",
+                                     docstring = "Find the closest point on a line segment (a0,a1) to point (p).")
+                Spheral.add_function("overlayRemapFields", None,
+                                     [constrefparam(vector_of_boundary, "boundaries"),
+                                      constrefparam(vector_of_scalarfieldptr, "scalarDonorFields"),
+                                      constrefparam(vector_of_vectorfieldptr, "vectorDonorFields"),
+                                      constrefparam(vector_of_tensorfieldptr, "tensorDonorFields"),
+                                      constrefparam(vector_of_symTensorfieldptr, "symTensorDonorFields"),
+                                      refparam(vector_of_scalarfieldptr, "scalarAcceptorFields"),
+                                      refparam(vector_of_vectorfieldptr, "vectorAcceptorFields"),
+                                      refparam(vector_of_tensorfieldptr, "tensorAcceptorFields"),
+                                      refparam(vector_of_symTensorfieldptr, "symTensorAcceptorFields")],
+                                     template_parameters = [dim],
+                                     custom_name = "overlayRemapFields",
+                                     docstring = "Do a simple donor overlay using geometric intersection.")
 
         # Closest point in plane to a point.
         Spheral.add_function("closestPointOnPlane", "Vector3d",
@@ -238,14 +257,9 @@ Spheral.add_function("globalBoundingVolumes", None, [constrefparam("DataBase%(di
                                      ("Polyhedron", "polyhedron", "Vector3d")):
             exec("""
 Spheral.add_function("pointOn%(volume)s", "bool", [constrefparam("%(vector)s", "p"),
-                                                   constrefparam("vector_of_%(vector)s", "vertices"),
+                                                   constrefparam("%(volume)s", "%(name)s"),
                                                    param("double", "tol", default_value="1.0e-10")],
                      docstring = "Test if the given point is on the boundary of a %(name)s specified by it's vertices.")
-Spheral.add_function("pointIn%(volume)s", "bool", [constrefparam("%(vector)s", "p"),
-                                                   constrefparam("vector_of_%(vector)s", "vertices"),
-                                                   param("bool", "countBoundary", default_value="false"),
-                                                   param("double", "tol", default_value="1.0e-10")],
-                     docstring = "Test if the given point is contained withing a %(name)s specified by it's vertices.")
 Spheral.add_function("pointIn%(volume)s", "bool", [constrefparam("%(vector)s", "p"),
                                                    constrefparam("%(volume)s", "%(name)s"),
                                                    param("bool", "countBoundary", default_value="false"),
@@ -268,6 +282,24 @@ Spheral.add_function("segmentIntersectEdges", "bool", [constrefparam("%(vector)s
         Spheral.add_function("refinePolyhedron", "Polyhedron", 
                              [constrefparam("Polyhedron", "poly0"), param("int", "numLevels")],
                              docstring = "Return a new Polyhedron based on refining an existing one a given number of levels.")
+
+        # R2D/R3D utilities
+        Spheral.add_function("clipFacetedVolume", "Polygon", 
+                             [constrefparam("Polygon", "poly"),
+                              constrefparam("vector_of_Plane2d", "planes")],
+                             docstring = "Clip a polygon with a set of planes.")
+        Spheral.add_function("clipFacetedVolume", "Polyhedron", 
+                             [constrefparam("Polyhedron", "poly"),
+                              constrefparam("vector_of_Plane3d", "planes")],
+                             docstring = "Clip a polyhedron with a set of planes.")
+        Spheral.add_function("clippedVolume", "double", 
+                             [constrefparam("Polygon", "poly"),
+                              constrefparam("vector_of_Plane2d", "planes")],
+                             docstring = "Return the area of a polygon clipped with a set of planes.")
+        Spheral.add_function("clippedVolume", "double", 
+                             [constrefparam("Polyhedron", "poly"),
+                              constrefparam("vector_of_Plane3d", "planes")],
+                             docstring = "Return the volume of a polyhedron clipped with a set of planes.")
 
         # Boost.math functions.
         Spheral.add_function("legendre_p", "double", 
@@ -314,6 +346,11 @@ Spheral.add_function("segmentIntersectEdges", "bool", [constrefparam("%(vector)s
 
         Spheral = self.Spheral
         NodeSpace = self.NodeSpace
+
+        # Dimension dependent functor bindings.
+        self.addFunctorBindings(eval("self.VectorScalarFunctor%id" % ndim), "Vector%id" % ndim, "double")
+        self.addFunctorBindings(eval("self.VectorVectorFunctor%id" % ndim), "Vector%id" % ndim, "Vector%id" % ndim)
+        self.addFunctorBindings(eval("self.VectorPairScalarFunctor%id" % ndim), "Vector%id" % ndim, "pair_double_double")
 
         # Expose methods.
         NodeSpace.add_function("numGlobalNodes", "int", [constrefparam(nodelist, "nodes")],
@@ -431,6 +468,17 @@ Spheral.add_function("segmentIntersectEdges", "bool", [constrefparam("%(vector)s
                              custom_name = "planarReflectingOperator%id" % ndim,
                              docstring = "Generate the planar reflection transformation for th given plane.")
 
+        return
+
+    #---------------------------------------------------------------------------
+    # functor bindings.
+    #---------------------------------------------------------------------------
+    def addFunctorBindings(self, F, argval, retval):
+        F.add_constructor([])
+        F.add_method("__call__", retval,
+                     [param(argval, "x")],
+                     is_const=True,
+                     is_pure_virtual=True)
         return
 
     #---------------------------------------------------------------------------

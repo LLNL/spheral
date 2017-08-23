@@ -9,7 +9,7 @@
 
 #include "ScalarDamageModel.hh"
 #include "SolidFieldNames.hh"
-#include "SolidNodeList.hh"
+#include "NodeList/SolidNodeList.hh"
 #include "StrainPolicy.hh"
 #include "ScalarDamagePolicy.hh"
 #include "NodeList/FluidNodeList.hh"
@@ -28,7 +28,7 @@ namespace PhysicsSpace {
 using namespace std;
 
 using NodeSpace::FluidNodeList;
-using SolidMaterial::SolidNodeList;
+using NodeSpace::SolidNodeList;
 using Material::EquationOfState;
 using FileIOSpace::FileIO;
 using DataBaseSpace::DataBase;

@@ -5,22 +5,17 @@
 //
 // Created by JMO, Thu Sep 29 13:31:57 PDT 2005
 //----------------------------------------------------------------------------//
-#include <string>
-#include <vector>
-
-#include "boost/shared_ptr.hpp"
-
+#include "FileIO/FileIO.hh"
 #include "DamageModel.hh"
 #include "YoungsModulusPolicy.hh"
 #include "LongitudinalSoundSpeedPolicy.hh"
 #include "DamagedSoundSpeedPolicy.hh"
 #include "Strength/SolidFieldNames.hh"
-#include "Strength/SolidNodeList.hh"
+#include "NodeList/SolidNodeList.hh"
 #include "DataBase/DataBase.hh"
 #include "DataBase/State.hh"
 #include "DataBase/StateDerivatives.hh"
 #include "Hydro/HydroFieldNames.hh"
-#include "FileIO/FileIO.hh"
 #include "Field/FieldList.hh"
 #include "Boundary/Boundary.hh"
 #include "Kernel/TableKernel.hh"
@@ -28,12 +23,17 @@
 #include "Utilities/GeometricUtilities.hh"
 #include "Utilities/safeInv.hh"
 
+#include "boost/shared_ptr.hpp"
+
+#include <string>
+#include <vector>
+
 namespace Spheral {
 namespace PhysicsSpace {
 
 using namespace std;
 
-using SolidMaterial::SolidNodeList;
+using NodeSpace::SolidNodeList;
 using Material::EquationOfState;
 using FileIOSpace::FileIO;
 using DataBaseSpace::DataBase;
@@ -166,7 +166,7 @@ preStepInitialize(const DataBase<Dimension>& dataBase,
   // If we're just using the "FullSpectrum" of flaws, we don't reduce the 
   // flaws for each node to a single value at all.  In that case there's no
   // work to do.
-  if (mEffectiveFlawAlgorithm != FullSpectrumFlaws) {
+  if (mEffectiveFlawAlgorithm != EffectiveFlawAlgorithm::FullSpectrumFlaws) {
 
     // Get the state fields.
     typedef typename State<Dimension>::KeyType Key;
@@ -184,16 +184,16 @@ preStepInitialize(const DataBase<Dimension>& dataBase,
 
       switch(mEffectiveFlawAlgorithm) {
 
-      case MinFlaw:
+      case EffectiveFlawAlgorithm::MinFlaw:
         effectiveFlaws(i) = *min_element(flawsi.begin(), flawsi.end());
         break;
 
-      case MaxFlaw:
+      case EffectiveFlawAlgorithm::MaxFlaw:
         effectiveFlaws(i) = *max_element(flawsi.begin(), flawsi.end());
         break;
 
-      case InverseSumFlaws:
-      case SampledFlaws:
+      case EffectiveFlawAlgorithm::InverseSumFlaws:
+      case EffectiveFlawAlgorithm::SampledFlaws:
         effectiveFlaws(i) = 0.0;
         for (typename vector<double>::const_iterator itr = flawsi.begin(); itr != flawsi.end(); ++itr) effectiveFlaws(i) += 1.0/(*itr);
         effectiveFlaws(i) = flawsi.size()/effectiveFlaws(i);
@@ -208,7 +208,7 @@ preStepInitialize(const DataBase<Dimension>& dataBase,
 
     // For the sampled flaws case, we have to communicate the local sums and then
     // do the weighted interpolation.
-    if (mEffectiveFlawAlgorithm == SampledFlaws) {
+    if (mEffectiveFlawAlgorithm == EffectiveFlawAlgorithm::SampledFlaws) {
       const ConnectivityMap<Dimension>& connectivityMap = dataBase.connectivityMap();
       const vector<const NodeList<Dimension>*>& nodeLists = connectivityMap.nodeLists();
       const int numNodeLists = nodeLists.size();

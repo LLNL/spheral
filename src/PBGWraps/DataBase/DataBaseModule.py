@@ -284,7 +284,7 @@ self.addDataBaseMethods(self.DataBase%(dim)id, %(dim)i)
         vectorsymtensorfieldlist = "Spheral::FieldSpace::VectorSymTensorFieldList%id" % ndim
         nodelist = "Spheral::NodeSpace::NodeList%id" % ndim
         fluidnodelist = "Spheral::NodeSpace::FluidNodeList%id" % ndim
-        solidnodelist = "Spheral::SolidMaterial::SolidNodeList%id" % ndim
+        solidnodelist = "Spheral::NodeSpace::SolidNodeList%id" % ndim
         state = "Spheral::State%id" % ndim
         derivatives = "Spheral::StateDerivatives%id" % ndim
         database = "Spheral::DataBaseSpace::DataBase%id" % ndim

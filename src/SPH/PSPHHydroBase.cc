@@ -3,14 +3,7 @@
 //
 // Created by JMO, Wed Dec 16 20:52:02 PST 2015
 //----------------------------------------------------------------------------//
-#include <limits.h>
-#include <float.h>
-#include <algorithm>
-#include <fstream>
-#include <map>
-#include <vector>
-
-#include "PSPHHydroBase.hh"
+#include "FileIO/FileIO.hh"
 #include "computeSPHSumMassDensity.hh"
 #include "computeSumVoronoiCellMassDensity.hh"
 #include "computePSPHCorrections.hh"
@@ -44,9 +37,17 @@
 #include "Utilities/timingUtilities.hh"
 #include "Utilities/safeInv.hh"
 #include "Utilities/globalBoundingVolumes.hh"
-#include "FileIO/FileIO.hh"
 #include "Mesh/Mesh.hh"
 #include "CRKSPH/volumeSpacing.hh"
+
+#include "PSPHHydroBase.hh"
+
+#include <limits.h>
+#include <float.h>
+#include <algorithm>
+#include <fstream>
+#include <map>
+#include <vector>
 
 namespace Spheral {
 namespace SPHSpace {
@@ -110,8 +111,8 @@ PSPHHydroBase(const SmoothingScaleBase<Dimension>& smoothingScaleMethod,
                           xmin,
                           xmax),
   mHopkinsConductivity(HopkinsConductivity),
-  mGamma(FieldSpace::Copy),
-  mPSPHcorrection(FieldSpace::Copy) {
+  mGamma(FieldSpace::FieldStorageType::CopyFields),
+  mPSPHcorrection(FieldSpace::FieldStorageType::CopyFields) {
 }
 
 //------------------------------------------------------------------------------
@@ -192,7 +193,7 @@ preStepInitialize(const DataBase<Dimension>& dataBase,
   FieldList<Dimension, Scalar> cs = state.fields(HydroFieldNames::soundSpeed, 0.0);
   FieldList<Dimension, Scalar> PSPHcorrection = state.fields(HydroFieldNames::PSPHcorrection, 0.0);
   computePSPHCorrections(connectivityMap, W, mass, position, specificThermalEnergy, gamma, H, 
-                         (this->mDensityUpdate != PhysicsSpace::IntegrateDensity),
+                         (this->mDensityUpdate != PhysicsSpace::MassDensityType::IntegrateDensity),
                          rho, P, cs, PSPHcorrection);
   for (ConstBoundaryIterator boundItr = this->boundaryBegin();
        boundItr != this->boundaryEnd();
@@ -237,7 +238,7 @@ postStateUpdate(const DataBase<Dimension>& dataBase,
   FieldList<Dimension, Scalar> cs = state.fields(HydroFieldNames::soundSpeed, 0.0);
   FieldList<Dimension, Scalar> PSPHcorrection = state.fields(HydroFieldNames::PSPHcorrection, 0.0);
   computePSPHCorrections(connectivityMap, W, mass, position, specificThermalEnergy, gamma, H,
-                         (this->mDensityUpdate != PhysicsSpace::IntegrateDensity),
+                         (this->mDensityUpdate != PhysicsSpace::MassDensityType::IntegrateDensity),
                          rho, P, cs, PSPHcorrection);
   for (ConstBoundaryIterator boundItr = this->boundaryBegin();
        boundItr != this->boundaryEnd();

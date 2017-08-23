@@ -1,11 +1,9 @@
 //---------------------------------Spheral++------------------------------------
 // Compute the volume per point based on the Voronoi tessellation.
 //------------------------------------------------------------------------------
-extern "C" {
-#include "r3d/r3d.h"
-}
-
 #include <algorithm>
+#include <utility>
+#include <ctime>
 
 #include "computeVoronoiVolume.hh"
 #include "Field/Field.hh"
@@ -15,11 +13,22 @@ extern "C" {
 #include "Utilities/allReduce.hh"
 #include "Utilities/pointOnPolyhedron.hh"
 #include "Utilities/FastMath.hh"
+#include "Utilities/pointDistances.hh"
+
+#ifndef NOR3D
+extern "C" {
+#include "r3d/r3d.h"
+}
+#include "Utilities/r3d_utils.hh"
+#endif
 
 namespace Spheral {
 namespace CRKSPHSpace {
 
 using namespace std;
+using std::min;
+using std::max;
+using std::abs;
 
 using namespace FastMath;
 
@@ -29,11 +38,13 @@ using NodeSpace::NodeList;
 using NeighborSpace::Neighbor;
 using NeighborSpace::ConnectivityMap;
 
+#ifndef NOR3D
 namespace {  // anonymous namespace
 
 //------------------------------------------------------------------------------
 // A special comparator to sort r3d planes by distance.
 //------------------------------------------------------------------------------
+inline
 bool compareR3Dplanes(const r3d_plane& lhs, const r3d_plane& rhs) {
   return lhs.d < rhs.d;
 }
@@ -41,6 +52,7 @@ bool compareR3Dplanes(const r3d_plane& lhs, const r3d_plane& rhs) {
 //------------------------------------------------------------------------------
 // Find the 1D extent of an R3D cell along the given direction.
 //------------------------------------------------------------------------------
+inline
 void findPolyhedronExtent(double& xmin, double& xmax, const Dim<3>::Vector& nhat, const r3d_poly& celli) {
   REQUIRE(fuzzyEqual(nhat.magnitude(), 1.0));
   double xi;
@@ -57,7 +69,33 @@ void findPolyhedronExtent(double& xmin, double& xmax, const Dim<3>::Vector& nhat
   xmax = std::max(0.0, xmax);
 }
 
+// //------------------------------------------------------------------------------
+// // Return a Spheral GeomPolyhedron from an R3D polyhedron.
+// //------------------------------------------------------------------------------
+// Dim<3>::FacetedVolume
+// r3d_poly_to_polyhedron(const r3d_poly& celli,
+//                        const Dim<3>::Vector& offset,
+//                        const double tol) {
+
+//   using std::vector;
+//   typedef Dim<3>::Scalar Scalar;
+//   typedef Dim<3>::Vector Vector;
+//   typedef Dim<3>::SymTensor SymTensor;
+//   typedef Dim<3>::FacetedVolume FacetedVolume;
+//   typedef Dim<3>::FacetedVolume::Facet Facet;
+
+//   // We're going to cheat here a bit.  We know that currently computeVoronoiVolume3d only returns
+//   // convex polyhedra, so we'll take the easy way out and just build the convex hull of the
+//   // vertices.
+//   vector<Vector> verts;
+//   for (auto i = 0; i != celli.nverts; ++i) verts.push_back(Vector(celli.verts[i].pos.x,
+//                                                                   celli.verts[i].pos.y,
+//                                                                   celli.verts[i].pos.z));
+//   return FacetedVolume(verts);
+// }
+
 }           // anonymous namespace
+#endif
 
 //------------------------------------------------------------------------------
 // 3D
@@ -71,10 +109,16 @@ computeVoronoiVolume(const FieldList<Dim<3>, Dim<3>::Vector>& position,
                      const Dim<3>::Scalar kernelExtent,
                      const std::vector<Dim<3>::FacetedVolume>& boundaries,
                      const std::vector<std::vector<Dim<3>::FacetedVolume> >& holes,
+                     const FieldSpace::FieldList<Dim<3>, Dim<3>::Scalar>& weight,
+                     const FieldList<Dim<3>, int>& voidPoint,
                      FieldList<Dim<3>, int>& surfacePoint,
                      FieldList<Dim<3>, Dim<3>::Scalar>& vol,
                      FieldSpace::FieldList<Dim<3>, Dim<3>::Vector>& deltaMedian,
                      FieldSpace::FieldList<Dim<3>, Dim<3>::FacetedVolume>& cells) {
+
+#ifdef NOR3D
+  VERIFY2(false, "ERROR: computeVoronoiVolume requires compilation with R3D third party library.");
+#else
 
   typedef Dim<3>::Scalar Scalar;
   typedef Dim<3>::Vector Vector;
@@ -87,10 +131,26 @@ computeVoronoiVolume(const FieldList<Dim<3>, Dim<3>::Vector>& position,
   const unsigned numGensGlobal = allReduce(numGens, MPI_SUM, Communicator::communicator());
   const unsigned numBounds = boundaries.size();
   const bool haveBoundaries = numBounds == numNodeLists;
+  const bool haveWeights = weight.size() == numNodeLists;
   const bool returnSurface = surfacePoint.size() == numNodeLists;
   const bool returnCells = cells.size() == numNodeLists;
 
   REQUIRE(numBounds == 0 or numBounds == numNodeLists);
+  REQUIRE(holes.size() == numBounds);
+
+  // std::clock_t t0, 
+  //   ttotal = std::clock_t(0), 
+  //   tplanesneighbors = std::clock_t(0), 
+  //   tplanesboundaries = std::clock_t(0), 
+  //   tplanesort = std::clock_t(0), 
+  //   tclip = std::clock_t(0), 
+  //   tinterior = std::clock_t(0),
+  //   tcentroid = std::clock_t(0),
+  //   tsurface = std::clock_t(0),
+  //   tbound = std::clock_t(0),
+  //   tcell = std::clock_t(0);
+
+  // ttotal = std::clock();
 
   if (numGensGlobal > 0) {
 
@@ -173,7 +233,6 @@ computeVoronoiVolume(const FieldList<Dim<3>, Dim<3>::Vector>& position,
     // Walk the points.
     for (unsigned nodeListi = 0; nodeListi != numNodeLists; ++nodeListi) {
       const unsigned n = vol[nodeListi]->numInternalElements();
-      const Neighbor<Dim<3> >& neighbor = position[nodeListi]->nodeListPtr()->neighbor();
       for (unsigned i = 0; i != n; ++i) {
 
         const Vector& ri = position(nodeListi, i);
@@ -183,6 +242,9 @@ computeVoronoiVolume(const FieldList<Dim<3>, Dim<3>::Vector>& position,
         const Vector grhat = gradRhoi.unitVector();
         const Scalar Hdeti = Hi.Determinant();
         const SymTensor Hinv = Hi.Inverse();
+        const Scalar weighti = haveWeights ? weight(nodeListi, i) : 1.0;
+
+        // t0 = std::clock();
 
         // Grab this points neighbors and build all the planes.
         // We simultaneously build a very conservative limiter for the density gradient.
@@ -196,15 +258,17 @@ computeVoronoiVolume(const FieldList<Dim<3>, Dim<3>::Vector>& position,
             const unsigned j = *jItr;
             const Vector& rj = position(nodeListj, j);
             const Scalar rhoj = rho(nodeListj, j);
+            const Scalar weightj = haveWeights ? weight(nodeListj, j) : 1.0;
 
             // Build the planes for our clipping half-spaces.
             const Vector rij = ri - rj;
             const Vector nhat = rij.unitVector();
+            const Scalar wij = weighti/(weightj + weighti);
             pairPlanes.push_back(r3d_plane());
             pairPlanes.back().n.x = nhat.x();
             pairPlanes.back().n.y = nhat.y();
             pairPlanes.back().n.z = nhat.z();
-            pairPlanes.back().d = 0.5*rij.magnitude();
+            pairPlanes.back().d = wij*rij.magnitude();
 
             // // Check the density gradient limiter.
             // const Scalar fdir = FastMath::pow4(rij.unitVector().dot(grhat));
@@ -212,15 +276,19 @@ computeVoronoiVolume(const FieldList<Dim<3>, Dim<3>::Vector>& position,
           }
         }
 
-        // If provided boundaries, we implement them as additional neighbor clipping planes.
+        // tplanesneighbors += std::clock() - t0;
+        // t0 = std::clock();
+
+        // If provided holes, we implement them as additional neighbor clipping planes.
         if (haveBoundaries) {
           const vector<Facet>& facets = boundaries[nodeListi].facets();
+          CHECK(boundaries[nodeListi].contains(ri, false));
           for (const Facet& facet: facets) {
             const Vector p = facet.closestPoint(ri);
             Vector rij = ri - p;
-            if (rij.magnitude2() < kernelExtent*kernelExtent) {
+            if ((Hi*rij).magnitude2() < kernelExtent*kernelExtent) {
               Vector nhat;
-              if (rij.magnitude2() < 1.0e-3*facet.area()) {
+              if (rij.magnitude() < 1.0e-5*facet.area()) {
                 rij.Zero();
                 nhat = -facet.normal();
               } else {
@@ -236,13 +304,14 @@ computeVoronoiVolume(const FieldList<Dim<3>, Dim<3>::Vector>& position,
 
           // Same thing with holes.
           for (const FacetedVolume& hole: holes[nodeListi]) {
+            CHECK(not hole.contains(ri));
             const vector<Facet>& facets = hole.facets();
             for (const Facet& facet: facets) {
               const Vector p = facet.closestPoint(ri);
               Vector rij = ri - p;
-              if (rij.magnitude2() < kernelExtent*kernelExtent) {
+              if ((Hi*rij).magnitude2() < kernelExtent*kernelExtent) {
                 Vector nhat;
-                if (rij.magnitude2() < 1.0e-3*facet.area()) {
+                if (rij.magnitude2() < 1.0e-5*facet.area()) {
                   rij.Zero();
                   nhat = facet.normal();
                 } else {
@@ -258,25 +327,45 @@ computeVoronoiVolume(const FieldList<Dim<3>, Dim<3>::Vector>& position,
           }
         }
 
+        // tplanesboundaries += std::clock() - t0;
+        // t0 = std::clock();
+
         // Sort the planes by distance -- let's us clip more efficiently.
         std::sort(pairPlanes.begin(), pairPlanes.end(), compareR3Dplanes);
 
-        // Initialize our seed cell shape.
-        r3d_poly celli = initialCell;
-        for (r3d_vertex& vert: celli.verts) {
-          const Vector vi = Hinv*Vector(vert.pos.x, vert.pos.y, vert.pos.z);
-          vert.pos.x = vi.x();
-          vert.pos.y = vi.y();
-          vert.pos.z = vi.z();
+        // tplanesort += std::clock() - t0;
+        // t0 = std::clock();
+
+        // Initialize our seed cell shape.  If we have a boundary use that, otherwise the nominal kernel boundary.
+        r3d_poly celli;
+        if (false) { // (haveBoundaries) {
+          polyhedron_to_r3d_poly(boundaries[nodeListi] - ri, celli);
+        } else {
+          celli = initialCell;
+          for (unsigned k = 0; k != celli.nverts; ++k) {
+            r3d_vertex& vert = celli.verts[k];
+            const Vector vi = Hinv*Vector(vert.pos.x, vert.pos.y, vert.pos.z);
+            vert.pos.x = vi.x();
+            vert.pos.y = vi.y();
+            vert.pos.z = vi.z();
+          }
         }
         CHECK2(r3d_is_good(&celli), "Bad initial polyhedron!");
 
         // Clip the local cell.
         r3d_clip(&celli, &pairPlanes[0], pairPlanes.size());
         CHECK2(r3d_is_good(&celli), "Bad polyhedron!");
+        r3d_reduce(&celli, firstmom, 1);
+        CHECK(firstmom[0] > 0.0);
+        vol(nodeListi, i) = firstmom[0];
+        const Vector deltaCentroidi = Vector(firstmom[1], firstmom[2], firstmom[3])/firstmom[0];
+        deltaMedian(nodeListi, i) = deltaCentroidi;
+
+        // tclip += std::clock() - t0;
 
         // Check if the final polyhedron is entirely within our "interior" check radius.
         bool interior = true;
+        // t0 = std::clock();
         {
           unsigned k = 0;
           while (interior and k != celli.nverts) {
@@ -284,15 +373,11 @@ computeVoronoiVolume(const FieldList<Dim<3>, Dim<3>::Vector>& position,
             ++k;
           }
         }
+        // tinterior += std::clock() - t0;
 
         if (interior) {
+          // t0 = std::clock();
           if (returnSurface) surfacePoint(nodeListi, i) = 0;
-
-          // Compute the centroidal motion and volume.
-          r3d_reduce(&celli, firstmom, 1);
-          CHECK(firstmom[0] > 0.0);
-          vol(nodeListi, i) = firstmom[0];
-          const Vector deltaCentroidi = Vector(firstmom[1], firstmom[2], firstmom[3])/firstmom[0];
 
           // // Apply the gradient limiter;
           // gradRhoi *= phi;
@@ -315,23 +400,13 @@ computeVoronoiVolume(const FieldList<Dim<3>, Dim<3>::Vector>& position,
             } else {
               deltaMedian(nodeListi, i) = xm2*nhat1 - deltaCentroidi.dot(nhat1)*nhat1 + deltaCentroidi;
             }
-
-            // // This version simply tries rho^2 weighting.
-            // deltaMedian(nodeListi, i) = ((0.5*rhoi*(x2*x2 - x1*x1) +
-            //                               2.0/3.0*rhoi*b*(x2*x2*x2 - x1*x1*x1) +
-            //                               0.25*b*b*(x2*x2*x2*x2 - x1*x1*x1*x1))/
-            //                              (pow3(rhoi + b*x2) - pow3(rhoi + b*x1)/(3.0*b)))*nhat1 - deltaCentroidi.dot(nhat1)*nhat1 + deltaCentroidi;
-
-          } else {
-
-            // Otherwise just use the centroid.
-            deltaMedian(nodeListi, i) = deltaCentroidi;
-
           }
+          // tcentroid += std::clock() - t0;
 
           // OK, this is an interior point from the perspective that it was clipped within our critical
           // radius on all sides.  However, if we have a bounding polygon we may still want to call it a
           // surface if in fact there are still facets from that bounding polygon on this cell.
+          // t0 = std::clock();
           if (haveBoundaries and returnSurface) {
             unsigned j = 0;
             while (interior and j != celli.nverts) {
@@ -346,26 +421,54 @@ computeVoronoiVolume(const FieldList<Dim<3>, Dim<3>::Vector>& position,
               if (returnSurface) surfacePoint(nodeListi, i) = 1;
             }
           }
+          // tsurface += std::clock() - t0;
 
         } else {
 
           // This point touches a free boundary, so flag it.
           if (returnSurface) surfacePoint(nodeListi, i) = 1;
-          deltaMedian(nodeListi, i) = Vector::zero;
 
         }
 
         // Check if the candidate motion is still in the boundary.  If not, project back.
-        if (haveBoundaries and not boundaries[nodeListi].contains(ri + deltaMedian(nodeListi, i))) {
-          deltaMedian(nodeListi, i) = boundaries[nodeListi].closestPoint(ri + deltaMedian(nodeListi, i)) - ri;
-          // cerr << "Correcting " << nodeListi << " " << i << " to new position " << (ri + deltaMedian(nodeListi, i)) << endl;
+        // t0 = std::clock();
+        if (haveBoundaries) {
+          if (not boundaries[nodeListi].contains(ri + deltaMedian(nodeListi, i), false)) {
+            deltaMedian(nodeListi, i) = boundaries[nodeListi].closestPoint(ri + deltaMedian(nodeListi, i)) - ri;
+          }
+          for (unsigned ihole = 0; ihole != holes[nodeListi].size(); ++ihole) {
+            if (holes[nodeListi][ihole].contains(ri + deltaMedian(nodeListi, i), false)) {
+              deltaMedian(nodeListi, i) = holes[nodeListi][ihole].closestPoint(ri + deltaMedian(nodeListi, i)) - ri;
+            }
+          }
         }
+        // tbound += std::clock() - t0;
 
+        // If requested, we can return the cell geometries.
+        if (returnCells) {
+          // t0 = std::clock();
+          r3d_poly_to_polyhedron(celli, 1.0e-35/max(1.0, Dim<3>::rootnu(Hdeti)), cells(nodeListi, i));
+          cells(nodeListi, i) += ri;
+          // tcell += std::clock() - t0;
+        }
       }
     }
-
   }
-}
 
+  // ttotal = std::clock() - ttotal;
+  // if (Process::getRank() == 0) cout << "computeVoronoiVolume2d timing: " 
+  //                                   << "tplanesneighbors=" << (tplanesneighbors / (double) CLOCKS_PER_SEC) 
+  //                                   << " tplanesboundaries=" << (tplanesboundaries / (double) CLOCKS_PER_SEC) 
+  //                                   << " tplanesort=" << (tplanesort / (double) CLOCKS_PER_SEC) 
+  //                                   << " tclip=" << (tclip / (double) CLOCKS_PER_SEC) 
+  //                                   << " tinterior=" << (tinterior / (double) CLOCKS_PER_SEC) 
+  //                                   << " tcentroid=" << (tcentroid / (double) CLOCKS_PER_SEC) 
+  //                                   << " tsurface=" << (tsurface / (double) CLOCKS_PER_SEC) 
+  //                                   << " tbound=" << (tbound / (double) CLOCKS_PER_SEC) 
+  //                                   << " tcell=" << (tcell / (double) CLOCKS_PER_SEC) 
+  //                                   << " ttotal=" << (ttotal / (double) CLOCKS_PER_SEC) << endl;
+#endif
+}
+    
 }
 }

@@ -5,6 +5,7 @@ AC_DEFUN([SETUP_OPENSUBDIV],[
 AC_SUBST(OPENSUBDIVTARGETS)
 AC_SUBST(OPENSUBDIVLIBS)
 AC_SUBST(CXXFLAGS)
+AC_SUBST(USE_OPENSUBDIV)
 
 AC_MSG_CHECKING(for --without-opensubdiv)
 AC_ARG_WITH(opensubdiv,
@@ -13,17 +14,19 @@ AC_ARG_WITH(opensubdiv,
     AC_MSG_RESULT(yes)
     OPENSUBDIVTARGETS=""
     OPENSUBDIVLIBS=""
+    USE_OPENSUBDIR="no"
 ],
 [
     AC_MSG_RESULT(no)
-    OPENSUBDIVTARGETS=".OpenSubdiv-2_5_0.date"
+    OPENSUBDIVTARGETS=".OpenSubdiv-3_1_1.date"
     #OPENSUBDIVLIBS="\$(prefix)/lib/libosdCPU.a \$(prefix)/lib/libosdutil.a"
     if test "`uname -s`" = "Darwin"; then
-        OPENSUBDIVLIBS="\$(prefix)/lib/libosdCPU.a \$(prefix)/lib/libosdutil.a"
+        OPENSUBDIVLIBS="\$(prefix)/lib/libosdCPU.a"
     else
-        OPENSUBDIVLIBS="-losdCPU -losdutil"
+        OPENSUBDIVLIBS="-losdCPU"
     fi
     CXXFLAGS="$CXXFLAGS -DHAVE_OPENSUBDIV"
+    USE_OPENSUBDIR="yes"
 ])
 
 ])

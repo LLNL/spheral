@@ -29,6 +29,7 @@ class MedialGeneratorBase(NodeGeneratorBase):
                  centroidFrac,
                  maxIterations,
                  fracTol,
+                 tessellationBaseDir,
                  tessellationFileName,
                  nNodePerh,
                  randomseed,
@@ -62,6 +63,9 @@ class MedialGeneratorBase(NodeGeneratorBase):
         boundvol = boundary.volume
         for hole in holes:
             boundvol -= hole.volume
+        if boundvol <= 0.0:
+            # The holes were not entirely contained in the bounding volume, so we punt.
+            boundvol = 0.5*boundary.volume
         boxvol = 1.0
         for idim in xrange(ndim):
             boxvol *= box[idim]
@@ -74,7 +78,7 @@ class MedialGeneratorBase(NodeGeneratorBase):
             # Create a temporary NodeList we'll use store and update positions.
             eos = sph.GammaLawGasMKS(2.0, 2.0)
             WT = sph.TableKernel(sph.NBSplineKernel(7), 1000)
-            hmax = 2.0*length
+            hmax = 2.0*(boundvol/pi*n)**(1.0/ndim)
             nodes = sph.makeFluidNodeList("tmp generator nodes", 
                                           eos,
                                           hmin = 1e-10,
@@ -95,6 +99,8 @@ class MedialGeneratorBase(NodeGeneratorBase):
         
             # If the user provided the starting or seed positions, use 'em.
             if seedPositions is not None:
+                hi = min(hmax, 2.0 * (boundvol/(pi*n))**(1.0/ndim))
+                assert hi > 0.0
                 nlocal = len(seedPositions)
                 assert mpi.allreduce(nlocal, mpi.SUM) == n
                 nodes.numInternalNodes = nlocal
@@ -103,8 +109,6 @@ class MedialGeneratorBase(NodeGeneratorBase):
                     rhoi = rhofunc(pos[i])
                     rhof[i] = rhoi
                     mass[i] = rhoi * boundvol/n  # Not actually correct, but mass will be updated in centroidalRelaxNodes
-                    hi = min(hmax, 2.0 * nNodePerh * (boundvol/n)**(1.0/ndim))
-                    assert hi > 0.0
                     H[i] = sph.SymTensor.one / hi
         
             else:
@@ -180,6 +184,8 @@ class MedialGeneratorBase(NodeGeneratorBase):
                 assert mpi.allreduce(len(seeds), mpi.SUM) == n
             
                 # Initialize the desired number of generators in the boundary using the Sobol sequence.
+                hi = min(hmax, 2.0 * (boundvol/(pi*n))**(1.0/ndim))
+                assert hi > 0.0
                 for i, seed in enumerate(seeds):
                     [coords, newseed] = i4_sobol(ndim, seed)
                     p = boundary.xmin + length*sph.Vector(*tuple(coords))
@@ -187,8 +193,6 @@ class MedialGeneratorBase(NodeGeneratorBase):
                     pos[i] = p
                     rhof[i] = rhoi
                     mass[i] = rhoi * boundvol/n  # Not actually correct, but mass will be updated in centroidalRelaxNodes
-                    hi = min(hmax, 2.0 * nNodePerh * (boundvol/n)**(1.0/ndim))
-                    assert hi > 0.0
                     H[i] = sph.SymTensor.one / hi
         
                 # Each domain has independently generated the correct number of points, but they are randomly distributed.
@@ -216,6 +220,7 @@ class MedialGeneratorBase(NodeGeneratorBase):
                                                      fracTol = fracTol,
                                                      centroidFrac = centroidFrac,
                                                      maxIterations = maxIterations,
+                                                     tessellationBaseDir = tessellationBaseDir,
                                                      tessellationFileName = tessellationFileName)
         
             # Store the values the descendent generators will need.
@@ -349,6 +354,7 @@ class MedialGenerator2d(MedialGeneratorBase):
                  centroidFrac = 1.0,
                  maxIterations = 100,
                  fracTol = 1.0e-3,
+                 tessellationBaseDir = ".",
                  tessellationFileName = None,
                  nNodePerh = 2.01,
                  offset = (0.0, 0.0),
@@ -370,6 +376,7 @@ class MedialGenerator2d(MedialGeneratorBase):
                                      centroidFrac = centroidFrac,
                                      maxIterations = maxIterations,
                                      fracTol = fracTol,
+                                     tessellationBaseDir = tessellationBaseDir,
                                      tessellationFileName = tessellationFileName,
                                      nNodePerh = nNodePerh,
                                      randomseed = randomseed,
@@ -448,6 +455,7 @@ class MedialGenerator3d(MedialGeneratorBase):
                  maxIterations = 100,
                  centroidFrac = 1.0,
                  fracTol = 1.0e-3,
+                 tessellationBaseDir = ".",
                  tessellationFileName = None,
                  nNodePerh = 2.01,
                  offset = (0.0, 0.0, 0.0),
@@ -469,6 +477,7 @@ class MedialGenerator3d(MedialGeneratorBase):
                                      centroidFrac = centroidFrac,
                                      maxIterations = maxIterations,
                                      fracTol = fracTol,
+                                     tessellationBaseDir = tessellationBaseDir,
                                      tessellationFileName = tessellationFileName,
                                      nNodePerh = nNodePerh,
                                      randomseed = randomseed,
@@ -500,6 +509,152 @@ class MedialGenerator3d(MedialGeneratorBase):
                                    self.x, self.y, self.z, self.m, self.H, self.vol, self.surface)
         return
 
+    #---------------------------------------------------------------------------
+    # Get the position for the given node index.
+    #---------------------------------------------------------------------------
+    def localPosition(self, i):
+        assert i >= 0 and i < len(self.x)
+        assert len(self.x) == len(self.y)
+        return Vector3d(self.x[i], self.y[i], self.z[i])
+    
+    #---------------------------------------------------------------------------
+    # Get the mass for the given node index.
+    #---------------------------------------------------------------------------
+    def localMass(self, i):
+        assert i >= 0 and i < len(self.m)
+        return self.m[i]
+    
+    #---------------------------------------------------------------------------
+    # Get the mass density for the given node index.
+    #---------------------------------------------------------------------------
+    def localMassDensity(self, i):
+        assert i >= 0 and i < len(self.H)
+        return self.rhofunc(Vector3d(self.x[i], self.y[i], self.z[i]))
+    
+    #---------------------------------------------------------------------------
+    # Get the H tensor for the given node index.
+    #---------------------------------------------------------------------------
+    def localHtensor(self, i):
+        assert i >= 0 and i < len(self.H)
+        return self.H[i]
+
+#-------------------------------------------------------------------------------
+# 3D Generator.  Seeds positions using the RPRPS algorithm.
+#-------------------------------------------------------------------------------
+class MedialSphereGenerator3d(MedialGeneratorBase):
+    
+    #---------------------------------------------------------------------------
+    # Constructor.
+    #---------------------------------------------------------------------------
+    def __init__(self,
+                 n,
+                 rho,
+                 rmin,
+                 rmax,
+                 gradrho = None,
+                 maxIterations = 100,
+                 centroidFrac = 1.0,
+                 fracTol = 1.0e-3,
+                 tessellationBaseDir = ".",
+                 tessellationFileName = None,
+                 nNodePerh = 2.01,
+                 offset = (0.0, 0.0, 0.0),
+                 rejecter = None,
+                 randomseed = 492739149274,
+                 maxNodesPerDomain = 1000,
+                 seedPositions = None,
+                 enforceConstantMassPoints = False,
+                 cacheFileName = None):
+        
+        from Spheral3d import vector_of_Vector, Vector
+        from GenerateNodeDistribution3d import GenerateIcosahedronMatchingProfile3d
+        SphericallyConformalMap = GenerateIcosahedronMatchingProfile3d(n=n,
+                                                                       densityProfileMethod=rho,
+                                                                       rmin=rmin,
+                                                                       rmax=rmax,
+                                                                       nNodePerh=nNodePerh,
+                                                                       offset=offset,
+                                                                       rejecter=rejecter)
+        n = len(SphericallyConformalMap.positions)
+        # this is a serialized list, so it needs to be broken up to each processor
+        # no degeneracies allowed!
+        seedPositions = vector_of_Vector()
+        nprocs = mpi.procs
+        nlocal = int(n/nprocs)
+        nrem   = n - nlocal*nprocs
+        myn    = nlocal
+        if mpi.rank == nprocs-1:
+            myn += nrem
+        for i in xrange(myn):
+            j = i + mpi.rank*nlocal
+            seedPositions.append(Vector(SphericallyConformalMap.positions[j][0],
+                                        SphericallyConformalMap.positions[j][1],
+                                        SphericallyConformalMap.positions[j][2]))
+        
+        
+        # Now construct boundaries based on rmin and rmax
+        bpoints = vector_of_Vector()
+        nshell = 300 # fix this later
+        for i in xrange(1,nshell+1):
+            h = -1.0+(2.0*(i-1.0)/(nshell-1.0))
+            t = acos(h)
+            if (i>1 and i<nshell):
+                p = (p + 3.8/sqrt(nshell)*1.0/sqrt(1.0-h*h)) % (2.0*pi)
+            else:
+                p = 0
+            bpoints.append(Vector(rmax*sin(t)*cos(p),
+                                  rmax*sin(t)*sin(p),
+                                  rmax*cos(t)))
+        bound1 = Polyhedron(bpoints)
+
+        if (rmin > 0.0):
+            for i in xrange(nshell):
+                bpoints[i] *= rmin/rmax
+            bound2 = Polyhedron(bpoints)
+        
+        # The base generator does most of the work.
+        MedialGeneratorBase.__init__(self,
+                                     ndim = 3,
+                                     n = n,
+                                     rho = rho,
+                                     boundary = bound1,
+                                     gradrho = gradrho,
+                                     holes = bound2 if (rmin>0.0) else [],
+                                     centroidFrac = centroidFrac,
+                                     maxIterations = maxIterations,
+                                     fracTol = fracTol,
+                                     tessellationBaseDir = tessellationBaseDir,
+                                     tessellationFileName = tessellationFileName,
+                                     nNodePerh = nNodePerh,
+                                     randomseed = randomseed,
+                                     maxNodesPerDomain = maxNodesPerDomain,
+                                     seedPositions = seedPositions,
+                                     enforceConstantMassPoints = enforceConstantMassPoints,
+                                     cacheFileName = cacheFileName)
+    
+        # Convert to our now regrettable standard coordinate storage for generators.
+        self.x = [x.x + offset[0] for x in self.pos]
+        self.y = [x.y + offset[1] for x in self.pos]
+        self.z = [x.z + offset[2] for x in self.pos]
+        del self.pos
+        
+        # If the user provided a "rejecter", give it a pass
+        # at the nodes.
+        if rejecter:
+            self.x, self.y, self.z, self.m, self.H, self.vol, self.surface = rejecter(self.x,
+                                                                                      self.y,
+                                                                                      self.z,
+                                                                                      self.m,
+                                                                                      self.H,
+                                                                                      self.vol,
+                                                                                      self.surface)
+
+        # Initialize the base class, taking into account the fact we've already broken
+        # up the nodes between domains.
+        NodeGeneratorBase.__init__(self, False,
+                                   self.x, self.y, self.z, self.m, self.H, self.vol, self.surface)
+        return
+    
     #---------------------------------------------------------------------------
     # Get the position for the given node index.
     #---------------------------------------------------------------------------

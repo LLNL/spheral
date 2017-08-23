@@ -32,8 +32,14 @@ generichydro%(dim)id = findObject(PhysicsSpace, "GenericHydro%(dim)id")
 self.CRKSPHHydroBase%(dim)id = addObject(self.space, "CRKSPHHydroBase%(dim)id", allow_subclassing=True, parent=generichydro%(dim)id)
 self.SolidCRKSPHHydroBase%(dim)id = addObject(self.space, "SolidCRKSPHHydroBase%(dim)id", allow_subclassing=True, parent=self.CRKSPHHydroBase%(dim)id)
 ''' % {"dim" : dim})
-        self.CRKOrder = self.space.add_enum("CRKOrder", ["ZerothOrder", "LinearOrder", "QuadraticOrder"])
-        self.CRKVolumeType = self.space.add_enum("CRKVolumeType", ["CRKMassOverDensity", "CRKSumVolume", "CRKVoronoiVolume", "CRKHullVolume", "HVolume"])
+        self.CRKOrder = self.space.add_enum("CRKOrder", [("ZerothOrder",    "Spheral::CRKSPHSpace::CRKOrder::ZerothOrder"),
+                                                         ("LinearOrder",    "Spheral::CRKSPHSpace::CRKOrder::LinearOrder"),
+                                                         ("QuadraticOrder", "Spheral::CRKSPHSpace::CRKOrder::QuadraticOrder")])
+        self.CRKVolumeType = self.space.add_enum("CRKVolumeType", [("CRKMassOverDensity", "Spheral::CRKSPHSpace::CRKVolumeType::CRKMassOverDensity"),
+                                                                   ("CRKSumVolume",       "Spheral::CRKSPHSpace::CRKVolumeType::CRKSumVolume"),
+                                                                   ("CRKVoronoiVolume",   "Spheral::CRKSPHSpace::CRKVolumeType::CRKVoronoiVolume"),
+                                                                   ("CRKHullVolume",      "Spheral::CRKSPHSpace::CRKVolumeType::CRKHullVolume"),
+                                                                   ("HVolume",            "Spheral::CRKSPHSpace::CRKVolumeType::HVolume")])
 
         if 2 in self.dims:
             self.CRKSPHHydroBaseRZ = addObject(self.space, "CRKSPHHydroBaseRZ", allow_subclassing=True, parent=self.CRKSPHHydroBase2d)
@@ -103,13 +109,18 @@ self.generateSolidCRKSPHHydroBaseBindings(self.SolidCRKSPHHydroBase%(dim)id, %(d
                                                            param("double", "Hdetj"),
                                                            param("double", "Ai"),
                                                            constrefparam(vector, "Bi"),
-      							   constrefparam(tensor, "Ci")],
+      							   constrefparam(tensor, "Ci"),
+                                                           param("double", "correctionMin", default_value = "std::numeric_limits<double>::lowest()"),
+                                                           param("double", "correctionMax", default_value = "std::numeric_limits<double>::max()")],
                                 template_parameters = [dim],
                                 custom_name = "CRKSPHKernel%id" % ndim,
                                 docstring = "Evaluate the CRKSPH corrected kernel.")
 
         # Simultaneously evaluate the CRKSPH kernel and it's gradient.
-        self.space.add_function("CRKSPHKernelAndGradient%id" % ndim, None, [constrefparam(tablekernel, "W"),
+        self.space.add_function("CRKSPHKernelAndGradient%id" % ndim, None, [Parameter.new("double*", "WCRKSPH", direction=Parameter.DIRECTION_OUT),
+                                                                            Parameter.new("double*", "gradWSPH", direction=Parameter.DIRECTION_OUT),
+                                                                            refparam(vector, "gradWCRKSPH"),
+                                                                            constrefparam(tablekernel, "W"),
                                                                             param("Spheral::CRKSPHSpace::CRKOrder","correctionOrder"),
                                                                             constrefparam(vector, "rij"),
                                                                             constrefparam(vector, "etai"),
@@ -124,9 +135,8 @@ self.generateSolidCRKSPHHydroBaseBindings(self.SolidCRKSPHHydroBase%(dim)id, %(d
                                                                             constrefparam(vector, "gradAi"),
                                                                             constrefparam(tensor, "gradBi"),
                                                                             constrefparam(thirdranktensor, "gradCi"),
-                                                                            Parameter.new("double*", "WCRKSPH", direction=Parameter.DIRECTION_OUT),
-                                                                            Parameter.new("double*", "gradWSPH", direction=Parameter.DIRECTION_OUT),
-                                                                            refparam(vector, "gradWCRKSPH")],
+                                                                            param("double", "correctionMin", default_value = "std::numeric_limits<double>::lowest()"),
+                                                                            param("double", "correctionMax", default_value = "std::numeric_limits<double>::max()")],
                                 docstring = "Evaluate the CRKSPH corrected kernel and gradient simultaneously.")
 
         # CRKSPH sum density.
@@ -149,13 +159,15 @@ self.generateSolidCRKSPHHydroBaseBindings(self.SolidCRKSPHHydroBase%(dim)id, %(d
                                  constrefparam(connectivitymap, "connectivityMap"),
                                  param("double", "kernelExtent"),
                                  constrefparam(vector_of_FacetedVolume, "boundaries"),
-                                 constrefparam(vector_of_vector_of_FacetedVolume, "boundaries"),
+                                 constrefparam(vector_of_vector_of_FacetedVolume, "holes"),
+                                 constrefparam(scalarfieldlist, "weights"),
+                                 constrefparam(intfieldlist, "voidPoint"),
                                  refparam(intfieldlist, "surfacePoint"),
                                  refparam(scalarfieldlist, "vol"),
                                  refparam(vectorfieldlist, "deltaCentroid"),
                                  refparam(polyvolfieldlist, "cells")],
                                 docstring = "Compute the volume per point using a Voronoi tessellation.")
-
+                                
         self.space.add_function("computeCRKSPHSumVolume", None,
                                 [constrefparam(connectivitymap, "connectivityMap"),
                                  constrefparam(tablekernel, "W"),
@@ -481,7 +493,8 @@ self.generateSolidCRKSPHHydroBaseBindings(self.SolidCRKSPHHydroBase%(dim)id, %(d
         x.add_instance_attribute("detectThreshold", "double", getter="detectThreshold", setter="detectThreshold")
         x.add_instance_attribute("detectRange", "double", getter="detectRange", setter="detectRange")
         x.add_instance_attribute("sweepAngle", "double", getter="sweepAngle", setter="sweepAngle")
-        
+        x.add_instance_attribute("correctionMin", "double", getter="correctionMin", setter="correctionMin")
+        x.add_instance_attribute("correctionMax", "double", getter="correctionMax", setter="correctionMax")
 
         const_ref_return_value(x, me, "%s::smoothingScaleMethod" % me, smoothingscalebase, [], "smoothingScaleMethod")
         const_ref_return_value(x, me, "%s::timeStepMask" % me, intfieldlist, [], "timeStepMask")
@@ -515,6 +528,7 @@ self.generateSolidCRKSPHHydroBaseBindings(self.SolidCRKSPHHydroBase%(dim)id, %(d
         const_ref_return_value(x, me, "%s::gradB" % me, tensorfieldlist, [], "gradB")
         const_ref_return_value(x, me, "%s::gradC" % me, thirdranktensorfieldlist, [], "gradC")
         const_ref_return_value(x, me, "%s::surfacePoint" % me, intfieldlist, [], "surfacePoint")
+        const_ref_return_value(x, me, "%s::voidPoint" % me, intfieldlist, [], "voidPoint")
         const_ref_return_value(x, me, "%s::m0" % me, scalarfieldlist, [], "m0")
         const_ref_return_value(x, me, "%s::m1" % me, vectorfieldlist, [], "m1")
 
@@ -588,12 +602,6 @@ self.generateSolidCRKSPHHydroBaseBindings(self.SolidCRKSPHHydroBase%(dim)id, %(d
 
         # Attributes.
         const_ref_return_value(x, me, "%s::Hfield0" % me, symtensorfieldlist, [], "Hfield0")
-        const_ref_return_value(x, me, "%s::Adamage" % me, scalarfieldlist, [], "Adamage")
-        const_ref_return_value(x, me, "%s::Bdamage" % me, vectorfieldlist, [], "Bdamage")
-        const_ref_return_value(x, me, "%s::Cdamage" % me, tensorfieldlist, [], "Cdamage")
-        const_ref_return_value(x, me, "%s::gradAdamage" % me, vectorfieldlist, [], "gradAdamage")
-        const_ref_return_value(x, me, "%s::gradBdamage" % me, tensorfieldlist, [], "gradBdamage")
-        const_ref_return_value(x, me, "%s::gradCdamage" % me, thirdranktensorfieldlist, [], "gradCdamage")
 
         return
 

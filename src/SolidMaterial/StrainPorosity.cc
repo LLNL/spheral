@@ -3,8 +3,7 @@
 // 
 // See header for references and such.
 //----------------------------------------------------------------------------//
-
-#include "StrainPorosity.hh"
+#include "FileIO/FileIO.hh"
 #include "Field/Field.hh"
 #include "Hydro/HydroFieldNames.hh"
 #include "Strength/SolidFieldNames.hh"
@@ -12,7 +11,8 @@
 #include "DataBase/IncrementState.hh"
 #include "DataBase/IncrementBoundedState.hh"
 #include "DataBase/IncrementFieldList.hh"
-#include "FileIO/FileIO.hh"
+
+#include "StrainPorosity.hh"
 
 namespace Spheral {
 namespace SolidMaterial {
@@ -70,6 +70,8 @@ StrainPorosity(PorousEquationOfState<Dimension>& porousEOS,
           "ERROR : kappa required to be in range kappa = [0.0, 1.0]");
   mEpsC = 2.0*(1.0 - mAlpha0*exp(mKappa*(mEpsX - mEpsE)))/(mKappa*mAlpha0*exp(mKappa*(mEpsX - mEpsE))) + mEpsX;
   mPorousEOS.alpha(mAlpha);
+  mPorousEOS.alpha0(mAlpha0);
+  mPorousEOS.c0(c0);
   mPorousStrength.alpha(mAlpha);
   ENSURE(mPorousEOS.valid());
 }

@@ -105,7 +105,7 @@ CRKSPHMonaghanGingoldViscosity(const Scalar Clinear,
   mEtaFoldFrac(etaFoldFrac),
   mEtaCrit(0.0),
   mEtaFold(1.0),
-  mGradVel(FieldSpace::Copy) {
+  mGradVel(FieldSpace::FieldStorageType::CopyFields) {
 }
 
 //------------------------------------------------------------------------------

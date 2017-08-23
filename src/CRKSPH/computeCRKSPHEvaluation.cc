@@ -3,7 +3,6 @@
 //------------------------------------------------------------------------------
 #include <stdio.h>
 #include "computeCRKSPHEvaluation.hh"
-#include "CRKSPHUtilities.hh"
 #include "Field/Field.hh"
 #include "Field/FieldList.hh"
 #include "Neighbor/ConnectivityMap.hh"
@@ -38,7 +37,6 @@ computeCRKSPHEvaluation(const ConnectivityMap<Dimension>& connectivityMap,
                        const FieldList<Dimension, typename Dimension::SymTensor>& H,
                        size_t nodeListi, const int i, typename Dimension::Vector reval,
                        const bool coupleNodeLists, typename Dimension::Scalar& WCRKSPH, typename Dimension::Vector& gradWCRKSPH){
-
 
   typedef typename Dimension::Scalar Scalar;
   typedef typename Dimension::Vector Vector;
@@ -90,7 +88,6 @@ computeCRKSPHEvaluation(const ConnectivityMap<Dimension>& connectivityMap,
   Vector gradA0 = Vector::zero;
   Vector gradA = Vector::zero;
   Tensor gradB = Tensor::zero;
-
 
   // Neighbors!
   bool first_time=true;//Used as a flag to include self contribution
@@ -151,7 +148,6 @@ computeCRKSPHEvaluation(const ConnectivityMap<Dimension>& connectivityMap,
       }
     }
   }
-
   // Based on the moments we can calculate the CRKSPH corrections terms and their gradients.
   //if (i < firstGhostNodei) {
   CHECK2(abs(m2.Determinant()) > 1.0e-30, i << " " << m0 << " " << m2 << " " << m2.Determinant());
@@ -164,21 +160,23 @@ computeCRKSPHEvaluation(const ConnectivityMap<Dimension>& connectivityMap,
   B = -m2invm1;
   gradA0 = -FastMath::square(A0)*gradm0;
   gradA = -A*A*gradm0;
+
   for (size_t ii = 0; ii != Dimension::nDim; ++ii) {
     for (size_t jj = 0; jj != Dimension::nDim; ++jj) {
       for (size_t kk = 0; kk != Dimension::nDim; ++kk) {
-        gradA(ii) += A*A*m2inv(jj,kk)*m1(kk)*gradm1(jj,ii);
-        gradA(ii) += A*A*m2inv(jj,kk)*gradm1(kk,ii)*m1(jj);
-        gradB(ii,jj) -= m2inv(ii,kk)*gradm1(kk,jj);
+        // gradA(ii) += A*A*m2inv(jj,kk)*m1(kk)*gradm1(jj,ii);
+        // gradA(ii) += A*A*m2inv(jj,kk)*gradm1(kk,ii)*m1(jj);
+        // gradB(ii,jj) -= m2inv(ii,kk)*gradm1(kk,jj);
         for (size_t ll = 0; ll != Dimension::nDim; ++ll) {
           for (size_t mm = 0; mm != Dimension::nDim; ++mm) {
-            gradA(ii) -= A*A*m2inv(jj,kk)*gradm2(kk,ll,ii)*m2inv(ll,mm)*m1(mm)*m1(jj);
-            gradB(ii,jj) += m2inv(ii,kk)*gradm2(kk,ll,jj)*m2inv(ll,mm)*m1(mm);
+            // gradA(ii) -= A*A*m2inv(jj,kk)*gradm2(kk,ll,ii)*m2inv(ll,mm)*m1(mm)*m1(jj);
+            // gradB(ii,jj) += m2inv(ii,kk)*gradm2(kk,ll,jj)*m2inv(ll,mm)*m1(mm);
           }
         }
       }
     }
   }
+
   // // BLAGO!
   // // Force only zeroth corrections.
   // A = A0;
@@ -201,7 +199,6 @@ computeCRKSPHEvaluation(const ConnectivityMap<Dimension>& connectivityMap,
 
 
   
-
 }
 
 }

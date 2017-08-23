@@ -170,10 +170,27 @@ AC_OUTPUT(helpers/makefile_master \
           Mesh/makefile \
           Damage/makefile \
           SolidMaterial/makefile \
-          SolidSPH/makefile \
           Strength/makefile \
           ArtificialConduction/makefile \
+          CXXTests/makefile \
           PythonMPIInterfaces/makefile \
           PBGWraps/makefile \
           PBGWraps/SpheralModulesBindings.py \
+          Pybind11Wraps/makefile \
+          Pybind11Wraps/Spheral.py \
+          Pybind11Wraps/CXXTypes/makefile \
+          Pybind11Wraps/Geometry/makefile \
+          Pybind11Wraps/Silo/makefile \
+          Pybind11Wraps/DataOutput/makefile \
+          Pybind11Wraps/NodeList/makefile \
+          Pybind11Wraps/Field/makefile \
+          Pybind11Wraps/Kernel/makefile \
+          Pybind11Wraps/Neighbor/makefile \
+          Pybind11Wraps/Material/makefile \
+          Pybind11Wraps/FileIO/makefile \
+          Pybind11Wraps/DataBase/makefile \
+          Pybind11Wraps/Boundary/makefile \
+          Pybind11Wraps/Physics/makefile \
+          Pybind11Wraps/ArtificialViscosity/makefile \
+          Pybind11Wraps/Hydro/makefile \
           SimulationControl/spheralDimensions.py)

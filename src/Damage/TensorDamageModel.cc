@@ -11,28 +11,28 @@
 //
 // Created by JMO, Thu Sep 29 15:42:05 PDT 2005
 //----------------------------------------------------------------------------//
-#include <string>
-#include <vector>
-#include <algorithm>
-
-#include "boost/shared_ptr.hpp"
-
+#include "FileIO/FileIO.hh"
 #include "TensorDamageModel.hh"
 #include "TensorStrainPolicy.hh"
 #include "TensorDamagePolicy.hh"
 #include "EffectiveTensorDamagePolicy.hh"
 #include "DamageGradientPolicy.hh"
 #include "Strength/SolidFieldNames.hh"
-#include "Strength/SolidNodeList.hh"
+#include "NodeList/SolidNodeList.hh"
 #include "DataBase/DataBase.hh"
 #include "DataBase/State.hh"
 #include "DataBase/StateDerivatives.hh"
 #include "DataBase/ReplaceState.hh"
 #include "Hydro/HydroFieldNames.hh"
-#include "FileIO/FileIO.hh"
 #include "Field/FieldList.hh"
 #include "Boundary/Boundary.hh"
 #include "Neighbor/Neighbor.hh"
+
+#include "boost/shared_ptr.hpp"
+
+#include <string>
+#include <vector>
+#include <algorithm>
 
 namespace Spheral {
 namespace PhysicsSpace {
@@ -40,7 +40,7 @@ namespace PhysicsSpace {
 using namespace std;
 
 using NodeSpace::NodeList;
-using SolidMaterial::SolidNodeList;
+using NodeSpace::SolidNodeList;
 using Material::EquationOfState;
 using FileIOSpace::FileIO;
 using DataBaseSpace::DataBase;
@@ -136,8 +136,8 @@ evaluateDerivatives(const Scalar time,
 
   // Prepare the effective damage for computation.
   Field<Dimension, Scalar> normalization("normalization", *nodeListPtr, 0.0);
-  if (mEffDamageAlgorithm == Max or
-      mEffDamageAlgorithm == Copy) Deff = D;
+  if (mEffDamageAlgorithm == EffectiveDamageAlgorithm::MaxDamage or
+      mEffDamageAlgorithm == EffectiveDamageAlgorithm::CopyDamage) Deff = D;
 
   // Iterate over the internal nodes in this NodeList.
   for (typename ConnectivityMap<Dimension>::const_iterator iItr = connectivityMap.begin(nodeListi);
@@ -210,12 +210,12 @@ evaluateDerivatives(const Scalar time,
 
           // Increment the effective damage.
           switch(mEffDamageAlgorithm) {
-          case Max:
+          case EffectiveDamageAlgorithm::MaxDamage:
             if (Dmagj * Dimension::nDim > Deffi.Trace()) Deffi = Dj;
             if (Dmagi * Dimension::nDim > Deffj.Trace()) Deffj = Di;
             break;
 
-          case Sampled:
+          case EffectiveDamageAlgorithm::SampledDamage:
             normalizationi += Wi;
             normalizationj += Wj;
             Deffi += Wi * Dj;
@@ -233,7 +233,7 @@ evaluateDerivatives(const Scalar time,
 
     // Finish the effective damage by adding in the self-contribution and 
     // normalizing the sucker.
-    if (mEffDamageAlgorithm == Sampled) {
+    if (mEffDamageAlgorithm == EffectiveDamageAlgorithm::SampledDamage) {
       CHECK(normalizationi >= 0.0);
       const double Wi = W.kernelValue(0.0, Hdeti);
       Deffi = (Deffi + Dmagi*Wi*Di)/(normalizationi + Dmagi*Wi + tiny);

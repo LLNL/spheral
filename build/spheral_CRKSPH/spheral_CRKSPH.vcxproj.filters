@@ -69,6 +69,9 @@
     <ClCompile Include="..\..\src\CRKSPH\CRKSPHHydroBaseInst.cc.3.cc">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\src\CRKSPH\CRKSPHHydroBaseRZ.cc">
+      <Filter>Source Files</Filter>
+    </ClCompile>
     <ClCompile Include="..\..\src\CRKSPH\gradientCRKSPHInst.cc.2.cc">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -87,6 +90,44 @@
     <ClCompile Include="..\..\src\CRKSPH\interpolateCRKSPHInst.cc.3.cc">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\src\CRKSPH\SolidCRKSPHHydroBaseInst.cc.3.cc">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\CRKSPH\SolidCRKSPHHydroBaseInst.cc.2.cc">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\CRKSPH\SolidCRKSPHHydroBaseRZ.cc">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\CRKSPH\computeSolidCRKSPHSumMassDensityInst.cc.3.cc">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\CRKSPH\computeSolidCRKSPHSumMassDensityInst.cc.2.cc">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\CRKSPH\computeCRKSPHSumVolumeInst.cc.3.cc">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\CRKSPH\computeCRKSPHSumVolumeInst.cc.2.cc">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\CRKSPH\computeCRKSPHMomentsInst.cc.3.cc">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\CRKSPH\computeCRKSPHMomentsInst.cc.2.cc">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\CRKSPH\computeVoronoiVolume1d.cc">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\CRKSPH\computeVoronoiVolume2d.cc">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\CRKSPH\computeVoronoiVolume3d.cc">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\CRKSPH\computeOccupancyVolumeInst.cc.2.cc" />
+    <ClCompile Include="..\..\src\CRKSPH\computeOccupancyVolumeInst.cc.3.cc" />
   </ItemGroup>
   <ItemGroup>
     <None Include="..\..\src\CRKSPH\centerOfMass.hh">
@@ -123,6 +164,15 @@
       <Filter>Header Files</Filter>
     </None>
     <None Include="..\..\src\CRKSPH\CRKSPHHydroBaseInline.hh">
+      <Filter>Header Files</Filter>
+    </None>
+    <None Include="..\..\src\CRKSPH\CRKSPHHydroBaseRZ.hh">
+      <Filter>Header Files</Filter>
+    </None>
+    <None Include="..\..\src\CRKSPH\SolidCRKSPHHydroBaseRZ.hh">
+      <Filter>Header Files</Filter>
+    </None>
+    <None Include="..\..\src\CRKSPH\SolidCRKSPHHydroBaseRZInline.hh">
       <Filter>Header Files</Filter>
     </None>
     <None Include="..\..\src\CRKSPH\CRKSPHSpecificThermalEnergyPolicy.hh">
@@ -184,5 +234,18 @@
     <CustomBuild Include="..\..\src\CRKSPH\interpolateCRKSPHInst.cc.py">
       <Filter>Inst Files</Filter>
     </CustomBuild>
+    <CustomBuild Include="..\..\src\CRKSPH\computeCRKSPHMomentsInst.cc.py">
+      <Filter>Inst Files</Filter>
+    </CustomBuild>
+    <CustomBuild Include="..\..\src\CRKSPH\computeCRKSPHSumVolumeInst.cc.py">
+      <Filter>Inst Files</Filter>
+    </CustomBuild>
+    <CustomBuild Include="..\..\src\CRKSPH\computeSolidCRKSPHSumMassDensityInst.cc.py">
+      <Filter>Inst Files</Filter>
+    </CustomBuild>
+    <CustomBuild Include="..\..\src\CRKSPH\SolidCRKSPHHydroBaseInst.cc.py">
+      <Filter>Inst Files</Filter>
+    </CustomBuild>
+    <CustomBuild Include="..\..\src\CRKSPH\computeOccupancyVolumeInst.cc.py" />
   </ItemGroup>
 </Project>

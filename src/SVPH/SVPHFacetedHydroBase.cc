@@ -3,12 +3,7 @@
 //
 // Created by JMO, Sun Jul 28 20:57:01 PDT 2013
 //----------------------------------------------------------------------------//
-#include <algorithm>
-#include <fstream>
-#include <map>
-#include <vector>
-
-#include "SVPHFacetedHydroBase.hh"
+#include "FileIO/FileIO.hh"
 #include "computeSVPHCorrectionsOnFaces.hh"
 #include "SVPHCorrectionsPolicy.hh"
 #include "computeSumVoronoiCellMassDensityFromFaces.hh"
@@ -44,9 +39,15 @@
 #include "Utilities/timingUtilities.hh"
 #include "Utilities/safeInv.hh"
 #include "Utilities/globalBoundingVolumes.hh"
-#include "FileIO/FileIO.hh"
 #include "Mesh/Mesh.hh"
 #include "Material/EquationOfState.hh"
+
+#include "SVPHFacetedHydroBase.hh"
+
+#include <algorithm>
+#include <fstream>
+#include <map>
+#include <vector>
 
 namespace Spheral {
 namespace SVPHSpace {
@@ -107,26 +108,26 @@ SVPHFacetedHydroBase(const SmoothingScaleBase<Dimension>& smoothingScaleMethod,
   // mA(),
   // mB(),
   // mGradB(),
-  mTimeStepMask(FieldSpace::Copy),
-  mPressure(FieldSpace::Copy),
-  mCellPressure(FieldSpace::Copy),
-  mSoundSpeed(FieldSpace::Copy),
-  mVolume(FieldSpace::Copy),
-  mSpecificThermalEnergy0(FieldSpace::Copy),
-  mHideal(FieldSpace::Copy),
-  mMaxViscousPressure(FieldSpace::Copy),
-  mMassDensitySum(FieldSpace::Copy),
-  mWeightedNeighborSum(FieldSpace::Copy),
-  mMassSecondMoment(FieldSpace::Copy),
-  mXSVPHDeltaV(FieldSpace::Copy),
-  mDxDt(FieldSpace::Copy),
-  mDvDt(FieldSpace::Copy),
-  mDmassDensityDt(FieldSpace::Copy),
-  mDspecificThermalEnergyDt(FieldSpace::Copy),
-  mDHDt(FieldSpace::Copy),
-  mDvDx(FieldSpace::Copy),
-  mInternalDvDx(FieldSpace::Copy),
-  mFaceForce(FieldSpace::Copy),
+  mTimeStepMask(FieldSpace::FieldStorageType::CopyFields),
+  mPressure(FieldSpace::FieldStorageType::CopyFields),
+  mCellPressure(FieldSpace::FieldStorageType::CopyFields),
+  mSoundSpeed(FieldSpace::FieldStorageType::CopyFields),
+  mVolume(FieldSpace::FieldStorageType::CopyFields),
+  mSpecificThermalEnergy0(FieldSpace::FieldStorageType::CopyFields),
+  mHideal(FieldSpace::FieldStorageType::CopyFields),
+  mMaxViscousPressure(FieldSpace::FieldStorageType::CopyFields),
+  mMassDensitySum(FieldSpace::FieldStorageType::CopyFields),
+  mWeightedNeighborSum(FieldSpace::FieldStorageType::CopyFields),
+  mMassSecondMoment(FieldSpace::FieldStorageType::CopyFields),
+  mXSVPHDeltaV(FieldSpace::FieldStorageType::CopyFields),
+  mDxDt(FieldSpace::FieldStorageType::CopyFields),
+  mDvDt(FieldSpace::FieldStorageType::CopyFields),
+  mDmassDensityDt(FieldSpace::FieldStorageType::CopyFields),
+  mDspecificThermalEnergyDt(FieldSpace::FieldStorageType::CopyFields),
+  mDHDt(FieldSpace::FieldStorageType::CopyFields),
+  mDvDx(FieldSpace::FieldStorageType::CopyFields),
+  mInternalDvDx(FieldSpace::FieldStorageType::CopyFields),
+  mFaceForce(FieldSpace::FieldStorageType::CopyFields),
   mRestart(DataOutput::registerWithRestart(*this)) {
   // Delegate range checking to our assignment methods.
   this->fcentroidal(fcentroidal);
@@ -282,7 +283,7 @@ registerState(DataBase<Dimension>& dataBase,
     state.enroll((*itr)->mass());
 
     // Mass density.
-    if (densityUpdate() == PhysicsSpace::IntegrateDensity) {
+    if (densityUpdate() == PhysicsSpace::MassDensityType::IntegrateDensity) {
       PolicyPointer rhoPolicy(new IncrementBoundedState<Dimension, Scalar>((*itr)->rhoMin(),
                                                                            (*itr)->rhoMax()));
       state.enroll((*itr)->massDensity(), rhoPolicy);
@@ -320,11 +321,11 @@ registerState(DataBase<Dimension>& dataBase,
     // Register the H tensor.
     const Scalar hmaxInv = 1.0/(*itr)->hmax();
     const Scalar hminInv = 1.0/(*itr)->hmin();
-    if (HEvolution() == PhysicsSpace::IntegrateH) {
+    if (HEvolution() == PhysicsSpace::HEvolutionType::IntegrateH) {
       PolicyPointer Hpolicy(new IncrementBoundedState<Dimension, SymTensor, Scalar>(hmaxInv, hminInv));
       state.enroll((*itr)->Hfield(), Hpolicy);
     } else {
-      CHECK(HEvolution() == PhysicsSpace::IdealH);
+      CHECK(HEvolution() == PhysicsSpace::HEvolutionType::IdealH);
       PolicyPointer Hpolicy(new MeshIdealHPolicy<Dimension>(mSmoothingScaleMethod,
                                                             (*itr)->hmin(),
                                                             (*itr)->hmax(),
@@ -1069,17 +1070,17 @@ finalize(const typename Dimension::Scalar time,
 
   // Depending on the mass density advancement selected, we may want to replace the 
   // mass density.
-  if (densityUpdate() == PhysicsSpace::RigorousSumDensity or
-      densityUpdate() == PhysicsSpace::SumVoronoiCellDensity) {
+  if (densityUpdate() == PhysicsSpace::MassDensityType::RigorousSumDensity or
+      densityUpdate() == PhysicsSpace::MassDensityType::SumVoronoiCellDensity) {
     const Mesh<Dimension>& mesh = state.mesh();
     FieldList<Dimension, Scalar> massDensity = state.fields(HydroFieldNames::massDensity, 0.0);
     computeSumVoronoiCellMassDensityFromFaces(mesh, this->kernel(), dataBase, massDensity);
-  } else if (densityUpdate() == PhysicsSpace::SumDensity) {
+  } else if (densityUpdate() == PhysicsSpace::MassDensityType::SumDensity) {
     FieldList<Dimension, Scalar> massDensity = state.fields(HydroFieldNames::massDensity, 0.0);
     FieldList<Dimension, Scalar> massDensitySum = derivs.fields(ReplaceState<Dimension, Field<Dimension, Field<Dimension, Scalar> > >::prefix() + 
                                                                 HydroFieldNames::massDensity, 0.0);
     massDensity.assignFields(massDensitySum);
-  } else if (densityUpdate() == PhysicsSpace::VoronoiCellDensity) {
+  } else if (densityUpdate() == PhysicsSpace::MassDensityType::VoronoiCellDensity) {
     const FieldList<Dimension, Scalar> mass = state.fields(HydroFieldNames::mass, 0.0);
     const FieldList<Dimension, Scalar> volume = state.fields(HydroFieldNames::volume, 0.0);
     FieldList<Dimension, Scalar> massDensity = state.fields(HydroFieldNames::massDensity, 0.0);

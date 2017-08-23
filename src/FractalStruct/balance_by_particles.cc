@@ -43,12 +43,7 @@ namespace FractalSpace
 	  }
       }
     for(int FR2=0;FR2<=FractalNodes2;FR2++)
-      {
-	targets[FR2]/=targets[FractalNodes2];
-	//	if(FractalRank == 0)
-	//	  cerr << " Target2 " << FR2 << " " << targets[FR2] << "\n";
-      }
-
+      targets[FR2]/=targets[FractalNodes2];
     double scalepoint=1.0e-10;
     double scalepart=1.0;
     int steps=PFM->steps;
@@ -119,7 +114,6 @@ namespace FractalSpace
 	upperx[FRZ].resize(FractalNodes1);
 	numbersy[FRZ].assign(real_length,0.0);
 	numbersx[FRZ].resize(FractalNodes1);
-	//	cerr << " lower upper Z " << FractalRank << " " << FRZ << " " << lowerz[FRZ] << " " << upperz[FRZ] << "\n" ;
       }
     vector <int>numbert(FractalNodes2,0);
     for(int ni=0;ni < how_many_particles;++ni)
@@ -139,10 +133,6 @@ namespace FractalSpace
 	numbersy[FRZ][ny]+=scalepart;
 	numbert[FRZ]++;
       }
-//     cerr << " numberT " << FractalRank << " ";
-//     for(int FRZ=0;FRZ<FractalNodes2;FRZ++)
-//       cerr << FRZ << " " << numbert[FRZ];
-//     cerr << "" << endl;
     for(int FRZ=0;FRZ<FractalNodes2;FRZ++)
       {
 	vector <float>numf(real_length);
@@ -171,11 +161,7 @@ namespace FractalSpace
 	      }
 	  }
 	for(int FR1=0;FR1<=FractalNodes1;FR1++)
-	  {
-	    targets[FR1]/=targets[FractalNodes1];
-	    //	    if(FractalRank == 0)
-	    //	      cerr << " Target1 " << FR1 << " " << targets[FR1] << "\n";
-	  }
+	  targets[FR1]/=targets[FractalNodes1];
 	if(FractalRank == ROOTNODE)
 	  {
 	    double minimumy=static_cast<double>(upperz[FRZ]-lowerz[FRZ])*real_length*scalepoint;
@@ -201,8 +187,6 @@ namespace FractalSpace
 	    alowerx[FRZ][FRY].resize(FractalNodes0);
 	    upperx[FRZ][FRY].resize(FractalNodes0);
 	    numbersx[FRZ][FRY].assign(real_length,0.0);
-	    //	    cerr << " lower upper Y Z " << FractalRank << " " << FRY << " " << FRZ << " " << lowery[FRZ][FRY] << " " << uppery[FRZ][FRY];
-	    //	    cerr << " "   << lowerz[FRZ] << " " << upperz[FRZ] << "\n" ;
 	  }
       }
     for(int ni=0;ni < how_many_particles;++ni)
@@ -225,14 +209,9 @@ namespace FractalSpace
 	assert(nx < real_length);
 	numbersx[FRZ][FRY][nx]+=scalepart;
       }
-//     for(int FRZ=0;FRZ<FractalNodes2;FRZ++)
-//       for(int FRY=0;FRY<FractalNodes1;FRY++)
-// 	PFM->p_mess->Find_Sum_DOUBLE_to_ROOT(numbersx[FRZ][FRY],real_length,ROOTNODE);
-
     for(int FRZ=0;FRZ<FractalNodes2;FRZ++)
       {
 	vector <float>manynumbers;
-	manynumbers.clear();
 	for(int FRY=0;FRY<FractalNodes1;FRY++)
 	  {
 	    for(int nx=0;nx<real_length;nx++)
@@ -308,8 +287,6 @@ namespace FractalSpace
 		PFM->Boxes[FR][2]=BY0;
 		PFM->Boxes[FR][4]=BZ0;
 		FR++;
-		//		cerr << " lower upper X Y Z " << FractalRank << " " << FRX << " " << FRY << " " << FRZ << " " << lowerx[FRZ][FRY][FRX] << " " << upperx[FRZ][FRY][FRX];
-		//		cerr << " " << lowery[FRZ][FRY] << " " << uppery[FRZ][FRY] << " " << lowerz[FRZ] << " " << upperz[FRZ] << "\n" ;
 	      } 
 	  }
       }

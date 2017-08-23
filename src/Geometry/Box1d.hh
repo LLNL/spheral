@@ -81,6 +81,12 @@ public:
   Box1d operator+(const Vector& rhs) const;
   Box1d operator-(const Vector& rhs) const;
 
+  // Scale by a scalar.
+  Box1d& operator*=(const double rhs);
+  Box1d& operator/=(const double rhs);
+  Box1d operator*(const double rhs) const;
+  Box1d operator/(const double rhs) const;
+
   // Comparisons.
   bool operator==(const Box1d& rhs) const;
   bool operator!=(const Box1d& rhs) const;

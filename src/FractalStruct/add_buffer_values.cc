@@ -20,7 +20,8 @@ namespace FractalSpace
     for(int FR : mem.Touchy)
       {
 	int HR=mem.p_mess->IHranks[FR];
-	assert(HR >= 0);
+	if(HR < 0)
+	  continue;
 	vector <int>FRPBOX=mem.PBoxesLev[FR][level];
 	vector <int>FRBOX=mem.BoxesLev[FR][level];
 	int B=0;
@@ -53,7 +54,8 @@ namespace FractalSpace
     mem.p_mess->Send_Data_Some_How(9,mem.p_mess->HypreWorld,counts_out,counts_in,integers,doubles,
 				   dataI_out,dataI_in,how_manyI,
 				   dataR_out,dataR_in,how_manyR);
-    counts_out.clear();
+    // counts_out.clear();
+    clean_vector(counts_out);
     dataI_out.clear();
     dataR_out.clear();
     array<int,3>ar3;
@@ -86,7 +88,6 @@ namespace FractalSpace
 	for(int c=0;c<counts_in[HR];c++)
 	  {
 	    array <int,3>posin={dataI_in[c3],dataI_in[c3+1],dataI_in[c3+2]};
-	      // std::map<char,int>::iterator it;
 	    std::map<array<int,3>,Point*>::iterator eb=edgeP.find(posin);
 	    if(eb != edgeP.end())
 	      {

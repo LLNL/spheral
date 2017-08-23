@@ -26,7 +26,7 @@ GNU)
   elif test "$withval" = "20";then
     OPT="-O2 -g"
   elif test "$withval" = "3";then
-    OPT="-O3 --param inline-unit-growth=50"
+    OPT="-O3 "
   elif test "$withval" = "4";then
     OPT="-O4 -ffast-math -funroll-loops -fprefetch-loop-arrays -march=pentium4 -mfpmath=sse"
   elif test "$withval" = "5";then

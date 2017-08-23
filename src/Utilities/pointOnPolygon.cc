@@ -6,22 +6,21 @@
 #include "pointOnPolygon.hh"
 #include "lineSegmentIntersections.hh"
 
+using namespace std;
+
 namespace Spheral {
 
 bool pointOnPolygon(const Dim<2>::Vector& p,
-                    const std::vector<Dim<2>::Vector>& vertices,
+                    const Dim<2>::FacetedVolume& polygon,
                     const double tol) {
   typedef Dim<2>::Vector Vector;
-  const unsigned nvertices = vertices.size();
-  unsigned i = 0, j;
-  bool result = false;
-  while (i != nvertices and not result) {
-    j = (i + 1) % nvertices;
-    CHECK(i < nvertices and j < nvertices);
-    result = between(vertices[i], vertices[j], p, tol);
-    ++i;
+  typedef Dim<2>::FacetedVolume::Facet Facet;
+  const vector<Vector>& vertices = polygon.vertices();
+  const vector<Facet>& facets = polygon.facets();
+  for (const Facet& facet: facets) {
+    if (between(facet.point1(), facet.point2(), p, tol)) return true;
   }
-  return result;
+  return false;
 }
 
 }

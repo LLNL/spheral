@@ -9,11 +9,10 @@
 #-------------------------------------------------------------------------------
 from SolidSpheral2d import *
 from SpheralTestUtilities import *
-from findLastRestart import *
 from SpheralVisitDump import dumpPhysicsState
 from identifyFragments import identifyFragments, fragmentProperties
 from math import *
-import shutil
+import os, shutil
 import mpi
 
 #-------------------------------------------------------------------------------
@@ -83,7 +82,6 @@ commandLine(seed = "lattice",
             ylength = 1.0,
             nx = 150,
             ny = 50,
-            nPerh = 2.01,
 
             rho0 = 7.9,
 
@@ -100,7 +98,7 @@ commandLine(seed = "lattice",
             mWeibullFactor = 1.0,
             randomSeed = 548928513,
             strainType = PseudoPlasticStrain,
-            damageMethod = Copy,
+            damageMethod = CopyDamage,
             useDamageGradient = True,
             cullToWeakestFlaws = False,
             effectiveFlawAlgorithm = SampledFlaws,
@@ -109,19 +107,10 @@ commandLine(seed = "lattice",
             # Optionally we can initialize a break near the origin.
             initialBreakRadius = 0.0,
             
-            CRKSPH = False,
-            ASPH = True,     # Only for H evolution, not hydro algorithm
-            Qconstructor = MonaghanGingoldViscosity,
-            Cl = 1.0,
-            Cq = 1.0,
-            linearInExpansion = False,
-            Qlimiter = False,
-            balsaraCorrection = False,
-            epsilon2 = 1e-2,
-            negligibleSoundSpeed = 1e-5,
-            csMultiplier = 1e-4,
+            crksph = False,
+            ASPH = True,
             hmin = 1e-5,
-            hmax = 20.0,
+            hmax = 1.0,
             hminratio = 0.05,
             cfl = 0.5,
             useVelocityMagnitudeForDt = False,
@@ -130,6 +119,7 @@ commandLine(seed = "lattice",
             nTensile = 4,
             hybridMassDensityThreshold = 0.01,
             filter = 0.0,
+            volumeType = CRKSumVolume,
 
             IntegratorConstructor = CheapSynchronousRK2Integrator,
             goalTime = 200.0,
@@ -148,7 +138,8 @@ commandLine(seed = "lattice",
             HUpdate = IdealH,
             densityUpdate = IntegrateDensity,
             compatibleEnergy = True,
-            gradhCorrection = False,
+            gradhCorrection = True,
+            correctVelocityGradient = True,
             domainIndependent = False,
             dtverbose = False,
 
@@ -160,22 +151,21 @@ commandLine(seed = "lattice",
             clearDirectories = False,
             dataDirBase = "dumps-TensileRod-2d",
             outputFile = "None",
-)
+            )
 
 dx = xlength/nx
 dy = ylength/ny
 
-if CRKSPH:
-    if ASPH:
-        HydroConstructor = SolidACRKSPHHydro
-    else:
-        HydroConstructor = SolidCRKSPHHydro
-    Qconstructor = CRKSPHMonaghanGingoldViscosity
+if crksph:
+    hydroname = "CRKSPH"
+    nPerh = 1.51
+    order = 5
 else:
-    if ASPH:
-        HydroConstructor = SolidASPHHydro
-    else:
-        HydroConstructor = SolidSPHHydro
+    hydroname = "SPH"
+    nPerh = 1.51
+    order = 5
+if ASPH:
+    hydroname = "A" + hydroname
 
 #kWeibull = 8.8e4 * kWeibullFactor
 #kWeibull = 6.52e3 * kWeibullFactor
@@ -183,9 +173,8 @@ kWeibull = 6.52e5 * kWeibullFactor
 mWeibull = 2.63   * mWeibullFactor
 
 dataDir = os.path.join(dataDirBase,
-                       str(HydroConstructor).split("'")[1].split(".")[-1],
-                       str(Qconstructor).split("'")[1].split(".")[-1],
-                       str(DamageModelConstructor).split("'")[1],
+                       hydroname,
+                       DamageModelConstructor.__name__,
                        "nx=%i" % nx,
                        "k=%4.2f_m=%4.2f" % (kWeibull, mWeibull))
 restartDir = os.path.join(dataDir, "restarts")
@@ -327,7 +316,7 @@ strengthModel = SteinbergGuinanStrength(eos,
 # Create our interpolation kernels -- one for normal hydro interactions, and
 # one for use with the artificial viscosity
 #-------------------------------------------------------------------------------
-WT = TableKernel(BSplineKernel(), 1000)
+WT = TableKernel(NBSplineKernel(order), 1000)
 output("WT")
 
 #-------------------------------------------------------------------------------
@@ -414,48 +403,33 @@ xbc1 = ConstantVelocityBoundary(nodes, x1Nodes)
 bcs = [xbc0, xbc1]
 
 #-------------------------------------------------------------------------------
-# Construct the artificial viscosities for the problem.
-#-------------------------------------------------------------------------------
-q = Qconstructor(Cl, Cq, linearInExpansion)
-q.limiter = Qlimiter
-q.balsaraShearCorrection = balsaraCorrection
-q.epsilon2 = epsilon2
-q.negligibleSoundSpeed = negligibleSoundSpeed
-q.csMultiplier = csMultiplier
-output("q")
-output("q.Cl")
-output("q.Cq")
-output("q.linearInExpansion")
-output("q.limiter")
-output("q.epsilon2")
-output("q.negligibleSoundSpeed")
-output("q.csMultiplier")
-output("q.balsaraShearCorrection")
-
-#-------------------------------------------------------------------------------
 # Construct the hydro physics object.
 #-------------------------------------------------------------------------------
-if CRKSPH:
-    hydro = HydroConstructor(W = WT, 
-                             Q = q,
-                             filter = filter,
-                             cfl = cfl,
-                             compatibleEnergyEvolution = compatibleEnergy,
-                             XSPH = XSPH,
-                             densityUpdate = densityUpdate,
-                             HUpdate = HUpdate)
+if crksph:
+    hydro = CRKSPH(dataBase = db,
+                   W = WT,
+                   filter = filter,
+                   cfl = cfl,
+                   compatibleEnergyEvolution = compatibleEnergy,
+                   XSPH = XSPH,
+                   densityUpdate = densityUpdate,
+                   volumeType = volumeType,
+                   HUpdate = HUpdate,
+                   ASPH = ASPH)
 else:
-    hydro = HydroConstructor(W = WT, 
-                             Q = q,
-                             filter = filter,
-                             cfl = cfl,
-                             compatibleEnergyEvolution = compatibleEnergy,
-                             gradhCorrection = gradhCorrection,
-                             densityUpdate = densityUpdate,
-                             HUpdate = HUpdate,
-                             XSPH = XSPH,
-                             epsTensile = epsilonTensile,
-                             nTensile = nTensile)
+    hydro = SPH(dataBase = db,
+                W = WT,
+                filter = filter,
+                cfl = cfl,
+                compatibleEnergyEvolution = compatibleEnergy,
+                gradhCorrection = gradhCorrection,
+                correctVelocityGradient = correctVelocityGradient,
+                densityUpdate = densityUpdate,
+                HUpdate = HUpdate,
+                XSPH = XSPH,
+                epsTensile = epsilonTensile,
+                nTensile = nTensile,
+                ASPH = ASPH)
 output("hydro")
 output("hydro.cfl")
 output("hydro.useVelocityMagnitudeForDt")
@@ -570,12 +544,6 @@ output("control")
 strainHistory = AverageStrain(damageModel,
                               dataDir + "/strainhistory.txt")
 control.appendPeriodicWork(strainHistory.sample, 1)
-
-#-------------------------------------------------------------------------------
-# Smooth the initial conditions/restore state.
-#-------------------------------------------------------------------------------
-if restoreCycle is not None:
-    strainHistory.flushHistory()
 
 #-------------------------------------------------------------------------------
 # Advance to the end time.

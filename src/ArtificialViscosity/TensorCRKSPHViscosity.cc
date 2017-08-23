@@ -2,10 +2,7 @@
 // ArtificialViscosity -- The base class for all ArtificialViscosities in 
 // Spheral++.
 //----------------------------------------------------------------------------//
-
-#include <algorithm>
-
-#include "TensorCRKSPHViscosity.hh"
+#include "FileIO/FileIO.hh"
 #include "Hydro/HydroFieldNames.hh"
 #include "Boundary/Boundary.hh"
 #include "Kernel/TableKernel.hh"
@@ -15,8 +12,11 @@
 #include "Neighbor/ConnectivityMap.hh"
 #include "Utilities/rotationMatrix.hh"
 #include "Utilities/GeometricUtilities.hh"
-#include "FileIO/FileIO.hh"
 #include "CRKSPH/gradientCRKSPH.hh"
+
+#include "TensorCRKSPHViscosity.hh"
+
+#include <algorithm>
 
 using namespace std;
 
@@ -41,7 +41,7 @@ using NodeSpace::FluidNodeList;
 template<typename Dimension>
 TensorCRKSPHViscosity<Dimension>::
 TensorCRKSPHViscosity(Scalar Clinear, Scalar Cquadratic):
-  mGradVel(FieldSpace::Copy),
+  mGradVel(FieldSpace::FieldStorageType::CopyFields),
   TensorMonaghanGingoldViscosity<Dimension>(Clinear, Cquadratic) {
 }
 

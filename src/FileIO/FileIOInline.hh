@@ -19,7 +19,7 @@ FileIO::write(const FieldSpace::FieldList<Dimension, DataType>& fieldList,
 
   // Is the FieldList responsible for it's own memory?  If so, we have to 
   // provide additional information so it can properly restore itself.
-  if (fieldList.storageType() == FieldSpace::Copy) {
+  if (fieldList.storageType() == FieldSpace::FieldStorageType::CopyFields) {
     if (fieldList.numFields() > 0) {
       std::stringstream names;
       for (typename FieldSpace::FieldList<Dimension, DataType>::const_iterator fieldItr = fieldList.begin();
@@ -61,7 +61,7 @@ FileIO::read(FieldSpace::FieldList<Dimension, DataType>& fieldList,
 
   // Is the FieldList responsible for it's own memory?  If so, we have to 
   // first make sure it has memory for each of the NodeLists it's defined against.
-  if (fieldList.storageType() == FieldSpace::Copy) {
+  if (fieldList.storageType() == FieldSpace::FieldStorageType::CopyFields) {
     // We need the NodeListRegistrar.
     const NodeListRegistrar<Dimension>& registrar = NodeListRegistrar<Dimension>::instance();
     const size_t numNodeLists = registrar.numNodeLists();
@@ -116,26 +116,28 @@ void
 FileIO::write(const FieldSpace::Field<Dimension, std::vector<DataType> >& field,
               const std::string pathName) {
 
-  // Serialize the elements into a flat array, with an ancillary array holding
-  // the number of elements per node.
+  // Build an array with the number of elements per node, and count the total number of elements.
   std::vector<int> numElementsPerNode;
-  std::vector<DataType> elements;
-  int totalNumElements = 0;
+  size_t totalNumElements = size_t(0);
   for (typename FieldSpace::Field<Dimension, std::vector<DataType> >::const_iterator itr = field.internalBegin();
        itr != field.internalEnd();
        ++itr) {
     const int ni = (*itr).size();
-    const int newElementsSize = elements.size() + ni;
     totalNumElements += ni;
     numElementsPerNode.push_back(ni);
-    elements.reserve(newElementsSize);
-    for (typename std::vector<DataType>::const_iterator eitr = (*itr).begin();
-         eitr != (*itr).end();
-         ++eitr) elements.push_back(*eitr);
-    CHECK(elements.size() == newElementsSize);
   }
   CHECK(numElementsPerNode.size() == field.nodeList().numInternalNodes());
-  CHECK(elements.size() == totalNumElements);
+
+  // Serialize the elements into a flat array.
+  std::vector<DataType> elements(totalNumElements);
+  size_t offset = size_t(0);
+  for (typename FieldSpace::Field<Dimension, std::vector<DataType> >::const_iterator itr = field.internalBegin();
+       itr != field.internalEnd();
+       ++itr) {
+    std::copy(itr->begin(), itr->end(), elements.begin() + offset);
+    offset += itr->size();
+  }
+  CHECK(offset == totalNumElements);
 
   // Now we can use the available methods for writing vector<>'s to store
   // the data.

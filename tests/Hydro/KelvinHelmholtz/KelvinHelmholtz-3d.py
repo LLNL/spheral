@@ -105,14 +105,8 @@ commandLine(nx = 200,
             restartStep = 100,
             redistributeStep = 500,
             checkRestart = False,
-            dataDir = "dumps-KelvinHelmholtz-2d_McNally",
+            dataDir = "dumps-KelvinHelmholtz-3d",
             outputFile = "None",
-            comparisonFile = "None",
-            graphMixing = False,
-            mixInterval = 0.02,
-            mixFile = "MixingModeAmp.gnu",
-            
-            serialDump = False, #whether to dump a serial ascii file at the end for viz
             
             bArtificialConduction = False,
             arCondAlpha = 0.5,
@@ -157,8 +151,8 @@ dataDir = os.path.join(dataDir,
                        "nPerh=%g-Qhmult=%g" % (nPerh, Qhmult))
 restartDir = os.path.join(dataDir, "restarts")
 vizDir = os.path.join(dataDir, "visit")
-restartBaseName = os.path.join(restartDir, "KelvinHelmholtz-2d_McNally")
-vizBaseName = "KelvinHelmholtz-2d_McNally"
+restartBaseName = os.path.join(restartDir, "KelvinHelmholtz-3d")
+vizBaseName = "KelvinHelmholtz-3d"
 
 #-------------------------------------------------------------------------------
 # Check if the necessary output directories exist.  If not, create them.
@@ -496,70 +490,3 @@ else:
     control.advance(goalTime, maxSteps)
     control.updateViz(control.totalSteps, integrator.currentTime, 0.0)
     control.dropRestartFile()
-#    nsteps=int(goalTime/vizTime)
-#    print "NSTEPS=",nsteps," dt=",vizTime
-#    t=0.0
-#    times=[]
-#    amps=[]
-#    for i in range(nsteps):
-#      t=t+vizTime
-#      print "TIME=",t
-#      control.advance(t, t)
-#      control.updateViz(control.totalSteps, integrator.currentTime, 0.0)
-#      control.dropRestartFile()
-# 
-#      sums=0.0
-#      sumc=0.0
-#      sumd=0.0
-#      for (nodes, vx) in ((nodes1, vx1),
-#                            (nodes2, vx2)):
-#         
-#          pos = nodes.positions()
-#          vel = nodes.velocity()
-#          rho = nodes.massDensity()
-#          si=numpy.zeros(nodes.numInternalNodes)
-#          ci=numpy.zeros(nodes.numInternalNodes)
-#          di=numpy.zeros(nodes.numInternalNodes)
-#          for i in xrange(nodes.numInternalNodes):
-#            hi2=pow(2.0/(nodes.Hfield()[i].Trace()),2.0)
-#            posx=pos[i].x
-#            posy=pos[i].y
-#            if posy < 0.5:
-#              si[i]=vel[i].y*hi2*sin(4*pi*posx)*exp(-4*pi*abs(posy-0.25))
-#              ci[i]=vel[i].y*hi2*cos(4*pi*posx)*exp(-4*pi*abs(posy-0.25))
-#              di[i]=vel[i].y*hi2*exp(-4*pi*abs(posy-0.25))
-#            else:
-#              si[i]=vel[i].y*hi2*sin(4*pi*posx)*exp(-4*pi*abs((1-posy)-0.25))
-#              ci[i]=vel[i].y*hi2*cos(4*pi*posx)*exp(-4*pi*abs((1-posy)-0.25))
-#              di[i]=vel[i].y*hi2*exp(-4*pi*abs((1-posy)-0.25))
-#          sums+=numpy.sum(si)
-#          sumc+=numpy.sum(ci)
-#          sumd+=numpy.sum(di)
-#          #sums = mpi.allreduce(sums,op=mpi.SUM)
-#          #sumc = mpi.allreduce(sums,op=mpi.SUM)
-#          #sumd = mpi.allreduce(sums,op=mpi.SUM)
-#      amps.append(2.0*sqrt(pow(sums/sumd,2.0)+pow(sumc/sumd,2.0)))
-#      times.append(t)
-#      print "AMPS = ",2.0*sqrt(pow(sums/sumd,2.0)+pow(sumc/sumd,2.0)), " t=", t
-#           
-#rank = mpi.rank
-#if rank == 0:
-#  numpy.savetxt("mixing.txt",(times,amps))
-
-
-if serialDump:
-  procs = mpi.procs
-  rank = mpi.rank
-  serialData = []
-  i,j = 0,0
-  for i in xrange(procs):
-    for nodeL in nodeSet:
-      if rank == i:
-        for j in xrange(nodeL.numInternalNodes):
-          serialData.append([nodeL.positions()[j],3.0/(nodeL.Hfield()[j].Trace()),nodeL.mass()[j],nodeL.massDensity()[j],nodeL.specificThermalEnergy()[j]])
-  serialData = mpi.reduce(serialData,mpi.SUM)
-  if rank == 0:
-    f = open(dataDir + "/serialDump.ascii",'w')
-    for i in xrange(len(serialData)):
-      f.write("{0} {1} {2} {3} {4} {5} {6} {7}\n".format(i,serialData[i][0][0],serialData[i][0][1],0.0,serialData[i][1],serialData[i][2],serialData[i][3],serialData[i][4]))
-    f.close()

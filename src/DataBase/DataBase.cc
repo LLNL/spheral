@@ -4,9 +4,6 @@
 //
 // Created by JMO, Sun Feb  6 13:44:49 PST 2000
 //----------------------------------------------------------------------------//
-
-#include <algorithm>
-
 #include "DataBase.hh"
 #include "Geometry/Dimension.hh"
 #include "Field/NodeIterators.hh"
@@ -21,8 +18,10 @@
 #include "Utilities/globalBoundingVolumes.hh"
 #include "Utilities/allReduce.hh"
 #include "Distributed/Communicator.hh"
-
 #include "Utilities/DBC.hh"
+
+#include <algorithm>
+#include <memory>
 
 #ifdef USE_MPI
 extern "C" {
@@ -34,11 +33,11 @@ namespace Spheral {
 namespace DataBaseSpace {
 
 using namespace std;
-using boost::shared_ptr;
+using std::shared_ptr;
 
 using NodeSpace::NodeList;
 using NodeSpace::FluidNodeList;
-using SolidMaterial::SolidNodeList;
+using NodeSpace::SolidNodeList;
 using FieldSpace::Field;
 using FieldSpace::FieldList;
 using KernelSpace::TableKernel;
@@ -80,7 +79,7 @@ operator=(const DataBase<Dimension>& rhs) {
     mFluidNodeListAsNodeListPtrs = rhs.mFluidNodeListAsNodeListPtrs;
     mSolidNodeListPtrs = rhs.mSolidNodeListPtrs;
     mSolidNodeListAsNodeListPtrs = rhs.mSolidNodeListAsNodeListPtrs;
-    mConnectivityMapPtr = boost::shared_ptr<ConnectivityMap<Dimension> >(new ConnectivityMap<Dimension>());
+    mConnectivityMapPtr = std::shared_ptr<ConnectivityMap<Dimension> >(new ConnectivityMap<Dimension>());
   }
   ENSURE(valid());
   return *this;
@@ -1234,10 +1233,10 @@ localSamplingBoundingVolume(typename Dimension::Vector& centroid,
 
   // Find our local bounds.
   centroid = Vector();
-  xminNodes = DBL_MAX;
-  xmaxNodes = -DBL_MAX;
-  xminSample = DBL_MAX;
-  xmaxSample = -DBL_MAX;
+  xminNodes = FLT_MAX;
+  xmaxNodes = -FLT_MAX;
+  xminSample = FLT_MAX;
+  xmaxSample = -FLT_MAX;
   size_t count = 0;
   const FieldList<Dimension, Vector> positions = this->globalPosition();
   const FieldList<Dimension, Vector> extent = this->globalNodeExtent();

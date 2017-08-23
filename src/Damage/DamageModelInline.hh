@@ -34,7 +34,7 @@ DamageModel<Dimension>::
 flawsForNode(const size_t index) const {
   REQUIRE(index < mNodeList.numInternalNodes());
   REQUIRE(mFlaws.nodeListPtr() == &mNodeList);
-  if (mEffectiveFlawAlgorithm == FullSpectrumFlaws) {
+  if (mEffectiveFlawAlgorithm == EffectiveFlawAlgorithm::FullSpectrumFlaws) {
     return mFlaws(index);
   } else {
     return std::vector<double>(1, mEffectiveFlaws(index));
@@ -46,7 +46,7 @@ flawsForNode(const size_t index) const {
 //------------------------------------------------------------------------------
 template<typename Dimension>
 inline
-SolidMaterial::SolidNodeList<Dimension>&
+NodeSpace::SolidNodeList<Dimension>&
 DamageModel<Dimension>::
 nodeList() {
   return mNodeList;
@@ -54,7 +54,7 @@ nodeList() {
 
 template<typename Dimension>
 inline
-const SolidMaterial::SolidNodeList<Dimension>&
+const NodeSpace::SolidNodeList<Dimension>&
 DamageModel<Dimension>::
 nodeList() const {
   return mNodeList;

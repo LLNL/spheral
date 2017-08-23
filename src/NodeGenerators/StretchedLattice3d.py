@@ -9,34 +9,17 @@ from Spheral import pair_double_double
 
 from Spheral import vector_of_int, vector_of_double, vector_of_SymTensor3d, vector_of_vector_of_double
 from SpheralTestUtilities import *
-from Spheral import NewtonRaphsonFunction, newtonRaphsonFindRoot
+#from Spheral import PairScalarFunctor, newtonRaphsonFindRoot
 from SpheralGnuPlotUtilities import multiSort
 
 import mpi
-procID = mpi.rank
-nProcs = mpi.procs
+rank = mpi.rank
+procs = mpi.procs
 
 #-------------------------------------------------------------------------------
 # Class to generate 3-D node positions in a stretched lattice
 #-------------------------------------------------------------------------------
 class GenerateStretchedLattice3d(NodeGeneratorBase):
-
-    class nrFunc(NewtonRaphsonFunction):
-        def __init__(self,k,rho0,r0,eta,rp,rho,dr):
-            NewtonRaphsonFunction.__init__(self)
-            self.k = k
-            self.rho0 = rho0
-            self.r0 = r0
-            self.eta = eta
-            self.rp = rp
-            self.rho = rho
-            self.const = k*r0**(2)*rho0*eta
-            self.dr = dr
-            return
-        def __call__(self,x):
-            fst = (self.rho(x) - self.rho(x-self.dr))/self.dr * (x-self.rp)*x*x
-            scd = self.rho(x) * (x*x + (x-self.rp)*(2)*x*x)
-            return pair_double_double(((x-self.rp)*x**(2)*self.rho(x)-self.const),fst + scd)
 
     #---------------------------------------------------------------------------
     # Constructor
@@ -148,7 +131,10 @@ class GenerateStretchedLattice3d(NodeGeneratorBase):
         r0p = 0
         rp  = 0
         rn  = 0
-        for i in xrange(1,len(self.rl)):
+        npp = len(self.rl)/procs
+        rankmin = (npp*rank) if (rank>0) else (1)
+        rankmax = (npp*(rank+1)) if (rank<procs-1) else (len(self.rl))
+        for i in xrange(rankmin,rankmax):
             #print "%d / %d" % (i,len(self.rl))
             r0 = self.rl[i]
             if (abs(r0-r0p)/r0>1e-10):
@@ -173,6 +159,7 @@ class GenerateStretchedLattice3d(NodeGeneratorBase):
                 self.H.append(self.Hl[i])
     
         seededMass = sum(self.m)
+        seededMass = mpi.allreduce(seededMass,mpi.SUM)
         
         mAdj = targetMass / seededMass
         for i in xrange(len(self.m)):
@@ -222,7 +209,7 @@ class GenerateStretchedLattice3d(NodeGeneratorBase):
         
         # Initialize the base class.  If "serialInitialization" is True, this
         # is where the points are broken up between processors as well.
-        serialInitialization = True
+        serialInitialization = False
         NodeGeneratorBase.__init__(self, serialInitialization,
                                    self.x, self.y, self.z, self.m, self.H)
     

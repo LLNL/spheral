@@ -37,6 +37,7 @@ self.EigenStruct%(dim)s = addObject(Spheral, "EigenStruct%(dim)s")
 self.Plane%(dim)s = addObject(Spheral, "Plane%(dim)s")
 self.vector_of_FacetedVolume%(dim)s = addObject(mod, "vector_of_FacetedVolume%(dim)s", allow_subclassing=True)
 self.vector_of_vector_of_FacetedVolume%(dim)s = addObject(mod, "vector_of_vector_of_FacetedVolume%(dim)s", allow_subclassing=True)
+self.vector_of_Plane%(dim)s = addObject(mod, "vector_of_Plane%(dim)s", allow_subclassing=True)
 """ % {"dim" : dim})
 
         self.Geom3Vector = addObject(Spheral, "Geom3Vector")
@@ -133,10 +134,18 @@ self.vector_of_vector_of_FacetedVolume%(dim)s = addObject(mod, "vector_of_vector
         # Add Polygon methods.
         self.addFacet2dMethods(self.Facet2d)
         self.addPolygonMethods(self.Polygon)
+        self.space.add_function("aggregateFacetedVolumes", "Spheral::Polygon",
+                                [constrefparam("vector_of_FacetedVolume2d", "loops")],
+                                template_parameters = ["Spheral::Dim<2>"],
+                                custom_name = "aggregateFacetedVolumes")
 
         # Add Polyhedron methods.
         self.addFacet3dMethods(self.Facet3d)
         self.addPolyhedronMethods(self.Polyhedron)
+        self.space.add_function("aggregateFacetedVolumes", "Spheral::Polyhedron",
+                                [constrefparam("vector_of_FacetedVolume3d", "loops")],
+                                template_parameters = ["Spheral::Dim<3>"],
+                                custom_name = "aggregateFacetedVolumes")
 
         generateStdVectorBindings(self.vector_of_Facet2d, "Spheral::Facet2d", "vector_of_Facet2d", indexAsPointer=True)
         generateStdVectorBindings(self.vector_of_Facet3d, "Spheral::Facet3d", "vector_of_Facet3d", indexAsPointer=True)
@@ -148,6 +157,10 @@ self.vector_of_vector_of_FacetedVolume%(dim)s = addObject(mod, "vector_of_vector
         generateStdVectorBindings(self.vector_of_vector_of_FacetedVolume1d, "vector_of_FacetedVolume1d", "vector_of_vector_of_FacetedVolume1d", indexAsPointer=True)
         generateStdVectorBindings(self.vector_of_vector_of_FacetedVolume2d, "vector_of_FacetedVolume2d", "vector_of_vector_of_FacetedVolume2d", indexAsPointer=True)
         generateStdVectorBindings(self.vector_of_vector_of_FacetedVolume3d, "vector_of_FacetedVolume3d", "vector_of_vector_of_FacetedVolume3d", indexAsPointer=True)
+
+        generateStdVectorBindings(self.vector_of_Plane1d, "Spheral::Plane1d", "vector_of_Plane1d", indexAsPointer=True)
+        generateStdVectorBindings(self.vector_of_Plane2d, "Spheral::Plane2d", "vector_of_Plane2d", indexAsPointer=True)
+        generateStdVectorBindings(self.vector_of_Plane3d, "Spheral::Plane3d", "vector_of_Plane3d", indexAsPointer=True)
 
         # Add the free functions.
         for dim in self.dims:
@@ -600,6 +613,7 @@ self.vector_of_vector_of_FacetedVolume%(dim)s = addObject(mod, "vector_of_vector
         x.add_constructor([])
         x.add_constructor([param(me, "rhs")])
         x.add_constructor([param(vec, "point"), param(vec, "normal")])
+        x.add_constructor([param("vector_of_%s" % vec, "points")])
     
         # Attributes.
         x.add_instance_attribute("point", vec, is_const = False, getter = "point", setter = "point")
@@ -619,6 +633,7 @@ self.vector_of_vector_of_FacetedVolume%(dim)s = addObject(mod, "vector_of_vector
         # Comparisons.
         x.add_binary_comparison_operator("==")
         x.add_binary_comparison_operator("!=")
+        x.add_binary_comparison_operator("<")
     
         return
 
@@ -664,6 +679,11 @@ self.vector_of_vector_of_FacetedVolume%(dim)s = addObject(mod, "vector_of_vector
         x.add_inplace_numeric_operator("-=", right = "Vector1d")
         x.add_binary_numeric_operator("+", right = "Vector1d")
         x.add_binary_numeric_operator("-", right = "Vector1d")
+
+        x.add_inplace_numeric_operator("*=", right = "double")
+        x.add_inplace_numeric_operator("/=", right = "double")
+        x.add_binary_numeric_operator("*", right = "double")
+        x.add_binary_numeric_operator("/", right = "double")
 
         # Comparisons.
         x.add_binary_comparison_operator("==")
@@ -801,11 +821,17 @@ self.vector_of_vector_of_FacetedVolume%(dim)s = addObject(mod, "vector_of_vector
         x.add_method("reconstruct", None, [constrefparam("vector_of_Vector2d", "vertices"),
                                            constrefparam("vector_of_vector_of_unsigned", "facetVertices")])
         x.add_method("convex", "bool", [param("double", "tol", default_value="1.0e-8")], is_const=True)
+        x.add_method("setBoundingBox", None, [])
 
         x.add_inplace_numeric_operator("+=", right = "Vector2d")
         x.add_inplace_numeric_operator("-=", right = "Vector2d")
         x.add_binary_numeric_operator("+", right = "Vector2d")
         x.add_binary_numeric_operator("-", right = "Vector2d")
+
+        x.add_inplace_numeric_operator("*=", right = "double")
+        x.add_inplace_numeric_operator("/=", right = "double")
+        x.add_binary_numeric_operator("*", right = "double")
+        x.add_binary_numeric_operator("/", right = "double")
 
         # Attributes.
         x.add_instance_attribute("xmin", "Vector2d", getter="xmin", is_const=True)
@@ -885,11 +911,17 @@ self.vector_of_vector_of_FacetedVolume%(dim)s = addObject(mod, "vector_of_vector
                                            constrefparam("vector_of_vector_of_unsigned", "facetVertices"),
                                            constrefparam("vector_of_Vector3d", "facetNormals")])
         x.add_method("convex", "bool", [param("double", "tol", default_value="1.0e-8")], is_const=True)
+        x.add_method("setBoundingBox", None, [])
 
         x.add_inplace_numeric_operator("+=", right = "Vector3d")
         x.add_inplace_numeric_operator("-=", right = "Vector3d")
         x.add_binary_numeric_operator("+", right = "Vector3d")
         x.add_binary_numeric_operator("-", right = "Vector3d")
+
+        x.add_inplace_numeric_operator("*=", right = "double")
+        x.add_inplace_numeric_operator("/=", right = "double")
+        x.add_binary_numeric_operator("*", right = "double")
+        x.add_binary_numeric_operator("/", right = "double")
 
         # Attributes.
         x.add_instance_attribute("xmin", "Vector3d", getter="xmin", is_const=True)

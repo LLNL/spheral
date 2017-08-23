@@ -5,7 +5,6 @@
 #include "interpolateCRKSPH.hh"
 #include "computeCRKSPHMoments.hh"
 #include "computeCRKSPHCorrections.hh"
-#include "CRKSPHUtilities.hh"
 #include "CRKSPHCorrectionParams.hh"
 #include "NodeList/NodeList.hh"
 #include "Hydro/HydroFieldNames.hh"
@@ -56,7 +55,7 @@ computeCRKSPHSumMassDensity(const ConnectivityMap<Dimension>& connectivityMap,
   Tensor Ci = Tensor::zero, Cj = Tensor::zero;
   const Scalar W0 = W.kernelValue(0.0, 1.0);
 
-  FieldList<Dimension, Scalar> wsum(FieldSpace::Copy), vol1(FieldSpace::Copy);
+  FieldList<Dimension, Scalar> wsum(FieldSpace::FieldStorageType::CopyFields), vol1(FieldSpace::FieldStorageType::CopyFields);
   for (size_t nodeListi = 0; nodeListi != numNodeLists; ++nodeListi) {
     wsum.appendNewField("weight sum", position[nodeListi]->nodeList(), 0.0);
     vol1.appendNewField("sampled volume", position[nodeListi]->nodeList(), 0.0);

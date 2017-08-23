@@ -6,14 +6,13 @@
 #ifndef __Spheral_State_hh__
 #define __Spheral_State_hh__
 
-#include <vector>
-#include <map>
-
-#include "boost/shared_ptr.hpp"
-
 #include "StateBase.hh"
 #include "UpdatePolicyBase.hh"
 #include "FieldUpdatePolicyBase.hh"
+
+#include <vector>
+#include <map>
+#include <memory>
 
 namespace Spheral {
 
@@ -46,7 +45,7 @@ public:
 
   typedef std::vector<PhysicsSpace::Physics<Dimension>*> PackageList;
   typedef typename PackageList::iterator PackageIterator;
-  typedef typename boost::shared_ptr<UpdatePolicyBase<Dimension> > PolicyPointer;
+  typedef typename std::shared_ptr<UpdatePolicyBase<Dimension> > PolicyPointer;
 
   // Constructors, destructor.
   State();

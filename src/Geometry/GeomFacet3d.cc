@@ -5,6 +5,7 @@
 #include "Utilities/pointDistances.hh"
 #include "Utilities/pointInPolygon.hh"
 #include "Utilities/lineSegmentIntersections.hh"
+#include "Utilities/safeInv.hh"
 
 namespace Spheral {
 
@@ -37,25 +38,18 @@ GeomFacet3d::Vector
 GeomFacet3d::
 position() const {
   const unsigned n = mPoints.size();
+  REQUIRE(n >= 3);
+  Vector result;
   unsigned i, j;
-  double area, areasum = 0.0;
-  Vector c0, result;
-  REQUIRE(n > 0);
-
-  for (i = 0; i != n; ++i) c0 += point(i);
-  c0 /= n;
-
-  // Specialize for triangles, which are easy!
-  if (n == 3) return c0;
-
+  double circum = 0.0, dl;
   for (i = 0; i != n; ++i) {
     j = (i + 1) % n;
-    area = (point(i) - c0).cross(point(j) - c0).magnitude(); // This is off by a factor of 2 but will cancel.
-    areasum += area;
-    result += area * (c0 + point(i) + point(j));
+    dl = (point(i) - point(j)).magnitude();
+    result += (point(i) + point(j)) * dl;
+    circum += dl;
   }
-  CHECK(areasum > 0.0);
-  return result/(3.0 * areasum);
+  result *= safeInvVar(2.0*circum);
+  return result;
 }
 
 //------------------------------------------------------------------------------
@@ -64,14 +58,14 @@ position() const {
 double
 GeomFacet3d::
 area() const {
-  double result = 0.0;
+  Vector vecsum;
   const Vector cent = this->position();
   unsigned i, j, npts = mPoints.size();
   for (i = 0; i != npts; ++i) {
     j = (i + 1) % npts;
-    result += (point(i) - cent).cross(point(j) - cent).magnitude();
+    vecsum += (point(i) - cent).cross(point(j) - cent);
   }
-  result *= 0.5;
+  const double result = 0.5*vecsum.magnitude();
   ENSURE(result >= 0.0);
   return result;
 }

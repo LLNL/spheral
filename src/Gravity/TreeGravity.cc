@@ -4,13 +4,7 @@
 //
 // Created by JMO, 2013-06-12
 //----------------------------------------------------------------------------//
-#include <cstdio>
-#include <cstdlib>
-#include <cstring>
-#include <sstream>
-#include <iostream>
-#include <algorithm>
-
+#include "FileIO/FileIO.hh"
 #include "TreeGravity.hh"
 #include "DataBase/DataBase.hh"
 #include "DataBase/IncrementState.hh"
@@ -26,7 +20,13 @@
 #include "Field/Field.hh"
 #include "Distributed/Communicator.hh"
 #include "Utilities/DBC.hh"
-#include "FileIO/FileIO.hh"
+
+#include <cstdio>
+#include <cstdlib>
+#include <cstring>
+#include <sstream>
+#include <iostream>
+#include <algorithm>
 
 namespace Spheral {
 namespace GravitySpace {
@@ -110,7 +110,7 @@ TreeGravity(const double G,
   mXmin(),
   mXmax(),
   mTree(),
-  mPotential(FieldSpace::Copy),
+  mPotential(FieldSpace::FieldStorageType::CopyFields),
   mExtraEnergy(0.0),
   mNodeListMax(0),
   mimax(0),
@@ -244,7 +244,7 @@ evaluateDerivatives(const typename Dimension::Scalar time,
   // described in Zemp et al., MNRAS, 376, 273-286 (2007).
   // The idea is to come up with the most restrictive dynamical time per particle
   // by find the dominant potentials for each point.
-  if (mTimeStepChoice == DynamicalTime) {
+  if (mTimeStepChoice == GravityTimeStepType::DynamicalTime) {
     const size_t numNodeLists = position.numFields();
     mRhoMax = 0.0;
     mNodeListMax = -1;
@@ -468,7 +468,7 @@ dt(const DataBase<Dimension>& dataBase,
    const Scalar currentTime) const {
 
   // A standard N-body approach -- just take the ratio of softening length/acceleration.
-  if (mTimeStepChoice == AccelerationRatio) {
+  if (mTimeStepChoice == GravityTimeStepType::AccelerationRatio) {
     const double dt = mftimestep * mDtMinAcc;
     stringstream reasonStream;
     reasonStream << "TreeGravity: f*sqrt(L/a) = " << dt << ends;

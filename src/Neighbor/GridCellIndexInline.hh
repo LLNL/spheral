@@ -109,7 +109,7 @@ GridCellIndex<Dimension>::GridCellIndex():
 }
 
 //------------------------------------------------------------------------------
-// Construct with the given indicies.
+// Construct with the given indices.
 //------------------------------------------------------------------------------
 template<typename Dimension>
 inline
@@ -270,19 +270,19 @@ GridCellIndex<Dim<3> >::zIndex(int zIndex) {
 }
 
 //------------------------------------------------------------------------------
-// Set the indicies.
+// Set the indices.
 //------------------------------------------------------------------------------
 template<typename Dimension>
 inline
 void
-GridCellIndex<Dimension>::setIndicies(int xIndex) {
+GridCellIndex<Dimension>::setIndices(int xIndex) {
   VERIFY(false);
 }
 
 template<typename Dimension>
 inline
 void
-GridCellIndex<Dimension>::setIndicies(int xIndex,
+GridCellIndex<Dimension>::setIndices(int xIndex,
                                       int yIndex) {
   VERIFY(false);
 }
@@ -290,7 +290,7 @@ GridCellIndex<Dimension>::setIndicies(int xIndex,
 template<typename Dimension>
 inline
 void
-GridCellIndex<Dimension>::setIndicies(int xIndex,
+GridCellIndex<Dimension>::setIndices(int xIndex,
                                       int yIndex,
                                       int zIndex) {
   VERIFY(false);
@@ -299,14 +299,14 @@ GridCellIndex<Dimension>::setIndicies(int xIndex,
 template<>
 inline
 void
-GridCellIndex<Dim<1> >::setIndicies(int xIndex) {
+GridCellIndex<Dim<1> >::setIndices(int xIndex) {
   this->mx = xIndex;
 }
 
 template<>
 inline
 void
-GridCellIndex<Dim<2> >::setIndicies(int xIndex, int yIndex) {
+GridCellIndex<Dim<2> >::setIndices(int xIndex, int yIndex) {
   this->mx = xIndex;
   this->my = yIndex;
 }
@@ -314,7 +314,7 @@ GridCellIndex<Dim<2> >::setIndicies(int xIndex, int yIndex) {
 template<>
 inline
 void
-GridCellIndex<Dim<3> >::setIndicies(int xIndex, int yIndex, int zIndex) {
+GridCellIndex<Dim<3> >::setIndices(int xIndex, int yIndex, int zIndex) {
   this->mx = xIndex;
   this->my = yIndex;
   this->mz = zIndex;
@@ -500,7 +500,7 @@ GridCellIndex<Dim<3> >::operator-=(const GridCellIndex<Dim<3> >& rhs) {
 }
 
 //------------------------------------------------------------------------------
-// Add an integer to the gridcell indicies.
+// Add an integer to the gridcell indices.
 //------------------------------------------------------------------------------
 template<>
 inline
@@ -527,7 +527,7 @@ GridCellIndex<Dim<3> >::operator+(const int rhs) const {
 }
 
 //------------------------------------------------------------------------------
-// Subtract an integer from the gridcell indicies.
+// Subtract an integer from the gridcell indices.
 //------------------------------------------------------------------------------
 template<typename Dimension>
 inline
@@ -622,7 +622,7 @@ GridCellIndex<Dim<3> >::operator-=(const int rhs) {
 }
 
 //------------------------------------------------------------------------------
-// Multiply the gridcell indicies by an integer.
+// Multiply the gridcell indices by an integer.
 //------------------------------------------------------------------------------
 template<typename Dimension>
 inline
@@ -657,7 +657,7 @@ GridCellIndex<Dim<3> >::operator*(int rhs) const {
 }
 
 //------------------------------------------------------------------------------
-// Divide the gridcell indicies by an integer.
+// Divide the gridcell indices by an integer.
 //------------------------------------------------------------------------------
 template<typename Dimension>
 inline
@@ -1122,12 +1122,12 @@ GridCellIndex<Dimension>::indexMax() const {
 }
 
 //------------------------------------------------------------------------------
-// Upack the individual indicies into a single int integer value.
+// Upack the individual indices into a single int integer value.
 //------------------------------------------------------------------------------
 // template<>
 // inline
 // unsigned long long
-// GridCellIndex<Dim<1> >::packIndicies() const {
+// GridCellIndex<Dim<1> >::packIndices() const {
 //   CHECK(this->mx >= mIndexMin and this->mx < mIndexMax);
 //   unsigned long long result = (unsigned long long)(this->mx - mIndexMin);
 //   return result;
@@ -1136,7 +1136,7 @@ GridCellIndex<Dimension>::indexMax() const {
 // template<>
 // inline
 // unsigned long long
-// GridCellIndex<Dim<2> >::packIndicies() const {
+// GridCellIndex<Dim<2> >::packIndices() const {
 //   CHECK(this->mx >= mIndexMin and this->mx < mIndexMax);
 //   CHECK(this->my >= mIndexMin and this->my < mIndexMax);
 //   unsigned long long result = 
@@ -1148,7 +1148,7 @@ GridCellIndex<Dimension>::indexMax() const {
 // template<>
 // inline
 // unsigned long long
-// GridCellIndex<Dim<3> >::packIndicies() const {
+// GridCellIndex<Dim<3> >::packIndices() const {
 //   CHECK(this->mx >= mIndexMin and this->mx < mIndexMax);
 //   CHECK(this->my >= mIndexMin and this->my < mIndexMax);
 //   CHECK(this->mz >= mIndexMin and this->mz < mIndexMax);
@@ -1160,7 +1160,7 @@ GridCellIndex<Dimension>::indexMax() const {
 // }
 
 //------------------------------------------------------------------------------
-// Provide a method to add an integer to the grid cell indicies.
+// Provide a method to add an integer to the grid cell indices.
 //------------------------------------------------------------------------------
 template<typename Dimension>
 inline

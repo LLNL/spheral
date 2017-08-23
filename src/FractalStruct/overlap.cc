@@ -45,6 +45,20 @@ namespace FractalSpace
 }
 namespace FractalSpace
 {
+  template <class T> bool vector_in_box(array <T,3>& xvec,vector <T>& box)
+  {
+    return (xvec[0] <= box[1] && xvec[0] >= box[0] && 
+	    xvec[1] <= box[3] && xvec[1] >= box[2] &&
+	    xvec[2] <= box[5] && xvec[2] >= box[4]);
+  }
+}
+namespace FractalSpace
+{
+  template bool vector_in_box(array <int,3>& xvec,vector <int>& box);
+  template bool vector_in_box(array <double,3>& xvec,vector <double>& box);
+}
+namespace FractalSpace
+{
   bool vector_in_box(Point* p,vector <int>& box)
   {
     vector <int>xvec(3);

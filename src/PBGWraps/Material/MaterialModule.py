@@ -22,7 +22,8 @@ class Material:
         space = Spheral.add_cpp_namespace("Material")
 
         # Expose types.
-        self.MaterialPressureMinType = space.add_enum("MaterialPressureMinType", ["PressureFloor", "ZeroPressure"])
+        self.MaterialPressureMinType = space.add_enum("MaterialPressureMinType", [("PressureFloor", "Spheral::Material::MaterialPressureMinType::PressureFloor"),
+                                                                                  ("ZeroPressure", "Spheral::Material::MaterialPressureMinType::ZeroPressure")])
         self.PhysicalConstants = addObject(space, "PhysicalConstants", allow_subclassing=True)
         for dim in self.dims:
             exec('''
@@ -79,6 +80,7 @@ self.generateIsothermalEquationOfStateBindings(self.IsothermalEquationOfState%(d
         x.add_instance_attribute("NAvogadro", "double", getter="Navogadro", is_const=True)
         x.add_instance_attribute("molarGasConstant", "double", getter="molarGasConstant", is_const=True)
         x.add_instance_attribute("kelvinsToEnergyPerMole", "double", getter="kelvinsToEnergyPerMole", is_const=True)
+        x.add_instance_attribute("stefanBoltzmannConstant", "double", getter="stefanBoltzmannConstant", is_const=True)
 
         return
 
@@ -91,7 +93,7 @@ self.generateIsothermalEquationOfStateBindings(self.IsothermalEquationOfState%(d
         x.add_constructor([constrefparam("PhysicalConstants", "constants"),
                            param("double", "minimumPressure", default_value="-std::numeric_limits<double>::max()"),
                            param("double", "maximumPressure", default_value="std::numeric_limits<double>::max()"),
-                           param("MaterialPressureMinType", "minPressureType", default_value="PressureFloor")])
+                           param("MaterialPressureMinType", "minPressureType", default_value="MaterialPressureMinType::PressureFloor")])
 
         # Methods.
         x.add_method("applyPressureLimits", "double", [param("double", "P")], is_const=True)
@@ -115,7 +117,7 @@ self.generateIsothermalEquationOfStateBindings(self.IsothermalEquationOfState%(d
                            constrefparam("PhysicalConstants", "constants"),
                            param("double", "minimumPressure", default_value="-std::numeric_limits<double>::max()"),
                            param("double", "maximumPressure", default_value="std::numeric_limits<double>::max()"),
-                           param("MaterialPressureMinType", "minPressureType", default_value="PressureFloor")])
+                           param("MaterialPressureMinType", "minPressureType", default_value="MaterialPressureMinType::PressureFloor")])
 
         # Attributes.
         x.add_instance_attribute("gamma", "double", getter="getGamma", setter="setGamma")
@@ -164,7 +166,7 @@ self.generateIsothermalEquationOfStateBindings(self.IsothermalEquationOfState%(d
                            constrefparam("PhysicalConstants", "constants"),
                            param("double", "minimumPressure", default_value="-std::numeric_limits<double>::max()"),
                            param("double", "maximumPressure", default_value="std::numeric_limits<double>::max()"),
-                           param("MaterialPressureMinType", "minPressureType", default_value="PressureFloor")])
+                           param("MaterialPressureMinType", "minPressureType", default_value="MaterialPressureMinType::PressureFloor")])
 
         # Attributes.
         x.add_instance_attribute("polytropicConstant", "double", getter="polytropicConstant", is_const=True)
@@ -215,7 +217,7 @@ self.generateIsothermalEquationOfStateBindings(self.IsothermalEquationOfState%(d
                            constrefparam("PhysicalConstants", "constants"),
                            param("double", "minimumPressure", default_value="-std::numeric_limits<double>::max()"),
                            param("double", "maximumPressure", default_value="std::numeric_limits<double>::max()"),
-                           param("MaterialPressureMinType", "minPressureType", default_value="PressureFloor")])
+                           param("MaterialPressureMinType", "minPressureType", default_value="MaterialPressureMinType::PressureFloor")])
 
         # Attributes.
         x.add_instance_attribute("K", "double", getter="K", is_const=True)

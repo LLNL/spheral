@@ -15,7 +15,7 @@
 #include "TensorDamagePolicy.hh"
 #include "TensorDamageModel.hh"
 #include "oneMinusDamage.hh"
-#include "Strength/SolidNodeList.hh"
+#include "NodeList/SolidNodeList.hh"
 #include "Strength/SolidFieldNames.hh"
 #include "Hydro/HydroFieldNames.hh"
 #include "DataBase/UpdatePolicyBase.hh"
@@ -33,7 +33,7 @@ namespace Spheral {
 using namespace std;
 
 using FieldSpace::Field;
-using SolidMaterial::SolidNodeList;
+using NodeSpace::SolidNodeList;
 using PhysicsSpace::TensorDamageModel;
 using Material::EquationOfState;
 

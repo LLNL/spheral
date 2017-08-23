@@ -55,6 +55,19 @@ namespace FractalSpace
       return pa[0]-pb[0] < 0;
     }
   };
+  template <int N>  struct point_compN
+  {
+    bool operator()(const array<int,N>& pa,const array<int,N>& pb) const
+    {
+      int dif=pa[2]-pb[2];
+      if(dif != 0)
+	return dif < 0;
+      dif=pa[1]-pb[1];
+      if(dif != 0)
+	return dif < 0;
+      return pa[0]-pb[0] < 0;
+    }
+  };
   struct pointer_comp
   {
     bool operator()(const Point* Pa,const Point* Pb) const
@@ -66,6 +79,20 @@ namespace FractalSpace
       if(dif != 0)
 	return dif < 0;
       return Pa->get_pos_point_x()-Pb->get_pos_point_x() < 0;
+    }
+  };
+  struct vector_comp_up
+  {
+    template <class T> bool operator()(const vector<T*> vA,const vector<T*> vB) const
+    {
+      return vA.size() < vB.size();
+    }
+  };
+  struct vector_comp_down
+  {
+    template <class T> bool operator()(const vector<T*> vA,const vector<T*> vB) const
+    {
+      return -vA.size() < -vB.size();
     }
   };
 }

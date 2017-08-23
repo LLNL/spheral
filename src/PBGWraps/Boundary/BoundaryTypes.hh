@@ -13,6 +13,7 @@
 #include "Boundary/ConstantZVelocityBoundary.hh"
 #include "Boundary/ConstantRVelocityBoundary.hh"
 #include "Boundary/ConstantBoundary.hh"
+#include "Boundary/CRKSPHVoidBoundary.hh"
 #include "Boundary/SphericalBoundary.hh"
 #include "Boundary/CylindricalBoundary.hh"
 #include "Boundary/AxialSymmetryBoundary.hh"
@@ -66,6 +67,10 @@ typedef ConstantRVelocityBoundary<Dim<3> > ConstantRVelocityBoundary3d;
 typedef ConstantBoundary<Dim<1> > ConstantBoundary1d;
 typedef ConstantBoundary<Dim<2> > ConstantBoundary2d;
 typedef ConstantBoundary<Dim<3> > ConstantBoundary3d;
+
+typedef CRKSPHVoidBoundary<Dim<1> > CRKSPHVoidBoundary1d;
+typedef CRKSPHVoidBoundary<Dim<2> > CRKSPHVoidBoundary2d;
+typedef CRKSPHVoidBoundary<Dim<3> > CRKSPHVoidBoundary3d;
 
 //------------------------------------------------------------------------------
 // Extract the BoundaryNodes for the given NodeList.

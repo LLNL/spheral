@@ -11,15 +11,10 @@
 #ifndef __Spheral_Field_hh__
 #define __Spheral_Field_hh__
 
-#include <string>
-
-#ifndef __GCCXML__
-#include <vector>
-#else
-#include "fakestl.hh"
-#endif
-
 #include "FieldBase.hh"
+
+#include <string>
+#include <vector>
 
 namespace Spheral {
   template<typename Dimension> class NodeIteratorBase;
@@ -67,7 +62,7 @@ public:
         const std::vector<DataType>& array);
   Field(const NodeSpace::NodeList<Dimension>& nodeList, const Field& field);
   Field(const Field& field);
-  virtual boost::shared_ptr<FieldBase<Dimension> > clone() const;
+  virtual std::shared_ptr<FieldBase<Dimension> > clone() const;
 
   // Destructor.
   virtual ~Field();

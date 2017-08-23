@@ -32,13 +32,10 @@ AC_SUBST(GEOMETRY_ONLY)
 AC_SUBST(ALL)
 AC_SUBST(ALLTOP)
 AC_SUBST(CXXONLY)
+AC_SUBST(USE_R3D)
 
 LDRPATH=
 HEADERDIR=
-
-# Prepare for user selected third party targets.
-AC_SUBST(EXTRATHIRDPARTYTARGETS)
-EXTRATHIRDPARTYTARGETS=""
 
 AC_MSG_CHECKING(for spheral build directory)
 #SPHERALBUILDDIR=`echo $PWD | sed -e "s/\/spheral\/src$//g;"`
@@ -60,8 +57,8 @@ AC_ARG_WITH(geometry-only,
    GEOMETRY_ONLY=1
 ],[
    AC_MSG_RESULT(no)
-   CXXPKGS="Geometry NodeList Field FieldOperations Kernel Material Neighbor DataBase Boundary Physics ArtificialViscosity Hydro ExternalForce Gravity Integrator FileIO DataOutput Utilities NodeGenerators SimulationControl SPH CRKSPH SVPH TaylorSPH Mesh Damage SolidMaterial SolidSPH Strength ArtificialConduction $CXXPKGS"
-   CXXPKGLIBS="Geometry NodeList Field FieldOperations Kernel Material Neighbor DataBase Boundary Physics ArtificialViscosity Hydro ExternalForce Gravity Integrator FileIO DataOutput Utilities NodeGenerators SPH CRKSPH SVPH TaylorSPH Mesh Damage SolidMaterial SolidSPH Strength ArtificialConduction $CXXPKGLIBS"
+   CXXPKGS="Geometry NodeList Field FieldOperations Kernel Material Neighbor DataBase Boundary Physics ArtificialViscosity Hydro ExternalForce Gravity Integrator FileIO DataOutput Utilities NodeGenerators SimulationControl SPH CRKSPH SVPH Mesh Damage SolidMaterial Strength ArtificialConduction $CXXPKGS"
+   CXXPKGLIBS="Geometry NodeList Field FieldOperations Kernel Material Neighbor DataBase Boundary Physics ArtificialViscosity Hydro ExternalForce Gravity Integrator FileIO DataOutput Utilities NodeGenerators SPH CRKSPH SVPH Mesh Damage SolidMaterial Strength ArtificialConduction $CXXPKGLIBS"
    GEOMETRY_ONLY=0
 ])
 
@@ -94,11 +91,11 @@ AIXSHELL=""
 CONFIG_SHELL=$SHELL
 AC_MSG_CHECKING(python.exp required for linking)
 
+LIBS=
 if test "`uname -s`" = "AIX"; then
   #IMPMODS="$CXXPKGS"
   #PYFFLEENTRY="-e initlibPyffle"
   #MAKEIMPORTFILE=$srcdir/helpers/generateImportFile"
-  LIBS=
 
   # 32 bit
   #AIXLIBS="/lib/crt0.o -lm"
@@ -242,6 +239,23 @@ AC_ARG_WITH(sobol,
 ])
 
 # -----------------------------------------------------------------
+# Optionally do not build r3d.
+# -----------------------------------------------------------------
+AC_MSG_CHECKING(for --without-r3d)
+AC_ARG_WITH(r3d,
+[  --without-r3d ............................ do not build the R3D third party extension],
+[
+    AC_MSG_RESULT(yes)
+    CXXFLAGS+=" -DNOR3D"
+    USE_R3D="no"
+],
+[
+    AC_MSG_RESULT(no)
+    EXTRATHIRDPARTYTARGETS+=" .r3d.date"
+    USE_R3D="yes"
+])
+
+# -----------------------------------------------------------------
 # Optionally do a cxxonly build.
 # -----------------------------------------------------------------
 AC_MSG_CHECKING(for --with-cxxonly)
@@ -258,7 +272,7 @@ AC_ARG_WITH(cxxonly,
 [
    AC_MSG_RESULT(no)
    CXXONLY="no"
-   ALL="\$(PYTHONTARGETS) \$(LIBTARGET) \$(STATICLIBTARGET) \$(MODTARGET) \$(BPLMODTARGET) \$(PBGMODTARGET) \$(STATICPBGMODTARGET) \$(EXETARGETS) \$(THIRDPARTYLIBTARGET) \$(INCTARGETS) \$(INSTALLTARGETS)"
+   ALL="\$(PYTHONTARGETS) \$(LIBTARGET) \$(STATICLIBTARGET) \$(MODTARGET) \$(BPLMODTARGET) \$(PBGMODTARGET) \$(PYB11TARGET) \$(STATICPBGMODTARGET) \$(EXETARGETS) \$(THIRDPARTYLIBTARGET) \$(INCTARGETS) \$(INSTALLTARGETS)"
    ALLTOP="$PYTHONPKGDIR \$(CXXPKGS) pycompileall"
 ]
 )

@@ -5,26 +5,22 @@ namespace FractalSpace
 {
   void high_points(Group& group,Fractal& fractal,Misc& misc)
   {
-    //    cerr << "inside high_points " << " " << group.list_points.size() << "\n";
+    fractal.timing(-1,9);
     group.p_list_really_high.clear();
-    //    fractal.p_file->FilePoint << " highs level " << group.get_level() << "\n";
     int ni=0;
-    for(vector <Point*>::const_iterator point_itr=group.list_points.begin();point_itr != group.list_points.end();++point_itr)
+    for(auto &p_point : group.list_points)
       {
-	Point* p_point=*point_itr;
 	Point& point=*p_point;
-	//	if(check_high(point,fractal))
-	//	  point.dumpd();
 	if(!point.get_passive_point() && check_high(point,fractal) && high_enough_level(point,group,fractal,misc))
 	  {
 	    point.set_it_is_high(true);
+	    point.set_it_is_really_high(true);
 	    group.p_list_really_high.push_back(p_point);
-	    //	    point.dumpd();
 	    ni++;
 	  }
       }
-    //    cerr << "ni= " << ni << "\n";
     group.set_number_high_points(ni);
+    fractal.timing(1,9);
   }
   bool high_enough_level(Point& point,Group& group,Fractal& fractal,Misc& misc)
   {

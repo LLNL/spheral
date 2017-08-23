@@ -1,7 +1,11 @@
 #ifndef __PBGWRAP_UTILITIESTYPES__
 #define __PBGWRAP_UTILITIESTYPES__
 
+#include <utility>
+
+#include "Geometry/Dimension.hh"
 #include "boost/math/special_functions/legendre.hpp"
+#include "Utilities/Functors.hh"
 #include "Utilities/erff.hh"
 #include "Utilities/newtonRaphson.hh"
 #include "Utilities/simpsonsIntegration.hh"
@@ -26,6 +30,26 @@
 #include "Utilities/pointInPolyhedron.hh"
 #include "Utilities/pointOnPolyhedron.hh"
 #include "Utilities/refinePolyhedron.hh"
+#include "Utilities/overlayRemapFields.hh"
+
+#ifndef NOR3D
+#include "Utilities/r3d_utils.hh"
+#else
+//------------------------------------------------------------------------------
+// Stub these methods out when we're not allowing R3D.
+//------------------------------------------------------------------------------
+namespace Spheral {
+  inline Dim<2>::FacetedVolume clipFacetedVolume(const Dim<2>::FacetedVolume& poly,
+                                                 const std::vector<GeomPlane<Dim<2> > >& planes) {
+    VERIFY2(false, "ERROR: clipFacetedVolume unavailable without R3D.");
+  }
+
+  inline Dim<3>::FacetedVolume clipFacetedVolume(const Dim<3>::FacetedVolume& poly,
+                                                 const std::vector<GeomPlane<Dim<3> > >& planes) {
+    VERIFY2(false, "ERROR: clipFacetedVolume unavailable without R3D.");
+  }
+}
+#endif
 
 typedef std::pair<double, double> pair_double_double;
 using namespace Spheral::FieldSpace;
@@ -36,20 +60,10 @@ namespace Spheral {
 using boost::math::legendre_p;
 
 //------------------------------------------------------------------------------
-// An overridable python class functor for use with the Newton-Raphson root 
-// finder.
+// newtonRaphsonFindRoot
 //------------------------------------------------------------------------------
-class NewtonRaphsonFunction {
-public:
-  NewtonRaphsonFunction() {};
-  virtual ~NewtonRaphsonFunction() {};
-  virtual std::pair<double, double> operator()(const double x) const { return __call__(x); }
-  virtual std::pair<double, double> __call__(const double x) const = 0;
-};
-
-// The method we expose to python.
 inline
-double newtonRaphsonFindRoot(const NewtonRaphsonFunction& functor,
+double newtonRaphsonFindRoot(const PythonBoundFunctors::SpheralFunctor<double, std::pair<double, double> >& functor,
                              float x1,
                              float x2,
                              const float xaccuracy = 1.0e-15,
@@ -64,27 +78,17 @@ double newtonRaphsonFindRoot(const NewtonRaphsonFunction& functor,
 }
 
 //------------------------------------------------------------------------------
-// An overridable python class functor for use with the Simpsons rule numerical
-// integation function.
+// simpsonsIntegrationDouble
 //------------------------------------------------------------------------------
-class SimpsonsIntegrationDoubleFunction {
-public:
-  SimpsonsIntegrationDoubleFunction() {};
-  virtual ~SimpsonsIntegrationDoubleFunction() {};
-  virtual double operator()(const double x) const { return __call__(x); }
-  virtual double __call__(const double x) const = 0;
-};
-
-// The method we expose to python.
 inline
-double simpsonsIntegrationDouble(const SimpsonsIntegrationDoubleFunction& functor,
+double simpsonsIntegrationDouble(const PythonBoundFunctors::SpheralFunctor<double, double>& functor,
                                  const double x0,
                                  const double x1,
                                  const unsigned numBins) {
-  return Spheral::simpsonsIntegration<SimpsonsIntegrationDoubleFunction, double, double>(functor,
-                                                                                         x0,
-                                                                                         x1,
-                                                                                         numBins);
+  return Spheral::simpsonsIntegration<PythonBoundFunctors::SpheralFunctor<double, double>, double, double>(functor,
+                                                                                                           x0,
+                                                                                                           x1,
+                                                                                                           numBins);
 }
 
 //------------------------------------------------------------------------------

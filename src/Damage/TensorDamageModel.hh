@@ -14,13 +14,9 @@
 #ifndef __Spheral_TensorDamageModel_hh__
 #define __Spheral_TensorDamageModel_hh__
 
-#ifndef __GCCXML__
-#include <vector>
-#else
-#include "fakestl.hh"
-#endif
-
 #include "DamageModel.hh"
+
+#include <vector>
 
 // Forward declarations.
 namespace Spheral {
@@ -45,19 +41,19 @@ namespace Spheral {
 namespace PhysicsSpace {
 
 // Enum for selecting the method of defining the tensor strain.
-enum TensorStrainAlgorithm {
-  BenzAsphaug = 0,
+enum class TensorStrainAlgorithm {
+  BenzAsphaugStrain = 0,
   StrainHistory = 1,
-  MeloshRyanAsphaug = 2,
+  MeloshRyanAsphaugStrain = 2,
   PlasticStrain = 3,
   PseudoPlasticStrain = 4,
 };
 
 // Enum for selecting the method of defining the effective tensor damage.
-enum EffectiveDamageAlgorithm {
-  Copy = 0,
-  Max = 1,
-  Sampled = 2,
+enum class EffectiveDamageAlgorithm {
+  CopyDamage = 0,
+  MaxDamage = 1,
+  SampledDamage = 2,
 };
 
 template<typename Dimension>
@@ -77,7 +73,7 @@ public:
   typedef FieldSpace::Field<Dimension, std::vector<double> > FlawStorageType;
 
   // Constructors, destructor.
-  TensorDamageModel(SolidMaterial::SolidNodeList<Dimension>& nodeList,
+  TensorDamageModel(NodeSpace::SolidNodeList<Dimension>& nodeList,
                     const TensorStrainAlgorithm strainAlgorithm,
                     const EffectiveDamageAlgorithm effDamageAlgorithm,
                     const bool useDamageGradient,

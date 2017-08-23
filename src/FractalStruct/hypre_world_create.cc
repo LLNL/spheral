@@ -12,7 +12,8 @@ namespace FractalSpace
     int FractalRank=mem.p_mess->FractalRank;
     int FractalNodes=mem.p_mess->FractalNodes;
     mem.p_mess->IHranks.assign(FractalNodes,-1);
-    mem.p_mess->Hranks.clear();
+    // mem.p_mess->Hranks.clear();
+    clean_vector(mem.p_mess->Hranks);
     mem.p_mess->IAmAHypreNode=!SBoxes.empty();
     if(!buffer_groups)
       {
@@ -33,15 +34,14 @@ namespace FractalSpace
       {
 	if(counts[FR] > 0 && mem.p_mess->IAmAHypreNode)
 	  {
-	    // vector <int>TBBox=mem.BBoxesLev[FR][level];
-	    // for(vector <int>& SB : SBoxes)
-	    //   {
-	    // 	if(!overlap_boxes(SB,TBBox))
-	    // 	  continue;
-	    // 	mem.Touchy.push_back(FR);
-	    // 	break;
-	    //   }
-	    mem.Touchy.push_back(FR);
+	    vector <int>TBBox=mem.BBoxesLev[FR][level];
+	    for(vector <int>& SB : SBoxes)
+	      {
+	    	if(!overlap_boxes(SB,TBBox))
+	    	  continue;
+	    	mem.Touchy.push_back(FR);
+	    	break;
+	      }
 	  }
       }
     node_groups_struct(mem,counts);

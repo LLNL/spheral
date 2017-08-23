@@ -398,7 +398,7 @@ GeomPolygon(const vector<GeomPolygon::Vector>& points):
     setBoundingBox();
 
     // Compute the ancillary geometry.
-    GeometryUtilities::computeAncillaryGeometry(*this, mVertexFacetConnectivity, mFacetFacetConnectivity, mVertexUnitNorms);
+    GeometryUtilities::computeAncillaryGeometry(*this, mVertexFacetConnectivity, mFacetFacetConnectivity, mVertexUnitNorms, false);
 
     // Post-conditions.
     BEGIN_CONTRACT_SCOPE
@@ -465,7 +465,7 @@ GeomPolygon(const vector<GeomPolygon::Vector>& points,
   mConvex = this->convex();
 
   // Compute the ancillary geometry.
-  GeometryUtilities::computeAncillaryGeometry(*this, mVertexFacetConnectivity, mFacetFacetConnectivity, mVertexUnitNorms);
+  GeometryUtilities::computeAncillaryGeometry(*this, mVertexFacetConnectivity, mFacetFacetConnectivity, mVertexUnitNorms, false);
 }
 
 //------------------------------------------------------------------------------
@@ -474,20 +474,14 @@ GeomPolygon(const vector<GeomPolygon::Vector>& points,
 GeomPolygon::
 GeomPolygon(const GeomPolygon& rhs):
   mVertices(rhs.mVertices),
-  mFacets(),
+  mFacets(rhs.mFacets),
+  mVertexUnitNorms(rhs.mVertexUnitNorms),
   mVertexFacetConnectivity(rhs.mVertexFacetConnectivity),
   mFacetFacetConnectivity(rhs.mFacetFacetConnectivity),
-  mVertexUnitNorms(rhs.mVertexUnitNorms),
   mXmin(rhs.mXmin),
   mXmax(rhs.mXmax),
   mConvex(rhs.mConvex) {
-  mFacets.reserve(rhs.mFacets.size());
-  for (const Facet& facet: rhs.mFacets) {
-    mFacets.push_back(Facet(mVertices,
-                            facet.ipoint1(),
-                            facet.ipoint2()));
-  }
-  ENSURE(mFacets.size() == rhs.mFacets.size());
+  for (Facet& facet: mFacets) facet.mVerticesPtr = &mVertices;
 }
 
 //------------------------------------------------------------------------------
@@ -765,9 +759,9 @@ reconstruct(const vector<GeomPolygon::Vector>& vertices,
   }
   setBoundingBox();
   mConvex = this->convex();
-  GeometryUtilities::computeAncillaryGeometry(*this, mVertexFacetConnectivity, mFacetFacetConnectivity, mVertexUnitNorms);
+  GeometryUtilities::computeAncillaryGeometry(*this, mVertexFacetConnectivity, mFacetFacetConnectivity, mVertexUnitNorms, false);
   ENSURE(mFacets.size() == facetVertices.size());
-  ENSURE(mFacetFacetConnectivity.size() == mFacets.size());
+  ENSURE(mFacetFacetConnectivity.size() == 0); // mFacets.size());
 }
 
 //------------------------------------------------------------------------------
@@ -868,6 +862,49 @@ operator-(const GeomPolygon::Vector& rhs) const {
 }
 
 //------------------------------------------------------------------------------
+// *= Scalar, scale polygon
+//------------------------------------------------------------------------------
+GeomPolygon&
+GeomPolygon::
+operator*=(const double rhs) {
+  for (auto& v: mVertices) v *= rhs;
+  this->setBoundingBox();
+  return *this;
+}
+
+//------------------------------------------------------------------------------
+// /= Scalar, scale polygon
+//------------------------------------------------------------------------------
+GeomPolygon&
+GeomPolygon::
+operator/=(const double rhs) {
+  (*this) *= 1.0/rhs;
+  return *this;
+}
+
+//------------------------------------------------------------------------------
+// * Scalar, scale polygon
+//------------------------------------------------------------------------------
+GeomPolygon
+GeomPolygon::
+operator*(const double rhs) const {
+  GeomPolygon result(*this);
+  result *= rhs;
+  return result;
+}
+
+//------------------------------------------------------------------------------
+// / Scalar, scale polygon
+//------------------------------------------------------------------------------
+GeomPolygon
+GeomPolygon::
+operator/(const double rhs) const {
+  GeomPolygon result(*this);
+  result /= rhs;
+  return result;
+}
+
+//------------------------------------------------------------------------------
 // ==
 //------------------------------------------------------------------------------
 bool
@@ -899,6 +936,7 @@ void
 GeomPolygon::
 setBoundingBox() {
   boundingBox(mVertices, mXmin, mXmax);
+  mConvex = this->convex();
 }
 
 //------------------------------------------------------------------------------

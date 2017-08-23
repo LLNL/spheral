@@ -2,7 +2,6 @@
 // Compute the Hull mass density summation.
 //------------------------------------------------------------------------------
 #include "computeHullSumMassDensity.hh"
-#include "CRKSPHUtilities.hh"
 #include "Field/FieldList.hh"
 #include "Neighbor/ConnectivityMap.hh"
 #include "Kernel/TableKernel.hh"
@@ -11,7 +10,7 @@
 #include "Utilities/comparisons.hh"
 #include "Utilities/boundingBox.hh"
 #include "Utilities/pointOnPolygon.hh"
-#include "SolidSPH/DamagedNodeCouplingWithFrags.hh"
+#include "SPH/DamagedNodeCouplingWithFrags.hh"
 
 #include "polytope/polytope.hh"
 #include "polytope/convexHull_2d.hh"

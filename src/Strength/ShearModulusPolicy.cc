@@ -5,7 +5,7 @@
 // Created by JMO, Thu Sep 30 23:01:00 PDT 2004
 //----------------------------------------------------------------------------//
 #include "ShearModulusPolicy.hh"
-#include "SolidNodeList.hh"
+#include "NodeList/SolidNodeList.hh"
 #include "SolidMaterial/StrengthModel.hh"
 #include "SolidFieldNames.hh"
 #include "Hydro/HydroFieldNames.hh"
@@ -21,7 +21,7 @@ namespace Spheral {
 
 using FieldSpace::FieldList;
 using NodeSpace::NodeList;
-using SolidMaterial::SolidNodeList;
+using NodeSpace::SolidNodeList;
 
 //------------------------------------------------------------------------------
 // Constructor.

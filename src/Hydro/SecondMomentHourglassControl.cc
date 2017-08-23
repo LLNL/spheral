@@ -92,7 +92,7 @@ SecondMomentHourglassControl(const TableKernel<Dimension>& W,
   mW(W),
   mMultiplier(multiplier),
   mMaxAccelerationFactor(maxAccelerationFactor),
-  mAcceleration(FieldSpace::Copy) {
+  mAcceleration(FieldSpace::FieldStorageType::CopyFields) {
 }
 
 //------------------------------------------------------------------------------
