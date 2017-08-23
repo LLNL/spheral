@@ -22,8 +22,7 @@ title("2-D integrated hydro test -- cylindrical Noh problem")
 #-------------------------------------------------------------------------------
 # Generic problem parameters
 #-------------------------------------------------------------------------------
-commandLine(KernelConstructor = BSplineKernel,
-            order = 5,
+commandLine(order = 5,
             seed = "constantDTheta",
 
             thetaFactor = 0.5,
@@ -181,10 +180,7 @@ eos = GammaLawGasMKS(gamma, mu)
 #-------------------------------------------------------------------------------
 # Interpolation kernels.
 #-------------------------------------------------------------------------------
-if KernelConstructor==NBSplineKernel:
-  WT = TableKernel(NBSplineKernel(order), 1000)
-else:
-  WT = TableKernel(KernelConstructor(), 1000)
+WT = TableKernel(NBSplineKernel(order), 1000)
 output("WT")
 kernelExtent = WT.kernelExtent
 
@@ -518,6 +514,26 @@ if graphics:
              (PPlot, "Noh-cylindrical-P.png"),
              (hrPlot, "Noh-cylindrical-hr.png"),
              (htPlot, "Noh-cylindrical-ht.png")]
+
+    if crksph:
+        volPlot = plotFieldList(hydro.volume(), 
+                                xFunction = "%s.magnitude()",
+                                winTitle = "volume",
+                                plotStyle = "points",
+                                colorNodeLists = False, plotGhosts = False)
+        spPlot = plotFieldList(hydro.surfacePoint(), 
+                               xFunction = "%s.magnitude()",
+                               winTitle = "Surface",
+                               plotStyle = "points",
+                               colorNodeLists = False, plotGhosts = False)
+        vpPlot = plotFieldList(hydro.voidPoint(), 
+                               xFunction = "%s.magnitude()",
+                               winTitle = "Void",
+                               plotStyle = "points",
+                               colorNodeLists = False, plotGhosts = True)
+        plots += [(volPlot, "Noh-cylindrical-vol.png"),
+                  (spPlot, "Noh-cylindrical-surfacePoint.png"),
+                  (vpPlot, "Noh-cylindrical-voidPoint.png")]
 
     # Make hardcopies of the plots.
     for p, filename in plots:

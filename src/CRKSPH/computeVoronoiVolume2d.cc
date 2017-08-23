@@ -134,6 +134,8 @@ computeVoronoiVolume(const FieldList<Dim<2>, Dim<2>::Vector>& position,
 
   // ttotal = std::clock();
 
+  if (returnSurface) surfacePoint = 0;
+
   if (numGensGlobal > 0) {
 
     const Scalar rin2 = 0.25*kernelExtent*kernelExtent;
@@ -152,7 +154,7 @@ computeVoronoiVolume(const FieldList<Dim<2>, Dim<2>::Vector>& position,
     CHECK(r2d_is_good(&initialCell));
 
     // Walk the points.
-    r2d_real firstmom[3];
+    r2d_real firstmom[3], firstmomvoid[3];
     for (unsigned nodeListi = 0; nodeListi != numNodeLists; ++nodeListi) {
       const unsigned n = vol[nodeListi]->numInternalElements();
       for (unsigned i = 0; i != n; ++i) {
@@ -174,7 +176,7 @@ computeVoronoiVolume(const FieldList<Dim<2>, Dim<2>::Vector>& position,
         // Grab this points neighbors and build all the planes.
         // We simultaneously build a very conservative limiter for the density gradient.
         // Scalar phi = 1.0;
-        vector<r2d_plane> pairPlanes;
+        vector<r2d_plane> pairPlanes, voidPairPlanes;
         const vector<vector<int> >& fullConnectivity = connectivityMap.connectivityForNode(nodeListi, i);
         for (unsigned nodeListj = 0; nodeListj != numNodeLists; ++nodeListj) {
           for (vector<int>::const_iterator jItr = fullConnectivity[nodeListj].begin();
@@ -189,11 +191,17 @@ computeVoronoiVolume(const FieldList<Dim<2>, Dim<2>::Vector>& position,
             const Vector rij = ri - rj;
             const Vector nhat = rij.unitVector();
             const Scalar wij = weighti/(weightj + weighti);
-            pairPlanes.push_back(r2d_plane());
-            pairPlanes.back().n.x = nhat.x();
-            pairPlanes.back().n.y = nhat.y();
-            pairPlanes.back().d = wij*rij.magnitude();
-
+            if (voidPoint(nodeListj, j) == 0) {
+              pairPlanes.push_back(r2d_plane());
+              pairPlanes.back().n.x = nhat.x();
+              pairPlanes.back().n.y = nhat.y();
+              pairPlanes.back().d = wij*rij.magnitude();
+            } else {
+              voidPairPlanes.push_back(r2d_plane());
+              voidPairPlanes.back().n.x = nhat.x();
+              voidPairPlanes.back().n.y = nhat.y();
+              voidPairPlanes.back().d = wij*rij.magnitude();
+            }
             // Check the density gradient limiter.
             // const Scalar fdir = FastMath::pow4(rij.unitVector().dot(grhat));
             // phi = min(phi, max(0.0, max(1.0 - fdir, rij.dot(gradRhoi)*safeInv(rhoi - rhoj))));
@@ -248,6 +256,7 @@ computeVoronoiVolume(const FieldList<Dim<2>, Dim<2>::Vector>& position,
 
         // Sort the planes by distance -- let's us clip more efficiently.
         std::sort(pairPlanes.begin(), pairPlanes.end(), compareR2Dplanes);
+        std::sort(voidPairPlanes.begin(), voidPairPlanes.end(), compareR2Dplanes);
 
         // tplanes += std::clock() - t0;
         // t0 = std::clock();
@@ -272,10 +281,23 @@ computeVoronoiVolume(const FieldList<Dim<2>, Dim<2>::Vector>& position,
         CHECK(celli.nverts > 0);
         r2d_reduce(&celli, firstmom, 1);
         CHECK(firstmom[0] > 0.0);
+        
+        // If there are void planes, check if they do anything.
+        if (not voidPairPlanes.empty()) {
+          r2d_clip(&celli, &voidPairPlanes[0], voidPairPlanes.size());
+          CHECK(celli.nverts > 0);
+          r2d_reduce(&celli, firstmomvoid, 1);
+          CHECK(firstmomvoid[0] > 0.0);
+          if (firstmomvoid[0] != firstmom[0]) {
+            firstmom[0] = firstmomvoid[0];
+            firstmom[1] = firstmomvoid[1];
+            firstmom[2] = firstmomvoid[2];
+            if (returnSurface) surfacePoint(nodeListi, i) |= 1;
+          }
+        }
+
         const Vector deltaCentroidi = Vector(firstmom[1], firstmom[2])/firstmom[0];
         deltaMedian(nodeListi, i) = deltaCentroidi;
-
-        // if (barf) r2d_print(&celli);
 
         // tclip += std::clock() - t0;
 
@@ -293,7 +315,6 @@ computeVoronoiVolume(const FieldList<Dim<2>, Dim<2>::Vector>& position,
 
         if (interior) {
           // t0 = std::clock();
-          if (returnSurface) surfacePoint(nodeListi, i) = 0;
 
           // We only use the volume result if interior.
           vol(nodeListi, i) = firstmom[0];
@@ -343,7 +364,7 @@ computeVoronoiVolume(const FieldList<Dim<2>, Dim<2>::Vector>& position,
 
             if (not interior) {
               // This is a point that touches the bounding polygon.  Flag it as surface.
-              if (returnSurface) surfacePoint(nodeListi, i) = 1;
+              if (returnSurface) surfacePoint(nodeListi, i) |= 1;
             }
           }
           // tsurface += std::clock() - t0;
@@ -351,7 +372,7 @@ computeVoronoiVolume(const FieldList<Dim<2>, Dim<2>::Vector>& position,
         } else {
 
           // This point touches a free boundary, so flag it.
-          if (returnSurface) surfacePoint(nodeListi, i) = 1;
+          if (returnSurface) surfacePoint(nodeListi, i) |= 1;
 
         }
 
