@@ -34,7 +34,7 @@
 #include "DataBase/IncrementBoundedState.hh"
 #include "DataBase/ReplaceBoundedState.hh"
 #include "DataBase/CompositeFieldListPolicy.hh"
-#include "Hydro/SpecificThermalEnergyPolicy.hh"
+#include "Hydro/NonSymmetricSpecificThermalEnergyPolicy.hh"
 #include "Hydro/SpecificFromTotalThermalEnergyPolicy.hh"
 #include "Hydro/PositionPolicy.hh"
 #include "Hydro/PressurePolicy.hh"
@@ -290,7 +290,7 @@ initializeProblemStartup(DataBase<Dimension>& dataBase) {
                          mVoidPoint,                                                // void point flags
                          mSurfacePoint, mVolume, mDeltaCentroid,                    // return values
                          cells);                                                    // no return cells
-    // flagSurfaceNeighbors(mSurfacePoint, connectivityMap);
+    flagSurfaceNeighbors(mSurfacePoint, connectivityMap);
   } else if (mVolumeType == CRKVolumeType::CRKHullVolume) {
     computeHullVolumes(connectivityMap, W.kernelExtent(), position, H, mVolume);
   } else if (mVolumeType == CRKVolumeType::HVolume) {
@@ -429,7 +429,7 @@ registerState(DataBase<Dimension>& dataBase,
   FieldList<Dimension, Vector> velocity = dataBase.fluidVelocity();
   if (compatibleEnergyEvolution()) {
     // The compatible energy update.
-    PolicyPointer thermalEnergyPolicy(new SpecificThermalEnergyPolicy<Dimension>(dataBase));
+    PolicyPointer thermalEnergyPolicy(new NonSymmetricSpecificThermalEnergyPolicy<Dimension>(dataBase));
     PolicyPointer velocityPolicy(new IncrementFieldList<Dimension, Vector>(HydroFieldNames::position,
                                                                            HydroFieldNames::specificThermalEnergy));
     state.enroll(specificThermalEnergy, thermalEnergyPolicy);
@@ -813,15 +813,6 @@ evaluateDerivatives(const typename Dimension::Scalar time,
       Vector& gradRhoi = gradRho(nodeListi, i);
       Scalar& worki = workFieldi(i);
 
-      // // If this is a surface point, it's straight RK and there are self-contributions.
-      // if (surfacePoint(nodeListi, i) != 0) {
-      //   Vector selfforceIi  = weighti*weighti*Pi*W0*gradAi;  // <- Type I self-interaction. I think there is no Q term here? Dont know what it would be. 
-      //   if (order != CRKOrder::ZerothOrder) {
-      //     selfforceIi = weighti*weighti*Pi*W0*(Ai*Bi+gradAi); //For linear RK (quadratic RK is the same)
-      //   }
-      //   DvDti += selfforceIi/mi;                             //RK I Acceleration 
-      // }
-
       // Get the connectivity info for this node.
       const vector< vector<int> >& fullConnectivity = connectivityMap.connectivityForNode(&nodeList, i);
 
@@ -915,10 +906,10 @@ evaluateDerivatives(const typename Dimension::Scalar time,
               // Symmetrized kernel weight and gradient.
               CRKSPHKernelAndGradient(Wj, gWj, gradWj, W, order,  rij,  etai, Hi, Hdeti,  etaj, Hj, Hdetj, Ai, Bi, Ci, gradAi, gradBi, gradCi, mCorrectionMin, mCorrectionMax);
               CRKSPHKernelAndGradient(Wi, gWi, gradWi, W, order, -rij, -etaj, Hj, Hdetj, -etai, Hi, Hdeti, Aj, Bj, Cj, gradAj, gradBj, gradCj, mCorrectionMin, mCorrectionMax);
-              deltagradi = gradWj - gradWi;
-              deltagradj = gradWj - gradWi;
-              // deltagradi = surfacePoint(nodeListi, i) == 0 ? gradWj - gradWi :  gradWj;
-              // deltagradj = surfacePoint(nodeListj, j) == 0 ? gradWj - gradWi : -gradWi;
+              // deltagradi = gradWj - gradWi;
+              // deltagradj = gradWj - gradWi;
+              deltagradi = surfacePoint(nodeListi, i) == 0 ? gradWj - gradWi :  gradWj;
+              deltagradj = surfacePoint(nodeListj, j) == 0 ? gradWj - gradWi : -gradWi;
               const Vector gradWSPHi = (Hi*etai.unitVector())*W.gradValue(etai.magnitude(), Hdeti);
               const Vector gradWSPHj = (Hj*etaj.unitVector())*W.gradValue(etaj.magnitude(), Hdetj);
 
@@ -1019,6 +1010,18 @@ evaluateDerivatives(const typename Dimension::Scalar time,
       CHECK(not mCompatibleEnergyEvolution or NodeListRegistrar<Dimension>::instance().domainDecompositionIndependent() or
             (i >= firstGhostNodei and pairAccelerationsi.size() == 0) or
             (pairAccelerationsi.size() == numNeighborsi));
+
+      // If this is a surface point, it's straight RK and there are self-contributions.
+      if (surfacePoint(nodeListi, i) != 0) {
+        CRKSPHKernelAndGradient(Wj, gWj, gradWj, W, order,  Vector::zero,  Vector::zero, Hi, Hdeti,  Vector::zero, Hi, Hdeti, Ai, Bi, Ci, gradAi, gradBi, gradCi, mCorrectionMin, mCorrectionMax);
+        const Vector forceii = weighti*weighti*Pi*gradWj;
+        // Vector selfforceIi  = weighti*weighti*Pi*W0*gradAi;  // <- Type I self-interaction. I think there is no Q term here? Dont know what it would be. 
+        // if (order != CRKOrder::ZerothOrder) {
+        //   selfforceIi = weighti*weighti*Pi*W0*(Ai*Bi+gradAi); //For linear RK (quadratic RK is the same)
+        // }
+        DvDti -= forceii/mi;                             //RK I Acceleration 
+        pairAccelerationsi.push_back(-forceii/mi);
+      }
 
       // // If this is a surface point, we add a vacuum interaction with a virtual point just off of the surface.
       // if (surfacePoint(nodeListi, i) == 1) {
@@ -1218,7 +1221,7 @@ finalize(const typename Dimension::Scalar time,
                          voidPoint,                                                  // void point flags
                          surfacePoint, vol, mDeltaCentroid,                          // return values
                          cells);                                                     // no return cells
-    // flagSurfaceNeighbors(surfacePoint, connectivityMap);
+    flagSurfaceNeighbors(surfacePoint, connectivityMap);
   } else if (mVolumeType == CRKVolumeType::CRKHullVolume) {
     computeHullVolumes(connectivityMap, W.kernelExtent(), position, H, vol);
   } else if (mVolumeType == CRKVolumeType::HVolume) {
