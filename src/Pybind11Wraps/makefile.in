@@ -1,0 +1,34 @@
+# -*-makefile-*-
+# Spheral++ Pybind11Wraps makefile
+#-------------------------------------------------------------------------------
+srcdir = @abs_srcdir@
+VPATH = @abs_srcdir@
+SPHERALTOP = @abs_top_srcdir@
+BUILDTOP = @abs_top_builddir@
+
+PKGNAME = SpheralModules
+PKGDIR = Pybind11Wraps
+
+INSTALLTARGETS = Spheral.pth
+
+PYTHONTARGETS = \
+	$(BUILDTOP)/Pybind11Wraps/Spheral.py \
+	$(srcdir)/SolidSpheral.py
+
+#-------------------------------------------------------------------------------
+include $(BUILDTOP)/helpers/makefile_master
+LIBS += -lsiloh5 -lhdf5 $(LDRPATH)
+
+#-------------------------------------------------------------------------------
+CP = cp
+
+force_build:
+
+all:	@PYTHONPKGS@
+
+$(PYTHONPKGS):	force_build
+	cd $(BUILDTOP)/$(PKGDIR)/$@; \
+	$(MAKE) all
+
+Spheral.pth:	force_build
+	cp -f $(srcdir)/Spheral.pth $(PYTHONLIBDIR)

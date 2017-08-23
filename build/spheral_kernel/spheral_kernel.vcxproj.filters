@@ -1,0 +1,171 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="Source Files">
+      <UniqueIdentifier>{1113c474-ff7e-43e8-8e38-5af0608c268b}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Inst Files">
+      <UniqueIdentifier>{af7f783c-ef28-4c64-8bdf-2c79676a93d3}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="..\..\src\Kernel\WendlandC6KernelInst.cc.3.cc">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\Kernel\BSplineKernelInst.cc.2.cc">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\Kernel\BSplineKernelInst.cc.3.cc">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\Kernel\GaussianKernelInst.cc.2.cc">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\Kernel\GaussianKernelInst.cc.3.cc">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\Kernel\HatKernelInst.cc.2.cc">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\Kernel\HatKernelInst.cc.3.cc">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\Kernel\Kernel.cc">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\Kernel\NBSplineKernelInst.cc.2.cc">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\Kernel\NBSplineKernelInst.cc.3.cc">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\Kernel\NSincPolynomialKernelInst.cc.2.cc">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\Kernel\NSincPolynomialKernelInst.cc.3.cc">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\Kernel\PiGaussianKernelInst.cc.2.cc">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\Kernel\PiGaussianKernelInst.cc.3.cc">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\Kernel\QuarticSplineKernelInst.cc.2.cc">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\Kernel\QuarticSplineKernelInst.cc.3.cc">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\Kernel\QuinticSplineKernelInst.cc.2.cc">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\Kernel\QuinticSplineKernelInst.cc.3.cc">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\Kernel\SincKernelInst.cc.2.cc">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\Kernel\SincKernelInst.cc.3.cc">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\Kernel\SuperGaussianKernelInst.cc.2.cc">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\Kernel\SuperGaussianKernelInst.cc.3.cc">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\Kernel\TableKernelInst.cc.2.cc">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\Kernel\TableKernelInst.cc.3.cc">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\Kernel\VolumeIntegrationFunctionsInst.cc.2.cc">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\Kernel\VolumeIntegrationFunctionsInst.cc.3.cc">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\Kernel\W4SplineKernelInst.cc.2.cc">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\Kernel\W4SplineKernelInst.cc.3.cc">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\Kernel\WendlandC4KernelInst.cc.2.cc">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\Kernel\WendlandC4KernelInst.cc.3.cc">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\Kernel\WendlandC6KernelInst.cc.2.cc">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\Kernel\ExpInvKernelInst.cc.2.cc">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\Kernel\ExpInvKernelInst.cc.3.cc">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\Kernel\WendlandC2KernelInst.cc.2.cc">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\Kernel\WendlandC2KernelInst.cc.3.cc">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <CustomBuild Include="..\..\src\Kernel\BSplineKernelInst.cc.py">
+      <Filter>Inst Files</Filter>
+    </CustomBuild>
+    <CustomBuild Include="..\..\src\Kernel\ExpInvKernelInst.cc.py">
+      <Filter>Inst Files</Filter>
+    </CustomBuild>
+    <CustomBuild Include="..\..\src\Kernel\GaussianKernelInst.cc.py">
+      <Filter>Inst Files</Filter>
+    </CustomBuild>
+    <CustomBuild Include="..\..\src\Kernel\HatKernelInst.cc.py">
+      <Filter>Inst Files</Filter>
+    </CustomBuild>
+    <CustomBuild Include="..\..\src\Kernel\NBSplineKernelInst.cc.py">
+      <Filter>Inst Files</Filter>
+    </CustomBuild>
+    <CustomBuild Include="..\..\src\Kernel\NSincPolynomialKernelInst.cc.py">
+      <Filter>Inst Files</Filter>
+    </CustomBuild>
+    <CustomBuild Include="..\..\src\Kernel\PiGaussianKernelInst.cc.py">
+      <Filter>Inst Files</Filter>
+    </CustomBuild>
+    <CustomBuild Include="..\..\src\Kernel\QuarticSplineKernelInst.cc.py">
+      <Filter>Inst Files</Filter>
+    </CustomBuild>
+    <CustomBuild Include="..\..\src\Kernel\QuinticSplineKernelInst.cc.py">
+      <Filter>Inst Files</Filter>
+    </CustomBuild>
+    <CustomBuild Include="..\..\src\Kernel\SincKernelInst.cc.py">
+      <Filter>Inst Files</Filter>
+    </CustomBuild>
+    <CustomBuild Include="..\..\src\Kernel\SuperGaussianKernelInst.cc.py">
+      <Filter>Inst Files</Filter>
+    </CustomBuild>
+    <CustomBuild Include="..\..\src\Kernel\TableKernelInst.cc.py">
+      <Filter>Inst Files</Filter>
+    </CustomBuild>
+    <CustomBuild Include="..\..\src\Kernel\VolumeIntegrationFunctionsInst.cc.py">
+      <Filter>Inst Files</Filter>
+    </CustomBuild>
+    <CustomBuild Include="..\..\src\Kernel\W4SplineKernelInst.cc.py">
+      <Filter>Inst Files</Filter>
+    </CustomBuild>
+    <CustomBuild Include="..\..\src\Kernel\WendlandC4KernelInst.cc.py">
+      <Filter>Inst Files</Filter>
+    </CustomBuild>
+    <CustomBuild Include="..\..\src\Kernel\WendlandC6KernelInst.cc.py">
+      <Filter>Inst Files</Filter>
+    </CustomBuild>
+    <CustomBuild Include="..\..\src\Kernel\WendlandC2KernelInst.cc.py">
+      <Filter>Inst Files</Filter>
+    </CustomBuild>
+  </ItemGroup>
+</Project>
