@@ -271,7 +271,8 @@ initializeProblemStartup(DataBase<Dimension>& dataBase) {
     for (ConstBoundaryIterator boundItr = this->boundaryBegin();
          boundItr != this->boundaryEnd();
          ++boundItr) (*boundItr)->finalizeGhostBoundary();
-    computeCRKSPHMoments(connectivityMap, W, mVolume, position, H, correctionOrder(), NodeCoupling(), mM0, mM1, mM2, mM3, mM4, mGradm0, mGradm1, mGradm2, mGradm3, mGradm4);
+    const NodeCoupling couple;
+    computeCRKSPHMoments(connectivityMap, W, mVolume, position, H, correctionOrder(), couple, mM0, mM1, mM2, mM3, mM4, mGradm0, mGradm1, mGradm2, mGradm3, mGradm4);
     detectSurface(connectivityMap, mM0, mM1, position, H, mDetectThreshold, mDetectRange*W.kernelExtent(), mSweepAngle, mSurfacePoint);
   }
 
@@ -280,6 +281,7 @@ initializeProblemStartup(DataBase<Dimension>& dataBase) {
     mVolume.assignFields(mass/massDensity);
   } else if (mVolumeType == CRKVolumeType::CRKSumVolume) {
     computeCRKSPHSumVolume(connectivityMap, W, position, mass, H, mVolume);
+    mSurfacePoint = 1;  // BLAGO
   } else if (mVolumeType == CRKVolumeType::CRKVoronoiVolume) {
     mVolume.assignFields(mass/massDensity);
     FieldList<Dimension, typename Dimension::FacetedVolume> cells;
@@ -307,8 +309,14 @@ initializeProblemStartup(DataBase<Dimension>& dataBase) {
        ++boundItr) (*boundItr)->finalizeGhostBoundary();
 
   // Compute the corrections.
-  computeCRKSPHMoments(connectivityMap, W, mVolume, position, H, correctionOrder(), NodeCoupling(), mM0, mM1, mM2, mM3, mM4, mGradm0, mGradm1, mGradm2, mGradm3, mGradm4);
+  const NodeCoupling couple;
+  computeCRKSPHMoments(connectivityMap, W, mVolume, position, H, correctionOrder(), couple, mM0, mM1, mM2, mM3, mM4, mGradm0, mGradm1, mGradm2, mGradm3, mGradm4);
   computeCRKSPHCorrections(mM0, mM1, mM2, mM3, mM4, mGradm0, mGradm1, mGradm2, mGradm3, mGradm4, H, correctionOrder(), mA, mB, mC, mGradA, mGradB, mGradC);
+
+  cerr << "initial volume : " << *mVolume[0] << endl
+       << "initial H      : " << *H[0] << endl
+       << "initial m0     : " << *mM0[0] << endl 
+       << "initial A      : " << *mA[0] << endl;
 
   // We need to initialize the velocity gradient if we're using the CRKSPH artificial viscosity.
   const FieldList<Dimension, Vector> velocity = dataBase.fluidVelocity();
@@ -586,8 +594,14 @@ initialize(const typename Dimension::Scalar time,
 
   // Change CRKSPH weights here if need be!
   const FieldList<Dimension, Scalar> vol = state.fields(HydroFieldNames::volume, 0.0);
-  computeCRKSPHMoments(connectivityMap, W, vol, position, H, correctionOrder(), NodeCoupling(), m0, m1, m2, m3, m4, gradm0, gradm1, gradm2, gradm3, gradm4);
+  const NodeCoupling couple;
+  computeCRKSPHMoments(connectivityMap, W, vol, position, H, correctionOrder(), couple, m0, m1, m2, m3, m4, gradm0, gradm1, gradm2, gradm3, gradm4);
   computeCRKSPHCorrections(m0, m1, m2, m3, m4, gradm0, gradm1, gradm2, gradm3, gradm4, H, correctionOrder(), A, B, C, gradA, gradB, gradC);
+
+  cerr << "INITIAL volume : " << *vol[0] << endl
+       << "INITIAL H      : " << *H[0] << endl
+       << "INITIAL m0     : " << *m0[0] << endl 
+       << "INITIAL A      : " << *A[0] << endl;
 
   for (ConstBoundaryIterator boundItr = this->boundaryBegin();
        boundItr != this->boundaryEnd();
@@ -960,12 +974,14 @@ evaluateDerivatives(const typename Dimension::Scalar time,
               // Acceleration (CRKSPH form).
               CHECK(rhoi > 0.0);
               CHECK(rhoj > 0.0);
-              const Vector forceij  = 0.5*wi*wj*((Pi + Pj)*deltagradi + Qaccij);                    // <- Type III, with CRKSPH Q forces
-              const Vector forceji  = 0.5*wi*wj*((Pi + Pj)*deltagradj + Qaccji);                    // <- Type III, with CRKSPH Q forces
-
-              DvDti -= forceij/mi; //CRK Acceleration
-              DvDtj += forceji/mj; //CRK Acceleration
- 
+              const Vector forceij = (surfacePoint(nodeListi, i) == 0 ?
+                                      0.5*wi*wj*((Pi + Pj)*deltagradi + Qaccij) :                    // <- Type III, with CRKSPH Q forces
+                                      wj*(Pj - Pi)/rhoi*gradWj + Qaccij);
+              const Vector forceji = (surfacePoint(nodeListj, j) == 0 ?
+                                      0.5*wi*wj*((Pi + Pj)*deltagradj + Qaccji) :                    // <- Type III, with CRKSPH Q forces
+                                      wi*(Pj - Pi)/rhoj*gradWi + Qaccji);
+              DvDti -= forceij/mi;
+              DvDtj += forceji/mj; 
               if (mCompatibleEnergyEvolution) {
                 pairAccelerationsi.push_back(-forceij/mi);
                 pairAccelerationsj.push_back( forceji/mj);
@@ -986,8 +1002,12 @@ evaluateDerivatives(const typename Dimension::Scalar time,
               // DepsDti += fTEi*        DTEDtij/mi;
               // DepsDtj += (1.0 - fTEi)*DTEDtij/mj;
 
-              DepsDti += 0.25*wi*wj*((Pi + Pj)*vij.dot(deltagradi) + workQi)/mi;    // CRK Q
-              DepsDtj += 0.25*wi*wj*((Pi + Pj)*vij.dot(deltagradj) + workQj)/mj;    // CRK Q
+              DepsDti += (surfacePoint(nodeListi, i) == 0 ?
+                          0.25*wi*wj*((Pi + Pj)*vij.dot(deltagradi) + workQi)/mi :    // CRK Q
+                          wj*(Pi - Pj)/rhoi*vij.dot(gradWj) + workQi/mi);
+              DepsDtj += (surfacePoint(nodeListj, j) == 0 ? 
+                          0.25*wi*wj*((Pi + Pj)*vij.dot(deltagradj) + workQj)/mj :    // CRK Q
+                          wi*(Pi - Pj)/rhoj*vij.dot(gradWi) + workQj/mj);
 
               // DepsDti += 0.5*wi*wj*(Pj*vij.dot(deltagradi) + workQi)/mi;    // CRK Q
               // DepsDtj += 0.5*wi*wj*(Pi*vij.dot(deltagradj) + workQj)/mj;    // CRK Q
@@ -1011,17 +1031,17 @@ evaluateDerivatives(const typename Dimension::Scalar time,
             (i >= firstGhostNodei and pairAccelerationsi.size() == 0) or
             (pairAccelerationsi.size() == numNeighborsi));
 
-      // If this is a surface point, it's straight RK and there are self-contributions.
-      if (surfacePoint(nodeListi, i) != 0) {
-        CRKSPHKernelAndGradient(Wj, gWj, gradWj, W, order,  Vector::zero,  Vector::zero, Hi, Hdeti,  Vector::zero, Hi, Hdeti, Ai, Bi, Ci, gradAi, gradBi, gradCi, mCorrectionMin, mCorrectionMax);
-        const Vector forceii = weighti*weighti*Pi*gradWj;
-        // Vector selfforceIi  = weighti*weighti*Pi*W0*gradAi;  // <- Type I self-interaction. I think there is no Q term here? Dont know what it would be. 
-        // if (order != CRKOrder::ZerothOrder) {
-        //   selfforceIi = weighti*weighti*Pi*W0*(Ai*Bi+gradAi); //For linear RK (quadratic RK is the same)
-        // }
-        DvDti += forceii/mi;                             //RK I Acceleration 
-        pairAccelerationsi.push_back(forceii/mi);
-      }
+      // // If this is a surface point, it's straight RK and there are self-contributions.
+      // if (surfacePoint(nodeListi, i) != 0) {
+      //   CRKSPHKernelAndGradient(Wj, gWj, gradWj, W, order,  Vector::zero,  Vector::zero, Hi, Hdeti,  Vector::zero, Hi, Hdeti, Ai, Bi, Ci, gradAi, gradBi, gradCi, mCorrectionMin, mCorrectionMax);
+      //   const Vector forceii = weighti*weighti*Pi*gradWj;
+      //   // Vector selfforceIi  = weighti*weighti*Pi*W0*gradAi;  // <- Type I self-interaction. I think there is no Q term here? Dont know what it would be. 
+      //   // if (order != CRKOrder::ZerothOrder) {
+      //   //   selfforceIi = weighti*weighti*Pi*W0*(Ai*Bi+gradAi); //For linear RK (quadratic RK is the same)
+      //   // }
+      //   DvDti += forceii/mi;                             //RK I Acceleration 
+      //   pairAccelerationsi.push_back(forceii/mi);
+      // }
 
       // // If this is a surface point, we add a vacuum interaction with a virtual point just off of the surface.
       // if (surfacePoint(nodeListi, i) == 1) {
@@ -1211,6 +1231,7 @@ finalize(const typename Dimension::Scalar time,
     vol.assignFields(mass/massDensity);
   } else if (mVolumeType == CRKVolumeType::CRKSumVolume) {
     computeCRKSPHSumVolume(connectivityMap, W, position, mass, H, vol);
+    surfacePoint = 1;  // BLAGO
   } else if (mVolumeType == CRKVolumeType::CRKVoronoiVolume) {
     vol.assignFields(mass/massDensity);
     FieldList<Dimension, typename Dimension::FacetedVolume> cells;
