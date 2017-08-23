@@ -1019,8 +1019,8 @@ evaluateDerivatives(const typename Dimension::Scalar time,
         // if (order != CRKOrder::ZerothOrder) {
         //   selfforceIi = weighti*weighti*Pi*W0*(Ai*Bi+gradAi); //For linear RK (quadratic RK is the same)
         // }
-        DvDti -= forceii/mi;                             //RK I Acceleration 
-        pairAccelerationsi.push_back(-forceii/mi);
+        DvDti += forceii/mi;                             //RK I Acceleration 
+        pairAccelerationsi.push_back(forceii/mi);
       }
 
       // // If this is a surface point, we add a vacuum interaction with a virtual point just off of the surface.
