@@ -161,6 +161,7 @@ self.generateSolidCRKSPHHydroBaseBindings(self.SolidCRKSPHHydroBase%(dim)id, %(d
                                  constrefparam(vector_of_FacetedVolume, "boundaries"),
                                  constrefparam(vector_of_vector_of_FacetedVolume, "holes"),
                                  constrefparam(scalarfieldlist, "weights"),
+                                 constrefparam(intfieldlist, "voidPoint"),
                                  refparam(intfieldlist, "surfacePoint"),
                                  refparam(scalarfieldlist, "vol"),
                                  refparam(vectorfieldlist, "deltaCentroid"),

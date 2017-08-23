@@ -105,7 +105,7 @@ updateGhostNodes(NodeList<Dimension>& nodeList) {
       const unsigned i = cNodes[k];
       const Vector& xi = pos(i);
       const SymTensor& Hi = H(i);
-      const Vector nhat = -m1(i).unitVector();
+      const Vector nhat = m1(i).unitVector();
 
       const unsigned j = gNodes[k];
       Vector& xj = pos(j);
@@ -113,6 +113,7 @@ updateGhostNodes(NodeList<Dimension>& nodeList) {
 
       xj = xi + Hi.Inverse()*nhat/nPerh;
       Hj = Hi;
+      // cerr << "Void : " << i << " -> " << j << "     " << xi << " -> " << xj << endl;
     }
   }
 }
@@ -125,6 +126,13 @@ template<typename Dimension>
 void
 CRKSPHVoidBoundary<Dimension>::
 applyGhostBoundary(Field<Dimension, int>& field) const {
+  if (field.name() == HydroFieldNames::voidPoint) {
+    // voidPoint: flag only ghost void points
+    field = 0;
+    const vector<int>& gNodes = this->ghostNodes(field.nodeList());
+    const unsigned nvoid = gNodes.size();
+    for (unsigned k = 0; k < nvoid; ++k) field(gNodes[k]) = 1;
+  }
 }
 
 // Specialization for scalar fields.
