@@ -791,7 +791,7 @@ evaluateDerivatives(const typename Dimension::Scalar time,
       const Scalar weighti = volume(nodeListi, i);  // Change CRKSPH weights here if need be!
       CHECK2(mi > 0.0, i << " " << mi);
       CHECK2(rhoi > 0.0, i << " " << rhoi);
-      CHECK2(Ai > 0.0, i << " " << Ai);
+      // CHECK2(Ai > 0.0, i << " " << Ai);
       CHECK2(Hdeti > 0.0, i << " " << Hdeti);
       CHECK2(weighti > 0.0, i << " " << weighti);
 
