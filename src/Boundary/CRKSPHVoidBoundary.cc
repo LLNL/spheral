@@ -126,12 +126,13 @@ template<typename Dimension>
 void
 CRKSPHVoidBoundary<Dimension>::
 applyGhostBoundary(Field<Dimension, int>& field) const {
+  const vector<int>& gNodes = this->ghostNodes(field.nodeList());
+  const unsigned nvoid = gNodes.size();
   if (field.name() == HydroFieldNames::voidPoint) {
     // voidPoint: flag only ghost void points
-    field = 0;
-    const vector<int>& gNodes = this->ghostNodes(field.nodeList());
-    const unsigned nvoid = gNodes.size();
     for (unsigned k = 0; k < nvoid; ++k) field(gNodes[k]) = 1;
+  } else {
+    for (unsigned k = 0; k < nvoid; ++k) field(gNodes[k]) = 0;
   }
 }
 
@@ -144,17 +145,16 @@ applyGhostBoundary(Field<Dimension, typename Dimension::Scalar>& field) const {
   const vector<int>& gNodes = this->ghostNodes(field.nodeList());
   const unsigned nsurf = cNodes.size();
   CHECK(gNodes.size() == nsurf);
-
   if (field.name() == HydroFieldNames::volume) {
-
     // Volume: copy surface->void
     for (unsigned k = 0; k < nsurf; ++k) field(gNodes[k]) = field(cNodes[k]);
-
   } else if (field.name() == HydroFieldNames::mass or
-          field.name() == HydroFieldNames::massDensity) {
+             field.name() == HydroFieldNames::massDensity) {
     // mass, mass density: negligible but non-zero
     for (unsigned k = 0; k < nsurf; ++k) field(gNodes[k]) = std::numeric_limits<Scalar>::epsilon();
-
+  } else {
+    // Default zero.
+    for (unsigned k = 0; k < nsurf; ++k) field(gNodes[k]) = 0.0;
   }
 }
 
@@ -163,6 +163,9 @@ template<typename Dimension>
 void
 CRKSPHVoidBoundary<Dimension>::
 applyGhostBoundary(Field<Dimension, typename Dimension::Vector>& field) const {
+  const vector<int>& gNodes = this->ghostNodes(field.nodeList());
+  const unsigned nvoid = gNodes.size();
+  for (unsigned k = 0; k < nvoid; ++k) field(gNodes[k]) = Vector::zero;
 }
 
 // Specialization for Tensor fields.
@@ -170,6 +173,9 @@ template<typename Dimension>
 void
 CRKSPHVoidBoundary<Dimension>::
 applyGhostBoundary(Field<Dimension, typename Dimension::Tensor>& field) const {
+  const vector<int>& gNodes = this->ghostNodes(field.nodeList());
+  const unsigned nvoid = gNodes.size();
+  for (unsigned k = 0; k < nvoid; ++k) field(gNodes[k]) = Tensor::zero;
 }
 
 // Specialization for symmetric tensors.
@@ -177,6 +183,9 @@ template<typename Dimension>
 void
 CRKSPHVoidBoundary<Dimension>::
 applyGhostBoundary(Field<Dimension, typename Dimension::SymTensor>& field) const {
+  const vector<int>& gNodes = this->ghostNodes(field.nodeList());
+  const unsigned nvoid = gNodes.size();
+  for (unsigned k = 0; k < nvoid; ++k) field(gNodes[k]) = SymTensor::zero;
 }
 
 // Specialization for third rank tensors.
@@ -184,6 +193,9 @@ template<typename Dimension>
 void
 CRKSPHVoidBoundary<Dimension>::
 applyGhostBoundary(Field<Dimension, typename Dimension::ThirdRankTensor>& field) const {
+  const vector<int>& gNodes = this->ghostNodes(field.nodeList());
+  const unsigned nvoid = gNodes.size();
+  for (unsigned k = 0; k < nvoid; ++k) field(gNodes[k]) = ThirdRankTensor::zero;
 }
 
 // Specialization for vector<scalar> fields.
@@ -191,6 +203,9 @@ template<typename Dimension>
 void
 CRKSPHVoidBoundary<Dimension>::
 applyGhostBoundary(Field<Dimension, std::vector<typename Dimension::Scalar> >& field) const {
+  const vector<int>& gNodes = this->ghostNodes(field.nodeList());
+  const unsigned nvoid = gNodes.size();
+  for (unsigned k = 0; k < nvoid; ++k) field(gNodes[k]) = std::vector<Scalar>();
 }
 
 //------------------------------------------------------------------------------
