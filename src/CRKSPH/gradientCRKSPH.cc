@@ -100,7 +100,7 @@ gradientCRKSPH(const FieldSpace::FieldList<Dimension, DataType>& fieldList,
       GradientType& gradFi = result(nodeListi, i);
 
       // Add our self-contribution.  A strange thing in a gradient!
-      const Scalar W0 = W.kernelValue(0.0, Hdeti);
+      const Scalar W0 = W.kernelValue(0.0, 1.0);
       gradFi += weight(nodeListi, i)*Fi*W0*(Ai*Bi + gradAi);
 
       // Neighbors!
@@ -132,8 +132,9 @@ gradientCRKSPH(const FieldSpace::FieldList<Dimension, DataType>& fieldList,
                                                                        firstGhostNodej)) {
 
               // The pair-wise modified weighting.
-              const Scalar wi = fij*weight(nodeListi, i);
-              const Scalar wj = fij*weight(nodeListj, j);
+              const Scalar wijmax = 10.0*std::min(weight(nodeListi, i), weight(nodeListj, j));
+              const Scalar wi = fij*std::min(wijmax, weight(nodeListi, i));
+              const Scalar wj = fij*std::min(wijmax, weight(nodeListj, j));
 
 	      // Get the state for node j.
 	      const Vector& rj = position(nodeListj, j);
