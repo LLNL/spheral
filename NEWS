@@ -1,0 +1,226 @@
+Release notes for 2.0.10.
+
+Another minor release keeping up with maintainence and third party package
+updates.  These days I actually recommend just downloading a snapshot of the
+source code repot, but I'll cut another interim release as well.
+
+================================================================================
+Release notes for 2.0.9.
+
+Mostly minor fixes and third party updates.  There is a fair amount of interim
+development on new stuff like CRKSPH, but the main thrust of this release
+is to update the third party library releases for easier building.
+
+================================================================================
+
+Release notes for 2.0.8.
+
+A number of minor fixes and third party updates.  There are two major changes
+folks may notice in this release:
+
+1.  The biggest change here from a users perspective is that the default restart
+file format has been changed from gzipped ASCII files to silo.  If you have
+older restart files you would like to use again this can be accomplished up
+explicitly requesting the old restart file format when building the Spheral
+controller in your script:
+
+from GzipFileIO import GzipFileIO
+control = SpheralController(...
+                            restartFileConstructor = GzipFileIO,
+                            ...)
+
+2.  There is a new build system in Spheral now that builds all object files and
+targets in a separate directory.  If you are building Spheral it's worth taking
+a look at the updated build documentation in the source under doc/.
+
+================================================================================
+
+Release notes for 2.0.7.
+
+Yosemite (Mac OS X 10.10) compatibility.
+
+================================================================================
+
+Release notes for 2.0.6.
+
+Minor patch release, mostly just snapshoting our current state since the 2.0.4 
+release is so old now it won't compile for most folks anymore.
+
+================================================================================
+
+Release notes for 2.0.5.
+
+- Many small changes (updates to libraries and such).
+
+- Adding support for ANEOS if you have access to the ANEOS source (not supplied here).
+
+================================================================================
+
+Release notes for 2.0.4.
+
+Another minor patch release, with two changes:
+
+1.  Updating how we're handling building rind cells for parallel Meshes.  The
+    LineMesh and PolygonalMesh are now passing all unit tests serial and
+    parallel.  PolyhedralMesh remains non-functional for now.
+
+2.  Removed some more third party libs from the default set:
+    - elementtree
+    - PIL
+
+================================================================================
+Release notes for 2.0.3.
+
+This is a minor release, pretty much solely to update some of the third party
+libraries to currently available verions (hdf5 1.8.10 and TAU 2.21.4).
+
+Unfortunately this also brings along a very much undeveloped in progress version
+of the Meshing/Tessellation technology, which is currently totally broken.  To
+be fixed in a future release.
+
+================================================================================
+
+Release note for 2.0.2.
+
+This is a minor bugfix release of Spheral++.
+
+- Added simple strain-alpha porosity model.
+
+- Cleaned up the configure and build processes so they are successful out of the
+  box on vanilla Linux.  Removed a lot of defunct compiler dependencies.
+
+- Tested build on Mac OS/X 10.8 (Mountain Lion).
+
+- Updated several third party libs to latest:
+  - Boost 1.5.1
+  - numpy 1.6.2
+  - mpi4py 1.3
+
+- Tessellation coding uses polytope, but is not correct in parallel cases
+  yet.
+
+================================================================================
+
+Release notes for 2.0.1.
+
+This is the 2.0.1 release of the Spheral++ code, and is a minor revision of the
+2.0 source.  The changes from 2.0 include:
+
+- Updating some third party libs again (most notably Tau).  I've now modified
+  how we include Tau in order to avoid this constant problem of our release
+  being broken whenever Tau pushes out a new release.  Hopefully this will make
+  things more stable.
+
+- Suspending the maxNeighbor logic for updating the smoothing scale (the H
+  tensor).  This was causing some stability problems in high resolution runs,
+  particularly with adjacent materials that have very different node densities.
+  This modification has made the H iteration *much* more stable, and now seems
+  to converge well even for pathological cases.
+
+- Generalized PhysicalConstants and it's usage, so it is now trivial to create
+  new units on the fly.
+
+- Note: the tessellation coding is not functioning correctly in this release, as
+  we are in the midst of switching to using polytope to generate 2D and 3D
+  tessellations.  This should not be a problem for anyone since that whole
+  methodology is not yet out of the experimental phase.
+
+================================================================================
+
+Release notes for 2.0.
+
+This is the 2.0 release of the Spheral++ code.  The most important new
+features are:
+
+- This release includes solids modeling capability, using new analytic equations
+  of state (such as Gruneisen, LinearPolynomial, and Tillotson), strength models
+  (SteinbergGuinan), and incorporates damage modeling to follow failure and
+  fracture.
+
+- We have switched to the BSD open source license as part of the new release.
+  See the included License.txt in the source.
+
+- Many bugfixes, and up to date third party library configurations.
+
+================================================================================
+
+A brief description of the changes in the 1.4.0 release of Spheral++.
+
+The main algorithmic improvements included in this release:
+
+1.  Compatible energy evolution option for the hydro, which ensures exact
+    conservation of the total energy to machine roundoff.
+
+2.  ASPH "ideal H" algorithm is now available, whereby we set the elliptical
+    sampling volumes of ASPH directly from the local node distribution.
+
+3.  New default parallel decomposition and boundary conditions using a Voronoi
+    distribution of the nodes for each domain.  This seems to scale more
+    effectively for large number of processors.
+
+Infrastructure changes:
+
+1.  Changed the python binding technology to pybindgen, significantly speeding
+    up the build process.
+
+2.  Adding WildMagic third party target to provide basic computational geometry
+    functionality.
+
+3.  Removed almost all third party sources from the distribution.  We use curl
+    to download the needed pieces from their sources.  This *way* cuts down on
+    the size of our distribution.
+
+4.  Updated most of our third party libs to use the latest(ish) sources.
+
+And of course lots of small bug fixes as we continue testing and evolving the
+code.  :)
+
+
+================================================================================
+
+2006 September 13
+Release notes for 1.3.
+
+This is mostly a catch-up release, since it's been so long since we cut the
+last release.  New stuff includes:
+
+1. Updated most of the third party packages.
+
+2. Addition of the automated test system (ats), which allows a series of tests
+   to be performed on Spheral++ which automatically determine pass/fail.  See
+   the building/testing documentation for the procedure for invoking the
+   automated tests.
+
+3. Generalized the method by which physics packages set up and evolve their
+   state.
+
+4. Optimization improvements.
+
+5. We now support building on Mac OS X machines.
+
+6. Many bugfixes.
+
+7.  A whole host of stuff over the past couple of years...
+
+================================================================================
+2004 April 17
+Release notes for Optimization-1 release of Spheral++.
+
+1. Some minor code changes that reduce our run-time by roughly 25%-30%.  This
+   also makes the run time on the P4 based MCR cluster roughly equivalent to
+   what we see on the new PowerPC chips in Berg.
+
+2. Simplifying configuration by creating default compiler sets for different
+   platforms, which can be selected with the --with-compilers configure flag.
+   Hopefully this removes the onus of setting a bunch of individual compiler
+   choices on suppported platforms.
+
+3. Initial support for building with intel C++ (icc) on intel linux.
+
+4. Adding TAU as a third party package, and implemented TAU timers throughout
+   the code.  This also includes PAPI support via the TAU timers.
+
+5. Adding a new optionally built package (CXXTests, built with --with-cxxtests)
+   which builds C++ source for a set of unit test problems.  Currently these are
+   the src/src/Field/tests/testNodeIterators.py and 
+   src/src/Field/tests/testIndexFieldLists.py
