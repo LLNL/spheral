@@ -82,6 +82,7 @@ using FieldSpace::FieldList;
 using NeighborSpace::ConnectivityMap;
 using Geometry::innerProduct;
 using Geometry::outerProduct;
+using BoundarySpace::CRKSPHVoidBoundary;
 
 using PhysicsSpace::MassDensityType;
 using PhysicsSpace::HEvolutionType;
@@ -187,7 +188,10 @@ CRKSPHHydroBase(const SmoothingScaleBase<Dimension>& smoothingScaleMethod,
   mGradm3(FieldSpace::FieldStorageType::CopyFields),
   mGradm4(FieldSpace::FieldStorageType::CopyFields),
   mSurfacePoint(FieldSpace::FieldStorageType::CopyFields),
+  mVoidPoint(FieldSpace::FieldStorageType::CopyFields),
+  mVoidBoundary(mSurfacePoint, mM1),
   mRestart(DataOutput::registerWithRestart(*this)) {
+  this->appendBoundary(mVoidBoundary);
 }
 
 //------------------------------------------------------------------------------
@@ -252,6 +256,7 @@ initializeProblemStartup(DataBase<Dimension>& dataBase) {
 
   // We need volumes in order to prepare the surface detection.
   mSurfacePoint = dataBase.newFluidFieldList(0, HydroFieldNames::surfacePoint);
+  mVoidPoint = dataBase.newFluidFieldList(0, HydroFieldNames::voidPoint);
   const TableKernel<Dimension>& W = this->kernel();
   const ConnectivityMap<Dimension>& connectivityMap = dataBase.connectivityMap();
   const FieldList<Dimension, Scalar> mass = dataBase.fluidMass();
@@ -282,6 +287,7 @@ initializeProblemStartup(DataBase<Dimension>& dataBase) {
                          vector<typename Dimension::FacetedVolume>(),               // no boundaries
                          vector<vector<typename Dimension::FacetedVolume> >(),      // no holes
                          FieldList<Dimension, typename Dimension::Scalar>(),        // no weights
+                         mVoidPoint,                                                // void point flags
                          mSurfacePoint, mVolume, mDeltaCentroid,                    // return values
                          cells);                                                    // no return cells
     // flagSurfaceNeighbors(mSurfacePoint, connectivityMap);
@@ -353,6 +359,7 @@ registerState(DataBase<Dimension>& dataBase,
     dataBase.resizeFluidFieldList(mGradm4,   FifthRankTensor::zero, HydroFieldNames::m4_CRKSPH, false);
   }
   dataBase.resizeFluidFieldList(mSurfacePoint, 0, HydroFieldNames::surfacePoint, false);
+  dataBase.resizeFluidFieldList(mVoidPoint, 0, HydroFieldNames::voidPoint, false);
 
   // We have to choose either compatible or total energy evolution.
   VERIFY2(not (mCompatibleEnergyEvolution and mEvolveTotalEnergy),
@@ -478,6 +485,7 @@ registerState(DataBase<Dimension>& dataBase,
   state.enroll(mGradm3);
   state.enroll(mGradm4);
   state.enroll(mSurfacePoint);
+  state.enroll(mVoidPoint);
 
   // We also register the delta centroid for visualiation purposes.
   if (mfilter > 0.0 and mVolumeType == CRKVolumeType::CRKVoronoiVolume) state.enroll(mDeltaCentroid);
@@ -805,7 +813,7 @@ evaluateDerivatives(const typename Dimension::Scalar time,
       Vector& gradRhoi = gradRho(nodeListi, i);
       Scalar& worki = workFieldi(i);
 
-      // If this is a surface point, it's straight RK and there are self-contributions.
+      // // If this is a surface point, it's straight RK and there are self-contributions.
       // if (surfacePoint(nodeListi, i) != 0) {
       //   Vector selfforceIi  = weighti*weighti*Pi*W0*gradAi;  // <- Type I self-interaction. I think there is no Q term here? Dont know what it would be. 
       //   if (order != CRKOrder::ZerothOrder) {
@@ -1012,17 +1020,17 @@ evaluateDerivatives(const typename Dimension::Scalar time,
             (i >= firstGhostNodei and pairAccelerationsi.size() == 0) or
             (pairAccelerationsi.size() == numNeighborsi));
 
-      // If this is a surface point, we add a vacuum interaction with a virtual point just off of the surface.
-      if (surfacePoint(nodeListi, i) == 1) {
-        const Vector nhat = m1(nodeListi, i).unitVector();
-        const Vector rij = Hi.Inverse()*nhat/nPerh;
-        const Vector etai = Hi*rij;
-        CRKSPHKernelAndGradient(Wj, gWj, gradWj, W, order,  rij,  etai, Hi, Hdeti,  etai, Hi, Hdeti, Ai, Bi, Ci, gradAi, gradBi, gradCi, mCorrectionMin, mCorrectionMax);
-        deltagradi = gradWj;
-        const Vector forceij  = weighti*weighti*Pi*deltagradi;                    // <- Type III, with CRKSPH Q forces
-        DvDti -= forceij/mi;
-        DepsDti += 0.25*weighti*weighti*Pi*vi.dot(deltagradi)/mi;                 // CRK Q
-      }
+      // // If this is a surface point, we add a vacuum interaction with a virtual point just off of the surface.
+      // if (surfacePoint(nodeListi, i) == 1) {
+      //   const Vector nhat = m1(nodeListi, i).unitVector();
+      //   const Vector rij = Hi.Inverse()*nhat/nPerh;
+      //   const Vector etai = Hi*rij;
+      //   CRKSPHKernelAndGradient(Wj, gWj, gradWj, W, order,  rij,  etai, Hi, Hdeti,  etai, Hi, Hdeti, Ai, Bi, Ci, gradAi, gradBi, gradCi, mCorrectionMin, mCorrectionMax);
+      //   deltagradi = gradWj;
+      //   const Vector forceij  = weighti*weighti*Pi*deltagradi;                    // <- Type III, with CRKSPH Q forces
+      //   DvDti -= forceij/mi;
+      //   DepsDti += 0.25*weighti*weighti*Pi*vi.dot(deltagradi)/mi;                 // CRK Q
+      // }
 
       // Get the time for pairwise interactions.
       const Scalar deltaTimePair = Timing::difference(start, Timing::currentTime())/max(size_t(1), ncalc);
@@ -1192,6 +1200,7 @@ finalize(const typename Dimension::Scalar time,
   const FieldList<Dimension, SymTensor> H = state.fields(HydroFieldNames::H, SymTensor::zero);
   const FieldList<Dimension, Vector> position = state.fields(HydroFieldNames::position, Vector::zero);
   const FieldList<Dimension, Vector> gradRho = derivs.fields(HydroFieldNames::massDensityGradient, Vector::zero);
+  const FieldList<Dimension, int> voidPoint = state.fields(HydroFieldNames::voidPoint, 0);
   FieldList<Dimension, Scalar> massDensity = state.fields(HydroFieldNames::massDensity, 0.0);
   FieldList<Dimension, Scalar> vol = state.fields(HydroFieldNames::volume, 0.0);
   FieldList<Dimension, int> surfacePoint = state.fields(HydroFieldNames::surfacePoint, 0);
@@ -1206,6 +1215,7 @@ finalize(const typename Dimension::Scalar time,
                          vector<typename Dimension::FacetedVolume>(),                // no boundaries
                          vector<vector<typename Dimension::FacetedVolume> >(),       // no holes
                          FieldList<Dimension, typename Dimension::Scalar>(),         // no weights
+                         voidPoint,                                                  // void point flags
                          surfacePoint, vol, mDeltaCentroid,                          // return values
                          cells);                                                     // no return cells
     // flagSurfaceNeighbors(surfacePoint, connectivityMap);
@@ -1324,6 +1334,7 @@ applyGhostBoundaries(State<Dimension>& state,
   FieldList<Dimension, Tensor> gradB = state.fields(HydroFieldNames::gradB_CRKSPH, Tensor::zero);
   FieldList<Dimension, ThirdRankTensor> gradC = state.fields(HydroFieldNames::gradC_CRKSPH, ThirdRankTensor::zero);
   FieldList<Dimension, int> surfacePoint = state.fields(HydroFieldNames::surfacePoint, 0);
+  FieldList<Dimension, int> voidPoint = state.fields(HydroFieldNames::voidPoint, 0);
 
   for (ConstBoundaryIterator boundaryItr = this->boundaryBegin(); 
        boundaryItr != this->boundaryEnd();
@@ -1346,6 +1357,7 @@ applyGhostBoundaries(State<Dimension>& state,
     (*boundaryItr)->applyFieldListGhostBoundary(gradB);
     (*boundaryItr)->applyFieldListGhostBoundary(gradC);
     (*boundaryItr)->applyFieldListGhostBoundary(surfacePoint);
+    (*boundaryItr)->applyFieldListGhostBoundary(voidPoint);
   }
 }
 
@@ -1379,7 +1391,6 @@ enforceBoundaries(State<Dimension>& state,
   FieldList<Dimension, Vector> gradA = state.fields(HydroFieldNames::gradA_CRKSPH, Vector::zero);
   FieldList<Dimension, Tensor> gradB = state.fields(HydroFieldNames::gradB_CRKSPH, Tensor::zero);
   FieldList<Dimension, ThirdRankTensor> gradC = state.fields(HydroFieldNames::gradC_CRKSPH, ThirdRankTensor::zero);
-  FieldList<Dimension, int> surfacePoint = state.fields(HydroFieldNames::surfacePoint, 0);
 
   for (ConstBoundaryIterator boundaryItr = this->boundaryBegin(); 
        boundaryItr != this->boundaryEnd();
@@ -1401,7 +1412,6 @@ enforceBoundaries(State<Dimension>& state,
     (*boundaryItr)->enforceFieldListBoundary(gradA);
     (*boundaryItr)->enforceFieldListBoundary(gradB);
     (*boundaryItr)->enforceFieldListBoundary(gradC);
-    (*boundaryItr)->enforceFieldListBoundary(surfacePoint);
   }
 }
 

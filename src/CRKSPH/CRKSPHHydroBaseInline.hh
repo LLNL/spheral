@@ -617,5 +617,21 @@ surfacePoint() const {
   return mSurfacePoint;
 }
 
+template<typename Dimension>
+inline
+const FieldSpace::FieldList<Dimension, int>&
+CRKSPHHydroBase<Dimension>::
+voidPoint() const {
+  return mVoidPoint;
+}
+
+template<typename Dimension>
+inline
+const BoundarySpace::CRKSPHVoidBoundary<Dimension>&
+CRKSPHHydroBase<Dimension>::
+voidBoundary() const {
+  return mVoidBoundary;
+}
+
 }
 }
