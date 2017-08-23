@@ -157,8 +157,8 @@ case $COMPILERS in
       CC=clang
       CXX=clang++
       FORT=gfortran
-      MPICC=mpiclang
-      MPICXX=mpiclang++
+      MPICC=mpicc
+      MPICXX=mpicxx
       MPICCFLAGS=
       MPICXXFLAGS=
       CMAKECC=clang
@@ -696,7 +696,7 @@ AC_ARG_WITH(openmp,
       CXXFLAGS+=" -qsmp=omp"
    else
       CXXFLAGS+=" -fopenmp"
-      EXTRAFLAGS+="  -fopenmp-targets=nvptx64-nvidia-gpu -fopenmp-implicit-declare-target"
+#      EXTRAFLAGS+="  -fopenmp-targets=nvptx64-nvidia-gpu -fopenmp-implicit-declare-target"
    fi
 ],
 [

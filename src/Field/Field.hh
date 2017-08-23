@@ -34,6 +34,14 @@ namespace Spheral {
 namespace Spheral {
 namespace FieldSpace {
 
+#if USE_UVM
+template<typename DataType>
+using DataAllocator = typename uvm_allocator::UVMAllocator<DataType>;
+#else
+template<typename DataType>
+using DataAllocator = typename std::allocator<DataType>;
+#endif
+
 template<typename Dimension, typename DataType>
 class Field: 
     public FieldBase<Dimension> {
@@ -49,8 +57,8 @@ public:
   typedef DataType FieldDataType;
   typedef DataType value_type;      // STL compatibility.
 
-  typedef typename std::vector<DataType>::iterator iterator;
-  typedef typename std::vector<DataType>::const_iterator const_iterator;
+  typedef typename std::vector<DataType,DataAllocator<DataType>>::iterator iterator;
+  typedef typename std::vector<DataType,DataAllocator<DataType>>::const_iterator const_iterator;
 
   // Constructors.
   explicit Field(FieldName name);
@@ -62,7 +70,7 @@ public:
         DataType value);
   Field(FieldName name,
         const NodeSpace::NodeList<Dimension>& nodeList, 
-        const std::vector<DataType>& array);
+        const std::vector<DataType,DataAllocator<DataType>>& array);
   Field(const NodeSpace::NodeList<Dimension>& nodeList, const Field& field);
   Field(const Field& field);
   virtual std::shared_ptr<FieldBase<Dimension> > clone() const;
@@ -73,7 +81,7 @@ public:
   // Assignment operator.
   virtual FieldBase<Dimension>& operator=(const FieldBase<Dimension>& rhs);
   Field& operator=(const Field& rhs);
-  Field& operator=(const std::vector<DataType>& rhs);
+  Field& operator=(const std::vector<DataType,DataAllocator<DataType>>& rhs);
   Field& operator=(const DataType& rhs);
 
   // Required method to test equivalence with a FieldBase.
@@ -220,21 +228,17 @@ public:
 
   // Provide std::vector copies of the data.  This is mostly useful for the
   // python interface.
-  std::vector<DataType> internalValues() const;
-  std::vector<DataType> ghostValues() const;
-  std::vector<DataType> allValues() const;
+  std::vector<DataType,DataAllocator<DataType>> internalValues() const;
+  std::vector<DataType,DataAllocator<DataType>> ghostValues() const;
+  std::vector<DataType,DataAllocator<DataType>> allValues() const;
 
 private:
   //--------------------------- Private Interface ---------------------------//
   // Private Data
 #ifndef __GCCXML__
-#ifndef USE_UVM
-  std::vector<DataType> mDataArray;
-#else
-  std::vector<DataType,UVMAllocator<DataType>()> mDataArray;
-#endif
+  std::vector<DataType,DataAllocator<DataType>> mDataArray;
   bool mValid;
-
+#endif
   // No default constructor.
   Field();
 };
