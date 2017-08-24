@@ -351,10 +351,6 @@ def CRKSPH(dataBase,
                          nTensile = nTensile)
     result.Q = Q
 
-    # # Build the special void boundary condition.
-    # result.voidbc = eval("CRKSPHVoidBoundary%id(result.surfacePoint(), result.m1())" % ndim)
-    # result.appendBoundary(result.voidbc)
-
     # Store the Q and special BC as attributes, and return the thing.
     return result
 
