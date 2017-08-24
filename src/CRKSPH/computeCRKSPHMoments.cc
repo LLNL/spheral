@@ -112,7 +112,7 @@ computeCRKSPHMoments(const ConnectivityMap<Dimension>& connectivityMap,
       const Scalar Hdeti = Hi.Determinant();
 
       // Self contribution.
-      const Scalar wwi = weighti*W(0.0, 1.0);
+      const Scalar wwi = weighti*W(0.0, Hdeti);
       m0(nodeListi, i) += wwi;
       gradm1(nodeListi, i) += Tensor::one*wwi;
 
@@ -158,8 +158,8 @@ computeCRKSPHMoments(const ConnectivityMap<Dimension>& connectivityMap,
             Vector etai = Hi*rij;
             Vector etaj = Hj*rij;
 
-            const std::pair<double, double> WWi = W.kernelAndGradValue(etai.magnitude(), 1.0);
-            const std::pair<double, double> WWj = W.kernelAndGradValue(etaj.magnitude(), 1.0);
+            const std::pair<double, double> WWi = W.kernelAndGradValue(etai.magnitude(), Hdeti);
+            const std::pair<double, double> WWj = W.kernelAndGradValue(etaj.magnitude(), Hdetj);
 
             // // j
             // const Scalar Wi = WWi.first;
@@ -179,23 +179,6 @@ computeCRKSPHMoments(const ConnectivityMap<Dimension>& connectivityMap,
             const Vector gradWj = 0.5*((Hj*etaj.unitVector())*WWj.second +
                                        (Hi*etai.unitVector())*WWi.second);
             const Vector gradWi = -gradWj;
-
-            // // max h
-            // Scalar Wi, Wj;
-            // Vector gradWi, gradWj;
-            // if (etai.magnitude2() < etaj.magnitude2()) {
-            //   const std::pair<double, double> WWi = W.kernelAndGradValue(etai.magnitude(), 1.0);
-            //   Wi = WWi.first;
-            //   gradWi = -(Hi*etai.unitVector())*WWi.second;
-            //   Wj = Wi;
-            //   gradWj = -gradWi;
-            // } else {
-            //   const std::pair<double, double> WWj = W.kernelAndGradValue(etaj.magnitude(), 1.0);
-            //   Wj = WWj.first;
-            //   gradWj = (Hj*etaj.unitVector())*WWj.second;
-            //   Wi = Wj;
-            //   gradWi = -gradWj;
-            // }
 
             // Zeroth moment. 
             const Scalar wwi = wi*Wi;

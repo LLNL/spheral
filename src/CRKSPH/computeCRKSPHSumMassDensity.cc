@@ -53,7 +53,6 @@ computeCRKSPHSumMassDensity(const ConnectivityMap<Dimension>& connectivityMap,
   Vector rij, etai, etaj;
   Vector Bi = Vector::zero, Bj = Vector::zero;
   Tensor Ci = Tensor::zero, Cj = Tensor::zero;
-  const Scalar W0 = W.kernelValue(0.0, 1.0);
 
   FieldList<Dimension, Scalar> wsum(FieldSpace::FieldStorageType::CopyFields), vol1(FieldSpace::FieldStorageType::CopyFields);
   for (size_t nodeListi = 0; nodeListi != numNodeLists; ++nodeListi) {
@@ -79,6 +78,7 @@ computeCRKSPHSumMassDensity(const ConnectivityMap<Dimension>& connectivityMap,
       const Scalar Vi = vol(nodeListi, i);
       const Scalar rhoi = massDensity(nodeListi, i);
       const SymTensor& Hi = H(nodeListi, i);
+      const Scalar Hdeti = Hi.Determinant();
 
       // Loop over the neighbors in just point i's NodeList.
       const vector<vector<int> >& fullConnectivity = connectivityMap.connectivityForNode(nodeListi, i);
@@ -98,13 +98,14 @@ computeCRKSPHSumMassDensity(const ConnectivityMap<Dimension>& connectivityMap,
           const Scalar Vj = vol(nodeListi, j);
           const Scalar rhoj = massDensity(nodeListi, j);
           const SymTensor& Hj = H(nodeListi, j);
+          const Scalar Hdetj = Hj.Determinant();
 
           // Kernel weighting and gradient.
           rij = ri - rj;
           etai = Hi*rij;
           etaj = Hj*rij;
-          Wi = FastMath::pow8(W.kernelValue(etai.magnitude(), 1.0));
-          Wj = FastMath::pow8(W.kernelValue(etaj.magnitude(), 1.0));
+          Wi = W.kernelValue(etai.magnitude(), Hdeti);
+          Wj = W.kernelValue(etaj.magnitude(), Hdetj);
 
           // Sum the pair-wise contributions.
           wsum(nodeListi, i) += Vj*Wj;
@@ -117,6 +118,7 @@ computeCRKSPHSumMassDensity(const ConnectivityMap<Dimension>& connectivityMap,
       }
   
       // Finalize the density and volume for node i.
+      const Scalar W0 = W.kernelValue(0.0, Hdeti);
       wsum(nodeListi, i) += Vi*W0;
       CHECK(wsum(nodeListi, i) > 0.0);
       vol1(nodeListi, i) = (vol1(nodeListi, i) + Vi*Vi*W0)/wsum(nodeListi, i);
