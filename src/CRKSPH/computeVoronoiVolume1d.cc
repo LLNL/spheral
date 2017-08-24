@@ -36,6 +36,7 @@ computeVoronoiVolume(const FieldSpace::FieldList<Dim<1>, Dim<1>::Vector>& positi
                      FieldSpace::FieldList<Dim<1>, int>& surfacePoint,
                      FieldSpace::FieldList<Dim<1>, Dim<1>::Scalar>& vol,
                      FieldSpace::FieldList<Dim<1>, Dim<1>::Vector>& deltaMedian,
+                     FieldSpace::FieldList<Dim<1>, vector<Dim<1>::Vector>>& etaVoidPoints,
                      FieldSpace::FieldList<Dim<1>, Dim<1>::FacetedVolume>& cells) {
 
   typedef Dim<1>::Scalar Scalar;
@@ -53,8 +54,10 @@ computeVoronoiVolume(const FieldSpace::FieldList<Dim<1>, Dim<1>::Vector>& positi
 
   const Scalar rin = 0.5*kernelExtent;
 
-  // Zero out the deltaMedian field.
+  // Zero out return fields.
+  surfacePoint = 0;
   deltaMedian = Vector::zero;
+  etaVoidPoints = vector<Vector>();
 
   // Copy the input positions to single list, and sort it.
   // Note our logic here relies on ghost nodes already being built, including parallel nodes.
@@ -78,7 +81,7 @@ computeVoronoiVolume(const FieldSpace::FieldList<Dim<1>, Dim<1>::Vector>& positi
   // cerr << "Volume loop: " << endl;
 
   // Now walk our sorted point and set the volumes and surface flags.
-  surfacePoint = 0;
+  
   const vector<NodeList<Dim<1> >*>& nodeListPtrs = position.nodeListPtrs();
   for (vector<PointCoord>::const_iterator itr = coords.begin();
        itr != coords.end();
@@ -106,6 +109,7 @@ computeVoronoiVolume(const FieldSpace::FieldList<Dim<1>, Dim<1>::Vector>& positi
         H1 = Hi;
         rho1 = rhoi;
         surfacePoint(nodeListi, i) |= 1;
+        etaVoidPoints(nodeListi, i).push_back(-rin);
       } else {
         nodeListj1 = (itr-1)->second.first;
         j1 = (itr-1)->second.second;
@@ -118,7 +122,7 @@ computeVoronoiVolume(const FieldSpace::FieldList<Dim<1>, Dim<1>::Vector>& positi
         // phi = min(phi, max(0.0, gradRhoi*2.0*x1*safeInvVar(rho1 - rhoi)));
         if (voidPoint(nodeListj1, j1) == 1) {
           surfacePoint(nodeListi, i) |= 1;
-          // cerr << "Void : " << i << " " << j1 << endl;
+          etaVoidPoints(nodeListi, i).push_back(-rin);
         } else if (nodeListj1 != nodeListi) {
           surfacePoint(nodeListi, i) |= (1 << (nodeListj1 + 1));
         }
@@ -129,6 +133,7 @@ computeVoronoiVolume(const FieldSpace::FieldList<Dim<1>, Dim<1>::Vector>& positi
         H2 = Hi;
         rho2 = rhoi;
         surfacePoint(nodeListi, i) |= 1;
+        etaVoidPoints(nodeListi, i).push_back(rin);
       } else {
         nodeListj2 = (itr+1)->second.first;
         j2 = (itr+1)->second.second;
@@ -138,7 +143,7 @@ computeVoronoiVolume(const FieldSpace::FieldList<Dim<1>, Dim<1>::Vector>& positi
         // phi = min(phi, max(0.0, gradRhoi*2.0*x2*safeInvVar(rho2 - rhoi)));
         if (voidPoint(nodeListj2, j2) == 1) {
           surfacePoint(nodeListi, i) |= 1;
-          // cerr << "Void : " << i << " " << j2 << endl;
+          etaVoidPoints(nodeListi, i).push_back(rin);
         } else if (nodeListj2 != nodeListi) {
           surfacePoint(nodeListi, i) |= (1 << (nodeListj2 + 1));
         }
@@ -146,8 +151,8 @@ computeVoronoiVolume(const FieldSpace::FieldList<Dim<1>, Dim<1>::Vector>& positi
 
       CHECK(x1 <= 0.0 and x2 >= 0.0);
       // CHECK(phi >= 0.0 and phi <= 1.0);
-      etamax = max(Hi, max(H1, H2))*max(-x1, x2);
-      if (etamax < rin) {
+      etamax = Hi*max(-x1, x2);
+      if (surfacePoint(nodeListi, i) == 0 and etamax < rin) {
         vol(nodeListi, i) = x2 - x1;
 
         b = gradRhoi;
@@ -205,8 +210,14 @@ computeVoronoiVolume(const FieldSpace::FieldList<Dim<1>, Dim<1>::Vector>& positi
 
       } else {
         surfacePoint(nodeListi, i) |= 1;
+        if (-Hi*x1 >= rin) etaVoidPoints(nodeListi, i).push_back(max(Hi*x1, -rin));
+        if ( Hi*x2 >= rin) etaVoidPoints(nodeListi, i).push_back(min(Hi*x2,  rin));
       }
     }
+    CHECK2(((surfacePoint(nodeListi, i) & 1) == 1 and
+            (etaVoidPoints(nodeListi, i).size() == 1 or etaVoidPoints(nodeListi, i).size() == 2)) or
+           (surfacePoint(nodeListi, i) & 1) == 0,
+           "(" << nodeListi << " " << i << ") " << surfacePoint(nodeListi, i) << " " << etaVoidPoints(nodeListi, i).size());
 
     // cerr << "  " << i << " " << vol(nodeListi, i) << " " << surfacePoint(nodeListi, i) << " "
     //      << j1 << " " << j2 << " " << voidPoint(nodeListj1, j1) << " " << voidPoint(nodeListj2, j2)

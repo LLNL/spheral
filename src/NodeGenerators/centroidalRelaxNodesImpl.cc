@@ -80,6 +80,7 @@ centroidalRelaxNodesImpl(DataBaseSpace::DataBase<Dimension>& db,
 
   // Temporary until we decide to propagate void info to this method.
   auto voidPoint = db.newFluidFieldList(int(0), "void point");
+  auto etaVoidPoints = db.newFluidFieldList(vector<Vector>(), "eta void points");
 
   // Make a dummy set of cells so we don't ask computeVoronoiVolume to compute the return FacetedVolumes every step.
   FieldList<Dimension, FacetedVolume> dummyCells;
@@ -144,7 +145,7 @@ centroidalRelaxNodesImpl(DataBaseSpace::DataBase<Dimension>& db,
     CRKSPHSpace::computeVoronoiVolume(pos, H, rhof, gradRhof, cm, W.kernelExtent(), volumeBoundaries, holes, 
                                       FieldList<Dimension, typename Dimension::Scalar>(),  // no weights
                                       voidPoint,
-                                      surfacePoint, vol, deltaCentroid, dummyCells);
+                                      surfacePoint, vol, deltaCentroid, etaVoidPoints, dummyCells);
     tvoro = std::clock() - tvoro;
      
     // Apply boundary conditions.
@@ -218,7 +219,7 @@ centroidalRelaxNodesImpl(DataBaseSpace::DataBase<Dimension>& db,
     CRKSPHSpace::computeVoronoiVolume(pos, H, rhof, gradRhof, cm, W.kernelExtent(), volumeBoundaries, holes, 
                                       FieldList<Dimension, typename Dimension::Scalar>(),  // no weights
                                       voidPoint,
-                                      surfacePoint, vol, deltaCentroid, cells);
+                                      surfacePoint, vol, deltaCentroid, etaVoidPoints, cells);
   }
 
   // Return how many iterations we actually took.

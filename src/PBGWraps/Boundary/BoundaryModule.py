@@ -704,6 +704,7 @@ self.space.add_function("dynamicCastBoundary",
         tensorfieldlist = "Spheral::FieldSpace::TensorFieldList%id" % ndim
         symtensorfieldlist = "Spheral::FieldSpace::SymTensorFieldList%id" % ndim
         thirdranktensorfieldlist = "Spheral::FieldSpace::ThirdRankTensorFieldList%id" % ndim
+        vectorvectorfieldlist = "Spheral::FieldSpace::VectorVectorFieldList%id" % ndim
         nodelist = "Spheral::NodeSpace::NodeList%id" % ndim
         state = "State%id" % ndim
         derivatives = "StateDerivatives%id" % ndim
@@ -713,7 +714,7 @@ self.space.add_function("dynamicCastBoundary",
 
         # Constructors.
         x.add_constructor([constrefparam(intfieldlist, "surfacePoint"), 
-                           constrefparam(vectorfieldlist, "m1")])
+                           constrefparam(vectorvectorfieldlist, "etaVoidPoints")])
 
         # Generate the abstract interface.
         generateBoundaryVirtualBindings(x, ndim, False)
