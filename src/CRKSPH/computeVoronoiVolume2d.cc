@@ -98,6 +98,7 @@ computeVoronoiVolume(const FieldList<Dim<2>, Dim<2>::Vector>& position,
                      FieldList<Dim<2>, int>& surfacePoint,
                      FieldList<Dim<2>, Dim<2>::Scalar>& vol,
                      FieldSpace::FieldList<Dim<2>, Dim<2>::Vector>& deltaMedian,
+                     FieldSpace::FieldList<Dim<2>, vector<Dim<2>::Vector>>& etaVoidPoints,
                      FieldSpace::FieldList<Dim<2>, Dim<2>::FacetedVolume>& cells) {
 
 #ifdef NOR3D

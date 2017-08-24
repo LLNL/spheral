@@ -627,6 +627,14 @@ voidPoint() const {
 
 template<typename Dimension>
 inline
+const FieldSpace::FieldList<Dimension, std::vector<typename Dimension::Vector>>&
+CRKSPHHydroBase<Dimension>::
+etaVoidPoints() const {
+  return mEtaVoidPoints;
+}
+
+template<typename Dimension>
+inline
 const BoundarySpace::CRKSPHVoidBoundary<Dimension>&
 CRKSPHHydroBase<Dimension>::
 voidBoundary() const {

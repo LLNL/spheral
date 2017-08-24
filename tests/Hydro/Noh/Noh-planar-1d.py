@@ -558,10 +558,16 @@ if graphics:
         splot = plotFieldList(hydro.surfacePoint(),
                               winTitle = "surface point",
                               colorNodeLists = False)
+        voidplot = plotFieldList(hydro.voidPoint(),
+                                 winTitle = "void point",
+                                 plotStyle = "points",
+                                 plotGhosts = True,
+                                 colorNodeLists = False)
         plots += [(volPlot, "Noh-planar-vol.png"),
                    (aplot, "Noh-planar-ACRK.png"),
                    (bplot, "Noh-planar-BCRK.png"),
-                   (splot, "Noh-planar-surfacePoint.png")]
+                   (splot, "Noh-planar-surfacePoint.png"),
+                   (voidplot, "Noh-planar-voidPoint.png")]
 
     if boolCullenViscosity:
         cullAlphaPlot = plotFieldList(q.ClMultiplier(),

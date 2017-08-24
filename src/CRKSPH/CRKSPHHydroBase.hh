@@ -265,6 +265,7 @@ public:
 
   const FieldSpace::FieldList<Dimension, int>&       surfacePoint() const;
   const FieldSpace::FieldList<Dimension, int>&       voidPoint() const;
+  const FieldSpace::FieldList<Dimension, std::vector<Vector>>& etaVoidPoints() const;
 
   //****************************************************************************
   // Methods required for restarting.
@@ -342,6 +343,7 @@ protected:
 
   FieldSpace::FieldList<Dimension, int>       mSurfacePoint;
   FieldSpace::FieldList<Dimension, int>       mVoidPoint;
+  FieldSpace::FieldList<Dimension, std::vector<Vector>> mEtaVoidPoints;
 
   BoundarySpace::CRKSPHVoidBoundary<Dimension> mVoidBoundary;
 
