@@ -100,7 +100,7 @@ gradientCRKSPH(const FieldSpace::FieldList<Dimension, DataType>& fieldList,
       GradientType& gradFi = result(nodeListi, i);
 
       // Add our self-contribution.  A strange thing in a gradient!
-      const Scalar W0 = W.kernelValue(0.0, 1.0);
+      const Scalar W0 = W.kernelValue(0.0, Hdeti);
       gradFi += weight(nodeListi, i)*Fi*W0*(Ai*Bi + gradAi);
 
       // Neighbors!

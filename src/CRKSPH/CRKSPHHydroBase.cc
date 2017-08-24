@@ -281,7 +281,6 @@ initializeProblemStartup(DataBase<Dimension>& dataBase) {
     mVolume.assignFields(mass/massDensity);
   } else if (mVolumeType == CRKVolumeType::CRKSumVolume) {
     computeCRKSPHSumVolume(connectivityMap, W, position, mass, H, mVolume);
-    mSurfacePoint = 1;  // BLAGO
   } else if (mVolumeType == CRKVolumeType::CRKVoronoiVolume) {
     mVolume.assignFields(mass/massDensity);
     FieldList<Dimension, typename Dimension::FacetedVolume> cells;
@@ -312,11 +311,6 @@ initializeProblemStartup(DataBase<Dimension>& dataBase) {
   const NodeCoupling couple;
   computeCRKSPHMoments(connectivityMap, W, mVolume, position, H, correctionOrder(), couple, mM0, mM1, mM2, mM3, mM4, mGradm0, mGradm1, mGradm2, mGradm3, mGradm4);
   computeCRKSPHCorrections(mM0, mM1, mM2, mM3, mM4, mGradm0, mGradm1, mGradm2, mGradm3, mGradm4, H, correctionOrder(), mA, mB, mC, mGradA, mGradB, mGradC);
-
-  cerr << "initial volume : " << *mVolume[0] << endl
-       << "initial H      : " << *H[0] << endl
-       << "initial m0     : " << *mM0[0] << endl 
-       << "initial A      : " << *mA[0] << endl;
 
   // We need to initialize the velocity gradient if we're using the CRKSPH artificial viscosity.
   const FieldList<Dimension, Vector> velocity = dataBase.fluidVelocity();
@@ -598,11 +592,6 @@ initialize(const typename Dimension::Scalar time,
   computeCRKSPHMoments(connectivityMap, W, vol, position, H, correctionOrder(), couple, m0, m1, m2, m3, m4, gradm0, gradm1, gradm2, gradm3, gradm4);
   computeCRKSPHCorrections(m0, m1, m2, m3, m4, gradm0, gradm1, gradm2, gradm3, gradm4, H, correctionOrder(), A, B, C, gradA, gradB, gradC);
 
-  cerr << "INITIAL volume : " << *vol[0] << endl
-       << "INITIAL H      : " << *H[0] << endl
-       << "INITIAL m0     : " << *m0[0] << endl 
-       << "INITIAL A      : " << *A[0] << endl;
-
   for (ConstBoundaryIterator boundItr = this->boundaryBegin();
        boundItr != this->boundaryEnd();
        ++boundItr) {
@@ -644,7 +633,6 @@ evaluateDerivatives(const typename Dimension::Scalar time,
   // The kernels and such.
   const TableKernel<Dimension>& W = this->kernel();
   const TableKernel<Dimension>& WQ = this->PiKernel();
-  const Scalar W0 = W.kernelValue(0.0, 1.0);
 
   // A few useful constants we'll use in the following loop.
   typedef typename Timing::Time Time;
@@ -764,9 +752,6 @@ evaluateDerivatives(const typename Dimension::Scalar time,
     const Scalar hminratio = nodeList.hminratio();
     const int maxNumNeighbors = nodeList.maxNumNeighbors();
     const Scalar nPerh = nodeList.nodesPerSmoothingScale();
-
-    // The scale for the tensile correction.
-    const Scalar WnPerh = W(1.0/nPerh, 1.0);
 
     // Get the work field for this NodeList.
     Field<Dimension, Scalar>& workFieldi = nodeList.work();
@@ -1231,7 +1216,6 @@ finalize(const typename Dimension::Scalar time,
     vol.assignFields(mass/massDensity);
   } else if (mVolumeType == CRKVolumeType::CRKSumVolume) {
     computeCRKSPHSumVolume(connectivityMap, W, position, mass, H, vol);
-    surfacePoint = 1;  // BLAGO
   } else if (mVolumeType == CRKVolumeType::CRKVoronoiVolume) {
     vol.assignFields(mass/massDensity);
     FieldList<Dimension, typename Dimension::FacetedVolume> cells;

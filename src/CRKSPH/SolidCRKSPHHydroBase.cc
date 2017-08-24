@@ -332,7 +332,6 @@ evaluateDerivatives(const typename Dimension::Scalar time,
   // The kernels and such.
   const TableKernel<Dimension>& W = this->kernel();
   const TableKernel<Dimension>& WQ = this->PiKernel();
-  const Scalar W0 = W.kernelValue(0.0, 1.0);
   const SmoothingScaleBase<Dimension>& smoothingScaleMethod = this->smoothingScaleMethod();
 
   // A few useful constants we'll use in the following loop.
@@ -464,9 +463,6 @@ evaluateDerivatives(const typename Dimension::Scalar time,
     const int maxNumNeighbors = nodeList.maxNumNeighbors();
     const Scalar nPerh = nodeList.nodesPerSmoothingScale();
 
-    // The scale for the tensile correction.
-    const Scalar WnPerh = W(1.0/nPerh, 1.0);
-
     // Get the work field for this NodeList.
     Field<Dimension, Scalar>& workFieldi = nodeList.work();
 
@@ -539,15 +535,6 @@ evaluateDerivatives(const typename Dimension::Scalar time,
       SymTensor& massSecondMomenti = massSecondMoment(nodeListi, i);
       SymTensor& DSDti = DSDt(nodeListi, i);
       Scalar& worki = workFieldi(i);
-
-      // If this is a surface point, it's straight RK and there are self-contributions.
-      if (surfacePoint(nodeListi, i) != 0) {
-        Vector selfforceIi  = weighti*weighti*(Pi*SymTensor::one - Si)*W0*gradAi;  // <- Type I self-interaction. I think there is no Q term here? Dont know what it would be. 
-        if (order != CRKOrder::ZerothOrder) {
-          selfforceIi = weighti*weighti*(Pi*SymTensor::one - Si)*W0*(Ai*Bi+gradAi); //For linear RK (quadratic RK is the same)
-        }
-        DvDti -= selfforceIi/mi;                             //RK I Acceleration 
-      }
 
       // Get the connectivity info for this node.
       const vector< vector<int> >& fullConnectivity = connectivityMap.connectivityForNode(&nodeList, i);
@@ -693,15 +680,6 @@ evaluateDerivatives(const typename Dimension::Scalar time,
                 sigmai = -Pnegi*SymTensor::one + Si;
                 sigmaj = -Pnegj*SymTensor::one + Sj;
               }
-
-              // // Compute the tensile correction to add to the stress as described in 
-              // // Gray, Monaghan, & Swift (Comput. Methods Appl. Mech. Eng., 190, 2001)
-              // const Scalar fi = epsTensile*FastMath::pow4(Wi/(Hdeti*WnPerh));
-              // const Scalar fj = epsTensile*FastMath::pow4(Wj/(Hdetj*WnPerh));
-              // const SymTensor Ri = fi*tensileStressCorrection(sigmai);
-              // const SymTensor Rj = fj*tensileStressCorrection(sigmaj);
-              // sigmai += Ri;
-              // sigmaj += Rj;
 
               // Acceleration (CRKSPH form).
               CHECK(rhoi > 0.0);
