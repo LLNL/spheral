@@ -16,10 +16,10 @@
 
 namespace Spheral {
 
-template<typename Value, typename index_t>
+template<typename Value, typename Allocator, typename index_t>
 inline
 void
-removeElements(std::vector<Value>& vec,
+removeElements(std::vector<Value, Allocator>& vec,
 	       const std::vector<index_t>& elements) {
 
   // Is there anything to do?
