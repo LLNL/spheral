@@ -168,7 +168,7 @@ case $COMPILERS in
       PYTHONCC=$CC
       PYTHONCXX=$CXX
       PARMETISCC=$MPICC
-      CXXFLAGS+=" -std=c++11 -DEIGEN_DONT_VECTORIZE"
+      CXXFLAGS+=" -std=c++11 -Wno-undefined-var-template -DEIGEN_DONT_VECTORIZE"
       ;;
 
    vacpp)

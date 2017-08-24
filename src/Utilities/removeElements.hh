@@ -14,6 +14,15 @@
 
 #include <vector>
 
+#ifdef USE_UVM
+#include "../Field/uvm_allocator.hh"
+template<typename DataType>
+using DataAllocator = typename uvm_allocator::UVMAllocator<DataType>;
+#else
+template<typename DataType>
+using DataAllocator = typename std::allocator<DataType>;
+#endif
+
 namespace Spheral {
 
 template<typename Value, typename index_t>
@@ -71,6 +80,62 @@ removeElements(std::vector<Value>& vec,
   }
 }
 
+
+template<typename Value, typename index_t>
+inline
+void
+removeElements(std::vector<Value,DataAllocator<Value>>& vec,
+               const std::vector<index_t,DataAllocator<index_t>>& elements) {
+
+  // Is there anything to do?
+  if (elements.size() > 0) {
+
+    const index_t originalSize = vec.size();
+    const index_t newSize = originalSize - elements.size();
+
+    // Pre-conditions.
+    BEGIN_CONTRACT_SCOPE
+    {
+      // We require the input IDs be sorted and unique.
+      for (typename std::vector<index_t,DataAllocator<index_t>>::const_iterator itr = elements.begin();
+           itr + 1 < elements.end();
+           ++itr) {
+        REQUIRE(*itr < *(itr + 1));
+      }
+      if (elements.size() > 0)
+        REQUIRE(elements[0] >= 0 && elements.back() < originalSize);
+    }
+    END_CONTRACT_SCOPE
+    // Remove the elements.
+    // We prefer not to use the vector::erase here 'cause if we're removing
+    // many elements the copy and move behaviour of erase can make this
+    // an N^2 thing.  Yuck!
+    typename std::vector<index_t,DataAllocator<index_t>>::const_iterator delItr = elements.begin();
+    typename std::vector<index_t,DataAllocator<index_t>>::const_iterator endItr = elements.end();
+    index_t i = *delItr;
+    index_t j = i + 1;
+    ++delItr;
+    while (j != originalSize and delItr != endItr) {
+      if (j == *delItr) {
+        ++delItr;
+        ++j;
+      } else {
+        vec[i] = vec[j];
+        ++i;
+        ++j;
+      }
+    }
+    if (j != originalSize) copy(vec.begin() + j, vec.end(), vec.begin() + i);
+
+    // Resize vec to it's new size.
+    vec.erase(vec.begin() + newSize, vec.end());
+
+    // Post-conditions.
+    ENSURE(vec.size() == newSize);
+  }
 }
+
+
+} // end Spheral namespace
 
 #endif

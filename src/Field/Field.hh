@@ -216,11 +216,11 @@ public:
   virtual void resizeFieldInternal(unsigned size, unsigned oldFirstGhostNode);
   virtual void resizeFieldGhost(unsigned size);
   virtual void deleteElement(int nodeID);
-  virtual void deleteElements(const std::vector<int>& nodeIDs);
-  virtual std::vector<char> packValues(const std::vector<int>& nodeIDs) const;
+  virtual void deleteElements(const std::vector<int,DataAllocator<int>>& nodeIDs);
+  virtual std::vector<char,DataAllocator<char>> packValues(const std::vector<int,DataAllocator<int>>& nodeIDs) const;
   virtual void unpackValues(const int numElements,
                             const int beginInsertionIndex,
-                            const std::vector<char>& buffer);
+                            const std::vector<char,DataAllocator<char>>& buffer);
 
   // Methods to use the iostream methods converting a Field to/from a string.
   std::string string(const int precision = 20) const;
