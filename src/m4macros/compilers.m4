@@ -54,6 +54,7 @@ AC_SUBST(LDPASSTHROUGH)
 
 AC_SUBST(CXXFLAGS)
 AC_SUBST(EXTRAFLAGS)
+AC_SUBST(EXTRAINCLUDES)
 AC_SUBST(FORTFLAGS)
 AC_SUBST(CFLAGS)
 AC_SUBST(MPICCFLAGS)
@@ -697,6 +698,7 @@ AC_ARG_WITH(openmp,
    else
       CXXFLAGS+=" -fopenmp"
       EXTRAFLAGS+=" -DUSE_UVM  -fopenmp-targets=nvptx64-nvidia-gpu -fopenmp-implicit-declare-target"
+      EXTRAINCLUDES+=" -I/usr/local/cuda-8.0/include"
    fi
 ],
 [
