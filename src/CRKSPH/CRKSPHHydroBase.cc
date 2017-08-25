@@ -964,11 +964,11 @@ evaluateDerivatives(const typename Dimension::Scalar time,
               CHECK(rhoj > 0.0);
               const Vector forceij = (surfacePoint(nodeListi, i) == 0 ?
                                       0.5*wi*wj*((Pi + Pj)*deltagradi + Qaccij) :                    // <- Type III, with CRKSPH Q forces
-                                      mi*wj*(Pj - Pi)/rhoi*gradWj + 0.5*wi*wj*Qaccij);
+                                      mi*wj*((Pj - Pi)/rhoi*gradWj + rhoi*QPiij.first.dot(gradWj)));
                                       // wj*mi*(Pj - Pi + 0.5*(Qj + Qi))/rhoi*gradWj);
               const Vector forceji = (surfacePoint(nodeListj, j) == 0 ?
                                       0.5*wi*wj*((Pi + Pj)*deltagradj + Qaccji) :                    // <- Type III, with CRKSPH Q forces
-                                      mj*wi*(Pj - Pi)/rhoj*gradWi + 0.5*wi*wj*Qaccji);
+                                      mj*wi*((Pj - Pi)/rhoj*gradWi - rhoj*QPiij.second.dot(gradWi)));
                                       // wi*mj*(Pj - Pi + 0.5*(Qj + Qi))/rhoj*gradWi);
               DvDti -= forceij/mi;
               DvDtj += forceji/mj; 
@@ -994,12 +994,10 @@ evaluateDerivatives(const typename Dimension::Scalar time,
 
               DepsDti += (surfacePoint(nodeListi, i) == 0 ?
                           0.5*wi*wj*(Pj*vij.dot(deltagradi) + workQi)/mi :    // CRK Q
-                          0.5*wi*wj*workQi/mi);
-              // wj*0.5*(Qi + Qj)*vij.dot(gradWj));
+                          wj*rhoi*QPiij.first.dot(vij).dot(gradWj));
               DepsDtj += (surfacePoint(nodeListj, j) == 0 ? 
                           0.5*wi*wj*(Pi*vij.dot(deltagradj) + workQj)/mj :    // CRK Q
-                          0.5*wi*wj*workQj/mj);
-              // -wi*0.5*(Qi + Qj)*vij.dot(gradWi));
+                          -wi*rhoj*QPiij.second.dot(vij).dot(gradWi));
 
               // DepsDti += 0.5*wi*wj*(Pj*vij.dot(deltagradi) + workQi)/mi;    // CRK Q
               // DepsDtj += 0.5*wi*wj*(Pi*vij.dot(deltagradj) + workQj)/mj;    // CRK Q
