@@ -908,10 +908,10 @@ evaluateDerivatives(const typename Dimension::Scalar time,
               // Symmetrized kernel weight and gradient.
               CRKSPHKernelAndGradient(Wj, gWj, gradWj, W, order,  rij,  etai, Hi, Hdeti,  etaj, Hj, Hdetj, Ai, Bi, Ci, gradAi, gradBi, gradCi, mCorrectionMin, mCorrectionMax);
               CRKSPHKernelAndGradient(Wi, gWi, gradWi, W, order, -rij, -etaj, Hj, Hdetj, -etai, Hi, Hdeti, Aj, Bj, Cj, gradAj, gradBj, gradCj, mCorrectionMin, mCorrectionMax);
-              // deltagradi = gradWj - gradWi;
-              // deltagradj = gradWj - gradWi;
-              deltagradi = surfacePoint(nodeListi, i) == 0 ? gradWj - gradWi :  gradWj;
-              deltagradj = surfacePoint(nodeListj, j) == 0 ? gradWj - gradWi : -gradWi;
+              deltagradi = gradWj - gradWi;
+              deltagradj = gradWj - gradWi;
+              // deltagradi = surfacePoint(nodeListi, i) == 0 ? gradWj - gradWi :  gradWj;
+              // deltagradj = surfacePoint(nodeListj, j) == 0 ? gradWj - gradWi : -gradWi;
               const Vector gradWSPHi = (Hi*etai.unitVector())*W.gradValue(etai.magnitude(), Hdeti);
               const Vector gradWSPHj = (Hj*etaj.unitVector())*W.gradValue(etaj.magnitude(), Hdetj);
 
@@ -962,12 +962,14 @@ evaluateDerivatives(const typename Dimension::Scalar time,
               // Acceleration (CRKSPH form).
               CHECK(rhoi > 0.0);
               CHECK(rhoj > 0.0);
-              const Vector forceij = (true ? // surfacePoint(nodeListi, i) == 0 ?
+              const Vector forceij = (surfacePoint(nodeListi, i) == 0 ?
                                       0.5*wi*wj*((Pi + Pj)*deltagradi + Qaccij) :                    // <- Type III, with CRKSPH Q forces
-                                      mi*wj*(Pj - Pi)/rhoi*gradWj + Qaccij);
-              const Vector forceji = (true ? // surfacePoint(nodeListj, j) == 0 ?
+                                      mi*wj*(Pj - Pi)/rhoi*gradWj + 0.5*wi*wj*Qaccij);
+                                      // wj*mi*(Pj - Pi + 0.5*(Qj + Qi))/rhoi*gradWj);
+              const Vector forceji = (surfacePoint(nodeListj, j) == 0 ?
                                       0.5*wi*wj*((Pi + Pj)*deltagradj + Qaccji) :                    // <- Type III, with CRKSPH Q forces
-                                      mj*wi*(Pi - Pj)/rhoj*gradWi - Qaccji);
+                                      mj*wi*(Pj - Pi)/rhoj*gradWi + 0.5*wi*wj*Qaccji);
+                                      // wi*mj*(Pj - Pi + 0.5*(Qj + Qi))/rhoj*gradWi);
               DvDti -= forceij/mi;
               DvDtj += forceji/mj; 
               if (mCompatibleEnergyEvolution) {
@@ -990,12 +992,14 @@ evaluateDerivatives(const typename Dimension::Scalar time,
               // DepsDti += fTEi*        DTEDtij/mi;
               // DepsDtj += (1.0 - fTEi)*DTEDtij/mj;
 
-              DepsDti += (true ? // surfacePoint(nodeListi, i) == 0 ?
-                          0.25*wi*wj*((Pi + Pj)*vij.dot(deltagradi) + workQi)/mi :    // CRK Q
-                          wj*Pj/rhoi*vij.dot(gradWj) + workQi/mi);
-              DepsDtj += (true ? // surfacePoint(nodeListj, j) == 0 ? 
-                          0.25*wi*wj*((Pi + Pj)*vij.dot(deltagradj) + workQj)/mj :    // CRK Q
-                          wi*Pi/rhoj*vij.dot(gradWi) + workQj/mj);
+              DepsDti += (surfacePoint(nodeListi, i) == 0 ?
+                          0.5*wi*wj*(Pj*vij.dot(deltagradi) + workQi)/mi :    // CRK Q
+                          0.5*wi*wj*workQi/mi);
+              // wj*0.5*(Qi + Qj)*vij.dot(gradWj));
+              DepsDtj += (surfacePoint(nodeListj, j) == 0 ? 
+                          0.5*wi*wj*(Pi*vij.dot(deltagradj) + workQj)/mj :    // CRK Q
+                          0.5*wi*wj*workQj/mj);
+              // -wi*0.5*(Qi + Qj)*vij.dot(gradWi));
 
               // DepsDti += 0.5*wi*wj*(Pj*vij.dot(deltagradi) + workQi)/mi;    // CRK Q
               // DepsDtj += 0.5*wi*wj*(Pi*vij.dot(deltagradj) + workQj)/mj;    // CRK Q
@@ -1018,6 +1022,9 @@ evaluateDerivatives(const typename Dimension::Scalar time,
       CHECK(not mCompatibleEnergyEvolution or NodeListRegistrar<Dimension>::instance().domainDecompositionIndependent() or
             (i >= firstGhostNodei and pairAccelerationsi.size() == 0) or
             (pairAccelerationsi.size() == numNeighborsi));
+
+      // For a surface point, add the RK thermal energy evolution.
+      if (surfacePoint(nodeListi, i) != 0) DepsDti -= Pi/rhoi*DvDxi.Trace();
 
       // // If this is a surface point, it's straight RK and there are self-contributions.
       // if (surfacePoint(nodeListi, i) != 0) {
