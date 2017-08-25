@@ -550,7 +550,7 @@ if graphics:
              (csPlot, "Sod-planar-cs.png"),
              (Aplot, "Sod-planar-entropy.png")]
     
-    if CRKSPH:
+    if crksph:
         volPlot = plotFieldList(hydro.volume(), 
                                 winTitle = "volume",
                                 colorNodeLists = False, plotGhosts = False)
