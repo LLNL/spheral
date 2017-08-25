@@ -962,12 +962,12 @@ evaluateDerivatives(const typename Dimension::Scalar time,
               // Acceleration (CRKSPH form).
               CHECK(rhoi > 0.0);
               CHECK(rhoj > 0.0);
-              const Vector forceij = (surfacePoint(nodeListi, i) == 0 ?
+              const Vector forceij = (true ? // surfacePoint(nodeListi, i) == 0 ?
                                       0.5*wi*wj*((Pi + Pj)*deltagradi + Qaccij) :                    // <- Type III, with CRKSPH Q forces
-                                      wj*(Pj - Pi)/rhoi*gradWj + Qaccij);
-              const Vector forceji = (surfacePoint(nodeListj, j) == 0 ?
+                                      mi*wj*(Pj - Pi)/rhoi*gradWj + Qaccij);
+              const Vector forceji = (true ? // surfacePoint(nodeListj, j) == 0 ?
                                       0.5*wi*wj*((Pi + Pj)*deltagradj + Qaccji) :                    // <- Type III, with CRKSPH Q forces
-                                      wi*(Pj - Pi)/rhoj*gradWi + Qaccji);
+                                      mj*wi*(Pi - Pj)/rhoj*gradWi - Qaccji);
               DvDti -= forceij/mi;
               DvDtj += forceji/mj; 
               if (mCompatibleEnergyEvolution) {
@@ -990,12 +990,12 @@ evaluateDerivatives(const typename Dimension::Scalar time,
               // DepsDti += fTEi*        DTEDtij/mi;
               // DepsDtj += (1.0 - fTEi)*DTEDtij/mj;
 
-              DepsDti += (surfacePoint(nodeListi, i) == 0 ?
+              DepsDti += (true ? // surfacePoint(nodeListi, i) == 0 ?
                           0.25*wi*wj*((Pi + Pj)*vij.dot(deltagradi) + workQi)/mi :    // CRK Q
-                          wj*(Pi - Pj)/rhoi*vij.dot(gradWj) + workQi/mi);
-              DepsDtj += (surfacePoint(nodeListj, j) == 0 ? 
+                          wj*Pj/rhoi*vij.dot(gradWj) + workQi/mi);
+              DepsDtj += (true ? // surfacePoint(nodeListj, j) == 0 ? 
                           0.25*wi*wj*((Pi + Pj)*vij.dot(deltagradj) + workQj)/mj :    // CRK Q
-                          wi*(Pi - Pj)/rhoj*vij.dot(gradWi) + workQj/mj);
+                          wi*Pi/rhoj*vij.dot(gradWi) + workQj/mj);
 
               // DepsDti += 0.5*wi*wj*(Pj*vij.dot(deltagradi) + workQi)/mi;    // CRK Q
               // DepsDtj += 0.5*wi*wj*(Pi*vij.dot(deltagradj) + workQj)/mj;    // CRK Q
