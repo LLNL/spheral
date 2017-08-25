@@ -106,7 +106,6 @@ computeVoronoiVolume(const FieldList<Dim<3>, Dim<3>::Vector>& position,
                      const FieldSpace::FieldList<Dim<3>, Dim<3>::Scalar>& rho,
                      const FieldSpace::FieldList<Dim<3>, Dim<3>::Vector>& gradRho,
                      const ConnectivityMap<Dim<3> >& connectivityMap,
-                     const Dim<3>::Scalar kernelExtent,
                      const std::vector<Dim<3>::FacetedVolume>& boundaries,
                      const std::vector<std::vector<Dim<3>::FacetedVolume> >& holes,
                      const FieldSpace::FieldList<Dim<3>, Dim<3>::Scalar>& weight,
@@ -154,9 +153,6 @@ computeVoronoiVolume(const FieldList<Dim<3>, Dim<3>::Vector>& position,
   // ttotal = std::clock();
 
   if (numGensGlobal > 0) {
-
-    // (Square) of the distance to a facet in an icosahedon.
-    const Scalar rin2 = 0.25*kernelExtent*kernelExtent * (15.0*(5.0+sqrt(5.0)))/900.0;
 
     // Build an approximation of the starting kernel shape (in eta space) as an icosahedron.
     const unsigned nverts = 12;
@@ -217,23 +213,25 @@ computeVoronoiVolume(const FieldList<Dim<3>, Dim<3>::Vector>& position,
     for (unsigned j = 0; j != nfaces; ++j) delete[] facesp[j];
     delete[] facesp;
 
-    // Scale the template icosahedron to have the initial volume of a sphere of radius kernelExtent.
+    // Scale the template icosahedron to have the initial volume of a unit sphere.
     r3d_real voli[1], firstmom[4];
     r3d_reduce(&initialCell, voli, 0);
     CHECK(voli[0] > 0.0);
-    const double volscale = Dim<3>::rootnu(4.0/3.0*M_PI/voli[0])*kernelExtent;
+    const double volscale = Dim<3>::rootnu(4.0/3.0*M_PI/voli[0]);
     r3d_scale(&initialCell, volscale);
     CHECK(r3d_is_good(&initialCell));
     BEGIN_CONTRACT_SCOPE
     {
       r3d_reduce(&initialCell, voli, 0);
-      CHECK2(fuzzyEqual(voli[0], 4.0/3.0*M_PI*Dim<3>::pownu(kernelExtent), 1.0e-10), voli[0] << " " << 4.0/3.0*M_PI*Dim<3>::pownu(kernelExtent) << " " << volscale);
+      CHECK2(fuzzyEqual(voli[0], 4.0/3.0*M_PI, 1.0e-10),
+             voli[0] << " " << 4.0/3.0*M_PI << " " << volscale);
     }
     END_CONTRACT_SCOPE
     
     // Walk the points.
     for (unsigned nodeListi = 0; nodeListi != numNodeLists; ++nodeListi) {
       const unsigned n = vol[nodeListi]->numInternalElements();
+      const Scalar rin = 2.0/vol[nodeListi]->nodeListPtr()->nodesPerSmoothingScale();
       for (unsigned i = 0; i != n; ++i) {
 
         const Vector& ri = position(nodeListi, i);
@@ -287,7 +285,7 @@ computeVoronoiVolume(const FieldList<Dim<3>, Dim<3>::Vector>& position,
           for (const Facet& facet: facets) {
             const Vector p = facet.closestPoint(ri);
             Vector rij = ri - p;
-            if ((Hi*rij).magnitude2() < kernelExtent*kernelExtent) {
+            if ((Hi*rij).magnitude2() < rin*rin) {
               Vector nhat;
               if (rij.magnitude() < 1.0e-5*facet.area()) {
                 rij.Zero();
@@ -310,7 +308,7 @@ computeVoronoiVolume(const FieldList<Dim<3>, Dim<3>::Vector>& position,
             for (const Facet& facet: facets) {
               const Vector p = facet.closestPoint(ri);
               Vector rij = ri - p;
-              if ((Hi*rij).magnitude2() < kernelExtent*kernelExtent) {
+              if ((Hi*rij).magnitude2() < rin*rin) {
                 Vector nhat;
                 if (rij.magnitude2() < 1.0e-5*facet.area()) {
                   rij.Zero();
@@ -345,7 +343,7 @@ computeVoronoiVolume(const FieldList<Dim<3>, Dim<3>::Vector>& position,
           celli = initialCell;
           for (unsigned k = 0; k != celli.nverts; ++k) {
             r3d_vertex& vert = celli.verts[k];
-            const Vector vi = Hinv*Vector(vert.pos.x, vert.pos.y, vert.pos.z);
+            const Vector vi = rin*Hinv*Vector(vert.pos.x, vert.pos.y, vert.pos.z);
             vert.pos.x = vi.x();
             vert.pos.y = vi.y();
             vert.pos.z = vi.z();
@@ -370,7 +368,7 @@ computeVoronoiVolume(const FieldList<Dim<3>, Dim<3>::Vector>& position,
         {
           unsigned k = 0;
           while (interior and k != celli.nverts) {
-            interior = (Hi*Vector(celli.verts[k].pos.x, celli.verts[k].pos.y, celli.verts[k].pos.z)).magnitude2() < rin2;
+            interior = (Hi*Vector(celli.verts[k].pos.x, celli.verts[k].pos.y, celli.verts[k].pos.z)).magnitude2() < rin*rin;
             ++k;
           }
         }

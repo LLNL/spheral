@@ -286,7 +286,7 @@ initializeProblemStartup(DataBase<Dimension>& dataBase) {
   } else if (mVolumeType == CRKVolumeType::CRKVoronoiVolume) {
     mVolume.assignFields(mass/massDensity);
     FieldList<Dimension, typename Dimension::FacetedVolume> cells;
-    computeVoronoiVolume(position, H, massDensity, mMassDensityGradient, connectivityMap, W.kernelExtent(), 
+    computeVoronoiVolume(position, H, massDensity, mMassDensityGradient, connectivityMap, 
                          vector<typename Dimension::FacetedVolume>(),               // no boundaries
                          vector<vector<typename Dimension::FacetedVolume> >(),      // no holes
                          FieldList<Dimension, typename Dimension::Scalar>(),        // no weights
@@ -1222,7 +1222,7 @@ finalize(const typename Dimension::Scalar time,
   } else if (mVolumeType == CRKVolumeType::CRKVoronoiVolume) {
     vol.assignFields(mass/massDensity);
     FieldList<Dimension, typename Dimension::FacetedVolume> cells;
-    computeVoronoiVolume(position, H, massDensity, gradRho, connectivityMap, W.kernelExtent(), 
+    computeVoronoiVolume(position, H, massDensity, gradRho, connectivityMap, 
                          vector<typename Dimension::FacetedVolume>(),                // no boundaries
                          vector<vector<typename Dimension::FacetedVolume> >(),       // no holes
                          FieldList<Dimension, typename Dimension::Scalar>(),         // no weights

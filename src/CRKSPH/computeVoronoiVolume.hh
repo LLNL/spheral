@@ -8,9 +8,6 @@
 
 #include "Field/FieldList.hh"
 #include "Neighbor/ConnectivityMap.hh"
-#include "Kernel/TableKernel.hh"
-#include "Boundary/Boundary.hh"
-#include "CRKSPHCorrectionParams.hh"
 
 namespace Spheral {
   namespace CRKSPHSpace {
@@ -23,7 +20,6 @@ namespace Spheral {
                          const FieldSpace::FieldList<Dim<1>, Dim<1>::Scalar>& rho,
                          const FieldSpace::FieldList<Dim<1>, Dim<1>::Vector>& gradRho,
                          const NeighborSpace::ConnectivityMap<Dim<1> >& connectivityMap,
-                         const Dim<1>::Scalar kernelExtent,
                          const std::vector<Dim<1>::FacetedVolume>& boundaries,
                          const std::vector<std::vector<Dim<1>::FacetedVolume> >& holes,
                          const FieldSpace::FieldList<Dim<1>, Dim<1>::Scalar>& weight,
@@ -43,7 +39,6 @@ namespace Spheral {
                          const FieldSpace::FieldList<Dim<2>, Dim<2>::Scalar>& rho,
                          const FieldSpace::FieldList<Dim<2>, Dim<2>::Vector>& gradRho,
                          const NeighborSpace::ConnectivityMap<Dim<2> >& connectivityMap,
-                         const Dim<2>::Scalar kernelExtent,
                          const std::vector<Dim<2>::FacetedVolume>& boundaries,
                          const std::vector<std::vector<Dim<2>::FacetedVolume> >& holes,
                          const FieldSpace::FieldList<Dim<2>, Dim<2>::Scalar>& weight,
@@ -63,7 +58,6 @@ namespace Spheral {
                          const FieldSpace::FieldList<Dim<3>, Dim<3>::Scalar>& rho,
                          const FieldSpace::FieldList<Dim<3>, Dim<3>::Vector>& gradRho,
                          const NeighborSpace::ConnectivityMap<Dim<3> >& connectivityMap,
-                         const Dim<3>::Scalar kernelExtent,
                          const std::vector<Dim<3>::FacetedVolume>& boundaries,
                          const std::vector<std::vector<Dim<3>::FacetedVolume> >& holes,
                          const FieldSpace::FieldList<Dim<3>, Dim<3>::Scalar>& weight,

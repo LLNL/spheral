@@ -90,7 +90,6 @@ computeVoronoiVolume(const FieldList<Dim<2>, Dim<2>::Vector>& position,
                      const FieldSpace::FieldList<Dim<2>, Dim<2>::Scalar>& rho,
                      const FieldSpace::FieldList<Dim<2>, Dim<2>::Vector>& gradRho,
                      const ConnectivityMap<Dim<2> >& connectivityMap,
-                     const Dim<2>::Scalar kernelExtent,
                      const std::vector<Dim<2>::FacetedVolume>& boundaries,
                      const std::vector<std::vector<Dim<2>::FacetedVolume> >& holes,
                      const FieldSpace::FieldList<Dim<2>, Dim<2>::Scalar>& weight,
@@ -139,16 +138,14 @@ computeVoronoiVolume(const FieldList<Dim<2>, Dim<2>::Vector>& position,
 
   if (numGensGlobal > 0) {
 
-    const Scalar rin2 = 0.25*kernelExtent*kernelExtent;
-
-    // Build an approximation of the starting kernel shape.
+    // Unit circle as template shape.
     const unsigned nverts = 18;
     const double dtheta = 2.0*M_PI/nverts;
     r2d_rvec2 verts[nverts];
     for (unsigned j = 0; j != nverts; ++j) {
       const double theta = j*dtheta;
-      verts[j].x = kernelExtent*cos(theta);
-      verts[j].y = kernelExtent*sin(theta);
+      verts[j].x = cos(theta);
+      verts[j].y = sin(theta);
     }
     r2d_poly initialCell;
     r2d_init_poly(&initialCell, verts, nverts);
@@ -158,6 +155,7 @@ computeVoronoiVolume(const FieldList<Dim<2>, Dim<2>::Vector>& position,
     r2d_real firstmom[3], firstmomvoid[3];
     for (unsigned nodeListi = 0; nodeListi != numNodeLists; ++nodeListi) {
       const unsigned n = vol[nodeListi]->numInternalElements();
+      const Scalar rin = 2.0/vol[nodeListi]->nodeListPtr()->nodesPerSmoothingScale();
       for (unsigned i = 0; i != n; ++i) {
 
         const Vector& ri = position(nodeListi, i);
@@ -216,7 +214,7 @@ computeVoronoiVolume(const FieldList<Dim<2>, Dim<2>::Vector>& position,
           for (const Facet& facet: facets) {
             const Vector p = facet.closestPoint(ri);
             Vector rij = ri - p;
-            if ((Hi*rij).magnitude2() < kernelExtent*kernelExtent) {
+            if ((Hi*rij).magnitude2() < rin*rin) {
               Vector nhat;
               if (rij.magnitude() < 1.0e-5*facet.area()) {
                 rij.Zero();
@@ -238,7 +236,7 @@ computeVoronoiVolume(const FieldList<Dim<2>, Dim<2>::Vector>& position,
             for (const Facet& facet: facets) {
               const Vector p = facet.closestPoint(ri);
               Vector rij = ri - p;
-              if ((Hi*rij).magnitude2() < kernelExtent*kernelExtent) {
+              if ((Hi*rij).magnitude2() < rin*rin) {
                 Vector nhat;
                 if (rij.magnitude2() < 1.0e-5*facet.area()) {
                   rij.Zero();
@@ -270,7 +268,7 @@ computeVoronoiVolume(const FieldList<Dim<2>, Dim<2>::Vector>& position,
           celli = initialCell;
           for (unsigned k = 0; k != celli.nverts; ++k) {
             r2d_vertex& vert = celli.verts[k];
-            const Vector vi = Hinv*Vector(vert.pos.x, vert.pos.y);
+            const Vector vi = rin*Hinv*Vector(vert.pos.x, vert.pos.y);
             vert.pos.x = vi.x();
             vert.pos.y = vi.y();
           }
@@ -308,7 +306,7 @@ computeVoronoiVolume(const FieldList<Dim<2>, Dim<2>::Vector>& position,
         {
           unsigned k = 0;
           while (interior and k != celli.nverts) {
-            interior = (Hi*Vector(celli.verts[k].pos.x, celli.verts[k].pos.y)).magnitude2() < rin2;
+            interior = (Hi*Vector(celli.verts[k].pos.x, celli.verts[k].pos.y)).magnitude2() < rin*rin;
             ++k;
           }
         }

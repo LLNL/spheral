@@ -159,7 +159,6 @@ self.generateSolidCRKSPHHydroBaseBindings(self.SolidCRKSPHHydroBase%(dim)id, %(d
                                  constrefparam(scalarfieldlist, "rho"),
                                  constrefparam(vectorfieldlist, "gradRho"),
                                  constrefparam(connectivitymap, "connectivityMap"),
-                                 param("double", "kernelExtent"),
                                  constrefparam(vector_of_FacetedVolume, "boundaries"),
                                  constrefparam(vector_of_vector_of_FacetedVolume, "holes"),
                                  constrefparam(scalarfieldlist, "weights"),
