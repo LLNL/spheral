@@ -39,6 +39,23 @@ using NodeSpace::NodeList;
 using NodeSpace::FluidNodeList;
 using NeighborSpace::ConnectivityMap;
 
+namespace {
+
+inline double weighting(const double wi,
+                        const double wj,
+                        const double Eij) {
+  const int si = isgn0(wi);
+  const int sj = isgn0(wj);
+  const int sij = isgn0(wij);
+  if (sij == 0 or (si == 0 and sj == 0))             return 0.5;
+  if (si == sj and sj == sij)                        return wi/(wi + wj);  // All the same sign and non-zero
+  if (si == sj)                                      return 0.5;
+  if (si == sij)                                     return 1.0;
+  return 0.0;
+}
+
+}
+
 //------------------------------------------------------------------------------
 // Constructor.
 //------------------------------------------------------------------------------
@@ -90,9 +107,18 @@ update(const KeyType& key,
   const FieldList<Dimension, Scalar> eps0 = state.fields(HydroFieldNames::specificThermalEnergy + "0", Scalar());
   const FieldList<Dimension, Scalar> entropy = state.fields(HydroFieldNames::entropy, Scalar());
   const FieldList<Dimension, vector<Vector> > pairAccelerations = derivs.fields(HydroFieldNames::pairAccelerations, vector<Vector>());
+  const FieldList<Dimension, Scalar> DepsDt_noncompat = derivs.fields(IncrementFieldList<Dimension, Field<Dimension, Scalar> >::prefix() + HydroFieldNames::specificThermalEnergy, 0.0);
   const ConnectivityMap<Dimension>& connectivityMap = mDataBasePtr->connectivityMap();
   const vector<const NodeList<Dimension>*>& nodeLists = connectivityMap.nodeLists();
   CHECK(nodeLists.size() == numFields);
+
+  // // Check if there is a surface point flag field registered.  If so, we use non-compatible energy evolution 
+  // // on such points.
+  // const bool surface = state.fieldNameRegistered(HydroFieldNames::surfacePoint);
+  // FieldList<Dimension, int> surfacePoint;
+  // if (surface) {
+  //   surfacePoint = state.fields(HydroFieldNames::surfacePoint, int(0));
+  // }
 
   // Prepare a counter to keep track of how we go through the pair-accelerations.
   FieldList<Dimension, Scalar> DepsDt = mDataBasePtr->newFluidFieldList(0.0, "delta E");
@@ -204,8 +230,14 @@ update(const KeyType& key,
       //      DepsDti += dEii;
 
       // Now we can update the energy.
-      CHECK(offset(nodeListi, i) == pacci.size());
-      eps(nodeListi, i) += DepsDti*multiplier;
+      CHECK2(offset(nodeListi, i) == pacci.size() or NodeListRegistrar<Dimension>::instance().domainDecompositionIndependent(),
+             "Bad sizing : (" << nodeListi << " " << i << ") " << offset(nodeListi, i) << " " << pacci.size());
+      // if (surface and surfacePoint(nodeListi, i) != 0) {
+      //   eps(nodeListi, i) += DepsDt_noncompat(nodeListi, i)*multiplier;
+      // } else {
+        eps(nodeListi, i) += DepsDti*multiplier;
+      // }
+
     }
   }
 }
