@@ -39,22 +39,22 @@ using NodeSpace::NodeList;
 using NodeSpace::FluidNodeList;
 using NeighborSpace::ConnectivityMap;
 
-namespace {
+// namespace {
 
-inline double weighting(const double wi,
-                        const double wj,
-                        const double Eij) {
-  const int si = isgn0(wi);
-  const int sj = isgn0(wj);
-  const int sij = isgn0(wij);
-  if (sij == 0 or (si == 0 and sj == 0))             return 0.5;
-  if (si == sj and sj == sij)                        return wi/(wi + wj);  // All the same sign and non-zero
-  if (si == sj)                                      return 0.5;
-  if (si == sij)                                     return 1.0;
-  return 0.0;
-}
+// inline double weighting(const double wi,
+//                         const double wj,
+//                         const double Eij) {
+//   const int si = isgn0(wi);
+//   const int sj = isgn0(wj);
+//   const int sij = isgn0(wij);
+//   if (sij == 0 or (si == 0 and sj == 0))             return 0.5;
+//   if (si == sj and sj == sij)                        return wi/(wi + wj);  // All the same sign and non-zero
+//   if (si == sj)                                      return 0.5;
+//   if (si == sij)                                     return 1.0;
+//   return 0.0;
+// }
 
-}
+// }
 
 //------------------------------------------------------------------------------
 // Constructor.
@@ -107,18 +107,18 @@ update(const KeyType& key,
   const FieldList<Dimension, Scalar> eps0 = state.fields(HydroFieldNames::specificThermalEnergy + "0", Scalar());
   const FieldList<Dimension, Scalar> entropy = state.fields(HydroFieldNames::entropy, Scalar());
   const FieldList<Dimension, vector<Vector> > pairAccelerations = derivs.fields(HydroFieldNames::pairAccelerations, vector<Vector>());
-  const FieldList<Dimension, Scalar> DepsDt_noncompat = derivs.fields(IncrementFieldList<Dimension, Field<Dimension, Scalar> >::prefix() + HydroFieldNames::specificThermalEnergy, 0.0);
+  // const FieldList<Dimension, Scalar> DepsDt0 = derivs.fields(IncrementFieldList<Dimension, Field<Dimension, Scalar> >::prefix() + HydroFieldNames::specificThermalEnergy, 0.0);
   const ConnectivityMap<Dimension>& connectivityMap = mDataBasePtr->connectivityMap();
   const vector<const NodeList<Dimension>*>& nodeLists = connectivityMap.nodeLists();
   CHECK(nodeLists.size() == numFields);
 
-  // // Check if there is a surface point flag field registered.  If so, we use non-compatible energy evolution 
-  // // on such points.
-  // const bool surface = state.fieldNameRegistered(HydroFieldNames::surfacePoint);
-  // FieldList<Dimension, int> surfacePoint;
-  // if (surface) {
-  //   surfacePoint = state.fields(HydroFieldNames::surfacePoint, int(0));
-  // }
+  // Check if there is a surface point flag field registered.  If so, we use non-compatible energy evolution 
+  // on such points.
+  const bool surface = state.fieldNameRegistered(HydroFieldNames::surfacePoint);
+  FieldList<Dimension, int> surfacePoint;
+  if (surface) {
+    surfacePoint = state.fields(HydroFieldNames::surfacePoint, int(0));
+  }
 
   // Prepare a counter to keep track of how we go through the pair-accelerations.
   FieldList<Dimension, Scalar> DepsDt = mDataBasePtr->newFluidFieldList(0.0, "delta E");
@@ -136,6 +136,7 @@ update(const KeyType& key,
 
       // State for node i.
       Scalar& DepsDti = DepsDt(nodeListi, i);
+      // const Scalar DepsDt0i = DepsDt0(nodeListi, i);
       const Scalar mi = mass(nodeListi, i);
       const Scalar si = entropy(nodeListi, i);
       const Vector& vi = velocity(nodeListi, i);
@@ -168,6 +169,7 @@ update(const KeyType& key,
                                                          nodeListj, j,
                                                          firstGhostNodej)) {
               Scalar& DepsDtj = DepsDt(nodeListj, j);
+              // const Scalar DepsDt0j = DepsDt0(nodeListj, j);
               const Scalar mj = mass(nodeListj, j);
               const Scalar sj = entropy(nodeListj, j);
               const Vector& vj = velocity(nodeListj, j);
@@ -187,14 +189,23 @@ update(const KeyType& key,
 
               const Scalar dEij = -(mi*vi12.dot(pai) + mj*vj12.dot(paj));
               const Scalar duij = dEij/mi;
+
+              // const Scalar wi = paj.magnitude()*safeInv(pai.magnitude() + paj.magnitude());
+              // const Scalar wi = (isgn0(DepsDt0i + DepsDt0j) != 0 ?
+              //                    DepsDt0i/(DepsDt0i + DepsDt0j) :
+              //                    entropyWeighting(si, sj, duij));
+              // const Scalar wi = (isgn0(dEij) == isgn0(DepsDt0i + DepsDt0j) and isgn0(dEij) != 0 ?
+              //                    DepsDt0i/(DepsDt0i + DepsDt0j) :
+              //                    entropyWeighting(si, sj, duij));
+
               const Scalar wi = entropyWeighting(si, sj, duij);
               // const Scalar wi = standardWeighting(ui, uj, mi, mj, duij)
               // const Scalar wi = PoverRho2Weighting(Pi, rhoi, Pj, rhoj);
               // const Scalar wi = weighting(ui, uj, mi, mj, duij, dt);
 
               CHECK(wi >= 0.0 and wi <= 1.0);
-              CHECK2(fuzzyEqual(wi + entropyWeighting(sj, si, dEij/mj), 1.0, 1.0e-10),
-                     wi << " " << entropyWeighting(sj, si, dEij/mj) << " " << (wi + entropyWeighting(sj, si, dEij/mj)));
+              // CHECK2(fuzzyEqual(wi + entropyWeighting(sj, si, dEij/mj), 1.0, 1.0e-10),
+              //        wi << " " << entropyWeighting(sj, si, dEij/mj) << " " << (wi + entropyWeighting(sj, si, dEij/mj)));
               DepsDti += wi*duij;
               DepsDtj += (1.0 - wi)*dEij/mj;
             }
@@ -209,34 +220,16 @@ update(const KeyType& key,
         ++offset(nodeListi, i);
       }
 
-      // // Grab the self-interaction term.  We will distribute this amongst our neighbors.
-      // const unsigned numNeighbors = connectivityMap.numNeighborsForNode(nodeLists[nodeListi], i);
-      // const Scalar dEii = -mi*vi12.dot(pacci.back())/numNeighbors;
-      // for (size_t nodeListj = 0; nodeListj != numFields; ++nodeListj) {
-      //   const vector<int>& connectivity = fullConnectivity[nodeListj];
-      //   if (connectivity.size() > 0) {
-      // 	  const int firstGhostNodej = nodeLists[nodeListj]->firstGhostNode();
-      //     for (vector<int>::const_iterator jitr = connectivity.begin();
-      //          jitr != connectivity.end();
-      //          ++jitr) {
-      //       const int j = *jitr;
-      // 	    Scalar& DepsDtj = DepsDt(nodeListj, j);
-      // 	    const Scalar& mj = mass(nodeListj, j);
-      // 	    DepsDtj += 0.5*dEii;
-      // 	    DepsDti += 0.5*dEii;
-      // 	  }
-      // 	}
-      // }
-      //      DepsDti += dEii;
-
-      // Now we can update the energy.
-      CHECK2(offset(nodeListi, i) == pacci.size() or NodeListRegistrar<Dimension>::instance().domainDecompositionIndependent(),
-             "Bad sizing : (" << nodeListi << " " << i << ") " << offset(nodeListi, i) << " " << pacci.size());
+      // // Now we can update the energy.
+      // CHECK2(offset(nodeListi, i) == pacci.size() or NodeListRegistrar<Dimension>::instance().domainDecompositionIndependent(),
+      //        "Bad sizing : (" << nodeListi << " " << i << ") " << offset(nodeListi, i) << " " << pacci.size());
       // if (surface and surfacePoint(nodeListi, i) != 0) {
-      //   eps(nodeListi, i) += DepsDt_noncompat(nodeListi, i)*multiplier;
+      //   eps(nodeListi, i) += DepsDt0(nodeListi, i)*multiplier;
       // } else {
-        eps(nodeListi, i) += DepsDti*multiplier;
+      //      eps(nodeListi, i) += DepsDti*multiplier;
       // }
+
+      eps(nodeListi, i) += DepsDti*multiplier;
 
     }
   }
