@@ -997,7 +997,7 @@ evaluateDerivatives(const typename Dimension::Scalar time,
                           wj*rhoi*QPiij.first.dot(vij).dot(gradWj));
               DepsDtj += (surfacePoint(nodeListj, j) == 0 ? 
                           0.5*wi*wj*(Pi*vij.dot(deltagradj) + workQj)/mj :    // CRK Q
-                          -wi*rhoj*QPiij.second.dot(vij).dot(gradWi));
+                         -wi*rhoj*QPiij.second.dot(vij).dot(gradWi));
 
               // DepsDti += 0.5*wi*wj*(Pj*vij.dot(deltagradi) + workQi)/mi;    // CRK Q
               // DepsDtj += 0.5*wi*wj*(Pi*vij.dot(deltagradj) + workQj)/mj;    // CRK Q
