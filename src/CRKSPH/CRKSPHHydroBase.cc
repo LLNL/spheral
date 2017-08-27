@@ -741,7 +741,7 @@ evaluateDerivatives(const typename Dimension::Scalar time,
   ThirdRankTensor gradCi = ThirdRankTensor::zero, gradCj = ThirdRankTensor::zero;
   Scalar gWi, gWj, Wi, Wj, gW0i, gW0j, W0i, W0j;
   Vector gradWi, gradWj, gradW0i, gradW0j;
-  Vector deltagradi, deltagradj;
+  Vector deltagrad;
 
   // Start our big loop over all FluidNodeLists.
   size_t nodeListi = 0;
@@ -908,10 +908,7 @@ evaluateDerivatives(const typename Dimension::Scalar time,
               // Symmetrized kernel weight and gradient.
               CRKSPHKernelAndGradient(Wj, gWj, gradWj, W, order,  rij,  etai, Hi, Hdeti,  etaj, Hj, Hdetj, Ai, Bi, Ci, gradAi, gradBi, gradCi, mCorrectionMin, mCorrectionMax);
               CRKSPHKernelAndGradient(Wi, gWi, gradWi, W, order, -rij, -etaj, Hj, Hdetj, -etai, Hi, Hdeti, Aj, Bj, Cj, gradAj, gradBj, gradCj, mCorrectionMin, mCorrectionMax);
-              deltagradi = gradWj - gradWi;
-              deltagradj = gradWj - gradWi;
-              // deltagradi = surfacePoint(nodeListi, i) == 0 ? gradWj - gradWi :  gradWj;
-              // deltagradj = surfacePoint(nodeListj, j) == 0 ? gradWj - gradWi : -gradWi;
+              deltagrad = gradWj - gradWi;
               const Vector gradWSPHi = (Hi*etai.unitVector())*W.gradValue(etai.magnitude(), Hdeti);
               const Vector gradWSPHj = (Hj*etaj.unitVector())*W.gradValue(etaj.magnitude(), Hdetj);
 
@@ -929,11 +926,10 @@ evaluateDerivatives(const typename Dimension::Scalar time,
               const pair<Tensor, Tensor> QPiij = Q.Piij(nodeListi, i, nodeListj, j,
                                                         ri, etai, vi, rhoi, ci, Hi,
                                                         rj, etaj, vj, rhoj, cj, Hj);
-              const Vector Qaccij = (rhoi*rhoi*QPiij.first + rhoj*rhoj*QPiij.second).dot(deltagradi);
-              const Vector Qaccji = (rhoi*rhoi*QPiij.first + rhoj*rhoj*QPiij.second).dot(deltagradj);
+              const Vector Qaccij = (rhoi*rhoi*QPiij.first + rhoj*rhoj*QPiij.second).dot(deltagrad);
               // const Scalar workQij = 0.5*(vij.dot(Qaccij));
-              const Scalar workQi = rhoj*rhoj*QPiij.second.dot(vij).dot(deltagradi);                // CRK
-              const Scalar workQj = rhoi*rhoi*QPiij.first .dot(vij).dot(deltagradj);                // CRK
+              const Scalar workQi = rhoj*rhoj*QPiij.second.dot(vij).dot(deltagrad);                // CRK
+              const Scalar workQj = rhoi*rhoi*QPiij.first .dot(vij).dot(deltagrad);                // CRK
               // const Scalar workQVi =  vij.dot((rhoj*rhoj*QPiij.second).dot(gradWj));               //RK V and RK I Work
               // const Scalar workQVj =  vij.dot((rhoi*rhoi*QPiij.first).dot(gradWi));                //RK V and RK I Work
               const Scalar Qi = rhoi*rhoi*(QPiij.first. diagonalElements().maxAbsElement());
@@ -963,11 +959,11 @@ evaluateDerivatives(const typename Dimension::Scalar time,
               CHECK(rhoi > 0.0);
               CHECK(rhoj > 0.0);
               const Vector forceij = (surfacePoint(nodeListi, i) == 0 ?
-                                      0.5*wi*wj*((Pi + Pj)*deltagradi + Qaccij) :                    // <- Type III, with CRKSPH Q forces
+                                      0.5*wi*wj*((Pi + Pj)*deltagrad + Qaccij) :                    // <- Type III, with CRKSPH Q forces
                                       mi*wj*((Pj - Pi)/rhoi*gradWj + rhoi*QPiij.first.dot(gradWj)));
                                       // wj*mi*(Pj - Pi + 0.5*(Qj + Qi))/rhoi*gradWj);
               const Vector forceji = (surfacePoint(nodeListj, j) == 0 ?
-                                      0.5*wi*wj*((Pi + Pj)*deltagradj + Qaccji) :                    // <- Type III, with CRKSPH Q forces
+                                      0.5*wi*wj*((Pi + Pj)*deltagrad + Qaccij) :                    // <- Type III, with CRKSPH Q forces
                                       mj*wi*((Pj - Pi)/rhoj*gradWi - rhoj*QPiij.second.dot(gradWi)));
                                       // wi*mj*(Pj - Pi + 0.5*(Qj + Qi))/rhoj*gradWi);
               DvDti -= forceij/mi;
@@ -984,8 +980,8 @@ evaluateDerivatives(const typename Dimension::Scalar time,
               // DepsDti += 0.5*wi*wj*(Pj*vij.dot(deltagrad) + workQij)/mi;    // CRK Q
               // DepsDtj += 0.5*wi*wj*(Pi*vij.dot(deltagrad) + workQij)/mj;    // CRK Q
 
-              // const Scalar DTEDtij = 0.5*wi*wj*(Pj*vij.dot(deltagradi) + workQi + 
-              //                                   Pi*vij.dot(deltagradj) + workQj);
+              // const Scalar DTEDtij = 0.5*wi*wj*(Pj*vij.dot(deltagrad) + workQi + 
+              //                                   Pi*vij.dot(deltagrad) + workQj);
               // // const Scalar DTEDtij = forceij.dot(vij);
               // // const Scalar fTEi = entropyWeighting(si, sj, DTEDtij);
               // const Scalar fTEi = min(mi, mj)/max(mi, mj) < 1e6 ? mi/(mi + mj) : entropyWeighting(si, sj, DTEDtij);
@@ -993,14 +989,14 @@ evaluateDerivatives(const typename Dimension::Scalar time,
               // DepsDtj += (1.0 - fTEi)*DTEDtij/mj;
 
               DepsDti += (surfacePoint(nodeListi, i) == 0 ?
-                          0.5*wi*wj*(Pj*vij.dot(deltagradi) + workQi)/mi :    // CRK Q
+                          0.5*wi*wj*(Pj*vij.dot(deltagrad) + workQi)/mi :    // CRK Q
                           wj*rhoi*QPiij.first.dot(vij).dot(gradWj));
               DepsDtj += (surfacePoint(nodeListj, j) == 0 ? 
-                          0.5*wi*wj*(Pi*vij.dot(deltagradj) + workQj)/mj :    // CRK Q
+                          0.5*wi*wj*(Pi*vij.dot(deltagrad) + workQj)/mj :    // CRK Q
                          -wi*rhoj*QPiij.second.dot(vij).dot(gradWi));
 
-              // DepsDti += 0.5*wi*wj*(Pj*vij.dot(deltagradi) + workQi)/mi;    // CRK Q
-              // DepsDtj += 0.5*wi*wj*(Pi*vij.dot(deltagradj) + workQj)/mj;    // CRK Q
+              // DepsDti += 0.5*wi*wj*(Pj*vij.dot(deltagrad) + workQi)/mi;    // CRK Q
+              // DepsDtj += 0.5*wi*wj*(Pi*vij.dot(deltagrad) + workQj)/mj;    // CRK Q
 
               //DepsDti += wi*wj*(Pj*vij.dot(gradWj) + workQVi)/mi;    // RK V AND RK I (both equations are the same for Type I and V)
               //DepsDtj -= wi*wj*(Pi*vij.dot(gradWi) + workQVj)/mj;    // RK V AND RK I (Note the minus sign!)
