@@ -957,37 +957,30 @@ evaluateDerivatives(const typename Dimension::Scalar time,
 
               // We decide between RK and CRK for the momentum and energy equations based on the surface condition.
               if (surfacePoint(nodeListi, i) == 0) {
-
-                // CRKSPH acceleration
+                // CRK
                 forceij =  0.5*wi*wj*((Pi + Pj)*deltagrad + Qaccij);   // Type III CRK interpoint force.
-                DvDti -= forceij/mi;
-                DvDtj += forceij/mj; 
-                if (mCompatibleEnergyEvolution) {
-                  pairAccelerationsi.push_back(-forceij/mi);
-                  pairAccelerationsj.push_back( forceij/mj);
-                }
-
-                // CRKSPH thermal energy evolution
                 DepsDti += 0.5*wi*wj*(Pj*vij.dot(deltagrad) + workQi)/mi;
-                DepsDtj += 0.5*wi*wj*(Pi*vij.dot(deltagrad) + workQj)/mj;
-
               } else {
-
-                // For a surface we revert to straight RK.
-                // RK acceleration -- despite the variable name reuse, not a force!
-                forceij = wj*((Pj - Pi)/rhoi*gradWj + rhoi*QPiij.first.dot(gradWj));
-                forceji = wi*((Pj - Pi)/rhoj*gradWi - rhoj*QPiij.second.dot(gradWi));
-                DvDti -= forceij;
-                DvDtj += forceji;
-                if (mCompatibleEnergyEvolution) {
-                  pairAccelerationsi.push_back(-forceij);
-                  pairAccelerationsj.push_back( forceji);
-                }
-
-                // RK thermal energy evolution.
+                // RK
+                forceij = mi*wj*((Pj - Pi)/rhoi*gradWj + rhoi*QPiij.first.dot(gradWj));
                 DepsDti += wj*rhoi*QPiij.first.dot(vij).dot(gradWj);
-                DepsDtj -= wi*rhoj*QPiij.second.dot(vij).dot(gradWi);
+              }
 
+              if (surfacePoint(nodeListj, j) == 0) {
+                // CRK
+                forceji =  0.5*wi*wj*((Pi + Pj)*deltagrad + Qaccij);   // Type III CRK interpoint force.
+                DepsDtj += 0.5*wi*wj*(Pi*vij.dot(deltagrad) + workQj)/mj;
+              } else {
+                // RK
+                forceji = mj*wi*((Pj - Pi)/rhoj*gradWi - rhoj*QPiij.second.dot(gradWi));
+                DepsDtj -= wi*rhoj*QPiij.second.dot(vij).dot(gradWi);
+              }
+
+              DvDti -= forceij/mi;
+              DvDtj += forceji/mj; 
+              if (mCompatibleEnergyEvolution) {
+                pairAccelerationsi.push_back(-forceij/mi);
+                pairAccelerationsj.push_back( forceji/mj);
               }
 
               // Estimate of delta v (for XSPH).
