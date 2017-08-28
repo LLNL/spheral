@@ -734,7 +734,7 @@ evaluateDerivatives(const typename Dimension::Scalar time,
 
   // Some scratch variables.
   Scalar Ai, Aj;
-  Vector gradAi, gradAj;
+  Vector gradAi, gradAj, forceij, forceji;
   Vector Bi = Vector::zero, Bj = Vector::zero;
   Tensor Ci = Tensor::zero, Cj = Tensor::zero;
   Tensor gradBi = Tensor::zero, gradBj = Tensor::zero;
@@ -955,59 +955,47 @@ evaluateDerivatives(const typename Dimension::Scalar time,
               gradRhoi += wj*(rhoj - rhoi)*gradWj;
               gradRhoj += wi*(rhoi - rhoj)*gradWi;
 
-              // Acceleration (CRKSPH form).
-              CHECK(rhoi > 0.0);
-              CHECK(rhoj > 0.0);
-              const Vector forceij = (surfacePoint(nodeListi, i) == 0 ?
-                                      0.5*wi*wj*((Pi + Pj)*deltagrad + Qaccij) :                    // <- Type III, with CRKSPH Q forces
-                                      mi*wj*((Pj - Pi)/rhoi*gradWj + rhoi*QPiij.first.dot(gradWj)));
-                                      // wj*mi*(Pj - Pi + 0.5*(Qj + Qi))/rhoi*gradWj);
-              const Vector forceji = (surfacePoint(nodeListj, j) == 0 ?
-                                      0.5*wi*wj*((Pi + Pj)*deltagrad + Qaccij) :                    // <- Type III, with CRKSPH Q forces
-                                      mj*wi*((Pj - Pi)/rhoj*gradWi - rhoj*QPiij.second.dot(gradWi)));
-                                      // wi*mj*(Pj - Pi + 0.5*(Qj + Qi))/rhoj*gradWi);
-              DvDti -= forceij/mi;
-              DvDtj += forceji/mj; 
-              if (mCompatibleEnergyEvolution) {
-                pairAccelerationsi.push_back(-forceij/mi);
-                pairAccelerationsj.push_back( forceji/mj);
+              // We decide between RK and CRK for the momentum and energy equations based on the surface condition.
+              if (surfacePoint(nodeListi, i) == 0) {
+
+                // CRKSPH acceleration
+                forceij =  0.5*wi*wj*((Pi + Pj)*deltagrad + Qaccij);   // Type III CRK interpoint force.
+                DvDti -= forceij/mi;
+                DvDtj += forceij/mj; 
+                if (mCompatibleEnergyEvolution) {
+                  pairAccelerationsi.push_back(-forceij/mi);
+                  pairAccelerationsj.push_back( forceij/mj);
+                }
+
+                // CRKSPH thermal energy evolution
+                DepsDti += 0.5*wi*wj*(Pj*vij.dot(deltagrad) + workQi)/mi;
+                DepsDtj += 0.5*wi*wj*(Pi*vij.dot(deltagrad) + workQj)/mj;
+
+              } else {
+
+                // For a surface we revert to straight RK.
+                // RK acceleration -- despite the variable name reuse, not a force!
+                forceij = wj*((Pj - Pi)/rhoi*gradWj + rhoi*QPiij.first.dot(gradWj));
+                forceji = wi*((Pj - Pi)/rhoj*gradWi - rhoj*QPiij.second.dot(gradWi));
+                DvDti -= forceij;
+                DvDtj += forceji;
+                if (mCompatibleEnergyEvolution) {
+                  pairAccelerationsi.push_back(-forceij);
+                  pairAccelerationsj.push_back( forceji);
+                }
+
+                // RK thermal energy evolution.
+                DepsDti += wj*rhoi*QPiij.first.dot(vij).dot(gradWj);
+                DepsDtj -= wi*rhoj*QPiij.second.dot(vij).dot(gradWi);
+
               }
-
-              // Specific thermal energy evolution.
-              // DepsDti += 0.5*wi*wj*Pj*vij.dot(deltagrad)/mi + mj*workQi;    // SPH Q
-              // DepsDtj += 0.5*wi*wj*Pi*vij.dot(deltagrad)/mj + mi*workQj;    // SPH Q
-
-              // DepsDti += 0.5*wi*wj*(Pj*vij.dot(deltagrad) + workQij)/mi;    // CRK Q
-              // DepsDtj += 0.5*wi*wj*(Pi*vij.dot(deltagrad) + workQij)/mj;    // CRK Q
-
-              // const Scalar DTEDtij = 0.5*wi*wj*(Pj*vij.dot(deltagrad) + workQi + 
-              //                                   Pi*vij.dot(deltagrad) + workQj);
-              // // const Scalar DTEDtij = forceij.dot(vij);
-              // // const Scalar fTEi = entropyWeighting(si, sj, DTEDtij);
-              // const Scalar fTEi = min(mi, mj)/max(mi, mj) < 1e6 ? mi/(mi + mj) : entropyWeighting(si, sj, DTEDtij);
-              // DepsDti += fTEi*        DTEDtij/mi;
-              // DepsDtj += (1.0 - fTEi)*DTEDtij/mj;
-
-              DepsDti += (surfacePoint(nodeListi, i) == 0 ?
-                          0.5*wi*wj*(Pj*vij.dot(deltagrad) + workQi)/mi :    // CRK Q
-                          wj*rhoi*QPiij.first.dot(vij).dot(gradWj));
-              DepsDtj += (surfacePoint(nodeListj, j) == 0 ? 
-                          0.5*wi*wj*(Pi*vij.dot(deltagrad) + workQj)/mj :    // CRK Q
-                         -wi*rhoj*QPiij.second.dot(vij).dot(gradWi));
-
-              // DepsDti += 0.5*wi*wj*(Pj*vij.dot(deltagrad) + workQi)/mi;    // CRK Q
-              // DepsDtj += 0.5*wi*wj*(Pi*vij.dot(deltagrad) + workQj)/mj;    // CRK Q
-
-              //DepsDti += wi*wj*(Pj*vij.dot(gradWj) + workQVi)/mi;    // RK V AND RK I (both equations are the same for Type I and V)
-              //DepsDtj -= wi*wj*(Pi*vij.dot(gradWi) + workQVj)/mj;    // RK V AND RK I (Note the minus sign!)
 
               // Estimate of delta v (for XSPH).
               if (mXSPH and (nodeListi == nodeListj)) {
-                  XSPHDeltaVi -= wj*Wj*vij;
-                  XSPHDeltaVj += wi*Wi*vij;
+                XSPHDeltaVi -= wj*Wj*vij;
+                XSPHDeltaVj += wi*Wi*vij;
               }
                 
-              //surfNormi += rij*Wj*wj;
             }
           }
         }
