@@ -257,7 +257,7 @@ registerState(DataBase<Dimension>& dataBase,
 
   // Register the effective damage and damage gradient with default no-op updates.
   // If there are any damage models running they can override these choices.
-  auto D = dataBase.solidDamage();
+  auto D = dataBase.solidEffectiveDamage();
   auto gradD = dataBase.solidDamageGradient();
   state.enroll(D);
   state.enroll(gradD);
