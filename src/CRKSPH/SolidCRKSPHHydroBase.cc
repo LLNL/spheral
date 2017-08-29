@@ -660,37 +660,32 @@ evaluateDerivatives(const typename Dimension::Scalar time,
               // Compute the stress tensors.
               SymTensor sigmai, sigmaj;
               if (nodeListi == nodeListj) {
-                sigmai = -Pnegi*SymTensor::one + Si;
-                sigmaj = -Pnegj*SymTensor::one + Sj;
+                sigmai = Si - Pnegi*SymTensor::one;
+                sigmaj = Sj - Pnegj*SymTensor::one;
               }
 
               // We decide between RK and CRK for the momentum and energy equations based on the surface condition.
-              if (surfacePoint(nodeListi, i) == 0) {
-                // CRK
-                forceij  = 0.5*wij*wij*((Pposi + Pposj)*deltagrad - fij*(sigmai + sigmaj)*deltagrad + Qaccij);   // Type III CRK interpoint force.
-                DepsDti += 0.5*wij*wij*(Pposj*vij.dot(deltagrad) + fij*sigmaj.dot(vij).dot(deltagrad) + workQi)/mi;
-              } else {
-                // RK
-                forceij = mi*wij*(((Pposj - Pposi)*gradWj - fij*(sigmaj - sigmai)*gradWj)/rhoi + rhoi*QPiij.first.dot(gradWj));
-                DepsDti += wij*rhoi*QPiij.first.dot(vij).dot(gradWj);     // Q term only -- adiabatic portion added later
-              }
-
-              if (surfacePoint(nodeListj, j) == 0) {
-                // CRK
-                forceji  = 0.5*wij*wij*((Pposi + Pposj)*deltagrad - fij*(sigmai + sigmaj)*deltagrad + Qaccij);   // Type III CRK interpoint force.
-                DepsDtj += 0.5*wij*wij*(Pposj*vij.dot(deltagrad) + fij*sigmaj.dot(vij).dot(deltagrad) + workQj)/mj;
-              } else {
-                // RK
-                forceji = mj*wij*(((Pposj - Pposi)*gradWi - fij*(sigmaj - sigmai)*gradWi)/rhoj - rhoj*QPiij.second.dot(gradWi));
-                DepsDtj -= wij*rhoj*QPiij.second.dot(vij).dot(gradWi);     // Q term only -- adiabatic portion added later
-              }
-
+              // Momentum
+              forceij = (surfacePoint(nodeListi, i) == 0 ? 
+                         0.5*wij*wij*((Pposi + Pposj)*deltagrad - fij*(sigmai + sigmaj)*deltagrad + Qaccij) :                    // Type III CRK interpoint force.
+                         mi*wij*(((Pposj - Pposi)*gradWj - fij*(sigmaj - sigmai)*gradWj)/rhoi + rhoi*QPiij.first.dot(gradWj)));  // RK
+              forceji = (surfacePoint(nodeListj, j) == 0 ?
+                         0.5*wij*wij*((Pposi + Pposj)*deltagrad - fij*(sigmai + sigmaj)*deltagrad + Qaccij) :                    // Type III CRK interpoint force.
+                         mj*wij*(((Pposj - Pposi)*gradWi - fij*(sigmaj - sigmai)*gradWi)/rhoj - rhoj*QPiij.second.dot(gradWi))); // RK
               DvDti -= forceij/mi;
               DvDtj += forceji/mj;
               if (compatibleEnergy) {
                 pairAccelerationsi.push_back(-forceij/mi);
                 pairAccelerationsj.push_back( forceji/mj);
               }
+
+              // Energy
+              DepsDti += (surfacePoint(nodeListi, i) == 0 ?
+                          0.5*wij*wij*(Pposj*vij.dot(deltagrad) + fij*sigmaj.dot(vij).dot(deltagrad) + workQi)/mi :               // CRK
+                          wij*rhoi*QPiij.first.dot(vij).dot(gradWj));                                                             // RK, Q term only -- adiabatic portion added later
+              DepsDtj += (surfacePoint(nodeListj, j) == 0 ?
+                          0.5*wij*wij*(Pposj*vij.dot(deltagrad) + fij*sigmaj.dot(vij).dot(deltagrad) + workQj)/mj :               // CRK
+                         -wij*rhoj*QPiij.second.dot(vij).dot(gradWi));                                                             // RK, Q term only -- adiabatic portion added later
 
               // Estimate of delta v (for XSPH).
               XSPHDeltaVi -= fij*wij*Wj*vij;

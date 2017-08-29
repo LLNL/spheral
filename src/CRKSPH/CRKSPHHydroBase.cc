@@ -945,32 +945,27 @@ evaluateDerivatives(const typename Dimension::Scalar time,
               gradRhoj += wij*(rhoi - rhoj)*gradWi;
 
               // We decide between RK and CRK for the momentum and energy equations based on the surface condition.
-              if (surfacePoint(nodeListi, i) == 0) {
-                // CRK
-                forceij =  0.5*wij*wij*((Pi + Pj)*deltagrad + Qaccij);   // Type III CRK interpoint force.
-                DepsDti += 0.5*wij*wij*(Pj*vij.dot(deltagrad) + workQi)/mi;
-              } else {
-                // RK
-                forceij = mi*wij*((Pj - Pi)/rhoi*gradWj + rhoi*QPiij.first.dot(gradWj));
-                DepsDti += wij*rhoi*QPiij.first.dot(vij).dot(gradWj);
-              }
-
-              if (surfacePoint(nodeListj, j) == 0) {
-                // CRK
-                forceji =  0.5*wij*wij*((Pi + Pj)*deltagrad + Qaccij);   // Type III CRK interpoint force.
-                DepsDtj += 0.5*wij*wij*(Pi*vij.dot(deltagrad) + workQj)/mj;
-              } else {
-                // RK
-                forceji = mj*wij*((Pj - Pi)/rhoj*gradWi - rhoj*QPiij.second.dot(gradWi));
-                DepsDtj -= wij*rhoj*QPiij.second.dot(vij).dot(gradWi);
-              }
-
+              // Momentum
+              forceij = (surfacePoint(nodeListi, i) == 0 ? 
+                         0.5*wij*wij*((Pi + Pj)*deltagrad + Qaccij) :                    // Type III CRK interpoint force.
+                         mi*wij*((Pj - Pi)/rhoi*gradWj + rhoi*QPiij.first.dot(gradWj))); // RK
+              forceji = (surfacePoint(nodeListj, j) == 0 ? 
+                         0.5*wij*wij*((Pi + Pj)*deltagrad + Qaccij) :                    // Type III CRK interpoint force.
+                         mj*wij*((Pj - Pi)/rhoj*gradWi - rhoj*QPiij.second.dot(gradWi)));// RK
               DvDti -= forceij/mi;
               DvDtj += forceji/mj; 
               if (mCompatibleEnergyEvolution) {
                 pairAccelerationsi.push_back(-forceij/mi);
                 pairAccelerationsj.push_back( forceji/mj);
               }
+
+              // Energy
+              DepsDti += (surfacePoint(nodeListi, i) == 0 ? 
+                          0.5*wij*wij*(Pj*vij.dot(deltagrad) + workQi)/mi :              // CRK
+                          wij*rhoi*QPiij.first.dot(vij).dot(gradWj));                    // RK
+              DepsDtj += (surfacePoint(nodeListj, j) == 0 ? 
+                          0.5*wij*wij*(Pi*vij.dot(deltagrad) + workQj)/mj :              // CRK
+                         -wij*rhoj*QPiij.second.dot(vij).dot(gradWi));                   // RK
 
               // Estimate of delta v (for XSPH).
               if (mXSPH and (nodeListi == nodeListj)) {
