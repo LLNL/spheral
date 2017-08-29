@@ -918,6 +918,111 @@ DataBase<Dimension>::fluidWork() const {
 }
 
 //------------------------------------------------------------------------------
+// Return the solid deviatoric stress field.
+//------------------------------------------------------------------------------
+template<typename Dimension>
+FieldList<Dimension, typename Dimension::SymTensor>
+DataBase<Dimension>::solidDeviatoricStress() const {
+  REQUIRE(valid());
+  FieldList<Dimension, SymTensor> result;
+  for (ConstSolidNodeListIterator nodeListItr = solidNodeListBegin();
+       nodeListItr < solidNodeListEnd(); ++nodeListItr) {
+    result.appendField((*nodeListItr)->deviatoricStress());
+  }
+  return result;
+}
+
+//------------------------------------------------------------------------------
+// Return the solid plastic strain field.
+//------------------------------------------------------------------------------
+template<typename Dimension>
+FieldList<Dimension, typename Dimension::Scalar>
+DataBase<Dimension>::solidPlasticStrain() const {
+  REQUIRE(valid());
+  FieldList<Dimension, Scalar> result;
+  for (ConstSolidNodeListIterator nodeListItr = solidNodeListBegin();
+       nodeListItr < solidNodeListEnd(); ++nodeListItr) {
+    result.appendField((*nodeListItr)->plasticStrain());
+  }
+  return result;
+}
+
+//------------------------------------------------------------------------------
+// Return the solid plastic strain rate field.
+//------------------------------------------------------------------------------
+template<typename Dimension>
+FieldList<Dimension, typename Dimension::Scalar>
+DataBase<Dimension>::solidPlasticStrainRate() const {
+  REQUIRE(valid());
+  FieldList<Dimension, Scalar> result;
+  for (ConstSolidNodeListIterator nodeListItr = solidNodeListBegin();
+       nodeListItr < solidNodeListEnd(); ++nodeListItr) {
+    result.appendField((*nodeListItr)->plasticStrainRate());
+  }
+  return result;
+}
+
+//------------------------------------------------------------------------------
+// Return the solid damage field.
+//------------------------------------------------------------------------------
+template<typename Dimension>
+FieldList<Dimension, typename Dimension::SymTensor>
+DataBase<Dimension>::solidDamage() const {
+  REQUIRE(valid());
+  FieldList<Dimension, SymTensor> result;
+  for (ConstSolidNodeListIterator nodeListItr = solidNodeListBegin();
+       nodeListItr < solidNodeListEnd(); ++nodeListItr) {
+    result.appendField((*nodeListItr)->damage());
+  }
+  return result;
+}
+
+//------------------------------------------------------------------------------
+// Return the solid effective damage field.
+//------------------------------------------------------------------------------
+template<typename Dimension>
+FieldList<Dimension, typename Dimension::SymTensor>
+DataBase<Dimension>::solidEffectiveDamage() const {
+  REQUIRE(valid());
+  FieldList<Dimension, SymTensor> result;
+  for (ConstSolidNodeListIterator nodeListItr = solidNodeListBegin();
+       nodeListItr < solidNodeListEnd(); ++nodeListItr) {
+    result.appendField((*nodeListItr)->effectiveDamage());
+  }
+  return result;
+}
+
+//------------------------------------------------------------------------------
+// Return the solid damage gradient field.
+//------------------------------------------------------------------------------
+template<typename Dimension>
+FieldList<Dimension, typename Dimension::Vector>
+DataBase<Dimension>::solidDamageGradient() const {
+  REQUIRE(valid());
+  FieldList<Dimension, Vector> result;
+  for (ConstSolidNodeListIterator nodeListItr = solidNodeListBegin();
+       nodeListItr < solidNodeListEnd(); ++nodeListItr) {
+    result.appendField((*nodeListItr)->damageGradient());
+  }
+  return result;
+}
+
+//------------------------------------------------------------------------------
+// Return the solid fragment ID field.
+//------------------------------------------------------------------------------
+template<typename Dimension>
+FieldList<Dimension, int>
+DataBase<Dimension>::solidFragmentIDs() const {
+  REQUIRE(valid());
+  FieldList<Dimension, int> result;
+  for (ConstSolidNodeListIterator nodeListItr = solidNodeListBegin();
+       nodeListItr < solidNodeListEnd(); ++nodeListItr) {
+    result.appendField((*nodeListItr)->fragmentIDs());
+  }
+  return result;
+}
+
+//------------------------------------------------------------------------------
 // Return the node extent for each NodeList.
 //------------------------------------------------------------------------------
 template<typename Dimension>

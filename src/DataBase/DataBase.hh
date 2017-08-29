@@ -202,6 +202,14 @@ public:
   FieldSpace::FieldList<Dimension, SymTensor> fluidHfield() const;
   FieldSpace::FieldList<Dimension, Scalar> fluidWork() const;
 
+  FieldSpace::FieldList<Dimension, SymTensor> solidDeviatoricStress() const;
+  FieldSpace::FieldList<Dimension, Scalar> solidPlasticStrain() const;
+  FieldSpace::FieldList<Dimension, Scalar> solidPlasticStrainRate() const;
+  FieldSpace::FieldList<Dimension, SymTensor> solidDamage() const;
+  FieldSpace::FieldList<Dimension, SymTensor> solidEffectiveDamage() const;
+  FieldSpace::FieldList<Dimension, Vector> solidDamageGradient() const;
+  FieldSpace::FieldList<Dimension, int> solidFragmentIDs() const;
+
   // We can also return the node extent Fields stored in the Neighbor objects.
   FieldSpace::FieldList<Dimension, Vector> globalNodeExtent() const;
   FieldSpace::FieldList<Dimension, Vector> fluidNodeExtent() const;
