@@ -229,7 +229,6 @@ registerState(DataBase<Dimension>& dataBase,
   dataBase.resizeFluidFieldList(mBulkModulus, 0.0, SolidFieldNames::bulkModulus, false);
   dataBase.resizeFluidFieldList(mShearModulus, 0.0, SolidFieldNames::shearModulus, false);
   dataBase.resizeFluidFieldList(mYieldStrength, 0.0, SolidFieldNames::yieldStrength, false);
-  dataBase.resizeFluidFieldList(mPlasticStrain0, 0.0, SolidFieldNames::plasticStrain + "0", false);
 
   // Grab the normal Hydro's registered version of the sound speed.
   auto cs = state.fields(HydroFieldNames::soundSpeed, 0.0);
@@ -268,6 +267,7 @@ registerState(DataBase<Dimension>& dataBase,
   // And finally the intial plastic strain.
   mPlasticStrain0 = ps;
   mPlasticStrain0.copyFields();
+  for (auto itr = mPlasticStrain0.begin(); itr != mPlasticStrain0.end(); ++itr) (**itr).name(SolidFieldNames::plasticStrain + "0");
   state.enroll(mPlasticStrain0);
 }
 
