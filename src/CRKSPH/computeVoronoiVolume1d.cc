@@ -48,13 +48,17 @@ computeVoronoiVolume(const FieldSpace::FieldList<Dim<1>, Dim<1>::Vector>& positi
   const unsigned numBounds = boundaries.size();
   const bool haveBoundaries = numBounds == numNodeLists;
   const bool haveWeights = weight.size() == numNodeLists;
+  const bool returnSurface = surfacePoint.size() == numNodeLists;
+  const bool returnCells = cells.size() == numNodeLists;
 
   REQUIRE(numBounds == 0 or numBounds == numNodeLists);
 
   // Zero out return fields.
-  surfacePoint = 0;
   deltaMedian = Vector::zero;
-  etaVoidPoints = vector<Vector>();
+  if (returnSurface) {
+    surfacePoint = 0;
+    etaVoidPoints = vector<Vector>();
+  }
 
   // Copy the input positions to single list, and sort it.
   // Note our logic here relies on ghost nodes already being built, including parallel nodes.
