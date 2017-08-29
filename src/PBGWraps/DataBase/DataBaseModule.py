@@ -436,6 +436,14 @@ x.add_method("newSolidFieldList", "%(result)s", [param("%(value)s", "value", def
         x.add_instance_attribute("fluidHfield", symtensorfieldlist, getter="fluidHfield", is_const=True)
         x.add_instance_attribute("fluidWork", scalarfieldlist, getter="fluidWork", is_const=True)
 
+        x.add_instance_attribute("solidDeviatoricStress", symtensorfieldlist, getter="solidDeviatoricStress", is_const=True)
+        x.add_instance_attribute("solidPlasticStrain", scalarfieldlist, getter="solidPlasticStrain", is_const=True)
+        x.add_instance_attribute("solidPlasticStrainRate", scalarfieldlist, getter="solidPlasticStrainRate", is_const=True)
+        x.add_instance_attribute("solidDamage", symtensorfieldlist, getter=solidDamage"", is_const=True)
+        x.add_instance_attribute("solidEffectiveDamage", symtensorfieldlist, getter="solidEffectiveDamage", is_const=True)
+        x.add_instance_attribute("solidDamageGradient", vectorfieldlist, getter="solidDamageGradient", is_const=True)
+        x.add_instance_attribute("solidFragmentIDs", intfieldlist, getter="solidFragmentIDs", is_const=True)
+
         x.add_instance_attribute("globalNodeExtent", vectorfieldlist, getter="globalNodeExtent", is_const=True)
         x.add_instance_attribute("fluidNodeExtent", vectorfieldlist, getter="fluidNodeExtent", is_const=True)
 
