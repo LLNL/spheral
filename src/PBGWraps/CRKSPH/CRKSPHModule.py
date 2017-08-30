@@ -412,6 +412,7 @@ self.generateSolidCRKSPHHydroBaseBindings(self.SolidCRKSPHHydroBase%(dim)id, %(d
         artificialviscosity = "Spheral::ArtificialViscositySpace::ArtificialViscosity%id" % ndim
         fileio = "Spheral::FileIOSpace::FileIO"
         smoothingscalebase = "Spheral::NodeSpace::SmoothingScaleBase%id" % ndim
+        voidboundary = "Spheral::BoundarySpace::CRKSPHVoidBoundary%id" % ndim
 
         # Constructors.
         x.add_constructor([constrefparam(smoothingscalebase, "smoothingScaleMethod"),
@@ -534,6 +535,8 @@ self.generateSolidCRKSPHHydroBaseBindings(self.SolidCRKSPHHydroBase%(dim)id, %(d
         const_ref_return_value(x, me, "%s::etaVoidPoints" % me, vectorvectorfieldlist, [], "etaVoidPoints")
         const_ref_return_value(x, me, "%s::m0" % me, scalarfieldlist, [], "m0")
         const_ref_return_value(x, me, "%s::m1" % me, vectorfieldlist, [], "m1")
+
+        const_ref_return_value(x, me, "%s::voidBoundary" % me, voidboundary, [], "voidBoundary")
 
         return
 
