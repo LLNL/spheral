@@ -323,15 +323,6 @@ applyGhostBoundary(Field<Dimension, typename Dimension::ThirdRankTensor>& field)
   mPlane2Boundary.applyGhostBoundary(field);
 }
 
-// vectorScalar Fields.
-template<typename Dimension>
-void
-PeriodicBoundary<Dimension>::
-applyGhostBoundary(Field<Dimension, std::vector<typename Dimension::Scalar> >& field) const {
-  mPlane1Boundary.applyGhostBoundary(field);
-  mPlane2Boundary.applyGhostBoundary(field);
-}
-
 //------------------------------------------------------------------------------
 // Enforce the boundary condition to fields of different DataTypes.
 // For the Periodic boundary, the nested sub classes do all the work.

@@ -66,7 +66,7 @@ setGhostNodes(NodeList<Dimension>& nodeList) {
     const Field<Dimension, int>& surfacePoint = **mSurfacePoint.fieldForNodeList(nodeList);
     const Field<Dimension, vector<Vector>>& etaVoidPoints = **mEtaVoidPoints.fieldForNodeList(nodeList);
     for (unsigned i = 0; i < firstNewGhostNode; ++i) {
-      if (surfacePoint(i) == 1) {
+      if (surfacePoint(i) & 1 == 1) {
         const unsigned nv = etaVoidPoints(i).size();
         CHECK(nv > 0);
         numVoidPoints += nv;
@@ -113,7 +113,7 @@ updateGhostNodes(NodeList<Dimension>& nodeList) {
 
     // Update the void points positions based on projecting from the surface point in the normalized eta (H) frame.
     for (unsigned i = 0; i < n; ++i) {
-      if (surfacePoint(i) == 1) {
+      if (surfacePoint(i) & 1 == 1) {
         const Vector& xi = pos(i);
         const SymTensor& Hi = H(i);
         const SymTensor Hinv = Hi.Inverse();
