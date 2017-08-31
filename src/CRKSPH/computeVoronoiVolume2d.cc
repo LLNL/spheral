@@ -127,11 +127,11 @@ bool clipByNeighbors(r2d_poly& celli,
       pairPlanes.back().n.x = nhat.x();
       pairPlanes.back().n.y = nhat.y();
       pairPlanes.back().d = wij*rij.magnitude();
-    } else {
-      voidPlanes.push_back(r2d_plane());
-      voidPlanes.back().n.x = nhat.x();
-      voidPlanes.back().n.y = nhat.y();
-      voidPlanes.back().d = wij*rij.magnitude();
+    // } else {
+    //   voidPlanes.push_back(r2d_plane());
+    //   voidPlanes.back().n.x = nhat.x();
+    //   voidPlanes.back().n.y = nhat.y();
+    //   voidPlanes.back().d = wij*rij.magnitude();
     }
   }
 
@@ -246,6 +246,8 @@ computeVoronoiVolume(const FieldList<Dim<2>, Dim<2>::Vector>& position,
     // Walk the points.
     r2d_real firstmom[3];
     vector<r2d_plane> pairPlanes;
+    unsigned nvoid;
+    double thetaVoidAvg;
     for (unsigned nodeListi = 0; nodeListi != numNodeLists; ++nodeListi) {
       const unsigned n = vol[nodeListi]->numInternalElements();
       const Scalar rin = 2.0/vol[nodeListi]->nodeListPtr()->nodesPerSmoothingScale();
@@ -260,6 +262,10 @@ computeVoronoiVolume(const FieldList<Dim<2>, Dim<2>::Vector>& position,
         const auto  Hinv = Hi.Inverse();
         const auto  weighti = haveWeights ? weight(nodeListi, i) : 1.0;
         const auto& fullConnectivity = connectivityMap.connectivityForNode(nodeListi, i);
+
+        // Prepare to accumulate any void point angles.
+        thetaVoidAvg = 0.0;
+        nvoid = 0;
 
         // t0 = std::clock();
 
@@ -359,9 +365,26 @@ computeVoronoiVolume(const FieldList<Dim<2>, Dim<2>::Vector>& position,
               interior = false;
               if (returnSurface) {
                 surfacePoint(nodeListi, i) |= 1;
-                etaVoidPoints(nodeListi, i).push_back(0.5*rin*peta.unitVector());
+                ++nvoid;
+                const double theta = atan2(peta.y(), peta.x());
+                thetaVoidAvg += (theta > 0.0 ?  theta : theta + 2.0*M_PI);
+                // etaVoidPoints(nodeListi, i).push_back(0.5*rin*peta.unitVector());
               }
             }
+          }
+
+          // Reduce the number of void points for this point to a reasonable stencil -- up to 4.
+          CHECK(etaVoidPoints(nodeListi, i).empty());
+          if (returnSurface and not interior) {
+            CHECK(nvoid > 0);
+            thetaVoidAvg /= nvoid;
+            const auto nv = max(1U, min(4U, unsigned(4.0*float(nvoid)/float(nverts))));
+            cerr << " Void insertion : " << ri << " " << nv << " " << thetaVoidAvg/M_PI << endl;
+            for (unsigned k = 0; k != nv; ++k) {
+              const auto theta = thetaVoidAvg + (0.5*k - 0.25*(nv - 1))*M_PI;
+              etaVoidPoints(nodeListi, i).push_back(Vector(0.5*rin*cos(theta), 0.5*rin*sin(theta)));
+            }
+            CHECK(etaVoidPoints(nodeListi, i).size() == nv);
           }
         }
         // tinterior += std::clock() - t0;
