@@ -7,6 +7,7 @@
 #include "Field/Field.hh"
 #include "Field/FieldBase.hh"
 #include "Hydro/HydroFieldNames.hh"
+#include "Strength/SolidFieldNames.hh"
 #include "Utilities/DBC.hh"
 
 #include <limits>
@@ -206,9 +207,17 @@ template<typename Dimension>
 void
 CRKSPHVoidBoundary<Dimension>::
 applyGhostBoundary(Field<Dimension, typename Dimension::SymTensor>& field) const {
+  const vector<int>& cNodes = this->controlNodes(field.nodeList());
   const vector<int>& gNodes = this->ghostNodes(field.nodeList());
-  const unsigned nvoid = gNodes.size();
-  for (unsigned k = 0; k < nvoid; ++k) field(gNodes[k]) = SymTensor::zero;
+  const unsigned nsurf = cNodes.size();
+  CHECK(gNodes.size() == nsurf);
+  if (field.name() == SolidFieldNames::deviatoricStress) {
+    // deviatoric stress: copy surface->void
+    for (unsigned k = 0; k < nsurf; ++k) field(gNodes[k]) = field(cNodes[k]);
+  } else {
+    // Default zero.
+    for (unsigned k = 0; k < nsurf; ++k) field(gNodes[k]) = SymTensor::zero;
+  }
 }
 
 // Specialization for third rank tensors.
