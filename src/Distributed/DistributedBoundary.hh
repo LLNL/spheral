@@ -99,6 +99,9 @@ public:
   template<typename DataType>
   void beginExchangeField(FieldSpace::Field<Dimension, DataType>& field) const;
 
+  template<typename DataType>
+  void beginExchangeFieldVariableSize(FieldSpace::Field<Dimension, DataType>& field) const;
+
   //**********************************************************************
   // Descendent Distributed Neighbors are required to provide the 
   // setGhostNodes method for DataBases.
@@ -123,7 +126,8 @@ public:
   virtual void applyGhostBoundary(FieldSpace::Field<Dimension, Tensor>& field) const;
   virtual void applyGhostBoundary(FieldSpace::Field<Dimension, SymTensor>& field) const;
   virtual void applyGhostBoundary(FieldSpace::Field<Dimension, ThirdRankTensor>& field) const;
-  virtual void applyGhostBoundary(FieldSpace::Field<Dimension, std::vector<Scalar> >& field) const;
+  virtual void applyGhostBoundary(FieldSpace::Field<Dimension, std::vector<Scalar>>& field) const;
+  virtual void applyGhostBoundary(FieldSpace::Field<Dimension, std::vector<Vector>>& field) const;
 
   // Distributed boundaries don't have "violate" nodes, so override these
   // methods to no-ops.
@@ -195,7 +199,8 @@ private:
   mutable std::vector<FieldSpace::Field<Dimension, Tensor>*> mTensorExchangeFields;
   mutable std::vector<FieldSpace::Field<Dimension, SymTensor>*> mSymTensorExchangeFields;
   mutable std::vector<FieldSpace::Field<Dimension, ThirdRankTensor>*> mThirdRankTensorExchangeFields;
-  mutable std::vector<FieldSpace::Field<Dimension, std::vector<Scalar> >*> mVectorScalarExchangeFields;
+  mutable std::vector<FieldSpace::Field<Dimension, std::vector<Scalar>>*> mVectorScalarExchangeFields;
+  mutable std::vector<FieldSpace::Field<Dimension, std::vector<Vector>>*> mVectorVectorExchangeFields;
 
   // Internal tag for MPI communiators.
   mutable int mMPIFieldTag;

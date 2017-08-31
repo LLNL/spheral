@@ -129,6 +129,7 @@ ConstantBoundary(NodeList<Dimension>& nodeList,
   mSymTensorValues(),
   mThirdRankTensorValues(),
   mVectorScalarValues(),
+  mVectorVectorValues(),
   mRestart(DataOutput::registerWithRestart(*this)) {
 
   // Store the ids of the nodes we're watching.
@@ -251,12 +252,20 @@ applyGhostBoundary(Field<Dimension, typename Dimension::ThirdRankTensor>& field)
   if (mActive) resetValues(field, this->nodeIndices(), mThirdRankTensorValues, false);
 }
 
-// Specialization for vector<scalar> fields.
+// Specialization for vector<Scalar> fields.
 template<typename Dimension>
 void
 ConstantBoundary<Dimension>::
-applyGhostBoundary(Field<Dimension, std::vector<typename Dimension::Scalar> >& field) const {
+applyGhostBoundary(Field<Dimension, std::vector<typename Dimension::Scalar>>& field) const {
   if (mActive) resetValues(field, this->nodeIndices(), mVectorScalarValues, false);
+}
+
+// Specialization for vector<Vector> fields.
+template<typename Dimension>
+void
+ConstantBoundary<Dimension>::
+applyGhostBoundary(Field<Dimension, std::vector<typename Dimension::Vector>>& field) const {
+  if (mActive) resetValues(field, this->nodeIndices(), mVectorVectorValues, false);
 }
 
 //------------------------------------------------------------------------------
@@ -361,14 +370,6 @@ enforceBoundary(Field<Dimension, typename Dimension::ThirdRankTensor>& field) co
   // resetValues(field, this->nodeIndices(), mThirdRankTensorValues);
 }
 
-// // Specialization for vector<scalar> fields.
-// template<typename Dimension>
-// void
-// ConstantBoundary<Dimension>::
-// enforceBoundary(Field<Dimension, std::vector<typename Dimension::Scalar> >& field) const {
-//   resetValues(field, this->nodeIndices(), mVectorScalarValues);
-// }
-
 //------------------------------------------------------------------------------
 // On problem startup we take our snapshot of the state.  We also then
 // destroy the original internal nodes, as we will be replacing them
@@ -388,6 +389,7 @@ ConstantBoundary<Dimension>::initializeProblemStartup() {
     mSymTensorValues.clear();
     mThirdRankTensorValues.clear();
     mVectorScalarValues.clear();
+    mVectorVectorValues.clear();
 
     // Now take a snapshot of the Fields.
     const vector<int> nodeIDs = this->nodeIndices();
@@ -401,6 +403,7 @@ ConstantBoundary<Dimension>::initializeProblemStartup() {
     storeFieldValues(*mNodeListPtr, nodeIDs, mSymTensorValues);
     storeFieldValues(*mNodeListPtr, nodeIDs, mThirdRankTensorValues);
     storeFieldValues(*mNodeListPtr, nodeIDs, mVectorScalarValues);
+    storeFieldValues(*mNodeListPtr, nodeIDs, mVectorVectorValues);
 
     // for (typename std::map<KeyType, std::vector<Scalar> >::const_iterator itr = mScalarValues.begin();
     //      itr != mScalarValues.end();
@@ -498,6 +501,13 @@ dumpState(FileIO& file, string pathName) const {
     file.write(p.second, pathName + "/VectorScalarValues/" + p.first);
   }
   file.write(keys, pathName + "/VectorScalarValues/keys");
+
+  keys.clear();
+  for (const auto& p: mVectorVectorValues) {
+    keys.push_back(p.first);
+    file.write(p.second, pathName + "/VectorVectorValues/" + p.first);
+  }
+  file.write(keys, pathName + "/VectorVectorValues/keys");
 }
 
 //------------------------------------------------------------------------------
@@ -565,6 +575,14 @@ restoreState(const FileIO& file, string pathName)  {
   for (const auto key: keys) {
     mVectorScalarValues[key] = std::vector<std::vector<Scalar> >();
     file.read(mVectorScalarValues[key], pathName + "/VectorScalarValues/" + key);
+  }
+
+  keys.clear();
+  file.read(keys, pathName + "/VectorVectorValues/keys");
+  mVectorVectorValues.clear();
+  for (const auto key: keys) {
+    mVectorVectorValues[key] = std::vector<std::vector<Vector> >();
+    file.read(mVectorVectorValues[key], pathName + "/VectorSVectorValues/" + key);
   }
 }
 

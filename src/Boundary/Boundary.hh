@@ -125,7 +125,6 @@ public:
   virtual void applyGhostBoundary(FieldSpace::Field<Dimension, Tensor>& field) const = 0;
   virtual void applyGhostBoundary(FieldSpace::Field<Dimension, SymTensor>& field) const = 0;
   virtual void applyGhostBoundary(FieldSpace::Field<Dimension, ThirdRankTensor>& field) const = 0;
-  virtual void applyGhostBoundary(FieldSpace::Field<Dimension, std::vector<Scalar> >& field) const = 0;
 
   // Find any internal nodes that are in violation of this Boundary.
   virtual void setViolationNodes(NodeSpace::NodeList<Dimension>& nodeList) = 0;
@@ -157,6 +156,10 @@ public:
                               const MeshSpace::Mesh<Dimension>& mesh) const { VERIFY2(false, "Not implemented"); }
   //**********************************************************************
 
+  // We provide default copies for arrays of values, but descendants can override these.
+  virtual void applyGhostBoundary(FieldSpace::Field<Dimension, std::vector<Scalar>>& field) const;
+  virtual void applyGhostBoundary(FieldSpace::Field<Dimension, std::vector<Vector>>& field) const;
+
   // Some boundaries need to know when a problem is starting up and all the physics
   // packages have been initialized.
   virtual void initializeProblemStartup() {};
@@ -179,7 +182,6 @@ public:
   // Provide a hook to note such cases.
   virtual bool meshGhostNodes() const;
 
-#ifndef __GCCXML__
   // protected:
   //--------------------------- Protected Interface ---------------------------//
   // Descendent classes are allowed to access the BoundaryNodes for the
@@ -192,15 +194,12 @@ public:
 private:
   //--------------------------- Private Interface ---------------------------//
   std::map<NodeSpace::NodeList<Dimension>*, BoundaryNodes> mBoundaryNodes;
-#endif
 };
 
 }
 }
 
-#ifndef __GCCXML__
 #include "BoundaryInline.hh"
-#endif
 
 #else
 
