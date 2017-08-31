@@ -192,7 +192,6 @@ CRKSPHHydroBase(const SmoothingScaleBase<Dimension>& smoothingScaleMethod,
   mEtaVoidPoints(FieldSpace::FieldStorageType::CopyFields),
   mVoidBoundary(mSurfacePoint, mEtaVoidPoints),
   mRestart(DataOutput::registerWithRestart(*this)) {
-  this->appendBoundary(mVoidBoundary);
 }
 
 //------------------------------------------------------------------------------
@@ -293,7 +292,6 @@ initializeProblemStartup(DataBase<Dimension>& dataBase) {
                          mVoidPoint,                                                // void point flags
                          mSurfacePoint, mVolume, mDeltaCentroid, mEtaVoidPoints,    // return values
                          cells);                                                    // no return cells
-    flagSurfaceNeighbors(mSurfacePoint, connectivityMap);
   } else if (mVolumeType == CRKVolumeType::CRKHullVolume) {
     computeHullVolumes(connectivityMap, W.kernelExtent(), position, H, mVolume);
   } else if (mVolumeType == CRKVolumeType::HVolume) {
@@ -304,10 +302,19 @@ initializeProblemStartup(DataBase<Dimension>& dataBase) {
   }
   for (ConstBoundaryIterator boundItr = this->boundaryBegin();
        boundItr != this->boundaryEnd();
-       ++boundItr) (*boundItr)->applyFieldListGhostBoundary(mVolume);
+       ++boundItr) {
+    (*boundItr)->applyFieldListGhostBoundary(mVolume);
+    if (mVolumeType == CRKVolumeType::CRKVoronoiVolume) {
+      (*boundItr)->applyFieldListGhostBoundary(mSurfacePoint);
+      // (*boundItr)->applyFieldListGhostBoundary(mEtaVoidPoints);
+    }
+  }
   for (ConstBoundaryIterator boundItr = this->boundaryBegin();
        boundItr != this->boundaryEnd();
        ++boundItr) (*boundItr)->finalizeGhostBoundary();
+  if (mVolumeType == CRKVolumeType::CRKVoronoiVolume) {
+    flagSurfaceNeighbors(mSurfacePoint, connectivityMap);
+  }
 
   // Compute the corrections.
   const NodeCoupling couple;
@@ -1197,7 +1204,6 @@ finalize(const typename Dimension::Scalar time,
                          voidPoint,                                                  // void point flags
                          surfacePoint, vol, mDeltaCentroid, mEtaVoidPoints,          // return values
                          cells);                                                     // no return cells
-    flagSurfaceNeighbors(surfacePoint, connectivityMap);
   } else if (mVolumeType == CRKVolumeType::CRKHullVolume) {
     computeHullVolumes(connectivityMap, W.kernelExtent(), position, H, vol);
   } else if (mVolumeType == CRKVolumeType::HVolume) {
@@ -1208,10 +1214,19 @@ finalize(const typename Dimension::Scalar time,
   }
   for (ConstBoundaryIterator boundItr = this->boundaryBegin();
        boundItr != this->boundaryEnd();
-       ++boundItr) (*boundItr)->applyFieldListGhostBoundary(vol);
+       ++boundItr) {
+    (*boundItr)->applyFieldListGhostBoundary(vol);
+    if (mVolumeType == CRKVolumeType::CRKVoronoiVolume) {
+      (*boundItr)->applyFieldListGhostBoundary(surfacePoint);
+      // (*boundItr)->applyFieldListGhostBoundary(mEtaVoidPoints);
+    }
+  }
   for (ConstBoundaryIterator boundItr = this->boundaryBegin();
        boundItr != this->boundaryEnd();
        ++boundItr) (*boundItr)->finalizeGhostBoundary();
+  if (mVolumeType == CRKVolumeType::CRKVoronoiVolume) {
+    flagSurfaceNeighbors(surfacePoint, connectivityMap);
+  }
 
   // Depending on the mass density advancement selected, we may want to replace the 
   // mass density.
@@ -1292,28 +1307,29 @@ applyGhostBoundaries(State<Dimension>& state,
 
   // Apply boundary conditions to the basic fluid state Fields.
 
-  FieldList<Dimension, Scalar> vol = state.fields(HydroFieldNames::volume, 0.0);
-  FieldList<Dimension, Scalar> mass = state.fields(HydroFieldNames::mass, 0.0);
-  FieldList<Dimension, Scalar> massDensity = state.fields(HydroFieldNames::massDensity, 0.0);
-  FieldList<Dimension, Scalar> specificThermalEnergy = state.fields(HydroFieldNames::specificThermalEnergy, 0.0);
-  FieldList<Dimension, Vector> velocity = state.fields(HydroFieldNames::velocity, Vector::zero);
-  FieldList<Dimension, Scalar> pressure = state.fields(HydroFieldNames::pressure, 0.0);
-  FieldList<Dimension, Scalar> soundSpeed = state.fields(HydroFieldNames::soundSpeed, 0.0);
-  FieldList<Dimension, Scalar> entropy = state.fields(HydroFieldNames::entropy, 0.0);
+  auto vol = state.fields(HydroFieldNames::volume, 0.0);
+  auto mass = state.fields(HydroFieldNames::mass, 0.0);
+  auto massDensity = state.fields(HydroFieldNames::massDensity, 0.0);
+  auto specificThermalEnergy = state.fields(HydroFieldNames::specificThermalEnergy, 0.0);
+  auto velocity = state.fields(HydroFieldNames::velocity, Vector::zero);
+  auto pressure = state.fields(HydroFieldNames::pressure, 0.0);
+  auto soundSpeed = state.fields(HydroFieldNames::soundSpeed, 0.0);
+  auto entropy = state.fields(HydroFieldNames::entropy, 0.0);
 
   FieldList<Dimension, Scalar> specificThermalEnergy0;
   if (compatibleEnergyEvolution()) {
     specificThermalEnergy0 = state.fields(HydroFieldNames::specificThermalEnergy + "0", 0.0);
   }
 
-  FieldList<Dimension, Scalar> A = state.fields(HydroFieldNames::A_CRKSPH, 0.0);
-  FieldList<Dimension, Vector> B = state.fields(HydroFieldNames::B_CRKSPH, Vector::zero);
-  FieldList<Dimension, Tensor> C = state.fields(HydroFieldNames::C_CRKSPH, Tensor::zero);
-  FieldList<Dimension, Vector> gradA = state.fields(HydroFieldNames::gradA_CRKSPH, Vector::zero);
-  FieldList<Dimension, Tensor> gradB = state.fields(HydroFieldNames::gradB_CRKSPH, Tensor::zero);
-  FieldList<Dimension, ThirdRankTensor> gradC = state.fields(HydroFieldNames::gradC_CRKSPH, ThirdRankTensor::zero);
-  FieldList<Dimension, int> surfacePoint = state.fields(HydroFieldNames::surfacePoint, 0);
-  FieldList<Dimension, int> voidPoint = state.fields(HydroFieldNames::voidPoint, 0);
+  auto A = state.fields(HydroFieldNames::A_CRKSPH, 0.0);
+  auto B = state.fields(HydroFieldNames::B_CRKSPH, Vector::zero);
+  auto C = state.fields(HydroFieldNames::C_CRKSPH, Tensor::zero);
+  auto gradA = state.fields(HydroFieldNames::gradA_CRKSPH, Vector::zero);
+  auto gradB = state.fields(HydroFieldNames::gradB_CRKSPH, Tensor::zero);
+  auto gradC = state.fields(HydroFieldNames::gradC_CRKSPH, ThirdRankTensor::zero);
+  auto surfacePoint = state.fields(HydroFieldNames::surfacePoint, 0);
+  auto voidPoint = state.fields(HydroFieldNames::voidPoint, 0);
+  // auto etaVoidPoints = state.fields(HydroFieldNames::etaVoidPoints, vector<Vector>());
 
   for (ConstBoundaryIterator boundaryItr = this->boundaryBegin(); 
        boundaryItr != this->boundaryEnd();
@@ -1337,6 +1353,7 @@ applyGhostBoundaries(State<Dimension>& state,
     (*boundaryItr)->applyFieldListGhostBoundary(gradC);
     (*boundaryItr)->applyFieldListGhostBoundary(surfacePoint);
     (*boundaryItr)->applyFieldListGhostBoundary(voidPoint);
+    // (*boundaryItr)->applyFieldListGhostBoundary(etaVoidPoints);
   }
 }
 
@@ -1350,26 +1367,26 @@ enforceBoundaries(State<Dimension>& state,
                   StateDerivatives<Dimension>& derivs) {
 
   // Enforce boundary conditions on the fluid state Fields.
-  FieldList<Dimension, Scalar> vol = state.fields(HydroFieldNames::volume, 0.0);
-  FieldList<Dimension, Scalar> mass = state.fields(HydroFieldNames::mass, 0.0);
-  FieldList<Dimension, Scalar> massDensity = state.fields(HydroFieldNames::massDensity, 0.0);
-  FieldList<Dimension, Scalar> specificThermalEnergy = state.fields(HydroFieldNames::specificThermalEnergy, 0.0);
-  FieldList<Dimension, Vector> velocity = state.fields(HydroFieldNames::velocity, Vector::zero);
-  FieldList<Dimension, Scalar> pressure = state.fields(HydroFieldNames::pressure, 0.0);
-  FieldList<Dimension, Scalar> soundSpeed = state.fields(HydroFieldNames::soundSpeed, 0.0);
-  FieldList<Dimension, Scalar> entropy = state.fields(HydroFieldNames::entropy, 0.0);
+  auto vol = state.fields(HydroFieldNames::volume, 0.0);
+  auto mass = state.fields(HydroFieldNames::mass, 0.0);
+  auto massDensity = state.fields(HydroFieldNames::massDensity, 0.0);
+  auto specificThermalEnergy = state.fields(HydroFieldNames::specificThermalEnergy, 0.0);
+  auto velocity = state.fields(HydroFieldNames::velocity, Vector::zero);
+  auto pressure = state.fields(HydroFieldNames::pressure, 0.0);
+  auto soundSpeed = state.fields(HydroFieldNames::soundSpeed, 0.0);
+  auto entropy = state.fields(HydroFieldNames::entropy, 0.0);
 
   FieldList<Dimension, Scalar> specificThermalEnergy0;
   if (compatibleEnergyEvolution()) {
     specificThermalEnergy0 = state.fields(HydroFieldNames::specificThermalEnergy + "0", 0.0);
   }
 
-  FieldList<Dimension, Scalar> A = state.fields(HydroFieldNames::A_CRKSPH, 0.0);
-  FieldList<Dimension, Vector> B = state.fields(HydroFieldNames::B_CRKSPH, Vector::zero);
-  FieldList<Dimension, Tensor> C = state.fields(HydroFieldNames::C_CRKSPH, Tensor::zero);
-  FieldList<Dimension, Vector> gradA = state.fields(HydroFieldNames::gradA_CRKSPH, Vector::zero);
-  FieldList<Dimension, Tensor> gradB = state.fields(HydroFieldNames::gradB_CRKSPH, Tensor::zero);
-  FieldList<Dimension, ThirdRankTensor> gradC = state.fields(HydroFieldNames::gradC_CRKSPH, ThirdRankTensor::zero);
+  auto A = state.fields(HydroFieldNames::A_CRKSPH, 0.0);
+  auto B = state.fields(HydroFieldNames::B_CRKSPH, Vector::zero);
+  auto C = state.fields(HydroFieldNames::C_CRKSPH, Tensor::zero);
+  auto gradA = state.fields(HydroFieldNames::gradA_CRKSPH, Vector::zero);
+  auto gradB = state.fields(HydroFieldNames::gradB_CRKSPH, Tensor::zero);
+  auto gradC = state.fields(HydroFieldNames::gradC_CRKSPH, ThirdRankTensor::zero);
 
   for (ConstBoundaryIterator boundaryItr = this->boundaryBegin(); 
        boundaryItr != this->boundaryEnd();

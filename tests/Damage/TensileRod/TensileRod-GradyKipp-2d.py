@@ -528,19 +528,9 @@ control = SpheralController(integrator, WT,
                             vizDir = vizDir,
                             vizStep = vizCycle,
                             vizTime = vizTime,
-                            vizDerivs = True)
+                            vizGhosts = True)
+hydro.appendBoundary(hydro.voidBoundary())
 output("control")
-
-#-------------------------------------------------------------------------------
-# Since we are creating a forced velocity gradient on the control nodes, we have
-# to override their mass density evolution or they falsely wander away from the
-# reference density.
-#-------------------------------------------------------------------------------
-## override = OverrideNodeProperties(nodes,
-##                                   rho0,
-##                                   eps0,
-##                                   xNodes)
-## control.appendPeriodicWork(override.override, 1)
 
 #-------------------------------------------------------------------------------
 # Monitor the evolution of the mass averaged strain.
