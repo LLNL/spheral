@@ -247,7 +247,7 @@ computeVoronoiVolume(const FieldList<Dim<2>, Dim<2>::Vector>& position,
     r2d_real firstmom[3];
     vector<r2d_plane> pairPlanes;
     unsigned nvoid;
-    double thetaVoidAvg;
+    Vector etaVoidAvg;
     for (unsigned nodeListi = 0; nodeListi != numNodeLists; ++nodeListi) {
       const unsigned n = vol[nodeListi]->numInternalElements();
       const Scalar rin = 2.0/vol[nodeListi]->nodeListPtr()->nodesPerSmoothingScale();
@@ -264,7 +264,7 @@ computeVoronoiVolume(const FieldList<Dim<2>, Dim<2>::Vector>& position,
         const auto& fullConnectivity = connectivityMap.connectivityForNode(nodeListi, i);
 
         // Prepare to accumulate any void point angles.
-        thetaVoidAvg = 0.0;
+        etaVoidAvg = Vector::zero;
         nvoid = 0;
 
         // t0 = std::clock();
@@ -366,9 +366,7 @@ computeVoronoiVolume(const FieldList<Dim<2>, Dim<2>::Vector>& position,
               if (returnSurface) {
                 surfacePoint(nodeListi, i) |= 1;
                 ++nvoid;
-                const double theta = atan2(peta.y(), peta.x());
-                thetaVoidAvg += (theta > 0.0 ?  theta : theta + 2.0*M_PI);
-                // etaVoidPoints(nodeListi, i).push_back(0.5*rin*peta.unitVector());
+                etaVoidAvg += peta.unitVector();
               }
             }
           }
@@ -377,9 +375,8 @@ computeVoronoiVolume(const FieldList<Dim<2>, Dim<2>::Vector>& position,
           CHECK(etaVoidPoints(nodeListi, i).empty());
           if (returnSurface and not interior) {
             CHECK(nvoid > 0);
-            thetaVoidAvg /= nvoid;
+            const Scalar thetaVoidAvg = atan2(etaVoidAvg.y(), etaVoidAvg.x());
             const auto nv = max(1U, min(4U, unsigned(4.0*float(nvoid)/float(nverts))));
-            cerr << " Void insertion : " << ri << " " << nv << " " << thetaVoidAvg/M_PI << endl;
             for (unsigned k = 0; k != nv; ++k) {
               const auto theta = thetaVoidAvg + (0.5*k - 0.25*(nv - 1))*M_PI;
               etaVoidPoints(nodeListi, i).push_back(Vector(0.5*rin*cos(theta), 0.5*rin*sin(theta)));
