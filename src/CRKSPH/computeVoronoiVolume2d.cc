@@ -107,6 +107,9 @@ bool clipByNeighbors(r2d_poly& celli,
   r2d_reduce(&celli, &vol0, 0);
   CHECK(vol0 > 0.0);
 
+  // Check for multimaterial.
+  if (returnSurface and nodeListj != nodeListi and not fullConnectivity[nodeListj].empty()) surfacePoint(nodeListi, i) |= (1 << nodeListj + 1);
+
   // Build the clipping planes.
   const auto& ri = position(nodeListi, i);
   const auto  weighti = haveWeights ? weight(nodeListi, i) : 1.0;
@@ -348,11 +351,6 @@ computeVoronoiVolume(const FieldList<Dim<2>, Dim<2>::Vector>& position,
           }
         }
 
-        // Compute the final geometry.
-        r2d_reduce(&celli, firstmom, 1);
-        const Vector deltaCentroidi = Vector(firstmom[1], firstmom[2])/firstmom[0];
-        deltaMedian(nodeListi, i) = deltaCentroidi;
-
         // tclip += std::clock() - t0;
 
         // Check if the final polygon is entirely within our "interior" check radius.
@@ -377,14 +375,31 @@ computeVoronoiVolume(const FieldList<Dim<2>, Dim<2>::Vector>& position,
             CHECK(nvoid > 0);
             const Scalar thetaVoidAvg = atan2(etaVoidAvg.y(), etaVoidAvg.x());
             const auto nv = max(1U, min(4U, unsigned(4.0*float(nvoid)/float(nverts))));
+            vector<r2d_plane> voidPlanes(nv);
             for (unsigned k = 0; k != nv; ++k) {
               const auto theta = thetaVoidAvg + (0.5*k - 0.25*(nv - 1))*M_PI;
               etaVoidPoints(nodeListi, i).push_back(Vector(0.5*rin*cos(theta), 0.5*rin*sin(theta)));
+              const auto rij = ri - Hinv*etaVoidPoints(nodeListi, i)[k];
+              const auto nhat = rij.unitVector();
+              voidPlanes[k].n.x = nhat.x();
+              voidPlanes[k].n.y = nhat.y();
+              voidPlanes[k].d = 0.5*rij.magnitude();
             }
             CHECK(etaVoidPoints(nodeListi, i).size() == nv);
+            CHECK(voidPlanes.size() == nv);
+
+            // Clip the cell geometry by the void points we just created.
+            std::sort(voidPlanes.begin(), voidPlanes.end(), compareR2Dplanes);
+            r2d_clip(&celli, &voidPlanes[0], nv);
+            CHECK(celli.nverts > 0);
           }
         }
         // tinterior += std::clock() - t0;
+
+        // Compute the final geometry.
+        r2d_reduce(&celli, firstmom, 1);
+        const Vector deltaCentroidi = Vector(firstmom[1], firstmom[2])/firstmom[0];
+        deltaMedian(nodeListi, i) = deltaCentroidi;
 
         if (interior) {
           // t0 = std::clock();

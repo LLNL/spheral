@@ -192,6 +192,7 @@ CRKSPHHydroBase(const SmoothingScaleBase<Dimension>& smoothingScaleMethod,
   mEtaVoidPoints(FieldSpace::FieldStorageType::CopyFields),
   mVoidBoundary(mSurfacePoint, mEtaVoidPoints),
   mRestart(DataOutput::registerWithRestart(*this)) {
+  this->appendBoundary(mVoidBoundary);
 }
 
 //------------------------------------------------------------------------------
@@ -306,15 +307,15 @@ initializeProblemStartup(DataBase<Dimension>& dataBase) {
     (*boundItr)->applyFieldListGhostBoundary(mVolume);
     if (mVolumeType == CRKVolumeType::CRKVoronoiVolume) {
       (*boundItr)->applyFieldListGhostBoundary(mSurfacePoint);
-      // (*boundItr)->applyFieldListGhostBoundary(mEtaVoidPoints);
+      (*boundItr)->applyFieldListGhostBoundary(mEtaVoidPoints);
     }
   }
   for (ConstBoundaryIterator boundItr = this->boundaryBegin();
        boundItr != this->boundaryEnd();
        ++boundItr) (*boundItr)->finalizeGhostBoundary();
-  if (mVolumeType == CRKVolumeType::CRKVoronoiVolume) {
-    flagSurfaceNeighbors(mSurfacePoint, connectivityMap);
-  }
+  // if (mVolumeType == CRKVolumeType::CRKVoronoiVolume) {
+  //   flagSurfaceNeighbors(mSurfacePoint, connectivityMap);
+  // }
 
   // Compute the corrections.
   const NodeCoupling couple;
@@ -955,10 +956,10 @@ evaluateDerivatives(const typename Dimension::Scalar time,
 
               // We decide between RK and CRK for the momentum and energy equations based on the surface condition.
               // Momentum
-              forceij = (surfacePoint(nodeListi, i) == 0 ? 
+              forceij = (surfacePoint(nodeListi, i) <= 1 ? 
                          0.5*wij*wij*((Pi + Pj)*deltagrad + Qaccij) :                    // Type III CRK interpoint force.
                          mi*wij*((Pj - Pi)/rhoi*gradWj + rhoi*QPiij.first.dot(gradWj))); // RK
-              forceji = (surfacePoint(nodeListj, j) == 0 ? 
+              forceji = (surfacePoint(nodeListj, j) <= 1 ? 
                          0.5*wij*wij*((Pi + Pj)*deltagrad + Qaccij) :                    // Type III CRK interpoint force.
                          mj*wij*((Pj - Pi)/rhoj*gradWi - rhoj*QPiij.second.dot(gradWi)));// RK
               DvDti -= forceij/mi;
@@ -969,10 +970,10 @@ evaluateDerivatives(const typename Dimension::Scalar time,
               }
 
               // Energy
-              DepsDti += (surfacePoint(nodeListi, i) == 0 ? 
+              DepsDti += (surfacePoint(nodeListi, i) <= 1 ? 
                           0.5*wij*wij*(Pj*vij.dot(deltagrad) + workQi)/mi :              // CRK
                           wij*rhoi*QPiij.first.dot(vij).dot(gradWj));                    // RK
-              DepsDtj += (surfacePoint(nodeListj, j) == 0 ? 
+              DepsDtj += (surfacePoint(nodeListj, j) <= 1 ? 
                           0.5*wij*wij*(Pi*vij.dot(deltagrad) + workQj)/mj :              // CRK
                          -wij*rhoj*QPiij.second.dot(vij).dot(gradWi));                   // RK
 
@@ -992,7 +993,7 @@ evaluateDerivatives(const typename Dimension::Scalar time,
             (pairAccelerationsi.size() == numNeighborsi));
 
       // For a surface point, add the RK thermal energy evolution.
-      if (surfacePoint(nodeListi, i) != 0) DepsDti -= Pi/rhoi*DvDxi.Trace();
+      if (surfacePoint(nodeListi, i) > 1) DepsDti -= Pi/rhoi*DvDxi.Trace();
 
       // // If this is a surface point, it's straight RK and there are self-contributions.
       // if (surfacePoint(nodeListi, i) != 0) {
@@ -1218,15 +1219,15 @@ finalize(const typename Dimension::Scalar time,
     (*boundItr)->applyFieldListGhostBoundary(vol);
     if (mVolumeType == CRKVolumeType::CRKVoronoiVolume) {
       (*boundItr)->applyFieldListGhostBoundary(surfacePoint);
-      // (*boundItr)->applyFieldListGhostBoundary(mEtaVoidPoints);
+      (*boundItr)->applyFieldListGhostBoundary(mEtaVoidPoints);
     }
   }
   for (ConstBoundaryIterator boundItr = this->boundaryBegin();
        boundItr != this->boundaryEnd();
        ++boundItr) (*boundItr)->finalizeGhostBoundary();
-  if (mVolumeType == CRKVolumeType::CRKVoronoiVolume) {
-    flagSurfaceNeighbors(surfacePoint, connectivityMap);
-  }
+  // if (mVolumeType == CRKVolumeType::CRKVoronoiVolume) {
+  //   flagSurfaceNeighbors(surfacePoint, connectivityMap);
+  // }
 
   // Depending on the mass density advancement selected, we may want to replace the 
   // mass density.
@@ -1329,7 +1330,7 @@ applyGhostBoundaries(State<Dimension>& state,
   auto gradC = state.fields(HydroFieldNames::gradC_CRKSPH, ThirdRankTensor::zero);
   auto surfacePoint = state.fields(HydroFieldNames::surfacePoint, 0);
   auto voidPoint = state.fields(HydroFieldNames::voidPoint, 0);
-  // auto etaVoidPoints = state.fields(HydroFieldNames::etaVoidPoints, vector<Vector>());
+  auto etaVoidPoints = state.fields(HydroFieldNames::etaVoidPoints, vector<Vector>());
 
   for (ConstBoundaryIterator boundaryItr = this->boundaryBegin(); 
        boundaryItr != this->boundaryEnd();
@@ -1353,7 +1354,7 @@ applyGhostBoundaries(State<Dimension>& state,
     (*boundaryItr)->applyFieldListGhostBoundary(gradC);
     (*boundaryItr)->applyFieldListGhostBoundary(surfacePoint);
     (*boundaryItr)->applyFieldListGhostBoundary(voidPoint);
-    // (*boundaryItr)->applyFieldListGhostBoundary(etaVoidPoints);
+    (*boundaryItr)->applyFieldListGhostBoundary(etaVoidPoints);
   }
 }
 
