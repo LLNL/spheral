@@ -322,10 +322,10 @@ initializeProblemStartup(DataBase<Dimension>& dataBase) {
   computeCRKSPHMoments(connectivityMap, W, mVolume, position, H, correctionOrder(), couple, mM0, mM1, mM2, mM3, mM4, mGradm0, mGradm1, mGradm2, mGradm3, mGradm4);
   computeCRKSPHCorrections(mM0, mM1, mM2, mM3, mM4, mGradm0, mGradm1, mGradm2, mGradm3, mGradm4, H, correctionOrder(), mA, mB, mC, mGradA, mGradB, mGradC);
 
-  // We need to initialize the velocity gradient if we're using the CRKSPH artificial viscosity.
-  const FieldList<Dimension, Vector> velocity = dataBase.fluidVelocity();
-  const ArtificialViscosity<Dimension>& Q = this->artificialViscosity();
-  mDvDx.assignFields(CRKSPHSpace::gradientCRKSPH(velocity, position, mVolume, H, mA, mB, mC, mGradA, mGradB, mGradC, connectivityMap, correctionOrder(), W, NodeCoupling()));
+  // This breaks domain independence, so we'll try being inconsistent on the first step.
+  // // We need to initialize the velocity gradient if we're using the CRKSPH artificial viscosity.
+  // const FieldList<Dimension, Vector> velocity = dataBase.fluidVelocity();
+  // mDvDx.assignFields(CRKSPHSpace::gradientCRKSPH(velocity, position, mVolume, H, mA, mB, mC, mGradA, mGradB, mGradC, connectivityMap, correctionOrder(), W, NodeCoupling()));
 
   // Initialize the pressure, sound speed, and entropy.
   dataBase.fluidPressure(mPressure);
