@@ -670,10 +670,10 @@ evaluateDerivatives(const typename Dimension::Scalar time,
 
               // We decide between RK and CRK for the momentum and energy equations based on the surface condition.
               // Momentum
-              forceij = (surfacePoint(nodeListi, i) == 0 ? 
+              forceij = (surfacePoint(nodeListi, i) <= 1 ? 
                          0.5*wij*wij*((Pposi + Pposj)*deltagrad - fij*(sigmai + sigmaj)*deltagrad + Qaccij) :                    // Type III CRK interpoint force.
                          mi*wij*(((Pposj - Pposi)*gradWj - fij*(sigmaj - sigmai)*gradWj)/rhoi + rhoi*QPiij.first.dot(gradWj)));  // RK
-              forceji = (surfacePoint(nodeListj, j) == 0 ?
+              forceji = (surfacePoint(nodeListj, j) <= 1 ?
                          0.5*wij*wij*((Pposi + Pposj)*deltagrad - fij*(sigmai + sigmaj)*deltagrad + Qaccij) :                    // Type III CRK interpoint force.
                          mj*wij*(((Pposj - Pposi)*gradWi - fij*(sigmaj - sigmai)*gradWi)/rhoj - rhoj*QPiij.second.dot(gradWi))); // RK
               DvDti -= forceij/mi;
@@ -684,12 +684,12 @@ evaluateDerivatives(const typename Dimension::Scalar time,
               }
 
               // Energy
-              DepsDti += (surfacePoint(nodeListi, i) == 0 ?
+              DepsDti += (surfacePoint(nodeListi, i) <= 1 ?
                           0.5*wij*wij*(Pposj*vij.dot(deltagrad) + fij*sigmaj.dot(vij).dot(deltagrad) + workQi)/mi :               // CRK
                           wij*rhoi*QPiij.first.dot(vij).dot(gradWj));                                                             // RK, Q term only -- adiabatic portion added later
-              DepsDtj += (surfacePoint(nodeListj, j) == 0 ?
+              DepsDtj += (surfacePoint(nodeListj, j) <= 1 ?
                           0.5*wij*wij*(Pposi*vij.dot(deltagrad) + fij*sigmai.dot(vij).dot(deltagrad) + workQj)/mj :               // CRK
-                         -wij*rhoj*QPiij.second.dot(vij).dot(gradWi));                                                             // RK, Q term only -- adiabatic portion added later
+                         -wij*rhoj*QPiij.second.dot(vij).dot(gradWi));                                                            // RK, Q term only -- adiabatic portion added later
 
               // Estimate of delta v (for XSPH).
               XSPHDeltaVi -= fij*wij*Wj*vij;
@@ -704,7 +704,7 @@ evaluateDerivatives(const typename Dimension::Scalar time,
             (pairAccelerationsi.size() == numNeighborsi));
 
       // For a surface point, add the RK thermal energy evolution.
-      if (surfacePoint(nodeListi, i) != 0) DepsDti += (Si - Pi*SymTensor::one).doubledot(DvDxi)/rhoi;
+      if (surfacePoint(nodeListi, i) > 1) DepsDti += (Si - Pi*SymTensor::one).doubledot(DvDxi)/rhoi;
 
       // Get the time for pairwise interactions.
       const auto deltaTimePair = Timing::difference(start, Timing::currentTime())/max(size_t(1), ncalc);

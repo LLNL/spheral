@@ -201,8 +201,8 @@ update(const KeyType& key,
 
               // Check if either of these points was advanced non-conservatively.
               if (surface) {
-                poisoned(nodeListi, i) |= (surfacePoint(nodeListi, i) != 0 or surfacePoint(nodeListj, j) != 0 ? 1 : 0);
-                poisoned(nodeListj, j) |= (surfacePoint(nodeListi, i) != 0 or surfacePoint(nodeListj, j) != 0 ? 1 : 0);
+                poisoned(nodeListi, i) |= (surfacePoint(nodeListi, i) > 1 or surfacePoint(nodeListj, j) > 1 ? 1 : 0);
+                poisoned(nodeListj, j) |= (surfacePoint(nodeListi, i) > 1 or surfacePoint(nodeListj, j) > 1 ? 1 : 0);
               }
             }
           }

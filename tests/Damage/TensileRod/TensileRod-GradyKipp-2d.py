@@ -529,7 +529,6 @@ control = SpheralController(integrator, WT,
                             vizStep = vizCycle,
                             vizTime = vizTime,
                             vizGhosts = True)
-hydro.appendBoundary(hydro.voidBoundary())
 output("control")
 
 #-------------------------------------------------------------------------------

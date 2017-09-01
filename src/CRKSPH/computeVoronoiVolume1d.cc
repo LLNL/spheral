@@ -238,6 +238,18 @@ computeVoronoiVolume(const FieldSpace::FieldList<Dim<1>, Dim<1>::Vector>& positi
 
   }
 
+  // Flag any points that overlap other NodeLists as multi-material.
+  if (returnSurface) {
+    for (auto nodeListi = 0U; nodeListi != numNodeLists; ++nodeListi) {
+      const unsigned n = position[nodeListi]->numInternalElements();
+      for (auto i = 0U; i != n; ++i) {
+        const auto& fullConnectivity = connectivityMap.connectivityForNode(nodeListi, i);
+        for (auto nodeListj = 0U; nodeListj != numNodeLists; ++nodeListj) {
+          if (nodeListj != nodeListi and not fullConnectivity[nodeListj].empty()) surfacePoint(nodeListi, i) |= (1 << nodeListj + 1);
+        }
+      }
+    }
+  }
 }
 
 }
