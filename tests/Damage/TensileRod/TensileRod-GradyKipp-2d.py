@@ -109,8 +109,6 @@ commandLine(seed = "lattice",
             
             crksph = False,
             ASPH = True,
-            hmin = 1e-5,
-            hmax = 1.0,
             hminratio = 0.05,
             cfl = 0.25,
             useVelocityMagnitudeForDt = False,
@@ -326,10 +324,13 @@ output("WT")
 #-------------------------------------------------------------------------------
 # Create the NodeLists.
 #-------------------------------------------------------------------------------
+hmin = 0.1*nPerh*min(xlength/nx, ylength/ny)
+hmax = 2.0*nPerh*max(xlength/nx, ylength/ny)
 nodes = makeSolidNodeList("Stainless steel", eos, strengthModel,
                           nPerh = nPerh,
                           hmin = hmin,
                           hmax = hmax,
+                          hminratio = hminratio,
                           rhoMin = etamin*rho0,
                           rhoMax = etamax*rho0,
                           xmin = -100.0*Vector.one,
