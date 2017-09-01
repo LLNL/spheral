@@ -1,5 +1,5 @@
-#ATS:test(SELF, "--CRKSPH=True --nx1=256 --nx2=256 --ny1=128 --ny2=128 --cfl=0.25 --Cl=1.0 --Cq=1.0 --clearDirectories=True --KernelConstructor NBSplineKernel --filter=0.0 --nPerh=1.51 --graphMixing True --mixFile KH_CRK_256x256.gnu --serialDump=False", label="KH CRK 256^2, nPerh=1.5", np=10)
-#ATS:test(SELF, "--CRKSPH=True --nx1=512 --nx2=512 --ny1=256 --ny2=256 --cfl=0.25 --Cl=1.0 --Cq=1.0 --clearDirectories=True --KernelConstructor NBSplineKernel --filter=0.0 --nPerh=1.51 --graphMixing True --mixFile KH_CRK_512x512.gnu --serialDump=False", label="KH CRK 512^2, nPerh=1.5", np=70)
+#ATS:test(SELF, "--crksph=True --nx1=256 --nx2=256 --ny1=128 --ny2=128 --cfl=0.25 --Cl=1.0 --Cq=1.0 --clearDirectories=True --KernelConstructor NBSplineKernel --filter=0.0 --nPerh=1.51 --graphMixing True --mixFile KH_CRK_256x256.gnu --serialDump=False", label="KH CRK 256^2, nPerh=1.5", np=10)
+#ATS:test(SELF, "--crksph=True --nx1=512 --nx2=512 --ny1=256 --ny2=256 --cfl=0.25 --Cl=1.0 --Cq=1.0 --clearDirectories=True --KernelConstructor NBSplineKernel --filter=0.0 --nPerh=1.51 --graphMixing True --mixFile KH_CRK_512x512.gnu --serialDump=False", label="KH CRK 512^2, nPerh=1.5", np=70)
 
 #-------------------------------------------------------------------------------
 # This is the basic Kelvin-Helmholtz problem as discussed in
@@ -10,7 +10,6 @@ from math import *
 from Spheral2d import *
 from SpheralTestUtilities import *
 from SpheralGnuPlotUtilities import *
-from findLastRestart import *
 from GenerateNodeDistribution2d import *
 from CompositeNodeDistribution import *
 from CentroidalVoronoiRelaxation import *
@@ -48,17 +47,14 @@ commandLine(nx1 = 256,
 
             nPerh = 1.51,
 
-            SVPH = False,
-            CRKSPH = False,
-            PSPH = False,
-            ASPH = False,   # Just for choosing the H algorithm
+            svph = False,
+            crksph = False,
+            psph = False,
+            asph = False,   # Just for choosing the H algorithm
             filter = 0.0,   # CRKSPH filtering
-            Qconstructor = MonaghanGingoldViscosity,
-            KernelConstructor = BSplineKernel,
             order = 5,
             correctionOrder = LinearOrder,
             volumeType = CRKSumVolume,
-            #Qconstructor = TensorMonaghanGingoldViscosity,
             linearConsistent = False,
             fcentroidal = 0.0,
             fcellPressure = 0.0,
@@ -116,7 +112,7 @@ commandLine(nx1 = 256,
 
             useVoronoiOutput = False,
             clearDirectories = False,
-            restoreCycle = None,
+            restoreCycle = -1,
             restartStep = 100,
             redistributeStep = 500,
             checkRestart = False,
@@ -136,42 +132,30 @@ commandLine(nx1 = 256,
 assert not(boolReduceViscosity and boolCullenViscosity)
 assert numNodeLists in (1, 2)
 
-# Decide on our hydro algorithm.
-if SVPH:
-    if ASPH:
-        HydroConstructor = ASVPHFacetedHydro
-    else:
-        HydroConstructor = SVPHFacetedHydro
-elif CRKSPH:
-    Qconstructor = CRKSPHMonaghanGingoldViscosity
-    if ASPH:
-        HydroConstructor = ACRKSPHHydro
-    else:
-        HydroConstructor = CRKSPHHydro
-elif PSPH:
-    if ASPH:
-        HydroConstructor = APSPHHydro
-    else:
-        HydroConstructor = PSPHHydro
+# hydro algorithm label
+if svph:
+    hydroname = "SVPH"
+elif crksph:
+    hydroname = "CRKSPH"
+elif psph:
+    hydroname = "PSPH"
 else:
-    if ASPH:
-        HydroConstructor = ASPHHydro
-    else:
-        HydroConstructor = SPHHydro
+    hydroname = "SPH"
+if asph:
+    hydroname = "A" + hydroname
 
 dataDir = os.path.join(dataDir,
                        "rho1=%g-rho2=%g" % (rho1, rho2),
                        "vx1=%g-vx2=%g" % (abs(vx1), abs(vx2)),
                        "vxboost=%g-vyboost=%g" % (vxboost, vyboost),
-                       HydroConstructor.__name__,
-                       KernelConstructor.__name__,
+                       hydroname,
                        "densityUpdate=%s" % (densityUpdate),
                        "correctionOrder=%s" % (correctionOrder),
                        "volumeType=%s" % volumeType,
                        "compatibleEnergy=%s" % (compatibleEnergy),
                        "Cullen=%s" % (boolCullenViscosity),
                        "filter=%g" % filter,
-                       "%s-Cl=%g-Cq=%g" % (Qconstructor.__name__, Cl, Cq),
+                       "Cl=%g-Cq=%g" % (Cl, Cq),
                        "%ix%i" % (nx1, ny1 + ny2),
                        "nPerh=%g-Qhmult=%g" % (nPerh, Qhmult))
 restartDir = os.path.join(dataDir, "restarts")
@@ -193,12 +177,6 @@ if mpi.rank == 0:
 mpi.barrier()
 
 #-------------------------------------------------------------------------------
-# If we're restarting, find the set of most recent restart files.
-#-------------------------------------------------------------------------------
-if restoreCycle is None:
-    restoreCycle = findLastRestart(restartBaseName)
-
-#-------------------------------------------------------------------------------
 # Material properties.
 #-------------------------------------------------------------------------------
 eos = GammaLawGasMKS(gamma, mu)
@@ -206,11 +184,7 @@ eos = GammaLawGasMKS(gamma, mu)
 #-------------------------------------------------------------------------------
 # Interpolation kernels.
 #-------------------------------------------------------------------------------
-if KernelConstructor==NBSplineKernel:
-    Wbase = NBSplineKernel(order)
-else:
-    Wbase = KernelConstructor()
-WT = TableKernel(Wbase, 1000)
+WT = TableKernel(NBSplineKernel(order), 1000)
 WTPi = WT
 output("WT")
 output("WTPi")
@@ -242,107 +216,106 @@ for nodes in nodeSet:
 #-------------------------------------------------------------------------------
 # Set the node properties.
 #-------------------------------------------------------------------------------
-if restoreCycle is None:
-    generator1 = GenerateNodeDistribution2d(nx1, ny1,
-                                            rho = rho2,
-                                            distributionType = "lattice",
-                                            xmin = (0.0,  0.25),
-                                            xmax = (1.0,  0.75),
-                                            nNodePerh = nPerh,
-                                            SPH = (not ASPH))
-    generator21 = GenerateNodeDistribution2d(nx2, int(0.5*ny2 + 0.5),
-                                             rho = rho1,
-                                             distributionType = "lattice",
-                                             xmin = (0.0, 0.0),
-                                             xmax = (1.0, 0.25),
-                                             nNodePerh = nPerh,
-                                             SPH = (not ASPH))
-    generator22 = GenerateNodeDistribution2d(nx2, int(0.5*ny2 + 0.5),
-                                             rho = rho1,
-                                             distributionType = "lattice",
-                                             xmin = (0.0, 0.75),
-                                             xmax = (1.0, 1.0),
-                                             nNodePerh = nPerh,
-                                             SPH = (not ASPH))
-    generator2 = CompositeNodeDistribution(generator21, generator22)
+generator1 = GenerateNodeDistribution2d(nx1, ny1,
+                                        rho = rho2,
+                                        distributionType = "lattice",
+                                        xmin = (0.0,  0.25),
+                                        xmax = (1.0,  0.75),
+                                        nNodePerh = nPerh,
+                                        SPH = (not ASPH))
+generator21 = GenerateNodeDistribution2d(nx2, int(0.5*ny2 + 0.5),
+                                         rho = rho1,
+                                         distributionType = "lattice",
+                                         xmin = (0.0, 0.0),
+                                         xmax = (1.0, 0.25),
+                                         nNodePerh = nPerh,
+                                         SPH = (not ASPH))
+generator22 = GenerateNodeDistribution2d(nx2, int(0.5*ny2 + 0.5),
+                                         rho = rho1,
+                                         distributionType = "lattice",
+                                         xmin = (0.0, 0.75),
+                                         xmax = (1.0, 1.0),
+                                         nNodePerh = nPerh,
+                                         SPH = (not ASPH))
+generator2 = CompositeNodeDistribution(generator21, generator22)
 
-    if mpi.procs > 1:
-        from VoronoiDistributeNodes import distributeNodes2d
-    else:
-        from DistributeNodes import distributeNodes2d
+if mpi.procs > 1:
+    from VoronoiDistributeNodes import distributeNodes2d
+else:
+    from DistributeNodes import distributeNodes2d
 
-    if numNodeLists == 2:
-        distributeNodes2d((nodes1, generator1),
-                          (nodes2, generator2))
-    else:
-        gen = CompositeNodeDistribution(generator1, generator2)
-        distributeNodes2d((nodes1, gen))
+if numNodeLists == 2:
+    distributeNodes2d((nodes1, generator1),
+                      (nodes2, generator2))
+else:
+    gen = CompositeNodeDistribution(generator1, generator2)
+    distributeNodes2d((nodes1, gen))
 
-    # Finish initial conditions.
-    rhom = 0.5*(rho1-rho2)
-    vxm = 0.5*(vx1-vx2)
-    if numNodeLists == 2:
-        for (nodes, vx) in ((nodes1, vx1),
-                            (nodes2, vx2)):
-            pos = nodes.positions()
-            vel = nodes.velocity()
-            rho = nodes.massDensity()
-            eps = nodes.specificThermalEnergy()
-            mass = nodes.mass()
-            for i in xrange(nodes.numInternalNodes):
-                yval = pos[i].y
-                xval = pos[i].x
-                velx = 0.0
-                rho[i] = 0.0
-                vely = delta*sin(4*pi*xval)
-                if yval >= 0 and yval < 0.25:
-                   rho[i]=rho1 - rhom*exp((yval-0.25)/smooth)
-                   mass[i] *= rho[i]/rho1
-                   velx = vx1 - vxm*exp((yval-0.25)/smooth)
-                elif yval >= 0.25 and yval < 0.5:
-                   rho[i]=rho2 + rhom*exp((0.25-yval)/smooth)
-                   mass[i] *= rho[i]/rho2
-                   velx = vx2 + vxm*exp((0.25-yval)/smooth)
-                elif yval >= 0.5 and yval < 0.75:
-                   rho[i]=rho2 + rhom*exp((yval-0.75)/smooth)
-                   mass[i] *= rho[i]/rho2
-                   velx = vx2 + vxm*exp((yval-0.75)/smooth)
-                else:
-                   rho[i]=rho1 - rhom*exp((0.75-yval)/smooth)
-                   mass[i] *= rho[i]/rho1
-                   velx = vx1 - vxm*exp((0.75-yval)/smooth)
-                vel[i] = Vector(velx + vxboost, vely + vyboost)
-                eps[i] = P1/((gamma - 1.0)*rho[i])
-    else:
-        pos = nodes1.positions()
-        vel = nodes1.velocity()
-        rho = nodes1.massDensity()
-        eps = nodes1.specificThermalEnergy()
-        mass = nodes1.mass()
-        for i in xrange(nodes1.numInternalNodes):
-                yval = pos[i].y
-                xval = pos[i].x
-                velx = 0.0
-                vely = delta*sin(4*pi*xval)
-                if yval >= 0 and yval < 0.25:
-                   rho[i]=rho1 - rhom*exp((yval-0.25)/smooth)
-                   mass[i] *= rho[i]/rho1
-                   velx = vx1 - vxm*exp((yval-0.25)/smooth)
-                elif yval >= 0.25 and yval < 0.5:
-                   rho[i]=rho2 + rhom*exp((0.25-yval)/smooth)
-                   mass[i] *= rho[i]/rho2
-                   velx = vx2 + vxm*exp((0.25-yval)/smooth)
-                elif yval >= 0.5 and yval < 0.75:
-                   rho[i]=rho2 + rhom*exp((yval-0.75)/smooth)
-                   mass[i] *= rho[i]/rho2
-                   velx = vx2 + vxm*exp((yval-0.75)/smooth)
-                else:
-                   rho[i]=rho1 - rhom*exp((0.75-yval)/smooth)
-                   mass[i] *= rho[i]/rho1
-                   velx = vx1 - vxm*exp((0.75-yval)/smooth)
+# Finish initial conditions.
+rhom = 0.5*(rho1-rho2)
+vxm = 0.5*(vx1-vx2)
+if numNodeLists == 2:
+    for (nodes, vx) in ((nodes1, vx1),
+                        (nodes2, vx2)):
+        pos = nodes.positions()
+        vel = nodes.velocity()
+        rho = nodes.massDensity()
+        eps = nodes.specificThermalEnergy()
+        mass = nodes.mass()
+        for i in xrange(nodes.numInternalNodes):
+            yval = pos[i].y
+            xval = pos[i].x
+            velx = 0.0
+            rho[i] = 0.0
+            vely = delta*sin(4*pi*xval)
+            if yval >= 0 and yval < 0.25:
+               rho[i]=rho1 - rhom*exp((yval-0.25)/smooth)
+               mass[i] *= rho[i]/rho1
+               velx = vx1 - vxm*exp((yval-0.25)/smooth)
+            elif yval >= 0.25 and yval < 0.5:
+               rho[i]=rho2 + rhom*exp((0.25-yval)/smooth)
+               mass[i] *= rho[i]/rho2
+               velx = vx2 + vxm*exp((0.25-yval)/smooth)
+            elif yval >= 0.5 and yval < 0.75:
+               rho[i]=rho2 + rhom*exp((yval-0.75)/smooth)
+               mass[i] *= rho[i]/rho2
+               velx = vx2 + vxm*exp((yval-0.75)/smooth)
+            else:
+               rho[i]=rho1 - rhom*exp((0.75-yval)/smooth)
+               mass[i] *= rho[i]/rho1
+               velx = vx1 - vxm*exp((0.75-yval)/smooth)
+            vel[i] = Vector(velx + vxboost, vely + vyboost)
+            eps[i] = P1/((gamma - 1.0)*rho[i])
+else:
+    pos = nodes1.positions()
+    vel = nodes1.velocity()
+    rho = nodes1.massDensity()
+    eps = nodes1.specificThermalEnergy()
+    mass = nodes1.mass()
+    for i in xrange(nodes1.numInternalNodes):
+            yval = pos[i].y
+            xval = pos[i].x
+            velx = 0.0
+            vely = delta*sin(4*pi*xval)
+            if yval >= 0 and yval < 0.25:
+               rho[i]=rho1 - rhom*exp((yval-0.25)/smooth)
+               mass[i] *= rho[i]/rho1
+               velx = vx1 - vxm*exp((yval-0.25)/smooth)
+            elif yval >= 0.25 and yval < 0.5:
+               rho[i]=rho2 + rhom*exp((0.25-yval)/smooth)
+               mass[i] *= rho[i]/rho2
+               velx = vx2 + vxm*exp((0.25-yval)/smooth)
+            elif yval >= 0.5 and yval < 0.75:
+               rho[i]=rho2 + rhom*exp((yval-0.75)/smooth)
+               mass[i] *= rho[i]/rho2
+               velx = vx2 + vxm*exp((yval-0.75)/smooth)
+            else:
+               rho[i]=rho1 - rhom*exp((0.75-yval)/smooth)
+               mass[i] *= rho[i]/rho1
+               velx = vx1 - vxm*exp((0.75-yval)/smooth)
 
-                vel[i] = Vector(velx + vxboost, vely + vyboost)
-                eps[i] = P1/((gamma - 1.0)*rho[i])
+            vel[i] = Vector(velx + vxboost, vely + vyboost)
+            eps[i] = P1/((gamma - 1.0)*rho[i])
 
 #-------------------------------------------------------------------------------
 # Construct a DataBase to hold our node list
@@ -355,12 +328,83 @@ output("db.numNodeLists")
 output("db.numFluidNodeLists")
 
 #-------------------------------------------------------------------------------
-# Construct the artificial viscosity.
+# Construct the hydro physics object.
 #-------------------------------------------------------------------------------
-try:
-    q = Qconstructor(Cl, Cq, linearInExpansion)
-except:
-    q = Qconstructor(Cl, Cq)
+if svph:
+    hydro = SVPH(dataBase = db,
+                 W = WT, 
+                 cfl = cfl,
+                 useVelocityMagnitudeForDt = useVelocityMagnitudeForDt,
+                 compatibleEnergyEvolution = compatibleEnergy,
+                 densityUpdate = densityUpdate,
+                 XSVPH = XSPH,
+                 linearConsistent = linearConsistent,
+                 generateVoid = False,
+                 HUpdate = HUpdate,
+                 fcentroidal = fcentroidal,
+                 fcellPressure = fcellPressure,
+                 xmin = Vector(-2.0, -2.0),
+                 xmax = Vector(3.0, 3.0),
+                 ASPH = asph)
+    # xmin = Vector(x0 - 0.5*(x2 - x0), y0 - 0.5*(y2 - y0)),
+    # xmax = Vector(x2 + 0.5*(x2 - x0), y2 + 0.5*(y2 - y0)))
+elif crksph:
+    hydro = CRKSPH(dataBase = db,
+                   W = WT, 
+                   filter = filter,
+                   cfl = cfl,
+                   useVelocityMagnitudeForDt = useVelocityMagnitudeForDt,
+                   compatibleEnergyEvolution = compatibleEnergy,
+                   evolveTotalEnergy = evolveTotalEnergy,
+                   XSPH = XSPH,
+                   correctionOrder = correctionOrder,
+                   volumeType = volumeType,
+                   densityUpdate = densityUpdate,
+                   HUpdate = HUpdate,
+                   ASPH = asph)
+elif psph:
+    hydro = PSPH(W = WT,
+                 filter = filter,
+                 cfl = cfl,
+                 compatibleEnergyEvolution = compatibleEnergy,
+                 evolveTotalEnergy = evolveTotalEnergy,
+                 HopkinsConductivity = HopkinsConductivity,
+                 correctVelocityGradient = correctVelocityGradient,
+                 densityUpdate = densityUpdate,
+                 HUpdate = HUpdate,
+                 XSPH = XSPH,
+                 ASPH = asph)
+else:
+    hydro = SPH(W = WT,
+                Q = q,
+                cfl = cfl,
+                useVelocityMagnitudeForDt = useVelocityMagnitudeForDt,
+                compatibleEnergyEvolution = compatibleEnergy,
+                evolveTotalEnergy = evolveTotalEnergy,
+                gradhCorrection = gradhCorrection,
+                correctVelocityGradient = correctVelocityGradient,
+                XSPH = XSPH,
+                densityUpdate = densityUpdate,
+                HUpdate = HUpdate,
+                epsTensile = epsilonTensile,
+                nTensile = nTensile,
+                ASPH = asph)
+output("hydro")
+output("hydro.kernel()")
+output("hydro.PiKernel()")
+output("hydro.cfl")
+output("hydro.compatibleEnergyEvolution")
+output("hydro.densityUpdate")
+output("hydro.HEvolution")
+
+packages = [hydro]
+
+#-------------------------------------------------------------------------------
+# Set the artificial viscosity parameters.
+#-------------------------------------------------------------------------------
+q = hydro.Q
+q.Cl = Cl
+q.Cq = Cq
 q.epsilon2 = epsilon2
 q.limiter = Qlimiter
 q.balsaraShearCorrection = balsaraCorrection
@@ -377,77 +421,6 @@ except:
     pass
 
 #-------------------------------------------------------------------------------
-# Construct the hydro physics object.
-#-------------------------------------------------------------------------------
-if SVPH:
-    hydro = HydroConstructor(W = WT, 
-                             Q = q,
-                             cfl = cfl,
-                             useVelocityMagnitudeForDt = useVelocityMagnitudeForDt,
-                             compatibleEnergyEvolution = compatibleEnergy,
-                             densityUpdate = densityUpdate,
-                             XSVPH = XSPH,
-                             linearConsistent = linearConsistent,
-                             generateVoid = False,
-                             HUpdate = HUpdate,
-                             fcentroidal = fcentroidal,
-                             fcellPressure = fcellPressure,
-                             xmin = Vector(-2.0, -2.0),
-                             xmax = Vector(3.0, 3.0))
-                             # xmin = Vector(x0 - 0.5*(x2 - x0), y0 - 0.5*(y2 - y0)),
-                             # xmax = Vector(x2 + 0.5*(x2 - x0), y2 + 0.5*(y2 - y0)))
-elif CRKSPH:
-    hydro = HydroConstructor(W = WT, 
-                             WPi = WTPi, 
-                             Q = q,
-                             filter = filter,
-                             cfl = cfl,
-                             useVelocityMagnitudeForDt = useVelocityMagnitudeForDt,
-                             compatibleEnergyEvolution = compatibleEnergy,
-                             evolveTotalEnergy = evolveTotalEnergy,
-                             XSPH = XSPH,
-                             correctionOrder = correctionOrder,
-                             volumeType = volumeType,
-                             densityUpdate = densityUpdate,
-                             HUpdate = HUpdate)
-elif PSPH:
-    hydro = HydroConstructor(W = WT,
-                             Q = q,
-                             filter = filter,
-                             cfl = cfl,
-                             compatibleEnergyEvolution = compatibleEnergy,
-                             evolveTotalEnergy = evolveTotalEnergy,
-                             HopkinsConductivity = HopkinsConductivity,
-                             correctVelocityGradient = correctVelocityGradient,
-                             densityUpdate = densityUpdate,
-                             HUpdate = HUpdate,
-                             XSPH = XSPH)
-else:
-    hydro = HydroConstructor(W = WT,
-                             WPi = WTPi,
-                             Q = q,
-                             cfl = cfl,
-                             useVelocityMagnitudeForDt = useVelocityMagnitudeForDt,
-                             compatibleEnergyEvolution = compatibleEnergy,
-                             evolveTotalEnergy = evolveTotalEnergy,
-                             gradhCorrection = gradhCorrection,
-                             correctVelocityGradient = correctVelocityGradient,
-                             XSPH = XSPH,
-                             densityUpdate = densityUpdate,
-                             HUpdate = HUpdate,
-                             epsTensile = epsilonTensile,
-                             nTensile = nTensile)
-output("hydro")
-output("hydro.kernel()")
-output("hydro.PiKernel()")
-output("hydro.cfl")
-output("hydro.compatibleEnergyEvolution")
-output("hydro.densityUpdate")
-output("hydro.HEvolution")
-
-packages = [hydro]
-
-#-------------------------------------------------------------------------------
 # Construct the MMRV physics object.
 #-------------------------------------------------------------------------------
 if boolReduceViscosity:
@@ -460,7 +433,6 @@ elif boolCullenViscosity:
 #-------------------------------------------------------------------------------
 # Construct the Artificial Conduction physics object.
 #-------------------------------------------------------------------------------
-
 if bArtificialConduction:
     #q.reducingViscosityCorrection = True
     ArtyCond = ArtificialConduction(WT,arCondAlpha)
@@ -497,10 +469,6 @@ integrator.dtGrowth = dtGrowth
 integrator.domainDecompositionIndependent = domainIndependent
 integrator.verbose = dtverbose
 integrator.rigorousBoundaries = rigorousBoundaries
-
-# Blago!  Currently a problem with periodic boundaries.
-# integrator.cullGhostNodes = False
-
 output("integrator")
 output("integrator.havePhysicsPackage(hydro)")
 output("integrator.lastDt")
@@ -532,7 +500,7 @@ control = SpheralController(integrator, WT,
                             vizDir = vizDir,
                             vizStep = vizCycle,
                             vizTime = vizTime,
-                            SPH = (not ASPH))
+                            SPH = (not asph))
 output("control")
 
 #-------------------------------------------------------------------------------
