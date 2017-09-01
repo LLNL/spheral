@@ -130,11 +130,11 @@ bool clipByNeighbors(r2d_poly& celli,
       pairPlanes.back().n.x = nhat.x();
       pairPlanes.back().n.y = nhat.y();
       pairPlanes.back().d = wij*rij.magnitude();
-    // } else {
-    //   voidPlanes.push_back(r2d_plane());
-    //   voidPlanes.back().n.x = nhat.x();
-    //   voidPlanes.back().n.y = nhat.y();
-    //   voidPlanes.back().d = wij*rij.magnitude();
+    } else {
+      voidPlanes.push_back(r2d_plane());
+      voidPlanes.back().n.x = nhat.x();
+      voidPlanes.back().n.y = nhat.y();
+      voidPlanes.back().d = wij*rij.magnitude();
     }
   }
 
@@ -248,7 +248,7 @@ computeVoronoiVolume(const FieldList<Dim<2>, Dim<2>::Vector>& position,
 
     // Walk the points.
     r2d_real firstmom[3];
-    vector<r2d_plane> pairPlanes;
+    vector<r2d_plane> pairPlanes, voidPlanes;
     unsigned nvoid;
     Vector etaVoidAvg;
     for (unsigned nodeListi = 0; nodeListi != numNodeLists; ++nodeListi) {
@@ -266,9 +266,11 @@ computeVoronoiVolume(const FieldList<Dim<2>, Dim<2>::Vector>& position,
         const auto  weighti = haveWeights ? weight(nodeListi, i) : 1.0;
         const auto& fullConnectivity = connectivityMap.connectivityForNode(nodeListi, i);
 
-        // Prepare to accumulate any void point angles.
+        // Prepare to accumulate any void point positions.
         etaVoidAvg = Vector::zero;
         nvoid = 0;
+        pairPlanes.clear();
+        voidPlanes.clear();
 
         // t0 = std::clock();
 
@@ -283,7 +285,6 @@ computeVoronoiVolume(const FieldList<Dim<2>, Dim<2>::Vector>& position,
         CHECK2(r2d_is_good(&celli), "Bad initial polygon!");
 
         // Clip by any boundaries first.
-        pairPlanes.clear();
         if (haveBoundaries) {
           const auto& facets = boundaries[nodeListi].facets();
           CHECK(boundaries[nodeListi].contains(ri, false));
@@ -328,28 +329,52 @@ computeVoronoiVolume(const FieldList<Dim<2>, Dim<2>::Vector>& position,
             }
           }
 
-          // Sort the planes by distance -- let's us clip more efficiently -- and do the clipping.
-          std::sort(pairPlanes.begin(), pairPlanes.end(), compareR2Dplanes);
-          r2d_clip(&celli, &pairPlanes[0], pairPlanes.size());
-          CHECK(celli.nverts > 0);
+          // // Sort the planes by distance -- let's us clip more efficiently -- and do the clipping.
+          // std::sort(pairPlanes.begin(), pairPlanes.end(), compareR2Dplanes);
+          // r2d_clip(&celli, &pairPlanes[0], pairPlanes.size());
+          // CHECK(celli.nverts > 0);
         }
 
-        // Next clip by points in our own NodeList.
-        clipByNeighbors(celli, surfacePoint, etaVoidPoints,
-                        haveWeights, returnSurface, rin,
-                        fullConnectivity, position, weight, voidPoint, 
-                        nodeListi, i, nodeListi);
-
-        // Now clip by other NodeLists.
+        // Add clipping planes from neighbors.
         for (unsigned nodeListj = 0; nodeListj != numNodeLists; ++nodeListj) {
-          if (nodeListj != nodeListi) {
-            const bool changed = clipByNeighbors(celli, surfacePoint, etaVoidPoints,
-                                                 haveWeights, returnSurface, rin,
-                                                 fullConnectivity, position, weight, voidPoint, 
-                                                 nodeListi, i, nodeListj);
-            if (returnSurface and changed) surfacePoint(nodeListi, i) |= (1 << nodeListj + 1);
+
+          // Check if this point has multi-material neighbors.
+          if (returnSurface and 
+              nodeListj != nodeListi and 
+              not fullConnectivity[nodeListj].empty()) surfacePoint(nodeListi, i) |= (1 << nodeListj + 1);
+
+          for (auto jItr = fullConnectivity[nodeListj].begin();
+               jItr != fullConnectivity[nodeListj].end();
+               ++jItr) {
+            const auto  j = *jItr;
+            const auto& rj = position(nodeListj, j);
+            const auto  weightj = haveWeights ? weight(nodeListj, j) : 1.0;
+
+            // Build the planes for the clipping half-spaces.
+            const auto rij = ri - rj;
+            const auto nhat = rij.unitVector();
+            const auto wij = weighti/(weightj + weighti);
+            if (voidPoint(nodeListj, j) == 0) {
+              pairPlanes.push_back(r2d_plane());
+              pairPlanes.back().n.x = nhat.x();
+              pairPlanes.back().n.y = nhat.y();
+              pairPlanes.back().d = wij*rij.magnitude();
+            } else {
+              voidPlanes.push_back(r2d_plane());
+              voidPlanes.back().n.x = nhat.x();
+              voidPlanes.back().n.y = nhat.y();
+              voidPlanes.back().d = wij*rij.magnitude();
+            }
           }
         }
+
+        // Sort the planes by distance -- lets us clip more efficiently.
+        std::sort(pairPlanes.begin(), pairPlanes.end(), compareR2Dplanes);
+        std::sort(voidPlanes.begin(), voidPlanes.end(), compareR2Dplanes);
+
+        // Clip by non-void neighbors first.
+        r2d_clip(&celli, &pairPlanes[0], pairPlanes.size());
+        CHECK(celli.nverts > 0);
 
         // tclip += std::clock() - t0;
 
@@ -369,7 +394,7 @@ computeVoronoiVolume(const FieldList<Dim<2>, Dim<2>::Vector>& position,
             }
           }
 
-          // Reduce the number of void points for this point to a reasonable stencil -- up to 4.
+          // Reduce the number of void points for this point to a reasonable stencil -- up to 4 for 2D.
           CHECK(etaVoidPoints(nodeListi, i).empty());
           if (returnSurface and not interior) {
             CHECK(nvoid > 0);
@@ -395,6 +420,10 @@ computeVoronoiVolume(const FieldList<Dim<2>, Dim<2>::Vector>& position,
           }
         }
         // tinterior += std::clock() - t0;
+
+        // Clip by any extant void neighbors.
+        r2d_clip(&celli, &voidPlanes[0], voidPlanes.size());
+        CHECK(celli.nverts > 0);
 
         // Compute the final geometry.
         r2d_reduce(&celli, firstmom, 1);
@@ -450,10 +479,6 @@ computeVoronoiVolume(const FieldList<Dim<2>, Dim<2>::Vector>& position,
               ++j;
             }
 
-            if (not interior) {
-              // This is a point that touches the bounding polygon.  Flag it as surface.
-              if (returnSurface) surfacePoint(nodeListi, i) |= 1;
-            }
           }
           // tsurface += std::clock() - t0;
         }
@@ -469,6 +494,12 @@ computeVoronoiVolume(const FieldList<Dim<2>, Dim<2>::Vector>& position,
               deltaMedian(nodeListi, i) = holes[nodeListi][ihole].closestPoint(ri + deltaMedian(nodeListi, i)) - ri;
             }
           }
+        }
+
+        // Flip the surface bit if necesary.
+        if (not interior) {
+          // This is a point that touches the bounding polygon.  Flag it as surface.
+          if (returnSurface) surfacePoint(nodeListi, i) |= 1;
         }
         // tbound += std::clock() - t0;
 
