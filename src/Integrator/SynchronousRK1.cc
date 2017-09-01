@@ -95,11 +95,9 @@ step(typename Dimension::Scalar maxTime,
                                    state,
                                    derivs);
 
-  // Zero out the derivatives.
-  derivs.Zero();
-
   // Evaluate the beginning of step derivatives.
   this->initializeDerivatives(t, dt, state, derivs);
+  derivs.Zero();
   this->evaluateDerivatives(t, dt, db, state, derivs);
   this->finalizeDerivatives(t, dt, db, state, derivs);
 

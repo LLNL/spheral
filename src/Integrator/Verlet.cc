@@ -112,8 +112,8 @@ step(typename Dimension::Scalar maxTime,
   const Scalar hdt0 = 0.5*dt0;
 
   // Evaluate the beginning of step derivatives.
-  derivs.Zero();
   this->initializeDerivatives(t, hdt0, state, derivs);
+  derivs.Zero();
   this->evaluateDerivatives(t, hdt0, db, state, derivs);
   this->finalizeDerivatives(t, hdt0, db, state, derivs);
 
