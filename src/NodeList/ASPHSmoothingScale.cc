@@ -379,8 +379,8 @@ idealSmoothingScale(const SymTensor& H,
     CHECK(fuzzyEqual(psi.Determinant(), 1.0, tolerance));
 
     // Compute the new vote for the ideal shape.
-    H1hat = psi.Inverse();
-//     H1hat = psi.sqrt() / sqrt(Dimension::rootnu(psi.Determinant()) + 1.0e-80);
+    H1hat = psi.sqrt().Inverse();
+    // H1hat = psi.sqrt() / sqrt(Dimension::rootnu(psi.Determinant()) + 1.0e-80);
     CHECK(fuzzyEqual(H1hat.Determinant(), 1.0, tolerance));
   }
 
@@ -447,7 +447,7 @@ newSmoothingScale(const SymTensor& H,
   CHECK(st >= 0.0 && st <= 1.0);
 
   // Geometrically combine the old shape with the ideal.
-  const double w1 = 0.2*(1.0 + st);
+  const double w1 = 0.4*(1.0 + st);
   const double w0 = 1.0 - w1;
   CHECK(w0 >= 0.0 && w0 <= 1.0);
   CHECK(w1 >= 0.0 && w1 <= 1.0);

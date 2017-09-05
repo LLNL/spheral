@@ -533,7 +533,7 @@ evaluateDerivatives(const Dim<2>::Scalar time,
               // ideal H calculation.
               const double fweightij = sameMatij ? 1.0 : mRZj*rhoi/(mRZi*rhoj);
               const double xij2 = xij.magnitude2();
-              const SymTensor thpt = xij.selfdyad()/(xij2 + 1.0e-10) / FastMath::square(Dimension::pownu12(xij2 + 1.0e-10));
+              const auto thpt = xij.selfdyad()*safeInvVar(xij2*xij2*xij2);
               weightedNeighborSumi +=     fweightij*abs(gWi);
               weightedNeighborSumj += 1.0/fweightij*abs(gWj);
               massSecondMomenti +=     fweightij*gradWi.magnitude2()*thpt;
