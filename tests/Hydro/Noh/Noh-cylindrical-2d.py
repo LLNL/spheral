@@ -43,7 +43,7 @@ commandLine(order = 5,
 
             svph = False,
             crksph = False,
-	    psph = False,
+            psph = False,
             asph = False,   # This just chooses the H algorithm -- you can use this with CRKSPH for instance.
             boolReduceViscosity = False,
             HopkinsConductivity = False,     # For PSPH

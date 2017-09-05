@@ -51,6 +51,7 @@
 #include "Utilities/safeInv.hh"
 #include "Utilities/newtonRaphson.hh"
 #include "Utilities/SpheralFunctions.hh"
+#include "Utilities/computeShepardsInterpolation.hh"
 #include "SPH/computeSPHSumMassDensity.hh"
 #include "Geometry/innerProduct.hh"
 #include "Geometry/outerProduct.hh"
@@ -306,6 +307,7 @@ initializeProblemStartup(DataBase<Dimension>& dataBase) {
        ++boundItr) {
     (*boundItr)->applyFieldListGhostBoundary(mVolume);
     if (mVolumeType == CRKVolumeType::CRKVoronoiVolume) {
+      (*boundItr)->applyFieldListGhostBoundary(mVolume);
       (*boundItr)->applyFieldListGhostBoundary(mSurfacePoint);
       (*boundItr)->applyFieldListGhostBoundary(mEtaVoidPoints);
     }
@@ -314,7 +316,19 @@ initializeProblemStartup(DataBase<Dimension>& dataBase) {
        boundItr != this->boundaryEnd();
        ++boundItr) (*boundItr)->finalizeGhostBoundary();
   // if (mVolumeType == CRKVolumeType::CRKVoronoiVolume) {
-  //   flagSurfaceNeighbors(mSurfacePoint, connectivityMap);
+  //   // flagSurfaceNeighbors(mSurfacePoint, connectivityMap);
+  //   // mVolume = computeShepardsInterpolation(mVolume,
+  //   //                                        connectivityMap,
+  //   //                                        W,
+  //   //                                        position,
+  //   //                                        H,
+  //   //                                        mVolume);
+  //   for (ConstBoundaryIterator boundItr = this->boundaryBegin();
+  //        boundItr != this->boundaryEnd();
+  //        ++boundItr) (*boundItr)->applyFieldListGhostBoundary(mVolume);
+  //   for (ConstBoundaryIterator boundItr = this->boundaryBegin();
+  //        boundItr != this->boundaryEnd();
+  //        ++boundItr) (*boundItr)->finalizeGhostBoundary();
   // }
 
   // Compute the corrections.
@@ -916,7 +930,7 @@ evaluateDerivatives(const typename Dimension::Scalar time,
               if (voidPoint(nodeListi, i) == 0 and voidPoint(nodeListj, j) == 0) {
                 const auto fweightij = nodeListi == nodeListj ? 1.0 : mj*rhoi/(mi*rhoj);
                 const auto rij2 = rij.magnitude2();
-                const auto thpt = rij.selfdyad()/max(tiny, rij2*FastMath::square(Dimension::pownu12(rij2)));
+                const auto thpt = rij.selfdyad()*safeInvVar(rij2*rij2*rij2);
                 weightedNeighborSumi +=     fweightij*std::abs(gWi);
                 weightedNeighborSumj += 1.0/fweightij*std::abs(gWj);
                 massSecondMomenti +=     fweightij*gradWSPHi.magnitude2()*thpt;
@@ -956,10 +970,10 @@ evaluateDerivatives(const typename Dimension::Scalar time,
 
               // We decide between RK and CRK for the momentum and energy equations based on the surface condition.
               // Momentum
-              forceij = (true ? // surfacePoint(nodeListi, i) <= 1 ? 
+              forceij = (surfacePoint(nodeListi, i) <= 1 ? 
                          0.5*wij*wij*((Pi + Pj)*deltagrad + Qaccij) :                    // Type III CRK interpoint force.
                          mi*wij*((Pj - Pi)/rhoi*gradWj + rhoi*QPiij.first.dot(gradWj))); // RK
-              forceji = (true ? // surfacePoint(nodeListj, j) <= 1 ? 
+              forceji = (surfacePoint(nodeListj, j) <= 1 ? 
                          0.5*wij*wij*((Pi + Pj)*deltagrad + Qaccij) :                    // Type III CRK interpoint force.
                          mj*wij*((Pj - Pi)/rhoj*gradWi - rhoj*QPiij.second.dot(gradWi)));// RK
               DvDti -= forceij/mi;
@@ -970,10 +984,10 @@ evaluateDerivatives(const typename Dimension::Scalar time,
               }
 
               // Energy
-              DepsDti += (true ? // surfacePoint(nodeListi, i) <= 1 ? 
+              DepsDti += (surfacePoint(nodeListi, i) <= 1 ? 
                           0.5*wij*wij*(Pj*vij.dot(deltagrad) + workQi)/mi :              // CRK
                           wij*rhoi*QPiij.first.dot(vij).dot(gradWj));                    // RK
-              DepsDtj += (true ? // surfacePoint(nodeListj, j) <= 1 ? 
+              DepsDtj += (surfacePoint(nodeListj, j) <= 1 ? 
                           0.5*wij*wij*(Pi*vij.dot(deltagrad) + workQj)/mj :              // CRK
                          -wij*rhoj*QPiij.second.dot(vij).dot(gradWi));                   // RK
 
@@ -993,7 +1007,8 @@ evaluateDerivatives(const typename Dimension::Scalar time,
             (pairAccelerationsi.size() == numNeighborsi));
 
       // For a surface point, add the RK thermal energy evolution.
-      // if (surfacePoint(nodeListi, i) > 1) DepsDti -= Pi/rhoi*DvDxi.Trace();
+      // DepsDti -= Pi/rhoi*DvDxi.Trace();
+      if (surfacePoint(nodeListi, i) > 1) DepsDti -= Pi/rhoi*DvDxi.Trace();
 
       // // If this is a surface point, it's straight RK and there are self-contributions.
       // if (surfacePoint(nodeListi, i) != 0) {
@@ -1226,7 +1241,19 @@ finalize(const typename Dimension::Scalar time,
        boundItr != this->boundaryEnd();
        ++boundItr) (*boundItr)->finalizeGhostBoundary();
   // if (mVolumeType == CRKVolumeType::CRKVoronoiVolume) {
-  //   flagSurfaceNeighbors(surfacePoint, connectivityMap);
+  //   // flagSurfaceNeighbors(surfacePoint, connectivityMap);
+  //   vol = computeShepardsInterpolation(vol,
+  //                                      connectivityMap,
+  //                                      W,
+  //                                      position,
+  //                                      H,
+  //                                      vol);
+  //   for (ConstBoundaryIterator boundItr = this->boundaryBegin();
+  //        boundItr != this->boundaryEnd();
+  //        ++boundItr) (*boundItr)->applyFieldListGhostBoundary(vol);
+  //   for (ConstBoundaryIterator boundItr = this->boundaryBegin();
+  //        boundItr != this->boundaryEnd();
+  //        ++boundItr) (*boundItr)->finalizeGhostBoundary();
   // }
 
   // Depending on the mass density advancement selected, we may want to replace the 
@@ -1279,11 +1306,14 @@ finalize(const typename Dimension::Scalar time,
       const unsigned n = position[nodeListi]->numInternalElements();
       for (unsigned i = 0; i != n; ++i) {
         dcmag2 = mDeltaCentroid(nodeListi, i).magnitude2();
-        minmag2 = min(FastMath::square(min(soundSpeed(nodeListi, i), abs(DvDx(nodeListi, i).Trace())/H(nodeListi, i).eigenValues().maxElement())),
-                      velocity(nodeListi, i).magnitude2())*dt*dt;
-        mi = mass(nodeListi, i);
-        rhoi = massDensity(nodeListi, i);
-        Vi = vol(nodeListi, i);
+        // minmag2 = max(FastMath::square(soundSpeed(nodeListi, i)),
+        //               velocity(nodeListi, i).magnitude2())*dt*dt;
+        // minmag2 = min(FastMath::square(min(soundSpeed(nodeListi, i), abs(DvDx(nodeListi, i).Trace())/H(nodeListi, i).eigenValues().maxElement())),
+        //               velocity(nodeListi, i).magnitude2())*dt*dt;
+        minmag2 = FastMath::square(DvDx(nodeListi, i).eigenValues().maxAbsElement()/H(nodeListi, i).eigenValues().maxElement()*dt);
+        // mi = mass(nodeListi, i);
+        // rhoi = massDensity(nodeListi, i);
+        // Vi = vol(nodeListi, i);
         fi = mfilter; // *max(0.0, min(1.0, max(V0i/Vi, Vi/V0i) - 1.0));
         position(nodeListi, i) += fi*sqrt(min(minmag2, dcmag2)*safeInvVar(dcmag2))*mDeltaCentroid(nodeListi, i);
       }

@@ -621,7 +621,7 @@ evaluateDerivatives(const typename Dimension::Scalar time,
               if (voidPoint(nodeListi, i) == 0 and voidPoint(nodeListj, j) == 0) {
                 const auto fweightij = nodeListi == nodeListj ? 1.0 : mj*rhoi/(mi*rhoj);
                 const auto rij2 = rij.magnitude2();
-                const auto thpt = rij.selfdyad()/max(tiny, rij2*FastMath::square(Dimension::pownu12(rij2)));
+                const auto thpt = rij.selfdyad()*safeInvVar(rij2*rij2*rij2);
                 weightedNeighborSumi +=     fweightij*std::abs(gWi);
                 weightedNeighborSumj += 1.0/fweightij*std::abs(gWj);
                 massSecondMomenti +=     fweightij*gradWSPHi.magnitude2()*thpt;
@@ -670,10 +670,10 @@ evaluateDerivatives(const typename Dimension::Scalar time,
 
               // We decide between RK and CRK for the momentum and energy equations based on the surface condition.
               // Momentum
-              forceij = (true ? // surfacePoint(nodeListi, i) <= 1 ? 
+              forceij = (surfacePoint(nodeListi, i) <= 1 ? 
                          0.5*wij*wij*((Pposi + Pposj)*deltagrad - fij*(sigmai + sigmaj)*deltagrad + Qaccij) :                    // Type III CRK interpoint force.
                          mi*wij*(((Pposj - Pposi)*gradWj - fij*(sigmaj - sigmai)*gradWj)/rhoi + rhoi*QPiij.first.dot(gradWj)));  // RK
-              forceji = (true ? // surfacePoint(nodeListj, j) <= 1 ?
+              forceji = (surfacePoint(nodeListj, j) <= 1 ?
                          0.5*wij*wij*((Pposi + Pposj)*deltagrad - fij*(sigmai + sigmaj)*deltagrad + Qaccij) :                    // Type III CRK interpoint force.
                          mj*wij*(((Pposj - Pposi)*gradWi - fij*(sigmaj - sigmai)*gradWi)/rhoj - rhoj*QPiij.second.dot(gradWi))); // RK
               DvDti -= forceij/mi;
@@ -684,10 +684,10 @@ evaluateDerivatives(const typename Dimension::Scalar time,
               }
 
               // Energy
-              DepsDti += (true ? // surfacePoint(nodeListi, i) <= 1 ?
+              DepsDti += (surfacePoint(nodeListi, i) <= 1 ?
                           0.5*wij*wij*(Pposj*vij.dot(deltagrad) + fij*sigmaj.dot(vij).dot(deltagrad) + workQi)/mi :               // CRK
                           wij*rhoi*QPiij.first.dot(vij).dot(gradWj));                                                             // RK, Q term only -- adiabatic portion added later
-              DepsDtj += (true ? // surfacePoint(nodeListj, j) <= 1 ?
+              DepsDtj += (surfacePoint(nodeListj, j) <= 1 ?
                           0.5*wij*wij*(Pposi*vij.dot(deltagrad) + fij*sigmai.dot(vij).dot(deltagrad) + workQj)/mj :               // CRK
                          -wij*rhoj*QPiij.second.dot(vij).dot(gradWi));                                                            // RK, Q term only -- adiabatic portion added later
 
@@ -704,7 +704,7 @@ evaluateDerivatives(const typename Dimension::Scalar time,
             (pairAccelerationsi.size() == numNeighborsi));
 
       // For a surface point, add the RK thermal energy evolution.
-      // if (surfacePoint(nodeListi, i) > 1) DepsDti += (Si - Pi*SymTensor::one).doubledot(DvDxi)/rhoi;
+      if (surfacePoint(nodeListi, i) > 1) DepsDti += (Si - Pi*SymTensor::one).doubledot(DvDxi)/rhoi;
 
       // Get the time for pairwise interactions.
       const auto deltaTimePair = Timing::difference(start, Timing::currentTime())/max(size_t(1), ncalc);
