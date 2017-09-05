@@ -10,16 +10,12 @@
 #ifndef __Spheral__FieldSpace__FieldList_hh__
 #define __Spheral__FieldSpace__FieldList_hh__
 
-#ifndef __GCCXML__
+#include "FieldListBase.hh"
+
 #include <vector>
 #include <list>
 #include <map>
-#include "boost/shared_ptr.hpp"
-#else
-#include "fakestl.hh"
-#endif
-
-#include "FieldListBase.hh"
+#include <memory>
 
 // Forward declarations.
 namespace Spheral {
@@ -46,8 +42,8 @@ namespace FieldSpace {
 
 // An enum for selecting how Fields are stored in FieldLists.
 enum class FieldStorageType {
-  Reference = 0,
-  Copy = 1
+  ReferenceFields = 0,
+  CopyFields = 1
 };
 
 template<typename Dimension, typename DataType>
@@ -260,7 +256,7 @@ public:
 private:
   //--------------------------- Private Interface ---------------------------//
 #ifndef __GCCXML__
-  typedef std::list<boost::shared_ptr<Field<Dimension, DataType> > > FieldCacheType;
+  typedef std::list<std::shared_ptr<Field<Dimension, DataType> > > FieldCacheType;
   typedef std::map<const NodeSpace::NodeList<Dimension>*, int> HashMapType;
 
   std::vector<ElementType> mFieldPtrs;

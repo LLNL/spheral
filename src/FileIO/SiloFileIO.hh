@@ -6,10 +6,10 @@
 #ifndef __Spheral_SiloFileIO__
 #define __Spheral_SiloFileIO__
 
+#include "FileIO.hh"
+
 #include <vector>
 #include <string>
-
-#include "FileIO.hh"
 
 extern "C" {
 #include "silo.h"

@@ -161,6 +161,7 @@ self.generateSolidCRKSPHHydroBaseBindings(self.SolidCRKSPHHydroBase%(dim)id, %(d
                                  constrefparam(vector_of_FacetedVolume, "boundaries"),
                                  constrefparam(vector_of_vector_of_FacetedVolume, "holes"),
                                  constrefparam(scalarfieldlist, "weights"),
+                                 constrefparam(intfieldlist, "voidPoint"),
                                  refparam(intfieldlist, "surfacePoint"),
                                  refparam(scalarfieldlist, "vol"),
                                  refparam(vectorfieldlist, "deltaCentroid"),
@@ -492,7 +493,8 @@ self.generateSolidCRKSPHHydroBaseBindings(self.SolidCRKSPHHydroBase%(dim)id, %(d
         x.add_instance_attribute("detectThreshold", "double", getter="detectThreshold", setter="detectThreshold")
         x.add_instance_attribute("detectRange", "double", getter="detectRange", setter="detectRange")
         x.add_instance_attribute("sweepAngle", "double", getter="sweepAngle", setter="sweepAngle")
-        
+        x.add_instance_attribute("correctionMin", "double", getter="correctionMin", setter="correctionMin")
+        x.add_instance_attribute("correctionMax", "double", getter="correctionMax", setter="correctionMax")
 
         const_ref_return_value(x, me, "%s::smoothingScaleMethod" % me, smoothingscalebase, [], "smoothingScaleMethod")
         const_ref_return_value(x, me, "%s::timeStepMask" % me, intfieldlist, [], "timeStepMask")
@@ -526,6 +528,7 @@ self.generateSolidCRKSPHHydroBaseBindings(self.SolidCRKSPHHydroBase%(dim)id, %(d
         const_ref_return_value(x, me, "%s::gradB" % me, tensorfieldlist, [], "gradB")
         const_ref_return_value(x, me, "%s::gradC" % me, thirdranktensorfieldlist, [], "gradC")
         const_ref_return_value(x, me, "%s::surfacePoint" % me, intfieldlist, [], "surfacePoint")
+        const_ref_return_value(x, me, "%s::voidPoint" % me, intfieldlist, [], "voidPoint")
         const_ref_return_value(x, me, "%s::m0" % me, scalarfieldlist, [], "m0")
         const_ref_return_value(x, me, "%s::m1" % me, vectorfieldlist, [], "m1")
 
@@ -599,12 +602,6 @@ self.generateSolidCRKSPHHydroBaseBindings(self.SolidCRKSPHHydroBase%(dim)id, %(d
 
         # Attributes.
         const_ref_return_value(x, me, "%s::Hfield0" % me, symtensorfieldlist, [], "Hfield0")
-        const_ref_return_value(x, me, "%s::Adamage" % me, scalarfieldlist, [], "Adamage")
-        const_ref_return_value(x, me, "%s::Bdamage" % me, vectorfieldlist, [], "Bdamage")
-        const_ref_return_value(x, me, "%s::Cdamage" % me, tensorfieldlist, [], "Cdamage")
-        const_ref_return_value(x, me, "%s::gradAdamage" % me, vectorfieldlist, [], "gradAdamage")
-        const_ref_return_value(x, me, "%s::gradBdamage" % me, tensorfieldlist, [], "gradBdamage")
-        const_ref_return_value(x, me, "%s::gradCdamage" % me, thirdranktensorfieldlist, [], "gradCdamage")
 
         return
 

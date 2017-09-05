@@ -1,18 +1,18 @@
 #ifndef __PBGWRAPS_SILOTYPES__
 #define __PBGWRAPS_SILOTYPES__
 
+#include "Geometry/Dimension.hh"
+#include "Utilities/DBC.hh"
+#include "PBGWraps/CXXTypes/CXXTypes.hh"
+
+#include "silo.h"
+
 #include <stdio.h>
 #include <vector>
 #include <string>
 #include <algorithm>
 #include <numeric>
-#include "boost/shared_ptr.hpp"
-
-#include "silo.h"
-
-#include "Geometry/Dimension.hh"
-#include "Utilities/DBC.hh"
-#include "PBGWraps/CXXTypes/CXXTypes.hh"
+#include <memory>
 
 namespace silo {
 
@@ -534,7 +534,7 @@ struct SiloTraits<long long> {
 //------------------------------------------------------------------------------
 struct DBoptlist_wrapper {
   DBoptlist* mOptlistPtr;
-  std::vector<boost::shared_ptr<void> > mCache;
+  std::vector<std::shared_ptr<void> > mCache;
 
   // Constructors.
   DBoptlist_wrapper(const int maxopts=1024):
@@ -552,7 +552,7 @@ struct DBoptlist_wrapper {
     int writeValue(DBoptlist_wrapper& optlist_wrapper,
                    const int option,
                    const Value& value) {
-      boost::shared_ptr<void> voidValue(new Value(value));
+      std::shared_ptr<void> voidValue(new Value(value));
       optlist_wrapper.mCache.push_back(voidValue);
       return DBAddOption(optlist_wrapper.mOptlistPtr, option, voidValue.get());
     }
@@ -561,7 +561,7 @@ struct DBoptlist_wrapper {
                     const int option_size,
                     const std::vector<Value>& value) {
       DBoptlist_wrapper::AddOptionFunctor<int>().writeValue(optlist_wrapper, option_size, value.size());
-      boost::shared_ptr<void> voidValue(new std::vector<Value>(value));
+      std::shared_ptr<void> voidValue(new std::vector<Value>(value));
       optlist_wrapper.mCache.push_back(voidValue);
       Value* frontPtr = &(((std::vector<Value>*) voidValue.get())->front());
       return DBAddOption(optlist_wrapper.mOptlistPtr, option, frontPtr);
@@ -668,7 +668,7 @@ DBoptlist_wrapper::AddOptionFunctor<std::string> {
   writeValue(DBoptlist_wrapper& optlist_wrapper,
              const int option,
              const std::string& value) {
-    boost::shared_ptr<void> voidValue(new std::string(value));
+    std::shared_ptr<void> voidValue(new std::string(value));
     optlist_wrapper.mCache.push_back(voidValue);
     return DBAddOption(optlist_wrapper.mOptlistPtr, option, (char*) ((std::string*) voidValue.get())->c_str());
   }
@@ -678,8 +678,8 @@ DBoptlist_wrapper::AddOptionFunctor<std::string> {
               const int option_size,
               const std::vector<std::string>& value) {
     VERIFY(optlist_wrapper.addOption<int>(option_size, value.size()) == 0);
-    boost::shared_ptr<void> voidCopy(new std::vector<std::string>(value));
-    boost::shared_ptr<void> voidValue(new std::vector<char*>());
+    std::shared_ptr<void> voidCopy(new std::vector<std::string>(value));
+    std::shared_ptr<void> voidValue(new std::vector<char*>());
     std::vector<std::string>& stringvec = *((std::vector<string>*) voidCopy.get());
     std::vector<char*>& charvec = *((std::vector<char*>*) (voidValue.get()));
     for (unsigned k = 0; k != value.size(); ++k) charvec.push_back(const_cast<char*>(stringvec[k].c_str()));

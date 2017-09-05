@@ -45,15 +45,6 @@ commandLine(nr = 100,
             gamma = 5.0/3.0,
             mu = 1.0,
 
-            nPerh = 1.51,
-
-            order = 3,
-            Qconstructor = MonaghanGingoldViscosity,
-            Cl = 1.0,
-            Cq = 1.0,
-            linearInExpansion = False,
-            Qlimiter = False,
-            epsilon2 = 1e-2,
             hmin = 0.0001, 
             hmax = 1.0,
             cfl = 0.25,
@@ -62,9 +53,9 @@ commandLine(nr = 100,
             nTensile = 4,
             filter = 0.0,
 
-            SVPH = False,
-            CRKSPH = False,
-            TSPH = False,
+            svph = False,
+            crksph = False,
+            volumeType = CRKVoronoiVolume,
             correctionOrder = LinearOrder,
             IntegratorConstructor = CheapSynchronousRK2Integrator,
             steps = None,
@@ -74,6 +65,7 @@ commandLine(nr = 100,
             dtMax = 100.0,
             dtGrowth = 2.0,
             dtverbose = False,
+            domainIndependent = False,
             rigorousBoundaries = False,
             maxSteps = None,
             statsStep = 1,
@@ -95,19 +87,21 @@ commandLine(nr = 100,
             graphics = "gnu",
             )
 
-if SVPH:
-    HydroConstructor = SVPHFacetedHydro
-elif CRKSPH:
-    HydroConstructor = CRKSPHHydro
-    #Qconstructor = CRKSPHMonaghanGingoldViscosity
-elif TSPH:
-    HydroConstructor = TaylorSPHHydro
+if svph:
+    hydroname = "SVPH"
+    nPerh = 1.51
+    order = 3
+elif crksph:
+    hydroname = "CRKSPH"
+    nPerh = 1.51
+    order = 5
 else:
-    HydroConstructor = SPHHydro
+    hydroname = "SPH"
+    nPerh = 1.51
+    order = 5
 
 dataDir = os.path.join(dataDirBase,
-                       HydroConstructor.__name__,
-                       Qconstructor.__name__,
+                       hydroname,
                        "nr=%i" % nr)
 restartDir = os.path.join(dataDir, "restarts")
 restartBaseName = os.path.join(restartDir, "FreeExpansion-cylindrical-2d-%i" % nr)
@@ -193,60 +187,46 @@ output("db.numNodeLists")
 output("db.numFluidNodeLists")
 
 #-------------------------------------------------------------------------------
-# Construct the artificial viscosity.
-#-------------------------------------------------------------------------------
-q = Qconstructor(Cl, Cq, linearInExpansion = linearInExpansion)
-q.epsilon2 = epsilon2
-q.limiter = Qlimiter
-output("q")
-output("q.Cl")
-output("q.Cq")
-output("q.epsilon2")
-output("q.limiter")
-
-#-------------------------------------------------------------------------------
 # Construct the hydro physics object.
 #-------------------------------------------------------------------------------
-if SVPH:
-    hydro = HydroConstructor(W = WT, 
-                             Q = q,
-                             cfl = cfl,
-                             compatibleEnergyEvolution = compatibleEnergy,
-                             XSVPH = XSPH,
-                             linearConsistent = linearConsistent,
-                             densityUpdate = densityUpdate,
-                             HUpdate = HUpdate,
-                             xmin = Vector(-100.0),
-                             xmax = Vector( 100.0))
-elif CRKSPH:
-    hydro = HydroConstructor(W = WT, 
-                             Q = q,
-                             filter = filter,
-                             cfl = cfl,
-                             compatibleEnergyEvolution = compatibleEnergy,
-                             XSPH = XSPH,
-                             densityUpdate = densityUpdate,
-                             HUpdate = HUpdate,
-                             correctionOrder = correctionOrder)
+if svph:
+    hydro = SVPH(dataBase = db,
+                 W = WT, 
+                 cfl = cfl,
+                 useVelocityMagnitudeForDt = True,
+                 compatibleEnergyEvolution = compatibleEnergy,
+                 XSVPH = XSPH,
+                 linearConsistent = linearConsistent,
+                 densityUpdate = densityUpdate,
+                 HUpdate = HUpdate,
+                 xmin = Vector(-100.0),
+                 xmax = Vector( 100.0))
+elif crksph:
+    hydro = CRKSPH(dataBase = db,
+                   W = WT, 
+                   filter = filter,
+                   cfl = cfl,
+                   useVelocityMagnitudeForDt = True,
+                   compatibleEnergyEvolution = compatibleEnergy,
+                   XSPH = XSPH,
+                   volumeType = volumeType,
+                   densityUpdate = densityUpdate,
+                   HUpdate = HUpdate,
+                   detectSurfaces = True,
+                   correctionOrder = correctionOrder)
 
-elif TSPH:
-    hydro = HydroConstructor(W = WT, 
-                             Q = q,
-                             cfl = cfl,
-                             compatibleEnergyEvolution = compatibleEnergy,
-                             XSPH = XSPH,
-                             HUpdate = HUpdate)
 else:
-    hydro = HydroConstructor(W = WT, 
-                             Q = q,
-                             cfl = cfl,
-                             compatibleEnergyEvolution = compatibleEnergy,
-                             gradhCorrection = gradhCorrection,
-                             XSPH = XSPH,
-                             densityUpdate = densityUpdate,
-                             HUpdate = HUpdate,
-                             epsTensile = epsilonTensile,
-                             nTensile = nTensile)
+    hydro = SPH(dataBase = db,
+                W = WT, 
+                cfl = cfl,
+                useVelocityMagnitudeForDt = True,
+                compatibleEnergyEvolution = compatibleEnergy,
+                gradhCorrection = gradhCorrection,
+                XSPH = XSPH,
+                densityUpdate = densityUpdate,
+                HUpdate = HUpdate,
+                epsTensile = epsilonTensile,
+                nTensile = nTensile)
 output("hydro")
 
 #-------------------------------------------------------------------------------
@@ -268,6 +248,7 @@ integrator.lastDt = dt
 integrator.dtMin = dtMin
 integrator.dtMax = dtMax
 integrator.dtGrowth = dtGrowth
+integrator.domainDecompositionIndependent = domainIndependent
 integrator.rigorousBoundaries = rigorousBoundaries
 integrator.verbose = dtverbose
 output("integrator")
@@ -275,6 +256,7 @@ output("integrator.lastDt")
 output("integrator.dtMin")
 output("integrator.dtMax")
 output("integrator.dtGrowth")
+output("integrator.domainDecompositionIndependent")
 output("integrator.rigorousBoundaries")
 
 #-------------------------------------------------------------------------------
@@ -303,6 +285,7 @@ output("integrator.rigorousBoundaries")
 #-------------------------------------------------------------------------------
 print "Making controller."
 control = SpheralController(integrator, WT,
+                            SPH = True,
                             statsStep = statsStep,
                             restartStep = restartStep,
                             restartBaseName = restartBaseName,
@@ -342,24 +325,37 @@ if graphics == "gnu":
     csPlot = plotFieldList(cs, xFunction="%s.magnitude()", winTitle="Sound speed", colorNodeLists=False)
     EPlot = plotEHistory(control.conserve)
 
-    if SVPH:
+    if svph:
         volPlot = plotFieldList(hydro.volume(),
                                 xFunction="%s.magnitude()",
                                 winTitle = "volume",
+                                plotStyle = "points",
                                 colorNodeLists = False)
-    elif CRKSPH:
+    elif crksph:
         volPlot = plotFieldList(hydro.volume(),
                                 xFunction="%s.magnitude()",
                                 winTitle = "volume",
+                                plotStyle = "points",
+                                plotGhosts = True,
                                 colorNodeLists = False)
         APlot = plotFieldList(hydro.A(),
                               xFunction="%s.magnitude()",
                               winTitle = "A",
+                              plotStyle = "points",
+                              plotGhosts = True,
                               colorNodeLists = False)
         BPlot = plotFieldList(hydro.B(),
                               xFunction="%s.magnitude()",
                               yFunction = "%s.magnitude()",
                               winTitle = "|B|",
+                              plotStyle = "points",
+                              plotGhosts = True,
+                              colorNodeLists = False)
+        splot = plotFieldList(hydro.surfacePoint(),
+                              xFunction="%s.magnitude()",
+                              winTitle = "surface point",
+                              plotStyle = "points",
+                              plotGhosts = True,
                               colorNodeLists = False)
 
     else:

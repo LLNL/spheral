@@ -7,18 +7,13 @@
 #ifndef DataBase_HH
 #define DataBase_HH
 
-#ifndef __GCCXML__
-#include <vector>
-#include "boost/shared_ptr.hpp"
-#else
-#include "fakestl.hh"
-#endif
-
 #include "NodeList/NodeList.hh"
 #include "NodeList/FluidNodeList.hh"
 #include "NodeList/SolidNodeList.hh"
 #include "Field/NodeIterators.hh"
 #include "Neighbor/ConnectivityMap.hh"
+
+#include <vector>
 
 namespace Spheral {
   namespace FieldSpace {
@@ -53,7 +48,7 @@ public:
   typedef typename std::vector<NodeSpace::SolidNodeList<Dimension>*>::const_iterator ConstSolidNodeListIterator;
 
   typedef NeighborSpace::ConnectivityMap<Dimension> ConnectivityMapType;
-  typedef boost::shared_ptr<ConnectivityMapType> ConnectivityMapPtr;
+  typedef std::shared_ptr<ConnectivityMapType> ConnectivityMapPtr;
   
   // It is convenient to be able to query the DataBase for the problem
   // dimensionality for Python.

@@ -1,7 +1,8 @@
 # -*-makefile-*-
+# Restore $(EXTRAFLAGS) to the compile line when possible.
 %.d:	%.cc
 	@$(SHELL) -ec 'echo "Building dependencies for $(*F).cc"; \
-	$(MPICXX) $(DEPFLAG) $(CXXFLAGS) $(EXTRAFLAGS) $(EXTRAINCLUDES) -w -c $< > $(*F).u; \
+	$(MPICXX) $(DEPFLAG) $(CXXFLAGS) $(EXTRAINCLUDES) -w -c $< > $(*F).u; \
 	cat $(*F).u | sed '\''s/\($(*F)\)\.o[ :]*/\1.o $(@F) : /g'\'' > $(@F); \
 	rm -f $(*F).u; \
 	[ -s $(@F) ] || rm -f $(@F)'

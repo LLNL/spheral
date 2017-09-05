@@ -125,6 +125,7 @@ self.generateThirdMomentHourglassControlBindings(self.ThirdMomentHourglassContro
         x.add_static_attribute("gradB_CRKSPH", "std::string",  is_const=True)
         x.add_static_attribute("gradC_CRKSPH", "std::string",  is_const=True)
         x.add_static_attribute("surfacePoint", "std::string",  is_const=True)
+        x.add_static_attribute("voidPoint", "std::string",  is_const=True)
         x.add_static_attribute("M_SPHCorrection", "std::string",  is_const=True)
         x.add_static_attribute("volume", "std::string",  is_const=True)
         x.add_static_attribute("linearMomentum", "std::string",  is_const=True)
@@ -279,7 +280,7 @@ self.generateThirdMomentHourglassControlBindings(self.ThirdMomentHourglassContro
                            param("unsigned int", "order", default_value="1"),
                            param("unsigned int", "limiter", default_value="1"),
                            param("double", "fraction", default_value="0.5"),
-                           param(intfieldlist, "mask", default_value=("%s(FieldSpace::Copy)" % intfieldlist))])
+                           param(intfieldlist, "mask", default_value=("%s(FieldSpace::CopyFields)" % intfieldlist))])
 
         # Methods.
         const_ref_return_value(x, me, "%s::mask" % me, intfieldlist, [], "mask")

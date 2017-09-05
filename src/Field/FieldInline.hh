@@ -156,9 +156,9 @@ Field<Dimension, DataType>::Field(const Field& field):
 //------------------------------------------------------------------------------
 template<typename Dimension, typename DataType>
 inline
-boost::shared_ptr<FieldBase<Dimension> >
+std::shared_ptr<FieldBase<Dimension> >
 Field<Dimension, DataType>::clone() const {
-  return boost::shared_ptr<FieldBase<Dimension> >(new Field<Dimension, DataType>(*this));
+  return std::shared_ptr<FieldBase<Dimension> >(new Field<Dimension, DataType>(*this));
 }
 
 //------------------------------------------------------------------------------

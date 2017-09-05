@@ -10,14 +10,7 @@
 //
 // Created by JMO, Mon May  9 11:01:51 PDT 2016
 //----------------------------------------------------------------------------//
-#include <limits.h>
-#include <float.h>
-#include <algorithm>
-#include <fstream>
-#include <map>
-#include <vector>
-
-#include "SolidSPHHydroBaseRZ.hh"
+#include "FileIO/FileIO.hh"
 #include "DamagedNodeCouplingWithFrags.hh"
 #include "NodeList/SmoothingScaleBase.hh"
 #include "Hydro/HydroFieldNames.hh"
@@ -40,7 +33,15 @@
 #include "Neighbor/ConnectivityMap.hh"
 #include "Utilities/timingUtilities.hh"
 #include "Utilities/safeInv.hh"
-#include "FileIO/FileIO.hh"
+
+#include "SolidSPHHydroBaseRZ.hh"
+
+#include <limits.h>
+#include <float.h>
+#include <algorithm>
+#include <fstream>
+#include <map>
+#include <vector>
 
 namespace Spheral {
 namespace SPHSpace {
@@ -119,8 +120,8 @@ SolidSPHHydroBaseRZ(const SmoothingScaleBase<Dim<2> >& smoothingScaleMethod,
                              nTensile,
                              xmin,
                              xmax),
-  mDeviatoricStressTT(FieldSpace::FieldStorageType::Copy),
-  mDdeviatoricStressTTDt(FieldSpace::FieldStorageType::Copy) {
+  mDeviatoricStressTT(FieldSpace::FieldStorageType::CopyFields),
+  mDdeviatoricStressTTDt(FieldSpace::FieldStorageType::CopyFields) {
 }
 
 //------------------------------------------------------------------------------

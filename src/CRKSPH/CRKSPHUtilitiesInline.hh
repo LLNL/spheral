@@ -36,7 +36,7 @@ CRKSPHKernel(const KernelSpace::TableKernel<Dimension>& W,
   typedef typename Dimension::Vector Vector;
   typedef typename Dimension::Tensor Tensor;
 
-  const Scalar Wij = 0.5*(W(etai.magnitude(), Hdeti) + W(etaj.magnitude(), Hdetj));
+  const Scalar Wij = 0.5*(W(etai.magnitude(), 1.0) + W(etaj.magnitude(), 1.0));
   if (correctionOrder == CRKOrder::ZerothOrder) {
     return std::max(correctionMin, 
                     std::min(correctionMax,
@@ -84,11 +84,11 @@ CRKSPHKernelAndGradient(typename Dimension::Scalar& WCRKSPH,
   typedef typename Dimension::Tensor Tensor;
 
   // ij
-  const std::pair<Scalar, Scalar> WWi = W.kernelAndGradValue(etai.magnitude(), Hdeti);
-  const std::pair<Scalar, Scalar> WWj = W.kernelAndGradValue(etaj.magnitude(), Hdetj);
+  const std::pair<Scalar, Scalar> WWi = W.kernelAndGradValue(etai.magnitude(), 1.0);
+  const std::pair<Scalar, Scalar> WWj = W.kernelAndGradValue(etaj.magnitude(), 1.0);
   const Scalar Wij = 0.5*(WWi.first + WWj.first); 
   const Vector gradWij = 0.5*(Hi*etai.unitVector() * WWi.second + Hj*etaj.unitVector() * WWj.second);
-  gradWSPH = 0.5*(WWi.second + WWj.second);
+  gradWSPH = 0.5*(WWi.second * Hdeti + WWj.second * Hdetj);
 
   if (correctionOrder == CRKOrder::ZerothOrder) {
     const double correction0 = Ai;

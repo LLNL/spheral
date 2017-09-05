@@ -106,12 +106,13 @@ computeCRKSPHMoments(const ConnectivityMap<Dimension>& connectivityMap,
       const int i = *iItr;
 
       // Get the state for node i.
+      const Scalar weighti = weight(nodeListi, i);
       const Vector& ri = position(nodeListi, i);
       const SymTensor& Hi = H(nodeListi, i);
       const Scalar Hdeti = Hi.Determinant();
 
       // Self contribution.
-      const Scalar wwi =  weight(nodeListi, i)*W(0.0, Hdeti);
+      const Scalar wwi = weighti*W(0.0, 1.0);
       m0(nodeListi, i) += wwi;
       gradm1(nodeListi, i) += Tensor::one*wwi;
 
@@ -136,25 +137,29 @@ computeCRKSPHMoments(const ConnectivityMap<Dimension>& connectivityMap,
                                                        firstGhostNodej)) {
 
             // State of node j.
+            const Scalar weightj = weight(nodeListj, j);
             const Vector& rj = position(nodeListj, j);
             const SymTensor& Hj = H(nodeListj, j);
             const Scalar Hdetj = Hj.Determinant();
 
+            // Find the effective weights of i->j and j->i.
+            // const Scalar wi = 2.0*weighti*weightj/(weighti + weightj);
+            const Scalar wi = 0.5*(weighti + weightj);
+            const Scalar wj = wi;
+            // const Scalar wi = weighti;
+            // const Scalar wj = weightj;
+
             // Find the pair weighting scaling.
             const double fij = nodeCoupling(nodeListi, i, nodeListj, j);
             CHECK(fij >= 0.0 and fij <= 1.0);
-
-            // Node weighting with pair-wise coupling.
-            const Scalar wi = weight(nodeListi, i);
-            const Scalar wj = weight(nodeListj, j);
 
             // Kernel weighting and gradient.
             const Vector rij = ri - rj;
             Vector etai = Hi*rij;
             Vector etaj = Hj*rij;
 
-            const std::pair<double, double> WWi = W.kernelAndGradValue(etai.magnitude(), Hdeti);
-            const std::pair<double, double> WWj = W.kernelAndGradValue(etaj.magnitude(), Hdetj);
+            const std::pair<double, double> WWi = W.kernelAndGradValue(etai.magnitude(), 1.0);
+            const std::pair<double, double> WWj = W.kernelAndGradValue(etaj.magnitude(), 1.0);
 
             // // j
             // const Scalar Wi = WWi.first;
@@ -179,13 +184,13 @@ computeCRKSPHMoments(const ConnectivityMap<Dimension>& connectivityMap,
             // Scalar Wi, Wj;
             // Vector gradWi, gradWj;
             // if (etai.magnitude2() < etaj.magnitude2()) {
-            //   const std::pair<double, double> WWi = W.kernelAndGradValue(etai.magnitude(), Hdeti);
+            //   const std::pair<double, double> WWi = W.kernelAndGradValue(etai.magnitude(), 1.0);
             //   Wi = WWi.first;
             //   gradWi = -(Hi*etai.unitVector())*WWi.second;
             //   Wj = Wi;
             //   gradWj = -gradWi;
             // } else {
-            //   const std::pair<double, double> WWj = W.kernelAndGradValue(etaj.magnitude(), Hdetj);
+            //   const std::pair<double, double> WWj = W.kernelAndGradValue(etaj.magnitude(), 1.0);
             //   Wj = WWj.first;
             //   gradWj = (Hj*etaj.unitVector())*WWj.second;
             //   Wi = Wj;

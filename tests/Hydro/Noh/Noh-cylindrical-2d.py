@@ -1,5 +1,5 @@
-#ATS:test(SELF, "--CRKSPH=True --nRadial=100 --cfl=0.25 --Cl=1.0 --Cq=1.0 --clearDirectories=True --filter=0.0 --nPerh=2.01 --graphics False", label="Noh cylindrical CRK, nPerh=2.0", np=20)
-#ATS:test(SELF, "--CRKSPH=False --nRadial=100 --cfl=0.25 --Cl=1.0 --Cq=1.0 --clearDirectories=True --filter=0.0 --nPerh=2.01 --graphics False", label="Noh cylindrical CRK, nPerh=2.0", np=20)
+#ATS:test(SELF, "--crksph=True --nRadial=100 --cfl=0.25 --Cl=1.0 --Cq=1.0 --clearDirectories=True --filter=0.0 --nPerh=2.01 --graphics False", label="Noh cylindrical CRK, nPerh=2.0", np=20)
+#ATS:test(SELF, "--crksph=False --nRadial=100 --cfl=0.25 --Cl=1.0 --Cq=1.0 --clearDirectories=True --filter=0.0 --nPerh=2.01 --graphics False", label="Noh cylindrical CRK, nPerh=2.0", np=20)
 
 #-------------------------------------------------------------------------------
 # The Cylindrical Noh test case run in 2-D.
@@ -22,8 +22,7 @@ title("2-D integrated hydro test -- cylindrical Noh problem")
 #-------------------------------------------------------------------------------
 # Generic problem parameters
 #-------------------------------------------------------------------------------
-commandLine(KernelConstructor = BSplineKernel,
-            order = 5,
+commandLine(order = 5,
             seed = "constantDTheta",
 
             thetaFactor = 0.5,
@@ -42,12 +41,10 @@ commandLine(KernelConstructor = BSplineKernel,
             gamma = 5.0/3.0,
             mu = 1.0,
 
-            SVPH = False,
-            CRKSPH = False,
-	    PSPH = False,
-            SPH = True,   # This just chooses the H algorithm -- you can use this with CRKSPH for instance.
-            Qconstructor = MonaghanGingoldViscosity,
-            #Qconstructor = TensorMonaghanGingoldViscosity,
+            svph = False,
+            crksph = False,
+	    psph = False,
+            asph = False,   # This just chooses the H algorithm -- you can use this with CRKSPH for instance.
             boolReduceViscosity = False,
             HopkinsConductivity = False,     # For PSPH
             nhQ = 5.0,
@@ -135,31 +132,19 @@ if smallPressure:
    P0 = 1.0e-6
    eps0 = P0/((gamma - 1.0)*rho0)
 
-if SVPH:
-    if SPH:
-        HydroConstructor = SVPHFacetedHydro
-    else:
-        HydroConstructor = ASVPHFacetedHydro
-elif CRKSPH:
-    if SPH:
-        HydroConstructor = CRKSPHHydro
-    else:
-        HydroConstructor = ACRKSPHHydro
-    Qconstructor = CRKSPHMonaghanGingoldViscosity
-elif PSPH:
-    if SPH:
-        HydroConstructor = PSPHHydro
-    else:
-        HydroConstructor = APSPHHydro
+if svph:
+    hydroname = "SVPH"
+elif crksph:
+    hydroname = "CRKSPH"
+elif psph:
+    hydroname = "PSPH"
 else:
-    if SPH:
-        HydroConstructor = SPHHydro
-    else:
-        HydroConstructor = ASPHHydro
+    hydroname = "SPH"
+if asph:
+    hydroname = "A" + hydroname
 
 dataDir = os.path.join(dataDir,
-                       HydroConstructor.__name__,
-                       "%s-Cl=%g-Cq=%g" % (Qconstructor.__name__, Cl, Cq),
+                       hydroname,
                        "nPerh=%f" % nPerh,
                        "compatibleEnergy=%s" % compatibleEnergy,
                        "Cullen=%s" % boolCullenViscosity,
@@ -195,10 +180,7 @@ eos = GammaLawGasMKS(gamma, mu)
 #-------------------------------------------------------------------------------
 # Interpolation kernels.
 #-------------------------------------------------------------------------------
-if KernelConstructor==NBSplineKernel:
-  WT = TableKernel(NBSplineKernel(order), 1000)
-else:
-  WT = TableKernel(KernelConstructor(), 1000)
+WT = TableKernel(NBSplineKernel(order), 1000)
 output("WT")
 kernelExtent = WT.kernelExtent
 
@@ -229,7 +211,7 @@ if seed == "square":
                                                xmin,
                                                xmax,
                                                nNodePerh = nPerh,
-                                               SPH = True)
+                                               SPH = not asph)
 else:
     generator = GenerateNodeDistribution2d(nRadial, nTheta, rho0, seed,
                                            rmin = rmin,
@@ -239,7 +221,7 @@ else:
                                            theta = theta,
                                            azimuthalOffsetFraction = azimuthalOffsetFraction,
                                            nNodePerh = nPerh,
-                                           SPH = True)
+                                           SPH = not asph)
 
 if mpi.procs > 1:
     from VoronoiDistributeNodes import distributeNodes2d
@@ -269,14 +251,79 @@ output("db.numNodeLists")
 output("db.numFluidNodeLists")
 
 #-------------------------------------------------------------------------------
-# Construct the artificial viscosity.
+# Construct the hydro physics object.
 #-------------------------------------------------------------------------------
-if Qconstructor is TensorSVPHViscosity:
-    q = Qconstructor(Cl, Cq, fslice)
-elif Qconstructor is VonNeumanViscosity:
-    q = Qconstructor(Cl, Cq)
+if svph:
+    hydro = SVPH(dataBase = db,
+                 W = WT,
+                 cfl = cfl,
+                 compatibleEnergyEvolution = compatibleEnergy,
+                 densityUpdate = densityUpdate,
+                 XSVPH = XSPH,
+                 linearConsistent = linearConsistent,
+                 generateVoid = False,
+                 HUpdate = HUpdate,
+                 fcentroidal = fcentroidal,
+                 fcellPressure = fcellPressure,
+                 xmin = Vector(-1.1, -1.1),
+                 xmax = Vector( 1.1,  1.1),
+                 ASPH = asph)
+elif crksph:
+    hydro = CRKSPH(dataBase = db,
+                   W = WT,
+                   filter = filter,
+                   cfl = cfl,
+                   compatibleEnergyEvolution = compatibleEnergy,
+                   XSPH = XSPH,
+                   correctionOrder = correctionOrder,
+                   volumeType = volumeType,
+                   densityUpdate = densityUpdate,
+                   HUpdate = HUpdate,
+                   ASPH = asph)
+elif psph:
+    hydro = PSPH(dataBase = db,
+                 W = WT,
+                 filter = filter,
+                 cfl = cfl,
+                 compatibleEnergyEvolution = compatibleEnergy,
+                 evolveTotalEnergy = evolveTotalEnergy,
+                 HopkinsConductivity = HopkinsConductivity,
+                 correctVelocityGradient = correctVelocityGradient,
+                 densityUpdate = densityUpdate,
+                 HUpdate = HUpdate,
+                 XSPH = XSPH,
+                 ASPH = asph)
 else:
-    q = Qconstructor(Cl, Cq, linearInExpansion)
+    hydro = SPH(dataBase = db,
+                W = WT,
+                filter = filter,
+                cfl = cfl,
+                compatibleEnergyEvolution = compatibleEnergy,
+                evolveTotalEnergy = evolveTotalEnergy,
+                gradhCorrection = gradhCorrection,
+                correctVelocityGradient = correctVelocityGradient,
+                densityUpdate = densityUpdate,
+                HUpdate = HUpdate,
+                XSPH = XSPH,
+                epsTensile = epsilonTensile,
+                nTensile = nTensile,
+                ASPH = asph)
+output("hydro")
+output("hydro.kernel()")
+output("hydro.PiKernel()")
+output("hydro.cfl")
+output("hydro.compatibleEnergyEvolution")
+output("hydro.densityUpdate")
+output("hydro.HEvolution")
+
+packages = [hydro]
+
+#-------------------------------------------------------------------------------
+# Set the artificial viscosity parameters.
+#-------------------------------------------------------------------------------
+q = hydro.Q
+q.Cl = Cl
+q.Cq = Cq
 q.epsilon2 = epsilon2
 q.limiter = Qlimiter
 q.balsaraShearCorrection = balsaraCorrection
@@ -291,70 +338,6 @@ try:
     output("q.quadraticInExpansion")
 except:
     pass
-
-#-------------------------------------------------------------------------------
-# Construct the hydro physics object.
-#-------------------------------------------------------------------------------
-if SVPH:
-    hydro = HydroConstructor(W = WT,
-                             Q = q,
-                             cfl = cfl,
-                             compatibleEnergyEvolution = compatibleEnergy,
-                             densityUpdate = densityUpdate,
-                             XSVPH = XSPH,
-                             linearConsistent = linearConsistent,
-                             generateVoid = False,
-                             HUpdate = HUpdate,
-                             fcentroidal = fcentroidal,
-                             fcellPressure = fcellPressure,
-                             xmin = Vector(-1.1, -1.1),
-                             xmax = Vector( 1.1,  1.1))
-elif CRKSPH:
-    hydro = HydroConstructor(W = WT,
-                             Q = q,
-                             filter = filter,
-                             cfl = cfl,
-                             compatibleEnergyEvolution = compatibleEnergy,
-                             XSPH = XSPH,
-                             correctionOrder = correctionOrder,
-                             volumeType = volumeType,
-                             densityUpdate = densityUpdate,
-                             HUpdate = HUpdate)
-elif PSPH:
-    hydro = HydroConstructor(W = WT,
-                             Q = q,
-                             filter = filter,
-                             cfl = cfl,
-                             compatibleEnergyEvolution = compatibleEnergy,
-                             evolveTotalEnergy = evolveTotalEnergy,
-                             HopkinsConductivity = HopkinsConductivity,
-                             correctVelocityGradient = correctVelocityGradient,
-                             densityUpdate = densityUpdate,
-                             HUpdate = HUpdate,
-                             XSPH = XSPH)
-else:
-    hydro = HydroConstructor(W = WT,
-                             Q = q,
-                             filter = filter,
-                             cfl = cfl,
-                             compatibleEnergyEvolution = compatibleEnergy,
-                             evolveTotalEnergy = evolveTotalEnergy,
-                             gradhCorrection = gradhCorrection,
-                             correctVelocityGradient = correctVelocityGradient,
-                             densityUpdate = densityUpdate,
-                             HUpdate = HUpdate,
-                             XSPH = XSPH,
-                             epsTensile = epsilonTensile,
-                             nTensile = nTensile)
-output("hydro")
-output("hydro.kernel()")
-output("hydro.PiKernel()")
-output("hydro.cfl")
-output("hydro.compatibleEnergyEvolution")
-output("hydro.densityUpdate")
-output("hydro.HEvolution")
-
-packages = [hydro]
 
 #-------------------------------------------------------------------------------
 # Construct the MMRV physics object.
@@ -531,6 +514,26 @@ if graphics:
              (PPlot, "Noh-cylindrical-P.png"),
              (hrPlot, "Noh-cylindrical-hr.png"),
              (htPlot, "Noh-cylindrical-ht.png")]
+
+    if crksph:
+        volPlot = plotFieldList(hydro.volume(), 
+                                xFunction = "%s.magnitude()",
+                                winTitle = "volume",
+                                plotStyle = "points",
+                                colorNodeLists = False, plotGhosts = False)
+        spPlot = plotFieldList(hydro.surfacePoint(), 
+                               xFunction = "%s.magnitude()",
+                               winTitle = "Surface",
+                               plotStyle = "points",
+                               colorNodeLists = False, plotGhosts = False)
+        vpPlot = plotFieldList(hydro.voidPoint(), 
+                               xFunction = "%s.magnitude()",
+                               winTitle = "Void",
+                               plotStyle = "points",
+                               colorNodeLists = False, plotGhosts = True)
+        plots += [(volPlot, "Noh-cylindrical-vol.png"),
+                  (spPlot, "Noh-cylindrical-surfacePoint.png"),
+                  (vpPlot, "Noh-cylindrical-voidPoint.png")]
 
     # Make hardcopies of the plots.
     for p, filename in plots:

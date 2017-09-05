@@ -4,18 +4,18 @@
 //
 // Created by JMO, Tue Sep 7 22:44:37 2004
 //----------------------------------------------------------------------------//
-#include "SolidNodeList.hh"
+#include "FileIO/FileIO.hh"
 #include "Field/Field.hh"
 #include "Field/FieldList.hh"
 #include "Material/EquationOfState.hh"
 #include "Kernel/TableKernel.hh"
-#include "FileIO/FileIO.hh"
 #include "Hydro/HydroFieldNames.hh"
 #include "Strength/SolidFieldNames.hh"
 #include "DataBase/IncrementState.hh"
 #include "SolidMaterial/StrengthModel.hh"
-
 #include "Utilities/DBC.hh"
+
+#include "SolidNodeList.hh"
 
 namespace Spheral {
 namespace NodeSpace {

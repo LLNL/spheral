@@ -32,6 +32,7 @@ computeVoronoiVolume(const FieldSpace::FieldList<Dim<1>, Dim<1>::Vector>& positi
                      const std::vector<Dim<1>::FacetedVolume>& boundaries,
                      const std::vector<std::vector<Dim<1>::FacetedVolume> >& holes,
                      const FieldSpace::FieldList<Dim<1>, Dim<1>::Scalar>& weight,
+                     const FieldSpace::FieldList<Dim<1>, int>& voidPoint,
                      FieldSpace::FieldList<Dim<1>, int>& surfacePoint,
                      FieldSpace::FieldList<Dim<1>, Dim<1>::Scalar>& vol,
                      FieldSpace::FieldList<Dim<1>, Dim<1>::Vector>& deltaMedian,
@@ -69,10 +70,12 @@ computeVoronoiVolume(const FieldSpace::FieldList<Dim<1>, Dim<1>::Vector>& positi
   sort(coords.begin(), coords.end(), ComparePairsByFirstElement<PointCoord>());
 
   // Prepare some scratch variables.
-  unsigned nodeListj1, nodeListj2, j1, j2;
+  unsigned nodeListj1 = 0, nodeListj2 = 0, j1 = 0, j2 = 0;
   Scalar Hi, H1, H2, rhoi, rho1, rho2, gradRhoi, x1, x2, xi, etamax, b, xm1, xm2, thpt, weighti, weightj, wij,
     xbound0 = -std::numeric_limits<Scalar>::max(),
     xbound1 =  std::numeric_limits<Scalar>::max();
+
+  // cerr << "Volume loop: " << endl;
 
   // Now walk our sorted point and set the volumes and surface flags.
   surfacePoint = 0;
@@ -102,6 +105,7 @@ computeVoronoiVolume(const FieldSpace::FieldList<Dim<1>, Dim<1>::Vector>& positi
         x1 = xbound0 - xi;
         H1 = Hi;
         rho1 = rhoi;
+        surfacePoint(nodeListi, i) |= 1;
       } else {
         nodeListj1 = (itr-1)->second.first;
         j1 = (itr-1)->second.second;
@@ -112,12 +116,19 @@ computeVoronoiVolume(const FieldSpace::FieldList<Dim<1>, Dim<1>::Vector>& positi
         // the direction is here reversed from 2d, so it should weight on the i side
         x1 = wij*(position(nodeListj1, j1).x() - position(nodeListi, i).x());
         // phi = min(phi, max(0.0, gradRhoi*2.0*x1*safeInvVar(rho1 - rhoi)));
+        if (voidPoint(nodeListj1, j1) == 1) {
+          surfacePoint(nodeListi, i) |= 1;
+          // cerr << "Void : " << i << " " << j1 << endl;
+        } else if (nodeListj1 != nodeListi) {
+          surfacePoint(nodeListi, i) |= (1 << (nodeListj1 + 1));
+        }
       }
 
       if (itr == coords.end()-1) {
         x2 = xbound1 - xi;
         H2 = Hi;
         rho2 = rhoi;
+        surfacePoint(nodeListi, i) |= 1;
       } else {
         nodeListj2 = (itr+1)->second.first;
         j2 = (itr+1)->second.second;
@@ -125,6 +136,12 @@ computeVoronoiVolume(const FieldSpace::FieldList<Dim<1>, Dim<1>::Vector>& positi
         rho2 = rho(nodeListj2, j2);
         x2 = 0.5*(position(nodeListj2, j2).x() - position(nodeListi, i).x());
         // phi = min(phi, max(0.0, gradRhoi*2.0*x2*safeInvVar(rho2 - rhoi)));
+        if (voidPoint(nodeListj2, j2) == 1) {
+          surfacePoint(nodeListi, i) |= 1;
+          // cerr << "Void : " << i << " " << j2 << endl;
+        } else if (nodeListj2 != nodeListi) {
+          surfacePoint(nodeListi, i) |= (1 << (nodeListj2 + 1));
+        }
       }
 
       CHECK(x1 <= 0.0 and x2 >= 0.0);
@@ -187,10 +204,17 @@ computeVoronoiVolume(const FieldSpace::FieldList<Dim<1>, Dim<1>::Vector>& positi
         // }
 
       } else {
-        surfacePoint(nodeListi, i) = 1;
+        surfacePoint(nodeListi, i) |= 1;
       }
     }
+
+    // cerr << "  " << i << " " << vol(nodeListi, i) << " " << surfacePoint(nodeListi, i) << " "
+    //      << j1 << " " << j2 << " " << voidPoint(nodeListj1, j1) << " " << voidPoint(nodeListj2, j2)
+    //      << " ---- " << position(nodeListj1, j1).x() << " " << position(nodeListi, i) << " " << position(nodeListj2, j2).x() 
+    //      << endl;
+
   }
+
 }
 
 }

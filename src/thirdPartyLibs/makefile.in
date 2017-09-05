@@ -1525,7 +1525,8 @@ $(R3DBUILDDATE):	$(R3DDIST)
 	$(UNZIP) $(R3DDIST)
 	$(PATCH) $(R3DDIR)/r2d.h $(srcdir)/r3d_r2d_h.patch
 	$(PATCH) $(R3DDIR)/r3d.h $(srcdir)/r3d_r3d_h.patch
-	env PATH='$(prefix)/bin:$(PATH)' $(SHELL) -ec "cd $(R3DDIR); \
+	#$(PATCH) $(R3DDIR)/r3d.c $(srcdir)/r3d_r3d_c.patch    # <--- Missing.  I think Matt may have an unchecked in version of this?
+	env PATH=$(prefix)/bin:$(PATH) $(SHELL) -ec "cd $(R3DDIR); \
 	$(MAKE) CC='$(CC)' CFLAGS='$(CFLAGS)'"
 	@if ! test -e $(R3DDIR)/libr3d.a; then \
 	echo "ERROR building R3d."; \

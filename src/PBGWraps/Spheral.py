@@ -47,7 +47,6 @@ from SpheralModules.Spheral.IntegratorSpace import *
 from SpheralModules.Spheral.SPHSpace import *
 from SpheralModules.Spheral.CRKSPHSpace import *
 from SpheralModules.Spheral.SVPHSpace import *
-from SpheralModules.Spheral.TaylorSPHSpace import *
 from SpheralModules.Spheral.MeshSpace import *
 from SpheralModules.Spheral.PythonBoundFunctors import *
 
@@ -70,13 +69,7 @@ from SPHHydros import *
 from PSPHHydros import *
 from SVPHHydros import *
 from CRKSPHHydros import *
-from TaylorSPHHydros import *
 from SPHUtilities import *
-
-from spheralDimensions import spheralDimensions
-if 2 in spheralDimensions():
-    from SPHHydrosRZ import *
-    from CRKSPHHydrosRZ import *
 
 # ------------------------------------------------------------------------------
 # Helpful things with strings.

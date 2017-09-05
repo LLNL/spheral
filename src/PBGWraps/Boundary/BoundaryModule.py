@@ -88,6 +88,7 @@ self.ConstantVelocityBoundary%(ndim)id = addObject(self.space, "ConstantVelocity
 self.ConstantXVelocityBoundary%(ndim)id = addObject(self.space, "ConstantXVelocityBoundary%(ndim)id", parent=self.ConstantVelocityBoundary%(ndim)id)
 self.ConstantRVelocityBoundary%(ndim)id = addObject(self.space, "ConstantRVelocityBoundary%(ndim)id", parent=self.ConstantVelocityBoundary%(ndim)id)
 self.ConstantBoundary%(ndim)id = addObject(self.space, "ConstantBoundary%(ndim)id", parent=self.Boundary%(ndim)id)
+self.CRKSPHVoidBoundary%(ndim)id = addObject(self.space, "CRKSPHVoidBoundary%(ndim)id", parent=self.Boundary%(ndim)id)
 self.vecBound%(ndim)id = addObject(mod, "vector_of_Boundary%(ndim)id", allow_subclassing=True)
 """ % {"ndim" : ndim})
 
@@ -118,6 +119,7 @@ self.generatePeriodicBoundaryBindings(self.PeriodicBoundary%(ndim)id, %(ndim)i)
 self.generateConstantVelocityBoundaryBindings(self.ConstantVelocityBoundary%(ndim)id, %(ndim)i)
 self.generateConstantXVelocityBoundaryBindings(self.ConstantXVelocityBoundary%(ndim)id, %(ndim)i)
 self.generateConstantBoundaryBindings(self.ConstantBoundary%(ndim)id, %(ndim)i)
+self.generateCRKSPHVoidBoundaryBindings(self.CRKSPHVoidBoundary%(ndim)id, %(ndim)i)
 generateStdVectorBindings(self.vecBound%(ndim)id, "Spheral::BoundarySpace::Boundary%(ndim)id*", "vector_of_Boundary%(ndim)id")
 self.space.add_function("dynamicCastBoundary", 
                         retval("Spheral::BoundarySpace::PlanarBoundary%(ndim)id*", reference_existing_object=True), # caller_owns_return=False),
@@ -671,6 +673,47 @@ self.space.add_function("dynamicCastBoundary",
         x.add_method("restoreState", None, [refparam(fileio, "fileIO"),
                                             refparam("std::string", "pathName")], is_virtual=True)
 
+
+        # Generate the abstract interface.
+        generateBoundaryVirtualBindings(x, ndim, False)
+
+        return
+
+    #---------------------------------------------------------------------------
+    # ConstantBoundary bindings.
+    #---------------------------------------------------------------------------
+    def generateCRKSPHVoidBoundaryBindings(self, x, ndim):
+
+        # Object names.
+        me = "Spheral::BoundarySpace::CRKSPHVoidBoundary%id" % ndim
+        dim = "Spheral::Dim<%i>" % ndim
+        vector = "Vector%id" % ndim
+        tensor = "Tensor%id" % ndim
+        symtensor = "SymTensor%id" % ndim
+        plane = "Plane%id" % ndim
+        intfield = "Spheral::FieldSpace::IntField%id" % ndim
+        scalarfield = "Spheral::FieldSpace::ScalarField%id" % ndim
+        vectorfield = "Spheral::FieldSpace::VectorField%id" % ndim
+        tensorfield = "Spheral::FieldSpace::TensorField%id" % ndim
+        thirdranktensorfield = "Spheral::FieldSpace::ThirdRankTensorField%id" % ndim
+        vectordoublefield = "Spheral::FieldSpace::VectorDoubleField%id" % ndim
+        symtensorfield = "Spheral::FieldSpace::SymTensorField%id" % ndim
+        intfieldlist = "Spheral::FieldSpace::IntFieldList%id" % ndim
+        scalarfieldlist = "Spheral::FieldSpace::ScalarFieldList%id" % ndim
+        vectorfieldlist = "Spheral::FieldSpace::VectorFieldList%id" % ndim
+        tensorfieldlist = "Spheral::FieldSpace::TensorFieldList%id" % ndim
+        symtensorfieldlist = "Spheral::FieldSpace::SymTensorFieldList%id" % ndim
+        thirdranktensorfieldlist = "Spheral::FieldSpace::ThirdRankTensorFieldList%id" % ndim
+        nodelist = "Spheral::NodeSpace::NodeList%id" % ndim
+        state = "State%id" % ndim
+        derivatives = "StateDerivatives%id" % ndim
+        database = "Spheral::DataBaseSpace::DataBase%id" % ndim
+        connectivitymap = "ConnectivityMap%id" % ndim
+        fileio = "Spheral::FileIOSpace::FileIO"
+
+        # Constructors.
+        x.add_constructor([constrefparam(intfieldlist, "surfacePoint"), 
+                           constrefparam(vectorfieldlist, "m1")])
 
         # Generate the abstract interface.
         generateBoundaryVirtualBindings(x, ndim, False)

@@ -28,7 +28,8 @@ INSTSRCTARGETS = \
 	$(srcdir)/HVolumePolicyInst.cc.py \
 	$(srcdir)/detectSurfaceInst.cc.py \
 	$(srcdir)/ContinuityVolumePolicyInst.cc.py \
-	$(srcdir)/SolidCRKSPHHydroBaseInst.cc.py
+	$(srcdir)/SolidCRKSPHHydroBaseInst.cc.py \
+	$(srcdir)/flagSurfaceNeighborsInst.cc.py
 
 SRCTARGETS = \
 	$(srcdir)/centerOfMass.cc
@@ -48,8 +49,6 @@ SRCTARGETS += \
 SRCTARGETS += \
 	$(srcdir)/CRKSPHHydroBaseRZ.cc \
 	$(srcdir)/SolidCRKSPHHydroBaseRZ.cc
-PYTHONTARGETS += \
-	$(srcdir)/CRKSPHHydrosRZ.py
 endif
 
 ifeq ("yes", "@INST3D@")

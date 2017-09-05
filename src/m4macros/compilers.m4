@@ -53,6 +53,7 @@ AC_SUBST(SHAREDFLAG)
 AC_SUBST(LDPASSTHROUGH)
 
 AC_SUBST(CXXFLAGS)
+AC_SUBST(EXTRAFLAGS)
 AC_SUBST(FORTFLAGS)
 AC_SUBST(CFLAGS)
 AC_SUBST(MPICCFLAGS)
@@ -156,8 +157,8 @@ case $COMPILERS in
       CC=clang
       CXX=clang++
       FORT=gfortran
-      MPICC=mpicc
-      MPICXX=mpiCC
+      MPICC=mpiclang
+      MPICXX=mpiclang++
       MPICCFLAGS=
       MPICXXFLAGS=
       CMAKECC=clang
@@ -692,9 +693,10 @@ AC_ARG_WITH(openmp,
 [
    AC_MSG_RESULT(yes)
    if test $CXXCOMPILERTYPE = "VACPP"; then
-      CXXFLAGS+="  -qsmp=omp"
+      CXXFLAGS+=" -qsmp=omp"
    else
-      CXXFLAGS+="  -fopenmp"
+      CXXFLAGS+=" -fopenmp"
+      EXTRAFLAGS+="  -fopenmp-targets=nvptx64-nvidia-gpu -fopenmp-implicit-declare-target"
    fi
 ],
 [

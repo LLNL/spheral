@@ -111,18 +111,19 @@ overlayRemapFields(const vector<Boundary<Dimension>*>& boundaries,
     for (Boundary<Dimension>* boundPtr: boundaries) boundPtr->finalizeGhostBoundary();
     neighborD.updateNodes();
     db.updateConnectivityMap(false);
-    const ConnectivityMap<Dimension>& cm = db.connectivityMap();
-    const FieldList<Dimension, Vector> position = db.fluidPosition();
-    const FieldList<Dimension, SymTensor> H = db.fluidHfield();
-    const FieldList<Dimension, Scalar> rho = db.fluidMassDensity();
-    const FieldList<Dimension, Vector> gradrho = db.newFluidFieldList(Vector::zero, "rho gradient");
-    const FieldList<Dimension, Scalar> weight = db.newFluidFieldList(1.0, "weight");
-    FieldList<Dimension, int> surfacePoint = db.newFluidFieldList(0, "surface point");
-    FieldList<Dimension, Scalar> vol = db.newFluidFieldList(0.0, "volume");
-    FieldList<Dimension, Vector> deltaMedian = db.newFluidFieldList(Vector::zero, "displacement");
-    FieldList<Dimension, FacetedVolume> cells_fl(FieldSpace::FieldStorageType::Reference);
+    const auto& cm = db.connectivityMap();
+    const auto position = db.fluidPosition();
+    const auto H = db.fluidHfield();
+    const auto rho = db.fluidMassDensity();
+    const auto gradrho = db.newFluidFieldList(Vector::zero, "rho gradient");
+    const auto weight = db.newFluidFieldList(1.0, "weight");
+    const auto voidPoint = db.newFluidFieldList(int(1), "void point");
+    auto surfacePoint = db.newFluidFieldList(0, "surface point");
+    auto vol = db.newFluidFieldList(0.0, "volume");
+    auto deltaMedian = db.newFluidFieldList(Vector::zero, "displacement");
+    FieldList<Dimension, FacetedVolume> cells_fl(FieldSpace::FieldStorageType::ReferenceFields);
     cells_fl.appendField(localDonorCells);
-    CRKSPHSpace::computeVoronoiVolume(position, H, rho, gradrho, cm, 4.0/donorNodeListPtr->nodesPerSmoothingScale(), vector<FacetedVolume>(), vector<vector<FacetedVolume>>(), weight,
+    CRKSPHSpace::computeVoronoiVolume(position, H, rho, gradrho, cm, 4.0/donorNodeListPtr->nodesPerSmoothingScale(), vector<FacetedVolume>(), vector<vector<FacetedVolume>>(), weight, voidPoint,
                                       surfacePoint, vol, deltaMedian, cells_fl);
     const_cast<NodeList<Dimension>*>(donorNodeListPtr)->numGhostNodes(0);
     neighborD.updateNodes();
@@ -139,18 +140,19 @@ overlayRemapFields(const vector<Boundary<Dimension>*>& boundaries,
     for (Boundary<Dimension>* boundPtr: boundaries) boundPtr->finalizeGhostBoundary();
     neighborA.updateNodes();
     db.updateConnectivityMap(false);
-    const ConnectivityMap<Dimension>& cm = db.connectivityMap();
-    const FieldList<Dimension, Vector> position = db.fluidPosition();
-    const FieldList<Dimension, SymTensor> H = db.fluidHfield();
-    const FieldList<Dimension, Scalar> rho = db.fluidMassDensity();
-    const FieldList<Dimension, Vector> gradrho = db.newFluidFieldList(Vector::zero, "rho gradient");
-    const FieldList<Dimension, Scalar> weight = db.newFluidFieldList(1.0, "weight");
-    FieldList<Dimension, int> surfacePoint = db.newFluidFieldList(0, "surface point");
-    FieldList<Dimension, Scalar> vol = db.newFluidFieldList(0.0, "volume");
-    FieldList<Dimension, Vector> deltaMedian = db.newFluidFieldList(Vector::zero, "displacement");
-    FieldList<Dimension, FacetedVolume> cells_fl(FieldSpace::FieldStorageType::Reference);
+    const auto& cm = db.connectivityMap();
+    const auto position = db.fluidPosition();
+    const auto H = db.fluidHfield();
+    const auto rho = db.fluidMassDensity();
+    const auto gradrho = db.newFluidFieldList(Vector::zero, "rho gradient");
+    const auto weight = db.newFluidFieldList(1.0, "weight");
+    const auto voidPoint = db.newFluidFieldList(int(1), "void point");
+    auto surfacePoint = db.newFluidFieldList(0, "surface point");
+    auto vol = db.newFluidFieldList(0.0, "volume");
+    auto deltaMedian = db.newFluidFieldList(Vector::zero, "displacement");
+    FieldList<Dimension, FacetedVolume> cells_fl(FieldSpace::FieldStorageType::ReferenceFields);
     cells_fl.appendField(localAcceptorCells);
-    CRKSPHSpace::computeVoronoiVolume(position, H, rho, gradrho, cm, 4.0/acceptorNodeListPtr->nodesPerSmoothingScale(), vector<FacetedVolume>(), vector<vector<FacetedVolume>>(), weight,
+    CRKSPHSpace::computeVoronoiVolume(position, H, rho, gradrho, cm, 4.0/acceptorNodeListPtr->nodesPerSmoothingScale(), vector<FacetedVolume>(), vector<vector<FacetedVolume>>(), weight, voidPoint,
                                       surfacePoint, vol, deltaMedian, cells_fl);
     const_cast<NodeList<Dimension>*>(acceptorNodeListPtr)->numGhostNodes(0);
     neighborA.updateNodes();

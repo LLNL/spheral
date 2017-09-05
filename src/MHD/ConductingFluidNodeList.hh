@@ -1,9 +1,10 @@
 #ifndef MHD_CONDUCTINGFLUIDNODELIST_HH
 #define MHD_CONDUCTINGFLUIDNODELIST_HH
 
-#include "boost/shared_ptr.hpp"
 #include "NodeList/SphNodeList.hh"
 #include "Geometry/Dimension.hh"
+
+#include <memory>
 
 namespace Spheral {
 
@@ -161,10 +162,10 @@ class ConductingFluidNodeList: public SphNodeList<Dim<3> >
    
    //! Access the (non-const) time derivative of the fluid's magnetic induction.
    //! Access the fluid's (const) resistivity update policy.
-   const boost::shared_ptr<UpdatePolicyBase<Dim<3>, Field<Dim<3>, Scalar> > >& resistivityPolicy() const;
+   const std::shared_ptr<UpdatePolicyBase<Dim<3>, Field<Dim<3>, Scalar> > >& resistivityPolicy() const;
 
    //! Access the fluid's (non-const) resistivity update policy.
-   boost::shared_ptr<UpdatePolicyBase<Dim<3>, Field<Dim<3>, Scalar> > >& resistivityPolicy();
+   std::shared_ptr<UpdatePolicyBase<Dim<3>, Field<Dim<3>, Scalar> > >& resistivityPolicy();
 
    //! Dump the state to a restart file.
    void dumpState(FileIOSpace::FileIO& file, const std::string& pathName) const;
@@ -179,15 +180,15 @@ class ConductingFluidNodeList: public SphNodeList<Dim<3> >
    ConductingFluidNodeList& operator=(const ConductingFluidNodeList&);
 
    // Magnetic induction, time derivative, current density.
-   boost::shared_ptr<Field<Dim<3>, Vector> > 
+   std::shared_ptr<Field<Dim<3>, Vector> > 
       mMagneticInduction, mDBDt, mCurrentDensity;
 
    // Resistivity and energy fields.
-   boost::shared_ptr<Field<Dim<3> , Scalar> > mDivB, mResistivity, 
+   std::shared_ptr<Field<Dim<3> , Scalar> > mDivB, mResistivity, 
                                               mTotalSpecificEnergy, mDeDt;
 
    // Resistivity update policy.
-   boost::shared_ptr<UpdatePolicyBase<Dim<3>, Field<Dim<3>, Scalar> > > mResistivityPolicy;
+   std::shared_ptr<UpdatePolicyBase<Dim<3>, Field<Dim<3>, Scalar> > > mResistivityPolicy;
 
 }; // end class ConductingFluidNodeList
 
