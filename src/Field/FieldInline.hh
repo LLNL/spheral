@@ -1228,7 +1228,7 @@ void
 Field<Dimension, DataType>::
 unpackValues(const int numElements,
              const int beginInsertionIndex,
-             const std::vector<char,DataAllocator(<char>>& buffer) {
+             const std::vector<char,DataAllocator<char>>& buffer) {
 
   REQUIRE(numElements >= 0);
   REQUIRE(beginInsertionIndex >= 0 &&
