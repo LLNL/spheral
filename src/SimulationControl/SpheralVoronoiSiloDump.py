@@ -341,12 +341,24 @@ def dumpPhysicsState(stateThingy,
         currentCycle = integrator.currentCycle
     elif max([isinstance(stateThingy, x) for x in [State1d, State2d, State3d]]):
         integrator = None
-        dataBase = None
         state = stateThingy
         derivs = None
         assert currentTime is not None
         assert currentCycle is not None
-    assert state is not None
+        if isinstance(stateThingy, State1d):
+            ndim = 1
+        elif isinstance(stateThingy, State2d):
+            ndim = 2
+        else:
+            assert isinstance(stateThingy, State3d)
+            ndim = 3
+        dataBase = eval("DataBase%id()" % ndim)
+        assert state.fieldNameRegistered(HydroFieldName.mass)
+        mass = state.scalarFields(HydroFieldNames.mass)
+        for nodes in mass.nodeListPtrs():
+            dataBase.appendNodeList(nodes)
+
+    assert state is not None and dataBase is not None
 
     # Did the user specify any data to be dumped?
     if not fields:
@@ -416,12 +428,45 @@ def dumpPhysicsState(stateThingy,
     except:
         pass
 
+    # Build the Voronoi-like cells.
+    weight = eval("ScalarFieldList%id()" % dataBase.nDim)                         # No weights
+    gradRho = dataBase.newFluidVectorFieldList(eval("Vector%id.zero" % dataBase.nDim), "grad rho")
+    bounds = eval("vector_of_FacetedVolume%id()" % dataBase.nDim)
+    holes = eval("vector_of_vector_of_FacetedVolume%id()" % dataBase.nDim)
+    if state.fieldNameRegistered(HydroFieldNames.surfacePoint):
+        surfacePoint = state.intFields(HydroFieldNames.surfacePoint)
+        voidPoint = state.intFields(HydroFieldNames.voidPoint)
+    else:
+        surfacePoint = dataBase.newFluidIntFieldList(0, HydroFieldNames.surfacePoint)
+        voidPoint = dataBase.newFluidIntFieldList(0, HydroFieldNames.voidPoint)
+    vol = dataBase.newFluidScalarFieldList(0.0, HydroFieldNames.volume)
+    deltaMedian = dataBase.newFluidVectorFieldList(eval("Vector%id.zero" % dataBase.nDim), "centroidal delta")
+    etaVoidPoints = dataBase.newFluidvector_of_VectorFieldList(eval("vector_of_Vector%id()" % dataBase.nDim), "eta void points")
+    FacetedVolume = {2 : Polygon,
+                     3 : Polyhedron}[dataBase.nDim]
+    cells = dataBase.newFluidFacetedVolumeFieldList(FacetedVolume(), "cells")
+    computeVoronoiVolume(dataBase.fluidPosition, 
+                         dataBase.fluidHfield,
+                         dataBase.fluidMassDensity,
+                         gradRho,
+                         dataBase.connectivityMap(),
+                         bounds,
+                         holes, 
+                         weight,
+                         voidPoint,
+                         surfacePoint,
+                         vol,
+                         deltaMedian,
+                         etaVoidPoints,
+                         cells)
+
     # Now build the visit dumper.
     dumper = SpheralVoronoiSiloDump(baseFileName,
                                     baseDirectory,
                                     fields,
                                     fieldLists,
-                                    boundaries)
+                                    boundaries,
+                                    cells = cells)
 
     # Dump the sucker.
     dumper.dump(currentTime, currentCycle)
