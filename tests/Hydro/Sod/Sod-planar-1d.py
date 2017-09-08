@@ -122,6 +122,7 @@ if solid:
     hydroname = "Solid" + hydroname
 
 dataDir = os.path.join(dataDirBase, 
+                       "numNodeLists=%i" % numNodeLists,
                        hydroname,
                        "nPerh=%f" % nPerh,
                        "compatibleEnergy=%s" % compatibleEnergy,
