@@ -152,6 +152,11 @@ computeVoronoiVolume(const FieldList<Dim<3>, Dim<3>::Vector>& position,
 
   // ttotal = std::clock();
 
+  if (returnSurface) {
+    surfacePoint = 0;
+    etaVoidPoints = vector<Vector>();
+  }
+
   if (numGensGlobal > 0) {
 
     // Build an approximation of the starting kernel shape (in eta space) as an icosahedron.
