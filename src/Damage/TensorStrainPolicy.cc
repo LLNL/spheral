@@ -82,7 +82,7 @@ update(const KeyType& key,
   const KeyType PKey = State<Dimension>::buildFieldKey(HydroFieldNames::pressure, nodeListKey);
   const KeyType psKey = State<Dimension>::buildFieldKey(SolidFieldNames::plasticStrain, nodeListKey);
   const KeyType stressKey = State<Dimension>::buildFieldKey(SolidFieldNames::deviatoricStress, nodeListKey);
-  const KeyType gradvKey = State<Dimension>::buildFieldKey(HydroFieldNames::velocityGradient, nodeListKey);
+  const KeyType gradvKey = State<Dimension>::buildFieldKey(HydroFieldNames::internalVelocityGradient, nodeListKey);
   const KeyType dSKey = State<Dimension>::buildFieldKey(IncrementState<Dimension, Field<Dimension, SymTensor> >::prefix() + SolidFieldNames::deviatoricStress, nodeListKey);
   CHECK(state.registered(eKey));
   CHECK(state.registered(EKey));
