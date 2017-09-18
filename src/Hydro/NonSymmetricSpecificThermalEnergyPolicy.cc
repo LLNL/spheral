@@ -10,10 +10,10 @@
 // Created by JMO, Sat Aug 10 23:03:39 PDT 2013
 //----------------------------------------------------------------------------//
 #include <vector>
+#include <limits>
 
 #include "NonSymmetricSpecificThermalEnergyPolicy.hh"
 #include "HydroFieldNames.hh"
-#include "entropyWeightingFunction.hh"
 #include "NodeList/NodeList.hh"
 #include "NodeList/FluidNodeList.hh"
 #include "DataBase/DataBase.hh"
@@ -105,7 +105,6 @@ update(const KeyType& key,
   const auto  velocity = state.fields(HydroFieldNames::velocity, Vector::zero);
   const auto  acceleration = derivs.fields(IncrementFieldList<Dimension, Vector>::prefix() + HydroFieldNames::velocity, Vector::zero);
   const auto  eps0 = state.fields(HydroFieldNames::specificThermalEnergy + "0", Scalar());
-  const auto  entropy = state.fields(HydroFieldNames::entropy, Scalar());
   const auto  pairAccelerations = derivs.fields(HydroFieldNames::pairAccelerations, vector<Vector>());
   const auto  DepsDt0 = derivs.fields(IncrementFieldList<Dimension, Field<Dimension, Scalar> >::prefix() + HydroFieldNames::specificThermalEnergy, 0.0);
   const auto& connectivityMap = mDataBasePtr->connectivityMap();
@@ -137,9 +136,8 @@ update(const KeyType& key,
 
       // State for node i.
       auto& DepsDti = DepsDt(nodeListi, i);
-      const auto  DepsDt0i = DepsDt0(nodeListi, i);
+      const auto  weighti = abs(DepsDt0(nodeListi, i)) + numeric_limits<Scalar>::epsilon();
       const auto  mi = mass(nodeListi, i);
-      const auto  si = entropy(nodeListi, i);
       const auto& vi = velocity(nodeListi, i);
       const auto  ui = eps0(nodeListi, i);
       const auto& ai = acceleration(nodeListi, i);
@@ -170,9 +168,8 @@ update(const KeyType& key,
                                                          nodeListj, j,
                                                          firstGhostNodej)) {
               auto& DepsDtj = DepsDt(nodeListj, j);
-              const auto  DepsDt0j = DepsDt0(nodeListj, j);
+	      const auto  weightj = abs(DepsDt0(nodeListj, j)) + numeric_limits<Scalar>::epsilon();
               const auto  mj = mass(nodeListj, j);
-              const auto  sj = entropy(nodeListj, j);
               const auto& vj = velocity(nodeListj, j);
               const auto  uj = eps0(nodeListj, j);
               const auto& aj = acceleration(nodeListj, j);
@@ -192,10 +189,11 @@ update(const KeyType& key,
 
               const auto dEij = -(mi*vi12.dot(pai) + mj*vj12.dot(paj));
               const auto duij = dEij/mi;
-              const auto wi = entropyWeighting(si, sj, duij);
+	      const auto wi = weighti/(weighti + weightj);
               CHECK(wi >= 0.0 and wi <= 1.0);
-              CHECK2(fuzzyEqual(wi + entropyWeighting(sj, si, dEij/mj), 1.0, 1.0e-10),
-                     wi << " " << entropyWeighting(sj, si, dEij/mj) << " " << (wi + entropyWeighting(sj, si, dEij/mj)));
+              // const auto wi = entropyWeighting(si, sj, duij);
+              // CHECK2(fuzzyEqual(wi + entropyWeighting(sj, si, dEij/mj), 1.0, 1.0e-10),
+              //        wi << " " << entropyWeighting(sj, si, dEij/mj) << " " << (wi + entropyWeighting(sj, si, dEij/mj)));
               DepsDti += wi*duij;
               DepsDtj += (1.0 - wi)*dEij/mj;
 
