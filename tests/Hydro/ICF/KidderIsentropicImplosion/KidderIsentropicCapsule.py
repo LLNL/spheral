@@ -24,9 +24,8 @@ from KidderIsentropicCapsuleBoundary import *
 # Parameters for the run.
 #-------------------------------------------------------------------------------
 commandLine(problemName = "KidderIsentropicCapsule",
-            KernelConstructor = BSplineKernel,
             IntegratorConstructor = CheapSynchronousRK2Integrator,
-            kernelOrder = 7,
+            kernelOrder = 5,
 
             # Timing
             steps = None,
@@ -43,7 +42,7 @@ commandLine(problemName = "KidderIsentropicCapsule",
             # Resolution
             nr = 100,             # num radial points
             nrGhost = 10,         # how deep do we want the Boundaries
-            nPerh = 2.01,
+            nPerh = 1.51,
 
             # Output
             dumpCycle = 0,
@@ -61,18 +60,13 @@ commandLine(problemName = "KidderIsentropicCapsule",
             maxSteps = None,
 
             # LagrangeHydro
-            CRKSPH = False,
-            PSPH = False,
+            crksph = False,
+            psph = False,
             solid = False,
-            Qconstructor = MonaghanGingoldViscosity,
-            Cq = 1.0,
-            Cl = 1.0,
-            Qlimiter = False,
-            epsilon2 = 1e-2,
+            XSPH = True,
             hmin = 0.0001, 
             hmax = 0.1,
             cfl = 0.5,
-            XSPH = True,
             filter = 0.0,
             correctionOrder = LinearOrder,
             volumeType = CRKSumVolume,
@@ -98,19 +92,12 @@ commandLine(problemName = "KidderIsentropicCapsule",
             )
 
 # Choose our hydro object.
-if CRKSPH:
-    if solid:
-        HydroConstructor = SolidCRKSPHHydro
-    else:
-        HydroConstructor = CRKSPHHydro
-    Qconstructor = CRKSPHMonaghanGingoldViscosity
-elif PSPH:
-   HydroConstructor = PSPHHydro
+if crksph:
+    hydroname = "CRKSPH"
+elif psph:
+    hydroname = "PSPH"
 else:
-    if solid:
-        HydroConstructor = SolidSPHHydro
-    else:
-        HydroConstructor = SPHHydro
+    hydroname = "SPH"
 
 # The dimensionality of the problem: 1 => planar
 #                                    2 => cylindrical
@@ -121,8 +108,7 @@ goalTime = goalTau * answer.tau
 print "Capsule collapses at %g, goal time is %g." % (answer.tau, goalTime)
 
 dataDir = os.path.join(dataDirBase, 
-                       HydroConstructor.__name__,
-                       Qconstructor.__name__,
+                       hydroname,
                        "nPerh=%f" % nPerh,
                        "compatibleEnergy=%s" % compatibleEnergy,
                        "evolveTotalEnergy=%s" % evolveTotalEnergy,
@@ -152,10 +138,7 @@ eos = GammaLawGasMKS(answer.gamma, mu)
 #-------------------------------------------------------------------------------
 # Interpolation kernels.
 #-------------------------------------------------------------------------------
-if KernelConstructor == NBSplineKernel:
-    WT = TableKernel(KernelConstructor(kernelOrder), 1000)
-else:
-    WT = TableKernel(KernelConstructor(), 1000)
+WT = TableKernel(NBSplineKernel(kernelOrder), 1000)
 output("WT")
 kernelExtent = WT.kernelExtent
 
@@ -212,56 +195,44 @@ output("db.numNodeLists")
 output("db.numFluidNodeLists")
 
 #-------------------------------------------------------------------------------
-# Construct the artificial viscosity.
-#-------------------------------------------------------------------------------
-q = Qconstructor(Cl, Cq)
-q.epsilon2 = epsilon2
-q.limiter = Qlimiter
-output("q")
-output("q.Cl")
-output("q.Cq")
-output("q.epsilon2")
-output("q.limiter")
-
-#-------------------------------------------------------------------------------
 # Construct the hydro physics object.
 #-------------------------------------------------------------------------------
-if CRKSPH:
-    hydro = HydroConstructor(W = WT,
-                             Q = q,
-                             filter = filter,
-                             cfl = cfl,
-                             compatibleEnergyEvolution = compatibleEnergy,
-                             evolveTotalEnergy = evolveTotalEnergy,
-                             XSPH = XSPH,
-                             correctionOrder = correctionOrder,
-                             volumeType = volumeType,
-                             densityUpdate = densityUpdate,
-                             HUpdate = HUpdate)
-elif PSPH:
-    hydro = HydroConstructor(W = WT,
-                             Q = q,
-                             filter = filter,
-                             cfl = cfl,
-                             compatibleEnergyEvolution = compatibleEnergy,
-                             evolveTotalEnergy = evolveTotalEnergy,
-                             HopkinsConductivity = HopkinsConductivity,
-                             correctVelocityGradient = correctVelocityGradient,
-                             densityUpdate = densityUpdate,
-                             HUpdate = HUpdate,
-                             XSPH = XSPH)
+if crksph:
+    hydro = CRKSPH(dataBase = db,
+                   W = WT,
+                   filter = filter,
+                   cfl = cfl,
+                   compatibleEnergyEvolution = compatibleEnergy,
+                   evolveTotalEnergy = evolveTotalEnergy,
+                   XSPH = XSPH,
+                   correctionOrder = correctionOrder,
+                   volumeType = volumeType,
+                   densityUpdate = densityUpdate,
+                   HUpdate = HUpdate)
+elif psph:
+    hydro = PSPH(dataBase = db,
+                 W = WT,
+                 filter = filter,
+                 cfl = cfl,
+                 compatibleEnergyEvolution = compatibleEnergy,
+                 evolveTotalEnergy = evolveTotalEnergy,
+                 HopkinsConductivity = HopkinsConductivity,
+                 correctVelocityGradient = correctVelocityGradient,
+                 densityUpdate = densityUpdate,
+                 HUpdate = HUpdate,
+                 XSPH = XSPH)
 else:
-    hydro = HydroConstructor(W = WT,
-                             Q = q,
-                             filter = filter,
-                             cfl = cfl,
-                             compatibleEnergyEvolution = compatibleEnergy,
-                             evolveTotalEnergy = evolveTotalEnergy,
-                             gradhCorrection = gradhCorrection,
-                             correctVelocityGradient = correctVelocityGradient,
-                             densityUpdate = densityUpdate,
-                             HUpdate = HUpdate,
-                             XSPH = XSPH)
+    hydro = SPH(dataBase = db,
+                W = WT,
+                filter = filter,
+                cfl = cfl,
+                compatibleEnergyEvolution = compatibleEnergy,
+                evolveTotalEnergy = evolveTotalEnergy,
+                gradhCorrection = gradhCorrection,
+                correctVelocityGradient = correctVelocityGradient,
+                densityUpdate = densityUpdate,
+                HUpdate = HUpdate,
+                XSPH = XSPH)
 output("hydro")
 output("hydro.cfl")
 output("hydro.compatibleEnergyEvolution")
@@ -274,7 +245,7 @@ packages = [hydro]
 # Optionally construct the reducing viscosity physics object.
 #-------------------------------------------------------------------------------
 if cullenViscosity:
-    evolveCullenViscosityMultiplier = CullenDehnenViscosity(q, WT, alphMax, alphMin, betaC, betaD, betaE, fKern, hopkinsCullenCorrection)
+    evolveCullenViscosityMultiplier = CullenDehnenViscosity(hydro.Q, WT, alphMax, alphMin, betaC, betaD, betaE, fKern, hopkinsCullenCorrection)
     packages.append(evolveCullenViscosityMultiplier)
 
 #-------------------------------------------------------------------------------
