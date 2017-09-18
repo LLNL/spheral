@@ -970,10 +970,10 @@ evaluateDerivatives(const typename Dimension::Scalar time,
 
               // We decide between RK and CRK for the momentum and energy equations based on the surface condition.
               // Momentum
-              forceij = (surfacePoint(nodeListi, i) <= 1 ? 
+              forceij = (true ? // surfacePoint(nodeListi, i) <= 1 ? 
                          0.5*wij*wij*((Pi + Pj)*deltagrad + Qaccij) :                    // Type III CRK interpoint force.
                          mi*wij*((Pj - Pi)/rhoi*gradWj + rhoi*QPiij.first.dot(gradWj))); // RK
-              forceji = (surfacePoint(nodeListj, j) <= 1 ? 
+              forceji = (true ? // surfacePoint(nodeListj, j) <= 1 ? 
                          0.5*wij*wij*((Pi + Pj)*deltagrad + Qaccij) :                    // Type III CRK interpoint force.
                          mj*wij*((Pj - Pi)/rhoj*gradWi - rhoj*QPiij.second.dot(gradWi)));// RK
               DvDti -= forceij/mi;
@@ -984,10 +984,10 @@ evaluateDerivatives(const typename Dimension::Scalar time,
               }
 
               // Energy
-              DepsDti += (surfacePoint(nodeListi, i) <= 1 ? 
+              DepsDti += (true ? // surfacePoint(nodeListi, i) <= 1 ? 
                           0.5*wij*wij*(Pj*vij.dot(deltagrad) + workQi)/mi :              // CRK
                           wij*rhoi*QPiij.first.dot(vij).dot(gradWj));                    // RK
-              DepsDtj += (surfacePoint(nodeListj, j) <= 1 ? 
+              DepsDtj += (true ? // surfacePoint(nodeListj, j) <= 1 ? 
                           0.5*wij*wij*(Pi*vij.dot(deltagrad) + workQj)/mj :              // CRK
                          -wij*rhoj*QPiij.second.dot(vij).dot(gradWi));                   // RK
 
@@ -1006,33 +1006,9 @@ evaluateDerivatives(const typename Dimension::Scalar time,
             (i >= firstGhostNodei and pairAccelerationsi.size() == 0) or
             (pairAccelerationsi.size() == numNeighborsi));
 
-      // For a surface point, add the RK thermal energy evolution.
-      // DepsDti -= Pi/rhoi*DvDxi.Trace();
-      if (surfacePoint(nodeListi, i) > 1) DepsDti -= Pi/rhoi*DvDxi.Trace();
-
-      // // If this is a surface point, it's straight RK and there are self-contributions.
-      // if (surfacePoint(nodeListi, i) != 0) {
-      //   CRKSPHKernelAndGradient(Wj, gWj, gradWj, W, order,  Vector::zero,  Vector::zero, Hi, Hdeti,  Vector::zero, Hi, Hdeti, Ai, Bi, Ci, gradAi, gradBi, gradCi, mCorrectionMin, mCorrectionMax);
-      //   const Vector forceii = weighti*weighti*Pi*gradWj;
-      //   // Vector selfforceIi  = weighti*weighti*Pi*W0*gradAi;  // <- Type I self-interaction. I think there is no Q term here? Dont know what it would be. 
-      //   // if (order != CRKOrder::ZerothOrder) {
-      //   //   selfforceIi = weighti*weighti*Pi*W0*(Ai*Bi+gradAi); //For linear RK (quadratic RK is the same)
-      //   // }
-      //   DvDti += forceii/mi;                             //RK I Acceleration 
-      //   pairAccelerationsi.push_back(forceii/mi);
-      // }
-
-      // // If this is a surface point, we add a vacuum interaction with a virtual point just off of the surface.
-      // if (surfacePoint(nodeListi, i) == 1) {
-      //   const Vector nhat = m1(nodeListi, i).unitVector();
-      //   const Vector rij = Hi.Inverse()*nhat/nPerh;
-      //   const Vector etai = Hi*rij;
-      //   CRKSPHKernelAndGradient(Wj, gWj, gradWj, W, order,  rij,  etai, Hi, Hdeti,  etai, Hi, Hdeti, Ai, Bi, Ci, gradAi, gradBi, gradCi, mCorrectionMin, mCorrectionMax);
-      //   deltagradi = gradWj;
-      //   const Vector forceij  = weighti*weighti*Pi*deltagradi;                    // <- Type III, with CRKSPH Q forces
-      //   DvDti -= forceij/mi;
-      //   DepsDti += 0.25*weighti*weighti*Pi*vi.dot(deltagradi)/mi;                 // CRK Q
-      // }
+      // // For a surface point, add the RK thermal energy evolution.
+      // // DepsDti -= Pi/rhoi*DvDxi.Trace();
+      // if (surfacePoint(nodeListi, i) > 1) DepsDti -= Pi/rhoi*DvDxi.Trace();
 
       // Get the time for pairwise interactions.
       const auto deltaTimePair = Timing::difference(start, Timing::currentTime())/max(size_t(1), ncalc);
