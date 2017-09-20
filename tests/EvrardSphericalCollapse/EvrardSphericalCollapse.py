@@ -20,7 +20,6 @@ title("3-D gravitational hydro test -- Evrard spherical collapse.")
 commandLine(nx = 100,               # Number of across diameter of sphere
 
             # Gravity parameters.
-            plummerLength = 1.0e-2, # Plummer softening scale
             opening = 1.0,          # (dimensionless, OctTreeGravity) opening parameter for tree walk
             fdt = 0.1,              # (dimensionless, OctTreeGravity) timestep multiplier
 
@@ -72,10 +71,14 @@ commandLine(nx = 100,               # Number of across diameter of sphere
             useVoronoiOutput = True,          # Currently only works for CRK
             )
 
+# Gravity parameters.  We set the Plummer softening scale based on the base particle resolution.
+plummerLength = 1.0/nx
 G = 1.0
 
+# Set our paths.
 if crksph:
-    hydroname = "CRKSPH"
+    hydroname = os.path.join("CRKSPH",
+                             "volume=%s" % volumeType)
 elif psph:
     hydroname = "PSPH"
 else:
