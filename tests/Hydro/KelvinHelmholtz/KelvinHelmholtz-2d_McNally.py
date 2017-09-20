@@ -13,6 +13,7 @@ from SpheralGnuPlotUtilities import *
 from GenerateNodeDistribution2d import *
 from CompositeNodeDistribution import *
 from CentroidalVoronoiRelaxation import *
+import SpheralVoronoiSiloDump
 
 import mpi
 import DistributeNodes
@@ -160,6 +161,7 @@ dataDir = os.path.join(dataDir,
                        "nPerh=%g-Qhmult=%g" % (nPerh, Qhmult))
 restartDir = os.path.join(dataDir, "restarts")
 vizDir = os.path.join(dataDir, "visit")
+vizDirVor = os.path.join(dataDir, "visit-cells")
 restartBaseName = os.path.join(restartDir, "KelvinHelmholtz-2d_McNally")
 vizBaseName = "KelvinHelmholtz-2d_McNally"
 
@@ -174,6 +176,8 @@ if mpi.rank == 0:
         os.makedirs(restartDir)
     if not os.path.exists(vizDir):
         os.makedirs(vizDir)
+    if not os.path.exists(vizDirVor):
+        os.makedirs(vizDirVor)
 mpi.barrier()
 
 #-------------------------------------------------------------------------------
@@ -502,6 +506,24 @@ control = SpheralController(integrator, WT,
                             vizTime = vizTime,
                             SPH = (not asph))
 output("control")
+
+#-------------------------------------------------------------------------------
+# Make a special viz method that uses our cell output.
+#-------------------------------------------------------------------------------
+def dropVorViz(cycle, Time, dt):
+    SpheralVoronoiSiloDump.dumpPhysicsState(integrator,
+                                            baseFileName = vizBaseName,
+                                            baseDirectory = vizDirVor,
+                                            currentTime = Time,
+                                            currentCycle = cycle,
+                                            dumpGhosts = False,
+                                            dumpDerivatives = False,
+                                            boundaries = integrator.uniqueBoundaryConditions())
+if crksph:
+    control.appendPeriodicWork(dropVorViz, vizCycle)
+    control.appendPeriodicTimeWork(dropVorViz, vizTime)
+    if control.totalSteps == 0:
+        dropVorViz(0, 0.0, 1.0)
 
 #-------------------------------------------------------------------------------
 # Add a method for measuring the mixing scale.
