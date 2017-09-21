@@ -12,6 +12,7 @@
 
 #include "SpecificThermalEnergyPolicy.hh"
 #include "HydroFieldNames.hh"
+#include "entropyWeightingFunction.hh"
 #include "NodeList/NodeList.hh"
 #include "NodeList/FluidNodeList.hh"
 #include "DataBase/DataBase.hh"
@@ -87,6 +88,7 @@ update(const KeyType& key,
   const auto  mass = state.fields(HydroFieldNames::mass, Scalar());
   const auto  velocity = state.fields(HydroFieldNames::velocity, Vector::zero);
   const auto  acceleration = derivs.fields(IncrementFieldList<Dimension, Vector>::prefix() + HydroFieldNames::velocity, Vector::zero);
+  const auto  entropy = state.fields(HydroFieldNames::entropy, Scalar());
   const auto  eps0 = state.fields(HydroFieldNames::specificThermalEnergy + "0", Scalar());
   const auto  pairAccelerations = derivs.fields(HydroFieldNames::pairAccelerations, vector<Vector>());
   const auto  DepsDt0 = derivs.fields(IncrementFieldList<Dimension, Field<Dimension, Scalar> >::prefix() + HydroFieldNames::specificThermalEnergy, 0.0);
@@ -111,6 +113,7 @@ update(const KeyType& key,
       // State for node i.
       auto& DepsDti = DepsDt(nodeListi, i);
       const auto  weighti = abs(DepsDt0(nodeListi, i)) + numeric_limits<Scalar>::epsilon();
+      const auto  si = entropy(nodeListi, i);
       const auto  mi = mass(nodeListi, i);
       const auto& vi = velocity(nodeListi, i);
       const auto  ui = eps0(nodeListi, i);
@@ -142,7 +145,8 @@ update(const KeyType& key,
                                                          nodeListj, j,
                                                          firstGhostNodej)) {
               auto& DepsDtj = DepsDt(nodeListj, j);
-	      const auto  weightj = abs(DepsDt0(nodeListj, j)) + numeric_limits<Scalar>::epsilon();
+              const auto  weightj = abs(DepsDt0(nodeListj, j)) + numeric_limits<Scalar>::epsilon();
+              const auto  sj = entropy(nodeListj, j);
               const auto  mj = mass(nodeListj, j);
               const auto& vj = velocity(nodeListj, j);
               const auto  uj = eps0(nodeListj, j);
@@ -166,15 +170,9 @@ update(const KeyType& key,
                      "Symmetric forces?  (" << nodeListi << " " << i << ") (" << nodeListj << " " << j << ") " << mi << " " << mj << " " << pai << " " << paj << " " << mi*pai << " " << mj*paj);
 
               const Scalar duij = vji12.dot(pai);
-	      const Scalar wi = weighti/(weighti + weightj);
+              const Scalar wi = weighti/(weighti + weightj);      // Du/Dt weighting
+              // const Scalar wi = entropyWeighting(si, sj, duij);   // entropy weighting
               CHECK(wi >= 0.0 and wi <= 1.0);
-              // const Scalar wi = entropyWeighting(si, sj, duij);
-              // CHECK(fuzzyEqual(wi + entropyWeighting(sj, si, duij), 1.0, 1.0e-10));
-              // const Scalar wi = ((abs(si) + abs(sj)) == 0.0 ? 0.5 :
-              //                    ((duij <= 0.0) ? abs(si) : abs(sj))/(abs(si) + abs(sj)));
-              // const Scalar wi = (duij >= 0.0 ? 0.5 : weighting(ui, uj, mi, mj, duij, dt));
-              // CHECK(wi >= 0.0 and wi <= 1.0);
-              // CHECK(fuzzyEqual(wi + weighting(uj, ui, mj, mi, duij*mi/mj, dt), 1.0, 1.0e-10));
               DepsDti += wi*duij;
               DepsDtj += (1.0 - wi)*duij*mi/mj;
             }
