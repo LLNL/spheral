@@ -103,6 +103,7 @@ step(typename Dimension::Scalar maxTime,
 
   // Advance the state to the end of the timestep.
   state.update(derivs, dt, t, dt);
+  this->currentTime(t + dt);
   this->applyGhostBoundaries(state, derivs);
   this->postStateUpdate(db, state, derivs);
   this->finalizeGhostBoundaries();
