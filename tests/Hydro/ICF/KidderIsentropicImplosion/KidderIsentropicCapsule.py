@@ -37,7 +37,7 @@ commandLine(problemName = "KidderIsentropicCapsule",
             r1 = 1.0,             # Outer boundary radius
             P0 = 0.1,             # Inner boundary pressure
             P1 = 10.0,            # Outer boundary pressure
-            rho1 = 0.01,          # Outer boundary density
+           rho1 = 0.01,          # Outer boundary density
 
             # Resolution
             nr = 100,             # num radial points
@@ -252,8 +252,6 @@ if cullenViscosity:
 # Construct an integrator.
 #-------------------------------------------------------------------------------
 integrator = IntegratorConstructor(db)
-for package in packages:
-    integrator.appendPhysicsPackage(package)
 integrator.lastDt = dt
 integrator.dtMin = dtMin
 integrator.dtMax = dtMax
@@ -322,8 +320,13 @@ rbc1 = KidderIsentropicCapsuleEnforcementBoundary1d(integrator = integrator,
 # hydro.appendBoundary(rbc0)
 # hydro.appendBoundary(rbc1)
 
-integrator.appendPhysicsPackage(rbc0)
-integrator.appendPhysicsPackage(rbc1)
+packages += [rbc0, rbc1]
+
+#-------------------------------------------------------------------------------
+# Add our packages to the integrator.
+#-------------------------------------------------------------------------------
+for package in packages:
+    integrator.appendPhysicsPackage(package)
 
 #-------------------------------------------------------------------------------
 # Make the problem controller.
@@ -377,7 +380,9 @@ Sans = [answer.S for ri in r]
 
 # The ratio of the entropy to the expected value.
 alpha = [ss/sa for ss, sa in zip(S, Sans)]
-print "Total fractional range of error in entropy: ", (max(alpha) - min(alpha))
+S0 = answer.S
+print "Entropy L1, Linf in fractional error: ", (sum([abs(alphai - 1.0) for alphai in alpha])/len(alpha),
+                                                     max(abs(max(alpha) - 1.0), abs(min(alpha) - 1.0)))
 
 # Now plot the suckers.
 if mpi.rank == 0:
@@ -420,20 +425,56 @@ if mpi.rank == 0:
     alphaPlot.plot(alphaData)
     alphaPlot.replot(alphaAnsData)
 
+    DepsDtfl = hydro.DspecificThermalEnergyDt()
+    DepsDt = mpi.allreduce(DepsDtfl[0].internalValues(), mpi.SUM)
+    DepsData = Gnuplot.Data(r, DepsDt, title="DepsDt", inline=True)
+    DepsPlot = generateNewGnuPlot()
+    DepsPlot.plot(DepsData)
+
+    DxDtfl = hydro.DxDt()
+    DxDt = mpi.allreduce([x.x for x in DxDtfl[0].internalValues()], mpi.SUM)
+    DxData = Gnuplot.Data(r, DxDt, title="DxDt", inline=True)
+    DxPlot = generateNewGnuPlot()
+    DxPlot.plot(DxData)
+
+    DvDtfl = hydro.DvDt()
+    DvDt = mpi.allreduce([x.x for x in DvDtfl[0].internalValues()], mpi.SUM)
+    DvData = Gnuplot.Data(r, DvDt, title="DvDt", inline=True)
+    DvPlot = generateNewGnuPlot()
+    DvPlot.plot(DvData)
+
+    DvDxfl = hydro.DvDx()
+    DvDx = mpi.allreduce([x.xx for x in DvDxfl[0].internalValues()], mpi.SUM)
+    DvData = Gnuplot.Data(r, DvDx, title="DvDx", inline=True)
+    DvPlot = generateNewGnuPlot()
+    DvPlot.plot(DvData)
+
+    DHDtfl = hydro.DHDt()
+    DHDt = mpi.allreduce([x.xx for x in DHDtfl[0].internalValues()], mpi.SUM)
+    DHData = Gnuplot.Data(r, DHDt, title="DHDt", inline=True)
+    DHPlot = generateNewGnuPlot()
+    DHPlot.plot(DHData)
+
+    DrhoDtfl = hydro.DmassDensityDt()
+    DrhoDt = mpi.allreduce(DrhoDtfl[0].internalValues(), mpi.SUM)
+    DrhoData = Gnuplot.Data(r, DrhoDt, title="DrhoDt", inline=True)
+    DrhoPlot = generateNewGnuPlot()
+    DrhoPlot.plot(DrhoData)
+
     # If requested, output the profiles to an ASCII file.
     if profileASCII:
         f = open(os.path.join(dataDir, "Kidder_planar_profiles.txt"), "w")
         f.write(("#" + 11*"%20s" + "\n") % ('"radius"',
-                                      '"rad velocity (sim)"',
-                                      '"mass density (sim)"',
-                                      '"pressure (sim)"',
-                                      '"eps (sim)"',
-                                      '"entropy (sim)"',
-                                      '"rad velocity (ans)"',
-                                      '"mass density (ans)"',
-                                      '"pressure (ans)"',
-                                      '"eps (ans)"',
-                                      '"entropy (ans)"'))
+                                            '"rad velocity (sim)"',
+                                            '"mass density (sim)"',
+                                            '"pressure (sim)"',
+                                            '"eps (sim)"',
+                                            '"entropy (sim)"',
+                                            '"rad velocity (ans)"',
+                                            '"mass density (ans)"',
+                                            '"pressure (ans)"',
+                                            '"eps (ans)"',
+                                            '"entropy (ans)"'))
 
         # Now write the suckers out.
         for tup in zip(r, v, rho, P, eps, S, vAns, rhoAns, Pans, epsAns, Sans):

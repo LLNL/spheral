@@ -236,9 +236,7 @@ class KidderIsentropicCapsuleEnforcementBoundary1d(Physics1d):
     # Override the state values for the physics variables, imposing the analytic
     # solution.
     #---------------------------------------------------------------------------
-    def overrideState(self, state):
-
-        t = self.integrator.currentTime
+    def overrideState(self, state, t):
 
         # Extract the state we're going to set.
         rho = state.scalarFields(HydroFieldNames.massDensity)
@@ -279,9 +277,7 @@ class KidderIsentropicCapsuleEnforcementBoundary1d(Physics1d):
     # Override the derivative values for the physics variables, imposing the
     # analytic solution.
     #---------------------------------------------------------------------------
-    def overrideDerivatives(self, derivs):
-
-        t = self.integrator.currentTime
+    def overrideDerivatives(self, derivs, t):
 
         # Extract the state we're going to set.
         DxDt = derivs.vectorFields("delta " + HydroFieldNames.position)
@@ -297,6 +293,7 @@ class KidderIsentropicCapsuleEnforcementBoundary1d(Physics1d):
         mass = self.nodes.mass()
 
         hfrac = self.answer.hfrac(t)
+        hfracdot = self.answer.hfracDot(t)
         Hi = SymTensor1d(1.0/max(self.hmin, min(self.hmax, self.hinitial*hfrac)))
 
         # Now set these variables for the nodes we're controlling.
@@ -317,7 +314,8 @@ class KidderIsentropicCapsuleEnforcementBoundary1d(Physics1d):
             internalDvDx[0][i] = DvDxi
             DHDt[0][i] = Hi*rhoDoti/rhoi
             DrhoDt[0][i] = rhoDoti
-            DepsDt[0][i] = (Pdoti - Pi*rhoDoti/rhoi)/(self.gamma1*rhoi)
+            DepsDt[0][i] = -2.0*epsi*hfracdot/hfrac
+            #DepsDt[0][i] = (Pdoti - Pi*rhoDoti/rhoi)/(self.gamma1*rhoi)
             #rhoSum[0][i] = rhoi
             Hideal[0][i] = Hi
             XSPHDeltaV.Zero()
@@ -328,7 +326,7 @@ class KidderIsentropicCapsuleEnforcementBoundary1d(Physics1d):
     # Physics::evaluateDerivatives
     #---------------------------------------------------------------------------
     def evaluateDerivatives(self, currentTime, dt, dataBase, state, derivs):
-        self.overrideDerivatives(derivs)
+        self.overrideDerivatives(derivs, currentTime)
         return
 
     #---------------------------------------------------------------------------
@@ -354,25 +352,22 @@ class KidderIsentropicCapsuleEnforcementBoundary1d(Physics1d):
     # Physics::initialize
     #---------------------------------------------------------------------------
     def initialize(self, currentTime, dt, dataBase, state, derivs):
-        self.overrideState(state)
-        self.overrideDerivatives(derivs)
+        #self.overrideState(state, currentTime)
+        #self.overrideDerivatives(derivs, currentTime)
         return
 
     #---------------------------------------------------------------------------
     # Physics::finalize
     #---------------------------------------------------------------------------
     def finalize(self, currentTime, dt, dataBase, state, derivs):
-        self.overrideState(state)
-        self.overrideDerivatives(derivs)
-        n = self.nodes.neighbor()
-        n.updateNodes()        
+        #self.overrideState(state, currentTime)
         return
 
     #---------------------------------------------------------------------------
     # Physics::finalizeDerivatives
     #---------------------------------------------------------------------------
     def finalizeDerivatives(self, currentTime, dt, dataBase, state, derivs):
-        self.overrideDerivatives(derivs)
+        self.overrideDerivatives(derivs, currentTime)
         return
 
     #---------------------------------------------------------------------------
@@ -388,9 +383,8 @@ class KidderIsentropicCapsuleEnforcementBoundary1d(Physics1d):
 ##         eps = state.scalarField(epsKey)
 ##         self.preEps = [eps[i] for i in self.nodeIDs]
 
-        self.overrideState(state)
-        n = self.nodes.neighbor()
-        n.updateNodes()        
+        t = self.integrator.currentTime
+        self.overrideState(state, t)
 
 ##         # Redistribute the energy change we imposed to the interior nodes.
 ##         deltaE = sum([mass[i] * (eps[i] - self.preEps[k]) for i, k in zip(self.nodeIDs, range(len(self.nodeIDs)))])
@@ -398,5 +392,13 @@ class KidderIsentropicCapsuleEnforcementBoundary1d(Physics1d):
 ##         deltaEps = -deltaE/self.interiorMass
 ##         for i in self.interiorNodeIDs:
 ##             eps[i] += deltaEps
+
+    #---------------------------------------------------------------------------
+    # Physics::enforceBoundaries
+    #---------------------------------------------------------------------------
+    def enforceBoundaries(self, state, derivs):
+
+        t = self.integrator.currentTime
+        self.overrideState(state, t)
 
         return
