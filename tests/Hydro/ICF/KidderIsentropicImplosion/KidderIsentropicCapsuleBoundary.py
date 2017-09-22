@@ -240,6 +240,7 @@ class KidderIsentropicCapsuleEnforcementBoundary1d(Physics1d):
 
         # Extract the state we're going to set.
         rho = state.scalarFields(HydroFieldNames.massDensity)
+        vol = state.scalarFields(HydroFieldNames.volume)
         pos = state.vectorFields(HydroFieldNames.position)
         eps = state.scalarFields(HydroFieldNames.specificThermalEnergy)
         vel = state.vectorFields(HydroFieldNames.velocity)
@@ -255,11 +256,14 @@ class KidderIsentropicCapsuleEnforcementBoundary1d(Physics1d):
         for k in xrange(len(self.nodeIDs)):
             i = self.nodeIDs[k]
             ri = self.initialRadii[k]*hfrac
-            rhoi = mass[0][i]/(self.dr0*hfrac)   # self.answer.rho(t, ri)
+            voli = self.dr0*hfrac
+            rhoi = mass[0][i]/voli   # self.answer.rho(t, ri)
             epsi = self.initialEps[k]/(hfrac*hfrac)
             Pi = self.gamma1*rhoi*epsi
             #Pi = self.answer.P(t, ri)
             #epsi = Pi/(self.gamma1*rhoi)
+            if vol.numFields > 0:
+                vol[0][i] = voli
             rho[0][i] = rhoi
             pos[0][i].x = ri
             eps[0][i] = epsi
