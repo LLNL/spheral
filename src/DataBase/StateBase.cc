@@ -76,6 +76,23 @@ operator=(const StateBase<Dimension>& rhs) {
 }
 
 //------------------------------------------------------------------------------
+// Test if the given field name is registered.
+//------------------------------------------------------------------------------
+template<typename Dimension>
+bool
+StateBase<Dimension>::
+fieldNameRegistered(const FieldName& name) const {
+  KeyType fieldName, nodeListName;
+  auto itr = mStorage.begin();
+  while (itr != mStorage.end()) {
+    splitFieldKey(itr->first, fieldName, nodeListName);
+    if (fieldName == name) return true;
+    ++itr;
+  }
+  return false;
+}
+
+//------------------------------------------------------------------------------
 // Test if the internal state is equal.
 //------------------------------------------------------------------------------
 template<typename Dimension>
