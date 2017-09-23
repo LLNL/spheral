@@ -41,10 +41,14 @@ commandLine(nx1 = 400,
             nh = 5.0,
             aMin = 0.1,
             aMax = 2.0,
-            Cl = 1.0,
-            Cq = 1.5,
-            etaCritFrac = 1.0,
-            etaFoldFrac = 0.2,
+            Cl = None,
+            Cq = None,
+            Qlimiter = None,
+            epsilon2 = None,
+            etaCritFrac = None,
+            etaFoldFrac = None,
+            linearInExpansion = None,
+            quadraticInExpansion = None,
             boolCullenViscosity = False,
             alphMax = 2.0,
             alphMin = 0.02,
@@ -54,10 +58,6 @@ commandLine(nx1 = 400,
             fKern = 1.0/3.0,
             boolHopkinsCorrection = True,
             HopkinsConductivity = False,
-            linearInExpansion = False,
-            quadraticInExpansion = False,
-            Qlimiter = False,
-            epsilon2 = 1e-4,
             hmin = 1e-10,
             hmax = 1.0,
             cfl = 0.5,
@@ -277,8 +277,6 @@ elif crksph:
                    XSPH = XSPH,
                    densityUpdate = densityUpdate,
                    HUpdate = HUpdate)
-    hydro.Q.etaCritFrac = etaCritFrac
-    hydro.Q.etaFoldFrac = etaFoldFrac
 elif psph:
     hydro = PSPH(dataBase = db,
                  W = WT,
@@ -311,12 +309,22 @@ packages = [hydro]
 # Tweak the artificial viscosity.
 #-------------------------------------------------------------------------------
 q = hydro.Q
-q.Clinear = Cl
-q.Cquadratic = Cq
-q.linearInExpansion = linearInExpansion
-q.quadraticInExpansion = quadraticInExpansion
-q.limiter = Qlimiter
-q.epsilon2 = epsilon2
+if Cl:
+    q.Clinear = Cl
+if Cq:
+    q.Cquadratic = Cq
+if linearInExpansion:
+    q.linearInExpansion = linearInExpansion
+if quadraticInExpansion:
+    q.quadraticInExpansion = quadraticInExpansion
+if Qlimiter:
+    q.limiter = Qlimiter
+if epsilon2:
+    q.epsilon2 = epsilon2
+if etaCritFrac:
+    q.etaCritFrac = etaCritFrac
+if etaFoldFrac:
+    q.etaFoldFrac = etaFoldFrac
 output("q")
 output("q.Cl")
 output("q.Cq")
