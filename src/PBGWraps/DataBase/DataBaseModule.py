@@ -106,9 +106,9 @@ self.addDataBaseMethods(self.DataBase%(dim)id, %(dim)i)
         x.add_binary_comparison_operator("==")
 
         # Methods.
-        x.add_method("registered", "bool", [constrefparam("std::string", "key")], is_const=True)
-        x.add_method("registered", "bool", [constrefparam(fieldbase, "field")], is_const=True)
-        x.add_method("fieldNameRegistered", "bool", [constrefparam("std::string", "fieldName")], is_const=True)
+        x.add_method("registered", "bool", [param("std::string", "key")], is_const=True)
+        x.add_method("registered", "bool", [param(fieldbase, "field")], is_const=True)
+        x.add_method("fieldNameRegistered", "bool", [param("std::string", "fieldName")], is_const=True)
         x.add_method("enroll", None, [refparam(fieldbase, "field")], is_virtual=True)
         x.add_method("enroll", None, [refparam(fieldlistbase, "fieldList")], is_virtual=True)
 
