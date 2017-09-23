@@ -59,15 +59,14 @@ commandLine(order = 5,
             betaE = 1.0,
             fKern = 1.0/3.0,
             boolHopkinsCorrection = True,
-
             linearConsistent = False,
-            Cl = 1.0, 
-            Cq = 0.75,
-            linearInExpansion = False,
-            Qlimiter = False,
-            balsaraCorrection = False,
-            epsilon2 = 1e-2,
-            fslice = 0.5,
+
+            Cl = None, 
+            Cq = None,
+            linearInExpansion = None,
+            Qlimiter = None,
+            balsaraCorrection = None,
+            epsilon2 = None,
             hmin = 0.0001, 
             hmax = 0.5,
             hminratio = 0.1,
@@ -112,7 +111,7 @@ commandLine(order = 5,
             outputFile = "None",
             comparisonFile = "None",
 
-            graphics = False,
+            graphics = True,
             )
 
 assert not(boolReduceViscosity and boolCullenViscosity)
@@ -322,11 +321,16 @@ packages = [hydro]
 # Set the artificial viscosity parameters.
 #-------------------------------------------------------------------------------
 q = hydro.Q
-q.Cl = Cl
-q.Cq = Cq
-q.epsilon2 = epsilon2
-q.limiter = Qlimiter
-q.balsaraShearCorrection = balsaraCorrection
+if Cl:
+    q.Cl = Cl
+if Cq:
+    q.Cq = Cq
+if epsilon2:
+    q.epsilon2 = epsilon2
+if Qlimiter:
+    q.limiter = Qlimiter
+if balsaraCorrection:
+    q.balsaraShearCorrection = balsaraCorrection
 output("q")
 output("q.Cl")
 output("q.Cq")
