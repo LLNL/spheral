@@ -88,7 +88,7 @@ update(const KeyType& key,
   const auto  mass = state.fields(HydroFieldNames::mass, Scalar());
   const auto  velocity = state.fields(HydroFieldNames::velocity, Vector::zero);
   const auto  acceleration = derivs.fields(IncrementFieldList<Dimension, Vector>::prefix() + HydroFieldNames::velocity, Vector::zero);
-  const auto  entropy = state.fields(HydroFieldNames::entropy, Scalar());
+  // const auto  entropy = state.fields(HydroFieldNames::entropy, Scalar());
   const auto  eps0 = state.fields(HydroFieldNames::specificThermalEnergy + "0", Scalar());
   const auto  pairAccelerations = derivs.fields(HydroFieldNames::pairAccelerations, vector<Vector>());
   const auto  DepsDt0 = derivs.fields(IncrementFieldList<Dimension, Field<Dimension, Scalar> >::prefix() + HydroFieldNames::specificThermalEnergy, 0.0);
@@ -113,7 +113,7 @@ update(const KeyType& key,
       // State for node i.
       auto& DepsDti = DepsDt(nodeListi, i);
       const auto  weighti = abs(DepsDt0(nodeListi, i)) + numeric_limits<Scalar>::epsilon();
-      const auto  si = entropy(nodeListi, i);
+      // const auto  si = entropy(nodeListi, i);
       const auto  mi = mass(nodeListi, i);
       const auto& vi = velocity(nodeListi, i);
       const auto  ui = eps0(nodeListi, i);
@@ -146,7 +146,7 @@ update(const KeyType& key,
                                                          firstGhostNodej)) {
               auto& DepsDtj = DepsDt(nodeListj, j);
               const auto  weightj = abs(DepsDt0(nodeListj, j)) + numeric_limits<Scalar>::epsilon();
-              const auto  sj = entropy(nodeListj, j);
+              // const auto  sj = entropy(nodeListj, j);
               const auto  mj = mass(nodeListj, j);
               const auto& vj = velocity(nodeListj, j);
               const auto  uj = eps0(nodeListj, j);
