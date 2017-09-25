@@ -87,7 +87,7 @@ update(const KeyType& key,
   // Get the state fields.
   const auto  mass = state.fields(HydroFieldNames::mass, Scalar());
   const auto  velocity = state.fields(HydroFieldNames::velocity, Vector::zero);
-  const auto  acceleration = derivs.fields(IncrementFieldList<Dimension, Vector>::prefix() + HydroFieldNames::velocity, Vector::zero);
+  const auto  acceleration = derivs.fields(HydroFieldNames::hydroAcceleration, Vector::zero);
   // const auto  entropy = state.fields(HydroFieldNames::entropy, Scalar());
   const auto  eps0 = state.fields(HydroFieldNames::specificThermalEnergy + "0", Scalar());
   const auto  pairAccelerations = derivs.fields(HydroFieldNames::pairAccelerations, vector<Vector>());

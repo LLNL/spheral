@@ -14,6 +14,7 @@ const std::string Spheral::HydroFieldNames::H = "H";
 const std::string Spheral::HydroFieldNames::work = "work";
 const std::string Spheral::HydroFieldNames::velocityGradient = "velocity gradient";
 const std::string Spheral::HydroFieldNames::internalVelocityGradient = "internal velocity gradient";
+const std::string Spheral::HydroFieldNames::hydroAcceleration = "delta " + Spheral::HydroFieldNames::velocity + " hydro";              // Note here we *must* start with "delta " to work with IncrementFieldList!
 const std::string Spheral::HydroFieldNames::massDensity = "mass density";
 const std::string Spheral::HydroFieldNames::normalization = "normalization";
 const std::string Spheral::HydroFieldNames::specificThermalEnergy = "specific thermal energy";

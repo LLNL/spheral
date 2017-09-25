@@ -60,29 +60,17 @@ update(const KeyType& key,
   StateBase<Dimension>::splitFieldKey(key, fieldKey, nodeListKey);
   REQUIRE(fieldKey == HydroFieldNames::position and 
           nodeListKey == UpdatePolicyBase<Dimension>::wildcard());
-  FieldList<Dimension, Vector> r = state.fields(fieldKey, Vector::zero);
-  const unsigned numFields = r.numFields();
+  auto r = state.fields(fieldKey, Vector::zero);
+  const auto numFields = r.numFields();
 
   // Get the velocity and acceleration fields.
-  const FieldList<Dimension, Vector> vel = state.fields(HydroFieldNames::velocity, Vector::zero);
-  const FieldList<Dimension, Vector> dvel = derivs.fields(IncrementFieldList<Dimension, Vector>::prefix() + HydroFieldNames::velocity, Vector::zero);
+  const auto vel = state.fields(HydroFieldNames::velocity, Vector::zero);
 
   // Walk the fields.
-  for (unsigned i = 0; i != numFields; ++i) {
-
-    // Get the FluidNodeList and check if we're enforcing compatible energy 
-    // evolution or not.
-    const FluidNodeList<Dimension>* nodeListPtr = dynamic_cast<const FluidNodeList<Dimension>*>(r[i]->nodeListPtr());
-    CHECK(nodeListPtr != 0);
-
-    // Iterate over the internal values.
-    for (unsigned j = 0; j != r[i]->numInternalElements(); ++j) {
-
-      // Compute time centered value for the velocity.
-      const Vector vi = vel(i,j) + 0.5*multiplier*dvel(i,j);
-
-      // Now compute the new position.
-      r(i,j) += multiplier*vi;
+  for (auto i = 0; i != numFields; ++i) {
+    const auto n = r[i]->numInternalElements();
+    for (auto j = 0; j < n; ++j) {
+      r(i,j) += multiplier*vel(i,j);
     }
   }
 }
