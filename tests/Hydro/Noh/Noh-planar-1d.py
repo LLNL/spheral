@@ -342,7 +342,7 @@ output("hydro.PiKernel()")
 output("hydro.cfl")
 output("hydro.compatibleEnergyEvolution")
 output("hydro.densityUpdate")
-output("hydro.HEvolution")
+output("hydro.XSPH")
 
 packages = [hydro]
 
