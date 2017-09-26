@@ -49,7 +49,7 @@ commandLine(KernelConstructor = NBSplineKernel,
             nx1 = 100,
             rho1 = 1.0,
             eps1 = 0.0,
-	    smallPressure = False, #If set to True eps is not zero but small. 
+            smallPressure = False, #If set to True eps is not zero but small. 
             x0 = 0.0,
             x1 = 1.0,
             xwall = 0.0,
@@ -147,25 +147,25 @@ commandLine(KernelConstructor = NBSplineKernel,
             writeOutputLabel = True,
 
             # Parameters for the test acceptance.,
-            L1rho =   0.0505638,
-            L2rho =   0.0153165,
-            Linfrho = 1.82725,
-                      
-            L1P =     0.0179457,
-            L2P =     0.00560156,
-            LinfP =   0.716763,
-                      
-            L1v =     0.0246308,
-            L2v =     0.00821331,
-            Linfv =   0.875571,
-                      
-            L1eps =   0.00995053,
-            L2eps =   0.00330114,
-            Linfeps = 0.380279,
-                      
-            L1h =     0.000443559,
-            L2h =     0.00012301,
-            Linfh =   0.00865553,   
+            L1rho =   0.0717692               ,
+            L2rho =   0.0195334               ,
+            Linfrho = 2.31412                 ,
+                                               
+            L1P =     0.0248091               ,
+            L2P =     0.00728801              ,
+            LinfP =   0.968204                ,
+                                               
+            L1v =     0.0392544               ,
+            L2v =     0.0105355               ,
+            Linfv =   0.946074                ,
+                                               
+            L1eps =   0.01416                 ,
+            L2eps =   0.00401815              ,
+            Linfeps = 0.438217                ,
+                                               
+            L1h =     0.000552337             ,
+            L2h =     0.000132313             ,
+            Linfh =   0.00915864              ,
 
             tol = 1.0e-5,
 

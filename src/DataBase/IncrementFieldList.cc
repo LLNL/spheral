@@ -133,10 +133,9 @@ update(const KeyType& key,
   }
   CHECK(not incrementKeys.empty());
 
-  // If we're not allowing wildcard update, there should only be one match and it better be exact.
-  VERIFY2(mWildCardDerivs or
-          (incrementKeys.size() == 1 and incrementKeys[0] == incrementKey),
-          "IncrementFieldList ERROR: unable to find unique exact match for derivative field key " << incrementKey);
+  // If we're not allowing wildcard update, there should only be one match.
+  VERIFY2(mWildCardDerivs or incrementKeys.size() == 1,
+          "IncrementFieldList ERROR: unable to find unique match for derivative field key " << incrementKey);
 
   // Update by each of our derivative fields.
   for (const auto& key: incrementKeys) {
