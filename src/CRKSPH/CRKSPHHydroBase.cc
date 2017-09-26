@@ -439,7 +439,7 @@ registerState(DataBase<Dimension>& dataBase,
 
   // Register the position update, which depends on whether we're using XSPH or not.
   FieldList<Dimension, Vector> position = dataBase.fluidPosition();
-  if (mXSPH) {
+  if (true) { // (mXSPH) {
     PolicyPointer positionPolicy(new IncrementFieldList<Dimension, Vector>());
     state.enroll(position, positionPolicy);
   } else {
@@ -457,8 +457,8 @@ registerState(DataBase<Dimension>& dataBase,
   if (compatibleEnergyEvolution()) {
     // The compatible energy update.
     PolicyPointer thermalEnergyPolicy(new SpecificThermalEnergyPolicy<Dimension>(dataBase));   // Change back to non-symmetric if needed.
-    PolicyPointer velocityPolicy(new IncrementFieldList<Dimension, Vector>(HydroFieldNames::position,
-                                                                           HydroFieldNames::specificThermalEnergy));
+    PolicyPointer velocityPolicy(new IncrementFieldList<Dimension, Vector>(HydroFieldNames::specificThermalEnergy,
+                                                                           true));
     state.enroll(specificThermalEnergy, thermalEnergyPolicy);
     state.enroll(velocity, velocityPolicy);
     state.enroll(mSpecificThermalEnergy0);
@@ -466,16 +466,16 @@ registerState(DataBase<Dimension>& dataBase,
   } else if (mEvolveTotalEnergy) {
     // If we're doing total energy, we register the specific energy to advance with the
     // total energy policy.
-    PolicyPointer epsPolicy(new SpecificFromTotalThermalEnergyPolicy<Dimension>());
-    PolicyPointer velocityPolicy(new IncrementFieldList<Dimension, Vector>());
-    velocityPolicy->addDependency(HydroFieldNames::specificThermalEnergy);
-    state.enroll(specificThermalEnergy, epsPolicy);
+    PolicyPointer thermalEnergyPolicy(new SpecificFromTotalThermalEnergyPolicy<Dimension>());
+    PolicyPointer velocityPolicy(new IncrementFieldList<Dimension, Vector>(HydroFieldNames::specificThermalEnergy,
+                                                                           true));
+    state.enroll(specificThermalEnergy, thermalEnergyPolicy);
     state.enroll(velocity, velocityPolicy);
 
   } else {
     // Otherwise we're just time-evolving the specific energy.
     PolicyPointer thermalEnergyPolicy(new IncrementFieldList<Dimension, Scalar>());
-    PolicyPointer velocityPolicy(new IncrementFieldList<Dimension, Vector>());
+    PolicyPointer velocityPolicy(new IncrementFieldList<Dimension, Vector>(true));
     state.enroll(specificThermalEnergy, thermalEnergyPolicy);
     state.enroll(velocity, velocityPolicy);
   }

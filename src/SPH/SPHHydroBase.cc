@@ -304,7 +304,7 @@ registerState(DataBase<Dimension>& dataBase,
 
   // Register the position update.
   FieldList<Dimension, Vector> position = dataBase.fluidPosition();
-  if (false) { // mXSPH) {
+  if (true) { // (mXSPH) {
     PolicyPointer positionPolicy(new IncrementFieldList<Dimension, Vector>());
     state.enroll(position, positionPolicy);
   } else {
