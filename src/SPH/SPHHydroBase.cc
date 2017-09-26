@@ -304,7 +304,7 @@ registerState(DataBase<Dimension>& dataBase,
 
   // Register the position update.
   FieldList<Dimension, Vector> position = dataBase.fluidPosition();
-  if (true) { // mXSPH) {
+  if (false) { // mXSPH) {
     PolicyPointer positionPolicy(new IncrementFieldList<Dimension, Vector>());
     state.enroll(position, positionPolicy);
   } else {
@@ -328,7 +328,8 @@ registerState(DataBase<Dimension>& dataBase,
     // If we're doing total energy, we register the specific energy to advance with the
     // total energy policy.
     PolicyPointer thermalEnergyPolicy(new SpecificFromTotalThermalEnergyPolicy<Dimension>());
-    PolicyPointer velocityPolicy(new IncrementFieldList<Dimension, Vector>(HydroFieldNames::specificThermalEnergy,
+    PolicyPointer velocityPolicy(new IncrementFieldList<Dimension, Vector>(HydroFieldNames::position,
+                                                                           HydroFieldNames::specificThermalEnergy,
                                                                            true));
     state.enroll(specificThermalEnergy, thermalEnergyPolicy);
     state.enroll(velocity, velocityPolicy);
@@ -336,7 +337,8 @@ registerState(DataBase<Dimension>& dataBase,
   } else {
     // Otherwise we're just time-evolving the specific energy.
     PolicyPointer thermalEnergyPolicy(new IncrementFieldList<Dimension, Scalar>());
-    PolicyPointer velocityPolicy(new IncrementFieldList<Dimension, Vector>(true));
+    PolicyPointer velocityPolicy(new IncrementFieldList<Dimension, Vector>(HydroFieldNames::position,
+                                                                           true));
     state.enroll(specificThermalEnergy, thermalEnergyPolicy);
     state.enroll(velocity, velocityPolicy);
   }
