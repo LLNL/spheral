@@ -65,12 +65,13 @@ update(const KeyType& key,
 
   // Get the velocity and acceleration fields.
   const auto vel = state.fields(HydroFieldNames::velocity, Vector::zero);
+  const auto dvel = derivs.fields(HydroFieldNames::hydroAcceleration, Vector::zero);
 
   // Walk the fields.
   for (auto i = 0; i != numFields; ++i) {
     const auto n = r[i]->numInternalElements();
     for (auto j = 0; j < n; ++j) {
-      r(i,j) += multiplier*vel(i,j);
+      r(i,j) += multiplier*(vel(i,j) + 0.5*multiplier*dvel(i,j));
     }
   }
 }
