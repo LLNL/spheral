@@ -380,7 +380,7 @@ evaluateDerivatives(const typename Dimension::Scalar time,
   // Derivative FieldLists.
   auto DxDt = derivatives.fields(IncrementFieldList<Dimension, Vector>::prefix() + HydroFieldNames::position, Vector::zero);
   auto DrhoDt = derivatives.fields(IncrementFieldList<Dimension, Scalar>::prefix() + HydroFieldNames::massDensity, 0.0);
-  auto DvDt = derivatives.fields(IncrementFieldList<Dimension, Vector>::prefix() + HydroFieldNames::velocity, Vector::zero);
+  auto DvDt = derivatives.fields(HydroFieldNames::hydroAcceleration, Vector::zero);
   auto DepsDt = derivatives.fields(IncrementFieldList<Dimension, Scalar>::prefix() + HydroFieldNames::specificThermalEnergy, 0.0);
   auto DvDx = derivatives.fields(HydroFieldNames::velocityGradient, Tensor::zero);
   auto localDvDx = derivatives.fields(HydroFieldNames::internalVelocityGradient, Tensor::zero);
