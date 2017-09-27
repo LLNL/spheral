@@ -195,20 +195,6 @@ GeomPolyhedron(const vector<GeomPolyhedron::Vector>& points):
     // Fill in our bounding box.
     setBoundingBox();
 
-    // Compute the ancillary geometry.
-    GeometryUtilities::computeAncillaryGeometry(*this, mVertexFacetConnectivity, mFacetFacetConnectivity, mVertexUnitNorms, false);
-
-    // Stash the centroid and inscribed radius for use in containment.  If the centroid is not contained however,
-    // we set this internal radius to zero to disable this accelerated containment checking.
-    mCentroid = this->centroid();
-    if (pointInPolyhedron(mCentroid, *this, false, 1.0e-10)) {
-      mRinterior2 = numeric_limits<double>::max();
-      for (const Facet& facet: mFacets) mRinterior2 = min(mRinterior2, facet.distance(mCentroid));
-      mRinterior2 = FastMath::square(mRinterior2);
-    } else {
-      mRinterior2 = -1.0;
-    }
-
     // Post-conditions.
     BEGIN_CONTRACT_SCOPE
     {
@@ -295,24 +281,6 @@ GeomPolyhedron(const vector<GeomPolyhedron::Vector>& points,
 
   // Fill in our bounding box.
   setBoundingBox();
-
-  // Check if we're convex.
-  mConvex = this->convex();
-
-  // Compute the ancillary geometry.
-  GeometryUtilities::computeAncillaryGeometry(*this, mVertexFacetConnectivity, mFacetFacetConnectivity, mVertexUnitNorms, false);
-
-  // Stash the centroid and inscribed radius for use in containment.  If the centroid is not contained however,
-  // we set this internal radius to zero to disable this accelerated containment checking.
-  mCentroid = this->centroid();
-
-  if (pointInPolyhedron(mCentroid, *this, false, 1.0e-10)) {
-    mRinterior2 = numeric_limits<double>::max();
-    for (const auto& facet: mFacets) mRinterior2 = min(mRinterior2, facet.distance(mCentroid));
-    mRinterior2 = FastMath::square(mRinterior2);
-  } else {
-    mRinterior2 = -1.0;
-  }
 }
 
 //------------------------------------------------------------------------------
@@ -810,7 +778,24 @@ void
 GeomPolyhedron::
 setBoundingBox() {
   boundingBox(mVertices, mXmin, mXmax);
+
+  // Check if we're convex.
   mConvex = this->convex();
+
+  // Compute the ancillary geometry.
+  GeometryUtilities::computeAncillaryGeometry(*this, mVertexFacetConnectivity, mFacetFacetConnectivity, mVertexUnitNorms, false);
+
+  // Stash the centroid and inscribed radius for use in containment.  If the centroid is not contained however,
+  // we set this internal radius to zero to disable this accelerated containment checking.
+  mCentroid = this->centroid();
+
+  if (pointInPolyhedron(mCentroid, *this, false, 1.0e-10)) {
+    mRinterior2 = numeric_limits<double>::max();
+    for (const auto& facet: mFacets) mRinterior2 = min(mRinterior2, facet.distance(mCentroid));
+    mRinterior2 = FastMath::square(mRinterior2);
+  } else {
+    mRinterior2 = -1.0;
+  }
 }
 
 //------------------------------------------------------------------------------

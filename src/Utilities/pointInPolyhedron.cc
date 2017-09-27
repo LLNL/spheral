@@ -32,7 +32,7 @@ bool pointInPolyhedron(const Dim<3>::Vector& p,
   typedef Polyhedron::Facet Facet;
   typedef Dim<2>::Vector Vector2d;
 
-  const unsigned numTrials = 1;
+  const unsigned numTrials = 50;
   const auto& vertices = polyhedron.vertices();
 
   // First reject any points outside the bounding box.
@@ -66,7 +66,7 @@ bool pointInPolyhedron(const Dim<3>::Vector& p,
     auto iter = 0;
     auto RT = rotationMatrix(Vector(dis(gen), dis(gen), dis(gen)).unitVector());
     auto p1 = p + RT*Vector(length, 0.0, 0.0);
-    while (iter < 200 and segmentIntersectEdges(p1, p1, polyhedron)) {
+    while (iter < 200 and segmentIntersectEdges(p, p1, polyhedron)) {
       RT = rotationMatrix(Vector(dis(gen), dis(gen), dis(gen)).unitVector());
       p1 = p + RT*Vector(length, 0.0, 0.0);
     }
@@ -97,8 +97,8 @@ bool pointInPolyhedron(const Dim<3>::Vector& p,
       if (code == 'p') {
 
         // The line segement is in the plane of facet.
-        if (pointInPolygon(p, vertices, ipts, normal) or 
-            pointInPolygon(pends[itrial], vertices, ipts, normal)) {
+        if (pointInPolygon(p, vertices, ipts, normal, false, tol) or 
+            pointInPolygon(pends[itrial], vertices, ipts, normal, false, tol)) {
           numIntersections[itrial] += 1;
         } else {
           i = 0;
@@ -109,7 +109,7 @@ bool pointInPolyhedron(const Dim<3>::Vector& p,
 
       } else if (code == '1') { // and (intercept1 - p).dot(pp1) >= 0.0) {
 
-        if (pointInPolygon(intercept1, vertices, ipts, normal)) numIntersections[itrial] += 1;
+        if (pointInPolygon(intercept1, vertices, ipts, normal, false, tol)) numIntersections[itrial] += 1;
 
       }
     }
