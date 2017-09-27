@@ -152,10 +152,6 @@ class SpheralController:
         # Construct a timer to track the cycle step time.
         self.stepTimer = SpheralTimer("Time per integration cycle.")
 
-        # Construct a fresh conservation check object.
-        self.conserve = SpheralConservation(self.integrator.dataBase(),
-                                            self.integrator.physicsPackages())
-
         # Prepare an empty set of periodic work.
         self._periodicWork = []
         self._periodicTimeWork = []
@@ -205,6 +201,11 @@ class SpheralController:
             assert not (vizStep is None and vizTime is None)
             self.addVisualizationDumps(vizBaseName, vizDir, vizStep, vizTime,
                                        vizFields, vizFieldLists)
+
+        # Construct a fresh conservation check object.
+        # Hopefully by this time all packages have initialized their own extra energy bins.
+        self.conserve = SpheralConservation(self.integrator.dataBase(),
+                                            self.integrator.physicsPackages())
 
         # Force the periodic work to fire at problem initalization.
         if (not skipInitialPeriodicWork) and (restoreCycle is None):
