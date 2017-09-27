@@ -14,11 +14,11 @@
 #include "pointDistances.hh"
 #include "lineSegmentIntersections.hh"
 
-#include "boost/geometry.hpp"
-#include "boost/geometry/geometries/point_xy.hpp"
-#include "boost/geometry/geometries/polygon.hpp"
-#include <boost/geometry/geometries/adapted/boost_tuple.hpp>
-BOOST_GEOMETRY_REGISTER_BOOST_TUPLE_CS(cs::cartesian)
+// #include "boost/geometry.hpp"
+// #include "boost/geometry/geometries/point_xy.hpp"
+// #include "boost/geometry/geometries/polygon.hpp"
+// #include <boost/geometry/geometries/adapted/boost_tuple.hpp>
+// BOOST_GEOMETRY_REGISTER_BOOST_TUPLE_CS(cs::cartesian)
 
 // #include <boost/geometry/geometries/adapted/c_array.hpp>
 // BOOST_GEOMETRY_REGISTER_C_ARRAY_CS(cs::cartesian)
@@ -260,8 +260,8 @@ bool pointInPolygon(const Dim<3>::Vector& p,
                     const double tol) {
 
   typedef Dim<3>::Vector Vector;
-  typedef boost::tuple<double, double> BGPoint;
-  typedef boost::geometry::model::polygon<BGPoint> BGPolygon;
+  // typedef boost::tuple<double, double> BGPoint;
+  // typedef boost::geometry::model::polygon<BGPoint> BGPolygon;
 
   // Prerequisites.
   const auto npts = ipoints.size();
@@ -311,52 +311,52 @@ bool pointInPolygon(const Dim<3>::Vector& p,
 
     // x plane -- use (y,z) coordinates.
     if (std::abs(normal.x()) > 0.9*nmax) {
-      vector<BGPoint> points;
-      for (i = 0; i != npts; ++i) points.push_back(BGPoint(vertices[ipoints[i]].y(), vertices[ipoints[i]].z()));
-      points.push_back(points[0]);
-      BGPolygon poly;
-      boost::geometry::append(poly, points);
-      result = boost::geometry::within(BGPoint(py, pz), poly);
-    // for (ik = 0, jk = npts - 1; ik < npts; jk = ik++) {
-    //   i = ipoints[ik];
-    //   j = ipoints[jk];
-    //   if ( ((vertices[i].z() > pz) != (vertices[j].z() > pz)) &&
-    //        (py < (vertices[j].y() - vertices[i].y()) * (pz - vertices[i].z()) / (vertices[j].z() - vertices[i].z()) + vertices[i].y()) )
-    //     xtest = not xtest;
-    // }
+      // vector<BGPoint> points;
+      // for (i = 0; i != npts; ++i) points.push_back(BGPoint(vertices[ipoints[i]].y(), vertices[ipoints[i]].z()));
+      // points.push_back(points[0]);
+      // BGPolygon poly;
+      // boost::geometry::append(poly, points);
+      // result = boost::geometry::within(BGPoint(py, pz), poly);
+      for (ik = 0, jk = npts - 1; ik < npts; jk = ik++) {
+        i = ipoints[ik];
+        j = ipoints[jk];
+        if ( ((vertices[i].z() > pz) != (vertices[j].z() > pz)) &&
+             (py < (vertices[j].y() - vertices[i].y()) * (pz - vertices[i].z()) / (vertices[j].z() - vertices[i].z()) + vertices[i].y()) )
+          result = not result;
+      }
 
     // y plane -- use (z,x) coordinates.
     } else if (std::abs(normal.y()) > 0.5*nmax) {
-      vector<BGPoint> points;
-      for (i = 0; i != npts; ++i) points.push_back(BGPoint(vertices[ipoints[i]].z(), vertices[ipoints[i]].x()));
-      points.push_back(points[0]);
-      BGPolygon poly;
-      boost::geometry::append(poly, points);
-      result = boost::geometry::within(BGPoint(pz, px), poly);
-    // for (ik = 0, jk = npts - 1; ik < npts; jk = ik++) {
-    //   i = ipoints[ik];
-    //   j = ipoints[jk];
-    //   if ( ((vertices[i].x() > px) != (vertices[j].x() > px)) &&
-    //        (pz < (vertices[j].z() - vertices[i].z()) * (px - vertices[i].x()) / (vertices[j].x() - vertices[i].x()) + vertices[i].z()) )
-    //     ytest = not ytest;
-    // }
+      // vector<BGPoint> points;
+      // for (i = 0; i != npts; ++i) points.push_back(BGPoint(vertices[ipoints[i]].z(), vertices[ipoints[i]].x()));
+      // points.push_back(points[0]);
+      // BGPolygon poly;
+      // boost::geometry::append(poly, points);
+      // result = boost::geometry::within(BGPoint(pz, px), poly);
+      for (ik = 0, jk = npts - 1; ik < npts; jk = ik++) {
+        i = ipoints[ik];
+        j = ipoints[jk];
+        if ( ((vertices[i].x() > px) != (vertices[j].x() > px)) &&
+             (pz < (vertices[j].z() - vertices[i].z()) * (px - vertices[i].x()) / (vertices[j].x() - vertices[i].x()) + vertices[i].z()) )
+          result = not result;
+      }
 
     // z plane -- use (x,y) coordinate.
     } else {
-      vector<BGPoint> points;
-      for (i = 0; i != npts; ++i) points.push_back(BGPoint(vertices[ipoints[i]].x(), vertices[ipoints[i]].y()));
-      points.push_back(points[0]);
-      BGPolygon poly;
-      boost::geometry::append(poly, points);
-      result = boost::geometry::within(BGPoint(px, py), poly);
+      // vector<BGPoint> points;
+      // for (i = 0; i != npts; ++i) points.push_back(BGPoint(vertices[ipoints[i]].x(), vertices[ipoints[i]].y()));
+      // points.push_back(points[0]);
+      // BGPolygon poly;
+      // boost::geometry::append(poly, points);
+      // result = boost::geometry::within(BGPoint(px, py), poly);
+      for (ik = 0, jk = npts - 1; ik < npts; jk = ik++) {
+        i = ipoints[ik];
+        j = ipoints[jk];
+        if ( ((vertices[i].y() > py) != (vertices[j].y() > py)) &&
+             (px < (vertices[j].x() - vertices[i].x()) * (py - vertices[i].y()) / (vertices[j].y() - vertices[i].y()) + vertices[i].x()) )
+          result = not result;
+      }
     }
-    // for (ik = 0, jk = npts - 1; ik < npts; jk = ik++) {
-    //   i = ipoints[ik];
-    //   j = ipoints[jk];
-    //   if ( ((vertices[i].y() > py) != (vertices[j].y() > py)) &&
-    //        (px < (vertices[j].x() - vertices[i].x()) * (py - vertices[i].y()) / (vertices[j].y() - vertices[i].y()) + vertices[i].x()) )
-    //     ztest = not ztest;
-    // }
 
   }
 
