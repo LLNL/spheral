@@ -158,7 +158,7 @@ class SpheralConservation:
         total = 0.0
         for package in self.packages:
             total += package.extraEnergy()
-        return mpi.allreduce(total, mpi.SUM)
+        return total  # Note we assume this has already been parallel summed.
 
     #---------------------------------------------------------------------------
     # Write the history to the given file.

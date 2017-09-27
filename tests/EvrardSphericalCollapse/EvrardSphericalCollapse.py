@@ -37,6 +37,8 @@ commandLine(nx = 100,               # Number of across diameter of sphere
             hmin = 1.0e-10,
             hmax = 10.0,
             hminratio = 0.1,
+            Cl = None,
+            Cq = None,
             cfl = 0.5,
             XSPH = False,
             epsilonTensile = 0.0,
@@ -68,11 +70,10 @@ commandLine(nx = 100,               # Number of across diameter of sphere
             checkRestart = False,
             dataRoot = "dumps-EvrardSphereCollapse-3d",
             vizName = "EvrardSphereCollapse",
-            useVoronoiOutput = True,          # Currently only works for CRK
             )
 
 # Gravity parameters.  We set the Plummer softening scale based on the base particle resolution.
-plummerLength = 1.0/nx
+plummerLength = 2.0/nx
 G = 1.0
 
 # Set our paths.
@@ -200,19 +201,18 @@ if crksph:
                    HUpdate = HUpdate,
                    ASPH = asph)
 elif psph:
-    hydro = PASPH(dataBase = db,
-                      W = WT,
-                      filter = filter,
-                      cfl = cfl,
-                      useVelocityMagnitudeForDt = useVelocityMagnitudeForDt,
-                      compatibleEnergyEvolution = compatibleEnergy,
-                      evolveTotalEnergy = evolveTotalEnergy,
-                      HopkinsConductivity = HopkinsConductivity,
-                      correctVelocityGradient = correctVelocityGradient,
-                      densityUpdate = densityUpdate,
-                      HUpdate = HUpdate,
-                      XSPH = XSPH,
-                      ASPH = asph)
+    hydro = PSPH(dataBase = db,
+                 W = WT,
+                 filter = filter,
+                 cfl = cfl,
+                 compatibleEnergyEvolution = compatibleEnergy,
+                 evolveTotalEnergy = evolveTotalEnergy,
+                 HopkinsConductivity = HopkinsConductivity,
+                 correctVelocityGradient = correctVelocityGradient,
+                 densityUpdate = densityUpdate,
+                 HUpdate = HUpdate,
+                 XSPH = XSPH,
+                 ASPH = asph)
 else:
     hydro = SPH(dataBase = db,
                 W = WT, 
@@ -233,6 +233,10 @@ output("hydro.densityUpdate")
 output("hydro.HEvolution")
 
 q = hydro.Q
+if Cl:
+    q.Cl = Cl
+if Cq:
+    q.Cq = Cq
 output("q")
 output("q.Cl")
 output("q.Cq")
@@ -242,7 +246,7 @@ output("q.balsaraShearCorrection")
 output("q.linearInExpansion")
 output("q.quadraticInExpansion")
 
-packages.append(hydro)
+packages += [hydro]
 
 #-------------------------------------------------------------------------------
 # Construct a time integrator, and add the physics packages.
@@ -271,10 +275,6 @@ output("integrator.verbose")
 #-------------------------------------------------------------------------------
 # Make the problem controller.
 #-------------------------------------------------------------------------------
-vizMethod = None
-if useVoronoiOutput and crksph:
-    import SpheralVoronoiSiloDump
-    vizMethod = SpheralVoronoiSiloDump.dumpPhysicsState
 control = SpheralController(integrator, WT,
                             statsStep = statsStep,
                             restartStep = restartStep,
@@ -283,8 +283,7 @@ control = SpheralController(integrator, WT,
                             vizBaseName = vizName,
                             vizDir = vizDir,
                             vizStep = vizCycle,
-                            vizTime = vizTime,
-                            vizMethod = vizMethod)
+                            vizTime = vizTime)
 output("control")
 
 #-------------------------------------------------------------------------------
