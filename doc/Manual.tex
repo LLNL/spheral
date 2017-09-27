@@ -1,0 +1,279 @@
+\documentclass[11pt]{memoir}
+%\documentclass[iop,numberedappendix,revtex4]{emulateapj}
+\usepackage{amsmath}
+\usepackage{listings}
+\usepackage{color}
+%\usepackage[enabled,section]{easy-todo}
+\usepackage[lmargin=1in,rmargin=1in,tmargin=1in,bmargin=1in]{geometry}
+
+\def\msol{M$_{\odot}$\ }
+\def\etal{{\it et al.}}
+\def\eg{{\it e.g.,}}
+\def\ie{{\rm i.e.,}}
+\def\deg{{$^{\circ}$}}
+
+\newcommand{\inv}[1]{\frac{1}{#1}}
+
+\newcommand{\be}{\begin{equation}}
+\newcommand{\ee}{\end{equation}}
+\newcommand{\ba}{\begin{eqnarray}}
+\newcommand{\ea}{\end{eqnarray}}
+
+\newcommand{\sph}{\textsc{spheral}}
+
+\lstset{basicstyle=\ttfamily,
+  showstringspaces=false,
+  commentstyle=\em\color{green},
+  keywordstyle=\color{blue}
+}
+
+\lstdefinestyle{myCustomPythonStyle}{
+  language=Python,
+  numbers=left,
+  stepnumber=1,
+  numbersep=10pt,
+  tabsize=4,
+  showspaces=false,
+  showstringspaces=false
+}
+
+\lstdefinestyle{myCustomShellStyle}{
+  language=Bash,
+  numbers=none,
+  stepnumber=1,
+  numbersep=10pt,
+  tabsize=4,
+  showspaces=false,
+  showstringspaces=false
+}
+
+\title{\textsc{spheral}++ Users' Manual}
+
+\begin{document}
+\frontmatter
+\maketitle
+\tableofcontents*
+
+
+\mainmatter
+\chapter{Introduction}
+
+\sph\ is a full-featured, multi-dimensional smooth particle hydrodynamics code. 
+The vast majority of \sph's backend is written in c++, and through bindings is scripted to run in native python. 
+This manual gives a brief overview of some of the various classes and methods defined within \sph\ and provides example code snippets outlining their usage.
+
+\section{Conventions}
+
+Throughout this manual, some doubly indexed variables refer to the difference of that variable between those indices, as in $W_{ij}=W(h_i,|\vec{r_{ij}}|)$, where $\vec{r_{ij}} = \vec{r_i}-\vec{r_j}$.
+
+\chapter{Your First Spheral Script}
+
+\lstset{basicstyle=\small,style=myCustomPythonStyle}
+
+In this chapter, we're going to step through the process of writing a generic python script for \textsc{spheral} that will simulate a simple Sedov-Taylor blast wave experiment in two dimensions. 
+Most of what we cover here is intended to provide a surface level understanding of the various parts of a \textsc{spheral} script without getting too deep into the gritty details. 
+We will also leave off, for now, many of the useful utilities provided by \textsc{spheral} for things such as restarting halted simulations or plotting the results. 
+The script we build here will differ somewhat in detail from the Sedov script included in the standard test suite. 
+The code snippets used in this document are grepped from the \textit{example.py} file included with this manual.
+
+\section{Importing}
+
+Since \textsc{spheral} is driven primarily by python scripts, all of the ordinary python packages are available as needed. 
+Our first task is to identify which python packages we'll require to successfully simulate and analyze our desired problem. 
+In addition to the math package and some shell driving packages, we'll need to import all of the classes and methods provided by the \textsc{spheral}2d namespace, assuming we've built from the source without explicitly excluding 2d in our configuration.
+
+\lstinputlisting[language=Python, firstline=1, lastline=3,firstnumber=last]{example.py}
+
+We'll need some kind of generator that places particles into the simulation. 
+The choice of generator here is entirely dependent on the nature of our initial conditions. 
+Our chosen problem is fairly generic, so we'll stick with the generic generator class.
+
+\lstinputlisting[language=Python, firstline=4, lastline=4,firstnumber=last]{example.py}
+
+Now import some test utilities, throw a title onto our problem and we're ready to start scripting!
+
+\lstinputlisting[language=Python, firstline=5, lastline=7,firstnumber=last]{example.py}
+
+\section{Command Line Control}
+
+Through the commandLine function wrapper, \textsc{spheral} provides users with absolute control over every detail of their script without rewrites. 
+Essentially any python object can be controlled via the command line with this function. 
+In our demonstration simulation, we'll enable only a few important parameters for command line control, and these can be added in whichever order is most useful. 
+We'll start with some simple geometrical parameters.
+
+\lstinputlisting[language=Python, firstline=8, lastline=12,firstnumber=8]{example.py}
+
+Now we can add some useful parameters to control the physics of our problem. 
+We're going to want to control the initial density and energy of our unshocked material, as well as the closure parameters for our equation of state ($\gamma$ and $\mu$ for a gamma-law EOS), and the amount of energy we want to deposit to drive the shock.
+
+\lstinputlisting[language=Python, firstline=14, lastline=18,firstnumber=14]{example.py}
+
+We also have control here over the kernel choice. 
+By default, \textsc{spheral} has quite a number of kernel choices, but the simplest for our purposes is the 5th order b-spline. 
+Adding this to our commandLine function will allow us to change it later without having to change our script. 
+We are also going to control the exact order of our b-spline with the NBSplineKernel class that consumes an arbitrary order parameter.
+
+\lstinputlisting[language=Python, firstline=20, lastline=21,firstnumber=20]{example.py}
+
+The standard hydro parameters, such as the artificial viscosity coefficients, the minimum and maximum allowed particle extents, and the CFL condition parameter are settable in the hydro constructor methods, and so we'll add those to our commandLine function as well. 
+\textsc{spheral} also includes an exact energy conserving formulation of the hydro equations, controlled by the constructor parameter \textit{compatibleEnergy}.
+
+\lstinputlisting[language=Python, firstline=22, lastline=36,firstnumber=last]{example.py}
+
+\textsc{spheral} has a wide variety of time integrator choices. 
+For this problem, we're going to use cheap synchronous Runge Kutta 2, and we'll also want to be able to drive most of the integrator choices from the command line. 
+We will also control from command line parameters the frequency of restart drops with the parameter \textit{restartStep}.
+
+\lstinputlisting[language=Python, firstline=37, lastline=46,firstnumber=last]{example.py}
+
+The last parameter we'll add to our command line is the name of our data directory. 
+This is the location where all of our restarts and visualization files would go.
+
+\lstinputlisting[language=Python, firstline=47, lastline=48,firstnumber=last]{example.py}
+
+\section{Scripting Directory Creation}
+
+With the \textit{os} and \textit{shutil} packages, we'll create the data directories for our simulation to write to that are descriptive enough to tell at a glance what the values of many of our simulations parameters were at runtime.
+
+\lstinputlisting[language=Python, firstline=49, lastline=66,firstnumber=last]{example.py}
+
+\section{Constructors}
+
+We're going to use the Gamma-Law equation of state which has a very simple constructor.
+
+\lstinputlisting[language=Python, firstline=71, lastline=71,firstnumber=71]{example.py}
+
+In our commandLine function, we hardcoded the KernelConstructor to use \textit{NBSplineKernel}, but this need not always be our kernel function, and indeed we may change the kernel at runtime.
+To account for other possible kernel functions, we will take a general approach to kernel construction in the event that \textit{NBSplineKernel} is overwritten.
+
+\lstinputlisting[language=Python, firstline=77, lastline=82,firstnumber=77]{example.py}
+
+Next, we construct our NodeList object that will hold all of the particles and their data throughout the simulation.
+For an explanation of of NodeLists and FieldLists, see chapter \#.
+
+\lstinputlisting[language=Python, firstline=87, lastline=92,firstnumber=87]{example.py}
+
+For our example script here, we're going to use the most generic 2d generator to create a lattice of particles within some chosen bounds.
+A generator by itself only describes the pattern for placing particles, and it is a distributor that actually creates the particles in memory and stores them on the node list.
+For a detailed description of particle generators, see chapter \#.
+Though this example script does not handle the case of a restart from a halted run, it is still a useful exercise to get in the habit of defining problem startup routines inside a check against restart.
+
+\lstinputlisting[language=Python, firstline=103, lastline=125,firstnumber=103]{example.py}
+
+\section{Initial Conditions}
+
+At this stage, we have created a node list with a chosen equation of state and filled it with particles according to a positional and density prescription from our generator.
+We have not yet established initial conditions for velocity and/or energy.
+Most of the fields that describe the state of each particle can be accessed directly with methods on the node list, and it is useful to store pointers to these fields in python objects outside of the scope of the \textit{restoreCycle} boolean test in order to use them later in the script in contexts other than initial conditions (e.g. we might want to do some analysis after a run has ended and having quick access to these fields would be helpful).
+
+\lstinputlisting[language=Python, firstline=97, lastline=101,firstnumber=97]{example.py}
+
+Now, back inside our check against restart block, we can deposit our energy spike into the particles near the center of the domain.
+
+\lstinputlisting[language=Python, firstline=127, lastline=143,firstnumber=127]{example.py}
+
+\section{The Database and Physics Packages}
+
+Now that we have a node list that conforms to our generator prescription and contains particles that match our initial condition, we need to add the node list to a database object that our integrator will consume for its tasks. This acts like a book-keeper for the integrator to apply all of our physics to the proper nodes.
+
+\lstinputlisting[language=Python, firstline=148, lastline=152,firstnumber=148]{example.py}
+
+Our only physics package for this problem is hydrodynamics, and the hydro constructor needs to know what kind of artificial viscosity we're using, so we'll construct that first.
+
+\lstinputlisting[language=Python, firstline=157, lastline=168,firstnumber=157]{example.py}
+
+Now we can construct our hydro object and start building a list of packages for our integrator. 
+For this example, hydro will be the only physics package, but more complicated scripts might include gravity or some other physics that we would append to the packages list.
+
+\lstinputlisting[language=Python, firstline=173, lastline=193,firstnumber=173]{example.py}
+
+\section{Building the Integrator and Controller Objects}
+
+We've now defined everything we need to run this problem in \textsc{spheral}.
+All that remains is to construct an integrator for our physics packages (hydro) and build a controller to handle time-stepping.
+
+\lstinputlisting[language=Python, firstline=198, lastline=212,firstnumber=198]{example.py}
+
+\lstinputlisting[language=Python, firstline=217, lastline=226,firstnumber=217]{example.py}
+
+At this point, we can run this problem to our chosen \textit{goalTime} or to a fixed number of steps, both controllable from the command line interface.
+
+\lstinputlisting[language=Python, firstline=231, lastline=234,firstnumber=231]{example.py}
+
+This script is now ready to run using the command
+
+\lstset{basicstyle=\small,style=myCustomShellStyle}
+
+\begin{lstlisting}
+>$ path_to_build/machine_arch/bin/python this_script.py
+\end{lstlisting} 
+
+\chapter{NodeLists and FieldLists}
+
+\chapter{Hydro}
+
+\section{SPH}
+
+The traditional SPH hydro algorithm solves the inviscid Euler equations in discrete form, with discretization on mass:
+
+\ba
+\rho_i &=& \sum_j m_j W_{ij}\\
+\dot{v_i} &=& - \sum_j \frac{m_j}{\rho_i\rho_j}\left(P_i+P_j\right)\nabla W_{ij}\\
+\dot{u_i} &=& \sum_j \frac{m_j}{\rho_i\rho_j}P_j\left(v_i+v_j\right)\nabla W_{ij}
+\ea
+
+The regular intensive variables are density and internal energy. 
+Shock capturing is achieved via artificial viscosity, typically of the Monaghan \& Gingold form.
+
+
+
+\section{ASPH}
+\section{CRKSPH}
+\section{PSPH - Unsupported}
+
+\chapter{Solids and Strength}
+
+\chapter{Boundaries}
+
+\chapter{Available Functions}
+\section{Kernels}
+
+\textit{src/Kernel}
+
+SPH uses overlapping basis functions (kernels) to reconstitute continuum fields.
+These kernels have compact support (i.e. they terminate at a finite distance) and are usually center-weighted. 
+Some of the kernels included in \sph\ are:
+\begin{itemize}
+\item b-spline
+\item quartic spline
+\item quintic spline
+\item sinc function
+\item guassian
+\item Wendland C2, C4, and C6
+\end{itemize}
+Any kernel choice is also compatible with ASPH and CRKSPH.
+
+\section{Equations of State}
+
+\textit{src/Material, src/SolidMaterial}
+
+Some of the most commonly used fluid equations of state include:
+\begin{itemize}
+\item Gamma-Law
+\item Polytropic
+\item Isothermal
+\item Helmholtz Free Energy - Requires the \textit{with-helmholtz} configure flag
+\end{itemize}
+
+\sph\ also provides solid equations of state through the ANEOS and Tillotson EOS interfaces.
+ANEOS requires the \textit{with-aneos} configure flag.
+
+\section{Generators}
+
+\textit{src/NodeGenerators}
+
+\section{Integrators}
+
+\textit{src/Integrator}
+
+\end{document}
