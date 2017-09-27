@@ -14,7 +14,62 @@
 #include "pointDistances.hh"
 #include "lineSegmentIntersections.hh"
 
+#include "boost/geometry.hpp"
+
 #include <limits>
+
+//------------------------------------------------------------------------------
+// GeomVector<2> -> Boost.Geometry
+//------------------------------------------------------------------------------
+namespace boost
+{
+  namespace geometry
+  {
+    namespace traits
+    {
+      // Adapt Spheral::GeomVector<2> to Boost.Geometry
+
+      template<> struct tag<Spheral::GeomVector<2>>
+      { typedef point_tag type; };
+
+      template<> struct coordinate_type<Spheral::GeomVector<2>>
+      { typedef double type; };
+
+      template<> struct coordinate_system<Spheral::GeomVector<2>>
+      { typedef cs::cartesian type; };
+
+      template<> struct dimension<Spheral::GeomVector<2>> : boost::mpl::int_<2> {};
+
+      template<>
+      struct access<Spheral::GeomVector<2>, 0>
+      {
+        static Spheral::GeomVector<2>::double get(Spheral::GeomVector<2> const& p)
+        {
+          return p.x();
+        }
+
+        static void set(Spheral::GeomVector<2>& p, Spheral::GeomVector<2>::double const& value)
+        {
+          p.x(value);
+        }
+      };
+
+      template<>
+      struct access<Spheral::GeomVector<2>, 1>
+      {
+        static Spheral::GeomVector<2>::double get(Spheral::GeomVector<2> const& p)
+        {
+          return p.y();
+        }
+
+        static void set(Spheral::GeomVector<2>& p, Spheral::GeomVector<2>::double const& value)
+        {
+          p.y(value);
+        }
+      };
+    }
+  }
+} // namespace boost::geometry::traits
 
 namespace Spheral {
 
@@ -198,7 +253,7 @@ bool pointInPolygon(const Dim<3>::Vector& p,
 
   // Prerequisites.
   const auto npts = ipoints.size();
-  unsigned i, j;
+  unsigned i, j, ik, jk;
   // BEGIN_CONTRACT_SCOPE
   // {
   //   REQUIRE(ipoints.size() > 2);
@@ -236,32 +291,39 @@ bool pointInPolygon(const Dim<3>::Vector& p,
       pz >= fzmin and pz <= fzmax) {
 
     // Check if the point is on the boundary.
+    const double tol = 1e-8*std::max(1.0, std::max(fxmax - fxmin, std::max(fymax - fymin, fzmax - fzmin)));
     for (i = 0; i != npts; ++i) {
       j = (i + 1) % npts;
-      if ((closestPointOnSegment(p, vertices[ipoints[i]], vertices[ipoints[j]]) - p).magnitude2() < 1.0e-10) return true;
+      if ((closestPointOnSegment(p, vertices[ipoints[i]], vertices[ipoints[j]]) - p).magnitude2() < tol) return true;
     }
 
     // x plane -- use (y,z) coordinates.
     bool xtest = false;
-    for (i = 0, j = npts - 1; i < npts; j = i++) {
-      if ( ((vertices[ipoints[i]].z() > pz) != (vertices[ipoints[j]].z() > pz)) &&
-           (py < (vertices[ipoints[j]].y() - vertices[ipoints[i]].y()) * (pz - vertices[ipoints[i]].z()) / (vertices[ipoints[j]].z() - vertices[ipoints[i]].z()) + vertices[ipoints[i]].y()) )
+    for (ik = 0, jk = npts - 1; ik < npts; jk = ik++) {
+      i = ipoints[ik];
+      j = ipoints[jk];
+      if ( ((vertices[i].z() > pz) != (vertices[j].z() > pz)) &&
+           (py < (vertices[j].y() - vertices[i].y()) * (pz - vertices[i].z()) / (vertices[j].z() - vertices[i].z()) + vertices[i].y()) )
         xtest = not xtest;
     }
 
     // y plane -- use (z,x) coordinates.
     bool ytest = false;
-    for (i = 0, j = npts - 1; i < npts; j = i++) {
-      if ( ((vertices[ipoints[i]].x() > px) != (vertices[ipoints[j]].x() > px)) &&
-           (pz < (vertices[ipoints[j]].z() - vertices[ipoints[i]].z()) * (px - vertices[ipoints[i]].x()) / (vertices[ipoints[j]].x() - vertices[ipoints[i]].x()) + vertices[ipoints[i]].z()) )
+    for (ik = 0, jk = npts - 1; ik < npts; jk = ik++) {
+      i = ipoints[ik];
+      j = ipoints[jk];
+      if ( ((vertices[i].x() > px) != (vertices[j].x() > px)) &&
+           (pz < (vertices[j].z() - vertices[i].z()) * (px - vertices[i].x()) / (vertices[j].x() - vertices[i].x()) + vertices[i].z()) )
         ytest = not ytest;
     }
 
     // z plane -- use (x,y) coordinate.
     bool ztest = false;
-    for (i = 0, j = npts - 1; i < npts; j = i++) {
-      if ( ((vertices[ipoints[i]].y() > py) != (vertices[ipoints[j]].y() > py)) &&
-           (px < (vertices[ipoints[j]].x() - vertices[ipoints[i]].x()) * (py - vertices[ipoints[i]].y()) / (vertices[ipoints[j]].y() - vertices[ipoints[i]].y()) + vertices[ipoints[i]].x()) )
+    for (ik = 0, jk = npts - 1; ik < npts; jk = ik++) {
+      i = ipoints[ik];
+      j = ipoints[jk];
+      if ( ((vertices[i].y() > py) != (vertices[j].y() > py)) &&
+           (px < (vertices[j].x() - vertices[i].x()) * (py - vertices[i].y()) / (vertices[j].y() - vertices[i].y()) + vertices[i].x()) )
         ztest = not ztest;
     }
 
