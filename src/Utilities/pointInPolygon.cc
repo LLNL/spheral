@@ -14,6 +14,8 @@
 #include "pointDistances.hh"
 #include "lineSegmentIntersections.hh"
 
+#include <limits>
+
 namespace Spheral {
 
 using namespace std;
@@ -115,7 +117,7 @@ bool pointInPolygon(const Dim<3>::Vector& p,
       j = (i + 1) % npts;
       k = (i + 2) % npts;
       normi = (vertices[j] - vertices[i]).cross(vertices[k] - vertices[i]);
-      REQUIRE(fuzzyEqual(abs(normi.dot(normal)), normmag*normi.magnitude(), 1.0e-10));
+      REQUIRE(fuzzyEqual(std::abs(normi.dot(normal)), normmag*normi.magnitude(), 1.0e-10));
     }
     REQUIRE(fuzzyEqual(pointPlaneDistance(p, vertices[0], normal.unitVector()), 0.0, 1.0e-10));
   }
@@ -130,12 +132,12 @@ bool pointInPolygon(const Dim<3>::Vector& p,
   double fxmin =  1e50, fymin =  1e50, fzmin =  1e50;
   double fxmax = -1e50, fymax = -1e50, fzmax = -1e50;
   for (i = 0; i != npts; ++i) {
-    fxmin = min(fxmin, vertices[i].x());
-    fymin = min(fymin, vertices[i].y());
-    fzmin = min(fzmin, vertices[i].z());
-    fxmax = max(fxmax, vertices[i].x());
-    fymax = max(fymax, vertices[i].y());
-    fzmax = max(fzmax, vertices[i].z());
+    fxmin = std::min(fxmin, vertices[i].x());
+    fymin = std::min(fymin, vertices[i].y());
+    fzmin = std::min(fzmin, vertices[i].z());
+    fxmax = std::max(fxmax, vertices[i].x());
+    fymax = std::max(fymax, vertices[i].y());
+    fzmax = std::max(fzmax, vertices[i].z());
   }
   if (px >= fxmin and px <= fxmax and
       py >= fymin and py <= fymax and
@@ -147,7 +149,7 @@ bool pointInPolygon(const Dim<3>::Vector& p,
       if ((closestPointOnSegment(p, vertices[i], vertices[j]) - p).magnitude2() < 1.0e-10) return true;
     }
 
-    if (abs(normal.x()) >= abs(normal.y()) and abs(normal.x()) >= abs(normal.z())) {
+    if (std::abs(normal.x()) >= std::abs(normal.y()) and std::abs(normal.x()) >= std::abs(normal.z())) {
 
       // x plane -- use (y,z) coordinates.
       for (i = 0, j = npts - 1; i < npts; j = i++) {
@@ -156,7 +158,7 @@ bool pointInPolygon(const Dim<3>::Vector& p,
           result = not result;
       }
 
-    } else if (abs(normal.y()) >= abs(normal.x()) and abs(normal.y()) >= abs(normal.z())) {
+    } else if (std::abs(normal.y()) >= std::abs(normal.x()) and std::abs(normal.y()) >= std::abs(normal.z())) {
 
       // y plane -- use (z,x) coordinates.
       for (i = 0, j = npts - 1; i < npts; j = i++) {
@@ -166,7 +168,7 @@ bool pointInPolygon(const Dim<3>::Vector& p,
       }
 
     } else {
-      CHECK(abs(normal.z()) >= abs(normal.x()) and abs(normal.z()) >= abs(normal.y()));
+      CHECK(std::abs(normal.z()) >= std::abs(normal.x()) and std::abs(normal.z()) >= std::abs(normal.y()));
 
       // z plane -- use (x,y) coordinate.
       for (i = 0, j = npts - 1; i < npts; j = i++) {
@@ -186,6 +188,7 @@ bool pointInPolygon(const Dim<3>::Vector& p,
 // Test a polygon in 3-D.
 // This version allows you to pass in an indirect addressing definition of the
 // polygon vertices.
+// Note -- does not currently work for polygons with more than one loop!
 //------------------------------------------------------------------------------
 bool pointInPolygon(const Dim<3>::Vector& p,
                     const vector<Dim<3>::Vector>& vertices,
@@ -194,8 +197,8 @@ bool pointInPolygon(const Dim<3>::Vector& p,
   typedef Dim<3>::Vector Vector;
 
   // Prerequisites.
-  const unsigned npts = ipoints.size();
-  unsigned i, j, k;
+  const auto npts = ipoints.size();
+  unsigned i, j;
   // BEGIN_CONTRACT_SCOPE
   // {
   //   REQUIRE(ipoints.size() > 2);
@@ -205,7 +208,7 @@ bool pointInPolygon(const Dim<3>::Vector& p,
   //     j = (i + 1) % npts;
   //     k = (i + 2) % npts;
   //     normi = (vertices[ipoints[j]] - vertices[ipoints[i]]).cross(vertices[ipoints[k]] - vertices[ipoints[i]]);
-  //     REQUIRE2(fuzzyEqual(abs(normi.dot(normal)), normmag*normi.magnitude(), 1.0e-5), normi << " " << normal << " " << normi.dot(normal) << " " << normmag*normi.magnitude());
+  //     REQUIRE2(fuzzyEqual(std::abs(normi.dot(normal)), normmag*normi.magnitude(), 1.0e-5), normi << " " << normal << " " << normi.dot(normal) << " " << normmag*normi.magnitude());
   //   }
   //   // REQUIRE2(fuzzyEqual(pointPlaneDistance(p, vertices[ipoints[0]], normal.unitVector()), 0.0, 1.0e-3), pointPlaneDistance(p, vertices[ipoints[0]], normal.unitVector()));
   // }
@@ -217,15 +220,16 @@ bool pointInPolygon(const Dim<3>::Vector& p,
   const double py = p.y();
   const double pz = p.z();
 
-  double fxmin =  1e50, fymin =  1e50, fzmin =  1e50;
-  double fxmax = -1e50, fymax = -1e50, fzmax = -1e50;
-  for (i = 0; i != npts; ++i) {
-    fxmin = min(fxmin, vertices[ipoints[i]].x());
-    fymin = min(fymin, vertices[ipoints[i]].y());
-    fzmin = min(fzmin, vertices[ipoints[i]].z());
-    fxmax = max(fxmax, vertices[ipoints[i]].x());
-    fymax = max(fymax, vertices[ipoints[i]].y());
-    fzmax = max(fzmax, vertices[ipoints[i]].z());
+  // Find the bounding box for the polygon.
+  double fxmin = std::numeric_limits<double>::max(),    fymin = std::numeric_limits<double>::max(),   fzmin =  std::numeric_limits<double>::max();
+  double fxmax = std::numeric_limits<double>::lowest(), fymax = std::numeric_limits<double>::lowest(), fzmax = std::numeric_limits<double>::lowest();
+  for (const auto i: ipoints) {
+    fxmin = std::min(fxmin, vertices[i].x());
+    fymin = std::min(fymin, vertices[i].y());
+    fzmin = std::min(fzmin, vertices[i].z());
+    fxmax = std::max(fxmax, vertices[i].x());
+    fymax = std::max(fymax, vertices[i].y());
+    fzmax = std::max(fzmax, vertices[i].z());
   }
   if (px >= fxmin and px <= fxmax and
       py >= fymin and py <= fymax and
@@ -237,34 +241,34 @@ bool pointInPolygon(const Dim<3>::Vector& p,
       if ((closestPointOnSegment(p, vertices[ipoints[i]], vertices[ipoints[j]]) - p).magnitude2() < 1.0e-10) return true;
     }
 
-    if (abs(normal.x()) >= abs(normal.y()) and abs(normal.x()) >= abs(normal.z())) {
+    // x plane -- use (y,z) coordinates.
+    bool xtest = false;
+    for (i = 0, j = npts - 1; i < npts; j = i++) {
+      if ( ((vertices[ipoints[i]].z() > pz) != (vertices[ipoints[j]].z() > pz)) &&
+           (py < (vertices[ipoints[j]].y() - vertices[ipoints[i]].y()) * (pz - vertices[ipoints[i]].z()) / (vertices[ipoints[j]].z() - vertices[ipoints[i]].z()) + vertices[ipoints[i]].y()) )
+        xtest = not xtest;
+    }
 
-      // x plane -- use (y,z) coordinates.
-      for (i = 0, j = npts - 1; i < npts; j = i++) {
-        if ( ((vertices[ipoints[i]].z() > pz) != (vertices[ipoints[j]].z() > pz)) &&
-             (py < (vertices[ipoints[j]].y() - vertices[ipoints[i]].y()) * (pz - vertices[ipoints[i]].z()) / (vertices[ipoints[j]].z() - vertices[ipoints[i]].z()) + vertices[ipoints[i]].y()) )
-          result = not result;
-      }
+    // y plane -- use (z,x) coordinates.
+    bool ytest = false;
+    for (i = 0, j = npts - 1; i < npts; j = i++) {
+      if ( ((vertices[ipoints[i]].x() > px) != (vertices[ipoints[j]].x() > px)) &&
+           (pz < (vertices[ipoints[j]].z() - vertices[ipoints[i]].z()) * (px - vertices[ipoints[i]].x()) / (vertices[ipoints[j]].x() - vertices[ipoints[i]].x()) + vertices[ipoints[i]].z()) )
+        ytest = not ytest;
+    }
 
-    } else if (abs(normal.y()) >= abs(normal.x()) and abs(normal.y()) >= abs(normal.z())) {
+    // z plane -- use (x,y) coordinate.
+    bool ztest = false;
+    for (i = 0, j = npts - 1; i < npts; j = i++) {
+      if ( ((vertices[ipoints[i]].y() > py) != (vertices[ipoints[j]].y() > py)) &&
+           (px < (vertices[ipoints[j]].x() - vertices[ipoints[i]].x()) * (py - vertices[ipoints[i]].y()) / (vertices[ipoints[j]].y() - vertices[ipoints[i]].y()) + vertices[ipoints[i]].x()) )
+        ztest = not ztest;
+    }
 
-      // y plane -- use (z,x) coordinates.
-      for (i = 0, j = npts - 1; i < npts; j = i++) {
-        if ( ((vertices[ipoints[i]].x() > px) != (vertices[ipoints[j]].x() > px)) &&
-             (pz < (vertices[ipoints[j]].z() - vertices[ipoints[i]].z()) * (px - vertices[ipoints[i]].x()) / (vertices[ipoints[j]].x() - vertices[ipoints[i]].x()) + vertices[ipoints[i]].z()) )
-          result = not result;
-      }
-
+    if (xtest and ytest and ztest) {
+      result = true;
     } else {
-      CHECK(abs(normal.z()) >= abs(normal.x()) and abs(normal.z()) >= abs(normal.y()));
-
-      // z plane -- use (x,y) coordinate.
-      for (i = 0, j = npts - 1; i < npts; j = i++) {
-        if ( ((vertices[ipoints[i]].y() > py) != (vertices[ipoints[j]].y() > py)) &&
-             (px < (vertices[ipoints[j]].x() - vertices[ipoints[i]].x()) * (py - vertices[ipoints[i]].y()) / (vertices[ipoints[j]].y() - vertices[ipoints[i]].y()) + vertices[ipoints[i]].x()) )
-          result = not result;
-      }
-
+      result = false;
     }
   }
 
