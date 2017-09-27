@@ -166,7 +166,7 @@ update(const KeyType& key,
               const auto& paj = paccj[offset(nodeListj, j)];
               ++offset(nodeListj, j);
 
-              CHECK2(fuzzyEqual(mi*mj*pai.dot(paj) + mi*mi*pai.dot(pai), 0.0, 1.0e-10),
+              CHECK2(fuzzyEqual(mi*mj*pai.dot(paj) + mi*mi*pai.dot(pai), 0.0, 1.0e-8),
                      "Symmetric forces?  (" << nodeListi << " " << i << ") (" << nodeListj << " " << j << ") " << mi << " " << mj << " " << pai << " " << paj << " " << mi*pai << " " << mj*paj);
 
               const Scalar duij = vji12.dot(pai);
