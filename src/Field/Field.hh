@@ -11,13 +11,16 @@
 #ifndef __Spheral_Field_hh__
 #define __Spheral_Field_hh__
 
-#include "FieldBase.hh"
-
 #include <string>
+
+#ifndef __GCCXML__
 #include <vector>
-#ifdef USE_UVM
 #include "uvm_allocator.hh"
+#else
+#include "fakestl.hh"
 #endif
+
+#include "FieldBase.hh"
 
 namespace Spheral {
   template<typename Dimension> class NodeIteratorBase;
@@ -34,20 +37,16 @@ namespace Spheral {
 namespace Spheral {
 namespace FieldSpace {
 
-#if USE_UVM
 template<typename DataType>
 using DataAllocator = typename uvm_allocator::UVMAllocator<DataType>;
-#else
-template<typename DataType>
-using DataAllocator = typename std::allocator<DataType>;
-#endif
 
 template<typename Dimension, typename DataType>
 class Field: 
     public FieldBase<Dimension> {
-
+   
 public:
   //--------------------------- Public Interface ---------------------------//
+  //using DataAllocator = typename uvm_allocator::UVMAllocator<DataType>;
   typedef typename Dimension::Scalar Scalar;
   typedef typename Dimension::Vector Vector;
   typedef typename Dimension::Tensor Tensor;
@@ -73,7 +72,7 @@ public:
         const std::vector<DataType,DataAllocator<DataType>>& array);
   Field(const NodeSpace::NodeList<Dimension>& nodeList, const Field& field);
   Field(const Field& field);
-  virtual std::shared_ptr<FieldBase<Dimension> > clone() const;
+  virtual boost::shared_ptr<FieldBase<Dimension> > clone() const;
 
   // Destructor.
   virtual ~Field();
@@ -216,11 +215,11 @@ public:
   virtual void resizeFieldInternal(unsigned size, unsigned oldFirstGhostNode);
   virtual void resizeFieldGhost(unsigned size);
   virtual void deleteElement(int nodeID);
-  virtual void deleteElements(const std::vector<int,DataAllocator<int>>& nodeIDs);
-  virtual std::vector<char,DataAllocator<char>> packValues(const std::vector<int,DataAllocator<int>>& nodeIDs) const;
+  virtual void deleteElements(const std::vector<int>& nodeIDs);
+  virtual std::vector<char> packValues(const std::vector<int>& nodeIDs) const;
   virtual void unpackValues(const int numElements,
                             const int beginInsertionIndex,
-                            const std::vector<char,DataAllocator<char>>& buffer);
+                            const std::vector<char>& buffer);
 
   // Methods to use the iostream methods converting a Field to/from a string.
   std::string string(const int precision = 20) const;
@@ -236,9 +235,11 @@ private:
   //--------------------------- Private Interface ---------------------------//
   // Private Data
 #ifndef __GCCXML__
-  std::vector<DataType,DataAllocator<DataType>> mDataArray;
-  bool mValid;
+//  std::vector<DataType,std::allocator<DataType> > mDataArray;
+    std::vector<DataType,DataAllocator<DataType>> mDataArray;
 #endif
+  bool mValid;
+
   // No default constructor.
   Field();
 };
