@@ -19,11 +19,11 @@ extern "C" {
 }
 #endif
 
+
 // Inlined methods.
 namespace Spheral {
 namespace FieldSpace {
 
-//------------------------------------------------------------------------------
 // Construct with name.
 //------------------------------------------------------------------------------
 template<typename Dimension, typename DataType>
@@ -111,6 +111,7 @@ Field(typename FieldBase<Dimension>::FieldName name,
 //------------------------------------------------------------------------------
 // Construct for a given name, NodeList, and vector of values.
 //------------------------------------------------------------------------------
+
 template<typename Dimension, typename DataType>
 inline
 Field<Dimension, DataType>::

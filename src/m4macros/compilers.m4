@@ -52,9 +52,8 @@ AC_SUBST(DYNLIBFLAG)
 AC_SUBST(SHAREDFLAG)
 AC_SUBST(LDPASSTHROUGH)
 
+AC_SUBST(EXTRAFLAGS) 
 AC_SUBST(CXXFLAGS)
-AC_SUBST(EXTRAFLAGS)
-AC_SUBST(EXTRAINCLUDES)
 AC_SUBST(FORTFLAGS)
 AC_SUBST(CFLAGS)
 AC_SUBST(MPICCFLAGS)
@@ -160,8 +159,6 @@ case $COMPILERS in
       FORT=gfortran
       MPICC=mpicc
       MPICXX=mpicxx
-      MPICCFLAGS=
-      MPICXXFLAGS=
       CMAKECC=clang
       CMAKECXX=clang++
       GCCXMLCC=$CMAKECC
@@ -169,7 +166,7 @@ case $COMPILERS in
       PYTHONCC=$CC
       PYTHONCXX=$CXX
       PARMETISCC=$MPICC
-      CXXFLAGS+=" -std=c++11 -Wno-undefined-var-template -DEIGEN_DONT_VECTORIZE"
+      CXXFLAGS+=" -std=c++11  -Wno-undefined-var-template -DEIGEN_DONT_VECTORIZE"
       ;;
 
    vacpp)
@@ -543,9 +540,22 @@ if test -n "`grep 'yes' .cxxtype.out`"; then
 fi
 rm -f .cxxtype.cc .cxxtype.out
 
+# Check for CLANG-IBM
+#cat > .cxxtype.cc << EOF
+##ifdef __clang__
+#yes;
+##endif
+#EOF
+#$CXX -E .cxxtype.cc > .cxxtype.out
+##if test -n "`grep 'yes' .cxxtype.out`"; then
+#  CXXCOMPILERTYPE=CLANGIBM
+##fi
+#rm -f .cxxtype.cc .cxxtype.out
+
+
 # Set the flag for passing arguments to the linker.
 LDPASSTHROUGH=""
-if test $CXXCOMPILERTYPE = "GNU" -o $CXXCOMPILERTYPE = "INTEL" -o $CXXCOMPILERTYPE = "VACPP"; then
+if test $CXXCOMPILERTYPE = "GNU" -o $CXXCOMPILERTYPE = "INTEL" -o $CXXCOMPILERTYPE = "VACPP" ; then
   LDPASSTHROUGH="-Wl,"
 fi
 
@@ -559,7 +569,6 @@ elif test "$OSNAME" = "Linux"; then # -a "$CXXCOMPILERTYPE" != "INTEL"; then
   # On the gnu linker we can throw the rpath flag to avoid having to set the LD_LIBRARY_PATH
   # variable.
   LDRPATH="$LDRPATH ${LDPASSTHROUGH}-rpath=\$(libdir)"
-
 elif test "$OSNAME" = "Darwin"; then
   LDRPATH="$LDRPATH ${LDPASSTHROUGH}-rpath \$(libdir)"
   LDINSTALLNAME="-install_name @rpath/\${@} -o"
@@ -651,6 +660,13 @@ VACPP)
   JAMTOOLSET=vacpp 
   BOOSTEXT="-xlc"
   ;;
+#CLANGIBM)
+#  FORTFLAGS="$FORTFLAGS -fpic"
+#  SHAREDFLAG=""
+#  DEPFLAG="-MM"
+#  JAMTOOLSET=clang
+#  BOOSTEXT="-$JAMTOOLSET"
+#  ;;
 esac
 
 # We seem to be always getting the mulit-threaded thingy now with boost.
@@ -690,42 +706,19 @@ AC_MSG_RESULT($JAMTOOLSET)
 # =======================================================================
 AC_MSG_CHECKING(for openmp)
 AC_ARG_WITH(openmp,
-[  --with-openmp ........................... should we enable openmp],
+[  --with-openmp .............................. should we enable openmp],
 [
    AC_MSG_RESULT(yes)
    if test $CXXCOMPILERTYPE = "VACPP"; then
-      CXXFLAGS+=" -qsmp=omp"
+      CXXFLAGS+="  -qsmp=omp"
    else
-      CXXFLAGS+=" -fopenmp"
-      EXTRAFLAGS+=" -DUSE_UVM -fopenmp-targets=nvptx64-nvidia-gpu -fopenmp-implicit-declare-target"
-      EXTRAINCLUDES+=" -I/usr/local/cuda-8.0/include"
+      CXXFLAGS+="  -fopenmp"
+      EXTRAFLAGS="  -fopenmp-targets=nvptx64-nvidia-gpu -fopenmp-implicit-declare-target"
    fi
 ],
 [
    AC_MSG_RESULT(no)
 ]
 )
-
-# gprof
-AC_MSG_CHECKING(for --with-gprof)
-AC_ARG_WITH(gprof,
-[  --with-gprof ............................. compile with gprof stuff turned on],
-[
-  AC_MSG_RESULT(yes)
-  if test "$CXXCOMPILERTYPE" = "GNU"; then
-    PYTHONCFLAGS+=" -pg"
-    CFLAGS+=" -pg"
-    CXXFLAGS+=" -pg"
-    LDFLAGS+=" -pg"
-  elif test "$CXXCOMPILERTYPE" = "INTEL"; then
-    PYTHONCFLAGS+=" -p -g"
-    CFLAGS+=" -p -g"
-    CXXFLAGS+=" -p -g"
-    LDFLAGS+=" -pg"
-  fi
-],
-[
-  AC_MSG_RESULT(no)
-])
 
 ])
