@@ -1350,6 +1350,9 @@ restoreState(const FileIO& file, string pathName) {
   file.read(mM, pathName + "/M");
   file.read(mLocalM, pathName + "/localM");
 
+  // For backwards compatibility on change 3597 -- drop in the near future.
+  for (auto DvDtPtr: mDvDt) DvDtPtr->name(HydroFieldNames::hydroAcceleration);
+
 //   this->artificialViscosity().restoreState(file, pathName + "/Q");
 }
 
