@@ -190,7 +190,6 @@ class SpheralController:
         self.appendPeriodicWork(self.printCycleStatus, printStep)
         self.appendPeriodicWork(self.garbageCollection, garbageCollectionStep)
         self.appendPeriodicWork(self.updateConservation, statsStep)
-        self.appendPeriodicWork(self.updateDomainDistribution, redistributeStep)
         self.appendPeriodicWork(self.updateRestart, restartStep)
 
         # Add the dynamic redistribution object to the controller.
@@ -211,6 +210,9 @@ class SpheralController:
         # Force the periodic work to fire at problem initalization.
         if (not skipInitialPeriodicWork) and (restoreCycle is None):
             self.doPeriodicWork(force=True)
+
+        # We add this one after forcing periodic work so it's not always fired right at the beginning of a calculation.
+        self.appendPeriodicWork(self.updateDomainDistribution, redistributeStep)
 
         return
 
