@@ -24,6 +24,7 @@
 #include "Field/NodeIterators.hh"
 #include "Utilities/DBC.hh"
 #include "Material/PhysicalConstants.hh"
+#include "Utilities/packElement.hh"
 
 namespace Spheral {
 namespace GravitySpace {
@@ -55,6 +56,20 @@ NBodyGravity<Dimension>::
 //------------------------------------------------------------------------------
 
 //------------------------------------------------------------------------------
+// Register some extra state.
+//------------------------------------------------------------------------------
+template<typename Dimension>
+void
+NBodyGravity<Dimension>::
+registerState(DataBase<Dimension >& dataBase,
+              State<Dimension >& state) {
+  PhysicsSpace::GenericBodyForce<Dimension >::registerState(dataBase, state);
+  state.enroll(mPotential);
+}
+
+//------------------------------------------------------------------------------
+// Derivatives
+//------------------------------------------------------------------------------
 template <typename Dimension>
 void 
 NBodyGravity<Dimension>::
@@ -66,86 +81,108 @@ evaluateDerivatives(const typename Dimension::Scalar time,
   using namespace NodeSpace;
 
   // Find the square of the Plummer softening length.
-  Scalar softeningLength2 = mSofteningLength * mSofteningLength;
+  auto softeningLength2 = mSofteningLength * mSofteningLength;
 
   // Access to pertinent fields in the database.
-  const FieldList<Dimension, Scalar> mass = state.fields(HydroFieldNames::mass, 0.0);
-  const FieldList<Dimension, Vector> position = state.fields(HydroFieldNames::position, Vector::zero);
-  const FieldList<Dimension, Vector> velocity = state.fields(HydroFieldNames::velocity, Vector::zero);
+  const auto mass = state.fields(HydroFieldNames::mass, 0.0);
+  const auto position = state.fields(HydroFieldNames::position, Vector::zero);
+  const auto velocity = state.fields(HydroFieldNames::velocity, Vector::zero);
 
   // Get the acceleration and position change vectors we'll be modifying.
-  FieldList<Dimension, Vector> DxDt = derivs.fields(IncrementState<Dimension, Field<Dimension, Vector> >::prefix() + HydroFieldNames::position, Vector::zero);
-  FieldList<Dimension, Vector> DvDt = derivs.fields(IncrementState<Dimension, Field<Dimension, Vector> >::prefix() + HydroFieldNames::velocity, Vector::zero);
+  auto DxDt = derivs.fields(IncrementState<Dimension, Field<Dimension, Vector> >::prefix() + HydroFieldNames::position, Vector::zero);
+  auto DvDt = derivs.fields(IncrementState<Dimension, Field<Dimension, Vector> >::prefix() + HydroFieldNames::velocity, Vector::zero);
 
   // Zero out the total gravitational potential energy.
   mExtraEnergy = 0.0;
+  mPotential = 0.0;
+  mOldMaxAcceleration = 1.0e-10;
+  mOldMaxVelocity = 0.0;
 
-  // Loop over each particle...
-  const unsigned numNodeLists = dataBase.numNodeLists();
-  unsigned ifield = 0;
-  for (typename DataBase<Dimension>::ConstFluidNodeListIterator iitr = dataBase.fluidNodeListBegin();
-       iitr != dataBase.fluidNodeListEnd();
-       ++iitr, ++ifield) {
-    const NodeList<Dimension>& nodeListi = **iitr;
-    const unsigned firstGhostNodei = nodeListi.firstGhostNode();
+  // Get the processor information.
+  const unsigned rank = Process::getRank();
+  const unsigned numProcs = Process::getTotalNumberOfProcesses();
 
-    for (unsigned i = 0; i != firstGhostNodei; ++i) {
-      unsigned jfield = 0;
+  // Pack up the local particle info.
+  vector<char> localBuffer, buffer;
+  this->serialize(mass, position, localBuffer);
+  unsigned localBufSize = localBuffer.size();
 
-      // Set the position derivative.
-      DxDt(ifield, i) += velocity(ifield, i);
-
-      // Get a reference to the acceleration vector.
-      Vector& acceleration = DvDt(ifield, i);
-    
-      // Zero out the potential of this particle.
-      mPotential(ifield, i) = 0.0;
-
-      for (typename DataBase<Dimension>::ConstFluidNodeListIterator jitr = dataBase.fluidNodeListBegin();
-           jitr != dataBase.fluidNodeListEnd();
-           ++jitr, ++jfield) {
-        const NodeList<Dimension>& nodeListj = **jitr;
-        const unsigned nj = nodeListj.numNodes();
-        for (unsigned j = 0; j != nj; ++j) {
-
-          // Particles can't self-interact, silly!
-          if (ifield != jfield or i != j) {
-
-            // Contribute to the acceleration of this particle.
-            const Vector r = position(ifield, i) - position(jfield, j);
-
-            CHECK(r.magnitude2() != 0.0);
-            Vector rHat = r.unitVector();
-            Scalar distance2 = r.magnitude2() + softeningLength2;
-            CHECK(distance2 != 0.0);
-            acceleration -= mG * mass(jfield, j) * rHat / distance2;
-
-            // Also sum up contributions to the potential and 
-            // total potential energy.
-            mPotential(ifield, i) -= mG * mass(jfield, j) / std::sqrt(distance2);
-          }
-        }
-      }
-
-      mExtraEnergy += mG * mass(ifield, i) * mPotential(ifield, i);
-
-      // Capture the maximum acceleration and velocity magnitudes.
-      const Scalar accelMagnitude = acceleration.magnitude();
-      if (mOldMaxAcceleration < accelMagnitude) {
-        mOldMaxAcceleration = accelMagnitude + 1e-10;
-        CHECK(mOldMaxAcceleration != 0.0);
-      } // end if
-
-      const Scalar velocityMagnitude = velocity(ifield, i).magnitude();
-      if (mOldMaxVelocity < velocityMagnitude) {
-        mOldMaxVelocity = velocityMagnitude;
+#ifdef USE_MPI
+  // Launch our sends to all other processors.  This may be a bit aggressive.... :)
+  vector<MPI_Request> sendRequests;
+  sendRequests.reserve(2*numProcs);
+  for (unsigned otherProc = 0; otherProc != numProcs; ++otherProc) {
+    if (otherProc != rank) {
+      sendRequests.push_back(MPI_Request());
+      MPI_Isend(&localBufSize, 1, MPI_UNSIGNED, otherProc, 1, Communicator::communicator(), &sendRequests.back());
+      if (localBufSize > 0) {
+        sendRequests.push_back(MPI_Request());
+        MPI_Isend(&localBuffer.front(), localBufSize, MPI_CHAR, otherProc, 2, Communicator::communicator(), &sendRequests.back());
       }
     }
   }
+  CHECK(sendRequests.size() <= 2*numProcs);
+#endif
+
+  // Add our local contributions.
+  vector<Scalar> otherMass;
+  vector<Vector> otherPosition;
+  this->deserialize(localBuffer, otherMass, otherPosition);
+  this->applyPairForces(otherMass, otherPosition, position, DvDt, mPotential);
+
+#ifdef USE_MPI
+  // Now walk the other processes and get their contributions.
+  unsigned bufSize;
+  MPI_Status recvStatus;
+  for (unsigned otherProc = 0; otherProc != numProcs; ++otherProc) {
+    if (otherProc != rank) {
+      MPI_Recv(&bufSize, 1, MPI_UNSIGNED, otherProc, 1, Communicator::communicator(), &recvStatus);
+      if (bufSize > 0) {
+        buffer = vector<char>(bufSize);
+        MPI_Recv(&buffer.front(), bufSize, MPI_CHAR, otherProc, 2, Communicator::communicator(), &recvStatus);
+        this->deserialize(buffer, otherMass, otherPosition);
+        this->applyPairForces(otherMass, otherPosition,position, DvDt, mPotential);
+      }
+    }
+  }
+#endif
+
+  // Finalize our stuff.
+  const unsigned numNodeLists = dataBase.numNodeLists();
+  unsigned ifield = 0;
+  for (auto iitr = dataBase.fluidNodeListBegin();
+       iitr != dataBase.fluidNodeListEnd();
+       ++iitr, ++ifield) {
+    const auto& nodeListi = **iitr;
+    const auto n = nodeListi.numInternalNodes();
+    for (auto i = 0; i != n; ++i) {
+
+      // Set the position derivative.
+      DxDt(ifield, i) = velocity(ifield, i);
+
+      // Multiply by G.
+      DvDt(ifield, i) *= mG;
+      mPotential(ifield, i) *= mG;
+
+      // Accumluate the package energy as the total gravitational potential.
+      mExtraEnergy += mass(ifield, i) * mPotential(ifield, i);
+
+      // Capture the maximum acceleration and velocity magnitudes.
+      const auto accelMagnitude = DvDt(ifield, i).magnitude();
+      mOldMaxAcceleration = std::max(mOldMaxAcceleration, DvDt(ifield, i).magnitude());
+      mOldMaxVelocity = std::max(mOldMaxVelocity, velocity(ifield, i).magnitude());
+    }
+  }
+
+#ifdef USE_MPI
+  // Wait until all our sends are complete.
+  vector<MPI_Status> sendStatus(sendRequests.size());
+  MPI_Waitall(sendRequests.size(), &(*sendRequests.begin()), &(*sendStatus.begin()));
+#endif
 }
 
 //------------------------------------------------------------------------------
-// initialize()
+// Problem startup
 //------------------------------------------------------------------------------
 template <typename Dimension>
 void 
@@ -238,6 +275,104 @@ softeningLength(const double x) {
 //------------------------------------------------------------------------------
 
 //------------------------------------------------------------------------------
+// Accumulate the pair-forces from the given points.
+//------------------------------------------------------------------------------
+template <typename Dimension>
+void 
+NBodyGravity<Dimension>::
+applyPairForces(const std::vector<Scalar>& otherMass,
+                const std::vector<Vector>& otherPosition,
+                const FieldSpace::FieldList<Dimension, Vector>& position,
+                FieldSpace::FieldList<Dimension, Vector>& DvDt,
+                FieldSpace::FieldList<Dimension, Scalar>& potential) const {
+
+
+  using namespace NodeSpace;
+
+  const unsigned numNodeLists = position.numFields();
+  const unsigned nother = otherMass.size();
+  CHECK(otherPosition.size() == nother);
+
+  // Find the square of the Plummer softening length.
+  auto softeningLength2 = mSofteningLength * mSofteningLength;
+  auto rmin = 1e-10*mSofteningLength;
+
+  // Some scratch variables.
+  unsigned nodeListi, n, i, j;
+  Scalar r2;
+  Vector r, rHat;
+
+  // Loop over each particle...
+  for (nodeListi = 0; nodeListi != numNodeLists; ++nodeListi) {
+    n = position[nodeListi]->numInternalElements();
+    for (i = 0; i != n; ++i) {
+      auto& DvDti = DvDt(nodeListi, i);
+      auto& phii = potential(nodeListi, i);
+    
+      // Walk the other points.
+      for (j = 0; j != nother; ++j) {
+        r = position(nodeListi, i) - otherPosition[j];
+        r2 = r.magnitude2();
+
+        // Particles can't self-interact, silly!
+        if (r2 > rmin) {
+          r2 += softeningLength2;
+          rHat = r.unitVector();
+
+          // Force
+          DvDti -= otherMass[j] * rHat / r2;       // Multiply by G later
+
+          // Potential
+          phii -= otherMass[j] / std::sqrt(r2);    // Multiply by G later
+        }
+      }
+    }
+  }
+}
+
+//------------------------------------------------------------------------------
+// Serialize
+//------------------------------------------------------------------------------
+template <typename Dimension>
+void
+NBodyGravity<Dimension>::
+serialize(const FieldSpace::FieldList<Dimension, typename Dimension::Scalar>& mass,
+          const FieldSpace::FieldList<Dimension, typename Dimension::Vector>& position,
+          std::vector<char>& buffer) const {
+  const unsigned n = mass.numInternalNodes();
+  CHECK(position.numInternalNodes() == n);
+  packElement(n, buffer);
+  const unsigned numFields = mass.numFields();
+  for (unsigned ifield = 0; ifield != numFields; ++ifield) {
+    const unsigned n = mass[ifield]->numInternalElements();
+    for (unsigned i = 0; i != n; ++i) {
+      packElement(mass(ifield, i), buffer);
+      packElement(position(ifield, i), buffer);
+    }
+  }
+}
+
+//------------------------------------------------------------------------------
+// Deserialize
+//------------------------------------------------------------------------------
+template <typename Dimension>
+void
+NBodyGravity<Dimension>::
+deserialize(const std::vector<char>& buffer,
+            std::vector<typename Dimension::Scalar>& mass,
+            std::vector<typename Dimension::Vector>& position) const {
+  auto bufItr = buffer.begin();
+  unsigned n;
+  unpackElement(n, bufItr, buffer.end());
+  mass = vector<Scalar>(n);
+  position = vector<Vector>(n);
+  for (unsigned i = 0; i != n; ++i) {
+    unpackElement(mass[i], bufItr, buffer.end());
+    unpackElement(position[i], bufItr, buffer.end());
+  }
+  CHECK(bufItr == buffer.end());
+}
+
 } // end namespace GravitySpace
 } // end namespace Spheral
 

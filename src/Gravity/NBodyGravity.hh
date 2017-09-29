@@ -12,6 +12,8 @@
 #include "Physics/GenericBodyForce.hh"
 #include "Field/FieldList.hh"
 
+#include <vector>
+
 namespace Spheral {
 
 template<typename Dimension> class State;
@@ -39,6 +41,10 @@ public:
 
   //! Destructor.
   virtual ~NBodyGravity();
+
+  //! We augment the generic body force state.
+  virtual void registerState(DataBaseSpace::DataBase<Dimension>& dataBase,
+                             State<Dimension>& state);
 
   //! This is the derivative method that all BodyForce classes must provide.
   virtual 
@@ -110,6 +116,21 @@ private:
 
   // Assignment operator -- disabled.
   NBodyGravity& operator=(const NBodyGravity&);
+
+  // Worker for accumulating pair-wise forces.
+  void applyPairForces(const std::vector<Scalar>& otherMass,
+                       const std::vector<Vector>& otherPosition,
+                       const FieldSpace::FieldList<Dimension, Vector>& position,
+                       FieldSpace::FieldList<Dimension, Vector>& DvDt,
+                       FieldSpace::FieldList<Dimension, Scalar>& potential) const;
+
+  // Methods for serializing/deserializing point values.
+  void serialize(const FieldSpace::FieldList<Dimension, typename Dimension::Scalar>& mass,
+                 const FieldSpace::FieldList<Dimension, typename Dimension::Vector>& position,
+                 std::vector<char>& buffer) const;
+  void deserialize(const std::vector<char>& buffer,
+                   std::vector<typename Dimension::Scalar>& mass,
+                   std::vector<typename Dimension::Vector>& position) const;
 
 }; // end class NBodyGravity
 
