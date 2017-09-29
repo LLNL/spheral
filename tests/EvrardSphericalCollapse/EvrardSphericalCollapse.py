@@ -47,7 +47,7 @@ commandLine(nx = 100,               # Number of across diameter of sphere
             evolveTotalEnergy = False,
 
             # Timestepping/advancement
-            IntegratorConstructor = CheapSynchronousRK2Integrator,
+            IntegratorConstructor = VerletIntegrator,
             goalTime = 0.8,
             steps = None,
             vizCycle = 20,
