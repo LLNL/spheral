@@ -7,12 +7,13 @@
 #include <algorithm>
 
 #include "pointInPolyhedron.hh"
-#include "Geometry/Dimension.hh"
+#include "pointInPolygon.hh"
 #include "testBoxIntersection.hh"
 #include "pointOnPolyhedron.hh"
 #include "segmentIntersectEdges.hh"
 #include "lineSegmentIntersections.hh"
 #include "rotationMatrix.hh"
+#include "Geometry/Dimension.hh"
 
 namespace Spheral {
 
@@ -31,8 +32,8 @@ bool pointInPolyhedron(const Dim<3>::Vector& p,
   typedef Polyhedron::Facet Facet;
   typedef Dim<2>::Vector Vector2d;
 
-  const unsigned numTrials = 1;
-  const vector<Vector>& vertices = polyhedron.vertices();
+  const unsigned numTrials = 50;
+  const auto& vertices = polyhedron.vertices();
 
   // First reject any points outside the bounding box.
   if (not testPointInBox(p, polyhedron.xmin(), polyhedron.xmax(), tol)) return false;
@@ -63,9 +64,9 @@ bool pointInPolyhedron(const Dim<3>::Vector& p,
   std::vector<Vector> pends;
   while (pends.size() < numTrials) {
     auto iter = 0;
-    Tensor RT = rotationMatrix(Vector(dis(gen), dis(gen), dis(gen)).unitVector());
-    Vector p1 = p + RT*Vector(length, 0.0, 0.0);
-    while (iter < 200 and segmentIntersectEdges(p1, p1, polyhedron)) {
+    auto RT = rotationMatrix(Vector(dis(gen), dis(gen), dis(gen)).unitVector());
+    auto p1 = p + RT*Vector(length, 0.0, 0.0);
+    while (iter < 200 and segmentIntersectEdges(p, p1, polyhedron)) {
       RT = rotationMatrix(Vector(dis(gen), dis(gen), dis(gen)).unitVector());
       p1 = p + RT*Vector(length, 0.0, 0.0);
     }
@@ -75,75 +76,41 @@ bool pointInPolyhedron(const Dim<3>::Vector& p,
 
   // Walk the facets, and test each one.
   vector<unsigned> numIntersections(numTrials, 0);
-  const vector<Facet>& facets = polyhedron.facets();
-  bool filter, facetTest, boundTest;
-  unsigned ifacet, npts, i, j;
-  double px, py, pz, fxmin, fymin, fzmin, fxmax, fymax, fzmax;
+  const auto& facets = polyhedron.facets();
+  bool xtest, ytest, ztest;
+  unsigned i, j, npts;
+  double px, py, pz;
   char code;
-  Vector planeIntercept, normal;
+  Vector intercept1, intercept2, normal;
   
-  for (ifacet = 0; ifacet != facets.size(); ++ifacet) {
-    const Facet& facet = facets[ifacet];
-    const vector<unsigned>& ipts = facet.ipoints();
+  for (const auto& facet: facets) {
+    const auto& ipts = facet.ipoints();
     npts = ipts.size();
 
     for (auto itrial = 0; itrial < numTrials; ++itrial) {
-      Vector ptest = pends[itrial];
+      normal = facet.normal().unitVector();
 
-      filter = false;
-      i = 0;
-      while (i != npts and not filter) {
-        filter = ((vertices[ipts[i++]] - p).dot(ptest - p) >= 0.0);
-      }
+      // Find the intersection (if any) of the line corresponding to our ray and the facet plane.
+      code = segmentPlaneIntersection(p, pends[itrial], facet.position(), normal, intercept1, tol);
+      CHECK(code != 'd');
 
-      if (filter) {
+      if (code == 'p') {
 
-        normal = facet.normal().unitVector();
-
-        // Find the intersection of the line corresponding to our ray and the facet plane.
-        code = segmentPlaneIntersection(p, ptest, facet.position(), normal, planeIntercept, tol);
-        if (code != '0') { // and (planeIntercept - p).dot(pp1) >= 0.0) {
-
-          // Test the interior of the facet.
-          facetTest = false;
-          px = planeIntercept.x();
-          py = planeIntercept.y();
-          pz = planeIntercept.z();
-
-          // The plane intersection is in the positive direction of the ray, so we 
-          // project the facet and intercept point to one of the primary planes and
-          // do a 2-D polygon interior test.
-          if (abs(normal.x()) > 0.1) {
-
-            // x plane -- use (y,z) coordinates.
-            for (i = 0, j = npts - 1; i < npts; j = i++) {
-              if ( ((vertices[ipts[i]].z() > pz) != (vertices[ipts[j]].z() > pz)) &&
-                   (py < (vertices[ipts[j]].y() - vertices[ipts[i]].y()) * (pz - vertices[ipts[i]].z()) / (vertices[ipts[j]].z() - vertices[ipts[i]].z()) + vertices[ipts[i]].y()) )
-                facetTest = not facetTest;
-            }
-
-          } else if (abs(normal.y()) > 0.1) {
-       
-            // y plane -- use (z,x) coordinates.
-            for (i = 0, j = npts - 1; i < npts; j = i++) {
-              if ( ((vertices[ipts[i]].x() > px) != (vertices[ipts[j]].x() > px)) &&
-                   (pz < (vertices[ipts[j]].z() - vertices[ipts[i]].z()) * (px - vertices[ipts[i]].x()) / (vertices[ipts[j]].x() - vertices[ipts[i]].x()) + vertices[ipts[i]].z()) )
-                facetTest = not facetTest;
-            }
-
-          } else {
-            CHECK(abs(normal.z()) > 0.1);
-
-            // z plane -- use (x,y) coordinate.
-            for (i = 0, j = npts - 1; i < npts; j = i++) {
-              if ( ((vertices[ipts[i]].y() > py) != (vertices[ipts[j]].y() > py)) &&
-                   (px < (vertices[ipts[j]].x() - vertices[ipts[i]].x()) * (py - vertices[ipts[i]].y()) / (vertices[ipts[j]].y() - vertices[ipts[i]].y()) + vertices[ipts[i]].x()) )
-                facetTest = not facetTest;
-            }
-
-          }
-          if (facetTest) numIntersections[itrial] += 1;
+        // The line segement is in the plane of facet.
+        if (pointInPolygon(p, vertices, ipts, normal, false, tol) or 
+            pointInPolygon(pends[itrial], vertices, ipts, normal, false, tol)) {
+          numIntersections[itrial] += 1;
+        } else {
+          i = 0;
+          while (i < npts - 1 and 
+                 segmentSegmentIntersection(p, pends[itrial], vertices[ipts[i]], vertices[ipts[i+1]], intercept1, intercept2, tol) == '0') ++i;
+          if (i < npts - 1) numIntersections[itrial] += 1;
         }
+
+      } else if (code == '1') { // and (intercept1 - p).dot(pp1) >= 0.0) {
+
+        if (pointInPolygon(intercept1, vertices, ipts, normal, false, tol)) numIntersections[itrial] += 1;
+
       }
     }
   }
@@ -171,6 +138,7 @@ bool pointInPolyhedron(const Dim<3>::Vector& p,
   // take the best two out three as our answer.
   unsigned numtrue = 0, numfalse = 0;
   for (const auto trial: numIntersections) {
+    // if (Process::getRank() == 0) cout << "Trial : " << trial << " " << (trial % 2) << endl;
     if (trial % 2 == 0) {
       numfalse += 1;
     } else {

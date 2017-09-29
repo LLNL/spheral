@@ -101,7 +101,7 @@ commandLine(seed = "lattice",
             damageMethod = CopyDamage,
             useDamageGradient = True,
             cullToWeakestFlaws = False,
-            effectiveFlawAlgorithm = SampledFlaws,
+            effectiveFlawAlgorithm = FullSpectrumFlaws,
             damageInCompression = False,
 
             # Optionally we can initialize a break near the origin.
@@ -109,10 +109,8 @@ commandLine(seed = "lattice",
             
             crksph = False,
             ASPH = True,
-            hmin = 1e-5,
-            hmax = 1.0,
             hminratio = 0.05,
-            cfl = 0.5,
+            cfl = 0.25,
             useVelocityMagnitudeForDt = False,
             XSPH = False,
             epsilonTensile = 0.0,
@@ -157,7 +155,11 @@ dx = xlength/nx
 dy = ylength/ny
 
 if crksph:
-    hydroname = "CRKSPH"
+    hydroname = os.path.join("CRKSPH", {0 : "CRKMassOverDensity",
+                                        1 : "CRKSumVolume",
+                                        2 : "CRKVoronoiVolume",
+                                        3 : "CRKHullVolume",
+                                        4 : "HVolume"}[volumeType])
     nPerh = 1.51
     order = 5
 else:
@@ -180,6 +182,7 @@ dataDir = os.path.join(dataDirBase,
 restartDir = os.path.join(dataDir, "restarts")
 restartBaseName = os.path.join(restartDir, "TensileRod-%i" % nx)
 vizDir = os.path.join(dataDir, "visit")
+vizDirCRK = os.path.join(dataDir, "visit-CRKVoronoi")
 vizBaseName = "TensileRod-%i" % nx
 
 origin = Vector2d(-xlength, -ylength)
@@ -263,6 +266,8 @@ if mpi.rank == 0:
         os.makedirs(restartDir)
     if not os.path.exists(vizDir):
         os.makedirs(vizDir)
+    if not os.path.exists(vizDir) and crksph and volumeType == CRKVoronoiVolume:
+        os.makedirs(vizDirCRK)
 mpi.barrier()
 
 #-------------------------------------------------------------------------------
@@ -322,10 +327,13 @@ output("WT")
 #-------------------------------------------------------------------------------
 # Create the NodeLists.
 #-------------------------------------------------------------------------------
+hmin = 0.1*nPerh*min(xlength/nx, ylength/ny)
+hmax = 2.0*nPerh*max(xlength/nx, ylength/ny)
 nodes = makeSolidNodeList("Stainless steel", eos, strengthModel,
                           nPerh = nPerh,
                           hmin = hmin,
                           hmax = hmax,
+                          hminratio = hminratio,
                           rhoMin = etamin*rho0,
                           rhoMax = etamax*rho0,
                           xmin = -100.0*Vector.one,
@@ -524,19 +532,9 @@ control = SpheralController(integrator, WT,
                             vizDir = vizDir,
                             vizStep = vizCycle,
                             vizTime = vizTime,
-                            vizDerivs = True)
+                            SPH = not ASPH,
+                            vizGhosts = False)
 output("control")
-
-#-------------------------------------------------------------------------------
-# Since we are creating a forced velocity gradient on the control nodes, we have
-# to override their mass density evolution or they falsely wander away from the
-# reference density.
-#-------------------------------------------------------------------------------
-## override = OverrideNodeProperties(nodes,
-##                                   rho0,
-##                                   eps0,
-##                                   xNodes)
-## control.appendPeriodicWork(override.override, 1)
 
 #-------------------------------------------------------------------------------
 # Monitor the evolution of the mass averaged strain.
@@ -544,6 +542,24 @@ output("control")
 strainHistory = AverageStrain(damageModel,
                               dataDir + "/strainhistory.txt")
 control.appendPeriodicWork(strainHistory.sample, 1)
+
+#-------------------------------------------------------------------------------
+# If we're doing CRK with the Voronoi volume, we can output an interesting view
+# of the cells for each point.
+#-------------------------------------------------------------------------------
+if crksph and volumeType == CRKVoronoiVolume:
+    import SpheralVoronoiSiloDump
+    def dropVViz(cycle, Time, dt):
+        SpheralVoronoiSiloDump.dumpPhysicsState(integrator,
+                                                baseFileName = vizBaseName,
+                                                baseDirectory = vizDirCRK,
+                                                currentTime = Time,
+                                                currentCycle = cycle,
+                                                dumpGhosts = False,
+                                                dumpDerivatives = False,
+                                                boundaries = integrator.uniqueBoundaryConditions())
+    control.appendPeriodicWork(dropVViz, vizCycle)
+    control.appendPeriodicTimeWork(dropVViz, vizTime)
 
 #-------------------------------------------------------------------------------
 # Advance to the end time.

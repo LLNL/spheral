@@ -90,6 +90,7 @@ self.generateSolidCRKSPHHydroBaseBindings(self.SolidCRKSPHHydroBase%(dim)id, %(d
         fourthranktensorfieldlist = "Spheral::FieldSpace::FourthRankTensorFieldList%id" % ndim
         fifthranktensorfieldlist = "Spheral::FieldSpace::FifthRankTensorFieldList%id" % ndim
         polyvolfieldlist = "Spheral::FieldSpace::FacetedVolumeFieldList%id" % ndim
+        vectorvectorfieldlist = "Spheral::FieldSpace::VectorVectorFieldList%id" % ndim
         connectivitymap = "Spheral::NeighborSpace::ConnectivityMap%id" % ndim
         tablekernel = "Spheral::KernelSpace::TableKernel%id" % ndim
         vector_of_boundary = "vector_of_Boundary%id" % ndim
@@ -147,6 +148,7 @@ self.generateSolidCRKSPHHydroBaseBindings(self.SolidCRKSPHHydroBase%(dim)id, %(d
                                  constrefparam(scalarfieldlist, "mass"),
                                  constrefparam(scalarfieldlist, "vol"),
                                  constrefparam(symtensorfieldlist, "H"),
+                                 constrefparam(intfieldlist, "voidPoint"),
                                  refparam(scalarfieldlist, "massDensity")],
                                 template_parameters = [dim],
                                 custom_name = "computeCRKSPHSumMassDensity%id" % ndim)
@@ -157,7 +159,6 @@ self.generateSolidCRKSPHHydroBaseBindings(self.SolidCRKSPHHydroBase%(dim)id, %(d
                                  constrefparam(scalarfieldlist, "rho"),
                                  constrefparam(vectorfieldlist, "gradRho"),
                                  constrefparam(connectivitymap, "connectivityMap"),
-                                 param("double", "kernelExtent"),
                                  constrefparam(vector_of_FacetedVolume, "boundaries"),
                                  constrefparam(vector_of_vector_of_FacetedVolume, "holes"),
                                  constrefparam(scalarfieldlist, "weights"),
@@ -165,6 +166,7 @@ self.generateSolidCRKSPHHydroBaseBindings(self.SolidCRKSPHHydroBase%(dim)id, %(d
                                  refparam(intfieldlist, "surfacePoint"),
                                  refparam(scalarfieldlist, "vol"),
                                  refparam(vectorfieldlist, "deltaCentroid"),
+                                 refparam(vectorvectorfieldlist, "etaVoidPoints"),
                                  refparam(polyvolfieldlist, "cells")],
                                 docstring = "Compute the volume per point using a Voronoi tessellation.")
                                 
@@ -410,6 +412,7 @@ self.generateSolidCRKSPHHydroBaseBindings(self.SolidCRKSPHHydroBase%(dim)id, %(d
         artificialviscosity = "Spheral::ArtificialViscositySpace::ArtificialViscosity%id" % ndim
         fileio = "Spheral::FileIOSpace::FileIO"
         smoothingscalebase = "Spheral::NodeSpace::SmoothingScaleBase%id" % ndim
+        voidboundary = "Spheral::BoundarySpace::CRKSPHVoidBoundary%id" % ndim
 
         # Constructors.
         x.add_constructor([constrefparam(smoothingscalebase, "smoothingScaleMethod"),
@@ -529,8 +532,11 @@ self.generateSolidCRKSPHHydroBaseBindings(self.SolidCRKSPHHydroBase%(dim)id, %(d
         const_ref_return_value(x, me, "%s::gradC" % me, thirdranktensorfieldlist, [], "gradC")
         const_ref_return_value(x, me, "%s::surfacePoint" % me, intfieldlist, [], "surfacePoint")
         const_ref_return_value(x, me, "%s::voidPoint" % me, intfieldlist, [], "voidPoint")
+        const_ref_return_value(x, me, "%s::etaVoidPoints" % me, vectorvectorfieldlist, [], "etaVoidPoints")
         const_ref_return_value(x, me, "%s::m0" % me, scalarfieldlist, [], "m0")
         const_ref_return_value(x, me, "%s::m1" % me, vectorfieldlist, [], "m1")
+
+        const_ref_return_value(x, me, "%s::voidBoundary" % me, voidboundary, [], "voidBoundary")
 
         return
 

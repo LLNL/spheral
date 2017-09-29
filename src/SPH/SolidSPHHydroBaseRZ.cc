@@ -283,7 +283,7 @@ evaluateDerivatives(const Dim<2>::Scalar time,
   FieldList<Dimension, Scalar> rhoSum = derivatives.fields(ReplaceFieldList<Dimension, Scalar>::prefix() + HydroFieldNames::massDensity, 0.0);
   FieldList<Dimension, Vector> DxDt = derivatives.fields(IncrementFieldList<Dimension, Vector>::prefix() + HydroFieldNames::position, Vector::zero);
   FieldList<Dimension, Scalar> DrhoDt = derivatives.fields(IncrementFieldList<Dimension, Scalar>::prefix() + HydroFieldNames::massDensity, 0.0);
-  FieldList<Dimension, Vector> DvDt = derivatives.fields(IncrementFieldList<Dimension, Vector>::prefix() + HydroFieldNames::velocity, Vector::zero);
+  FieldList<Dimension, Vector> DvDt = derivatives.fields(HydroFieldNames::hydroAcceleration, Vector::zero);
   FieldList<Dimension, Scalar> DepsDt = derivatives.fields(IncrementFieldList<Dimension, Scalar>::prefix() + HydroFieldNames::specificThermalEnergy, 0.0);
   FieldList<Dimension, Tensor> DvDx = derivatives.fields(HydroFieldNames::velocityGradient, Tensor::zero);
   FieldList<Dimension, Tensor> localDvDx = derivatives.fields(HydroFieldNames::internalVelocityGradient, Tensor::zero);
@@ -533,7 +533,7 @@ evaluateDerivatives(const Dim<2>::Scalar time,
               // ideal H calculation.
               const double fweightij = sameMatij ? 1.0 : mRZj*rhoi/(mRZi*rhoj);
               const double xij2 = xij.magnitude2();
-              const SymTensor thpt = xij.selfdyad()/(xij2 + 1.0e-10) / FastMath::square(Dimension::pownu12(xij2 + 1.0e-10));
+              const auto thpt = xij.selfdyad()*safeInvVar(xij2*xij2*xij2);
               weightedNeighborSumi +=     fweightij*abs(gWi);
               weightedNeighborSumj += 1.0/fweightij*abs(gWj);
               massSecondMomenti +=     fweightij*gradWi.magnitude2()*thpt;

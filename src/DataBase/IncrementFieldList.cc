@@ -10,68 +10,84 @@
 #include "Field/FieldList.hh"
 #include "Utilities/DBC.hh"
 
+#include <regex>
+
 namespace Spheral {
 
 using FieldSpace::FieldList;
+using namespace std;
 
 //------------------------------------------------------------------------------
 // Constructors.
 //------------------------------------------------------------------------------
 template<typename Dimension, typename Value>
 IncrementFieldList<Dimension, Value>::
-IncrementFieldList():
-  FieldListUpdatePolicyBase<Dimension, Value>() {
-}
-
-template<typename Dimension, typename Value>
-IncrementFieldList<Dimension, Value>::
-IncrementFieldList(const std::string& depend0):
-  FieldListUpdatePolicyBase<Dimension, Value>(depend0) {
+IncrementFieldList(const bool wildCardDerivs):
+  FieldListUpdatePolicyBase<Dimension, Value>(),
+  mWildCardDerivs(wildCardDerivs) {
 }
 
 template<typename Dimension, typename Value>
 IncrementFieldList<Dimension, Value>::
 IncrementFieldList(const std::string& depend0,
-               const std::string& depend1):
-  FieldListUpdatePolicyBase<Dimension, Value>(depend0, depend1) {
+                   const bool wildCardDerivs):
+  FieldListUpdatePolicyBase<Dimension, Value>(depend0),
+  mWildCardDerivs(wildCardDerivs) {
 }
 
 template<typename Dimension, typename Value>
 IncrementFieldList<Dimension, Value>::
 IncrementFieldList(const std::string& depend0,
-               const std::string& depend1,
-               const std::string& depend2):
-  FieldListUpdatePolicyBase<Dimension, Value>(depend0, depend1, depend2) {
+                   const std::string& depend1,
+                   const bool wildCardDerivs):
+  FieldListUpdatePolicyBase<Dimension, Value>(depend0, depend1),
+  mWildCardDerivs(wildCardDerivs) {
 }
 
 template<typename Dimension, typename Value>
 IncrementFieldList<Dimension, Value>::
 IncrementFieldList(const std::string& depend0,
-               const std::string& depend1,
-               const std::string& depend2,
-               const std::string& depend3):
-  FieldListUpdatePolicyBase<Dimension, Value>(depend0, depend1, depend2, depend3) {
+                   const std::string& depend1,
+                   const std::string& depend2,
+                   const bool wildCardDerivs):
+  FieldListUpdatePolicyBase<Dimension, Value>(depend0, depend1, depend2),
+  mWildCardDerivs(wildCardDerivs) {
 }
 
 template<typename Dimension, typename Value>
 IncrementFieldList<Dimension, Value>::
 IncrementFieldList(const std::string& depend0,
-               const std::string& depend1,
-               const std::string& depend2,
-               const std::string& depend3,
-               const std::string& depend4):
-  FieldListUpdatePolicyBase<Dimension, Value>(depend0, depend1, depend2, depend3, depend4) {
+                   const std::string& depend1,
+                   const std::string& depend2,
+                   const std::string& depend3,
+                   const bool wildCardDerivs):
+  FieldListUpdatePolicyBase<Dimension, Value>(depend0, depend1, depend2, depend3),
+  mWildCardDerivs(wildCardDerivs) {
 }
 
 template<typename Dimension, typename Value>
 IncrementFieldList<Dimension, Value>::
 IncrementFieldList(const std::string& depend0,
-               const std::string& depend1,
-               const std::string& depend2,
-               const std::string& depend3,
-               const std::string& depend4,
-               const std::string& depend5):
-  FieldListUpdatePolicyBase<Dimension, Value>(depend0, depend1, depend2, depend3, depend4, depend5) {
+                   const std::string& depend1,
+                   const std::string& depend2,
+                   const std::string& depend3,
+                   const std::string& depend4,
+                   const bool wildCardDerivs):
+  FieldListUpdatePolicyBase<Dimension, Value>(depend0, depend1, depend2, depend3, depend4),
+  mWildCardDerivs(wildCardDerivs) {
+}
+
+template<typename Dimension, typename Value>
+IncrementFieldList<Dimension, Value>::
+IncrementFieldList(const std::string& depend0,
+                   const std::string& depend1,
+                   const std::string& depend2,
+                   const std::string& depend3,
+                   const std::string& depend4,
+                   const std::string& depend5,
+                   const bool wildCardDerivs):
+  FieldListUpdatePolicyBase<Dimension, Value>(depend0, depend1, depend2, depend3, depend4, depend5),
+  mWildCardDerivs(wildCardDerivs) {
 }
 
 //------------------------------------------------------------------------------
@@ -100,18 +116,36 @@ update(const KeyType& key,
   StateBase<Dimension>::splitFieldKey(key, fieldKey, nodeListKey);
   REQUIRE(nodeListKey == UpdatePolicyBase<Dimension>::wildcard());
 
-  // Find the matching derivative FieldList from the StateDerivatives.
-  KeyType incrementKey = prefix() + fieldKey;
-  FieldSpace::FieldList<Dimension, Value> f = state.fields(fieldKey, Value());
-  const FieldSpace::FieldList<Dimension, Value> df = derivs.fields(incrementKey, Value());
-  CHECK(f.size() == df.size());
+  // Get the state we're updating.
+  auto f = state.fields(fieldKey, Value());
+  const auto numNodeLists = f.size();
 
-  // Loop over the internal values of the field.
-  const unsigned numNodeLists = f.size();
-  for (unsigned k = 0; k != numNodeLists; ++k) {
-    const unsigned n = f[k]->numInternalElements();
-    for (unsigned i = 0; i != n; ++i) {
-      f(k, i) += multiplier*(df(k, i));
+  // Find all the available matching derivative FieldList keys.
+  const auto incrementKey = prefix() + fieldKey;
+  // cerr << "IncrementFieldList: [" << fieldKey << "] [" << incrementKey << "] : " << endl;
+  const auto allkeys = derivs.fieldKeys();
+  vector<string> incrementKeys;
+  for (const auto& key: allkeys) {
+    if (std::regex_search(key, std::regex("^" + incrementKey))) {
+      incrementKeys.push_back(key);
+      // cerr << "        " << key << endl;
+    }
+  }
+  CHECK(not incrementKeys.empty());
+
+  // If we're not allowing wildcard update, there should only be one match.
+  VERIFY2(mWildCardDerivs or incrementKeys.size() == 1,
+          "IncrementFieldList ERROR: unable to find unique match for derivative field key " << incrementKey);
+
+  // Update by each of our derivative fields.
+  for (const auto& key: incrementKeys) {
+    const auto df = derivs.fields(key, Value());
+    CHECK(df.size() == f.size());
+    for (auto k = 0; k != numNodeLists; ++k) {
+      const auto n = f[k]->numInternalElements();
+      for (auto i = 0; i != n; ++i) {
+        f(k, i) += multiplier*(df(k, i));
+      }
     }
   }
 }
@@ -126,7 +160,24 @@ operator==(const UpdatePolicyBase<Dimension>& rhs) const {
 
   // We're only equal if the other guy is also an increment operator.
   const IncrementFieldList<Dimension, Value>* rhsPtr = dynamic_cast<const IncrementFieldList<Dimension, Value>*>(&rhs);
-  return rhsPtr != 0;
+  return rhsPtr != 0 and mWildCardDerivs == rhsPtr->mWildCardDerivs;
+}
+
+//------------------------------------------------------------------------------
+// Wildcard derivs attribute.
+//------------------------------------------------------------------------------
+template<typename Dimension, typename Value>
+bool
+IncrementFieldList<Dimension, Value>::
+wildCardDerivs() const {
+  return mWildCardDerivs;
+}
+
+template<typename Dimension, typename Value>
+void
+IncrementFieldList<Dimension, Value>::
+wildCardDerivs(const bool val) {
+  mWildCardDerivs = val;
 }
 
 }

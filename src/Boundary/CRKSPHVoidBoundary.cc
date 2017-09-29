@@ -7,6 +7,7 @@
 #include "Field/Field.hh"
 #include "Field/FieldBase.hh"
 #include "Hydro/HydroFieldNames.hh"
+#include "Strength/SolidFieldNames.hh"
 #include "Utilities/DBC.hh"
 
 #include <limits>
@@ -29,10 +30,10 @@ using DataBaseSpace::DataBase;
 template<typename Dimension>
 CRKSPHVoidBoundary<Dimension>::
 CRKSPHVoidBoundary(const FieldList<Dimension, int>& surfacePoint,
-                   const FieldList<Dimension, Vector>& m1):
+                   const FieldList<Dimension, vector<Vector>>& etaVoidPoints):
   Boundary<Dimension>(),
   mSurfacePoint(surfacePoint),
-  mM1(m1) {
+  mEtaVoidPoints(etaVoidPoints) {
 }
 
 //------------------------------------------------------------------------------
@@ -59,24 +60,31 @@ setGhostNodes(NodeList<Dimension>& nodeList) {
   const unsigned firstNewGhostNode = nodeList.numNodes();
     
   // Line up the surface points as controls for the void points.
-  unsigned numSurfacePoints = 0;
+  unsigned numVoidPoints = 0;
   unsigned j = firstNewGhostNode;
   if (mSurfacePoint.haveNodeList(nodeList)) {
     const Field<Dimension, int>& surfacePoint = **mSurfacePoint.fieldForNodeList(nodeList);
+    const Field<Dimension, vector<Vector>>& etaVoidPoints = **mEtaVoidPoints.fieldForNodeList(nodeList);
     for (unsigned i = 0; i < firstNewGhostNode; ++i) {
-      if (surfacePoint(i) == 1) {
-        ++numSurfacePoints;
-        cNodes.push_back(i);
-        gNodes.push_back(j++);
+      if (surfacePoint(i) & 1 == 1) {
+        const unsigned nv = etaVoidPoints(i).size();
+        CHECK(nv > 0);
+        numVoidPoints += nv;
+        for (unsigned k = 0; k != nv; ++k) {
+          cNodes.push_back(i);
+          gNodes.push_back(j++);
+        }
       }
     }
   }
-  CHECK(cNodes.size() == numSurfacePoints);
-  CHECK(gNodes.size() == numSurfacePoints);
+  CHECK(cNodes.size() == numVoidPoints);
+  CHECK(gNodes.size() == numVoidPoints);
 
   // Create the correct number of new void ghost points.
-  const unsigned numGhostNodes0 = nodeList.numGhostNodes();
-  nodeList.numGhostNodes(numGhostNodes0 + numSurfacePoints);
+  if (numVoidPoints > 0) {
+    const unsigned numGhostNodes0 = nodeList.numGhostNodes();
+    nodeList.numGhostNodes(numGhostNodes0 + numVoidPoints);
+  }
 
   // Update the void point positions and H's.
   this->updateGhostNodes(nodeList);
@@ -91,30 +99,38 @@ CRKSPHVoidBoundary<Dimension>::
 updateGhostNodes(NodeList<Dimension>& nodeList) {
   const vector<int>& cNodes = this->controlNodes(nodeList);
   const vector<int>& gNodes = this->ghostNodes(nodeList);
-  const unsigned nsurf = cNodes.size();
-  CHECK(gNodes.size() == nsurf);
+  const unsigned nvoid = gNodes.size();
+  CHECK(cNodes.size() == nvoid);
   
-  if (nsurf > 0) {
-    const Scalar nPerh = nodeList.nodesPerSmoothingScale();
-    const Field<Dimension, Vector>& m1 = **mM1.fieldForNodeList(nodeList);
+  if (nvoid > 0) {
     Field<Dimension, Vector>& pos = nodeList.positions();
     Field<Dimension, SymTensor>& H = nodeList.Hfield();
+    const Field<Dimension, int>& surfacePoint = **mSurfacePoint.fieldForNodeList(nodeList);
+    const Field<Dimension, vector<Vector>>& etaVoidPoints = **mEtaVoidPoints.fieldForNodeList(nodeList);
 
-    // Update the void points positions based on projecting from the surface point.
-    for (unsigned k = 0; k != nsurf; ++k) {
-      const unsigned i = cNodes[k];
-      const Vector& xi = pos(i);
-      const SymTensor& Hi = H(i);
-      const Vector nhat = m1(i).unitVector();
+    const unsigned n = pos.numInternalElements();  // Note we assume this is the first BC, and there are no ghost masters.
+    unsigned j = gNodes[0];                        // Assuming our ghost nodes are sequential.
 
-      const unsigned j = gNodes[k];
-      Vector& xj = pos(j);
-      SymTensor& Hj = H(j);
+    // Update the void points positions based on projecting from the surface point in the normalized eta (H) frame.
+    for (unsigned i = 0; i < n; ++i) {
+      if (surfacePoint(i) & 1 == 1) {
+        const Vector& xi = pos(i);
+        const SymTensor& Hi = H(i);
+        const SymTensor Hinv = Hi.Inverse();
 
-      xj = xi + Hi.Inverse()*nhat/nPerh;
-      Hj = Hi;
-      // cerr << "Void : " << i << " -> " << j << "     " << xi << " -> " << xj << endl;
+        const unsigned nv = etaVoidPoints(i).size();
+        CHECK(nv > 0);
+        for (unsigned k = 0; k < nv; ++k) {
+          Vector& xj = pos(j);
+          SymTensor& Hj = H(j);
+
+          xj = xi + Hinv*etaVoidPoints(i)[k];
+          Hj = Hi;
+          ++j;
+        }
+      }
     }
+    CHECK(j == gNodes[0] + nvoid);
   }
 }
 
@@ -163,9 +179,17 @@ template<typename Dimension>
 void
 CRKSPHVoidBoundary<Dimension>::
 applyGhostBoundary(Field<Dimension, typename Dimension::Vector>& field) const {
+  const vector<int>& cNodes = this->controlNodes(field.nodeList());
   const vector<int>& gNodes = this->ghostNodes(field.nodeList());
-  const unsigned nvoid = gNodes.size();
-  for (unsigned k = 0; k < nvoid; ++k) field(gNodes[k]) = Vector::zero;
+  const unsigned nsurf = cNodes.size();
+  CHECK(gNodes.size() == nsurf);
+  if (field.name() == HydroFieldNames::velocity) {
+    // velocity: copy surface->void
+    for (unsigned k = 0; k < nsurf; ++k) field(gNodes[k]) = field(cNodes[k]);
+  } else {
+    // Default zero.
+    for (unsigned k = 0; k < nsurf; ++k) field(gNodes[k]) = Vector::zero;
+  }
 }
 
 // Specialization for Tensor fields.
@@ -183,9 +207,17 @@ template<typename Dimension>
 void
 CRKSPHVoidBoundary<Dimension>::
 applyGhostBoundary(Field<Dimension, typename Dimension::SymTensor>& field) const {
+  const vector<int>& cNodes = this->controlNodes(field.nodeList());
   const vector<int>& gNodes = this->ghostNodes(field.nodeList());
-  const unsigned nvoid = gNodes.size();
-  for (unsigned k = 0; k < nvoid; ++k) field(gNodes[k]) = SymTensor::zero;
+  const unsigned nsurf = cNodes.size();
+  CHECK(gNodes.size() == nsurf);
+  if (field.name() == SolidFieldNames::deviatoricStress) {
+    // deviatoric stress: copy surface->void
+    for (unsigned k = 0; k < nsurf; ++k) field(gNodes[k]) = field(cNodes[k]);
+  } else {
+    // Default zero.
+    for (unsigned k = 0; k < nsurf; ++k) field(gNodes[k]) = SymTensor::zero;
+  }
 }
 
 // Specialization for third rank tensors.

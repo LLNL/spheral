@@ -45,7 +45,6 @@ def generateBoundaryVirtualBindings(x, ndim, pureVirtual):
     x.add_method("applyGhostBoundary", None, [refparam(tensorfield, "field")], is_const=True, is_virtual=True, is_pure_virtual=pureVirtual)
     x.add_method("applyGhostBoundary", None, [refparam(symtensorfield, "field")], is_const=True, is_virtual=True, is_pure_virtual=pureVirtual)
     x.add_method("applyGhostBoundary", None, [refparam(thirdranktensorfield, "field")], is_const=True, is_virtual=True, is_pure_virtual=pureVirtual)
-    x.add_method("applyGhostBoundary", None, [refparam(vectordoublefield, "field")], is_const=True, is_virtual=True, is_pure_virtual=pureVirtual)
 
     x.add_method("enforceBoundary", None, [refparam(intfield, "field")], is_const=True, is_virtual=True, is_pure_virtual=pureVirtual)
     x.add_method("enforceBoundary", None, [refparam(scalarfield, "field")], is_const=True, is_virtual=True, is_pure_virtual=pureVirtual)
@@ -238,6 +237,9 @@ self.space.add_function("dynamicCastBoundary",
         x.add_method("swapFaceValues", None, [refparam(vectordoublefield, "field"), constrefparam(mesh, "mesh")], is_const=True, is_virtual=True)
         x.add_method("swapFaceValues", None, [refparam(vectorvectorfield, "field"), constrefparam(mesh, "mesh")], is_const=True, is_virtual=True)
 
+        x.add_method("applyGhostBoundary", None, [refparam(vectordoublefield, "field")], is_const=True, is_virtual=True)
+        x.add_method("applyGhostBoundary", None, [refparam(vectorvectorfield, "field")], is_const=True, is_virtual=True)
+
         # Methods.
         x.add_method("haveNodeList", "bool", [constrefparam(nodelist, "nodeList")], is_const=True)
         x.add_method("controlNodes", "vector_of_int", [refparam(nodelist, "nodeList")], is_const=True)
@@ -374,7 +376,6 @@ self.space.add_function("dynamicCastBoundary",
         x.add_method("applyGhostBoundary", None, [refparam(tensorfield, "field")], is_const=True, is_virtual=True)
         x.add_method("applyGhostBoundary", None, [refparam(symtensorfield, "field")], is_const=True, is_virtual=True)
         x.add_method("applyGhostBoundary", None, [refparam(thirdranktensorfield, "field")], is_const=True, is_virtual=True)
-        x.add_method("applyGhostBoundary", None, [refparam(vectordoublefield, "field")], is_const=True, is_virtual=True)
 
         x.add_method("enforceBoundary", None, [refparam(intfield, "field")], is_const=True, is_virtual=True)
         x.add_method("enforceBoundary", None, [refparam(scalarfield, "field")], is_const=True, is_virtual=True)
@@ -429,7 +430,6 @@ self.space.add_function("dynamicCastBoundary",
         x.add_method("applyGhostBoundary", None, [refparam(tensorfield, "field")], is_const=True, is_virtual=True)
         x.add_method("applyGhostBoundary", None, [refparam(symtensorfield, "field")], is_const=True, is_virtual=True)
         x.add_method("applyGhostBoundary", None, [refparam(thirdranktensorfield, "field")], is_const=True, is_virtual=True)
-        x.add_method("applyGhostBoundary", None, [refparam(vectordoublefield, "field")], is_const=True, is_virtual=True)
 
         x.add_method("enforceBoundary", None, [refparam(intfield, "field")], is_const=True, is_virtual=True)
         x.add_method("enforceBoundary", None, [refparam(scalarfield, "field")], is_const=True, is_virtual=True)
@@ -704,6 +704,7 @@ self.space.add_function("dynamicCastBoundary",
         tensorfieldlist = "Spheral::FieldSpace::TensorFieldList%id" % ndim
         symtensorfieldlist = "Spheral::FieldSpace::SymTensorFieldList%id" % ndim
         thirdranktensorfieldlist = "Spheral::FieldSpace::ThirdRankTensorFieldList%id" % ndim
+        vectorvectorfieldlist = "Spheral::FieldSpace::VectorVectorFieldList%id" % ndim
         nodelist = "Spheral::NodeSpace::NodeList%id" % ndim
         state = "State%id" % ndim
         derivatives = "StateDerivatives%id" % ndim
@@ -713,7 +714,7 @@ self.space.add_function("dynamicCastBoundary",
 
         # Constructors.
         x.add_constructor([constrefparam(intfieldlist, "surfacePoint"), 
-                           constrefparam(vectorfieldlist, "m1")])
+                           constrefparam(vectorvectorfieldlist, "etaVoidPoints")])
 
         # Generate the abstract interface.
         generateBoundaryVirtualBindings(x, ndim, False)

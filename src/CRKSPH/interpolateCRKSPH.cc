@@ -85,7 +85,7 @@ interpolateCRKSPH(const FieldSpace::FieldList<Dimension, DataType>& fieldList,
       DataType& resulti = result(nodeListi, i);
 
       // Add our self-contribution.
-      const Scalar W0 = W.kernelValue(0.0, 1.0);
+      const Scalar W0 = W.kernelValue(0.0, Hdeti);
       resulti += weight(nodeListi, i)*Fi*W0*Ai;
 
       // Neighbors!

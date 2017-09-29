@@ -175,27 +175,6 @@ applyGhostBoundary(Field<Dimension, typename Dimension::ThirdRankTensor>& field)
   }
 }
 
-// vector<Scalar> fields.
-template<typename Dimension>
-void
-PeriodicBoundary<Dimension>::PeriodicPlanarBoundary::
-applyGhostBoundary(Field<Dimension, std::vector<typename Dimension::Scalar> >& field) const {
-
-  REQUIRE(valid());
-
-  // Apply the boundary condition to all the ghost node values.
-  const NodeList<Dimension>& nodeList = field.nodeList();
-  CHECK(this->controlNodes(nodeList).size() == this->ghostNodes(nodeList).size());
-  vector<int>::const_iterator controlItr = this->controlBegin(nodeList);
-  vector<int>::const_iterator ghostItr = this->ghostBegin(nodeList);
-  for (; controlItr < this->controlEnd(nodeList); ++controlItr, ++ghostItr) {
-    CHECK(ghostItr < this->ghostEnd(nodeList));
-    CHECK(*controlItr >= 0 and *controlItr < nodeList.numNodes());
-    CHECK(*ghostItr >= nodeList.firstGhostNode() and *ghostItr < nodeList.numNodes());
-    field(*ghostItr) = field(*controlItr);
-  }
-}
-
 //------------------------------------------------------------------------------
 // Enforce the boundary condition on nodes in violation for the given field.
 // For periodic boundaries, this is always simple.  Do nothing!

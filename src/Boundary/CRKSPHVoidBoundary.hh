@@ -43,7 +43,7 @@ public:
 
   // Constructors and destructors.
   CRKSPHVoidBoundary(const FieldSpace::FieldList<Dimension, int>& surfacePoint,
-                     const FieldSpace::FieldList<Dimension, Vector>& m1);
+                     const FieldSpace::FieldList<Dimension, std::vector<Vector>>& etaVoidPoints);
   virtual ~CRKSPHVoidBoundary();
 
   //**********************************************************************
@@ -82,7 +82,7 @@ public:
 private:
   //--------------------------- Private Interface ---------------------------//
   const FieldSpace::FieldList<Dimension, int>& mSurfacePoint;
-  const FieldSpace::FieldList<Dimension, Vector>& mM1;
+  const FieldSpace::FieldList<Dimension, std::vector<Vector>>& mEtaVoidPoints;
 };
 
 }
