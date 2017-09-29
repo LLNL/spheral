@@ -95,7 +95,8 @@ eos = GammaLawGasMKS3d(gamma = 5.0/3.0, mu = 1.0)
 nodes = makeFluidNodeList("nodes", eos,
                           numInternal = 2,
                           xmin = Vector(-100*r0, -100*r0, -100*r0),
-                          xmax = Vector( 100*r0,  100*r0,  100*r0))
+                          xmax = Vector( 100*r0,  100*r0,  100*r0),
+                          topGridCellSize = 1000*r0)
 mass = nodes.mass()
 pos = nodes.positions()
 vel = nodes.velocity()
