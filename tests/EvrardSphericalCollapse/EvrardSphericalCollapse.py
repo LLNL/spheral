@@ -20,6 +20,7 @@ title("3-D gravitational hydro test -- Evrard spherical collapse.")
 commandLine(nx = 100,               # Number of across diameter of sphere
 
             # Gravity parameters.
+            nbody = False,          # True->NBodyGravity, False->OctTreeGravity
             opening = 1.0,          # (dimensionless, OctTreeGravity) opening parameter for tree walk
             fdt = 0.1,              # (dimensionless, OctTreeGravity) timestep multiplier
 
@@ -87,8 +88,14 @@ else:
 if asph:
     hydroname = "A" + hydroname
 
+if nbody:
+    gravityname = "NBodyGravity"
+else:
+    gravityname = "TreeGravity"
+
 dataDir = os.path.join(dataRoot,
                        hydroname,
+                       gravityname,
                        "nperh=%4.2f" % nPerh,
                        "XSPH=%s" % XSPH,
                        "densityUpdate=%s" % densityUpdate,
@@ -180,10 +187,16 @@ output("db.numFluidNodeLists")
 #-------------------------------------------------------------------------------
 # Gravity baby!
 #-------------------------------------------------------------------------------
-gravity = OctTreeGravity(G = G,
-                         softeningLength = plummerLength,
-                         opening = opening,
-                         ftimestep = fdt)
+if nbody:
+    gravity = NBodyGravity(G = G,
+                           plummerSofteningLength = plummerLength,
+                           maxDeltaVelocity = fdt)
+else:
+    gravity = OctTreeGravity(G = G,
+                             softeningLength = plummerLength,
+                             opening = opening,
+                             ftimestep = fdt)
+
 packages = [gravity]
 
 #-------------------------------------------------------------------------------
