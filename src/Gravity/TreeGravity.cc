@@ -85,7 +85,7 @@ struct TreeDimensionTraits<Dim<3> > {
   }
 
   static double forceLaw(const double r2) { return 1.0/r2; }
-  static double potentialLaw(const double r2) { return -1.0/sqrt(r2); }
+  static double potentialLaw(const double r2) { return 1.0/sqrt(r2); }
 };
 
 }
@@ -160,6 +160,7 @@ evaluateDerivatives(const typename Dimension::Scalar time,
   const FieldList<Dimension, Scalar> mass = state.fields(HydroFieldNames::mass, 0.0);
   const FieldList<Dimension, Vector> position = state.fields(HydroFieldNames::position, Vector::zero);
   const FieldList<Dimension, Vector> velocity = state.fields(HydroFieldNames::velocity, Vector::zero);
+  const size_t numNodeLists = position.numFields();
 
   // Get the acceleration and position change vectors we'll be modifying.
   FieldList<Dimension, Vector> DxDt = derivs.fields(IncrementState<Dimension, Field<Dimension, Vector> >::prefix() + HydroFieldNames::position, Vector::zero);
@@ -245,7 +246,6 @@ evaluateDerivatives(const typename Dimension::Scalar time,
   // The idea is to come up with the most restrictive dynamical time per particle
   // by find the dominant potentials for each point.
   if (mTimeStepChoice == GravityTimeStepType::DynamicalTime) {
-    const size_t numNodeLists = position.numFields();
     mRhoMax = 0.0;
     mNodeListMax = -1;
     mimax = -1;
@@ -306,14 +306,24 @@ evaluateDerivatives(const typename Dimension::Scalar time,
     // to compute the gravitational dynamical time scale.
   }
 
+  // Sum up the potential for the extra energy term.
+  mExtraEnergy = mPotential.sumElements();
+  // mExtraEnergy = 0.0;
+  // for (unsigned nodeListi = 0; nodeListi != numNodeLists; ++nodeListi) {
+  //   const unsigned n = mPotential[nodeListi]->numInternalElements();
+  //   for (unsigned i = 0; i != n; ++i) {
+  //     mExtraEnergy += mass(nodeListi, i) * mPotential(nodeListi, i);
+  //   }
+  // }
+
 #ifdef USE_MPI
+  // mExtraEnergy = allReduce(mExtraEnergy, MPI_SUM, Communicator::communicator());
+
   // Wait until all our sends are complete.
   vector<MPI_Status> sendStatus(sendRequests.size());
   MPI_Waitall(sendRequests.size(), &(*sendRequests.begin()), &(*sendStatus.begin()));
 #endif
 
-  // Sum up the potential for the extra energy term.
-  mExtraEnergy = mPotential.sumElements();
 }
 
 //------------------------------------------------------------------------------
@@ -865,7 +875,7 @@ applyTreeForces(const Tree& tree,
 
                 // Increment the acceleration and potential.
                 DvDti += mG*cell.Mglobal*TreeDimensionTraits<Dimension>::forceLaw(rji2) * nhat;
-                phii += mG*mi*cell.Mglobal*TreeDimensionTraits<Dimension>::potentialLaw(rji2);
+                phii -= mG*mi*cell.Mglobal*TreeDimensionTraits<Dimension>::potentialLaw(rji2);
                 cellsCompleted[inode][ilevel].insert(cell.key);
 
                 // Add to the set of "interaction" buckets for this point, which are used for
@@ -893,7 +903,7 @@ applyTreeForces(const Tree& tree,
 
                     // Increment the acceleration and potential.
                     DvDti += mG*mj*TreeDimensionTraits<Dimension>::forceLaw(rji2) * nhat;
-                    phii += mG*mi*mj*TreeDimensionTraits<Dimension>::potentialLaw(rji2);
+                    phii -= mG*mi*mj*TreeDimensionTraits<Dimension>::potentialLaw(rji2);
                   } else {
                     homeBuckets(nodeListi, i) = make_pair(ilevel, cell.key);
                   }
