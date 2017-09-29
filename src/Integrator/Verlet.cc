@@ -124,6 +124,7 @@ step(typename Dimension::Scalar maxTime,
 
   // Copy the mid-point state.
   State<Dimension> state12(state);
+  state12.copyState();
 
   // Advance the position to the end of step using the half-step velocity.
   auto vel12 = state.fields(HydroFieldNames::velocity, Vector::zero);
