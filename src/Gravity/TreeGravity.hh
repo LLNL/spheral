@@ -228,7 +228,6 @@ private:
   Scalar applyTreeForces(const Tree& tree,
                          const FieldSpace::FieldList<Dimension, Scalar>& mass,
                          const FieldSpace::FieldList<Dimension, Vector>& position,
-                         FieldSpace::FieldList<Dimension, Vector>& DxDt,
                          FieldSpace::FieldList<Dimension, Vector>& DvDt,
                          FieldSpace::FieldList<Dimension, Scalar>& potential,
                          FieldSpace::FieldList<Dimension, std::vector<Scalar> >& interactionMasses,

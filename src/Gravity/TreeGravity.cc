@@ -224,7 +224,7 @@ evaluateDerivatives(const typename Dimension::Scalar time,
         this->deserialize(tree, bufItr, buffer.end());
         CHECK(bufItr == buffer.end());
         mDtMinAcc = min(mDtMinAcc, 
-                        applyTreeForces(tree, mass, position, DxDt, DvDt, mPotential, interactionMasses, interactionPositions, homeBuckets, cellsCompleted));
+                        applyTreeForces(tree, mass, position, DvDt, mPotential, interactionMasses, interactionPositions, homeBuckets, cellsCompleted));
       }
     }
   }
@@ -233,7 +233,7 @@ evaluateDerivatives(const typename Dimension::Scalar time,
 
   // Apply the forces from our local tree.
   mDtMinAcc = min(mDtMinAcc,
-                  applyTreeForces(mTree, mass, position, DxDt, DvDt, mPotential, interactionMasses, interactionPositions, homeBuckets, cellsCompleted));
+                  applyTreeForces(mTree, mass, position, DvDt, mPotential, interactionMasses, interactionPositions, homeBuckets, cellsCompleted));
 
   // Set the motion to be Lagrangian.
   DxDt.assignFields(velocity);
@@ -798,7 +798,6 @@ TreeGravity<Dimension>::
 applyTreeForces(const Tree& tree,
                 const FieldSpace::FieldList<Dimension, Scalar>& mass,
                 const FieldSpace::FieldList<Dimension, Vector>& position,
-                FieldSpace::FieldList<Dimension, Vector>& DxDt,
                 FieldSpace::FieldList<Dimension, Vector>& DvDt,
                 FieldSpace::FieldList<Dimension, Scalar>& potential,
                 FieldSpace::FieldList<Dimension, vector<Scalar> >& interactionMasses,
@@ -834,7 +833,6 @@ applyTreeForces(const Tree& tree,
         // State of node i.
         mi = mass(nodeListi, i);
         const Vector& xi = position(nodeListi, i);
-        const Vector& vi = DxDt(nodeListi, i);
         Vector& DvDti = DvDt(nodeListi, i);
         Scalar& phii = potential(nodeListi, i);
         inode = NodeID(nodeListi, i);
@@ -885,7 +883,6 @@ applyTreeForces(const Tree& tree,
                 for (j = 0; j != cell.masses.size(); ++j) {
                   mj = cell.masses[j];
                   const Vector& xj = cell.positions[j];
-                  const Vector& vj = cell.velocities[j];
                   xji = xj - xi;
                   rji2 = xji.magnitude2();
 
