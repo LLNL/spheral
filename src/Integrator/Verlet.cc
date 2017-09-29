@@ -115,7 +115,7 @@ step(typename Dimension::Scalar maxTime,
   const Scalar hdt0 = 0.5*dt0;
 
   // Predict state at the mid-point.
-  state.timeAdvanceOnly(true);
+  // state.timeAdvanceOnly(true);
   state.update(derivs, hdt0, t, dt0);
   this->enforceBoundaries(state, derivs);
   this->applyGhostBoundaries(state, derivs);
@@ -150,7 +150,7 @@ step(typename Dimension::Scalar maxTime,
 
   // Correct the final state by the end-point derivatives.
   state.assign(state12);
-  state.timeAdvanceOnly(false);
+  // state.timeAdvanceOnly(false);
   state.update(derivs, hdt0, t + hdt0, dt0);
   {
     auto pos = state.fields(HydroFieldNames::position, Vector::zero);
