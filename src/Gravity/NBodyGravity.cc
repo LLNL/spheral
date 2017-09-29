@@ -34,6 +34,42 @@ using FieldSpace::Field;
 using FieldSpace::FieldList;
 using DataBaseSpace::DataBase;
 
+namespace {
+//------------------------------------------------------------------------------
+// Encapculate some specialized dimension specific things we need for this class.
+//------------------------------------------------------------------------------
+template<typename Dimension> struct GravityDimensionTraits;
+
+//..............................................................................
+// 1D
+//..............................................................................
+template<>
+struct GravityDimensionTraits<Dim<1>> {
+  static double forceLaw(const double r2) { return 1.0; }
+  static double potentialLaw(const double r2) { return 1.0; }  // Not sure about this one
+};
+
+//..............................................................................
+// 2D
+//..............................................................................
+template<>
+struct GravityDimensionTraits<Dim<2>> {
+  static double forceLaw(const double r2) { return 1.0/sqrt(r2); }
+  static double potentialLaw(const double r2) { return log(sqrt(r2)); }
+};
+
+//..............................................................................
+// 3D
+//..............................................................................
+template<>
+struct GravityDimensionTraits<Dim<3>> {
+  static double forceLaw(const double r2) { return 1.0/r2; }
+  static double potentialLaw(const double r2) { return 1.0/sqrt(r2); }
+};
+
+}
+//------------------------------------------------------------------------------
+// Constructor
 //------------------------------------------------------------------------------
 template <typename Dimension>
 NBodyGravity<Dimension>::
@@ -46,14 +82,14 @@ NBodyGravity(const double plummerSofteningLength,
   mSofteningLength(plummerSofteningLength),
   mG(G) {
 }
-//------------------------------------------------------------------------------
 
+//------------------------------------------------------------------------------
+// Destructor
 //------------------------------------------------------------------------------
 template <typename Dimension>
 NBodyGravity<Dimension>::
 ~NBodyGravity() {
 }
-//------------------------------------------------------------------------------
 
 //------------------------------------------------------------------------------
 // Register some extra state.
@@ -165,6 +201,7 @@ evaluateDerivatives(const typename Dimension::Scalar time,
       mPotential(ifield, i) *= mG;
 
       // Accumluate the package energy as the total gravitational potential.
+      // mExtraEnergy += mPotential(ifield, i);
       mExtraEnergy += mass(ifield, i) * mPotential(ifield, i);
 
       // Capture the maximum acceleration and velocity magnitudes.
@@ -175,6 +212,10 @@ evaluateDerivatives(const typename Dimension::Scalar time,
   }
 
 #ifdef USE_MPI
+  mExtraEnergy = allReduce(mExtraEnergy, MPI_SUM, Communicator::communicator());
+  mOldMaxAcceleration = allReduce(mOldMaxAcceleration, MPI_MAX, Communicator::communicator());
+  mOldMaxVelocity = allReduce(mOldMaxVelocity, MPI_MAX, Communicator::communicator());
+
   // Wait until all our sends are complete.
   vector<MPI_Status> sendStatus(sendRequests.size());
   MPI_Waitall(sendRequests.size(), &(*sendRequests.begin()), &(*sendStatus.begin()));
@@ -192,9 +233,17 @@ initializeProblemStartup(DataBase<Dimension>& db) {
   // Allocate space for the gravitational potential FieldList.
   mPotential = db.newGlobalFieldList(0.0, "gravitational potential");
 
+  // We need to make a dry run through setting derivatives and such
+  // to set our initial vote on the time step.
+  vector<PhysicsSpace::Physics<Dimension>*> packages(1, this);
+  State<Dimension> state(db, packages);
+  StateDerivatives<Dimension> derivs(db, packages);
+  this->initialize(0.0, 1.0, db, state, derivs);
+  this->evaluateDerivatives(0.0, 1.0, db, state, derivs);
 }
-//------------------------------------------------------------------------------
 
+//------------------------------------------------------------------------------
+// Timestep vote
 //------------------------------------------------------------------------------
 template <typename Dimension>
 typename NBodyGravity<Dimension>::TimeStepType
@@ -216,8 +265,9 @@ dt(const DataBase<Dimension>& dataBase,
                << ends;
   return TimeStepType(deltat, reasonStream.str());
 }
-//------------------------------------------------------------------------------
 
+//------------------------------------------------------------------------------
+// Package energy
 //------------------------------------------------------------------------------
 template <typename Dimension>
 typename NBodyGravity<Dimension>::Scalar 
@@ -225,8 +275,9 @@ NBodyGravity<Dimension>::
 extraEnergy() const {
   return mExtraEnergy;
 }
-//------------------------------------------------------------------------------
 
+//------------------------------------------------------------------------------
+// Access the potential field
 //------------------------------------------------------------------------------
 template <typename Dimension>
 const FieldList<Dimension, typename NBodyGravity<Dimension>::Scalar>&
@@ -234,8 +285,9 @@ NBodyGravity<Dimension>::
 potential() const {
   return mPotential;
 }
-//------------------------------------------------------------------------------
 
+//------------------------------------------------------------------------------
+// valid
 //------------------------------------------------------------------------------
 template <typename Dimension>
 bool 
@@ -247,14 +299,17 @@ valid() const {
 }
 
 //------------------------------------------------------------------------------
+// G
+//------------------------------------------------------------------------------
 template <typename Dimension>
 double
 NBodyGravity<Dimension>::
 G() const {
   return mG;
 }
-//------------------------------------------------------------------------------
 
+//------------------------------------------------------------------------------
+// softening length
 //------------------------------------------------------------------------------
 template <typename Dimension>
 double
@@ -262,9 +317,7 @@ NBodyGravity<Dimension>::
 softeningLength() const {
   return mSofteningLength;
 }
-//------------------------------------------------------------------------------
 
-//------------------------------------------------------------------------------
 template <typename Dimension>
 void
 NBodyGravity<Dimension>::
@@ -272,7 +325,6 @@ softeningLength(const double x) {
   VERIFY(x >= 0.0);
   mSofteningLength = x;
 }
-//------------------------------------------------------------------------------
 
 //------------------------------------------------------------------------------
 // Accumulate the pair-forces from the given points.
@@ -320,10 +372,10 @@ applyPairForces(const std::vector<Scalar>& otherMass,
           rHat = r.unitVector();
 
           // Force
-          DvDti -= otherMass[j] * rHat / r2;       // Multiply by G later
+          DvDti -= otherMass[j] * rHat * GravityDimensionTraits<Dimension>::forceLaw(r2);  // Multiply by G later
 
           // Potential
-          phii -= otherMass[j] / std::sqrt(r2);    // Multiply by G later
+          phii -= otherMass[j] * GravityDimensionTraits<Dimension>::potentialLaw(r2);      // Multiply by G later
         }
       }
     }
