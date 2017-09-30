@@ -256,7 +256,8 @@ dt(const DataBase<Dimension>& dataBase,
   // The maximum change in our velocity for the next time cycle is given 
   // by the mMaxDeltaVelocityFactor plus the max velocity and the max 
   // accelation from the last cycle.
-  const double deltat = (mOldMaxVelocity*mOldMaxAcceleration/(mOldMaxAcceleration*mOldMaxAcceleration + 1.0e-10)) * mMaxDeltaVelocityFactor;
+  const double deltat = std::min((mOldMaxVelocity*mOldMaxAcceleration/(mOldMaxAcceleration*mOldMaxAcceleration + 1.0e-10)) * mMaxDeltaVelocityFactor,
+                                 sqrt(2.0*mMaxDeltaVelocityFactor*mSofteningLength*safeInvVar(mOldMaxAcceleration, 1.0e-10)));
 
   stringstream reasonStream;
   reasonStream << "velocity: " << mOldMaxVelocity
