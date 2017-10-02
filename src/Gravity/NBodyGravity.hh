@@ -37,7 +37,8 @@ public:
   //! \param maxDeltaVelocity -- Maximum factor by which the velocity can be changed by an acceleration per timestep.
   NBodyGravity(const double plummerSofteningLength,
                const double maxDeltaVelocity,
-               const double G);
+               const double G,
+               const bool compatibleVelocityUpdate);
 
   //! Destructor.
   virtual ~NBodyGravity();
@@ -85,6 +86,10 @@ public:
   double softeningLength() const;
   void softeningLength(const double x);
 
+  //! Flag for using the compatible velocity update.
+  bool compatibleVelocityUpdate() const;
+  void compatibleVelocityUpdate(const bool x);
+
 private:
   
   //! The gravitational potential of the particles.
@@ -108,6 +113,9 @@ private:
   //! The gravitational constant.
   Scalar mG;
   
+  //! Flag for compatible velocity.
+  bool mCompatibleVelocityUpdate;
+
   // Default constructor -- disabled.
   NBodyGravity();
 

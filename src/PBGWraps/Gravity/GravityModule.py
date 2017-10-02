@@ -108,7 +108,8 @@ self.generateNBodyGravityBindings(self.NBodyGravity%(dim)id, %(dim)i)
         # Constructors.
         x.add_constructor([param("double", "plummerSofteningLength"),
                            param("double", "maxDeltaVelocity"),
-                           param("double", "G")])
+                           param("double", "G"),
+                           param("bool", "compatibleVelocityUpdate", default_value="false")])
 
         # Wrap the generic physics methods.
         generatePhysicsVirtualBindings(x, ndim, False)
@@ -119,6 +120,7 @@ self.generateNBodyGravityBindings(self.NBodyGravity%(dim)id, %(dim)i)
         # Attributes.
         x.add_instance_attribute("G", "double", getter="G", is_const=True)
         x.add_instance_attribute("softeningLength", "double", getter="softeningLength", setter="softeningLength")
+        x.add_instance_attribute("compatibleVelocityUpdate", "bool", getter="compatibleVelocityUpdate", setter="compatibleVelocityUpdate")
 
         return
 

@@ -18,6 +18,7 @@
 #include "DataBase/IncrementState.hh"
 #include "DataBase/State.hh"
 #include "DataBase/StateDerivatives.hh"
+#include "Gravity/CompatibleGravitationalVelocityPolicy.hh"
 #include "Hydro/HydroFieldNames.hh"
 #include "Field/FieldList.hh"
 #include "Field/Field.hh"
@@ -75,12 +76,14 @@ template <typename Dimension>
 NBodyGravity<Dimension>::
 NBodyGravity(const double plummerSofteningLength,
              const double maxDeltaVelocity,
-             const double G):
+             const double G,
+             const bool compatibleVelocityUpdate):
   mPotential(FieldSpace::FieldStorageType::CopyFields),
   mExtraEnergy(0.0),
   mMaxDeltaVelocityFactor(maxDeltaVelocity),
   mSofteningLength(plummerSofteningLength),
-  mG(G) {
+  mG(G),
+  mCompatibleVelocityUpdate(compatibleVelocityUpdate) {
 }
 
 //------------------------------------------------------------------------------
@@ -99,8 +102,18 @@ void
 NBodyGravity<Dimension>::
 registerState(DataBase<Dimension >& dataBase,
               State<Dimension >& state) {
+  typedef typename State<Dimension>::PolicyPointer PolicyPointer;
+
   PhysicsSpace::GenericBodyForce<Dimension >::registerState(dataBase, state);
   state.enroll(mPotential);
+
+  // If we're using the compatible velocity update algorith, reregister the velocity
+  // with that choice.
+  if (mCompatibleVelocityUpdate) {
+    auto velocity = dataBase.globalVelocity();
+    PolicyPointer velocityPolicy(new CompatibleGravitationalVelocityPolicy<Dimension>(dataBase, mG, mSofteningLength));
+    if (not state.registered(velocity)) state.enroll(velocity, velocityPolicy);
+  }
 }
 
 //------------------------------------------------------------------------------
@@ -325,6 +338,23 @@ NBodyGravity<Dimension>::
 softeningLength(const double x) {
   VERIFY(x >= 0.0);
   mSofteningLength = x;
+}
+
+//------------------------------------------------------------------------------
+// compatible velocity
+//------------------------------------------------------------------------------
+template <typename Dimension>
+bool
+NBodyGravity<Dimension>::
+compatibleVelocityUpdate() const {
+  return mCompatibleVelocityUpdate;
+}
+
+template <typename Dimension>
+void
+NBodyGravity<Dimension>::
+compatibleVelocityUpdate(const bool x) {
+  mCompatibleVelocityUpdate = x;
 }
 
 //------------------------------------------------------------------------------
