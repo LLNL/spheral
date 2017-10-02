@@ -163,9 +163,9 @@ def writeMasterMeshSiloFile(dirName, mesh, label, nodeLists, time, cycle, fieldw
             assert silo.DBPutMultimesh(db, "MPointMESH", domainNames, meshTypes, optlist) == 0
         
         # Extract the material names, and write per material info if any.
-        if nodeLists > 0:
+        if nodeLists:
         
-            # Write material names.
+            # Write material names (MESH)
             materialNames = [x.name for x in nodeLists]
             material_names = vector_of_string()
             matnames = vector_of_string()
@@ -184,6 +184,26 @@ def writeMasterMeshSiloFile(dirName, mesh, label, nodeLists, time, cycle, fieldw
             assert optlist.addOption(SA._DBOPT_MATNAMES, SA._DBOPT_NMATNOS, matnames) == 0
             assert optlist.addOption(SA._DBOPT_MATNOS, SA._DBOPT_NMATNOS, matnos) == 0
             assert silo.DBPutMultimat(db, "MMATERIAL", material_names, optlist) == 0
+        
+            # Write material names (PointMESH)
+            materialNames = [x.name for x in nodeLists]
+            material_names = vector_of_string()
+            matnames = vector_of_string()
+            matnos = vector_of_int()
+            for p in domainNamePatterns:
+                material_names.append(p % "PointMATERIAL")
+            for (name, i) in zip(materialNames, range(len(materialNames))):
+                matnames.append(name)
+                matnos.append(i)
+            assert len(material_names) == numDomains
+            assert len(matnames) == len(nodeLists)
+            assert len(matnos) == len(nodeLists)
+            optlist = silo.DBoptlist(1024)
+            assert optlist.addOption(SA._DBOPT_CYCLE, cycle) == 0
+            assert optlist.addOption(SA._DBOPT_DTIME, time) == 0
+            assert optlist.addOption(SA._DBOPT_MATNAMES, SA._DBOPT_NMATNOS, matnames) == 0
+            assert optlist.addOption(SA._DBOPT_MATNOS, SA._DBOPT_NMATNOS, matnos) == 0
+            assert silo.DBPutMultimat(db, "MPointMATERIAL", material_names, optlist) == 0
         
             # Write the variable descriptions for non-scalar variables (vector and tensors).
             writeDefvars(db, fieldwad)
@@ -361,7 +381,7 @@ def writeDomainMeshSiloFile(dirName, mesh, index2zone, label, nodeLists, time, c
             assert silo.DBPutMaterial(db, "MATERIAL", "MESH", matnos, matlist,
                                       vector_of_int(), vector_of_int(), vector_of_int(), vector_of_double(),
                                       matOpts) == 0
-            assert silo.DBPutMaterial(db, "MATERIAL", "MPointMESH", matnos, matlist,
+            assert silo.DBPutMaterial(db, "PointMATERIAL", "PointMESH", matnos, matlist,
                                       vector_of_int(), vector_of_int(), vector_of_int(), vector_of_double(),
                                       matOpts) == 0
         
