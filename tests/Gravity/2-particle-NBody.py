@@ -19,17 +19,19 @@ commandLine(
     # Initial particle stuff
     r0 = 1.0,                      # (AU) Start stuff out at 1 AU from barycenter
     m0 = 1.0,                      # (earth masses) particle mass
-    plummerLength = 1.0e-3,        # (AU) Plummer softening scale
-    opening = 0.5,                 # (dimensionless, OctTreeGravity) opening parameter for tree walk
-    fdt = 0.1,                     # (dimensionless, OctTreeGravity) timestep multiplier
 
     # Problem control
     steps = None,
     numOrbits = 2,                 # How many orbits do we want to follow?
 
-    # Which N-body method should we use?
+    # Gravity choices
     nbody = OctTreeGravity,
     timeStepChoice = AccelerationRatio,
+    plummerLength = 1.0e-3,        # (AU) Plummer softening scale
+    opening = 0.5,                 # (dimensionless, OctTreeGravity) opening parameter for tree walk
+    fdt = 0.1,                     # (dimensionless, OctTreeGravity) timestep multiplier
+    compatibleVelocity = False,
+
     integratorConstructor = CheapSynchronousRK2Integrator,
 
     # Output
@@ -130,7 +132,8 @@ db.appendNodeList(nodes)
 if nbody is NBodyGravity:
     gravity = NBodyGravity(plummerSofteningLength = plummerLength,
                            maxDeltaVelocity = 1e-2*v0,
-                           G = G)
+                           G = G,
+                           compatibleVelocityUpdate = compatibleVelocity)
 elif nbody is OctTreeGravity:
     gravity = OctTreeGravity(G = G,
                              softeningLength = plummerLength,
