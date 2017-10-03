@@ -79,6 +79,8 @@ NBodyGravity(const double plummerSofteningLength,
              const double G,
              const bool compatibleVelocityUpdate):
   mPotential(FieldSpace::FieldStorageType::CopyFields),
+  mPotential0(FieldSpace::FieldStorageType::CopyFields),
+  mVel02(FieldSpace::FieldStorageType::CopyFields),
   mExtraEnergy(0.0),
   mMaxDeltaVelocityFactor(maxDeltaVelocity),
   mSofteningLength(plummerSofteningLength),
@@ -106,14 +108,6 @@ registerState(DataBase<Dimension >& dataBase,
 
   PhysicsSpace::GenericBodyForce<Dimension >::registerState(dataBase, state);
   state.enroll(mPotential);
-
-  // If we're using the compatible velocity update algorith, reregister the velocity
-  // with that choice.
-  if (mCompatibleVelocityUpdate) {
-    auto velocity = dataBase.globalVelocity();
-    PolicyPointer velocityPolicy(new CompatibleGravitationalVelocityPolicy<Dimension>(dataBase, mG, mSofteningLength));
-    state.enroll(velocity, velocityPolicy);
-  }
 }
 
 //------------------------------------------------------------------------------
@@ -215,7 +209,7 @@ evaluateDerivatives(const typename Dimension::Scalar time,
 
       // Accumluate the package energy as the total gravitational potential.
       // mExtraEnergy += mPotential(ifield, i);
-      mExtraEnergy += mass(ifield, i) * mPotential(ifield, i);
+      mExtraEnergy += 0.5*mass(ifield, i)*mPotential(ifield, i);
 
       // Capture the maximum acceleration and velocity magnitudes.
       const auto accelMagnitude = DvDt(ifield, i).magnitude();
@@ -245,6 +239,11 @@ initializeProblemStartup(DataBase<Dimension>& db) {
 
   // Allocate space for the gravitational potential FieldList.
   mPotential = db.newGlobalFieldList(0.0, "gravitational potential");
+  mPotential0 = db.newGlobalFieldList(0.0, "gravitational potential 0");
+  mVel02 = db.newGlobalFieldList(0.0, "vel0 square");
+  mPotential.copyFields();
+  mPotential0.copyFields();
+  mVel02.copyFields();
 
   // We need to make a dry run through setting derivatives and such
   // to set our initial vote on the time step.
@@ -253,6 +252,72 @@ initializeProblemStartup(DataBase<Dimension>& db) {
   StateDerivatives<Dimension> derivs(db, packages);
   this->initialize(0.0, 1.0, db, state, derivs);
   this->evaluateDerivatives(0.0, 1.0, db, state, derivs);
+}
+
+//------------------------------------------------------------------------------
+// Pre-step initialization
+//------------------------------------------------------------------------------
+template <typename Dimension>
+void 
+NBodyGravity<Dimension>::
+preStepInitialize(const DataBaseSpace::DataBase<Dimension>& dataBase, 
+                  State<Dimension>& state,
+                  StateDerivatives<Dimension>& derivs) {
+
+  if (mCompatibleVelocityUpdate) {
+
+    // Copy the starting potential.
+    mPotential0 = mPotential;
+    mPotential0.copyFields();
+  
+    // Take a snapshot of the starting velocity^2 (for KE0).
+    const auto vel = state.fields(HydroFieldNames::velocity, Vector::zero);
+    const auto numNodeLists = vel.numFields();
+    for (auto nodeListi = 0; nodeListi < numNodeLists; ++nodeListi) {
+      const auto n = vel[nodeListi]->numInternalElements();
+      for (auto i = 0; i < n; ++i) {
+        mVel02(nodeListi, i) = vel(nodeListi, i).magnitude2();
+      }
+    }
+  }
+}
+
+//------------------------------------------------------------------------------
+// Post-step finalizations.
+//------------------------------------------------------------------------------
+template <typename Dimension>
+void
+NBodyGravity<Dimension>::
+finalize(const Scalar time, 
+         const Scalar dt,
+         DataBaseSpace::DataBase<Dimension>& dataBase, 
+         State<Dimension>& state,
+         StateDerivatives<Dimension>& derivs) {
+
+  // Augment the kinetic energy to exactly balance the potential energy change.
+  if (mCompatibleVelocityUpdate) {
+
+    this->evaluateDerivatives(time, dt, dataBase, state, derivs);
+
+    // Assume mPotential holds the correct end-of-step potential at this time.
+    // Correct for Verlet integrator.
+    const auto pos = state.fields(HydroFieldNames::position, Vector::zero);
+    const auto mass = state.fields(HydroFieldNames::mass, 0.0);
+    auto       vel = state.fields(HydroFieldNames::velocity, Vector::zero);
+    const auto numNodeLists = vel.numFields();
+    for (auto nodeListi = 0; nodeListi < numNodeLists; ++nodeListi) {
+      const auto n = vel[nodeListi]->numInternalElements();
+      for (auto i = 0; i < n; ++i) {
+        const auto vi1t2 = mVel02(nodeListi, i) - 2.0*(mPotential(nodeListi, i) - mPotential0(nodeListi, i));
+        CHECK(vi1t2 >= 0.0);
+        const Scalar f = sqrt(vi1t2*safeInvVar(vel(nodeListi, i).magnitude2()));
+        // cerr << " --> " << i << " " << f << " "  << (mPotential(nodeListi, i) - mPotential0(nodeListi, i)) << endl;
+        // cerr << "     " << mPotential(nodeListi, i) << " " << (mG*mass(nodeListi, 1)/sqrt((pos(nodeListi, 0) - pos(nodeListi, 1)).magnitude2() + mSofteningLength*mSofteningLength)) << endl;
+        vel(nodeListi, i) *= f;
+      }
+    }
+  }
+
 }
 
 //------------------------------------------------------------------------------
