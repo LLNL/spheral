@@ -40,7 +40,7 @@ CompatibleGravitationalVelocityPolicy<Dimension>::
 CompatibleGravitationalVelocityPolicy(const DataBase<Dimension>& dataBase,
                                       const Scalar G,
                                       const Scalar softeningLength):
-  IncrementFieldList<Dimension, typename Dimension::Vector>(),
+  IncrementFieldList<Dimension, typename Dimension::Vector>(HydroFieldNames::position),
   mDataBasePtr(&dataBase),
   mG(G),
   mSofteningLength(softeningLength),
@@ -85,6 +85,7 @@ update(const KeyType& key,
   // Get the state fields.
   const auto  mass = state.fields(HydroFieldNames::mass, Scalar());
   const auto  positions1 = state.fields(HydroFieldNames::position, Vector::zero);
+  const auto  DvDt = derivs.fields(this->prefix() + HydroFieldNames::velocity, Vector::zero);
 
   // Prepare to accumulate velocity magnitude changes.
   auto dvel = mDataBasePtr->newGlobalFieldList(Scalar(0.0), "velocity mag change");
@@ -101,7 +102,7 @@ update(const KeyType& key,
       const auto& xi0 = mPositions0(nodeListi, i);
       const auto& xi1 = positions1(nodeListi, i);
       const auto& vi0 = mVelocity0(nodeListi, i);
-      auto&       vi1 = vel(nodeListi, i);
+      const auto  vi1 = vel(nodeListi, i) + multiplier*DvDt(nodeListi, i);
       auto&       dveli = dvel(nodeListi, i);
 
       // Iterate over the neighbor points.
@@ -120,15 +121,16 @@ update(const KeyType& key,
             const auto xji1 = xj1 - xi1;
             const auto rij0 = sqrt(xji0.magnitude2() + mSofteningLength*mSofteningLength);
             const auto rij1 = sqrt(xji1.magnitude2() + mSofteningLength*mSofteningLength);
-            const auto deltavij2 = mG*(mi + mj)*(1.0/rij1 - 1.0/rij0)*(1.0 + mi*mi/mj);      // Divide by dt^2 for aij2
-            dveli += sqrt(deltavij2)*sgn(deltavij2);
+            const auto deltavij2 = 2.0*mG*mj/mi*(1.0/rij1 - 1.0/rij0);                       // Divide by dt^2 for aij2
+            dveli += sqrt(std::abs(deltavij2))*sgn(deltavij2);
+            cerr << "Diff : " << vi0.magnitude() << " " << dveli << " " << xji0 << " " << xji1 << " " << (xji1 - xji0) << endl;
           }
         }
       }
 
       // Now we can update the velocity.
       const auto vhati = vi1.unitVector();    // direction of time integrated velocity answer
-      vi1 = (vi0.magnitude() + dveli) * vhati;
+      vel(nodeListi, i) = (vi0.magnitude() + dveli) * vhati;
     }
   }
 }

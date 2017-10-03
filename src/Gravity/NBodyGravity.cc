@@ -112,7 +112,7 @@ registerState(DataBase<Dimension >& dataBase,
   if (mCompatibleVelocityUpdate) {
     auto velocity = dataBase.globalVelocity();
     PolicyPointer velocityPolicy(new CompatibleGravitationalVelocityPolicy<Dimension>(dataBase, mG, mSofteningLength));
-    if (not state.registered(velocity)) state.enroll(velocity, velocityPolicy);
+    state.enroll(velocity, velocityPolicy);
   }
 }
 
