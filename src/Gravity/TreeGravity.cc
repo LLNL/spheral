@@ -236,9 +236,6 @@ evaluateDerivatives(const typename Dimension::Scalar time,
   mDtMinAcc = min(mDtMinAcc,
                   applyTreeForces(mTree, mass, position, DvDt, mPotential, interactionMasses, interactionPositions, homeBuckets, cellsCompleted));
 
-  // Set the motion to be Lagrangian.
-  DxDt.assignFields(velocity);
-
   // If we're using the dynamical time step choice, make the calculations for the next
   // time step now.
   // The following is an implementation (perhaps not exact) of the algorithm 
@@ -306,18 +303,26 @@ evaluateDerivatives(const typename Dimension::Scalar time,
     // to compute the gravitational dynamical time scale.
   }
 
-  // Sum up the potential for the extra energy term.
-  mExtraEnergy = mPotential.sumElements();
-  // mExtraEnergy = 0.0;
-  // for (unsigned nodeListi = 0; nodeListi != numNodeLists; ++nodeListi) {
-  //   const unsigned n = mPotential[nodeListi]->numInternalElements();
-  //   for (unsigned i = 0; i != n; ++i) {
-  //     mExtraEnergy += mass(nodeListi, i) * mPotential(nodeListi, i);
-  //   }
-  // }
+  // Finalize, and sum up the potential for the extra energy term.
+  mExtraEnergy = 0.0;
+  for (unsigned nodeListi = 0; nodeListi != numNodeLists; ++nodeListi) {
+    const unsigned n = mPotential[nodeListi]->numInternalElements();
+    for (unsigned i = 0; i != n; ++i) {
+
+      // Set the position derivative.
+      DxDt(nodeListi, i) = velocity(nodeListi, i);
+
+      // Multiply by G.
+      DvDt(nodeListi, i) *= mG;
+      mPotential(nodeListi, i) *= mG;
+
+      // Accumluate the package energy as the total gravitational potential.
+      mExtraEnergy += 0.5*mass(nodeListi, i)*mPotential(nodeListi, i);
+    }
+  }
 
 #ifdef USE_MPI
-  // mExtraEnergy = allReduce(mExtraEnergy, MPI_SUM, Communicator::communicator());
+  mExtraEnergy = allReduce(mExtraEnergy, MPI_SUM, Communicator::communicator());
 
   // Wait until all our sends are complete.
   vector<MPI_Status> sendStatus(sendRequests.size());
@@ -874,8 +879,8 @@ applyTreeForces(const Tree& tree,
                 CHECK(rji2 > 0.0);
 
                 // Increment the acceleration and potential.
-                DvDti += mG*cell.Mglobal*TreeDimensionTraits<Dimension>::forceLaw(rji2) * nhat;
-                phii -= mG*mi*cell.Mglobal*TreeDimensionTraits<Dimension>::potentialLaw(rji2);
+                DvDti += cell.Mglobal*TreeDimensionTraits<Dimension>::forceLaw(rji2) * nhat;  // Multiply by G later
+                phii -= cell.Mglobal*TreeDimensionTraits<Dimension>::potentialLaw(rji2);   // Multiply by G later
                 cellsCompleted[inode][ilevel].insert(cell.key);
 
                 // Add to the set of "interaction" buckets for this point, which are used for
@@ -902,8 +907,8 @@ applyTreeForces(const Tree& tree,
                     CHECK(rji2 > 0.0);
 
                     // Increment the acceleration and potential.
-                    DvDti += mG*mj*TreeDimensionTraits<Dimension>::forceLaw(rji2) * nhat;
-                    phii -= mG*mi*mj*TreeDimensionTraits<Dimension>::potentialLaw(rji2);
+                    DvDti += mj*TreeDimensionTraits<Dimension>::forceLaw(rji2) * nhat;  // Multiply by G later
+                    phii -= mj*TreeDimensionTraits<Dimension>::potentialLaw(rji2);   // Multiply by G later
                   } else {
                     homeBuckets(nodeListi, i) = make_pair(ilevel, cell.key);
                   }
@@ -929,11 +934,11 @@ applyTreeForces(const Tree& tree,
 
         // Update the total acceleration based constraint for the time-step.
         const double amag = DvDti.magnitude();
-        if (amag > 0.0) result = min(result, sqrt(mSofteningLength / amag));
+        if (amag > 0.0) result = min(result, sqrt(mSofteningLength / amag));       // Divide by G later
       }
     }
   }
-  return result;
+  return result/sqrt(mG);
 }
 
 //------------------------------------------------------------------------------

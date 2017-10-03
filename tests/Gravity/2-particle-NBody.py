@@ -40,7 +40,7 @@ commandLine(
     baseName = "2_particle_nbody",
     restoreCycle = None,
     restartStep = 100,
-    numViz = 100,
+    numVizPerOrbit = 50,
     dtverbose = False,
     )
 
@@ -66,7 +66,7 @@ dtGrowth = 2.0
 maxSteps = None
 statsStep = 10
 smoothIters = 0
-vizTime = goalTime / numViz
+vizTime = orbitTime / numVizPerOrbit
 
 restartDir = os.path.join(dataDir, "restarts")
 visitDir = os.path.join(dataDir, "visit")

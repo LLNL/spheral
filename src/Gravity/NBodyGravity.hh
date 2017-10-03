@@ -45,7 +45,7 @@ public:
 
   //! We augment the generic body force state.
   virtual void registerState(DataBaseSpace::DataBase<Dimension>& dataBase,
-                             State<Dimension>& state);
+                             State<Dimension>& state) override;
 
   //! This is the derivative method that all BodyForce classes must provide.
   virtual 
@@ -53,25 +53,37 @@ public:
                            const Scalar dt,
                            const DataBaseSpace::DataBase<Dimension>& dataBase,
                            const State<Dimension>& state,
-                           StateDerivatives<Dimension>& derivs) const;
+                           StateDerivatives<Dimension>& derivs) const override;
 
   //! Vote on the timestep.  This uses a velocity-limiting rule.
   virtual TimeStepType dt(const DataBaseSpace::DataBase<Dimension>& dataBase, 
                           const State<Dimension>& state,
                           const StateDerivatives<Dimension>& derivs,
-                          const Scalar currentTime) const;
+                          const Scalar currentTime) const override;
 
   //! Initializations on problem start up.
-  virtual void initializeProblemStartup(DataBaseSpace::DataBase<Dimension>& db);
+  virtual void initializeProblemStartup(DataBaseSpace::DataBase<Dimension>& db) override;
+
+  //! Beginning of timestep work.
+  virtual void preStepInitialize(const DataBaseSpace::DataBase<Dimension>& dataBase, 
+                                 State<Dimension>& state,
+                                 StateDerivatives<Dimension>& derivs) override;
+
+  //! End of timestep finalizations.
+  virtual void finalize(const Scalar time, 
+                        const Scalar dt,
+                        DataBaseSpace::DataBase<Dimension>& dataBase, 
+                        State<Dimension>& state,
+                        StateDerivatives<Dimension>& derivs) override;
 
   //! Required label for Physics interface.
-  virtual std::string label() const { return "NBodyGravity"; }
+  virtual std::string label() const override { return "NBodyGravity"; }
 
   //! This package opts out of building connectivity.
-  virtual bool requireConnectivity() const { return false; }
+  virtual bool requireConnectivity() const override { return false; }
 
   //! Return the total energy contribution due to the gravitational potential.
-  virtual Scalar extraEnergy() const;
+  virtual Scalar extraEnergy() const override;
 
   //! Return the gravitational potential created by the particle distribution.
   const FieldSpace::FieldList<Dimension, Scalar>& potential() const;
@@ -94,6 +106,8 @@ private:
   
   //! The gravitational potential of the particles.
   mutable FieldSpace::FieldList<Dimension, Scalar> mPotential;
+  mutable FieldSpace::FieldList<Dimension, Scalar> mPotential0;
+  mutable FieldSpace::FieldList<Dimension, Scalar> mVel02;
 
   //! The total potential energy of the particles.  Also mutable.
   mutable Scalar mExtraEnergy;
