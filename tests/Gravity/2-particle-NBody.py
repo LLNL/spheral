@@ -19,6 +19,7 @@ commandLine(
     # Initial particle stuff
     r0 = 1.0,                      # (AU) Start stuff out at 1 AU from barycenter
     m0 = 1.0,                      # (earth masses) particle mass
+    vfrac = 1.0, 
 
     # Problem control
     steps = None,
@@ -109,8 +110,8 @@ mass[1] = m0
 pos[0] = Vector(-r0, 0.0, 0.0)
 pos[1] = Vector( r0, 0.0, 0.0)
 
-vel[0] = Vector(0.0, -v0, 0.0)
-vel[1] = Vector(0.0,  v0, 0.0)
+vel[0] = Vector(0.0, -v0*vfrac, 0.0)
+vel[1] = Vector(0.0,  v0*vfrac, 0.0)
 
 # These are fluid variables we shouldn't need.  Just set them to valid values.
 H = nodes.Hfield()
