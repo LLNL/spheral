@@ -69,26 +69,26 @@ update(const KeyType& key,
   StateBase<Dimension>::splitFieldKey(key, fieldKey, nodeListKey);
   REQUIRE(fieldKey == HydroFieldNames::specificThermalEnergy and 
           nodeListKey == UpdatePolicyBase<Dimension>::wildcard());
-  FieldList<Dimension, Scalar> eps = state.fields(fieldKey, Scalar());
-  const unsigned numFields = eps.numFields();
+  auto eps = state.fields(fieldKey, Scalar());
+  const auto numFields = eps.numFields();
 
   // Get the state fields.
-  const FieldList<Dimension, Scalar> mass = state.fields(HydroFieldNames::mass, Scalar());
-  const FieldList<Dimension, Vector> velocity = state.fields(HydroFieldNames::velocity, Vector::zero);
-  const FieldList<Dimension, Vector> DvDt = derivs.fields(IncrementFieldList<Dimension, Vector>::prefix() + HydroFieldNames::velocity, Vector::zero);
-  const FieldList<Dimension, Scalar> DEDt = derivs.fields(IncrementFieldList<Dimension, Vector>::prefix() + HydroFieldNames::specificThermalEnergy, 0.0);
+  const auto mass = state.fields(HydroFieldNames::mass, Scalar());
+  const auto velocity = state.fields(HydroFieldNames::velocity, Vector::zero);
+  const auto DvDt = derivs.fields(HydroFieldNames::hydroAcceleration, Vector::zero);
+  const auto DEDt = derivs.fields(IncrementFieldList<Dimension, Vector>::prefix() + HydroFieldNames::specificThermalEnergy, 0.0);
 
   // Do it.
   for (size_t nodeListi = 0; nodeListi != numFields; ++nodeListi) {
     const size_t n = eps[nodeListi]->numInternalElements();
     for (size_t i = 0; i != n; ++i) {
-      Scalar& epsi = eps(nodeListi, i);
-      const Scalar mi = mass(nodeListi, i);
-      const Vector& vi0 = velocity(nodeListi, i);
-      const Vector& ai0 = DvDt(nodeListi, i);
-      const Scalar DEDti = DEDt(nodeListi, i);
-      const Scalar E0i = mi*(0.5*vi0.magnitude2() + epsi);
-      const Scalar E1i = E0i + multiplier*DEDti;
+      auto& epsi = eps(nodeListi, i);
+      const auto  mi = mass(nodeListi, i);
+      const auto& vi0 = velocity(nodeListi, i);
+      const auto& ai0 = DvDt(nodeListi, i);
+      const auto  DEDti = DEDt(nodeListi, i);
+      const auto  E0i = mi*(0.5*vi0.magnitude2() + epsi);
+      const auto  E1i = E0i + multiplier*DEDti;
       epsi = E1i/mi - 0.5*(vi0 + multiplier*ai0).magnitude2();
     }
   }

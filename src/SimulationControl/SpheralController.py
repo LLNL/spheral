@@ -80,12 +80,13 @@ class SpheralController:
             if self.dim == "1d":
                 from Spheral1dVizDump import dumpPhysicsState
             elif self.dim == "2d":
-                #from SpheralVoronoiSiloDump import dumpPhysicsState
+                from SpheralVoronoiSiloDump import dumpPhysicsState
                 #from SpheralVisitDump import dumpPhysicsState
-                from SpheralPointmeshSiloDump import dumpPhysicsState
+                #from SpheralPointmeshSiloDump import dumpPhysicsState
             else:
+                from SpheralVoronoiSiloDump import dumpPhysicsState
                 #from SpheralVisitDump import dumpPhysicsState
-                from SpheralPointmeshSiloDump import dumpPhysicsState
+                #from SpheralPointmeshSiloDump import dumpPhysicsState
             self.vizMethod = dumpPhysicsState
         self.vizGhosts = vizGhosts
         self.vizDerivs = vizDerivs
@@ -152,10 +153,6 @@ class SpheralController:
         # Construct a timer to track the cycle step time.
         self.stepTimer = SpheralTimer("Time per integration cycle.")
 
-        # Construct a fresh conservation check object.
-        self.conserve = SpheralConservation(self.integrator.dataBase(),
-                                            self.integrator.physicsPackages())
-
         # Prepare an empty set of periodic work.
         self._periodicWork = []
         self._periodicTimeWork = []
@@ -193,7 +190,6 @@ class SpheralController:
         self.appendPeriodicWork(self.printCycleStatus, printStep)
         self.appendPeriodicWork(self.garbageCollection, garbageCollectionStep)
         self.appendPeriodicWork(self.updateConservation, statsStep)
-        self.appendPeriodicWork(self.updateDomainDistribution, redistributeStep)
         self.appendPeriodicWork(self.updateRestart, restartStep)
 
         # Add the dynamic redistribution object to the controller.
@@ -206,9 +202,17 @@ class SpheralController:
             self.addVisualizationDumps(vizBaseName, vizDir, vizStep, vizTime,
                                        vizFields, vizFieldLists)
 
+        # Construct a fresh conservation check object.
+        # Hopefully by this time all packages have initialized their own extra energy bins.
+        self.conserve = SpheralConservation(self.integrator.dataBase(),
+                                            self.integrator.physicsPackages())
+
         # Force the periodic work to fire at problem initalization.
         if (not skipInitialPeriodicWork) and (restoreCycle is None):
             self.doPeriodicWork(force=True)
+
+        # We add this one after forcing periodic work so it's not always fired right at the beginning of a calculation.
+        self.appendPeriodicWork(self.updateDomainDistribution, redistributeStep)
 
         return
 

@@ -19,13 +19,19 @@ public:
   typedef typename FieldListUpdatePolicyBase<Dimension, ValueType>::KeyType KeyType;
 
   // Constructors, destructor.
-  IncrementFieldList();
-  explicit IncrementFieldList(const std::string& depend0);
-  IncrementFieldList(const std::string& depend0, const std::string& depend1);
-  IncrementFieldList(const std::string& depend0, const std::string& depend1, const std::string& depend2);
-  IncrementFieldList(const std::string& depend0, const std::string& depend1, const std::string& depend2, const std::string& depend3);
-  IncrementFieldList(const std::string& depend0, const std::string& depend1, const std::string& depend2, const std::string& depend3, const std::string& depend4);
-  IncrementFieldList(const std::string& depend0, const std::string& depend1, const std::string& depend2, const std::string& depend3, const std::string& depend4, const std::string& depend5);
+  IncrementFieldList(const bool wildCardDerivs = false);
+  explicit IncrementFieldList(const std::string& depend0,
+                              const bool wildCardDerivs = false);
+  IncrementFieldList(const std::string& depend0, const std::string& depend1,
+                     const bool wildCardDerivs = false);
+  IncrementFieldList(const std::string& depend0, const std::string& depend1, const std::string& depend2,
+                     const bool wildCardDerivs = false);
+  IncrementFieldList(const std::string& depend0, const std::string& depend1, const std::string& depend2, const std::string& depend3,
+                     const bool wildCardDerivs = false);
+  IncrementFieldList(const std::string& depend0, const std::string& depend1, const std::string& depend2, const std::string& depend3, const std::string& depend4,
+                     const bool wildCardDerivs = false);
+  IncrementFieldList(const std::string& depend0, const std::string& depend1, const std::string& depend2, const std::string& depend3, const std::string& depend4, const std::string& depend5,
+                     const bool wildCardDerivs = false);
   virtual ~IncrementFieldList();
   
   // Overload the methods describing how to update FieldLists.
@@ -41,10 +47,17 @@ public:
 
   static const std::string prefix() { return "delta "; }
 
+  // Flip whether we try to find multiple registered increment fields.
+  bool wildCardDerivs() const;
+  void wildCardDerivs(const bool val);
+
 private:
   //--------------------------- Private Interface ---------------------------//
   IncrementFieldList(const IncrementFieldList& rhs);
   IncrementFieldList& operator=(const IncrementFieldList& rhs);
+
+  // Flag for looking for multiple increment derivatives.
+  bool mWildCardDerivs;
 };
 
 }

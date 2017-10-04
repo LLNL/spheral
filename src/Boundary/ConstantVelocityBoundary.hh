@@ -69,7 +69,6 @@ public:
   virtual void applyGhostBoundary(FieldSpace::Field<Dimension, Tensor>& field) const;
   virtual void applyGhostBoundary(FieldSpace::Field<Dimension, SymTensor>& field) const;
   virtual void applyGhostBoundary(FieldSpace::Field<Dimension, ThirdRankTensor>& field) const;
-  virtual void applyGhostBoundary(FieldSpace::Field<Dimension, std::vector<Scalar> >& field) const;
 
   // Find any internal nodes that are in violation of this Boundary.
   virtual void setViolationNodes(NodeSpace::NodeList<Dimension>& nodeList);

@@ -10,6 +10,7 @@
 
 #include "Physics/GenericHydro.hh"
 #include "CRKSPHCorrectionParams.hh"
+#include "Boundary/CRKSPHVoidBoundary.hh"
 
 namespace Spheral {
   template<typename Dimension> class State;
@@ -81,17 +82,17 @@ public:
 
   // Tasks we do once on problem startup.
   virtual
-  void initializeProblemStartup(DataBaseSpace::DataBase<Dimension>& dataBase);
+  void initializeProblemStartup(DataBaseSpace::DataBase<Dimension>& dataBase) override;
 
   // Register the state Hydro expects to use and evolve.
   virtual 
   void registerState(DataBaseSpace::DataBase<Dimension>& dataBase,
-                     State<Dimension>& state);
+                     State<Dimension>& state) override;
 
   // Register the derivatives/change fields for updating state.
   virtual
   void registerDerivatives(DataBaseSpace::DataBase<Dimension>& dataBase,
-                           StateDerivatives<Dimension>& derivs);
+                           StateDerivatives<Dimension>& derivs) override;
 
   // Initialize the Hydro before we start a derivative evaluation.
   virtual
@@ -99,7 +100,7 @@ public:
                   const Scalar dt,
                   const DataBaseSpace::DataBase<Dimension>& dataBase,
                   State<Dimension>& state,
-                  StateDerivatives<Dimension>& derivs);
+                  StateDerivatives<Dimension>& derivs) override;
                           
   // Evaluate the derivatives for the principle hydro variables:
   // mass density, velocity, and specific thermal energy.
@@ -108,7 +109,7 @@ public:
                            const Scalar dt,
                            const DataBaseSpace::DataBase<Dimension>& dataBase,
                            const State<Dimension>& state,
-                           StateDerivatives<Dimension>& derivatives) const;
+                           StateDerivatives<Dimension>& derivatives) const override;
 
   // Finalize the derivatives.
   virtual
@@ -116,13 +117,13 @@ public:
                            const Scalar dt,
                            const DataBaseSpace::DataBase<Dimension>& dataBase,
                            const State<Dimension>& state,
-                           StateDerivatives<Dimension>& derivs) const;
+                           StateDerivatives<Dimension>& derivs) const override;
 
   // Hook called after the state has been updated and boundary conditions have been enforced.
   virtual 
   void postStateUpdate(const DataBaseSpace::DataBase<Dimension>& dataBase, 
                        State<Dimension>& state,
-                       const StateDerivatives<Dimension>& derivatives) const;
+                       const StateDerivatives<Dimension>& derivatives) const override;
 
   // Finalize the hydro at the completion of an integration step.
   virtual
@@ -130,20 +131,20 @@ public:
                 const Scalar dt,
                 DataBaseSpace::DataBase<Dimension>& dataBase,
                 State<Dimension>& state,
-                StateDerivatives<Dimension>& derivs);
+                StateDerivatives<Dimension>& derivs) override;
                   
   // Apply boundary conditions to the physics specific fields.
   virtual
   void applyGhostBoundaries(State<Dimension>& state,
-                            StateDerivatives<Dimension>& derivs);
+                            StateDerivatives<Dimension>& derivs) override;
 
   // Enforce boundary conditions for the physics specific fields.
   virtual
   void enforceBoundaries(State<Dimension>& state,
-                         StateDerivatives<Dimension>& derivs);
+                         StateDerivatives<Dimension>& derivs) override;
 
   // // We need ghost connectivity to be computed.
-  // virtual bool requireGhostConnectivity() const { return true; }
+  // virtual bool requireGhostConnectivity() const override { return true; }
 
   // Flag to choose whether we want to sum for density, or integrate
   // the continuity equation.
@@ -214,6 +215,9 @@ public:
   double correctionMax() const;
   void correctionMax(const double val);
 
+  // We maintain a special boundary condition to handle void points.
+  const BoundarySpace::CRKSPHVoidBoundary<Dimension>& voidBoundary() const;
+
   // The state field lists we're maintaining.
   const FieldSpace::FieldList<Dimension, int>&       timeStepMask() const;
   const FieldSpace::FieldList<Dimension, Scalar>&    pressure() const;
@@ -260,6 +264,8 @@ public:
   const FieldList<Dimension, FifthRankTensor>&       gradm4() const;
 
   const FieldSpace::FieldList<Dimension, int>&       surfacePoint() const;
+  const FieldSpace::FieldList<Dimension, int>&       voidPoint() const;
+  const FieldSpace::FieldList<Dimension, std::vector<Vector>>& etaVoidPoints() const;
 
   //****************************************************************************
   // Methods required for restarting.
@@ -336,6 +342,10 @@ protected:
   FieldList<Dimension, FifthRankTensor>       mGradm4;
 
   FieldSpace::FieldList<Dimension, int>       mSurfacePoint;
+  FieldSpace::FieldList<Dimension, int>       mVoidPoint;
+  FieldSpace::FieldList<Dimension, std::vector<Vector>> mEtaVoidPoints;
+
+  BoundarySpace::CRKSPHVoidBoundary<Dimension> mVoidBoundary;
 
 private:
   //--------------------------- Private Interface ---------------------------//

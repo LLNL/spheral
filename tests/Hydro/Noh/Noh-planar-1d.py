@@ -26,8 +26,8 @@
 #
 #ATS:t200 = test(      SELF, "--crksph True --cfl 0.25 --KernelConstructor NBSplineKernel --order 7 --nPerh 1.01 --Cl 2.0 --Cq 1.0 --graphics None --clearDirectories True --checkError False --restartStep 20 --steps 40", label="Planar Noh problem with CRK -- 1-D (serial)")
 #ATS:t201 = testif(t200, SELF, "--crksph True --cfl 0.25 --KernelConstructor NBSplineKernel --order 7 --nPerh 1.01 --Cl 2.0 --Cq 1.0 --graphics None --clearDirectories False --checkError False --restartStep 20 --restoreCycle 20 --steps 20 --checkRestart True", label="Planar Noh problem with CRK -- 1-D (serial) RESTART CHECK")
-#ATS:t202 = test(      SELF, "--crksph True --cfl 0.25 --KernelConstructor NBSplineKernel --order 7 --nPerh 1.01 --Cl 2.0 --Cq 1.0 --graphics None --clearDirectories True  --checkError False  --dataDir 'dumps-planar-CRK-reproducing' --domainIndependent True --outputFile 'Noh-planar-1proc-reproducing.txt'", label="Planar Noh problem with CRK -- 1-D (serial reproducing test setup)")
-#ATS:t203 = testif(t202, SELF, "--crksph True --cfl 0.25 --KernelConstructor NBSplineKernel --order 7 --nPerh 1.01 --Cl 2.0 --Cq 1.0 --graphics None --clearDirectories False  --checkError False  --dataDir 'dumps-planar-CRK-reproducing' --domainIndependent True --outputFile 'Noh-planar-4proc-reproducing.txt' --comparisonFile 'Noh-planar-1proc-reproducing.txt'", np=4, label="Planar Noh problem with CRK -- 1-D (4 proc reproducing test)")
+#ATS:t202 = test(      SELF, "--crksph True --cfl 0.25 --KernelConstructor NBSplineKernel --order 7 --nPerh 1.01 --Cl 2.0 --Cq 1.0 --graphics None --clearDirectories True  --checkError False  --dataDir 'dumps-planar-CRK-reproducing' --domainIndependent True --outputFile 'Noh-planar-1proc-reproducing.txt' --steps 100", label="Planar Noh problem with CRK -- 1-D (serial reproducing test setup)")
+#ATS:t203 = testif(t202, SELF, "--crksph True --cfl 0.25 --KernelConstructor NBSplineKernel --order 7 --nPerh 1.01 --Cl 2.0 --Cq 1.0 --graphics None --clearDirectories False  --checkError False  --dataDir 'dumps-planar-CRK-reproducing' --domainIndependent True --outputFile 'Noh-planar-4proc-reproducing.txt' --steps 100 --comparisonFile 'Noh-planar-1proc-reproducing.txt'", np=4, label="Planar Noh problem with CRK -- 1-D (4 proc reproducing test)")
 #
 # PSPH
 #
@@ -49,7 +49,7 @@ commandLine(KernelConstructor = NBSplineKernel,
             nx1 = 100,
             rho1 = 1.0,
             eps1 = 0.0,
-	    smallPressure = False, #If set to True eps is not zero but small. 
+            smallPressure = False, #If set to True eps is not zero but small. 
             x0 = 0.0,
             x1 = 1.0,
             xwall = 0.0,
@@ -87,14 +87,13 @@ commandLine(KernelConstructor = NBSplineKernel,
             fcentroidal = 0.0,
             fcellPressure = 0.0,
             Qhmult = 1.0,
-            Cl = 1.0, 
-            Cq = 1.0,
-            etaCritFrac = 1.0,
-            etaFoldFrac = 0.2,
-            linearInExpansion = False,
-            Qlimiter = False,
-            balsaraCorrection = False,
-            epsilon2 = 1e-2,
+            Cl = None, 
+            Cq = None,
+            linearInExpansion = None,
+            Qlimiter = None,
+            balsaraCorrection = None,
+            epsilon2 = None,
+            QcorrectionOrder = None,
             hmin = 0.0001, 
             hmax = 0.1,
             cfl = 0.5,
@@ -123,7 +122,6 @@ commandLine(KernelConstructor = NBSplineKernel,
             smoothIters = 0,
             HUpdate = IdealH,
             correctionOrder = LinearOrder,
-            QcorrectionOrder = LinearOrder,
             volumeType = CRKSumVolume,
             densityUpdate = RigorousSumDensity, # VolumeScaledDensity,
             compatibleEnergy = True,
@@ -149,25 +147,25 @@ commandLine(KernelConstructor = NBSplineKernel,
             writeOutputLabel = True,
 
             # Parameters for the test acceptance.,
-            L1rho =   0.0484275,   
-            L2rho =   0.0150618,   
-            Linfrho = 1.7729,      
-                                   
-            L1P =     0.0179288,   
-            L2P =     0.00533577,  
-            LinfP =   0.619003,    
-                                   
-            L1v =     0.0249215,   
-            L2v =     0.00824696,  
-            Linfv =   0.849277,    
-                                   
-            L1eps =   0.0111308,   
-            L2eps =   0.00338576,  
-            Linfeps = 0.33485,     
-                                   
-            L1h =     0.000439456, 
-            L2h =     0.000122126, 
-            Linfh =   0.00862716,  
+            L1rho =   0.0717692               ,
+            L2rho =   0.0195334               ,
+            Linfrho = 2.31412                 ,
+                                               
+            L1P =     0.0248091               ,
+            L2P =     0.00728801              ,
+            LinfP =   0.968204                ,
+                                               
+            L1v =     0.0392544               ,
+            L2v =     0.0105355               ,
+            Linfv =   0.946074                ,
+                                               
+            L1eps =   0.01416                 ,
+            L2eps =   0.00401815              ,
+            Linfeps = 0.438217                ,
+                                               
+            L1h =     0.000552337             ,
+            L2h =     0.000132313             ,
+            Linfh =   0.00915864              ,
 
             tol = 1.0e-5,
 
@@ -311,8 +309,6 @@ elif crksph:
                    volumeType = volumeType,
                    densityUpdate = densityUpdate,
                    HUpdate = HUpdate)
-    hydro.Q.etaCritFrac = etaCritFrac
-    hydro.Q.etaFoldFrac = etaFoldFrac
 elif psph:
     hydro = PSPH(dataBase = db,
                  W = WT,
@@ -346,7 +342,7 @@ output("hydro.PiKernel()")
 output("hydro.cfl")
 output("hydro.compatibleEnergyEvolution")
 output("hydro.densityUpdate")
-output("hydro.HEvolution")
+output("hydro.XSPH")
 
 packages = [hydro]
 
@@ -354,12 +350,18 @@ packages = [hydro]
 # Set the artificial viscosity parameters.
 #-------------------------------------------------------------------------------
 q = hydro.Q
-q.Cl = Cl
-q.Cq = Cq
-q.epsilon2 = epsilon2
-q.limiter = Qlimiter
-q.balsaraShearCorrection = balsaraCorrection
-q.QcorrectionOrder = QcorrectionOrder
+if Cl:
+    q.Cl = Cl
+if Cq:
+    q.Cq = Cq
+if epsilon2:
+    q.epsilon2 = epsilon2
+if Qlimiter:
+    q.limiter = Qlimiter
+if balsaraCorrection:
+    q.balsaraShearCorrection = balsaraCorrection
+if QcorrectionOrder:
+    q.QcorrectionOrder = QcorrectionOrder
 output("q")
 output("q.Cl")
 output("q.Cq")
@@ -548,7 +550,26 @@ if graphics:
         volPlot = plotFieldList(hydro.volume(), 
                                 winTitle = "volume",
                                 colorNodeLists = False, plotGhosts = False)
-        plots.append((volPlot, "Noh-planar-vol.png"))
+        aplot = plotFieldList(hydro.A(),
+                              winTitle = "A",
+                              colorNodeLists = False)
+        bplot = plotFieldList(hydro.B(),
+                              yFunction = "%s.x",
+                              winTitle = "B",
+                              colorNodeLists = False)
+        splot = plotFieldList(hydro.surfacePoint(),
+                              winTitle = "surface point",
+                              colorNodeLists = False)
+        voidplot = plotFieldList(hydro.voidPoint(),
+                                 winTitle = "void point",
+                                 plotStyle = "points",
+                                 plotGhosts = True,
+                                 colorNodeLists = False)
+        plots += [(volPlot, "Noh-planar-vol.png"),
+                   (aplot, "Noh-planar-ACRK.png"),
+                   (bplot, "Noh-planar-BCRK.png"),
+                   (splot, "Noh-planar-surfacePoint.png"),
+                   (voidplot, "Noh-planar-voidPoint.png")]
 
     if boolCullenViscosity:
         cullAlphaPlot = plotFieldList(q.ClMultiplier(),

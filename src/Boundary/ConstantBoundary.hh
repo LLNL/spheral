@@ -64,7 +64,6 @@ public:
   virtual void applyGhostBoundary(FieldSpace::Field<Dimension, Tensor>& field) const;
   virtual void applyGhostBoundary(FieldSpace::Field<Dimension, SymTensor>& field) const;
   virtual void applyGhostBoundary(FieldSpace::Field<Dimension, ThirdRankTensor>& field) const;
-  virtual void applyGhostBoundary(FieldSpace::Field<Dimension, std::vector<Scalar> >& field) const;
 
   // Find any internal nodes that are in violation of this Boundary.
   virtual void setViolationNodes(NodeSpace::NodeList<Dimension>& nodeList);
@@ -81,6 +80,9 @@ public:
   virtual void enforceBoundary(FieldSpace::Field<Dimension, SymTensor>& field) const;
   virtual void enforceBoundary(FieldSpace::Field<Dimension, ThirdRankTensor>& field) const;
   //**********************************************************************
+
+  virtual void applyGhostBoundary(FieldSpace::Field<Dimension, std::vector<Scalar>>& field) const;
+  virtual void applyGhostBoundary(FieldSpace::Field<Dimension, std::vector<Vector>>& field) const;
 
   // After physics have been initialized we take a snapshot of the node state.
   virtual void initializeProblemStartup();
@@ -118,6 +120,7 @@ private:
   typedef std::map<KeyType, std::vector<SymTensor> > SymTensorStorageType;
   typedef std::map<KeyType, std::vector<ThirdRankTensor> > ThirdRankTensorStorageType;
   typedef std::map<KeyType, std::vector<std::vector<Scalar> > > VectorScalarStorageType;
+  typedef std::map<KeyType, std::vector<std::vector<Vector> > > VectorVectorStorageType;
 
   IntStorageType mIntValues;
   ScalarStorageType mScalarValues;
@@ -126,6 +129,7 @@ private:
   SymTensorStorageType mSymTensorValues;
   ThirdRankTensorStorageType mThirdRankTensorValues;
   VectorScalarStorageType mVectorScalarValues;
+  VectorVectorStorageType mVectorVectorValues;
 
   // The restart registration.
   DataOutput::RestartRegistrationType mRestart;

@@ -57,10 +57,6 @@ commandLine(
     P2 = 1.0,
     gamma2 = 1.5,
 
-    # Translation
-    velx=0.0,
-    vely=0.0,
-
     # Geometry (box)
     x0 = 0.0,
     x1 = 0.25,
@@ -74,6 +70,10 @@ commandLine(
     # Geometry (ellipse)
     a = 0.25,   # axis length in x
     b = 0.125,  # axis length in y
+
+    # Translation
+    velx=0.0,
+    vely=0.0,
 
     # Resolution and node seeding.
     nx1 = 100,

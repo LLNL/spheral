@@ -12,6 +12,8 @@
 #include "Physics/GenericBodyForce.hh"
 #include "Field/FieldList.hh"
 
+#include <vector>
+
 namespace Spheral {
 
 template<typename Dimension> class State;
@@ -35,10 +37,15 @@ public:
   //! \param maxDeltaVelocity -- Maximum factor by which the velocity can be changed by an acceleration per timestep.
   NBodyGravity(const double plummerSofteningLength,
                const double maxDeltaVelocity,
-               const double G);
+               const double G,
+               const bool compatibleVelocityUpdate);
 
   //! Destructor.
   virtual ~NBodyGravity();
+
+  //! We augment the generic body force state.
+  virtual void registerState(DataBaseSpace::DataBase<Dimension>& dataBase,
+                             State<Dimension>& state) override;
 
   //! This is the derivative method that all BodyForce classes must provide.
   virtual 
@@ -46,25 +53,37 @@ public:
                            const Scalar dt,
                            const DataBaseSpace::DataBase<Dimension>& dataBase,
                            const State<Dimension>& state,
-                           StateDerivatives<Dimension>& derivs) const;
+                           StateDerivatives<Dimension>& derivs) const override;
 
   //! Vote on the timestep.  This uses a velocity-limiting rule.
   virtual TimeStepType dt(const DataBaseSpace::DataBase<Dimension>& dataBase, 
                           const State<Dimension>& state,
                           const StateDerivatives<Dimension>& derivs,
-                          const Scalar currentTime) const;
+                          const Scalar currentTime) const override;
 
   //! Initializations on problem start up.
-  virtual void initializeProblemStartup(DataBaseSpace::DataBase<Dimension>& db);
+  virtual void initializeProblemStartup(DataBaseSpace::DataBase<Dimension>& db) override;
+
+  //! Beginning of timestep work.
+  virtual void preStepInitialize(const DataBaseSpace::DataBase<Dimension>& dataBase, 
+                                 State<Dimension>& state,
+                                 StateDerivatives<Dimension>& derivs) override;
+
+  //! End of timestep finalizations.
+  virtual void finalize(const Scalar time, 
+                        const Scalar dt,
+                        DataBaseSpace::DataBase<Dimension>& dataBase, 
+                        State<Dimension>& state,
+                        StateDerivatives<Dimension>& derivs) override;
 
   //! Required label for Physics interface.
-  virtual std::string label() const { return "NBodyGravity"; }
+  virtual std::string label() const override { return "NBodyGravity"; }
 
   //! This package opts out of building connectivity.
-  virtual bool requireConnectivity() const { return false; }
+  virtual bool requireConnectivity() const override { return false; }
 
   //! Return the total energy contribution due to the gravitational potential.
-  virtual Scalar extraEnergy() const;
+  virtual Scalar extraEnergy() const override;
 
   //! Return the gravitational potential created by the particle distribution.
   const FieldSpace::FieldList<Dimension, Scalar>& potential() const;
@@ -79,10 +98,16 @@ public:
   double softeningLength() const;
   void softeningLength(const double x);
 
+  //! Flag for using the compatible velocity update.
+  bool compatibleVelocityUpdate() const;
+  void compatibleVelocityUpdate(const bool x);
+
 private:
   
   //! The gravitational potential of the particles.
   mutable FieldSpace::FieldList<Dimension, Scalar> mPotential;
+  mutable FieldSpace::FieldList<Dimension, Scalar> mPotential0;
+  mutable FieldSpace::FieldList<Dimension, Scalar> mVel02;
 
   //! The total potential energy of the particles.  Also mutable.
   mutable Scalar mExtraEnergy;
@@ -102,6 +127,9 @@ private:
   //! The gravitational constant.
   Scalar mG;
   
+  //! Flag for compatible velocity.
+  bool mCompatibleVelocityUpdate;
+
   // Default constructor -- disabled.
   NBodyGravity();
 
@@ -110,6 +138,21 @@ private:
 
   // Assignment operator -- disabled.
   NBodyGravity& operator=(const NBodyGravity&);
+
+  // Worker for accumulating pair-wise forces.
+  void applyPairForces(const std::vector<Scalar>& otherMass,
+                       const std::vector<Vector>& otherPosition,
+                       const FieldSpace::FieldList<Dimension, Vector>& position,
+                       FieldSpace::FieldList<Dimension, Vector>& DvDt,
+                       FieldSpace::FieldList<Dimension, Scalar>& potential) const;
+
+  // Methods for serializing/deserializing point values.
+  void serialize(const FieldSpace::FieldList<Dimension, typename Dimension::Scalar>& mass,
+                 const FieldSpace::FieldList<Dimension, typename Dimension::Vector>& position,
+                 std::vector<char>& buffer) const;
+  void deserialize(const std::vector<char>& buffer,
+                   std::vector<typename Dimension::Scalar>& mass,
+                   std::vector<typename Dimension::Vector>& position) const;
 
 }; // end class NBodyGravity
 

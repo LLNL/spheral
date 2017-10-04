@@ -10,11 +10,9 @@
 #-------------------------------------------------------------------------------
 from SolidSpheral1d import *
 from SpheralTestUtilities import *
-from findLastRestart import *
-from SpheralVisitDump import dumpPhysicsState
 from identifyFragments import identifyFragments, fragmentProperties
 from math import *
-import shutil
+import os, shutil
 import mpi
 
 #-------------------------------------------------------------------------------
@@ -81,7 +79,6 @@ units = PhysicalConstants(0.01,  # Unit length in m
 commandLine(length = 3.0,
             radius = 0.5,
             nx = 100,
-            nPerh = 1.25,
 
             rho0 = 7.9,
 
@@ -107,17 +104,7 @@ commandLine(length = 3.0,
             # Optionally we can initialize a break near the origin.
             initialBreakRadius = 0.0,
             
-            CRKSPH = False,
-            Qconstructor = MonaghanGingoldViscosity,
-            KernelConstructor = BSplineKernel,
-            Cl = 1.0,
-            Cq = 1.0,
-            linearInExpansion = False,
-            Qlimiter = False,
-            balsaraCorrection = False,
-            epsilon2 = 1e-2,
-            negligibleSoundSpeed = 1e-5,
-            csMultiplier = 1e-4,
+            crksph = False,
             hmin = 1e-5,
             hmax = 1.0,
             cfl = 0.5,
@@ -148,24 +135,27 @@ commandLine(length = 3.0,
             domainIndependent = False,
             dtverbose = False,
 
-            restoreCycle = None,
+            restoreCycle = -1,
             restartStep = 500,
 
             graphics = True,
 
             testtol = 1.0e-4,
             clearDirectories = False,
-            referenceFile = "Reference/TensileRod-GradyKipp-1d-1proc-reproducing-20161003.txt",
+            referenceFile = "Reference/TensileRod-GradyKipp-1d-1proc-reproducing-20170918.txt",
             dataDirBase = "dumps-TensileRod-1d",
             outputFile = "None",
             comparisonFile = "None",
             )
 
-if CRKSPH:
-    HydroConstructor = SolidCRKSPHHydro
-    Qconstructor = CRKSPHMonaghanGingoldViscosity
+if crksph:
+    hydroname = "CRKSPH"
+    nPerh = 1.51
+    order = 5
 else:
-    HydroConstructor = SolidSPHHydro
+    hydroname = "SPH"
+    nPerh = 1.51
+    order = 5
 
 #kWeibull = 8.8e4 * kWeibullFactor
 #kWeibull = 6.52e3 * kWeibullFactor
@@ -173,13 +163,11 @@ kWeibull = 6.52e5 * kWeibullFactor
 mWeibull = 2.63   * mWeibullFactor
 
 dataDir = os.path.join(dataDirBase,
-                       str(HydroConstructor).split("'")[1].split(".")[-1],
-                       str(Qconstructor).split("'")[1].split(".")[-1],
-                       str(DamageModelConstructor).split("'")[1],
+                       hydroname,
+                       DamageModelConstructor.__name__,
                        "nx=%i" % nx,
                        "k=%4.2f_m=%4.2f" % (kWeibull, mWeibull))
 restartDir = os.path.join(dataDir, "restarts")
-visitDir = os.path.join(dataDir, "visit")
 restartBaseName = os.path.join(restartDir, "TensileRod-%i" % nx)
 
 xmin = -0.5*length
@@ -265,15 +253,7 @@ if mpi.rank == 0:
         shutil.rmtree(dataDir)
     if not os.path.exists(restartDir):
         os.makedirs(restartDir)
-    if not os.path.exists(visitDir):
-        os.makedirs(visitDir)
 mpi.barrier()
-
-#-------------------------------------------------------------------------------
-# If we're restarting, find the set of most recent restart files.
-#-------------------------------------------------------------------------------
-if restoreCycle is None:
-    restoreCycle = findLastRestart(restartBaseName)
 
 #-------------------------------------------------------------------------------
 # Stainless steel material properties.
@@ -326,7 +306,7 @@ strengthModel = SteinbergGuinanStrength(eos,
 # Create our interpolation kernels -- one for normal hydro interactions, and
 # one for use with the artificial viscosity
 #-------------------------------------------------------------------------------
-WT = TableKernel(KernelConstructor(), 1000)
+WT = TableKernel(NBSplineKernel(order), 1000)
 output("WT")
 
 #-------------------------------------------------------------------------------
@@ -346,34 +326,33 @@ nodeSet = [nodes]
 # Set node properties (positions, masses, H's, etc.)
 #-------------------------------------------------------------------------------
 eps0 = 0.0
-if restoreCycle is None:
-    print "Generating node distribution."
-    from DistributeNodes import distributeNodesInRange1d
-    distributeNodesInRange1d([(nodes, nx, rho0, (xmin, xmax))])
-    output("mpi.reduce(nodes.numInternalNodes, mpi.MIN)")
-    output("mpi.reduce(nodes.numInternalNodes, mpi.MAX)")
-    output("mpi.reduce(nodes.numInternalNodes, mpi.SUM)")
+print "Generating node distribution."
+from DistributeNodes import distributeNodesInRange1d
+distributeNodesInRange1d([(nodes, nx, rho0, (xmin, xmax))])
+output("mpi.reduce(nodes.numInternalNodes, mpi.MIN)")
+output("mpi.reduce(nodes.numInternalNodes, mpi.MAX)")
+output("mpi.reduce(nodes.numInternalNodes, mpi.SUM)")
 
-    # # Set node specific thermal energies
-    # eps0 = eos.specificThermalEnergy(rho0, 300.0)
-    # nodes.specificThermalEnergy(ScalarField("tmp", nodes, eps0))
+# # Set node specific thermal energies
+# eps0 = eos.specificThermalEnergy(rho0, 300.0)
+# nodes.specificThermalEnergy(ScalarField("tmp", nodes, eps0))
 
-    # Set node velocites.
+# Set node velocites.
+for i in xrange(nodes.numInternalNodes):
+    nodes.velocity()[i].x = nodes.positions()[i].x/(0.5*length)*v0
+
+# Set an initial damage if requested.
+if initialBreakRadius > 0.0:
+    pos = nodes.positions()
+    D = nodes.damage()
+    fragIDs = nodes.fragmentIDs()
     for i in xrange(nodes.numInternalNodes):
-        nodes.velocity()[i].x = nodes.positions()[i].x/(0.5*length)*v0
-
-    # Set an initial damage if requested.
-    if initialBreakRadius > 0.0:
-        pos = nodes.positions()
-        D = nodes.damage()
-        fragIDs = nodes.fragmentIDs()
-        for i in xrange(nodes.numInternalNodes):
-            if abs(pos[i].x) < initialBreakRadius:
-                D[i] = SymTensor.one
-            if pos[i].x < 0.0:
-                fragIDs[i] = 1
-            else:
-                fragIDs[i] = 2
+        if abs(pos[i].x) < initialBreakRadius:
+            D[i] = SymTensor.one
+        if pos[i].x < 0.0:
+            fragIDs[i] = 1
+        else:
+            fragIDs[i] = 2
 
 #-------------------------------------------------------------------------------
 # Construct a DataBase to hold our node list
@@ -411,50 +390,31 @@ xbc1 = ConstantVelocityBoundary(nodes, x1Nodes)
 bcs = [xbc0, xbc1]
 
 #-------------------------------------------------------------------------------
-# Construct the artificial viscosities for the problem.
-#-------------------------------------------------------------------------------
-q = Qconstructor(Cl, Cq, linearInExpansion)
-q.limiter = Qlimiter
-q.balsaraShearCorrection = balsaraCorrection
-q.epsilon2 = epsilon2
-q.negligibleSoundSpeed = negligibleSoundSpeed
-q.csMultiplier = csMultiplier
-output("q")
-output("q.Cl")
-output("q.Cq")
-output("q.linearInExpansion")
-output("q.limiter")
-output("q.epsilon2")
-output("q.negligibleSoundSpeed")
-output("q.csMultiplier")
-output("q.balsaraShearCorrection")
-
-#-------------------------------------------------------------------------------
 # Construct the hydro physics object.
 #-------------------------------------------------------------------------------
-if CRKSPH:
-    hydro = HydroConstructor(W = WT,
-                             Q = q,
-                             filter = filter,
-                             cfl = cfl,
-                             compatibleEnergyEvolution = compatibleEnergy,
-                             XSPH = XSPH,
-                             densityUpdate = densityUpdate,
-                             volumeType = volumeType,
-                             HUpdate = HUpdate)
+if crksph:
+    hydro = CRKSPH(dataBase = db,
+                   W = WT,
+                   filter = filter,
+                   cfl = cfl,
+                   compatibleEnergyEvolution = compatibleEnergy,
+                   XSPH = XSPH,
+                   densityUpdate = densityUpdate,
+                   volumeType = volumeType,
+                   HUpdate = HUpdate)
 else:
-    hydro = HydroConstructor(W = WT,
-                             Q = q,
-                             filter = filter,
-                             cfl = cfl,
-                             compatibleEnergyEvolution = compatibleEnergy,
-                             gradhCorrection = gradhCorrection,
-                             correctVelocityGradient = correctVelocityGradient,
-                             densityUpdate = densityUpdate,
-                             HUpdate = HUpdate,
-                             XSPH = XSPH,
-                             epsTensile = epsilonTensile,
-                             nTensile = nTensile)
+    hydro = SPH(dataBase = db,
+                W = WT,
+                filter = filter,
+                cfl = cfl,
+                compatibleEnergyEvolution = compatibleEnergy,
+                gradhCorrection = gradhCorrection,
+                correctVelocityGradient = correctVelocityGradient,
+                densityUpdate = densityUpdate,
+                HUpdate = HUpdate,
+                XSPH = XSPH,
+                epsTensile = epsilonTensile,
+                nTensile = nTensile)
 output("hydro")
 output("hydro.cfl")
 output("hydro.useVelocityMagnitudeForDt")
@@ -563,13 +523,6 @@ output("control")
 strainHistory = AverageStrain(damageModel,
                               dataDir + "/strainhistory.txt")
 control.appendPeriodicWork(strainHistory.sample, 1)
-
-#-------------------------------------------------------------------------------
-# Smooth the initial conditions/restore state.
-#-------------------------------------------------------------------------------
-if restoreCycle is not None:
-    control.loadRestartFile(restoreCycle)
-    strainHistory.flushHistory()
 
 #-------------------------------------------------------------------------------
 # Advance to the end time.

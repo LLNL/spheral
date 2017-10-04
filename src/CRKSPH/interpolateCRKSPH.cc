@@ -85,7 +85,7 @@ interpolateCRKSPH(const FieldSpace::FieldList<Dimension, DataType>& fieldList,
       DataType& resulti = result(nodeListi, i);
 
       // Add our self-contribution.
-      const Scalar W0 = W.kernelValue(0.0, 1.0);
+      const Scalar W0 = W.kernelValue(0.0, Hdeti);
       resulti += weight(nodeListi, i)*Fi*W0*Ai;
 
       // Neighbors!
@@ -116,10 +116,12 @@ interpolateCRKSPH(const FieldSpace::FieldList<Dimension, DataType>& fieldList,
                                                                        nodeListj, j,
                                                                        firstGhostNodej)) {
 
-              // The pair-wise modified weighting.
-              const Scalar wijmax = 10.0*std::min(weight(nodeListi, i), weight(nodeListj, j));
-              const Scalar wi = fij*std::min(wijmax, weight(nodeListi, i));
-              const Scalar wj = fij*std::min(wijmax, weight(nodeListj, j));
+              // Find the effective weights of i->j and j->i.
+              // const Scalar wi = fij*2.0*weight(nodeListi, i)*weight(nodeListj, j)/(weight(nodeListi, i) + weight(nodeListj, j));
+              const Scalar wi = fij*0.5*(weight(nodeListi, i) + weight(nodeListj, j));
+              const Scalar wj = wi;
+              // const Scalar wi = fij*weight(nodeListi, i);
+              // const Scalar wj = fij*weight(nodeListj, j);
 
               // Get the state for node j.
               const Vector& rj = position(nodeListj, j);

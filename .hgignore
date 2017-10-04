@@ -28,7 +28,7 @@ runit
 dumps*
 src/BUILD
 src/BUILD/**
-tests/Hydro/dumps*
+dumps-*
 
 # These are files automatically generated in our configure process.
 src/PBGWraps/makefile

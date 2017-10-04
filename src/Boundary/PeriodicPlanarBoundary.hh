@@ -31,7 +31,6 @@ public:
   virtual void applyGhostBoundary(FieldSpace::Field<Dimension, Tensor>& field) const;
   virtual void applyGhostBoundary(FieldSpace::Field<Dimension, SymTensor>& field) const;
   virtual void applyGhostBoundary(FieldSpace::Field<Dimension, ThirdRankTensor>& field) const;
-  virtual void applyGhostBoundary(FieldSpace::Field<Dimension, std::vector<Scalar> >& field) const;
 
   // Enforce the boundary condition on the violation nodes in the given Field.
   virtual void enforceBoundary(FieldSpace::Field<Dimension, int>& field) const;

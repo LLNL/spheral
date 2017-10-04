@@ -208,7 +208,8 @@ iterateIdealH(DataBase<Dimension>& dataBase,
               const Scalar Wi = std::abs(W.gradValue(etai, 1.0));
               const SymTensor thpt = xij.selfdyad()/(xij.magnitude2() + 1.0e-10);
               zerothMoment += fweightij*Wi;
-              secondMoment += fweightij*FastMath::square(Wi/Dimension::pownu1(etai + 1.0e-10))*thpt;
+              secondMoment += fweightij*FastMath::square(Wi*safeInvVar(xij.magnitude2()))*thpt;
+              // secondMoment += fweightij*FastMath::square(Wi/Dimension::pownu1(etai + 1.0e-10))*thpt;
             }
           }
 
