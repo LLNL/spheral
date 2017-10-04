@@ -48,7 +48,9 @@ bool pointInPolygon(const Dim<3>::Vector& p,
 bool pointInPolygon(const Dim<3>::Vector& p,
                     const std::vector<Dim<3>::Vector>& vertices,
                     const std::vector<unsigned>& ipoints,
-                    const Dim<3>::Vector& normal);
+                    const Dim<3>::Vector& normal,
+                    const bool countBoundary = false,
+                    const double tol = 1.0e-10);
 
 }
 

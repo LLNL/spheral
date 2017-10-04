@@ -45,10 +45,6 @@ commandLine(nr = 100,
             gamma = 5.0/3.0,
             mu = 1.0,
 
-            nPerh = 1.51,
-
-            order = 3,
-            Qconstructor = MonaghanGingoldViscosity,
             hmin = 0.0001, 
             hmax = 1.0,
             cfl = 0.25,
@@ -59,6 +55,7 @@ commandLine(nr = 100,
 
             svph = False,
             crksph = False,
+            volumeType = CRKVoronoiVolume,
             correctionOrder = LinearOrder,
             IntegratorConstructor = CheapSynchronousRK2Integrator,
             steps = None,
@@ -68,6 +65,7 @@ commandLine(nr = 100,
             dtMax = 100.0,
             dtGrowth = 2.0,
             dtverbose = False,
+            domainIndependent = False,
             rigorousBoundaries = False,
             maxSteps = None,
             statsStep = 1,
@@ -91,10 +89,16 @@ commandLine(nr = 100,
 
 if svph:
     hydroname = "SVPH"
+    nPerh = 1.51
+    order = 3
 elif crksph:
     hydroname = "CRKSPH"
+    nPerh = 1.51
+    order = 5
 else:
     hydroname = "SPH"
+    nPerh = 1.51
+    order = 5
 
 dataDir = os.path.join(dataDirBase,
                        hydroname,
@@ -189,6 +193,7 @@ if svph:
     hydro = SVPH(dataBase = db,
                  W = WT, 
                  cfl = cfl,
+                 useVelocityMagnitudeForDt = True,
                  compatibleEnergyEvolution = compatibleEnergy,
                  XSVPH = XSPH,
                  linearConsistent = linearConsistent,
@@ -201,16 +206,20 @@ elif crksph:
                    W = WT, 
                    filter = filter,
                    cfl = cfl,
+                   useVelocityMagnitudeForDt = True,
                    compatibleEnergyEvolution = compatibleEnergy,
                    XSPH = XSPH,
+                   volumeType = volumeType,
                    densityUpdate = densityUpdate,
                    HUpdate = HUpdate,
+                   detectSurfaces = True,
                    correctionOrder = correctionOrder)
 
 else:
     hydro = SPH(dataBase = db,
                 W = WT, 
                 cfl = cfl,
+                useVelocityMagnitudeForDt = True,
                 compatibleEnergyEvolution = compatibleEnergy,
                 gradhCorrection = gradhCorrection,
                 XSPH = XSPH,
@@ -239,6 +248,7 @@ integrator.lastDt = dt
 integrator.dtMin = dtMin
 integrator.dtMax = dtMax
 integrator.dtGrowth = dtGrowth
+integrator.domainDecompositionIndependent = domainIndependent
 integrator.rigorousBoundaries = rigorousBoundaries
 integrator.verbose = dtverbose
 output("integrator")
@@ -246,6 +256,7 @@ output("integrator.lastDt")
 output("integrator.dtMin")
 output("integrator.dtMax")
 output("integrator.dtGrowth")
+output("integrator.domainDecompositionIndependent")
 output("integrator.rigorousBoundaries")
 
 #-------------------------------------------------------------------------------
@@ -274,6 +285,7 @@ output("integrator.rigorousBoundaries")
 #-------------------------------------------------------------------------------
 print "Making controller."
 control = SpheralController(integrator, WT,
+                            SPH = True,
                             statsStep = statsStep,
                             restartStep = restartStep,
                             restartBaseName = restartBaseName,
@@ -313,24 +325,37 @@ if graphics == "gnu":
     csPlot = plotFieldList(cs, xFunction="%s.magnitude()", winTitle="Sound speed", colorNodeLists=False)
     EPlot = plotEHistory(control.conserve)
 
-    if SVPH:
+    if svph:
         volPlot = plotFieldList(hydro.volume(),
                                 xFunction="%s.magnitude()",
                                 winTitle = "volume",
+                                plotStyle = "points",
                                 colorNodeLists = False)
-    elif CRKSPH:
+    elif crksph:
         volPlot = plotFieldList(hydro.volume(),
                                 xFunction="%s.magnitude()",
                                 winTitle = "volume",
+                                plotStyle = "points",
+                                plotGhosts = True,
                                 colorNodeLists = False)
         APlot = plotFieldList(hydro.A(),
                               xFunction="%s.magnitude()",
                               winTitle = "A",
+                              plotStyle = "points",
+                              plotGhosts = True,
                               colorNodeLists = False)
         BPlot = plotFieldList(hydro.B(),
                               xFunction="%s.magnitude()",
                               yFunction = "%s.magnitude()",
                               winTitle = "|B|",
+                              plotStyle = "points",
+                              plotGhosts = True,
+                              colorNodeLists = False)
+        splot = plotFieldList(hydro.surfacePoint(),
+                              xFunction="%s.magnitude()",
+                              winTitle = "surface point",
+                              plotStyle = "points",
+                              plotGhosts = True,
                               colorNodeLists = False)
 
     else:

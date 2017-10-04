@@ -44,7 +44,6 @@ commandLine(nx1 = 100,
             nPerh = 1.51,
 
             order = 3,
-            Qconstructor = MonaghanGingoldViscosity,
             hmin = 0.0001, 
             hmax = 1.0,
             cfl = 0.25,
@@ -56,6 +55,7 @@ commandLine(nx1 = 100,
             svph = False,
             crksph = False,
             correctionOrder = LinearOrder,
+            volumeType = CRKVoronoiVolume,
             IntegratorConstructor = CheapSynchronousRK2Integrator,
             steps = None,
             goalTime = 0.5,
@@ -184,6 +184,7 @@ elif crksph:
                    W = WT, 
                    filter = filter,
                    cfl = cfl,
+                   volumeType = volumeType,
                    compatibleEnergyEvolution = compatibleEnergy,
                    XSPH = XSPH,
                    densityUpdate = densityUpdate,
@@ -261,11 +262,11 @@ if graphics == "gnu":
     csPlot = plotFieldList(cs, winTitle="Sound speed", colorNodeLists=False)
     EPlot = plotEHistory(control.conserve)
 
-    if SVPH:
+    if svph:
         volPlot = plotFieldList(hydro.volume(),
                                 winTitle = "volume",
                                 colorNodeLists = False)
-    elif CRKSPH:
+    elif crksph:
         A=hydro.A()
 	print("ARRAY LENGTH:")
         print(A[0].__len__())
@@ -295,6 +296,9 @@ if graphics == "gnu":
         BPlot = plotFieldList(hydro.B(),
                               yFunction = "%s.x",
                               winTitle = "B",
+                              colorNodeLists = False)
+        splot = plotFieldList(hydro.surfacePoint(),
+                              winTitle = "surface point",
                               colorNodeLists = False)
 
     else:

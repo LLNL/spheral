@@ -1,5 +1,5 @@
-#ATS:test(SELF, "--crksph=True --nRadial=100 --cfl=0.25 --Cl=1.0 --Cq=1.0 --clearDirectories=True --filter=0.0 --nPerh=2.01 --graphics False", label="Noh cylindrical CRK, nPerh=2.0", np=20)
-#ATS:test(SELF, "--crksph=False --nRadial=100 --cfl=0.25 --Cl=1.0 --Cq=1.0 --clearDirectories=True --filter=0.0 --nPerh=2.01 --graphics False", label="Noh cylindrical CRK, nPerh=2.0", np=20)
+#ATS:test(SELF, "--crksph=True --nRadial=100 --cfl=0.25 --Cl=1.0 --Cq=1.0 --clearDirectories=True --filter=0.0 --nPerh=2.01 --graphics False --steps 100", label="Noh cylindrical CRK, nPerh=2.0", np=20)
+#ATS:test(SELF, "--crksph=False --nRadial=100 --cfl=0.25 --Cl=1.0 --Cq=1.0 --clearDirectories=True --filter=0.0 --nPerh=2.01 --graphics False --steps 100", label="Noh cylindrical CRK, nPerh=2.0", np=20)
 
 #-------------------------------------------------------------------------------
 # The Cylindrical Noh test case run in 2-D.
@@ -22,8 +22,7 @@ title("2-D integrated hydro test -- cylindrical Noh problem")
 #-------------------------------------------------------------------------------
 # Generic problem parameters
 #-------------------------------------------------------------------------------
-commandLine(KernelConstructor = BSplineKernel,
-            order = 5,
+commandLine(order = 5,
             seed = "constantDTheta",
 
             thetaFactor = 0.5,
@@ -44,7 +43,7 @@ commandLine(KernelConstructor = BSplineKernel,
 
             svph = False,
             crksph = False,
-	    psph = False,
+            psph = False,
             asph = False,   # This just chooses the H algorithm -- you can use this with CRKSPH for instance.
             boolReduceViscosity = False,
             HopkinsConductivity = False,     # For PSPH
@@ -60,15 +59,14 @@ commandLine(KernelConstructor = BSplineKernel,
             betaE = 1.0,
             fKern = 1.0/3.0,
             boolHopkinsCorrection = True,
-
             linearConsistent = False,
-            Cl = 1.0, 
-            Cq = 0.75,
-            linearInExpansion = False,
-            Qlimiter = False,
-            balsaraCorrection = False,
-            epsilon2 = 1e-2,
-            fslice = 0.5,
+
+            Cl = None, 
+            Cq = None,
+            linearInExpansion = None,
+            Qlimiter = None,
+            balsaraCorrection = None,
+            epsilon2 = None,
             hmin = 0.0001, 
             hmax = 0.5,
             hminratio = 0.1,
@@ -113,7 +111,7 @@ commandLine(KernelConstructor = BSplineKernel,
             outputFile = "None",
             comparisonFile = "None",
 
-            graphics = False,
+            graphics = True,
             )
 
 assert not(boolReduceViscosity and boolCullenViscosity)
@@ -181,10 +179,7 @@ eos = GammaLawGasMKS(gamma, mu)
 #-------------------------------------------------------------------------------
 # Interpolation kernels.
 #-------------------------------------------------------------------------------
-if KernelConstructor==NBSplineKernel:
-  WT = TableKernel(NBSplineKernel(order), 1000)
-else:
-  WT = TableKernel(KernelConstructor(), 1000)
+WT = TableKernel(NBSplineKernel(order), 1000)
 output("WT")
 kernelExtent = WT.kernelExtent
 
@@ -326,11 +321,16 @@ packages = [hydro]
 # Set the artificial viscosity parameters.
 #-------------------------------------------------------------------------------
 q = hydro.Q
-q.Cl = Cl
-q.Cq = Cq
-q.epsilon2 = epsilon2
-q.limiter = Qlimiter
-q.balsaraShearCorrection = balsaraCorrection
+if Cl:
+    q.Cl = Cl
+if Cq:
+    q.Cq = Cq
+if epsilon2:
+    q.epsilon2 = epsilon2
+if Qlimiter:
+    q.limiter = Qlimiter
+if balsaraCorrection:
+    q.balsaraShearCorrection = balsaraCorrection
 output("q")
 output("q.Cl")
 output("q.Cq")
@@ -518,6 +518,26 @@ if graphics:
              (PPlot, "Noh-cylindrical-P.png"),
              (hrPlot, "Noh-cylindrical-hr.png"),
              (htPlot, "Noh-cylindrical-ht.png")]
+
+    if crksph:
+        volPlot = plotFieldList(hydro.volume(), 
+                                xFunction = "%s.magnitude()",
+                                winTitle = "volume",
+                                plotStyle = "points",
+                                colorNodeLists = False, plotGhosts = False)
+        spPlot = plotFieldList(hydro.surfacePoint(), 
+                               xFunction = "%s.magnitude()",
+                               winTitle = "Surface",
+                               plotStyle = "points",
+                               colorNodeLists = False, plotGhosts = False)
+        vpPlot = plotFieldList(hydro.voidPoint(), 
+                               xFunction = "%s.magnitude()",
+                               winTitle = "Void",
+                               plotStyle = "points",
+                               colorNodeLists = False, plotGhosts = True)
+        plots += [(volPlot, "Noh-cylindrical-vol.png"),
+                  (spPlot, "Noh-cylindrical-surfacePoint.png"),
+                  (vpPlot, "Noh-cylindrical-voidPoint.png")]
 
     # Make hardcopies of the plots.
     for p, filename in plots:

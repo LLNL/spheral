@@ -340,8 +340,11 @@ Spheral.add_function("segmentIntersectEdges", "bool", [constrefparam("%(vector)s
         ullfieldlist = "ULLFieldList%id" % ndim
         scalarfieldlist = "ScalarFieldList%id" % ndim
         vectorfieldlist = "VectorFieldList%id" % ndim
+        tensorfieldlist = "TensorFieldList%id" % ndim
+        symtensorfieldlist = "SymTensorFieldList%id" % ndim
         vector_of_boundary = "vector_of_Boundary%id" % ndim
         tablekernel = "TableKernel%id" % ndim
+        connectivitymap = "ConnectivityMap%id" % ndim
         smoothingscalebase = "Spheral::NodeSpace::SmoothingScaleBase%id" % ndim
 
         Spheral = self.Spheral
@@ -418,6 +421,17 @@ Spheral.add_function("segmentIntersectEdges", "bool", [constrefparam("%(vector)s
                               constrefparam(vector, "s0"),
                               constrefparam(vector, "s1")],
                              docstring = "Integrate through a lattice sampled field along a line segment.")
+
+        for fl in (scalarfieldlist, vectorfieldlist, tensorfieldlist, symtensorfieldlist):
+            Spheral.add_function("computeShepardsInterpolation",
+                                 fl,
+                                 [constrefparam(fl, "fieldList"),
+                                  constrefparam(connectivitymap, "connectivityMap"),
+                                  constrefparam(tablekernel, "W"),
+                                  constrefparam(vectorfieldlist, "position"),
+                                  constrefparam(symtensorfieldlist, "H"),
+                                  constrefparam(scalarfieldlist, "weight")],
+                                 docstring = "Interpolate a FieldList using a Shepards function approach.")
 
         return
 

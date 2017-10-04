@@ -119,13 +119,6 @@ ConstantVelocityBoundary<Dimension>::
 applyGhostBoundary(Field<Dimension, typename Dimension::ThirdRankTensor>& field) const {
 }
 
-// Specialization for vector<scalar> fields.
-template<typename Dimension>
-void
-ConstantVelocityBoundary<Dimension>::
-applyGhostBoundary(Field<Dimension, std::vector<typename Dimension::Scalar> >& field) const {
-}
-
 //------------------------------------------------------------------------------
 // Provide the setViolationNodes for a NodeList.  The violation nodes are always
 // forced to be the set of nodes we're controlling.

@@ -386,7 +386,7 @@ registerDerivatives(DataBase<Dimension>& dataBase,
 
   typedef typename StateDerivatives<Dimension>::KeyType Key;
   const string DxDtName = IncrementState<Dimension, Vector>::prefix() + HydroFieldNames::position;
-  const string DvDtName = IncrementState<Dimension, Vector>::prefix() + HydroFieldNames::velocity;
+  const string DvDtName = HydroFieldNames::hydroAcceleration;
 
   // Create the scratch fields.
   // Note we deliberately do not zero out the derivatives here!  This is because the previous step
@@ -399,7 +399,7 @@ registerDerivatives(DataBase<Dimension>& dataBase,
   dataBase.resizeFluidFieldList(mMassSecondMoment, SymTensor::zero, HydroFieldNames::massSecondMoment, false);
   dataBase.resizeFluidFieldList(mXSVPHDeltaV, Vector::zero, HydroFieldNames::XSPHDeltaV, false);
   dataBase.resizeFluidFieldList(mDxDt, Vector::zero, IncrementState<Dimension, Field<Dimension, Vector> >::prefix() + HydroFieldNames::position, false);
-  dataBase.resizeFluidFieldList(mDvDt, Vector::zero, IncrementState<Dimension, Field<Dimension, Vector> >::prefix() + HydroFieldNames::velocity, false);
+  dataBase.resizeFluidFieldList(mDvDt, Vector::zero, HydroFieldNames::hydroAcceleration, false);
   dataBase.resizeFluidFieldList(mDmassDensityDt, 0.0, IncrementState<Dimension, Field<Dimension, Scalar> >::prefix() + HydroFieldNames::massDensity, false);
   dataBase.resizeFluidFieldList(mDspecificThermalEnergyDt, 0.0, IncrementState<Dimension, Field<Dimension, Scalar> >::prefix() + HydroFieldNames::specificThermalEnergy, false);
   dataBase.resizeFluidFieldList(mDHDt, SymTensor::zero, IncrementState<Dimension, Field<Dimension, Vector> >::prefix() + HydroFieldNames::H, false);
@@ -530,7 +530,7 @@ evaluateDerivatives(const typename Dimension::Scalar time,
   FieldList<Dimension, Scalar> rhoSum = derivatives.fields(ReplaceState<Dimension, Field<Dimension, Scalar> >::prefix() + HydroFieldNames::massDensity, 0.0);
   FieldList<Dimension, Vector> DxDt = derivatives.fields(IncrementState<Dimension, Field<Dimension, Vector> >::prefix() + HydroFieldNames::position, Vector::zero);
   FieldList<Dimension, Scalar> DrhoDt = derivatives.fields(IncrementState<Dimension, Field<Dimension, Scalar> >::prefix() + HydroFieldNames::massDensity, 0.0);
-  FieldList<Dimension, Vector> DvDt = derivatives.fields(IncrementState<Dimension, Field<Dimension, Vector> >::prefix() + HydroFieldNames::velocity, Vector::zero);
+  FieldList<Dimension, Vector> DvDt = derivatives.fields(HydroFieldNames::hydroAcceleration, Vector::zero);
   FieldList<Dimension, Scalar> DepsDt = derivatives.fields(IncrementState<Dimension, Field<Dimension, Scalar> >::prefix() + HydroFieldNames::specificThermalEnergy, 0.0);
   FieldList<Dimension, Tensor> DvDx = derivatives.fields(HydroFieldNames::velocityGradient, Tensor::zero);
   FieldList<Dimension, Tensor> localDvDx = derivatives.fields(HydroFieldNames::internalVelocityGradient, Tensor::zero);
@@ -894,7 +894,7 @@ dt(const DataBase<Dimension>& dataBase,
   const FieldList<Dimension, Scalar> soundSpeed = state.fields(HydroFieldNames::soundSpeed, 0.0);
   const FieldList<Dimension, Scalar> maxViscousPressure = derivs.fields(HydroFieldNames::maxViscousPressure, 0.0);
   const FieldList<Dimension, Tensor> DvDx = derivs.fields(HydroFieldNames::velocityGradient, Tensor::zero);
-  const FieldList<Dimension, Vector> DvDt = derivs.fields(IncrementState<Dimension, Field<Dimension, Vector> >::prefix() + HydroFieldNames::velocity, Vector::zero);
+  const FieldList<Dimension, Vector> DvDt = derivs.fields(HydroFieldNames::hydroAcceleration, Vector::zero);
 
   // Initialize the return value to some impossibly high value.
   Scalar minDt = FLT_MAX;
@@ -1043,7 +1043,7 @@ finalizeDerivatives(const typename Dimension::Scalar time,
   // If we're using the compatible energy discretization, we need to enforce
   // boundary conditions on the accelerations.
   // if (compatibleEnergyEvolution()) {
-  //   FieldList<Dimension, Vector> accelerations = derivs.fields(IncrementState<Dimension, Field<Dimension, Vector> >::prefix() + HydroFieldNames::velocity, Vector::zero);
+  //   FieldList<Dimension, Vector> accelerations = derivs.fields(HydroFieldNames::hydroAcceleration, Vector::zero);
   //   for (ConstBoundaryIterator boundaryItr = this->boundaryBegin();
   //        boundaryItr != this->boundaryEnd();
   //        ++boundaryItr) (*boundaryItr)->applyFieldListGhostBoundary(accelerations);
@@ -1111,9 +1111,9 @@ applyGhostBoundaries(State<Dimension>& state,
   FieldList<Dimension, Vector> DvDt;
   if (compatibleEnergyEvolution()) {
     CHECK(state.fieldNameRegistered(HydroFieldNames::specificThermalEnergy + "0"));
-    CHECK(derivs.fieldNameRegistered(IncrementState<Dimension, Field<Dimension, Vector> >::prefix() + HydroFieldNames::velocity));
+    CHECK(derivs.fieldNameRegistered(HydroFieldNames::hydroAcceleration));
     specificThermalEnergy0 = state.fields(HydroFieldNames::specificThermalEnergy + "0", 0.0);
-    DvDt = derivs.fields(IncrementState<Dimension, Field<Dimension, Vector> >::prefix() + HydroFieldNames::velocity, Vector::zero);
+    DvDt = derivs.fields(HydroFieldNames::hydroAcceleration, Vector::zero);
   }
 
   for (ConstBoundaryIterator boundaryItr = this->boundaryBegin(); 
@@ -1157,9 +1157,9 @@ enforceBoundaries(State<Dimension>& state,
   FieldList<Dimension, Vector> DvDt;
   if (compatibleEnergyEvolution()) {
     CHECK(state.fieldNameRegistered(HydroFieldNames::specificThermalEnergy + "0"));
-    CHECK(derivs.fieldNameRegistered(IncrementState<Dimension, Field<Dimension, Vector> >::prefix() + HydroFieldNames::velocity));
+    CHECK(derivs.fieldNameRegistered(HydroFieldNames::hydroAcceleration));
     specificThermalEnergy0 = state.fields(HydroFieldNames::specificThermalEnergy + "0", 0.0);
-    DvDt = derivs.fields(IncrementState<Dimension, Field<Dimension, Vector> >::prefix() + HydroFieldNames::velocity, Vector::zero);
+    DvDt = derivs.fields(HydroFieldNames::hydroAcceleration, Vector::zero);
   }
 
   for (ConstBoundaryIterator boundaryItr = this->boundaryBegin(); 

@@ -56,8 +56,6 @@ commandLine(problem = "planar",     # one of (planar, cylindrical, spherical)
             Qhmult = 1.0,
             Cl = 1.0, 
             Cq = 1.0,
-            etaCritFrac = 1.0,
-            etaFoldFrac = 0.2,
             Qlimiter = False,
             balsaraCorrection = False,
             epsilon2 = 1e-2,
@@ -126,7 +124,6 @@ eps0 = 0.0
 
 if crksph:
     hydroname = "CRKSPH"
-    Qconstructor = CRKSPHMonaghanGingoldViscosity
     gradhCorrection = False
 else:
     hydroname = "SPH"
@@ -135,7 +132,6 @@ if solid:
 
 dataDir = os.path.join("dumps-%s-Noh-RZ" % problem,
                        hydroname,
-                       Qconstructor.__name__,
                        "nPerh=%f" % nPerh,
                        "compatibleEnergy=%s" % compatibleEnergy,
                        "Cullen=%s" % boolCullenViscosity,
@@ -285,8 +281,6 @@ if crksph:
                      volumeType = volumeType,
                      densityUpdate = densityUpdate,
                      HUpdate = HUpdate)
-    q.etaCritFrac = etaCritFrac
-    q.etaFoldFrac = etaFoldFrac
 else:
     hydro = SPHRZ(dataBase = db,
                   W = WT,

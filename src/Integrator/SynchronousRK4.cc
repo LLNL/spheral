@@ -95,7 +95,6 @@ step(typename Dimension::Scalar maxTime,
                                    derivs1);
 
   // Zero out the derivatives, and make some independent copies
-  derivs1.Zero();
   StateDerivatives<Dimension> derivs2(derivs1), derivs3(derivs1), derivs4(derivs1);
   derivs2.copyState();
   derivs3.copyState();
@@ -108,6 +107,7 @@ step(typename Dimension::Scalar maxTime,
   // Stage 1:
   // Get derivs1(t_n, state(t_n))
   this->initializeDerivatives(t, dt, state, derivs1);
+  derivs1.Zero();
   this->evaluateDerivatives(t, dt, db, state, derivs1);
   this->finalizeDerivatives(t, dt, db, state, derivs1);
 
@@ -118,6 +118,7 @@ step(typename Dimension::Scalar maxTime,
   this->postStateUpdate(db, tmpstate, derivs1);
   this->finalizeGhostBoundaries();
   this->initializeDerivatives(t + 0.5*dt, 0.5*dt, tmpstate, derivs2);
+  derivs2.Zero();
   this->evaluateDerivatives(t + 0.5*dt, 0.5*dt, db, tmpstate, derivs2);
   this->finalizeDerivatives(t + 0.5*dt, 0.5*dt, db, tmpstate, derivs2);
 
@@ -130,6 +131,7 @@ step(typename Dimension::Scalar maxTime,
   this->postStateUpdate(db, tmpstate, derivs2);
   this->finalizeGhostBoundaries();
   this->initializeDerivatives(t + 0.5*dt, 0.5*dt, tmpstate, derivs3);
+  derivs3.Zero();
   this->evaluateDerivatives(t + 0.5*dt, 0.5*dt, db, tmpstate, derivs3);
   this->finalizeDerivatives(t + 0.5*dt, 0.5*dt, db, tmpstate, derivs3);
 
@@ -142,6 +144,7 @@ step(typename Dimension::Scalar maxTime,
   this->postStateUpdate(db, tmpstate, derivs3);
   this->finalizeGhostBoundaries();
   this->initializeDerivatives(t + dt, dt, tmpstate, derivs4);
+  derivs4.Zero();
   this->evaluateDerivatives(t + dt, dt, db, tmpstate, derivs4);
   this->finalizeDerivatives(t + dt, dt, db, tmpstate, derivs4);
 

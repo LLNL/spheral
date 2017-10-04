@@ -118,6 +118,8 @@ generateStdVectorBindings(self.vector_of_pair_ULL_DomainNode%(dim)id, "pair_ULL_
         tensorfield = "Spheral::FieldSpace::TensorField%id" % ndim
         symtensorfield = "Spheral::FieldSpace::SymTensorField%id" % ndim
         thirdranktensorfield = "Spheral::FieldSpace::ThirdRankTensorField%id" % ndim
+        vectordoublefield = "Spheral::FieldSpace::VectorDoubleField%id" % ndim
+        vectorvectorfield = "Spheral::FieldSpace::VectorVectorField%id" % ndim
         intfieldlist = "Spheral::FieldSpace::IntFieldList%id" % ndim
         database = "Spheral::DataBaseSpace::DataBase%id" % ndim
         nestedgridneighbor = "Spheral::NeighborSpace::NestedGridNeighbor%id" % ndim
@@ -135,6 +137,8 @@ generateStdVectorBindings(self.vector_of_pair_ULL_DomainNode%(dim)id, "pair_ULL_
         x.add_method("beginExchangeField", None, [refparam(tensorfield, "field")], is_const=True)
         x.add_method("beginExchangeField", None, [refparam(symtensorfield, "field")], is_const=True)
         x.add_method("beginExchangeField", None, [refparam(thirdranktensorfield, "field")], is_const=True)
+        x.add_method("beginExchangeFieldVariableSize", None, [refparam(vectordoublefield, "field")], is_const=True)
+        x.add_method("beginExchangeFieldVariableSize", None, [refparam(vectorvectorfield, "field")], is_const=True)
 
         x.add_method("setAllGhostNodes", None, [refparam(database, "dataBase")], is_virtual=True, is_pure_virtual=True)
         x.add_method("finalizeGhostBoundary", None, [], is_const=True, is_virtual=True)
