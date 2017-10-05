@@ -11,16 +11,11 @@
 #ifndef __Spheral_Field_hh__
 #define __Spheral_Field_hh__
 
-#include <string>
+#include "FieldBase.hh"
 
-#ifndef __GCCXML__
+#include <string>
 #include <vector>
 #include "uvm_allocator.hh"
-#else
-#include "fakestl.hh"
-#endif
-
-#include "FieldBase.hh"
 
 namespace Spheral {
   template<typename Dimension> class NodeIteratorBase;
@@ -72,7 +67,7 @@ public:
         const std::vector<DataType,DataAllocator<DataType>>& array);
   Field(const NodeSpace::NodeList<Dimension>& nodeList, const Field& field);
   Field(const Field& field);
-  virtual boost::shared_ptr<FieldBase<Dimension> > clone() const;
+  virtual std::shared_ptr<FieldBase<Dimension> > clone() const;
 
   // Destructor.
   virtual ~Field();
@@ -227,17 +222,15 @@ public:
 
   // Provide std::vector copies of the data.  This is mostly useful for the
   // python interface.
-  std::vector<DataType,DataAllocator<DataType>> internalValues() const;
-  std::vector<DataType,DataAllocator<DataType>> ghostValues() const;
-  std::vector<DataType,DataAllocator<DataType>> allValues() const;
+  std::vector<DataType> internalValues() const;
+  std::vector<DataType> ghostValues() const;
+  std::vector<DataType> allValues() const;
 
 private:
   //--------------------------- Private Interface ---------------------------//
   // Private Data
-#ifndef __GCCXML__
 //  std::vector<DataType,std::allocator<DataType> > mDataArray;
-    std::vector<DataType,DataAllocator<DataType>> mDataArray;
-#endif
+  std::vector<DataType,DataAllocator<DataType>> mDataArray;
   bool mValid;
 
   // No default constructor.
