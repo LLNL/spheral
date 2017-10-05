@@ -1203,7 +1203,7 @@ Field<Dimension, DataType>::deleteElement(int nodeID) {
 template<typename Dimension, typename DataType>
 inline
 void
-Field<Dimension, DataType>::deleteElements(const std::vector<int,DataAllocator<int>>& nodeIDs) {
+Field<Dimension, DataType>::deleteElements(const std::vector<int>& nodeIDs) {
   // The standalone method does the actual work.
   removeElements(mDataArray, nodeIDs);
 }
@@ -1214,9 +1214,9 @@ Field<Dimension, DataType>::deleteElements(const std::vector<int,DataAllocator<i
 //------------------------------------------------------------------------------
 template<typename Dimension, typename DataType>
 inline
-std::vector<char,DataAllocator<char>>
+std::vector<char>
 Field<Dimension, DataType>::
-packValues(const std::vector<int,DataAllocator<int>>& nodeIDs) const {
+packValues(const std::vector<int>& nodeIDs) const {
   return packFieldValues(*this, nodeIDs);
 }
 
@@ -1229,7 +1229,7 @@ void
 Field<Dimension, DataType>::
 unpackValues(const int numElements,
              const int beginInsertionIndex,
-             const std::vector<char,DataAllocator<char>>& buffer) {
+             const std::vector<char>& buffer) {
 
   REQUIRE(numElements >= 0);
   REQUIRE(beginInsertionIndex >= 0 &&
@@ -1238,7 +1238,7 @@ unpackValues(const int numElements,
   REQUIRE(endIndex <= this->size());
 
   // The unpackFieldValues method requires the insertion indicies explicitly.
-  std::vector<int,DataAllocator<int>> indicies;
+  std::vector<int> indicies;
   indicies.reserve(numElements);
   for (int i = 0; i != numElements; ++i) indicies.push_back(beginInsertionIndex + i);
 
@@ -1334,11 +1334,11 @@ std::string
 Field<Dimension, DataType>::
 string(const int precision) const {
   const int n = numInternalElements();
-  std::vector<int,DataAllocator<int>> indicies;
+  std::vector<int> indicies;
   indicies.reserve(n);
   for (int i = 0; i != n; ++i) indicies.push_back(i);
   CHECK(indicies.size() == n);
-  const std::vector<char,DataAllocator<char>> packedValues = packFieldValues(*this, indicies);
+  const std::vector<char> packedValues = packFieldValues(*this, indicies);
   return std::string(this->name()) + "|" + std::string(packedValues.begin(), packedValues.end());
 }
 
@@ -1351,7 +1351,7 @@ void
 Field<Dimension, DataType>::
 string(const std::string& s) {
   const int n = numInternalElements();
-  std::vector<int,DataAllocator<int>> indicies;
+  std::vector<int> indicies;
   indicies.reserve(n);
   for (int i = 0; i != n; ++i) indicies.push_back(i);
   CHECK(indicies.size() == n);
@@ -1359,7 +1359,7 @@ string(const std::string& s) {
   CHECK(j != std::string::npos and
         j < s.size());
   this->name(s.substr(0, j));
-  const std::vector<char,DataAllocator<char>> packedValues(s.begin() + j + 1, s.end());
+  const std::vector<char> packedValues(s.begin() + j + 1, s.end());
   unpackFieldValues(*this, indicies, packedValues);
 }
 
@@ -1368,10 +1368,10 @@ string(const std::string& s) {
 //------------------------------------------------------------------------------
 template<typename Dimension, typename DataType>
 inline
-std::vector<DataType,DataAllocator<DataType>>
+std::vector<DataType>
 Field<Dimension, DataType>::
 internalValues() const {
-  std::vector<DataType,DataAllocator<DataType>> result;
+  std::vector<DataType> result;
   result.reserve(this->nodeList().numInternalNodes());
   for (const_iterator itr = internalBegin();
        itr != internalEnd();
@@ -1382,10 +1382,10 @@ internalValues() const {
 
 template<typename Dimension, typename DataType>
 inline
-std::vector<DataType,DataAllocator<DataType>>
+std::vector<DataType>
 Field<Dimension, DataType>::
 ghostValues() const {
-  std::vector<DataType,DataAllocator<DataType>> result;
+  std::vector<DataType> result;
   result.reserve(this->nodeList().numGhostNodes());
   for (const_iterator itr = ghostBegin();
        itr != ghostEnd();
@@ -1396,10 +1396,10 @@ ghostValues() const {
 
 template<typename Dimension, typename DataType>
 inline
-std::vector<DataType,DataAllocator<DataType>>
+std::vector<DataType>
 Field<Dimension, DataType>::
 allValues() const {
-  std::vector<DataType,DataAllocator<DataType>> result;
+  std::vector<DataType> result;
   result.reserve(this->nodeList().numNodes());
   for (const_iterator itr = begin();
        itr != end();
