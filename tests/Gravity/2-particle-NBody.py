@@ -19,7 +19,7 @@ commandLine(
     # Initial particle stuff
     r0 = 1.0,                      # (AU) Start stuff out at 1 AU from barycenter
     m0 = 1.0,                      # (earth masses) particle mass
-    vfrac = 1.0, 
+    vfrac = 1.0,                   # (dimensionless) fraction of circular orbit velocity to initialize
 
     # Problem control
     steps = None,
@@ -27,12 +27,12 @@ commandLine(
 
     # Gravity choices
     nbody = OctTreeGravity,
-    timeStepChoice = AccelerationRatio,
     plummerLength = 1.0e-3,        # (AU) Plummer softening scale
     opening = 0.5,                 # (dimensionless, OctTreeGravity) opening parameter for tree walk
     fdt = 0.1,                     # (dimensionless, OctTreeGravity) timestep multiplier
-    compatibleVelocity = False,
+    timeStepChoice = AccelerationRatio,
 
+    # Time integration choice
     integratorConstructor = CheapSynchronousRK2Integrator,
 
     # Output
@@ -56,7 +56,7 @@ G = MKS().G
 a = 2*r0
 M = 2*m0
 orbitTime = 2.0*pi*sqrt(a**3/(G*M))
-v0 = 2.0*pi*r0/orbitTime
+v0 = 2.0*pi*r0/orbitTime * vfrac
 
 # Miscellaneous problem control parameters.
 dt = orbitTime / 90
@@ -110,8 +110,8 @@ mass[1] = m0
 pos[0] = Vector(-r0, 0.0, 0.0)
 pos[1] = Vector( r0, 0.0, 0.0)
 
-vel[0] = Vector(0.0, -v0*vfrac, 0.0)
-vel[1] = Vector(0.0,  v0*vfrac, 0.0)
+vel[0] = Vector(0.0, -v0, 0.0)
+vel[1] = Vector(0.0,  v0, 0.0)
 
 # These are fluid variables we shouldn't need.  Just set them to valid values.
 H = nodes.Hfield()
