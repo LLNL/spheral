@@ -10,7 +10,7 @@ AC_SUBST(CXXFLAGS)
 # -----------------------------------------------------------------
 AC_MSG_CHECKING(for --with-geommem)
 AC_ARG_WITH(geommem,
-[  --with-geommem=ARG........................ (default,array) choose a variant of Geometry internal storage],
+[  --with-geommem=ARG........................ (default,array,eigen) choose a variant of Geometry internal storage],
 [
    GEOMMEM=$withval
 ],
@@ -23,6 +23,9 @@ AC_MSG_RESULT($GEOMMEM)
 case $GEOMMEM in
      array)
         CXXFLAGS+=" -DGEOMMEM_ARRAY"
+        ;;
+     eigen)
+        CXXFLAGS+=" -DGEOMMEM_EIGEN"
         ;;
 esac
 
