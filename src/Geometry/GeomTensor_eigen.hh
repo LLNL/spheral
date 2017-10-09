@@ -11,16 +11,16 @@
 //                Brian White
 //   2004-11-10: JMO, experimenting with replacing the double array with individual
 //               double elements, again for speed.
+//   2016-10-08: Adding a version based on Eigen.
 //----------------------------------------------------------------------------//
-#ifndef __Spheral_GeomTensor_default_hh__
-#define __Spheral_GeomTensor_default_hh__
+#ifndef __Spheral_GeomTensor_eigen_hh__
+#define __Spheral_GeomTensor_eigen_hh__
 
 #include <iostream>
 
 #include "Geometry/GeomVector_fwd.hh"
 #include "Geometry/GeomTensor_fwd.hh"
 #include "Geometry/GeomSymmetricTensor_fwd.hh"
-#include "Geometry/GeomTensorBase.hh"
 
 #ifdef _OPENMP
 #include "omp.h"
@@ -33,6 +33,8 @@ class GeomTensor: public GeomTensorBase<nDim> {
 
 public:
   //--------------------------- Public Interface ---------------------------//
+  EIGEN_MAKE_ALIGNED_OPERATOR_NEW
+  typedef Eigen::Matrix<double, nDim, nDim> TensorStorage;
   typedef const double* const_iterator;
   typedef double* iterator;
   typedef unsigned size_type;
@@ -47,10 +49,10 @@ public:
   GeomTensor();
   explicit GeomTensor(const double a11);
   GeomTensor(const double a11, const double a12,
-	     const double a21, const double a22);
+             const double a21, const double a22);
   GeomTensor(const double a11, const double a12, const double a13,
-	     const double a21, const double a22, const double a23,
-	     const double a31, const double a32, const double a33);
+             const double a21, const double a22, const double a23,
+             const double a31, const double a32, const double a33);
   GeomTensor(const GeomTensor& ten);
   explicit GeomTensor(const GeomSymmetricTensor<nDim>& ten);
 
@@ -187,9 +189,13 @@ public:
   // Return the max absolute element.
   double maxAbsElement() const;
 
+  //  Access the internal Eigen type.
+  TensorStorage& native();
+  const TensorStorage& native() const;
+
 private:
   //--------------------------- Private Interface ---------------------------//
-  size_type elementIndex(const size_type row, const size_type column) const;
+  TensorStorage mTensorData;
 };
 
 // Declare specializations.
@@ -212,14 +218,6 @@ template<> GeomTensor<2>::GeomTensor(const double, const double,
 template<> GeomTensor<3>::GeomTensor(const double, const double, const double,
                                      const double, const double, const double,
                                      const double, const double, const double);
-
-template<> GeomTensor<1>& GeomTensor<1>::operator=(const GeomTensor<1>& rhs);
-template<> GeomTensor<2>& GeomTensor<2>::operator=(const GeomTensor<2>& rhs);
-template<> GeomTensor<3>& GeomTensor<3>::operator=(const GeomTensor<3>& rhs);
-
-template<> GeomTensor<1>& GeomTensor<1>::operator=(const GeomSymmetricTensor<1>& rhs);
-template<> GeomTensor<2>& GeomTensor<2>::operator=(const GeomSymmetricTensor<2>& rhs);
-template<> GeomTensor<3>& GeomTensor<3>::operator=(const GeomSymmetricTensor<3>& rhs);
 
 template<> double GeomTensor<1>::xy() const;
 
@@ -432,7 +430,7 @@ template<int nDim> std::ostream& operator<<(std::ostream& os, const GeomTensor<n
 #pragma omp declare reduction(tensadd : GeomTensor<2> : omp_out += omp_in ) initializer( omp_priv = GeomTensor<2>(0.0,0.0,0.0,0.0)) 
 #pragma omp declare reduction(tensdif : GeomTensor<2> : omp_out -= omp_in ) initializer( omp_priv = GeomTensor<2>(0.0,0.0,0.0,0.0))
 #pragma omp declare reduction(tensadd : GeomTensor<3> : omp_out += omp_in ) initializer( omp_priv = GeomTensor<3>(0.0,0.0,0.0, \
-											       0.0,0.0,0.0,\
+                                                                                               0.0,0.0,0.0,\
                                                                                                0.0,0.0,0.0) )
 #pragma omp declare reduction(tensdif : GeomTensor<3> : omp_out -= omp_in ) initializer( omp_priv = GeomTensor<3>(0.0,0.0,0.0, \
                                                                                                0.0,0.0,0.0,\
@@ -440,7 +438,7 @@ template<int nDim> std::ostream& operator<<(std::ostream& os, const GeomTensor<n
 }
 
 #ifndef __GCCXML__
-#include "GeomTensorInline_default.hh"
+#include "GeomTensorInline_eigen.hh"
 #endif
 
 #endif

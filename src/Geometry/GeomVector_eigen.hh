@@ -128,8 +128,8 @@ public:
   double sumElements() const;
   
   //  Access the internal Eigen type.
-  VectorStorage& eigenType();
-  const VectorStorage& eigenType() const;
+  VectorStorage& native();
+  const VectorStorage& native() const;
 
   //--------------------------- Private Interface ---------------------------//
 private:

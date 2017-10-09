@@ -773,6 +773,23 @@ elementWiseMax(const GeomVector<3>& lhs, const GeomVector<3>& rhs) {
 }
 
 //------------------------------------------------------------------------------
+// Access the native Eigen type.
+//------------------------------------------------------------------------------
+template<int nDim>
+inline
+GeomVector<nDim>::VectorStorage&
+GeomVector<nDim>::native() {
+  return mVecData;
+}
+
+template<int nDim>
+inline
+const GeomVector<nDim>::VectorStorage&
+GeomVector<nDim>::native() const {
+  return mVecData;
+}
+
+//------------------------------------------------------------------------------
 // Input (istream) operator.
 //------------------------------------------------------------------------------
 template<int nDim>
