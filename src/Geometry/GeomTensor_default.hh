@@ -439,8 +439,6 @@ template<int nDim> std::ostream& operator<<(std::ostream& os, const GeomTensor<n
                                                                                                0.0,0.0,0.0) ) 
 }
 
-#ifndef __GCCXML__
 #include "GeomTensorInline_default.hh"
-#endif
 
 #endif

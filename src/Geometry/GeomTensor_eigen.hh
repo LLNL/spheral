@@ -21,6 +21,7 @@
 #include "Geometry/GeomVector_fwd.hh"
 #include "Geometry/GeomTensor_fwd.hh"
 #include "Geometry/GeomSymmetricTensor_fwd.hh"
+#include "Eigen/Dense"
 
 #ifdef _OPENMP
 #include "omp.h"
@@ -29,7 +30,7 @@
 namespace Spheral {
 
 template<int nDim>
-class GeomTensor: public GeomTensorBase<nDim> {
+class GeomTensor {
 
 public:
   //--------------------------- Public Interface ---------------------------//
@@ -220,195 +221,34 @@ template<> GeomTensor<3>::GeomTensor(const double, const double, const double,
                                      const double, const double, const double);
 
 template<> double GeomTensor<1>::xy() const;
-
 template<> double GeomTensor<1>::xz() const;
-template<> double GeomTensor<2>::xz() const;
-template<> double GeomTensor<3>::xz() const;
 template<> double GeomTensor<1>::yx() const;
-template<> double GeomTensor<2>::yx() const;
-template<> double GeomTensor<3>::yx() const;
 template<> double GeomTensor<1>::yy() const;
-template<> double GeomTensor<2>::yy() const;
-template<> double GeomTensor<3>::yy() const;
 template<> double GeomTensor<1>::yz() const;
-template<> double GeomTensor<2>::yz() const;
-template<> double GeomTensor<3>::yz() const;
 template<> double GeomTensor<1>::zx() const;
-template<> double GeomTensor<2>::zx() const;
-template<> double GeomTensor<3>::zx() const;
 template<> double GeomTensor<1>::zy() const;
-template<> double GeomTensor<2>::zy() const;
-template<> double GeomTensor<3>::zy() const;
 template<> double GeomTensor<1>::zz() const;
+
+template<> double GeomTensor<2>::xz() const;
+template<> double GeomTensor<2>::yz() const;
+template<> double GeomTensor<2>::zx() const;
+template<> double GeomTensor<2>::zy() const;
 template<> double GeomTensor<2>::zz() const;
-template<> double GeomTensor<3>::zz() const;
 
 template<> void GeomTensor<1>::xy(const double);
 template<> void GeomTensor<1>::xz(const double);
-template<> void GeomTensor<2>::xz(const double);
-template<> void GeomTensor<3>::xz(const double);
 template<> void GeomTensor<1>::yx(const double);
-template<> void GeomTensor<2>::yx(const double);
-template<> void GeomTensor<3>::yx(const double);
 template<> void GeomTensor<1>::yy(const double);
-template<> void GeomTensor<2>::yy(const double);
-template<> void GeomTensor<3>::yy(const double);
 template<> void GeomTensor<1>::yz(const double);
-template<> void GeomTensor<2>::yz(const double);
-template<> void GeomTensor<3>::yz(const double);
 template<> void GeomTensor<1>::zx(const double);
-template<> void GeomTensor<2>::zx(const double);
-template<> void GeomTensor<3>::zx(const double);
 template<> void GeomTensor<1>::zy(const double);
-template<> void GeomTensor<2>::zy(const double);
-template<> void GeomTensor<3>::zy(const double);
 template<> void GeomTensor<1>::zz(const double);
+
+template<> void GeomTensor<2>::xz(const double);
+template<> void GeomTensor<2>::yz(const double);
+template<> void GeomTensor<2>::zx(const double);
+template<> void GeomTensor<2>::zy(const double);
 template<> void GeomTensor<2>::zz(const double);
-template<> void GeomTensor<3>::zz(const double);
-
-template<> GeomVector<1> GeomTensor<1>::getRow(const GeomTensor<1>::size_type) const;
-template<> GeomVector<2> GeomTensor<2>::getRow(const GeomTensor<2>::size_type) const;
-template<> GeomVector<3> GeomTensor<3>::getRow(const GeomTensor<3>::size_type) const;
-
-template<> GeomVector<1> GeomTensor<1>::getColumn(const GeomTensor<1>::size_type) const;
-template<> GeomVector<2> GeomTensor<2>::getColumn(const GeomTensor<2>::size_type) const;
-template<> GeomVector<3> GeomTensor<3>::getColumn(const GeomTensor<3>::size_type) const;
-
-template<> void GeomTensor<1>::setRow(const GeomTensor<1>::size_type, const GeomVector<1>&);
-template<> void GeomTensor<2>::setRow(const GeomTensor<2>::size_type, const GeomVector<2>&);
-template<> void GeomTensor<3>::setRow(const GeomTensor<3>::size_type, const GeomVector<3>&);
-
-template<> void GeomTensor<1>::setColumn(const GeomTensor<1>::size_type, const GeomVector<1>&);
-template<> void GeomTensor<2>::setColumn(const GeomTensor<2>::size_type, const GeomVector<2>&);
-template<> void GeomTensor<3>::setColumn(const GeomTensor<3>::size_type, const GeomVector<3>&);
-
-template<> GeomTensor<1> GeomTensor<1>::operator-() const;
-template<> GeomTensor<2> GeomTensor<2>::operator-() const;
-template<> GeomTensor<3> GeomTensor<3>::operator-() const;
-
-// template<> GeomTensor<1> GeomTensor<1>::operator+(const double) const;
-// template<> GeomTensor<2> GeomTensor<2>::operator+(const double) const;
-// template<> GeomTensor<3> GeomTensor<3>::operator+(const double) const;
-
-// template<> GeomTensor<1> GeomTensor<1>::operator-(const double) const;
-// template<> GeomTensor<2> GeomTensor<2>::operator-(const double) const;
-// template<> GeomTensor<3> GeomTensor<3>::operator-(const double) const;
-
-template<> GeomTensor<1> GeomTensor<1>::operator*(const double) const;
-template<> GeomTensor<2> GeomTensor<2>::operator*(const double) const;
-template<> GeomTensor<3> GeomTensor<3>::operator*(const double) const;
-
-template<> GeomTensor<1> GeomTensor<1>::operator/(const double) const;
-template<> GeomTensor<2> GeomTensor<2>::operator/(const double) const;
-template<> GeomTensor<3> GeomTensor<3>::operator/(const double) const;
-
-template<> GeomTensor<1>& GeomTensor<1>::operator+=(const GeomTensor<1>&);
-template<> GeomTensor<2>& GeomTensor<2>::operator+=(const GeomTensor<2>&);
-template<> GeomTensor<3>& GeomTensor<3>::operator+=(const GeomTensor<3>&);
-template<> GeomTensor<1>& GeomTensor<1>::operator+=(const GeomSymmetricTensor<1>&);
-template<> GeomTensor<2>& GeomTensor<2>::operator+=(const GeomSymmetricTensor<2>&);
-template<> GeomTensor<3>& GeomTensor<3>::operator+=(const GeomSymmetricTensor<3>&);
-
-template<> GeomTensor<1>& GeomTensor<1>::operator-=(const GeomTensor<1>&);
-template<> GeomTensor<2>& GeomTensor<2>::operator-=(const GeomTensor<2>&);
-template<> GeomTensor<3>& GeomTensor<3>::operator-=(const GeomTensor<3>&);
-template<> GeomTensor<1>& GeomTensor<1>::operator-=(const GeomSymmetricTensor<1>&);
-template<> GeomTensor<2>& GeomTensor<2>::operator-=(const GeomSymmetricTensor<2>&);
-template<> GeomTensor<3>& GeomTensor<3>::operator-=(const GeomSymmetricTensor<3>&);
-
-template<> GeomTensor<1>& GeomTensor<1>::operator*=(const GeomTensor<1>&);
-template<> GeomTensor<2>& GeomTensor<2>::operator*=(const GeomTensor<2>&);
-template<> GeomTensor<3>& GeomTensor<3>::operator*=(const GeomTensor<3>&);
-template<> GeomTensor<1>& GeomTensor<1>::operator*=(const GeomSymmetricTensor<1>&);
-template<> GeomTensor<2>& GeomTensor<2>::operator*=(const GeomSymmetricTensor<2>&);
-template<> GeomTensor<3>& GeomTensor<3>::operator*=(const GeomSymmetricTensor<3>&);
-
-// template<> GeomTensor<1>& GeomTensor<1>::operator+=(const double);
-// template<> GeomTensor<2>& GeomTensor<2>::operator+=(const double);
-// template<> GeomTensor<3>& GeomTensor<3>::operator+=(const double);
-
-// template<> GeomTensor<1>& GeomTensor<1>::operator-=(const double);
-// template<> GeomTensor<2>& GeomTensor<2>::operator-=(const double);
-// template<> GeomTensor<3>& GeomTensor<3>::operator-=(const double);
-
-template<> GeomTensor<1>& GeomTensor<1>::operator*=(const double);
-template<> GeomTensor<2>& GeomTensor<2>::operator*=(const double);
-template<> GeomTensor<3>& GeomTensor<3>::operator*=(const double);
-
-template<> GeomTensor<1>& GeomTensor<1>::operator/=(const double);
-template<> GeomTensor<2>& GeomTensor<2>::operator/=(const double);
-template<> GeomTensor<3>& GeomTensor<3>::operator/=(const double);
-
-template<> bool GeomTensor<1>::operator==(const GeomTensor<1>&) const;
-template<> bool GeomTensor<2>::operator==(const GeomTensor<2>&) const;
-template<> bool GeomTensor<3>::operator==(const GeomTensor<3>&) const;
-
-template<> bool GeomTensor<1>::operator==(const GeomSymmetricTensor<1>&) const;
-template<> bool GeomTensor<2>::operator==(const GeomSymmetricTensor<2>&) const;
-template<> bool GeomTensor<3>::operator==(const GeomSymmetricTensor<3>&) const;
-
-template<> GeomSymmetricTensor<1> GeomTensor<1>::Symmetric() const;
-template<> GeomSymmetricTensor<2> GeomTensor<2>::Symmetric() const;
-template<> GeomSymmetricTensor<3> GeomTensor<3>::Symmetric() const;
-
-template<> GeomTensor<1> GeomTensor<1>::SkewSymmetric() const;
-template<> GeomTensor<2> GeomTensor<2>::SkewSymmetric() const;
-template<> GeomTensor<3> GeomTensor<3>::SkewSymmetric() const;
-
-template<> GeomTensor<1> GeomTensor<1>::Transpose() const;
-template<> GeomTensor<2> GeomTensor<2>::Transpose() const;
-template<> GeomTensor<3> GeomTensor<3>::Transpose() const;
-
-template<> GeomTensor<1> GeomTensor<1>::Inverse() const;
-template<> GeomTensor<2> GeomTensor<2>::Inverse() const;
-template<> GeomTensor<3> GeomTensor<3>::Inverse() const;
-
-template<> GeomVector<1> GeomTensor<1>::diagonalElements() const;
-template<> GeomVector<2> GeomTensor<2>::diagonalElements() const;
-template<> GeomVector<3> GeomTensor<3>::diagonalElements() const;
-
-template<> double GeomTensor<1>::Trace() const;
-template<> double GeomTensor<2>::Trace() const;
-template<> double GeomTensor<3>::Trace() const;
-
-template<> double GeomTensor<1>::Determinant() const;
-template<> double GeomTensor<2>::Determinant() const;
-template<> double GeomTensor<3>::Determinant() const;
-
-template<> GeomVector<1> GeomTensor<1>::dot(const GeomVector<1>&) const;
-template<> GeomVector<2> GeomTensor<2>::dot(const GeomVector<2>&) const;
-template<> GeomVector<3> GeomTensor<3>::dot(const GeomVector<3>&) const;
-
-template<> GeomTensor<1> GeomTensor<1>::dot(const GeomTensor<1>&) const;
-template<> GeomTensor<2> GeomTensor<2>::dot(const GeomTensor<2>&) const;
-template<> GeomTensor<3> GeomTensor<3>::dot(const GeomTensor<3>&) const;
-template<> GeomTensor<1> GeomTensor<1>::dot(const GeomSymmetricTensor<1>&) const;
-template<> GeomTensor<2> GeomTensor<2>::dot(const GeomSymmetricTensor<2>&) const;
-template<> GeomTensor<3> GeomTensor<3>::dot(const GeomSymmetricTensor<3>&) const;
-
-template<> double GeomTensor<1>::doubledot(const GeomTensor<1>&) const;
-template<> double GeomTensor<2>::doubledot(const GeomTensor<2>&) const;
-template<> double GeomTensor<3>::doubledot(const GeomTensor<3>&) const;
-
-template<> double GeomTensor<1>::doubledot(const GeomSymmetricTensor<1>&) const;
-template<> double GeomTensor<2>::doubledot(const GeomSymmetricTensor<2>&) const;
-template<> double GeomTensor<3>::doubledot(const GeomSymmetricTensor<3>&) const;
-
-template<> GeomTensor<1> GeomTensor<1>::square() const;
-template<> GeomTensor<2> GeomTensor<2>::square() const;
-template<> GeomTensor<3> GeomTensor<3>::square() const;
-
-template<> GeomTensor<1> GeomTensor<1>::squareElements() const;
-template<> GeomTensor<2> GeomTensor<2>::squareElements() const;
-template<> GeomTensor<3> GeomTensor<3>::squareElements() const;
-
-template<> void GeomTensor<1>::rotationalTransform(const GeomTensor<1>&);
-template<> void GeomTensor<2>::rotationalTransform(const GeomTensor<2>&);
-template<> void GeomTensor<3>::rotationalTransform(const GeomTensor<3>&);
-
-template<> double GeomTensor<1>::maxAbsElement() const;
-template<> double GeomTensor<2>::maxAbsElement() const;
-template<> double GeomTensor<3>::maxAbsElement() const;
 
 #ifndef _WIN32
 template<> const GeomTensor<1> GeomTensor<1>::zero;
