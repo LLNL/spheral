@@ -55,6 +55,7 @@ public:
              const double a21, const double a22, const double a23,
              const double a31, const double a32, const double a33);
   GeomTensor(const GeomTensor& ten);
+  GeomTensor(const TensorStorage& ten);
   explicit GeomTensor(const GeomSymmetricTensor<nDim>& ten);
 
   // Destructor.
