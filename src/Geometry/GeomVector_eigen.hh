@@ -54,6 +54,7 @@ public:
 
   // Assignment.
   GeomVector& operator=(const GeomVector<nDim>& vec);
+  GeomVector& operator=(const VectorStorage& vec);
   GeomVector& operator=(const double val);
 
   // Allow the elements by indicies.
