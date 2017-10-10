@@ -298,7 +298,7 @@ template<int nDim>
 inline
 GeomTensor<nDim>
 GeomVector<nDim>::operator*(const GeomVector<nDim>& rhs) const {
-  return GeomVector<nDim>(mVecData * rhs.mVecData);
+  return GeomTensor<nDim>(mVecData * rhs.mVecData.transpose());
 }
 
 //------------------------------------------------------------------------------
@@ -613,7 +613,7 @@ template<int nDim>
 inline
 GeomSymmetricTensor<nDim>
 GeomVector<nDim>::selfdyad() const {
-  return GeomSymmetricTensor<nDim>((this->mVecData)*(this->mVecData));
+  return GeomSymmetricTensor<nDim>(mVecData*(mVecData.transpose()));
 }
 
 //------------------------------------------------------------------------------

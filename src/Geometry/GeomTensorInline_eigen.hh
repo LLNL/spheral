@@ -85,6 +85,13 @@ GeomTensor(const GeomTensor<nDim>& ten):
   mTensorData(ten.mTensorData) {
 }
 
+template<int nDim>
+inline
+GeomTensor<nDim>::
+GeomTensor(const typename GeomTensor<nDim>::TensorStorage& ten):
+  mTensorData(ten) {
+}
+
 //------------------------------------------------------------------------------
 // Destructor.
 //------------------------------------------------------------------------------
