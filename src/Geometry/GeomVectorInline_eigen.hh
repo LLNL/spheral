@@ -603,7 +603,7 @@ template<int nDim>
 inline
 GeomTensor<nDim>
 GeomVector<nDim>::dyad(const GeomVector<nDim>& rhs) const {
-  return GeomTensor<nDim>(this->mVecData * rhs.mVecData);
+  return GeomTensor<nDim>(mVecData * rhs.mVecData.transpose());
 }
 
 //------------------------------------------------------------------------------
@@ -777,14 +777,14 @@ elementWiseMax(const GeomVector<3>& lhs, const GeomVector<3>& rhs) {
 //------------------------------------------------------------------------------
 template<int nDim>
 inline
-GeomVector<nDim>::VectorStorage&
+typename GeomVector<nDim>::VectorStorage&
 GeomVector<nDim>::native() {
   return mVecData;
 }
 
 template<int nDim>
 inline
-const GeomVector<nDim>::VectorStorage&
+const typename GeomVector<nDim>::VectorStorage&
 GeomVector<nDim>::native() const {
   return mVecData;
 }
