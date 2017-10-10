@@ -64,7 +64,6 @@ public:
   // Assignment.
   GeomTensor& operator=(const GeomTensor& rhs);
   GeomTensor& operator=(const GeomSymmetricTensor<nDim>& rhs);
-  // GeomTensor& operator=(const double rhs);
 
   // Access the elements by indicies.
   double operator()(const size_type row, const size_type column) const;
