@@ -1,8 +1,8 @@
 //---------------------------------Spheral++----------------------------------//
-// GeomTensor -- the full tensor class.
+// GeomSymmetricTensor -- Geometric SymmetricTensor Class.
 //----------------------------------------------------------------------------//
 #if defined GEOMMEM_EIGEN
-#include "GeomTensor_eigen.cc"
+#include "GeomSymmetricTensor_eigen.cc"
 #else
-#include "GeomTensor_default.cc"
+#include "GeomSymmetricTensor_default.cc"
 #endif

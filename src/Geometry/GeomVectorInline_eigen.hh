@@ -53,7 +53,7 @@ GeomVector<nDim>::GeomVector(const typename GeomVector<nDim>::VectorStorage& vec
 }
 
 //------------------------------------------------------------------------------
-// The assignment operator.
+// The assignment operators.
 //------------------------------------------------------------------------------
 template<int nDim>
 inline
@@ -63,9 +63,14 @@ GeomVector<nDim>::operator=(const GeomVector<nDim>& vec) {
   return *this;
 }
 
-//------------------------------------------------------------------------------
-// Set the vector elements to a constant scalar value.
-//------------------------------------------------------------------------------
+template<int nDim>
+inline
+GeomVector<nDim>&
+GeomVector<nDim>::operator=(const VectorStorage& vec) {
+  this->mVecData = vec;
+  return *this;
+}
+
 template<int nDim>
 inline
 GeomVector<nDim>&
