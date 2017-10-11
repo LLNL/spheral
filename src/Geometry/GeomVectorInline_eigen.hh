@@ -273,7 +273,7 @@ template<int nDim>
 inline
 GeomVector<nDim>
 GeomVector<nDim>::operator-() const {
-  return GeomVector<nDim>(-mVecData);
+  return GeomVector<nDim>((-mVecData).eval());
 }
 
 //------------------------------------------------------------------------------
@@ -283,7 +283,7 @@ template<int nDim>
 inline
 GeomVector<nDim>
 GeomVector<nDim>::operator+(const GeomVector<nDim>& rhs) const {
-  return GeomVector<nDim>(mVecData + rhs.mVecData);
+  return GeomVector<nDim>((mVecData + rhs.mVecData).eval());
 }
 
 //------------------------------------------------------------------------------
@@ -293,7 +293,7 @@ template<int nDim>
 inline
 GeomVector<nDim>
 GeomVector<nDim>::operator-(const GeomVector<nDim>& rhs) const {
-  return GeomVector<nDim>(mVecData - rhs.mVecData);
+  return GeomVector<nDim>((mVecData - rhs.mVecData).eval());
 }
 
 //------------------------------------------------------------------------------
@@ -303,7 +303,7 @@ template<int nDim>
 inline
 GeomTensor<nDim>
 GeomVector<nDim>::operator*(const GeomVector<nDim>& rhs) const {
-  return GeomTensor<nDim>(mVecData * rhs.mVecData.transpose());
+  return GeomTensor<nDim>((mVecData * rhs.mVecData.transpose()).eval());
 }
 
 //------------------------------------------------------------------------------
@@ -313,7 +313,7 @@ template<int nDim>
 inline
 GeomVector<nDim>
 GeomVector<nDim>::operator*(const double val) const {
-  return GeomVector<nDim>(mVecData * val);
+  return GeomVector<nDim>((mVecData * val).eval());
 }
 
 //------------------------------------------------------------------------------
@@ -324,7 +324,7 @@ inline
 GeomVector<nDim>
 GeomVector<nDim>::operator/(const double val) const {
   CHECK(val != 0.0);
-  return GeomVector<nDim>(mVecData / val);
+  return GeomVector<nDim>((mVecData / val).eval());
 }
 
 //------------------------------------------------------------------------------
@@ -583,7 +583,7 @@ template<>
 inline
 GeomVector<3>
 GeomVector<3>::cross(const GeomVector<3>& vec) const {
-  return GeomVector<3>(this->mVecData.cross(vec.mVecData));
+  return GeomVector<3>((this->mVecData.cross(vec.mVecData)).eval());
 }
 
 template<>
@@ -608,7 +608,7 @@ template<int nDim>
 inline
 GeomTensor<nDim>
 GeomVector<nDim>::dyad(const GeomVector<nDim>& rhs) const {
-  return GeomTensor<nDim>(mVecData * rhs.mVecData.transpose());
+  return GeomTensor<nDim>((mVecData * rhs.mVecData.transpose()).eval());
 }
 
 //------------------------------------------------------------------------------
@@ -618,7 +618,7 @@ template<int nDim>
 inline
 GeomSymmetricTensor<nDim>
 GeomVector<nDim>::selfdyad() const {
-  return GeomSymmetricTensor<nDim>(mVecData*(mVecData.transpose()));
+  return GeomSymmetricTensor<nDim>((mVecData*(mVecData.transpose())).eval());
 }
 
 //------------------------------------------------------------------------------

@@ -372,7 +372,7 @@ inline
 GeomVector<nDim>
 GeomSymmetricTensor<nDim>::getRow(const GeomSymmetricTensor<nDim>::size_type index) const {
   REQUIRE(index < nDim);
-  return GeomVector<nDim>(mTensorData.row(index).transpose());
+  return GeomVector<nDim>((mTensorData.row(index).transpose()).eval());
 }
 
 //------------------------------------------------------------------------------
@@ -383,7 +383,7 @@ inline
 GeomVector<nDim>
 GeomSymmetricTensor<nDim>::getColumn(const GeomSymmetricTensor<nDim>::size_type index) const {
   REQUIRE(index < nDim);
-  return GeomVector<nDim>(mTensorData.col(index));
+  return GeomVector<nDim>((mTensorData.col(index)).eval());
 }
 
 //------------------------------------------------------------------------------
@@ -470,7 +470,7 @@ template<int nDim>
 inline
 GeomSymmetricTensor<nDim>
 GeomSymmetricTensor<nDim>::operator-() const {
-  return GeomSymmetricTensor<nDim>(-mTensorData);
+  return GeomSymmetricTensor<nDim>((-mTensorData).eval());
 }
 
 //------------------------------------------------------------------------------
@@ -481,7 +481,7 @@ inline
 GeomTensor<nDim>
 GeomSymmetricTensor<nDim>::
 operator+(const GeomTensor<nDim>& rhs) const {
-  return GeomTensor<nDim>(TensorStorage(mTensorData + rhs.native()));
+  return GeomTensor<nDim>((mTensorData + rhs.native()).eval());
 }
 
 template<int nDim>
@@ -489,7 +489,7 @@ inline
 GeomSymmetricTensor<nDim>
 GeomSymmetricTensor<nDim>::
 operator+(const GeomSymmetricTensor<nDim>& rhs) const {
-  return GeomSymmetricTensor<nDim>(mTensorData + rhs.native());
+  return GeomSymmetricTensor<nDim>((mTensorData + rhs.native()).eval());
 }
 
 //------------------------------------------------------------------------------
@@ -500,7 +500,7 @@ inline
 GeomTensor<nDim>
 GeomSymmetricTensor<nDim>::
 operator-(const GeomTensor<nDim>& rhs) const {
-  return GeomTensor<nDim>(mTensorData - rhs.native());
+  return GeomTensor<nDim>((mTensorData - rhs.native()).eval());
 }
 
 template<int nDim>
@@ -508,7 +508,7 @@ inline
 GeomSymmetricTensor<nDim>
 GeomSymmetricTensor<nDim>::
 operator-(const GeomSymmetricTensor<nDim>& rhs) const {
-  return GeomSymmetricTensor<nDim>(mTensorData - rhs.native());
+  return GeomSymmetricTensor<nDim>((mTensorData - rhs.native()).eval());
 }
 
 //------------------------------------------------------------------------------
@@ -519,7 +519,7 @@ inline
 GeomTensor<nDim>
 GeomSymmetricTensor<nDim>::
 operator*(const GeomTensor<nDim>& rhs) const {
-  return GeomTensor<nDim>(TensorStorage(mTensorData * rhs.native()));
+  return GeomTensor<nDim>((mTensorData * rhs.native()).eval());
 }
 
 template<int nDim>
@@ -527,7 +527,7 @@ inline
 GeomTensor<nDim>
 GeomSymmetricTensor<nDim>::
 operator*(const GeomSymmetricTensor<nDim>& rhs) const {
-  return GeomTensor<nDim>(TensorStorage(mTensorData * rhs.native()));
+  return GeomTensor<nDim>((mTensorData * rhs.native()).eval());
 }
 
 //------------------------------------------------------------------------------
@@ -537,7 +537,7 @@ template<int nDim>
 inline
 GeomVector<nDim>
 GeomSymmetricTensor<nDim>::operator*(const GeomVector<nDim>& rhs) const {
-  return GeomVector<nDim>(VectorStorage(mTensorData * rhs.native()));
+  return GeomVector<nDim>((mTensorData * rhs.native()).eval());
 }
 
 //------------------------------------------------------------------------------
@@ -547,7 +547,7 @@ template<int nDim>
 inline
 GeomSymmetricTensor<nDim>
 GeomSymmetricTensor<nDim>::operator*(const double rhs) const {
-  return GeomSymmetricTensor<nDim>(mTensorData * rhs);
+  return GeomSymmetricTensor<nDim>((mTensorData * rhs).eval());
 }
 
 //------------------------------------------------------------------------------
@@ -558,7 +558,7 @@ inline
 GeomSymmetricTensor<nDim>
 GeomSymmetricTensor<nDim>::operator/(const double rhs) const {
   REQUIRE(rhs != 0.0);
-  return GeomSymmetricTensor<nDim>(mTensorData / rhs);
+  return GeomSymmetricTensor<nDim>((mTensorData / rhs).eval());
 }
 
 //------------------------------------------------------------------------------
@@ -759,7 +759,7 @@ template<int nDim>
 inline
 GeomSymmetricTensor<nDim>
 GeomSymmetricTensor<nDim>::Inverse() const {
-  return GeomSymmetricTensor<nDim>(mTensorData.inverse());
+  return GeomSymmetricTensor<nDim>(mTensorData.inverse().eval());
 }
 
 //------------------------------------------------------------------------------
@@ -769,7 +769,7 @@ template<int nDim>
 inline
 GeomVector<nDim>
 GeomSymmetricTensor<nDim>::diagonalElements() const {
-  return GeomVector<nDim>(mTensorData.diagonal());
+  return GeomVector<nDim>(mTensorData.diagonal().eval());
 }
 
 //------------------------------------------------------------------------------
@@ -799,7 +799,7 @@ template<int nDim>
 inline
 GeomVector<nDim>
 GeomSymmetricTensor<nDim>::dot(const GeomVector<nDim>& rhs) const {
-  return GeomVector<nDim>(VectorStorage(mTensorData * rhs.native()));
+  return GeomVector<nDim>((mTensorData * rhs.native()).eval());
 }
 
 //------------------------------------------------------------------------------
@@ -810,14 +810,14 @@ template<int nDim>
 inline
 GeomTensor<nDim>
 GeomSymmetricTensor<nDim>::dot(const GeomTensor<nDim>& rhs) const {
-  return GeomTensor<nDim>(TensorStorage(mTensorData * rhs.native()));
+  return GeomTensor<nDim>((mTensorData * rhs.native()).eval());
 }
 
 template<int nDim>
 inline
 GeomTensor<nDim>
 GeomSymmetricTensor<nDim>::dot(const GeomSymmetricTensor<nDim>& rhs) const {
-  return GeomTensor<nDim>(TensorStorage(mTensorData * rhs.native()));
+  return GeomTensor<nDim>((mTensorData * rhs.native()).eval());
 }
 
 //------------------------------------------------------------------------------
@@ -858,7 +858,7 @@ inline
 GeomSymmetricTensor<nDim>
 GeomSymmetricTensor<nDim>::
 square() const {
-  return GeomSymmetricTensor<nDim>(TensorStorage(mTensorData * mTensorData));
+  return GeomSymmetricTensor<nDim>((mTensorData * mTensorData).eval());
 }
 
 //------------------------------------------------------------------------------
@@ -869,7 +869,7 @@ inline
 GeomSymmetricTensor<nDim>
 GeomSymmetricTensor<nDim>::
 cube() const {
-  return GeomSymmetricTensor<nDim>(TensorStorage(mTensorData * mTensorData * mTensorData));
+  return GeomSymmetricTensor<nDim>((mTensorData * mTensorData * mTensorData).eval());
 }
 
 //------------------------------------------------------------------------------
@@ -884,7 +884,7 @@ sqrt() const {
   CHECK(eigensolver.info() == Eigen::Success);
   const TensorStorage vecs = eigensolver.eigenvectors();
   const Eigen::Matrix<double, nDim, 1> vals = eigensolver.eigenvalues().cwiseSqrt();
-  return GeomSymmetricTensor<nDim>(vecs*vals.asDiagonal()*vecs.transpose());
+  return GeomSymmetricTensor<nDim>((vecs*vals.asDiagonal()*vecs.transpose()).eval());
 }
 
 //------------------------------------------------------------------------------
@@ -910,7 +910,7 @@ pow(const double p) const {
   CHECK(eigensolver.info() == Eigen::Success);
   const TensorStorage vecs = eigensolver.eigenvectors();
   const Eigen::Matrix<double, nDim, 1> vals = eigensolver.eigenvalues().array().pow(p);
-  return GeomSymmetricTensor<nDim>(vecs*vals.asDiagonal()*vecs.transpose());
+  return GeomSymmetricTensor<nDim>((vecs*vals.asDiagonal()*vecs.transpose()).eval());
 }
 
 //------------------------------------------------------------------------------
@@ -921,7 +921,7 @@ inline
 GeomSymmetricTensor<nDim>
 GeomSymmetricTensor<nDim>::
 squareElements() const {
-  return GeomSymmetricTensor<nDim>(mTensorData.array().square());
+  return GeomSymmetricTensor<nDim>(mTensorData.array().square().eval());
 }
 
 //------------------------------------------------------------------------------
@@ -957,7 +957,7 @@ GeomSymmetricTensor<nDim>::
 eigenValues() const {
   Eigen::SelfAdjointEigenSolver<TensorStorage> eigensolver(mTensorData);
   CHECK(eigensolver.info() == Eigen::Success);
-  return GeomVector<nDim>(eigensolver.eigenvalues());
+  return GeomVector<nDim>(eigensolver.eigenvalues().eval());
 }
 
 //------------------------------------------------------------------------------
