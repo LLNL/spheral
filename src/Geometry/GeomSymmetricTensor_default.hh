@@ -454,7 +454,7 @@ template<int nDim> ::std::ostream& operator<<(::std::ostream& os, const GeomSymm
 }
 
 #ifndef __GCCXML__
-#include "GeomSymmetricTensorInline.hh"
+#include "GeomSymmetricTensorInline_default.hh"
 #endif
 
 #endif
