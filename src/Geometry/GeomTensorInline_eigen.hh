@@ -1016,7 +1016,7 @@ inline
 double
 GeomTensor<nDim>::
 doubledot(const GeomTensor<nDim>& rhs) const {
-  return (mTensorData*rhs.mTensorData).sum();
+  return (mTensorData*rhs.mTensorData).trace();
 }
 
 template<int nDim>
@@ -1024,7 +1024,7 @@ inline
 double
 GeomTensor<nDim>::
 doubledot(const GeomSymmetricTensor<nDim>& rhs) const {
-  return (mTensorData*rhs.native()).sum();
+  return (mTensorData*rhs.native()).trace();
 }
 
 //------------------------------------------------------------------------------
@@ -1035,7 +1035,7 @@ inline
 double
 GeomTensor<nDim>::
 selfDoubledot() const {
-  return (mTensorData*mTensorData).sum();
+  return (mTensorData*mTensorData).trace();
 }
 
 //------------------------------------------------------------------------------

@@ -33,8 +33,13 @@ def fillRandom(Constructor):
     result = Constructor()
     ndim = Constructor.nDimensions
     nelem = Constructor.numElements
-    for i in xrange(Constructor.numElements):
-        result[i] = rangen.uniform(*ranrange)
+    if "Sym" in Constructor.__name__:
+        for i in xrange(ndim):
+            for j in xrange(i+1):
+                result[i*ndim + j] = rangen.uniform(*ranrange)
+    else:
+        for i in xrange(Constructor.numElements):
+            result[i] = rangen.uniform(*ranrange)
     return result
 
 #===============================================================================
@@ -48,14 +53,14 @@ class TestInnerProduct(unittest.TestCase):
     def testScalarDotThing(self):
         for typestring in ("Vector%id", "Tensor%id", "SymTensor%id", "ThirdRankTensor%id"):
             for dim in dims:
-                type = eval(typestring % dim)
+                ttype = eval(typestring % dim)
                 x = rangen.uniform(*ranrange)
-                y = fillRandom(type)
+                y = fillRandom(ttype)
                 result = innerProduct(x, y)
-                answer = type()
-                for i in xrange(type.numElements):
+                answer = ttype()
+                for i in xrange(ttype.numElements):
                     answer[i] = x*y[i]
-                self.failUnless(result == answer, "Mismatch: %s != %s" % (result, answer))
+                self.failUnless(result == answer, "Mismatch for %s: %s != %s" % (ttype.__name__, result, answer))
         return
 
     #---------------------------------------------------------------------------
@@ -64,14 +69,14 @@ class TestInnerProduct(unittest.TestCase):
     def testThingDotScalar(self):
         for typestring in ("Vector%id", "Tensor%id", "SymTensor%id", "ThirdRankTensor%id"):
             for dim in dims:
-                type = eval(typestring % dim)
+                ttype = eval(typestring % dim)
                 x = rangen.uniform(*ranrange)
-                y = fillRandom(type)
+                y = fillRandom(ttype)
                 result = innerProduct(y, x)
-                answer = type()
-                for i in xrange(type.numElements):
+                answer = ttype()
+                for i in xrange(ttype.numElements):
                     answer[i] = x*y[i]
-                self.failUnless(result == answer, "Mismatch: %s != %s" % (result, answer))
+                self.failUnless(result == answer, "Mismatch for %s: %s != %s" % (ttype.__name__, result, answer))
         return
 
     #---------------------------------------------------------------------------
@@ -79,9 +84,9 @@ class TestInnerProduct(unittest.TestCase):
     #---------------------------------------------------------------------------
     def testVectorDotVector(self):
         for dim in dims:
-            type = eval("Vector%id" % dim)
-            x = fillRandom(type)
-            y = fillRandom(type)
+            ttype = eval("Vector%id" % dim)
+            x = fillRandom(ttype)
+            y = fillRandom(ttype)
             result = innerProduct(x, y)
             answer = 0.0
             for i in xrange(dim):
@@ -159,7 +164,7 @@ class TestInnerProduct(unittest.TestCase):
                 for j in xrange(dim):
                     for k in xrange(dim):
                         answer[dim*i + j] += x(i,j,k)*y(k)
-            self.failUnless(result == answer, "Mismatch: %s != %s" % (result, answer))
+            self.failUnless(result == answer, "Mismatch for %s.%s: %s != %s" % (trttype.__name__, ttype.__name__, result, answer))
         return
 
     #---------------------------------------------------------------------------
@@ -178,7 +183,7 @@ class TestInnerProduct(unittest.TestCase):
                 for j in xrange(dim):
                     for k in xrange(dim):
                         answer[dim*j + k] += x(i)*y(i,j,k)
-            self.failUnless(result == answer, "Mismatch: %s != %s" % (result, answer))
+            self.failUnless(result == answer, "Mismatch for %s.%s: %s != %s" % (vtype.__name__, trttype.__name__, result, answer))
         return
 
     #---------------------------------------------------------------------------
@@ -199,7 +204,7 @@ class TestInnerProduct(unittest.TestCase):
                         for j in xrange(dim):
                             for k in xrange(dim):
                                 answer[dim*i + j] += x(i,k)*y(k,j)
-                self.failUnless(result == answer, "Mismatch: %s != %s" % (result, answer))
+                self.failUnless(result == answer, "Mismatch for %s.%s: %s != %s" % (t1type.__name__, t2type.__name__, result, answer))
         return
 
     #---------------------------------------------------------------------------
@@ -408,14 +413,14 @@ class TestOuterProduct(unittest.TestCase):
     def testScalarOuterThing(self):
         for typestring in ("Vector%id", "Tensor%id", "SymTensor%id", "ThirdRankTensor%id"):
             for dim in dims:
-                type = eval(typestring % dim)
+                ttype = eval(typestring % dim)
                 x = rangen.uniform(*ranrange)
-                y = fillRandom(type)
+                y = fillRandom(ttype)
                 result = outerProduct(x, y)
-                answer = type()
-                for i in xrange(type.numElements):
+                answer = ttype()
+                for i in xrange(ttype.numElements):
                     answer[i] = x*y[i]
-                self.failUnless(result == answer, "Mismatch: %s != %s" % (result, answer))
+                self.failUnless(result == answer, "Mismatch for %s: %s != %s" % (ttype.__name__, result, answer))
         return
 
     #---------------------------------------------------------------------------
@@ -424,14 +429,14 @@ class TestOuterProduct(unittest.TestCase):
     def testThingOuterScalar(self):
         for typestring in ("Vector%id", "Tensor%id", "SymTensor%id", "ThirdRankTensor%id"):
             for dim in dims:
-                type = eval(typestring % dim)
+                ttype = eval(typestring % dim)
                 x = rangen.uniform(*ranrange)
-                y = fillRandom(type)
+                y = fillRandom(ttype)
                 result = outerProduct(y, x)
-                answer = type()
-                for i in xrange(type.numElements):
+                answer = ttype()
+                for i in xrange(ttype.numElements):
                     answer[i] = x*y[i]
-                self.failUnless(result == answer, "Mismatch: %s != %s" % (result, answer))
+                self.failUnless(result == answer, "Mismatch for %s: %s != %s" % (ttype.__name__, result, answer))
         return
 
     #---------------------------------------------------------------------------
