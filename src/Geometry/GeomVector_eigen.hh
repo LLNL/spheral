@@ -143,10 +143,6 @@ template<> GeomVector<1>::GeomVector(const double, const double, const double);
 template<> GeomVector<2>::GeomVector(const double, const double, const double);
 template<> GeomVector<3>::GeomVector(const double, const double, const double);
 
-template<> GeomVector<1>& GeomVector<1>::operator=(const GeomVector<1>& vec);
-template<> GeomVector<2>& GeomVector<2>::operator=(const GeomVector<2>& vec);
-template<> GeomVector<3>& GeomVector<3>::operator=(const GeomVector<3>& vec);
-
 template<> double GeomVector<1>::y() const;
 template<> double GeomVector<1>::z() const;
 template<> double GeomVector<2>::z() const;

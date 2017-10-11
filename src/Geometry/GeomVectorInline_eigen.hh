@@ -513,7 +513,7 @@ template<int nDim>
 inline
 bool
 GeomVector<nDim>::operator==(const double val) const {
-  return this->mVecData == val;
+  return (mVecData.array() == val).all();
 }
 
 //------------------------------------------------------------------------------

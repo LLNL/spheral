@@ -1084,7 +1084,7 @@ void
 GeomTensor<nDim>::
 rotationalTransform(const GeomTensor<nDim>& R) {
   REQUIRE(fuzzyEqual(std::abs(R.Determinant()), 1.0, 1.0e-8));
-  mTensorData = R.mTensorData * mTensorData * R.mTensorData.transposeInPlace();
+  mTensorData = R.mTensorData * mTensorData * R.mTensorData.transpose();
 }
 
 //------------------------------------------------------------------------------
