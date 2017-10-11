@@ -33,13 +33,10 @@ def fillRandom(Constructor):
     result = Constructor()
     ndim = Constructor.nDimensions
     nelem = Constructor.numElements
+    for i in xrange(Constructor.numElements):
+        result[i] = rangen.uniform(*ranrange)
     if "Sym" in Constructor.__name__:
-        for i in xrange(ndim):
-            for j in xrange(i+1):
-                result[i*ndim + j] = rangen.uniform(*ranrange)
-    else:
-        for i in xrange(Constructor.numElements):
-            result[i] = rangen.uniform(*ranrange)
+        result = 0.5*(result + result.Transpose())
     return result
 
 #===============================================================================
@@ -203,8 +200,8 @@ class TestInnerProduct(unittest.TestCase):
                     for i in xrange(dim):
                         for j in xrange(dim):
                             for k in xrange(dim):
-                                answer[dim*i + j] += x(i,k)*y(k,j)
-                self.failUnless(result == answer, "Mismatch for %s.%s: %s != %s" % (t1type.__name__, t2type.__name__, result, answer))
+                                answer[i*dim + j] += x(i,k)*y(k,j)
+                self.failUnless(isEqual(result, answer, tol=1e-15), "Mismatch for %s.%s: %s != %s, max disc=%s" % (t1type.__name__, t2type.__name__, result, answer, (result - answer).maxAbsElement()))
         return
 
     #---------------------------------------------------------------------------
