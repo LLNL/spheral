@@ -828,7 +828,7 @@ inline
 double
 GeomSymmetricTensor<nDim>::
 doubledot(const GeomTensor<nDim>& rhs) const {
-  return (mTensorData*rhs.native()).sum();
+  return (mTensorData*rhs.native()).trace();
 }
 
 template<int nDim>
@@ -836,7 +836,7 @@ inline
 double
 GeomSymmetricTensor<nDim>::
 doubledot(const GeomSymmetricTensor<nDim>& rhs) const {
-  return (mTensorData*rhs.native()).sum();
+  return (mTensorData*rhs.native()).trace();
 }
 
 //------------------------------------------------------------------------------
@@ -847,7 +847,7 @@ inline
 double
 GeomSymmetricTensor<nDim>::
 selfDoubledot() const {
-  return (mTensorData*mTensorData).sum();
+  return (mTensorData*mTensorData).trace();
 }
 
 //------------------------------------------------------------------------------
@@ -895,7 +895,13 @@ inline
 GeomSymmetricTensor<nDim>
 GeomSymmetricTensor<nDim>::
 cuberoot() const {
-  return this->pow(1.0/3.0);
+  Eigen::SelfAdjointEigenSolver<TensorStorage> eigensolver(mTensorData);
+  CHECK(eigensolver.info() == Eigen::Success);
+  const TensorStorage vecs = eigensolver.eigenvectors();
+  Eigen::Matrix<double, nDim, 1> vals = eigensolver.eigenvalues();
+  for (size_t i = 0; i != nDim; ++i) vals(i) = FastMath::CubeRootHalley2(vals(i));
+  // const Eigen::Matrix<double, nDim, 1> vals = eigensolver.eigenvalues().array().pow(1.0/3.0);
+  return GeomSymmetricTensor<nDim>((vecs*vals.asDiagonal()*vecs.transpose()).eval());
 }
 
 //------------------------------------------------------------------------------
