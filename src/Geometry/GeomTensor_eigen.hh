@@ -35,6 +35,7 @@ class GeomTensor {
 public:
   //--------------------------- Public Interface ---------------------------//
   EIGEN_MAKE_ALIGNED_OPERATOR_NEW
+  typedef Eigen::Matrix<double, nDim, 1>    VectorStorage;
   typedef Eigen::Matrix<double, nDim, nDim> TensorStorage;
   typedef const double* const_iterator;
   typedef double* iterator;
