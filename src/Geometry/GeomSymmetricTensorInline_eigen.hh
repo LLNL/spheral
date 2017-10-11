@@ -1053,7 +1053,7 @@ min(const double minValue, const Spheral::GeomSymmetricTensor<nDim>& tensor) {
   CHECK(eigensolver.info() == Eigen::Success);
   const TensorStorage vecs = eigensolver.eigenvectors();
   const Eigen::Matrix<double, nDim, 1> vals = eigensolver.eigenvalues().array().min(minValue);
-  return GeomSymmetricTensor<nDim>(vecs*vals.asDiagonal*vecs.transpose());
+  return GeomSymmetricTensor<nDim>(vecs*vals.asDiagonal()*vecs.transpose());
 }
 
 template<int nDim>
@@ -1075,7 +1075,7 @@ max(const double maxValue, const Spheral::GeomSymmetricTensor<nDim>& tensor) {
   CHECK(eigensolver.info() == Eigen::Success);
   const TensorStorage vecs = eigensolver.eigenvectors();
   const Eigen::Matrix<double, nDim, 1> vals = eigensolver.eigenvalues().array().max(maxValue);
-  return GeomSymmetricTensor<nDim>(vecs*vals.asDiagonal*vecs.transpose());
+  return GeomSymmetricTensor<nDim>(vecs*vals.asDiagonal()*vecs.transpose());
 }
 
 template<int nDim>
