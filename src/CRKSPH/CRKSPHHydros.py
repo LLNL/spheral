@@ -228,6 +228,59 @@ class %(classname)s(SolidCRKSPHHydroBaseRZ):
 """
 
 #-------------------------------------------------------------------------------
+# The variant CRKSPHHydro pattern.
+#-------------------------------------------------------------------------------
+CRKSPHVariantFactoryString = """
+class %(classname)s%(dim)s(CRKSPHVariant%(dim)s):
+
+    def __init__(self,
+                 Q,
+                 W,
+                 WPi = None,
+                 filter = 1.0,
+                 cfl = 0.25,
+                 useVelocityMagnitudeForDt = False,
+                 compatibleEnergyEvolution = True,
+                 evolveTotalEnergy = False,
+                 XSPH = True,
+                 densityUpdate = RigorousSumDensity,
+                 HUpdate = IdealH,
+                 correctionOrder = LinearOrder,
+                 volumeType = CRKVoronoiVolume,
+                 detectSurfaces = False,
+                 detectThreshold = 0.05,
+                 sweepAngle = 0.8,
+                 detectRange = 1.0,
+                 epsTensile = 0.0,
+                 nTensile = 4.0):
+        self._smoothingScaleMethod = %(smoothingScaleMethod)s%(dim)s()
+        if WPi is None:
+            WPi = W
+        CRKSPHVariant%(dim)s.__init__(self,
+                                        self._smoothingScaleMethod,
+                                        Q,
+                                        W,
+                                        WPi,
+                                        filter,
+                                        cfl,
+                                        useVelocityMagnitudeForDt,
+                                        compatibleEnergyEvolution,
+                                        evolveTotalEnergy,
+                                        XSPH,
+                                        densityUpdate,
+                                        HUpdate,
+                                        correctionOrder,
+                                        volumeType,
+                                        detectSurfaces,
+                                        detectThreshold,
+                                        sweepAngle,
+                                        detectRange,
+                                        epsTensile,
+                                        nTensile)
+        return
+"""
+
+#-------------------------------------------------------------------------------
 # Make 'em.
 #-------------------------------------------------------------------------------
 for dim in dims:
@@ -244,6 +297,13 @@ for dim in dims:
     exec(SolidCRKSPHHydroFactoryString % {"dim"                  : "%id" % dim,
                                           "classname"            : "SolidACRKSPHHydro",
                                           "smoothingScaleMethod" : "ASPHSmoothingScale"})
+
+    exec(CRKSPHVariantFactoryString % {"dim"                  : "%id" % dim,
+                                       "classname"            : "CRKSPHVar",
+                                       "smoothingScaleMethod" : "SPHSmoothingScale"})
+    exec(CRKSPHVariantFactoryString % {"dim"                  : "%id" % dim,
+                                       "classname"            : "ACRKSPHVar",
+                                       "smoothingScaleMethod" : "ASPHSmoothingScale"})
 
 if 2 in dims:
     exec(CRKSPHHydroRZFactoryString % {"classname"            : "CRKSPHHydroRZ",
@@ -280,7 +340,8 @@ def CRKSPH(dataBase,
            epsTensile = 0.0,
            nTensile = 4.0,
            ASPH = False,
-           RZ = False):
+           RZ = False,
+           crktype = "default"):
 
     # We use the provided DataBase to sniff out what sort of NodeLists are being
     # used, and based on this determine which SPH object to build.
@@ -310,6 +371,9 @@ def CRKSPH(dataBase,
 
     else:
 
+        crktype = crktype.lower()
+        assert crktype in ("default", "variant")
+
         # Cartesian ---------------------------------
         if nsolid > 0:
             if ASPH:
@@ -318,9 +382,15 @@ def CRKSPH(dataBase,
                 Constructor = eval("SolidCRKSPHHydro%id" % ndim)
         else:
             if ASPH:
-                Constructor = eval("ACRKSPHHydro%id" % ndim)
+                if crktype == "variant":
+                    Constructor = eval("ACRKSPHVar%id" % ndim)
+                else:
+                    Constructor = eval("ACRKSPHHydro%id" % ndim)
             else:
-                Constructor = eval("CRKSPHHydro%id" % ndim)
+                if crktype == "variant":
+                    Constructor = eval("CRKSPHVar%id" % ndim)
+                else:
+                    Constructor = eval("CRKSPHHydro%id" % ndim)
 
     # Artificial viscosity.
     if not Q:

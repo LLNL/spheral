@@ -67,6 +67,7 @@ commandLine(KernelConstructor = NBSplineKernel,
             svph = False,
             crksph = False,
             psph = False,
+            crktype = "default",        # one of ("default", "variant")
             evolveTotalEnergy = False,  # Only for SPH variants -- evolve total rather than specific energy
             boolReduceViscosity = False,
             HopkinsConductivity = False,     # For PSPH
@@ -308,7 +309,8 @@ elif crksph:
                    correctionOrder = correctionOrder,
                    volumeType = volumeType,
                    densityUpdate = densityUpdate,
-                   HUpdate = HUpdate)
+                   HUpdate = HUpdate,
+                   crktype = crktype)
 elif psph:
     hydro = PSPH(dataBase = db,
                  W = WT,
