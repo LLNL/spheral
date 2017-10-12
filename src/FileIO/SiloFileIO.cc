@@ -157,7 +157,7 @@ SiloFileIO::write(const string value, const string pathName) {
 void
 SiloFileIO::write(const Dim<1>::Vector& value, const string pathName) {
   const string varname = this->setDir(pathName);
-  int dims[1] = {1};
+  int dims[1] = {int(Dim<1>::Vector::numElements)};
   VERIFY2(DBWrite(mFilePtr, varname.c_str(), &(*value.begin()), dims, 1, DB_DOUBLE) == 0,
           "SiloFileIO ERROR: unable to write variable " << pathName);
 }
@@ -168,7 +168,7 @@ SiloFileIO::write(const Dim<1>::Vector& value, const string pathName) {
 void
 SiloFileIO::write(const Dim<1>::Tensor& value, const string pathName) {
   const string varname = this->setDir(pathName);
-  int dims[1] = {1};
+  int dims[1] = {int(Dim<1>::Tensor::numElements)};
   VERIFY2(DBWrite(mFilePtr, varname.c_str(), &(*value.begin()), dims, 1, DB_DOUBLE) == 0,
           "SiloFileIO ERROR: unable to write variable " << pathName);
 }
@@ -179,7 +179,7 @@ SiloFileIO::write(const Dim<1>::Tensor& value, const string pathName) {
 void
 SiloFileIO::write(const Dim<1>::SymTensor& value, const string pathName) {
   const string varname = this->setDir(pathName);
-  int dims[1] = {1};
+  int dims[1] = {int(Dim<1>::SymTensor::numElements)};
   VERIFY2(DBWrite(mFilePtr, varname.c_str(), &(*value.begin()), dims, 1, DB_DOUBLE) == 0,
           "SiloFileIO ERROR: unable to write variable " << pathName);
 }
@@ -190,7 +190,7 @@ SiloFileIO::write(const Dim<1>::SymTensor& value, const string pathName) {
 void
 SiloFileIO::write(const Dim<1>::ThirdRankTensor& value, const string pathName) {
   const string varname = this->setDir(pathName);
-  int dims[1] = {1};
+  int dims[1] = {int(Dim<1>::ThirdRankTensor::numElements)};
   VERIFY2(DBWrite(mFilePtr, varname.c_str(), &(*value.begin()), dims, 1, DB_DOUBLE) == 0,
           "SiloFileIO ERROR: unable to write variable " << pathName);
 }
@@ -201,7 +201,7 @@ SiloFileIO::write(const Dim<1>::ThirdRankTensor& value, const string pathName) {
 void
 SiloFileIO::write(const Dim<2>::Vector& value, const string pathName) {
   const string varname = this->setDir(pathName);
-  int dims[1] = {2};
+  int dims[1] = {int(Dim<2>::Vector::numElements)};
   VERIFY2(DBWrite(mFilePtr, varname.c_str(), &(*value.begin()), dims, 1, DB_DOUBLE) == 0,
           "SiloFileIO ERROR: unable to write variable " << pathName);
 }
@@ -212,7 +212,7 @@ SiloFileIO::write(const Dim<2>::Vector& value, const string pathName) {
 void
 SiloFileIO::write(const Dim<2>::Tensor& value, const string pathName) {
   const string varname = this->setDir(pathName);
-  int dims[1] = {4};
+  int dims[1] = {int(Dim<2>::Tensor::numElements)};
   VERIFY2(DBWrite(mFilePtr, varname.c_str(), &(*value.begin()), dims, 1, DB_DOUBLE) == 0,
           "SiloFileIO ERROR: unable to write variable " << pathName);
 }
@@ -223,7 +223,7 @@ SiloFileIO::write(const Dim<2>::Tensor& value, const string pathName) {
 void
 SiloFileIO::write(const Dim<2>::SymTensor& value, const string pathName) {
   const string varname = this->setDir(pathName);
-  int dims[1] = {3};
+  int dims[1] = {int(Dim<2>::SymTensor::numElements)};
   VERIFY2(DBWrite(mFilePtr, varname.c_str(), &(*value.begin()), dims, 1, DB_DOUBLE) == 0,
           "SiloFileIO ERROR: unable to write variable " << pathName);
 }
@@ -234,7 +234,7 @@ SiloFileIO::write(const Dim<2>::SymTensor& value, const string pathName) {
 void
 SiloFileIO::write(const Dim<2>::ThirdRankTensor& value, const string pathName) {
   const string varname = this->setDir(pathName);
-  int dims[1] = {8};
+  int dims[1] = {int(Dim<2>::ThirdRankTensor::numElements)};
   VERIFY2(DBWrite(mFilePtr, varname.c_str(), &(*value.begin()), dims, 1, DB_DOUBLE) == 0,
           "SiloFileIO ERROR: unable to write variable " << pathName);
 }
@@ -245,7 +245,7 @@ SiloFileIO::write(const Dim<2>::ThirdRankTensor& value, const string pathName) {
 void
 SiloFileIO::write(const Dim<3>::Vector& value, const string pathName) {
   const string varname = this->setDir(pathName);
-  int dims[1] = {3};
+  int dims[1] = {int(Dim<3>::Vector::numElements)};
   VERIFY2(DBWrite(mFilePtr, varname.c_str(), &(*value.begin()), dims, 1, DB_DOUBLE) == 0,
           "SiloFileIO ERROR: unable to write variable " << pathName);
 }
@@ -256,7 +256,7 @@ SiloFileIO::write(const Dim<3>::Vector& value, const string pathName) {
 void
 SiloFileIO::write(const Dim<3>::Tensor& value, const string pathName) {
   const string varname = this->setDir(pathName);
-  int dims[1] = {9};
+  int dims[1] = {int(Dim<3>::Tensor::numElements)};
   VERIFY2(DBWrite(mFilePtr, varname.c_str(), &(*value.begin()), dims, 1, DB_DOUBLE) == 0,
           "SiloFileIO ERROR: unable to write variable " << pathName);
 }
@@ -267,7 +267,7 @@ SiloFileIO::write(const Dim<3>::Tensor& value, const string pathName) {
 void
 SiloFileIO::write(const Dim<3>::SymTensor& value, const string pathName) {
   const string varname = this->setDir(pathName);
-  int dims[1] = {6};
+  int dims[1] = {int(Dim<3>::SymTensor::numElements)};
   VERIFY2(DBWrite(mFilePtr, varname.c_str(), &(*value.begin()), dims, 1, DB_DOUBLE) == 0,
           "SiloFileIO ERROR: unable to write variable " << pathName);
 }
@@ -278,7 +278,7 @@ SiloFileIO::write(const Dim<3>::SymTensor& value, const string pathName) {
 void
 SiloFileIO::write(const Dim<3>::ThirdRankTensor& value, const string pathName) {
   const string varname = this->setDir(pathName);
-  int dims[1] = {27};
+  int dims[1] = {int(Dim<3>::ThirdRankTensor::numElements)};
   VERIFY2(DBWrite(mFilePtr, varname.c_str(), &(*value.begin()), dims, 1, DB_DOUBLE) == 0,
           "SiloFileIO ERROR: unable to write variable " << pathName);
 }
@@ -518,7 +518,7 @@ SiloFileIO::write(const vector<string>& value, const string pathName) {
 //------------------------------------------------------------------------------
 void
 SiloFileIO::write(const vector<Dim<1>::Vector>& value, const string pathName) {
-  this->writeValueSequence(value, pathName, 1);
+  this->writeValueSequence(value, pathName, Dim<1>::Vector::numElements);
 }
 
 //------------------------------------------------------------------------------
@@ -526,7 +526,7 @@ SiloFileIO::write(const vector<Dim<1>::Vector>& value, const string pathName) {
 //------------------------------------------------------------------------------
 void
 SiloFileIO::write(const vector<Dim<1>::Tensor>& value, const string pathName) {
-  this->writeValueSequence(value, pathName, 1);
+  this->writeValueSequence(value, pathName, Dim<1>::Tensor::numElements);
 }
 
 //------------------------------------------------------------------------------
@@ -534,7 +534,7 @@ SiloFileIO::write(const vector<Dim<1>::Tensor>& value, const string pathName) {
 //------------------------------------------------------------------------------
 void
 SiloFileIO::write(const vector<Dim<1>::SymTensor>& value, const string pathName) {
-  this->writeValueSequence(value, pathName, 1);
+  this->writeValueSequence(value, pathName, Dim<1>::SymTensor::numElements);
 }
 
 //------------------------------------------------------------------------------
@@ -542,7 +542,7 @@ SiloFileIO::write(const vector<Dim<1>::SymTensor>& value, const string pathName)
 //------------------------------------------------------------------------------
 void
 SiloFileIO::write(const vector<Dim<1>::ThirdRankTensor>& value, const string pathName) {
-  this->writeValueSequence(value, pathName, 1);
+  this->writeValueSequence(value, pathName, Dim<1>::ThirdRankTensor::numElements);
 }
 
 //------------------------------------------------------------------------------
@@ -550,7 +550,7 @@ SiloFileIO::write(const vector<Dim<1>::ThirdRankTensor>& value, const string pat
 //------------------------------------------------------------------------------
 void
 SiloFileIO::write(const vector<Dim<2>::Vector>& value, const string pathName) {
-  this->writeValueSequence(value, pathName, 2);
+  this->writeValueSequence(value, pathName, Dim<2>::Vector::numElements);
 }
 
 //------------------------------------------------------------------------------
@@ -558,7 +558,7 @@ SiloFileIO::write(const vector<Dim<2>::Vector>& value, const string pathName) {
 //------------------------------------------------------------------------------
 void
 SiloFileIO::write(const vector<Dim<2>::Tensor>& value, const string pathName) {
-  this->writeValueSequence(value, pathName, 4);
+  this->writeValueSequence(value, pathName, Dim<2>::Tensor::numElements);
 }
 
 //------------------------------------------------------------------------------
@@ -566,7 +566,7 @@ SiloFileIO::write(const vector<Dim<2>::Tensor>& value, const string pathName) {
 //------------------------------------------------------------------------------
 void
 SiloFileIO::write(const vector<Dim<2>::SymTensor>& value, const string pathName) {
-  this->writeValueSequence(value, pathName, 3);
+  this->writeValueSequence(value, pathName, Dim<2>::SymTensor::numElements);
 }
 
 //------------------------------------------------------------------------------
@@ -574,7 +574,7 @@ SiloFileIO::write(const vector<Dim<2>::SymTensor>& value, const string pathName)
 //------------------------------------------------------------------------------
 void
 SiloFileIO::write(const vector<Dim<2>::ThirdRankTensor>& value, const string pathName) {
-  this->writeValueSequence(value, pathName, 8);
+  this->writeValueSequence(value, pathName, Dim<2>::ThirdRankTensor::numElements);
 }
 
 //------------------------------------------------------------------------------
@@ -582,7 +582,7 @@ SiloFileIO::write(const vector<Dim<2>::ThirdRankTensor>& value, const string pat
 //------------------------------------------------------------------------------
 void
 SiloFileIO::write(const vector<Dim<3>::Vector>& value, const string pathName) {
-  this->writeValueSequence(value, pathName, 3);
+  this->writeValueSequence(value, pathName, Dim<3>::Vector::numElements);
 }
 
 //------------------------------------------------------------------------------
@@ -590,7 +590,7 @@ SiloFileIO::write(const vector<Dim<3>::Vector>& value, const string pathName) {
 //------------------------------------------------------------------------------
 void
 SiloFileIO::write(const vector<Dim<3>::Tensor>& value, const string pathName) {
-  this->writeValueSequence(value, pathName, 9);
+  this->writeValueSequence(value, pathName, Dim<3>::Tensor::numElements);
 }
 
 //------------------------------------------------------------------------------
@@ -598,7 +598,7 @@ SiloFileIO::write(const vector<Dim<3>::Tensor>& value, const string pathName) {
 //------------------------------------------------------------------------------
 void
 SiloFileIO::write(const vector<Dim<3>::SymTensor>& value, const string pathName) {
-  this->writeValueSequence(value, pathName, 6);
+  this->writeValueSequence(value, pathName, Dim<3>::SymTensor::numElements);
 }
 
 //------------------------------------------------------------------------------
@@ -606,7 +606,7 @@ SiloFileIO::write(const vector<Dim<3>::SymTensor>& value, const string pathName)
 //------------------------------------------------------------------------------
 void
 SiloFileIO::write(const vector<Dim<3>::ThirdRankTensor>& value, const string pathName) {
-  this->writeValueSequence(value, pathName, 27);
+  this->writeValueSequence(value, pathName, Dim<3>::ThirdRankTensor::numElements);
 }
 
 //------------------------------------------------------------------------------
@@ -670,7 +670,7 @@ SiloFileIO::read(vector<string>& value, const string pathName) const {
 //------------------------------------------------------------------------------
 void
 SiloFileIO::read(vector<Dim<1>::Vector>& value, const string pathName) const {
-  this->readValueSequence(value, pathName, 1);
+  this->readValueSequence(value, pathName, Dim<1>::Vector::numElements);
 }
 
 //------------------------------------------------------------------------------
@@ -678,7 +678,7 @@ SiloFileIO::read(vector<Dim<1>::Vector>& value, const string pathName) const {
 //------------------------------------------------------------------------------
 void
 SiloFileIO::read(vector<Dim<1>::Tensor>& value, const string pathName) const {
-  this->readValueSequence(value, pathName, 1);
+  this->readValueSequence(value, pathName, Dim<1>::Tensor::numElements);
 }
 
 //------------------------------------------------------------------------------
@@ -686,7 +686,7 @@ SiloFileIO::read(vector<Dim<1>::Tensor>& value, const string pathName) const {
 //------------------------------------------------------------------------------
 void
 SiloFileIO::read(vector<Dim<1>::SymTensor>& value, const string pathName) const {
-  this->readValueSequence(value, pathName, 1);
+  this->readValueSequence(value, pathName, Dim<1>::SymTensor::numElements);
 }
 
 //------------------------------------------------------------------------------
@@ -694,7 +694,7 @@ SiloFileIO::read(vector<Dim<1>::SymTensor>& value, const string pathName) const 
 //------------------------------------------------------------------------------
 void
 SiloFileIO::read(vector<Dim<1>::ThirdRankTensor>& value, const string pathName) const {
-  this->readValueSequence(value, pathName, 1);
+  this->readValueSequence(value, pathName, Dim<1>::ThirdRankTensor::numElements);
 }
 
 //------------------------------------------------------------------------------
@@ -702,7 +702,7 @@ SiloFileIO::read(vector<Dim<1>::ThirdRankTensor>& value, const string pathName) 
 //------------------------------------------------------------------------------
 void
 SiloFileIO::read(vector<Dim<2>::Vector>& value, const string pathName) const {
-  this->readValueSequence(value, pathName, 2);
+  this->readValueSequence(value, pathName, Dim<2>::Vector::numElements);
 }
 
 //------------------------------------------------------------------------------
@@ -710,7 +710,7 @@ SiloFileIO::read(vector<Dim<2>::Vector>& value, const string pathName) const {
 //------------------------------------------------------------------------------
 void
 SiloFileIO::read(vector<Dim<2>::Tensor>& value, const string pathName) const {
-  this->readValueSequence(value, pathName, 4);
+  this->readValueSequence(value, pathName, Dim<2>::Tensor::numElements);
 }
 
 //------------------------------------------------------------------------------
@@ -718,7 +718,7 @@ SiloFileIO::read(vector<Dim<2>::Tensor>& value, const string pathName) const {
 //------------------------------------------------------------------------------
 void
 SiloFileIO::read(vector<Dim<2>::SymTensor>& value, const string pathName) const {
-  this->readValueSequence(value, pathName, 3);
+  this->readValueSequence(value, pathName, Dim<2>::SymTensor::numElements);
 }
 
 //------------------------------------------------------------------------------
@@ -726,7 +726,7 @@ SiloFileIO::read(vector<Dim<2>::SymTensor>& value, const string pathName) const 
 //------------------------------------------------------------------------------
 void
 SiloFileIO::read(vector<Dim<2>::ThirdRankTensor>& value, const string pathName) const {
-  this->readValueSequence(value, pathName, 8);
+  this->readValueSequence(value, pathName, Dim<2>::ThirdRankTensor::numElements);
 }
 
 //------------------------------------------------------------------------------
@@ -734,7 +734,7 @@ SiloFileIO::read(vector<Dim<2>::ThirdRankTensor>& value, const string pathName) 
 //------------------------------------------------------------------------------
 void
 SiloFileIO::read(vector<Dim<3>::Vector>& value, const string pathName) const {
-  this->readValueSequence(value, pathName, 3);
+  this->readValueSequence(value, pathName, Dim<3>::Vector::numElements);
 }
 
 //------------------------------------------------------------------------------
@@ -742,7 +742,7 @@ SiloFileIO::read(vector<Dim<3>::Vector>& value, const string pathName) const {
 //------------------------------------------------------------------------------
 void
 SiloFileIO::read(vector<Dim<3>::Tensor>& value, const string pathName) const {
-  this->readValueSequence(value, pathName, 9);
+  this->readValueSequence(value, pathName, Dim<3>::Tensor::numElements);
 }
 
 //------------------------------------------------------------------------------
@@ -750,7 +750,7 @@ SiloFileIO::read(vector<Dim<3>::Tensor>& value, const string pathName) const {
 //------------------------------------------------------------------------------
 void
 SiloFileIO::read(vector<Dim<3>::SymTensor>& value, const string pathName) const {
-  this->readValueSequence(value, pathName, 6);
+  this->readValueSequence(value, pathName, Dim<3>::SymTensor::numElements);
 }
 
 //------------------------------------------------------------------------------
@@ -758,7 +758,7 @@ SiloFileIO::read(vector<Dim<3>::SymTensor>& value, const string pathName) const 
 //------------------------------------------------------------------------------
 void
 SiloFileIO::read(vector<Dim<3>::ThirdRankTensor>& value, const string pathName) const {
-  this->readValueSequence(value, pathName, 27);
+  this->readValueSequence(value, pathName, Dim<3>::ThirdRankTensor::numElements);
 }
 
 #ifdef SPHERAL1D

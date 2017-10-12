@@ -121,6 +121,30 @@ GeomTensor(const GeomSymmetricTensor<3>& ten):
 }
 
 //------------------------------------------------------------------------------
+// Construct from an Eigen Tensor.
+//------------------------------------------------------------------------------
+template<>
+inline
+GeomTensor<1>::GeomTensor(const EigenType& ten):
+  GeomTensorBase<1>(ten(0,0)) {
+}
+
+template<>
+inline
+GeomTensor<2>::GeomTensor(const EigenType& ten):
+  GeomTensorBase<2>(ten(0,0), ten(0,1),
+                    ten(1,0), ten(1,1)) {
+}
+
+template<>
+inline
+GeomTensor<3>::GeomTensor(const EigenType& ten):
+  GeomTensorBase<3>(ten(0,0), ten(0,1), ten(0,2),
+                    ten(1,0), ten(1,1), ten(1,2),
+                    ten(2,0), ten(2,1), ten(2,2)) {
+}
+
+//------------------------------------------------------------------------------
 // Destructor.
 //------------------------------------------------------------------------------
 template<int nDim>
@@ -207,17 +231,43 @@ operator=(const GeomSymmetricTensor<3>& ten) {
   return *this;
 }
 
-// //------------------------------------------------------------------------------
-// // Assignment with a scalar.  This sets the diagonal elements to the given
-// // value, and the off-diagonals to zero.
-// //------------------------------------------------------------------------------
-// template<int nDim>
-// inline
-// GeomTensor<nDim>&
-// GeomTensor<nDim>::operator=(const double rhs) {
-//   *this = one*rhs;
-//   return *this;
-// }
+//------------------------------------------------------------------------------
+// The assignment operator (Eigen Tensor).
+//------------------------------------------------------------------------------
+template<>
+inline
+GeomTensor<1>&
+GeomTensor<1>::operator=(const EigenType& ten) {
+  this->mxx = ten(0,0);
+  return *this;
+}
+
+template<>
+inline
+GeomTensor<2>&
+GeomTensor<2>::operator=(const EigenType& ten) {
+  this->mxx = ten(0,0);
+  this->mxy = ten(0,1);
+  this->myx = ten(1,0);
+  this->myy = ten(1,1);
+  return *this;
+}
+
+template<>
+inline
+GeomTensor<3>&
+GeomTensor<3>::operator=(const EigenType& ten) {
+  this->mxx = ten(0,0);
+  this->mxy = ten(0,1);
+  this->mxz = ten(0,2);
+  this->myx = ten(1,0);
+  this->myy = ten(1,1);
+  this->myz = ten(1,2);
+  this->mzx = ten(2,0);
+  this->mzy = ten(2,1);
+  this->mzz = ten(2,2);
+  return *this;
+}
 
 //------------------------------------------------------------------------------
 // Access the elements by indicies.
@@ -274,7 +324,6 @@ GeomTensor<nDim>::xx() const {
   return this->mxx;
 }
 
-//------------------------------------------------------------------------------
 template<int nDim>
 inline
 double
@@ -282,166 +331,73 @@ GeomTensor<nDim>::xy() const {
   return this->mxy;
 }
 
-template<>
+template<int nDim>
 inline
 double
-GeomTensor<1>::xy() const {
-  return 0.0;
-}
-
-//------------------------------------------------------------------------------
-template<>
-inline
-double
-GeomTensor<1>::xz() const {
-  return 0.0;
-}
-
-template<>
-inline
-double
-GeomTensor<2>::xz() const {
-  return 0.0;
-}
-
-template<>
-inline
-double
-GeomTensor<3>::xz() const {
+GeomTensor<nDim>::xz() const {
   return this->mxz;
 }
 
-//------------------------------------------------------------------------------
-template<>
+template<int nDim>
 inline
 double
-GeomTensor<1>::yx() const {
-  return 0.0;
-}
-
-template<>
-inline
-double
-GeomTensor<2>::yx() const {
+GeomTensor<nDim>::yx() const {
   return this->myx;
 }
 
-template<>
+template<int nDim>
 inline
 double
-GeomTensor<3>::yx() const {
-  return this->myx;
-}
-
-//------------------------------------------------------------------------------
-template<>
-inline
-double
-GeomTensor<1>::yy() const {
-  return 0.0;
-}
-
-template<>
-inline
-double
-GeomTensor<2>::yy() const {
+GeomTensor<nDim>::yy() const {
   return this->myy;
 }
 
-template<>
+template<int nDim>
 inline
 double
-GeomTensor<3>::yy() const {
-  return this->myy;
-}
-
-//------------------------------------------------------------------------------
-template<>
-inline
-double
-GeomTensor<1>::yz() const {
-  return 0.0;
-}
-
-template<>
-inline
-double
-GeomTensor<2>::yz() const {
-  return 0.0;
-}
-
-template<>
-inline
-double
-GeomTensor<3>::yz() const {
+GeomTensor<nDim>::yz() const {
   return this->myz;
 }
 
-//------------------------------------------------------------------------------
-template<>
+template<int nDim>
 inline
 double
-GeomTensor<1>::zx() const {
-  return 0.0;
-}
-
-template<>
-inline
-double
-GeomTensor<2>::zx() const {
-  return 0.0;
-}
-
-template<>
-inline
-double
-GeomTensor<3>::zx() const {
+GeomTensor<nDim>::zx() const {
   return this->mzx;
 }
 
-//------------------------------------------------------------------------------
-template<>
+template<int nDim>
 inline
 double
-GeomTensor<1>::zy() const {
-  return 0.0;
-}
-
-template<>
-inline
-double
-GeomTensor<2>::zy() const {
-  return 0.0;
-}
-
-template<>
-inline
-double
-GeomTensor<3>::zy() const {
+GeomTensor<nDim>::zy() const {
   return this->mzy;
 }
 
-//------------------------------------------------------------------------------
-template<>
+template<int nDim>
 inline
 double
-GeomTensor<1>::zz() const {
-  return 0.0;
-}
-
-template<>
-inline
-double
-GeomTensor<2>::zz() const {
-  return 0.0;
-}
-
-template<>
-inline
-double
-GeomTensor<3>::zz() const {
+GeomTensor<nDim>::zz() const {
   return this->mzz;
 }
+
+//------------------------------------------------------------------------------
+// 1D dummy elements
+template<> inline double GeomTensor<1>::xy() const { return 0.0; }
+template<> inline double GeomTensor<1>::xz() const { return 0.0; }
+template<> inline double GeomTensor<1>::yx() const { return 0.0; }
+template<> inline double GeomTensor<1>::yy() const { return 0.0; }
+template<> inline double GeomTensor<1>::yz() const { return 0.0; }
+template<> inline double GeomTensor<1>::zx() const { return 0.0; }
+template<> inline double GeomTensor<1>::zy() const { return 0.0; }
+template<> inline double GeomTensor<1>::zz() const { return 0.0; }
+
+//------------------------------------------------------------------------------
+// 2D dummy elements
+template<> inline double GeomTensor<2>::xz() const { return 0.0; }
+template<> inline double GeomTensor<2>::yz() const { return 0.0; }
+template<> inline double GeomTensor<2>::zx() const { return 0.0; }
+template<> inline double GeomTensor<2>::zy() const { return 0.0; }
+template<> inline double GeomTensor<2>::zz() const { return 0.0; }
 
 //------------------------------------------------------------------------------
 // Set the individual elements, as above.
@@ -453,7 +409,6 @@ GeomTensor<nDim>::xx(const double val) {
   this->mxx = val;
 }
 
-//------------------------------------------------------------------------------
 template<int nDim>
 inline
 void
@@ -461,153 +416,73 @@ GeomTensor<nDim>::xy(const double val) {
   this->mxy = val;
 }
 
-template<>
+template<int nDim>
 inline
 void
-GeomTensor<1>::xy(const double val) {
-}
-
-//------------------------------------------------------------------------------
-template<>
-inline
-void
-GeomTensor<1>::xz(const double val) {
-}
-
-template<>
-inline
-void
-GeomTensor<2>::xz(const double val) {
-}
-
-template<>
-inline
-void
-GeomTensor<3>::xz(const double val) {
+GeomTensor<nDim>::xz(const double val) {
   this->mxz = val;
 }
 
-//------------------------------------------------------------------------------
-template<>
+template<int nDim>
 inline
 void
-GeomTensor<1>::yx(const double val) {
-}
-
-template<>
-inline
-void
-GeomTensor<2>::yx(const double val) {
+GeomTensor<nDim>::yx(const double val) {
   this->myx = val;
 }
 
-template<>
+template<int nDim>
 inline
 void
-GeomTensor<3>::yx(const double val) {
-  this->myx = val;
-}
-
-//------------------------------------------------------------------------------
-template<>
-inline
-void
-GeomTensor<1>::yy(const double val) {
-}
-
-template<>
-inline
-void
-GeomTensor<2>::yy(const double val) {
+GeomTensor<nDim>::yy(const double val) {
   this->myy = val;
 }
 
-template<>
+template<int nDim>
 inline
 void
-GeomTensor<3>::yy(const double val) {
-  this->myy = val;
-}
-
-//------------------------------------------------------------------------------
-template<>
-inline
-void
-GeomTensor<1>::yz(const double val) {
-}
-
-template<>
-inline
-void
-GeomTensor<2>::yz(const double val) {
-}
-
-template<>
-inline
-void
-GeomTensor<3>::yz(const double val) {
+GeomTensor<nDim>::yz(const double val) {
   this->myz = val;
 }
 
-//------------------------------------------------------------------------------
-template<>
+template<int nDim>
 inline
 void
-GeomTensor<1>::zx(const double val) {
-}
-
-template<>
-inline
-void
-GeomTensor<2>::zx(const double val) {
-}
-
-template<>
-inline
-void
-GeomTensor<3>::zx(const double val) {
+GeomTensor<nDim>::zx(const double val) {
   this->mzx = val;
 }
 
-//------------------------------------------------------------------------------
-template<>
+template<int nDim>
 inline
 void
-GeomTensor<1>::zy(const double val) {
-}
-
-template<>
-inline
-void
-GeomTensor<2>::zy(const double val) {
-}
-
-template<>
-inline
-void
-GeomTensor<3>::zy(const double val) {
+GeomTensor<nDim>::zy(const double val) {
   this->mzy = val;
 }
 
+template<int nDim>
+inline
+void
+GeomTensor<nDim>::zz(double val) {
+  this->mzz = val;
+}
+
 //------------------------------------------------------------------------------
-template<>
-inline
-void
-GeomTensor<1>::zz(const double val) {
-}
+// 1D dummy elements
+template<> inline void GeomTensor<1>::xy(const double val) {}
+template<> inline void GeomTensor<1>::xz(const double val) {}
+template<> inline void GeomTensor<1>::yx(const double val) {}
+template<> inline void GeomTensor<1>::yy(const double val) {}
+template<> inline void GeomTensor<1>::yz(const double val) {}
+template<> inline void GeomTensor<1>::zx(const double val) {}
+template<> inline void GeomTensor<1>::zy(const double val) {}
+template<> inline void GeomTensor<1>::zz(const double val) {}
 
-template<>
-inline
-void
-GeomTensor<2>::zz(const double val) {
-}
-
-template<>
-inline
-void
-GeomTensor<3>::zz(const double val) {
-  this->mzz= val;
-}
+//------------------------------------------------------------------------------
+// 2D dummy elements
+template<> inline void GeomTensor<2>::xz(const double val) {}
+template<> inline void GeomTensor<2>::yz(const double val) {}
+template<> inline void GeomTensor<2>::zx(const double val) {}
+template<> inline void GeomTensor<2>::zy(const double val) {}
+template<> inline void GeomTensor<2>::zz(const double val) {}
 
 //------------------------------------------------------------------------------
 // Access the individual rows of the GeomTensor.
@@ -2404,6 +2279,37 @@ maxAbsElement() const {
                                                                std::max(std::abs(this->mzx),
                                                                         std::max(std::abs(this->mzy),
                                                                                  std::abs(this->mzz)))))))));
+}
+
+//------------------------------------------------------------------------------
+// Generate an Eigen Tensor.
+//------------------------------------------------------------------------------
+template<>
+inline
+GeomTensor<1>::EigenType
+GeomTensor<1>::eigen() const {
+  return EigenType(this->mxx);
+}
+
+template<>
+inline
+GeomTensor<2>::EigenType
+GeomTensor<2>::eigen() const {
+  EigenType result;
+  result << this->mxx, this->mxy,
+            this->myx, this->myy;
+  return result;
+}
+
+template<>
+inline
+GeomTensor<3>::EigenType
+GeomTensor<3>::eigen() const {
+  EigenType result;
+  result << this->mxx, this->mxy, this->mxz,
+            this->myx, this->myy, this->myz,
+            this->mzx, this->mzy, this->mzz;
+  return result;
 }
 
 //********************************************************************************

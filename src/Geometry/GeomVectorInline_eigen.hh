@@ -18,7 +18,7 @@ inline
 GeomVector<1>::GeomVector(const double x,
                           const double y,
                           const double z):
-  GeomVectorBase<1>(x) {
+  mVecData(x) {
 }
 
 template<>
@@ -26,7 +26,7 @@ inline
 GeomVector<2>::GeomVector(const double x,
                           const double y,
                           const double z):
-  GeomVectorBase<2>(x, y) {
+  mVecData(x, y) {
 }
 
 template<>
@@ -34,126 +34,48 @@ inline
 GeomVector<3>::GeomVector(const double x,
                           const double y,
                           const double z):
-  GeomVectorBase<3>(x, y, z) {
+  mVecData(x, y, z) {
 }
 
 //------------------------------------------------------------------------------
-// Copy constructor.
+// Copy constructors.
 //------------------------------------------------------------------------------
 template<int nDim>
 inline
 GeomVector<nDim>::GeomVector(const GeomVector<nDim>& vec):
-  GeomVectorBase<nDim>(vec) {
+  mVecData(vec.mVecData) {
+}
+
+template<int nDim>
+inline
+GeomVector<nDim>::GeomVector(const typename GeomVector<nDim>::VectorStorage& vec):
+  mVecData(vec) {
 }
 
 //------------------------------------------------------------------------------
-// Construct from an Eigen Vector.
+// The assignment operators.
 //------------------------------------------------------------------------------
-template<>
+template<int nDim>
 inline
-GeomVector<1>::GeomVector(const EigenType& vec):
-  GeomVectorBase<1>(vec(0)) {
-}
-
-template<>
-inline
-GeomVector<2>::GeomVector(const EigenType& vec):
-  GeomVectorBase<2>(vec(0), vec(1)) {
-}
-
-template<>
-inline
-GeomVector<3>::GeomVector(const EigenType& vec):
-  GeomVectorBase<3>(vec(0), vec(1), vec(2)) {
-}
-
-//------------------------------------------------------------------------------
-// The assignment operator.
-//------------------------------------------------------------------------------
-template<>
-inline
-GeomVector<1>&
-GeomVector<1>::operator=(const GeomVector<1>& vec) {
-  this->mx = vec.mx;
+GeomVector<nDim>&
+GeomVector<nDim>::operator=(const GeomVector<nDim>& vec) {
+  this->mVecData = vec.mVecData;
   return *this;
 }
 
-template<>
+template<int nDim>
 inline
-GeomVector<2>&
-GeomVector<2>::operator=(const GeomVector<2>& vec) {
-  this->mx = vec.mx;
-  this->my = vec.my;
+GeomVector<nDim>&
+GeomVector<nDim>::operator=(const VectorStorage& vec) {
+  this->mVecData = vec;
   return *this;
 }
 
-template<>
+template<int nDim>
 inline
-GeomVector<3>&
-GeomVector<3>::operator=(const GeomVector<3>& vec) {
-  this->mx = vec.mx;
-  this->my = vec.my;
-  this->mz = vec.mz;
-  return *this;
-}
-
-//------------------------------------------------------------------------------
-// The assignment operator (Eigen Vector).
-//------------------------------------------------------------------------------
-template<>
-inline
-GeomVector<1>&
-GeomVector<1>::operator=(const EigenType& vec) {
-  this->mx = vec(0);
-  return *this;
-}
-
-template<>
-inline
-GeomVector<2>&
-GeomVector<2>::operator=(const EigenType& vec) {
-  this->mx = vec(0);
-  this->my = vec(1);
-  return *this;
-}
-
-template<>
-inline
-GeomVector<3>&
-GeomVector<3>::operator=(const EigenType& vec) {
-  this->mx = vec(0);
-  this->my = vec(1);
-  this->mz = vec(2);
-  return *this;
-}
-
-//------------------------------------------------------------------------------
-// Set the vector elements to a constant scalar value.
-//------------------------------------------------------------------------------
-template<>
-inline
-GeomVector<1>&
-GeomVector<1>::operator=(const double val) {
-  this->mx = val;
-  return *this;
-}
-
-template<>
-inline
-GeomVector<2>&
-GeomVector<2>::operator=(const double val) {
-  this->mx = val;
-  this->my = val;
-  return *this;
-}
-
-template<>
-inline
-GeomVector<3>&
-GeomVector<3>::operator=(const double val) {
-  this->mx = val;
-  this->my = val;
-  this->mz = val;
+GeomVector<nDim>&
+GeomVector<nDim>::operator=(const double val) {
+  mVecData = VectorStorage::Constant(val);
   return *this;
 }
 
@@ -172,7 +94,7 @@ inline
 double
 GeomVector<nDim>::operator()(typename GeomVector<nDim>::size_type index) const {
   REQUIRE(index < nDim);
-  return *(begin() + index);
+  return mVecData(index);
 }
 
 template<int nDim>
@@ -180,7 +102,7 @@ inline
 double&
 GeomVector<nDim>::operator()(typename GeomVector<nDim>::size_type index) {
   REQUIRE(index < nDim);
-  return *(begin() + index);
+  return mVecData(index);
 }
 
 //------------------------------------------------------------------------------
@@ -191,7 +113,7 @@ inline
 double
 GeomVector<nDim>::operator[](typename GeomVector<nDim>::size_type index) const {
   REQUIRE(index < nDim);
-  return *(begin() + index);
+  return mVecData[nDim];
 }
 
 template<int nDim>
@@ -199,7 +121,7 @@ inline
 double&
 GeomVector<nDim>::operator[](typename GeomVector<nDim>::size_type index) {
   REQUIRE(index < nDim);
-  return *(begin() + index);
+  return mVecData[nDim];
 }
 
 //------------------------------------------------------------------------------
@@ -209,7 +131,7 @@ template<int nDim>
 inline
 double
 GeomVector<nDim>::x() const {
-  return this->mx;
+  return mVecData.x();
 }
 
 //------------------------------------------------------------------------------
@@ -219,8 +141,7 @@ template<int nDim>
 inline
 double
 GeomVector<nDim>::y() const {
-  REQUIRE(nDim > 1);
-  return this->my;
+  return mVecData.y();
 }
 
 template<>
@@ -237,8 +158,7 @@ template<int nDim>
 inline
 double
 GeomVector<nDim>::z() const {
-  REQUIRE(nDim > 2);
-  return this->mz;
+  return mVecData.z();
 }
 
 template<>
@@ -262,7 +182,7 @@ template<int nDim>
 inline
 void
 GeomVector<nDim>::x(const double val) {
-  this->mx = val;
+  mVecData(0) = val;
 }
 
 //------------------------------------------------------------------------------
@@ -272,8 +192,7 @@ template<int nDim>
 inline
 void
 GeomVector<nDim>::y(const double val) {
-  REQUIRE(nDim > 1);
-  this->my = val;
+  mVecData(1) = val;
 }
 
 template<>
@@ -289,8 +208,7 @@ template<int nDim>
 inline
 void
 GeomVector<nDim>::z(const double val) {
-  REQUIRE(nDim > 2);
-  this->mz = val;
+  mVecData(2) = val;
 }
 
 template<>
@@ -313,14 +231,14 @@ template<int nDim>
 inline
 typename GeomVector<nDim>::iterator
 GeomVector<nDim>::begin() {
-  return &(this->mx);
+  return mVecData.data();
 }
 
 template<int nDim>
 inline
 typename GeomVector<nDim>::iterator
 GeomVector<nDim>::end() {
-  return &(this->mx) + nDim;
+  return mVecData.data() + nDim;
 }
 
 // Const versions.
@@ -328,65 +246,34 @@ template<int nDim>
 inline
 typename GeomVector<nDim>::const_iterator
 GeomVector<nDim>::begin() const {
-  return &(this->mx);
+  return mVecData.data();
 }
 
 template<int nDim>
 inline
 typename GeomVector<nDim>::const_iterator
 GeomVector<nDim>::end() const {
-  return &(this->mx) + nDim;
+  return mVecData.data() + nDim;
 }
 
 //------------------------------------------------------------------------------
 // Zero out the Vector.
 //------------------------------------------------------------------------------
-template<>
+template<int nDim>
 inline
 void
-GeomVector<1>::Zero() {
-  this->mx = 0.0;
-}
-
-template<>
-inline
-void
-GeomVector<2>::Zero() {
-  this->mx = 0.0;
-  this->my = 0.0;
-}
-
-template<>
-inline
-void
-GeomVector<3>::Zero() {
-  this->mx = 0.0;
-  this->my = 0.0;
-  this->mz = 0.0;
+GeomVector<nDim>::Zero() {
+  mVecData = VectorStorage::Zero();
 }
 
 //------------------------------------------------------------------------------
 // Return the negative of a vector.
 //------------------------------------------------------------------------------
-template<>
+template<int nDim>
 inline
-GeomVector<1>
-GeomVector<1>::operator-() const {
-  return GeomVector<1>(-(this->mx));
-}
-
-template<>
-inline
-GeomVector<2>
-GeomVector<2>::operator-() const {
-  return GeomVector<2>(-(this->mx), -(this->my));
-}
-
-template<>
-inline
-GeomVector<3>
-GeomVector<3>::operator-() const {
-  return GeomVector<3>(-(this->mx), -(this->my), -(this->mz));
+GeomVector<nDim>
+GeomVector<nDim>::operator-() const {
+  return GeomVector<nDim>((-mVecData).eval());
 }
 
 //------------------------------------------------------------------------------
@@ -395,10 +282,8 @@ GeomVector<3>::operator-() const {
 template<int nDim>
 inline
 GeomVector<nDim>
-GeomVector<nDim>::operator+(const GeomVector<nDim>& vec) const {
-  GeomVector<nDim> result(*this);
-  result += vec;
-  return result;
+GeomVector<nDim>::operator+(const GeomVector<nDim>& rhs) const {
+  return GeomVector<nDim>((mVecData + rhs.mVecData).eval());
 }
 
 //------------------------------------------------------------------------------
@@ -407,10 +292,8 @@ GeomVector<nDim>::operator+(const GeomVector<nDim>& vec) const {
 template<int nDim>
 inline
 GeomVector<nDim>
-GeomVector<nDim>::operator-(const GeomVector<nDim>& vec) const {
-  GeomVector<nDim> result(*this);
-  result -= vec;
-  return result;
+GeomVector<nDim>::operator-(const GeomVector<nDim>& rhs) const {
+  return GeomVector<nDim>((mVecData - rhs.mVecData).eval());
 }
 
 //------------------------------------------------------------------------------
@@ -419,8 +302,8 @@ GeomVector<nDim>::operator-(const GeomVector<nDim>& vec) const {
 template<int nDim>
 inline
 GeomTensor<nDim>
-GeomVector<nDim>::operator*(const GeomVector<nDim>& vec) const {
-  return this->dyad(vec);
+GeomVector<nDim>::operator*(const GeomVector<nDim>& rhs) const {
+  return GeomTensor<nDim>((mVecData * rhs.mVecData.transpose()).eval());
 }
 
 //------------------------------------------------------------------------------
@@ -430,9 +313,7 @@ template<int nDim>
 inline
 GeomVector<nDim>
 GeomVector<nDim>::operator*(const double val) const {
-  GeomVector<nDim> result(*this);
-  result *= val;
-  return result;
+  return GeomVector<nDim>((mVecData * val).eval());
 }
 
 //------------------------------------------------------------------------------
@@ -443,133 +324,51 @@ inline
 GeomVector<nDim>
 GeomVector<nDim>::operator/(const double val) const {
   CHECK(val != 0.0);
-  GeomVector<nDim> result(*this);
-  result /= val;
-  return result;
+  return GeomVector<nDim>((mVecData / val).eval());
 }
 
 //------------------------------------------------------------------------------
 // Add two vectors in place.
 //------------------------------------------------------------------------------
-template<>
+template<int nDim>
 inline
-GeomVector<1>&
-GeomVector<1>::operator+=(const GeomVector<1>& vec) {
-  this->mx += vec.mx;
-  return *this;
-}
-
-template<>
-inline
-GeomVector<2>&
-GeomVector<2>::operator+=(const GeomVector<2>& vec) {
-  this->mx += vec.mx;
-  this->my += vec.my;
-  return *this;
-}
-
-template<>
-inline
-GeomVector<3>&
-GeomVector<3>::operator+=(const GeomVector<3>& vec) {
-  this->mx += vec.mx;
-  this->my += vec.my;
-  this->mz += vec.mz;
+GeomVector<nDim>&
+GeomVector<nDim>::operator+=(const GeomVector<nDim>& vec) {
+  mVecData += vec.mVecData;
   return *this;
 }
 
 //------------------------------------------------------------------------------
 // Subtract a vector in place.
 //------------------------------------------------------------------------------
-template<>
+template<int nDim>
 inline
-GeomVector<1>& 
-GeomVector<1>::operator-=(const GeomVector<1>& vec) {
-  this->mx -= vec.mx;
-  return *this;
-}
-
-template<>
-inline
-GeomVector<2>&
-GeomVector<2>::operator-=(const GeomVector<2>& vec) {
-  this->mx -= vec.mx;
-  this->my -= vec.my;
-  return *this;
-}
-
-template<>
-inline
-GeomVector<3>&
-GeomVector<3>::operator-=(const GeomVector<3>& vec) {
-  this->mx -= vec.mx;
-  this->my -= vec.my;
-  this->mz -= vec.mz;
+GeomVector<nDim>&
+GeomVector<nDim>::operator-=(const GeomVector<nDim>& vec) {
+  mVecData -= vec.mVecData;
   return *this;
 }
 
 //------------------------------------------------------------------------------
 // Multiply this vector by a scalar in place.
 //------------------------------------------------------------------------------
-template<>
+template<int nDim>
 inline
-GeomVector<1>&
-GeomVector<1>::operator*=(const double val) {
-  this->mx *= val;
-  return *this;
-}
-
-template<>
-inline
-GeomVector<2>&
-GeomVector<2>::operator*=(const double val) {
-  this->mx *= val;
-  this->my *= val;
-  return *this;
-}
-
-template<>
-inline
-GeomVector<3>&
-GeomVector<3>::operator*=(const double val) {
-  this->mx *= val;
-  this->my *= val;
-  this->mz *= val;
+GeomVector<nDim>&
+GeomVector<nDim>::operator*=(const double val) {
+  mVecData *= val;
   return *this;
 }
 
 //------------------------------------------------------------------------------
 // Divide this vector by a scalar in place.
 //------------------------------------------------------------------------------
-template<>
+template<int nDim>
 inline
-GeomVector<1>&
-GeomVector<1>::operator/=(const double val) {
+GeomVector<nDim>&
+GeomVector<nDim>::operator/=(const double val) {
   REQUIRE(val != 0.0);
-  this->mx /= val;
-  return *this;
-}
-
-template<>
-inline
-GeomVector<2>&
-GeomVector<2>::operator/=(const double val) {
-  REQUIRE(val != 0.0);
-  const double valInv = 1.0/val;
-  this->mx *= valInv;
-  this->my *= valInv;
-  return *this;
-}
-
-template<>
-inline
-GeomVector<3>&
-GeomVector<3>::operator/=(const double val) {
-  REQUIRE(val != 0.0);
-  const double valInv = 1.0/val;
-  this->mx *= valInv;
-  this->my *= valInv;
-  this->mz *= valInv;
+  mVecData /= val;
   return *this;
 }
 
@@ -581,8 +380,8 @@ template<>
 inline
 int
 GeomVector<1>::compare(const GeomVector<1>& vec) const {
-  return (this->mx < vec.mx ? -1 :
-          this->mx > vec.mx ?  1 :
+  return (mVecData(0) < vec.mVecData(0) ? -1 :
+          mVecData(0) > vec.mVecData(0) ?  1 :
           0);
 }
 
@@ -590,10 +389,10 @@ template<>
 inline
 int
 GeomVector<2>::compare(const GeomVector<2>& vec) const {
-  return (this->my < vec.my ? -1 :
-          this->my > vec.my ?  1 :
-          this->mx < vec.mx ? -1 :
-          this->mx > vec.mx ?  1 :
+  return (mVecData(1) < vec.mVecData(1) ? -1 :
+          mVecData(1) > vec.mVecData(1) ?  1 :
+          mVecData(0) < vec.mVecData(0) ? -1 :
+          mVecData(0) > vec.mVecData(0) ?  1 :
           0);
 }
 
@@ -601,12 +400,12 @@ template<>
 inline
 int
 GeomVector<3>::compare(const GeomVector<3>& vec) const {
-  return (this->mz < vec.mz ? -1 :
-          this->mz > vec.mz ?  1 :
-          this->my < vec.my ? -1 :
-          this->my > vec.my ?  1 :
-          this->mx < vec.mx ? -1 :
-          this->mx > vec.mx ?  1 :
+  return (mVecData(2) < vec.mVecData(2) ? -1 :
+          mVecData(2) > vec.mVecData(2) ?  1 :
+          mVecData(1) < vec.mVecData(1) ? -1 :
+          mVecData(1) > vec.mVecData(1) ?  1 :
+          mVecData(0) < vec.mVecData(0) ? -1 :
+          mVecData(0) > vec.mVecData(0) ?  1 :
           0);
 }
 
@@ -618,8 +417,8 @@ template<>
 inline
 int
 GeomVector<1>::compare(const double val) const {
-  return (this->mx < val ? -1 :
-          this->mx > val ?  1 :
+  return (mVecData(0) < val ? -1 :
+          mVecData(0) > val ?  1 :
           0);
 }
 
@@ -627,10 +426,10 @@ template<>
 inline
 int
 GeomVector<2>::compare(const double val) const {
-  return (this->my < val ? -1 :
-          this->my > val ?  1 :
-          this->mx < val ? -1 :
-          this->mx > val ?  1 :
+  return (mVecData(1) < val ? -1 :
+          mVecData(1) > val ?  1 :
+          mVecData(0) < val ? -1 :
+          mVecData(0) > val ?  1 :
           0);
 }
 
@@ -638,37 +437,23 @@ template<>
 inline
 int
 GeomVector<3>::compare(const double val) const {
-  return (this->mz < val ? -1 :
-          this->mz > val ?  1 :
-          this->my < val ? -1 :
-          this->my > val ?  1 :
-          this->mx < val ? -1 :
-          this->mx > val ?  1 :
+  return (mVecData(2) < val ? -1 :
+          mVecData(2) > val ?  1 :
+          mVecData(1) < val ? -1 :
+          mVecData(1) > val ?  1 :
+          mVecData(0) < val ? -1 :
+          mVecData(0) > val ?  1 :
           0);
 }
 
 //------------------------------------------------------------------------------
 // The equivalence comparator.
 //------------------------------------------------------------------------------
-template<>
+template<int nDim>
 inline
 bool
-GeomVector<1>::operator==(const GeomVector<1>& vec) const {
-  return this->mx == vec.mx;
-}
-
-template<>
-inline
-bool
-GeomVector<2>::operator==(const GeomVector<2>& vec) const {
-  return (this->mx == vec.mx) and (this->my == vec.my);
-}
-
-template<>
-inline
-bool
-GeomVector<3>::operator==(const GeomVector<3>& vec) const {
-  return (this->mx == vec.mx) and (this->my == vec.my) and (this->mz == vec.mz);
+GeomVector<nDim>::operator==(const GeomVector<nDim>& rhs) const {
+  return this->mVecData == rhs.mVecData;
 }
 
 //------------------------------------------------------------------------------
@@ -677,8 +462,8 @@ GeomVector<3>::operator==(const GeomVector<3>& vec) const {
 template<int nDim>
 inline
 bool
-GeomVector<nDim>::operator!=(const GeomVector<nDim>& vec) const {
-  return not (*this == vec);
+GeomVector<nDim>::operator!=(const GeomVector<nDim>& rhs) const {
+  return this->mVecData != rhs.mVecData;
 }
 
 //------------------------------------------------------------------------------
@@ -724,25 +509,11 @@ GeomVector<nDim>::operator>=(const GeomVector<nDim>& rhs) const {
 //------------------------------------------------------------------------------
 // The equivalence comparator (double).
 //------------------------------------------------------------------------------
-template<>
+template<int nDim>
 inline
 bool
-GeomVector<1>::operator==(const double val) const {
-  return this->mx == val;
-}
-
-template<>
-inline
-bool
-GeomVector<2>::operator==(const double val) const {
-  return (this->mx == val) and (this->my == val);
-}
-
-template<>
-inline
-bool
-GeomVector<3>::operator==(const double val) const {
-  return (this->mx == val) and (this->my == val) and (this->mz == val);
+GeomVector<nDim>::operator==(const double val) const {
+  return (mVecData.array() == val).all();
 }
 
 //------------------------------------------------------------------------------
@@ -798,25 +569,11 @@ GeomVector<nDim>::operator>=(const double val) const {
 //------------------------------------------------------------------------------
 // Dot two vectors.
 //------------------------------------------------------------------------------
-template<>
+template<int nDim>
 inline
 double
-GeomVector<1>::dot(const GeomVector<1>& vec) const {
-  return this->mx*vec.mx;
-}
-
-template<>
-inline
-double
-GeomVector<2>::dot(const GeomVector<2>& vec) const {
-  return this->mx*vec.mx + this->my*vec.my;
-}
-
-template<>
-inline
-double
-GeomVector<3>::dot(const GeomVector<3>& vec) const {
-  return this->mx*vec.mx + this->my*vec.my + this->mz*vec.mz;
+GeomVector<nDim>::dot(const GeomVector<nDim>& vec) const {
+  return this->mVecData.dot(vec.mVecData);
 }
 
 //------------------------------------------------------------------------------
@@ -826,9 +583,7 @@ template<>
 inline
 GeomVector<3>
 GeomVector<3>::cross(const GeomVector<3>& vec) const {
-  return GeomVector<3>(my*vec.mz - this->mz*vec.my,
-		       this->mz*vec.mx - this->mx*vec.mz,
-		       this->mx*vec.my - this->my*vec.mx);
+  return GeomVector<3>((this->mVecData.cross(vec.mVecData)).eval());
 }
 
 template<>
@@ -836,7 +591,7 @@ inline
 GeomVector<3>
 GeomVector<2>::cross(const GeomVector<2>& vec) const {
   return GeomVector<3>(0.0, 0.0,
-		       this->mx*vec.my - this->my*vec.mx);
+                       this->mVecData(0)*vec.mVecData(1) - this->mVecData(1)*vec.mVecData(0));
 }
 
 template<>
@@ -849,64 +604,21 @@ GeomVector<1>::cross(const GeomVector<1>& vec) const {
 //------------------------------------------------------------------------------
 // Perform the dyad operation with another vector.
 //------------------------------------------------------------------------------
-template<>
+template<int nDim>
 inline
-GeomTensor<1>
-GeomVector<1>::dyad(const GeomVector<1>& rhs) const {
-  return GeomTensor<1>(this->mx*rhs(0));
-}
-
-template<>
-inline
-GeomTensor<2>
-GeomVector<2>::dyad(const GeomVector<2>& rhs) const {
-  return GeomTensor<2>(this->mx*rhs(0), this->mx*rhs(1),
-                       this->my*rhs(0), this->my*rhs(1));
-}
-
-template<>
-inline
-GeomTensor<3>
-GeomVector<3>::dyad(const GeomVector<3>& rhs) const {
-  return GeomTensor<3>(this->mx*rhs(0), this->mx*rhs(1), this->mx*rhs(2),
-                       this->my*rhs(0), this->my*rhs(1), this->my*rhs(2),
-                       this->mz*rhs(0), this->mz*rhs(1), this->mz*rhs(2));
+GeomTensor<nDim>
+GeomVector<nDim>::dyad(const GeomVector<nDim>& rhs) const {
+  return GeomTensor<nDim>((mVecData * rhs.mVecData.transpose()).eval());
 }
 
 //------------------------------------------------------------------------------
 // Perform the dyad operation with ourself, resulting in a symmetric tensor.
 //------------------------------------------------------------------------------
-template<>
+template<int nDim>
 inline
-GeomSymmetricTensor<1>
-GeomVector<1>::selfdyad() const {
-  return GeomSymmetricTensor<1>((this->mx)*(this->mx));
-}
-
-template<>
-inline
-GeomSymmetricTensor<2>
-GeomVector<2>::selfdyad() const {
-  const double a = (this->mx)*(this->mx);
-  const double b = (this->mx)*(this->my);
-  const double c = (this->my)*(this->my);
-  return GeomSymmetricTensor<2>(a, b,
-                                b, c);
-}
-
-template<>
-inline
-GeomSymmetricTensor<3>
-GeomVector<3>::selfdyad() const {
-  const double a = (this->mx)*(this->mx);
-  const double b = (this->mx)*(this->my);
-  const double c = (this->mx)*(this->mz);
-  const double d = (this->my)*(this->my);
-  const double e = (this->my)*(this->mz);
-  const double f = (this->mz)*(this->mz);
-  return GeomSymmetricTensor<3>(a, b, c,
-                                b, d, e,
-                                c, e, f);
+GeomSymmetricTensor<nDim>
+GeomVector<nDim>::selfdyad() const {
+  return GeomSymmetricTensor<nDim>((mVecData*(mVecData.transpose())).eval());
 }
 
 //------------------------------------------------------------------------------
@@ -923,97 +635,41 @@ GeomVector<nDim>::unitVector() const {
 //------------------------------------------------------------------------------
 // Return the magnitude of the Vector.
 //------------------------------------------------------------------------------
-template<>
+template<int nDim>
 inline
 double
-GeomVector<1>::magnitude() const {
-  return std::abs(this->mx);
-}
-
-template<>
-inline
-double
-GeomVector<2>::magnitude() const {
-  return sqrt((this->mx)*(this->mx) + (this->my)*(this->my));
-}
-
-template<>
-inline
-double
-GeomVector<3>::magnitude() const {
-  return sqrt((this->mx)*(this->mx) + (this->my)*(this->my) + (this->mz)*(this->mz));
+GeomVector<nDim>::magnitude() const {
+  return this->mVecData.norm();
 }
 
 //------------------------------------------------------------------------------
 // Return the square of the magnitude.
 //------------------------------------------------------------------------------
-template<>
+template<int nDim>
 inline
 double
-GeomVector<1>::magnitude2() const {
-  return (this->mx)*(this->mx);
-}
-
-template<>
-inline
-double
-GeomVector<2>::magnitude2() const {
-  return (this->mx)*(this->mx) + (this->my)*(this->my);
-}
-
-template<>
-inline
-double
-GeomVector<3>::magnitude2() const {
-  return (this->mx)*(this->mx) + (this->my)*(this->my) + (this->mz)*(this->mz);
+GeomVector<nDim>::magnitude2() const {
+  return this->mVecData.squaredNorm();
 }
 
 //------------------------------------------------------------------------------
 // Return the minimum element.
 //------------------------------------------------------------------------------
-template<>
+template<int nDim>
 inline
 double
-GeomVector<1>::minElement() const {
-  return this->mx;
-}
-
-template<>
-inline
-double
-GeomVector<2>::minElement() const {
-  return std::min(this->mx, this->my);
-}
-
-template<>
-inline
-double
-GeomVector<3>::minElement() const {
-  return std::min(this->mx, std::min(this->my, this->mz));
+GeomVector<nDim>::minElement() const {
+  return this->mVecData.minCoeff();
 }
 
 //------------------------------------------------------------------------------
 // Return the maximum element.
 //------------------------------------------------------------------------------
-template<>
+template<int nDim>
 inline
 double
-GeomVector<1>::maxElement() const {
-  return this->mx;
-}
-
-template<>
-inline
-double
-GeomVector<2>::maxElement() const {
-  return std::max(this->mx, this->my);
-}
-
-template<>
-inline
-double
-GeomVector<3>::maxElement() const {
-  return std::max(this->mx, std::max(this->my, this->mz));
+GeomVector<nDim>::maxElement() const {
+  return this->mVecData.maxCoeff();
 }
 
 //------------------------------------------------------------------------------
@@ -1023,72 +679,34 @@ template<>
 inline
 double
 GeomVector<1>::maxAbsElement() const {
-  return std::abs(this->mx);
+  return std::abs(this->mVecData(0));
 }
 
 template<>
 inline
 double
 GeomVector<2>::maxAbsElement() const {
-  return std::max(std::abs(this->mx), 
-                  std::abs(this->my));
+  return std::max(std::abs(this->mVecData(0)), 
+                  std::abs(this->mVecData(1)));
 }
 
 template<>
 inline
 double
 GeomVector<3>::maxAbsElement() const {
-  return std::max(std::abs(this->mx),
-                  std::max(std::abs(this->my),
-                           std::abs(this->mz)));
+  return std::max(std::abs(this->mVecData(0)),
+                  std::max(std::abs(this->mVecData(1)),
+                           std::abs(this->mVecData(2))));
 }
 
 //------------------------------------------------------------------------------
 // Return the sum of the elements.
 //------------------------------------------------------------------------------
-template<>
+template<int nDim>
 inline
 double
-GeomVector<1>::sumElements() const {
-  return this->mx;
-}
-
-template<>
-inline
-double
-GeomVector<2>::sumElements() const {
-  return this->mx + this->my;
-}
-
-template<>
-inline
-double
-GeomVector<3>::sumElements() const {
-  return this->mx + this->my + this->mz;
-}
-
-//------------------------------------------------------------------------------
-// Generate an Eigen Vector.
-//------------------------------------------------------------------------------
-template<>
-inline
-GeomVector<1>::EigenType
-GeomVector<1>::eigen() const {
-  return EigenType(this->mx);
-}
-
-template<>
-inline
-GeomVector<2>::EigenType
-GeomVector<2>::eigen() const {
-  return EigenType(this->mx, this->my);
-}
-
-template<>
-inline
-GeomVector<3>::EigenType
-GeomVector<3>::eigen() const {
-  return EigenType(this->mx, this->my, this->mz);
+GeomVector<nDim>::sumElements() const {
+  return this->mVecData.sum();
 }
 
 //******************************************************************************
@@ -1157,6 +775,23 @@ elementWiseMax(const GeomVector<3>& lhs, const GeomVector<3>& rhs) {
   return GeomVector<3>(std::max(lhs.x(), rhs.x()),
                        std::max(lhs.y(), rhs.y()),
                        std::max(lhs.z(), rhs.z()));
+}
+
+//------------------------------------------------------------------------------
+// Access the native Eigen type.
+//------------------------------------------------------------------------------
+template<int nDim>
+inline
+typename GeomVector<nDim>::VectorStorage&
+GeomVector<nDim>::native() {
+  return mVecData;
+}
+
+template<int nDim>
+inline
+const typename GeomVector<nDim>::VectorStorage&
+GeomVector<nDim>::native() const {
+  return mVecData;
 }
 
 //------------------------------------------------------------------------------

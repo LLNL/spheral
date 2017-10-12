@@ -10,29 +10,32 @@
 //   2004-08-23:  JMO, ublas is still too slow, so going to primitive C 
 //                internal data types in accordance with suggestions from
 //                Brian White
+//   2017-10-06:  JMO, trying out Eigen as the underlying data type/storage.
 //----------------------------------------------------------------------------//
-#ifndef __Spheral_GeomVector_default_hh__
-#define __Spheral_GeomVector_default_hh__
+#ifndef __Spheral_GeomVector_eigen_hh__
+#define __Spheral_GeomVector_eigen_hh__
 
 #include "Geometry/GeomVector_fwd.hh"
 #include "Geometry/GeomTensor_fwd.hh"
 #include "Geometry/GeomSymmetricTensor_fwd.hh"
-#include "GeomVectorBase_default.hh"
 
 #include <iostream>
 #include "Eigen/Dense"
+#include "Eigen/Geometry"
 
 namespace Spheral {
 
 template<int nDim>
-class GeomVector: public GeomVectorBase<nDim> {
+class GeomVector {
 
 public:
   //--------------------------- Public Interface ---------------------------//
+  EIGEN_MAKE_ALIGNED_OPERATOR_NEW
+  typedef Eigen::Matrix<double, nDim, 1>                     VectorStorage;
+  typedef Eigen::Matrix<double, nDim, nDim, Eigen::RowMajor> TensorStorage;
   typedef const double* const_iterator;
   typedef double* iterator;
   typedef unsigned size_type;
-  typedef Eigen::Matrix<double, nDim, 1> EigenType;
 
   // Useful static member data.
   static const size_type nDimensions;
@@ -45,15 +48,15 @@ public:
              const double y = 0.0,
              const double z = 0.0);
   GeomVector(const GeomVector& vec);
-  GeomVector(const EigenType& vec);
+  GeomVector(const VectorStorage& vec);
 
   // Destructor.
   ~GeomVector();
 
   // Assignment.
   GeomVector& operator=(const GeomVector<nDim>& vec);
+  GeomVector& operator=(const VectorStorage& vec);
   GeomVector& operator=(const double val);
-  GeomVector& operator=(const EigenType& vec);
 
   // Allow the elements by indicies.
   double operator()(size_type index) const;
@@ -126,26 +129,19 @@ public:
   double maxAbsElement() const;
   double sumElements() const;
   
-  //  Convert to an Eigen Vector
-  EigenType eigen() const;
+  //  Access the internal Eigen type.
+  VectorStorage& native();
+  const VectorStorage& native() const;
+
+  //--------------------------- Private Interface ---------------------------//
+private:
+  VectorStorage mVecData;
 };
 
 // Declare explicit specializations.
 template<> GeomVector<1>::GeomVector(const double, const double, const double);
 template<> GeomVector<2>::GeomVector(const double, const double, const double);
 template<> GeomVector<3>::GeomVector(const double, const double, const double);
-
-template<> GeomVector<1>& GeomVector<1>::operator=(const GeomVector<1>& vec);
-template<> GeomVector<2>& GeomVector<2>::operator=(const GeomVector<2>& vec);
-template<> GeomVector<3>& GeomVector<3>::operator=(const GeomVector<3>& vec);
-
-template<> GeomVector<1>& GeomVector<1>::operator=(const double val);
-template<> GeomVector<2>& GeomVector<2>::operator=(const double val);
-template<> GeomVector<3>& GeomVector<3>::operator=(const double val);
-
-template<> GeomVector<1>& GeomVector<1>::operator=(const GeomVector<1>::EigenType& vec);
-template<> GeomVector<2>& GeomVector<2>::operator=(const GeomVector<2>::EigenType& vec);
-template<> GeomVector<3>& GeomVector<3>::operator=(const GeomVector<3>::EigenType& vec);
 
 template<> double GeomVector<1>::y() const;
 template<> double GeomVector<1>::z() const;
@@ -154,22 +150,6 @@ template<> double GeomVector<2>::z() const;
 template<> void GeomVector<1>::y(const double val);
 template<> void GeomVector<1>::z(const double val);
 template<> void GeomVector<2>::z(const double val);
-
-template<> void GeomVector<1>::Zero();
-template<> void GeomVector<2>::Zero();
-template<> void GeomVector<3>::Zero();
-
-template<> GeomVector<1> GeomVector<1>::operator-() const;
-template<> GeomVector<2> GeomVector<2>::operator-() const;
-template<> GeomVector<3> GeomVector<3>::operator-() const;
-
-template<> GeomVector<1>& GeomVector<1>::operator+=(const GeomVector<1>& vec);
-template<> GeomVector<2>& GeomVector<2>::operator+=(const GeomVector<2>& vec);
-template<> GeomVector<3>& GeomVector<3>::operator+=(const GeomVector<3>& vec);
-
-template<> GeomVector<1>& GeomVector<1>::operator-=(const GeomVector<1>& vec);
-template<> GeomVector<2>& GeomVector<2>::operator-=(const GeomVector<2>& vec);
-template<> GeomVector<3>& GeomVector<3>::operator-=(const GeomVector<3>& vec);
 
 #ifdef _OPENMP
 
@@ -182,14 +162,6 @@ template<> GeomVector<3>& GeomVector<3>::operator-=(const GeomVector<3>& vec);
 
 #endif
 
-template<> GeomVector<1>& GeomVector<1>::operator*=(const double val);
-template<> GeomVector<2>& GeomVector<2>::operator*=(const double val);
-template<> GeomVector<3>& GeomVector<3>::operator*=(const double val);
-
-template<> GeomVector<1>& GeomVector<1>::operator/=(const double val);
-template<> GeomVector<2>& GeomVector<2>::operator/=(const double val);
-template<> GeomVector<3>& GeomVector<3>::operator/=(const double val);
-
 template<> int GeomVector<1>::compare(const GeomVector<1>& vec) const;
 template<> int GeomVector<2>::compare(const GeomVector<2>& vec) const;
 template<> int GeomVector<3>::compare(const GeomVector<3>& vec) const;
@@ -198,57 +170,13 @@ template<> int GeomVector<1>::compare(const double val) const;
 template<> int GeomVector<2>::compare(const double val) const;
 template<> int GeomVector<3>::compare(const double val) const;
 
-template<> bool GeomVector<1>::operator==(const GeomVector<1>& vec) const;
-template<> bool GeomVector<2>::operator==(const GeomVector<2>& vec) const;
-template<> bool GeomVector<3>::operator==(const GeomVector<3>& vec) const;
-
-template<> bool GeomVector<1>::operator==(const double val) const;
-template<> bool GeomVector<2>::operator==(const double val) const;
-template<> bool GeomVector<3>::operator==(const double val) const;
-
-template<> double GeomVector<1>::dot(const GeomVector<1>& vec) const;
-template<> double GeomVector<2>::dot(const GeomVector<2>& vec) const;
-template<> double GeomVector<3>::dot(const GeomVector<3>& vec) const;
-
 template<> GeomVector<3> GeomVector<1>::cross(const GeomVector<1>& vec) const;
 template<> GeomVector<3> GeomVector<2>::cross(const GeomVector<2>& vec) const;
 template<> GeomVector<3> GeomVector<3>::cross(const GeomVector<3>& vec) const;
 
-template<> GeomTensor<1> GeomVector<1>::dyad(const GeomVector<1>& rhs) const;
-template<> GeomTensor<2> GeomVector<2>::dyad(const GeomVector<2>& rhs) const;
-template<> GeomTensor<3> GeomVector<3>::dyad(const GeomVector<3>& rhs) const;
-
-template<> GeomSymmetricTensor<1> GeomVector<1>::selfdyad() const;
-template<> GeomSymmetricTensor<2> GeomVector<2>::selfdyad() const;
-template<> GeomSymmetricTensor<3> GeomVector<3>::selfdyad() const;
-
-template<> double GeomVector<1>::magnitude() const;
-template<> double GeomVector<2>::magnitude() const;
-template<> double GeomVector<3>::magnitude() const;
-
-template<> double GeomVector<1>::magnitude2() const;
-template<> double GeomVector<2>::magnitude2() const;
-template<> double GeomVector<3>::magnitude2() const;
-
-template<> double GeomVector<1>::minElement() const;
-template<> double GeomVector<2>::minElement() const;
-template<> double GeomVector<3>::minElement() const;
-
-template<> double GeomVector<1>::maxElement() const;
-template<> double GeomVector<2>::maxElement() const;
-template<> double GeomVector<3>::maxElement() const;
-
 template<> double GeomVector<1>::maxAbsElement() const;
 template<> double GeomVector<2>::maxAbsElement() const;
 template<> double GeomVector<3>::maxAbsElement() const;
-
-template<> double GeomVector<1>::sumElements() const;
-template<> double GeomVector<2>::sumElements() const;
-template<> double GeomVector<3>::sumElements() const;
-
-template<> GeomVector<1>::EigenType GeomVector<1>::eigen() const;
-template<> GeomVector<2>::EigenType GeomVector<2>::eigen() const;
-template<> GeomVector<3>::EigenType GeomVector<3>::eigen() const;
 
 // Forward declare the global functions.
 template<int nDim> GeomVector<nDim> elementWiseMin(const GeomVector<nDim>& lhs,
@@ -275,9 +203,7 @@ template<int nDim> std::ostream& operator<<(std::ostream& os, const GeomVector<n
 
 }
 
-#ifndef __GCCXML__
-#include "GeomVectorInline_default.hh"
-#endif
+#include "GeomVectorInline_eigen.hh"
 
 #endif
 
