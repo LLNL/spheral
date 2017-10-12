@@ -7,6 +7,7 @@
 #include "CRKSPH/CRKSPHHydroBaseRZ.hh"
 #include "CRKSPH/SolidCRKSPHHydroBase.hh"
 #include "CRKSPH/SolidCRKSPHHydroBaseRZ.hh"
+#include "CRKSPH/CRKSPHVariant.hh"
 #include "CRKSPH/computeVoronoiVolume.hh"
 #include "CRKSPH/computeOccupancyVolume.hh"
 #include "CRKSPH/computeCRKSPHSumVolume.hh"
@@ -37,6 +38,10 @@ typedef CRKSPHHydroBase<Dim<3> > CRKSPHHydroBase3d;
 typedef SolidCRKSPHHydroBase<Dim<1> > SolidCRKSPHHydroBase1d;
 typedef SolidCRKSPHHydroBase<Dim<2> > SolidCRKSPHHydroBase2d;
 typedef SolidCRKSPHHydroBase<Dim<3> > SolidCRKSPHHydroBase3d;
+
+typedef CRKSPHVariant<Dim<1> > CRKSPHVariant1d;
+typedef CRKSPHVariant<Dim<2> > CRKSPHVariant2d;
+typedef CRKSPHVariant<Dim<3> > CRKSPHVariant3d;
 
 //------------------------------------------------------------------------------
 // Annoyingly we have to explicity disambiguate these.
