@@ -654,8 +654,16 @@ evaluateDerivatives(const typename Dimension::Scalar time,
           const auto nj = connectivity.size();
 
 #ifdef _OPENMP
-          //double time1 = omp_get_wtime();
+	  //#pragma omp target data map(to:mass[:numNodeLists])
+	  //#pragma omp target parallel for
+          for( int jct=0; jct < nj; ++jct )
+          {
+             const int j = *(jItr0+jct);
 
+              const Scalar& mj = mass(nodeListj, j);
+		printf( "%d %lf\n", j, mj );
+	  }
+ 
           #pragma omp parallel for   \
           reduction(max: maxvp) \
           reduction(+: ncalc, weightedNeighborSumi, rhoSumi, normi,  \

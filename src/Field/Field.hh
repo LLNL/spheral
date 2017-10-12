@@ -15,6 +15,7 @@
 
 #include <string>
 #include <vector>
+#include "uvm_allocator.hh"
 
 namespace Spheral {
   template<typename Dimension> class NodeIteratorBase;
@@ -31,12 +32,16 @@ namespace Spheral {
 namespace Spheral {
 namespace FieldSpace {
 
+template<typename DataType>
+using DataAllocator = typename uvm_allocator::UVMAllocator<DataType>;
+
 template<typename Dimension, typename DataType>
 class Field: 
     public FieldBase<Dimension> {
-
+   
 public:
   //--------------------------- Public Interface ---------------------------//
+  //using DataAllocator = typename uvm_allocator::UVMAllocator<DataType>;
   typedef typename Dimension::Scalar Scalar;
   typedef typename Dimension::Vector Vector;
   typedef typename Dimension::Tensor Tensor;
@@ -46,8 +51,8 @@ public:
   typedef DataType FieldDataType;
   typedef DataType value_type;      // STL compatibility.
 
-  typedef typename std::vector<DataType>::iterator iterator;
-  typedef typename std::vector<DataType>::const_iterator const_iterator;
+  typedef typename std::vector<DataType,DataAllocator<DataType>>::iterator iterator;
+  typedef typename std::vector<DataType,DataAllocator<DataType>>::const_iterator const_iterator;
 
   // Constructors.
   explicit Field(FieldName name);
@@ -59,7 +64,7 @@ public:
         DataType value);
   Field(FieldName name,
         const NodeSpace::NodeList<Dimension>& nodeList, 
-        const std::vector<DataType>& array);
+        const std::vector<DataType,DataAllocator<DataType>>& array);
   Field(const NodeSpace::NodeList<Dimension>& nodeList, const Field& field);
   Field(const Field& field);
   virtual std::shared_ptr<FieldBase<Dimension> > clone() const;
@@ -70,7 +75,7 @@ public:
   // Assignment operator.
   virtual FieldBase<Dimension>& operator=(const FieldBase<Dimension>& rhs);
   Field& operator=(const Field& rhs);
-  Field& operator=(const std::vector<DataType>& rhs);
+  Field& operator=(const std::vector<DataType,DataAllocator<DataType>>& rhs);
   Field& operator=(const DataType& rhs);
 
   // Required method to test equivalence with a FieldBase.
@@ -224,9 +229,8 @@ public:
 private:
   //--------------------------- Private Interface ---------------------------//
   // Private Data
-#ifndef __GCCXML__
-  std::vector<DataType> mDataArray;
-#endif
+//  std::vector<DataType,std::allocator<DataType> > mDataArray;
+  std::vector<DataType,DataAllocator<DataType>> mDataArray;
   bool mValid;
 
   // No default constructor.

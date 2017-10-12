@@ -54,6 +54,7 @@ AC_SUBST(LDPASSTHROUGH)
 
 AC_SUBST(CXXFLAGS)
 AC_SUBST(EXTRAFLAGS)
+AC_SUBST(EXTRAINCLUDES)
 AC_SUBST(FORTFLAGS)
 AC_SUBST(CFLAGS)
 AC_SUBST(MPICCFLAGS)
@@ -71,6 +72,7 @@ LDINSTALLNAME="-o"
 LDRPATH=
 FORTLINK=
 NUMPYFLAGS=
+EXTRAINCLUDES=
 
 # =======================================================================
 # Selection of approved compiler sets for Spheral++.
@@ -696,7 +698,7 @@ AC_ARG_WITH(openmp,
       CXXFLAGS+=" -qsmp=omp"
    else
       CXXFLAGS+=" -fopenmp"
-      EXTRAFLAGS+="  -fopenmp-targets=nvptx64-nvidia-gpu -fopenmp-implicit-declare-target"
+      EXTRAFLAGS+="-I/usr/tcetmp/packages/cuda-9.0.176/include -DUSE_UVM   -fopenmp-targets=nvptx64-nvidia-cuda -fopenmp-implicit-declare-target"
    fi
 ],
 [
