@@ -15,13 +15,14 @@
 #ifndef __Spheral_GeomSymmetricTensor_hh_
 #define __Spheral_GeomSymmetricTensor_hh_
 
-#include <iostream>
-
 #include "Geometry/GeomVector_fwd.hh"
 #include "Geometry/GeomTensor_fwd.hh"
 #include "Geometry/GeomSymmetricTensor_fwd.hh"
 #include "Geometry/EigenStruct_fwd.hh"
 #include "Geometry/GeomSymmetricTensorBase.hh"
+
+#include <iostream>
+#include "Eigen/Dense"
 
 namespace Spheral {
 
@@ -33,6 +34,7 @@ public:
   typedef const double* const_iterator;
   typedef double* iterator;
   typedef unsigned size_type;
+  typedef Eigen::Matrix<double, nDim, nDim> EigenType;
   typedef EigenStruct<nDim> EigenStructType;
 
   // Useful static memeber data.
@@ -53,6 +55,7 @@ public:
                       const double a31, const double a32, const double a33);
   GeomSymmetricTensor(const GeomSymmetricTensor& ten);
   explicit GeomSymmetricTensor(const GeomTensor<nDim>& ten);
+  GeomSymmetricTensor(const EigenType& ten);
 
   // Destructor.
   ~GeomSymmetricTensor();
@@ -60,7 +63,7 @@ public:
   // Assignment.
   GeomSymmetricTensor& operator=(const GeomTensor<nDim>& rhs);
   GeomSymmetricTensor& operator=(const GeomSymmetricTensor& rhs);
-  // GeomSymmetricTensor& operator=(const double rhs);
+  GeomSymmetricTensor& operator=(const EigenType& rhs);
 
   // Access the elements by indicies.
   double operator()(const size_type row, const size_type column) const;
@@ -201,6 +204,9 @@ public:
   // Return the max absolute element.
   double maxAbsElement() const;
 
+  //  Convert to an Eigen Vector
+  EigenType eigen() const;
+
 private:
   //--------------------------- Private Interface ---------------------------//
   size_type elementIndex(const size_type row, const size_type column) const;
@@ -243,6 +249,10 @@ template<> GeomSymmetricTensor<1>& GeomSymmetricTensor<1>::operator=(const GeomS
 template<> GeomSymmetricTensor<2>& GeomSymmetricTensor<2>::operator=(const GeomSymmetricTensor<2>&);
 template<> GeomSymmetricTensor<3>& GeomSymmetricTensor<3>::operator=(const GeomSymmetricTensor<3>&);
 
+template<> GeomSymmetricTensor<1>& GeomSymmetricTensor<1>::operator=(const GeomSymmetricTensor<1>::EigenType& rhs);
+template<> GeomSymmetricTensor<2>& GeomSymmetricTensor<2>::operator=(const GeomSymmetricTensor<2>::EigenType& rhs);
+template<> GeomSymmetricTensor<3>& GeomSymmetricTensor<3>::operator=(const GeomSymmetricTensor<3>::EigenType& rhs);
+
 template<> double GeomSymmetricTensor<1>::xy() const;
 template<> double GeomSymmetricTensor<1>::xz() const;
 template<> double GeomSymmetricTensor<1>::yx() const;
@@ -258,50 +268,20 @@ template<> double GeomSymmetricTensor<2>::zx() const;
 template<> double GeomSymmetricTensor<2>::zy() const;
 template<> double GeomSymmetricTensor<2>::zz() const;
 
-template<> double GeomSymmetricTensor<1>::xz() const;
-template<> double GeomSymmetricTensor<2>::xz() const;
-template<> double GeomSymmetricTensor<3>::xz() const;
-template<> double GeomSymmetricTensor<1>::yx() const;
-template<> double GeomSymmetricTensor<2>::yx() const;
-template<> double GeomSymmetricTensor<3>::yx() const;
-template<> double GeomSymmetricTensor<1>::yy() const;
-template<> double GeomSymmetricTensor<2>::yy() const;
-template<> double GeomSymmetricTensor<3>::yy() const;
-template<> double GeomSymmetricTensor<1>::yz() const;
-template<> double GeomSymmetricTensor<2>::yz() const;
-template<> double GeomSymmetricTensor<3>::yz() const;
-template<> double GeomSymmetricTensor<1>::zx() const;
-template<> double GeomSymmetricTensor<2>::zx() const;
-template<> double GeomSymmetricTensor<3>::zx() const;
-template<> double GeomSymmetricTensor<1>::zy() const;
-template<> double GeomSymmetricTensor<2>::zy() const;
-template<> double GeomSymmetricTensor<3>::zy() const;
-template<> double GeomSymmetricTensor<1>::zz() const;
-template<> double GeomSymmetricTensor<2>::zz() const;
-template<> double GeomSymmetricTensor<3>::zz() const;
-
 template<> void GeomSymmetricTensor<1>::xy(const double);
 template<> void GeomSymmetricTensor<1>::xz(const double);
-template<> void GeomSymmetricTensor<2>::xz(const double);
-template<> void GeomSymmetricTensor<3>::xz(const double);
 template<> void GeomSymmetricTensor<1>::yx(const double);
-template<> void GeomSymmetricTensor<2>::yx(const double);
-template<> void GeomSymmetricTensor<3>::yx(const double);
 template<> void GeomSymmetricTensor<1>::yy(const double);
-template<> void GeomSymmetricTensor<2>::yy(const double);
-template<> void GeomSymmetricTensor<3>::yy(const double);
 template<> void GeomSymmetricTensor<1>::yz(const double);
-template<> void GeomSymmetricTensor<2>::yz(const double);
-template<> void GeomSymmetricTensor<3>::yz(const double);
 template<> void GeomSymmetricTensor<1>::zx(const double);
-template<> void GeomSymmetricTensor<2>::zx(const double);
-template<> void GeomSymmetricTensor<3>::zx(const double);
 template<> void GeomSymmetricTensor<1>::zy(const double);
-template<> void GeomSymmetricTensor<2>::zy(const double);
-template<> void GeomSymmetricTensor<3>::zy(const double);
 template<> void GeomSymmetricTensor<1>::zz(const double);
+
+template<> void GeomSymmetricTensor<2>::xz(const double);
+template<> void GeomSymmetricTensor<2>::yz(const double);
+template<> void GeomSymmetricTensor<2>::zx(const double);
+template<> void GeomSymmetricTensor<2>::zy(const double);
 template<> void GeomSymmetricTensor<2>::zz(const double);
-template<> void GeomSymmetricTensor<3>::zz(const double);
 
 template<> GeomVector<1> GeomSymmetricTensor<1>::getRow(const GeomSymmetricTensor<1>::size_type) const;
 template<> GeomVector<2> GeomSymmetricTensor<2>::getRow(const GeomSymmetricTensor<2>::size_type) const;
@@ -323,14 +303,6 @@ template<> GeomSymmetricTensor<1> GeomSymmetricTensor<1>::operator-() const;
 template<> GeomSymmetricTensor<2> GeomSymmetricTensor<2>::operator-() const;
 template<> GeomSymmetricTensor<3> GeomSymmetricTensor<3>::operator-() const;
 
-// template<> GeomSymmetricTensor<1> GeomSymmetricTensor<1>::operator+(const double) const;
-// template<> GeomSymmetricTensor<2> GeomSymmetricTensor<2>::operator+(const double) const;
-// template<> GeomSymmetricTensor<3> GeomSymmetricTensor<3>::operator+(const double) const;
-
-// template<> GeomSymmetricTensor<1> GeomSymmetricTensor<1>::operator-(const double) const;
-// template<> GeomSymmetricTensor<2> GeomSymmetricTensor<2>::operator-(const double) const;
-// template<> GeomSymmetricTensor<3> GeomSymmetricTensor<3>::operator-(const double) const;
-
 template<> GeomSymmetricTensor<1> GeomSymmetricTensor<1>::operator*(const double) const;
 template<> GeomSymmetricTensor<2> GeomSymmetricTensor<2>::operator*(const double) const;
 template<> GeomSymmetricTensor<3> GeomSymmetricTensor<3>::operator*(const double) const;
@@ -346,14 +318,6 @@ template<> GeomSymmetricTensor<3>& GeomSymmetricTensor<3>::operator+=(const Geom
 template<> GeomSymmetricTensor<1>& GeomSymmetricTensor<1>::operator-=(const GeomSymmetricTensor<1>&);
 template<> GeomSymmetricTensor<2>& GeomSymmetricTensor<2>::operator-=(const GeomSymmetricTensor<2>&);
 template<> GeomSymmetricTensor<3>& GeomSymmetricTensor<3>::operator-=(const GeomSymmetricTensor<3>&);
-
-// template<> GeomSymmetricTensor<1>& GeomSymmetricTensor<1>::operator+=(const double);
-// template<> GeomSymmetricTensor<2>& GeomSymmetricTensor<2>::operator+=(const double);
-// template<> GeomSymmetricTensor<3>& GeomSymmetricTensor<3>::operator+=(const double);
-
-// template<> GeomSymmetricTensor<1>& GeomSymmetricTensor<1>::operator-=(const double);
-// template<> GeomSymmetricTensor<2>& GeomSymmetricTensor<2>::operator-=(const double);
-// template<> GeomSymmetricTensor<3>& GeomSymmetricTensor<3>::operator-=(const double);
 
 template<> GeomSymmetricTensor<1>& GeomSymmetricTensor<1>::operator*=(const double);
 template<> GeomSymmetricTensor<2>& GeomSymmetricTensor<2>::operator*=(const double);
@@ -439,6 +403,10 @@ template<> const double GeomSymmetricTensor<1>::sqrt3;
 template<> const double GeomSymmetricTensor<2>::sqrt3;
 template<> const double GeomSymmetricTensor<3>::sqrt3;
 #endif
+
+template<> GeomSymmetricTensor<1>::EigenType GeomSymmetricTensor<1>::eigen() const;
+template<> GeomSymmetricTensor<2>::EigenType GeomSymmetricTensor<2>::eigen() const;
+template<> GeomSymmetricTensor<3>::EigenType GeomSymmetricTensor<3>::eigen() const;
 
 // Forward declare the global functions.
 template<int nDim> GeomSymmetricTensor<nDim> operator*(double lhs, const GeomSymmetricTensor<nDim>& rhs);

@@ -15,12 +15,13 @@
 #ifndef __Spheral_GeomTensor_default_hh__
 #define __Spheral_GeomTensor_default_hh__
 
-#include <iostream>
-
 #include "Geometry/GeomVector_fwd.hh"
 #include "Geometry/GeomTensor_fwd.hh"
 #include "Geometry/GeomSymmetricTensor_fwd.hh"
 #include "Geometry/GeomTensorBase.hh"
+
+#include <iostream>
+#include "Eigen/Dense"
 
 #ifdef _OPENMP
 #include "omp.h"
@@ -36,6 +37,7 @@ public:
   typedef const double* const_iterator;
   typedef double* iterator;
   typedef unsigned size_type;
+  typedef Eigen::Matrix<double, nDim, nDim> EigenType;
 
   // Useful static memeber data.
   static const size_type nDimensions;
@@ -47,12 +49,13 @@ public:
   GeomTensor();
   explicit GeomTensor(const double a11);
   GeomTensor(const double a11, const double a12,
-	     const double a21, const double a22);
+             const double a21, const double a22);
   GeomTensor(const double a11, const double a12, const double a13,
-	     const double a21, const double a22, const double a23,
-	     const double a31, const double a32, const double a33);
+             const double a21, const double a22, const double a23,
+             const double a31, const double a32, const double a33);
   GeomTensor(const GeomTensor& ten);
   explicit GeomTensor(const GeomSymmetricTensor<nDim>& ten);
+  GeomTensor(const EigenType& ten);
 
   // Destructor.
   ~GeomTensor();
@@ -60,7 +63,7 @@ public:
   // Assignment.
   GeomTensor& operator=(const GeomTensor& rhs);
   GeomTensor& operator=(const GeomSymmetricTensor<nDim>& rhs);
-  // GeomTensor& operator=(const double rhs);
+  GeomTensor& operator=(const EigenType& rhs);
 
   // Access the elements by indicies.
   double operator()(const size_type row, const size_type column) const;
@@ -187,6 +190,9 @@ public:
   // Return the max absolute element.
   double maxAbsElement() const;
 
+  //  Convert to an Eigen Vector
+  EigenType eigen() const;
+
 private:
   //--------------------------- Private Interface ---------------------------//
   size_type elementIndex(const size_type row, const size_type column) const;
@@ -221,52 +227,39 @@ template<> GeomTensor<1>& GeomTensor<1>::operator=(const GeomSymmetricTensor<1>&
 template<> GeomTensor<2>& GeomTensor<2>::operator=(const GeomSymmetricTensor<2>& rhs);
 template<> GeomTensor<3>& GeomTensor<3>::operator=(const GeomSymmetricTensor<3>& rhs);
 
-template<> double GeomTensor<1>::xy() const;
+template<> GeomTensor<1>& GeomTensor<1>::operator=(const GeomTensor<1>::EigenType& rhs);
+template<> GeomTensor<2>& GeomTensor<2>::operator=(const GeomTensor<2>::EigenType& rhs);
+template<> GeomTensor<3>& GeomTensor<3>::operator=(const GeomTensor<3>::EigenType& rhs);
 
+template<> double GeomTensor<1>::xy() const;
 template<> double GeomTensor<1>::xz() const;
-template<> double GeomTensor<2>::xz() const;
-template<> double GeomTensor<3>::xz() const;
 template<> double GeomTensor<1>::yx() const;
-template<> double GeomTensor<2>::yx() const;
-template<> double GeomTensor<3>::yx() const;
 template<> double GeomTensor<1>::yy() const;
-template<> double GeomTensor<2>::yy() const;
-template<> double GeomTensor<3>::yy() const;
 template<> double GeomTensor<1>::yz() const;
-template<> double GeomTensor<2>::yz() const;
-template<> double GeomTensor<3>::yz() const;
 template<> double GeomTensor<1>::zx() const;
-template<> double GeomTensor<2>::zx() const;
-template<> double GeomTensor<3>::zx() const;
 template<> double GeomTensor<1>::zy() const;
-template<> double GeomTensor<2>::zy() const;
-template<> double GeomTensor<3>::zy() const;
 template<> double GeomTensor<1>::zz() const;
+
+template<> double GeomTensor<2>::xz() const;
+template<> double GeomTensor<2>::yz() const;
+template<> double GeomTensor<2>::zx() const;
+template<> double GeomTensor<2>::zy() const;
 template<> double GeomTensor<2>::zz() const;
-template<> double GeomTensor<3>::zz() const;
 
 template<> void GeomTensor<1>::xy(const double);
 template<> void GeomTensor<1>::xz(const double);
-template<> void GeomTensor<2>::xz(const double);
-template<> void GeomTensor<3>::xz(const double);
 template<> void GeomTensor<1>::yx(const double);
-template<> void GeomTensor<2>::yx(const double);
-template<> void GeomTensor<3>::yx(const double);
 template<> void GeomTensor<1>::yy(const double);
-template<> void GeomTensor<2>::yy(const double);
-template<> void GeomTensor<3>::yy(const double);
 template<> void GeomTensor<1>::yz(const double);
-template<> void GeomTensor<2>::yz(const double);
-template<> void GeomTensor<3>::yz(const double);
 template<> void GeomTensor<1>::zx(const double);
-template<> void GeomTensor<2>::zx(const double);
-template<> void GeomTensor<3>::zx(const double);
 template<> void GeomTensor<1>::zy(const double);
-template<> void GeomTensor<2>::zy(const double);
-template<> void GeomTensor<3>::zy(const double);
 template<> void GeomTensor<1>::zz(const double);
+
+template<> void GeomTensor<2>::xz(const double);
+template<> void GeomTensor<2>::yz(const double);
+template<> void GeomTensor<2>::zx(const double);
+template<> void GeomTensor<2>::zy(const double);
 template<> void GeomTensor<2>::zz(const double);
-template<> void GeomTensor<3>::zz(const double);
 
 template<> GeomVector<1> GeomTensor<1>::getRow(const GeomTensor<1>::size_type) const;
 template<> GeomVector<2> GeomTensor<2>::getRow(const GeomTensor<2>::size_type) const;
@@ -418,9 +411,9 @@ template<> const GeomTensor<2> GeomTensor<2>::zero;
 template<> const GeomTensor<3> GeomTensor<3>::zero;
 #endif
 
-//template<> const GeomTensor<1> GeomTensor<1>::one;
-//template<> const GeomTensor<2> GeomTensor<2>::one;
-//template<> const GeomTensor<3> GeomTensor<3>::one;
+template<> GeomTensor<1>::EigenType GeomTensor<1>::eigen() const;
+template<> GeomTensor<2>::EigenType GeomTensor<2>::eigen() const;
+template<> GeomTensor<3>::EigenType GeomTensor<3>::eigen() const;
 
 // Forward declare the global functions.
 template<int nDim> GeomTensor<nDim> operator*(double lhs, const GeomTensor<nDim>& rhs);
@@ -432,7 +425,7 @@ template<int nDim> std::ostream& operator<<(std::ostream& os, const GeomTensor<n
 #pragma omp declare reduction(tensadd : GeomTensor<2> : omp_out += omp_in ) initializer( omp_priv = GeomTensor<2>(0.0,0.0,0.0,0.0)) 
 #pragma omp declare reduction(tensdif : GeomTensor<2> : omp_out -= omp_in ) initializer( omp_priv = GeomTensor<2>(0.0,0.0,0.0,0.0))
 #pragma omp declare reduction(tensadd : GeomTensor<3> : omp_out += omp_in ) initializer( omp_priv = GeomTensor<3>(0.0,0.0,0.0, \
-											       0.0,0.0,0.0,\
+                                                                                               0.0,0.0,0.0,\
                                                                                                0.0,0.0,0.0) )
 #pragma omp declare reduction(tensdif : GeomTensor<3> : omp_out -= omp_in ) initializer( omp_priv = GeomTensor<3>(0.0,0.0,0.0, \
                                                                                                0.0,0.0,0.0,\

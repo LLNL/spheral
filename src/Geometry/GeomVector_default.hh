@@ -20,6 +20,7 @@
 #include "GeomVectorBase_default.hh"
 
 #include <iostream>
+#include "Eigen/Dense"
 
 namespace Spheral {
 
@@ -31,6 +32,7 @@ public:
   typedef const double* const_iterator;
   typedef double* iterator;
   typedef unsigned size_type;
+  typedef Eigen::Matrix<double, nDim, 1> EigenType;
 
   // Useful static member data.
   static const size_type nDimensions;
@@ -43,6 +45,7 @@ public:
              const double y = 0.0,
              const double z = 0.0);
   GeomVector(const GeomVector& vec);
+  GeomVector(const EigenType& vec);
 
   // Destructor.
   ~GeomVector();
@@ -50,6 +53,7 @@ public:
   // Assignment.
   GeomVector& operator=(const GeomVector<nDim>& vec);
   GeomVector& operator=(const double val);
+  GeomVector& operator=(const EigenType& vec);
 
   // Allow the elements by indicies.
   double operator()(size_type index) const;
@@ -122,6 +126,8 @@ public:
   double maxAbsElement() const;
   double sumElements() const;
   
+  //  Convert to an Eigen Vector
+  EigenType eigen() const;
 };
 
 // Declare explicit specializations.
@@ -136,6 +142,10 @@ template<> GeomVector<3>& GeomVector<3>::operator=(const GeomVector<3>& vec);
 template<> GeomVector<1>& GeomVector<1>::operator=(const double val);
 template<> GeomVector<2>& GeomVector<2>::operator=(const double val);
 template<> GeomVector<3>& GeomVector<3>::operator=(const double val);
+
+template<> GeomVector<1>& GeomVector<1>::operator=(const GeomVector<1>::EigenType& vec);
+template<> GeomVector<2>& GeomVector<2>::operator=(const GeomVector<2>::EigenType& vec);
+template<> GeomVector<3>& GeomVector<3>::operator=(const GeomVector<3>::EigenType& vec);
 
 template<> double GeomVector<1>::y() const;
 template<> double GeomVector<1>::z() const;
@@ -235,6 +245,10 @@ template<> double GeomVector<3>::maxAbsElement() const;
 template<> double GeomVector<1>::sumElements() const;
 template<> double GeomVector<2>::sumElements() const;
 template<> double GeomVector<3>::sumElements() const;
+
+template<> GeomVector<1>::EigenType GeomVector<1>::eigen() const;
+template<> GeomVector<2>::EigenType GeomVector<2>::eigen() const;
+template<> GeomVector<3>::EigenType GeomVector<3>::eigen() const;
 
 // Forward declare the global functions.
 template<int nDim> GeomVector<nDim> elementWiseMin(const GeomVector<nDim>& lhs,
