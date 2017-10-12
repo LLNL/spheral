@@ -38,12 +38,33 @@ GeomVector<3>::GeomVector(const double x,
 }
 
 //------------------------------------------------------------------------------
-// Copy constructors.
+// Copy constructor.
 //------------------------------------------------------------------------------
 template<int nDim>
 inline
 GeomVector<nDim>::GeomVector(const GeomVector<nDim>& vec):
   GeomVectorBase<nDim>(vec) {
+}
+
+//------------------------------------------------------------------------------
+// Construct from an Eigen Vector.
+//------------------------------------------------------------------------------
+template<>
+inline
+GeomVector<1>::GeomVector(const EigenType& vec):
+  GeomVectorBase<1>(vec(0)) {
+}
+
+template<>
+inline
+GeomVector<2>::GeomVector(const EigenType& vec):
+  GeomVectorBase<2>(vec(0), vec(1)) {
+}
+
+template<>
+inline
+GeomVector<3>::GeomVector(const EigenType& vec):
+  GeomVectorBase<3>(vec(0), vec(1), vec(2)) {
 }
 
 //------------------------------------------------------------------------------
@@ -73,6 +94,36 @@ GeomVector<3>::operator=(const GeomVector<3>& vec) {
   this->mx = vec.mx;
   this->my = vec.my;
   this->mz = vec.mz;
+  return *this;
+}
+
+//------------------------------------------------------------------------------
+// The assignment operator (Eigen Vector).
+//------------------------------------------------------------------------------
+template<>
+inline
+GeomVector<1>&
+GeomVector<1>::operator=(const EigenType& vec) {
+  this->mx = vec(0);
+  return *this;
+}
+
+template<>
+inline
+GeomVector<2>&
+GeomVector<2>::operator=(const EigenType& vec) {
+  this->mx = vec(0);
+  this->my = vec(1);
+  return *this;
+}
+
+template<>
+inline
+GeomVector<3>&
+GeomVector<3>::operator=(const EigenType& vec) {
+  this->mx = vec(0);
+  this->my = vec(1);
+  this->mz = vec(2);
   return *this;
 }
 
@@ -1014,6 +1065,30 @@ inline
 double
 GeomVector<3>::sumElements() const {
   return this->mx + this->my + this->mz;
+}
+
+//------------------------------------------------------------------------------
+// Generate an Eigen Vector.
+//------------------------------------------------------------------------------
+template<>
+inline
+GeomVector<1>::EigenType
+GeomVector<1>::eigen() const {
+  return EigenType(this->mx);
+}
+
+template<>
+inline
+GeomVector<2>::EigenType
+GeomVector<2>::eigen() const {
+  return EigenType(this->mx, this->my);
+}
+
+template<>
+inline
+GeomVector<3>::EigenType
+GeomVector<3>::eigen() const {
+  return EigenType(this->mx, this->my, this->mz);
 }
 
 //******************************************************************************
