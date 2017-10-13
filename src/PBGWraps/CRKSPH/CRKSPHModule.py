@@ -827,5 +827,12 @@ self.generateCRKSPHVariantBindings(self.CRKSPHVariant%(dim)id, %(dim)i)
         # Override the pure virtal overrides.
         generatePhysicsVirtualBindings(x, ndim, False)
 
+        # Methods.
+        x.add_method("initializeProblemStartup", None, [refparam(database, "dataBase")], is_virtual=True)
+        x.add_method("initialize", None, [param("const double", "time"),
+                                          param("const double", "dt"),
+                                          constrefparam(database, "dataBase"),
+                                          refparam(state, "state"),
+                                          refparam(derivatives, "derivatives")], is_virtual=True)
         return
 
