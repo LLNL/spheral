@@ -4,6 +4,7 @@
 // Created by JMO, Thu Oct 12 14:24:43 PDT 2017
 //----------------------------------------------------------------------------//
 #include "FileIO/FileIO.hh"
+#include "CRKSPHHydroBase.hh"
 #include "CRKSPHUtilities.hh"
 #include "computeVoronoiVolume.hh"
 #include "computeHullVolumes.hh"
@@ -144,6 +145,216 @@ CRKSPHVariant<Dimension>::
 }
 
 //------------------------------------------------------------------------------
+// On problem start up, we need to initialize our internal data.
+//------------------------------------------------------------------------------
+template<typename Dimension>
+void
+CRKSPHVariant<Dimension>::
+initializeProblemStartup(DataBase<Dimension>& dataBase) {
+  cout << "VARIENT INIT PROBLEM START" << endl;
+
+  // Create storage for our internal state.
+  this->mTimeStepMask = dataBase.newFluidFieldList(int(0), HydroFieldNames::timeStepMask);
+  this->mPressure = dataBase.newFluidFieldList(0.0, HydroFieldNames::pressure);
+  this->mSoundSpeed = dataBase.newFluidFieldList(0.0, HydroFieldNames::soundSpeed);
+  this->mSpecificThermalEnergy0 = dataBase.newFluidFieldList(0.0, HydroFieldNames::specificThermalEnergy + "0");
+  this->mEntropy = dataBase.newFluidFieldList(0.0, HydroFieldNames::entropy);
+  this->mHideal = dataBase.newFluidFieldList(SymTensor::zero, ReplaceBoundedFieldList<Dimension, Field<Dimension, SymTensor> >::prefix() + HydroFieldNames::H);
+  this->mMaxViscousPressure = dataBase.newFluidFieldList(0.0, HydroFieldNames::maxViscousPressure);
+  this->mEffViscousPressure = dataBase.newFluidFieldList(0.0, HydroFieldNames::effectiveViscousPressure);
+  this->mVolume = dataBase.newFluidFieldList(0.0, HydroFieldNames::volume);
+  this->mMassDensityGradient = dataBase.newFluidFieldList(Vector::zero, HydroFieldNames::massDensityGradient);
+  this->mViscousWork = dataBase.newFluidFieldList(0.0, HydroFieldNames::viscousWork);
+  this->mWeightedNeighborSum = dataBase.newFluidFieldList(0.0, HydroFieldNames::weightedNeighborSum);
+  this->mMassSecondMoment = dataBase.newFluidFieldList(SymTensor::zero, HydroFieldNames::massSecondMoment);
+  this->mXSPHDeltaV = dataBase.newFluidFieldList(Vector::zero, HydroFieldNames::XSPHDeltaV);
+  this->mDxDt = dataBase.newFluidFieldList(Vector::zero, IncrementFieldList<Dimension, Field<Dimension, Vector> >::prefix() + HydroFieldNames::position);
+  this->mDvDt = dataBase.newFluidFieldList(Vector::zero, HydroFieldNames::hydroAcceleration);
+  this->mDmassDensityDt = dataBase.newFluidFieldList(0.0, IncrementFieldList<Dimension, Field<Dimension, Scalar> >::prefix() + HydroFieldNames::massDensity);
+  this->mDspecificThermalEnergyDt = dataBase.newFluidFieldList(0.0, IncrementFieldList<Dimension, Field<Dimension, Scalar> >::prefix() + HydroFieldNames::specificThermalEnergy);
+  this->mDHDt = dataBase.newFluidFieldList(SymTensor::zero, IncrementFieldList<Dimension, Field<Dimension, Vector> >::prefix() + HydroFieldNames::H);
+  this->mDvDx = dataBase.newFluidFieldList(Tensor::zero, HydroFieldNames::velocityGradient);
+  this->mInternalDvDx = dataBase.newFluidFieldList(Tensor::zero, HydroFieldNames::internalVelocityGradient);
+  this->mPairAccelerations = dataBase.newFluidFieldList(vector<Vector>(), HydroFieldNames::pairAccelerations);
+  this->mDeltaCentroid = dataBase.newFluidFieldList(Vector::zero, "delta centroid");
+
+  this->mA = dataBase.newFluidFieldList(0.0,                        HydroFieldNames::A_CRKSPH);
+  this->mB = dataBase.newFluidFieldList(Vector::zero,               HydroFieldNames::B_CRKSPH);
+  this->mGradA = dataBase.newFluidFieldList(Vector::zero,           HydroFieldNames::gradA_CRKSPH);
+  this->mGradB = dataBase.newFluidFieldList(Tensor::zero,           HydroFieldNames::gradB_CRKSPH);
+  this->mM0 = dataBase.newFluidFieldList(0.0,                       HydroFieldNames::m0_CRKSPH);
+  this->mM1 = dataBase.newFluidFieldList(Vector::zero,              HydroFieldNames::m1_CRKSPH);
+  this->mM2 = dataBase.newFluidFieldList(SymTensor::zero,           HydroFieldNames::m2_CRKSPH);
+  this->mGradm0 = dataBase.newFluidFieldList(Vector::zero,          HydroFieldNames::gradM0_CRKSPH);
+  this->mGradm1 = dataBase.newFluidFieldList(Tensor::zero,          HydroFieldNames::gradM1_CRKSPH);
+  this->mGradm2 = dataBase.newFluidFieldList(ThirdRankTensor::zero, HydroFieldNames::gradM2_CRKSPH);
+  if (this->mCorrectionOrder == CRKOrder::QuadraticOrder) {
+    this->mC = dataBase.newFluidFieldList(Tensor::zero,                HydroFieldNames::C_CRKSPH);
+    this->mGradC = dataBase.newFluidFieldList(ThirdRankTensor::zero,   HydroFieldNames::gradC_CRKSPH);
+    this->mM3 = dataBase.newFluidFieldList(ThirdRankTensor::zero,      HydroFieldNames::m3_CRKSPH);
+    this->mM4 = dataBase.newFluidFieldList(FourthRankTensor::zero,     HydroFieldNames::m4_CRKSPH);
+    this->mGradm3 = dataBase.newFluidFieldList(FourthRankTensor::zero, HydroFieldNames::gradM3_CRKSPH);
+    this->mGradm4 = dataBase.newFluidFieldList(FifthRankTensor::zero,  HydroFieldNames::gradM4_CRKSPH);
+  }
+
+  // We need volumes in order to prepare the surface detection.
+  this->mSurfacePoint = dataBase.newFluidFieldList(0, HydroFieldNames::surfacePoint);
+  this->mVoidPoint = dataBase.newFluidFieldList(0, HydroFieldNames::voidPoint);
+  this->mEtaVoidPoints = dataBase.newFluidFieldList(vector<Vector>(), HydroFieldNames::etaVoidPoints);
+  const TableKernel<Dimension>& W = this->kernel();
+  const ConnectivityMap<Dimension>& connectivityMap = dataBase.connectivityMap();
+  const FieldList<Dimension, Scalar> mass = dataBase.fluidMass();
+  const FieldList<Dimension, SymTensor> H = dataBase.fluidHfield();
+  const FieldList<Dimension, Vector> position = dataBase.fluidPosition();
+  const FieldList<Dimension, Scalar> massDensity = dataBase.fluidMassDensity();
+  if (this->mDetectSurfaces) {
+    this->mVolume.assignFields(mass/massDensity);
+    for (ConstBoundaryIterator boundItr = this->boundaryBegin();
+         boundItr != this->boundaryEnd();
+         ++boundItr) (*boundItr)->applyFieldListGhostBoundary(this->mVolume);
+    for (ConstBoundaryIterator boundItr = this->boundaryBegin();
+         boundItr != this->boundaryEnd();
+         ++boundItr) (*boundItr)->finalizeGhostBoundary();
+    const NodeCoupling couple;
+    computeCRKSPHMoments(connectivityMap, W, this->mVolume, position, H, this->correctionOrder(), couple, this->mM0, this->mM1, this->mM2, this->mM3, this->mM4, this->mGradm0, this->mGradm1, this->mGradm2, this->mGradm3, this->mGradm4);
+    detectSurface(connectivityMap, this->mM0, this->mM1, position, H, this->mDetectThreshold, this->mDetectRange*W.kernelExtent(), this->mSweepAngle, this->mSurfacePoint);
+  }
+
+  // Compute the volumes for real.
+  if (this->mVolumeType == CRKVolumeType::CRKMassOverDensity) {
+    this->mVolume.assignFields(mass/massDensity);
+  } else if (this->mVolumeType == CRKVolumeType::CRKSumVolume) {
+    computeCRKSPHSumVolume(connectivityMap, W, position, mass, H, this->mVolume);
+  } else if (this->mVolumeType == CRKVolumeType::CRKVoronoiVolume) {
+    this->mVolume.assignFields(mass/massDensity);
+    FieldList<Dimension, typename Dimension::FacetedVolume> cells;
+    computeVoronoiVolume(position, H, massDensity, this->mMassDensityGradient, connectivityMap, 
+                         vector<typename Dimension::FacetedVolume>(),               // no boundaries
+                         vector<vector<typename Dimension::FacetedVolume> >(),      // no holes
+                         FieldList<Dimension, typename Dimension::Scalar>(),        // no weights
+                         this->mVoidPoint,                                                // void point flags
+                         this->mSurfacePoint, this->mVolume, this->mDeltaCentroid, this->mEtaVoidPoints,    // return values
+                         cells);                                                    // no return cells
+  } else if (this->mVolumeType == CRKVolumeType::CRKHullVolume) {
+    computeHullVolumes(connectivityMap, W.kernelExtent(), position, H, this->mVolume);
+  } else if (this->mVolumeType == CRKVolumeType::HVolume) {
+    const Scalar nPerh = this->mVolume.nodeListPtrs()[0]->nodesPerSmoothingScale();
+    computeHVolumes(nPerh, H, this->mVolume);
+  } else {
+    VERIFY2(false, "Unknown CRK volume weighting.");
+  }
+  for (ConstBoundaryIterator boundItr = this->boundaryBegin();
+       boundItr != this->boundaryEnd();
+       ++boundItr) {
+    (*boundItr)->applyFieldListGhostBoundary(this->mVolume);
+    if (this->mVolumeType == CRKVolumeType::CRKVoronoiVolume) {
+      (*boundItr)->applyFieldListGhostBoundary(this->mVolume);
+      (*boundItr)->applyFieldListGhostBoundary(this->mSurfacePoint);
+      (*boundItr)->applyFieldListGhostBoundary(this->mEtaVoidPoints);
+    }
+  }
+  for (ConstBoundaryIterator boundItr = this->boundaryBegin();
+       boundItr != this->boundaryEnd();
+       ++boundItr) (*boundItr)->finalizeGhostBoundary();
+  // if (mVolumeType == CRKVolumeType::CRKVoronoiVolume) {
+  //   // flagSurfaceNeighbors(mSurfacePoint, connectivityMap);
+  //   // mVolume = computeShepardsInterpolation(mVolume,
+  //   //                                        connectivityMap,
+  //   //                                        W,
+  //   //                                        position,
+  //   //                                        H,
+  //   //                                        mVolume);
+  //   for (ConstBoundaryIterator boundItr = this->boundaryBegin();
+  //        boundItr != this->boundaryEnd();
+  //        ++boundItr) (*boundItr)->applyFieldListGhostBoundary(mVolume);
+  //   for (ConstBoundaryIterator boundItr = this->boundaryBegin();
+  //        boundItr != this->boundaryEnd();
+  //        ++boundItr) (*boundItr)->finalizeGhostBoundary();
+  // }
+
+  // Compute the corrections.
+  const NodeCoupling couple;
+  computeCRKSPHMoments(connectivityMap, W, this->mVolume, position, H, this->correctionOrder(), couple, this->mM0, this->mM1, this->mM2, this->mM3, this->mM4, this->mGradm0, this->mGradm1, this->mGradm2, this->mGradm3, this->mGradm4);
+  computeCRKSPHCorrections(this->mM0, this->mM1, this->mM2, this->mM3, this->mM4, this->mGradm0, this->mGradm1, this->mGradm2, this->mGradm3, this->mGradm4, H, this->correctionOrder(), this->mA, this->mB, this->mC, this->mGradA, this->mGradB, this->mGradC);
+
+  // This breaks domain independence, so we'll try being inconsistent on the first step.
+  // // We need to initialize the velocity gradient if we're using the CRKSPH artificial viscosity.
+  // const FieldList<Dimension, Vector> velocity = dataBase.fluidVelocity();
+  // mDvDx.assignFields(CRKSPHSpace::gradientCRKSPH(velocity, position, mVolume, H, mA, mB, mC, mGradA, mGradB, mGradC, connectivityMap, correctionOrder(), W, NodeCoupling()));
+
+  // Initialize the pressure, sound speed, and entropy.
+  dataBase.fluidPressure(this->mPressure);
+  dataBase.fluidSoundSpeed(this->mSoundSpeed);
+  dataBase.fluidEntropy(this->mEntropy);
+}
+
+//------------------------------------------------------------------------------
+// Initialize the hydro before evaluating derivatives.
+//------------------------------------------------------------------------------
+template<typename Dimension>
+void
+CRKSPHVariant<Dimension>::
+initialize(const typename Dimension::Scalar time,
+           const typename Dimension::Scalar dt,
+           const DataBase<Dimension>& dataBase,
+           State<Dimension>& state,
+           StateDerivatives<Dimension>& derivs) {
+
+  // Compute the kernel correction fields.
+  cout << "VARIENT INITIALIZE" << endl;
+  const TableKernel<Dimension>& W = this->kernel();
+  const ConnectivityMap<Dimension>& connectivityMap = dataBase.connectivityMap();
+  const FieldList<Dimension, Scalar> mass = state.fields(HydroFieldNames::mass, 0.0);
+  const FieldList<Dimension, Vector> position = state.fields(HydroFieldNames::position, Vector::zero);
+  const FieldList<Dimension, SymTensor> H = state.fields(HydroFieldNames::H, SymTensor::zero);
+  const FieldList<Dimension, int> surfacePoint = state.fields(HydroFieldNames::surfacePoint, 0);
+  FieldList<Dimension, Scalar> A = state.fields(HydroFieldNames::A_CRKSPH, 0.0);
+  FieldList<Dimension, Vector> B = state.fields(HydroFieldNames::B_CRKSPH, Vector::zero);
+  FieldList<Dimension, Tensor> C = state.fields(HydroFieldNames::C_CRKSPH, Tensor::zero);
+  FieldList<Dimension, Vector> gradA = state.fields(HydroFieldNames::gradA_CRKSPH, Vector::zero);
+  FieldList<Dimension, Tensor> gradB = state.fields(HydroFieldNames::gradB_CRKSPH, Tensor::zero);
+  FieldList<Dimension, ThirdRankTensor> gradC = state.fields(HydroFieldNames::gradC_CRKSPH, ThirdRankTensor::zero);
+  FieldList<Dimension, Scalar> m0 = state.fields(HydroFieldNames::m0_CRKSPH, 0.0);
+  FieldList<Dimension, Vector> m1 = state.fields(HydroFieldNames::m1_CRKSPH, Vector::zero);
+  FieldList<Dimension, SymTensor> m2 = state.fields(HydroFieldNames::m2_CRKSPH, SymTensor::zero);
+  FieldList<Dimension, ThirdRankTensor> m3 = state.fields(HydroFieldNames::m3_CRKSPH, ThirdRankTensor::zero);
+  FieldList<Dimension, FourthRankTensor> m4 = state.fields(HydroFieldNames::m4_CRKSPH, FourthRankTensor::zero);
+  FieldList<Dimension, Vector> gradm0 = state.fields(HydroFieldNames::gradM0_CRKSPH, Vector::zero);
+  FieldList<Dimension, Tensor> gradm1 = state.fields(HydroFieldNames::gradM1_CRKSPH, Tensor::zero);
+  FieldList<Dimension, ThirdRankTensor> gradm2 = state.fields(HydroFieldNames::gradM2_CRKSPH, ThirdRankTensor::zero);
+  FieldList<Dimension, FourthRankTensor> gradm3 = state.fields(HydroFieldNames::gradM3_CRKSPH, FourthRankTensor::zero);
+  FieldList<Dimension, FifthRankTensor> gradm4 = state.fields(HydroFieldNames::gradM4_CRKSPH, FifthRankTensor::zero);
+
+  // Change CRKSPH weights here if need be!
+  const FieldList<Dimension, Scalar> vol = state.fields(HydroFieldNames::volume, 0.0);
+  const NodeCoupling couple;
+  computeCRKSPHMoments(connectivityMap, W, vol, position, H, this->correctionOrder(), couple, m0, m1, m2, m3, m4, gradm0, gradm1, gradm2, gradm3, gradm4);
+  computeCRKSPHCorrections(m0, m1, m2, m3, m4, gradm0, gradm1, gradm2, gradm3, gradm4, H, this->correctionOrder(), A, B, C, gradA, gradB, gradC);
+
+  for (ConstBoundaryIterator boundItr = this->boundaryBegin();
+       boundItr != this->boundaryEnd();
+       ++boundItr) {
+    (*boundItr)->applyFieldListGhostBoundary(A);
+    (*boundItr)->applyFieldListGhostBoundary(B);
+    (*boundItr)->applyFieldListGhostBoundary(C);
+    (*boundItr)->applyFieldListGhostBoundary(gradA);
+    (*boundItr)->applyFieldListGhostBoundary(gradB);
+    (*boundItr)->applyFieldListGhostBoundary(gradC);
+  }
+
+  // Get the artificial viscosity and initialize it.
+  ArtificialViscosity<Dimension>& Q = this->artificialViscosity();
+  Q.initialize(dataBase, 
+               state,
+               derivs,
+               this->boundaryBegin(),
+               this->boundaryEnd(),
+               time, 
+               dt,
+               W);
+}
+
+//------------------------------------------------------------------------------
 // Determine the principle derivatives.
 //------------------------------------------------------------------------------
 template<typename Dimension>
@@ -157,6 +368,7 @@ evaluateDerivatives(const typename Dimension::Scalar time,
 
   // Get the ArtificialViscosity.
   auto& Q = this->artificialViscosity();
+  cout << "VARIENT EVALUATE" << endl;
 
   // The kernels and such.
   const auto& W = this->kernel();
