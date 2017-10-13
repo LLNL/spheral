@@ -399,6 +399,8 @@ $(PYTHONBUILDDATE):	$(PYTHON) $(PYTHONDIST) $(ZLIBBUILDDATE)
 	if test "$(OSNAME)" = "Darwin"; then \
 	$(PATCH) $(PYTHONDIR)/configure $(srcdir)/Python-2.7.11.configure.patch; \
 	fi
+	$(PATCH) $(PYTHONDIR)/Modules/_ctypes/libffi/src/powerpc/linux64.S $(srcdir)/Python-2.7.13_linux64.S.patch
+	$(PATCH) $(PYTHONDIR)/Modules/_ctypes/libffi/src/powerpc/linux64_closure.S $(srcdir)/Python-2.7.13_linux64_closure.S.patch
 	$(SHELL) -ec "cd $(PYTHONDIR); \
 	env PATH='$(prefix)/bin:$(PATH)' CONFIG_SHELL=$(CONFIG_SHELL) CC='$(PYTHONCC)' CXX='$(PYTHONCXX)' CFLAGS='$(PYTHONCFLAGS)' LDFLAGS='$(LDFLAGS)' HAS_HG=no ./configure --disable-ipv6 --with-gcc='$(PYTHONCC)' --with-cxx-main=$(PYTHONCXX) $(PYTHONCONFFLAGS) --prefix=$(prefix)"
 	$(MAKE) -C $(PYTHONDIR) CC='$(PYTHONCC)' CXX='$(PYTHONCXX)' CFLAGS='$(PYTHONCFLAGS)' LDFLAGS='$(LDFLAGS)'
