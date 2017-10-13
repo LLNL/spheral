@@ -79,6 +79,19 @@ public:
   // Destructor.
   virtual ~CRKSPHVariant() override;
 
+  // Tasks we do once on problem startup.
+  virtual
+  void initializeProblemStartup(DataBaseSpace::DataBase<Dimension>& dataBase) override;
+
+  // Initialize the Hydro before we start a derivative evaluation.
+  virtual
+  void initialize(const Scalar time,
+                  const Scalar dt,
+                  const DataBaseSpace::DataBase<Dimension>& dataBase,
+                  State<Dimension>& state,
+                  StateDerivatives<Dimension>& derivs) override;
+                          
+
   // Evaluate the derivatives for the principle hydro variables:
   // mass density, velocity, and specific thermal energy.
   virtual
