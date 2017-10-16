@@ -315,9 +315,12 @@ class SpheralController:
             # Do the periodic work.
             self.doPeriodicWork()
 
-        # Force the periodic work to fire at the end of an advance.
+        # Force the periodic work to fire at the end of an advance (except for any redistribution).
         if maxSteps != 0:
+            thpt = self.redistribute
+            self.redistribute = None
             self.doPeriodicWork(force=True)
+            self.redistribute = thpt
 
         db = self.integrator.dataBase()
         bcs = self.integrator.uniqueBoundaryConditions()
