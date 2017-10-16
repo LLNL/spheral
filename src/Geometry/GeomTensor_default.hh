@@ -134,8 +134,9 @@ public:
   GeomTensor& operator-=(const GeomSymmetricTensor<nDim>& rhs);
   GeomTensor& operator*=(const GeomSymmetricTensor<nDim>& rhs);
 
-  // GeomTensor& operator+=(const double rhs);
-  // GeomTensor& operator-=(const double rhs);
+  GeomTensor& operator+=(const EigenType& rhs);
+  GeomTensor& operator-=(const EigenType& rhs);
+
   GeomTensor& operator*=(const double rhs);
   GeomTensor& operator/=(const double rhs);
 
@@ -300,16 +301,26 @@ template<> GeomTensor<3> GeomTensor<3>::operator/(const double) const;
 template<> GeomTensor<1>& GeomTensor<1>::operator+=(const GeomTensor<1>&);
 template<> GeomTensor<2>& GeomTensor<2>::operator+=(const GeomTensor<2>&);
 template<> GeomTensor<3>& GeomTensor<3>::operator+=(const GeomTensor<3>&);
+
 template<> GeomTensor<1>& GeomTensor<1>::operator+=(const GeomSymmetricTensor<1>&);
 template<> GeomTensor<2>& GeomTensor<2>::operator+=(const GeomSymmetricTensor<2>&);
 template<> GeomTensor<3>& GeomTensor<3>::operator+=(const GeomSymmetricTensor<3>&);
 
+template<> GeomTensor<1>& GeomTensor<1>::operator+=(const GeomTensor<1>::EigenType&);
+template<> GeomTensor<2>& GeomTensor<2>::operator+=(const GeomTensor<2>::EigenType&);
+template<> GeomTensor<3>& GeomTensor<3>::operator+=(const GeomTensor<3>::EigenType&);
+
 template<> GeomTensor<1>& GeomTensor<1>::operator-=(const GeomTensor<1>&);
 template<> GeomTensor<2>& GeomTensor<2>::operator-=(const GeomTensor<2>&);
 template<> GeomTensor<3>& GeomTensor<3>::operator-=(const GeomTensor<3>&);
+
 template<> GeomTensor<1>& GeomTensor<1>::operator-=(const GeomSymmetricTensor<1>&);
 template<> GeomTensor<2>& GeomTensor<2>::operator-=(const GeomSymmetricTensor<2>&);
 template<> GeomTensor<3>& GeomTensor<3>::operator-=(const GeomSymmetricTensor<3>&);
+
+template<> GeomTensor<1>& GeomTensor<1>::operator-=(const GeomTensor<1>::EigenType&);
+template<> GeomTensor<2>& GeomTensor<2>::operator-=(const GeomTensor<2>::EigenType&);
+template<> GeomTensor<3>& GeomTensor<3>::operator-=(const GeomTensor<3>::EigenType&);
 
 template<> GeomTensor<1>& GeomTensor<1>::operator*=(const GeomTensor<1>&);
 template<> GeomTensor<2>& GeomTensor<2>::operator*=(const GeomTensor<2>&);

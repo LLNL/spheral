@@ -509,6 +509,66 @@ GeomVector<3>::operator-=(const GeomVector<3>& vec) {
 }
 
 //------------------------------------------------------------------------------
+// += Eigen vector
+//------------------------------------------------------------------------------
+template<>
+inline
+GeomVector<1>&
+GeomVector<1>::operator+=(const GeomVector<1>::EigenType& vec) {
+  this->mx += vec(0);
+  return *this;
+}
+
+template<>
+inline
+GeomVector<2>&
+GeomVector<2>::operator+=(const GeomVector<2>::EigenType& vec) {
+  this->mx += vec(0);
+  this->my += vec(1);
+  return *this;
+}
+
+template<>
+inline
+GeomVector<3>&
+GeomVector<3>::operator+=(const GeomVector<3>::EigenType& vec) {
+  this->mx += vec(0);
+  this->my += vec(1);
+  this->mz += vec(2);
+  return *this;
+}
+
+//------------------------------------------------------------------------------
+// -= Eigen vector
+//------------------------------------------------------------------------------
+template<>
+inline
+GeomVector<1>&
+GeomVector<1>::operator-=(const GeomVector<1>::EigenType& vec) {
+  this->mx -= vec(0);
+  return *this;
+}
+
+template<>
+inline
+GeomVector<2>&
+GeomVector<2>::operator-=(const GeomVector<2>::EigenType& vec) {
+  this->mx -= vec(0);
+  this->my -= vec(1);
+  return *this;
+}
+
+template<>
+inline
+GeomVector<3>&
+GeomVector<3>::operator-=(const GeomVector<3>::EigenType& vec) {
+  this->mx -= vec(0);
+  this->my -= vec(1);
+  this->mz -= vec(2);
+  return *this;
+}
+
+//------------------------------------------------------------------------------
 // Multiply this vector by a scalar in place.
 //------------------------------------------------------------------------------
 template<>
