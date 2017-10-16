@@ -2,20 +2,22 @@
 # The Taylor anvil impact problem -- impact of a solid cylinder on an unyielding
 # surface.
 #
+# RZ symmetry version
+#
 # This scenario is based on the v=205 m/sec example in
 # Eakins & Thadhani, Journal of Applied Physics, 100, 073503 (2006)
 #-------------------------------------------------------------------------------
 #
 # The following ATS setup is to generate reference data for the SpheralC tests.
 #
-#ATS:test(SELF, "--steps 100 --compatibleEnergy False --clearDirectories True --baseDir 2D_1proc_ref --siloSnapShotFile Spheral_state_snapshot_1proc", np=1, label="Generate 1 proc reference data")
-#ATS:test(SELF, "--steps 100 --compatibleEnergy False --clearDirectories True --baseDir 2D_8proc_ref --siloSnapShotFile Spheral_state_snapshot_8proc", np=8, label="Generate 8 proc reference data")
+#ATS:test(SELF, "--steps 100 --compatibleEnergy False --clearDirectories True --baseDir RZ_1proc_ref --siloSnapShotFile Spheral_state_snapshot_1proc", np=1, label="Generate 1 proc reference data")
+#ATS:test(SELF, "--steps 100 --compatibleEnergy False --clearDirectories True --baseDir RZ_8proc_ref --siloSnapShotFile Spheral_state_snapshot_8proc", np=8, label="Generate 8 proc reference data")
 
 import os, shutil
 from math import *
 import mpi
 
-from SolidSpheral2d import *
+from SolidSpheralRZ import *
 from SpheralTestUtilities import *
 from SpheralGnuPlotUtilities import *
 from SpheralController import *
@@ -23,7 +25,7 @@ from SpheralController import *
 #-------------------------------------------------------------------------------
 # Identify ourselves!
 #-------------------------------------------------------------------------------
-title("2D Cu taylor anvil impact strength test")
+title("RZ Cu taylor anvil impact strength test")
 
 #-------------------------------------------------------------------------------
 # Generic problem parameters
@@ -227,7 +229,7 @@ del n
 # Create our interpolation kernels -- one for normal hydro interactions, and
 # one for use with the artificial viscosity
 #-------------------------------------------------------------------------------
-WT = TableKernel(BSplineKernel(), 1000)
+WT = TableKernel(NBSplineKernel(3), 1000)
 output('WT')
 
 #-------------------------------------------------------------------------------
@@ -236,20 +238,20 @@ output('WT')
 from GenerateNodeDistribution2d import *
 from VoronoiDistributeNodes import distributeNodes2d
 print "Generating node distribution."
-generator1 = GenerateNodeDistribution2d(2*nr, nz, 
-                                        rho = rho0,
-                                        distributionType = seed,
-                                        xmin = (-rlength, 0.0),
-                                        xmax = ( rlength, zlength),
-                                        nNodePerh = nPerh)
+generator1 = RZGenerator(GenerateNodeDistribution2d(nz, nr,
+                                                    rho = rho0,
+                                                    distributionType = seed,
+                                                    xmin = (0.0,     0.0),
+                                                    xmax = (zlength, rlength),
+                                                    nNodePerh = nPerh))
 stuff2distribute = [(nodes1, generator1)]
 if not reflect:
-    generator2 = GenerateNodeDistribution2d(2*nr, nz,
-                                            rho = rho0,
-                                            distributionType = seed,
-                                            xmin = (-rlength, -zlength),
-                                            xmax = ( rlength,  0.0),
-                                            nNodePerh = nPerh)
+    generator2 = RZGenerator(GenerateNodeDistribution2d(nz, nr,
+                                                        rho = rho0,
+                                                        distributionType = seed,
+                                                        xmin = (-zlength, 0.0),
+                                                        xmax = ( 0.0,     rlength),
+                                                        nNodePerh = nPerh))
     stuff2distribute.append((nodes2, generator2))
 distributeNodes2d(*tuple(stuff2distribute))
 for n in nodeSet:
@@ -260,17 +262,17 @@ for n in nodeSet:
 del n
 
 nodes1.specificThermalEnergy(ScalarField("tmp", nodes1, eps0))
-nodes1.velocity(VectorField("tmp", nodes1, Vector(0.0, -vz0)))
+nodes1.velocity(VectorField("tmp", nodes1, Vector(-vz0, 0.0)))
 if not reflect:
     nodes2.specificThermalEnergy(ScalarField("tmp", nodes2, eps0))
-    nodes2.velocity(VectorField("tmp", nodes2, Vector(0.0, vz0)))
+    nodes2.velocity(VectorField("tmp", nodes2, Vector(vz0, 0.0)))
 
 #-------------------------------------------------------------------------------
 # Create boundary conditions.
 #-------------------------------------------------------------------------------
 bcs = []
 if reflect:
-    yplane = Plane(Vector(0.0, 0.0), Vector(0.0, 1.0))
+    yplane = Plane(Vector(0.0, 0.0), Vector(1.0, 0.0))
     bc = ReflectingBoundary(yplane)
     bcs.append(bc)
 
@@ -426,6 +428,7 @@ if siloSnapShotFile:
     H = state.symTensorFields(HydroFieldNames.H)
     P = state.scalarFields(HydroFieldNames.pressure)
     S = state.symTensorFields(SolidFieldNames.deviatoricStress)
+    STT = state.scalarFields(SolidFieldNames.deviatoricStressTT)
     cs = state.scalarFields(HydroFieldNames.soundSpeed)
     K = state.scalarFields(SolidFieldNames.bulkModulus)
     mu = state.scalarFields(SolidFieldNames.shearModulus)
@@ -439,11 +442,12 @@ if siloSnapShotFile:
     DHDt = derivs.symTensorFields("delta " + HydroFieldNames.H)
     Hideal = derivs.symTensorFields("new " + HydroFieldNames.H)
     DSDt = derivs.symTensorFields("delta " + SolidFieldNames.deviatoricStress)
+    DSTTDt = derivs.scalarFields("delta " + SolidFieldNames.deviatoricStressTT)
 
     # Write the sucker.
     siloPointmeshDump(siloSnapShotFile, 
-                      fieldLists = [mass, rho, pos, eps, vel, H, P, S, cs, K, mu, Y, ps,
-                                    massSum, DrhoDt, DvelDt, DepsDt, DvelDx, DHDt, Hideal, DSDt],
+                      fieldLists = [mass, rho, pos, eps, vel, H, P, S, STT, cs, K, mu, Y, ps,
+                                    massSum, DrhoDt, DvelDt, DepsDt, DvelDx, DHDt, Hideal, DSDt, DSTTDt],
                       baseDirectory = dataDir,
                       label = "Spheral++ snapshot of state and derivatives.",
                       time = control.time(),
