@@ -938,7 +938,7 @@ GeomTensor<3>::operator/(const double rhs) const {
 
 
 //------------------------------------------------------------------------------
-// Add two tensors in place.
+// += tensor
 //------------------------------------------------------------------------------
 template<>
 inline
@@ -975,6 +975,9 @@ GeomTensor<3>::operator+=(const GeomTensor<3>& rhs) {
   return *this;
 }
 
+//------------------------------------------------------------------------------
+// += symmetric tensor
+//------------------------------------------------------------------------------
 template<>
 inline
 GeomTensor<1>&
@@ -1011,7 +1014,45 @@ GeomTensor<3>::operator+=(const GeomSymmetricTensor<3>& rhs) {
 }
 
 //------------------------------------------------------------------------------
-// Subtract a tensor from this one in place.
+// += eigen tensor
+//------------------------------------------------------------------------------
+template<>
+inline
+GeomTensor<1>&
+GeomTensor<1>::operator+=(const GeomTensor<1>::EigenType& rhs) {
+  this->mxx += rhs(0,0);
+  return *this;
+}
+
+template<>
+inline
+GeomTensor<2>&
+GeomTensor<2>::operator+=(const GeomTensor<2>::EigenType& rhs) {
+  this->mxx += rhs(0,0);
+  this->mxy += rhs(0,1);
+  this->myx += rhs(1,0);
+  this->myy += rhs(1,1);
+  return *this;
+}
+
+template<>
+inline
+GeomTensor<3>&
+GeomTensor<3>::operator+=(const GeomTensor<3>::EigenType& rhs) {
+  this->mxx += rhs(0,0);
+  this->mxy += rhs(0,1);
+  this->mxz += rhs(0,2);
+  this->myx += rhs(1,0);
+  this->myy += rhs(1,1);
+  this->myz += rhs(1,2);
+  this->mzx += rhs(2,0);
+  this->mzy += rhs(2,1);
+  this->mzz += rhs(2,2);
+  return *this;
+}
+
+//------------------------------------------------------------------------------
+// -= tensor
 //------------------------------------------------------------------------------
 template<>
 inline
@@ -1048,6 +1089,9 @@ GeomTensor<3>::operator-=(const GeomTensor<3>& rhs) {
   return *this;
 }
 
+//------------------------------------------------------------------------------
+// -= symmetric tensor
+//------------------------------------------------------------------------------
 template<>
 inline
 GeomTensor<1>&
@@ -1080,6 +1124,44 @@ GeomTensor<3>::operator-=(const GeomSymmetricTensor<3>& rhs) {
   this->mzx -= rhs.zx();
   this->mzy -= rhs.zy();
   this->mzz -= rhs.zz();
+  return *this;
+}
+
+//------------------------------------------------------------------------------
+// -= eigen tensor
+//------------------------------------------------------------------------------
+template<>
+inline
+GeomTensor<1>&
+GeomTensor<1>::operator-=(const GeomTensor<1>::EigenType& rhs) {
+  this->mxx -= rhs(0,0);
+  return *this;
+}
+
+template<>
+inline
+GeomTensor<2>&
+GeomTensor<2>::operator-=(const GeomTensor<2>::EigenType& rhs) {
+  this->mxx -= rhs(0,0);
+  this->mxy -= rhs(0,1);
+  this->myx -= rhs(1,0);
+  this->myy -= rhs(1,1);
+  return *this;
+}
+
+template<>
+inline
+GeomTensor<3>&
+GeomTensor<3>::operator-=(const GeomTensor<3>::EigenType& rhs) {
+  this->mxx -= rhs(0,0);
+  this->mxy -= rhs(0,1);
+  this->mxz -= rhs(0,2);
+  this->myx -= rhs(1,0);
+  this->myy -= rhs(1,1);
+  this->myz -= rhs(1,2);
+  this->mzx -= rhs(2,0);
+  this->mzy -= rhs(2,1);
+  this->mzz -= rhs(2,2);
   return *this;
 }
 

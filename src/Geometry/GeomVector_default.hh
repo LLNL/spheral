@@ -91,6 +91,10 @@ public:
 
   GeomVector& operator+=(const GeomVector& vec);
   GeomVector& operator-=(const GeomVector& vec);
+
+  GeomVector& operator+=(const EigenType& vec);
+  GeomVector& operator-=(const EigenType& vec);
+
   GeomVector& operator*=(const double val);
   GeomVector& operator/=(const double val);
 
@@ -170,6 +174,14 @@ template<> GeomVector<3>& GeomVector<3>::operator+=(const GeomVector<3>& vec);
 template<> GeomVector<1>& GeomVector<1>::operator-=(const GeomVector<1>& vec);
 template<> GeomVector<2>& GeomVector<2>::operator-=(const GeomVector<2>& vec);
 template<> GeomVector<3>& GeomVector<3>::operator-=(const GeomVector<3>& vec);
+
+template<> GeomVector<1>& GeomVector<1>::operator+=(const GeomVector<1>::EigenType& vec);
+template<> GeomVector<2>& GeomVector<2>::operator+=(const GeomVector<2>::EigenType& vec);
+template<> GeomVector<3>& GeomVector<3>::operator+=(const GeomVector<3>::EigenType& vec);
+
+template<> GeomVector<1>& GeomVector<1>::operator-=(const GeomVector<1>::EigenType& vec);
+template<> GeomVector<2>& GeomVector<2>::operator-=(const GeomVector<2>::EigenType& vec);
+template<> GeomVector<3>& GeomVector<3>::operator-=(const GeomVector<3>::EigenType& vec);
 
 #ifdef _OPENMP
 

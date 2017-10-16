@@ -129,6 +129,9 @@ public:
   GeomSymmetricTensor& operator+=(const GeomSymmetricTensor& rhs);
   GeomSymmetricTensor& operator-=(const GeomSymmetricTensor& rhs);
 
+  GeomSymmetricTensor& operator+=(const EigenType& rhs);
+  GeomSymmetricTensor& operator-=(const EigenType& rhs);
+
   // GeomSymmetricTensor& operator+=(const double rhs);
   // GeomSymmetricTensor& operator-=(const double rhs);
   GeomSymmetricTensor& operator*=(const double rhs);
@@ -318,6 +321,14 @@ template<> GeomSymmetricTensor<3>& GeomSymmetricTensor<3>::operator+=(const Geom
 template<> GeomSymmetricTensor<1>& GeomSymmetricTensor<1>::operator-=(const GeomSymmetricTensor<1>&);
 template<> GeomSymmetricTensor<2>& GeomSymmetricTensor<2>::operator-=(const GeomSymmetricTensor<2>&);
 template<> GeomSymmetricTensor<3>& GeomSymmetricTensor<3>::operator-=(const GeomSymmetricTensor<3>&);
+
+template<> GeomSymmetricTensor<1>& GeomSymmetricTensor<1>::operator+=(const GeomSymmetricTensor<1>::EigenType&);
+template<> GeomSymmetricTensor<2>& GeomSymmetricTensor<2>::operator+=(const GeomSymmetricTensor<2>::EigenType&);
+template<> GeomSymmetricTensor<3>& GeomSymmetricTensor<3>::operator+=(const GeomSymmetricTensor<3>::EigenType&);
+
+template<> GeomSymmetricTensor<1>& GeomSymmetricTensor<1>::operator-=(const GeomSymmetricTensor<1>::EigenType&);
+template<> GeomSymmetricTensor<2>& GeomSymmetricTensor<2>::operator-=(const GeomSymmetricTensor<2>::EigenType&);
+template<> GeomSymmetricTensor<3>& GeomSymmetricTensor<3>::operator-=(const GeomSymmetricTensor<3>::EigenType&);
 
 template<> GeomSymmetricTensor<1>& GeomSymmetricTensor<1>::operator*=(const double);
 template<> GeomSymmetricTensor<2>& GeomSymmetricTensor<2>::operator*=(const double);
