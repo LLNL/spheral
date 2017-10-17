@@ -151,7 +151,6 @@ template<typename Dimension>
 void
 CRKSPHVariant<Dimension>::
 initializeProblemStartup(DataBase<Dimension>& dataBase) {
-  cout << "VARIENT INIT PROBLEM START" << endl;
 
   // Create storage for our internal state.
   this->mTimeStepMask = dataBase.newFluidFieldList(int(0), HydroFieldNames::timeStepMask);
@@ -243,10 +242,68 @@ initializeProblemStartup(DataBase<Dimension>& dataBase) {
   } else {
     VERIFY2(false, "Unknown CRK volume weighting.");
   }
+///*
+  const auto& nodeLists = connectivityMap.nodeLists();
+  const auto  numNodeLists = nodeLists.size();
+  FieldList<Dimension, Scalar> CRKweight(FieldSpace::FieldStorageType::CopyFields);
+  for (size_t nodeListi = 0; nodeListi != numNodeLists; ++nodeListi) {
+    CRKweight.appendNewField("CRK weight", position[nodeListi]->nodeList(), 0.0);
+  }
+  CRKweight = 0.0; 
+  // Walk the FluidNodeLists.
+  for (size_t nodeListi = 0; nodeListi != numNodeLists; ++nodeListi) {
+    const NodeList<Dimension>& nodeList = position[nodeListi]->nodeList();
+    const int firstGhostNodei = nodeList.firstGhostNode();
+
+    // Iterate over the nodes in this node list.
+    for (typename ConnectivityMap<Dimension>::const_iterator iItr = connectivityMap.begin(nodeListi);
+         iItr != connectivityMap.end(nodeListi);
+         ++iItr) {
+      const int i = *iItr;
+
+      // Get the state for node i.
+      const auto voli = this->mVolume(nodeListi, i);
+      const auto mi = mass(nodeListi, i);
+
+      // Neighbors!
+      const vector<vector<int> >& fullConnectivity = connectivityMap.connectivityForNode(nodeListi, i);
+      CHECK(fullConnectivity.size() == numNodeLists);
+
+      for (size_t nodeListj = 0; nodeListj != numNodeLists; ++nodeListj) {
+        const vector<int>& connectivity = fullConnectivity[nodeListj];
+        const int firstGhostNodej = position[nodeListj]->nodeList().firstGhostNode();
+
+        // Iterate over the neighbors for in this NodeList.
+        for (vector<int>::const_iterator jItr = connectivity.begin();
+             jItr != connectivity.end();
+             ++jItr) {
+          const int j = *jItr;
+
+          // Check if this node pair has already been calculated.
+          if (connectivityMap.calculatePairInteraction(nodeListi, i, 
+                                                       nodeListj, j,
+                                                       firstGhostNodej)) {
+
+            // State of node j.
+            const auto volj = this->mVolume(nodeListj, j);
+            const auto  mj = mass(nodeListj, j);
+            CRKweight(nodeListi, i) = mj*voli*voli/(volj*mi); //rhoj/rhoi * Vi
+            CRKweight(nodeListj, j) = mi*volj*volj/(voli*mj); //rhoi/rhoj * Vj
+            //CRKweight(nodeListi, i) = voli;
+            //CRKweight(nodeListj, j) = volj;
+            //CRKweight(nodeListi, i) = mj*voli/(volj*mi);
+            //CRKweight(nodeListj, j) = mi*volj/(voli*mj);
+          }
+        }
+      }
+    }
+  }
+//*/
   for (ConstBoundaryIterator boundItr = this->boundaryBegin();
        boundItr != this->boundaryEnd();
        ++boundItr) {
     (*boundItr)->applyFieldListGhostBoundary(this->mVolume);
+    (*boundItr)->applyFieldListGhostBoundary(CRKweight);
     if (this->mVolumeType == CRKVolumeType::CRKVoronoiVolume) {
       (*boundItr)->applyFieldListGhostBoundary(this->mVolume);
       (*boundItr)->applyFieldListGhostBoundary(this->mSurfacePoint);
@@ -274,7 +331,7 @@ initializeProblemStartup(DataBase<Dimension>& dataBase) {
 
   // Compute the corrections.
   const NodeCoupling couple;
-  computeCRKSPHMoments(connectivityMap, W, this->mVolume, position, H, this->correctionOrder(), couple, this->mM0, this->mM1, this->mM2, this->mM3, this->mM4, this->mGradm0, this->mGradm1, this->mGradm2, this->mGradm3, this->mGradm4);
+  computeCRKSPHMoments(connectivityMap, W, CRKweight, position, H, this->correctionOrder(), couple, this->mM0, this->mM1, this->mM2, this->mM3, this->mM4, this->mGradm0, this->mGradm1, this->mGradm2, this->mGradm3, this->mGradm4);
   computeCRKSPHCorrections(this->mM0, this->mM1, this->mM2, this->mM3, this->mM4, this->mGradm0, this->mGradm1, this->mGradm2, this->mGradm3, this->mGradm4, H, this->correctionOrder(), this->mA, this->mB, this->mC, this->mGradA, this->mGradB, this->mGradC);
 
   // This breaks domain independence, so we'll try being inconsistent on the first step.
@@ -301,7 +358,6 @@ initialize(const typename Dimension::Scalar time,
            StateDerivatives<Dimension>& derivs) {
 
   // Compute the kernel correction fields.
-  cout << "VARIENT INITIALIZE" << endl;
   const TableKernel<Dimension>& W = this->kernel();
   const ConnectivityMap<Dimension>& connectivityMap = dataBase.connectivityMap();
   const FieldList<Dimension, Scalar> mass = state.fields(HydroFieldNames::mass, 0.0);
@@ -328,7 +384,71 @@ initialize(const typename Dimension::Scalar time,
   // Change CRKSPH weights here if need be!
   const FieldList<Dimension, Scalar> vol = state.fields(HydroFieldNames::volume, 0.0);
   const NodeCoupling couple;
-  computeCRKSPHMoments(connectivityMap, W, vol, position, H, this->correctionOrder(), couple, m0, m1, m2, m3, m4, gradm0, gradm1, gradm2, gradm3, gradm4);
+
+///*
+  const auto& nodeLists = connectivityMap.nodeLists();
+  const auto  numNodeLists = nodeLists.size();
+  FieldList<Dimension, Scalar> CRKweight(FieldSpace::FieldStorageType::CopyFields);
+  for (size_t nodeListi = 0; nodeListi != numNodeLists; ++nodeListi) {
+    CRKweight.appendNewField("CRK weight", position[nodeListi]->nodeList(), 0.0);
+  }
+  CRKweight = 0.0; 
+  // Walk the FluidNodeLists.
+  for (size_t nodeListi = 0; nodeListi != numNodeLists; ++nodeListi) {
+    const NodeList<Dimension>& nodeList = position[nodeListi]->nodeList();
+    const int firstGhostNodei = nodeList.firstGhostNode();
+
+    // Iterate over the nodes in this node list.
+    for (typename ConnectivityMap<Dimension>::const_iterator iItr = connectivityMap.begin(nodeListi);
+         iItr != connectivityMap.end(nodeListi);
+         ++iItr) {
+      const int i = *iItr;
+
+      // Get the state for node i.
+      const auto voli = vol(nodeListi, i);
+      const auto mi = mass(nodeListi, i);
+
+      // Neighbors!
+      const vector<vector<int> >& fullConnectivity = connectivityMap.connectivityForNode(nodeListi, i);
+      CHECK(fullConnectivity.size() == numNodeLists);
+
+      for (size_t nodeListj = 0; nodeListj != numNodeLists; ++nodeListj) {
+        const vector<int>& connectivity = fullConnectivity[nodeListj];
+        const int firstGhostNodej = position[nodeListj]->nodeList().firstGhostNode();
+
+        // Iterate over the neighbors for in this NodeList.
+        for (vector<int>::const_iterator jItr = connectivity.begin();
+             jItr != connectivity.end();
+             ++jItr) {
+          const int j = *jItr;
+
+          // Check if this node pair has already been calculated.
+          if (connectivityMap.calculatePairInteraction(nodeListi, i, 
+                                                       nodeListj, j,
+                                                       firstGhostNodej)) {
+
+            // State of node j.
+            const auto volj = vol(nodeListj, j);
+            const auto  mj = mass(nodeListj, j);
+            CRKweight(nodeListi, i) = mj*voli*voli/(volj*mi); //rhoj/rhoi * Vi
+            CRKweight(nodeListj, j) = mi*volj*volj/(voli*mj); //rhoi/rhoj * Vj
+            //CRKweight(nodeListi, i) = voli;
+            //CRKweight(nodeListj, j) = volj;
+            //CRKweight(nodeListi, i) = mj*voli/(volj*mi);
+            //CRKweight(nodeListj, j) = mi*volj/(voli*mj);
+          }
+        }
+      }
+    }
+  }
+//*/
+
+  for (ConstBoundaryIterator boundItr = this->boundaryBegin();
+       boundItr != this->boundaryEnd();
+       ++boundItr) {
+    (*boundItr)->applyFieldListGhostBoundary(CRKweight);
+  }
+  computeCRKSPHMoments(connectivityMap, W, CRKweight, position, H, this->correctionOrder(), couple, m0, m1, m2, m3, m4, gradm0, gradm1, gradm2, gradm3, gradm4);
   computeCRKSPHCorrections(m0, m1, m2, m3, m4, gradm0, gradm1, gradm2, gradm3, gradm4, H, this->correctionOrder(), A, B, C, gradA, gradB, gradC);
 
   for (ConstBoundaryIterator boundItr = this->boundaryBegin();
@@ -368,7 +488,6 @@ evaluateDerivatives(const typename Dimension::Scalar time,
 
   // Get the ArtificialViscosity.
   auto& Q = this->artificialViscosity();
-  cout << "VARIENT EVALUATE" << endl;
 
   // The kernels and such.
   const auto& W = this->kernel();
@@ -523,12 +642,13 @@ evaluateDerivatives(const typename Dimension::Scalar time,
         gradCi = gradC(nodeListi, i);
       }
       const auto Hdeti = Hi.Determinant();
-      const auto weighti = volume(nodeListi, i);  // Change CRKSPH weights here if need be!
+      const auto voli = volume(nodeListi, i);  
+      //const auto weighti = volume(nodeListi, i);  
       CHECK2(mi > 0.0, i << " " << mi);
       CHECK2(rhoi > 0.0, i << " " << rhoi);
       // CHECK2(Ai > 0.0, i << " " << Ai);
       CHECK2(Hdeti > 0.0, i << " " << Hdeti);
-      CHECK2(weighti > 0.0, i << " " << weighti);
+      //CHECK2(weighti > 0.0, i << " " << weighti);
 
       auto& DxDti = DxDt(nodeListi, i);
       auto& DrhoDti = DrhoDt(nodeListi, i);
@@ -593,12 +713,20 @@ evaluateDerivatives(const typename Dimension::Scalar time,
                 gradCj = gradC(nodeListj, j);
               }
               const auto Hdetj = Hj.Determinant();
-              const auto weightj = volume(nodeListj, j);     // Change CRKSPH weights here if need be!
+              const auto volj = volume(nodeListj, j);     
+              const auto weightj = volume(nodeListj, j);     
+              //const auto weightj = mi*volj*volj/(voli*mj); //rhoi/rhoj * Vj
+              //const auto weightj = mi*volj/(voli*mj);
+              //const auto weightj = volj;
               CHECK(mj > 0.0);
               CHECK(rhoj > 0.0);
               CHECK(Aj > 0.0 or j >= firstGhostNodej);
               CHECK(Hdetj > 0.0);
               CHECK(weightj > 0.0);
+              const auto weighti = mj*voli*voli/(volj*mi); //rhoj/rhoi * Vi
+              //const auto weighti = voli;
+              //const auto weighti = mj*voli/(volj*mi);
+              CHECK2(weighti > 0.0, i << " " << weighti);
 
               auto& DxDtj = DxDt(nodeListj, j);
               auto& DrhoDtj = DrhoDt(nodeListj, j);
@@ -654,50 +782,81 @@ evaluateDerivatives(const typename Dimension::Scalar time,
                                         rj, etaj, vj, rhoj, cj, Hj);
               const auto Qaccij = (rhoi*rhoi*QPiij.first + rhoj*rhoj*QPiij.second).dot(deltagrad);
               // const auto workQij = 0.5*(vij.dot(Qaccij));
-              const auto workQi = rhoj*rhoj*QPiij.second.dot(vij).dot(deltagrad);                // CRK
-              const auto workQj = rhoi*rhoi*QPiij.first .dot(vij).dot(deltagrad);                // CRK
+              //const auto workQi = rhoj*rhoj*QPiij.second.dot(vij).dot(deltagrad);                // CRK
+              //const auto workQj = rhoi*rhoi*QPiij.first .dot(vij).dot(deltagrad);                // CRK
+              const auto workQi =  rhoj*rhoj*QPiij.second.dot(vij).dot(gradWj);                // CRK Type IV 
+              const auto workQj = -rhoi*rhoi*QPiij.first .dot(vij).dot(gradWi);                // CRK Type IV
               // const auto workQVi =  vij.dot((rhoj*rhoj*QPiij.second).dot(gradWj));               //RK V and RK I Work
               // const auto workQVj =  vij.dot((rhoi*rhoi*QPiij.first).dot(gradWi));                //RK V and RK I Work
               const auto Qi = rhoi*rhoi*(QPiij.first. diagonalElements().maxAbsElement());
               const auto Qj = rhoj*rhoj*(QPiij.second.diagonalElements().maxAbsElement());
               maxViscousPressurei = max(maxViscousPressurei, 4.0*Qi);                                 // We need tighter timestep controls on the Q with CRK
               maxViscousPressurej = max(maxViscousPressurej, 4.0*Qj);
-              effViscousPressurei += wij * Qi * Wj;
-              effViscousPressurej += wij * Qj * Wi;
-              viscousWorki += 0.5*wij*wij/mi*workQi;
-              viscousWorkj += 0.5*wij*wij/mj*workQj;
+              //effViscousPressurei += wij * Qi * Wj;
+              //effViscousPressurej += wij * Qj * Wi;
+              //viscousWorki += 0.5*wij*wij/mi*workQi;
+              //viscousWorkj += 0.5*wij*wij/mj*workQj;
+              effViscousPressurei += weightj * Qi * Wj;
+              effViscousPressurej += weighti * Qj * Wi;
+              //viscousWorki += 0.5*weighti*weightj/mi*workQi;
+              //viscousWorkj += 0.5*weighti*weightj/mj*workQj;
+              viscousWorki += voli*weightj/mi*workQi;
+              viscousWorkj += volj*weighti/mj*workQj;
 
               // Velocity gradient.
-              DvDxi -= wij*vij.dyad(gradWj);
-              DvDxj += wij*vij.dyad(gradWi);
+              //DvDxi -= wij*vij.dyad(gradWj);
+              //DvDxj += wij*vij.dyad(gradWi);
+              //if (nodeListi == nodeListj) {
+                //localDvDxi -= wij*vij.dyad(gradWj);
+                //localDvDxj += wij*vij.dyad(gradWi);
+              //}
+              const Tensor deltaDvDxi = -weightj*vij.dyad(gradWj);
+              const Tensor deltaDvDxj =  weighti*vij.dyad(gradWi);
+              DvDxi += deltaDvDxi;
+              DvDxj += deltaDvDxj;
               if (nodeListi == nodeListj) {
-                localDvDxi -= wij*vij.dyad(gradWj);
-                localDvDxj += wij*vij.dyad(gradWi);
+                localDvDxi += deltaDvDxi;
+                localDvDxj += deltaDvDxj;
               }
 
               // Mass density gradient.
-              gradRhoi += wij*(rhoj - rhoi)*gradWj;
-              gradRhoj += wij*(rhoi - rhoj)*gradWi;
+              //gradRhoi += wij*(rhoj - rhoi)*gradWj;
+              //gradRhoj += wij*(rhoi - rhoj)*gradWi;
+              gradRhoi += weightj*(rhoj - rhoi)*gradWj;
+              gradRhoj += weighti*(rhoi - rhoj)*gradWi;
 
               // We decide between RK and CRK for the momentum and energy equations based on the surface condition.
               // Momentum
-              forceij = 0.5*wij*wij*((Pi + Pj)*deltagrad + Qaccij);                    // Type III CRK interpoint force.
-              forceji = 0.5*wij*wij*((Pi + Pj)*deltagrad + Qaccij);                    // Type III CRK interpoint force.
-              DvDti -= forceij/mi;
-              DvDtj += forceji/mj; 
+              //forceij = 0.5*wij*wij*((Pi + Pj)*deltagrad + Qaccij);                    // Type III CRK interpoint force.
+              //forceji = 0.5*wij*wij*((Pi + Pj)*deltagrad + Qaccij);                    // Type III CRK interpoint force.
+              forceij = (Pj+Qj)*voli*weightj*gradWj - (Pi+Qi)*volj*weighti*gradWi;                    // Type IV CRK interpoint force.
+              //DvDti -= forceij/mi;
+              //DvDtj += forceji/mj; 
+              DvDti -= forceij/mi; //CRK Acceleration
+              DvDtj += forceij/mj; //CRK Acceleration
               if (this->mCompatibleEnergyEvolution) {
+                //pairAccelerationsi.push_back(-forceij/mi);
+                //pairAccelerationsj.push_back( forceji/mj);
                 pairAccelerationsi.push_back(-forceij/mi);
-                pairAccelerationsj.push_back( forceji/mj);
+                pairAccelerationsj.push_back( forceij/mj);
               }
 
               // Energy
-              DepsDti += 0.5*wij*wij*(Pj*vij.dot(deltagrad) + workQi)/mi;              // CRK
-              DepsDtj += 0.5*wij*wij*(Pi*vij.dot(deltagrad) + workQj)/mj;              // CRK
+              //DepsDti += 0.5*wij*wij*(Pj*vij.dot(deltagrad) + workQi)/mi;              // CRK
+              //DepsDtj += 0.5*wij*wij*(Pi*vij.dot(deltagrad) + workQj)/mj;              // CRK
+              //DepsDti += (vij.dot(gradWj))*(Pj+Qj)*voli*weightj/mi;              // CRK TYPE IV
+              //DepsDtj -= (vij.dot(gradWi))*(Pi+Qi)*volj*weighti/mj;              // CRK TYPE IV
+
+
+              DepsDti += (vij.dot(gradWj))*(Pj+Qj)*voli*weightj/mi;              // CRK TYPE IV
+              DepsDtj -= (vij.dot(gradWi))*(Pi+Qi)*volj*weighti/mj;              // CRK TYPE IV
 
               // Estimate of delta v (for XSPH).
               if (this->mXSPH and (nodeListi == nodeListj)) {
-                XSPHDeltaVi -= wij*Wj*vij;
-                XSPHDeltaVj += wij*Wi*vij;
+                //XSPHDeltaVi -= wij*Wj*vij;
+                //XSPHDeltaVj += wij*Wi*vij;
+                XSPHDeltaVi -= weightj*Wj*vij;
+                XSPHDeltaVj += weighti*Wi*vij;
               }
                 
             }
