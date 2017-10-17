@@ -193,6 +193,7 @@ dataDir = os.path.join(dataDirBase,
                        "nPerh=%f" % nPerh,
                        "compatibleEnergy=%s" % compatibleEnergy,
                        "Cullen=%s" % boolCullenViscosity,
+                       "CRKVar=%s" % crktype,
                        "filter=%f" % filter)
 restartDir = os.path.join(dataDir, "restarts")
 restartBaseName = os.path.join(restartDir, "Noh-planar-1d-%i" % nx1)
@@ -725,7 +726,7 @@ if mpi.rank == 0:
 
 
 
-
+control.conserve.writeHistory("Noh1dEnergyProfiles.gnu")
 Eerror = (control.conserve.EHistory[-1] - control.conserve.EHistory[0])/control.conserve.EHistory[0]
 print "Total energy error: %g" % Eerror
 if checkEnergy and abs(Eerror) > 1e-13:

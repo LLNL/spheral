@@ -35,6 +35,7 @@ commandLine(nx1 = 400,
             svph = False,
             crksph = False,
             psph = False,
+            crktype = "default",        # one of ("default", "variant")
             evolveTotalEnergy = False,  # Only for SPH variants -- evolve total rather than specific energy
             solid = False,    # If true, use the fluid limit of the solid hydro option
             boolReduceViscosity = False,
@@ -125,6 +126,7 @@ dataDir = os.path.join(dataDirBase,
                        "numNodeLists=%i" % numNodeLists,
                        hydroname,
                        "nPerh=%f" % nPerh,
+                       "CRKVar=%s" % crktype,
                        "compatibleEnergy=%s" % compatibleEnergy,
                        "correctionOrder=%s" % correctionOrder,
                        "Cullen=%s" % boolCullenViscosity,
@@ -276,7 +278,8 @@ elif crksph:
                    evolveTotalEnergy = evolveTotalEnergy,
                    XSPH = XSPH,
                    densityUpdate = densityUpdate,
-                   HUpdate = HUpdate)
+                   HUpdate = HUpdate,
+                   crktype = crktype)
 elif psph:
     hydro = PSPH(dataBase = db,
                  W = WT,

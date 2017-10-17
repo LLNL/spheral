@@ -47,10 +47,12 @@ commandLine(nx1 = 256,
             mu = 1.0,
 
             nPerh = 1.51,
+            KernelConstructor = NBSplineKernel,
 
             svph = False,
             crksph = False,
             psph = False,
+            crktype = "default",        # one of ("default", "variant")
             asph = False,   # Just for choosing the H algorithm
             filter = 0.0,   # CRKSPH filtering
             order = 5,
@@ -120,11 +122,11 @@ commandLine(nx1 = 256,
             dataDir = "dumps-KelvinHelmholtz-2d_McNally",
             outputFile = "None",
             comparisonFile = "None",
-            graphMixing = False,
+            graphMixing = True,
             mixInterval = 0.02,
             mixFile = "MixingModeAmp.gnu",
             
-            serialDump = False, #whether to dump a serial ascii file at the end for viz
+            serialDump = True, #whether to dump a serial ascii file at the end for viz
             
             bArtificialConduction = False,
             arCondAlpha = 0.5,
@@ -147,6 +149,7 @@ if asph:
 
 dataDir = os.path.join(dataDir,
                        "rho1=%g-rho2=%g" % (rho1, rho2),
+                       "CRKVar=%s" % crktype,
                        "vx1=%g-vx2=%g" % (abs(vx1), abs(vx2)),
                        "vxboost=%g-vyboost=%g" % (vxboost, vyboost),
                        hydroname,
@@ -185,7 +188,17 @@ eos = GammaLawGasMKS(gamma, mu)
 #-------------------------------------------------------------------------------
 # Interpolation kernels.
 #-------------------------------------------------------------------------------
-WT = TableKernel(NBSplineKernel(order), 1000)
+#WT = TableKernel(NBSplineKernel(order), 1000)
+#WTPi = WT
+#output("WT")
+#output("WTPi")
+#kernelExtent = WT.kernelExtent
+
+if KernelConstructor==NBSplineKernel:
+    Wbase = NBSplineKernel(order)
+else:
+    Wbase = KernelConstructor()
+WT = TableKernel(Wbase, 1000)
 WTPi = WT
 output("WT")
 output("WTPi")
@@ -362,6 +375,7 @@ elif crksph:
                    volumeType = volumeType,
                    densityUpdate = densityUpdate,
                    HUpdate = HUpdate,
+                   crktype = crktype,
                    ASPH = asph)
 elif psph:
     hydro = PSPH(W = WT,
