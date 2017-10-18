@@ -181,8 +181,8 @@ initializeProblemStartup(DataBase<Dimension>& dataBase) {
   mHfield0 = dataBase.newSolidFieldList(SymTensor::zero, HydroFieldNames::H + "0");
 
   // Set the moduli.
-  size_t nodeListi = 0;
-  for (typename DataBase<Dimension>::SolidNodeListIterator itr = dataBase.solidNodeListBegin();
+  auto nodeListi = 0;
+  for (auto itr = dataBase.solidNodeListBegin();
        itr != dataBase.solidNodeListEnd();
        ++itr, ++nodeListi) {
     (*itr)->bulkModulus(*mBulkModulus[nodeListi]);
@@ -226,8 +226,8 @@ registerState(DataBase<Dimension>& dataBase,
   FieldList<Dimension, Vector> gradD;
   FieldList<Dimension, int> fragIDs;
   FieldList<Dimension, int> pTypes;
-  size_t nodeListi = 0;
-  for (typename DataBase<Dimension>::SolidNodeListIterator itr = dataBase.solidNodeListBegin();
+  auto nodeListi = 0;
+  for (auto itr = dataBase.solidNodeListBegin();
        itr != dataBase.solidNodeListEnd();
        ++itr, ++nodeListi) {
     S.appendField((*itr)->deviatoricStress());
@@ -291,13 +291,13 @@ registerDerivatives(DataBase<Dimension>& dataBase,
   // Note we deliberately do not zero out the derivatives here!  This is because the previous step
   // info here may be used by other algorithms (like the CheapSynchronousRK2 integrator or
   // the ArtificialVisocisity::initialize step).
-  const string DSDtName = IncrementFieldList<Dimension, Vector>::prefix() + SolidFieldNames::deviatoricStress;
+  const auto DSDtName = IncrementFieldList<Dimension, Vector>::prefix() + SolidFieldNames::deviatoricStress;
   dataBase.resizeFluidFieldList(mDdeviatoricStressDt, SymTensor::zero, DSDtName, false);
 
   derivs.enroll(mDdeviatoricStressDt);
 
-  size_t nodeListi = 0;
-  for (typename DataBase<Dimension>::SolidNodeListIterator itr = dataBase.solidNodeListBegin();
+  auto nodeListi = 0;
+  for (auto itr = dataBase.solidNodeListBegin();
        itr != dataBase.solidNodeListEnd();
        ++itr, ++nodeListi) {
     CHECK((*itr) != 0);
@@ -321,42 +321,41 @@ evaluateDerivatives(const typename Dimension::Scalar time,
   ArtificialViscosity<Dimension>& Q = this->artificialViscosity();
 
   // The kernels and such.
-  const TableKernel<Dimension>& W = this->kernel();
-  const TableKernel<Dimension>& WQ = this->PiKernel();
-  const TableKernel<Dimension>& WG = this->GradKernel();
-  const SmoothingScaleBase<Dimension>& smoothingScaleMethod = this->smoothingScaleMethod();
+  const auto& W = this->kernel();
+  const auto& WQ = this->PiKernel();
+  const auto& WG = this->GradKernel();
+  const auto& smoothingScaleMethod = this->smoothingScaleMethod();
 
   // A few useful constants we'll use in the following loop.
-  typedef typename Timing::Time Time;
-  const double tiny = 1.0e-30;
-  const Scalar W0 = W(0.0, 1.0);
-  const Scalar WQ0 = WQ(0.0, 1.0);
-  const Scalar epsTensile = this->epsilonTensile();
-  const bool compatibleEnergy = this->compatibleEnergyEvolution();
-  const bool XSPH = this->XSPH();
+  const auto tiny = 1.0e-30;
+  const auto W0 = W(0.0, 1.0);
+  const auto WQ0 = WQ(0.0, 1.0);
+  const auto epsTensile = this->epsilonTensile();
+  const auto compatibleEnergy = this->compatibleEnergyEvolution();
+  const auto XSPH = this->XSPH();
 
   // The connectivity.
-  const ConnectivityMap<Dimension>& connectivityMap = dataBase.connectivityMap();
-  const vector<const NodeList<Dimension>*>& nodeLists = connectivityMap.nodeLists();
-  const size_t numNodeLists = nodeLists.size();
+  const auto& connectivityMap = dataBase.connectivityMap();
+  const auto& nodeLists = connectivityMap.nodeLists();
+  const auto numNodeLists = nodeLists.size();
 
   // Get the state and derivative FieldLists.
   // State FieldLists.
-  const FieldList<Dimension, Scalar> mass = state.fields(HydroFieldNames::mass, 0.0);
-  const FieldList<Dimension, Vector> position = state.fields(HydroFieldNames::position, Vector::zero);
-  const FieldList<Dimension, Vector> velocity = state.fields(HydroFieldNames::velocity, Vector::zero);
-  const FieldList<Dimension, Scalar> massDensity = state.fields(HydroFieldNames::massDensity, 0.0);
-  const FieldList<Dimension, Scalar> specificThermalEnergy = state.fields(HydroFieldNames::specificThermalEnergy, 0.0);
-  const FieldList<Dimension, SymTensor> H = state.fields(HydroFieldNames::H, SymTensor::zero);
-  const FieldList<Dimension, Scalar> pressure = state.fields(HydroFieldNames::pressure, 0.0);
-  const FieldList<Dimension, Scalar> soundSpeed = state.fields(HydroFieldNames::soundSpeed, 0.0);
-  const FieldList<Dimension, Scalar> omega = state.fields(HydroFieldNames::omegaGradh, 0.0);
-  const FieldList<Dimension, SymTensor> S = state.fields(SolidFieldNames::deviatoricStress, SymTensor::zero);
-  const FieldList<Dimension, Scalar> mu = state.fields(SolidFieldNames::shearModulus, 0.0);
-  const FieldList<Dimension, SymTensor> damage = state.fields(SolidFieldNames::effectiveTensorDamage, SymTensor::zero);
-  const FieldList<Dimension, Vector> gradDamage = state.fields(SolidFieldNames::damageGradient, Vector::zero);
-  const FieldList<Dimension, int> fragIDs = state.fields(SolidFieldNames::fragmentIDs, int(1));
-  const FieldList<Dimension, int> pTypes = state.fields(SolidFieldNames::particleTypes, int(0));
+  const auto mass = state.fields(HydroFieldNames::mass, 0.0);
+  const auto position = state.fields(HydroFieldNames::position, Vector::zero);
+  const auto velocity = state.fields(HydroFieldNames::velocity, Vector::zero);
+  const auto massDensity = state.fields(HydroFieldNames::massDensity, 0.0);
+  const auto specificThermalEnergy = state.fields(HydroFieldNames::specificThermalEnergy, 0.0);
+  const auto H = state.fields(HydroFieldNames::H, SymTensor::zero);
+  const auto pressure = state.fields(HydroFieldNames::pressure, 0.0);
+  const auto soundSpeed = state.fields(HydroFieldNames::soundSpeed, 0.0);
+  const auto omega = state.fields(HydroFieldNames::omegaGradh, 0.0);
+  const auto S = state.fields(SolidFieldNames::deviatoricStress, SymTensor::zero);
+  const auto mu = state.fields(SolidFieldNames::shearModulus, 0.0);
+  const auto damage = state.fields(SolidFieldNames::effectiveTensorDamage, SymTensor::zero);
+  const auto gradDamage = state.fields(SolidFieldNames::damageGradient, Vector::zero);
+  const auto fragIDs = state.fields(SolidFieldNames::fragmentIDs, int(1));
+  const auto pTypes = state.fields(SolidFieldNames::particleTypes, int(0));
   CHECK(mass.size() == numNodeLists);
   CHECK(position.size() == numNodeLists);
   CHECK(velocity.size() == numNodeLists);
@@ -374,27 +373,27 @@ evaluateDerivatives(const typename Dimension::Scalar time,
   CHECK(pTypes.size() == numNodeLists);
 
   // Derivative FieldLists.
-  FieldList<Dimension, Scalar> rhoSum = derivatives.fields(ReplaceFieldList<Dimension, Scalar>::prefix() + HydroFieldNames::massDensity, 0.0);
-  FieldList<Dimension, Vector> DxDt = derivatives.fields(IncrementFieldList<Dimension, Vector>::prefix() + HydroFieldNames::position, Vector::zero);
-  FieldList<Dimension, Scalar> DrhoDt = derivatives.fields(IncrementFieldList<Dimension, Scalar>::prefix() + HydroFieldNames::massDensity, 0.0);
-  FieldList<Dimension, Vector> DvDt = derivatives.fields(HydroFieldNames::hydroAcceleration, Vector::zero);
-  FieldList<Dimension, Scalar> DepsDt = derivatives.fields(IncrementFieldList<Dimension, Scalar>::prefix() + HydroFieldNames::specificThermalEnergy, 0.0);
-  FieldList<Dimension, Tensor> DvDx = derivatives.fields(HydroFieldNames::velocityGradient, Tensor::zero);
-  FieldList<Dimension, Tensor> localDvDx = derivatives.fields(HydroFieldNames::internalVelocityGradient, Tensor::zero);
-  FieldList<Dimension, Tensor> M = derivatives.fields(HydroFieldNames::M_SPHCorrection, Tensor::zero);
-  FieldList<Dimension, Tensor> localM = derivatives.fields("local " + HydroFieldNames::M_SPHCorrection, Tensor::zero);
-  FieldList<Dimension, SymTensor> DHDt = derivatives.fields(IncrementFieldList<Dimension, SymTensor>::prefix() + HydroFieldNames::H, SymTensor::zero);
-  FieldList<Dimension, SymTensor> Hideal = derivatives.fields(ReplaceBoundedFieldList<Dimension, SymTensor>::prefix() + HydroFieldNames::H, SymTensor::zero);
-  FieldList<Dimension, Scalar> maxViscousPressure = derivatives.fields(HydroFieldNames::maxViscousPressure, 0.0);
-  FieldList<Dimension, Scalar> effViscousPressure = derivatives.fields(HydroFieldNames::effectiveViscousPressure, 0.0);
-  FieldList<Dimension, Scalar> rhoSumCorrection = derivatives.fields(HydroFieldNames::massDensityCorrection, 0.0);
-  FieldList<Dimension, Scalar> viscousWork = derivatives.fields(HydroFieldNames::viscousWork, 0.0);
-  FieldList<Dimension, vector<Vector> > pairAccelerations = derivatives.fields(HydroFieldNames::pairAccelerations, vector<Vector>());
-  FieldList<Dimension, Scalar> XSPHWeightSum = derivatives.fields(HydroFieldNames::XSPHWeightSum, 0.0);
-  FieldList<Dimension, Vector> XSPHDeltaV = derivatives.fields(HydroFieldNames::XSPHDeltaV, Vector::zero);
-  FieldList<Dimension, Scalar> weightedNeighborSum = derivatives.fields(HydroFieldNames::weightedNeighborSum, 0.0);
-  FieldList<Dimension, SymTensor> massSecondMoment = derivatives.fields(HydroFieldNames::massSecondMoment, SymTensor::zero);
-  FieldList<Dimension, SymTensor> DSDt = derivatives.fields(IncrementFieldList<Dimension, SymTensor>::prefix() + SolidFieldNames::deviatoricStress, SymTensor::zero);
+  auto rhoSum = derivatives.fields(ReplaceFieldList<Dimension, Scalar>::prefix() + HydroFieldNames::massDensity, 0.0);
+  auto DxDt = derivatives.fields(IncrementFieldList<Dimension, Vector>::prefix() + HydroFieldNames::position, Vector::zero);
+  auto DrhoDt = derivatives.fields(IncrementFieldList<Dimension, Scalar>::prefix() + HydroFieldNames::massDensity, 0.0);
+  auto DvDt = derivatives.fields(HydroFieldNames::hydroAcceleration, Vector::zero);
+  auto DepsDt = derivatives.fields(IncrementFieldList<Dimension, Scalar>::prefix() + HydroFieldNames::specificThermalEnergy, 0.0);
+  auto DvDx = derivatives.fields(HydroFieldNames::velocityGradient, Tensor::zero);
+  auto localDvDx = derivatives.fields(HydroFieldNames::internalVelocityGradient, Tensor::zero);
+  auto M = derivatives.fields(HydroFieldNames::M_SPHCorrection, Tensor::zero);
+  auto localM = derivatives.fields("local " + HydroFieldNames::M_SPHCorrection, Tensor::zero);
+  auto DHDt = derivatives.fields(IncrementFieldList<Dimension, SymTensor>::prefix() + HydroFieldNames::H, SymTensor::zero);
+  auto Hideal = derivatives.fields(ReplaceBoundedFieldList<Dimension, SymTensor>::prefix() + HydroFieldNames::H, SymTensor::zero);
+  auto maxViscousPressure = derivatives.fields(HydroFieldNames::maxViscousPressure, 0.0);
+  auto effViscousPressure = derivatives.fields(HydroFieldNames::effectiveViscousPressure, 0.0);
+  auto rhoSumCorrection = derivatives.fields(HydroFieldNames::massDensityCorrection, 0.0);
+  auto viscousWork = derivatives.fields(HydroFieldNames::viscousWork, 0.0);
+  auto pairAccelerations = derivatives.fields(HydroFieldNames::pairAccelerations, vector<Vector>());
+  auto XSPHWeightSum = derivatives.fields(HydroFieldNames::XSPHWeightSum, 0.0);
+  auto XSPHDeltaV = derivatives.fields(HydroFieldNames::XSPHDeltaV, Vector::zero);
+  auto weightedNeighborSum = derivatives.fields(HydroFieldNames::weightedNeighborSum, 0.0);
+  auto massSecondMoment = derivatives.fields(HydroFieldNames::massSecondMoment, SymTensor::zero);
+  auto DSDt = derivatives.fields(IncrementFieldList<Dimension, SymTensor>::prefix() + SolidFieldNames::deviatoricStress, SymTensor::zero);
   CHECK(rhoSum.size() == numNodeLists);
   CHECK(DxDt.size() == numNodeLists);
   CHECK(DrhoDt.size() == numNodeLists);
@@ -419,11 +418,11 @@ evaluateDerivatives(const typename Dimension::Scalar time,
 
   // Size up the pair-wise accelerations before we start.
   if (compatibleEnergy) {
-    size_t nodeListi = 0;
-    for (typename DataBase<Dimension>::ConstFluidNodeListIterator itr = dataBase.fluidNodeListBegin();
+    auto nodeListi = 0;
+    for (auto itr = dataBase.fluidNodeListBegin();
          itr != dataBase.fluidNodeListEnd();
          ++itr, ++nodeListi) {
-      for (int i = 0; i != (*itr)->numInternalNodes(); ++i) {
+      for (auto i = 0; i != (*itr)->numInternalNodes(); ++i) {
         pairAccelerations(nodeListi, i).reserve(connectivityMap.numNeighborsForNode(*itr, i));
       }
     }
@@ -435,29 +434,29 @@ evaluateDerivatives(const typename Dimension::Scalar time,
   SymTensor sigmai, sigmaj;
 
   // Start our big loop over all FluidNodeLists.
-  size_t nodeListi = 0;
-  for (typename DataBase<Dimension>::ConstFluidNodeListIterator itr = dataBase.fluidNodeListBegin();
+  auto nodeListi = 0;
+  for (auto itr = dataBase.fluidNodeListBegin();
        itr != dataBase.fluidNodeListEnd();
        ++itr, ++nodeListi) {
-    const FluidNodeList<Dimension>& nodeList = **itr;
-    const int firstGhostNodei = nodeList.firstGhostNode();
-    const Scalar hmin = nodeList.hmin();
-    const Scalar hmax = nodeList.hmax();
-    const Scalar hminratio = nodeList.hminratio();
-    const int maxNumNeighbors = nodeList.maxNumNeighbors();
-    const Scalar nPerh = nodeList.nodesPerSmoothingScale();
+    const auto& nodeList = **itr;
+    const auto firstGhostNodei = nodeList.firstGhostNode();
+    const auto hmin = nodeList.hmin();
+    const auto hmax = nodeList.hmax();
+    const auto hminratio = nodeList.hminratio();
+    const auto maxNumNeighbors = nodeList.maxNumNeighbors();
+    const auto nPerh = nodeList.nodesPerSmoothingScale();
 
     // The scale for the tensile correction.
-    const Scalar WnPerh = W(1.0/nPerh, 1.0);
+    const auto WnPerh = W(1.0/nPerh, 1.0);
 
     // Get the work field for this NodeList.
-    Field<Dimension, Scalar>& workFieldi = nodeList.work();
+    auto& workFieldi = nodeList.work();
 
     // Build the functor we use to compute the effective coupling between nodes.
     DamagedNodeCouplingWithFrags<Dimension> coupling(damage, gradDamage, H, fragIDs);
 
     // Check if we can identify a reference density.
-    Scalar rho0 = 0.0;
+    auto rho0 = 0.0;
     try {
       rho0 = dynamic_cast<const SolidEquationOfState<Dimension>&>(nodeList.equationOfState()).referenceDensity();
       // cerr << "Setting reference density to " << rho0 << endl;
@@ -466,14 +465,14 @@ evaluateDerivatives(const typename Dimension::Scalar time,
     }
 
     // Iterate over the internal nodes in this NodeList.
-    for (typename ConnectivityMap<Dimension>::const_iterator iItr = connectivityMap.begin(nodeListi);
+    for (auto iItr = connectivityMap.begin(nodeListi);
          iItr != connectivityMap.end(nodeListi);
          ++iItr) {
-      const int i = *iItr;
+      const auto i = *iItr;
 
       // Prepare to accumulate the time.
-      const Time start = Timing::currentTime();
-      size_t ncalc = 0;
+      const auto start = Timing::currentTime();
+      auto ncalc = 0;
 
       // Get the state for node i.
       const auto ri = position(nodeListi, i);
@@ -522,7 +521,7 @@ evaluateDerivatives(const typename Dimension::Scalar time,
       const auto& fullConnectivity = connectivityMap.connectivityForNode(&nodeList, i);
 
       // Iterate over the NodeLists.
-      for (size_t nodeListj = 0; nodeListj != numNodeLists; ++nodeListj) {
+      for (auto nodeListj = 0; nodeListj != numNodeLists; ++nodeListj) {
 
         // Connectivity of this node with this NodeList.  We only need to proceed if
         // there are some nodes in this list.
@@ -581,10 +580,10 @@ evaluateDerivatives(const typename Dimension::Scalar time,
               auto& massSecondMomentj = massSecondMoment(nodeListj, j);
 
               // Flag if this is a contiguous material pair or not.
-              const bool sameMatij = true; // (nodeListi == nodeListj and fragIDi == fragIDj);
+              const auto sameMatij = true; // (nodeListi == nodeListj and fragIDi == fragIDj);
 
               // Flag if at least one particle is free (0).
-              const bool freeParticle = (pTypei == 0 or pTypej == 0);
+              const auto freeParticle = (pTypei == 0 or pTypej == 0);
 
               // Node displacement.
               const auto rij = ri - rj;
@@ -724,7 +723,7 @@ evaluateDerivatives(const typename Dimension::Scalar time,
           }
         }
       }
-      const size_t numNeighborsi = connectivityMap.numNeighborsForNode(&nodeList, i);
+      const auto numNeighborsi = connectivityMap.numNeighborsForNode(&nodeList, i);
       CHECK(not this->compatibleEnergyEvolution() or NodeListRegistrar<Dimension>::instance().domainDecompositionIndependent() or
             (i >= firstGhostNodei and pairAccelerationsi.size() == 0) or
             (pairAccelerationsi.size() == numNeighborsi));
@@ -817,16 +816,16 @@ evaluateDerivatives(const typename Dimension::Scalar time,
       worki += Timing::difference(start, Timing::currentTime());
 
       // Now add the pairwise time for each neighbor we computed here.
-      for (int nodeListj = 0; nodeListj != numNodeLists; ++nodeListj) {
-        const vector<int>& connectivity = fullConnectivity[nodeListj];
+      for (auto nodeListj = 0; nodeListj != numNodeLists; ++nodeListj) {
+        const auto& connectivity = fullConnectivity[nodeListj];
         if (connectivity.size() > 0) {
-          const int firstGhostNodej = nodeLists[nodeListj]->firstGhostNode();
-          Field<Dimension, Scalar>& workFieldj = nodeLists[nodeListj]->work();
+          const auto firstGhostNodej = nodeLists[nodeListj]->firstGhostNode();
+          auto& workFieldj = nodeLists[nodeListj]->work();
 #pragma vector always
-          for (vector<int>::const_iterator jItr = connectivity.begin();
+          for (auto jItr = connectivity.begin();
                jItr != connectivity.end();
                ++jItr) {
-            const int j = *jItr;
+            const auto j = *jItr;
             if (connectivityMap.calculatePairInteraction(nodeListi, i, 
                                                          nodeListj, j,
                                                          firstGhostNodej)) {
@@ -852,12 +851,12 @@ applyGhostBoundaries(State<Dimension>& state,
   SPHHydroBase<Dimension>::applyGhostBoundaries(state, derivs);
 
   // Apply boundary conditions to our extra strength variables.
-  FieldList<Dimension, SymTensor> S = state.fields(SolidFieldNames::deviatoricStress, SymTensor::zero);
-  FieldList<Dimension, Scalar> K = state.fields(SolidFieldNames::bulkModulus, 0.0);
-  FieldList<Dimension, Scalar> mu = state.fields(SolidFieldNames::shearModulus, 0.0);
-  FieldList<Dimension, Scalar> Y = state.fields(SolidFieldNames::yieldStrength, 0.0);
-  FieldList<Dimension, int> fragIDs = state.fields(SolidFieldNames::fragmentIDs, int(1));
-  FieldList<Dimension, int> pTypes = state.fields(SolidFieldNames::particleTypes, int(0));
+  auto S = state.fields(SolidFieldNames::deviatoricStress, SymTensor::zero);
+  auto K = state.fields(SolidFieldNames::bulkModulus, 0.0);
+  auto mu = state.fields(SolidFieldNames::shearModulus, 0.0);
+  auto Y = state.fields(SolidFieldNames::yieldStrength, 0.0);
+  auto fragIDs = state.fields(SolidFieldNames::fragmentIDs, int(1));
+  auto pTypes = state.fields(SolidFieldNames::particleTypes, int(0));
 
   for (ConstBoundaryIterator boundaryItr = this->boundaryBegin(); 
        boundaryItr != this->boundaryEnd();
@@ -884,12 +883,12 @@ enforceBoundaries(State<Dimension>& state,
   SPHHydroBase<Dimension>::enforceBoundaries(state, derivs);
 
   // Enforce boundary conditions on the extra strength variable.s
-  FieldList<Dimension, SymTensor> S = state.fields(SolidFieldNames::deviatoricStress, SymTensor::zero);
-  FieldList<Dimension, Scalar> K = state.fields(SolidFieldNames::bulkModulus, 0.0);
-  FieldList<Dimension, Scalar> mu = state.fields(SolidFieldNames::shearModulus, 0.0);
-  FieldList<Dimension, Scalar> Y = state.fields(SolidFieldNames::yieldStrength, 0.0);
-  FieldList<Dimension, int> fragIDs = state.fields(SolidFieldNames::fragmentIDs, int(1));
-  FieldList<Dimension, int> pTypes = state.fields(SolidFieldNames::particleTypes, int(0));
+  auto S = state.fields(SolidFieldNames::deviatoricStress, SymTensor::zero);
+  auto K = state.fields(SolidFieldNames::bulkModulus, 0.0);
+  auto mu = state.fields(SolidFieldNames::shearModulus, 0.0);
+  auto Y = state.fields(SolidFieldNames::yieldStrength, 0.0);
+  auto fragIDs = state.fields(SolidFieldNames::fragmentIDs, int(1));
+  auto pTypes = state.fields(SolidFieldNames::particleTypes, int(0));
 
   for (ConstBoundaryIterator boundaryItr = this->boundaryBegin(); 
        boundaryItr != this->boundaryEnd();
