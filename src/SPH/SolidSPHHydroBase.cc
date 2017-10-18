@@ -34,8 +34,6 @@
 
 #include "SolidSPHHydroBase.hh"
 
-#include "Eigen/Dense"
-
 #include <limits.h>
 #include <float.h>
 #include <algorithm>
@@ -318,10 +316,6 @@ evaluateDerivatives(const typename Dimension::Scalar time,
                     const DataBase<Dimension>& dataBase,
                     const State<Dimension>& state,
                     StateDerivatives<Dimension>& derivatives) const {
-
-  typedef typename Vector::EigenType EigenVector;
-  typedef typename Tensor::EigenType EigenTensor;
-  typedef typename SymTensor::EigenType EigenSymTensor;
 
   // Get the ArtificialViscosity.
   ArtificialViscosity<Dimension>& Q = this->artificialViscosity();
