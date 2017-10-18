@@ -124,21 +124,24 @@ GeomTensor(const GeomSymmetricTensor<3>& ten):
 // Construct from an Eigen Tensor.
 //------------------------------------------------------------------------------
 template<>
+template<typename Derived>
 inline
-GeomTensor<1>::GeomTensor(const EigenType& ten):
+GeomTensor<1>::GeomTensor(const Eigen::MatrixBase<Derived>& ten):
   GeomTensorBase<1>(ten(0,0)) {
 }
 
 template<>
+template<typename Derived>
 inline
-GeomTensor<2>::GeomTensor(const EigenType& ten):
+GeomTensor<2>::GeomTensor(const Eigen::MatrixBase<Derived>& ten):
   GeomTensorBase<2>(ten(0,0), ten(0,1),
                     ten(1,0), ten(1,1)) {
 }
 
 template<>
+template<typename Derived>
 inline
-GeomTensor<3>::GeomTensor(const EigenType& ten):
+GeomTensor<3>::GeomTensor(const Eigen::MatrixBase<Derived>& ten):
   GeomTensorBase<3>(ten(0,0), ten(0,1), ten(0,2),
                     ten(1,0), ten(1,1), ten(1,2),
                     ten(2,0), ten(2,1), ten(2,2)) {
@@ -235,17 +238,19 @@ operator=(const GeomSymmetricTensor<3>& ten) {
 // The assignment operator (Eigen Tensor).
 //------------------------------------------------------------------------------
 template<>
+template<typename Derived>
 inline
 GeomTensor<1>&
-GeomTensor<1>::operator=(const EigenType& ten) {
+GeomTensor<1>::operator=(const Eigen::MatrixBase<Derived>& ten) {
   this->mxx = ten(0,0);
   return *this;
 }
 
 template<>
+template<typename Derived>
 inline
 GeomTensor<2>&
-GeomTensor<2>::operator=(const EigenType& ten) {
+GeomTensor<2>::operator=(const Eigen::MatrixBase<Derived>& ten) {
   this->mxx = ten(0,0);
   this->mxy = ten(0,1);
   this->myx = ten(1,0);
@@ -254,9 +259,10 @@ GeomTensor<2>::operator=(const EigenType& ten) {
 }
 
 template<>
+template<typename Derived>
 inline
 GeomTensor<3>&
-GeomTensor<3>::operator=(const EigenType& ten) {
+GeomTensor<3>::operator=(const Eigen::MatrixBase<Derived>& ten) {
   this->mxx = ten(0,0);
   this->mxy = ten(0,1);
   this->mxz = ten(0,2);
@@ -1017,17 +1023,19 @@ GeomTensor<3>::operator+=(const GeomSymmetricTensor<3>& rhs) {
 // += eigen tensor
 //------------------------------------------------------------------------------
 template<>
+template<typename Derived>
 inline
 GeomTensor<1>&
-GeomTensor<1>::operator+=(const GeomTensor<1>::EigenType& rhs) {
+GeomTensor<1>::operator+=(const Eigen::MatrixBase<Derived>& rhs) {
   this->mxx += rhs(0,0);
   return *this;
 }
 
 template<>
+template<typename Derived>
 inline
 GeomTensor<2>&
-GeomTensor<2>::operator+=(const GeomTensor<2>::EigenType& rhs) {
+GeomTensor<2>::operator+=(const Eigen::MatrixBase<Derived>& rhs) {
   this->mxx += rhs(0,0);
   this->mxy += rhs(0,1);
   this->myx += rhs(1,0);
@@ -1036,9 +1044,10 @@ GeomTensor<2>::operator+=(const GeomTensor<2>::EigenType& rhs) {
 }
 
 template<>
+template<typename Derived>
 inline
 GeomTensor<3>&
-GeomTensor<3>::operator+=(const GeomTensor<3>::EigenType& rhs) {
+GeomTensor<3>::operator+=(const Eigen::MatrixBase<Derived>& rhs) {
   this->mxx += rhs(0,0);
   this->mxy += rhs(0,1);
   this->mxz += rhs(0,2);
@@ -1131,17 +1140,19 @@ GeomTensor<3>::operator-=(const GeomSymmetricTensor<3>& rhs) {
 // -= eigen tensor
 //------------------------------------------------------------------------------
 template<>
+template<typename Derived>
 inline
 GeomTensor<1>&
-GeomTensor<1>::operator-=(const GeomTensor<1>::EigenType& rhs) {
+GeomTensor<1>::operator-=(const Eigen::MatrixBase<Derived>& rhs) {
   this->mxx -= rhs(0,0);
   return *this;
 }
 
 template<>
+template<typename Derived>
 inline
 GeomTensor<2>&
-GeomTensor<2>::operator-=(const GeomTensor<2>::EigenType& rhs) {
+GeomTensor<2>::operator-=(const Eigen::MatrixBase<Derived>& rhs) {
   this->mxx -= rhs(0,0);
   this->mxy -= rhs(0,1);
   this->myx -= rhs(1,0);
@@ -1150,9 +1161,10 @@ GeomTensor<2>::operator-=(const GeomTensor<2>::EigenType& rhs) {
 }
 
 template<>
+template<typename Derived>
 inline
 GeomTensor<3>&
-GeomTensor<3>::operator-=(const GeomTensor<3>::EigenType& rhs) {
+GeomTensor<3>::operator-=(const Eigen::MatrixBase<Derived>& rhs) {
   this->mxx -= rhs(0,0);
   this->mxy -= rhs(0,1);
   this->mxz -= rhs(0,2);

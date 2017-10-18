@@ -157,21 +157,24 @@ GeomSymmetricTensor(const GeomTensor<3>& ten):
 // Construct from an Eigen Tensor.
 //------------------------------------------------------------------------------
 template<>
+template<typename Derived>
 inline
-GeomSymmetricTensor<1>::GeomSymmetricTensor(const EigenType& ten):
+GeomSymmetricTensor<1>::GeomSymmetricTensor(const Eigen::MatrixBase<Derived>& ten):
   GeomSymmetricTensorBase<1>(ten(0,0)) {
 }
 
 template<>
+template<typename Derived>
 inline
-GeomSymmetricTensor<2>::GeomSymmetricTensor(const EigenType& ten):
+GeomSymmetricTensor<2>::GeomSymmetricTensor(const Eigen::MatrixBase<Derived>& ten):
   GeomSymmetricTensorBase<2>(ten(0,0), ten(0,1),
                                        ten(1,1)) {
 }
 
 template<>
+template<typename Derived>
 inline
-GeomSymmetricTensor<3>::GeomSymmetricTensor(const EigenType& ten):
+GeomSymmetricTensor<3>::GeomSymmetricTensor(const Eigen::MatrixBase<Derived>& ten):
   GeomSymmetricTensorBase<3>(ten(0,0), ten(0,1), ten(0,2),
                                        ten(1,1), ten(1,2),
                                                  ten(2,2)) {
@@ -261,17 +264,19 @@ operator=(const GeomSymmetricTensor<3>& rhs) {
 // The assignment operator (Eigen Tensor).
 //------------------------------------------------------------------------------
 template<>
+template<typename Derived>
 inline
 GeomSymmetricTensor<1>&
-GeomSymmetricTensor<1>::operator=(const EigenType& ten) {
+GeomSymmetricTensor<1>::operator=(const Eigen::MatrixBase<Derived>& ten) {
   this->mxx = ten(0,0);
   return *this;
 }
 
 template<>
+template<typename Derived>
 inline
 GeomSymmetricTensor<2>&
-GeomSymmetricTensor<2>::operator=(const EigenType& ten) {
+GeomSymmetricTensor<2>::operator=(const Eigen::MatrixBase<Derived>& ten) {
   this->mxx = ten(0,0);
   this->mxy = ten(0,1);
   this->myy = ten(1,1);
@@ -279,9 +284,10 @@ GeomSymmetricTensor<2>::operator=(const EigenType& ten) {
 }
 
 template<>
+template<typename Derived>
 inline
 GeomSymmetricTensor<3>&
-GeomSymmetricTensor<3>::operator=(const EigenType& ten) {
+GeomSymmetricTensor<3>::operator=(const Eigen::MatrixBase<Derived>& ten) {
   this->mxx = ten(0,0);
   this->mxy = ten(0,1);
   this->mxz = ten(0,2);
@@ -1018,17 +1024,19 @@ GeomSymmetricTensor<3>::operator-=(const GeomSymmetricTensor<3>& rhs) {
 // += eigen tensor
 //------------------------------------------------------------------------------
 template<>
+template<typename Derived>
 inline
 GeomSymmetricTensor<1>&
-GeomSymmetricTensor<1>::operator+=(const GeomSymmetricTensor<1>::EigenType& rhs) {
+GeomSymmetricTensor<1>::operator+=(const Eigen::MatrixBase<Derived>& rhs) {
   this->mxx += rhs(0,0);
   return *this;
 }
 
 template<>
+template<typename Derived>
 inline
 GeomSymmetricTensor<2>&
-GeomSymmetricTensor<2>::operator+=(const GeomSymmetricTensor<2>::EigenType& rhs) {
+GeomSymmetricTensor<2>::operator+=(const Eigen::MatrixBase<Derived>& rhs) {
   REQUIRE(fuzzyEqual(rhs(0,1), rhs(1,0), 1.e-10));
   this->mxx += rhs(0,0);
   this->mxy += rhs(0,1);
@@ -1037,9 +1045,10 @@ GeomSymmetricTensor<2>::operator+=(const GeomSymmetricTensor<2>::EigenType& rhs)
 }
 
 template<>
+template<typename Derived>
 inline
 GeomSymmetricTensor<3>&
-GeomSymmetricTensor<3>::operator+=(const GeomSymmetricTensor<3>::EigenType& rhs) {
+GeomSymmetricTensor<3>::operator+=(const Eigen::MatrixBase<Derived>& rhs) {
   REQUIRE(fuzzyEqual(rhs(0,1), rhs(1,0), 1.e-10));
   REQUIRE(fuzzyEqual(rhs(0,2), rhs(2,0), 1.e-10));
   REQUIRE(fuzzyEqual(rhs(1,2), rhs(2,1), 1.e-10));
@@ -1056,17 +1065,19 @@ GeomSymmetricTensor<3>::operator+=(const GeomSymmetricTensor<3>::EigenType& rhs)
 // -= eigen tensor
 //------------------------------------------------------------------------------
 template<>
+template<typename Derived>
 inline
 GeomSymmetricTensor<1>&
-GeomSymmetricTensor<1>::operator-=(const GeomSymmetricTensor<1>::EigenType& rhs) {
+GeomSymmetricTensor<1>::operator-=(const Eigen::MatrixBase<Derived>& rhs) {
   this->mxx -= rhs(0,0);
   return *this;
 }
 
 template<>
+template<typename Derived>
 inline
 GeomSymmetricTensor<2>&
-GeomSymmetricTensor<2>::operator-=(const GeomSymmetricTensor<2>::EigenType& rhs) {
+GeomSymmetricTensor<2>::operator-=(const Eigen::MatrixBase<Derived>& rhs) {
   REQUIRE(fuzzyEqual(rhs(0,1), rhs(1,0), 1.e-10));
   this->mxx -= rhs(0,0);
   this->mxy -= rhs(0,1);
@@ -1075,9 +1086,10 @@ GeomSymmetricTensor<2>::operator-=(const GeomSymmetricTensor<2>::EigenType& rhs)
 }
 
 template<>
+template<typename Derived>
 inline
 GeomSymmetricTensor<3>&
-GeomSymmetricTensor<3>::operator-=(const GeomSymmetricTensor<3>::EigenType& rhs) {
+GeomSymmetricTensor<3>::operator-=(const Eigen::MatrixBase<Derived>& rhs) {
   REQUIRE(fuzzyEqual(rhs(0,1), rhs(1,0), 1.e-10));
   REQUIRE(fuzzyEqual(rhs(0,2), rhs(2,0), 1.e-10));
   REQUIRE(fuzzyEqual(rhs(1,2), rhs(2,1), 1.e-10));
