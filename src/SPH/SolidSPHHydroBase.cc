@@ -34,6 +34,8 @@
 
 #include "SolidSPHHydroBase.hh"
 
+#include "Eigen/Dense"
+
 #include <limits.h>
 #include <float.h>
 #include <algorithm>
@@ -63,40 +65,57 @@ using NeighborSpace::ConnectivityMap;
 // Compute the artificial tensile stress correction tensor for the given 
 // stress tensor
 //------------------------------------------------------------------------------
-inline
-Dim<1>::SymTensor
-tensileStressCorrection(const Dim<1>::SymTensor& sigma) {
-  if (sigma.xx() > 0.0) {
-    return -sigma;
-  } else {
-    return Dim<1>::SymTensor();
-  }
-}
+// inline
+// Dim<1>::SymTensor::EigenType
+// tensileStressCorrection(const Dim<1>::SymTensor::EigenType& sigma) {
+//   if (sigma(0,0) > 0.0) {
+//     return -sigma;
+//   } else {
+//     return Dim<1>::SymTensor::EigenType::Zero();
+//   }
+// }
 
-inline
-Dim<2>::SymTensor
-tensileStressCorrection(const Dim<2>::SymTensor& sigma) {
-  const EigenStruct<2> eigen = sigma.eigenVectors();
-  const double lambdax = eigen.eigenValues.x();
-  const double lambday = eigen.eigenValues.y();
-  Dim<2>::SymTensor result((lambdax > 0.0 ? -lambdax : 0.0), 0.0,
-                           0.0, (lambday > 0.0 ? -lambday : 0.0));
-  result.rotationalTransform(eigen.eigenVectors);
-  return result;
-}
+// inline
+// Dim<2>::SymTensor::EigenType
+// tensileStressCorrection(const Dim<2>::SymTensor::EigenType& sigma) {
+//   Eigen::SelfAdjointEigenSolver<Dim<2>::SymTensor::EigenType> eigensolver(sigma);
+//   CHECK(eigensolver.info() == Eigen::Success);
+//   const auto lambdax = eigensolver.eigenvalues().x();
+//   const auto lambday = eigensolver.eigenvalues().y();
+//   const auto vecs = eigensolver.eigenvectors();
+//   Dim<2>::SymTensor::EigenType result;
+//   result << ((lambdax > 0.0 ? -lambdax : 0.0), 0.0,
+//              0.0,                              (lambday > 0.0 ? -lambday : 0.0));
+//   result = (vecs * result * vecs.transpose()).eval();
+//   return result;
+// }
 
+// inline
+// Dim<3>::SymTensor::EigenType
+// tensileStressCorrection(const Dim<3>::SymTensor::EigenType& sigma) {
+//   Eigen::SelfAdjointEigenSolver<Dim<3>::SymTensor::EigenType> eigensolver(sigma);
+//   CHECK(eigensolver.info() == Eigen::Success);
+//   const auto lambdax = eigensolver.eigenvalues().x();
+//   const auto lambday = eigensolver.eigenvalues().y();
+//   const auto lambdaz = eigensolver.eigenvalues().z();
+//   const auto vecs = eigensolver.eigenvectors();
+//   Dim<3>::SymTensor::EigenType result;
+//   result << ((lambdax > 0.0 ? -lambdax : 0.0), 0.0,                              0.0,
+//              0.0,                              (lambday > 0.0 ? -lambday : 0.0), 0.0,
+//              0.0,                              0.0,                              (lambdaz > 0.0 ? -lambdaz : 0.0));
+//   result = (vecs * result * vecs.transpose()).eval();
+//   return result;
+// }
+
+template<typename Dimension>
 inline
-Dim<3>::SymTensor
-tensileStressCorrection(const Dim<3>::SymTensor& sigma) {
-  const EigenStruct<3> eigen = sigma.eigenVectors();
-  const double lambdax = eigen.eigenValues.x();
-  const double lambday = eigen.eigenValues.y();
-  const double lambdaz = eigen.eigenValues.z();
-  Dim<3>::SymTensor result((lambdax > 0.0 ? -lambdax : 0.0), 0.0, 0.0,
-                           0.0, (lambday > 0.0 ? -lambday : 0.0), 0.0,
-                           0.0, 0.0, (lambdaz > 0.0 ? -lambdaz : 0.0));
-  result.rotationalTransform(eigen.eigenVectors);
-  return result;
+typename Dimension::SymTensor::EigenType
+tensileStressCorrection(const typename Dimension::SymTensor::EigenType& sigma) {
+  Eigen::SelfAdjointEigenSolver<typename Dimension::SymTensor::EigenType> eigensolver(sigma);
+  CHECK(eigensolver.info() == Eigen::Success);
+  const auto lambdas = -(eigensolver.eigenvalues().cwiseMax(0.0));
+  const auto vecs = eigensolver.eigenvectors();
+  return vecs * lambdas.asDiagonal() * vecs.transpose();
 }
 
 //------------------------------------------------------------------------------
@@ -317,6 +336,10 @@ evaluateDerivatives(const typename Dimension::Scalar time,
                     const State<Dimension>& state,
                     StateDerivatives<Dimension>& derivatives) const {
 
+  typedef typename Vector::EigenType EigenVector;
+  typedef typename Tensor::EigenType EigenTensor;
+  typedef typename SymTensor::EigenType EigenSymTensor;
+
   // Get the ArtificialViscosity.
   ArtificialViscosity<Dimension>& Q = this->artificialViscosity();
 
@@ -429,6 +452,11 @@ evaluateDerivatives(const typename Dimension::Scalar time,
     }
   }
 
+  // Some scratch variables.
+  Scalar Wi, gWi, WQi, gWQi, Wj, gWj, WQj, gWQj;
+  Tensor QPiij0, QPiji0;
+  EigenSymTensor sigmai, sigmaj;
+
   // Start our big loop over all FluidNodeLists.
   size_t nodeListi = 0;
   for (typename DataBase<Dimension>::ConstFluidNodeListIterator itr = dataBase.fluidNodeListBegin();
@@ -471,66 +499,66 @@ evaluateDerivatives(const typename Dimension::Scalar time,
       size_t ncalc = 0;
 
       // Get the state for node i.
-      const Vector& ri = position(nodeListi, i);
-      const Scalar& mi = mass(nodeListi, i);
-      const Vector& vi = velocity(nodeListi, i);
-      const Scalar& rhoi = massDensity(nodeListi, i);
-      const Scalar& epsi = specificThermalEnergy(nodeListi, i);
-      const Scalar& Pi = pressure(nodeListi, i);
-      const SymTensor& Hi = H(nodeListi, i);
-      const Scalar& ci = soundSpeed(nodeListi, i);
-      const Scalar& omegai = omega(nodeListi, i);
-      const SymTensor& Si = S(nodeListi, i);
-      const Scalar& mui = mu(nodeListi, i);
-      const Scalar Hdeti = Hi.Determinant();
-      const Scalar safeOmegai = safeInv(omegai, tiny);
-      const int fragIDi = fragIDs(nodeListi, i);
-      const int pTypei = pTypes(nodeListi, i);
+      const auto ri = position(nodeListi, i).eigen();
+      const auto mi = mass(nodeListi, i);
+      const auto vi = velocity(nodeListi, i).eigen();
+      const auto rhoi = massDensity(nodeListi, i);
+      const auto epsi = specificThermalEnergy(nodeListi, i);
+      const auto Pi = pressure(nodeListi, i);
+      const auto Hi = H(nodeListi, i).eigen();
+      const auto ci = soundSpeed(nodeListi, i);
+      const auto omegai = omega(nodeListi, i);
+      const auto Si = S(nodeListi, i).eigen();
+      const auto mui = mu(nodeListi, i);
+      const auto Hdeti = Hi.determinant();
+      const auto safeOmegai = safeInv(omegai, tiny);
+      const auto fragIDi = fragIDs(nodeListi, i);
+      const auto pTypei = pTypes(nodeListi, i);
       CHECK(mi > 0.0);
       CHECK(rhoi > 0.0);
       CHECK(Hdeti > 0.0);
 
-      Scalar& rhoSumi = rhoSum(nodeListi, i);
-      Vector& DxDti = DxDt(nodeListi, i);
-      Scalar& DrhoDti = DrhoDt(nodeListi, i);
-      Vector& DvDti = DvDt(nodeListi, i);
-      Scalar& DepsDti = DepsDt(nodeListi, i);
-      Tensor& DvDxi = DvDx(nodeListi, i);
-      Tensor& localDvDxi = localDvDx(nodeListi, i);
-      Tensor& Mi = M(nodeListi, i);
-      Tensor& localMi = localM(nodeListi, i);
-      SymTensor& DHDti = DHDt(nodeListi, i);
-      SymTensor& Hideali = Hideal(nodeListi, i);
-      Scalar& maxViscousPressurei = maxViscousPressure(nodeListi, i);
-      Scalar& effViscousPressurei = effViscousPressure(nodeListi, i);
-      Scalar& rhoSumCorrectioni = rhoSumCorrection(nodeListi, i);
-      Scalar& viscousWorki = viscousWork(nodeListi, i);
-      vector<Vector>& pairAccelerationsi = pairAccelerations(nodeListi, i);
-      Scalar& XSPHWeightSumi = XSPHWeightSum(nodeListi, i);
-      Vector& XSPHDeltaVi = XSPHDeltaV(nodeListi, i);
-      Scalar& weightedNeighborSumi = weightedNeighborSum(nodeListi, i);
-      SymTensor& massSecondMomenti = massSecondMoment(nodeListi, i);
-      SymTensor& DSDti = DSDt(nodeListi, i);
-      Scalar& worki = workFieldi(i);
+      auto& rhoSumi = rhoSum(nodeListi, i);
+      auto& DxDti = DxDt(nodeListi, i);
+      auto& DrhoDti = DrhoDt(nodeListi, i);
+      auto& DvDti = DvDt(nodeListi, i);
+      auto& DepsDti = DepsDt(nodeListi, i);
+      auto& DvDxi = DvDx(nodeListi, i);
+      auto& localDvDxi = localDvDx(nodeListi, i);
+      auto& Mi = M(nodeListi, i);
+      auto& localMi = localM(nodeListi, i);
+      auto& DHDti = DHDt(nodeListi, i);
+      auto& Hideali = Hideal(nodeListi, i);
+      auto& maxViscousPressurei = maxViscousPressure(nodeListi, i);
+      auto& effViscousPressurei = effViscousPressure(nodeListi, i);
+      auto& rhoSumCorrectioni = rhoSumCorrection(nodeListi, i);
+      auto& viscousWorki = viscousWork(nodeListi, i);
+      auto& pairAccelerationsi = pairAccelerations(nodeListi, i);
+      auto& XSPHWeightSumi = XSPHWeightSum(nodeListi, i);
+      auto& XSPHDeltaVi = XSPHDeltaV(nodeListi, i);
+      auto& weightedNeighborSumi = weightedNeighborSum(nodeListi, i);
+      auto& massSecondMomenti = massSecondMoment(nodeListi, i);
+      auto& DSDti = DSDt(nodeListi, i);
+      auto& worki = workFieldi(i);
 
       // Get the connectivity info for this node.
-      const vector< vector<int> >& fullConnectivity = connectivityMap.connectivityForNode(&nodeList, i);
+      const auto& fullConnectivity = connectivityMap.connectivityForNode(&nodeList, i);
 
       // Iterate over the NodeLists.
       for (size_t nodeListj = 0; nodeListj != numNodeLists; ++nodeListj) {
 
         // Connectivity of this node with this NodeList.  We only need to proceed if
         // there are some nodes in this list.
-        const vector<int>& connectivity = fullConnectivity[nodeListj];
+        const auto& connectivity = fullConnectivity[nodeListj];
         if (connectivity.size() > 0) {
-          const int firstGhostNodej = nodeLists[nodeListj]->firstGhostNode();
+          const auto firstGhostNodej = nodeLists[nodeListj]->firstGhostNode();
 
           // Loop over the neighbors.
 #pragma vector always
-          for (vector<int>::const_iterator jItr = connectivity.begin();
+          for (auto jItr = connectivity.begin();
                jItr != connectivity.end();
                ++jItr) {
-            const int j = *jItr;
+            const auto j = *jItr;
 
             // Only proceed if this node pair has not been calculated yet.
             if (connectivityMap.calculatePairInteraction(nodeListi, i, 
@@ -539,41 +567,41 @@ evaluateDerivatives(const typename Dimension::Scalar time,
               ++ncalc;
 
               // Get the state for node j
-              const Vector& rj = position(nodeListj, j);
-              const Scalar& mj = mass(nodeListj, j);
-              const Vector& vj = velocity(nodeListj, j);
-              const Scalar& rhoj = massDensity(nodeListj, j);
-              const Scalar& epsj = specificThermalEnergy(nodeListj, j);
-              const Scalar& Pj = pressure(nodeListj, j);
-              const SymTensor& Hj = H(nodeListj, j);
-              const Scalar& cj = soundSpeed(nodeListj, j);
-              const Scalar& omegaj = omega(nodeListj, j);
-              const SymTensor& Sj = S(nodeListj, j);
-              const Scalar Hdetj = Hj.Determinant();
-              const Scalar safeOmegaj = safeInv(omegaj, tiny);
-              const int fragIDj = fragIDs(nodeListj, j);
-              const int pTypej = pTypes(nodeListj, j);
+              const auto rj = position(nodeListj, j).eigen();
+              const auto mj = mass(nodeListj, j);
+              const auto vj = velocity(nodeListj, j).eigen();
+              const auto rhoj = massDensity(nodeListj, j);
+              const auto epsj = specificThermalEnergy(nodeListj, j);
+              const auto Pj = pressure(nodeListj, j);
+              const auto Hj = H(nodeListj, j).eigen();
+              const auto cj = soundSpeed(nodeListj, j);
+              const auto omegaj = omega(nodeListj, j);
+              const auto Sj = S(nodeListj, j).eigen();
+              const auto Hdetj = Hj.determinant();
+              const auto safeOmegaj = safeInv(omegaj, tiny);
+              const auto fragIDj = fragIDs(nodeListj, j);
+              const auto pTypej = pTypes(nodeListj, j);
               CHECK(mj > 0.0);
               CHECK(rhoj > 0.0);
               CHECK(Hdetj > 0.0);
 
-              Scalar& rhoSumj = rhoSum(nodeListj, j);
-              Vector& DxDtj = DxDt(nodeListj, j);
-              Vector& DvDtj = DvDt(nodeListj, j);
-              Scalar& DepsDtj = DepsDt(nodeListj, j);
-              Tensor& DvDxj = DvDx(nodeListj, j);
-              Tensor& localDvDxj = localDvDx(nodeListj, j);
-              Tensor& Mj = M(nodeListj, j);
-              Tensor& localMj = localM(nodeListj, j);
-              Scalar& maxViscousPressurej = maxViscousPressure(nodeListj, j);
-              Scalar& effViscousPressurej = effViscousPressure(nodeListj, j);
-              Scalar& rhoSumCorrectionj = rhoSumCorrection(nodeListj, j);
-              Scalar& viscousWorkj = viscousWork(nodeListj, j);
-              vector<Vector>& pairAccelerationsj = pairAccelerations(nodeListj, j);
-              Scalar& XSPHWeightSumj = XSPHWeightSum(nodeListj, j);
-              Vector& XSPHDeltaVj = XSPHDeltaV(nodeListj, j);
-              Scalar& weightedNeighborSumj = weightedNeighborSum(nodeListj, j);
-              SymTensor& massSecondMomentj = massSecondMoment(nodeListj, j);
+              auto& rhoSumj = rhoSum(nodeListj, j);
+              auto& DxDtj = DxDt(nodeListj, j);
+              auto& DvDtj = DvDt(nodeListj, j);
+              auto& DepsDtj = DepsDt(nodeListj, j);
+              auto& DvDxj = DvDx(nodeListj, j);
+              auto& localDvDxj = localDvDx(nodeListj, j);
+              auto& Mj = M(nodeListj, j);
+              auto& localMj = localM(nodeListj, j);
+              auto& maxViscousPressurej = maxViscousPressure(nodeListj, j);
+              auto& effViscousPressurej = effViscousPressure(nodeListj, j);
+              auto& rhoSumCorrectionj = rhoSumCorrection(nodeListj, j);
+              auto& viscousWorkj = viscousWork(nodeListj, j);
+              auto& pairAccelerationsj = pairAccelerations(nodeListj, j);
+              auto& XSPHWeightSumj = XSPHWeightSum(nodeListj, j);
+              auto& XSPHDeltaVj = XSPHDeltaV(nodeListj, j);
+              auto& weightedNeighborSumj = weightedNeighborSum(nodeListj, j);
+              auto& massSecondMomentj = massSecondMoment(nodeListj, j);
 
               // Flag if this is a contiguous material pair or not.
               const bool sameMatij = true; // (nodeListi == nodeListj and fragIDi == fragIDj);
@@ -582,49 +610,41 @@ evaluateDerivatives(const typename Dimension::Scalar time,
               const bool freeParticle = (pTypei == 0 or pTypej == 0);
 
               // Node displacement.
-              const Vector rij = ri - rj;
-              const Vector etai = Hi*rij;
-              const Vector etaj = Hj*rij;
-              const Scalar etaMagi = etai.magnitude();
-              const Scalar etaMagj = etaj.magnitude();
+              const auto rij = (ri - rj).eval();
+              const auto etai = (Hi*rij).eval();
+              const auto etaj = (Hj*rij).eval();
+              const auto etaMagi = etai.norm();
+              const auto etaMagj = etaj.norm();
               CHECK(etaMagi >= 0.0);
               CHECK(etaMagj >= 0.0);
 
               // Symmetrized kernel weight and gradient.
-              const Vector Hetai = Hi*etai.unitVector();
-              const std::pair<double, double> WWi = W.kernelAndGradValue(etaMagi, Hdeti);
-              const Scalar Wi = WWi.first;
-              const Scalar gWi = WWi.second;
-              const Vector gradWi = gWi*Hetai;
-              const std::pair<double, double> WQWi = WQ.kernelAndGradValue(etaMagi, Hdeti);
-              const Scalar WQi = WQWi.first;
-              const Scalar gWQi = WQWi.second;
-              const Vector gradWQi = gWQi*Hetai;
-              const Vector gradWGi = WG.gradValue(etaMagi, Hdeti) * Hetai;
+              std::tie(Wi, gWi) = W.kernelAndGradValue(etaMagi, Hdeti);
+              std::tie(WQi, gWQi) = WQ.kernelAndGradValue(etaMagi, Hdeti);
+              const auto Hetai = (Hi*etai.normalized()).eval();
+              const auto gradWi = (gWi*Hetai).eval();
+              const auto gradWQi = (gWQi*Hetai).eval();
+              const auto gradWGi = (WG.gradValue(etaMagi, Hdeti) * Hetai).eval();
 
-              const Vector Hetaj = Hj*etaj.unitVector();
-              const std::pair<double, double> WWj = W.kernelAndGradValue(etaMagj, Hdetj);
-              const Scalar Wj = WWj.first;
-              const Scalar gWj = WWj.second;
-              const Vector gradWj = gWj*Hetaj;
-              const std::pair<double, double> WQWj = WQ.kernelAndGradValue(etaMagj, Hdetj);
-              const Scalar WQj = WQWj.first;
-              const Scalar gWQj = WQWj.second;
-              const Vector gradWQj = gWQj*Hetaj;
-              const Vector gradWGj = WG.gradValue(etaMagj, Hdetj) * Hetaj;
+              std::tie(Wj, gWj) = W.kernelAndGradValue(etaMagj, Hdetj);
+              std::tie(WQj, gWQj) = WQ.kernelAndGradValue(etaMagj, Hdetj);
+              const auto Hetaj = (Hj*etaj.normalized()).eval();
+              const auto gradWj = (gWj*Hetaj).eval();
+              const auto gradWQj = (gWQj*Hetaj).eval();
+              const auto gradWGj = (WG.gradValue(etaMagj, Hdetj) * Hetaj).eval();
 
               // Determine how we're applying damage.
-              const Scalar fDeffij = coupling(nodeListi, i, nodeListj, j);
+              const auto fDeffij = coupling(nodeListi, i, nodeListj, j);
 
               // Zero'th and second moment of the node distribution -- used for the
               // ideal H calculation.
-              const double fweightij = sameMatij ? 1.0 : mj*rhoi/(mi*rhoj);
-              const double rij2 = rij.magnitude2();
-              const auto thpt = rij.selfdyad()*safeInvVar(rij2*rij2*rij2);
+              const auto fweightij = sameMatij ? 1.0 : mj*rhoi/(mi*rhoj);
+              const auto rij2 = rij.squaredNorm();
+              const auto thpt = (rij*(rij.transpose())*safeInvVar(rij2*rij2*rij2)).eval();
               weightedNeighborSumi +=     fweightij*abs(gWi);
               weightedNeighborSumj += 1.0/fweightij*abs(gWj);
-              massSecondMomenti +=     fweightij*gradWi.magnitude2()*thpt;
-              massSecondMomentj += 1.0/fweightij*gradWj.magnitude2()*thpt;
+              massSecondMomenti +=     fweightij*gradWi.squaredNorm()*thpt;
+              massSecondMomentj += 1.0/fweightij*gradWj.squaredNorm()*thpt;
 
               // Contribution to the sum density (only if the same material).
               if (nodeListi == nodeListj) {
@@ -637,16 +657,18 @@ evaluateDerivatives(const typename Dimension::Scalar time,
               rhoSumCorrectionj += mi * WQj / rhoi ;
 
               // Compute the pair-wise artificial viscosity.
-              const Vector vij = vi - vj;
-              const pair<Tensor, Tensor> QPiij = Q.Piij(nodeListi, i, nodeListj, j,
-                                                        ri, etai, vi, rhoi, ci, Hi,
-                                                        rj, etaj, vj, rhoj, cj, Hj);
-              const Vector Qacci = 0.5*(QPiij.first *gradWQi);
-              const Vector Qaccj = 0.5*(QPiij.second*gradWQj);
-              const Scalar workQi = vij.dot(Qacci);
-              const Scalar workQj = vij.dot(Qaccj);
-              const Scalar Qi = rhoi*rhoi*(QPiij.first. diagonalElements().maxAbsElement());
-              const Scalar Qj = rhoj*rhoj*(QPiij.second.diagonalElements().maxAbsElement());
+              const auto vij = vi - vj;
+              std::tie(QPiij0, QPiji0) = Q.Piij(nodeListi, i, nodeListj, j,
+                                                position(nodeListi, i), Vector(etai), velocity(nodeListi, i), rhoi, ci, H(nodeListi, i),
+                                                position(nodeListj, j), Vector(etaj), velocity(nodeListj, j), rhoj, cj, H(nodeListj, j));
+              const auto QPiij = QPiij0.eigen();
+              const auto QPiji = QPiji0.eigen();
+              const auto Qacci = 0.5*(QPiij*gradWQi);
+              const auto Qaccj = 0.5*(QPiji*gradWQj);
+              const auto workQi = vij.dot(Qacci);
+              const auto workQj = vij.dot(Qaccj);
+              const auto Qi = rhoi*rhoi*(QPiji.diagonal().cwiseAbs().maxCoeff());
+              const auto Qj = rhoj*rhoj*(QPiji.diagonal().cwiseAbs().maxCoeff());
               maxViscousPressurei = max(maxViscousPressurei, Qi);
               maxViscousPressurej = max(maxViscousPressurej, Qj);
               effViscousPressurei += mj*Qi*WQi/rhoj;
@@ -655,47 +677,48 @@ evaluateDerivatives(const typename Dimension::Scalar time,
               viscousWorkj += mi*workQj;
 
               // Damage scaling of negative pressures.
-              const Scalar Peffi = (Pi > 0.0 ? Pi : fDeffij*Pi);
-              const Scalar Peffj = (Pj > 0.0 ? Pj : fDeffij*Pj);
+              const auto Peffi = (Pi > 0.0 ? Pi : fDeffij*Pi);
+              const auto Peffj = (Pj > 0.0 ? Pj : fDeffij*Pj);
 
               // Compute the stress tensors.
-              SymTensor sigmai = -Peffi*SymTensor::one;
-              SymTensor sigmaj = -Peffj*SymTensor::one;
               if (sameMatij) {
-                sigmai += fDeffij*Si;
-                sigmaj += fDeffij*Sj;
+                sigmai.noalias() = fDeffij*Si - Peffi*EigenSymTensor::Identity();
+                sigmaj.noalias() = fDeffij*Sj - Peffj*EigenSymTensor::Identity();
+              } else {
+                sigmai.noalias() = -Peffi*EigenSymTensor::Identity();
+                sigmaj.noalias() = -Peffj*EigenSymTensor::Identity();
               }
 
               // Compute the tensile correction to add to the stress as described in 
               // Gray, Monaghan, & Swift (Comput. Methods Appl. Mech. Eng., 190, 2001)
-              const Scalar fi = epsTensile*FastMath::pow4(Wi/(Hdeti*WnPerh));
-              const Scalar fj = epsTensile*FastMath::pow4(Wj/(Hdetj*WnPerh));
-              const SymTensor Ri = fi*tensileStressCorrection(sigmai);
-              const SymTensor Rj = fj*tensileStressCorrection(sigmaj);
-              sigmai += Ri;
-              sigmaj += Rj;
+              // const auto fi = epsTensile*FastMath::pow4(Wi/(Hdeti*WnPerh));
+              // const auto fj = epsTensile*FastMath::pow4(Wj/(Hdetj*WnPerh));
+              // const auto Ri = fi*tensileStressCorrection<Dimension>(sigmai);
+              // const auto Rj = fj*tensileStressCorrection<Dimension>(sigmaj);
+              // sigmai += Ri;
+              // sigmaj += Rj;
 
               // Acceleration.
               CHECK(rhoi > 0.0);
               CHECK(rhoj > 0.0);
-              const SymTensor sigmarhoi = safeOmegai*sigmai/(rhoi*rhoi);
-              const SymTensor sigmarhoj = safeOmegaj*sigmaj/(rhoj*rhoj);
-              const Vector deltaDvDt = sigmarhoi*gradWi + sigmarhoj*gradWj - Qacci - Qaccj;
+              const auto sigmarhoi = safeOmegai*sigmai/(rhoi*rhoi);
+              const auto sigmarhoj = safeOmegaj*sigmaj/(rhoj*rhoj);
+              const auto deltaDvDt = sigmarhoi*gradWi + sigmarhoj*gradWj - Qacci - Qaccj;
               if (freeParticle) {
                 DvDti += mj*deltaDvDt;
                 DvDtj -= mi*deltaDvDt;
               }
 
               // Pair-wise portion of grad velocity.
-              const Tensor deltaDvDxi = fDeffij*vij.dyad(gradWGi);
-              const Tensor deltaDvDxj = fDeffij*vij.dyad(gradWGj);
+              const auto deltaDvDxi = fDeffij*vij*(gradWGi.transpose());
+              const auto deltaDvDxj = fDeffij*vij*(gradWGj.transpose());
 
               // Specific thermal energy evolution.
-              DepsDti -= mj*(fDeffij*sigmarhoi.doubledot(deltaDvDxi.Symmetric()) - workQi);
-              DepsDtj -= mi*(fDeffij*sigmarhoj.doubledot(deltaDvDxj.Symmetric()) - workQj);
+              DepsDti -= mj*(fDeffij*(sigmarhoi*deltaDvDxi).trace() - workQi);
+              DepsDtj -= mi*(fDeffij*(sigmarhoj*deltaDvDxj).trace() - workQj);
               if (compatibleEnergy) {
-                pairAccelerationsi.push_back( mj*deltaDvDt);
-                pairAccelerationsj.push_back(-mi*deltaDvDt);
+                pairAccelerationsi.push_back( mj*Vector(deltaDvDt));
+                pairAccelerationsj.push_back(-mi*Vector(deltaDvDt));
               }
 
               // Velocity gradient.
@@ -708,7 +731,7 @@ evaluateDerivatives(const typename Dimension::Scalar time,
 
               // Estimate of delta v (for XSPH).
               if (XSPH and sameMatij) {
-                const double wXSPHij = 0.5*(mi/rhoi*Wi + mj/rhoj*Wj);
+                const auto wXSPHij = 0.5*(mi/rhoi*Wi + mj/rhoj*Wj);
                 XSPHWeightSumi += wXSPHij;
                 XSPHWeightSumj += wXSPHij;
                 XSPHDeltaVi -= wXSPHij*vij;
@@ -716,11 +739,11 @@ evaluateDerivatives(const typename Dimension::Scalar time,
               }
 
               // Linear gradient correction term.
-              Mi -= mj*rij.dyad(gradWGi);
-              Mj -= mi*rij.dyad(gradWGj);
+              Mi -= mj*rij*(gradWGi.transpose());
+              Mj -= mi*rij*(gradWGj.transpose());
               if (sameMatij) {
-                localMi -= mj*rij.dyad(gradWGi);
-                localMj -= mi*rij.dyad(gradWGj);
+                localMi -= mj*rij*(gradWGi.transpose());
+                localMj -= mi*rij*(gradWGj.transpose());
               }
             }
           }
@@ -732,7 +755,7 @@ evaluateDerivatives(const typename Dimension::Scalar time,
             (pairAccelerationsi.size() == numNeighborsi));
 
       // Get the time for pairwise interactions.
-      const Scalar deltaTimePair = Timing::difference(start, Timing::currentTime())/(ncalc + 1.0e-30);
+      const auto deltaTimePair = Timing::difference(start, Timing::currentTime())/(ncalc + 1.0e-30);
 
       // Add the self-contribution to density sum.
       rhoSumi += mi*W0*Hdeti;
@@ -766,31 +789,30 @@ evaluateDerivatives(const typename Dimension::Scalar time,
       DrhoDti = -rhoi*DvDxi.Trace();
 
       // If needed finish the total energy derivative.
-      if (this->mEvolveTotalEnergy) DepsDti = mi*(vi.dot(DvDti) + DepsDti);
+      if (this->mEvolveTotalEnergy) DepsDti = mi*(vi.dot(DvDti.eigen()) + DepsDti);
 
       // Complete the moments of the node distribution for use in the ideal H calculation.
       weightedNeighborSumi = Dimension::rootnu(max(0.0, weightedNeighborSumi/Hdeti));
       massSecondMomenti /= Hdeti*Hdeti;
 
       // Determine the position evolution, based on whether we're doing XSPH or not.
+      DxDti = vi;
       if (XSPH) {
         CHECK(XSPHWeightSumi >= 0.0);
         XSPHWeightSumi += Hdeti*mi/rhoi*W0 + 1.0e-30;
-        DxDti = vi + XSPHDeltaVi/XSPHWeightSumi;
-      } else {
-        DxDti = vi;
+        DxDti += XSPHDeltaVi/XSPHWeightSumi;
       }
 
       // The H tensor evolution.
-      DHDti = smoothingScaleMethod.smoothingScaleDerivative(Hi,
-                                                            ri,
+      DHDti = smoothingScaleMethod.smoothingScaleDerivative(H(nodeListi, i),
+                                                            position(nodeListi, i),
                                                             DvDxi,
                                                             hmin,
                                                             hmax,
                                                             hminratio,
                                                             nPerh);
-      Hideali = smoothingScaleMethod.newSmoothingScale(Hi,
-                                                       ri,
+      Hideali = smoothingScaleMethod.newSmoothingScale(H(nodeListi, i),
+                                                       position(nodeListi, i),
                                                        weightedNeighborSumi,
                                                        massSecondMomenti,
                                                        W,
@@ -803,17 +825,17 @@ evaluateDerivatives(const typename Dimension::Scalar time,
                                                        i);
 
       // If this node is damaged we begin to force it back to it's original H.
-      const Scalar Di = max(0.0, min(1.0, damage(nodeListi, i).eigenValues().maxElement()));
+      const auto Di = max(0.0, min(1.0, damage(nodeListi, i).eigenValues().maxElement()));
       Hideali = (1.0 - Di)*Hideali + Di*mHfield0(nodeListi, i);
 
       // We also adjust the density evolution in the presence of damage.
       if (rho0 > 0.0) DrhoDti = (1.0 - Di)*DrhoDti - 0.25/dt*Di*(rhoi - rho0);
 
       // Determine the deviatoric stress evolution.
-      const SymTensor deformation = localDvDxi.Symmetric();
-      const Tensor spin = localDvDxi.SkewSymmetric();
-      const SymTensor deviatoricDeformation = deformation - (deformation.Trace()/3.0)*SymTensor::one;
-      const SymTensor spinCorrection = (spin*Si + Si*spin).Symmetric();
+      const auto deformation = localDvDxi.Symmetric();
+      const auto spin = localDvDxi.SkewSymmetric();
+      const auto deviatoricDeformation = deformation - (deformation.Trace()/3.0)*SymTensor::one;
+      const auto spinCorrection = (spin*S(nodeListi, i) + S(nodeListi, i)*spin).Symmetric();
       DSDti = spinCorrection + (2.0*mui)*deviatoricDeformation;
 
       // Increment the work for i.
