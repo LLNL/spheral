@@ -648,7 +648,7 @@ evaluateDerivatives(const typename Dimension::Scalar time,
               const auto Qaccj = 0.5*(QPiji*gradWQj);
               const auto workQi = vij.dot(Qacci);
               const auto workQj = vij.dot(Qaccj);
-              const auto Qi = rhoi*rhoi*(QPiji.diagonalElements().maxAbsElement());
+              const auto Qi = rhoi*rhoi*(QPiij.diagonalElements().maxAbsElement());
               const auto Qj = rhoj*rhoj*(QPiji.diagonalElements().maxAbsElement());
               maxViscousPressurei = max(maxViscousPressurei, Qi);
               maxViscousPressurej = max(maxViscousPressurej, Qj);
@@ -695,11 +695,11 @@ evaluateDerivatives(const typename Dimension::Scalar time,
               const auto deltaDvDxj = fDeffij*vij.dyad(gradWGj);
 
               // Specific thermal energy evolution.
-              DepsDti -= mj*(fDeffij*(sigmarhoi*deltaDvDxi).Trace() - workQi);
-              DepsDtj -= mi*(fDeffij*(sigmarhoj*deltaDvDxj).Trace() - workQj);
+              DepsDti -= mj*(fDeffij*sigmarhoi.doubledot(deltaDvDxi.Symmetric()) - workQi);
+              DepsDtj -= mi*(fDeffij*sigmarhoj.doubledot(deltaDvDxj.Symmetric()) - workQj);
               if (compatibleEnergy) {
-                pairAccelerationsi.push_back( mj*Vector(deltaDvDt));
-                pairAccelerationsj.push_back(-mi*Vector(deltaDvDt));
+                pairAccelerationsi.push_back( mj*deltaDvDt);
+                pairAccelerationsj.push_back(-mi*deltaDvDt);
               }
 
               // Velocity gradient.
@@ -785,15 +785,15 @@ evaluateDerivatives(const typename Dimension::Scalar time,
       }
 
       // The H tensor evolution.
-      DHDti = smoothingScaleMethod.smoothingScaleDerivative(H(nodeListi, i),
-                                                            position(nodeListi, i),
+      DHDti = smoothingScaleMethod.smoothingScaleDerivative(Hi,
+                                                            ri,
                                                             DvDxi,
                                                             hmin,
                                                             hmax,
                                                             hminratio,
                                                             nPerh);
-      Hideali = smoothingScaleMethod.newSmoothingScale(H(nodeListi, i),
-                                                       position(nodeListi, i),
+      Hideali = smoothingScaleMethod.newSmoothingScale(Hi,
+                                                       ri,
                                                        weightedNeighborSumi,
                                                        massSecondMomenti,
                                                        W,
@@ -816,7 +816,7 @@ evaluateDerivatives(const typename Dimension::Scalar time,
       const auto deformation = localDvDxi.Symmetric();
       const auto spin = localDvDxi.SkewSymmetric();
       const auto deviatoricDeformation = deformation - (deformation.Trace()/3.0)*SymTensor::one;
-      const auto spinCorrection = (spin*S(nodeListi, i) + S(nodeListi, i)*spin).Symmetric();
+      const auto spinCorrection = (spin*Si + Si*spin).Symmetric();
       DSDti = spinCorrection + (2.0*mui)*deviatoricDeformation;
 
       // Increment the work for i.
