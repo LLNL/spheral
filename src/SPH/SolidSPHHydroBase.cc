@@ -65,57 +65,40 @@ using NeighborSpace::ConnectivityMap;
 // Compute the artificial tensile stress correction tensor for the given 
 // stress tensor
 //------------------------------------------------------------------------------
-// inline
-// Dim<1>::SymTensor::EigenType
-// tensileStressCorrection(const Dim<1>::SymTensor::EigenType& sigma) {
-//   if (sigma(0,0) > 0.0) {
-//     return -sigma;
-//   } else {
-//     return Dim<1>::SymTensor::EigenType::Zero();
-//   }
-// }
-
-// inline
-// Dim<2>::SymTensor::EigenType
-// tensileStressCorrection(const Dim<2>::SymTensor::EigenType& sigma) {
-//   Eigen::SelfAdjointEigenSolver<Dim<2>::SymTensor::EigenType> eigensolver(sigma);
-//   CHECK(eigensolver.info() == Eigen::Success);
-//   const auto lambdax = eigensolver.eigenvalues().x();
-//   const auto lambday = eigensolver.eigenvalues().y();
-//   const auto vecs = eigensolver.eigenvectors();
-//   Dim<2>::SymTensor::EigenType result;
-//   result << ((lambdax > 0.0 ? -lambdax : 0.0), 0.0,
-//              0.0,                              (lambday > 0.0 ? -lambday : 0.0));
-//   result = (vecs * result * vecs.transpose()).eval();
-//   return result;
-// }
-
-// inline
-// Dim<3>::SymTensor::EigenType
-// tensileStressCorrection(const Dim<3>::SymTensor::EigenType& sigma) {
-//   Eigen::SelfAdjointEigenSolver<Dim<3>::SymTensor::EigenType> eigensolver(sigma);
-//   CHECK(eigensolver.info() == Eigen::Success);
-//   const auto lambdax = eigensolver.eigenvalues().x();
-//   const auto lambday = eigensolver.eigenvalues().y();
-//   const auto lambdaz = eigensolver.eigenvalues().z();
-//   const auto vecs = eigensolver.eigenvectors();
-//   Dim<3>::SymTensor::EigenType result;
-//   result << ((lambdax > 0.0 ? -lambdax : 0.0), 0.0,                              0.0,
-//              0.0,                              (lambday > 0.0 ? -lambday : 0.0), 0.0,
-//              0.0,                              0.0,                              (lambdaz > 0.0 ? -lambdaz : 0.0));
-//   result = (vecs * result * vecs.transpose()).eval();
-//   return result;
-// }
-
-template<typename Dimension>
 inline
-typename Dimension::SymTensor::EigenType
-tensileStressCorrection(const typename Dimension::SymTensor::EigenType& sigma) {
-  Eigen::SelfAdjointEigenSolver<typename Dimension::SymTensor::EigenType> eigensolver(sigma);
-  CHECK(eigensolver.info() == Eigen::Success);
-  const auto lambdas = -(eigensolver.eigenvalues().cwiseMax(0.0));
-  const auto vecs = eigensolver.eigenvectors();
-  return vecs * lambdas.asDiagonal() * vecs.transpose();
+Dim<1>::SymTensor
+tensileStressCorrection(const Dim<1>::SymTensor& sigma) {
+  if (sigma.xx() > 0.0) {
+    return -sigma;
+  } else {
+    return Dim<1>::SymTensor::zero;
+  }
+}
+
+inline
+Dim<2>::SymTensor
+tensileStressCorrection(const Dim<2>::SymTensor& sigma) {
+  const EigenStruct<2> eigen = sigma.eigenVectors();
+  const double lambdax = eigen.eigenValues.x();
+  const double lambday = eigen.eigenValues.y();
+  Dim<2>::SymTensor result((lambdax > 0.0 ? -lambdax : 0.0), 0.0,
+                           0.0,                              (lambday > 0.0 ? -lambday : 0.0));
+  result.rotationalTransform(eigen.eigenVectors);
+  return result;
+}
+
+inline
+Dim<3>::SymTensor
+tensileStressCorrection(const Dim<3>::SymTensor& sigma) {
+  const EigenStruct<3> eigen = sigma.eigenVectors();
+  const double lambdax = eigen.eigenValues.x();
+  const double lambday = eigen.eigenValues.y();
+  const double lambdaz = eigen.eigenValues.z();
+  Dim<3>::SymTensor result((lambdax > 0.0 ? -lambdax : 0.0), 0.0,                              0.0,
+                           0.0,                              (lambday > 0.0 ? -lambday : 0.0), 0.0,
+                           0.0,                              0.0,                              (lambdaz > 0.0 ? -lambdaz : 0.0));
+  result.rotationalTransform(eigen.eigenVectors);
+  return result;
 }
 
 //------------------------------------------------------------------------------
@@ -454,8 +437,8 @@ evaluateDerivatives(const typename Dimension::Scalar time,
 
   // Some scratch variables.
   Scalar Wi, gWi, WQi, gWQi, Wj, gWj, WQj, gWQj;
-  Tensor QPiij0, QPiji0;
-  EigenSymTensor sigmai, sigmaj;
+  Tensor QPiij, QPiji;
+  SymTensor sigmai, sigmaj;
 
   // Start our big loop over all FluidNodeLists.
   size_t nodeListi = 0;
@@ -499,18 +482,18 @@ evaluateDerivatives(const typename Dimension::Scalar time,
       size_t ncalc = 0;
 
       // Get the state for node i.
-      const auto ri = position(nodeListi, i).eigen();
+      const auto ri = position(nodeListi, i);
       const auto mi = mass(nodeListi, i);
-      const auto vi = velocity(nodeListi, i).eigen();
+      const auto vi = velocity(nodeListi, i);
       const auto rhoi = massDensity(nodeListi, i);
       const auto epsi = specificThermalEnergy(nodeListi, i);
       const auto Pi = pressure(nodeListi, i);
-      const auto Hi = H(nodeListi, i).eigen();
+      const auto Hi = H(nodeListi, i);
       const auto ci = soundSpeed(nodeListi, i);
       const auto omegai = omega(nodeListi, i);
-      const auto Si = S(nodeListi, i).eigen();
+      const auto Si = S(nodeListi, i);
       const auto mui = mu(nodeListi, i);
-      const auto Hdeti = Hi.determinant();
+      const auto Hdeti = Hi.Determinant();
       const auto safeOmegai = safeInv(omegai, tiny);
       const auto fragIDi = fragIDs(nodeListi, i);
       const auto pTypei = pTypes(nodeListi, i);
@@ -567,17 +550,17 @@ evaluateDerivatives(const typename Dimension::Scalar time,
               ++ncalc;
 
               // Get the state for node j
-              const auto rj = position(nodeListj, j).eigen();
+              const auto rj = position(nodeListj, j);
               const auto mj = mass(nodeListj, j);
-              const auto vj = velocity(nodeListj, j).eigen();
+              const auto vj = velocity(nodeListj, j);
               const auto rhoj = massDensity(nodeListj, j);
               const auto epsj = specificThermalEnergy(nodeListj, j);
               const auto Pj = pressure(nodeListj, j);
-              const auto Hj = H(nodeListj, j).eigen();
+              const auto Hj = H(nodeListj, j);
               const auto cj = soundSpeed(nodeListj, j);
               const auto omegaj = omega(nodeListj, j);
-              const auto Sj = S(nodeListj, j).eigen();
-              const auto Hdetj = Hj.determinant();
+              const auto Sj = S(nodeListj, j);
+              const auto Hdetj = Hj.Determinant();
               const auto safeOmegaj = safeInv(omegaj, tiny);
               const auto fragIDj = fragIDs(nodeListj, j);
               const auto pTypej = pTypes(nodeListj, j);
@@ -610,28 +593,28 @@ evaluateDerivatives(const typename Dimension::Scalar time,
               const bool freeParticle = (pTypei == 0 or pTypej == 0);
 
               // Node displacement.
-              const auto rij = (ri - rj).eval();
-              const auto etai = (Hi*rij).eval();
-              const auto etaj = (Hj*rij).eval();
-              const auto etaMagi = etai.norm();
-              const auto etaMagj = etaj.norm();
+              const auto rij = ri - rj;
+              const auto etai = Hi*rij;
+              const auto etaj = Hj*rij;
+              const auto etaMagi = etai.magnitude();
+              const auto etaMagj = etaj.magnitude();
               CHECK(etaMagi >= 0.0);
               CHECK(etaMagj >= 0.0);
 
               // Symmetrized kernel weight and gradient.
               std::tie(Wi, gWi) = W.kernelAndGradValue(etaMagi, Hdeti);
               std::tie(WQi, gWQi) = WQ.kernelAndGradValue(etaMagi, Hdeti);
-              const auto Hetai = (Hi*etai.normalized()).eval();
-              const auto gradWi = (gWi*Hetai).eval();
-              const auto gradWQi = (gWQi*Hetai).eval();
-              const auto gradWGi = (WG.gradValue(etaMagi, Hdeti) * Hetai).eval();
+              const auto Hetai = Hi*etai.unitVector();
+              const auto gradWi = gWi*Hetai;
+              const auto gradWQi = gWQi*Hetai;
+              const auto gradWGi = WG.gradValue(etaMagi, Hdeti) * Hetai;
 
               std::tie(Wj, gWj) = W.kernelAndGradValue(etaMagj, Hdetj);
               std::tie(WQj, gWQj) = WQ.kernelAndGradValue(etaMagj, Hdetj);
-              const auto Hetaj = (Hj*etaj.normalized()).eval();
-              const auto gradWj = (gWj*Hetaj).eval();
-              const auto gradWQj = (gWQj*Hetaj).eval();
-              const auto gradWGj = (WG.gradValue(etaMagj, Hdetj) * Hetaj).eval();
+              const auto Hetaj = Hj*etaj.unitVector();
+              const auto gradWj = gWj*Hetaj;
+              const auto gradWQj = gWQj*Hetaj;
+              const auto gradWGj = WG.gradValue(etaMagj, Hdetj) * Hetaj;
 
               // Determine how we're applying damage.
               const auto fDeffij = coupling(nodeListi, i, nodeListj, j);
@@ -639,12 +622,12 @@ evaluateDerivatives(const typename Dimension::Scalar time,
               // Zero'th and second moment of the node distribution -- used for the
               // ideal H calculation.
               const auto fweightij = sameMatij ? 1.0 : mj*rhoi/(mi*rhoj);
-              const auto rij2 = rij.squaredNorm();
-              const auto thpt = (rij*(rij.transpose())*safeInvVar(rij2*rij2*rij2)).eval();
+              const auto rij2 = rij.magnitude2();
+              const auto thpt = rij.selfdyad()*safeInvVar(rij2*rij2*rij2);
               weightedNeighborSumi +=     fweightij*abs(gWi);
               weightedNeighborSumj += 1.0/fweightij*abs(gWj);
-              massSecondMomenti +=     fweightij*gradWi.squaredNorm()*thpt;
-              massSecondMomentj += 1.0/fweightij*gradWj.squaredNorm()*thpt;
+              massSecondMomenti +=     fweightij*gradWi.magnitude2()*thpt;
+              massSecondMomentj += 1.0/fweightij*gradWj.magnitude2()*thpt;
 
               // Contribution to the sum density (only if the same material).
               if (nodeListi == nodeListj) {
@@ -658,17 +641,15 @@ evaluateDerivatives(const typename Dimension::Scalar time,
 
               // Compute the pair-wise artificial viscosity.
               const auto vij = vi - vj;
-              std::tie(QPiij0, QPiji0) = Q.Piij(nodeListi, i, nodeListj, j,
-                                                position(nodeListi, i), Vector(etai), velocity(nodeListi, i), rhoi, ci, H(nodeListi, i),
-                                                position(nodeListj, j), Vector(etaj), velocity(nodeListj, j), rhoj, cj, H(nodeListj, j));
-              const auto QPiij = QPiij0.eigen();
-              const auto QPiji = QPiji0.eigen();
+              std::tie(QPiij, QPiji) = Q.Piij(nodeListi, i, nodeListj, j,
+                                              ri, etai, vi, rhoi, ci, Hi,
+                                              rj, etaj, vj, rhoj, cj, Hj);
               const auto Qacci = 0.5*(QPiij*gradWQi);
               const auto Qaccj = 0.5*(QPiji*gradWQj);
               const auto workQi = vij.dot(Qacci);
               const auto workQj = vij.dot(Qaccj);
-              const auto Qi = rhoi*rhoi*(QPiji.diagonal().cwiseAbs().maxCoeff());
-              const auto Qj = rhoj*rhoj*(QPiji.diagonal().cwiseAbs().maxCoeff());
+              const auto Qi = rhoi*rhoi*(QPiji.diagonalElements().maxAbsElement());
+              const auto Qj = rhoj*rhoj*(QPiji.diagonalElements().maxAbsElement());
               maxViscousPressurei = max(maxViscousPressurei, Qi);
               maxViscousPressurej = max(maxViscousPressurej, Qj);
               effViscousPressurei += mj*Qi*WQi/rhoj;
@@ -682,21 +663,21 @@ evaluateDerivatives(const typename Dimension::Scalar time,
 
               // Compute the stress tensors.
               if (sameMatij) {
-                sigmai.noalias() = fDeffij*Si - Peffi*EigenSymTensor::Identity();
-                sigmaj.noalias() = fDeffij*Sj - Peffj*EigenSymTensor::Identity();
+                sigmai = fDeffij*Si - Peffi*SymTensor::one;
+                sigmaj = fDeffij*Sj - Peffj*SymTensor::one;
               } else {
-                sigmai.noalias() = -Peffi*EigenSymTensor::Identity();
-                sigmaj.noalias() = -Peffj*EigenSymTensor::Identity();
+                sigmai = -Peffi*SymTensor::one;
+                sigmaj = -Peffj*SymTensor::one;
               }
 
               // Compute the tensile correction to add to the stress as described in 
               // Gray, Monaghan, & Swift (Comput. Methods Appl. Mech. Eng., 190, 2001)
-              // const auto fi = epsTensile*FastMath::pow4(Wi/(Hdeti*WnPerh));
-              // const auto fj = epsTensile*FastMath::pow4(Wj/(Hdetj*WnPerh));
-              // const auto Ri = fi*tensileStressCorrection<Dimension>(sigmai);
-              // const auto Rj = fj*tensileStressCorrection<Dimension>(sigmaj);
-              // sigmai += Ri;
-              // sigmaj += Rj;
+              const auto fi = epsTensile*FastMath::pow4(Wi/(Hdeti*WnPerh));
+              const auto fj = epsTensile*FastMath::pow4(Wj/(Hdetj*WnPerh));
+              const auto Ri = fi*tensileStressCorrection(sigmai);
+              const auto Rj = fj*tensileStressCorrection(sigmaj);
+              sigmai += Ri;
+              sigmaj += Rj;
 
               // Acceleration.
               CHECK(rhoi > 0.0);
@@ -710,12 +691,12 @@ evaluateDerivatives(const typename Dimension::Scalar time,
               }
 
               // Pair-wise portion of grad velocity.
-              const auto deltaDvDxi = fDeffij*vij*(gradWGi.transpose());
-              const auto deltaDvDxj = fDeffij*vij*(gradWGj.transpose());
+              const auto deltaDvDxi = fDeffij*vij.dyad(gradWGi);
+              const auto deltaDvDxj = fDeffij*vij.dyad(gradWGj);
 
               // Specific thermal energy evolution.
-              DepsDti -= mj*(fDeffij*(sigmarhoi*deltaDvDxi).trace() - workQi);
-              DepsDtj -= mi*(fDeffij*(sigmarhoj*deltaDvDxj).trace() - workQj);
+              DepsDti -= mj*(fDeffij*(sigmarhoi*deltaDvDxi).Trace() - workQi);
+              DepsDtj -= mi*(fDeffij*(sigmarhoj*deltaDvDxj).Trace() - workQj);
               if (compatibleEnergy) {
                 pairAccelerationsi.push_back( mj*Vector(deltaDvDt));
                 pairAccelerationsj.push_back(-mi*Vector(deltaDvDt));
@@ -739,11 +720,11 @@ evaluateDerivatives(const typename Dimension::Scalar time,
               }
 
               // Linear gradient correction term.
-              Mi -= mj*rij*(gradWGi.transpose());
-              Mj -= mi*rij*(gradWGj.transpose());
+              Mi -= mj*rij.dyad(gradWGi);
+              Mj -= mi*rij.dyad(gradWGj);
               if (sameMatij) {
-                localMi -= mj*rij*(gradWGi.transpose());
-                localMj -= mi*rij*(gradWGj.transpose());
+                localMi -= mj*rij.dyad(gradWGi);
+                localMj -= mi*rij.dyad(gradWGj);
               }
             }
           }
@@ -789,7 +770,7 @@ evaluateDerivatives(const typename Dimension::Scalar time,
       DrhoDti = -rhoi*DvDxi.Trace();
 
       // If needed finish the total energy derivative.
-      if (this->mEvolveTotalEnergy) DepsDti = mi*(vi.dot(DvDti.eigen()) + DepsDti);
+      if (this->mEvolveTotalEnergy) DepsDti = mi*(vi.dot(DvDti) + DepsDti);
 
       // Complete the moments of the node distribution for use in the ideal H calculation.
       weightedNeighborSumi = Dimension::rootnu(max(0.0, weightedNeighborSumi/Hdeti));
