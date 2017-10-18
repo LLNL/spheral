@@ -110,7 +110,7 @@ case $COMPILERS in
          PYTHONCC=$CC
          PYTHONCXX=$CXX
          PARMETISCC=$MPICC
-         CXXFLAGS+=" -std=c++11"
+         CXXFLAGS+=" -std=c++11 -march=native"
 
       else
          CC=gcc
@@ -125,7 +125,7 @@ case $COMPILERS in
          PYTHONCC=$CC
          PYTHONCXX=$CXX
          PARMETISCC=$MPICC
-         CXXFLAGS+=" -std=c++11"
+         CXXFLAGS+=" -std=c++11 -march=native"
          if test $OSNAME = "Darwin"; then
            CXXFLAGS+=" -mmacosx-version-min=10.7 -stdlib=libc++"
          fi
@@ -147,7 +147,7 @@ case $COMPILERS in
       PYTHONCC=$CC
       PYTHONCXX=$CXX
       PARMETISCC=$MPICC
-      CXXFLAGS+=" -std=c++11 -Wno-undefined-var-template"
+      CXXFLAGS+=" -std=c++11 -Wno-undefined-var-template -march=native"
       if test $OSNAME = "Darwin"; then
         CXXFLAGS+=" -mmacosx-version-min=10.7 -stdlib=libc++"
       fi
