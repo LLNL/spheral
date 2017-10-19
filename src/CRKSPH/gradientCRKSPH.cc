@@ -133,17 +133,17 @@ gradientCRKSPH(const FieldSpace::FieldList<Dimension, DataType>& fieldList,
 
               // Find the effective weights of i->j and j->i.
               // const Scalar wi = fij*2.0*weight(nodeListi, i)*weight(nodeListj, j)/(weight(nodeListi, i) + weight(nodeListj, j));
-              const Scalar wi = fij*0.5*(weight(nodeListi, i) + weight(nodeListj, j));
-              const Scalar wj = wi;
-              // const Scalar wi = fij*weight(nodeListi, i);
-              // const Scalar wj = fij*weight(nodeListj, j);
+              // const Scalar wi = fij*0.5*(weight(nodeListi, i) + weight(nodeListj, j));
+              // const Scalar wj = wi;
+              const Scalar wi = fij*weight(nodeListi, i);
+              const Scalar wj = fij*weight(nodeListj, j);
 
-	      // Get the state for node j.
-	      const Vector& rj = position(nodeListj, j);
-	      const SymTensor& Hj = H(nodeListj, j);
-	      const Scalar Hdetj = Hj.Determinant();
-	      const Scalar& Aj = A(nodeListj, j);
-	      const Vector& gradAj = gradA(nodeListj, j);
+              // Get the state for node j.
+              const Vector& rj = position(nodeListj, j);
+              const SymTensor& Hj = H(nodeListj, j);
+              const Scalar Hdetj = Hj.Determinant();
+              const Scalar& Aj = A(nodeListj, j);
+              const Vector& gradAj = gradA(nodeListj, j);
               if (correctionOrder != CRKOrder::ZerothOrder) {
                 Bj = B(nodeListj, j);
                 gradBj = gradB(nodeListj, j);
