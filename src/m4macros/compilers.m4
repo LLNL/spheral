@@ -63,6 +63,7 @@ AC_SUBST(DEPFLAG)
 AC_SUBST(PYTHONCFLAGS)
 AC_SUBST(PYTHONCONFFLAGS)
 AC_SUBST(NUMPYFLAGS)
+AC_SUBST(NUMPYCFLAGS)
 
 PYTHONCONFFLAGS=
 LIBTARGETFLAGS=
@@ -71,6 +72,7 @@ LDINSTALLNAME="-o"
 LDRPATH=
 FORTLINK=
 NUMPYFLAGS=
+NUMPYCFLAGS=
 
 # =======================================================================
 # Selection of approved compiler sets for Spheral++.
@@ -204,6 +206,7 @@ case $COMPILERS in
       PARMETISCC=$MPICC
       CXXFLAGS+=" -std=c++11"
       NUMPYFLAGS="--fcompiler=intelem"
+      NUMPYCFLAGS="CFLAGS=-no-ip"
       ;;
 
    pgi)
@@ -610,8 +613,8 @@ GNU)
 INTEL)
   # The -wd654 suppresses the "virtual methods partially overridden warning", which lots of Spheral++ code
   # emits by design.
-  CFLAGS="$CFLAGS -fpic -wd654"
-  CXXFLAGS="$CXXFLAGS -fpic -wd654"
+  CFLAGS="$CFLAGS -fpic" #  -wd654"
+  CXXFLAGS="$CXXFLAGS -fpic" #  -wd654"
   FORTFLAGS="$FORTFLAGS -fpic"
   #LIBS="$LIBS -lrt -lcxa -lirc"
   JAMTOOLSET="intel-linux"
