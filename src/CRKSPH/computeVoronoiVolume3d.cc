@@ -323,7 +323,7 @@ computeVoronoiVolume(const FieldList<Dim<3>, Dim<3>::Vector>& position,
           // Check if this point has multi-material neighbors.
           if (returnSurface and 
               nodeListj != nodeListi and 
-              not fullConnectivity[nodeListj].empty()) surfacePoint(nodeListi, i) |= (1 << nodeListj + 1);
+              not fullConnectivity[nodeListj].empty()) surfacePoint(nodeListi, i) |= (1 << (nodeListj + 1));
 
           for (auto jItr = fullConnectivity[nodeListj].begin();
                jItr != fullConnectivity[nodeListj].end();

@@ -269,7 +269,7 @@ public:
 
   //****************************************************************************
   // Methods required for restarting.
-  virtual std::string label() const { return "CRKSPHHydroBase"; }
+  virtual std::string label() const override { return "CRKSPHHydroBase"; }
   virtual void dumpState(FileIOSpace::FileIO& file, std::string pathName) const;
   virtual void restoreState(const FileIOSpace::FileIO& file, std::string pathName);
   //****************************************************************************
