@@ -28,7 +28,7 @@ GNU)
   elif test "$withval" = "3";then
     OPT="-O3 "
   elif test "$withval" = "4";then
-    OPT="-O4 -ffast-math -funroll-loops -fprefetch-loop-arrays -march=pentium4 -mfpmath=sse"
+    OPT="-O4"
   elif test "$withval" = "5";then
     OPT="-O5"
   elif test "$withval" = "6";then
