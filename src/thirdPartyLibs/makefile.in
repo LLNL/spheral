@@ -65,8 +65,8 @@ BOOSTPYTHONLIB = libboost_python.$(DYLIBEXT)
 
 # Cmake
 CMAKEEXE = $(prefix)/bin/cmake
-CMAKEDIST = cmake-3.7.1.tar.gz
-CMAKEURL = http://www.cmake.org/files/v3.7/$(CMAKEDIST)
+CMAKEDIST = cmake-3.9.4.tar.gz
+CMAKEURL = http://www.cmake.org/files/v3.9/$(CMAKEDIST)
 CMAKEDIR = $(CMAKEDIST:.tar.gz=)
 
 # Gccxml
@@ -299,8 +299,8 @@ POLYTOPEDIR = $(POLYTOPEDIST:.tar.gz=)
 POLYTOPEBUILDDATE = $(patsubst %.tar.gz, .%.date, $(POLYTOPEDIST))
 
 # OpenSubDiv
-OPENSUBDIVDIST = OpenSubdiv-3_1_1.zip
-OPENSUBDIVURL = https://github.com/PixarAnimationStudios/OpenSubdiv/archive/v3_1_1.zip
+OPENSUBDIVDIST = OpenSubdiv-3_3_0.zip
+OPENSUBDIVURL = https://github.com/PixarAnimationStudios/OpenSubdiv/archive/v3_3_0.zip
 OPENSUBDIVDIR = $(OPENSUBDIVDIST:.zip=)
 OPENSUBDIVBUILDDATE = $(patsubst %.zip, .%.date, $(OPENSUBDIVDIST))
 
@@ -1467,7 +1467,7 @@ $(POLYTOPEBUILDDATE):	$(POLYTOPEDIST) $(CMAKEEXE) $(BOOSTDATE) $(SILOBUILDDATE) 
 		$(CP) -f $(TETGENDIR)/tetgen.h $(POLYTOPEDIR)/src; \
 		$(CP) -f $(TETGENDIR)/tetgen.cxx $(POLYTOPEDIR)/src; \
 	fi
-	env PATH='$(prefix)/bin:$(PATH)' $(SHELL) -ec "cd $(POLYTOPEDIR); \
+	env PATH='$(prefix)/bin:$(PATH)' CC='$(CC)' CXX='$(CXX)' $(SHELL) -ec "cd $(POLYTOPEDIR); \
 	$(MAKE) MAKEFLAGS= $(POLYTOPEFLAGS) config; \
 	$(MAKE) MAKEFLAGS= $(POLYTOPEFLAGS) install"
 	@if ! test -e $(prefix)/lib/libpolytope.a -a \
@@ -1496,6 +1496,7 @@ $(OPENSUBDIVBUILDDATE):	$(OPENSUBDIVDIST) $(CMAKEEXE)
 	rm -fr $(OPENSUBDIVDIR)
 	$(UNZIP) $(OPENSUBDIVDIST)
 	$(MKDIR) $(OPENSUBDIVDIR)/build
+	$(PATCH) $(OPENSUBDIVDIR)/CMakeLists.txt $(srcdir)/OpenSubdiv_3_3_0_CMakeLists.txt.patch
 	env PATH='$(prefix)/bin:$(PATH)' $(SHELL) -ec "cd $(OPENSUBDIVDIR)/build; \
 	$(CMAKEEXE) -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=$(prefix) -DCMAKE_C_COMPILER='$(CC)' -DCMAKE_CXX_COMPILER='$(CXX)' -DCMAKE_C_FLAGS='$(CFLAGS)' -DNO_PYTHON=1 -DNO_EXAMPLES=1 -DNO_REGRESSION=1 -DNO_OMP=1 -DNO_CUDA=1 -DNO_OPENGL=1 -DNO_CLEW=1 -DNO_TBB=1 .. ; \
 	$(MAKE) ; \
