@@ -26,8 +26,8 @@ AR = ar
 # Targets.
 #-------------------------------------------------------------------------------
 # Python
-PYTHONDIST = Python-2.7.13.tgz
-PYTHONURL = http://www.python.org/ftp/python/2.7.13/$(PYTHONDIST)
+PYTHONDIST = Python-2.7.14.tgz
+PYTHONURL = http://www.python.org/ftp/python/2.7.14/$(PYTHONDIST)
 PYTHONDIR = $(PYTHONDIST:.tgz=)
 PYTHONBUILDDATE = $(patsubst %.tgz, .%.date, $(PYTHONDIST))
 
