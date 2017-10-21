@@ -111,7 +111,7 @@ commandLine(order = 5,
             outputFile = "None",
             comparisonFile = "None",
 
-            graphics = True,
+            graphics = False,
             )
 
 assert not(boolReduceViscosity and boolCullenViscosity)
