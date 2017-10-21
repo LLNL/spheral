@@ -18,7 +18,7 @@ AC_ARG_WITH(opensubdiv,
 ],
 [
     AC_MSG_RESULT(no)
-    OPENSUBDIVTARGETS=".OpenSubdiv-3_1_1.date"
+    OPENSUBDIVTARGETS=".OpenSubdiv-3_3_0.date"
     #OPENSUBDIVLIBS="\$(prefix)/lib/libosdCPU.a \$(prefix)/lib/libosdutil.a"
     if test "`uname -s`" = "Darwin"; then
         OPENSUBDIVLIBS="\$(prefix)/lib/libosdCPU.a"
