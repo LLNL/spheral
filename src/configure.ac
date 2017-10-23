@@ -57,6 +57,11 @@ SETUP_GEOMMEM
 # -------------------------------------------------
 SETUP_POLYTOPE
 
+# -------------------------------------------------
+# setup mpi (m4macros/mpi.m4)
+# -------------------------------------------------
+SETUP_MPI
+
 # -----------------------------------------------
 # allow user to define compiler at the command line, plus look
 # for KCC first, defined in m4macros/compilers.m4
@@ -70,11 +75,6 @@ SETUP_COMPILERS_THE_WAY_I_WANT
 AC_CHECK_OPTIMIZATION
 SETUP_DEBUG_PRINT
 SETUP_DBC
-
-# -------------------------------------------------
-# setup mpi (m4macros/mpi.m4)
-# -------------------------------------------------
-SETUP_MPI
 
 # -------------------------------------------------
 # setup ParMETIS (m4macros/mpi.m4)
