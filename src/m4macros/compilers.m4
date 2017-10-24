@@ -694,7 +694,7 @@ AC_MSG_RESULT($JAMTOOLSET)
 # =======================================================================
 AC_MSG_CHECKING(for openmp)
 AC_ARG_WITH(openmp,
-[  --with-openmp ........................... should we enable openmp],
+[  --with-openmp ............................ enable OpenMP],
 [
    AC_MSG_RESULT(yes)
    if test $CXXCOMPILERTYPE = "VACPP"; then
@@ -702,7 +702,7 @@ AC_ARG_WITH(openmp,
       EXTRAFLAGS+="-qsmp=omp -qoffload -I/usr/tcetmp/packages/cuda-9.0.176/include    "
    else
       CXXFLAGS+=" -fopenmp"
-      EXTRAFLAGS+=" -I/usr/tcetmp/packages/cuda-9.0.184/include -DUSE_UVM   -fopenmp-targets=nvptx64-nvidia-cuda -fopenmp-implicit-declare-target"
+      EXTRAFLAGS+=" -I/usr/tcetmp/packages/cuda-9.0.184/include -fopenmp-targets=nvptx64-nvidia-cuda -fopenmp-implicit-declare-target"
     #  CXXFLAGS+=" "
     #  EXTRAFLAGS+=" -qsmp=omp -qoffload -I/usr/tcetmp/packages/cuda-9.0.176/include    "
    fi
@@ -712,7 +712,24 @@ AC_ARG_WITH(openmp,
 ]
 )
 
+# =======================================================================
+# UVM (unified memory for GPUs and such)
+# =======================================================================
+AC_MSG_CHECKING(for uvm)
+AC_ARG_WITH(uvm,
+[  --with-uvm ............................... enable unified memory (only for use with OpenMP)],
+[
+   AC_MSG_RESULT(yes)
+   EXTRAFLAGS+=" -DUSE_UVM"
+],
+[
+   AC_MSG_RESULT(no)
+]
+)
+
+# =======================================================================
 # gprof
+# =======================================================================
 AC_MSG_CHECKING(for --with-gprof)
 AC_ARG_WITH(gprof,
 [  --with-gprof ............................. compile with gprof stuff turned on],
