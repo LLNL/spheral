@@ -173,11 +173,29 @@ case $COMPILERS in
       CXXFLAGS+=" -std=c++11 -DEIGEN_DONT_VECTORIZE"
       ;;
 
+   clang-bg)
+      CC=bgclang
+      CXX=bgclang++
+      FORT=gfortran
+      MPICC=mpiclang
+      MPICXX=mpiclang++
+      MPICCFLAGS=
+      MPICXXFLAGS=
+      CMAKECC=gcc
+      CMAKECXX=g++
+      GCCXMLCC=$CMAKECC
+      GCCXMLCXX=$CMAKECXX
+      PYTHONCC=gcc
+      PYTHONCXX=g++
+      PARMETISCC=$MPICC
+      CXXFLAGS+=" -std=c++11 -DEIGEN_DONT_VECTORIZE"
+      ;;
+
    vacpp)
-      CC=xlc
-      CXX=xlC
-      MPICC=mpixlc
-      MPICXX=mpixlC 
+      CC=xlc_r
+      CXX=xlC_r
+      MPICC=mpixlc_r
+      MPICXX=mpixlC_r
       CMAKECC=$CC
       CMAKECXX=$CXX
       GCCXMLCC=/usr/tcetmp/packages/gcc/gcc-4.9.3/bin/gcc
@@ -330,7 +348,6 @@ AC_ARG_WITH(python-CC,
    AC_MSG_RESULT($PYTHONCC)
 ],
 [
-   PYTHONCC=$CC
    AC_MSG_RESULT($PYTHONCC)
 ]
 )
@@ -343,7 +360,6 @@ AC_ARG_WITH(python-CXX,
    AC_MSG_RESULT($PYTHONCXX)
 ],
 [
-   PYTHONCXX=$CXX
    AC_MSG_RESULT($PYTHONCXX)
 ]
 )
@@ -359,7 +375,6 @@ AC_ARG_WITH(GCCXMLCC,
    AC_MSG_RESULT($GCCXMLCC)
 ],
 [
-   GCCXMLCC=$CC
    AC_MSG_RESULT($GCCXMLCC)
 ]
 )
@@ -372,7 +387,6 @@ AC_ARG_WITH(GCCXMLCXX,
    AC_MSG_RESULT($GCCXMLCXX)
 ],
 [
-   GCCXMLCXX=$CXX
    AC_MSG_RESULT($GCCXMLCXX)
 ]
 )
@@ -389,7 +403,6 @@ AC_ARG_WITH(cmake-CC,
    AC_MSG_RESULT($CMAKECC)
 ],
 [
-   CMAKECC=$CC
    AC_MSG_RESULT($CMAKECC)
 ]
 )
@@ -402,7 +415,6 @@ AC_ARG_WITH(cmake-CXX,
    AC_MSG_RESULT($CMAKECXX)
 ],
 [
-   CMAKECXX=$CXX
    AC_MSG_RESULT($CMAKECXX)
 ]
 )
@@ -418,7 +430,6 @@ AC_ARG_WITH(parmetis-CC,
    AC_MSG_RESULT(PARMETISCC)
 ],
 [
-   PARMETISCC=$MPICC
    AC_MSG_RESULT($PARMETISCC)
 ]
 )
