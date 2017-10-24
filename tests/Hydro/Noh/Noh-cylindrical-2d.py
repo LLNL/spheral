@@ -8,7 +8,7 @@
 #-------------------------------------------------------------------------------
 import os, shutil
 from math import *
-from Spheral2d import *
+from SolidSpheral2d import *
 from SpheralTestUtilities import *
 from GenerateNodeDistribution2d import *
 from CubicNodeGenerator import GenerateSquareNodeDistribution
@@ -40,6 +40,8 @@ commandLine(order = 5,
 
             gamma = 5.0/3.0,
             mu = 1.0,
+
+            solid = False,    # If true, use the fluid limit of the solid hydro option
 
             svph = False,
             crksph = False,
@@ -142,6 +144,9 @@ else:
 if asph:
     hydroname = "A" + hydroname
 
+if solid:
+    hydroname = "Solid" + hydroname
+
 dataDir = os.path.join(dataDir,
                        hydroname,
                        "nPerh=%f" % nPerh,
@@ -186,12 +191,20 @@ kernelExtent = WT.kernelExtent
 #-------------------------------------------------------------------------------
 # Make the NodeList.
 #-------------------------------------------------------------------------------
-nodes1 = makeFluidNodeList("nodes1", eos,
-                             hmin = hmin,
-                             hmax = hmax,
-                             kernelExtent = kernelExtent,
-                             hminratio = hminratio,
-                             nPerh = nPerh)
+if solid:
+    nodes1 = makeSolidNodeList("nodes1", eos,
+                               hmin = hmin,
+                               hmax = hmax,
+                               kernelExtent = kernelExtent,
+                               hminratio = hminratio,
+                               nPerh = nPerh)
+else:
+    nodes1 = makeFluidNodeList("nodes1", eos,
+                               hmin = hmin,
+                               hmax = hmax,
+                               kernelExtent = kernelExtent,
+                               hminratio = hminratio,
+                               nPerh = nPerh)
 output("nodes1")
 output("nodes1.hmin")
 output("nodes1.hmax")

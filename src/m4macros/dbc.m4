@@ -2,7 +2,6 @@ dnl -----------------------------------------------------------------
 dnl dbc.m4 -- support for Design By Contract macros
 dnl -----------------------------------------------------------------
 
-dnl Specify Gadget's directory.
 AC_DEFUN([SETUP_DBC],
 [
   AC_MSG_CHECKING(for --with-dbc)

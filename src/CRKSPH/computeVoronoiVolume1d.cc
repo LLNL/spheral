@@ -245,7 +245,7 @@ computeVoronoiVolume(const FieldSpace::FieldList<Dim<1>, Dim<1>::Vector>& positi
       for (auto i = 0U; i != n; ++i) {
         const auto& fullConnectivity = connectivityMap.connectivityForNode(nodeListi, i);
         for (auto nodeListj = 0U; nodeListj != numNodeLists; ++nodeListj) {
-          if (nodeListj != nodeListi and not fullConnectivity[nodeListj].empty()) surfacePoint(nodeListi, i) |= (1 << nodeListj + 1);
+          if (nodeListj != nodeListi and not fullConnectivity[nodeListj].empty()) surfacePoint(nodeListi, i) |= (1 << (nodeListj + 1));
         }
       }
     }

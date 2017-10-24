@@ -64,6 +64,7 @@ AC_SUBST(DEPFLAG)
 AC_SUBST(PYTHONCFLAGS)
 AC_SUBST(PYTHONCONFFLAGS)
 AC_SUBST(NUMPYFLAGS)
+AC_SUBST(NUMPYCFLAGS)
 
 PYTHONCONFFLAGS=
 LIBTARGETFLAGS=
@@ -73,6 +74,7 @@ LDRPATH=
 FORTLINK=
 NUMPYFLAGS=
 EXTRAINCLUDES=
+NUMPYCFLAGS=
 
 # =======================================================================
 # Selection of approved compiler sets for Spheral++.
@@ -112,7 +114,7 @@ case $COMPILERS in
          PYTHONCC=$CC
          PYTHONCXX=$CXX
          PARMETISCC=$MPICC
-         CXXFLAGS+=" -std=c++11"
+         CXXFLAGS+=" -std=c++11 -march=native"
 
       else
          CC=gcc
@@ -127,7 +129,7 @@ case $COMPILERS in
          PYTHONCC=$CC
          PYTHONCXX=$CXX
          PARMETISCC=$MPICC
-         CXXFLAGS+=" -std=c++11"
+         CXXFLAGS+=" -std=c++11 -march=native"
          if test $OSNAME = "Darwin"; then
            CXXFLAGS+=" -mmacosx-version-min=10.7 -stdlib=libc++"
          fi
@@ -149,7 +151,7 @@ case $COMPILERS in
       PYTHONCC=$CC
       PYTHONCXX=$CXX
       PARMETISCC=$MPICC
-      CXXFLAGS+=" -std=c++11 -Wno-undefined-var-template"
+      CXXFLAGS+=" -std=c++11 -Wno-undefined-var-template -march=native"
       if test $OSNAME = "Darwin"; then
         CXXFLAGS+=" -mmacosx-version-min=10.7 -stdlib=libc++"
       fi
@@ -193,8 +195,8 @@ case $COMPILERS in
       CC=icc
       CXX=icpc
       FORT=ifort
-      MPICC=mpicc # mpiicc
-      MPICXX=mpicxx # mpiicpc
+      MPICC=mpiicc
+      MPICXX=mpiicpc
       PYTHONCC=icc
       PYTHONCXX=icpc
       CMAKECC=$CC
@@ -206,6 +208,7 @@ case $COMPILERS in
       PARMETISCC=$MPICC
       CXXFLAGS+=" -std=c++11"
       NUMPYFLAGS="--fcompiler=intelem"
+      NUMPYCFLAGS="CFLAGS=-no-ip"
       ;;
 
    pgi)
@@ -612,8 +615,8 @@ GNU)
 INTEL)
   # The -wd654 suppresses the "virtual methods partially overridden warning", which lots of Spheral++ code
   # emits by design.
-  CFLAGS="$CFLAGS -fpic -wd654"
-  CXXFLAGS="$CXXFLAGS -fpic -wd654"
+  CFLAGS="$CFLAGS -fpic" #  -wd654"
+  CXXFLAGS="$CXXFLAGS -fpic" #  -wd654"
   FORTFLAGS="$FORTFLAGS -fpic"
   #LIBS="$LIBS -lrt -lcxa -lirc"
   JAMTOOLSET="intel-linux"

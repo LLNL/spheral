@@ -45,7 +45,7 @@ public:
              const double y = 0.0,
              const double z = 0.0);
   GeomVector(const GeomVector& vec);
-  GeomVector(const EigenType& vec);
+  template<typename Derived> GeomVector(const Eigen::MatrixBase<Derived>& vec);
 
   // Destructor.
   ~GeomVector();
@@ -53,7 +53,7 @@ public:
   // Assignment.
   GeomVector& operator=(const GeomVector<nDim>& vec);
   GeomVector& operator=(const double val);
-  GeomVector& operator=(const EigenType& vec);
+  template<typename Derived> GeomVector& operator=(const Eigen::MatrixBase<Derived>& vec);
 
   // Allow the elements by indicies.
   double operator()(size_type index) const;
@@ -91,6 +91,10 @@ public:
 
   GeomVector& operator+=(const GeomVector& vec);
   GeomVector& operator-=(const GeomVector& vec);
+
+  template<typename Derived> GeomVector& operator+=(const Eigen::MatrixBase<Derived>& vec);
+  template<typename Derived> GeomVector& operator-=(const Eigen::MatrixBase<Derived>& vec);
+
   GeomVector& operator*=(const double val);
   GeomVector& operator/=(const double val);
 
@@ -143,9 +147,9 @@ template<> GeomVector<1>& GeomVector<1>::operator=(const double val);
 template<> GeomVector<2>& GeomVector<2>::operator=(const double val);
 template<> GeomVector<3>& GeomVector<3>::operator=(const double val);
 
-template<> GeomVector<1>& GeomVector<1>::operator=(const GeomVector<1>::EigenType& vec);
-template<> GeomVector<2>& GeomVector<2>::operator=(const GeomVector<2>::EigenType& vec);
-template<> GeomVector<3>& GeomVector<3>::operator=(const GeomVector<3>::EigenType& vec);
+// template<> GeomVector<1>& GeomVector<1>::operator=(const GeomVector<1>::EigenType& vec);
+// template<> GeomVector<2>& GeomVector<2>::operator=(const GeomVector<2>::EigenType& vec);
+// template<> GeomVector<3>& GeomVector<3>::operator=(const GeomVector<3>::EigenType& vec);
 
 template<> double GeomVector<1>::y() const;
 template<> double GeomVector<1>::z() const;
@@ -170,6 +174,14 @@ template<> GeomVector<3>& GeomVector<3>::operator+=(const GeomVector<3>& vec);
 template<> GeomVector<1>& GeomVector<1>::operator-=(const GeomVector<1>& vec);
 template<> GeomVector<2>& GeomVector<2>::operator-=(const GeomVector<2>& vec);
 template<> GeomVector<3>& GeomVector<3>::operator-=(const GeomVector<3>& vec);
+
+// template<> GeomVector<1>& GeomVector<1>::operator+=(const GeomVector<1>::EigenType& vec);
+// template<> GeomVector<2>& GeomVector<2>::operator+=(const GeomVector<2>::EigenType& vec);
+// template<> GeomVector<3>& GeomVector<3>::operator+=(const GeomVector<3>::EigenType& vec);
+
+// template<> GeomVector<1>& GeomVector<1>::operator-=(const GeomVector<1>::EigenType& vec);
+// template<> GeomVector<2>& GeomVector<2>::operator-=(const GeomVector<2>::EigenType& vec);
+// template<> GeomVector<3>& GeomVector<3>::operator-=(const GeomVector<3>::EigenType& vec);
 
 #ifdef _OPENMP
 
@@ -246,9 +258,9 @@ template<> double GeomVector<1>::sumElements() const;
 template<> double GeomVector<2>::sumElements() const;
 template<> double GeomVector<3>::sumElements() const;
 
-template<> GeomVector<1>::EigenType GeomVector<1>::eigen() const;
-template<> GeomVector<2>::EigenType GeomVector<2>::eigen() const;
-template<> GeomVector<3>::EigenType GeomVector<3>::eigen() const;
+// template<> GeomVector<1>::EigenType GeomVector<1>::eigen() const;
+// template<> GeomVector<2>::EigenType GeomVector<2>::eigen() const;
+// template<> GeomVector<3>::EigenType GeomVector<3>::eigen() const;
 
 // Forward declare the global functions.
 template<int nDim> GeomVector<nDim> elementWiseMin(const GeomVector<nDim>& lhs,

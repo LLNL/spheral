@@ -108,7 +108,7 @@ bool clipByNeighbors(r2d_poly& celli,
   CHECK(vol0 > 0.0);
 
   // Check for multimaterial.
-  if (returnSurface and nodeListj != nodeListi and not fullConnectivity[nodeListj].empty()) surfacePoint(nodeListi, i) |= (1 << nodeListj + 1);
+  if (returnSurface and nodeListj != nodeListi and not fullConnectivity[nodeListj].empty()) surfacePoint(nodeListi, i) |= (1 << (nodeListj + 1));
 
   // Build the clipping planes.
   const auto& ri = position(nodeListi, i);
@@ -341,7 +341,7 @@ computeVoronoiVolume(const FieldList<Dim<2>, Dim<2>::Vector>& position,
           // Check if this point has multi-material neighbors.
           if (returnSurface and 
               nodeListj != nodeListi and 
-              not fullConnectivity[nodeListj].empty()) surfacePoint(nodeListi, i) |= (1 << nodeListj + 1);
+              not fullConnectivity[nodeListj].empty()) surfacePoint(nodeListi, i) |= (1 << (nodeListj + 1));
 
           for (auto jItr = fullConnectivity[nodeListj].begin();
                jItr != fullConnectivity[nodeListj].end();

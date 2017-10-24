@@ -50,22 +50,26 @@ GeomVector<nDim>::GeomVector(const GeomVector<nDim>& vec):
 // Construct from an Eigen Vector.
 //------------------------------------------------------------------------------
 template<>
+template<typename Derived>
 inline
-GeomVector<1>::GeomVector(const EigenType& vec):
+GeomVector<1>::GeomVector(const Eigen::MatrixBase<Derived>& vec):
   GeomVectorBase<1>(vec(0)) {
 }
 
 template<>
+template<typename Derived>
 inline
-GeomVector<2>::GeomVector(const EigenType& vec):
+GeomVector<2>::GeomVector(const Eigen::MatrixBase<Derived>& vec):
   GeomVectorBase<2>(vec(0), vec(1)) {
 }
 
 template<>
+template<typename Derived>
 inline
-GeomVector<3>::GeomVector(const EigenType& vec):
+GeomVector<3>::GeomVector(const Eigen::MatrixBase<Derived>& vec):
   GeomVectorBase<3>(vec(0), vec(1), vec(2)) {
 }
+
 
 //------------------------------------------------------------------------------
 // The assignment operator.
@@ -101,26 +105,29 @@ GeomVector<3>::operator=(const GeomVector<3>& vec) {
 // The assignment operator (Eigen Vector).
 //------------------------------------------------------------------------------
 template<>
+template<typename Derived>
 inline
 GeomVector<1>&
-GeomVector<1>::operator=(const EigenType& vec) {
+GeomVector<1>::operator=(const Eigen::MatrixBase<Derived>& vec) {
   this->mx = vec(0);
   return *this;
 }
 
 template<>
+template<typename Derived>
 inline
 GeomVector<2>&
-GeomVector<2>::operator=(const EigenType& vec) {
+GeomVector<2>::operator=(const Eigen::MatrixBase<Derived>& vec) {
   this->mx = vec(0);
   this->my = vec(1);
   return *this;
 }
 
 template<>
+template<typename Derived>
 inline
 GeomVector<3>&
-GeomVector<3>::operator=(const EigenType& vec) {
+GeomVector<3>::operator=(const Eigen::MatrixBase<Derived>& vec) {
   this->mx = vec(0);
   this->my = vec(1);
   this->mz = vec(2);
@@ -505,6 +512,72 @@ GeomVector<3>::operator-=(const GeomVector<3>& vec) {
   this->mx -= vec.mx;
   this->my -= vec.my;
   this->mz -= vec.mz;
+  return *this;
+}
+
+//------------------------------------------------------------------------------
+// += Eigen vector
+//------------------------------------------------------------------------------
+template<>
+template<typename Derived>
+inline
+GeomVector<1>&
+GeomVector<1>::operator+=(const Eigen::MatrixBase<Derived>& vec) {
+  this->mx += vec(0);
+  return *this;
+}
+
+template<>
+template<typename Derived>
+inline
+GeomVector<2>&
+GeomVector<2>::operator+=(const Eigen::MatrixBase<Derived>& vec) {
+  this->mx += vec(0);
+  this->my += vec(1);
+  return *this;
+}
+
+template<>
+template<typename Derived>
+inline
+GeomVector<3>&
+GeomVector<3>::operator+=(const Eigen::MatrixBase<Derived>& vec) {
+  this->mx += vec(0);
+  this->my += vec(1);
+  this->mz += vec(2);
+  return *this;
+}
+
+//------------------------------------------------------------------------------
+// -= Eigen vector
+//------------------------------------------------------------------------------
+template<>
+template<typename Derived>
+inline
+GeomVector<1>&
+GeomVector<1>::operator-=(const Eigen::MatrixBase<Derived>& vec) {
+  this->mx -= vec(0);
+  return *this;
+}
+
+template<>
+template<typename Derived>
+inline
+GeomVector<2>&
+GeomVector<2>::operator-=(const Eigen::MatrixBase<Derived>& vec) {
+  this->mx -= vec(0);
+  this->my -= vec(1);
+  return *this;
+}
+
+template<>
+template<typename Derived>
+inline
+GeomVector<3>&
+GeomVector<3>::operator-=(const Eigen::MatrixBase<Derived>& vec) {
+  this->mx -= vec(0);
+  this->my -= vec(1);
+  this->mz -= vec(2);
   return *this;
 }
 

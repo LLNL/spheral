@@ -31,6 +31,7 @@ class CRKSPH:
 generichydro%(dim)id = findObject(PhysicsSpace, "GenericHydro%(dim)id")
 self.CRKSPHHydroBase%(dim)id = addObject(self.space, "CRKSPHHydroBase%(dim)id", allow_subclassing=True, parent=generichydro%(dim)id)
 self.SolidCRKSPHHydroBase%(dim)id = addObject(self.space, "SolidCRKSPHHydroBase%(dim)id", allow_subclassing=True, parent=self.CRKSPHHydroBase%(dim)id)
+self.CRKSPHVariant%(dim)id = addObject(self.space, "CRKSPHVariant%(dim)id", allow_subclassing=True, parent=self.CRKSPHHydroBase%(dim)id)
 ''' % {"dim" : dim})
         self.CRKOrder = self.space.add_enum("CRKOrder", [("ZerothOrder",    "Spheral::CRKSPHSpace::CRKOrder::ZerothOrder"),
                                                          ("LinearOrder",    "Spheral::CRKSPHSpace::CRKOrder::LinearOrder"),
@@ -56,6 +57,7 @@ self.SolidCRKSPHHydroBase%(dim)id = addObject(self.space, "SolidCRKSPHHydroBase%
             exec('''
 self.generateCRKSPHHydroBaseBindings(self.CRKSPHHydroBase%(dim)id, %(dim)i)
 self.generateSolidCRKSPHHydroBaseBindings(self.SolidCRKSPHHydroBase%(dim)id, %(dim)i)
+self.generateCRKSPHVariantBindings(self.CRKSPHVariant%(dim)id, %(dim)i)
 ''' % {"dim" : dim})
             self.generateDimBindings(mod, dim)
 
@@ -754,3 +756,83 @@ self.generateSolidCRKSPHHydroBaseBindings(self.SolidCRKSPHHydroBase%(dim)id, %(d
         const_ref_return_value(x, me, "%s::DdeviatoricStressTTDt" % me, scalarfieldlist, [], "DdeviatoricStressTTDt")
 
         return
+
+    #---------------------------------------------------------------------------
+    # Bindings (CRKSPHVariant).
+    #---------------------------------------------------------------------------
+    def generateCRKSPHVariantBindings(self, x, ndim):
+
+        # Object names.
+        me = "Spheral::CRKSPHSpace::CRKSPHVariant%id" % ndim
+        dim = "Spheral::Dim<%i>" % ndim
+        vector = "Vector%id" % ndim
+        tensor = "Tensor%id" % ndim
+        symtensor = "SymTensor%id" % ndim
+        fieldbase = "Spheral::FieldSpace::FieldBase%id" % ndim
+        intfield = "Spheral::FieldSpace::IntField%id" % ndim
+        scalarfield = "Spheral::FieldSpace::ScalarField%id" % ndim
+        vectorfield = "Spheral::FieldSpace::VectorField%id" % ndim
+        vector3dfield = "Spheral::FieldSpace::Vector3dField%id" % ndim
+        tensorfield = "Spheral::FieldSpace::TensorField%id" % ndim
+        thirdranktensorfield = "Spheral::FieldSpace::ThirdRankTensorField%id" % ndim
+        vectordoublefield = "Spheral::FieldSpace::VectorDoubleField%id" % ndim
+        vectorvectorfield = "Spheral::FieldSpace::VectorVectorField%id" % ndim
+        vectorsymtensorfield = "Spheral::FieldSpace::VectorSymTensorField%id" % ndim
+        symtensorfield = "Spheral::FieldSpace::SymTensorField%id" % ndim
+        intfieldlist = "Spheral::FieldSpace::IntFieldList%id" % ndim
+        scalarfieldlist = "Spheral::FieldSpace::ScalarFieldList%id" % ndim
+        vectorfieldlist = "Spheral::FieldSpace::VectorFieldList%id" % ndim
+        vector3dfieldlist = "Spheral::FieldSpace::Vector3dFieldList%id" % ndim
+        tensorfieldlist = "Spheral::FieldSpace::TensorFieldList%id" % ndim
+        symtensorfieldlist = "Spheral::FieldSpace::SymTensorFieldList%id" % ndim
+        thirdranktensorfieldlist = "Spheral::FieldSpace::ThirdRankTensorFieldList%id" % ndim
+        vectordoublefieldlist = "Spheral::FieldSpace::VectorDoubleFieldList%id" % ndim
+        vectorvectorfieldlist = "Spheral::FieldSpace::VectorVectorFieldList%id" % ndim
+        vectorsymtensorfieldlist = "Spheral::FieldSpace::VectorSymTensorFieldList%id" % ndim
+        nodelist = "Spheral::NodeSpace::NodeList%id" % ndim
+        state = "Spheral::State%id" % ndim
+        derivatives = "Spheral::StateDerivatives%id" % ndim
+        database = "Spheral::DataBaseSpace::DataBase%id" % ndim
+        connectivitymap = "Spheral::NeighborSpace::ConnectivityMap%id" % ndim
+        key = "pair_NodeList%id_string" % ndim
+        vectorkeys = "vector_of_pair_NodeList%id_string" % ndim
+        tablekernel = "Spheral::KernelSpace::TableKernel%id" % ndim
+        artificialviscosity = "Spheral::ArtificialViscositySpace::ArtificialViscosity%id" % ndim
+        fileio = "Spheral::FileIOSpace::FileIO"
+        smoothingscalebase = "Spheral::NodeSpace::SmoothingScaleBase%id" % ndim
+        voidboundary = "Spheral::BoundarySpace::CRKSPHVoidBoundary%id" % ndim
+
+        # Constructors.
+        x.add_constructor([constrefparam(smoothingscalebase, "smoothingScaleMethod"),
+                           refparam(artificialviscosity, "Q"),
+                           constrefparam(tablekernel, "W"),
+                           constrefparam(tablekernel, "WPi"),
+                           param("double", "filter"),
+                           param("double", "cfl"),
+                           param("int", "useVelocityMagnitudeForDt"),
+                           param("int", "compatibleEnergyEvolution"),
+                           param("int", "evolveTotalEnergy"),
+                           param("int", "XSPH"),
+                           param("MassDensityType", "densityUpdate"),
+                           param("HEvolutionType", "HUpdate"),
+                           param("CRKOrder", "correctionOrder"),
+                           param("CRKVolumeType", "volumeType"),
+                           param("int", "detectSurfaces"),
+                           param("double", "detectThreshold"),
+                           param("double", "sweepAngle"),
+                           param("double", "detectRange"),
+                           param("double", "epsTensile"),
+                           param("double", "nTensile")])
+
+        # Override the pure virtal overrides.
+        generatePhysicsVirtualBindings(x, ndim, False)
+
+        # Methods.
+        x.add_method("initializeProblemStartup", None, [refparam(database, "dataBase")], is_virtual=True)
+        x.add_method("initialize", None, [param("const double", "time"),
+                                          param("const double", "dt"),
+                                          constrefparam(database, "dataBase"),
+                                          refparam(state, "state"),
+                                          refparam(derivatives, "derivatives")], is_virtual=True)
+        return
+

@@ -28,7 +28,7 @@ GNU)
   elif test "$withval" = "3";then
     OPT="-O3 "
   elif test "$withval" = "4";then
-    OPT="-O4 -ffast-math -funroll-loops -fprefetch-loop-arrays -march=pentium4 -mfpmath=sse"
+    OPT="-O4 -march=native"
   elif test "$withval" = "5";then
     OPT="-O5"
   elif test "$withval" = "6";then
@@ -67,15 +67,15 @@ INTEL)
   elif test "$withval" = "2";then
     OPT="-O2"
   elif test "$withval" = "3";then
-    OPT="-O3 -fast"
+    OPT="-O3"
     BPLOPT="-O"
   elif test "$withval" = "4";then
-    OPT="-O3 -ip -fno-alias"
+    OPT="-O3 -ip -ansi-alias -no-prec-div"
   elif test "$withval" = "02" -o "$withval" = "20"; then
     OPT="-g -O2"
   else    
     echo "Unknown optimization level, defaulting to -O"
-    OPT="-O -fast"
+    OPT="-O"
   fi
   BPLOPT="-O0"
   PYFFLE_OPT="-g";;
