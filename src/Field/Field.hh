@@ -15,7 +15,10 @@
 
 #include <string>
 #include <vector>
+
+#ifdef USE_UVM
 #include "uvm_allocator.hh"
+#endif
 
 namespace Spheral {
   template<typename Dimension> class NodeIteratorBase;
@@ -32,8 +35,13 @@ namespace Spheral {
 namespace Spheral {
 namespace FieldSpace {
 
+#ifdef USE_UVM
 template<typename DataType>
 using DataAllocator = typename uvm_allocator::UVMAllocator<DataType>;
+#else
+template<typename DataType>
+using DataAllocator = std::allocator<DataType>;
+#endif
 
 template<typename Dimension, typename DataType>
 class Field: 
@@ -41,7 +49,6 @@ class Field:
    
 public:
   //--------------------------- Public Interface ---------------------------//
-  //using DataAllocator = typename uvm_allocator::UVMAllocator<DataType>;
   typedef typename Dimension::Scalar Scalar;
   typedef typename Dimension::Vector Vector;
   typedef typename Dimension::Tensor Tensor;
