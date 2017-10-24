@@ -45,7 +45,6 @@ namespace Spheral {
 namespace SPHSpace {
 
 using namespace std;
-using SPHSpace::SPHHydroBase;
 using NodeSpace::SmoothingScaleBase;
 using NodeSpace::NodeList;
 using NodeSpace::FluidNodeList;
