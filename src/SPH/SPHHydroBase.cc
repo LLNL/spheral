@@ -654,15 +654,15 @@ evaluateDerivatives(const typename Dimension::Scalar time,
           const auto nj = connectivity.size();
 
 #ifdef _OPENMP
-          //double time1 = omp_get_wtime();
 
-          #pragma omp parallel for   \
+          #pragma omp target parallel for   \
           reduction(max: maxvp) \
           reduction(+: ncalc, weightedNeighborSumi, rhoSumi, normi,  \
                   effViscousPressurei, viscousWorki, DepsDti, XSPHWeightSumi ) \
           reduction(vecadd: DvDti, XSPHDeltaVi ) \
           reduction(symtensadd: massSecondMomenti ) \
-	  reduction(tensadd: Mi, localMi, DvDxi, localDvDxi)
+	  reduction(tensadd: Mi, localMi, DvDxi, localDvDxi) 
+
 #endif
           for (int jct=0; jct < nj; ++jct) {
             const int j = *(jItr0+jct);

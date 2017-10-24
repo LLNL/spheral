@@ -88,8 +88,6 @@ DEPENDLIBS := $(patsubst %, -l%, $(DEPENDS))
 
 # g++ flags
 
-INCS = $(EXTRAINCLUDES) -I$(SPHERALTOP) -I$(srcdir) -I$(BOOSTROOT) -I$(prefix)/include
-
 # Allow developers to override optimization flag
 ifneq ("$(opt_override)","")
 C_OPT:=$(opt_override)
@@ -115,6 +113,7 @@ DEPFLAG  =   @DEPFLAG@
 CFLAGS   =   @CFLAGS@ $(INCS) $(TAUFLAGS)
 CXXFLAGS =   @CXXFLAGS@ $(INCS) $(TAUFLAGS)
 EXTRAFLAGS = @EXTRAFLAGS@
+EXTRAINCLUDES = @EXTRAINCLUDES@
 MPICCFLAGS = @MPICCFLAGS@
 MPICXXFLAGS = @MPICXXFLAGS@
 FORTFLAGS =   @FORTFLAGS@
@@ -140,6 +139,8 @@ SHLIBEXT = @SHLIBEXT@
 
 EMPTY :=
 SPACE := $(EMPTY) $(EMPTY)
+
+INCS = $(EXTRAINCLUDES) -I$(SPHERALTOP) -I$(srcdir) -I$(BOOSTROOT) -I$(prefix)/include
 
 #-------------------------------------------------------------------------------
 # Augment the SRCTARGETS with generated instantiation files.

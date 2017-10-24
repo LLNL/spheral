@@ -54,6 +54,7 @@ AC_SUBST(LDPASSTHROUGH)
 
 AC_SUBST(CXXFLAGS)
 AC_SUBST(EXTRAFLAGS)
+AC_SUBST(EXTRAINCLUDES)
 AC_SUBST(FORTFLAGS)
 AC_SUBST(CFLAGS)
 AC_SUBST(MPICCFLAGS)
@@ -72,6 +73,7 @@ LDINSTALLNAME="-o"
 LDRPATH=
 FORTLINK=
 NUMPYFLAGS=
+EXTRAINCLUDES=
 NUMPYCFLAGS=
 
 # =======================================================================
@@ -159,34 +161,34 @@ case $COMPILERS in
       CC=clang
       CXX=clang++
       FORT=gfortran
-      MPICC=mpiclang
-      MPICXX=mpiclang++
+      MPICC=mpiclang-gpu
+      MPICXX=mpiclang++-gpu
       MPICCFLAGS=
       MPICXXFLAGS=
       CMAKECC=clang
       CMAKECXX=clang++
       GCCXMLCC=$CMAKECC
       GCCXMLCXX=$CMAKECXX
-      PYTHONCC=$CC
-      PYTHONCXX=$CXX
+      PYTHONCC=gcc
+      PYTHONCXX=g++
       PARMETISCC=$MPICC
       CXXFLAGS+=" -std=c++11 -DEIGEN_DONT_VECTORIZE"
       ;;
 
    vacpp)
-      CC=xlc
-      CXX=xlC
-      MPICC=mpixlc
-      MPICXX=mpixlC 
-      CMAKECC=$CC
-      CMAKECXX=$CXX
+      CC=xlc_r
+      CXX=xlC_r
+      MPICC=mpicc
+      MPICXX=mpic++ 
+      CMAKECC=gcc
+      CMAKECXX=g++
       GCCXMLCC=/usr/tcetmp/packages/gcc/gcc-4.9.3/bin/gcc
       GCCXMLCXX=/usr/tcetmp/packages/gcc/gcc-4.9.3/bin/g++
-      PYTHONCC=$CC
-      PYTHONCXX=$CXX
+      PYTHONCC=/usr/tcetmp/packages/gcc/gcc-4.9.3/bin/gcc
+      PYTHONCXX=/usr/tcetmp/packages/gcc/gcc-4.9.3/bin/g++
       PARMETISCC=$MPICC
       CFLAGS+=" "
-      CXXFLAGS+=" -std=c++11 -qnoxlcompatmacros  -DEIGEN_DONT_ALIGN -DEIGEN_DONT_VECTORIZE "
+      CXXFLAGS+=" -std=c++11 -qnoinline -qnoxlcompatmacros -qmaxmem=16384  -DEIGEN_DONT_ALIGN -DEIGEN_DONT_VECTORIZE "
       ;;
 
    intel)
@@ -645,7 +647,7 @@ KAI)
   BOOSTEXT="-$JAMTOOLSET"
   ;;
 VACPP)
-  FORTFLAGS="$FORTFLAGS -fpic"
+  FORTFLAGS="$FORTFLAGS " 
   SHAREDFLAG="$SHAREDFLAG -G -qmkshrobj"
   DEPFLAG="-M -E"
   #DEPENDRULES="dependrules.aix"
@@ -696,10 +698,13 @@ AC_ARG_WITH(openmp,
 [
    AC_MSG_RESULT(yes)
    if test $CXXCOMPILERTYPE = "VACPP"; then
-      CXXFLAGS+=" -qsmp=omp"
+      CXXFLAGS+=" "
+      EXTRAFLAGS+="-qsmp=omp -qoffload -I/usr/tcetmp/packages/cuda-9.0.176/include    "
    else
       CXXFLAGS+=" -fopenmp"
-      EXTRAFLAGS+="  -fopenmp-targets=nvptx64-nvidia-gpu -fopenmp-implicit-declare-target"
+      EXTRAFLAGS+=" -I/usr/tcetmp/packages/cuda-9.0.184/include -DUSE_UVM   -fopenmp-targets=nvptx64-nvidia-cuda -fopenmp-implicit-declare-target"
+    #  CXXFLAGS+=" "
+    #  EXTRAFLAGS+=" -qsmp=omp -qoffload -I/usr/tcetmp/packages/cuda-9.0.176/include    "
    fi
 ],
 [

@@ -19,11 +19,11 @@ extern "C" {
 }
 #endif
 
+
 // Inlined methods.
 namespace Spheral {
 namespace FieldSpace {
 
-//------------------------------------------------------------------------------
 // Construct with name.
 //------------------------------------------------------------------------------
 template<typename Dimension, typename DataType>
@@ -111,12 +111,13 @@ Field(typename FieldBase<Dimension>::FieldName name,
 //------------------------------------------------------------------------------
 // Construct for a given name, NodeList, and vector of values.
 //------------------------------------------------------------------------------
+
 template<typename Dimension, typename DataType>
 inline
 Field<Dimension, DataType>::
 Field(typename FieldBase<Dimension>::FieldName name, 
       const NodeSpace::NodeList<Dimension>& nodeList,
-      const std::vector<DataType>& array):
+      const std::vector<DataType,DataAllocator<DataType>>& array):
   FieldBase<Dimension>(name, nodeList),
   mDataArray((size_t) nodeList.numNodes()),
   mValid(true) {
@@ -212,7 +213,7 @@ Field<Dimension, DataType>::operator=(const Field<Dimension, DataType>& rhs) {
 template<typename Dimension, typename DataType>
 inline
 Field<Dimension, DataType>&
-Field<Dimension, DataType>::operator=(const std::vector<DataType>& rhs) {
+Field<Dimension, DataType>::operator=(const std::vector<DataType,DataAllocator<DataType>>& rhs) {
   REQUIRE(mValid);
   REQUIRE(this->nodeList().numNodes() == rhs.size());
   mDataArray = rhs;
@@ -236,8 +237,8 @@ Field<Dimension, DataType>::operator=(const DataType& rhs) {
 //------------------------------------------------------------------------------
 template<typename Value>
 struct CrappyFieldCompareMethod {
-  static bool compare(const std::vector<Value>& lhs, 
-                      const std::vector<Value>& rhs) {
+  static bool compare(const std::vector<Value,DataAllocator<Value>>& lhs, 
+                      const std::vector<Value,DataAllocator<Value>>& rhs) {
     return lhs == rhs;
   }
 };
@@ -1262,7 +1263,7 @@ Field<Dimension, DataType>::resizeFieldInternal(const unsigned size,
   REQUIRE(newSize == this->nodeList().numNodes());
 
   // If there is ghost data, we must preserve it.
-  std::vector<DataType> oldGhostValues(numGhostNodes);
+  std::vector<DataType,DataAllocator<DataType>> oldGhostValues(numGhostNodes);
   if (numGhostNodes > 0) {
     for (int i = 0; i != numGhostNodes; ++i) {
       const int j = oldFirstGhostNode + i;
