@@ -30,6 +30,7 @@ PYTHONDIST = Python-2.7.14.tgz
 PYTHONURL = http://www.python.org/ftp/python/2.7.14/$(PYTHONDIST)
 PYTHONDIR = $(PYTHONDIST:.tgz=)
 PYTHONBUILDDATE = $(patsubst %.tgz, .%.date, $(PYTHONDIST))
+PYTHONTARGET = @PYTHONTARGET@
 
 # Numpy
 NUMPYDIST = numpy-1.10.4.tar.gz
@@ -64,7 +65,7 @@ BOOSTPYTHONLIB0 = libboost_python$(BOOSTEXT).$(DYLIBEXT)
 BOOSTPYTHONLIB = libboost_python.$(DYLIBEXT)
 
 # Cmake
-CMAKEEXE = $(prefix)/bin/cmake
+CMAKEEXE = @CMAKEEXE@
 CMAKEDIST = cmake-3.9.4.tar.gz
 CMAKEURL = http://www.cmake.org/files/v3.9/$(CMAKEDIST)
 CMAKEDIR = $(CMAKEDIST:.tar.gz=)
@@ -202,11 +203,11 @@ WILDMAGICDIR = GeometricTools
 WILDMAGICBUILDDATE = $(patsubst %.zip, .%.date, $(WILDMAGICDIST))
 
 # Qhull
-QHULLDIST = qhull-2012.1-src.tgz
+QHULLDIST = qhull-2015-src-7.2.0.tgz
 QHULLURL = http://www.qhull.org/download/$(QHULLDIST)
-QHULLDIR = $(QHULLDIST:-src.tgz=)
+QHULLDIR = qhull-2015.2
 QHULLINCDIR = $(prefix)/include/qhull
-QHULLDATE = $(patsubst %-src.tgz, .%.date, $(QHULLDIST))
+QHULLDATE = $(patsubst %.tgz, .%.date, $(QHULLDIST))
 
 # mpi4py
 MPI4PYDIST = mpi4py-1.3.tar.gz
@@ -324,7 +325,7 @@ PYBIND11DIR = $(PYBIND11DIST:.tar.gz=)
 PYBIND11BUILDDATE = $(patsubst %.tar.gz, .%.date, $(PYBIND11DIST))
 
 #-------------------------------------------------------------------------------
-all:	$(PYTHONBUILDDATE) \
+all:	$(PYTHONTARGET) \
 	$(BOOSTDATE) \
 	$(GCCXMLTARGETS) \
 	$(MATPLOTLIBTARGETS) \
@@ -420,7 +421,7 @@ $(PYTHONBUILDDATE):	$(PYTHON) $(PYTHONDIST) $(ZLIBBUILDDATE)
 $(NUMPYDIST):
 	$(CURL) "$(NUMPYURL)" > $(NUMPYDIST)
 
-$(NUMPYBUILDDATE):	$(PYTHONBUILDDATE) $(NUMPYDIST)
+$(NUMPYBUILDDATE):	$(PYTHONTARGET) $(NUMPYDIST)
 	@echo "################################################################################"
 	@echo "# Building $(NUMPYDIST)"
 	@echo "################################################################################"
@@ -429,8 +430,8 @@ $(NUMPYBUILDDATE):	$(PYTHONBUILDDATE) $(NUMPYDIST)
 	rm -fr $(NUMPYDIR)
 	$(GZIP) -dc $(NUMPYDIST) | $(TAR) -xf -
 	env CC='$(PYTHONCC)' CXX='$(PYTHONCXX)' $(NUMPYCFLAGS) PATH='$(prefix)/bin:$(PATH)' $(SHELL) -ec 'cd $(NUMPYDIR); \
-	$(PYTHONEXE) setup.py build $(NUMPYFLAGS); \
-	$(PYTHONEXE) setup.py install;'
+	$(PYTHONEXE) setup.py build --prefix $(prefix) $(NUMPYFLAGS); \
+	$(PYTHONEXE) setup.py install --prefix $(prefix);'
 	@if test -n "`$(PYTHONEXE) -c 'import numpy'`"; then \
 	echo "ERROR building numpy python extension."; \
 	rm -f $(NUMPYBUILDDATE); \
@@ -445,14 +446,14 @@ $(NUMPYBUILDDATE):	$(PYTHONBUILDDATE) $(NUMPYDIST)
 $(GNUPLOTDIST):
 	$(CURL) "$(GNUPLOTURL)" > $(GNUPLOTDIST)
 
-$(GNUPLOTBUILDDATE):	$(PYTHONBUILDDATE) $(NUMPYBUILDDATE) $(GNUPLOTDIST)
+$(GNUPLOTBUILDDATE):	$(PYTHONTARGET) $(NUMPYBUILDDATE) $(GNUPLOTDIST)
 	@echo "################################################################################"
 	@echo "# Building $(GNUPLOTDIST)"
 	@echo "################################################################################"
 	@$(MKDIR) $(LIBDIR) $(prefix)/include $(prefix)/bin
 	rm -fr $(GNUPLOTDIR)
 	$(GZIP) -dc $(GNUPLOTDIST) | $(TAR) -xf -
-	$(SHELL) -ec 'cd $(GNUPLOTDIR); $(PYTHONEXE) setup.py install;'
+	$(SHELL) -ec 'cd $(GNUPLOTDIR); $(PYTHONEXE) setup.py install --prefix $(prefix);'
 	@if test -n "`$(PYTHONEXE) -c 'import Gnuplot'`"; then \
 	echo "ERROR building Gnuplot python extension."; \
 	rm -f $(GNUPLOTBUILDDATE); \
@@ -469,12 +470,12 @@ $(GNUPLOTBUILDDATE):	$(PYTHONBUILDDATE) $(NUMPYBUILDDATE) $(GNUPLOTDIST)
 $(PSYCODIST):
 	$(CURL) "$(PSYCOURL)" > $(PYSCODIST)
 
-$(PSYCOBUILDDATE):	$(PYTHONBUILDDATE) $(PSYCODIST)
+$(PSYCOBUILDDATE):	$(PYTHONTARGET) $(PSYCODIST)
 	@echo "################################################################################"
 	@echo "# Building $(PSYCODIST)"
 	@echo "################################################################################"
 	@$(MKDIR) $(LIBDIR) $(prefix)/include $(prefix)/bin
-	$(SHELL) -ec 'cd $(PSYCOBUILDDIR); $(PYTHONEXE) setup.py install;'
+	$(SHELL) -ec 'cd $(PSYCOBUILDDIR); $(PYTHONEXE) setup.py install --prefix $(prefix);'
 	@if test -n "`$(PYTHONEXE) -c 'import psyco'`"; then \
 	echo "ERROR building Psyco python extension."; \
 	rm -f $(PSYCOBUILDDATE); \
@@ -489,13 +490,13 @@ $(PSYCOBUILDDATE):	$(PYTHONBUILDDATE) $(PSYCODIST)
 # $(ELEMENTTREEDIST):
 # 	$(CURL) "$(ELEMENTTREEURL)" > $(ELEMENTTREEDIST)
 
-# $(ELEMENTTREEBUILDDATE):	$(PYTHONBUILDDATE) $(ELEMENTTREEDIST)
+# $(ELEMENTTREEBUILDDATE):	$(PYTHONTARGET) $(ELEMENTTREEDIST)
 # 	@echo "################################################################################"
 # 	@echo "# Building $(ELEMENTTREEDIST)"
 # 	@echo "################################################################################"
 # 	rm -fr $(ELEMENTTREEDIR)
 # 	$(UNZIP) $(ELEMENTTREEDIST)
-# 	$(SHELL) -ec 'cd $(ELEMENTTREEDIR); $(PYTHONEXE) setup.py install;'
+# 	$(SHELL) -ec 'cd $(ELEMENTTREEDIR); $(PYTHONEXE) setup.py install --prefix $(prefix);'
 # 	@if test -n "`$(PYTHONEXE) -c 'import elementtree'`"; then \
 # 	echo "ERROR building elementtree python extension."; \
 # 	rm -f $(ELEMENTTREEBUILDDATE); \
@@ -570,10 +571,11 @@ $(GCCXMLDATE):		$(CMAKEEXE) $(GCCXMLDIST)
 $(CMAKEDIST):
 	$(CURL) "$(CMAKEURL)" > $(CMAKEDIST)
 
-$(CMAKEEXE):	$(CMAKEDIST)
+$(CMAKEEXE):
 	@echo "################################################################################"
 	@echo "# Building $(CMAKEDIST)"
 	@echo "################################################################################"
+	$(MAKE) $(CMAKEDIST)
 	@$(MKDIR) $(LIBDIR) $(prefix)/include $(prefix)/bin
 	rm -fr $(CMAKEDIR)
 	$(GZIP) -dc $(CMAKEDIST) | $(TAR) -xf -
@@ -685,8 +687,8 @@ $(MATPLOTLIBBUILDDATE): $(MATPLOTLIBDIST)
 	rm -fr $(MATPLOTLIBDIR) $(MATPLOTLIBDUMMYDATE)
 	$(GZIP) -dc $(MATPLOTLIBDIST) | $(TAR) -xf -
 	$(SHELL) -ec "cd $(MATPLOTLIBDIR); \
-	env PKG_CONFIG_PATH=$(prefix)/lib/pkgconfig $(PYTHONEXE) setup.py build; \
-	$(PYTHONEXE) setup.py install"
+	env PKG_CONFIG_PATH=$(prefix)/lib/pkgconfig $(PYTHONEXE) setup.py build --prefix $(prefix); \
+	$(PYTHONEXE) setup.py install --prefix $(prefix)"
 	@if test -n "`$(PYTHONEXE) -c 'import matplotlib'`"; then \
 	echo "ERROR building matplotlib extension."; \
 	rm -f $(MATPLOTLIBBUILDDATE); \
@@ -701,7 +703,7 @@ $(MATPLOTLIBBUILDDATE): $(MATPLOTLIBDIST)
 $(SCIPYDIST):
 	$(CURL) "$(SCIPYURL)" > $(SCIPYDIST)
 
-$(SCIPYBUILDDATE):  $(PYTHONBUILDDATE) $(NUMPYBUILDDATE) $(SCIPYDIST)
+$(SCIPYBUILDDATE):  $(PYTHONTARGET) $(NUMPYBUILDDATE) $(SCIPYDIST)
 	@echo "################################################################################"
 	@echo "# Building $(SCIPYDIST)"
 	@echo "################################################################################"
@@ -711,7 +713,7 @@ $(SCIPYBUILDDATE):  $(PYTHONBUILDDATE) $(NUMPYBUILDDATE) $(SCIPYDIST)
 #	$(PATCH) $(SCIPYDIR)/setup.py $(srcdir)/$(SCIPYDIR)-setup.py-patch 
 	$(SHELL) -ec "cd $(SCIPYDIR); \
 	env PKG_CONFIG_PATH=$(prefix)/lib/pkgconfig $(PYTHONEXE) setup.py build; \
-	$(PYTHONEXE) setup.py install"
+	$(PYTHONEXE) setup.py install --prefix $(prefix)"
 	@if test -n "`$(PYTHONEXE) -c 'import scipy'`"; then \
 	echo "ERROR building scipy extension."; \
 	rm -f $(SCIPYBUILDDATE); \
@@ -723,7 +725,7 @@ $(SCIPYBUILDDATE):  $(PYTHONBUILDDATE) $(NUMPYBUILDDATE) $(SCIPYDIST)
 #-------------------------------------------------------------------------------
 # F2Py -- Needed by SciPy.
 #-------------------------------------------------------------------------------
-# $(F2PYBUILDDATE):  $(F2PYDIST) $(PYTHONBUILDDATE) $(NUMPYBUILDDATE) 
+# $(F2PYBUILDDATE):  $(F2PYDIST) $(PYTHONTARGET) $(NUMPYBUILDDATE) 
 # 	@echo "################################################################################"
 # 	@echo "# Building $(F2PYDIST)"
 # 	@echo "################################################################################"
@@ -731,7 +733,7 @@ $(SCIPYBUILDDATE):  $(PYTHONBUILDDATE) $(NUMPYBUILDDATE) $(SCIPYDIST)
 # 	$(GZIP) -dc $(F2PYDIST) | $(TAR) -xf -
 # 	$(SHELL) -ec "cd $(F2PYDIR); \
 # 	env PKG_CONFIG_PATH=$(prefix)/lib/pkgconfig $(PYTHONEXE) setup.py build; \
-# 	$(PYTHONEXE) setup.py install"
+# 	$(PYTHONEXE) setup.py install --prefix $(prefix)"
 # 	@if test -n "`$(PYTHONEXE) -c 'import f2py2e'`"; then \
 # 	echo "ERROR building f2py extension."; \
 # 	rm -f $(F2PYBUILDDATE); \
@@ -772,14 +774,14 @@ $(GSLBUILDDATE): $(GSLDIST)
 $(PYGSLDIST):
 	$(CURL) "$(PYGSLURL)" > $(PYGSLDIST)
 
-$(PYGSLBUILDDATE): $(PYGSLDIST) $(GSLBUILDDATE) $(PYTHONBUILDDATE)
+$(PYGSLBUILDDATE): $(PYGSLDIST) $(GSLBUILDDATE) $(PYTHONTARGET)
 	@echo "################################################################################"
 	@echo "# Building $(PYGSLDIST) $(PYGSLBUILDDATE)"
 	@echo "################################################################################"
 	@$(MKDIR) $(LIBDIR) $(prefix)/include $(prefix)/bin
 	rm -fr $(PYGSLDIR)
 	$(GZIP) -dc $(PYGSLDIST) | $(TAR) -xf -
-	env PATH='$(prefix)/bin:$(PATH)' $(SHELL) -ec 'cd $(PYGSLDIR); $(PYTHONEXE) setup.py install;'
+	env PATH='$(prefix)/bin:$(PATH)' $(SHELL) -ec 'cd $(PYGSLDIR); $(PYTHONEXE) setup.py install --prefix $(prefix);'
 	@if test -n "`$(PYTHONEXE) -c 'import pygsl'`"; then \
 	echo "ERROR building pygsl extension."; \
 	rm -f $(PYGSLBUILDDATE); \
@@ -828,7 +830,7 @@ $(PETSC4PYBUILDDATE): $(PETSC4PYDIST)
 	$(GZIP) -dc $(PETSC4PYDIST) | $(TAR) -xf -
 #	$(PATCH) $(SCIPYDIR)/setup.py $(srcdir)/$(SCIPYDIR)-setup.py-patch 
 	$(SHELL) -ec "cd $(PETSC4PYDIR); \
-	env CC=$(srcdir)/helpers/mpicc $(PYTHONEXE) setup.py install"
+	env CC=$(srcdir)/helpers/mpicc $(PYTHONEXE) setup.py install --prefix $(prefix)"
 	@if test -n "`$(PYTHONEXE) -c 'import petsc4py'`"; then \
 	echo "ERROR building petsc4py extension."; \
 	rm -f $(PETSC4PYBUILDDATE); \
@@ -888,7 +890,7 @@ $(VISITWRITERBUILDDATE):  $(VISITWRITERDIST)
 $(ATSDIST):
 	$(CURL) "$(ATSURL)" > $(ATSDIST)
 
-$(ATSBUILDDATE):	$(ATSDIST) $(PYTHONBUILDDATE)
+$(ATSBUILDDATE):	$(ATSDIST) $(PYTHONTARGET)
 	@echo "################################################################################"
 	@echo "# Building $(ATSDIST)"
 	@echo "################################################################################"
@@ -896,9 +898,9 @@ $(ATSBUILDDATE):	$(ATSDIST) $(PYTHONBUILDDATE)
 	rm -fr $(ATSDIR)
 	$(GZIP) -dc $(ATSDIST) | $(TAR) -xf -
 	$(SHELL) -ec 'cd $(ATSDIR); \
-	$(PYTHONEXE) setup.py install; \
+	$(PYTHONEXE) setup.py install --prefix $(prefix); \
 	cd LC; \
-	$(PYTHONEXE) setup.py install'
+	$(PYTHONEXE) setup.py install --prefix $(prefix)'
 	@if ! test -e $(prefix)/bin/ats; then \
 	echo "ERROR building ATS."; \
 	rm -f $(ATSBUILDDATE); \
@@ -1038,14 +1040,14 @@ $(JPEGBUILDDATE):	$(JPEGDIST)
 $(PILDIST):
 	$(CURL) "$(PILURL)" > $(PILDIST)
 
-$(PILBUILDDATE):	$(PYTHONBUILDDATE) $(PILDIST) $(JPEGBUILDDATE) $(ZLIBBUILDDATE)
+$(PILBUILDDATE):	$(PYTHONTARGET) $(PILDIST) $(JPEGBUILDDATE) $(ZLIBBUILDDATE)
 	@echo "################################################################################"
 	@echo "# Building $(PILDIST)"
 	@echo "################################################################################"
 	@$(MKDIR) $(LIBDIR) $(prefix)/include $(prefix)/bin
 	rm -fr $(PILDIR)
 	$(GZIP) -dc $(PILDIST) | $(TAR) -xf -
-	$(SHELL) -ec 'cd $(PILDIR); $(PYTHONEXE) setup.py install;'
+	$(SHELL) -ec 'cd $(PILDIR); $(PYTHONEXE) setup.py install --prefix $(prefix);'
 	@if test -n "`$(PYTHONEXE) -c 'import PIL'`"; then \
 	echo "ERROR building PIL python extension."; \
 	rm -f $(PILBUILDDATE); \
@@ -1060,7 +1062,7 @@ $(PILBUILDDATE):	$(PYTHONBUILDDATE) $(PILDIST) $(JPEGBUILDDATE) $(ZLIBBUILDDATE)
 $(PYBINDGENDIST):
 	$(CURL) "$(PYBINDGENURL)" > $(PYBINDGENDIST)
 
-$(PYBINDGENBUILDDATE):	$(PYTHONBUILDDATE) $(PYBINDGENDIST)
+$(PYBINDGENBUILDDATE):	$(PYTHONTARGET) $(PYBINDGENDIST)
 	@echo "################################################################################"
 	@echo "# Building $(PYBINDGENDIST)"
 	@echo "################################################################################"
@@ -1082,7 +1084,7 @@ $(PYBINDGENBUILDDATE):	$(PYTHONBUILDDATE) $(PYBINDGENDIST)
 $(WILDMAGICDIST):
 	$(CURL) "$(WILDMAGICURL)" > $(WILDMAGICDIST)
 
-$(WILDMAGICBUILDDATE):	$(PYTHONBUILDDATE) $(WILDMAGICDIST)
+$(WILDMAGICBUILDDATE):	$(PYTHONTARGET) $(WILDMAGICDIST)
 	@echo "################################################################################"
 	@echo "# Building $(WILDMAGICDIST)"
 	@echo "################################################################################"
@@ -1117,7 +1119,7 @@ $(WILDMAGICBUILDDATE):	$(PYTHONBUILDDATE) $(WILDMAGICDIST)
 $(QHULLDIST):
 	$(CURL) "$(QHULLURL)" > $(QHULLDIST)
 
-$(QHULLDATE):	$(PYTHONBUILDDATE) $(QHULLDIST) $(CMAKEEXE)
+$(QHULLDATE):	$(PYTHONTARGET) $(QHULLDIST) $(CMAKEEXE)
 	@echo "################################################################################"
 	@echo "# Building $(QHULLDIST)"
 	@echo "################################################################################"
@@ -1125,11 +1127,11 @@ $(QHULLDATE):	$(PYTHONBUILDDATE) $(QHULLDIST) $(CMAKEEXE)
 	rm -fr $(QHULLDIR) $(QHULLINCDIR)
 	@$(MKDIR) -p $(prefix)/bin $(prefix)/man $(prefix)/lib $(QHULLINCDIR)
 	$(GZIP) -dc $(QHULLDIST) | $(TAR) -xf -
-	$(PATCH) $(QHULLDIR)/src/libqhull/qhull_a.h $(srcdir)/$(QHULLDIR)-qhull_a.h-patch
-	$(PATCH) $(QHULLDIR)/src/libqhullcpp/QhullIterator.h $(srcdir)/$(QHULLDIR)-QhullIterator.h-patch
-	$(PATCH) $(QHULLDIR)/src/libqhullcpp/QhullLinkedList.h $(srcdir)/$(QHULLDIR)-QhullLinkedList.h-patch
+	#$(PATCH) $(QHULLDIR)/src/libqhull/qhull_a.h $(srcdir)/$(QHULLDIR)-qhull_a.h-patch
+	#$(PATCH) $(QHULLDIR)/src/libqhullcpp/QhullIterator.h $(srcdir)/$(QHULLDIR)-QhullIterator.h-patch
+	#$(PATCH) $(QHULLDIR)/src/libqhullcpp/QhullLinkedList.h $(srcdir)/$(QHULLDIR)-QhullLinkedList.h-patch
 	$(SHELL) -ec "cd $(QHULLDIR)/build; \
-	env PATH='$(prefix)/bin:$(PATH)' CC='$(CC)' CXX='$(CXX)' CFLAGS='$(CFLAGS)' $(CMAKEEXE) -DCMAKE_INSTALL_PREFIX:PATH=$(prefix) .. ; \
+	env PATH='$(prefix)/bin:$(PATH)' CC='$(CC)' CXX='$(CXX)' CFLAGS='$(CFLAGS)' LDFLAGS='$(LDFLAGS)' $(CMAKEEXE) -DBUILD_SHARED_LIBS=OFF -DCMAKE_INSTALL_PREFIX:PATH=$(prefix) .. ; \
 	$(MAKE); \
 	$(MAKE) install"
 	@if ! test -e $(prefix)/lib/libqhullstatic.a; then \
@@ -1146,14 +1148,14 @@ $(QHULLDATE):	$(PYTHONBUILDDATE) $(QHULLDIST) $(CMAKEEXE)
 $(MPI4PYDIST):
 	$(CURL) "$(MPI4PYURL)" > $(MPI4PYDIST)
 
-$(MPI4PYBUILDDATE):  $(PYTHONBUILDDATE) $(MPI4PYDIST)
+$(MPI4PYBUILDDATE):  $(PYTHONTARGET) $(MPI4PYDIST)
 	@echo "################################################################################"
 	@echo "# Building $(MPI4PYDIST)"
 	@echo "################################################################################"
 	rm -fr $(MPI4PYDIR)
 	$(GZIP) -dc $(MPI4PYDIST) | $(TAR) -xf -
 	$(PATCH) $(MPI4PYDIR)/setup.cfg $(srcdir)/mpi4py-1.2.2_setup_dot_cfg.patch
-	env MPICC='$(MPICC) $(MPICCFLAGS)' $(SHELL) -ec "cd $(MPI4PYDIR); $(PYTHONEXE) setup.py install"
+	env MPICC='$(MPICC) $(MPICCFLAGS)' $(SHELL) -ec "cd $(MPI4PYDIR); $(PYTHONEXE) setup.py install --prefix $(prefix)"
 	@if test -n "`$(PYTHONEXE) -c 'from mpi4py import MPI'`"; then \
 	echo "ERROR building mpi4py python extension."; \
 	rm -f $(MPI4PYBUILDDATE); \
@@ -1197,7 +1199,7 @@ $(HDF5BUILDDATE):  $(HDF5DIST)
 $(SILODIST):
 	$(CURL) -k "$(SILOURL)" > $(SILODIST)
 
-$(SILOBUILDDATE):  $(SILODIST) $(HDF5BUILDDATE) $(PYTHONBUILDDATE)
+$(SILOBUILDDATE):  $(SILODIST) $(HDF5BUILDDATE) $(PYTHONTARGET)
 	@echo "################################################################################"
 	@echo "# Building $(SILODIST)"
 	@echo "################################################################################"
@@ -1320,14 +1322,14 @@ $(GMPBUILDDATE):  $(GMPDIST)
 $(MPMATHDIST):
 	$(CURL) "$(MPMATHURL)" > $(MPMATHDIST)
 
-$(MPMATHBUILDDATE):  $(PYTHONBUILDDATE) $(MPMATHDIST)
+$(MPMATHBUILDDATE):  $(PYTHONTARGET) $(MPMATHDIST)
 	@echo "################################################################################"
 	@echo "# Building $(MPMATHDIST)"
 	@echo "################################################################################"
 	@$(MKDIR) $(LIBDIR) $(prefix)/include $(prefix)/bin
 	rm -fr $(MPMATHDIR)
 	$(GZIP) -dc $(MPMATHDIST) | $(TAR) -xf -
-	$(SHELL) -ec "cd $(MPMATHDIR); $(PYTHONEXE) setup.py install"
+	$(SHELL) -ec "cd $(MPMATHDIR); $(PYTHONEXE) setup.py install --prefix $(prefix)"
 	@if test -n "`$(PYTHONEXE) -c 'import mpmath'`"; then \
 	echo "ERROR building mpmath python extension."; \
 	rm -f $(MPMATHBUILDDATE); \
@@ -1368,7 +1370,7 @@ $(HYPREBUILDDATE):	$(HYPREDIST)
 $(FLANNDIST):
 	$(CURL) "$(FLANNURL)" > $(FLANNDIST)
 
-$(FLANNBUILDDATE):	$(FLANNDIST) $(CMAKEEXE) $(FLANNDATE) $(PYTHONBUILDDATE)
+$(FLANNBUILDDATE):	$(FLANNDIST) $(CMAKEEXE) $(FLANNDATE) $(PYTHONTARGET)
 	@echo "################################################################################"
 	@echo "# Building $(FLANNDIST)"
 	@echo "################################################################################"
@@ -1450,7 +1452,7 @@ $(TETGENDIST):
 $(POLYTOPEDIST):
 	$(CURL) "$(POLYTOPEURL)" > $(POLYTOPEDIST)
 
-$(POLYTOPEBUILDDATE):	$(POLYTOPEDIST) $(CMAKEEXE) $(BOOSTDATE) $(SILOBUILDDATE) $(PYTHONBUILDDATE) $(PYBINDGENBUILDDATE)
+$(POLYTOPEBUILDDATE):	$(POLYTOPEDIST) $(CMAKEEXE) $(BOOSTDATE) $(SILOBUILDDATE) $(PYTHONTARGET) $(PYBINDGENBUILDDATE)
 	@echo "################################################################################"
 	@echo "# Building $(POLYTOPEDIST)"
 	@echo "################################################################################"
@@ -1547,7 +1549,7 @@ $(R3DBUILDDATE):	$(R3DDIST)
 $(PYSOBOLDIST):
 	$(CURL) "$(PYSOBOLURL)" > $(PYSOBOLDIST)
 
-$(PYSOBOLBUILDDATE):	$(PYTHONBUILDDATE) $(NUMPYBUILDDATE) $(PYSOBOLDIST)
+$(PYSOBOLBUILDDATE):	$(PYTHONTARGET) $(NUMPYBUILDDATE) $(PYSOBOLDIST)
 	@echo "################################################################################"
 	@echo "# Building $(PYSOBOLDIST)"
 	@echo "################################################################################"

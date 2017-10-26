@@ -65,6 +65,7 @@ AC_SUBST(PYTHONCFLAGS)
 AC_SUBST(PYTHONCONFFLAGS)
 AC_SUBST(NUMPYFLAGS)
 AC_SUBST(NUMPYCFLAGS)
+AC_SUBST(HDF5FLAGS)
 
 PYTHONCONFFLAGS=
 LIBTARGETFLAGS=
@@ -175,12 +176,32 @@ case $COMPILERS in
       CXXFLAGS+=" -std=c++11 -DEIGEN_DONT_VECTORIZE"
       ;;
 
+   gcc-bg)
+      CC=bggcc
+      CXX=bgg++
+      FORT=mpigfortran
+      MPICC=mpigcc
+      MPICXX=mpig++
+      MPICCFLAGS=
+      MPICXXFLAGS=
+      CMAKECC=gcc
+      CMAKECXX=g++
+      GCCXMLCC=$CMAKECC
+      GCCXMLCXX=$CMAKECXX
+      PYTHONCC=mpigcc
+      PYTHONCXX=mpig++
+      PARMETISCC=$MPICC
+      CXXFLAGS+=" -std=c++11 -DEIGEN_DONT_VECTORIZE"
+      #LDFLAGS+=" -dynamic"
+      HDF5FLAGS+=" --enable-shared=no --enable-static=yes --enable-static-exec=yes"
+      ;;
+
    clang-bg)
-      CC=bgclang
-      CXX=bgclang++
+      CC=mpigcc-4.7.2-fastmpi
+      CXX=mpigcc-4.7.2-fastmpi
       FORT=gfortran
-      MPICC=mpiclang
-      MPICXX=mpiclang++
+      MPICC=mpigcc-4.7.2-fastmpi
+      MPICXX=mpig++-4.7.2-fastmpi
       MPICCFLAGS=
       MPICXXFLAGS=
       CMAKECC=gcc

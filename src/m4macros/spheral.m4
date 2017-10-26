@@ -33,6 +33,7 @@ AC_SUBST(ALL)
 AC_SUBST(ALLTOP)
 AC_SUBST(CXXONLY)
 AC_SUBST(USE_R3D)
+AC_SUBST(CMAKEEXE)
 
 LDRPATH=
 HEADERDIR=
@@ -161,6 +162,7 @@ else
   WILDMAGICTARGET="ReleaseDynamic"
   WMLIBEXT="so"
 fi
+AC_MSG_RESULT($BUILDWILDMAGIC)
 
 # -----------------------------------------------------------------
 # Optionally build an additional package of C++ testing functions.
@@ -253,6 +255,21 @@ AC_ARG_WITH(r3d,
     AC_MSG_RESULT(no)
     EXTRATHIRDPARTYTARGETS+=" .r3d.date"
     USE_R3D="yes"
+])
+
+# -----------------------------------------------------------------
+# Allow the use of an existing cmake.
+# -----------------------------------------------------------------
+AC_MSG_CHECKING(for --with-cmake)
+AC_ARG_WITH(cmake,
+[  --with-cmake ............................. specify a cmake executable],
+[
+    CMAKEEXE=$withval
+    AC_MSG_RESULT($CMAKEEXE)
+],
+[
+    CMAKEEXE=$(prefix)/bin/cmake
+    AC_MSG_RESULT($CMAKEEXE)
 ])
 
 # -----------------------------------------------------------------
