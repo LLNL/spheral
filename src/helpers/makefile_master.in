@@ -11,6 +11,8 @@ libdir = @libdir@
 OSNAME = @OSNAME@
 INSTALL = @INSTALL@
 SPHERALBUILDDIR = @SPHERALBUILDDIR@
+TPINCS = @TPINCS@
+TPLIBS = @TPLIBS@
 PYTHONEXE  = @PYTHON@
 PYTHONVERSION = @PYTHONVERSION@
 PYTHONCFLAGS = @PYTHONCFLAGS@ @OPT@
@@ -82,7 +84,7 @@ PYSTEDEPENDDATE = .pystedependdate
 PYSTEOBJSDATE = .pysteobjsdate
 
 TAULIBS = # @TAULIBS@
-LIBS = -L$(LIBDIR) @LIBS@ @AIXLIBS@ $(POLYTOPELIBS) $(TAULIBS) $(PARMETISLIBS) $(OPENSUBDIVLIBS)
+LIBS = -L$(LIBDIR) @LIBS@ @AIXLIBS@ $(TPLIBS) $(POLYTOPELIBS) $(TAULIBS) $(PARMETISLIBS) $(OPENSUBDIVLIBS)
 
 DEPENDLIBS := $(patsubst %, -l%, $(DEPENDS))
 
@@ -140,7 +142,7 @@ SHLIBEXT = @SHLIBEXT@
 EMPTY :=
 SPACE := $(EMPTY) $(EMPTY)
 
-INCS = $(EXTRAINCLUDES) -I$(SPHERALTOP) -I$(srcdir) -I$(BOOSTROOT) -I$(prefix)/include
+INCS = $(EXTRAINCLUDES) $(TPINCS) -I$(SPHERALTOP) -I$(srcdir) -I$(BOOSTROOT) -I$(prefix)/include
 
 #-------------------------------------------------------------------------------
 # Augment the SRCTARGETS with generated instantiation files.

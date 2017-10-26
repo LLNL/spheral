@@ -197,11 +197,11 @@ case $COMPILERS in
       ;;
 
    clang-bg)
-      CC=mpigcc-4.7.2-fastmpi
-      CXX=mpigcc-4.7.2-fastmpi
-      FORT=gfortran
-      MPICC=mpigcc-4.7.2-fastmpi
-      MPICXX=mpig++-4.7.2-fastmpi
+      CC=bgclang
+      CXX=bgclang++11
+      FORT=gfortran-4.7.2-fastmpi
+      MPICC=mpiclang
+      MPICXX=mpiclang++11
       MPICCFLAGS=
       MPICXXFLAGS=
       CMAKECC=gcc
@@ -212,6 +212,7 @@ case $COMPILERS in
       PYTHONCXX=g++
       PARMETISCC=$MPICC
       CXXFLAGS+=" -std=c++11 -DEIGEN_DONT_VECTORIZE"
+      HDF5FLAGS+=" --enable-shared=no --enable-static=yes --enable-static-exec=yes"
       ;;
 
    vacpp)
