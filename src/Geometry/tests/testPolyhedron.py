@@ -113,7 +113,9 @@ class TestPolyhedron(unittest.TestCase):
             result = pointInPolyhedron(p, self.polyhedron, True)
             if not result:
                 print "Bad polyhedron:  ", [str(x) for x in self.polyhedron.vertices()]
-                print "Test if point on polyhedron:  ", pointOnPolyhedron(p, self.polyhedron.vertices())
+                print "Distance from polyhedron: ", self.polyhedron.distance(p)
+                print "Test if point on polyhedron:  ", pointOnPolyhedron(p, self.polyhedron)
+                print "Min zray distance:  ", min([(Vector2d(p.x, p.y) - Vector2d(vi.x, vi.y)).magnitude() for vi in self.polyhedron.vertices()])
             self.failUnless(result,
                             "Polyhedron does not contain seed point: %s" % str(p))
         return
