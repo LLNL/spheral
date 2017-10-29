@@ -108,7 +108,7 @@ namespace FractalSpace
 	    else
 	      {
 		pa=found[0];
-		pb=found[1];
+		pc=found[1];
 	      }
 	    break;
 	  }
