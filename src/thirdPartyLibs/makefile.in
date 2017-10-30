@@ -424,8 +424,8 @@ $(NUMPYBUILDDATE):	$(PYTHONTARGET) $(NUMPYDIST)
 	rm -fr $(NUMPYDIR)
 	$(GZIP) -dc $(NUMPYDIST) | $(TAR) -xf -
 	env CC='$(PYTHONCC)' CXX='$(PYTHONCXX)' $(NUMPYCFLAGS) PATH='$(prefix)/bin:$(PATH)' $(SHELL) -ec 'cd $(NUMPYDIR); \
-	$(PYTHONEXE) setup.py build --prefix $(prefix) $(NUMPYFLAGS); \
-	$(PYTHONEXE) setup.py install --prefix $(prefix);'
+	$(PYTHONEXE) setup.py build $(NUMPYFLAGS); \
+	$(PYTHONEXE) setup.py install;'
 	@if test -n "`$(PYTHONEXE) -c 'import numpy'`"; then \
 	echo "ERROR building numpy python extension."; \
 	rm -f $(NUMPYBUILDDATE); \
