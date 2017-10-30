@@ -109,7 +109,7 @@ class TestPolyhedron(unittest.TestCase):
     # with the generic contain method.
     #---------------------------------------------------------------------------
     def testGenericContainSeeds(self):
-        for p in rangen.sample(self.points, 1000):
+        for p in rangen.sample(self.points, 5000):
             result = pointInPolyhedron(p, self.polyhedron, True)
             if not result:
                 print "Bad polyhedron:  ", [str(x) for x in self.polyhedron.vertices()]

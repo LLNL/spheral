@@ -3,9 +3,6 @@
 //
 // Test if a given point is in a polyhedron or not.
 //------------------------------------------------------------------------------
-#include <random>
-#include <algorithm>
-
 #include "pointInPolyhedron.hh"
 #include "pointInPolygon.hh"
 #include "testBoxIntersection.hh"
@@ -14,6 +11,10 @@
 #include "lineSegmentIntersections.hh"
 #include "rotationMatrix.hh"
 #include "Geometry/Dimension.hh"
+
+#include <random>
+#include <algorithm>
+#include <iostream>
 
 namespace Spheral {
 
@@ -32,6 +33,8 @@ bool pointInPolyhedron(const Dim<3>::Vector& p,
   typedef Polyhedron::Facet Facet;
   typedef Dim<2>::Vector Vector2d;
 
+  const Vector rayhat(0, 0, 1);    // Project straight up in z.
+  const auto pend = p + Vector(0, 0, 1e60);
   const auto& vertices = polyhedron.vertices();
   const auto& facets = polyhedron.facets();
   const auto pz = p.z();
@@ -47,45 +50,63 @@ bool pointInPolyhedron(const Dim<3>::Vector& p,
   // if (countBoundary and pointOnPolyhedron(p, polyhedron, tol)) return true;
 
   // Keep count of how mny facets we intersect.
-  int numxy = 0, numzx = 0, numyz = 0;
+  int numxy = 0;
 
   // Walk the facets.
   for (const auto& facet: facets) {
     const auto& ipts = facet.ipoints();
     const auto npts = ipts.size();
+    const auto& fhat = facet.normal();
+    const auto fdotr = fhat.dot(rayhat);
 
-    // We only have to check if some portion of this facet is at greater z than the point in question.
-    size_t i = 0;
-    while (i < npts and vertices[ipts[i]].z() < pz) ++i;
-    if (i < npts) {
+    // Check if the facet is parallel to ray.
+    if (std::abs(fdotr) <= tol) {
 
-      // Copy the vertices as XY pairs.
-      vector<Vector2d> vxy, vzx, vyz;
-      for (i = 0; i < npts; ++i) {
-        vxy.push_back(Vector2d(vertices[ipts[i]].x(), vertices[ipts[i]].y()));
-        vzx.push_back(Vector2d(vertices[ipts[i]].z(), vertices[ipts[i]].x()));
-        vyz.push_back(Vector2d(vertices[ipts[i]].y(), vertices[ipts[i]].z()));
+      // If they are, we only care if the ray is in the plane of the facet.
+      if (std::abs((vertices[ipts[0]] - p).dot(fhat) <= tol)) {
+        cerr << " PARALLEL!" << endl;
+
+        // The ray and plane are parallel, and the ray is in the plane.
+        // Check if the ray crosses any of the facet lines -- if so, counts as an intersection.
+        size_t i = 0;
+        while (i < npts and
+               segmentSegmentDistance(vertices[ipts[i]], vertices[ipts[(i + 1) % npts]], p, pend) > tol) ++i;
+        if (i < npts) ++numxy;
       }
 
-      // Does a ray straight up the +z direction intersect this projected polygon?
-      if (pointInPolygon(pxy, vxy, false, tol)) ++numxy;
-      if (pointInPolygon(pzx, vzx, false, tol)) ++numzx;
-      if (pointInPolygon(pyz, vyz, false, tol)) ++numyz;
+    } else {
+
+      // Find the intersection point of the line corresponding to our ray and the plane of the facet.
+      // What we're solving for here is parametric s where the line is represented as
+      //   pline = p + s*rayhat
+      const auto si = fhat.dot(vertices[ipts[0]] - p)*safeInvVar(fdotr);
+      CHECK(std::abs((p + si*rayhat - vertices[ipts[0]]).dot(fhat)) < tol);
+      
+      // We only need to check this facet if si is positive, indicating the the intersection
+      // point is in the positive ray direction, i.e., above p in z.
+      if (si > 0.0) {
+
+        // Copy the vertices as XY pairs.
+        vector<Vector2d> vxy;
+        for (size_t i = 0; i < npts; ++i) {
+          vxy.push_back(Vector2d(vertices[ipts[i]].x(), vertices[ipts[i]].y()));
+        }
+        vxy.push_back(vxy[0]);
+
+        // Does a ray straight up the +z direction intersect this projected polygon?
+        if (pointInPolygon(pxy, vxy)) {
+          // cerr << "Intersect facet: " << si << " " << pxy << endl;
+          // for (size_t i = 0; i < npts; ++i) cerr << " " << vxy[i];
+          // cerr << endl;
+          ++numxy;
+        }
+      }
     }
   }
 
   // If the ray passed through an even number of intersections the point is external to the 
   // polyhedron.
-  const auto xytest = (numxy % 2) == 1,
-             zxtest = (numzx % 2) == 1,
-             yztest = (numyz % 2) == 1;
-  if (xytest != zxtest or xytest != yztest or zxtest != yztest) {
-    cerr << "Whoa : " << numxy << " " << numzx << " " << numyz << endl;
-  }
-  return zxtest;
-  // return ((xytest and zxtest) or
-  //         (zxtest and yztest) or
-  //         (yztest and xytest));
+  return ((numxy % 2) == 1);
 }
 
 }
