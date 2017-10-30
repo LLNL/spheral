@@ -215,6 +215,25 @@ case $COMPILERS in
       HDF5FLAGS+=" --enable-shared=no --enable-static=yes --enable-static-exec=yes"
       ;;
 
+   vacpp-bg)
+      CC=xlc_r
+      CXX=xlC_r
+      FORT=mpixlf-fastmpi
+      MPICC=mpixlc_r-fastmpi
+      MPICXX=mpixlcxx_r-fastmpi
+      MPICCFLAGS=
+      MPICXXFLAGS=
+      CMAKECC=gcc
+      CMAKECXX=g++
+      GCCXMLCC=$CMAKECC
+      GCCXMLCXX=$CMAKECXX
+      PYTHONCC=gcc
+      PYTHONCXX=g++
+      PARMETISCC=$MPICC
+      CXXFLAGS+=" -qlanglvl=extended0x -DEIGEN_DONT_ALIGN -DEIGEN_DONT_VECTORIZE "
+      HDF5FLAGS+=" --enable-shared=no --enable-static=yes --enable-static-exec=yes"
+      ;;
+
    vacpp)
       CC=xlc_r
       CXX=xlC_r
@@ -682,7 +701,8 @@ KAI)
 VACPP)
   FORTFLAGS="$FORTFLAGS " 
   SHAREDFLAG="$SHAREDFLAG -G -qmkshrobj"
-  DEPFLAG="-M -E"
+  DEPFLAG="-M"
+  #DEPFLAG="-M -E"
   #DEPENDRULES="dependrules.aix"
   CFLAGS="$CFLAGS -g"
   JAMTOOLSET=vacpp 

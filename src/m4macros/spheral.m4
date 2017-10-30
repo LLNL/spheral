@@ -40,7 +40,6 @@ AC_SUBST(CMAKEEXE)
 
 LDRPATH=
 HEADERDIR=
-TPINCS=
 TPLIBS=
 
 AC_MSG_CHECKING(for spheral build directory)
@@ -202,6 +201,21 @@ AC_ARG_WITH(gsl,
 )
 
 # -----------------------------------------------------------------
+# Optionally build install mpmath
+# -----------------------------------------------------------------
+AC_MSG_CHECKING(for --with-mpmath)
+AC_ARG_WITH(mpmath,
+[  --with-mpmath ............................ optionally install the Gnu Scientific Library extensions],
+[
+   AC_MSG_RESULT(yes)
+   EXTRATHIRDPARTYTARGETS+=" .mpmath-0.17.date"
+],
+[
+   AC_MSG_RESULT(no)
+]
+)
+
+# -----------------------------------------------------------------
 # Optionally do not build third party libs.
 # -----------------------------------------------------------------
 AC_SUBST(BUILDTHIRDPARTYTARGET)
@@ -332,6 +346,7 @@ AC_ARG_WITH(qhull,
 [  --with-qhull ............................. specify a root path for an existing qhull install],
 [
     TPINCS+=" -I $withval/include"
+    TPLIBS+=" -L $withval/lib"
     AC_MSG_RESULT($withval)
 ],
 [
