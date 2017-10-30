@@ -17,6 +17,7 @@ PYTHONEXE  = @PYTHON@
 PYTHONVERSION = @PYTHONVERSION@
 PYTHONCFLAGS = @PYTHONCFLAGS@ @OPT@
 PYTHONCONFFLAGS = @PYTHONCONFFLAGS@
+PYLIBDIR = @PYLIBDIR@
 NUMPYFLAGS = @NUMPYFLAGS@
 NUMPYCFLAGS = @NUMPYCFLAGS@
 TOPLIBDIR =  $(libdir)
@@ -399,7 +400,7 @@ $(PBGTARGETDATE):  $(PBGTARGET)
 	@echo "################################################################################"
 	@echo "# Building sources $(PBGTARGET) $(PBGSRCS)"
 	@echo "################################################################################"
-	env PYTHONPATH="$(srcdir):$(subst $(SPACE),:,$(patsubst %,$(srcdir)/%,$(PYTHONPKGS)))" $(PYTHONEXE) $(PBGTARGET) $(SPHERALMODULES).C
+	env PYTHONPATH="$(srcdir):$(subst $(SPACE),:,$(patsubst %,$(srcdir)/%,$(PYTHONPKGS))):$(PYLIBDIR)" $(PYTHONEXE) $(PBGTARGET) $(SPHERALMODULES).C
 	touch $(PBGTARGETDATE)
 
 $(PBGSRCS):	$(PBGTARGETDATE)
