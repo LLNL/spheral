@@ -177,8 +177,8 @@ case $COMPILERS in
       ;;
 
    gcc-bg)
-      CC=bggcc
-      CXX=bgg++
+      CC=mpigcc
+      CXX=mpig++
       FORT=mpigfortran
       MPICC=mpigcc
       MPICXX=mpig++
