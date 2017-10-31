@@ -126,9 +126,9 @@ update(const KeyType& key,
   const auto allkeys = derivs.fieldKeys();
   vector<string> incrementKeys;
   for (const auto& key: allkeys) {
-    if (std::regex_search(key, std::regex("^" + incrementKey))) {
+    // if (std::regex_search(key, std::regex("^" + incrementKey))) {
+    if (key.compare(0, incrementKey.size(), incrementKey) == 0) {
       incrementKeys.push_back(key);
-      // cerr << "        " << key << endl;
     }
   }
   CHECK(not incrementKeys.empty());
