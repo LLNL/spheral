@@ -22,11 +22,6 @@ except:
     pass
 
 # ------------------------------------------------------------------------------
-# Load up MPI.
-# ------------------------------------------------------------------------------
-import mpi
-
-# ------------------------------------------------------------------------------
 # Import the compiled packages.
 # ------------------------------------------------------------------------------
 from SpheralModules import *
@@ -49,6 +44,11 @@ from SpheralModules.Spheral.CRKSPHSpace import *
 from SpheralModules.Spheral.SVPHSpace import *
 from SpheralModules.Spheral.MeshSpace import *
 from SpheralModules.Spheral.PythonBoundFunctors import *
+
+# ------------------------------------------------------------------------------
+# Load up MPI.
+# ------------------------------------------------------------------------------
+import mpi
 
 # ------------------------------------------------------------------------------
 # Import the Material python extensions.

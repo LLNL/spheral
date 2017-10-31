@@ -34,6 +34,7 @@ AC_SUBST(CMAKECC)
 AC_SUBST(CMAKECXX)
 
 AC_SUBST(PARMETISCC)
+AC_SUBST(MPI4PYCC)
 
 AC_SUBST(CXXCOMPILERTYPE)
 AC_SUBST(JAMOPTS)
@@ -115,6 +116,7 @@ case $COMPILERS in
          PYTHONCC=$CC
          PYTHONCXX=$CXX
          PARMETISCC=$MPICC
+         MPI4PYCC=$MPICC
          CXXFLAGS+=" -std=c++11 -march=native"
 
       else
@@ -130,6 +132,7 @@ case $COMPILERS in
          PYTHONCC=$CC
          PYTHONCXX=$CXX
          PARMETISCC=$MPICC
+         MPI4PYCC=$MPICC
          CXXFLAGS+=" -std=c++11 -march=native"
          if test $OSNAME = "Darwin"; then
            CXXFLAGS+=" -mmacosx-version-min=10.7 -stdlib=libc++"
@@ -152,6 +155,7 @@ case $COMPILERS in
       PYTHONCC=$CC
       PYTHONCXX=$CXX
       PARMETISCC=$MPICC
+      MPI4PYCC=$MPICC
       CXXFLAGS+=" -std=c++11 -Wno-undefined-var-template -march=native"
       if test $OSNAME = "Darwin"; then
         CXXFLAGS+=" -mmacosx-version-min=10.7 -stdlib=libc++"
@@ -173,6 +177,7 @@ case $COMPILERS in
       PYTHONCC=gcc
       PYTHONCXX=g++
       PARMETISCC=$MPICC
+      MPI4PYCC=$MPICC
       CXXFLAGS+=" -std=c++11 -DEIGEN_DONT_VECTORIZE"
       ;;
 
@@ -188,9 +193,10 @@ case $COMPILERS in
       CMAKECXX=g++
       GCCXMLCC=$CMAKECC
       GCCXMLCXX=$CMAKECXX
-      PYTHONCC=mpigcc
-      PYTHONCXX=mpig++
+      PYTHONCC=bggcc
+      PYTHONCXX=bgg++
       PARMETISCC=$MPICC
+      MPI4PYCC=mpixlc_r
       CXXFLAGS+=" -std=c++11 -DEIGEN_DONT_VECTORIZE"
       #LDFLAGS+=" -dynamic"
       HDF5FLAGS+=" --enable-shared=no --enable-static=yes --enable-static-exec=yes"
@@ -211,6 +217,7 @@ case $COMPILERS in
       PYTHONCC=gcc
       PYTHONCXX=g++
       PARMETISCC=$MPICC
+      MPI4PYCC=mpixlc_r
       CXXFLAGS+=" -std=c++11 -DEIGEN_DONT_VECTORIZE"
       HDF5FLAGS+=" --enable-shared=no --enable-static=yes --enable-static-exec=yes"
       ;;
@@ -230,6 +237,7 @@ case $COMPILERS in
       PYTHONCC=gcc
       PYTHONCXX=g++
       PARMETISCC=$MPICC
+      MPI4PYCC=$MPICC
       CXXFLAGS+=" -qlanglvl=extended0x -DEIGEN_DONT_ALIGN -DEIGEN_DONT_VECTORIZE "
       HDF5FLAGS+=" --enable-shared=no --enable-static=yes --enable-static-exec=yes"
       ;;
@@ -246,6 +254,7 @@ case $COMPILERS in
       PYTHONCC=/usr/tcetmp/packages/gcc/gcc-4.9.3/bin/gcc
       PYTHONCXX=/usr/tcetmp/packages/gcc/gcc-4.9.3/bin/g++
       PARMETISCC=$MPICC
+      MPI4PYCC=$MPICC
       CFLAGS+=" "
       CXXFLAGS+=" -std=c++11 -qnoinline -qnoxlcompatmacros -qmaxmem=16384  -DEIGEN_DONT_ALIGN -DEIGEN_DONT_VECTORIZE "
       ;;
@@ -265,6 +274,7 @@ case $COMPILERS in
       CMAKECC=gcc
       CMAKECXX=g++
       PARMETISCC=$MPICC
+      MPI4PYCC=$MPICC
       CXXFLAGS+=" -std=c++11"
       NUMPYFLAGS="--fcompiler=intelem"
       NUMPYCFLAGS="CFLAGS=-no-ip"
@@ -285,6 +295,7 @@ case $COMPILERS in
       CMAKECC=pgcc
       CMAKECXX=pbCC
       PARMETISCC=$MPICC
+      MPI4PYCC=$MPICC
       NUMPYFLAGS=
       # 111  - statement is unreachable
       # 186  - pointless comparison of unsigned integer with zero
@@ -306,6 +317,7 @@ case $COMPILERS in
       GCCXMLCC=$CC
       GCCXMLCXX=$CXX
       PARMETISCC=$MPICC
+      MPI4PYCC=$MPICC
       #PYTHONCONFFLAGS="--with-gcc=$PYTHONCC"
       ;;
 
@@ -404,6 +416,21 @@ AC_ARG_WITH(python-CXX,
 ],
 [
    AC_MSG_RESULT($PYTHONCXX)
+]
+)
+
+# =======================================================================
+# mpi4py compilers
+# =======================================================================
+AC_MSG_CHECKING(for MPI4PYCC)
+AC_ARG_WITH(MPI4PYCC,
+[  --with-MPI4PYCC=ARG ....................... manually set the CC compiler for mpi4py],
+[
+   MPI4PYCC=$withval
+   AC_MSG_RESULT($MPI4PYCC)
+],
+[
+   AC_MSG_RESULT($MPI4PYCC)
 ]
 )
 
