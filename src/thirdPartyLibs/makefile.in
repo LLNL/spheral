@@ -1150,7 +1150,7 @@ $(MPI4PYBUILDDATE):  $(PYTHONTARGET) $(MPI4PYDIST)
 	rm -fr $(MPI4PYDIR)
 	$(GZIP) -dc $(MPI4PYDIST) | $(TAR) -xf -
 	#$(PATCH) $(MPI4PYDIR)/setup.cfg $(srcdir)/mpi4py-1.2.2_setup_dot_cfg.patch
-	env MPICC='$(MPICC) $(MPICCFLAGS)' $(SHELL) -ec "cd $(MPI4PYDIR); $(PYTHONEXE) setup.py install --prefix $(prefix)"
+	env MPICC='$(MPI4PYCC) $(MPICCFLAGS)' $(SHELL) -ec "cd $(MPI4PYDIR); $(PYTHONEXE) setup.py install --prefix $(prefix)"
 	@if test -n "`$(PYTHONEXE) -c 'from mpi4py import MPI'`"; then \
 	echo "ERROR building mpi4py python extension."; \
 	rm -f $(MPI4PYBUILDDATE); \
