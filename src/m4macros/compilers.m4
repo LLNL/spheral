@@ -111,6 +111,8 @@ case $COMPILERS in
             MPICXX=mpig++
             #MPICXXFLAGS="-cc=$CXX"
          fi
+         CMAKECC=$CC
+         CMAKECXX=$CXX
          GCCXMLCC=$CMAKECC
          GCCXMLCXX=$CMAKECXX
          PYTHONCC=$CC
@@ -782,7 +784,6 @@ AC_ARG_WITH(openmp,
       EXTRAFLAGS+="-qsmp=omp -qoffload -I/usr/tcetmp/packages/cuda-9.0.176/include    "
    else
       CXXFLAGS+=" -fopenmp"
-      EXTRAFLAGS+=" -I/usr/tcetmp/packages/cuda-9.0.184/include -fopenmp-targets=nvptx64-nvidia-cuda -fopenmp-implicit-declare-target"
     #  CXXFLAGS+=" "
     #  EXTRAFLAGS+=" -qsmp=omp -qoffload -I/usr/tcetmp/packages/cuda-9.0.176/include    "
    fi
@@ -801,6 +802,7 @@ AC_ARG_WITH(uvm,
 [
    AC_MSG_RESULT(yes)
    EXTRAFLAGS+=" -DUSE_UVM"
+   EXTRAFLAGS+=" -I/usr/tcetmp/packages/cuda-9.0.184/include -fopenmp-targets=nvptx64-nvidia-cuda -fopenmp-implicit-declare-target"
 ],
 [
    AC_MSG_RESULT(no)

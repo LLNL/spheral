@@ -287,7 +287,7 @@ AC_ARG_WITH(cmake,
     AC_MSG_RESULT($CMAKEEXE)
 ],
 [
-    CMAKEEXE=$(prefix)/bin/cmake
+    CMAKEEXE='$(prefix)/bin/cmake'
     AC_MSG_RESULT($CMAKEEXE)
 ])
 
