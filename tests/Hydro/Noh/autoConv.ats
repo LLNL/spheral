@@ -1,0 +1,25 @@
+#-*-python-*-
+
+cfl = 0.25
+Cl = 1.0
+Cq = 1.0
+filter = 0.0
+KernelConstructor = "NBSplineKernel"
+order = 7
+linearInExpansion = False
+nPerh = 1.01
+crk = True
+
+def addTests(mult,header,proc):
+    test(script = "Noh-planar-1d.py",
+         clas = "--nx1 %i --CRKSPH %s --KernelConstructor %s --order %i --cfl %g --nPerh %g --Cl %g --Cq %g  --linearInExpansion %s --filter %g --graphics False --clearDirectories True --normOutputFile=%s --writeOutputLabel=%s" % (int(mult), crk, KernelConstructor, order, cfl, nPerh, Cl, Cq, linearInExpansion, filter,"Convergence.ascii",header),
+         np = proc,
+         label = "Planar Noh %d -- %d procs" % (mult,proc))
+    return
+
+for i in xrange(11):
+    y = 20.0*10.0**(float(i)/float(5.0))
+    k = 0.532
+    z = int(2.0**(float(i)*k))
+    z = max(z,1)
+    addTests(y,False,z)

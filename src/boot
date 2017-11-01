@@ -1,0 +1,4 @@
+#!/bin/sh
+#Do autoconf magic
+aclocal -I m4macros
+autoconf
