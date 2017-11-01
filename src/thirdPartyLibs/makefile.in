@@ -1122,7 +1122,8 @@ $(QHULLDATE):	$(PYTHONTARGET) $(QHULLDIST) $(CMAKEEXE)
 	rm -fr $(QHULLDIR) $(QHULLINCDIR)
 	@$(MKDIR) -p $(prefix)/bin $(prefix)/man $(prefix)/lib $(QHULLINCDIR)
 	$(GZIP) -dc $(QHULLDIST) | $(TAR) -xf -
-	#$(PATCH) $(QHULLDIR)/src/libqhull/qhull_a.h $(srcdir)/$(QHULLDIR)-qhull_a.h-patch
+	$(PATCH) $(QHULLDIR)/src/libqhull/qhull_a.h $(srcdir)/$(QHULLDIR)-qhull_a.h-patch
+	$(PATCH) $(QHULLDIR)/src/libqhull_r/qhull_ra.h $(srcdir)/$(QHULLDIR)-qhull_ra.h-patch
 	#$(PATCH) $(QHULLDIR)/src/libqhullcpp/QhullIterator.h $(srcdir)/$(QHULLDIR)-QhullIterator.h-patch
 	#$(PATCH) $(QHULLDIR)/src/libqhullcpp/QhullLinkedList.h $(srcdir)/$(QHULLDIR)-QhullLinkedList.h-patch
 	$(SHELL) -ec "cd $(QHULLDIR)/build; \
