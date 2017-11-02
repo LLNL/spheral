@@ -37,10 +37,14 @@ AC_SUBST(TPINCS)
 AC_SUBST(TPLIBS)
 AC_SUBST(EXTRATHIRDPARTYTARGETS)
 AC_SUBST(CMAKEEXE)
+AC_SUBST(BOOSTTARGET)
+AC_SUBST(SILOTARGET)
 
 LDRPATH=
 HEADERDIR=
 TPLIBS=
+BOOSTTARGET=
+SILOTARGET=
 
 AC_MSG_CHECKING(for spheral build directory)
 #SPHERALBUILDDIR=`echo $PWD | sed -e "s/\/spheral\/src$//g;"`
@@ -320,6 +324,7 @@ AC_ARG_WITH(silo,
 ],
 [
     EXTRATHIRDPARTYTARGETS+=" .silo-4.10.2-bsd.date"
+    SILOTARGET=".silo-4.10.2-bsd.date"
     AC_MSG_RESULT(no)
 ])
 
@@ -335,6 +340,7 @@ AC_ARG_WITH(boost,
 ],
 [
     EXTRATHIRDPARTYTARGETS+=" .boost_1_63_0.date"
+    BOOSTTARGET=".boost_1_63_0.date"
     AC_MSG_RESULT(no)
 ])
 
