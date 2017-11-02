@@ -655,13 +655,23 @@ evaluateDerivatives(const typename Dimension::Scalar time,
 
 #ifdef _OPENMP
 
-          #pragma omp target parallel for   \
+#ifdef USE_UVM
+          #pragma omp target parallel for    \
           reduction(max: maxvp) \
           reduction(+: ncalc, weightedNeighborSumi, rhoSumi, normi,  \
                   effViscousPressurei, viscousWorki, DepsDti, XSPHWeightSumi ) \
           reduction(vecadd: DvDti, XSPHDeltaVi ) \
           reduction(symtensadd: massSecondMomenti ) \
 	  reduction(tensadd: Mi, localMi, DvDxi, localDvDxi) 
+#else
+          #pragma omp parallel for   \
+          reduction(max: maxvp) \
+          reduction(+: ncalc, weightedNeighborSumi, rhoSumi, normi,  \
+                  effViscousPressurei, viscousWorki, DepsDti, XSPHWeightSumi ) \
+          reduction(vecadd: DvDti, XSPHDeltaVi ) \
+          reduction(symtensadd: massSecondMomenti ) \
+	  reduction(tensadd: Mi, localMi, DvDxi, localDvDxi) 
+#endif
 
 #endif
           for (int jct=0; jct < nj; ++jct) {
