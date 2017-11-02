@@ -655,17 +655,31 @@ evaluateDerivatives(const typename Dimension::Scalar time,
 
 #ifdef _OPENMP
 
-          #pragma omp target parallel for   \
+#ifdef USE_UVM
+          #pragma omp target parallel for    \
           reduction(max: maxvp) \
           reduction(+: ncalc, weightedNeighborSumi, rhoSumi, normi,  \
                   effViscousPressurei, viscousWorki, DepsDti, XSPHWeightSumi ) \
           reduction(vecadd: DvDti, XSPHDeltaVi ) \
           reduction(symtensadd: massSecondMomenti ) \
 	  reduction(tensadd: Mi, localMi, DvDxi, localDvDxi) 
+#else
+          #pragma omp parallel for   \
+            default(shared) \
+            reduction(max: maxvp, maxViscousPressurei, maxViscousPressureij) \
+            reduction(+: ncalc, \
+                         rhoSumi, normi, DrhoDti, DepsDti, effViscousPressurei, viscousWorki, XSPHWeightSumi, weightedNeighborSumi, worki, 
+                         rhoSumj, normj,          DepsDtj, effViscousPressurej, viscousWorkj, XSPHWeightSumj, weightedNeighborSumj) \
+            reduction(vecadd: DvDti, XSPHDeltaVi, \
+                              DvDtj, XSPHDeltaVj )                                           \
+            reduction(symtensadd: massSecondMomenti, massSecondMomentj )                \
+            reduction(tensadd: Mi, localMi, DvDxi, localDvDxi)
+#endif
 
 #endif
           for (int jct=0; jct < nj; ++jct) {
             const int j = *(jItr0+jct);
+            cout << "  " << omp_get_thread_num() << " " << j << endl;
 
             // Only proceed if this node pair has not been calculated yet.
             if (connectivityMap.calculatePairInteraction(nodeListi, i, 
