@@ -3,11 +3,10 @@
 #
 # W.F. Noh 1987, JCP, 72, 78-120.
 #-------------------------------------------------------------------------------
-import shutil
+import os, shutil
 from math import *
-from Spheral3d import *
+from SolidSpheral3d import *
 from SpheralTestUtilities import *
-from findLastRestart import *
 from GenerateNodeDistribution3d import *
 
 import mpi
@@ -18,7 +17,8 @@ title("3-D integrated hydro test -- cylindrical Noh problem")
 #-------------------------------------------------------------------------------
 # Generic problem parameters
 #-------------------------------------------------------------------------------
-commandLine(seed = "lattice",
+commandLine(order = 5,
+            seed = "lattice",
 
             nx = 50,
             ny = 50,
@@ -41,22 +41,35 @@ commandLine(seed = "lattice",
 
             gamma = 5.0/3.0,
             mu = 1.0,
-	    KernelConstructor = BSplineKernel,
-            order = 5,
 
-            SVPH = False,
-            CRKSPH = False,
-            PSPH = False,
-            SPH = True,   # This just chooses the H algorithm -- you can use this with CRKSPH for instance.
-            Qconstructor = MonaghanGingoldViscosity,
+            solid = False,    # If true, use the fluid limit of the solid hydro option
+
+            svph = False,
+            crksph = False,
+            psph = False,
+            asph = False,   # This just chooses the H algorithm -- you can use this with CRKSPH for instance.
+            boolReduceViscosity = False,
+            HopkinsConductivity = False,     # For PSPH
+            nhQ = 5.0,
+            nhL = 10.0,
+            aMin = 0.1,
+            aMax = 2.0,
+            boolCullenViscosity = False,
+            alphMax = 2.0,
+            alphMin = 0.02,
+            betaC = 0.7,
+            betaD = 0.05,
+            betaE = 1.0,
+            fKern = 1.0/3.0,
+            boolHopkinsCorrection = True,
             linearConsistent = False,
-            Cl = 1.0, 
-            Cq = 0.75,
-            linearInExpansion = False,
-            Qlimiter = False,
-            balsaraCorrection = False,
-            epsilon2 = 1e-2,
-            fslice = 0.5,
+
+            Cl = None, 
+            Cq = None,
+            linearInExpansion = None,
+            Qlimiter = None,
+            balsaraCorrection = None,
+            epsilon2 = None,
             hmin = 0.0001, 
             hmax = 0.5,
             hminratio = 0.1,
@@ -65,21 +78,6 @@ commandLine(seed = "lattice",
             epsilonTensile = 0.0,
             nTensile = 8,
             filter = 0.0,
-            boolReduceViscosity = False,
-            nhQ = 5.0,
-            nhL = 10.0,
-            aMin = 0.1,
-            aMax = 2.0,
-            alphMax = 2.0,
-            alphMin = 0.02,
-            betaC = 0.7,
-            betaD = 0.05,
-            betaE = 1.0,
-            fKern = 1.0/3.0,
-            boolCullenViscosity = False,
-            boolHopkinsCorrection = True,
-            HopkinsConductivity = False,     # For PSPH
-            evolveTotalEnergy = False,       # Only for SPH variants -- evolve total rather than specific energy
 
             IntegratorConstructor = CheapSynchronousRK2Integrator,
             goalTime = 0.6,
@@ -87,26 +85,29 @@ commandLine(seed = "lattice",
             vizCycle = None,
             vizTime = 0.1,
             dt = 0.0001,
-            dtMin = 1.0e-7, 
+            dtMin = 1.0e-5, 
             dtMax = 0.1,
             dtGrowth = 2.0,
             maxSteps = None,
             statsStep = 10,
             smoothIters = 0,
             HUpdate = IdealH,
+            correctionOrder = LinearOrder,
+            volumeType = CRKSumVolume,
             domainIndependent = False,
             rigorousBoundaries = False,
             dtverbose = False,
 
-            correctionOrder = LinearOrder,
-            volumeType = CRKSumVolume,
             densityUpdate = RigorousSumDensity, # VolumeScaledDensity,
+            evolveTotalEnergy = False,  # Only for SPH variants -- evolve total rather than specific energy
             compatibleEnergy = True,
             gradhCorrection = True,
             correctVelocityGradient = True,
 
+            useVoronoiOutput = False,
             clearDirectories = False,
-            restoreCycle = None,
+            vizDerivs = False,
+            restoreCycle = -1,
             restartStep = 1000,
             checkRestart = False,
             dataDir = "dumps-spherical-Noh",
@@ -121,36 +122,25 @@ if smallPressure:
    P0 = 1.0e-6
    eps0 = P0/((gamma - 1.0)*rho0)
 
-
-if SVPH:
-    if SPH:
-        HydroConstructor = SVPHFacetedHydro
-    else:
-        HydroConstructor = ASVPHFacetedHydro
-elif CRKSPH:
-    if SPH:
-        HydroConstructor = CRKSPHHydro
-    else:
-        HydroConstructor = ACRKSPHHydro
-    Qconstructor = CRKSPHMonaghanGingoldViscosity
-elif PSPH:
-    if SPH:
-        HydroConstructor = PSPHHydro
-    else:
-        HydroConstructor = APSPHHydro
+if svph:
+    hydroname = "SVPH"
+elif crksph:
+    hydroname = "CRKSPH"
+elif psph:
+    hydroname = "PSPH"
 else:
-    if SPH:
-        HydroConstructor = SPHHydro
-    else:
-        HydroConstructor = ASPHHydro
+    hydroname = "SPH"
+if asph:
+    hydroname = "A" + hydroname
+
+if solid:
+    hydroname = "Solid" + hydroname
 
 dataDir = os.path.join(dataDir,
-                       HydroConstructor.__name__,
-                       "%s-Cl=%g-Cq=%g" % (Qconstructor.__name__, Cl, Cq),
+                       hydroname,
                        "nPerh=%f" % nPerh,
                        "compatibleEnergy=%s" % compatibleEnergy,
-                       "boolCullenViscosity=%s" % boolCullenViscosity,
-                       "CRKSPH=%s" % CRKSPH,
+                       "Cullen=%s" % boolCullenViscosity,
                        "filter=%f" % filter,
                        "nx=%i_ny=%i_nz=%i" % (nx, ny, nz))
 restartDir = os.path.join(dataDir, "restarts")
@@ -176,12 +166,6 @@ if mpi.rank == 0:
 mpi.barrier()
 
 #-------------------------------------------------------------------------------
-# If we're restarting, find the set of most recent restart files.
-#-------------------------------------------------------------------------------
-if restoreCycle is None:
-    restoreCycle = findLastRestart(restartBaseName)
-
-#-------------------------------------------------------------------------------
 # Material properties.
 #-------------------------------------------------------------------------------
 eos = GammaLawGasMKS(gamma, mu)
@@ -189,22 +173,27 @@ eos = GammaLawGasMKS(gamma, mu)
 #-------------------------------------------------------------------------------
 # Interpolation kernels.
 #-------------------------------------------------------------------------------
-if KernelConstructor==NBSplineKernel:
-  WT = TableKernel(NBSplineKernel(order), 1000)
-else:
-  WT = TableKernel(KernelConstructor(), 1000)
+WT = TableKernel(NBSplineKernel(order), 1000)
 output("WT")
 kernelExtent = WT.kernelExtent
 
 #-------------------------------------------------------------------------------
 # Make the NodeList.
 #-------------------------------------------------------------------------------
-nodes1 = makeFluidNodeList("nodes1", eos,
-                             hmin = hmin,
-                             hmax = hmax,
-                             hminratio = hminratio,
-                             nPerh = nPerh,
-                             kernelExtent = kernelExtent)
+if solid:
+    nodes1 = makeSolidNodeList("nodes1", eos,
+                               hmin = hmin,
+                               hmax = hmax,
+                               kernelExtent = kernelExtent,
+                               hminratio = hminratio,
+                               nPerh = nPerh)
+else:
+    nodes1 = makeFluidNodeList("nodes1", eos,
+                               hmin = hmin,
+                               hmax = hmax,
+                               kernelExtent = kernelExtent,
+                               hminratio = hminratio,
+                               nPerh = nPerh)
 output("nodes1")
 output("nodes1.hmin")
 output("nodes1.hmax")
@@ -216,32 +205,31 @@ output("nodes1.nodesPerSmoothingScale")
 #-------------------------------------------------------------------------------
 pos = nodes1.positions()
 vel = nodes1.velocity()
-if restoreCycle is None:
-    generator = GenerateNodeDistribution3d(nx, ny, nz, rho0, seed,
-                                           rmin = rmin,
-                                           rmax = rmax,
-                                           xmin = (x0, y0, z0),
-                                           xmax = (x1, y1, z1),
-                                           nNodePerh = nPerh,
-                                           SPH = True)
+generator = GenerateNodeDistribution3d(nx, ny, nz, rho0, seed,
+                                       rmin = rmin,
+                                       rmax = rmax,
+                                       xmin = (x0, y0, z0),
+                                       xmax = (x1, y1, z1),
+                                       nNodePerh = nPerh,
+                                       SPH = True)
 
-    if mpi.procs > 1:
-        from VoronoiDistributeNodes import distributeNodes3d
-        #from PeanoHilbertDistributeNodes import distributeNodes3d
-    else:
-        from DistributeNodes import distributeNodes3d
+if mpi.procs > 1:
+    from VoronoiDistributeNodes import distributeNodes3d
+    #from PeanoHilbertDistributeNodes import distributeNodes3d
+else:
+    from DistributeNodes import distributeNodes3d
 
-    distributeNodes3d((nodes1, generator))
-    output("mpi.reduce(nodes1.numInternalNodes, mpi.MIN)")
-    output("mpi.reduce(nodes1.numInternalNodes, mpi.MAX)")
-    output("mpi.reduce(nodes1.numInternalNodes, mpi.SUM)")
+distributeNodes3d((nodes1, generator))
+output("mpi.reduce(nodes1.numInternalNodes, mpi.MIN)")
+output("mpi.reduce(nodes1.numInternalNodes, mpi.MAX)")
+output("mpi.reduce(nodes1.numInternalNodes, mpi.SUM)")
 
-    # Set node specific thermal energies
-    nodes1.specificThermalEnergy(ScalarField("tmp", nodes1, eps0))
+# Set node specific thermal energies
+nodes1.specificThermalEnergy(ScalarField("tmp", nodes1, eps0))
 
-    # Set node velocities
-    for nodeID in xrange(nodes1.numNodes):
-        vel[nodeID] = pos[nodeID].unitVector()*vr0
+# Set node velocities
+for nodeID in xrange(nodes1.numNodes):
+    vel[nodeID] = pos[nodeID].unitVector()*vr0
 
 #-------------------------------------------------------------------------------
 # Construct a DataBase to hold our node list
@@ -253,74 +241,63 @@ output("db.numNodeLists")
 output("db.numFluidNodeLists")
 
 #-------------------------------------------------------------------------------
-# Construct the artificial viscosity.
-#-------------------------------------------------------------------------------
-q = Qconstructor(Cl, Cq, linearInExpansion)
-q.epsilon2 = epsilon2
-q.limiter = Qlimiter
-q.balsaraShearCorrection = balsaraCorrection
-output("q")
-output("q.Cl")
-output("q.Cq")
-output("q.epsilon2")
-output("q.limiter")
-output("q.balsaraShearCorrection")
-output("q.linearInExpansion")
-output("q.quadraticInExpansion")
-
-#-------------------------------------------------------------------------------
 # Construct the hydro physics object.
 #-------------------------------------------------------------------------------
-if SVPH:
-    hydro = HydroConstructor(W = WT,
-                             Q = q,
-                             cfl = cfl,
-                             compatibleEnergyEvolution = compatibleEnergy,
-                             densityUpdate = densityUpdate,
-                             XSVPH = XSPH,
-                             linearConsistent = linearConsistent,
-                             generateVoid = False,
-                             HUpdate = HUpdate,
-                             fcentroidal = fcentroidal,
-                             fcellPressure = fcellPressure,
-                             xmin = Vector(-1.1, -1.1),
-                             xmax = Vector( 1.1,  1.1))
-elif CRKSPH:
-    hydro = HydroConstructor(W = WT,
-                             Q = q,
-                             filter = filter,
-                             cfl = cfl,
-                             compatibleEnergyEvolution = compatibleEnergy,
-                             XSPH = XSPH,
-                             correctionOrder = correctionOrder,
-                             volumeType = volumeType,
-                             densityUpdate = densityUpdate,
-                             HUpdate = HUpdate)
-elif PSPH:
-    hydro = HydroConstructor(W = WT,
-                             Q = q,
-                             filter = filter,
-                             cfl = cfl,
-                             compatibleEnergyEvolution = compatibleEnergy,
-                             evolveTotalEnergy = evolveTotalEnergy,
-                             HopkinsConductivity = HopkinsConductivity,
-                             correctVelocityGradient = correctVelocityGradient,
-                             densityUpdate = densityUpdate,
-                             HUpdate = HUpdate,
-                             XSPH = XSPH)
+if svph:
+    hydro = SVPH(dataBase = db,
+                 W = WT,
+                 cfl = cfl,
+                 compatibleEnergyEvolution = compatibleEnergy,
+                 densityUpdate = densityUpdate,
+                 XSVPH = XSPH,
+                 linearConsistent = linearConsistent,
+                 generateVoid = False,
+                 HUpdate = HUpdate,
+                 fcentroidal = fcentroidal,
+                 fcellPressure = fcellPressure,
+                 xmin = Vector(-1.1, -1.1, -1.1),
+                 xmax = Vector( 1.1,  1.1, -1.1),
+                 ASPH = asph)
+elif crksph:
+    hydro = CRKSPH(dataBase = db,
+                   W = WT,
+                   filter = filter,
+                   cfl = cfl,
+                   compatibleEnergyEvolution = compatibleEnergy,
+                   XSPH = XSPH,
+                   correctionOrder = correctionOrder,
+                   volumeType = volumeType,
+                   densityUpdate = densityUpdate,
+                   HUpdate = HUpdate,
+                   ASPH = asph)
+elif psph:
+    hydro = PSPH(dataBase = db,
+                 W = WT,
+                 filter = filter,
+                 cfl = cfl,
+                 compatibleEnergyEvolution = compatibleEnergy,
+                 evolveTotalEnergy = evolveTotalEnergy,
+                 HopkinsConductivity = HopkinsConductivity,
+                 correctVelocityGradient = correctVelocityGradient,
+                 densityUpdate = densityUpdate,
+                 HUpdate = HUpdate,
+                 XSPH = XSPH,
+                 ASPH = asph)
 else:
-    hydro = HydroConstructor(W = WT,
-                             Q = q,
-                             cfl = cfl,
-                             compatibleEnergyEvolution = compatibleEnergy,
-                             evolveTotalEnergy = evolveTotalEnergy,
-                             gradhCorrection = gradhCorrection,
-                             correctVelocityGradient = correctVelocityGradient,
-                             densityUpdate = densityUpdate,
-                             HUpdate = HUpdate,
-                             XSPH = XSPH,
-                             epsTensile = epsilonTensile,
-                             nTensile = nTensile)
+    hydro = SPH(dataBase = db,
+                W = WT,
+                filter = filter,
+                cfl = cfl,
+                compatibleEnergyEvolution = compatibleEnergy,
+                evolveTotalEnergy = evolveTotalEnergy,
+                gradhCorrection = gradhCorrection,
+                correctVelocityGradient = correctVelocityGradient,
+                densityUpdate = densityUpdate,
+                HUpdate = HUpdate,
+                XSPH = XSPH,
+                epsTensile = epsilonTensile,
+                nTensile = nTensile,
+                ASPH = asph)
 output("hydro")
 output("hydro.kernel()")
 output("hydro.PiKernel()")
@@ -332,10 +309,35 @@ output("hydro.HEvolution")
 packages = [hydro]
 
 #-------------------------------------------------------------------------------
+# Set the artificial viscosity parameters.
+#-------------------------------------------------------------------------------
+q = hydro.Q
+if Cl:
+    q.Cl = Cl
+if Cq:
+    q.Cq = Cq
+if epsilon2:
+    q.epsilon2 = epsilon2
+if Qlimiter:
+    q.limiter = Qlimiter
+if balsaraCorrection:
+    q.balsaraShearCorrection = balsaraCorrection
+output("q")
+output("q.Cl")
+output("q.Cq")
+output("q.epsilon2")
+output("q.limiter")
+output("q.balsaraShearCorrection")
+try:
+    output("q.linearInExpansion")
+    output("q.quadraticInExpansion")
+except:
+    pass
+
+#-------------------------------------------------------------------------------
 # Construct the MMRV physics object.
 #-------------------------------------------------------------------------------
 if boolReduceViscosity:
-    #q.reducingViscosityCorrection = True
     evolveReducingViscosityMultiplier = MorrisMonaghanReducingViscosity(q,nhQ,nhL,aMin,aMax)
     packages.append(evolveReducingViscosityMultiplier)
 elif boolCullenViscosity:
@@ -386,15 +388,27 @@ output("integrator.verbose")
 #-------------------------------------------------------------------------------
 # Make the problem controller.
 #-------------------------------------------------------------------------------
+if useVoronoiOutput:
+    import SpheralVoronoiSiloDump
+    vizMethod = SpheralVoronoiSiloDump.dumpPhysicsState
+else:
+    import SpheralPointmeshSiloDump
+    vizMethod = SpheralPointmeshSiloDump.dumpPhysicsState
+    #import SpheralVisitDump
+    #vizMethod = SpheralVisitDump.dumpPhysicsState
+
 control = SpheralController(integrator, WT,
                             statsStep = statsStep,
                             restartStep = restartStep,
                             restartBaseName = restartBaseName,
                             restoreCycle = restoreCycle,
+                            vizMethod = vizMethod,
                             vizBaseName = vizBaseName,
                             vizDir = vizDir,
                             vizStep = vizCycle,
                             vizTime = vizTime,
+                            vizDerivs = vizDerivs,
+                            #skipInitialPeriodicWork = SVPH,
                             SPH = True,        # Only for iterating H
                             )
 output("control")

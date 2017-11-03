@@ -679,7 +679,6 @@ evaluateDerivatives(const typename Dimension::Scalar time,
 #endif
           for (int jct=0; jct < nj; ++jct) {
             const int j = *(jItr0+jct);
-            cout << "  " << omp_get_thread_num() << " " << j << endl;
 
             // Only proceed if this node pair has not been calculated yet.
             if (connectivityMap.calculatePairInteraction(nodeListi, i, 

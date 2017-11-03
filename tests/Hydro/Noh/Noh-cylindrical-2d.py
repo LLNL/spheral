@@ -113,7 +113,7 @@ commandLine(order = 5,
             outputFile = "None",
             comparisonFile = "None",
 
-            graphics = False,
+            graphics = True,
             )
 
 assert not(boolReduceViscosity and boolCullenViscosity)
@@ -460,7 +460,6 @@ else:
     control.advance(goalTime, maxSteps)
     control.updateViz(control.totalSteps, integrator.currentTime, 0.0)
     control.dropRestartFile()
-
 
 #-------------------------------------------------------------------------------
 # Plot the results.
