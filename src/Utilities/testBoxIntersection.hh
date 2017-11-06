@@ -47,14 +47,14 @@ bool
 testBoxIntersection(const Dim<3>::Vector& xmin1, const Dim<3>::Vector& xmax1,
                     const Dim<3>::Vector& xmin2, const Dim<3>::Vector& xmax2,
                     const double tol = 1.0e-10) {
-  if (xmax1.x() < (xmin2.x() - tol)) return false;
-  if (xmax2.x() < (xmin1.x() - tol)) return false;
+  if (xmax1.x() < (xmin2.x() - tol) or
+      xmax2.x() < (xmin1.x() - tol) or
 
-  if (xmax1.y() < (xmin2.y() - tol)) return false;
-  if (xmax2.y() < (xmin1.y() - tol)) return false;
+      xmax1.y() < (xmin2.y() - tol) or
+      xmax2.y() < (xmin1.y() - tol) or
 
-  if (xmax1.z() < (xmin2.z() - tol)) return false;
-  if (xmax2.z() < (xmin1.z() - tol)) return false;
+      xmax1.z() < (xmin2.z() - tol) or
+      xmax2.z() < (xmin1.z() - tol)) return false;
 
   return true;
 }
