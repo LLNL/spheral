@@ -73,6 +73,8 @@ INTEL)
     OPT="-O3 -ip -ansi-alias -no-prec-div"
   elif test "$withval" = "02" -o "$withval" = "20"; then
     OPT="-g -O2"
+  elif test "$withval" = "03" -o "$withval" = "30"; then
+    OPT="-g -O3"
   else    
     echo "Unknown optimization level, defaulting to -O"
     OPT="-O"

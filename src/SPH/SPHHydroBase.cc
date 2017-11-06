@@ -663,17 +663,17 @@ evaluateDerivatives(const typename Dimension::Scalar time,
           reduction(vecadd: DvDti, XSPHDeltaVi ) \
           reduction(symtensadd: massSecondMomenti ) \
 	  reduction(tensadd: Mi, localMi, DvDxi, localDvDxi) 
-#else
-                         // // rhoSumj, normj,          DepsDtj, effViscousPressurej, viscousWorkj, XSPHWeightSumj, weightedNeighborSumj) \
-                              // DvDtj, XSPHDeltaVj )                                           \, massSecondMomentj
-          #pragma omp parallel for                                                \
-            default(shared)                                             \
-            reduction(max: maxvp, maxViscousPressurei) \
-            reduction(+: ncalc,  \
-                         rhoSumi, normi, DrhoDti, DepsDti, effViscousPressurei, viscousWorki, XSPHWeightSumi, weightedNeighborSumi, worki) \
-            reduction(vecadd: DvDti, XSPHDeltaVi) \
-            reduction(symtensadd: massSecondMomenti )                \
-            reduction(tensadd: Mi, localMi, DvDxi, localDvDxi)
+// #else
+//                          // // rhoSumj, normj,          DepsDtj, effViscousPressurej, viscousWorkj, XSPHWeightSumj, weightedNeighborSumj) \
+//                               // DvDtj, XSPHDeltaVj )                                           \, massSecondMomentj
+//           #pragma omp parallel for                                                \
+//             default(shared)                                             \
+//             reduction(max: maxvp, maxViscousPressurei) \
+//             reduction(+: ncalc,  \
+//                          rhoSumi, normi, DrhoDti, DepsDti, effViscousPressurei, viscousWorki, XSPHWeightSumi, weightedNeighborSumi, worki) \
+//             reduction(vecadd: DvDti, XSPHDeltaVi) \
+//             reduction(symtensadd: massSecondMomenti )                \
+//             reduction(tensadd: Mi, localMi, DvDxi, localDvDxi)
 #endif
 
 #endif
