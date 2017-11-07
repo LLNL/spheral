@@ -268,7 +268,7 @@ precullList(const Vector& minMasterPosition, const Vector& maxMasterPosition,
 #pragma omp parallel
     {
       vector<int> cullList_private;
-#pragma omp for
+#pragma omp for nowait
       for (auto k = 0; k < n; ++k) {
         const auto  j = coarseList[k];
         const auto& nodePosition = positions(j);
