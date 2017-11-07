@@ -841,7 +841,7 @@ AC_ARG_WITH(gperftools,
 [  --with-gperftools ....................... compile linking with gperftools (optionally specify link path to libprofiler)],
 [
   PYTHONPKGS+=" Gperftools"
-  if test $withval; then
+  if test $withval = "yes"; then
     LDFLAGS+=" -L$withval -lprofiler"
     AC_MSG_RESULT($withval)
   else
