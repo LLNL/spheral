@@ -265,7 +265,7 @@ precullList(const Vector& minMasterPosition, const Vector& maxMasterPosition,
   if (neighborSearchType() == NeighborSearchType::GatherScatter) {
     
     // Gather-Scatter.
-#pragma omp parallel firstprivate(minMasterPosition, maxMasterPosition, minMasterExtent, maxMasterExtent)
+#pragma omp parallel
     {
       vector<int> cullList_private;
 #pragma omp for
@@ -274,15 +274,15 @@ precullList(const Vector& minMasterPosition, const Vector& maxMasterPosition,
         const auto& nodePosition = positions(j);
         const auto  minNodeExtent = nodePosition - nodeExtents(j);
         const auto  maxNodeExtent = nodePosition + nodeExtents(j);
-        const auto  gatherTest = testBoxIntersection(nodePosition,
-                                                     nodePosition,
-                                                     minMasterExtent,
-                                                     maxMasterExtent);
-        const auto scatterTest = testBoxIntersection(minMasterPosition,
-                                                     maxMasterPosition,
-                                                     minNodeExtent,
-                                                     maxNodeExtent);
-        if (gatherTest or scatterTest) cullList_private.push_back(j);
+        if (testPointInBox(nodePosition,
+                           minMasterExtent,
+                           maxMasterExtent) or
+            testBoxIntersection(minMasterPosition,
+                                maxMasterPosition,
+                                minNodeExtent,
+                                maxNodeExtent)) {
+          cullList_private.push_back(j);
+        }
       }
 
 #pragma omp critical
@@ -295,12 +295,11 @@ precullList(const Vector& minMasterPosition, const Vector& maxMasterPosition,
     for (typename vector<int>::const_iterator coarseItr = coarseList.begin();
          coarseItr != coarseList.end();
          ++coarseItr) {
-      const int j = *coarseItr;
-      const Vector& nodePosition = positions(j);
-      const bool gatherTest = testBoxIntersection(nodePosition,
-                                                  nodePosition,
-                                                  minMasterExtent,
-                                                  maxMasterExtent);
+      const auto  j = *coarseItr;
+      const auto& nodePosition = positions(j);
+      const auto  gatherTest = testPointInBox(nodePosition,
+                                              minMasterExtent,
+                                              maxMasterExtent);
       if (gatherTest) cullList.push_back(j);
     }
 
@@ -311,14 +310,14 @@ precullList(const Vector& minMasterPosition, const Vector& maxMasterPosition,
     for (typename vector<int>::const_iterator coarseItr = coarseList.begin();
          coarseItr != coarseList.end();
          ++coarseItr) {
-      const int j = *coarseItr;
-      const Vector& nodePosition = positions(j);
-      const Vector minNodeExtent = nodePosition - nodeExtents(j);
-      const Vector maxNodeExtent = nodePosition + nodeExtents(j);
-      const bool scatterTest = testBoxIntersection(minMasterPosition,
-                                                   maxMasterPosition,
-                                                   minNodeExtent,
-                                                   maxNodeExtent);
+      const auto  j = *coarseItr;
+      const auto& nodePosition = positions(j);
+      const auto  minNodeExtent = nodePosition - nodeExtents(j);
+      const auto  maxNodeExtent = nodePosition + nodeExtents(j);
+      const auto  scatterTest = testBoxIntersection(minMasterPosition,
+                                                    maxMasterPosition,
+                                                    minNodeExtent,
+                                                    maxNodeExtent);
       if (scatterTest) cullList.push_back(j);
     }
 
