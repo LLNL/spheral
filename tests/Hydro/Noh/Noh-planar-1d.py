@@ -137,7 +137,6 @@ commandLine(KernelConstructor = NBSplineKernel,
             clearDirectories = True,
             checkError = False,
             checkRestart = False,
-            checkEnergy = True,
             restoreCycle = None,
             restartStep = 10000,
             dataDirBase = "dumps-planar-Noh",
@@ -728,5 +727,5 @@ if mpi.rank == 0:
 
 Eerror = (control.conserve.EHistory[-1] - control.conserve.EHistory[0])/control.conserve.EHistory[0]
 print "Total energy error: %g" % Eerror
-if checkEnergy and abs(Eerror) > 1e-13:
+if compatibleEnergy and abs(Eerror) > 1e-13:
     raise ValueError, "Energy error outside allowed bounds."

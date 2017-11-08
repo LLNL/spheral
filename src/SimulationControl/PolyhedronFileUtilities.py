@@ -62,6 +62,7 @@ def writePolyhedronOBJ(poly, filename, forceTriangles=False):
             else:
                 for i in ipoints:
                     f.write(" %i" % (i + 1))
+            f.write("\n")
     f.write("\n")
     f.close()
     return

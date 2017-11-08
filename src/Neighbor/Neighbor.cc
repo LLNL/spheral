@@ -14,6 +14,8 @@
 #include "NodeList/NodeListRegistrar.hh"
 #include "Utilities/testBoxIntersection.hh"
 
+#include <algorithm>
+
 namespace Spheral {
 namespace NeighborSpace {
 
@@ -250,35 +252,41 @@ Neighbor<Dimension>::
 precullList(const Vector& minMasterPosition, const Vector& maxMasterPosition,
             const Vector& minMasterExtent, const Vector& maxMasterExtent,
             const vector<int>& coarseList) const {
+  const auto n = coarseList.size();
 
   // Empty vector to accumulate the result in.
   vector<int> cullList;
-  cullList.reserve(coarseList.size());
 
   // Get a reference to the node positions and node extent field.
-  const Field<Dimension, Vector>& positions = nodeList().positions();
-  const Field<Dimension, Vector>& nodeExtents = nodeExtentField();
+  const auto& positions = nodeList().positions();
+  const auto& nodeExtents = nodeExtentField();
 
   // What kind of preculling we're doing determines the applied test.
   if (neighborSearchType() == NeighborSearchType::GatherScatter) {
     
     // Gather-Scatter.
-    for (typename vector<int>::const_iterator coarseItr = coarseList.begin();
-         coarseItr != coarseList.end();
-         ++coarseItr) {
-      const int j = *coarseItr;
-      const Vector& nodePosition = positions(j);
-      const Vector minNodeExtent = nodePosition - nodeExtents(j);
-      const Vector maxNodeExtent = nodePosition + nodeExtents(j);
-      const bool gatherTest = testBoxIntersection(nodePosition,
-                                                  nodePosition,
-                                                  minMasterExtent,
-                                                  maxMasterExtent);
-      const bool scatterTest = testBoxIntersection(minMasterPosition,
-                                                   maxMasterPosition,
-                                                   minNodeExtent,
-                                                   maxNodeExtent);
-      if (gatherTest or scatterTest) cullList.push_back(j);
+#pragma omp parallel firstprivate(minMasterPosition, maxMasterPosition, minMasterExtent, maxMasterExtent)
+    {
+      vector<int> cullList_private;
+#pragma omp for
+      for (auto k = 0; k < n; ++k) {
+        const auto  j = coarseList[k];
+        const auto& nodePosition = positions(j);
+        const auto  minNodeExtent = nodePosition - nodeExtents(j);
+        const auto  maxNodeExtent = nodePosition + nodeExtents(j);
+        const auto  gatherTest = testBoxIntersection(nodePosition,
+                                                     nodePosition,
+                                                     minMasterExtent,
+                                                     maxMasterExtent);
+        const auto scatterTest = testBoxIntersection(minMasterPosition,
+                                                     maxMasterPosition,
+                                                     minNodeExtent,
+                                                     maxNodeExtent);
+        if (gatherTest or scatterTest) cullList_private.push_back(j);
+      }
+
+#pragma omp critical
+      std::copy(cullList_private.begin(), cullList_private.end(), std::back_inserter(cullList));
     }
 
   } else if (neighborSearchType() == NeighborSearchType::Gather) {
