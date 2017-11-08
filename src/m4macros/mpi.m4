@@ -42,7 +42,7 @@ AC_ARG_WITH(mpi,
     MPIENABLED="yes"
     POLYTOPEFLAGS+=" CC='\$(MPICC)' CXX='\$(MPICXX)' CFLAGS='\$(MPICCFLAGS)' CXXFLAGS='\$(MPICXXFLAGS)' MPI=1"
     if test $CXXONLY = "no"; then
-      EXTRATHIRDPARTYTARGETS+=" .mpi4py-1.3.date"
+      EXTRATHIRDPARTYTARGETS+=" .mpi4py-2.0.0.date"
       MPIPYTHONINTERFACETARGET="mpi_mpi4py.py"
       CXXPKGS+=" PythonMPIInterfaces"
       PYTHONPKGS+=" Distributed"

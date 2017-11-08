@@ -11,10 +11,13 @@ libdir = @libdir@
 OSNAME = @OSNAME@
 INSTALL = @INSTALL@
 SPHERALBUILDDIR = @SPHERALBUILDDIR@
+TPINCS = @TPINCS@
+TPLIBS = @TPLIBS@
 PYTHONEXE  = @PYTHON@
 PYTHONVERSION = @PYTHONVERSION@
 PYTHONCFLAGS = @PYTHONCFLAGS@ @OPT@
 PYTHONCONFFLAGS = @PYTHONCONFFLAGS@
+PYLIBDIR = @PYLIBDIR@
 NUMPYFLAGS = @NUMPYFLAGS@
 NUMPYCFLAGS = @NUMPYCFLAGS@
 TOPLIBDIR =  $(libdir)
@@ -82,7 +85,7 @@ PYSTEDEPENDDATE = .pystedependdate
 PYSTEOBJSDATE = .pysteobjsdate
 
 TAULIBS = # @TAULIBS@
-LIBS = -L$(LIBDIR) @LIBS@ @AIXLIBS@ $(POLYTOPELIBS) $(TAULIBS) $(PARMETISLIBS) $(OPENSUBDIVLIBS)
+LIBS = -L$(LIBDIR) @LIBS@ @AIXLIBS@ $(TPLIBS) $(POLYTOPELIBS) $(TAULIBS) $(PARMETISLIBS) $(OPENSUBDIVLIBS)
 
 DEPENDLIBS := $(patsubst %, -l%, $(DEPENDS))
 
@@ -103,6 +106,7 @@ MPICC = @MPICC@
 MPICXX = @MPICXX@
 PYTHONCC = @PYTHONCC@
 PYTHONCXX = @PYTHONCXX@
+CMAKEEXE = @CMAKEEXE@
 CMAKECC = @CMAKECC@
 CMAKECXX = @CMAKECXX@
 TAUCC = # @TAUCC@
@@ -126,6 +130,7 @@ PARMETISTARGET = @PARMETISTARGET@
 PARMETISBPLTARGET = @PARMETISBPLTARGET@
 PARMETISINCS = @PARMETISINCS@
 PARMETISLIBS = @PARMETISLIBS@
+MPI4PYCC = @MPI4PYCC@
 
 PYOPT = @PYOPT@
 
@@ -140,7 +145,7 @@ SHLIBEXT = @SHLIBEXT@
 EMPTY :=
 SPACE := $(EMPTY) $(EMPTY)
 
-INCS = $(EXTRAINCLUDES) -I$(SPHERALTOP) -I$(srcdir) -I$(BOOSTROOT) -I$(prefix)/include
+INCS = $(EXTRAINCLUDES) $(TPINCS) -I$(SPHERALTOP) -I$(srcdir) -I$(BOOSTROOT) -I$(prefix)/include
 
 #-------------------------------------------------------------------------------
 # Augment the SRCTARGETS with generated instantiation files.
@@ -397,7 +402,7 @@ $(PBGTARGETDATE):  $(PBGTARGET)
 	@echo "################################################################################"
 	@echo "# Building sources $(PBGTARGET) $(PBGSRCS)"
 	@echo "################################################################################"
-	env PYTHONPATH="$(srcdir):$(subst $(SPACE),:,$(patsubst %,$(srcdir)/%,$(PYTHONPKGS)))" $(PYTHONEXE) $(PBGTARGET) $(SPHERALMODULES).C
+	env PYTHONPATH="$(srcdir):$(subst $(SPACE),:,$(patsubst %,$(srcdir)/%,$(PYTHONPKGS))):$(PYLIBDIR)" $(PYTHONEXE) $(PBGTARGET) $(SPHERALMODULES).C
 	touch $(PBGTARGETDATE)
 
 $(PBGSRCS):	$(PBGTARGETDATE)

@@ -33,9 +33,18 @@ AC_SUBST(ALL)
 AC_SUBST(ALLTOP)
 AC_SUBST(CXXONLY)
 AC_SUBST(USE_R3D)
+AC_SUBST(TPINCS)
+AC_SUBST(TPLIBS)
+AC_SUBST(EXTRATHIRDPARTYTARGETS)
+AC_SUBST(CMAKEEXE)
+AC_SUBST(BOOSTTARGET)
+AC_SUBST(SILOTARGET)
 
 LDRPATH=
 HEADERDIR=
+TPLIBS=
+BOOSTTARGET=
+SILOTARGET=
 
 AC_MSG_CHECKING(for spheral build directory)
 #SPHERALBUILDDIR=`echo $PWD | sed -e "s/\/spheral\/src$//g;"`
@@ -161,6 +170,7 @@ else
   WILDMAGICTARGET="ReleaseDynamic"
   WMLIBEXT="so"
 fi
+AC_MSG_RESULT($BUILDWILDMAGIC)
 
 # -----------------------------------------------------------------
 # Optionally build an additional package of C++ testing functions.
@@ -188,6 +198,21 @@ AC_ARG_WITH(gsl,
 [
    AC_MSG_RESULT(yes)
    EXTRATHIRDPARTYTARGETS+=" .gsl-1.14.date .pygsl-0.9.5.date"
+],
+[
+   AC_MSG_RESULT(no)
+]
+)
+
+# -----------------------------------------------------------------
+# Optionally build install mpmath
+# -----------------------------------------------------------------
+AC_MSG_CHECKING(for --with-mpmath)
+AC_ARG_WITH(mpmath,
+[  --with-mpmath ............................ optionally install the Gnu Scientific Library extensions],
+[
+   AC_MSG_RESULT(yes)
+   EXTRATHIRDPARTYTARGETS+=" .mpmath-0.17.date"
 ],
 [
    AC_MSG_RESULT(no)
@@ -253,6 +278,101 @@ AC_ARG_WITH(r3d,
     AC_MSG_RESULT(no)
     EXTRATHIRDPARTYTARGETS+=" .r3d.date"
     USE_R3D="yes"
+])
+
+# -----------------------------------------------------------------
+# Allow the use of an existing cmake.
+# -----------------------------------------------------------------
+AC_MSG_CHECKING(for --with-cmake)
+AC_ARG_WITH(cmake,
+[  --with-cmake ............................. specify a cmake executable],
+[
+    CMAKEEXE=$withval
+    AC_MSG_RESULT($CMAKEEXE)
+],
+[
+    CMAKEEXE='$(prefix)/bin/cmake'
+    AC_MSG_RESULT($CMAKEEXE)
+])
+
+# -----------------------------------------------------------------
+# Allow the use of an existing hdf5.
+# -----------------------------------------------------------------
+AC_MSG_CHECKING(for --with-hdf5)
+AC_ARG_WITH(hdf5,
+[  --with-hdf5 .............................. specify a root path for an existing hdf5 install],
+[
+    TPINCS+=" -I $withval/include"
+    TPLIBS+=" -L $withval/lib"
+    AC_MSG_RESULT($withval)
+],
+[
+    EXTRATHIRDPARTYTARGETS+=" .hdf5-1.8.19.date"
+    AC_MSG_RESULT(no)
+])
+
+# -----------------------------------------------------------------
+# Allow the use of an existing silo.
+# -----------------------------------------------------------------
+AC_MSG_CHECKING(for --with-silo)
+AC_ARG_WITH(silo,
+[  --with-silo .............................. specify a root path for an existing silo install],
+[
+    TPINCS+=" -I $withval/include"
+    TPLIBS+=" -L $withval/lib"
+    AC_MSG_RESULT($withval)
+],
+[
+    EXTRATHIRDPARTYTARGETS+=" .silo-4.10.2-bsd.date"
+    SILOTARGET=".silo-4.10.2-bsd.date"
+    AC_MSG_RESULT(no)
+])
+
+# -----------------------------------------------------------------
+# Allow the use of an existing boost.
+# -----------------------------------------------------------------
+AC_MSG_CHECKING(for --with-boost)
+AC_ARG_WITH(boost,
+[  --with-boost ............................. specify a root path for an existing boost install],
+[
+    TPINCS+=" -I $withval/include"
+    AC_MSG_RESULT($withval)
+],
+[
+    EXTRATHIRDPARTYTARGETS+=" .boost_1_63_0.date"
+    BOOSTTARGET=".boost_1_63_0.date"
+    AC_MSG_RESULT(no)
+])
+
+# -----------------------------------------------------------------
+# Allow the use of an existing qhull.
+# -----------------------------------------------------------------
+AC_MSG_CHECKING(for --with-qhull)
+AC_ARG_WITH(qhull,
+[  --with-qhull ............................. specify a root path for an existing qhull install],
+[
+    TPINCS+=" -I $withval/include"
+    TPLIBS+=" -L $withval/lib"
+    AC_MSG_RESULT($withval)
+],
+[
+    EXTRATHIRDPARTYTARGETS+=" .qhull-2015-src-7.2.0.date"
+    AC_MSG_RESULT(no)
+])
+
+# -----------------------------------------------------------------
+# Allow the use of an existing eigen.
+# -----------------------------------------------------------------
+AC_MSG_CHECKING(for --with-eigen)
+AC_ARG_WITH(eigen,
+[  --with-eigen ............................. specify a root path for an existing eigen install],
+[
+    TPINCS+=" -I $withval/include"
+    AC_MSG_RESULT($withval)
+],
+[
+    EXTRATHIRDPARTYTARGETS+=" .eigen.date"
+    AC_MSG_RESULT(no)
 ])
 
 # -----------------------------------------------------------------

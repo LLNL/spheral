@@ -309,7 +309,7 @@ class Silo:
         x.add_constructor([param("int", "maxopts", default_value="1024")])
 
         # Methods.
-        for ValueType in ("int", "double", "std::string"):
+        for ValueType in ("double", "int", "std::string"):
             ValueBase = ValueType.split(":")[-1]
             x.add_method("addOption", "int", [param("int", "option"), param(ValueType, "value")],
                          template_parameters = [ValueType],
