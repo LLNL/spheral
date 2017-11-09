@@ -652,7 +652,7 @@ computeConnectivity() {
           // Iterate over the master nodes in this NodeList.
           const auto& masterList = masterLists[iNodeList];
           const auto  nmaster = masterList.size();
-#pragma parallel for
+#pragma omp parallel for
           for (auto kmaster = 0; kmaster < nmaster; ++kmaster) {
             const auto i = masterList[kmaster];
             if (i < firstGhostNodei or domainDecompIndependent or mBuildGhostConnectivity) {

@@ -3,10 +3,6 @@
 //
 // Created by JMO, Mon Jul 19 22:11:09 PDT 2010
 //----------------------------------------------------------------------------//
-#ifdef _OPENMP
-#include "omp.h"
-#endif
-
 #include "FileIO/FileIO.hh"
 #include "computeSPHSumMassDensity.hh"
 #include "correctSPHSumMassDensity.hh"
@@ -55,6 +51,10 @@
 #include <fstream>
 #include <map>
 #include <vector>
+
+#ifdef _OPENMP
+#include "omp.h"
+#endif
 
 namespace Spheral {
 namespace SPHSpace {
