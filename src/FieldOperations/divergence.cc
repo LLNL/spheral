@@ -64,16 +64,17 @@ divergence(const FieldList<Dimension, DataType>& fieldList,
 
       // We will do the batch of master nodes associated with this node together.
       // Set the neighbor information.
-      fieldList.setMasterNodeLists(position(nodeItr), Hfield(nodeItr));
+      vector<vector<int>> masterLists, coarseNeighbors, refineNeighbors;
+      fieldList.setMasterNodeLists(position(nodeItr), Hfield(nodeItr), masterLists, coarseNeighbors);
 
       // Now loop over all the master nodes.
-      for (MasterNodeIterator<Dimension> masterItr = fieldList.masterNodeBegin();
+      for (MasterNodeIterator<Dimension> masterItr = fieldList.masterNodeBegin(masterLists);
            masterItr < fieldList.masterNodeEnd();
            ++masterItr) {
         CHECK(flagNodeDone[masterItr.fieldID()][masterItr.nodeID()] == false);
 
         // Set the refined neighbor information for this master node.
-        fieldList.setRefineNodeLists(position(masterItr), Hfield(masterItr));
+        fieldList.setRefineNodeLists(position(masterItr), Hfield(masterItr), coarseNeighbors, refineNeighbors);
 
         // Loop over the refined neighbors.
         const Vector& ri = position(masterItr);
@@ -81,7 +82,7 @@ divergence(const FieldList<Dimension, DataType>& fieldList,
         const Scalar& rhoi = rho(masterItr);
         const DataType& fieldi = fieldList(masterItr);
 
-        for (RefineNodeIterator<Dimension> neighborItr = fieldList.refineNodeBegin();
+        for (RefineNodeIterator<Dimension> neighborItr = fieldList.refineNodeBegin(refineNeighbors);
              neighborItr < fieldList.refineNodeEnd();
              ++neighborItr) {
 

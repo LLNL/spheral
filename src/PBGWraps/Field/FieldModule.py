@@ -408,10 +408,18 @@ generateStdVectorBindings(self.vector_of_%(element)sFieldList%(dim)s, "Spheral::
         x.add_method("appendField", None, [constrefparam(field, "field")])
         x.add_method("deleteField", None, [constrefparam(field, "field")])
         x.add_method("appendNewField", None, [param("std::string", "name"), constrefparam(nodelist, "nodeList"), param(val, "value")])
-        x.add_method("setMasterNodeLists", None, [constrefparam(vector, "r"), constrefparam(symtensor, "H")], is_const=True)
-        x.add_method("setMasterNodeLists", None, [constrefparam(vector, "r")], is_const=True)
-        x.add_method("setRefineNodeLists", None, [constrefparam(vector, "r"), constrefparam(symtensor, "H")], is_const=True)
-        x.add_method("setRefineNodeLists", None, [constrefparam(vector, "r")], is_const=True)
+        x.add_method("setMasterNodeLists", None, [constrefparam(vector, "r"), constrefparam(symtensor, "H"),
+                                                  refparam("vector_of_vector_of_int", "masterLists"),
+                                                  refparam("vector_of_vector_of_int", "coarseNeighbors")], is_const=True)
+        x.add_method("setMasterNodeLists", None, [constrefparam(vector, "r"),
+                                                  refparam("vector_of_vector_of_int", "masterLists"),
+                                                  refparam("vector_of_vector_of_int", "coarseNeighbors")], is_const=True)
+        x.add_method("setRefineNodeLists", None, [constrefparam(vector, "r"), constrefparam(symtensor, "H"),
+                                                  constrefparam("vector_of_vector_of_int", "coarseNeighbors"),
+                                                  refparam("vector_of_vector_of_int", "refineNeighbors")], is_const=True)
+        x.add_method("setRefineNodeLists", None, [constrefparam(vector, "r"),
+                                                  constrefparam("vector_of_vector_of_int", "coarseNeighbors"),
+                                                  refparam("vector_of_vector_of_int", "refineNeighbors")], is_const=True)
         x.add_method("Zero", None, [])
         x.add_method("nodeListPtrs", vector_of_nodelist, [], is_const=True)
 

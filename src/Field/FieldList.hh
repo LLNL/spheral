@@ -165,22 +165,30 @@ public:
   GhostNodeIterator<Dimension> ghostNodeBegin() const;
   GhostNodeIterator<Dimension> ghostNodeEnd() const;
   
-  MasterNodeIterator<Dimension> masterNodeBegin() const;
+  MasterNodeIterator<Dimension> masterNodeBegin(const std::vector<std::vector<int>>& masterLists) const;
   MasterNodeIterator<Dimension> masterNodeEnd() const;
   
-  CoarseNodeIterator<Dimension> coarseNodeBegin() const;
+  CoarseNodeIterator<Dimension> coarseNodeBegin(const std::vector<std::vector<int>>& coarseNeighbors) const;
   CoarseNodeIterator<Dimension> coarseNodeEnd() const;
   
-  RefineNodeIterator<Dimension> refineNodeBegin() const;
+  RefineNodeIterator<Dimension> refineNodeBegin(const std::vector<std::vector<int>>& refineNeighbors) const;
   RefineNodeIterator<Dimension> refineNodeEnd() const;
 
   // Provide a convenience function for setting the neighbor node information
   // for all the NodeList in this FieldList.
-  void setMasterNodeLists(const Vector& r, const SymTensor& H) const;
-  void setMasterNodeLists(const Vector& r) const;
+  void setMasterNodeLists(const Vector& r, const SymTensor& H,
+                          std::vector<std::vector<int>>& masterLists,
+                          std::vector<std::vector<int>>& coarseNeighbors) const;
+  void setMasterNodeLists(const Vector& r,
+                          std::vector<std::vector<int>>& masterLists,
+                          std::vector<std::vector<int>>& coarseNeighbors) const;
 
-  void setRefineNodeLists(const Vector& r, const SymTensor& H) const;
-  void setRefineNodeLists(const Vector& r) const;
+  void setRefineNodeLists(const Vector& r, const SymTensor& H,
+                          const std::vector<std::vector<int>>& coarseNeighbors,
+                          std::vector<std::vector<int>>& refineNeighbors) const;
+  void setRefineNodeLists(const Vector& r,
+                          const std::vector<std::vector<int>>& coarseNeighbors,
+                          std::vector<std::vector<int>>& refineNeighbors) const;
 
   // Reproduce the standard Field operators for FieldLists.
   void Zero();

@@ -44,22 +44,36 @@ public:
   // Set or refine the neighbor lists for the given position and smoothing 
   // scale.
   virtual void setMasterList(const Vector& position,
-                             const Scalar& H);
+                             const Scalar& H,
+                             std::vector<int>& masterList,
+                             std::vector<int>& coarseNeighbors) const override;
   virtual void setMasterList(const Vector& position,
-                             const SymTensor& H);
+                             const SymTensor& H,
+                             std::vector<int>& masterList,
+                             std::vector<int>& coarseNeighbors) const override;
 
   virtual void setRefineNeighborList(const Vector& position,
-                                     const Scalar& H);
+                                     const Scalar& H,
+                                     const std::vector<int>& coarseNeighbors,
+                                     std::vector<int>& refineNeighbors) const override;
   virtual void setRefineNeighborList(const Vector& position,
-                                     const SymTensor& H);
+                                     const SymTensor& H,
+                                     const std::vector<int>& coarseNeighbors,
+                                     std::vector<int>& refineNeighbors) const override;
 
   // Set Neighbors for the given position.
-  virtual void setMasterList(const Vector& position);
-  virtual void setRefineNeighborList(const Vector& position);
+  virtual void setMasterList(const Vector& position,
+                             std::vector<int>& masterList,
+                             std::vector<int>& coarseNeighbors) const override;
+  virtual void setRefineNeighborList(const Vector& position,
+                                     const std::vector<int>& coarseNeighbors,
+                                     std::vector<int>& refineNeighbors) const override;
 
   // Set the neighbor lists based on proximity to planes.
   virtual void setMasterList(const GeomPlane<Dimension>& enterPlane,
-                             const GeomPlane<Dimension>& exitPlane);
+                             const GeomPlane<Dimension>& exitPlane,
+                             std::vector<int>& masterList,
+                             std::vector<int>& coarseNeighbors) const override;
 
   // Force the update of internal data for the NodeList.
   virtual void updateNodes();
@@ -158,11 +172,15 @@ private:
 
   // Actual method for setting the master list.
   void setTreeMasterList(const Vector& position,
-                         const double& h);
+                         const double& h,
+                         std::vector<int>& masterList,
+                         std::vector<int>& coarseNeighbors) const;
 
   // Actual method for setting the refine list.
   void setTreeRefineNeighborList(const Vector& position,
-                                 const SymTensor& H);
+                                 const SymTensor& H,
+                                 const std::vector<int>& coarseNeighbors,
+                                 std::vector<int>& refineNeighbors) const;
 
   // Return all the members in range of the specified cell.
   std::vector<int> findTreeNeighbors(const LevelKey& masterLevel,
@@ -201,8 +219,6 @@ private:
 
 }
 }
-
-//#include "TreeNeighborInline.hh"
 
 #else
 

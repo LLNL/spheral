@@ -335,16 +335,24 @@ self.addDataBaseMethods(self.DataBase%(dim)id, %(dim)i)
 ##                                  custom_name = "fluidNodeLists")
 
         x.add_method("setMasterNodeLists", None, [constrefparam(vector, "position"),
-                                                  constrefparam(symtensor, "H")],
+                                                  constrefparam(symtensor, "H"),
+                                                  refparam("vector_of_vector_of_int", "masterLists"),
+                                                  refparam("vector_of_vector_of_int", "coarseNeighbors")],
                      is_const = True)
         x.add_method("setMasterFluidNodeLists", None, [constrefparam(vector, "position"),
-                                                       constrefparam(symtensor, "H")],
+                                                       constrefparam(symtensor, "H"),
+                                                       refparam("vector_of_vector_of_int", "masterLists"),
+                                                       refparam("vector_of_vector_of_int", "coarseNeighbors")],
                      is_const = True)
         x.add_method("setRefineNodeLists", None, [constrefparam(vector, "position"),
-                                                  constrefparam(symtensor, "H")],
+                                                  constrefparam(symtensor, "H"),
+                                                  constrefparam("vector_of_vector_of_int", "coarseNeighbors"),
+                                                  refparam("vector_of_vector_of_int", "refineNeighbors")],
                      is_const = True)
         x.add_method("setRefineFluidNodeLists", None, [constrefparam(vector, "position"),
-                                                       constrefparam(symtensor, "H")],
+                                                       constrefparam(symtensor, "H"),
+                                                       constrefparam("vector_of_vector_of_int", "coarseNeighbors"),
+                                                       refparam("vector_of_vector_of_int", "refineNeighbors")],
                      is_const = True)
 
         for result, value, default, customname in [(intfieldlist, "int", "0", "Int"),

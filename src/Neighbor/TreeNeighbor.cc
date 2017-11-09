@@ -180,29 +180,35 @@ template<typename Dimension>
 void
 TreeNeighbor<Dimension>::
 setMasterList(const Vector& position,
-              const Scalar& H) {
+              const Scalar& H,
+              std::vector<int>& masterList,
+              std::vector<int>& coarseNeighbors) const {
   REQUIRE(H > 0.0);
   const Scalar h = 1.0/H;
-  this->setTreeMasterList(position, h);
+  this->setTreeMasterList(position, h, masterList, coarseNeighbors);
 }
 
 template<typename Dimension>
 void
 TreeNeighbor<Dimension>::
 setMasterList(const Vector& position,
-              const SymTensor& H) {
+              const SymTensor& H,
+              std::vector<int>& masterList,
+              std::vector<int>& coarseNeighbors) const {
   REQUIRE(H.Determinant() > 0.0);
   const Vector hinvValues = H.eigenValues();
   CHECK(hinvValues.minElement() > 0.0);
   const Scalar h = 1.0/hinvValues.minElement();
-  this->setTreeMasterList(position, h);
+  this->setTreeMasterList(position, h, masterList, coarseNeighbors);
 }
 
 template<typename Dimension>
 void
 TreeNeighbor<Dimension>::
-setMasterList(const Vector& position) {
-  this->setTreeMasterList(position, 1.0e-30*mBoxLength);
+setMasterList(const Vector& position,
+              std::vector<int>& masterList,
+              std::vector<int>& coarseNeighbors) const {
+  this->setTreeMasterList(position, 1.0e-30*mBoxLength, masterList, coarseNeighbors);
 }
 
 //------------------------------------------------------------------------------
@@ -212,25 +218,31 @@ template<typename Dimension>
 void
 TreeNeighbor<Dimension>::
 setRefineNeighborList(const Vector& position,
-                      const Scalar& H) {
+                      const Scalar& H,
+                      const std::vector<int>& coarseNeighbors,
+                      std::vector<int>& refineNeighbors) const {
   REQUIRE(H > 0.0);
-  this->setTreeRefineNeighborList(position, H*SymTensor::one);
+  this->setTreeRefineNeighborList(position, H*SymTensor::one, coarseNeighbors, refineNeighbors);
 }
 
 template<typename Dimension>
 void
 TreeNeighbor<Dimension>::
 setRefineNeighborList(const Vector& position,
-                      const SymTensor& H) {
+                      const SymTensor& H,
+                      const std::vector<int>& coarseNeighbors,
+                      std::vector<int>& refineNeighbors) const {
   REQUIRE(H.Determinant() > 0.0);
-  this->setTreeRefineNeighborList(position, H);
+  this->setTreeRefineNeighborList(position, H, coarseNeighbors, refineNeighbors);
 }
 
 template<typename Dimension>
 void
 TreeNeighbor<Dimension>::
-setRefineNeighborList(const Vector& position) {
-  this->setTreeRefineNeighborList(position, 1.0e30*mBoxLength*SymTensor::one);
+setRefineNeighborList(const Vector& position,
+                      const std::vector<int>& coarseNeighbors,
+                      std::vector<int>& refineNeighbors) const {
+  this->setTreeRefineNeighborList(position, 1.0e30*mBoxLength*SymTensor::one, coarseNeighbors, refineNeighbors);
 }
 
 //------------------------------------------------------------------------------
@@ -240,13 +252,13 @@ template<typename Dimension>
 void
 TreeNeighbor<Dimension>::
 setMasterList(const GeomPlane<Dimension>& enterPlane,
-              const GeomPlane<Dimension>& exitPlane) {
+              const GeomPlane<Dimension>& exitPlane,
+              std::vector<int>& masterList,
+              std::vector<int>& coarseNeighbors) const {
 
   // Get the master and coarse lists.
-  vector<int>& masterList = this->accessMasterList();
-  vector<int>& coarseList = this->accessCoarseNeighborList();
-  masterList = vector<int>();
-  coarseList = vector<int>();
+  masterList.clear();
+  coarseNeighbors.clear();
   if (mTree.size() > 0) {
     CHECK(mTree[0].size() == 1);
     CHECK(mTree[0].begin()->second.members.size() == 0);
@@ -290,13 +302,13 @@ setMasterList(const GeomPlane<Dimension>& enterPlane,
                ++keyItr) {
             this->extractCellIndices(*keyItr, ix, iy, iz);
             const vector<int> neighbors = this->findTreeNeighbors(ilevel, ix, iy, iz);
-            copy(neighbors.begin(), neighbors.end(), back_inserter(coarseList));
+            copy(neighbors.begin(), neighbors.end(), back_inserter(coarseNeighbors));
           }
         }
 
         // Does this cell have members in range of the exit plane?
         if (exitCheck and cell.members.size() > 0) {
-          copy(cell.members.begin(), cell.members.end(), back_inserter(coarseList));
+          copy(cell.members.begin(), cell.members.end(), back_inserter(coarseNeighbors));
 
           // Map the cell key through to the entrance plane.  Any nodes we interact
           // with on that side are potential masters.
@@ -324,8 +336,8 @@ setMasterList(const GeomPlane<Dimension>& enterPlane,
     // Remove duplicates from the master and coarse sets.
     sort(masterList.begin(), masterList.end());
     masterList.erase(unique(masterList.begin(), masterList.end()), masterList.end());
-    sort(coarseList.begin(), coarseList.end());
-    coarseList.erase(unique(coarseList.begin(), coarseList.end()), coarseList.end());
+    sort(coarseNeighbors.begin(), coarseNeighbors.end());
+    coarseNeighbors.erase(unique(coarseNeighbors.begin(), coarseNeighbors.end()), coarseNeighbors.end());
 
     // Ghost have to be allowed to be master for boundary conditions to work!
     // // We don't allow ghost nodes to be masters.
@@ -805,7 +817,9 @@ template<typename Dimension>
 void 
 TreeNeighbor<Dimension>::
 setTreeMasterList(const typename Dimension::Vector& position,
-                  const double& h) {
+                  const double& h,
+                  std::vector<int>& masterList,
+                  std::vector<int>& coarseNeighbors) const {
 
   // Set the working master grid level and cell.
   CellKey masterKey, ix_master, iy_master, iz_master;
@@ -814,10 +828,8 @@ setTreeMasterList(const typename Dimension::Vector& position,
   CHECK(masterLevel >= 0 and masterLevel < num1dbits);
 
   // Grab the lists we're going to fill in.
-  vector<int>& masterList = this->accessMasterList();
-  vector<int>& coarseNeighborList = this->accessCoarseNeighborList();
-  masterList = vector<int>();
-  coarseNeighborList = vector<int>();
+  masterList.clear();
+  coarseNeighbors.clear();
 
   // Set the master list.
   if (mTree.size() > masterLevel) {
@@ -827,7 +839,7 @@ setTreeMasterList(const typename Dimension::Vector& position,
 
   // Set the coarse list.
   if (mTree.size() > 0) {
-    coarseNeighborList = this->findTreeNeighbors(masterLevel, ix_master, iy_master, iz_master);
+    coarseNeighbors = this->findTreeNeighbors(masterLevel, ix_master, iy_master, iz_master);
   }
 
   // Remove all ghost nodes from the master list.
@@ -836,7 +848,7 @@ setTreeMasterList(const typename Dimension::Vector& position,
   masterList.erase(lower_bound(masterList.begin(), masterList.end(), firstGhostNode), masterList.end());
 
   // Post conditions.
-  ENSURE(coarseNeighborList.size() >= this->masterList().size());
+  ENSURE(coarseNeighbors.size() >= masterList.size());
   ENSURE(masterList.size() == 0 or *max_element(masterList.begin(), masterList.end()) < firstGhostNode);
 }
 
@@ -847,7 +859,9 @@ template<typename Dimension>
 void
 TreeNeighbor<Dimension>::
 setTreeRefineNeighborList(const typename Dimension::Vector& position,
-                          const typename Dimension::SymTensor& H) {
+                          const typename Dimension::SymTensor& H,
+                          const std::vector<int>& coarseNeighbors,
+                          std::vector<int>& refineNeighbors) const {
 
   // // Determine the maximum extent of this H tensor in each dimension.
   // const Vector extent = this->HExtent(H, this->kernelExtent());
@@ -855,9 +869,7 @@ setTreeRefineNeighborList(const typename Dimension::Vector& position,
   // const Vector maxExtent = position + extent;
 
   // Use precull to set the refined neighbor list.
-  const std::vector<int>& coarseList = this->coarseNeighborList();
-  std::vector<int>& refineList = this->accessRefineNeighborList();
-  refineList = coarseList; // this->precullList(position, position, minExtent, maxExtent, coarseList);
+  refineNeighbors = coarseNeighbors; // this->precullList(position, position, minExtent, maxExtent, coarseNeighbors);
 }
 
 //------------------------------------------------------------------------------

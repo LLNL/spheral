@@ -663,11 +663,12 @@ operator()(const typename Dimension::Vector& position,
   DataType result(0.0);
 
   // Set the neighbor information for all NodeLists.
-  setMasterNodeLists(position);
-  setRefineNodeLists(position);
+  std::vector<std::vector<int>> masterLists, coarseNeighbors, refineNeighbors;
+  setMasterNodeLists(position, masterLists, coarseNeighbors);
+  setRefineNodeLists(position, coarseNeighbors, refineNeighbors);
 
   // Loop over the neighbors.
-  for (RefineNodeIterator<Dimension> neighborItr = refineNodeBegin();
+  for (RefineNodeIterator<Dimension> neighborItr = refineNodeBegin(refineNeighbors);
        neighborItr < refineNodeEnd();
        ++neighborItr) {
 
@@ -808,18 +809,19 @@ FieldList<Dimension, DataType>::ghostNodeEnd() const {
 template<typename Dimension, typename DataType>
 inline
 MasterNodeIterator<Dimension>
-FieldList<Dimension, DataType>::masterNodeBegin() const {
-  typename std::vector<NodeSpace::NodeList<Dimension>*>::const_iterator
-    nodeListItr = mNodeListPtrs.begin();
-  while (nodeListItr < mNodeListPtrs.end() &&
-         (*nodeListItr)->neighbor().numMaster() == 0) {
+FieldList<Dimension, DataType>::masterNodeBegin(const std::vector<std::vector<int>>& masterLists) const {
+  auto nodeListItr = mNodeListPtrs.begin();
+  unsigned iNodeList = 0;
+  while (nodeListItr < mNodeListPtrs.end() && masterLists[iNodeList].empty()) {
     ++nodeListItr;
+    ++iNodeList;
   }
   if (nodeListItr < mNodeListPtrs.end()) {
     return MasterNodeIterator<Dimension>(nodeListItr,
                                          mNodeListPtrs.begin(),
                                          mNodeListPtrs.end(),
-                                         (*nodeListItr)->neighbor().masterBegin());
+                                         masterLists[iNodeList].begin(),
+                                         masterLists);
   } else {
     return this->masterNodeEnd();
   }
@@ -831,7 +833,8 @@ MasterNodeIterator<Dimension>
 FieldList<Dimension, DataType>::masterNodeEnd() const {
   return MasterNodeIterator<Dimension>(mNodeListPtrs.end(),
                                        mNodeListPtrs.begin(),
-                                       mNodeListPtrs.end());
+                                       mNodeListPtrs.end(),
+                                       std::vector<std::vector<int>>());
 }
 
 //------------------------------------------------------------------------------
@@ -840,18 +843,19 @@ FieldList<Dimension, DataType>::masterNodeEnd() const {
 template<typename Dimension, typename DataType>
 inline
 CoarseNodeIterator<Dimension>
-FieldList<Dimension, DataType>::coarseNodeBegin() const {
-  typename std::vector<NodeSpace::NodeList<Dimension>*>::const_iterator
-    nodeListItr = mNodeListPtrs.begin();
-  while (nodeListItr < mNodeListPtrs.end() &&
-         (*nodeListItr)->neighbor().numCoarse() == 0) {
+FieldList<Dimension, DataType>::coarseNodeBegin(const std::vector<std::vector<int>>& coarseNeighbors) const {
+  auto nodeListItr = mNodeListPtrs.begin();
+  unsigned iNodeList = 0;
+  while (nodeListItr < mNodeListPtrs.end() && coarseNeighbors[iNodeList].empty()) {
     ++nodeListItr;
+    ++iNodeList;
   }
   if (nodeListItr < mNodeListPtrs.end()) {
     return CoarseNodeIterator<Dimension>(nodeListItr,
                                          mNodeListPtrs.begin(),
                                          mNodeListPtrs.end(),
-                                         (*nodeListItr)->neighbor().coarseNeighborBegin());
+                                         coarseNeighbors[iNodeList].begin(),
+                                         coarseNeighbors);
   } else {
     return this->coarseNodeEnd();
   }
@@ -863,7 +867,8 @@ CoarseNodeIterator<Dimension>
 FieldList<Dimension, DataType>::coarseNodeEnd() const {
   return CoarseNodeIterator<Dimension>(mNodeListPtrs.end(),
                                        mNodeListPtrs.begin(),
-                                       mNodeListPtrs.end());
+                                       mNodeListPtrs.end(),
+                                       std::vector<std::vector<int>>());
 }
 
 //------------------------------------------------------------------------------
@@ -872,18 +877,19 @@ FieldList<Dimension, DataType>::coarseNodeEnd() const {
 template<typename Dimension, typename DataType>
 inline
 RefineNodeIterator<Dimension>
-FieldList<Dimension, DataType>::refineNodeBegin() const {
-  typename std::vector<NodeSpace::NodeList<Dimension>*>::const_iterator
-    nodeListItr = mNodeListPtrs.begin();
-  while (nodeListItr < mNodeListPtrs.end() &&
-         (*nodeListItr)->neighbor().numRefine() == 0) {
+FieldList<Dimension, DataType>::refineNodeBegin(const std::vector<std::vector<int>>& refineNeighbors) const {
+  auto nodeListItr = mNodeListPtrs.begin();
+  unsigned iNodeList = 0;
+  while (nodeListItr < mNodeListPtrs.end() && refineNeighbors[iNodeList].empty()) {
     ++nodeListItr;
+    ++iNodeList;
   }
   if (nodeListItr < mNodeListPtrs.end()) {
     return RefineNodeIterator<Dimension>(nodeListItr,
                                          mNodeListPtrs.begin(),
                                          mNodeListPtrs.end(),
-                                         (*nodeListItr)->neighbor().refineNeighborBegin());
+                                         refineNeighbors[iNodeList].begin(),
+                                         refineNeighbors);
   } else {
     return this->refineNodeEnd();
   }
@@ -895,7 +901,8 @@ RefineNodeIterator<Dimension>
 FieldList<Dimension, DataType>::refineNodeEnd() const {
   return RefineNodeIterator<Dimension>(mNodeListPtrs.end(),
                                        mNodeListPtrs.begin(),
-                                       mNodeListPtrs.end());
+                                       mNodeListPtrs.end(),
+                                       std::vector<std::vector<int>>());
 }
 
 //------------------------------------------------------------------------------
@@ -906,30 +913,29 @@ inline
 void
 FieldList<Dimension, DataType>::
 setMasterNodeLists(const typename Dimension::Vector& r,
-                   const typename Dimension::SymTensor& H) const {
-//   for (typename std::vector<NodeSpace::NodeList<Dimension>*>::const_iterator 
-//          nodeListItr = mNodeListPtrs.begin();
-//        nodeListItr < mNodeListPtrs.end();
-//        ++nodeListItr) {
-//     (*nodeListItr)->neighbor().setMasterList(r, H);
-//   }
+                   const typename Dimension::SymTensor& H,
+                   std::vector<std::vector<int>>& masterLists,
+                   std::vector<std::vector<int>>& coarseNeighbors) const {
+  auto etaMax = 0.0;
+  for (auto nodeListItr = mNodeListPtrs.begin();
+       nodeListItr != mNodeListPtrs.end();
+       ++nodeListItr) etaMax = std::max(etaMax, (**nodeListItr).neighbor().kernelExtent());
   NeighborSpace::Neighbor<Dimension>::setMasterNeighborGroup(r, H,
                                                              mNodeListPtrs.begin(),
                                                              mNodeListPtrs.end(),
-                                                             2.0);
+                                                             etaMax,
+                                                             masterLists,
+                                                             coarseNeighbors);
 }
 
 template<typename Dimension, typename DataType>
 inline
 void
 FieldList<Dimension, DataType>::
-setMasterNodeLists(const typename Dimension::Vector& r) const {
-  for (typename std::vector<NodeSpace::NodeList<Dimension>*>::const_iterator 
-         nodeListItr = mNodeListPtrs.begin();
-       nodeListItr < mNodeListPtrs.end();
-       ++nodeListItr) {
-    (*nodeListItr)->neighbor().setMasterList(r);
-  }
+setMasterNodeLists(const typename Dimension::Vector& r,
+                   std::vector<std::vector<int>>& masterLists,
+                   std::vector<std::vector<int>>& coarseNeighbors) const {
+  this->setMasterNodeLists(r, 1e-30*SymTensor::one, masterLists, coarseNeighbors);
 }
 
 //------------------------------------------------------------------------------
@@ -940,12 +946,19 @@ inline
 void
 FieldList<Dimension, DataType>::
 setRefineNodeLists(const typename Dimension::Vector& r,
-                   const typename Dimension::SymTensor& H) const {
-  for (typename std::vector<NodeSpace::NodeList<Dimension>*>::const_iterator 
-         nodeListItr = mNodeListPtrs.begin();
+                   const typename Dimension::SymTensor& H,
+                   const std::vector<std::vector<int>>& coarseNeighbors,
+                   std::vector<std::vector<int>>& refineNeighbors) const {
+  const auto numNodeLists = mNodeListPtrs.size();
+  REQUIRE(coarseNeighbors.size() == numNodeLists);
+  refineNeighbors = std::vector<std::vector<int>>(numNodeLists);
+  auto iNodeList = 0;
+  for (auto nodeListItr = mNodeListPtrs.begin();
        nodeListItr < mNodeListPtrs.end();
-       ++nodeListItr) {
-    (*nodeListItr)->neighbor().setRefineNeighborList(r, H);
+       ++nodeListItr, ++iNodeList) {
+    (*nodeListItr)->neighbor().setRefineNeighborList(r, H, 
+                                                     coarseNeighbors[iNodeList],
+                                                     refineNeighbors[iNodeList]);
   }
 }
 
@@ -953,13 +966,10 @@ template<typename Dimension, typename DataType>
 inline
 void
 FieldList<Dimension, DataType>::
-setRefineNodeLists(const typename Dimension::Vector& r) const {
-  for (typename std::vector<NodeSpace::NodeList<Dimension>*>::const_iterator 
-         nodeListItr = mNodeListPtrs.begin();
-       nodeListItr < mNodeListPtrs.end();
-       ++nodeListItr) {
-    (*nodeListItr)->neighbor().setRefineNeighborList(r);
-  }
+setRefineNodeLists(const typename Dimension::Vector& r,
+                   const std::vector<std::vector<int>>& coarseNeighbors,
+                   std::vector<std::vector<int>>& refineNeighbors) const {
+  this->setRefineNodeLists(r, 1e-30*SymTensor::one, coarseNeighbors, refineNeighbors);
 }
 
 //------------------------------------------------------------------------------

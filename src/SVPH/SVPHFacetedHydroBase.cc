@@ -608,18 +608,19 @@ evaluateDerivatives(const typename Dimension::Scalar time,
     PcellFace[k] = 0.5*(cellPressure(nodeListi, i) + cellPressure(nodeListj, j));
 
     // Set the neighbors for this face.
+    vector<vector<int>> masterLists, coarseNeighbors, refineNeighbors;
     Neighbor<Dimension>::setMasterNeighborGroup(posFace[k], H0,
                                                 nodeLists.begin(), nodeLists.end(),
-                                                W.kernelExtent());
+                                                W.kernelExtent(),
+                                                masterLists,
+                                                coarseNeighbors);
 
     // Iterate over the NodeLists.
     for (nodeListj = 0; nodeListj != numNodeLists; ++nodeListj) {
       const NodeList<Dimension>& nodeList = *nodeLists[nodeListj];
       Neighbor<Dimension>& neighbor = const_cast<Neighbor<Dimension>&>(nodeList.neighbor());
-      neighbor.setRefineNeighborList(posFace[k], H0);
-      for (typename Neighbor<Dimension>::const_iterator neighborItr = neighbor.refineNeighborBegin();
-           neighborItr != neighbor.refineNeighborEnd();
-           ++neighborItr) {
+      neighbor.setRefineNeighborList(posFace[k], H0, coarseNeighbors[nodeListj], refineNeighbors[nodeListj]);
+      for (auto neighborItr = refineNeighbors[nodeListj].begin(); neighborItr != refineNeighbors[nodeListj].end(); ++neighborItr) {
         j = *neighborItr;
       
         // Get the state for node j
@@ -663,18 +664,19 @@ evaluateDerivatives(const typename Dimension::Scalar time,
       const Vector& Bi = B[k];
 
       // Set the neighbors for this face.
+      vector<vector<int>> masterLists, coarseNeighbors, refineNeighbors;
       Neighbor<Dimension>::setMasterNeighborGroup(posFace[k], H0,
                                                   nodeLists.begin(), nodeLists.end(),
-                                                  W.kernelExtent());
+                                                  W.kernelExtent(),
+                                                  masterLists,
+                                                  coarseNeighbors);
 
       // Iterate over the NodeLists.
       for (nodeListj = 0; nodeListj != numNodeLists; ++nodeListj) {
         const NodeList<Dimension>& nodeList = *nodeLists[nodeListj];
         Neighbor<Dimension>& neighbor = const_cast<Neighbor<Dimension>&>(nodeList.neighbor());
-        neighbor.setRefineNeighborList(posFace[k], H0);
-        for (typename Neighbor<Dimension>::const_iterator neighborItr = neighbor.refineNeighborBegin();
-             neighborItr != neighbor.refineNeighborEnd();
-             ++neighborItr) {
+        neighbor.setRefineNeighborList(posFace[k], H0, coarseNeighbors[nodeListj], refineNeighbors[nodeListj]);
+        for (auto neighborItr = refineNeighbors[nodeListj].begin(); neighborItr != refineNeighbors[nodeListj].end(); ++neighborItr) {
           j = *neighborItr;
       
           // Get the state for node j

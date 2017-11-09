@@ -358,10 +358,13 @@ generateStdVectorBindings(self.vector_of_pair_ULL_DomainNode%(dim)id, "pair_ULL_
 
         x.add_method("setMasterNodeLists", None, [refparam(database, "dataBase"),
                                                   constrefparam(gridcell, "gridCell"),
-                                                  param("int", "gridLevel")], is_const=True)
+                                                  param("int", "gridLevel"),
+                                                  refparam("vector_of_vector_of_int", "masterLists"),
+                                                  refparam("vector_of_vector_of_int", "coarseNeighbors")], is_const=True)
         x.add_method("gatherAvailableCoarseNodes", None, [constrefparam(database, "dataBase"),
                                                           constrefparam(vector_of_domainnode, "nodeDistribution"),
                                                           constrefparam(scalarfieldlist, "work"),
+                                                          constrefparam("vector_of_vector_of_int", "localCoarseNeighbors"),
                                                           refparam("vector_of_int", "globalNodeIndices"),
                                                           refparam("vector_of_double", "globalNodeWork")], is_const=True)
 

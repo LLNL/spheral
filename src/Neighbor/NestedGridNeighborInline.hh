@@ -289,26 +289,6 @@ NestedGridNeighbor<Dimension>::nodeInCell() const {
 }
 
 //------------------------------------------------------------------------------
-// Return the current master grid level.
-//------------------------------------------------------------------------------
-template<typename Dimension>
-inline
-int
-NestedGridNeighbor<Dimension>::masterGridLevel() const {
-  return mMasterGridLevel;
-}
-
-//------------------------------------------------------------------------------
-// Return the current master grid cell index.
-//------------------------------------------------------------------------------
-template<typename Dimension>
-inline
-const GridCellIndex<Dimension>&
-NestedGridNeighbor<Dimension>::masterGridCellIndex () const {
-  return mMasterGridCellIndex;
-}
-
-//------------------------------------------------------------------------------
 // Return the number of occupied grid levels.
 //------------------------------------------------------------------------------
 template<typename Dimension>
@@ -551,7 +531,9 @@ inline
 void
 NestedGridNeighbor<Dimension>::
 setNestedRefineNeighborList(const typename Dimension::Vector& position,
-                            const OtherHType& H) {
+                            const OtherHType& H,
+                            const std::vector<int>& coarseNeighbors,
+                            std::vector<int>& refineNeighbors) const {
 
   // Bizarrely on realistic test problems we seem to do best by not 
   // culling, but rather simply using the coarse set.
@@ -562,20 +544,13 @@ setNestedRefineNeighborList(const typename Dimension::Vector& position,
   // std::vector<int>& refineList = this->accessRefineNeighborList();
   // refineList = coarseList;
 
-  // Before coming in here, we require that the coarse neighbor list be set
-  // appropriately for the master nodes.
-  REQUIRE(gridLevel(H) == mMasterGridLevel);
-  REQUIRE(gridCellIndex(position, mMasterGridLevel) == mMasterGridCellIndex);
-
   // Determine the maximum extent of this H tensor in each dimension.
   const Vector extent = this->HExtent(H, this->kernelExtent());
   const Vector minExtent = position - extent;
   const Vector maxExtent = position + extent;
 
   // Use precull to set the refined neighbor list.
-  const std::vector<int>& coarseList = this->coarseNeighborList();
-  std::vector<int>& refineList = this->accessRefineNeighborList();
-  refineList = this->precullList(position, position, minExtent, maxExtent, coarseList);
+  refineNeighbors = this->precullList(position, position, minExtent, maxExtent, coarseNeighbors);
 
 //   // Set the per field refine data caches for this NodeList.
 //   this->nodeList().notifyFieldsCacheRefineValues();

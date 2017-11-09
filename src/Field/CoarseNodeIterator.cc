@@ -20,7 +20,8 @@ template<typename Dimension>
 CoarseNodeIterator<Dimension>::
 CoarseNodeIterator():
   NodeIteratorBase<Dimension>(),
-  mNodeIDItr() {
+  mNodeIDItr(),
+  mCoarseNeighbors() {
 }
 
 //------------------------------------------------------------------------------
@@ -30,13 +31,16 @@ template<typename Dimension>
 CoarseNodeIterator<Dimension>::
 CoarseNodeIterator(typename vector<NodeList<Dimension>*>::const_iterator nodeListItr,
                    typename vector<NodeList<Dimension>*>::const_iterator nodeListBegin,
-                   typename vector<NodeList<Dimension>*>::const_iterator nodeListEnd):
+                   typename vector<NodeList<Dimension>*>::const_iterator nodeListEnd,
+                   const std::vector<std::vector<int>>& coarseNeighbors):
   NodeIteratorBase<Dimension>(),
-  mNodeIDItr() {
+  mNodeIDItr(),
+  mCoarseNeighbors(coarseNeighbors) {
   initialize(nodeListItr,
              nodeListBegin,
              nodeListEnd,
-             vector<int>::const_iterator());
+             vector<int>::const_iterator(),
+             coarseNeighbors);
   ENSURE(valid());
 }
 
@@ -48,13 +52,16 @@ CoarseNodeIterator<Dimension>::
 CoarseNodeIterator(typename vector<NodeList<Dimension>*>::const_iterator nodeListItr, 
                    typename vector<NodeList<Dimension>*>::const_iterator nodeListBegin,
                    typename vector<NodeList<Dimension>*>::const_iterator nodeListEnd,
-                   vector<int>::const_iterator IDItr):
+                   vector<int>::const_iterator IDItr,
+                   const std::vector<std::vector<int>>& coarseNeighbors):
   NodeIteratorBase<Dimension>(),
-  mNodeIDItr(IDItr) {
+  mNodeIDItr(),
+  mCoarseNeighbors(coarseNeighbors) {
   initialize(nodeListItr,
              nodeListBegin,
              nodeListEnd,
-             IDItr);
+             IDItr,
+             coarseNeighbors);
   ENSURE(valid());
 }
 
@@ -65,7 +72,13 @@ template<typename Dimension>
 CoarseNodeIterator<Dimension>::
 CoarseNodeIterator(const CoarseNodeIterator<Dimension>& rhs):
   NodeIteratorBase<Dimension>(rhs),
-  mNodeIDItr(rhs.mNodeIDItr) {
+  mNodeIDItr(),
+  mCoarseNeighbors(rhs.mCoarseNeighbors) {
+  initialize(mNodeListItr,
+             mNodeListBegin,
+             mNodeListEnd,
+             rhs.mNodeIDItr,
+             rhs.mCoarseNeighbors);
   ENSURE(valid() == rhs.valid());
 }
 
@@ -92,9 +105,9 @@ valid() const {
   bool coarseTest;
   if (mNodeListItr != mNodeListEnd) {
     coarseTest = (mNodeID == *mNodeIDItr && 
-                  find((*mNodeListItr)->neighbor().coarseNeighborBegin(),
-                       (*mNodeListItr)->neighbor().coarseNeighborEnd(),
-                       *mNodeIDItr) != (*mNodeListItr)->neighbor().coarseNeighborEnd());
+                  find(mCoarseNeighbors[mFieldID].begin(),
+                       mCoarseNeighbors[mFieldID].end(),
+                       *mNodeIDItr) != mCoarseNeighbors[mFieldID].end());
   } else {
     coarseTest = mNodeID == 0;
   }
@@ -111,23 +124,26 @@ CoarseNodeIterator<Dimension>::
 initialize(typename vector<NodeList<Dimension>*>::const_iterator nodeListItr,
            typename vector<NodeList<Dimension>*>::const_iterator nodeListBegin,
            typename vector<NodeList<Dimension>*>::const_iterator nodeListEnd,
-           vector<int>::const_iterator IDItr) {
+           vector<int>::const_iterator IDItr,
+           const std::vector<std::vector<int>>& coarseNeighbors) {
 
   // Pre-conditions.
+  mFieldID = distance(nodeListBegin, nodeListItr);
   REQUIRE(nodeListItr == nodeListEnd ||
           (nodeListItr < nodeListEnd && 
-           IDItr >= (*nodeListItr)->neighbor().coarseNeighborBegin() &&
-           IDItr <= (*nodeListItr)->neighbor().coarseNeighborEnd()));
+           IDItr >= coarseNeighbors[mFieldID].begin() &&
+           IDItr <= coarseNeighbors[mFieldID].end()));
 
-  if (nodeListItr < nodeListEnd) {
-    mNodeID = *IDItr;
-  } else {
-    mNodeID = 0;
-  }    
-  mFieldID = distance(nodeListBegin, nodeListItr);
   mNodeListBegin = nodeListBegin;
   mNodeListEnd = nodeListEnd;
   mNodeListItr = nodeListItr;
+  if (nodeListItr < nodeListEnd) {
+    mNodeIDItr = mCoarseNeighbors[mFieldID].begin() + std::distance(coarseNeighbors[mFieldID].begin(), IDItr);
+    mNodeID = *IDItr;
+  } else {
+    mNodeIDItr = vector<int>::const_iterator();
+    mNodeID = 0;
+  }
 
   // Post conditions.
   ENSURE(valid());

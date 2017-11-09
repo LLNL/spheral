@@ -64,24 +64,6 @@ public:
   // Allow access to the field of node extents.
   const FieldSpace::Field<Dimension, Vector>& nodeExtentField() const;
 
-  // Return the current number of (master, coarse, fine) nodes.
-  int numMaster() const;
-  int numCoarse() const;
-  int numRefine() const;
-
-  // Return the current list of potential neighbor indicies.
-  const std::vector<int>& masterList() const;
-  const std::vector<int>& coarseNeighborList() const;
-  const std::vector<int>& refineNeighborList() const;
-
-  // Provide iterators to go over the neighbor indicies.
-  const_iterator masterBegin() const;
-  const_iterator masterEnd() const;
-  const_iterator coarseNeighborBegin() const;
-  const_iterator coarseNeighborEnd() const;
-  const_iterator refineNeighborBegin() const;
-  const_iterator refineNeighborEnd() const;
-
   // Access the node list.
   const NodeSpace::NodeList<Dimension>& nodeList() const;
   void nodeList(NodeSpace::NodeList<Dimension>& nodeList);
@@ -101,42 +83,54 @@ public:
   void setGhostNodeExtents();
 
   // Set or refine the neighbor lists for a given node ID.
-  virtual void setMasterList(int nodeID);
-  virtual void setRefineNeighborList(int nodeID);
+  virtual void setMasterList(int nodeID,
+                             std::vector<int>& masterList,
+                             std::vector<int>& coarseNeighbors) const;
+  virtual void setRefineNeighborList(int nodeID,
+                                     const std::vector<int>& coarseNeighbors,
+                                     std::vector<int>& refineNeighbors) const;
 
   // Helper method to cull lists of neighbors based on min/max positions and 
   // min/max extents.
   std::vector<int> 
   precullList(const Vector& minMasterPosition, const Vector& maxMasterPostion,
               const Vector& minMasterExtent, const Vector& maxMasterExtent,
-              const std::vector<int>& coarseList) const;
-
-  // Cull the local (to this NodeList) neighbor info based on the current master
-  // state.
-  // *NOTE* -- this is not safe to do when you want to use this neighbor info 
-  // with different NodeLists!
-  void precullForLocalNodeList();
+              const std::vector<int>& coarseNeighbors) const;
 
   // ********** Descendent Neighbor types must provide these methods. **********
   // Set or refine the neighbor lists for the given position and smoothing 
   // scale.
   virtual void setMasterList(const Vector& position,
-                             const Scalar& H) = 0;
+                             const Scalar& H,
+                             std::vector<int>& masterList,
+                             std::vector<int>& coarseNeighbors) const = 0;
   virtual void setMasterList(const Vector& position,
-                             const SymTensor& H) = 0;
+                             const SymTensor& H,
+                             std::vector<int>& masterList,
+                             std::vector<int>& coarseNeighbors) const = 0;
 
   virtual void setRefineNeighborList(const Vector& position,
-                                     const Scalar& H) = 0;
+                                     const Scalar& H,
+                                     const std::vector<int>& coarseNeighbors,
+                                     std::vector<int>& refineNeighbors) const = 0;
   virtual void setRefineNeighborList(const Vector& position,
-                                     const SymTensor& H) = 0;
+                                     const SymTensor& H,
+                                     const std::vector<int>& coarseNeighbors,
+                                     std::vector<int>& refineNeighbors) const = 0;
 
   // Set Neighbors for the given position.
-  virtual void setMasterList(const Vector& position) = 0;
-  virtual void setRefineNeighborList(const Vector& position) = 0;
+  virtual void setMasterList(const Vector& position,
+                             std::vector<int>& masterList,
+                             std::vector<int>& coarseNeighbors) const = 0;
+  virtual void setRefineNeighborList(const Vector& position,
+                                     const std::vector<int>& coarseNeighbors,
+                                     std::vector<int>& refineNeighbors) const = 0;
 
   // Set the neighbor lists based on proximity to planes.
   virtual void setMasterList(const GeomPlane<Dimension>& enterPlane,
-                             const GeomPlane<Dimension>& exitPlane) = 0;
+                             const GeomPlane<Dimension>& exitPlane,
+                             std::vector<int>& masterList,
+                             std::vector<int>& coarseNeighbors) const = 0;
 
   // Force the update of internal data for the NodeList.
   virtual void updateNodes() = 0;
@@ -155,7 +149,9 @@ public:
                                      const SymTensor& H,
                                      const NodeListIteratorType& nodeListBegin,
                                      const NodeListIteratorType& nodeListEnd,
-                                     const double kernelExtent);
+                                     const double kernelExtent,
+                                     std::vector<std::vector<int>>& masterLists,
+                                     std::vector<std::vector<int>>& coarseNeighbors);
 
   // Determine the maximum extent of a given H smoothing scale along the
   // Cartesian axes.
@@ -165,24 +161,14 @@ public:
 protected:
   //-------------------------- Protected Interface --------------------------//
   // Provide read/write access to the node index vectors for descendent classes.
-  std::vector<int>& accessMasterList();
-  std::vector<int>& accessCoarseNeighborList();
-  std::vector<int>& accessRefineNeighborList();
   FieldSpace::Field<Dimension, Vector>& accessNodeExtentField();
 
 private:
   //--------------------------- Private Interface ---------------------------//
   NeighborSearchType mSearchType;
   double mKernelExtent;
-
-  std::vector<int>* mMasterListPtr;
-  std::vector<int>* mCoarseNeighborListPtr;
-  std::vector<int>* mRefineNeighborListPtr;
-
-#ifndef __GCCXML__
   NodeSpace::NodeList<Dimension>* mNodeListPtr;
   FieldSpace::Field<Dimension, Vector> mNodeExtent;
-#endif
 };
 
 // We explicitly specialize the HExtent method for 1, 2, & 3 dimensions.
@@ -193,9 +179,7 @@ template<> Dim<3>::Vector Neighbor< Dim<3> >::HExtent(const Dim<3>::SymTensor&, 
 }
 }
 
-#ifndef __GCCXML__
 #include "NeighborInline.hh"
-#endif
 
 #else
 

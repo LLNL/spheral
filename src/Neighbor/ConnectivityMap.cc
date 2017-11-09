@@ -619,18 +619,23 @@ computeConnectivity() {
   CHECK(mConnectivity.size() == connectivitySize);
   for (auto iiNodeList = 0; iiNodeList != numNodeLists; ++iiNodeList) {
 
-    // Iterate over the internal nodes in this NodeList, and look
-    // for any that are not done yet.
-    for (auto ii = 0; ii != mNodeLists[iiNodeList]->numInternalNodes(); ++ii) {
+    // Iterate over the nodes in this NodeList, and look for any that are not done yet.
+    const auto nii = (domainDecompIndependent or mBuildGhostConnectivity ? 
+                      mNodeLists[iiNodeList]->numNodes() :
+                      mNodeLists[iiNodeList]->numInternalNodes());
+    for (auto ii = 0; ii != nii; ++ii) {
       if (flagNodeDone(iiNodeList, ii) == 0) {
       
         // Set the master nodes.
         // t0 = std::clock();
+        vector<vector<int>> masterLists, coarseNeighbors;
         Neighbor<Dimension>::setMasterNeighborGroup(position(iiNodeList, ii),
                                                     H(iiNodeList, ii),
                                                     mNodeLists.begin(),
                                                     mNodeLists.end(),
-                                                    mNodeLists[iiNodeList]->neighbor().kernelExtent());
+                                                    mNodeLists[iiNodeList]->neighbor().kernelExtent(),
+                                                    masterLists,
+                                                    coarseNeighbors);
         // tmaster += std::clock() - t0;
 
         // Iterate over the full of NodeLists again to work on the master nodes.
@@ -641,11 +646,12 @@ computeConnectivity() {
           const auto firstGhostNodei = mNodeLists[iNodeList]->firstGhostNode();
 
           // Iterate over the master nodes in this NodeList.
-          for (auto masterItr = neighbori.masterBegin();
-               masterItr != neighbori.masterEnd();
-               ++masterItr) {
-            const auto i = *masterItr;
-            if (domainDecompIndependent or mBuildGhostConnectivity or i < firstGhostNodei) {
+          const auto& masterList = masterLists[iNodeList];
+          const auto  nmaster = masterList.size();
+#pragma parallel for
+          for (auto kmaster = 0; kmaster < nmaster; ++kmaster) {
+            const auto i = masterList[kmaster];
+            if (i < firstGhostNodei or domainDecompIndependent or mBuildGhostConnectivity) {
               CHECK(mOffsets[iNodeList] + i < mConnectivity.size());
               const auto start = Timing::currentTime();
               CHECK(flagNodeDone(iNodeList, i) == 0);
@@ -663,19 +669,18 @@ computeConnectivity() {
 
               // Iterate over the neighbor NodeLists.
               for (auto jNodeList = 0; jNodeList != numNodeLists; ++jNodeList) {
-                auto& neighborj = mNodeLists[jNodeList]->neighbor();
-                const auto firstGhostNodej = mNodeLists[jNodeList]->firstGhostNode();
+                const auto& neighborj = mNodeLists[jNodeList]->neighbor();
+                const auto  firstGhostNodej = mNodeLists[jNodeList]->firstGhostNode();
 
                 // Set the refine neighbors.
                 // t0 = std::clock();
-                neighborj.setRefineNeighborList(ri, Hi);
+                vector<int> refineNeighbors;
+                neighborj.setRefineNeighborList(ri, Hi, coarseNeighbors[jNodeList], refineNeighbors);
                 // trefine += std::clock() - t0;
 
                 // Iterate over the neighbors in this NodeList.
                 // t0 = std::clock();
-                for (auto neighborItr = neighborj.refineNeighborBegin();
-                     neighborItr != neighborj.refineNeighborEnd();
-                     ++neighborItr) {
+                for (auto neighborItr = refineNeighbors.begin(); neighborItr < refineNeighbors.end(); ++neighborItr) {
                   const auto j = *neighborItr;
 
                   // Get the neighbor state.
@@ -693,14 +698,6 @@ computeConnectivity() {
                     // We don't include self-interactions.
                     if ((iNodeList != jNodeList) or (i != j)) {
                       neighbors[jNodeList].push_back(j);
-
-                      // Do we need ghost connectivity as well?
-                      if (j >= firstGhostNodej and (domainDecompIndependent or mBuildGhostConnectivity)) {
-                        auto& otherNeighbors = mConnectivity[mOffsets[jNodeList] + j];
-                        CHECK(otherNeighbors.size() == numNodeLists);
-                        otherNeighbors[iNodeList].push_back(i);
-                      }
-
                       if (domainDecompIndependent) keys[jNodeList].push_back(pair<int, Key>(j, mKeys(jNodeList, j)));
                     }
                   }
@@ -716,13 +713,11 @@ computeConnectivity() {
                 if (domainDecompIndependent) {
                   // Sort in a domain independent manner.
                   CHECK(keys[k].size() == neighbors[k].size());
-                  sort(keys[k].begin(), keys[k].end(), ComparePairsBySecondElement<pair<int, Key> >());
+                  sort(keys[k].begin(), keys[k].end(), ComparePairsBySecondElement<pair<int, Key>>());
                   for (auto j = 0; j != neighbors[k].size(); ++j) neighbors[k][j] = keys[k][j].first;
-
                 } else {
                   // Sort in an attempt to be cache friendly.
                   sort(neighbors[k].begin(), neighbors[k].end());
-
                 }
               }
 
@@ -735,116 +730,114 @@ computeConnectivity() {
       }
     }
 
-    // Are we also fleshing out the ghost connectivity?
-    if (mBuildGhostConnectivity) {
-      const auto firstGhostNodei = mNodeLists[iiNodeList]->firstGhostNode();
-      const auto n = mNodeLists[iiNodeList]->numNodes();
-      for (auto i = firstGhostNodei; i != n; ++i) {
-        Neighbor<Dimension>::setMasterNeighborGroup(position(iiNodeList, i),
-                                                    H(iiNodeList, i),
-                                                    mNodeLists.begin(),
-                                                    mNodeLists.end(),
-                                                    mNodeLists[iiNodeList]->neighbor().kernelExtent());
-        CHECK(mOffsets[iiNodeList] + i < mConnectivity.size());
-        CHECK(flagNodeDone(iiNodeList, i) == 0);
+  //   // Are we also fleshing out the ghost connectivity?
+  //   if (mBuildGhostConnectivity or domainDecompIndependent) {
+  //     const auto firstGhostNodei = mNodeLists[iiNodeList]->firstGhostNode();
+  //     const auto n = mNodeLists[iiNodeList]->numNodes();
+  //     for (auto i = firstGhostNodei; i != n; ++i) {
+  //       Neighbor<Dimension>::setMasterNeighborGroup(position(iiNodeList, i),
+  //                                                   H(iiNodeList, i),
+  //                                                   mNodeLists.begin(),
+  //                                                   mNodeLists.end(),
+  //                                                   mNodeLists[iiNodeList]->neighbor().kernelExtent());
+  //       CHECK(mOffsets[iiNodeList] + i < mConnectivity.size());
+  //       CHECK(flagNodeDone(iiNodeList, i) == 0);
 
-        // Get the neighbor set we're building for this node.
-        auto& neighbors = mConnectivity[mOffsets[iiNodeList] + i];
-        CHECK2(neighbors.size() == numNodeLists, neighbors.size() << " " << numNodeLists << " " << i);
+  //       // Get the neighbor set we're building for this node.
+  //       auto& neighbors = mConnectivity[mOffsets[iiNodeList] + i];
+  //       CHECK2(neighbors.size() == numNodeLists, neighbors.size() << " " << numNodeLists << " " << i);
 
-        // We keep track of the Morton indices.
-        vector<vector<pair<int, Key>>> keys(numNodeLists);
+  //       // We keep track of the Morton indices.
+  //       vector<vector<pair<int, Key>>> keys(numNodeLists);
 
-        // Get the state for this node.
-        const auto& ri = position(iiNodeList, i);
-        const auto& Hi = H(iiNodeList, i);
+  //       // Get the state for this node.
+  //       const auto& ri = position(iiNodeList, i);
+  //       const auto& Hi = H(iiNodeList, i);
 
-        // Iterate over the neighbor NodeLists.
-        for (auto jNodeList = 0; jNodeList != numNodeLists; ++jNodeList) {
-          auto& neighborj = mNodeLists[jNodeList]->neighbor();
-          const auto firstGhostNodej = mNodeLists[jNodeList]->firstGhostNode();
+  //       // Iterate over the neighbor NodeLists.
+  //       for (auto jNodeList = 0; jNodeList != numNodeLists; ++jNodeList) {
+  //         auto& neighborj = mNodeLists[jNodeList]->neighbor();
+  //         const auto firstGhostNodej = mNodeLists[jNodeList]->firstGhostNode();
 
-          // Set the refine neighbors.
-          neighborj.setRefineNeighborList(ri, Hi);
+  //         // Set the refine neighbors.
+  //         neighborj.setRefineNeighborList(ri, Hi);
 
-          // Iterate over the neighbors in this NodeList.
-          for (auto neighborItr = neighborj.refineNeighborBegin();
-               neighborItr != neighborj.refineNeighborEnd();
-               ++neighborItr) {
-            const auto j = *neighborItr;
-            if (j > i) {  // We've already hit all nodes with lower indices than this one.
+  //         // Iterate over the neighbors in this NodeList.
+  //         for (auto neighborItr = neighborj.refineNeighborBegin();
+  //              neighborItr != neighborj.refineNeighborEnd();
+  //              ++neighborItr) {
+  //           const auto j = *neighborItr;
 
-              // Get the neighbor state.
-              const auto& rj = position(jNodeList, j);
-              const auto& Hj = H(jNodeList, j);
+  //           // Get the neighbor state.
+  //           const auto& rj = position(jNodeList, j);
+  //           const auto& Hj = H(jNodeList, j);
 
-              // Compute the normalized distance between this pair.
-              const auto rij = ri - rj;
-              const auto eta2i = (Hi*rij).magnitude2();
-              const auto eta2j = (Hj*rij).magnitude2();
+  //           // Compute the normalized distance between this pair.
+  //           const auto rij = ri - rj;
+  //           const auto eta2i = (Hi*rij).magnitude2();
+  //           const auto eta2j = (Hj*rij).magnitude2();
 
-              // If this pair is significant, add it to the list.
-              if (eta2i <= kernelExtent2 or eta2j <= kernelExtent2) {
+  //           // If this pair is significant, add it to the list.
+  //           if (eta2i <= kernelExtent2 or eta2j <= kernelExtent2) {
 
-                // We don't include self-interactions.
-                if ((iiNodeList != jNodeList) or (i != j)) {
-                  auto& otherNeighbors = mConnectivity[mOffsets[jNodeList] + j];
-                  CHECK(otherNeighbors.size() == numNodeLists);
-                  neighbors[jNodeList].push_back(j);
-                  otherNeighbors[iiNodeList].push_back(i);
-                  if (domainDecompIndependent) keys[jNodeList].push_back(pair<int, Key>(j, mKeys(jNodeList, j)));
-                }
-              }
-            }
-          }
-          CHECK(neighbors.size() == numNodeLists);
-          CHECK(keys.size() == numNodeLists);
+  //             // We don't include self-interactions.
+  //             if ((iiNodeList != jNodeList) or (i != j)) {
+  //               auto& otherNeighbors = mConnectivity[mOffsets[jNodeList] + j];
+  //               CHECK(otherNeighbors.size() == numNodeLists);
+  //               neighbors[jNodeList].push_back(j);
+  //               otherNeighbors[iiNodeList].push_back(i);
+  //               if (domainDecompIndependent) keys[jNodeList].push_back(pair<int, Key>(j, mKeys(jNodeList, j)));
+  //             }
+  //           }
+  //         }
+  //         CHECK(neighbors.size() == numNodeLists);
+  //         CHECK(keys.size() == numNodeLists);
     
-          // We have a few options for how to order the neighbors for this node.
-          for (auto k = 0; k != numNodeLists; ++k) {
+  //         // We have a few options for how to order the neighbors for this node.
+  //         for (auto k = 0; k != numNodeLists; ++k) {
 
-            if (domainDecompIndependent) {
-              // Sort in a domain independent manner.
-              CHECK(keys[k].size() == neighbors[k].size());
-              sort(keys[k].begin(), keys[k].end(), ComparePairsBySecondElement<pair<int, Key> >());
-              for (auto j = 0; j != neighbors[k].size(); ++j) neighbors[k][j] = keys[k][j].first;
+  //           if (domainDecompIndependent) {
+  //             // Sort in a domain independent manner.
+  //             CHECK(keys[k].size() == neighbors[k].size());
+  //             sort(keys[k].begin(), keys[k].end(), ComparePairsBySecondElement<pair<int, Key> >());
+  //             for (auto j = 0; j != neighbors[k].size(); ++j) neighbors[k][j] = keys[k][j].first;
 
-            } else {
-              // Sort in an attempt to be cache friendly.
-              sort(neighbors[k].begin(), neighbors[k].end());
-            }
-          }
+  //           } else {
+  //             // Sort in an attempt to be cache friendly.
+  //             sort(neighbors[k].begin(), neighbors[k].end());
+  //           }
+  //         }
 
-          // Flag this master node as done.
-          flagNodeDone(iiNodeList, i) = 1;
-        }
-      }
-    }
+  //         // Flag this master node as done.
+  //         flagNodeDone(iiNodeList, i) = 1;
+  //       }
+  //     }
+  //   }
   }
 
-  // In the domain decompostion independent case, we need to sort the neighbors for ghost
-  // nodes as well.
-  if (domainDecompIndependent) {
-    for (auto iNodeList = 0; iNodeList != numNodeLists; ++iNodeList) {
-      const auto* nodeListPtr = mNodeLists[iNodeList];
-      for (auto i = nodeListPtr->firstGhostNode();
-           i != nodeListPtr->numNodes();
-           ++i) {
-        auto& neighbors = mConnectivity[mOffsets[iNodeList] + i];
-        CHECK(neighbors.size() == numNodeLists);
-        for (auto jNodeList = 0; jNodeList != numNodeLists; ++jNodeList) {
-          vector<pair<int, Key>> keys;
-          keys.reserve(neighbors[jNodeList].size());
-          for (auto itr = neighbors[jNodeList].begin();
-               itr != neighbors[jNodeList].end();
-               ++itr) keys.push_back(pair<int, Key>(*itr, mKeys(jNodeList, *itr)));
-          CHECK(keys.size() == neighbors[jNodeList].size());
-          sort(keys.begin(), keys.end(), ComparePairsBySecondElement<pair<int, Key> >());
-          for (auto k = 0; k != keys.size(); ++k) neighbors[jNodeList][k] = keys[k].first;
-        }
-      }
-    }
-  }
+  // // In the domain decompostion independent case, we need to sort the neighbors for ghost
+  // // nodes as well.
+  // if (domainDecompIndependent) {
+  //   for (auto iNodeList = 0; iNodeList != numNodeLists; ++iNodeList) {
+  //     const auto* nodeListPtr = mNodeLists[iNodeList];
+  //     for (auto i = nodeListPtr->firstGhostNode();
+  //          i != nodeListPtr->numNodes();
+  //          ++i) {
+  //       auto& neighbors = mConnectivity[mOffsets[iNodeList] + i];
+  //       CHECK(neighbors.size() == numNodeLists);
+  //       for (auto jNodeList = 0; jNodeList != numNodeLists; ++jNodeList) {
+  //         vector<pair<int, Key>> keys;
+  //         keys.reserve(neighbors[jNodeList].size());
+  //         for (auto itr = neighbors[jNodeList].begin();
+  //              itr != neighbors[jNodeList].end();
+  //              ++itr) keys.push_back(pair<int, Key>(*itr, mKeys(jNodeList, *itr)));
+  //         CHECK(keys.size() == neighbors[jNodeList].size());
+  //         sort(keys.begin(), keys.end(), ComparePairsBySecondElement<pair<int, Key> >());
+  //         for (auto k = 0; k != keys.size(); ++k) neighbors[jNodeList][k] = keys[k].first;
+  //       }
+  //     }
+  //   }
+  // }
 
   // {
   //   tpre = allReduce(unsigned(tpre), MPI_SUM, Communicator::communicator()) / Process::getTotalNumberOfProcesses() / CLOCKS_PER_SEC;

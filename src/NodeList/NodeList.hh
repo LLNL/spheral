@@ -96,13 +96,13 @@ public:
   GhostNodeIterator<Dimension> ghostNodeBegin() const;
   GhostNodeIterator<Dimension> ghostNodeEnd() const;
           
-  MasterNodeIterator<Dimension> masterNodeBegin() const;
+  MasterNodeIterator<Dimension> masterNodeBegin(const std::vector<std::vector<int>>& masterLists) const;
   MasterNodeIterator<Dimension> masterNodeEnd() const;
           
-  CoarseNodeIterator<Dimension> coarseNodeBegin() const;
+  CoarseNodeIterator<Dimension> coarseNodeBegin(const std::vector<std::vector<int>>& coarseNeighbors) const;
   CoarseNodeIterator<Dimension> coarseNodeEnd() const;
 
-  RefineNodeIterator<Dimension> refineNodeBegin() const;
+  RefineNodeIterator<Dimension> refineNodeBegin(const std::vector<std::vector<int>>& refineNeighbors) const;
   RefineNodeIterator<Dimension> refineNodeEnd() const;
 
   // The NodeList state Fields.

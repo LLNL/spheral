@@ -7,13 +7,8 @@
 #ifndef CoarseNodeIterator_HH
 #define CoarseNodeIterator_HH
 
-#ifndef __GCCXML__
-#include <vector>
-#else
-#include "fakestl.hh"
-#endif
-
 #include "NodeIteratorBase.hh"
+#include <vector>
 
 namespace Spheral {
   namespace NodeSpace {
@@ -29,15 +24,15 @@ public:
   //--------------------------- Public Interface ---------------------------//
   // Constructors and destructors.
   CoarseNodeIterator();
-#ifndef __GCCXML__
-  CoarseNodeIterator(typename std::vector<NodeSpace::NodeList<Dimension>*>::const_iterator iter,
-                     typename std::vector<NodeSpace::NodeList<Dimension>*>::const_iterator nodeListBegin,
-                     typename std::vector<NodeSpace::NodeList<Dimension>*>::const_iterator nodeListEnd);
   CoarseNodeIterator(typename std::vector<NodeSpace::NodeList<Dimension>*>::const_iterator iter,
                      typename std::vector<NodeSpace::NodeList<Dimension>*>::const_iterator nodeListBegin,
                      typename std::vector<NodeSpace::NodeList<Dimension>*>::const_iterator nodeListEnd,
-                     std::vector<int>::const_iterator IDItr);
-#endif
+                     const std::vector<std::vector<int>>& coarseNeighbors);
+  CoarseNodeIterator(typename std::vector<NodeSpace::NodeList<Dimension>*>::const_iterator iter,
+                     typename std::vector<NodeSpace::NodeList<Dimension>*>::const_iterator nodeListBegin,
+                     typename std::vector<NodeSpace::NodeList<Dimension>*>::const_iterator nodeListEnd,
+                     std::vector<int>::const_iterator IDItr,
+                     const std::vector<std::vector<int>>& coarseNeighbors);
   CoarseNodeIterator(const CoarseNodeIterator& rhs);
 
   // Destructor.
@@ -49,18 +44,6 @@ public:
   // Valid test.
   virtual bool valid() const;
 
-private:
-  //---------------------------- Private Interface ----------------------------//
-  // Internal method to initialize the state.
-  void initialize(typename std::vector<NodeSpace::NodeList<Dimension>*>::const_iterator nodeListItr,
-                  typename std::vector<NodeSpace::NodeList<Dimension>*>::const_iterator nodeListBegin,
-                  typename std::vector<NodeSpace::NodeList<Dimension>*>::const_iterator nodeListEnd,
-                  std::vector<int>::const_iterator IDItr);
-
-#ifndef __GCCXML__
-  // The iterator to the current coarse node ID.
-  typename std::vector<int>::const_iterator mNodeIDItr;
-
 protected:
   //--------------------------- Protected Interface ---------------------------//
   using NodeIteratorBase<Dimension>::mNodeID;
@@ -68,14 +51,24 @@ protected:
   using NodeIteratorBase<Dimension>::mNodeListBegin;
   using NodeIteratorBase<Dimension>::mNodeListEnd;
   using NodeIteratorBase<Dimension>::mNodeListItr;
-#endif
+
+private:
+  //---------------------------- Private Interface ----------------------------//
+  // Internal method to initialize the state.
+  void initialize(typename std::vector<NodeSpace::NodeList<Dimension>*>::const_iterator nodeListItr,
+                  typename std::vector<NodeSpace::NodeList<Dimension>*>::const_iterator nodeListBegin,
+                  typename std::vector<NodeSpace::NodeList<Dimension>*>::const_iterator nodeListEnd,
+                  std::vector<int>::const_iterator IDItr,
+                  const std::vector<std::vector<int>>& coarseNeighbors);
+
+  // The iterator to the current coarse node ID.
+  typename std::vector<int>::const_iterator mNodeIDItr;
+  std::vector<std::vector<int>> mCoarseNeighbors;
 };
 
 }
 
-#ifndef __GCCXML__
 #include "CoarseNodeIteratorInline.hh"
-#endif
 
 #else
 

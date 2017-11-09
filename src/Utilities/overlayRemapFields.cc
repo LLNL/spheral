@@ -208,11 +208,10 @@ overlayRemapFields(const vector<Boundary<Dimension>*>& boundaries,
     CHECK(bufItr == buffer.end());
 
     for (unsigned i = 0; i != donorN; ++i) {
-      neighborA.setMasterList(donorPos[i], donorH[i]);
-      neighborA.setRefineNeighborList(donorPos[i], donorH[i]);
-      for (typename Neighbor<Dimension>::const_iterator jitr = neighborA.refineNeighborBegin();
-           jitr != neighborA.refineNeighborEnd();
-           ++jitr) {
+      vector<int> Amasters, Acoarse, Arefine;
+      neighborA.setMasterList(donorPos[i], donorH[i], Amasters, Acoarse);
+      neighborA.setRefineNeighborList(donorPos[i], donorH[i], Acoarse, Arefine);
+      for (auto jitr = Arefine.begin(); jitr < Arefine.end(); ++jitr) {
         const int j = *jitr;
         if (donorCells[i].intersect(localAcceptorCells(j))) {
           const vector<Facet>& facets = localAcceptorCells(j).facets();
@@ -356,11 +355,10 @@ overlayRemapFields(const vector<Boundary<Dimension>*>& boundaries,
   Field<Dimension, vector<unsigned>> intersectIndices("intersection indices", *donorNodeListPtr);
   Field<Dimension, vector<Scalar>> intersectVols("intesection volumes", *donorNodeListPtr);
   for (unsigned i = 0; i != nD; ++i) {
-    neighborA.setMasterList(posD(i), HD(i));
-    neighborA.setRefineNeighborList(posD(i), HD(i));
-    for (typename Neighbor<Dimension>::const_iterator jitr = neighborA.refineNeighborBegin();
-         jitr != neighborA.refineNeighborEnd();
-         ++jitr) {
+    vector<int> Amasters, Acoarse, Arefine;
+    neighborA.setMasterList(posD(i), HD(i), Amasters, Acoarse);
+    neighborA.setRefineNeighborList(posD(i), HD(i), Acoarse, Arefine);
+    for (auto jitr = Arefine.begin(); jitr < Arefine.end(); ++jitr) {
       const int j = *jitr;
       if (localDonorCells(i).intersect(localAcceptorCells(j))) {
         const vector<Facet>& facets = localAcceptorCells(j).facets();

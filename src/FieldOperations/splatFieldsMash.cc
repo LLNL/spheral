@@ -86,11 +86,13 @@ splatFieldsMash(const FieldList<Dimension, DataType>& fieldList,
     if (!flagNodeDone[nodeItr.fieldID()][nodeItr.nodeID()]) {
 
       // Set the neighbor info over the positions we're sampling to.
-      fieldList.setMasterNodeLists(position(nodeItr), Hfield(nodeItr));
-      samplePositions.setMasterNodeLists(position(nodeItr), Hfield(nodeItr));
+      vector<vector<int>> masterLists, coarseNeighbors, refineNeighbors,
+                          masterListsSample, coarseNeighborsSample, refineNeighborsSample;
+      fieldList.setMasterNodeLists(position(nodeItr), Hfield(nodeItr), masterLists, coarseNeighbors);
+      samplePositions.setMasterNodeLists(position(nodeItr), Hfield(nodeItr), masterListsSample, coarseNeighborsSample);
 
       // Loop over the set of master nodes in the FieldList we're sampling from.
-      for (MasterNodeIterator<Dimension> masterItr = fieldList.masterNodeBegin();
+      for (MasterNodeIterator<Dimension> masterItr = fieldList.masterNodeBegin(masterLists);
            masterItr < fieldList.masterNodeEnd();
            ++masterItr) {
         CHECK(flagNodeDone[masterItr.fieldID()][masterItr.nodeID()] == false);
@@ -102,13 +104,13 @@ splatFieldsMash(const FieldList<Dimension, DataType>& fieldList,
         const DataType& fieldi = fieldList(masterItr);
 
         // Refine the set of nodes we're sampling to for this position.
-        samplePositions.setRefineNodeLists(ri, Hi);
+        samplePositions.setRefineNodeLists(ri, Hi, coarseNeighborsSample, refineNeighborsSample);
 
         // Loop over the refined neighbors, and determine the normalization
         // constant.
         Scalar totalWeight = 1.0e-30;
         int numSignificant = 0;
-        for (RefineNodeIterator<Dimension> neighborItr = samplePositions.refineNodeBegin();
+        for (RefineNodeIterator<Dimension> neighborItr = samplePositions.refineNodeBegin(refineNeighborsSample);
              neighborItr < samplePositions.refineNodeEnd();
              ++neighborItr) {
 
@@ -159,7 +161,7 @@ splatFieldsMash(const FieldList<Dimension, DataType>& fieldList,
 
         // Loop over the refined neighbors again, and do the splat of the donor nodes
         // value to each of the sample nodes.
-        for (RefineNodeIterator<Dimension> neighborItr = samplePositions.refineNodeBegin();
+        for (RefineNodeIterator<Dimension> neighborItr = samplePositions.refineNodeBegin(refineNeighborsSample);
              neighborItr < samplePositions.refineNodeEnd();
              ++neighborItr) {
 
