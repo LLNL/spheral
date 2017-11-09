@@ -444,7 +444,11 @@ valid() const {
             if (find(otherNeighbors[nodeListIDi].begin(),
                      otherNeighbors[nodeListIDi].end(),
                      i) == otherNeighbors[nodeListIDi].end()) {
-              cerr << "ConnectivityMap::valid: Failed test that neighbors must be symmetric." << endl;
+              cerr << "ConnectivityMap::valid: Failed test that neighbors must be symmetric: " 
+                   << i << " <> " << *jItr 
+                   << "  numneigbors(i)=" << neighbors.size() 
+                   << "  numneigbors(j)=" << otherNeighbors[nodeListIDi].size() 
+                   << endl;
               return false;
             }
           }
@@ -698,7 +702,14 @@ computeConnectivity() {
                     // We don't include self-interactions.
                     if ((iNodeList != jNodeList) or (i != j)) {
                       neighbors[jNodeList].push_back(j);
-                      if (domainDecompIndependent) keys[jNodeList].push_back(pair<int, Key>(j, mKeys(jNodeList, j)));
+                      if (domainDecompIndependent) {
+                        keys[jNodeList].push_back(pair<int, Key>(j, mKeys(jNodeList, j)));
+                        if (j >= firstGhostNodej) {
+                          auto& otherNeighbors = mConnectivity[mOffsets[jNodeList] + j];
+                          CHECK(otherNeighbors.size() == numNodeLists);
+                          otherNeighbors[iNodeList].push_back(i);
+                        }
+                      }
                     }
                   }
                 }
@@ -815,29 +826,29 @@ computeConnectivity() {
   //   }
   }
 
-  // // In the domain decompostion independent case, we need to sort the neighbors for ghost
-  // // nodes as well.
-  // if (domainDecompIndependent) {
-  //   for (auto iNodeList = 0; iNodeList != numNodeLists; ++iNodeList) {
-  //     const auto* nodeListPtr = mNodeLists[iNodeList];
-  //     for (auto i = nodeListPtr->firstGhostNode();
-  //          i != nodeListPtr->numNodes();
-  //          ++i) {
-  //       auto& neighbors = mConnectivity[mOffsets[iNodeList] + i];
-  //       CHECK(neighbors.size() == numNodeLists);
-  //       for (auto jNodeList = 0; jNodeList != numNodeLists; ++jNodeList) {
-  //         vector<pair<int, Key>> keys;
-  //         keys.reserve(neighbors[jNodeList].size());
-  //         for (auto itr = neighbors[jNodeList].begin();
-  //              itr != neighbors[jNodeList].end();
-  //              ++itr) keys.push_back(pair<int, Key>(*itr, mKeys(jNodeList, *itr)));
-  //         CHECK(keys.size() == neighbors[jNodeList].size());
-  //         sort(keys.begin(), keys.end(), ComparePairsBySecondElement<pair<int, Key> >());
-  //         for (auto k = 0; k != keys.size(); ++k) neighbors[jNodeList][k] = keys[k].first;
-  //       }
-  //     }
-  //   }
-  // }
+  // In the domain decompostion independent case, we need to sort the neighbors for ghost
+  // nodes as well.
+  if (domainDecompIndependent) {
+    for (auto iNodeList = 0; iNodeList != numNodeLists; ++iNodeList) {
+      const auto* nodeListPtr = mNodeLists[iNodeList];
+      for (auto i = nodeListPtr->firstGhostNode();
+           i != nodeListPtr->numNodes();
+           ++i) {
+        auto& neighbors = mConnectivity[mOffsets[iNodeList] + i];
+        CHECK(neighbors.size() == numNodeLists);
+        for (auto jNodeList = 0; jNodeList != numNodeLists; ++jNodeList) {
+          vector<pair<int, Key>> keys;
+          keys.reserve(neighbors[jNodeList].size());
+          for (auto itr = neighbors[jNodeList].begin();
+               itr != neighbors[jNodeList].end();
+               ++itr) keys.push_back(pair<int, Key>(*itr, mKeys(jNodeList, *itr)));
+          CHECK(keys.size() == neighbors[jNodeList].size());
+          sort(keys.begin(), keys.end(), ComparePairsBySecondElement<pair<int, Key> >());
+          for (auto k = 0; k != keys.size(); ++k) neighbors[jNodeList][k] = keys[k].first;
+        }
+      }
+    }
+  }
 
   // {
   //   tpre = allReduce(unsigned(tpre), MPI_SUM, Communicator::communicator()) / Process::getTotalNumberOfProcesses() / CLOCKS_PER_SEC;
