@@ -779,6 +779,7 @@ AC_ARG_WITH(openmp,
 [  --with-openmp ............................ enable OpenMP],
 [
    AC_MSG_RESULT(yes)
+   PYTHONPKGS+=" OpenMP"
    if test $CXXCOMPILERTYPE = "VACPP"; then
       CXXFLAGS+=" "
       EXTRAFLAGS+="-qsmp=omp -qoffload -I/usr/tcetmp/packages/cuda-9.0.176/include    "
