@@ -6,6 +6,17 @@ VPATH = @abs_srcdir@
 SPHERALTOP = @abs_top_srcdir@
 BUILDTOP = @abs_top_builddir@
 
+#-------------------------------------------------------------------------------
+# This stuff is for generating Mercurial revision info in the python, based on:
+# https://www.mercurial-scm.org/wiki/VersioningWithMake
+HGVERSION:= $(shell hg id -n -i --cwd $(srcdir))
+Spheral.py: hgstamp
+.PHONY: update_hgstamp
+hgstamp: update_hgstamp
+	[ -f $@ ] || touch $@
+	sed -e 's/@spheralversion@/$(HGVERSION)/g' $(srcdir)/Spheral.py > Spheral.py
+
+#-------------------------------------------------------------------------------
 PKGNAME = SpheralModules
 PKGDIR = PBGWraps
 PBGMODTARGET = $(PKGNAME).$(SHLIBEXT)
@@ -16,20 +27,9 @@ PYTHONPKGS = @PYTHONPKGS@
 PBGPKGS = @PYTHONPKGS@
 SPHERALMODULES = SpheralModules
 
-#-------------------------------------------------------------------------------
-# This stuff is for generating Mercurial revision info in the python, based on:
-# https://www.mercurial-scm.org/wiki/VersioningWithMake
-HGVERSION:= $(shell hg id -n -i --cwd $(srcdir))
-version.py: hgstamp
-.PHONY: update_hgstamp
-hgstamp: update_hgstamp
-	[ -f $@ ] || touch $@
-	sed -e 's/@versionstring@/$(HGVERSION)/g' $(srcdir)/version.py > version.py
-
 PYTHONTARGETS = \
-	$(srcdir)/Spheral.py \
-	$(srcdir)/SolidSpheral.py \
-	version.py
+	Spheral.py \
+	$(srcdir)/SolidSpheral.py
 
 #-------------------------------------------------------------------------------
 include $(BUILDTOP)/helpers/makefile_master

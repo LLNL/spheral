@@ -8,8 +8,8 @@
 # do some magic 'cause type info and dynamic_casts get screwed up between
 # g++ built libraries.  Sigh.
 # ------------------------------------------------------------------------------
+import sys, ctypes
 try:
-    import sys, ctypes
     sys.setdlopenflags(sys.getdlopenflags() | ctypes.RTLD_GLOBAL)
     #sys.setdlopenflags(ctypes.RTLD_NOW | ctypes.RTLD_GLOBAL)
     #import sys, DLFCN
@@ -121,3 +121,8 @@ try:
 except:
     print "WARNING: unable to import polytope python bindings."
 
+# ------------------------------------------------------------------------------
+# Output some useful Spheral configuration info to stdout.
+# ------------------------------------------------------------------------------
+print "This is Spheral version @spheralversion@, running on %i MPI tasks with %i OpenMP threads per rank." % (mpi.procs, omp_get_num_threads())
+sys.ps1 = "Spheral>"
