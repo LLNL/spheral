@@ -103,12 +103,12 @@ update(const KeyType& key,
   // Walk all the NodeLists.
   const auto hdt = 0.5*multiplier;
   for (size_t nodeListi = 0; nodeListi != numFields; ++nodeListi) {
+    const auto ni = connectivityMap.numNodes(nodeListi);
 
     // Iterate over the internal nodes of this NodeList.
-    for (auto iItr = connectivityMap.begin(nodeListi);
-         iItr != connectivityMap.end(nodeListi);
-         ++iItr) {
-      const int i = *iItr;
+#pragma omp parallel for
+    for (auto k = 0; k < ni; ++k) {
+      const auto i = connectivityMap.ithNode(nodeListi, k);
 
       // State for node i.
       auto& DepsDti = DepsDt(nodeListi, i);
