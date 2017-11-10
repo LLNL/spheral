@@ -436,6 +436,8 @@ generateStdVectorBindings(self.vector_of_vector_of_GridCellIndex%(ndim)id, "vect
                                  [param(me, "self")],
                                  template_parameters = [dim],
                                  custom_name = "numNodeLists")
+        x.add_method("numNodes", "int", [param("int", "nodeList")], is_const=True)
+        x.add_method("ithNode", "int", [param("int", "nodeList"), param("int", "index")], is_const=True)
         x.add_method("valid", "bool", [], is_const=True)
 
         # Attributes.
