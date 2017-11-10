@@ -58,13 +58,12 @@ computeSPHOmegaGradhCorrection(const ConnectivityMap<Dimension>& connectivityMap
   // Walk the FluidNodeLists.
   for (auto nodeListi = 0; nodeListi != numNodeLists; ++nodeListi) {
     const auto& nodeList = omegaGradh[nodeListi]->nodeList();
-    const auto ni = std::distance(connectivityMap.begin(nodeListi),
-                                  connectivityMap.end(nodeListi));
+    const auto ni = connectivityMap.numNodes(nodeListi);
 
     // Iterate over the nodes in this node list.
 #pragma omp parallel for private(Wi, gWi)
     for (auto k = 0; k < ni; ++k) {
-      const auto i = *(connectivityMap.begin(nodeListi) + k);
+      const auto i = connectivityMap.ithNode(nodeListi, k);
 
       // If we're isolated we have to punt and just set this correction to unity.
       if (connectivityMap.numNeighborsForNode(nodeListi, i) == 0) {
