@@ -121,8 +121,29 @@ try:
 except:
     print "WARNING: unable to import polytope python bindings."
 
+
 # ------------------------------------------------------------------------------
 # Output some useful Spheral configuration info to stdout.
 # ------------------------------------------------------------------------------
-print "This is Spheral version @spheralversion@, running on %i MPI tasks with %i OpenMP threads per rank." % (mpi.procs, omp_get_num_threads())
-sys.ps1 = "Spheral>"
+# boxchars = {'A' : '╔',
+#             'B' : '╗',
+#             'C' : '╚',
+#             'D' : '╝',
+#             'E' : '═',
+#             'F' : '║'}
+# print boxchars['A'] + 78*boxchars['E'] + boxchars['B']
+# print "%s  %-76s%s" % (boxchars['F'], "Spheral version: @spheralversion@", boxchars['F'])
+# print "%s  %-76s%s" % (boxchars['F'], "  number of MPI tasks       : " + str(mpi.procs), boxchars['F'])
+# print "%s  %-76s%s" % (boxchars['F'], "  number of threads per rank: " + str(omp_get_num_threads()), boxchars['F'])
+# print boxchars['C'] + 78*boxchars['E'] + boxchars['D']
+# print u"╔══════════════════════════════════════════════════════════════════════════════╗"
+# print u"║  %-76s║" % "Spheral version: @spheralversion@"
+# print u"║  %-76s║" % ("  number of MPI tasks       : " + str(mpi.procs))
+# print u"║  %-76s║" % ("  number of threads per rank: " + str(omp_get_num_threads()))
+# print u"╚══════════════════════════════════════════════════════════════════════════════╝"
+print "/------------------------------------------------------------------------------\\"
+print "|  %-76s|" % "Spheral version: @spheralversion@"
+print "|  %-76s|" % ("  number of MPI tasks       : " + str(mpi.procs))
+print "|  %-76s|" % ("  number of threads per rank: " + str(omp_get_num_threads()))
+print "\\------------------------------------------------------------------------------/"
+sys.ps1 = "Spheral> "
