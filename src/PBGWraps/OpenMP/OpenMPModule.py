@@ -22,10 +22,12 @@ class OpenMP:
     #---------------------------------------------------------------------------
     def generateBindings(self, mod):
 
-        mod.add_function("omp_get_thread_num", "int", [], 
-                         docstring="Get the OpenMP thread ID.")
-        mod.add_function("omp_get_num_threads", "int", [], 
-                         docstring="Get the number of OpenMP threads.")
+        mod.add_function("wrap_omp_get_thread_num", "int", [], 
+                         custom_name = "omp_get_thread_num",
+                         docstring = "Get the OpenMP thread ID.")
+        mod.add_function("wrap_omp_get_num_threads", "int", [], 
+                         custom_name = "omp_get_num_threads",
+                         docstring = "Get the number of OpenMP threads.")
 
         return
 

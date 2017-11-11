@@ -36,7 +36,6 @@ int wrap_omp_get_num_threads() {
   {
 #pragma omp critical
     result = omp_get_num_threads();
-    cout << "Woo! " << result << endl;
   }
 #endif
   return result;
