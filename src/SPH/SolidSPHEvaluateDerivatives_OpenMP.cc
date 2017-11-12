@@ -130,11 +130,8 @@ evaluateDerivatives(const typename Dimension::Scalar time,
   SymTensor sigmai, sigmaj;
 
   // Start our big loop over all FluidNodeLists.
-  auto nodeListi = 0;
-  for (auto itr = dataBase.fluidNodeListBegin();
-       itr != dataBase.fluidNodeListEnd();
-       ++itr, ++nodeListi) {
-    const auto& nodeList = **itr;
+  for (auto nodeListi = 0; nodeListi < numNodeLists; ++nodeListi) {
+    const auto& nodeList = **(dataBase.fluidNodeListBegin() + nodeListi);
     const auto firstGhostNodei = nodeList.firstGhostNode();
     const auto hmin = nodeList.hmin();
     const auto hmax = nodeList.hmax();
