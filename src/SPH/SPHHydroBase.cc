@@ -655,13 +655,13 @@ evaluateDerivatives(const typename Dimension::Scalar time,
 
 #ifdef _OPENMP
 
-          #pragma omp target parallel for   \
+          #pragma omp  parallel for   \
           reduction(max: maxvp) \
           reduction(+: ncalc, weightedNeighborSumi, rhoSumi, normi,  \
-                  effViscousPressurei, viscousWorki, DepsDti, XSPHWeightSumi ) \
-          reduction(vecadd: DvDti, XSPHDeltaVi ) \
-          reduction(symtensadd: massSecondMomenti ) \
-	  reduction(tensadd: Mi, localMi, DvDxi, localDvDxi) 
+                  effViscousPressurei, viscousWorki, DepsDti, XSPHWeightSumi ) 
+          //reduction(vecadd: DvDti, XSPHDeltaVi ) \
+          //reduction(symtensadd: massSecondMomenti ) \
+	  //reduction(tensadd: Mi, localMi, DvDxi, localDvDxi) 
 
 #endif
           for (int jct=0; jct < nj; ++jct) {
@@ -792,8 +792,8 @@ evaluateDerivatives(const typename Dimension::Scalar time,
               DepsDti += mj*(Prhoi*vij.dot(gradWi) + workQi);
               DepsDtj += mi*(Prhoj*vij.dot(gradWj) + workQj);
               if (mCompatibleEnergyEvolution) {
-                pairAccelerationsi.push_back(-mj*deltaDvDt);
-                pairAccelerationsj.push_back( mi*deltaDvDt);
+              //  pairAccelerationsi.push_back(-mj*deltaDvDt);
+              //  pairAccelerationsj.push_back( mi*deltaDvDt);
               }
 
               // Velocity gradient.

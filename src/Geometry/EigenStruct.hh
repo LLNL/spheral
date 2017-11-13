@@ -33,13 +33,11 @@ struct EigenStruct {
     return *this;
   }
 };
-
 // Forward declarations.
 template<int nDim> std::istream& operator>>(::std::istream is, Spheral::EigenStruct<nDim>& eigen);
 template<int nDim> std::ostream& operator<<(::std::ostream os, Spheral::EigenStruct<nDim>& eigen);
 
 }
-
 // Include these here to avoid compiler complaints incomplete types.
 #include "GeomVector.hh"
 #include "GeomTensor.hh"

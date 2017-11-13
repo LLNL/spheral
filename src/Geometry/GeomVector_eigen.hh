@@ -150,7 +150,7 @@ template<> double GeomVector<2>::z() const;
 template<> void GeomVector<1>::y(const double val);
 template<> void GeomVector<1>::z(const double val);
 template<> void GeomVector<2>::z(const double val);
-
+/*
 #ifdef _OPENMP
 
 #pragma omp declare reduction(vecadd : GeomVector<1> : omp_out += omp_in ) initializer( omp_priv = GeomVector<1>(0.0,0.0,0.0) )
@@ -161,7 +161,7 @@ template<> void GeomVector<2>::z(const double val);
 #pragma omp declare reduction(vecdif : GeomVector<3> : omp_out -= omp_in ) initializer( omp_priv = GeomVector<3>(0.0,0.0,0.0) )
 
 #endif
-
+*/
 template<> int GeomVector<1>::compare(const GeomVector<1>& vec) const;
 template<> int GeomVector<2>::compare(const GeomVector<2>& vec) const;
 template<> int GeomVector<3>::compare(const GeomVector<3>& vec) const;

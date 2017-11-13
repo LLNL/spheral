@@ -23,7 +23,7 @@
 
 #include <iostream>
 #include "Eigen/Dense"
-
+//#pragma omp declare target
 namespace Spheral {
 
 template<int nDim>
@@ -407,7 +407,7 @@ template<> const double GeomSymmetricTensor<3>::sqrt3;
 template<int nDim> GeomSymmetricTensor<nDim> operator*(double lhs, const GeomSymmetricTensor<nDim>& rhs);
 template<int nDim> ::std::istream& operator>>(::std::istream& is, GeomSymmetricTensor<nDim>& ten);
 template<int nDim> ::std::ostream& operator<<(::std::ostream& os, const GeomSymmetricTensor<nDim>& ten);
-
+/*
 #if defined(_OPENMP) && _OPENMP >= 201107
 #pragma omp declare reduction(symtensadd : GeomSymmetricTensor<1> : omp_out += omp_in ) initializer( omp_priv = GeomSymmetricTensor<1>(0.0) )
 #pragma omp declare reduction(symtensdif : GeomSymmetricTensor<1> : omp_out -= omp_in ) initializer( omp_priv = GeomSymmetricTensor<1>(0.0) )
@@ -416,9 +416,8 @@ template<int nDim> ::std::ostream& operator<<(::std::ostream& os, const GeomSymm
 #pragma omp declare reduction(symtensadd : GeomSymmetricTensor<3> : omp_out += omp_in ) initializer( omp_priv = GeomSymmetricTensor<3>(0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0) )
 #pragma omp declare reduction(symtensdif : GeomSymmetricTensor<3> : omp_out -= omp_in ) initializer( omp_priv = GeomSymmetricTensor<3>(0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0) )
 #endif
-
+*/
 }
 
 #include "GeomSymmetricTensorInline_default.hh"
-
 #endif

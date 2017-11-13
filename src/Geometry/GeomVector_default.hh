@@ -20,6 +20,7 @@
 #include "GeomVectorBase_default.hh"
 
 #include <iostream>
+//#pragma omp declare target
 #include "Eigen/Dense"
 
 namespace Spheral {
@@ -182,7 +183,7 @@ template<> GeomVector<3>& GeomVector<3>::operator-=(const GeomVector<3>& vec);
 // template<> GeomVector<1>& GeomVector<1>::operator-=(const GeomVector<1>::EigenType& vec);
 // template<> GeomVector<2>& GeomVector<2>::operator-=(const GeomVector<2>::EigenType& vec);
 // template<> GeomVector<3>& GeomVector<3>::operator-=(const GeomVector<3>::EigenType& vec);
-
+/*
 #if defined(_OPENMP) && _OPENMP >= 201107
 #pragma omp declare reduction(vecadd : GeomVector<1> : omp_out += omp_in ) initializer( omp_priv = GeomVector<1>(0.0,0.0,0.0) )
 #pragma omp declare reduction(vecdif : GeomVector<1> : omp_out -= omp_in ) initializer( omp_priv = GeomVector<1>(0.0,0.0,0.0) )
@@ -191,7 +192,7 @@ template<> GeomVector<3>& GeomVector<3>::operator-=(const GeomVector<3>& vec);
 #pragma omp declare reduction(vecadd : GeomVector<3> : omp_out += omp_in ) initializer( omp_priv = GeomVector<3>(0.0,0.0,0.0) )
 #pragma omp declare reduction(vecdif : GeomVector<3> : omp_out -= omp_in ) initializer( omp_priv = GeomVector<3>(0.0,0.0,0.0) )
 #endif
-
+*/
 template<> GeomVector<1>& GeomVector<1>::operator*=(const double val);
 template<> GeomVector<2>& GeomVector<2>::operator*=(const double val);
 template<> GeomVector<3>& GeomVector<3>::operator*=(const double val);
@@ -284,7 +285,7 @@ template<int nDim> std::istream& operator>>(std::istream& is, GeomVector<nDim>& 
 template<int nDim> std::ostream& operator<<(std::ostream& os, const GeomVector<nDim>& vec);
 
 }
-
+//#pragma omp end declare target
 #ifndef __GCCXML__
 #include "GeomVectorInline_default.hh"
 #endif

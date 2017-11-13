@@ -231,7 +231,7 @@ template<> void GeomTensor<2>::zz(const double);
 template<int nDim> GeomTensor<nDim> operator*(double lhs, const GeomTensor<nDim>& rhs);
 template<int nDim> ::std::istream& operator>>(std::istream& is, GeomTensor<nDim>& ten);
 template<int nDim> std::ostream& operator<<(std::ostream& os, const GeomTensor<nDim>& ten);
-
+/*
 #ifdef _OPENMP
 #pragma omp declare reduction(tensadd : GeomTensor<1> : omp_out += omp_in ) initializer( omp_priv = GeomTensor<1>(0.0) )
 #pragma omp declare reduction(tensdif : GeomTensor<1> : omp_out -= omp_in ) initializer( omp_priv = GeomTensor<1>(0.0) )
@@ -243,8 +243,9 @@ template<int nDim> std::ostream& operator<<(std::ostream& os, const GeomTensor<n
 #pragma omp declare reduction(tensdif : GeomTensor<3> : omp_out -= omp_in ) initializer( omp_priv = GeomTensor<3>(0.0,0.0,0.0, \
                                                                                                0.0,0.0,0.0,\
                                                                                                0.0,0.0,0.0) ) 
-#endif
 
+#endif
+*/
 }
 
 #ifndef __GCCXML__

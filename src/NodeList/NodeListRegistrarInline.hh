@@ -4,6 +4,10 @@
 #include "NodeList/NodeList.hh"
 #include "Field/FieldBase.hh"
 
+#if defined(_OPENMP) && defined(USE_UVM)
+#include "cuda_runtime.h"
+#endif
+
 namespace Spheral {
 
 //------------------------------------------------------------------------------
@@ -14,9 +18,27 @@ inline
 NodeListRegistrar<Dimension>&
 NodeListRegistrar<Dimension>::
 instance() {
-  if (mInstancePtr == 0) mInstancePtr = new NodeListRegistrar;
-  CHECK(mInstancePtr != 0);
-  return *mInstancePtr;
+  if (mInstancePtr == 0) {
+#if defined(USE_UVM)
+	cudaMallocManaged( (void **)&mInstancePtr, sizeof(NodeListRegistrar) );
+#else
+	 mInstancePtr = new NodeListRegistrar;
+
+#endif
+         CHECK(mInstancePtr != 0);
+         return *mInstancePtr;
+  }
+}
+
+//------------------------------------------------------------------------------
+// Get the instance.
+//------------------------------------------------------------------------------
+template<typename Dimension>
+inline
+NodeListRegistrar<Dimension>&
+NodeListRegistrar<Dimension>::
+getInstance() {
+         return *mInstancePtr;
 }
 
 //------------------------------------------------------------------------------

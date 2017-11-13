@@ -701,7 +701,7 @@ AC_ARG_WITH(openmp,
       CXXFLAGS+=" "
       EXTRAFLAGS+="-qsmp=omp -qoffload -I/usr/tcetmp/packages/cuda-9.0.176/include    "
    else
-      CXXFLAGS+=" -fopenmp"
+      CXXFLAGS+=" -fopenmp "
       EXTRAFLAGS+=" -I/usr/tcetmp/packages/cuda-9.0.184/include -fopenmp-targets=nvptx64-nvidia-cuda -fopenmp-implicit-declare-target"
     #  CXXFLAGS+=" "
     #  EXTRAFLAGS+=" -qsmp=omp -qoffload -I/usr/tcetmp/packages/cuda-9.0.176/include    "
@@ -720,7 +720,9 @@ AC_ARG_WITH(uvm,
 [  --with-uvm ............................... enable unified memory (only for use with OpenMP)],
 [
    AC_MSG_RESULT(yes)
-   EXTRAFLAGS+=" -DUSE_UVM"
+   EXTRAFLAGS+=" -DUSE_UVM" 
+   CXXFLAGS+="-I/usr/tce/packages/cuda/cuda-9.0.176/include"
+   EXTRAFLAGS+=" -fopenmp -fopenmp-targets=nvptx64-nvidia-cuda -L/usr/tce/packages/cuda/cuda-9.0.176/lib64 -lcudart"
 ],
 [
    AC_MSG_RESULT(no)

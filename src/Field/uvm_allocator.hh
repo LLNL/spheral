@@ -47,10 +47,10 @@ struct UVMAllocator{
 };
 
 template <class T, class U>
-constexpr bool operator== (const UVMAllocator<T>&, const UVMAllocator<U>&) noexcept;
+constexpr bool operator== (const UVMAllocator<T>&, const UVMAllocator<U>&) noexcept {return true;};
 
 template <class T, class U>
-constexpr bool operator!= (const UVMAllocator<T>&, const UVMAllocator<U>&) noexcept;
+constexpr bool operator!= (const UVMAllocator<T>&, const UVMAllocator<U>&) noexcept {return false;};
 
 }; // end of namespace uvm_allocator
 
