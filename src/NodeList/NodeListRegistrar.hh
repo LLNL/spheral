@@ -59,9 +59,9 @@ public:
 
   // Get the instance.
   static NodeListRegistrar& instance();
-//#pragma omp declare target
+#pragma omp declare target
   static NodeListRegistrar& getInstance();
-//#pragma omp end declare target
+#pragma omp end declare target
   // The number of NodeLists currently in play.
   int numNodeLists() const;
   int numFluidNodeLists() const;
@@ -99,24 +99,24 @@ public:
   // strictly domain decomposition independent/reproducing mode (may have
   // a performance impact).
   bool domainDecompositionIndependent() const;
-//#pragma omp declare target
+#pragma omp declare target
   void domainDecompositionIndependent(const bool x);
-//#pragma omp end declare target
+#pragma omp end declare target
 private:
   //--------------------------- Private Interface---------------------------//
 #ifndef __GCCXML__
   // The one and only instance.
-//#pragma omp declare target
+#pragma omp declare target
   static NodeListRegistrar* mInstancePtr;
-//#pragma omp end declare target
+#pragma omp end declare target
   // The current set of NodeLists.
   ContainerType mNodeLists;
   FluidContainerType mFluidNodeLists;
 
   // Flag for the domain independent choice.
-//#pragma omp declare target
+#pragma omp declare target
   bool mDomainDecompIndependent;
-//#pragma omp end declare target
+#pragma omp end declare target
   // No public constructors, destructor, or assignment.
   NodeListRegistrar();
   NodeListRegistrar(const NodeListRegistrar&);

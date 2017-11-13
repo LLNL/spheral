@@ -722,7 +722,7 @@ AC_ARG_WITH(uvm,
    AC_MSG_RESULT(yes)
    EXTRAFLAGS+=" -DUSE_UVM" 
    CXXFLAGS+="-I/usr/tce/packages/cuda/cuda-9.0.176/include"
-   EXTRAFLAGS+=" -fopenmp -fopenmp-targets=nvptx64-nvidia-cuda -L/usr/tce/packages/cuda/cuda-9.0.176/lib64 -lcudart"
+   LIBTARGETFLAGS+=" -fopenmp -fopenmp-targets=nvptx64-nvidia-cuda -L/usr/tce/packages/cuda/cuda-9.0.176/lib64 -lcudart"
 ],
 [
    AC_MSG_RESULT(no)

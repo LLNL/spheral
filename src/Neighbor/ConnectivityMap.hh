@@ -101,9 +101,12 @@ public:
   // Function to determine if given node information (i and j), if the 
   // pair should already have been calculated by iterating over each
   // others neighbors.
+#pragma omp declare target
   bool calculatePairInteraction(const int nodeListi, const int i, 
                                 const int nodeListj, const int j,
                                 const int firstGhostNodej) const;
+
+#pragma omp end declare target
   // Provide iterator interface for walking the nodes in a NodeList
   // in order to maintain domain decomposition independence when 
   // desired.
