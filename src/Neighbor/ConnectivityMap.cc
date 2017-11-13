@@ -30,6 +30,19 @@ using FieldSpace::FieldList;
 using FieldSpace::Field;
 using BoundarySpace::Boundary;
 
+namespace {
+//------------------------------------------------------------------------------
+// Append v2 to the end of v1
+//------------------------------------------------------------------------------
+template<typename T>
+inline
+void
+appendSTLvectors(std::vector<T>& v1, std::vector<T>& v2) {
+  v1.reserve(v1.size() + v2.size());
+  v1.insert(v1.end(), v2.begin(), v2.end());
+}
+}
+
 //------------------------------------------------------------------------------
 // Constructor.
 //------------------------------------------------------------------------------
@@ -61,81 +74,88 @@ ConnectivityMap<Dimension>::
 patchConnectivity(const FieldList<Dimension, int>& flags,
                   const FieldList<Dimension, int>& old2new) {
 
-  const bool domainDecompIndependent = NodeListRegistrar<Dimension>::instance().domainDecompositionIndependent();
+  const auto domainDecompIndependent = NodeListRegistrar<Dimension>::instance().domainDecompositionIndependent();
 
   // We have to recompute the keys to sort nodes by excluding the 
   // nodes that are being removed.
-  const size_t numNodeLists = mNodeLists.size();
+  const auto numNodeLists = mNodeLists.size();
   if (domainDecompIndependent) {
-    for (size_t iNodeList = 0; iNodeList != numNodeLists; ++iNodeList) {
-      for (size_t i = 0; i != mNodeLists[iNodeList]->numNodes(); ++i) {
+// #pragma omp parallel for collapse(2)
+    for (auto iNodeList = 0; iNodeList < numNodeLists; ++iNodeList) {
+      for (auto i = 0; i < mNodeLists[iNodeList]->numNodes(); ++i) {
         if (flags(iNodeList, i) == 0) mKeys(iNodeList, i) = KeyTraits::maxKey;
       }
     }
   }
 
   // Iterate over the Connectivity (NodeList).
-  vector<size_t> iNodesToKill, jNodesToKill;
-  vector<pair<int, Key> > keys, nkeys;
-  for (size_t iNodeList = 0; iNodeList != numNodeLists; ++iNodeList) {
-    iNodesToKill = vector<size_t>();
-    keys = vector<pair<int, Key> >();
+  for (auto iNodeList = 0; iNodeList != numNodeLists; ++iNodeList) {
+    const auto ioff = mOffsets[iNodeList];
+    const auto numNodes = ((domainDecompIndependent or mBuildGhostConnectivity) ? 
+                           mNodeLists[iNodeList]->numNodes() :
+                           mNodeLists[iNodeList]->numInternalNodes());
 
-    // Walk the nodes of the NodeList.
-    const size_t ioff = mOffsets[iNodeList];
-    const size_t numNodes = ((domainDecompIndependent or mBuildGhostConnectivity) ? 
-                             mNodeLists[iNodeList]->numNodes() :
-                             mNodeLists[iNodeList]->numInternalNodes());
+    vector<size_t> iNodesToKill;
+    vector<pair<int, Key>> keys;
+#pragma omp parallel
+    {
+      vector<size_t> iNodesToKill_thread;
+      vector<pair<int, Key>> keys_thread;
 
-    // Patch the traversal ordering and connectivity for this NodeList.
-    for (size_t i = 0; i != numNodes; ++i) {
+      // Patch the traversal ordering and connectivity for this NodeList.
+#pragma omp for
+      for (auto i = 0; i < numNodes; ++i) {
 
-      // Should we patch this set of neighbors?
-      if (flags(iNodeList, i) == 0) {
-        iNodesToKill.push_back(i);
-      } else {
-        if (domainDecompIndependent) keys.push_back(make_pair(old2new(iNodeList, i), mKeys(iNodeList, i)));
-        mNodeTraversalIndices[iNodeList][i] = old2new(iNodeList, i);
-        vector< vector<int> >& neighbors = mConnectivity[ioff + i];
-        CHECK(neighbors.size() == numNodeLists);
-        for (size_t jNodeList = 0; jNodeList != numNodeLists; ++jNodeList) {
-          nkeys = vector<pair<int, Key> >();
-          jNodesToKill = vector<size_t>();
-          for (size_t k = 0; k != neighbors[jNodeList].size(); ++k) {
-            const int j = neighbors[jNodeList][k];
-            if (flags(jNodeList, j) == 0) {
-              jNodesToKill.push_back(k);
+        // Should we patch this set of neighbors?
+        if (flags(iNodeList, i) == 0) {
+          iNodesToKill_thread.push_back(i);
+        } else {
+          if (domainDecompIndependent) keys_thread.push_back(make_pair(old2new(iNodeList, i), mKeys(iNodeList, i)));
+          mNodeTraversalIndices[iNodeList][i] = old2new(iNodeList, i);
+          auto& neighbors = mConnectivity[ioff + i];
+          CHECK(neighbors.size() == numNodeLists);
+          for (auto jNodeList = 0; jNodeList < numNodeLists; ++jNodeList) {
+            vector<pair<int, Key>> nkeys;
+            vector<size_t> jNodesToKill;
+            for (auto k = 0; k < neighbors[jNodeList].size(); ++k) {
+              const auto j = neighbors[jNodeList][k];
+              if (flags(jNodeList, j) == 0) {
+                jNodesToKill.push_back(k);
+              } else {
+                if (domainDecompIndependent) nkeys.push_back(make_pair(old2new(jNodeList, j), mKeys(jNodeList, j)));
+                neighbors[jNodeList][k] = old2new(jNodeList, j);
+              }
+            }
+            removeElements(neighbors[jNodeList], jNodesToKill);
+
+            // Recompute the ordering of the neighbors.
+            if (domainDecompIndependent) {
+              sort(nkeys.begin(), nkeys.end(), ComparePairsBySecondElement<pair<int, Key> >());
+              for (size_t k = 0; k != neighbors[jNodeList].size(); ++k) {
+                CHECK2(k == 0 or nkeys[k].second > nkeys[k-1].second,
+                       "Incorrect neighbor ordering:  "
+                       << i << " "
+                       << k << " "
+                       << nkeys[k-1].second << " "
+                       << nkeys[k].second);
+                neighbors[jNodeList][k] = nkeys[k].first;
+              }
             } else {
-              if (domainDecompIndependent) nkeys.push_back(make_pair(old2new(jNodeList, j), mKeys(jNodeList, j)));
-              neighbors[jNodeList][k] = old2new(jNodeList, j);
+              sort(neighbors[jNodeList].begin(), neighbors[jNodeList].end());
             }
-          }
-          removeElements(neighbors[jNodeList], jNodesToKill);
-
-          // Recompute the ordering of the neighbors.
-          if (domainDecompIndependent) {
-            sort(nkeys.begin(), nkeys.end(), ComparePairsBySecondElement<pair<int, Key> >());
-            for (size_t k = 0; k != neighbors[jNodeList].size(); ++k) {
-              CHECK2(k == 0 or nkeys[k].second > nkeys[k-1].second,
-                     "Incorrect neighbor ordering:  "
-                     << i << " "
-                     << k << " "
-                     << nkeys[k-1].second << " "
-                     << nkeys[k].second);
-              neighbors[jNodeList][k] = nkeys[k].first;
-            }
-          } else {
-            sort(neighbors[jNodeList].begin(), neighbors[jNodeList].end());
           }
         }
       }
+
+#pragma omp critical
+      appendSTLvectors(iNodesToKill, iNodesToKill_thread);
+      appendSTLvectors(keys, keys_thread);
     }
     removeElements(mNodeTraversalIndices[iNodeList], iNodesToKill);
-    // removeElements(*mConnectivity[iNodeList], iNodesToKill);
 
     // Recompute the ordering for traversing the nodes.
     {
-      const size_t numNodes = mNodeTraversalIndices[iNodeList].size();
+      const auto numNodes = mNodeTraversalIndices[iNodeList].size();
       if (domainDecompIndependent) {
         // keys = vector<pair<int, Key> >();
         // for (size_t k = 0; k != numNodes; ++k) {
@@ -143,11 +163,13 @@ patchConnectivity(const FieldList<Dimension, int>& flags,
         //   keys.push_back(make_pair(i, mKeys(iNodeList, i)));
         // }
         sort(keys.begin(), keys.end(), ComparePairsBySecondElement<pair<int, Key> >());
-        for (size_t k = 0; k != numNodes; ++k) {
+#pragma omp parallel for
+        for (auto k = 0; k < numNodes; ++k) {
           mNodeTraversalIndices[iNodeList][k] = keys[k].first;
         }
       } else {
-        for (int i = 0; i != numNodes; ++i) {
+#pragma omp parallel for
+        for (auto i = 0; i < numNodes; ++i) {
           mNodeTraversalIndices[iNodeList][i] = i;
         }
       }
