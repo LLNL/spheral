@@ -158,8 +158,7 @@ evaluateDerivatives(const typename Dimension::Scalar time,
     }
 
     // Iterate over the internal nodes in this NodeList.
-    const auto ni = std::distance(connectivityMap.begin(nodeListi),
-                                  connectivityMap.end(nodeListi));
+    const auto ni = connectivityMap.numNodes(nodeListi);
 #pragma omp parallel for \
   private(Wi, gWi, WQi, gWQi, Wj, gWj, WQj, gWQj, QPiij, QPiji, sigmai, sigmaj)
     for (auto iItr = 0; iItr < ni; ++iItr) {
