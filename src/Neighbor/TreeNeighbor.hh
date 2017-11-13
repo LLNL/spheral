@@ -13,7 +13,7 @@
 #define __Spheral_TreeNeighbor_hh__
 
 #include <stdint.h>
-#include "boost/unordered_map.hpp"
+#include <unordered_map>
 
 #include "Neighbor.hh"
 
@@ -133,7 +133,7 @@ private:
   };
 
   // Define the types we use to build the tree.
-  typedef boost::unordered_map<CellKey, Cell> TreeLevel;
+  typedef std::unordered_map<CellKey, Cell> TreeLevel;
   typedef std::vector<TreeLevel> Tree;
 
   // Default constructor -- disabled.
