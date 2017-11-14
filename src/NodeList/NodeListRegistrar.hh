@@ -98,10 +98,10 @@ public:
   // Flag (for use by others) indicating whether we want to run in 
   // strictly domain decomposition independent/reproducing mode (may have
   // a performance impact).
-  bool domainDecompositionIndependent() const;
 #pragma omp declare target
-  void domainDecompositionIndependent(const bool x);
+  bool domainDecompositionIndependent() const;
 #pragma omp end declare target
+  void domainDecompositionIndependent(const bool x);
 private:
   //--------------------------- Private Interface---------------------------//
 #ifndef __GCCXML__
@@ -168,7 +168,6 @@ private:
 #else
 
 // Forward declaration.
-
 namespace Spheral {
   template<typename Dimension>  class NodeListRegistrar;
 }

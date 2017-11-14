@@ -166,8 +166,7 @@ numNeighborsForNode(const int nodeListID,
 // A single point to determine if in looping over nodes and neighbors the given
 // pair should be calculated or not when we are doing pairs simultaneously.
 //------------------------------------------------------------------------------
-
-//#pragma omp declare target
+#pragma omp declare target 
 template<typename Dimension>
 inline
 bool
@@ -175,9 +174,9 @@ ConnectivityMap<Dimension>::
 calculatePairInteraction(const int nodeListi, const int i,
                          const int nodeListj, const int j,
                          const int firstGhostNodej) const {
-//  const bool domainDecompIndependent = NodeListRegistrar<Dimension>::getInstance().domainDecompositionIndependent();
-  const bool domainDecompIndependent = true;
-  if (domainDecompIndependent) {
+
+  const bool domainDecompIndependent = NodeListRegistrar<Dimension>::getInstance().domainDecompositionIndependent();
+ if (domainDecompIndependent) {
     return ((nodeListj > nodeListi) or
             (nodeListj == nodeListi and 
              (mKeys(nodeListj, j) == mKeys(nodeListi, i) ? j > 1 : mKeys(nodeListj, j) > mKeys(nodeListi, i))));
@@ -186,9 +185,9 @@ calculatePairInteraction(const int nodeListi, const int i,
             (nodeListj == nodeListi and j > i) or
             (nodeListj < nodeListi and j >= firstGhostNodej));
   }
-}
-//#pragma omp end declare target
 
+}
+#pragma omp end declare target
 //------------------------------------------------------------------------------
 // Iterators for walking nodes in a prescribed order (domain decomposition 
 // independent when needed).

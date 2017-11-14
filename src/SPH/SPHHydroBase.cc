@@ -655,7 +655,7 @@ evaluateDerivatives(const typename Dimension::Scalar time,
 
 #ifdef _OPENMP
 
-          #pragma omp  parallel for   \
+          #pragma omp target  parallel for   \
           reduction(max: maxvp) \
           reduction(+: ncalc, weightedNeighborSumi, rhoSumi, normi,  \
                   effViscousPressurei, viscousWorki, DepsDti, XSPHWeightSumi ) 

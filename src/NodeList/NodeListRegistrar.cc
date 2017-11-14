@@ -230,12 +230,14 @@ unregisterNodeList(NodeSpace::FluidNodeList<Dimension>& nodeList) {
 // Flag for whether we should try to run in a domain decomposition independent/
 // reproducing mode.
 //------------------------------------------------------------------------------
+#pragma omp declare target
 template<typename Dimension>
 bool
 NodeListRegistrar<Dimension>::
 domainDecompositionIndependent() const {
   return mDomainDecompIndependent;
 }
+#pragma omp end declare target
 
 template<typename Dimension>
 void
@@ -243,6 +245,5 @@ NodeListRegistrar<Dimension>::
 domainDecompositionIndependent(const bool x) {
   mDomainDecompIndependent = x;
 }
-
 }
 

@@ -25,14 +25,15 @@ instance() {
 	 mInstancePtr = new NodeListRegistrar;
 
 #endif
+  }
          CHECK(mInstancePtr != 0);
          return *mInstancePtr;
-  }
 }
 
 //------------------------------------------------------------------------------
-// Get the instance.
+// Get the instance, version created because cudaMallocManaged can'tbe ina target region
 //------------------------------------------------------------------------------
+#pragma omp declare target
 template<typename Dimension>
 inline
 NodeListRegistrar<Dimension>&
@@ -40,7 +41,7 @@ NodeListRegistrar<Dimension>::
 getInstance() {
          return *mInstancePtr;
 }
-
+#pragma omp end declare target
 //------------------------------------------------------------------------------
 // The number of NodeLists currently registered.
 //------------------------------------------------------------------------------
