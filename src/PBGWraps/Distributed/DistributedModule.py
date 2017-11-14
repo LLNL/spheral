@@ -36,13 +36,15 @@ self.NestedGridDistributedBoundary%(dim)id = addObject(bound, "NestedGridDistrib
 
 self.BoundingVolumeDistributedBoundary%(dim)id = addObject(bound, "BoundingVolumeDistributedBoundary%(dim)id", parent=self.DistributedBoundary%(dim)id, allow_subclassing=True, is_singleton=True)
 
+self.TreeDistributedBoundary%(dim)id = addObject(bound, "TreeDistributedBoundary%(dim)id", parent=self.DistributedBoundary%(dim)id, allow_subclassing=True, is_singleton=True)
+
 self.DomainBoundaryNodes%(dim)id = addObject(bound, "DomainBoundaryNodes", outer_class=self.DistributedBoundary%(dim)id, allow_subclassing=True)
 
 self.DomainNode%(dim)id = addObject(self.space, "DomainNode%(dim)id", allow_subclassing=True)
 
 self.RedistributeNodes%(dim)id = addObject(self.space, "RedistributeNodes%(dim)id", allow_subclassing=True)
 
-self.NestedGridRedistributeNodes%(dim)id = addObject(self.space, "NestedGridRedistributeNodes%(dim)id", parent=self.RedistributeNodes%(dim)id, allow_subclassing=True)
+#self.NestedGridRedistributeNodes%(dim)id = addObject(self.space, "NestedGridRedistributeNodes%(dim)id", parent=self.RedistributeNodes%(dim)id, allow_subclassing=True)
 
 self.SpaceFillingCurveRedistributeNodes%(dim)id = addObject(self.space, "SpaceFillingCurveRedistributeNodes%(dim)id", parent=self.RedistributeNodes%(dim)id, allow_subclassing=True)
 
@@ -78,10 +80,11 @@ self.vector_of_pair_ULL_DomainNode%(dim)id = addObject(mod, "vector_of_pair_ULL_
 self.distributedBoundaryBindings(self.DistributedBoundary%(dim)id, %(dim)i)
 self.nestedGridDistributedBoundaryBindings(self.NestedGridDistributedBoundary%(dim)id, %(dim)i)
 self.boundingVolumeDistributedBoundaryBindings(self.BoundingVolumeDistributedBoundary%(dim)id, %(dim)i)
+self.treeDistributedBoundaryBindings(self.TreeDistributedBoundary%(dim)id, %(dim)i)
 self.domainBoundaryNodesBindings(self.DomainBoundaryNodes%(dim)id, %(dim)i)
 self.domainNodeBindings(self.DomainNode%(dim)id, %(dim)i)
 self.redistributeNodesBindings(self.RedistributeNodes%(dim)id, %(dim)i)
-self.nestedGridRedistributeNodesBindings(self.NestedGridRedistributeNodes%(dim)id, %(dim)i)
+#self.nestedGridRedistributeNodesBindings(self.NestedGridRedistributeNodes%(dim)id, %(dim)i)
 self.spaceFillingCurveRedistributeNodesBindings(self.SpaceFillingCurveRedistributeNodes%(dim)id, %(dim)i)
 self.genericOrderRedistributeNodesBindings(self.MortonOrderRedistributeNodes%(dim)id, %(dim)i)
 self.genericOrderRedistributeNodesBindings(self.PeanoHilbertOrderRedistributeNodes%(dim)id, %(dim)i)
@@ -149,11 +152,11 @@ generateStdVectorBindings(self.vector_of_pair_ULL_DomainNode%(dim)id, "pair_ULL_
 
         x.add_method("reset", None, [constrefparam(database, "dataBase")], visibility="protected", is_virtual=True)
 
-        x.add_function_as_method("getNestedGridNeighbor",
-                                 retval(ptr(nestedgridneighbor), reference_existing_object=True),
-                                 [param(me, "self"), constrefparam(nodelist, "nodeList")],
-                                 template_parameters = [dim],
-                                 custom_name = "getNestedGridNeighbor")
+        # x.add_function_as_method("getNestedGridNeighbor",
+        #                          retval(ptr(nestedgridneighbor), reference_existing_object=True),
+        #                          [param(me, "self"), constrefparam(nodelist, "nodeList")],
+        #                          template_parameters = [dim],
+        #                          custom_name = "getNestedGridNeighbor")
 
         # Override the Boundary abstract methods.
         generateBoundaryVirtualBindings(x, ndim, False)
@@ -214,6 +217,23 @@ generateStdVectorBindings(self.vector_of_pair_ULL_DomainNode%(dim)id, "pair_ULL_
     def boundingVolumeDistributedBoundaryBindings(self, x, ndim):
 
         me = "Spheral::BoundarySpace::BoundingVolumeDistributedBoundary%id" % ndim
+        dim = "Spheral::Dim<%i> " % ndim
+        database = "Spheral::DataBaseSpace::DataBase%id" % ndim
+
+        # No constructors -- just the instance method since this is a singleton.
+        x.add_method("instancePtr", retval(ptr(me), caller_owns_return=True), [], is_static=True, custom_name="instance")
+
+        # Methods.
+        x.add_method("setAllGhostNodes", None, [refparam(database, "dataBase")], is_virtual=True)
+
+        return
+
+    #---------------------------------------------------------------------------
+    # TreeDistributedBoundary
+    #---------------------------------------------------------------------------
+    def treeDistributedBoundaryBindings(self, x, ndim):
+
+        me = "Spheral::BoundarySpace::TreeDistributedBoundary%id" % ndim
         dim = "Spheral::Dim<%i> " % ndim
         database = "Spheral::DataBaseSpace::DataBase%id" % ndim
 

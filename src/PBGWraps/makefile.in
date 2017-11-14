@@ -9,7 +9,7 @@ BUILDTOP = @abs_top_builddir@
 #-------------------------------------------------------------------------------
 # This stuff is for generating Mercurial revision info in the python, based on:
 # https://www.mercurial-scm.org/wiki/VersioningWithMake
-HGVERSION:= $(shell hg id -n -i --cwd $(srcdir))
+HGVERSION:= $(shell hg id -n -i -b --cwd $(srcdir))
 Spheral.py: hgstamp
 .PHONY: update_hgstamp
 hgstamp: update_hgstamp

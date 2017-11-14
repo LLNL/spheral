@@ -11,15 +11,16 @@ LIBTARGET = libSpheral_$(PKGNAME).$(DYLIBEXT)
 INSTSRCTARGETS = \
 	DistributedBoundaryInst.cc.py \
 	NestedGridDistributedBoundaryInst.cc.py \
+	TreeDistributedBoundaryInst.cc.py \
 	BoundingVolumeDistributedBoundaryInst.cc.py \
 	RedistributeNodesInst.cc.py \
 	DistributeByXPositionInst.cc.py \
-	NestedGridRedistributeNodesInst.cc.py \
 	SortAndDivideRedistributeNodesInst.cc.py \
 	SpaceFillingCurveRedistributeNodesInst.cc.py \
 	MortonOrderRedistributeNodesInst.cc.py \
 	PeanoHilbertOrderRedistributeNodesInst.cc.py \
 	VoronoiRedistributeNodesInst.cc.py
+	#NestedGridRedistributeNodesInst.cc.py
 SRCTARGETS = \
 	Communicator.cc \
 	waitAllWithDeadlockDetection.cc

@@ -18,14 +18,17 @@ def makeVoidNodeList%(dim)s(name,
                             nPerh = 2.01,
                             maxNumNeighbors = 500,
                             searchType = GatherScatter,
-                            numGridLevels = 31,
-                            topGridCellSize = 100.0,
-                            origin = Vector%(dim)s.zero,
+                            #numGridLevels = 31,
+                            #topGridCellSize = 100.0,
+                            #origin = Vector%(dim)s.zero,
                             kernelExtent = 2.0,
-                            gridCellInfluenceRadius = 1):
+                            #gridCellInfluenceRadius = 1):
+                            xmin = Vector%(dim)s.one * -10.0,
+                            xmax = Vector%(dim)s.one *  10.0):
     result = NodeList%(dim)s(name, numInternal, numGhost, 
                              hmin, hmax, hminratio, 
                              nPerh, maxNumNeighbors)
+    result._neighbor = TreeNeighbor%(dim)s(result, searchType, kernelExtent, xmin, xmax)
     result._neighbor = NestedGridNeighbor%(dim)s(result, searchType, 
                                                  numGridLevels, topGridCellSize, 
                                                  origin, kernelExtent, 
