@@ -56,8 +56,8 @@ public:
   //**********************************************************************
   // Apply the boundary condition to the given Field.
   // Set the ghost nodes based on the NodeLists in the given DataBase.
-  virtual void setAllGhostNodes(DataBaseSpace::DataBase<Dimension>& dataBase);
-  virtual void reset(const DataBaseSpace::DataBase<Dimension>& dataBase);
+  virtual void setAllGhostNodes(DataBaseSpace::DataBase<Dimension>& dataBase) override;
+  virtual void reset(const DataBaseSpace::DataBase<Dimension>& dataBase) override;
   //**********************************************************************
 
   // The last set of occupied grid cells (only the master process knows the full

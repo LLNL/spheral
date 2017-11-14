@@ -1,26 +1,20 @@
 //---------------------------------Spheral++----------------------------------//
-// BoundingVolumeDistributedBoundary
+// TreeDistributedBoundary -- Implementation of the Distributed Boundary
+// condition for use with TreeNeighbor based NodeLists.
 //
-// Build a distributed boundary based on testing for intersecting bounding 
-// volumes of domains.
-//
-// Created by JMO, Tue Jan 19 09:22:37 PST 2010
+// Created by JMO, Mon Aug 27 21:57:51 PDT 2001
 //----------------------------------------------------------------------------//
-
-#ifndef BoundingVolumeDistributedBoundary_HH
-#define BoundingVolumeDistributedBoundary_HH
-
-#include <string>
+#ifndef __Spheral_TreeDistributedBoundary__
+#define __Spheral_TreeDistributedBoundary__
 
 #include "DistributedBoundary.hh"
+#include "Neighbor/TreeNeighbor.hh"
+
+#include <vector>
 
 namespace Spheral {
   namespace DataBaseSpace {
     template<typename Dimension> class DataBase;
-  }
-  namespace NeighborSpace {
-    template<typename Dimension> class BoundingVolumeNeighbor;
-    template<typename Dimension> class GridCellIndex;
   }
   namespace NodeSpace {
     template<typename Dimension> class NodeList;
@@ -31,7 +25,7 @@ namespace Spheral {
 namespace BoundarySpace {
 
 template<typename Dimension>
-class BoundingVolumeDistributedBoundary: public DistributedBoundary<Dimension> {
+class TreeDistributedBoundary: public DistributedBoundary<Dimension> {
 
 public:
   //--------------------------- Public Interface ---------------------------//
@@ -40,17 +34,17 @@ public:
   typedef typename Dimension::Tensor Tensor;
   typedef typename Dimension::SymTensor SymTensor;
 
+  typedef typename NeighborSpace::TreeNeighbor<Dimension>::CellKey CellKey;
   typedef typename DistributedBoundary<Dimension>::DomainBoundaryNodes DomainBoundaryNodes;
 
   // This method returns the singleton instance of the object.
-  static BoundingVolumeDistributedBoundary& instance();
-  static BoundingVolumeDistributedBoundary* instancePtr();
+  static TreeDistributedBoundary& instance();
+  static TreeDistributedBoundary* instancePtr();
 
   // Destructor.
-  virtual ~BoundingVolumeDistributedBoundary();
+  virtual ~TreeDistributedBoundary();
 
   //**********************************************************************
-  // Apply the boundary condition to the given Field.
   // Set the ghost nodes based on the NodeLists in the given DataBase.
   virtual void setAllGhostNodes(DataBaseSpace::DataBase<Dimension>& dataBase) override;
   //**********************************************************************
@@ -58,19 +52,19 @@ public:
 private:
   //--------------------------- Private Interface ---------------------------//
   // Singleton instance pointer.
-  static BoundingVolumeDistributedBoundary* mInstance;
+  static TreeDistributedBoundary* mInstance;
 
   // Disabled methods.
-  BoundingVolumeDistributedBoundary();
-  BoundingVolumeDistributedBoundary(const BoundingVolumeDistributedBoundary&);
-  BoundingVolumeDistributedBoundary& operator=(const BoundingVolumeDistributedBoundary&);
+  TreeDistributedBoundary();
+  TreeDistributedBoundary(const TreeDistributedBoundary&);
+  TreeDistributedBoundary& operator=(const TreeDistributedBoundary&);
 
   // Private methods.
-  void buildSendNodes(const DataBaseSpace::DataBase<Dimension>& dataBase);
-  void packNodeListBuffers(const DataBaseSpace::DataBase<Dimension>& dataBase,
-                           std::vector<int>& numNodesPerNodes,
-                           std::vector<std::string>& positionBuffers,
-                           std::vector<std::string>& Hbuffers) const;
+  const NeighborSpace::TreeNeighbor<Dimension>* getTreeNeighborPtr(const NodeSpace::NodeList<Dimension>* nodeListPtr) const;
+  std::vector<std::vector<CellKey>> flattenTrees(const DataBaseSpace::DataBase<Dimension>& dataBase) const;
+  void broadcastTree(const std::vector<std::vector<CellKey>>& localTree);
+  void buildSendNodes(const DataBaseSpace::DataBase<Dimension>& dataBase,
+                      const std::vector<std::vector<CellKey>>& localTree);
 };
 
 }
@@ -81,7 +75,7 @@ private:
 // Forward declaration.
 namespace Spheral {
   namespace BoundarySpace {
-    template<typename Dimension> class BoundingVolumeDistributedBoundary;
+    template<typename Dimension> class TreeDistributedBoundary;
   }
 }
 

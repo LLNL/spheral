@@ -600,12 +600,14 @@ precedeDistributed += [BoundarySpace.PeriodicBoundary%(dim)sd,
         # boundary condition and insert it into the list of boundaries for each physics
         # package.
         else:
-            exec("from SpheralModules.Spheral.BoundarySpace import NestedGridDistributedBoundary%s" % self.dim)
-            self.domainbc = eval("NestedGridDistributedBoundary%s.instance()" % self.dim)
+            # exec("from SpheralModules.Spheral.BoundarySpace import NestedGridDistributedBoundary%s" % self.dim)
+            # self.domainbc = eval("NestedGridDistributedBoundary%s.instance()" % self.dim)
             # from SpheralModules.Spheral.BoundarySpace import BoundingVolumeDistributedBoundary1d, \
             #                                                  BoundingVolumeDistributedBoundary2d, \
             #                                                  BoundingVolumeDistributedBoundary3d
             # self.domainbc = eval("BoundingVolumeDistributedBoundary%s.instance()" % self.dim)
+            exec("from SpheralModules.Spheral.BoundarySpace import TreeDistributedBoundary%s" % self.dim)
+            self.domainbc = eval("TreeDistributedBoundary%s.instance()" % self.dim)
 
             # Iterate over each of the physics packages.
             for package in physicsPackages:

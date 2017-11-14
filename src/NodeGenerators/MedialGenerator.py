@@ -207,7 +207,7 @@ class MedialGeneratorBase(NodeGeneratorBase):
         
             # If we're in parallel we need the parallel boundary.
             if mpi.procs > 1:
-                boundaries = [sph.NestedGridDistributedBoundary.instance()]
+                boundaries = [sph.TreeDistributedBoundary.instance()]
             else:
                 boundaries = []
         

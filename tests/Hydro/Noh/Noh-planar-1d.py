@@ -54,7 +54,6 @@ commandLine(KernelConstructor = NBSplineKernel,
             x1 = 1.0,
             xwall = 0.0,
             nPerh = 1.35,
-            NeighborType = NestedGridNeighbor,
 
             vr0 = -1.0, 
             vrSlope = 0.0,
@@ -233,15 +232,13 @@ if solid:
                                hmin = hmin,
                                hmax = hmax,
                                nPerh = nPerh,
-                               kernelExtent = kernelExtent,
-                               NeighborType = NeighborType)
+                               kernelExtent = kernelExtent)
 else:
     nodes1 = makeFluidNodeList("nodes1", eos, 
                                hmin = hmin,
                                hmax = hmax,
                                nPerh = nPerh,
-                               kernelExtent = kernelExtent,
-                               NeighborType = NeighborType)
+                               kernelExtent = kernelExtent)
     
 output("nodes1")
 output("nodes1.hmin")
