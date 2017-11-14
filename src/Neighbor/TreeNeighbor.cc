@@ -679,6 +679,64 @@ deserialize(typename TreeNeighbor<Dimension>::Cell& cell,
 }
 
 //------------------------------------------------------------------------------
+// Return the set of occupied cells.
+//------------------------------------------------------------------------------
+template<typename Dimension>
+vector<vector<typename TreeNeighbor<Dimension>::CellKey>>
+TreeNeighbor<Dimension>::
+occupiedCells() const {
+  const auto numLevels = mTree.size();
+  vector<vector<CellKey>> result(numLevels);
+  for (auto ilevel = 0; ilevel < numLevels; ++ilevel) {
+    for (const auto& keyCell: mTree[ilevel]) {
+      if (not keyCell.second.members.empty()) result[ilevel].push_back(keyCell.first);
+    }
+  }
+  return result;
+}
+
+//------------------------------------------------------------------------------
+// Set the master & coarse neighbor sets for a given tree level and cell ID.
+//------------------------------------------------------------------------------
+template<typename Dimension>
+void 
+TreeNeighbor<Dimension>::
+setTreeMasterList(const typename TreeNeighbor<Dimension>::LevelKey levelID,
+                  const typename TreeNeighbor<Dimension>::CellKey cellID,
+                  std::vector<int>& masterList,
+                  std::vector<int>& coarseNeighbors) const {
+  REQUIRE(levelID >= 0 and levelID < num1dbits);
+
+  // Get the per dimension cell indices.
+  CellKey ix_master, iy_master, iz_master;
+  extractCellIndices(cellID, ix_master, iy_master, iz_master);
+
+  // Grab the lists we're going to fill in.
+  masterList.clear();
+  coarseNeighbors.clear();
+
+  // Set the master list.
+  if (mTree.size() > levelID) {
+    typename TreeLevel::const_iterator masterItr = mTree[levelID].find(cellID);
+    masterList = (masterItr == mTree[levelID].end() ? vector<int>() : masterItr->second.members);
+  }
+
+  // Set the coarse list.
+  if (mTree.size() > 0) {
+    coarseNeighbors = this->findTreeNeighbors(levelID, ix_master, iy_master, iz_master);
+  }
+
+  // Remove all ghost nodes from the master list.
+  const unsigned firstGhostNode = this->nodeList().firstGhostNode();
+  sort(masterList.begin(), masterList.end());
+  masterList.erase(lower_bound(masterList.begin(), masterList.end(), firstGhostNode), masterList.end());
+
+  // Post conditions.
+  ENSURE(coarseNeighbors.size() >= masterList.size());
+  ENSURE(masterList.size() == 0 or *max_element(masterList.begin(), masterList.end()) < firstGhostNode);
+}
+
+//------------------------------------------------------------------------------
 // Build a cell key from coordinate indices.
 //------------------------------------------------------------------------------
 template<typename Dimension>
@@ -827,29 +885,8 @@ setTreeMasterList(const typename Dimension::Vector& position,
   buildCellKey(masterLevel, position, masterKey, ix_master, iy_master, iz_master);
   CHECK(masterLevel >= 0 and masterLevel < num1dbits);
 
-  // Grab the lists we're going to fill in.
-  masterList.clear();
-  coarseNeighbors.clear();
-
-  // Set the master list.
-  if (mTree.size() > masterLevel) {
-    typename TreeLevel::const_iterator masterItr = mTree[masterLevel].find(masterKey);
-    masterList = (masterItr == mTree[masterLevel].end() ? vector<int>() : masterItr->second.members);
-  }
-
-  // Set the coarse list.
-  if (mTree.size() > 0) {
-    coarseNeighbors = this->findTreeNeighbors(masterLevel, ix_master, iy_master, iz_master);
-  }
-
-  // Remove all ghost nodes from the master list.
-  const unsigned firstGhostNode = this->nodeList().firstGhostNode();
-  sort(masterList.begin(), masterList.end());
-  masterList.erase(lower_bound(masterList.begin(), masterList.end(), firstGhostNode), masterList.end());
-
-  // Post conditions.
-  ENSURE(coarseNeighbors.size() >= masterList.size());
-  ENSURE(masterList.size() == 0 or *max_element(masterList.begin(), masterList.end()) < firstGhostNode);
+  // We can just use the method based on IDs at this point.
+  this->setTreeMasterList(masterLevel, masterKey, masterList, coarseNeighbors);
 }
 
 //------------------------------------------------------------------------------

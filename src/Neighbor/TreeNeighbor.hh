@@ -32,6 +32,10 @@ public:
   typedef std::vector<int>::iterator iterator;
   typedef std::vector<int>::const_iterator const_iterator;
 
+  // Data types we use to build the internal tree structure.
+  typedef uint32_t LevelKey;
+  typedef uint64_t CellKey;
+
   // Constructors and destructors
   TreeNeighbor(NodeSpace::NodeList<Dimension>& nodeList, 
                const NeighborSearchType searchType,
@@ -103,12 +107,18 @@ public:
   void deserialize(std::vector<char>::const_iterator& itr,
                    const std::vector<char>::const_iterator& end);
 
+  // Return the set of occupied cells on each level.
+  std::vector<std::vector<CellKey>> occupiedCells() const;
+
+  // For our parallel algorithm it is useful to be able to set the master/coarse
+  // information based on the given (level, cell).
+  void setTreeMasterList(const LevelKey levelID,
+                         const CellKey cellID,
+                         std::vector<int>& masterList,
+                         std::vector<int>& coarseNeighbors) const;
+
 private:
   //--------------------------- Private Interface ---------------------------//
-  // Data types we use to build the internal tree structure.
-  typedef uint32_t LevelKey;
-  typedef uint64_t CellKey;
-
   static const unsigned num1dbits;                   // The number of bits we quantize 1D coordinates to.  We have to fit three of these in 64 bits.
   static const CellKey max1dKey;                     // The maximum number of cells this corresponds to in a direction.
   static const CellKey xkeymask, ykeymask, zkeymask; // Bit masks we can use to extract the coordinate specific indices from a cell key.
