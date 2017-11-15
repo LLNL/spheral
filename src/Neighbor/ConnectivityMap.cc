@@ -620,6 +620,9 @@ computeConnectivity() {
       sort(keys.begin(), keys.end(), ComparePairsBySecondElement<pair<int, Key> >());
       for (int i = 0; i != nodeList.numNodes(); ++i) mNodeTraversalIndices[iNodeList][i] = keys[i].first;
       CHECK(mNodeTraversalIndices[iNodeList].size() == nodeList.numNodes());
+      std::cerr << "Traversal: ";
+      std::copy(mNodeTraversalIndices[iNodeList].begin(), mNodeTraversalIndices[iNodeList].end(), std::ostream_iterator<int>(std::cerr, " "));
+      std::cerr << std::endl;
     }
   } else {
     for (int iNodeList = 0; iNodeList != numNodeLists; ++iNodeList) {
@@ -674,13 +677,16 @@ computeConnectivity() {
           // Iterate over the master nodes in this NodeList.
           const auto& masterList = masterLists[iNodeList];
           const auto  nmaster = masterList.size();
+          cerr << "Masters: ";
+          std::copy(masterList.begin(), masterList.end(), std::ostream_iterator<int>(std::cerr, " "));
+          cerr << endl;
 #pragma omp parallel for
           for (auto kmaster = 0; kmaster < nmaster; ++kmaster) {
             const auto i = masterList[kmaster];
             if (i < firstGhostNodei or domainDecompIndependent or mBuildGhostConnectivity) {
               CHECK(mOffsets[iNodeList] + i < mConnectivity.size());
               const auto start = Timing::currentTime();
-              CHECK(flagNodeDone(iNodeList, i) == 0);
+              CHECK2(flagNodeDone(iNodeList, i) == 0, "(" << iNodeList << " " << i << ") (" << iiNodeList << " " << ii << ")");
 
               // Get the neighbor set we're building for this node.
               auto& neighbors = mConnectivity[mOffsets[iNodeList] + i];
