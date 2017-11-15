@@ -303,7 +303,7 @@ buildSendNodes(const DataBase<Dimension>& dataBase,
     }
   }
 
-  // Wait until all our send buffer sizes have been received.
+  // Wait until all our send buffers have been received.
   if (not sendRequests.empty()) {
     vector<MPI_Status> status(sendRequests.size());
     MPI_Waitall(sendRequests.size(), &sendRequests[0], &status[0]);
