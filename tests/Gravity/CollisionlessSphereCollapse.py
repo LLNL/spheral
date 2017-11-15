@@ -116,7 +116,6 @@ eos = GammaLawGasMKS3d(gamma = 5.0/3.0, mu = 1.0)
 # Make the NodeList, and set our initial properties.
 #-------------------------------------------------------------------------------
 nodes = makeFluidNodeList("nodes", eos,
-                          topGridCellSize = 100*r0,
                           xmin = -100.0*r0 * Vector.one,
                           xmax =  100.0*r0 * Vector.one)
 

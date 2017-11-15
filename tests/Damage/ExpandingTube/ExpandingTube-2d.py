@@ -486,7 +486,7 @@ del n
 #-------------------------------------------------------------------------------
 cache = []
 for n in nodeSet:
-    neighbor = NestedGridNeighbor(n,
+    neighbor = TreeNeighbor(n,
                                   kernelExtent = WT.kernelExtent)
     n.registerNeighbor(neighbor)
     cache.append(neighbor)

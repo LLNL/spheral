@@ -81,10 +81,6 @@ commandLine(NodeListConstructor = SphNodeList1d,
             HEvolution = Hydro1d.HEvolutionType.IdealH,
             limitIdealH = False,
 
-            neighborSearchType = Neighbor1d.NeighborSearchType.GatherScatter,
-            numGridLevels = 20,
-            origin = Vector1d(0.0),
-
             dt = 0.0001,
             dtMin = 1.0e-5,
             dtMax = None,
@@ -168,12 +164,8 @@ output("nodes.hminratio")
 #-------------------------------------------------------------------------------
 # Construct the neighbor object.
 #-------------------------------------------------------------------------------
-neighbor1 = NestedGridNeighbor1d(nodes,
-                                 neighborSearchType,
-                                 numGridLevels,
-                                 2*L,
-                                 origin,
-                                 kernelExtent)
+neighbor1 = TreeNeighbor1d(nodes,
+                           kernelExtent = kernelExtent)
 nodes.registerNeighbor(neighbor1)
 
 #-------------------------------------------------------------------------------

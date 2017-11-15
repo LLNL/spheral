@@ -47,10 +47,6 @@ commandLine(NodeListConstructor = AsphNodeList2d,
             epsilonTensile = 0.0,
             nTensile = 8,
 
-            neighborSearchType = Neighbor2d.NeighborSearchType.GatherScatter,
-            numGridLevels = 20,
-            topGridCellSize = 2.0,
-
             goalTime = 0.06,
             dtSample = 0.01,
             dt = 0.0001,
@@ -141,12 +137,8 @@ for nodes in nodeSet:
 #-------------------------------------------------------------------------------
 _cache = []
 for nodes in nodeSet:
-    neighbor = NestedGridNeighbor2d(nodes,
-                                    neighborSearchType,
-                                    numGridLevels,
-                                    topGridCellSize,
-                                    Vector2d(),
-                                    kernelExtent)
+    neighbor = TreeNeighbor2d(nodes,
+                              kernelExtent = kernelExtent)
     nodes.registerNeighbor(neighbor)
     _cache.append(neighbor)
 

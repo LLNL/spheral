@@ -9,7 +9,7 @@ source("testDistributeByPosition2d.py")
 source("testMortonOrderDistribute.py")
 source("testPeanoHilbertOrderDistribute.py")
 
-# NestedGridDistributedBoundary unit tests.
+# DistributedBoundary unit tests.
 source("testDistributed1d.py")
 source("testDistributed2d.py")
 source("testDistributed3d.py")
