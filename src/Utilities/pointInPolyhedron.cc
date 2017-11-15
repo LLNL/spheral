@@ -64,7 +64,6 @@ bool pointInPolyhedron(const Dim<3>::Vector& p,
 
       // If they are, we only care if the ray is in the plane of the facet.
       if (std::abs((vertices[ipts[0]] - p).dot(fhat) <= tol)) {
-        cerr << " PARALLEL!" << endl;
 
         // The ray and plane are parallel, and the ray is in the plane.
         // Check if the ray crosses any of the facet lines -- if so, counts as an intersection.
@@ -80,7 +79,8 @@ bool pointInPolyhedron(const Dim<3>::Vector& p,
       // What we're solving for here is parametric s where the line is represented as
       //   pline = p + s*rayhat
       const auto si = fhat.dot(vertices[ipts[0]] - p)*safeInvVar(fdotr);
-      CHECK(std::abs((p + si*rayhat - vertices[ipts[0]]).dot(fhat)) < tol);
+      CHECK2(std::abs((p + si*rayhat - vertices[ipts[0]]).dot(fhat)) < tol*std::max(1.0, 1e-3*(p - vertices[ipts[0]]).magnitude()),
+             "Point in plane?  " << p << " " << vertices[ipts[0]] << " " << rayhat << " " << si << " : " << std::abs((p + si*rayhat - vertices[ipts[0]]).dot(fhat)) << " !< " << tol);
       
       // We only need to check this facet if si is positive, indicating the the intersection
       // point is in the positive ray direction, i.e., above p in z.
