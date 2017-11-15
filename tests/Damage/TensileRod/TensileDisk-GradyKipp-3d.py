@@ -70,11 +70,6 @@ commandLine(SolidNodeListConstructor = SphSolidNodeList3d,
             nTensile = 4,
             hybridMassDensityThreshold = 0.01,
 
-            neighborSearchType = Neighbor3d.NeighborSearchType.GatherScatter,
-            numGridLevels = 20,
-            topGridCellSize = 100.0,
-            origin = Vector3d(0.0, 0.0, 0.0),
-
             goalTime = 100.0e-6,
             dt = 1e-10,
             dtMin = 1e-12,
@@ -243,12 +238,8 @@ neighborTimer = SpheralTimer("Neighbor initialization.")
 neighborTimer.start()
 cache = []
 for n in nodeSet:
-    neighbor = NestedGridNeighbor3d(n,
-                                    neighborSearchType,
-                                    numGridLevels,
-                                    topGridCellSize,
-                                    origin,
-                                    kernelExtent)
+    neighbor = TreeNeighbor3d(n,
+                              kernelExtent = kernelExtent)
     n.registerNeighbor(neighbor)
     cache.append(neighbor)
 neighborTimer.stop()

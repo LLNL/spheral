@@ -101,11 +101,6 @@ epsilonTensile = 0.1
 nTensile = 4
 hybridMassDensityThreshold = 0.01
 
-neighborSearchType = Neighbor2d.NeighborSearchType.GatherScatter
-numGridLevels = 20
-topGridCellSize = 1.0
-origin = Vector2d(0.0, 0.0)
-
 goalTime = 5.0e-6
 dtSample = 1e-7
 dt = 1e-10
@@ -404,12 +399,8 @@ neighborTimer = SpheralTimer('Neighbor initialization.')
 neighborTimer.start()
 _cache = []
 for nodes in nodeLists:
-    neighbor = NestedGridNeighbor2d(nodes,
-                                    neighborSearchType,
-                                    numGridLevels,
-                                    topGridCellSize,
-                                    origin,
-                                    kernelExtent)
+    neighbor = TreeNeighbor2d(nodes,
+                              kernelExtent = kernelExtent)
     nodes.registerNeighbor(neighbor)
     _cache.append(neighbor)  # This is a trick to make sure the neighbors are not garbage collected.
 neighborTimer.stop()

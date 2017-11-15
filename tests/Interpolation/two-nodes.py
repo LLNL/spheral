@@ -14,7 +14,6 @@ commandLine(KernelConstructor = BSplineKernel,
             x0 = 0.0,
             x1 = 1.0,
             nPerh = 1.25,
-            NeighborType = NestedGridNeighbor,
 
             gamma = 5.0/3.0,
             mu = 1.0,
@@ -133,8 +132,7 @@ nodes = makeFluidNodeList("nodes", eos,
                           numInternal = 2,
                           hmin = hmin,
                           hmax = hmax,
-                          nPerh = nPerh,
-                          NeighborType = NeighborType)
+                          nPerh = nPerh)
 output("nodes")
 output("nodes.hmin")
 output("nodes.hmax")

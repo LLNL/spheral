@@ -250,7 +250,7 @@ output("diskNodes.nodesPerSmoothingScale")
 #output("diskNodes.XSPH")
 
 # Construct the neighbor object and associate it with the node list.
-neighbor1 = NestedGridNeighbor(diskNodes,
+neighbor1 = TreeNeighbor(diskNodes,
                                kernelExtent = WT.kernelExtent)
 diskNodes.registerNeighbor(neighbor1)
 

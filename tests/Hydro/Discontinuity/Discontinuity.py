@@ -21,7 +21,6 @@ title("1-D integrated hydro test -- discontinuities")
 commandLine(KernelConstructor = BSplineKernel,
             nx1 = 100,
             nPerh = 1.25,
-            NeighborType = NestedGridNeighbor,
             
             eps1 = 1.0,
             rho1 = 1.0,
@@ -138,8 +137,7 @@ output("WT")
 nodes1 = makeFluidNodeList("nodes1", eos, 
                            hmin = hmin,
                            hmax = hmax,
-                           nPerh = nPerh,
-                           NeighborType = NeighborType)
+                           nPerh = nPerh)
 output("nodes1")
 output("nodes1.hmin")
 output("nodes1.hmax")
