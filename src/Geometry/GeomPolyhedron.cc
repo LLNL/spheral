@@ -273,7 +273,7 @@ GeomPolyhedron(const vector<GeomPolyhedron::Vector>& points,
         normal += (mVertices[indices[i]] - centroid).cross(mVertices[indices[j]] - centroid);
       }
     }
-    CHECK2(normal.magnitude2() > 0.0, normal << " " << facetIndices.size());
+    // CHECK2(normal.magnitude2() > 0.0, normal << " " << facetIndices.size());
     normal = normal.unitVector();
     mFacets.push_back(Facet(mVertices, indices, normal));
   }
