@@ -29,10 +29,10 @@ def makeVoidNodeList%(dim)s(name,
                              hmin, hmax, hminratio, 
                              nPerh, maxNumNeighbors)
     result._neighbor = TreeNeighbor%(dim)s(result, searchType, kernelExtent, xmin, xmax)
-    result._neighbor = NestedGridNeighbor%(dim)s(result, searchType, 
-                                                 numGridLevels, topGridCellSize, 
-                                                 origin, kernelExtent, 
-                                                 gridCellInfluenceRadius)
+    # result._neighbor = NestedGridNeighbor%(dim)s(result, searchType, 
+    #                                              numGridLevels, topGridCellSize, 
+    #                                              origin, kernelExtent, 
+    #                                              gridCellInfluenceRadius)
     result.registerNeighbor(result._neighbor)
     return result
 """

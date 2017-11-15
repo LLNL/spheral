@@ -40,7 +40,7 @@ def makeSolidNodeList%(dim)s(name,
     #                                                  origin, kernelExtent, 
     #                                                  gridCellInfluenceRadius)
     # else:
-    result._neighbor = NeighborType(result, searchType, kernelExtent, xmin, xmax)
+    result._neighbor = TreeNeighbor%(dim)s(result, searchType, kernelExtent, xmin, xmax)
     result.registerNeighbor(result._neighbor)
     return result
 """
