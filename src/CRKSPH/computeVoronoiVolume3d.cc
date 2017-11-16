@@ -240,7 +240,8 @@ computeVoronoiVolume(const FieldList<Dim<3>, Dim<3>::Vector>& position,
     for (unsigned nodeListi = 0; nodeListi != numNodeLists; ++nodeListi) {
       const unsigned n = vol[nodeListi]->numInternalElements();
       const Scalar rin = 2.0/vol[nodeListi]->nodeListPtr()->nodesPerSmoothingScale();
-      for (unsigned i = 0; i != n; ++i) {
+#pragma omp parallel for
+      for (unsigned i = 0; i < n; ++i) {
 
         const Vector& ri = position(nodeListi, i);
         const SymTensor& Hi = H(nodeListi, i);
