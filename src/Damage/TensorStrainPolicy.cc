@@ -75,15 +75,15 @@ update(const KeyType& key,
   const double tiny = 1.0e-15;
 
   // Get the state fields.
-  const KeyType eKey = State<Dimension>::buildFieldKey(SolidFieldNames::strainTensor, nodeListKey);
-  const KeyType EKey = State<Dimension>::buildFieldKey(SolidFieldNames::YoungsModulus, nodeListKey);
-  const KeyType KKey = State<Dimension>::buildFieldKey(SolidFieldNames::bulkModulus, nodeListKey);
-  const KeyType muKey = State<Dimension>::buildFieldKey(SolidFieldNames::shearModulus, nodeListKey);
-  const KeyType PKey = State<Dimension>::buildFieldKey(HydroFieldNames::pressure, nodeListKey);
-  const KeyType psKey = State<Dimension>::buildFieldKey(SolidFieldNames::plasticStrain, nodeListKey);
-  const KeyType stressKey = State<Dimension>::buildFieldKey(SolidFieldNames::deviatoricStress, nodeListKey);
-  const KeyType gradvKey = State<Dimension>::buildFieldKey(HydroFieldNames::internalVelocityGradient, nodeListKey);
-  const KeyType dSKey = State<Dimension>::buildFieldKey(IncrementState<Dimension, Field<Dimension, SymTensor> >::prefix() + SolidFieldNames::deviatoricStress, nodeListKey);
+  const auto eKey = State<Dimension>::buildFieldKey(SolidFieldNames::strainTensor, nodeListKey);
+  const auto EKey = State<Dimension>::buildFieldKey(SolidFieldNames::YoungsModulus, nodeListKey);
+  const auto KKey = State<Dimension>::buildFieldKey(SolidFieldNames::bulkModulus, nodeListKey);
+  const auto muKey = State<Dimension>::buildFieldKey(SolidFieldNames::shearModulus, nodeListKey);
+  const auto PKey = State<Dimension>::buildFieldKey(HydroFieldNames::pressure, nodeListKey);
+  const auto psKey = State<Dimension>::buildFieldKey(SolidFieldNames::plasticStrain, nodeListKey);
+  const auto stressKey = State<Dimension>::buildFieldKey(SolidFieldNames::deviatoricStress, nodeListKey);
+  const auto gradvKey = State<Dimension>::buildFieldKey(HydroFieldNames::internalVelocityGradient, nodeListKey);
+  const auto dSKey = State<Dimension>::buildFieldKey(IncrementState<Dimension, Field<Dimension, SymTensor> >::prefix() + SolidFieldNames::deviatoricStress, nodeListKey);
   CHECK(state.registered(eKey));
   CHECK(state.registered(EKey));
   CHECK(state.registered(KKey));
@@ -94,18 +94,20 @@ update(const KeyType& key,
   CHECK(derivs.registered(gradvKey));
   CHECK(derivs.registered(dSKey));
 
-  Field<Dimension, SymTensor>& strain = state.field(eKey, SymTensor::zero);
-  const Field<Dimension, Scalar>& E = state.field(EKey, 0.0);
-  const Field<Dimension, Scalar>& K = state.field(KKey, 0.0);
-  const Field<Dimension, Scalar>& mu = state.field(muKey, 0.0);
-  const Field<Dimension, Scalar>& P = state.field(PKey, 0.0);
-  const Field<Dimension, Scalar>& plasticStrain = state.field(psKey, 0.0);
-  const Field<Dimension, SymTensor>& S = state.field(stressKey, SymTensor::zero);
-  const Field<Dimension, Tensor>& gradv = derivs.field(gradvKey, Tensor::zero);
-  const Field<Dimension, SymTensor>& DSDt = derivs.field(dSKey, SymTensor::zero);
+  auto&       strain = state.field(eKey, SymTensor::zero);
+  const auto& E = state.field(EKey, 0.0);
+  const auto& K = state.field(KKey, 0.0);
+  const auto& mu = state.field(muKey, 0.0);
+  const auto& P = state.field(PKey, 0.0);
+  const auto& plasticStrain = state.field(psKey, 0.0);
+  const auto& S = state.field(stressKey, SymTensor::zero);
+  const auto& gradv = derivs.field(gradvKey, Tensor::zero);
+  const auto& DSDt = derivs.field(dSKey, SymTensor::zero);
 
   // Iterate over the internal nodes.
-  for (int i = 0; i != stateField.numInternalElements(); ++i) {
+  const auto ni = stateField.numInternalElements();
+#pragma omp parallel for
+  for (int i = 0; i < ni; ++i) {
 
     // Begin the big bonanza of options!
 
@@ -118,16 +120,16 @@ update(const KeyType& key,
     } else {
 
       // First apply the rotational term to the current strain history.
-      const Tensor spin = gradv(i).SkewSymmetric();
+      const auto spin = gradv(i).SkewSymmetric();
       strain(i) += multiplier*(spin*strain(i) + strain(i)*spin).Symmetric();
 
       // Update the strain history with the current instantaneous deformation.
-      const typename SymTensor::EigenStructType eigenv = gradv(i).Symmetric().eigenVectors();
-      SymTensor gradvi = constructSymTensorWithMaxDiagonal(eigenv.eigenValues, 0.0);
+      const auto eigenv = gradv(i).Symmetric().eigenVectors();
+      auto       gradvi = constructSymTensorWithMaxDiagonal(eigenv.eigenValues, 0.0);
       gradvi.rotationalTransform(eigenv.eigenVectors);
       strain(i) += multiplier*gradvi;
 
-      const double volstrain = strain(i).Trace();
+      const auto volstrain = strain(i).Trace();
 
       // Update the effective strain according to the specified algorithm.
       switch(mStrainType) {

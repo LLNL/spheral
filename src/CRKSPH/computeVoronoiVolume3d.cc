@@ -238,19 +238,19 @@ computeVoronoiVolume(const FieldList<Dim<3>, Dim<3>::Vector>& position,
     unsigned nvoid;
     Vector etaVoidAvg;
     for (unsigned nodeListi = 0; nodeListi != numNodeLists; ++nodeListi) {
-      const unsigned n = vol[nodeListi]->numInternalElements();
-      const Scalar rin = 2.0/vol[nodeListi]->nodeListPtr()->nodesPerSmoothingScale();
+      const auto n = vol[nodeListi]->numInternalElements();
+      const auto rin = 2.0/vol[nodeListi]->nodeListPtr()->nodesPerSmoothingScale();
 #pragma omp parallel for
       for (unsigned i = 0; i < n; ++i) {
 
-        const Vector& ri = position(nodeListi, i);
-        const SymTensor& Hi = H(nodeListi, i);
-        const Scalar rhoi = rho(nodeListi, i);
-        Vector gradRhoi = gradRho(nodeListi, i);
-        const Vector grhat = gradRhoi.unitVector();
-        const Scalar Hdeti = Hi.Determinant();
-        const SymTensor Hinv = Hi.Inverse();
-        const Scalar weighti = haveWeights ? weight(nodeListi, i) : 1.0;
+        const auto& ri = position(nodeListi, i);
+        const auto& Hi = H(nodeListi, i);
+        const auto  rhoi = rho(nodeListi, i);
+        auto        gradRhoi = gradRho(nodeListi, i);
+        const auto  grhat = gradRhoi.unitVector();
+        const auto  Hdeti = Hi.Determinant();
+        const auto  Hinv = Hi.Inverse();
+        const auto  weighti = haveWeights ? weight(nodeListi, i) : 1.0;
         const auto& fullConnectivity = connectivityMap.connectivityForNode(nodeListi, i);
 
         // Prepare to accumulate any void point positions.
