@@ -162,7 +162,7 @@ evaluateDerivatives(const typename Dimension::Scalar time,
 #pragma omp parallel for \
   private(Wi, gWi, WQi, gWQi, Wj, gWj, WQj, gWQj, QPiij, QPiji, sigmai, sigmaj)
     for (auto iItr = 0; iItr < ni; ++iItr) {
-      const auto i = *(connectivityMap.begin(nodeListi) + iItr);
+      const auto i = connectivityMap.ithNode(nodeListi, iItr);
 
       // Prepare to accumulate the time.
       const auto start = Timing::currentTime();
