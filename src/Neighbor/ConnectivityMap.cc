@@ -680,7 +680,7 @@ computeConnectivity() {
           // cerr << "Masters: ";
           // std::copy(masterList.begin(), masterList.end(), std::ostream_iterator<int>(std::cerr, " "));
           // cerr << endl;
-#pragma omp parallel for
+#pragma omp parallel for schedule(dynamic)
           for (auto kmaster = 0; kmaster < nmaster; ++kmaster) {
             const auto i = masterList[kmaster];
             if (i < firstGhostNodei) { //  or domainDecompIndependent or mBuildGhostConnectivity) {

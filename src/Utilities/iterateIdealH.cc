@@ -107,7 +107,6 @@ iterateIdealH(DataBase<Dimension>& dataBase,
     maxDeltaH = 0.0;
 
     // Remove any old ghost node information from the NodeLists.
-#pragma omp parallel for
     for (auto k = 0; k < numNodeLists; ++k) {
       auto nodeListPtr = *(dataBase.fluidNodeListBegin() + k);
       nodeListPtr->numGhostNodes(0);
@@ -157,95 +156,102 @@ iterateIdealH(DataBase<Dimension>& dataBase,
       const Scalar nPerh = nodeListPtr->nodesPerSmoothingScale();
 
       // Iterate over the internal nodes of this NodeList.
-#pragma omp parallel for
-      for (auto i = 0; i < nodeListPtr->numInternalNodes(); ++i) {
+#pragma omp parallel
+      {
+        auto maxDeltaH_local = maxDeltaH;
+#pragma omp for
+        for (auto i = 0; i < nodeListPtr->numInternalNodes(); ++i) {
 
-        // Has this node been done yet?
-        if (flagNodeDone(nodeListi, i) == 0) {
+          // Has this node been done yet?
+          if (flagNodeDone(nodeListi, i) == 0) {
 
-          // Get the state and neighbors for this node.
-          const auto& fullConnectivity = connectivityMap.connectivityForNode(nodeListPtr, i);
-          const auto& posi = pos(nodeListi, i);
-          const auto& Hi = H(nodeListi, i);
-          const auto  mi = m(nodeListi, i);
-          const auto  rhoi = rho(nodeListi, i);
+            // Get the state and neighbors for this node.
+            const auto& fullConnectivity = connectivityMap.connectivityForNode(nodeListPtr, i);
+            const auto& posi = pos(nodeListi, i);
+            const auto& Hi = H(nodeListi, i);
+            const auto  mi = m(nodeListi, i);
+            const auto  rhoi = rho(nodeListi, i);
 
-          // Prepare to accumulate the zeroth and second moments for this node.
-          auto zerothMoment = 0.0;
-          SymTensor secondMoment;
-          Scalar fweightij;
+            // Prepare to accumulate the zeroth and second moments for this node.
+            auto zerothMoment = 0.0;
+            SymTensor secondMoment;
+            Scalar fweightij;
 
-          // Iterate over the neighbor NodeLists.
-          for (auto nodeListj = 0; nodeListj != numNodeLists; ++nodeListj) {
+            // Iterate over the neighbor NodeLists.
+            for (auto nodeListj = 0; nodeListj != numNodeLists; ++nodeListj) {
 
-            // Neighbors from this NodeList.
-            const auto& connectivity = fullConnectivity[nodeListj];
-            for (auto jItr = connectivity.begin();
-                 jItr != connectivity.end();
-                 ++jItr) {
-              const int j = *jItr;
+              // Neighbors from this NodeList.
+              const auto& connectivity = fullConnectivity[nodeListj];
+              for (auto jItr = connectivity.begin();
+                   jItr != connectivity.end();
+                   ++jItr) {
+                const int j = *jItr;
 
-              // Increment the moments.
-              const auto& posj = pos(nodeListj, j);
-              const auto  mj = m(nodeListj, j);
-              const auto  rhoj = rho(nodeListj, j);
+                // Increment the moments.
+                const auto& posj = pos(nodeListj, j);
+                const auto  mj = m(nodeListj, j);
+                const auto  rhoj = rho(nodeListj, j);
 
-              fweightij = 1.0;
-              if (nodeListi != nodeListj) {
-                if (dataBase.isRZ) {
-                  const auto ri = abs(posi.y());
-                  const auto rj = abs(posj.y());
-                  const auto mRZi = mi/(2.0*M_PI*ri);
-                  const auto mRZj = mj/(2.0*M_PI*rj);
-                  fweightij = mRZj*rhoi/(mRZi*rhoj);
-                } else {
-                  fweightij = mj*rhoi/(mi*rhoj);
+                fweightij = 1.0;
+                if (nodeListi != nodeListj) {
+                  if (dataBase.isRZ) {
+                    const auto ri = abs(posi.y());
+                    const auto rj = abs(posj.y());
+                    const auto mRZi = mi/(2.0*M_PI*ri);
+                    const auto mRZj = mj/(2.0*M_PI*rj);
+                    fweightij = mRZj*rhoi/(mRZi*rhoj);
+                  } else {
+                    fweightij = mj*rhoi/(mi*rhoj);
+                  }
                 }
-              }
                                         
-              const auto xij = posi - posj;
-              const auto etai = (Hi*xij).magnitude();
-              const auto Wi = std::abs(W.gradValue(etai, 1.0));
-              const auto thpt = xij.selfdyad()/(xij.magnitude2() + 1.0e-10);
-              zerothMoment += fweightij*Wi;
-              secondMoment += fweightij*FastMath::square(Wi*safeInvVar(xij.magnitude2()))*thpt;
-              // secondMoment += fweightij*FastMath::square(Wi/Dimension::pownu1(etai + 1.0e-10))*thpt;
+                const auto xij = posi - posj;
+                const auto etai = (Hi*xij).magnitude();
+                const auto Wi = std::abs(W.gradValue(etai, 1.0));
+                const auto thpt = xij.selfdyad()/(xij.magnitude2() + 1.0e-10);
+                zerothMoment += fweightij*Wi;
+                secondMoment += fweightij*FastMath::square(Wi*safeInvVar(xij.magnitude2()))*thpt;
+                // secondMoment += fweightij*FastMath::square(Wi/Dimension::pownu1(etai + 1.0e-10))*thpt;
+              }
             }
+
+            // Finish the moments and measure the new H.
+            zerothMoment = Dimension::rootnu(zerothMoment);
+            H1(nodeListi, i) = smoothingScaleMethod.newSmoothingScale(Hi,
+                                                                      posi,
+                                                                      zerothMoment,
+                                                                      secondMoment,
+                                                                      W,
+                                                                      hmin,
+                                                                      hmax,
+                                                                      hminratio,
+                                                                      nPerh,
+                                                                      connectivityMap,
+                                                                      nodeListi,
+                                                                      i);
+
+            // If we are preserving the determinant, do it.
+            if (fixDeterminant) {
+              H1(nodeListi, i) *= Dimension::rootnu(Hdet1(nodeListi, i)/H1(nodeListi, i).Determinant());
+              CHECK(fuzzyEqual(H1(nodeListi, i).Determinant(), Hdet1(nodeListi, i)));
+            }
+
+            // Check how much this H has changed.
+            const auto H1sqrt = H1(nodeListi, i).sqrt();
+            const auto phi = (H1sqrt*Hi.Inverse()*H1sqrt).Symmetric().eigenValues();
+            const auto phimin = phi.minElement();
+            const auto phimax = phi.maxElement();
+            const auto deltaHi = max(abs(phimin - 1.0), abs(phimax - 1.0));
+            deltaH(nodeListi, i) = deltaHi;
+            maxDeltaH = max(maxDeltaH, deltaHi);
           }
 
-          // Finish the moments and measure the new H.
-          zerothMoment = Dimension::rootnu(zerothMoment);
-          H1(nodeListi, i) = smoothingScaleMethod.newSmoothingScale(Hi,
-                                                                    posi,
-                                                                    zerothMoment,
-                                                                    secondMoment,
-                                                                    W,
-                                                                    hmin,
-                                                                    hmax,
-                                                                    hminratio,
-                                                                    nPerh,
-                                                                    connectivityMap,
-                                                                    nodeListi,
-                                                                    i);
-
-          // If we are preserving the determinant, do it.
-          if (fixDeterminant) {
-            H1(nodeListi, i) *= Dimension::rootnu(Hdet1(nodeListi, i)/H1(nodeListi, i).Determinant());
-            CHECK(fuzzyEqual(H1(nodeListi, i).Determinant(), Hdet1(nodeListi, i)));
-          }
-
-          // Check how much this H has changed.
-          const auto H1sqrt = H1(nodeListi, i).sqrt();
-          const auto phi = (H1sqrt*Hi.Inverse()*H1sqrt).Symmetric().eigenValues();
-          const auto phimin = phi.minElement();
-          const auto phimax = phi.maxElement();
-          const auto deltaHi = max(abs(phimin - 1.0), abs(phimax - 1.0));
-          deltaH(nodeListi, i) = deltaHi;
-          maxDeltaH = max(maxDeltaH, deltaHi);
+          // Flag this node as completed.
+          flagNodeDone(nodeListi, i) = 1;
         }
 
-        // Flag this node as completed.
-        flagNodeDone(nodeListi, i) = 1;
+#pragma omp critical
+        maxDeltaH = max(maxDeltaH, maxDeltaH_local);
       }
     }
 
@@ -305,7 +311,6 @@ iterateIdealH(DataBase<Dimension>& dataBase,
       ENSURE(fuzzyEqual(H(itr).Determinant(), Hdet0(itr), 1.0e-10));
     }
   }
-
 
   // Leave the boundary conditions properly enforced.
   for (auto nodeListItr = dataBase.fluidNodeListBegin();
