@@ -103,7 +103,7 @@ patchConnectivity(const FieldList<Dimension, int>& flags,
       vector<pair<int, Key>> keys_thread;
 
       // Patch the traversal ordering and connectivity for this NodeList.
-#pragma omp for
+#pragma omp for schedule(dynamic)
       for (auto i = 0; i < numNodes; ++i) {
 
         // Should we patch this set of neighbors?
