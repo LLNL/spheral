@@ -222,6 +222,12 @@ private:
                    std::vector<char>::const_iterator& bufItr, 
                    const std::vector<char>::const_iterator& endItr) const;
 
+  // Tree dump methods that work on the given Tree.
+  std::string dumpTree(const Tree& tree,
+                       const bool globalTree) const;
+  std::string dumpTreeStatistics(const Tree& tree,
+                                 const bool globalTree) const;
+
   // Private data.
   double mBoxLength, mGridLevelConst0;
   Vector mXmin, mXmax;

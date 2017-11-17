@@ -355,7 +355,7 @@ TreeNeighbor<Dimension>::
 updateNodes() {
 
   // Clear our internal data.
-  mTree = Tree();
+  mTree.clear();
 
   // Grab the NodeList state.
   const auto& nodes = this->nodeList();
@@ -385,10 +385,14 @@ updateNodes() {
       for (const auto& keycellt: tree_local[klevel]) {
         const auto  key = keycellt.first;
         const auto& cellt = keycellt.second;
-        auto&       cellm = mTree[klevel][key];
-        cellm.key = key;
-        if (not cellt.daughters.empty()) cellm.daughters.insert(cellm.daughters.end(), cellt.daughters.begin(), cellt.daughters.end());
-        if (not cellt.members.empty()) cellm.members.insert(cellm.members.end(), cellt.members.begin(), cellt.members.end());
+        if (mTree[klevel].find(key) == mTree[klevel].end()) {
+          mTree[klevel][key] = cellt;
+        } else {
+          auto& cellm = mTree[klevel][key];
+          cellm.key = key;
+          cellm.daughters.insert(cellm.daughters.end(), cellt.daughters.begin(), cellt.daughters.end());
+          cellm.members.insert(cellm.members.end(), cellt.members.begin(), cellt.members.end());
+        }
       }
     }
   }
@@ -463,11 +467,22 @@ template<typename Dimension>
 std::string
 TreeNeighbor<Dimension>::
 dumpTree(const bool globalTree) const {
+  return this->dumpTree(mTree, globalTree);
+}
+
+//------------------------------------------------------------------------------
+// dumpTree
+//------------------------------------------------------------------------------
+template<typename Dimension>
+std::string
+TreeNeighbor<Dimension>::
+dumpTree(const Tree& tree,
+         const bool globalTree) const {
   stringstream ss;
   CellKey key, ix, iy, iz;
   const unsigned numProcs = Process::getTotalNumberOfProcesses();
   const unsigned rank = Process::getRank();
-  unsigned nlevels = mTree.size();
+  unsigned nlevels = tree.size();
   if (globalTree) nlevels = allReduce(nlevels, MPI_MAX, Communicator::communicator());
 
   ss << "Tree : nlevels = " << nlevels << "\n";
@@ -476,10 +491,10 @@ dumpTree(const bool globalTree) const {
     // Gather up the level cells and sort them.
     vector<Cell> cells;
     vector<char> localBuffer;
-    cells.reserve(mTree[ilevel].size());
-    if (ilevel < mTree.size()) {
-      for (typename TreeLevel::const_iterator itr = mTree[ilevel].begin();
-           itr != mTree[ilevel].end();
+    cells.reserve(tree[ilevel].size());
+    if (ilevel < tree.size()) {
+      for (typename TreeLevel::const_iterator itr = tree[ilevel].begin();
+           itr != tree[ilevel].end();
            ++itr) {
         cells.push_back(itr->second);
         this->serialize(itr->second, localBuffer);
@@ -535,11 +550,22 @@ template<typename Dimension>
 std::string
 TreeNeighbor<Dimension>::
 dumpTreeStatistics(const bool globalTree) const {
+  return this->dumpTreeStatistics(mTree, globalTree);
+}
+
+//------------------------------------------------------------------------------
+// dumpTreeStatistics
+//------------------------------------------------------------------------------
+template<typename Dimension>
+std::string
+TreeNeighbor<Dimension>::
+dumpTreeStatistics(const Tree& tree,
+                   const bool globalTree) const {
   stringstream ss;
   CellKey key, ix, iy, iz;
   const unsigned numProcs = Process::getTotalNumberOfProcesses();
   const unsigned rank = Process::getRank();
-  unsigned nlevels = mTree.size();
+  unsigned nlevels = tree.size();
   if (globalTree) nlevels = allReduce(nlevels, MPI_MAX, Communicator::communicator());
 
   ss << "Tree : nlevels = " << nlevels << "\n";
@@ -548,10 +574,10 @@ dumpTreeStatistics(const bool globalTree) const {
     // Gather up the level cells and sort them.
     vector<Cell> cells;
     vector<char> localBuffer;
-    cells.reserve(mTree[ilevel].size());
-    if (ilevel < mTree.size()) {
-      for (typename TreeLevel::const_iterator itr = mTree[ilevel].begin();
-           itr != mTree[ilevel].end();
+    cells.reserve(tree[ilevel].size());
+    if (ilevel < tree.size()) {
+      for (typename TreeLevel::const_iterator itr = tree[ilevel].begin();
+           itr != tree[ilevel].end();
            ++itr) {
         cells.push_back(itr->second);
         this->serialize(itr->second, localBuffer);
