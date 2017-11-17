@@ -383,31 +383,41 @@ updateNodes() {
     {
       mTree.resize(std::max(mTree.size(), tree_local.size()));
       for (auto klevel = 0; klevel < tree_local.size(); ++klevel) {
-        for (const auto& keycellt: tree_local[klevel]) {
-          const auto  key = keycellt.first;
-          const auto& cellt = keycellt.second;
-          if (mTree[klevel].find(key) == mTree[klevel].end()) {
+        for (auto& keycellt: tree_local[klevel]) {
+          const auto key = keycellt.first;
+          auto& cellt = keycellt.second;
+          std::sort(cellt.daughters.begin(), cellt.daughters.end());
+          std::sort(cellt.members.begin(), cellt.members.end());
+          auto itr = mTree[klevel].find(key);
+          if (itr == mTree[klevel].end()) {
             mTree[klevel][key] = cellt;
           } else {
-            auto& cellm = mTree[klevel][key];
-            cellm.key = key;
-            cellm.daughters.insert(cellm.daughters.end(), cellt.daughters.begin(), cellt.daughters.end());
-            cellm.members.insert(cellm.members.end(), cellt.members.begin(), cellt.members.end());
+            auto& cellm = itr->second; // mTree[klevel][key];
+            vector<CellKey> union_daughters;
+            vector<int> union_members;
+            std::set_union(cellm.daughters.begin(), cellm.daughters.end(),
+                           cellt.daughters.begin(), cellt.daughters.end(),
+                           std::back_inserter(union_daughters));
+            std::set_union(cellm.members.begin(), cellm.members.end(),
+                           cellt.members.begin(), cellt.members.end(),
+                           std::back_inserter(union_members));
+            cellm.daughters = union_daughters;
+            cellm.members = union_members;
           }
         }
       }
     }
   }
 
-  // Reduce to unique cells.
-  for (auto& keycellmaps: mTree) {
-    for (auto& keycell: keycellmaps) {
-      auto& cell = keycell.second;
-      std::sort(cell.daughters.begin(), cell.daughters.end());
-      cell.daughters.erase(std::unique(cell.daughters.begin(), cell.daughters.end()), cell.daughters.end());
-      cell.members.erase(std::unique(cell.members.begin(), cell.members.end()), cell.members.end());
-    }
-  }
+  // // Reduce to unique cells.
+  // for (auto& keycellmaps: mTree) {
+  //   for (auto& keycell: keycellmaps) {
+  //     auto& cell = keycell.second;
+  //     std::sort(cell.daughters.begin(), cell.daughters.end());
+  //     cell.daughters.erase(std::unique(cell.daughters.begin(), cell.daughters.end()), cell.daughters.end());
+  //     cell.members.erase(std::unique(cell.members.begin(), cell.members.end()), cell.members.end());
+  //   }
+  // }
 
   // Set the daughter pointers.
   constructDaughterPtrs(mTree);
