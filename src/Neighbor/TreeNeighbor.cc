@@ -380,18 +380,20 @@ updateNodes() {
 
     // Union the thread local trees.
 #pragma omp critical
-    mTree.resize(std::max(mTree.size(), tree_local.size()));
-    for (auto klevel = 0; klevel < tree_local.size(); ++klevel) {
-      for (const auto& keycellt: tree_local[klevel]) {
-        const auto  key = keycellt.first;
-        const auto& cellt = keycellt.second;
-        if (mTree[klevel].find(key) == mTree[klevel].end()) {
-          mTree[klevel][key] = cellt;
-        } else {
-          auto& cellm = mTree[klevel][key];
-          cellm.key = key;
-          cellm.daughters.insert(cellm.daughters.end(), cellt.daughters.begin(), cellt.daughters.end());
-          cellm.members.insert(cellm.members.end(), cellt.members.begin(), cellt.members.end());
+    {
+      mTree.resize(std::max(mTree.size(), tree_local.size()));
+      for (auto klevel = 0; klevel < tree_local.size(); ++klevel) {
+        for (const auto& keycellt: tree_local[klevel]) {
+          const auto  key = keycellt.first;
+          const auto& cellt = keycellt.second;
+          if (mTree[klevel].find(key) == mTree[klevel].end()) {
+            mTree[klevel][key] = cellt;
+          } else {
+            auto& cellm = mTree[klevel][key];
+            cellm.key = key;
+            cellm.daughters.insert(cellm.daughters.end(), cellt.daughters.begin(), cellt.daughters.end());
+            cellm.members.insert(cellm.members.end(), cellt.members.begin(), cellt.members.end());
+          }
         }
       }
     }
