@@ -175,7 +175,8 @@ private:
   // Add a node to the internal tree.
   void addNodeToTree(const Vector& xi,
                      const SymTensor& Hi,
-                     const unsigned i);
+                     const unsigned i,
+                     Tree& tree) const;
 
   // Construct all the daughterPtrs in a tree.
   void constructDaughterPtrs(Tree& tree) const;

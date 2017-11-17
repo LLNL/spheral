@@ -358,9 +358,9 @@ updateNodes() {
   mTree = Tree();
 
   // Grab the NodeList state.
-  const NodeList<Dimension>& nodes = this->nodeList();
-  const Field<Dimension, Vector>& positions = nodes.positions();
-  const Field<Dimension, SymTensor>& H = nodes.Hfield();
+  const auto& nodes = this->nodeList();
+  const auto& positions = nodes.positions();
+  const auto& H = nodes.Hfield();
 
   // // Recompute the current box size.  We assume xmin & xmax have
   // // already been set.
@@ -370,8 +370,37 @@ updateNodes() {
 
   // Walk all the nodes and add them to the tree.
   const size_t n = nodes.numNodes();
-  for (unsigned i = 0; i != n; ++i) {
-    this->addNodeToTree(positions(i), H(i), i);
+#pragma omp parallel
+  {
+    Tree tree_local;
+#pragma omp for
+    for (unsigned i = 0; i < n; ++i) {
+      this->addNodeToTree(positions(i), H(i), i, tree_local);
+    }
+
+    // Union the thread local trees.
+#pragma omp critical
+    mTree.resize(std::max(mTree.size(), tree_local.size()));
+    for (auto klevel = 0; klevel < tree_local.size(); ++klevel) {
+      for (const auto& keycellt: tree_local[klevel]) {
+        const auto  key = keycellt.first;
+        const auto& cellt = keycellt.second;
+        auto&       cellm = mTree[klevel][key];
+        cellm.key = key;
+        if (not cellt.daughters.empty()) cellm.daughters.insert(cellm.daughters.end(), cellt.daughters.begin(), cellt.daughters.end());
+        if (not cellt.members.empty()) cellm.members.insert(cellm.members.end(), cellt.members.begin(), cellt.members.end());
+      }
+    }
+  }
+
+  // Reduce to unique cells.
+  for (auto& keycellmaps: mTree) {
+    for (auto& keycell: keycellmaps) {
+      auto& cell = keycell.second;
+      std::sort(cell.daughters.begin(), cell.daughters.end());
+      cell.daughters.erase(std::unique(cell.daughters.begin(), cell.daughters.end()), cell.daughters.end());
+      cell.members.erase(std::unique(cell.members.begin(), cell.members.end()), cell.members.end());
+    }
   }
 
   // Set the daughter pointers.
@@ -797,8 +826,9 @@ void
 TreeNeighbor<Dimension>::
 addNodeToTree(const typename Dimension::Vector& xi,
               const typename Dimension::SymTensor& Hi,
-              const unsigned i) {
-  mTree.reserve(num1dbits); // This is necessary to avoid memory errors!
+              const unsigned i,
+              Tree& tree) const {
+  tree.reserve(num1dbits); // This is necessary to avoid memory errors!
 
   // Determine the level for this point.
   const LevelKey homeLevel = this->gridLevel(Hi);
@@ -811,22 +841,22 @@ addNodeToTree(const typename Dimension::Vector& xi,
   while (ilevel <= homeLevel) {
 
     // Do we need to add another level to the tree?
-    if (ilevel == mTree.size()) mTree.push_back(TreeLevel());
+    if (ilevel == tree.size()) tree.push_back(TreeLevel());
 
     // Create the key for the cell containing this particle on this level.
     buildCellKey(ilevel, xi, key, ix, iy, iz);
-    itr = mTree[ilevel].find(key);
+    itr = tree[ilevel].find(key);
 
     // Is this a new cell?
-    if (itr == mTree[ilevel].end()) {
-      mTree[ilevel][key] = Cell(key);
-      itr = mTree[ilevel].find(key);
+    if (itr == tree[ilevel].end()) {
+      tree[ilevel][key] = Cell(key);
+      itr = tree[ilevel].find(key);
     }
 
     // Link this cell as a daughter of its parent.
     if (ilevel > 0) {
-      CHECK(mTree[ilevel - 1].find(parentKey) != mTree[ilevel - 1].end());
-      addDaughter(mTree[ilevel - 1][parentKey], key);
+      CHECK(tree[ilevel - 1].find(parentKey) != tree[ilevel - 1].end());
+      addDaughter(tree[ilevel - 1][parentKey], key);
     }
 
     // Is this the final level for this node?
