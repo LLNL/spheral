@@ -378,16 +378,23 @@ updateNodes() {
       this->addNodeToTree(positions(i), H(i), i, tree_local);
     }
 
+    // Sort each Cell's info.
+    for (auto klevel = 0; klevel < tree_local.size(); ++klevel) {
+      for (auto& keycellt: tree_local[klevel]) {
+        auto& cellt = keycellt.second;
+        std::sort(cellt.daughters.begin(), cellt.daughters.end());
+        std::sort(cellt.members.begin(), cellt.members.end());
+      }
+    }
+
     // Union the thread local trees.
 #pragma omp critical
     {
       mTree.resize(std::max(mTree.size(), tree_local.size()));
       for (auto klevel = 0; klevel < tree_local.size(); ++klevel) {
-        for (auto& keycellt: tree_local[klevel]) {
+        for (const auto& keycellt: tree_local[klevel]) {
           const auto key = keycellt.first;
-          auto& cellt = keycellt.second;
-          std::sort(cellt.daughters.begin(), cellt.daughters.end());
-          std::sort(cellt.members.begin(), cellt.members.end());
+          const auto& cellt = keycellt.second;
           auto itr = mTree[klevel].find(key);
           if (itr == mTree[klevel].end()) {
             mTree[klevel][key] = cellt;
