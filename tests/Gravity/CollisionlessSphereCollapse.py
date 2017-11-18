@@ -1,4 +1,4 @@
-#ATS:if SYS_TYPE.startswith('darwin'):
+#ATS:if False: # SYS_TYPE.startswith('darwin'):
 #ATS:    t0 = test(SELF,       "--nr 10 --numViz 0 --timeStepChoice AccelerationRatio --steps=40 --restartStep 20 --dataDir 'Collisionless_Sphere_Collapse_AccelerationRatio' --clearDirectories True --outputFile 'Collisionless_sphere_collapse_AccelerationRatio_data.txt' --comparisonFile 'Reference/Collisionless_sphere_collapse_AccelerationRatio_data_darwin_20161003.txt'", np=1, label="Collisionless sphere gravitational collapse restart test (serial, acceleration ratio) INITIAL RUN")
 #ATS:    t1 = testif(t0, SELF, "--nr 10 --numViz 0 --timeStepChoice AccelerationRatio --steps 20 --restartStep 100 --dataDir 'Collisionless_Sphere_Collapse_AccelerationRatio' --clearDirectories False --outputFile 'Collisionless_sphere_collapse_AccelerationRatio_data.txt' --comparisonFile 'Reference/Collisionless_sphere_collapse_AccelerationRatio_data_darwin_20161003.txt' --restoreCycle 20 --checkRestart True", np=1, label="Collisionless sphere gravitational collapse restart test (serial, acceleration ratio) RESTARTED CHECK")
 #ATS:    t2 = test(SELF,       "--nr 10 --numViz 0 --timeStepChoice DynamicalTime --steps=40 --restartStep 20  --dataDir 'Collisionless_Sphere_Collapse_DynamicalTime'  --clearDirectories True --outputFile 'Collisionless_sphere_collapse_DynamicalTime_data.txt' --comparisonFile 'Reference/Collisionless_sphere_collapse_DynamicalTime_data_darwin_20151009.txt'", np=1, label="Collisionless sphere gravitational collapse restart test (serial, dynamical time) INITIAL RUN")
@@ -227,5 +227,6 @@ if outputFile != "None":
         # Also we can optionally compare the current results with another file.
         #---------------------------------------------------------------------------
         if comparisonFile != "None":
+            print "Comparing to reference %s" % comparisonFile
             import filearraycmp as fcomp
             assert fcomp.filearraycmp(outputFile, comparisonFile)
