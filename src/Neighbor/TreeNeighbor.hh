@@ -14,6 +14,7 @@
 
 #include <stdint.h>
 #include <unordered_map>
+#include <deque>
 
 #include "Neighbor.hh"
 
@@ -130,7 +131,7 @@ private:
     CellKey key;                     // Key for this cell.
     std::vector<CellKey> daughters;  // Keys of any daughter cells on level+1.
     std::vector<Cell*> daughterPtrs; // Pointers to the daughter cells.
-    std::vector<int> members;        // Indices of nodes that are members of the cell.
+    std::deque<int> members;        // Indices of nodes that are members of the cell.
 
     // Convenience constructors for OctTreeGravity::addNodeToTree.
     Cell(): key(0), daughters(), daughterPtrs(), members() {}
