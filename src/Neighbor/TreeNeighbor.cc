@@ -923,19 +923,16 @@ template<typename Dimension>
 void
 TreeNeighbor<Dimension>::
 constructDaughterPtrs(typename TreeNeighbor<Dimension>::Tree& tree) const {
-  const unsigned nlevels = tree.size();
-  const unsigned n = nlevels > 0 ? nlevels - 1 : nlevels;
-  unsigned ilevel, ilevel1;
-  for (ilevel = 0; ilevel != n; ++ilevel) {
-    ilevel1 = ilevel + 1;
-    for (typename TreeLevel::iterator itr = tree[ilevel].begin();
-         itr != tree[ilevel].end();
-         ++itr) {
-      Cell& cell = itr->second;
-      cell.daughterPtrs = std::vector<Cell*>();
-      for (typename std::vector<CellKey>::const_iterator ditr = cell.daughters.begin();
-           ditr != cell.daughters.end();
-           ++ditr) {
+  const auto nlevels = tree.size();
+  const auto n = nlevels > 0 ? nlevels - 1 : nlevels;
+  for (auto ilevel = 0; ilevel < n; ++ilevel) {
+    const auto ilevel1 = ilevel + 1;
+    const auto ncelllevel = tree[ilevel].size();
+// #pragma omp parallel for
+    for (auto k = 0; k < ncelllevel; ++k) {
+      auto& cell = tree[ilevel][k];
+      cell.daughterPtrs.clear();
+      for (auto ditr = cell.daughters.begin(); ditr != cell.daughters.end(); ++ditr) {
         cell.daughterPtrs.push_back(&(tree[ilevel1][*ditr]));
       }
       CHECK(cell.daughters.size() == cell.daughterPtrs.size());
