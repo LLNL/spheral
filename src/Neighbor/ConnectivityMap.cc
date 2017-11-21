@@ -642,8 +642,8 @@ computeConnectivity() {
   flagNodeDone = 0;
 
   // Get the position and H fields.
-  const FieldList<Dimension, Vector> position = dataBase.globalPosition();
-  const FieldList<Dimension, SymTensor> H = dataBase.globalHfield();
+  const auto position = dataBase.globalPosition();
+  const auto H = dataBase.globalHfield();
 
   // Iterate over the NodeLists.
   // std::clock_t t0, 
@@ -651,120 +651,88 @@ computeConnectivity() {
   //   trefine = std::clock_t(0), 
   //   twalk = std::clock_t(0);
   CHECK(mConnectivity.size() == connectivitySize);
-  for (auto iiNodeList = 0; iiNodeList != numNodeLists; ++iiNodeList) {
+  for (auto iNodeList = 0; iNodeList != numNodeLists; ++iNodeList) {
+    const auto etaMax = mNodeLists[iNodeList]->neighbor().kernelExtent();
 
     // Iterate over the nodes in this NodeList, and look for any that are not done yet.
-    const auto nii = (false ? // domainDecompIndependent or mBuildGhostConnectivity ? 
-                      mNodeLists[iiNodeList]->numNodes() :
-                      mNodeLists[iiNodeList]->numInternalNodes());
-    for (auto ii = 0; ii != nii; ++ii) {
-      if (flagNodeDone(iiNodeList, ii) == 0) {
-      
-        // Set the master nodes.
-        // t0 = std::clock();
-        vector<vector<int>> masterLists, coarseNeighbors;
-        Neighbor<Dimension>::setMasterNeighborGroup(position(iiNodeList, ii),
-                                                    H(iiNodeList, ii),
-                                                    mNodeLists.begin(),
-                                                    mNodeLists.end(),
-                                                    mNodeLists[iiNodeList]->neighbor().kernelExtent(),
-                                                    masterLists,
-                                                    coarseNeighbors);
-        // tmaster += std::clock() - t0;
-
-        // Iterate over the full of NodeLists again to work on the master nodes.
-        for (auto iNodeList = 0; iNodeList != numNodeLists; ++iNodeList) {
-          const auto& neighbori = mNodeLists[iNodeList]->neighbor();
-          CHECK(neighbori.valid());
-          auto& worki = mNodeLists[iNodeList]->work();
-          const auto firstGhostNodei = mNodeLists[iNodeList]->firstGhostNode();
-
-          // Iterate over the master nodes in this NodeList.
-          const auto& masterList = masterLists[iNodeList];
-          const auto  nmaster = masterList.size();
-          // cerr << "Masters: ";
-          // std::copy(masterList.begin(), masterList.end(), std::ostream_iterator<int>(std::cerr, " "));
-          // cerr << endl;
+    const auto ni = (false ? // domainDecompIndependent or mBuildGhostConnectivity ? 
+                     mNodeLists[iNodeList]->numNodes() :
+                     mNodeLists[iNodeList]->numInternalNodes());
 #pragma omp parallel for schedule(dynamic)
-          for (auto kmaster = 0; kmaster < nmaster; ++kmaster) {
-            const auto i = masterList[kmaster];
-            if (i < firstGhostNodei) { //  or domainDecompIndependent or mBuildGhostConnectivity) {
-              CHECK(mOffsets[iNodeList] + i < mConnectivity.size());
-              const auto start = Timing::currentTime();
-              CHECK2(flagNodeDone(iNodeList, i) == 0, "(" << iNodeList << " " << i << ") (" << iiNodeList << " " << ii << ")");
+    for (auto i = 0; i < ni; ++i) {
+      CHECK2(flagNodeDone(iNodeList, i) == 0, "(" << iNodeList << " " << i << ") (" << iNodeList << " " << i << ")");
 
-              // Get the neighbor set we're building for this node.
-              auto& neighbors = mConnectivity[mOffsets[iNodeList] + i];
-              CHECK2(neighbors.size() == numNodeLists, neighbors.size() << " " << numNodeLists << " " << i);
+      // Get the state for this node.
+      const auto& ri = position(iNodeList, i);
+      const auto& Hi = H(iNodeList, i);
+      
+      // Set the master nodes.
+      // t0 = std::clock();
+      vector<vector<int>> masterLists, coarseNeighbors;
+      Neighbor<Dimension>::setMasterNeighborGroup(ri,
+                                                  Hi,
+                                                  mNodeLists.begin(),
+                                                  mNodeLists.end(),
+                                                  etaMax,
+                                                  masterLists,
+                                                  coarseNeighbors);
+      auto& worki = mNodeLists[iNodeList]->work();
+      CHECK(mOffsets[iNodeList] + i < mConnectivity.size());
+      const auto start = Timing::currentTime();
 
-              // We keep track of the Morton indices.
-              vector<vector<pair<int, Key>>> keys(numNodeLists);
+      // Get the neighbor set we're building for this node.
+      auto& neighbors = mConnectivity[mOffsets[iNodeList] + i];
+      CHECK2(neighbors.size() == numNodeLists, neighbors.size() << " " << numNodeLists << " " << i);
 
-              // Get the state for this node.
-              const auto& ri = position(iNodeList, i);
-              const auto& Hi = H(iNodeList, i);
+      // We keep track of the Morton indices.
+      vector<vector<pair<int, Key>>> keys(numNodeLists);
 
-              // Iterate over the neighbor NodeLists.
-              for (auto jNodeList = 0; jNodeList != numNodeLists; ++jNodeList) {
-                const auto& neighborj = mNodeLists[jNodeList]->neighbor();
-                const auto  firstGhostNodej = mNodeLists[jNodeList]->firstGhostNode();
+      // Iterate over the neighbor NodeLists.
+      for (auto jNodeList = 0; jNodeList != numNodeLists; ++jNodeList) {
 
-                // Set the refine neighbors.
-                // t0 = std::clock();
-                vector<int> refineNeighbors;
-                neighborj.setRefineNeighborList(ri, Hi, coarseNeighbors[jNodeList], refineNeighbors);
-                // trefine += std::clock() - t0;
+        // Iterate over the coarse neighbors in this NodeList.
+        // t0 = std::clock();
+        for (const auto j:  coarseNeighbors[jNodeList]) {
+          const auto& rj = position(jNodeList, j);
+          const auto& Hj = H(jNodeList, j);
 
-                // Iterate over the neighbors in this NodeList.
-                // t0 = std::clock();
-                for (auto neighborItr = refineNeighbors.begin(); neighborItr < refineNeighbors.end(); ++neighborItr) {
-                  const auto j = *neighborItr;
+          // Compute the normalized distance between this pair.
+          const auto rij = ri - rj;
+          const auto eta2i = (Hi*rij).magnitude2();
+          const auto eta2j = (Hj*rij).magnitude2();
 
-                  // Get the neighbor state.
-                  const auto& rj = position(jNodeList, j);
-                  const auto& Hj = H(jNodeList, j);
+          // If this pair is significant, add it to the list.
+          if (eta2i <= kernelExtent2 or eta2j <= kernelExtent2) {
 
-                  // Compute the normalized distance between this pair.
-                  const auto rij = ri - rj;
-                  const auto eta2i = (Hi*rij).magnitude2();
-                  const auto eta2j = (Hj*rij).magnitude2();
-
-                  // If this pair is significant, add it to the list.
-                  if (eta2i <= kernelExtent2 or eta2j <= kernelExtent2) {
-
-                    // We don't include self-interactions.
-                    if ((iNodeList != jNodeList) or (i != j)) {
-                      neighbors[jNodeList].push_back(j);
-                      if (domainDecompIndependent) keys[jNodeList].push_back(pair<int, Key>(j, mKeys(jNodeList, j)));
-                    }
-                  }
-                }
-                // twalk += std::clock() - t0;
-              }
-              CHECK(neighbors.size() == numNodeLists);
-              CHECK(keys.size() == numNodeLists);
-        
-              // We have a few options for how to order the neighbors for this node.
-              for (auto k = 0; k != numNodeLists; ++k) {
-
-                if (domainDecompIndependent) {
-                  // Sort in a domain independent manner.
-                  CHECK(keys[k].size() == neighbors[k].size());
-                  sort(keys[k].begin(), keys[k].end(), ComparePairsBySecondElement<pair<int, Key>>());
-                  for (auto j = 0; j != neighbors[k].size(); ++j) neighbors[k][j] = keys[k][j].first;
-                } else {
-                  // Sort in an attempt to be cache friendly.
-                  sort(neighbors[k].begin(), neighbors[k].end());
-                }
-              }
-
-              // Flag this master node as done.
-              flagNodeDone(iNodeList, i) = 1;
-              worki(i) += Timing::difference(start, Timing::currentTime());
+            // We don't include self-interactions.
+            if ((iNodeList != jNodeList) or (i != j)) {
+              neighbors[jNodeList].push_back(j);
+              if (domainDecompIndependent) keys[jNodeList].push_back(pair<int, Key>(j, mKeys(jNodeList, j)));
             }
           }
         }
+        // twalk += std::clock() - t0;
       }
+      CHECK(neighbors.size() == numNodeLists);
+      CHECK(keys.size() == numNodeLists);
+        
+      // We have a few options for how to order the neighbors for this node.
+      for (auto jNodeList = 0; jNodeList != numNodeLists; ++jNodeList) {
+
+        if (domainDecompIndependent) {
+          // Sort in a domain independent manner.
+          CHECK(keys[jNodeList].size() == neighbors[jNodeList].size());
+          sort(keys[jNodeList].begin(), keys[jNodeList].end(), ComparePairsBySecondElement<pair<int, Key>>());
+          for (auto j = 0; j != neighbors[jNodeList].size(); ++j) neighbors[jNodeList][j] = keys[jNodeList][j].first;
+        } else {
+          // Sort in an attempt to be cache friendly.
+          sort(neighbors[jNodeList].begin(), neighbors[jNodeList].end());
+        }
+      }
+
+      // Flag this master node as done.
+      flagNodeDone(iNodeList, i) = 1;
+      worki(i) += Timing::difference(start, Timing::currentTime());
     }
   }
 
