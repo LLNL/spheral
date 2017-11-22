@@ -402,6 +402,7 @@ updateNodes() {
             auto& cellm = itr->second; // mTree[klevel][key];
             vector<CellKey> union_daughters;
             vector<int> union_members;
+            union_members.reserve(cellm.members.size() + cellt.members.size());
             std::set_union(cellm.daughters.begin(), cellm.daughters.end(),
                            cellt.daughters.begin(), cellt.daughters.end(),
                            std::back_inserter(union_daughters));
@@ -542,7 +543,7 @@ dumpTree(const Tree& tree,
     cells.erase(unique(cells.begin(), cells.end()), cells.end());
 
     ss << "--------------------------------------------------------------------------------\n" 
-       << " Level " << ilevel << " : numCells = " << cells.size() << "\n";
+       << " Level " << ilevel << " : boxsize = " << mBoxLength/(1 << ilevel) << " : numCells = " << cells.size() << "\n";
     for (typename vector<Cell>::const_iterator itr = cells.begin();
          itr != cells.end();
          ++itr) {
@@ -626,7 +627,7 @@ dumpTreeStatistics(const Tree& tree,
 
     // Count up how much of everything we have.
     ss << "--------------------------------------------------------------------------------\n" 
-       << " Level " << ilevel << " : numCells = " << cells.size() << "\n";
+       << " Level " << ilevel << " : boxsize = " << mBoxLength/(1 << ilevel) << " : numCells = " << cells.size() << "\n";
     unsigned nparticles = 0;
     for (typename vector<Cell>::const_iterator itr = cells.begin();
          itr != cells.end();
@@ -728,8 +729,8 @@ deserialize(vector<char>::const_iterator& bufItr,
     unsigned ncells;
     unpackElement(ncells, bufItr, endItr);
     for (unsigned i = 0; i != ncells; ++i) {
-      cell.daughters = vector<CellKey>();
-      cell.members = vector<int>();
+      cell.daughters.clear();
+      cell.members.clear();
       unpackElement(key, bufItr, endItr);
       deserialize(cell, bufItr, endItr);
       mTree[ilevel][key] = cell;
@@ -791,8 +792,11 @@ setTreeMasterList(const typename TreeNeighbor<Dimension>::LevelKey levelID,
 
   // Set the master list.
   if (mTree.size() > levelID) {
-    typename TreeLevel::const_iterator masterItr = mTree[levelID].find(cellID);
-    masterList = (masterItr == mTree[levelID].end() ? vector<int>() : masterItr->second.members);
+    auto masterItr = mTree[levelID].find(cellID);
+    if (masterItr !=  mTree[levelID].end()) {
+      masterList = masterItr->second.members;
+      // cerr << "Master cell/level " << masterItr->second.key << " / " << levelID << " : " << masterList.size() << endl;
+    }
   }
 
   // Set the coarse list.
@@ -806,7 +810,7 @@ setTreeMasterList(const typename TreeNeighbor<Dimension>::LevelKey levelID,
   masterList.erase(lower_bound(masterList.begin(), masterList.end(), firstGhostNode), masterList.end());
 
   // Post conditions.
-  ENSURE(coarseNeighbors.size() >= masterList.size());
+  ENSURE2(coarseNeighbors.size() >= masterList.size(), coarseNeighbors.size() << " " << masterList.size());
   ENSURE(masterList.size() == 0 or *max_element(masterList.begin(), masterList.end()) < firstGhostNode);
 }
 
@@ -904,16 +908,13 @@ addNodeToTree(const typename Dimension::Vector& xi,
       addDaughter(tree[ilevel - 1][parentKey], key);
     }
 
-    // Is this the final level for this node?
-    if (ilevel == homeLevel) {
-      itr->second.members.push_back(i);
-    }
-
     // Prepare for the next level.
     parentKey = key;
     ++ilevel;
   }
 
+  // Add the node to it's final cell.
+  itr->second.members.push_back(i);
 }
 
 //------------------------------------------------------------------------------
@@ -923,20 +924,15 @@ template<typename Dimension>
 void
 TreeNeighbor<Dimension>::
 constructDaughterPtrs(typename TreeNeighbor<Dimension>::Tree& tree) const {
-  const unsigned nlevels = tree.size();
-  const unsigned n = nlevels > 0 ? nlevels - 1 : nlevels;
-  unsigned ilevel, ilevel1;
-  for (ilevel = 0; ilevel != n; ++ilevel) {
-    ilevel1 = ilevel + 1;
-    for (typename TreeLevel::iterator itr = tree[ilevel].begin();
-         itr != tree[ilevel].end();
-         ++itr) {
-      Cell& cell = itr->second;
-      cell.daughterPtrs = std::vector<Cell*>();
-      for (typename std::vector<CellKey>::const_iterator ditr = cell.daughters.begin();
-           ditr != cell.daughters.end();
-           ++ditr) {
-        cell.daughterPtrs.push_back(&(tree[ilevel1][*ditr]));
+  const auto nlevels = tree.size();
+  const auto n = nlevels > 0 ? nlevels - 1 : nlevels;
+  for (auto ilevel = 0; ilevel < n; ++ilevel) {
+    const auto ilevel1 = ilevel + 1;
+    for (auto& keyCellPair: tree[ilevel]) {
+      auto& cell = keyCellPair.second;
+      cell.daughterPtrs.clear();
+      for (const auto daughterID: cell.daughters) {
+        cell.daughterPtrs.push_back(&(tree[ilevel1][daughterID]));
       }
       CHECK(cell.daughters.size() == cell.daughterPtrs.size());
     }
@@ -1024,19 +1020,17 @@ findTreeNeighbors(const LevelKey& masterLevel,
     CHECK(iz_min <= iz_max and iz_max <= max1dKey);
     
     // Walk the candidate daughters on this level.
-    for (typename vector<Cell*>::const_iterator itr = remainingDaughters.begin();
-         itr != remainingDaughters.end();
-         ++itr) {
-      const Cell& cell = **itr;
+    for (auto cellPtr: remainingDaughters) {
+      const auto& cell = *cellPtr;
 
       // Is this daughter in range?
       if (keyInRange(cell.key, ix_min, iy_min, iz_min, ix_max, iy_max, iz_max)) {
         
         // Copy this cells members to the result.
-        copy(cell.members.begin(), cell.members.end(), back_inserter(result));
+        result.insert(result.end(), cell.members.begin(), cell.members.end());
 
         // Add any daughters of this cell to our candidates to check on the next level.
-        copy(cell.daughterPtrs.begin(), cell.daughterPtrs.end(), back_inserter(newDaughters));
+        newDaughters.insert(newDaughters.end(), cell.daughterPtrs.begin(), cell.daughterPtrs.end());
       }
     }
 
@@ -1176,17 +1170,11 @@ valid() const {
 
   // Make sure each node is listed only once.
   map<unsigned, unsigned> nodeCount;
-  for (typename Tree::const_iterator levelItr = mTree.begin(); 
-       levelItr != mTree.end();
-       ++levelItr) {
-    for (typename TreeLevel::const_iterator cellItr = levelItr->begin();
-         cellItr != levelItr->end();
-         ++cellItr) {
-      const Cell& cell = cellItr->second;
-      for (vector<int>::const_iterator iitr = cell.members.begin();
-           iitr != cell.members.end();
-           ++iitr) {
-        map<unsigned, unsigned>::iterator itr = nodeCount.find(*iitr);
+  for (auto levelItr = mTree.begin(); levelItr != mTree.end(); ++levelItr) {
+    for (auto cellItr = levelItr->begin(); cellItr != levelItr->end(); ++cellItr) {
+      const auto& cell = cellItr->second;
+      for (auto iitr = cell.members.begin(); iitr != cell.members.end(); ++iitr) {
+        auto itr = nodeCount.find(*iitr);
         if (itr == nodeCount.end()) {
           itr->second = 1;
         } else {
@@ -1196,11 +1184,9 @@ valid() const {
     }
   }
 
-  for (typename map<unsigned, unsigned>::const_iterator itr = nodeCount.begin();
-       itr != nodeCount.end();
-       ++itr) {
-    const unsigned i = itr->first;
-    const unsigned count = itr->second;
+  for (auto itr = nodeCount.begin(); itr != nodeCount.end(); ++itr) {
+    const auto i = itr->first;
+    const auto count = itr->second;
     if (count != 1) {
       cerr << "TreeNeighor::valid failing test of nodes uniquely assigned to cell: " << i << " " << count << endl;
       result = false;
