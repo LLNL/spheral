@@ -402,6 +402,7 @@ updateNodes() {
             auto& cellm = itr->second; // mTree[klevel][key];
             vector<CellKey> union_daughters;
             vector<int> union_members;
+            union_members.reserve(cellm.members.size() + cellt.members.size());
             std::set_union(cellm.daughters.begin(), cellm.daughters.end(),
                            cellt.daughters.begin(), cellt.daughters.end(),
                            std::back_inserter(union_daughters));
@@ -409,7 +410,7 @@ updateNodes() {
                            cellt.members.begin(), cellt.members.end(),
                            std::back_inserter(union_members));
             cellm.daughters = union_daughters;
-            cellm.members = std::deque<int>(union_members.begin(), union_members.end());
+            cellm.members = union_members;
           }
         }
       }
@@ -704,7 +705,7 @@ serialize(const TreeNeighbor<Dimension>::Cell& cell,
           std::vector<char>& buffer) const {
   packElement(cell.key, buffer);
   packElement(cell.daughters, buffer);
-  packElement(vector<int>(cell.members.begin(), cell.members.end()), buffer);
+  packElement(cell.members, buffer);
 }
 
 //------------------------------------------------------------------------------
@@ -749,9 +750,7 @@ deserialize(typename TreeNeighbor<Dimension>::Cell& cell,
             const vector<char>::const_iterator& endItr) const {
   unpackElement(cell.key, bufItr, endItr);
   unpackElement(cell.daughters, bufItr, endItr);
-  vector<int> members;
-  unpackElement(members, bufItr, endItr);
-  cell.members = std::deque<int>(members.begin(), members.end());
+  unpackElement(cell.members, bufItr, endItr);
 }
 
 //------------------------------------------------------------------------------
@@ -795,7 +794,7 @@ setTreeMasterList(const typename TreeNeighbor<Dimension>::LevelKey levelID,
   if (mTree.size() > levelID) {
     auto masterItr = mTree[levelID].find(cellID);
     if (masterItr !=  mTree[levelID].end()) {
-      masterList = std::vector<int>(masterItr->second.members.begin(), masterItr->second.members.end());
+      masterList = masterItr->second.members;
       // cerr << "Master cell/level " << masterItr->second.key << " / " << levelID << " : " << masterList.size() << endl;
     }
   }
@@ -1028,9 +1027,7 @@ findTreeNeighbors(const LevelKey& masterLevel,
       if (keyInRange(cell.key, ix_min, iy_min, iz_min, ix_max, iy_max, iz_max)) {
         
         // Copy this cells members to the result.
-        // cerr << "  --> " << " Neighbor cell " << cell.key << " on " << ilevel << " " << cell.daughters.size() << " " << cell.daughterPtrs.size() << " --> " << result.size() << " " << cell.members.size() << " ";
         result.insert(result.end(), cell.members.begin(), cell.members.end());
-        // cerr << " = " << result.size() << endl;
 
         // Add any daughters of this cell to our candidates to check on the next level.
         newDaughters.insert(newDaughters.end(), cell.daughterPtrs.begin(), cell.daughterPtrs.end());
@@ -1038,7 +1035,6 @@ findTreeNeighbors(const LevelKey& masterLevel,
     }
 
     // Update the daughters to check on the next pass.
-    // cerr << "New daughters to check : " << newDaughters.size() << endl;
     remainingDaughters = newDaughters;
   }
 
