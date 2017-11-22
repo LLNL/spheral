@@ -33,6 +33,9 @@ AC_ARG_WITH(pybindgen,
     if test "`uname -s`" = "AIX"; then
        MODULELINK="$MODULELINK -e init\$(PKGNAME)"
     fi
+    if test "$CXXCOMPILERTYPE" = "INTEL"; then
+       PYOPT=" -O0 -no-ipo"
+    fi
 ])
 
 # -----------------------------------------------------------------
