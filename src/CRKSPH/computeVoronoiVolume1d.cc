@@ -43,13 +43,13 @@ computeVoronoiVolume(const FieldSpace::FieldList<Dim<1>, Dim<1>::Vector>& positi
   typedef Dim<1>::SymTensor SymTensor;
   typedef Dim<1>::FacetedVolume FacetedVolume;
 
-  const unsigned numGens = position.numNodes();
-  const unsigned numNodeLists = position.size();
-  const unsigned numBounds = boundaries.size();
-  const bool haveBoundaries = numBounds == numNodeLists;
-  const bool haveWeights = weight.size() == numNodeLists;
-  const bool returnSurface = surfacePoint.size() == numNodeLists;
-  const bool returnCells = cells.size() == numNodeLists;
+  const auto numGens = position.numNodes();
+  const auto numNodeLists = position.size();
+  const auto numBounds = boundaries.size();
+  const auto haveBoundaries = numBounds == numNodeLists;
+  const auto haveWeights = weight.size() == numNodeLists;
+  const auto returnSurface = surfacePoint.size() == numNodeLists;
+  const auto returnCells = cells.size() == numNodeLists;
 
   REQUIRE(numBounds == 0 or numBounds == numNodeLists);
 
@@ -65,9 +65,9 @@ computeVoronoiVolume(const FieldSpace::FieldList<Dim<1>, Dim<1>::Vector>& positi
   typedef pair<double, pair<unsigned, unsigned> > PointCoord;
   vector<PointCoord> coords;
   coords.reserve(numGens);
-  for (unsigned nodeListi = 0; nodeListi != numNodeLists; ++nodeListi) {
-    const unsigned n = position[nodeListi]->numElements();
-    for (unsigned i = 0; i != n; ++i) {
+  for (auto nodeListi = 0; nodeListi < numNodeLists; ++nodeListi) {
+    const auto n = position[nodeListi]->numElements();
+    for (auto i = 0; i < n; ++i) {
       coords.push_back(make_pair(position(nodeListi, i).x(), make_pair(nodeListi, i)));
     }
   }
@@ -79,16 +79,17 @@ computeVoronoiVolume(const FieldSpace::FieldList<Dim<1>, Dim<1>::Vector>& positi
     xbound0 = -std::numeric_limits<Scalar>::max(),
     xbound1 =  std::numeric_limits<Scalar>::max();
 
-  // cerr << "Volume loop: " << endl;
-
   // Now walk our sorted point and set the volumes and surface flags.
-  
-  const vector<NodeList<Dim<1> >*>& nodeListPtrs = position.nodeListPtrs();
-  for (vector<PointCoord>::const_iterator itr = coords.begin();
-       itr != coords.end();
-       ++itr) {
-    const unsigned nodeListi = itr->second.first;
-    const unsigned i = itr->second.second;
+  const auto& nodeListPtrs = position.nodeListPtrs();
+  const auto ntot = coords.size();
+#pragma omp parallel for                                                \
+  firstprivate(nodeListj1, nodeListj2, j1, j2,                          \
+               rin, Hi, H1, H2, rhoi, rho1, rho2, gradRhoi, x1, x2, xi,\
+               etamax, b, xm1, xm2, thpt, weighti, weightj, wij,        \
+               xbound0, xbound1)
+  for (auto k = 0; k < ntot; ++k) {
+    const auto nodeListi = coords[k].second.first;
+    const auto i = coords[k].second.second;
     if (i < nodeListPtrs[nodeListi]->firstGhostNode()) {
 
       // Is there a bounding volume for this NodeList?
@@ -108,7 +109,7 @@ computeVoronoiVolume(const FieldSpace::FieldList<Dim<1>, Dim<1>::Vector>& positi
       weighti = haveWeights ? weight(nodeListi, i) : 1.0;
 
       // phi = 1.0;
-      if (itr == coords.begin()) {
+      if (k == 0) {
         x1 = xbound0 - xi;
         H1 = Hi;
         rho1 = rhoi;
@@ -116,8 +117,8 @@ computeVoronoiVolume(const FieldSpace::FieldList<Dim<1>, Dim<1>::Vector>& positi
         etaVoidPoints(nodeListi, i).push_back(-0.5*rin);
         // cerr << "Surface condition 1: " << nodeListi << " " << i << " " << surfacePoint(nodeListi, i) << endl;
       } else {
-        nodeListj1 = (itr-1)->second.first;
-        j1 = (itr-1)->second.second;
+        nodeListj1 = coords[k-1].second.first;
+        j1 = coords[k-1].second.second;
         H1 = H(nodeListj1, j1).xx();
         rho1 = rho(nodeListj1, j1);
         weightj = haveWeights ? weight(nodeListj1, j1) : 1.0;
@@ -135,7 +136,7 @@ computeVoronoiVolume(const FieldSpace::FieldList<Dim<1>, Dim<1>::Vector>& positi
         }
       }
 
-      if (itr == coords.end()-1) {
+      if (k == ntot - 1) {
         x2 = xbound1 - xi;
         H2 = Hi;
         rho2 = rhoi;
@@ -143,8 +144,8 @@ computeVoronoiVolume(const FieldSpace::FieldList<Dim<1>, Dim<1>::Vector>& positi
         etaVoidPoints(nodeListi, i).push_back(0.5*rin);
         // cerr << "Surface condition 4: " << nodeListi << " " << i << " " << surfacePoint(nodeListi, i) << endl;
       } else {
-        nodeListj2 = (itr+1)->second.first;
-        j2 = (itr+1)->second.second;
+        nodeListj2 = coords[k+1].second.first;
+        j2 = coords[k+1].second.second;
         H2 = H(nodeListj2, j2).xx();
         rho2 = rho(nodeListj2, j2);
         x2 = 0.5*(position(nodeListj2, j2).x() - position(nodeListi, i).x());
@@ -242,7 +243,8 @@ computeVoronoiVolume(const FieldSpace::FieldList<Dim<1>, Dim<1>::Vector>& positi
   if (returnSurface) {
     for (auto nodeListi = 0U; nodeListi != numNodeLists; ++nodeListi) {
       const unsigned n = position[nodeListi]->numInternalElements();
-      for (auto i = 0U; i != n; ++i) {
+#pragma omp parallel for
+      for (auto i = 0U; i < n; ++i) {
         const auto& fullConnectivity = connectivityMap.connectivityForNode(nodeListi, i);
         for (auto nodeListj = 0U; nodeListj != numNodeLists; ++nodeListj) {
           if (nodeListj != nodeListi and not fullConnectivity[nodeListj].empty()) surfacePoint(nodeListi, i) |= (1 << (nodeListj + 1));
