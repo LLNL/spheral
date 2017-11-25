@@ -6,10 +6,9 @@
 #ifndef __Spheral_SolidCRKSPHHydroBase_hh__
 #define __Spheral_SolidCRKSPHHydroBase_hh__
 
-#include <float.h>
-#include <string>
-
 #include "CRKSPH/CRKSPHHydroBase.hh"
+
+#include <string>
 
 namespace Spheral {
   template<typename Dimension> class State;

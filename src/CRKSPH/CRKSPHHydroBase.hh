@@ -6,11 +6,11 @@
 #ifndef __Spheral_CRKSPHHydroBase_hh__
 #define __Spheral_CRKSPHHydroBase_hh__
 
-#include <string>
-
 #include "Physics/GenericHydro.hh"
 #include "CRKSPHCorrectionParams.hh"
 #include "Boundary/CRKSPHVoidBoundary.hh"
+
+#include <string>
 
 namespace Spheral {
   template<typename Dimension> class State;
