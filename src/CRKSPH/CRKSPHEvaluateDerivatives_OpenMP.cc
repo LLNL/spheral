@@ -140,8 +140,7 @@ evaluateDerivatives(const typename Dimension::Scalar time,
     auto& workFieldi = nodeList.work();
 
     // Iterate over the internal nodes in this NodeList.
-    const auto ni = std::distance(connectivityMap.begin(nodeListi),
-                                  connectivityMap.end(nodeListi));
+    const auto ni = connectivityMap.numNodes(nodeListi);
 #pragma omp parallel for                        \
   private(Ai, Aj,                               \
           gradAi, gradAj, forceij, forceji,     \
@@ -153,7 +152,7 @@ evaluateDerivatives(const typename Dimension::Scalar time,
           gradWi, gradWj, gradW0i, gradW0j,             \
           deltagrad)
     for (auto iItr = 0; iItr < ni; ++iItr) {
-      const auto i = *(connectivityMap.begin(nodeListi) + iItr);
+      const auto i = connectivityMap.ithNode(nodeListi, iItr);
 
       // Prepare to accumulate the time.
       const auto start = Timing::currentTime();
