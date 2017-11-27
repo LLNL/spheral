@@ -126,14 +126,14 @@ computeVoronoiVolume(const FieldList<Dim<3>, Dim<3>::Vector>& position,
   typedef Dim<3>::FacetedVolume FacetedVolume;
   typedef Dim<3>::FacetedVolume::Facet Facet;
 
-  const unsigned numGens = position.numNodes();
-  const unsigned numNodeLists = position.size();
-  const unsigned numGensGlobal = allReduce(numGens, MPI_SUM, Communicator::communicator());
-  const unsigned numBounds = boundaries.size();
-  const bool haveBoundaries = numBounds == numNodeLists;
-  const bool haveWeights = weight.size() == numNodeLists;
-  const bool returnSurface = surfacePoint.size() == numNodeLists;
-  const bool returnCells = cells.size() == numNodeLists;
+  const auto numGens = position.numNodes();
+  const auto numNodeLists = position.size();
+  const auto numGensGlobal = allReduce(numGens, MPI_SUM, Communicator::communicator());
+  const auto numBounds = boundaries.size();
+  const auto haveBoundaries = numBounds == numNodeLists;
+  const auto haveWeights = weight.size() == numNodeLists;
+  const auto returnSurface = surfacePoint.size() == numNodeLists;
+  const auto returnCells = cells.size() == numNodeLists;
 
   REQUIRE(numBounds == 0 or numBounds == numNodeLists);
   REQUIRE(holes.size() == numBounds);
@@ -240,7 +240,9 @@ computeVoronoiVolume(const FieldList<Dim<3>, Dim<3>::Vector>& position,
     for (unsigned nodeListi = 0; nodeListi != numNodeLists; ++nodeListi) {
       const auto n = vol[nodeListi]->numInternalElements();
       const auto rin = 2.0/vol[nodeListi]->nodeListPtr()->nodesPerSmoothingScale();
-// #pragma omp parallel for
+#pragma omp parallel for                        \
+  firstprivate(initialCell)                     \
+  private(pairPlanes, voidPlanes, nvoid, etaVoidAvg)
       for (unsigned i = 0; i < n; ++i) {
 
         const auto& ri = position(nodeListi, i);

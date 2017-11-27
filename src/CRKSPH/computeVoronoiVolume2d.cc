@@ -202,14 +202,14 @@ computeVoronoiVolume(const FieldList<Dim<2>, Dim<2>::Vector>& position,
   typedef Dim<2>::FacetedVolume FacetedVolume;
   typedef Dim<2>::FacetedVolume::Facet Facet;
 
-  const unsigned numGens = position.numNodes();
-  const unsigned numNodeLists = position.size();
-  const unsigned numGensGlobal = allReduce(numGens, MPI_SUM, Communicator::communicator());
-  const unsigned numBounds = boundaries.size();
-  const bool haveBoundaries = numBounds == numNodeLists;
-  const bool haveWeights = weight.size() == numNodeLists;
-  const bool returnSurface = surfacePoint.size() == numNodeLists;
-  const bool returnCells = cells.size() == numNodeLists;
+  const auto numGens = position.numNodes();
+  const auto numNodeLists = position.size();
+  const auto numGensGlobal = allReduce(numGens, MPI_SUM, Communicator::communicator());
+  const auto numBounds = boundaries.size();
+  const auto haveBoundaries = numBounds == numNodeLists;
+  const auto haveWeights = weight.size() == numNodeLists;
+  const auto returnSurface = surfacePoint.size() == numNodeLists;
+  const auto returnCells = cells.size() == numNodeLists;
 
   // std::clock_t t0, 
   //   ttotal = std::clock_t(0), 
@@ -234,11 +234,11 @@ computeVoronoiVolume(const FieldList<Dim<2>, Dim<2>::Vector>& position,
   if (numGensGlobal > 0) {
 
     // Unit circle as template shape.
-    const unsigned nverts = 18;
-    const double dtheta = 2.0*M_PI/nverts;
+    const auto nverts = 18;
+    const auto dtheta = 2.0*M_PI/nverts;
     r2d_rvec2 verts[nverts];
     for (unsigned j = 0; j != nverts; ++j) {
-      const double theta = j*dtheta;
+      const auto theta = j*dtheta;
       verts[j].x = cos(theta);
       verts[j].y = sin(theta);
     }
@@ -254,7 +254,10 @@ computeVoronoiVolume(const FieldList<Dim<2>, Dim<2>::Vector>& position,
     for (unsigned nodeListi = 0; nodeListi != numNodeLists; ++nodeListi) {
       const unsigned n = vol[nodeListi]->numInternalElements();
       const Scalar rin = 2.0/vol[nodeListi]->nodeListPtr()->nodesPerSmoothingScale();
-      for (unsigned i = 0; i != n; ++i) {
+#pragma omp parallel for                        \
+  firstprivate(initialCell)                     \
+  private(firstmom, pairPlanes, voidPlanes, nvoid, etaVoidAvg)
+      for (auto i = 0; i < n; ++i) {
 
         const auto& ri = position(nodeListi, i);
         const auto& Hi = H(nodeListi, i);

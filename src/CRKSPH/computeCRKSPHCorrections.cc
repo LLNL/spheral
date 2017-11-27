@@ -456,6 +456,12 @@ computeCRKSPHCorrections(const ConnectivityMap<Dimension>& connectivityMap,
 
   VERIFY2(false, "Implement me!");
 
+  typedef typename Dimension::Scalar Scalar;
+  typedef typename Dimension::Vector Vector;
+  typedef typename Dimension::Tensor Tensor;
+  typedef typename Dimension::SymTensor SymTensor;
+  typedef typename Dimension::ThirdRankTensor ThirdRankTensor;
+
   // Pre-conditions.
   const auto numNodeLists = A.size();
   REQUIRE(weight.size() == numNodeLists);
@@ -471,12 +477,12 @@ computeCRKSPHCorrections(const ConnectivityMap<Dimension>& connectivityMap,
 
   // We can derive everything in terms of the zeroth, first, and second moments 
   // of the local positions.
-  auto m0(FieldSpace::FieldStorageType::CopyFields), m0c(FieldSpace::FieldStorageType::CopyFields);
-  auto m1(FieldSpace::FieldStorageType::CopyFields), m1c(FieldSpace::FieldStorageType::CopyFields);
-  auto m2(FieldSpace::FieldStorageType::CopyFields), m2c(FieldSpace::FieldStorageType::CopyFields);
-  auto gradm0(FieldSpace::FieldStorageType::CopyFields), gradm0c(FieldSpace::FieldStorageType::CopyFields);
-  auto gradm1(FieldSpace::FieldStorageType::CopyFields), gradm1c(FieldSpace::FieldStorageType::CopyFields);
-  auto gradm2(FieldSpace::FieldStorageType::CopyFields), gradm2c(FieldSpace::FieldStorageType::CopyFields);
+  FieldList<Dimension, Scalar> m0(FieldSpace::FieldStorageType::CopyFields), m0c(FieldSpace::FieldStorageType::CopyFields);
+  FieldList<Dimension, Vector> m1(FieldSpace::FieldStorageType::CopyFields), m1c(FieldSpace::FieldStorageType::CopyFields);
+  FieldList<Dimension, SymTensor> m2(FieldSpace::FieldStorageType::CopyFields), m2c(FieldSpace::FieldStorageType::CopyFields);
+  FieldList<Dimension, Vector> gradm0(FieldSpace::FieldStorageType::CopyFields), gradm0c(FieldSpace::FieldStorageType::CopyFields);
+  FieldList<Dimension, Tensor> gradm1(FieldSpace::FieldStorageType::CopyFields), gradm1c(FieldSpace::FieldStorageType::CopyFields);
+  FieldList<Dimension, ThirdRankTensor> gradm2(FieldSpace::FieldStorageType::CopyFields), gradm2c(FieldSpace::FieldStorageType::CopyFields);
   for (auto nodeListi = 0; nodeListi < numNodeLists; ++nodeListi) {
     const auto& nodeList = A[nodeListi]->nodeList();
     m0.appendNewField("zeroth moment", nodeList, 0.0);
@@ -500,7 +506,7 @@ computeCRKSPHCorrections(const ConnectivityMap<Dimension>& connectivityMap,
   // Walk the FluidNodeLists.
   for (auto nodeListi = 0; nodeListi < numNodeLists; ++nodeListi) {
     const auto ni = connectivityMap.numNodes(nodeListi);
-    const auto firstGhostNodei = nodeList.firstGhostNode();
+    const auto firstGhostNodei = A[nodeListi]->nodeList().firstGhostNode();
 
     // Iterate over the nodes in this node list.
 #pragma omp parallel for \
