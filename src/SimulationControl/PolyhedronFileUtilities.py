@@ -44,14 +44,15 @@ def writePolyhedronOBJ(poly, filename, forceTriangles=False):
     for v in verts:
         f.write("v %g %g %g\n" % (v.x, v.y, v.z))
     if isinstance(poly, Polygon):
-        i0 = facets[0].ipoint1
-        i = 0
-        f.write("f")
-        while i < len(facets):
-            f.write(" %i" % (facets[i].ipoint1 + 1))
-            i += 1
-            if i < len(facets) and facets[i].ipoint1 == i0:
-                f.write("\nf")
+        if len(facets) > 0:
+            i0 = facets[0].ipoint1
+            i = 0
+            f.write("f")
+            while i < len(facets):
+                f.write(" %i" % (facets[i].ipoint1 + 1))
+                i += 1
+                if i < len(facets) and facets[i].ipoint1 == i0:
+                    f.write("\n")
     else:
         for facet in facets:
             ipoints = facet.ipoints
