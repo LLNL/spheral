@@ -148,12 +148,12 @@ self.vector_of_Plane%(dim)s = addObject(mod, "vector_of_Plane%(dim)s", allow_sub
                                 custom_name = "aggregateFacetedVolumes")
 
         # Clipping methods.
-        self.space.add_function("clipFacetedVolumeByPlane", None,
-                                [refparam("Spheral::Box1d", "poly"), constrefparam("Spheral::Plane1d", "plane")],
-                                docstring = "Clip a box by a plane.")
-        self.space.add_function("clipFacetedVolumeByPlane", None,
-                                [refparam("Spheral::Polygon", "poly"), constrefparam("Spheral::Plane2d", "plane")],
-                                docstring = "Clip a polygon by a plane.")
+        self.space.add_function("clipFacetedVolumeByPlanes", None,
+                                [refparam("Spheral::Box1d", "poly"), constrefparam("vector_of_Plane1d", "planes")],
+                                docstring = "Clip a box by a set of planes.")
+        self.space.add_function("clipFacetedVolumeByPlanes", None,
+                                [refparam("Spheral::Polygon", "poly"), constrefparam("vector_of_Plane2d", "planes")],
+                                docstring = "Clip a polygon by a set of planes.")
 
         generateStdVectorBindings(self.vector_of_Facet2d, "Spheral::Facet2d", "vector_of_Facet2d", indexAsPointer=True)
         generateStdVectorBindings(self.vector_of_Facet3d, "Spheral::Facet3d", "vector_of_Facet3d", indexAsPointer=True)

@@ -13,13 +13,7 @@
 #include "Utilities/allReduce.hh"
 #include "Utilities/pointOnPolygon.hh"
 #include "Utilities/FastMath.hh"
-
-#ifndef NOR3D
-extern "C" {
-#include "r3d/r2d.h"
-}
-#include "Utilities/r3d_utils.hh"
-#endif
+#include "Geometry/clipFacetedVolumeByPlanes.hh"
 
 namespace Spheral {
 namespace CRKSPHSpace {
@@ -37,34 +31,33 @@ using NodeSpace::NodeList;
 using NeighborSpace::Neighbor;
 using NeighborSpace::ConnectivityMap;
 
-#ifndef NOR3D
 namespace {  // anonymous namespace
-//------------------------------------------------------------------------------
-// A special comparator to sort r2d planes by distance.
-//------------------------------------------------------------------------------
-inline
-bool compareR2Dplanes(const r2d_plane& lhs, const r2d_plane& rhs) {
-  return lhs.d < rhs.d;
-}
+// //------------------------------------------------------------------------------
+// // A special comparator to sort r2d planes by distance.
+// //------------------------------------------------------------------------------
+// inline
+// bool compareR2Dplanes(const r2d_plane& lhs, const r2d_plane& rhs) {
+//   return lhs.d < rhs.d;
+// }
 
-//------------------------------------------------------------------------------
-// Find the 1D extent of an R2D cell along the given direction.
-//------------------------------------------------------------------------------
-inline
-void findPolygonExtent(double& xmin, double& xmax, const Dim<2>::Vector& nhat, const r2d_poly& celli) {
-  REQUIRE(fuzzyEqual(nhat.magnitude(), 1.0));
-  double xi;
-  xmin = 0.0;
-  xmax = 0.0;
-  for (unsigned i = 0; i != celli.nverts; ++i) {
-    xi = (celli.verts[i].pos.x * nhat.x() +
-          celli.verts[i].pos.y * nhat.y());
-    xmin = std::min(xmin, xi);
-    xmax = std::max(xmax, xi);
-  }
-  xmin = std::min(0.0, xmin);
-  xmax = std::max(0.0, xmax);
-}
+// //------------------------------------------------------------------------------
+// // Find the 1D extent of an R2D cell along the given direction.
+// //------------------------------------------------------------------------------
+// inline
+// void findPolygonExtent(double& xmin, double& xmax, const Dim<2>::Vector& nhat, const r2d_poly& celli) {
+//   REQUIRE(fuzzyEqual(nhat.magnitude(), 1.0));
+//   double xi;
+//   xmin = 0.0;
+//   xmax = 0.0;
+//   for (unsigned i = 0; i != celli.nverts; ++i) {
+//     xi = (celli.verts[i].pos.x * nhat.x() +
+//           celli.verts[i].pos.y * nhat.y());
+//     xmin = std::min(xmin, xi);
+//     xmax = std::max(xmax, xi);
+//   }
+//   xmin = std::min(0.0, xmin);
+//   xmax = std::max(0.0, xmax);
+// }
 
 // // This version fits an ellipse and slices in the chosen direction.
 // void findPolygonExtent(double& xmin, double& xmax, const Dim<2>::Vector& nhat, r2d_poly& celli) {
@@ -78,100 +71,128 @@ void findPolygonExtent(double& xmin, double& xmax, const Dim<2>::Vector& nhat, c
 //   xmin = -xmax;
 // }
 
+// //------------------------------------------------------------------------------
+// // Worker function to clip by neighors in the given NodeList.
+// // Returns whether the geometry was affected by this operation.
+// //------------------------------------------------------------------------------
+// bool clipByNeighbors(r2d_poly& celli,
+//                      FieldList<Dim<2>, int>& surfacePoint,
+//                      FieldList<Dim<2>, vector<Dim<2>::Vector>>& etaVoidPoints,
+//                      const bool haveWeights,
+//                      const bool returnSurface,
+//                      const Dim<2>::Scalar rin,
+//                      const vector<vector<int>>& fullConnectivity,
+//                      const FieldList<Dim<2>, Dim<2>::Vector>& position,
+//                      const FieldList<Dim<2>, Dim<2>::Scalar>& weight,
+//                      const FieldList<Dim<2>, int>& voidPoint,
+//                      const unsigned nodeListi, 
+//                      const unsigned i,
+//                      const unsigned nodeListj) {
+
+//   typedef Dim<2>::Scalar Scalar;
+//   typedef Dim<2>::Vector Vector;
+//   typedef Dim<2>::SymTensor SymTensor;
+//   typedef Dim<2>::FacetedVolume FacetedVolume;
+//   typedef Dim<2>::FacetedVolume::Facet Facet;
+
+//   // Get the starting volume.
+//   r2d_real vol0, vol1, vol2;
+//   r2d_reduce(&celli, &vol0, 0);
+//   CHECK(vol0 > 0.0);
+
+//   // Check for multimaterial.
+//   if (returnSurface and nodeListj != nodeListi and not fullConnectivity[nodeListj].empty()) surfacePoint(nodeListi, i) |= (1 << (nodeListj + 1));
+
+//   // Build the clipping planes.
+//   const auto& ri = position(nodeListi, i);
+//   const auto  weighti = haveWeights ? weight(nodeListi, i) : 1.0;
+//   vector<r2d_plane> pairPlanes, voidPlanes;
+//   for (auto jItr = fullConnectivity[nodeListj].begin();
+//        jItr != fullConnectivity[nodeListj].end();
+//        ++jItr) {
+//     const auto  j = *jItr;
+//     const auto& rj = position(nodeListj, j);
+//     const auto  weightj = haveWeights ? weight(nodeListj, j) : 1.0;
+
+//     // Build the planes for the clipping half-spaces.
+//     const auto rij = ri - rj;
+//     const auto nhat = rij.unitVector();
+//     const auto wij = weighti/(weightj + weighti);
+//     if (voidPoint(nodeListj, j) == 0) {
+//       pairPlanes.push_back(r2d_plane());
+//       pairPlanes.back().n.x = nhat.x();
+//       pairPlanes.back().n.y = nhat.y();
+//       pairPlanes.back().d = wij*rij.magnitude();
+//     } else {
+//       voidPlanes.push_back(r2d_plane());
+//       voidPlanes.back().n.x = nhat.x();
+//       voidPlanes.back().n.y = nhat.y();
+//       voidPlanes.back().d = wij*rij.magnitude();
+//     }
+//   }
+
+//   // Sort the planes by distance -- lets us clip more efficiently.
+//   std::sort(pairPlanes.begin(), pairPlanes.end(), compareR2Dplanes);
+//   std::sort(voidPlanes.begin(), voidPlanes.end(), compareR2Dplanes);
+
+//   // Clip the local cell.
+//   r2d_clip(&celli, &pairPlanes[0], pairPlanes.size());
+//   CHECK(celli.nverts > 0);
+//   r2d_reduce(&celli, &vol1, 0);
+//   CHECK(vol1 > 0.0);
+
+//   // If there are void planes, check if they do anything.
+//   if (not voidPlanes.empty()) {
+//     const auto nvoid = voidPlanes.size();
+//     for (auto k = 0; k != nvoid; ++k) {
+//       r2d_clip(&celli, &voidPlanes[k], 1);
+//       CHECK(celli.nverts > 0);
+//       r2d_reduce(&celli, &vol2, 0);
+//       if (vol2 < vol1) {
+//         vol1 = vol2;
+//         if (returnSurface) {
+//           surfacePoint(nodeListi, i) |= 1;
+//           etaVoidPoints(nodeListi, i).push_back(-0.5*rin*Vector(voidPlanes[k].n.x,
+//                                                                 voidPlanes[k].n.y));
+//         }
+//       }
+//     }
+//   }
+
+//   // Return whether we actually affected the cell.
+//   return vol1 < vol0;
+// }
+
 //------------------------------------------------------------------------------
-// Worker function to clip by neighors in the given NodeList.
-// Returns whether the geometry was affected by this operation.
+// A special comparator to sort planes by distance to the origin.
 //------------------------------------------------------------------------------
-bool clipByNeighbors(r2d_poly& celli,
-                     FieldList<Dim<2>, int>& surfacePoint,
-                     FieldList<Dim<2>, vector<Dim<2>::Vector>>& etaVoidPoints,
-                     const bool haveWeights,
-                     const bool returnSurface,
-                     const Dim<2>::Scalar rin,
-                     const vector<vector<int>>& fullConnectivity,
-                     const FieldList<Dim<2>, Dim<2>::Vector>& position,
-                     const FieldList<Dim<2>, Dim<2>::Scalar>& weight,
-                     const FieldList<Dim<2>, int>& voidPoint,
-                     const unsigned nodeListi, 
-                     const unsigned i,
-                     const unsigned nodeListj) {
+inline
+bool comparePlanes(const GeomPlane<Dim<2>>& lhs,
+                   const GeomPlane<Dim<2>>& rhs) {
+  return std::abs(lhs.point().dot(lhs.normal())) < std::abs(rhs.point().dot(rhs.normal()));
+}
 
-  typedef Dim<2>::Scalar Scalar;
-  typedef Dim<2>::Vector Vector;
-  typedef Dim<2>::SymTensor SymTensor;
-  typedef Dim<2>::FacetedVolume FacetedVolume;
-  typedef Dim<2>::FacetedVolume::Facet Facet;
-
-  // Get the starting volume.
-  r2d_real vol0, vol1, vol2;
-  r2d_reduce(&celli, &vol0, 0);
-  CHECK(vol0 > 0.0);
-
-  // Check for multimaterial.
-  if (returnSurface and nodeListj != nodeListi and not fullConnectivity[nodeListj].empty()) surfacePoint(nodeListi, i) |= (1 << (nodeListj + 1));
-
-  // Build the clipping planes.
-  const auto& ri = position(nodeListi, i);
-  const auto  weighti = haveWeights ? weight(nodeListi, i) : 1.0;
-  vector<r2d_plane> pairPlanes, voidPlanes;
-  for (auto jItr = fullConnectivity[nodeListj].begin();
-       jItr != fullConnectivity[nodeListj].end();
-       ++jItr) {
-    const auto  j = *jItr;
-    const auto& rj = position(nodeListj, j);
-    const auto  weightj = haveWeights ? weight(nodeListj, j) : 1.0;
-
-    // Build the planes for the clipping half-spaces.
-    const auto rij = ri - rj;
-    const auto nhat = rij.unitVector();
-    const auto wij = weighti/(weightj + weighti);
-    if (voidPoint(nodeListj, j) == 0) {
-      pairPlanes.push_back(r2d_plane());
-      pairPlanes.back().n.x = nhat.x();
-      pairPlanes.back().n.y = nhat.y();
-      pairPlanes.back().d = wij*rij.magnitude();
-    } else {
-      voidPlanes.push_back(r2d_plane());
-      voidPlanes.back().n.x = nhat.x();
-      voidPlanes.back().n.y = nhat.y();
-      voidPlanes.back().d = wij*rij.magnitude();
-    }
+//------------------------------------------------------------------------------
+// Find the 1D extent of a polygon along the given direction.
+//------------------------------------------------------------------------------
+inline
+void findPolygonExtent(double& xmin, double& xmax, const Dim<2>::Vector& nhat, 
+                       const Dim<2>::FacetedVolume& celli) {
+  REQUIRE(fuzzyEqual(nhat.magnitude(), 1.0));
+  double xi;
+  xmin = 0.0;
+  xmax = 0.0;
+  const auto verts = celli.vertices();
+  for (const auto& vi: verts) {
+    xi = vi.dot(nhat);
+    xmin = std::min(xmin, xi);
+    xmax = std::max(xmax, xi);
   }
-
-  // Sort the planes by distance -- lets us clip more efficiently.
-  std::sort(pairPlanes.begin(), pairPlanes.end(), compareR2Dplanes);
-  std::sort(voidPlanes.begin(), voidPlanes.end(), compareR2Dplanes);
-
-  // Clip the local cell.
-  r2d_clip(&celli, &pairPlanes[0], pairPlanes.size());
-  CHECK(celli.nverts > 0);
-  r2d_reduce(&celli, &vol1, 0);
-  CHECK(vol1 > 0.0);
-
-  // If there are void planes, check if they do anything.
-  if (not voidPlanes.empty()) {
-    const auto nvoid = voidPlanes.size();
-    for (auto k = 0; k != nvoid; ++k) {
-      r2d_clip(&celli, &voidPlanes[k], 1);
-      CHECK(celli.nverts > 0);
-      r2d_reduce(&celli, &vol2, 0);
-      if (vol2 < vol1) {
-        vol1 = vol2;
-        if (returnSurface) {
-          surfacePoint(nodeListi, i) |= 1;
-          etaVoidPoints(nodeListi, i).push_back(-0.5*rin*Vector(voidPlanes[k].n.x,
-                                                                voidPlanes[k].n.y));
-        }
-      }
-    }
-  }
-
-  // Return whether we actually affected the cell.
-  return vol1 < vol0;
+  xmin = std::min(0.0, xmin);
+  xmax = std::max(0.0, xmax);
 }
 
 }           // anonymous namespace
-#endif
 
 //------------------------------------------------------------------------------
 // 2D
@@ -192,15 +213,12 @@ computeVoronoiVolume(const FieldList<Dim<2>, Dim<2>::Vector>& position,
                      FieldSpace::FieldList<Dim<2>, vector<Dim<2>::Vector>>& etaVoidPoints,
                      FieldSpace::FieldList<Dim<2>, Dim<2>::FacetedVolume>& cells) {
 
-#ifdef NOR3D
-  VERIFY2(false, "ERROR: computeVoronoiVolume requires compilation with R3D third party library.");
-#else
-
   typedef Dim<2>::Scalar Scalar;
   typedef Dim<2>::Vector Vector;
   typedef Dim<2>::SymTensor SymTensor;
   typedef Dim<2>::FacetedVolume FacetedVolume;
   typedef Dim<2>::FacetedVolume::Facet Facet;
+  typedef GeomPlane<Dim<2>> Plane;
 
   const auto numGens = position.numNodes();
   const auto numNodeLists = position.size();
@@ -236,27 +254,25 @@ computeVoronoiVolume(const FieldList<Dim<2>, Dim<2>::Vector>& position,
     // Unit circle as template shape.
     const auto nverts = 18;
     const auto dtheta = 2.0*M_PI/nverts;
-    r2d_rvec2 verts[nverts];
-    for (unsigned j = 0; j != nverts; ++j) {
+    vector<Vector> verts0(nverts);
+    vector<vector<unsigned>> facets0(nverts, vector<unsigned>(2));
+    for (auto j = 0; j != nverts; ++j) {
       const auto theta = j*dtheta;
-      verts[j].x = cos(theta);
-      verts[j].y = sin(theta);
+      verts0[j].x(cos(theta));
+      verts0[j].y(sin(theta));
+      facets0[j][0] = j;
+      facets0[j][1] = (j + 1) % nverts;
     }
-    r2d_poly initialCell;
-    r2d_init_poly(&initialCell, verts, nverts);
-    CHECK(r2d_is_good(&initialCell));
 
     // Walk the points.
-    r2d_real firstmom[3];
-    vector<r2d_plane> pairPlanes, voidPlanes;
+    vector<Plane> pairPlanes, voidPlanes;
     unsigned nvoid;
     Vector etaVoidAvg;
     for (unsigned nodeListi = 0; nodeListi != numNodeLists; ++nodeListi) {
       const unsigned n = vol[nodeListi]->numInternalElements();
       const Scalar rin = 2.0/vol[nodeListi]->nodeListPtr()->nodesPerSmoothingScale();
 #pragma omp parallel for                        \
-  firstprivate(initialCell)                     \
-  private(firstmom, pairPlanes, voidPlanes, nvoid, etaVoidAvg)
+  private(pairPlanes, voidPlanes, nvoid, etaVoidAvg)
       for (auto i = 0; i < n; ++i) {
 
         const auto& ri = position(nodeListi, i);
@@ -278,14 +294,9 @@ computeVoronoiVolume(const FieldList<Dim<2>, Dim<2>::Vector>& position,
         // t0 = std::clock();
 
         // Initialize our seed cell shape.
-        auto celli = initialCell;
-        for (unsigned k = 0; k != celli.nverts; ++k) {
-          auto& vert = celli.verts[k];
-          const auto vi = 1.1*rin*Hinv*Vector(vert.pos.x, vert.pos.y);
-          vert.pos.x = vi.x();
-          vert.pos.y = vi.y();
-        }
-        CHECK2(r2d_is_good(&celli), "Bad initial polygon!");
+        vector<Vector> verts(nverts);
+        for (unsigned k = 0; k != nverts; ++k) verts[k] = 1.1*rin*Hinv*verts0[k];
+        FacetedVolume celli(verts, facets0);
 
         // Clip by any boundaries first.
         if (haveBoundaries) {
@@ -293,19 +304,16 @@ computeVoronoiVolume(const FieldList<Dim<2>, Dim<2>::Vector>& position,
           CHECK(boundaries[nodeListi].contains(ri, false));
           for (const auto& facet: facets) {
             const auto p = facet.closestPoint(ri);
-            auto rij = ri - p;
-            if ((Hi*rij).magnitude2() < rin*rin) {
+            auto rji = p - ri;
+            if ((Hi*rji).magnitude2() < rin*rin) {
               Vector nhat;
-              if (rij.magnitude() < 1.0e-5*facet.area()) {
-                rij.Zero();
+              if (rji.magnitude() < 1.0e-5*facet.area()) {
+                rji.Zero();
                 nhat = -facet.normal();
               } else {
-                nhat = rij.unitVector();
+                nhat = -rji.unitVector();
               }
-              pairPlanes.push_back(r2d_plane());
-              pairPlanes.back().n.x = nhat.x();
-              pairPlanes.back().n.y = nhat.y();
-              pairPlanes.back().d = rij.magnitude();
+              pairPlanes.push_back(Plane(rji, nhat));
             }
           }
 
@@ -315,31 +323,28 @@ computeVoronoiVolume(const FieldList<Dim<2>, Dim<2>::Vector>& position,
             const auto& facets = hole.facets();
             for (const auto& facet: facets) {
               const auto p = facet.closestPoint(ri);
-              auto rij = ri - p;
-              if ((Hi*rij).magnitude2() < rin*rin) {
+              auto rji = p - ri;
+              if ((Hi*rji).magnitude2() < rin*rin) {
                 Vector nhat;
-                if (rij.magnitude2() < 1.0e-5*facet.area()) {
-                  rij.Zero();
+                if (rji.magnitude2() < 1.0e-5*facet.area()) {
+                  rji.Zero();
                   nhat = facet.normal();
                 } else {
-                  nhat = rij.unitVector();
+                  nhat = -rji.unitVector();
                 }
-                pairPlanes.push_back(r2d_plane());
-                pairPlanes.back().n.x = nhat.x();
-                pairPlanes.back().n.y = nhat.y();
-                pairPlanes.back().d = rij.magnitude();
+                pairPlanes.push_back(Plane(rji, nhat));
               }
             }
-          }
 
-          // // Sort the planes by distance -- let's us clip more efficiently -- and do the clipping.
-          // std::sort(pairPlanes.begin(), pairPlanes.end(), compareR2Dplanes);
-          // r2d_clip(&celli, &pairPlanes[0], pairPlanes.size());
-          // CHECK(celli.nverts > 0);
+            // // Sort the planes by distance -- let's us clip more efficiently -- and do the clipping.
+            // std::sort(pairPlanes.begin(), pairPlanes.end(), compareR2Dplanes);
+            // r2d_clip(&celli, &pairPlanes[0], pairPlanes.size());
+            // CHECK(celli.nverts > 0);
+          }
         }
 
         // Add clipping planes from neighbors.
-        for (unsigned nodeListj = 0; nodeListj != numNodeLists; ++nodeListj) {
+        for (auto nodeListj = 0; nodeListj != numNodeLists; ++nodeListj) {
 
           // Check if this point has multi-material neighbors.
           if (returnSurface and 
@@ -354,30 +359,25 @@ computeVoronoiVolume(const FieldList<Dim<2>, Dim<2>::Vector>& position,
             const auto  weightj = haveWeights ? weight(nodeListj, j) : 1.0;
 
             // Build the planes for the clipping half-spaces.
-            const auto rij = ri - rj;
-            const auto nhat = rij.unitVector();
+            const auto rji = rj - ri;
+            const auto nhat = -rji.unitVector();
             const auto wij = weighti/(weightj + weighti);
             if (voidPoint(nodeListj, j) == 0) {
-              pairPlanes.push_back(r2d_plane());
-              pairPlanes.back().n.x = nhat.x();
-              pairPlanes.back().n.y = nhat.y();
-              pairPlanes.back().d = wij*rij.magnitude();
+              pairPlanes.push_back(Plane(wij*rji, nhat));
             } else {
-              voidPlanes.push_back(r2d_plane());
-              voidPlanes.back().n.x = nhat.x();
-              voidPlanes.back().n.y = nhat.y();
-              voidPlanes.back().d = wij*rij.magnitude();
+              voidPlanes.push_back(Plane(wij*rji, nhat));
             }
           }
         }
 
         // Sort the planes by distance -- lets us clip more efficiently.
-        std::sort(pairPlanes.begin(), pairPlanes.end(), compareR2Dplanes);
-        std::sort(voidPlanes.begin(), voidPlanes.end(), compareR2Dplanes);
+        std::sort(pairPlanes.begin(), pairPlanes.end(), comparePlanes);
+        std::sort(voidPlanes.begin(), voidPlanes.end(), comparePlanes);
 
         // Clip by non-void neighbors first.
-        r2d_clip(&celli, &pairPlanes[0], pairPlanes.size());
-        CHECK(celli.nverts > 0);
+        clipFacetedVolumeByPlanes(celli, pairPlanes);
+        const auto& vertsi = celli.vertices();
+        CHECK(vertsi.size() > 0);
 
         // tclip += std::clock() - t0;
 
@@ -385,8 +385,8 @@ computeVoronoiVolume(const FieldList<Dim<2>, Dim<2>::Vector>& position,
         bool interior = true;
         // t0 = std::clock();
         {
-          for (unsigned k = 0; k != celli.nverts; ++k) {
-            const auto peta = Hi*Vector(celli.verts[k].pos.x, celli.verts[k].pos.y);
+          for (const auto& vert: vertsi) {
+            const auto peta = Hi*vert;
             if (peta.magnitude2() > rin*rin) {
               interior = false;
               if (returnSurface) {
@@ -403,41 +403,37 @@ computeVoronoiVolume(const FieldList<Dim<2>, Dim<2>::Vector>& position,
             CHECK(nvoid > 0);
             const Scalar thetaVoidAvg = atan2(etaVoidAvg.y(), etaVoidAvg.x());
             const auto nv = max(1U, min(4U, unsigned(4.0*float(nvoid)/float(nverts))));
-            vector<r2d_plane> voidPlanes(nv);
+            vector<Plane> voidPlanes(nv);
             for (unsigned k = 0; k != nv; ++k) {
               const auto theta = thetaVoidAvg + (0.5*k - 0.25*(nv - 1))*M_PI;
               etaVoidPoints(nodeListi, i).push_back(Vector(0.5*rin*cos(theta), 0.5*rin*sin(theta)));
-              const auto rij = ri - Hinv*etaVoidPoints(nodeListi, i)[k];
-              const auto nhat = rij.unitVector();
-              voidPlanes[k].n.x = nhat.x();
-              voidPlanes[k].n.y = nhat.y();
-              voidPlanes[k].d = 0.5*rij.magnitude();
+              const auto rji = Hinv*etaVoidPoints(nodeListi, i)[k] - ri;
+              const auto nhat = -rji.unitVector();
+              voidPlanes[k] = Plane(rji, nhat);
             }
             CHECK(etaVoidPoints(nodeListi, i).size() == nv);
             CHECK(voidPlanes.size() == nv);
 
             // Clip the cell geometry by the void points we just created.
-            std::sort(voidPlanes.begin(), voidPlanes.end(), compareR2Dplanes);
-            r2d_clip(&celli, &voidPlanes[0], nv);
-            CHECK(celli.nverts > 0);
+            std::sort(voidPlanes.begin(), voidPlanes.end(), comparePlanes);
+            clipFacetedVolumeByPlanes(celli, voidPlanes);
+            CHECK(vertsi.size() > 0);
           }
         }
         // tinterior += std::clock() - t0;
 
         // Clip by any extant void neighbors.
-        r2d_clip(&celli, &voidPlanes[0], voidPlanes.size());
-        CHECK(celli.nverts > 0);
+        clipFacetedVolumeByPlanes(celli, voidPlanes);
+        CHECK(vertsi.size() > 0);
 
         // Compute the final geometry.
-        r2d_reduce(&celli, firstmom, 1);
-        const Vector deltaCentroidi = Vector(firstmom[1], firstmom[2])/firstmom[0];
-        deltaMedian(nodeListi, i) = deltaCentroidi;
+        deltaMedian(nodeListi, i) = celli.centroid();
 
         if (interior) {
           // t0 = std::clock();
 
           // We only use the volume result if interior.
-          vol(nodeListi, i) = firstmom[0];
+          vol(nodeListi, i) = celli.volume();
 
           // // Apply the gradient limiter;
           // gradRhoi *= phi;
@@ -445,16 +441,17 @@ computeVoronoiVolume(const FieldList<Dim<2>, Dim<2>::Vector>& position,
           // Is there a significant density gradient?
           if (sqrt(gradRhoi.magnitude2()*vol(nodeListi, i)) >= 1e-8*rhoi) {
 
-            const Vector nhat1 = gradRhoi.unitVector();
+            const auto nhat1 = gradRhoi.unitVector();
             double x1, x2;
             findPolygonExtent(x1, x2, nhat1, celli);
             CHECK2(x1 <= 0.0 and x2 >= 0.0, nodeListi << " " << i << " " << ri << " " << x1 << " " << x2);
             const Scalar b = gradRhoi.magnitude();
 
             // This version uses the medial position.
-            const Scalar thpt = sqrt(abs(rhoi*rhoi + rhoi*b*(x1 + x2) + 0.5*b*b*(x1*x1 + x2*x2)));
-            const Scalar xm1 = -(rhoi + thpt)/b;
-            const Scalar xm2 = (-rhoi + thpt)/b;
+            const auto thpt = sqrt(abs(rhoi*rhoi + rhoi*b*(x1 + x2) + 0.5*b*b*(x1*x1 + x2*x2)));
+            const auto xm1 = -(rhoi + thpt)/b;
+            const auto xm2 = (-rhoi + thpt)/b;
+            const auto deltaCentroidi = deltaMedian(nodeListi, i);
             if (xm1 >= x1 and xm1 <= x2) {
               deltaMedian(nodeListi, i) = xm1*nhat1 - deltaCentroidi.dot(nhat1)*nhat1 + deltaCentroidi;
             } else {
@@ -475,8 +472,8 @@ computeVoronoiVolume(const FieldList<Dim<2>, Dim<2>::Vector>& position,
           // t0 = std::clock();
           if (haveBoundaries and returnSurface) {
             unsigned j = 0;
-            while (interior and j != celli.nverts) {
-              interior = not pointOnPolygon(ri + Vector(celli.verts[j].pos.x, celli.verts[j].pos.y),
+            while (interior and j != vertsi.size()) {
+              interior = not pointOnPolygon(ri + vertsi[j],
                                             boundaries[nodeListi].vertices(),
                                             1.0e-8);
               ++j;
@@ -509,7 +506,7 @@ computeVoronoiVolume(const FieldList<Dim<2>, Dim<2>::Vector>& position,
         // If requested, we can return the cell geometries.
         if (returnCells) {
           // t0 = std::clock();
-          r2d_poly_to_polygon(celli, 1.0e-20/max(1.0, sqrt(Hdeti)), cells(nodeListi, i));
+          cells(nodeListi, i) = celli;
           cells(nodeListi, i) += ri;
           // tcell += std::clock() - t0;
         }
@@ -558,7 +555,6 @@ computeVoronoiVolume(const FieldList<Dim<2>, Dim<2>::Vector>& position,
   //                                   << " ttotal=" << (ttotal / (double) CLOCKS_PER_SEC) << endl;
                                 
 
-#endif
 }
     
 }
