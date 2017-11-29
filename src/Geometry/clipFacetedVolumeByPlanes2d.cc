@@ -15,7 +15,7 @@
 // Created by J. Michael Owen, Tue Nov 28 10:00:51 PST 2017
 //----------------------------------------------------------------------------//
 
-#include "clipFacetedVolumeByPlane.hh"
+#include "clipFacetedVolumeByPlanes.hh"
 #include "Utilities/safeInv.hh"
 #include "Utilities/SpheralFunctions.hh"
 #include "Utilities/DBC.hh"
@@ -38,7 +38,7 @@ segmentPlaneIntersection(const Dim<2>::Vector& a,       // line-segment begin
 
   const auto ab = b - a;
   const auto abhat = ab.unitVector();
-  CHECK(std::abs(abhat.dot(phat)) > 0.0);
+  CHECK2(std::abs(abhat.dot(phat)) > 0.0, (abhat.dot(phat)) << " " << a << " " << b << " " << abhat << " " << phat);
   const auto s = (p - a).dot(phat)/(abhat.dot(phat));
   CHECK(s >= 0.0 and s <= ab.magnitude());
   const auto result = a + s*abhat;
@@ -118,76 +118,86 @@ vector<unsigned> orderedPolygonRing(const GeomPolygon& poly) {
 //------------------------------------------------------------------------------
 // The method itself.
 //------------------------------------------------------------------------------
-void clipFacetedVolumeByPlane(GeomPolygon& poly, const GeomPlane<Dim<2>>& plane) {
+void clipFacetedVolumeByPlanes(GeomPolygon& poly, 
+                               const std::vector<GeomPlane<Dim<2>>>& planes) {
 
   // Useful types.
   typedef Dim<2>::FacetedVolume FacetedVolume;
   typedef Dim<2>::Vector Vector;
 
-  const auto& vertices = poly.vertices();
+  // The following logic depends on the vertices of the polygon already being arranged 
+  // in counter-clockwise order.
+  auto ring0 = poly.vertices();    // Note this is a copy!
+  auto nring0 = ring0.size();
 
-  // Convert the polygon to an ordered ring of indices.
-  // Note this returns the indices into vertices.
-  const auto ring0 = orderedPolygonRing(poly);
-  const auto nv = ring0.size();
+  // Loop over the planes.
+  auto kplane = 0;
+  const auto nplanes = planes.size();
+  while (kplane < nplanes and not ring0.empty()) {
+    const auto& plane = planes[kplane++];
 
-  // Check if the polygon is entirely clear of the plane (above or below).
-  auto above = true;
-  auto below = true;
-  const auto& p0 = plane.point();
-  const auto& phat = plane.normal();
-  {
-    auto k = 0;
-    while (k < nv and (above or below)) {
-      const auto vcomp = compare(p0, phat, vertices[ring0[k]]);
-      if (vcomp == 1) {
-        below = false;
-      } else if (vcomp == -1) {
-        above = false;
+    // Check if the polygon is entirely clear of the plane (above or below).
+    auto above = true;
+    auto below = true;
+    const auto& p0 = plane.point();
+    const auto& phat = plane.normal();
+    {
+      auto k = 0;
+      while (k < nring0 and (above or below)) {
+        const auto vcomp = compare(p0, phat, ring0[k]);
+        if (vcomp == 1) {
+          below = false;
+        } else if (vcomp == -1) {
+          above = false;
+        }
+        ++k;
       }
-      ++k;
     }
-  }
-  CHECK(not (above and below));
+    CHECK(not (above and below));
 
-  // Did we get a simple case?
-  if (above) {
-    // Polygon is entirely above plane, nothing to do.
-    return;
-  } else if (below) {
-    // Polygon is entirely below the clip plane, and is therefore entirely removed.
-    poly = GeomPolygon();
-    return;
-  }
+    // Did we get a simple case?
+    if (below) {
+      // Polygon is entirely below the clip plane, and is therefore entirely removed.
+      // No need to check any more clipping planes either -- we're done.
+      ring0.clear();
 
-  // The plane passes somewhere through the polygon, so we need to walk the ring and modify it.
-  vector<Vector> ring1verts;
-  for (auto k = 0; k < nv; ++k) {
-    const auto& v0 = vertices[ring0[k]];
-    const auto& v1 = vertices[ring0[(k + 1) % nv]];
-    const auto comp0 = compare(p0, phat, v0);
-    const auto comp1 = compare(p0, phat, v1);
-    if (comp0 >= 0) {
-      ring1verts.push_back(v0);
-      if (comp1 < 0) {
-        const auto pintersect = segmentPlaneIntersection(v0, v1, p0, phat);
-        ring1verts.push_back(pintersect);
+    } else if (not above) {
+
+      // The plane passes somewhere through the polygon, so we need to walk the ring and modify it.
+      vector<Vector> ring1;
+      for (auto k = 0; k < nring0; ++k) {
+        const auto& v0 = ring0[k];
+        const auto& v1 = ring0[(k + 1) % nring0];
+        const auto comp0 = compare(p0, phat, v0);
+        const auto comp1 = compare(p0, phat, v1);
+        if (comp0 >= 0) {
+          ring1.push_back(v0);
+          if (comp1 < 0) {
+            const auto pintersect = segmentPlaneIntersection(v0, v1, p0, phat);
+            ring1.push_back(pintersect);
+          }
+        } else if (comp1 > 0) {
+          const auto pintersect = segmentPlaneIntersection(v0, v1, p0, phat);
+          ring1.push_back(pintersect);
+        }
       }
-    } else if (comp1 > 0) {
-      const auto pintersect = segmentPlaneIntersection(v0, v1, p0, phat);
-      ring1verts.push_back(pintersect);
+      ring0 = ring1;
+      nring0 = ring0.size();
     }
   }
 
   // Now rebuild the polygon, and we're done.
-  const auto nv1 = ring1verts.size();
-  CHECK(nv1 >= 3);
-  vector<vector<unsigned>> facets1(nv1, vector<unsigned>(2));
-  for (auto k = 0; k < nv1; ++k) {
-    facets1[k][0] = k;
-    facets1[k][1] = (k + 1) % nv1;
+  if (ring0.empty()) {
+    poly = GeomPolygon();
+  } else {
+    CHECK(nring0 >= 3);
+    vector<vector<unsigned>> facets(nring0, vector<unsigned>(2));
+    for (auto k = 0; k < nring0; ++k) {
+      facets[k][0] = k;
+      facets[k][1] = (k + 1) % nring0;
+    }
+    poly = GeomPolygon(ring0, facets);
   }
-  poly = GeomPolygon(ring1verts, facets1);
 }
 
 }

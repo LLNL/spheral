@@ -369,12 +369,14 @@ class TestPolygon(unittest.TestCase):
         for p0 in self.points:
             theta = rangen.uniform(0.0, 2.0*pi)
             phat = Vector(cos(theta), sin(theta))
-            plane1 = Plane(p0,  phat)
-            plane2 = Plane(p0, -phat)
+            planes1 = vector_of_Plane()
+            planes2 = vector_of_Plane()
+            planes1.append(Plane(p0,  phat))
+            planes2.append(Plane(p0, -phat))
             poly1 = Polygon(self.polygon)
             poly2 = Polygon(self.polygon)
-            clipFacetedVolumeByPlane(poly1, plane1)
-            clipFacetedVolumeByPlane(poly2, plane2)
+            clipFacetedVolumeByPlanes(poly1, planes1)
+            clipFacetedVolumeByPlanes(poly2, planes2)
             from PolyhedronFileUtilities import writePolyhedronOBJ
             writePolyhedronOBJ(self.polygon, "polygona_ZERO.obj")
             writePolyhedronOBJ(poly1, "polygon_ONE.obj")
