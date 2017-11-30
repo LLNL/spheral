@@ -30,7 +30,8 @@ SRCTARGETS = \
 	$(srcdir)/GeomPolygon.cc \
 	$(srcdir)/GeomPolyhedron.cc \
 	$(srcdir)/clipFacetedVolumeByPlanes1d.cc \
-	$(srcdir)/clipFacetedVolumeByPlanes2d.cc
+	$(srcdir)/clipFacetedVolumeByPlanes2d.cc \
+	$(srcdir)/clipFacetedVolumeByPlanes3d.cc
 INSTSRCTARGETS = \
 	$(srcdir)/invertRankNTensorInst.cc.py
 
