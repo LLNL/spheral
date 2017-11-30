@@ -94,7 +94,7 @@ void clipFacetedVolumeByPlanes(GeomPolyhedron& poly,
   auto vertices = poly.vertices();             // Note this is a copy!
   vector<Edge> edges;                          // Edges as pairs of vertex indices
   vector<Face> faces;                          // Faces that make up the polyhedron (loops of edges).
-  vector<int> vertexMask(vertices.size(), 1);  // Mask to flag active/inactive vertices.
+  vector<int> vertexMask(vertices.size(), 1);  // Mask to flag active/inactive vertices: 0->inactive, 1->active, -1->clip
   {
     const auto& facets = poly.facets();
     int iedge;
@@ -130,14 +130,15 @@ void clipFacetedVolumeByPlanes(GeomPolyhedron& poly,
     auto below = true;
     {
       auto k = 0;
-      while (k < vertices.size() and (above or below)) {
-        if (vertexMask[k] == 1) {
+      while (k < vertices.size()) {
+        if (vertexMask[k] != 0) {
           const auto vcomp = compare(p0, phat, vertices[k]);
           if (vcomp >= 0) {
             below = false;
+            vertexMask[k] = 1;          // Mark this vertex as keep.
           } else if (vcomp == -1) {
             above = false;
-            vertexMask[k] = -1;         // Mark this vertex as newly clipped.
+            vertexMask[k] = -1;         // Mark this vertex as clip.
           }
         }
         ++k;
@@ -153,45 +154,78 @@ void clipFacetedVolumeByPlanes(GeomPolyhedron& poly,
       faces.clear();
 
     } else if (not above) {
-      vector<unsigned> faces2kill;     // Any faces to be entirely clipped away.
-      vector<unsigned> newEdges;       // Any new edges we create.
+      vector<int> faces2kill;                       // Any faces to be entirely clipped away.
+      vector<int> newEdges;                         // Any new edges we create.
+      vector<int> newEdgeVertex(edges.size(), -1);  // If an edge was clipped, the index of the newly created vertex.  -1 if the edge has no new vertices.
 
       // This plane passes somewhere through the polyhedron, so we need to clip it.
-      // Walk each current face.  Note we are not yet worried about adding the new faces.
+      // Walk and edit each current face -- we'll handle adding the new faces after this pass.
       for (auto kface = 0; kface < faces.size(); ++kface) {
         auto& face = faces[kface];
         Face newface;
 
         // Walk the loop of edges in this face.
+        auto lastVertex = -1;
+        auto hangingVertex = -1;
         for (auto kedge = 0; kedge < face.size(); ++kedge) {
           auto& edge = edges[posID(face[kedge])];
           auto  v0 = edge.first;
           auto  v1 = edge.second;
-          CHECK(vertexMask[v0] != 0 and vertexMask[v0] != 0);
+          if (face[kedge] < 0) std::swap(v0, v1);
+          CHECK(vertexMask[v0] != 0 and vertexMask[v1] != 0);
 
-          // Is this edge clipped?
+          // Check the edge against the clip plane based on its vertices.
           if (vertexMask[v0] == 1 and vertexMask[v1] == 1) {
-            // The edge got through unscathed.  Just add it back to the face.
+            // The edge got through unscathed.  Add it back to the face.
             newface.push_back(face[kedge]);
+            lastVertex = v1;
+
+            // One wrinkle -- if this edge was edited by a prior face loop, we could have an initial hanging node.
+            if (kedge == 0 and newEdgeVertex[posID(face[kedge])] == v0) hangingVertex = v0;
 
           } else if (vertexMask[v0] == -1 and vertexMask[v1] == 1) {
-            // v0 is clipped, but not v1.  Do the intersection and create a replacement edge.
+            // v0 is clipped
+            const auto newVertexID = vertices.size();
             vertices.push_back(segmentPlaneIntersection(vertices[v0], vertices[v1], p0, phat));
-            vertexMask.push_back(2);
+            vertexMask.push_back(1);
+            CHECK(vertices.size() == newVertexID and vertexMask.size() == newVertexID);
             vertexMask[v0] = 0;
-            edge = make_edge(v1, vertices.size() - 1);
+            newEdgeVertex[posID(face[kedge])] = newVertexID;
+
+            // Note, if v0 was clipped we're just re-entering the allowed volume.  
+            // Before we edit this existing edge, we first build the new edge bridging the gap to the last vertex if possible.
+            // However, if we have not yet acquired a valid lastVertex, we list this as a hanging vertex to be resolved
+            // after we walk the entire ring.
+            if (lastVertex >= 0) {
+              int newEdgeID = edges.size();
+              edges.push_back(make_edge(lastVertex, newVertexID));
+              newEdgeVertex.push_back(-1);
+              newEdges.push_back(edges.back().first == lastVertex ? ~newEdgeID : newEdgeID);
+              newface.push_back (edges.back().first == lastVertex ? newEdgeID : ~newEdgeID);
+            } else {
+              CHECK(hangingVertex == -1);  // This should only happen at most once per face!
+              hangingVertex = newVertexID;
+            }
+
+            // Now edit our old edge in-place.
+            edge = make_edge(newVertexID, v1);
             newface.push_back(~face[kedge]);
+            lastVertex = v1;
 
           } else if (vertexMask[v0] == 1 and vertexMask[v1] == -1) {
-            // v1 is clipped, but not v0.  Do the intersection and create a replacement edge.
+            // v1 is clipped
+            const auto newVertexID = vertices.size();
             vertices.push_back(segmentPlaneIntersection(vertices[v0], vertices[v1], p0, phat));
-            vertexMask.push_back(2);
+            vertexMask.push_back(1);
+            CHECK(vertices.size() == newVertexID and vertexMask.size() == newVertexID);
             vertexMask[v1] = 0;
-            edge = make_edge(v0, vertices.size() - 1);
+            newEdgeVertex[posID(face[kedge])] = newVertexID;
+            edge = make_edge(v0, newVertexID);
             newface.push_back(face[kedge]);
+            lastVertex = newVertexID;
 
           } else {
-            // If none of the above branches hit, this edge is entirely clipped.
+            // Both v0 and v1 are clipped
             CHECK(vertexMask[v0] == -1 and vertexMask[v1] == -1);
             vertexMask[v0] = 0;
             vertexMask[v1] = 0;
@@ -200,7 +234,7 @@ void clipFacetedVolumeByPlanes(GeomPolyhedron& poly,
         CHECK(vertices.size() == vertexMask.size());
 
         // We have walked and clipped the existing edges of the face.  First check if the face survived at all.
-        if (newface.size() == 0) {
+        if (newface.empty()) {
 
           // This face was entirely clipped, so we need to mark it for deletion.
           faces2kill.push_back(kface);
@@ -208,63 +242,96 @@ void clipFacetedVolumeByPlanes(GeomPolyhedron& poly,
         } else if (newface.size() < face.size()) {
           CHECK(newface.size() >= 2);
 
-          // The face was clipped, so there must be some new hanging nodes we need to close with a new edge.
-          // Since we're only clipping by a single plane in this pass there should only be a single gap.
-          auto kedge = 0;
-          while (kedge < newface.size() and 
-                 not (vertexMask[edges[newface[posID(newface[kedge])]].first]  == 2 or
-                      vertexMask[edges[newface[posID(newface[kedge])]].second] == 2)) ++kedge;
-          CHECK(kedge < newface.size());
-          
-          // There is a gap in the new face between kedge and kedge+1, so create the new edge by connecting the hanging
-          // new nodes.
-          const auto& edge0 = edges[newface[posID(newface[kedge])]];
-          const auto& edge1 = edges[newface[posID(newface[(kedge + 1) % newface.size()])]];
-          CHECK(vertexMask[edge1.first] == 2 or vertexMask[edge1.second] == 2);
-          const auto v0 = (vertexMask[edge0.first] == 2 ? edge0.first : edge0.second);
-          const auto v1 = (vertexMask[edge1.first] == 2 ? edge1.first : edge1.second);
-          CHECK(vertexMask[v0] == 2 and vertexMask[v1] == 2);    // Both new hanging nodes.
-          edges.push_back(make_edge(v0, v1));
-          newface.insert(newface.begin() + kedge + 1, edges.back().first == v0 ? (edges.size() - 1) : ~(edges.size() - 1));
-          newEdges.push_back(edges.size() - 1);
+          // The face was clipped.  If we have an unresolved hanging node hook it to the last vertex
+          // making a new edge to close the face ring.
+          if (hangingVertex >= 0) {
+            CHECK(lastVertex >= 0);
+            int newEdgeID = edges.size();
+            edges.push_back(make_edge(lastVertex, hangingVertex));
+            newEdgeVertex.push_back(-1);
+            newEdges.push_back(edges.back().first == lastVertex ? ~newEdgeID : newEdgeID);
+            newface.push_back (edges.back().first == lastVertex ? newEdgeID : ~newEdgeID);
+          }
 
-          // The hanging nodes have been hooked up, so flag them as active but not new.
-          vertexMask[v0] = 1;
-          vertexMask[v1] = 1;
-
-          // OK, the newly clipped face is complete, so replace the old one.
+          // The newly clipped face is complete, so replace the old one.
           face = newface;
         }
       }
+      CHECK(newEdgeVertex.size() == edges.size());
+      CHECK(std::count_if(newEdgeVertex.begin(), newEdgeVertex.end(), [](const int& x) { return x >= 0; }) == newEdges.size());
 
       // Gack any faces we have clipped.
       removeElements(faces, faces2kill);
 
       // Well, now all the starting faces of the polyhedron have been clipped by the plane, but we need
       // to cap off new edges created by the plane as new faces of the polyhedron.
-      if (newEdges.size() > 0) {
-        vector<int> newEdgeMask(newEdges.size(), 1);
-        auto maskItr = newEdgeMask.begin();
-        while (maskItr != newEdgeMask.end()) {
+      if (not newEdges.empty()) {
 
-          // Start with the first untouched new edge, and build a new face.
-          auto kedge = std::distance(newEdgeMask.begin(), maskItr);
-          newEdgeMask[kedge] = 0;
-          Face newface;
-          newface.push_back(iedge);
-          auto vstart = edges[iedge].first;
-          auto vlast = edges[iedge].second;
-          while (vlast != vstart) {
-            // Look for the next unassigned edge that hooks to the last vertex.
-            
-          
+        // We start by ordering the new edges such that they form topological loops.  Note
+        // there may be more than one loop if we are cutting a non-convex polyhedron.  We also know the directions
+        // we want to walk these loops based on the sign of the ID in newEdges.
+        const auto nNewEdges = newEdges.size();
+        CHECK(nNewEdges >= 3);
+        int v1;
+        for (auto iedge = 0; iedge < nNewEdges - 1; ++iedge) {
+          v1 = newEdges[iedge] >= 0 ? edges[newEdges[iedge]].second : edges[~newEdges[iedge]].first;
+          auto jedge = iedge + 1;
+          while (jedge < nNewEdges and 
+                 (v1 != edges[posID(newEdges[jedge])].first and v1 != edges[posID(newEdges[jedge])].second)) ++jedge;
+          if (jedge < nNewEdges) std::swap(newEdges[iedge + 1], newEdges[jedge]);
+        }
 
+        // Now we can read out each loop from the ordered newEdges to make our new faces.
+        auto iedge = 0;
+        while (iedge < nNewEdges) {
+          Face newface(1U, newEdges[iedge]);
+          v1 = newEdges[iedge] >= 0 ? edges[newEdges[iedge]].second : edges[~newEdges[iedge]].first;
+          auto jedge = iedge + 1;
+          while (jedge < nNewEdges and
+                 (edges[posID(newEdges[jedge])].first == v1 or edges[posID(newEdges[jedge])].second == v1)) {
+            newface.push_back(newEdges[jedge]);
+            v1 = newEdges[jedge] >= 0 ? edges[newEdges[jedge]].second : edges[~newEdges[jedge]].first;
+            ++jedge;
+          }
+          CHECK(newface.size() >= 3);
+          faces.push_back(newface);
+          iedge = jedge + 1;
         }
       }
     }
   }
 
-  // Build the final polyhedron, and we're done.
+  // If we have an empty polyhedron just finish it here.
+  if (faces.empty()) {
+    poly = GeomPolyhedron();
+    return;
+  }
+
+  // Build a list of the vertices that are active, and a map of old->new vertex index.
+  CHECK(*min_element(vertexMask.begin(), vertexMask.end()) == 0 and
+        *max_element(vertexMask.begin(), vertexMask.end()) == 1);
+  vector<Vector> newvertices;
+  newvertices.reserve(vertices.size());
+  vector<int> old2new(vertices.size());
+  for (auto i = 0; i < vertices.size(); ++i) {
+    if (vertexMask[i] == 1) {
+      old2new[i] = newvertices.size();
+      newvertices.push_back(vertices[i]);
+    }
+  }
+
+  // Build the facet info.
+  vector<vector<unsigned>> facets(faces.size());
+  for (auto kface = 0; kface < faces.size(); ++kface) {
+    const auto& face = faces[kface];
+    for (const auto edgeID: face) {
+      facets[kface].push_back(edgeID >= 0 ? old2new[edges[edgeID].first] : old2new[edges[~edgeID].second]);
+    }
+    CHECK(facets[kface].size() == face.size());
+  }
+
+  // Now we can rebuild the polyhedron.
+  poly = GeomPolyhedron(newvertices, facets);
 }
 
 }

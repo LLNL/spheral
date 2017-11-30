@@ -377,10 +377,6 @@ class TestPolygon(unittest.TestCase):
             poly2 = Polygon(self.polygon)
             clipFacetedVolumeByPlanes(poly1, planes1)
             clipFacetedVolumeByPlanes(poly2, planes2)
-            from PolyhedronFileUtilities import writePolyhedronOBJ
-            writePolyhedronOBJ(self.polygon, "polygona_ZERO.obj")
-            writePolyhedronOBJ(poly1, "polygon_ONE.obj")
-            writePolyhedronOBJ(poly2, "polygon_TWO.obj")
             self.failUnless(fuzzyEqual(poly1.volume + poly2.volume, self.polygon.volume),
                             "Plane clipping summing to wrong volumes: %s + %s != %s" % (poly1.volume,
                                                                                         poly2.volume,
