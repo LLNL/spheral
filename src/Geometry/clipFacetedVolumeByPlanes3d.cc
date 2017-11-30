@@ -154,7 +154,7 @@ void clipFacetedVolumeByPlanes(GeomPolyhedron& poly,
 
     } else if (not above) {
       vector<unsigned> faces2kill;     // Any faces to be entirely clipped away.
-      vector<unsigned> newedges;       // Any new edges we create.
+      vector<unsigned> newEdges;       // Any new edges we create.
 
       // This plane passes somewhere through the polyhedron, so we need to clip it.
       // Walk each current face.  Note we are not yet worried about adding the new faces.
@@ -226,7 +226,7 @@ void clipFacetedVolumeByPlanes(GeomPolyhedron& poly,
           CHECK(vertexMask[v0] == 2 and vertexMask[v1] == 2);    // Both new hanging nodes.
           edges.push_back(make_edge(v0, v1));
           newface.insert(newface.begin() + kedge + 1, edges.back().first == v0 ? (edges.size() - 1) : ~(edges.size() - 1));
-          newedges.push_back(edges.size() - 1);
+          newEdges.push_back(edges.size() - 1);
 
           // The hanging nodes have been hooked up, so flag them as active but not new.
           vertexMask[v0] = 1;
@@ -242,15 +242,22 @@ void clipFacetedVolumeByPlanes(GeomPolyhedron& poly,
 
       // Well, now all the starting faces of the polyhedron have been clipped by the plane, but we need
       // to cap off new edges created by the plane as new faces of the polyhedron.
-      if (newedges.size() > 0) {
-        vector<int> newEdgeMask(newedges.size(), 1);
-        
-        // Start with the first untouched new edge.
-        auto startItr = std::find(newEdgeMask.begin(), newEdgeMask.end(), 1);
-        if (startItr < newEdgeMask.end()) {
+      if (newEdges.size() > 0) {
+        vector<int> newEdgeMask(newEdges.size(), 1);
+        auto maskItr = newEdgeMask.begin();
+        while (maskItr != newEdgeMask.end()) {
 
-          // Build a new face, starting with this edge and walking connected edges until we close the loop.
+          // Start with the first untouched new edge, and build a new face.
+          auto kedge = std::distance(newEdgeMask.begin(), maskItr);
+          newEdgeMask[kedge] = 0;
           Face newface;
+          newface.push_back(iedge);
+          auto vstart = edges[iedge].first;
+          auto vlast = edges[iedge].second;
+          while (vlast != vstart) {
+            // Look for the next unassigned edge that hooks to the last vertex.
+            
+          
 
         }
       }
