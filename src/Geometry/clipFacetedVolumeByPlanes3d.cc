@@ -21,6 +21,9 @@
 #include "Utilities/removeElements.hh"
 #include "Utilities/DBC.hh"
 
+#include <iostream>
+#include <iterator>
+
 namespace Spheral {
 
 using namespace std;
@@ -133,7 +136,7 @@ void clipFacetedVolumeByPlanes(GeomPolyhedron& poly,
       while (k < vertices.size()) {
         if (vertexMask[k] != 0) {
           const auto vcomp = compare(p0, phat, vertices[k]);
-          if (vcomp >= 0) {
+          if (vcomp == 1) {
             below = false;
             vertexMask[k] = 1;          // Mark this vertex as keep.
           } else if (vcomp == -1) {
@@ -161,6 +164,7 @@ void clipFacetedVolumeByPlanes(GeomPolyhedron& poly,
       // This plane passes somewhere through the polyhedron, so we need to clip it.
       // Walk and edit each current face -- we'll handle adding the new faces after this pass.
       for (auto kface = 0; kface < faces.size(); ++kface) {
+        cerr << "Face " << kface << endl;
         auto& face = faces[kface];
         Face newface;
 
@@ -188,8 +192,7 @@ void clipFacetedVolumeByPlanes(GeomPolyhedron& poly,
             const auto newVertexID = vertices.size();
             vertices.push_back(segmentPlaneIntersection(vertices[v0], vertices[v1], p0, phat));
             vertexMask.push_back(1);
-            CHECK(vertices.size() == newVertexID and vertexMask.size() == newVertexID);
-            vertexMask[v0] = 0;
+            CHECK(vertices.size() == newVertexID + 1 and vertexMask.size() == newVertexID + 1);
             newEdgeVertex[posID(face[kedge])] = newVertexID;
 
             // Note, if v0 was clipped we're just re-entering the allowed volume.  
@@ -217,8 +220,7 @@ void clipFacetedVolumeByPlanes(GeomPolyhedron& poly,
             const auto newVertexID = vertices.size();
             vertices.push_back(segmentPlaneIntersection(vertices[v0], vertices[v1], p0, phat));
             vertexMask.push_back(1);
-            CHECK(vertices.size() == newVertexID and vertexMask.size() == newVertexID);
-            vertexMask[v1] = 0;
+            CHECK(vertices.size() == newVertexID + 1 and vertexMask.size() == newVertexID + 1);
             newEdgeVertex[posID(face[kedge])] = newVertexID;
             edge = make_edge(v0, newVertexID);
             newface.push_back(face[kedge]);
@@ -227,8 +229,6 @@ void clipFacetedVolumeByPlanes(GeomPolyhedron& poly,
           } else {
             // Both v0 and v1 are clipped
             CHECK(vertexMask[v0] == -1 and vertexMask[v1] == -1);
-            vertexMask[v0] = 0;
-            vertexMask[v1] = 0;
           }
         }
         CHECK(vertices.size() == vertexMask.size());
@@ -239,7 +239,7 @@ void clipFacetedVolumeByPlanes(GeomPolyhedron& poly,
           // This face was entirely clipped, so we need to mark it for deletion.
           faces2kill.push_back(kface);
 
-        } else if (newface.size() < face.size()) {
+        } else {
           CHECK(newface.size() >= 2);
 
           // The face was clipped.  If we have an unresolved hanging node hook it to the last vertex
@@ -256,7 +256,20 @@ void clipFacetedVolumeByPlanes(GeomPolyhedron& poly,
           // The newly clipped face is complete, so replace the old one.
           face = newface;
         }
+
       }
+
+      // BLAGO
+      {
+        cerr << "newEdgeVertex: ";
+        std::copy(newEdgeVertex.begin(), newEdgeVertex.end(), std::ostream_iterator<int>(std::cerr, " "));
+        cerr << endl
+             << "newEdges: ";
+        std::copy(newEdges.begin(), newEdges.end(), std::ostream_iterator<int>(std::cerr, " "));
+        cerr << endl;
+      }
+      // BLAGO
+
       CHECK(newEdgeVertex.size() == edges.size());
       CHECK(std::count_if(newEdgeVertex.begin(), newEdgeVertex.end(), [](const int& x) { return x >= 0; }) == newEdges.size());
 
@@ -299,6 +312,9 @@ void clipFacetedVolumeByPlanes(GeomPolyhedron& poly,
         }
       }
     }
+
+    // Deactivate any clipped vertices.
+    for (auto k = 0; k < vertexMask.size(); ++k) vertexMask[k] = std::max(0, vertexMask[k]);
   }
 
   // If we have an empty polyhedron just finish it here.
