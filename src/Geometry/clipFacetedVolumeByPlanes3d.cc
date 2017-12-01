@@ -194,9 +194,10 @@ void clipFacetedVolumeByPlanes(GeomPolyhedron& poly,
     }
   }
 
-  // // BLAGO
-  // cerr << "Starting polyhedron: " << endl << poly2string(vertices, vertexMask, edges, faces) << endl;
-  // // BLAGO
+  // BLAGO
+  cerr << "----------------------------------------------------------------------" << endl
+       << "Starting polyhedron: " << endl << poly2string(vertices, vertexMask, edges, faces) << endl;
+  // BLAGO
 
   // Loop over the planes.
   auto kplane = 0;
@@ -205,6 +206,8 @@ void clipFacetedVolumeByPlanes(GeomPolyhedron& poly,
     const auto& plane = planes[kplane++];
     const auto& p0 = plane.point();
     const auto& phat = plane.normal();
+    cerr << "................................................................................" << endl
+         << "Plane " << p0 << " " << phat << endl;
 
     // Check if the polyhedron is entirely clear of the plane (above or below).
     auto above = true;
@@ -214,7 +217,7 @@ void clipFacetedVolumeByPlanes(GeomPolyhedron& poly,
       while (k < vertices.size()) {
         if (vertexMask[k] != 0) {
           const auto vcomp = compare(p0, phat, vertices[k]);
-          if (vcomp == 1) {
+          if (vcomp >= 0) {
             below = false;
             vertexMask[k] = 1;          // Mark this vertex as keep.
           } else if (vcomp == -1) {
@@ -241,7 +244,7 @@ void clipFacetedVolumeByPlanes(GeomPolyhedron& poly,
       // This plane passes somewhere through the polyhedron, so we need to clip it.
       // Walk and edit each current face -- we'll handle adding the new faces after this pass.
       for (auto kface = 0; kface < faces.size(); ++kface) {
-        // cerr << "Face " << kface << endl;
+        cerr << "Face " << kface << endl;
         auto& face = faces[kface];
         Face newface;
 
@@ -340,7 +343,7 @@ void clipFacetedVolumeByPlanes(GeomPolyhedron& poly,
           // The face was clipped.  If we have an unresolved hanging node hook it to the last vertex
           // making a new edge to close the face ring.
           if (hangingVertex >= 0) {
-            // cerr << "HANGING VERTEX : " << hangingVertex << " --> " << lastVertex << endl;
+            cerr << "HANGING VERTEX : " << hangingVertex << " --> " << lastVertex << endl;
             CHECK(lastVertex >= 0);
             int newEdgeID = edges.size();
             edges.push_back(make_edge(lastVertex, hangingVertex));
@@ -353,19 +356,19 @@ void clipFacetedVolumeByPlanes(GeomPolyhedron& poly,
 
         // The newly clipped face is complete, so replace the old one.
         face = newface;
-        // cerr << poly2string(vertices, vertexMask, edges, faces) << endl;
+        cerr << poly2string(vertices, vertexMask, edges, faces) << endl;
       }
 
-      // // BLAGO
-      // {
-      //   cerr << "newEdgeVertex: ";
-      //   std::copy(newEdgeVertex.begin(), newEdgeVertex.end(), std::ostream_iterator<int>(std::cerr, " "));
-      //   cerr << endl
-      //        << "newEdges: ";
-      //   std::copy(newEdges.begin(), newEdges.end(), std::ostream_iterator<int>(std::cerr, " "));
-      //   cerr << endl;
-      // }
-      // // BLAGO
+      // BLAGO
+      {
+        cerr << "newEdgeVertex: ";
+        std::copy(newEdgeVertex.begin(), newEdgeVertex.end(), std::ostream_iterator<int>(std::cerr, " "));
+        cerr << endl
+             << "newEdges: ";
+        std::copy(newEdges.begin(), newEdges.end(), std::ostream_iterator<int>(std::cerr, " "));
+        cerr << endl;
+      }
+      // BLAGO
 
       CHECK(newEdgeVertex.size() == edges.size());
       CHECK(std::count_if(newEdgeVertex.begin(), newEdgeVertex.end(), [](const int& x) { return x >= 0; }) <= newEdges.size());
