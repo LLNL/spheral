@@ -145,7 +145,7 @@ void clipFacetedVolumeByPlanes(GeomPolygon& poly,
       auto k = 0;
       while (k < nring0 and (above or below)) {
         const auto vcomp = compare(p0, phat, ring0[k]);
-        if (vcomp >= 0) {
+        if (vcomp == 1) {
           below = false;
         } else if (vcomp == -1) {
           above = false;
