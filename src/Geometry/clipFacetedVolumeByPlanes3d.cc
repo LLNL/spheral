@@ -51,13 +51,45 @@ segmentPlaneIntersection(const Dim<3>::Vector& a,       // line-segment begin
 }
 
 //------------------------------------------------------------------------------
+// Decide if the given edge plane intersection should give us a new vertex.
+//------------------------------------------------------------------------------
+inline
+bool
+insertVertex(std::vector<Dim<3>::Vector>& vertices,
+             int vertID,
+             const std::vector<int>& vertexMask,
+             const int v0,
+             const int v1,
+             const Dim<3>::Vector& p0,
+             const Dim<3>::Vector& phat) {
+
+  // Where would we like the vertex?
+  const auto v = segmentPlaneIntersection(vertices[v0], vertices[v1], p0, phat);
+
+  // Is this degenerate with any existing active vertices?
+  bool result;
+  vertID = 0;
+  while (vertID < vertices.size() and 
+         not (vertexMask[vertID] == 1 and (vertices[vertID] - v).magnitude2() < 1.0e-16)) ++vertID;
+  if (vertID == vertices.size()) {
+    vertices.push_back(v);
+    result = true;
+  } else {
+    result = false;
+  }
+  return result;
+}
+
+//------------------------------------------------------------------------------
 // Compare a plane and point (our built-in plane one has some issues).
 //------------------------------------------------------------------------------
 inline
 int compare(const Dim<3>::Vector& planePoint,
             const Dim<3>::Vector& planeNormal,
             const Dim<3>::Vector& point) {
-  return sgn0(planeNormal.dot(point - planePoint));
+  const auto sgndist = planeNormal.dot(point - planePoint);
+  if (std::abs(sgndist) < 1.0e-8) return 0;
+  return sgn0(sgndist);
 }
 
 //------------------------------------------------------------------------------
@@ -247,7 +279,7 @@ void clipFacetedVolumeByPlanes(GeomPolyhedron& poly,
       while (k < vertices.size()) {
         if (vertexMask[k] != 0) {
           const auto vcomp = compare(p0, phat, vertices[k]);
-          if (vcomp == 1) {
+          if (vcomp >= 0) {
             below = false;
             vertexMask[k] = 1;          // Mark this vertex as keep.
           } else if (vcomp == -1) {
@@ -444,6 +476,24 @@ void clipFacetedVolumeByPlanes(GeomPolyhedron& poly,
             ++jedge;
           }
           CHECK(newface.size() >= 3);
+          if (!(startVertex(newface.front(), edges) == endVertex(newface.back(), edges))) {
+            cerr << "Ordered edges for capping: ";
+            for (auto iedge = 0; iedge != nNewEdges; ++iedge) {
+              if (newEdges[iedge] >= 0) {
+                cerr << " (" << edges[newEdges[iedge]].first << " " << edges[newEdges[iedge]].second << ")";
+              } else {
+                cerr << " (" << edges[~newEdges[iedge]].second << " " << edges[~newEdges[iedge]].first << ")";
+              }
+            }
+            cerr << endl;
+            cerr << "Bad new face: ";
+            for (const auto iedge: newface) {
+              const auto v0 = startVertex(iedge, edges);
+              const auto v1 = endVertex(iedge, edges);
+              cerr << " ([" << v0 << "] " << vertices[v0] << " -> [" << v1 << "] " << vertices[v1] << ")";
+            }
+            cerr << endl;
+          }
           CHECK(startVertex(newface.front(), edges) == endVertex(newface.back(), edges));
           faces.push_back(newface);
           iedge = jedge + 1;
