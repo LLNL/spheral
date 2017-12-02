@@ -56,8 +56,8 @@ segmentPlaneIntersection(const Dim<3>::Vector& a,       // line-segment begin
 inline
 bool
 insertVertex(std::vector<Dim<3>::Vector>& vertices,
-             int vertID,
-             const std::vector<int>& vertexMask,
+             int& vertID,
+             std::vector<int>& vertexMask,
              const int v0,
              const int v1,
              const Dim<3>::Vector& p0,
@@ -73,10 +73,14 @@ insertVertex(std::vector<Dim<3>::Vector>& vertices,
          not (vertexMask[vertID] == 1 and (vertices[vertID] - v).magnitude2() < 1.0e-16)) ++vertID;
   if (vertID == vertices.size()) {
     vertices.push_back(v);
+    vertexMask.push_back(1);
     result = true;
   } else {
     result = false;
   }
+  ENSURE(vertID < vertices.size());
+  ENSURE(vertices.size() == vertexMask.size());
+  ENSURE(vertexMask[vertID] == 1);
   return result;
 }
 
@@ -346,11 +350,11 @@ void clipFacetedVolumeByPlanes(GeomPolyhedron& poly,
 
           } else if (vertexMask[v0] == -1 and vertexMask[v1] == 1) {
             // v0 is clipped
-            const auto newVertexID = vertices.size();
-            vertices.push_back(segmentPlaneIntersection(vertices[v0], vertices[v1], p0, phat));
-            vertexMask.push_back(1);
-            CHECK(vertices.size() == newVertexID + 1 and vertexMask.size() == newVertexID + 1);
-            newEdgeVertex[posID(face[kedge])] = newVertexID;
+            // Check if we're inserting a new vertex.
+            int vertID;
+            if (insertVertex(vertices, vertID, vertexMask, v0, v1, p0, phat)) {
+              newEdgeVertex[posID(face[kedge])] = vertID;
+            }
 
             // Note, if v0 was clipped we're just re-entering the allowed volume.  
             // Before we edit this existing edge, we first build the new edge bridging the gap to the last vertex if possible.
@@ -358,18 +362,18 @@ void clipFacetedVolumeByPlanes(GeomPolyhedron& poly,
             // after we walk the entire ring.
             if (lastVertex >= 0) {
               int newEdgeID = edges.size();
-              edges.push_back(make_edge(lastVertex, newVertexID));
+              edges.push_back(make_edge(lastVertex, vertID));
               edgeFaces.push_back(make_pair(kface, -1));
               newEdgeVertex.push_back(-1);
               newEdges.push_back(edges.back().first == lastVertex ? ~newEdgeID : newEdgeID);
               newface.push_back (edges.back().first == lastVertex ? newEdgeID : ~newEdgeID);
             } else {
               CHECK(hangingVertex == -1);  // This should only happen at most once per face!
-              hangingVertex = newVertexID;
+              hangingVertex = vertID;
             }
 
             // Now edit our old edge in-place.
-            edge = make_edge(newVertexID, v1);
+            edge = make_edge(vertID, v1);
             newface.push_back(~posID(face[kedge]));
             lastVertex = v1;
 
@@ -378,14 +382,15 @@ void clipFacetedVolumeByPlanes(GeomPolyhedron& poly,
 
           } else if (vertexMask[v0] == 1 and vertexMask[v1] == -1) {
             // v1 is clipped
-            const auto newVertexID = vertices.size();
-            vertices.push_back(segmentPlaneIntersection(vertices[v0], vertices[v1], p0, phat));
-            vertexMask.push_back(1);
-            CHECK(vertices.size() == newVertexID + 1 and vertexMask.size() == newVertexID + 1);
-            newEdgeVertex[posID(face[kedge])] = newVertexID;
-            edge = make_edge(v0, newVertexID);
+            int vertID;
+            if (insertVertex(vertices, vertID, vertexMask, v0, v1, p0, phat)) {
+              newEdgeVertex[posID(face[kedge])] = vertID;
+            }
+
+            // Now edit the old edge in place.
+            edge = make_edge(v0, vertID);
             newface.push_back(posID(face[kedge]));
-            lastVertex = newVertexID;
+            lastVertex = vertID;
 
             // Since we edited an edge we have to double-check it's orientation in the other face using it.
             fixOtherFaceEdgeOrientation(faces, edgeFaces, kface, posID(newface.back()), ~newface.back());
