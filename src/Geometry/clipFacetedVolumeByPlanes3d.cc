@@ -353,6 +353,7 @@ void clipFacetedVolumeByPlanes(GeomPolyhedron& poly,
             // Check if we're inserting a new vertex.
             int vertID;
             if (insertVertex(vertices, vertID, vertexMask, v0, v1, p0, phat)) {
+              CHECK(newEdgeVertex[posID(face[kedge])] == -1);
               newEdgeVertex[posID(face[kedge])] = vertID;
             }
 
@@ -361,12 +362,12 @@ void clipFacetedVolumeByPlanes(GeomPolyhedron& poly,
             // However, if we have not yet acquired a valid lastVertex, we list this as a hanging vertex to be resolved
             // after we walk the entire ring.
             if (lastVertex >= 0) {
-              int newEdgeID = edges.size();
+              const int iedge = edges.size();
               edges.push_back(make_edge(lastVertex, vertID));
               edgeFaces.push_back(make_pair(kface, -1));
               newEdgeVertex.push_back(-1);
-              newEdges.push_back(edges.back().first == lastVertex ? ~newEdgeID : newEdgeID);
-              newface.push_back (edges.back().first == lastVertex ? newEdgeID : ~newEdgeID);
+              newface.push_back (edges.back().first == lastVertex ?  iedge : ~iedge);
+              newEdges.push_back(edges.back().first == lastVertex ? ~iedge :  iedge);
             } else {
               CHECK(hangingVertex == -1);  // This should only happen at most once per face!
               hangingVertex = vertID;
@@ -374,7 +375,8 @@ void clipFacetedVolumeByPlanes(GeomPolyhedron& poly,
 
             // Now edit our old edge in-place.
             edge = make_edge(vertID, v1);
-            newface.push_back(~posID(face[kedge]));
+            const int iedge = posID(face[kedge]);
+            newface.push_back(edge.first == vertID ? iedge : ~iedge);
             lastVertex = v1;
 
             // Since we edited an edge we have to double-check it's orientation in the other face using it.
@@ -384,12 +386,14 @@ void clipFacetedVolumeByPlanes(GeomPolyhedron& poly,
             // v1 is clipped
             int vertID;
             if (insertVertex(vertices, vertID, vertexMask, v0, v1, p0, phat)) {
+              CHECK(newEdgeVertex[posID(face[kedge])] == -1);
               newEdgeVertex[posID(face[kedge])] = vertID;
             }
 
             // Now edit the old edge in place.
             edge = make_edge(v0, vertID);
-            newface.push_back(posID(face[kedge]));
+            const int iedge = posID(face[kedge]);
+            newface.push_back(edge.first == v0 ? iedge : ~iedge);
             lastVertex = vertID;
 
             // Since we edited an edge we have to double-check it's orientation in the other face using it.
@@ -412,12 +416,12 @@ void clipFacetedVolumeByPlanes(GeomPolyhedron& poly,
           if (hangingVertex >= 0) {
             // cerr << "HANGING VERTEX : " << hangingVertex << " --> " << lastVertex << endl;
             CHECK(lastVertex >= 0);
-            int newEdgeID = edges.size();
+            const int iedge = edges.size();
             edges.push_back(make_edge(lastVertex, hangingVertex));
             edgeFaces.push_back(make_pair(kface, -1));
             newEdgeVertex.push_back(-1);
-            newEdges.push_back(edges.back().first == lastVertex ? ~newEdgeID : newEdgeID);
-            newface.push_back (edges.back().first == lastVertex ? newEdgeID : ~newEdgeID);
+            newEdges.push_back(edges.back().first == lastVertex ? ~iedge :  iedge);
+            newface.push_back (edges.back().first == lastVertex ?  iedge : ~iedge);
           }
         }
 

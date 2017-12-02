@@ -52,11 +52,13 @@ class TestPolyhedronClipping(unittest.TestCase):
             chunk2 = Polyhedron(self.cube)
             clipFacetedVolumeByPlanes(chunk1, planes1)
             clipFacetedVolumeByPlanes(chunk2, planes2)
-            # from PolyhedronFileUtilities import writePolyhedronOBJ
-            # writePolyhedronOBJ(self.cube, "cube.obj")
-            # writePolyhedronOBJ(chunk1, "chunk_ONE.obj")
-            # writePolyhedronOBJ(chunk2, "chunk_TWO.obj")
-            self.failUnless(fuzzyEqual(chunk1.volume + chunk2.volume, self.cube.volume),
+            success = fuzzyEqual(chunk1.volume + chunk2.volume, self.cube.volume)
+            if not success:
+                from PolyhedronFileUtilities import writePolyhedronOBJ
+                writePolyhedronOBJ(self.cube, "cube.obj")
+                writePolyhedronOBJ(chunk1, "chunk_ONE.obj")
+                writePolyhedronOBJ(chunk2, "chunk_TWO.obj")
+            self.failUnless(success,
                             "Plane clipping summing to wrong volumes: %s + %s != %s" % (chunk1.volume,
                                                                                         chunk2.volume,
                                                                                         self.cube.volume))
@@ -91,13 +93,15 @@ class TestPolyhedronClipping(unittest.TestCase):
             clipFacetedVolumeByPlanes(chunk2, planes2)
             clipFacetedVolumeByPlanes(chunk3, planes3)
             clipFacetedVolumeByPlanes(chunk4, planes4)
-            # from PolyhedronFileUtilities import writePolyhedronOBJ
-            # writePolyhedronOBJ(self.cube, "cube.obj")
-            # writePolyhedronOBJ(chunk1, "chunk_1ONE_TWOPLANES.obj")
-            # writePolyhedronOBJ(chunk2, "chunk_2TWO_TWOPLANES.obj")
-            # writePolyhedronOBJ(chunk3, "chunk_3THREE_TWOPLANES.obj")
-            # writePolyhedronOBJ(chunk4, "chunk_4FOUR_TWOPLANES.obj")
-            self.failUnless(fuzzyEqual(chunk1.volume + chunk2.volume + chunk3.volume + chunk4.volume, self.cube.volume),
+            success = fuzzyEqual(chunk1.volume + chunk2.volume + chunk3.volume + chunk4.volume, self.cube.volume)
+            if not success:
+                from PolyhedronFileUtilities import writePolyhedronOBJ
+                writePolyhedronOBJ(self.cube, "cube.obj")
+                writePolyhedronOBJ(chunk1, "chunk_1ONE_TWOPLANES.obj")
+                writePolyhedronOBJ(chunk2, "chunk_2TWO_TWOPLANES.obj")
+                writePolyhedronOBJ(chunk3, "chunk_3THREE_TWOPLANES.obj")
+                writePolyhedronOBJ(chunk4, "chunk_4FOUR_TWOPLANES.obj")
+            self.failUnless(success,
                             "Two plane clipping summing to wrong volumes: %s + %s + %s + %s = %s != %s" % (chunk1.volume,
                                                                                                            chunk2.volume,
                                                                                                            chunk3.volume,
