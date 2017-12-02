@@ -33,7 +33,6 @@ namespace {
 //------------------------------------------------------------------------------
 // Intersect a line-segment with a plane.
 //------------------------------------------------------------------------------
-inline
 Dim<3>::Vector
 segmentPlaneIntersection(const Dim<3>::Vector& a,       // line-segment begin
                          const Dim<3>::Vector& b,       // line-segment end
@@ -43,7 +42,7 @@ segmentPlaneIntersection(const Dim<3>::Vector& a,       // line-segment begin
   const auto ab = b - a;
   const auto abhat = ab.unitVector();
   CHECK2(std::abs(abhat.dot(phat)) > 0.0, (abhat.dot(phat)) << " " << a << " " << b << " " << abhat << " " << phat);
-  const double s = (p - a).dot(phat)/(abhat.dot(phat));
+  const double s = std::max(0.0, std::min(ab.magnitude(), (p - a).dot(phat)/(abhat.dot(phat))));
   CHECK2(s >= 0.0 and s <= ab.magnitude(), s << " " << ab.magnitude());
   const auto result = a + s*abhat;
   CHECK2(fuzzyEqual((result - p).dot(phat), 0.0, 1.0e-10),
@@ -83,6 +82,7 @@ posID(const int x) {
 // When we edit a face in place we may flip the orientation required -- this 
 // method is used to fix that orientation in the other face using the edge.
 //------------------------------------------------------------------------------
+inline
 void fixOtherFaceEdgeOrientation(vector<vector<int>>& faces,
                                  const vector<pair<int, int>>& edgeFaces,
                                  const int faceID,
@@ -97,6 +97,36 @@ void fixOtherFaceEdgeOrientation(vector<vector<int>>& faces,
   while (k < faces[otherFaceID].size() and posID(faces[otherFaceID][k]) != edgeID) ++k;
   CHECK(k < faces[otherFaceID].size());
   faces[otherFaceID][k] = newEdgeOrientation;
+}
+
+//------------------------------------------------------------------------------
+// Grab the starting vertex for the edge corresponding to the encoded id.
+//------------------------------------------------------------------------------
+inline
+int
+startVertex(const int id, const vector<pair<int, int>>& edges) {
+  if (id < 0) {
+    CHECK(~id < edges.size());
+    return edges[~id].second;
+  } else {
+    CHECK(id < edges.size());
+    return edges[id].first;
+  }
+}
+
+//------------------------------------------------------------------------------
+// Grab the end vertex for the edge corresponding to the encoded id.
+//------------------------------------------------------------------------------
+inline
+int
+endVertex(const int id, const vector<pair<int, int>>& edges) {
+  if (id < 0) {
+    CHECK(~id < edges.size());
+    return edges[~id].first;
+  } else {
+    CHECK(id < edges.size());
+    return edges[id].second;
+  }
 }
 
 //------------------------------------------------------------------------------
@@ -194,10 +224,10 @@ void clipFacetedVolumeByPlanes(GeomPolyhedron& poly,
     }
   }
 
-  // BLAGO
-  cerr << "----------------------------------------------------------------------" << endl
-       << "Starting polyhedron: " << endl << poly2string(vertices, vertexMask, edges, faces) << endl;
-  // BLAGO
+  // // BLAGO
+  // cerr << "----------------------------------------------------------------------" << endl
+  //      << "Starting polyhedron: " << endl << poly2string(vertices, vertexMask, edges, faces) << endl;
+  // // BLAGO
 
   // Loop over the planes.
   auto kplane = 0;
@@ -206,8 +236,8 @@ void clipFacetedVolumeByPlanes(GeomPolyhedron& poly,
     const auto& plane = planes[kplane++];
     const auto& p0 = plane.point();
     const auto& phat = plane.normal();
-    cerr << "................................................................................" << endl
-         << "Plane " << p0 << " " << phat << endl;
+    // cerr << "................................................................................" << endl
+    //      << "Plane " << p0 << " " << phat << endl;
 
     // Check if the polyhedron is entirely clear of the plane (above or below).
     auto above = true;
@@ -217,7 +247,7 @@ void clipFacetedVolumeByPlanes(GeomPolyhedron& poly,
       while (k < vertices.size()) {
         if (vertexMask[k] != 0) {
           const auto vcomp = compare(p0, phat, vertices[k]);
-          if (vcomp >= 0) {
+          if (vcomp == 1) {
             below = false;
             vertexMask[k] = 1;          // Mark this vertex as keep.
           } else if (vcomp == -1) {
@@ -244,7 +274,7 @@ void clipFacetedVolumeByPlanes(GeomPolyhedron& poly,
       // This plane passes somewhere through the polyhedron, so we need to clip it.
       // Walk and edit each current face -- we'll handle adding the new faces after this pass.
       for (auto kface = 0; kface < faces.size(); ++kface) {
-        cerr << "Face " << kface << endl;
+        // cerr << "Face " << kface << endl;
         auto& face = faces[kface];
         Face newface;
 
@@ -343,7 +373,7 @@ void clipFacetedVolumeByPlanes(GeomPolyhedron& poly,
           // The face was clipped.  If we have an unresolved hanging node hook it to the last vertex
           // making a new edge to close the face ring.
           if (hangingVertex >= 0) {
-            cerr << "HANGING VERTEX : " << hangingVertex << " --> " << lastVertex << endl;
+            // cerr << "HANGING VERTEX : " << hangingVertex << " --> " << lastVertex << endl;
             CHECK(lastVertex >= 0);
             int newEdgeID = edges.size();
             edges.push_back(make_edge(lastVertex, hangingVertex));
@@ -356,19 +386,19 @@ void clipFacetedVolumeByPlanes(GeomPolyhedron& poly,
 
         // The newly clipped face is complete, so replace the old one.
         face = newface;
-        cerr << poly2string(vertices, vertexMask, edges, faces) << endl;
+        // cerr << poly2string(vertices, vertexMask, edges, faces) << endl;
       }
 
-      // BLAGO
-      {
-        cerr << "newEdgeVertex: ";
-        std::copy(newEdgeVertex.begin(), newEdgeVertex.end(), std::ostream_iterator<int>(std::cerr, " "));
-        cerr << endl
-             << "newEdges: ";
-        std::copy(newEdges.begin(), newEdges.end(), std::ostream_iterator<int>(std::cerr, " "));
-        cerr << endl;
-      }
-      // BLAGO
+      // // BLAGO
+      // {
+      //   cerr << "newEdgeVertex: ";
+      //   std::copy(newEdgeVertex.begin(), newEdgeVertex.end(), std::ostream_iterator<int>(std::cerr, " "));
+      //   cerr << endl
+      //        << "newEdges: ";
+      //   std::copy(newEdges.begin(), newEdges.end(), std::ostream_iterator<int>(std::cerr, " "));
+      //   cerr << endl;
+      // }
+      // // BLAGO
 
       CHECK(newEdgeVertex.size() == edges.size());
       CHECK(std::count_if(newEdgeVertex.begin(), newEdgeVertex.end(), [](const int& x) { return x >= 0; }) <= newEdges.size());
@@ -390,15 +420,15 @@ void clipFacetedVolumeByPlanes(GeomPolyhedron& poly,
                  (v1 != edges[posID(newEdges[jedge])].first and v1 != edges[posID(newEdges[jedge])].second)) ++jedge;
           if (jedge < nNewEdges) std::swap(newEdges[iedge + 1], newEdges[jedge]);
         }
-        cerr << "Ordered edges for capping: ";
-        for (auto iedge = 0; iedge != nNewEdges; ++iedge) {
-          if (newEdges[iedge] >= 0) {
-            cerr << " (" << edges[newEdges[iedge]].first << " " << edges[newEdges[iedge]].second << ")";
-          } else {
-            cerr << " (" << edges[~newEdges[iedge]].second << " " << edges[~newEdges[iedge]].first << ")";
-          }
-        }
-        cerr << endl;
+        // cerr << "Ordered edges for capping: ";
+        // for (auto iedge = 0; iedge != nNewEdges; ++iedge) {
+        //   if (newEdges[iedge] >= 0) {
+        //     cerr << " (" << edges[newEdges[iedge]].first << " " << edges[newEdges[iedge]].second << ")";
+        //   } else {
+        //     cerr << " (" << edges[~newEdges[iedge]].second << " " << edges[~newEdges[iedge]].first << ")";
+        //   }
+        // }
+        // cerr << endl;
 
         // Now we can read out each loop from the ordered newEdges to make our new faces.
         auto iedge = 0;
@@ -411,10 +441,10 @@ void clipFacetedVolumeByPlanes(GeomPolyhedron& poly,
                  (edges[posID(newEdges[jedge])].first == v1 or edges[posID(newEdges[jedge])].second == v1)) {
             newface.push_back(newEdges[jedge]);
             v1 = newEdges[jedge] >= 0 ? edges[newEdges[jedge]].second : edges[~newEdges[jedge]].first;
-            
             ++jedge;
           }
           CHECK(newface.size() >= 3);
+          CHECK(startVertex(newface.front(), edges) == endVertex(newface.back(), edges));
           faces.push_back(newface);
           iedge = jedge + 1;
 
@@ -458,11 +488,14 @@ void clipFacetedVolumeByPlanes(GeomPolyhedron& poly,
     if (not face.empty()) {
       facets.push_back(vector<unsigned>());
       for (const auto edgeID: face) {
-        facets.back().push_back(edgeID >= 0 ? old2new[edges[edgeID].first] : old2new[edges[~edgeID].second]);
+        facets.back().push_back(old2new[startVertex(edgeID, edges)]);
       }
       CHECK(facets.back().size() == face.size());
+      CHECK(facets.back().size() >= 3);
+      CHECK(*max_element(facets.back().begin(), facets.back().end()) < newvertices.size());
     }
   }
+  CHECK(facets.size() >= 4);
 
   // Now we can rebuild the polyhedron.
   poly = GeomPolyhedron(newvertices, facets);

@@ -256,7 +256,7 @@ GeomPolyhedron(const vector<GeomPolyhedron::Vector>& points,
       centroid += (mVertices[indices[i]] + mVertices[indices[j]]) * dl;
       circum += dl;
     }
-    centroid /= 2.0*circum;
+    centroid *= safeInvVar(2.0*circum);
 
     // Figure out the normal.
     if (n == 3) {

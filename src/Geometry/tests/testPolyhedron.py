@@ -384,6 +384,10 @@ class TestPolyhedron(unittest.TestCase):
     #----------------------------------------------------------------------------
     def testClipByPlane(self):
         for p0 in self.points:
+        #for i in xrange(len(self.points)):
+        #    if (i % 100 == 0):
+        #        print i
+        #    p0 = self.points[i]
             phat = Vector(rangen.uniform(-1.0, 1.0), 
                           rangen.uniform(-1.0, 1.0), 
                           rangen.uniform(-1.0, 1.0)).unitVector()
@@ -395,10 +399,10 @@ class TestPolyhedron(unittest.TestCase):
             poly2 = Polyhedron(self.polyhedron)
             clipFacetedVolumeByPlanes(poly1, planes1)
             clipFacetedVolumeByPlanes(poly2, planes2)
-            from PolyhedronFileUtilities import writePolyhedronOBJ
-            writePolyhedronOBJ(self.polyhedron, "polyhedron_ZERO.obj")
-            writePolyhedronOBJ(poly1, "polyhedron_ONE.obj")
-            writePolyhedronOBJ(poly2, "polyhedron_TWO.obj")
+            # from PolyhedronFileUtilities import writePolyhedronOBJ
+            # writePolyhedronOBJ(self.polyhedron, "polyhedron_ZERO.obj")
+            # writePolyhedronOBJ(poly1, "polyhedron_ONE.obj")
+            # writePolyhedronOBJ(poly2, "polyhedron_TWO.obj")
             self.failUnless(fuzzyEqual(poly1.volume + poly2.volume, self.polyhedron.volume),
                             "Plane clipping summing to wrong volumes: %s + %s != %s" % (poly1.volume,
                                                                                         poly2.volume,
