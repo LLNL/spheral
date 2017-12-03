@@ -111,6 +111,4 @@ class TestPolyhedronClipping(unittest.TestCase):
         return
 
 if __name__ == "__main__":
-    # print "Waiting..."
-    # raw_input()
     unittest.main()
