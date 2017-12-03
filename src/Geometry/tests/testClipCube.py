@@ -65,6 +65,56 @@ class TestPolyhedronClipping(unittest.TestCase):
         return
 
     #---------------------------------------------------------------------------
+    # Clip with planes passing outside the cube -- null test.
+    #---------------------------------------------------------------------------
+    def testNullClipOnePlane(self):
+        for i in xrange(self.ntests):
+            planes = vector_of_Plane()
+            r = rangen.uniform(2.0, 100.0)
+            theta = rangen.uniform(0.0, 2.0*pi)
+            phi = rangen.uniform(0.0, pi)
+            phat = Vector(cos(theta)*sin(phi),
+                          sin(theta)*sin(phi),
+                          sin(phi)).unitVector()
+            p0 = Vector(0.5, 0.5, 0.5) + r*phat
+            planes.append(Plane(p0, -phat))
+            chunk = Polyhedron(self.cube)
+            clipFacetedVolumeByPlanes(chunk, planes)
+            success = (chunk.volume == self.cube.volume)
+            if not success:
+                from PolyhedronFileUtilities import writePolyhedronOBJ
+                writePolyhedronOBJ(self.cube, "cube.obj")
+                writePolyhedronOBJ(chunk, "chunk.obj")
+            self.failUnless(success,
+                            "Null plane clipping failure: %s != %s" % (chunk.volume, self.cube.volume))
+        return
+
+    #---------------------------------------------------------------------------
+    # Clip with planes passing outside the cube and rejecting the whole thing.
+    #---------------------------------------------------------------------------
+    def testFullClipOnePlane(self):
+        for i in xrange(self.ntests):
+            planes = vector_of_Plane()
+            r = rangen.uniform(2.0, 100.0)
+            theta = rangen.uniform(0.0, 2.0*pi)
+            phi = rangen.uniform(0.0, pi)
+            phat = Vector(cos(theta)*sin(phi),
+                          sin(theta)*sin(phi),
+                          sin(phi)).unitVector()
+            p0 = Vector(0.5, 0.5, 0.5) + r*phat
+            planes.append(Plane(p0, phat))
+            chunk = Polyhedron(self.cube)
+            clipFacetedVolumeByPlanes(chunk, planes)
+            success = (chunk.volume == 0.0)
+            if not success:
+                from PolyhedronFileUtilities import writePolyhedronOBJ
+                writePolyhedronOBJ(self.cube, "cube.obj")
+                writePolyhedronOBJ(chunk, "chunk.obj")
+            self.failUnless(success,
+                            "Full plane clipping failure: %s != %s" % (chunk.volume, self.cube.volume))
+        return
+
+    #---------------------------------------------------------------------------
     # Clip with planes passing through the cube.
     #---------------------------------------------------------------------------
     def testClipInternalTwoPlanes(self):
