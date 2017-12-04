@@ -16,14 +16,15 @@ def readPolyhedronOBJ(filename):
     facets = vector_of_vector_of_unsigned()
     for line in f:
         stuff = line.split()
-        if stuff[0] == "v":
-            assert len(stuff) == 4
-            verts.append(Vector(float(stuff[1]), float(stuff[2]), float(stuff[3])))
-        elif stuff[0] == "f":
-            assert len(stuff) >= 4
-            facets.append(vector_of_unsigned())
-            for x in stuff[1:]:
-                facets[-1].append(int(x) - 1)
+        if stuff:
+            if stuff[0] == "v":
+                assert len(stuff) == 4
+                verts.append(Vector(float(stuff[1]), float(stuff[2]), float(stuff[3])))
+            elif stuff[0] == "f":
+                assert len(stuff) >= 4
+                facets.append(vector_of_unsigned())
+                for x in stuff[1:]:
+                    facets[-1].append(int(x.split("/")[0]) - 1)
     f.close()
     nverts = len(verts)
     for i in xrange(len(facets)):
