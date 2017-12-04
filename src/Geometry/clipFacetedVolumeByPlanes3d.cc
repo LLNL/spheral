@@ -389,7 +389,7 @@ void clipFacetedVolumeByPlanes(GeomPolyhedron& poly,
           {
             for (auto kedge = 0; kedge < newface.size(); ++kedge) {
               const auto kedge1 = (kedge + 1) % newface.size();
-              CHECK(endVertex(kedge, newface) == startVertex(kedge, newface));
+              CHECK(endVertex(newface[kedge], edges) == startVertex(newface[kedge1], edges));
             }
           }
           END_CONTRACT_SCOPE
@@ -419,33 +419,31 @@ void clipFacetedVolumeByPlanes(GeomPolyhedron& poly,
         CHECK(nNewEdges >= 3);
         int v1;
         for (auto iedge = 0; iedge < nNewEdges - 1; ++iedge) {
-          v1 = newEdges[iedge] >= 0 ? edges[newEdges[iedge]].second : edges[~newEdges[iedge]].first;
+          v1 = endVertex(newEdges[iedge], edges);
           auto jedge = iedge + 1;
-          while (jedge < nNewEdges and 
-                 (v1 != edges[posID(newEdges[jedge])].first and v1 != edges[posID(newEdges[jedge])].second)) ++jedge;
+          while (jedge < nNewEdges and v1 != startVertex(newEdges[jedge], edges)) ++jedge;
           if (jedge < nNewEdges) std::swap(newEdges[iedge + 1], newEdges[jedge]);
         }
-        // cerr << "Ordered edges for capping: ";
-        // for (auto iedge = 0; iedge != nNewEdges; ++iedge) {
-        //   if (newEdges[iedge] >= 0) {
-        //     cerr << " (" << edges[newEdges[iedge]].first << " " << edges[newEdges[iedge]].second << ")";
-        //   } else {
-        //     cerr << " (" << edges[~newEdges[iedge]].second << " " << edges[~newEdges[iedge]].first << ")";
-        //   }
-        // }
-        // cerr << endl;
+        cerr << "Ordered edges for capping: ";
+        for (auto iedge = 0; iedge != nNewEdges; ++iedge) {
+          if (newEdges[iedge] >= 0) {
+            cerr << " (" << edges[newEdges[iedge]].first << " " << edges[newEdges[iedge]].second << ")";
+          } else {
+            cerr << " (" << edges[~newEdges[iedge]].second << " " << edges[~newEdges[iedge]].first << ")";
+          }
+        }
+        cerr << endl;
 
         // Now we can read out each loop from the ordered newEdges to make our new faces.
         auto iedge = 0;
         while (iedge < nNewEdges) {
           auto newFaceID = faces.size();
           Face newface(1U, newEdges[iedge]);
-          v1 = newEdges[iedge] >= 0 ? edges[newEdges[iedge]].second : edges[~newEdges[iedge]].first;
+          v1 = endVertex(newEdges[iedge], edges);
           auto jedge = iedge + 1;
-          while (jedge < nNewEdges and
-                 (edges[posID(newEdges[jedge])].first == v1 or edges[posID(newEdges[jedge])].second == v1)) {
+          while (jedge < nNewEdges and startVertex(newEdges[jedge], edges) == v1) {
             newface.push_back(newEdges[jedge]);
-            v1 = newEdges[jedge] >= 0 ? edges[newEdges[jedge]].second : edges[~newEdges[jedge]].first;
+            v1 = endVertex(newEdges[jedge], edges);
             ++jedge;
           }
           CHECK(newface.size() >= 3);
@@ -467,9 +465,17 @@ void clipFacetedVolumeByPlanes(GeomPolyhedron& poly,
             }
             cerr << endl;
           }
+          cerr << "New face: ";
+          for (const auto iedge: newface) {
+            const auto v0 = startVertex(iedge, edges);
+            const auto v1 = endVertex(iedge, edges);
+            cerr << " ([" << v0 << "] " << vertices[v0] << " -> [" << v1 << "] " << vertices[v1] << ")";
+          }
+          cerr << endl;
+
           CHECK(startVertex(newface.front(), edges) == endVertex(newface.back(), edges));
           faces.push_back(newface);
-          iedge = jedge + 1;
+          iedge = jedge;
 
           // List the new face with all the new edges in it.
           for (const auto e: newface) {
