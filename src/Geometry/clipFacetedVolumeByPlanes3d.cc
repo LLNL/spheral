@@ -424,15 +424,15 @@ void clipFacetedVolumeByPlanes(GeomPolyhedron& poly,
           while (jedge < nNewEdges and v1 != startVertex(newEdges[jedge], edges)) ++jedge;
           if (jedge < nNewEdges) std::swap(newEdges[iedge + 1], newEdges[jedge]);
         }
-        cerr << "Ordered edges for capping: ";
-        for (auto iedge = 0; iedge != nNewEdges; ++iedge) {
-          if (newEdges[iedge] >= 0) {
-            cerr << " (" << edges[newEdges[iedge]].first << " " << edges[newEdges[iedge]].second << ")";
-          } else {
-            cerr << " (" << edges[~newEdges[iedge]].second << " " << edges[~newEdges[iedge]].first << ")";
-          }
-        }
-        cerr << endl;
+        // cerr << "Ordered edges for capping: ";
+        // for (auto iedge = 0; iedge != nNewEdges; ++iedge) {
+        //   if (newEdges[iedge] >= 0) {
+        //     cerr << " (" << edges[newEdges[iedge]].first << " " << edges[newEdges[iedge]].second << ")";
+        //   } else {
+        //     cerr << " (" << edges[~newEdges[iedge]].second << " " << edges[~newEdges[iedge]].first << ")";
+        //   }
+        // }
+        // cerr << endl;
 
         // Now we can read out each loop from the ordered newEdges to make our new faces.
         auto iedge = 0;
@@ -447,32 +447,24 @@ void clipFacetedVolumeByPlanes(GeomPolyhedron& poly,
             ++jedge;
           }
           CHECK(newface.size() >= 3);
-          if (!(startVertex(newface.front(), edges) == endVertex(newface.back(), edges))) {
-            cerr << "Ordered edges for capping: ";
-            for (auto iedge = 0; iedge != nNewEdges; ++iedge) {
-              if (newEdges[iedge] >= 0) {
-                cerr << " (" << edges[newEdges[iedge]].first << " " << edges[newEdges[iedge]].second << ")";
-              } else {
-                cerr << " (" << edges[~newEdges[iedge]].second << " " << edges[~newEdges[iedge]].first << ")";
-              }
-            }
-            cerr << endl;
-            cerr << "Bad new face: ";
-            for (const auto iedge: newface) {
-              const auto v0 = startVertex(iedge, edges);
-              const auto v1 = endVertex(iedge, edges);
-              cerr << " ([" << v0 << "] " << vertices[v0] << " -> [" << v1 << "] " << vertices[v1] << ")";
-            }
-            cerr << endl;
-          }
-          cerr << "New face: ";
-          for (const auto iedge: newface) {
-            const auto v0 = startVertex(iedge, edges);
-            const auto v1 = endVertex(iedge, edges);
-            cerr << " ([" << v0 << "] " << vertices[v0] << " -> [" << v1 << "] " << vertices[v1] << ")";
-          }
-          cerr << endl;
-
+          // if (!(startVertex(newface.front(), edges) == endVertex(newface.back(), edges))) {
+          //   cerr << "Ordered edges for capping: ";
+          //   for (auto iedge = 0; iedge != nNewEdges; ++iedge) {
+          //     if (newEdges[iedge] >= 0) {
+          //       cerr << " (" << edges[newEdges[iedge]].first << " " << edges[newEdges[iedge]].second << ")";
+          //     } else {
+          //       cerr << " (" << edges[~newEdges[iedge]].second << " " << edges[~newEdges[iedge]].first << ")";
+          //     }
+          //   }
+          //   cerr << endl;
+          //   cerr << "Bad new face: ";
+          //   for (const auto iedge: newface) {
+          //     const auto v0 = startVertex(iedge, edges);
+          //     const auto v1 = endVertex(iedge, edges);
+          //     cerr << " ([" << v0 << "] " << vertices[v0] << " -> [" << v1 << "] " << vertices[v1] << ")";
+          //   }
+          //   cerr << endl;
+          // }
           CHECK(startVertex(newface.front(), edges) == endVertex(newface.back(), edges));
           faces.push_back(newface);
           iedge = jedge;
