@@ -3,9 +3,10 @@
 import unittest
 from math import *
 import time
-from SpheralTestUtilities import fuzzyEqual
 
 from Spheral3d import *
+from SpheralTestUtilities import fuzzyEqual
+from PolyhedronFileUtilities import *
 
 # Create a global random number generator.
 import random
@@ -31,7 +32,9 @@ class TestPolyhedronClipping(unittest.TestCase):
                     (1,1,1)]:
             self.points.append(Vector(*tup))
         self.cube = Polyhedron(self.points)
-        self.ntests = 10000
+        self.cubecyl = readPolyhedronOBJ("CubeAndCylinder.obj")
+        self.polyhedra = [self.cube, self.cubecyl]
+        self.ntests = 1 # 10000
         return
 
     #---------------------------------------------------------------------------
@@ -48,20 +51,20 @@ class TestPolyhedronClipping(unittest.TestCase):
                           rangen.uniform(-1.0, 1.0)).unitVector()
             planes1.append(Plane(p0,  phat))
             planes2.append(Plane(p0, -phat))
-            chunk1 = Polyhedron(self.cube)
-            chunk2 = Polyhedron(self.cube)
-            clipFacetedVolumeByPlanes(chunk1, planes1)
-            clipFacetedVolumeByPlanes(chunk2, planes2)
-            success = fuzzyEqual(chunk1.volume + chunk2.volume, self.cube.volume)
-            if not success:
-                from PolyhedronFileUtilities import writePolyhedronOBJ
-                writePolyhedronOBJ(self.cube, "cube.obj")
-                writePolyhedronOBJ(chunk1, "chunk_ONE.obj")
-                writePolyhedronOBJ(chunk2, "chunk_TWO.obj")
-            self.failUnless(success,
-                            "Plane clipping summing to wrong volumes: %s + %s != %s" % (chunk1.volume,
-                                                                                        chunk2.volume,
-                                                                                        self.cube.volume))
+            for poly in self.polyhedra:
+                chunk1 = Polyhedron(poly)
+                chunk2 = Polyhedron(poly)
+                clipFacetedVolumeByPlanes(chunk1, planes1)
+                clipFacetedVolumeByPlanes(chunk2, planes2)
+                success = fuzzyEqual(chunk1.volume + chunk2.volume, self.cube.volume)
+                if True: # not success:
+                    writePolyhedronOBJ(poly, "poly.obj")
+                    writePolyhedronOBJ(chunk1, "chunk_ONE.obj")
+                    writePolyhedronOBJ(chunk2, "chunk_TWO.obj")
+                self.failUnless(success,
+                                "Plane clipping summing to wrong volumes: %s + %s != %s" % (chunk1.volume,
+                                                                                            chunk2.volume,
+                                                                                            poly.volume))
         return
 
     #---------------------------------------------------------------------------
@@ -82,7 +85,6 @@ class TestPolyhedronClipping(unittest.TestCase):
             clipFacetedVolumeByPlanes(chunk, planes)
             success = (chunk.volume == self.cube.volume)
             if not success:
-                from PolyhedronFileUtilities import writePolyhedronOBJ
                 writePolyhedronOBJ(self.cube, "cube.obj")
                 writePolyhedronOBJ(chunk, "chunk.obj")
             self.failUnless(success,
@@ -107,7 +109,6 @@ class TestPolyhedronClipping(unittest.TestCase):
             clipFacetedVolumeByPlanes(chunk, planes)
             success = (chunk.volume == 0.0)
             if not success:
-                from PolyhedronFileUtilities import writePolyhedronOBJ
                 writePolyhedronOBJ(self.cube, "cube.obj")
                 writePolyhedronOBJ(chunk, "chunk.obj")
             self.failUnless(success,
@@ -145,7 +146,6 @@ class TestPolyhedronClipping(unittest.TestCase):
             clipFacetedVolumeByPlanes(chunk4, planes4)
             success = fuzzyEqual(chunk1.volume + chunk2.volume + chunk3.volume + chunk4.volume, self.cube.volume)
             if not success:
-                from PolyhedronFileUtilities import writePolyhedronOBJ
                 writePolyhedronOBJ(self.cube, "cube.obj")
                 writePolyhedronOBJ(chunk1, "chunk_1ONE_TWOPLANES.obj")
                 writePolyhedronOBJ(chunk2, "chunk_2TWO_TWOPLANES.obj")
