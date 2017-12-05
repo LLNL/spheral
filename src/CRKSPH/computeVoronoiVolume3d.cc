@@ -14,13 +14,7 @@
 #include "Utilities/pointOnPolyhedron.hh"
 #include "Utilities/FastMath.hh"
 #include "Utilities/pointDistances.hh"
-
-#ifndef NOR3D
-extern "C" {
-#include "r3d/r3d.h"
-}
-#include "Utilities/r3d_utils.hh"
-#endif
+#include "Geometry/clipFacetedVolumeByPlanes.hh"
 
 namespace Spheral {
 namespace CRKSPHSpace {
@@ -38,30 +32,31 @@ using NodeSpace::NodeList;
 using NeighborSpace::Neighbor;
 using NeighborSpace::ConnectivityMap;
 
-#ifndef NOR3D
 namespace {  // anonymous namespace
 
 //------------------------------------------------------------------------------
-// A special comparator to sort r3d planes by distance.
+// A special comparator to sort planes by distance to the origin.
 //------------------------------------------------------------------------------
 inline
-bool compareR3Dplanes(const r3d_plane& lhs, const r3d_plane& rhs) {
-  return lhs.d < rhs.d;
+bool comparePlanes(const GeomPlane<Dim<3>>& lhs,
+                   const GeomPlane<Dim<3>>& rhs) {
+  return lhs.point().dot(lhs.normal()) < rhs.point().dot(rhs.normal());
 }
 
 //------------------------------------------------------------------------------
-// Find the 1D extent of an R3D cell along the given direction.
+// Find the 1D extent of a polygon along the given direction.
 //------------------------------------------------------------------------------
 inline
-void findPolyhedronExtent(double& xmin, double& xmax, const Dim<3>::Vector& nhat, const r3d_poly& celli) {
+void findPolyhedronExtent(double& xmin, double& xmax, 
+                          const Dim<3>::Vector& nhat, 
+                          const Dim<3>::FacetedVolume& celli) {
   REQUIRE(fuzzyEqual(nhat.magnitude(), 1.0));
   double xi;
   xmin = 0.0;
   xmax = 0.0;
-  for (unsigned i = 0; i != celli.nverts; ++i) {
-    xi = (celli.verts[i].pos.x * nhat.x() +
-          celli.verts[i].pos.y * nhat.y() +
-          celli.verts[i].pos.z * nhat.z());
+  const auto verts = celli.vertices();
+  for (const auto& vi: verts) {
+    xi = vi.dot(nhat);
     xmin = std::min(xmin, xi);
     xmax = std::max(xmax, xi);
   }
@@ -69,33 +64,7 @@ void findPolyhedronExtent(double& xmin, double& xmax, const Dim<3>::Vector& nhat
   xmax = std::max(0.0, xmax);
 }
 
-// //------------------------------------------------------------------------------
-// // Return a Spheral GeomPolyhedron from an R3D polyhedron.
-// //------------------------------------------------------------------------------
-// Dim<3>::FacetedVolume
-// r3d_poly_to_polyhedron(const r3d_poly& celli,
-//                        const Dim<3>::Vector& offset,
-//                        const double tol) {
-
-//   using std::vector;
-//   typedef Dim<3>::Scalar Scalar;
-//   typedef Dim<3>::Vector Vector;
-//   typedef Dim<3>::SymTensor SymTensor;
-//   typedef Dim<3>::FacetedVolume FacetedVolume;
-//   typedef Dim<3>::FacetedVolume::Facet Facet;
-
-//   // We're going to cheat here a bit.  We know that currently computeVoronoiVolume3d only returns
-//   // convex polyhedra, so we'll take the easy way out and just build the convex hull of the
-//   // vertices.
-//   vector<Vector> verts;
-//   for (auto i = 0; i != celli.nverts; ++i) verts.push_back(Vector(celli.verts[i].pos.x,
-//                                                                   celli.verts[i].pos.y,
-//                                                                   celli.verts[i].pos.z));
-//   return FacetedVolume(verts);
-// }
-
 }           // anonymous namespace
-#endif
 
 //------------------------------------------------------------------------------
 // 3D
@@ -124,7 +93,7 @@ computeVoronoiVolume(const FieldList<Dim<3>, Dim<3>::Vector>& position,
   typedef Dim<3>::Vector Vector;
   typedef Dim<3>::SymTensor SymTensor;
   typedef Dim<3>::FacetedVolume FacetedVolume;
-  typedef Dim<3>::FacetedVolume::Facet Facet;
+  typedef GeomPlane<Dim<3>> Plane;
 
   const auto numGens = position.numNodes();
   const auto numNodeLists = position.size();
@@ -159,10 +128,24 @@ computeVoronoiVolume(const FieldList<Dim<3>, Dim<3>::Vector>& position,
 
   if (numGensGlobal > 0) {
 
-    // Build an approximation of the starting kernel shape (in eta space) as an icosahedron.
-    const unsigned nverts = 12;
-    const unsigned nfaces = 20;
-    r3d_int faces[nfaces][3] = {
+    // Build an approximation of the starting kernel shape (in eta space) as an icosahedron with vertices
+    // at a unit radius.
+    const auto t = (1.0 + sqrt(5.0)) / 2.0;
+    const vector<Vector> vertsIco = {           // Array of vertex coordinates.
+      Vector(-1,  t,  0)/sqrt(1 + t*t),
+      Vector( 1,  t,  0)/sqrt(1 + t*t),
+      Vector(-1, -t,  0)/sqrt(1 + t*t),
+      Vector( 1, -t,  0)/sqrt(1 + t*t),
+      Vector( 0, -1,  t)/sqrt(1 + t*t),
+      Vector( 0,  1,  t)/sqrt(1 + t*t),
+      Vector( 0, -1, -t)/sqrt(1 + t*t),
+      Vector( 0,  1, -t)/sqrt(1 + t*t),
+      Vector( t,  0, -1)/sqrt(1 + t*t),
+      Vector( t,  0,  1)/sqrt(1 + t*t),
+      Vector(-t,  0, -1)/sqrt(1 + t*t),
+      Vector(-t,  0,  1)/sqrt(1 + t*t)
+    };
+    const vector<vector<unsigned>> facesIco = {
       // 5 faces around point 0
       {0, 11, 5},
       {0, 5, 1},
@@ -186,64 +169,18 @@ computeVoronoiVolume(const FieldList<Dim<3>, Dim<3>::Vector>& position,
       {2, 4, 11},
       {6, 2, 10},
       {8, 6, 7},
-      {9, 8, 1},
+      {9, 8, 1}
     };
-    r3d_int** facesp = new r3d_int*[nfaces];
-    for (unsigned j = 0; j != nfaces; ++j) {
-      facesp[j] = new r3d_int[3];
-      for (unsigned k = 0; k != 3; ++k) facesp[j][k] = faces[j][k];
-    }
-    r3d_int nvertsperface[nfaces] = {  // Array of number of vertices per face.
-      3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3
-    };
-    const double t = (1.0 + sqrt(5.0)) / 2.0;
-    r3d_rvec3 verts[nverts];           // Array of vertex coordinates.
-    verts[0].x =  -1; verts[0].y =  t; verts[0].z =   0;
-    verts[1].x =   1; verts[1].y =  t; verts[1].z =   0;
-    verts[2].x =  -1; verts[2].y = -t; verts[2].z =   0;
-    verts[3].x =   1; verts[3].y = -t; verts[3].z =   0;
-    verts[4].x =   0; verts[4].y = -1; verts[4].z =   t;
-    verts[5].x =   0; verts[5].y =  1; verts[5].z =   t;
-    verts[6].x =   0; verts[6].y = -1; verts[6].z =  -t;
-    verts[7].x =   0; verts[7].y =  1; verts[7].z =  -t;
-    verts[8].x =   t; verts[8].y =  0; verts[8].z =  -1;
-    verts[9].x =   t; verts[9].y =  0; verts[9].z =   1;
-    verts[10].x = -t; verts[10].y = 0; verts[10].z = -1;
-    verts[11].x = -t; verts[11].y = 0; verts[11].z =  1;
-    r3d_poly initialCell;
-    r3d_init_poly(&initialCell, verts, nverts, facesp, nvertsperface, nfaces);
-    CHECK(r3d_is_good(&initialCell));
+    const auto nverts = vertsIco.size();
 
-    // Deallocate that damn memory. I hate this syntax, but don't know enough C to know if there's a better way.
-    for (unsigned j = 0; j != nfaces; ++j) delete[] facesp[j];
-    delete[] facesp;
-
-    // Scale the template icosahedron to have the initial volume of a unit sphere.
-    r3d_real voli[1], firstmom[4];
-    r3d_reduce(&initialCell, voli, 0);
-    CHECK(voli[0] > 0.0);
-    const double volscale = Dim<3>::rootnu(4.0/3.0*M_PI/voli[0]);
-    r3d_scale(&initialCell, volscale);
-    CHECK(r3d_is_good(&initialCell));
-    BEGIN_CONTRACT_SCOPE
-    {
-      r3d_reduce(&initialCell, voli, 0);
-      CHECK2(fuzzyEqual(voli[0], 4.0/3.0*M_PI, 1.0e-10),
-             voli[0] << " " << 4.0/3.0*M_PI << " " << volscale);
-    }
-    END_CONTRACT_SCOPE
-    
     // Walk the points.
-    vector<r3d_plane> pairPlanes, voidPlanes;
-    unsigned nvoid;
-    Vector etaVoidAvg;
-    for (unsigned nodeListi = 0; nodeListi != numNodeLists; ++nodeListi) {
+    vector<Plane> pairPlanes, voidPlanes;
+    for (auto nodeListi = 0; nodeListi != numNodeLists; ++nodeListi) {
       const auto n = vol[nodeListi]->numInternalElements();
       const auto rin = 2.0/vol[nodeListi]->nodeListPtr()->nodesPerSmoothingScale();
 #pragma omp parallel for                        \
-  firstprivate(initialCell)                     \
-  private(pairPlanes, voidPlanes, nvoid, etaVoidAvg)
-      for (unsigned i = 0; i < n; ++i) {
+  private(pairPlanes, voidPlanes)
+      for (auto i = 0; i < n; ++i) {
 
         const auto& ri = position(nodeListi, i);
         const auto& Hi = H(nodeListi, i);
@@ -262,66 +199,52 @@ computeVoronoiVolume(const FieldList<Dim<3>, Dim<3>::Vector>& position,
         // t0 = std::clock();
 
         // Initialize our seed cell shape.
-        auto celli = initialCell;
-        for (unsigned k = 0; k != celli.nverts; ++k) {
-          auto& vert = celli.verts[k];
-          const auto vi = 1.1*rin*Hinv*Vector(vert.pos.x, vert.pos.y, vert.pos.z);
-          vert.pos.x = vi.x();
-          vert.pos.y = vi.y();
-          vert.pos.z = vi.z();
-        }
-        CHECK2(r3d_is_good(&celli), "Bad initial polyhedron!");
+        vector<Vector> verts(vertsIco);
+        for (auto k = 0; k < nverts; ++k) verts[k] = 1.1*rin*Hinv*verts[k];
+        FacetedVolume celli(verts, facesIco);
 
-        // If provided holes, we implement them as additional neighbor clipping planes.
+        // Clip by any boundaries first.
         if (haveBoundaries) {
           const auto& facets = boundaries[nodeListi].facets();
           CHECK(boundaries[nodeListi].contains(ri, false));
           for (const auto& facet: facets) {
             const auto p = facet.closestPoint(ri);
-            auto rij = ri - p;
-            if ((Hi*rij).magnitude2() < rin*rin) {
+            auto rji = p - ri;
+            if ((Hi*rji).magnitude2() < rin*rin) {
               Vector nhat;
-              if (rij.magnitude() < 1.0e-5*facet.area()) {
-                rij.Zero();
+              if (rji.magnitude() < 1.0e-5*facet.area()) {
+                rji.Zero();
                 nhat = -facet.normal();
               } else {
-                nhat = rij.unitVector();
+                nhat = -rji.unitVector();
               }
-              pairPlanes.push_back(r3d_plane());
-              pairPlanes.back().n.x = nhat.x();
-              pairPlanes.back().n.y = nhat.y();
-              pairPlanes.back().n.z = nhat.z();
-              pairPlanes.back().d = rij.magnitude();
+              pairPlanes.push_back(Plane(rji, nhat));
             }
           }
 
           // Same thing with holes.
           for (const auto& hole: holes[nodeListi]) {
-            CHECK(not hole.contains(ri));
+            CHECK(not hole.contains(ri, false));
             const auto& facets = hole.facets();
             for (const auto& facet: facets) {
               const auto p = facet.closestPoint(ri);
-              auto rij = ri - p;
-              if ((Hi*rij).magnitude2() < rin*rin) {
+              auto rji = p - ri;
+              if ((Hi*rji).magnitude2() < rin*rin) {
                 Vector nhat;
-                if (rij.magnitude2() < 1.0e-5*facet.area()) {
-                  rij.Zero();
+                if (rji.magnitude2() < 1.0e-5*facet.area()) {
+                  rji.Zero();
                   nhat = facet.normal();
                 } else {
-                  nhat = rij.unitVector();
+                  nhat = -rji.unitVector();
                 }
-                pairPlanes.push_back(r3d_plane());
-                pairPlanes.back().n.x = nhat.x();
-                pairPlanes.back().n.y = nhat.y();
-                pairPlanes.back().n.z = nhat.z();
-                pairPlanes.back().d = rij.magnitude();
+                pairPlanes.push_back(Plane(rji, nhat));
               }
             }
           }
         }
 
         // Add clipping planes from neighbors.
-        for (unsigned nodeListj = 0; nodeListj != numNodeLists; ++nodeListj) {
+        for (auto nodeListj = 0; nodeListj != numNodeLists; ++nodeListj) {
 
           // Check if this point has multi-material neighbors.
           if (returnSurface and 
@@ -336,26 +259,14 @@ computeVoronoiVolume(const FieldList<Dim<3>, Dim<3>::Vector>& position,
             const auto  weightj = haveWeights ? weight(nodeListj, j) : 1.0;
 
             // Build the planes for the clipping half-spaces.
-            const auto rij = ri - rj;
-            const auto nhat = rij.unitVector();
+            const auto rji = rj - ri;
+            const auto nhat = -rji.unitVector();
             const auto wij = weighti/(weightj + weighti);
             if (voidPoint(nodeListj, j) == 0) {
-              pairPlanes.push_back(r3d_plane());
-              pairPlanes.back().n.x = nhat.x();
-              pairPlanes.back().n.y = nhat.y();
-              pairPlanes.back().n.z = nhat.z();
-              pairPlanes.back().d = wij*rij.magnitude();
+              pairPlanes.push_back(Plane(wij*rji, nhat));
             } else {
-              voidPlanes.push_back(r3d_plane());
-              voidPlanes.back().n.x = nhat.x();
-              voidPlanes.back().n.y = nhat.y();
-              voidPlanes.back().n.z = nhat.z();
-              voidPlanes.back().d = wij*rij.magnitude();
+              voidPlanes.push_back(Plane(wij*rji, nhat));
             }
-
-            // // Check the density gradient limiter.
-            // const Scalar fdir = FastMath::pow4(rij.unitVector().dot(grhat));
-            // phi = min(phi, max(0.0, max(1.0 - fdir, rij.dot(gradRhoi)*safeInv(rhoi - rhoj))));
           }
         }
 
@@ -363,14 +274,15 @@ computeVoronoiVolume(const FieldList<Dim<3>, Dim<3>::Vector>& position,
         // t0 = std::clock();
 
         // Sort the planes by distance -- let's us clip more efficiently.
-        std::sort(pairPlanes.begin(), pairPlanes.end(), compareR3Dplanes);
+        std::sort(pairPlanes.begin(), pairPlanes.end(), comparePlanes);
 
         // tplanesort += std::clock() - t0;
         // t0 = std::clock();
 
         // Clip by non-void neighbors first.
-        r3d_clip(&celli, &pairPlanes[0], pairPlanes.size());
-        CHECK(celli.nverts > 0);
+        clipFacetedVolumeByPlanes(celli, pairPlanes);
+        const auto& vertsi = celli.vertices();
+        CHECK(vertsi.size() > 0);
 
         // tclip += std::clock() - t0;
 
@@ -379,47 +291,35 @@ computeVoronoiVolume(const FieldList<Dim<3>, Dim<3>::Vector>& position,
         bool interior = true;
         // t0 = std::clock();
         {
-          for (unsigned k = 0; k != celli.nverts; ++k) {
-            const auto peta = Hi*Vector(celli.verts[k].pos.x,
-                                        celli.verts[k].pos.y,
-                                        celli.verts[k].pos.z);
+          for (const auto& vert: vertsi) {
+            const auto peta = Hi*vert;
             if (peta.magnitude2() > rin*rin) {
               interior = false;
               if (returnSurface) {
                 surfacePoint(nodeListi, i) |= 1;
                 const Vector etaj = 0.5*rin*peta.unitVector();
                 etaVoidPoints(nodeListi, i).push_back(etaj);
-                const auto rij = ri - Hinv*etaj;
-                const auto nhat = rij.unitVector();
-                voidPlanes.push_back(r3d_plane());
-                voidPlanes.back().n.x = nhat.x();
-                voidPlanes.back().n.y = nhat.y();
-                voidPlanes.back().n.z = nhat.z();
-                voidPlanes.back().d = 0.5*rij.magnitude();
+                const auto rji = ri - Hinv*etaj;
+                const auto nhat = -rji.unitVector();
+                voidPlanes.push_back(Plane(0.5*rji, nhat));
               }
             }
           }
-
-          // Clip the cell geometry by the void planes.
-          std::sort(voidPlanes.begin(), voidPlanes.end(), compareR3Dplanes);
-          r3d_clip(&celli, &voidPlanes[0], voidPlanes.size());
-          CHECK(celli.nverts > 0);
         }
         // tinterior += std::clock() - t0;
 
-        // Clip by any extant void neighbors.
-        r3d_clip(&celli, &voidPlanes[0], voidPlanes.size());
-        CHECK(celli.nverts > 0);
+        // Clip the cell geometry by the void planes.
+        std::sort(voidPlanes.begin(), voidPlanes.end(), comparePlanes);
+        clipFacetedVolumeByPlanes(celli, voidPlanes);
+        CHECK(vertsi.size() > 0);
 
         // Compute the final geometry.
-        r3d_reduce(&celli, firstmom, 1);
-        const auto deltaCentroidi = Vector(firstmom[1], firstmom[2], firstmom[3])/firstmom[0];
-        deltaMedian(nodeListi, i) = deltaCentroidi;
+        deltaMedian(nodeListi, i) = celli.centroid();
 
         if (interior) {
 
           // We only use the volume result if interior.
-          vol(nodeListi, i) = firstmom[0];
+          vol(nodeListi, i) = celli.volume();
 
           // // Apply the gradient limiter;
           // gradRhoi *= phi;
@@ -427,7 +327,7 @@ computeVoronoiVolume(const FieldList<Dim<3>, Dim<3>::Vector>& position,
           // Is there a significant density gradient?
           if (gradRhoi.magnitude()*Dim<3>::rootnu(vol(nodeListi, i)) >= 1e-8*rhoi) {
 
-            const Vector nhat1 = gradRhoi.unitVector();
+            const auto nhat1 = gradRhoi.unitVector();
             double x1, x2;
             findPolyhedronExtent(x1, x2, nhat1, celli);
             CHECK2(x1 <= 0.0 and x2 >= 0.0, nodeListi << " " << i << " " << ri << " " << x1 << " " << x2);
@@ -437,6 +337,7 @@ computeVoronoiVolume(const FieldList<Dim<3>, Dim<3>::Vector>& position,
             const Scalar thpt = sqrt(abs(rhoi*rhoi + rhoi*b*(x1 + x2) + 0.5*b*b*(x1*x1 + x2*x2)));
             const Scalar xm1 = -(rhoi + thpt)/b;
             const Scalar xm2 = (-rhoi + thpt)/b;
+            const auto deltaCentroidi = deltaMedian(nodeListi, i);
             if (xm1 >= x1 and xm1 <= x2) {
               deltaMedian(nodeListi, i) = xm1*nhat1 - deltaCentroidi.dot(nhat1)*nhat1 + deltaCentroidi;
             } else {
@@ -451,8 +352,8 @@ computeVoronoiVolume(const FieldList<Dim<3>, Dim<3>::Vector>& position,
           // t0 = std::clock();
           if (haveBoundaries and returnSurface) {
             unsigned j = 0;
-            while (interior and j != celli.nverts) {
-              interior = not pointOnPolyhedron(ri + Vector(celli.verts[j].pos.x, celli.verts[j].pos.y, celli.verts[j].pos.z),
+            while (interior and j != vertsi.size()) {
+              interior = not pointOnPolyhedron(ri + vertsi[j],
                                                boundaries[nodeListi],
                                                1.0e-8);
               ++j;
@@ -485,7 +386,7 @@ computeVoronoiVolume(const FieldList<Dim<3>, Dim<3>::Vector>& position,
         // If requested, we can return the cell geometries.
         if (returnCells) {
           // t0 = std::clock();
-          r3d_poly_to_polyhedron(celli, 1.0e-20/max(1.0, Dim<3>::rootnu(Hdeti)), cells(nodeListi, i));
+          cells(nodeListi, i) = celli;
           cells(nodeListi, i) += ri;
           // tcell += std::clock() - t0;
         }
