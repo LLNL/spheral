@@ -21,11 +21,9 @@ namespace FractalSpace
     bool time_trial;
     int min_hypre_group_size;
     bool hypre_load_balance;
-//     int HypreMaxSpecial;
     int hypre_min_node_load;
     int hypre_max_node_load;
     double hypre_multiplier;
-//     int hypre_max_average_load;
     double G;
     vector <double>xmin;
     vector <double>xmax;
@@ -40,8 +38,6 @@ namespace FractalSpace
     vector < vector <int> > FRPBoxesLev;
     vector < vector < vector <int> > > BoxesLev;
     vector < vector < vector <int> > > BBoxesLev;
-//     vector < vector < vector <int> > > HRBoxesLev;
-//     vector < vector < vector <int> > > HSBoxesLev;
     vector < vector < vector <int> > > PBoxesLev;
     vector < vector <int> > PBoxesLength;
     vector < vector <double> > RealBoxes;
@@ -213,7 +209,6 @@ namespace FractalSpace
       minimum_number(8),
       padding(-1),
       // padding(1),
-      // level_max(8),
       level_max(8),
       number_steps_total(113),
       number_steps_out(20),

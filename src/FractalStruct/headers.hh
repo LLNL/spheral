@@ -63,11 +63,12 @@ namespace FractalSpace
   void fractal_force(Fractal& fractal,Fractal_Memory& fractal_memory);
   void fractal_force_init(Fractal_Memory* p_mem);
   int fractal_force_wrapper(Fractal_Memory* p_fractal_memory,Fractal* p_fractal);
-  template <class M> void fractal_memory_parameters(M& mem,int _inteL_,int _mulT_);
+  template <class M> void fractal_memory_parameters(M* pmem,const string _disK_,int _mulT_);
   void Full_Stop(Fractal_Memory& mem,int number);
   void Full_Stop(Fractal_Memory& mem,MPI_Comm& Comm,int number);
   void gather_particles(Fractal_Memory& mem,Fractal& frac);
   void go_ahead_points(vector <Point*>& adj,vector <bool>& ins,vector <bool>& go_ahead);
+  bool group_in_box(Group* pgroup,vector<int>& BOX);
   void groups_level(Fractal& fractal,vector < vector<Group*> >& all_groups);
   double Growth(const double& omega_0, const double& omega_lambda, const double& redshift);
   void halo_force(Fractal& fractal);
@@ -99,7 +100,7 @@ namespace FractalSpace
 			  vector < vector<int> >& SBoxes,vector < vector<Point*> >& SPoints);
   void hypre_test_boxes(Fractal_Memory& mem,int level,
 			vector < vector<int> >& SBoxes,vector < vector<Point*> >& SPoints);
-  void hypre_world_create(Fractal_Memory& mem,int level,vector <vector <int> >& SBoxes,
+  void hypre_world_create(Fractal_Memory& mem,int level,vector <vector <int> >& SBoxes,vector<vector<Point*>>& SPoints,
 			  bool buffer_groups);
   void hypre_world_destroy();
   void info_to_slices(Fractal_Memory& mem,Fractal& frac,int lev);
@@ -130,7 +131,7 @@ namespace FractalSpace
   bool mini_solve(Fractal_Memory& mem,Group* pg);
   void mini_solve1(Point* p,const double& gc);
   void mini_solve2(Point* pa,Point* pb,const double& gc);
-  void mini_solve3(vector<Point*>found,const double& gc);
+  void mini_solve3(const vector<Point*>& found,const double& gc);
   void move_small_boxes(Fractal_Memory& mem,vector<int>& Boxes,vector<vector<Point*>>& SPoints,vector<int>& HRout);
   void neighbor_easy(vector <Point*>& p);
   void neighbors_nina(Point& point, vector <Point*>& adj);
@@ -182,6 +183,10 @@ namespace FractalSpace
 		     vector<double>& velx,vector<double>& vely,vector<double>& velz,vector<double>& masses);
   template <class M>  void step_simple(M& mem,Fractal& fractal);
   void sum_pot_forces(Fractal& fractal);
+  void super_groups(Fractal_Memory& mem,vector <Group*>& groups,const int level,
+		    vector<vector<int>>& WorldRanks,
+		    vector<vector<int>>& LocalGroups,
+		    vector<bool>& IAmIn);
   template <class GO_AWAY> void swapvector(vector<GO_AWAY>& die);
   template <class GO_AWAY> void swapvector(vector<GO_AWAY>& die,int how_big);
   void take_a_leap_isol(Fractal_Memory* PFM,vector <double>& masses,double G,
@@ -198,6 +203,7 @@ namespace FractalSpace
   void tree_start_mini(Group& group,Fractal& fractal,Fractal_Memory& memo,Misc& misc);
   Point* try_harder(Point& point0,const int& ni,const bool& easy);
   void update_rv(Fractal& fractal,const int& param,const double& const1,const double& const2);
+  void use_freenodes(Fractal_Memory& mem,vector<int>& countsP,vector<int>& countsB);
   template <class T> bool vector_in_box(vector <T>& xvec,vector <T>& box);
   template <class T> bool vector_in_box(array <T,3>& xvec,vector <T>& box);
   bool vector_in_box(Point* p,vector <int>& box);
