@@ -18,8 +18,7 @@ namespace FractalSpace
     int FFTNodes;
     int HypreRank;
     int HypreNodes;
-//     int RandomRank;
-//     int RandomNodes;
+    int mynumber;
     int MPI_SWITCH;
     int MPI_MAX_COMMS;
     long int number_particles_total;
@@ -31,6 +30,8 @@ namespace FractalSpace
     vector < vector <int> > BoxSL;
     vector < vector <bool> > counts_on_nodes;
     vector <bool> count_on_node;
+    vector<vector <int>> node_lists;
+    vector <int> freenodes;
     int glength;
     pint start_x;
     pint length_x;
@@ -79,6 +80,7 @@ namespace FractalSpace
       FFTNodes(1234567),
       HypreRank(0),
       HypreNodes(0),
+      mynumber(-1),
       MPI_SWITCH(512),
       MPI_MAX_COMMS(4096),
       number_particles_total(-1),
@@ -107,6 +109,7 @@ namespace FractalSpace
       FFTNodes(FN),
       HypreRank(0),
       HypreNodes(0),
+      mynumber(-1),
       MPI_SWITCH(512),
       MPI_MAX_COMMS(4096),
       number_particles_total(-1),
@@ -156,6 +159,7 @@ namespace FractalSpace
       FFTNodes(FN),
       HypreRank(0),
       HypreNodes(0),
+      mynumber(-1),
       MPI_SWITCH(512),
       MPI_MAX_COMMS(4096),
       number_particles_total(-1),

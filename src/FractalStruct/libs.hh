@@ -17,11 +17,13 @@
 #include <complex>
 #include <ctime>
 #include <map>
+#include <set>
 #include <deque>
 #include <climits>
 #include <array>
-#include <random>
 #include <cerrno>
+#include <random>
+#include <utility>
 #include <sys/stat.h>
 #include "fftw3-mpi.h"
 #include "_hypre_utilities.h"
