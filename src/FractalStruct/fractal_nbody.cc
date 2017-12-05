@@ -1,6 +1,8 @@
 #include "libs.hh"
 #include "classes.hh"
 #include "headers.hh"
+// int fractal_nbody(int argc, char* argv[])
+// {
 int main(int argc, char* argv[])
 {
   using namespace FractalSpace;
@@ -9,18 +11,20 @@ int main(int argc, char* argv[])
   MPI_Comm_size(MPI_COMM_WORLD,&FRN);
   int Ranky;
   MPI_Comm_rank(MPI_COMM_WORLD,&Ranky);
-  Mess::IAMROOT=Ranky == 0;
+  Mess::IAMROOT=Ranky == 21;
   //
-  // Intel/IBM (1/0) default Intel
+  // _disK_          default "d"
   // Gridlength      default 256
   // dims[0]         default 0
   // dims[1]         default 0
   // dims[2]         default 0
   // _mulT_          default 4
   //
-  bool _inteL_=true;
+  // bool _inteL_=true;
+  string _disK_="d";
   if(argc >= 2)
-    _inteL_=atoi(argv[1]) != 0;
+    _disK_=argv[1];
+    // _inteL_=atoi(argv[1]);
   int dims[]={0,0,0};
   int GRL=256;
   if(argc >= 3)
@@ -55,7 +59,7 @@ int main(int argc, char* argv[])
 
   if(Ranky == 0)
     {
-      cout << "starting out " << argc << " " << argv[0] << " " << FRN << " " << _inteL_ << " " << GRL << " " << FR0 << " " << FR1 << " " << FR2;
+      cout << "starting out " << argc << " " << argv[0] << " " << FRN << " " << _disK_ << " " << GRL << " " << FR0 << " " << FR1 << " " << FR2;
       cout << " " << _mulT_ << " " << PADDING << " " << HYPREMAXONNODE << " " << HYPREMULTIPLIER << "\n";
     }
   Fractal_Memory* p_fractal_memory= new Fractal_Memory;
@@ -65,7 +69,7 @@ int main(int argc, char* argv[])
   p_fractal_memory->grid_length=GRL;
   p_fractal_memory->hypre_max_node_load=HYPREMAXONNODE;
   p_fractal_memory->hypre_multiplier=HYPREMULTIPLIER;
-  fractal_memory_parameters(*p_fractal_memory,_inteL_,_mulT_);  
+  fractal_memory_parameters(p_fractal_memory,_disK_,_mulT_);  
   PADDING=max(-1,min(1,PADDING));
   p_fractal_memory->padding=PADDING;
   int FractalRank;

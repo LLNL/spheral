@@ -15,13 +15,13 @@ namespace FractalSpace
     // bool RANKY=RANK==21;
     int MAXY=Misc::pow(2,29);
     int MINY=-Misc::pow(2,29);
-    for(vector <Point*>& hp : hypre_points)
+    for(auto hp : hypre_points)
       {
 	vector <int> BOX(6);
 	vector <int> pos(3);
 	for(int B : {0,1,2,3,4,5})
 	  BOX[B]=B%2 == 0 ? MAXY:MINY;
-	for(Point* &p : hp)
+	for(auto p : hp)
 	  {
 	    p->get_pos_point(pos);
 	    for(int B : {0,2,4})

@@ -11,24 +11,23 @@ namespace FractalSpace
     vector<int>counts(100,0);
     int sumP=0;
     int np=0;
-    for(vector<int> &SB : SBoxes)
+    for(auto SB : SBoxes)
       {
 	sumP+=SPoints[np].size();
 	double VOL=1.0;
 	for(int ni : {0,2,4})
-	  {
-	    VOL*=(double)((SB[ni+1]-SB[ni])/spacing+1);
-	  }
+	  VOL*=(double)((SB[ni+1]-SB[ni])/spacing+1);
+	assert(SPoints[np].size() == (int)(VOL+0.01));
 	counts[(int)(log(VOL)/alog2)]++;
 	np++;
       }
     int nimax=0;
-    for(int ni=0;ni<100;ni++)
-      if(counts[ni] > 0)
-	nimax=ni;
+    for(nimax=99;nimax>=0;nimax--)
+      if(counts[nimax] > 0)
+	break;
     int sumFAKE=0;
-    for(vector <Point*>& SP : SPoints)
-      for(Point* &p : SP)
+    for(auto SP : SPoints)
+      for(auto p : SP)
 	if(p == 0)
 	  sumFAKE++;
     for(int ni=0;ni<=nimax;ni++)
@@ -36,5 +35,6 @@ namespace FractalSpace
 	FHT << " BOXSTATS " << mem.p_mess->FractalRank << " " << mem.steps << " " << nb << " " << level << " " << Misc::pow(2,ni) << " " << counts[ni];
 	FHT << " " << SBoxes.size() << " " << sumP << " " << sumFAKE << "\n";
       }
+    FHT.flush();
   }
 }

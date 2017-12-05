@@ -2,6 +2,8 @@
 #include "classes.hh"
 #include "headers.hh"
 #include "fractal_interface_public.hh"
+// int fractal_galaxy(int argc, char* argv[])
+// {
 int main(int argc, char* argv[])
 {
   using namespace FractalSpace;
@@ -11,9 +13,11 @@ int main(int argc, char* argv[])
   int Ranky;
   MPI_Comm_rank(MPI_COMM_WORLD,&Ranky);
   Mess::IAMROOT=Ranky == 0;
-  bool _inteL_=true;
+  // int _inteL_=0;
+  string _disK_="d";
   if(argc >= 2)
-    _inteL_=atoi(argv[1]) != 0;
+    _disK_=argv[1];
+    // _inteL_=atoi(argv[1]);
   int dims[]={0,0,0};
   int GRL=256;
   if(argc >= 3)
@@ -48,7 +52,7 @@ int main(int argc, char* argv[])
     HYPREMULTIPLIER=atof(argv[10]);
   if(Mess::IAMROOT)
     {
-      cerr << "starting out " << argc << " " << FRN << " " << _inteL_ << " " << GRL << " " << FractalNodes0 << " " << FractalNodes1 << " " << FractalNodes2 << "\n";
+      cerr << "starting out " << argc << " " << FRN << " " << _disK_ << " " << GRL << " " << FractalNodes0 << " " << FractalNodes1 << " " << FractalNodes2 << "\n";
       cerr << " " << "NumberParticles" << " " << "SHRINK" << " " << "PADDING" << " " << "HYPREMAXONNODE" << " " << "HYPREMULTIPLIER" << "\n";
       cerr << " " << NumberParticles << " " << SHRINK << " " << PADDING << " " << HYPREMAXONNODE << " " << HYPREMULTIPLIER << "\n";
       int ar=0;
@@ -74,9 +78,11 @@ int main(int argc, char* argv[])
   int MaxHypreIterations=20;
   double HypreTolerance=1.0e-7;
   string sa="/p/lscratch";
-  string sb="d";
-  if(!_inteL_)
-    sb="v";
+  string sb=_disK_;
+  // if(_inteL_=1)
+  //   sb="f";
+  // else if(_inteL_ > 1)
+  //   sb="v";
   string sc="/jensv/galaxy/";
   string BaseDirectory=sa+sb+sc;
   string RunIdentifier="NerdsRule";

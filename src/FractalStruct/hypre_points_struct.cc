@@ -12,7 +12,7 @@ namespace FractalSpace
     vector <int>pos(3);
     vector <int> BOX=mem.BoxesLev[mem.p_mess->FractalRank][level];
     hypre_points.clear();
-    for(Group* &pgroup : groups)
+    for(auto pgroup : groups)
       {
  	if(buffer_groups == pgroup->get_buffer_group())
 	  {
@@ -21,7 +21,7 @@ namespace FractalSpace
 		continue;
 	    if(!single || hypre_points.empty())
 	      hypre_points.resize(hypre_points.size()+1);
-	    for(Point* &p : pgroup->list_points)
+	    for(auto p : pgroup->list_points)
 	      {
 		p->get_pos_point(pos);
 		if(p->get_inside() && vector_in_box(pos,BOX))
