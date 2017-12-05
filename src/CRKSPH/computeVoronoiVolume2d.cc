@@ -169,14 +169,15 @@ namespace {  // anonymous namespace
 inline
 bool comparePlanes(const GeomPlane<Dim<2>>& lhs,
                    const GeomPlane<Dim<2>>& rhs) {
-  return std::abs(lhs.point().dot(lhs.normal())) < std::abs(rhs.point().dot(rhs.normal()));
+  return lhs.point().dot(lhs.normal()) < rhs.point().dot(rhs.normal());
 }
 
 //------------------------------------------------------------------------------
 // Find the 1D extent of a polygon along the given direction.
 //------------------------------------------------------------------------------
 inline
-void findPolygonExtent(double& xmin, double& xmax, const Dim<2>::Vector& nhat, 
+void findPolygonExtent(double& xmin, double& xmax, 
+                       const Dim<2>::Vector& nhat, 
                        const Dim<2>::FacetedVolume& celli) {
   REQUIRE(fuzzyEqual(nhat.magnitude(), 1.0));
   double xi;
@@ -217,7 +218,6 @@ computeVoronoiVolume(const FieldList<Dim<2>, Dim<2>::Vector>& position,
   typedef Dim<2>::Vector Vector;
   typedef Dim<2>::SymTensor SymTensor;
   typedef Dim<2>::FacetedVolume FacetedVolume;
-  typedef Dim<2>::FacetedVolume::Facet Facet;
   typedef GeomPlane<Dim<2>> Plane;
 
   const auto numGens = position.numNodes();
@@ -268,9 +268,9 @@ computeVoronoiVolume(const FieldList<Dim<2>, Dim<2>::Vector>& position,
     vector<Plane> pairPlanes, voidPlanes;
     unsigned nvoid;
     Vector etaVoidAvg;
-    for (unsigned nodeListi = 0; nodeListi != numNodeLists; ++nodeListi) {
-      const unsigned n = vol[nodeListi]->numInternalElements();
-      const Scalar rin = 2.0/vol[nodeListi]->nodeListPtr()->nodesPerSmoothingScale();
+    for (auto nodeListi = 0; nodeListi != numNodeLists; ++nodeListi) {
+      const auto n = vol[nodeListi]->numInternalElements();
+      const auto rin = 2.0/vol[nodeListi]->nodeListPtr()->nodesPerSmoothingScale();
 #pragma omp parallel for                        \
   private(pairPlanes, voidPlanes, nvoid, etaVoidAvg)
       for (auto i = 0; i < n; ++i) {
@@ -295,7 +295,7 @@ computeVoronoiVolume(const FieldList<Dim<2>, Dim<2>::Vector>& position,
 
         // Initialize our seed cell shape.
         vector<Vector> verts(nverts);
-        for (unsigned k = 0; k != nverts; ++k) verts[k] = 1.1*rin*Hinv*verts0[k];
+        for (auto k = 0; k < nverts; ++k) verts[k] = 1.1*rin*Hinv*verts0[k];
         FacetedVolume celli(verts, facets0);
 
         // Clip by any boundaries first.
@@ -335,11 +335,6 @@ computeVoronoiVolume(const FieldList<Dim<2>, Dim<2>::Vector>& position,
                 pairPlanes.push_back(Plane(rji, nhat));
               }
             }
-
-            // // Sort the planes by distance -- let's us clip more efficiently -- and do the clipping.
-            // std::sort(pairPlanes.begin(), pairPlanes.end(), compareR2Dplanes);
-            // r2d_clip(&celli, &pairPlanes[0], pairPlanes.size());
-            // CHECK(celli.nverts > 0);
           }
         }
 
@@ -372,7 +367,6 @@ computeVoronoiVolume(const FieldList<Dim<2>, Dim<2>::Vector>& position,
 
         // Sort the planes by distance -- lets us clip more efficiently.
         std::sort(pairPlanes.begin(), pairPlanes.end(), comparePlanes);
-        std::sort(voidPlanes.begin(), voidPlanes.end(), comparePlanes);
 
         // Clip by non-void neighbors first.
         clipFacetedVolumeByPlanes(celli, pairPlanes);
@@ -423,6 +417,7 @@ computeVoronoiVolume(const FieldList<Dim<2>, Dim<2>::Vector>& position,
         // tinterior += std::clock() - t0;
 
         // Clip by any extant void neighbors.
+        std::sort(voidPlanes.begin(), voidPlanes.end(), comparePlanes);
         clipFacetedVolumeByPlanes(celli, voidPlanes);
         CHECK(vertsi.size() > 0);
 
