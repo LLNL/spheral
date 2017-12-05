@@ -122,8 +122,12 @@ def writePolyhedronOFF(poly, filename):
     f.write("%i %i %i\n" % (verts.size(), facets.size(), 0))
 
     # Write the vertex coordinates.
-    for v in verts:
-        f.write("%g %g %g\n" % (v.x, v.y, v.z))
+    if isinstance(poly, Polygon):
+        for v in verts:
+            f.write("%g %g\n" % (v.x, v.y))
+    else:
+        for v in verts:
+            f.write("%g %g %g\n" % (v.x, v.y, v.z))
 
     # Write the facet vertex indices.
     for facet in facets:
