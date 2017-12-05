@@ -31,6 +31,18 @@ using namespace std;
 namespace {
 
 //------------------------------------------------------------------------------
+// Compare a plane and point (our built-in plane one has some issues).
+//------------------------------------------------------------------------------
+inline
+int compare(const Dim<3>::Vector& planePoint,
+            const Dim<3>::Vector& planeNormal,
+            const Dim<3>::Vector& point) {
+  const auto sgndist = planeNormal.dot(point - planePoint);
+  if (std::abs(sgndist) < 1.0e-8) return 0;
+  return sgn0(sgndist);
+}
+
+//------------------------------------------------------------------------------
 // Intersect a line-segment with a plane.
 //------------------------------------------------------------------------------
 Dim<3>::Vector
@@ -48,6 +60,54 @@ segmentPlaneIntersection(const Dim<3>::Vector& a,       // line-segment begin
   CHECK2(fuzzyEqual((result - p).dot(phat), 0.0, 1.0e-10),
          a << " " << b << " " << s << " " << result << " " << (result - p).dot(phat));
   return result;
+}
+
+//------------------------------------------------------------------------------
+// Build an edge as a unique std::pair.
+//------------------------------------------------------------------------------
+inline
+std::pair<int, int>
+make_edge(const int a, const int b) {
+  return std::make_pair(std::min(a, b), std::max(a, b));
+}
+
+//------------------------------------------------------------------------------
+// Return the ID for the given encoded value (1's complement crap).
+//------------------------------------------------------------------------------
+inline
+int
+posID(const int x) {
+  return (x >= 0 ? x : ~x);
+}
+
+//------------------------------------------------------------------------------
+// Grab the starting vertex for the edge corresponding to the encoded id.
+//------------------------------------------------------------------------------
+inline
+int
+startVertex(const int id, const vector<pair<int, int>>& edges) {
+  if (id < 0) {
+    CHECK(~id < edges.size());
+    return edges[~id].second;
+  } else {
+    CHECK(id < edges.size());
+    return edges[id].first;
+  }
+}
+
+//------------------------------------------------------------------------------
+// Grab the end vertex for the edge corresponding to the encoded id.
+//------------------------------------------------------------------------------
+inline
+int
+endVertex(const int id, const vector<pair<int, int>>& edges) {
+  if (id < 0) {
+    CHECK(~id < edges.size());
+    return edges[~id].first;
+  } else {
+    CHECK(id < edges.size());
+    return edges[id].second;
+  }
 }
 
 //------------------------------------------------------------------------------
@@ -85,36 +145,6 @@ insertVertex(std::vector<Dim<3>::Vector>& vertices,
 }
 
 //------------------------------------------------------------------------------
-// Compare a plane and point (our built-in plane one has some issues).
-//------------------------------------------------------------------------------
-inline
-int compare(const Dim<3>::Vector& planePoint,
-            const Dim<3>::Vector& planeNormal,
-            const Dim<3>::Vector& point) {
-  const auto sgndist = planeNormal.dot(point - planePoint);
-  if (std::abs(sgndist) < 1.0e-8) return 0;
-  return sgn0(sgndist);
-}
-
-//------------------------------------------------------------------------------
-// Build an edge as a unique std::pair.
-//------------------------------------------------------------------------------
-inline
-std::pair<int, int>
-make_edge(const int a, const int b) {
-  return std::make_pair(std::min(a, b), std::max(a, b));
-}
-
-//------------------------------------------------------------------------------
-// Return the ID for the given encoded value (1's complement crap).
-//------------------------------------------------------------------------------
-inline
-int
-posID(const int x) {
-  return (x >= 0 ? x : ~x);
-}
-
-//------------------------------------------------------------------------------
 // When we edit a face in place we may flip the orientation required -- this 
 // method is used to fix that orientation in the other face using the edge.
 //------------------------------------------------------------------------------
@@ -133,36 +163,6 @@ void fixOtherFaceEdgeOrientation(vector<vector<int>>& faces,
   while (k < faces[otherFaceID].size() and posID(faces[otherFaceID][k]) != edgeID) ++k;
   CHECK(k < faces[otherFaceID].size());
   faces[otherFaceID][k] = newEdgeOrientation;
-}
-
-//------------------------------------------------------------------------------
-// Grab the starting vertex for the edge corresponding to the encoded id.
-//------------------------------------------------------------------------------
-inline
-int
-startVertex(const int id, const vector<pair<int, int>>& edges) {
-  if (id < 0) {
-    CHECK(~id < edges.size());
-    return edges[~id].second;
-  } else {
-    CHECK(id < edges.size());
-    return edges[id].first;
-  }
-}
-
-//------------------------------------------------------------------------------
-// Grab the end vertex for the edge corresponding to the encoded id.
-//------------------------------------------------------------------------------
-inline
-int
-endVertex(const int id, const vector<pair<int, int>>& edges) {
-  if (id < 0) {
-    CHECK(~id < edges.size());
-    return edges[~id].first;
-  } else {
-    CHECK(id < edges.size());
-    return edges[id].second;
-  }
 }
 
 //------------------------------------------------------------------------------
@@ -316,9 +316,8 @@ void clipFacetedVolumeByPlanes(GeomPolyhedron& poly,
         // Walk the loop of edges in this face.
         for (auto kedge = 0; kedge < face.size(); ++kedge) {
           auto& edge = edges[posID(face[kedge])];
-          auto  v0 = edge.first;
-          auto  v1 = edge.second;
-          if (face[kedge] < 0) std::swap(v0, v1);
+          auto  v0 = startVertex(face[kedge], edges);
+          auto  v1 = endVertex(face[kedge], edges);
           CHECK(vertexMask[v0] != 0 and vertexMask[v1] != 0);
 
           // Check the edge against the clip plane based on its vertices.
@@ -486,40 +485,41 @@ void clipFacetedVolumeByPlanes(GeomPolyhedron& poly,
   // If we have an empty polyhedron just finish it here.
   if (faces.empty()) {
     poly = GeomPolyhedron();
-    return;
-  }
 
-  // Build a list of the vertices that are active, and a map of old->new vertex index.
-  CHECK(vertexMask.empty() or 
-        (*min_element(vertexMask.begin(), vertexMask.end()) >= 0 and
-         *max_element(vertexMask.begin(), vertexMask.end()) <= 1));
-  vector<Vector> newvertices;
-  newvertices.reserve(vertices.size());
-  vector<int> old2new(vertices.size());
-  for (auto i = 0; i < vertices.size(); ++i) {
-    if (vertexMask[i] == 1) {
-      old2new[i] = newvertices.size();
-      newvertices.push_back(vertices[i]);
-    }
-  }
+  } else {
 
-  // Build the facet info.
-  vector<vector<unsigned>> facets;
-  for (const auto& face: faces) {
-    if (not face.empty()) {
-      facets.push_back(vector<unsigned>());
-      for (const auto edgeID: face) {
-        facets.back().push_back(old2new[startVertex(edgeID, edges)]);
+    // Build a list of the vertices that are active, and a map of old->new vertex index.
+    CHECK(vertexMask.empty() or 
+          (*min_element(vertexMask.begin(), vertexMask.end()) >= 0 and
+           *max_element(vertexMask.begin(), vertexMask.end()) <= 1));
+    vector<Vector> newvertices;
+    newvertices.reserve(vertices.size());
+    vector<int> old2new(vertices.size());
+    for (auto i = 0; i < vertices.size(); ++i) {
+      if (vertexMask[i] == 1) {
+        old2new[i] = newvertices.size();
+        newvertices.push_back(vertices[i]);
       }
-      CHECK(facets.back().size() == face.size());
-      CHECK(facets.back().size() >= 3);
-      CHECK(*max_element(facets.back().begin(), facets.back().end()) < newvertices.size());
     }
-  }
-  CHECK(facets.size() >= 4);
 
-  // Now we can rebuild the polyhedron.
-  poly = GeomPolyhedron(newvertices, facets);
+    // Build the facet info.
+    vector<vector<unsigned>> facets;
+    for (const auto& face: faces) {
+      if (not face.empty()) {
+        facets.push_back(vector<unsigned>());
+        for (const auto edgeID: face) {
+          facets.back().push_back(old2new[startVertex(edgeID, edges)]);
+        }
+        CHECK(facets.back().size() == face.size());
+        CHECK(facets.back().size() >= 3);
+        CHECK(*max_element(facets.back().begin(), facets.back().end()) < newvertices.size());
+      }
+    }
+    CHECK(facets.size() >= 4);
+
+    // Now we can rebuild the polyhedron.
+    poly = GeomPolyhedron(newvertices, facets);
+  }
 }
 
 }
