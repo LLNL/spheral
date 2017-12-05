@@ -5,13 +5,6 @@
 //
 // Created by JMO, Thu Jan 28 11:03:27 PST 2010
 //----------------------------------------------------------------------------//
-#include <algorithm>
-#include <numeric>
-#include <map>
-#include <limits>
-#include <stdio.h>
-#include <stdint.h>
-
 // #include "polytope/polytope.hh"
 // #include "polytope/convexHull_2d.hh"
 
@@ -23,6 +16,13 @@
 #include "Utilities/lineSegmentIntersections.hh"
 #include "Utilities/CounterClockwiseComparator.hh"
 #include "Utilities/pointInPolygon.hh"
+
+#include <algorithm>
+#include <numeric>
+#include <map>
+#include <limits>
+#include <iostream>
+#include <iterator>
 
 //------------------------------------------------------------------------------
 // It seems there is a missing specialization for abs(long unsigned int), so 
@@ -960,11 +960,17 @@ convex(const double tol) const {
 ostream& operator<<(ostream& os, const GeomPolygon& polygon) {
   typedef GeomPolygon::Vector Vector;
   typedef GeomPolygon::Facet Facet;
-  const vector<Vector>& vertices = polygon.vertices();
+  const auto& vertices = polygon.vertices();
+  const auto& facets = polygon.facets();
   if (vertices.size() > 0) {
-    for (unsigned i = 0; i != vertices.size(); ++i) {
-      os << vertices[i].x() << " " << vertices[i].y() << endl;
+    os << "Coordinates: ";
+    std::copy(vertices.begin(), vertices.end(), std::ostream_iterator<Vector>(os, " "));
+    os << "\n"
+       << "     Facets:";
+    for (const auto& facet: facets) {
+      os << " [" << facet.ipoint1() << " " << facet.ipoint2() << "]";
     }
+    os << "\n";
   }
   return os;
 }
