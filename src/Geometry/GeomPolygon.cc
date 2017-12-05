@@ -686,25 +686,20 @@ intersect(const GeomPolygon::Vector& x0, const GeomPolygon::Vector& x1) const {
 GeomPolygon::Vector
 GeomPolygon::
 centroid() const {
-  const unsigned n = mVertices.size();
-  Vector result;
-  if (n == 0) return result;
+  const int n = mVertices.size();
+  if (n == 0) return Vector::zero;
   CHECK(n >= 3);
-  const Vector c0 = std::accumulate(mVertices.begin(), mVertices.end(), Vector())/n;
 
-  // Specialize for triangles, which are easy!
-  if (n == 3) return c0;
-
-  unsigned i, j;
+  Vector result;
+  int i, j;
   double area, areasum = 0.0;
-  for (i = 0; i != n; ++i) {
+  for (i = 0; i < n; ++i) {
     j = (i + 1) % n;
-    area = (mVertices[i] - c0).cross(mVertices[j] - c0).z(); // This is off by a factor of 2 but will cancel.
+    area = ((mVertices[i] - mVertices[0]).cross(mVertices[j] - mVertices[0])).z(); // This is off by a factor of 2 but will cancel.
     areasum += area;
-    result += area * (c0 + mVertices[i] + mVertices[j]);
+    result += area * (mVertices[0] + mVertices[i] + mVertices[j]);
   }
-  CHECK(areasum > 0.0);
-  return result/(3.0 * areasum);
+  return result*safeInvVar(3.0 * areasum);
 }
 
 //------------------------------------------------------------------------------
@@ -771,9 +766,8 @@ double
 GeomPolygon::
 volume() const {
   double result = 0.0;
-  const Vector c = centroid();
   for (const Facet& facet: mFacets) {
-    result += ((facet.point2() - facet.point1()).cross(c - facet.point1())).z();
+    result += ((facet.point2() - facet.point1()).cross(mVertices[0] - facet.point1())).z();
   }
   ENSURE2(result >= 0.0, result);
   return 0.5*result;
