@@ -1,4 +1,4 @@
-#ATS:test(SELF, label="Polyhedron cube clipping tests")
+#ATS:test(SELF, label="Polyhedron clipping tests")
 
 import unittest
 from math import *
@@ -54,7 +54,7 @@ class TestPolyhedronClipping(unittest.TestCase):
         return
 
     #---------------------------------------------------------------------------
-    # Clip with planes passing through the cube.
+    # Clip with planes passing through the polyhedron.
     #---------------------------------------------------------------------------
     def testClipInternalOnePlane(self):
         for i in xrange(self.ntests):
