@@ -27,7 +27,7 @@
 ***    Douglas Adams: "I thinks that's terribly significant".
 ***  Should died many years ago.
 ***  If all else fails read the instructions.
-***  !the_Messiah = a_naughty_boy.
+***  !the_Messiah == a_naughty_boy.
 ***  If it were easy, it would have been done long time ago.
 ***  You do not have to be faster than the bear. You just have
 ***   to be faster than the other guy running from the bear.
@@ -264,7 +264,7 @@ namespace FractalSpace
       }
     bool badd=test_tree(fractal_memory,fractal);
     assert(!badd);
-    clean_groups(fractal_memory);
+    // clean_groups(fractal_memory);
     FileFractal << "number of everything after the tree "  << " " << Group::number_groups << " " << Point::number_points << "\n";
     FileFractal << " Total number of particles after the tree " << Particle::number_particles << "\n";
     Fractal* p_fractal_ghost=new Fractal;

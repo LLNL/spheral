@@ -403,8 +403,8 @@ namespace FractalSpace
 	    else
 	      Pout+=VOL[ni];
 	  }
-	FHT << " NODE COUNTS " << mem.level << " " << mem.steps << " " << HypreRank << " " << Bstay+Bout << " " << Bstay+Bget << " " << Bstay << " " << Bout << " " << Bget <<"\n";
-	FHT << " POINT COUNTS " << mem.level << " " << mem.steps << " " << HypreRank << " " << Pstay+Pout << " " << Pstay+Pget << " " << Pstay << " " << Pout << " " << Pget <<"\n";
+	FHT << " NODE COUNTS " << mem.level << " " << mem.steps << " " << FractalRank << " " << mem.p_mess->mynumber << " " << HypreRank << " " << Bstay+Bout << " " << Bstay+Bget << " " << Bstay << " " << Bout << " " << Bget <<"\n";
+	FHT << " POINT COUNTS " << mem.level << " " << mem.steps << " " << mem.p_mess->mynumber << " " << FractalRank << " " << HypreRank << " " << Pstay+Pout << " " << Pstay+Pget << " " << Pstay << " " << Pout << " " << Pget <<"\n";
       }
     // cerr << " SOLVED C " << _COUNTER << " " << FractalRank << " " << HypreRank << "\n";
   }

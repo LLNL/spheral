@@ -5,6 +5,7 @@ namespace FractalSpace
 {
   void poisson_solver_struct(Fractal& fractal,Fractal_Memory& mem,const int& level)
   {
+    time_t time_start=mem.p_mess->Clock();
     fractal.timing(-1,31);
     ofstream& FHT=mem.p_file->DUMPS;
     static int LEV=-1;
@@ -49,11 +50,9 @@ namespace FractalSpace
 	  }
 	time2=mem.p_mess->Clock();
 	hypre_points.clear();
-	hypre_world_create(mem,level,SBoxes,buffer);
+	hypre_world_create(mem,level,SBoxes,SPoints,buffer);
 	time3=mem.p_mess->Clock();
 	double tt=-mem.p_mess->Clock();
-	// if(_COUNTERA % 10 == 0)
-	// hypre_test_boxes(mem,level,SBoxes,SPoints);
 	tt+=mem.p_mess->Clock();
 	time4=time3;
 	time5=time3;
@@ -67,13 +66,9 @@ namespace FractalSpace
 	      add_buffer_values(mem,level,SBoxes,SPoints);
 	    time6=mem.p_mess->Clock();
 	  }
-	// if(!mem.periodic)
-	//   test_points(mem,SPoints,level);
 	time7=mem.p_mess->Clock();
 	mem.p_mess->HypreGroupFree();
 	time8=mem.p_mess->Clock();
-	// SBoxes.clear();
-	// SPoints.clear();
 	if(mem.p_mess->IAmAHypreNode)
 	  {
 	    FHT << " HYPRE RES B " <<  RANK << " " << ni << " " << level << " " << _COUNTERA << " ";
