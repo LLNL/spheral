@@ -44,16 +44,30 @@ def writePolyhedronOBJ(poly, filename, forceTriangles=False):
     facets = poly.facets()
     for v in verts:
         f.write("v %g %g %g\n" % (v.x, v.y, v.z))
+
     if isinstance(poly, Polygon):
-        if len(facets) > 0:
-            i0 = facets[0].ipoint1
-            i = 0
-            f.write("f")
-            while i < len(facets):
-                f.write(" %i" % (facets[i].ipoint1 + 1))
-                i += 1
-                if i < len(facets) and facets[i].ipoint1 == i0:
-                    f.write("\n")
+        # There could be multiple loops in a Spheral polygon, so break
+        # those up into individual facets for obj output.
+        # First, sort topologically so the loops are contiguous
+        pairs = [(fac.ipoint1, fac.ipoint2) for fac in facets]
+        for i in xrange(len(pairs) - 1):
+            v1 = pairs[i][1]
+            j = i + 1
+            while j < len(pairs) and v1 != pairs[j][0]:
+                j += 1
+            if j < len(pairs):
+                pairs[i+1], pairs[j] = pairs[j], pairs[i+1]
+        
+        # Now we can write the facets.
+        f.write("f")
+        i = 0
+        for i in xrange(len(pairs)):
+            f.write(" %i" % (pairs[i][0] + 1))
+            if ((i + 1) < len(pairs) and
+                pairs[i][1] != pairs[i+1][0]):
+                f.write("\nf")
+        f.write("\n")
+
     else:
         for facet in facets:
             ipoints = facet.ipoints
@@ -65,7 +79,7 @@ def writePolyhedronOBJ(poly, filename, forceTriangles=False):
                 for i in ipoints:
                     f.write(" %i" % (i + 1))
             f.write("\n")
-    f.write("\n")
+
     f.close()
     return
 
@@ -119,23 +133,58 @@ def writePolyhedronOFF(poly, filename):
     verts = poly.vertices()
     facets = poly.facets()
     f.write("OFF\n")
-    f.write("%i %i %i\n" % (verts.size(), facets.size(), 0))
 
-    # Write the vertex coordinates.
+    # Check for 2d/3d.
     if isinstance(poly, Polygon):
-        for v in verts:
-            f.write("%g %g\n" % (v.x, v.y))
-    else:
+        # There could be multiple loops in a Spheral polygon, so break
+        # those up into individual facets for obj output.
+        # First, sort topologically so the loops are contiguous
+        pairs = [(fac.ipoint1, fac.ipoint2) for fac in facets]
+        for i in xrange(len(pairs) - 1):
+            v1 = pairs[i][1]
+            j = i + 1
+            while j < len(pairs) and v1 != pairs[j][0]:
+                j += 1
+            if j < len(pairs):
+                pairs[i+1], pairs[j] = pairs[j], pairs[i+1]
+        
+        # Now we can extract the faces.
+        faces = []
+        faces.append([])
+        for i in xrange(len(pairs)):
+            faces[-1].append(pairs[i][0])
+            if (i + 1) < len(pairs) and pairs[i][1] != pairs[i+1][0]:
+                faces.append([])
+
+        # Now we can write some header info
+        f.write("%i %i %i\n" % (verts.size(), len(faces), 0))
+
+        # Write the vertex coordinates.
         for v in verts:
             f.write("%g %g %g\n" % (v.x, v.y, v.z))
 
-    # Write the facet vertex indices.
-    for facet in facets:
-        ipoints = facet.ipoints
-        f.write("%i" % ipoints.size())
-        for i in ipoints:
-            f.write(" %i" % i)
-        f.write("\n")
+        # Write the faces.
+        for face in faces:
+            f.write("%i" % len(face))
+            for i in face:
+                f.write(" %i" % i)
+            f.write("\n")
+
+    else:
+
+        f.write("%i %i %i\n" % (verts.size(), facets.size(), 0))
+
+        # Write the vertex coordinates.
+        for v in verts:
+            f.write("%g %g %g\n" % (v.x, v.y, v.z))
+
+        # Write the facet vertex indices.
+        for facet in facets:
+            ipoints = facet.ipoints
+            f.write("%i" % ipoints.size())
+            for i in ipoints:
+                f.write(" %i" % i)
+            f.write("\n")
 
     # That's it.
     f.close()
