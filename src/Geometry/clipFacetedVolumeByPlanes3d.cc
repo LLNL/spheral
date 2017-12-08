@@ -160,6 +160,18 @@ sortInTopologicalRings(vector<int>& loops,
     while (jedge < nedges and v1 != startVertex(loops[jedge], edges)) ++jedge;
     if (jedge < nedges) std::swap(loops[iedge + 1], loops[jedge]);
   }
+
+  // In some degenerate cases it's possible to have an edge we walk in reverse,
+  // essentially negating it.  Check for this and remove any instances.
+  vector<int> edges2kill;
+  for (iedge = 0; iedge < nedges; ++iedge) {
+    jedge = (iedge + 1) % nedges;
+    if (loops[iedge] == ~loops[jedge]) {
+      edges2kill.push_back(iedge);
+      edges2kill.push_back(jedge);
+    }
+  }
+  removeElements(loops, edges2kill);
 }
 
 //------------------------------------------------------------------------------
@@ -283,10 +295,10 @@ void clipFacetedVolumeByPlanes(GeomPolyhedron& poly,
     }
   }
 
-  // BLAGO
-  cerr << "----------------------------------------------------------------------" << endl
-       << "Starting polyhedron: " << endl << poly2string(vertices, vertexMask, edges, faces) << endl;
-  // BLAGO
+  // // BLAGO
+  // cerr << "----------------------------------------------------------------------" << endl
+  //      << "Starting polyhedron: " << endl << poly2string(vertices, vertexMask, edges, faces) << endl;
+  // // BLAGO
 
   // Loop over the planes.
   auto kplane = 0;
@@ -295,8 +307,8 @@ void clipFacetedVolumeByPlanes(GeomPolyhedron& poly,
     const auto& plane = planes[kplane++];
     const auto& p0 = plane.point();
     const auto& phat = plane.normal();
-    cerr << "................................................................................" << endl
-         << "Plane " << p0 << " " << phat << endl;
+    // cerr << "................................................................................" << endl
+    //      << "Plane " << p0 << " " << phat << endl;
 
     // Check the active vertices against this plane.
     auto above = true;
@@ -392,8 +404,9 @@ void clipFacetedVolumeByPlanes(GeomPolyhedron& poly,
 
       // Walk each current face, and reconstruct it according to what happend to it's edges.
       vector<int> newEdges;                         // Any new edges we create.
-      for (auto kface = 0; kface < faces.size(); ++kface) {
-        cerr << "Face " << kface << endl;
+      const auto nfaces0 = faces.size();
+      for (auto kface = 0; kface < nfaces0; ++kface) {
+        // cerr << "Face " << kface << endl;
         auto& face = faces[kface];
         Face newface;                  // The new face we're going to build.
         vector<int> faceNodesInPlane;  // Any nodes in this face that are in the clipping plane.
@@ -470,12 +483,13 @@ void clipFacetedVolumeByPlanes(GeomPolyhedron& poly,
             sortInTopologicalRings(newface, edges);
 
             // Do we need to check for multiple loops in this face?
-            if (faceNodesInPlane.size() % 2 == 0) {
+            if (faceNodesInPlane.size() == 2) {
 
               // Nope, we have the simple case of just one face.
               face = newface;
 
             } else {
+              // cerr << "Splitting!" << endl;
 
               // We have clipped a non-convex section of the face, which may have created more than one independent
               // ring of edges -- i.e., we may need to create more than one new face.
@@ -483,9 +497,25 @@ void clipFacetedVolumeByPlanes(GeomPolyhedron& poly,
               while (kstart < newface.size()) {
                 v0 = startVertex(newface[kstart], edges);
                 auto kend = kstart + 2;  // Gotta be at least three 3 edges per ring.
-                while (kend < newface.size() and endVertex(kend, edges) != v0) ++kend;
+                while (kend < newface.size() and endVertex(newface[kend], edges) != v0) ++kend;
                 CHECK(kend < newface.size());
-                Face ring(newface.begin() + kstart, newface.end() + kend + 1);
+                Face ring(newface.begin() + kstart, newface.begin() + kend + 1);
+
+                // // BLAGO!
+                // {
+                //   cerr << "   Ring: ";
+                //   for (auto k = 0; k < ring.size(); ++k) {
+                //     const auto iedge = posID(ring[k]);
+                //     cerr << " ([" << ring[k] << "->" << iedge << "] ";
+                //     if (ring[k] < 0) {
+                //       cerr << edges[iedge].second << " " << edges[iedge].first << ")";
+                //     } else {
+                //       cerr << edges[iedge].first << " " << edges[iedge].second << ")";
+                //     }
+                //   }
+                //   cerr << endl;
+                // }
+                // // BLAGO!
                 
                 // Verify the new face forms a proper topological ring.
                 BEGIN_CONTRACT_SCOPE
@@ -516,16 +546,16 @@ void clipFacetedVolumeByPlanes(GeomPolyhedron& poly,
         for (auto k = 0; k < vertexMask.size(); ++k) {
           if (vertexMask[k] == -1) vertexMask[k] = -2;
         }
-        cerr << poly2string(vertices, vertexMask, edges, faces) << endl;
+        // cerr << poly2string(vertices, vertexMask, edges, faces) << endl;
       }
 
-      // BLAGO
-      {
-        cerr << "newEdges: ";
-        std::copy(newEdges.begin(), newEdges.end(), std::ostream_iterator<int>(std::cerr, " "));
-        cerr << endl;
-      }
-      // BLAGO
+      // // BLAGO
+      // {
+      //   cerr << "newEdges: ";
+      //   std::copy(newEdges.begin(), newEdges.end(), std::ostream_iterator<int>(std::cerr, " "));
+      //   cerr << endl;
+      // }
+      // // BLAGO
 
       // Well, now all the starting faces of the polyhedron have been clipped by the plane, but we need
       // to cap off new edges created by the plane as new faces of the polyhedron.
@@ -537,15 +567,15 @@ void clipFacetedVolumeByPlanes(GeomPolyhedron& poly,
         // we want to walk these loops based on our sign convention for the ID in newEdges.
         sortInTopologicalRings(newEdges, edges);
 
-        cerr << "Ordered edges for capping: ";
-        for (auto iedge = 0; iedge != newEdges.size(); ++iedge) {
-          if (newEdges[iedge] >= 0) {
-            cerr << " (" << edges[newEdges[iedge]].first << " " << edges[newEdges[iedge]].second << ")";
-          } else {
-            cerr << " (" << edges[~newEdges[iedge]].second << " " << edges[~newEdges[iedge]].first << ")";
-          }
-        }
-        cerr << endl;
+        // cerr << "Ordered edges for capping: ";
+        // for (auto iedge = 0; iedge != newEdges.size(); ++iedge) {
+        //   if (newEdges[iedge] >= 0) {
+        //     cerr << " (" << edges[newEdges[iedge]].first << " " << edges[newEdges[iedge]].second << ")";
+        //   } else {
+        //     cerr << " (" << edges[~newEdges[iedge]].second << " " << edges[~newEdges[iedge]].first << ")";
+        //   }
+        // }
+        // cerr << endl;
 
         auto kstart = 0;
         while (kstart < newEdges.size()) {
@@ -577,10 +607,10 @@ void clipFacetedVolumeByPlanes(GeomPolyhedron& poly,
     }
   }
 
-  // BLAGO
-  cerr << "----------------------------------------------------------------------" << endl
-       << "Final polyhedron: " << endl << poly2string(vertices, vertexMask, edges, faces) << endl;
-  // BLAGO
+  // // BLAGO
+  // cerr << "----------------------------------------------------------------------" << endl
+  //      << "Final polyhedron: " << endl << poly2string(vertices, vertexMask, edges, faces) << endl;
+  // // BLAGO
 
   // If we have an empty polyhedron just finish it here.
   if (faces.empty()) {
@@ -619,9 +649,9 @@ void clipFacetedVolumeByPlanes(GeomPolyhedron& poly,
 
     // Now we can rebuild the polyhedron.
     poly = GeomPolyhedron(newvertices, facets);
-    cerr << "And the answer is..." << endl
-         << poly << endl
-         << "volume = " << poly.volume() << endl;
+    // cerr << "And the answer is..." << endl
+    //      << poly << endl
+    //      << "volume = " << poly.volume() << endl;
   }
 }
 

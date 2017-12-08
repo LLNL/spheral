@@ -74,9 +74,9 @@ class TestPolyhedronClipping(unittest.TestCase):
                 clipFacetedVolumeByPlanes(chunk2, planes2)
                 success = fuzzyEqual(chunk1.volume + chunk2.volume, poly.volume)
                 if not success:
-                    writePolyhedronOFF(poly, "poly.off")
-                    writePolyhedronOFF(chunk1, "chunk_ONE.off")
-                    writePolyhedronOFF(chunk2, "chunk_TWO.off")
+                    writePolyhedronOBJ(poly, "poly.obj")
+                    writePolyhedronOBJ(chunk1, "chunk_ONE.obj")
+                    writePolyhedronOBJ(chunk2, "chunk_TWO.obj")
                 self.failUnless(success,
                                 "Plane clipping summing to wrong volumes: %s + %s != %s" % (chunk1.volume,
                                                                                             chunk2.volume,
