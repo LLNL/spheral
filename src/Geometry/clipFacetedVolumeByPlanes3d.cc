@@ -453,6 +453,17 @@ void clipFacetedVolumeByPlanes(GeomPolyhedron& poly,
           // Check for any gaps in the face ring, which will make new edges.
           if (not faceNodesInPlane.empty()) {
 
+            // Get rid of any duplicates.
+            sort(faceNodesInPlane.begin(), faceNodesInPlane.end());
+            vector<int> nodes2kill;
+            for (auto k = 0; k < faceNodesInPlane.size() - 1; ++k) {
+              if (faceNodesInPlane[k] == faceNodesInPlane[k+1]) {
+                nodes2kill.push_back(k);
+                nodes2kill.push_back(k + 1);
+              }
+            }
+            removeElements(faceNodesInPlane, nodes2kill);
+
             // Sort the hanging nodes in the plane along the line created by the intersection of the
             const auto direction = phat.cross(faceNormal[kface]).unitVector();
             sort(faceNodesInPlane.begin(), faceNodesInPlane.end(),
