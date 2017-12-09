@@ -272,21 +272,32 @@ void clipFacetedVolumeByPlanes(GeomPolyhedron& poly,
   vector<Vector> faceNormal;                   // Outward pointing unit normals to each face.
   {
     const auto& facets = poly.facets();
+
+    // First pass, build the unique edges in sorted order.
     int iedge, iface = 0;
+    for (const auto& facet: facets) {
+      const auto& ipoints = facet.ipoints();
+      const auto  npoints = ipoints.size();
+      for (auto k = 0; k < npoints; ++k) {
+        const auto edge = make_edge(ipoints[k], ipoints[(k + 1) % npoints]);
+        auto itr = lower_bound(edges.begin(), edges.end(), edge);
+        if (itr == edges.end() or *itr != edge) {
+          edges.insert(itr, edge);
+          edgeMask.push_back(1);
+        }
+      }
+    }
+
+    // Second pass, build the faces as edge loops.
     for (const auto& facet: facets) {
       const auto& ipoints = facet.ipoints();
       const auto  npoints = ipoints.size();
       Face face;
       for (auto k = 0; k < npoints; ++k) {
         const auto edge = make_edge(ipoints[k], ipoints[(k + 1) % npoints]);
-        auto itr = find(edges.begin(), edges.end(), edge);
-        if (itr == edges.end()) {
-          iedge = edges.size();
-          edges.push_back(edge);
-          edgeMask.push_back(1);
-        } else {
-          iedge = distance(edges.begin(), itr);
-        }
+        const auto itr = lower_bound(edges.begin(), edges.end(), edge);
+        CHECK(itr != edges.end());
+        iedge = distance(edges.begin(), itr);
         face.push_back(edge.first == ipoints[k] ? iedge : ~iedge);
       }
       faces.push_back(face);
