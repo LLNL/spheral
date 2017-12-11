@@ -126,22 +126,29 @@ insertVertex(std::vector<Dim<3>::Vector>& vertices,
   // Where would we like the vertex?
   const auto v = segmentPlaneIntersection(vertices[v0], vertices[v1], p0, phat);
 
-  // Is this degenerate with any existing active vertices?
-  bool result;
-  vertID = 0;
-  while (vertID < vertices.size() and 
-         not (vertexMask[vertID] == 1 and (vertices[vertID] - v).magnitude2() < 1.0e-16)) ++vertID;
-  if (vertID == vertices.size()) {
-    vertices.push_back(v);
-    vertexMask.push_back(1);
-    result = true;
-  } else {
-    result = false;
-  }
-  ENSURE(vertID < vertices.size());
-  ENSURE(vertices.size() == vertexMask.size());
-  ENSURE(vertexMask[vertID] == 1);
-  return result;
+  // In the current algorithm we should only be in this method with new vertices.
+  CHECK(find(vertices.begin(), vertices.end(), v) == vertices.end());
+  vertID = vertices.size();
+  vertices.push_back(v);
+  vertexMask.push_back(1);
+  return true;
+
+  // // Is this degenerate with any existing active vertices?
+  // bool result;
+  // vertID = 0;
+  // while (vertID < vertices.size() and 
+  //        not (vertexMask[vertID] == 1 and (vertices[vertID] - v).magnitude2() < 1.0e-16)) ++vertID;
+  // if (vertID == vertices.size()) {
+  //   vertices.push_back(v);
+  //   vertexMask.push_back(1);
+  //   result = true;
+  // } else {
+  //   result = false;
+  // }
+  // ENSURE(vertID < vertices.size());
+  // ENSURE(vertices.size() == vertexMask.size());
+  // ENSURE(vertexMask[vertID] == 1);
+  // return result;
 }
 
 //------------------------------------------------------------------------------
