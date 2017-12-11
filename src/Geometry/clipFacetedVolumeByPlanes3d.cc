@@ -331,10 +331,11 @@ void clipFacetedVolumeByPlanes(GeomPolyhedron& poly,
     // Check the active vertices against this plane.
     auto above = true;
     auto below = true;
-// #pragma omp parallel for                                \
-//   reduction(min:above)                                  \
-//   reduction(min:below)
-    for (auto k = 0; k < vertices.size(); ++k) {
+    const auto nverts0 = vertices.size();
+#pragma omp parallel for                                \
+  reduction(min:above)                                  \
+  reduction(min:below)
+    for (auto k = 0; k < nverts0; ++k) {
       if (vertexMask[k] >= 0) {
         vertexMask[k] = compare(p0, phat, vertices[k]);
         if (vertexMask[k] == 1) {
