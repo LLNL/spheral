@@ -54,11 +54,11 @@ segmentPlaneIntersection(const Dim<3>::Vector& a,       // line-segment begin
   const auto ab = b - a;
   const auto abhat = ab.unitVector();
   CHECK2(std::abs(abhat.dot(phat)) > 0.0, (abhat.dot(phat)) << " " << a << " " << b << " " << abhat << " " << phat);
-  const double s = std::max(0.0, std::min(ab.magnitude(), (p - a).dot(phat)/(abhat.dot(phat))));
-  CHECK2(s >= 0.0 and s <= ab.magnitude(), s << " " << ab.magnitude());
-  const auto result = a + s*abhat;
+  const auto ss = std::max(0.0, std::min(ab.magnitude(), (p - a).dot(phat)/(abhat.dot(phat))));
+  CHECK2(ss >= 0.0 and ss <= ab.magnitude(), ss << " " << ab.magnitude());
+  const auto result = a + ss*abhat;
   CHECK2(fuzzyEqual((result - p).dot(phat), 0.0, 1.0e-10),
-         a << " " << b << " " << s << " " << result << " " << (result - p).dot(phat));
+         a << " " << b << " " << ss << " " << result << " " << (result - p).dot(phat));
   return result;
 }
 
@@ -331,9 +331,9 @@ void clipFacetedVolumeByPlanes(GeomPolyhedron& poly,
     // Check the active vertices against this plane.
     auto above = true;
     auto below = true;
-#pragma omp parallel for                                \
-  reduction(min:above)                                  \
-  reduction(min:below)
+// #pragma omp parallel for                                \
+//   reduction(min:above)                                  \
+//   reduction(min:below)
     for (auto k = 0; k < vertices.size(); ++k) {
       if (vertexMask[k] >= 0) {
         vertexMask[k] = compare(p0, phat, vertices[k]);
@@ -573,11 +573,6 @@ void clipFacetedVolumeByPlanes(GeomPolyhedron& poly,
             CHECK(faces.size() == faceNormal.size());
           }
         }
-
-        // // Deactivate any clipped vertices.
-        // for (auto k = 0; k < vertexMask.size(); ++k) {
-        //   if (vertexMask[k] == -1) vertexMask[k] = -2;
-        // }
         // cerr << poly2string(vertices, vertexMask, edges, faces) << endl;
       }
 
@@ -637,6 +632,11 @@ void clipFacetedVolumeByPlanes(GeomPolyhedron& poly,
       CHECK(vertexMask.size() == vertices.size());
       CHECK(edgeMask.size() == edges.size());
     }
+
+    // // Deactivate any clipped vertices.
+    // for (auto k = 0; k < vertexMask.size(); ++k) {
+    //   if (vertexMask[k] == -1) vertexMask[k] = -2;
+    // }
   }
 
   // // BLAGO
