@@ -23,6 +23,7 @@
 
 #include <iostream>
 #include <iterator>
+#include <limits>
 
 namespace Spheral {
 
@@ -37,7 +38,10 @@ inline
 int compare(const Dim<3>::Vector& planePoint,
             const Dim<3>::Vector& planeNormal,
             const Dim<3>::Vector& point) {
-  const auto sgndist = planeNormal.dot(point - planePoint);
+  // const auto sgndist = planeNormal.dot(point - planePoint);
+  const auto sgndist = (planeNormal[0]*(point[0] - planePoint[0]) +
+                        planeNormal[1]*(point[1] - planePoint[1]) +
+                        planeNormal[2]*(point[2] - planePoint[2]));
   if (std::abs(sgndist) < 1.0e-8) return 0;
   return sgn0(sgndist);
 }
@@ -276,7 +280,9 @@ void clipFacetedVolumeByPlanes(GeomPolyhedron& poly,
   vector<Face> faces;                          // Faces that make up the polyhedron (loops of edges).
   vector<int> vertexMask(vertices.size(), 1);  // Mask to flag active/inactive vertices: -2=>inactive, (-1,0,1)=>(below,in,above) current plane
   vector<int> edgeMask;                        // Mask to flag active/inactive edges: -2=>inactive, -2=>2 points below, 0=>both points in plane, 1=>1 point below/1 above, 2=>both points above
-  vector<Vector> faceNormal;                   // Outward pointing unit normals to each face.
+  vector<Vector> faceNormals;                  // Outward pointing unit normals to each face.
+  Vector xmin = numeric_limits<double>::max();         // min coordinates in polyhedron
+  Vector xmax = -xmin;                         // max coordinates in polyhedron
   {
     const auto& facets = poly.facets();
 
@@ -292,6 +298,12 @@ void clipFacetedVolumeByPlanes(GeomPolyhedron& poly,
           edges.insert(itr, edge);
           edgeMask.push_back(1);
         }
+        xmin = Vector(min(xmin.x(), vertices[ipoints[k]].x()),
+                      min(xmin.y(), vertices[ipoints[k]].y()),
+                      min(xmin.z(), vertices[ipoints[k]].z()));
+        xmax = Vector(max(xmax.x(), vertices[ipoints[k]].x()),
+                      max(xmax.y(), vertices[ipoints[k]].y()),
+                      max(xmax.z(), vertices[ipoints[k]].z()));
       }
     }
 
@@ -308,7 +320,7 @@ void clipFacetedVolumeByPlanes(GeomPolyhedron& poly,
         face.push_back(edge.first == ipoints[k] ? iedge : ~iedge);
       }
       faces.push_back(face);
-      faceNormal.push_back(facet.normal());
+      faceNormals.push_back(facet.normal());
       ++iface;
     }
   }
@@ -328,35 +340,37 @@ void clipFacetedVolumeByPlanes(GeomPolyhedron& poly,
     // cerr << "................................................................................" << endl
     //      << "Plane " << p0 << " " << phat << endl;
 
-    // Check the active vertices against this plane.
-    auto above = true;
-    auto below = true;
-    const auto nverts0 = vertices.size();
-#pragma omp parallel for                                \
-  reduction(min:above)                                  \
-  reduction(min:below)
-    for (auto k = 0; k < nverts0; ++k) {
-      if (vertexMask[k] >= 0) {
-        vertexMask[k] = compare(p0, phat, vertices[k]);
-        if (vertexMask[k] == 1) {
-          below = false;
-        } else if (vertexMask[k] == -1) {
-          above = false;
-        }
-      }
-    }
-    CHECK(not (above and below));
+    // Is there a chance this plane affects the result?
+    const auto check_xmin = compare(p0, phat, xmin);
+    const auto check_xmax = compare(p0, phat, xmax);
+    if (check_xmin == -1 and check_xmax == -1) {
 
-    // Did we get a simple case?
-    if (below) {
-      // The current polyhedron is entirely below the clip plane, and is therefore entirely removed.
+      // The entire polyhedron is clipped by this plane.
       // No need to check any more clipping planes either -- we're done.
       edges.clear();
       faces.clear();
 
-    } else if (not above) {
+    } else if (check_xmin*check_xmax <= 0) {
 
-      // This plane passes somewhere through the polyhedron, so we need to clip it.
+      // The plans cuts through the polyhedron, so we gotta check it.
+      // Check the active vertices against this plane, and recompute the bounding box.
+      const auto nverts0 = vertices.size();
+      xmin = numeric_limits<double>::max();
+      xmax = -xmin;
+      for (auto k = 0; k < nverts0; ++k) {
+        if (vertexMask[k] >= 0) {
+          vertexMask[k] = compare(p0, phat, vertices[k]);
+          if (vertexMask[k] >= 0) {
+            xmin = Vector(min(xmin.x(), vertices[k].x()),
+                          min(xmin.y(), vertices[k].y()),
+                          min(xmin.z(), vertices[k].z()));
+            xmax = Vector(max(xmax.x(), vertices[k].x()),
+                          max(xmax.y(), vertices[k].y()),
+                          max(xmax.z(), vertices[k].z()));
+          }
+        }
+      }
+
       // Clip each active edge.
       vector<int> edgeNodeInPlane(edges.size(), -1);
       vector<int> edgeSign(edges.size(), 1);         // -1=>edge order flipped, 1=>unchanged
@@ -487,7 +501,7 @@ void clipFacetedVolumeByPlanes(GeomPolyhedron& poly,
             removeElements(faceNodesInPlane, nodes2kill);
 
             // Sort the hanging nodes in the plane along the line created by the intersection of the
-            const auto direction = phat.cross(faceNormal[kface]).unitVector();
+            const auto direction = phat.cross(faceNormals[kface]).unitVector();
             sort(faceNodesInPlane.begin(), faceNodesInPlane.end(),
                  [&](const int a, const int b) { return (vertices[a] - p0).dot(direction) < (vertices[b] - p0).dot(direction); });
 
@@ -565,13 +579,13 @@ void clipFacetedVolumeByPlanes(GeomPolyhedron& poly,
                   face = ring;
                 } else {
                   faces.push_back(ring);
-                  faceNormal.push_back(faceNormal[kface]);
+                  faceNormals.push_back(faceNormals[kface]);
                 }
 
                 kstart = kend + 1;
               }
             }
-            CHECK(faces.size() == faceNormal.size());
+            CHECK(faces.size() == faceNormals.size());
           }
         }
         // cerr << poly2string(vertices, vertexMask, edges, faces) << endl;
@@ -625,11 +639,11 @@ void clipFacetedVolumeByPlanes(GeomPolyhedron& poly,
 
           // Add the new face.
           faces.push_back(ring);
-          faceNormal.push_back(-phat);
+          faceNormals.push_back(-phat);
           kstart = kend + 1;
         }
       }
-      CHECK(faceNormal.size() == faces.size());
+      CHECK(faceNormals.size() == faces.size());
       CHECK(vertexMask.size() == vertices.size());
       CHECK(edgeMask.size() == edges.size());
     }
