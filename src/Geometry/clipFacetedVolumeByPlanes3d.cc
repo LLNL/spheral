@@ -360,14 +360,6 @@ void clipFacetedVolumeByPlanes(GeomPolyhedron& poly,
       for (auto k = 0; k < nverts0; ++k) {
         if (vertexMask[k] >= 0) {
           vertexMask[k] = compare(p0, phat, vertices[k]);
-          if (vertexMask[k] >= 0) {
-            xmin = Vector(min(xmin.x(), vertices[k].x()),
-                          min(xmin.y(), vertices[k].y()),
-                          min(xmin.z(), vertices[k].z()));
-            xmax = Vector(max(xmax.x(), vertices[k].x()),
-                          max(xmax.y(), vertices[k].y()),
-                          max(xmax.z(), vertices[k].z()));
-          }
         }
       }
 
@@ -586,6 +578,17 @@ void clipFacetedVolumeByPlanes(GeomPolyhedron& poly,
               }
             }
             CHECK(faces.size() == faceNormals.size());
+          }
+
+          // Update the polyhedron bounding box with this face.
+          for (auto kedge = 0; kedge < newface.size(); ++ kedge) {
+            v0 = startVertex(newface[kedge], edges);
+            xmin = Vector(min(xmin.x(), vertices[v0].x()),
+                          min(xmin.y(), vertices[v0].y()),
+                          min(xmin.z(), vertices[v0].z()));
+            xmax = Vector(max(xmax.x(), vertices[v0].x()),
+                          max(xmax.y(), vertices[v0].y()),
+                          max(xmax.z(), vertices[v0].z()));
           }
         }
         // cerr << poly2string(vertices, vertexMask, edges, faces) << endl;
