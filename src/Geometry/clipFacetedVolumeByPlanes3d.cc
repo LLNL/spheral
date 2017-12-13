@@ -23,7 +23,6 @@
 
 #include <iostream>
 #include <iterator>
-#include <limits>
 
 namespace Spheral {
 
@@ -38,10 +37,7 @@ inline
 int compare(const Dim<3>::Vector& planePoint,
             const Dim<3>::Vector& planeNormal,
             const Dim<3>::Vector& point) {
-  // const auto sgndist = planeNormal.dot(point - planePoint);
-  const auto sgndist = (planeNormal[0]*(point[0] - planePoint[0]) +
-                        planeNormal[1]*(point[1] - planePoint[1]) +
-                        planeNormal[2]*(point[2] - planePoint[2]));
+  const auto sgndist = planeNormal.dot(point - planePoint);
   if (std::abs(sgndist) < 1.0e-8) return 0;
   return sgn0(sgndist);
 }
@@ -58,11 +54,11 @@ segmentPlaneIntersection(const Dim<3>::Vector& a,       // line-segment begin
   const auto ab = b - a;
   const auto abhat = ab.unitVector();
   CHECK2(std::abs(abhat.dot(phat)) > 0.0, (abhat.dot(phat)) << " " << a << " " << b << " " << abhat << " " << phat);
-  const auto ss = std::max(0.0, std::min(ab.magnitude(), (p - a).dot(phat)/(abhat.dot(phat))));
-  CHECK2(ss >= 0.0 and ss <= ab.magnitude(), ss << " " << ab.magnitude());
-  const auto result = a + ss*abhat;
+  const double s = std::max(0.0, std::min(ab.magnitude(), (p - a).dot(phat)/(abhat.dot(phat))));
+  CHECK2(s >= 0.0 and s <= ab.magnitude(), s << " " << ab.magnitude());
+  const auto result = a + s*abhat;
   CHECK2(fuzzyEqual((result - p).dot(phat), 0.0, 1.0e-10),
-         a << " " << b << " " << ss << " " << result << " " << (result - p).dot(phat));
+         a << " " << b << " " << s << " " << result << " " << (result - p).dot(phat));
   return result;
 }
 
@@ -130,29 +126,22 @@ insertVertex(std::vector<Dim<3>::Vector>& vertices,
   // Where would we like the vertex?
   const auto v = segmentPlaneIntersection(vertices[v0], vertices[v1], p0, phat);
 
-  // In the current algorithm we should only be in this method with new vertices.
-  CHECK(find(vertices.begin(), vertices.end(), v) == vertices.end());
-  vertID = vertices.size();
-  vertices.push_back(v);
-  vertexMask.push_back(1);
-  return true;
-
-  // // Is this degenerate with any existing active vertices?
-  // bool result;
-  // vertID = 0;
-  // while (vertID < vertices.size() and 
-  //        not (vertexMask[vertID] == 1 and (vertices[vertID] - v).magnitude2() < 1.0e-16)) ++vertID;
-  // if (vertID == vertices.size()) {
-  //   vertices.push_back(v);
-  //   vertexMask.push_back(1);
-  //   result = true;
-  // } else {
-  //   result = false;
-  // }
-  // ENSURE(vertID < vertices.size());
-  // ENSURE(vertices.size() == vertexMask.size());
-  // ENSURE(vertexMask[vertID] == 1);
-  // return result;
+  // Is this degenerate with any existing active vertices?
+  bool result;
+  vertID = 0;
+  while (vertID < vertices.size() and 
+         not (vertexMask[vertID] == 1 and (vertices[vertID] - v).magnitude2() < 1.0e-16)) ++vertID;
+  if (vertID == vertices.size()) {
+    vertices.push_back(v);
+    vertexMask.push_back(1);
+    result = true;
+  } else {
+    result = false;
+  }
+  ENSURE(vertID < vertices.size());
+  ENSURE(vertices.size() == vertexMask.size());
+  ENSURE(vertexMask[vertID] == 1);
+  return result;
 }
 
 //------------------------------------------------------------------------------
@@ -171,63 +160,18 @@ sortInTopologicalRings(vector<int>& loops,
     while (jedge < nedges and v1 != startVertex(loops[jedge], edges)) ++jedge;
     if (jedge < nedges) std::swap(loops[iedge + 1], loops[jedge]);
   }
-}
 
-//------------------------------------------------------------------------------
-// Collapse zero volume cycles in the given ring.
-// This routine assumes there is only one toplogical ring here!
-//------------------------------------------------------------------------------
-inline
-void
-collapseCycles(vector<int>& ring,
-               const vector<pair<int, int>>& edges) {
-  int iedge, jedge, ncycle;
-  auto nedges = ring.size();
-  bool done = false;
-  while (not done) {
-    vector<int> edges2kill;
-    for (iedge = 0; iedge < nedges; ++iedge) {
-      jedge = iedge + 1;
-      if (ring[iedge] == ~ring[jedge]) {
-        edges2kill.push_back(iedge);
-
-        // Look for the end of this cycle.
-        ncycle = 1;
-        while (jedge < (iedge + nedges) and
-               posID(ring[jedge % nedges]) == posID(ring[iedge])) {
-          edges2kill.push_back(jedge % nedges);
-          ++jedge;
-          ++ncycle;
-        }
-        CHECK(ncycle <= nedges);
-        if ((ncycle % 2) == 1) {
-          edges2kill.pop_back();
-          --jedge;
-        }
-        iedge = jedge;
-      }
-    }
-    if (edges2kill.empty()) {
-      done = true;
-    } else {
-      done = false;
-      // cerr << "Killing: ";
-      // copy(edges2kill.begin(), edges2kill.end(), ostream_iterator<int>(cerr, " "));
-      // cerr << endl
-      //      << "Edges: ";
-      // for (auto k = 0; k < ring.size(); ++k) {
-      //   cerr << " ([" << ring[k] << "] ";
-      //   if (ring[k] < 0) {
-      //     cerr << edges[~ring[k]].second << " " << edges[~ring[k]].first << ")";
-      //   } else {
-      //     cerr << edges[ring[k]].first << " " << edges[ring[k]].second << ")";
-      //   }
-      // }
-      // cerr << endl;
-      removeElements(ring, edges2kill);
-      nedges = ring.size();
+  // In some degenerate cases it's possible to have an edge we walk in reverse,
+  // essentially negating it.  Check for this and remove any instances.
+  vector<int> edges2kill;
+  for (iedge = 0; iedge < nedges; ++iedge) {
+    jedge = (iedge + 1) % nedges;
+    if (loops[iedge] == ~loops[jedge]) {
+      edges2kill.push_back(iedge);
+      edges2kill.push_back(jedge);
     }
   }
+  removeElements(loops, edges2kill);
 }
 
 //------------------------------------------------------------------------------
@@ -325,7 +269,7 @@ void clipFacetedVolumeByPlanes(GeomPolyhedron& poly,
   vector<Face> faces;                          // Faces that make up the polyhedron (loops of edges).
   vector<int> vertexMask(vertices.size(), 1);  // Mask to flag active/inactive vertices: -2=>inactive, (-1,0,1)=>(below,in,above) current plane
   vector<int> edgeMask;                        // Mask to flag active/inactive edges: -2=>inactive, -2=>2 points below, 0=>both points in plane, 1=>1 point below/1 above, 2=>both points above
-  vector<Vector> faceNormals;                  // Outward pointing unit normals to each face.
+  vector<Vector> faceNormal;                   // Outward pointing unit normals to each face.
   {
     const auto& facets = poly.facets();
 
@@ -339,7 +283,7 @@ void clipFacetedVolumeByPlanes(GeomPolyhedron& poly,
         auto itr = lower_bound(edges.begin(), edges.end(), edge);
         if (itr == edges.end() or *itr != edge) {
           edges.insert(itr, edge);
-          edgeMask.push_back(2);
+          edgeMask.push_back(1);
         }
       }
     }
@@ -357,13 +301,10 @@ void clipFacetedVolumeByPlanes(GeomPolyhedron& poly,
         face.push_back(edge.first == ipoints[k] ? iedge : ~iedge);
       }
       faces.push_back(face);
-      faceNormals.push_back(facet.normal());
+      faceNormal.push_back(facet.normal());
       ++iface;
     }
   }
-  CHECK(vertexMask.size() == vertices.size());
-  CHECK(edgeMask.size() == edges.size());
-  CHECK(faceNormals.size() == faces.size());
 
   // // BLAGO
   // cerr << "----------------------------------------------------------------------" << endl
@@ -373,37 +314,38 @@ void clipFacetedVolumeByPlanes(GeomPolyhedron& poly,
   // Loop over the planes.
   auto kplane = 0;
   const auto nplanes = planes.size();
-  while (kplane < nplanes) {
+  while (kplane < nplanes and not faces.empty()) {
     const auto& plane = planes[kplane++];
     const auto& p0 = plane.point();
     const auto& phat = plane.normal();
     // cerr << "................................................................................" << endl
     //      << "Plane " << p0 << " " << phat << endl;
 
-    // Find the state of all active vertices with this plane.
-    const auto nverts0 = vertices.size();
-    auto check_vertmin =  2;
-    auto check_vertmax = -2;
-    for (auto k = 0; k < nverts0; ++k) {
-      if (vertexMask[k] >= 0) {
+    // Check the active vertices against this plane.
+    auto above = true;
+    auto below = true;
+    for (auto k = 0; k < vertices.size(); ++k) {
+      if (vertexMask[k] != -2) {
         vertexMask[k] = compare(p0, phat, vertices[k]);
-        check_vertmin = min(check_vertmin, vertexMask[k]);
-        check_vertmax = max(check_vertmax, vertexMask[k]);
+        if (vertexMask[k] == 1) {
+          below = false;
+        } else if (vertexMask[k] == -1) {
+          above = false;
+        }
       }
     }
+    CHECK(not (above and below));
 
-    // Is there a chance this plane affects the result?
-    if (check_vertmax == -1 or
-        (check_vertmin == -1 and check_vertmax == 0)) {
-
-      // The entire polyhedron is clipped by this plane.
+    // Did we get a simple case?
+    if (below) {
+      // The current polyhedron is entirely below the clip plane, and is therefore entirely removed.
       // No need to check any more clipping planes either -- we're done.
       edges.clear();
       faces.clear();
 
-    } else if (check_vertmin*check_vertmax < 0) {
+    } else if (not above) {
 
-      // The plans cuts through the polyhedron, so we gotta check it.
+      // This plane passes somewhere through the polyhedron, so we need to clip it.
       // Clip each active edge.
       vector<int> edgeNodeInPlane(edges.size(), -1);
       vector<int> edgeSign(edges.size(), 1);         // -1=>edge order flipped, 1=>unchanged
@@ -462,6 +404,8 @@ void clipFacetedVolumeByPlanes(GeomPolyhedron& poly,
             // connecting them.
             CHECK2(vertexMask[v0] == 0 and vertexMask[v1] == 0, v0 << " " << v1 << " " << vertexMask[v0] << " " << vertexMask[v1]);
             edgeMask[iedge] = 0;
+            // edgeNodesInPlane[iedge].push_back(v0);
+            // edgeNodesInPlane[iedge].push_back(v1);
 
           }
         }
@@ -469,264 +413,220 @@ void clipFacetedVolumeByPlanes(GeomPolyhedron& poly,
       CHECK(vertexMask.size() == vertices.size());
       CHECK(edgeMask.size() == edges.size());
 
-      // // BLAGO
-      // cerr << "edgeMask: ";
-      // for (auto k = 0; k < edges.size(); ++k) cerr << "([" << edgeMask[k] << "] " << edges[k].first << " " << edges[k].second << ")";
-      // cerr << endl;
-      // // BLAGO
-
       // Walk each current face, and reconstruct it according to what happend to it's edges.
-      vector<int> planeEdges;                         // Any edges we find or create in the plane.
+      vector<int> newEdges;                         // Any new edges we create.
       const auto nfaces0 = faces.size();
       for (auto kface = 0; kface < nfaces0; ++kface) {
+        // cerr << "Face " << kface << endl;
         auto& face = faces[kface];
-        if (not face.empty()) {
+        Face newface;                  // The new face we're going to build.
+        vector<int> faceNodesInPlane;  // Any nodes in this face that are in the clipping plane.
 
-          // Check if this face is entirely above, below, or in the plane.
-          auto check_fmin =  1;
-          auto check_fmax = -1;
-          for (auto kedge = 0; kedge < face.size(); ++kedge) {
-            const auto iedge = posID(face[kedge]);
-            const auto flag = (edgeMask[iedge] == -2 ? -1 : 
-                               edgeMask[iedge] ==  0 ?  0 :
-                               edgeMask[iedge] ==  1 ?  0 :
-                               edgeMask[iedge] ==  2 ?  1 :
-                               -100);
-            CHECK(flag != -100);
-            check_fmin = min(check_fmin, flag);
-            check_fmax = max(check_fmax, flag);
+        // Walk the loop of edges in this face.
+        for (auto kedge = 0; kedge < face.size(); ++kedge) {
+          const auto iedge = posID(face[kedge]);
+          if (edgeMask[iedge] != -2) {
+            v0 = startVertex(face[kedge], edges);
+            v1 = endVertex(face[kedge], edges);
+            CHECK(vertexMask[v0] != -2 and vertexMask[v1] != -2);
+
+            if (edgeMask[iedge] == 2) {
+
+              // This edge was unaffected.
+              newface.push_back(edgeSign[iedge] == 1 ? face[kedge] : ~face[kedge]);
+
+            } else if (edgeMask[iedge] == 1) {
+
+              // One node of this edge was clipped.
+              newface.push_back(edgeSign[iedge] == 1 ? face[kedge] : ~face[kedge]);
+              CHECK(edgeNodeInPlane[iedge] >= 0);
+              faceNodesInPlane.push_back(edgeNodeInPlane[iedge]);
+
+            } else if (edgeMask[iedge] == 0) {
+
+              // This edge is in the plane.  We don't add it's nodes to the faceNodesInPlane
+              // since the edge connecting them is aleady built.
+              newface.push_back(edgeSign[iedge] == 1 ? face[kedge] : ~face[kedge]);
+              // CHECK(edgeNodesInPlane[iedge].size() == 2);
+              // faceNodesInPlane.push_back(edgeNodesInPlane[iedge][0]);
+              // faceNodesInPlane.push_back(edgeNodesInPlane[iedge][1]);
+            }
           }
-          // cerr << "Face " << kface << " [" << check_fmin << " " << check_fmax << "]" << endl;
+        }
+        CHECK2(faceNodesInPlane.size() % 2 == 0, faceNodesInPlane.size() << " " << newface.size());   // Gotta come in pairs!
 
-          // Does the plane pass through this face?
-          if (check_fmax == -1) {
-            CHECK2(check_fmin == -1, check_fmin << " " << check_fmax);
+        // If there's no more than one edge of this face left, the face is gone.
+        if (newface.size() <= 1) {
+          face.clear();
 
-            // This face is entirely clipped.
-            face.clear();
+        } else {
 
-          } else if (check_fmin != 1) {  // If check_fmin==check_fmax==1, the face is entirely clear of the clipping plane
+          // Check for any gaps in the face ring, which will make new edges.
+          if (not faceNodesInPlane.empty()) {
 
-            // The plane passes through this face, so we have to do the hard work.
-            Face newface;                  // The new face we're going to build.
-            vector<int> faceNodesInPlane;  // Any nodes in this face that are in the clipping plane.
-
-            // Walk the loop of edges in this face.
-            for (auto kedge = 0; kedge < face.size(); ++kedge) {
-              const auto iedge = posID(face[kedge]);
-              if (edgeMask[iedge] != -2) {
-                v0 = startVertex(face[kedge], edges);
-                v1 = endVertex(face[kedge], edges);
-                CHECK(vertexMask[v0] != -2 and vertexMask[v1] != -2);
-
-                if (edgeMask[iedge] == 2) {
-
-                  // This edge was unaffected.
-                  newface.push_back(edgeSign[iedge] == 1 ? face[kedge] : ~face[kedge]);
-
-                } else if (edgeMask[iedge] == 1) {
-
-                  // One node of this edge was clipped.
-                  newface.push_back(edgeSign[iedge] == 1 ? face[kedge] : ~face[kedge]);
-                  CHECK(edgeNodeInPlane[iedge] >= 0);
-                  faceNodesInPlane.push_back(edgeNodeInPlane[iedge]);
-
-                } else if (edgeMask[iedge] == 0) {
-
-                  // This edge is in the plane.  We don't add it's nodes to the faceNodesInPlane
-                  // since the edge connecting them is aleady built.
-                  newface.push_back(edgeSign[iedge] == 1 ? face[kedge] : ~face[kedge]);
-                  planeEdges.push_back(~newface.back());
-                  // faceNodesInPlane.push_back(edgeNodesInPlane[iedge][0]);
-                  // faceNodesInPlane.push_back(edgeNodesInPlane[iedge][1]);
-                }
+            // Get rid of any duplicates.
+            sort(faceNodesInPlane.begin(), faceNodesInPlane.end());
+            vector<int> nodes2kill;
+            for (auto k = 0; k < faceNodesInPlane.size() - 1; ++k) {
+              if (faceNodesInPlane[k] == faceNodesInPlane[k+1]) {
+                nodes2kill.push_back(k);
+                nodes2kill.push_back(k + 1);
               }
             }
-            CHECK2(faceNodesInPlane.size() % 2 == 0, faceNodesInPlane.size() << " " << newface.size());   // Gotta come in pairs!
+            removeElements(faceNodesInPlane, nodes2kill);
 
-            // If there's no more than one edge of this face left, the face is gone.
-            if (newface.size() <= 1) {
-              face.clear();
+            // Sort the hanging nodes in the plane along the line created by the intersection of the
+            const auto direction = phat.cross(faceNormal[kface]).unitVector();
+            sort(faceNodesInPlane.begin(), faceNodesInPlane.end(),
+                 [&](const int a, const int b) { return (vertices[a] - p0).dot(direction) < (vertices[b] - p0).dot(direction); });
+
+            // Now the ordered pairs of these vertices form new edges to close the rings of the face.
+            for (auto k = 0; k < faceNodesInPlane.size(); k += 2) {
+              v0 = faceNodesInPlane[k];
+              v1 = faceNodesInPlane[k+1];
+              CHECK((vertices[v1] - vertices[v0]).dot(direction) > 0.0);
+              const auto edge = make_edge(v0, v1);
+              auto itr = find(edges.begin(), edges.end(), edge);
+              if (itr == edges.end()) {   // Check if there was an edge embedded in the plane for these nodes already.
+                const int iedge = edges.size();
+                edges.push_back(edge);
+                edgeMask.push_back(1);
+                newface.push_back(edges.back().first == v0 ? iedge : ~iedge);
+                newEdges.push_back(~newface.back());
+              } else {
+                const int iedge = distance(edges.begin(), itr);
+                CHECK(edgeMask[iedge] == 0);
+                newEdges.push_back(edges[iedge].first == v0 ? ~iedge : iedge);
+              }
+            }
+            CHECK(newface.size() >= 3);
+
+            // Sort the edges in the face to form contiguous rings.
+            sortInTopologicalRings(newface, edges);
+
+            // Do we need to check for multiple loops in this face?
+            if (faceNodesInPlane.size() == 2) {
+
+              // Nope, we have the simple case of just one face.
+              face = newface;
 
             } else {
+              // cerr << "Splitting!" << endl;
 
-              // Check for any gaps in the face ring, which will make new edges.
-              if (not faceNodesInPlane.empty()) {
+              // We have clipped a non-convex section of the face, which may have created more than one independent
+              // ring of edges -- i.e., we may need to create more than one new face.
+              auto kstart = 0;
+              while (kstart < newface.size()) {
+                v0 = startVertex(newface[kstart], edges);
+                auto kend = kstart + 2;  // Gotta be at least three 3 edges per ring.
+                while (kend < newface.size() and endVertex(newface[kend], edges) != v0) ++kend;
+                CHECK(kend < newface.size());
+                Face ring(newface.begin() + kstart, newface.begin() + kend + 1);
 
-                // Get rid of any duplicates.
-                sort(faceNodesInPlane.begin(), faceNodesInPlane.end());
-                vector<int> nodes2kill;
-                for (auto k = 0; k < faceNodesInPlane.size() - 1; ++k) {
-                  if (faceNodesInPlane[k] == faceNodesInPlane[k+1]) {
-                    nodes2kill.push_back(k);
-                    nodes2kill.push_back(k + 1);
-                  }
-                }
-                removeElements(faceNodesInPlane, nodes2kill);
-
-                // Sort the hanging nodes in the plane along the line created by the intersection of the
-                const auto direction = phat.cross(faceNormals[kface]).unitVector();
-                sort(faceNodesInPlane.begin(), faceNodesInPlane.end(),
-                     [&](const int a, const int b) { return (vertices[a] - p0).dot(direction) < (vertices[b] - p0).dot(direction); });
-
-                // Now the ordered pairs of these vertices form new edges to close the rings of the face.
-                for (auto k = 0; k < faceNodesInPlane.size(); k += 2) {
-                  v0 = faceNodesInPlane[k];
-                  v1 = faceNodesInPlane[k+1];
-                  CHECK((vertices[v1] - vertices[v0]).dot(direction) > 0.0);
-                  const auto edge = make_edge(v0, v1);
-                  auto itr = find(edges.begin(), edges.end(), edge);
-                  if (itr == edges.end()) {   // Check if there was an edge embedded in the plane for these nodes already.
-                    const int iedge = edges.size();
-                    edges.push_back(edge);
-                    edgeMask.push_back(2);
-                    newface.push_back(edges.back().first == v0 ? iedge : ~iedge);
-                    planeEdges.push_back(~newface.back());
-                  } else {
-                    const int iedge = distance(edges.begin(), itr);
-                    CHECK(edgeMask[iedge] == 0);
-                    planeEdges.push_back(edges[iedge].first == v0 ? ~iedge : iedge);
-                  }
-                }
-                CHECK(newface.size() >= 3);
-
-                // Sort the edges in the face to form contiguous rings.
-                sortInTopologicalRings(newface, edges);
-
-                // Do we need to check for multiple loops in this face?
-                if (faceNodesInPlane.size() == 2) {
-
-                  // Nope, we have the simple case of just one face.
-                  collapseCycles(newface, edges);
-                  face = newface;
-
-                } else {
-                  // cerr << "Splitting!" << endl;
-
-                  // We have clipped a non-convex section of the face, which may have created more than one independent
-                  // ring of edges -- i.e., we may need to create more than one new face.
-                  auto kstart = 0;
-                  while (kstart < newface.size()) {
-                    v0 = startVertex(newface[kstart], edges);
-                    auto kend = kstart + 1;
-                    while (kend < newface.size() and endVertex(newface[kend], edges) != v0) ++kend;
-                    CHECK(kend < newface.size());
-                    if (kend - kstart >= 3) {    // Might be a zero volume single edge loop.
-                      Face ring(newface.begin() + kstart, newface.begin() + kend + 1);
-
-                      // // BLAGO!
-                      // {
-                      //   cerr << "   Ring: ";
-                      //   for (auto k = 0; k < ring.size(); ++k) {
-                      //     const auto iedge = posID(ring[k]);
-                      //     cerr << " ([" << ring[k] << "->" << iedge << "] ";
-                      //     if (ring[k] < 0) {
-                      //       cerr << edges[iedge].second << " " << edges[iedge].first << ")";
-                      //     } else {
-                      //       cerr << edges[iedge].first << " " << edges[iedge].second << ")";
-                      //     }
-                      //   }
-                      //   cerr << endl;
-                      // }
-                      // // BLAGO!
+                // // BLAGO!
+                // {
+                //   cerr << "   Ring: ";
+                //   for (auto k = 0; k < ring.size(); ++k) {
+                //     const auto iedge = posID(ring[k]);
+                //     cerr << " ([" << ring[k] << "->" << iedge << "] ";
+                //     if (ring[k] < 0) {
+                //       cerr << edges[iedge].second << " " << edges[iedge].first << ")";
+                //     } else {
+                //       cerr << edges[iedge].first << " " << edges[iedge].second << ")";
+                //     }
+                //   }
+                //   cerr << endl;
+                // }
+                // // BLAGO!
                 
-                      // Verify the new face forms a proper topological ring.
-                      BEGIN_CONTRACT_SCOPE
-                      {
-                        for (auto kedge = 0; kedge < ring.size(); ++kedge) {
-                          const auto kedge1 = (kedge + 1) % ring.size();
-                          CHECK(endVertex(ring[kedge], edges) == startVertex(ring[kedge1], edges));
-                        }
-                      }
-                      END_CONTRACT_SCOPE
-
-                      // Which face are we replacing?
-                      if (kstart == 0) {
-                        face = ring;
-                      } else {
-                        faces.push_back(ring);
-                        faceNormals.push_back(faceNormals[kface]);
-                      }
-                    }
-                    kstart = kend + 1;
+                // Verify the new face forms a proper topological ring.
+                BEGIN_CONTRACT_SCOPE
+                {
+                  for (auto kedge = 0; kedge < ring.size(); ++kedge) {
+                    const auto kedge1 = (kedge + 1) % ring.size();
+                    CHECK(endVertex(ring[kedge], edges) == startVertex(ring[kedge1], edges));
                   }
                 }
-                CHECK(faces.size() == faceNormals.size());
+                END_CONTRACT_SCOPE
+
+                // Which face are we replacing?
+                if (kstart == 0) {
+                  face = ring;
+                } else {
+                  faces.push_back(ring);
+                  faceNormal.push_back(faceNormal[kface]);
+                }
+
+                kstart = kend + 1;
               }
             }
-          } // Otherwise the face survives unchanged.
+            CHECK(faces.size() == faceNormal.size());
+          }
+        }
+
+        // Deactivate any clipped vertices.
+        for (auto k = 0; k < vertexMask.size(); ++k) {
+          if (vertexMask[k] == -1) vertexMask[k] = -2;
         }
         // cerr << poly2string(vertices, vertexMask, edges, faces) << endl;
       }
 
       // // BLAGO
       // {
-      //   cerr << "planeEdges: ";
-      //   std::copy(planeEdges.begin(), planeEdges.end(), std::ostream_iterator<int>(std::cerr, " "));
+      //   cerr << "newEdges: ";
+      //   std::copy(newEdges.begin(), newEdges.end(), std::ostream_iterator<int>(std::cerr, " "));
       //   cerr << endl;
       // }
       // // BLAGO
 
       // Well, now all the starting faces of the polyhedron have been clipped by the plane, but we need
       // to cap off new edges created by the plane as new faces of the polyhedron.
-      if (not planeEdges.empty()) {
-        CHECK(planeEdges.size() >= 3);
+      if (not newEdges.empty()) {
+        CHECK(newEdges.size() >= 3);
 
         // We start by ordering the new edges such that they form topological loops.  Note
         // there may be more than one loop if we are cutting a non-convex polyhedron.  We also know the directions
-        // we want to walk these loops based on our sign convention for the ID in planeEdges.
-        sortInTopologicalRings(planeEdges, edges);
+        // we want to walk these loops based on our sign convention for the ID in newEdges.
+        sortInTopologicalRings(newEdges, edges);
 
-        // // BLAGO
         // cerr << "Ordered edges for capping: ";
-        // for (auto iedge = 0; iedge != planeEdges.size(); ++iedge) {
-        //   if (planeEdges[iedge] >= 0) {
-        //     cerr << " (" << edges[planeEdges[iedge]].first << " " << edges[planeEdges[iedge]].second << ")";
+        // for (auto iedge = 0; iedge != newEdges.size(); ++iedge) {
+        //   if (newEdges[iedge] >= 0) {
+        //     cerr << " (" << edges[newEdges[iedge]].first << " " << edges[newEdges[iedge]].second << ")";
         //   } else {
-        //     cerr << " (" << edges[~planeEdges[iedge]].second << " " << edges[~planeEdges[iedge]].first << ")";
+        //     cerr << " (" << edges[~newEdges[iedge]].second << " " << edges[~newEdges[iedge]].first << ")";
         //   }
         // }
         // cerr << endl;
-        // // BLAGO
 
         auto kstart = 0;
-        while (kstart < planeEdges.size()) {
-          v0 = startVertex(planeEdges[kstart], edges);
-          auto kend = kstart + 1;
-          while (kend < planeEdges.size() and endVertex(planeEdges[kend], edges) != v0) ++kend;
-          CHECK(kend < planeEdges.size());
-          if (kend - kstart >= 3) {   // Might be a zero volume single edge loop
-            Face ring(planeEdges.begin() + kstart, planeEdges.begin() + kend + 1);
-            collapseCycles(ring, edges);
-            if (not ring.empty()) {
+        while (kstart < newEdges.size()) {
+          v0 = startVertex(newEdges[kstart], edges);
+          auto kend = kstart + 2;  // Gotta be at least three 3 edges per ring.
+          while (kend < newEdges.size() and endVertex(newEdges[kend], edges) != v0) ++kend;
+          CHECK(kend < newEdges.size());
+          Face ring(newEdges.begin() + kstart, newEdges.begin() + kend + 1);
                 
-              // Verify the new face forms a proper topological ring.
-              BEGIN_CONTRACT_SCOPE
-              {
-                for (auto kedge = 0; kedge < ring.size(); ++kedge) {
-                  const auto kedge1 = (kedge + 1) % ring.size();
-                  CHECK(endVertex(ring[kedge], edges) == startVertex(ring[kedge1], edges));
-                }
-              }
-              END_CONTRACT_SCOPE
-
-              // Add the new face.
-              faces.push_back(ring);
-              faceNormals.push_back(-phat);
+          // Verify the new face forms a proper topological ring.
+          BEGIN_CONTRACT_SCOPE
+          {
+            for (auto kedge = 0; kedge < ring.size(); ++kedge) {
+              const auto kedge1 = (kedge + 1) % ring.size();
+              CHECK(endVertex(ring[kedge], edges) == startVertex(ring[kedge1], edges));
             }
           }
+          END_CONTRACT_SCOPE
+
+          // Add the new face.
+          faces.push_back(ring);
+          faceNormal.push_back(-phat);
           kstart = kend + 1;
         }
       }
-      CHECK(faceNormals.size() == faces.size());
+      CHECK(faceNormal.size() == faces.size());
       CHECK(vertexMask.size() == vertices.size());
       CHECK(edgeMask.size() == edges.size());
     }
-
-    // // Deactivate any clipped vertices.
-    // for (auto k = 0; k < vertexMask.size(); ++k) {
-    //   if (vertexMask[k] == -1) vertexMask[k] = -2;
-    // }
   }
 
   // // BLAGO
