@@ -221,8 +221,8 @@ void clipConvexFacetedVolumeByPlanes(GeomPolygon& poly,
       face.push_back(edge.first == facet.ipoint1() ? iedge : ~iedge);
     }
   }
-  cerr << "Initial polygon: "<< endl
-       << poly2string(vertices, vertexMask, edges, face);
+  // cerr << "Initial polygon: "<< endl
+  //      << poly2string(vertices, vertexMask, edges, face);
 
   // Loop over the planes.
   auto kplane = 0;
@@ -309,8 +309,8 @@ void clipConvexFacetedVolumeByPlanes(GeomPolygon& poly,
       if (not newVertices.empty()) {
         CHECK(newVertices.size() == 2);
 
-        cerr << "Before adding new edges: "<< endl
-             << poly2string(vertices, vertexMask, edges, newface);
+        // cerr << "Before adding new edges: "<< endl
+        //      << poly2string(vertices, vertexMask, edges, newface);
 
         // OK, all the original edges of the face have been clipped, but there are gaps along the clipping
         // plane which require new edges be constructed.
@@ -344,8 +344,8 @@ void clipConvexFacetedVolumeByPlanes(GeomPolygon& poly,
       face = newface;
     }
   }
-  cerr << "Final clipped polygon: "<< endl
-       << poly2string(vertices, vertexMask, edges, face);
+  // cerr << "Final clipped polygon: "<< endl
+  //      << poly2string(vertices, vertexMask, edges, face);
 
   // Now rebuild the polygon, and we're done.
   if (face.empty()) {
