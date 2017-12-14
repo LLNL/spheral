@@ -73,6 +73,36 @@ class TestPolygonClipping(unittest.TestCase):
         return
 
     #---------------------------------------------------------------------------
+    # Clip convex with planes passing through the polygon.
+    #---------------------------------------------------------------------------
+    def testConvexClipInternalOnePlane(self):
+        for i in xrange(self.ntests):
+            planes1, planes2 = vector_of_Plane(), vector_of_Plane()
+            p0 = Vector(rangen.uniform(0.0, 1.0),
+                        rangen.uniform(0.0, 1.0))
+            phat = Vector(rangen.uniform(-1.0, 1.0), 
+                          rangen.uniform(-1.0, 1.0)).unitVector()
+            planes1.append(Plane(p0,  phat))
+            planes2.append(Plane(p0, -phat))
+            chunk1 = Polygon(square)
+            chunk2 = Polygon(square)
+            clipConvexFacetedVolumeByPlanes(chunk1, planes1)
+            clipConvexFacetedVolumeByPlanes(chunk2, planes2)
+            success = fuzzyEqual(chunk1.volume + chunk2.volume, square.volume)
+            if not success:
+                print "Poly:\n", square
+                print "Chunk 1:\n ", chunk1
+                print "Chunk 2:\n ", chunk2
+                writePolyhedronOBJ(square, "square.obj")
+                writePolyhedronOBJ(chunk1, "chunk_ONE.obj")
+                writePolyhedronOBJ(chunk2, "chunk_TWO.obj")
+            self.failUnless(success,
+                            "Plane clipping summing to wrong volumes: %s + %s != %s" % (chunk1.volume,
+                                                                                        chunk2.volume,
+                                                                                        square.volume))
+        return
+
+    #---------------------------------------------------------------------------
     # Clip with planes passing outside the polygon -- null test.
     #---------------------------------------------------------------------------
     def testNullClipOnePlane(self):
