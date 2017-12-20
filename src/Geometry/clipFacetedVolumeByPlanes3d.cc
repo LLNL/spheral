@@ -87,13 +87,14 @@ posID(const int x) {
 inline
 int
 startVertex(const int id, const vector<pair<int, int>>& edges) {
-  if (id < 0) {
-    CHECK(~id < edges.size());
-    return edges[~id].second;
-  } else {
-    CHECK(id < edges.size());
-    return edges[id].first;
-  }
+  return id < 0 ? edges[~id].second : edges[id].first;
+  // if (id < 0) {
+  //   CHECK(~id < edges.size());
+  //   return edges[~id].second;
+  // } else {
+  //   CHECK(id < edges.size());
+  //   return edges[id].first;
+  // }
 }
 
 //------------------------------------------------------------------------------
@@ -102,13 +103,14 @@ startVertex(const int id, const vector<pair<int, int>>& edges) {
 inline
 int
 endVertex(const int id, const vector<pair<int, int>>& edges) {
-  if (id < 0) {
-    CHECK(~id < edges.size());
-    return edges[~id].first;
-  } else {
-    CHECK(id < edges.size());
-    return edges[id].second;
-  }
+  return id < 0 ? edges[~id].first : edges[id].second;
+  // if (id < 0) {
+  //   CHECK(~id < edges.size());
+  //   return edges[~id].first;
+  // } else {
+  //   CHECK(id < edges.size());
+  //   return edges[id].second;
+  // }
 }
 
 //------------------------------------------------------------------------------
@@ -264,23 +266,23 @@ void clipFacetedVolumeByPlanes(GeomPolyhedron& poly,
   typedef std::pair<int, int> Edge;       // Edges are pairs of vertex indices.  Edges are always built with (minVertID, maxVertID).
   typedef std::vector<int> Face;          // Faces are loops of edges.  We use the 1's complement to indicate an edge should be reversed in this face.
 
-  // The timing variables.
-  double tconvertfrom = 0.0,
-          tvertexmask = 0.0,
-            tedgemask = 0.0,
-            tfaceclip = 0.0, 
-    tfaceclip_edges = 0.0,
-    tfaceclip_clear = 0.0,
-    tfaceclip_dups = 0.0,
-    tfaceclip_sortline = 0.0,
-    tfaceclip_newedges = 0.0,
-    tfaceclip_final = 0.0,
-    tfaceclip_deactivate = 0.0,
-                 tcap = 0.0,
-           tconvertto = 0.0;
+  // // The timing variables.
+  // double tconvertfrom = 0.0,
+  //         tvertexmask = 0.0,
+  //           tedgemask = 0.0,
+  //           tfaceclip = 0.0, 
+  //   tfaceclip_edges = 0.0,
+  //   tfaceclip_clear = 0.0,
+  //   tfaceclip_dups = 0.0,
+  //   tfaceclip_sortline = 0.0,
+  //   tfaceclip_newedges = 0.0,
+  //   tfaceclip_final = 0.0,
+  //   tfaceclip_deactivate = 0.0,
+  //                tcap = 0.0,
+  //          tconvertto = 0.0;
 
   // Convert the polyhedron to faces consisting of edge loops.
-  auto t0 = Timing::currentTime();
+  // auto t0 = Timing::currentTime();
   auto vertices = poly.vertices();             // Note this is a copy!
   vector<Edge> edges;                          // Edges as pairs of vertex indices
   vector<Face> faces;                          // Faces that make up the polyhedron (loops of edges).
@@ -322,7 +324,7 @@ void clipFacetedVolumeByPlanes(GeomPolyhedron& poly,
       ++iface;
     }
   }
-  tconvertfrom += Timing::difference(t0, Timing::currentTime());
+  // tconvertfrom += Timing::difference(t0, Timing::currentTime());
   
   // // BLAGO
   // cerr << "----------------------------------------------------------------------" << endl
@@ -342,7 +344,7 @@ void clipFacetedVolumeByPlanes(GeomPolyhedron& poly,
     // Check the active vertices against this plane.
     auto above = true;
     auto below = true;
-    t0 = Timing::currentTime();
+    // t0 = Timing::currentTime();
     for (auto k = 0; k < vertices.size(); ++k) {
       if (vertexMask[k] != -2) {
         vertexMask[k] = compare(p0, phat, vertices[k]);
@@ -354,7 +356,7 @@ void clipFacetedVolumeByPlanes(GeomPolyhedron& poly,
       }
     }
     CHECK(not (above and below));
-    tvertexmask += Timing::difference(t0, Timing::currentTime());
+    // tvertexmask += Timing::difference(t0, Timing::currentTime());
 
     // Did we get a simple case?
     if (below) {
@@ -367,7 +369,7 @@ void clipFacetedVolumeByPlanes(GeomPolyhedron& poly,
 
       // This plane passes somewhere through the polyhedron, so we need to clip it.
       // Clip each active edge.
-      t0 = Timing::currentTime();
+      // t0 = Timing::currentTime();
       vector<int> edgeNodeInPlane(edges.size(), -1);
       vector<int> edgeSign(edges.size(), 1);         // -1=>edge order flipped, 1=>unchanged
       int v0, v1, ivert;
@@ -433,15 +435,15 @@ void clipFacetedVolumeByPlanes(GeomPolyhedron& poly,
       }
       CHECK(vertexMask.size() == vertices.size());
       CHECK(edgeMask.size() == edges.size());
-      tedgemask += Timing::difference(t0, Timing::currentTime());
+      // tedgemask += Timing::difference(t0, Timing::currentTime());
 
       // Walk each current face, and reconstruct it according to what happend to it's edges.
-      t0 = Timing::currentTime();
+      // t0 = Timing::currentTime();
       vector<int> newEdges;                         // Any new edges we create.
       const auto nfaces0 = faces.size();
       for (auto kface = 0; kface < nfaces0; ++kface) {
         // cerr << "Face " << kface << endl;
-        auto t1 = Timing::currentTime();
+        // auto t1 = Timing::currentTime();
         auto& face = faces[kface];
         Face newface;                  // The new face we're going to build.
         vector<int> faceNodesInPlane;  // Any nodes in this face that are in the clipping plane.
@@ -478,13 +480,13 @@ void clipFacetedVolumeByPlanes(GeomPolyhedron& poly,
           }
         }
         CHECK2(faceNodesInPlane.size() % 2 == 0, faceNodesInPlane.size() << " " << newface.size());   // Gotta come in pairs!
-        tfaceclip_edges += Timing::difference(t1, Timing::currentTime());
+        // tfaceclip_edges += Timing::difference(t1, Timing::currentTime());
 
         // If there's no more than one edge of this face left, the face is gone.
         if (newface.size() <= 1) {
-          t1 = Timing::currentTime();
+          // t1 = Timing::currentTime();
           face.clear();
-          tfaceclip_clear += Timing::difference(t1, Timing::currentTime());
+          // tfaceclip_clear += Timing::difference(t1, Timing::currentTime());
 
         } else {
 
@@ -492,7 +494,7 @@ void clipFacetedVolumeByPlanes(GeomPolyhedron& poly,
           if (not faceNodesInPlane.empty()) {
 
             // Get rid of any duplicates.
-            t1 = Timing::currentTime();
+            // t1 = Timing::currentTime();
             sort(faceNodesInPlane.begin(), faceNodesInPlane.end());
             vector<int> nodes2kill;
             for (auto k = 0; k < faceNodesInPlane.size() - 1; ++k) {
@@ -502,17 +504,17 @@ void clipFacetedVolumeByPlanes(GeomPolyhedron& poly,
               }
             }
             removeElements(faceNodesInPlane, nodes2kill);
-            tfaceclip_dups += Timing::difference(t1, Timing::currentTime());
+            // tfaceclip_dups += Timing::difference(t1, Timing::currentTime());
 
             // Sort the hanging nodes in the plane along the line created by the intersection of the
-            t1 = Timing::currentTime();
+            // t1 = Timing::currentTime();
             const auto direction = phat.cross(faceNormal[kface]).unitVector();
             sort(faceNodesInPlane.begin(), faceNodesInPlane.end(),
                  [&](const int a, const int b) { return (vertices[a] - p0).dot(direction) < (vertices[b] - p0).dot(direction); });
-            tfaceclip_sortline += Timing::difference(t1, Timing::currentTime());
+            // tfaceclip_sortline += Timing::difference(t1, Timing::currentTime());
 
             // Now the ordered pairs of these vertices form new edges to close the rings of the face.
-            t1 = Timing::currentTime();
+            // t1 = Timing::currentTime();
             for (auto k = 0; k < faceNodesInPlane.size(); k += 2) {
               v0 = faceNodesInPlane[k];
               v1 = faceNodesInPlane[k+1];
@@ -532,10 +534,10 @@ void clipFacetedVolumeByPlanes(GeomPolyhedron& poly,
               }
             }
             CHECK(newface.size() >= 3);
-            tfaceclip_newedges += Timing::difference(t1, Timing::currentTime());
+            // tfaceclip_newedges += Timing::difference(t1, Timing::currentTime());
 
             // Sort the edges in the face to form contiguous rings.
-            t1 = Timing::currentTime();
+            // t1 = Timing::currentTime();
             sortInTopologicalRings(newface, edges);
 
             // Do we need to check for multiple loops in this face?
@@ -596,18 +598,18 @@ void clipFacetedVolumeByPlanes(GeomPolyhedron& poly,
             }
             CHECK(faces.size() == faceNormal.size());
           }
-          tfaceclip_final += Timing::difference(t1, Timing::currentTime());
+          // tfaceclip_final += Timing::difference(t1, Timing::currentTime());
         }
 
         // Deactivate any clipped vertices.
         // t1 = Timing::currentTime();
-        // for (auto k = 0; k < vertexMask.size(); ++k) {
-        //   if (vertexMask[k] == -1) vertexMask[k] = -2;
-        // }
+        for (auto k = 0; k < vertexMask.size(); ++k) {
+          if (vertexMask[k] == -1) vertexMask[k] = -2;
+        }
         // tfaceclip_deactivate += Timing::difference(t1, Timing::currentTime());
         // cerr << poly2string(vertices, vertexMask, edges, faces) << endl;
       }
-      tfaceclip += Timing::difference(t0, Timing::currentTime());
+      // tfaceclip += Timing::difference(t0, Timing::currentTime());
 
       // // BLAGO
       // {
@@ -619,7 +621,7 @@ void clipFacetedVolumeByPlanes(GeomPolyhedron& poly,
 
       // Well, now all the starting faces of the polyhedron have been clipped by the plane, but we need
       // to cap off new edges created by the plane as new faces of the polyhedron.
-      t0 = Timing::currentTime();
+      // t0 = Timing::currentTime();
       if (not newEdges.empty()) {
         CHECK(newEdges.size() >= 3);
 
@@ -665,7 +667,7 @@ void clipFacetedVolumeByPlanes(GeomPolyhedron& poly,
       CHECK(faceNormal.size() == faces.size());
       CHECK(vertexMask.size() == vertices.size());
       CHECK(edgeMask.size() == edges.size());
-      tcap += Timing::difference(t0, Timing::currentTime());
+      // tcap += Timing::difference(t0, Timing::currentTime());
     }
   }
 
@@ -675,7 +677,7 @@ void clipFacetedVolumeByPlanes(GeomPolyhedron& poly,
   // // BLAGO
 
   // If we have an empty polyhedron just finish it here.
-  t0 = Timing::currentTime();
+  // t0 = Timing::currentTime();
   if (faces.empty()) {
     poly = GeomPolyhedron();
 
@@ -712,26 +714,26 @@ void clipFacetedVolumeByPlanes(GeomPolyhedron& poly,
 
     // Now we can rebuild the polyhedron.
     poly = GeomPolyhedron(newvertices, facets);
-    tconvertto += Timing::difference(t0, Timing::currentTime());
+    // tconvertto += Timing::difference(t0, Timing::currentTime());
     // cerr << "And the answer is..." << endl
     //      << poly << endl
     //      << "volume = " << poly.volume() << endl;
   }
 
-  // Timing summary.
-  cerr << "Timing summary: read polyhedron: " << tconvertfrom << endl
-       << "                    vertex mask: " << tvertexmask << endl
-       << "                      edge mask: " << tedgemask << endl
-       << "                  face clipping: " << tfaceclip << endl
-       << "                  --->    edges:   " << tfaceclip_edges << endl
-       << "                  --->    clear:   " << tfaceclip_clear << endl
-       << "                  --->     dups:   " << tfaceclip_dups << endl
-       << "                  ---> sortline:   " << tfaceclip_sortline << endl
-       << "                  ---> newedges:   " << tfaceclip_newedges << endl
-       << "                  --->    final:   " << tfaceclip_final << endl
-       << "                  -> deactivate:   " << tfaceclip_deactivate << endl
-       << "                   face capping: " << tcap << endl
-       << "               write polyhedron: " << tconvertto << endl;
+  // // Timing summary.
+  // cerr << "Timing summary: read polyhedron: " << tconvertfrom << endl
+  //      << "                    vertex mask: " << tvertexmask << endl
+  //      << "                      edge mask: " << tedgemask << endl
+  //      << "                  face clipping: " << tfaceclip << endl
+  //      << "                  --->    edges:   " << tfaceclip_edges << endl
+  //      << "                  --->    clear:   " << tfaceclip_clear << endl
+  //      << "                  --->     dups:   " << tfaceclip_dups << endl
+  //      << "                  ---> sortline:   " << tfaceclip_sortline << endl
+  //      << "                  ---> newedges:   " << tfaceclip_newedges << endl
+  //      << "                  --->    final:   " << tfaceclip_final << endl
+  //      << "                  -> deactivate:   " << tfaceclip_deactivate << endl
+  //      << "                   face capping: " << tcap << endl
+  //      << "               write polyhedron: " << tconvertto << endl;
 }
 
 }
