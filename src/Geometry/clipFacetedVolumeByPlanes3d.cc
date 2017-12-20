@@ -20,6 +20,7 @@
 #include "Utilities/SpheralFunctions.hh"
 #include "Utilities/removeElements.hh"
 #include "Utilities/DBC.hh"
+#include "Utilities/timingUtilities.hh"
 
 #include <iostream>
 #include <iterator>
@@ -263,7 +264,22 @@ void clipFacetedVolumeByPlanes(GeomPolyhedron& poly,
   typedef std::pair<int, int> Edge;       // Edges are pairs of vertex indices.  Edges are always built with (minVertID, maxVertID).
   typedef std::vector<int> Face;          // Faces are loops of edges.  We use the 1's complement to indicate an edge should be reversed in this face.
 
+  // The timing variables.
+  double tconvertfrom = 0.0,
+          tvertexmask = 0.0,
+            tedgemask = 0.0,
+            tfaceclip = 0.0, 
+                 tcap = 0.0,
+           tconvertto = 0.0;
+  // Timing::duration tconvertfrom = Timing::zero(),
+  //                   tvertexmask = Timing::zero(),
+  //                     tedgemask = Timing::zero(),
+  //                     tfaceclip = Timing::zero(), 
+  //                          tcap = Timing::zero(),
+  //                    tconvertto = Timing::zero();
+
   // Convert the polyhedron to faces consisting of edge loops.
+  auto t0 = Timing::currentTime();
   auto vertices = poly.vertices();             // Note this is a copy!
   vector<Edge> edges;                          // Edges as pairs of vertex indices
   vector<Face> faces;                          // Faces that make up the polyhedron (loops of edges).
@@ -305,7 +321,8 @@ void clipFacetedVolumeByPlanes(GeomPolyhedron& poly,
       ++iface;
     }
   }
-
+  tconvertfrom += Timing::difference(t0, Timing::currentTime());
+  
   // // BLAGO
   // cerr << "----------------------------------------------------------------------" << endl
   //      << "Starting polyhedron: " << endl << poly2string(vertices, vertexMask, edges, faces) << endl;
@@ -324,6 +341,7 @@ void clipFacetedVolumeByPlanes(GeomPolyhedron& poly,
     // Check the active vertices against this plane.
     auto above = true;
     auto below = true;
+    t0 = Timing::currentTime();
     for (auto k = 0; k < vertices.size(); ++k) {
       if (vertexMask[k] != -2) {
         vertexMask[k] = compare(p0, phat, vertices[k]);
@@ -335,6 +353,7 @@ void clipFacetedVolumeByPlanes(GeomPolyhedron& poly,
       }
     }
     CHECK(not (above and below));
+    tvertexmask += Timing::difference(t0, Timing::currentTime());
 
     // Did we get a simple case?
     if (below) {
@@ -347,6 +366,7 @@ void clipFacetedVolumeByPlanes(GeomPolyhedron& poly,
 
       // This plane passes somewhere through the polyhedron, so we need to clip it.
       // Clip each active edge.
+      t0 = Timing::currentTime();
       vector<int> edgeNodeInPlane(edges.size(), -1);
       vector<int> edgeSign(edges.size(), 1);         // -1=>edge order flipped, 1=>unchanged
       int v0, v1, ivert;
@@ -412,8 +432,10 @@ void clipFacetedVolumeByPlanes(GeomPolyhedron& poly,
       }
       CHECK(vertexMask.size() == vertices.size());
       CHECK(edgeMask.size() == edges.size());
+      tedgemask += Timing::difference(t0, Timing::currentTime());
 
       // Walk each current face, and reconstruct it according to what happend to it's edges.
+      t0 = Timing::currentTime();
       vector<int> newEdges;                         // Any new edges we create.
       const auto nfaces0 = faces.size();
       for (auto kface = 0; kface < nfaces0; ++kface) {
@@ -570,6 +592,7 @@ void clipFacetedVolumeByPlanes(GeomPolyhedron& poly,
         }
         // cerr << poly2string(vertices, vertexMask, edges, faces) << endl;
       }
+      tfaceclip += Timing::difference(t0, Timing::currentTime());
 
       // // BLAGO
       // {
@@ -581,6 +604,7 @@ void clipFacetedVolumeByPlanes(GeomPolyhedron& poly,
 
       // Well, now all the starting faces of the polyhedron have been clipped by the plane, but we need
       // to cap off new edges created by the plane as new faces of the polyhedron.
+      t0 = Timing::currentTime();
       if (not newEdges.empty()) {
         CHECK(newEdges.size() >= 3);
 
@@ -626,6 +650,7 @@ void clipFacetedVolumeByPlanes(GeomPolyhedron& poly,
       CHECK(faceNormal.size() == faces.size());
       CHECK(vertexMask.size() == vertices.size());
       CHECK(edgeMask.size() == edges.size());
+      tcap += Timing::difference(t0, Timing::currentTime());
     }
   }
 
@@ -635,6 +660,7 @@ void clipFacetedVolumeByPlanes(GeomPolyhedron& poly,
   // // BLAGO
 
   // If we have an empty polyhedron just finish it here.
+  t0 = Timing::currentTime();
   if (faces.empty()) {
     poly = GeomPolyhedron();
 
@@ -671,10 +697,19 @@ void clipFacetedVolumeByPlanes(GeomPolyhedron& poly,
 
     // Now we can rebuild the polyhedron.
     poly = GeomPolyhedron(newvertices, facets);
+    tconvertto += Timing::difference(t0, Timing::currentTime());
     // cerr << "And the answer is..." << endl
     //      << poly << endl
     //      << "volume = " << poly.volume() << endl;
   }
+
+  // Timing summary.
+  cerr << "Timing summary: read polyhedron: " << tconvertfrom << endl
+       << "                    vertex mask: " << tvertexmask << endl
+       << "                      edge mask: " << tedgemask << endl
+       << "                  face clipping: " << tfaceclip << endl
+       << "                   face capping: " << tcap << endl
+       << "               write polyhedron: " << tconvertto << endl;
 }
 
 }
