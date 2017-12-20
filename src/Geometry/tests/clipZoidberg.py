@@ -20,6 +20,8 @@ t1 = timer()
 print "clipFacetedVolumeByPlanes required", t1 - t0
 writePolyhedronOBJ(chunk, "zoidberg_clipped_native.obj")
 
+EasyProfilerDump("clipZoidberg_timings")
+
 # t0 = timer()
 # chunk = clipFacetedVolume(zoidberg, planes)
 # t1 = timer()
