@@ -600,11 +600,11 @@ void clipFacetedVolumeByPlanes(GeomPolyhedron& poly,
         }
 
         // Deactivate any clipped vertices.
-        t1 = Timing::currentTime();
-        for (auto k = 0; k < vertexMask.size(); ++k) {
-          if (vertexMask[k] == -1) vertexMask[k] = -2;
-        }
-        tfaceclip_deactivate += Timing::difference(t1, Timing::currentTime());
+        // t1 = Timing::currentTime();
+        // for (auto k = 0; k < vertexMask.size(); ++k) {
+        //   if (vertexMask[k] == -1) vertexMask[k] = -2;
+        // }
+        // tfaceclip_deactivate += Timing::difference(t1, Timing::currentTime());
         // cerr << poly2string(vertices, vertexMask, edges, faces) << endl;
       }
       tfaceclip += Timing::difference(t0, Timing::currentTime());
