@@ -13,7 +13,6 @@ for i in xrange(nplanes):
     rhat = Vector(cos(theta), sin(theta), 0.0)
     planes.append(Plane(point = 1*rhat, normal=-rhat))
 
-print "Diddly!"
 chunk = Polyhedron(zoidberg)
 t0 = timer()
 clipFacetedVolumeByPlanes(chunk, planes)
