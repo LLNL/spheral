@@ -22,6 +22,8 @@
 #include "Utilities/DBC.hh"
 #include "Utilities/timingUtilities.hh"
 
+#include "easy/profiler.h"
+
 #include <iostream>
 #include <iterator>
 
@@ -266,6 +268,9 @@ void clipFacetedVolumeByPlanes(GeomPolyhedron& poly,
   typedef std::pair<int, int> Edge;       // Edges are pairs of vertex indices.  Edges are always built with (minVertID, maxVertID).
   typedef std::vector<int> Face;          // Faces are loops of edges.  We use the 1's complement to indicate an edge should be reversed in this face.
 
+  // Timer.
+  EASY_FUNCTION(profiler::colors::Magenta);
+
   // // The timing variables.
   // double tconvertfrom = 0.0,
   //         tvertexmask = 0.0,
@@ -283,6 +288,7 @@ void clipFacetedVolumeByPlanes(GeomPolyhedron& poly,
 
   // Convert the polyhedron to faces consisting of edge loops.
   // auto t0 = Timing::currentTime();
+  EASY_BLOCK("Convert from Spheral::Polyhedron");
   auto vertices = poly.vertices();             // Note this is a copy!
   vector<Edge> edges;                          // Edges as pairs of vertex indices
   vector<Face> faces;                          // Faces that make up the polyhedron (loops of edges).
@@ -324,6 +330,7 @@ void clipFacetedVolumeByPlanes(GeomPolyhedron& poly,
       ++iface;
     }
   }
+  EASY_END_BLOCK;
   // tconvertfrom += Timing::difference(t0, Timing::currentTime());
   
   // // BLAGO

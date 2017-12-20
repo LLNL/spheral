@@ -326,6 +326,12 @@ PYBIND11URL = https://github.com/pybind/pybind11/archive/v2.0.1.tar.gz
 PYBIND11DIR = $(PYBIND11DIST:.tar.gz=)
 PYBIND11BUILDDATE = $(patsubst %.tar.gz, .%.date, $(PYBIND11DIST))
 
+# easy_profile
+EASYPROFILEDIST = v1.3.0.tar.gz
+EASYPROFILEURL = https://github.com/yse/easy_profiler/archive/$(EASYPROFILEDIST)
+EASYPROFILEDIR = easy_profiler-1.3.0
+EASYPROFILEBUILDDATE = $(patsubst %.tar.gz, .easyprofile_%.date, $(EASYPROFILEDIST))
+
 #-------------------------------------------------------------------------------
 all:	$(PYTHONTARGET) \
 	$(GCCXMLTARGETS) \
@@ -336,6 +342,7 @@ all:	$(PYTHONTARGET) \
 	$(ZLIBBUILDDATE) \
 	$(PYBINDGENBUILDDATE) \
 	$(OPENSUBDIVTARGETS) \
+	$(EASYPROFILEBUILDDATE) \
 	$(EXTRATHIRDPARTYTARGETS) \
 #	$(HYPREBUILDDATE)
 #	$(FLANNBUILDDATE) \
@@ -1584,3 +1591,32 @@ $(PYBIND11BUILDDATE):  $(PYBIND11DIST)
 	fi
 	rm -fr $(PYBIND11DIR)
 	touch $(PYBIND11BUILDDATE)
+
+#-------------------------------------------------------------------------------
+# Easy profile
+#-------------------------------------------------------------------------------
+$(EASYPROFILEDIST):
+	$(CURL) "$(EASYPROFILEURL)" > $(EASYPROFILEDIST)
+
+$(EASYPROFILEBUILDDATE):	$(EASYPROFILEDIST) $(CMAKEEXE)
+	@echo "################################################################################"
+	@echo "# Building $(EASYPROFILEDIST)"
+	@echo "################################################################################"
+	@$(MKDIR) -p $(prefix)/bin $(prefix)/man $(prefix)/lib $(prefix)/include
+	rm -fr $(EASYPROFILEDIR)
+	$(GZIP) -dc $(EASYPROFILEDIST) | $(TAR) -xf -
+	$(MKDIR) $(EASYPROFILEDIR)/build
+	env PATH='$(prefix)/bin:$(PATH)' $(SHELL) -ec "cd $(EASYPROFILEDIR)/build; \
+	$(CMAKEEXE) -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=$(prefix) -DCMAKE_C_COMPILER='$(CC)' -DCMAKE_CXX_COMPILER='$(CXX)' -DCMAKE_C_FLAGS='$(CFLAGS)' .. ; \
+	$(MAKE) ; \
+	$(MAKE) install"
+	@if ! test -e $(prefix)/bin/libeasy_profiler.so -a \
+	           -e $(prefix)/bin/profiler_gui -a \
+	           -e $(prefix)/include/easy ; then \
+	echo "ERROR building Easyprofile."; \
+	rm -f $(EASYPROFILEBUILDDATE); \
+	exit 1; \
+	fi
+	ln -s $(prefix)/bin/libeasy_profiler.so $(prefix)/lib/libeasy_profiler.so
+	rm -fr $(EASYPROFILEDIR)
+	touch $(EASYPROFILEBUILDDATE)
