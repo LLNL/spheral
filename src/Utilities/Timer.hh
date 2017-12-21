@@ -53,7 +53,7 @@ public:
   void stop();
   void clear();
 
-  inline double getTimeStampWC();
+  double getTimeStampWC();
   double wc_time() { return accumulated_WCtime; }
 
 #ifdef PAPI
@@ -124,7 +124,7 @@ public:
   Timer(const string&, Timer&, bool) {}
   ~Timer() {}
 
-  //static list<Timer*> TimerList;
+  static list<Timer*> TimerList;
 
   inline void setup(){}
   inline void start(){}

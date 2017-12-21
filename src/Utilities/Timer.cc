@@ -11,7 +11,7 @@ using namespace std;
 #include "Timer.hh"
 
 // Must initialize the static list defined in Timer.hh
-//list<Timer*> Timer::TimerList(0); 
+list<Timer*> Timer::TimerList(0); 
 
 
 static int ID_counter = 0;
@@ -230,6 +230,8 @@ void Timer::TimerSummary(void) {
   number_procs=1;
 #endif
 
+  printf("Rank %d, Procs %d, num timers %d\n", rank, number_procs, TimerList.size());
+
   list<Timer*>::iterator tli;  
   
   double wc;
@@ -238,9 +240,9 @@ void Timer::TimerSummary(void) {
   // all processors onto rank0 -- obviously trivial for serial runs.
   for(tli=TimerList.begin() ; tli != TimerList.end() ; ++tli) {
       
-    //printf(" Timer: %-16s Parent: %-16s diagnostic = %d\n",
-    //   (*tli)->Name().c_str(), (*tli)->Parent.Name().c_str(), 
-    //   (*tli)->diagnostic);
+    printf(" Timer: %-16s Parent: %-16s diagnostic = %d\n",
+       (*tli)->Name().c_str(), (*tli)->Parent.Name().c_str(), 
+       (*tli)->diagnostic);
       
     wc = (*tli)->wc_time();
       
