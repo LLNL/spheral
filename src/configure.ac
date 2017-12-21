@@ -137,6 +137,12 @@ SETUP_GEODYN
 SETUP_HELMHOLTZ
 
 # -------------------------------------------------
+# setup Noel's old Timer (m4macros/timers.m4)
+# -------------------------------------------------
+SETUP_TIMERS
+SETUP_PAPI
+
+# -------------------------------------------------
 # setup EASYPROFILE (m4macros/easyprofile.m4)
 # -------------------------------------------------
 SETUP_EASYPROFILE

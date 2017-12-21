@@ -619,9 +619,9 @@ void clipFacetedVolumeByPlanes(GeomPolyhedron& poly,
                 kstart = kend + 1;
               }
             }
+            EASY_END_BLOCK;
             CHECK(faces.size() == faceNormal.size());
           }
-          EASY_END_BLOCK;
           // tfaceclip_final += Timing::difference(t1, Timing::currentTime());
         }
 
@@ -635,6 +635,7 @@ void clipFacetedVolumeByPlanes(GeomPolyhedron& poly,
         // tfaceclip_deactivate += Timing::difference(t1, Timing::currentTime());
         // cerr << poly2string(vertices, vertexMask, edges, faces) << endl;
       }
+      EASY_END_BLOCK;     // clip faces
       // tfaceclip += Timing::difference(t0, Timing::currentTime());
 
       // // BLAGO
