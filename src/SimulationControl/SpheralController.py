@@ -10,6 +10,7 @@ from SpheralModules.Spheral.DataOutput import RestartableObject, RestartRegistra
 from SpheralModules.Spheral import BoundarySpace
 from SpheralModules.Spheral.FieldSpace import *
 from SpheralModules.Spheral.FileIOSpace import *
+from SpheralModules import Timer
 from SpheralTimer import SpheralTimer
 from SpheralConservation import SpheralConservation
 from GzipFileIO import GzipFileIO
@@ -333,6 +334,9 @@ class SpheralController:
 
         # Print how much time was spent per integration cycle.
         self.stepTimer.printStatus()
+
+        # Output any timer info
+        Timer.TimerSummary()
 
         return
 

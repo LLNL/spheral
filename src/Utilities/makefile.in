@@ -10,11 +10,11 @@ PKGNAME = Utilities
 PKGDIR = $(PKGNAME)/
 LIBTARGET = libSpheral_$(PKGNAME).$(DYLIBEXT)
 
+TIMERTARGETS = $(patsubst %, $(srcdir)/%, @TIMERTARGETS@)
+
 SRCTARGETS = \
 	$(srcdir)/DBC.cc \
 	$(srcdir)/Process.cc \
-	$(srcdir)/Timer.cc \
-	$(srcdir)/SpheralTimers.cc \
 	$(srcdir)/KeyTraits.cc \
 	$(srcdir)/PeanoHilbertTransform.cc \
 	$(srcdir)/RegisterMPIDataTypes.cc \
@@ -27,7 +27,8 @@ SRCTARGETS = \
 	$(srcdir)/pointOnPolyhedron.cc \
 	$(srcdir)/pointInPolyhedron.cc \
 	$(srcdir)/refinePolyhedron.cc \
-	$(srcdir)/coarsenBinnedValuesInst.cc
+	$(srcdir)/coarsenBinnedValuesInst.cc \
+	$(TIMERTARGETS)
 
 ifeq ("yes", "@USE_R3D@")
 SRCTARGETS += \

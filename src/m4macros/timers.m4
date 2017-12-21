@@ -3,6 +3,8 @@ dnl Timers
 dnl -----------------------------------------------------------------
 
 AC_DEFUN([SETUP_TIMERS],[
+AC_SUBST(TIMERTARGETS)
+
 AC_MSG_CHECKING(for --with-timers)
 AC_ARG_WITH(timers,
 [  --with-timers ............................ turn on the Timer class profiling],
@@ -11,9 +13,11 @@ AC_ARG_WITH(timers,
   CXXFLAGS="$CXXFLAGS -DTIMER"
   CFLAGS="$CFLAGS -DTIMER"
   CPPFLAGS="$CPPFLAGS -DTIMER"
+  TIMERTARGETS="Timer.cc SpheralTimers.cc"
 ],
 [
   AC_MSG_RESULT(no)
+  TIMERTARGETS=
 ])
 ])
 
