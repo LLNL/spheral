@@ -355,6 +355,7 @@ void clipFacetedVolumeByPlanes(GeomPolyhedron& poly,
   // Loop over the planes.
   auto kplane = 0;
   Face newface;
+  vector<int> faceNodesInPlane;
   const auto nplanes = planes.size();
   while (kplane < nplanes and not faces.empty()) {
     const auto& plane = planes[kplane++];
@@ -469,7 +470,7 @@ void clipFacetedVolumeByPlanes(GeomPolyhedron& poly,
         auto& face = faces[kface];
         newface.clear();               // The new face we're going to build.
         newface.reserve(face.size());
-        vector<int> faceNodesInPlane;  // Any nodes in this face that are in the clipping plane.
+        faceNodesInPlane.clear();      // Any nodes in this face that are in the clipping plane.
 
         // Walk the loop of edges in this face.
         for (auto kedge = 0; kedge < face.size(); ++kedge) {
