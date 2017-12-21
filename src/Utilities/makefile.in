@@ -14,6 +14,7 @@ SRCTARGETS = \
 	$(srcdir)/DBC.cc \
 	$(srcdir)/Process.cc \
 	$(srcdir)/Timer.cc \
+	$(srcdir)/SpheralTimers.cc \
 	$(srcdir)/KeyTraits.cc \
 	$(srcdir)/PeanoHilbertTransform.cc \
 	$(srcdir)/RegisterMPIDataTypes.cc \
