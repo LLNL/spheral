@@ -194,7 +194,7 @@ void Timer::clear(void) {
   count = 0;
 }
 
-inline double Timer::getTimeStampWC(){
+double Timer::getTimeStampWC(){
 
 #ifdef MPI
   return( MPI_Wtime() );
