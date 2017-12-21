@@ -13,6 +13,7 @@ LIBTARGET = libSpheral_$(PKGNAME).$(DYLIBEXT)
 SRCTARGETS = \
 	$(srcdir)/DBC.cc \
 	$(srcdir)/Process.cc \
+	$(srcdir)/Timer.cc \
 	$(srcdir)/KeyTraits.cc \
 	$(srcdir)/PeanoHilbertTransform.cc \
 	$(srcdir)/RegisterMPIDataTypes.cc \

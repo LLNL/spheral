@@ -21,6 +21,7 @@ class Utilities:
 
         # Expose types.
         self.KeyTraits = addObject(mod, "KeyTraits", allow_subclassing=True)
+        self.Timer = addObject(mod, "Timer")
         self.ScalarScalarFunctor = addObject(self.PythonBoundFunctors, "SpheralFunctor", template_parameters=["double", "double"], custom_name="ScalarScalarFunctor", allow_subclassing=True)
         self.ScalarPairScalarFunctor = addObject(self.PythonBoundFunctors, "SpheralFunctor", template_parameters=["double", "std::pair<double, double>"], custom_name="ScalarPairScalarFunctor", allow_subclassing=True)
         for ndim in self.dims:
@@ -38,6 +39,8 @@ self.VectorPairScalarFunctor%(ndim)id = addObject(self.PythonBoundFunctors, "Sph
     def generateBindings(self, mod):
 
         Spheral = mod.add_cpp_namespace("Spheral")
+
+        self.addTimerBindings(self.Timer)
 
         # Add the functors.
         self.addFunctorBindings(self.ScalarScalarFunctor,       "double",   "double")
@@ -481,6 +484,32 @@ Spheral.add_function("segmentIntersectEdges", "bool", [constrefparam("%(vector)s
                              template_parameters = [plane],
                              custom_name = "planarReflectingOperator%id" % ndim,
                              docstring = "Generate the planar reflection transformation for th given plane.")
+
+        return
+
+    #---------------------------------------------------------------------------
+    # Timer bindings.
+    #---------------------------------------------------------------------------
+    def addTimerBindings(self, x):
+
+        # Constructors
+        x.add_constructor([])
+        x.add_constructor([param("std::string", "name")])
+        x.add_constructor([param("std::string", "name"),
+                           refparam("Timer", "base")])
+
+        # Methods
+        x.add_method("setup", None, [])
+        x.add_method("start", None, [])
+        x.add_method("stop", None, [])
+        x.add_method("clear", None, [])
+        x.add_method("getTimeStampWC", "double", [])
+        x.add_method("wc_time", "double", [])
+        x.add_method("Name", "std::string", [])
+        x.add_method("Count", "long int", [])
+
+        # Static methods
+        x.add_method("TimerSummary", None, [], is_static=True)
 
         return
 

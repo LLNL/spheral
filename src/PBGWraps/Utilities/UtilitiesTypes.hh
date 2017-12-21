@@ -32,6 +32,7 @@
 #include "Utilities/refinePolyhedron.hh"
 #include "Utilities/overlayRemapFields.hh"
 #include "Utilities/computeShepardsInterpolation.hh"
+#include "Utilities/Timer.hh"
 
 #ifndef NOR3D
 #include "Utilities/r3d_utils.hh"
