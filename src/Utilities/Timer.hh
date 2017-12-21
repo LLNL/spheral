@@ -150,7 +150,7 @@ public:
   static void TimerSummary(void) {
     int rank;
 #ifdef MPI
-    MPI_Comm_rank(Communicator::communicator(), &rank);
+    MPI_Comm_rank(Spheral::Communicator::communicator(), &rank);
 #else
     rank=0;
 #endif
