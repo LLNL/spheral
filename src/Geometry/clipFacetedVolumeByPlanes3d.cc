@@ -26,6 +26,22 @@
 #include <iostream>
 #include <iterator>
 
+// Declare the timers
+extern Timer time_clipFacetedVolumeByPlanes3d;
+extern Timer time_convertfrom;
+extern Timer time_clipverts;
+extern Timer time_clipedges;
+extern Timer time_clipfaces;
+extern Timer   time_clipEdgesInFace;
+extern Timer   time_eraseface;
+extern Timer   time_erasedups;
+extern Timer   time_sortline;
+extern Timer   time_newedges;
+extern Timer   time_newloops;
+extern Timer   time_deactivate;
+extern Timer time_cap;
+extern Timer time_convertto;
+
 namespace Spheral {
 
 using namespace std;
@@ -266,22 +282,7 @@ void clipFacetedVolumeByPlanes(GeomPolyhedron& poly,
   typedef Dim<3>::Vector Vector;
   typedef std::pair<int, int> Edge;       // Edges are pairs of vertex indices.  Edges are always built with (minVertID, maxVertID).
   typedef std::vector<int> Face;          // Faces are loops of edges.  We use the 1's complement to indicate an edge should be reversed in this face.
-
-  // Timers.
-  Timer base("clipFacetedVolumeByPlanes3d");
-  Timer time_convertfrom("Convert from Spheral::Polyhedron", base);
-  Timer time_clipverts("Clip vertices", base);
-  Timer time_clipedges("Clip edges", base);
-  Timer time_clipfaces("Clip faces", base);
-  Timer   time_clipEdgesInFace("Clip edges in face", time_clipfaces);
-  Timer   time_eraseface("Erase face", time_clipfaces);
-  Timer   time_erasedups("Erase node duplicates", time_clipfaces);
-  Timer   time_sortline("Sort new face nodes in line", time_clipfaces);
-  Timer   time_newedges("Construct new edges in face", time_clipfaces);
-  Timer   time_newloops("Construct new face loops", time_clipfaces);
-  Timer   time_deactivate("Mark clipped vertices inactive", time_clipfaces);
-  Timer time_cap("Cap new faces", base);
-  Timer time_convertto("Convert back to Spheral::Polyhedron", base);
+  time_clipFacetedVolumeByPlanes3d.start();
 
   // // The timing variables.
   // double tconvertfrom = 0.0,
@@ -751,6 +752,7 @@ void clipFacetedVolumeByPlanes(GeomPolyhedron& poly,
   //      << "                  -> deactivate:   " << tfaceclip_deactivate << endl
   //      << "                   face capping: " << tcap << endl
   //      << "               write polyhedron: " << tconvertto << endl;
+  time_clipFacetedVolumeByPlanes3d.stop();
 }
 
 }
