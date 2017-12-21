@@ -342,6 +342,9 @@ void clipFacetedVolumeByPlanes(GeomPolyhedron& poly,
       ++iface;
     }
   }
+  CHECK(edgeMask.size() == edges.size());
+  CHECK(vertexMask.size() == vertices.size());
+  CHECK(faceNormal.size() == faces.size());
   time_convertfrom.stop();
   
   // // BLAGO
@@ -464,37 +467,32 @@ void clipFacetedVolumeByPlanes(GeomPolyhedron& poly,
         time_clipEdgesInFace.start();
         auto& face = faces[kface];
         Face newface;                  // The new face we're going to build.
+        newface.reserve(face.size());
         vector<int> faceNodesInPlane;  // Any nodes in this face that are in the clipping plane.
 
         // Walk the loop of edges in this face.
         for (auto kedge = 0; kedge < face.size(); ++kedge) {
           const auto iedge = posID(face[kedge]);
-          if (edgeMask[iedge] != -2) {
-            v0 = startVertex(face[kedge], edges);
-            v1 = endVertex(face[kedge], edges);
-            CHECK(vertexMask[v0] != -2 and vertexMask[v1] != -2);
+          if (edgeMask[iedge] == 2) {
 
-            if (edgeMask[iedge] == 2) {
+            // This edge was unaffected.
+            newface.push_back(edgeSign[iedge] == 1 ? face[kedge] : ~face[kedge]);
 
-              // This edge was unaffected.
-              newface.push_back(edgeSign[iedge] == 1 ? face[kedge] : ~face[kedge]);
+          } else if (edgeMask[iedge] == 1) {
 
-            } else if (edgeMask[iedge] == 1) {
+            // One node of this edge was clipped.
+            newface.push_back(edgeSign[iedge] == 1 ? face[kedge] : ~face[kedge]);
+            CHECK(edgeNodeInPlane[iedge] >= 0);
+            faceNodesInPlane.push_back(edgeNodeInPlane[iedge]);
 
-              // One node of this edge was clipped.
-              newface.push_back(edgeSign[iedge] == 1 ? face[kedge] : ~face[kedge]);
-              CHECK(edgeNodeInPlane[iedge] >= 0);
-              faceNodesInPlane.push_back(edgeNodeInPlane[iedge]);
+          } else if (edgeMask[iedge] == 0) {
 
-            } else if (edgeMask[iedge] == 0) {
-
-              // This edge is in the plane.  We don't add it's nodes to the faceNodesInPlane
-              // since the edge connecting them is aleady built.
-              newface.push_back(edgeSign[iedge] == 1 ? face[kedge] : ~face[kedge]);
-              // CHECK(edgeNodesInPlane[iedge].size() == 2);
-              // faceNodesInPlane.push_back(edgeNodesInPlane[iedge][0]);
-              // faceNodesInPlane.push_back(edgeNodesInPlane[iedge][1]);
-            }
+            // This edge is in the plane.  We don't add it's nodes to the faceNodesInPlane
+            // since the edge connecting them is aleady built.
+            newface.push_back(edgeSign[iedge] == 1 ? face[kedge] : ~face[kedge]);
+            // CHECK(edgeNodesInPlane[iedge].size() == 2);
+            // faceNodesInPlane.push_back(edgeNodesInPlane[iedge][0]);
+            // faceNodesInPlane.push_back(edgeNodesInPlane[iedge][1]);
           }
         }
         CHECK2(faceNodesInPlane.size() % 2 == 0, faceNodesInPlane.size() << " " << newface.size());   // Gotta come in pairs!
