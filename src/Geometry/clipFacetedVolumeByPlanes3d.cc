@@ -356,6 +356,7 @@ void clipFacetedVolumeByPlanes(GeomPolyhedron& poly,
   auto kplane = 0;
   Face newface;
   vector<int> faceNodesInPlane;
+  vector<int> newEdges, nodes2kill;
   const auto nplanes = planes.size();
   while (kplane < nplanes and not faces.empty()) {
     const auto& plane = planes[kplane++];
@@ -462,7 +463,7 @@ void clipFacetedVolumeByPlanes(GeomPolyhedron& poly,
 
       // Walk each current face, and reconstruct it according to what happend to it's edges.
       time_clipfaces.start();
-      vector<int> newEdges;                         // Any new edges we create.
+      newEdges.clear();                // Any new edges we create.
       const auto nfaces0 = faces.size();
       for (auto kface = 0; kface < nfaces0; ++kface) {
         // cerr << "Face " << kface << endl;
@@ -514,7 +515,7 @@ void clipFacetedVolumeByPlanes(GeomPolyhedron& poly,
             // Get rid of any duplicates.
             time_erasedups.start();
             sort(faceNodesInPlane.begin(), faceNodesInPlane.end());
-            vector<int> nodes2kill;
+            nodes2kill.clear();
             for (auto k = 0; k < faceNodesInPlane.size() - 1; ++k) {
               if (faceNodesInPlane[k] == faceNodesInPlane[k+1]) {
                 nodes2kill.push_back(k);
