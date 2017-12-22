@@ -26,20 +26,20 @@ Timer TimeSpheral               ("Root Timer                ");
 //------------------------------------------------------------------------------
 // clipFacetedVolume timers
 //------------------------------------------------------------------------------
-Timer time_clipFacetedVolumeByPlanes3d("clipFacetedVolumeByPlanes3d");
-Timer time_convertfrom("Convert from Spheral::Polyhedron", time_clipFacetedVolumeByPlanes3d);
-Timer time_clipverts("Clip vertices", time_clipFacetedVolumeByPlanes3d);
-Timer time_clipedges("Clip edges", time_clipFacetedVolumeByPlanes3d);
-Timer time_clipfaces("Clip faces", time_clipFacetedVolumeByPlanes3d);
-Timer   time_clipEdgesInFace("Clip edges in face", time_clipfaces);
-Timer   time_eraseface("Erase face", time_clipfaces);
-Timer   time_erasedups("Erase node duplicates", time_clipfaces);
-Timer   time_sortline("Sort new face nodes in line", time_clipfaces);
-Timer   time_newedges("Construct new edges in face", time_clipfaces);
-Timer   time_newloops("Construct new face loops", time_clipfaces);
-Timer   time_deactivate("Mark clipped vertices inactive", time_clipfaces);
-Timer time_cap("Cap new faces", time_clipFacetedVolumeByPlanes3d);
-Timer time_convertto("Convert back to Spheral::Polyhedron", time_clipFacetedVolumeByPlanes3d);
+Timer TIME_clipFacetedVolumeByPlanes3d("clipFacetedVolumeByPlanes3d");
+Timer TIME_convertfrom("Convert from Spheral::Polyhedron", TIME_clipFacetedVolumeByPlanes3d);
+Timer TIME_clipverts("Clip vertices", TIME_clipFacetedVolumeByPlanes3d);
+Timer TIME_clipedges("Clip edges", TIME_clipFacetedVolumeByPlanes3d);
+Timer TIME_clipfaces("Clip faces", TIME_clipFacetedVolumeByPlanes3d);
+Timer   TIME_clipEdgesInFace("Clip edges in face", TIME_clipfaces);
+Timer   TIME_eraseface("Erase face", TIME_clipfaces);
+Timer   TIME_erasedups("Erase node duplicates", TIME_clipfaces);
+Timer   TIME_sortline("Sort new face nodes in line", TIME_clipfaces);
+Timer   TIME_newedges("Construct new edges in face", TIME_clipfaces);
+Timer   TIME_newloops("Construct new face loops", TIME_clipfaces);
+Timer   TIME_deactivate("Mark clipped vertices inactive", TIME_clipfaces);
+Timer TIME_cap("Cap new faces", TIME_clipFacetedVolumeByPlanes3d);
+Timer TIME_convertto("Convert back to Spheral::Polyhedron", TIME_clipFacetedVolumeByPlanes3d);
 
 // //------------------------------------------------------------------------------
 // // Second order predictor corrector integrator
