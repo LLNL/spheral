@@ -11,6 +11,8 @@ source("../src/Geometry/tests/testInnerOuterProduct.py")
 source("../src/Geometry/tests/testEigen3d.py")
 source("../src/Geometry/tests/testPolygon.py")
 source("../src/Geometry/tests/testPolyhedron.py")
+source("../src/Geometry/tests/testClipPolygon.py")
+source("../src/Geometry/tests/testClipPolyhedron.py")
 
 # Boundary unit tests
 source("../src/Boundary/tests/testPeriodicBoundary-1d.py")
