@@ -88,7 +88,7 @@ gen1 = GenerateNodeDistribution2d(nx1, ny1,
                                   nNodePerh = nPerh,
                                   SPH = True)
 if mpi.procs > 1:
-    from VoronoiDistributeNodes import distributeNodes2d
+    from PeanoHilbertDistributeNodes import distributeNodes2d
 else:
     from DistributeNodes import distributeNodes2d
 distributeNodes2d((nodes1, gen1))
