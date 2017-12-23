@@ -42,6 +42,9 @@ extern Timer   TIME_newloops;
 extern Timer   TIME_deactivate;
 extern Timer TIME_cap;
 extern Timer TIME_convertto;
+extern Timer   TIME_convertto_vertices;
+extern Timer   TIME_convertto_facets;
+extern Timer   TIME_convertto_constructor;
 
 namespace Spheral {
 
@@ -714,6 +717,7 @@ void clipFacetedVolumeByPlanes(GeomPolyhedron& poly,
   } else {
 
     // Build a list of the vertices that are active, and a map of old->new vertex index.
+    TIME_convertto_vertices.start();
     CHECK(vertexMask.empty() or 
           (*min_element(vertexMask.begin(), vertexMask.end()) >= -2 and
            *max_element(vertexMask.begin(), vertexMask.end()) <= 1));
@@ -726,8 +730,10 @@ void clipFacetedVolumeByPlanes(GeomPolyhedron& poly,
         newvertices.push_back(vertices[i]);
       }
     }
+    TIME_convertto_vertices.stop();
 
     // Build the facet info.
+    TIME_convertto_facets.start();
     vector<vector<unsigned>> facets;
     for (const auto& face: faces) {
       if (not face.empty()) {
@@ -741,9 +747,12 @@ void clipFacetedVolumeByPlanes(GeomPolyhedron& poly,
       }
     }
     CHECK(facets.size() >= 4);
+    TIME_convertto_facets.stop();
 
     // Now we can rebuild the polyhedron.
+    TIME_convertto_constructor.start();
     poly = GeomPolyhedron(newvertices, facets);
+    TIME_convertto_constructor.stop();
     // cerr << "And the answer is..." << endl
     //      << poly << endl
     //      << "volume = " << poly.volume() << endl;

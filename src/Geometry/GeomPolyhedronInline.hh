@@ -23,6 +23,13 @@ inline
 const std::vector<GeomPolyhedron::Vector>&
 GeomPolyhedron::
 vertexUnitNorms() const {
+  if (mVertexUnitNorms.size() == 0) {
+    GeometryUtilities::computeAncillaryGeometry(*this, 
+                                                const_cast<std::vector<std::vector<unsigned>>&>(mVertexFacetConnectivity), 
+                                                const_cast<std::vector<std::vector<unsigned>>&>(mFacetFacetConnectivity),
+                                                const_cast<std::vector<Vector>&>(mVertexUnitNorms), 
+                                                false);
+  }
   return mVertexUnitNorms;
 }
 
@@ -30,6 +37,13 @@ inline
 const std::vector<std::vector<unsigned> >&
 GeomPolyhedron::
 vertexFacetConnectivity() const {
+  if (mVertexFacetConnectivity.size() == 0) {
+    GeometryUtilities::computeAncillaryGeometry(*this, 
+                                                const_cast<std::vector<std::vector<unsigned>>&>(mVertexFacetConnectivity), 
+                                                const_cast<std::vector<std::vector<unsigned>>&>(mFacetFacetConnectivity),
+                                                const_cast<std::vector<Vector>&>(mVertexUnitNorms), 
+                                                false);
+  }
   return mVertexFacetConnectivity;
 }
 

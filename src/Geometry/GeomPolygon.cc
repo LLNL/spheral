@@ -398,7 +398,10 @@ GeomPolygon(const vector<GeomPolygon::Vector>& points):
     setBoundingBox();
 
     // Compute the ancillary geometry.
-    GeometryUtilities::computeAncillaryGeometry(*this, mVertexFacetConnectivity, mFacetFacetConnectivity, mVertexUnitNorms, false);
+    mVertexFacetConnectivity.clear();
+    mFacetFacetConnectivity.clear();
+    mVertexUnitNorms.clear();
+    // GeometryUtilities::computeAncillaryGeometry(*this, mVertexFacetConnectivity, mFacetFacetConnectivity, mVertexUnitNorms, false);
 
     // Post-conditions.
     BEGIN_CONTRACT_SCOPE
@@ -465,7 +468,10 @@ GeomPolygon(const vector<GeomPolygon::Vector>& points,
   mConvex = this->convex();
 
   // Compute the ancillary geometry.
-  GeometryUtilities::computeAncillaryGeometry(*this, mVertexFacetConnectivity, mFacetFacetConnectivity, mVertexUnitNorms, false);
+  mVertexFacetConnectivity.clear();
+  mFacetFacetConnectivity.clear();
+  mVertexUnitNorms.clear();
+  // GeometryUtilities::computeAncillaryGeometry(*this, mVertexFacetConnectivity, mFacetFacetConnectivity, mVertexUnitNorms, false);
 }
 
 //------------------------------------------------------------------------------
@@ -498,7 +504,7 @@ operator=(const GeomPolygon& rhs) {
                                                                   facet.ipoint1(),
                                                                   facet.ipoint2()));
     mVertexFacetConnectivity = rhs.mVertexFacetConnectivity;
-    mFacetFacetConnectivity = rhs.mVertexFacetConnectivity;
+    mFacetFacetConnectivity = rhs.mFacetFacetConnectivity;
     mVertexUnitNorms = rhs.mVertexUnitNorms;
     mXmin = rhs.mXmin;
     mXmax = rhs.mXmax;
@@ -754,7 +760,10 @@ reconstruct(const vector<GeomPolygon::Vector>& vertices,
   }
   setBoundingBox();
   mConvex = this->convex();
-  GeometryUtilities::computeAncillaryGeometry(*this, mVertexFacetConnectivity, mFacetFacetConnectivity, mVertexUnitNorms, false);
+  mVertexFacetConnectivity.clear();
+  mFacetFacetConnectivity.clear();
+  mVertexUnitNorms.clear();
+  // GeometryUtilities::computeAncillaryGeometry(*this, mVertexFacetConnectivity, mFacetFacetConnectivity, mVertexUnitNorms, false);
   ENSURE(mFacets.size() == facetVertices.size());
   ENSURE(mFacetFacetConnectivity.size() == 0); // mFacets.size());
 }

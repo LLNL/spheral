@@ -517,20 +517,20 @@ void Timer::TimerSummary(void) {
 
 static void writeSingleLineSeparator(FILE *out) {
 #ifdef PAPI  
-  fprintf(out, "------------------------------------------------------");
+  fprintf(out, "--------------------------------------------------------------------");
   fprintf(out, "----------------------------------------------------------\n");
 #else
-  fprintf(out, "------------------------------------------------------");
+  fprintf(out, "--------------------------------------------------------------------");
   fprintf(out, "------------------------------\n");
 #endif
 }
 
 static void writeDoubleLineSeparator(FILE *out) {
 #ifdef PAPI
-  fprintf(out, "======================================================");
+  fprintf(out, "====================================================================");
   fprintf(out, "==========================================================\n");
 #else
-  fprintf(out, "======================================================");
+  fprintf(out, "====================================================================");
   fprintf(out, "==============================\n");
 #endif
 }
@@ -540,13 +540,13 @@ static void writeTableHeader(FILE *out) {
 
 
 #ifdef PAPI
-  fprintf(out, "                                                       ");
+  fprintf(out, "                                                                     ");
   fprintf(out, "wall-clock time (sec)\n");
-  fprintf(out, "                                                     ");
+  fprintf(out, "                                                                   ");
   fprintf(out, "________________________\n");
   
   //            12345678901234567890
-  fprintf(out, "      Totals    ");
+  fprintf(out, "      Totals                  ");
   fprintf(out, "            WC per.");
   fprintf(out, "     count");
 
@@ -562,14 +562,14 @@ static void writeTableHeader(FILE *out) {
     fprintf(out, "   TOT INS    BR INS     BR/TOT");
   }
 #else
-  fprintf(out, "                                                       ");
+  fprintf(out, "                                                                     ");
   fprintf(out, "wall-clock time (sec)\n");
-  fprintf(out, "                                                   ");
+  fprintf(out, "                                                                 ");
   fprintf(out, "______________________________\n");
   
   //            12345678901234567890
   fprintf(out, "      Totals    ");
-  fprintf(out, "            WC per.");
+  fprintf(out, "            WC per.              ");
   fprintf(out, "     count");
 
   fprintf(out, "        avg  ");
@@ -600,11 +600,11 @@ static void writeTableTotals(FILE *out,
   }
 
 #ifdef PAPI
-  fprintf(out, "  table totals:            (%6.2f%%) %8s %10.2f [%10.2f,%10.2f]\n",
+  fprintf(out, "  table totals:                          (%6.2f%%) %8s %10.2f [%10.2f,%10.2f]\n",
 	  table_percent, " ", 
 	  table_avg_sum, table_min_sum, table_max_sum); 
 #else
-  fprintf(out, "  table totals:            (%6.2f%%) %8s %10.2f [%10.2f, %10.2f]\n", 
+  fprintf(out, "  table totals:                          (%6.2f%%) %8s %10.2f [%10.2f, %10.2f]\n", 
 	  table_percent, " ", 
 	  table_avg_sum, table_min_sum, table_max_sum); 
 #endif
@@ -652,22 +652,22 @@ static void writeLineOfData(FILE *out,
   
   
   if(percent < 0) {
-    fprintf(out, "%26s           %8ld %10.2f [%10.2f,%10.2f]  %10.3e %10.3e %8.2f\n",
+    fprintf(out, "%-40.40s           %8ld %10.2f [%10.2f,%10.2f]  %10.3e %10.3e %8.2f\n",
 	    name, count, wc_avg, wc_min, wc_max,
 	    counter1, counter2, 
 	    derived_counter);
   } else {
-    fprintf(out, "%26s (%6.2f%%) %8ld %10.2f [%10.2f,%10.2f]  %10.3e %10.3e %8.2f\n",
+    fprintf(out, "%-40.40s (%6.2f%%) %8ld %10.2f [%10.2f,%10.2f]  %10.3e %10.3e %8.2f\n",
 	    name, percent, count, wc_avg, wc_min, wc_max,
 	    counter1, counter2, 
 	    derived_counter);
   }
 #else
   if(percent < 0) {
-    fprintf(out, "%26s           %8ld %10.2f [%10.2f, %10.2f]\n",
+    fprintf(out, "%-40.40s           %8ld %10.2f [%10.2f, %10.2f]\n",
 	    name, count, wc_avg, wc_min, wc_max);  
   } else {
-    fprintf(out, "%26s (%6.2f%%) %8ld %10.2f [%10.2f, %10.2f]\n",
+    fprintf(out, "%-40.40s (%6.2f%%) %8ld %10.2f [%10.2f, %10.2f]\n",
 	    name, percent, count, wc_avg, wc_min, wc_max);  
   }
 #endif

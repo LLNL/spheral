@@ -24,6 +24,17 @@ Timer TimeSpheral               ("Root Timer                ");
 // Timer TimeNestedDistributedBound("Root NestedDistribBound   ");
 
 //------------------------------------------------------------------------------
+// Polyhedron timers
+//------------------------------------------------------------------------------
+Timer TIME_Polyhedron_construct1       ("Polyhedron::Polyhedron(points)");
+Timer TIME_Polyhedron_construct2       ("Polyhedron::Polyhedron(points, facets)");
+Timer TIME_Polyhedron_BB               ("Polyhedron::setBoundingBox");
+Timer   TIME_Polyhedron_BB_ancillary   ("Polyhedron::setBoundingBox - computeAncillaryGeometry", TIME_Polyhedron_BB);
+Timer   TIME_Polyhedron_BB_centroid    ("Polyhedron::setBoundingBox - centroid", TIME_Polyhedron_BB);
+Timer   TIME_Polyhedron_BB_R2          ("Polyhedron::setBoundingBox - Rinterior2", TIME_Polyhedron_BB);
+Timer TIME_Polyhedron_convex           ("Polyhedron::convex");
+
+//------------------------------------------------------------------------------
 // clipFacetedVolume timers
 //------------------------------------------------------------------------------
 Timer TIME_clipFacetedVolumeByPlanes3d("clipFacetedVolumeByPlanes3d");
@@ -40,6 +51,9 @@ Timer   TIME_newloops("Construct new face loops", TIME_clipfaces);
 Timer   TIME_deactivate("Mark clipped vertices inactive", TIME_clipfaces);
 Timer TIME_cap("Cap new faces", TIME_clipFacetedVolumeByPlanes3d);
 Timer TIME_convertto("Convert back to Spheral::Polyhedron", TIME_clipFacetedVolumeByPlanes3d);
+Timer   TIME_convertto_vertices("Convert back vertices", TIME_convertto);
+Timer   TIME_convertto_facets("Convert back facets", TIME_convertto);
+Timer   TIME_convertto_constructor("Convert back Polyhedron constructor", TIME_convertto);
 
 // //------------------------------------------------------------------------------
 // // Second order predictor corrector integrator
