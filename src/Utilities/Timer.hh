@@ -11,6 +11,9 @@
 #include "Distributed/Communicator.hh"
 #endif
 
+#include <list>
+#include <string>
+
 // if TIMER is not defined, then we just have a stub class.
 #ifdef TIMER
 
@@ -32,8 +35,6 @@ extern "C" {
 #define TIMER_COUNTER 0
 #endif
 
-#include <list>
-#include <string>
 using namespace std;
 
 #define DIAGNOSTIC false 
