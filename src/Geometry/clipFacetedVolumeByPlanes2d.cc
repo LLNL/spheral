@@ -305,6 +305,7 @@ void clipFacetedVolumeByPlanes(GeomPolygon& poly0,
     const auto& plane = planes[kplane++];
     const auto& p0 = plane.point();
     const auto& phat = plane.normal();
+    // cerr << "Plane " << kplane << " : " << p0 << " " << phat << endl;
 
     // Check the current set of vertices against this plane.
     auto above = true;
@@ -329,10 +330,13 @@ void clipFacetedVolumeByPlanes(GeomPolygon& poly0,
 
       // This plane passes through the polygon.
       // Insert any new vertices.
-      vector<Vertex*> newVertices;
+      vector<Vertex*> hangingVertices, newVertices;
+      Vertex *vprev, *vnext;
       for (auto vptr: activeVertices) {
-        auto* vnext = vptr->neighbors.second;
-        if ((vptr->comp)*(vnext->comp) == -1) {   // Does this pair straddle the plane?
+        std::tie(vprev, vnext) = vptr->neighbors;
+
+        if ((vptr->comp)*(vnext->comp) == -1) {
+          // This pair straddles the plane and creates a new vertex.
           poly.push_back(Vertex(segmentPlaneIntersection(vptr->position,
                                                          vnext->position,
                                                          p0,
@@ -342,35 +346,49 @@ void clipFacetedVolumeByPlanes(GeomPolygon& poly0,
           poly.back().neighbors.second = vnext;
           vptr->neighbors.second = &poly.back();
           vnext->neighbors.first = &poly.back();
+          hangingVertices.push_back(&poly.back());
           newVertices.push_back(&poly.back());
-          activeVertices.insert(&poly.back());
+          // cerr << "  --> Inserted vertex @ " << poly.back().position << endl;
+
+        } else if (vptr->comp == 0 and 
+                   (vprev->comp == -1 xor vnext->comp == -1)) {
+          // This vertex is exactly in-plane, but has exactly one neighbor edge that will be entirely clipped.
+          // No new vertex, but vptr will be hanging.
+          hangingVertices.push_back(vptr);
+          // cerr << "  --> Adding in-plane node @ " << vptr->position << endl;
+
         }
       }
 
-      // For each new vertex, link to the neighbors that survive the clipping.
-      for (auto vptr: newVertices) {
+      // For each hanging vertex, link to the neighbors that survive the clipping.
+      for (auto vptr: hangingVertices) {
+        std::tie(vprev, vnext) = vptr->neighbors;
         CHECK(vptr->comp == 0);
-        CHECK((vptr->neighbors.first->comp)*(vptr->neighbors.second->comp) == -1);
-        if (vptr->neighbors.first->comp == -1) {
+        CHECK(vprev->comp == -1 xor vnext->comp == -1);
+
+        if (vprev->comp == -1) {
           // We have to search backwards.
-          auto vprior = vptr->neighbors.first;
-          while (vprior->comp == -1) {
-            activeVertices.erase(vprior);
-            vprior = vprior->neighbors.first;
+          while (vprev->comp == -1) {
+            activeVertices.erase(vprev);
+            vprev = vprev->neighbors.first;
           }
-          CHECK(vprior != vptr);
-          vptr->neighbors.first = vprior;
+          CHECK(vprev != vptr);
+          vptr->neighbors.first = vprev;
+
         } else {
           // We have to search forward.
-          auto vnext = vptr->neighbors.second;
           while (vnext->comp == -1) {
             activeVertices.erase(vnext);
             vnext = vnext->neighbors.second;
           }
           CHECK(vnext != vptr);
           vptr->neighbors.second = vnext;
+
         }
       }
+
+      // Add the new vertices to the active set.
+      activeVertices.insert(newVertices.begin(), newVertices.end());
       CHECK(activeVertices.size() >= 3);
     }
   }
