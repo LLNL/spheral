@@ -35,7 +35,18 @@ Timer   TIME_Polyhedron_BB_R2          ("Polyhedron::setBoundingBox - Rinterior2
 Timer TIME_Polyhedron_convex           ("Polyhedron::convex");
 
 //------------------------------------------------------------------------------
-// clipFacetedVolume timers
+// clipFacetedVolume2d timers
+//------------------------------------------------------------------------------
+Timer TIME_CFV2d("clipFacetedVolumeByPlanes2d");
+Timer TIME_CFV2d_convertfrom("Convert from Spheral::Polygon", TIME_CFV2d);
+Timer TIME_CFV2d_planes("Apply clip planes (clipFacetedVolumeByPlanes2d)", TIME_CFV2d);
+Timer TIME_CFV2d_checkverts("Clip vertices", TIME_CFV2d_planes);
+Timer TIME_CFV2d_insertverts("Insert new vertices", TIME_CFV2d_planes);
+Timer TIME_CFV2d_hanging("Link hanging vertices", TIME_CFV2d_planes);
+Timer TIME_CFV2d_convertto("Convert back to Spheral::Polygon", TIME_CFV2d);
+
+//------------------------------------------------------------------------------
+// clipFacetedVolume3d timers
 //------------------------------------------------------------------------------
 Timer TIME_clipFacetedVolumeByPlanes3d("clipFacetedVolumeByPlanes3d");
 Timer TIME_convertfrom("Convert from Spheral::Polyhedron", TIME_clipFacetedVolumeByPlanes3d);

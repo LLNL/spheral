@@ -19,11 +19,21 @@
 #include "Utilities/safeInv.hh"
 #include "Utilities/SpheralFunctions.hh"
 #include "Utilities/DBC.hh"
+#include "Utilities/Timer.hh"
 
 #include <list>
 #include <iostream>
 #include <iterator>
 #include <algorithm>
+
+// Declare the timers.
+extern Timer TIME_CFV2d;
+extern Timer TIME_CFV2d_convertfrom;
+extern Timer TIME_CFV2d_planes;
+extern Timer TIME_CFV2d_checkverts;
+extern Timer TIME_CFV2d_insertverts;
+extern Timer TIME_CFV2d_hanging;
+extern Timer TIME_CFV2d_convertto;
 
 namespace Spheral {
 
@@ -75,186 +85,6 @@ segmentPlaneIntersection(const Dim<2>::Vector& a,       // line-segment begin
   return result;
 }
 
-//------------------------------------------------------------------------------
-// Build an edge as a unique std::pair.
-//------------------------------------------------------------------------------
-inline
-std::pair<int, int>
-make_edge(const int a, const int b) {
-  return std::make_pair(std::min(a, b), std::max(a, b));
-}
-
-//------------------------------------------------------------------------------
-// Return the ID for the given encoded value (1's complement crap).
-//------------------------------------------------------------------------------
-inline
-int
-posID(const int x) {
-  return (x >= 0 ? x : ~x);
-}
-
-//------------------------------------------------------------------------------
-// Grab the starting vertex for the edge corresponding to the encoded id.
-//------------------------------------------------------------------------------
-inline
-int
-startVertex(const int id, const vector<pair<int, int>>& edges) {
-  if (id < 0) {
-    CHECK(~id < edges.size());
-    return edges[~id].second;
-  } else {
-    CHECK(id < edges.size());
-    return edges[id].first;
-  }
-}
-
-//------------------------------------------------------------------------------
-// Grab the end vertex for the edge corresponding to the encoded id.
-//------------------------------------------------------------------------------
-inline
-int
-endVertex(const int id, const vector<pair<int, int>>& edges) {
-  if (id < 0) {
-    CHECK(~id < edges.size());
-    return edges[~id].first;
-  } else {
-    CHECK(id < edges.size());
-    return edges[id].second;
-  }
-}
-
-//------------------------------------------------------------------------------
-// Decide if the given edge plane intersection should give us a new vertex.
-//------------------------------------------------------------------------------
-inline
-bool
-insertVertex(std::vector<Dim<2>::Vector>& vertices,
-             int& vertID,
-             std::vector<int>& vertexMask,
-             const int v0,
-             const int v1,
-             const Dim<2>::Vector& p0,
-             const Dim<2>::Vector& phat) {
-
-  // Where would we like the vertex?
-  const auto v = segmentPlaneIntersection(vertices[v0], vertices[v1], p0, phat);
-
-  // Is this degenerate with any existing active vertices?
-  bool result;
-  vertID = 0;
-  while (vertID < vertices.size() and 
-         not (vertexMask[vertID] == 1 and (vertices[vertID] - v).magnitude2() < 1.0e-16)) ++vertID;
-  if (vertID == vertices.size()) {
-    vertices.push_back(v);
-    vertexMask.push_back(1);
-    result = true;
-  } else {
-    result = false;
-  }
-  ENSURE(vertID < vertices.size());
-  ENSURE(vertices.size() == vertexMask.size());
-  ENSURE(vertexMask[vertID] == 1);
-  return result;
-}
-
-//------------------------------------------------------------------------------
-// Extract the ordered ring of vertices making up a polygon.
-//------------------------------------------------------------------------------
-vector<unsigned> orderedPolygonRing(const GeomPolygon& poly) {
-  
-  const auto& facets = poly.facets();
-  const auto  nf = facets.size();
-  CHECK(nf >= 3);
-
-  // Kickstart with the first facet.
-  vector<unsigned> result;
-  result.push_back(facets[0].ipoint1());
-  result.push_back(facets[0].ipoint2());
-
-  // Walk the facets, inserting in order.
-  for (unsigned k = 1; k < nf; ++k) {
-    if (result.back() == facets[k].ipoint1()) {
-      // The most common case where the facets themselves have been ordered.
-      result.push_back(facets[k].ipoint2());
-    } else {
-      // See if our starting point is already in the result.
-      auto itr = find(result.begin(), result.end(), facets[k].ipoint1());
-      if (itr != result.end()) {
-        // Our starting point is already there, so insert our final point in order.
-        if ( (itr+1) == result.end() or
-            *(itr+1) != facets[k].ipoint2()) {
-          result.insert(itr, facets[k].ipoint2());
-        }
-      } else {
-        // The points of this facet are unknown, so huck em in.
-        result.push_back(facets[k].ipoint1());
-        result.push_back(facets[k].ipoint2());
-      }
-    }
-  }
-
-  // The first and last points should now be redundant, so clip that last one.
-  CHECK(result.size() >= 4);
-  CHECK(result.front() == result.back());
-  result.pop_back();
-
-  // // BLAGO
-  // const auto& vertices = poly.vertices();
-  // cerr << "Unique ring: " << endl
-  //      << " ---> ";
-  // for (auto k = 0; k < result.size(); ++k) cerr << result[k] << " ";
-  // cerr << endl
-  //      << " ---> ";
-  // for (auto k = 0; k < result.size(); ++k) cerr << vertices[result[k]] << " ";
-  // cerr << endl;
-  // // BLAGO
-
-  // That's it.
-  return result;
-}
-
-//------------------------------------------------------------------------------
-// Return a formatted string with the current polygon.
-//------------------------------------------------------------------------------
-inline
-string
-poly2string(const vector<Dim<2>::Vector>& vertices,
-            const vector<int>& vertexMask,
-            const vector<pair<int, int>>& edges,
-            const vector<int>& face) {
-  typedef Dim<2>::Vector Vector;
-  ostringstream s;
-  REQUIRE(vertices.size() == vertexMask.size());
-  s << "Vertices: ";
-  copy(vertices.begin(), vertices.end(), ostream_iterator<Vector>(s, " "));
-  s << "\n"
-    << "Vertex mask: ";
-  copy(vertexMask.begin(), vertexMask.end(), ostream_iterator<int>(s, " "));
-  s << "\n"
-    << "Active vertices: ";
-  for (auto i = 0; i < vertices.size(); ++i) {
-    if (vertexMask[i] == 1) s << " ([" << i << "] " << vertices[i].x() << " " << vertices[i].y() << ")";
-  }
-  s << "\n"
-    << "Clipped vertices: ";
-  for (auto i = 0; i < vertices.size(); ++i) {
-    if (vertexMask[i] == -1) s << " ([" << i << "] " << vertices[i].x() << " " << vertices[i].y() << ")";
-  }
-  s << "\n"
-    << "Inactive vertices: ";
-  for (auto i = 0; i < vertices.size(); ++i) {
-    if (vertexMask[i] == 0) s << " ([" << i << "] " << vertices[i].x() << " " << vertices[i].y() << ")";
-  }
-  s << "\n";
-  s << "Face : ";
-  for (auto kedge = 0; kedge < face.size(); ++kedge) {
-    s <<  " ([" << face[kedge] << "->" << posID(face[kedge]) << "] ";
-    s << startVertex(face[kedge], edges) << " " << endVertex(face[kedge], edges) << ")";
-  }
-  s << "\n";
-  return s.str();
-}
-
 }
 
 //------------------------------------------------------------------------------
@@ -268,6 +98,8 @@ void clipFacetedVolumeByPlanes(GeomPolygon& poly0,
   typedef Dim<2>::Vector Vector;
 
   // Convert the input polygon to a loop of Vertex's.
+  TIME_CFV2d.start();
+  TIME_CFV2d_convertfrom.start();
   list<Vertex> poly;
   {
     const auto& vertPositions = poly0.vertices();
@@ -297,8 +129,10 @@ void clipFacetedVolumeByPlanes(GeomPolygon& poly0,
   // Initialize the set of active vertices.
   set<Vertex*> activeVertices;
   for (auto& v: poly) activeVertices.insert(&v);
+  TIME_CFV2d_convertfrom.stop();
 
   // Loop over the planes.
+  TIME_CFV2d_planes.start();
   auto kplane = 0;
   const auto nplanes = planes.size();
   while (kplane < nplanes and not activeVertices.empty()) {
@@ -308,6 +142,7 @@ void clipFacetedVolumeByPlanes(GeomPolygon& poly0,
     // cerr << "Plane " << kplane << " : " << p0 << " " << phat << endl;
 
     // Check the current set of vertices against this plane.
+    TIME_CFV2d_checkverts.start();
     auto above = true;
     auto below = true;
     for (auto vptr: activeVertices) {
@@ -319,6 +154,7 @@ void clipFacetedVolumeByPlanes(GeomPolygon& poly0,
       }
     }
     CHECK(not (above and below));
+    TIME_CFV2d_checkverts.stop();
 
     // Did we get a simple case?
     if (below) {
@@ -330,6 +166,7 @@ void clipFacetedVolumeByPlanes(GeomPolygon& poly0,
 
       // This plane passes through the polygon.
       // Insert any new vertices.
+      TIME_CFV2d_insertverts.start();
       vector<Vertex*> hangingVertices, newVertices;
       Vertex *vprev, *vnext;
       for (auto vptr: activeVertices) {
@@ -359,8 +196,10 @@ void clipFacetedVolumeByPlanes(GeomPolygon& poly0,
 
         }
       }
+      TIME_CFV2d_insertverts.stop();
 
       // For each hanging vertex, link to the neighbors that survive the clipping.
+      TIME_CFV2d_hanging.start();
       for (auto vptr: hangingVertices) {
         std::tie(vprev, vnext) = vptr->neighbors;
         CHECK(vptr->comp == 0);
@@ -390,10 +229,13 @@ void clipFacetedVolumeByPlanes(GeomPolygon& poly0,
       // Add the new vertices to the active set.
       activeVertices.insert(newVertices.begin(), newVertices.end());
       CHECK(activeVertices.size() >= 3);
+      TIME_CFV2d_hanging.stop();
     }
   }
+  TIME_CFV2d_planes.stop();
 
   // Now rebuild the polygon, and we're done.
+  TIME_CFV2d_convertto.start();
   if (activeVertices.empty()) {
     poly0 = GeomPolygon();
   } else {
@@ -412,6 +254,9 @@ void clipFacetedVolumeByPlanes(GeomPolygon& poly0,
     CHECK(vptr == *activeVertices.begin());
     poly0 = GeomPolygon(coords, facets);
   }
+  TIME_CFV2d_convertto.stop();
+
+  TIME_CFV2d.stop();
 }
 
 }
