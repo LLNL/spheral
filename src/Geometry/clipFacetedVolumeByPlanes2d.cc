@@ -20,6 +20,7 @@
 #include "Utilities/SpheralFunctions.hh"
 #include "Utilities/DBC.hh"
 
+#include <list>
 #include <iostream>
 #include <iterator>
 #include <algorithm>
@@ -29,6 +30,19 @@ namespace Spheral {
 using namespace std;
 
 namespace {
+
+//------------------------------------------------------------------------------
+// The vertex struct, which we use to encode the polygon.
+//------------------------------------------------------------------------------
+struct Vertex {
+  typedef Dim<2>::Vector Vector;
+  Vector position;
+  std::pair<Vertex*, Vertex*> neighbors;
+  int ID, comp;
+  Vertex(): position(), neighbors(), ID(-1), comp(1) {}
+  Vertex(const Vector& pos): position(pos), neighbors(), ID(-1), comp(1) {}
+  Vertex(const Vector& pos, const int c): position(pos), neighbors(), ID(-1), comp(c) {}
+};
 
 //------------------------------------------------------------------------------
 // Compare a plane and point (our built-in plane one has some issues).
@@ -246,59 +260,61 @@ poly2string(const vector<Dim<2>::Vector>& vertices,
 //------------------------------------------------------------------------------
 // The method itself.
 //------------------------------------------------------------------------------
-void clipFacetedVolumeByPlanes(GeomPolygon& poly, 
+void clipFacetedVolumeByPlanes(GeomPolygon& poly0,
                                const std::vector<GeomPlane<Dim<2>>>& planes) {
 
   // Useful types.
   typedef Dim<2>::FacetedVolume FacetedVolume;
   typedef Dim<2>::Vector Vector;
-  typedef std::pair<int, int> Edge;       // Edges are pairs of vertex indices.  Edges are always built with (minVertID, maxVertID).
-  typedef std::vector<int> Face;          // Faces are loops of edges.  We use the 1's complement to indicate an edge should be reversed 
 
-  // Convert the polygon to a set of edge loops.
-  auto vertices = poly.vertices();             // Note this is a copy!
-  vector<Edge> edges;                          // Edges as pairs of vertex indices
-  Face         face;                           // The rings of edges making up the polygon.
-  vector<int> vertexMask(vertices.size(), 1);  // Mask to flag active/inactive vertices: 0->inactive, 1->active, -1->clip
+  // Convert the input polygon to a loop of Vertex's.
+  list<Vertex> poly;
   {
-    const auto& facets = poly.facets();
-    int iedge;
+    const auto& vertPositions = poly0.vertices();
+    const auto& facets = poly0.facets();
+    const auto  nverts0 = vertPositions.size();
+    vector<Vertex*> id2vert(nverts0, NULL);
+    int v1, v2, ivert1, ivert2;
     for (const auto& facet: facets) {
-      const auto edge = make_edge(facet.ipoint1(), facet.ipoint2());
-      CHECK(find(edges.begin(), edges.end(), edge) == edges.end());
-      iedge = edges.size();
-      edges.push_back(edge);
-      face.push_back(edge.first == facet.ipoint1() ? iedge : ~iedge);
+      v1 = facet.ipoint1();
+      v2 = facet.ipoint2();
+      CHECK(v1 < nverts0);
+      CHECK(v2 < nverts0);
+      if (id2vert[v1] == NULL) {
+        poly.push_back(Vertex(vertPositions[v1]));
+        id2vert[v1] = &poly.back();
+      }
+      if (id2vert[v2] == NULL) {
+        poly.push_back(Vertex(vertPositions[v2]));
+        id2vert[v2] = &poly.back();
+      }
+      id2vert[v1]->neighbors.second = id2vert[v2];
+      id2vert[v2]->neighbors.first =  id2vert[v1];
     }
+    CHECK(poly.size() == nverts0);
   }
-  // cerr << "Initial polygon: "<< endl
-  //      << poly2string(vertices, vertexMask, edges, face);
+
+  // Initialize the set of active vertices.
+  set<Vertex*> activeVertices;
+  for (auto& v: poly) activeVertices.insert(&v);
 
   // Loop over the planes.
   auto kplane = 0;
   const auto nplanes = planes.size();
-  while (kplane < nplanes and not face.empty()) {
+  while (kplane < nplanes and not activeVertices.empty()) {
     const auto& plane = planes[kplane++];
     const auto& p0 = plane.point();
     const auto& phat = plane.normal();
 
-    // Check if the polygon is entirely clear of the plane (above or below).
+    // Check the current set of vertices against this plane.
     auto above = true;
     auto below = true;
-    {
-      auto k = 0;
-      while (k < vertices.size()) {
-        if (vertexMask[k] != 0) {
-          const auto vcomp = compare(p0, phat, vertices[k]);
-          if (vcomp >= 0) {
-            below = false;
-            vertexMask[k] = 1;           // Mark this vertex as keep.
-          } else if (vcomp == -1) {
-            above = false;
-            vertexMask[k] = -1;          // Mark this vertex as clip.
-          }
-        }
-        ++k;
+    for (auto vptr: activeVertices) {
+      vptr->comp = compare(p0, phat, vptr->position);
+      if (vptr->comp >= 0) {
+        below = false;
+      } else if (vptr->comp == -1) {
+        above = false;
       }
     }
     CHECK(not (above and below));
@@ -307,165 +323,76 @@ void clipFacetedVolumeByPlanes(GeomPolygon& poly,
     if (below) {
       // Polygon is entirely below the clip plane, and is therefore entirely removed.
       // No need to check any more clipping planes either -- we're done.
-      edges.clear();
-      face.clear();
+      activeVertices.clear();
 
     } else if (not above) {
-      Face newface;                       // The newly clipped face as a set of edges.
-      vector<int> newEdges;               // Any new edges we create.
-      vector<pair<int, int>> newVertices; // And new vertices we create: store (vertex id, index of edge in the new face that was clipped).
 
-      // The plane passes somewhere through the polygon, so we need to walk the ring and modify it.
-      for (auto kedge = 0; kedge < face.size(); ++kedge) {
-        const int iedge = posID(face[kedge]);
-        auto& edge = edges[iedge];
-        auto  v0 = startVertex(face[kedge], edges);
-        auto  v1 = endVertex(face[kedge], edges);
+      // This plane passes through the polygon.
+      // Insert any new vertices.
+      vector<Vertex*> newVertices;
+      for (auto vptr: activeVertices) {
+        auto* vnext = vptr->neighbors.second;
+        if ((vptr->comp)*(vnext->comp) == -1) {   // Does this pair straddle the plane?
+          poly.push_back(Vertex(segmentPlaneIntersection(vptr->position,
+                                                         vnext->position,
+                                                         p0,
+                                                         phat),
+                                0));
+          poly.back().neighbors.first = vptr;
+          poly.back().neighbors.second = vnext;
+          vptr->neighbors.second = &poly.back();
+          vnext->neighbors.first = &poly.back();
+          newVertices.push_back(&poly.back());
+          activeVertices.insert(&poly.back());
+        }
+      }
 
-        // Check the edge against the clip plane based on its vertices.
-        if (vertexMask[v0] == 1 and vertexMask[v1] == 1) {
-          // This edge got through unscathed -- add it back to the face.
-          newface.push_back(face[kedge]);
-
-        } else if (vertexMask[v0] == -1 and vertexMask[v1] == 1) {
-          // v0 is clipped
-          // Check if we're inserting a new vertex.
-          int vertID;
-          insertVertex(vertices, vertID, vertexMask, v0, v1, p0, phat);
-          newVertices.push_back(make_pair(vertID, newface.size()));
-
-          // Now edit our old edge in-place.
-          edge = make_edge(vertID, v1);
-          newface.push_back(edge.first == vertID ? iedge : ~iedge);
-
-        } else if (vertexMask[v0] == 1 and vertexMask[v1] == -1) {
-          // v1 is clipped
-          int vertID;
-          insertVertex(vertices, vertID, vertexMask, v0, v1, p0, phat);
-          newVertices.push_back(make_pair(vertID, newface.size()));
-
-          // Now edit the old edge in place.
-          edge = make_edge(v0, vertID);
-          newface.push_back(edge.first == v0 ? iedge : ~iedge);
-
+      // For each new vertex, link to the neighbors that survive the clipping.
+      for (auto vptr: newVertices) {
+        CHECK(vptr->comp == 0);
+        CHECK((vptr->neighbors.first->comp)*(vptr->neighbors.second->comp) == -1);
+        if (vptr->neighbors.first->comp == -1) {
+          // We have to search backwards.
+          auto vprior = vptr->neighbors.first;
+          while (vprior->comp == -1) {
+            activeVertices.erase(vprior);
+            vprior = vprior->neighbors.first;
+          }
+          CHECK(vprior != vptr);
+          vptr->neighbors.first = vprior;
         } else {
-          // Both v0 and v1 are clipped
-          CHECK(vertexMask[v0] == -1 and vertexMask[v1] == -1);
+          // We have to search forward.
+          auto vnext = vptr->neighbors.second;
+          while (vnext->comp == -1) {
+            activeVertices.erase(vnext);
+            vnext = vnext->neighbors.second;
+          }
+          CHECK(vnext != vptr);
+          vptr->neighbors.second = vnext;
         }
       }
-      CHECK(vertices.size() == vertexMask.size());
-
-      // Check if we clipped any edges.
-      if (not newVertices.empty()) {
-        CHECK(newVertices.size() % 2 == 0);
-
-        // cerr << "Before adding new edges: "<< endl
-        //      << poly2string(vertices, vertexMask, edges, newface);
-
-        // OK, all the original edges of the face have been clipped, but there are gaps along the clipping
-        // plane which require new edges be constructed.
-        // First we sort the new points in the plane by signed distance left to right in the plane.
-        const Vector direction(phat.y(), -phat.x());
-        sort(newVertices.begin(), newVertices.end(), 
-             [&](const pair<int, int>& a, const pair<int, int>&b) { return (vertices[a.first] - p0).dot(direction) < (vertices[b.first] - p0).dot(direction); });
-
-        // Now the ordered pairs of these new vertices form the new edges.
-        int v0, v1, kedge0, kedge1, iedge;
-        for (auto k = 0; k < newVertices.size(); k += 2) {
-          std::tie(v0, kedge0) = newVertices[k];
-          std::tie(v1, kedge1) = newVertices[k + 1];
-          CHECK(endVertex(newface[kedge0], edges) == v0);
-          CHECK(startVertex(newface[kedge1], edges) == v1);
-          iedge = edges.size();
-          const auto newedge = make_edge(v0, v1);
-          edges.push_back(newedge);
-          newface.push_back(newedge.first == v0 ? iedge : ~iedge);
-        }
-
-        // cerr << "BLAGO!  ";
-        // for (auto kedge = 0; kedge < newface.size(); ++kedge) cerr << " (" << startVertex(newface[kedge], edges) << " " << endVertex(newface[kedge], edges) << ")";
-        // cerr << endl;
-        // for (auto kedge = 0; kedge < newface.size(); ++kedge) {
-        //   const auto kedge1 = (kedge + 1) % newface.size();
-        //   const auto v0 = endVertex(newface[kedge], edges);
-        //   const auto v1 = startVertex(newface[kedge1], edges);
-        //   if (v0 != v1) {
-        //     // Yep, there's a gap here so insert a new edge.
-        //     const int edgeID = edges.size();
-        //     edges.push_back(make_edge(v0, v1));
-        //     newEdges.push_back(                      (edges.back().first == v0 ? ~edgeID :  edgeID));
-        //     newface.insert(newface.begin() + kedge1, (edges.back().first == v0 ?  edgeID : ~edgeID));
-        //   }
-        // }
-
-        // cerr << "After adding new edges: "<< endl
-        //      << poly2string(vertices, vertexMask, edges, newface);
-
-        CHECK(newface.size() >= 3);
-
-        // // Verify the new face forms a proper topological ring.
-        // BEGIN_CONTRACT_SCOPE
-        // {
-        //   for (auto kedge = 0; kedge < newface.size(); ++kedge) {
-        //     const auto kedge1 = (kedge + 1) % newface.size();
-        //     CHECK(endVertex(newface[kedge], edges) == startVertex(newface[kedge1], edges));
-        //   }
-        // }
-        // END_CONTRACT_SCOPE
-      }
-
-      // Deactivate any clipped vertices.
-      for (auto k = 0; k < vertexMask.size(); ++k) vertexMask[k] = std::max(0, vertexMask[k]);
-
-      // The new face is complete, so replace the old one.
-      face = newface;
+      CHECK(activeVertices.size() >= 3);
     }
   }
-  // cerr << "Final clipped polygon: "<< endl
-  //      << poly2string(vertices, vertexMask, edges, face);
 
   // Now rebuild the polygon, and we're done.
-  if (face.empty()) {
-    poly = GeomPolygon();
+  if (activeVertices.empty()) {
+    poly0 = GeomPolygon();
   } else {
-    CHECK(face.size() >= 3);
-    // cerr << "Building new polygon:" << endl
-    //      << "    vertices: ";
 
-    // Build a list of the vertices that are active, and a map of old->new vertex index.
-    CHECK(vertexMask.empty() or 
-          (*min_element(vertexMask.begin(), vertexMask.end()) >= 0 and
-           *max_element(vertexMask.begin(), vertexMask.end()) <= 1));
-    vector<Vector> newvertices;
-    newvertices.reserve(vertices.size());
-    vector<int> old2new(vertices.size());
-    for (auto i = 0; i < vertices.size(); ++i) {
-      if (vertexMask[i] == 1) {
-        old2new[i] = newvertices.size();
-        newvertices.push_back(vertices[i]);
-        // cerr << " ([" << old2new[i] << "] " << newvertices.back() << ")";
-      }
+    const auto nverts = activeVertices.size();
+    CHECK(nverts >= 3);
+    vector<Vector> coords(nverts);
+    vector<vector<unsigned>> facets(nverts, vector<unsigned>(2));
+    auto vptr = *activeVertices.begin();
+    for (auto k = 0; k < nverts; ++k) {
+      coords[k] = vptr->position;
+      facets[k][0] = k;
+      facets[k][1] = (k + 1) % nverts;
+      vptr = vptr->neighbors.second;
     }
-    // cerr << endl
-    //      << "    facets: ";
-    // Build the facet info.
-    vector<vector<unsigned>> facets(face.size(), vector<unsigned>(2));;
-    for (auto kedge = 0; kedge < face.size(); ++kedge) {
-      facets[kedge][0] = old2new[startVertex(face[kedge], edges)];
-      facets[kedge][1] = old2new[endVertex(face[kedge], edges)];
-      // cerr << "(" << facets[kedge][0] << " " << facets[kedge][1] << ")";
-    }
-    // for (const auto edgeID: face) {
-    //   facets.push_back(vector<unsigned>(2));
-    //   facets.back()[0] = old2new[startVertex(edgeID, edges)];
-    //   facets.back()[1] = old2new[endVertex(edgeID, edges)];
-    //   cerr << "(" << facets.back()[0] << " " << facets.back()[1] << ")";
-    // }
-    CHECK(facets.size() >= 3);
-    // cerr << endl;
-
-    // Now we can rebuild the polyhedron.
-    poly = GeomPolygon(newvertices, facets);
+    CHECK(vptr == *activeVertices.begin());
+    poly0 = GeomPolygon(coords, facets);
   }
 }
 
