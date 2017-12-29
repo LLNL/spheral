@@ -42,9 +42,9 @@ class TestPolyClipper2d(unittest.TestCase):
         return
 
     #---------------------------------------------------------------------------
-    # Spheral::Polygon <--> PolyClipper::Polygon
+    # Spheral::Polygon --> PolyClipper::Polygon
     #---------------------------------------------------------------------------
-    def testConversion(self):
+    def testConvertToPolygon(self):
         for poly in self.polygons:
             PCpoly = PolyClipper.Polygon()
             PolyClipper.convertToPolygon(PCpoly, poly)
@@ -55,44 +55,73 @@ class TestPolyClipper2d(unittest.TestCase):
             self.failUnless(centroid == poly.centroid(),
                             "Centroid comparison failure: %s != %s" % (centroid, poly.centroid))
 
-    # #---------------------------------------------------------------------------
-    # # Clip with planes passing through the polygon.
-    # #---------------------------------------------------------------------------
-    # def testClipInternalOnePlane(self):
-    #     for poly in self.polygons:
-    #         PCpoly = PolyClipper.Polygon()
-    #         PolyClipper.convertToPolygon(PCpoly, poly)
-    #         for i in xrange(self.ntests):
-    #             planes1, planes2 = vector_of_Plane(), vector_of_Plane()
-    #             p0 = Vector(rangen.uniform(0.0, 1.0),
-    #                         rangen.uniform(0.0, 1.0))
-    #             phat = Vector(rangen.uniform(-1.0, 1.0), 
-    #                           rangen.uniform(-1.0, 1.0)).unitVector()
-    #             planes1.append(Plane(p0,  phat))
-    #             planes2.append(Plane(p0, -phat))
-    #             PCchunk1 = PolyClipper.Polygon()
-    #             PCchunk2 = PolyClipper.Polygon()
-    #             PolyClipper.copyPolygon(PCchunk1, PCpoly)
-    #             PolyClipper.copyPolygon(PCchunk2, PCpoly)
-    #             PolyClipper.clipPolygon(PCchunk1, planes1)
-    #             PolyClipper.clipPolygon(PCchunk2, planes2)
-    #             chunk1 = Polygon()
-    #             chunk2 = Polygon()
-    #             PolyClipper.convertFromPolygon(chunk1, PCchunk1)
-    #             PolyClipper.convertFromPolygon(chunk2, PCchunk2)
-    #             success = fuzzyEqual(chunk1.volume + chunk2.volume, poly.volume)
-    #             if not success:
-    #                 print "Poly:\n", poly
-    #                 print "Chunk 1:\n ", chunk1
-    #                 print "Chunk 2:\n ", chunk2
-    #                 writePolyhedronOBJ(poly, "poly.obj")
-    #                 writePolyhedronOBJ(chunk1, "chunk_ONE.obj")
-    #                 writePolyhedronOBJ(chunk2, "chunk_TWO.obj")
-    #             self.failUnless(success,
-    #                             "Plane clipping summing to wrong volumes: %s + %s != %s" % (chunk1.volume,
-    #                                                                                         chunk2.volume,
-    #                                                                                         poly.volume))
-    #     return
+
+    #---------------------------------------------------------------------------
+    # PolyClipper::Polygon --> Spheral::Polygon
+    #---------------------------------------------------------------------------
+    def testConvertFromPolygon(self):
+        for poly0 in self.polygons:
+            PCpoly = PolyClipper.Polygon()
+            PolyClipper.convertToPolygon(PCpoly, poly0)
+            assert poly0.vertices().size() == PCpoly.size()
+            poly1 = Polygon()
+            PolyClipper.convertFromPolygon(poly1, PCpoly)
+            assert poly1 == poly0
+
+    #---------------------------------------------------------------------------
+    # PolyClipper::copyPolygon
+    #---------------------------------------------------------------------------
+    def testCopyPolygon(self):
+        for poly0 in self.polygons:
+            PCpoly0 = PolyClipper.Polygon()
+            PolyClipper.convertToPolygon(PCpoly0, poly0)
+            assert poly0.vertices().size() == PCpoly0.size()
+            PCpoly1 = PolyClipper.Polygon()
+            PolyClipper.copyPolygon(PCpoly1, PCpoly0)
+            assert PCpoly0.size() == PCpoly1.size()
+            vol0, centroid0 = PolyClipper.moments(PCpoly0)
+            vol1, centroid1 = PolyClipper.moments(PCpoly1)
+            assert vol0 == vol1
+            assert centroid0 == centroid1
+
+    #---------------------------------------------------------------------------
+    # Clip with planes passing through the polygon.
+    #---------------------------------------------------------------------------
+    def testClipInternalOnePlane(self):
+        for poly in self.polygons:
+            PCpoly = PolyClipper.Polygon()
+            PolyClipper.convertToPolygon(PCpoly, poly)
+            for i in xrange(self.ntests):
+                planes1, planes2 = vector_of_Plane(), vector_of_Plane()
+                p0 = Vector(rangen.uniform(0.0, 1.0),
+                            rangen.uniform(0.0, 1.0))
+                phat = Vector(rangen.uniform(-1.0, 1.0), 
+                              rangen.uniform(-1.0, 1.0)).unitVector()
+                planes1.append(Plane(p0,  phat))
+                planes2.append(Plane(p0, -phat))
+                PCchunk1 = PolyClipper.Polygon()
+                PCchunk2 = PolyClipper.Polygon()
+                PolyClipper.copyPolygon(PCchunk1, PCpoly)
+                PolyClipper.copyPolygon(PCchunk2, PCpoly)
+                PolyClipper.clipPolygon(PCchunk1, planes1)
+                PolyClipper.clipPolygon(PCchunk2, planes2)
+                chunk1 = Polygon()
+                chunk2 = Polygon()
+                PolyClipper.convertFromPolygon(chunk1, PCchunk1)
+                PolyClipper.convertFromPolygon(chunk2, PCchunk2)
+                success = fuzzyEqual(chunk1.volume + chunk2.volume, poly.volume)
+                # if not success:
+                #     print "Poly:\n", poly
+                #     print "Chunk 1:\n ", chunk1
+                #     print "Chunk 2:\n ", chunk2
+                #     writePolyhedronOBJ(poly, "poly.obj")
+                #     writePolyhedronOBJ(chunk1, "chunk_ONE.obj")
+                #     writePolyhedronOBJ(chunk2, "chunk_TWO.obj")
+                self.failUnless(success,
+                                "Plane clipping summing to wrong volumes: %s + %s != %s" % (chunk1.volume,
+                                                                                            chunk2.volume,
+                                                                                            poly.volume))
+        return
 
     # #---------------------------------------------------------------------------
     # # Clip with planes passing outside the polygon -- null test.
