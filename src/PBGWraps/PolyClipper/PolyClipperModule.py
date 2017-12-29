@@ -46,8 +46,10 @@ class PolyClipper:
                                 docstring = "Copy a PolyClipper polygon to another.")
 
         self.space.add_function("moments", None,
-                                [refparam("double", "zerothMoment"),
-                                 refparam("Spheral::Vector2d", "firstMoment"),
+                                [Parameter.new("double&", "zerothMoment", direction=Parameter.DIRECTION_OUT),
+                                 Parameter.new("Spheral::Vector2d&", "zerothMoment", direction=Parameter.DIRECTION_OUT),
+#                                [refparam("double", "zerothMoment"),
+#                                 refparam("Spheral::Vector2d", "firstMoment"),
                                  constrefparam("PolyClipper::Polygon", "polygon")],
                                 docstring = "Compute the zeroth and first moment of a PolyClipper polygon.")
 
@@ -73,5 +75,8 @@ class PolyClipper:
 
         # Constructors.
         x.add_constructor([])
+
+        # Methods.
+        x.add_method("size", "unsigned int", [], is_const=True)
 
         return
