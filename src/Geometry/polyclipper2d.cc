@@ -334,11 +334,12 @@ void clipPolygon(Polygon& polygon,
   }
   TIME_PC2d_planes.stop();
 
-  // Compress the final polygon to remove all dead vertices.
+  // Compress the final polygon to remove all inactive vertices.
   TIME_PC2d_compress.start();
-  Polygon result;
-  for (auto vptr: activeVertices) result.push_back(*vptr);
-  polygon = result;
+  for (auto vptr: activeVertices) vptr->comp = 10;
+  for (auto vitr = polygon.begin(); vitr != polygon.end(); ++vitr) {
+    if (vitr->comp != 10) vitr = polygon.erase(vitr);
+  }
   TIME_PC2d_compress.stop();
   TIME_PC2d_clip.stop();
 }

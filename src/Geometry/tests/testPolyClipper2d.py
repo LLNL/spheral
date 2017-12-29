@@ -37,7 +37,7 @@ class TestPolyClipper2d(unittest.TestCase):
     # setUp
     #---------------------------------------------------------------------------
     def setUp(self):
-        self.polygons = [square, notchedthing]
+        self.polygons = [square] #, notchedthing]
         self.ntests = 1000
         return
 
@@ -110,62 +110,68 @@ class TestPolyClipper2d(unittest.TestCase):
                 PolyClipper.convertFromPolygon(chunk1, PCchunk1)
                 PolyClipper.convertFromPolygon(chunk2, PCchunk2)
                 success = fuzzyEqual(chunk1.volume + chunk2.volume, poly.volume)
-                # if not success:
-                #     print "Poly:\n", poly
-                #     print "Chunk 1:\n ", chunk1
-                #     print "Chunk 2:\n ", chunk2
-                #     writePolyhedronOBJ(poly, "poly.obj")
-                #     writePolyhedronOBJ(chunk1, "chunk_ONE.obj")
-                #     writePolyhedronOBJ(chunk2, "chunk_TWO.obj")
+                if not success:
+                    print "Poly:\n", poly
+                    print "Chunk 1:\n ", chunk1
+                    print "Chunk 2:\n ", chunk2
+                    writePolyhedronOBJ(poly, "poly.obj")
+                    writePolyhedronOBJ(chunk1, "chunk_ONE.obj")
+                    writePolyhedronOBJ(chunk2, "chunk_TWO.obj")
                 self.failUnless(success,
                                 "Plane clipping summing to wrong volumes: %s + %s != %s" % (chunk1.volume,
                                                                                             chunk2.volume,
                                                                                             poly.volume))
         return
 
-    # #---------------------------------------------------------------------------
-    # # Clip with planes passing outside the polygon -- null test.
-    # #---------------------------------------------------------------------------
-    # def testNullClipOnePlane(self):
-    #     for poly in self.polygons:
-    #         for i in xrange(self.ntests):
-    #             r = rangen.uniform(2.0, 100.0) * (poly.xmax - poly.xmin).magnitude()
-    #             theta = rangen.uniform(0.0, 2.0*pi)
-    #             phat = Vector(cos(theta), sin(theta))
-    #             p0 = poly.centroid() + r*phat
-    #             planes = vector_of_Plane()
-    #             planes.append(Plane(p0, -phat))
-    #             chunk = Polygon(poly)
-    #             clipFacetedVolumeByPlanes(chunk, planes)
-    #             success = (chunk.volume == poly.volume)
-    #             if not success:
-    #                 writePolyhedronOBJ(poly, "poly.obj")
-    #                 writePolyhedronOBJ(chunk, "chunk.obj")
-    #             self.failUnless(success,
-    #                             "Null plane clipping failure: %s != %s" % (chunk.volume, poly.volume))
-    #     return
+    #---------------------------------------------------------------------------
+    # Clip with planes passing outside the polygon -- null test.
+    #---------------------------------------------------------------------------
+    def testNullClipOnePlane(self):
+        for poly in self.polygons:
+            for i in xrange(self.ntests):
+                r = rangen.uniform(2.0, 100.0) * (poly.xmax - poly.xmin).magnitude()
+                theta = rangen.uniform(0.0, 2.0*pi)
+                phat = Vector(cos(theta), sin(theta))
+                p0 = poly.centroid() + r*phat
+                planes = vector_of_Plane()
+                planes.append(Plane(p0, -phat))
+                PCchunk = PolyClipper.Polygon()
+                PolyClipper.convertToPolygon(PCchunk, poly)
+                PolyClipper.clipPolygon(PCchunk, planes)
+                chunk = Polygon()
+                PolyClipper.convertFromPolygon(chunk, PCchunk)
+                success = (chunk.volume == poly.volume)
+                if not success:
+                    writePolyhedronOBJ(poly, "poly.obj")
+                    writePolyhedronOBJ(chunk, "chunk.obj")
+                self.failUnless(success,
+                                "Null plane clipping failure: %s != %s" % (chunk.volume, poly.volume))
+        return
 
-    # #---------------------------------------------------------------------------
-    # # Clip with planes passing outside the polygon and rejecting the whole thing.
-    # #---------------------------------------------------------------------------
-    # def testFullClipOnePlane(self):
-    #     for poly in self.polygons:
-    #         for i in xrange(self.ntests):
-    #             planes = vector_of_Plane()
-    #             r = rangen.uniform(2.0, 100.0) * (poly.xmax - poly.xmin).magnitude()
-    #             theta = rangen.uniform(0.0, 2.0*pi)
-    #             phat = Vector(cos(theta), sin(theta))
-    #             p0 = poly.centroid() + r*phat
-    #             planes.append(Plane(p0, phat))
-    #             chunk = Polygon(poly)
-    #             clipFacetedVolumeByPlanes(chunk, planes)
-    #             success = (chunk.volume == 0.0)
-    #             if not success:
-    #                 writePolyhedronOBJ(poly, "poly.obj")
-    #                 writePolyhedronOBJ(chunk, "chunk.obj")
-    #             self.failUnless(success,
-    #                             "Full plane clipping failure: %s != %s" % (chunk.volume, poly.volume))
-    #     return
+    #---------------------------------------------------------------------------
+    # Clip with planes passing outside the polygon and rejecting the whole thing.
+    #---------------------------------------------------------------------------
+    def testFullClipOnePlane(self):
+        for poly in self.polygons:
+            for i in xrange(self.ntests):
+                planes = vector_of_Plane()
+                r = rangen.uniform(2.0, 100.0) * (poly.xmax - poly.xmin).magnitude()
+                theta = rangen.uniform(0.0, 2.0*pi)
+                phat = Vector(cos(theta), sin(theta))
+                p0 = poly.centroid() + r*phat
+                planes.append(Plane(p0, phat))
+                PCchunk = PolyClipper.Polygon()
+                PolyClipper.convertToPolygon(PCchunk, poly)
+                PolyClipper.clipPolygon(PCchunk, planes)
+                chunk = Polygon()
+                PolyClipper.convertFromPolygon(chunk, PCchunk)
+                success = (chunk.volume == 0.0)
+                if not success:
+                    writePolyhedronOBJ(poly, "poly.obj")
+                    writePolyhedronOBJ(chunk, "chunk.obj")
+                self.failUnless(success,
+                                "Full plane clipping failure: %s != %s" % (chunk.volume, poly.volume))
+        return
 
     # #---------------------------------------------------------------------------
     # # Clip with planes passing through the polygon.
