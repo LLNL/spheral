@@ -211,9 +211,10 @@ void moments(double& zerothMoment, Spheral::Dim<2>::Vector& firstMoment,
       vptr = vnext;
     }
     CHECK(zerothMoment != 0.0);
-    firstMoment = firstMoment/zerothMoment + vfirst->position;
+    firstMoment = firstMoment/(3.0*zerothMoment) + vfirst->position;
     zerothMoment *= 0.5;
   }
+  cerr << "Computed moments: " << zerothMoment << " " << firstMoment << endl;
   TIME_PC2d_moments.stop();
 }
 
