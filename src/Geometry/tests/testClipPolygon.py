@@ -46,6 +46,8 @@ class TestPolygonClipping(unittest.TestCase):
     #---------------------------------------------------------------------------
     def testClipInternalOnePlane(self):
         for poly in self.polygons:
+            PCpoly = PolyClipper.Polygon()
+            PolyClipper.convertToPolygon(PCpoly, poly)
             for i in xrange(self.ntests):
                 planes1, planes2 = vector_of_Plane(), vector_of_Plane()
                 p0 = Vector(rangen.uniform(0.0, 1.0),
@@ -54,10 +56,16 @@ class TestPolygonClipping(unittest.TestCase):
                               rangen.uniform(-1.0, 1.0)).unitVector()
                 planes1.append(Plane(p0,  phat))
                 planes2.append(Plane(p0, -phat))
-                chunk1 = Polygon(poly)
-                chunk2 = Polygon(poly)
-                clipFacetedVolumeByPlanes(chunk1, planes1)
-                clipFacetedVolumeByPlanes(chunk2, planes2)
+                PCchunk1 = PolyClipper.Polygon()
+                PCchunk2 = PolyClipper.Polygon()
+                PolyClipper.copyPolygon(PCchunk1, PCpoly)
+                PolyClipper.copyPolygon(PCchunk2, PCpoly)
+                PolyClipper.clipPolygon(PCchunk1, planes1)
+                PolyClipper.clipPolygon(PCchunk2, planes2)
+                chunk1 = Polygon()
+                chunk2 = Polygon()
+                PolyClipper.convertFromPolygon(chunk1, PCchunk1)
+                PolyClipper.convertFromPolygon(chunk2, PCchunk2)
                 success = fuzzyEqual(chunk1.volume + chunk2.volume, poly.volume)
                 if not success:
                     print "Poly:\n", poly
@@ -72,93 +80,93 @@ class TestPolygonClipping(unittest.TestCase):
                                                                                             poly.volume))
         return
 
-    #---------------------------------------------------------------------------
-    # Clip with planes passing outside the polygon -- null test.
-    #---------------------------------------------------------------------------
-    def testNullClipOnePlane(self):
-        for poly in self.polygons:
-            for i in xrange(self.ntests):
-                r = rangen.uniform(2.0, 100.0) * (poly.xmax - poly.xmin).magnitude()
-                theta = rangen.uniform(0.0, 2.0*pi)
-                phat = Vector(cos(theta), sin(theta))
-                p0 = poly.centroid() + r*phat
-                planes = vector_of_Plane()
-                planes.append(Plane(p0, -phat))
-                chunk = Polygon(poly)
-                clipFacetedVolumeByPlanes(chunk, planes)
-                success = (chunk.volume == poly.volume)
-                if not success:
-                    writePolyhedronOBJ(poly, "poly.obj")
-                    writePolyhedronOBJ(chunk, "chunk.obj")
-                self.failUnless(success,
-                                "Null plane clipping failure: %s != %s" % (chunk.volume, poly.volume))
-        return
+    # #---------------------------------------------------------------------------
+    # # Clip with planes passing outside the polygon -- null test.
+    # #---------------------------------------------------------------------------
+    # def testNullClipOnePlane(self):
+    #     for poly in self.polygons:
+    #         for i in xrange(self.ntests):
+    #             r = rangen.uniform(2.0, 100.0) * (poly.xmax - poly.xmin).magnitude()
+    #             theta = rangen.uniform(0.0, 2.0*pi)
+    #             phat = Vector(cos(theta), sin(theta))
+    #             p0 = poly.centroid() + r*phat
+    #             planes = vector_of_Plane()
+    #             planes.append(Plane(p0, -phat))
+    #             chunk = Polygon(poly)
+    #             clipFacetedVolumeByPlanes(chunk, planes)
+    #             success = (chunk.volume == poly.volume)
+    #             if not success:
+    #                 writePolyhedronOBJ(poly, "poly.obj")
+    #                 writePolyhedronOBJ(chunk, "chunk.obj")
+    #             self.failUnless(success,
+    #                             "Null plane clipping failure: %s != %s" % (chunk.volume, poly.volume))
+    #     return
 
-    #---------------------------------------------------------------------------
-    # Clip with planes passing outside the polygon and rejecting the whole thing.
-    #---------------------------------------------------------------------------
-    def testFullClipOnePlane(self):
-        for poly in self.polygons:
-            for i in xrange(self.ntests):
-                planes = vector_of_Plane()
-                r = rangen.uniform(2.0, 100.0) * (poly.xmax - poly.xmin).magnitude()
-                theta = rangen.uniform(0.0, 2.0*pi)
-                phat = Vector(cos(theta), sin(theta))
-                p0 = poly.centroid() + r*phat
-                planes.append(Plane(p0, phat))
-                chunk = Polygon(poly)
-                clipFacetedVolumeByPlanes(chunk, planes)
-                success = (chunk.volume == 0.0)
-                if not success:
-                    writePolyhedronOBJ(poly, "poly.obj")
-                    writePolyhedronOBJ(chunk, "chunk.obj")
-                self.failUnless(success,
-                                "Full plane clipping failure: %s != %s" % (chunk.volume, poly.volume))
-        return
+    # #---------------------------------------------------------------------------
+    # # Clip with planes passing outside the polygon and rejecting the whole thing.
+    # #---------------------------------------------------------------------------
+    # def testFullClipOnePlane(self):
+    #     for poly in self.polygons:
+    #         for i in xrange(self.ntests):
+    #             planes = vector_of_Plane()
+    #             r = rangen.uniform(2.0, 100.0) * (poly.xmax - poly.xmin).magnitude()
+    #             theta = rangen.uniform(0.0, 2.0*pi)
+    #             phat = Vector(cos(theta), sin(theta))
+    #             p0 = poly.centroid() + r*phat
+    #             planes.append(Plane(p0, phat))
+    #             chunk = Polygon(poly)
+    #             clipFacetedVolumeByPlanes(chunk, planes)
+    #             success = (chunk.volume == 0.0)
+    #             if not success:
+    #                 writePolyhedronOBJ(poly, "poly.obj")
+    #                 writePolyhedronOBJ(chunk, "chunk.obj")
+    #             self.failUnless(success,
+    #                             "Full plane clipping failure: %s != %s" % (chunk.volume, poly.volume))
+    #     return
 
-    #---------------------------------------------------------------------------
-    # Clip with planes passing through the polygon.
-    #---------------------------------------------------------------------------
-    def testClipInternalTwoPlanes(self):
-        for poly in self.polygons:
-            for i in xrange(self.ntests):
-                planes1 = vector_of_Plane()
-                p0 = Vector(rangen.uniform(0.0, 1.0),
-                            rangen.uniform(0.0, 1.0))
-                for iplane in xrange(2):
-                    planes1.append(Plane(point = p0,
-                                         normal = Vector(rangen.uniform(-1.0, 1.0), 
-                                                         rangen.uniform(-1.0, 1.0)).unitVector()))
-                planes2 = vector_of_Plane(planes1)
-                planes3 = vector_of_Plane(planes1)
-                planes4 = vector_of_Plane(planes1)
-                planes2[0].normal = -planes2[0].normal
-                planes3[1].normal = -planes3[1].normal
-                planes4[0].normal = -planes4[0].normal
-                planes4[1].normal = -planes4[1].normal
-                chunk1 = Polygon(poly)
-                chunk2 = Polygon(poly)
-                chunk3 = Polygon(poly)
-                chunk4 = Polygon(poly)
-                clipFacetedVolumeByPlanes(chunk1, planes1)
-                clipFacetedVolumeByPlanes(chunk2, planes2)
-                clipFacetedVolumeByPlanes(chunk3, planes3)
-                clipFacetedVolumeByPlanes(chunk4, planes4)
-                success = fuzzyEqual(chunk1.volume + chunk2.volume + chunk3.volume + chunk4.volume, poly.volume)
-                if not success:
-                    writePolyhedronOBJ(poly, "poly.obj")
-                    writePolyhedronOBJ(chunk1, "chunk_1ONE_TWOPLANES.obj")
-                    writePolyhedronOBJ(chunk2, "chunk_2TWO_TWOPLANES.obj")
-                    writePolyhedronOBJ(chunk3, "chunk_3THREE_TWOPLANES.obj")
-                    writePolyhedronOBJ(chunk4, "chunk_4FOUR_TWOPLANES.obj")
-                self.failUnless(success,
-                                "Two plane clipping summing to wrong volumes: %s + %s + %s + %s = %s != %s" % (chunk1.volume,
-                                                                                                               chunk2.volume,
-                                                                                                               chunk3.volume,
-                                                                                                               chunk4.volume,
-                                                                                                               chunk1.volume + chunk2.volume + chunk3.volume + chunk4.volume,
-                                                                                                               poly.volume))
-        return
+    # #---------------------------------------------------------------------------
+    # # Clip with planes passing through the polygon.
+    # #---------------------------------------------------------------------------
+    # def testClipInternalTwoPlanes(self):
+    #     for poly in self.polygons:
+    #         for i in xrange(self.ntests):
+    #             planes1 = vector_of_Plane()
+    #             p0 = Vector(rangen.uniform(0.0, 1.0),
+    #                         rangen.uniform(0.0, 1.0))
+    #             for iplane in xrange(2):
+    #                 planes1.append(Plane(point = p0,
+    #                                      normal = Vector(rangen.uniform(-1.0, 1.0), 
+    #                                                      rangen.uniform(-1.0, 1.0)).unitVector()))
+    #             planes2 = vector_of_Plane(planes1)
+    #             planes3 = vector_of_Plane(planes1)
+    #             planes4 = vector_of_Plane(planes1)
+    #             planes2[0].normal = -planes2[0].normal
+    #             planes3[1].normal = -planes3[1].normal
+    #             planes4[0].normal = -planes4[0].normal
+    #             planes4[1].normal = -planes4[1].normal
+    #             chunk1 = Polygon(poly)
+    #             chunk2 = Polygon(poly)
+    #             chunk3 = Polygon(poly)
+    #             chunk4 = Polygon(poly)
+    #             clipFacetedVolumeByPlanes(chunk1, planes1)
+    #             clipFacetedVolumeByPlanes(chunk2, planes2)
+    #             clipFacetedVolumeByPlanes(chunk3, planes3)
+    #             clipFacetedVolumeByPlanes(chunk4, planes4)
+    #             success = fuzzyEqual(chunk1.volume + chunk2.volume + chunk3.volume + chunk4.volume, poly.volume)
+    #             if not success:
+    #                 writePolyhedronOBJ(poly, "poly.obj")
+    #                 writePolyhedronOBJ(chunk1, "chunk_1ONE_TWOPLANES.obj")
+    #                 writePolyhedronOBJ(chunk2, "chunk_2TWO_TWOPLANES.obj")
+    #                 writePolyhedronOBJ(chunk3, "chunk_3THREE_TWOPLANES.obj")
+    #                 writePolyhedronOBJ(chunk4, "chunk_4FOUR_TWOPLANES.obj")
+    #             self.failUnless(success,
+    #                             "Two plane clipping summing to wrong volumes: %s + %s + %s + %s = %s != %s" % (chunk1.volume,
+    #                                                                                                            chunk2.volume,
+    #                                                                                                            chunk3.volume,
+    #                                                                                                            chunk4.volume,
+    #                                                                                                            chunk1.volume + chunk2.volume + chunk3.volume + chunk4.volume,
+    #                                                                                                            poly.volume))
+    #     return
 
 if __name__ == "__main__":
     unittest.main()
