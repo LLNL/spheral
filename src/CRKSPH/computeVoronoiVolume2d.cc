@@ -13,7 +13,7 @@
 #include "Utilities/allReduce.hh"
 #include "Utilities/pointOnPolygon.hh"
 #include "Utilities/FastMath.hh"
-#include "Geometry/clipFacetedVolumeByPlanes.hh"
+#include "Geometry/polyclipper.hh"
 
 namespace Spheral {
 namespace CRKSPHSpace {
@@ -178,14 +178,13 @@ bool comparePlanes(const GeomPlane<Dim<2>>& lhs,
 inline
 void findPolygonExtent(double& xmin, double& xmax, 
                        const Dim<2>::Vector& nhat, 
-                       const Dim<2>::FacetedVolume& celli) {
+                       const PolyClipper::Polygon& celli) {
   REQUIRE(fuzzyEqual(nhat.magnitude(), 1.0));
   double xi;
   xmin = 0.0;
   xmax = 0.0;
-  const auto verts = celli.vertices();
-  for (const auto& vi: verts) {
-    xi = vi.dot(nhat);
+  for (const auto& vi: celli) {
+    xi = vi.position.dot(nhat);
     xmin = std::min(xmin, xi);
     xmax = std::max(xmax, xi);
   }
@@ -253,26 +252,34 @@ computeVoronoiVolume(const FieldList<Dim<2>, Dim<2>::Vector>& position,
 
     // Unit circle as template shape.
     const auto nverts = 18;
-    const auto dtheta = 2.0*M_PI/nverts;
-    vector<Vector> verts0(nverts);
-    vector<vector<unsigned>> facets0(nverts, vector<unsigned>(2));
-    for (auto j = 0; j != nverts; ++j) {
-      const auto theta = j*dtheta;
-      verts0[j].x(cos(theta));
-      verts0[j].y(sin(theta));
-      facets0[j][0] = j;
-      facets0[j][1] = (j + 1) % nverts;
+    PolyClipper::Polygon cell0;
+    {
+      const auto dtheta = 2.0*M_PI/nverts;
+      vector<Vector> verts0(nverts);
+      vector<vector<unsigned>> facets0(nverts, vector<unsigned>(2));
+      for (auto j = 0; j != nverts; ++j) {
+        const auto theta = j*dtheta;
+        verts0[j].x(cos(theta));
+        verts0[j].y(sin(theta));
+        facets0[j][0] = j;
+        facets0[j][1] = (j + 1) % nverts;
+      }
+      PolyClipper::convertToPolygon(cell0, FacetedVolume(verts0, facets0));
     }
 
     // Walk the points.
     vector<Plane> pairPlanes, voidPlanes;
     unsigned nvoid;
+    double voli;
     Vector etaVoidAvg;
+    PolyClipper::Polygon celli;
     for (auto nodeListi = 0; nodeListi != numNodeLists; ++nodeListi) {
       const auto n = vol[nodeListi]->numInternalElements();
       const auto rin = 2.0/vol[nodeListi]->nodeListPtr()->nodesPerSmoothingScale();
-#pragma omp parallel for                        \
-  private(pairPlanes, voidPlanes, nvoid, etaVoidAvg)
+
+#pragma omp parallel for                                        \
+  private(pairPlanes, voidPlanes, nvoid, voli, etaVoidAvg, celli)
+
       for (auto i = 0; i < n; ++i) {
 
         const auto& ri = position(nodeListi, i);
@@ -294,9 +301,8 @@ computeVoronoiVolume(const FieldList<Dim<2>, Dim<2>::Vector>& position,
         // t0 = std::clock();
 
         // Initialize our seed cell shape.
-        vector<Vector> verts(nverts);
-        for (auto k = 0; k < nverts; ++k) verts[k] = 1.1*rin*Hinv*verts0[k];
-        FacetedVolume celli(verts, facets0);
+        PolyClipper::copyPolygon(celli, cell0);
+        for (auto& v: celli) v.position = 1.1*rin*Hinv*v.position;
 
         // Clip by any boundaries first.
         if (haveBoundaries) {
@@ -369,9 +375,8 @@ computeVoronoiVolume(const FieldList<Dim<2>, Dim<2>::Vector>& position,
         std::sort(pairPlanes.begin(), pairPlanes.end(), comparePlanes);
 
         // Clip by non-void neighbors first.
-        clipFacetedVolumeByPlanes(celli, pairPlanes);
-        const auto& vertsi = celli.vertices();
-        CHECK(vertsi.size() > 0);
+        PolyClipper::clipPolygon(celli, pairPlanes);
+        CHECK(not celli.empty());
 
         // tclip += std::clock() - t0;
 
@@ -379,8 +384,8 @@ computeVoronoiVolume(const FieldList<Dim<2>, Dim<2>::Vector>& position,
         bool interior = true;
         // t0 = std::clock();
         {
-          for (const auto& vert: vertsi) {
-            const auto peta = Hi*vert;
+          for (const auto& vert: celli) {
+            const auto peta = Hi*vert.position;
             if (peta.magnitude2() > rin*rin) {
               interior = false;
               if (returnSurface) {
@@ -410,25 +415,25 @@ computeVoronoiVolume(const FieldList<Dim<2>, Dim<2>::Vector>& position,
 
             // Clip the cell geometry by the void points we just created.
             std::sort(voidPlanes.begin(), voidPlanes.end(), comparePlanes);
-            clipFacetedVolumeByPlanes(celli, voidPlanes);
-            CHECK(vertsi.size() > 0);
+            PolyClipper::clipPolygon(celli, voidPlanes);
+            CHECK(not celli.empty());
           }
         }
         // tinterior += std::clock() - t0;
 
         // Clip by any extant void neighbors.
         std::sort(voidPlanes.begin(), voidPlanes.end(), comparePlanes);
-        clipFacetedVolumeByPlanes(celli, voidPlanes);
-        CHECK(vertsi.size() > 0);
+        PolyClipper::clipPolygon(celli, voidPlanes);
+        CHECK(not celli.empty());
 
-        // Compute the final geometry.
-        deltaMedian(nodeListi, i) = celli.centroid();
+        // Compute the moments of the clipped cell.
+        PolyClipper::moments(voli, deltaMedian(nodeListi, i), celli);
 
         if (interior) {
           // t0 = std::clock();
 
           // We only use the volume result if interior.
-          vol(nodeListi, i) = celli.volume();
+          vol(nodeListi, i) = voli;
 
           // // Apply the gradient limiter;
           // gradRhoi *= phi;
@@ -466,12 +471,12 @@ computeVoronoiVolume(const FieldList<Dim<2>, Dim<2>::Vector>& position,
           // surface if in fact there are still facets from that bounding polygon on this cell.
           // t0 = std::clock();
           if (haveBoundaries and returnSurface) {
-            unsigned j = 0;
-            while (interior and j != vertsi.size()) {
-              interior = not pointOnPolygon(ri + vertsi[j],
+            auto vitr = celli.begin();
+            while (interior and vitr != celli.end()) {
+              interior = not pointOnPolygon(ri + vitr->position,
                                             boundaries[nodeListi].vertices(),
                                             1.0e-8);
-              ++j;
+              ++vitr;
             }
 
           }
@@ -501,7 +506,7 @@ computeVoronoiVolume(const FieldList<Dim<2>, Dim<2>::Vector>& position,
         // If requested, we can return the cell geometries.
         if (returnCells) {
           // t0 = std::clock();
-          cells(nodeListi, i) = celli;
+          PolyClipper::convertFromPolygon(cells(nodeListi, i), celli);
           cells(nodeListi, i) += ri;
           // tcell += std::clock() - t0;
         }
