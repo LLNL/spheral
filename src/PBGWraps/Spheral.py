@@ -22,7 +22,7 @@ except:
     pass
 
 # ------------------------------------------------------------------------------
-# Import the compiled packages.
+# Import the core Spheral compiled packages.
 # ------------------------------------------------------------------------------
 from SpheralModules import *
 from SpheralModules.Spheral import *
@@ -44,6 +44,11 @@ from SpheralModules.Spheral.CRKSPHSpace import *
 from SpheralModules.Spheral.SVPHSpace import *
 from SpheralModules.Spheral.MeshSpace import *
 from SpheralModules.Spheral.PythonBoundFunctors import *
+
+# ------------------------------------------------------------------------------
+# PolyCliper
+# ------------------------------------------------------------------------------
+import SpheralModules.PolyClipper as PolyClipper
 
 # ------------------------------------------------------------------------------
 # Load up MPI.

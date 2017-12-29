@@ -25,9 +25,6 @@ namespace Spheral {
 // 1D
 void clipFacetedVolumeByPlanes(Dim<1>::FacetedVolume& poly, const std::vector<GeomPlane<Dim<1>>>& planes);
 
-// 2D
-void clipFacetedVolumeByPlanes(Dim<2>::FacetedVolume& poly, const std::vector<GeomPlane<Dim<2>>>& planes);
-
 // 3D
 void clipFacetedVolumeByPlanes(Dim<3>::FacetedVolume& poly, const std::vector<GeomPlane<Dim<3>>>& planes);
 

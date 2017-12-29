@@ -152,9 +152,6 @@ self.vector_of_Plane%(dim)s = addObject(mod, "vector_of_Plane%(dim)s", allow_sub
                                 [refparam("Spheral::Box1d", "poly"), constrefparam("vector_of_Plane1d", "planes")],
                                 docstring = "Clip a box by a set of planes.")
         self.space.add_function("clipFacetedVolumeByPlanes", None,
-                                [refparam("Spheral::Polygon", "poly"), constrefparam("vector_of_Plane2d", "planes")],
-                                docstring = "Clip a polygon by a set of planes.")
-        self.space.add_function("clipFacetedVolumeByPlanes", None,
                                 [refparam("Spheral::Polyhedron", "poly"), constrefparam("vector_of_Plane3d", "planes")],
                                 docstring = "Clip a polyhedron by a set of planes.")
         self.space.add_function("clipConvexFacetedVolumeByPlanes", None,
