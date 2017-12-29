@@ -169,7 +169,7 @@ void copyPolygon(Polygon& polygon,
                  const Polygon& polygon0) {
   TIME_PC2d_copy.start();
   polygon.clear();
-  if (not polygon.empty()) {
+  if (not polygon0.empty()) {
     std::map<const Vertex2d*, Vertex2d*> ptrMap;
     for (auto& v: polygon0) {
       polygon.push_back(v);
@@ -214,7 +214,6 @@ void moments(double& zerothMoment, Spheral::Dim<2>::Vector& firstMoment,
     firstMoment = firstMoment/(3.0*zerothMoment) + vfirst->position;
     zerothMoment *= 0.5;
   }
-  cerr << "Computed moments: " << zerothMoment << " " << firstMoment << endl;
   TIME_PC2d_moments.stop();
 }
 
