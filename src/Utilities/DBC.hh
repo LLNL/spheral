@@ -102,16 +102,16 @@ inline bool nearlyEqual(const T& x,
 //----------------------------------------------------------------------------
 
 #ifdef DBC_USE_REQUIRE
-#define DBC_ASSERTION(x, msg, kind) \
-if (::Spheral::dbc::assertionLock()) {        \
-   if (!(x)) { \
-      std::stringstream s; \
-      s << kind << ": " << msg << std::endl; \
-      s << "...at line " << __LINE__ << \
-         " of file " << __FILE__ << "." << std::ends;\
-      ::Spheral::Process::haltAll(s.str().c_str());\
-   }\
-   ::Spheral::dbc::assertionUnLock(); \
+#define DBC_ASSERTION(x, msg, kind)                     \
+   if (::Spheral::dbc::assertionLock()) {               \
+      if (!(x)) {                                       \
+      std::stringstream s_SS;                           \
+      s_SS << kind << ": " << msg << std::endl;         \
+      s_SS << "...at line " << __LINE__ <<              \
+         " of file " << __FILE__ << "." << std::ends;   \
+      ::Spheral::Process::haltAll(s_SS.str().c_str());  \
+   }                                                    \
+   ::Spheral::dbc::assertionUnLock();                   \
 }
 #define REQUIRE2(x, msg) DBC_ASSERTION(x, msg, "Precondition violated")
 #define ASSERT2(x, msg) DBC_ASSERTION(x, msg, "Assertion violated")
