@@ -35,14 +35,14 @@ Timer   TIME_Polyhedron_BB_R2          ("Polyhedron::setBoundingBox - Rinterior2
 Timer TIME_Polyhedron_convex           ("Polyhedron::convex");
 
 //------------------------------------------------------------------------------
-// clipFacetedVolume2d timers
+// PolyClipper2d timers
 //------------------------------------------------------------------------------
 Timer TIME_PC2d_convertto("Spheral::Polygon -> PolyClipper::Polygon");
 Timer TIME_PC2d_convertfrom("PolyClipper::Polygon -> Spheral::Polygon");
 Timer TIME_PC2d_copy("Copy PolyClipper::Polygon");
 Timer TIME_PC2d_moments("Compute polygon moments");
-Timer TIME_PC2d_clip("clipFacetedVolumeByPlanes2d");
-Timer TIME_PC2d_planes("Apply clip planes (clipFacetedVolumeByPlanes2d)", TIME_PC2d_clip);
+Timer TIME_PC2d_clip("clipPolygon");
+Timer TIME_PC2d_planes("Apply clip planes (clipPolygon)", TIME_PC2d_clip);
 Timer TIME_PC2d_checkverts("Clip vertices", TIME_PC2d_planes);
 Timer TIME_PC2d_insertverts("Insert new vertices", TIME_PC2d_planes);
 Timer TIME_PC2d_hanging("Link hanging vertices", TIME_PC2d_planes);
