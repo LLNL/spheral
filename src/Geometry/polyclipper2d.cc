@@ -98,7 +98,6 @@ polygon2string(const Polygon& poly) {
   s << "[";
 
   // Numbers of vertices.
-  const auto nverts = poly.size();
   const auto nactive = count_if(poly.begin(), poly.end(),
                                 [](const Vertex2d& x) { return x.comp >= 0; });
   set<const Vertex2d*> usedVertices;
@@ -108,16 +107,15 @@ polygon2string(const Polygon& poly) {
     s << "[";
 
     // Look for the first active unused vertex.
-    auto vstart = &(poly.front());
-    auto k = 0;
-    while (k++ < nverts and
-           (vstart->comp < 0 or usedVertices.find(vstart) != usedVertices.end())) vstart = vstart->neighbors.second;
-    CHECK(k < nverts);
-    auto vnext = vstart;
+    auto vstart = poly.begin();
+    while (vstart != poly.end() and
+           (vstart->comp < 0 or usedVertices.find(&(*vstart)) != usedVertices.end())) vstart++;
+    CHECK(vstart != poly.end());
+    auto vnext = &(*vstart);
 
     // Read out this loop.
     auto force = true;
-    while (force or vnext != vstart) {
+    while (force or vnext != &(*vstart)) {
       s << " " << vnext->position;
       force = false;
       usedVertices.insert(vnext);
@@ -170,7 +168,6 @@ void convertToPolygon(Polygon& polygon,
 
 //------------------------------------------------------------------------------
 // Convert PolyClipper::Polygon -> Spheral::GeomPolygon.
-// Note: this method assumes the polygon has had all inactive vertices removed.
 //------------------------------------------------------------------------------
 void convertFromPolygon(Spheral::Dim<2>::FacetedVolume& Spheral_polygon,
                         const Polygon& polygon) {
@@ -186,19 +183,43 @@ void convertFromPolygon(Spheral::Dim<2>::FacetedVolume& Spheral_polygon,
 
   } else {
 
-    const auto nverts = polygon.size();
-    CHECK(nverts >= 3);
-    vector<Vector> coords(nverts);
-    vector<vector<unsigned>> facets(nverts, vector<unsigned>(2));
-    auto vptr = &polygon.front();
-    for (int k = 0; k < nverts; ++k) {
-      coords[k] = vptr->position;
-      facets[k][0] = k;
-      facets[k][1] = (k + 1) % nverts;
-      vptr = vptr->neighbors.second;
+    // Numbers of vertices.
+    const auto nactive = count_if(polygon.begin(), polygon.end(),
+                                  [](const Vertex2d& x) { return x.comp >= 0; });
+    set<const Vertex2d*> usedVertices;
+
+    // Go until we hit all the active vertices.
+    vector<Vector> coords(nactive);
+    vector<vector<unsigned>> facets(nactive, vector<unsigned>(2));
+    auto k = 0, loopStart = 0;
+    while (usedVertices.size() < nactive) {
+
+      // Look for the first active unused vertex.
+      auto vstart = polygon.begin();
+      while (vstart != polygon.end() and
+             (vstart->comp < 0 or usedVertices.find(&(*vstart)) != usedVertices.end())) vstart++;
+      CHECK(vstart != polygon.end());
+      auto vnext = &(*vstart);
+
+      // Read out this loop.
+      auto force = true;
+      while (force or vnext != &(*vstart)) {
+        CHECK(k < nactive);
+        coords[k] = vnext->position;
+        facets[k][0] = k;
+        facets[k][1] = k + 1;
+        ++k;
+        force = false;
+        usedVertices.insert(vnext);
+        vnext = vnext->neighbors.second;
+      }
+      facets[k-1][1] = loopStart;
+      loopStart = k;
     }
-    CHECK(vptr == &polygon.front());
+    CHECK(k == nactive);
+
     Spheral_polygon = FacetedVolume(coords, facets);
+
   }
   TIME_PC2d_convertfrom.stop();
 }
@@ -335,29 +356,54 @@ void clipPolygon(Polygon& polygon,
       TIME_PC2d_insertverts.stop();
 
       // For each hanging vertex, link to the neighbors that survive the clipping.
+      // If there are more than two hanging vertices, we've clipped a non-convex face and need to check
+      // how to hook up each section, possibly resulting in new faces.
       TIME_PC2d_hanging.start();
-      for (auto vptr: hangingVertices) {
-        std::tie(vprev, vnext) = vptr->neighbors;
-        CHECK(vptr->comp == 0 or vptr->comp == 2);
-        CHECK(vprev->comp == -1 xor vnext->comp == -1);
+      CHECK(hangingVertices.size() % 2 == 0);
+      if (true) { //(hangingVertices.size() > 2) {
 
-        if (vprev->comp == -1) {
-          // We have to search backwards.
-          while (vprev->comp == -1) {
-            vprev = vprev->neighbors.first;
-          }
-          CHECK(vprev != vptr);
-          vptr->neighbors.first = vprev;
+        // Yep, more than one new edge here.
+        const Vector direction(phat.y(), -phat.x());
+        sort(hangingVertices.begin(), hangingVertices.end(), 
+             [&](const Vertex2d* a, const Vertex2d* b) { return (a->position - p0).dot(direction) < (b->position - p0).dot(direction); });
 
-        } else {
-          // We have to search forward.
-          while (vnext->comp == -1) {
-            vnext = vnext->neighbors.second;
-          }
-          CHECK(vnext != vptr);
-          vptr->neighbors.second = vnext;
-
+        // Now the ordered pairs of these new vertices form the new edges.
+        int v0, v1, kedge0, kedge1, iedge;
+        Vertex2d *v1ptr, *v2ptr;
+        for (auto k = 0; k < hangingVertices.size(); k += 2) {
+          v1ptr = hangingVertices[k];
+          v2ptr = hangingVertices[k + 1];
+          v1ptr->neighbors.second = v2ptr;
+          v2ptr->neighbors.first = v1ptr;
         }
+
+      } else {
+
+        // Just hook across the vertices and we're done.
+        for (auto vptr: hangingVertices) {
+          std::tie(vprev, vnext) = vptr->neighbors;
+          CHECK(vptr->comp == 0 or vptr->comp == 2);
+          CHECK(vprev->comp == -1 xor vnext->comp == -1);
+
+          if (vprev->comp == -1) {
+            // We have to search backwards.
+            while (vprev->comp == -1) {
+              vprev = vprev->neighbors.first;
+            }
+            CHECK(vprev != vptr);
+            vptr->neighbors.first = vprev;
+
+          } else {
+            // We have to search forward.
+            while (vnext->comp == -1) {
+              vnext = vnext->neighbors.second;
+            }
+            CHECK(vnext != vptr);
+            vptr->neighbors.second = vnext;
+
+          }
+        }
+
       }
 
       // Remove the clipped vertices, compressing the polygon.
