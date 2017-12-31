@@ -89,6 +89,46 @@ segmentPlaneIntersection(const Spheral::Dim<2>::Vector& a,       // line-segment
   return result;
 }
 
+//------------------------------------------------------------------------------
+// Return a nicely formatted string representing the polygon.
+//------------------------------------------------------------------------------
+std::string
+polygon2string(const Polygon& poly) {
+  ostringstream s;
+  s << "[";
+
+  // Numbers of vertices.
+  const auto nverts = poly.size();
+  const auto nactive = count_if(poly.begin(), poly.end(),
+                                [](const Vertex2d& x) { return x.comp >= 0; });
+  set<const Vertex2d*> usedVertices;
+
+  // Go until we hit all the active vertices.
+  while (usedVertices.size() < nactive) {
+    s << "[";
+
+    // Look for the first active unused vertex.
+    auto vstart = &(poly.front());
+    auto k = 0;
+    while (k++ < nverts and
+           (vstart->comp < 0 or usedVertices.find(vstart) != usedVertices.end())) vstart = vstart->neighbors.second;
+    CHECK(k < nverts);
+    auto vnext = vstart;
+
+    // Read out this loop.
+    auto force = true;
+    while (force or vnext != vstart) {
+      s << " " << vnext->position;
+      force = false;
+      usedVertices.insert(vnext);
+      vnext = vnext->neighbors.second;
+    }
+    s << "]";
+  }
+  s << "]";
+  return s.str();
+}
+
 }              // anonymous methods
 
 //------------------------------------------------------------------------------
@@ -130,6 +170,7 @@ void convertToPolygon(Polygon& polygon,
 
 //------------------------------------------------------------------------------
 // Convert PolyClipper::Polygon -> Spheral::GeomPolygon.
+// Note: this method assumes the polygon has had all inactive vertices removed.
 //------------------------------------------------------------------------------
 void convertFromPolygon(Spheral::Dim<2>::FacetedVolume& Spheral_polygon,
                         const Polygon& polygon) {
@@ -150,7 +191,7 @@ void convertFromPolygon(Spheral::Dim<2>::FacetedVolume& Spheral_polygon,
     vector<Vector> coords(nverts);
     vector<vector<unsigned>> facets(nverts, vector<unsigned>(2));
     auto vptr = &polygon.front();
-    for (auto k = 0; k < nverts; ++k) {
+    for (int k = 0; k < nverts; ++k) {
       coords[k] = vptr->position;
       facets[k][0] = k;
       facets[k][1] = (k + 1) % nverts;
@@ -239,7 +280,6 @@ void clipPolygon(Polygon& polygon,
     const auto& plane = planes[kplane++];
     const auto& p0 = plane.point();
     const auto& phat = plane.normal();
-    // cerr << "Plane " << kplane << " : " << p0 << " " << phat << endl;
 
     // Check the current set of vertices against this plane.
     TIME_PC2d_checkverts.start();
@@ -285,14 +325,12 @@ void clipPolygon(Polygon& polygon,
           vnext->neighbors.first = &polygon.back();
           hangingVertices.push_back(&polygon.back());
           newVertices.push_back(&polygon.back());
-          // cerr << "  --> Inserted vertex @ " << polygon.back().position << endl;
 
         } else if (vptr->comp == 0 and 
                    (vprev->comp == -1 xor vnext->comp == -1)) {
           // This vertex is exactly in-plane, but has exactly one neighbor edge that will be entirely clipped.
           // No new vertex, but vptr will be hanging.
           hangingVertices.push_back(vptr);
-          // cerr << "  --> Adding in-plane node @ " << vptr->position << endl;
 
         }
       }
@@ -337,10 +375,16 @@ void clipPolygon(Polygon& polygon,
   // Compress the final polygon to remove all inactive vertices.
   TIME_PC2d_compress.start();
   for (auto vptr: activeVertices) vptr->comp = 10;
-  for (auto vitr = polygon.begin(); vitr != polygon.end(); ++vitr) {
-    if (vitr->comp != 10) vitr = polygon.erase(vitr);
+  for (auto vitr = polygon.begin(); vitr != polygon.end();) {
+    if (vitr->comp != 10) {
+      vitr = polygon.erase(vitr);
+    } else {
+      ++vitr;
+    }
   }
+  CHECK2(polygon.size() == activeVertices.size(), polygon.size() << " " << activeVertices.size());
   TIME_PC2d_compress.stop();
+
   TIME_PC2d_clip.stop();
 }
 

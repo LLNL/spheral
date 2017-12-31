@@ -38,7 +38,7 @@ class TestPolyClipper2d(unittest.TestCase):
     #---------------------------------------------------------------------------
     def setUp(self):
         self.polygons = [square] #, notchedthing]
-        self.ntests = 1000
+        self.ntests = 10000
         return
 
     #---------------------------------------------------------------------------
@@ -111,9 +111,14 @@ class TestPolyClipper2d(unittest.TestCase):
                 PolyClipper.convertFromPolygon(chunk2, PCchunk2)
                 success = fuzzyEqual(chunk1.volume + chunk2.volume, poly.volume)
                 if not success:
+                    print "Failed on pass ", i
+                    print "Plane: ", p0, phat
                     print "Poly:\n", poly
                     print "Chunk 1:\n ", chunk1
                     print "Chunk 2:\n ", chunk2
+                    vol1, cent1 = PolyClipper.moments(PCchunk1)
+                    vol2, cent2 = PolyClipper.moments(PCchunk2)
+                    print "Vol check: %g + %g = %g" % (vol1, vol2, vol1 + vol2)
                     writePolyhedronOBJ(poly, "poly.obj")
                     writePolyhedronOBJ(chunk1, "chunk_ONE.obj")
                     writePolyhedronOBJ(chunk2, "chunk_TWO.obj")
