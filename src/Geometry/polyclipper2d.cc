@@ -268,28 +268,25 @@ void clipPolygon(Polygon& polygon,
   // Useful types.
   typedef Spheral::Dim<2>::Vector Vector;
 
-  // Initialize the set of active vertices.
-  set<Vertex2d*> activeVertices;
-  for (auto& v: polygon) activeVertices.insert(&v);
-
   // Loop over the planes.
   TIME_PC2d_planes.start();
   auto kplane = 0;
   const auto nplanes = planes.size();
-  while (kplane < nplanes and not activeVertices.empty()) {
+  while (kplane < nplanes and not polygon.empty()) {
     const auto& plane = planes[kplane++];
     const auto& p0 = plane.point();
     const auto& phat = plane.normal();
+    // cerr << "Clip plane: " << p0 << " " << phat << endl;
 
     // Check the current set of vertices against this plane.
     TIME_PC2d_checkverts.start();
     auto above = true;
     auto below = true;
-    for (auto vptr: activeVertices) {
-      vptr->comp = compare(p0, phat, vptr->position);
-      if (vptr->comp >= 0) {
+    for (auto& v: polygon) {
+      v.comp = compare(p0, phat, v.position);
+      if (v.comp >= 0) {
         below = false;
-      } else if (vptr->comp == -1) {
+      } else if (v.comp == -1) {
         above = false;
       }
     }
@@ -298,39 +295,40 @@ void clipPolygon(Polygon& polygon,
 
     // Did we get a simple case?
     if (below) {
-      // Polygon is entirely below the clip plane, and is therefore entirely removed.
-      // No need to check any more clipping planes either -- we're done.
-      activeVertices.clear();
+      // The polygon is entirely below the clip plane, and is therefore entirely removed.
+      // No need to check any more clipping planes -- we're done.
+      polygon.clear();
 
     } else if (not above) {
 
       // This plane passes through the polygon.
       // Insert any new vertices.
       TIME_PC2d_insertverts.start();
-      vector<Vertex2d*> hangingVertices, newVertices;
+      vector<Vertex2d*> hangingVertices;
       Vertex2d *vprev, *vnext;
-      for (auto vptr: activeVertices) {
-        std::tie(vprev, vnext) = vptr->neighbors;
+      for (auto& v: polygon) {
+        std::tie(vprev, vnext) = v.neighbors;
 
-        if ((vptr->comp)*(vnext->comp) == -1) {
+        if ((v.comp)*(vnext->comp) == -1) {
           // This pair straddles the plane and creates a new vertex.
-          polygon.push_back(Vertex2d(segmentPlaneIntersection(vptr->position,
-                                                         vnext->position,
-                                                         p0,
-                                                         phat),
-                                     0));
-          polygon.back().neighbors.first = vptr;
+          polygon.push_back(Vertex2d(segmentPlaneIntersection(v.position,
+                                                              vnext->position,
+                                                              p0,
+                                                              phat),
+                                     2));         // 2 indicates new vertex
+          polygon.back().neighbors.first = &v;
           polygon.back().neighbors.second = vnext;
-          vptr->neighbors.second = &polygon.back();
+          v.neighbors.second = &polygon.back();
           vnext->neighbors.first = &polygon.back();
           hangingVertices.push_back(&polygon.back());
-          newVertices.push_back(&polygon.back());
+          // cerr << " --> Inserting new vertex @ " << polygon.back().position << endl;
 
-        } else if (vptr->comp == 0 and 
+        } else if (v.comp == 0 and 
                    (vprev->comp == -1 xor vnext->comp == -1)) {
           // This vertex is exactly in-plane, but has exactly one neighbor edge that will be entirely clipped.
           // No new vertex, but vptr will be hanging.
-          hangingVertices.push_back(vptr);
+          hangingVertices.push_back(&v);
+          // cerr << " --> Hanging vertex @ " << v.position << endl;
 
         }
       }
@@ -340,13 +338,12 @@ void clipPolygon(Polygon& polygon,
       TIME_PC2d_hanging.start();
       for (auto vptr: hangingVertices) {
         std::tie(vprev, vnext) = vptr->neighbors;
-        CHECK(vptr->comp == 0);
+        CHECK(vptr->comp == 0 or vptr->comp == 2);
         CHECK(vprev->comp == -1 xor vnext->comp == -1);
 
         if (vprev->comp == -1) {
           // We have to search backwards.
           while (vprev->comp == -1) {
-            activeVertices.erase(vprev);
             vprev = vprev->neighbors.first;
           }
           CHECK(vprev != vptr);
@@ -355,7 +352,6 @@ void clipPolygon(Polygon& polygon,
         } else {
           // We have to search forward.
           while (vnext->comp == -1) {
-            activeVertices.erase(vnext);
             vnext = vnext->neighbors.second;
           }
           CHECK(vnext != vptr);
@@ -364,28 +360,25 @@ void clipPolygon(Polygon& polygon,
         }
       }
 
-      // Add the new vertices to the active set.
-      activeVertices.insert(newVertices.begin(), newVertices.end());
-      CHECK(activeVertices.size() >= 3);
+      // Remove the clipped vertices, compressing the polygon.
+      TIME_PC2d_compress.start();
+      for (auto vitr = polygon.begin(); vitr != polygon.end();) {
+        if (vitr->comp < 0) {
+          vitr = polygon.erase(vitr);
+        } else {
+          ++vitr;
+        }
+      }
+      TIME_PC2d_compress.stop();
+
+      // cerr << "After compression: " << polygon2string(polygon) << endl;
+
+      // Is the polygon gone?
+      if (polygon.size() < 3) polygon.clear();
       TIME_PC2d_hanging.stop();
     }
   }
   TIME_PC2d_planes.stop();
-
-  // Compress the final polygon to remove all inactive vertices.
-  TIME_PC2d_compress.start();
-  for (auto vptr: activeVertices) vptr->comp = 10;
-  for (auto vitr = polygon.begin(); vitr != polygon.end();) {
-    if (vitr->comp != 10) {
-      vitr = polygon.erase(vitr);
-    } else {
-      ++vitr;
-    }
-  }
-  CHECK2(polygon.size() == activeVertices.size(), polygon.size() << " " << activeVertices.size());
-  TIME_PC2d_compress.stop();
-
-  TIME_PC2d_clip.stop();
 }
 
 }

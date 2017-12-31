@@ -37,7 +37,7 @@ class TestPolyClipper2d(unittest.TestCase):
     # setUp
     #---------------------------------------------------------------------------
     def setUp(self):
-        self.polygons = [square] #, notchedthing]
+        self.polygons = [square, notchedthing]
         self.ntests = 10000
         return
 
