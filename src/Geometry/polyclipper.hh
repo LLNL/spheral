@@ -1,5 +1,5 @@
 //---------------------------------PolyClipper--------------------------------//
-// Clip a faceted volume (polygon or polyhedron) by a plane in place.
+// Clip a faceted volume (polygon or polyhedron) by a set of planes in place.
 //
 // We use the convention that any portion of the faceted volume "below" the 
 // plane is clipped, i.e., only the portion of the faceted volume "above" the 
@@ -19,6 +19,7 @@
 #include "Geometry/Dimension.hh"
 #include "Geometry/GeomPlane.hh"
 
+#include <string>
 #include <list>
 
 namespace PolyClipper {
@@ -37,9 +38,24 @@ struct Vertex2d {
 };
 
 //------------------------------------------------------------------------------
+// The 3D vertex struct, which we use to encode polyhedra.
+//------------------------------------------------------------------------------
+struct Vertex3d {
+  typedef Spheral::Dim<3>::Vector Vector;
+  Vector position;
+  std::vector<Vertex3d*> neighbors;
+  int comp;
+  Vertex3d():                               position(),    neighbors(), comp(1) {}
+  Vertex3d(const Vector& pos):              position(pos), neighbors(), comp(1) {}
+  Vertex3d(const Vector& pos, const int c): position(pos), neighbors(), comp(c) {}
+};
+
+//------------------------------------------------------------------------------
 // 2D (polygon) methods.
 //------------------------------------------------------------------------------
 typedef std::list<Vertex2d> Polygon;
+
+std::string polygon2string(const Polygon& poly);
 
 void convertToPolygon(Polygon& polygon,
                       const Spheral::Dim<2>::FacetedVolume& Spheral_polygon);
@@ -55,6 +71,30 @@ void moments(double& zerothMoment, Spheral::Dim<2>::Vector& firstMoment,
 
 void clipPolygon(Polygon& poly,
                  const std::vector<Spheral::GeomPlane<Spheral::Dim<2>>>& planes);
+
+//------------------------------------------------------------------------------
+// 3D (polyhedron) methods.
+//------------------------------------------------------------------------------
+typedef std::list<Vertex3d> Polyhedron;
+
+std::vector<std::vector<const Vertex3d*>> extractFaces(const Polyhedron& poly);
+
+std::string polyhedron2string(const Polyhedron& poly);
+
+void convertToPolyhedron(Polyhedron& polyhedron,
+                         const Spheral::Dim<3>::FacetedVolume& Spheral_polyhedron);
+
+void convertFromPolyhedron(Spheral::Dim<3>::FacetedVolume& Spheral_polyhedron,
+                           const Polyhedron& polyhedron);
+
+void copyPolyhedron(Polyhedron& polyhedron,
+                    const Polyhedron& polyhedron0);
+
+void moments(double& zerothMoment, Spheral::Dim<2>::Vector& firstMoment,
+             const Polyhedron& polyhedron);
+
+void clipPolyhedron(Polyhedron& poly,
+                    const std::vector<Spheral::GeomPlane<Spheral::Dim<3>>>& planes);
 
 }
 

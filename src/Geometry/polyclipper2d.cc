@@ -88,6 +88,8 @@ segmentPlaneIntersection(const Spheral::Dim<2>::Vector& a,       // line-segment
   return result;
 }
 
+}              // anonymous methods
+
 //------------------------------------------------------------------------------
 // Return a nicely formatted string representing the polygon.
 //------------------------------------------------------------------------------
@@ -125,8 +127,6 @@ polygon2string(const Polygon& poly) {
   s << "]";
   return s.str();
 }
-
-}              // anonymous methods
 
 //------------------------------------------------------------------------------
 // Convert Spheral::GeomPolygon -> PolyClipper::Polygon.
