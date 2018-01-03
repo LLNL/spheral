@@ -14,7 +14,7 @@
 #include "Utilities/pointOnPolyhedron.hh"
 #include "Utilities/FastMath.hh"
 #include "Utilities/pointDistances.hh"
-#include "Geometry/clipFacetedVolumeByPlanes.hh"
+#include "Geometry/polyclipper.hh"
 
 namespace Spheral {
 namespace CRKSPHSpace {
@@ -49,14 +49,13 @@ bool comparePlanes(const GeomPlane<Dim<3>>& lhs,
 inline
 void findPolyhedronExtent(double& xmin, double& xmax, 
                           const Dim<3>::Vector& nhat, 
-                          const Dim<3>::FacetedVolume& celli) {
+                          const PolyClipper::Polyhedron& celli) {
   REQUIRE(fuzzyEqual(nhat.magnitude(), 1.0));
   double xi;
   xmin = 0.0;
   xmax = 0.0;
-  const auto verts = celli.vertices();
-  for (const auto& vi: verts) {
-    xi = vi.dot(nhat);
+  for (const auto& vi: celli) {
+    xi = vi.position.dot(nhat);
     xmin = std::min(xmin, xi);
     xmax = std::max(xmax, xi);
   }
@@ -130,56 +129,62 @@ computeVoronoiVolume(const FieldList<Dim<3>, Dim<3>::Vector>& position,
 
     // Build an approximation of the starting kernel shape (in eta space) as an icosahedron with vertices
     // at a unit radius.
-    const auto t = (1.0 + sqrt(5.0)) / 2.0;
-    const vector<Vector> vertsIco = {           // Array of vertex coordinates.
-      Vector(-1,  t,  0)/sqrt(1 + t*t),
-      Vector( 1,  t,  0)/sqrt(1 + t*t),
-      Vector(-1, -t,  0)/sqrt(1 + t*t),
-      Vector( 1, -t,  0)/sqrt(1 + t*t),
-      Vector( 0, -1,  t)/sqrt(1 + t*t),
-      Vector( 0,  1,  t)/sqrt(1 + t*t),
-      Vector( 0, -1, -t)/sqrt(1 + t*t),
-      Vector( 0,  1, -t)/sqrt(1 + t*t),
-      Vector( t,  0, -1)/sqrt(1 + t*t),
-      Vector( t,  0,  1)/sqrt(1 + t*t),
-      Vector(-t,  0, -1)/sqrt(1 + t*t),
-      Vector(-t,  0,  1)/sqrt(1 + t*t)
-    };
-    const vector<vector<unsigned>> facesIco = {
-      // 5 faces around point 0
-      {0, 11, 5},
-      {0, 5, 1},
-      {0, 1, 7},
-      {0, 7, 10},
-      {0, 10, 11},
-      // 5 adjacent faces
-      {1, 5, 9},
-      {5, 11, 4},
-      {11, 10, 2},
-      {10, 7, 6},
-      {7, 1, 8},
-      // 5 faces around point 3
-      {3, 9, 4},
-      {3, 4, 2},
-      {3, 2, 6},
-      {3, 6, 8},
-      {3, 8, 9},
-      // 5 adjacent faces
-      {4, 9, 5},
-      {2, 4, 11},
-      {6, 2, 10},
-      {8, 6, 7},
-      {9, 8, 1}
-    };
-    const auto nverts = vertsIco.size();
+    PolyClipper::Polyhedron cell0;
+    {
+      const auto t = (1.0 + sqrt(5.0)) / 2.0;
+      const vector<Vector> vertsIco = {           // Array of vertex coordinates.
+        Vector(-1,  t,  0)/sqrt(1 + t*t),
+        Vector( 1,  t,  0)/sqrt(1 + t*t),
+        Vector(-1, -t,  0)/sqrt(1 + t*t),
+        Vector( 1, -t,  0)/sqrt(1 + t*t),
+        Vector( 0, -1,  t)/sqrt(1 + t*t),
+        Vector( 0,  1,  t)/sqrt(1 + t*t),
+        Vector( 0, -1, -t)/sqrt(1 + t*t),
+        Vector( 0,  1, -t)/sqrt(1 + t*t),
+        Vector( t,  0, -1)/sqrt(1 + t*t),
+        Vector( t,  0,  1)/sqrt(1 + t*t),
+        Vector(-t,  0, -1)/sqrt(1 + t*t),
+        Vector(-t,  0,  1)/sqrt(1 + t*t)
+      };
+      const vector<vector<unsigned>> facesIco = {
+        // 5 faces around point 0
+        {0, 11, 5},
+        {0, 5, 1},
+        {0, 1, 7},
+        {0, 7, 10},
+        {0, 10, 11},
+        // 5 adjacent faces
+        {1, 5, 9},
+        {5, 11, 4},
+        {11, 10, 2},
+        {10, 7, 6},
+        {7, 1, 8},
+        // 5 faces around point 3
+        {3, 9, 4},
+        {3, 4, 2},
+        {3, 2, 6},
+        {3, 6, 8},
+        {3, 8, 9},
+        // 5 adjacent faces
+        {4, 9, 5},
+        {2, 4, 11},
+        {6, 2, 10},
+        {8, 6, 7},
+        {9, 8, 1}
+      };
+      PolyClipper::convertToPolyhedron(cell0, FacetedVolume(vertsIco, facesIco));
+    }
+    const auto nverts = cell0.size();
 
     // Walk the points.
     vector<Plane> pairPlanes, voidPlanes;
+    double voli;
+    PolyClipper::Polyhedron celli;
     for (auto nodeListi = 0; nodeListi != numNodeLists; ++nodeListi) {
       const auto n = vol[nodeListi]->numInternalElements();
       const auto rin = 2.0/vol[nodeListi]->nodeListPtr()->nodesPerSmoothingScale();
 #pragma omp parallel for                        \
-  private(pairPlanes, voidPlanes)
+  private(pairPlanes, voidPlanes, voli, celli)
       for (auto i = 0; i < n; ++i) {
 
         const auto& ri = position(nodeListi, i);
@@ -199,9 +204,8 @@ computeVoronoiVolume(const FieldList<Dim<3>, Dim<3>::Vector>& position,
         // t0 = std::clock();
 
         // Initialize our seed cell shape.
-        vector<Vector> verts(vertsIco);
-        for (auto k = 0; k < nverts; ++k) verts[k] = 1.1*rin*Hinv*verts[k];
-        FacetedVolume celli(verts, facesIco);
+        PolyClipper::copyPolyhedron(celli, cell0);
+        for (auto& v: celli) v.position = 1.1*rin*Hinv*v.position;
 
         // Clip by any boundaries first.
         if (haveBoundaries) {
@@ -280,9 +284,8 @@ computeVoronoiVolume(const FieldList<Dim<3>, Dim<3>::Vector>& position,
         // t0 = std::clock();
 
         // Clip by non-void neighbors first.
-        clipFacetedVolumeByPlanes(celli, pairPlanes);
-        const auto& vertsi = celli.vertices();
-        CHECK(vertsi.size() > 0);
+        PolyClipper::clipPolyhedron(celli, pairPlanes);
+        CHECK(celli.size() > 0);
 
         // tclip += std::clock() - t0;
 
@@ -291,8 +294,8 @@ computeVoronoiVolume(const FieldList<Dim<3>, Dim<3>::Vector>& position,
         bool interior = true;
         // t0 = std::clock();
         {
-          for (const auto& vert: vertsi) {
-            const auto peta = Hi*vert;
+          for (const auto& vert: celli) {
+            const auto peta = Hi*vert.position;
             if (peta.magnitude2() > rin*rin) {
               interior = false;
               if (returnSurface) {
@@ -310,16 +313,16 @@ computeVoronoiVolume(const FieldList<Dim<3>, Dim<3>::Vector>& position,
 
         // Clip the cell geometry by the void planes.
         std::sort(voidPlanes.begin(), voidPlanes.end(), comparePlanes);
-        clipFacetedVolumeByPlanes(celli, voidPlanes);
-        CHECK(vertsi.size() > 0);
+        PolyClipper::clipPolyhedron(celli, voidPlanes);
+        CHECK(celli.size() > 0);
 
-        // Compute the final geometry.
-        deltaMedian(nodeListi, i) = celli.centroid();
+        // Compute the moments of the clipped cell.
+        PolyClipper::moments(voli, deltaMedian(nodeListi, i), celli);
 
         if (interior) {
 
           // We only use the volume result if interior.
-          vol(nodeListi, i) = celli.volume();
+          vol(nodeListi, i) = voli;
 
           // // Apply the gradient limiter;
           // gradRhoi *= phi;
@@ -351,12 +354,12 @@ computeVoronoiVolume(const FieldList<Dim<3>, Dim<3>::Vector>& position,
           // surface if in fact there are still facets from that bounding polygon on this cell.
           // t0 = std::clock();
           if (haveBoundaries and returnSurface) {
-            unsigned j = 0;
-            while (interior and j != vertsi.size()) {
-              interior = not pointOnPolyhedron(ri + vertsi[j],
-                                               boundaries[nodeListi],
+            auto vitr = celli.begin();
+            while (interior and vitr != celli.end()) {
+              interior = not pointOnPolyhedron(ri + vitr->position,
+                                               boundaries[nodeListi].vertices(),
                                                1.0e-8);
-              ++j;
+              ++vitr;
             }
           }
           // tsurface += std::clock() - t0;
@@ -386,7 +389,7 @@ computeVoronoiVolume(const FieldList<Dim<3>, Dim<3>::Vector>& position,
         // If requested, we can return the cell geometries.
         if (returnCells) {
           // t0 = std::clock();
-          cells(nodeListi, i) = celli;
+          PolyClipper::convertFromPolyhedron(cells(nodeListi, i), celli);
           cells(nodeListi, i) += ri;
           // tcell += std::clock() - t0;
         }

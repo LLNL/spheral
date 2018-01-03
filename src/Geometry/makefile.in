@@ -29,10 +29,6 @@ SRCTARGETS = \
 	$(srcdir)/GeomFacet3d.cc \
 	$(srcdir)/GeomPolygon.cc \
 	$(srcdir)/GeomPolyhedron.cc \
-	$(srcdir)/clipFacetedVolumeByPlanes1d.cc \
-	$(srcdir)/clipFacetedVolumeByPlanes3d.cc \
-	$(srcdir)/clipConvexFacetedVolumeByPlanes2d.cc \
-	$(srcdir)/clipConvexFacetedVolumeByPlanes3d.cc \
 	$(srcdir)/polyclipper2d.cc \
 	$(srcdir)/polyclipper3d.cc
 INSTSRCTARGETS = \

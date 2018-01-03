@@ -45,9 +45,10 @@ struct Vertex3d {
   Vector position;
   std::vector<Vertex3d*> neighbors;
   int comp;
-  Vertex3d():                               position(),    neighbors(), comp(1) {}
-  Vertex3d(const Vector& pos):              position(pos), neighbors(), comp(1) {}
-  Vertex3d(const Vector& pos, const int c): position(pos), neighbors(), comp(c) {}
+  mutable int ID;    // convenient, but sneaky
+  Vertex3d():                               position(),    neighbors(), comp(1), ID(-1) {}
+  Vertex3d(const Vector& pos):              position(pos), neighbors(), comp(1), ID(-1) {}
+  Vertex3d(const Vector& pos, const int c): position(pos), neighbors(), comp(c), ID(-1) {}
 };
 
 //------------------------------------------------------------------------------
@@ -90,7 +91,7 @@ void convertFromPolyhedron(Spheral::Dim<3>::FacetedVolume& Spheral_polyhedron,
 void copyPolyhedron(Polyhedron& polyhedron,
                     const Polyhedron& polyhedron0);
 
-void moments(double& zerothMoment, Spheral::Dim<2>::Vector& firstMoment,
+void moments(double& zerothMoment, Spheral::Dim<3>::Vector& firstMoment,
              const Polyhedron& polyhedron);
 
 void clipPolyhedron(Polyhedron& poly,
