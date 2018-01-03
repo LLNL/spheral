@@ -23,8 +23,6 @@
 #include "Geometry/outerProduct.hh"
 #include "Geometry/innerDoubleProduct.hh"
 #include "Geometry/aggregateFacetedVolumes.hh"
-#include "Geometry/clipFacetedVolumeByPlanes.hh"
-#include "Geometry/clipConvexFacetedVolumeByPlanes.hh"
 #include "Utilities/DataTypeTraits.hh"
 
 using namespace Spheral;
