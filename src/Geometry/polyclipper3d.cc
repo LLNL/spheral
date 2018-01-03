@@ -199,24 +199,45 @@ extractFaces(const Polyhedron& poly) {
 //------------------------------------------------------------------------------
 std::string
 polyhedron2string(const Polyhedron& poly) {
-  ostringstream s;
-  s << "[";
 
-  // Get the vertices in face ordering.
-  const vector<vector<const Vertex3d*>> faces;
-
-  // Now output the face vertex coordinates.
-  for (const auto& face: faces) {
-    s << "[";
-    for (const auto vptr: face) {
-      s << " " << vptr->position;
-    }
-    s << "]\n ";
+  // First assign ID's to the vertices.
+  // This is why ID is mutable.
+  {
+    auto i = 0;
+    for (const auto& v: poly) v.ID = i++;
   }
-  s << "]";
+
+  ostringstream s;
+  for (const auto& v: poly) {
+    s << "ID=" << v.ID << " comp=" << v.comp << " @ " << v.position
+      << " neighbors=[";
+    for (const auto nptr: v.neighbors) s << " " << nptr->ID;
+    s << "]\n";
+  }
 
   return s.str();
 }
+
+// std::string
+// polyhedron2string(const Polyhedron& poly) {
+//   ostringstream s;
+//   s << "[";
+
+//   // Get the vertices in face ordering.
+//   const vector<vector<const Vertex3d*>> faces;
+
+//   // Now output the face vertex coordinates.
+//   for (const auto& face: faces) {
+//     s << "[";
+//     for (const auto vptr: face) {
+//       s << " " << vptr->position;
+//     }
+//     s << "]\n ";
+//   }
+//   s << "]";
+
+//   return s.str();
+// }
 
 //------------------------------------------------------------------------------
 // Convert Spheral::GeomPolyhedron -> PolyClipper::Polyhedron.
@@ -394,6 +415,8 @@ void clipPolyhedron(Polyhedron& polyhedron,
   // Useful types.
   typedef Spheral::Dim<3>::Vector Vector;
 
+  // cerr << "Initial:\n" << polyhedron2string(polyhedron) << endl;
+
   // Loop over the planes.
   TIME_PC3d_planes.start();
   auto kplane = 0;
@@ -402,7 +425,7 @@ void clipPolyhedron(Polyhedron& polyhedron,
     const auto& plane = planes[kplane++];
     const auto& p0 = plane.point();
     const auto& phat = plane.normal();
-    cerr << "Clip plane: " << p0 << " " << phat << endl;
+    // cerr << "Clip plane: " << p0 << " " << phat << endl;
 
     // Check the current set of vertices against this plane.
     TIME_PC3d_checkverts.start();
@@ -452,15 +475,19 @@ void clipPolyhedron(Polyhedron& polyhedron,
                                               2));         // 2 indicates new vertex
               
                 polyhedron.back().neighbors = {v.neighbors[j], &v};
+                auto itr = find(v.neighbors[j]->neighbors.begin(), v.neighbors[j]->neighbors.end(), &v);
+                CHECK(itr != v.neighbors[j]->neighbors.end());
+                *itr = &polyhedron.back();
                 v.neighbors[j] = &polyhedron.back();
                 hangingVertices.push_back(&polyhedron.back());
-                cerr << " --> Inserting new vertex @ " << polyhedron.back().position << endl;
+                // cerr << " --> Inserting new vertex @ " << polyhedron.back().position << endl;
 
               }
             }
           }
         }
       }
+      // cerr << "After insertion:\n" << polyhedron2string(polyhedron) << endl;
       TIME_PC3d_insertverts.stop();
 
       // For each hanging vertex, link to the neighbors that survive the clipping.
@@ -479,11 +506,14 @@ void clipPolyhedron(Polyhedron& polyhedron,
             auto vprev = vptr;
             auto vnext = nptr;
             auto tmp = vnext;
+            // cerr << vptr->ID << ": ( " << vprev->ID << " " << vnext->ID << ")";
             while (vnext->comp == -1) {
               tmp = vnext;
               vnext = nextInFaceLoop(vnext, vprev);
               vprev = tmp;
+              // cerr << " (" << vprev->ID << " " << vnext->ID << ")";
             }
+            // cerr << endl;
             vptr->neighbors[jn] = vnext;
             vnext->neighbors.insert(vnext->neighbors.begin(), vptr);
             // newEdges.push_back(make_pair(vnext, vptr));
@@ -503,7 +533,7 @@ void clipPolyhedron(Polyhedron& polyhedron,
           ++vitr;
         }
       }
-      cerr << "After compression: " << polyhedron2string(polyhedron) << endl;
+      // cerr << "After compression:\n" << polyhedron2string(polyhedron) << endl;
 
       // Is the polyhedron gone?
       if (polyhedron.size() < 4) polyhedron.clear();

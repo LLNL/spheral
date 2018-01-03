@@ -507,15 +507,21 @@ intersect(const std::pair<Vector, Vector>& rhs) const {
 GeomPolyhedron::Vector
 GeomPolyhedron::
 centroid() const {
-  // Area weight by the facets.
   Vector result;
-  double area, areasum = 0.0;
+  double dV, V = 0.0;
   for (const auto& facet: mFacets) {
-    area = facet.area();
-    areasum += area;
-    result += area * facet.position();
+    const auto& ipoints = facet.ipoints();
+    const auto& v0 = mVertices[ipoints[0]];
+    const auto  nverts = ipoints.size();
+    for (auto i = 1; i < nverts - 1; ++i) {
+      const auto& v1 = mVertices[ipoints[i]];
+      const auto& v2 = mVertices[ipoints[i+1]];
+      dV = v0.dot(v1.cross(v2));
+      V += dV;
+      result += dV*(v0 + v1 + v2);
+    }
   }
-  result *= safeInvVar(areasum);
+  result *= safeInvVar(4.0*V);
   return result;
 }
 
@@ -608,9 +614,8 @@ double
 GeomPolyhedron::
 volume() const {
   double result = 0.0;
-  const Vector c = centroid();
   for (const Facet& facet: mFacets) {
-    result += facet.area() * facet.normal().dot(facet.point(0) - c);
+    result += facet.area() * facet.normal().dot(facet.point(0));
   }
   ENSURE(result >= 0.0);
   return result/3.0;
