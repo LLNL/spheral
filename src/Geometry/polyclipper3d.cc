@@ -94,8 +94,8 @@ segmentPlaneIntersection(const Spheral::Dim<3>::Vector& a,       // line-segment
   const auto ab = b - a;
   const auto abhat = ab.unitVector();
   CHECK2(std::abs(abhat.dot(phat)) > 0.0, (abhat.dot(phat)) << " " << a << " " << b << " " << abhat << " " << phat);
-  const auto s = (p - a).dot(phat)/(abhat.dot(phat));
-  CHECK(s >= 0.0 and s <= ab.magnitude());
+  const auto s = std::max(0.0, std::min(ab.magnitude(), (p - a).dot(phat)/(abhat.dot(phat))));
+  CHECK2(s >= 0.0 and s <= ab.magnitude(), s << " " << ab.magnitude());
   const auto result = a + s*abhat;
   // CHECK2(fuzzyEqual((result - p).dot(phat), 0.0, 1.0e-10),
   //        a << " " << b << " " << s << " " << result << " " << (result - p).dot(phat));
