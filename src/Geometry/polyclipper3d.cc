@@ -50,7 +50,9 @@ inline
 int compare(const Spheral::Dim<3>::Vector& planePoint,
             const Spheral::Dim<3>::Vector& planeNormal,
             const Spheral::Dim<3>::Vector& point) {
-  return sgn(planeNormal.dot(point - planePoint));
+  const auto sgndist = planeNormal.dot(point - planePoint);
+  if (std::abs(sgndist) < 1.0e-10) return 0;
+  return sgn0(sgndist);
 }
 
 //------------------------------------------------------------------------------
@@ -473,6 +475,18 @@ void clipPolyhedron(Polyhedron& polyhedron,
 
               }
             }
+          } else if (v.comp == 0) {
+
+            // This vertex is in-plane.  We need to check if it will be left hanging or not, which is only
+            // possible if it has some neighbor clipped and some neighbor not.
+            if (find_if(v.neighbors.begin(), v.neighbors.end(), [](const Vertex3d* x) 
+                        { return x->comp ==  1; }) != v.neighbors.end() and
+                find_if(v.neighbors.begin(), v.neighbors.end(), [](const Vertex3d* x) 
+                        { return x->comp == -1; }) != v.neighbors.end()) {
+              hangingVertices.push_back(&v);
+              // cerr << " --> Hanging vertex @ " << v.position << endl;
+
+            }
           }
         }
       }
@@ -484,9 +498,9 @@ void clipPolyhedron(Polyhedron& polyhedron,
       TIME_PC3d_hanging.start();
       // vector<pair<Vertex3d*, Vertex3d*>> newEdges;
       for (auto vptr: hangingVertices) {
-        CHECK(vptr->comp == 2);
+        CHECK(vptr->comp == 2 or vptr->comp == 0);
 
-        // Look for any neighbors of the new vertex that are clipped.
+        // Look for any neighbors of the vertex that are clipped.
         for (auto jn = 0; jn < vptr->neighbors.size(); ++jn) {
           auto nptr = vptr->neighbors[jn];
           if (nptr->comp == -1) {
@@ -503,8 +517,24 @@ void clipPolyhedron(Polyhedron& polyhedron,
               // cerr << " (" << vprev->ID << " " << vnext->ID << ")";
             }
             // cerr << endl;
-            vptr->neighbors[jn] = vnext;
-            vnext->neighbors.insert(vnext->neighbors.begin(), vptr);
+
+            // If this loop closed back on a known neighbor of this node, we don't close it.
+            if (find(vptr->neighbors.begin(), vptr->neighbors.end(), vnext) == vptr->neighbors.end()) {
+              vptr->neighbors[jn] = vnext;
+
+              // How we edit the new neighbors neighbors depends on if it was a new or
+              // existing in-plane vertex.
+              if (vnext->comp == 2) {
+                // New vertex.
+                vnext->neighbors.insert(vnext->neighbors.begin(), vptr);
+              } else {
+                // Existing in-plane neighbor -- more complicated neighbor editing.
+                auto itr = find(vnext->neighbors.begin(), vnext->neighbors.end(), vprev);
+                CHECK(itr != vnext->neighbors.end());
+                // cerr << "  neighbor replace: " << vnext->ID << "[" << (*itr)->ID << " -> " << vptr->ID << "]" << endl;
+                *itr = vptr;
+              }
+            }
             // newEdges.push_back(make_pair(vnext, vptr));
           }
         }

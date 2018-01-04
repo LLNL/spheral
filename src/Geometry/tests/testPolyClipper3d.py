@@ -144,6 +144,50 @@ class TestPolyhedronClipping(unittest.TestCase):
         return
 
     #---------------------------------------------------------------------------
+    # Clip with the same plane repeatedly.
+    #---------------------------------------------------------------------------
+    def testRedundantClip(self):
+        for poly in self.polyhedra:
+            PCpoly = PolyClipper.Polyhedron()
+            PolyClipper.convertToPolyhedron(PCpoly, poly)
+            for i in xrange(self.ntests):
+                planes1, planes2 = vector_of_Plane(), vector_of_Plane()
+                p0 = Vector(rangen.uniform(0.0, 1.0),
+                            rangen.uniform(0.0, 1.0))
+                phat = Vector(rangen.uniform(-1.0, 1.0), 
+                              rangen.uniform(-1.0, 1.0)).unitVector()
+                planes1.append(Plane(p0,  phat))
+                planes2.append(Plane(p0,  phat))
+                planes2.append(Plane(p0,  phat))
+                PCchunk1 = PolyClipper.Polyhedron()
+                PCchunk2 = PolyClipper.Polyhedron()
+                PolyClipper.copyPolyhedron(PCchunk1, PCpoly)
+                PolyClipper.copyPolyhedron(PCchunk2, PCpoly)
+                PolyClipper.clipPolyhedron(PCchunk1, planes1)
+                PolyClipper.clipPolyhedron(PCchunk2, planes2)
+                chunk1 = Polyhedron()
+                chunk2 = Polyhedron()
+                PolyClipper.convertFromPolyhedron(chunk1, PCchunk1)
+                PolyClipper.convertFromPolyhedron(chunk2, PCchunk2)
+                success = fuzzyEqual(chunk1.volume, chunk2.volume)
+                if not success:
+                    print "Failed on pass ", i
+                    print "Plane: ", p0, phat
+                    print "Poly:\n", poly
+                    print "Chunk 1:\n ", chunk1
+                    print "Chunk 2:\n ", chunk2
+                    vol1, cent1 = PolyClipper.moments(PCchunk1)
+                    vol2, cent2 = PolyClipper.moments(PCchunk2)
+                    print "Vol check: %g = %g" % (vol1, vol2)
+                    writePolyhedronOBJ(poly, "poly.obj")
+                    writePolyhedronOBJ(chunk1, "chunk_ONE.obj")
+                    writePolyhedronOBJ(chunk2, "chunk_TWO.obj")
+                self.failUnless(success,
+                                "Redundant plane clipping wrong volumes: %s != %s" % (chunk1.volume,
+                                                                                      chunk2.volume))
+        return
+
+    #---------------------------------------------------------------------------
     # Clip with planes passing outside the polyhedron -- null test.
     #---------------------------------------------------------------------------
     def testNullClipOnePlane(self):
@@ -253,52 +297,6 @@ class TestPolyhedronClipping(unittest.TestCase):
                                                                                                                poly.volume))
         return
 
-
-    # #---------------------------------------------------------------------------
-    # # Clip with planes passing through the polyhedron.
-    # #---------------------------------------------------------------------------
-    # def testClipInternalTwoPlanes(self):
-    #     for poly in self.polyhedra:
-    #         for i in xrange(self.ntests):
-    #             planes1 = vector_of_Plane()
-    #             p0 = Vector(rangen.uniform(0.0, 1.0),
-    #                         rangen.uniform(0.0, 1.0),
-    #                         rangen.uniform(0.0, 1.0))
-    #             for iplane in xrange(2):
-    #                 planes1.append(Plane(point = p0,
-    #                                      normal = Vector(rangen.uniform(-1.0, 1.0), 
-    #                                                      rangen.uniform(-1.0, 1.0), 
-    #                                                      rangen.uniform(-1.0, 1.0)).unitVector()))
-    #             planes2 = vector_of_Plane(planes1)
-    #             planes3 = vector_of_Plane(planes1)
-    #             planes4 = vector_of_Plane(planes1)
-    #             planes2[0].normal = -planes2[0].normal
-    #             planes3[1].normal = -planes3[1].normal
-    #             planes4[0].normal = -planes4[0].normal
-    #             planes4[1].normal = -planes4[1].normal
-    #             chunk1 = Polyhedron(poly)
-    #             chunk2 = Polyhedron(poly)
-    #             chunk3 = Polyhedron(poly)
-    #             chunk4 = Polyhedron(poly)
-    #             clipFacetedVolumeByPlanes(chunk1, planes1)
-    #             clipFacetedVolumeByPlanes(chunk2, planes2)
-    #             clipFacetedVolumeByPlanes(chunk3, planes3)
-    #             clipFacetedVolumeByPlanes(chunk4, planes4)
-    #             success = fuzzyEqual(chunk1.volume + chunk2.volume + chunk3.volume + chunk4.volume, poly.volume)
-    #             if not success:
-    #                 writePolyhedronOBJ(poly, "poly.obj")
-    #                 writePolyhedronOBJ(chunk1, "chunk_1ONE_TWOPLANES.obj")
-    #                 writePolyhedronOBJ(chunk2, "chunk_2TWO_TWOPLANES.obj")
-    #                 writePolyhedronOBJ(chunk3, "chunk_3THREE_TWOPLANES.obj")
-    #                 writePolyhedronOBJ(chunk4, "chunk_4FOUR_TWOPLANES.obj")
-    #             self.failUnless(success,
-    #                             "Two plane clipping summing to wrong volumes: %s + %s + %s + %s = %s != %s" % (chunk1.volume,
-    #                                                                                                            chunk2.volume,
-    #                                                                                                            chunk3.volume,
-    #                                                                                                            chunk4.volume,
-    #                                                                                                            chunk1.volume + chunk2.volume + chunk3.volume + chunk4.volume,
-    #                                                                                                            poly.volume))
-    #     return
 
 if __name__ == "__main__":
     unittest.main()
