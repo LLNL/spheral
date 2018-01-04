@@ -51,12 +51,12 @@ Timer   TIME_PC2d_compress("Compress to active vertices", TIME_PC2d_planes);
 //------------------------------------------------------------------------------
 // PolyClipper3d timers
 //------------------------------------------------------------------------------
-Timer TIME_PC3d_convertto("Spheral::Polygon -> PolyClipper::Polygon");
-Timer TIME_PC3d_convertfrom("PolyClipper::Polygon -> Spheral::Polygon");
-Timer TIME_PC3d_copy("Copy PolyClipper::Polygon");
-Timer TIME_PC3d_moments("Compute polygon moments");
-Timer TIME_PC3d_clip("clipPolygon");
-Timer   TIME_PC3d_planes("Apply clip planes (clipPolygon)", TIME_PC3d_clip);
+Timer TIME_PC3d_convertto("Spheral::Polyhedron -> PolyClipper::Polyhedron");
+Timer TIME_PC3d_convertfrom("PolyClipper::Polyhedron -> Spheral::Polyhedron");
+Timer TIME_PC3d_copy("Copy PolyClipper::Polyhedron");
+Timer TIME_PC3d_moments("Compute polyhedron moments");
+Timer TIME_PC3d_clip("clipPolyhedron");
+Timer   TIME_PC3d_planes("Apply clip planes (clipPolyhedron)", TIME_PC3d_clip);
 Timer   TIME_PC3d_checkverts("Clip vertices", TIME_PC3d_planes);
 Timer   TIME_PC3d_insertverts("Insert new vertices", TIME_PC3d_planes);
 Timer   TIME_PC3d_hanging("Link hanging vertices", TIME_PC3d_planes);
