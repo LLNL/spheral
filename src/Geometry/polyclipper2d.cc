@@ -15,6 +15,7 @@
 //----------------------------------------------------------------------------//
 
 #include "polyclipper.hh"
+#include "polyclipper_utilities.hh"
 #include "Utilities/DBC.hh"
 #include "Utilities/Timer.hh"
 
@@ -43,28 +44,15 @@ using namespace std;
 namespace {    // anonymous methods
 
 //------------------------------------------------------------------------------
-// Return the sign of the argument determined as follows:
-//   
-//    x > 0 -> sgn0(x) =  1
-//    x = 0 -> sgn0(x) =  0
-//    x < 0 -> sgn0(x) = -1
-//------------------------------------------------------------------------------
-inline
-double
-sgn0(const double x) {
-  return (x > 0.0 ?  1.0 :
-          x < 0.0 ? -1.0 :
-          0.0);
-}
-
-//------------------------------------------------------------------------------
 // Compare a plane and point (our built-in plane one has some issues).
 //------------------------------------------------------------------------------
 inline
 int compare(const Spheral::Dim<2>::Vector& planePoint,
             const Spheral::Dim<2>::Vector& planeNormal,
             const Spheral::Dim<2>::Vector& point) {
-  return sgn0(planeNormal.dot(point - planePoint));
+  const auto sgndist = planeNormal.dot(point - planePoint);
+  if (std::abs(sgndist) < 1.0e-10) return 0;
+  return sgn0(sgndist);
 }
 
 //------------------------------------------------------------------------------
@@ -78,6 +66,7 @@ segmentPlaneIntersection(const Spheral::Dim<2>::Vector& a,       // line-segment
                          const Spheral::Dim<2>::Vector& phat) {  // plane unit normal
 
   const auto ab = b - a;
+  if (fuzzyEqual(ab.magnitude(), 0.0, 1.0e-10)) return a;
   const auto abhat = ab.unitVector();
   CHECK2(std::abs(abhat.dot(phat)) > 0.0, (abhat.dot(phat)) << " " << a << " " << b << " " << abhat << " " << phat);
   const auto s = std::max(0.0, std::min(ab.magnitude(), (p - a).dot(phat)/(abhat.dot(phat))));
@@ -304,7 +293,7 @@ void clipPolygon(Polygon& polygon,
     auto below = true;
     for (auto& v: polygon) {
       v.comp = compare(p0, phat, v.position);
-      if (v.comp >= 0) {
+      if (v.comp == 1) {
         below = false;
       } else if (v.comp == -1) {
         above = false;

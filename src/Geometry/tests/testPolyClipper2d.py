@@ -38,7 +38,7 @@ class TestPolyClipper2d(unittest.TestCase):
     #---------------------------------------------------------------------------
     def setUp(self):
         self.polygons = [square, notchedthing]
-        self.ntests = 1000
+        self.ntests = 10000
         return
 
     #---------------------------------------------------------------------------
@@ -126,6 +126,50 @@ class TestPolyClipper2d(unittest.TestCase):
                                 "Plane clipping summing to wrong volumes: %s + %s != %s" % (chunk1.volume,
                                                                                             chunk2.volume,
                                                                                             poly.volume))
+        return
+
+    #---------------------------------------------------------------------------
+    # Clip with the same plane repeatedly.
+    #---------------------------------------------------------------------------
+    def testRedundantClip(self):
+        for poly in self.polygons:
+            PCpoly = PolyClipper.Polygon()
+            PolyClipper.convertToPolygon(PCpoly, poly)
+            for i in xrange(self.ntests):
+                planes1, planes2 = vector_of_Plane(), vector_of_Plane()
+                p0 = Vector(rangen.uniform(0.0, 1.0),
+                            rangen.uniform(0.0, 1.0))
+                phat = Vector(rangen.uniform(-1.0, 1.0), 
+                              rangen.uniform(-1.0, 1.0)).unitVector()
+                planes1.append(Plane(p0,  phat))
+                planes2.append(Plane(p0,  phat))
+                planes2.append(Plane(p0,  phat))
+                PCchunk1 = PolyClipper.Polygon()
+                PCchunk2 = PolyClipper.Polygon()
+                PolyClipper.copyPolygon(PCchunk1, PCpoly)
+                PolyClipper.copyPolygon(PCchunk2, PCpoly)
+                PolyClipper.clipPolygon(PCchunk1, planes1)
+                PolyClipper.clipPolygon(PCchunk2, planes2)
+                chunk1 = Polygon()
+                chunk2 = Polygon()
+                PolyClipper.convertFromPolygon(chunk1, PCchunk1)
+                PolyClipper.convertFromPolygon(chunk2, PCchunk2)
+                success = fuzzyEqual(chunk1.volume, chunk2.volume)
+                if not success:
+                    print "Failed on pass ", i
+                    print "Plane: ", p0, phat
+                    print "Poly:\n", poly
+                    print "Chunk 1:\n ", chunk1
+                    print "Chunk 2:\n ", chunk2
+                    vol1, cent1 = PolyClipper.moments(PCchunk1)
+                    vol2, cent2 = PolyClipper.moments(PCchunk2)
+                    print "Vol check: %g = %g" % (vol1, vol2)
+                    writePolyhedronOBJ(poly, "poly.obj")
+                    writePolyhedronOBJ(chunk1, "chunk_ONE.obj")
+                    writePolyhedronOBJ(chunk2, "chunk_TWO.obj")
+                self.failUnless(success,
+                                "Redundant plane clipping wrong volumes: %s != %s" % (chunk1.volume,
+                                                                                      chunk2.volume))
         return
 
     #---------------------------------------------------------------------------

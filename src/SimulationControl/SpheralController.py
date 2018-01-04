@@ -81,13 +81,13 @@ class SpheralController:
             if self.dim == "1d":
                 from Spheral1dVizDump import dumpPhysicsState
             elif self.dim == "2d":
-                #from SpheralVoronoiSiloDump import dumpPhysicsState
+                from SpheralVoronoiSiloDump import dumpPhysicsState
                 #from SpheralVisitDump import dumpPhysicsState
-                from SpheralPointmeshSiloDump import dumpPhysicsState
+                #from SpheralPointmeshSiloDump import dumpPhysicsState
             else:
-                #from SpheralVoronoiSiloDump import dumpPhysicsState
+                from SpheralVoronoiSiloDump import dumpPhysicsState
                 #from SpheralVisitDump import dumpPhysicsState
-                from SpheralPointmeshSiloDump import dumpPhysicsState
+                #from SpheralPointmeshSiloDump import dumpPhysicsState
             self.vizMethod = dumpPhysicsState
         self.vizGhosts = vizGhosts
         self.vizDerivs = vizDerivs
