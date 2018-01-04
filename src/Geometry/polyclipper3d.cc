@@ -15,7 +15,7 @@
 //----------------------------------------------------------------------------//
 
 #include "polyclipper.hh"
-#include "Utilities/safeInv.hh"
+#include "polyclipper_utilities.hh"
 #include "Utilities/DBC.hh"
 #include "Utilities/Timer.hh"
 
@@ -44,18 +44,6 @@ using namespace std;
 namespace {    // anonymous methods
 
 //------------------------------------------------------------------------------
-// Return the sign of the argument determined as follows:
-//   
-//    x >= 0 -> sgn(x) =  1
-//    x <  0 -> sgn(x) = -1
-//------------------------------------------------------------------------------
-inline
-double
-sgn(const double x) {
-  return (x >= 0.0 ?  1.0 : -1.0);
-}
-
-//------------------------------------------------------------------------------
 // Compare a plane and point (our built-in plane one has some issues).
 //------------------------------------------------------------------------------
 inline
@@ -63,6 +51,28 @@ int compare(const Spheral::Dim<3>::Vector& planePoint,
             const Spheral::Dim<3>::Vector& planeNormal,
             const Spheral::Dim<3>::Vector& point) {
   return sgn(planeNormal.dot(point - planePoint));
+}
+
+//------------------------------------------------------------------------------
+// Intersect a line-segment with a plane.
+//------------------------------------------------------------------------------
+inline
+Spheral::Dim<3>::Vector
+segmentPlaneIntersection(const Spheral::Dim<3>::Vector& a,       // line-segment begin
+                         const Spheral::Dim<3>::Vector& b,       // line-segment end
+                         const Spheral::Dim<3>::Vector& p,       // point in plane
+                         const Spheral::Dim<3>::Vector& phat) {  // plane unit normal
+
+  const auto ab = b - a;
+  if (fuzzyEqual(ab.magnitude(), 0.0, 1.0e-10)) return a;
+  const auto abhat = ab.unitVector();
+  CHECK2(std::abs(abhat.dot(phat)) > 0.0, (abhat.dot(phat)) << " " << a << " " << b << " " << abhat << " " << phat);
+  const auto s = std::max(0.0, std::min(ab.magnitude(), (p - a).dot(phat)/(abhat.dot(phat))));
+  CHECK2(s >= 0.0 and s <= ab.magnitude(), s << " " << ab.magnitude());
+  const auto result = a + s*abhat;
+  // CHECK2(fuzzyEqual((result - p).dot(phat), 0.0, 1.0e-10),
+  //        a << " " << b << " " << s << " " << result << " " << (result - p).dot(phat));
+  return result;
 }
 
 //------------------------------------------------------------------------------
@@ -79,27 +89,6 @@ nextInFaceLoop(Vertex3d* vptr, Vertex3d* vprev) {
   } else {
     return *(itr - 1);
   }
-}
-
-//------------------------------------------------------------------------------
-// Intersect a line-segment with a plane.
-//------------------------------------------------------------------------------
-inline
-Spheral::Dim<3>::Vector
-segmentPlaneIntersection(const Spheral::Dim<3>::Vector& a,       // line-segment begin
-                         const Spheral::Dim<3>::Vector& b,       // line-segment end
-                         const Spheral::Dim<3>::Vector& p,       // point in plane
-                         const Spheral::Dim<3>::Vector& phat) {  // plane unit normal
-
-  const auto ab = b - a;
-  const auto abhat = ab.unitVector();
-  CHECK2(std::abs(abhat.dot(phat)) > 0.0, (abhat.dot(phat)) << " " << a << " " << b << " " << abhat << " " << phat);
-  const auto s = std::max(0.0, std::min(ab.magnitude(), (p - a).dot(phat)/(abhat.dot(phat))));
-  CHECK2(s >= 0.0 and s <= ab.magnitude(), s << " " << ab.magnitude());
-  const auto result = a + s*abhat;
-  // CHECK2(fuzzyEqual((result - p).dot(phat), 0.0, 1.0e-10),
-  //        a << " " << b << " " << s << " " << result << " " << (result - p).dot(phat));
-  return result;
 }
 
 }              // anonymous methods
@@ -400,7 +389,7 @@ void moments(double& zerothMoment, Spheral::Dim<3>::Vector& firstMoment,
       }
     }
     zerothMoment /= 6.0;
-    firstMoment *= Spheral::safeInvVar(24.0*zerothMoment);
+    firstMoment *= Spheral::safeInv(24.0*zerothMoment);
   }
   TIME_PC3d_moments.stop();
 }
