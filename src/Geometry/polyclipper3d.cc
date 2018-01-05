@@ -501,13 +501,15 @@ void clipPolyhedron(Polyhedron& polyhedron,
             auto vnext = nptr;
             auto tmp = vnext;
             // cerr << vptr->ID << ": ( " << vprev->ID << " " << vnext->ID << ")";
-            while (vnext->comp == -1) {
+            auto k = 0;
+            while (vnext->comp == -1 and k++ < polyhedron.size()) {
               tmp = vnext;
               vnext = nextInFaceLoop(vnext, vprev);
               vprev = tmp;
               // cerr << " (" << vprev->ID << " " << vnext->ID << ")";
             }
             // cerr << endl;
+            CHECK(vnext->comp != -1);
             vptr->neighbors[jn] = vnext;
             vnext->neighbors.insert(vnext->neighbors.begin(), vptr);
             // newEdges.push_back(make_pair(vnext, vptr));
