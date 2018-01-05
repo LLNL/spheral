@@ -48,7 +48,7 @@ namespace FractalSpace
   template <class M>  void energy_simple(M& mem, Fractal& fractal);
   void equivalence_class(Group& group);
   void factors(int FR,vector <int>& divs,bool& easy);
-  int find_global_level_max(Fractal_Memory& mem,Fractal& frac);
+  void find_global_level_max(Fractal_Memory& mem);
   int findPointByPos(vector <Point*>& plist,Point* psend,FILE* PFF);
   void fix_memory(Fractal& frac,const int& ispace,const int& jfield);
   void force_at_particle(Group& group, Fractal& fractal,const bool& conserve);
@@ -64,6 +64,8 @@ namespace FractalSpace
   void fractal_force_init(Fractal_Memory* p_mem);
   int fractal_force_wrapper(Fractal_Memory* p_fractal_memory,Fractal* p_fractal);
   template <class M> void fractal_memory_parameters(M* pmem,const string _disK_,int _mulT_);
+  void fractal_nina_cosmo(int argc,char* argv[]);
+  void fractal_nina_galaxy(int argc,char* argv[]);
   void Full_Stop(Fractal_Memory& mem,int number);
   void Full_Stop(Fractal_Memory& mem,MPI_Comm& Comm,int number);
   void gather_particles(Fractal_Memory& mem,Fractal& frac);
