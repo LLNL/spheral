@@ -259,6 +259,12 @@ fractal_nbody.o :	fractal_nbody.cc $(classes)
 fractal_nina.o :	fractal_nina.cc $(classes)
 	$(compile) -c fractal_nina.cc
 #
+fractal_nina_cosmo.o :	fractal_nina_cosmo.cc $(classes)
+	$(compile) -c fractal_nina_cosmo.cc
+#
+fractal_nina_galaxy.o :	fractal_nina_galaxy.cc $(classes)
+	$(compile) -c fractal_nina_galaxy.cc
+#
 fractal_test_run.o :	fractal_test_run.cc  $(classes) 
 	$(compile) -c fractal_test_run.cc
 #
@@ -628,11 +634,9 @@ force_shear_at_particle.o \
 force_shear_at_point.o \
 force_sum_particle.o \
 force_test.o \
-fractal_galaxy.o \
 fractal_force.o \
 fractal_force_init.o \
 fractal_interface_public.o \
-fractal_nbody.o \
 go_ahead_points.o \
 groups_level.o \
 high_groups.o \
@@ -719,5 +723,5 @@ fractal_galaxy :	$(files_hypre_nina_o) $(files_class_o) $(files_fractal_nina_o) 
 	$(compile) $(Loptfftw) $(Lopthypre) -o $(dir)fractal_nina_galaxy.exe $(files_hypre_nina_o) $(files_class_o) $(files_fractal_nina_o) $(files_fftw_mpi_nina_o) $(files_mpi_comm_nina_o) $(fractal_galaxy_run_o) $(cosmos_power_file).o $(halo_fixed_file).o $(lopthypre) $(loptfftw)
 
 #
-fractal_nina :	fractal_nina.o $(files_hypre_nina_o) $(files_class_o) $(files_fractal_nina_o) $(files_fftw_mpi_nina_o) $(files_mpi_comm_nina_o) $(cosmos_power_file).o $(halo_fixed_file).o
-	$(compile) $(Loptfftw) $(Lopthypre) -o $(dir)fractal_nina.exe fractal_nina.o $(files_class_o) $(files_fractal_nina_o) $(files_hypre_nina_o) $(files_fftw_mpi_nina_o) $(files_mpi_comm_nina_o) $(cosmos_power_file).o $(energy_file).o $(halo_fixed_file).o $(parameter_per_file).o $(particle_cosmo_mpi_file).o $(step_file).o $(velocity_file).o $(wrapper_file).o  $(lopthypre) $(loptfftw)
+fractal_nina :		fractal_nina.o fractal_nina_cosmo.o fractal_nina_galaxy.o $(files_hypre_nina_o) $(files_class_o) $(files_fractal_nina_o) $(files_fftw_mpi_nina_o) $(files_mpi_comm_nina_o) $(cosmos_power_file).o $(energy_file).o $(halo_fixed_file).o $(parameter_per_file).o $(particle_cosmo_mpi_file).o $(step_file).o $(velocity_file).o $(wrapper_file).o
+	$(compile) $(Loptfftw) $(Lopthypre) -o $(dir)fractal_nina_.exe fractal_nina.o fractal_nina_cosmo.o fractal_nina_galaxy.o $(files_class_o) $(files_fractal_nina_o) $(files_hypre_nina_o) $(files_fftw_mpi_nina_o) $(files_mpi_comm_nina_o) $(cosmos_power_file).o $(energy_file).o $(halo_fixed_file).o $(parameter_per_file).o $(particle_cosmo_mpi_file).o $(step_file).o $(velocity_file).o $(wrapper_file).o  $(lopthypre) $(loptfftw)

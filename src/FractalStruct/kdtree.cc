@@ -190,15 +190,16 @@ namespace FractalSpace
     if(vol == pnode->ppoints.size())
       return;
     vector<int>pos(3);
-    array<int,3>ar3;
+    // array<int,3>ar3;
     std::map<array<int,3>,Point*,point_comp2> boxP;
     // std::pair<std::map<array<int,3>,Point*>::iterator,bool> ret;
     for(auto pp : pnode->ppoints)
       {
-	pp->get_pos_point(pos);
-	std::move(pos.begin(),pos.end(),ar3.begin());
+	// pp->get_pos_point(pos);
+	// std::move(pos.begin(),pos.end(),ar3.begin());
 	// ret=boxP.insert(std::pair<array<int,3>,Point*>(ar3,pp));
-	auto ret=boxP.insert(make_pair(ar3,pp));
+	// auto ret=boxP.insert(make_pair(ar3,pp));
+	auto ret=boxP.insert(make_pair(pp->get_pos_point_a(),pp));
 	assert(ret.second);
       }
     if(RANKY)

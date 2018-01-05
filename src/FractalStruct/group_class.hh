@@ -20,6 +20,8 @@ namespace FractalSpace
     Group* p_generated_from_group;
     vector <double> force_sum;
     double mass_sum;
+    vector <int> miny;
+    vector <int> maxy;
   public:
     File* p_file;
     vector <Point*> p_list_really_high;
@@ -49,6 +51,8 @@ namespace FractalSpace
       p_generated_from_group=this;
       force_sum.assign(3,0.0);
       mass_sum=1.0e-30;
+      miny={INT_MAX,INT_MAX,INT_MAX};
+      maxy={INT_MIN,INT_MIN,INT_MIN};
       number_groups++;
       //    cerr << "Making Group " << this << " " << number_groups << "\n";
     }
@@ -69,6 +73,8 @@ namespace FractalSpace
       p_generated_from_group=this;
       force_sum.assign(3,0.0);
       mass_sum=1.0e-30;
+      miny={INT_MAX,INT_MAX,INT_MAX};
+      maxy={INT_MIN,INT_MIN,INT_MIN};
       number_groups++;
       //    cerr << "Making Group from Mother" << this << " " << number_groups << "\n";
     }
@@ -112,6 +118,8 @@ namespace FractalSpace
     void subtract_density(const double& d);
     void scale_pot_forces(const double& scaling);
     void get_force_variance(double& varx,double& vary,double& varz);
+    void get_miny_maxy(vector<int>& miny,vector<int>& maxy);
+    void set_miny_maxy();
   };
 }
 #endif

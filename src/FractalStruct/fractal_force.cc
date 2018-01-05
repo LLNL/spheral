@@ -273,8 +273,8 @@ namespace FractalSpace
     if(!fractal_memory.start_up)
       {
 	Full_Stop(fractal_memory,41);
-	fractal_memory.global_level_max=find_global_level_max(fractal_memory,fractal);
-	small_exceptions(fractal_memory);
+	find_global_level_max(fractal_memory);
+	// small_exceptions(fractal_memory);
 	points_on_nodes(fractal_memory);
 	for(int level=1;level <= fractal_memory.global_level_max;level++)
 	  {
@@ -294,23 +294,33 @@ namespace FractalSpace
 	      }
 	    Full_Stop(fractal_memory,36);
 	    poisson_solver_struct(fractal,fractal_memory,level);
+	   // FileFractal << " Enter force A " << " " << level << " " << fractal_memory.all_groups[level].size() << endl;
+	   // FileFractal.flush();
 	    for(Group* pgroup : fractal_memory.all_groups[level])
 	      {
 		Group& group=*pgroup;
 		fractal.timing(-1,22);
+		// FileFractal << " Enter force a" << endl;
+		// FileFractal.flush();
 		force_at_point(group,fractal); 		   
 		fractal.timing(1,22);
 		if(fractal_memory.momentum_conserve)
 		  force_sum_particle(group,false);
 		fractal.timing(-1,23);
+		// FileFractal << " Enter force b " << endl;
+		// FileFractal.flush();
 		force_at_particle(group,fractal,fractal_memory.momentum_conserve);
 		if(fractal_memory.momentum_conserve)
 		  force_sum_particle(group,true);
 		group.set_done_group(true);
 		fractal.timing(1,23);
 	      }
+	   // FileFractal << " Enter force c " << endl;
+	   // FileFractal.flush();
 	    fractal.timing_lev(1,level);
 	  }
+	// FileFractal << " Enter force d " << endl;
+	// FileFractal.flush();
 	fractal.timing(1,47);
       }
     if(fractal_memory.momentum_conserve)
