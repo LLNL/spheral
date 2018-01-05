@@ -59,8 +59,8 @@ Timer TIME_PC3d_clip("clipPolyhedron");
 Timer   TIME_PC3d_planes("Apply clip planes (clipPolyhedron)", TIME_PC3d_clip);
 Timer   TIME_PC3d_checkverts("Clip vertices", TIME_PC3d_planes);
 Timer   TIME_PC3d_insertverts("Insert new vertices", TIME_PC3d_planes);
-Timer   TIME_PC3d_hanging("Link hanging vertices", TIME_PC3d_planes);
-Timer   TIME_PC3d_degenerate("Remove degenerate vertices", TIME_PC3d_planes);
+Timer   TIME_PC3d_planeverts("Relink in-plane vertices", TIME_PC3d_planes);
+Timer   TIME_PC3d_linknew("Link hanging vertices", TIME_PC3d_planes);
 Timer   TIME_PC3d_compress("Compress to active vertices", TIME_PC3d_planes);
 
 // //------------------------------------------------------------------------------
