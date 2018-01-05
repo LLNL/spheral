@@ -426,6 +426,8 @@ void clipPolyhedron(Polyhedron& polyhedron,
     auto below = true;
     vector<Vertex3d*> planeVertices;
     for (auto& v: polyhedron) {
+      const auto barf = ((v.position - Vector( 3.46945e-18, 0.0657523, -0.0728318 )).magnitude() < 1.0e-3);
+      if (barf) cerr << v.position << " " << v.comp << " " << v.neighbors.size() << " : " << kplane << endl;
       v.comp = compare(p0, phat, v.position);
       if (v.comp == 1) {
         below = false;
@@ -458,11 +460,12 @@ void clipPolyhedron(Polyhedron& polyhedron,
         auto i = 0;
         for (auto vitr = polyhedron.begin(); i < nverts0; ++vitr, ++i) {   // Only check vertices before we start adding new ones.
           auto& v = *vitr;
+          const auto barf = ((v.position - Vector( 3.46945e-18, 0.0657523, -0.0728318 )).magnitude() < 1.0e-3);
           if (v.comp == 1) {
 
             // This vertex survives clipping -- check the neighbors.
             const auto nneigh = v.neighbors.size();
-            // CHECK(nneigh >= 3);
+            CHECK(nneigh >= 3);
             for (auto j = 0; j < nneigh; ++j) {
               auto nptr = v.neighbors[j];
               if (nptr->comp == -1) {
@@ -486,16 +489,16 @@ void clipPolyhedron(Polyhedron& polyhedron,
           }
         }
       }
+      const auto nverts = polyhedron.size();
       // cerr << "After insertion:\n" << polyhedron2string(polyhedron) << endl;
       TIME_PC3d_insertverts.stop();
 
       // Next handle reconnecting any vertices that were exactly in-plane.
       TIME_PC3d_planeverts.start();
-      const auto nverts = polyhedron.size();
       for (auto vptr: planeVertices) {
         CHECK(vptr->comp == 0);
         const auto nneigh = vptr->neighbors.size();
-        // CHECK(nneigh >= 3);
+        CHECK(nneigh >= 3);
         for (auto j = 0; j < nneigh; ++j) {
           auto nptr = vptr->neighbors[j];
           if (nptr->comp == -1) {
@@ -510,9 +513,13 @@ void clipPolyhedron(Polyhedron& polyhedron,
               vnext = nextInFaceLoop(vnext, vprev);
               vprev = tmp;
             }
+            CHECK(vprev->comp == -1);
             CHECK(vnext->comp != -1);
             CHECK(vnext != vptr);
             vptr->neighbors[j] = vnext;
+
+            const auto barf = ((vnext->position - Vector( 3.46945e-18, 0.0657523, -0.0728318 )).magnitude() < 1.0e-3);
+            if (barf) cerr << "Deg: " << vptr->position << " " << nneigh << endl;
 
             // Figure out which pointer on the new neighbor should point back at vptr.
             auto itr = find(vnext->neighbors.begin(), vnext->neighbors.end(), vprev);
@@ -531,8 +538,13 @@ void clipPolyhedron(Polyhedron& polyhedron,
 
         // Look for any neighbors of the vertex that are clipped.
         const auto nneigh = vptr->neighbors.size();
+
+        const auto barf = ((vptr->position - Vector( 3.46945e-18, 0.0657523, -0.0728318 )).magnitude() < 1.0e-3);
+        if (barf) cerr << "New: " << vptr->position << " " << nneigh << endl;
+
         for (auto j = 0; j < nneigh; ++j) {
           auto nptr = vptr->neighbors[j];
+          if (barf) cerr << " **> " << nptr->position << " " << nptr->comp << " -> ";
           if (nptr->comp == -1) {
 
             // This neighbor is clipped, so look for the first unclipped vertex along this face loop.
@@ -552,7 +564,9 @@ void clipPolyhedron(Polyhedron& polyhedron,
             vptr->neighbors[j] = vnext;
             vnext->neighbors.insert(vnext->neighbors.begin(), vptr);
             // newEdges.push_back(make_pair(vnext, vptr));
+            if (barf) cerr << vnext->position << " " << vnext->comp << " " << vnext->neighbors.size();
           }
+          if (barf) cerr << endl;
         }
       }
       // const auto nNewEdges = newEdges.size();
@@ -581,6 +595,14 @@ void clipPolyhedron(Polyhedron& polyhedron,
         if (vitr->comp < 0) {
           vitr = polyhedron.erase(vitr);
         } else {
+          if (!(vitr->neighbors.size() >= 3)) {
+            auto v = *vitr;
+            cerr << " !! " << v.position << " " << v.comp << " " << v.neighbors.size() << " : " << endl;
+            for (auto nptr: v.neighbors) {
+              cerr << "    " << nptr->position << nptr->comp << " " << nptr->neighbors.size() << " " << (nptr->position - v.position).unitVector() << endl;
+            }
+          }
+          CHECK(vitr->neighbors.size() >= 3);
           ++vitr;
         }
       }
