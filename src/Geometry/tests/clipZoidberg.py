@@ -4,6 +4,8 @@ from PolyhedronFileUtilities import *
 from timeit import default_timer as timer
 
 zoidberg = readPolyhedronOBJ("zoidberg.obj")
+zoidbergPC = PolyClipper.Polyhedron()
+PolyClipper.convertToPolyhedron(zoidbergPC, zoidberg)
 
 planes = vector_of_Plane()
 nplanes = 10
@@ -13,11 +15,12 @@ for i in xrange(nplanes):
     rhat = Vector(cos(theta), sin(theta), 0.0)
     planes.append(Plane(point = 1*rhat, normal=-rhat))
 
-chunk = Polyhedron(zoidberg)
 t0 = timer()
-clipFacetedVolumeByPlanes(chunk, planes)
+chunkPC = PolyClipper.clipPolyhedron(zoidbergPC, planes)
 t1 = timer()
-print "clipFacetedVolumeByPlanes required", t1 - t0
+print "PolyClipper.clipPolyhedron required", t1 - t0
+chunk = Polyhedron()
+PolyClipper.convertFromPolyhedron(chunk, zoidbergPC)
 writePolyhedronOBJ(chunk, "zoidberg_clipped_native.obj")
 
 #EasyProfilerDump("clipZoidberg_timings")

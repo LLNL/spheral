@@ -35,6 +35,7 @@ extern Timer TIME_PC3d_planes;
 extern Timer TIME_PC3d_checkverts;
 extern Timer TIME_PC3d_insertverts;
 extern Timer TIME_PC3d_hanging;
+extern Timer TIME_PC3d_degenerate;
 extern Timer TIME_PC3d_compress;
 
 namespace PolyClipper {
@@ -445,16 +446,18 @@ void clipPolyhedron(Polyhedron& polyhedron,
       // Insert any new vertices.
       TIME_PC3d_insertverts.start();
       vector<Vertex3d*> hangingVertices;
+      vector<pair<Vertex3d*, Vertex3d*>> degenerateVertices;
       const auto nverts0 = polyhedron.size();
       {
         auto i = 0;
         for (auto vitr = polyhedron.begin(); i < nverts0; ++vitr, ++i) {   // Only check vertices before we start adding new ones.
           auto& v = *vitr;
-          if (v.comp == 1) {
+          if (v.comp >= 0) {
+            if (v.comp == 0) cerr << "Degenerate!" << endl;
 
             // This vertex survives clipping -- check the neighbors.
             const auto nneigh = v.neighbors.size();
-            CHECK(nneigh >= 3);
+            // CHECK(nneigh >= 3);
             for (int j = 0; j < nneigh; ++j) {
               if (v.neighbors[j]->comp == -1) {
 
@@ -464,28 +467,16 @@ void clipPolyhedron(Polyhedron& polyhedron,
                                                                        p0,
                                                                        phat),
                                               2));         // 2 indicates new vertex
-              
                 polyhedron.back().neighbors = {v.neighbors[j], &v};
                 auto itr = find(v.neighbors[j]->neighbors.begin(), v.neighbors[j]->neighbors.end(), &v);
                 CHECK(itr != v.neighbors[j]->neighbors.end());
                 *itr = &polyhedron.back();
                 v.neighbors[j] = &polyhedron.back();
                 hangingVertices.push_back(&polyhedron.back());
+                if (v.comp == 0) degenerateVertices.push_back(make_pair(&polyhedron.back(), &v));
                 // cerr << " --> Inserting new vertex @ " << polyhedron.back().position << endl;
 
               }
-            }
-          } else if (v.comp == 0) {
-
-            // This vertex is in-plane.  We need to check if it will be left hanging or not, which is only
-            // possible if it has some neighbor clipped and some neighbor not.
-            if (find_if(v.neighbors.begin(), v.neighbors.end(), [](const Vertex3d* x) 
-                        { return x->comp ==  1; }) != v.neighbors.end() and
-                find_if(v.neighbors.begin(), v.neighbors.end(), [](const Vertex3d* x) 
-                        { return x->comp == -1; }) != v.neighbors.end()) {
-              hangingVertices.push_back(&v);
-              // cerr << " --> Hanging vertex @ " << v.position << endl;
-
             }
           }
         }
@@ -498,7 +489,7 @@ void clipPolyhedron(Polyhedron& polyhedron,
       TIME_PC3d_hanging.start();
       // vector<pair<Vertex3d*, Vertex3d*>> newEdges;
       for (auto vptr: hangingVertices) {
-        CHECK(vptr->comp == 2 or vptr->comp == 0);
+        CHECK(vptr->comp == 2);
 
         // Look for any neighbors of the vertex that are clipped.
         for (auto jn = 0; jn < vptr->neighbors.size(); ++jn) {
@@ -517,24 +508,8 @@ void clipPolyhedron(Polyhedron& polyhedron,
               // cerr << " (" << vprev->ID << " " << vnext->ID << ")";
             }
             // cerr << endl;
-
-            // If this loop closed back on a known neighbor of this node, we don't close it.
-            if (find(vptr->neighbors.begin(), vptr->neighbors.end(), vnext) == vptr->neighbors.end()) {
-              vptr->neighbors[jn] = vnext;
-
-              // How we edit the new neighbors neighbors depends on if it was a new or
-              // existing in-plane vertex.
-              if (vnext->comp == 2) {
-                // New vertex.
-                vnext->neighbors.insert(vnext->neighbors.begin(), vptr);
-              } else {
-                // Existing in-plane neighbor -- more complicated neighbor editing.
-                auto itr = find(vnext->neighbors.begin(), vnext->neighbors.end(), vprev);
-                CHECK(itr != vnext->neighbors.end());
-                // cerr << "  neighbor replace: " << vnext->ID << "[" << (*itr)->ID << " -> " << vptr->ID << "]" << endl;
-                *itr = vptr;
-              }
-            }
+            vptr->neighbors[jn] = vnext;
+            vnext->neighbors.insert(vnext->neighbors.begin(), vptr);
             // newEdges.push_back(make_pair(vnext, vptr));
           }
         }
@@ -542,6 +517,22 @@ void clipPolyhedron(Polyhedron& polyhedron,
       // const auto nNewEdges = newEdges.size();
       // CHECK(nNewEdges >= 3);
       TIME_PC3d_hanging.stop();
+
+      // Collapse any degenerate vertices back onto the originals.
+      TIME_PC3d_degenerate.start();
+      {
+        Vertex3d *vdeg, *vptr;
+        for (auto& vpair: degenerateVertices) {
+          tie(vdeg, vptr) = vpair;
+          vptr->neighbors.reserve(vptr->neighbors.size() + vdeg->neighbors.size());
+          vptr->neighbors.insert(vptr->neighbors.end(), vdeg->neighbors.begin(), vdeg->neighbors.end());
+          vdeg->comp = -1;
+          for (auto& v: polyhedron) { // Get rid of this!
+            replace(v.neighbors.begin(), v.neighbors.end(), vdeg, vptr);
+          }
+        }
+      }
+      TIME_PC3d_degenerate.stop();
 
       // Remove the clipped vertices, compressing the polyhedron.
       TIME_PC3d_compress.start();
