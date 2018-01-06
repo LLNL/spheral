@@ -464,6 +464,8 @@ void clipPolyhedron(Polyhedron& polyhedron,
 
         // Look for any new vertices we need to insert.
         auto i = 0;
+        Vertex3d* nptr;
+        vector<Vertex3d*>::iterator itr;
         for (auto vitr = polyhedron.begin(); i < nverts0; ++vitr, ++i) {   // Only check vertices before we start adding new ones.
           auto& v = *vitr;
           if (v.comp >= 0) {
@@ -472,7 +474,7 @@ void clipPolyhedron(Polyhedron& polyhedron,
             const auto nneigh = v.neighbors.size();
             CHECK(nneigh >= 3);
             for (auto j = 0; j < nneigh; ++j) {
-              auto nptr = v.neighbors[j];
+              nptr = v.neighbors[j];
               if (nptr->comp == -1) {
 
                 // This edge straddles the clip plane, so insert a new vertex.
@@ -482,7 +484,7 @@ void clipPolyhedron(Polyhedron& polyhedron,
                                                                        phat),
                                               2));         // 2 indicates new vertex
                 polyhedron.back().neighbors = {nptr, &v};
-                auto itr = find(nptr->neighbors.begin(), nptr->neighbors.end(), &v);
+                itr = find(nptr->neighbors.begin(), nptr->neighbors.end(), &v);
                 CHECK(itr != nptr->neighbors.end());
                 *itr = &polyhedron.back();
                 v.neighbors[j] = &polyhedron.back();
