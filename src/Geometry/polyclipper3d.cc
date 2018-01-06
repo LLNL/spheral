@@ -457,7 +457,7 @@ void clipPolyhedron(Polyhedron& polyhedron,
         auto i = 0;
         for (auto vitr = polyhedron.begin(); i < nverts0; ++vitr, ++i) {   // Only check vertices before we start adding new ones.
           auto& v = *vitr;
-          if (v.comp == 1) {
+          if (v.comp >= 0) {
 
             // This vertex survives clipping -- check the neighbors.
             const auto nneigh = v.neighbors.size();
@@ -478,26 +478,6 @@ void clipPolyhedron(Polyhedron& polyhedron,
                 *itr = &polyhedron.back();
                 v.neighbors[j] = &polyhedron.back();
                 // cerr << " --> Inserting new vertex @ " << polyhedron.back().position << endl;
-
-              }
-            }
-
-          } else if (v.comp == 0) {
-
-            // For vertices that are in-plane we create "new" vertices as dengenerate copies if needed.
-            const auto nneigh = v.neighbors.size();
-            CHECK(nneigh >= 3);
-            for (auto j = 0; j < nneigh; ++j) {
-              auto nptr = v.neighbors[j];
-              if (nptr->comp == -1) {
-                polyhedron.push_back(Vertex3d(v.position,
-                                              2));         // 2 indicates new vertex
-                polyhedron.back().neighbors = {nptr, &v};
-                auto itr = find(nptr->neighbors.begin(), nptr->neighbors.end(), &v);
-                CHECK(itr != nptr->neighbors.end());
-                *itr = &polyhedron.back();
-                v.neighbors[j] = &polyhedron.back();
-                // cerr << " --> Inserting degenerate vertex @ " << polyhedron.back().position << endl;
 
               }
             }
