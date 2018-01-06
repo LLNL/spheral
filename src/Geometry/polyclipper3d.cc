@@ -450,7 +450,6 @@ void clipPolyhedron(Polyhedron& polyhedron,
       // This plane passes through the polyhedron.
       // Insert any new vertices.
       TIME_PC3d_insertverts.start();
-      vector<Vertex3d*> newVertices;
       const auto nverts0 = polyhedron.size();
       {
 
@@ -478,7 +477,6 @@ void clipPolyhedron(Polyhedron& polyhedron,
                 CHECK(itr != nptr->neighbors.end());
                 *itr = &polyhedron.back();
                 v.neighbors[j] = &polyhedron.back();
-                newVertices.push_back(&polyhedron.back());
                 // cerr << " --> Inserting new vertex @ " << polyhedron.back().position << endl;
 
               }
@@ -499,7 +497,6 @@ void clipPolyhedron(Polyhedron& polyhedron,
                 CHECK(itr != nptr->neighbors.end());
                 *itr = &polyhedron.back();
                 v.neighbors[j] = &polyhedron.back();
-                newVertices.push_back(&polyhedron.back());
                 // cerr << " --> Inserting degenerate vertex @ " << polyhedron.back().position << endl;
 
               }
@@ -551,21 +548,23 @@ void clipPolyhedron(Polyhedron& polyhedron,
       // For each new vertex, link to the neighbors that survive the clipping.
       TIME_PC3d_linknew.start();
       // vector<pair<Vertex3d*, Vertex3d*>> newEdges;
-      for (auto vptr: newVertices) {
-        CHECK(vptr->comp == 2);
+      auto newVertBegin = polyhedron.begin();
+      for (auto k = 0; k < nverts0; ++k) ++newVertBegin;
+      for (auto vitr = newVertBegin; vitr != polyhedron.end(); ++vitr) {
+        CHECK(vitr->comp == 2);
 
         // Look for any neighbors of the vertex that are clipped.
-        const auto nneigh = vptr->neighbors.size();
+        const auto nneigh = vitr->neighbors.size();
 
         for (auto j = 0; j < nneigh; ++j) {
-          auto nptr = vptr->neighbors[j];
+          auto nptr = vitr->neighbors[j];
           if (nptr->comp == -1) {
 
             // This neighbor is clipped, so look for the first unclipped vertex along this face loop.
-            auto vprev = vptr;
+            auto vprev = &(*vitr);
             auto vnext = nptr;
             auto tmp = vnext;
-            // cerr << vptr->ID << ": ( " << vprev->ID << " " << vnext->ID << ")";
+            // cerr << vitr->ID << ": ( " << vprev->ID << " " << vnext->ID << ")";
             auto k = 0;
             while (vnext->comp == -1 and k++ < nverts) {
               tmp = vnext;
@@ -575,9 +574,9 @@ void clipPolyhedron(Polyhedron& polyhedron,
             }
             // cerr << endl;
             CHECK(vnext->comp != -1);
-            vptr->neighbors[j] = vnext;
-            vnext->neighbors.insert(vnext->neighbors.begin(), vptr);
-            // newEdges.push_back(make_pair(vnext, vptr));
+            vitr->neighbors[j] = vnext;
+            vnext->neighbors.insert(vnext->neighbors.begin(), &(*vitr));
+            // newEdges.push_back(make_pair(vnext, vitr));
           }
         }
       }
@@ -607,13 +606,6 @@ void clipPolyhedron(Polyhedron& polyhedron,
         if (vitr->comp < 0) {
           vitr = polyhedron.erase(vitr);
         } else {
-          if (!(vitr->neighbors.size() >= 3)) {
-            auto v = *vitr;
-            cerr << " !! " << v.position << " " << v.comp << " " << v.neighbors.size() << " : " << endl;
-            for (auto nptr: v.neighbors) {
-              cerr << "    " << nptr->position << nptr->comp << " " << nptr->neighbors.size() << " " << (nptr->position - v.position).unitVector() << endl;
-            }
-          }
           CHECK(vitr->neighbors.size() >= 3);
           ++vitr;
         }
