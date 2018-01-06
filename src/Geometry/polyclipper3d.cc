@@ -51,9 +51,11 @@ inline
 int compare(const Spheral::Dim<3>::Vector& planePoint,
             const Spheral::Dim<3>::Vector& planeNormal,
             const Spheral::Dim<3>::Vector& point) {
-  const auto sgndist = planeNormal.dot(point - planePoint);
+  const auto sgndist = (planeNormal[0]*(point[0] - planePoint[0]) +
+                        planeNormal[1]*(point[1] - planePoint[1]) +
+                        planeNormal[2]*(point[2] - planePoint[2]));
   if (std::abs(sgndist) < 1.0e-10) return 0;
-  return sgn0(sgndist);
+  return sgn(sgndist);
 }
 
 //------------------------------------------------------------------------------
@@ -67,15 +69,22 @@ segmentPlaneIntersection(const Spheral::Dim<3>::Vector& a,       // line-segment
                          const Spheral::Dim<3>::Vector& phat) {  // plane unit normal
 
   const auto ab = b - a;
-  if (fuzzyEqual(ab.magnitude(), 0.0, 1.0e-10)) return a;
-  const auto abhat = ab.unitVector();
+  const auto abmag = sqrt(ab[0]*ab[0] + ab[1]*ab[1] + ab[2]*ab[2]);
+  if (fuzzyEqual(abmag, 0.0, 1.0e-10)) return a;
+  const auto abhat = ab*safeInv(abmag);
   CHECK2(std::abs(abhat.dot(phat)) > 0.0, (abhat.dot(phat)) << " " << a << " " << b << " " << abhat << " " << phat);
-  const auto s = std::max(0.0, std::min(ab.magnitude(), (p - a).dot(phat)/(abhat.dot(phat))));
+  const auto s = std::max(0.0, std::min(abmag,
+                                        ((p[0] - a[0])*phat[0] + (p[1] - a[1])*phat[1] + (p[2] - a[2])*phat[2])/
+                                        (abhat[0]*phat[0] + abhat[1]*phat[1] + abhat[2]*phat[2])));
+  // const auto s = std::max(0.0, std::min(abmag, (p - a).dot(phat)/(abhat.dot(phat))));
   CHECK2(s >= 0.0 and s <= ab.magnitude(), s << " " << ab.magnitude());
-  const auto result = a + s*abhat;
+  return Spheral::Dim<3>::Vector(a[0] + s*abhat[0],
+                                 a[1] + s*abhat[1],
+                                 a[2] + s*abhat[2]);
+  // const auto result = a + s*abhat;
   // CHECK2(fuzzyEqual((result - p).dot(phat), 0.0, 1.0e-10),
   //        a << " " << b << " " << s << " " << result << " " << (result - p).dot(phat));
-  return result;
+  // return result;
 }
 
 //------------------------------------------------------------------------------
