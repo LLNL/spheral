@@ -410,11 +410,16 @@ void moments(double& zerothMoment, Spheral::Dim<3>::Vector& firstMoment,
 // Clip a polyhedron by planes.
 //------------------------------------------------------------------------------
 void clipPolyhedron(Polyhedron& polyhedron,
-                 const std::vector<Spheral::GeomPlane<Spheral::Dim<3>>>& planes) {
+                    const std::vector<Spheral::GeomPlane<Spheral::Dim<3>>>& planes) {
   TIME_PC3d_clip.start();
 
-  // Useful types.
-  typedef Spheral::Dim<3>::Vector Vector;
+  // Pre-declare variables.  Normally I prefer local declaration, but this
+  // seems to slightly help performance.
+  bool above, below;
+  size_t nverts0, nverts, nneigh, i, j, k;
+  Vertex3d *nptr, *vprev, *vnext, *vtmp;
+  vector<Vertex3d*>::iterator nitr;
+  Polyhedron::iterator newVertBegin, vitr;
 
   // cerr << "Initial:\n" << polyhedron2string(polyhedron) << endl;
 
@@ -431,18 +436,16 @@ void clipPolyhedron(Polyhedron& polyhedron,
     // Check the current set of vertices against this plane.
     // Also keep track of any vertices that landed exactly in-plane.
     TIME_PC3d_checkverts.start();
-    auto above = true;
-    auto below = true;
-    vector<Vertex3d*> planeVertices;
+    above = true;
+    below = true;
     for (auto& v: polyhedron) {
       v.comp = compare(p0, phat, v.position);
       if (v.comp == 1) {
         below = false;
       } else if (v.comp == -1) {
         above = false;
-      } else {
-        CHECK(v.comp == 0);
-        planeVertices.push_back(&v);
+      // } else {
+      //   CHECK(v.comp == 0);
       }
     }
     CHECK(not (above and below));
@@ -459,19 +462,16 @@ void clipPolyhedron(Polyhedron& polyhedron,
       // This plane passes through the polyhedron.
       // Insert any new vertices.
       TIME_PC3d_insertverts.start();
-      const auto nverts0 = polyhedron.size();
+      nverts0 = polyhedron.size();
       {
-
         // Look for any new vertices we need to insert.
-        auto i = 0;
-        Vertex3d* nptr;
-        vector<Vertex3d*>::iterator itr;
-        for (auto vitr = polyhedron.begin(); i < nverts0; ++vitr, ++i) {   // Only check vertices before we start adding new ones.
+        i = 0;
+        for (vitr = polyhedron.begin(); i < nverts0; ++vitr, ++i) {   // Only check vertices before we start adding new ones.
           auto& v = *vitr;
           if (v.comp >= 0) {
 
             // This vertex survives clipping -- check the neighbors.
-            const auto nneigh = v.neighbors.size();
+            nneigh = v.neighbors.size();
             CHECK(nneigh >= 3);
             for (auto j = 0; j < nneigh; ++j) {
               nptr = v.neighbors[j];
@@ -484,9 +484,9 @@ void clipPolyhedron(Polyhedron& polyhedron,
                                                                        phat),
                                               2));         // 2 indicates new vertex
                 polyhedron.back().neighbors = {nptr, &v};
-                itr = find(nptr->neighbors.begin(), nptr->neighbors.end(), &v);
-                CHECK(itr != nptr->neighbors.end());
-                *itr = &polyhedron.back();
+                nitr = find(nptr->neighbors.begin(), nptr->neighbors.end(), &v);
+                CHECK(nitr != nptr->neighbors.end());
+                *nitr = &polyhedron.back();
                 v.neighbors[j] = &polyhedron.back();
                 // cerr << " --> Inserting new vertex @ " << polyhedron.back().position << endl;
 
@@ -539,35 +539,36 @@ void clipPolyhedron(Polyhedron& polyhedron,
       // For each new vertex, link to the neighbors that survive the clipping.
       TIME_PC3d_linknew.start();
       // vector<pair<Vertex3d*, Vertex3d*>> newEdges;
-      auto newVertBegin = polyhedron.begin();
-      for (auto k = 0; k < nverts0; ++k) ++newVertBegin;
-      for (auto vitr = newVertBegin; vitr != polyhedron.end(); ++vitr) {
-        CHECK(vitr->comp == 2);
+      {
+        newVertBegin = polyhedron.begin();
+        for (k = 0; k < nverts0; ++k) ++newVertBegin;
+        for (vitr = newVertBegin; vitr != polyhedron.end(); ++vitr) {
+          CHECK(vitr->comp == 2);
+          nneigh = vitr->neighbors.size();
 
-        // Look for any neighbors of the vertex that are clipped.
-        const auto nneigh = vitr->neighbors.size();
+          // Look for any neighbors of the vertex that are clipped.
+          for (j = 0; j < nneigh; ++j) {
+            nptr = vitr->neighbors[j];
+            if (nptr->comp == -1) {
 
-        for (auto j = 0; j < nneigh; ++j) {
-          auto nptr = vitr->neighbors[j];
-          if (nptr->comp == -1) {
-
-            // This neighbor is clipped, so look for the first unclipped vertex along this face loop.
-            auto vprev = &(*vitr);
-            auto vnext = nptr;
-            auto tmp = vnext;
-            // cerr << vitr->ID << ": ( " << vprev->ID << " " << vnext->ID << ")";
-            auto k = 0;
-            while (vnext->comp == -1 and k++ < nverts) {
-              tmp = vnext;
-              vnext = nextInFaceLoop(vnext, vprev);
-              vprev = tmp;
-              // cerr << " (" << vprev->ID << " " << vnext->ID << ")";
+              // This neighbor is clipped, so look for the first unclipped vertex along this face loop.
+              vprev = &(*vitr);
+              vnext = nptr;
+              vtmp = vnext;
+              // cerr << vitr->ID << ": ( " << vprev->ID << " " << vnext->ID << ")";
+              k = 0;
+              while (vnext->comp == -1 and k++ < nverts) {
+                vtmp = vnext;
+                vnext = nextInFaceLoop(vnext, vprev);
+                vprev = vtmp;
+                // cerr << " (" << vprev->ID << " " << vnext->ID << ")";
+              }
+              // cerr << endl;
+              CHECK(vnext->comp != -1);
+              vitr->neighbors[j] = vnext;
+              vnext->neighbors.insert(vnext->neighbors.begin(), &(*vitr));
+              // newEdges.push_back(make_pair(vnext, vitr));
             }
-            // cerr << endl;
-            CHECK(vnext->comp != -1);
-            vitr->neighbors[j] = vnext;
-            vnext->neighbors.insert(vnext->neighbors.begin(), &(*vitr));
-            // newEdges.push_back(make_pair(vnext, vitr));
           }
         }
       }
@@ -593,7 +594,7 @@ void clipPolyhedron(Polyhedron& polyhedron,
 
       // Remove the clipped vertices, compressing the polyhedron.
       TIME_PC3d_compress.start();
-      for (auto vitr = polyhedron.begin(); vitr != polyhedron.end();) {
+      for (vitr = polyhedron.begin(); vitr != polyhedron.end();) {
         if (vitr->comp < 0) {
           vitr = polyhedron.erase(vitr);
         } else {
