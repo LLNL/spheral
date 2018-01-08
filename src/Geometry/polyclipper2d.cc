@@ -56,6 +56,35 @@ int compare(const Spheral::Dim<2>::Vector& planePoint,
 }
 
 //------------------------------------------------------------------------------
+// Compare a plane and a box (defined by it's min/max coordinates).
+//   -1 ==> box below plane
+//    0 ==> plane cuts through box
+//    1 ==> box above plane
+//------------------------------------------------------------------------------
+inline
+int compare(const Spheral::Dim<2>::Vector& planePoint,
+            const Spheral::Dim<2>::Vector& planeNormal,
+            const double xmin,
+            const double ymin,
+            const double xmax,
+            const double ymax) {
+  typedef Spheral::Dim<2>::Vector Vector;
+  const auto c1 = compare(planePoint, planeNormal, Vector(xmin, ymin));
+  const auto c2 = compare(planePoint, planeNormal, Vector(xmax, ymin));
+  const auto c3 = compare(planePoint, planeNormal, Vector(xmax, ymax));
+  const auto c4 = compare(planePoint, planeNormal, Vector(xmin, ymax));
+  const auto cmin = std::min(c1, std::min(c2, std::min(c3, c4)));
+  const auto cmax = std::max(c1, std::max(c2, std::max(c3, c4)));
+  if (cmin == 1) {
+    return  1;
+  } else if (cmax == -1) {
+    return -1;
+  } else {
+    return  0;
+  }
+}
+
+//------------------------------------------------------------------------------
 // Intersect a line-segment with a plane.
 //------------------------------------------------------------------------------
 inline
@@ -277,6 +306,16 @@ void clipPolygon(Polygon& polygon,
   // Useful types.
   typedef Spheral::Dim<2>::Vector Vector;
 
+  // Find the bounding box of the polygon.
+  auto xmin = std::numeric_limits<double>::max(), xmax = std::numeric_limits<double>::lowest();
+  auto ymin = std::numeric_limits<double>::max(), ymax = std::numeric_limits<double>::lowest();
+  for (auto& v: polygon) {
+    xmin = std::min(xmin, v.position[0]);
+    xmax = std::max(xmax, v.position[0]);
+    ymin = std::min(ymin, v.position[1]);
+    ymax = std::max(ymax, v.position[1]);
+  }
+
   // Loop over the planes.
   TIME_PC2d_planes.start();
   auto kplane = 0;
@@ -287,19 +326,25 @@ void clipPolygon(Polygon& polygon,
     const auto& phat = plane.normal();
     // cerr << "Clip plane: " << p0 << " " << phat << endl;
 
+    // First check against the bounding box.
+    auto boxcomp = compare(p0, phat, xmin, ymin, xmax, ymax);
+    auto above = boxcomp ==  1;
+    auto below = boxcomp == -1;
+    CHECK(not (above and below));
+
     // Check the current set of vertices against this plane.
     TIME_PC2d_checkverts.start();
-    auto above = true;
-    auto below = true;
-    for (auto& v: polygon) {
-      v.comp = compare(p0, phat, v.position);
-      if (v.comp == 1) {
-        below = false;
-      } else if (v.comp == -1) {
-        above = false;
+    if (not (above or below)) {
+      for (auto& v: polygon) {
+        v.comp = compare(p0, phat, v.position);
+        if (v.comp == 1) {
+          below = false;
+        } else if (v.comp == -1) {
+          above = false;
+        }
       }
+      CHECK(not (above and below));
     }
-    CHECK(not (above and below));
     TIME_PC2d_checkverts.stop();
 
     // Did we get a simple case?
@@ -396,10 +441,16 @@ void clipPolygon(Polygon& polygon,
 
       // Remove the clipped vertices, compressing the polygon.
       TIME_PC2d_compress.start();
+      xmin = std::numeric_limits<double>::max(), xmax = std::numeric_limits<double>::lowest();
+      ymin = std::numeric_limits<double>::max(), ymax = std::numeric_limits<double>::lowest();
       for (auto vitr = polygon.begin(); vitr != polygon.end();) {
         if (vitr->comp < 0) {
           vitr = polygon.erase(vitr);
         } else {
+          xmin = std::min(xmin, vitr->position[0]);
+          xmax = std::max(xmax, vitr->position[0]);
+          ymin = std::min(ymin, vitr->position[1]);
+          ymax = std::max(ymax, vitr->position[1]);
           ++vitr;
         }
       }
