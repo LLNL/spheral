@@ -59,6 +59,41 @@ int compare(const Spheral::Dim<3>::Vector& planePoint,
 }
 
 //------------------------------------------------------------------------------
+// Compare a plane and a box (defined by it's min/max coordinates).
+//   -1 ==> box below plane
+//    0 ==> plane cuts through box
+//    1 ==> box above plane
+//------------------------------------------------------------------------------
+inline
+int compare(const Spheral::Dim<3>::Vector& planePoint,
+            const Spheral::Dim<3>::Vector& planeNormal,
+            const double xmin,
+            const double ymin,
+            const double zmin,
+            const double xmax,
+            const double ymax,
+            const double zmax) {
+  typedef Spheral::Dim<3>::Vector Vector;
+  const auto c1 = compare(planePoint, planeNormal, Vector(xmin, ymin, zmin));
+  const auto c2 = compare(planePoint, planeNormal, Vector(xmax, ymin, zmin));
+  const auto c3 = compare(planePoint, planeNormal, Vector(xmax, ymax, zmin));
+  const auto c4 = compare(planePoint, planeNormal, Vector(xmin, ymax, zmin));
+  const auto c5 = compare(planePoint, planeNormal, Vector(xmin, ymin, zmax));
+  const auto c6 = compare(planePoint, planeNormal, Vector(xmax, ymin, zmax));
+  const auto c7 = compare(planePoint, planeNormal, Vector(xmax, ymax, zmax));
+  const auto c8 = compare(planePoint, planeNormal, Vector(xmin, ymax, zmax));
+  const auto cmin = min(c1, min(c2, min(c3, min(c4, min(c5, min(c6, min(c7, c8)))))));
+  const auto cmax = max(c1, max(c2, max(c3, max(c4, max(c5, max(c6, max(c7, c8)))))));
+  if (cmin == 1) {
+    return  1;
+  } else if (cmax == -1) {
+    return -1;
+  } else {
+    return  0;
+  }
+}
+
+//------------------------------------------------------------------------------
 // Intersect a line-segment with a plane.
 //------------------------------------------------------------------------------
 inline
@@ -423,6 +458,19 @@ void clipPolyhedron(Polyhedron& polyhedron,
 
   // cerr << "Initial:\n" << polyhedron2string(polyhedron) << endl;
 
+  // Find the bounding box of the polygon.
+  auto xmin = std::numeric_limits<double>::max(), xmax = std::numeric_limits<double>::lowest();
+  auto ymin = std::numeric_limits<double>::max(), ymax = std::numeric_limits<double>::lowest();
+  auto zmin = std::numeric_limits<double>::max(), zmax = std::numeric_limits<double>::lowest();
+  for (auto& v: polyhedron) {
+    xmin = std::min(xmin, v.position[0]);
+    xmax = std::max(xmax, v.position[0]);
+    ymin = std::min(ymin, v.position[1]);
+    ymax = std::max(ymax, v.position[1]);
+    zmin = std::min(zmin, v.position[2]);
+    zmax = std::max(zmax, v.position[2]);
+  }
+
   // Loop over the planes.
   TIME_PC3d_planes.start();
   auto kplane = 0;
@@ -433,22 +481,26 @@ void clipPolyhedron(Polyhedron& polyhedron,
     const auto& phat = plane.normal();
     // cerr << "Clip plane: " << p0 << " " << phat << endl;
 
+    // First check against the bounding box.
+    auto boxcomp = compare(p0, phat, xmin, ymin, zmin, xmax, ymax, zmax);
+    auto above = boxcomp ==  1;
+    auto below = boxcomp == -1;
+    CHECK(not (above and below));
+
     // Check the current set of vertices against this plane.
     // Also keep track of any vertices that landed exactly in-plane.
     TIME_PC3d_checkverts.start();
-    above = true;
-    below = true;
-    for (auto& v: polyhedron) {
-      v.comp = compare(p0, phat, v.position);
-      if (v.comp == 1) {
-        below = false;
-      } else if (v.comp == -1) {
-        above = false;
-      // } else {
-      //   CHECK(v.comp == 0);
+    if (not (above or below)) {
+      for (auto& v: polyhedron) {
+        v.comp = compare(p0, phat, v.position);
+        if (v.comp == 1) {
+          below = false;
+        } else if (v.comp == -1) {
+          above = false;
+        }
       }
+      CHECK(not (above and below));
     }
-    CHECK(not (above and below));
     TIME_PC3d_checkverts.stop();
 
     // Did we get a simple case?
@@ -594,10 +646,19 @@ void clipPolyhedron(Polyhedron& polyhedron,
 
       // Remove the clipped vertices, compressing the polyhedron.
       TIME_PC3d_compress.start();
+      xmin = std::numeric_limits<double>::max(), xmax = std::numeric_limits<double>::lowest();
+      ymin = std::numeric_limits<double>::max(), ymax = std::numeric_limits<double>::lowest();
+      zmin = std::numeric_limits<double>::max(), zmax = std::numeric_limits<double>::lowest();
       for (vitr = polyhedron.begin(); vitr != polyhedron.end();) {
         if (vitr->comp < 0) {
           vitr = polyhedron.erase(vitr);
         } else {
+          xmin = std::min(xmin, vitr->position[0]);
+          xmax = std::max(xmax, vitr->position[0]);
+          ymin = std::min(ymin, vitr->position[1]);
+          ymax = std::max(ymax, vitr->position[1]);
+          zmin = std::min(zmin, vitr->position[2]);
+          zmax = std::max(zmax, vitr->position[2]);
           CHECK(vitr->neighbors.size() >= 3);
           ++vitr;
         }
