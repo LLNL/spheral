@@ -20,6 +20,7 @@
 #include "Geometry/GeomPlane.hh"
 
 #include <string>
+#include <vector>
 #include <list>
 
 namespace PolyClipper {
@@ -30,8 +31,9 @@ namespace PolyClipper {
 struct Vertex2d {
   typedef Spheral::Dim<2>::Vector Vector;
   Vector position;
-  std::pair<Vertex2d*, Vertex2d*> neighbors;
+  std::pair<int, int> neighbors;
   int comp;
+  mutable int ID;    // convenient, but sneaky
   Vertex2d():                               position(),    neighbors(), comp(1) {}
   Vertex2d(const Vector& pos):              position(pos), neighbors(), comp(1) {}
   Vertex2d(const Vector& pos, const int c): position(pos), neighbors(), comp(c) {}
@@ -54,7 +56,7 @@ struct Vertex3d {
 //------------------------------------------------------------------------------
 // 2D (polygon) methods.
 //------------------------------------------------------------------------------
-typedef std::list<Vertex2d> Polygon;
+typedef std::vector<Vertex2d> Polygon;
 
 std::string polygon2string(const Polygon& poly);
 
