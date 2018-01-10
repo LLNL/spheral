@@ -20,7 +20,6 @@
 #include "Geometry/GeomPlane.hh"
 
 #include <string>
-#include <vector>
 #include <list>
 
 namespace PolyClipper {
@@ -31,12 +30,11 @@ namespace PolyClipper {
 struct Vertex2d {
   typedef Spheral::Dim<2>::Vector Vector;
   Vector position;
-  std::pair<int, int> neighbors;
+  std::pair<Vertex2d*, Vertex2d*> neighbors;
   int comp;
-  mutable int ID;    // convenient, but sneaky
-  Vertex2d():                               position(),    neighbors(), comp(1), ID(-1) {}
-  Vertex2d(const Vector& pos):              position(pos), neighbors(), comp(1), ID(-1) {}
-  Vertex2d(const Vector& pos, const int c): position(pos), neighbors(), comp(c), ID(-1) {}
+  Vertex2d():                               position(),    neighbors(), comp(1) {}
+  Vertex2d(const Vector& pos):              position(pos), neighbors(), comp(1) {}
+  Vertex2d(const Vector& pos, const int c): position(pos), neighbors(), comp(c) {}
 };
 
 //------------------------------------------------------------------------------
@@ -45,7 +43,7 @@ struct Vertex2d {
 struct Vertex3d {
   typedef Spheral::Dim<3>::Vector Vector;
   Vector position;
-  std::vector<int> neighbors;
+  std::vector<Vertex3d*> neighbors;
   int comp;
   mutable int ID;    // convenient, but sneaky
   Vertex3d():                               position(),    neighbors(), comp(1), ID(-1) {}
@@ -56,7 +54,7 @@ struct Vertex3d {
 //------------------------------------------------------------------------------
 // 2D (polygon) methods.
 //------------------------------------------------------------------------------
-typedef std::vector<Vertex2d> Polygon;
+typedef std::list<Vertex2d> Polygon;
 
 std::string polygon2string(const Polygon& poly);
 
@@ -65,6 +63,9 @@ void convertToPolygon(Polygon& polygon,
 
 void convertFromPolygon(Spheral::Dim<2>::FacetedVolume& Spheral_polygon,
                         const Polygon& polygon);
+
+void copyPolygon(Polygon& polygon,
+                 const Polygon& polygon0);
 
 void moments(double& zerothMoment, Spheral::Dim<2>::Vector& firstMoment,
              const Polygon& polygon);
@@ -75,9 +76,9 @@ void clipPolygon(Polygon& poly,
 //------------------------------------------------------------------------------
 // 3D (polyhedron) methods.
 //------------------------------------------------------------------------------
-typedef std::vector<Vertex3d> Polyhedron;
+typedef std::list<Vertex3d> Polyhedron;
 
-std::vector<std::vector<int>> extractFaces(const Polyhedron& poly);
+std::vector<std::vector<const Vertex3d*>> extractFaces(const Polyhedron& poly);
 
 std::string polyhedron2string(const Polyhedron& poly);
 
@@ -86,6 +87,9 @@ void convertToPolyhedron(Polyhedron& polyhedron,
 
 void convertFromPolyhedron(Spheral::Dim<3>::FacetedVolume& Spheral_polyhedron,
                            const Polyhedron& polyhedron);
+
+void copyPolyhedron(Polyhedron& polyhedron,
+                    const Polyhedron& polyhedron0);
 
 void moments(double& zerothMoment, Spheral::Dim<3>::Vector& firstMoment,
              const Polyhedron& polyhedron);

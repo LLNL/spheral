@@ -47,6 +47,11 @@ class PolyClipper:
                                  constrefparam("PolyClipper::Polygon", "polygon")],
                                 docstring = "Convert a PolyClipper polygon to a Spheral polygon.")
 
+        self.space.add_function("copyPolygon", None,
+                                [refparam("PolyClipper::Polygon", "polygon"),
+                                 constrefparam("PolyClipper::Polygon", "polygon0")],
+                                docstring = "Copy a PolyClipper polygon to another.")
+
         self.space.add_function("moments", None,
                                 [Parameter.new("double&", "zerothMoment", direction=Parameter.DIRECTION_OUT),
                                  Parameter.new("Spheral::Vector2d&", "zerothMoment", direction=Parameter.DIRECTION_OUT),
@@ -73,6 +78,11 @@ class PolyClipper:
                                  constrefparam("PolyClipper::Polyhedron", "polyhedron")],
                                 docstring = "Convert a PolyClipper polyhedron to a Spheral polyhedron.")
 
+        self.space.add_function("copyPolyhedron", None,
+                                [refparam("PolyClipper::Polyhedron", "polyhedron"),
+                                 constrefparam("PolyClipper::Polyhedron", "polyhedron0")],
+                                docstring = "Copy a PolyClipper polyhedron to another.")
+
         self.space.add_function("moments", None,
                                 [Parameter.new("double&", "zerothMoment", direction=Parameter.DIRECTION_OUT),
                                  Parameter.new("Spheral::Vector3d&", "zerothMoment", direction=Parameter.DIRECTION_OUT),
@@ -97,9 +107,10 @@ class PolyClipper:
     #-------------------------------------------------------------------------------
     def addPolygonMethods(self, x):
     
+        me = "Polygon"
+
         # Constructors.
         x.add_constructor([])
-        x.add_constructor([constrefparam("PolyClipper::Polygon", "poly")])
 
         # Methods.
         x.add_method("size", "unsigned int", [], is_const=True)
@@ -111,9 +122,10 @@ class PolyClipper:
     #-------------------------------------------------------------------------------
     def addPolyhedronMethods(self, x):
     
+        me = "Polyhedron"
+
         # Constructors.
         x.add_constructor([])
-        x.add_constructor([constrefparam("PolyClipper::Polyhedron", "poly")])
 
         # Methods.
         x.add_method("size", "unsigned int", [], is_const=True)

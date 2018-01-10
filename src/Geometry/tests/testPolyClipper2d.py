@@ -69,6 +69,22 @@ class TestPolyClipper2d(unittest.TestCase):
             assert poly1 == poly0
 
     #---------------------------------------------------------------------------
+    # PolyClipper::copyPolygon
+    #---------------------------------------------------------------------------
+    def testCopyPolygon(self):
+        for poly0 in self.polygons:
+            PCpoly0 = PolyClipper.Polygon()
+            PolyClipper.convertToPolygon(PCpoly0, poly0)
+            assert poly0.vertices().size() == PCpoly0.size()
+            PCpoly1 = PolyClipper.Polygon()
+            PolyClipper.copyPolygon(PCpoly1, PCpoly0)
+            assert PCpoly0.size() == PCpoly1.size()
+            vol0, centroid0 = PolyClipper.moments(PCpoly0)
+            vol1, centroid1 = PolyClipper.moments(PCpoly1)
+            assert vol0 == vol1
+            assert centroid0 == centroid1
+
+    #---------------------------------------------------------------------------
     # Clip with planes passing through the polygon.
     #---------------------------------------------------------------------------
     def testClipInternalOnePlane(self):
@@ -83,8 +99,10 @@ class TestPolyClipper2d(unittest.TestCase):
                               rangen.uniform(-1.0, 1.0)).unitVector()
                 planes1.append(Plane(p0,  phat))
                 planes2.append(Plane(p0, -phat))
-                PCchunk1 = PolyClipper.Polygon(PCpoly)
-                PCchunk2 = PolyClipper.Polygon(PCpoly)
+                PCchunk1 = PolyClipper.Polygon()
+                PCchunk2 = PolyClipper.Polygon()
+                PolyClipper.copyPolygon(PCchunk1, PCpoly)
+                PolyClipper.copyPolygon(PCchunk2, PCpoly)
                 PolyClipper.clipPolygon(PCchunk1, planes1)
                 PolyClipper.clipPolygon(PCchunk2, planes2)
                 chunk1 = Polygon()
@@ -126,8 +144,10 @@ class TestPolyClipper2d(unittest.TestCase):
                 planes1.append(Plane(p0,  phat))
                 planes2.append(Plane(p0,  phat))
                 planes2.append(Plane(p0,  phat))
-                PCchunk1 = PolyClipper.Polygon(PCpoly)
-                PCchunk2 = PolyClipper.Polygon(PCpoly)
+                PCchunk1 = PolyClipper.Polygon()
+                PCchunk2 = PolyClipper.Polygon()
+                PolyClipper.copyPolygon(PCchunk1, PCpoly)
+                PolyClipper.copyPolygon(PCchunk2, PCpoly)
                 PolyClipper.clipPolygon(PCchunk1, planes1)
                 PolyClipper.clipPolygon(PCchunk2, planes2)
                 chunk1 = Polygon()
@@ -224,10 +244,14 @@ class TestPolyClipper2d(unittest.TestCase):
                 planes3[1].normal = -planes3[1].normal
                 planes4[0].normal = -planes4[0].normal
                 planes4[1].normal = -planes4[1].normal
-                PCchunk1 = PolyClipper.Polygon(PCpoly)
-                PCchunk2 = PolyClipper.Polygon(PCpoly)
-                PCchunk3 = PolyClipper.Polygon(PCpoly)
-                PCchunk4 = PolyClipper.Polygon(PCpoly)
+                PCchunk1 = PolyClipper.Polygon()
+                PCchunk2 = PolyClipper.Polygon()
+                PCchunk3 = PolyClipper.Polygon()
+                PCchunk4 = PolyClipper.Polygon()
+                PolyClipper.copyPolygon(PCchunk1, PCpoly)
+                PolyClipper.copyPolygon(PCchunk2, PCpoly)
+                PolyClipper.copyPolygon(PCchunk3, PCpoly)
+                PolyClipper.copyPolygon(PCchunk4, PCpoly)
                 PolyClipper.clipPolygon(PCchunk1, planes1)
                 PolyClipper.clipPolygon(PCchunk2, planes2)
                 PolyClipper.clipPolygon(PCchunk3, planes3)

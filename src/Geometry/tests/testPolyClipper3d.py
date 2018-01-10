@@ -50,7 +50,7 @@ class TestPolyhedronClipping(unittest.TestCase):
     #---------------------------------------------------------------------------
     def setUp(self):
         self.polyhedra = [cube, notchedthing]
-        self.ntests = 10000
+        self.ntests = 1000
         return
 
     #---------------------------------------------------------------------------
@@ -82,6 +82,22 @@ class TestPolyhedronClipping(unittest.TestCase):
             assert poly1.centroid() == poly1.centroid()
 
     #---------------------------------------------------------------------------
+    # PolyClipper::copyPolyhedron
+    #---------------------------------------------------------------------------
+    def testCopyPolyhedron(self):
+        for poly0 in self.polyhedra:
+            PCpoly0 = PolyClipper.Polyhedron()
+            PolyClipper.convertToPolyhedron(PCpoly0, poly0)
+            assert poly0.vertices().size() == PCpoly0.size()
+            PCpoly1 = PolyClipper.Polyhedron()
+            PolyClipper.copyPolyhedron(PCpoly1, PCpoly0)
+            assert PCpoly0.size() == PCpoly1.size()
+            vol0, centroid0 = PolyClipper.moments(PCpoly0)
+            vol1, centroid1 = PolyClipper.moments(PCpoly1)
+            assert vol0 == vol1
+            assert centroid0 == centroid1
+
+    #---------------------------------------------------------------------------
     # Clip with planes passing through the polygon.
     #---------------------------------------------------------------------------
     def testClipInternalOnePlane(self):
@@ -98,8 +114,10 @@ class TestPolyhedronClipping(unittest.TestCase):
                               rangen.uniform(-1.0, 1.0)).unitVector()
                 planes1.append(Plane(p0,  phat))
                 planes2.append(Plane(p0, -phat))
-                PCchunk1 = PolyClipper.Polyhedron(PCpoly)
-                PCchunk2 = PolyClipper.Polyhedron(PCpoly)
+                PCchunk1 = PolyClipper.Polyhedron()
+                PCchunk2 = PolyClipper.Polyhedron()
+                PolyClipper.copyPolyhedron(PCchunk1, PCpoly)
+                PolyClipper.copyPolyhedron(PCchunk2, PCpoly)
                 PolyClipper.clipPolyhedron(PCchunk1, planes1)
                 PolyClipper.clipPolyhedron(PCchunk2, planes2)
                 chunk1 = Polyhedron()
@@ -141,8 +159,10 @@ class TestPolyhedronClipping(unittest.TestCase):
                 planes1.append(Plane(p0,  phat))
                 planes2.append(Plane(p0,  phat))
                 planes2.append(Plane(p0,  phat))
-                PCchunk1 = PolyClipper.Polyhedron(PCpoly)
-                PCchunk2 = PolyClipper.Polyhedron(PCpoly)
+                PCchunk1 = PolyClipper.Polyhedron()
+                PCchunk2 = PolyClipper.Polyhedron()
+                PolyClipper.copyPolyhedron(PCchunk1, PCpoly)
+                PolyClipper.copyPolyhedron(PCchunk2, PCpoly)
                 PolyClipper.clipPolyhedron(PCchunk1, planes1)
                 PolyClipper.clipPolyhedron(PCchunk2, planes2)
                 chunk1 = Polyhedron()
@@ -241,10 +261,14 @@ class TestPolyhedronClipping(unittest.TestCase):
                 planes3[1].normal = -planes3[1].normal
                 planes4[0].normal = -planes4[0].normal
                 planes4[1].normal = -planes4[1].normal
-                PCchunk1 = PolyClipper.Polyhedron(PCpoly)
-                PCchunk2 = PolyClipper.Polyhedron(PCpoly)
-                PCchunk3 = PolyClipper.Polyhedron(PCpoly)
-                PCchunk4 = PolyClipper.Polyhedron(PCpoly)
+                PCchunk1 = PolyClipper.Polyhedron()
+                PCchunk2 = PolyClipper.Polyhedron()
+                PCchunk3 = PolyClipper.Polyhedron()
+                PCchunk4 = PolyClipper.Polyhedron()
+                PolyClipper.copyPolyhedron(PCchunk1, PCpoly)
+                PolyClipper.copyPolyhedron(PCchunk2, PCpoly)
+                PolyClipper.copyPolyhedron(PCchunk3, PCpoly)
+                PolyClipper.copyPolyhedron(PCchunk4, PCpoly)
                 PolyClipper.clipPolyhedron(PCchunk1, planes1)
                 PolyClipper.clipPolyhedron(PCchunk2, planes2)
                 PolyClipper.clipPolyhedron(PCchunk3, planes3)
@@ -272,6 +296,7 @@ class TestPolyhedronClipping(unittest.TestCase):
                                                                                                                chunk1.volume + chunk2.volume + chunk3.volume + chunk4.volume,
                                                                                                                poly.volume))
         return
+
 
 if __name__ == "__main__":
     unittest.main()
