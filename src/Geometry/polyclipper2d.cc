@@ -29,7 +29,6 @@
 // Declare the timers.
 extern Timer TIME_PC2d_convertto;
 extern Timer TIME_PC2d_convertfrom;
-extern Timer TIME_PC2d_copy;
 extern Timer TIME_PC2d_moments;
 extern Timer TIME_PC2d_clip;
 extern Timer TIME_PC2d_planes;
@@ -242,16 +241,6 @@ void convertFromPolygon(Spheral::Dim<2>::FacetedVolume& Spheral_polygon,
 
   }
   TIME_PC2d_convertfrom.stop();
-}
-
-//------------------------------------------------------------------------------
-// Copy a PolyClipper::Polygon.
-//------------------------------------------------------------------------------
-void copyPolygon(Polygon& polygon,
-                 const Polygon& polygon0) {
-  TIME_PC2d_copy.start();
-  polygon = polygon0;
-  TIME_PC2d_copy.stop();
 }
 
 //------------------------------------------------------------------------------
