@@ -204,7 +204,7 @@ computeVoronoiVolume(const FieldList<Dim<3>, Dim<3>::Vector>& position,
         // t0 = std::clock();
 
         // Initialize our seed cell shape.
-        celli = cell0;
+        PolyClipper::copyPolyhedron(celli, cell0);
         for (auto& v: celli) v.position = 1.1*rin*Hinv*v.position;
 
         // Clip by any boundaries first.
