@@ -614,17 +614,12 @@ void clipPolyhedron(Polyhedron& polyhedron,
 
       // Remove the clipped vertices, compressing the polyhedron.
       TIME_PC3d_compress.start();
-
-      // First, number the active vertices sequentially.
+      i = 0;
       xmin = std::numeric_limits<double>::max(), xmax = std::numeric_limits<double>::lowest();
       ymin = std::numeric_limits<double>::max(), ymax = std::numeric_limits<double>::lowest();
       zmin = std::numeric_limits<double>::max(), zmax = std::numeric_limits<double>::lowest();
-      auto i = 0;
-      auto nkill = 0;
       for (auto& v: polyhedron) {
-        if (v.comp < 0) {
-          nkill++;
-        } else {
+        if (v.comp >= 0) {
           v.ID = i++;
           xmin = std::min(xmin, v.position[0]);
           xmax = std::max(xmax, v.position[0]);
@@ -635,21 +630,16 @@ void clipPolyhedron(Polyhedron& polyhedron,
         }
       }
 
-      // Find the vertices to remove, and renumber the neighbors.
-      if (nkill > 0) {
-        vector<int> verts2kill;
-        for (i = 0; i < polyhedron.size(); ++i) {
-          if (polyhedron[i].comp < 0) {
-            verts2kill.push_back(i);
-          } else {
-            CHECK(polyhedron[i].neighbors.size() >= 3);
-            for (j = 0; j < polyhedron[i].neighbors.size(); ++j) {
-              polyhedron[i].neighbors[j] = polyhedron[polyhedron[i].neighbors[j]].ID;
-            }
+      // Renumber the neighbor links.
+      for (i = 0; i < polyhedron.size(); ++i) {
+        if (polyhedron[i].comp >= 0) {
+          CHECK(polyhedron[i].neighbors.size() >= 3);
+          for (j = 0; j < polyhedron[i].neighbors.size(); ++j) {
+            polyhedron[i].neighbors[j] = polyhedron[polyhedron[i].neighbors[j]].ID;
           }
         }
-        Spheral::removeElements(polyhedron, verts2kill);
       }
+      polyhedron.erase(std::remove_if(polyhedron.begin(), polyhedron.end(), [](Vertex3d& v) { return v.comp < 0; }), polyhedron.end());
       // cerr << "After compression:\n" << polyhedron2string(polyhedron) << endl;
 
       // Is the polyhedron gone?
