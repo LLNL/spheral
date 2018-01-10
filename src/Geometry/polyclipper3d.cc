@@ -18,6 +18,7 @@
 #include "polyclipper_utilities.hh"
 #include "Utilities/DBC.hh"
 #include "Utilities/Timer.hh"
+#include "Utilities/removeElements.hh"
 
 #include <list>
 #include <map>
@@ -28,7 +29,6 @@
 // Declare the timers.
 extern Timer TIME_PC3d_convertto;
 extern Timer TIME_PC3d_convertfrom;
-extern Timer TIME_PC3d_copy;
 extern Timer TIME_PC3d_moments;
 extern Timer TIME_PC3d_clip;
 extern Timer TIME_PC3d_planes;
@@ -127,12 +127,12 @@ segmentPlaneIntersection(const Spheral::Dim<3>::Vector& a,       // line-segment
 // This should be the previous vertex from our entry value.
 //------------------------------------------------------------------------------
 inline
-Vertex3d*
-nextInFaceLoop(Vertex3d* vptr, Vertex3d* vprev) {
-  const auto itr = find(vptr->neighbors.begin(), vptr->neighbors.end(), vprev);
-  CHECK(itr != vptr->neighbors.end());
-  if (itr == vptr->neighbors.begin()) {
-    return vptr->neighbors.back();
+int
+nextInFaceLoop(const Vertex3d& v, const int vprev) {
+  const auto itr = find(v.neighbors.begin(), v.neighbors.end(), vprev);
+  CHECK(itr != v.neighbors.end());
+  if (itr == v.neighbors.begin()) {
+    return v.neighbors.back();
   } else {
     return *(itr - 1);
   }
@@ -145,14 +145,14 @@ nextInFaceLoop(Vertex3d* vptr, Vertex3d* vprev) {
 // Implicitly uses the convention that neighbors for each vertex are arranged
 // counter-clockwise viewed from the exterior.
 //------------------------------------------------------------------------------
-vector<vector<const Vertex3d*>>
+vector<vector<int>>
 extractFaces(const Polyhedron& poly) {
 
-  typedef pair<const Vertex3d*, const Vertex3d*> Edge;
-  typedef vector<const Vertex3d*> Face;
+  typedef pair<int, int> Edge;
+  typedef vector<int> Face;
 
   // Prepare the result.
-  vector<vector<const Vertex3d*>> result;
+  vector<vector<int>> result;
 
   // {
   //   int i = 0;
@@ -166,7 +166,9 @@ extractFaces(const Polyhedron& poly) {
 
   // Walk each vertex in the polyhedron.
   set<Edge> edgesWalked;
-  for (const auto& v: poly) {
+  const auto nverts = poly.size();
+  for (auto i = 0; i < nverts; ++i) {
+    const auto& v = poly[i];
     if (v.comp >= 0) {
 
       // {
@@ -176,15 +178,15 @@ extractFaces(const Polyhedron& poly) {
       // }
 
       // Check every (outgoing) edge attached to this vertex.
-      for (const auto nptr: v.neighbors) {
-        CHECK(nptr->comp >= 0);
+      for (const auto ni: v.neighbors) {
+        CHECK(poly[ni].comp >= 0);
 
         // Has this edge been walked yet?
-        if (edgesWalked.find(make_pair(nptr, &v)) == edgesWalked.end()) {
-          Face face(1, nptr);
-          const Vertex3d* vstart = nptr;
-          const Vertex3d* vnext = &v;
-          const Vertex3d* vprev = nptr;
+        if (edgesWalked.find(make_pair(ni, i)) == edgesWalked.end()) {
+          Face face(1, ni);
+          auto vstart = ni;
+          auto vnext = i;
+          auto vprev = ni;
           // cerr << "Face: " << nptr->ID;
 
           // Follow around the face represented by this edge until we get back
@@ -194,11 +196,11 @@ extractFaces(const Polyhedron& poly) {
             face.push_back(vnext);
             CHECK(edgesWalked.find(make_pair(vprev, vnext)) == edgesWalked.end());
             edgesWalked.insert(make_pair(vprev, vnext));
-            auto itr = find(vnext->neighbors.begin(), vnext->neighbors.end(), vprev);
-            CHECK(itr != vnext->neighbors.end());
+            auto itr = find(poly[vnext].neighbors.begin(), poly[vnext].neighbors.end(), vprev);
+            CHECK(itr != poly[vnext].neighbors.end());
             vprev = vnext;
-            if (itr == vnext->neighbors.begin()) {
-              vnext = vnext->neighbors.back();
+            if (itr == poly[vnext].neighbors.begin()) {
+              vnext = poly[vnext].neighbors.back();
             } else {
               vnext = *(itr - 1);
             }
@@ -217,10 +219,10 @@ extractFaces(const Polyhedron& poly) {
   BEGIN_CONTRACT_SCOPE
   {
     // Every pair should have been walked twice, once in each direction.
-    for (const auto& v: poly) {
-      for (const auto nptr: v.neighbors) {
-        CHECK(edgesWalked.find(make_pair(&v, nptr)) != edgesWalked.end());
-        CHECK(edgesWalked.find(make_pair(nptr, &v)) != edgesWalked.end());
+    for (auto i = 0; i < nverts; ++i) {
+      for (const auto ni: poly[i].neighbors) {
+        CHECK(edgesWalked.find(make_pair(i, ni)) != edgesWalked.end());
+        CHECK(edgesWalked.find(make_pair(ni, i)) != edgesWalked.end());
       }
     }
   }
@@ -236,18 +238,12 @@ extractFaces(const Polyhedron& poly) {
 std::string
 polyhedron2string(const Polyhedron& poly) {
 
-  // First assign ID's to the vertices.
-  // This is why ID is mutable.
-  {
-    auto i = 0;
-    for (const auto& v: poly) v.ID = i++;
-  }
-
   ostringstream s;
-  for (const auto& v: poly) {
-    s << "ID=" << v.ID << " comp=" << v.comp << " @ " << v.position
+  const auto nverts = poly.size();
+  for (auto i = 0; i < nverts; ++i) {
+    s << "ID=" << i << " comp=" << poly[i].comp << " @ " << poly[i].position
       << " neighbors=[";
-    for (const auto nptr: v.neighbors) s << " " << nptr->ID;
+    for (const auto ni: poly[i].neighbors) s << " " << ni;
     s << "]\n";
   }
 
@@ -288,13 +284,10 @@ void convertToPolyhedron(Polyhedron& polyhedron,
   const auto  nfacets = facets.size();
 
   // Build the PolyClipper Vertex3d's, but without connectivity yet.
-  polyhedron.clear();
-  vector<Vertex3d*> id2vert;
+  polyhedron.resize(nverts);
   for (auto k = 0; k < nverts; ++k) {
-    polyhedron.push_back(Vertex3d(vertPositions[k], 1));
-    id2vert.push_back(&polyhedron.back());
+    polyhedron[k] = Vertex3d(vertPositions[k], 1);
   }
-  CHECK(id2vert.size() == nverts);
 
   // Note all the edges associated with each vertex.
   vector<vector<pair<int, int>>> vertexPairs(nverts);
@@ -325,9 +318,9 @@ void convertToPolyhedron(Polyhedron& polyhedron,
 
     // Now that they're in order, create the neighbors.
     for (auto i = 0; i < n; ++i) {
-      id2vert[k]->neighbors.push_back(id2vert[vertexPairs[k][i].first]);
+      polyhedron[k].neighbors.push_back(vertexPairs[k][i].first);
     }
-    CHECK(id2vert[k]->neighbors.size() == vertexPairs[k].size());
+    CHECK(polyhedron[k].neighbors.size() == vertexPairs[k].size());
   }
 
   CHECK(polyhedron.size() == nverts);
@@ -373,7 +366,7 @@ void convertFromPolyhedron(Spheral::Dim<3>::FacetedVolume& Spheral_polyhedron,
     for (auto k = 0; k < faces.size(); ++k) {
       facets[k].resize(faces[k].size());
       transform(faces[k].begin(), faces[k].end(), facets[k].begin(),
-                [](const Vertex3d* vptr) { return vptr->ID; });
+                [&](const int k) { return polyhedron[k].ID; });
     }
 
     // Now we can build the Spheral::Polyhedron.
@@ -381,27 +374,6 @@ void convertFromPolyhedron(Spheral::Dim<3>::FacetedVolume& Spheral_polyhedron,
 
   }
   TIME_PC3d_convertfrom.stop();
-}
-
-//------------------------------------------------------------------------------
-// Copy a PolyClipper::Polyhedron.
-//------------------------------------------------------------------------------
-void copyPolyhedron(Polyhedron& polyhedron,
-                 const Polyhedron& polyhedron0) {
-  TIME_PC3d_copy.start();
-  polyhedron.clear();
-  if (not polyhedron0.empty()) {
-    std::map<const Vertex3d*, Vertex3d*> ptrMap;
-    for (auto& v: polyhedron0) {
-      polyhedron.push_back(v);
-      ptrMap[&v] = &polyhedron.back();
-    }
-    for (auto& v: polyhedron) {
-      transform(v.neighbors.begin(), v.neighbors.end(), v.neighbors.begin(),
-                [&](const Vertex3d* vptr) { return ptrMap[vptr]; });
-    }
-  }
-  TIME_PC3d_copy.stop();
 }
 
 //------------------------------------------------------------------------------
@@ -426,10 +398,10 @@ void moments(double& zerothMoment, Spheral::Dim<3>::Vector& firstMoment,
     for (const auto& face: faces) {
       const auto nverts = face.size();
       CHECK(nverts >= 3);
-      const auto& v0 = face[0]->position;
+      const auto& v0 = polyhedron[face[0]].position;
       for (auto i = 1; i < nverts - 1; ++i) {
-        const auto& v1 = face[i]->position;
-        const auto& v2 = face[i+1]->position;
+        const auto& v1 = polyhedron[face[i]].position;
+        const auto& v2 = polyhedron[face[i+1]].position;
         dV = v0.dot(v1.cross(v2));
         zerothMoment += dV;
         firstMoment += dV*(v0 + v1 + v2);
@@ -451,10 +423,8 @@ void clipPolyhedron(Polyhedron& polyhedron,
   // Pre-declare variables.  Normally I prefer local declaration, but this
   // seems to slightly help performance.
   bool above, below;
-  size_t nverts0, nverts, nneigh, i, j, k;
-  Vertex3d *vptr, *nptr, *vprev, *vnext;
-  vector<Vertex3d*>::iterator nitr;
-  Polyhedron::iterator newVertBegin, vitr;
+  int nverts0, nverts, nneigh, i, j, k, jn, inew, iprev, inext, itmp;
+  vector<int>::iterator nitr;
 
   // cerr << "Initial:\n" << polyhedron2string(polyhedron) << endl;
 
@@ -517,28 +487,30 @@ void clipPolyhedron(Polyhedron& polyhedron,
       nverts0 = polyhedron.size();
       {
         // Look for any new vertices we need to insert.
-        i = 0;
-        for (vitr = polyhedron.begin(); i < nverts0; ++vitr, ++i) {   // Only check vertices before we start adding new ones.
-          if (vitr->comp >= 0) {
+        for (i = 0; i < nverts0; ++i) {   // Only check vertices before we start adding new ones.
+          if (polyhedron[i].comp >= 0) {
 
             // This vertex survives clipping -- check the neighbors.
-            nneigh = vitr->neighbors.size();
+            nneigh = polyhedron[i].neighbors.size();
             CHECK(nneigh >= 3);
             for (auto j = 0; j < nneigh; ++j) {
-              nptr = vitr->neighbors[j];
-              if (nptr->comp == -1) {
+              jn = polyhedron[i].neighbors[j];
+              CHECK(jn < nverts0);
+              if (polyhedron[jn].comp == -1) {
 
                 // This edge straddles the clip plane, so insert a new vertex.
-                polyhedron.push_back(Vertex3d(segmentPlaneIntersection(vitr->position,
-                                                                       nptr->position,
+                inew = polyhedron.size();
+                polyhedron.push_back(Vertex3d(segmentPlaneIntersection(polyhedron[i].position,
+                                                                       polyhedron[jn].position,
                                                                        p0,
                                                                        phat),
                                               2));         // 2 indicates new vertex
-                polyhedron.back().neighbors = {nptr, &(*vitr)};
-                nitr = find(nptr->neighbors.begin(), nptr->neighbors.end(), &(*vitr));
-                CHECK(nitr != nptr->neighbors.end());
-                *nitr = &polyhedron.back();
-                vitr->neighbors[j] = &polyhedron.back();
+                CHECK(polyhedron.size() == inew + 1);
+                polyhedron[inew].neighbors = vector<int>({jn, i});
+                nitr = find(polyhedron[jn].neighbors.begin(), polyhedron[jn].neighbors.end(), i);
+                CHECK(nitr != polyhedron[jn].neighbors.end());
+                *nitr = inew;
+                polyhedron[i].neighbors[j] = inew;
                 // cerr << " --> Inserting new vertex @ " << polyhedron.back().position << endl;
 
               }
@@ -546,7 +518,7 @@ void clipPolyhedron(Polyhedron& polyhedron,
           }
         }
       }
-      const auto nverts = polyhedron.size();
+      nverts = polyhedron.size();
       // cerr << "After insertion:\n" << polyhedron2string(polyhedron) << endl;
       TIME_PC3d_insertverts.stop();
 
@@ -589,35 +561,32 @@ void clipPolyhedron(Polyhedron& polyhedron,
 
       // For each new vertex, link to the neighbors that survive the clipping.
       TIME_PC3d_linknew.start();
-      // vector<pair<Vertex3d*, Vertex3d*>> newEdges;
       {
-        newVertBegin = polyhedron.begin();
-        for (k = 0; k < nverts0; ++k) ++newVertBegin;
-        for (vitr = newVertBegin; vitr != polyhedron.end(); ++vitr) {
-          CHECK(vitr->comp == 2);
-          nneigh = vitr->neighbors.size();
+        for (i = nverts0; i < nverts; ++i) {
+          CHECK(polyhedron[i].comp == 2);
+          nneigh = polyhedron[i].neighbors.size();
 
           // Look for any neighbors of the vertex that are clipped.
           for (j = 0; j < nneigh; ++j) {
-            nptr = vitr->neighbors[j];
-            if (nptr->comp == -1) {
+            jn = polyhedron[i].neighbors[j];
+            if (polyhedron[jn].comp == -1) {
 
               // This neighbor is clipped, so look for the first unclipped vertex along this face loop.
-              vprev = &(*vitr);
-              vnext = nptr;
-              vptr = vnext;
+              iprev = i;
+              inext = jn;
+              itmp = inext;
               // cerr << vitr->ID << ": ( " << vprev->ID << " " << vnext->ID << ")";
               k = 0;
-              while (vnext->comp == -1 and k++ < nverts) {
-                vptr = vnext;
-                vnext = nextInFaceLoop(vnext, vprev);
-                vprev = vptr;
+              while (polyhedron[inext].comp == -1 and k++ < nverts) {
+                itmp = inext;
+                inext = nextInFaceLoop(polyhedron[inext], iprev);
+                iprev = itmp;
                 // cerr << " (" << vprev->ID << " " << vnext->ID << ")";
               }
               // cerr << endl;
-              CHECK(vnext->comp != -1);
-              vitr->neighbors[j] = vnext;
-              vnext->neighbors.insert(vnext->neighbors.begin(), &(*vitr));
+              CHECK(polyhedron[inext].comp != -1);
+              polyhedron[i].neighbors[j] = inext;
+              polyhedron[inext].neighbors.insert(polyhedron[inext].neighbors.begin(), i);
               // newEdges.push_back(make_pair(vnext, vitr));
             }
           }
@@ -645,22 +614,41 @@ void clipPolyhedron(Polyhedron& polyhedron,
 
       // Remove the clipped vertices, compressing the polyhedron.
       TIME_PC3d_compress.start();
+
+      // First, number the active vertices sequentially.
       xmin = std::numeric_limits<double>::max(), xmax = std::numeric_limits<double>::lowest();
       ymin = std::numeric_limits<double>::max(), ymax = std::numeric_limits<double>::lowest();
       zmin = std::numeric_limits<double>::max(), zmax = std::numeric_limits<double>::lowest();
-      for (vitr = polyhedron.begin(); vitr != polyhedron.end();) {
-        if (vitr->comp < 0) {
-          vitr = polyhedron.erase(vitr);
+      auto i = 0;
+      auto nkill = 0;
+      for (auto& v: polyhedron) {
+        if (v.comp < 0) {
+          nkill++;
         } else {
-          xmin = std::min(xmin, vitr->position[0]);
-          xmax = std::max(xmax, vitr->position[0]);
-          ymin = std::min(ymin, vitr->position[1]);
-          ymax = std::max(ymax, vitr->position[1]);
-          zmin = std::min(zmin, vitr->position[2]);
-          zmax = std::max(zmax, vitr->position[2]);
-          CHECK(vitr->neighbors.size() >= 3);
-          ++vitr;
+          v.ID = i++;
+          xmin = std::min(xmin, v.position[0]);
+          xmax = std::max(xmax, v.position[0]);
+          ymin = std::min(ymin, v.position[1]);
+          ymax = std::max(ymax, v.position[1]);
+          zmin = std::min(zmin, v.position[2]);
+          zmax = std::max(zmax, v.position[2]);
         }
+      }
+
+      // Find the vertices to remove, and renumber the neighbors.
+      if (nkill > 0) {
+        vector<int> verts2kill;
+        for (i = 0; i < polyhedron.size(); ++i) {
+          if (polyhedron[i].comp < 0) {
+            verts2kill.push_back(i);
+          } else {
+            CHECK(polyhedron[i].neighbors.size() >= 3);
+            for (j = 0; j < polyhedron[i].neighbors.size(); ++j) {
+              polyhedron[i].neighbors[j] = polyhedron[polyhedron[i].neighbors[j]].ID;
+            }
+          }
+        }
+        Spheral::removeElements(polyhedron, verts2kill);
       }
       // cerr << "After compression:\n" << polyhedron2string(polyhedron) << endl;
 
