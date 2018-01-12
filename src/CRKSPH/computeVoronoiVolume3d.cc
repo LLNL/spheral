@@ -14,7 +14,10 @@
 #include "Utilities/pointOnPolyhedron.hh"
 #include "Utilities/FastMath.hh"
 #include "Utilities/pointDistances.hh"
+#include "Utilities/Timer.hh"
 #include "Geometry/polyclipper.hh"
+
+extern Timer TIME_computeVoronoiVolume3d;
 
 namespace Spheral {
 namespace CRKSPHSpace {
@@ -33,15 +36,6 @@ using NeighborSpace::Neighbor;
 using NeighborSpace::ConnectivityMap;
 
 namespace {  // anonymous namespace
-
-//------------------------------------------------------------------------------
-// A special comparator to sort planes by distance to the origin.
-//------------------------------------------------------------------------------
-inline
-bool comparePlanes(const GeomPlane<Dim<3>>& lhs,
-                   const GeomPlane<Dim<3>>& rhs) {
-  return lhs.point().dot(lhs.normal()) < rhs.point().dot(rhs.normal());
-}
 
 //------------------------------------------------------------------------------
 // Find the 1D extent of a polygon along the given direction.
@@ -84,6 +78,8 @@ computeVoronoiVolume(const FieldList<Dim<3>, Dim<3>::Vector>& position,
                      FieldSpace::FieldList<Dim<3>, vector<Dim<3>::Vector>>& etaVoidPoints,
                      FieldSpace::FieldList<Dim<3>, Dim<3>::FacetedVolume>& cells) {
 
+  TIME_computeVoronoiVolume3d.start();
+
 #ifdef NOR3D
   VERIFY2(false, "ERROR: computeVoronoiVolume requires compilation with R3D third party library.");
 #else
@@ -92,7 +88,7 @@ computeVoronoiVolume(const FieldList<Dim<3>, Dim<3>::Vector>& position,
   typedef Dim<3>::Vector Vector;
   typedef Dim<3>::SymTensor SymTensor;
   typedef Dim<3>::FacetedVolume FacetedVolume;
-  typedef GeomPlane<Dim<3>> Plane;
+  typedef PolyClipper::Plane3d Plane;
 
   const auto numGens = position.numNodes();
   const auto numNodeLists = position.size();
@@ -278,7 +274,7 @@ computeVoronoiVolume(const FieldList<Dim<3>, Dim<3>::Vector>& position,
         // t0 = std::clock();
 
         // Sort the planes by distance -- let's us clip more efficiently.
-        std::sort(pairPlanes.begin(), pairPlanes.end(), comparePlanes);
+        std::sort(pairPlanes.begin(), pairPlanes.end(), [](const Plane& lhs, const Plane& rhs) { return lhs.dist < rhs.dist; });
 
         // tplanesort += std::clock() - t0;
         // t0 = std::clock();
@@ -312,7 +308,7 @@ computeVoronoiVolume(const FieldList<Dim<3>, Dim<3>::Vector>& position,
         // tinterior += std::clock() - t0;
 
         // Clip the cell geometry by the void planes.
-        std::sort(voidPlanes.begin(), voidPlanes.end(), comparePlanes);
+        std::sort(voidPlanes.begin(), voidPlanes.end(), [](const Plane& lhs, const Plane& rhs) { return lhs.dist < rhs.dist; });
         PolyClipper::clipPolyhedron(celli, voidPlanes);
         CHECK(celli.size() > 0);
 
@@ -410,6 +406,8 @@ computeVoronoiVolume(const FieldList<Dim<3>, Dim<3>::Vector>& position,
   //                                   << " tcell=" << (tcell / (double) CLOCKS_PER_SEC) 
   //                                   << " ttotal=" << (ttotal / (double) CLOCKS_PER_SEC) << endl;
 #endif
+
+  TIME_computeVoronoiVolume3d.stop();
 }
     
 }

@@ -1,6 +1,7 @@
 from pybindgen import *
 
 from PBGutils import *
+from CXXTypesModule import generateStdVectorBindings
 
 #-------------------------------------------------------------------------------
 # The class to handle wrapping this module.
@@ -13,14 +14,18 @@ class PolyClipper:
     def __init__(self, mod, srcdir, topsrcdir, dims):
 
         # Includes.
-        mod.add_include('"Geometry/polyclipper.hh"')
+        mod.add_include('"%s/PolyClipperTypes.hh"' % srcdir)
 
         # Namespace.
         self.space = mod.add_cpp_namespace("PolyClipper")
 
         # Expose types.
+        self.Plane2d = addObject(self.space, "PolyClipperPlane2d")
+        self.Plane3d = addObject(self.space, "PolyClipperPlane3d")
         self.Polygon = addObject(self.space, "Polygon")
         self.Polyhedron = addObject(self.space, "Polyhedron")
+        self.vector_of_Plane2d = addObject(mod, "vector_of_PolyClipperPlane2d")
+        self.vector_of_Plane3d = addObject(mod, "vector_of_PolyClipperPlane3d")
 
         return
 
@@ -29,8 +34,14 @@ class PolyClipper:
     #---------------------------------------------------------------------------
     def generateBindings(self, mod):
 
+        self.addPlaneMethods(self.Plane2d, 2)
+        self.addPlaneMethods(self.Plane3d, 3)
         self.addPolygonMethods(self.Polygon)
         self.addPolyhedronMethods(self.Polyhedron)
+
+        # vector_of_Plane methods.
+        generateStdVectorBindings(self.vector_of_Plane2d, "PolyClipper::PolyClipperPlane2d", "vector_of_PolyClipperPlane2d", indexAsPointer=True)
+        generateStdVectorBindings(self.vector_of_Plane3d, "PolyClipper::PolyClipperPlane3d", "vector_of_PolyClipperPlane3d", indexAsPointer=True)
 
         # Polygon functions
         self.space.add_function("polygon2string", "std::string",
@@ -55,7 +66,7 @@ class PolyClipper:
 
         self.space.add_function("clipPolygon", None,
                                 [refparam("PolyClipper::Polygon", "polygon"),
-                                 constrefparam("vector_of_Plane2d", "planes")],
+                                 constrefparam("vector_of_PolyClipperPlane2d", "planes")],
                                 docstring = "Clip a PolyClipper polygon by a set of planes.")
 
         # Polyhedron functions
@@ -81,7 +92,7 @@ class PolyClipper:
 
         self.space.add_function("clipPolyhedron", None,
                                 [refparam("PolyClipper::Polyhedron", "polyhedron"),
-                                 constrefparam("vector_of_Plane3d", "planes")],
+                                 constrefparam("vector_of_PolyClipperPlane3d", "planes")],
                                 docstring = "Clip a PolyClipper polyhedron by a set of planes.")
 
         return
@@ -91,6 +102,26 @@ class PolyClipper:
     #---------------------------------------------------------------------------
     def newSubModules(self):
         return ["PolyClipper"]
+
+    #-------------------------------------------------------------------------------
+    # Plane
+    #-------------------------------------------------------------------------------
+    def addPlaneMethods(self, x, ndim):
+    
+        me = "PolyClipperPlane%id" % ndim
+        vector = "Spheral::Vector%id" % ndim
+
+        # Constructors.
+        x.add_constructor([])
+        x.add_constructor([param("double", "dist"), constrefparam(vector, "normal")])
+        x.add_constructor([param(vector, "point"), constrefparam(vector, "normal")])
+        x.add_constructor([constrefparam(me, "plane")])
+
+        # Attributes
+        x.add_instance_attribute("dist", "double", False)
+        x.add_instance_attribute("normal", vector, False)
+
+        return
 
     #-------------------------------------------------------------------------------
     # Polygon

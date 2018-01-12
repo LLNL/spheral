@@ -13,7 +13,10 @@
 #include "Utilities/allReduce.hh"
 #include "Utilities/pointOnPolygon.hh"
 #include "Utilities/FastMath.hh"
+#include "Utilities/Timer.hh"
 #include "Geometry/polyclipper.hh"
+
+extern Timer TIME_computeVoronoiVolume2d;
 
 namespace Spheral {
 namespace CRKSPHSpace {
@@ -164,15 +167,6 @@ namespace {  // anonymous namespace
 // }
 
 //------------------------------------------------------------------------------
-// A special comparator to sort planes by distance to the origin.
-//------------------------------------------------------------------------------
-inline
-bool comparePlanes(const GeomPlane<Dim<2>>& lhs,
-                   const GeomPlane<Dim<2>>& rhs) {
-  return lhs.point().dot(lhs.normal()) < rhs.point().dot(rhs.normal());
-}
-
-//------------------------------------------------------------------------------
 // Find the 1D extent of a polygon along the given direction.
 //------------------------------------------------------------------------------
 inline
@@ -213,11 +207,13 @@ computeVoronoiVolume(const FieldList<Dim<2>, Dim<2>::Vector>& position,
                      FieldSpace::FieldList<Dim<2>, vector<Dim<2>::Vector>>& etaVoidPoints,
                      FieldSpace::FieldList<Dim<2>, Dim<2>::FacetedVolume>& cells) {
 
+  TIME_computeVoronoiVolume2d.start();
+
   typedef Dim<2>::Scalar Scalar;
   typedef Dim<2>::Vector Vector;
   typedef Dim<2>::SymTensor SymTensor;
   typedef Dim<2>::FacetedVolume FacetedVolume;
-  typedef GeomPlane<Dim<2>> Plane;
+  typedef PolyClipper::Plane2d Plane;
 
   const auto numGens = position.numNodes();
   const auto numNodeLists = position.size();
@@ -281,7 +277,7 @@ computeVoronoiVolume(const FieldList<Dim<2>, Dim<2>::Vector>& position,
   private(pairPlanes, voidPlanes, nvoid, voli, etaVoidAvg, celli)
 
       for (auto i = 0; i < n; ++i) {
-
+        
         const auto& ri = position(nodeListi, i);
         const auto& Hi = H(nodeListi, i);
         const auto  rhoi = rho(nodeListi, i);
@@ -372,7 +368,7 @@ computeVoronoiVolume(const FieldList<Dim<2>, Dim<2>::Vector>& position,
         }
 
         // Sort the planes by distance -- lets us clip more efficiently.
-        std::sort(pairPlanes.begin(), pairPlanes.end(), comparePlanes);
+        std::sort(pairPlanes.begin(), pairPlanes.end(), [](const Plane& lhs, const Plane& rhs) { return lhs.dist < rhs.dist; });
 
         // Clip by non-void neighbors first.
         PolyClipper::clipPolygon(celli, pairPlanes);
@@ -414,7 +410,7 @@ computeVoronoiVolume(const FieldList<Dim<2>, Dim<2>::Vector>& position,
             CHECK(voidPlanes.size() == nv);
 
             // Clip the cell geometry by the void points we just created.
-            std::sort(voidPlanes.begin(), voidPlanes.end(), comparePlanes);
+            std::sort(voidPlanes.begin(), voidPlanes.end(), [](const Plane& lhs, const Plane& rhs) { return lhs.dist < rhs.dist; });
             PolyClipper::clipPolygon(celli, voidPlanes);
             CHECK(not celli.empty());
           }
@@ -422,7 +418,7 @@ computeVoronoiVolume(const FieldList<Dim<2>, Dim<2>::Vector>& position,
         // tinterior += std::clock() - t0;
 
         // Clip by any extant void neighbors.
-        std::sort(voidPlanes.begin(), voidPlanes.end(), comparePlanes);
+        std::sort(voidPlanes.begin(), voidPlanes.end(), [](const Plane& lhs, const Plane& rhs) { return lhs.dist < rhs.dist; });
         PolyClipper::clipPolygon(celli, voidPlanes);
         CHECK(not celli.empty());
 
@@ -554,7 +550,7 @@ computeVoronoiVolume(const FieldList<Dim<2>, Dim<2>::Vector>& position,
   //                                   << " tcell=" << (tcell / (double) CLOCKS_PER_SEC) 
   //                                   << " ttotal=" << (ttotal / (double) CLOCKS_PER_SEC) << endl;
                                 
-
+  TIME_computeVoronoiVolume2d.stop();
 }
     
 }
