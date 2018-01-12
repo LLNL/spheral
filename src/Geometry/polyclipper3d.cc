@@ -45,7 +45,7 @@ using namespace std;
 namespace {    // anonymous methods
 
 //------------------------------------------------------------------------------
-// Compare a plane and point (our built-in plane one has some issues).
+// Compare a plane and point.
 //------------------------------------------------------------------------------
 inline
 int compare(const Plane3d& plane,
@@ -78,9 +78,9 @@ int compare(const Plane3d& plane,
   const auto c8 = compare(plane, Vector(xmin, ymax, zmax));
   const auto cmin = min(c1, min(c2, min(c3, min(c4, min(c5, min(c6, min(c7, c8)))))));
   const auto cmax = max(c1, max(c2, max(c3, max(c4, max(c5, max(c6, max(c7, c8)))))));
-  if (cmin == 1) {
+  if (cmin >= 0) {
     return  1;
-  } else if (cmax == -1) {
+  } else if (cmax <= 0) {
     return -1;
   } else {
     return  0;
@@ -462,34 +462,31 @@ void clipPolyhedron(Polyhedron& polyhedron,
       // Insert any new vertices.
       TIME_PC3d_insertverts.start();
       nverts0 = polyhedron.size();
-      {
-        // Look for any new vertices we need to insert.
-        for (i = 0; i < nverts0; ++i) {   // Only check vertices before we start adding new ones.
-          if (polyhedron[i].comp >= 0) {
+      for (i = 0; i < nverts0; ++i) {   // Only check vertices before we start adding new ones.
+        if (polyhedron[i].comp == 1) {
 
-            // This vertex survives clipping -- check the neighbors.
-            nneigh = polyhedron[i].neighbors.size();
-            CHECK(nneigh >= 3);
-            for (auto j = 0; j < nneigh; ++j) {
-              jn = polyhedron[i].neighbors[j];
-              CHECK(jn < nverts0);
-              if (polyhedron[jn].comp == -1) {
+          // This vertex survives clipping -- check the neighbors for any new vertices we need to insert.
+          nneigh = polyhedron[i].neighbors.size();
+          CHECK(nneigh >= 3);
+          for (auto j = 0; j < nneigh; ++j) {
+            jn = polyhedron[i].neighbors[j];
+            CHECK(jn < nverts0);
+            if (polyhedron[jn].comp == -1) {
 
-                // This edge straddles the clip plane, so insert a new vertex.
-                inew = polyhedron.size();
-                polyhedron.push_back(Vertex3d(segmentPlaneIntersection(polyhedron[i].position,
-                                                                       polyhedron[jn].position,
-                                                                       plane),
-                                              2));         // 2 indicates new vertex
-                CHECK(polyhedron.size() == inew + 1);
-                polyhedron[inew].neighbors = vector<int>({jn, i});
-                nitr = find(polyhedron[jn].neighbors.begin(), polyhedron[jn].neighbors.end(), i);
-                CHECK(nitr != polyhedron[jn].neighbors.end());
-                *nitr = inew;
-                polyhedron[i].neighbors[j] = inew;
-                // cerr << " --> Inserting new vertex @ " << polyhedron.back().position << endl;
+              // This edge straddles the clip plane, so insert a new vertex.
+              inew = polyhedron.size();
+              polyhedron.push_back(Vertex3d(segmentPlaneIntersection(polyhedron[i].position,
+                                                                     polyhedron[jn].position,
+                                                                     plane),
+                                            2));         // 2 indicates new vertex
+              CHECK(polyhedron.size() == inew + 1);
+              polyhedron[inew].neighbors = vector<int>({jn, i});
+              nitr = find(polyhedron[jn].neighbors.begin(), polyhedron[jn].neighbors.end(), i);
+              CHECK(nitr != polyhedron[jn].neighbors.end());
+              *nitr = inew;
+              polyhedron[i].neighbors[j] = inew;
+              // cerr << " --> Inserting new vertex @ " << polyhedron.back().position << endl;
 
-              }
             }
           }
         }
@@ -588,7 +585,7 @@ void clipPolyhedron(Polyhedron& polyhedron,
       // }
       // TIME_PC3d_degenerate.stop();
 
-      // Remove the clipped vertices, compressing the polyhedron.
+      // Remove the clipped vertices and collapse degenerates, compressing the polyhedron.
       TIME_PC3d_compress.start();
       i = 0;
       xmin = std::numeric_limits<double>::max(), xmax = std::numeric_limits<double>::lowest();
