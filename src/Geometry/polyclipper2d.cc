@@ -73,9 +73,9 @@ int compare(const Plane2d& plane,
   const auto c4 = compare(plane, Vector(xmin, ymax));
   const auto cmin = std::min(c1, std::min(c2, std::min(c3, c4)));
   const auto cmax = std::max(c1, std::max(c2, std::max(c3, c4)));
-  if (cmin == 0) {
+  if (cmin >= 0) {
     return  1;
-  } else if (cmax == 0) {
+  } else if (cmax <= 0) {
     return -1;
   } else {
     return  0;
