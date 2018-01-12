@@ -360,27 +360,5 @@ class TestPolygon(unittest.TestCase):
             pshift = p0 + shift
             self.failUnless(pshift == p1, "In-place shift point comparison failed: %s != %s" % (pshift, p1))
 
-    #----------------------------------------------------------------------------
-    # Test clipping by a plane
-    # We'll just use the seed points as the points in the plane, and create 
-    # randomly oriented normals.
-    #----------------------------------------------------------------------------
-    def testClipByPlane(self):
-        for p0 in self.points:
-            theta = rangen.uniform(0.0, 2.0*pi)
-            phat = Vector(cos(theta), sin(theta))
-            planes1 = vector_of_Plane()
-            planes2 = vector_of_Plane()
-            planes1.append(Plane(p0,  phat))
-            planes2.append(Plane(p0, -phat))
-            poly1 = Polygon(self.polygon)
-            poly2 = Polygon(self.polygon)
-            clipFacetedVolumeByPlanes(poly1, planes1)
-            clipFacetedVolumeByPlanes(poly2, planes2)
-            self.failUnless(fuzzyEqual(poly1.volume + poly2.volume, self.polygon.volume),
-                            "Plane clipping summing to wrong volumes: %s + %s != %s" % (poly1.volume,
-                                                                                        poly2.volume,
-                                                                                        self.polygon.volume))
-
 if __name__ == "__main__":
     unittest.main()
