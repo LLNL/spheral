@@ -48,14 +48,9 @@ namespace {    // anonymous methods
 // Compare a plane and point (our built-in plane one has some issues).
 //------------------------------------------------------------------------------
 inline
-int compare(const Spheral::Dim<3>::Vector& planePoint,
-            const Spheral::Dim<3>::Vector& planeNormal,
+int compare(const Plane3d& plane,
             const Spheral::Dim<3>::Vector& point) {
-  const auto sgndist = (planeNormal[0]*(point[0] - planePoint[0]) +
-                        planeNormal[1]*(point[1] - planePoint[1]) +
-                        planeNormal[2]*(point[2] - planePoint[2]));
-  if (std::abs(sgndist) < 1.0e-10) return 0;
-  return sgn(sgndist);
+  return sgn(plane.dist + plane.normal.dot(point));
 }
 
 //------------------------------------------------------------------------------
@@ -65,8 +60,7 @@ int compare(const Spheral::Dim<3>::Vector& planePoint,
 //    1 ==> box above plane
 //------------------------------------------------------------------------------
 inline
-int compare(const Spheral::Dim<3>::Vector& planePoint,
-            const Spheral::Dim<3>::Vector& planeNormal,
+int compare(const Plane3d& plane,
             const double xmin,
             const double ymin,
             const double zmin,
@@ -74,14 +68,14 @@ int compare(const Spheral::Dim<3>::Vector& planePoint,
             const double ymax,
             const double zmax) {
   typedef Spheral::Dim<3>::Vector Vector;
-  const auto c1 = compare(planePoint, planeNormal, Vector(xmin, ymin, zmin));
-  const auto c2 = compare(planePoint, planeNormal, Vector(xmax, ymin, zmin));
-  const auto c3 = compare(planePoint, planeNormal, Vector(xmax, ymax, zmin));
-  const auto c4 = compare(planePoint, planeNormal, Vector(xmin, ymax, zmin));
-  const auto c5 = compare(planePoint, planeNormal, Vector(xmin, ymin, zmax));
-  const auto c6 = compare(planePoint, planeNormal, Vector(xmax, ymin, zmax));
-  const auto c7 = compare(planePoint, planeNormal, Vector(xmax, ymax, zmax));
-  const auto c8 = compare(planePoint, planeNormal, Vector(xmin, ymax, zmax));
+  const auto c1 = compare(plane, Vector(xmin, ymin, zmin));
+  const auto c2 = compare(plane, Vector(xmax, ymin, zmin));
+  const auto c3 = compare(plane, Vector(xmax, ymax, zmin));
+  const auto c4 = compare(plane, Vector(xmin, ymax, zmin));
+  const auto c5 = compare(plane, Vector(xmin, ymin, zmax));
+  const auto c6 = compare(plane, Vector(xmax, ymin, zmax));
+  const auto c7 = compare(plane, Vector(xmax, ymax, zmax));
+  const auto c8 = compare(plane, Vector(xmin, ymax, zmax));
   const auto cmin = min(c1, min(c2, min(c3, min(c4, min(c5, min(c6, min(c7, c8)))))));
   const auto cmax = max(c1, max(c2, max(c3, max(c4, max(c5, max(c6, max(c7, c8)))))));
   if (cmin == 1) {
@@ -100,26 +94,11 @@ inline
 Spheral::Dim<3>::Vector
 segmentPlaneIntersection(const Spheral::Dim<3>::Vector& a,       // line-segment begin
                          const Spheral::Dim<3>::Vector& b,       // line-segment end
-                         const Spheral::Dim<3>::Vector& p,       // point in plane
-                         const Spheral::Dim<3>::Vector& phat) {  // plane unit normal
-
-  const auto ab = b - a;
-  const auto abmag = sqrt(ab[0]*ab[0] + ab[1]*ab[1] + ab[2]*ab[2]);
-  if (fuzzyEqual(abmag, 0.0, 1.0e-10)) return a;
-  const auto abhat = ab*safeInv(abmag);
-  CHECK2(std::abs(abhat.dot(phat)) > 0.0, (abhat.dot(phat)) << " " << a << " " << b << " " << abhat << " " << phat);
-  const auto s = std::max(0.0, std::min(abmag,
-                                        ((p[0] - a[0])*phat[0] + (p[1] - a[1])*phat[1] + (p[2] - a[2])*phat[2])/
-                                        (abhat[0]*phat[0] + abhat[1]*phat[1] + abhat[2]*phat[2])));
-  // const auto s = std::max(0.0, std::min(abmag, (p - a).dot(phat)/(abhat.dot(phat))));
-  CHECK2(s >= 0.0 and s <= ab.magnitude(), s << " " << ab.magnitude());
-  return Spheral::Dim<3>::Vector(a[0] + s*abhat[0],
-                                 a[1] + s*abhat[1],
-                                 a[2] + s*abhat[2]);
-  // const auto result = a + s*abhat;
-  // CHECK2(fuzzyEqual((result - p).dot(phat), 0.0, 1.0e-10),
-  //        a << " " << b << " " << s << " " << result << " " << (result - p).dot(phat));
-  // return result;
+                         const Plane3d& plane) {                 // plane
+  const auto asgndist = plane.dist + plane.normal.dot(a);
+  const auto bsgndist = plane.dist + plane.normal.dot(b);
+  CHECK(asgndist != bsgndist);
+  return (a*bsgndist - b*asgndist)/(bsgndist - asgndist);
 }
 
 //------------------------------------------------------------------------------
@@ -417,7 +396,7 @@ void moments(double& zerothMoment, Spheral::Dim<3>::Vector& firstMoment,
 // Clip a polyhedron by planes.
 //------------------------------------------------------------------------------
 void clipPolyhedron(Polyhedron& polyhedron,
-                    const std::vector<Spheral::GeomPlane<Spheral::Dim<3>>>& planes) {
+                    const std::vector<Plane3d>& planes) {
   TIME_PC3d_clip.start();
 
   // Pre-declare variables.  Normally I prefer local declaration, but this
@@ -447,12 +426,10 @@ void clipPolyhedron(Polyhedron& polyhedron,
   const auto nplanes = planes.size();
   while (kplane < nplanes and not polyhedron.empty()) {
     const auto& plane = planes[kplane++];
-    const auto& p0 = plane.point();
-    const auto& phat = plane.normal();
-    // cerr << "Clip plane: " << p0 << " " << phat << endl;
+    // cerr << "Clip plane: " << plane.dist << " " << plane.normal << endl;
 
     // First check against the bounding box.
-    auto boxcomp = compare(p0, phat, xmin, ymin, zmin, xmax, ymax, zmax);
+    auto boxcomp = compare(plane, xmin, ymin, zmin, xmax, ymax, zmax);
     auto above = boxcomp ==  1;
     auto below = boxcomp == -1;
     CHECK(not (above and below));
@@ -462,7 +439,7 @@ void clipPolyhedron(Polyhedron& polyhedron,
     TIME_PC3d_checkverts.start();
     if (not (above or below)) {
       for (auto& v: polyhedron) {
-        v.comp = compare(p0, phat, v.position);
+        v.comp = compare(plane, v.position);
         if (v.comp == 1) {
           below = false;
         } else if (v.comp == -1) {
@@ -502,8 +479,7 @@ void clipPolyhedron(Polyhedron& polyhedron,
                 inew = polyhedron.size();
                 polyhedron.push_back(Vertex3d(segmentPlaneIntersection(polyhedron[i].position,
                                                                        polyhedron[jn].position,
-                                                                       p0,
-                                                                       phat),
+                                                                       plane),
                                               2));         // 2 indicates new vertex
                 CHECK(polyhedron.size() == inew + 1);
                 polyhedron[inew].neighbors = vector<int>({jn, i});
@@ -631,7 +607,7 @@ void clipPolyhedron(Polyhedron& polyhedron,
       }
 
       // Renumber the neighbor links.
-      for (i = 0; i < polyhedron.size(); ++i) {
+      for (i = 0; i < nverts; ++i) {
         if (polyhedron[i].comp >= 0) {
           CHECK(polyhedron[i].neighbors.size() >= 3);
           for (j = 0; j < polyhedron[i].neighbors.size(); ++j) {

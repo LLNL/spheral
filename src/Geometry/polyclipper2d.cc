@@ -44,13 +44,12 @@ using namespace std;
 namespace {    // anonymous methods
 
 //------------------------------------------------------------------------------
-// Compare a plane and point (our built-in plane one has some issues).
+// Compare a plane and point.
 //------------------------------------------------------------------------------
 inline
-int compare(const Spheral::Dim<2>::Vector& planePoint,
-            const Spheral::Dim<2>::Vector& planeNormal,
+int compare(const Plane2d& plane,
             const Spheral::Dim<2>::Vector& point) {
-  const auto sgndist = planeNormal.dot(point - planePoint);
+  const auto sgndist = plane.dist + plane.normal.dot(point);
   if (std::abs(sgndist) < 1.0e-10) return 0;
   return sgn0(sgndist);
 }
@@ -62,22 +61,21 @@ int compare(const Spheral::Dim<2>::Vector& planePoint,
 //    1 ==> box above plane
 //------------------------------------------------------------------------------
 inline
-int compare(const Spheral::Dim<2>::Vector& planePoint,
-            const Spheral::Dim<2>::Vector& planeNormal,
+int compare(const Plane2d& plane,
             const double xmin,
             const double ymin,
             const double xmax,
             const double ymax) {
   typedef Spheral::Dim<2>::Vector Vector;
-  const auto c1 = compare(planePoint, planeNormal, Vector(xmin, ymin));
-  const auto c2 = compare(planePoint, planeNormal, Vector(xmax, ymin));
-  const auto c3 = compare(planePoint, planeNormal, Vector(xmax, ymax));
-  const auto c4 = compare(planePoint, planeNormal, Vector(xmin, ymax));
+  const auto c1 = compare(plane, Vector(xmin, ymin));
+  const auto c2 = compare(plane, Vector(xmax, ymin));
+  const auto c3 = compare(plane, Vector(xmax, ymax));
+  const auto c4 = compare(plane, Vector(xmin, ymax));
   const auto cmin = std::min(c1, std::min(c2, std::min(c3, c4)));
   const auto cmax = std::max(c1, std::max(c2, std::max(c3, c4)));
-  if (cmin == 1) {
+  if (cmin == 0) {
     return  1;
-  } else if (cmax == -1) {
+  } else if (cmax == 0) {
     return -1;
   } else {
     return  0;
@@ -91,19 +89,11 @@ inline
 Spheral::Dim<2>::Vector
 segmentPlaneIntersection(const Spheral::Dim<2>::Vector& a,       // line-segment begin
                          const Spheral::Dim<2>::Vector& b,       // line-segment end
-                         const Spheral::Dim<2>::Vector& p,       // point in plane
-                         const Spheral::Dim<2>::Vector& phat) {  // plane unit normal
-
-  const auto ab = b - a;
-  if (fuzzyEqual(ab.magnitude(), 0.0, 1.0e-10)) return a;
-  const auto abhat = ab.unitVector();
-  CHECK2(std::abs(abhat.dot(phat)) > 0.0, (abhat.dot(phat)) << " " << a << " " << b << " " << abhat << " " << phat);
-  const auto s = std::max(0.0, std::min(ab.magnitude(), (p - a).dot(phat)/(abhat.dot(phat))));
-  CHECK2(s >= 0.0 and s <= ab.magnitude(), s << " " << ab.magnitude());
-  const auto result = a + s*abhat;
-  // CHECK2(fuzzyEqual((result - p).dot(phat), 0.0, 1.0e-10),
-  //        a << " " << b << " " << s << " " << result << " " << (result - p).dot(phat));
-  return result;
+                         const Plane2d& plane) {                 // plane
+  const auto asgndist = plane.dist + plane.normal.dot(a);
+  const auto bsgndist = plane.dist + plane.normal.dot(b);
+  CHECK(asgndist != bsgndist);
+  return (a*bsgndist - b*asgndist)/(bsgndist - asgndist);
 }
 
 }              // anonymous methods
@@ -121,37 +111,37 @@ polygon2string(const Polygon& poly) {
                                 [](const Vertex2d& x) { return x.comp >= 0; });
   set<int> usedVertices;
 
-  // // First dump the raw vertex info.
-  // s << "{\n";
-  // for (auto i = 0; i < nverts; ++i) {
-  //   s << "  " << i << " " << poly[i].position
-  //     << " [" << poly[i].neighbors.first << " " << poly[i].neighbors.second << "]\n";
-  // }
-  // s << "}\n";
-
-  // Go until we hit all the active vertices.
-  s << "[";
-  while (usedVertices.size() < nactive) {
-    s << "[";
-
-    // Look for the first active unused vertex.
-    auto vstart = 0;
-    while (vstart < nverts and
-           (poly[vstart].comp < 0 or usedVertices.find(vstart) != usedVertices.end())) vstart++;
-    CHECK(vstart < nverts);
-    auto vnext = vstart;
-
-    // Read out this loop.
-    auto force = true;
-    while (force or vnext != vstart) {
-      s << " " << poly[vnext].position;
-      force = false;
-      usedVertices.insert(vnext);
-      vnext = poly[vnext].neighbors.second;
-    }
-    s << "]";
+  // First dump the raw vertex info.
+  s << "{\n";
+  for (auto i = 0; i < nverts; ++i) {
+    s << "  " << i << " " << poly[i].position
+      << " [" << poly[i].neighbors.first << " " << poly[i].neighbors.second << "]\n";
   }
-  s << "]";
+  s << "}\n";
+
+  // // Go until we hit all the active vertices.
+  // s << "[";
+  // while (usedVertices.size() < nactive) {
+  //   s << "[";
+
+  //   // Look for the first active unused vertex.
+  //   auto vstart = 0;
+  //   while (vstart < nverts and
+  //          (poly[vstart].comp < 0 or usedVertices.find(vstart) != usedVertices.end())) vstart++;
+  //   CHECK(vstart < nverts);
+  //   auto vnext = vstart;
+
+  //   // Read out this loop.
+  //   auto force = true;
+  //   while (force or vnext != vstart) {
+  //     s << " " << poly[vnext].position;
+  //     force = false;
+  //     usedVertices.insert(vnext);
+  //     vnext = poly[vnext].neighbors.second;
+  //   }
+  //   s << "]";
+  // }
+  // s << "]";
   return s.str();
 }
 
@@ -223,7 +213,7 @@ void convertFromPolygon(Spheral::Dim<2>::FacetedVolume& Spheral_polygon,
       // Read out this loop.
       auto force = true;
       while (force or vnext != vstart) {
-        CHECK(k < nactive);
+        CHECK2(k < nactive, polygon2string(polygon));
         coords[k] = polygon[vnext].position;
         facets[k][0] = k;
         facets[k][1] = k + 1;
@@ -281,7 +271,7 @@ void moments(double& zerothMoment, Spheral::Dim<2>::Vector& firstMoment,
 // Clip a polygon by planes.
 //------------------------------------------------------------------------------
 void clipPolygon(Polygon& polygon,
-                 const std::vector<Spheral::GeomPlane<Spheral::Dim<2>>>& planes) {
+                 const std::vector<Plane2d>& planes) {
   TIME_PC2d_clip.start();
 
   // Useful types.
@@ -305,12 +295,10 @@ void clipPolygon(Polygon& polygon,
   const auto nplanes = planes.size();
   while (kplane < nplanes and not polygon.empty()) {
     const auto& plane = planes[kplane++];
-    const auto& p0 = plane.point();
-    const auto& phat = plane.normal();
-    // cerr << "Clip plane: " << p0 << " " << phat << endl;
+    // cerr << "Clip plane: " << plane.dist << " " << plane.normal << endl;
 
     // First check against the bounding box.
-    auto boxcomp = compare(p0, phat, xmin, ymin, xmax, ymax);
+    auto boxcomp = compare(plane, xmin, ymin, xmax, ymax);
     auto above = boxcomp ==  1;
     auto below = boxcomp == -1;
     CHECK(not (above and below));
@@ -319,7 +307,7 @@ void clipPolygon(Polygon& polygon,
     TIME_PC2d_checkverts.start();
     if (not (above or below)) {
       for (auto& v: polygon) {
-        v.comp = compare(p0, phat, v.position);
+        v.comp = compare(plane, v.position);
         if (v.comp == 1) {
           below = false;
         } else if (v.comp == -1) {
@@ -352,8 +340,7 @@ void clipPolygon(Polygon& polygon,
           vnew = polygon.size();
           polygon.push_back(Vertex2d(segmentPlaneIntersection(polygon[v].position,
                                                               polygon[vnext].position,
-                                                              p0,
-                                                              phat),
+                                                              plane),
                                      2));         // 2 indicates new vertex
           polygon[vnew].neighbors = {v, vnext};
           polygon[v].neighbors.second = vnew;
@@ -382,9 +369,9 @@ void clipPolygon(Polygon& polygon,
       if (true) { //(hangingVertices.size() > 2) {
 
         // Yep, more than one new edge here.
-        const Vector direction(phat.y(), -phat.x());
+        const Vector direction(plane.normal.y(), -(plane.normal.x()));
         sort(hangingVertices.begin(), hangingVertices.end(), 
-             [&](const int a, const int b) { return (polygon[a].position - p0).dot(direction) < (polygon[b].position - p0).dot(direction); });
+             [&](const int a, const int b) { return (polygon[a].position).dot(direction) < (polygon[b].position).dot(direction); });
 
         // Now the ordered pairs of these new vertices form the new edges.
         int v1, v2;

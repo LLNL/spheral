@@ -26,6 +26,34 @@
 namespace PolyClipper {
 
 //------------------------------------------------------------------------------
+// 2D plane.
+//------------------------------------------------------------------------------
+struct Plane2d {
+  typedef Spheral::Dim<2>::Vector Vector;
+  double dist;                       // Signed distance to the origin
+  Vector normal;                     // Unit normal
+  Plane2d(): dist(0.0), normal(1,0) {}
+  Plane2d(const double d, const Vector& nhat): dist(d), normal(nhat) {}
+  Plane2d(const Vector& p, const Vector& nhat): dist(-p.dot(nhat)), normal(nhat) {}
+  Plane2d& operator=(const Plane2d& rhs) { dist = rhs.dist; normal = rhs.normal; return *this; }
+  bool operator==(const Plane2d& rhs) { return (dist == rhs.dist and normal == rhs.normal); }
+};
+
+//------------------------------------------------------------------------------
+// 3D plane.
+//------------------------------------------------------------------------------
+struct Plane3d {
+  typedef Spheral::Dim<3>::Vector Vector;
+  Vector normal;                     // Unit normal
+  double dist;                       // Signed distance to the origin
+  Plane3d(): dist(0.0), normal(1,0,0) {}
+  Plane3d(const double d, const Vector& nhat): dist(d), normal(nhat) {}
+  Plane3d(const Vector& p, const Vector& nhat): dist(-p.dot(nhat)), normal(nhat) {}
+  Plane3d& operator=(const Plane3d& rhs) { dist = rhs.dist; normal = rhs.normal; return *this; }
+  bool operator==(const Plane3d& rhs) { return (dist == rhs.dist and normal == rhs.normal); }
+};
+
+//------------------------------------------------------------------------------
 // The 2D vertex struct, which we use to encode polygons.
 //------------------------------------------------------------------------------
 struct Vertex2d {
@@ -70,7 +98,7 @@ void moments(double& zerothMoment, Spheral::Dim<2>::Vector& firstMoment,
              const Polygon& polygon);
 
 void clipPolygon(Polygon& poly,
-                 const std::vector<Spheral::GeomPlane<Spheral::Dim<2>>>& planes);
+                 const std::vector<Plane2d>& planes);
 
 //------------------------------------------------------------------------------
 // 3D (polyhedron) methods.
@@ -91,7 +119,7 @@ void moments(double& zerothMoment, Spheral::Dim<3>::Vector& firstMoment,
              const Polyhedron& polyhedron);
 
 void clipPolyhedron(Polyhedron& poly,
-                    const std::vector<Spheral::GeomPlane<Spheral::Dim<3>>>& planes);
+                    const std::vector<Plane3d>& planes);
 
 }
 

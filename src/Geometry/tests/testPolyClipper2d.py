@@ -13,12 +13,25 @@ import random
 rangen = random.Random()
 
 # Make a square
+#   3    2
+#   |----|
+#   |    |
+#   |----|
+#   0    1
 points = vector_of_Vector()
 for coords in [(0,0), (1,0), (0,1), (1,1)]:
     points.append(Vector(*coords))
 square = Polygon(points)
 
 # Make a non-convex notched thingy.
+#    6           5      3          2
+#    |------------\    /-----------|
+#    |             \  /            |
+#    |              \/             |
+#    |               4             |
+#    |                             |
+#    |------------------------------
+#    0                             1
 points = vector_of_Vector()
 for coords in [(0,0), (4,0), (4,2), (3,2), (2,1), (1,2), (0,2)]:
     points.append(Vector(*coords))
@@ -76,13 +89,13 @@ class TestPolyClipper2d(unittest.TestCase):
             PCpoly = PolyClipper.Polygon()
             PolyClipper.convertToPolygon(PCpoly, poly)
             for i in xrange(self.ntests):
-                planes1, planes2 = vector_of_Plane(), vector_of_Plane()
+                planes1, planes2 = vector_of_PolyClipperPlane(), vector_of_PolyClipperPlane()
                 p0 = Vector(rangen.uniform(0.0, 1.0),
                             rangen.uniform(0.0, 1.0))
                 phat = Vector(rangen.uniform(-1.0, 1.0), 
                               rangen.uniform(-1.0, 1.0)).unitVector()
-                planes1.append(Plane(p0,  phat))
-                planes2.append(Plane(p0, -phat))
+                planes1.append(PolyClipper.PolyClipperPlane2d(p0,  phat))
+                planes2.append(PolyClipper.PolyClipperPlane2d(p0, -phat))
                 PCchunk1 = PolyClipper.Polygon(PCpoly)
                 PCchunk2 = PolyClipper.Polygon(PCpoly)
                 PolyClipper.clipPolygon(PCchunk1, planes1)
@@ -118,14 +131,14 @@ class TestPolyClipper2d(unittest.TestCase):
             PCpoly = PolyClipper.Polygon()
             PolyClipper.convertToPolygon(PCpoly, poly)
             for i in xrange(self.ntests):
-                planes1, planes2 = vector_of_Plane(), vector_of_Plane()
+                planes1, planes2 = vector_of_PolyClipperPlane(), vector_of_PolyClipperPlane()
                 p0 = Vector(rangen.uniform(0.0, 1.0),
                             rangen.uniform(0.0, 1.0))
                 phat = Vector(rangen.uniform(-1.0, 1.0), 
                               rangen.uniform(-1.0, 1.0)).unitVector()
-                planes1.append(Plane(p0,  phat))
-                planes2.append(Plane(p0,  phat))
-                planes2.append(Plane(p0,  phat))
+                planes1.append(PolyClipper.PolyClipperPlane2d(p0,  phat))
+                planes2.append(PolyClipper.PolyClipperPlane2d(p0,  phat))
+                planes2.append(PolyClipper.PolyClipperPlane2d(p0,  phat))
                 PCchunk1 = PolyClipper.Polygon(PCpoly)
                 PCchunk2 = PolyClipper.Polygon(PCpoly)
                 PolyClipper.clipPolygon(PCchunk1, planes1)
@@ -162,8 +175,8 @@ class TestPolyClipper2d(unittest.TestCase):
                 theta = rangen.uniform(0.0, 2.0*pi)
                 phat = Vector(cos(theta), sin(theta))
                 p0 = poly.centroid() + r*phat
-                planes = vector_of_Plane()
-                planes.append(Plane(p0, -phat))
+                planes = vector_of_PolyClipperPlane()
+                planes.append(PolyClipper.PolyClipperPlane2d(p0, -phat))
                 PCchunk = PolyClipper.Polygon()
                 PolyClipper.convertToPolygon(PCchunk, poly)
                 PolyClipper.clipPolygon(PCchunk, planes)
@@ -183,12 +196,12 @@ class TestPolyClipper2d(unittest.TestCase):
     def testFullClipOnePlane(self):
         for poly in self.polygons:
             for i in xrange(self.ntests):
-                planes = vector_of_Plane()
+                planes = vector_of_PolyClipperPlane()
                 r = rangen.uniform(2.0, 100.0) * (poly.xmax - poly.xmin).magnitude()
                 theta = rangen.uniform(0.0, 2.0*pi)
                 phat = Vector(cos(theta), sin(theta))
                 p0 = poly.centroid() + r*phat
-                planes.append(Plane(p0, phat))
+                planes.append(PolyClipper.PolyClipperPlane2d(p0, phat))
                 PCchunk = PolyClipper.Polygon()
                 PolyClipper.convertToPolygon(PCchunk, poly)
                 PolyClipper.clipPolygon(PCchunk, planes)
@@ -210,20 +223,24 @@ class TestPolyClipper2d(unittest.TestCase):
             PCpoly = PolyClipper.Polygon()
             PolyClipper.convertToPolygon(PCpoly, poly)
             for i in xrange(self.ntests):
-                planes1 = vector_of_Plane()
                 p0 = Vector(rangen.uniform(0.0, 1.0),
                             rangen.uniform(0.0, 1.0))
-                for iplane in xrange(2):
-                    planes1.append(Plane(point = p0,
-                                         normal = Vector(rangen.uniform(-1.0, 1.0), 
-                                                         rangen.uniform(-1.0, 1.0)).unitVector()))
-                planes2 = vector_of_Plane(planes1)
-                planes3 = vector_of_Plane(planes1)
-                planes4 = vector_of_Plane(planes1)
-                planes2[0].normal = -planes2[0].normal
-                planes3[1].normal = -planes3[1].normal
-                planes4[0].normal = -planes4[0].normal
-                planes4[1].normal = -planes4[1].normal
+                norm1 = Vector(rangen.uniform(-1.0, 1.0), 
+                               rangen.uniform(-1.0, 1.0)).unitVector()
+                norm2 = Vector(rangen.uniform(-1.0, 1.0), 
+                               rangen.uniform(-1.0, 1.0)).unitVector()
+                planes1 = vector_of_PolyClipperPlane()
+                planes1.append(PolyClipper.PolyClipperPlane2d(p0,  norm1))
+                planes1.append(PolyClipper.PolyClipperPlane2d(p0,  norm2))
+                planes2 = vector_of_PolyClipperPlane()
+                planes2.append(PolyClipper.PolyClipperPlane2d(p0,  norm1))
+                planes2.append(PolyClipper.PolyClipperPlane2d(p0, -norm2))
+                planes3 = vector_of_PolyClipperPlane()
+                planes3.append(PolyClipper.PolyClipperPlane2d(p0, -norm1))
+                planes3.append(PolyClipper.PolyClipperPlane2d(p0,  norm2))
+                planes4 = vector_of_PolyClipperPlane()
+                planes4.append(PolyClipper.PolyClipperPlane2d(p0, -norm1))
+                planes4.append(PolyClipper.PolyClipperPlane2d(p0, -norm2))
                 PCchunk1 = PolyClipper.Polygon(PCpoly)
                 PCchunk2 = PolyClipper.Polygon(PCpoly)
                 PCchunk3 = PolyClipper.Polygon(PCpoly)

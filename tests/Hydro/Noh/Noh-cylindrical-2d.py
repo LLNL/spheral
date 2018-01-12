@@ -103,7 +103,7 @@ commandLine(order = 5,
             gradhCorrection = True,
             correctVelocityGradient = True,
 
-            useVoronoiOutput = False,
+            useVoronoiOutput = True,
             clearDirectories = False,
             vizDerivs = False,
             restoreCycle = -1,

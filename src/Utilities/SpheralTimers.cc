@@ -24,6 +24,16 @@ Timer TimeSpheral               ("Root Timer                ");
 // Timer TimeNestedDistributedBound("Root NestedDistribBound   ");
 
 //------------------------------------------------------------------------------
+// Voronoi 2d
+//------------------------------------------------------------------------------
+Timer TIME_computeVoronoiVolume2d("computeVoronoiVolume2d");
+
+//------------------------------------------------------------------------------
+// Voronoi 3d
+//------------------------------------------------------------------------------
+Timer TIME_computeVoronoiVolume3d("computeVoronoiVolume3d");
+
+//------------------------------------------------------------------------------
 // Polyhedron timers
 //------------------------------------------------------------------------------
 Timer TIME_Polyhedron_construct1       ("Polyhedron::Polyhedron(points)");
