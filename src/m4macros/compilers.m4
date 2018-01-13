@@ -277,7 +277,7 @@ case $COMPILERS in
       CMAKECXX=g++
       PARMETISCC=$MPICC
       MPI4PYCC=$MPICC
-      CXXFLAGS+=" -std=c++11"
+      CXXFLAGS+=" -std=c++11 -flto"
       NUMPYFLAGS="--fcompiler=intelem"
       NUMPYCFLAGS="CFLAGS=-no-ip"
       ;;
