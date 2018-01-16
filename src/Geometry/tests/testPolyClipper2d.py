@@ -19,9 +19,14 @@ rangen = random.Random()
 #   |----|
 #   0    1
 points = vector_of_Vector()
-for coords in [(0,0), (1,0), (0,1), (1,1)]:
+for coords in [(0,0), (1,0), (1,1), (0,1)]:
     points.append(Vector(*coords))
-square = Polygon(points)
+neighbors = vector_of_vector_of_int(4, vector_of_int(2))
+for i in xrange(4):
+    neighbors[i][0] = (i - 1) % 4
+    neighbors[i][1] = (i + 1) % 4
+square = PolyClipper.Polygon()
+PolyClipper.initializePolygon(square, points, neighbors)
 
 # Make a non-convex notched thingy.
 #    6           5      3          2
@@ -35,11 +40,12 @@ square = Polygon(points)
 points = vector_of_Vector()
 for coords in [(0,0), (4,0), (4,2), (3,2), (2,1), (1,2), (0,2)]:
     points.append(Vector(*coords))
-facets = vector_of_vector_of_unsigned(7, vector_of_unsigned(2))
+neighbors = vector_of_vector_of_int(7, vector_of_int(2))
 for i in xrange(7):
-    facets[i][0] = i
-    facets[i][1] = (i + 1) % 7
-notchedthing = Polygon(points, facets)
+    neighbors[i][0] = (i - 1) % 4
+    neighbors[i][1] = (i + 1) % 4
+notchedthing = PolyClipper.Polygon()
+PolyClipper.initializePolygon(notchedthing, points, neighbors)
 
 #-------------------------------------------------------------------------------
 # Test harness
