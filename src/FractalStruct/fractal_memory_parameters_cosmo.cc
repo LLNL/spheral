@@ -90,7 +90,7 @@ namespace FractalSpace
     mem.number_steps_total=906;
     //    mem.number_steps_total=8;
     // Total number of steps
-    mem.number_steps_out=50;
+    mem.number_steps_out=20;
     // Output how often
     mem.time_trial=true;
     mem.redshift_start=99.0;
