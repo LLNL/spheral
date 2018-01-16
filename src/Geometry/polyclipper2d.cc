@@ -36,6 +36,7 @@ extern Timer TIME_PC2d_checkverts;
 extern Timer TIME_PC2d_insertverts;
 extern Timer TIME_PC2d_hanging;
 extern Timer TIME_PC2d_compress;
+extern Timer TIME_PC2d_collapseDegenerates;
 
 namespace PolyClipper {
 
@@ -97,6 +98,28 @@ segmentPlaneIntersection(const Spheral::Dim<2>::Vector& a,       // line-segment
 }
 
 }              // anonymous methods
+
+//------------------------------------------------------------------------------
+// Return a nicely formatted string representing the polygon.
+//------------------------------------------------------------------------------
+void
+initializePolygon(Polygon& poly,
+                  const vector<Spheral::Dim<2>::Vector>& positions,
+                  const vector<vector<int>>& neighbors) {
+
+  // Pre-conditions
+  const auto n = positions.size();
+  VERIFY2(neighbors.size() == n,
+          "PolyClipper::initializePolygon ERROR: positions and neighbors should be same size.");
+
+  poly.resize(n);
+  for (auto i = 0; i < n; ++i) {
+    VERIFY2(neighbors[i].size() == 2,
+            "PolyClipper::initializePolygon ERROR: each neighbor entry should be of size 2.");
+    poly[i].position = positions[i];
+    poly[i].neighbors = {neighbors[i][0], neighbors[i][1]};
+  }
+}
 
 //------------------------------------------------------------------------------
 // Return a nicely formatted string representing the polygon.
@@ -454,6 +477,50 @@ void clipPolygon(Polygon& polygon,
     }
   }
   TIME_PC2d_planes.stop();
+}
+
+//------------------------------------------------------------------------------
+// Collapse degenerate vertices.
+//------------------------------------------------------------------------------
+void collapseDegenerates(Polygon& polygon,
+                         const double tol) {
+  TIME_PC2d_collapseDegenerates.start();
+
+  const auto tol2 = tol*tol;
+
+  // Set the initial ID's the vertices.
+  auto n = polygon.size();
+  for (auto i = 0; i < n; ++i) polygon[i].ID = i;
+
+  // Walk the polygon removing degenerate edges until we make a sweep without
+  // removing any.
+  auto done = false;
+  while (not done) {
+    done = true;
+    for (auto i = 0; i < n; ++i) {
+      if (polygon[i].ID >= 0) {
+        const auto j = polygon[i].neighbors.second;
+        CHECK(polygon[j].ID >= 0);
+        if ((polygon[i].position - polygon[j].position).magnitude2() < tol2) {
+          done = false;
+          polygon[j].ID = -1;
+          for (auto k = j + 1; k < n; ++k) polygon[k].ID--;
+          for (auto k = 0; k < n; ++k) {
+            if (polygon[k].ID >= 0) {
+              polygon[k].neighbors.first = polygon[polygon[k].neighbors.first].ID;
+              polygon[k].neighbors.second = polygon[polygon[k].neighbors.second].ID;
+              CHECK(polygon[k].neighbors.first >= 0);
+              CHECK(polygon[k].neighbors.second >= 0);
+            }
+          }
+        }
+      }
+    }
+  }
+
+  polygon.erase(remove_if(polygon.begin(), polygon.end(), [](Vertex2d& v) { return v.ID < 0; }), polygon.end());
+
+  TIME_PC2d_collapseDegenerates.stop();
 }
 
 }
