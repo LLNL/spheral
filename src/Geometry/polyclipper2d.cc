@@ -487,38 +487,67 @@ void collapseDegenerates(Polygon& polygon,
   TIME_PC2d_collapseDegenerates.start();
 
   const auto tol2 = tol*tol;
-
-  // Set the initial ID's the vertices.
   auto n = polygon.size();
-  for (auto i = 0; i < n; ++i) polygon[i].ID = i;
+  if (n > 0) {
 
-  // Walk the polygon removing degenerate edges until we make a sweep without
-  // removing any.
-  auto done = false;
-  while (not done) {
-    done = true;
-    for (auto i = 0; i < n; ++i) {
-      if (polygon[i].ID >= 0) {
-        const auto j = polygon[i].neighbors.second;
-        CHECK(polygon[j].ID >= 0);
-        if ((polygon[i].position - polygon[j].position).magnitude2() < tol2) {
-          done = false;
-          polygon[j].ID = -1;
-          for (auto k = j + 1; k < n; ++k) polygon[k].ID--;
-          for (auto k = 0; k < n; ++k) {
-            if (polygon[k].ID >= 0) {
-              polygon[k].neighbors.first = polygon[polygon[k].neighbors.first].ID;
-              polygon[k].neighbors.second = polygon[polygon[k].neighbors.second].ID;
-              CHECK(polygon[k].neighbors.first >= 0);
-              CHECK(polygon[k].neighbors.second >= 0);
-            }
+    // Set the initial ID's the vertices.
+    for (auto i = 0; i < n; ++i) polygon[i].ID = i;
+
+    // Walk the polygon removing degenerate edges until we make a sweep without
+    // removing any.
+    auto done = false;
+    auto active = false;
+    while (not done) {
+      done = true;
+      for (auto i = 0; i < n; ++i) {
+        if (polygon[i].ID >= 0) {
+          auto j = polygon[i].neighbors.second;
+          CHECK(polygon[j].ID >= 0);
+          if ((polygon[i].position - polygon[j].position).magnitude2() < tol2) {
+            done = false;
+            active = true;
+            polygon[j].ID = -1;
+            while (polygon[j].ID < 0) j = polygon[j].neighbors.second;
+            polygon[i].neighbors.second = j;
+            polygon[j].neighbors.first  = i;
           }
         }
       }
     }
+
+    if (active) {
+
+      // Renumber the nodes assuming we're going to clear out the degenerates.
+      auto offset = 0;
+      for (auto i = 0; i < n; ++i) {
+        if (polygon[i].ID == -1) {
+          --offset;
+        } else {
+          polygon[i].ID += offset;
+        }
+      }
+      for (auto& v: polygon) {
+        v.neighbors.first = polygon[v.neighbors.first].ID;
+        v.neighbors.second = polygon[v.neighbors.second].ID;
+      }
+
+      // Erase the inactive vertices.
+      polygon.erase(remove_if(polygon.begin(), polygon.end(), [](const Vertex2d& v) { return v.ID < 0; }), polygon.end());
+      if (polygon.size() < 3) polygon.clear();
+    }
   }
 
-  polygon.erase(remove_if(polygon.begin(), polygon.end(), [](Vertex2d& v) { return v.ID < 0; }), polygon.end());
+  // Post-conditions.
+  BEGIN_CONTRACT_SCOPE
+  {
+    const auto n = polygon.size();
+    for (auto i = 0; i < n; ++i) {
+      ENSURE(polygon[i].ID == i);
+      ENSURE(polygon[i].neighbors.first < n);
+      ENSURE(polygon[i].neighbors.second < n);
+    }
+  }
+  END_CONTRACT_SCOPE
 
   TIME_PC2d_collapseDegenerates.stop();
 }
