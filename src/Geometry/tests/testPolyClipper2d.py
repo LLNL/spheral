@@ -12,22 +12,18 @@ from SpheralTestUtilities import fuzzyEqual
 import random
 rangen = random.Random()
 
+#-------------------------------------------------------------------------------
 # Make a square
 #   3    2
 #   |----|
 #   |    |
 #   |----|
 #   0    1
-points = vector_of_Vector()
+square_points = vector_of_Vector()
 for coords in [(0,0), (1,0), (1,1), (0,1)]:
-    points.append(Vector(*coords))
-neighbors = vector_of_vector_of_int(4, vector_of_int(2))
-for i in xrange(4):
-    neighbors[i][0] = (i - 1) % 4
-    neighbors[i][1] = (i + 1) % 4
-square = PolyClipper.Polygon()
-PolyClipper.initializePolygon(square, points, neighbors)
+    square_points.append(Vector(*coords))
 
+#-------------------------------------------------------------------------------
 # Make a non-convex notched thingy.
 #    6           5      3          2
 #    |------------\    /-----------|
@@ -37,15 +33,42 @@ PolyClipper.initializePolygon(square, points, neighbors)
 #    |                             |
 #    |------------------------------
 #    0                             1
-points = vector_of_Vector()
+notched_points = vector_of_Vector()
 for coords in [(0,0), (4,0), (4,2), (3,2), (2,1), (1,2), (0,2)]:
-    points.append(Vector(*coords))
-neighbors = vector_of_vector_of_int(7, vector_of_int(2))
-for i in xrange(7):
-    neighbors[i][0] = (i - 1) % 4
-    neighbors[i][1] = (i + 1) % 4
-notchedthing = PolyClipper.Polygon()
-PolyClipper.initializePolygon(notchedthing, points, neighbors)
+    notched_points.append(Vector(*coords))
+
+#-------------------------------------------------------------------------------
+# A degenerate square
+#   4    3
+#  5|----|
+#   |    |
+#   |----|2
+#   0    1
+degenerate_square_points = vector_of_Vector()
+for coords in [(0,0), (1,0), (1,0), (1,1), (0,1), (0,1)]:
+    degenerate_square_points.append(Vector(*coords))
+
+#-------------------------------------------------------------------------------
+# Compute the vertex neighbors assuming an ordered ring of the given size.
+#-------------------------------------------------------------------------------
+def vertexNeighbors(points):
+    n = len(points)
+    neighbors = vector_of_vector_of_int(n, vector_of_int(2))
+    for i in xrange(n):
+        neighbors[i][0] = (i - 1) % n
+        neighbors[i][1] = (i + 1) % n
+    return neighbors
+
+#-------------------------------------------------------------------------------
+# Compute the facets assuming an ordered ring of the given size.
+#-------------------------------------------------------------------------------
+def facets(points):
+    n = len(points)
+    facets = vector_of_vector_of_unsigned(n, vector_of_unsigned(2))
+    for i in xrange(n):
+        facets[i][0] = i
+        facets[i][1] = (i + 1) % n
+    return facets
 
 #-------------------------------------------------------------------------------
 # Test harness
@@ -56,15 +79,45 @@ class TestPolyClipper2d(unittest.TestCase):
     # setUp
     #---------------------------------------------------------------------------
     def setUp(self):
-        self.polygons = [square, notchedthing]
+        self.pointSets = [square_points, notched_points, degenerate_square_points]
         self.ntests = 10000
         return
+
+    #---------------------------------------------------------------------------
+    # initializePolygon
+    #---------------------------------------------------------------------------
+    def test_initializePolygon(self):
+        for points in self.pointSets:
+            poly = Polygon(points, facets(points))
+            PCpoly = PolyClipper.Polygon()
+            PolyClipper.initializePolygon(PCpoly, points, vertexNeighbors(points))
+            vol, centroid = PolyClipper.moments(PCpoly)
+            self.failUnless(vol == poly.volume,
+                            "Volume comparison failure: %g != %g" % (vol, poly.volume))
+            self.failUnless(centroid == poly.centroid(),
+                            "Centroid comparison failure: %s != %s" % (centroid, poly.centroid()))
+
+    #---------------------------------------------------------------------------
+    # collapseDegenerates
+    #---------------------------------------------------------------------------
+    def test_collapseDegenerates(self):
+        PCpoly0 = PolyClipper.Polygon()
+        PolyClipper.initializePolygon(PCpoly0, degenerate_square_points, vertexNeighbors(degenerate_square_points))
+        assert PCpoly0.size() == len(degenerate_square_points)
+        PCpoly1 = PolyClipper.Polygon(PCpoly0)
+        PolyClipper.collapseDegenerates(PCpoly1, 1.0e-10)
+        assert PCpoly1.size() == 4
+        vol0, centroid0 = PolyClipper.moments(PCpoly0)
+        vol1, centroid1 = PolyClipper.moments(PCpoly1)
+        assert vol1 == vol0
+        assert centroid1 == centroid0
 
     #---------------------------------------------------------------------------
     # Spheral::Polygon --> PolyClipper::Polygon
     #---------------------------------------------------------------------------
     def testConvertToPolygon(self):
-        for poly in self.polygons:
+        for points in self.pointSets:
+            poly = Polygon(points, facets(points))
             PCpoly = PolyClipper.Polygon()
             PolyClipper.convertToPolygon(PCpoly, poly)
             assert poly.vertices().size() == PCpoly.size()
@@ -79,10 +132,10 @@ class TestPolyClipper2d(unittest.TestCase):
     # PolyClipper::Polygon --> Spheral::Polygon
     #---------------------------------------------------------------------------
     def testConvertFromPolygon(self):
-        for poly0 in self.polygons:
+        for points in self.pointSets:
             PCpoly = PolyClipper.Polygon()
-            PolyClipper.convertToPolygon(PCpoly, poly0)
-            assert poly0.vertices().size() == PCpoly.size()
+            PolyClipper.initializePolygon(PCpoly, points, vertexNeighbors(points))
+            poly0 = Polygon(points, facets(points))
             poly1 = Polygon()
             PolyClipper.convertFromPolygon(poly1, PCpoly)
             assert poly1 == poly0
@@ -91,9 +144,10 @@ class TestPolyClipper2d(unittest.TestCase):
     # Clip with planes passing through the polygon.
     #---------------------------------------------------------------------------
     def testClipInternalOnePlane(self):
-        for poly in self.polygons:
+        for points in self.pointSets:
             PCpoly = PolyClipper.Polygon()
-            PolyClipper.convertToPolygon(PCpoly, poly)
+            PolyClipper.initializePolygon(PCpoly, points, vertexNeighbors(points))
+            poly = Polygon(points, facets(points))
             for i in xrange(self.ntests):
                 planes1, planes2 = vector_of_PolyClipperPlane(), vector_of_PolyClipperPlane()
                 p0 = Vector(rangen.uniform(0.0, 1.0),
@@ -133,9 +187,10 @@ class TestPolyClipper2d(unittest.TestCase):
     # Clip with the same plane repeatedly.
     #---------------------------------------------------------------------------
     def testRedundantClip(self):
-        for poly in self.polygons:
+        for points in self.pointSets:
             PCpoly = PolyClipper.Polygon()
-            PolyClipper.convertToPolygon(PCpoly, poly)
+            PolyClipper.initializePolygon(PCpoly, points, vertexNeighbors(points))
+            poly = Polygon(points, facets(points))
             for i in xrange(self.ntests):
                 planes1, planes2 = vector_of_PolyClipperPlane(), vector_of_PolyClipperPlane()
                 p0 = Vector(rangen.uniform(0.0, 1.0),
@@ -175,7 +230,8 @@ class TestPolyClipper2d(unittest.TestCase):
     # Clip with planes passing outside the polygon -- null test.
     #---------------------------------------------------------------------------
     def testNullClipOnePlane(self):
-        for poly in self.polygons:
+        for points in self.pointSets:
+            poly = Polygon(points, facets(points))
             for i in xrange(self.ntests):
                 r = rangen.uniform(2.0, 100.0) * (poly.xmax - poly.xmin).magnitude()
                 theta = rangen.uniform(0.0, 2.0*pi)
@@ -200,7 +256,8 @@ class TestPolyClipper2d(unittest.TestCase):
     # Clip with planes passing outside the polygon and rejecting the whole thing.
     #---------------------------------------------------------------------------
     def testFullClipOnePlane(self):
-        for poly in self.polygons:
+        for points in self.pointSets:
+            poly = Polygon(points, facets(points))
             for i in xrange(self.ntests):
                 planes = vector_of_PolyClipperPlane()
                 r = rangen.uniform(2.0, 100.0) * (poly.xmax - poly.xmin).magnitude()
@@ -225,9 +282,10 @@ class TestPolyClipper2d(unittest.TestCase):
     # Clip with planes passing through the polygon.
     #---------------------------------------------------------------------------
     def testClipInternalTwoPlanes(self):
-        for poly in self.polygons:
+        for points in self.pointSets:
             PCpoly = PolyClipper.Polygon()
-            PolyClipper.convertToPolygon(PCpoly, poly)
+            PolyClipper.initializePolygon(PCpoly, points, vertexNeighbors(points))
+            poly = Polygon(points, facets(points))
             for i in xrange(self.ntests):
                 p0 = Vector(rangen.uniform(0.0, 1.0),
                             rangen.uniform(0.0, 1.0))
