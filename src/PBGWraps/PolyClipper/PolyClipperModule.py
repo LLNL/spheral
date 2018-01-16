@@ -44,6 +44,12 @@ class PolyClipper:
         generateStdVectorBindings(self.vector_of_Plane3d, "PolyClipper::PolyClipperPlane3d", "vector_of_PolyClipperPlane3d", indexAsPointer=True)
 
         # Polygon functions
+        self.space.add_function("initializePolygon", None,
+                                [refparam("PolyClipper::Polygon", "poly"),
+                                 constrefparam("vector_of_Vector2d", "position"),
+                                 constrefparam("vector_of_vector_of_int", "neighbors")],
+                                docstring = "Initialize a polygon from the positions and neighbors of each vertex.")
+
         self.space.add_function("polygon2string", "std::string",
                                 [constrefparam("PolyClipper::Polygon", "polygon")],
                                 docstring = "Print a polygon as a formatted string for human reading.")
@@ -68,6 +74,11 @@ class PolyClipper:
                                 [refparam("PolyClipper::Polygon", "polygon"),
                                  constrefparam("vector_of_PolyClipperPlane2d", "planes")],
                                 docstring = "Clip a PolyClipper polygon by a set of planes.")
+
+        self.space.add_function("collapseDegenerates", None,
+                                [refparam("PolyClipper::Polygon", "polygon"),
+                                 param("double", "tol")],
+                                docstring = "Remove degnerate edges/vertices from a PolyClipper polygon.")
 
         # Polyhedron functions
         self.space.add_function("polyhedron2string", "std::string",

@@ -86,6 +86,10 @@ struct Vertex3d {
 //------------------------------------------------------------------------------
 typedef std::vector<Vertex2d> Polygon;
 
+void initializePolygon(Polygon& poly,
+                       const std::vector<Spheral::Dim<2>::Vector>& positions,
+                       const std::vector<std::vector<int>>& neighbors);
+
 std::string polygon2string(const Polygon& poly);
 
 void convertToPolygon(Polygon& polygon,
@@ -99,6 +103,9 @@ void moments(double& zerothMoment, Spheral::Dim<2>::Vector& firstMoment,
 
 void clipPolygon(Polygon& poly,
                  const std::vector<Plane2d>& planes);
+
+void collapseDegenerates(Polygon& poly,
+                         const double tol);
 
 //------------------------------------------------------------------------------
 // 3D (polyhedron) methods.
