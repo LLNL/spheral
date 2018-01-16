@@ -44,17 +44,17 @@ int main(int argc, char* argv[])
   double PADDING=-1;
   if(argc >= 9)
     PADDING=atoi(argv[8]);
-  int HYPREMAXONNODE=10000000;
+  double step_length=1.0;
   if(argc >= 10)
-    HYPREMAXONNODE=atoi(argv[9]);
-  double HYPREMULTIPLIER=2.0;
+    step_length=atof(argv[9]);
+  int number_steps_total=1000;
   if(argc >= 11)
-    HYPREMULTIPLIER=atof(argv[10]);
+    number_steps_total=atoi(argv[10]);
   if(Mess::IAMROOT)
     {
       cerr << "starting out " << argc << " " << FRN << " " << _disK_ << " " << GRL << " " << FractalNodes0 << " " << FractalNodes1 << " " << FractalNodes2 << "\n";
-      cerr << " " << "NumberParticles" << " " << "SHRINK" << " " << "PADDING" << " " << "HYPREMAXONNODE" << " " << "HYPREMULTIPLIER" << "\n";
-      cerr << " " << NumberParticles << " " << SHRINK << " " << PADDING << " " << HYPREMAXONNODE << " " << HYPREMULTIPLIER << "\n";
+      cerr << " " << "NumberParticles" << " " << "SHRINK" << " " << "PADDING" << " " << "STEP_LENGTH" << " " << "number_steps_total" << "\n";
+      cerr << " " << NumberParticles << " " << SHRINK << " " << PADDING << " " << step_length << " " << number_steps_total << "\n";
       int ar=0;
       while(ar < argc)
 	{
@@ -105,8 +105,8 @@ int main(int argc, char* argv[])
   PFM->setBaseDirectory(BaseDirectory);
   PFM->setRunIdentifier(RunIdentifier);
   PFM->setTimeTrial(TimeTrial);
-  PFM->hypre_max_node_load=HYPREMAXONNODE;
-  PFM->hypre_multiplier=HYPREMULTIPLIER;
+  PFM->hypre_max_node_load=-1; //////
+  PFM->hypre_multiplier=-1;
   fractal_memory_setup(PFM);
 
 
@@ -142,12 +142,12 @@ int main(int argc, char* argv[])
   PFM->hypre_load_balance=true;
 //   PFM->hypre_max_node_load=30000;
 //   PFM->hypre_max_average_load=20000;
-  PFM->number_steps_total=1603;
+  PFM->number_steps_total=number_steps_total;
   //  PFM->number_steps_total=13;
   PFM->number_steps_out=20;
   //  PFM->number_steps_out=200000;
-  // PFM->step_length=1.0e-30; ////////////
-  PFM->step_length=1.0e-5;
+  PFM->step_length=step_length;
+  // PFM->step_length=1.0e-5;
   //  PFM->step_length=4.0e-5;
   PFM->time=0.0;
   make_me_a_galaxy(FractalRank,NumberParticles,total_mass,masses,G,posx,posy,posz,velx,vely,velz);
