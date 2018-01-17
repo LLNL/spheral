@@ -114,6 +114,10 @@ typedef std::vector<Vertex3d> Polyhedron;
 
 std::vector<std::vector<int>> extractFaces(const Polyhedron& poly);
 
+void initializePolyhedron(Polyhedron& poly,
+                          const std::vector<Spheral::Dim<3>::Vector>& positions,
+                          const std::vector<std::vector<int>>& neighbors);
+
 std::string polyhedron2string(const Polyhedron& poly);
 
 void convertToPolyhedron(Polyhedron& polyhedron,
@@ -127,6 +131,9 @@ void moments(double& zerothMoment, Spheral::Dim<3>::Vector& firstMoment,
 
 void clipPolyhedron(Polyhedron& poly,
                     const std::vector<Plane3d>& planes);
+
+void collapseDegenerates(Polyhedron& poly,
+                         const double tol);
 
 }
 

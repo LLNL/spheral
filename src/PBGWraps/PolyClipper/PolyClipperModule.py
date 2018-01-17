@@ -81,6 +81,12 @@ class PolyClipper:
                                 docstring = "Remove degnerate edges/vertices from a PolyClipper polygon.")
 
         # Polyhedron functions
+        self.space.add_function("initializePolyhedron", None,
+                                [refparam("PolyClipper::Polyhedron", "poly"),
+                                 constrefparam("vector_of_Vector3d", "position"),
+                                 constrefparam("vector_of_vector_of_int", "neighbors")],
+                                docstring = "Initialize a polyhedron from the positions and neighbors of each vertex.")
+
         self.space.add_function("polyhedron2string", "std::string",
                                 [constrefparam("PolyClipper::Polyhedron", "polyhedron")],
                                 docstring = "Print a polyhedron as a formatted string for human reading.")
@@ -105,6 +111,11 @@ class PolyClipper:
                                 [refparam("PolyClipper::Polyhedron", "polyhedron"),
                                  constrefparam("vector_of_PolyClipperPlane3d", "planes")],
                                 docstring = "Clip a PolyClipper polyhedron by a set of planes.")
+
+        self.space.add_function("collapseDegenerates", None,
+                                [refparam("PolyClipper::Polyhedron", "polyhedron"),
+                                 param("double", "tol")],
+                                docstring = "Remove degnerate edges/vertices from a PolyClipper polyhedron.")
 
         return
 

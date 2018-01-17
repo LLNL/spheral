@@ -73,6 +73,7 @@ Timer   TIME_PC3d_insertverts("Insert new vertices", TIME_PC3d_planes);
 Timer   TIME_PC3d_planeverts("Relink in-plane vertices", TIME_PC3d_planes);
 Timer   TIME_PC3d_linknew("Link hanging vertices", TIME_PC3d_planes);
 Timer   TIME_PC3d_compress("Compress to active vertices", TIME_PC3d_planes);
+Timer TIME_PC3d_collapseDegenerates ("Remove degenerate edges/vertices");
 
 // //------------------------------------------------------------------------------
 // // Second order predictor corrector integrator

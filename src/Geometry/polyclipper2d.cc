@@ -100,7 +100,7 @@ segmentPlaneIntersection(const Spheral::Dim<2>::Vector& a,       // line-segment
 }              // anonymous methods
 
 //------------------------------------------------------------------------------
-// Return a nicely formatted string representing the polygon.
+// Initialize a polygon given the vertex coordinates and connectivity.
 //------------------------------------------------------------------------------
 void
 initializePolygon(Polygon& poly,
