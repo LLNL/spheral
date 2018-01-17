@@ -37,6 +37,7 @@ extern Timer TIME_PC3d_insertverts;
 extern Timer TIME_PC3d_planeverts;
 extern Timer TIME_PC3d_linknew;
 extern Timer TIME_PC3d_compress;
+extern Timer TIME_PC3d_collapseDegenerates;
 
 namespace PolyClipper {
 
@@ -166,12 +167,12 @@ extractFaces(const Polyhedron& poly) {
           auto vstart = ni;
           auto vnext = i;
           auto vprev = ni;
-          // cerr << "Face: " << nptr->ID;
+          // cerr << "Face: " << ni;
 
           // Follow around the face represented by this edge until we get back
           // to our starting vertex.
           while (vnext != vstart) {
-            // cerr << " " << vnext->ID;
+            // cerr << " " << vnext;
             face.push_back(vnext);
             CHECK(edgesWalked.find(make_pair(vprev, vnext)) == edgesWalked.end());
             edgesWalked.insert(make_pair(vprev, vnext));
@@ -209,6 +210,28 @@ extractFaces(const Polyhedron& poly) {
 
   // That's it.
   return result;
+}
+
+//------------------------------------------------------------------------------
+// Initialize a polyhedron given the vertex coordinates and connectivity.
+//------------------------------------------------------------------------------
+void
+initializePolyhedron(Polyhedron& poly,
+                     const vector<Spheral::Dim<3>::Vector>& positions,
+                     const vector<vector<int>>& neighbors) {
+
+  // Pre-conditions
+  const auto n = positions.size();
+  VERIFY2(neighbors.size() == n,
+          "PolyClipper::initializePolyhedron ERROR: positions and neighbors should be same size.");
+
+  poly.resize(n);
+  for (auto i = 0; i < n; ++i) {
+    VERIFY2(neighbors[i].size() >= 3,
+            "PolyClipper::initializePolyhedron ERROR: each vertex should have a minimum of three neighbors.");
+    poly[i].position = positions[i];
+    poly[i].neighbors = neighbors[i];
+  }
 }
 
 //------------------------------------------------------------------------------
@@ -407,7 +430,7 @@ void clipPolyhedron(Polyhedron& polyhedron,
 
   // cerr << "Initial:\n" << polyhedron2string(polyhedron) << endl;
 
-  // Find the bounding box of the polygon.
+  // Find the bounding box of the polyhedron.
   auto xmin = std::numeric_limits<double>::max(), xmax = std::numeric_limits<double>::lowest();
   auto ymin = std::numeric_limits<double>::max(), ymax = std::numeric_limits<double>::lowest();
   auto zmin = std::numeric_limits<double>::max(), zmax = std::numeric_limits<double>::lowest();
@@ -621,6 +644,97 @@ void clipPolyhedron(Polyhedron& polyhedron,
     }
   }
   TIME_PC3d_planes.stop();
+}
+
+//------------------------------------------------------------------------------
+// Collapse degenerate vertices.
+//------------------------------------------------------------------------------
+void collapseDegenerates(Polyhedron& polyhedron,
+                         const double tol) {
+  TIME_PC3d_collapseDegenerates.start();
+
+  const auto tol2 = tol*tol;
+  auto n = polyhedron.size();
+  if (n > 0) {
+
+    // Set the initial ID's the vertices.
+    for (auto i = 0; i < n; ++i) polyhedron[i].ID = i;
+
+    cerr << "Initial: " << endl << polyhedron2string(polyhedron) << endl;
+
+    // Walk the polyhedron removing degenerate edges until we make a sweep without
+    // removing any.
+    auto done = false;
+    auto active = false;
+    while (not done) {
+      done = true;
+      for (auto i = 0; i < n; ++i) {
+        if (polyhedron[i].ID >= 0) {
+          for (auto jitr = polyhedron[i].neighbors.begin(); jitr < polyhedron[i].neighbors.end(); ++jitr) {
+            const auto j = *jitr;
+            if (polyhedron[j].ID >= 0 and (polyhedron[i].position - polyhedron[j].position).magnitude2() < tol2) {
+              done = false;
+              active = true;
+              polyhedron[j].ID = -1;
+              jitr = polyhedron[i].neighbors.erase(jitr);
+              jitr = polyhedron[i].neighbors.insert(jitr, polyhedron[j].neighbors.begin(), polyhedron[j].neighbors.end());
+              jitr = polyhedron[i].neighbors.erase(remove(polyhedron[i].neighbors.begin(), polyhedron[i].neighbors.end(), i), 
+                                                   polyhedron[i].neighbors.end());
+
+              // Make all the neighbors of j point back at i instead.
+              for (auto k: polyhedron[j].neighbors) {
+                if (k != i) {
+                  auto itr = find(polyhedron[k].neighbors.begin(), polyhedron[k].neighbors.end(), j);
+                  CHECK(itr != polyhedron[j].neighbors.end());
+                  *itr = i;
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+
+    cerr << "After relinking: " << endl << polyhedron2string(polyhedron) << endl;
+
+    if (active) {
+
+      // Renumber the nodes assuming we're going to clear out the degenerates.
+      auto offset = 0;
+      for (auto i = 0; i < n; ++i) {
+        if (polyhedron[i].ID == -1) {
+          --offset;
+        } else {
+          polyhedron[i].ID += offset;
+        }
+      }
+      for (auto& v: polyhedron) {
+        for (auto itr = v.neighbors.begin(); itr < v.neighbors.end(); ++itr) {
+          *itr = polyhedron[*itr].ID;
+        }
+        v.neighbors.erase(remove_if(v.neighbors.begin(), v.neighbors.end(), [](const int x) { return x < 0; }), v.neighbors.end());
+      }
+
+      // Erase the inactive vertices.
+      polyhedron.erase(remove_if(polyhedron.begin(), polyhedron.end(), [](const Vertex3d& v) { return v.ID < 0; }), polyhedron.end());
+      if (polyhedron.size() < 4) polyhedron.clear();
+    }
+  }
+
+  cerr << "Final: " << endl << polyhedron2string(polyhedron) << endl;
+
+  // Post-conditions.
+  BEGIN_CONTRACT_SCOPE
+  {
+    const auto n = polyhedron.size();
+    for (auto i = 0; i < n; ++i) {
+      ENSURE(polyhedron[i].ID == i);
+      for (auto j: polyhedron[i].neighbors) ENSURE(j >= 0 and j < n);
+    }
+  }
+  END_CONTRACT_SCOPE
+
+  TIME_PC3d_collapseDegenerates.stop();
 }
 
 }
