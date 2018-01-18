@@ -97,6 +97,20 @@ segmentPlaneIntersection(const Spheral::Dim<2>::Vector& a,       // line-segment
   return (a*bsgndist - b*asgndist)/(bsgndist - asgndist);
 }
 
+//------------------------------------------------------------------------------
+// Check if a line segment intersects the polygon.
+//------------------------------------------------------------------------------
+inline
+bool
+intersect(const Spheral::Dim<2>::Vector& a,       // line-segment begin
+          const Spheral::Dim<2>::Vector& b,       // line-segment end
+          const Polygon& poly) {                  // Polygon
+  auto result = false;
+  const auto n = poly.size();
+  auto i = 0;
+  while (i < n and (not result)
+}
+
 }              // anonymous methods
 
 //------------------------------------------------------------------------------
@@ -554,6 +568,7 @@ void collapseDegenerates(Polygon& polygon,
 
 //------------------------------------------------------------------------------
 // Split a polygon into a set of triangles.
+// This is not the most efficient possible method, but it's simple.
 //------------------------------------------------------------------------------
 vector<vector<int>> splitIntoTriangles(const Polygon& poly0) {
 
@@ -562,18 +577,23 @@ vector<vector<int>> splitIntoTriangles(const Polygon& poly0) {
 
   // Copy the input to a polygon we will feel free to edit.
   Polygon poly(poly0);
+  const auto n0 = poly.size();
+  for (auto i = 0; i < n0; ++i) {
+    poly[i].ID[i] = i;
+    poly[i].comp = 0;
+  }
 
   // Walk the polygon splitting off triangle vertex by vertex.
   set<int> unused_vertices;
-  const auto n0 = poly.size();
   for (auto i = 0; i < n0; ++i) unused_vertices.insert(i);
   int prev, next;
   while (unused_vertices.size() > 2) {
 
-    // Find the first vertex we haven't used yet which is a convex piece of the surface.
+    // Find the first vertex we haven't used yet which is a convex piece of the surface, and whose connecting diagonal does not intersect the polygon.
     auto itr = unused_vertices.begin();
     while (itr != unused_vertices.end() and
-           (poly[poly[*itr].neighbors.second].position - poly[*itr].position).cross((poly[poly[*itr].neighbors.first].position - poly[*itr].position)).z() < 0.0) ++itr;
+           ((poly[poly[*itr].neighbors.second].position - poly[*itr].position).cross((poly[poly[*itr].neighbors.first].position - poly[*itr].position)).z() < 0.0 or
+            intersect(poly[poly[*itr].neighbors.first].position, poly[poly[*itr].neighbors.second].position, poly))) ++itr;
     CHECK(itr != unused_vertices.end());
 
     // Add this triangle to the pile.
