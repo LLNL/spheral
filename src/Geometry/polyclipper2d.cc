@@ -660,25 +660,23 @@ vector<vector<int>> splitIntoTriangles(const Polygon& poly0) {
   // Prepare the result, which will be triples of indices in the input polygon vertices.
   vector<vector<int>> result;
 
-  // First check if the polygon is convex: if so, this is simple.
+  // Copy the input to a polygon we will feel free to edit.
   const auto n0 = poly0.size();
-  auto i = 0;
-  while (i < n0 and 
-         (poly0[poly0[i].neighbors.second].position - poly0[i].position).cross((poly0[poly0[i].neighbors.first].position - poly0[i].position)).z() >= 0.0) ++i;
-  if (i == n0) {
+  Polygon poly(poly0);
+  bool convex = true;
+  for (auto i = 0; i < n0; ++i) {
+    poly[i].ID = i;
+    // Use comp to store if the vertex is on a convex section or not: 1=>convex, -1=>concave
+    poly[i].comp = ((poly0[poly0[i].neighbors.second].position - poly0[i].position).cross((poly0[poly0[i].neighbors.first].position - poly0[i].position)).z() >= 0.0 ? 1 : -1);
+    if (poly[i].comp == -1) convex = false;
+  }
 
-    // Convex! We can just make a fan of triangles from the first point.
-    for (i = 2; i < n0; ++i) {
+  // If the polygon is convex we can just make a fan of triangles from the first point.
+  if (convex) {
+    for (auto i = 2; i < n0; ++i) {
       result.push_back({0, i - 1, i});
     }
     return result;
-  }
-
-  // Copy the input to a polygon we will feel free to edit.
-  Polygon poly(poly0);
-  for (auto i = 0; i < n0; ++i) {
-    poly[i].ID = i;
-    poly[i].comp = 0;
   }
 
   // Walk the polygon splitting off triangle vertex by vertex.
