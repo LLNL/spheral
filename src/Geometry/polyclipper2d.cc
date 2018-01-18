@@ -552,4 +552,48 @@ void collapseDegenerates(Polygon& polygon,
   TIME_PC2d_collapseDegenerates.stop();
 }
 
+//------------------------------------------------------------------------------
+// Split a polygon into a set of triangles.
+//------------------------------------------------------------------------------
+vector<vector<int>> splitIntoTriangles(const Polygon& poly0) {
+
+  // Prepare the result, which will be triples of indices in the input polygon vertices.
+  vector<vector<int>> result;
+
+  // Copy the input to a polygon we will feel free to edit.
+  Polygon poly(poly0);
+
+  // Walk the polygon splitting off triangle vertex by vertex.
+  set<int> unused_vertices;
+  const auto n0 = poly.size();
+  for (auto i = 0; i < n0; ++i) unused_vertices.insert(i);
+  int prev, next;
+  while (unused_vertices.size() > 2) {
+
+    // Find the first vertex we haven't used yet which is a convex piece of the surface.
+    auto itr = unused_vertices.begin();
+    while (itr != unused_vertices.end() and
+           (poly[poly[*itr].neighbors.second].position - poly[*itr].position).cross((poly[poly[*itr].neighbors.first].position - poly[*itr].position)).z() < 0.0) ++itr;
+    CHECK(itr != unused_vertices.end());
+
+    // Add this triangle to the pile.
+    tie(prev, next) = poly[*itr].neighbors;
+    result.push_back({prev, *itr, next});
+    {
+      cerr << " --> [";
+      copy(result.back().begin(), result.back().end(), ostream_iterator<int>(cerr, " "));
+      cerr << "]" << endl;
+    }
+
+    // Unlink this vertex from the polygon.
+    CHECK(poly[prev].neighbors.second == *itr and poly[next].neighbors.first == *itr);
+    poly[prev].neighbors.second = next;
+    poly[next].neighbors.first = prev;
+    unused_vertices.erase(itr);
+  }
+
+  // That's it.
+  return result;
+}
+
 }

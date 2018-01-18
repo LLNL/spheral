@@ -192,7 +192,7 @@ class CXXTypes:
 
         # These are the basic types we form vectors of.
         self.vectorElementTypes0 = ["char", "unsigned", "int", "float", "double", "string", "ULL"]
-        self.vectorElementTypes1 = ["pair_unsigned_unsigned", "pair_ULL_ULL",
+        self.vectorElementTypes1 = ["pair_unsigned_unsigned", "pair_ULL_ULL", "pair_int_int",
                                     "Vector1d", "Vector2d", "Vector3d",
                                     "Tensor1d", "Tensor2d", "Tensor3d",
                                     "SymTensor1d", "SymTensor2d", "SymTensor3d",
@@ -211,7 +211,7 @@ class CXXTypes:
                                     "vector_of_vector_of_char", "vector_of_vector_of_unsigned", "vector_of_vector_of_int", "vector_of_vector_of_float", "vector_of_vector_of_double", "vector_of_vector_of_string"]
 
         # The pair types.
-        self.pairElementTypes = [("double", "double"), ("double", "string"), ("unsigned", "unsigned"), ("ULL", "ULL"), ("string", "string"),
+        self.pairElementTypes = [("double", "double"), ("double", "string"), ("unsigned", "unsigned"), ("ULL", "ULL"), ("int", "int"), ("string", "string"),
                                  ("Vector1d", "Vector1d"), ("Vector2d", "Vector2d"), ("Vector3d", "Vector3d"), 
                                  ("Tensor1d", "Tensor1d"), ("Tensor2d", "Tensor2d"), ("Tensor3d", "Tensor3d")]
 
