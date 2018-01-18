@@ -17,6 +17,7 @@ using namespace std;
 //------------------------------------------------------------------------------
 typedef pair<unsigned, unsigned> pair_unsigned_unsigned;
 typedef pair<uint64_t, uint64_t> pair_ULL_ULL;
+typedef pair<int, int> pair_int_int;
 typedef pair<double, double> pair_double_double;
 typedef pair<double, string> pair_double_string;
 typedef pair<string, string> pair_string_string;
@@ -39,6 +40,7 @@ typedef vector<unsigned>           vector_of_unsigned;
 typedef vector<uint64_t>           vector_of_ULL;
 typedef vector<pair_unsigned_unsigned> vector_of_pair_unsigned_unsigned;
 typedef vector<pair_ULL_ULL>       vector_of_pair_ULL_ULL;
+typedef vector<pair_int_int>       vector_of_pair_int_int;
 
 typedef vector<bool>::iterator               vector_of_bool_iterator;
 typedef vector<char>::iterator               vector_of_char_iterator;
@@ -50,6 +52,7 @@ typedef vector<unsigned>::iterator           vector_of_unsigned_iterator;
 typedef vector<uint64_t>::iterator           vector_of_ULL_iterator;
 typedef vector<pair_unsigned_unsigned>::iterator vector_of_pair_unsigned_unsigned_iterator;
 typedef vector<pair_ULL_ULL>::iterator       vector_of_pair_ULL_ULL_iterator;
+typedef vector<pair_int_int>::iterator       vector_of_pair_int_int_iterator;
 
 typedef vector<Spheral::Vector1d> vector_of_Vector1d;
 typedef vector<Spheral::Vector2d> vector_of_Vector2d;

@@ -21,7 +21,6 @@
 
 #include <string>
 #include <vector>
-#include <list>
 
 namespace PolyClipper {
 
@@ -106,6 +105,8 @@ void clipPolygon(Polygon& poly,
 
 void collapseDegenerates(Polygon& poly,
                          const double tol);
+
+std::vector<std::vector<int>> splitIntoTriangles(const Polygon& poly);
 
 //------------------------------------------------------------------------------
 // 3D (polyhedron) methods.

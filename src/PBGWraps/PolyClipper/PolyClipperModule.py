@@ -22,6 +22,8 @@ class PolyClipper:
         # Expose types.
         self.Plane2d = addObject(self.space, "PolyClipperPlane2d")
         self.Plane3d = addObject(self.space, "PolyClipperPlane3d")
+        self.Vertex2d = addObject(self.space, "Vertex2d")
+        self.Vertex3d = addObject(self.space, "Vertex3d")
         self.Polygon = addObject(self.space, "Polygon")
         self.Polyhedron = addObject(self.space, "Polyhedron")
         self.vector_of_Plane2d = addObject(mod, "vector_of_PolyClipperPlane2d")
@@ -36,6 +38,8 @@ class PolyClipper:
 
         self.addPlaneMethods(self.Plane2d, 2)
         self.addPlaneMethods(self.Plane3d, 3)
+        self.addVertex2dMethods(self.Vertex2d)
+        self.addVertex3dMethods(self.Vertex3d)
         self.addPolygonMethods(self.Polygon)
         self.addPolyhedronMethods(self.Polyhedron)
 
@@ -79,6 +83,10 @@ class PolyClipper:
                                 [refparam("PolyClipper::Polygon", "polygon"),
                                  param("double", "tol")],
                                 docstring = "Remove degnerate edges/vertices from a PolyClipper polygon.")
+
+        self.space.add_function("splitIntoTriangles", "vector_of_vector_of_int",
+                                [constrefparam("PolyClipper::Polygon", "polygon")],
+                                docstring = "Return the vertex index triples that split a PolyClipper polygon into triangles.")
 
         # Polyhedron functions
         self.space.add_function("initializePolyhedron", None,
@@ -146,16 +154,79 @@ class PolyClipper:
         return
 
     #-------------------------------------------------------------------------------
+    # Vertex
+    #-------------------------------------------------------------------------------
+    def addBaseVertexMethods(self, x, ndim):
+    
+        me = "Vertex%id" % ndim
+        vector = "Spheral::Vector%id" % ndim
+
+        # Constructors.
+        x.add_constructor([])
+        x.add_constructor([constrefparam(vector, "position")])
+        x.add_constructor([constrefparam(vector, "position"), param("int", "c")])
+        x.add_constructor([constrefparam(me, "vertex")])
+
+        # Attributes
+        x.add_instance_attribute("position", vector, False)
+
+        return
+
+    #-------------------------------------------------------------------------------
+    # Vertex2d
+    #-------------------------------------------------------------------------------
+    def addVertex2dMethods(self, x):
+    
+        ndim = 2
+        me = "Vertex%id" % ndim
+        vector = "Spheral::Vector%id" % ndim
+
+        # Base methods.
+        self.addBaseVertexMethods(x, ndim)
+
+        # Attributes
+        x.add_instance_attribute("neighbors", "pair_int_int", False)
+
+        return
+
+    #-------------------------------------------------------------------------------
+    # Vertex3d
+    #-------------------------------------------------------------------------------
+    def addVertex3dMethods(self, x):
+    
+        ndim = 3
+        me = "Vertex%id" % ndim
+        vector = "Spheral::Vector%id" % ndim
+
+        # Base methods.
+        self.addBaseVertexMethods(x, ndim)
+
+        # Attributes
+        x.add_instance_attribute("neighbors", "vector_of_int", False)
+
+        return
+
+    #-------------------------------------------------------------------------------
     # Polygon
     #-------------------------------------------------------------------------------
     def addPolygonMethods(self, x):
     
+        me = "PolyClipper::Polygon"
+        value = "PolyClipper::Vertex2d"
+
         # Constructors.
         x.add_constructor([])
         x.add_constructor([constrefparam("PolyClipper::Polygon", "poly")])
 
         # Methods.
         x.add_method("size", "unsigned int", [], is_const=True)
+        x.add_method("size", "unsigned int", [], custom_name = "__len__")
+        x.add_function_as_method("indexContainerAsPointer",
+                                 retval(ptr(value), reference_existing_object=True),
+                                 [param(me, "self"), param("int", "index")],
+                                 template_parameters = [me],
+                                 foreign_cpp_namespace = "Spheral",
+                                 custom_name = "__getitem__")
 
         return
 
@@ -164,11 +235,21 @@ class PolyClipper:
     #-------------------------------------------------------------------------------
     def addPolyhedronMethods(self, x):
     
+        me = "PolyClipper::Polyhedron"
+        value = "PolyClipper::Vertex3d"
+
         # Constructors.
         x.add_constructor([])
         x.add_constructor([constrefparam("PolyClipper::Polyhedron", "poly")])
 
         # Methods.
         x.add_method("size", "unsigned int", [], is_const=True)
+        x.add_method("size", "unsigned int", [], custom_name = "__len__")
+        x.add_function_as_method("indexContainerAsPointer",
+                                 retval(ptr(value), reference_existing_object=True),
+                                 [param(me, "self"), param("int", "index")],
+                                 template_parameters = [me],
+                                 foreign_cpp_namespace = "Spheral",
+                                 custom_name = "__getitem__")
 
         return
