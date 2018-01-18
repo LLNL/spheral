@@ -82,7 +82,7 @@ class TestPolyClipper2d(unittest.TestCase):
         self.convexPointSets = [square_points, degenerate_square_points]
         self.nonconvexPointSets = [notched_points]
         self.pointSets = self.convexPointSets + self.nonconvexPointSets
-        self.ntests = 1
+        self.ntests = 10000
 
     #---------------------------------------------------------------------------
     # initializePolygon
