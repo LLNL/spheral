@@ -98,6 +98,88 @@ segmentPlaneIntersection(const Spheral::Dim<2>::Vector& a,       // line-segment
 }
 
 //------------------------------------------------------------------------------
+// Check if two line segments intersect.
+//------------------------------------------------------------------------------
+inline
+bool
+segmentsIntersect(const Spheral::Dim<2>::Vector& a,
+                  const Spheral::Dim<2>::Vector& b,
+                  const Spheral::Dim<2>::Vector& c,
+                  const Spheral::Dim<2>::Vector& d) {
+
+  // The plane in the (c,c) orientation.
+  Plane2d cdplane;
+  cdplane.normal = Spheral::Dim<2>::Vector(-(c.y() - d.y()), c.x() - d.x()).unitVector();
+  cdplane.dist = -c.dot(cdplane.normal);
+
+  // Does the (a,b) segment straddle the plane?
+  if (compare(cdplane, a)*compare(cdplane, b) == 1) return false;
+
+  // Is the point where (a,b) intersects the plane between (c,d)?
+  const auto g = segmentPlaneIntersection(a, b, cdplane);
+  return (c - g).dot(d - g) <= 0;
+}
+
+// // Given three colinear points p, q, r, the function checks if
+// // point q lies on line segment 'pr'
+// bool onSegment(Point p, Point q, Point r)
+// {
+//     if (q.x <= max(p.x, r.x) && q.x >= min(p.x, r.x) &&
+//         q.y <= max(p.y, r.y) && q.y >= min(p.y, r.y))
+//        return true;
+ 
+//     return false;
+// }
+ 
+// // To find orientation of ordered triplet (p, q, r).
+// // The function returns following values
+// // 0 --> p, q and r are colinear
+// // 1 --> Clockwise
+// // 2 --> Counterclockwise
+// int orientation(Point p, Point q, Point r)
+// {
+//     // See https://www.geeksforgeeks.org/orientation-3-ordered-points/
+//     // for details of below formula.
+//     int val = (q.y - p.y) * (r.x - q.x) -
+//               (q.x - p.x) * (r.y - q.y);
+ 
+//     if (val == 0) return 0;  // colinear
+ 
+//     return (val > 0)? 1: 2; // clock or counterclock wise
+// }
+ 
+// // The main function that returns true if line segment 'p1q1'
+// // and 'p2q2' intersect.
+// bool doIntersect(Point p1, Point q1, Point p2, Point q2)
+// {
+//     // Find the four orientations needed for general and
+//     // special cases
+//     int o1 = orientation(p1, q1, p2);
+//     int o2 = orientation(p1, q1, q2);
+//     int o3 = orientation(p2, q2, p1);
+//     int o4 = orientation(p2, q2, q1);
+ 
+//     // General case
+//     if (o1 != o2 && o3 != o4)
+//         return true;
+ 
+//     // Special Cases
+//     // p1, q1 and p2 are colinear and p2 lies on segment p1q1
+//     if (o1 == 0 && onSegment(p1, p2, q1)) return true;
+ 
+//     // p1, q1 and p2 are colinear and q2 lies on segment p1q1
+//     if (o2 == 0 && onSegment(p1, q2, q1)) return true;
+ 
+//     // p2, q2 and p1 are colinear and p1 lies on segment p2q2
+//     if (o3 == 0 && onSegment(p2, p1, q2)) return true;
+ 
+//      // p2, q2 and q1 are colinear and q1 lies on segment p2q2
+//     if (o4 == 0 && onSegment(p2, q1, q2)) return true;
+ 
+//     return false; // Doesn't fall in any of the above cases
+// }
+
+//------------------------------------------------------------------------------
 // Check if a line segment intersects the polygon.
 //------------------------------------------------------------------------------
 inline
@@ -108,7 +190,10 @@ intersect(const Spheral::Dim<2>::Vector& a,       // line-segment begin
   auto result = false;
   const auto n = poly.size();
   auto i = 0;
-  while (i < n and (not result)
+  while (i < n and (not result)) {
+    result = segmentsIntersect(a, b, poly[i].position, poly[(i+1)%n].position);
+  }
+  return result;
 }
 
 }              // anonymous methods
@@ -575,11 +660,24 @@ vector<vector<int>> splitIntoTriangles(const Polygon& poly0) {
   // Prepare the result, which will be triples of indices in the input polygon vertices.
   vector<vector<int>> result;
 
+  // First check if the polygon is convex: if so, this is simple.
+  const auto n0 = poly0.size();
+  auto i = 0;
+  while (i < n0 and 
+         (poly0[poly0[i].neighbors.second].position - poly0[i].position).cross((poly0[poly0[i].neighbors.first].position - poly0[i].position)).z() >= 0.0) ++i;
+  if (i == n0) {
+
+    // Convex! We can just make a fan of triangles from the first point.
+    for (i = 2; i < n0; ++i) {
+      result.push_back({0, i - 1, i});
+    }
+    return result;
+  }
+
   // Copy the input to a polygon we will feel free to edit.
   Polygon poly(poly0);
-  const auto n0 = poly.size();
   for (auto i = 0; i < n0; ++i) {
-    poly[i].ID[i] = i;
+    poly[i].ID = i;
     poly[i].comp = 0;
   }
 
