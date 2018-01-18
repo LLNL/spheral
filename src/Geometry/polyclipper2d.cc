@@ -679,6 +679,37 @@ vector<vector<int>> splitIntoTriangles(const Polygon& poly0) {
     return result;
   }
 
+  // Split off non-convex regions until we just have convex left.
+  set<int> remaining_vertices;
+  for (auto i = 0; i < n0; ++i) unused_vertices.insert(i);
+  int prev, next;
+  while (not (remaining_vertices.empty() or convex)) {
+
+    // Look for the first non-convex -> convex transition.
+    auto itr = remaining_vertices.begin();
+    while (itr != remaining_vertices.end() and poly[poly[*itr].neighbors.first].comp == -1)) ++itr;
+    if (itr == remaining_vertices.end()) {
+
+      // Yay, the remainder is convex.  Finish it off.
+      for (i = 2; i < n; ++i) {
+        result.push_back({0, i - 1, i});
+      }
+      return result;
+
+
+    // Split off a triangle with this vertex.
+    tie(prev, next) = poly[i].neighbors;
+    result.push_back({prev, i, next});
+    
+    // Remove the triangle from the polygon.
+    poly[prev].neighbors.second = next;
+    poly[next].neighbors.first = prev;
+    poly[prev].comp = ((poly[poly[prev].neighbors.second].position - poly[prev].position).cross((poly[poly[prev].neighbors.first].position - poly[prev].position)).z() >= 0.0 ? 1 : -1);
+    poly[prev].comp = ((poly[poly[next].neighbors.second].position - poly[next].position).cross((poly[poly[next].neighbors.first].position - poly[next].position)).z() >= 0.0 ? 1 : -1);
+    --n;
+  }
+
+
   // Walk the polygon splitting off triangle vertex by vertex.
   set<int> unused_vertices;
   for (auto i = 0; i < n0; ++i) unused_vertices.insert(i);
