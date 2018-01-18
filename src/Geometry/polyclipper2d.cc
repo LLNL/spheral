@@ -679,68 +679,7 @@ vector<vector<int>> splitIntoTriangles(const Polygon& poly0) {
     return result;
   }
 
-  // Split off non-convex regions until we just have convex left.
-  set<int> remaining_vertices;
-  for (auto i = 0; i < n0; ++i) unused_vertices.insert(i);
-  int prev, next;
-  while (not (remaining_vertices.empty() or convex)) {
-
-    // Look for the first non-convex -> convex transition.
-    auto itr = remaining_vertices.begin();
-    while (itr != remaining_vertices.end() and poly[poly[*itr].neighbors.first].comp == -1)) ++itr;
-    if (itr == remaining_vertices.end()) {
-
-      // Yay, the remainder is convex.  Finish it off.
-      for (i = 2; i < n; ++i) {
-        result.push_back({0, i - 1, i});
-      }
-      return result;
-
-
-    // Split off a triangle with this vertex.
-    tie(prev, next) = poly[i].neighbors;
-    result.push_back({prev, i, next});
-    
-    // Remove the triangle from the polygon.
-    poly[prev].neighbors.second = next;
-    poly[next].neighbors.first = prev;
-    poly[prev].comp = ((poly[poly[prev].neighbors.second].position - poly[prev].position).cross((poly[poly[prev].neighbors.first].position - poly[prev].position)).z() >= 0.0 ? 1 : -1);
-    poly[prev].comp = ((poly[poly[next].neighbors.second].position - poly[next].position).cross((poly[poly[next].neighbors.first].position - poly[next].position)).z() >= 0.0 ? 1 : -1);
-    --n;
-  }
-
-
-  // Walk the polygon splitting off triangle vertex by vertex.
-  set<int> unused_vertices;
-  for (auto i = 0; i < n0; ++i) unused_vertices.insert(i);
-  int prev, next;
-  while (unused_vertices.size() > 2) {
-
-    // Find the first vertex we haven't used yet which is a convex piece of the surface, and whose connecting diagonal does not intersect the polygon.
-    auto itr = unused_vertices.begin();
-    while (itr != unused_vertices.end() and
-           ((poly[poly[*itr].neighbors.second].position - poly[*itr].position).cross((poly[poly[*itr].neighbors.first].position - poly[*itr].position)).z() < 0.0 or
-            intersect(poly[poly[*itr].neighbors.first].position, poly[poly[*itr].neighbors.second].position, poly))) ++itr;
-    CHECK(itr != unused_vertices.end());
-
-    // Add this triangle to the pile.
-    tie(prev, next) = poly[*itr].neighbors;
-    result.push_back({prev, *itr, next});
-    {
-      cerr << " --> [";
-      copy(result.back().begin(), result.back().end(), ostream_iterator<int>(cerr, " "));
-      cerr << "]" << endl;
-    }
-
-    // Unlink this vertex from the polygon.
-    CHECK(poly[prev].neighbors.second == *itr and poly[next].neighbors.first == *itr);
-    poly[prev].neighbors.second = next;
-    poly[next].neighbors.first = prev;
-    unused_vertices.erase(itr);
-  }
-
-  // That's it.
-  return result;
+  VERIFY2(false, "PolyClipper::splitIntoTriangles ERROR: non-convex polygons not supported yet.");
 }
 
 }

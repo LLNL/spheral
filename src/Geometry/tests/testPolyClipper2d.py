@@ -79,7 +79,9 @@ class TestPolyClipper2d(unittest.TestCase):
     # setUp
     #---------------------------------------------------------------------------
     def setUp(self):
-        self.pointSets = [square_points, notched_points] # , degenerate_square_points]
+        self.convexPointSets = [square_points, degenerate_square_points]
+        self.nonconvexPointSets = [notched_points]
+        self.pointSets = self.convexPointSets + self.nonconvexPointSets
         self.ntests = 1
 
     #---------------------------------------------------------------------------
@@ -332,19 +334,17 @@ class TestPolyClipper2d(unittest.TestCase):
                                                                                                                poly.volume))
 
     #---------------------------------------------------------------------------
-    # Split a polygon into triangles.
+    # Split a (convex) polygon into triangles.
     #---------------------------------------------------------------------------
     def testSplitIntoTriangles(self):
-        for points in self.pointSets:
+        for points in self.convexPointSets:
             PCpoly = PolyClipper.Polygon()
             PolyClipper.initializePolygon(PCpoly, points, vertexNeighbors(points))
-            print PolyClipper.polygon2string(PCpoly)
             tris = PolyClipper.splitIntoTriangles(PCpoly)
             vol0, centroid0 = PolyClipper.moments(PCpoly)
             volTris = 0.0
             centroidTris = Vector()
             for inds in tris:
-                print list(inds)
                 assert len(inds) == 3
                 a = ((PCpoly[inds[1]].position - PCpoly[inds[0]].position).cross(PCpoly[inds[2]].position - PCpoly[inds[0]].position).z)
                 assert a >= 0.0
