@@ -25,8 +25,8 @@ rangen = random.Random()
 #  4     5
 #
 cube_points = vector_of_Vector()
-for coords in [(0,0,0), (1,0,0), (1,1,0), (0,1,0),
-               (0,0,1), (1,0,1), (1,1,1), (0,1,1)]:
+for coords in [(0,0,0),  (10,0,0),  (10,10,0),  (0,10,0),
+               (0,0,10), (10,0,10), (10,10,10), (0,10,10)]:
     cube_points.append(Vector(*coords))
 cube_neighbors = vector_of_vector_of_int(8, vector_of_int(3))
 for i, nghbs in enumerate([(1, 4, 3),
@@ -124,10 +124,10 @@ class TestPolyhedronClipping(unittest.TestCase):
     # setUp
     #---------------------------------------------------------------------------
     def setUp(self):
-        self.polyData = [(cube_points, cube_neighbors, cube_facets),
-                         (notched_points, notched_neighbors, notched_facets),
-                         (degenerate_cube_points, degenerate_cube_neighbors, degenerate_cube_facets)
-        ]
+        self.convexPolyData = [(cube_points, cube_neighbors, cube_facets),
+                               (degenerate_cube_points, degenerate_cube_neighbors, degenerate_cube_facets)]
+        self.nonconvexPolyData = [(notched_points, notched_neighbors, notched_facets)]
+        self.polyData = self.convexPolyData + self.nonconvexPolyData
         self.ntests = 1000
         return
 
@@ -391,6 +391,32 @@ class TestPolyhedronClipping(unittest.TestCase):
                                                                                                                chunk1.volume + chunk2.volume + chunk3.volume + chunk4.volume,
                                                                                                                poly.volume))
         return
+
+    #---------------------------------------------------------------------------
+    # Split a (convex) polyhedron into tetrahedra.
+    #---------------------------------------------------------------------------
+    def testSplitIntoTetrahedra(self):
+        for points, neighbors, facets in self.convexPolyData:
+            PCpoly = PolyClipper.Polyhedron()
+            PolyClipper.initializePolyhedron(PCpoly, points, neighbors)
+            tets = PolyClipper.splitIntoTetrahedra(PCpoly)
+            vol0, centroid0 = PolyClipper.moments(PCpoly)
+            volTets = 0.0
+            centroidTets = Vector()
+            for inds in tets:
+                assert len(inds) == 4
+                v0 = PCpoly[inds[0]].position
+                v1 = PCpoly[inds[1]].position
+                v2 = PCpoly[inds[2]].position
+                v3 = PCpoly[inds[3]].position
+                V = (v1 - v0).dot((v2 - v0).cross(v3 - v0))
+                assert V >= 0.0
+                volTets += V
+                centroidTets += V*(v0 + v1 + v2 + v3)
+            volTets /= 6.0
+            centroidTets /= 24.0*volTets
+            assert abs(volTets - vol0) < 1.0e-20
+            assert (centroidTets - centroid0).magnitude() < 1.0e-20
 
 if __name__ == "__main__":
     unittest.main()

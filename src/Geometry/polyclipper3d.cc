@@ -747,4 +747,57 @@ void collapseDegenerates(Polyhedron& polyhedron,
   TIME_PC3d_collapseDegenerates.stop();
 }
 
+//------------------------------------------------------------------------------
+// Split a polyhedron into a set of triangles.
+//------------------------------------------------------------------------------
+vector<vector<int>> splitIntoTetrahedra(const Polyhedron& poly) {
+
+  // Prepare the result, which will be quadruples of indices in the input polyhedron vertices.
+  vector<vector<int>> result;
+
+  // Check if we're convex.
+  const auto n0 = poly.size();
+  bool convex = true;
+  auto i = 0;
+  while (convex and i < n0) {
+    const auto nv = poly[i].neighbors.size();
+    const auto& v0 = poly[i].position;
+    CHECK(nv >= 3);
+    auto j = 0;
+    while (convex and j < nv - 2) {
+      const auto& v1 = poly[poly[i].neighbors[j  ]].position;
+      const auto& v2 = poly[poly[i].neighbors[j+1]].position;
+      const auto& v3 = poly[poly[i].neighbors[j+2]].position;
+      convex = ((v1 - v0).dot((v2 - v0).cross(v3 - v0)) <= 0.0);  // Note we have to flip signs cause of neighbor ordering
+      ++j;
+    }
+    ++i;
+  }
+
+  // If the polyhedron is convex we can just make a fan of tetrahedra from the first point.
+  if (convex) {
+
+    // Get the faces.
+    const auto faces = extractFaces(poly);
+
+    // Create tetrahedra from each face back to the starting point, except for faces which contain
+    // the starting point since those would be zero volume.
+    for (const auto& face: faces) {
+      // cout << " --> [";
+      // copy(face.begin(), face.end(), ostream_iterator<int>(cout, " "));
+      // cout << "]" << endl;
+      if (find(face.begin(), face.end(), 0) == face.end()) {
+        const auto nf = face.size();
+        CHECK(nf >= 3);
+        for (auto i = 2; i < nf; ++i) {
+          result.push_back({0, face[0], face[i-1], face[i]});
+        }
+      }
+    }
+    return result;
+  }
+
+  VERIFY2(false, "PolyClipper::splitIntoTetrahedra ERROR: non-convex polyhedra not supported yet.");
+}
+
 }

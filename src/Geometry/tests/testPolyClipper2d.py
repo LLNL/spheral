@@ -20,7 +20,7 @@ rangen = random.Random()
 #   |----|
 #   0    1
 square_points = vector_of_Vector()
-for coords in [(0,0), (1,0), (1,1), (0,1)]:
+for coords in [(0,0), (10,0), (10,10), (0,10)]:
     square_points.append(Vector(*coords))
 
 #-------------------------------------------------------------------------------
@@ -351,7 +351,7 @@ class TestPolyClipper2d(unittest.TestCase):
                 volTris += a
                 centroidTris += a*(PCpoly[inds[0]].position + PCpoly[inds[1]].position + PCpoly[inds[2]].position)
             volTris *= 0.5
-            centroidTris /= 6.0
+            centroidTris /= 6.0*volTris
             assert abs(volTris - vol0) < 1.0e-20
             assert (centroidTris - centroid0).magnitude() < 1.0e-20
 

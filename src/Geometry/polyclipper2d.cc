@@ -659,7 +659,7 @@ vector<vector<int>> splitIntoTriangles(const Polygon& poly) {
   // Prepare the result, which will be triples of indices in the input polygon vertices.
   vector<vector<int>> result;
 
-  // Copy the input to a polygon we will feel free to edit.
+  // Check if we're convex.
   const auto n0 = poly.size();
   bool convex = true;
   auto i = 0;
