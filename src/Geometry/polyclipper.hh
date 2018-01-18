@@ -136,6 +136,7 @@ void clipPolyhedron(Polyhedron& poly,
 void collapseDegenerates(Polyhedron& poly,
                          const double tol);
 
+std::vector<std::vector<int>> splitIntoTetrahedra(const Polyhedron& poly);
 }
 
 #endif
