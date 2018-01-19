@@ -791,6 +791,7 @@ AC_ARG_WITH(openmp,
 ],
 [
    AC_MSG_RESULT(no)
+   PYTHONPKGS+=" OpenMP"
 ]
 )
 
