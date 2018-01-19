@@ -6,6 +6,7 @@
 #-------------------------------------------------------------------------------
 from Spheral import *
 from SpheralTestUtilities import *
+from SpheralVoronoiSiloDump import SpheralVoronoiSiloDump
 
 title("Voronoi volume tests")
 
@@ -41,6 +42,8 @@ commandLine(
     tolerance = 1.0e-8,
 
     graphics = True,
+    vizFile = "",
+    splitCells = False,
 )
 
 assert testDim in ("1d", "2d", "3d")
@@ -210,10 +213,25 @@ computeVoronoiVolume(db.fluidPosition,
                      cells)
 
 #-------------------------------------------------------------------------------
+# Optionally drop a viz file.
+#-------------------------------------------------------------------------------
+if vizFile:
+    dumper = SpheralVoronoiSiloDump(baseFileName = vizFile,
+                                    listOfFieldLists = [vol,
+                                                        surfacePoint,
+                                                        deltaMedian],
+                                    cells = cells,
+                                    splitCells = splitCells)
+    dumper.dump(0.0, 0)
+
+#-------------------------------------------------------------------------------
 # Check the answer.
 #-------------------------------------------------------------------------------
-for Vi, sp in zip(vol[0].internalValues(), surfacePoint[0].internalValues()):
-    if sp == 0:
-        assert abs(Vi - (1.0/nx1)**db.nDim) < 1.0e-12
-    else:
-        assert Vi == 0.0
+if ranfrac == 0.0:
+    for Vi, sp in zip(vol[0].internalValues(), surfacePoint[0].internalValues()):
+        if sp == 0:
+            assert abs(Vi - (1.0/nx1)**db.nDim) < 1.0e-12
+        else:
+            assert Vi == 0.0
+else:
+    print "random displacments -- no error check."
