@@ -121,7 +121,6 @@ class SpheralVoronoiSiloDump:
 ##             raise ValueError, "File %s already exists!  Aborting." % filename
 
         # Did the user provide a FieldList of cell geometries already?
-        print "Blago!"
         if self.cells:
 
             # Yep, so we build a disjoint set of cells as a polytope tessellation.
@@ -129,7 +128,6 @@ class SpheralVoronoiSiloDump:
             nDim = eval("Vector%s.nDimensions" % self.dimension)
 
             # Are we splitting into triangles/tets, or writing the native polygons/polyhera?
-            print "splitCells: ", self.splitCells
             if self.splitCells:
                 index2zone = []
                 for nodeListi in xrange(len(self.cells)):
@@ -144,8 +142,8 @@ class SpheralVoronoiSiloDump:
                             for k in xrange(nDim):
                                 mesh.nodes.append(verts[j][k])
 
-                        # Are we splitting into triangles/tets?
                         if nDim == 2:
+                            # Build the triangles
                             PCcelli = PolyClipper.Polygon()
                             PolyClipper.convertToPolygon(PCcelli, celli)
                             tris = PolyClipper.splitIntoTriangles(PCcelli)
@@ -163,7 +161,30 @@ class SpheralVoronoiSiloDump:
                                 mesh.cells[noldcells + k].append(noldfaces + 3*k + 1)
                                 mesh.cells[noldcells + k].append(noldfaces + 3*k + 2)
                                 index2zone[-1].append(noldcells + k)
-                print index2zone
+
+                        else:
+                            # Build the tetrahedra
+                            assert nDim == 3
+                            PCcelli = PolyClipper.Polyhedron()
+                            PolyClipper.convertToPolyhedron(PCcelli, celli)
+                            tets = PolyClipper.splitIntoTetrahedra(PCcelli)
+                            index2zone.append([])
+                            mesh.faces.resize(noldfaces + 4*len(tets))
+                            mesh.cells.resize(noldcells + len(tets))
+                            for k, tet in enumerate(tets):
+                                mesh.faces[noldfaces + 4*k + 0].append(noldnodes + tet[0])
+                                mesh.faces[noldfaces + 4*k + 0].append(noldnodes + tet[1])
+                                mesh.faces[noldfaces + 4*k + 1].append(noldnodes + tet[1])
+                                mesh.faces[noldfaces + 4*k + 1].append(noldnodes + tet[2])
+                                mesh.faces[noldfaces + 4*k + 2].append(noldnodes + tet[2])
+                                mesh.faces[noldfaces + 4*k + 2].append(noldnodes + tet[3])
+                                mesh.faces[noldfaces + 4*k + 3].append(noldnodes + tet[3])
+                                mesh.faces[noldfaces + 4*k + 3].append(noldnodes + tet[0])
+                                mesh.cells[noldcells + k].append(noldfaces + 4*k)
+                                mesh.cells[noldcells + k].append(noldfaces + 4*k + 1)
+                                mesh.cells[noldcells + k].append(noldfaces + 4*k + 2)
+                                mesh.cells[noldcells + k].append(noldfaces + 4*k + 3)
+                                index2zone[-1].append(noldcells + k)
 
             else:
                 index2zone = None
@@ -368,7 +389,7 @@ def dumpPhysicsState(stateThingy,
                      dumpGhosts = False,
                      dumpDerivatives = False,
                      boundaries = None,
-                     splitCells = True):
+                     splitCells = False):
     assert not dumpGhosts
 
     # What did we get passed?

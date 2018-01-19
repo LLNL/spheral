@@ -1,0 +1,263 @@
+#ATS:test(SELF, "--graphics False --nx1 10 --nx2 10 --testDim 1d", label="CRKSPH sum mass density test -- 1D (serial)")
+#ATS:test(SELF, "--graphics False --nx1 10 --nx2 10 --testDim 2d", label="CRKSPH sum mass density test -- 2D (serial)")
+#ATS:test(SELF, "--graphics False --nx1 10 --nx2 10 --testDim 3d", label="CRKSPH sum mass density test -- 3D (serial)")
+#-------------------------------------------------------------------------------
+# Unit test of the CRKSPH sum density algorithm.
+#-------------------------------------------------------------------------------
+from Spheral import *
+from SpheralTestUtilities import *
+
+title("Voronoi volume tests")
+
+#-------------------------------------------------------------------------------
+# Generic problem parameters
+#-------------------------------------------------------------------------------
+commandLine(
+    # Parameters for seeding nodes.
+    nx1 = 10,
+    rho1 = 10.0,
+    x0 = 0.0,
+    x1 = 1.0,
+    nPerh = 1.25,
+    hmin = 0.0001, 
+    hmax = 10.0,
+
+    # Should we randomly perturb the positions?
+    ranfrac = 0.0,
+    seed = 14892042,
+
+    # What test problem are we doing?
+    testDim = "3d",
+
+    gamma = 5.0/3.0,
+    mu = 1.0,
+
+    # Parameters for iterating H.
+    iterateH = False,
+    maxHIterations = 200,
+    Htolerance = 1.0e-4,
+
+    # Parameters for passing the test
+    tolerance = 1.0e-8,
+
+    graphics = True,
+)
+
+assert testDim in ("1d", "2d", "3d")
+
+FacetedVolume = {"1d" : Box1d,
+                 "2d" : Polygon,
+                 "3d" : Polyhedron}[testDim]
+
+#-------------------------------------------------------------------------------
+# Appropriately set generic object names based on the test dimensionality.
+#-------------------------------------------------------------------------------
+exec("from Spheral%s import *" % testDim)
+
+#-------------------------------------------------------------------------------
+# Create a random number generator.
+#-------------------------------------------------------------------------------
+import random
+rangen = random.Random()
+rangen.seed(seed)
+
+#-------------------------------------------------------------------------------
+# Material properties.
+#-------------------------------------------------------------------------------
+eos = GammaLawGasMKS(gamma, mu)
+
+#-------------------------------------------------------------------------------
+# Interpolation kernels.
+#-------------------------------------------------------------------------------
+WT = TableKernel(BSplineKernel(), 1000)
+output("WT")
+kernelExtent = WT.kernelExtent
+
+#-------------------------------------------------------------------------------
+# Make the NodeList.
+#-------------------------------------------------------------------------------
+nodes1 = makeFluidNodeList("nodes1", eos,
+                           hmin = hmin,
+                           hmax = hmax,
+                           nPerh = nPerh)
+output("nodes1")
+output("nodes1.hmin")
+output("nodes1.hmax")
+output("nodes1.nodesPerSmoothingScale")
+
+#-------------------------------------------------------------------------------
+# Set the node properties.
+#-------------------------------------------------------------------------------
+if testDim == "1d":
+    from DistributeNodes import distributeNodesInRange1d
+    distributeNodesInRange1d([(nodes1, [(nx1, rho1, (x0, x1))])], nPerh = nPerh)
+elif testDim == "2d":
+    from DistributeNodes import distributeNodes2d
+    from GenerateNodeDistribution2d import GenerateNodeDistribution2d
+    from CompositeNodeDistribution import CompositeNodeDistribution
+    gen = GenerateNodeDistribution2d(nx1, nx1, rho1,
+                                     distributionType = "lattice",
+                                     xmin = (x0, x1),
+                                     xmax = (x0, x1),
+                                     nNodePerh = nPerh,
+                                     SPH = True)
+    distributeNodes2d((nodes1, gen))
+
+elif testDim == "3d":
+    from DistributeNodes import distributeNodes3d
+    from GenerateNodeDistribution3d import GenerateNodeDistribution3d
+    from CompositeNodeDistribution import CompositeNodeDistribution
+    gen = GenerateNodeDistribution3d(nx1, nx1, nx1, rho1,
+                                     distributionType = "lattice",
+                                     xmin = (x0, x0, x0),
+                                     xmax = (x1, x1, x1),
+                                     nNodePerh = nPerh,
+                                     SPH = True)
+    distributeNodes3d((nodes1, gen))
+
+else:
+    raise ValueError, "Only tests cases for 1d, 2d and 3d." 
+
+output("nodes1.numNodes")
+
+#-------------------------------------------------------------------------------
+# Optionally randomly jitter the node positions.
+#-------------------------------------------------------------------------------
+dx = (x1 - x0)/nx1
+for i in xrange(nodes1.numInternalNodes):
+    nodes1.positions()[i].x += ranfrac * dx * rangen.uniform(-1.0, 1.0)
+
+#-------------------------------------------------------------------------------
+# Construct a DataBase to hold our node list
+#-------------------------------------------------------------------------------
+db = DataBase()
+output("db")
+output("db.appendNodeList(nodes1)")
+output("db.numNodeLists")
+output("db.numFluidNodeLists")
+
+#-------------------------------------------------------------------------------
+# Create boundary conditions.
+#-------------------------------------------------------------------------------
+faceted_bounds = vector_of_FacetedVolume()
+if testDim == "1d":
+    point_list = [Vector(x0), Vector(x1)]
+elif testDim == "2d":
+    point_list = [Vector(x0, x0), Vector(x1, x0), 
+                  Vector(x0, x1), Vector(x1, x1)]
+else:
+    point_list = [Vector(x0, x0, x0), Vector(x0, x1, x0), Vector(x1, x0, x0), Vector(x1, x1, x0), 
+                  Vector(x0, x0, x1), Vector(x0, x1, x1), Vector(x1, x0, x1), Vector(x1, x1, x1)]
+points = vector_of_Vector()
+for p in point_list:
+    points.append(p)
+bbox = FacetedVolume(points)
+#faceted_bounds.append(bbox)
+
+bounds = vector_of_Boundary()
+# xbc0 = ReflectingBoundary(Plane(Vector(0.0, 0.0, 0.0), Vector( 1.0,  0.0,  0.0)))
+# xbc1 = ReflectingBoundary(Plane(Vector(1.0, 0.0, 0.0), Vector(-1.0,  0.0,  0.0)))
+# ybc0 = ReflectingBoundary(Plane(Vector(0.0, 0.0, 0.0), Vector( 0.0,  1.0,  0.0)))
+# ybc1 = ReflectingBoundary(Plane(Vector(0.0, 1.0, 0.0), Vector( 0.0, -1.0,  0.0)))
+# zbc0 = ReflectingBoundary(Plane(Vector(0.0, 0.0, 0.0), Vector( 0.0,  0.0,  1.0)))
+# zbc1 = ReflectingBoundary(Plane(Vector(0.0, 0.0, 1.0), Vector( 0.0,  0.0, -1.0)))
+# bounds.append(xbc0)
+# bounds.append(xbc1)
+# bounds.append(ybc0)
+# bounds.append(ybc1)
+# bounds.append(zbc0)
+# bounds.append(zbc1)
+
+#-------------------------------------------------------------------------------
+# Iterate the h to convergence if requested.
+#-------------------------------------------------------------------------------
+if iterateH:
+    method = SPHSmoothingScale()
+    iterateIdealH(db,
+                  bounds,
+                  WT,
+                  method,
+                  maxHIterations,
+                  Htolerance)
+
+#-------------------------------------------------------------------------------
+# Compute the volumes.
+#-------------------------------------------------------------------------------
+weight = ScalarFieldList()                         # No weights
+gradRho = db.newFluidVectorFieldList(Vector.zero, "grad rho")
+holes = vector_of_vector_of_FacetedVolume()
+surfacePoint = db.newFluidIntFieldList(0, HydroFieldNames.surfacePoint)
+voidPoint = db.newFluidIntFieldList(0, HydroFieldNames.voidPoint)
+vol = db.newFluidScalarFieldList(0.0, HydroFieldNames.volume)
+deltaMedian = db.newFluidVectorFieldList(Vector.zero, "centroidal delta")
+etaVoidPoints = db.newFluidvector_of_VectorFieldList(vector_of_Vector(), "eta void points")
+cells = db.newFluidFacetedVolumeFieldList(FacetedVolume(), "cells")
+db.updateConnectivityMap(True)
+cm = db.connectivityMap()
+computeVoronoiVolume(db.fluidPosition, 
+                     db.fluidHfield,
+                     db.fluidMassDensity,
+                     gradRho,
+                     cm,
+                     faceted_bounds,
+                     holes, 
+                     weight,
+                     voidPoint,
+                     surfacePoint,
+                     vol,
+                     deltaMedian,
+                     etaVoidPoints,
+                     cells)
+
+# #-------------------------------------------------------------------------------
+# # Plot the things.
+# #-------------------------------------------------------------------------------
+# if graphics:
+#     from SpheralGnuPlotUtilities import *
+#     import Gnuplot
+#     xans = [position_fl(0,i).x for i in xrange(nodes1.numInternalNodes)]
+
+#     # Interpolated values.
+#     ansdata = Gnuplot.Data(xans, yans.internalValues(),
+#                            with_ = "lines",
+#                            title = "Answer",
+#                            inline = True)
+#     CRKSPHdata = Gnuplot.Data(xans, rho.internalValues(),
+#                             with_ = "points",
+#                             title = "CRKSPH",
+#                             inline = True)
+#     errCRKSPHdata = Gnuplot.Data(xans, erryCRKSPH.internalValues(),
+#                                with_ = "points",
+#                                title = "CRKSPH error",
+#                                inline = True)
+
+#     p1 = generateNewGnuPlot()
+#     p1.plot(ansdata)
+#     p1.replot(CRKSPHdata)
+#     p1("set key top left")
+#     p1.title("CRKSPH sum density")
+#     p1.refresh()
+
+#     p2 = generateNewGnuPlot()
+#     p2.replot(errCRKSPHdata)
+#     p2.title("Error in sum density")
+#     p2.refresh()
+
+#     # p3 = plotFieldList(vol_fl,
+#     #                    plotStyle = "lines",
+#     #                    lineStyle = "linetype 0",
+#     #                    winTitle = "volume")
+
+#     # If we're in 2D dump a silo file too.
+#     if testDim == "2d":
+#         from SpheralVoronoiSiloDump import SpheralVoronoiSiloDump
+#         dumper = SpheralVoronoiSiloDump("testCRKSPHSumDensity_%s_2d" % testCase,
+#                                         listOfFields = [rho, yans, erryCRKSPH],
+#                                         listOfFieldLists = [mass_fl, H_fl])
+#         dumper.dump(0.0, 0)
+
+# #-------------------------------------------------------------------------------
+# # Check the maximum CRKSPH error and fail the test if it's out of bounds.
+# #-------------------------------------------------------------------------------
+# if maxyCRKSPHerror > tolerance:
+#     raise ValueError, "CRKSPH error out of bounds: %g > %g" % (maxyCRKSPHerror, tolerance)
