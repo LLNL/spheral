@@ -61,11 +61,11 @@ def siloMeshDump(dirName, mesh,
     fieldwad = extractFieldComponents(nodeLists, time, cycle,
                                       intFields, scalarFields, vectorFields, tensorFields, symTensorFields)
 
-    # index2zone is used to map a Node->(set of zones) if necessary.
+    # index2zone is used to map a Node->(set of zones) if necessary, for instance when tetrahedralizing a polyhedral tessellation of the Nodes.
     if index2zone:
         ntot = sum([nodes.numInternalNodes for nodes in nodeLists])
         assert len(index2zone) == ntot
-        ntarget = sum([sum(x) for x in index2zone])
+        ntarget = sum([len(x) for x in index2zone])
         assert ntarget == len(mesh.cells)
         for name, desc, ftype, optlistDef, optlistMV, optlistVar, subvars in fieldwad:
             newsubvars = []

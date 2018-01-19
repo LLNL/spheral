@@ -174,7 +174,7 @@ extractFaces(const Polyhedron& poly) {
           while (vnext != vstart) {
             // cerr << " " << vnext;
             face.push_back(vnext);
-            CHECK(edgesWalked.find(make_pair(vprev, vnext)) == edgesWalked.end());
+            CHECK2(edgesWalked.find(make_pair(vprev, vnext)) == edgesWalked.end(), polyhedron2string(poly));
             edgesWalked.insert(make_pair(vprev, vnext));
             auto itr = find(poly[vnext].neighbors.begin(), poly[vnext].neighbors.end(), vprev);
             CHECK(itr != poly[vnext].neighbors.end());
@@ -768,7 +768,7 @@ vector<vector<int>> splitIntoTetrahedra(const Polyhedron& poly) {
       const auto& v1 = poly[poly[i].neighbors[j  ]].position;
       const auto& v2 = poly[poly[i].neighbors[j+1]].position;
       const auto& v3 = poly[poly[i].neighbors[j+2]].position;
-      convex = ((v1 - v0).dot((v2 - v0).cross(v3 - v0)) <= 0.0);  // Note we have to flip signs cause of neighbor ordering
+      convex = ((v1 - v0).dot((v2 - v0).cross(v3 - v0)) <= 1.0e-10);  // Note we have to flip signs cause of neighbor ordering
       ++j;
     }
     ++i;
@@ -797,7 +797,7 @@ vector<vector<int>> splitIntoTetrahedra(const Polyhedron& poly) {
     return result;
   }
 
-  VERIFY2(false, "PolyClipper::splitIntoTetrahedra ERROR: non-convex polyhedra not supported yet.");
+  VERIFY2(false, "PolyClipper::splitIntoTetrahedra ERROR: non-convex polyhedra not supported yet:\n" + polyhedron2string(poly));
 }
 
 }
