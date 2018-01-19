@@ -39,7 +39,8 @@ class SpheralVoronoiSiloDump:
                  listOfFields = [],
                  listOfFieldLists = [],
                  boundaries = [],
-                 cells = None):
+                 cells = None,
+                 splitCells = False):
 
         # Store the file name template.
         self.baseFileName = baseFileName
@@ -86,6 +87,7 @@ class SpheralVoronoiSiloDump:
         if not cells is None:
             assert type(cells) == eval("FacetedVolumeFieldList%s" % self.dimension)
         self.cells = cells
+        self.splitCells = splitCells
 
         # Version of the format written by this class.
         self.version = "1.0"
@@ -124,27 +126,60 @@ class SpheralVoronoiSiloDump:
             # Yep, so we build a disjoint set of cells as a polytope tessellation.
             mesh = eval("polytope.Tessellation%s()" % self.dimension)
             nDim = eval("Vector%s.nDimensions" % self.dimension)
-            for nodeListi in xrange(len(self.cells)):
-                n = self.cells[nodeListi].numInternalElements
-                noldcells = mesh.cells.size()
-                mesh.cells.resize(noldcells + n)
-                for i in xrange(n):
-                    verts = self.cells(nodeListi, i).vertices()
-                    facets = self.cells(nodeListi, i).facets()
-                    noldnodes = mesh.nodes.size()/nDim
-                    noldfaces = mesh.faces.size()
-                    mesh.faces.resize(noldfaces + facets.size())
-                    for j in xrange(verts.size()):
-                        for k in xrange(nDim):
-                            mesh.nodes.append(verts[j][k])
-                    for j in xrange(facets.size()):
-                        mesh.cells[noldcells + i].append(noldfaces + j)
-                        ipoints = facets[j].ipoints
-                        for k in ipoints:
-                            mesh.faces[noldfaces + j].append(noldnodes + k)
 
-            # Every zone is unique in this case, so we can punt on the degeneracy check.
-            index2zone = None
+            # Do we need a mapping of nodes->cells?
+            if self.splitCells:
+                index2zone = []
+                for nodeListi in xrange(len(self.cells)):
+                    n = self.cells[nodeListi].numInternalElements
+                    for i in xrange(n):
+                        celli = self.cells(nodeListi, i)
+                        verts = celli.vertices()
+                        noldnodes = mesh.nodes.size()/nDim
+                        noldfaces = mesh.faces.size()
+                        noldcells = mesh.cells.size()
+                        for j in xrange(verts.size()):
+                            for k in xrange(nDim):
+                                mesh.nodes.append(verts[j][k])
+        
+                        # Are we splitting into triangles/tets?
+                        if nDim == 2:
+                            PCcelli = PolyClipper.Polygon()
+                            PolyClipper.convertToPolygon(PCcelli, celli)
+                            tris = PolyClipper.splitIntoTriangles(PCcelli)
+                            index2zone.append([])
+                            mesh.faces.resize(noldfaces + 3*len(tris))
+                            mesh.cells.resize(noldcells + len(tris))
+                            for k, tri in enumerate(tris):
+                                mesh.faces[noldfaces + 3*k + 0] = noldnodes + tri[0]
+                                mesh.faces[noldfaces + 3*k + 1] = noldnodes + tri[1]
+                                mesh.faces[noldfaces + 3*k + 2] = noldnodes + tri[2]
+                                for j in tri:
+                                    ps.append(verts[j])
+                                mesh.cells.append(Polygon(ps))
+                                index2zone[-1].append(offset + j)
+
+            else:
+                index2zone = None
+                for nodeListi in xrange(len(self.cells)):
+                    n = self.cells[nodeListi].numInternalElements
+                    noldcells = mesh.cells.size()
+                    mesh.cells.resize(noldcells + n)
+                    for i in xrange(n):
+                        celli = self.cells(nodeListi, i)
+                        verts = celli.vertices()
+                        facets = celli.facets()
+                        noldnodes = mesh.nodes.size()/nDim
+                        noldfaces = mesh.faces.size()
+                        mesh.faces.resize(noldfaces + facets.size())
+                        for j in xrange(verts.size()):
+                            for k in xrange(nDim):
+                                mesh.nodes.append(verts[j][k])
+                        for j in xrange(facets.size()):
+                            mesh.cells[noldcells + i].append(noldfaces + j)
+                            ipoints = facets[j].ipoints
+                            for k in ipoints:
+                                mesh.faces[noldfaces + j].append(noldnodes + k)
 
         else:
             # We need to do the full up polytope tessellation.
@@ -326,7 +361,8 @@ def dumpPhysicsState(stateThingy,
                      currentCycle = None,
                      dumpGhosts = False,
                      dumpDerivatives = False,
-                     boundaries = None):
+                     boundaries = None,
+                     splitCells = True):
     assert not dumpGhosts
 
     # What did we get passed?
@@ -466,7 +502,8 @@ def dumpPhysicsState(stateThingy,
                                     fields,
                                     fieldLists,
                                     boundaries,
-                                    cells = cells)
+                                    cells = cells,
+                                    splitCells = splitCells)
 
     # Dump the sucker.
     dumper.dump(currentTime, currentCycle)

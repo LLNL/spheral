@@ -61,27 +61,23 @@ def siloMeshDump(dirName, mesh,
     fieldwad = extractFieldComponents(nodeLists, time, cycle,
                                       intFields, scalarFields, vectorFields, tensorFields, symTensorFields)
 
-    # If we have index2zone, remove any redundant values.
+    # index2zone is used to map a Node->(set of zones) if necessary.
     if index2zone:
         ntot = sum([nodes.numInternalNodes for nodes in nodeLists])
         assert len(index2zone) == ntot
-        ntarget = len(mesh.cells)
-        assert max(index2zone) + 1 == ntarget
+        ntarget = sum([sum(x) for x in index2zone])
+        assert ntarget == len(mesh.cells)
         for name, desc, ftype, optlistDef, optlistMV, optlistVar, subvars in fieldwad:
             newsubvars = []
             for subname, vals in subvars:
                 valcopy = list(vals)
                 vals.resize(ntarget)
-                for i, vali in enumerate(valcopy):
-                    vals[index2zone[i]] = vali
+                for icells, vali in zip(index2zone, valcopy):
+                    for i in icells:
+                        vals[i] = vali
                 assert len(vals) == ntarget
-        #         newsubvars.append((subname, newvals))
-        #     assert len(newsubvars) == len(subvars)
-        #     newfieldwad.append([name, desc, ftype, optlistDef, optlistMV, optlistVar, newsubvars])
-        # assert len(newfieldwad) == len(fieldwad)
-        # fieldwad = newfieldwad
     else:
-        index2zone = range(len(mesh.cells))
+        index2zone = [[i,] for i in xrange(len(mesh.cells))]
 
     # If we're domain 0 we write the master file.
     masterfile = writeMasterMeshSiloFile(dirName, mesh, label, nodeLists, time, cycle, fieldwad)
@@ -369,7 +365,8 @@ def writeDomainMeshSiloFile(dirName, mesh, index2zone, label, nodeLists, time, c
             offset = 0
             for (nodeList, imat) in zip(nodeLists, xrange(len(nodeLists))):
                 for i in xrange(nodeList.numInternalNodes):
-                    matlist[index2zone[offset + i]] = imat
+                    for j in index2zone[offset + i]:
+                        matlist[j] = imat
                 matnames.append(nodeList.name)
                 offset += nodeList.numInternalNodes
             assert len(matlist) == numZones
