@@ -1,6 +1,6 @@
-#ATS:test(SELF, "--graphics False --nx1 10 --nx2 10 --testDim 1d", label="CRKSPH sum mass density test -- 1D (serial)")
-#ATS:test(SELF, "--graphics False --nx1 10 --nx2 10 --testDim 2d", label="CRKSPH sum mass density test -- 2D (serial)")
-#ATS:test(SELF, "--graphics False --nx1 10 --nx2 10 --testDim 3d", label="CRKSPH sum mass density test -- 3D (serial)")
+#ATS:test(SELF, "--graphics False --nx1 10 --testDim 1d", label="computeVoronoiVolume test -- 1D (serial)")
+#ATS:test(SELF, "--graphics False --nx1 10 --testDim 2d", label="computeVoronoiVolume test -- 2D (serial)")
+#ATS:test(SELF, "--graphics False --nx1 10 --testDim 3d", label="computeVoronoiVolume test -- 3D (serial)")
 #-------------------------------------------------------------------------------
 # Unit test of the CRKSPH sum density algorithm.
 #-------------------------------------------------------------------------------
@@ -97,8 +97,8 @@ elif testDim == "2d":
     from CompositeNodeDistribution import CompositeNodeDistribution
     gen = GenerateNodeDistribution2d(nx1, nx1, rho1,
                                      distributionType = "lattice",
-                                     xmin = (x0, x1),
-                                     xmax = (x0, x1),
+                                     xmin = (x0, x0),
+                                     xmax = (x1, x1),
                                      nNodePerh = nPerh,
                                      SPH = True)
     distributeNodes2d((nodes1, gen))
@@ -152,7 +152,7 @@ points = vector_of_Vector()
 for p in point_list:
     points.append(p)
 bbox = FacetedVolume(points)
-#faceted_bounds.append(bbox)
+faceted_bounds.append(bbox)
 
 bounds = vector_of_Boundary()
 # xbc0 = ReflectingBoundary(Plane(Vector(0.0, 0.0, 0.0), Vector( 1.0,  0.0,  0.0)))
@@ -185,7 +185,7 @@ if iterateH:
 #-------------------------------------------------------------------------------
 weight = ScalarFieldList()                         # No weights
 gradRho = db.newFluidVectorFieldList(Vector.zero, "grad rho")
-holes = vector_of_vector_of_FacetedVolume()
+holes = vector_of_vector_of_FacetedVolume(1)
 surfacePoint = db.newFluidIntFieldList(0, HydroFieldNames.surfacePoint)
 voidPoint = db.newFluidIntFieldList(0, HydroFieldNames.voidPoint)
 vol = db.newFluidScalarFieldList(0.0, HydroFieldNames.volume)
@@ -209,55 +209,11 @@ computeVoronoiVolume(db.fluidPosition,
                      etaVoidPoints,
                      cells)
 
-# #-------------------------------------------------------------------------------
-# # Plot the things.
-# #-------------------------------------------------------------------------------
-# if graphics:
-#     from SpheralGnuPlotUtilities import *
-#     import Gnuplot
-#     xans = [position_fl(0,i).x for i in xrange(nodes1.numInternalNodes)]
-
-#     # Interpolated values.
-#     ansdata = Gnuplot.Data(xans, yans.internalValues(),
-#                            with_ = "lines",
-#                            title = "Answer",
-#                            inline = True)
-#     CRKSPHdata = Gnuplot.Data(xans, rho.internalValues(),
-#                             with_ = "points",
-#                             title = "CRKSPH",
-#                             inline = True)
-#     errCRKSPHdata = Gnuplot.Data(xans, erryCRKSPH.internalValues(),
-#                                with_ = "points",
-#                                title = "CRKSPH error",
-#                                inline = True)
-
-#     p1 = generateNewGnuPlot()
-#     p1.plot(ansdata)
-#     p1.replot(CRKSPHdata)
-#     p1("set key top left")
-#     p1.title("CRKSPH sum density")
-#     p1.refresh()
-
-#     p2 = generateNewGnuPlot()
-#     p2.replot(errCRKSPHdata)
-#     p2.title("Error in sum density")
-#     p2.refresh()
-
-#     # p3 = plotFieldList(vol_fl,
-#     #                    plotStyle = "lines",
-#     #                    lineStyle = "linetype 0",
-#     #                    winTitle = "volume")
-
-#     # If we're in 2D dump a silo file too.
-#     if testDim == "2d":
-#         from SpheralVoronoiSiloDump import SpheralVoronoiSiloDump
-#         dumper = SpheralVoronoiSiloDump("testCRKSPHSumDensity_%s_2d" % testCase,
-#                                         listOfFields = [rho, yans, erryCRKSPH],
-#                                         listOfFieldLists = [mass_fl, H_fl])
-#         dumper.dump(0.0, 0)
-
-# #-------------------------------------------------------------------------------
-# # Check the maximum CRKSPH error and fail the test if it's out of bounds.
-# #-------------------------------------------------------------------------------
-# if maxyCRKSPHerror > tolerance:
-#     raise ValueError, "CRKSPH error out of bounds: %g > %g" % (maxyCRKSPHerror, tolerance)
+#-------------------------------------------------------------------------------
+# Check the answer.
+#-------------------------------------------------------------------------------
+for Vi, sp in zip(vol[0].internalValues(), surfacePoint[0].internalValues()):
+    if sp == 0:
+        assert abs(Vi - (1.0/nx1)**db.nDim) < 1.0e-12
+    else:
+        assert Vi == 0.0

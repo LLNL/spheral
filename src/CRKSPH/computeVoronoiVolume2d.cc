@@ -466,16 +466,16 @@ computeVoronoiVolume(const FieldList<Dim<2>, Dim<2>::Vector>& position,
           // radius on all sides.  However, if we have a bounding polygon we may still want to call it a
           // surface if in fact there are still facets from that bounding polygon on this cell.
           // t0 = std::clock();
-          if (haveBoundaries and returnSurface) {
-            auto vitr = celli.begin();
-            while (interior and vitr != celli.end()) {
-              interior = not pointOnPolygon(ri + vitr->position,
-                                            boundaries[nodeListi].vertices(),
-                                            1.0e-8);
-              ++vitr;
-            }
+          // if (haveBoundaries and returnSurface) {
+          //   auto vitr = celli.begin();
+          //   while (interior and vitr != celli.end()) {
+          //     interior = not pointOnPolygon(ri + vitr->position,
+          //                                   boundaries[nodeListi].vertices(),
+          //                                   1.0e-8);
+          //     ++vitr;
+          //   }
 
-          }
+          // }
           // tsurface += std::clock() - t0;
         }
 
