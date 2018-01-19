@@ -121,13 +121,15 @@ class SpheralVoronoiSiloDump:
 ##             raise ValueError, "File %s already exists!  Aborting." % filename
 
         # Did the user provide a FieldList of cell geometries already?
+        print "Blago!"
         if self.cells:
 
             # Yep, so we build a disjoint set of cells as a polytope tessellation.
             mesh = eval("polytope.Tessellation%s()" % self.dimension)
             nDim = eval("Vector%s.nDimensions" % self.dimension)
 
-            # Do we need a mapping of nodes->cells?
+            # Are we splitting into triangles/tets, or writing the native polygons/polyhera?
+            print "splitCells: ", self.splitCells
             if self.splitCells:
                 index2zone = []
                 for nodeListi in xrange(len(self.cells)):
@@ -141,7 +143,7 @@ class SpheralVoronoiSiloDump:
                         for j in xrange(verts.size()):
                             for k in xrange(nDim):
                                 mesh.nodes.append(verts[j][k])
-        
+
                         # Are we splitting into triangles/tets?
                         if nDim == 2:
                             PCcelli = PolyClipper.Polygon()
@@ -151,13 +153,17 @@ class SpheralVoronoiSiloDump:
                             mesh.faces.resize(noldfaces + 3*len(tris))
                             mesh.cells.resize(noldcells + len(tris))
                             for k, tri in enumerate(tris):
-                                mesh.faces[noldfaces + 3*k + 0] = noldnodes + tri[0]
-                                mesh.faces[noldfaces + 3*k + 1] = noldnodes + tri[1]
-                                mesh.faces[noldfaces + 3*k + 2] = noldnodes + tri[2]
-                                for j in tri:
-                                    ps.append(verts[j])
-                                mesh.cells.append(Polygon(ps))
-                                index2zone[-1].append(offset + j)
+                                mesh.faces[noldfaces + 3*k + 0].append(noldnodes + tri[0])
+                                mesh.faces[noldfaces + 3*k + 0].append(noldnodes + tri[1])
+                                mesh.faces[noldfaces + 3*k + 1].append(noldnodes + tri[1])
+                                mesh.faces[noldfaces + 3*k + 1].append(noldnodes + tri[2])
+                                mesh.faces[noldfaces + 3*k + 2].append(noldnodes + tri[2])
+                                mesh.faces[noldfaces + 3*k + 2].append(noldnodes + tri[0])
+                                mesh.cells[noldcells + k].append(noldfaces + 3*k)
+                                mesh.cells[noldcells + k].append(noldfaces + 3*k + 1)
+                                mesh.cells[noldcells + k].append(noldfaces + 3*k + 2)
+                                index2zone[-1].append(noldcells + k)
+                print index2zone
 
             else:
                 index2zone = None
