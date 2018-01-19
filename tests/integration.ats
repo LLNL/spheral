@@ -23,6 +23,7 @@ source("../src/SPH/tests/testLinearVelocityGradient.py")
 
 # CRKSPH unit tests
 source("../src/CRKSPH/tests/testInterpolation.py")
+source("../src/CRKSPH/tests/testVoronoiVolume.py")
 
 # SVPH unit tests
 source("../src/SVPH/tests/testSVPHInterpolation-1d.py")
