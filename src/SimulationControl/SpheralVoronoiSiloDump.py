@@ -174,12 +174,20 @@ class SpheralVoronoiSiloDump:
                             for k, tet in enumerate(tets):
                                 mesh.faces[noldfaces + 4*k + 0].append(noldnodes + tet[0])
                                 mesh.faces[noldfaces + 4*k + 0].append(noldnodes + tet[1])
+                                mesh.faces[noldfaces + 4*k + 0].append(noldnodes + tet[2])
+
                                 mesh.faces[noldfaces + 4*k + 1].append(noldnodes + tet[1])
+                                mesh.faces[noldfaces + 4*k + 1].append(noldnodes + tet[3])
                                 mesh.faces[noldfaces + 4*k + 1].append(noldnodes + tet[2])
-                                mesh.faces[noldfaces + 4*k + 2].append(noldnodes + tet[2])
+
                                 mesh.faces[noldfaces + 4*k + 2].append(noldnodes + tet[3])
-                                mesh.faces[noldfaces + 4*k + 3].append(noldnodes + tet[3])
+                                mesh.faces[noldfaces + 4*k + 2].append(noldnodes + tet[0])
+                                mesh.faces[noldfaces + 4*k + 2].append(noldnodes + tet[2])
+
                                 mesh.faces[noldfaces + 4*k + 3].append(noldnodes + tet[0])
+                                mesh.faces[noldfaces + 4*k + 3].append(noldnodes + tet[3])
+                                mesh.faces[noldfaces + 4*k + 3].append(noldnodes + tet[1])
+
                                 mesh.cells[noldcells + k].append(noldfaces + 4*k)
                                 mesh.cells[noldcells + k].append(noldfaces + 4*k + 1)
                                 mesh.cells[noldcells + k].append(noldfaces + 4*k + 2)
