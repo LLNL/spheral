@@ -17,7 +17,7 @@ AC_ARG_WITH(timers,
 ],
 [
   AC_MSG_RESULT(no)
-  TIMERTARGETS=
+  TIMERTARGETS="Timer.cc SpheralTimers.cc"
 ])
 ])
 
