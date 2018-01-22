@@ -23,7 +23,7 @@ CURL = curl -k -L
 AR = ar
 OPENPAREN:=(
 CLOSEPAREN:=)
-SAFEPATH = $(prefix)$(subst $(OPENPAREN),\$(OPENPAREN),$(subst $(CLOSEPAREN),\$(CLOSEPAREN),$(PATH)))
+SAFEPATH = $(prefix)/bin:$(subst $(OPENPAREN),\$(OPENPAREN),$(subst $(CLOSEPAREN),\$(CLOSEPAREN),$(PATH)))
 
 #-------------------------------------------------------------------------------
 # Targets.
