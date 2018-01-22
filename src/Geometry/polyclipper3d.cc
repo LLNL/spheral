@@ -679,13 +679,13 @@ void collapseDegenerates(Polyhedron& polyhedron,
               polyhedron[j].ID = -1;                                                                                      // Flag j to delete
               jitr = polyhedron[i].neighbors.erase(jitr);                                                                 // Remove j from the neighbors of i
               polyhedron[i].neighbors.insert(jitr, polyhedron[j].neighbors.begin(), polyhedron[j].neighbors.end());       // Merge neighbors of j -> neighbors of i
+              polyhedron[i].neighbors.erase(remove_if(polyhedron[i].neighbors.begin(), polyhedron[i].neighbors.end(),     // Make sure i doesn't wind up in it's own neighbor set
+                                                      [&i](const int val) { return val == i; }), 
+                                            polyhedron[i].neighbors.end());
               for (jitr = polyhedron[i].neighbors.begin(); jitr < polyhedron[i].neighbors.end() - 1; ++jitr) {            // Remove any adjacents repeats
                 if (*jitr == *(jitr + 1)) jitr = polyhedron[i].neighbors.erase(jitr);
               }
               if (polyhedron[i].neighbors.front() == polyhedron[i].neighbors.back()) polyhedron[i].neighbors.pop_back();
-              polyhedron[i].neighbors.erase(remove_if(polyhedron[i].neighbors.begin(), polyhedron[i].neighbors.end(),     // Make sure i doesn't wind up in it's own neighbor set
-                                                      [&i](const int val) { return val == i; }), 
-                                            polyhedron[i].neighbors.end());
               // {
               //   cerr << " : new neighbors of i [";
               //   std::copy(polyhedron[i].neighbors.begin(), polyhedron[i].neighbors.end(), ostream_iterator<int>(cerr, " "));
@@ -748,7 +748,7 @@ void collapseDegenerates(Polyhedron& polyhedron,
 }
 
 //------------------------------------------------------------------------------
-// Split a polyhedron into a set of triangles.
+// Split a polyhedron into a set of tetrahedra.
 //------------------------------------------------------------------------------
 vector<vector<int>> splitIntoTetrahedra(const Polyhedron& poly) {
 
