@@ -108,12 +108,16 @@ for fac in [(6, 5, 4, 3, 2, 1, 0),
 
 #-------------------------------------------------------------------------------
 # A degenerate pyramid.  Just reuse the cube, but collapse one face.
-degenerate_cube_points = vector_of_Vector()
+degenerate_cube_points1 = vector_of_Vector()
 for coords in [(0,0,0), (1,0,0), (1,1,0), (0,1,0),
                (0,0,1), (0,0,1), (0,0,1), (0,0,1)]:
-    degenerate_cube_points.append(Vector(*coords))
-degenerate_cube_neighbors = cube_neighbors
-degenerate_cube_facets = cube_facets
+    degenerate_cube_points1.append(Vector(*coords))
+
+# Another one collapsing a different vertex.
+degenerate_cube_points2 = vector_of_Vector()
+for coords in [(0,0,0),  (10,0,0),  (10,10,0),  (10,10,0),
+               (0,0,10), (10,0,10), (10,10,0), (10,10,0)]:
+    degenerate_cube_points2.append(Vector(*coords))
 
 #-------------------------------------------------------------------------------
 # Test harness
@@ -125,10 +129,13 @@ class TestPolyhedronClipping(unittest.TestCase):
     #---------------------------------------------------------------------------
     def setUp(self):
         self.convexPolyData = [(cube_points, cube_neighbors, cube_facets),
-                               (degenerate_cube_points, degenerate_cube_neighbors, degenerate_cube_facets)]
+                               (degenerate_cube_points1, cube_neighbors, cube_facets),
+                               (degenerate_cube_points2, cube_neighbors, cube_facets)]
         self.nonconvexPolyData = [(notched_points, notched_neighbors, notched_facets)]
+        self.degeneratePolyData = [#(degenerate_cube_points1, cube_neighbors, cube_facets,),
+                                   (degenerate_cube_points2, cube_neighbors, cube_facets)]
         self.polyData = self.convexPolyData + self.nonconvexPolyData
-        self.ntests = 1000
+        self.ntests = 1
         return
 
     #---------------------------------------------------------------------------
@@ -149,16 +156,19 @@ class TestPolyhedronClipping(unittest.TestCase):
     # collapseDegenerates
     #---------------------------------------------------------------------------
     def test_collapseDegenerates(self):
-        PCpoly0 = PolyClipper.Polyhedron()
-        PolyClipper.initializePolyhedron(PCpoly0, degenerate_cube_points, degenerate_cube_neighbors)
-        assert PCpoly0.size() == len(degenerate_cube_points)
-        PCpoly1 = PolyClipper.Polyhedron(PCpoly0)
-        PolyClipper.collapseDegenerates(PCpoly1, 1.0e-10)
-        assert PCpoly1.size() == 5
-        vol0, centroid0 = PolyClipper.moments(PCpoly0)
-        vol1, centroid1 = PolyClipper.moments(PCpoly1)
-        assert vol1 == vol0
-        assert centroid1 == centroid0
+        for points, neighbors, facets in self.degeneratePolyData:
+            PCpoly0 = PolyClipper.Polyhedron()
+            PolyClipper.initializePolyhedron(PCpoly0, points, neighbors)
+            assert PCpoly0.size() == len(points)
+            PCpoly1 = PolyClipper.Polyhedron(PCpoly0)
+            PolyClipper.collapseDegenerates(PCpoly1, 1.0e-10)
+            print PolyClipper.polyhedron2string(PCpoly0)
+            print PolyClipper.polyhedron2string(PCpoly1)
+            assert PCpoly1.size() == 5
+            vol0, centroid0 = PolyClipper.moments(PCpoly0)
+            vol1, centroid1 = PolyClipper.moments(PCpoly1)
+            assert vol1 == vol0
+            assert centroid1 == centroid0
 
     #---------------------------------------------------------------------------
     # Spheral::Polyhedron --> PolyClipper::Polyhedron
