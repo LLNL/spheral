@@ -766,7 +766,8 @@ void collapseDegenerates(Polyhedron& polyhedron,
 //------------------------------------------------------------------------------
 // Split a polyhedron into a set of tetrahedra.
 //------------------------------------------------------------------------------
-vector<vector<int>> splitIntoTetrahedra(const Polyhedron& poly) {
+vector<vector<int>> splitIntoTetrahedra(const Polyhedron& poly,
+                                        const double tol) {
 
   // Prepare the result, which will be quadruples of indices in the input polyhedron vertices.
   vector<vector<int>> result;
@@ -777,10 +778,10 @@ vector<vector<int>> splitIntoTetrahedra(const Polyhedron& poly) {
   auto i = 0;
   while (convex and i < n0) {
     const auto nv = poly[i].neighbors.size();
-    const auto& v0 = poly[i].position;
     CHECK(nv >= 3);
     auto j = 0;
     while (convex and j < nv - 2) {
+      const auto& v0 = poly[i].position;
       const auto& v1 = poly[poly[i].neighbors[j  ]].position;
       const auto& v2 = poly[poly[i].neighbors[j+1]].position;
       const auto& v3 = poly[poly[i].neighbors[j+2]].position;
@@ -798,6 +799,8 @@ vector<vector<int>> splitIntoTetrahedra(const Polyhedron& poly) {
 
     // Create tetrahedra from each face back to the starting point, except for faces which contain
     // the starting point since those would be zero volume.
+    double vol;
+    const auto& v0 = poly[0].position;
     for (const auto& face: faces) {
       // cout << " --> [";
       // copy(face.begin(), face.end(), ostream_iterator<int>(cout, " "));
@@ -806,7 +809,11 @@ vector<vector<int>> splitIntoTetrahedra(const Polyhedron& poly) {
         const auto nf = face.size();
         CHECK(nf >= 3);
         for (auto i = 2; i < nf; ++i) {
-          result.push_back({0, face[0], face[i-1], face[i]});
+          const auto& v1 = poly[face[0  ]].position;
+          const auto& v2 = poly[face[i-1]].position;
+          const auto& v3 = poly[face[i  ]].position;
+          vol = (v1 - v0).dot((v2 - v0).cross(v3 - v0))/3.0;
+          if (vol > tol) result.push_back({0, face[0], face[i-1], face[i]});
         }
       }
     }
