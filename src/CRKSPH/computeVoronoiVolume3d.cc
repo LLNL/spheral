@@ -385,7 +385,7 @@ computeVoronoiVolume(const FieldList<Dim<3>, Dim<3>::Vector>& position,
         // If requested, we can return the cell geometries.
         if (returnCells) {
           // t0 = std::clock();
-          PolyClipper::collapseDegenerates(celli, 1.0e-10);
+          // PolyClipper::collapseDegenerates(celli, 1.0e-5);
           PolyClipper::convertFromPolyhedron(cells(nodeListi, i), celli);
           cells(nodeListi, i) += ri;
           // tcell += std::clock() - t0;
