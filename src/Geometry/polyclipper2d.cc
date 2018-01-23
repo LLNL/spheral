@@ -654,7 +654,8 @@ void collapseDegenerates(Polygon& polygon,
 //------------------------------------------------------------------------------
 // Split a polygon into a set of triangles.
 //------------------------------------------------------------------------------
-vector<vector<int>> splitIntoTriangles(const Polygon& poly) {
+vector<vector<int>> splitIntoTriangles(const Polygon& poly,
+                                       const double tol) {
 
   // Prepare the result, which will be triples of indices in the input polygon vertices.
   vector<vector<int>> result;
@@ -670,8 +671,13 @@ vector<vector<int>> splitIntoTriangles(const Polygon& poly) {
 
   // If the polygon is convex we can just make a fan of triangles from the first point.
   if (convex) {
+    const auto& v0 = poly[0].position;
+    double a;
     for (auto i = 2; i < n0; ++i) {
-      result.push_back({0, i - 1, i});
+      const auto& v1 = poly[i-1].position;
+      const auto& v2 = poly[i].position;
+      a = 0.5*(v1 - v0).cross(v2 - v0).z();
+      if (a > tol) result.push_back({0, i - 1, i});
     }
     return result;
   }

@@ -85,7 +85,8 @@ class PolyClipper:
                                 docstring = "Remove degnerate edges/vertices from a PolyClipper polygon.")
 
         self.space.add_function("splitIntoTriangles", "vector_of_vector_of_int",
-                                [constrefparam("PolyClipper::Polygon", "polygon")],
+                                [constrefparam("PolyClipper::Polygon", "polygon"),
+                                 param("double", "tol", default_value="0.0")],
                                 docstring = "Return the vertex index triples that split a PolyClipper polygon into triangles.")
 
         # Polyhedron functions
@@ -126,7 +127,8 @@ class PolyClipper:
                                 docstring = "Remove degnerate edges/vertices from a PolyClipper polyhedron.")
 
         self.space.add_function("splitIntoTetrahedra", "vector_of_vector_of_int",
-                                [constrefparam("PolyClipper::Polyhedron", "polyhedron")],
+                                [constrefparam("PolyClipper::Polyhedron", "polyhedron"),
+                                 param("double", "tol", default_value="0.0")],
                                 docstring = "Return the vertex index quadruples that split a PolyClipper polyhedron into tetrahedra.")
 
         return
