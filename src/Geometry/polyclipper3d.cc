@@ -733,12 +733,17 @@ void collapseDegenerates(Polyhedron& polyhedron,
           *itr = polyhedron[*itr].ID;
         }
         v.neighbors.erase(remove_if(v.neighbors.begin(), v.neighbors.end(), [](const int x) { return x < 0; }), v.neighbors.end());
+
+        // Remove any adjacent repeats.
+        for (auto kitr = v.neighbors.begin(); kitr < v.neighbors.end() - 1; ++kitr) {
+          if (*kitr == *(kitr + 1)) kitr = v.neighbors.erase(kitr);
+        }
+        if (v.neighbors.front() == v.neighbors.back()) v.neighbors.pop_back();
       }
 
       // Erase the inactive vertices.
       polyhedron.erase(remove_if(polyhedron.begin(), polyhedron.end(), [](const Vertex3d& v) { return v.ID < 0; }), polyhedron.end());
       if (polyhedron.size() < 4) polyhedron.clear();
-
     }
   }
 
