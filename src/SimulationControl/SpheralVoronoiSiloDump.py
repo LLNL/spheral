@@ -146,7 +146,7 @@ class SpheralVoronoiSiloDump:
                             # Build the triangles
                             PCcelli = PolyClipper.Polygon()
                             PolyClipper.convertToPolygon(PCcelli, celli)
-                            tris = PolyClipper.splitIntoTriangles(PCcelli)
+                            tris = PolyClipper.splitIntoTriangles(PCcelli, 1e-10)
                             index2zone.append([])
                             mesh.faces.resize(noldfaces + 3*len(tris))
                             mesh.cells.resize(noldcells + len(tris))
@@ -167,7 +167,7 @@ class SpheralVoronoiSiloDump:
                             assert nDim == 3
                             PCcelli = PolyClipper.Polyhedron()
                             PolyClipper.convertToPolyhedron(PCcelli, celli)
-                            tets = PolyClipper.splitIntoTetrahedra(PCcelli)
+                            tets = PolyClipper.splitIntoTetrahedra(PCcelli, 1e-10)
                             index2zone.append([])
                             mesh.faces.resize(noldfaces + 4*len(tets))
                             mesh.cells.resize(noldcells + len(tets))
