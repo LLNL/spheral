@@ -660,7 +660,7 @@ void collapseDegenerates(Polyhedron& polyhedron,
     // Set the initial ID's the vertices.
     for (auto i = 0; i < n; ++i) polyhedron[i].ID = i;
 
-    cerr << "Initial: " << endl << polyhedron2string(polyhedron) << endl;
+    // cerr << "Initial: " << endl << polyhedron2string(polyhedron) << endl;
 
     // Walk the polyhedron removing degenerate edges until we make a sweep without
     // removing any.  Don't worry about ordering of the neighbors yet.
@@ -674,7 +674,7 @@ void collapseDegenerates(Polyhedron& polyhedron,
             const auto j = *jitr;
             CHECK(polyhedron[j].ID >= 0);
             if ((polyhedron[i].position - polyhedron[j].position).magnitude2() < tol2) {
-              cerr << " --> collapasing " << j << " to " << i;
+              // cerr << " --> collapasing " << j << " to " << i;
               active = true;
               idone = false;
               polyhedron[j].ID = -1;
@@ -682,8 +682,8 @@ void collapseDegenerates(Polyhedron& polyhedron,
               // Merge the neighbors of j->i.
               auto kitr = find(polyhedron[j].neighbors.begin(), polyhedron[j].neighbors.end(), i);
               CHECK(kitr != polyhedron[j].neighbors.end());
-              polyhedron[i].neighbors.insert(jitr, kitr+1, polyhedron[j].neighbors.end());
-              polyhedron[i].neighbors.insert(polyhedron[i].neighbors.begin(), polyhedron[j].neighbors.begin(), kitr);
+              jitr = polyhedron[i].neighbors.insert(jitr, polyhedron[j].neighbors.begin(), kitr);
+              jitr = polyhedron[i].neighbors.insert(jitr, kitr+1, polyhedron[j].neighbors.end());  // jitr now points at the first of the newly inserted neighbors
 
               // Make sure i & j are removed from the neighbor set of i.
               polyhedron[i].neighbors.erase(remove_if(polyhedron[i].neighbors.begin(), polyhedron[i].neighbors.end(),
@@ -691,16 +691,16 @@ void collapseDegenerates(Polyhedron& polyhedron,
                                             polyhedron[i].neighbors.end());
 
               // Remove any adjacent repeats.
-              for (jitr = polyhedron[i].neighbors.begin(); jitr < polyhedron[i].neighbors.end() - 1; ++jitr) {
-                if (*jitr == *(jitr + 1)) jitr = polyhedron[i].neighbors.erase(jitr);
+              for (auto kitr = polyhedron[i].neighbors.begin(); kitr < polyhedron[i].neighbors.end() - 1; ++kitr) {
+                if (*kitr == *(kitr + 1)) kitr = polyhedron[i].neighbors.erase(kitr);
               }
               if (polyhedron[i].neighbors.front() == polyhedron[i].neighbors.back()) polyhedron[i].neighbors.pop_back();
 
-              {
-                cerr << " : new neighbors of " << i << " [";
-                std::copy(polyhedron[i].neighbors.begin(), polyhedron[i].neighbors.end(), ostream_iterator<int>(cerr, " "));
-                cerr << "]" << endl;
-              }
+              // {
+              //   cerr << " : new neighbors of " << i << " [";
+              //   std::copy(polyhedron[i].neighbors.begin(), polyhedron[i].neighbors.end(), ostream_iterator<int>(cerr, " "));
+              //   cerr << "]" << endl;
+              // }
 
               // Make all the neighbors of j point back at i instead of j.
               for (auto k: polyhedron[j].neighbors) {
@@ -708,38 +708,16 @@ void collapseDegenerates(Polyhedron& polyhedron,
                 CHECK(itr != polyhedron[j].neighbors.end());
                 *itr = i;
               }
-              break;   // break out of the loop over the neighbors of i and start again
+              // break;   // break out of the loop over the neighbors of i and start again
             }
           }
         }
       }
     }
 
-    cerr << "After relinking: " << endl << polyhedron2string(polyhedron) << endl;
+    // cerr << "After relinking: " << endl << polyhedron2string(polyhedron) << endl;
 
     if (active) {
-
-      // // Order the neighbors counter-clockwise around each active vertex (viewed from the exterior.
-      // for (auto i = 0; i < polyhedron.size(); ++i) {
-      //   auto& v = polyhedron[i];
-      //   if (v.ID >= 0) {
-      //     CHECK(std::abs(vnormal[i].magnitude2() - 1.0) < 1.0e-10);
-      //     auto done = false;
-      //     const auto ni = v.neighbors.size();
-      //     while (not done) {
-      //       done = true;
-      //       for (auto j = 0; j < ni; ++j) {
-      //         auto& vprev = v.neighbors[j];
-      //         auto& vnext = v.neighbors[(j + 1) % ni];
-      //         CHECK(polyhedron[vprev].ID >= 0 and polyhedron[vnext].ID >= 0);
-      //         if ((polyhedron[vprev].position - v.position).cross(polyhedron[vnext].position - v.position).dot(vnormal[i]) < 0.0) {
-      //           done = false;
-      //           swap(vprev, vnext);
-      //         }
-      //       }
-      //     }
-      //   }
-      // }
 
       // Renumber the nodes assuming we're going to clear out the degenerates.
       auto offset = 0;
@@ -764,7 +742,7 @@ void collapseDegenerates(Polyhedron& polyhedron,
     }
   }
 
-  cerr << "Final: " << endl << polyhedron2string(polyhedron) << endl;
+  // cerr << "Final: " << endl << polyhedron2string(polyhedron) << endl;
 
   // Post-conditions.
   BEGIN_CONTRACT_SCOPE

@@ -132,10 +132,10 @@ class TestPolyhedronClipping(unittest.TestCase):
                                (degenerate_cube_points1, cube_neighbors, cube_facets),
                                (degenerate_cube_points2, cube_neighbors, cube_facets)]
         self.nonconvexPolyData = [(notched_points, notched_neighbors, notched_facets)]
-        self.degeneratePolyData = [#(degenerate_cube_points1, cube_neighbors, cube_facets,),
+        self.degeneratePolyData = [(degenerate_cube_points1, cube_neighbors, cube_facets),
                                    (degenerate_cube_points2, cube_neighbors, cube_facets)]
         self.polyData = self.convexPolyData + self.nonconvexPolyData
-        self.ntests = 1
+        self.ntests = 1000
         return
 
     #---------------------------------------------------------------------------
@@ -162,8 +162,6 @@ class TestPolyhedronClipping(unittest.TestCase):
             assert PCpoly0.size() == len(points)
             PCpoly1 = PolyClipper.Polyhedron(PCpoly0)
             PolyClipper.collapseDegenerates(PCpoly1, 1.0e-10)
-            print PolyClipper.polyhedron2string(PCpoly0)
-            print PolyClipper.polyhedron2string(PCpoly1)
             assert PCpoly1.size() == 5
             vol0, centroid0 = PolyClipper.moments(PCpoly0)
             vol1, centroid1 = PolyClipper.moments(PCpoly1)
