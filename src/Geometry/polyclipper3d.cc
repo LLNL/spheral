@@ -243,7 +243,7 @@ polyhedron2string(const Polyhedron& poly) {
   ostringstream s;
   const auto nverts = poly.size();
   for (auto i = 0; i < nverts; ++i) {
-    s << "ID=" << i << " comp=" << poly[i].comp << " @ " << poly[i].position
+    s << i << " ID=" << poly[i].ID << " comp=" << poly[i].comp << " @ " << poly[i].position
       << " neighbors=[";
     for (const auto ni: poly[i].neighbors) s << " " << ni;
     s << "]\n";
@@ -657,18 +657,8 @@ void collapseDegenerates(Polyhedron& polyhedron,
   auto n = polyhedron.size();
   if (n > 0) {
 
-    // Set the initial ID's the vertices, and compute surface normals.
-    vector<Spheral::Dim<3>::Vector> vnormal(n);
-    for (auto i = 0; i < n; ++i) {
-      polyhedron[i].ID = i;
-      const auto n = polyhedron[i].neighbors.size();
-      for (auto j = 0; j < n; ++j) {
-        const auto& p1 = polyhedron[polyhedron[i].neighbors[j]].position;
-        const auto& p2 = polyhedron[polyhedron[i].neighbors[(j+1)%n]].position;
-        vnormal[i] += (p1 - polyhedron[i].position).cross(p2 - polyhedron[i].position);
-      }
-      if (vnormal[i].magnitude2() > 0.0) vnormal[i] = vnormal[i].unitVector();
-    }
+    // Set the initial ID's the vertices.
+    for (auto i = 0; i < n; ++i) polyhedron[i].ID = i;
 
     cerr << "Initial: " << endl << polyhedron2string(polyhedron) << endl;
 
@@ -682,23 +672,32 @@ void collapseDegenerates(Polyhedron& polyhedron,
           idone = true;
           for (auto jitr = polyhedron[i].neighbors.begin(); jitr < polyhedron[i].neighbors.end(); ++jitr) {
             const auto j = *jitr;
-            if (polyhedron[j].ID >= 0 and (polyhedron[i].position - polyhedron[j].position).magnitude2() < tol2) {
+            CHECK(polyhedron[j].ID >= 0);
+            if ((polyhedron[i].position - polyhedron[j].position).magnitude2() < tol2) {
               cerr << " --> collapasing " << j << " to " << i;
               active = true;
               idone = false;
-              if (vnormal[i] == Spheral::Dim<3>::Vector::zero) vnormal[i] = vnormal[*jitr];
-              polyhedron[j].ID = -1;                                                                                      // Flag j to delete
-              jitr = polyhedron[i].neighbors.erase(jitr);                                                                 // Remove j from the neighbors of i
-              polyhedron[i].neighbors.insert(polyhedron[i].neighbors.end(), polyhedron[j].neighbors.begin(), polyhedron[j].neighbors.end());       // Merge neighbors of j -> neighbors of i
-              polyhedron[i].neighbors.erase(remove_if(polyhedron[i].neighbors.begin(), polyhedron[i].neighbors.end(),     // Make sure i doesn't wind up in it's own neighbor set
-                                                      [&i](const int val) { return val == i; }), 
+              polyhedron[j].ID = -1;
+
+              // Merge the neighbors of j->i.
+              auto kitr = find(polyhedron[j].neighbors.begin(), polyhedron[j].neighbors.end(), i);
+              CHECK(kitr != polyhedron[j].neighbors.end());
+              polyhedron[i].neighbors.insert(jitr, kitr+1, polyhedron[j].neighbors.end());
+              polyhedron[i].neighbors.insert(polyhedron[i].neighbors.begin(), polyhedron[j].neighbors.begin(), kitr);
+
+              // Make sure i & j are removed from the neighbor set of i.
+              polyhedron[i].neighbors.erase(remove_if(polyhedron[i].neighbors.begin(), polyhedron[i].neighbors.end(),
+                                                      [&](const int val) { return val == i or val == j; }), 
                                             polyhedron[i].neighbors.end());
-              for (jitr = polyhedron[i].neighbors.begin(); jitr < polyhedron[i].neighbors.end() - 1; ++jitr) {            // Remove any adjacents repeats
+
+              // Remove any adjacent repeats.
+              for (jitr = polyhedron[i].neighbors.begin(); jitr < polyhedron[i].neighbors.end() - 1; ++jitr) {
                 if (*jitr == *(jitr + 1)) jitr = polyhedron[i].neighbors.erase(jitr);
               }
               if (polyhedron[i].neighbors.front() == polyhedron[i].neighbors.back()) polyhedron[i].neighbors.pop_back();
+
               {
-                cerr << " : new neighbors of i [";
+                cerr << " : new neighbors of " << i << " [";
                 std::copy(polyhedron[i].neighbors.begin(), polyhedron[i].neighbors.end(), ostream_iterator<int>(cerr, " "));
                 cerr << "]" << endl;
               }
@@ -720,26 +719,27 @@ void collapseDegenerates(Polyhedron& polyhedron,
 
     if (active) {
 
-      // Order the neighbors counter-clockwise around each active vertex (viewed from the exterior.
-      for (auto i = 0; i < polyhedron.size(); ++i) {
-        auto& v = polyhedron[i];
-        if (v.ID >= 0) {
-          CHECK(std::abs(vnormal[i].magnitude2() - 1.0) < 1.0e-10);
-          auto done = false;
-          const auto ni = v.neighbors.size();
-          while (not done) {
-            done = true;
-            for (auto j = 0; j < n; ++j) {
-              auto& vprev = v.neighbors[j];
-              auto& vnext = v.neighbors[(j + 1) % n];
-              if ((polyhedron[vprev].position - v.position).cross(polyhedron[vnext].position - v.position).dot(vnormal[i]) < 0.0) {
-                done = false;
-                swap(vprev, vnext);
-              }
-            }
-          }
-        }
-      }
+      // // Order the neighbors counter-clockwise around each active vertex (viewed from the exterior.
+      // for (auto i = 0; i < polyhedron.size(); ++i) {
+      //   auto& v = polyhedron[i];
+      //   if (v.ID >= 0) {
+      //     CHECK(std::abs(vnormal[i].magnitude2() - 1.0) < 1.0e-10);
+      //     auto done = false;
+      //     const auto ni = v.neighbors.size();
+      //     while (not done) {
+      //       done = true;
+      //       for (auto j = 0; j < ni; ++j) {
+      //         auto& vprev = v.neighbors[j];
+      //         auto& vnext = v.neighbors[(j + 1) % ni];
+      //         CHECK(polyhedron[vprev].ID >= 0 and polyhedron[vnext].ID >= 0);
+      //         if ((polyhedron[vprev].position - v.position).cross(polyhedron[vnext].position - v.position).dot(vnormal[i]) < 0.0) {
+      //           done = false;
+      //           swap(vprev, vnext);
+      //         }
+      //       }
+      //     }
+      //   }
+      // }
 
       // Renumber the nodes assuming we're going to clear out the degenerates.
       auto offset = 0;
