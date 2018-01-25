@@ -107,3 +107,13 @@ namespace FractalSpace
   template bool overlap_boxes(vector <int>& boxa,vector <int>& boxb);
   template bool overlap_boxes(vector <double>& boxa,vector <double>& boxb);
 }
+namespace FractalSpace
+{
+  bool group_in_box(Group* pgroup,vector<int>& BOX)
+  {
+    vector<int>miny;
+    vector<int>maxy;
+    pgroup->get_miny_maxy(miny,maxy);
+    return overlap(miny,maxy,BOX);
+  }
+}

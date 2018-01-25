@@ -137,7 +137,7 @@ namespace FractalSpace
   }
   void Group::subtract_density(const double& d)
   {
-    for(vector <Point*>:: const_iterator point_itr=list_points.begin();point_itr != list_points.end();++point_itr)
+    for(vector <Point*>::const_iterator point_itr=list_points.begin();point_itr != list_points.end();++point_itr)
       //	if((*point_itr)->get_inside()) 
       (*point_itr)->subtract_dens_at_point(d);
   }
@@ -170,5 +170,34 @@ namespace FractalSpace
     varx=sqrt(varx/sum0-pow(sumx/sum0,2));
     vary=sqrt(vary/sum0-pow(sumy/sum0,2));
     varz=sqrt(varz/sum0-pow(sumz/sum0,2));
+  }
+  void Group::set_miny_maxy()
+  {
+    if(list_points.empty())
+      {
+	miny={INT_MAX,INT_MAX,INT_MAX};
+	maxy={INT_MIN,INT_MIN,INT_MIN};
+	return;
+      }
+    vector<int>pos(3);
+    list_points[0]->get_pos_point(pos);
+    maxy=pos;
+    miny=maxy;
+    for(auto p : list_points)
+      {
+	p->get_pos_point(pos);
+	for(int ni : {0,1,2})
+	  {
+	    miny[ni]=min(miny[ni],pos[ni]);
+	    maxy[ni]=max(maxy[ni],pos[ni]);
+	  }
+      }
+  }
+  void Group::get_miny_maxy(vector<int>& MINY,vector<int>& MAXY)
+  {
+    if(miny[0] > maxy[0])
+      set_miny_maxy();
+    MINY=miny;
+    MAXY=maxy;
   }
 }

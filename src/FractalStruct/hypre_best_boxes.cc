@@ -24,20 +24,19 @@ namespace FractalSpace
 	  hypre_points_boxes(mem,hypre_points,spacing,VM,FF,SBoxes,SPoints);
 	  int nPoints=0;
 	  int nFakes=0;
-	  for(auto &SP : SPoints)
+	  for(auto SP : SPoints)
 	    {
-	      for(auto &p : SP)
+	      for(auto p : SP)
 		{
-		  nPoints++;
+		  // nPoints++;
 		  if(p == 0)
 		    nFakes++;
 		}
+	      nPoints+=SP.size();
 	    }
 	  MBoxes.push_back(SBoxes.size());
 	  MPoints.push_back(nPoints);
 	  MFakes.push_back(nFakes);
-	  SBoxes.clear();
-	  SPoints.clear();
 	}
     VOLbest=1;
     FILLbest=2.0;
