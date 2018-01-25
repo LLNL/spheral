@@ -27,7 +27,7 @@
 ***    Douglas Adams: "I thinks that's terribly significant".
 ***  Should died many years ago.
 ***  If all else fails read the instructions.
-***  !the_Messiah = a_naughty_boy.
+***  !the_Messiah == a_naughty_boy.
 ***  If it were easy, it would have been done long time ago.
 ***  You do not have to be faster than the bear. You just have
 ***   to be faster than the other guy running from the bear.
@@ -264,7 +264,7 @@ namespace FractalSpace
       }
     bool badd=test_tree(fractal_memory,fractal);
     assert(!badd);
-    clean_groups(fractal_memory);
+    // clean_groups(fractal_memory);
     FileFractal << "number of everything after the tree "  << " " << Group::number_groups << " " << Point::number_points << "\n";
     FileFractal << " Total number of particles after the tree " << Particle::number_particles << "\n";
     Fractal* p_fractal_ghost=new Fractal;
@@ -273,8 +273,8 @@ namespace FractalSpace
     if(!fractal_memory.start_up)
       {
 	Full_Stop(fractal_memory,41);
-	fractal_memory.global_level_max=find_global_level_max(fractal_memory,fractal);
-	small_exceptions(fractal_memory);
+	find_global_level_max(fractal_memory);
+	// small_exceptions(fractal_memory);
 	points_on_nodes(fractal_memory);
 	for(int level=1;level <= fractal_memory.global_level_max;level++)
 	  {
@@ -294,23 +294,33 @@ namespace FractalSpace
 	      }
 	    Full_Stop(fractal_memory,36);
 	    poisson_solver_struct(fractal,fractal_memory,level);
+	   // FileFractal << " Enter force A " << " " << level << " " << fractal_memory.all_groups[level].size() << endl;
+	   // FileFractal.flush();
 	    for(Group* pgroup : fractal_memory.all_groups[level])
 	      {
 		Group& group=*pgroup;
 		fractal.timing(-1,22);
+		// FileFractal << " Enter force a" << endl;
+		// FileFractal.flush();
 		force_at_point(group,fractal); 		   
 		fractal.timing(1,22);
 		if(fractal_memory.momentum_conserve)
 		  force_sum_particle(group,false);
 		fractal.timing(-1,23);
+		// FileFractal << " Enter force b " << endl;
+		// FileFractal.flush();
 		force_at_particle(group,fractal,fractal_memory.momentum_conserve);
 		if(fractal_memory.momentum_conserve)
 		  force_sum_particle(group,true);
 		group.set_done_group(true);
 		fractal.timing(1,23);
 	      }
+	   // FileFractal << " Enter force c " << endl;
+	   // FileFractal.flush();
 	    fractal.timing_lev(1,level);
 	  }
+	// FileFractal << " Enter force d " << endl;
+	// FileFractal.flush();
 	fractal.timing(1,47);
       }
     if(fractal_memory.momentum_conserve)

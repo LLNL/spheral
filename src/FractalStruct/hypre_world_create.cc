@@ -4,7 +4,7 @@
 namespace FractalSpace
 {
   void hypre_world_create(Fractal_Memory& mem,int level,vector <vector <int> >& SBoxes,
-			  bool buffer_groups)
+			  vector<vector<Point*>>& SPoints, bool buffer_groups)
   {
     static int _COUNTER=0;
     int RANK=-1;
@@ -12,7 +12,6 @@ namespace FractalSpace
     int FractalRank=mem.p_mess->FractalRank;
     int FractalNodes=mem.p_mess->FractalNodes;
     mem.p_mess->IHranks.assign(FractalNodes,-1);
-    // mem.p_mess->Hranks.clear();
     clean_vector(mem.p_mess->Hranks);
     mem.p_mess->IAmAHypreNode=!SBoxes.empty();
     if(!buffer_groups)
@@ -27,9 +26,18 @@ namespace FractalSpace
 	return;
       }
     mem.Touchy.clear();
-    int count=mem.p_mess->IAmAHypreNode ? 1:0;
+    int count=0;
+    for(auto sp : SPoints)
+      count+=sp.size();
     vector <int>counts(FractalNodes,0);
     mem.p_mess->How_Many_On_Nodes(count,counts);
+    int countB=SBoxes.size();
+    vector <int>countsB;
+    if(mem.hypre_load_balance)
+      {
+	countsB.resize(FractalNodes,0);
+	mem.p_mess->How_Many_On_Nodes(countB,countsB);
+      }
     for(int FR : mem.TouchWhichBoxes)
       {
 	if(counts[FR] > 0 && mem.p_mess->IAmAHypreNode)
@@ -45,6 +53,9 @@ namespace FractalSpace
 	  }
       }
     node_groups_struct(mem,counts);
+    // mem.p_mess->freenodes.clear();
+    if(mem.hypre_load_balance && !mem.p_mess->freenodes.empty())
+      use_freenodes(mem,counts,countsB);
     mem.p_mess->HypreGroupCreate(mem.p_mess->Hranks);
     _COUNTER++;
   }

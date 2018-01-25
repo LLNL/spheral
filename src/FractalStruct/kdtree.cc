@@ -71,7 +71,7 @@ namespace FractalSpace
 	// cerr << " LOAD NODES0 " << RANK << " " << nnodes << " " << fullnodes << " " << vol << " " << pPOINTS.size() << endl;
 	return;
       }
-    for(int ni=0;ni<2;ni++)
+    for(int ni : {0,1})
       if(rnode->kids[ni] == NULL)
 	{
 	  try
@@ -84,7 +84,7 @@ namespace FractalSpace
 	      exit(0);
 	    }
 	}
-    for(int corner=0;corner<2;corner++)
+    for(int corner : {0,1}) 
       {
 	rnode->kids[corner]->dir=2;
 	LoadKdTree(corner,rnode);
@@ -124,7 +124,7 @@ namespace FractalSpace
 	  {
 	    knode->ppoints.push_back(*itp);
 	    itp=pnode->ppoints.erase(itp);
-	    for(int ni=0;ni<3;ni++)
+	    for(int ni : {0,1,2}) 
 	      {
 		KBOXA[ni]=min(KBOXA[ni],pos[ni]);
 		KBOXB[ni]=max(KBOXB[ni],pos[ni]);
@@ -132,14 +132,12 @@ namespace FractalSpace
 	  }
       }
     int ni2=0;
-    for(int ni=0;ni<3;ni++)
+    for(int ni : {0,1,2}) 
       {
 	knode->box[ni2]=KBOXA[ni];
 	knode->box[ni2+1]=KBOXB[ni]+1;
 	ni2+=2;
       }
-    // knode->box[DIR2]=MINX;
-    // knode->box[DIR2+1]=MAXX+1;
     int vol=(knode->box[1]-knode->box[0]);
     vol*=(knode->box[3]-knode->box[2]);
     vol*=(knode->box[5]-knode->box[4]);
@@ -163,7 +161,7 @@ namespace FractalSpace
       }
     if(knode->full)
       return;
-    for(int ni=0;ni<2;ni++)
+    for(int ni : {0,1}) 
       if(knode->kids[ni] == NULL)
 	{
 	  try
@@ -176,7 +174,7 @@ namespace FractalSpace
 	      exit(0);
 	    }
 	}
-    for(int cornerb=0;cornerb<2;cornerb++)
+    for(int cornerb : {0,1}) 
       {
 	knode->kids[cornerb]->dir=(knode->dir+1)%3;
 	LoadKdTree(cornerb,knode);
@@ -192,14 +190,16 @@ namespace FractalSpace
     if(vol == pnode->ppoints.size())
       return;
     vector<int>pos(3);
-    array<int,3>ar3;
+    // array<int,3>ar3;
     std::map<array<int,3>,Point*,point_comp2> boxP;
-    std::pair<std::map<array<int,3>,Point*>::iterator,bool> ret;
+    // std::pair<std::map<array<int,3>,Point*>::iterator,bool> ret;
     for(auto pp : pnode->ppoints)
       {
-	pp->get_pos_point(pos);
-	std::move(pos.begin(),pos.end(),ar3.begin());
-	ret=boxP.insert(std::pair<array<int,3>,Point*>(ar3,pp));
+	// pp->get_pos_point(pos);
+	// std::move(pos.begin(),pos.end(),ar3.begin());
+	// ret=boxP.insert(std::pair<array<int,3>,Point*>(ar3,pp));
+	// auto ret=boxP.insert(make_pair(ar3,pp));
+	auto ret=boxP.insert(make_pair(pp->get_pos_point_a(),pp));
 	assert(ret.second);
       }
     if(RANKY)
@@ -215,14 +215,15 @@ namespace FractalSpace
 	    for(int nx=pnode->box[0];nx<pnode->box[1];nx++)
 	      {
 		int px=nx*spacing;
-		array<int,3>posa3={px,py,pz};
-		std::map<array<int,3>,Point*>::iterator bb=boxP.find(posa3);
-		if(bb == boxP.end())
-		  boxP[posa3]=pFAKE;
+		array<int,3>posa3{{px,py,pz}};
+		// std::map<array<int,3>,Point*>::iterator bb=boxP.find(posa3);
+		// if(bb == boxP.end())
+		if(boxP.find(posa3) == boxP.end())
+		   boxP[posa3]=pFAKE;
 	      }
 	  }
       }
-    for(auto &mP : boxP)
+    for(auto mP : boxP)
       pnode->ppoints.push_back(mP.second);
     if(RANKY)
       cerr << " FILLC " << vol << " " << VOLMIN << " " << FILLFACTOR << " " << pnode->ppoints.size() << "\n";
@@ -233,12 +234,11 @@ namespace FractalSpace
   }
   void KdTree::DestroyKdTree(KdTreeNode* pnode)
   {
-    if(pnode != NULL)
-      {
-	for(int k=0;k<2;k++)
-	  DestroyKdTree(pnode->kids[k]);
-	delete pnode;
-      }
+    if(pnode == NULL)
+      return;
+    DestroyKdTree(pnode->kids[0]);
+    DestroyKdTree(pnode->kids[1]);
+    delete pnode;
   }
   void KdTree::CollectBoxes(vector < vector<int> >& SBoxes)
   {
@@ -250,8 +250,8 @@ namespace FractalSpace
 	SBoxes.back()=rnode->box;
 	return;
       }
-    for(int k=0;k<2;k++)
-      CollectBoxes(SBoxes,rnode->kids[k]);
+    CollectBoxes(SBoxes,rnode->kids[0]);
+    CollectBoxes(SBoxes,rnode->kids[1]);
   }
   void KdTree::CollectBoxes(vector< vector<int> >& SBoxes,KdTreeNode* pnode)
   {
@@ -263,8 +263,8 @@ namespace FractalSpace
 	SBoxes.back()=pnode->box;
 	return;
       }
-    for(int k=0;k<2;k++)
-      CollectBoxes(SBoxes,pnode->kids[k]);
+    CollectBoxes(SBoxes,pnode->kids[0]);
+    CollectBoxes(SBoxes,pnode->kids[1]);
   }
   void KdTree::CollectPoints(vector < vector<Point*> >& SPoints)
   {
@@ -276,8 +276,8 @@ namespace FractalSpace
 	SPoints.back().assign(rnode->ppoints.begin(),rnode->ppoints.end());
 	return;
       }
-    for(int k=0;k<2;k++)
-      CollectPoints(SPoints,rnode->kids[k]);
+    CollectPoints(SPoints,rnode->kids[0]);
+    CollectPoints(SPoints,rnode->kids[1]);
   }
   void KdTree::CollectPoints(vector< vector<Point*> >& SPoints,KdTreeNode* pnode)
   {
@@ -289,8 +289,8 @@ namespace FractalSpace
 	SPoints.back().assign(pnode->ppoints.begin(),pnode->ppoints.end());
 	return;
       }
-    for(int k=0;k<2;k++)
-      CollectPoints(SPoints,pnode->kids[k]);
+    CollectPoints(SPoints,pnode->kids[0]);
+    CollectPoints(SPoints,pnode->kids[1]);
   }
   void KdTree::CollectBoxesPoints(vector < vector<int> >& SBoxes,vector < vector<Point*> >& SPoints)
   {
@@ -304,8 +304,8 @@ namespace FractalSpace
 	SPoints.back().assign(rnode->ppoints.begin(),rnode->ppoints.end());
 	return;
       }
-    for(int k=0;k<2;k++)
-      CollectBoxesPoints(SBoxes,SPoints,rnode->kids[k]);
+    CollectBoxesPoints(SBoxes,SPoints,rnode->kids[0]);
+    CollectBoxesPoints(SBoxes,SPoints,rnode->kids[1]);
   }
   void KdTree::CollectBoxesPoints(vector < vector<int> >& SBoxes,vector < vector<Point*> >& SPoints,KdTreeNode* pnode)
   {
@@ -319,8 +319,8 @@ namespace FractalSpace
 	SPoints.back().assign(pnode->ppoints.begin(),pnode->ppoints.end());
 	return;
       }
-    for(int k=0;k<2;k++)
-      CollectBoxesPoints(SBoxes,SPoints,pnode->kids[k]);
+    CollectBoxesPoints(SBoxes,SPoints,pnode->kids[0]);
+    CollectBoxesPoints(SBoxes,SPoints,pnode->kids[1]);
   }
   void KdTree::DisplayTree(int& TOT,int& NB)
   {
@@ -358,8 +358,8 @@ namespace FractalSpace
 	else
 	  if(vol > 0)
 	    assert(pnode->ppoints.size() < vol);
-	for(int k=0;k<2;k++)
-	  DisplayTree(pnode->kids[k],TOT,NB);
+	DisplayTree(pnode->kids[0],TOT,NB);
+	DisplayTree(pnode->kids[1],TOT,NB);
       }
   }
   void KdTree::Traverse()
@@ -369,8 +369,9 @@ namespace FractalSpace
   }
   void KdTree::Traverse(KdTreeNode* pnode)
   {
-    if(pnode != NULL)
-      for(int k=0;k<2;k++)
-	Traverse(pnode->kids[k]);
+    if(pnode == NULL)
+      return;
+    Traverse(pnode->kids[0]);
+    Traverse(pnode->kids[1]);
   }
 }

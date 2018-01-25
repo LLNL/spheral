@@ -205,7 +205,6 @@ namespace FractalSpace
 	      }
 	  }
       }
-    smallB=true;
     if(!smallB)
       move_small_boxes(mem,Boxes,SPoints,HRout);
     return true;

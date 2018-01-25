@@ -5,8 +5,9 @@ namespace FractalSpace
 {
   string Fractal::sim_parameters="cosmos_flat_lambda";
   //
-  template <class M> void fractal_memory_parameters(M& mem,int _inteL_,int _mulT_)
+  template <class M> void fractal_memory_parameters(M* pmem,const string _disK_,int _mulT_)
   {
+    M& mem=*pmem;
     int Ranky;
     MPI_Comm_rank(MPI_COMM_WORLD,&Ranky);
     mem.FractalNodes=mem.FractalNodes0*mem.FractalNodes1*mem.FractalNodes2;
@@ -14,9 +15,11 @@ namespace FractalSpace
     // For the others you should use my values for now.
     //    ofstream& FileFractal=mem.p_fractal->p_file->FileFractal;
     string sa="/p/lscratch";
-    string sb="d";
-    if(_inteL_ == 0)
-      sb="v";
+    string sb=_disK_;
+    // if(_inteL_ == 1)
+    //   sb="f";
+    // else if(_inteL_ > 1)
+    //   sb="v";
     string sc="/jensv/cosmo/";
     mem.BaseDirectory=sa+sb+sc;
     //    mem.BaseDirectory="/p/lscratchc/jensv/cosmo/";
@@ -27,7 +30,7 @@ namespace FractalSpace
 //     mem.BaseDirectory.append("/");
     //base directory
     mem.RUN="svendborg";
-    //directory name desriptor
+    //directory name descriptor
     mem.MPIrun=true;
     // Is this an MPI run.
     //    mem.FractalNodes0=4;
@@ -87,7 +90,7 @@ namespace FractalSpace
     mem.number_steps_total=906;
     //    mem.number_steps_total=8;
     // Total number of steps
-    mem.number_steps_out=50;
+    mem.number_steps_out=20;
     // Output how often
     mem.time_trial=true;
     mem.redshift_start=99.0;
@@ -238,5 +241,5 @@ namespace FractalSpace
 }
 namespace FractalSpace
 {
-  template void fractal_memory_parameters(Fractal_Memory& mem,int _inteL_,int _mulT_);
+  template void fractal_memory_parameters(Fractal_Memory* pmem,string _disK_,int _mulT_);
 }

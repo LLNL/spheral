@@ -13,13 +13,13 @@ namespace FractalSpace
     int FractalNodes0;
     int FractalNodes1;
     int FractalNodes2;
+    const int N63;
     int ROOTNODE;
     int FFTRank;
     int FFTNodes;
     int HypreRank;
     int HypreNodes;
-//     int RandomRank;
-//     int RandomNodes;
+    int mynumber;
     int MPI_SWITCH;
     int MPI_MAX_COMMS;
     long int number_particles_total;
@@ -31,6 +31,8 @@ namespace FractalSpace
     vector < vector <int> > BoxSL;
     vector < vector <bool> > counts_on_nodes;
     vector <bool> count_on_node;
+    vector<vector <int>> node_lists;
+    vector <int> freenodes;
     int glength;
     pint start_x;
     pint length_x;
@@ -75,10 +77,13 @@ namespace FractalSpace
     Mess():
       FractalRank(0),
       FractalNodes(1),
+      N63(-1),
+      ROOTNODE(0),
       FFTRank(0),
       FFTNodes(1234567),
       HypreRank(0),
       HypreNodes(0),
+      mynumber(-1),
       MPI_SWITCH(512),
       MPI_MAX_COMMS(4096),
       number_particles_total(-1),
@@ -104,9 +109,12 @@ namespace FractalSpace
       FractalNodes0(FR0),
       FractalNodes1(FR1),
       FractalNodes2(FR2),
+      N63(-1),
+      ROOTNODE(0),
       FFTNodes(FN),
       HypreRank(0),
       HypreNodes(0),
+      mynumber(-1),
       MPI_SWITCH(512),
       MPI_MAX_COMMS(4096),
       number_particles_total(-1),
@@ -135,8 +143,8 @@ namespace FractalSpace
 	  FractalRank0=FractalRank % FractalNodes0;
 	  FractalRank1=(FractalRank/FractalNodes0) % FractalNodes1;
 	  FractalRank2=FractalRank/(FractalNodes0*FractalNodes1);
-	  ROOTNODE=(FractalNodes0+FractalNodes0*FractalNodes1+FractalNodes)/2;
 	  FFTWStartup(grid_length,periodic);
+	  ROOTNODE=0;
 	  calc_fftw_Slices(grid_length,periodic);	
 	  calc_total_particles(NP);
 	  make_MPI_Groups();
@@ -153,9 +161,12 @@ namespace FractalSpace
     Mess(const bool& MR,const int& GR,const bool& PR,const int& NP,const int& FN,MPI_Comm& FW):
       FractalRank(0),
       FractalNodes(1),
+      ROOTNODE(0),
+      N63(-1),
       FFTNodes(FN),
       HypreRank(0),
       HypreNodes(0),
+      mynumber(-1),
       MPI_SWITCH(512),
       MPI_MAX_COMMS(4096),
       number_particles_total(-1),
