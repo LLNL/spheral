@@ -20,13 +20,12 @@ class ANEOS:
 
         # Namespace.
         Spheral = mod.add_cpp_namespace("Spheral")
-        Material = Spheral.add_cpp_namespace("Material")
         self.space = Spheral.add_cpp_namespace("SolidMaterial")
 
         for dim in self.dims:
             exec('''
-EquationOfState%(dim)id = findObject(Material, "EquationOfState%(dim)id")
-self.ANEOS%(dim)id = addObject(self.space, "ANEOS%(dim)id", parent=EquationOfState%(dim)id, allow_subclassing=True)
+SolidEquationOfState%(dim)id = findObject(self.space, "SolidEquationOfState%(dim)id")
+self.ANEOS%(dim)id = addObject(self.space, "ANEOS%(dim)id", parent=SolidEquationOfState%(dim)id, allow_subclassing=True)
 ''' % {"dim" : dim})
 
         return

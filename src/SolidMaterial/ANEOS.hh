@@ -12,7 +12,7 @@
 
 #include "boost/multi_array.hpp"
 
-#include "Material/EquationOfState.hh"
+#include "SolidMaterial/SolidEquationOfState.hh"
 
 // Forward declarations.
 namespace Spheral {
@@ -25,7 +25,7 @@ namespace Spheral {
 namespace SolidMaterial {
 
 template<typename Dimension>
-class ANEOS: public Material::EquationOfState<Dimension> {
+class ANEOS: public SolidEquationOfState<Dimension> {
 
 public:
   //--------------------------- Public Interface ---------------------------//

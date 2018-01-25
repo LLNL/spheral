@@ -22,7 +22,8 @@ extern "C" {
   void aneos_initialize_(char* filename, int* num, int* izetl);
   void call_aneos_(int* matnum, double* T, double* rho, 
                    double* P, double* E, double* S, double* CV, double* DPDT, double* DPDR, double* cs);
-  void get_aneos_atomicweight_(int* matnum, double* result);
+  double get_aneos_atomicweight_(int* matnum);
+  double get_aneos_referencedensity_(int* matnum);
 }
 
 namespace Spheral {
@@ -64,10 +65,13 @@ ANEOS(const int materialNumber,
       const double minimumPressure,
       const double maximumPressure,
       const Material::MaterialPressureMinType minPressureType):
-  Material::EquationOfState<Dimension>(constants,
-                                       minimumPressure,
-                                       maximumPressure,
-                                       minPressureType),
+  SolidEquationOfState<Dimension>(get_aneos_referencedensity_(const_cast<int*>(&materialNumber)),  // not in the right units yet!
+                                  0.0,                                           // dummy etamin
+                                  numeric_limits<double>::max(),                 // dummy etamax
+                                  constants,
+                                  minimumPressure,
+                                  maximumPressure,
+                                  minPressureType),
   mMaterialNumber(materialNumber),
   mNumRhoVals(numRhoVals),
   mNumTvals(numTvals),
@@ -104,7 +108,7 @@ ANEOS(const int materialNumber,
   // mTmax = log(mTmax);
   
   // Look up the atomic weight.
-  get_aneos_atomicweight_(&mMaterialNumber, &mAtomicWeight);
+  mAtomicWeight = get_aneos_atomicweight_(&mMaterialNumber);
   VERIFY2(mAtomicWeight > 0.0, 
           "ANEOS ERROR : bad atomic weight for material " << mMaterialNumber << " : " << mAtomicWeight);
 
@@ -120,6 +124,9 @@ ANEOS(const int materialNumber,
   mCVconv = mEconv/mTconv;
   mVelConv = lconv/tconv;
   mSconv = mEconv/(mconv*mTconv);
+
+  // Fix the reference density.
+  this->referenceDensity(this->referenceDensity() * mRhoConv);
 
   // Build our lookup table to find eps(rho, T).
   const double drho = (mRhoMax - mRhoMin)/(mNumRhoVals - 1);
