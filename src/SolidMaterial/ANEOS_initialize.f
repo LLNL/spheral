@@ -117,13 +117,13 @@ C
 C Use the stored ANEOS data to compute the atomic weight of the given material.
 C This has to be called after the initialization method above.
 C-------------------------------------------------------------------------------
-      subroutine get_ANEOS_atomicWeight(matnum, result)
+      function get_ANEOS_atomicWeight(matnum)
       
 C Terrible idea!
       IMPLICIT DOUBLE PRECISION (A-H,O-Z)
 
+      double precision get_ANEOS_atomicWeight
       integer matnum
-      double precision result
 
 C We'll use a common block to build a mapping from material numbers to offsets
 C to help us in call_ANEOS.
@@ -154,7 +154,56 @@ C Find the material number
       goto 110
 
  120  matoffset = 99*(i - 1)
-      result = ack(matoffset + 29)
+      get_ANEOS_atomicWeight = ack(matoffset + 29)
+      return
+      end
+
+C-------------------------------------------------------------------------------
+C get_ANEOS_referenceDensity
+C
+C Use the stored ANEOS data to compute the reference mass density of the given
+C  material.
+C This has to be called after the initialization method above.
+C-------------------------------------------------------------------------------
+      function get_ANEOS_referenceDensity(matnum)
+      
+C Terrible idea!
+      IMPLICIT DOUBLE PRECISION (A-H,O-Z)
+
+      double precision get_ANEOS_referenceDensity
+      integer matnum
+
+C We'll use a common block to build a mapping from material numbers to offsets
+C to help us in call_ANEOS.
+      integer maxmat
+      parameter (maxmat = 10)
+      integer matnums(maxmat)
+      common /Spheral_ANEOS_params/ matnums
+
+C ANEOS stuff
+      PARAMETER(NINPUT=48)      !NINPUT must be a multiple of 8!
+      COMMON /ANES/  ACK(99*MAXMAT),ZZS(30*MAXMAT),COT(30*MAXMAT)
+     1 ,FNI(30*MAXMAT),RCT(MAXMAT+1),TCT(MAXMAT+1),RSOL(100*MAXMAT)
+     2 ,RVAP(100*MAXMAT),TTWO(100*MAXMAT),SAVER(92),BOLTS,EIP(4370)
+     3 ,LOCSV(MAXMAT+1),LOCKP(MAXMAT+1),LOCKPL(MAXMAT+1),NOTRAD
+
+C Local variables.
+      integer i, matoffset
+
+C Find the material number
+      i = 0
+ 110  i = i + 1
+      if (matnums(i) .eq. matnum) goto 120
+      if (i .eq. maxmat) then
+         print *, "get_ANEOS_atomicWeight ERROR: unable to find ",
+     &        " material ", matnum
+         stop
+      end if
+      goto 110
+
+ 120  matoffset = 99*(i - 1)
+      get_ANEOS_referenceDensity = ack(matoffset + 11)
+      return
       end
 
 C-------------------------------------------------------------------------------
