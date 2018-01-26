@@ -1,3 +1,4 @@
+#!/usr/bin/env python
 #-------------------------------------------------------------------------------
 # RiemannSolution
 #
@@ -10,11 +11,12 @@
 # http://www.numeritek.com/numerica_software.html#freesample
 #-------------------------------------------------------------------------------
 from math import *
+import numpy as np
+import argparse
 
-double                // density, velocity, pressure, speed of sound
-    dl, ul, pl, cl,   // in left region
-    dr, ur, pr, cr;   // in right region
-
+#-------------------------------------------------------------------------------
+# The main function -- this is what you call from the outside.
+#-------------------------------------------------------------------------------
 def RiemannSolution(problem = "Sod",  # ("", "Sod", "Einfeldt", "Stationary_contact", "Slow_shock", "Slow_contact_shock", "LeBlanc")
                     n = 1000,         # number of points in evaluating exact solution
                     x0 = None,        # box min coordinate
@@ -27,7 +29,7 @@ def RiemannSolution(problem = "Sod",  # ("", "Sod", "Einfeldt", "Stationary_cont
                     pl = None,        # pressure (left state)
                     dr = None,        # density (right state)
                     vr = None,        # velocity (right state)
-                    pr = None)        # pressure (right state)
+                    pr = None):       # pressure (right state)
 
     assert problem or (x0 and x1 and out_time and xdiaph and gamma_gas and dl and vl and pl and dr and vr and pr)
 
@@ -73,7 +75,7 @@ def RiemannSolution(problem = "Sod",  # ("", "Sod", "Einfeldt", "Stationary_cont
     #          the PVRS, TRRS and TSRS approximate
     #          Riemann solvers. See Sect. 9.5 of Chapt. 9 of Ref. 1
     #---------------------------------------------------------------------------
-    def guessp:
+    def guessp():
         quser = 2.0
 
         # compute guess pressure from PVRS Riemann solver
@@ -84,7 +86,7 @@ def RiemannSolution(problem = "Sod",  # ("", "Sod", "Einfeldt", "Stationary_cont
         pmax = max(pl,  pr)
         qmax = pmax/pmin
 
-        if (qmax <= quser && (pmin <= ppv && ppv <= pmax)):
+        if (qmax <= quser and (pmin <= ppv and ppv <= pmax)):
             pm = ppv     # select PVRS Riemann solver
         else:
             if (ppv < pmin):
@@ -142,25 +144,25 @@ def RiemannSolution(problem = "Sod",  # ("", "Sod", "Einfeldt", "Stationary_cont
         i = 1
         change = 10.0*tolpre
         while i <= nriter and change > tolpre:
-            i += 1
             fl, fld = prefun(pold, dl, pl, cl)
             fr, frd = prefun(pold, dr, pr, cr)
             p = pold - (fl + fr + udiff)/(fld + frd)
             change = 2.0*abs((p - pold)/(p + pold))
-            print '\t', i, "\t\t" << change
+            print '\t', i, "\t\t", change
             if (p < 0.0):
                 p = tolpre
             pold = p
+            i += 1
         if (i > nriter):
             print "divergence in Newton-Raphson iteration"
 
         # compute velocity in star region
         u = 0.5*(vl + vr + fr - fl)
-        print ("----------------------------------------\n"
-               "     Pressure           Velocity\n"
-               "----------------------------------------\n"
-               "     ", p/pscale, "\t\t", u, '\n'
-               "----------------------------------------")
+        print "----------------------------------------\n" \
+              "     Pressure           Velocity\n"         \
+              "----------------------------------------\n" \
+              "     ", p/pscale, "\t\t", u, '\n'           \
+              "----------------------------------------"
         return p, u
 
     #---------------------------------------------------------------------------
@@ -185,17 +187,17 @@ def RiemannSolution(problem = "Sod",  # ("", "Sod", "Einfeldt", "Stationary_cont
                 else:
                     cml = cl*pow(pm/pl, g1)
                     stl = vm - cml
-                if (s > stl):
-                    # sampled point is star left state
-                    d = dl*pow(pm/pl, 1.0/gamma_gas)
-                    u = vm
-                    p = pm
-                else:
-                    # sampled point is inside left fan
-                    u = g5*(cl + g7*vl + s)
-                    c = g5*(cl + g7*(vl - s))
-                    d = dl*pow(c/cl, g4)
-                    p = pl*pow(c/cl, g3)
+                    if (s > stl):
+                        # sampled point is star left state
+                        d = dl*pow(pm/pl, 1.0/gamma_gas)
+                        u = vm
+                        p = pm
+                    else:
+                        # sampled point is inside left fan
+                        u = g5*(cl + g7*vl + s)
+                        c = g5*(cl + g7*(vl - s))
+                        d = dl*pow(c/cl, g4)
+                        p = pl*pow(c/cl, g3)
             else:
                 # left shock
                 pml = pm/pl
@@ -261,14 +263,124 @@ def RiemannSolution(problem = "Sod",  # ("", "Sod", "Einfeldt", "Stationary_cont
     dx = boxsize/n
 
     # complete solution at time out_time is found
-    with open(filename) as f:
-        for i in xrange(n):
-            xpos = x0 + (i - 0.5)*dx
-            s  = (xpos - xdiaph)/out_time
+    x = np.linspace(x0, x1, n)
+    d = np.empty(n)
+    v = np.empty(n)
+    p = np.empty(n)
+    eps = np.empty(n)
+    for i in xrange(n):
+        s  = (x[i] - xdiaph)/out_time
+        ds, vs, ps = sample(pm, vm, s)
+        d[i] = ds
+        v[i] = vs
+        p[i] = ps
+        eps[i] = ps/(g8*ds)
 
-            # solution at point (x,t) = (xpos-xdiaph, out_time) is found
-            ds, us, ps = sample(pm, vm, s)
+    return x, d, v, p, eps
 
-            # exact solution profiles are written to data file
-            f.write((5*"%20.17e     ") % (xpos, ds, us, ps, ps/ds/g8) + "\n")
-    return
+#-------------------------------------------------------------------------------
+# Provide a way to call this script as a standalone executable.
+#-------------------------------------------------------------------------------
+if __name__ == "__main__":
+    ap = argparse.ArgumentParser(description = "Compute the Riemann solution, with optional output to a file or plotted to the screen.")
+    ap.add_argument("--problem", 
+                    default = "Sod",
+                    help = """
+Use one of the canned Riemann initial conditions: (Sod, Einfeldt, Stationary_contact, Slow_shock, Slow_contact_shock, LeBlanc).
+If specified as the empty string "" (or None), the full state must be specified explicitly.""")
+    ap.add_argument("--n",
+                    default = 1000,
+                    help = "Number of points to generate in the solution.")
+    ap.add_argument("--x0", 
+                    default = None,
+                    help = "Minimum spatial coordinate in the tube.")
+    ap.add_argument("--x1", 
+                    default = None,
+                    help = "Maximum spatial coordinate in the tube.")
+    ap.add_argument("--xdiaph", 
+                    default = None,
+                    help = "Coordinate of the diaphragm.")
+    ap.add_argument("--gamma_gas",
+                    default = None,
+                    help = "Ratio of specific heats.")
+    ap.add_argument("--out_time", 
+                    default = None,
+                    help = "Solution time.")
+    ap.add_argument("--dl",
+                    default = None,
+                    help = "Initial density for left state.")
+    ap.add_argument("--vl",
+                    default = None,
+                    help = "Initial velocity for left state.")
+    ap.add_argument("--pl",
+                    default = None,
+                    help = "Initial pressure for left state.")
+    ap.add_argument("--dr",
+                    default = None,
+                    help = "Initial density for right state.")
+    ap.add_argument("--vr",
+                    default = None,
+                    help = "Initial velocity for right state.")
+    ap.add_argument("--pr",
+                    default = None,
+                    help = "Initial pressure for right state.")
+    ap.add_argument("--file",
+                    default = None,
+                    help = "Write profiles to given file.")
+    ap.add_argument("--noheader",
+                    action = "store_true",
+                    help = "Do not write a header at the top of the output file.")
+    ap.add_argument("--plot",
+                    action = "store_true",
+                    help = "Plot the profiles to the screen.")
+    args = ap.parse_args()
+    globals().update(vars(args))
+
+    # Compute the solution.
+    x, d, v, p, eps = RiemannSolution(problem = problem,
+                                      n = n,
+                                      x0 = x0,
+                                      x1 = x1,
+                                      xdiaph = xdiaph,
+                                      gamma_gas = gamma_gas,
+                                      out_time = out_time,
+                                      dl = dl,
+                                      vl = vl,
+                                      pl = pl,
+                                      dr = dr,
+                                      vr = vr,
+                                      pr = pr)
+
+    # Write the output to a text file.
+    if file:
+        with open(file, "w") as f:
+            # Write a header
+            if not noheader:
+                f.write(
+"""# Output from RiemannSolution using the arguments:
+#      problem = %(problem)s
+#            n = %(n)s
+#           x0 = %(x0)s
+#           x1 = %(x0)s
+#       xdiaph = %(x0)s
+#    gamma_gas = %(x0)s
+#     out_time = %(out_time)s
+#   dl, vl, pl = %(dl)s, %(vl)s, %(pl)s
+#   dr, vr, pr = %(dr)s, %(vr)s, %(pr)s
+#
+#            x                       rho                      vel                       P                        eps
+""" % {"problem" : problem,
+       "n"       : n,
+       "x0"      : x0,
+       "x1"      : x1,
+       "xdiaph"  : xdiaph,
+       "gamma_gas" : gamma_gas,
+       "out_time"  : out_time,
+       "dl"        : dl,
+       "vl"        : vl,
+       "pl"        : pl,
+       "dr"        : dr,
+       "vr"        : vr,
+       "pr"        : pr})
+            for xi, di, vi, pi, epsi in zip(x, d, v, p, eps):
+                f.write((5*"%20.17e     ") % (xi, di, vi, pi, epsi) + "\n")
