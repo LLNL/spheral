@@ -17,7 +17,7 @@ import argparse
 #-------------------------------------------------------------------------------
 # The main function -- this is what you call from the outside.
 #-------------------------------------------------------------------------------
-def RiemannSolution(problem = "Sod",  # ("", "Sod", "Einfeldt", "Stationary_contact", "Slow_shock", "Slow_contact_shock", "LeBlanc")
+def RiemannSolution(problem = "Sod",  # ("", "Sod", "123", "Stationary_contact", "Slow_shock", "Slow_contact_shock", "LeBlanc")
                     n = 1000,         # number of points in evaluating exact solution
                     x0 = None,        # box min coordinate
                     x1 = None,        # box max coordinate
@@ -286,7 +286,7 @@ if __name__ == "__main__":
     ap.add_argument("--problem", 
                     default = "Sod",
                     help = """
-Use one of the canned Riemann initial conditions: (Sod, Einfeldt, Stationary_contact, Slow_shock, Slow_contact_shock, LeBlanc).
+Use one of the canned Riemann initial conditions: (Sod, 123, Stationary_contact, Slow_shock, Slow_contact_shock, LeBlanc).
 If specified as the empty string "" (or None), the full state must be specified explicitly.""")
     ap.add_argument("--n",
                     default = 1000,
@@ -333,6 +333,10 @@ If specified as the empty string "" (or None), the full state must be specified 
     ap.add_argument("--plot",
                     action = "store_true",
                     help = "Plot the profiles to the screen.")
+    ap.add_argument("--plotsize",
+                    default = 10,
+                    type = float,
+                    help = "Set the size of the figure (in inches) when plotting.")
     args = ap.parse_args()
     globals().update(vars(args))
 
@@ -387,15 +391,15 @@ If specified as the empty string "" (or None), the full state must be specified 
 
     # Plot the results to the screen via matplotlib (if available)
     if plot:
-        try:
+        #try:
             import matplotlib.pyplot as plt
-            fig = plt.figure(figsize=(24,6))
-            axes = [0]*4
+            fig = plt.figure(figsize=(plotsize, plotsize))
+            axes = []
             for i, (q, label) in enumerate([(d, "Density"),
-                                          (v, "Velocity"),
-                                          (p, "Pressure"),
-                                          (eps, "Specific Thermal Energy")]):
-                axes[i] = fig.add_subplot(1, 4, i + 1)
+                                            (v, "Velocity"),
+                                            (p, "Pressure"),
+                                            (eps, "Specific Thermal Energy")]):
+                axes.append(fig.add_subplot(2, 2, i + 1))
                 plt.plot(x, q, linewidth=3)
                 plt.title(label)
                 qmin = min(q)
@@ -404,6 +408,6 @@ If specified as the empty string "" (or None), the full state must be specified 
                 axes[i].set_ylim(qmin - 0.1*qdiff, qmax + 0.1*qdiff)
             plt.show()
 
-        except:
-            print "ERROR: unable to import matplotlib for graphics."
-            pass
+        # except:
+        #     print "ERROR: unable to import matplotlib for graphics."
+        #     pass
