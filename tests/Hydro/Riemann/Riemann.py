@@ -2,7 +2,7 @@ import os, sys
 import shutil
 from SolidSpheral1d import *
 from SpheralTestUtilities import *
-from SodAnalyticSolution import *
+from RiemannSolution import *
 
 title("1-D hydro test -- a variety of Riemann shocktubes")
 
@@ -16,7 +16,7 @@ commandLine(
     nodeMatching = "equal_mass",     # ("equal_mass", "equal_volume")
 
     # Initial conditions
-    problem = "Sod",                 # ("", "Sod", "Einfeldt", "Stationary_contact", "Slow_shock", "Slow_contact_shock", "LeBlanc")
+    problem = "Sod",                 # ("", "Sod", "123", "leftwc", "2shock_collision", "Stationary_contact", "Slow_shock", "shock_contact_shock", "LeBlanc")
     rho1 = 1.0,
     rho2 = 0.25,
     P1 = 1.0,
@@ -92,19 +92,9 @@ commandLine(
 
 assert numNodeLists in (1, 2)
 
-# Problem specific initial conditions
-if problem.lower() == "sod":
-    x1, goalTime, rho1, v1, P1, rho2, v2, P2 = 0.5, 0.25, 1.0, 0.0, 1.0, 0.125, 0.0, 0.1
-elif problem.lower() == "einfeldt":
-    x1, goalTime, rho1, v1, P1, rho2, v2, P2 = 0.5, 0.15, 1.0, -2.0, 0.4, 1.0, 2.0, 0.4
-elif problem.lower() == "stationary_contact":
-    x1, goalTime, rho1, v1, P1, rho2, v2, P2 = 0.8, 0.012, 1.0, -19.59745, 1e3, 1.0, -19.59745, 1e-2
-elif problem.lower() == "slow_shock":
-    x1, goalTime, rho1, v1, P1, rho2, v2, P2 = 0.5, 1.0, 3.857143, -0.810631, 10.333333, 1.0, -3.44, 1.0
-elif problem.lower() == "shock_contact_shock":
-    x1, goalTime, rho1, v1, P1, rho2, v2, P2 = 0.5, 0.3, 1.0, 0.5, 1.0, 1.25, -0.5, 1.0
-elif problem.lower() == "leblanc":
-    x1, goalTime, rho1, v1, P1, rho2, v2, P2 = 0.3, 0.5, 1.0, 0.0, 2.0/3.0*10**0.125, 1e-2, 0.0, 2.0/3.0*1e-10
+if problem:
+    assert problem.lower() in Riemann_packaged_problems
+    x0, x2, x1, gammaGas, goalTime, rho1, v1, P1, rho2, v2, P2 = Riemann_packaged_problems[problem.lower()]
 else:
     problem = "user"
 
@@ -337,18 +327,6 @@ if Cl:
     q.Clinear = Cl
 if Cq:
     q.Cquadratic = Cq
-if linearInExpansion:
-    q.linearInExpansion = linearInExpansion
-if quadraticInExpansion:
-    q.quadraticInExpansion = quadraticInExpansion
-if Qlimiter:
-    q.limiter = Qlimiter
-if epsilon2:
-    q.epsilon2 = epsilon2
-if etaCritFrac:
-    q.etaCritFrac = etaCritFrac
-if etaFoldFrac:
-    q.etaFoldFrac = etaFoldFrac
 output("q")
 output("q.Cl")
 output("q.Cq")
@@ -356,35 +334,6 @@ output("q.limiter")
 output("q.epsilon2")
 output("q.linearInExpansion")
 output("q.quadraticInExpansion")
-
-#-------------------------------------------------------------------------------
-# Construct the MMRV physics object.
-#-------------------------------------------------------------------------------
-if boolReduceViscosity:
-    evolveReducingViscosityMultiplier = MorrisMonaghanReducingViscosity(q,nh,nh,aMin,aMax)
-    packages.append(evolveReducingViscosityMultiplier)
-elif boolCullenViscosity:
-    evolveCullenViscosityMultiplier = CullenDehnenViscosity(q,WT,alphMax,alphMin,betaC,betaD,betaE,fKern,boolHopkinsCorrection)
-    packages.append(evolveCullenViscosityMultiplier)
-
-#-------------------------------------------------------------------------------
-# Construct the Artificial Conduction physics object.
-#-------------------------------------------------------------------------------
-if bArtificialConduction:
-    #q.reducingViscosityCorrection = True
-    ArtyCond = ArtificialConduction(WT,arCondAlpha)
-    
-    packages.append(ArtyCond)
-
-#-------------------------------------------------------------------------------
-# Optionally construct an hourglass control object.
-#-------------------------------------------------------------------------------
-if hourglass:
-    hg = hourglass(WT, hourglassOrder, hourglassLimiter)
-    output("hg")
-    output("hg.order")
-    output("hg.limiter")
-    packages.append(hg)
 
 #-------------------------------------------------------------------------------
 # Create boundary conditions.
@@ -432,60 +381,6 @@ control = SpheralController(integrator, WT,
 output("control")
 
 #-------------------------------------------------------------------------------
-# If requested, reset the intial energies and densities.
-#-------------------------------------------------------------------------------
-if sumInitialDensity and control.totalSteps == 0:
-    packages = integrator.physicsPackages()
-    state = State(db, packages)
-    derivs = StateDerivatives(db, packages)
-    integrator.setGhostNodes()
-    integrator.preStepInitialize(state, derivs)
-    cm = db.connectivityMap()
-    pos = db.fluidPosition
-    mass = db.fluidMass
-    H = db.fluidHfield
-    rho = db.fluidMassDensity
-    computeSPHSumMassDensity(cm, WT, True, pos, mass, H, rho)
-    for nodes in nodeSet:
-        pos = nodes.positions()
-        eps = nodes.specificThermalEnergy()
-        rho = nodes.massDensity()
-        for i in xrange(nodes.numInternalNodes):
-            eps[i] = specificEnergy(pos[i].x, rho[i])
-
-#-------------------------------------------------------------------------------
-# If we want to use refinement, build the refinemnt algorithm.
-#-------------------------------------------------------------------------------
-class SelectNodes:
-    def __init__(self):
-        return
-    def prepareForSelection(self, dataBase):
-        return
-    def selectNodes(self, nodeList):
-        if control.totalSteps == 50 and nodeList.name == nodes1.name:
-            return range(nodes1.numInternalNodes)
-        else:
-            return []
-
-class SelectNodes2:
-    def __init__(self):
-        return
-    def prepareForSelection(self, dataBase):
-        return
-    def selectNodes(self, nodeList):
-        if control.totalSteps == 20:
-            return range(nodeList.numInternalNodes)
-        else:
-            return []
-
-if useRefinement:
-    from AdaptiveRefinement import *
-    select = SelectNodes()
-    refine = SplitNodes1d()
-    package = AdaptiveRefinement(db, select, refine, control)
-    control.appendPeriodicWork(package.refineNodes, 1)
-
-#-------------------------------------------------------------------------------
 # Advance to the end time.
 #-------------------------------------------------------------------------------
 if not steps is None:
@@ -513,6 +408,8 @@ dx1 = (x1 - x0)/nx1
 dx2 = (x2 - x1)/nx2
 h1 = 1.0/(nPerh*dx1)
 h2 = 1.0/(nPerh*dx2)
+answer = RiemannSolution(
+
 answer = SodSolution(nPoints=nx1 + nx2,
                      gamma = gammaGas,
                      rho1 = rho1,
