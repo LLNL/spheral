@@ -19,6 +19,7 @@ import argparse
 #-------------------------------------------------------------------------------
 def RiemannSolution(problem = "Sod",  # ("", "Sod", "123", "Stationary_contact", "Slow_shock", "Slow_contact_shock", "LeBlanc")
                     n = 1000,         # number of points in evaluating exact solution
+                    x = None,         # provide the positions for the solution
                     x0 = None,        # box min coordinate
                     x1 = None,        # box max coordinate
                     xdiaph = None,    # position of diaphragm xdiaph \in [x0, x1]
@@ -27,9 +28,11 @@ def RiemannSolution(problem = "Sod",  # ("", "Sod", "123", "Stationary_contact",
                     dl = None,        # density (left state)
                     vl = None,        # velocity (left state)
                     pl = None,        # pressure (left state)
+                    hl = None,        # smoothing scale (left state)
                     dr = None,        # density (right state)
                     vr = None,        # velocity (right state)
-                    pr = None):       # pressure (right state)
+                    pr = None,        # pressure (right state)
+                    hr = None):       # smoothing scale (right state)
 
     assert problem or (x0 and x1 and out_time and xdiaph and gamma_gas and dl and vl and pl and dr and vr and pr)
 
@@ -73,6 +76,21 @@ def RiemannSolution(problem = "Sod",  # ("", "Sod", "123", "Stationary_contact",
         if pr is None:
             pr = _pr
 
+    # Sampling positions
+    if x is None:
+        assert n > 0
+        assert x1 > x0
+        x = np.linspace(x0, x1, n)
+    else:
+        n = len(x)
+
+    # Did we get the initial (left, right) h?
+    if hl is None:
+        hl = x[1] - x[0]
+    if hr is None:
+        hr = x[-1] - x[-2]
+    assert hl > 0 and hr > 0
+
     # compute gamma related constants
     g1 = (gamma_gas - 1.0)/(2.0*gamma_gas)
     g2 = (gamma_gas + 1.0)/(2.0*gamma_gas)
@@ -86,8 +104,6 @@ def RiemannSolution(problem = "Sod",  # ("", "Sod", "123", "Stationary_contact",
     # compute sound speeds
     cl = sqrt(gamma_gas*pl/dl)
     cr = sqrt(gamma_gas*pr/dr)
-
-    boxsize = x1 - x0
 
     #---------------------------------------------------------------------------
     # purpose: to provide a guessed value for pressure
@@ -191,7 +207,7 @@ def RiemannSolution(problem = "Sod",  # ("", "Sod", "123", "Stationary_contact",
     #          pattern. Pressure pm and velocity vm in the
     #          star region are known. Sampling is performed
     #          in terms of the 'speed' s = x/t. Sampled
-    #          values are d, u, p
+    #          values are d, v, p
     #---------------------------------------------------------------------------
     def sample(pm, vm, s):
 
@@ -203,22 +219,25 @@ def RiemannSolution(problem = "Sod",  # ("", "Sod", "123", "Stationary_contact",
                 if (s <= shl):
                     # sampled point is left data state
                     d = dl
-                    u = vl
+                    v = vl
                     p = pl
+                    h = hl
                 else:
                     cml = cl*pow(pm/pl, g1)
                     stl = vm - cml
                     if (s > stl):
                         # sampled point is star left state
                         d = dl*pow(pm/pl, 1.0/gamma_gas)
-                        u = vm
+                        v = vm
                         p = pm
+                        h = hl*dl/d
                     else:
                         # sampled point is inside left fan
-                        u = g5*(cl + g7*vl + s)
+                        v = g5*(cl + g7*vl + s)
                         c = g5*(cl + g7*(vl - s))
                         d = dl*pow(c/cl, g4)
                         p = pl*pow(c/cl, g3)
+                        h = hl*dl/d
             else:
                 # left shock
                 pml = pm/pl
@@ -226,13 +245,15 @@ def RiemannSolution(problem = "Sod",  # ("", "Sod", "123", "Stationary_contact",
                 if (s <= sl):
                     # sampled point is left data state
                     d = dl
-                    u = vl
+                    v = vl
                     p = pl
+                    h = hl
                 else:
                     # sampled point is star left state
                     d = dl*(pml + g6)/(pml*g6 + 1.0)
-                    u = vm
+                    v = vm
                     p = pm
+                    h = hl*dl/d
         else:
             # sampling point lies to the right of the contact discontinuity
             if (pm > pr):
@@ -242,36 +263,41 @@ def RiemannSolution(problem = "Sod",  # ("", "Sod", "123", "Stationary_contact",
                 if (s >= sr):
                     # sampled point is right data state
                     d = dr
-                    u = vr
+                    v = vr
                     p = pr
+                    h = hr
                 else:
                     # sampled point is star right state
                     d = dr*(pmr + g6)/(pmr*g6 + 1.0)
-                    u = vm
+                    v = vm
                     p = pm
+                    h = hr*dr/d
             else:
                 # right rarefaction
                 shr = vr + cr
                 if (s >= shr):
                     # sampled point is right data state
                     d = dr
-                    u = vr
+                    v = vr
                     p = pr
+                    h = hr
                 else:
                     cmr = cr*pow(pm/pr, g1)
                     str = vm + cmr
                     if (s <= str):
                         # sampled point is star right state
                         d = dr*pow(pm/pr, 1.0/gamma_gas)
-                        u = vm
+                        v = vm
                         p = pm
+                        h = hr*dr/d
                     else:
                         # sampled point is inside left fan
-                        u = g5*(-cr + g7*vr + s)
+                        v = g5*(-cr + g7*vr + s)
                         c = g5*(cr - g7*(vr - s))
                         d = dr*pow(c/cr, g4)
                         p = pr*pow(c/cr, g3)
-        return d, u, p
+                        h = hr*dr/d
+        return d, v, p, h
 
 
     # the pressure positivity condition is tested for
@@ -281,23 +307,25 @@ def RiemannSolution(problem = "Sod",  # ("", "Sod", "123", "Stationary_contact",
 
     # exact solution for pressure and velocity in star region is found
     pm, vm = starpu(1.0)
-    dx = boxsize/n
 
     # complete solution at time out_time is found
-    x = np.linspace(x0, x1, n)
     d = np.empty(n)
     v = np.empty(n)
     p = np.empty(n)
     eps = np.empty(n)
+    A = np.empty(n)
+    h = np.empty(n)
     for i in xrange(n):
         s  = (x[i] - xdiaph)/out_time
-        ds, vs, ps = sample(pm, vm, s)
+        ds, vs, ps, hs = sample(pm, vm, s)
         d[i] = ds
         v[i] = vs
         p[i] = ps
         eps[i] = ps/(g8*ds)
+        A[i] = ps/pow(ds, gamma_gas)
+        h[i] = hs
 
-    return x, d, v, p, eps
+    return x, d, v, p, eps, A, h
 
 #-------------------------------------------------------------------------------
 # Provide a way to call this script as a standalone executable.
@@ -345,6 +373,10 @@ If specified as the empty string "" (or None), the full state must be specified 
                     default = None,
                     type = float,
                     help = "Initial pressure for left state.")
+    ap.add_argument("--hl",
+                    default = None,
+                    type = float,
+                    help = "Initial smoothing scale for left state.")
     ap.add_argument("--dr",
                     default = None,
                     type = float,
@@ -357,6 +389,10 @@ If specified as the empty string "" (or None), the full state must be specified 
                     default = None,
                     type = float,
                     help = "Initial pressure for right state.")
+    ap.add_argument("--hr",
+                    default = None,
+                    type = float,
+                    help = "Initial smoothing scale for right state.")
     ap.add_argument("--file",
                     default = None,
                     help = "Write profiles to given file.")
@@ -374,19 +410,21 @@ If specified as the empty string "" (or None), the full state must be specified 
     globals().update(vars(args))
 
     # Compute the solution.
-    x, d, v, p, eps = RiemannSolution(problem = problem,
-                                      n = n,
-                                      x0 = x0,
-                                      x1 = x1,
-                                      xdiaph = xdiaph,
-                                      gamma_gas = gamma_gas,
-                                      out_time = out_time,
-                                      dl = dl,
-                                      vl = vl,
-                                      pl = pl,
-                                      dr = dr,
-                                      vr = vr,
-                                      pr = pr)
+    x, d, v, p, eps, A, h = RiemannSolution(problem = problem,
+                                            n = n,
+                                            x0 = x0,
+                                            x1 = x1,
+                                            xdiaph = xdiaph,
+                                            gamma_gas = gamma_gas,
+                                            out_time = out_time,
+                                            dl = dl,
+                                            vl = vl,
+                                            pl = pl,
+                                            hl = hl,
+                                            dr = dr,
+                                            vr = vr,
+                                            pr = pr,
+                                            hr = hr)
 
     # Write the output to a text file.
     if file:
@@ -395,17 +433,17 @@ If specified as the empty string "" (or None), the full state must be specified 
             if not noheader:
                 f.write(
 """# Output from RiemannSolution using the arguments:
-#      problem = %(problem)s
-#            n = %(n)s
-#           x0 = %(x0)s
-#           x1 = %(x0)s
-#       xdiaph = %(x0)s
-#    gamma_gas = %(x0)s
-#     out_time = %(out_time)s
-#   dl, vl, pl = %(dl)s, %(vl)s, %(pl)s
-#   dr, vr, pr = %(dr)s, %(vr)s, %(pr)s
+#          problem = %(problem)s
+#                n = %(n)s
+#               x0 = %(x0)s
+#               x1 = %(x0)s
+#           xdiaph = %(x0)s
+#        gamma_gas = %(x0)s
+#         out_time = %(out_time)s
+#   dl, vl, pl, hl = %(dl)s, %(vl)s, %(pl)s, %(hl)s
+#       dr, vr, pr = %(dr)s, %(vr)s, %(pr)s, %(hr)s
 #
-#            x                       rho                      vel                       P                        eps
+#            x                       rho                      vel                       P                        eps                       A                       h
 """ % {"problem" : problem,
        "n"       : n,
        "x0"      : x0,
@@ -416,23 +454,27 @@ If specified as the empty string "" (or None), the full state must be specified 
        "dl"        : dl,
        "vl"        : vl,
        "pl"        : pl,
+       "hl"        : hl,
        "dr"        : dr,
        "vr"        : vr,
-       "pr"        : pr})
-            for xi, di, vi, pi, epsi in zip(x, d, v, p, eps):
-                f.write((5*"%20.17e     ") % (xi, di, vi, pi, epsi) + "\n")
+       "pr"        : pr,
+       "hr"        : hr})
+            for xi, di, vi, pi, epsi, Ai, hi in zip(x, d, v, p, eps, A, h):
+                f.write((7*"%20.17e     ") % (xi, di, vi, pi, epsi, Ai, hi) + "\n")
 
     # Plot the results to the screen via matplotlib (if available)
     if plot:
-        #try:
+        try:
             import matplotlib.pyplot as plt
-            fig = plt.figure(figsize=(plotsize, plotsize))
+            fig = plt.figure(figsize=(plotsize, 2.0/3.0*plotsize))
             axes = []
             for i, (q, label) in enumerate([(d, "Density"),
                                             (v, "Velocity"),
                                             (p, "Pressure"),
-                                            (eps, "Specific Thermal Energy")]):
-                axes.append(fig.add_subplot(2, 2, i + 1))
+                                            (eps, "Specific Thermal Energy"),
+                                            (A, "Entropy"),
+                                            (h, "Smoothing scale")]):
+                axes.append(fig.add_subplot(2, 3, i + 1))
                 plt.plot(x, q, linewidth=3)
                 plt.title(label)
                 qmin = min(q)
@@ -441,6 +483,6 @@ If specified as the empty string "" (or None), the full state must be specified 
                 axes[i].set_ylim(qmin - 0.1*qdiff, qmax + 0.1*qdiff)
             plt.show()
 
-        # except:
-        #     print "ERROR: unable to import matplotlib for graphics."
-        #     pass
+        except:
+            print "ERROR: unable to import matplotlib for graphics."
+            pass
