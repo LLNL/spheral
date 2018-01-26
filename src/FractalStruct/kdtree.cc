@@ -18,7 +18,7 @@ namespace FractalSpace
     FILLFACTOR(2.0)
   {
     RANK=-1;
-    MPI_Comm_rank(MPI_COMM_WORLD,&RANK);
+    MPI_Comm_rank(Fractal_Memory::FRACTAL_UNIVERSE,&RANK);
     RANKY=RANK==-21;
   }
   KdTree::~KdTree()

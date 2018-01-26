@@ -7,17 +7,20 @@
 int main(int argc, char* argv[])
 {
   using namespace FractalSpace;
-  MPI_Init(NULL,NULL);
+  int knights;
+  MPI_Initialized(&knights);
+  if(!knights)
+    MPI_Init(NULL,NULL);
+  Fractal_Memory::FRACTAL_UNIVERSE=MPI_COMM_WORLD;
+  assert(Fractal_Memory::FRACTAL_UNIVERSE != MPI_COMM_NULL);
   int FRN;
-  MPI_Comm_size(MPI_COMM_WORLD,&FRN);
+  MPI_Comm_size(Fractal_Memory::FRACTAL_UNIVERSE,&FRN);
   int Ranky;
-  MPI_Comm_rank(MPI_COMM_WORLD,&Ranky);
+  MPI_Comm_rank(Fractal_Memory::FRACTAL_UNIVERSE,&Ranky);
   Mess::IAMROOT=Ranky == 0;
-  // int _inteL_=0;
   string _disK_="d";
   if(argc >= 2)
     _disK_=argv[1];
-    // _inteL_=atoi(argv[1]);
   int dims[]={0,0,0};
   int GRL=256;
   if(argc >= 3)
@@ -79,10 +82,6 @@ int main(int argc, char* argv[])
   double HypreTolerance=1.0e-7;
   string sa="/p/lscratch";
   string sb=_disK_;
-  // if(_inteL_=1)
-  //   sb="f";
-  // else if(_inteL_ > 1)
-  //   sb="v";
   string sc="/jensv/galaxy/";
   string BaseDirectory=sa+sb+sc;
   string RunIdentifier="NerdsRule";
@@ -153,12 +152,27 @@ int main(int argc, char* argv[])
   make_me_a_galaxy(FractalRank,NumberParticles,total_mass,masses,G,posx,posy,posz,velx,vely,velz);
   //  ofstream& FFM=PFM->p_file->FileFractalMemory;
   //  FFM << " info " << NumberParticles << " " << m << " " << total_mass << " " << PFM->time << " " << PFM->step_length << "\n";
+    // if(Mess::IAMROOT)
+    //   {
+    // 	cerr << " AAA " << endl;
+    // 	cerr.flush();
+    //   }
   FILE* PFFM=PFM->p_file->PFFractalMemory;
+  // if(Mess::IAMROOT)
+  //   {
+  //     cerr << " BBB " << endl;
+  //     cerr.flush();
+  //   }
   fprintf(PFFM," info %d %d %13.4E %13.4E %10.2E %10.2E \n",TotalNumberParticles,NumberParticles,m,total_mass,PFM->time,PFM->step_length);
   //  PFM->balance=0; ///////////////// 
   //  PFM->number_steps_total=100; //////////////
   for(int step=0;step<PFM->number_steps_total;step++)
     {
+      // if(Mess::IAMROOT)
+      // 	{
+      // 	  cerr << " CCC " << endl;
+      // 	  cerr.flush();
+      // 	}
       xmini=xmin;
       xmaxy=xmax;
       shrink_cube(SHRINK,xmin,xmax,PFM,posx,posy,posz,NumberParticles,xmini,xmaxy);
