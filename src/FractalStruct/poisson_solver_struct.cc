@@ -19,10 +19,27 @@ namespace FractalSpace
     VOLA[1].resize(20);
     FILLA[0].resize(20);
     FILLA[1].resize(20);
+    //
+    // vector<vector<int>> WorldRanks;
+    // vector<vector<int>> LocalGroups;
+    // vector<vector<int>> FreeNodes;
+    // vector<bool> IAmIn;
+    // double tsa=-mem.p_mess->Clock();
+    // super_groups(mem,mem.all_groups[level],level,WorldRanks,LocalGroups,
+    // 		 FreeNodes,IAmIn);
+    // tsa+=mem.p_mess->Clock();
+    // FHT << " SUPER timing " << tsa << "\n";
+    // WorldRanks.clear();
+    // LocalGroups.clear();
+    // FreeNodes.clear();
+    // clean_vector(IAmIn);
+    //
     double time0,time1,time2,time3,time4,time5,time6,time7,time8;
     int spacing=Misc::pow(2,fractal.get_level_max()-level);
     for(int ni=0;ni<2;ni++)
       {
+	FHT << " POISSON SOLVER ENTER " << mem.steps << " " << level << " " << ni << "\n";
+	FHT.flush();
 	mem.p_mess->IAmAHypreNode=mem.p_mess->count_on_node[2*level+ni];
 
 	bool doit=false;
@@ -56,8 +73,8 @@ namespace FractalSpace
 		VOLA[ni][level]=VOLMIN;
 		FILLA[ni][level]=FILLFACTOR;
 	      }
-	    FHT << " PUZZLED " << _COUNTERA << " " << ni << " " << level << " " << VOLA[ni][level] ;
-	    FHT << " " << FILLA[ni][level] << "\n";
+	    // FHT << " PUZZLED " << _COUNTERA << " " << ni << " " << level << " " << VOLA[ni][level] ;
+	    // FHT << " " << FILLA[ni][level] << "\n";
 	    hypre_points_boxes(mem,hypre_points,spacing,VOLA[ni][level],FILLA[ni][level],SBoxes,SPoints);
 	    box_stats(mem,level,ni,SBoxes,SPoints);
 	  }
@@ -88,6 +105,8 @@ namespace FractalSpace
 	    FHT << " " << time1-time0 << " " << time2-time1 << " " << time3-time2 << " " << time5-time4 << " " << time6-time5 <<  " " << time8-time7 << " " << tt << "\n";
 	  }
 	_COUNTER++;
+	FHT << " POISSON SOLVER EXIT " << mem.steps << " " << level << " " << ni << "\n";
+	FHT.flush();
       }
     if(level < LEV)
       _COUNTERA++;

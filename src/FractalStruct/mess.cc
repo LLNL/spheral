@@ -10,7 +10,7 @@ namespace FractalSpace
     MPI_Initialized(&knights);
     if(!knights)
       MPI_Init(NULL,NULL);
-    FractalWorld=MPI_COMM_WORLD;
+    FractalWorld=Fractal_Memory::FRACTAL_UNIVERSE;
     FFTWorld=FractalWorld;
     HypreWorld=MPI_COMM_NULL;
     MPI_Comm_group(FractalWorld,&FractalGroup);
@@ -28,9 +28,10 @@ namespace FractalSpace
     MPI_Initialized(&knights);
     if(!knights)
       MPI_Init(NULL,NULL);
+    FractalWorld=Fractal_Memory::FRACTAL_UNIVERSE;
     int dims[]={FR0,FR1,FR2};
     int periods[]={PR,PR,PR};
-    MPI_Cart_create(MPI_COMM_WORLD,3,dims,periods,true,&FractalWorld);
+    MPI_Cart_create(Fractal_Memory::FRACTAL_UNIVERSE,3,dims,periods,true,&FractalWorld);
     FFTWorld=FractalWorld;
     HypreWorld=MPI_COMM_NULL;
     MPI_Comm_group(FractalWorld,&FractalGroup);

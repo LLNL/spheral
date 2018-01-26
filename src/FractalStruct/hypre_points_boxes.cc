@@ -11,16 +11,14 @@ namespace FractalSpace
     // ofstream& FHT=mem.p_file->DUMPS;
     const int SBstart=SBoxes.size();
     // int RANK=-1;
-    // MPI_Comm_rank(MPI_COMM_WORLD,&RANK);
+    // MPI_Comm_rank(Fractal_Memory::FRACTAL_UNIVERSE,&RANK);
     // bool RANKY=RANK==21;
-    int MAXY=Misc::pow(2,29);
-    int MINY=-Misc::pow(2,29);
+    const int MAXY=Misc::pow(2,29);
+    const int MINY=-MAXY;
     for(auto hp : hypre_points)
       {
-	vector <int> BOX(6);
+	vector <int> BOX({{MAXY,MINY,MAXY,MINY,MAXY,MINY}});
 	vector <int> pos(3);
-	for(int B : {0,1,2,3,4,5})
-	  BOX[B]=B%2 == 0 ? MAXY:MINY;
 	for(auto p : hp)
 	  {
 	    p->get_pos_point(pos);

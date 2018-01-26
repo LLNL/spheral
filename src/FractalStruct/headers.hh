@@ -188,6 +188,11 @@ namespace FractalSpace
   void super_groups(Fractal_Memory& mem,vector <Group*>& groups,const int level,
 		    vector<vector<int>>& WorldRanks,
 		    vector<vector<int>>& LocalGroups,
+		    vector<vector<int>>& FreeNodes,
+		    vector<bool>& IAmIn);
+  void super_groups(Fractal_Memory& mem,vector <Group*>& groups,const int level,
+		    vector<vector<int>>& WorldRanks,
+		    vector<vector<int>>& LocalGroups,
 		    vector<bool>& IAmIn);
   template <class GO_AWAY> void swapvector(vector<GO_AWAY>& die);
   template <class GO_AWAY> void swapvector(vector<GO_AWAY>& die,int how_big);

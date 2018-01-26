@@ -158,6 +158,7 @@ namespace FractalSpace
     Fractal* p_fractal;
     Mess* p_mess;
     File* p_file;
+    static MPI_Comm FRACTAL_UNIVERSE;
     Fractal_Memory():
       //
       // default values
@@ -269,7 +270,7 @@ namespace FractalSpace
       split_particles= force_max > 0.0;
       xmin.assign(3,0.0);
       xmax.assign(3,1.0);
-      //
+    //
     }
     ~Fractal_Memory()
     {
