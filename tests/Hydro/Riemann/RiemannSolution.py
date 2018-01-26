@@ -33,7 +33,7 @@ def RiemannSolution(problem = "Sod",  # ("", "Sod", "123", "Stationary_contact",
 
     assert problem or (x0 and x1 and out_time and xdiaph and gamma_gas and dl and vl and pl and dr and vr and pr)
 
-    # Check for one of the prepackaged test cases.
+    # The prepackaged test cases.
     twothirds = 2.0/3.0
     leblanc1 = twothirds*1e-1
     leblanc2 = twothirds*1e-10
@@ -46,11 +46,32 @@ def RiemannSolution(problem = "Sod",  # ("", "Sod", "123", "Stationary_contact",
                          "shock_contact_shock" : (0.0, 1.0, 0.5, 1.4, 0.3, 1.0, 0.5, 1.0, 1.25, -0.5, 1.0),                          # TEST 7 (Shock-Contact-Shock)
                          "leblanc"             : (0.0, 1.0, 0.3, 1.4, 0.5, 1.0, 0.0, leblanc1, 0.01, 0.0, leblanc2),                 # TEST 8 (LeBlanc)
                          }
+    # Get the ICs.
     if problem:
         assert problem.lower() in packaged_problems
-        x0, x1, xdiaph, gamma_gas, out_time, dl, vl, pl, dr, vr, pr = packaged_problems[problem.lower()]
-    else:
-        assert dl
+        _x0, _x1, _xdiaph, _gamma_gas, _out_time, _dl, _vl, _pl, _dr, _vr, _pr = packaged_problems[problem.lower()]
+        if x0 is None:
+            x0 = _x0
+        if x1 is None:
+            x1 = _x1
+        if xdiaph is None:
+            xdiaph = _xdiaph
+        if gamma_gas is None:
+            gamma_gas = _gamma_gas
+        if out_time is None:
+            out_time = _out_time
+        if dl is None:
+            dl = _dl
+        if vl is None:
+            vl = _vl
+        if pl is None:
+            pl = _pl
+        if dr is None:
+            dr = _dr
+        if vr is None:
+            vr = _vr
+        if pr is None:
+            pr = _pr
 
     # compute gamma related constants
     g1 = (gamma_gas - 1.0)/(2.0*gamma_gas)
@@ -69,7 +90,7 @@ def RiemannSolution(problem = "Sod",  # ("", "Sod", "123", "Stationary_contact",
     boxsize = x1 - x0
 
     #---------------------------------------------------------------------------
-    # pvrpose: to provide a guessed value for pressure
+    # purpose: to provide a guessed value for pressure
     #          pm in the Star Region. The choice is made
     #          according to adaptive Riemann solver using
     #          the PVRS, TRRS and TSRS approximate
@@ -290,39 +311,51 @@ Use one of the canned Riemann initial conditions: (Sod, 123, Stationary_contact,
 If specified as the empty string "" (or None), the full state must be specified explicitly.""")
     ap.add_argument("--n",
                     default = 1000,
+                    type = int,
                     help = "Number of points to generate in the solution.")
     ap.add_argument("--x0", 
                     default = None,
+                    type = float,
                     help = "Minimum spatial coordinate in the tube.")
     ap.add_argument("--x1", 
                     default = None,
+                    type = float,
                     help = "Maximum spatial coordinate in the tube.")
     ap.add_argument("--xdiaph", 
                     default = None,
+                    type = float,
                     help = "Coordinate of the diaphragm.")
     ap.add_argument("--gamma_gas",
                     default = None,
+                    type = float,
                     help = "Ratio of specific heats.")
     ap.add_argument("--out_time", 
                     default = None,
+                    type = float,
                     help = "Solution time.")
     ap.add_argument("--dl",
                     default = None,
+                    type = float,
                     help = "Initial density for left state.")
     ap.add_argument("--vl",
                     default = None,
+                    type = float,
                     help = "Initial velocity for left state.")
     ap.add_argument("--pl",
                     default = None,
+                    type = float,
                     help = "Initial pressure for left state.")
     ap.add_argument("--dr",
                     default = None,
+                    type = float,
                     help = "Initial density for right state.")
     ap.add_argument("--vr",
                     default = None,
+                    type = float,
                     help = "Initial velocity for right state.")
     ap.add_argument("--pr",
                     default = None,
+                    type = float,
                     help = "Initial pressure for right state.")
     ap.add_argument("--file",
                     default = None,
