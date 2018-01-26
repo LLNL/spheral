@@ -384,3 +384,26 @@ If specified as the empty string "" (or None), the full state must be specified 
        "pr"        : pr})
             for xi, di, vi, pi, epsi in zip(x, d, v, p, eps):
                 f.write((5*"%20.17e     ") % (xi, di, vi, pi, epsi) + "\n")
+
+    # Plot the results to the screen via matplotlib (if available)
+    if plot:
+        try:
+            import matplotlib.pyplot as plt
+            fig = plt.figure(figsize=(24,6))
+            axes = [0]*4
+            for i, (q, label) in enumerate([(d, "Density"),
+                                          (v, "Velocity"),
+                                          (p, "Pressure"),
+                                          (eps, "Specific Thermal Energy")]):
+                axes[i] = fig.add_subplot(1, 4, i + 1)
+                plt.plot(x, q, linewidth=3)
+                plt.title(label)
+                qmin = min(q)
+                qmax = max(q)
+                qdiff = qmax - qmin
+                axes[i].set_ylim(qmin - 0.1*qdiff, qmax + 0.1*qdiff)
+            plt.show()
+
+        except:
+            print "ERROR: unable to import matplotlib for graphics."
+            pass
