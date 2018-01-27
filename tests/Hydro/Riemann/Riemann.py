@@ -67,7 +67,7 @@ commandLine(
     # Smoothing scale
     nPerh = 1.35,
     hmin = 1e-10,
-    hmax = 1.0,
+    hmax = 10.0,
 
     # Time integration
     IntegratorConstructor = CheapSynchronousRK2Integrator,
@@ -340,14 +340,15 @@ output("q.quadraticInExpansion")
 #-------------------------------------------------------------------------------
 # Create boundary conditions.
 #-------------------------------------------------------------------------------
-xPlane0 = Plane(Vector(x0), Vector( 1.0))
-xPlane1 = Plane(Vector(x2), Vector(-1.0))
-xbc0 = ReflectingBoundary(xPlane0)
-xbc1 = ReflectingBoundary(xPlane1)
+if v1 >= 0.0 and v2 <= 0.0:
+    xPlane0 = Plane(Vector(x0), Vector( 1.0))
+    xPlane1 = Plane(Vector(x2), Vector(-1.0))
+    xbc0 = ReflectingBoundary(xPlane0)
+    xbc1 = ReflectingBoundary(xPlane1)
 
-for p in packages:
-    p.appendBoundary(xbc0)
-    p.appendBoundary(xbc1)
+    for p in packages:
+        p.appendBoundary(xbc0)
+        p.appendBoundary(xbc1)
 
 #-------------------------------------------------------------------------------
 # Construct an integrator, and add the one physics package.
