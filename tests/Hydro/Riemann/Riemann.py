@@ -464,13 +464,14 @@ if graphics:
                              title = "Analytic")
     csPlot.replot(csAnsData)
 
-    plots = [(rhoPlot, "Sod-planar-rho.png"),
-             (velPlot, "Sod-planar-vel.png"),
-             (epsPlot, "Sod-planar-eps.png"),
-             (PPlot, "Sod-planar-P.png"),
-             (HPlot, "Sod-planar-h.png"),
-             (csPlot, "Sod-planar-cs.png"),
-             (APlot, "Sod-planar-entropy.png")]
+    suffix = "-%s-%s.png" % (problem, hydroname)
+    plots = [(rhoPlot, "Sod-planar-rho" + suffix),
+             (velPlot, "Sod-planar-vel" + suffix),
+             (epsPlot, "Sod-planar-eps" + suffix),
+             (PPlot, "Sod-planar-P" + suffix),
+             (HPlot, "Sod-planar-h" + suffix),
+             (csPlot, "Sod-planar-cs" + suffix),
+             (APlot, "Sod-planar-entropy" + suffix)]
     
     if crksph:
         volPlot = plotFieldList(hydro.volume(), 
@@ -491,20 +492,23 @@ if graphics:
                                  plotStyle = "points",
                                  plotGhosts = True,
                                  colorNodeLists = False)
-        plots += [(volPlot, "Sod-planar-vol.png"),
-                   (aplot, "Sod-planar-ACRK.png"),
-                   (bplot, "Sod-planar-BCRK.png"),
-                   (splot, "Sod-planar-surfacePoint.png"),
-                   (voidplot, "Sod-planar-voidPoint.png")]
+        plots += [(volPlot, "Sod-planar-vol" + suffix),
+                   (aplot, "Sod-planar-ACRK" + suffix),
+                   (bplot, "Sod-planar-BCRK" + suffix),
+                   (splot, "Sod-planar-surfacePoint" + suffix),
+                   (voidplot, "Sod-planar-voidPoint" + suffix)]
     
     viscPlot = plotFieldList(hydro.maxViscousPressure(),
                              winTitle = "max(rho^2 Piij)",
                              colorNodeLists = False)
-    plots.append((viscPlot, "Sod-planar-viscosity.png"))
+    plots.append((viscPlot, "Sod-planar-viscosity" + suffix))
     
     # Make hardcopies of the plots.
     for p, filename in plots:
+        p("set xrange [%g:%g]" % (x0, x2))
+        p.refresh()
         p.hardcopy(os.path.join(dataDir, filename), terminal="png")
+    pE.hardcopy(os.path.join(dataDir, "Sod-planar-E" + suffix), terminal="png")
 
 print "Energy conservation: original=%g, final=%g, error=%g" % (control.conserve.EHistory[0],
                                                                 control.conserve.EHistory[-1],
