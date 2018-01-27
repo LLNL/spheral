@@ -26,6 +26,7 @@ commandLine(
     x0 = -0.5,
     x1 = 0.0,
     x2 = 0.5,
+    hsmooth = 0.0,                   # if >0, smooths intial discontinuity
 
     # Gamma-law gas 
     gammaGas = 5.0/3.0,
@@ -64,6 +65,7 @@ commandLine(
     Cq = None,
 
     # Smoothing scale
+    nPerh = 1.35,
     hmin = 1e-10,
     hmax = 1.0,
 
@@ -252,7 +254,7 @@ for nodes in nodeSet:
     vel = nodes.velocity()
     for i in xrange(nodes.numInternalNodes):
         eps[i] = specificEnergy(pos[i].x, rho[i])
-        vel[i].x = velocity_initial(pos[i].x)
+        vel[i].x = vel_initial(pos[i].x)
 
 #-------------------------------------------------------------------------------
 # Construct a DataBase to hold our node list
@@ -359,16 +361,12 @@ if dtMin:
     integrator.dtMin = dtMin
 if dtMax:
     integrator.dtMax = dtMax
-integrator.rigorousBoundaries = rigorousBoundaries
 integrator.verbose = dtverbose
 output("integrator")
 output("integrator.havePhysicsPackage(hydro)")
-if hourglass:
-    output("integrator.havePhysicsPackage(hg)")
 output("integrator.lastDt")
 output("integrator.dtMin")
 output("integrator.dtMax")
-output("integrator.rigorousBoundaries")
 
 #-------------------------------------------------------------------------------
 # Make the problem controller.
@@ -408,19 +406,19 @@ dx1 = (x1 - x0)/nx1
 dx2 = (x2 - x1)/nx2
 h1 = 1.0/(nPerh*dx1)
 h2 = 1.0/(nPerh*dx2)
-answer = RiemannSolution(
-
-answer = SodSolution(nPoints=nx1 + nx2,
-                     gamma = gammaGas,
-                     rho1 = rho1,
-                     P1 = P1,
-                     rho2 = rho2,
-                     P2 = P2,
-                     x0 = x0,
-                     x1 = x1,
-                     x2 = x2,
-                     h1 = 1.0/h1,
-                     h2 = 1.0/h2)
+answer = RiemannSolution(problem = problem,
+                         x0 = x0,
+                         x1 = x2,
+                         xdiaph = x1,
+                         gamma_gas = gammaGas,
+                         dl = rho1,
+                         vl = v1,
+                         pl = P1,
+                         hl = 1.0/h1,
+                         dr = rho2,
+                         vr = v2,
+                         pr = P2,
+                         hr = 1.0/h2)
 
 #cs = db.newFluidScalarFieldList(0.0, "sound speed")
 #db.fluidSoundSpeed(cs)
@@ -441,8 +439,7 @@ A = [Pi/rhoi**gammaGas for (Pi, rhoi) in zip(P, rho)]
 
 # The analytic solution for the simulated entropy.
 xprof = [x.x for x in createList(db.fluidPosition)]
-xans, vans, uans, rhoans, Pans, hans = answer.solution(control.time(), xprof)
-Aans = [Pi/rhoi**gammaGas for (Pi, rhoi) in zip(Pans,  rhoans)]
+xans, vans, uans, rhoans, Pans, Aans, hans = answer.solution(control.time(), xprof)
 csAns = [sqrt(gammaGas*Pi/rhoi) for (Pi, rhoi) in zip(Pans,  rhoans)]
 
 if graphics:
@@ -450,8 +447,14 @@ if graphics:
     from SpheralGnuPlotUtilities import *
 
     rhoPlot, velPlot, epsPlot, PPlot, HPlot = plotState(db, plotStyle="lines")
+    APlot = generateNewGnuPlot()
+    Adata = Gnuplot.Data(xprof, A,
+                         with_ = "lines",
+                         title = "P/rho^\gamma",
+                         inline = True)
+    APlot.replot(Adata)
     plotAnswer(answer, control.time(),
-               rhoPlot, velPlot, epsPlot, PPlot, HPlot)
+               rhoPlot, velPlot, epsPlot, PPlot, APlot, HPlot)
     pE = plotEHistory(control.conserve)
 
     csPlot = plotFieldList(cs, winTitle="Sound speed")
@@ -460,25 +463,13 @@ if graphics:
                              title = "Analytic")
     csPlot.replot(csAnsData)
 
-    Aplot = generateNewGnuPlot()
-    Adata = Gnuplot.Data(xprof, A,
-                         with_ = "lines",
-                         title = "P/rho^\gamma",
-                         inline = True)
-    AansData = Gnuplot.Data(xprof, Aans,
-                         with_ = "lines",
-                         title = "Solution",
-                         inline = True)
-    Aplot.replot(Adata)
-    Aplot.replot(AansData)
-
     plots = [(rhoPlot, "Sod-planar-rho.png"),
              (velPlot, "Sod-planar-vel.png"),
              (epsPlot, "Sod-planar-eps.png"),
              (PPlot, "Sod-planar-P.png"),
              (HPlot, "Sod-planar-h.png"),
              (csPlot, "Sod-planar-cs.png"),
-             (Aplot, "Sod-planar-entropy.png")]
+             (APlot, "Sod-planar-entropy.png")]
     
     if crksph:
         volPlot = plotFieldList(hydro.volume(), 
