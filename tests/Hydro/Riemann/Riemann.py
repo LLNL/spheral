@@ -447,10 +447,10 @@ if graphics:
     import Gnuplot
     from SpheralGnuPlotUtilities import *
 
-    rhoPlot, velPlot, epsPlot, PPlot, HPlot = plotState(db, plotStyle="lines")
+    rhoPlot, velPlot, epsPlot, PPlot, HPlot = plotState(db, plotStyle="linespoints")
     APlot = generateNewGnuPlot()
     Adata = Gnuplot.Data(xprof, A,
-                         with_ = "lines",
+                         with_ = "linespoints",
                          title = "P/rho^\gamma",
                          inline = True)
     APlot.replot(Adata)
@@ -476,21 +476,25 @@ if graphics:
     if crksph:
         volPlot = plotFieldList(hydro.volume(), 
                                 winTitle = "volume",
+                                plotStyle = "linespoints",
                                 colorNodeLists = False, plotGhosts = False)
         aplot = plotFieldList(hydro.A(),
                               winTitle = "A",
+                                plotStyle = "linespoints",
                               colorNodeLists = False)
         bplot = plotFieldList(hydro.B(),
                               yFunction = "%s.x",
                               winTitle = "B",
+                              plotStyle = "linespoints",
                               colorNodeLists = False)
         splot = plotFieldList(hydro.surfacePoint(),
                               winTitle = "surface point",
+                              plotStyle = "linespoints",
                               colorNodeLists = False)
         voidplot = plotFieldList(hydro.voidPoint(),
                                  winTitle = "void point",
-                                 plotStyle = "points",
                                  plotGhosts = True,
+                                 plotStyle = "linespoints",
                                  colorNodeLists = False)
         plots += [(volPlot, "Sod-planar-vol" + suffix),
                    (aplot, "Sod-planar-ACRK" + suffix),
@@ -500,6 +504,7 @@ if graphics:
     
     viscPlot = plotFieldList(hydro.maxViscousPressure(),
                              winTitle = "max(rho^2 Piij)",
+                             plotStyle = "linespoints",
                              colorNodeLists = False)
     plots.append((viscPlot, "Sod-planar-viscosity" + suffix))
     
