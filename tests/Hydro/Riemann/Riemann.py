@@ -501,19 +501,6 @@ if graphics:
                              colorNodeLists = False)
     plots.append((viscPlot, "Sod-planar-viscosity.png"))
     
-    if boolCullenViscosity:
-        cullAlphaPlot = plotFieldList(q.ClMultiplier(),
-                                      winTitle = "Cullen alpha")
-        cullDalphaPlot = plotFieldList(evolveCullenViscosityMultiplier.DalphaDt(),
-                                       winTitle = "Cullen DalphaDt")
-        plots += [(cullAlphaPlot, "Sod-planar-Cullen-alpha.png"),
-                  (cullDalphaPlot, "Sod-planar-Cullen-DalphaDt.png")]
-
-    if boolReduceViscosity:
-        alphaPlot = plotFieldList(q.ClMultiplier(),
-                                  winTitle = "rvAlpha",
-                                  colorNodeLists = False)
-
     # Make hardcopies of the plots.
     for p, filename in plots:
         p.hardcopy(os.path.join(dataDir, filename), terminal="png")
