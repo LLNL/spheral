@@ -16,7 +16,7 @@ import argparse
 
 # Several standard tests listed as (x0, x1, xdiaph, gamma_gas, out_time, dl, vl, pl, dr, vr, pr
 Riemann_packaged_problems = {
-    "sod"                 : (0.0, 1.0, 0.3, 1.4, 0.20, 1.0, 0.0, 1.0, 0.125, 0.0, 0.1),                        # TEST 1 (Modified Sod)
+    "sod"                 : (0.0, 1.0, 0.5, 1.4, 0.20, 1.0, 0.0, 1.0, 0.125, 0.0, 0.1),                         # TEST 1 (Modified Sod)
     "123"                 : (0.0, 1.0, 0.5, 1.4, 0.15, 1.0, -2.0, 0.4, 1.0, 2.0, 0.4),                          # TEST 2 (123 problem)
     "leftwc"              : (0.0, 1.0, 0.5, 1.4, 0.012, 1.0, 0.0, 1000.0, 1.0, 0.0, 0.01),                      # TEST 3 (Left Woodward & Colella)
     "2shock_collision"    : (0.0, 1.0, 0.4, 1.4, 0.035, 5.99924, 19.5975, 460.894, 5.99242, -6.19633, 46.0950), # TEST 4 (Collision of 2 shocks)
@@ -118,7 +118,7 @@ class RiemannSolution:
 
         # Solution time
         assert time or self.out_time
-        if time:
+        if not time is None:
             out_time = time
         else:
             out_time = self.out_time
@@ -131,8 +131,6 @@ class RiemannSolution:
         else:
             n = len(x)
 
-        print out_time, x
-        
         # Did we get the initial (left, right) h?
         if hl is None:
             hl = x[1] - x[0]
@@ -365,7 +363,7 @@ class RiemannSolution:
         A = np.empty(n)
         h = np.empty(n)
         for i in xrange(n):
-            s  = (x[i] - xdiaph)/out_time
+            s  = (x[i] - xdiaph)*out_time/(out_time**2 + 1e-20)
             ds, vs, ps, hs = sample(pm, vm, s)
             d[i] = ds
             v[i] = vs
