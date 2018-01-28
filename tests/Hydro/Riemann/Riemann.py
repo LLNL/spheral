@@ -458,7 +458,7 @@ if graphics:
                rhoPlot, velPlot, epsPlot, PPlot, APlot, HPlot)
     pE = plotEHistory(control.conserve)
 
-    csPlot = plotFieldList(cs, winTitle="Sound speed")
+    csPlot = plotFieldList(cs, plotStyle="linespoints", winTitle="Sound speed")
     csAnsData = Gnuplot.Data(xans, csAns, 
                              with_ = "lines",
                              title = "Analytic")
