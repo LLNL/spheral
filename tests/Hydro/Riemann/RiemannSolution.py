@@ -14,16 +14,17 @@ from math import *
 import numpy as np
 import argparse
 
-# Several standard tests listed as (x0, x1, xdiaph, gamma_gas, out_time, dl, vl, pl, dr, vr, pr
+# Several standard tests listed as (x0, x1, xdiaph, gamma_gas, out_time, dl, vl, pl, dr, vr, pr)
+# The bounds are chosen so that a good comparison can be made in the range x \in [0,1]
 Riemann_packaged_problems = {
-    "sod"                 : (0.0, 1.0, 0.5, 1.4, 0.20, 1.0, 0.0, 1.0, 0.125, 0.0, 0.1),                         # TEST 1 (Modified Sod)
-    "123"                 : (0.0, 1.0, 0.5, 1.4, 0.15, 1.0, -2.0, 0.4, 1.0, 2.0, 0.4),                          # TEST 2 (123 problem)
-    "leftwc"              : (0.0, 1.0, 0.5, 1.4, 0.012, 1.0, 0.0, 1000.0, 1.0, 0.0, 0.01),                      # TEST 3 (Left Woodward & Colella)
-    "2shock_collision"    : (0.0, 1.0, 0.4, 1.4, 0.035, 5.99924, 19.5975, 460.894, 5.99242, -6.19633, 46.0950), # TEST 4 (Collision of 2 shocks)
-    "stationary_contact"  : (0.0, 1.0, 0.8, 1.4, 0.012, 1.0, -19.59745, 1000.0, 1.0, -19.59745, 0.01),          # TEST 5 (Stationary contact)
-    "slow_shock"          : (0.0, 1.0, 0.5, 1.4, 1.0, 3.857143, -0.810631, 10.33333, 1.0, -3.44, 1.0),          # TEST 6 (Slow shock)
-    "shock_contact_shock" : (0.0, 1.0, 0.5, 1.4, 0.3, 1.0, 0.5, 1.0, 1.25, -0.5, 1.0),                          # TEST 7 (Shock-Contact-Shock)
-    "leblanc"             : (0.0, 1.0, 0.3, 1.4, 0.5, 1.0, 0.0, 2.0e-1/3.0, 0.01, 0.0, 2.0e-10/3.0),            # TEST 8 (LeBlanc)
+    "sod"                 : ( 0.0, 1.0, 0.5, 1.4, 0.20, 1.0, 0.0, 1.0, 0.125, 0.0, 0.1),                         # TEST 1 (Modified Sod)
+    "123"                 : ( 0.0, 1.0, 0.5, 1.4, 0.15, 1.0, -2.0, 0.4, 1.0, 2.0, 0.4),                          # TEST 2 (123 problem)
+    "leftwc"              : ( 0.0, 1.0, 0.5, 1.4, 0.012, 1.0, 0.0, 1000.0, 1.0, 0.0, 0.01),                      # TEST 3 (Left Woodward & Colella)
+    "2shock_collision"    : (-1.0, 2.0, 0.4, 1.4, 0.035, 5.99924, 19.5975, 460.894, 5.99242, -6.19633, 46.0950), # TEST 4 (Collision of 2 shocks)
+    "stationary_contact"  : (-0.5, 1.5, 0.8, 1.4, 0.012, 1.0, -19.59745, 1000.0, 1.0, -19.59745, 0.01),          # TEST 5 (Stationary contact)
+    "slow_shock"          : (-2.0, 8.0, 0.5, 1.4, 1.0, 3.857143, -0.810631, 10.33333, 1.0, -3.44, 1.0),          # TEST 6 (Slow shock)
+    "shock_contact_shock" : (-1.0, 2.0, 0.5, 1.4, 0.3, 1.0, 0.5, 1.0, 1.25, -0.5, 1.0),                          # TEST 7 (Shock-Contact-Shock)
+    "leblanc"             : ( 0.0, 1.0, 0.3, 1.4, 0.5, 1.0, 0.0, 2.0e-1/3.0, 0.01, 0.0, 2.0e-10/3.0),            # TEST 8 (LeBlanc)
 }
 
 #-------------------------------------------------------------------------------
@@ -117,7 +118,6 @@ class RiemannSolution:
         hr = self.hr
 
         # Solution time
-        assert time or self.out_time
         if not time is None:
             out_time = time
         else:
@@ -363,7 +363,7 @@ class RiemannSolution:
         A = np.empty(n)
         h = np.empty(n)
         for i in xrange(n):
-            s  = (x[i] - xdiaph)*out_time/(out_time**2 + 1e-20)
+            s = (x[i] - xdiaph)/max(1e-10, out_time)
             ds, vs, ps, hs = sample(pm, vm, s)
             d[i] = ds
             v[i] = vs
