@@ -101,6 +101,7 @@ else:
     problem = "user"
 
 # Node resolution
+nx = int((x2 - x0)*nx + 0.49)
 assert nodeMatching in ("equal_mass", "equal_volume")
 if nodeMatching == "equal_mass":
     w1 = (x1 - x0)*rho1
@@ -340,7 +341,7 @@ output("q.quadraticInExpansion")
 #-------------------------------------------------------------------------------
 # Create boundary conditions.
 #-------------------------------------------------------------------------------
-if v1 >= 0.0 and v2 <= 0.0:
+if v1 == 0.0 and v2 == 0.0:
     xPlane0 = Plane(Vector(x0), Vector( 1.0))
     xPlane1 = Plane(Vector(x2), Vector(-1.0))
     xbc0 = ReflectingBoundary(xPlane0)
@@ -464,7 +465,7 @@ if graphics:
                              title = "Analytic")
     csPlot.replot(csAnsData)
 
-    suffix = "-%s-%s.png" % (problem, hydroname)
+    suffix = "-%s-%s-compatibleEnergy=%s-densityUpdate=%s.png" % (problem, hydroname, compatibleEnergy, densityUpdate)
     plots = [(rhoPlot, "Sod-planar-rho" + suffix),
              (velPlot, "Sod-planar-vel" + suffix),
              (epsPlot, "Sod-planar-eps" + suffix),
@@ -510,7 +511,7 @@ if graphics:
     
     # Make hardcopies of the plots.
     for p, filename in plots:
-        p("set xrange [%g:%g]" % (x0, x2))
+        p("set xrange [%g:%g]" % (0.0, 1.0))
         p.refresh()
         p.hardcopy(os.path.join(dataDir, filename), terminal="png")
     pE.hardcopy(os.path.join(dataDir, "Sod-planar-E" + suffix), terminal="png")
