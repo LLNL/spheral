@@ -3,6 +3,7 @@ import shutil
 from SolidSpheral1d import *
 from SpheralTestUtilities import *
 from RiemannSolution import *
+from DistributeNodes import distributeNodesInRange1d
 
 title("1-D hydro test -- a variety of Riemann shocktubes")
 
@@ -70,12 +71,12 @@ commandLine(
     hmax = 10.0,
 
     # Time integration
-    IntegratorConstructor = CheapSynchronousRK2Integrator,
+    IntegratorConstructor = VerletIntegrator,
     dtverbose = False,
     steps = None,
     goalTime = 0.15,
     dt = 1e-6,
-    dtMin = 1.0e-6,
+    dtMin = 1.0e-7,
     dtMax = 0.1,
     dtGrowth = 2.0,
     maxSteps = None,
@@ -135,6 +136,7 @@ dataDir = os.path.join(dataDirBase + problem,
                        "numNodeLists=%i" % numNodeLists,
                        hydroname,
                        "nPerh=%f" % nPerh,
+                       "densityUpdate=%s" % densityUpdate,
                        "compatibleEnergy=%s" % compatibleEnergy,
                        "evolveTotalEnergy=%s" % evolveTotalEnergy,
                        "correctionOrder=%s" % correctionOrder,
@@ -212,7 +214,7 @@ def vel_initial(xi):
 
 def specificEnergy(xi, rhoi):
     if hfold > 0.0:
-        Pi = P1 + (P2 - P1)/(1.0 + exp((-xi - x1)/hfold))
+        Pi = P1 + (P2 - P1)/(1.0 + exp(-(xi - x1)/hfold))
     elif xi <= x1:
         Pi = P1
     else:
@@ -222,28 +224,12 @@ def specificEnergy(xi, rhoi):
 #-------------------------------------------------------------------------------
 # Set the node properties.
 #-------------------------------------------------------------------------------
-from GenerateNodeProfile import GenerateNodeProfile1d
-from VoronoiDistributeNodes import distributeNodes1d
 if numNodeLists == 1:
-    gen = GenerateNodeProfile1d(nx = nx1 + nx2,
-                                rho = rho_initial,
-                                xmin = x0,
-                                xmax = x2,
-                                nNodePerh = nPerh)
-    distributeNodes1d((nodes1, gen))
+    distributeNodesInRange1d([(nodes1, nx1, rho1, (x0, x1)),
+                              (nodes1, nx2, rho2, (x1, x2))])
 else:
-    gen1 = GenerateNodeProfile1d(nx = nx1,
-                                 rho = rho_initial,
-                                 xmin = x0,
-                                 xmax = x1,
-                                 nNodePerh = nPerh)
-    gen2 = GenerateNodeProfile1d(nx = nx2,
-                                 rho = rho_initial,
-                                 xmin = x1,
-                                 xmax = x2,
-                                 nNodePerh = nPerh)
-    distributeNodes1d((nodes1, gen1),
-                      (nodes2, gen2))
+    distributeNodesInRange1d([(nodes1, nx1, rho1, (x0, x1)),
+                              (nodes2, nx2, rho2, (x1, x2))])
 output("nodes1.numNodes")
 output("nodes2.numNodes")
 
