@@ -246,7 +246,7 @@ AC_ARG_WITH(numpy,
 ],
 [
     AC_MSG_RESULT(no)
-    EXTRATHIRDPARTYTARGETS+=" .numpy-1.10.4.date .gnuplot-py-1.8.date"
+    EXTRATHIRDPARTYTARGETS+=" .numpy.date .gnuplot-py-1.8.date"
 ])
 
 # -----------------------------------------------------------------

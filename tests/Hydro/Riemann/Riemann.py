@@ -431,16 +431,19 @@ xans, vans, uans, rhoans, Pans, Aans, hans = answer.solution(control.time(), xpr
 csAns = [sqrt(gammaGas*Pi/rhoi) for (Pi, rhoi) in zip(Pans,  rhoans)]
 
 if graphics:
+    print "trying graphics"
     import Gnuplot
     from SpheralGnuPlotUtilities import *
 
     rhoPlot, velPlot, epsPlot, PPlot, HPlot = plotState(db, plotStyle="linespoints")
+    print "Gnuplot?"
     APlot = generateNewGnuPlot()
     Adata = Gnuplot.Data(xprof, A,
                          with_ = "linespoints",
                          title = "P/rho^\gamma",
                          inline = True)
     APlot.replot(Adata)
+    print "Go for the answer!"
     plotAnswer(answer, control.time(),
                rhoPlot, velPlot, epsPlot, PPlot, APlot, HPlot)
     pE = plotEHistory(control.conserve)
