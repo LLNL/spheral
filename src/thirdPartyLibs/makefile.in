@@ -35,11 +35,21 @@ PYTHONDIR = $(PYTHONDIST:.tgz=)
 PYTHONBUILDDATE = $(patsubst %.tgz, .%.date, $(PYTHONDIST))
 PYTHONTARGET = @PYTHONTARGET@
 
+# BASKET
+BASKETDIST = Basket-1.0.tar.gz
+BASKETURL = https://github.com/dbaty/Basket/archive/1.0.tar.gz
+BASKETDIR = $(subst .tar.gz,,$(BASKETDIST))
+BASKETEXE = $(prefix)/bin/basket
+BASKETROOT = BASKET
+BASKETPKGS = pip setuptools wheel numpy
+
+# PIP
+PIPBUILDDATE = .pip.date
+PIPEXE = $(PREFIX)/bin/pip
+PIPDISTS = pip setuptools wheel
+
 # Numpy
-NUMPYDIST = numpy-1.10.4.tar.gz
-NUMPYURL = http://sourceforge.net/projects/numpy/files/NumPy/1.10.4/$(NUMPYDIST)/download
-NUMPYDIR = $(NUMPYDIST:.tar.gz=)
-NUMPYBUILDDATE = $(patsubst %.tar.gz, .%.date, $(NUMPYDIST))
+NUMPYBUILDDATE = .numpy.date
 
 # PyGnuplot
 GNUPLOTDIST = gnuplot-py-1.8.tar.gz
@@ -421,29 +431,85 @@ $(PYTHONBUILDDATE):	$(PYTHON) $(PYTHONDIST) $(ZLIBBUILDDATE)
 	touch $(PYTHONBUILDDATE)
 
 #-------------------------------------------------------------------------------
+# Basket
+#-------------------------------------------------------------------------------
+$(BASKETDIST):
+	$(CURL) "$(BASKETURL)" > $(BASKETDIST)
+
+$(BASKETEXE):	$(BASKETDIST)
+	@echo "################################################################################"
+	@echo "# Building $(BASKETDIST)"
+	@echo "################################################################################"
+	@$(MKDIR) $(LIBDIR) $(prefix)/bin
+	rm -fr $(BASKETDIR)
+	$(GZIP) -dc $(BASKETDIST) | $(TAR) -xf -
+	$(PATCH) $(BASKETDIR)/basket/main.py $(srcdir)/Basket-1.0-main.py-patch
+	env PATH=$(SAFEPATH) $(SHELL) -ec 'cd $(BASKETDIR); \
+	$(PYTHONEXE) setup.py build; \
+	$(PYTHONEXE) setup.py install;'
+	@if ! test -e $(BASKETEXE); then \
+	echo "ERROR building basket python package."; \
+	rm -f $(BASKETBUILDDATE); \
+	exit 1; \
+	fi
+	rm -fr $(BASKETDIR)
+
+$(BASKETROOT):	$(BASKETEXE)
+	env BASKET_ROOT=$(BASKETROOT) $(BASKETEXE) init
+	env BASKET_ROOT=$(BASKETROOT) $(BASKETEXE) download $(BASKETPKGS)
+
+#-------------------------------------------------------------------------------
+# PIP
+#-------------------------------------------------------------------------------
+$(PIPBUILDDATE):	$(PYTHONTARGET) $(BASKETROOT)
+	@echo "################################################################################"
+	@echo "# Building PIP"
+	@echo "################################################################################"
+	#$(PYTHONEXE) -m ensurepip --default-pip --no-index --find-links $(BASKETROOT)
+	$(PYTHONEXE) -m pip install --upgrade pip setuptools wheel --no-index --find-links $(BASKETROOT)
+	@if test -n "`$(PYTHONEXE) -c 'import pip'`"; then \
+	echo "ERROR building python PIP installer."; \
+	rm -f $(PIPBUILDDATE); \
+	exit 1; \
+	fi
+	touch $(PIPBUILDDATE)
+
+#-------------------------------------------------------------------------------
 # Numpy python extension
 #-------------------------------------------------------------------------------
-$(NUMPYDIST):
-	$(CURL) "$(NUMPYURL)" > $(NUMPYDIST)
-
-$(NUMPYBUILDDATE):	$(PYTHONTARGET) $(NUMPYDIST)
+$(NUMPYBUILDDATE):	$(PYTHONTARGET) $(BASKETROOT)
 	@echo "################################################################################"
-	@echo "# Building $(NUMPYDIST)"
+	@echo "# Building Numpy"
 	@echo "################################################################################"
-	@$(MKDIR) $(LIBDIR) $(prefix)/include $(prefix)/bin
-	$(MAKE) $(NUMPYDIST)
-	rm -fr $(NUMPYDIR)
-	$(GZIP) -dc $(NUMPYDIST) | $(TAR) -xf -
-	env CC='$(PYTHONCC)' CXX='$(PYTHONCXX)' $(NUMPYCFLAGS) PATH=$(SAFEPATH) $(SHELL) -ec 'cd $(NUMPYDIR); \
-	$(PYTHONEXE) setup.py build $(NUMPYFLAGS); \
-	$(PYTHONEXE) setup.py install;'
+	$(PYTHONEXE) -m pip install --upgrade numpy --no-index --find-links $(BASKETROOT)
 	@if test -n "`$(PYTHONEXE) -c 'import numpy'`"; then \
-	echo "ERROR building numpy python extension."; \
+	echo "ERROR building numpy."; \
 	rm -f $(NUMPYBUILDDATE); \
 	exit 1; \
 	fi
-	rm -fr $(NUMPYDIR)
 	touch $(NUMPYBUILDDATE)
+
+# $(NUMPYDIST):
+# 	$(CURL) "$(NUMPYURL)" > $(NUMPYDIST)
+
+# $(NUMPYBUILDDATE):	$(PYTHONTARGET) $(NUMPYDIST)
+# 	@echo "################################################################################"
+# 	@echo "# Building $(NUMPYDIST)"
+# 	@echo "################################################################################"
+# 	@$(MKDIR) $(LIBDIR) $(prefix)/include $(prefix)/bin
+# 	$(MAKE) $(NUMPYDIST)
+# 	rm -fr $(NUMPYDIR)
+# 	$(GZIP) -dc $(NUMPYDIST) | $(TAR) -xf -
+# 	env CC='$(PYTHONCC)' CXX='$(PYTHONCXX)' $(NUMPYCFLAGS) PATH=$(SAFEPATH) $(SHELL) -ec 'cd $(NUMPYDIR); \
+# 	$(PYTHONEXE) setup.py build $(NUMPYFLAGS); \
+# 	$(PYTHONEXE) setup.py install;'
+# 	@if test -n "`$(PYTHONEXE) -c 'import numpy'`"; then \
+# 	echo "ERROR building numpy python extension."; \
+# 	rm -f $(NUMPYBUILDDATE); \
+# 	exit 1; \
+# 	fi
+# 	rm -fr $(NUMPYDIR)
+# 	touch $(NUMPYBUILDDATE)
 
 #-------------------------------------------------------------------------------
 # Gnuplot python extension
