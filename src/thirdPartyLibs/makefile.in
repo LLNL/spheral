@@ -436,10 +436,11 @@ $(PYTHONBUILDDATE):	$(PYTHON) $(PYTHONDIST) $(ZLIBBUILDDATE)
 $(BASKETDIST):
 	$(CURL) "$(BASKETURL)" > $(BASKETDIST)
 
-$(BASKETEXE):	$(BASKETDIST)
+$(BASKETEXE):	$(BASKETDIST) $(PYTHONBUILDDATE)
 	@echo "################################################################################"
 	@echo "# Building $(BASKETDIST)"
 	@echo "################################################################################"
+	$(PYTHONEXE) -m ensurepip --default-pip # --no-index --find-links $(BASKETROOT)
 	@$(MKDIR) $(LIBDIR) $(prefix)/bin
 	rm -fr $(BASKETDIR)
 	$(GZIP) -dc $(BASKETDIST) | $(TAR) -xf -
@@ -465,7 +466,6 @@ $(PIPBUILDDATE):	$(PYTHONTARGET) $(BASKETROOT)
 	@echo "################################################################################"
 	@echo "# Building PIP"
 	@echo "################################################################################"
-	#$(PYTHONEXE) -m ensurepip --default-pip --no-index --find-links $(BASKETROOT)
 	$(PYTHONEXE) -m pip install --upgrade pip setuptools wheel --no-index --find-links $(BASKETROOT)
 	@if test -n "`$(PYTHONEXE) -c 'import pip'`"; then \
 	echo "ERROR building python PIP installer."; \
