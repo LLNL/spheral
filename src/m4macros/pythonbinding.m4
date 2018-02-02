@@ -12,6 +12,7 @@ AC_SUBST(BOOSTLIBTARGETS)
 AC_SUBST(INCS)
 AC_SUBST(PYOPT)
 AC_SUBST(MODULELINK)
+AC_SUBST(PIPTARGETS)
 
 PYOPT=""
 BOOSTLIBTARGETS="math"
@@ -24,6 +25,7 @@ AC_ARG_WITH(pybindgen,
 ],
 [
     AC_MSG_RESULT(no)
+    PIPTARGETS+=" pybindgen"
     PYTHONBINDING="PYBINDGEN"
     PYTHONPKGDIR="PBGWraps"
     PYTHONPKGS="Geometry CXXTypes PolyClipper Silo DataOutput NodeList Field Kernel Neighbor Material FileIO DataBase Boundary Physics ArtificialViscosity Hydro ExternalForce Gravity Integrator Utilities NodeGenerators FieldOperations SPH CRKSPH SVPH Mesh Damage SolidMaterial Strength ArtificialConduction $PYTHONPKGS"

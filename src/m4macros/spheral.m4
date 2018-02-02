@@ -39,12 +39,14 @@ AC_SUBST(EXTRATHIRDPARTYTARGETS)
 AC_SUBST(CMAKEEXE)
 AC_SUBST(BOOSTTARGET)
 AC_SUBST(SILOTARGET)
+AC_SUBST(PIPTARGETS)
 
 LDRPATH=
 HEADERDIR=
 TPLIBS=
 BOOSTTARGET=
 SILOTARGET=
+PIPTARGETS="pip setuptools wheel"
 
 AC_MSG_CHECKING(for spheral build directory)
 #SPHERALBUILDDIR=`echo $PWD | sed -e "s/\/spheral\/src$//g;"`
@@ -246,7 +248,21 @@ AC_ARG_WITH(numpy,
 ],
 [
     AC_MSG_RESULT(no)
-    EXTRATHIRDPARTYTARGETS+=" .numpy.date .gnuplot-py-1.8.date"
+    PIPTARGETS+=" numpy"
+])
+
+# -----------------------------------------------------------------
+# Optionally do not build gnuplot python interface.
+# -----------------------------------------------------------------
+AC_MSG_CHECKING(for --without-gnuplot-py)
+AC_ARG_WITH(numpy,
+[  --without-gnuplot-py ..................... do not build the Gnuplot python extension],
+[
+    AC_MSG_RESULT(yes)
+],
+[
+    AC_MSG_RESULT(no)
+    EXTRATHIRDPARTYTARGETS+=" .gnuplot-py-1.8.date"
 ])
 
 # -----------------------------------------------------------------
@@ -260,7 +276,7 @@ AC_ARG_WITH(sobol,
 ],
 [
     AC_MSG_RESULT(no)
-    EXTRATHIRDPARTYTARGETS+=" .sobol_dev.date"
+    PIPTARGETS+=" sobol"
 ])
 
 # -----------------------------------------------------------------
