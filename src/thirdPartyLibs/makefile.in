@@ -436,7 +436,9 @@ $(BASKETEXE):	$(BASKETDIST) $(PYTHONTARGET) $(PIPEXE)
 	rm -fr $(BASKETDIR)
 
 $(BASKETROOT):	$(BASKETEXE)
-	env BASKET_ROOT=$(BASKETROOT) $(BASKETEXE) init
+	if ! test -e $(BASKETROOT); then \
+	env BASKET_ROOT=$(BASKETROOT) $(BASKETEXE) init; \
+	fi
 	env BASKET_ROOT=$(BASKETROOT) $(BASKETEXE) download $(PIPTARGETS)
 	$(PYTHONEXE) -m pip install --upgrade $(PIPTARGETS) --no-index --find-links $(BASKETROOT)
 
