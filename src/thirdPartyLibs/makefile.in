@@ -19,7 +19,7 @@ CP = cp
 MV = mv
 PATCH = patch
 MKDIR = mkdir -p
-CURL = curl -k -L
+CURL = curl -k -L --create-dirs
 AR = ar
 OPENPAREN:=(
 CLOSEPAREN:=)
@@ -76,10 +76,6 @@ CMAKEEXE = @CMAKEEXE@
 CMAKEDIST = cmake-3.9.4.tar.gz
 CMAKEURL = http://www.cmake.org/files/v3.9/$(CMAKEDIST)
 CMAKEDIR = $(CMAKEDIST:.tar.gz=)
-
-# Gccxml
-GCCXMLDIR = $(GCCXMLDIST:.tar.bz2=)
-GCCXMLDATE = $(patsubst %.tar.bz2, .%.date, $(GCCXMLDIST))
 
 # Parmetis
 PARMETISDIST = parmetis-4.0.3.tar.gz
@@ -172,12 +168,6 @@ JPEGDIST = jpegsrc.v8d.tar.gz
 JPEGURL = http://www.ijg.org/files/$(JPEGDIST)
 JPEGDIR = jpeg-8d
 JPEGBUILDDATE = $(patsubst %.tar.gz, .%.date, $(JPEGDIST))
-
-# PIL
-PILDIST = Imaging-1.1.6.tar.gz
-PILURL = http://effbot.org/downloads/$(PILDIST)
-PILDIR = $(PILDIST:.tar.gz=)
-PILBUILDDATE = $(patsubst %.tar.gz, .%.date, $(PILDIST))
 
 # WildMagic
 WILDMAGICDIST = WildMagic5p9.zip
@@ -308,7 +298,6 @@ EASYPROFILEBUILDDATE = $(patsubst %.tar.gz, .%.date, $(EASYPROFILEDIST))
 
 #-------------------------------------------------------------------------------
 all:	$(PYTHONTARGET) \
-	$(GCCXMLTARGETS) \
 	$(PETSCTARGETS) \
 	$(ATSBUILDDATE) \
 	$(ZLIBBUILDDATE) \
@@ -325,10 +314,9 @@ clean:
 	       $(PSYCODIR) $(PSYCOBUILDDATE) \
 	       $(BOOSTDIR) $(BOOSTDATE) \
 	       $(PYBIND11BUILDDATE) \
-               $(CMAKEDIR) \
-               $(GCCXMLDIR) $(GCCXMLDATE) \
+	       $(CMAKEDIR) \
 	       $(PSYCODIR) \
-               $(PARMETISDIR) $(PARMETISBUILDDATE) \
+	       $(PARMETISDIR) $(PARMETISBUILDDATE) \
 	       $(GSLDIR) \
 	       $(PYGSLDIR) \
 	       $(HASHMAPDATE) \
@@ -357,19 +345,19 @@ clean:
 #-------------------------------------------------------------------------------
 # Python
 #-------------------------------------------------------------------------------
-$(PYTHONDIST):
-	$(CURL) "$(PYTHONURL)" --create-dirs -o cache/$(PYTHONDIST)
+cache/$(PYTHONDIST):
+	$(CURL) "$(PYTHONURL)" -o cache/$(PYTHONDIST)
 
-$(PYTHONBUILDDATE):	$(PYTHON) $(PYTHONDIST) $(ZLIBBUILDDATE)
+$(PYTHONBUILDDATE):	$(PYTHON) cache/$(PYTHONDIST) $(ZLIBBUILDDATE)
 	@echo "################################################################################"
 	@echo "# Building $(PYTHONDIST)"
 	@echo "################################################################################"
 	@$(MKDIR) $(LIBDIR) $(prefix)/include $(prefix)/bin
 	rm -fr $(PYTHONDIR)
 	$(GZIP) -dc cache/$(PYTHONDIST) | $(TAR) -xf -
-	if test "$(OSNAME)" = "Darwin"; then \
-	$(PATCH) $(PYTHONDIR)/configure $(srcdir)/Python-2.7.11.configure.patch; \
-	fi
+	# if test "$(OSNAME)" = "Darwin"; then \
+	# $(PATCH) $(PYTHONDIR)/configure $(srcdir)/Python-2.7.11.configure.patch; \
+	# fi
 	$(PATCH) $(PYTHONDIR)/Modules/_ctypes/libffi/src/powerpc/linux64.S $(srcdir)/Python-2.7.13_linux64.S.patch
 	$(PATCH) $(PYTHONDIR)/Modules/_ctypes/libffi/src/powerpc/linux64_closure.S $(srcdir)/Python-2.7.13_linux64_closure.S.patch
 	$(SHELL) -ec "cd $(PYTHONDIR); \
@@ -388,12 +376,12 @@ $(PYTHONBUILDDATE):	$(PYTHON) $(PYTHONDIST) $(ZLIBBUILDDATE)
 #-------------------------------------------------------------------------------
 # PIP
 #-------------------------------------------------------------------------------
-$(PIPDIST):
-	$(CURL) "$(PIPURL)" --create-dirs -o cache/$(PIPDIST)
-	$(CURL) "$(SETUPTOOLSURL)" --create-dirs -o cache/$(SETUPTOOLSDIST)
-	$(CURL) "$(WHEELURL)" --create-dirs -o cache/$(WHEELDIST)
+cache/$(PIPDIST):
+	$(CURL) "$(PIPURL)" -o cache/$(PIPDIST)
+	$(CURL) "$(SETUPTOOLSURL)" -o cache/$(SETUPTOOLSDIST)
+	$(CURL) "$(WHEELURL)" -o cache/$(WHEELDIST)
 
-$(PIPEXE):	$(PYTHONTARGET) $(PIPDIST)
+$(PIPEXE):	$(PYTHONTARGET) cache/$(PIPDIST)
 	@echo "################################################################################"
 	@echo "# Building PIP"
 	@echo "################################################################################"
@@ -408,10 +396,10 @@ $(PIPEXE):	$(PYTHONTARGET) $(PIPDIST)
 #-------------------------------------------------------------------------------
 # Gnuplot python extension
 #-------------------------------------------------------------------------------
-$(GNUPLOTDIST):
-	$(CURL) "$(GNUPLOTURL)" --create-dirs -o cache/$(GNUPLOTDIST)
+cache/$(GNUPLOTDIST):
+	$(CURL) "$(GNUPLOTURL)" -o cache/$(GNUPLOTDIST)
 
-$(GNUPLOTBUILDDATE):	$(PYTHONTARGET) $(GNUPLOTDIST) numpy_pip_install.date $(NUMPYBUILDDATE)
+$(GNUPLOTBUILDDATE):	$(PYTHONTARGET) cache/$(GNUPLOTDIST) numpy_pip_install.date $(NUMPYBUILDDATE)
 	@echo "################################################################################"
 	@echo "# Building $(GNUPLOTDIST)"
 	@echo "################################################################################"
@@ -430,10 +418,10 @@ $(GNUPLOTBUILDDATE):	$(PYTHONTARGET) $(GNUPLOTDIST) numpy_pip_install.date $(NUM
 #-------------------------------------------------------------------------------
 # Boost
 #-------------------------------------------------------------------------------
-$(BOOSTDIST):
-	$(CURL) "$(BOOSTURL)" --create-dirs -o cache/$(BOOSTDIST)
+cache/$(BOOSTDIST):
+	$(CURL) "$(BOOSTURL)" -o cache/$(BOOSTDIST)
 
-$(BOOSTDATE):	$(BOOSTDIST) $(ZLIBBUILDDATE)
+$(BOOSTDATE):	cache/$(BOOSTDIST) $(ZLIBBUILDDATE)
 	@echo "################################################################################"
 	@echo "# Building $(BOOSTDIST)"
 	@echo "################################################################################"
@@ -467,37 +455,15 @@ $(BOOSTDATE):	$(BOOSTDIST) $(ZLIBBUILDDATE)
 	touch $(BOOSTDATE)
 
 #-------------------------------------------------------------------------------
-# gccxml
-#-------------------------------------------------------------------------------
-$(GCCXMLDATE):		$(CMAKEEXE) $(GCCXMLDIST)
-	@echo "################################################################################"
-	@echo "# Building $(GCCXMLDIST)"
-	@echo "################################################################################"
-	@$(MKDIR) $(LIBDIR) $(prefix)/include $(prefix)/bin
-	rm -fr $(GCCXMLDIR)
-	$(BZIP2) -dc cache/$(GCCXMLDIST) | $(TAR) -xf -
-	$(MKDIR) $(GCCXMLDIR)/build
-	$(SHELL) -ec 'cd $(GCCXMLDIR)/build; \
-	env CC='$(GCCXMLCC)' CXX='$(GCCXMLCXX)' $(CMAKEEXE) -DCMAKE_INSTALL_PREFIX:PATH=$(prefix) ..; $(MAKE); $(MAKE) install'
-	@if ! test -e $(prefix)/bin/gccxml_cc1plus -a -e $(prefix)/bin/gccxml; then \
-	echo "ERROR building gccxml."; \
-	rm -f $(GCCXMLDATE); \
-	exit 1; \
-	fi
-	rm -fr $(GCCXMLDIR)
-	touch $(GCCXMLDATE)
-
-#-------------------------------------------------------------------------------
 # Cmake
 #-------------------------------------------------------------------------------
-$(CMAKEDIST):
-	$(CURL) "$(CMAKEURL)" --create-dirs -o cache/$(CMAKEDIST)
+cache/$(CMAKEDIST):
+	$(CURL) "$(CMAKEURL)" -o cache/$(CMAKEDIST)
 
-$(CMAKEEXE):
+$(CMAKEEXE):	cache/$(CMAKEDIST)
 	@echo "################################################################################"
 	@echo "# Building $(CMAKEDIST)"
 	@echo "################################################################################"
-	$(MAKE) $(CMAKEDIST)
 	@$(MKDIR) $(LIBDIR) $(prefix)/include $(prefix)/bin
 	rm -fr $(CMAKEDIR)
 	$(GZIP) -dc cache/$(CMAKEDIST) | $(TAR) -xf -
@@ -514,10 +480,10 @@ $(CMAKEEXE):
 #-------------------------------------------------------------------------------
 # ParMETIS
 #-------------------------------------------------------------------------------
-$(PARMETISDIST):
-	$(CURL) "$(PARMETISURL)" --create-dirs -o cache/$(PARMETISDIST)
+cache/$(PARMETISDIST):
+	$(CURL) "$(PARMETISURL)" -o cache/$(PARMETISDIST)
 
-$(PARMETISBUILDDATE):  $(PARMETISDIST) $(CMAKEEXE)
+$(PARMETISBUILDDATE):  cache/$(PARMETISDIST) $(CMAKEEXE)
 	@echo "################################################################################"
 	@echo "# Building $(PARMETISDIST)"
 	@echo "################################################################################"
@@ -541,10 +507,10 @@ $(PARMETISBUILDDATE):  $(PARMETISDIST) $(CMAKEEXE)
 #-------------------------------------------------------------------------------
 # Tau
 #-------------------------------------------------------------------------------
-$(TAUDIST):
-	$(CURL) "$(TAUURL)" --create-dirs -o cache/$(TAUDIST)
+cache/$(TAUDIST):
+	$(CURL) "$(TAUURL)" -o cache/$(TAUDIST)
 
-$(TAUBUILDDATE):  $(TAUDIST)
+$(TAUBUILDDATE):  cache/$(TAUDIST)
 	@echo "################################################################################"
 	@echo "# Building $(TAUDIST)"
 	@echo "################################################################################"
@@ -560,7 +526,7 @@ $(TAUBUILDDATE):  $(TAUDIST)
 #-------------------------------------------------------------------------------
 # Tau -- dummy (non-compiled) version.
 #-------------------------------------------------------------------------------
-$(TAUDUMMYDATE):  $(TAUDIST)
+$(TAUDUMMYDATE):  cache/$(TAUDIST)
 	@echo "################################################################################"
 	@echo "# Building $(TAUDIST)"
 	@echo "################################################################################"
@@ -571,32 +537,12 @@ $(TAUDUMMYDATE):  $(TAUDIST)
 	touch $(TAUDUMMYDATE)
 
 #-------------------------------------------------------------------------------
-# F2Py -- Needed by SciPy.
-#-------------------------------------------------------------------------------
-# $(F2PYBUILDDATE):  $(F2PYDIST) $(PYTHONTARGET) $(BASKETROOT) 
-# 	@echo "################################################################################"
-# 	@echo "# Building $(F2PYDIST)"
-# 	@echo "################################################################################"
-# 	rm -fr $(F2PYDIR) $(F2PYDUMMYDATE)
-# 	$(GZIP) -dc $(F2PYDIST) | $(TAR) -xf -
-# 	$(SHELL) -ec "cd $(F2PYDIR); \
-# 	env PKG_CONFIG_PATH=$(prefix)/lib/pkgconfig $(PYTHONEXE) setup.py build; \
-# 	$(PYTHONEXE) setup.py install --prefix $(prefix)"
-# 	@if test -n "`$(PYTHONEXE) -c 'import f2py2e'`"; then \
-# 	echo "ERROR building f2py extension."; \
-# 	rm -f $(F2PYBUILDDATE); \
-# 	exit 1; \
-# 	fi
-# 	rm -fr $(F2PYDIR)
-# 	touch $(F2PYBUILDDATE)
-
-#-------------------------------------------------------------------------------
 # GNU Scientific Library -- Needed for special functions.
 #-------------------------------------------------------------------------------
-$(GSLDIST):
-	$(CURL) "$(GSLURL)" --create-dirs -o cache/$(GSLDIST)
+cache/$(GSLDIST):
+	$(CURL) "$(GSLURL)" -o cache/$(GSLDIST)
 
-$(GSLBUILDDATE): $(GSLDIST)
+$(GSLBUILDDATE): cache/$(GSLDIST)
 	@echo "################################################################################"
 	@echo "# Building $(GSLDIST) $(GSLBUILDDATE)" 
 	@echo "################################################################################"
@@ -619,10 +565,10 @@ $(GSLBUILDDATE): $(GSLDIST)
 #-------------------------------------------------------------------------------
 # Python interface to GNU Scientific Library.
 #-------------------------------------------------------------------------------
-$(PYGSLDIST):
-	$(CURL) "$(PYGSLURL)" --create-dirs -o cache/$(PYGSLDIST)
+cache/$(PYGSLDIST):
+	$(CURL) "$(PYGSLURL)" -o cache/$(PYGSLDIST)
 
-$(PYGSLBUILDDATE): $(PYGSLDIST) $(GSLBUILDDATE) $(PYTHONTARGET)
+$(PYGSLBUILDDATE): cache/$(PYGSLDIST) $(GSLBUILDDATE) $(PYTHONTARGET)
 	@echo "################################################################################"
 	@echo "# Building $(PYGSLDIST) $(PYGSLBUILDDATE)"
 	@echo "################################################################################"
@@ -641,10 +587,10 @@ $(PYGSLBUILDDATE): $(PYGSLDIST) $(GSLBUILDDATE) $(PYTHONTARGET)
 #-------------------------------------------------------------------------------
 # PETSc linear solver library -- Needed for SPH Gravity and MHD packages.
 #-------------------------------------------------------------------------------
-$(PETSCIDIST):
-	$(CURL) "$(PETSCURL)" --create-dirs -o cache/$(PETSCIDIST)
+cache/$(PETSCIDIST):
+	$(CURL) "$(PETSCURL)" -o cache/$(PETSCIDIST)
 
-$(PETSCBUILDDATE):	$(PETSCIDIST)
+$(PETSCBUILDDATE):	cache/$(PETSCIDIST)
 	@echo "################################################################################"
 	@echo "# Fetching and building $(PETSCDIST)"
 	@echo "################################################################################"
@@ -667,10 +613,10 @@ $(PETSCBUILDDATE):	$(PETSCIDIST)
 #-------------------------------------------------------------------------------
 # petsc4py Python module -- used by SPHGravity and MHD.
 #-------------------------------------------------------------------------------
-$(PETSC4PYDIST):
-	$(CURL) "$(PETSC4PYURL)" --create-dirs -o cache/$(PETSC4PYDIST)
+cache/$(PETSC4PYDIST):
+	$(CURL) "$(PETSC4PYURL)" -o cache/$(PETSC4PYDIST)
 
-$(PETSC4PYBUILDDATE): $(PETSC4PYDIST)
+$(PETSC4PYBUILDDATE): cache/$(PETSC4PYDIST)
 	@echo "################################################################################"
 	@echo "# Fetching and building $(PETSC4PYDIST)"
 	@echo "################################################################################"
@@ -690,10 +636,10 @@ $(PETSC4PYBUILDDATE): $(PETSC4PYDIST)
 #-------------------------------------------------------------------------------
 # Google's hash map implementation.
 #-------------------------------------------------------------------------------
-$(HASHMAPDIST):
-	$(CURL) "$(HASHMAPURL)" --create-dirs -o cache/$(HASHMAPDIST)
+cache/$(HASHMAPDIST):
+	$(CURL) "$(HASHMAPURL)" -o cache/$(HASHMAPDIST)
 
-$(HASHMAPBUILDDATE):	$(HASHMAPDIST)
+$(HASHMAPBUILDDATE):	cache/$(HASHMAPDIST)
 	@echo "################################################################################"
 	@echo "# Building $(HASHMAPDIST)"
 	@echo "################################################################################"
@@ -713,10 +659,10 @@ $(HASHMAPBUILDDATE):	$(HASHMAPDIST)
 #-------------------------------------------------------------------------------
 # Hank's visit_writer 
 #-------------------------------------------------------------------------------
-$(VISITWRITERDIST):
-	$(CURL) "$(VISITWRITERURL)" --create-dirs -o cache/$(VISITWRITERDIST)
+cache/$(VISITWRITERDIST):
+	$(CURL) "$(VISITWRITERURL)" -o cache/$(VISITWRITERDIST)
 
-$(VISITWRITERBUILDDATE):  $(VISITWRITERDIST)
+$(VISITWRITERBUILDDATE):  cache/$(VISITWRITERDIST)
 	@echo "################################################################################"
 	@echo "# Building $(VISITWRITERDIST)"
 	@echo "################################################################################"
@@ -735,10 +681,10 @@ $(VISITWRITERBUILDDATE):  $(VISITWRITERDIST)
 #-------------------------------------------------------------------------------
 # ATS testing system.
 #-------------------------------------------------------------------------------
-$(ATSDIST):
-	$(CURL) "$(ATSURL)" --create-dirs -o cache/$(ATSDIST)
+cache/$(ATSDIST):
+	$(CURL) "$(ATSURL)" -o cache/$(ATSDIST)
 
-$(ATSBUILDDATE):	$(ATSDIST) $(PYTHONTARGET)
+$(ATSBUILDDATE):	cache/$(ATSDIST) $(PYTHONTARGET)
 	@echo "################################################################################"
 	@echo "# Building $(ATSDIST)"
 	@echo "################################################################################"
@@ -760,10 +706,10 @@ $(ATSBUILDDATE):	$(ATSDIST) $(PYTHONTARGET)
 #-------------------------------------------------------------------------------
 # FFTW fast-fourier transform
 #-------------------------------------------------------------------------------
-$(FFTWDIST):
-	$(CURL) "$(FFTWURL)" --create-dirs -o cache/$(FFTWDIST)
+cache/$(FFTWDIST):
+	$(CURL) "$(FFTWURL)" -o cache/$(FFTWDIST)
 
-$(FFTWBUILDDATE):	$(FFTWDIST)
+$(FFTWBUILDDATE):	cache/$(FFTWDIST)
 	@echo "################################################################################"
 	@echo "# Building $(FFTWDIST)"
 	@echo "################################################################################"
@@ -785,10 +731,10 @@ $(FFTWBUILDDATE):	$(FFTWDIST)
 #-------------------------------------------------------------------------------
 # ARRAY class for use in fftw++
 #-------------------------------------------------------------------------------
-$(ARRAYDIST):
-	$(CURL) "$(ARRAYURL)" --create-dirs -o cache/$(ARRAYDIST)
+cache/$(ARRAYDIST):
+	$(CURL) "$(ARRAYURL)" -o cache/$(ARRAYDIST)
 
-$(ARRAYBUILDDATE):	$(ARRAYDIST)
+$(ARRAYBUILDDATE):	cache/$(ARRAYDIST)
 	@echo "################################################################################"
 	@echo "# Building $(ARRAYDIST)"
 	@echo "################################################################################"
@@ -803,10 +749,10 @@ $(ARRAYBUILDDATE):	$(ARRAYDIST)
 #-------------------------------------------------------------------------------
 # FFTW++ interface
 #-------------------------------------------------------------------------------
-$(FFTWPPDIST):
-	$(CURL) "$(FFTWPPURL)" --create-dirs -o cache/$(FFTWPPDIST)
+cache/$(FFTWPPDIST):
+	$(CURL) "$(FFTWPPURL)" -o cache/$(FFTWPPDIST)
 
-$(FFTWPPBUILDDATE):	$(FFTWPPDIST) $(ARRAYBUILDDATE)
+$(FFTWPPBUILDDATE):	cache/$(FFTWPPDIST) $(ARRAYBUILDDATE)
 	@echo "################################################################################"
 	@echo "# Building $(FFTWPPDIST)"
 	@echo "################################################################################"
@@ -829,10 +775,10 @@ $(FFTWPPBUILDDATE):	$(FFTWPPDIST) $(ARRAYBUILDDATE)
 #-------------------------------------------------------------------------------
 # ZLIB
 #-------------------------------------------------------------------------------
-$(ZLIBDIST):
-	$(CURL) "$(ZLIBURL)" --create-dirs -o cache/$(ZLIBDIST)
+cache/$(ZLIBDIST):
+	$(CURL) "$(ZLIBURL)" -o cache/$(ZLIBDIST)
 
-$(ZLIBBUILDDATE):	$(ZLIBDIST)
+$(ZLIBBUILDDATE):	cache/$(ZLIBDIST)
 	@echo "################################################################################"
 	@echo "# Building $(ZLIBDIST)"
 	@echo "################################################################################"
@@ -855,10 +801,10 @@ $(ZLIBBUILDDATE):	$(ZLIBDIST)
 #-------------------------------------------------------------------------------
 # JPEG
 #-------------------------------------------------------------------------------
-$(JPEGDIST):
-	$(CURL) "$(JPEGURL)" --create-dirs -o cache/$(JPEGDIST)
+cache/$(JPEGDIST):
+	$(CURL) "$(JPEGURL)" -o cache/$(JPEGDIST)
 
-$(JPEGBUILDDATE):	$(JPEGDIST)
+$(JPEGBUILDDATE):	cache/$(JPEGDIST)
 	@echo "################################################################################"
 	@echo "# Building $(JPEGDIST)"
 	@echo "################################################################################"
@@ -883,34 +829,12 @@ $(JPEGBUILDDATE):	$(JPEGDIST)
 	touch $(JPEGBUILDDATE)
 
 #-------------------------------------------------------------------------------
-# PIL (Python Imaging Library)
-#-------------------------------------------------------------------------------
-$(PILDIST):
-	$(CURL) "$(PILURL)" --create-dirs -o cache/$(PILDIST)
-
-$(PILBUILDDATE):	$(PYTHONTARGET) $(PILDIST) $(JPEGBUILDDATE) $(ZLIBBUILDDATE)
-	@echo "################################################################################"
-	@echo "# Building $(PILDIST)"
-	@echo "################################################################################"
-	@$(MKDIR) $(LIBDIR) $(prefix)/include $(prefix)/bin
-	rm -fr $(PILDIR)
-	$(GZIP) -dc cache/$(PILDIST) | $(TAR) -xf -
-	$(SHELL) -ec 'cd $(PILDIR); $(PYTHONEXE) setup.py install --prefix $(prefix);'
-	@if test -n "`$(PYTHONEXE) -c 'import PIL'`"; then \
-	echo "ERROR building PIL python extension."; \
-	rm -f $(PILBUILDDATE); \
-	exit 1; \
-	fi
-	rm -fr $(PILDIR)
-	touch $(PILBUILDDATE)
-
-#-------------------------------------------------------------------------------
 # Qhull
 #-------------------------------------------------------------------------------
-$(QHULLDIST):
-	$(CURL) "$(QHULLURL)" --create-dirs -o cache/$(QHULLDIST)
+cache/$(QHULLDIST):
+	$(CURL) "$(QHULLURL)" -o cache/$(QHULLDIST)
 
-$(QHULLDATE):	$(PYTHONTARGET) $(QHULLDIST) $(CMAKEEXE)
+$(QHULLDATE):	$(PYTHONTARGET) $(CMAKEEXE) cache/$(QHULLDIST)
 	@echo "################################################################################"
 	@echo "# Building $(QHULLDIST)"
 	@echo "################################################################################"
@@ -935,10 +859,10 @@ $(QHULLDATE):	$(PYTHONTARGET) $(QHULLDIST) $(CMAKEEXE)
 #-------------------------------------------------------------------------------
 # HDF5
 #-------------------------------------------------------------------------------
-$(HDF5DIST):
-	$(CURL) "$(HDF5URL)" --create-dirs -o cache/$(HDF5DIST)
+cache/$(HDF5DIST):
+	$(CURL) "$(HDF5URL)" -o cache/$(HDF5DIST)
 
-$(HDF5BUILDDATE):  $(HDF5DIST)
+$(HDF5BUILDDATE):  cache/$(HDF5DIST)
 	@echo "################################################################################"
 	@echo "# Building $(HDF5DIST)"
 	@echo "################################################################################"
@@ -964,10 +888,10 @@ $(HDF5BUILDDATE):  $(HDF5DIST)
 #-------------------------------------------------------------------------------
 # SILO
 #-------------------------------------------------------------------------------
-$(SILODIST):
-	$(CURL) -k "$(SILOURL)" --create-dirs -o cache/$(SILODIST)
+cache/$(SILODIST):
+	$(CURL) -k "$(SILOURL)" -o cache/$(SILODIST)
 
-$(SILOBUILDDATE):  $(SILODIST) $(HDF5BUILDDATE) $(PYTHONTARGET)
+$(SILOBUILDDATE):  $(HDF5BUILDDATE) $(PYTHONTARGET) cache/$(SILODIST)
 	@echo "################################################################################"
 	@echo "# Building $(SILODIST)"
 	@echo "################################################################################"
@@ -992,10 +916,10 @@ $(SILOBUILDDATE):  $(SILODIST) $(HDF5BUILDDATE) $(PYTHONTARGET)
 #-------------------------------------------------------------------------------
 # Eigen
 #-------------------------------------------------------------------------------
-$(EIGENDIST):
-	$(CURL) -k "$(EIGENURL)" --create-dirs -o cache/$(EIGENDIST)
+cache/$(EIGENDIST):
+	$(CURL) -k "$(EIGENURL)" -o cache/$(EIGENDIST)
 
-$(EIGENBUILDDATE):  $(EIGENDIST) $(HDF5BUILDDATE)
+$(EIGENBUILDDATE):  cache/$(EIGENDIST) $(HDF5BUILDDATE)
 	@echo "################################################################################"
 	@echo "# Building $(EIGENDIST)"
 	@echo "################################################################################"
@@ -1014,10 +938,10 @@ $(EIGENBUILDDATE):  $(EIGENDIST) $(HDF5BUILDDATE)
 #-------------------------------------------------------------------------------
 # Gnu multiprecision library
 #-------------------------------------------------------------------------------
-$(GMPDIST):
-	$(CURL) -k "$(GMPURL)" --create-dirs -o cache/$(GMPDIST)
+cache/$(GMPDIST):
+	$(CURL) -k "$(GMPURL)" -o cache/$(GMPDIST)
 
-$(GMPBUILDDATE):  $(GMPDIST)
+$(GMPBUILDDATE):  cache/$(GMPDIST)
 	@echo "################################################################################"
 	@echo "# Building $(GMPDIST)"
 	@echo "################################################################################"
@@ -1041,10 +965,10 @@ $(GMPBUILDDATE):  $(GMPDIST)
 #-------------------------------------------------------------------------------
 # mpmath
 #-------------------------------------------------------------------------------
-$(MPMATHDIST):
-	$(CURL) "$(MPMATHURL)" --create-dirs -o cache/$(MPMATHDIST)
+cache/$(MPMATHDIST):
+	$(CURL) "$(MPMATHURL)" -o cache/$(MPMATHDIST)
 
-$(MPMATHBUILDDATE):  $(PYTHONTARGET) $(MPMATHDIST)
+$(MPMATHBUILDDATE):  $(PYTHONTARGET) cache/$(MPMATHDIST)
 	@echo "################################################################################"
 	@echo "# Building $(MPMATHDIST)"
 	@echo "################################################################################"
@@ -1063,10 +987,10 @@ $(MPMATHBUILDDATE):  $(PYTHONTARGET) $(MPMATHDIST)
 #-------------------------------------------------------------------------------
 # The HYPRE linear solver library
 #-------------------------------------------------------------------------------
-$(HYPREDIST):
-	$(CURL) "$(HYPREURL)" --create-dirs -o cache/$(HYPREDIST)
+cache/$(HYPREDIST):
+	$(CURL) "$(HYPREURL)" -o cache/$(HYPREDIST)
 
-$(HYPREBUILDDATE):	$(HYPREDIST)
+$(HYPREBUILDDATE):	cache/$(HYPREDIST)
 	@echo "################################################################################"
 	@echo "# Building $(HYPREDIST)"
 	@echo "################################################################################"
@@ -1089,10 +1013,10 @@ $(HYPREBUILDDATE):	$(HYPREDIST)
 #-------------------------------------------------------------------------------
 # FLANN
 #-------------------------------------------------------------------------------
-$(FLANNDIST):
-	$(CURL) "$(FLANNURL)" --create-dirs -o cache/$(FLANNDIST)
+cache/$(FLANNDIST):
+	$(CURL) "$(FLANNURL)" -o cache/$(FLANNDIST)
 
-$(FLANNBUILDDATE):	$(FLANNDIST) $(CMAKEEXE) $(FLANNDATE) $(PYTHONTARGET)
+$(FLANNBUILDDATE):	cache/$(FLANNDIST) $(CMAKEEXE) $(FLANNDATE) $(PYTHONTARGET)
 	@echo "################################################################################"
 	@echo "# Building $(FLANNDIST)"
 	@echo "################################################################################"
@@ -1115,10 +1039,10 @@ $(FLANNBUILDDATE):	$(FLANNDIST) $(CMAKEEXE) $(FLANNDATE) $(PYTHONTARGET)
 #-------------------------------------------------------------------------------
 # The Point Cloud Library (PCL)
 #-------------------------------------------------------------------------------
-$(PCLDIST):
-	$(CURL) "$(PCLURL)" --create-dirs -o cache/$(PCLDIST)
+cache/$(PCLDIST):
+	$(CURL) "$(PCLURL)" -o cache/$(PCLDIST)
 
-$(PCLBUILDDATE):	$(PCLDIST) $(CMAKEEXE) $(BOOSTTARGET) $(EIGENDATE) $(QHULLDATE) $(FLANNDATE)
+$(PCLBUILDDATE):	cache/$(PCLDIST) $(CMAKEEXE) $(BOOSTTARGET) $(EIGENDATE) $(QHULLDATE) $(FLANNDATE)
 	@echo "################################################################################"
 	@echo "# Building $(PCLDIST)"
 	@echo "################################################################################"
@@ -1141,16 +1065,16 @@ $(PCLBUILDDATE):	$(PCLDIST) $(CMAKEEXE) $(BOOSTTARGET) $(EIGENDATE) $(QHULLDATE)
 #-------------------------------------------------------------------------------
 # polytope
 #-------------------------------------------------------------------------------
-$(TRIANGLEDIST):
-	$(CURL) "$(TRIANGLEURL)" --create-dirs -o cache/$(TRIANGLEDIST)
+cache/$(TRIANGLEDIST):
+	$(CURL) "$(TRIANGLEURL)" -o cache/$(TRIANGLEDIST)
 
-$(TETGENDIST):
-	$(CURL) "$(TETGENURL)" --create-dirs -o cache/$(TETGENDIST)
+cache/$(TETGENDIST):
+	$(CURL) "$(TETGENURL)" -o cache/$(TETGENDIST)
 
-$(POLYTOPEDIST):
-	$(CURL) "$(POLYTOPEURL)" --create-dirs -o cache/$(POLYTOPEDIST)
+cache/$(POLYTOPEDIST):
+	$(CURL) "$(POLYTOPEURL)" -o cache/$(POLYTOPEDIST)
 
-$(POLYTOPEBUILDDATE):	$(POLYTOPEDIST) $(CMAKEEXE) $(BOOSTTARGET) $(SILOTARGET) $(PYTHONTARGET) $(PYBINDGENBUILDDATE)
+$(POLYTOPEBUILDDATE):	cache/$(POLYTOPEDIST) $(CMAKEEXE) $(BOOSTTARGET) $(SILOTARGET) $(PYTHONTARGET) $(PYBINDGENBUILDDATE)
 	@echo "################################################################################"
 	@echo "# Building $(POLYTOPEDIST)"
 	@echo "################################################################################"
@@ -1158,13 +1082,13 @@ $(POLYTOPEBUILDDATE):	$(POLYTOPEDIST) $(CMAKEEXE) $(BOOSTTARGET) $(SILOTARGET) $
 	@$(MKDIR) -p $(prefix)/bin $(prefix)/man $(prefix)/lib $(POLYTOPEINCDIR) $(TRIANGLEDIR)
 	$(GZIP) -dc cache/$(POLYTOPEDIST) | $(TAR) -xf -
 	@if test "$(USE_TRIANGLE)" = "1"; then \
-		$(MAKE) $(TRIANGLEDIST); \
+		$(MAKE) cache/$(TRIANGLEDIST); \
 		$(SHELL) -ec "cd $(TRIANGLEDIR); $(UNZIP) ../$(TRIANGLEDIST)"; \
 		$(CP) -f $(TRIANGLEDIR)/triangle.h $(POLYTOPEDIR)/src; \
 		$(CP) -f $(TRIANGLEDIR)/triangle.c $(POLYTOPEDIR)/src; \
 	fi
 	@if test "$(USE_TETGEN)" = "1"; then \
-		$(MAKE) $(TETGENDIST); \
+		$(MAKE) cache/$(TETGENDIST); \
 		$(GZIP) -cd $(TETGENDIST) | $(TAR) -xf - ; \
 		$(CP) -f $(TETGENDIR)/tetgen.h $(POLYTOPEDIR)/src; \
 		$(CP) -f $(TETGENDIR)/tetgen.cxx $(POLYTOPEDIR)/src; \
@@ -1187,10 +1111,10 @@ $(POLYTOPEBUILDDATE):	$(POLYTOPEDIST) $(CMAKEEXE) $(BOOSTTARGET) $(SILOTARGET) $
 #-------------------------------------------------------------------------------
 # OpenSubDiv
 #-------------------------------------------------------------------------------
-$(OPENSUBDIVDIST):
-	$(CURL) "$(OPENSUBDIVURL)" --create-dirs -o cache/$(OPENSUBDIVDIST)
+cache/$(OPENSUBDIVDIST):
+	$(CURL) "$(OPENSUBDIVURL)" -o cache/$(OPENSUBDIVDIST)
 
-$(OPENSUBDIVBUILDDATE):	$(OPENSUBDIVDIST) $(CMAKEEXE)
+$(OPENSUBDIVBUILDDATE):	cache/$(OPENSUBDIVDIST) $(CMAKEEXE)
 	@echo "################################################################################"
 	@echo "# Building $(OPENSUBDIVDIST)"
 	@echo "################################################################################"
@@ -1216,10 +1140,10 @@ $(OPENSUBDIVBUILDDATE):	$(OPENSUBDIVDIST) $(CMAKEEXE)
 # Note our patches to the r3d library are just to increase the maximum allowed
 # number of vertices.
 #-------------------------------------------------------------------------------
-$(R3DDIST):
-	$(CURL) "$(R3DURL)" --create-dirs -o cache/$(R3DDIST)
+cache/$(R3DDIST):
+	$(CURL) "$(R3DURL)" -o cache/$(R3DDIST)
 
-$(R3DBUILDDATE):	$(R3DDIST)
+$(R3DBUILDDATE):	cache/$(R3DDIST)
 	@echo "################################################################################"
 	@echo "# Building $(R3DDIST)"
 	@echo "################################################################################"
@@ -1244,10 +1168,10 @@ $(R3DBUILDDATE):	$(R3DDIST)
 #-------------------------------------------------------------------------------
 # pybind11
 #-------------------------------------------------------------------------------
-$(PYBIND11DIST):
-	$(CURL) -k "$(PYBIND11URL)" --create-dirs -o cache/$(PYBIND11DIST)
+cache/$(PYBIND11DIST):
+	$(CURL) -k "$(PYBIND11URL)" -o cache/$(PYBIND11DIST)
 
-$(PYBIND11BUILDDATE):  $(PYBIND11DIST)
+$(PYBIND11BUILDDATE):  cache/$(PYBIND11DIST)
 	@echo "################################################################################"
 	@echo "# Building $(PYBIND11DIST)"
 	@echo "################################################################################"
@@ -1266,10 +1190,10 @@ $(PYBIND11BUILDDATE):  $(PYBIND11DIST)
 #-------------------------------------------------------------------------------
 # Easy profile
 #-------------------------------------------------------------------------------
-$(EASYPROFILEDIST):
-	$(CURL) "$(EASYPROFILEURL)" --create-dirs -o cache/$(EASYPROFILEDIST)
+cache/$(EASYPROFILEDIST):
+	$(CURL) "$(EASYPROFILEURL)" -o cache/$(EASYPROFILEDIST)
 
-$(EASYPROFILEBUILDDATE):	$(EASYPROFILEDIST) $(CMAKEEXE)
+$(EASYPROFILEBUILDDATE):	cache/$(EASYPROFILEDIST) $(CMAKEEXE)
 	@echo "################################################################################"
 	@echo "# Building $(EASYPROFILEDIST)"
 	@echo "################################################################################"
