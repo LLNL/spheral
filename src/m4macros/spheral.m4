@@ -39,14 +39,12 @@ AC_SUBST(EXTRATHIRDPARTYTARGETS)
 AC_SUBST(CMAKEEXE)
 AC_SUBST(BOOSTTARGET)
 AC_SUBST(SILOTARGET)
-AC_SUBST(PIPTARGETS)
 
 LDRPATH=
 HEADERDIR=
 TPLIBS=
 BOOSTTARGET=
 SILOTARGET=
-PIPTARGETS="pip setuptools wheel"
 
 AC_MSG_CHECKING(for spheral build directory)
 #SPHERALBUILDDIR=`echo $PWD | sed -e "s/\/spheral\/src$//g;"`
@@ -214,7 +212,7 @@ AC_ARG_WITH(mpmath,
 [  --with-mpmath ............................ optionally install the Gnu Scientific Library extensions],
 [
    AC_MSG_RESULT(yes)
-   EXTRATHIRDPARTYTARGETS+=" .mpmath-0.17.date"
+   EXTRATHIRDPARTYTARGETS+=" mpmath_pip_install.date"
 ],
 [
    AC_MSG_RESULT(no)
@@ -248,7 +246,7 @@ AC_ARG_WITH(numpy,
 ],
 [
     AC_MSG_RESULT(no)
-    PIPTARGETS+=" numpy"
+    EXTRATHIRDPARTYTARGETS+=" numpy_pip_install.date"
 ])
 
 # -----------------------------------------------------------------
@@ -276,7 +274,7 @@ AC_ARG_WITH(sobol,
 ],
 [
     AC_MSG_RESULT(no)
-    PIPTARGETS+=" sobol"
+    EXTRATHIRDPARTYTARGETS+=" sobol_pip_install.date"
 ])
 
 # -----------------------------------------------------------------
