@@ -6,13 +6,13 @@ AC_SUBST(EXTRATHIRDPARTYTARGETS)
 
 AC_MSG_CHECKING(for --with-matplotlib)
 AC_ARG_WITH(matplotlib,
-[  --with-matplotlib ........................ build the matplotlib python graphics package],
+[  --without-matplotlib ..................... do not build the matplotlib python graphics package],
 [
     AC_MSG_RESULT(yes)
-    EXTRATHIRDPARTYTARGETS+=" matplotlib_pip_install.date"
 ],
 [
     AC_MSG_RESULT(no)
+    EXTRATHIRDPARTYTARGETS+=" matplotlib_pip_install.date"
 ])
 
 ])

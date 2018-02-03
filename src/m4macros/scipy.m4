@@ -4,15 +4,15 @@
 AC_DEFUN([SETUP_SCIPY],[
 AC_SUBST(EXTRATHIRDPARTYTARGETS)
 
-AC_MSG_CHECKING(for --with-scipy)
+AC_MSG_CHECKING(for --without-scipy)
 AC_ARG_WITH(scipy,
-[  --with-scipy ............................. build the scipy python package],
+[  --without-scipy .......................... do not build the scipy python package],
 [
     AC_MSG_RESULT(yes)
-    EXTRATHIRDPARTYTARGETS+=" scipy_pip_install.date"
 ],
 [
     AC_MSG_RESULT(no)
+    EXTRATHIRDPARTYTARGETS+=" scipy_pip_install.date"
 ])
 
 ])
