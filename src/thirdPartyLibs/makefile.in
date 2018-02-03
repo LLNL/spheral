@@ -42,17 +42,7 @@ WHEELDIST = wheel-0.30.0-py2.py3-none-any.whl
 PIPURL = https://pypi.python.org/packages/b6/ac/7015eb97dc749283ffdec1c3a88ddb8ae03b8fad0f0e611408f196358da3/pip-9.0.1-py2.py3-none-any.whl#md5=297dbd16ef53bcef0447d245815f5144
 SETUPTOOLSURL = https://pypi.python.org/packages/75/d1/5abca4ccf61a7ab86c255dd315fb96e566fbf9b5d3a480e72c93e8ec2802/setuptools-38.4.0-py2.py3-none-any.whl#md5=a5c6620a59f19f2d5d32bdca18c7b47e
 WHEELURL = https://pypi.python.org/packages/0c/80/16a85b47702a1f47a63c104c91abdd0a6704ee8ae3b4ce4afc49bc39f9d9/wheel-0.30.0-py2.py3-none-any.whl#md5=1d61793f816d6b60513364fe2de9c1b3
-PIPEXE = $(PREFIX)/bin/pip
-
-# BASKET
-BASKETDIST = Basket-1.0.tar.gz
-BASKETURL = https://github.com/dbaty/Basket/archive/1.0.tar.gz
-BASKETDIR = $(subst .tar.gz,,$(BASKETDIST))
-BASKETEXE = $(prefix)/bin/basket
-BASKETROOT = BASKET
-
-# Numpy
-NUMPYBUILDDATE = .numpy.date
+PIPEXE = $(prefix)/bin/pip
 
 # PyGnuplot
 GNUPLOTDIST = gnuplot-py-1.8.tar.gz
@@ -301,8 +291,8 @@ R3DBUILDDATE = $(patsubst %.zip, .%.date, $(R3DDIST))
 R3DINCDIR = $(prefix)/include/r3d
 
 # pybind11
-PYBIND11DIST = pybind11-2.0.1.tar.gz
-PYBIND11URL = https://github.com/pybind/pybind11/archive/v2.0.1.tar.gz
+PYBIND11DIST = pybind11-2.2.1.tar.gz
+PYBIND11URL = https://github.com/pybind/pybind11/archive/v2.2.1.tar.gz
 PYBIND11DIR = $(PYBIND11DIST:.tar.gz=)
 PYBIND11BUILDDATE = $(patsubst %.tar.gz, .%.date, $(PYBIND11DIST))
 
@@ -313,23 +303,47 @@ EASYPROFILEDIR = easy_profiler-1.3.0
 EASYPROFILEBUILDDATE = $(patsubst %.tar.gz, .%.date, $(EASYPROFILEDIST))
 
 #-------------------------------------------------------------------------------
+# Define patterns for downloading and installing pip packages
+.SUFFIXES:	_pip_dowload.date _pip_install.date
+
+%_pip_download.date:	$(PIPEXE)
+	@echo "################################################################################"
+	@echo "# Downloading $*"
+	@echo "################################################################################"
+	$(PIPEXE) download $*
+	touch $@
+
+%_pip_install.date:	$(PIPEXE) %_pip_download.date
+	@echo "################################################################################"
+	@echo "# Building $*"
+	@echo "################################################################################"
+	$(PIPEXE) install --upgrade $* --no-index --find-links .
+	@if test -n "`$(PYTHONEXE) -c 'import $*'`"; then \
+	echo "ERROR building $*."; \
+	rm -f $@; \
+	exit 1; \
+	fi
+	touch $@
+
+#-------------------------------------------------------------------------------
 all:	$(PYTHONTARGET) \
-	$(BASKETROOT) \
 	$(GCCXMLTARGETS) \
 	$(PETSCTARGETS) \
 	$(ATSBUILDDATE) \
 	$(ZLIBBUILDDATE) \
 	$(OPENSUBDIVTARGETS) \
+	$(PYBIND11BUILDDATE) \
 	$(EXTRATHIRDPARTYTARGETS) \
 #	$(HYPREBUILDDATE)
 #	$(FLANNBUILDDATE) \
 #	$(PCLBUILDDATE)
 
 clean:
-	rm -fr $(PYTHONDIR) $(PYTHONBUILDDATE) \
+	rm -fr $(PYTHONDIR) $(PYTHONBUILDDATE) 	\
 	       $(GNUPLOTDIR) $(GNUPLOTBUILDDATE) \
 	       $(PSYCODIR) $(PSYCOBUILDDATE) \
 	       $(BOOSTDIR) $(BOOSTDATE) \
+	       $(PYBIND11BUILDDATE) \
                $(CMAKEDIR) \
                $(GCCXMLDIR) $(GCCXMLDATE) \
 	       $(PSYCODIR) \
@@ -402,7 +416,6 @@ $(PIPEXE):	$(PYTHONTARGET) $(PIPDIST)
 	@echo "################################################################################"
 	@echo "# Building PIP"
 	@echo "################################################################################"
-	#$(PYTHONEXE) -m ensurepip --default-pip # --no-index --find-links $(BASKETROOT)
 	$(PYTHONEXE) $(patsubst %,%/pip,$(PIPDIST)) install --no-index $(PIPDIST)
 	$(PYTHONEXE) -m pip install --upgrade setuptools wheel --no-index --find-links .
 	@if test -n "`$(PYTHONEXE) -c 'import pip'`" -a \
@@ -412,44 +425,17 @@ $(PIPEXE):	$(PYTHONTARGET) $(PIPDIST)
 	fi
 
 #-------------------------------------------------------------------------------
-# Basket
+# Numpy python extension
 #-------------------------------------------------------------------------------
-$(BASKETDIST):
-	$(CURL) "$(BASKETURL)" > $(BASKETDIST)
+# $(NUMPYDISTDATE):
+# 	$(PIPEXE) download numpy
+# 	touch $(NUMPYDISTDATE)
 
-$(BASKETEXE):	$(BASKETDIST) $(PYTHONTARGET) $(PIPEXE)
-	@echo "################################################################################"
-	@echo "# Building $(BASKETDIST)"
-	@echo "################################################################################"
-	@$(MKDIR) $(LIBDIR) $(prefix)/bin
-	rm -fr $(BASKETDIR)
-	$(GZIP) -dc $(BASKETDIST) | $(TAR) -xf -
-	$(PATCH) $(BASKETDIR)/basket/main.py $(srcdir)/Basket-1.0-main.py-patch
-	env PATH=$(SAFEPATH) $(SHELL) -ec 'cd $(BASKETDIR); \
-	$(PYTHONEXE) setup.py build; \
-	$(PYTHONEXE) setup.py install;'
-	@if ! test -e $(BASKETEXE); then \
-	echo "ERROR building basket python package."; \
-	rm -f $(BASKETBUILDDATE); \
-	exit 1; \
-	fi
-	rm -fr $(BASKETDIR)
-
-$(BASKETROOT):	$(BASKETEXE)
-	if ! test -e $(BASKETROOT); then \
-	env BASKET_ROOT=$(BASKETROOT) $(BASKETEXE) init; \
-	fi
-	env BASKET_ROOT=$(BASKETROOT) $(BASKETEXE) download $(PIPTARGETS)
-	$(PYTHONEXE) -m pip install --upgrade $(PIPTARGETS) --no-index --find-links $(BASKETROOT)
-
-# #-------------------------------------------------------------------------------
-# # Numpy python extension
-# #-------------------------------------------------------------------------------
-# $(NUMPYBUILDDATE):	$(PYTHONTARGET) $(BASKETROOT)
+# $(NUMPYBUILDDATE):	$(PYTHONTARGET) $(PIPEXE) $(NUMPYDISTDATE)
 # 	@echo "################################################################################"
 # 	@echo "# Building Numpy"
 # 	@echo "################################################################################"
-# 	$(PYTHONEXE) -m pip install --upgrade numpy --no-index --find-links $(BASKETROOT)
+# 	$(PIPEXE) install --upgrade numpy --no-index --find-links .
 # 	@if test -n "`$(PYTHONEXE) -c 'import numpy'`"; then \
 # 	echo "ERROR building numpy."; \
 # 	rm -f $(NUMPYBUILDDATE); \
@@ -485,7 +471,7 @@ $(BASKETROOT):	$(BASKETEXE)
 $(GNUPLOTDIST):
 	$(CURL) "$(GNUPLOTURL)" > $(GNUPLOTDIST)
 
-$(GNUPLOTBUILDDATE):	$(PYTHONTARGET) $(BASKETROOT) $(GNUPLOTDIST)
+$(GNUPLOTBUILDDATE):	$(PYTHONTARGET) numpy_pip_install.date $(NUMPYBUILDDATE)
 	@echo "################################################################################"
 	@echo "# Building $(GNUPLOTDIST)"
 	@echo "################################################################################"
@@ -500,6 +486,25 @@ $(GNUPLOTBUILDDATE):	$(PYTHONTARGET) $(BASKETROOT) $(GNUPLOTDIST)
 	fi
 	rm -fr $(GNUPLOTDIR)
 	touch $(GNUPLOTBUILDDATE)
+
+#-------------------------------------------------------------------------------
+# Mpi4py python extension
+#-------------------------------------------------------------------------------
+# $(MPI4PYDISTDATE):
+# 	$(PIPEXE) download mpi4py
+# 	touch $(MPI4PYDISTDATE)
+
+# $(MPI4PYBUILDDATE):	$(PYTHONTARGET) $(PIPEXE) $(MPI4PYDISTDATE)
+# 	@echo "################################################################################"
+# 	@echo "# Building Mpi4py"
+# 	@echo "################################################################################"
+# 	$(PIPEXE) install --upgrade mpi4py --no-index --find-links $(CWD)
+# 	@if test -n "`$(PYTHONEXE) -c 'import mpi4py'`"; then \
+# 	echo "ERROR building mpi4py."; \
+# 	rm -f $(MPI4PYBUILDDATE); \
+# 	exit 1; \
+# 	fi
+# 	touch $(MPI4PYBUILDDATE)
 
 #-------------------------------------------------------------------------------
 # Psyco python accelerator
@@ -1021,28 +1026,28 @@ $(PILBUILDDATE):	$(PYTHONTARGET) $(PILDIST) $(JPEGBUILDDATE) $(ZLIBBUILDDATE)
 	rm -fr $(PILDIR)
 	touch $(PILBUILDDATE)
 
-#-------------------------------------------------------------------------------
-# pybindgen (Python bindings)
-#-------------------------------------------------------------------------------
-$(PYBINDGENDIST):
-	$(CURL) "$(PYBINDGENURL)" > $(PYBINDGENDIST)
+# #-------------------------------------------------------------------------------
+# # pybindgen (Python bindings)
+# #-------------------------------------------------------------------------------
+# $(PYBINDGENDIST):
+# 	$(CURL) "$(PYBINDGENURL)" > $(PYBINDGENDIST)
 
-$(PYBINDGENBUILDDATE):	$(PYTHONTARGET) $(PYBINDGENDIST)
-	@echo "################################################################################"
-	@echo "# Building $(PYBINDGENDIST)"
-	@echo "################################################################################"
-	@$(MKDIR) $(PYTHONLIBDIR)
-	rm -fr $(PYBINDGENDIR)
-	$(GZIP) -dc $(PYBINDGENDIST) | $(TAR) -xf -
-	$(PATCH) $(PYBINDGENDIR)/pybindgen/enum.py $(srcdir)/pybindgen_enum_py.patch
-	$(CP) -r $(PYBINDGENDIR)/pybindgen $(PYTHONLIBDIR)
-	@if test -n "`$(PYTHONEXE) -c 'import pybindgen'`"; then \
-	echo "ERROR building PYBINDGEN python extension."; \
-	rm -f $(PYBINDGENBUILDDATE); \
-	exit 1; \
-	fi
-	rm -fr $(PYBINDGENDIR)
-	touch $(PYBINDGENBUILDDATE)
+# $(PYBINDGENBUILDDATE):	$(PYTHONTARGET) $(PYBINDGENDIST)
+# 	@echo "################################################################################"
+# 	@echo "# Building $(PYBINDGENDIST)"
+# 	@echo "################################################################################"
+# 	@$(MKDIR) $(PYTHONLIBDIR)
+# 	rm -fr $(PYBINDGENDIR)
+# 	$(GZIP) -dc $(PYBINDGENDIST) | $(TAR) -xf -
+# 	$(PATCH) $(PYBINDGENDIR)/pybindgen/enum.py $(srcdir)/pybindgen_enum_py.patch
+# 	$(CP) -r $(PYBINDGENDIR)/pybindgen $(PYTHONLIBDIR)
+# 	@if test -n "`$(PYTHONEXE) -c 'import pybindgen'`"; then \
+# 	echo "ERROR building PYBINDGEN python extension."; \
+# 	rm -f $(PYBINDGENBUILDDATE); \
+# 	exit 1; \
+# 	fi
+# 	rm -fr $(PYBINDGENDIR)
+# 	touch $(PYBINDGENBUILDDATE)
 
 #-------------------------------------------------------------------------------
 # WildMagic
@@ -1491,24 +1496,24 @@ $(R3DBUILDDATE):	$(R3DDIST)
 #-------------------------------------------------------------------------------
 # Sobol python extension
 #-------------------------------------------------------------------------------
-$(PYSOBOLDIST):
-	$(CURL) "$(PYSOBOLURL)" > $(PYSOBOLDIST)
+# $(PYSOBOLDIST):
+# 	$(CURL) "$(PYSOBOLURL)" > $(PYSOBOLDIST)
 
-$(PYSOBOLBUILDDATE):	$(PYTHONTARGET) $(BASKETROOT) $(PYSOBOLDIST)
-	@echo "################################################################################"
-	@echo "# Building $(PYSOBOLDIST)"
-	@echo "################################################################################"
-	@$(MKDIR) $(LIBDIR) $(prefix)/include $(prefix)/bin
-	rm -fr $(PYSOBOLDIR)
-	$(UNZIP) -dc $(PYSOBOLDIST)
-	$(SHELL) -ec 'cd $(PYSOBOLDIR); $(CP) -fr sobol $(PYTHONLIBDIR);'
-	@if test -n "`$(PYTHONEXE) -c 'import sobol'`"; then \
-	echo "ERROR building sobol python extension."; \
-	rm -f $(PYSOBOLBUILDDATE); \
-	exit 1; \
-	fi
-	rm -fr c
-	touch $(PYSOBOLBUILDDATE)
+# $(PYSOBOLBUILDDATE):	$(PYTHONTARGET) $(PYSOBOLDIST)
+# 	@echo "################################################################################"
+# 	@echo "# Building $(PYSOBOLDIST)"
+# 	@echo "################################################################################"
+# 	@$(MKDIR) $(LIBDIR) $(prefix)/include $(prefix)/bin
+# 	rm -fr $(PYSOBOLDIR)
+# 	$(UNZIP) -dc $(PYSOBOLDIST)
+# 	$(SHELL) -ec 'cd $(PYSOBOLDIR); $(CP) -fr sobol $(PYTHONLIBDIR);'
+# 	@if test -n "`$(PYTHONEXE) -c 'import sobol'`"; then \
+# 	echo "ERROR building sobol python extension."; \
+# 	rm -f $(PYSOBOLBUILDDATE); \
+# 	exit 1; \
+# 	fi
+# 	rm -fr c
+# 	touch $(PYSOBOLBUILDDATE)
 
 #-------------------------------------------------------------------------------
 # pybind11

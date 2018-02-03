@@ -12,7 +12,7 @@ AC_SUBST(BOOSTLIBTARGETS)
 AC_SUBST(INCS)
 AC_SUBST(PYOPT)
 AC_SUBST(MODULELINK)
-AC_SUBST(PIPTARGETS)
+AC_SUBST(EXTRATHIRDPARTYTARGETS)
 
 PYOPT=""
 BOOSTLIBTARGETS="math"
@@ -25,7 +25,7 @@ AC_ARG_WITH(pybindgen,
 ],
 [
     AC_MSG_RESULT(no)
-    PIPTARGETS+=" pybindgen"
+    EXTRATHIRDPARTYTARGETS+=" pybindgen_pip_install.date"
     PYTHONBINDING="PYBINDGEN"
     PYTHONPKGDIR="PBGWraps"
     PYTHONPKGS="Geometry CXXTypes PolyClipper Silo DataOutput NodeList Field Kernel Neighbor Material FileIO DataBase Boundary Physics ArtificialViscosity Hydro ExternalForce Gravity Integrator Utilities NodeGenerators FieldOperations SPH CRKSPH SVPH Mesh Damage SolidMaterial Strength ArtificialConduction $PYTHONPKGS"
@@ -47,7 +47,7 @@ AC_ARG_WITH(pybind11,
 [  --with-pybind11 .......................... use pybind11 wrappings],
 [
     AC_MSG_RESULT(yes)
-    EXTRATHIRDPARTYTARGETS+=" .pybind11-2.0.1.date"
+    #EXTRATHIRDPARTYTARGETS+=" .pybind11-2.0.1.date"   # Now installing by default -- it's just a copy of headers
     PYTHONBINDING="PYBIND11"
     PYTHONPKGDIR="Pybind11Wraps"
     PYTHONPKGS+=" CXXTypes Geometry Silo DataOutput NodeList Field Kernel Neighbor Material FileIO DataBase Boundary Physics ArtificialViscosity Hydro"
