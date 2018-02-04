@@ -184,7 +184,7 @@ public:
   int endOfLinkList() const;
 
   // Determine if the NeighborList is in a valid, ready to use state.
-  virtual bool valid() const;
+  virtual bool valid() const override;
 
   // Allow outside users to be able to directly set master info for a given
   // grid cell and grid level.
