@@ -12,7 +12,7 @@ AC_ARG_WITH(matplotlib,
 ],
 [
     AC_MSG_RESULT(no)
-    EXTRATHIRDPARTYTARGETS+=" matplotlib_pip_install.date"
+    EXTRATHIRDPARTYTARGETS+=" .matplotlib_pip_install.date"
 ])
 
 ])
