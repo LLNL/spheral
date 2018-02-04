@@ -277,14 +277,14 @@ EASYPROFILEBUILDDATE = $(patsubst %.tar.gz, .%.date, $(EASYPROFILEDIST))
 # Define patterns for downloading and installing pip packages
 .SUFFIXES:	_pip_dowload.date _pip_install.date
 
-%_pip_download.date:	$(PIPEXE)
+.%_pip_download.date:	$(PIPEXE)
 	@echo "################################################################################"
 	@echo "# Downloading $*"
 	@echo "################################################################################"
 	$(PIPEXE) download -d cache $*
 	touch $@
 
-%_pip_install.date:	$(PIPEXE) %_pip_download.date
+.%_pip_install.date:	$(PIPEXE) .%_pip_download.date
 	@echo "################################################################################"
 	@echo "# Building $*"
 	@echo "################################################################################"
@@ -399,7 +399,7 @@ $(PIPEXE):	$(PYTHONTARGET) cache/$(PIPDIST)
 cache/$(GNUPLOTDIST):
 	$(CURL) "$(GNUPLOTURL)" -o cache/$(GNUPLOTDIST)
 
-$(GNUPLOTBUILDDATE):	$(PYTHONTARGET) cache/$(GNUPLOTDIST) numpy_pip_install.date $(NUMPYBUILDDATE)
+$(GNUPLOTBUILDDATE):	$(PYTHONTARGET) cache/$(GNUPLOTDIST) .numpy_pip_install.date $(NUMPYBUILDDATE)
 	@echo "################################################################################"
 	@echo "# Building $(GNUPLOTDIST)"
 	@echo "################################################################################"

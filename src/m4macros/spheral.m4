@@ -212,7 +212,7 @@ AC_ARG_WITH(mpmath,
 [  --with-mpmath ............................ optionally install the Gnu Scientific Library extensions],
 [
    AC_MSG_RESULT(yes)
-   EXTRATHIRDPARTYTARGETS+=" mpmath_pip_install.date"
+   EXTRATHIRDPARTYTARGETS+=" .mpmath_pip_install.date"
 ],
 [
    AC_MSG_RESULT(no)
@@ -246,7 +246,7 @@ AC_ARG_WITH(numpy,
 ],
 [
     AC_MSG_RESULT(no)
-    EXTRATHIRDPARTYTARGETS+=" numpy_pip_install.date"
+    EXTRATHIRDPARTYTARGETS+=" .numpy_pip_install.date"
 ])
 
 # -----------------------------------------------------------------
@@ -274,7 +274,7 @@ AC_ARG_WITH(sobol,
 ],
 [
     AC_MSG_RESULT(no)
-    EXTRATHIRDPARTYTARGETS+=" sobol_pip_install.date"
+    EXTRATHIRDPARTYTARGETS+=" .sobol_pip_install.date"
 ])
 
 # -----------------------------------------------------------------

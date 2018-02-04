@@ -12,7 +12,7 @@ AC_ARG_WITH(scipy,
 ],
 [
     AC_MSG_RESULT(no)
-    EXTRATHIRDPARTYTARGETS+=" scipy_pip_install.date"
+    EXTRATHIRDPARTYTARGETS+=" .scipy_pip_install.date"
 ])
 
 ])
