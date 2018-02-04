@@ -44,6 +44,15 @@ SETUPTOOLSURL = https://pypi.python.org/packages/75/d1/5abca4ccf61a7ab86c255dd31
 WHEELURL = https://pypi.python.org/packages/0c/80/16a85b47702a1f47a63c104c91abdd0a6704ee8ae3b4ce4afc49bc39f9d9/wheel-0.30.0-py2.py3-none-any.whl#md5=1d61793f816d6b60513364fe2de9c1b3
 PIPEXE = $(prefix)/bin/pip
 
+# Pybindgen
+PYBINDGENBUILDDATE=.pybindgen==0.17.0_pip_install.date
+
+# pybind11
+PYBIND11DIST = pybind11-2.2.1.tar.gz
+PYBIND11URL = https://github.com/pybind/pybind11/archive/v2.2.1.tar.gz
+PYBIND11DIR = $(PYBIND11DIST:.tar.gz=)
+PYBIND11BUILDDATE = $(patsubst %.tar.gz, .%.date, $(PYBIND11DIST))
+
 # PyGnuplot
 GNUPLOTDIST = gnuplot-py-1.8.tar.gz
 GNUPLOTURL = http://downloads.sourceforge.net/gnuplot-py/gnuplot-py-1.8.tar.gz?modtime=1209767882&big_mirror=0
@@ -260,12 +269,6 @@ R3DURL = https://github.com/devonmpowell/r3d/archive/master.zip
 R3DDIR = r3d-master
 R3DBUILDDATE = $(patsubst %.zip, .%.date, $(R3DDIST))
 R3DINCDIR = $(prefix)/include/r3d
-
-# pybind11
-PYBIND11DIST = pybind11-2.2.1.tar.gz
-PYBIND11URL = https://github.com/pybind/pybind11/archive/v2.2.1.tar.gz
-PYBIND11DIR = $(PYBIND11DIST:.tar.gz=)
-PYBIND11BUILDDATE = $(patsubst %.tar.gz, .%.date, $(PYBIND11DIST))
 
 # easy_profile
 EASYPROFILEDIST = easyprofile-v1.3.0.tar.gz
@@ -1084,13 +1087,13 @@ $(POLYTOPEBUILDDATE):	cache/$(POLYTOPEDIST) $(CMAKEEXE) $(BOOSTTARGET) $(SILOTAR
 	$(GZIP) -dc cache/$(POLYTOPEDIST) | $(TAR) -xf -
 	@if test "$(USE_TRIANGLE)" = "1"; then \
 		$(MAKE) cache/$(TRIANGLEDIST); \
-		$(SHELL) -ec "cd $(TRIANGLEDIR); $(UNZIP) ../$(TRIANGLEDIST)"; \
+		$(SHELL) -ec "cd $(TRIANGLEDIR); $(UNZIP) ../cache/$(TRIANGLEDIST)"; \
 		$(CP) -f $(TRIANGLEDIR)/triangle.h $(POLYTOPEDIR)/src; \
 		$(CP) -f $(TRIANGLEDIR)/triangle.c $(POLYTOPEDIR)/src; \
 	fi
 	@if test "$(USE_TETGEN)" = "1"; then \
 		$(MAKE) cache/$(TETGENDIST); \
-		$(GZIP) -cd $(TETGENDIST) | $(TAR) -xf - ; \
+		$(GZIP) -cd cache/$(TETGENDIST) | $(TAR) -xf - ; \
 		$(CP) -f $(TETGENDIR)/tetgen.h $(POLYTOPEDIR)/src; \
 		$(CP) -f $(TETGENDIR)/tetgen.cxx $(POLYTOPEDIR)/src; \
 	fi
