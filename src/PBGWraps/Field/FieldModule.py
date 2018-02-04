@@ -399,6 +399,7 @@ generateStdVectorBindings(self.vector_of_%(element)sFieldList%(dim)s, "Spheral::
         # Constructors.
         x.add_constructor([])
         x.add_constructor([param("FieldStorageType", "aStorageType")])
+        x.add_constructor([constrefparam(me, "rhs")])
 
         # Methods.
         x.add_method("copyFields", None, [])
@@ -503,6 +504,7 @@ generateStdVectorBindings(self.vector_of_%(element)sFieldList%(dim)s, "Spheral::
     def addFieldListSetMethods(self, x, ndim):
 
         # Object names.
+        me = "FieldListSet%id" % ndim
         vector_of_scalarfieldlist = "vector_of_ScalarFieldList%id" % ndim
         vector_of_vectorfieldlist = "vector_of_VectorFieldList%id" % ndim
         vector_of_tensorfieldlist = "vector_of_TensorFieldList%id" % ndim
@@ -510,6 +512,7 @@ generateStdVectorBindings(self.vector_of_%(element)sFieldList%(dim)s, "Spheral::
 
         # Constructors.
         x.add_constructor([])
+        x.add_constructor([constrefparam(me, "rhs")])
 
         # Attributes.
         x.add_instance_attribute("ScalarFieldLists", retval(ptr(vector_of_scalarfieldlist), reference_existing_object=True), getter="ScalarFieldListPtrs", is_const=True)
