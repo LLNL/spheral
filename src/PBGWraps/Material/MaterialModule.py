@@ -61,10 +61,13 @@ self.generateIsothermalEquationOfStateBindings(self.IsothermalEquationOfState%(d
     #---------------------------------------------------------------------------
     def generatePhysicalConstantsBindings(self, x):
 
+        me = "PhysicalConstants"
+
         # Constructor.
         x.add_constructor([param("double", "unitLm"),
                            param("double", "unitMkg"),
                            param("double", "unitTsec")])
+        x.add_constructor([constrefparam(me, "rhs")])
 
         # Attributes
         x.add_instance_attribute("unitLengthMeters", "double", getter="unitLengthMeters", is_const=True)

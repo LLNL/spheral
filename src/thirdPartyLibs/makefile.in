@@ -288,8 +288,9 @@ EASYPROFILEBUILDDATE = $(patsubst %.tar.gz, .%.date, $(EASYPROFILEDIST))
 	@echo "################################################################################"
 	@echo "# Building $*"
 	@echo "################################################################################"
+	$(eval PIPMOD := $(firstword $(subst ==, ,$*)))
 	$(PIPEXE) install --upgrade $* --no-index --find-links cache
-	@if test -n "`$(PYTHONEXE) -c 'import $*'`"; then \
+	@if test -n "`$(PYTHONEXE) -c 'import $(PIPMOD)'`"; then \
 	echo "ERROR building $*."; \
 	rm -f $@; \
 	exit 1; \

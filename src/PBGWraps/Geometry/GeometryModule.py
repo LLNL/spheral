@@ -64,6 +64,7 @@ self.vector_of_Plane%(dim)s = addObject(mod, "vector_of_Plane%(dim)s", allow_sub
         self.addVectorMethods(self.Vector1d, 1)
         self.addVectorMethods(self.Vector2d, 2)
         self.addVectorMethods(self.Vector3d, 3)
+        self.addGeom3VectorMethods(self.Geom3Vector)
 
         # Add methods to Tensors.
         self.Tensor1d.add_constructor([param("double", "xx", default_value = "0.0")])
@@ -195,6 +196,7 @@ self.vector_of_Plane%(dim)s = addObject(mod, "vector_of_Plane%(dim)s", allow_sub
     
         # Constructors.
         x.add_constructor([])
+        x.add_constructor([constrefparam(me, "rhs")])
         x.add_constructor([param("double", "x")])
         x.add_constructor([param("double", "x"), param("double", "y")])
         x.add_constructor([param("double", "x"), param("double", "y"), param("double", "z")])
@@ -286,6 +288,19 @@ self.vector_of_Plane%(dim)s = addObject(mod, "vector_of_Plane%(dim)s", allow_sub
         return
 
     #-------------------------------------------------------------------------------
+    # Helper method for wrapping Geom3Vector.
+    #-------------------------------------------------------------------------------
+    def addGeom3VectorMethods(self, x):
+    
+        me = "Geom3Vector"
+
+        # Constructors.
+        x.add_constructor([])
+        x.add_constructor([constrefparam(me, "rhs")])
+
+        return
+
+    #-------------------------------------------------------------------------------
     # Helper method for wrapping Tensor.
     #-------------------------------------------------------------------------------
     def addTensorMethods(self, x, me, ndim):
@@ -306,6 +321,7 @@ self.vector_of_Plane%(dim)s = addObject(mod, "vector_of_Plane%(dim)s", allow_sub
     
         # Constructors.
         x.add_constructor([])
+        x.add_constructor([constrefparam(me, "rhs")])
         x.add_constructor([param(ten, "rhs")])
         x.add_constructor([param(symten, "rhs")])
         x.add_function_as_constructor("constructGeomTypeFromSequence<%s>" % me,
@@ -521,6 +537,7 @@ self.vector_of_Plane%(dim)s = addObject(mod, "vector_of_Plane%(dim)s", allow_sub
     
         # Constructors.
         x.add_constructor([])
+        x.add_constructor([constrefparam(me, "rhs")])
         x.add_constructor([param("double", "val")])
         x.add_constructor([param(me, "rhs")])
         x.add_function_as_constructor("constructGeomTypeFromSequence<%s>" % me,
