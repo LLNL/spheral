@@ -193,7 +193,7 @@ namespace FractalSpace
       do_var(false), 
       periodic(false),
       random_initial(false),
-      debug(false),
+      debug(true),
       halo_fixed(false),
       momentum_conserve(true),
       total_points_counter(0),

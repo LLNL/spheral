@@ -2,8 +2,6 @@
 #include "classes.hh"
 #include "headers.hh"
 #include "fractal_interface_public.hh"
-// int fractal_galaxy(int argc, char* argv[])
-// {
 int main(int argc, char* argv[])
 {
   using namespace FractalSpace;
@@ -41,6 +39,8 @@ int main(int argc, char* argv[])
   int NumberParticles=100000;
   if(argc >= 7)
     NumberParticles=atoi(argv[6]);
+  if(NumberParticles < 1000)
+    cerr << " TOO FEW PARTICLES " << Ranky << " " << NumberParticles << "\n";
   double SHRINK=0.0;
   if(argc >= 8)
     SHRINK=atof(argv[7]);
@@ -60,10 +60,7 @@ int main(int argc, char* argv[])
       cerr << " " << NumberParticles << " " << SHRINK << " " << PADDING << " " << step_length << " " << number_steps_total << "\n";
       int ar=0;
       while(ar < argc)
-	{
-	  cerr << " " << argv[ar];
-	  ar++;
-	}
+	cerr << " " << argv[ar++];
       cerr << "\n";
     }
   Fractal_Memory* PFM=fractal_memory_create();
@@ -72,11 +69,7 @@ int main(int argc, char* argv[])
   bool Periodic=false;
   bool Debug=true;
   int GridLength=GRL;
-  //  if(GRL < 64)
-  //    GridLength=256; ///////////////////////////////////
-  // int Padding=-1;
   int LevelMax=10;
-  //  int LevelMax=0; /////////////////////////
   int MinimumNumber=8;
   int MaxHypreIterations=20;
   double HypreTolerance=1.0e-7;
@@ -139,40 +132,15 @@ int main(int argc, char* argv[])
   vector <double> velz(NumberParticles,0.0);
   vector <double> masses(NumberParticles,m);
   PFM->hypre_load_balance=true;
-//   PFM->hypre_max_node_load=30000;
-//   PFM->hypre_max_average_load=20000;
   PFM->number_steps_total=number_steps_total;
-  //  PFM->number_steps_total=13;
   PFM->number_steps_out=20;
-  //  PFM->number_steps_out=200000;
   PFM->step_length=step_length;
-  // PFM->step_length=1.0e-5;
-  //  PFM->step_length=4.0e-5;
   PFM->time=0.0;
   make_me_a_galaxy(FractalRank,NumberParticles,total_mass,masses,G,posx,posy,posz,velx,vely,velz);
-  //  ofstream& FFM=PFM->p_file->FileFractalMemory;
-  //  FFM << " info " << NumberParticles << " " << m << " " << total_mass << " " << PFM->time << " " << PFM->step_length << "\n";
-    // if(Mess::IAMROOT)
-    //   {
-    // 	cerr << " AAA " << endl;
-    // 	cerr.flush();
-    //   }
   FILE* PFFM=PFM->p_file->PFFractalMemory;
-  // if(Mess::IAMROOT)
-  //   {
-  //     cerr << " BBB " << endl;
-  //     cerr.flush();
-  //   }
   fprintf(PFFM," info %d %d %13.4E %13.4E %10.2E %10.2E \n",TotalNumberParticles,NumberParticles,m,total_mass,PFM->time,PFM->step_length);
-  //  PFM->balance=0; ///////////////// 
-  //  PFM->number_steps_total=100; //////////////
   for(int step=0;step<PFM->number_steps_total;step++)
     {
-      // if(Mess::IAMROOT)
-      // 	{
-      // 	  cerr << " CCC " << endl;
-      // 	  cerr.flush();
-      // 	}
       xmini=xmin;
       xmaxy=xmax;
       shrink_cube(SHRINK,xmin,xmax,PFM,posx,posy,posz,NumberParticles,xmini,xmaxy);
@@ -186,9 +154,9 @@ int main(int argc, char* argv[])
       if(step % PFM->number_steps_out == 0)
 	start_writing(PFM,NumberParticles,G,xmini,xmaxy,posx,posy,posz,velx,vely,velz,masses);
       fractal_delete(PFM);
-      //      PFM->p_file->FlushAll();
     }
   fractal_memory_content_delete(PFM);
   fractal_memory_delete(PFM);
+  PFM=0;
   return 0;
 }
