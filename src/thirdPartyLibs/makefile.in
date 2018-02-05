@@ -46,6 +46,7 @@ PIPEXE = $(prefix)/bin/pip
 
 # Pybindgen
 PYBINDGENBUILDDATE=.pybindgen==0.17.0_pip_install.date
+PYBINDGENPATCHDATE=.pybindgen_patch.date
 
 # pybind11
 PYBIND11DIST = pybind11-2.2.1.tar.gz
@@ -301,7 +302,14 @@ EASYPROFILEBUILDDATE = $(patsubst %.tar.gz, .%.date, $(EASYPROFILEDIST))
 	touch $@
 
 #-------------------------------------------------------------------------------
+# Pybindgen needs to be patched to handle C++ enums.
+$(PYBINDGENPATCHDATE):	$(PYBINDGENBUILDDATE)
+	$(PATCH) $(PYLIBDIR)/pybindgen/enum.py $(srcdir)/pybindgen_enum_py.patch
+	touch $(PYBINDGENPATCHDATE)
+
+#-------------------------------------------------------------------------------
 all:	$(PYTHONTARGET) \
+	$(PYBINDGENPATCHDATE) \
 	$(PETSCTARGETS) \
 	$(ATSBUILDDATE) \
 	$(ZLIBBUILDDATE) \
@@ -1078,7 +1086,7 @@ cache/$(TETGENDIST):
 cache/$(POLYTOPEDIST):
 	$(CURL) "$(POLYTOPEURL)" -o cache/$(POLYTOPEDIST)
 
-$(POLYTOPEBUILDDATE):	cache/$(POLYTOPEDIST) $(CMAKEEXE) $(BOOSTTARGET) $(SILOTARGET) $(PYTHONTARGET) $(PYBINDGENBUILDDATE)
+$(POLYTOPEBUILDDATE):	cache/$(POLYTOPEDIST) $(CMAKEEXE) $(BOOSTTARGET) $(SILOTARGET) $(PYTHONTARGET) $(PYBINDGENPATCHDATE)
 	@echo "################################################################################"
 	@echo "# Building $(POLYTOPEDIST)"
 	@echo "################################################################################"
