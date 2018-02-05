@@ -19,7 +19,7 @@ CP = cp
 MV = mv
 PATCH = patch
 MKDIR = mkdir -p
-CURL = curl -k -L --create-dirs
+CURL = curl -k -L
 AR = ar
 OPENPAREN:=(
 CLOSEPAREN:=)
@@ -358,6 +358,7 @@ clean:
 # Python
 #-------------------------------------------------------------------------------
 cache/$(PYTHONDIST):
+	@$(MKDIR) cache
 	$(CURL) "$(PYTHONURL)" -o cache/$(PYTHONDIST)
 
 $(PYTHONBUILDDATE):	$(PYTHON) cache/$(PYTHONDIST) $(ZLIBBUILDDATE)
@@ -389,6 +390,7 @@ $(PYTHONBUILDDATE):	$(PYTHON) cache/$(PYTHONDIST) $(ZLIBBUILDDATE)
 # PIP
 #-------------------------------------------------------------------------------
 cache/$(PIPDIST):
+	@$(MKDIR) cache
 	$(CURL) "$(PIPURL)" -o cache/$(PIPDIST)
 	$(CURL) "$(SETUPTOOLSURL)" -o cache/$(SETUPTOOLSDIST)
 	$(CURL) "$(WHEELURL)" -o cache/$(WHEELDIST)
@@ -409,6 +411,7 @@ $(PIPEXE):	$(PYTHONTARGET) cache/$(PIPDIST)
 # Gnuplot python extension
 #-------------------------------------------------------------------------------
 cache/$(GNUPLOTDIST):
+	@$(MKDIR) cache
 	$(CURL) "$(GNUPLOTURL)" -o cache/$(GNUPLOTDIST)
 
 $(GNUPLOTBUILDDATE):	$(PYTHONTARGET) cache/$(GNUPLOTDIST) .numpy_pip_install.date $(NUMPYBUILDDATE)
@@ -431,6 +434,7 @@ $(GNUPLOTBUILDDATE):	$(PYTHONTARGET) cache/$(GNUPLOTDIST) .numpy_pip_install.dat
 # Boost
 #-------------------------------------------------------------------------------
 cache/$(BOOSTDIST):
+	@$(MKDIR) cache
 	$(CURL) "$(BOOSTURL)" -o cache/$(BOOSTDIST)
 
 $(BOOSTDATE):	cache/$(BOOSTDIST) $(ZLIBBUILDDATE)
@@ -470,6 +474,7 @@ $(BOOSTDATE):	cache/$(BOOSTDIST) $(ZLIBBUILDDATE)
 # Cmake
 #-------------------------------------------------------------------------------
 cache/$(CMAKEDIST):
+	@$(MKDIR) cache
 	$(CURL) "$(CMAKEURL)" -o cache/$(CMAKEDIST)
 
 $(CMAKEEXE):	cache/$(CMAKEDIST)
@@ -493,6 +498,7 @@ $(CMAKEEXE):	cache/$(CMAKEDIST)
 # ParMETIS
 #-------------------------------------------------------------------------------
 cache/$(PARMETISDIST):
+	@$(MKDIR) cache
 	$(CURL) "$(PARMETISURL)" -o cache/$(PARMETISDIST)
 
 $(PARMETISBUILDDATE):  cache/$(PARMETISDIST) $(CMAKEEXE)
@@ -520,6 +526,7 @@ $(PARMETISBUILDDATE):  cache/$(PARMETISDIST) $(CMAKEEXE)
 # Tau
 #-------------------------------------------------------------------------------
 cache/$(TAUDIST):
+	@$(MKDIR) cache
 	$(CURL) "$(TAUURL)" -o cache/$(TAUDIST)
 
 $(TAUBUILDDATE):  cache/$(TAUDIST)
@@ -552,6 +559,7 @@ $(TAUDUMMYDATE):  cache/$(TAUDIST)
 # GNU Scientific Library -- Needed for special functions.
 #-------------------------------------------------------------------------------
 cache/$(GSLDIST):
+	@$(MKDIR) cache
 	$(CURL) "$(GSLURL)" -o cache/$(GSLDIST)
 
 $(GSLBUILDDATE): cache/$(GSLDIST)
@@ -578,6 +586,7 @@ $(GSLBUILDDATE): cache/$(GSLDIST)
 # Python interface to GNU Scientific Library.
 #-------------------------------------------------------------------------------
 cache/$(PYGSLDIST):
+	@$(MKDIR) cache
 	$(CURL) "$(PYGSLURL)" -o cache/$(PYGSLDIST)
 
 $(PYGSLBUILDDATE): cache/$(PYGSLDIST) $(GSLBUILDDATE) $(PYTHONTARGET)
@@ -600,6 +609,7 @@ $(PYGSLBUILDDATE): cache/$(PYGSLDIST) $(GSLBUILDDATE) $(PYTHONTARGET)
 # PETSc linear solver library -- Needed for SPH Gravity and MHD packages.
 #-------------------------------------------------------------------------------
 cache/$(PETSCIDIST):
+	@$(MKDIR) cache
 	$(CURL) "$(PETSCURL)" -o cache/$(PETSCIDIST)
 
 $(PETSCBUILDDATE):	cache/$(PETSCIDIST)
@@ -626,6 +636,7 @@ $(PETSCBUILDDATE):	cache/$(PETSCIDIST)
 # petsc4py Python module -- used by SPHGravity and MHD.
 #-------------------------------------------------------------------------------
 cache/$(PETSC4PYDIST):
+	@$(MKDIR) cache
 	$(CURL) "$(PETSC4PYURL)" -o cache/$(PETSC4PYDIST)
 
 $(PETSC4PYBUILDDATE): cache/$(PETSC4PYDIST)
@@ -649,6 +660,7 @@ $(PETSC4PYBUILDDATE): cache/$(PETSC4PYDIST)
 # Google's hash map implementation.
 #-------------------------------------------------------------------------------
 cache/$(HASHMAPDIST):
+	@$(MKDIR) cache
 	$(CURL) "$(HASHMAPURL)" -o cache/$(HASHMAPDIST)
 
 $(HASHMAPBUILDDATE):	cache/$(HASHMAPDIST)
@@ -672,6 +684,7 @@ $(HASHMAPBUILDDATE):	cache/$(HASHMAPDIST)
 # Hank's visit_writer 
 #-------------------------------------------------------------------------------
 cache/$(VISITWRITERDIST):
+	@$(MKDIR) cache
 	$(CURL) "$(VISITWRITERURL)" -o cache/$(VISITWRITERDIST)
 
 $(VISITWRITERBUILDDATE):  cache/$(VISITWRITERDIST)
@@ -694,6 +707,7 @@ $(VISITWRITERBUILDDATE):  cache/$(VISITWRITERDIST)
 # ATS testing system.
 #-------------------------------------------------------------------------------
 cache/$(ATSDIST):
+	@$(MKDIR) cache
 	$(CURL) "$(ATSURL)" -o cache/$(ATSDIST)
 
 $(ATSBUILDDATE):	cache/$(ATSDIST) $(PYTHONTARGET)
@@ -719,6 +733,7 @@ $(ATSBUILDDATE):	cache/$(ATSDIST) $(PYTHONTARGET)
 # FFTW fast-fourier transform
 #-------------------------------------------------------------------------------
 cache/$(FFTWDIST):
+	@$(MKDIR) cache
 	$(CURL) "$(FFTWURL)" -o cache/$(FFTWDIST)
 
 $(FFTWBUILDDATE):	cache/$(FFTWDIST)
@@ -744,6 +759,7 @@ $(FFTWBUILDDATE):	cache/$(FFTWDIST)
 # ARRAY class for use in fftw++
 #-------------------------------------------------------------------------------
 cache/$(ARRAYDIST):
+	@$(MKDIR) cache
 	$(CURL) "$(ARRAYURL)" -o cache/$(ARRAYDIST)
 
 $(ARRAYBUILDDATE):	cache/$(ARRAYDIST)
@@ -762,6 +778,7 @@ $(ARRAYBUILDDATE):	cache/$(ARRAYDIST)
 # FFTW++ interface
 #-------------------------------------------------------------------------------
 cache/$(FFTWPPDIST):
+	@$(MKDIR) cache
 	$(CURL) "$(FFTWPPURL)" -o cache/$(FFTWPPDIST)
 
 $(FFTWPPBUILDDATE):	cache/$(FFTWPPDIST) $(ARRAYBUILDDATE)
@@ -788,6 +805,7 @@ $(FFTWPPBUILDDATE):	cache/$(FFTWPPDIST) $(ARRAYBUILDDATE)
 # ZLIB
 #-------------------------------------------------------------------------------
 cache/$(ZLIBDIST):
+	@$(MKDIR) cache
 	$(CURL) "$(ZLIBURL)" -o cache/$(ZLIBDIST)
 
 $(ZLIBBUILDDATE):	cache/$(ZLIBDIST)
@@ -814,6 +832,7 @@ $(ZLIBBUILDDATE):	cache/$(ZLIBDIST)
 # JPEG
 #-------------------------------------------------------------------------------
 cache/$(JPEGDIST):
+	@$(MKDIR) cache
 	$(CURL) "$(JPEGURL)" -o cache/$(JPEGDIST)
 
 $(JPEGBUILDDATE):	cache/$(JPEGDIST)
@@ -844,6 +863,7 @@ $(JPEGBUILDDATE):	cache/$(JPEGDIST)
 # Qhull
 #-------------------------------------------------------------------------------
 cache/$(QHULLDIST):
+	@$(MKDIR) cache
 	$(CURL) "$(QHULLURL)" -o cache/$(QHULLDIST)
 
 $(QHULLDATE):	$(PYTHONTARGET) $(CMAKEEXE) cache/$(QHULLDIST)
@@ -872,6 +892,7 @@ $(QHULLDATE):	$(PYTHONTARGET) $(CMAKEEXE) cache/$(QHULLDIST)
 # HDF5
 #-------------------------------------------------------------------------------
 cache/$(HDF5DIST):
+	@$(MKDIR) cache
 	$(CURL) "$(HDF5URL)" -o cache/$(HDF5DIST)
 
 $(HDF5BUILDDATE):  cache/$(HDF5DIST)
@@ -901,6 +922,7 @@ $(HDF5BUILDDATE):  cache/$(HDF5DIST)
 # SILO
 #-------------------------------------------------------------------------------
 cache/$(SILODIST):
+	@$(MKDIR) cache
 	$(CURL) -k "$(SILOURL)" -o cache/$(SILODIST)
 
 $(SILOBUILDDATE):  $(HDF5BUILDDATE) $(PYTHONTARGET) cache/$(SILODIST)
@@ -929,6 +951,7 @@ $(SILOBUILDDATE):  $(HDF5BUILDDATE) $(PYTHONTARGET) cache/$(SILODIST)
 # Eigen
 #-------------------------------------------------------------------------------
 cache/$(EIGENDIST):
+	@$(MKDIR) cache
 	$(CURL) -k "$(EIGENURL)" -o cache/$(EIGENDIST)
 
 $(EIGENBUILDDATE):  cache/$(EIGENDIST) $(HDF5BUILDDATE)
@@ -951,6 +974,7 @@ $(EIGENBUILDDATE):  cache/$(EIGENDIST) $(HDF5BUILDDATE)
 # Gnu multiprecision library
 #-------------------------------------------------------------------------------
 cache/$(GMPDIST):
+	@$(MKDIR) cache
 	$(CURL) -k "$(GMPURL)" -o cache/$(GMPDIST)
 
 $(GMPBUILDDATE):  cache/$(GMPDIST)
@@ -978,6 +1002,7 @@ $(GMPBUILDDATE):  cache/$(GMPDIST)
 # mpmath
 #-------------------------------------------------------------------------------
 cache/$(MPMATHDIST):
+	@$(MKDIR) cache
 	$(CURL) "$(MPMATHURL)" -o cache/$(MPMATHDIST)
 
 $(MPMATHBUILDDATE):  $(PYTHONTARGET) cache/$(MPMATHDIST)
@@ -1000,6 +1025,7 @@ $(MPMATHBUILDDATE):  $(PYTHONTARGET) cache/$(MPMATHDIST)
 # The HYPRE linear solver library
 #-------------------------------------------------------------------------------
 cache/$(HYPREDIST):
+	@$(MKDIR) cache
 	$(CURL) "$(HYPREURL)" -o cache/$(HYPREDIST)
 
 $(HYPREBUILDDATE):	cache/$(HYPREDIST)
@@ -1026,6 +1052,7 @@ $(HYPREBUILDDATE):	cache/$(HYPREDIST)
 # FLANN
 #-------------------------------------------------------------------------------
 cache/$(FLANNDIST):
+	@$(MKDIR) cache
 	$(CURL) "$(FLANNURL)" -o cache/$(FLANNDIST)
 
 $(FLANNBUILDDATE):	cache/$(FLANNDIST) $(CMAKEEXE) $(FLANNDATE) $(PYTHONTARGET)
@@ -1052,6 +1079,7 @@ $(FLANNBUILDDATE):	cache/$(FLANNDIST) $(CMAKEEXE) $(FLANNDATE) $(PYTHONTARGET)
 # The Point Cloud Library (PCL)
 #-------------------------------------------------------------------------------
 cache/$(PCLDIST):
+	@$(MKDIR) cache
 	$(CURL) "$(PCLURL)" -o cache/$(PCLDIST)
 
 $(PCLBUILDDATE):	cache/$(PCLDIST) $(CMAKEEXE) $(BOOSTTARGET) $(EIGENDATE) $(QHULLDATE) $(FLANNDATE)
@@ -1078,12 +1106,15 @@ $(PCLBUILDDATE):	cache/$(PCLDIST) $(CMAKEEXE) $(BOOSTTARGET) $(EIGENDATE) $(QHUL
 # polytope
 #-------------------------------------------------------------------------------
 cache/$(TRIANGLEDIST):
+	@$(MKDIR) cache
 	$(CURL) "$(TRIANGLEURL)" -o cache/$(TRIANGLEDIST)
 
 cache/$(TETGENDIST):
+	@$(MKDIR) cache
 	$(CURL) "$(TETGENURL)" -o cache/$(TETGENDIST)
 
 cache/$(POLYTOPEDIST):
+	@$(MKDIR) cache
 	$(CURL) "$(POLYTOPEURL)" -o cache/$(POLYTOPEDIST)
 
 $(POLYTOPEBUILDDATE):	cache/$(POLYTOPEDIST) $(CMAKEEXE) $(BOOSTTARGET) $(SILOTARGET) $(PYTHONTARGET) $(PYBINDGENPATCHDATE)
@@ -1124,6 +1155,7 @@ $(POLYTOPEBUILDDATE):	cache/$(POLYTOPEDIST) $(CMAKEEXE) $(BOOSTTARGET) $(SILOTAR
 # OpenSubDiv
 #-------------------------------------------------------------------------------
 cache/$(OPENSUBDIVDIST):
+	@$(MKDIR) cache
 	$(CURL) "$(OPENSUBDIVURL)" -o cache/$(OPENSUBDIVDIST)
 
 $(OPENSUBDIVBUILDDATE):	cache/$(OPENSUBDIVDIST) $(CMAKEEXE)
@@ -1153,6 +1185,7 @@ $(OPENSUBDIVBUILDDATE):	cache/$(OPENSUBDIVDIST) $(CMAKEEXE)
 # number of vertices.
 #-------------------------------------------------------------------------------
 cache/$(R3DDIST):
+	@$(MKDIR) cache
 	$(CURL) "$(R3DURL)" -o cache/$(R3DDIST)
 
 $(R3DBUILDDATE):	cache/$(R3DDIST)
@@ -1181,6 +1214,7 @@ $(R3DBUILDDATE):	cache/$(R3DDIST)
 # pybind11
 #-------------------------------------------------------------------------------
 cache/$(PYBIND11DIST):
+	@$(MKDIR) cache
 	$(CURL) -k "$(PYBIND11URL)" -o cache/$(PYBIND11DIST)
 
 $(PYBIND11BUILDDATE):  cache/$(PYBIND11DIST)
@@ -1203,6 +1237,7 @@ $(PYBIND11BUILDDATE):  cache/$(PYBIND11DIST)
 # Easy profile
 #-------------------------------------------------------------------------------
 cache/$(EASYPROFILEDIST):
+	@$(MKDIR) cache
 	$(CURL) "$(EASYPROFILEURL)" -o cache/$(EASYPROFILEDIST)
 
 $(EASYPROFILEBUILDDATE):	cache/$(EASYPROFILEDIST) $(CMAKEEXE)
