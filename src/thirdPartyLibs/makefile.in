@@ -8,6 +8,11 @@ SPHERALTOP = @abs_top_srcdir@
 BUILDTOP = @abs_top_builddir@
 
 #-------------------------------------------------------------------------------
+# For now suspend parallel building 'cause we're having trouble with stuff
+# building multiple times and stomping on one and other.
+.NOTPARALLEL:
+
+#-------------------------------------------------------------------------------
 # Include the master file to get compilers and such.
 include $(BUILDTOP)/helpers/makefile_master
 
