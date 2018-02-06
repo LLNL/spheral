@@ -36,6 +36,7 @@ AC_SUBST(USE_R3D)
 AC_SUBST(TPINCS)
 AC_SUBST(TPLIBS)
 AC_SUBST(EXTRATHIRDPARTYTARGETS)
+AC_SUBST(PIPTARGETS)
 AC_SUBST(CMAKEEXE)
 AC_SUBST(BOOSTTARGET)
 AC_SUBST(SILOTARGET)
@@ -212,7 +213,7 @@ AC_ARG_WITH(mpmath,
 [  --with-mpmath ............................ optionally install the Gnu Scientific Library extensions],
 [
    AC_MSG_RESULT(yes)
-   EXTRATHIRDPARTYTARGETS+=" .mpmath_pip_install.date"
+   PIPTARGETS+=" .mpmath_pip_install.date"
 ],
 [
    AC_MSG_RESULT(no)
@@ -246,7 +247,7 @@ AC_ARG_WITH(numpy,
 ],
 [
     AC_MSG_RESULT(no)
-    EXTRATHIRDPARTYTARGETS+=" .numpy_pip_install.date"
+    PIPTARGETS+=" .numpy_pip_install.date"
 ])
 
 # -----------------------------------------------------------------
@@ -274,7 +275,7 @@ AC_ARG_WITH(sobol,
 ],
 [
     AC_MSG_RESULT(no)
-    EXTRATHIRDPARTYTARGETS+=" .sobol_pip_install.date"
+    PIPTARGETS+=" .sobol_pip_install.date"
 ])
 
 # -----------------------------------------------------------------

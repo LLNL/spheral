@@ -301,6 +301,11 @@ EASYPROFILEBUILDDATE = $(patsubst %.tar.gz, .%.date, $(EASYPROFILEDIST))
 	fi
 	touch $@
 
+# This rule is intended to make sure we build the pip targets serially to make
+# pip downloading and using prerequisites reliable.
+piptargets:
+	$(MAKE) MAKEFLAGS='-j 1' $(PIPTARGETS)
+
 #-------------------------------------------------------------------------------
 # Pybindgen needs to be patched to handle C++ enums.
 $(PYBINDGENPATCHDATE):	$(PYBINDGENBUILDDATE)
@@ -312,10 +317,10 @@ all:	$(PYTHONTARGET) \
 	$(PYBINDGENPATCHDATE) \
 	$(PETSCTARGETS) \
 	$(ATSBUILDDATE) \
-	$(ZLIBBUILDDATE) \
 	$(OPENSUBDIVTARGETS) \
 	$(PYBIND11BUILDDATE) \
 	$(EXTRATHIRDPARTYTARGETS) \
+	piptargets
 #	$(HYPREBUILDDATE)
 #	$(FLANNBUILDDATE) \
 #	$(PCLBUILDDATE)
@@ -437,7 +442,7 @@ cache/$(BOOSTDIST):
 	@$(MKDIR) cache
 	$(CURL) "$(BOOSTURL)" -o cache/$(BOOSTDIST)
 
-$(BOOSTDATE):	cache/$(BOOSTDIST) $(ZLIBBUILDDATE)
+$(BOOSTDATE):	cache/$(BOOSTDIST)
 	@echo "################################################################################"
 	@echo "# Building $(BOOSTDIST)"
 	@echo "################################################################################"
@@ -812,13 +817,13 @@ $(ZLIBBUILDDATE):	cache/$(ZLIBDIST)
 	@echo "################################################################################"
 	@echo "# Building $(ZLIBDIST)"
 	@echo "################################################################################"
-	@$(MKDIR) $(LIBDIR) $(prefix)/include $(prefix)/bin
+	@$(MKDIR) $(LIBDIR) $(prefix)/include $(prefix)/bin $(prefix)/share/man/man3
 	rm -fr $(ZLIBDIR)
 	$(GZIP) -dc cache/$(ZLIBDIST) | $(TAR) -xf -
 	$(SHELL) -ec "cd $(ZLIBDIR); \
 	env CFLAGS='-fpic' ./configure --prefix=$(prefix) ; \
-	$(MAKE) ; \
-	$(MAKE) install"
+	$(MAKE) MAKEFLAGS='-j 1' ; \
+	$(MAKE) MAKEFLAGS='-j 1' install"
 	@if ! test -e $(prefix)/include/zlib.h -a \
 	           -e $(prefix)/include/zconf.h -a \
 	           -e $(prefix)/lib/libz.a; then \

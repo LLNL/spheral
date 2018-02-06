@@ -2,7 +2,7 @@
 # scipy -- a collection of math & science oriented python extensions.
 # -----------------------------------------------------------------
 AC_DEFUN([SETUP_SCIPY],[
-AC_SUBST(EXTRATHIRDPARTYTARGETS)
+AC_SUBST(PIPTARGETS)
 
 AC_MSG_CHECKING(for --without-scipy)
 AC_ARG_WITH(scipy,
@@ -12,7 +12,7 @@ AC_ARG_WITH(scipy,
 ],
 [
     AC_MSG_RESULT(no)
-    EXTRATHIRDPARTYTARGETS+=" .scipy_pip_install.date"
+    PIPTARGETS+=" .scipy_pip_install.date"
 ])
 
 ])

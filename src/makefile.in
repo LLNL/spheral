@@ -1,6 +1,8 @@
 # -*-makefile-*-
 # Spheral++ toplevel makefile
 #-------------------------------------------------------------------------------
+.NOTPARALLEL:
+
 srcdir = @abs_srcdir@
 VPATH = @abs_srcdir@
 
