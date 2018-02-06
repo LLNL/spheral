@@ -30,7 +30,7 @@ namespace FractalSpace
     // boxouter[5]=Rhigh;
     vector<double>boxinner{0.0,1.0,0.0,1.0,0.0,1.0};
     vector<double>boxouter{Rlow,Rhigh,Rlow,Rhigh,Rlow,Rhigh};
-    clean_vector(frac.pseudo_particle_list);
+    clean_deque(frac.pseudo_particle_list);
     vector <double> posp(3);
     for(int particle=0; particle < frac.get_number_particles(); ++particle)
       {

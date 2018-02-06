@@ -25,7 +25,7 @@ namespace FractalSpace
   public:
     File* p_file;
     vector <Point*> p_list_really_high;
-    vector <Point*>list_points;
+    deque <Point*>list_points;
     vector <Point*>list_high_points;
     vector <Point*>list_new_points;
     vector <Group*>list_high_groups;
