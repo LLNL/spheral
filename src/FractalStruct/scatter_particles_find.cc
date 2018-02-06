@@ -59,7 +59,7 @@ namespace FractalSpace
 	DBI=2;
       }
     // frac.particle_list.clear();
-    clean_vector(frac.particle_list);
+    clean_deque(frac.particle_list);
     int field_length=4;
     if(mem.calc_density_particle)
       field_length=5;
@@ -70,7 +70,7 @@ namespace FractalSpace
     int how_manyR=-1;
     int integers=1;
     int doubles=4;
-    clean_vector(mem.p_mess->parts_tmp);
+    clean_deque(mem.p_mess->parts_tmp);
     int LOOPS=3;
     for(int LOOP=0;LOOP<LOOPS;LOOP++)
       {
@@ -167,7 +167,7 @@ namespace FractalSpace
     FF << " IBOX " << mem.RealIBoxes[FractalRank][0] << " " << mem.RealIBoxes[FractalRank][1] << " " << mem.RealIBoxes[FractalRank][2] << " ";
     FF << mem.RealIBoxes[FractalRank][3] << " " << mem.RealIBoxes[FractalRank][4] << " " << mem.RealIBoxes[FractalRank][5] << "\n";
     // mem.p_mess->parts_tmpp.clear();
-    clean_vector(mem.p_mess->parts_tmpp);
+    clean_deque(mem.p_mess->parts_tmpp);
     //    LOOPS=1;
     LOOPS=9;
     for(int LOOP=0;LOOP<LOOPS;LOOP++)
