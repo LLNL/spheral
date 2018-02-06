@@ -3,6 +3,7 @@
 # -----------------------------------------------------------------
 AC_DEFUN([SETUP_MATPLOTLIB],[
 AC_SUBST(EXTRATHIRDPARTYTARGETS)
+AC_SUBST(PIPTARGETS)
 
 AC_MSG_CHECKING(for --with-matplotlib)
 AC_ARG_WITH(matplotlib,
@@ -12,7 +13,7 @@ AC_ARG_WITH(matplotlib,
 ],
 [
     AC_MSG_RESULT(no)
-    EXTRATHIRDPARTYTARGETS+=" .matplotlib_pip_install.date"
+    PIPTARGETS+=" .matplotlib_pip_install.date"
 ])
 
 ])
