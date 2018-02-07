@@ -91,15 +91,12 @@ namespace FractalSpace
 		posI[0]=static_cast<int>((pos[0]+DB)*SCALE)-DBI;
 		posI[1]=static_cast<int>((pos[1]+DB)*SCALE)-DBI;
 		posI[2]=static_cast<int>((pos[2]+DB)*SCALE)-DBI;
-		vector <int>::iterator itza=lowerZ.begin();
-		vector <int>::iterator itzb=lowerZ.end();
-		int FRZ=std::upper_bound(itza,itzb,posI[2])-itza-1;
-		vector <int>::iterator itya=lowerY[FRZ].begin();
-		vector <int>::iterator ityb=lowerY[FRZ].end();
-		int FRY=std::upper_bound(itya,ityb,posI[1])-itya-1;
-		vector <int>::iterator itxa=lowerX[FRZ][FRY].begin();
-		vector <int>::iterator itxb=lowerX[FRZ][FRY].end();
-		int FRX=std::upper_bound(itxa,itxb,posI[0])-itxa-1;
+		int FRZ=std::upper_bound(lowerZ.begin(),lowerZ.end(),posI[2])
+		  -lowerZ.begin()-1;
+		int FRY=std::upper_bound(lowerY[FRZ].begin(),lowerY[FRZ].end(),posI[1])
+		  -lowerY[FRZ].begin()-1;
+		int FRX=std::upper_bound(lowerX[FRZ][FRY].begin(),lowerX[FRZ][FRY].end(),posI[0])
+		  -lowerX[FRZ][FRY].begin()-1;
 		int FR=FRX+(FRY+FRZ*FractalNodes1)*FractalNodes0;
 		int part=particle;
 		if(!vector_in_box(pos,mem.RealBoxes[FR]))
