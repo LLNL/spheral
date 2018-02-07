@@ -7,8 +7,8 @@ namespace FractalSpace
 			  vector<vector<Point*>>& SPoints, bool buffer_groups)
   {
     static int _COUNTER=0;
-    int RANK=-1;
-    MPI_Comm_rank(MPI_COMM_WORLD,&RANK);
+    // int RANK=-1;
+    // MPI_Comm_rank(Fractal_Memory::FRACTAL_UNIVERSE,&RANK);
     int FractalRank=mem.p_mess->FractalRank;
     int FractalNodes=mem.p_mess->FractalNodes;
     mem.p_mess->IHranks.assign(FractalNodes,-1);

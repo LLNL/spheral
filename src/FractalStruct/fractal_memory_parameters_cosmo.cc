@@ -9,7 +9,7 @@ namespace FractalSpace
   {
     M& mem=*pmem;
     int Ranky;
-    MPI_Comm_rank(MPI_COMM_WORLD,&Ranky);
+    MPI_Comm_rank(Fractal_Memory::FRACTAL_UNIVERSE,&Ranky);
     mem.FractalNodes=mem.FractalNodes0*mem.FractalNodes1*mem.FractalNodes2;
     // These are the parameters you need to set.
     // For the others you should use my values for now.

@@ -1,4 +1,4 @@
-classes = fractal_memory.hh point_class.hh group_class.hh fractal_class.hh misc_class.hh particle_class.hh mess.hh file_class.hh kdtree.hh point_comp.hh libs.hh headers.hh classes.hh
+classes = fractal_memory.hh point_class.hh group_class.hh fractal_class.hh misc_class.hh particle_class.hh mess.hh file_class.hh kdtree.hh point_comp.hh fractal_interface_public.hh libs.hh headers.hh classes.hh
 fopt1 = -pedantic -O3 
 Wopt1 = -Wunused
 gprof = 
@@ -48,6 +48,12 @@ ifeq ($(system),ibmgnu)
 		PREFIXH = /g/g90/jensv/cplus/HYPREIBM101/hypre-2.10.1/src/hypre
 	endif
 endif
+ifeq ($(system),quartz)
+	MP = -fopenmp
+	compiler =  mpicc
+	PREFIXF = /g/g90/jensv/cplus/fftw-3.3.7/intel-quartz
+	PREFIXH = /g/g90/jensv/cplus/hypre-2.11.2/quartz/src/hypre
+endif
 Loptfftw = -L$(PREFIXF)/lib
 head_dir_fftw = $(PREFIXF)/include
 Lopthypre = -L$(PREFIXH)/lib
@@ -59,7 +65,8 @@ parameter_per_file = fractal_memory_parameters_cosmo
 fractal_galaxy_run_o = fractal_galaxy.o
 #
 loptfftw = -lfftw3_mpi -lfftw3 -lm
-lopthypre = $(Lopthypre) -lHYPRE 
+lopthypre = -lHYPRE 
+#lopthypre = $(Lopthypre) -lHYPRE 
 #
 wrapper_file = fractal_force_wrapper
 cosmos_power_file = cosmos_power
@@ -166,8 +173,8 @@ clean_groups.o :	clean_groups.cc $(classes)
 clean_up.o :	clean_up.cc $(classes)
 	$(compile) -c clean_up.cc
 #
-clean_vector.o :	clean_vector.cc $(classes)
-	$(compile) -c clean_vector.cc
+clean_container.o :	clean_container.cc $(classes)
+	$(compile) -c clean_container.cc
 #
 cosmos.o :	cosmos.cc $(classes)
 	$(compile) -c cosmos.cc
@@ -229,6 +236,9 @@ force_sum_particle.o :	force_sum_particle.cc $(classes)
 force_test.o :	force_test.cc $(classes)
 	$(compile) -c force_test.cc
 #
+fractal_cosmo.o :	fractal_cosmo.cc $(classes)
+	$(compile) -c fractal_cosmo.cc
+#
 fractal_force.o :	fractal_force.cc  $(classes) 
 	$(compile) -c fractal_force.cc
 #
@@ -252,9 +262,6 @@ fractal_force_init.o :	fractal_force_init.cc  $(classes)
 #
 fractal_interface_public.o :	fractal_interface_public.cc $(classes)
 	$(compile) -c fractal_interface_public.cc
-#
-fractal_nbody.o :	fractal_nbody.cc $(classes)
-	$(compile) -c fractal_nbody.cc
 #
 fractal_nina.o :	fractal_nina.cc $(classes)
 	$(compile) -c fractal_nina.cc
@@ -618,7 +625,7 @@ candidate_points.o \
 check_for_edge_trouble.o \
 check_high.o \
 clean_up.o \
-clean_vector.o \
+clean_container.o \
 cosmos.o \
 daughter_group_nina.o \
 dump_cosmo_boxes.o \
@@ -715,8 +722,8 @@ scatter_particles_find.o \
 slices_to_potf.o 
 #
 
-fractal_cosmo : 	 $(files_hypre_nina_o) $(files_class_o) $(files_fractal_nina_o) $(files_fftw_mpi_nina_o) $(files_mpi_comm_nina_o) fractal_nbody.o $(cosmos_power_file).o $(energy_file).o $(halo_fixed_file).o $(parameter_per_file).o $(particle_cosmo_mpi_file).o $(step_file).o $(velocity_file).o $(wrapper_file).o
-	$(compile) $(Loptfftw) $(Lopthypre) -o $(dir)fractal_nina_cosmo.exe $(files_class_o) $(files_fractal_nina_o) $(files_hypre_nina_o) $(files_fftw_mpi_nina_o) $(files_mpi_comm_nina_o) fractal_nbody.o $(cosmos_power_file).o $(energy_file).o $(halo_fixed_file).o $(parameter_per_file).o $(particle_cosmo_mpi_file).o $(step_file).o $(velocity_file).o $(wrapper_file).o  $(lopthypre) $(loptfftw)
+fractal_cosmo : 	 $(files_hypre_nina_o) $(files_class_o) $(files_fractal_nina_o) $(files_fftw_mpi_nina_o) $(files_mpi_comm_nina_o) fractal_cosmo.o $(cosmos_power_file).o $(energy_file).o $(halo_fixed_file).o $(parameter_per_file).o $(particle_cosmo_mpi_file).o $(step_file).o $(velocity_file).o $(wrapper_file).o
+	$(compile) $(Loptfftw) $(Lopthypre) -o $(dir)fractal_nina_cosmo.exe $(files_class_o) $(files_fractal_nina_o) $(files_hypre_nina_o) $(files_fftw_mpi_nina_o) $(files_mpi_comm_nina_o) fractal_cosmo.o $(cosmos_power_file).o $(energy_file).o $(halo_fixed_file).o $(parameter_per_file).o $(particle_cosmo_mpi_file).o $(step_file).o $(velocity_file).o $(wrapper_file).o  $(lopthypre) $(loptfftw)
 
 #
 fractal_galaxy :	$(files_hypre_nina_o) $(files_class_o) $(files_fractal_nina_o) $(files_fftw_mpi_nina_o) $(files_mpi_comm_nina_o) $(fractal_galaxy_run_o) $(cosmos_power_file).o $(halo_fixed_file).o
