@@ -133,6 +133,7 @@ def generateStdPairBindings(p, value1, value2, cppname,
 
     # Constructors.
     p.add_constructor([])
+    p.add_constructor([constrefparam(cppname, "rhs")])
 
     if val1ptr:
         firstparam = param(value1, "first", transfer_ownership=False)

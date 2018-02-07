@@ -81,12 +81,12 @@ public:
                              std::vector<int>& coarseNeighbors) const override;
 
   // Force the update of internal data for the NodeList.
-  virtual void updateNodes();
-  virtual void updateNodes(const std::vector<int>& nodeIDs);
+  virtual void updateNodes() override;
+  virtual void updateNodes(const std::vector<int>& nodeIDs) override;
   //****************************************************************************
 
   // Checks for internal validity.
-  virtual bool valid() const;
+  virtual bool valid() const override;
 
   // Compute the grid level appropriate for the given smoothing scale.
   unsigned gridLevel(const double& h) const;        // units of length
