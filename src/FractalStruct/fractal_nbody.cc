@@ -6,25 +6,19 @@
 int main(int argc, char* argv[])
 {
   using namespace FractalSpace;
-  MPI_Init(NULL,NULL);
+  int knights;
+  MPI_Initialized(&knights);
+  if(!knights)
+    MPI_Init(NULL,NULL);
+  Fractal_Memory::FRACTAL_UNIVERSE=MPI_COMM_WORLD;
   int FRN;
-  MPI_Comm_size(MPI_COMM_WORLD,&FRN);
+  MPI_Comm_size(Fractal_Memory::FRACTAL_UNIVERSE,&FRN);
   int Ranky;
-  MPI_Comm_rank(MPI_COMM_WORLD,&Ranky);
+  MPI_Comm_rank(Fractal_Memory::FRACTAL_UNIVERSE,&Ranky);
   Mess::IAMROOT=Ranky == 21;
-  //
-  // _disK_          default "d"
-  // Gridlength      default 256
-  // dims[0]         default 0
-  // dims[1]         default 0
-  // dims[2]         default 0
-  // _mulT_          default 4
-  //
-  // bool _inteL_=true;
   string _disK_="d";
   if(argc >= 2)
     _disK_=argv[1];
-    // _inteL_=atoi(argv[1]);
   int dims[]={0,0,0};
   int GRL=256;
   if(argc >= 3)
@@ -73,15 +67,15 @@ int main(int argc, char* argv[])
   PADDING=max(-1,min(1,PADDING));
   p_fractal_memory->padding=PADDING;
   int FractalRank;
-  //  MPI_Comm_rank(MPI_COMM_WORLD,&FractalRank);
-  vector <int> BoxA;
+  //  MPI_Comm_rank(Fractal_Memory::FRACTAL_UNIVERSE,&FractalRank);
+  // vector <int> BoxA;
   //  BoxA=p_fractal_memory->Boxes[FractalRank];
   bool MR=p_fractal_memory->MPIrun;
   int GR=p_fractal_memory->grid_length;
   bool PR=p_fractal_memory->periodic;
   int NP=p_fractal_memory->number_particles;
   int FN=p_fractal_memory->FFTNodes;
-  MPI_Comm FW=MPI_COMM_WORLD;
+  MPI_Comm FW=Fractal_Memory::FRACTAL_UNIVERSE;
   FR0=p_fractal_memory->FractalNodes0;
   FR1=p_fractal_memory->FractalNodes1;
   FR2=p_fractal_memory->FractalNodes2;

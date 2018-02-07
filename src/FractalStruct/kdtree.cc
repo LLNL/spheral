@@ -18,7 +18,7 @@ namespace FractalSpace
     FILLFACTOR(2.0)
   {
     RANK=-1;
-    MPI_Comm_rank(MPI_COMM_WORLD,&RANK);
+    MPI_Comm_rank(Fractal_Memory::FRACTAL_UNIVERSE,&RANK);
     RANKY=RANK==-21;
   }
   KdTree::~KdTree()
@@ -68,7 +68,6 @@ namespace FractalSpace
     if(rnode->full)
       {
 	fullnodes++;
-	// cerr << " LOAD NODES0 " << RANK << " " << nnodes << " " << fullnodes << " " << vol << " " << pPOINTS.size() << endl;
 	return;
       }
     for(int ni : {0,1})
@@ -89,8 +88,6 @@ namespace FractalSpace
 	rnode->kids[corner]->dir=2;
 	LoadKdTree(corner,rnode);
       }
-    // cerr << " LOADR " << RANK << " " << nnodes << " " << fullnodes << " " << pPOINTS.size() << " " << vol << " ";
-    // cerr << BOX[0] << " " << BOX[1] << " " << BOX[2] << " " << BOX[3] << " " << BOX[4] << " " << BOX[5] << endl;
     nnodes=0;
     fullnodes=0;
   }
@@ -105,8 +102,6 @@ namespace FractalSpace
     int dir=knode->dir;
     int DIR2=2*dir;
     knode->box[cornera % 2 == 0 ? DIR2+1:DIR2]=(pnode->box[DIR2]+pnode->box[DIR2+1])/2;
-    // cerr << " LOADP " << RANK << " " << vol << " " << DIR;
-    // cerr << " " << knode->box[0] << " " << knode->box[1] << " " << knode->box[2] << " " << knode->box[3] << " " << knode->box[4] << " " << knode->box[5] << endl;
     knode->ppoints.clear();
     vector <int>pos(3);
     vector<int>KBOXA={MINX,MINX,MINX};
@@ -190,15 +185,9 @@ namespace FractalSpace
     if(vol == pnode->ppoints.size())
       return;
     vector<int>pos(3);
-    // array<int,3>ar3;
     std::map<array<int,3>,Point*,point_comp2> boxP;
-    // std::pair<std::map<array<int,3>,Point*>::iterator,bool> ret;
     for(auto pp : pnode->ppoints)
       {
-	// pp->get_pos_point(pos);
-	// std::move(pos.begin(),pos.end(),ar3.begin());
-	// ret=boxP.insert(std::pair<array<int,3>,Point*>(ar3,pp));
-	// auto ret=boxP.insert(make_pair(ar3,pp));
 	auto ret=boxP.insert(make_pair(pp->get_pos_point_a(),pp));
 	assert(ret.second);
       }
@@ -216,8 +205,6 @@ namespace FractalSpace
 	      {
 		int px=nx*spacing;
 		array<int,3>posa3{{px,py,pz}};
-		// std::map<array<int,3>,Point*>::iterator bb=boxP.find(posa3);
-		// if(bb == boxP.end())
 		if(boxP.find(posa3) == boxP.end())
 		   boxP[posa3]=pFAKE;
 	      }

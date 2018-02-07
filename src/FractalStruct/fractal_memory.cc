@@ -4,6 +4,7 @@
 //
 namespace FractalSpace
 {
+  MPI_Comm Fractal_Memory::FRACTAL_UNIVERSE;
   void Fractal_Memory::set_G(double Cavendish)
   {
     G=Cavendish;

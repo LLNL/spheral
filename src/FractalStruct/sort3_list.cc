@@ -9,7 +9,6 @@ namespace FractalSpace
   //
   void sort3_list(Group& group,int what)
   {
-    assert(what >= 0 && what < 3);
     Misc::dim2=(what+2) % 3;
     Misc::dim1=(what+1) % 3;
     Misc::dim0=(what+0) % 3;
@@ -17,7 +16,13 @@ namespace FractalSpace
   }
   void sort3_list(vector <Point*>& list_points,int what)
   {
-    assert(what >= 0 && what < 3);
+    Misc::dim2=(what+2) % 3;
+    Misc::dim1=(what+1) % 3;
+    Misc::dim0=(what+0) % 3;
+    sort(list_points.begin(),list_points.end(),LesserPoint);
+  }
+  void sort3_list(deque <Point*>& list_points,int what)
+  {
     Misc::dim2=(what+2) % 3;
     Misc::dim1=(what+1) % 3;
     Misc::dim0=(what+0) % 3;
@@ -25,7 +30,6 @@ namespace FractalSpace
   }
   void sort3_list(list <Point*>& list_points,int what)
   {
-    assert(what >= 0 && what < 3);
     Misc::dim2=(what+2) % 3;
     Misc::dim1=(what+1) % 3;
     Misc::dim0=(what+0) % 3;
@@ -33,14 +37,13 @@ namespace FractalSpace
   }
   bool LesserPoint(Point* p1,Point* p2)
   {
-    int dz=p1->get_pos_point(Misc::dim2)-p2->get_pos_point(Misc::dim2);
+    int dz(p1->get_pos_point(Misc::dim2)-p2->get_pos_point(Misc::dim2));
     if(dz != 0)
       return dz < 0;
-    int dy=p1->get_pos_point(Misc::dim1)-p2->get_pos_point(Misc::dim1);
+    int dy(p1->get_pos_point(Misc::dim1)-p2->get_pos_point(Misc::dim1));
     if(dy != 0)
       return dy < 0;
-    int dx=p1->get_pos_point(Misc::dim0)-p2->get_pos_point(Misc::dim0);
-    return dx < 0;
+    return (p1->get_pos_point(Misc::dim0)-p2->get_pos_point(Misc::dim0) < 0);
   }
   bool LesserPointA(Point* p1,Point* p2)
   {

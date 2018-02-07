@@ -14,20 +14,23 @@ namespace FractalSpace
     double Rlow=-2.0*Rdelta;
     double Rhigh=1.0+Rdelta;
     vector <double>pos(3);
-    vector <double> boxinner(6);
-    vector <double> boxouter(6);
-    boxinner[0]=0.0;
-    boxinner[1]=1.0;
-    boxinner[2]=0.0;
-    boxinner[3]=1.0;
-    boxinner[4]=0.0;
-    boxinner[5]=1.0;
-    boxouter[0]=Rlow;
-    boxouter[1]=Rhigh;
-    boxouter[2]=Rlow;
-    boxouter[3]=Rhigh;
-    boxouter[4]=Rlow;
-    boxouter[5]=Rhigh;
+    // vector <double> boxinner(6);
+    // vector <double> boxouter(6);
+    // boxinner[0]=0.0;
+    // boxinner[1]=1.0;
+    // boxinner[2]=0.0;
+    // boxinner[3]=1.0;
+    // boxinner[4]=0.0;
+    // boxinner[5]=1.0;
+    // boxouter[0]=Rlow;
+    // boxouter[1]=Rhigh;
+    // boxouter[2]=Rlow;
+    // boxouter[3]=Rhigh;
+    // boxouter[4]=Rlow;
+    // boxouter[5]=Rhigh;
+    vector<double>boxinner{0.0,1.0,0.0,1.0,0.0,1.0};
+    vector<double>boxouter{Rlow,Rhigh,Rlow,Rhigh,Rlow,Rhigh};
+    clean_deque(frac.pseudo_particle_list);
     vector <double> posp(3);
     for(int particle=0; particle < frac.get_number_particles(); ++particle)
       {
