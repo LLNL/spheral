@@ -13,6 +13,7 @@ namespace FractalSpace
     int FractalNodes0;
     int FractalNodes1;
     int FractalNodes2;
+    int WallNodes;
     const int N63;
     int ROOTNODE;
     int FFTRank;
@@ -131,6 +132,8 @@ namespace FractalSpace
       WallTime=Clock();
       if(MR)
 	{
+	  WallNodes=FractalNodes0*FractalNodes1*FractalNodes2-
+	    (FractalNodes0-2)*(FractalNodes1-2)*(FractalNodes2-2);
 	  MPIStartup(PR,FR0,FR1,FR2);
 	  FractalRank=what_is_my_rank(); 
 	  FractalNodes=how_many_nodes(); 

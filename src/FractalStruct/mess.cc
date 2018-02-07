@@ -166,27 +166,65 @@ namespace FractalSpace
   {
     if(!periodic)
       how_long*=2;
-    int each=2;
-    bool keep_trying=true;
-    while(keep_trying)
+    FFTNodes=min(FractalNodes,how_long/2);
+    for(int divisor : {2,3,5})
       {
-	FFTNodes=how_long/each;
-	keep_trying=!(how_long % each == 0 && FFTNodes <= FractalNodes);
-	each+=2;
-	assert(each < 12);
+	while(how_long % divisor == 0)
+	  how_long/=divisor;
+      }
+    if(how_long != 1)
+      {
+	cerr << " GridLength not a product of powers of 2,3,5 " << how_long << endl;
+	assert(0);
       }
     IAmAnFFTNode=false;
     clean_vector(Franks);
     ItIsAnFFTNode.assign(FractalNodes,false);
-    for(int FN=0;FN<FFTNodes;FN++)
+    if(WallNodes >= FFTNodes)
       {
-	int FRank=(FN*FractalNodes)/FFTNodes;
-	ItIsAnFFTNode[FRank]=true;
-	Franks.push_back(FRank);
-	if(FRank == FractalRank)
+	bool W=false;
+	int FR=0;
+	vector <int> WallNodes;
+	for(int FR2=0;FR2<FractalNodes2;FR2++)
 	  {
-	    IAmAnFFTNode=true;
-	    FFTRank=FN;
+	    W=FR2 == 0 || FR2==FractalNodes2-1;
+	    for(int FR1=0;FR1<FractalNodes1;FR1++)
+	      {
+		W=W || FR1 == 0 || FR1==FractalNodes1-1;
+		for(int FR0=0;FR0<FractalNodes0;FR0++)
+		  {
+		    if(W || FR0 == 0 || FR0==FractalNodes0-1)
+		      WallNodes.push_back(FR);
+		    FR++;
+		  }
+	      }
+	  }
+	const int Wallsize=WallNodes.size();
+	for(int FN=0;FN<FFTNodes;FN++)
+	  {
+	    int FW=(FN*Wallsize)/FFTNodes;
+	    int FRank=WallNodes[FW];
+	    ItIsAnFFTNode[FRank]=true;
+	    Franks.push_back(FRank);
+	    if(FRank == FractalRank)
+	      {
+		IAmAnFFTNode=true;
+		FFTRank=FN;
+	      }
+	  }
+      }
+    else
+      {
+	for(int FN=0;FN<FFTNodes;FN++)
+	  {
+	    int FRank=(FN*FractalNodes)/FFTNodes;
+	    ItIsAnFFTNode[FRank]=true;
+	    Franks.push_back(FRank);
+	    if(FRank == FractalRank)
+	      {
+		IAmAnFFTNode=true;
+		FFTRank=FN;
+	      }
 	  }
       }
     MPI_Comm_group(FractalWorld,&FractalGroup);
