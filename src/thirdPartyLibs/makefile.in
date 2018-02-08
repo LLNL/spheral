@@ -290,7 +290,8 @@ EASYPROFILEBUILDDATE = $(patsubst %.tar.gz, .%.date, $(EASYPROFILEDIST))
 	@echo "################################################################################"
 	@echo "# Downloading $*"
 	@echo "################################################################################"
-	$(PIPEXE) download -d cache $*
+	$(PIPEXE) wheel -w cache $*
+	#$(PIPEXE) download -d cache $*
 	touch $@
 
 .%_pip_install.date:	$(PIPEXE) .%_pip_download.date
