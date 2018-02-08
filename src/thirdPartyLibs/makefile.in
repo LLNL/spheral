@@ -286,7 +286,7 @@ EASYPROFILEBUILDDATE = $(patsubst %.tar.gz, .%.date, $(EASYPROFILEDIST))
 # Define patterns for downloading and installing pip packages
 .SUFFIXES:	_pip_dowload.date _pip_install.date
 
-cache/pip:	$(PIPEXE)
+cache/pip:
 	@echo "################################################################################"
 	@echo "# Downloading PIP packages"
 	@echo "################################################################################"
