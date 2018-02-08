@@ -286,20 +286,19 @@ EASYPROFILEBUILDDATE = $(patsubst %.tar.gz, .%.date, $(EASYPROFILEDIST))
 # Define patterns for downloading and installing pip packages
 .SUFFIXES:	_pip_dowload.date _pip_install.date
 
-.%_pip_download.date:	$(PIPEXE)
+cache/pip:	$(PIPEXE)
 	@echo "################################################################################"
-	@echo "# Downloading $*"
+	@echo "# Downloading PIP packages"
 	@echo "################################################################################"
-	$(PIPEXE) wheel -w cache $*
-	#$(PIPEXE) download -d cache $*
-	touch $@
+	@$(MKDIR) cache/pip
+	$(PIPEXE) wheel -w cache/pip $(patsubst .%_pip_install.date,%,$(PIPTARGETS))
 
-.%_pip_install.date:	$(PIPEXE) .%_pip_download.date
+.%_pip_install.date:	$(PIPEXE) cache/pip
 	@echo "################################################################################"
 	@echo "# Building $*"
 	@echo "################################################################################"
 	$(eval PIPMOD := $(firstword $(subst ==, ,$*)))
-	$(PIPEXE) install --upgrade $* --no-index --find-links cache
+	$(PIPEXE) install --upgrade $* --no-index --find-links cache/pip
 	@if test -n "`$(PYTHONEXE) -c 'import $(PIPMOD)'`"; then \
 	echo "ERROR building $*."; \
 	rm -f $@; \
@@ -309,7 +308,7 @@ EASYPROFILEBUILDDATE = $(patsubst %.tar.gz, .%.date, $(EASYPROFILEDIST))
 
 # This rule is intended to make sure we build the pip targets serially to make
 # pip downloading and using prerequisites reliable.
-piptargets:
+piptargets:	cache/pip
 	$(MAKE) MAKEFLAGS='-j 1' $(PIPTARGETS)
 
 #-------------------------------------------------------------------------------
