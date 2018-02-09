@@ -3,28 +3,22 @@
 namespace FractalSpace
 {
 //! Headers for regular function calls
-  Fractal_Memory* FractalGravityFirstTime(int NumberParticles,
-					  int balance,
-					  int FractalNodes0,
-					  int FractalNodes1,
-					  int FractalNodes2,
-					  int FFTNodes,
-					  bool Periodic,
-					  bool Debug,
-					  int GridLength,
-					  int Padding,
-					  int LevelMax,
-					  int MinimumNumber,
-					  int MaxHypreIterations,
-					  double HypreTolerance,
-					  string BaseDirectory,
-					  string RunIdentifier,
-					  bool TimeTrial,
-					  MPI_Comm& TalkToMe);
-  void FractalGravity(Fractal_Memory* PFM,int NumberParticles,vector <double>& xmin,vector <double>& xmax, double G);
-  void FractalGravityFinal(Fractal_Memory* PFM);
-  //! One-Stop-Routine for setting up the Fractal_Memory object
+  Fractal_Memory* FractalGravityIsolatedFirstTime(
+						  MPI_Comm& TalkToMe,
+						  int GridLength,
+						  int FractalNodes0,
+						  int FractalNodes1,
+						  int FractalNodes2,
+						  string BaseDirectory,
+						  string RunIdentifier
+						  );
+  // void FractalGravity(Fractal_Memory* PFM,int NumberParticles,vector <double>& xmin,vector <double>& xmax, double G);
+  // void FractalGravityFinal(Fractal_Memory* PFM);
+  // //! One-Stop-Routine for setting up the Fractal_Memory object
 
+  void DoFractalGravity(Fractal_Memory* PFM);
+  //! wrapper for standalone call.
+  
   void do_fractal_force(Fractal_Memory* PFM);
   //! Wrapper for actually running the Poisson Solver
 

@@ -66,9 +66,12 @@ namespace FractalSpace
   public:
     Mess* p_mess;
     File* p_file;
-    vector <Particle*> particle_list;
-    vector <Particle*> particle_list_world;
-    vector <Particle*> pseudo_particle_list;
+    deque <Particle*> particle_list;
+    deque <Particle*> particle_list_world;
+    deque <Particle*> pseudo_particle_list;
+    // vector <Particle*> particle_list;
+    // vector <Particle*> particle_list_world;
+    // vector <Particle*> pseudo_particle_list;
     Particle* part_list_tmp;
     double omega_fraction;
     vector <double> rad;

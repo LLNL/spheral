@@ -13,18 +13,20 @@ namespace FractalSpace
     for(int level=1;level <= FM.level_max;level++)
       {
 	int gnumber=0;
-	for(vector <Group*>::const_iterator group_itr=FM.all_groups[level].begin();
-	    group_itr!=FM.all_groups[level].end();group_itr++)
+	// for(vector <Group*>::const_iterator group_itr=FM.all_groups[level].begin();
+	//     group_itr!=FM.all_groups[level].end();group_itr++)
+	for(auto pg : FM.all_groups[level])
 	  {
 	    int pnumber=0;
-	    Group& group=**group_itr;
-	    for( vector <Point*>::const_iterator point_itr=group.list_points.begin();point_itr !=group.list_points.end();++point_itr)
+	    // Group& group=**group_itr;
+	    // for( vector <Point*>::const_iterator point_itr=group.list_points.begin();point_itr !=group.list_points.end();++point_itr)
+	    for(auto pp : pg->list_points)
 	      {
-		Point& point=**point_itr;
-		if(!point.get_inside() && !point.get_passive_point())
+		// Point& point=**point_itr;
+		if(!pp->get_inside() && !pp->get_passive_point())
 		  {
-		    point.get_pos_point(pos);
-		    point.get_point_ud(ud);
+		    pp->get_pos_point(pos);
+		    pp->get_point_ud(ud);
 		    for(int ni=1;ni<6;ni+=2)
 		      {
 			if(ud[ni]==0 || ud[ni]->get_inside() || ud[ni]->get_passive_point())

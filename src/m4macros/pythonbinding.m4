@@ -12,9 +12,12 @@ AC_SUBST(BOOSTLIBTARGETS)
 AC_SUBST(INCS)
 AC_SUBST(PYOPT)
 AC_SUBST(MODULELINK)
+AC_SUBST(EXTRATHIRDPARTYTARGETS)
+AC_SUBST(PIPTARGETS)
 
 PYOPT=""
 BOOSTLIBTARGETS="math"
+PIPTARGETS+=" .pybindgen==0.17.0_pip_install.date"
 
 AC_MSG_CHECKING(for --without-pybindgen)
 AC_ARG_WITH(pybindgen,
@@ -45,7 +48,6 @@ AC_ARG_WITH(pybind11,
 [  --with-pybind11 .......................... use pybind11 wrappings],
 [
     AC_MSG_RESULT(yes)
-    EXTRATHIRDPARTYTARGETS+=" .pybind11-2.0.1.date"
     PYTHONBINDING="PYBIND11"
     PYTHONPKGDIR="Pybind11Wraps"
     PYTHONPKGS+=" CXXTypes Geometry Silo DataOutput NodeList Field Kernel Neighbor Material FileIO DataBase Boundary Physics ArtificialViscosity Hydro"

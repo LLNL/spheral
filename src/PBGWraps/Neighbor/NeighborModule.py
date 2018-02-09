@@ -86,6 +86,7 @@ generateStdVectorBindings(self.vector_of_vector_of_GridCellIndex%(ndim)id, "vect
         x.add_constructor([param("int", "xIndex"),
                            param("int", "yIndex"),
                            param("int", "zIndex")])
+        x.add_constructor([constrefparam(me, "rhs")])
 
         # Methods.
         x.add_method("setIndices", None, [param("int", "xIndex")])

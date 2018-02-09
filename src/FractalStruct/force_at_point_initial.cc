@@ -11,43 +11,69 @@ namespace FractalSpace
     // worry about group 1 at the edge for isolated BC.
     FileFractal << " enter force at point initial" << "\n";
     //
-    for( vector <Point*>::const_iterator point_itr=group.list_points.begin();point_itr !=group.list_points.end();++point_itr)
+    for(auto p : group.list_points)
       {
-	Point& point=**point_itr;
-	const int rp=point.get_real_pointer();
-	if(rp >= 0)
-	  {
-	    if(Point::corner[rp])
-	      point.copy_force_point_1();
-	  }
+	const int rp(p->get_real_pointer());
+	if(rp >= 0 && Point::corner[rp])
+	  p->copy_force_point_1();
       }
-    for( vector <Point*>::const_iterator point_itr=group.list_points.begin();point_itr !=group.list_points.end();++point_itr)
+    for(auto p : group.list_points)
       {
-	Point& point=**point_itr;
-	const int rp=point.get_real_pointer();
-	if(rp >= 0)
-	  {
-	    if(Point::edge[rp])
-	      point.copy_force_point_2(Point::cefc[rp]);
-	  }
+	const int rp(p->get_real_pointer());
+	if(rp >= 0 && Point::edge[rp])
+	  p->copy_force_point_2(Point::cefc[rp]);
       }
-    for( vector <Point*>::const_iterator point_itr=group.list_points.begin();point_itr !=group.list_points.end();++point_itr)
+    for(auto p : group.list_points)
       {
-	Point& point=**point_itr;
-	const int rp=point.get_real_pointer();
-	if(rp >=0)
-	  {
-	    if(Point::face[rp])
-	      point.copy_force_point_4(Point::cefc[rp]);
-	  }
+	const int rp(p->get_real_pointer());
+	if(rp >= 0 && Point::face[rp])
+	  p->copy_force_point_4(Point::cefc[rp]);
       }
-    for( vector <Point*>::const_iterator point_itr=group.list_points.begin();point_itr !=group.list_points.end();++point_itr)
-      {
-	Point& point=**point_itr;
-	const int rp=point.get_real_pointer();
-	if(rp == 13)
-	  point.copy_force_point_6();
-      }
+    for(auto p : group.list_points)
+      if(p->get_real_pointer() == 13)
+	p->copy_force_point_6();
+
+
+
+    
+    
+    // for( vector <Point*>::const_iterator point_itr=group.list_points.begin();point_itr !=group.list_points.end();++point_itr)
+    //   {
+    // 	Point& point=**point_itr;
+    // 	const int rp=point.get_real_pointer();
+    // 	if(rp >= 0)
+    // 	  {
+    // 	    if(Point::corner[rp])
+    // 	      point.copy_force_point_1();
+    // 	  }
+    //   }
+    // for( vector <Point*>::const_iterator point_itr=group.list_points.begin();point_itr !=group.list_points.end();++point_itr)
+    //   {
+    // 	Point& point=**point_itr;
+    // 	const int rp=point.get_real_pointer();
+    // 	if(rp >= 0)
+    // 	  {
+    // 	    if(Point::edge[rp])
+    // 	      point.copy_force_point_2(Point::cefc[rp]);
+    // 	  }
+    //   }
+    // for( vector <Point*>::const_iterator point_itr=group.list_points.begin();point_itr !=group.list_points.end();++point_itr)
+    //   {
+    // 	Point& point=**point_itr;
+    // 	const int rp=point.get_real_pointer();
+    // 	if(rp >=0)
+    // 	  {
+    // 	    if(Point::face[rp])
+    // 	      point.copy_force_point_4(Point::cefc[rp]);
+    // 	  }
+    //   }
+    // for( vector <Point*>::const_iterator point_itr=group.list_points.begin();point_itr !=group.list_points.end();++point_itr)
+    //   {
+    // 	Point& point=**point_itr;
+    // 	const int rp=point.get_real_pointer();
+    // 	if(rp == 13)
+    // 	  point.copy_force_point_6();
+    //   }
     FileFractal << " exit force at point " << "\n";
   }
 }

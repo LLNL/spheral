@@ -137,29 +137,35 @@ namespace FractalSpace
   }
   void Group::subtract_density(const double& d)
   {
-    for(vector <Point*>::const_iterator point_itr=list_points.begin();point_itr != list_points.end();++point_itr)
+    for(auto p : list_points)
+      p->subtract_dens_at_point(d);
+    // for(vector <Point*>::const_iterator point_itr=list_points.begin();point_itr != list_points.end();++point_itr)
       //	if((*point_itr)->get_inside()) 
-      (*point_itr)->subtract_dens_at_point(d);
+      // (*point_itr)->subtract_dens_at_point(d);
   }
   void Group::scale_pot_forces(const double& scaling)
   {
-    for(vector <Point*>::const_iterator point_itr=list_points.begin();point_itr != list_points.end();++point_itr)
-      (*point_itr)->scale_pot_forces(scaling);
+    for(auto p : list_points)
+      p->scale_pot_forces(scaling);
+    // for(vector <Point*>::const_iterator point_itr=list_points.begin();point_itr != list_points.end();++point_itr)
+    //   (*point_itr)->scale_pot_forces(scaling);
   }
   void Group::get_force_variance(double& varx,double& vary,double& varz)
   {
     varx=0.0;
     vary=0.0;
     varz=0.0;
-    double sum0=1.0e-30;
-    double sumx=0.0;
-    double sumy=0.0;
-    double sumz=0.0;
+    double sum0(1.0e-30);
+    double sumx(0.0);
+    double sumy(0.0);
+    double sumz(0.0);
     vector <double> f(3);
-    for(vector <Point*>::const_iterator point_itr=list_points.begin();point_itr != list_points.end();++point_itr)
+    for(auto p : list_points)
+    // for(vector <Point*>::const_iterator point_itr=list_points.begin();point_itr != list_points.end();++point_itr)
       {
 	sum0+=1.0;
-	(*point_itr)->get_force_point(f);
+	p->get_force_point(f);
+	// (*point_itr)->get_force_point(f);
 	sumx+=f[0];
 	varx+=f[0]*f[0];
 	sumy+=f[1];
