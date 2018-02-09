@@ -17,7 +17,7 @@ AC_SUBST(PIPTARGETS)
 
 PYOPT=""
 BOOSTLIBTARGETS="math"
-PIPTARGETS+=" .pybindgen==0.17.0_pip_install.date"
+PIPTARGETS+=" pybindgen==0.17.0"
 
 AC_MSG_CHECKING(for --without-pybindgen)
 AC_ARG_WITH(pybindgen,

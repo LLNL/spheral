@@ -291,7 +291,8 @@ cache/pip:
 	@echo "# Downloading PIP packages"
 	@echo "################################################################################"
 	@$(MKDIR) cache/pip
-	$(PIPEXE) wheel -w cache/pip $(patsubst .%_pip_install.date,%,$(PIPTARGETS))
+	$(PIPEXE) download --no-binary :all -d cache/pip $(PIPTARGETS)
+	#$(PIPEXE) wheel -w cache/pip $(patsubst .%_pip_install.date,%,$(PIPTARGETS))
 
 .%_pip_install.date:	$(PIPEXE) cache/pip
 	@echo "################################################################################"
@@ -309,12 +310,14 @@ cache/pip:
 # This rule is intended to make sure we build the pip targets serially to make
 # pip downloading and using prerequisites reliable.
 piptargets:	cache/pip
-	$(MAKE) MAKEFLAGS='-j 1' $(PIPTARGETS)
+	$(MAKE) MAKEFLAGS='-j 1' $(patsubst %,.%_pip_install.date,$(PIPTARGETS))
 
 #-------------------------------------------------------------------------------
 # Pybindgen needs to be patched to handle C++ enums.
 $(PYBINDGENPATCHDATE):	$(PYBINDGENBUILDDATE)
 	$(PATCH) $(PYLIBDIR)/pybindgen/enum.py $(srcdir)/pybindgen_enum_py.patch
+	find $(PYTHONLIBDIR)/pybindgen -name '*.pyc' -exec rm -f {} \;
+	$(PYTHONEXE) -m compileall $(PYTHONLIBDIR)/pybindgen
 	touch $(PYBINDGENPATCHDATE)
 
 #-------------------------------------------------------------------------------

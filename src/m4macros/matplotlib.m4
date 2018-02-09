@@ -13,7 +13,7 @@ AC_ARG_WITH(matplotlib,
 ],
 [
     AC_MSG_RESULT(no)
-    PIPTARGETS+=" .matplotlib_pip_install.date"
+    PIPTARGETS+=" matplotlib"
 ])
 
 ])
