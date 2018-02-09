@@ -213,7 +213,7 @@ AC_ARG_WITH(mpmath,
 [  --with-mpmath ............................ optionally install the Gnu Scientific Library extensions],
 [
    AC_MSG_RESULT(yes)
-   PIPTARGETS+=" .mpmath_pip_install.date"
+   PIPTARGETS+=" mpmath"
 ],
 [
    AC_MSG_RESULT(no)
@@ -247,7 +247,7 @@ AC_ARG_WITH(numpy,
 ],
 [
     AC_MSG_RESULT(no)
-    PIPTARGETS+=" .numpy_pip_install.date"
+    PIPTARGETS+=" numpy"
 ])
 
 # -----------------------------------------------------------------
@@ -275,7 +275,7 @@ AC_ARG_WITH(sobol,
 ],
 [
     AC_MSG_RESULT(no)
-    PIPTARGETS+=" .sobol_pip_install.date"
+    PIPTARGETS+=" sobol"
 ])
 
 # -----------------------------------------------------------------

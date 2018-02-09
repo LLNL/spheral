@@ -12,7 +12,7 @@ AC_ARG_WITH(scipy,
 ],
 [
     AC_MSG_RESULT(no)
-    PIPTARGETS+=" .scipy_pip_install.date"
+    PIPTARGETS+=" scipy"
 ])
 
 ])
