@@ -49,6 +49,9 @@ namespace FractalSpace
   //! of the User's computational cube. Really BAAAAD things can happen if not all particles
   //! are addded.
 
+  void FractalCube(Fractal_Memory* PFM,double SHRINK,vector <double>& xmin,vector <double>& xmax,
+		   vector <double>& xmini,vector <double>& xmaxy);
+  
   void get_field(Fractal_Memory* PFM,int first,int total,double G,
 		vector <double>& xmin,vector <double>& xmax,
 		vector <double>& pot,vector <double>& fx,
