@@ -16,7 +16,7 @@ int main(int argc, char* argv[])
   int Ranky;
   MPI_Comm_rank(Fractal_Memory::FRACTAL_UNIVERSE,&Ranky);
   Mess::IAMROOT=Ranky == 0;
-  string _disK_="d";
+  string _disK_="/p/lscratchh/jensv/galaxy/";
   if(argc >= 2)
     _disK_=argv[1];
   int dims[]={0,0,0};
@@ -76,7 +76,8 @@ int main(int argc, char* argv[])
   string sa="/p/lscratch";
   string sb=_disK_;
   string sc="/jensv/galaxy/";
-  string BaseDirectory=sa+sb+sc;
+  // string BaseDirectory=sa+sb+sc;
+  string BaseDirectory=_disK_;
   string RunIdentifier="NerdsRule";
   bool TimeTrial=true;
 

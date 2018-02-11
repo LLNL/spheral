@@ -20,8 +20,9 @@ namespace FractalSpace
     //   sb="f";
     // else if(_inteL_ > 1)
     //   sb="v";
-    string sc="/jensv/cosmo/";
-    mem.BaseDirectory=sa+sb+sc;
+    // string sc="/jensv/cosmo/";
+    // mem.BaseDirectory=sa+sb+sc;
+    mem.BaseDirectory=_disK_;
     //    mem.BaseDirectory="/p/lscratchc/jensv/cosmo/";
     //     stringstream ssFN;
 //     ssFN << mem.FractalNodes;
