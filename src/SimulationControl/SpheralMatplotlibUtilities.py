@@ -1,7 +1,7 @@
 import matplotlib.pyplot as plt
 import matplotlib.patches as patches
 from matplotlib.pyplot import cm as pltcm
-from matplotlib.collections import PatchCollections
+#from matplotlib.collections import PatchCollections
 import numpy as np
 import mpi
 from Spheral import *
@@ -12,12 +12,15 @@ from SpheralTestUtilities import multiSort
 from spheralDimensions import spheralDimensions
 dims = spheralDimensions()
 
+# Turn on TeX
+plt.rc("text", usetex = True)
+
 #-------------------------------------------------------------------------------
 # Parallel safe new plot.
 #-------------------------------------------------------------------------------
 def newFigure():
     if mpi.rank == 0:
-        return plt.figure()
+        return plt.figure().add_subplot(111)
     else:
         return None
 
@@ -133,6 +136,7 @@ def plotFieldList(fieldList,
                   xRange = [None, None],
                   yRange = [None, None],
                   plotStyle = "ro",
+                  markerSize = 0.5,
                   lineStyle = "linetype -1 linewidth 1 pointtype 4 pointsize 1.0",
                   winTitle = None,
                   lineTitle = "",
@@ -169,15 +173,10 @@ def plotFieldList(fieldList,
                 localX.append(eval(xFunction % "x"))
                 localY.append(eval(yFunction % "y"))
         n = len(localX)
-        if mpi:
-            globalNumNodes.append(mpi.allreduce(n, mpi.SUM))
-            globalX.extend(mpi.allreduce(localX, mpi.SUM))
-            globalY.extend(mpi.allreduce(localY, mpi.SUM))
-        else:
-            globalNumNodes.append(n)
-            globalX.extend(localX)
-            globalY.extend(localY)
-
+        globalNumNodes.append(mpi.allreduce(n, mpi.SUM))
+        globalX += mpi.allreduce(localX, mpi.SUM)
+        globalY += mpi.allreduce(localY, mpi.SUM)
+            
     if mpi.rank == 0:
         # Find the total number of nodes.
         totalNumNodes = sum(globalNumNodes)
@@ -186,54 +185,34 @@ def plotFieldList(fieldList,
         assert(len(globalY) == totalNumNodes)
 
         # Set the labels.
-        if winTitle: plot.title(winTitle)
-        if xlabel: plot.xlabel(xlabel)
-        if ylabel: plot.ylabel(ylabel)
-
-        # Set the ranges.
-        xmin = 1e30
-        xmax = -1e30
-        ymin = 1e30
-        ymax = -1e30
-        for x in globalX:
-            xmin = min(xmin, x)
-            xmax = max(xmax, x)
-        for y in globalY:
-            ymin = min(ymin, y)
-            ymax = max(ymax, y)
-        if xmin == xmax:
-            xmin = xmin - 0.5
-            xmax = xmax + 0.5
-        if ymin == ymax:
-            ymin = ymin - 0.5
-            ymax = ymax + 0.5
-        if xRange[0] == None: xRange[0] = xmin
-        if xRange[1] == None: xRange[1] = xmax
-        if yRange[0] == None: yRange[0] = ymin - 0.05*max(1e-5, ymax - ymin)
-        if yRange[1] == None: yRange[1] = ymax + 0.05*max(1e-5, ymax - ymin)
-        plot.xlim(tuple(xRange))
-        plot.ylim(tuple(xRange))
+        if winTitle: plt.title(winTitle)
+        if xlabel: plt.xlabel(xlabel)
+        if ylabel: plt.ylabel(ylabel)
 
         # Finally, loop over the fields and do the deed.
-        assert(len(globalX) == len(globalY))
+        assert len(globalX) == len(globalY)
         if colorNodeLists:
-            legends = []
             cumulativeNumNodes = 0
             for fieldID in xrange(len(globalNumNodes)):
                 n = globalNumNodes[fieldID]
-                x = np.array(globalX[cumulativeNumNodes:
-                                        cumulativeNumNodes + n])
-                y = np.array(globalY[cumulativeNumNodes:
-                                        cumulativeNumNodes + n])
                 if n:
-                    locallegend, = plot.plot(x, y, plotStyle, label = "%s: %s" % (lineTitle, fieldList[i].nodeList().name))
-                    legends.append(locallegend)
+                    plot.plot(globalX[cumulativeNumNodes:cumulativeNumNodes + n],
+                              globalY[cumulativeNumNodes:cumulativeNumNodes + n],
+                              plotStyle, ms=markerSize, label = "%s: %s" % (lineTitle, fieldList[i].nodeList().name))
                     cumulativeNumNodes += n
-            plot.legend(handles = legends)
         else:
-            x = np.array(globalX)
-            y = np.array(globalY)
-            plot.plot(x, y, label = lineTitle)
+            plot.plot(globalX, globalY, plotStyle, ms=markerSize, label = lineTitle)
+        plot.axes.legend()
+
+        # Set the ranges.
+        xmin, xmax = plt.xlim()
+        ymin, ymax = plt.ylim()
+        if xRange[0]: xmin = xRange[0]
+        if xRange[1]: xmax = xRange[1]
+        if yRange[0]: ymin = yRange[0]
+        if yRange[1]: ymax = yRange[1]
+        plt.xlim(xmin, xmax)
+        plt.ylim(ymin, ymax)
 
     # That's it, return the Gnuplot object.
     mpi.barrier()
@@ -247,6 +226,7 @@ def plotState(thingus,
               plotGhosts = False,
               colorNodeLists = False,
               plotStyle = "ro",
+              markerSize = 0.5,
               xFunction = "%s.x",
               vecyFunction = "%s.x",
               tenyFunction = "%s.xx ** -1",
@@ -275,6 +255,7 @@ def plotState(thingus,
                             plotGhosts = plotGhosts,
                             colorNodeLists = colorNodeLists,
                             plotStyle = plotStyle,
+                            markerSize = markerSize,
                             winTitle = "Mass Density",
                             lineTitle = lineTitle,
                             xlabel="x",
@@ -286,6 +267,7 @@ def plotState(thingus,
                             plotGhosts = plotGhosts,
                             colorNodeLists = colorNodeLists,
                             plotStyle = plotStyle,
+                            markerSize = markerSize,
                             winTitle = "Velocity",
                             lineTitle = lineTitle,
                             xlabel="x",
@@ -296,6 +278,7 @@ def plotState(thingus,
                             plotGhosts = plotGhosts,
                             colorNodeLists = colorNodeLists,
                             plotStyle = plotStyle,
+                            markerSize = markerSize,
                             winTitle = "Specific Thermal Energy",
                             lineTitle = lineTitle,
                             xlabel="x",
@@ -306,6 +289,7 @@ def plotState(thingus,
                           plotGhosts = plotGhosts,
                           colorNodeLists = colorNodeLists,
                           plotStyle = plotStyle,
+                          markerSize = markerSize,
                           winTitle = "Pressure",
                           lineTitle = lineTitle,
                           xlabel="x",
@@ -317,6 +301,7 @@ def plotState(thingus,
                           plotGhosts = plotGhosts,
                           colorNodeLists = colorNodeLists,
                           plotStyle = plotStyle,
+                          markerSize = markerSize,
                           winTitle = "Smoothing scale",
                           lineTitle = lineTitle,
                           xlabel="x",
@@ -401,7 +386,7 @@ def plotAnswer(answerObject, time,
                APlot = None,
                HPlot = None,
                x = None,
-               plotStyle = "bl"):
+               plotStyle = "k-"):
 
     try:
         x, v, u, rho, P, h = answerObject.solution(time, x)
@@ -412,22 +397,28 @@ def plotAnswer(answerObject, time,
             x, v, u, rho, P = answerObject.solution(time, x)
 
     if rhoPlot is not None:
-        rhoPlot.plot(x, rho, plotStyle)
+        rhoPlot.plot(x, rho, plotStyle, label="Solution")
+        rhoPlot.axes.legend()
 
     if velPlot is not None:
-        velPlot.plot(x, v, plotStyle)
+        velPlot.plot(x, v, plotStyle, label="Solution")
+        velPlot.axes.legend()
 
     if epsPlot is not None:
-        epsPlot.plot(x, u, plotStyle)
+        epsPlot.plot(x, u, plotStyle, label="Solution")
+        epsPlot.axes.legend()
 
     if PPlot is not None:
-        PPlot.plot(x, P, plotStyle)
+        PPlot.plot(x, P, plotStyle, label="Solution")
+        PPlot.axes.legend()
 
     if APlot is not None:
-        APlot.plot(x, A, plotStyle)
+        APlot.plot(x, A, plotStyle, label="Solution")
+        APlot.axes.legend()
 
     if HPlot is not None:
-        HPlot.plot(x, h, plotStyle)
+        HPlot.plot(x, h, plotStyle, label="Solution")
+        HPlot.axes.legend()
 
     return
 
@@ -815,10 +806,11 @@ def plotEHistory(conserve):
         KE = conserve.KEHistory
         TE = conserve.TEHistory
         UE = conserve.EEHistory
-        plot.plot(t, E, "k-")
-        plot.plot(t, KE, "b-")
-        plot.plot(t, TE, "r-")
-        plot.plot(t, UE, "g-")
+        plot.plot(t, E, "k-", label="Total energy")
+        plot.plot(t, KE, "b-", label="Kinetic energy")
+        plot.plot(t, TE, "r-", label="Thermal energy")
+        plot.plot(t, UE, "g-", label="Potential energy")
+        plot.axes.legend()
     return plot
 
 #-------------------------------------------------------------------------------
