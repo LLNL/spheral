@@ -1,0 +1,33 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include <cstdio>
+#include <cstdlib>
+#include <cstdint>
+#include <iostream>
+#include <iomanip>
+#include <fstream>
+#include <list>
+#include <string>
+#include <vector>
+#include <cmath>
+#include <cassert>
+#include <cfloat>
+#include <numeric>
+#include <algorithm>
+#include <complex>
+#include <ctime>
+#include <map>
+#include <set>
+#include <deque>
+#include <climits>
+#include <array>
+#include <cerrno>
+#include <random>
+#include <utility>
+#include <sys/stat.h>
+#include "fftw3-mpi.h"
+#include "_hypre_utilities.h"
+#include "HYPRE_krylov.h"
+#include "HYPRE_struct_ls.h"
+using namespace std;
+

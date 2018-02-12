@@ -1,0 +1,16 @@
+104,108c104,108
+< #if defined(__cplusplus) && defined(__INTEL_COMPILER) && !defined(QHULL_OS_WIN)
+< template <typename T>
+< inline void qhullUnused(T &x) { (void)x; }
+< #  define QHULL_UNUSED(x) qhullUnused(x);
+< #else
+---
+> /* #if defined(__cplusplus) && defined(__INTEL_COMPILER) && !defined(QHULL_OS_WIN) */
+> /* template <typename T> */
+> /* inline void qhullUnused(T &x) { (void)x; } */
+> /* #  define QHULL_UNUSED(x) qhullUnused(x); */
+> /* #else */
+110c110
+< #endif
+---
+> /* #endif */
