@@ -29,6 +29,7 @@ PYTHONTARGETS = \
 	$(srcdir)/SpheralPolytopeSiloDump.py \
 	$(srcdir)/Spheral1dVizDump.py \
 	$(srcdir)/SpheralGnuPlotUtilities.py \
+	$(srcdir)/SpheralMatplotlibUtilities.py \
 	$(srcdir)/findLastRestart.py \
 	$(srcdir)/Pnorm.py \
 	$(srcdir)/filearraycmp.py \
