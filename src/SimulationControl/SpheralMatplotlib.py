@@ -1,4 +1,3 @@
-import matplotlib.pyplot as plt
 import matplotlib.patches as patches
 from matplotlib.pyplot import cm as pltcm
 #from matplotlib.collections import PatchCollections
@@ -11,6 +10,14 @@ from SpheralTestUtilities import multiSort
 
 from spheralDimensions import spheralDimensions
 dims = spheralDimensions()
+
+#-------------------------------------------------------------------------------
+# Parallel safe pyplot
+#-------------------------------------------------------------------------------
+if mpi.rank == 0:
+    import matplotlib.pyplot as plt
+else:
+    plt = NullFigure()
 
 # Turn on TeX
 plt.rc("text", usetex = True)
