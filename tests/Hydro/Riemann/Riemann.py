@@ -431,8 +431,7 @@ xans, vans, uans, rhoans, Pans, Aans, hans = answer.solution(control.time(), xpr
 csAns = [sqrt(gammaGas*Pi/rhoi) for (Pi, rhoi) in zip(Pans,  rhoans)]
 
 if graphics:
-    from SpheralMatplotlibUtilities import *
-    import matplotlib.pyplot as plt
+    from SpheralMatplotlib import *
     
     rhoPlot, velPlot, epsPlot, PPlot, HPlot = plotState(db, plotStyle="r-o")
     APlot = newFigure()
