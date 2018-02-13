@@ -18,20 +18,19 @@ namespace FractalSpace
 
     PFM->standalone=false;
     PFM->setPeriodic(false);
-
-    PFM->setTalkToMe(TalkToMe);
+    // PFM->setTalkToMe(TalkToMe);
     PFM->setGridLength(GridLength);
     PFM->setFractalNodes(FractalNodes0,FractalNodes1,FractalNodes2);
     PFM->setBaseDirectory(BaseDirectory);
     PFM->setRunIdentifier(RunIdentifier);
-
+    Fractal_Memory::FRACTAL_UNIVERSE=TalkToMe;
     int Balance=1;
     bool Debug=true;
     int Padding=-1;
     int LevelMax=8;
     int MinimumNumber=8;
     int MaxHypreIterations=20;
-    int HypreTolerance=1.0e-7;
+    double HypreTolerance=1.0e-7;
     PFM->setBalance(Balance);
     PFM->setDebug(Debug);
     PFM->setPadding(Padding);
@@ -177,7 +176,15 @@ namespace FractalSpace
     return PFM->p_fractal->particle_list[ni]->get_p_highest_level_group() != 0;
   }
   void add_particles(Fractal_Memory* PFM,int first,int total,
-		     vector <double>& xmin,vector <double>& xmax,
+		     vector <double>& posx,vector <double>& posy,
+		     vector <double>& posz,vector <double>& masses)
+  {
+    vector <double> xmin{0.0,0.0,0.0};
+    vector <double> xmax{1.0,1.0,1.0};
+    add_particles(PFM,first,total,xmin,xmax,posx,posy,posz,masses);
+  }
+  void add_particles(Fractal_Memory* PFM,int first,int total,
+		     vector <double> xmin,vector <double> xmax,
 		     vector <double>& posx,vector <double>& posy,
 		     vector <double>& posz,vector <double>& masses)
   {

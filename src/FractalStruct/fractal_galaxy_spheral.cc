@@ -4,11 +4,31 @@
 #include "fractal_interface_public.hh"
 int main(int argc, char* argv[])
 {
+  /*
+int GridLength
+int FractaNodes0
+int FractaNodes1
+int FractaNodes2
+string BaseDirectory
+string RunIdentifier
+int NumberParticles
+double G
+double slope
+double RMAX
+double x0
+double y0
+double z0
+double mm
+double BOXLENGTH
+double SHRINK
+int RANDOMSEED
+int withparts
+   */
   int knights;
   MPI_Initialized(&knights);
   if(!knights)
     MPI_Init(NULL,NULL);
-  MPI_Comm& TalkToMe=MPI_COMM_WORLD;
+  MPI_Comm TalkToMe=MPI_COMM_WORLD;
   int GridLength=256;
   if(argc >= 2)
     GridLength=atoi(argv[1]);
@@ -17,8 +37,8 @@ int main(int argc, char* argv[])
     FractalNodes0=atoi(argv[2]);
   int FractalNodes1=8;
   if(argc >= 4)
-    FractalNodes0=atoi(argv[3]);
-  int FractalNodes1=8;
+    FractalNodes1=atoi(argv[3]);
+  int FractalNodes2=8;
   if(argc >= 5)
     FractalNodes2=atoi(argv[4]);
   int FRN=-1;
@@ -26,10 +46,10 @@ int main(int argc, char* argv[])
   int RANK=-1;
   MPI_Comm_rank(MPI_COMM_WORLD,&RANK);
   assert(FractalNodes0*FractalNodes1*FractalNodes2 == FRN);
-  string Basedirectory="/p/lscratchh/jensv/galaxy/";
+  string BaseDirectory="/p/lscratchh/jensv/galaxy/";
   if(argc >= 6)
-    Basedirectory=argv[5];
-  string RunIdentifier="NerdsRule";
+    BaseDirectory=argv[5];
+  string RunIdentifier="BillIsAlive";
   if(argc >= 7)
     RunIdentifier=argv[6];
   int NumberParticles=100000;
@@ -40,55 +60,58 @@ int main(int argc, char* argv[])
     G=atof(argv[8]);
   double slope=-1.5;
   if(argc >= 10)
-    slope=atof(argv[8]);
+    slope=atof(argv[9]);
   double RMAX=76.5;
-  if(argc >= 10)
-    RMAX=atof(argv[9]);
-  double x0=16.5;
   if(argc >= 11)
-    x0=atof(argv[10]);
-  double y0=17.5;
+    RMAX=atof(argv[10]);
+  double x0=16.5;
   if(argc >= 12)
-    y0=atof(argv[11]);
-  double z0=15.5;
+    x0=atof(argv[11]);
+  double y0=17.5;
   if(argc >= 13)
-    z0=atof(argv[12]);
-  double mm=15.5;
+    y0=atof(argv[12]);
+  double z0=15.5;
   if(argc >= 14)
-    mm=atof(argv[13]);
-  double BOXLENGTH=2.2*RMAX;
+    z0=atof(argv[13]);
+  double mm=15.5;
   if(argc >= 15)
-    BOXLENGTH=atof(argv[14]);
-  double SHRINK=1.0;
+    mm=atof(argv[14]);
+  double BOXLENGTH=2.2*RMAX;
   if(argc >= 16)
-    SHRINK=atof(argv[15]);
+    BOXLENGTH=atof(argv[15]);
+  double SHRINK=1.0;
+  if(argc >= 17)
+    SHRINK=atof(argv[16]);
   int RANDOMSEED=8765;
-  if(argc >=17)
-    RANDOMSEED=atoi(argv[16]);
-  int withparts=1;
   if(argc >=18)
-    withparts=atoi(argv[17]);
+    RANDOMSEED=atoi(argv[17]);
+  int withparts=1;
+  if(argc >=19)
+    withparts=atoi(argv[18]);
   
-  srand(withparts+RANK);
-  double RMAX2=RMAX/2;
-  vector<double>xmin{x0-RMAX2,y0-RMAX2,z0-RMAX2);
-  vector<double>xmax{x0+RMAX2,y0+RMAX2,z0+RMAX2);
+  srand(RANDOMSEED+RANK);
+  double BOXLENGTH2=BOXLENGTH/2.0;
+  vector<double>xmin{x0-BOXLENGTH2,y0-BOXLENGTH2,z0-BOXLENGTH2};
+  vector<double>xmax{x0+BOXLENGTH2,y0+BOXLENGTH2,z0+BOXLENGTH2};
   vector<double>xmini=xmin;
   vector<double>xmaxy=xmax;
   
   FractalSpace::Fractal_Memory* PFM=
     FractalSpace::FractalGravityIsolatedFirstTime(
-						  MPI_Comm& TalkToMe,
-						  int GridLength,
-						  int FractalNodes0,
-						  int FractalNodes1,
-						  int FractalNodes2,
-						  string BaseDirectory,
-						  string RunIdentifier);
+						  TalkToMe,
+						  GridLength,
+						  FractalNodes0,
+						  FractalNodes1,
+						  FractalNodes2,
+						  BaseDirectory,
+						  RunIdentifier);
 
-  FractalSpace::fractal_memory_setup(FractalSpace::PFM);
-  FractalSpace::PFM->setNumberParticles(NumberParticles);
-  FractalSpace::fractal_create(FractalSpace::PFM);
+
+  FractalSpace::fractal_memory_setup(PFM);
+
+  PFM->setNumberParticles(NumberParticles);
+
+  FractalSpace::fractal_create(PFM);
 
   double slope3=slope+3.0;
   double expo=1.0/slope3;
@@ -97,15 +120,16 @@ int main(int argc, char* argv[])
   vector<double>posx;
   vector<double>posy;
   vector<double>posz;
-  vector<double>accx0;
-  vector<double>accy0;
-  vector<double>accz0;
+  vector<double>masses;
   double m0=mm/(double)(FRN*NumberParticles);
+
+  FILE* PFPos=PFM->p_file->PFPos;
+
   for(int ni=0;ni<NumberParticles;ni++)
     {
       double r0=FractalSpace::Fractal::my_rand_not_zero(rand_max);
       double r1=RMAX*pow(r0,expo);
-      double zr=2.0*Fractal::my_rand(rand_max)-1.0;
+      double zr=2.0*FractalSpace::Fractal::my_rand(rand_max)-1.0;
       double Rr=sqrt(max(1.0-zr*zr,0.0));
       double phi=twopi*FractalSpace::Fractal::my_rand(rand_max);
       double xr=Rr*cos(phi);
@@ -114,45 +138,50 @@ int main(int argc, char* argv[])
       posy.push_back(r1*yr+y0);
       posz.push_back(r1*zr+z0);
       masses.push_back(m0);
-      double massr=mm*pow(r0,slope3);
-      double Gr2minv=G*massr/(r1*r1);
-      accx0.push_back(-Gr2minv*xr);
-      accy0.push_back(-Gr2minv*yr);
-      accz0.push_back(-Gr2minv*zr);
     }
 
-  FractalSpace::add_particles(FractalSpace::PFM,0,NumberParticles,posx,posy,posz,masses);
+  FractalSpace::add_particles(PFM,0,NumberParticles,posx,posy,posz,masses);
   
-  FractalSpace::FractalCube(FractalSpace::PFM,SHRINK,xmin,xmax,xmini,xmaxy);
+  FractalSpace::FractalCube(PFM,SHRINK,xmin,xmax,xmini,xmaxy);
 
-  FractalSpace::balance_by_particles(FractalSpace::PFM,withparts);
+  FractalSpace::balance_by_particles(PFM,withparts);
 
-  FractalSpace::DoFractalGravity(FractalSpace::PFM);
+  FractalSpace::DoFractalGravity(PFM);
 
-  vector<double>pot;
-  vector<double>accx;
-  vector<double>accy;
-  vector<double>accz;
-  FractalSpace::get_field(FractalSpace::PFM,0,NumberParticles,G,
-			  vector <double>& xmini,vector <double>& xmaxy,
-			  vector <double>& pot,vector <double>& accx,
-			  vector <double>& accy,vector <double>& accz);
+  vector<double>pot(NumberParticles);
+  vector<double>accx(NumberParticles);
+  vector<double>accy(NumberParticles);
+  vector<double>accz(NumberParticles);
 
-  FractalSpace::FILE* PFPos=FractalSpace::PFM->p_file->PFPos;
+  FractalSpace::get_field(PFM,0,NumberParticles,G,xmini,xmaxy,
+			  pot,accx,accy,accz);
+
   for(int ni=0;ni<NumberParticles;ni++)
     {
-      FilePos << scientific << ni << "\t" << accx[ni] << "\t" << accx0[ni] << "\t";
-      FilePos << scientific << accy[ni] << "\t" << accy0[ni];
-      FilePos << scientific << accz[ni] << "\t" << accz0[ni] << "\n";
+      double dx=posx[ni]-x0;
+      double dy=posy[ni]-y0;
+      double dz=posz[ni]-z0;
+      double r2=dx*dx+dy*dy+dz*dz+1.0e-30;
+      double r1=sqrt(r2);
+      double r3=r1*r2;
+      double MR=mm*pow(r1/RMAX,slope3);
+      double acc0=G*MR/r3;
+      double accx0=-acc0*dx;
+      double accy0=-acc0*dy;
+      double accz0=-acc0*dz;
+      acc0*=r1;
+      double acc=sqrt(pow(accx[ni],2)+pow(accy[ni],2)+pow(accz[ni],2));
+      fprintf(PFPos," %6d %13.4E %13.4E %13.4E %13.4E %13.4E %13.4E %13.4E %13.4E %13.4E %13.4E %13.4E %13.4E \n",
+	      ni,r1,acc,acc0,posx[ni],posy[ni],posz[ni],accx[ni],accx0,accy[ni],accy0,accz[ni],accz0);
     }
   
-  FractalSpace::fractal_delete(FractalSpace::PFM);  
+  FractalSpace::fractal_delete(PFM);  
   
-  FractalSpace::fractal_memory_content_delete(FractalSpace::PFM);
+  FractalSpace::fractal_memory_content_delete(PFM);
 
-  FractalSpace::fractal_memory_delete(FractalSpace::PFM);
+  FractalSpace::fractal_memory_delete(PFM);
 
-  FractalSpace::PFM=0;
+  PFM=0;
   
   return 0;
 }

@@ -193,7 +193,7 @@ namespace FractalSpace
       do_var(false), 
       periodic(false),
       random_initial(false),
-      debug(true),
+      debug(false),
       halo_fixed(false),
       momentum_conserve(true),
       total_points_counter(0),
@@ -274,7 +274,7 @@ namespace FractalSpace
     }
     ~Fractal_Memory()
     {
-      cerr << "Ending Fractal_Memory " << this << "\n";
+      // cerr << "Ending Fractal_Memory " << this << "\n";
     }
     //
     void set_G(double Cavendish);
