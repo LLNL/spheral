@@ -16,13 +16,31 @@ dims = spheralDimensions()
 plt.rc("text", usetex = True)
 
 #-------------------------------------------------------------------------------
+# Dummy type to handle parallel matplotlib
+#-------------------------------------------------------------------------------
+class NullFigure:
+    def __init__(self):
+        pass
+    def __call__(self, *arghs, **keyw):
+        pass
+    def __getattr__(self, name, *args, **keyw):
+        def method(*args, **keyw):
+            pass
+        if args or keyw:
+            return method
+        else:
+            return NullFigure()
+    def __setattr__(self, name, val):
+        pass
+
+#-------------------------------------------------------------------------------
 # Parallel safe new plot.
 #-------------------------------------------------------------------------------
 def newFigure():
     if mpi.rank == 0:
         return plt.figure().add_subplot(111)
     else:
-        return None
+        return NullFigure()
 
 #-------------------------------------------------------------------------------
 # Calculate the radial velocity component, given a FieldList of positions
@@ -136,7 +154,7 @@ def plotFieldList(fieldList,
                   xRange = [None, None],
                   yRange = [None, None],
                   plotStyle = "ro",
-                  markerSize = 0.5,
+                  markerSize = 4,
                   lineStyle = "linetype -1 linewidth 1 pointtype 4 pointsize 1.0",
                   winTitle = None,
                   lineTitle = "",
@@ -145,11 +163,8 @@ def plotFieldList(fieldList,
                   filterFunc = None):
 
     # Do we need to make a new window?
-    if mpi.rank == 0 and plot is None:
-        fig = plt.figure()
-        plot = fig.add_subplot(111)
-    if mpi.rank > 0:
-        plot = None
+    if plot is None:
+        plot = newFigure()
 
     # How about a filtering function?
     if filterFunc is None:
@@ -226,7 +241,7 @@ def plotState(thingus,
               plotGhosts = False,
               colorNodeLists = False,
               plotStyle = "ro",
-              markerSize = 0.5,
+              markerSize = 4,
               xFunction = "%s.x",
               vecyFunction = "%s.x",
               tenyFunction = "%s.xx ** -1",
@@ -433,7 +448,7 @@ def plotNodePositions2d(thingy,
                         colorDomains = False,
                         title = "",
                         plotStyle = "ro",
-                        persist = None):
+                        markerSize = 4):
 
     assert colorNodeLists + colorDomains <= 1
 
@@ -458,6 +473,8 @@ def plotNodePositions2d(thingy,
     
     globalXNodes = mpi.gather(xNodes)
     globalYNodes = mpi.gather(yNodes)
+
+    plot = newFigure()
 
     if mpi.rank == 0:
         assert len(globalXNodes) == mpi.procs
@@ -500,15 +517,12 @@ def plotNodePositions2d(thingy,
                     xlist[0].extend(xDomain[i])
                     ylist[0].extend(yDomain[i])
 
-        plot = plt.figure()
-        plot.title(title)
+        plt.title(title)
         color = iter(pltcm.rainbow(np.linspace(0,1,len(xlist))))
         for x, y in zip(xlist, ylist):
             c = next(color)
-            plot.plot(x, y, marker="o", color=c)
-        plot.axes().set_aspect("equal", "datalim")
-    else:
-        plot = None
+            plot.plot(x, y, "o", color=c, ms=markerSize)
+        plot.axes.set_aspect("equal", "datalim")
 
     return plot
 

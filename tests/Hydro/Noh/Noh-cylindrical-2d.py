@@ -469,15 +469,15 @@ answer = NohAnalyticSolution.NohSolution(2,
                                          h0 = nPerh*rmax/nRadial)
 
 if graphics:
+    mpi.synchronizeQueuedOutput(None, None)
 
     # Plot the node positions.
-    from SpheralGnuPlotUtilities import *
+    from SpheralMatplotlibUtilities import *
     rPlot = plotNodePositions2d(db, colorNodeLists=0, colorDomains=1)
     EPlot = plotEHistory(control.conserve)
 
     # Plot the final state.
     rhoPlot, vrPlot, epsPlot, PPlot, HPlot = plotRadialState(db)
-    del HPlot
     Hinverse = db.newFluidSymTensorFieldList()
     db.fluidHinverse(Hinverse)
     hr = db.newFluidScalarFieldList()
@@ -494,8 +494,8 @@ if graphics:
             tunit = Vector(-(positions[i].y), positions[i].x).unitVector()
             hrfield[i] = (Hfield[i]*runit).magnitude()
             htfield[i] = (Hfield[i]*tunit).magnitude()
-    hrPlot = plotFieldList(hr, xFunction="%s.magnitude()", plotStyle="points", winTitle="h_r")
-    htPlot = plotFieldList(ht, xFunction="%s.magnitude()", plotStyle="points", winTitle="h_t")
+    hrPlot = plotFieldList(hr, xFunction="%s.magnitude()", plotStyle="ro", winTitle="$h_r$")
+    htPlot = plotFieldList(ht, xFunction="%s.magnitude()", plotStyle="ro", winTitle="$h_t$")
 
     # Overplot the analytic solution.
     plotAnswer(answer, control.time(),
@@ -515,14 +515,11 @@ if graphics:
                                    winTitle = "rvAlphaL",
                                    colorNodeLists = False, plotGhosts = False)
 
-
     if mpi.rank == 0:
         r, hrans, htans = answer.hrtsolution(control.time())
-        htData = Gnuplot.Data(r, htans,
-                              title = "Solution",
-                              with_ = "lines",
-                              inline = "true")
-        htPlot.replot(htData)
+        htPlot.plot(r, htans, "b-", label="Solution", )
+        htPlot.axes.legend()
+
     plots = [(rPlot, "Noh-cylindrical-positions.png"),
              (rhoPlot, "Noh-cylindrical-rho.png"),
              (vrPlot, "Noh-cylindrical-vel.png"),
@@ -535,17 +532,17 @@ if graphics:
         volPlot = plotFieldList(hydro.volume(), 
                                 xFunction = "%s.magnitude()",
                                 winTitle = "volume",
-                                plotStyle = "points",
+                                plotStyle = "ro",
                                 colorNodeLists = False, plotGhosts = False)
         spPlot = plotFieldList(hydro.surfacePoint(), 
                                xFunction = "%s.magnitude()",
                                winTitle = "Surface",
-                               plotStyle = "points",
+                               plotStyle = "ro",
                                colorNodeLists = False, plotGhosts = False)
         vpPlot = plotFieldList(hydro.voidPoint(), 
                                xFunction = "%s.magnitude()",
                                winTitle = "Void",
-                               plotStyle = "points",
+                               plotStyle = "ro",
                                colorNodeLists = False, plotGhosts = True)
         plots += [(volPlot, "Noh-cylindrical-vol.png"),
                   (spPlot, "Noh-cylindrical-surfacePoint.png"),
@@ -553,7 +550,7 @@ if graphics:
 
     # Make hardcopies of the plots.
     for p, filename in plots:
-        p.hardcopy(os.path.join(dataDir, filename), terminal="png")
+        p.figure.savefig(os.path.join(dataDir, filename))
 
     # Report the error norms.
     rmin, rmax = 0.05, 0.35
