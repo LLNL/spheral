@@ -3,7 +3,8 @@
 #include "headers.hh"
 namespace FractalSpace
 {
-  void shrink_cube(double SHRINK,vector <double>& xmin,vector <double>& xmax,Fractal_Memory* PFM,
+  void shrink_cube(double SHRINK,
+		   const vector <double>& xmin,const vector <double>& xmax,Fractal_Memory* PFM,
 		   vector <double>& posx,vector <double>& posy,vector <double>& posz,
 		   int number_particles,vector <double>& xmini,vector <double>& xmaxy)
   {
@@ -50,7 +51,8 @@ namespace FractalSpace
 }
 namespace FractalSpace
 {
-  void FractalCube(Fractal_Memory* PFM,double SHRINK,vector <double>& xmin,vector <double>& xmax,
+  void FractalCube(Fractal_Memory* PFM,double SHRINK,
+		   const vector <double>& xmin,const vector <double>& xmax,
 		   vector <double>& xmini,vector <double>& xmaxy)
   {
     xmini=xmin;
@@ -105,6 +107,6 @@ namespace FractalSpace
 	PF->particle_list[ni]->set_pos(pos);
       }
     if(PFM->p_mess->FractalRank == 0)
-      cerr << " Shrink Box " << PFM->steps << " " << xmini[0] << " " << xmini[1] << " " << xmini[2] << " "  << xmaxy[0] << " " << xmaxy[1] << " " << xmaxy[2] << " " << pow(dmax*1.02,3) << "\n";
+      cerr << " Fractal Cube " << PFM->steps << " " << xmini[0] << " " << xmini[1] << " " << xmini[2] << " "  << xmaxy[0] << " " << xmaxy[1] << " " << xmaxy[2] << " " << pow(dmax*1.02,3) << "\n";
   }
 }

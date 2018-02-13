@@ -168,7 +168,7 @@ namespace FractalSpace
   void remove_pseudo_particles(Fractal_Memory& mem,Fractal& frac);
   void scatter_particles(Fractal_Memory& mem,Fractal& frac);
   template <class T> int shortest_vector(vector<T>& veca,vector<T>& vecb,vector<T>& vecc);
-  void shrink_cube(Fractal_Memory* PFM,double SHRINK,vector <double>& xmin,vector <double>& xmax,
+  void shrink_cube(Fractal_Memory* PFM,double SHRINK,const vector <double>& xmin,const vector <double>& xmax,
 		   vector <double>& xmini,vector <double>& xmaxy);
   void shrink_cube(double SHRINK,vector <double>& xmin,vector <double>& xmax,Fractal_Memory* PFM,
 		   vector <double>& posx,vector <double>& posy,vector <double>& posz,

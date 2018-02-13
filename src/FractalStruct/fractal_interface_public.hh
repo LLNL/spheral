@@ -41,15 +41,20 @@ namespace FractalSpace
   //! Delete a Fractal object
 
   void add_particles(Fractal_Memory* PFM,int first,int total,
-		    vector <double>& xmin,vector <double>& xmax,
-		    vector <double>& posx,vector <double>& posy,
-		    vector <double>& posz,vector <double>& masses);
+		     vector <double>& posx,vector <double>& posy,
+		     vector <double>& posz,vector <double>& masses);
+  //
+
+  void add_particles(Fractal_Memory* PFM,int first,int total,
+		     vector <double> xmin,vector <double> xmax,
+		     vector <double>& posx,vector <double>& posy,
+		     vector <double>& posz,vector <double>& masses);
   //! Add positions and masses to the Fractal object. This can be done in multiple steps.
   //! xmin,xmax are the positions of the lower left and upper right corners
   //! of the User's computational cube. Really BAAAAD things can happen if not all particles
   //! are addded.
 
-  void FractalCube(Fractal_Memory* PFM,double SHRINK,vector <double>& xmin,vector <double>& xmax,
+  void FractalCube(Fractal_Memory* PFM,double SHRINK,const vector <double>& xmin,const vector <double>& xmax,
 		   vector <double>& xmini,vector <double>& xmaxy);
   
   void get_field(Fractal_Memory* PFM,int first,int total,double G,
