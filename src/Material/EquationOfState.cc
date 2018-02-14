@@ -18,19 +18,21 @@ template<typename Dimension>
 struct Pfunctor {
   const EquationOfState<Dimension>& mEOS;
   NodeSpace::NodeList<Dimension> mNodes;
-  mutable FieldSpace::Field<Dimension, double> mRho, mEps, mP;
+  mutable FieldSpace::Field<Dimension, double> mRho0, mEps, mP;
+  double mP0;
 
-  Pfunctor(const EquationOfState<Dimension>& eos, const double rho):
+  Pfunctor(const EquationOfState<Dimension>& eos, const double rho0, const double P0):
     mEOS(eos),
     mNodes("__dummynodes__", 1, 0),
-    mRho("rho", mNodes, rho),
+    mRho0("rho", mNodes, rho0),
     mEps("eps", mNodes),
-    mP("P", mNodes) {}
+    mP("P", mNodes),
+    mP0(P0) {}
 
   double operator()(const double eps) const {
     mEps[0] = eps;
-    mEOS.setPressure(mP, mRho, mEps);
-    return mP[0];
+    mEOS.setPressure(mP, mRho0, mEps);
+    return mP[0] - mP0;
   }
 };
 
@@ -71,7 +73,7 @@ specificThermalEnergyForPressure(const typename Dimension::Scalar Ptarget,
                                  const typename Dimension::Scalar epsTol,
                                  const typename Dimension::Scalar Ptol,
                                  const unsigned maxIterations) const {
-  const Pfunctor<Dimension> pfunc(*this, rho);
+  const Pfunctor<Dimension> pfunc(*this, rho, Ptarget);
   return bisectRoot(pfunc, epsMin, epsMax, epsTol, Ptol, maxIterations);
 }
 
