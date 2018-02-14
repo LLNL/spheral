@@ -281,7 +281,7 @@ namespace FractalSpace
     
     HYPRE_StructPCGCreate(mem.p_mess->HypreWorld, &solver);
     HYPRE_StructPCGSetMaxIter(solver, mem.maxits );
-    HYPRE_StructPCGSetTol(solver, mem.epsilon_sor );
+    HYPRE_StructPCGSetTol(solver, mem.HTOL );
     HYPRE_StructPCGSetTwoNorm(solver, 1 );
     HYPRE_StructPCGSetRelChange(solver, 0 );
     HYPRE_StructPCGSetPrintLevel(solver, 1 );
@@ -403,7 +403,7 @@ namespace FractalSpace
 	    else
 	      Pout+=VOL[ni];
 	  }
-	FHT << " NODE COUNTS " << mem.level << " " << mem.steps << " " << FractalRank << " " << mem.p_mess->mynumber << " " << HypreRank << " " << Bstay+Bout << " " << Bstay+Bget << " " << Bstay << " " << Bout << " " << Bget <<"\n";
+	FHT << " NODE COUNTS " << mem.level << " " << mem.steps << " " << mem.p_mess->mynumber << " " << FractalRank << " " << HypreRank << " " << Bstay+Bout << " " << Bstay+Bget << " " << Bstay << " " << Bout << " " << Bget <<"\n";
 	FHT << " POINT COUNTS " << mem.level << " " << mem.steps << " " << mem.p_mess->mynumber << " " << FractalRank << " " << HypreRank << " " << Pstay+Pout << " " << Pstay+Pget << " " << Pstay << " " << Pout << " " << Pget <<"\n";
       }
     // cerr << " SOLVED C " << _COUNTER << " " << FractalRank << " " << HypreRank << "\n";

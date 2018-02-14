@@ -84,7 +84,7 @@ namespace FractalSpace
     int random_offset;
     int maxits;
     double base_mass;
-    double epsilon_sor;
+    double HTOL;
     double force_max;
     double halo_scale;
     double halo_density0;
@@ -216,7 +216,7 @@ namespace FractalSpace
       random_offset(0),
       maxits(20),
       base_mass(1.0),
-      epsilon_sor(1.0e-7),
+      HTOL(1.0e-7),
       force_max(-1.0),
       halo_scale(1.0),
       halo_density0(1.0),
