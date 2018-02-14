@@ -362,10 +362,10 @@ evaluateDerivatives(const typename Dimension::Scalar time,
               gradRhoj += wij*(rhoi - rhoj)*gradWi;
 
               // We treat positive and negative pressures distinctly, so split 'em up.
-              const auto Pposi = max(0.0, Pi),
-                         Pnegi = min(0.0, Pi),
-                         Pposj = max(0.0, Pj),
-                         Pnegj = min(0.0, Pj);
+              const Scalar Pposi = max(0.0, Pi),
+                           Pnegi = min(0.0, Pi),
+                           Pposj = max(0.0, Pj),
+                           Pnegj = min(0.0, Pj);
 
               // Compute the stress tensors.
               SymTensor sigmai, sigmaj;
