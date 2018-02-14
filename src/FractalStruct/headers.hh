@@ -170,7 +170,7 @@ namespace FractalSpace
   template <class T> int shortest_vector(vector<T>& veca,vector<T>& vecb,vector<T>& vecc);
   void shrink_cube(Fractal_Memory* PFM,double SHRINK,const vector <double>& xmin,const vector <double>& xmax,
 		   vector <double>& xmini,vector <double>& xmaxy);
-  void shrink_cube(double SHRINK,vector <double>& xmin,vector <double>& xmax,Fractal_Memory* PFM,
+  void shrink_cube(double SHRINK,const vector <double>& xmin,const vector <double>& xmax,Fractal_Memory* PFM,
 		   vector <double>& posx,vector <double>& posy,vector <double>& posz,
 		   int number_particles,vector <double>& xmini,vector <double>& xmaxy);
   void slices_to_potf(Fractal_Memory& mem,Fractal& frac,int lev);

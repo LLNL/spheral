@@ -80,8 +80,8 @@ namespace FractalSpace
     // padding has to be (0) or(1)in an MPI version
     mem.maxits = 20 ;
     // maximum number of iterations in SOR or Hypre Solver
-    mem.epsilon_sor = 1.0e-7;
-    //convergence criterion in SOR or Hypre Solver
+    mem.HTOL = 1.0e-7;
+    //convergence criterion in Hypre Solver
     mem.hypre_load_balance=true;
     //    mem.hypre_load_balance=false;
     mem.debug=true;

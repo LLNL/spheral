@@ -300,7 +300,7 @@ namespace FractalSpace
   }
   void Fractal_Memory::setHypreTolerance(double HT)
   {
-    epsilon_sor=HT;
+    HTOL=HT;
   }
   void Fractal_Memory::setBaseDirectory(string BD)
   {

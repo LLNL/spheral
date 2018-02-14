@@ -38,8 +38,8 @@ namespace FractalSpace
     int spacing=Misc::pow(2,fractal.get_level_max()-level);
     for(int ni=0;ni<2;ni++)
       {
-	FHT << " POISSON SOLVER ENTER " << mem.steps << " " << level << " " << ni << "\n";
-	FHT.flush();
+	// FHT << " POISSON SOLVER ENTER " << mem.steps << " " << level << " " << ni << "\n";
+	// FHT.flush();
 	mem.p_mess->IAmAHypreNode=mem.p_mess->count_on_node[2*level+ni];
 
 	bool doit=false;
@@ -105,8 +105,8 @@ namespace FractalSpace
 	    FHT << " " << time1-time0 << " " << time2-time1 << " " << time3-time2 << " " << time5-time4 << " " << time6-time5 <<  " " << time8-time7 << " " << tt << "\n";
 	  }
 	_COUNTER++;
-	FHT << " POISSON SOLVER EXIT " << mem.steps << " " << level << " " << ni << "\n";
-	FHT.flush();
+	// FHT << " POISSON SOLVER EXIT " << mem.steps << " " << level << " " << ni << "\n";
+	// FHT.flush();
       }
     if(level < LEV)
       _COUNTERA++;
