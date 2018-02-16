@@ -20,7 +20,7 @@ namespace Spheral {
 template<typename DataType>
 bool fuzzyEqual(const DataType& lhs, const DataType& rhs,
                 const double fuzz = 1.0e-15) {
-  return std::abs(lhs - rhs)/std::max(std::numeric_limits<DataType>::epsilon(), std::max(fuzz, std::max(std::abs(lhs), std::abs(rhs)))) < fuzz;
+  // return std::abs(lhs - rhs)/std::max(std::numeric_limits<DataType>::epsilon(), std::max(fuzz, std::max(std::abs(lhs), std::abs(rhs)))) < fuzz;
   // const auto absA = std::abs(lhs);
   // const auto absB = std::abs(rhs);
   // const auto diff = std::abs(lhs - rhs);
@@ -33,7 +33,7 @@ bool fuzzyEqual(const DataType& lhs, const DataType& rhs,
   // } else { // use relative error
   //   return diff / std::min((absA + absB), std::numeric_limits<DataType>::max()) < fuzz;
   // }
-  // return std::abs(lhs - rhs)/std::max(1.0, std::abs(lhs) + std::abs(rhs)) < fuzz;
+  return std::abs(lhs - rhs)/std::max(1.0, std::abs(lhs) + std::abs(rhs)) < fuzz;
 }
 
 template<typename DataType>
