@@ -8,6 +8,7 @@
 
 #include "Field/FieldList.hh"
 #include "Neighbor/ConnectivityMap.hh"
+#include "Boundary/Boundary.hh"
 
 namespace Spheral {
   namespace CRKSPHSpace {
@@ -20,8 +21,9 @@ namespace Spheral {
                          const FieldSpace::FieldList<Dim<1>, Dim<1>::Scalar>& rho,
                          const FieldSpace::FieldList<Dim<1>, Dim<1>::Vector>& gradRho,
                          const NeighborSpace::ConnectivityMap<Dim<1> >& connectivityMap,
-                         const std::vector<Dim<1>::FacetedVolume>& boundaries,
+                         const std::vector<Dim<1>::FacetedVolume>& facetedBoundaries,
                          const std::vector<std::vector<Dim<1>::FacetedVolume> >& holes,
+                         const std::vector<BoundarySpace::Boundary<Dim<1>>*>& boundaries,
                          const FieldSpace::FieldList<Dim<1>, Dim<1>::Scalar>& weight,
                          const FieldSpace::FieldList<Dim<1>, int>& voidPoint,
                          FieldSpace::FieldList<Dim<1>, int>& surfacePoint,
@@ -39,8 +41,9 @@ namespace Spheral {
                          const FieldSpace::FieldList<Dim<2>, Dim<2>::Scalar>& rho,
                          const FieldSpace::FieldList<Dim<2>, Dim<2>::Vector>& gradRho,
                          const NeighborSpace::ConnectivityMap<Dim<2> >& connectivityMap,
-                         const std::vector<Dim<2>::FacetedVolume>& boundaries,
+                         const std::vector<Dim<2>::FacetedVolume>& facetedBoundaries,
                          const std::vector<std::vector<Dim<2>::FacetedVolume> >& holes,
+                         const std::vector<BoundarySpace::Boundary<Dim<2>>*>& boundaries,
                          const FieldSpace::FieldList<Dim<2>, Dim<2>::Scalar>& weight,
                          const FieldSpace::FieldList<Dim<2>, int>& voidPoint,
                          FieldSpace::FieldList<Dim<2>, int>& surfacePoint,
@@ -58,8 +61,9 @@ namespace Spheral {
                          const FieldSpace::FieldList<Dim<3>, Dim<3>::Scalar>& rho,
                          const FieldSpace::FieldList<Dim<3>, Dim<3>::Vector>& gradRho,
                          const NeighborSpace::ConnectivityMap<Dim<3> >& connectivityMap,
-                         const std::vector<Dim<3>::FacetedVolume>& boundaries,
+                         const std::vector<Dim<3>::FacetedVolume>& facetedBoundaries,
                          const std::vector<std::vector<Dim<3>::FacetedVolume> >& holes,
+                         const std::vector<BoundarySpace::Boundary<Dim<3>>*>& boundaries,
                          const FieldSpace::FieldList<Dim<3>, Dim<3>::Scalar>& weight,
                          const FieldSpace::FieldList<Dim<3>, int>& voidPoint,
                          FieldSpace::FieldList<Dim<3>, int>& surfacePoint,

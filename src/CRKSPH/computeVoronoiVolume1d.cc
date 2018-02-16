@@ -28,8 +28,9 @@ computeVoronoiVolume(const FieldSpace::FieldList<Dim<1>, Dim<1>::Vector>& positi
                      const FieldSpace::FieldList<Dim<1>, Dim<1>::Scalar>& rho,
                      const FieldSpace::FieldList<Dim<1>, Dim<1>::Vector>& gradRho,
                      const NeighborSpace::ConnectivityMap<Dim<1> >& connectivityMap,
-                     const std::vector<Dim<1>::FacetedVolume>& boundaries,
+                     const std::vector<Dim<1>::FacetedVolume>& facetedBoundaries,
                      const std::vector<std::vector<Dim<1>::FacetedVolume> >& holes,
+                     const std::vector<BoundarySpace::Boundary<Dim<1>>*>& boundaries,
                      const FieldSpace::FieldList<Dim<1>, Dim<1>::Scalar>& weight,
                      const FieldSpace::FieldList<Dim<1>, int>& voidPoint,
                      FieldSpace::FieldList<Dim<1>, int>& surfacePoint,
@@ -38,6 +39,10 @@ computeVoronoiVolume(const FieldSpace::FieldList<Dim<1>, Dim<1>::Vector>& positi
                      FieldSpace::FieldList<Dim<1>, vector<Dim<1>::Vector>>& etaVoidPoints,
                      FieldSpace::FieldList<Dim<1>, Dim<1>::FacetedVolume>& cells) {
 
+  // Pre-conditions
+  REQUIRE(facetedBoundaries.size() == 0 or facetedBoundaries.size() == position.size());
+  REQUIRE(holes.size() == facetedBoundaries.size());
+
   typedef Dim<1>::Scalar Scalar;
   typedef Dim<1>::Vector Vector;
   typedef Dim<1>::SymTensor SymTensor;
@@ -45,13 +50,11 @@ computeVoronoiVolume(const FieldSpace::FieldList<Dim<1>, Dim<1>::Vector>& positi
 
   const auto numGens = position.numNodes();
   const auto numNodeLists = position.size();
-  const auto numBounds = boundaries.size();
-  const auto haveBoundaries = numBounds == numNodeLists;
+  const auto haveFacetedBoundaries = facetedBoundaries.size() == numNodeLists;
+  const auto haveBoundaries = not boundaries.empty();
   const auto haveWeights = weight.size() == numNodeLists;
   const auto returnSurface = surfacePoint.size() == numNodeLists;
   const auto returnCells = cells.size() == numNodeLists;
-
-  REQUIRE(numBounds == 0 or numBounds == numNodeLists);
 
   // Zero out return fields.
   deltaMedian = Vector::zero;
@@ -93,9 +96,9 @@ computeVoronoiVolume(const FieldSpace::FieldList<Dim<1>, Dim<1>::Vector>& positi
     if (i < nodeListPtrs[nodeListi]->firstGhostNode()) {
 
       // Is there a bounding volume for this NodeList?
-      if (numBounds > 0) {
-        xbound0 = boundaries[nodeListi].xmin().x();
-        xbound1 = boundaries[nodeListi].xmax().x();
+      if (haveFacetedBoundaries > 0) {
+        xbound0 = facetedBoundaries[nodeListi].xmin().x();
+        xbound1 = facetedBoundaries[nodeListi].xmax().x();
       }
 
       // Use the nperh to determine the cutoff distance.
@@ -199,10 +202,10 @@ computeVoronoiVolume(const FieldSpace::FieldList<Dim<1>, Dim<1>::Vector>& positi
           }
 
           // Check if the candidate motion is still in the boundary.  If not, project back.
-          if (haveBoundaries) {
+          if (haveFacetedBoundaries) {
             const Vector ri = Vector(xi);
-            if (not boundaries[nodeListi].contains(ri + deltaMedian(nodeListi, i))) {
-              deltaMedian(nodeListi, i) = boundaries[nodeListi].closestPoint(ri + deltaMedian(nodeListi, i)) - ri;
+            if (not facetedBoundaries[nodeListi].contains(ri + deltaMedian(nodeListi, i))) {
+              deltaMedian(nodeListi, i) = facetedBoundaries[nodeListi].closestPoint(ri + deltaMedian(nodeListi, i)) - ri;
             }
             for (unsigned ihole = 0; ihole != holes[nodeListi].size(); ++ihole) {
               if (holes[nodeListi][ihole].contains(ri + deltaMedian(nodeListi, i))) {

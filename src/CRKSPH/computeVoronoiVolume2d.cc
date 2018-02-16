@@ -197,8 +197,9 @@ computeVoronoiVolume(const FieldList<Dim<2>, Dim<2>::Vector>& position,
                      const FieldSpace::FieldList<Dim<2>, Dim<2>::Scalar>& rho,
                      const FieldSpace::FieldList<Dim<2>, Dim<2>::Vector>& gradRho,
                      const ConnectivityMap<Dim<2> >& connectivityMap,
-                     const std::vector<Dim<2>::FacetedVolume>& boundaries,
+                     const std::vector<Dim<2>::FacetedVolume>& facetedBoundaries,
                      const std::vector<std::vector<Dim<2>::FacetedVolume> >& holes,
+                     const std::vector<BoundarySpace::Boundary<Dim<2>>*>& boundaries,
                      const FieldSpace::FieldList<Dim<2>, Dim<2>::Scalar>& weight,
                      const FieldList<Dim<2>, int>& voidPoint,
                      FieldList<Dim<2>, int>& surfacePoint,
@@ -209,6 +210,10 @@ computeVoronoiVolume(const FieldList<Dim<2>, Dim<2>::Vector>& position,
 
   TIME_computeVoronoiVolume2d.start();
 
+  // Pre-conditions
+  REQUIRE(facetedBoundaries.size() == 0 or facetedBoundaries.size() == position.size());
+  REQUIRE(holes.size() == facetedBoundaries.size());
+
   typedef Dim<2>::Scalar Scalar;
   typedef Dim<2>::Vector Vector;
   typedef Dim<2>::SymTensor SymTensor;
@@ -218,26 +223,11 @@ computeVoronoiVolume(const FieldList<Dim<2>, Dim<2>::Vector>& position,
   const auto numGens = position.numNodes();
   const auto numNodeLists = position.size();
   const auto numGensGlobal = allReduce(numGens, MPI_SUM, Communicator::communicator());
-  const auto numBounds = boundaries.size();
-  const auto haveBoundaries = numBounds == numNodeLists;
+  const auto haveFacetedBoundaries = facetedBoundaries.size() == numNodeLists;
+  const auto haveBoundaries = not boundaries.empty();
   const auto haveWeights = weight.size() == numNodeLists;
   const auto returnSurface = surfacePoint.size() == numNodeLists;
   const auto returnCells = cells.size() == numNodeLists;
-
-  // std::clock_t t0, 
-  //   ttotal = std::clock_t(0), 
-  //   tplanes = std::clock_t(0), 
-  //   tclip = std::clock_t(0), 
-  //   tinterior = std::clock_t(0),
-  //   tcentroid = std::clock_t(0),
-  //   tsurface = std::clock_t(0),
-  //   tbound = std::clock_t(0),
-  //   tcell = std::clock_t(0);
-
-  REQUIRE(numBounds == 0 or numBounds == numNodeLists);
-  REQUIRE(holes.size() == numBounds);
-
-  // ttotal = std::clock();
 
   if (returnSurface) {
     surfacePoint = 0;
@@ -294,16 +284,14 @@ computeVoronoiVolume(const FieldList<Dim<2>, Dim<2>::Vector>& position,
         pairPlanes.clear();
         voidPlanes.clear();
 
-        // t0 = std::clock();
-
         // Initialize our seed cell shape.
         celli = cell0;
         for (auto& v: celli) v.position = 1.1*rin*Hinv*v.position;
 
         // Clip by any boundaries first.
-        if (haveBoundaries) {
-          const auto& facets = boundaries[nodeListi].facets();
-          CHECK(boundaries[nodeListi].contains(ri, false));
+        if (haveFacetedBoundaries) {
+          const auto& facets = facetedBoundaries[nodeListi].facets();
+          CHECK(facetedBoundaries[nodeListi].contains(ri, false));
           for (const auto& facet: facets) {
             const auto p = facet.closestPoint(ri);
             auto rji = p - ri;
@@ -374,11 +362,8 @@ computeVoronoiVolume(const FieldList<Dim<2>, Dim<2>::Vector>& position,
         PolyClipper::clipPolygon(celli, pairPlanes);
         CHECK(not celli.empty());
 
-        // tclip += std::clock() - t0;
-
         // Check if the final polygon is entirely within our "interior" check radius.
         bool interior = true;
-        // t0 = std::clock();
         {
           for (const auto& vert: celli) {
             const auto peta = Hi*vert.position;
@@ -415,7 +400,6 @@ computeVoronoiVolume(const FieldList<Dim<2>, Dim<2>::Vector>& position,
             CHECK(not celli.empty());
           }
         }
-        // tinterior += std::clock() - t0;
 
         // Clip by any extant void neighbors.
         std::sort(voidPlanes.begin(), voidPlanes.end(), [](const Plane& lhs, const Plane& rhs) { return lhs.dist < rhs.dist; });
@@ -426,7 +410,6 @@ computeVoronoiVolume(const FieldList<Dim<2>, Dim<2>::Vector>& position,
         PolyClipper::moments(voli, deltaMedian(nodeListi, i), celli);
 
         if (interior) {
-          // t0 = std::clock();
 
           // We only use the volume result if interior.
           vol(nodeListi, i) = voli;
@@ -460,30 +443,26 @@ computeVoronoiVolume(const FieldList<Dim<2>, Dim<2>::Vector>& position,
             //                               0.25*b*b*(x2*x2*x2*x2 - x1*x1*x1*x1))/
             //                              (pow3(rhoi + b*x2) - pow3(rhoi + b*x1)/(3.0*b)))*nhat1 - deltaCentroidi.dot(nhat1)*nhat1 + deltaCentroidi;
           }
-          // tcentroid += std::clock() - t0;
 
           // OK, this is an interior point from the perspective that it was clipped within our critical
           // radius on all sides.  However, if we have a bounding polygon we may still want to call it a
           // surface if in fact there are still facets from that bounding polygon on this cell.
-          // t0 = std::clock();
-          // if (haveBoundaries and returnSurface) {
+          // if (haveFacetedBoundaries and returnSurface) {
           //   auto vitr = celli.begin();
           //   while (interior and vitr != celli.end()) {
           //     interior = not pointOnPolygon(ri + vitr->position,
-          //                                   boundaries[nodeListi].vertices(),
+          //                                   factedBoundaries[nodeListi].vertices(),
           //                                   1.0e-8);
           //     ++vitr;
           //   }
 
           // }
-          // tsurface += std::clock() - t0;
         }
 
         // Check if the candidate motion is still in the boundary.  If not, project back.
-        // t0 = std::clock();
-        if (haveBoundaries) {
-          if (not boundaries[nodeListi].contains(ri + deltaMedian(nodeListi, i), false)) {
-            deltaMedian(nodeListi, i) = boundaries[nodeListi].closestPoint(ri + deltaMedian(nodeListi, i)) - ri;
+        if (haveFacetedBoundaries) {
+          if (not facetedBoundaries[nodeListi].contains(ri + deltaMedian(nodeListi, i), false)) {
+            deltaMedian(nodeListi, i) = facetedBoundaries[nodeListi].closestPoint(ri + deltaMedian(nodeListi, i)) - ri;
           }
           for (unsigned ihole = 0; ihole != holes[nodeListi].size(); ++ihole) {
             if (holes[nodeListi][ihole].contains(ri + deltaMedian(nodeListi, i), false)) {
@@ -497,15 +476,12 @@ computeVoronoiVolume(const FieldList<Dim<2>, Dim<2>::Vector>& position,
           // This is a point that touches the bounding polygon.  Flag it as surface.
           if (returnSurface) surfacePoint(nodeListi, i) |= 1;
         }
-        // tbound += std::clock() - t0;
 
         // If requested, we can return the cell geometries.
         if (returnCells) {
-          // t0 = std::clock();
           PolyClipper::collapseDegenerates(celli, 1.0e-10);
           PolyClipper::convertFromPolygon(cells(nodeListi, i), celli);
           cells(nodeListi, i) += ri;
-          // tcell += std::clock() - t0;
         }
       }
     }
@@ -540,17 +516,6 @@ computeVoronoiVolume(const FieldList<Dim<2>, Dim<2>::Vector>& position,
 
   }
 
-  // ttotal = std::clock() - ttotal;
-  // if (Process::getRank() == 0) cout << "computeVoronoiVolume2d timing: " 
-  //                                   << "tplanes=" << (tplanes / (double) CLOCKS_PER_SEC) 
-  //                                   << " tclip=" << (tclip / (double) CLOCKS_PER_SEC) 
-  //                                   << " tinterior=" << (tinterior / (double) CLOCKS_PER_SEC) 
-  //                                   << " tcentroid=" << (tcentroid / (double) CLOCKS_PER_SEC) 
-  //                                   << " tsurface=" << (tsurface / (double) CLOCKS_PER_SEC) 
-  //                                   << " tbound=" << (tbound / (double) CLOCKS_PER_SEC) 
-  //                                   << " tcell=" << (tcell / (double) CLOCKS_PER_SEC) 
-  //                                   << " ttotal=" << (ttotal / (double) CLOCKS_PER_SEC) << endl;
-                                
   TIME_computeVoronoiVolume2d.stop();
 }
     
