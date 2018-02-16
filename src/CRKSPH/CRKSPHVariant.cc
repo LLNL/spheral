@@ -84,6 +84,7 @@ using FieldSpace::FieldList;
 using NeighborSpace::ConnectivityMap;
 using Geometry::innerProduct;
 using Geometry::outerProduct;
+using BoundarySpace::Boundary;
 using BoundarySpace::CRKSPHVoidBoundary;
 
 using PhysicsSpace::MassDensityType;
@@ -231,6 +232,7 @@ initializeProblemStartup(DataBase<Dimension>& dataBase) {
     computeVoronoiVolume(position, H, massDensity, this->mMassDensityGradient, connectivityMap, 
                          vector<typename Dimension::FacetedVolume>(),               // no boundaries
                          vector<vector<typename Dimension::FacetedVolume> >(),      // no holes
+                         vector<Boundary<Dimension>*>(),                            // no boundaries
                          FieldList<Dimension, typename Dimension::Scalar>(),        // no weights
                          this->mVoidPoint,                                                // void point flags
                          this->mSurfacePoint, this->mVolume, this->mDeltaCentroid, this->mEtaVoidPoints,    // return values

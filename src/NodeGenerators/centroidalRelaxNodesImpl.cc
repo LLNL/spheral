@@ -139,7 +139,7 @@ centroidalRelaxNodesImpl(DataBaseSpace::DataBase<Dimension>& db,
     // Compute the new volumes and centroids (note this uses the old rho gradient, not quite right,
     // but expedient/efficient).
     std::clock_t tvoro = std::clock();
-    CRKSPHSpace::computeVoronoiVolume(pos, H, rhof, gradRhof, cm, volumeBoundaries, holes, 
+    CRKSPHSpace::computeVoronoiVolume(pos, H, rhof, gradRhof, cm, volumeBoundaries, holes, boundaries,
                                       FieldList<Dimension, typename Dimension::Scalar>(),  // no weights
                                       voidPoint,
                                       surfacePoint, vol, deltaCentroid, etaVoidPoints, dummyCells);
@@ -213,7 +213,7 @@ centroidalRelaxNodesImpl(DataBaseSpace::DataBase<Dimension>& db,
   // If requested to return the FacetedVolumes, make one last call to fill 'em in.
   if (cells.size() > 0) {
     const auto& cm = db.connectivityMap();
-    CRKSPHSpace::computeVoronoiVolume(pos, H, rhof, gradRhof, cm, volumeBoundaries, holes, 
+    CRKSPHSpace::computeVoronoiVolume(pos, H, rhof, gradRhof, cm, volumeBoundaries, holes, boundaries,
                                       FieldList<Dimension, typename Dimension::Scalar>(),  // no weights
                                       voidPoint,
                                       surfacePoint, vol, deltaCentroid, etaVoidPoints, cells);
