@@ -253,18 +253,21 @@ computeVoronoiVolume(const FieldList<Dim<2>, Dim<2>::Vector>& position,
       PolyClipper::convertToPolygon(cell0, FacetedVolume(verts0, facets0));
     }
 
+    // We'll need to hang onto the PolyClipper cells.
+    vector<vector<PolyClipper::Polygon>> polycells(numNodeLists);
+
     // Walk the points.
     vector<Plane> pairPlanes, voidPlanes;
     unsigned nvoid;
     double voli;
     Vector etaVoidAvg;
-    PolyClipper::Polygon celli;
     for (auto nodeListi = 0; nodeListi != numNodeLists; ++nodeListi) {
       const auto n = vol[nodeListi]->numInternalElements();
       const auto rin = 2.0/vol[nodeListi]->nodeListPtr()->nodesPerSmoothingScale();
+      polycells[nodeListi].resize(n);
 
 #pragma omp parallel for                                        \
-  private(pairPlanes, voidPlanes, nvoid, voli, etaVoidAvg, celli)
+  private(pairPlanes, voidPlanes, nvoid, voli, etaVoidAvg)
 
       for (auto i = 0; i < n; ++i) {
         
@@ -277,6 +280,8 @@ computeVoronoiVolume(const FieldList<Dim<2>, Dim<2>::Vector>& position,
         const auto  Hinv = Hi.Inverse();
         const auto  weighti = haveWeights ? weight(nodeListi, i) : 1.0;
         const auto& fullConnectivity = connectivityMap.connectivityForNode(nodeListi, i);
+
+        auto&       celli = cells[nodeListi][i];
 
         // Prepare to accumulate any void point positions.
         etaVoidAvg = Vector::zero;
@@ -405,6 +410,17 @@ computeVoronoiVolume(const FieldList<Dim<2>, Dim<2>::Vector>& position,
         std::sort(voidPlanes.begin(), voidPlanes.end(), [](const Plane& lhs, const Plane& rhs) { return lhs.dist < rhs.dist; });
         PolyClipper::clipPolygon(celli, voidPlanes);
         CHECK(not celli.empty());
+      }
+    }
+
+    // Apply boundaries to the etaVoidPoints.
+    if (not boundaries.empty()) {
+      for (const auto& bc: boundaries) bc.applyFieldListGhostBoundary(etaVoidPoints);
+      for (const auto& bc: boundaries) bc.finalizeGhostBoundary();
+
+      // Now clip by any neighbor void points.
+
+
 
         // Compute the moments of the clipped cell.
         PolyClipper::moments(voli, deltaMedian(nodeListi, i), celli);
