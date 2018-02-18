@@ -472,7 +472,7 @@ if graphics:
     mpi.synchronizeQueuedOutput(None, None)
 
     # Plot the node positions.
-    from SpheralMatplotlibUtilities import *
+    from SpheralMatplotlib import *
     rPlot = plotNodePositions2d(db, colorNodeLists=0, colorDomains=1)
     EPlot = plotEHistory(control.conserve)
 

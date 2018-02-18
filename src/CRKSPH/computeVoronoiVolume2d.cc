@@ -254,46 +254,39 @@ computeVoronoiVolume(const FieldList<Dim<2>, Dim<2>::Vector>& position,
     }
 
     // We'll need to hang onto the PolyClipper cells.
-    vector<vector<PolyClipper::Polygon>> polycells(numNodeLists);
+    FieldList<Dim<2>, PolyClipper::Polygon> polycells(FieldSpace::FieldStorageType::CopyFields);
+    for (auto nodeListi = 0; nodeListi != numNodeLists; ++nodeListi) {
+      polycells.appendNewField("polycells", vol[nodeListi]->nodeList(), PolyClipper::Polygon());
+    }
 
-    // Walk the points.
-    vector<Plane> pairPlanes, voidPlanes;
+    // First pass: clip by neighbors and generate void points.
+    vector<Plane> pairPlanes;
     unsigned nvoid;
-    double voli;
     Vector etaVoidAvg;
     for (auto nodeListi = 0; nodeListi != numNodeLists; ++nodeListi) {
       const auto n = vol[nodeListi]->numInternalElements();
       const auto rin = 2.0/vol[nodeListi]->nodeListPtr()->nodesPerSmoothingScale();
-      polycells[nodeListi].resize(n);
 
 #pragma omp parallel for                                        \
-  private(pairPlanes, voidPlanes, nvoid, voli, etaVoidAvg)
-
+  private(pairPlanes, nvoid, etaVoidAvg)
       for (auto i = 0; i < n; ++i) {
-        
         const auto& ri = position(nodeListi, i);
         const auto& Hi = H(nodeListi, i);
-        const auto  rhoi = rho(nodeListi, i);
-        auto        gradRhoi = gradRho(nodeListi, i);
-        const auto  grhat = gradRhoi.unitVector();
-        const auto  Hdeti = Hi.Determinant();
         const auto  Hinv = Hi.Inverse();
         const auto  weighti = haveWeights ? weight(nodeListi, i) : 1.0;
         const auto& fullConnectivity = connectivityMap.connectivityForNode(nodeListi, i);
-
-        auto&       celli = cells[nodeListi][i];
+        auto&       celli = polycells(nodeListi, i);
 
         // Prepare to accumulate any void point positions.
         etaVoidAvg = Vector::zero;
         nvoid = 0;
         pairPlanes.clear();
-        voidPlanes.clear();
 
         // Initialize our seed cell shape.
         celli = cell0;
         for (auto& v: celli) v.position = 1.1*rin*Hinv*v.position;
 
-        // Clip by any boundaries first.
+        // Clip by any faceted boundaries first.
         if (haveFacetedBoundaries) {
           const auto& facets = facetedBoundaries[nodeListi].facets();
           CHECK(facetedBoundaries[nodeListi].contains(ri, false));
@@ -341,10 +334,7 @@ computeVoronoiVolume(const FieldList<Dim<2>, Dim<2>::Vector>& position,
               nodeListj != nodeListi and 
               not fullConnectivity[nodeListj].empty()) surfacePoint(nodeListi, i) |= (1 << (nodeListj + 1));
 
-          for (auto jItr = fullConnectivity[nodeListj].begin();
-               jItr != fullConnectivity[nodeListj].end();
-               ++jItr) {
-            const auto  j = *jItr;
+          for (auto j: fullConnectivity[nodeListj]) {
             const auto& rj = position(nodeListj, j);
             const auto  weightj = haveWeights ? weight(nodeListj, j) : 1.0;
 
@@ -352,75 +342,101 @@ computeVoronoiVolume(const FieldList<Dim<2>, Dim<2>::Vector>& position,
             const auto rji = rj - ri;
             const auto nhat = -rji.unitVector();
             const auto wij = weighti/(weightj + weighti);
-            if (voidPoint(nodeListj, j) == 0) {
-              pairPlanes.push_back(Plane(wij*rji, nhat));
-            } else {
-              voidPlanes.push_back(Plane(wij*rji, nhat));
-            }
+            pairPlanes.push_back(Plane(wij*rji, nhat));
           }
         }
 
         // Sort the planes by distance -- lets us clip more efficiently.
         std::sort(pairPlanes.begin(), pairPlanes.end(), [](const Plane& lhs, const Plane& rhs) { return lhs.dist < rhs.dist; });
 
-        // Clip by non-void neighbors first.
+        // Clip by non-void neighbors.
         PolyClipper::clipPolygon(celli, pairPlanes);
         CHECK(not celli.empty());
 
         // Check if the final polygon is entirely within our "interior" check radius.
         bool interior = true;
-        {
-          for (const auto& vert: celli) {
-            const auto peta = Hi*vert.position;
-            if (peta.magnitude2() > rin*rin) {
-              interior = false;
-              if (returnSurface) {
-                surfacePoint(nodeListi, i) |= 1;
-                ++nvoid;
-                etaVoidAvg += peta.unitVector();
-              }
+        for (const auto& vert: celli) {
+          const auto peta = Hi*vert.position;
+          if (peta.magnitude2() > rin*rin) {
+            interior = false;
+            if (returnSurface) {
+              surfacePoint(nodeListi, i) |= 1;
+              ++nvoid;
+              etaVoidAvg += peta.unitVector();
             }
-          }
-
-          // Reduce the number of void points for this point to a reasonable stencil -- up to 4 for 2D.
-          CHECK(etaVoidPoints(nodeListi, i).empty());
-          if (returnSurface and not interior) {
-            CHECK(nvoid > 0);
-            const Scalar thetaVoidAvg = atan2(etaVoidAvg.y(), etaVoidAvg.x());
-            const auto nv = max(1U, min(4U, unsigned(4.0*float(nvoid)/float(nverts))));
-            vector<Plane> voidPlanes(nv);
-            for (unsigned k = 0; k != nv; ++k) {
-              const auto theta = thetaVoidAvg + (0.5*k - 0.25*(nv - 1))*M_PI;
-              etaVoidPoints(nodeListi, i).push_back(Vector(0.5*rin*cos(theta), 0.5*rin*sin(theta)));
-              const auto rji = Hinv*etaVoidPoints(nodeListi, i)[k] - ri;
-              const auto nhat = -rji.unitVector();
-              voidPlanes[k] = Plane(rji, nhat);
-            }
-            CHECK(etaVoidPoints(nodeListi, i).size() == nv);
-            CHECK(voidPlanes.size() == nv);
-
-            // Clip the cell geometry by the void points we just created.
-            std::sort(voidPlanes.begin(), voidPlanes.end(), [](const Plane& lhs, const Plane& rhs) { return lhs.dist < rhs.dist; });
-            PolyClipper::clipPolygon(celli, voidPlanes);
-            CHECK(not celli.empty());
           }
         }
 
-        // Clip by any extant void neighbors.
-        std::sort(voidPlanes.begin(), voidPlanes.end(), [](const Plane& lhs, const Plane& rhs) { return lhs.dist < rhs.dist; });
-        PolyClipper::clipPolygon(celli, voidPlanes);
-        CHECK(not celli.empty());
+        // Reduce the number of void points for this point to a reasonable stencil -- up to 4 for 2D.
+        CHECK(etaVoidPoints(nodeListi, i).empty());
+        if (returnSurface and not interior) {
+          CHECK(nvoid > 0);
+          const Scalar thetaVoidAvg = atan2(etaVoidAvg.y(), etaVoidAvg.x());
+          const auto nv = max(1U, min(4U, unsigned(4.0*float(nvoid)/float(nverts))));
+          for (unsigned k = 0; k != nv; ++k) {
+            const auto theta = thetaVoidAvg + (0.5*k - 0.25*(nv - 1))*M_PI;
+            etaVoidPoints(nodeListi, i).push_back(Vector(0.5*rin*cos(theta), 0.5*rin*sin(theta)));
+          }
+          CHECK(etaVoidPoints(nodeListi, i).size() == nv);
+        }
       }
     }
 
-    // Apply boundaries to the etaVoidPoints.
+    // Apply boundary conditions to the void points.
     if (not boundaries.empty()) {
-      for (const auto& bc: boundaries) bc.applyFieldListGhostBoundary(etaVoidPoints);
-      for (const auto& bc: boundaries) bc.finalizeGhostBoundary();
+      for (const auto bc: boundaries) bc->applyFieldListGhostBoundary(etaVoidPoints);
+      for (const auto bc: boundaries) bc->finalizeGhostBoundary();
+    }
 
-      // Now clip by any neighbor void points.
+    // Second pass: clip by any void points and compute the volumes.
+    double voli;
+    for (auto nodeListi = 0; nodeListi != numNodeLists; ++nodeListi) {
+      const auto n = vol[nodeListi]->numInternalElements();
+      const auto rin = 2.0/vol[nodeListi]->nodeListPtr()->nodesPerSmoothingScale();
 
+#pragma omp parallel for                                        \
+  private(pairPlanes, voli)
+      for (auto i = 0; i < n; ++i) {
+        const auto& ri = position(nodeListi, i);
+        const auto& Hi = H(nodeListi, i);
+        const auto  rhoi = rho(nodeListi, i);
+        auto        gradRhoi = gradRho(nodeListi, i);
+        const auto  grhat = gradRhoi.unitVector();
+        const auto  Hinvi = Hi.Inverse();
+        const auto& fullConnectivity = connectivityMap.connectivityForNode(nodeListi, i);
+        auto&       celli = polycells(nodeListi, i);
+        const bool  interior = surfacePoint(nodeListi, i) & 1;
 
+        const bool barf = (i == 1863);
+
+        // First our own void points.
+        pairPlanes.clear();
+        for (const auto& etaVoid: etaVoidPoints(nodeListi, i)) {
+          const auto rji = Hinvi*etaVoid;
+          const auto nhat = -rji.unitVector();
+          pairPlanes.push_back(Plane(rji, nhat));
+          if (barf) cerr << i << " " << rji << " " << nhat << endl;
+        }
+
+        // Add any neighbor void points this cell might interact with.
+        for (auto nodeListj = 0; nodeListj != numNodeLists; ++nodeListj) {
+          for (auto j: fullConnectivity[nodeListj]) {
+            const auto& rj = position(nodeListj, j);
+            const auto& Hj = H(nodeListj, j);
+            const auto  Hinvj = Hj.Inverse();
+            for (const auto& etaVoid: etaVoidPoints(nodeListj, j)) {
+              const auto rji = Hinvj*etaVoid + rj - ri;
+              const auto nhat = -rji.unitVector();
+              pairPlanes.push_back(Plane(rji, nhat));
+              if (barf) cerr << j << " " << rji << " " << nhat << endl;
+            }
+          }
+        }
+
+        // Clip by the void neighbors.
+        std::sort(pairPlanes.begin(), pairPlanes.end(), [](const Plane& lhs, const Plane& rhs) { return lhs.dist < rhs.dist; });
+        PolyClipper::clipPolygon(celli, pairPlanes);
+        CHECK(not celli.empty());
 
         // Compute the moments of the clipped cell.
         PolyClipper::moments(voli, deltaMedian(nodeListi, i), celli);
@@ -501,35 +517,6 @@ computeVoronoiVolume(const FieldList<Dim<2>, Dim<2>::Vector>& position,
         }
       }
     }
-
-    // // Lastly, for any points labeled suface we concoct a sampled median motion by simply interpolating from the surrounding points.
-    // // We'll use a really simple low-order Shepard's function for this.
-    // if (numBounds == 0) {
-    //   for (unsigned nodeListi = 0; nodeListi != numNodeLists; ++nodeListi) {
-    //     const unsigned n = vol[nodeListi]->numInternalElements();
-    //     const Neighbor<Dim<2> >& neighbor = position[nodeListi]->nodeListPtr()->neighbor();
-    //     for (unsigned i = 0; i != n; ++i) {
-    //       const Vector& ri = position(nodeListi, i);
-    //       Scalar wsumi = 0.0;
-    //       const vector<vector<int> >& fullConnectivity = connectivityMap.connectivityForNode(nodeListi, i);
-    //       for (unsigned nodeListj = 0; nodeListj != numNodeLists; ++nodeListj) {
-    //         for (vector<int>::const_iterator jItr = fullConnectivity[nodeListj].begin();
-    //              jItr != fullConnectivity[nodeListj].end();
-    //              ++jItr) {
-    //           const unsigned j = *jItr;
-    //           if (surfacePoint(nodeListj, j) == 0) {
-    //             const Vector& rj = position(nodeListj, j);
-    //             const Scalar wi = safeInvVar((ri - rj).magnitude2());
-    //             wsumi += wi;
-    //             deltaMedian(nodeListi, i) += wi*deltaMedian(nodeListj, j);
-    //           }
-    //         }
-    //       }
-    //       deltaMedian(nodeListi, i) *= safeInvVar(wsumi);
-    //     }
-    //   }
-    // }
-
   }
 
   TIME_computeVoronoiVolume2d.stop();
