@@ -1728,6 +1728,7 @@ buildReceiveAndGhostNodes(const DataBase<Dimension>& dataBase) {
   // This processor's ID.
   int procID = this->domainID();
   int numProcs = this->numDomains();
+
   const int numNodeLists = dataBase.numNodeLists();
   vector<int> firstNewGhostNode(numNodeLists);
 
