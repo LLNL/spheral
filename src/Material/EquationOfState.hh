@@ -77,6 +77,15 @@ public:
                           const FieldSpace::Field<Dimension, Scalar>& massDensity,
                           const FieldSpace::Field<Dimension, Scalar>& specificThermalEnergy) const = 0;
 
+  // Look up an energy that gives the requested pressure at the specified density.
+  virtual Scalar specificThermalEnergyForPressure(const Scalar Ptarget,
+                                                  const Scalar rho,
+                                                  const Scalar epsMin,
+                                                  const Scalar epsMax,
+                                                  const Scalar epsTol,
+                                                  const Scalar Ptol,
+                                                  const unsigned maxIterations) const;
+
   // The set of constants defining our units.
   const PhysicalConstants& constants() const;
 

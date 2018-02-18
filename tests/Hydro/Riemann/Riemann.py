@@ -431,30 +431,21 @@ xans, vans, uans, rhoans, Pans, Aans, hans = answer.solution(control.time(), xpr
 csAns = [sqrt(gammaGas*Pi/rhoi) for (Pi, rhoi) in zip(Pans,  rhoans)]
 
 if graphics:
-    print "trying graphics"
-    import Gnuplot
-    from SpheralGnuPlotUtilities import *
-
-    rhoPlot, velPlot, epsPlot, PPlot, HPlot = plotState(db, plotStyle="linespoints")
-    print "Gnuplot?"
-    APlot = generateNewGnuPlot()
-    Adata = Gnuplot.Data(xprof, A,
-                         with_ = "linespoints",
-                         title = "P/rho^\gamma",
-                         inline = True)
-    APlot.replot(Adata)
-    print "Go for the answer!"
+    from SpheralMatplotlib import *
+    
+    rhoPlot, velPlot, epsPlot, PPlot, HPlot = plotState(db, plotStyle="r-o")
+    APlot = newFigure()
+    APlot.plot(xprof, A, "r-o")
+    plt.title("P/rho^\gamma")
     plotAnswer(answer, control.time(),
                rhoPlot, velPlot, epsPlot, PPlot, APlot, HPlot)
     pE = plotEHistory(control.conserve)
 
-    csPlot = plotFieldList(cs, plotStyle="linespoints", winTitle="Sound speed")
-    csAnsData = Gnuplot.Data(xans, csAns, 
-                             with_ = "lines",
-                             title = "Analytic")
-    csPlot.replot(csAnsData)
+    csPlot = plotFieldList(cs, plotStyle="r-o", lineTitle="Simulation", winTitle="Sound speed")
+    csPlot.plot(xans, csAns, "k-", label="Analytic")
+    csPlot.axes.legend()
 
-    suffix = "-%s-%s-compatibleEnergy=%s-densityUpdate=%s.png" % (problem, hydroname, compatibleEnergy, densityUpdate)
+    suffix = "-%s-%s-compatibleEnergy=%s-densityUpdate=%s.pdf" % (problem, hydroname, compatibleEnergy, densityUpdate)
     plots = [(rhoPlot, "Sod-planar-rho" + suffix),
              (velPlot, "Sod-planar-vel" + suffix),
              (epsPlot, "Sod-planar-eps" + suffix),
@@ -466,25 +457,25 @@ if graphics:
     if crksph:
         volPlot = plotFieldList(hydro.volume(), 
                                 winTitle = "volume",
-                                plotStyle = "linespoints",
+                                plotStyle = "r-o",
                                 colorNodeLists = False, plotGhosts = False)
         aplot = plotFieldList(hydro.A(),
                               winTitle = "A",
-                                plotStyle = "linespoints",
+                              plotStyle = "r-o",
                               colorNodeLists = False)
         bplot = plotFieldList(hydro.B(),
                               yFunction = "%s.x",
                               winTitle = "B",
-                              plotStyle = "linespoints",
+                              plotStyle = "r-o",
                               colorNodeLists = False)
         splot = plotFieldList(hydro.surfacePoint(),
                               winTitle = "surface point",
-                              plotStyle = "linespoints",
+                              plotStyle = "r-o",
                               colorNodeLists = False)
         voidplot = plotFieldList(hydro.voidPoint(),
                                  winTitle = "void point",
                                  plotGhosts = True,
-                                 plotStyle = "linespoints",
+                                 plotStyle = "r-o",
                                  colorNodeLists = False)
         plots += [(volPlot, "Sod-planar-vol" + suffix),
                    (aplot, "Sod-planar-ACRK" + suffix),
@@ -493,17 +484,16 @@ if graphics:
                    (voidplot, "Sod-planar-voidPoint" + suffix)]
     
     viscPlot = plotFieldList(hydro.maxViscousPressure(),
-                             winTitle = "max(rho^2 Piij)",
-                             plotStyle = "linespoints",
+                             winTitle = "$\max( \\rho^2 \Pi_{ij})$",
+                             plotStyle = "r-o",
                              colorNodeLists = False)
     plots.append((viscPlot, "Sod-planar-viscosity" + suffix))
     
     # Make hardcopies of the plots.
     for p, filename in plots:
-        p("set xrange [%g:%g]" % (0.0, 1.0))
-        p.refresh()
-        p.hardcopy(os.path.join(dataDir, filename), terminal="png")
-    pE.hardcopy(os.path.join(dataDir, "Sod-planar-E" + suffix), terminal="png")
+        p.set_xlim(0, 1)
+        p.figure.savefig(os.path.join(dataDir, filename))
+    pE.figure.savefig(os.path.join(dataDir, "Sod-planar-E" + suffix))
 
 print "Energy conservation: original=%g, final=%g, error=%g" % (control.conserve.EHistory[0],
                                                                 control.conserve.EHistory[-1],

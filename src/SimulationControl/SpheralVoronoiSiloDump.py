@@ -431,6 +431,9 @@ def dumpPhysicsState(stateThingy,
 
     assert state is not None and dataBase is not None
 
+    if not boundaries:
+        boundaries = "vector_of_Boundary%id()" % dataBase.nDim
+
     # Did the user specify any data to be dumped?
     if not fields:
         fields = []
@@ -522,7 +525,8 @@ def dumpPhysicsState(stateThingy,
                          gradRho,
                          dataBase.connectivityMap(),
                          bounds,
-                         holes, 
+                         holes,
+                         boundaries,
                          weight,
                          voidPoint,
                          surfacePoint,

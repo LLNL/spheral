@@ -39,7 +39,8 @@ source("../src/Neighbor/tests/testTreeNeighbor.py")
 # Distributed unit tests
 source("../src/Distributed/tests/distributedUnitTests.py")
 
-# SolidMaterial unit tests.
+# Material unit tests.
+source("../src/Material/tests/testEOS.py")
 source("../src/SolidMaterial/tests/testTillotsonEquationOfState.py")
 
 # Test the sampling to lattice method.

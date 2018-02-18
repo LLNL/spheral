@@ -17,7 +17,6 @@
 #include "computeCRKSPHCorrections.hh"
 #include "computeCRKSPHIntegral.hh"
 #include "centerOfMass.hh"
-#include "computeVoronoiCentroids.hh"
 #include "volumeSpacing.hh"
 #include "NodeList/SmoothingScaleBase.hh"
 #include "Hydro/HydroFieldNames.hh"
