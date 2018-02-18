@@ -64,6 +64,12 @@ struct Vertex2d {
   Vertex2d():                               position(),    neighbors(), comp(1), ID(-1) {}
   Vertex2d(const Vector& pos):              position(pos), neighbors(), comp(1), ID(-1) {}
   Vertex2d(const Vector& pos, const int c): position(pos), neighbors(), comp(c), ID(-1) {}
+  bool operator==(const Vertex2d& rhs) const {
+    return (position  == rhs.position and
+            neighbors == rhs.neighbors and
+            comp      == rhs.comp and
+            ID        == rhs.ID);
+  }
 };
 
 //------------------------------------------------------------------------------
@@ -78,6 +84,12 @@ struct Vertex3d {
   Vertex3d():                               position(),    neighbors(), comp(1), ID(-1) {}
   Vertex3d(const Vector& pos):              position(pos), neighbors(), comp(1), ID(-1) {}
   Vertex3d(const Vector& pos, const int c): position(pos), neighbors(), comp(c), ID(-1) {}
+  bool operator==(const Vertex3d& rhs) const {
+    return (position  == rhs.position and
+            neighbors == rhs.neighbors and
+            comp      == rhs.comp and
+            ID        == rhs.ID);
+  }
 };
 
 //------------------------------------------------------------------------------
