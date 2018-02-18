@@ -662,8 +662,11 @@ evaluateDerivatives(const Dim<2>::Scalar time,
       // Finish the acceleration.
       const Vector deltaDvDti(Si(1,0)/rhoi*riInv,
                               (Si(1,1) - STTi)/rhoi*riInv);
-      DvDti += deltaDvDti;
-      pairAccelerationsi.push_back(deltaDvDti);
+
+      if (pTypei == 0) {
+        DvDti += deltaDvDti;
+        pairAccelerationsi.push_back(deltaDvDti);
+      }
 
       // Finish the gradient of the velocity.
       CHECK(rhoi > 0.0);

@@ -8,6 +8,7 @@
 #include "Utilities/DBC.hh"
 
 #include "computeElementOwner.hh"
+#include <algorithm>
 
 namespace Spheral {
 namespace MeshSpace {

@@ -10,6 +10,7 @@
 #define __Spheral_Geometry_computeAncillaryGeometry__
 
 #include <algorithm>
+#include <iterator>
 #include <vector>
 #include <set>
 #include <deque>

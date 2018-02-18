@@ -181,6 +181,8 @@
     <CustomBuild Include="..\..\src\SolidMaterial\TillotsonEquationOfStateInst.cc.py">
       <Filter>Inst Files</Filter>
     </CustomBuild>
-    <CustomBuild Include="..\..\src\SolidMaterial\CollinsStrengthInst.cc.py" />
+    <CustomBuild Include="..\..\src\SolidMaterial\CollinsStrengthInst.cc.py">
+      <Filter>Inst Files</Filter>
+    </CustomBuild>
   </ItemGroup>
 </Project>

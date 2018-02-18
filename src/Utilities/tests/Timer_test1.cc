@@ -50,7 +50,7 @@ Timer Diag2("Diag2", Everything, DIAGNOSTIC);
 int main(int argc, char **argv)  {
   
   int rank, number_procs;
-#ifdef MPI
+#ifdef USE_MPI
   MPI_Init(&argc, &argv);
   MPI_Comm_rank(Spheral::Communicator::communicator(), &rank);
   MPI_Comm_size(Spheral::Communicator::communicator(), &number_procs);
@@ -127,7 +127,7 @@ int main(int argc, char **argv)  {
     RAM.stop();
 
     Barrier.start();
-#ifdef MPI
+#ifdef USE_MPI
     MPI_Barrier(Spheral::Communicator::communicator());
 #endif
     Barrier.stop();
@@ -150,7 +150,7 @@ int main(int argc, char **argv)  {
 
   Timer::TimerSummary();
   
-#ifdef MPI
+#ifdef USE_MPI
   MPI_Finalize();
 #endif
 }

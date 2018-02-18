@@ -183,6 +183,7 @@ AC_OUTPUT(helpers/makefile_master \
           SolidMaterial/makefile \
           Strength/makefile \
           ArtificialConduction/makefile \
+          CInterface/makefile \
           CXXTests/makefile \
           PythonMPIInterfaces/makefile \
           PBGWraps/makefile \

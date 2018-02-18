@@ -137,7 +137,7 @@ case $COMPILERS in
          MPI4PYCC=$MPICC
          CXXFLAGS+=" -std=c++11 -march=native"
          if test $OSNAME = "Darwin"; then
-           CXXFLAGS+=" -mmacosx-version-min=10.7 -stdlib=libc++"
+           CXXFLAGS+=" -mmacosx-version-min=10.7"
          fi
       fi
       ;;
