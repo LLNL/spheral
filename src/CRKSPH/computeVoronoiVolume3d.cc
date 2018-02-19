@@ -156,36 +156,34 @@ computeVoronoiVolume(const FieldList<Dim<3>, Dim<3>::Vector>& position,
     }
     const auto nverts = cell0.size();
 
-    // Walk the points.
-    vector<Plane> pairPlanes, voidPlanes;
-    double voli;
-    PolyClipper::Polyhedron celli;
+    // We'll need to hang onto the PolyClipper cells.
+    FieldList<Dim<3>, PolyClipper::Polyhedron> polycells(FieldSpace::FieldStorageType::CopyFields);
+    for (auto nodeListi = 0; nodeListi != numNodeLists; ++nodeListi) {
+      polycells.appendNewField("polycells", vol[nodeListi]->nodeList(), PolyClipper::Polyhedron());
+    }
+
+    // First pass: clip by neighbors and generate void points.
+    vector<Plane> pairPlanes;
     for (auto nodeListi = 0; nodeListi != numNodeLists; ++nodeListi) {
       const auto n = vol[nodeListi]->numInternalElements();
       const auto rin = 2.0/vol[nodeListi]->nodeListPtr()->nodesPerSmoothingScale();
-#pragma omp parallel for                        \
-  private(pairPlanes, voidPlanes, voli, celli)
-      for (auto i = 0; i < n; ++i) {
 
+#pragma omp parallel for                        \
+  private(pairPlanes)
+      for (auto i = 0; i < n; ++i) {
         const auto& ri = position(nodeListi, i);
         const auto& Hi = H(nodeListi, i);
-        const auto  rhoi = rho(nodeListi, i);
-        auto        gradRhoi = gradRho(nodeListi, i);
-        const auto  grhat = gradRhoi.unitVector();
-        const auto  Hdeti = Hi.Determinant();
         const auto  Hinv = Hi.Inverse();
         const auto  weighti = haveWeights ? weight(nodeListi, i) : 1.0;
         const auto& fullConnectivity = connectivityMap.connectivityForNode(nodeListi, i);
-
-        // Prepare to accumulate any void point positions.
-        pairPlanes.clear();
-        voidPlanes.clear();
+        auto&       celli = polycells(nodeListi, i);
 
         // Initialize our seed cell shape.
         celli = cell0;
         for (auto& v: celli) v.position = 1.1*rin*Hinv*v.position;
 
-        // Clip by any boundaries first.
+        // Clip by any faceted boundaries first.
+        pairPlanes.clear();
         if (haveFacetedBoundaries) {
           const auto& facets = facetedBoundaries[nodeListi].facets();
           CHECK(facetedBoundaries[nodeListi].contains(ri, false));
@@ -244,20 +242,16 @@ computeVoronoiVolume(const FieldList<Dim<3>, Dim<3>::Vector>& position,
             const auto rji = rj - ri;
             const auto nhat = -rji.unitVector();
             const auto wij = weighti/(weightj + weighti);
-            if (voidPoint(nodeListj, j) == 0) {
-              pairPlanes.push_back(Plane(wij*rji, nhat));
-            } else {
-              voidPlanes.push_back(Plane(wij*rji, nhat));
-            }
+            pairPlanes.push_back(Plane(wij*rji, nhat));
           }
         }
 
         // Sort the planes by distance -- let's us clip more efficiently.
         std::sort(pairPlanes.begin(), pairPlanes.end(), [](const Plane& lhs, const Plane& rhs) { return lhs.dist < rhs.dist; });
 
-        // Clip by non-void neighbors first.
+        // Clip by neighbors.
         PolyClipper::clipPolyhedron(celli, pairPlanes);
-        CHECK(celli.size() > 0);
+        CHECK(not celli.empty());
 
         // Check if the final polyghedron is entirely within our "interior" check radius.
         // We preserve remaining original vertices as void points.
@@ -271,18 +265,64 @@ computeVoronoiVolume(const FieldList<Dim<3>, Dim<3>::Vector>& position,
                 surfacePoint(nodeListi, i) |= 1;
                 const Vector etaj = 0.5*rin*peta.unitVector();
                 etaVoidPoints(nodeListi, i).push_back(etaj);
-                const auto rji = ri - Hinv*etaj;
-                const auto nhat = -rji.unitVector();
-                voidPlanes.push_back(Plane(0.5*rji, nhat));
               }
             }
           }
         }
+      }
+    }
 
-        // Clip the cell geometry by the void planes.
-        std::sort(voidPlanes.begin(), voidPlanes.end(), [](const Plane& lhs, const Plane& rhs) { return lhs.dist < rhs.dist; });
-        PolyClipper::clipPolyhedron(celli, voidPlanes);
-        CHECK(celli.size() > 0);
+    // Apply boundary conditions to the void points.
+    if (not boundaries.empty()) {
+      for (const auto bc: boundaries) bc->applyFieldListGhostBoundary(etaVoidPoints);
+      for (const auto bc: boundaries) bc->finalizeGhostBoundary();
+    }
+
+    // Second pass: clip by any void points and compute the volumes.
+    double voli;
+    for (auto nodeListi = 0; nodeListi != numNodeLists; ++nodeListi) {
+      const auto n = vol[nodeListi]->numInternalElements();
+      const auto rin = 2.0/vol[nodeListi]->nodeListPtr()->nodesPerSmoothingScale();
+
+#pragma omp parallel for                                        \
+  private(pairPlanes, voli)
+      for (auto i = 0; i < n; ++i) {
+        const auto& ri = position(nodeListi, i);
+        const auto& Hi = H(nodeListi, i);
+        const auto  rhoi = rho(nodeListi, i);
+        auto        gradRhoi = gradRho(nodeListi, i);
+        const auto  grhat = gradRhoi.unitVector();
+        const auto  Hinvi = Hi.Inverse();
+        const auto& fullConnectivity = connectivityMap.connectivityForNode(nodeListi, i);
+        auto&       celli = polycells(nodeListi, i);
+        bool        interior = not (surfacePoint(nodeListi, i) & 1);
+
+        // First our own void points.
+        pairPlanes.clear();
+        for (const auto& etaVoid: etaVoidPoints(nodeListi, i)) {
+          const auto rji = Hinvi*etaVoid;
+          const auto nhat = -rji.unitVector();
+          pairPlanes.push_back(Plane(rji, nhat));
+        }
+
+        // Add any neighbor void points this cell might interact with.
+        for (auto nodeListj = 0; nodeListj != numNodeLists; ++nodeListj) {
+          for (auto j: fullConnectivity[nodeListj]) {
+            const auto& rj = position(nodeListj, j);
+            const auto& Hj = H(nodeListj, j);
+            const auto  Hinvj = Hj.Inverse();
+            for (const auto& etaVoid: etaVoidPoints(nodeListj, j)) {
+              const auto rji = Hinvj*etaVoid + 0.5*(rj - ri);
+              const auto nhat = -rji.unitVector();
+              pairPlanes.push_back(Plane(rji, nhat));
+            }
+          }
+        }
+
+        // Clip by the void neighbors.
+        std::sort(pairPlanes.begin(), pairPlanes.end(), [](const Plane& lhs, const Plane& rhs) { return lhs.dist < rhs.dist; });
+        PolyClipper::clipPolyhedron(celli, pairPlanes);
+        CHECK(not celli.empty());
 
         // Compute the moments of the clipped cell.
         PolyClipper::moments(voli, deltaMedian(nodeListi, i), celli);
