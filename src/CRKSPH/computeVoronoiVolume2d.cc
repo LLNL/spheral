@@ -405,9 +405,7 @@ computeVoronoiVolume(const FieldList<Dim<2>, Dim<2>::Vector>& position,
         const auto  Hinvi = Hi.Inverse();
         const auto& fullConnectivity = connectivityMap.connectivityForNode(nodeListi, i);
         auto&       celli = polycells(nodeListi, i);
-        const bool  interior = surfacePoint(nodeListi, i) & 1;
-
-        const bool barf = (i == 1863);
+        const bool  interior = not (surfacePoint(nodeListi, i) & 1);
 
         // First our own void points.
         pairPlanes.clear();
@@ -415,7 +413,6 @@ computeVoronoiVolume(const FieldList<Dim<2>, Dim<2>::Vector>& position,
           const auto rji = Hinvi*etaVoid;
           const auto nhat = -rji.unitVector();
           pairPlanes.push_back(Plane(rji, nhat));
-          if (barf) cerr << i << " " << rji << " " << nhat << endl;
         }
 
         // Add any neighbor void points this cell might interact with.
@@ -425,10 +422,9 @@ computeVoronoiVolume(const FieldList<Dim<2>, Dim<2>::Vector>& position,
             const auto& Hj = H(nodeListj, j);
             const auto  Hinvj = Hj.Inverse();
             for (const auto& etaVoid: etaVoidPoints(nodeListj, j)) {
-              const auto rji = Hinvj*etaVoid + rj - ri;
+              const auto rji = Hinvj*etaVoid + 0.5*(rj - ri);
               const auto nhat = -rji.unitVector();
               pairPlanes.push_back(Plane(rji, nhat));
-              if (barf) cerr << j << " " << rji << " " << nhat << endl;
             }
           }
         }
