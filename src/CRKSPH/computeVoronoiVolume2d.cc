@@ -349,7 +349,7 @@ computeVoronoiVolume(const FieldList<Dim<2>, Dim<2>::Vector>& position,
         // Sort the planes by distance -- lets us clip more efficiently.
         std::sort(pairPlanes.begin(), pairPlanes.end(), [](const Plane& lhs, const Plane& rhs) { return lhs.dist < rhs.dist; });
 
-        // Clip by non-void neighbors.
+        // Clip by neighbors.
         PolyClipper::clipPolygon(celli, pairPlanes);
         CHECK(not celli.empty());
 
