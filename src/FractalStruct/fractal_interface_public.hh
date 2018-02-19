@@ -53,6 +53,10 @@ namespace FractalSpace
   //! xmin,xmax are the positions of the lower left and upper right corners
   //! of the User's computational cube. Really BAAAAD things can happen if not all particles
   //! are addded.
+  void return_particles(Fractal_Memory* PFM,int total,
+			vector <double> xmin,vector <double> xmax,
+			vector <double>& posx,vector <double>& posy,
+			vector <double>& posz,vector <double>& masses);
 
   void FractalCube(Fractal_Memory* PFM,double SHRINK,const vector <double>& xmin,const vector <double>& xmax,
 		   vector <double>& xmini,vector <double>& xmaxy);

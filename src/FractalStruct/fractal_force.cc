@@ -225,8 +225,6 @@ namespace FractalSpace
 	    if(group.get_number_high_points() == 0) continue;
 	    buffer_points(group,fractal);
 	  }
-	// if(fractal_memory.padding != 0)
-	//   match_edges(fractal_memory,level);
 	int group_counter=0;
 	for(Group* pgroup : fractal_memory.all_groups[level])
 	  {
@@ -264,7 +262,6 @@ namespace FractalSpace
       }
     bool badd=test_tree(fractal_memory,fractal);
     assert(!badd);
-    // clean_groups(fractal_memory);
     FileFractal << "number of everything after the tree "  << " " << Group::number_groups << " " << Point::number_points << "\n";
     FileFractal << " Total number of particles after the tree " << Particle::number_particles << "\n";
     Fractal* p_fractal_ghost=new Fractal;
@@ -274,7 +271,6 @@ namespace FractalSpace
       {
 	Full_Stop(fractal_memory,41);
 	find_global_level_max(fractal_memory);
-	// small_exceptions(fractal_memory);
 	points_on_nodes(fractal_memory);
 	for(int level=1;level <= fractal_memory.global_level_max;level++)
 	  {
@@ -294,33 +290,23 @@ namespace FractalSpace
 	      }
 	    Full_Stop(fractal_memory,36);
 	    poisson_solver_struct(fractal,fractal_memory,level);
-	   // FileFractal << " Enter force A " << " " << level << " " << fractal_memory.all_groups[level].size() << endl;
-	   // FileFractal.flush();
 	    for(Group* pgroup : fractal_memory.all_groups[level])
 	      {
 		Group& group=*pgroup;
 		fractal.timing(-1,22);
-		// FileFractal << " Enter force a" << endl;
-		// FileFractal.flush();
 		force_at_point(group,fractal); 		   
 		fractal.timing(1,22);
 		if(fractal_memory.momentum_conserve)
 		  force_sum_particle(group,false);
 		fractal.timing(-1,23);
-		// FileFractal << " Enter force b " << endl;
-		// FileFractal.flush();
 		force_at_particle(group,fractal,fractal_memory.momentum_conserve);
 		if(fractal_memory.momentum_conserve)
 		  force_sum_particle(group,true);
 		group.set_done_group(true);
 		fractal.timing(1,23);
 	      }
-	   // FileFractal << " Enter force c " << endl;
-	   // FileFractal.flush();
 	    fractal.timing_lev(1,level);
 	  }
-	// FileFractal << " Enter force d " << endl;
-	// FileFractal.flush();
 	fractal.timing(1,47);
       }
     if(fractal_memory.momentum_conserve)
@@ -342,7 +328,6 @@ namespace FractalSpace
 	  }
 	force_shear_at_particle(fractal_memory,fractal);
       }
-    // clean_shear(fractal_memory);
     groups_level(fractal,fractal_memory.all_groups);
     fractal.timing(-1,44);
     if(fractal_memory.steps % fractal_memory.number_steps_out == 0)
@@ -368,17 +353,19 @@ namespace FractalSpace
     FileFractal << " Total number of particles exiting Fractal " << Particle::number_particles << "\n";
     FileFractal << " Made It fractal_force " << fractal_memory.steps << " " << fractal_memory.p_mess->Clock()-fractal_memory.p_mess->WallTime << "\n";
     fractal_memory.p_file->FlushAll();
+    if(fractal_memory.p_mess->FractalRank == 0)
+      cerr << " Finished FractalForce " << fractal_memory.steps << "\n";
   }
   void Full_Stop(Fractal_Memory& mem,int number)
-    {
-      Full_Stop(mem,mem.p_mess->FractalWorld,number);
-    }
+  {
+    Full_Stop(mem,mem.p_mess->FractalWorld,number);
+  }
   void Full_Stop(Fractal_Memory& mem,MPI_Comm& Comm,int number)
-    {
-      if(number >= 0)
-      	mem.p_fractal->timing(-1,number);
-      mem.p_mess->Full_Stop_Do_Not_Argue(Comm);
-      if(number >= 0)
-      	mem.p_fractal->timing(1,number);
-    }
+  {
+    if(number >= 0)
+      mem.p_fractal->timing(-1,number);
+    mem.p_mess->Full_Stop_Do_Not_Argue(Comm);
+    if(number >= 0)
+      mem.p_fractal->timing(1,number);
+  }
 }

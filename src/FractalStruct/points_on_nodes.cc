@@ -17,8 +17,6 @@ namespace FractalSpace
 	    for(auto pg : mem.all_groups[lev])
 	      if(pg->get_buffer_group() == buff)
 		{
-		  if(!pg->get_buffer_group() && pg->list_points.size() <= mem.p_mess->N63)
-		    continue;
 		  ok=1;
 		  break;
 		}
@@ -42,9 +40,10 @@ namespace FractalSpace
 		  levelmax=lev;
 		mem.p_mess->counts_on_nodes[ni+2*lev].push_back(counts[nc] > 0);
 	      }
+	    // mem.p_file->DUMPS << " COUNTP " << mem.steps << " " << lev << " " << ni << " " << mem.p_mess->count_on_node[ni+2*lev] << "\n";
 	  }
       }
-    mem.p_file->DUMPS << " levels with good data " << levelmax << " " << mem.global_level_max << "\n";
+    // mem.p_file->DUMPS << " levels with good data " << levelmax << " " << mem.global_level_max << "\n";
     //    mem.global_level_max=levelmax;
   }
 }
