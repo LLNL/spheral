@@ -458,7 +458,6 @@ def dumpPhysicsState(stateThingy,
     # If available, add the work, H inverse and hmin, hmax, & hmin_hmax_ratio by default.
     if dataBase:
         work = dataBase.globalWork
-        print "work: ", work
         fieldLists.append(work)
         Hfl = dataBase.fluidHfield
         Hi = dataBase.newGlobalSymTensorFieldList()
