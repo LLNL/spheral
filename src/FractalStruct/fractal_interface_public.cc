@@ -78,7 +78,7 @@ namespace FractalSpace
   }
   void fractal_memory_setup(Fractal_Memory* PFM)
   {
-    PFM->MPIrun=PFM->FractalNodes > 1;
+    // PFM->MPIrun=PFM->FractalNodes > 1;
     PFM->global_level_max=PFM->level_max;
     /***********************/
     //Leave these parameters alone
@@ -104,7 +104,7 @@ namespace FractalSpace
     // Construct a Mess object. 
     // All MPI and FFTW stuff is done in Mess member functions. 
     // This will be used throughout the simulation. 
-    Mess* p_mess=new Mess(PFM->MPIrun,
+    Mess* p_mess=new Mess(true,
 			  PFM->grid_length,
 			  PFM->periodic,
 			  PFM->number_particles,
@@ -199,6 +199,28 @@ namespace FractalSpace
 	PFM->p_fractal->particle_list[ni+first]->set_posm(pos,masses[ni]);
       }
   }
+  void return_particles(Fractal_Memory* PFM,int total,
+			vector <double> xmin,vector <double> xmax,
+			vector <double>& posx,vector <double>& posy,
+			vector <double>& posz,vector <double>& masses)
+  {
+    clean_vector(posx);
+    clean_vector(posy);
+    clean_vector(posz);
+    clean_vector(masses);
+    
+    double scale=xmax[0]-xmin[0];
+    for(int ni=0;ni<total;ni++)
+      {
+	vector <double> pos(3);
+	double mass;
+	PFM->p_fractal->particle_list[ni]->get_posm(pos,mass);
+	posx.push_back(pos[0]*scale+xmin[0]);
+	posy.push_back(pos[1]*scale+xmin[1]);
+	posz.push_back(pos[2]*scale+xmin[2]);
+	masses.push_back(mass);
+      }
+  }
   void get_potential(Fractal_Memory* PFM,int first,int total,double G,
 		     vector <double>& xmin,vector <double>& xmax,vector <double>& pot)
   {
@@ -233,16 +255,6 @@ namespace FractalSpace
   }
   void fractal_delete(Fractal_Memory* PFM)
   {
-    // vector <double>total_times(50);
-    //    PF->get_total_times(total_times);
-    //    PFM->total_time=total_times;
-    // Fractal* PF=PFM->p_fractal;
-    // Particle* P=PFM->p_mess->Parts_in;
-    // delete [] P;
-    // P=0;
-    // delete PF;
-    // PF=0;
-
     delete [] PFM->p_mess->Parts_in;
     PFM->p_mess->Parts_in=0;
     delete PFM->p_fractal;
@@ -262,7 +274,7 @@ namespace FractalSpace
     FractalNodes1=FR1;
     FractalNodes2=FR2;
     FractalNodes=FR0*FR1*FR2;
-    MPIrun=FractalNodes > 1;
+    // MPIrun=FractalNodes > 1;
   }
   void Fractal_Memory::setFFTNodes(int fmax)
   {

@@ -3,12 +3,11 @@
 #include "headers.hh"
 namespace FractalSpace
 {
-  void make_me_a_galaxy(int FractalRank,int numbers,double total_mass,vector <double>& masses,double G,
-		     vector <double>& posx,vector <double>& posy,vector <double>& posz,
-		     vector <double>& velx,vector <double>& vely,vector <double>& velz)
+  void make_me_a_galaxy(int FractalRank,int numbers,double total_mass,double G,
+			vector <double>& posx,vector <double>& posy,vector <double>& posz,
+			vector <double>& velx,vector <double>& vely,vector <double>& velz)
   {
     int seed=9973+256*FractalRank;
-    //    int seed=9973;
     srand(seed);
     //    std::default_random_engine generator(seed);
     //    std::uniform_real_distribution<double> distribution(0.0,1.0);
@@ -26,7 +25,6 @@ namespace FractalSpace
     double expo=1.0/(3.0+slope);
     double twopi=8.0*atan(1.0);
     bool allok=true;
-    //    double m=total_mass/static_cast<double>(numbers);
     for(int ni=0;ni<numbers;ni++)
       {
 	//	double r1=std::distribution(generator);
@@ -48,9 +46,6 @@ namespace FractalSpace
 	double vs=sigratio*sqrt(massr/r);
 	double v2=vs*sqrt(-2.0*log(Fractal::my_rand_not_zero(rand_max)));
 	double ang=twopi*Fractal::my_rand(rand_max);
-	//	posx[ni]=-25.0+0.01;  //
-	//	posy[ni]=0.0-0.02;   //
-	//	posz[ni]=25.0+0.001;  //
 	velx[ni]=-sphi*vt+v2*cos(ang);
 	vely[ni]=cphi*vt+v2*sin(ang);
 	velz[ni]=vs*sqrt(-2.0*log(Fractal::my_rand_not_zero(rand_max)))*cos(twopi*Fractal::my_rand(rand_max));
@@ -60,15 +55,7 @@ namespace FractalSpace
 	cerr << " " << velx[ni] << " " << vely[ni] << " " << velz[ni];
 	cerr << " " << r1 << " " << phi << " " << ctheta << " " << v2 << " " << ang << endl;
 	allok=false;
-	//	masses[ni]=m;
       }
-    //
-    // masses.assign(numbers,1.0e-20);
-    // masses[0]=2.0;
-    // posx[0]=x_off;
-    // posy[0]=y_off;
-    // posz[0]=z_off;
-    //
     assert(allok);
   }
 }

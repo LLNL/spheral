@@ -93,7 +93,7 @@ namespace FractalSpace
 	  fprintf(PFPos," EF %d",(abs(fr)-abs(frTheory))/abs(frTheory) >0.1); // 28
 	fprintf(PFPos,"\n");
       }
-    fflush(PFPos);
+    // fflush(PFPos);
     t1+=PFM->p_mess->Clock();
     //    PFM->p_file->FileTime << " output time " << PFM->steps << " " << fixed << t1 << "\n";
     fprintf(PFM->p_file->PFTime," output time %5d %10.2E \n",PFM->steps,t1);

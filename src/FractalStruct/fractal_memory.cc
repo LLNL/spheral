@@ -32,7 +32,6 @@ namespace FractalSpace
   void Fractal_Memory::calc_FractalNodes()
   {
     FractalNodes=FractalNodes0*FractalNodes1*FractalNodes2;
-    MPIrun=FractalNodes > 1;
     Boxes.resize(FractalNodes);
     int length=grid_length;
     if(!periodic)

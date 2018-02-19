@@ -8,6 +8,7 @@
 #include <cassert>
 #include <cfloat>
 #include <algorithm>
+#include <numeric>
 #include <complex>
 #include <ctime>
 #include <map>

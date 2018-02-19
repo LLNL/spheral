@@ -68,7 +68,6 @@ namespace FractalSpace
 	else
 	  {
 	    int HR=HRout[B];
-	    // FHT << " HRA" << " " << HypreRank << " " << HR << " " << Bout << " " << B << " " << VOL[B] << endl;
 	    for(int ni=0;ni<3;ni++)
 	      dataI_out[HR].push_back(lowerBOX[B][ni]);
 	    for(int ni=0;ni<3;ni++)
@@ -89,7 +88,6 @@ namespace FractalSpace
 				     counts_out,counts_in,integers,doubles,
 				     dataI_out,dataI_in,how_manyI,
 				     dataR_out,dataR_in,how_manyR);
-    // counts_out.clear();
     clean_vector(counts_out);
     dataI_out.clear();
     dataR_out.clear();
@@ -99,7 +97,6 @@ namespace FractalSpace
       {
 	for(int c=0;c<counts_in[HR];c++)
 	  {
-	    // FHT << " HRB" << " " << HypreRank << " " << HR << " " << Bget << " " << c6 << endl;
 	    HRout.push_back(-HR-1);
 	    lowerBOX.resize(lowerBOX.size()+1);
 	    upperBOX.resize(upperBOX.size()+1);
@@ -117,11 +114,8 @@ namespace FractalSpace
 	    Bget++;
 	  }
       }
-    // dataI_in.clear();
-    // dataR_in.clear();
     clean_vector(dataI_in);
     clean_vector(dataR_in);
-    // counts_in.clear();
     clean_vector(counts_in);
     timeM0+=mem.p_mess->Clock();
     HYPRE_StructGridAssemble(grid);
@@ -194,7 +188,6 @@ namespace FractalSpace
 	else
 	  {
 	    int HR=HRout[B];
-	    // FHT << " HRC" << " " << HypreRank << " " << HR << " " << Bout << " " << B << endl;
 	    int knights=dens_values.size();
 	    int ni7=0;
 	    for(int ni=0;ni<knights;ni++)
@@ -228,7 +221,6 @@ namespace FractalSpace
 				     counts_out,counts_in,integers,doubles,
 				     dataI_out,dataI_in,how_manyI,
 				     dataR_out,dataR_in,how_manyR);
-    // counts_out.clear();
     clean_vector(counts_out);
     dataI_out.clear();
     dataR_out.clear();
@@ -241,7 +233,6 @@ namespace FractalSpace
 	for(int knights : {0,1,2})
 	  vol*=upperBOX[B][knights]-lowerBOX[B][knights]+1;
 	assert(vol == VOL[B]);
-	// FHT << " HRD" << " " << HypreRank << " " << -HRout[B]-1 << " " << Bg <<  " " << B << " " << VOL[B]  << " " << Bget << endl;
 	vector <double>values;
 	vector <double>dens_values;
 	vector <double>pot_values;
@@ -265,11 +256,7 @@ namespace FractalSpace
 	HYPRE_StructVectorAddToBoxValues(rho,&(*lowerBOX[B].begin()),&(*upperBOX[B].begin()),&(*dens_values.begin()));
 	HYPRE_StructVectorAddToBoxValues(pot,&(*lowerBOX[B].begin()),&(*upperBOX[B].begin()),&(*pot_values.begin()));
 	B++;
-	// FHT << " HRDD" << " " << HypreRank << " " << Bg <<  " " << B << " " << VOL[B] << " " << Bget << endl;
       }
-    // dataI_in.clear();
-    // dataR_in.clear();
-    // counts_in.clear();
     clean_vector(dataI_in);
     clean_vector(dataR_in);
     clean_vector(counts_in);
@@ -306,7 +293,6 @@ namespace FractalSpace
     double final_res_norm=-1.0;
     HYPRE_StructPCGGetNumIterations(solver,&num_iterations );
     HYPRE_StructPCGGetFinalRelativeResidualNorm( solver, &final_res_norm );
-    // if(mem.p_mess->IAmAHypreNode && HypreRank == 0)
     FHT << " SOLVED A " << level << " " << _COUNTER << " " << FractalRank << " " << HypreRank << " " << num_iterations << " " << final_res_norm << "\n";
     HYPRE_StructPCGDestroy(solver);
     HYPRE_StructPFMGDestroy(precond);
@@ -314,7 +300,6 @@ namespace FractalSpace
     HYPRE_StructStencilDestroy(stencil);
     HYPRE_StructMatrixDestroy(Amatrix);
     HYPRE_StructVectorDestroy(rho);
-    // cerr << " SOLVED B " << _COUNTER << " " << FractalRank << " " << HypreRank << "\n";
     counts_in.resize(HypreNodes,0);
     counts_out.resize(HypreNodes,0);
     dataI_out.resize(HypreNodes);
@@ -358,7 +343,6 @@ namespace FractalSpace
 				     counts_out,counts_in,integers,doubles,
 				     dataI_out,dataI_in,how_manyI,
 				     dataR_out,dataR_in,how_manyR);
-    // counts_out.clear();
     clean_vector(counts_out);
     dataI_out.clear();
     dataR_out.clear();
@@ -381,7 +365,7 @@ namespace FractalSpace
     _COUNTER++;
     Hypre_sum_time[level]+=time6-time0;
     double timeM=timeM0+timeM1+timeM2;
-    FHT << " Hypre Total " << FractalRank << " " << time6-time0 << " " << Hypre_sum_time[level] << " L " << level << " " << sumVOL << " " << SVT << " " << SBoxes.size() << " " << SBT << " S " << mem.steps << "\n";
+    FHT << " Hypre Total " << FractalRank << " " << time6-time0 << " " << Hypre_sum_time[level] << " L " << level << " B " << buffer << " " << sumVOL << " " << SVT << " " << SBoxes.size() << " " << SBT << " S " << mem.steps << "\n";
     FHT << " Hypre Grid Assemble " << "\t" << time1-time0 << "\n";
     FHT << " Hypre Data Assemble " << "\t" << time2-time1 << "\n";
     FHT << " Hypre Solve Assemble " << "\t" << time3-time2 << "\n";
@@ -406,6 +390,5 @@ namespace FractalSpace
 	FHT << " NODE COUNTS " << mem.level << " " << mem.steps << " " << mem.p_mess->mynumber << " " << FractalRank << " " << HypreRank << " " << Bstay+Bout << " " << Bstay+Bget << " " << Bstay << " " << Bout << " " << Bget <<"\n";
 	FHT << " POINT COUNTS " << mem.level << " " << mem.steps << " " << mem.p_mess->mynumber << " " << FractalRank << " " << HypreRank << " " << Pstay+Pout << " " << Pstay+Pget << " " << Pstay << " " << Pout << " " << Pget <<"\n";
       }
-    // cerr << " SOLVED C " << _COUNTER << " " << FractalRank << " " << HypreRank << "\n";
   }
 }

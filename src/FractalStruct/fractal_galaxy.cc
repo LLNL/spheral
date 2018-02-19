@@ -16,19 +16,22 @@ int main(int argc, char* argv[])
   int Ranky;
   MPI_Comm_rank(Fractal_Memory::FRACTAL_UNIVERSE,&Ranky);
   Mess::IAMROOT=Ranky == 0;
-  string _disK_="/p/lscratchh/jensv/galaxy/";
+  string BaseDirectory="/p/lscratchh/jensv/galaxy/";
   if(argc >= 2)
-    _disK_=argv[1];
+    BaseDirectory=argv[1];
+  string RunIdentifier="NerdsRule";
+  if(argc >= 3)
+    RunIdentifier=argv[2];
   int dims[]={0,0,0};
   int GRL=256;
-  if(argc >= 3)
-    GRL=atoi(argv[2]);
   if(argc >= 4)
-    dims[0]=atoi(argv[3]);
+    GRL=atoi(argv[3]);
   if(argc >= 5)
-    dims[1]=atoi(argv[4]);
+    dims[0]=atoi(argv[4]);
   if(argc >= 6)
-    dims[2]=atoi(argv[5]);
+    dims[1]=atoi(argv[5]);
+  if(argc >= 7)
+    dims[2]=atoi(argv[6]);
   dims[0]=max(dims[0],0);
   dims[1]=max(dims[1],0);
   dims[2]=max(dims[2],0);
@@ -37,25 +40,25 @@ int main(int argc, char* argv[])
   int FractalNodes1=dims[1];
   int FractalNodes2=dims[2];
   int NumberParticles=100000;
-  if(argc >= 7)
-    NumberParticles=atoi(argv[6]);
+  if(argc >= 8)
+    NumberParticles=atoi(argv[7]);
   if(NumberParticles < 1000)
     cerr << " TOO FEW PARTICLES " << Ranky << " " << NumberParticles << "\n";
   double SHRINK=0.0;
-  if(argc >= 8)
-    SHRINK=atof(argv[7]);
-  double PADDING=-1;
   if(argc >= 9)
-    PADDING=atoi(argv[8]);
-  double step_length=1.0;
+    SHRINK=atof(argv[8]);
+  double PADDING=-1;
   if(argc >= 10)
-    step_length=atof(argv[9]);
-  int number_steps_total=1000;
+    PADDING=atoi(argv[9]);
+  double step_length=1.0;
   if(argc >= 11)
-    number_steps_total=atoi(argv[10]);
+    step_length=atof(argv[10]);
+  int number_steps_total=1000;
+  if(argc >= 12)
+    number_steps_total=atoi(argv[11]);
   if(Mess::IAMROOT)
     {
-      cerr << "starting out " << argc << " " << FRN << " " << _disK_ << " " << GRL << " " << FractalNodes0 << " " << FractalNodes1 << " " << FractalNodes2 << "\n";
+      cerr << "starting out " << argc << " " << FRN << " " << BaseDirectory << " " << RunIdentifier << " " << GRL << " " << FractalNodes0 << " " << FractalNodes1 << " " << FractalNodes2 << "\n";
       cerr << " " << "NumberParticles" << " " << "SHRINK" << " " << "PADDING" << " " << "STEP_LENGTH" << " " << "number_steps_total" << "\n";
       cerr << " " << NumberParticles << " " << SHRINK << " " << PADDING << " " << step_length << " " << number_steps_total << "\n";
       int ar=0;
@@ -73,12 +76,7 @@ int main(int argc, char* argv[])
   int MinimumNumber=8;
   int MaxHypreIterations=20;
   double HypreTolerance=1.0e-7;
-  string sa="/p/lscratch";
-  string sb=_disK_;
-  string sc="/jensv/galaxy/";
-  // string BaseDirectory=sa+sb+sc;
-  string BaseDirectory=_disK_;
-  string RunIdentifier="NerdsRule";
+  //  string RunIdentifier="NerdsRule";
   bool TimeTrial=true;
 
   FFTNodes=min(FFTNodes,FractalNodes0*FractalNodes1*FractalNodes2);
@@ -137,7 +135,7 @@ int main(int argc, char* argv[])
   PFM->number_steps_out=20;
   PFM->step_length=step_length;
   PFM->time=0.0;
-  make_me_a_galaxy(FractalRank,NumberParticles,total_mass,masses,G,posx,posy,posz,velx,vely,velz);
+  make_me_a_galaxy(FractalRank,NumberParticles,total_mass,G,posx,posy,posz,velx,vely,velz);
   FILE* PFFM=PFM->p_file->PFFractalMemory;
   fprintf(PFFM," info %d %d %13.4E %13.4E %10.2E %10.2E \n",TotalNumberParticles,NumberParticles,m,total_mass,PFM->time,PFM->step_length);
   for(int step=0;step<PFM->number_steps_total;step++)
