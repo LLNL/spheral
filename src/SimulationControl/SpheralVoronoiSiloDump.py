@@ -431,8 +431,8 @@ def dumpPhysicsState(stateThingy,
 
     assert state is not None and dataBase is not None
 
-    if not boundaries:
-        boundaries = "vector_of_Boundary%id()" % dataBase.nDim
+    if boundaries is None:
+        boundaries = eval("vector_of_Boundary%id()" % dataBase.nDim)
 
     # Did the user specify any data to be dumped?
     if not fields:
