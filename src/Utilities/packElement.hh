@@ -638,6 +638,59 @@ unpackElement(std::map<Key, Value>& mapvalue,
   ENSURE(itr <= endPackedVector);
 }
 
+//------------------------------------------------------------------------------
+// Handle the PolyClipper types.
+//------------------------------------------------------------------------------
+// PolyClipper::Vertex2d
+template<>
+inline
+void
+packElement<PolyClipper::Vertex2d>(const PolyClipper::Vertex2d& value, 
+                                   std::vector<char>& buffer) {
+  packElement(value.position, buffer);
+  packElement(value.neighbors, buffer);
+  packElement(value.comp, buffer);
+  packElement(value.ID, buffer);
+}
+
+template<>
+inline
+void
+unpackElement<PolyClipper::Vertex2d>(PolyClipper::Vertex2d& value, 
+                                     std::vector<char>::const_iterator& itr,
+                                     const std::vector<char>::const_iterator& endPackedVector) {
+  unpackElement(value.position, itr, endPackedVector);
+  unpackElement(value.neighbors, itr, endPackedVector);
+  unpackElement(value.comp, itr, endPackedVector);
+  unpackElement(value.ID, itr, endPackedVector);
+  ENSURE(itr <= endPackedVector);
+}
+
+// PolyClipper::Vertex3d
+template<>
+inline
+void
+packElement<PolyClipper::Vertex3d>(const PolyClipper::Vertex3d& value, 
+                                   std::vector<char>& buffer) {
+  packElement(value.position, buffer);
+  packElement(value.neighbors, buffer);
+  packElement(value.comp, buffer);
+  packElement(value.ID, buffer);
+}
+
+template<>
+inline
+void
+unpackElement<PolyClipper::Vertex3d>(PolyClipper::Vertex3d& value, 
+                                     std::vector<char>::const_iterator& itr,
+                                     const std::vector<char>::const_iterator& endPackedVector) {
+  unpackElement(value.position, itr, endPackedVector);
+  unpackElement(value.neighbors, itr, endPackedVector);
+  unpackElement(value.comp, itr, endPackedVector);
+  unpackElement(value.ID, itr, endPackedVector);
+  ENSURE(itr <= endPackedVector);
+}
+
 }
 
 #endif

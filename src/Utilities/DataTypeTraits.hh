@@ -11,6 +11,7 @@
 #include <vector>
 #include "boost/tuple/tuple.hpp"
 #include "Geometry/Dimension.hh"
+#include "Geometry/polyclipper.hh"
 #include "RegisterMPIDataTypes.hh"
 
 #ifdef USE_MPI
@@ -394,6 +395,25 @@ struct DataTypeTraits<Dim<3>::FifthRankTensor> {
 template<>
 struct DataTypeTraits<Dim<3>::FacetedVolume> {
   static Dim<3>::FacetedVolume zero() { return Dim<3>::FacetedVolume(); }
+};
+
+//------------------------------------------------------------------------------
+template<>
+struct DataTypeTraits<PolyClipper::Vertex2d> {
+  typedef PolyClipper::Vertex2d ElementType;
+  static bool fixedSize() { return false; }
+  static int numElements(const ElementType& x) { return (DataTypeTraits<Dim<2>::Vector>::numElements(Dim<2>::Vector::zero) + 4); }
+  static ElementType zero() { return PolyClipper::Vertex2d(); }
+};
+
+template<>
+struct DataTypeTraits<PolyClipper::Vertex3d> {
+  typedef PolyClipper::Vertex3d ElementType;
+  static bool fixedSize() { return false; }
+  static int numElements(const ElementType& x) { return (DataTypeTraits<Dim<3>::Vector>::numElements(Dim<3>::Vector::zero) +
+                                                         x.neighbors.size() +
+                                                         2); }
+  static ElementType zero() { return PolyClipper::Vertex3d(); }
 };
 
 }
