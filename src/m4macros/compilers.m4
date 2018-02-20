@@ -116,7 +116,7 @@ case $COMPILERS in
          GCCXMLCC=$CMAKECC
          GCCXMLCXX=$CMAKECXX
          PYTHONCC=$CC
-         PYTHONCXX=$CXX
+         PYTHONCXX=$MPICXX
          PARMETISCC=$MPICC
          MPI4PYCC=$MPICC
          CXXFLAGS+=" -std=c++11 -march=native"
@@ -132,7 +132,7 @@ case $COMPILERS in
          GCCXMLCC=$CMAKECC
          GCCXMLCXX=$CMAKECXX
          PYTHONCC=$CC
-         PYTHONCXX=$CXX
+         PYTHONCXX=$MPICXX
          PARMETISCC=$MPICC
          MPI4PYCC=$MPICC
          CXXFLAGS+=" -std=c++11 -march=native"
@@ -155,7 +155,7 @@ case $COMPILERS in
       GCCXMLCC=$CMAKECC
       GCCXMLCXX=$CMAKECXX
       PYTHONCC=$CC
-      PYTHONCXX=$CXX
+      PYTHONCXX=$MPICXX
       PARMETISCC=$MPICC
       MPI4PYCC=$MPICC
       CXXFLAGS+=" -std=c++11 -Wno-undefined-var-template -march=native"
@@ -267,8 +267,8 @@ case $COMPILERS in
       FORT=ifort
       MPICC=mpiicc
       MPICXX=mpiicpc
-      PYTHONCC=icc
-      PYTHONCXX=icpc
+      PYTHONCC=$CC
+      PYTHONCXX=$MPICXX
       CMAKECC=$CC
       CMAKECXX=$CXX
       GCCXMLCC=gcc
@@ -288,8 +288,8 @@ case $COMPILERS in
       FORT=mpif90
       MPICC=mpicc
       MPICXX=mpicxx
-      PYTHONCC=pgcc
-      PYTHONCXX=pgCC
+      PYTHONCC=$CC
+      PYTHONCXX=$MPICXX
       CMAKECC=$CC
       CMAKECXX=$CXX
       GCCXMLCC=
@@ -313,7 +313,7 @@ case $COMPILERS in
       MPICC=mpicc
       MPICXX=mpiCC
       PYTHONCC=$CC
-      PYTHONCXX=$CXX
+      PYTHONCXX=$MPICXX
       CMAKECC=$CC
       CMAKECXX=$CXX
       GCCXMLCC=$CC
