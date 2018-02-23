@@ -1,0 +1,18 @@
+# -*-makefile-*-
+# Spheral++ OpenMP pybind11 package makefile
+#-------------------------------------------------------------------------------
+srcdir = @abs_srcdir@
+VPATH = @abs_srcdir@
+SPHERALTOP = @abs_top_srcdir@
+BUILDTOP = @abs_top_builddir@
+
+PKGNAME = OpenMP
+PKGDIR = $(PKGNAME)/
+PYB11TARGET = Spheral$(PKGNAME).$(SHLIBEXT)
+
+SRCTARGETS += \
+	$(srcdir)/SpheralOpenMP.cc
+
+#------------------------------------------------------------------------------
+include $(BUILDTOP)/helpers/makefile_master
+EXTRALIBS += $(LDRPATH)
