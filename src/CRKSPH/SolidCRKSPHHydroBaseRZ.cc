@@ -6,14 +6,7 @@
 //
 // Created by JMO, Fri May 13 10:50:36 PDT 2016
 //----------------------------------------------------------------------------//
-#include <limits.h>
-#include <float.h>
-#include <algorithm>
-#include <fstream>
-#include <map>
-#include <vector>
-
-#include "SolidCRKSPHHydroBaseRZ.hh"
+#include "FileIO/FileIO.hh"
 #include "CRKSPHHydroBase.hh"
 #include "CRKSPHUtilities.hh"
 #include "volumeSpacing.hh"
@@ -29,7 +22,7 @@
 #include "Hydro/HydroFieldNames.hh"
 #include "Hydro/NonSymmetricSpecificThermalEnergyPolicyRZ.hh"
 #include "Strength/SolidFieldNames.hh"
-#include "Strength/SolidNodeList.hh"
+#include "NodeList/SolidNodeList.hh"
 #include "Strength/RZDeviatoricStressPolicy.hh"
 #include "Strength/RZPlasticStrainPolicy.hh"
 #include "Strength/BulkModulusPolicy.hh"
@@ -50,9 +43,17 @@
 #include "Neighbor/ConnectivityMap.hh"
 #include "Utilities/timingUtilities.hh"
 #include "Utilities/safeInv.hh"
-#include "FileIO/FileIO.hh"
-#include "SolidSPH/DamagedNodeCouplingWithFrags.hh"
+#include "SPH/DamagedNodeCouplingWithFrags.hh"
 #include "SolidMaterial/SolidEquationOfState.hh"
+
+#include "SolidCRKSPHHydroBaseRZ.hh"
+
+#include <limits.h>
+#include <float.h>
+#include <algorithm>
+#include <fstream>
+#include <map>
+#include <vector>
 
 namespace Spheral {
 namespace CRKSPHSpace {
@@ -61,7 +62,7 @@ using namespace std;
 using NodeSpace::SmoothingScaleBase;
 using NodeSpace::NodeList;
 using NodeSpace::FluidNodeList;
-using SolidMaterial::SolidNodeList;
+using NodeSpace::SolidNodeList;
 using SolidMaterial::SolidEquationOfState;
 using FileIOSpace::FileIO;
 using ArtificialViscositySpace::ArtificialViscosity;
@@ -155,8 +156,8 @@ SolidCRKSPHHydroBaseRZ(const SmoothingScaleBase<Dimension>& smoothingScaleMethod
                                   detectRange,
                                   epsTensile,
                                   nTensile),
-  mDeviatoricStressTT(FieldSpace::FieldStorageType::Copy),
-  mDdeviatoricStressTTDt(FieldSpace::FieldStorageType::Copy) {
+  mDeviatoricStressTT(FieldSpace::FieldStorageType::CopyFields),
+  mDdeviatoricStressTTDt(FieldSpace::FieldStorageType::CopyFields) {
 }
 
 //------------------------------------------------------------------------------
@@ -179,8 +180,8 @@ initializeProblemStartup(DataBase<Dim<2> >& dataBase) {
   dataBase.isRZ = true;
 
   // Create storage for the state we're holding.
-  mDeviatoricStressTT = dataBase.newFluidFieldList(0.0, SolidFieldNames::deviatoricStressTT);
-  mDdeviatoricStressTTDt = dataBase.newFluidFieldList(0.0, IncrementFieldList<Dimension, Scalar>::prefix() + SolidFieldNames::deviatoricStressTT);
+  mDeviatoricStressTT = dataBase.newSolidFieldList(0.0, SolidFieldNames::deviatoricStressTT);
+  mDdeviatoricStressTTDt = dataBase.newSolidFieldList(0.0, IncrementFieldList<Dimension, Scalar>::prefix() + SolidFieldNames::deviatoricStressTT);
 }
 
 //------------------------------------------------------------------------------
@@ -269,6 +270,8 @@ evaluateDerivatives(const Dim<2>::Scalar time,
   const bool XSPH = this->XSPH();
   const Scalar epsTensile = this->epsilonTensile();
   const CRKOrder order = this->correctionOrder();
+  const double correctionMin = this->correctionMin();
+  const double correctionMax = this->correctionMax();
 
   // The connectivity.
   const ConnectivityMap<Dimension>& connectivityMap = dataBase.connectivityMap();
@@ -336,7 +339,7 @@ evaluateDerivatives(const Dim<2>::Scalar time,
   // Derivative FieldLists.
   FieldList<Dimension, Vector> DxDt = derivatives.fields(IncrementFieldList<Dimension, Vector>::prefix() + HydroFieldNames::position, Vector::zero);
   FieldList<Dimension, Scalar> DrhoDt = derivatives.fields(IncrementFieldList<Dimension, Scalar>::prefix() + HydroFieldNames::massDensity, 0.0);
-  FieldList<Dimension, Vector> DvDt = derivatives.fields(IncrementFieldList<Dimension, Vector>::prefix() + HydroFieldNames::velocity, Vector::zero);
+  FieldList<Dimension, Vector> DvDt = derivatives.fields(HydroFieldNames::hydroAcceleration, Vector::zero);
   FieldList<Dimension, Scalar> DepsDt = derivatives.fields(IncrementFieldList<Dimension, Scalar>::prefix() + HydroFieldNames::specificThermalEnergy, 0.0);
   FieldList<Dimension, Tensor> DvDx = derivatives.fields(HydroFieldNames::velocityGradient, Tensor::zero);
   FieldList<Dimension, Tensor> localDvDx = derivatives.fields(HydroFieldNames::internalVelocityGradient, Tensor::zero);
@@ -579,10 +582,10 @@ evaluateDerivatives(const Dim<2>::Scalar time,
               // Symmetrized kernel weight and gradient.
               Scalar gWi, gWj, Wi, Wj, gWdami, gWdamj, Wdami, Wdamj;
               Vector gradWi, gradWj, gradWdami, gradWdamj;
-              CRKSPHKernelAndGradient(W, CRKSPHHydroBase<Dimension>::correctionOrder(),  xij,  etai, Hi, Hdeti,  etaj, Hj, Hdetj, Ai, Bi, Ci, gradAi, gradBi, gradCi, Wj, gWj, gradWj);
-              CRKSPHKernelAndGradient(W, CRKSPHHydroBase<Dimension>::correctionOrder(), -xij, -etaj, Hj, Hdetj, -etai, Hi, Hdeti, Aj, Bj, Cj, gradAj, gradBj, gradCj, Wi, gWi, gradWi);
-              CRKSPHKernelAndGradient(W, CRKSPHHydroBase<Dimension>::correctionOrder(),  xij,  etai, Hi, Hdeti,  etaj, Hj, Hdetj, Adami, Bdami, Cdami, gradAdami, gradBdami, gradCdami, Wdamj, gWdamj, gradWdamj);//Replace with Solid form of quadratic Cdami and gradCdami when implemented
-              CRKSPHKernelAndGradient(W, CRKSPHHydroBase<Dimension>::correctionOrder(), -xij, -etaj, Hj, Hdetj, -etai, Hi, Hdeti, Adamj, Bdamj, Cdamj, gradAdamj, gradBdamj, gradCdamj, Wdami, gWdami, gradWdami);
+              CRKSPHKernelAndGradient(Wj, gWj, gradWj, W, CRKSPHHydroBase<Dimension>::correctionOrder(),  xij,  etai, Hi, Hdeti,  etaj, Hj, Hdetj, Ai, Bi, Ci, gradAi, gradBi, gradCi, correctionMin, correctionMax);
+              CRKSPHKernelAndGradient(Wi, gWi, gradWi, W, CRKSPHHydroBase<Dimension>::correctionOrder(), -xij, -etaj, Hj, Hdetj, -etai, Hi, Hdeti, Aj, Bj, Cj, gradAj, gradBj, gradCj, correctionMin, correctionMax);
+              CRKSPHKernelAndGradient(Wdamj, gWdamj, gradWdamj, W, CRKSPHHydroBase<Dimension>::correctionOrder(),  xij,  etai, Hi, Hdeti,  etaj, Hj, Hdetj, Adami, Bdami, Cdami, gradAdami, gradBdami, gradCdami, correctionMin, correctionMax);
+              CRKSPHKernelAndGradient(Wdami, gWdami, gradWdami, W, CRKSPHHydroBase<Dimension>::correctionOrder(), -xij, -etaj, Hj, Hdetj, -etai, Hi, Hdeti, Adamj, Bdamj, Cdamj, gradAdamj, gradBdamj, gradCdamj, correctionMin, correctionMax);
               const Vector deltagrad = gradWj - gradWi;
               const Vector deltagraddam = gradWdamj - gradWdami;
               const Vector gradWSPHi = (Hi*etai.unitVector())*W.gradValue(etai.magnitude(), Hdeti);
@@ -596,7 +599,7 @@ evaluateDerivatives(const Dim<2>::Scalar time,
               // ideal H calculation.
               const double fweightij = nodeListi == nodeListj ? 1.0 : mRZj*rhoi/(mRZi*rhoj);
               const double xij2 = xij.magnitude2();
-              const SymTensor thpt = xij.selfdyad()/max(tiny, xij2*FastMath::square(Dimension::pownu12(xij2)));
+              const auto thpt = xij.selfdyad()*safeInvVar(xij2*xij2*xij2);
               weightedNeighborSumi +=     fweightij*std::abs(gWi);
               weightedNeighborSumj += 1.0/fweightij*std::abs(gWj);
               massSecondMomenti +=     fweightij*gradWSPHi.magnitude2()*thpt;

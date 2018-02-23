@@ -75,11 +75,6 @@ commandLine(
     sumForMassDensity = Hydro2d.MassDensityType.IntegrateDensity,
     compatibleEnergy = True,
 
-    # Neighbor searching.
-    neighborSearchType = Neighbor2d.NeighborSearchType.GatherScatter,
-    numGridLevels = 20,
-    topGridCellSize = 1.0,
-
     # Times, and simulation control.
     goalTime = 4000.0e-6,
     dtSample = 5e-6,
@@ -198,18 +193,10 @@ del nodes
 #-------------------------------------------------------------------------------
 # Construct the neighbor objects and associate them with the node lists.
 #-------------------------------------------------------------------------------
-neighbor1 = NestedGridNeighbor2d(nodes1,
-                                 neighborSearchType,
-                                 numGridLevels,
-                                 topGridCellSize,
-                                 Vector2d(0.0, 0.0),
-                                 kernelExtent)
-neighbor2 = NestedGridNeighbor2d(nodes2,
-                                 neighborSearchType,
-                                 numGridLevels,
-                                 topGridCellSize,
-                                 Vector2d(0.0, 0.0),
-                                 kernelExtent)
+neighbor1 = TreeNeighbor2d(nodes1,
+                           kernelExtent = kernelExtent)
+neighbor2 = TreeNeighbor2d(nodes2,
+                           kernelExtent = kernelExtent)
 nodes1.registerNeighbor(neighbor1)
 nodes2.registerNeighbor(neighbor2)
 

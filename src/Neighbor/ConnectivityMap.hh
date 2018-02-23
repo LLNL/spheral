@@ -8,14 +8,10 @@
 #ifndef _Spheral_NeighborSpace_ConnectivityMap_hh_
 #define _Spheral_NeighborSpace_ConnectivityMap_hh_
 
-#ifndef __GCCXML__
 #include <vector>
 #include <map>
 #include "Utilities/KeyTraits.hh"
 #include "Field/FieldList.hh"
-#else
-#include "fakestl.hh"
-#endif
 
 namespace Spheral {
   namespace NodeSpace {
@@ -111,6 +107,12 @@ public:
   const_iterator begin(const int nodeList) const;
   const_iterator end(const int nodeList) const;
 
+  // Return the number of nodes we should walk for the given NodeList.
+  int numNodes(const int nodeList) const;
+
+  // The ith node (ordered) in the given NodeList.
+  int ithNode(const int nodeList, const int index) const;
+
   // Get the ith NodeList or FluidNodeList.
   const NodeSpace::NodeList<Dimension>& nodeList(const int index) const;
 
@@ -121,7 +123,6 @@ public:
   bool valid() const;
 
 private:
-#ifndef __GCCXML__
   //--------------------------- Private Interface ---------------------------//
   // The set of NodeLists.
   std::vector<const NodeSpace::NodeList<Dimension>*> mNodeLists;
@@ -149,15 +150,12 @@ private:
   // No default constructor, copying, or assignment.
   ConnectivityMap(const ConnectivityMap&);
   ConnectivityMap& operator=(const ConnectivityMap&);
-#endif
 };
 
 }
 }
 
-#ifndef __GCCXML__
 #include "ConnectivityMapInline.hh"
-#endif
 
 #endif
 

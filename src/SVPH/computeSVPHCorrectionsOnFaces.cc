@@ -81,18 +81,19 @@ computeSVPHCorrectionsOnFaces(const Mesh<Dimension>& mesh,
     posFace = face.position();
 
     // Set the neighbors for this face.
+    vector<vector<int>> masterLists, coarseNeighbors, refineNeighbors;
     Neighbor<Dimension>::setMasterNeighborGroup(posFace, Hface,
                                                 nodeLists.begin(), nodeLists.end(),
-                                                W.kernelExtent());
+                                                W.kernelExtent(),
+                                                masterLists,
+                                                coarseNeighbors);
 
     // Iterate over the NodeLists.
     for (nodeListj = 0; nodeListj != numNodeLists; ++nodeListj) {
       const NodeList<Dimension>& nodeList = *nodeLists[nodeListj];
       Neighbor<Dimension>& neighbor = const_cast<Neighbor<Dimension>&>(nodeList.neighbor());
-      neighbor.setRefineNeighborList(posFace, Hface);
-      for (typename Neighbor<Dimension>::const_iterator neighborItr = neighbor.refineNeighborBegin();
-           neighborItr != neighbor.refineNeighborEnd();
-           ++neighborItr) {
+      neighbor.setRefineNeighborList(posFace, Hface, coarseNeighbors[nodeListj], refineNeighbors[nodeListj]);
+      for (auto neighborItr = refineNeighbors[nodeListj].begin(); neighborItr != refineNeighbors[nodeListj].end(); ++neighborItr) {
         j = *neighborItr;
 
         // Get the state for node j

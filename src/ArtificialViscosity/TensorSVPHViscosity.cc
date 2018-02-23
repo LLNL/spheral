@@ -131,18 +131,20 @@ initialize(const DataBase<Dimension>& dataBase,
     const Scalar hface2 = hface*hface;
 
     // Set the neighbors for this face.
+    vector<vector<int>> masterLists, coarseNeighbors;
     Neighbor<Dimension>::setMasterNeighborGroup(posFace, H0,
                                                 nodeLists.begin(), nodeLists.end(),
-                                                W.kernelExtent());
+                                                W.kernelExtent(),
+                                                masterLists,
+                                                coarseNeighbors);
 
     // Iterate over the NodeLists.
     for (unsigned nodeListj = 0; nodeListj != numNodeLists; ++nodeListj) {
       const NodeList<Dimension>& nodeList = *nodeLists[nodeListj];
       Neighbor<Dimension>& neighbor = const_cast<Neighbor<Dimension>&>(nodeList.neighbor());
-      neighbor.setRefineNeighborList(posFace, H0);
-      for (typename Neighbor<Dimension>::const_iterator neighborItr = neighbor.refineNeighborBegin();
-           neighborItr != neighbor.refineNeighborEnd();
-           ++neighborItr) {
+      vector<int> refineNeighbors;
+      neighbor.setRefineNeighborList(posFace, H0, coarseNeighbors[nodeListj], refineNeighbors);
+      for (auto neighborItr = refineNeighbors.begin(); neighborItr < refineNeighbors.end(); ++neighborItr) {
         const unsigned j = *neighborItr;
       
         // Get the state for node j

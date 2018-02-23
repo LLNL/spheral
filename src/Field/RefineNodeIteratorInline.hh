@@ -15,16 +15,19 @@ RefineNodeIterator<Dimension>::operator++() {
 
   // If the index is out of range, then proceed to the next NodeList with a 
   // nonzero number of internal nodes.
-  if (mNodeListItr < mNodeListEnd && mNodeIDItr < (*mNodeListItr)->neighbor().refineNeighborEnd()) {
+  if (mNodeListItr < mNodeListEnd && mNodeIDItr < mRefineNeighbors[mFieldID].end()) {
     mNodeID = *mNodeIDItr;
   } else {
     ++mNodeListItr;
+    ++mFieldID;
     while (mNodeListItr < mNodeListEnd &&
-           (*mNodeListItr)->neighbor().numRefine() == 0) ++mNodeListItr;
-    mFieldID = std::distance(mNodeListBegin, mNodeListItr);
+           mRefineNeighbors[mFieldID].size() == 0) {
+      ++mNodeListItr;
+      ++mFieldID;
+    }
     if (mNodeListItr < mNodeListEnd) {
-      mNodeIDItr = (*mNodeListItr)->neighbor().refineNeighborBegin();
-      if (mNodeIDItr < (*mNodeListItr)->neighbor().refineNeighborEnd()) {
+      mNodeIDItr = mRefineNeighbors[mFieldID].begin();
+      if (mNodeIDItr < mRefineNeighbors[mFieldID].end()) {
         mNodeID = *mNodeIDItr;
       } else {
         mNodeID = 0;
@@ -34,7 +37,7 @@ RefineNodeIterator<Dimension>::operator++() {
       mNodeID = 0;
     }
   }
-  
+
   ENSURE(valid());
   return *this;
 }

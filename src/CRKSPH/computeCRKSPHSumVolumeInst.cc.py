@@ -4,7 +4,12 @@ text = """
 //------------------------------------------------------------------------------
 #include "Geometry/Dimension.hh"
 #include "Boundary/Boundary.hh"
+
+#ifdef _OPENMP
+#include "computeCRKSPHSumVolume_OpenMP.cc"
+#else
 #include "computeCRKSPHSumVolume.cc"
+#endif
 
 namespace Spheral {
   namespace CRKSPHSpace {

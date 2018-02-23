@@ -3,10 +3,9 @@
 #-------------------------------------------------------------------------------
 import shutil
 from math import *
-from Spheral1d import *
+from SolidSpheral1d import *
 from SpheralTestUtilities import *
 from SpheralGnuPlotUtilities import *
-from findLastRestart import *
 
 import mpi
 from DistributeNodes import distributeNodesInRange1d
@@ -37,46 +36,24 @@ commandLine(
     vel=0.0,
 
     # Resolution and node seeding.
-    nx1 = 100,
-    ny1 = 100,
-
+    nx1 = 50,
     nx2 = 50,
-    ny2 = 50,
 
     nPerh = 1.51,
-    KernelConstructor = BSplineKernel,
     order = 5,
 
-    SVPH = False,
-    CRKSPH = False,
-    PSPH = False,
-    ASPH = False,
-    filter = 0.0,  # For CRKSPH
-    Qconstructor = MonaghanGingoldViscosity,
-    #Qconstructor = TensorMonaghanGingoldViscosity,
-    boolReduceViscosity = False,
-    nh = 5.0,
-    aMin = 0.1,
-    aMax = 2.0,
-    boolCullenViscosity = False,
-    alphMax = 2.0,
-    alphMin = 0.02,
-    betaC = 0.7,
-    betaD = 0.05,
-    betaE = 1.0,
-    fKern = 1.0/3.0,
-    boolHopkinsCorrection = True,
+    svph = False,
+    crksph = False,
+    psph = False,
+    asph = False,
+    filter = 0.0,   # For CRKSPH
     evolveTotalEnergy = False,
     HopkinsConductivity = False,
+    solid = False,  # Try out the solid form of the hydro
 
     linearConsistent = False,
     fcentroidal = 0.0,
     fcellPressure = 0.0,
-    Cl = 1.0, 
-    Cq = 0.75,
-    Qlimiter = False,
-    balsaraCorrection = True,
-    epsilon2 = 1e-2,
     hmin = 1e-5,
     hmax = 0.5,
     hminratio = 0.1,
@@ -101,6 +78,7 @@ commandLine(
     rigorousBoundaries = False,
     dtverbose = False,
 
+    volumeType = CRKVoronoiVolume,
     densityUpdate = RigorousSumDensity, # VolumeScaledDensity,
     correctionOrder = LinearOrder,
     compatibleEnergy = True,
@@ -115,30 +93,17 @@ commandLine(
     serialDump = False,
     )
 
-assert not(boolReduceViscosity and boolCullenViscosity)
-
 # Decide on our hydro algorithm.
-if SVPH:
-    if ASPH:
-        HydroConstructor = ASVPHFacetedHydro
-    else:
-        HydroConstructor = SVPHFacetedHydro
-elif CRKSPH:
-    Qconstructor = CRKSPHMonaghanGingoldViscosity
-    if ASPH:
-        HydroConstructor = ACRKSPHHydro
-    else:
-        HydroConstructor = CRKSPHHydro
-elif PSPH:
-    if ASPH:
-        HydroConstructor = APSPHHydro
-    else:
-        HydroConstructor = PSPHHydro
+if svph:
+    hydroname = "SVPH"
+elif crksph:
+    hydroname = "CRKSPH"
+elif psph:
+    hydroname = "PSPH"
 else:
-    if ASPH:
-        HydroConstructor = ASPHHydro
-    else:
-        HydroConstructor = SPHHydro
+    hydroname = "SPH"
+if asph:
+    hydroname = "A" + hydroname
 
 # Build our directory paths.
 densityUpdateLabel = {IntegrateDensity : "IntegrateDensity",
@@ -146,15 +111,14 @@ densityUpdateLabel = {IntegrateDensity : "IntegrateDensity",
                       RigorousSumDensity : "RigorousSumDensity",
                       SumVoronoiCellDensity : "SumVoronoiCellDensity"}
 baseDir = os.path.join(dataDir,
-                       HydroConstructor.__name__,
-                       Qconstructor.__name__,
+                       hydroname,
                        densityUpdateLabel[densityUpdate],
                        "linearConsistent=%s" % linearConsistent,
                        "XSPH=%s" % XSPH,
                        "nPerh=%3.1f" % nPerh,
                        "fcentroidal=%1.3f" % fcentroidal,
                        "fcellPressure = %1.3f" % fcellPressure,
-                       "%ix%i" % (nx1 + nx2, ny1 + ny2))
+                       "%i" % (nx1 + nx2))
 restartDir = os.path.join(baseDir, "restarts")
 restartBaseName = os.path.join(restartDir, "boxtension-1d-%i" % (nx1 + nx2))
 
@@ -170,12 +134,6 @@ if mpi.rank == 0:
 mpi.barrier()
 
 #-------------------------------------------------------------------------------
-# If we're restarting, find the set of most recent restart files.
-#-------------------------------------------------------------------------------
-if restoreCycle is None:
-    restoreCycle = findLastRestart(restartBaseName)
-
-#-------------------------------------------------------------------------------
 # Material properties.
 #-------------------------------------------------------------------------------
 mu = 1.0
@@ -185,36 +143,35 @@ eos2 = GammaLawGasMKS(gamma1, mu)
 #-------------------------------------------------------------------------------
 # Interpolation kernels.
 #-------------------------------------------------------------------------------
-if KernelConstructor==NBSplineKernel:
-  WBase = NBSplineKernel(order)
-else:
-  WBase = KernelConstructor()
-WT = TableKernel(WBase,1000)
+WT = TableKernel(NBSplineKernel(order), 1000)
 WTPi = WT
 output("WT")
-kernelExtent = WT.kernelExtent
 
 #-------------------------------------------------------------------------------
 # Make the NodeLists.
 #-------------------------------------------------------------------------------
-outerNodes1 = makeFluidNodeList("outer1", eos1,
-                                hmin = hmin,
-                                hmax = hmax,
-                                hminratio = hminratio,
-                                kernelExtent = kernelExtent,
-                                nPerh = nPerh)
-outerNodes2 = makeFluidNodeList("outer2", eos1,
-                                hmin = hmin,
-                                hmax = hmax,
-                                hminratio = hminratio,
-                                kernelExtent = kernelExtent,
-                                nPerh = nPerh)
-innerNodes = makeFluidNodeList("inner", eos2,
-                               hmin = hmin,
-                               hmax = hmax,
-                               hminratio = hminratio,
-                               kernelExtent = kernelExtent,
-                               nPerh = nPerh)
+if solid:
+    MNL = makeSolidNodeList
+else:
+    MNL = makeFluidNodeList
+outerNodes1 = MNL("outer1", eos1,
+                  hmin = hmin,
+                  hmax = hmax,
+                  hminratio = hminratio,
+                  kernelExtent = WT.kernelExtent,
+                  nPerh = nPerh)
+outerNodes2 = MNL("outer2", eos1,
+                  hmin = hmin,
+                  hmax = hmax,
+                  hminratio = hminratio,
+                  kernelExtent = WT.kernelExtent,
+                  nPerh = nPerh)
+innerNodes = MNL("inner", eos2,
+                 hmin = hmin,
+                 hmax = hmax,
+                 hminratio = hminratio,
+                 kernelExtent = WT.kernelExtent,
+                 nPerh = nPerh)
 nodeSet = (outerNodes1, outerNodes2, innerNodes)
 for nodes in nodeSet:
     output("nodes.name")
@@ -227,27 +184,26 @@ del nodes
 #-------------------------------------------------------------------------------
 # Set the node properties.
 #-------------------------------------------------------------------------------
-if restoreCycle is None:
-    distributeNodesInRange1d([(outerNodes1, [(nx1/4, rho1, (x0, x1))]),
-                              (innerNodes,  [(nx2, rho2, (x1, x2))]),
-                              (outerNodes2, [(nx1/4, rho1, (x2, x3))])])
-    for nodes in nodeSet:
-        print nodes.name, ":"
-        output("    mpi.reduce(nodes.numInternalNodes, mpi.MIN)")
-        output("    mpi.reduce(nodes.numInternalNodes, mpi.MAX)")
-        output("    mpi.reduce(nodes.numInternalNodes, mpi.SUM)")
-    del nodes
+distributeNodesInRange1d([(outerNodes1, [(nx1/2, rho1, (x0, x1))]),
+                          (innerNodes,  [(nx2, rho2, (x1, x2))]),
+                          (outerNodes2, [(nx1/2, rho1, (x2, x3))])])
+for nodes in nodeSet:
+    print nodes.name, ":"
+    output("    mpi.reduce(nodes.numInternalNodes, mpi.MIN)")
+    output("    mpi.reduce(nodes.numInternalNodes, mpi.MAX)")
+    output("    mpi.reduce(nodes.numInternalNodes, mpi.SUM)")
+del nodes
 
-    # Set node specific thermal energies
-    for (nodes, gamma, rho, P) in ((outerNodes1, gamma1, rho1, P1),
-                                   (outerNodes2, gamma1, rho1, P1),
-                                   (innerNodes, gamma2, rho2, P2)):
-        eps0 = P/((gamma - 1.0)*rho)
-        nodes.specificThermalEnergy(ScalarField("tmp", nodes, eps0))
-        vels = nodes.velocity()
-        for i in xrange(nodes.numInternalNodes):
-           vels[i]=Vector(vel)
-    del nodes
+# Set node specific thermal energies
+for (nodes, gamma, rho, P) in ((outerNodes1, gamma1, rho1, P1),
+                               (outerNodes2, gamma1, rho1, P1),
+                               (innerNodes, gamma2, rho2, P2)):
+    eps0 = P/((gamma - 1.0)*rho)
+    nodes.specificThermalEnergy(ScalarField("tmp", nodes, eps0))
+    vels = nodes.velocity()
+    for i in xrange(nodes.numInternalNodes):
+       vels[i]=Vector(vel)
+del nodes
 
 #-------------------------------------------------------------------------------
 # Construct a DataBase to hold our node lists
@@ -261,73 +217,66 @@ output("db.numNodeLists")
 output("db.numFluidNodeLists")
 
 #-------------------------------------------------------------------------------
-# Construct the artificial viscosity.
-#-------------------------------------------------------------------------------
-q = Qconstructor(Cl, Cq)
-q.epsilon2 = epsilon2
-q.limiter = Qlimiter
-q.balsaraShearCorrection = balsaraCorrection
-output("q")
-output("q.Cl")
-output("q.Cq")
-output("q.epsilon2")
-output("q.limiter")
-output("q.balsaraShearCorrection")
-
-#-------------------------------------------------------------------------------
 # Construct the hydro physics object.
 #-------------------------------------------------------------------------------
-if SVPH:
-    hydro = HydroConstructor(W = WT, 
-                             Q = q,
-                             cfl = cfl,
-                             compatibleEnergyEvolution = compatibleEnergy,
-                             densityUpdate = densityUpdate,
-                             XSVPH = XSPH,
-                             linearConsistent = linearConsistent,
-                             generateVoid = False,
-                             HUpdate = HUpdate,
-                             fcentroidal = fcentroidal,
-                             fcellPressure = fcellPressure,
-                             xmin = Vector(x0 - (x3 - x0), y0 - (y3 - y0)),
-                             xmax = Vector(x3 + (x3 - x0), y3 + (y3 - y0)))
-elif CRKSPH:
-    hydro = HydroConstructor(W = WT, 
-                             Q = q,
-                             filter = filter,
-                             epsTensile = epsilonTensile,
-                             nTensile = nTensile,
-                             cfl = cfl,
-                             compatibleEnergyEvolution = compatibleEnergy,
-                             XSPH = XSPH,
-                             correctionOrder = correctionOrder,
-                             densityUpdate = densityUpdate,
-                             HUpdate = HUpdate)
-elif PSPH:
-    hydro = HydroConstructor(W = WT,
-                             Q = q,
-                             filter = filter,
-                             cfl = cfl,
-                             compatibleEnergyEvolution = compatibleEnergy,
-                             evolveTotalEnergy = evolveTotalEnergy,
-                             HopkinsConductivity = HopkinsConductivity,
-                             densityUpdate = densityUpdate,
-                             correctVelocityGradient = correctVelocityGradient,
-                             HUpdate = HUpdate,
-                             XSPH = XSPH)
+if svph:
+    hydro = SVPH(dataBase = db,
+                 W = WT, 
+                 cfl = cfl,
+                 compatibleEnergyEvolution = compatibleEnergy,
+                 densityUpdate = densityUpdate,
+                 XSVPH = XSPH,
+                 linearConsistent = linearConsistent,
+                 generateVoid = False,
+                 HUpdate = HUpdate,
+                 fcentroidal = fcentroidal,
+                 fcellPressure = fcellPressure,
+                 xmin = Vector(x0 - (x3 - x0), y0 - (y3 - y0)),
+                 xmax = Vector(x3 + (x3 - x0), y3 + (y3 - y0)),
+                 ASPH = asph)
+elif crksph:
+    hydro = CRKSPH(dataBase = db,
+                   W = WT, 
+                   filter = filter,
+                   epsTensile = epsilonTensile,
+                   nTensile = nTensile,
+                   cfl = cfl,
+                   compatibleEnergyEvolution = compatibleEnergy,
+                   XSPH = XSPH,
+                   correctionOrder = correctionOrder,
+                   volumeType = volumeType,
+                   densityUpdate = densityUpdate,
+                   HUpdate = HUpdate,
+                   ASPH = asph)
+elif psph:
+    hydro = PSPH(dataBase = db,
+                 W = WT,
+                 Q = q,
+                 filter = filter,
+                 cfl = cfl,
+                 compatibleEnergyEvolution = compatibleEnergy,
+                 evolveTotalEnergy = evolveTotalEnergy,
+                 HopkinsConductivity = HopkinsConductivity,
+                 densityUpdate = densityUpdate,
+                 correctVelocityGradient = correctVelocityGradient,
+                 HUpdate = HUpdate,
+                 XSPH = XSPH,
+                 ASPH = asph)
 
 else:
-    hydro = HydroConstructor(W = WT,
-                             Q = q,
-                             cfl = cfl,
-                             compatibleEnergyEvolution = compatibleEnergy,
-                             gradhCorrection = gradhCorrection,
-                             correctVelocityGradient = correctVelocityGradient,
-                             XSPH = XSPH,
-                             densityUpdate = densityUpdate,
-                             HUpdate = HUpdate,
-                             epsTensile = epsilonTensile,
-                             nTensile = nTensile)
+    hydro = SPH(dataBase = db,
+                W = WT,
+                cfl = cfl,
+                compatibleEnergyEvolution = compatibleEnergy,
+                gradhCorrection = gradhCorrection,
+                correctVelocityGradient = correctVelocityGradient,
+                XSPH = XSPH,
+                densityUpdate = densityUpdate,
+                HUpdate = HUpdate,
+                epsTensile = epsilonTensile,
+                nTensile = nTensile,
+                ASPH = asph)
+
 output("hydro")
 output("hydro.kernel()")
 output("hydro.PiKernel()")
@@ -337,19 +286,6 @@ output("hydro.densityUpdate")
 output("hydro.HEvolution")
 
 packages = [hydro]
-
-#-------------------------------------------------------------------------------
-# Construct the MMRV physics object.
-#-------------------------------------------------------------------------------
-
-if boolReduceViscosity:
-    #q.reducingViscosityCorrection = True
-    evolveReducingViscosityMultiplier = MorrisMonaghanReducingViscosity(q,nh,aMin,aMax)
-    
-    packages.append(evolveReducingViscosityMultiplier)
-elif boolCullenViscosity:
-    evolveCullenViscosityMultiplier = CullenDehnenViscosity(q,WT,alphMax,alphMin,betaC,betaD,betaE,fKern,boolHopkinsCorrection)
-    packages.append(evolveCullenViscosityMultiplier)
 
 #-------------------------------------------------------------------------------
 # Create boundary conditions.
@@ -401,8 +337,8 @@ control = SpheralController(integrator, WT,
                             restartStep = restartStep,
                             restartBaseName = restartBaseName,
                             restoreCycle = restoreCycle,
-                            skipInitialPeriodicWork = (HydroConstructor in (SVPHFacetedHydro, ASVPHFacetedHydro)),
-                            SPH = (not ASPH))
+                            skipInitialPeriodicWork = svph,
+                            SPH = (not asph))
 output("control")
 
 #-------------------------------------------------------------------------------
@@ -462,16 +398,32 @@ if graphics:
 
     rhoPlot, velPlot, epsPlot, PPlot, HPlot = plotState(db, plotGhosts=True)
     pE = plotEHistory(control.conserve)
+    massPlot = plotFieldList(db.fluidMass,
+                             winTitle = "mass",
+                             plotStyle = "points",
+                             colorNodeLists = False)
 
-    if CRKSPH:
+    if crksph:
         APlot = plotFieldList(hydro.A(),
                               winTitle = "A",
+                              plotStyle = "points",
                               colorNodeLists = False)
         BPlot = plotFieldList(hydro.B(),
                               yFunction = "%s.x",
                               winTitle = "B",
+                              plotStyle = "points",
+                              colorNodeLists = False)
+        volPlot = plotFieldList(hydro.volume(),
+                                winTitle = "volume",
+                                plotStyle = "points",
+                                colorNodeLists = False)
+        spPlot = plotFieldList(hydro.surfacePoint(),
+                              winTitle = "surface point",
+                              plotStyle = "points",
                               colorNodeLists = False)
 
     cs = db.newFluidScalarFieldList(0.0, "sound speed")
     db.fluidSoundSpeed(cs)
-    csPlot = plotFieldList(cs, winTitle="Sound speed")
+    csPlot = plotFieldList(cs,
+                           plotStyle = "points",
+                           winTitle="Sound speed")

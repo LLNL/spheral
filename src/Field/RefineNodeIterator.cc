@@ -20,7 +20,8 @@ template<typename Dimension>
 RefineNodeIterator<Dimension>::
 RefineNodeIterator():
   NodeIteratorBase<Dimension>(),
-  mNodeIDItr() {
+  mNodeIDItr(),
+  mRefineNeighbors() {
 }
 
 //------------------------------------------------------------------------------
@@ -30,13 +31,16 @@ template<typename Dimension>
 RefineNodeIterator<Dimension>::
 RefineNodeIterator(typename vector<NodeList<Dimension>*>::const_iterator nodeListItr,
                    typename vector<NodeList<Dimension>*>::const_iterator nodeListBegin,
-                   typename vector<NodeList<Dimension>*>::const_iterator nodeListEnd):
+                   typename vector<NodeList<Dimension>*>::const_iterator nodeListEnd,
+                   const std::vector<std::vector<int>>& refineNeighbors):
   NodeIteratorBase<Dimension>(),
-  mNodeIDItr() {
+  mNodeIDItr(),
+  mRefineNeighbors(refineNeighbors) {
   initialize(nodeListItr,
              nodeListBegin,
              nodeListEnd,
-             vector<int>::const_iterator());
+             vector<int>::const_iterator(),
+             refineNeighbors);
   ENSURE(valid());
 }
 
@@ -48,13 +52,16 @@ RefineNodeIterator<Dimension>::
 RefineNodeIterator(typename vector<NodeList<Dimension>*>::const_iterator nodeListItr, 
                    typename vector<NodeList<Dimension>*>::const_iterator nodeListBegin,
                    typename vector<NodeList<Dimension>*>::const_iterator nodeListEnd,
-                   vector<int>::const_iterator IDItr):
+                   vector<int>::const_iterator IDItr,
+                   const std::vector<std::vector<int>>& refineNeighbors):
   NodeIteratorBase<Dimension>(),
-  mNodeIDItr(IDItr) {
+  mNodeIDItr(),
+  mRefineNeighbors(refineNeighbors) {
   initialize(nodeListItr,
              nodeListBegin,
              nodeListEnd,
-             IDItr);
+             IDItr,
+             refineNeighbors);
   ENSURE(valid());
 }
 
@@ -65,7 +72,13 @@ template<typename Dimension>
 RefineNodeIterator<Dimension>::
 RefineNodeIterator(const RefineNodeIterator<Dimension>& rhs):
   NodeIteratorBase<Dimension>(rhs),
-  mNodeIDItr(rhs.mNodeIDItr) {
+  mNodeIDItr(),
+  mRefineNeighbors(rhs.mRefineNeighbors) {
+  initialize(mNodeListItr,
+             mNodeListBegin,
+             mNodeListEnd,
+             rhs.mNodeIDItr,
+             rhs.mRefineNeighbors);
   ENSURE(valid() == rhs.valid());
 }
 
@@ -92,9 +105,9 @@ valid() const {
   bool refineTest;
   if (mNodeListItr != mNodeListEnd) {
     refineTest = (mNodeID == *mNodeIDItr && 
-                  find((*mNodeListItr)->neighbor().refineNeighborBegin(),
-                       (*mNodeListItr)->neighbor().refineNeighborEnd(),
-                       *mNodeIDItr) != (*mNodeListItr)->neighbor().refineNeighborEnd());
+                  find(mRefineNeighbors[mFieldID].begin(),
+                       mRefineNeighbors[mFieldID].end(),
+                       *mNodeIDItr) != mRefineNeighbors[mFieldID].end());
   } else {
     refineTest = mNodeID == 0;
   }
@@ -111,23 +124,26 @@ RefineNodeIterator<Dimension>::
 initialize(typename vector<NodeList<Dimension>*>::const_iterator nodeListItr,
            typename vector<NodeList<Dimension>*>::const_iterator nodeListBegin,
            typename vector<NodeList<Dimension>*>::const_iterator nodeListEnd,
-           vector<int>::const_iterator IDItr) {
+           vector<int>::const_iterator IDItr,
+           const std::vector<std::vector<int>>& refineNeighbors) {
 
   // Pre-conditions.
+  mFieldID = distance(nodeListBegin, nodeListItr);
   REQUIRE(nodeListItr == nodeListEnd ||
           (nodeListItr < nodeListEnd && 
-           IDItr >= (*nodeListItr)->neighbor().refineNeighborBegin() &&
-           IDItr <= (*nodeListItr)->neighbor().refineNeighborEnd()));
+           IDItr >= refineNeighbors[mFieldID].begin() &&
+           IDItr <= refineNeighbors[mFieldID].end()));
 
-  if (nodeListItr < nodeListEnd) {
-    mNodeID = *IDItr;
-  } else {
-    mNodeID = 0;
-  }    
-  mFieldID = distance(nodeListBegin, nodeListItr);
   mNodeListBegin = nodeListBegin;
   mNodeListEnd = nodeListEnd;
   mNodeListItr = nodeListItr;
+  if (nodeListItr < nodeListEnd) {
+    mNodeIDItr = mRefineNeighbors[mFieldID].begin() + std::distance(refineNeighbors[mFieldID].begin(), IDItr);
+    mNodeID = *IDItr;
+  } else {
+    mNodeIDItr = vector<int>::const_iterator();
+    mNodeID = 0;
+  }
 
   // Post conditions.
   ENSURE(valid());

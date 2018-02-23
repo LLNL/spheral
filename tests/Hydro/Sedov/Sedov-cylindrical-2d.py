@@ -3,7 +3,6 @@
 #-------------------------------------------------------------------------------
 import os, sys, shutil
 from Spheral2d import *
-from findLastRestart import *
 from SpheralTestUtilities import *
 from SpheralGnuPlotUtilities import *
 from GenerateNodeDistribution2d import *
@@ -24,7 +23,6 @@ commandLine(seed = "lattice",
             rmin = 0.0,
             rmax = 1.0,
             nPerh = 1.51,
-            KernelConstructor = BSplineKernel,
             order = 5,
 
             rho0 = 1.0,
@@ -37,18 +35,11 @@ commandLine(seed = "lattice",
             gamma = 5.0/3.0,
             mu = 1.0,
 
-            Cl = 1.0,
-            Cq = 0.75,
-            epsilon2 = 1e-2,
-            Qlimiter = False,
-            balsaraCorrection = False,
-            linearInExpansion = False,
-
-            CRKSPH = False,
-            PSPH = False,
-            ASPH = False,     # Only for H evolution, not hydro algorithm
-            Qconstructor = MonaghanGingoldViscosity,
+            crksph = False,
+            psph = False,
+            asph = False,     # Only for H evolution, not hydro algorithm
             correctionOrder = LinearOrder,
+            volumeType = CRKSumVolume,
             densityUpdate = RigorousSumDensity, # VolumeScaledDensity,
             HUpdate = IdealH,
             filter = 0.0,
@@ -93,7 +84,7 @@ commandLine(seed = "lattice",
             gradhCorrection = True,
             correctVelocityGradient = True,
 
-            restoreCycle = None,
+            restoreCycle = -1,
             restartStep = 1000,
 
             graphics = False,
@@ -136,31 +127,19 @@ elif thetaFactor == 1.0:
     Espike *= 0.5
 
 #-------------------------------------------------------------------------------
-# Set the hydro choice.
-#-------------------------------------------------------------------------------
-if CRKSPH:
-    Qconstructor = CRKSPHMonaghanGingoldViscosity
-    if ASPH:
-        HydroConstructor = ACRKSPHHydro
-    else:
-        HydroConstructor = CRKSPHHydro
-elif PSPH:
-    if ASPH:
-        HydroConstructor = APSPHHydro
-    else:
-        HydroConstructor = PSPHHydro
-else:
-    if ASPH:
-        HydroConstructor = ASPHHydro
-    else:
-        HydroConstructor = SPHHydro
-
-#-------------------------------------------------------------------------------
 # Path names.
 #-------------------------------------------------------------------------------
+if crksph:
+    hydroname = "CRKSPH"
+elif psph:
+    hydroname = "PSPH"
+else:
+    hydroname = "SPH"
+if asph:
+    hydroname = "A" + hydroname
+
 dataDir = os.path.join(dataRoot,
-                       HydroConstructor.__name__,
-                       Qconstructor.__name__,
+                       hydroname,
                        "nperh=%4.2f" % nPerh,
                        "XSPH=%s" % XSPH,
                        "densityUpdate=%s" % densityUpdate,
@@ -186,12 +165,6 @@ if mpi.rank == 0:
 mpi.barrier()
 
 #-------------------------------------------------------------------------------
-# If we're restarting, find the set of most recent restart files.
-#-------------------------------------------------------------------------------
-if restoreCycle is None:
-    restoreCycle = findLastRestart(restartBaseName)
-
-#-------------------------------------------------------------------------------
 # Material properties.
 #-------------------------------------------------------------------------------
 eos = GammaLawGasMKS(gamma, mu)
@@ -200,10 +173,7 @@ eos = GammaLawGasMKS(gamma, mu)
 # Create our interpolation kernels -- one for normal hydro interactions, and
 # one for use with the artificial viscosity
 #-------------------------------------------------------------------------------
-if KernelConstructor==NBSplineKernel:
-  WT = TableKernel(NBSplineKernel(order), 1000)
-else:
-  WT = TableKernel(KernelConstructor(), 1000)
+WT = TableKernel(NBSplineKernel(order), 1000)
 output("WT")
 kernelExtent = WT.kernelExtent
 
@@ -235,78 +205,77 @@ else:
     xmin = (-1.0, -1.0)
     xmax = (1.0, 1.0)
 
-if restoreCycle is None:
-    if seed == "square":
-        generator = GenerateSquareNodeDistribution(nRadial,
-                                                   nTheta,
-                                                   rho0,
-                                                   xmin = xmin,
-                                                   xmax = xmax,
-                                                   nNodePerh = nPerh,
-                                                   SPH = (not ASPH))
-    else:
-        generator = GenerateNodeDistribution2d(nRadial, nTheta, rho0, seed,
-                                               rmin = rmin,
-                                               rmax = rmax,
+if seed == "square":
+    generator = GenerateSquareNodeDistribution(nRadial,
+                                               nTheta,
+                                               rho0,
                                                xmin = xmin,
                                                xmax = xmax,
-                                               theta = theta,
-                                               azimuthalOffsetFraction = azimuthalOffsetFraction,
                                                nNodePerh = nPerh,
                                                SPH = (not ASPH))
+else:
+    generator = GenerateNodeDistribution2d(nRadial, nTheta, rho0, seed,
+                                           rmin = rmin,
+                                           rmax = rmax,
+                                           xmin = xmin,
+                                           xmax = xmax,
+                                           theta = theta,
+                                           azimuthalOffsetFraction = azimuthalOffsetFraction,
+                                           nNodePerh = nPerh,
+                                           SPH = (not ASPH))
 
-    if mpi.procs > 1:
-        from VoronoiDistributeNodes import distributeNodes2d
-        #from PeanoHilbertDistributeNodes import distributeNodes2d
-    else:
-        from DistributeNodes import distributeNodes2d
+if mpi.procs > 1:
+    from VoronoiDistributeNodes import distributeNodes2d
+    #from PeanoHilbertDistributeNodes import distributeNodes2d
+else:
+    from DistributeNodes import distributeNodes2d
 
-    distributeNodes2d((nodes1, generator))
-    output("mpi.reduce(nodes1.numInternalNodes, mpi.MIN)")
-    output("mpi.reduce(nodes1.numInternalNodes, mpi.MAX)")
-    output("mpi.reduce(nodes1.numInternalNodes, mpi.SUM)")
+distributeNodes2d((nodes1, generator))
+output("mpi.reduce(nodes1.numInternalNodes, mpi.MIN)")
+output("mpi.reduce(nodes1.numInternalNodes, mpi.MAX)")
+output("mpi.reduce(nodes1.numInternalNodes, mpi.SUM)")
 
-    # Set the point source of energy.
-    Esum = 0.0
-    if smoothSpike or topHatSpike:
-        Wsum = 0.0
-        for nodeID in xrange(nodes1.numInternalNodes):
-            Hi = H[nodeID]
-            etaij = (Hi*pos[nodeID]).magnitude()
-            if smoothSpike:
-                Wi = WT.kernelValue(etaij/smoothSpikeScale, 1.0)
+# Set the point source of energy.
+Esum = 0.0
+if smoothSpike or topHatSpike:
+    Wsum = 0.0
+    for nodeID in xrange(nodes1.numInternalNodes):
+        Hi = H[nodeID]
+        etaij = (Hi*pos[nodeID]).magnitude()
+        if smoothSpike:
+            Wi = WT.kernelValue(etaij/smoothSpikeScale, 1.0)
+        else:
+            if etaij < smoothSpikeScale*kernelExtent:
+                Wi = 1.0
             else:
-                if etaij < smoothSpikeScale*kernelExtent:
-                    Wi = 1.0
-                else:
-                    Wi = 0.0
-            Ei = Wi*Espike
-            epsi = Ei/mass[nodeID]
-            eps[nodeID] = epsi
-            Wsum += Wi
-        Wsum = mpi.allreduce(Wsum, mpi.SUM)
-        assert Wsum > 0.0
-        for nodeID in xrange(nodes1.numInternalNodes):
-            eps[nodeID] /= Wsum
-            Esum += eps[nodeID]*mass[nodeID]
-            eps[nodeID] += eps0
-    else:
-        i = -1
-        rmin = 1e50
-        for nodeID in xrange(nodes1.numInternalNodes):
-            rij = pos[nodeID].magnitude()
-            if rij < rmin:
-                i = nodeID
-                rmin = rij
-            eps[nodeID] = eps0
-        rminglobal = mpi.allreduce(rmin, mpi.MIN)
-        if fuzzyEqual(rmin, rminglobal):
-            assert i >= 0 and i < nodes1.numInternalNodes
-            eps[i] += Espike/mass[i]
-            Esum += Espike
-    Eglobal = mpi.allreduce(Esum, mpi.SUM)
-    print "Initialized a total energy of", Eglobal
-    assert fuzzyEqual(Eglobal, Espike)
+                Wi = 0.0
+        Ei = Wi*Espike
+        epsi = Ei/mass[nodeID]
+        eps[nodeID] = epsi
+        Wsum += Wi
+    Wsum = mpi.allreduce(Wsum, mpi.SUM)
+    assert Wsum > 0.0
+    for nodeID in xrange(nodes1.numInternalNodes):
+        eps[nodeID] /= Wsum
+        Esum += eps[nodeID]*mass[nodeID]
+        eps[nodeID] += eps0
+else:
+    i = -1
+    rmin = 1e50
+    for nodeID in xrange(nodes1.numInternalNodes):
+        rij = pos[nodeID].magnitude()
+        if rij < rmin:
+            i = nodeID
+            rmin = rij
+        eps[nodeID] = eps0
+    rminglobal = mpi.allreduce(rmin, mpi.MIN)
+    if fuzzyEqual(rmin, rminglobal):
+        assert i >= 0 and i < nodes1.numInternalNodes
+        eps[i] += Espike/mass[i]
+        Esum += Espike
+Eglobal = mpi.allreduce(Esum, mpi.SUM)
+print "Initialized a total energy of", Eglobal
+assert fuzzyEqual(Eglobal, Espike)
 
 #-------------------------------------------------------------------------------
 # Construct a DataBase to hold our node list
@@ -318,58 +287,45 @@ output("db.numNodeLists")
 output("db.numFluidNodeLists")
 
 #-------------------------------------------------------------------------------
-# Construct the artificial viscosity.
-#-------------------------------------------------------------------------------
-q = Qconstructor(Cl, Cq, linearInExpansion)
-q.epsilon2 = epsilon2
-q.limiter = Qlimiter
-q.balsaraShearCorrection = balsaraCorrection
-output("q")
-output("q.Cl")
-output("q.Cq")
-output("q.epsilon2")
-output("q.limiter")
-output("q.balsaraShearCorrection")
-output("q.linearInExpansion")
-output("q.quadraticInExpansion")
-
-#-------------------------------------------------------------------------------
 # Construct the hydro physics object.
 #-------------------------------------------------------------------------------
-if CRKSPH:
-    hydro = HydroConstructor(W = WT,
-                             Q = q,
-                             filter = filter,
-                             cfl = cfl,
-                             compatibleEnergyEvolution = compatibleEnergy,
-                             XSPH = XSPH,
-                             correctionOrder = correctionOrder,
-                             densityUpdate = densityUpdate,
-                             HUpdate = HUpdate)
-elif PSPH:
-    hydro = HydroConstructor(W = WT,
-                             Q = q,
-                             filter = filter,
-                             cfl = cfl,
-                             useVelocityMagnitudeForDt = useVelocityMagnitudeForDt,
-                             compatibleEnergyEvolution = compatibleEnergy,
-                             evolveTotalEnergy = evolveTotalEnergy,
-                             HopkinsConductivity = HopkinsConductivity,
-                             densityUpdate = densityUpdate,
-                             correctVelocityGradient = correctVelocityGradient,
-                             HUpdate = HUpdate,
-                             XSPH = XSPH)
+if crksph:
+    hydro = CRKSPH(dataBase = db,
+                   W = WT, 
+                   filter = filter,
+                   cfl = cfl,
+                   compatibleEnergyEvolution = compatibleEnergy,
+                   XSPH = XSPH,
+                   correctionOrder = correctionOrder,
+                   densityUpdate = densityUpdate,
+                   HUpdate = HUpdate,
+                   ASPH = asph)
+elif psph:
+    hydro = PASPH(dataBase = db,
+                      W = WT,
+                      filter = filter,
+                      cfl = cfl,
+                      useVelocityMagnitudeForDt = useVelocityMagnitudeForDt,
+                      compatibleEnergyEvolution = compatibleEnergy,
+                      evolveTotalEnergy = evolveTotalEnergy,
+                      HopkinsConductivity = HopkinsConductivity,
+                      correctVelocityGradient = correctVelocityGradient,
+                      densityUpdate = densityUpdate,
+                      HUpdate = HUpdate,
+                      XSPH = XSPH,
+                      ASPH = asph)
 else:
-    hydro = HydroConstructor(W = WT, 
-                             Q = q,
-                             cfl = cfl,
-                             compatibleEnergyEvolution = compatibleEnergy,
-                             evolveTotalEnergy = evolveTotalEnergy,
-                             gradhCorrection = gradhCorrection,
-                             correctVelocityGradient = correctVelocityGradient,
-                             densityUpdate = densityUpdate,
-                             XSPH = XSPH,
-                             HUpdate = HEvolution)
+    hydro = SPH(dataBase = db,
+                W = WT, 
+                cfl = cfl,
+                compatibleEnergyEvolution = compatibleEnergy,
+                evolveTotalEnergy = evolveTotalEnergy,
+                gradhCorrection = gradhCorrection,
+                correctVelocityGradient = correctVelocityGradient,
+                densityUpdate = densityUpdate,
+                XSPH = XSPH,
+                HUpdate = HEvolution,
+                ASPH = asph)
 output("hydro")
 output("hydro.kernel()")
 output("hydro.PiKernel()")
@@ -378,6 +334,16 @@ output("hydro.compatibleEnergyEvolution")
 output("hydro.XSPH")
 output("hydro.densityUpdate")
 output("hydro.HEvolution")
+
+q = hydro.Q
+output("q")
+output("q.Cl")
+output("q.Cq")
+output("q.epsilon2")
+output("q.limiter")
+output("q.balsaraShearCorrection")
+output("q.linearInExpansion")
+output("q.quadraticInExpansion")
 
 packages = [hydro]
 

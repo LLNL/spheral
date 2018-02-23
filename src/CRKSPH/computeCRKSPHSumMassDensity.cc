@@ -5,7 +5,6 @@
 #include "interpolateCRKSPH.hh"
 #include "computeCRKSPHMoments.hh"
 #include "computeCRKSPHCorrections.hh"
-#include "CRKSPHUtilities.hh"
 #include "CRKSPHCorrectionParams.hh"
 #include "NodeList/NodeList.hh"
 #include "Hydro/HydroFieldNames.hh"
@@ -32,6 +31,7 @@ computeCRKSPHSumMassDensity(const ConnectivityMap<Dimension>& connectivityMap,
                             const FieldList<Dimension, typename Dimension::Scalar>& mass,
                             const FieldList<Dimension, typename Dimension::Scalar>& vol,
                             const FieldList<Dimension, typename Dimension::SymTensor>& H,
+                            const FieldList<Dimension, int>& voidPoint,
                             FieldList<Dimension, typename Dimension::Scalar>& massDensity) {
 
   // Pre-conditions.
@@ -54,9 +54,8 @@ computeCRKSPHSumMassDensity(const ConnectivityMap<Dimension>& connectivityMap,
   Vector rij, etai, etaj;
   Vector Bi = Vector::zero, Bj = Vector::zero;
   Tensor Ci = Tensor::zero, Cj = Tensor::zero;
-  const Scalar W0 = W.kernelValue(0.0, 1.0);
 
-  FieldList<Dimension, Scalar> wsum(FieldSpace::FieldStorageType::Copy), vol1(FieldSpace::FieldStorageType::Copy);
+  FieldList<Dimension, Scalar> wsum(FieldSpace::FieldStorageType::CopyFields), vol1(FieldSpace::FieldStorageType::CopyFields);
   for (size_t nodeListi = 0; nodeListi != numNodeLists; ++nodeListi) {
     wsum.appendNewField("weight sum", position[nodeListi]->nodeList(), 0.0);
     vol1.appendNewField("sampled volume", position[nodeListi]->nodeList(), 0.0);
@@ -80,6 +79,7 @@ computeCRKSPHSumMassDensity(const ConnectivityMap<Dimension>& connectivityMap,
       const Scalar Vi = vol(nodeListi, i);
       const Scalar rhoi = massDensity(nodeListi, i);
       const SymTensor& Hi = H(nodeListi, i);
+      const Scalar Hdeti = Hi.Determinant();
 
       // Loop over the neighbors in just point i's NodeList.
       const vector<vector<int> >& fullConnectivity = connectivityMap.connectivityForNode(nodeListi, i);
@@ -93,19 +93,21 @@ computeCRKSPHSumMassDensity(const ConnectivityMap<Dimension>& connectivityMap,
         // Check if this node pair has already been calculated.
         if (connectivityMap.calculatePairInteraction(nodeListi, i, 
                                                      nodeListi, j,
-                                                     firstGhostNodej)) {
+                                                     firstGhostNodej) and
+            voidPoint(nodeListi, j) == 0) {
           const Vector& rj = position(nodeListi, j);
           const Scalar mj = mass(nodeListi, j);
           const Scalar Vj = vol(nodeListi, j);
           const Scalar rhoj = massDensity(nodeListi, j);
           const SymTensor& Hj = H(nodeListi, j);
+          const Scalar Hdetj = Hj.Determinant();
 
           // Kernel weighting and gradient.
           rij = ri - rj;
           etai = Hi*rij;
           etaj = Hj*rij;
-          Wi = FastMath::pow8(W.kernelValue(etai.magnitude(), 1.0));
-          Wj = FastMath::pow8(W.kernelValue(etaj.magnitude(), 1.0));
+          Wi = W.kernelValue(etai.magnitude(), Hdeti);
+          Wj = W.kernelValue(etaj.magnitude(), Hdetj);
 
           // Sum the pair-wise contributions.
           wsum(nodeListi, i) += Vj*Wj;
@@ -118,6 +120,7 @@ computeCRKSPHSumMassDensity(const ConnectivityMap<Dimension>& connectivityMap,
       }
   
       // Finalize the density and volume for node i.
+      const Scalar W0 = W.kernelValue(0.0, Hdeti);
       wsum(nodeListi, i) += Vi*W0;
       CHECK(wsum(nodeListi, i) > 0.0);
       vol1(nodeListi, i) = (vol1(nodeListi, i) + Vi*Vi*W0)/wsum(nodeListi, i);
@@ -125,8 +128,7 @@ computeCRKSPHSumMassDensity(const ConnectivityMap<Dimension>& connectivityMap,
                                       min(rhoMax,
                                           (massDensity(nodeListi, i) + mi*Vi*W0)/
                                           (wsum(nodeListi, i)*vol1(nodeListi, i))));
-      vol1(nodeListi, i) = vol(nodeListi, i); // BLAGO!
-      ENSURE(vol(nodeListi, i) > 0.0);
+      ENSURE(vol1(nodeListi, i) > 0.0);
       ENSURE(massDensity(nodeListi, i) > 0.0);
     }
   }

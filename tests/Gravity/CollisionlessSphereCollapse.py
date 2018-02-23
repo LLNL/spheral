@@ -1,13 +1,10 @@
-#ATS:if SYS_TYPE.startswith('darwin'):
-#ATS:    t0 = test(SELF,       "--nr 10 --numViz 0 --timeStepChoice AccelerationRatio --steps=40 --restartStep 20 --dataDir 'Collisionless_Sphere_Collapse_AccelerationRatio' --clearDirectories True --outputFile 'Collisionless_sphere_collapse_AccelerationRatio_data.txt' --comparisonFile 'Reference/Collisionless_sphere_collapse_AccelerationRatio_data_darwin_20161003.txt'", np=1, label="Collisionless sphere gravitational collapse restart test (serial, acceleration ratio) INITIAL RUN")
-#ATS:    t1 = testif(t0, SELF, "--nr 10 --numViz 0 --timeStepChoice AccelerationRatio --steps 20 --restartStep 100 --dataDir 'Collisionless_Sphere_Collapse_AccelerationRatio' --clearDirectories False --outputFile 'Collisionless_sphere_collapse_AccelerationRatio_data.txt' --comparisonFile 'Reference/Collisionless_sphere_collapse_AccelerationRatio_data_darwin_20161003.txt' --restoreCycle 20 --checkRestart True", np=1, label="Collisionless sphere gravitational collapse restart test (serial, acceleration ratio) RESTARTED CHECK")
-#ATS:    t2 = test(SELF,       "--nr 10 --numViz 0 --timeStepChoice DynamicalTime --steps=40 --restartStep 20  --dataDir 'Collisionless_Sphere_Collapse_DynamicalTime'  --clearDirectories True --outputFile 'Collisionless_sphere_collapse_DynamicalTime_data.txt' --comparisonFile 'Reference/Collisionless_sphere_collapse_DynamicalTime_data_darwin_20151009.txt'", np=1, label="Collisionless sphere gravitational collapse restart test (serial, dynamical time) INITIAL RUN")
-#ATS:    t3 = testif(t2, SELF, "--nr 10 --numViz 0 --timeStepChoice DynamicalTime --steps 20 --restartStep 100  --dataDir 'Collisionless_Sphere_Collapse_DynamicalTime' --clearDirectories False --outputFile 'Collisionless_sphere_collapse_DynamicalTime_data.txt' --comparisonFile 'Reference/Collisionless_sphere_collapse_DynamicalTime_data_darwin_20151009.txt' --restoreCycle 20 --checkRestart True", np=1, label="Collisionless sphere gravitational collapse restart test (serial, dynamical time) RESTARTED CHECK")
-#ATS:else:
-#ATS:    t0 = test(SELF,       "--nr 10 --numViz 0 --timeStepChoice AccelerationRatio --steps=40 --restartStep 20  --dataDir 'Collisionless_Sphere_Collapse_AccelerationRatio' --clearDirectories True --outputFile 'Collisionless_sphere_collapse_AccelerationRatio_data.txt' --comparisonFile 'Reference/Collisionless_sphere_collapse_AccelerationRatio_data_20161003.txt'", np=1, label="Collisionless sphere gravitational collapse restart test (serial, acceleration ratio) INITIAL RUN")
-#ATS:    t1 = testif(t0, SELF, "--nr 10 --numViz 0 --timeStepChoice AccelerationRatio --steps 20 --restartStep 100 --dataDir 'Collisionless_Sphere_Collapse_AccelerationRatio' --clearDirectories False --outputFile 'Collisionless_sphere_collapse_AccelerationRatio_data.txt' --comparisonFile 'Reference/Collisionless_sphere_collapse_AccelerationRatio_data_20161003.txt' --restoreCycle 20 --checkRestart True", np=1, label="Collisionless sphere gravitational collapse restart test (serial, acceleration ratio) RESTARTED CHECK")
-#ATS:    t2 = test(SELF,       "--nr 10 --numViz 0 --timeStepChoice DynamicalTime --steps=40 --restartStep 20   --dataDir 'Collisionless_Sphere_Collapse_DynamicalTime' --clearDirectories True --outputFile 'Collisionless_sphere_collapse_DynamicalTime_data.txt' --comparisonFile 'Reference/Collisionless_sphere_collapse_DynamicalTime_data_20151010.txt'", np=1, label="Collisionless sphere gravitational collapse restart test (serial, dynamical time) INITIAL RUN")
-#ATS:    t3 = testif(t2, SELF, "--nr 10 --numViz 0 --timeStepChoice DynamicalTime --steps 20 --restartStep 100  --dataDir 'Collisionless_Sphere_Collapse_DynamicalTime' --clearDirectories False --outputFile 'Collisionless_sphere_collapse_DynamicalTime_data.txt' --comparisonFile 'Reference/Collisionless_sphere_collapse_DynamicalTime_data_20151010.txt' --restoreCycle 20 --checkRestart True", np=1, label="Collisionless sphere gravitational collapse restart test (serial, dynamical time) RESTARTED CHECK")
+#ATS:t0 = test(SELF,       "--nr 10 --numViz 0 --timeStepChoice AccelerationRatio --steps=40 --restartStep 20  --dataDir 'Collisionless_Sphere_Collapse_AccelerationRatio' --clearDirectories True --outputFile 'Collisionless_sphere_collapse_AccelerationRatio_data.gnu' --comparisonFile 'Reference/Collisionless_sphere_collapse_AccelerationRatio_data_20180125.gnu'", np=1, label="Collisionless sphere gravitational collapse restart test (serial, acceleration ratio) INITIAL RUN")
+#
+#ATS:t1 = testif(t0, SELF, "--nr 10 --numViz 0 --timeStepChoice AccelerationRatio --steps 20 --restartStep 100 --dataDir 'Collisionless_Sphere_Collapse_AccelerationRatio' --clearDirectories False --outputFile 'Collisionless_sphere_collapse_AccelerationRatio_data.gnu' --comparisonFile 'Reference/Collisionless_sphere_collapse_AccelerationRatio_data_20180125.gnu' --restoreCycle 20 --checkRestart True", np=1, label="Collisionless sphere gravitational collapse restart test (serial, acceleration ratio) RESTARTED CHECK")
+#
+#ATS:t2 = test(SELF,       "--nr 10 --numViz 0 --timeStepChoice DynamicalTime --steps=40 --restartStep 20   --dataDir 'Collisionless_Sphere_Collapse_DynamicalTime' --clearDirectories True --outputFile 'Collisionless_sphere_collapse_DynamicalTime_data.gnu' --comparisonFile 'Reference/Collisionless_sphere_collapse_DynamicalTime_data_20180125.gnu'", np=1, label="Collisionless sphere gravitational collapse restart test (serial, dynamical time) INITIAL RUN")
+#
+#ATS:t3 = testif(t2, SELF, "--nr 10 --numViz 0 --timeStepChoice DynamicalTime --steps 20 --restartStep 100  --dataDir 'Collisionless_Sphere_Collapse_DynamicalTime' --clearDirectories False --outputFile 'Collisionless_sphere_collapse_DynamicalTime_data.gnu' --comparisonFile 'Reference/Collisionless_sphere_collapse_DynamicalTime_data_20180125.gnu' --restoreCycle 20 --checkRestart True", np=1, label="Collisionless sphere gravitational collapse restart test (serial, dynamical time) RESTARTED CHECK")
 
 #-------------------------------------------------------------------------------
 # Create a spherical distribution of collisionless points, which will of course 
@@ -18,7 +15,7 @@ from Spheral3d import *
 from SpheralTestUtilities import *
 from NodeHistory import *
 from GenerateNodeDistribution3d import *
-from VoronoiDistributeNodes import distributeNodes3d
+from PeanoHilbertDistributeNodes import distributeNodes3d
 from math import *
 
 print "3-D N-Body Gravity test -- collisionless sphere."
@@ -55,7 +52,7 @@ commandLine(
 
     # Parameters purely for test checking
     checkRestart = False,
-    outputFile = "None",
+    outputFile = "Collisionless_sphere_collapse.gnu",
     comparisonFile = "None",
     )
 
@@ -116,7 +113,6 @@ eos = GammaLawGasMKS3d(gamma = 5.0/3.0, mu = 1.0)
 # Make the NodeList, and set our initial properties.
 #-------------------------------------------------------------------------------
 nodes = makeFluidNodeList("nodes", eos,
-                          topGridCellSize = 100*r0,
                           xmin = -100.0*r0 * Vector.one,
                           xmax =  100.0*r0 * Vector.one)
 
@@ -208,6 +204,7 @@ if outputFile != "None":
     outputFile = os.path.join(dataDir, outputFile)
     from SpheralTestUtilities import multiSort
     xprof = mpi.reduce(nodes.positions().internalValues(), mpi.SUM)
+    rprof = [x.magnitude() for x in xprof]
     vprof = mpi.reduce(nodes.velocity().internalValues(), mpi.SUM)
     Hprof = mpi.reduce(nodes.Hfield().internalValues(), mpi.SUM)
     phi = gravity.potential()
@@ -216,11 +213,11 @@ if outputFile != "None":
     mo = mpi.reduce(mof[0].internalValues(), mpi.SUM)
     if mpi.rank == 0:
         from SpheralTestUtilities import multiSort
-        multiSort(mo, xprof, vprof, Hprof, phiprof)
+        multiSort(mo, rprof, xprof, vprof, Hprof, phiprof)
         f = open(outputFile, "w")
-        f.write(("# " + 13*"%15s " + "\n") % ("x", "y", "z", "vx", "vy", "vz", "Hxx", "Hxy", "Hxz", "Hyy", "Hyz", "Hzz", "phi"))
-        for (xi, vi, Hi, phii, moi) in zip(xprof, vprof, Hprof, phiprof, mo):
-            f.write((13*" %16.12e" + "\n") % (xi.x, xi.y, xi.z, vi.x, vi.y, vi.z, 
+        f.write(("# " + 14*"%15s " + "\n") % ("r", "x", "y", "z", "vx", "vy", "vz", "Hxx", "Hxy", "Hxz", "Hyy", "Hyz", "Hzz", "phi"))
+        for (ri, xi, vi, Hi, phii, moi) in zip(rprof, xprof, vprof, Hprof, phiprof, mo):
+            f.write((14*" %16.12e" + "\n") % (ri, xi.x, xi.y, xi.z, vi.x, vi.y, vi.z, 
                                               Hi.xx, Hi.xy, Hi.xz, Hi.yy, Hi.yz, Hi.zz, phii))
         f.close()
 
@@ -228,5 +225,6 @@ if outputFile != "None":
         # Also we can optionally compare the current results with another file.
         #---------------------------------------------------------------------------
         if comparisonFile != "None":
+            print "Comparing to reference %s" % comparisonFile
             import filearraycmp as fcomp
             assert fcomp.filearraycmp(outputFile, comparisonFile)

@@ -71,16 +71,17 @@ computeSumVoronoiCellMassDensityFromFaces(const Mesh<Dimension>& mesh,
       posFace[iface] = face.position();
 
       // Set the neighbors for this face.
+      vector<vector<int>> masterLists, coarseNeighbors, refineNeighbors;
       Neighbor<Dimension>::setMasterNeighborGroup(posFace[iface], H0,
                                                   dataBase.fluidNodeListBegin(),
                                                   dataBase.fluidNodeListEnd(),
-                                                  W.kernelExtent());
-      neighbor.setRefineNeighborList(posFace[iface], H0);
+                                                  W.kernelExtent(),
+                                                  masterLists,
+                                                  coarseNeighbors);
+      neighbor.setRefineNeighborList(posFace[iface], H0, coarseNeighbors[nodeListi], refineNeighbors[nodeListi]);
 
       // Walk the neighbors in this NodeList.
-      for (typename Neighbor<Dimension>::const_iterator neighborItr = neighbor.refineNeighborBegin();
-           neighborItr != neighbor.refineNeighborEnd();
-           ++neighborItr) {
+      for (auto neighborItr = refineNeighbors[nodeListi].begin(); neighborItr != refineNeighbors[nodeListi].end(); ++neighborItr) {
         unsigned j = *neighborItr;
       
         // Get the state for node j

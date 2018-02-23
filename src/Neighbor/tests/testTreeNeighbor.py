@@ -159,12 +159,15 @@ class TestTreeNeighborBase(SetupNodeDistributions):
 
                 # Have the neighbor objects select neighbors for this node.
                 t0 = time.time()
-                self.dataBase.setMasterNodeLists(ri, Hi)
-                self.dataBase.setRefineNodeLists(ri, Hi)
+                masterLists = vector_of_vector_of_int()
+                coarseNeighbors = vector_of_vector_of_int()
+                refineNeighbors = vector_of_vector_of_int()
+                self.dataBase.setMasterNodeLists(ri, Hi, masterLists, coarseNeighbors)
+                self.dataBase.setRefineNodeLists(ri, Hi, coarseNeighbors, refineNeighbors)
                 neighborIDs = []
                 offset = 0
-                for nds in self.dataBase.nodeLists():
-                    neighborIDs.extend([i + offset for i in nds.neighbor().refineNeighborList])
+                for inds, nds in enumerate(self.dataBase.nodeLists()):
+                    neighborIDs.extend([i + offset for i in refineNeighbors[inds]])
                     offset += nds.numInternalNodes
                 t1 = time.time()
 

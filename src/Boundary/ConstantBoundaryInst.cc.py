@@ -2,8 +2,8 @@ text = """
 //------------------------------------------------------------------------------
 // Explicit instantiation.
 //------------------------------------------------------------------------------
-#include "Geometry/Dimension.hh"
 #include "ConstantBoundary.cc"
+#include "Geometry/Dimension.hh"
 
 namespace Spheral {
   namespace BoundarySpace {

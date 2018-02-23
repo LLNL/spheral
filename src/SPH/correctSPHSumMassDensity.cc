@@ -44,7 +44,7 @@ correctSPHSumMassDensity(const ConnectivityMap<Dimension>& connectivityMap,
   typedef typename Dimension::SymTensor SymTensor;
 
   // Make a single corrective pass.
-  FieldList<Dimension, Scalar> sumUnity(FieldSpace::FieldStorageType::Copy);
+  FieldList<Dimension, Scalar> sumUnity(FieldSpace::FieldStorageType::CopyFields);
   for (size_t nodeListi = 0; nodeListi != numNodeLists; ++nodeListi) {
     sumUnity.appendNewField("SPH sum unity check", massDensity[nodeListi]->nodeList(), 0.0);
   }

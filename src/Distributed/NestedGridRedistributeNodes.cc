@@ -205,12 +205,13 @@ redistributeNodes(DataBase<Dimension>& dataBase,
 //         cerr <<   "Checking grid cell/grid cell step: " << *gcItr << " " << gridCellStep << endl;
 
         // Set the master information for all NodeLists (and therefore coarse neighbors as well).
-        setMasterNodeLists(dataBase, *gcItr, masterGridLevel);
+        vector<vector<int>> localMasterLists(dataBase.numNodeLists()), localCoarseNeighbors(dataBase.numNodeLists());
+        setMasterNodeLists(dataBase, *gcItr, masterGridLevel, localMasterLists, localCoarseNeighbors);
 
         // Gather the available nodes from the coarse neighbor set to process 0.
         vector<int> coarseNodeIndices;
         vector<Scalar> coarseNodeWork;
-        gatherAvailableCoarseNodes(dataBase, nodeDistribution, work, coarseNodeIndices, coarseNodeWork);
+        gatherAvailableCoarseNodes(dataBase, nodeDistribution, work, localCoarseNeighbors, coarseNodeIndices, coarseNodeWork);
 
         // Assign nodes from this set to the current domain, until it's work quota is
         // filled.
@@ -659,12 +660,17 @@ void
 NestedGridRedistributeNodes<Dimension>::
 setMasterNodeLists(DataBase<Dimension>& dataBase,
                    const GridCellIndex<Dimension>& gridCell,
-                   const int gridLevel) const {
+                   const int gridLevel,
+                   std::vector<std::vector<int>>& masterLists,
+                   std::vector<std::vector<int>>& coarseNeighbors) const {
+  REQUIRE(masterLists.size() == dataBase.numNodeLists());
+  REQUIRE(coarseNeighbors.size() == dataBase.numNodeLists());
+  unsigned iNodeList = 0;
   for (typename DataBase<Dimension>::NodeListIterator nodeListItr = dataBase.nodeListBegin();
        nodeListItr != dataBase.nodeListEnd();
-       ++nodeListItr) {
+       ++nodeListItr, ++iNodeList) {
     NestedGridNeighbor<Dimension>& neighbor = getNestedGridNeighbor(*nodeListItr);
-    neighbor.setNestedMasterList(gridCell, gridLevel);
+    neighbor.setNestedMasterList(gridCell, gridLevel, masterLists[iNodeList], coarseNeighbors[iNodeList]);
   }
 }
 
@@ -678,6 +684,7 @@ NestedGridRedistributeNodes<Dimension>::
 gatherAvailableCoarseNodes(const DataBase<Dimension>& dataBase,
                            const vector<DomainNode<Dimension> >& nodeDistribution,
                            const FieldList<Dimension, Scalar>& work,
+                           const vector<vector<int>>& localCoarseNeighbors,
                            vector<int>& globalNodeIndices,
                            vector<Scalar>& globalNodeWork) const {
 
@@ -686,7 +693,7 @@ gatherAvailableCoarseNodes(const DataBase<Dimension>& dataBase,
   REQUIRE(globalNodeWork.size() == 0);
 
   // Iterate over the coarse neighbor set.
-  for (CoarseNodeIterator<Dimension> nodeItr = dataBase.coarseNodeBegin();
+  for (CoarseNodeIterator<Dimension> nodeItr = dataBase.coarseNodeBegin(localCoarseNeighbors);
        nodeItr != dataBase.coarseNodeEnd();
        ++nodeItr) {
 

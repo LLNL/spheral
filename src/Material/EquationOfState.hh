@@ -6,9 +6,10 @@
 #ifndef __Spheral_EquationOfState_hh__
 #define __Spheral_EquationOfState_hh__
 
-#include <limits>
 #include "PhysicalConstants.hh"
 #include "Utilities/DBC.hh"
+
+#include <limits>
 
 // Forward declarations.
 namespace Spheral {
@@ -75,6 +76,15 @@ public:
   virtual void setEntropy(FieldSpace::Field<Dimension, Scalar>& entropy,
                           const FieldSpace::Field<Dimension, Scalar>& massDensity,
                           const FieldSpace::Field<Dimension, Scalar>& specificThermalEnergy) const = 0;
+
+  // Look up an energy that gives the requested pressure at the specified density.
+  virtual Scalar specificThermalEnergyForPressure(const Scalar Ptarget,
+                                                  const Scalar rho,
+                                                  const Scalar epsMin,
+                                                  const Scalar epsMax,
+                                                  const Scalar epsTol,
+                                                  const Scalar Ptol,
+                                                  const unsigned maxIterations) const;
 
   // The set of constants defining our units.
   const PhysicalConstants& constants() const;

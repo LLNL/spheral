@@ -39,7 +39,8 @@ class SpheralVoronoiSiloDump:
                  listOfFields = [],
                  listOfFieldLists = [],
                  boundaries = [],
-                 cells = None):
+                 cells = None,
+                 splitCells = False):
 
         # Store the file name template.
         self.baseFileName = baseFileName
@@ -86,6 +87,7 @@ class SpheralVoronoiSiloDump:
         if not cells is None:
             assert type(cells) == eval("FacetedVolumeFieldList%s" % self.dimension)
         self.cells = cells
+        self.splitCells = splitCells
 
         # Version of the format written by this class.
         self.version = "1.0"
@@ -124,27 +126,95 @@ class SpheralVoronoiSiloDump:
             # Yep, so we build a disjoint set of cells as a polytope tessellation.
             mesh = eval("polytope.Tessellation%s()" % self.dimension)
             nDim = eval("Vector%s.nDimensions" % self.dimension)
-            for nodeListi in xrange(len(self.cells)):
-                n = self.cells[nodeListi].numInternalElements
-                noldcells = mesh.cells.size()
-                mesh.cells.resize(noldcells + n)
-                for i in xrange(n):
-                    verts = self.cells(nodeListi, i).vertices()
-                    facets = self.cells(nodeListi, i).facets()
-                    noldnodes = mesh.nodes.size()/nDim
-                    noldfaces = mesh.faces.size()
-                    mesh.faces.resize(noldfaces + facets.size())
-                    for j in xrange(verts.size()):
-                        for k in xrange(nDim):
-                            mesh.nodes.append(verts[j][k])
-                    for j in xrange(facets.size()):
-                        mesh.cells[noldcells + i].append(noldfaces + j)
-                        ipoints = facets[j].ipoints
-                        for k in ipoints:
-                            mesh.faces[noldfaces + j].append(noldnodes + k)
 
-            # Every zone is unique in this case, so we can punt on the degeneracy check.
-            index2zone = None
+            # Are we splitting into triangles/tets, or writing the native polygons/polyhera?
+            if self.splitCells:
+                index2zone = []
+                for nodeListi in xrange(len(self.cells)):
+                    n = self.cells[nodeListi].numInternalElements
+                    for i in xrange(n):
+                        celli = self.cells(nodeListi, i)
+                        verts = celli.vertices()
+                        noldnodes = mesh.nodes.size()/nDim
+                        noldfaces = mesh.faces.size()
+                        noldcells = mesh.cells.size()
+                        for j in xrange(verts.size()):
+                            for k in xrange(nDim):
+                                mesh.nodes.append(verts[j][k])
+
+                        if nDim == 2:
+                            # Build the triangles
+                            PCcelli = PolyClipper.Polygon()
+                            PolyClipper.convertToPolygon(PCcelli, celli)
+                            tris = PolyClipper.splitIntoTriangles(PCcelli, 1e-10)
+                            index2zone.append([])
+                            mesh.faces.resize(noldfaces + 3*len(tris))
+                            mesh.cells.resize(noldcells + len(tris))
+                            for k, tri in enumerate(tris):
+                                mesh.faces[noldfaces + 3*k + 0].append(noldnodes + tri[0])
+                                mesh.faces[noldfaces + 3*k + 0].append(noldnodes + tri[1])
+                                mesh.faces[noldfaces + 3*k + 1].append(noldnodes + tri[1])
+                                mesh.faces[noldfaces + 3*k + 1].append(noldnodes + tri[2])
+                                mesh.faces[noldfaces + 3*k + 2].append(noldnodes + tri[2])
+                                mesh.faces[noldfaces + 3*k + 2].append(noldnodes + tri[0])
+                                mesh.cells[noldcells + k].append(noldfaces + 3*k)
+                                mesh.cells[noldcells + k].append(noldfaces + 3*k + 1)
+                                mesh.cells[noldcells + k].append(noldfaces + 3*k + 2)
+                                index2zone[-1].append(noldcells + k)
+
+                        else:
+                            # Build the tetrahedra
+                            assert nDim == 3
+                            PCcelli = PolyClipper.Polyhedron()
+                            PolyClipper.convertToPolyhedron(PCcelli, celli)
+                            tets = PolyClipper.splitIntoTetrahedra(PCcelli, 1e-10)
+                            index2zone.append([])
+                            mesh.faces.resize(noldfaces + 4*len(tets))
+                            mesh.cells.resize(noldcells + len(tets))
+                            for k, tet in enumerate(tets):
+                                mesh.faces[noldfaces + 4*k + 0].append(noldnodes + tet[0])
+                                mesh.faces[noldfaces + 4*k + 0].append(noldnodes + tet[1])
+                                mesh.faces[noldfaces + 4*k + 0].append(noldnodes + tet[2])
+
+                                mesh.faces[noldfaces + 4*k + 1].append(noldnodes + tet[1])
+                                mesh.faces[noldfaces + 4*k + 1].append(noldnodes + tet[3])
+                                mesh.faces[noldfaces + 4*k + 1].append(noldnodes + tet[2])
+
+                                mesh.faces[noldfaces + 4*k + 2].append(noldnodes + tet[3])
+                                mesh.faces[noldfaces + 4*k + 2].append(noldnodes + tet[0])
+                                mesh.faces[noldfaces + 4*k + 2].append(noldnodes + tet[2])
+
+                                mesh.faces[noldfaces + 4*k + 3].append(noldnodes + tet[0])
+                                mesh.faces[noldfaces + 4*k + 3].append(noldnodes + tet[3])
+                                mesh.faces[noldfaces + 4*k + 3].append(noldnodes + tet[1])
+
+                                mesh.cells[noldcells + k].append(noldfaces + 4*k)
+                                mesh.cells[noldcells + k].append(noldfaces + 4*k + 1)
+                                mesh.cells[noldcells + k].append(noldfaces + 4*k + 2)
+                                mesh.cells[noldcells + k].append(noldfaces + 4*k + 3)
+                                index2zone[-1].append(noldcells + k)
+
+            else:
+                index2zone = None
+                for nodeListi in xrange(len(self.cells)):
+                    n = self.cells[nodeListi].numInternalElements
+                    noldcells = mesh.cells.size()
+                    mesh.cells.resize(noldcells + n)
+                    for i in xrange(n):
+                        celli = self.cells(nodeListi, i)
+                        verts = celli.vertices()
+                        facets = celli.facets()
+                        noldnodes = mesh.nodes.size()/nDim
+                        noldfaces = mesh.faces.size()
+                        mesh.faces.resize(noldfaces + facets.size())
+                        for j in xrange(verts.size()):
+                            for k in xrange(nDim):
+                                mesh.nodes.append(verts[j][k])
+                        for j in xrange(facets.size()):
+                            mesh.cells[noldcells + i].append(noldfaces + j)
+                            ipoints = facets[j].ipoints
+                            for k in ipoints:
+                                mesh.faces[noldfaces + j].append(noldnodes + k)
 
         else:
             # We need to do the full up polytope tessellation.
@@ -326,7 +396,8 @@ def dumpPhysicsState(stateThingy,
                      currentCycle = None,
                      dumpGhosts = False,
                      dumpDerivatives = False,
-                     boundaries = None):
+                     boundaries = None,
+                     splitCells = False):
     assert not dumpGhosts
 
     # What did we get passed?
@@ -341,12 +412,27 @@ def dumpPhysicsState(stateThingy,
         currentCycle = integrator.currentCycle
     elif max([isinstance(stateThingy, x) for x in [State1d, State2d, State3d]]):
         integrator = None
-        dataBase = None
         state = stateThingy
         derivs = None
         assert currentTime is not None
         assert currentCycle is not None
-    assert state is not None
+        if isinstance(stateThingy, State1d):
+            ndim = 1
+        elif isinstance(stateThingy, State2d):
+            ndim = 2
+        else:
+            assert isinstance(stateThingy, State3d)
+            ndim = 3
+        dataBase = eval("DataBase%id()" % ndim)
+        assert state.fieldNameRegistered(HydroFieldName.mass)
+        mass = state.scalarFields(HydroFieldNames.mass)
+        for nodes in mass.nodeListPtrs():
+            dataBase.appendNodeList(nodes)
+
+    assert state is not None and dataBase is not None
+
+    if boundaries is None:
+        boundaries = eval("vector_of_Boundary%id()" % dataBase.nDim)
 
     # Did the user specify any data to be dumped?
     if not fields:
@@ -398,8 +484,8 @@ def dumpPhysicsState(stateThingy,
         fieldLists.append(hminhmax)
 
         # We also like to dump the moments of the local point distribution.
-        zerothMoment = eval("ScalarFieldList%id(Copy)" % dataBase.nDim)
-        firstMoment = eval("VectorFieldList%id(Copy)" % dataBase.nDim)
+        zerothMoment = eval("ScalarFieldList%id(CopyFields)" % dataBase.nDim)
+        firstMoment = eval("VectorFieldList%id(CopyFields)" % dataBase.nDim)
         W = eval("TableKernel%id(BSplineKernel%id(), 1000)" % (dataBase.nDim, dataBase.nDim))
         zerothAndFirstNodalMoments(dataBase.nodeLists(), W, True, zerothMoment, firstMoment)
         fieldLists += [zerothMoment, firstMoment]
@@ -416,12 +502,47 @@ def dumpPhysicsState(stateThingy,
     except:
         pass
 
+    # Build the Voronoi-like cells.
+    weight = eval("ScalarFieldList%id()" % dataBase.nDim)                         # No weights
+    gradRho = dataBase.newFluidVectorFieldList(eval("Vector%id.zero" % dataBase.nDim), "grad rho")
+    bounds = eval("vector_of_FacetedVolume%id()" % dataBase.nDim)
+    holes = eval("vector_of_vector_of_FacetedVolume%id()" % dataBase.nDim)
+    if state.fieldNameRegistered(HydroFieldNames.surfacePoint):
+        surfacePoint = state.intFields(HydroFieldNames.surfacePoint)
+        voidPoint = state.intFields(HydroFieldNames.voidPoint)
+    else:
+        surfacePoint = dataBase.newFluidIntFieldList(0, HydroFieldNames.surfacePoint)
+        voidPoint = dataBase.newFluidIntFieldList(0, HydroFieldNames.voidPoint)
+    vol = dataBase.newFluidScalarFieldList(0.0, HydroFieldNames.volume)
+    deltaMedian = dataBase.newFluidVectorFieldList(eval("Vector%id.zero" % dataBase.nDim), "centroidal delta")
+    etaVoidPoints = dataBase.newFluidvector_of_VectorFieldList(eval("vector_of_Vector%id()" % dataBase.nDim), "eta void points")
+    FacetedVolume = {2 : Polygon,
+                     3 : Polyhedron}[dataBase.nDim]
+    cells = dataBase.newFluidFacetedVolumeFieldList(FacetedVolume(), "cells")
+    computeVoronoiVolume(dataBase.fluidPosition, 
+                         dataBase.fluidHfield,
+                         dataBase.fluidMassDensity,
+                         gradRho,
+                         dataBase.connectivityMap(),
+                         bounds,
+                         holes,
+                         boundaries,
+                         weight,
+                         voidPoint,
+                         surfacePoint,
+                         vol,
+                         deltaMedian,
+                         etaVoidPoints,
+                         cells)
+
     # Now build the visit dumper.
     dumper = SpheralVoronoiSiloDump(baseFileName,
                                     baseDirectory,
                                     fields,
                                     fieldLists,
-                                    boundaries)
+                                    boundaries,
+                                    cells = cells,
+                                    splitCells = splitCells)
 
     # Dump the sucker.
     dumper.dump(currentTime, currentCycle)

@@ -11,7 +11,7 @@ using namespace std;
 #include "Timer.hh"
 
 // Must initialize the static list defined in Timer.hh
-//list<Timer*> Timer::TimerList(0); 
+// list<Timer*> Timer::TimerList(0); 
 
 
 static int ID_counter = 0;
@@ -194,7 +194,7 @@ void Timer::clear(void) {
   count = 0;
 }
 
-inline double Timer::getTimeStampWC(){
+double Timer::getTimeStampWC(){
 
 #ifdef MPI
   return( MPI_Wtime() );
@@ -223,12 +223,14 @@ void Timer::TimerSummary(void) {
 
   int rank, number_procs;
 #ifdef MPI
-  MPI_Comm_rank(Communicator::communicator(), &rank);
-  MPI_Comm_size(Communicator::communicator(), &number_procs);
+  MPI_Comm_rank(Spheral::Communicator::communicator(), &rank);
+  MPI_Comm_size(Spheral::Communicator::communicator(), &number_procs);
 #else
   rank=0;
   number_procs=1;
 #endif
+
+  // printf("Rank %d, Procs %d, num timers %d\n", rank, number_procs, TimerList.size());
 
   list<Timer*>::iterator tli;  
   
@@ -238,9 +240,9 @@ void Timer::TimerSummary(void) {
   // all processors onto rank0 -- obviously trivial for serial runs.
   for(tli=TimerList.begin() ; tli != TimerList.end() ; ++tli) {
       
-    //printf(" Timer: %-16s Parent: %-16s diagnostic = %d\n",
-    //   (*tli)->Name().c_str(), (*tli)->Parent.Name().c_str(), 
-    //   (*tli)->diagnostic);
+    // printf(" Timer: %-16s Parent: %-16s diagnostic = %d\n",
+    //    (*tli)->Name().c_str(), (*tli)->Parent.Name().c_str(), 
+    //    (*tli)->diagnostic);
       
     wc = (*tli)->wc_time();
       
@@ -254,13 +256,13 @@ void Timer::TimerSummary(void) {
 #ifdef MPI
          
       MPI_Reduce(&wc, &(*tli)->minWC, 1, MPI_DOUBLE, 
-		 MPI_MIN, 0, Communicator::communicator());
+		 MPI_MIN, 0, Spheral::Communicator::communicator());
       MPI_Reduce(&wc, &(*tli)->maxWC, 1, MPI_DOUBLE, 
-		 MPI_MAX, 0, Communicator::communicator());
+		 MPI_MAX, 0, Spheral::Communicator::communicator());
 
       double temp;
       MPI_Reduce(&wc, &temp, 1, MPI_DOUBLE, 
-		 MPI_SUM, 0, Communicator::communicator());
+		 MPI_SUM, 0, Spheral::Communicator::communicator());
 
       if(rank==0) (*tli)->avgWC = temp/number_procs;
 
@@ -515,20 +517,20 @@ void Timer::TimerSummary(void) {
 
 static void writeSingleLineSeparator(FILE *out) {
 #ifdef PAPI  
-  fprintf(out, "------------------------------------------------------");
+  fprintf(out, "--------------------------------------------------------------------");
   fprintf(out, "----------------------------------------------------------\n");
 #else
-  fprintf(out, "------------------------------------------------------");
+  fprintf(out, "--------------------------------------------------------------------");
   fprintf(out, "------------------------------\n");
 #endif
 }
 
 static void writeDoubleLineSeparator(FILE *out) {
 #ifdef PAPI
-  fprintf(out, "======================================================");
+  fprintf(out, "====================================================================");
   fprintf(out, "==========================================================\n");
 #else
-  fprintf(out, "======================================================");
+  fprintf(out, "====================================================================");
   fprintf(out, "==============================\n");
 #endif
 }
@@ -538,13 +540,13 @@ static void writeTableHeader(FILE *out) {
 
 
 #ifdef PAPI
-  fprintf(out, "                                                       ");
+  fprintf(out, "                                                                     ");
   fprintf(out, "wall-clock time (sec)\n");
-  fprintf(out, "                                                     ");
+  fprintf(out, "                                                                   ");
   fprintf(out, "________________________\n");
   
   //            12345678901234567890
-  fprintf(out, "      Totals    ");
+  fprintf(out, "      Totals                  ");
   fprintf(out, "            WC per.");
   fprintf(out, "     count");
 
@@ -560,14 +562,14 @@ static void writeTableHeader(FILE *out) {
     fprintf(out, "   TOT INS    BR INS     BR/TOT");
   }
 #else
-  fprintf(out, "                                                       ");
+  fprintf(out, "                                                                     ");
   fprintf(out, "wall-clock time (sec)\n");
-  fprintf(out, "                                                   ");
+  fprintf(out, "                                                                 ");
   fprintf(out, "______________________________\n");
   
   //            12345678901234567890
   fprintf(out, "      Totals    ");
-  fprintf(out, "            WC per.");
+  fprintf(out, "            WC per.              ");
   fprintf(out, "     count");
 
   fprintf(out, "        avg  ");
@@ -598,11 +600,11 @@ static void writeTableTotals(FILE *out,
   }
 
 #ifdef PAPI
-  fprintf(out, "  table totals:            (%6.2f%%) %8s %10.2f [%10.2f,%10.2f]\n",
+  fprintf(out, "  table totals:                          (%6.2f%%) %8s %10.2f [%10.2f,%10.2f]\n",
 	  table_percent, " ", 
 	  table_avg_sum, table_min_sum, table_max_sum); 
 #else
-  fprintf(out, "  table totals:            (%6.2f%%) %8s %10.2f [%10.2f, %10.2f]\n", 
+  fprintf(out, "  table totals:                          (%6.2f%%) %8s %10.2f [%10.2f, %10.2f]\n", 
 	  table_percent, " ", 
 	  table_avg_sum, table_min_sum, table_max_sum); 
 #endif
@@ -650,22 +652,22 @@ static void writeLineOfData(FILE *out,
   
   
   if(percent < 0) {
-    fprintf(out, "%26s           %8ld %10.2f [%10.2f,%10.2f]  %10.3e %10.3e %8.2f\n",
+    fprintf(out, "%-40.40s           %8ld %10.2f [%10.2f,%10.2f]  %10.3e %10.3e %8.2f\n",
 	    name, count, wc_avg, wc_min, wc_max,
 	    counter1, counter2, 
 	    derived_counter);
   } else {
-    fprintf(out, "%26s (%6.2f%%) %8ld %10.2f [%10.2f,%10.2f]  %10.3e %10.3e %8.2f\n",
+    fprintf(out, "%-40.40s (%6.2f%%) %8ld %10.2f [%10.2f,%10.2f]  %10.3e %10.3e %8.2f\n",
 	    name, percent, count, wc_avg, wc_min, wc_max,
 	    counter1, counter2, 
 	    derived_counter);
   }
 #else
   if(percent < 0) {
-    fprintf(out, "%26s           %8ld %10.2f [%10.2f, %10.2f]\n",
+    fprintf(out, "%-40.40s           %8ld %10.2f [%10.2f, %10.2f]\n",
 	    name, count, wc_avg, wc_min, wc_max);  
   } else {
-    fprintf(out, "%26s (%6.2f%%) %8ld %10.2f [%10.2f, %10.2f]\n",
+    fprintf(out, "%-40.40s (%6.2f%%) %8ld %10.2f [%10.2f, %10.2f]\n",
 	    name, percent, count, wc_avg, wc_min, wc_max);  
   }
 #endif

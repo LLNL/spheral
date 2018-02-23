@@ -9,15 +9,11 @@
 #ifndef __Spheral_NodeList__
 #define __Spheral_NodeList__
 
-#include <string>
+#include "DataOutput/registerWithRestart.hh"
 
-#ifndef __GCCXML__
+#include <string>
 #include <list>
 #include <vector>
-#include "DataOutput/registerWithRestart.hh"
-#else
-#include "fakestl.hh"
-#endif
 
 namespace Spheral {
   template<typename Dimension> class AllNodeIterator;
@@ -100,13 +96,13 @@ public:
   GhostNodeIterator<Dimension> ghostNodeBegin() const;
   GhostNodeIterator<Dimension> ghostNodeEnd() const;
           
-  MasterNodeIterator<Dimension> masterNodeBegin() const;
+  MasterNodeIterator<Dimension> masterNodeBegin(const std::vector<std::vector<int>>& masterLists) const;
   MasterNodeIterator<Dimension> masterNodeEnd() const;
           
-  CoarseNodeIterator<Dimension> coarseNodeBegin() const;
+  CoarseNodeIterator<Dimension> coarseNodeBegin(const std::vector<std::vector<int>>& coarseNeighbors) const;
   CoarseNodeIterator<Dimension> coarseNodeEnd() const;
 
-  RefineNodeIterator<Dimension> refineNodeBegin() const;
+  RefineNodeIterator<Dimension> refineNodeBegin(const std::vector<std::vector<int>>& refineNeighbors) const;
   RefineNodeIterator<Dimension> refineNodeEnd() const;
 
   // The NodeList state Fields.

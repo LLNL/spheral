@@ -20,7 +20,8 @@ template<typename Dimension>
 MasterNodeIterator<Dimension>::
 MasterNodeIterator():
   NodeIteratorBase<Dimension>(),
-  mNodeIDItr() {
+  mNodeIDItr(),
+  mMasterLists() {
 }
 
 //------------------------------------------------------------------------------
@@ -30,13 +31,16 @@ template<typename Dimension>
 MasterNodeIterator<Dimension>::
 MasterNodeIterator(typename vector<NodeList<Dimension>*>::const_iterator nodeListItr,
                    typename vector<NodeList<Dimension>*>::const_iterator nodeListBegin,
-                   typename vector<NodeList<Dimension>*>::const_iterator nodeListEnd):
+                   typename vector<NodeList<Dimension>*>::const_iterator nodeListEnd,
+                   const std::vector<std::vector<int>>& masterLists):
   NodeIteratorBase<Dimension>(),
-  mNodeIDItr() {
+  mNodeIDItr(),
+  mMasterLists(masterLists) {
   initialize(nodeListItr,
              nodeListBegin,
              nodeListEnd,
-             vector<int>::const_iterator());
+             vector<int>::const_iterator(),
+             masterLists);
   ENSURE(valid());
 }
 
@@ -48,13 +52,16 @@ MasterNodeIterator<Dimension>::
 MasterNodeIterator(typename vector<NodeList<Dimension>*>::const_iterator nodeListItr, 
                    typename vector<NodeList<Dimension>*>::const_iterator nodeListBegin,
                    typename vector<NodeList<Dimension>*>::const_iterator nodeListEnd,
-                   vector<int>::const_iterator IDItr):
+                   vector<int>::const_iterator IDItr,
+                   const std::vector<std::vector<int>>& masterLists):
   NodeIteratorBase<Dimension>(),
-  mNodeIDItr(IDItr) {
+  mNodeIDItr(),
+  mMasterLists(masterLists) {
   initialize(nodeListItr,
              nodeListBegin,
              nodeListEnd,
-             IDItr);
+             IDItr,
+             masterLists);
   ENSURE(valid());
 }
 
@@ -65,7 +72,13 @@ template<typename Dimension>
 MasterNodeIterator<Dimension>::
 MasterNodeIterator(const MasterNodeIterator<Dimension>& rhs):
   NodeIteratorBase<Dimension>(rhs),
-  mNodeIDItr(rhs.mNodeIDItr) {
+  mNodeIDItr(),
+  mMasterLists(rhs.mMasterLists) {
+  initialize(mNodeListItr,
+             mNodeListBegin,
+             mNodeListEnd,
+             rhs.mNodeIDItr,
+             rhs.mMasterLists);
   ENSURE(valid() == rhs.valid());
 }
 
@@ -92,9 +105,9 @@ valid() const {
   bool masterTest;
   if (mNodeListItr != mNodeListEnd) {
     masterTest = (mNodeID == *mNodeIDItr && 
-                  find((*mNodeListItr)->neighbor().masterBegin(),
-                       (*mNodeListItr)->neighbor().masterEnd(),
-                       *mNodeIDItr) != (*mNodeListItr)->neighbor().masterEnd());
+                  find(mMasterLists[mFieldID].begin(),
+                       mMasterLists[mFieldID].end(),
+                       *mNodeIDItr) != mMasterLists[mFieldID].end());
   } else {
     masterTest = mNodeID == 0;
   }
@@ -111,23 +124,26 @@ MasterNodeIterator<Dimension>::
 initialize(typename vector<NodeList<Dimension>*>::const_iterator nodeListItr,
            typename vector<NodeList<Dimension>*>::const_iterator nodeListBegin,
            typename vector<NodeList<Dimension>*>::const_iterator nodeListEnd,
-           vector<int>::const_iterator IDItr) {
+           vector<int>::const_iterator IDItr,
+           const std::vector<std::vector<int>>& masterLists) {
 
   // Pre-conditions.
+  mFieldID = distance(nodeListBegin, nodeListItr);
   REQUIRE(nodeListItr == nodeListEnd ||
           (nodeListItr < nodeListEnd && 
-           IDItr >= (*nodeListItr)->neighbor().masterBegin() &&
-           IDItr <= (*nodeListItr)->neighbor().masterEnd()));
+           IDItr >= masterLists[mFieldID].begin() &&
+           IDItr <= masterLists[mFieldID].end()));
 
-  if (nodeListItr < nodeListEnd) {
-    mNodeID = *IDItr;
-  } else {
-    mNodeID = 0;
-  }    
-  mFieldID = distance(nodeListBegin, nodeListItr);
   mNodeListBegin = nodeListBegin;
   mNodeListEnd = nodeListEnd;
   mNodeListItr = nodeListItr;
+  if (nodeListItr < nodeListEnd) {
+    mNodeIDItr = mMasterLists[mFieldID].begin() + std::distance(masterLists[mFieldID].begin(), IDItr);
+    mNodeID = *IDItr;
+  } else {
+    mNodeIDItr = vector<int>::const_iterator();
+    mNodeID = 0;
+  }
 
   // Post conditions.
   ENSURE(valid());

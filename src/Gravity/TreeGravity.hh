@@ -7,13 +7,13 @@
 #ifndef __Spheral_TreeGravity__
 #define __Spheral_TreeGravity__
 
-#include <stdint.h>
-#include "boost/unordered_map.hpp"
-#include "boost/unordered_set.hpp"
-
 #include "Geometry/Dimension.hh"
 #include "Physics/GenericBodyForce.hh"
 #include "Field/FieldList.hh"
+
+#include <stdint.h>
+#include "boost/unordered_map.hpp"
+#include "boost/unordered_set.hpp"
 
 namespace Spheral {
 
@@ -228,7 +228,6 @@ private:
   Scalar applyTreeForces(const Tree& tree,
                          const FieldSpace::FieldList<Dimension, Scalar>& mass,
                          const FieldSpace::FieldList<Dimension, Vector>& position,
-                         FieldSpace::FieldList<Dimension, Vector>& DxDt,
                          FieldSpace::FieldList<Dimension, Vector>& DvDt,
                          FieldSpace::FieldList<Dimension, Scalar>& potential,
                          FieldSpace::FieldList<Dimension, std::vector<Scalar> >& interactionMasses,

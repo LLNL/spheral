@@ -1,4 +1,4 @@
-#ATS:test(SELF, np=8, label="NestedGridDistributedBoundary (1-D) unit tests")
+#ATS:test(SELF, np=8, label="TreeDistributedBoundary (1-D) unit tests")
 import unittest
 import mpi
 
@@ -58,9 +58,9 @@ class TestDistributedBoundary1d:
 
         # Construct the NodeLists to be distributed
         self.eos = GammaLawGasMKS1d(2.0, 2.0)
-        self.nodes1 = makeFluidNodeList1d("nodes1", self.eos, NeighborType = NestedGridNeighbor1d)
-        self.nodes2 = makeFluidNodeList1d("nodes2", self.eos, NeighborType = NestedGridNeighbor1d)
-        self.nodes3 = makeFluidNodeList1d("nodes3", self.eos, NeighborType = NestedGridNeighbor1d)
+        self.nodes1 = makeFluidNodeList1d("nodes1", self.eos, NeighborType = TreeNeighbor1d)
+        self.nodes2 = makeFluidNodeList1d("nodes2", self.eos, NeighborType = TreeNeighbor1d)
+        self.nodes3 = makeFluidNodeList1d("nodes3", self.eos, NeighborType = TreeNeighbor1d)
 
         # Distribute the nodes.
         distributeNodesInRange1d([(self.nodes1, nx1, 1.0, xRange1),
@@ -79,6 +79,7 @@ class TestDistributedBoundary1d:
         self.dataBase.appendNodeList(self.nodes1)
         self.dataBase.appendNodeList(self.nodes2)
         self.dataBase.appendNodeList(self.nodes3)
+        print "Finished genericSetup"
 
         return
 
@@ -88,7 +89,7 @@ class TestDistributedBoundary1d:
     # the communicated ghost nodes.
     #===========================================================================
     def testIt(self):
-        print "Testing NestedGridDistributedBoundary1d on domain %i of %i domains" % \
+        print "Testing TreeDistributedBoundary1d on domain %i of %i domains" % \
               (domainID, nDomains)
 
         # Set the ghost nodes for each domain distributed NodeList.
@@ -133,13 +134,17 @@ class TestDistributedBoundary1d:
 
                     # Have the testing processor build it's own version.
                     if mpi.rank == testProc:
-                        self.dataBase.setMasterNodeLists(ri, Hi)
-                        self.dataBase.setRefineNodeLists(ri, Hi)
+                        masterLists = vector_of_vector_of_int()
+                        coarseNeighbors = vector_of_vector_of_int()
+                        refineNeighbors = vector_of_vector_of_int()
+                        self.dataBase.setMasterNodeLists(ri, Hi, masterLists, coarseNeighbors)
+                        self.dataBase.setRefineNodeLists(ri, Hi, coarseNeighbors, refineNeighbors)
+                        assert len(refineNeighbors) == 3
                         refine = []
-                        for (nds, globalIDs) in ((self.nodes1, self.globalIDField1),
-                                                 (self.nodes2, self.globalIDField2),
-                                                 (self.nodes3, self.globalIDField3)):
-                            refine.extend([globalIDs[j] for j in nds.neighbor().refineNeighborList])
+                        for k, globalIDs in enumerate([self.globalIDField1,
+                                                       self.globalIDField2,
+                                                       self.globalIDField3]):
+                            refine.extend([globalIDs[j] for j in refineNeighbors[k]])
 
                         # Check the answer.
                         test = checkNeighbors(refine, answer)
@@ -156,14 +161,14 @@ class TestDistributedBoundary1d:
                         assert test
 
 #===============================================================================
-# NestedGridDistributedBoundary
+# TreeDistributedBoundary
 #===============================================================================
-class TestNestedGridDistributedBoundary1d(unittest.TestCase,
+class TestTreeDistributedBoundary1d(unittest.TestCase,
                                           TestDistributedBoundary1d):
 
     # Set up method called before test is run.
     def setUp(self):
-        self.domainbc = NestedGridDistributedBoundary1d.instance()
+        self.domainbc = TreeDistributedBoundary1d.instance()
         self.genericSetup()
 
     def tearDown(self):

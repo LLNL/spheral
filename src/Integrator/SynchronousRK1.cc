@@ -95,16 +95,15 @@ step(typename Dimension::Scalar maxTime,
                                    state,
                                    derivs);
 
-  // Zero out the derivatives.
-  derivs.Zero();
-
   // Evaluate the beginning of step derivatives.
   this->initializeDerivatives(t, dt, state, derivs);
+  derivs.Zero();
   this->evaluateDerivatives(t, dt, db, state, derivs);
   this->finalizeDerivatives(t, dt, db, state, derivs);
 
   // Advance the state to the end of the timestep.
   state.update(derivs, dt, t, dt);
+  this->currentTime(t + dt);
   this->applyGhostBoundaries(state, derivs);
   this->postStateUpdate(db, state, derivs);
   this->finalizeGhostBoundaries();

@@ -27,7 +27,7 @@
 ***    Douglas Adams: "I thinks that's terribly significant".
 ***  Should died many years ago.
 ***  If all else fails read the instructions.
-***  !the_Messiah = a_naughty_boy.
+***  !the_Messiah == a_naughty_boy.
 ***  If it were easy, it would have been done long time ago.
 ***  You do not have to be faster than the bear. You just have
 ***   to be faster than the other guy running from the bear.
@@ -225,8 +225,6 @@ namespace FractalSpace
 	    if(group.get_number_high_points() == 0) continue;
 	    buffer_points(group,fractal);
 	  }
-	// if(fractal_memory.padding != 0)
-	//   match_edges(fractal_memory,level);
 	int group_counter=0;
 	for(Group* pgroup : fractal_memory.all_groups[level])
 	  {
@@ -264,7 +262,6 @@ namespace FractalSpace
       }
     bool badd=test_tree(fractal_memory,fractal);
     assert(!badd);
-    clean_groups(fractal_memory);
     FileFractal << "number of everything after the tree "  << " " << Group::number_groups << " " << Point::number_points << "\n";
     FileFractal << " Total number of particles after the tree " << Particle::number_particles << "\n";
     Fractal* p_fractal_ghost=new Fractal;
@@ -273,8 +270,7 @@ namespace FractalSpace
     if(!fractal_memory.start_up)
       {
 	Full_Stop(fractal_memory,41);
-	fractal_memory.global_level_max=find_global_level_max(fractal_memory,fractal);
-	small_exceptions(fractal_memory);
+	find_global_level_max(fractal_memory);
 	points_on_nodes(fractal_memory);
 	for(int level=1;level <= fractal_memory.global_level_max;level++)
 	  {
@@ -332,7 +328,6 @@ namespace FractalSpace
 	  }
 	force_shear_at_particle(fractal_memory,fractal);
       }
-    // clean_shear(fractal_memory);
     groups_level(fractal,fractal_memory.all_groups);
     fractal.timing(-1,44);
     if(fractal_memory.steps % fractal_memory.number_steps_out == 0)
@@ -358,17 +353,19 @@ namespace FractalSpace
     FileFractal << " Total number of particles exiting Fractal " << Particle::number_particles << "\n";
     FileFractal << " Made It fractal_force " << fractal_memory.steps << " " << fractal_memory.p_mess->Clock()-fractal_memory.p_mess->WallTime << "\n";
     fractal_memory.p_file->FlushAll();
+    if(fractal_memory.p_mess->FractalRank == 0)
+      cerr << " Finished FractalForce " << fractal_memory.steps << "\n";
   }
   void Full_Stop(Fractal_Memory& mem,int number)
-    {
-      Full_Stop(mem,mem.p_mess->FractalWorld,number);
-    }
+  {
+    Full_Stop(mem,mem.p_mess->FractalWorld,number);
+  }
   void Full_Stop(Fractal_Memory& mem,MPI_Comm& Comm,int number)
-    {
-      if(number >= 0)
-      	mem.p_fractal->timing(-1,number);
-      mem.p_mess->Full_Stop_Do_Not_Argue(Comm);
-      if(number >= 0)
-      	mem.p_fractal->timing(1,number);
-    }
+  {
+    if(number >= 0)
+      mem.p_fractal->timing(-1,number);
+    mem.p_mess->Full_Stop_Do_Not_Argue(Comm);
+    if(number >= 0)
+      mem.p_fractal->timing(1,number);
+  }
 }

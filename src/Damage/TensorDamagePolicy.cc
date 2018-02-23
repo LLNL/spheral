@@ -15,7 +15,7 @@
 #include "TensorDamagePolicy.hh"
 #include "TensorDamageModel.hh"
 #include "oneMinusDamage.hh"
-#include "Strength/SolidNodeList.hh"
+#include "NodeList/SolidNodeList.hh"
 #include "Strength/SolidFieldNames.hh"
 #include "Hydro/HydroFieldNames.hh"
 #include "DataBase/UpdatePolicyBase.hh"
@@ -33,7 +33,7 @@ namespace Spheral {
 using namespace std;
 
 using FieldSpace::Field;
-using SolidMaterial::SolidNodeList;
+using NodeSpace::SolidNodeList;
 using PhysicsSpace::TensorDamageModel;
 using Material::EquationOfState;
 
@@ -187,13 +187,13 @@ update(const KeyType& key,
   const double tol = 1.0e-5;
 
   // Get the state fields.
-  const KeyType strainKey = State<Dimension>::buildFieldKey(SolidFieldNames::effectiveStrainTensor, nodeListKey);
-  const KeyType psKey = State<Dimension>::buildFieldKey(SolidFieldNames::plasticStrain, nodeListKey);
-  const KeyType PKey = State<Dimension>::buildFieldKey(HydroFieldNames::pressure, nodeListKey);
-  const KeyType clKey = State<Dimension>::buildFieldKey(SolidFieldNames::longitudinalSoundSpeed, nodeListKey);
-  const KeyType HKey = State<Dimension>::buildFieldKey(HydroFieldNames::H, nodeListKey);
-  const KeyType DdamageDtKey = State<Dimension>::buildFieldKey(this->prefix() + SolidFieldNames::scalarDamage, nodeListKey);
-  const KeyType DvDxKey = State<Dimension>::buildFieldKey(HydroFieldNames::internalVelocityGradient, nodeListKey);
+  const auto strainKey = State<Dimension>::buildFieldKey(SolidFieldNames::effectiveStrainTensor, nodeListKey);
+  const auto psKey = State<Dimension>::buildFieldKey(SolidFieldNames::plasticStrain, nodeListKey);
+  const auto PKey = State<Dimension>::buildFieldKey(HydroFieldNames::pressure, nodeListKey);
+  const auto clKey = State<Dimension>::buildFieldKey(SolidFieldNames::longitudinalSoundSpeed, nodeListKey);
+  const auto HKey = State<Dimension>::buildFieldKey(HydroFieldNames::H, nodeListKey);
+  const auto DdamageDtKey = State<Dimension>::buildFieldKey(this->prefix() + SolidFieldNames::scalarDamage, nodeListKey);
+  const auto DvDxKey = State<Dimension>::buildFieldKey(HydroFieldNames::internalVelocityGradient, nodeListKey);
   CHECK(state.registered(strainKey));
   CHECK(state.registered(psKey));
   CHECK(state.registered(PKey));
@@ -202,42 +202,44 @@ update(const KeyType& key,
   CHECK(derivs.registered(DdamageDtKey));
   CHECK(derivs.registered(DvDxKey));
 
-  const Field<Dimension, SymTensor>& strain = state.field(strainKey, SymTensor::zero);
-  const Field<Dimension, Scalar>& plasticStrain = state.field(psKey, 0.0);
-  const Field<Dimension, Scalar>& pressure = state.field(PKey, 0.0);
-  const Field<Dimension, Scalar>& cl = state.field(clKey, 0.0);
-  const Field<Dimension, SymTensor>& H = state.field(HKey, SymTensor::zero);
-  const Field<Dimension, Scalar>& DDDt = derivs.field(DdamageDtKey, 0.0);
-  const Field<Dimension, Tensor>& localDvDx = derivs.field(DvDxKey, Tensor::zero);
+  const auto& strain = state.field(strainKey, SymTensor::zero);
+  const auto& plasticStrain = state.field(psKey, 0.0);
+  const auto& pressure = state.field(PKey, 0.0);
+  const auto& cl = state.field(clKey, 0.0);
+  const auto& H = state.field(HKey, SymTensor::zero);
+  const auto& DDDt = derivs.field(DdamageDtKey, 0.0);
+  const auto& localDvDx = derivs.field(DvDxKey, Tensor::zero);
 
   const bool damageInCompression = mDamageModelPtr->damageInCompression();
 
   // Iterate over the internal nodes.
-  for (int i = 0; i != stateField.numInternalElements(); ++i) {
+  const auto ni = stateField.numInternalElements();
+#pragma omp parallel for
+  for (auto i = 0; i < ni; ++i) {
 
-    SymTensor& Di = stateField(i);
+    auto& Di = stateField(i);
     CHECK(Di.eigenValues().minElement() >= 0.0 and
           fuzzyLessThanOrEqual(Di.eigenValues().maxElement(), 1.0, 1.0e-5));
     
     // First apply the rotational term to the current damage.
-    const Tensor spin = localDvDx(i).SkewSymmetric();
-    const SymTensor spinCorrection = (spin*Di - Di*spin).Symmetric();
+    const auto spin = localDvDx(i).SkewSymmetric();
+    const auto spinCorrection = (spin*Di - Di*spin).Symmetric();
     Di += multiplier*spinCorrection;
     Di = max(1.0e-5, min(1.0 - 2.0e-5, Di));
     {
-      const double maxValue = Di.eigenValues().maxElement();
+      const auto maxValue = Di.eigenValues().maxElement();
       if (maxValue > 1.0) Di /= maxValue;
     }
     CHECK(Di.eigenValues().minElement() >= 0.0 and
           fuzzyLessThanOrEqual(Di.eigenValues().maxElement(), 1.0, 1.0e-5));
 
     // The flaw population for this node.
-    const vector<double> flaws = mDamageModelPtr->flawsForNode(i);
-    const int totalCracks = flaws.size();
+    const auto flaws = mDamageModelPtr->flawsForNode(i);
+    const auto totalCracks = flaws.size();
     if (totalCracks > 0) {
 
       // The tensor strain on this node.
-      typename SymTensor::EigenStructType eigeni = strain(i).eigenVectors();
+      auto eigeni = strain(i).eigenVectors();
 
       // Boost the effective strain by the damage.
 //       const Scalar fDi = max(0.0, 1.0 - Di.eigenValues().maxElement());
@@ -251,10 +253,10 @@ update(const KeyType& key,
       sortEigen(eigeni);
 
       // Iterate over the eigen values/vectors of the strain.
-      for (int j = 0; j != Dimension::nDim; ++j) {
+      for (int j = 0; j < Dimension::nDim; ++j) {
 
         // Only increment the damage in this direction if there is a positive strain.
-        const Scalar straini = (eigeni.eigenValues(j)); //   + plasticStrain(i))/(fDi*fDi + 1.0e-20);
+        const auto straini = (eigeni.eigenValues(j)); //   + plasticStrain(i))/(fDi*fDi + 1.0e-20);
         if (straini > 0.0) {
 
           //         // The total damage on this node thus far.
@@ -264,24 +266,24 @@ update(const KeyType& key,
           //         CHECK(D0max >= 0.0 && D0max <= 1.0);
 
           // The direction of this strain, and projected damage.
-          const Vector strainDirection = eigeni.eigenVectors.getColumn(j);
+          const auto strainDirection = eigeni.eigenVectors.getColumn(j);
           CHECK(fuzzyEqual(strainDirection.magnitude2(), 1.0, 1.0e-10));
-          const double D0 = max(0.0, min(1.0, (Di * strainDirection).magnitude()));
+          const auto D0 = max(0.0, min(1.0, (Di * strainDirection).magnitude()));
           CHECK(D0 >= 0.0 && D0 <= 1.0);
 
           // Count how many flaws are remaining, and how many have completely failed.
-          const int numFailedCracks = int(D0*double(totalCracks));
-          const int numRemainingCracks = totalCracks - numFailedCracks;
+          const auto numFailedCracks = int(D0*double(totalCracks));
+          const auto numRemainingCracks = totalCracks - numFailedCracks;
           CHECK(numFailedCracks >=0 && numFailedCracks <= totalCracks);
           CHECK(numRemainingCracks >= 0 && numRemainingCracks <= totalCracks);
           CHECK(numRemainingCracks + numFailedCracks == totalCracks);
 
           // Count how many cracks are currently active.
-          int numActiveCracks = 0;
+          auto numActiveCracks = 0;
           //         if (weightedNeighborSum(i) < wSumCutoff) {
           //           numActiveCracks = numRemainingCracks;
           //         } else {
-          for (int k = numFailedCracks; k < totalCracks; ++k) {
+          for (auto k = numFailedCracks; k < totalCracks; ++k) {
             CHECK(k < flaws.size());
             if (straini >= flaws[k]) ++numActiveCracks;
           }
@@ -301,9 +303,9 @@ update(const KeyType& key,
           CHECK(Dmin >= 0.0 && Dmax <= 1.0);
 
           // Increment the damage.
-          const double D013 = FastMath::CubeRootHalley2(D0);
-          const double D113 = D013 + multiplier*double(numActiveCracks + numFailedCracks)/double(totalCracks)*DDDt(i);
-          const double D1 = max(Dmin, min(Dmax, D113*D113*D113));
+          const auto D013 = FastMath::CubeRootHalley2(D0);
+          const auto D113 = D013 + multiplier*double(numActiveCracks + numFailedCracks)/double(totalCracks)*DDDt(i);
+          const auto D1 = max(Dmin, min(Dmax, D113*D113*D113));
           CHECK((D1 - D0)*multiplier >= 0.0);
 
           // Increment the damage tensor.
@@ -314,10 +316,10 @@ update(const KeyType& key,
     }
 
     // Enforce bounds on the damage.
-    const Vector Dvals = Di.eigenValues();
+    const auto Dvals = Di.eigenValues();
     if (Dvals.minElement() < 0.0 or
         Dvals.maxElement() > 1.0) {
-      const typename SymTensor::EigenStructType Deigen = Di.eigenVectors();
+      const auto Deigen = Di.eigenVectors();
       Di = constructSymTensorWithBoundedDiagonal(Deigen.eigenValues,
                                                  1.0e-5,
                                                  1.0);

@@ -7,15 +7,4 @@
 #include "DataOutput/RestartRegistrar.hh"
 #include "DataOutput/RestartableObject.hh"
 
-// namespace Spheral {
-// namespace DataOuptut {
-
-// //------------------------------------------------------------------------------
-// // Names!
-// //------------------------------------------------------------------------------
-// typedef 
-
-// }
-// }
-
 #endif

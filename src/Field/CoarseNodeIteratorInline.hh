@@ -15,16 +15,19 @@ CoarseNodeIterator<Dimension>::operator++() {
 
   // If the index is out of range, then proceed to the next NodeList with a 
   // nonzero number of internal nodes.
-  if (mNodeListItr < mNodeListEnd && mNodeIDItr < (*mNodeListItr)->neighbor().coarseNeighborEnd()) {
+  if (mNodeListItr < mNodeListEnd && mNodeIDItr < mCoarseNeighbors[mFieldID].end()) {
     mNodeID = *mNodeIDItr;
   } else {
     ++mNodeListItr;
+    ++mFieldID;
     while (mNodeListItr < mNodeListEnd &&
-           (*mNodeListItr)->neighbor().numCoarse() == 0) ++mNodeListItr;
-    mFieldID = std::distance(mNodeListBegin, mNodeListItr);
+           mCoarseNeighbors[mFieldID].size() == 0) {
+      ++mNodeListItr;
+      ++mFieldID;
+    }
     if (mNodeListItr < mNodeListEnd) {
-      mNodeIDItr = (*mNodeListItr)->neighbor().coarseNeighborBegin();
-      if (mNodeIDItr < (*mNodeListItr)->neighbor().coarseNeighborEnd()) {
+      mNodeIDItr = mCoarseNeighbors[mFieldID].begin();
+      if (mNodeIDItr < mCoarseNeighbors[mFieldID].end()) {
         mNodeID = *mNodeIDItr;
       } else {
         mNodeID = 0;
@@ -34,7 +37,7 @@ CoarseNodeIterator<Dimension>::operator++() {
       mNodeID = 0;
     }
   }
-  
+
   ENSURE(valid());
   return *this;
 }

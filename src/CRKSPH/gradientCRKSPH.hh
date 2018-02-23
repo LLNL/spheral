@@ -5,7 +5,7 @@
 #define __Spheral__gradientCRKSPH__
 
 #include "Geometry/MathTraits.hh"
-#include "SolidSPH/NodeCoupling.hh"
+#include "SPH/NodeCoupling.hh"
 #include "CRKSPHCorrectionParams.hh"
 
 namespace Spheral {

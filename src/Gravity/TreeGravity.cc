@@ -4,13 +4,7 @@
 //
 // Created by JMO, 2013-06-12
 //----------------------------------------------------------------------------//
-#include <cstdio>
-#include <cstdlib>
-#include <cstring>
-#include <sstream>
-#include <iostream>
-#include <algorithm>
-
+#include "FileIO/FileIO.hh"
 #include "TreeGravity.hh"
 #include "DataBase/DataBase.hh"
 #include "DataBase/IncrementState.hh"
@@ -26,7 +20,13 @@
 #include "Field/Field.hh"
 #include "Distributed/Communicator.hh"
 #include "Utilities/DBC.hh"
-#include "FileIO/FileIO.hh"
+
+#include <cstdio>
+#include <cstdlib>
+#include <cstring>
+#include <sstream>
+#include <iostream>
+#include <algorithm>
 
 namespace Spheral {
 namespace GravitySpace {
@@ -85,7 +85,7 @@ struct TreeDimensionTraits<Dim<3> > {
   }
 
   static double forceLaw(const double r2) { return 1.0/r2; }
-  static double potentialLaw(const double r2) { return -1.0/sqrt(r2); }
+  static double potentialLaw(const double r2) { return 1.0/sqrt(r2); }
 };
 
 }
@@ -110,7 +110,7 @@ TreeGravity(const double G,
   mXmin(),
   mXmax(),
   mTree(),
-  mPotential(FieldSpace::FieldStorageType::Copy),
+  mPotential(FieldSpace::FieldStorageType::CopyFields),
   mExtraEnergy(0.0),
   mNodeListMax(0),
   mimax(0),
@@ -160,6 +160,7 @@ evaluateDerivatives(const typename Dimension::Scalar time,
   const FieldList<Dimension, Scalar> mass = state.fields(HydroFieldNames::mass, 0.0);
   const FieldList<Dimension, Vector> position = state.fields(HydroFieldNames::position, Vector::zero);
   const FieldList<Dimension, Vector> velocity = state.fields(HydroFieldNames::velocity, Vector::zero);
+  const size_t numNodeLists = position.numFields();
 
   // Get the acceleration and position change vectors we'll be modifying.
   FieldList<Dimension, Vector> DxDt = derivs.fields(IncrementState<Dimension, Field<Dimension, Vector> >::prefix() + HydroFieldNames::position, Vector::zero);
@@ -224,7 +225,7 @@ evaluateDerivatives(const typename Dimension::Scalar time,
         this->deserialize(tree, bufItr, buffer.end());
         CHECK(bufItr == buffer.end());
         mDtMinAcc = min(mDtMinAcc, 
-                        applyTreeForces(tree, mass, position, DxDt, DvDt, mPotential, interactionMasses, interactionPositions, homeBuckets, cellsCompleted));
+                        applyTreeForces(tree, mass, position, DvDt, mPotential, interactionMasses, interactionPositions, homeBuckets, cellsCompleted));
       }
     }
   }
@@ -233,10 +234,7 @@ evaluateDerivatives(const typename Dimension::Scalar time,
 
   // Apply the forces from our local tree.
   mDtMinAcc = min(mDtMinAcc,
-                  applyTreeForces(mTree, mass, position, DxDt, DvDt, mPotential, interactionMasses, interactionPositions, homeBuckets, cellsCompleted));
-
-  // Set the motion to be Lagrangian.
-  DxDt.assignFields(velocity);
+                  applyTreeForces(mTree, mass, position, DvDt, mPotential, interactionMasses, interactionPositions, homeBuckets, cellsCompleted));
 
   // If we're using the dynamical time step choice, make the calculations for the next
   // time step now.
@@ -245,7 +243,6 @@ evaluateDerivatives(const typename Dimension::Scalar time,
   // The idea is to come up with the most restrictive dynamical time per particle
   // by find the dominant potentials for each point.
   if (mTimeStepChoice == GravityTimeStepType::DynamicalTime) {
-    const size_t numNodeLists = position.numFields();
     mRhoMax = 0.0;
     mNodeListMax = -1;
     mimax = -1;
@@ -306,14 +303,32 @@ evaluateDerivatives(const typename Dimension::Scalar time,
     // to compute the gravitational dynamical time scale.
   }
 
+  // Finalize, and sum up the potential for the extra energy term.
+  mExtraEnergy = 0.0;
+  for (unsigned nodeListi = 0; nodeListi != numNodeLists; ++nodeListi) {
+    const unsigned n = mPotential[nodeListi]->numInternalElements();
+    for (unsigned i = 0; i != n; ++i) {
+
+      // Set the position derivative.
+      DxDt(nodeListi, i) = velocity(nodeListi, i);
+
+      // Multiply by G.
+      DvDt(nodeListi, i) *= mG;
+      mPotential(nodeListi, i) *= mG;
+
+      // Accumluate the package energy as the total gravitational potential.
+      mExtraEnergy += 0.5*mass(nodeListi, i)*mPotential(nodeListi, i);
+    }
+  }
+
 #ifdef USE_MPI
+  mExtraEnergy = allReduce(mExtraEnergy, MPI_SUM, Communicator::communicator());
+
   // Wait until all our sends are complete.
   vector<MPI_Status> sendStatus(sendRequests.size());
   MPI_Waitall(sendRequests.size(), &(*sendRequests.begin()), &(*sendStatus.begin()));
 #endif
 
-  // Sum up the potential for the extra energy term.
-  mExtraEnergy = mPotential.sumElements();
 }
 
 //------------------------------------------------------------------------------
@@ -798,7 +813,6 @@ TreeGravity<Dimension>::
 applyTreeForces(const Tree& tree,
                 const FieldSpace::FieldList<Dimension, Scalar>& mass,
                 const FieldSpace::FieldList<Dimension, Vector>& position,
-                FieldSpace::FieldList<Dimension, Vector>& DxDt,
                 FieldSpace::FieldList<Dimension, Vector>& DvDt,
                 FieldSpace::FieldList<Dimension, Scalar>& potential,
                 FieldSpace::FieldList<Dimension, vector<Scalar> >& interactionMasses,
@@ -834,7 +848,6 @@ applyTreeForces(const Tree& tree,
         // State of node i.
         mi = mass(nodeListi, i);
         const Vector& xi = position(nodeListi, i);
-        const Vector& vi = DxDt(nodeListi, i);
         Vector& DvDti = DvDt(nodeListi, i);
         Scalar& phii = potential(nodeListi, i);
         inode = NodeID(nodeListi, i);
@@ -866,8 +879,8 @@ applyTreeForces(const Tree& tree,
                 CHECK(rji2 > 0.0);
 
                 // Increment the acceleration and potential.
-                DvDti += mG*cell.Mglobal*TreeDimensionTraits<Dimension>::forceLaw(rji2) * nhat;
-                phii += mG*mi*cell.Mglobal*TreeDimensionTraits<Dimension>::potentialLaw(rji2);
+                DvDti += cell.Mglobal*TreeDimensionTraits<Dimension>::forceLaw(rji2) * nhat;  // Multiply by G later
+                phii -= cell.Mglobal*TreeDimensionTraits<Dimension>::potentialLaw(rji2);   // Multiply by G later
                 cellsCompleted[inode][ilevel].insert(cell.key);
 
                 // Add to the set of "interaction" buckets for this point, which are used for
@@ -885,7 +898,6 @@ applyTreeForces(const Tree& tree,
                 for (j = 0; j != cell.masses.size(); ++j) {
                   mj = cell.masses[j];
                   const Vector& xj = cell.positions[j];
-                  const Vector& vj = cell.velocities[j];
                   xji = xj - xi;
                   rji2 = xji.magnitude2();
 
@@ -895,8 +907,8 @@ applyTreeForces(const Tree& tree,
                     CHECK(rji2 > 0.0);
 
                     // Increment the acceleration and potential.
-                    DvDti += mG*mj*TreeDimensionTraits<Dimension>::forceLaw(rji2) * nhat;
-                    phii += mG*mi*mj*TreeDimensionTraits<Dimension>::potentialLaw(rji2);
+                    DvDti += mj*TreeDimensionTraits<Dimension>::forceLaw(rji2) * nhat;  // Multiply by G later
+                    phii -= mj*TreeDimensionTraits<Dimension>::potentialLaw(rji2);   // Multiply by G later
                   } else {
                     homeBuckets(nodeListi, i) = make_pair(ilevel, cell.key);
                   }
@@ -922,11 +934,11 @@ applyTreeForces(const Tree& tree,
 
         // Update the total acceleration based constraint for the time-step.
         const double amag = DvDti.magnitude();
-        if (amag > 0.0) result = min(result, sqrt(mSofteningLength / amag));
+        if (amag > 0.0) result = min(result, sqrt(mSofteningLength / amag));       // Divide by G later
       }
     }
   }
-  return result;
+  return result/sqrt(mG);
 }
 
 //------------------------------------------------------------------------------

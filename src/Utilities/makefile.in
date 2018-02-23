@@ -10,6 +10,8 @@ PKGNAME = Utilities
 PKGDIR = $(PKGNAME)/
 LIBTARGET = libSpheral_$(PKGNAME).$(DYLIBEXT)
 
+TIMERTARGETS = $(patsubst %, $(srcdir)/%, @TIMERTARGETS@)
+
 SRCTARGETS = \
 	$(srcdir)/DBC.cc \
 	$(srcdir)/Process.cc \
@@ -25,7 +27,8 @@ SRCTARGETS = \
 	$(srcdir)/pointOnPolyhedron.cc \
 	$(srcdir)/pointInPolyhedron.cc \
 	$(srcdir)/refinePolyhedron.cc \
-	$(srcdir)/coarsenBinnedValuesInst.cc
+	$(srcdir)/coarsenBinnedValuesInst.cc \
+	$(TIMERTARGETS)
 
 ifeq ("yes", "@USE_R3D@")
 SRCTARGETS += \
@@ -42,7 +45,8 @@ INSTSRCTARGETS = \
 	$(srcdir)/globalBoundingVolumesInst.cc.py \
 	$(srcdir)/integrateThroughMeshAlongSegmentInst.cc.py \
 	$(srcdir)/numberDensityInst.cc.py \
-	$(srcdir)/medianPositionInst.cc.py
+	$(srcdir)/medianPositionInst.cc.py \
+	$(srcdir)/computeShepardsInterpolationInst.cc.py
 
 # A few of our target files are only valid for certain dimensions.
 ifneq (,$(filter "yes", "@INST2D@" "@INST3D@"))

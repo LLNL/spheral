@@ -8,9 +8,10 @@
 #
 # The following ATS setup is to generate reference data for the SpheralC tests.
 #
-#ATS:test(SELF, "--steps 100 --compatibleEnergy False --baseDir 2D_1proc_ref --siloSnapShotFile Spheral_state_snapshot_1proc", np=1, label="Generate 1 proc reference data")
-#ATS:test(SELF, "--steps 100 --compatibleEnergy False --baseDir 2D_8proc_ref --siloSnapShotFile Spheral_state_snapshot_8proc", np=8, label="Generate 8 proc reference data")
+#ATS:test(SELF, "--steps 100 --compatibleEnergy False --clearDirectories True --baseDir 2D_1proc_ref --siloSnapShotFile Spheral_state_snapshot_1proc", np=1, label="Generate 1 proc reference data")
+#ATS:test(SELF, "--steps 100 --compatibleEnergy False --clearDirectories True --baseDir 2D_8proc_ref --siloSnapShotFile Spheral_state_snapshot_8proc", np=8, label="Generate 8 proc reference data")
 
+import os, shutil
 from math import *
 import mpi
 
@@ -18,7 +19,6 @@ from SolidSpheral2d import *
 from SpheralTestUtilities import *
 from SpheralGnuPlotUtilities import *
 from SpheralController import *
-from findLastRestart import *
 
 #-------------------------------------------------------------------------------
 # Identify ourselves!
@@ -86,12 +86,13 @@ commandLine(seed = "lattice",
             maxSteps = None,
             statsStep = 10,
             restartStep = 1000,
-            restoreCycle = None,
+            restoreCycle = -1,
             redistributeStep = 2000,
             vizCycle = 50,
             vizTime = 1.0,
             baseDir = "dumps-TaylorImpact-2d",
             verbosedt = False,
+            clearDirectories = False,
 
             # Should we generate a state snapshot on completion?
             siloSnapShotFile = "",
@@ -125,6 +126,8 @@ restartBaseName = os.path.join(restartDir, "TaylorImpact-%i-%i" % (nr, nz))
 #-------------------------------------------------------------------------------
 import os, sys
 if mpi.rank == 0:
+    if clearDirectories and os.path.exists(dataDir):
+        shutil.rmtree(dataDir)
     if not os.path.exists(dataDir):
         os.makedirs(dataDir)
     if not os.path.exists(vizDir):
@@ -135,12 +138,6 @@ mpi.barrier()
 if not os.path.exists(restartDir):
     os.makedirs(restartDir)
 mpi.barrier()
-
-#-------------------------------------------------------------------------------
-# If we're restarting, find the set of most recent restart files.
-#-------------------------------------------------------------------------------
-if restoreCycle is None:
-    restoreCycle = findLastRestart(restartBaseName)
 
 #-------------------------------------------------------------------------------
 # Construct our base units.
@@ -230,44 +227,43 @@ del n
 # Create our interpolation kernels -- one for normal hydro interactions, and
 # one for use with the artificial viscosity
 #-------------------------------------------------------------------------------
-WT = TableKernel(BSplineKernel(), 1000)
+WT = TableKernel(NBSplineKernel(3), 1000)
 output('WT')
 
 #-------------------------------------------------------------------------------
 # Set node properties (positions, masses, H's, etc.)
 #-------------------------------------------------------------------------------
-if restoreCycle is None:
-    from GenerateNodeDistribution2d import *
-    from VoronoiDistributeNodes import distributeNodes2d
-    print "Generating node distribution."
-    generator1 = GenerateNodeDistribution2d(2*nr, nz, 
+from GenerateNodeDistribution2d import *
+from VoronoiDistributeNodes import distributeNodes2d
+print "Generating node distribution."
+generator1 = GenerateNodeDistribution2d(2*nr, nz, 
+                                        rho = rho0,
+                                        distributionType = seed,
+                                        xmin = (-rlength, 0.0),
+                                        xmax = ( rlength, zlength),
+                                        nNodePerh = nPerh)
+stuff2distribute = [(nodes1, generator1)]
+if not reflect:
+    generator2 = GenerateNodeDistribution2d(2*nr, nz,
                                             rho = rho0,
                                             distributionType = seed,
-                                            xmin = (-rlength, 0.0),
-                                            xmax = ( rlength, zlength),
+                                            xmin = (-rlength, -zlength),
+                                            xmax = ( rlength,  0.0),
                                             nNodePerh = nPerh)
-    stuff2distribute = [(nodes1, generator1)]
-    if not reflect:
-        generator2 = GenerateNodeDistribution2d(2*nr, nz,
-                                                rho = rho0,
-                                                distributionType = seed,
-                                                xmin = (-rlength, -zlength),
-                                                xmax = ( rlength,  0.0),
-                                                nNodePerh = nPerh)
-        stuff2distribute.append((nodes2, generator2))
-    distributeNodes2d(*tuple(stuff2distribute))
-    for n in nodeSet:
-        output('n.name')
-        output('   mpi.reduce(n.numInternalNodes, mpi.MIN)')
-        output('   mpi.reduce(n.numInternalNodes, mpi.MAX)')
-        output('   mpi.reduce(n.numInternalNodes, mpi.SUM)')
-    del n
+    stuff2distribute.append((nodes2, generator2))
+distributeNodes2d(*tuple(stuff2distribute))
+for n in nodeSet:
+    output('n.name')
+    output('   mpi.reduce(n.numInternalNodes, mpi.MIN)')
+    output('   mpi.reduce(n.numInternalNodes, mpi.MAX)')
+    output('   mpi.reduce(n.numInternalNodes, mpi.SUM)')
+del n
 
-    nodes1.specificThermalEnergy(ScalarField("tmp", nodes1, eps0))
-    nodes1.velocity(VectorField("tmp", nodes1, Vector(0.0, -vz0)))
-    if not reflect:
-        nodes2.specificThermalEnergy(ScalarField("tmp", nodes2, eps0))
-        nodes2.velocity(VectorField("tmp", nodes2, Vector(0.0, vz0)))
+nodes1.specificThermalEnergy(ScalarField("tmp", nodes1, eps0))
+nodes1.velocity(VectorField("tmp", nodes1, Vector(0.0, -vz0)))
+if not reflect:
+    nodes2.specificThermalEnergy(ScalarField("tmp", nodes2, eps0))
+    nodes2.velocity(VectorField("tmp", nodes2, Vector(0.0, vz0)))
 
 #-------------------------------------------------------------------------------
 # Create boundary conditions.
@@ -437,7 +433,7 @@ if siloSnapShotFile:
     ps = state.scalarFields(SolidFieldNames.plasticStrain)
     massSum = derivs.scalarFields("new " + HydroFieldNames.massDensity)
     DrhoDt = derivs.scalarFields("delta " + HydroFieldNames.massDensity)
-    DvelDt = derivs.vectorFields("delta " + HydroFieldNames.velocity)
+    DvelDt = derivs.vectorFields(HydroFieldNames.hydroAcceleration)
     DepsDt = derivs.scalarFields("delta " + HydroFieldNames.specificThermalEnergy)
     DvelDx = derivs.tensorFields(HydroFieldNames.velocityGradient)
     DHDt = derivs.symTensorFields("delta " + HydroFieldNames.H)

@@ -25,14 +25,14 @@ class Damage:
         Spheral = mod.add_cpp_namespace("Spheral")
         PhysicsSpace = Spheral.add_cpp_namespace("PhysicsSpace")
 
-        self.TensorStrainAlgorithm = space.add_enum("TensorStrainAlgorithm", [("BenzAsphaug", "Spheral::PhysicsSpace::TensorStrainAlgorithm::BenzAsphaug"),
+        self.TensorStrainAlgorithm = space.add_enum("TensorStrainAlgorithm", [("BenzAsphaugStrain", "Spheral::PhysicsSpace::TensorStrainAlgorithm::BenzAsphaugStrain"),
                                                                               ("StrainHistory", "Spheral::PhysicsSpace::TensorStrainAlgorithm::StrainHistory"),
-                                                                              ("MeloshRyanAsphaug", "Spheral::PhysicsSpace::TensorStrainAlgorithm::MeloshRyanAsphaug"),
+                                                                              ("MeloshRyanAsphaugStrain", "Spheral::PhysicsSpace::TensorStrainAlgorithm::MeloshRyanAsphaugStrain"),
                                                                               ("PlasticStrain", "Spheral::PhysicsSpace::TensorStrainAlgorithm::PlasticStrain"),
                                                                               ("PseudoPlasticStrain", "Spheral::PhysicsSpace::TensorStrainAlgorithm::PseudoPlasticStrain")])
-        self.EffectiveDamageAlgorithm = space.add_enum("EffectiveDamageAlgorithm", [("Copy", "Spheral::PhysicsSpace::EffectiveDamageAlgorithm::Copy"),
-                                                                                    ("Max", "Spheral::PhysicsSpace::EffectiveDamageAlgorithm::Max"),
-                                                                                    ("Sampled", "Spheral::PhysicsSpace::EffectiveDamageAlgorithm::Sampled")])
+        self.EffectiveDamageAlgorithm = space.add_enum("EffectiveDamageAlgorithm", [("CopyDamage", "Spheral::PhysicsSpace::EffectiveDamageAlgorithm::CopyDamage"),
+                                                                                    ("MaxDamage", "Spheral::PhysicsSpace::EffectiveDamageAlgorithm::MaxDamage"),
+                                                                                    ("SampledDamage", "Spheral::PhysicsSpace::EffectiveDamageAlgorithm::SampledDamage")])
 
         self.EffectiveFlawAlgorithm = space.add_enum("EffectiveFlawAlgorithm", [("FullSpectrumFlaws", "Spheral::PhysicsSpace::EffectiveFlawAlgorithm::FullSpectrumFlaws"),
                                                                                 ("MinFlaw", "Spheral::PhysicsSpace::EffectiveFlawAlgorithm::MinFlaw"),
@@ -77,7 +77,7 @@ self.generateTensorDamageModelBindings(self.TensorDamageModel%(dim)id, %(dim)i)
 
         me = "Spheral::PhysicsSpace::DamageModel%id" % ndim
         dim = "Spheral::Dim<%i> " % ndim
-        solidnodelist = "Spheral::SolidMaterial::SolidNodeList%id" % ndim
+        solidnodelist = "Spheral::NodeSpace::SolidNodeList%id" % ndim
         vectordoublefield = "Spheral::FieldSpace::VectorDoubleField%id" % ndim
         database = "Spheral::DataBaseSpace::DataBase%id" % ndim
         state = "Spheral::State%id" % ndim
@@ -162,7 +162,7 @@ self.generateTensorDamageModelBindings(self.TensorDamageModel%(dim)id, %(dim)i)
 
         me = "Spheral::PhysicsSpace::TensorDamageModel%id" % ndim
         dim = "Spheral::Dim<%i> " % ndim
-        solidnodelist = "Spheral::SolidMaterial::SolidNodeList%id" % ndim
+        solidnodelist = "Spheral::NodeSpace::SolidNodeList%id" % ndim
         vectordoublefield = "Spheral::FieldSpace::VectorDoubleField%id" % ndim
         database = "Spheral::DataBaseSpace::DataBase%id" % ndim
         state = "Spheral::State%id" % ndim

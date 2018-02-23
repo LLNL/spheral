@@ -7,23 +7,23 @@
 // Created by JMO, Wed Sep  8 21:54:50 PDT 1999
 //----------------------------------------------------------------------------//
 
-#include <algorithm>
-
+#include "FileIO/FileIO.hh"
 #include "Geometry/Dimension.hh"
-#include "NodeList.hh"
 #include "NodeListRegistrar.hh"
 #include "Field/Field.hh"
 #include "Field/NodeIterators.hh"
 #include "Neighbor/Neighbor.hh"
 #include "DataBase/State.hh"
-#include "FileIO/FileIO.hh"
 #include "Kernel/TableKernel.hh"
 #include "Utilities/DBC.hh"
 #include "Utilities/packElement.hh"
-
 #include "Hydro/HydroFieldNames.hh"
 #include "DataBase/IncrementState.hh"
 #include "DataBase/ReplaceState.hh"
+
+#include "NodeList.hh"
+
+#include <algorithm>
 
 namespace Spheral {
 namespace NodeSpace {
@@ -186,18 +186,18 @@ NodeList<Dimension>::ghostNodeEnd() const {
 //------------------------------------------------------------------------------
 template<typename Dimension>
 MasterNodeIterator<Dimension>
-NodeList<Dimension>::masterNodeBegin() const {
-  CHECK(mNeighborPtr != 0);
-  if (mNeighborPtr->numMaster() > 0) {
+NodeList<Dimension>::masterNodeBegin(const std::vector<std::vector<int>>& masterLists) const {
+  REQUIRE(mNeighborPtr != 0);
+  REQUIRE(masterLists.size() == 1);
+  if (masterLists[0].size() > 0) {
     return MasterNodeIterator<Dimension>(mDummyList.begin(),
                                          mDummyList.begin(),
                                          mDummyList.end(),
-                                         mNeighborPtr->masterBegin());
+                                         masterLists[0].begin(),
+                                         masterLists);
   } else {
-    return MasterNodeIterator<Dimension>(mDummyList.end(),
-                                         mDummyList.begin(),
-                                         mDummyList.end());
-  }    
+    return this->masterNodeEnd();
+  }
 }
 
 template<typename Dimension>
@@ -205,7 +205,8 @@ MasterNodeIterator<Dimension>
 NodeList<Dimension>::masterNodeEnd() const {
   return MasterNodeIterator<Dimension>(mDummyList.end(),
                                        mDummyList.begin(),
-                                       mDummyList.end());
+                                       mDummyList.end(),
+                                       std::vector<std::vector<int>>());
 }
 
 //------------------------------------------------------------------------------
@@ -213,18 +214,18 @@ NodeList<Dimension>::masterNodeEnd() const {
 //------------------------------------------------------------------------------
 template<typename Dimension>
 CoarseNodeIterator<Dimension>
-NodeList<Dimension>::coarseNodeBegin() const {
-  CHECK(mNeighborPtr != 0);
-  if (mNeighborPtr->numCoarse() > 0) {
+NodeList<Dimension>::coarseNodeBegin(const std::vector<std::vector<int>>& coarseNeighbors) const {
+  REQUIRE(mNeighborPtr != 0);
+  REQUIRE(coarseNeighbors.size() == 1);
+  if (coarseNeighbors[0].size() > 0) {
     return CoarseNodeIterator<Dimension>(mDummyList.begin(),
                                          mDummyList.begin(),
                                          mDummyList.end(),
-                                         mNeighborPtr->coarseNeighborBegin());
+                                         coarseNeighbors[0].begin(),
+                                         coarseNeighbors);
   } else {
-    return CoarseNodeIterator<Dimension>(mDummyList.end(),
-                                         mDummyList.begin(),
-                                         mDummyList.end());
-  }    
+    return this->coarseNodeEnd();
+  }
 }
 
 template<typename Dimension>
@@ -232,7 +233,8 @@ CoarseNodeIterator<Dimension>
 NodeList<Dimension>::coarseNodeEnd() const {
   return CoarseNodeIterator<Dimension>(mDummyList.end(),
                                        mDummyList.begin(),
-                                       mDummyList.end());
+                                       mDummyList.end(),
+                                       std::vector<std::vector<int>>());
 }
 
 //------------------------------------------------------------------------------
@@ -240,18 +242,18 @@ NodeList<Dimension>::coarseNodeEnd() const {
 //------------------------------------------------------------------------------
 template<typename Dimension>
 RefineNodeIterator<Dimension>
-NodeList<Dimension>::refineNodeBegin() const {
-  CHECK(mNeighborPtr != 0);
-  if (mNeighborPtr->numRefine() > 0) {
+NodeList<Dimension>::refineNodeBegin(const std::vector<std::vector<int>>& refineNeighbors) const {
+  REQUIRE(mNeighborPtr != 0);
+  REQUIRE(refineNeighbors.size() == 1);
+  if (refineNeighbors[0].size() > 0) {
     return RefineNodeIterator<Dimension>(mDummyList.begin(),
                                          mDummyList.begin(),
                                          mDummyList.end(),
-                                         mNeighborPtr->refineNeighborBegin());
+                                         refineNeighbors[0].begin(),
+                                         refineNeighbors);
   } else {
-    return RefineNodeIterator<Dimension>(mDummyList.end(),
-                                         mDummyList.begin(),
-                                         mDummyList.end());
-  }    
+    return this->refineNodeEnd();
+  }
 }
 
 template<typename Dimension>
@@ -259,9 +261,9 @@ RefineNodeIterator<Dimension>
 NodeList<Dimension>::refineNodeEnd() const {
   return RefineNodeIterator<Dimension>(mDummyList.end(),
                                        mDummyList.begin(),
-                                       mDummyList.end());
+                                       mDummyList.end(),
+                                       std::vector<std::vector<int>>());
 }
-
 
 //------------------------------------------------------------------------------
 // Set the mass field.

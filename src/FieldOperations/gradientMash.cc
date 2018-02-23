@@ -60,16 +60,17 @@ gradientMash(const FieldList<Dimension, DataType>& fieldList,
 
       // We will do the batch of master nodes associated with this node together.
       // Set the neighbor information.
-      fieldList.setMasterNodeLists(position(nodeItr), Hfield(nodeItr));
+      vector<vector<int>> masterLists, coarseNeighbors, refineNeighbors;
+      fieldList.setMasterNodeLists(position(nodeItr), Hfield(nodeItr), masterLists, coarseNeighbors);
 
       // Now loop over all the master nodes.
-      for (MasterNodeIterator<Dimension> masterItr = fieldList.masterNodeBegin();
+      for (MasterNodeIterator<Dimension> masterItr = fieldList.masterNodeBegin(masterLists);
            masterItr < fieldList.masterNodeEnd();
            ++masterItr) {
         CHECK(flagNodeDone[masterItr.fieldID()][masterItr.nodeID()] == false);
 
         // Set the refined neighbor information for this master node.
-        fieldList.setRefineNodeLists(position(masterItr), Hfield(masterItr));
+        fieldList.setRefineNodeLists(position(masterItr), Hfield(masterItr), coarseNeighbors, refineNeighbors);
 
         // Loop over the refined neighbors.
         const Vector& ri = position(masterItr);
@@ -78,7 +79,7 @@ gradientMash(const FieldList<Dimension, DataType>& fieldList,
         const DataType& Fi = fieldList(masterItr);
 
         Scalar normalization = weighti*kernel(0.0, 1.0);
-        for (RefineNodeIterator<Dimension> neighborItr = fieldList.refineNodeBegin();
+        for (RefineNodeIterator<Dimension> neighborItr = fieldList.refineNodeBegin(refineNeighbors);
              neighborItr < fieldList.refineNodeEnd();
              ++neighborItr) {
           if (neighborItr != masterItr) {
@@ -198,16 +199,17 @@ gradientMash2(const FieldList<Dimension, DataType>& fieldList,
 
       // We will do the batch of master nodes associated with this node together.
       // Set the neighbor information.
-      fieldList.setMasterNodeLists(position(nodeItr), Hfield(nodeItr));
+      vector<vector<int>> masterLists, coarseNeighbors, refineNeighbors;
+      fieldList.setMasterNodeLists(position(nodeItr), Hfield(nodeItr), masterLists, coarseNeighbors);
 
       // Now loop over all the master nodes.
-      for (MasterNodeIterator<Dimension> masterItr = fieldList.masterNodeBegin();
+      for (MasterNodeIterator<Dimension> masterItr = fieldList.masterNodeBegin(masterLists);
            masterItr < fieldList.masterNodeEnd();
            ++masterItr) {
         CHECK(flagNodeDone[masterItr.fieldID()][masterItr.nodeID()] == false);
 
         // Set the refined neighbor information for this master node.
-        fieldList.setRefineNodeLists(position(masterItr), Hfield(masterItr));
+        fieldList.setRefineNodeLists(position(masterItr), Hfield(masterItr), coarseNeighbors, refineNeighbors);
 
         // Loop over the refined neighbors.
         const Vector& ri = position(masterItr);
@@ -219,7 +221,7 @@ gradientMash2(const FieldList<Dimension, DataType>& fieldList,
         // First identify the fitting parameters for a linear model (w_j = a + b eta_j).
         Scalar totalWeight = 0.0;
         Vector rCenter;
-        for (RefineNodeIterator<Dimension> neighborItr = fieldList.refineNodeBegin();
+        for (RefineNodeIterator<Dimension> neighborItr = fieldList.refineNodeBegin(refineNeighbors);
              neighborItr < fieldList.refineNodeEnd();
              ++neighborItr) {
 
@@ -300,16 +302,17 @@ gradientMash2(const FieldList<Dimension, DataType>& fieldList,
 
       // We will do the batch of master nodes associated with this node together.
       // Set the neighbor information.
-      fieldList.setMasterNodeLists(position(nodeItr), Hfield(nodeItr));
+      vector<vector<int>> masterLists, coarseNeighbors, refineNeighbors;
+      fieldList.setMasterNodeLists(position(nodeItr), Hfield(nodeItr), masterLists, coarseNeighbors);
 
       // Now loop over all the master nodes.
-      for (MasterNodeIterator<Dimension> masterItr = fieldList.masterNodeBegin();
+      for (MasterNodeIterator<Dimension> masterItr = fieldList.masterNodeBegin(masterLists);
            masterItr < fieldList.masterNodeEnd();
            ++masterItr) {
         CHECK(flagNodeDone[masterItr.fieldID()][masterItr.nodeID()] == false);
 
         // Set the refined neighbor information for this master node.
-        fieldList.setRefineNodeLists(position(masterItr), Hfield(masterItr));
+        fieldList.setRefineNodeLists(position(masterItr), Hfield(masterItr), coarseNeighbors, refineNeighbors);
 
         // Loop over the refined neighbors.
         const Vector& ri = position(masterItr);
@@ -318,7 +321,7 @@ gradientMash2(const FieldList<Dimension, DataType>& fieldList,
 
         // First calculate the smoothed estimate of Fi.
         Scalar normalization = 0.0;
-        for (RefineNodeIterator<Dimension> neighborItr = fieldList.refineNodeBegin();
+        for (RefineNodeIterator<Dimension> neighborItr = fieldList.refineNodeBegin(refineNeighbors);
              neighborItr < fieldList.refineNodeEnd();
              ++neighborItr) {
 
@@ -401,16 +404,17 @@ gradientMash2(const FieldList<Dimension, DataType>& fieldList,
 
       // We will do the batch of master nodes associated with this node together.
       // Set the neighbor information.
-      fieldList.setMasterNodeLists(position(nodeItr), Hfield(nodeItr));
+      vector<vector<int>> masterLists, coarseNeighbors, refineNeighbors;
+      fieldList.setMasterNodeLists(position(nodeItr), Hfield(nodeItr), masterLists, coarseNeighbors);
 
       // Now loop over all the master nodes.
-      for (MasterNodeIterator<Dimension> masterItr = fieldList.masterNodeBegin();
+      for (MasterNodeIterator<Dimension> masterItr = fieldList.masterNodeBegin(masterLists);
            masterItr < fieldList.masterNodeEnd();
            ++masterItr) {
         CHECK(flagNodeDone[masterItr.fieldID()][masterItr.nodeID()] == false);
 
         // Set the refined neighbor information for this master node.
-        fieldList.setRefineNodeLists(position(masterItr), Hfield(masterItr));
+        fieldList.setRefineNodeLists(position(masterItr), Hfield(masterItr), coarseNeighbors, refineNeighbors);
 
         // Loop over the refined neighbors.
         const Vector& ri = position(masterItr);
@@ -420,7 +424,7 @@ gradientMash2(const FieldList<Dimension, DataType>& fieldList,
         const DataType& Fi = smoothFieldList(masterItr);
 
         Scalar normalization = 0.0;
-        for (RefineNodeIterator<Dimension> neighborItr = fieldList.refineNodeBegin();
+        for (RefineNodeIterator<Dimension> neighborItr = fieldList.refineNodeBegin(refineNeighbors);
              neighborItr < fieldList.refineNodeEnd();
              ++neighborItr) {
 

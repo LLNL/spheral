@@ -94,12 +94,15 @@ public:
   // Set the master grid cell info for all NodeLists in the DataBase.
   void setMasterNodeLists(DataBaseSpace::DataBase<Dimension>& dataBase,
                           const NeighborSpace::GridCellIndex<Dimension>& gridCell,
-                          const int gridLevel) const;
+                          const int gridLevel,
+                          std::vector<std::vector<int>>& masterLists,
+                          std::vector<std::vector<int>>& coarseNeighbors) const;
 
   // Gather up the unassigned coarse neighbor nodes, filling in the global node indices and work.
   void gatherAvailableCoarseNodes(const DataBaseSpace::DataBase<Dimension>& dataBase,
                                   const std::vector<DomainNode<Dimension> >& nodeDistribution,
                                   const FieldSpace::FieldList<Dimension, Scalar>& work,
+                                  const std::vector<std::vector<int>>& localCoarseNeighbors,
                                   std::vector<int>& globalNodeIndices,
                                   std::vector<Scalar>& globalNodeWork) const;
 

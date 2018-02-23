@@ -23,19 +23,20 @@ INSTSRCTARGETS = \
 	$(srcdir)/computeHVolumesInst.cc.py \
 	$(srcdir)/computeNeighborHullInst.cc.py \
 	$(srcdir)/CRKSPHHydroBaseInst.cc.py \
+	$(srcdir)/CRKSPHVariantInst.cc.py \
 	$(srcdir)/interpolateCRKSPHInst.cc.py \
 	$(srcdir)/gradientCRKSPHInst.cc.py \
 	$(srcdir)/HVolumePolicyInst.cc.py \
 	$(srcdir)/detectSurfaceInst.cc.py \
 	$(srcdir)/ContinuityVolumePolicyInst.cc.py \
-	$(srcdir)/SolidCRKSPHHydroBaseInst.cc.py
+	$(srcdir)/SolidCRKSPHHydroBaseInst.cc.py \
+	$(srcdir)/flagSurfaceNeighborsInst.cc.py
 
 SRCTARGETS = \
 	$(srcdir)/centerOfMass.cc
 
 PYTHONTARGETS = \
-	$(srcdir)/CRKSPHHydros.py \
-	$(srcdir)/SolidCRKSPHHydros.py
+	$(srcdir)/CRKSPHHydros.py
 
 # A few of our target files are only valid for certain dimensions.
 ifeq ("yes", "@INST1D@")
@@ -49,9 +50,6 @@ SRCTARGETS += \
 SRCTARGETS += \
 	$(srcdir)/CRKSPHHydroBaseRZ.cc \
 	$(srcdir)/SolidCRKSPHHydroBaseRZ.cc
-PYTHONTARGETS += \
-	$(srcdir)/CRKSPHHydrosRZ.py \
-	$(srcdir)/SolidCRKSPHHydrosRZ.py
 endif
 
 ifeq ("yes", "@INST3D@")

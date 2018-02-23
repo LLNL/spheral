@@ -180,29 +180,35 @@ template<typename Dimension>
 void
 TreeNeighbor<Dimension>::
 setMasterList(const Vector& position,
-              const Scalar& H) {
+              const Scalar& H,
+              std::vector<int>& masterList,
+              std::vector<int>& coarseNeighbors) const {
   REQUIRE(H > 0.0);
   const Scalar h = 1.0/H;
-  this->setTreeMasterList(position, h);
+  this->setTreeMasterList(position, h, masterList, coarseNeighbors);
 }
 
 template<typename Dimension>
 void
 TreeNeighbor<Dimension>::
 setMasterList(const Vector& position,
-              const SymTensor& H) {
+              const SymTensor& H,
+              std::vector<int>& masterList,
+              std::vector<int>& coarseNeighbors) const {
   REQUIRE(H.Determinant() > 0.0);
   const Vector hinvValues = H.eigenValues();
   CHECK(hinvValues.minElement() > 0.0);
   const Scalar h = 1.0/hinvValues.minElement();
-  this->setTreeMasterList(position, h);
+  this->setTreeMasterList(position, h, masterList, coarseNeighbors);
 }
 
 template<typename Dimension>
 void
 TreeNeighbor<Dimension>::
-setMasterList(const Vector& position) {
-  this->setTreeMasterList(position, 1.0e-30*mBoxLength);
+setMasterList(const Vector& position,
+              std::vector<int>& masterList,
+              std::vector<int>& coarseNeighbors) const {
+  this->setTreeMasterList(position, 1.0e-30*mBoxLength, masterList, coarseNeighbors);
 }
 
 //------------------------------------------------------------------------------
@@ -212,25 +218,31 @@ template<typename Dimension>
 void
 TreeNeighbor<Dimension>::
 setRefineNeighborList(const Vector& position,
-                      const Scalar& H) {
+                      const Scalar& H,
+                      const std::vector<int>& coarseNeighbors,
+                      std::vector<int>& refineNeighbors) const {
   REQUIRE(H > 0.0);
-  this->setTreeRefineNeighborList(position, H*SymTensor::one);
+  this->setTreeRefineNeighborList(position, H*SymTensor::one, coarseNeighbors, refineNeighbors);
 }
 
 template<typename Dimension>
 void
 TreeNeighbor<Dimension>::
 setRefineNeighborList(const Vector& position,
-                      const SymTensor& H) {
+                      const SymTensor& H,
+                      const std::vector<int>& coarseNeighbors,
+                      std::vector<int>& refineNeighbors) const {
   REQUIRE(H.Determinant() > 0.0);
-  this->setTreeRefineNeighborList(position, H);
+  this->setTreeRefineNeighborList(position, H, coarseNeighbors, refineNeighbors);
 }
 
 template<typename Dimension>
 void
 TreeNeighbor<Dimension>::
-setRefineNeighborList(const Vector& position) {
-  this->setTreeRefineNeighborList(position, 1.0e30*mBoxLength*SymTensor::one);
+setRefineNeighborList(const Vector& position,
+                      const std::vector<int>& coarseNeighbors,
+                      std::vector<int>& refineNeighbors) const {
+  this->setTreeRefineNeighborList(position, 1.0e30*mBoxLength*SymTensor::one, coarseNeighbors, refineNeighbors);
 }
 
 //------------------------------------------------------------------------------
@@ -240,13 +252,13 @@ template<typename Dimension>
 void
 TreeNeighbor<Dimension>::
 setMasterList(const GeomPlane<Dimension>& enterPlane,
-              const GeomPlane<Dimension>& exitPlane) {
+              const GeomPlane<Dimension>& exitPlane,
+              std::vector<int>& masterList,
+              std::vector<int>& coarseNeighbors) const {
 
   // Get the master and coarse lists.
-  vector<int>& masterList = this->accessMasterList();
-  vector<int>& coarseList = this->accessCoarseNeighborList();
-  masterList = vector<int>();
-  coarseList = vector<int>();
+  masterList.clear();
+  coarseNeighbors.clear();
   if (mTree.size() > 0) {
     CHECK(mTree[0].size() == 1);
     CHECK(mTree[0].begin()->second.members.size() == 0);
@@ -290,13 +302,13 @@ setMasterList(const GeomPlane<Dimension>& enterPlane,
                ++keyItr) {
             this->extractCellIndices(*keyItr, ix, iy, iz);
             const vector<int> neighbors = this->findTreeNeighbors(ilevel, ix, iy, iz);
-            copy(neighbors.begin(), neighbors.end(), back_inserter(coarseList));
+            copy(neighbors.begin(), neighbors.end(), back_inserter(coarseNeighbors));
           }
         }
 
         // Does this cell have members in range of the exit plane?
         if (exitCheck and cell.members.size() > 0) {
-          copy(cell.members.begin(), cell.members.end(), back_inserter(coarseList));
+          copy(cell.members.begin(), cell.members.end(), back_inserter(coarseNeighbors));
 
           // Map the cell key through to the entrance plane.  Any nodes we interact
           // with on that side are potential masters.
@@ -324,8 +336,8 @@ setMasterList(const GeomPlane<Dimension>& enterPlane,
     // Remove duplicates from the master and coarse sets.
     sort(masterList.begin(), masterList.end());
     masterList.erase(unique(masterList.begin(), masterList.end()), masterList.end());
-    sort(coarseList.begin(), coarseList.end());
-    coarseList.erase(unique(coarseList.begin(), coarseList.end()), coarseList.end());
+    sort(coarseNeighbors.begin(), coarseNeighbors.end());
+    coarseNeighbors.erase(unique(coarseNeighbors.begin(), coarseNeighbors.end()), coarseNeighbors.end());
 
     // Ghost have to be allowed to be master for boundary conditions to work!
     // // We don't allow ghost nodes to be masters.
@@ -343,12 +355,12 @@ TreeNeighbor<Dimension>::
 updateNodes() {
 
   // Clear our internal data.
-  mTree = Tree();
+  mTree.clear();
 
   // Grab the NodeList state.
-  const NodeList<Dimension>& nodes = this->nodeList();
-  const Field<Dimension, Vector>& positions = nodes.positions();
-  const Field<Dimension, SymTensor>& H = nodes.Hfield();
+  const auto& nodes = this->nodeList();
+  const auto& positions = nodes.positions();
+  const auto& H = nodes.Hfield();
 
   // // Recompute the current box size.  We assume xmin & xmax have
   // // already been set.
@@ -358,9 +370,62 @@ updateNodes() {
 
   // Walk all the nodes and add them to the tree.
   const size_t n = nodes.numNodes();
-  for (unsigned i = 0; i != n; ++i) {
-    this->addNodeToTree(positions(i), H(i), i);
+#pragma omp parallel
+  {
+    Tree tree_local;
+#pragma omp for
+    for (unsigned i = 0; i < n; ++i) {
+      this->addNodeToTree(positions(i), H(i), i, tree_local);
+    }
+
+    // Sort each Cell's info.
+    for (auto klevel = 0; klevel < tree_local.size(); ++klevel) {
+      for (auto& keycellt: tree_local[klevel]) {
+        auto& cellt = keycellt.second;
+        std::sort(cellt.daughters.begin(), cellt.daughters.end());
+        std::sort(cellt.members.begin(), cellt.members.end());
+      }
+    }
+
+    // Union the thread local trees.
+#pragma omp critical
+    {
+      mTree.resize(std::max(mTree.size(), tree_local.size()));
+      for (auto klevel = 0; klevel < tree_local.size(); ++klevel) {
+        for (const auto& keycellt: tree_local[klevel]) {
+          const auto key = keycellt.first;
+          const auto& cellt = keycellt.second;
+          auto itr = mTree[klevel].find(key);
+          if (itr == mTree[klevel].end()) {
+            mTree[klevel][key] = cellt;
+          } else {
+            auto& cellm = itr->second; // mTree[klevel][key];
+            vector<CellKey> union_daughters;
+            vector<int> union_members;
+            union_members.reserve(cellm.members.size() + cellt.members.size());
+            std::set_union(cellm.daughters.begin(), cellm.daughters.end(),
+                           cellt.daughters.begin(), cellt.daughters.end(),
+                           std::back_inserter(union_daughters));
+            std::set_union(cellm.members.begin(), cellm.members.end(),
+                           cellt.members.begin(), cellt.members.end(),
+                           std::back_inserter(union_members));
+            cellm.daughters = union_daughters;
+            cellm.members = union_members;
+          }
+        }
+      }
+    }
   }
+
+  // // Reduce to unique cells.
+  // for (auto& keycellmaps: mTree) {
+  //   for (auto& keycell: keycellmaps) {
+  //     auto& cell = keycell.second;
+  //     std::sort(cell.daughters.begin(), cell.daughters.end());
+  //     cell.daughters.erase(std::unique(cell.daughters.begin(), cell.daughters.end()), cell.daughters.end());
+  //     cell.members.erase(std::unique(cell.members.begin(), cell.members.end()), cell.members.end());
+  //   }
+  // }
 
   // Set the daughter pointers.
   constructDaughterPtrs(mTree);
@@ -422,11 +487,22 @@ template<typename Dimension>
 std::string
 TreeNeighbor<Dimension>::
 dumpTree(const bool globalTree) const {
+  return this->dumpTree(mTree, globalTree);
+}
+
+//------------------------------------------------------------------------------
+// dumpTree
+//------------------------------------------------------------------------------
+template<typename Dimension>
+std::string
+TreeNeighbor<Dimension>::
+dumpTree(const Tree& tree,
+         const bool globalTree) const {
   stringstream ss;
   CellKey key, ix, iy, iz;
   const unsigned numProcs = Process::getTotalNumberOfProcesses();
   const unsigned rank = Process::getRank();
-  unsigned nlevels = mTree.size();
+  unsigned nlevels = tree.size();
   if (globalTree) nlevels = allReduce(nlevels, MPI_MAX, Communicator::communicator());
 
   ss << "Tree : nlevels = " << nlevels << "\n";
@@ -435,10 +511,10 @@ dumpTree(const bool globalTree) const {
     // Gather up the level cells and sort them.
     vector<Cell> cells;
     vector<char> localBuffer;
-    cells.reserve(mTree[ilevel].size());
-    if (ilevel < mTree.size()) {
-      for (typename TreeLevel::const_iterator itr = mTree[ilevel].begin();
-           itr != mTree[ilevel].end();
+    cells.reserve(tree[ilevel].size());
+    if (ilevel < tree.size()) {
+      for (typename TreeLevel::const_iterator itr = tree[ilevel].begin();
+           itr != tree[ilevel].end();
            ++itr) {
         cells.push_back(itr->second);
         this->serialize(itr->second, localBuffer);
@@ -467,7 +543,7 @@ dumpTree(const bool globalTree) const {
     cells.erase(unique(cells.begin(), cells.end()), cells.end());
 
     ss << "--------------------------------------------------------------------------------\n" 
-       << " Level " << ilevel << " : numCells = " << cells.size() << "\n";
+       << " Level " << ilevel << " : boxsize = " << mBoxLength/(1 << ilevel) << " : numCells = " << cells.size() << "\n";
     for (typename vector<Cell>::const_iterator itr = cells.begin();
          itr != cells.end();
          ++itr) {
@@ -494,11 +570,22 @@ template<typename Dimension>
 std::string
 TreeNeighbor<Dimension>::
 dumpTreeStatistics(const bool globalTree) const {
+  return this->dumpTreeStatistics(mTree, globalTree);
+}
+
+//------------------------------------------------------------------------------
+// dumpTreeStatistics
+//------------------------------------------------------------------------------
+template<typename Dimension>
+std::string
+TreeNeighbor<Dimension>::
+dumpTreeStatistics(const Tree& tree,
+                   const bool globalTree) const {
   stringstream ss;
   CellKey key, ix, iy, iz;
   const unsigned numProcs = Process::getTotalNumberOfProcesses();
   const unsigned rank = Process::getRank();
-  unsigned nlevels = mTree.size();
+  unsigned nlevels = tree.size();
   if (globalTree) nlevels = allReduce(nlevels, MPI_MAX, Communicator::communicator());
 
   ss << "Tree : nlevels = " << nlevels << "\n";
@@ -507,10 +594,10 @@ dumpTreeStatistics(const bool globalTree) const {
     // Gather up the level cells and sort them.
     vector<Cell> cells;
     vector<char> localBuffer;
-    cells.reserve(mTree[ilevel].size());
-    if (ilevel < mTree.size()) {
-      for (typename TreeLevel::const_iterator itr = mTree[ilevel].begin();
-           itr != mTree[ilevel].end();
+    cells.reserve(tree[ilevel].size());
+    if (ilevel < tree.size()) {
+      for (typename TreeLevel::const_iterator itr = tree[ilevel].begin();
+           itr != tree[ilevel].end();
            ++itr) {
         cells.push_back(itr->second);
         this->serialize(itr->second, localBuffer);
@@ -540,7 +627,7 @@ dumpTreeStatistics(const bool globalTree) const {
 
     // Count up how much of everything we have.
     ss << "--------------------------------------------------------------------------------\n" 
-       << " Level " << ilevel << " : numCells = " << cells.size() << "\n";
+       << " Level " << ilevel << " : boxsize = " << mBoxLength/(1 << ilevel) << " : numCells = " << cells.size() << "\n";
     unsigned nparticles = 0;
     for (typename vector<Cell>::const_iterator itr = cells.begin();
          itr != cells.end();
@@ -642,8 +729,8 @@ deserialize(vector<char>::const_iterator& bufItr,
     unsigned ncells;
     unpackElement(ncells, bufItr, endItr);
     for (unsigned i = 0; i != ncells; ++i) {
-      cell.daughters = vector<CellKey>();
-      cell.members = vector<int>();
+      cell.daughters.clear();
+      cell.members.clear();
       unpackElement(key, bufItr, endItr);
       deserialize(cell, bufItr, endItr);
       mTree[ilevel][key] = cell;
@@ -664,6 +751,67 @@ deserialize(typename TreeNeighbor<Dimension>::Cell& cell,
   unpackElement(cell.key, bufItr, endItr);
   unpackElement(cell.daughters, bufItr, endItr);
   unpackElement(cell.members, bufItr, endItr);
+}
+
+//------------------------------------------------------------------------------
+// Return the set of occupied cells.
+//------------------------------------------------------------------------------
+template<typename Dimension>
+vector<vector<typename TreeNeighbor<Dimension>::CellKey>>
+TreeNeighbor<Dimension>::
+occupiedCells() const {
+  const auto numLevels = mTree.size();
+  vector<vector<CellKey>> result(numLevels);
+  for (auto ilevel = 0; ilevel < numLevels; ++ilevel) {
+    for (const auto& keyCell: mTree[ilevel]) {
+      if (not keyCell.second.members.empty()) result[ilevel].push_back(keyCell.first);
+    }
+  }
+  return result;
+}
+
+//------------------------------------------------------------------------------
+// Set the master & coarse neighbor sets for a given tree level and cell ID.
+//------------------------------------------------------------------------------
+template<typename Dimension>
+void 
+TreeNeighbor<Dimension>::
+setTreeMasterList(const typename TreeNeighbor<Dimension>::LevelKey levelID,
+                  const typename TreeNeighbor<Dimension>::CellKey cellID,
+                  std::vector<int>& masterList,
+                  std::vector<int>& coarseNeighbors) const {
+  REQUIRE(levelID >= 0 and levelID < num1dbits);
+
+  // Get the per dimension cell indices.
+  CellKey ix_master, iy_master, iz_master;
+  extractCellIndices(cellID, ix_master, iy_master, iz_master);
+
+  // Grab the lists we're going to fill in.
+  masterList.clear();
+  coarseNeighbors.clear();
+
+  // Set the master list.
+  if (mTree.size() > levelID) {
+    auto masterItr = mTree[levelID].find(cellID);
+    if (masterItr !=  mTree[levelID].end()) {
+      masterList = masterItr->second.members;
+      // cerr << "Master cell/level " << masterItr->second.key << " / " << levelID << " : " << masterList.size() << endl;
+    }
+  }
+
+  // Set the coarse list.
+  if (mTree.size() > 0) {
+    coarseNeighbors = this->findTreeNeighbors(levelID, ix_master, iy_master, iz_master);
+  }
+
+  // Remove all ghost nodes from the master list.
+  const unsigned firstGhostNode = this->nodeList().firstGhostNode();
+  sort(masterList.begin(), masterList.end());
+  masterList.erase(lower_bound(masterList.begin(), masterList.end(), firstGhostNode), masterList.end());
+
+  // Post conditions.
+  ENSURE2(coarseNeighbors.size() >= masterList.size(), coarseNeighbors.size() << " " << masterList.size());
+  ENSURE(masterList.size() == 0 or *max_element(masterList.begin(), masterList.end()) < firstGhostNode);
 }
 
 //------------------------------------------------------------------------------
@@ -727,8 +875,9 @@ void
 TreeNeighbor<Dimension>::
 addNodeToTree(const typename Dimension::Vector& xi,
               const typename Dimension::SymTensor& Hi,
-              const unsigned i) {
-  mTree.reserve(num1dbits); // This is necessary to avoid memory errors!
+              const unsigned i,
+              Tree& tree) const {
+  tree.reserve(num1dbits); // This is necessary to avoid memory errors!
 
   // Determine the level for this point.
   const LevelKey homeLevel = this->gridLevel(Hi);
@@ -741,27 +890,22 @@ addNodeToTree(const typename Dimension::Vector& xi,
   while (ilevel <= homeLevel) {
 
     // Do we need to add another level to the tree?
-    if (ilevel == mTree.size()) mTree.push_back(TreeLevel());
+    if (ilevel == tree.size()) tree.push_back(TreeLevel());
 
     // Create the key for the cell containing this particle on this level.
     buildCellKey(ilevel, xi, key, ix, iy, iz);
-    itr = mTree[ilevel].find(key);
+    itr = tree[ilevel].find(key);
 
     // Is this a new cell?
-    if (itr == mTree[ilevel].end()) {
-      mTree[ilevel][key] = Cell(key);
-      itr = mTree[ilevel].find(key);
+    if (itr == tree[ilevel].end()) {
+      tree[ilevel][key] = Cell(key);
+      itr = tree[ilevel].find(key);
     }
 
     // Link this cell as a daughter of its parent.
     if (ilevel > 0) {
-      CHECK(mTree[ilevel - 1].find(parentKey) != mTree[ilevel - 1].end());
-      addDaughter(mTree[ilevel - 1][parentKey], key);
-    }
-
-    // Is this the final level for this node?
-    if (ilevel == homeLevel) {
-      itr->second.members.push_back(i);
+      CHECK(tree[ilevel - 1].find(parentKey) != tree[ilevel - 1].end());
+      addDaughter(tree[ilevel - 1][parentKey], key);
     }
 
     // Prepare for the next level.
@@ -769,6 +913,8 @@ addNodeToTree(const typename Dimension::Vector& xi,
     ++ilevel;
   }
 
+  // Add the node to it's final cell.
+  itr->second.members.push_back(i);
 }
 
 //------------------------------------------------------------------------------
@@ -778,20 +924,15 @@ template<typename Dimension>
 void
 TreeNeighbor<Dimension>::
 constructDaughterPtrs(typename TreeNeighbor<Dimension>::Tree& tree) const {
-  const unsigned nlevels = tree.size();
-  const unsigned n = nlevels > 0 ? nlevels - 1 : nlevels;
-  unsigned ilevel, ilevel1;
-  for (ilevel = 0; ilevel != n; ++ilevel) {
-    ilevel1 = ilevel + 1;
-    for (typename TreeLevel::iterator itr = tree[ilevel].begin();
-         itr != tree[ilevel].end();
-         ++itr) {
-      Cell& cell = itr->second;
-      cell.daughterPtrs = std::vector<Cell*>();
-      for (typename std::vector<CellKey>::const_iterator ditr = cell.daughters.begin();
-           ditr != cell.daughters.end();
-           ++ditr) {
-        cell.daughterPtrs.push_back(&(tree[ilevel1][*ditr]));
+  const auto nlevels = tree.size();
+  const auto n = nlevels > 0 ? nlevels - 1 : nlevels;
+  for (auto ilevel = 0; ilevel < n; ++ilevel) {
+    const auto ilevel1 = ilevel + 1;
+    for (auto& keyCellPair: tree[ilevel]) {
+      auto& cell = keyCellPair.second;
+      cell.daughterPtrs.clear();
+      for (const auto daughterID: cell.daughters) {
+        cell.daughterPtrs.push_back(&(tree[ilevel1][daughterID]));
       }
       CHECK(cell.daughters.size() == cell.daughterPtrs.size());
     }
@@ -805,7 +946,9 @@ template<typename Dimension>
 void 
 TreeNeighbor<Dimension>::
 setTreeMasterList(const typename Dimension::Vector& position,
-                  const double& h) {
+                  const double& h,
+                  std::vector<int>& masterList,
+                  std::vector<int>& coarseNeighbors) const {
 
   // Set the working master grid level and cell.
   CellKey masterKey, ix_master, iy_master, iz_master;
@@ -813,31 +956,8 @@ setTreeMasterList(const typename Dimension::Vector& position,
   buildCellKey(masterLevel, position, masterKey, ix_master, iy_master, iz_master);
   CHECK(masterLevel >= 0 and masterLevel < num1dbits);
 
-  // Grab the lists we're going to fill in.
-  vector<int>& masterList = this->accessMasterList();
-  vector<int>& coarseNeighborList = this->accessCoarseNeighborList();
-  masterList = vector<int>();
-  coarseNeighborList = vector<int>();
-
-  // Set the master list.
-  if (mTree.size() > masterLevel) {
-    typename TreeLevel::const_iterator masterItr = mTree[masterLevel].find(masterKey);
-    masterList = (masterItr == mTree[masterLevel].end() ? vector<int>() : masterItr->second.members);
-  }
-
-  // Set the coarse list.
-  if (mTree.size() > 0) {
-    coarseNeighborList = this->findTreeNeighbors(masterLevel, ix_master, iy_master, iz_master);
-  }
-
-  // Remove all ghost nodes from the master list.
-  const unsigned firstGhostNode = this->nodeList().firstGhostNode();
-  sort(masterList.begin(), masterList.end());
-  masterList.erase(lower_bound(masterList.begin(), masterList.end(), firstGhostNode), masterList.end());
-
-  // Post conditions.
-  ENSURE(coarseNeighborList.size() >= this->masterList().size());
-  ENSURE(masterList.size() == 0 or *max_element(masterList.begin(), masterList.end()) < firstGhostNode);
+  // We can just use the method based on IDs at this point.
+  this->setTreeMasterList(masterLevel, masterKey, masterList, coarseNeighbors);
 }
 
 //------------------------------------------------------------------------------
@@ -847,7 +967,9 @@ template<typename Dimension>
 void
 TreeNeighbor<Dimension>::
 setTreeRefineNeighborList(const typename Dimension::Vector& position,
-                          const typename Dimension::SymTensor& H) {
+                          const typename Dimension::SymTensor& H,
+                          const std::vector<int>& coarseNeighbors,
+                          std::vector<int>& refineNeighbors) const {
 
   // // Determine the maximum extent of this H tensor in each dimension.
   // const Vector extent = this->HExtent(H, this->kernelExtent());
@@ -855,9 +977,7 @@ setTreeRefineNeighborList(const typename Dimension::Vector& position,
   // const Vector maxExtent = position + extent;
 
   // Use precull to set the refined neighbor list.
-  const std::vector<int>& coarseList = this->coarseNeighborList();
-  std::vector<int>& refineList = this->accessRefineNeighborList();
-  refineList = coarseList; // this->precullList(position, position, minExtent, maxExtent, coarseList);
+  refineNeighbors = coarseNeighbors; // this->precullList(position, position, minExtent, maxExtent, coarseNeighbors);
 }
 
 //------------------------------------------------------------------------------
@@ -900,19 +1020,17 @@ findTreeNeighbors(const LevelKey& masterLevel,
     CHECK(iz_min <= iz_max and iz_max <= max1dKey);
     
     // Walk the candidate daughters on this level.
-    for (typename vector<Cell*>::const_iterator itr = remainingDaughters.begin();
-         itr != remainingDaughters.end();
-         ++itr) {
-      const Cell& cell = **itr;
+    for (auto cellPtr: remainingDaughters) {
+      const auto& cell = *cellPtr;
 
       // Is this daughter in range?
       if (keyInRange(cell.key, ix_min, iy_min, iz_min, ix_max, iy_max, iz_max)) {
         
         // Copy this cells members to the result.
-        copy(cell.members.begin(), cell.members.end(), back_inserter(result));
+        result.insert(result.end(), cell.members.begin(), cell.members.end());
 
         // Add any daughters of this cell to our candidates to check on the next level.
-        copy(cell.daughterPtrs.begin(), cell.daughterPtrs.end(), back_inserter(newDaughters));
+        newDaughters.insert(newDaughters.end(), cell.daughterPtrs.begin(), cell.daughterPtrs.end());
       }
     }
 
@@ -1052,17 +1170,11 @@ valid() const {
 
   // Make sure each node is listed only once.
   map<unsigned, unsigned> nodeCount;
-  for (typename Tree::const_iterator levelItr = mTree.begin(); 
-       levelItr != mTree.end();
-       ++levelItr) {
-    for (typename TreeLevel::const_iterator cellItr = levelItr->begin();
-         cellItr != levelItr->end();
-         ++cellItr) {
-      const Cell& cell = cellItr->second;
-      for (vector<int>::const_iterator iitr = cell.members.begin();
-           iitr != cell.members.end();
-           ++iitr) {
-        map<unsigned, unsigned>::iterator itr = nodeCount.find(*iitr);
+  for (auto levelItr = mTree.begin(); levelItr != mTree.end(); ++levelItr) {
+    for (auto cellItr = levelItr->begin(); cellItr != levelItr->end(); ++cellItr) {
+      const auto& cell = cellItr->second;
+      for (auto iitr = cell.members.begin(); iitr != cell.members.end(); ++iitr) {
+        auto itr = nodeCount.find(*iitr);
         if (itr == nodeCount.end()) {
           itr->second = 1;
         } else {
@@ -1072,11 +1184,9 @@ valid() const {
     }
   }
 
-  for (typename map<unsigned, unsigned>::const_iterator itr = nodeCount.begin();
-       itr != nodeCount.end();
-       ++itr) {
-    const unsigned i = itr->first;
-    const unsigned count = itr->second;
+  for (auto itr = nodeCount.begin(); itr != nodeCount.end(); ++itr) {
+    const auto i = itr->first;
+    const auto count = itr->second;
     if (count != 1) {
       cerr << "TreeNeighor::valid failing test of nodes uniquely assigned to cell: " << i << " " << count << endl;
       result = false;

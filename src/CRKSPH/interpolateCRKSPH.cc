@@ -7,7 +7,7 @@
 #include "Neighbor/ConnectivityMap.hh"
 #include "Kernel/TableKernel.hh"
 #include "NodeList/NodeList.hh"
-#include "SolidSPH/NodeCoupling.hh"
+#include "SPH/NodeCoupling.hh"
 #include "CRKSPHUtilities.hh"
 
 namespace Spheral {
@@ -116,9 +116,12 @@ interpolateCRKSPH(const FieldSpace::FieldList<Dimension, DataType>& fieldList,
                                                                        nodeListj, j,
                                                                        firstGhostNodej)) {
 
-              // The pair-wise modified weighting.
-              const Scalar wi = fij*weight(nodeListi, i);
-              const Scalar wj = fij*weight(nodeListj, j);
+              // Find the effective weights of i->j and j->i.
+              // const Scalar wi = fij*2.0*weight(nodeListi, i)*weight(nodeListj, j)/(weight(nodeListi, i) + weight(nodeListj, j));
+              const Scalar wi = fij*0.5*(weight(nodeListi, i) + weight(nodeListj, j));
+              const Scalar wj = wi;
+              // const Scalar wi = fij*weight(nodeListi, i);
+              // const Scalar wj = fij*weight(nodeListj, j);
 
               // Get the state for node j.
               const Vector& rj = position(nodeListj, j);
@@ -136,8 +139,8 @@ interpolateCRKSPH(const FieldSpace::FieldList<Dimension, DataType>& fieldList,
               const Vector etaj = Hj*rij;
 
               // Kernel weight.
-              const Scalar Wj = CRKSPHKernel(W, correctionOrder,  rij,  etai, Hdeti,  etaj, Hdetj, Ai, Bi, Ci);
-              const Scalar Wi = CRKSPHKernel(W, correctionOrder, -rij, -etaj, Hdetj, -etai, Hdeti, Aj, Bj, Cj);
+              const Scalar Wj = CRKSPHKernel(W, correctionOrder,  rij,  etai, Hdeti,  etaj, Hdetj, Ai, Bi, Ci, -1e100, 1e100);
+              const Scalar Wi = CRKSPHKernel(W, correctionOrder, -rij, -etaj, Hdetj, -etai, Hdeti, Aj, Bj, Cj, -1e100, 1e100);
 
               // Increment the pair-wise values.
               resulti += wj*Fj*Wj;

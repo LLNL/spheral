@@ -111,19 +111,21 @@ overlayRemapFields(const vector<Boundary<Dimension>*>& boundaries,
     for (Boundary<Dimension>* boundPtr: boundaries) boundPtr->finalizeGhostBoundary();
     neighborD.updateNodes();
     db.updateConnectivityMap(false);
-    const ConnectivityMap<Dimension>& cm = db.connectivityMap();
-    const FieldList<Dimension, Vector> position = db.fluidPosition();
-    const FieldList<Dimension, SymTensor> H = db.fluidHfield();
-    const FieldList<Dimension, Scalar> rho = db.fluidMassDensity();
-    const FieldList<Dimension, Vector> gradrho = db.newFluidFieldList(Vector::zero, "rho gradient");
-    const FieldList<Dimension, Scalar> weight = db.newFluidFieldList(1.0, "weight");
-    FieldList<Dimension, int> surfacePoint = db.newFluidFieldList(0, "surface point");
-    FieldList<Dimension, Scalar> vol = db.newFluidFieldList(0.0, "volume");
-    FieldList<Dimension, Vector> deltaMedian = db.newFluidFieldList(Vector::zero, "displacement");
-    FieldList<Dimension, FacetedVolume> cells_fl(FieldSpace::FieldStorageType::Reference);
+    const auto& cm = db.connectivityMap();
+    const auto position = db.fluidPosition();
+    const auto H = db.fluidHfield();
+    const auto rho = db.fluidMassDensity();
+    const auto gradrho = db.newFluidFieldList(Vector::zero, "rho gradient");
+    const auto weight = db.newFluidFieldList(1.0, "weight");
+    const auto voidPoint = db.newFluidFieldList(int(1), "void point");
+    auto etaVoidPoints = db.newFluidFieldList(vector<Vector>(), "eta void points");
+    auto surfacePoint = db.newFluidFieldList(0, "surface point");
+    auto vol = db.newFluidFieldList(0.0, "volume");
+    auto deltaMedian = db.newFluidFieldList(Vector::zero, "displacement");
+    FieldList<Dimension, FacetedVolume> cells_fl(FieldSpace::FieldStorageType::ReferenceFields);
     cells_fl.appendField(localDonorCells);
-    CRKSPHSpace::computeVoronoiVolume(position, H, rho, gradrho, cm, 4.0/donorNodeListPtr->nodesPerSmoothingScale(), vector<FacetedVolume>(), vector<vector<FacetedVolume>>(), weight,
-                                      surfacePoint, vol, deltaMedian, cells_fl);
+    CRKSPHSpace::computeVoronoiVolume(position, H, rho, gradrho, cm, vector<FacetedVolume>(), vector<vector<FacetedVolume>>(), boundaries, weight, voidPoint,
+                                      surfacePoint, vol, deltaMedian, etaVoidPoints, cells_fl);
     const_cast<NodeList<Dimension>*>(donorNodeListPtr)->numGhostNodes(0);
     neighborD.updateNodes();
     // cerr << "Donor volume range: " << vol.min() << " " << vol.max() << endl;
@@ -139,19 +141,21 @@ overlayRemapFields(const vector<Boundary<Dimension>*>& boundaries,
     for (Boundary<Dimension>* boundPtr: boundaries) boundPtr->finalizeGhostBoundary();
     neighborA.updateNodes();
     db.updateConnectivityMap(false);
-    const ConnectivityMap<Dimension>& cm = db.connectivityMap();
-    const FieldList<Dimension, Vector> position = db.fluidPosition();
-    const FieldList<Dimension, SymTensor> H = db.fluidHfield();
-    const FieldList<Dimension, Scalar> rho = db.fluidMassDensity();
-    const FieldList<Dimension, Vector> gradrho = db.newFluidFieldList(Vector::zero, "rho gradient");
-    const FieldList<Dimension, Scalar> weight = db.newFluidFieldList(1.0, "weight");
-    FieldList<Dimension, int> surfacePoint = db.newFluidFieldList(0, "surface point");
-    FieldList<Dimension, Scalar> vol = db.newFluidFieldList(0.0, "volume");
-    FieldList<Dimension, Vector> deltaMedian = db.newFluidFieldList(Vector::zero, "displacement");
-    FieldList<Dimension, FacetedVolume> cells_fl(FieldSpace::FieldStorageType::Reference);
+    const auto& cm = db.connectivityMap();
+    const auto position = db.fluidPosition();
+    const auto H = db.fluidHfield();
+    const auto rho = db.fluidMassDensity();
+    const auto gradrho = db.newFluidFieldList(Vector::zero, "rho gradient");
+    const auto weight = db.newFluidFieldList(1.0, "weight");
+    const auto voidPoint = db.newFluidFieldList(int(1), "void point");
+    auto etaVoidPoints = db.newFluidFieldList(vector<Vector>(), "eta void points");
+    auto surfacePoint = db.newFluidFieldList(0, "surface point");
+    auto vol = db.newFluidFieldList(0.0, "volume");
+    auto deltaMedian = db.newFluidFieldList(Vector::zero, "displacement");
+    FieldList<Dimension, FacetedVolume> cells_fl(FieldSpace::FieldStorageType::ReferenceFields);
     cells_fl.appendField(localAcceptorCells);
-    CRKSPHSpace::computeVoronoiVolume(position, H, rho, gradrho, cm, 4.0/acceptorNodeListPtr->nodesPerSmoothingScale(), vector<FacetedVolume>(), vector<vector<FacetedVolume>>(), weight,
-                                      surfacePoint, vol, deltaMedian, cells_fl);
+    CRKSPHSpace::computeVoronoiVolume(position, H, rho, gradrho, cm, vector<FacetedVolume>(), vector<vector<FacetedVolume>>(), boundaries, weight, voidPoint,
+                                      surfacePoint, vol, deltaMedian, etaVoidPoints, cells_fl);
     const_cast<NodeList<Dimension>*>(acceptorNodeListPtr)->numGhostNodes(0);
     neighborA.updateNodes();
     // cerr << "Acceptor volume range: " << vol.min() << " " << vol.max() << endl;
@@ -204,11 +208,10 @@ overlayRemapFields(const vector<Boundary<Dimension>*>& boundaries,
     CHECK(bufItr == buffer.end());
 
     for (unsigned i = 0; i != donorN; ++i) {
-      neighborA.setMasterList(donorPos[i], donorH[i]);
-      neighborA.setRefineNeighborList(donorPos[i], donorH[i]);
-      for (typename Neighbor<Dimension>::const_iterator jitr = neighborA.refineNeighborBegin();
-           jitr != neighborA.refineNeighborEnd();
-           ++jitr) {
+      vector<int> Amasters, Acoarse, Arefine;
+      neighborA.setMasterList(donorPos[i], donorH[i], Amasters, Acoarse);
+      neighborA.setRefineNeighborList(donorPos[i], donorH[i], Acoarse, Arefine);
+      for (auto jitr = Arefine.begin(); jitr < Arefine.end(); ++jitr) {
         const int j = *jitr;
         if (donorCells[i].intersect(localAcceptorCells(j))) {
           const vector<Facet>& facets = localAcceptorCells(j).facets();
@@ -352,11 +355,10 @@ overlayRemapFields(const vector<Boundary<Dimension>*>& boundaries,
   Field<Dimension, vector<unsigned>> intersectIndices("intersection indices", *donorNodeListPtr);
   Field<Dimension, vector<Scalar>> intersectVols("intesection volumes", *donorNodeListPtr);
   for (unsigned i = 0; i != nD; ++i) {
-    neighborA.setMasterList(posD(i), HD(i));
-    neighborA.setRefineNeighborList(posD(i), HD(i));
-    for (typename Neighbor<Dimension>::const_iterator jitr = neighborA.refineNeighborBegin();
-         jitr != neighborA.refineNeighborEnd();
-         ++jitr) {
+    vector<int> Amasters, Acoarse, Arefine;
+    neighborA.setMasterList(posD(i), HD(i), Amasters, Acoarse);
+    neighborA.setRefineNeighborList(posD(i), HD(i), Acoarse, Arefine);
+    for (auto jitr = Arefine.begin(); jitr < Arefine.end(); ++jitr) {
       const int j = *jitr;
       if (localDonorCells(i).intersect(localAcceptorCells(j))) {
         const vector<Facet>& facets = localAcceptorCells(j).facets();

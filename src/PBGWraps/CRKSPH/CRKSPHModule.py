@@ -31,6 +31,7 @@ class CRKSPH:
 generichydro%(dim)id = findObject(PhysicsSpace, "GenericHydro%(dim)id")
 self.CRKSPHHydroBase%(dim)id = addObject(self.space, "CRKSPHHydroBase%(dim)id", allow_subclassing=True, parent=generichydro%(dim)id)
 self.SolidCRKSPHHydroBase%(dim)id = addObject(self.space, "SolidCRKSPHHydroBase%(dim)id", allow_subclassing=True, parent=self.CRKSPHHydroBase%(dim)id)
+self.CRKSPHVariant%(dim)id = addObject(self.space, "CRKSPHVariant%(dim)id", allow_subclassing=True, parent=self.CRKSPHHydroBase%(dim)id)
 ''' % {"dim" : dim})
         self.CRKOrder = self.space.add_enum("CRKOrder", [("ZerothOrder",    "Spheral::CRKSPHSpace::CRKOrder::ZerothOrder"),
                                                          ("LinearOrder",    "Spheral::CRKSPHSpace::CRKOrder::LinearOrder"),
@@ -56,6 +57,7 @@ self.SolidCRKSPHHydroBase%(dim)id = addObject(self.space, "SolidCRKSPHHydroBase%
             exec('''
 self.generateCRKSPHHydroBaseBindings(self.CRKSPHHydroBase%(dim)id, %(dim)i)
 self.generateSolidCRKSPHHydroBaseBindings(self.SolidCRKSPHHydroBase%(dim)id, %(dim)i)
+self.generateCRKSPHVariantBindings(self.CRKSPHVariant%(dim)id, %(dim)i)
 ''' % {"dim" : dim})
             self.generateDimBindings(mod, dim)
 
@@ -90,6 +92,7 @@ self.generateSolidCRKSPHHydroBaseBindings(self.SolidCRKSPHHydroBase%(dim)id, %(d
         fourthranktensorfieldlist = "Spheral::FieldSpace::FourthRankTensorFieldList%id" % ndim
         fifthranktensorfieldlist = "Spheral::FieldSpace::FifthRankTensorFieldList%id" % ndim
         polyvolfieldlist = "Spheral::FieldSpace::FacetedVolumeFieldList%id" % ndim
+        vectorvectorfieldlist = "Spheral::FieldSpace::VectorVectorFieldList%id" % ndim
         connectivitymap = "Spheral::NeighborSpace::ConnectivityMap%id" % ndim
         tablekernel = "Spheral::KernelSpace::TableKernel%id" % ndim
         vector_of_boundary = "vector_of_Boundary%id" % ndim
@@ -109,13 +112,18 @@ self.generateSolidCRKSPHHydroBaseBindings(self.SolidCRKSPHHydroBase%(dim)id, %(d
                                                            param("double", "Hdetj"),
                                                            param("double", "Ai"),
                                                            constrefparam(vector, "Bi"),
-      							   constrefparam(tensor, "Ci")],
+      							   constrefparam(tensor, "Ci"),
+                                                           param("double", "correctionMin", default_value = "std::numeric_limits<double>::lowest()"),
+                                                           param("double", "correctionMax", default_value = "std::numeric_limits<double>::max()")],
                                 template_parameters = [dim],
                                 custom_name = "CRKSPHKernel%id" % ndim,
                                 docstring = "Evaluate the CRKSPH corrected kernel.")
 
         # Simultaneously evaluate the CRKSPH kernel and it's gradient.
-        self.space.add_function("CRKSPHKernelAndGradient%id" % ndim, None, [constrefparam(tablekernel, "W"),
+        self.space.add_function("CRKSPHKernelAndGradient%id" % ndim, None, [Parameter.new("double*", "WCRKSPH", direction=Parameter.DIRECTION_OUT),
+                                                                            Parameter.new("double*", "gradWSPH", direction=Parameter.DIRECTION_OUT),
+                                                                            refparam(vector, "gradWCRKSPH"),
+                                                                            constrefparam(tablekernel, "W"),
                                                                             param("Spheral::CRKSPHSpace::CRKOrder","correctionOrder"),
                                                                             constrefparam(vector, "rij"),
                                                                             constrefparam(vector, "etai"),
@@ -130,9 +138,8 @@ self.generateSolidCRKSPHHydroBaseBindings(self.SolidCRKSPHHydroBase%(dim)id, %(d
                                                                             constrefparam(vector, "gradAi"),
                                                                             constrefparam(tensor, "gradBi"),
                                                                             constrefparam(thirdranktensor, "gradCi"),
-                                                                            Parameter.new("double*", "WCRKSPH", direction=Parameter.DIRECTION_OUT),
-                                                                            Parameter.new("double*", "gradWSPH", direction=Parameter.DIRECTION_OUT),
-                                                                            refparam(vector, "gradWCRKSPH")],
+                                                                            param("double", "correctionMin", default_value = "std::numeric_limits<double>::lowest()"),
+                                                                            param("double", "correctionMax", default_value = "std::numeric_limits<double>::max()")],
                                 docstring = "Evaluate the CRKSPH corrected kernel and gradient simultaneously.")
 
         # CRKSPH sum density.
@@ -143,6 +150,7 @@ self.generateSolidCRKSPHHydroBaseBindings(self.SolidCRKSPHHydroBase%(dim)id, %(d
                                  constrefparam(scalarfieldlist, "mass"),
                                  constrefparam(scalarfieldlist, "vol"),
                                  constrefparam(symtensorfieldlist, "H"),
+                                 constrefparam(intfieldlist, "voidPoint"),
                                  refparam(scalarfieldlist, "massDensity")],
                                 template_parameters = [dim],
                                 custom_name = "computeCRKSPHSumMassDensity%id" % ndim)
@@ -153,13 +161,15 @@ self.generateSolidCRKSPHHydroBaseBindings(self.SolidCRKSPHHydroBase%(dim)id, %(d
                                  constrefparam(scalarfieldlist, "rho"),
                                  constrefparam(vectorfieldlist, "gradRho"),
                                  constrefparam(connectivitymap, "connectivityMap"),
-                                 param("double", "kernelExtent"),
-                                 constrefparam(vector_of_FacetedVolume, "boundaries"),
+                                 constrefparam(vector_of_FacetedVolume, "facetedBoundaries"),
                                  constrefparam(vector_of_vector_of_FacetedVolume, "holes"),
+                                 constrefparam(vector_of_boundary, "boundaries"),
                                  constrefparam(scalarfieldlist, "weights"),
+                                 constrefparam(intfieldlist, "voidPoint"),
                                  refparam(intfieldlist, "surfacePoint"),
                                  refparam(scalarfieldlist, "vol"),
                                  refparam(vectorfieldlist, "deltaCentroid"),
+                                 refparam(vectorvectorfieldlist, "etaVoidPoints"),
                                  refparam(polyvolfieldlist, "cells")],
                                 docstring = "Compute the volume per point using a Voronoi tessellation.")
                                 
@@ -405,6 +415,7 @@ self.generateSolidCRKSPHHydroBaseBindings(self.SolidCRKSPHHydroBase%(dim)id, %(d
         artificialviscosity = "Spheral::ArtificialViscositySpace::ArtificialViscosity%id" % ndim
         fileio = "Spheral::FileIOSpace::FileIO"
         smoothingscalebase = "Spheral::NodeSpace::SmoothingScaleBase%id" % ndim
+        voidboundary = "Spheral::BoundarySpace::CRKSPHVoidBoundary%id" % ndim
 
         # Constructors.
         x.add_constructor([constrefparam(smoothingscalebase, "smoothingScaleMethod"),
@@ -488,7 +499,8 @@ self.generateSolidCRKSPHHydroBaseBindings(self.SolidCRKSPHHydroBase%(dim)id, %(d
         x.add_instance_attribute("detectThreshold", "double", getter="detectThreshold", setter="detectThreshold")
         x.add_instance_attribute("detectRange", "double", getter="detectRange", setter="detectRange")
         x.add_instance_attribute("sweepAngle", "double", getter="sweepAngle", setter="sweepAngle")
-        
+        x.add_instance_attribute("correctionMin", "double", getter="correctionMin", setter="correctionMin")
+        x.add_instance_attribute("correctionMax", "double", getter="correctionMax", setter="correctionMax")
 
         const_ref_return_value(x, me, "%s::smoothingScaleMethod" % me, smoothingscalebase, [], "smoothingScaleMethod")
         const_ref_return_value(x, me, "%s::timeStepMask" % me, intfieldlist, [], "timeStepMask")
@@ -522,8 +534,12 @@ self.generateSolidCRKSPHHydroBaseBindings(self.SolidCRKSPHHydroBase%(dim)id, %(d
         const_ref_return_value(x, me, "%s::gradB" % me, tensorfieldlist, [], "gradB")
         const_ref_return_value(x, me, "%s::gradC" % me, thirdranktensorfieldlist, [], "gradC")
         const_ref_return_value(x, me, "%s::surfacePoint" % me, intfieldlist, [], "surfacePoint")
+        const_ref_return_value(x, me, "%s::voidPoint" % me, intfieldlist, [], "voidPoint")
+        const_ref_return_value(x, me, "%s::etaVoidPoints" % me, vectorvectorfieldlist, [], "etaVoidPoints")
         const_ref_return_value(x, me, "%s::m0" % me, scalarfieldlist, [], "m0")
         const_ref_return_value(x, me, "%s::m1" % me, vectorfieldlist, [], "m1")
+
+        const_ref_return_value(x, me, "%s::voidBoundary" % me, voidboundary, [], "voidBoundary")
 
         return
 
@@ -595,12 +611,6 @@ self.generateSolidCRKSPHHydroBaseBindings(self.SolidCRKSPHHydroBase%(dim)id, %(d
 
         # Attributes.
         const_ref_return_value(x, me, "%s::Hfield0" % me, symtensorfieldlist, [], "Hfield0")
-        const_ref_return_value(x, me, "%s::Adamage" % me, scalarfieldlist, [], "Adamage")
-        const_ref_return_value(x, me, "%s::Bdamage" % me, vectorfieldlist, [], "Bdamage")
-        const_ref_return_value(x, me, "%s::Cdamage" % me, tensorfieldlist, [], "Cdamage")
-        const_ref_return_value(x, me, "%s::gradAdamage" % me, vectorfieldlist, [], "gradAdamage")
-        const_ref_return_value(x, me, "%s::gradBdamage" % me, tensorfieldlist, [], "gradBdamage")
-        const_ref_return_value(x, me, "%s::gradCdamage" % me, thirdranktensorfieldlist, [], "gradCdamage")
 
         return
 
@@ -747,3 +757,83 @@ self.generateSolidCRKSPHHydroBaseBindings(self.SolidCRKSPHHydroBase%(dim)id, %(d
         const_ref_return_value(x, me, "%s::DdeviatoricStressTTDt" % me, scalarfieldlist, [], "DdeviatoricStressTTDt")
 
         return
+
+    #---------------------------------------------------------------------------
+    # Bindings (CRKSPHVariant).
+    #---------------------------------------------------------------------------
+    def generateCRKSPHVariantBindings(self, x, ndim):
+
+        # Object names.
+        me = "Spheral::CRKSPHSpace::CRKSPHVariant%id" % ndim
+        dim = "Spheral::Dim<%i>" % ndim
+        vector = "Vector%id" % ndim
+        tensor = "Tensor%id" % ndim
+        symtensor = "SymTensor%id" % ndim
+        fieldbase = "Spheral::FieldSpace::FieldBase%id" % ndim
+        intfield = "Spheral::FieldSpace::IntField%id" % ndim
+        scalarfield = "Spheral::FieldSpace::ScalarField%id" % ndim
+        vectorfield = "Spheral::FieldSpace::VectorField%id" % ndim
+        vector3dfield = "Spheral::FieldSpace::Vector3dField%id" % ndim
+        tensorfield = "Spheral::FieldSpace::TensorField%id" % ndim
+        thirdranktensorfield = "Spheral::FieldSpace::ThirdRankTensorField%id" % ndim
+        vectordoublefield = "Spheral::FieldSpace::VectorDoubleField%id" % ndim
+        vectorvectorfield = "Spheral::FieldSpace::VectorVectorField%id" % ndim
+        vectorsymtensorfield = "Spheral::FieldSpace::VectorSymTensorField%id" % ndim
+        symtensorfield = "Spheral::FieldSpace::SymTensorField%id" % ndim
+        intfieldlist = "Spheral::FieldSpace::IntFieldList%id" % ndim
+        scalarfieldlist = "Spheral::FieldSpace::ScalarFieldList%id" % ndim
+        vectorfieldlist = "Spheral::FieldSpace::VectorFieldList%id" % ndim
+        vector3dfieldlist = "Spheral::FieldSpace::Vector3dFieldList%id" % ndim
+        tensorfieldlist = "Spheral::FieldSpace::TensorFieldList%id" % ndim
+        symtensorfieldlist = "Spheral::FieldSpace::SymTensorFieldList%id" % ndim
+        thirdranktensorfieldlist = "Spheral::FieldSpace::ThirdRankTensorFieldList%id" % ndim
+        vectordoublefieldlist = "Spheral::FieldSpace::VectorDoubleFieldList%id" % ndim
+        vectorvectorfieldlist = "Spheral::FieldSpace::VectorVectorFieldList%id" % ndim
+        vectorsymtensorfieldlist = "Spheral::FieldSpace::VectorSymTensorFieldList%id" % ndim
+        nodelist = "Spheral::NodeSpace::NodeList%id" % ndim
+        state = "Spheral::State%id" % ndim
+        derivatives = "Spheral::StateDerivatives%id" % ndim
+        database = "Spheral::DataBaseSpace::DataBase%id" % ndim
+        connectivitymap = "Spheral::NeighborSpace::ConnectivityMap%id" % ndim
+        key = "pair_NodeList%id_string" % ndim
+        vectorkeys = "vector_of_pair_NodeList%id_string" % ndim
+        tablekernel = "Spheral::KernelSpace::TableKernel%id" % ndim
+        artificialviscosity = "Spheral::ArtificialViscositySpace::ArtificialViscosity%id" % ndim
+        fileio = "Spheral::FileIOSpace::FileIO"
+        smoothingscalebase = "Spheral::NodeSpace::SmoothingScaleBase%id" % ndim
+        voidboundary = "Spheral::BoundarySpace::CRKSPHVoidBoundary%id" % ndim
+
+        # Constructors.
+        x.add_constructor([constrefparam(smoothingscalebase, "smoothingScaleMethod"),
+                           refparam(artificialviscosity, "Q"),
+                           constrefparam(tablekernel, "W"),
+                           constrefparam(tablekernel, "WPi"),
+                           param("double", "filter"),
+                           param("double", "cfl"),
+                           param("int", "useVelocityMagnitudeForDt"),
+                           param("int", "compatibleEnergyEvolution"),
+                           param("int", "evolveTotalEnergy"),
+                           param("int", "XSPH"),
+                           param("MassDensityType", "densityUpdate"),
+                           param("HEvolutionType", "HUpdate"),
+                           param("CRKOrder", "correctionOrder"),
+                           param("CRKVolumeType", "volumeType"),
+                           param("int", "detectSurfaces"),
+                           param("double", "detectThreshold"),
+                           param("double", "sweepAngle"),
+                           param("double", "detectRange"),
+                           param("double", "epsTensile"),
+                           param("double", "nTensile")])
+
+        # Override the pure virtal overrides.
+        generatePhysicsVirtualBindings(x, ndim, False)
+
+        # Methods.
+        x.add_method("initializeProblemStartup", None, [refparam(database, "dataBase")], is_virtual=True)
+        x.add_method("initialize", None, [param("const double", "time"),
+                                          param("const double", "dt"),
+                                          constrefparam(database, "dataBase"),
+                                          refparam(state, "state"),
+                                          refparam(derivatives, "derivatives")], is_virtual=True)
+        return
+

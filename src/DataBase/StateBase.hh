@@ -18,8 +18,7 @@
 
 #include <string>
 #include <utility>
-#include "boost/shared_ptr.hpp"
-
+#include <memory>
 #include <vector>
 #include <map>
 #include <list>
@@ -58,8 +57,8 @@ public:
   typedef typename NeighborSpace::ConnectivityMap<Dimension> ConnectivityMapType;
   typedef typename MeshSpace::Mesh<Dimension> MeshType;
 
-  typedef boost::shared_ptr<ConnectivityMapType> ConnectivityMapPtr;
-  typedef boost::shared_ptr<MeshType> MeshPtr;
+  typedef std::shared_ptr<ConnectivityMapType> ConnectivityMapPtr;
+  typedef std::shared_ptr<MeshType> MeshPtr;
 
   typedef std::string KeyType;
   typedef typename FieldSpace::FieldBase<Dimension>::FieldName FieldName;
@@ -146,9 +145,9 @@ public:
 protected:
   //--------------------------- Protected Interface ---------------------------//
   typedef std::map<KeyType, FieldSpace::FieldBase<Dimension>*> StorageType;
-  typedef std::list<boost::shared_ptr<FieldSpace::FieldBase<Dimension> > > CacheType;
+  typedef std::list<std::shared_ptr<FieldSpace::FieldBase<Dimension> > > CacheType;
   typedef std::map<KeyType, std::vector<Scalar>*> VectorStorageType;
-  typedef std::list<boost::shared_ptr<std::vector<Scalar> > > VectorCacheType;
+  typedef std::list<std::shared_ptr<std::vector<Scalar> > > VectorCacheType;
 
   // Protected data.
   StorageType mStorage;

@@ -16,7 +16,7 @@ namespace FieldSpace {
 // // to handle it in python binding so punting for now.
 // //------------------------------------------------------------------------------
 // template<typename Dimension>
-// boost::shared_ptr<FieldBase<Dimension> >
+// std::shared_ptr<FieldBase<Dimension> >
 // FieldBase<Dimension>::
 // clone() const {
 //   VERIFY2(false, "FieldBase::clone ERROR -- consider this sucker pure virtual!");

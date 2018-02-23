@@ -23,8 +23,8 @@ class Field:
         Spheral = mod.add_cpp_namespace("Spheral")
         space = Spheral.add_cpp_namespace("FieldSpace")
 
-        self.FieldStorageType = space.add_enum("FieldStorageType", [("Reference", "Spheral::FieldSpace::FieldStorageType::Reference"),
-                                                                    ("Copy", "Spheral::FieldSpace::FieldStorageType::Copy")])
+        self.FieldStorageType = space.add_enum("FieldStorageType", [("ReferenceFields", "Spheral::FieldSpace::FieldStorageType::ReferenceFields"),
+                                                                    ("CopyFields", "Spheral::FieldSpace::FieldStorageType::CopyFields")])
 
         for ndim in self.dims:
             exec("""
@@ -399,6 +399,7 @@ generateStdVectorBindings(self.vector_of_%(element)sFieldList%(dim)s, "Spheral::
         # Constructors.
         x.add_constructor([])
         x.add_constructor([param("FieldStorageType", "aStorageType")])
+        x.add_constructor([constrefparam(me, "rhs")])
 
         # Methods.
         x.add_method("copyFields", None, [])
@@ -408,10 +409,18 @@ generateStdVectorBindings(self.vector_of_%(element)sFieldList%(dim)s, "Spheral::
         x.add_method("appendField", None, [constrefparam(field, "field")])
         x.add_method("deleteField", None, [constrefparam(field, "field")])
         x.add_method("appendNewField", None, [param("std::string", "name"), constrefparam(nodelist, "nodeList"), param(val, "value")])
-        x.add_method("setMasterNodeLists", None, [constrefparam(vector, "r"), constrefparam(symtensor, "H")], is_const=True)
-        x.add_method("setMasterNodeLists", None, [constrefparam(vector, "r")], is_const=True)
-        x.add_method("setRefineNodeLists", None, [constrefparam(vector, "r"), constrefparam(symtensor, "H")], is_const=True)
-        x.add_method("setRefineNodeLists", None, [constrefparam(vector, "r")], is_const=True)
+        x.add_method("setMasterNodeLists", None, [constrefparam(vector, "r"), constrefparam(symtensor, "H"),
+                                                  refparam("vector_of_vector_of_int", "masterLists"),
+                                                  refparam("vector_of_vector_of_int", "coarseNeighbors")], is_const=True)
+        x.add_method("setMasterNodeLists", None, [constrefparam(vector, "r"),
+                                                  refparam("vector_of_vector_of_int", "masterLists"),
+                                                  refparam("vector_of_vector_of_int", "coarseNeighbors")], is_const=True)
+        x.add_method("setRefineNodeLists", None, [constrefparam(vector, "r"), constrefparam(symtensor, "H"),
+                                                  constrefparam("vector_of_vector_of_int", "coarseNeighbors"),
+                                                  refparam("vector_of_vector_of_int", "refineNeighbors")], is_const=True)
+        x.add_method("setRefineNodeLists", None, [constrefparam(vector, "r"),
+                                                  constrefparam("vector_of_vector_of_int", "coarseNeighbors"),
+                                                  refparam("vector_of_vector_of_int", "refineNeighbors")], is_const=True)
         x.add_method("Zero", None, [])
         x.add_method("nodeListPtrs", vector_of_nodelist, [], is_const=True)
 
@@ -495,6 +504,7 @@ generateStdVectorBindings(self.vector_of_%(element)sFieldList%(dim)s, "Spheral::
     def addFieldListSetMethods(self, x, ndim):
 
         # Object names.
+        me = "FieldListSet%id" % ndim
         vector_of_scalarfieldlist = "vector_of_ScalarFieldList%id" % ndim
         vector_of_vectorfieldlist = "vector_of_VectorFieldList%id" % ndim
         vector_of_tensorfieldlist = "vector_of_TensorFieldList%id" % ndim
@@ -502,6 +512,7 @@ generateStdVectorBindings(self.vector_of_%(element)sFieldList%(dim)s, "Spheral::
 
         # Constructors.
         x.add_constructor([])
+        x.add_constructor([constrefparam(me, "rhs")])
 
         # Attributes.
         x.add_instance_attribute("ScalarFieldLists", retval(ptr(vector_of_scalarfieldlist), reference_existing_object=True), getter="ScalarFieldListPtrs", is_const=True)

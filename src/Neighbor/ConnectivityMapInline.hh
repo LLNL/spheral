@@ -1,6 +1,8 @@
 #include "NodeList/FluidNodeList.hh"
 #include "NodeList/NodeListRegistrar.hh"
 
+#include <algorithm>
+
 using Spheral::FieldSpace::FieldList;
 
 namespace Spheral {
@@ -23,7 +25,7 @@ ConnectivityMap(const NodeListIterator& begin,
   mOffsets(),
   mConnectivity(),
   mNodeTraversalIndices(),
-  mKeys(FieldSpace::FieldStorageType::Copy) {
+  mKeys(FieldSpace::FieldStorageType::CopyFields) {
 
   // The private method does the grunt work of filling in the connectivity once we have
   // established the set of NodeLists.
@@ -205,6 +207,31 @@ ConnectivityMap<Dimension>::
 end(const int nodeList) const {
   REQUIRE(nodeList >= 0 and nodeList < mNodeTraversalIndices.size());
   return mNodeTraversalIndices[nodeList].end();
+}
+
+//------------------------------------------------------------------------------
+// The number of ordered nodes in the given NodeList.
+//------------------------------------------------------------------------------
+template<typename Dimension>
+inline
+int
+ConnectivityMap<Dimension>::
+numNodes(const int nodeList) const {
+  REQUIRE(nodeList >= 0 and nodeList < mNodeLists.size());
+  return mNodeTraversalIndices[nodeList].size();
+}
+
+//------------------------------------------------------------------------------
+// The ith ordered node in the given NodeList.
+//------------------------------------------------------------------------------
+template<typename Dimension>
+inline
+int
+ConnectivityMap<Dimension>::
+ithNode(const int nodeList, const int index) const {
+  REQUIRE(nodeList >= 0 and nodeList < mNodeLists.size());
+  REQUIRE(index >= 0 and index < mNodeTraversalIndices[nodeList].size());
+  return mNodeTraversalIndices[nodeList][index];
 }
 
 //------------------------------------------------------------------------------

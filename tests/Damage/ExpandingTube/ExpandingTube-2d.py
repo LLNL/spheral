@@ -60,7 +60,7 @@ commandLine(
     # Parameters for the damage model.
     DamageModelConstructor = GradyKippTensorDamageOwen,
     strainType = PseudoPlasticStrain,
-    effectiveDamage = Copy,
+    effectiveDamage = CopyDamage,
     effectiveFlawAlgorithm = FullSpectrumFlaws,
     useDamageGradient = True,
     kWeibullSteelFactor = 1.0,
@@ -486,7 +486,7 @@ del n
 #-------------------------------------------------------------------------------
 cache = []
 for n in nodeSet:
-    neighbor = NestedGridNeighbor(n,
+    neighbor = TreeNeighbor(n,
                                   kernelExtent = WT.kernelExtent)
     n.registerNeighbor(neighbor)
     cache.append(neighbor)

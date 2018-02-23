@@ -5,7 +5,7 @@
 // Created by JMO, Sun Sep 26 16:15:17 PDT 2004
 //----------------------------------------------------------------------------//
 #include "ScalarDamagePolicy.hh"
-#include "SolidNodeList.hh"
+#include "NodeList/SolidNodeList.hh"
 #include "SolidFieldNames.hh"
 #include "DamageModel.hh"
 #include "Hydro/HydroFieldNames.hh"
@@ -23,7 +23,7 @@ namespace Spheral {
 using namespace std;
 
 using FieldSpace::Field;
-using SolidMaterial::SolidNodeList;
+using NodeSpace::SolidNodeList;
 using PhysicsSpace::DamageModel;
 using Material::EquationOfState;
 

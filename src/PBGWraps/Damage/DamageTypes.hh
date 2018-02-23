@@ -2,7 +2,7 @@
 #define __PBGWRAPS_DAMAGETYPES__
 
 #include "Geometry/Dimension.hh"
-#include "Strength/SolidNodeList.hh"
+#include "NodeList/SolidNodeList.hh"
 #include "Strength/SolidFieldNames.hh"
 #include "Damage/DamageModel.hh"
 #include "Damage/TensorDamageModel.hh"

@@ -28,7 +28,9 @@ SRCTARGETS = \
 	$(srcdir)/GeomFacet2d.cc \
 	$(srcdir)/GeomFacet3d.cc \
 	$(srcdir)/GeomPolygon.cc \
-	$(srcdir)/GeomPolyhedron.cc
+	$(srcdir)/GeomPolyhedron.cc \
+	$(srcdir)/polyclipper2d.cc \
+	$(srcdir)/polyclipper3d.cc
 INSTSRCTARGETS = \
 	$(srcdir)/invertRankNTensorInst.cc.py
 

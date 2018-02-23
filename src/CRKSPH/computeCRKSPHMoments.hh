@@ -4,7 +4,7 @@
 #ifndef __Spheral__computeCRKSPHMoments__
 #define __Spheral__computeCRKSPHMoments__
 
-#include "SolidSPH/NodeCoupling.hh"
+#include "SPH/NodeCoupling.hh"
 #include "CRKSPHCorrectionParams.hh"
 
 namespace Spheral {

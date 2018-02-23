@@ -14,9 +14,6 @@
 namespace Spheral {
 
 using namespace std;
-using std::min;
-using std::max;
-using std::abs;
 
 using KernelSpace::TableKernel;
 using BoundarySpace::Boundary;
@@ -78,6 +75,10 @@ centroidalRelaxNodesImpl(DataBaseSpace::DataBase<Dimension>& db,
   auto gradm3 = db.newFluidFieldList(FourthRankTensor::zero, "gradm3");
   auto gradm4 = db.newFluidFieldList(FifthRankTensor::zero, "gradm4");
 
+  // Temporary until we decide to propagate void info to this method.
+  auto voidPoint = db.newFluidFieldList(int(0), "void point");
+  auto etaVoidPoints = db.newFluidFieldList(vector<Vector>(), "eta void points");
+
   // Make a dummy set of cells so we don't ask computeVoronoiVolume to compute the return FacetedVolumes every step.
   FieldList<Dimension, FacetedVolume> dummyCells;
 
@@ -138,9 +139,10 @@ centroidalRelaxNodesImpl(DataBaseSpace::DataBase<Dimension>& db,
     // Compute the new volumes and centroids (note this uses the old rho gradient, not quite right,
     // but expedient/efficient).
     std::clock_t tvoro = std::clock();
-    CRKSPHSpace::computeVoronoiVolume(pos, H, rhof, gradRhof, cm, W.kernelExtent(), volumeBoundaries, holes, 
+    CRKSPHSpace::computeVoronoiVolume(pos, H, rhof, gradRhof, cm, volumeBoundaries, holes, boundaries,
                                       FieldList<Dimension, typename Dimension::Scalar>(),  // no weights
-                                      surfacePoint, vol, deltaCentroid, dummyCells);
+                                      voidPoint,
+                                      surfacePoint, vol, deltaCentroid, etaVoidPoints, dummyCells);
     tvoro = std::clock() - tvoro;
      
     // Apply boundary conditions.
@@ -211,9 +213,10 @@ centroidalRelaxNodesImpl(DataBaseSpace::DataBase<Dimension>& db,
   // If requested to return the FacetedVolumes, make one last call to fill 'em in.
   if (cells.size() > 0) {
     const auto& cm = db.connectivityMap();
-    CRKSPHSpace::computeVoronoiVolume(pos, H, rhof, gradRhof, cm, W.kernelExtent(), volumeBoundaries, holes, 
+    CRKSPHSpace::computeVoronoiVolume(pos, H, rhof, gradRhof, cm, volumeBoundaries, holes, boundaries,
                                       FieldList<Dimension, typename Dimension::Scalar>(),  // no weights
-                                      surfacePoint, vol, deltaCentroid, cells);
+                                      voidPoint,
+                                      surfacePoint, vol, deltaCentroid, etaVoidPoints, cells);
   }
 
   // Return how many iterations we actually took.

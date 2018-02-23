@@ -21,6 +21,7 @@ namespace Spheral {
                                 const FieldSpace::FieldList<Dimension, typename Dimension::Scalar>& mass,
                                 const FieldSpace::FieldList<Dimension, typename Dimension::Scalar>& vol,
                                 const FieldSpace::FieldList<Dimension, typename Dimension::SymTensor>& H,
+                                const FieldSpace::FieldList<Dimension, int>& voidPoint,
                                 FieldSpace::FieldList<Dimension, typename Dimension::Scalar>& massDensity);
   }
 }

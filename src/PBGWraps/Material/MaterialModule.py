@@ -61,10 +61,13 @@ self.generateIsothermalEquationOfStateBindings(self.IsothermalEquationOfState%(d
     #---------------------------------------------------------------------------
     def generatePhysicalConstantsBindings(self, x):
 
+        me = "PhysicalConstants"
+
         # Constructor.
         x.add_constructor([param("double", "unitLm"),
                            param("double", "unitMkg"),
                            param("double", "unitTsec")])
+        x.add_constructor([constrefparam(me, "rhs")])
 
         # Attributes
         x.add_instance_attribute("unitLengthMeters", "double", getter="unitLengthMeters", is_const=True)
@@ -96,6 +99,17 @@ self.generateIsothermalEquationOfStateBindings(self.IsothermalEquationOfState%(d
                            param("MaterialPressureMinType", "minPressureType", default_value="MaterialPressureMinType::PressureFloor")])
 
         # Methods.
+        x.add_method("specificThermalEnergyForPressure", "double",
+                     [param("double", "Ptarget"),
+                      param("double", "rho"),
+                      param("double", "epsMin"),
+                      param("double", "epsMax"),
+                      param("double", "epsTol"),
+                      param("double", "Ptol"),
+                      param("double", "maxIterations", default_value="100")],
+                     is_virtual = True,
+                     is_const = True,
+                     docstring = "Look up a specific thermal energy that gives the requested pressure at the requested density.")
         x.add_method("applyPressureLimits", "double", [param("double", "P")], is_const=True)
 
         # Attributes.

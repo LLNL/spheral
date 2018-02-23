@@ -7,7 +7,7 @@
 #include "Neighbor/ConnectivityMap.hh"
 #include "Kernel/TableKernel.hh"
 #include "NodeList/NodeList.hh"
-#include "SolidSPH/NodeCoupling.hh"
+#include "SPH/NodeCoupling.hh"
 #include "CRKSPHUtilities.hh"
 
 namespace Spheral {
@@ -131,9 +131,12 @@ gradientCRKSPH(const FieldSpace::FieldList<Dimension, DataType>& fieldList,
                                                                        nodeListj, j,
                                                                        firstGhostNodej)) {
 
-              // The pair-wise modified weighting.
-              const Scalar wi = fij*weight(nodeListi, i);
-              const Scalar wj = fij*weight(nodeListj, j);
+              // Find the effective weights of i->j and j->i.
+              // const Scalar wi = fij*2.0*weight(nodeListi, i)*weight(nodeListj, j)/(weight(nodeListi, i) + weight(nodeListj, j));
+              const Scalar wi = fij*0.5*(weight(nodeListi, i) + weight(nodeListj, j));
+              const Scalar wj = wi;
+              // const Scalar wi = fij*weight(nodeListi, i);
+              // const Scalar wj = fij*weight(nodeListj, j);
 
 	      // Get the state for node j.
 	      const Vector& rj = position(nodeListj, j);
@@ -160,8 +163,8 @@ gradientCRKSPH(const FieldSpace::FieldList<Dimension, DataType>& fieldList,
               // Kernel weight and gradient.
               Scalar Wi, gWi, Wj, gWj;
               Vector gradWi, gradWj;
-              CRKSPHKernelAndGradient(W, correctionOrder,  rij,  etai, Hi, Hdeti,  etaj, Hj, Hdetj, Ai, Bi, Ci, gradAi, gradBi, gradCi, Wj, gWj, gradWj);
-              CRKSPHKernelAndGradient(W, correctionOrder, -rij, -etaj, Hj, Hdetj, -etai, Hi, Hdeti, Aj, Bj, Cj, gradAj, gradBj, gradCj, Wi, gWi, gradWi);
+              CRKSPHKernelAndGradient(Wj, gWj, gradWj, W, correctionOrder,  rij,  etai, Hi, Hdeti,  etaj, Hj, Hdetj, Ai, Bi, Ci, gradAi, gradBi, gradCi, -1e100, 1e100);
+              CRKSPHKernelAndGradient(Wi, gWi, gradWi, W, correctionOrder, -rij, -etaj, Hj, Hdetj, -etai, Hi, Hdeti, Aj, Bj, Cj, gradAj, gradBj, gradCj, -1e100, 1e100);
 
 	      // Increment the pair-wise gradients.
 	      gradFi += wj*Fj*gradWj;

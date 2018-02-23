@@ -12,10 +12,12 @@ AC_SUBST(BOOSTLIBTARGETS)
 AC_SUBST(INCS)
 AC_SUBST(PYOPT)
 AC_SUBST(MODULELINK)
+AC_SUBST(EXTRATHIRDPARTYTARGETS)
+AC_SUBST(PIPTARGETS)
 
 PYOPT=""
 BOOSTLIBTARGETS="math"
-EXTRATHIRDPARTYTARGETS=""
+PIPTARGETS+=" pybindgen==0.17.0"
 
 AC_MSG_CHECKING(for --without-pybindgen)
 AC_ARG_WITH(pybindgen,
@@ -27,11 +29,14 @@ AC_ARG_WITH(pybindgen,
     AC_MSG_RESULT(no)
     PYTHONBINDING="PYBINDGEN"
     PYTHONPKGDIR="PBGWraps"
-    PYTHONPKGS="Geometry CXXTypes Silo DataOutput NodeList Field Kernel Neighbor Material FileIO DataBase Boundary Physics ArtificialViscosity Hydro ExternalForce Gravity Integrator Utilities NodeGenerators FieldOperations SPH CRKSPH SVPH TaylorSPH Mesh Damage SolidMaterial SolidSPH Strength ArtificialConduction $PYTHONPKGS"
+    PYTHONPKGS="Geometry CXXTypes PolyClipper Silo DataOutput NodeList Field Kernel Neighbor Material FileIO DataBase Boundary Physics ArtificialViscosity Hydro ExternalForce Gravity Integrator Utilities NodeGenerators FieldOperations SPH CRKSPH SVPH Mesh Damage SolidMaterial Strength ArtificialConduction $PYTHONPKGS"
     PYOPT="$PYOPT"
     MODULELINK="-L\$(LIBDIR) \$(PKGLIBS)"
     if test "`uname -s`" = "AIX"; then
        MODULELINK="$MODULELINK -e init\$(PKGNAME)"
+    fi
+    if test "$CXXCOMPILERTYPE" = "INTEL"; then
+       PYOPT=" -O0 -no-ipo"
     fi
 ])
 
@@ -43,7 +48,6 @@ AC_ARG_WITH(pybind11,
 [  --with-pybind11 .......................... use pybind11 wrappings],
 [
     AC_MSG_RESULT(yes)
-    EXTRATHIRDPARTYTARGETS+=" .pybind11-2.0.1.date"
     PYTHONBINDING="PYBIND11"
     PYTHONPKGDIR="Pybind11Wraps"
     PYTHONPKGS+=" CXXTypes Geometry Silo DataOutput NodeList Field Kernel Neighbor Material FileIO DataBase Boundary Physics ArtificialViscosity Hydro"

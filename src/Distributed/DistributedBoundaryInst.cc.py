@@ -16,6 +16,9 @@ namespace Spheral {
     template void DistributedBoundary<Dim< %(ndim)s > >::beginExchangeField(FieldSpace::Field<Dim< %(ndim)s >, Dim< %(ndim)s >::Tensor>&) const;
     template void DistributedBoundary<Dim< %(ndim)s > >::beginExchangeField(FieldSpace::Field<Dim< %(ndim)s >, Dim< %(ndim)s >::SymTensor>&) const;
     template void DistributedBoundary<Dim< %(ndim)s > >::beginExchangeField(FieldSpace::Field<Dim< %(ndim)s >, Dim< %(ndim)s >::ThirdRankTensor>&) const;
+
+    template void DistributedBoundary<Dim< %(ndim)s > >::beginExchangeFieldVariableSize(FieldSpace::Field<Dim< %(ndim)s >, std::vector<Dim< %(ndim)s >::Scalar> >&) const;
+    template void DistributedBoundary<Dim< %(ndim)s > >::beginExchangeFieldVariableSize(FieldSpace::Field<Dim< %(ndim)s >, std::vector<Dim< %(ndim)s >::Vector> >&) const;
   }
 }
 """

@@ -4,15 +4,15 @@
 //
 // Created by JMO, Wed Feb 16 21:01:02 PST 2000
 //----------------------------------------------------------------------------//
-
-#include "ReflectingBoundary.hh"
+#include "FileIO/FileIO.hh"
 #include "Geometry/GeomPlane.hh"
 #include "Geometry/innerProduct.hh"
 #include "Field/Field.hh"
 #include "Utilities/DBC.hh"
-#include "FileIO/FileIO.hh"
 #include "Utilities/planarReflectingOperator.hh"
 #include "Mesh/Mesh.hh"
+
+#include "ReflectingBoundary.hh"
 
 using namespace std;
 
@@ -210,27 +210,6 @@ applyGhostBoundary(Field<Dimension, typename Dimension::ThirdRankTensor>& field)
       }
     }
     field(*ghostItr) = val; //innerProduct<Dimension>(T, innerProduct<Dimension>(field(*controlItr), T2));
-  }
-}
-
-// Specialization for vector<scalar> fields, just perform a copy.
-template<typename Dimension>
-void
-ReflectingBoundary<Dimension>::
-applyGhostBoundary(Field<Dimension, std::vector<typename Dimension::Scalar> >& field) const {
-
-  REQUIRE(valid());
-
-  // Apply the boundary condition to all the ghost node values.
-  const NodeList<Dimension>& nodeList = field.nodeList();
-  CHECK(this->controlNodes(nodeList).size() == this->ghostNodes(nodeList).size());
-  vector<int>::const_iterator controlItr = this->controlBegin(nodeList);
-  vector<int>::const_iterator ghostItr = this->ghostBegin(nodeList);
-  for (; controlItr < this->controlEnd(nodeList); ++controlItr, ++ghostItr) {
-    CHECK(ghostItr < this->ghostEnd(nodeList));
-    CHECK(*controlItr >= 0 && *controlItr < nodeList.numNodes());
-    CHECK(*ghostItr >= nodeList.firstGhostNode() && *ghostItr < nodeList.numNodes());
-    field(*ghostItr) = field(*controlItr);
   }
 }
 

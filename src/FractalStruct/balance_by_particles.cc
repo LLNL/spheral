@@ -22,8 +22,11 @@ namespace FractalSpace
       how_many_particles=PF->get_number_particles();
     double NOSHRINK=1.0;
     double SHRINK=0.2;
-    if(2*FFTNodes >= FractalNodes)
+    if(PFM->p_mess->WallNodes < FFTNodes)
       SHRINK=NOSHRINK;
+
+    SHRINK=NOSHRINK;     //Shrinking of FFT nodes turned off for now.
+
     vector <double>targets(FractalNodes2+1);
     targets[0]=0.0;
     int FR=0;

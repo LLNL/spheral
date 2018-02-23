@@ -4,95 +4,54 @@
 #include "fractal_interface_public.hh"
 namespace FractalSpace
 {
-  //! sequence of calls
-
-  //! Setup
-  //! Fractal_Memory* PFM=fractal_memory_create();
-  //!
-  //! PFM->setBalance;
-  //! PFM->setNumberParticles;
-  //! PFM->setFractalNodes;
-  //! PFM->setFFTNodes;
-  //! PFM->setPeriodic;
-  //! PFM->setDebug;
-  //! PFM->setGridLength;
-  //! PFM->setPadding;
-  //! PFM->setLevelMax;
-  //! PFM->setMinimumNumber;
-  //! PFM->setHypreIterations;
-  //! PFM->setHypreTolerance;
-  //! PFM->setBaseDirectory;
-  //! PFM->setRunIdentifier;
-  //! PFM->setTimeTrial
-  //! PFM->setTalkToMe
-  //!
-  //! PFM->fractal_memory_setup();
-  //!
-  //! for(int ni=0;ni<steps;ni++)
-  //! {
-  //! Do Your own stuff;
-  //! fractal_create;
-  //! addParticles;
-  //! balance_particles
-  //! doFractalForce;
-  //! getField;
-  //! fractal_delete;
-  //! Do Your own stuff;
-  //! }
-  //! Finish up.
-  //! fractal_memory_content_delete;
-  //! fractal_memory_delete;
-
-  Fractal_Memory* FractalGravityFirstTime(int NumberParticles,
-					  int balance,
-					  int FractalNodes0,
-					  int FractalNodes1,
-					  int FractalNodes2,
-					  int FFTNodes,
-					  bool Periodic,
-					  bool Debug,
-					  int GridLength,
-					  int Padding,
-					  int LevelMax,
-					  int MinimumNumber,
-					  int MaxHypreIterations,
-					  double HypreTolerance,
-					  string BaseDirectory,
-					  string RunIdentifier,
-					  bool TimeTrial,
-					  MPI_Comm& TalkToMe)
+  Fractal_Memory* FractalGravityIsolatedFirstTime(
+						  MPI_Comm& TalkToMe,
+						  int GridLength,
+						  int FractalNodes0,
+						  int FractalNodes1,
+						  int FractalNodes2,
+						  string BaseDirectory,
+						  string RunIdentifier
+						  )
   {
     Fractal_Memory* PFM=fractal_memory_create();
-    //
-    PFM->setNumberParticles(NumberParticles);
-    PFM->setBalance(balance);
-    PFM->setFractalNodes(FractalNodes0,FractalNodes1,FractalNodes2);
-    FFTNodes=min(FFTNodes,FractalNodes0*FractalNodes1*FractalNodes2);
-    if(Periodic)
-      FFTNodes=min(FFTNodes,GridLength/2);
-    else
-      FFTNodes=min(FFTNodes,GridLength);
-    PFM->setFFTNodes(FFTNodes);
-    PFM->setPeriodic(Periodic);
-    PFM->setDebug(Debug);
+
+    PFM->standalone=false;
+    PFM->setPeriodic(false);
+    // PFM->setTalkToMe(TalkToMe);
     PFM->setGridLength(GridLength);
+    PFM->setFractalNodes(FractalNodes0,FractalNodes1,FractalNodes2);
+    PFM->setBaseDirectory(BaseDirectory);
+    PFM->setRunIdentifier(RunIdentifier);
+    Fractal_Memory::FRACTAL_UNIVERSE=TalkToMe;
+    int Balance=1;
+    bool Debug=true;
+    int Padding=-1;
+    int LevelMax=8;
+    int MinimumNumber=8;
+    int MaxHypreIterations=20;
+    double HypreTolerance=1.0e-7;
+    PFM->setBalance(Balance);
+    PFM->setDebug(Debug);
     PFM->setPadding(Padding);
     PFM->setLevelMax(LevelMax);
     PFM->setMinimumNumber(MinimumNumber);
     PFM->setHypreIterations(MaxHypreIterations);
     PFM->setHypreTolerance(HypreTolerance);
-    PFM->setBaseDirectory(BaseDirectory);
-    PFM->setRunIdentifier(RunIdentifier);
-    PFM->setTimeTrial(TimeTrial);
-    PFM->setTalkToMe(TalkToMe);
-    PFM->standalone=false;
-    //
-    fractal_memory_setup(PFM);
-    //
+
     return PFM;    
   }
-
-
+  void DoFractalGravity(Fractal_Memory* PFM)
+  {
+    Fractal* PF=PFM->p_fractal;
+    PF->timing(-2,0);
+    PF->timing(-1,49);
+    fractal_force(*PF,*PFM);
+    PFM->steps++;
+    PF->timing(1,49);
+    PF->timing(0,0);
+    PF->timing_lev(0,0);
+  }
   void do_fractal_force(Fractal_Memory* PFM)
   {
     Fractal* PF=PFM->p_fractal;
@@ -107,16 +66,19 @@ namespace FractalSpace
   }
   Fractal_Memory* fractal_memory_create()
   {
-    Fractal_Memory* PFM= new Fractal_Memory;
+    Fractal_Memory* PFM = new Fractal_Memory;
     return PFM;
   }
   void fractal_memory_delete(Fractal_Memory* PFM)
   {
+    if(PFM == 0)
+      return;
     delete PFM;
+    // PFM=0;
   }
   void fractal_memory_setup(Fractal_Memory* PFM)
   {
-    PFM->MPIrun=PFM->FractalNodes > 1;
+    // PFM->MPIrun=PFM->FractalNodes > 1;
     PFM->global_level_max=PFM->level_max;
     /***********************/
     //Leave these parameters alone
@@ -142,15 +104,7 @@ namespace FractalSpace
     // Construct a Mess object. 
     // All MPI and FFTW stuff is done in Mess member functions. 
     // This will be used throughout the simulation. 
-//    
-//     Mess* p_mess=new Mess(PFM->MPIrun,
-// 			  PFM->grid_length,
-// 			  PFM->periodic,
-// 			  PFM->number_particles,
-// 			  PFM->FFTNodes,
-// 			  PFM->FractalWorld);
-//     
-    Mess* p_mess=new Mess(PFM->MPIrun,
+    Mess* p_mess=new Mess(true,
 			  PFM->grid_length,
 			  PFM->periodic,
 			  PFM->number_particles,
@@ -162,7 +116,7 @@ namespace FractalSpace
     PFM->p_mess=p_mess;
     PFM->FFTNodes=PFM->p_mess->FFTNodes;
     p_mess->time_trial=PFM->time_trial;
-    
+    p_mess->standalone=PFM->standalone;    
     // Construct a File object. 
     // All output is done in File member functions. 
     // This will be used throughout the simulation.
@@ -222,7 +176,15 @@ namespace FractalSpace
     return PFM->p_fractal->particle_list[ni]->get_p_highest_level_group() != 0;
   }
   void add_particles(Fractal_Memory* PFM,int first,int total,
-		     vector <double>& xmin,vector <double>& xmax,
+		     vector <double>& posx,vector <double>& posy,
+		     vector <double>& posz,vector <double>& masses)
+  {
+    vector <double> xmin{0.0,0.0,0.0};
+    vector <double> xmax{1.0,1.0,1.0};
+    add_particles(PFM,first,total,xmin,xmax,posx,posy,posz,masses);
+  }
+  void add_particles(Fractal_Memory* PFM,int first,int total,
+		     vector <double> xmin,vector <double> xmax,
 		     vector <double>& posx,vector <double>& posy,
 		     vector <double>& posz,vector <double>& masses)
   {
@@ -235,6 +197,28 @@ namespace FractalSpace
 	pos[1]=(posy[ni]-xmin[1])*dinv;
 	pos[2]=(posz[ni]-xmin[2])*dinv;
 	PFM->p_fractal->particle_list[ni+first]->set_posm(pos,masses[ni]);
+      }
+  }
+  void return_particles(Fractal_Memory* PFM,int total,
+			vector <double> xmin,vector <double> xmax,
+			vector <double>& posx,vector <double>& posy,
+			vector <double>& posz,vector <double>& masses)
+  {
+    clean_vector(posx);
+    clean_vector(posy);
+    clean_vector(posz);
+    clean_vector(masses);
+    
+    double scale=xmax[0]-xmin[0];
+    for(int ni=0;ni<total;ni++)
+      {
+	vector <double> pos(3);
+	double mass;
+	PFM->p_fractal->particle_list[ni]->get_posm(pos,mass);
+	posx.push_back(pos[0]*scale+xmin[0]);
+	posy.push_back(pos[1]*scale+xmin[1]);
+	posz.push_back(pos[2]*scale+xmin[2]);
+	masses.push_back(mass);
       }
   }
   void get_potential(Fractal_Memory* PFM,int first,int total,double G,
@@ -271,15 +255,10 @@ namespace FractalSpace
   }
   void fractal_delete(Fractal_Memory* PFM)
   {
-    vector <double>total_times(50);
-    Fractal* PF=PFM->p_fractal;
-    //    PF->get_total_times(total_times);
-    //    PFM->total_time=total_times;
-    Particle* P=PFM->p_mess->Parts_in;
-    delete [] P;
-    P=0;
-    delete PF;
-    PF=0;
+    delete [] PFM->p_mess->Parts_in;
+    PFM->p_mess->Parts_in=0;
+    delete PFM->p_fractal;
+    PFM->p_fractal=0;
   }
   void Fractal_Memory::setBalance(int B)
   {
@@ -295,7 +274,7 @@ namespace FractalSpace
     FractalNodes1=FR1;
     FractalNodes2=FR2;
     FractalNodes=FR0*FR1*FR2;
-    MPIrun=FractalNodes > 1;
+    // MPIrun=FractalNodes > 1;
   }
   void Fractal_Memory::setFFTNodes(int fmax)
   {
@@ -333,7 +312,7 @@ namespace FractalSpace
   }
   void Fractal_Memory::setHypreTolerance(double HT)
   {
-    epsilon_sor=HT;
+    HTOL=HT;
   }
   void Fractal_Memory::setBaseDirectory(string BD)
   {

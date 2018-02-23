@@ -5,6 +5,7 @@
 #include "NodeList/NodeListRegistrar.hh"
 #include "NodeList/NodeList.hh"
 #include "NodeList/FluidNodeList.hh"
+#include "NodeList/SolidNodeList.hh"
 #include "NodeList/SmoothingScaleBase.hh"
 #include "NodeList/FixedSmoothingScale.hh"
 #include "NodeList/SPHSmoothingScale.hh"
@@ -32,6 +33,10 @@ typedef NodeList<Dim<3> > NodeList3d;
 typedef FluidNodeList<Dim<1> > FluidNodeList1d;
 typedef FluidNodeList<Dim<2> > FluidNodeList2d;
 typedef FluidNodeList<Dim<3> > FluidNodeList3d;
+
+typedef SolidNodeList<Dim<1> > SolidNodeList1d;
+typedef SolidNodeList<Dim<2> > SolidNodeList2d;
+typedef SolidNodeList<Dim<3> > SolidNodeList3d;
 
 typedef SmoothingScaleBase<Dim<1> > SmoothingScaleBase1d;
 typedef SmoothingScaleBase<Dim<2> > SmoothingScaleBase2d;
@@ -127,6 +132,18 @@ typedef std::vector<Spheral::NodeSpace::NodeList<Spheral::Dim<3> >*>::iterator v
 typedef std::vector<Spheral::NodeSpace::FluidNodeList<Spheral::Dim<1> >*>::iterator vector_of_FluidNodeList1d_iterator;
 typedef std::vector<Spheral::NodeSpace::FluidNodeList<Spheral::Dim<2> >*>::iterator vector_of_FluidNodeList2d_iterator;
 typedef std::vector<Spheral::NodeSpace::FluidNodeList<Spheral::Dim<3> >*>::iterator vector_of_FluidNodeList3d_iterator;
+
+typedef std::vector<Spheral::NodeSpace::SolidNodeList<Dim<1> >*> vector_of_SolidNodeList1d;
+typedef std::vector<Spheral::NodeSpace::SolidNodeList<Dim<2> >*> vector_of_SolidNodeList2d;
+typedef std::vector<Spheral::NodeSpace::SolidNodeList<Dim<3> >*> vector_of_SolidNodeList3d;
+
+typedef std::vector<const Spheral::NodeSpace::SolidNodeList<Dim<1> >*> vector_of_const_SolidNodeList1d;
+typedef std::vector<const Spheral::NodeSpace::SolidNodeList<Dim<2> >*> vector_of_const_SolidNodeList2d;
+typedef std::vector<const Spheral::NodeSpace::SolidNodeList<Dim<3> >*> vector_of_const_SolidNodeList3d;
+
+typedef std::vector<Spheral::NodeSpace::SolidNodeList<Dim<1> >*>::iterator vector_of_SolidNodeList1d_iterator;
+typedef std::vector<Spheral::NodeSpace::SolidNodeList<Dim<2> >*>::iterator vector_of_SolidNodeList2d_iterator;
+typedef std::vector<Spheral::NodeSpace::SolidNodeList<Dim<3> >*>::iterator vector_of_SolidNodeList3d_iterator;
 
 //------------------------------------------------------------------------------
 // Extract the NodeListRegistrar instance.
