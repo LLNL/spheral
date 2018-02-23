@@ -63,6 +63,7 @@ compile = $(compiler) -I $(head_dir_fftw) -I $(head_dir_hypre) $(MP) $(STD) $(ve
 #
 parameter_per_file = fractal_memory_parameters_cosmo
 fractal_galaxy_run_o = fractal_galaxy.o
+fractal_galaxy_spheral_o = fractal_galaxy_spheral.o
 #
 loptfftw = -lfftw3_mpi -lfftw3 -lm
 lopthypre = -lHYPRE 
@@ -245,8 +246,8 @@ fractal_force.o :	fractal_force.cc  $(classes)
 fractal_force_sync.o :	fractal_force_sync.cc  $(classes) 
 	$(compile) -c fractal_force_sync.cc
 #
-fractal_galaxy_ibm.o :	fractal_galaxy_ibm.cc  $(classes) 
-	$(compile) -c fractal_galaxy_ibm.cc
+fractal_galaxy_spheral.o :	fractal_galaxy_spheral.cc  $(classes) 
+	$(compile) -c fractal_galaxy_spheral.cc
 #
 fractal_galaxy_intel.o :	fractal_galaxy_intel.cc  $(classes) 
 	$(compile) -c fractal_galaxy_intel.cc
@@ -729,6 +730,6 @@ fractal_cosmo : 	 $(files_hypre_nina_o) $(files_class_o) $(files_fractal_nina_o)
 fractal_galaxy :	$(files_hypre_nina_o) $(files_class_o) $(files_fractal_nina_o) $(files_fftw_mpi_nina_o) $(files_mpi_comm_nina_o) $(fractal_galaxy_run_o) $(cosmos_power_file).o $(halo_fixed_file).o
 	$(compile) $(Loptfftw) $(Lopthypre) -o $(dir)fractal_nina_galaxy.exe $(files_hypre_nina_o) $(files_class_o) $(files_fractal_nina_o) $(files_fftw_mpi_nina_o) $(files_mpi_comm_nina_o) $(fractal_galaxy_run_o) $(cosmos_power_file).o $(halo_fixed_file).o $(lopthypre) $(loptfftw)
 
-#
-fractal_nina :		fractal_nina.o fractal_nina_cosmo.o fractal_nina_galaxy.o $(files_hypre_nina_o) $(files_class_o) $(files_fractal_nina_o) $(files_fftw_mpi_nina_o) $(files_mpi_comm_nina_o) $(cosmos_power_file).o $(energy_file).o $(halo_fixed_file).o $(parameter_per_file).o $(particle_cosmo_mpi_file).o $(step_file).o $(velocity_file).o $(wrapper_file).o
-	$(compile) $(Loptfftw) $(Lopthypre) -o $(dir)fractal_nina_.exe fractal_nina.o fractal_nina_cosmo.o fractal_nina_galaxy.o $(files_class_o) $(files_fractal_nina_o) $(files_hypre_nina_o) $(files_fftw_mpi_nina_o) $(files_mpi_comm_nina_o) $(cosmos_power_file).o $(energy_file).o $(halo_fixed_file).o $(parameter_per_file).o $(particle_cosmo_mpi_file).o $(step_file).o $(velocity_file).o $(wrapper_file).o  $(lopthypre) $(loptfftw)
+fractal_galaxy_spheral :	$(files_hypre_nina_o) $(files_class_o) $(files_fractal_nina_o) $(files_fftw_mpi_nina_o) $(files_mpi_comm_nina_o) $(fractal_galaxy_spheral_o) $(cosmos_power_file).o $(halo_fixed_file).o
+	$(compile) $(Loptfftw) $(Lopthypre) -o $(dir)fractal_nina_galaxy_spheral.exe $(files_hypre_nina_o) $(files_class_o) $(files_fractal_nina_o) $(files_fftw_mpi_nina_o) $(files_mpi_comm_nina_o) $(fractal_galaxy_spheral_o) $(cosmos_power_file).o $(halo_fixed_file).o $(lopthypre) $(loptfftw)
+

@@ -39,7 +39,7 @@ namespace FractalSpace
     vector <double> masks_rad_z;
     vector <bool> masks_square;
     vector <int> masks_level;
-    double epsilon_sor;
+    double HTOL;
     double force_max;
     double halo_scale;
     double halo_density0;
@@ -109,7 +109,7 @@ namespace FractalSpace
       minimum_number=mem.minimum_number;
       level_max=mem.level_max;
       padding=mem.padding;
-      epsilon_sor=mem.epsilon_sor;
+      HTOL=mem.HTOL;
       force_max=mem.force_max;
       halo_scale=mem.halo_scale;
       halo_density0=mem.halo_density0;
@@ -267,8 +267,8 @@ namespace FractalSpace
     void set_level_max(const int& i);
     int get_padding() const;
     void set_padding(const int& i);
-    void set_epsilon_sor(const double& e);
-    double get_epsilon_sor() const;
+    void set_Hypre_TOL(const double& HT);
+    double get_Hypre_TOL() const;
     int get_random_offset() const;
     void set_maxits(const int& m);
     int get_maxits() const;

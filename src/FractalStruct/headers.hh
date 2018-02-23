@@ -123,7 +123,7 @@ namespace FractalSpace
   void left_right(Fractal& frac,vector <double>& pos_left,vector <double>& pos_right);
   void left_right(vector <Group*>& all_groups,vector <int>& pos_left,vector <int>& pos_right);
   void list_buffer(Point& point,const int& corner);
-  void make_me_a_galaxy(int FractalRank,int numbers,double total_mass,vector <double>& masses,double G,
+  void make_me_a_galaxy(int FractalRank,int numbers,double total_mass,double G,
 			vector <double>& xpos,vector <double>& ypos,vector <double>& zpos,
 			vector <double>& xvel,vector <double>& yvel,vector <double>& zvel);
   void make_me_some_particles(int rank,int numbers,double total_mass,vector <double>& masses,double G,
@@ -168,9 +168,9 @@ namespace FractalSpace
   void remove_pseudo_particles(Fractal_Memory& mem,Fractal& frac);
   void scatter_particles(Fractal_Memory& mem,Fractal& frac);
   template <class T> int shortest_vector(vector<T>& veca,vector<T>& vecb,vector<T>& vecc);
-  void shrink_cube(Fractal_Memory* PFM,double SHRINK,vector <double>& xmin,vector <double>& xmax,
+  void shrink_cube(Fractal_Memory* PFM,double SHRINK,const vector <double>& xmin,const vector <double>& xmax,
 		   vector <double>& xmini,vector <double>& xmaxy);
-  void shrink_cube(double SHRINK,vector <double>& xmin,vector <double>& xmax,Fractal_Memory* PFM,
+  void shrink_cube(double SHRINK,const vector <double>& xmin,const vector <double>& xmax,Fractal_Memory* PFM,
 		   vector <double>& posx,vector <double>& posy,vector <double>& posz,
 		   int number_particles,vector <double>& xmini,vector <double>& xmaxy);
   void slices_to_potf(Fractal_Memory& mem,Fractal& frac,int lev);
