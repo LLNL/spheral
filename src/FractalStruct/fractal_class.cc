@@ -251,13 +251,13 @@ namespace FractalSpace
   {
     padding=i;
   }
-  void Fractal::set_epsilon_sor(const double& e)
+  void Fractal::set_Hypre_TOL(const double& e)
   {
-    epsilon_sor=e;
+    HTOL=e;
   }
-  double Fractal::get_epsilon_sor() const
+  double Fractal::get_Hypre_TOL() const
   {
-    return epsilon_sor;
+    return HTOL;
   }
   int Fractal::get_random_offset() const
   {
