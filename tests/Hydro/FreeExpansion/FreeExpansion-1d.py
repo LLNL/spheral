@@ -1,5 +1,5 @@
 #-------------------------------------------------------------------------------
-# Free expansion of gas into a vacuum.
+# 1D Free expansion of gas into a vacuum.
 #-------------------------------------------------------------------------------
 from math import *
 from Spheral1d import *
@@ -43,29 +43,25 @@ commandLine(nx1 = 100,
 
             nPerh = 1.51,
 
-            Qconstructor = MonaghanGingoldViscosity,
-            Cl = 1.0,
-            Cq = 1.0,
-            linearInExpansion = False,
-            Qlimiter = False,
-            epsilon2 = 1e-2,
+            order = 3,
             hmin = 0.0001, 
-            hmax = 0.1,
-            cfl = 0.5,
+            hmax = 1.0,
+            cfl = 0.25,
             XSPH = False,
             epsilonTensile = 0.0,
             nTensile = 4,
             filter = 0.0,
 
-            SVPH = False,
-            CRKSPH = False,
-            TSPH = False,
+            svph = False,
+            crksph = False,
+            correctionOrder = LinearOrder,
+            volumeType = CRKVoronoiVolume,
             IntegratorConstructor = CheapSynchronousRK2Integrator,
             steps = None,
             goalTime = 0.5,
             dt = 0.0001,
             dtMin = 1.0e-5, 
-            dtMax = 0.1,
+            dtMax = 100.0,
             dtGrowth = 2.0,
             dtverbose = False,
             rigorousBoundaries = False,
@@ -87,22 +83,18 @@ commandLine(nx1 = 100,
             graphics = "gnu",
             )
 
-if SVPH:
-    HydroConstructor = SVPHFacetedHydro
-elif CRKSPH:
-    HydroConstructor = CRKSPHHydro
-    Qconstructor = CRKSPHMonaghanGingoldViscosity
-elif TSPH:
-    HydroConstructor = TaylorSPHHydro
+if svph:
+    hydroname = "SVPH"
+elif crksph:
+    hydroname = "CRKSPH"
 else:
-    HydroConstructor = SPHHydro
+    hydroname = "SPH"
 
 dataDir = os.path.join(dataDirBase,
-                       str(HydroConstructor).split("'")[1].split(".")[-1],
-                       str(Qconstructor).split("'")[1].split(".")[-1],
+                       hydroname,
                        "nx=%i" % nx1)
 restartDir = os.path.join(dataDir, "restarts")
-restartBaseName = os.path.join(restartDir, "AcousticWave-planar-1d-%i" % nx1)
+restartBaseName = os.path.join(restartDir, "FreeExpansion-planar-1d-%i" % nx1)
 
 #-------------------------------------------------------------------------------
 # Check if the necessary output directories exist.  If not, create them.
@@ -124,7 +116,7 @@ eos = GammaLawGasMKS(gamma, mu)
 #-------------------------------------------------------------------------------
 # Interpolation kernels.
 #-------------------------------------------------------------------------------
-WT = TableKernel(BSplineKernel(), 10000)
+WT = TableKernel(NBSplineKernel(order), 1000)
 output("WT")
 
 #-------------------------------------------------------------------------------
@@ -174,59 +166,42 @@ output("db.numNodeLists")
 output("db.numFluidNodeLists")
 
 #-------------------------------------------------------------------------------
-# Construct the artificial viscosity.
-#-------------------------------------------------------------------------------
-q = Qconstructor(Cl, Cq, linearInExpansion = linearInExpansion)
-q.epsilon2 = epsilon2
-q.limiter = Qlimiter
-output("q")
-output("q.Cl")
-output("q.Cq")
-output("q.epsilon2")
-output("q.limiter")
-
-#-------------------------------------------------------------------------------
 # Construct the hydro physics object.
 #-------------------------------------------------------------------------------
-if SVPH:
-    hydro = HydroConstructor(W = WT, 
-                             Q = q,
-                             cfl = cfl,
-                             compatibleEnergyEvolution = compatibleEnergy,
-                             XSVPH = XSPH,
-                             linearConsistent = linearConsistent,
-                             densityUpdate = densityUpdate,
-                             HUpdate = HUpdate,
-                             xmin = Vector(-100.0),
-                             xmax = Vector( 100.0))
-elif CRKSPH:
-    hydro = HydroConstructor(W = WT, 
-                             Q = q,
-                             filter = filter,
-                             cfl = cfl,
-                             compatibleEnergyEvolution = compatibleEnergy,
-                             XSPH = XSPH,
-                             densityUpdate = densityUpdate,
-                             HUpdate = HUpdate)
+if svph:
+    hydro = SVPH(dataBase = db,
+                 W = WT, 
+                 cfl = cfl,
+                 compatibleEnergyEvolution = compatibleEnergy,
+                 XSVPH = XSPH,
+                 linearConsistent = linearConsistent,
+                 densityUpdate = densityUpdate,
+                 HUpdate = HUpdate,
+                 xmin = Vector(-100.0),
+                 xmax = Vector( 100.0))
+elif crksph:
+    hydro = CRKSPH(dataBase = db,
+                   W = WT, 
+                   filter = filter,
+                   cfl = cfl,
+                   volumeType = volumeType,
+                   compatibleEnergyEvolution = compatibleEnergy,
+                   XSPH = XSPH,
+                   densityUpdate = densityUpdate,
+                   HUpdate = HUpdate,
+                   correctionOrder = correctionOrder)
 
-elif TSPH:
-    hydro = HydroConstructor(W = WT, 
-                             Q = q,
-                             cfl = cfl,
-                             compatibleEnergyEvolution = compatibleEnergy,
-                             XSPH = XSPH,
-                             HUpdate = HUpdate)
 else:
-    hydro = HydroConstructor(W = WT, 
-                             Q = q,
-                             cfl = cfl,
-                             compatibleEnergyEvolution = compatibleEnergy,
-                             gradhCorrection = gradhCorrection,
-                             XSPH = XSPH,
-                             densityUpdate = densityUpdate,
-                             HUpdate = HUpdate,
-                             epsTensile = epsilonTensile,
-                             nTensile = nTensile)
+    hydro = SPH(dataBase = db,
+                W = WT, 
+                cfl = cfl,
+                compatibleEnergyEvolution = compatibleEnergy,
+                gradhCorrection = gradhCorrection,
+                XSPH = XSPH,
+                densityUpdate = densityUpdate,
+                HUpdate = HUpdate,
+                epsTensile = epsilonTensile,
+                nTensile = nTensile)
 output("hydro")
 
 #-------------------------------------------------------------------------------
@@ -287,17 +262,17 @@ if graphics == "gnu":
     csPlot = plotFieldList(cs, winTitle="Sound speed", colorNodeLists=False)
     EPlot = plotEHistory(control.conserve)
 
-    if SVPH:
+    if svph:
         volPlot = plotFieldList(hydro.volume(),
                                 winTitle = "volume",
                                 colorNodeLists = False)
-    elif CRKSPH:
-        A0=hydro.A0()
+    elif crksph:
+        A=hydro.A()
 	print("ARRAY LENGTH:")
-        print(A0[0].__len__())
+        print(A[0].__len__())
         tmp=[]
-        for i in range(A0[0].__len__()):
-		tmp.append(A0[0][i])
+        for i in range(A[0].__len__()):
+		tmp.append(A[0][i])
         A=np.array(tmp)
         #ret=smooth(A,11,'hamming') 
         CoeffBx = Gnuplot.Data(A,
@@ -309,21 +284,21 @@ if graphics == "gnu":
         p0.plot(CoeffBx)
         p0.title("COEFF")
         p0.refresh()
-        #print(A0.size())
-        #A=np.array(A0)
+        #print(A.size())
+        #A=np.array(A)
         #ret=smooth(A,11,'hamming')
         volPlot = plotFieldList(hydro.volume(),
                                 winTitle = "volume",
                                 colorNodeLists = False)
-        A0Plot = plotFieldList(hydro.A0(),
-                               winTitle = "A0",
-                               colorNodeLists = False)
         APlot = plotFieldList(hydro.A(),
                               winTitle = "A",
                               colorNodeLists = False)
         BPlot = plotFieldList(hydro.B(),
                               yFunction = "%s.x",
                               winTitle = "B",
+                              colorNodeLists = False)
+        splot = plotFieldList(hydro.surfacePoint(),
+                              winTitle = "surface point",
                               colorNodeLists = False)
 
     else:
@@ -349,11 +324,10 @@ if outputFile != "None":
     labels = ["x", "m", "rho", "P", "v", "eps", "h"]
     stuff = [xprof, mprof, rhoprof, Pprof, vprof, epsprof, hprof]
     if CRKSPH:
-        A0prof = mpi.reduce(hydro.A0()[0].internalValues(), mpi.SUM)
         Aprof = mpi.reduce(hydro.A()[0].internalValues(), mpi.SUM)
         Bprof = mpi.reduce([x.x for x in hydro.B()[0].internalValues()], mpi.SUM)
-        labels += ["A0", "A", "B"]
-        stuff += [A0prof, Aprof, Bprof]
+        labels += ["A", "B"]
+        stuff += [Aprof, Bprof]
 
     if mpi.rank == 0:
         multiSort(*tuple(stuff))

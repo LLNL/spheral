@@ -16,7 +16,7 @@ namespace Spheral {
 // The data type any client classes must hold onto if they want to register for 
 // restarting.
 //------------------------------------------------------------------------------
-typedef boost::shared_ptr<RedistributionNotificationHandle> RedistributionRegistrationType;
+typedef std::shared_ptr<RedistributionNotificationHandle> RedistributionRegistrationType;
 
 //------------------------------------------------------------------------------
 // Register the given object for notification of Redistribution.  Such classes

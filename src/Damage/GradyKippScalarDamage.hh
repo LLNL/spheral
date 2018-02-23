@@ -45,7 +45,7 @@ public:
   typedef typename Physics<Dimension>::ConstBoundaryIterator ConstBoundaryIterator;
 
   // Constructors, destructor.
-  GradyKippScalarDamage(SolidMaterial::SolidNodeList<Dimension>& nodeList,
+  GradyKippScalarDamage(NodeSpace::SolidNodeList<Dimension>& nodeList,
                         NodeSpace::FluidNodeList<Dimension>& damagedNodeList,
                         const double kWeibull,
                         const double mWeibull,

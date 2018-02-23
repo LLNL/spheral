@@ -39,21 +39,21 @@ iterateIdealH(DataBase<Dimension>& dataBase,
   typedef typename vector<Boundary<Dimension>*>::const_iterator ConstBoundaryIterator;
 
   // Get the local rank.
-  const unsigned rank = Process::getRank();
+  const auto rank = Process::getRank();
 
   // Start the timing.
-  const clock_t t0 = clock();
+  const auto t0 = clock();
 
   // Extract the state we care about.
-  const FieldList<Dimension, Vector> pos = dataBase.fluidPosition();
-  FieldList<Dimension, Scalar> m = dataBase.fluidMass();
-  FieldList<Dimension, Scalar> rho = dataBase.fluidMassDensity();
-  FieldList<Dimension, SymTensor> H = dataBase.fluidHfield();
+  const auto pos = dataBase.fluidPosition();
+  auto m = dataBase.fluidMass();
+  auto rho = dataBase.fluidMassDensity();
+  auto H = dataBase.fluidHfield();
 
   // If we're using the fixDeterminant, take a snapshot of the input H determinants.
-  FieldList<Dimension, double> Hdet0 = dataBase.newFluidFieldList(double());
+  auto Hdet0 = dataBase.newFluidFieldList(double());
   if (fixDeterminant) {
-    for (InternalNodeIterator<Dimension> itr = dataBase.internalNodeBegin();
+    for (auto itr = dataBase.internalNodeBegin();
          itr != dataBase.internalNodeEnd();
          ++itr) Hdet0(itr) = H(itr).Determinant();
   }
@@ -61,13 +61,13 @@ iterateIdealH(DataBase<Dimension>& dataBase,
   // Store the input nperh for each NodeList.
   // If we're rescaling the nodes per h for our work, make a cut at it.
   vector<double> nperh0;
-  for (typename DataBase<Dimension>::ConstFluidNodeListIterator nodeListItr = dataBase.fluidNodeListBegin();
+  for (auto nodeListItr = dataBase.fluidNodeListBegin();
        nodeListItr != dataBase.fluidNodeListEnd(); 
        ++nodeListItr) {
-    const double nperh = (*nodeListItr)->nodesPerSmoothingScale();
+    const auto nperh = (*nodeListItr)->nodesPerSmoothingScale();
     nperh0.push_back(nperh);
     if (distinctlyGreaterThan(nPerhForIteration, 0.0)) {
-      Field<Dimension, SymTensor>& Hfield = **(H.fieldForNodeList(**nodeListItr));
+      auto& Hfield = **(H.fieldForNodeList(**nodeListItr));
       Hfield *= Dimension::rootnu(nperh/nPerhForIteration);
       (*nodeListItr)->nodesPerSmoothingScale(nPerhForIteration);
     }
@@ -76,53 +76,51 @@ iterateIdealH(DataBase<Dimension>& dataBase,
 
   // If we are both fixing the H determinant and rescaling the nodes per h,
   // we need a snapshot of the rescaled H determinant as well.
-  FieldList<Dimension, double> Hdet1 = dataBase.newFluidFieldList(double());
+  auto Hdet1 = dataBase.newFluidFieldList(double());
   if (fixDeterminant) {
-    for (InternalNodeIterator<Dimension> itr = dataBase.internalNodeBegin();
+    for (auto itr = dataBase.internalNodeBegin();
          itr != dataBase.internalNodeEnd();
          ++itr) Hdet1(itr) = H(itr).Determinant();
   }
 
   // If requested, start by making all the H's round (volume preserving).
   if (sphericalStart) {
-    for (InternalNodeIterator<Dimension> itr = dataBase.internalNodeBegin();
+    for (auto itr = dataBase.internalNodeBegin();
          itr != dataBase.internalNodeEnd();
          ++itr) {
-      const double Hdeti = H(itr).Determinant();
-      const SymTensor Hi = Dimension::rootnu(Hdeti) * SymTensor::one;
+      const auto Hdeti = H(itr).Determinant();
+      const auto Hi = Dimension::rootnu(Hdeti) * SymTensor::one;
       H(itr) = Hi;
     }
   }
 
   // Keep track of the step-wise changes in the H.
-  FieldList<Dimension, double> deltaH = dataBase.newFluidFieldList(double());
+  auto deltaH = dataBase.newFluidFieldList(double());
   deltaH = 2.0*tolerance;
 
   // Iterate until we either hit the max iterations or the H's achieve convergence.
-  const int numNodeLists = dataBase.numFluidNodeLists();
+  const auto numNodeLists = dataBase.numFluidNodeLists();
+  auto maxDeltaH = 2.0*tolerance;
   int itr = 0;
-  double maxDeltaH = 2.0*tolerance;
   while (itr < maxIterations && maxDeltaH > tolerance) {
     ++itr;
     maxDeltaH = 0.0;
 
     // Remove any old ghost node information from the NodeLists.
-    for (typename DataBase<Dimension>::FluidNodeListIterator nodeListItr = dataBase.fluidNodeListBegin();
-         nodeListItr != dataBase.fluidNodeListEnd(); 
-         ++nodeListItr) {
-      (*nodeListItr)->numGhostNodes(0);
-      (*nodeListItr)->neighbor().updateNodes();
+    for (auto k = 0; k < numNodeLists; ++k) {
+      auto nodeListPtr = *(dataBase.fluidNodeListBegin() + k);
+      nodeListPtr->numGhostNodes(0);
+      nodeListPtr->neighbor().updateNodes();
     }
 
     // Enforce boundary conditions.
-    for (ConstBoundaryIterator boundaryItr = boundaries.begin(); 
-         boundaryItr != boundaries.end();
-         ++boundaryItr) {
-      (*boundaryItr)->setAllGhostNodes(dataBase);
-      (*boundaryItr)->applyFieldListGhostBoundary(m);
-      (*boundaryItr)->applyFieldListGhostBoundary(rho);
-      (*boundaryItr)->finalizeGhostBoundary();
-      for (typename DataBase<Dimension>::FluidNodeListIterator nodeListItr = dataBase.fluidNodeListBegin();
+    for (auto k = 0; k < boundaries.size(); ++k) {
+      auto boundaryPtr = *(boundaries.begin() + k);
+      boundaryPtr->setAllGhostNodes(dataBase);
+      boundaryPtr->applyFieldListGhostBoundary(m);
+      boundaryPtr->applyFieldListGhostBoundary(rho);
+      boundaryPtr->finalizeGhostBoundary();
+      for (auto nodeListItr = dataBase.fluidNodeListBegin();
            nodeListItr != dataBase.fluidNodeListEnd(); 
            ++nodeListItr) {
         (*nodeListItr)->neighbor().updateNodes();
@@ -130,11 +128,11 @@ iterateIdealH(DataBase<Dimension>& dataBase,
     }
 
     // Build a list of flags to indicate which nodes have been completed.
-    FieldList<Dimension, int> flagNodeDone = dataBase.newFluidFieldList(int());
+    auto flagNodeDone = dataBase.newFluidFieldList(int());
     flagNodeDone = 0;
 
     // Any nodes that have already converged we flag as done.
-    for (InternalNodeIterator<Dimension> nodeItr = dataBase.fluidInternalNodeBegin();
+    for (auto nodeItr = dataBase.fluidInternalNodeBegin();
          nodeItr != dataBase.fluidInternalNodeEnd();
          ++nodeItr) {
       if (deltaH(nodeItr) <= tolerance) flagNodeDone(nodeItr) = 1;
@@ -146,105 +144,114 @@ iterateIdealH(DataBase<Dimension>& dataBase,
 
     // Get the new connectivity.
     dataBase.updateConnectivityMap(false);
-    const ConnectivityMap<Dimension>& connectivityMap = dataBase.connectivityMap();
+    const auto& connectivityMap = dataBase.connectivityMap();
 
     // Iterate over the NodeLists.
     int nodeListi = 0;
-    for (typename DataBase<Dimension>::ConstFluidNodeListIterator nodeListItr = dataBase.fluidNodeListBegin();
-         nodeListItr != dataBase.fluidNodeListEnd(); 
-         ++nodeListItr, ++nodeListi) {
-      const Scalar hmin = (**nodeListItr).hmin();
-      const Scalar hmax = (**nodeListItr).hmax();
-      const Scalar hminratio = (**nodeListItr).hminratio();
-      const Scalar nPerh = (**nodeListItr).nodesPerSmoothingScale();
+    for (auto nodeListi = 0; nodeListi < numNodeLists; ++nodeListi) {
+      const auto nodeListPtr = *(dataBase.fluidNodeListBegin() + nodeListi);
+      const Scalar hmin = nodeListPtr->hmin();
+      const Scalar hmax = nodeListPtr->hmax();
+      const Scalar hminratio = nodeListPtr->hminratio();
+      const Scalar nPerh = nodeListPtr->nodesPerSmoothingScale();
 
       // Iterate over the internal nodes of this NodeList.
-      for (int i = 0; i != (**nodeListItr).numInternalNodes(); ++i) {
+#pragma omp parallel
+      {
+        auto maxDeltaH_local = maxDeltaH;
+#pragma omp for
+        for (auto i = 0; i < nodeListPtr->numInternalNodes(); ++i) {
 
-        // Has this node been done yet?
-        if (flagNodeDone(nodeListi, i) == 0) {
+          // Has this node been done yet?
+          if (flagNodeDone(nodeListi, i) == 0) {
 
-          // Get the state and neighbors for this node.
-          const vector<vector<int> >& fullConnectivity = connectivityMap.connectivityForNode(*nodeListItr, i);
-          const Vector& posi = pos(nodeListi, i);
-          const SymTensor& Hi = H(nodeListi, i);
-          const Scalar mi = m(nodeListi, i);
-          const Scalar rhoi = rho(nodeListi, i);
+            // Get the state and neighbors for this node.
+            const auto& fullConnectivity = connectivityMap.connectivityForNode(nodeListPtr, i);
+            const auto& posi = pos(nodeListi, i);
+            const auto& Hi = H(nodeListi, i);
+            const auto  mi = m(nodeListi, i);
+            const auto  rhoi = rho(nodeListi, i);
 
-          // Prepare to accumulate the zeroth and second moments for this node.
-          Scalar zerothMoment = 0.0;
-          SymTensor secondMoment;
+            // Prepare to accumulate the zeroth and second moments for this node.
+            auto zerothMoment = 0.0;
+            SymTensor secondMoment;
+            Scalar fweightij;
 
-          // Iterate over the neighbor NodeLists.
-          for (int nodeListj = 0; nodeListj != numNodeLists; ++nodeListj) {
+            // Iterate over the neighbor NodeLists.
+            for (auto nodeListj = 0; nodeListj != numNodeLists; ++nodeListj) {
 
-            // Neighbors from this NodeList.
-            const vector<int>& connectivity = fullConnectivity[nodeListj];
-            for (vector<int>::const_iterator jItr = connectivity.begin();
-                 jItr != connectivity.end();
-                 ++jItr) {
-              const int j = *jItr;
+              // Neighbors from this NodeList.
+              const auto& connectivity = fullConnectivity[nodeListj];
+              for (auto jItr = connectivity.begin();
+                   jItr != connectivity.end();
+                   ++jItr) {
+                const int j = *jItr;
 
-              // Increment the moments.
-              const Vector& posj = pos(nodeListj, j);
-              const Scalar mj = m(nodeListj, j);
-              const Scalar rhoj = rho(nodeListj, j);
+                // Increment the moments.
+                const auto& posj = pos(nodeListj, j);
+                const auto  mj = m(nodeListj, j);
+                const auto  rhoj = rho(nodeListj, j);
 
-              Scalar fweightij = 1.0;
-              if (nodeListi != nodeListj) {
-                if (dataBase.isRZ) {
-                  const Scalar ri = abs(posi.y());
-                  const Scalar rj = abs(posj.y());
-                  const Scalar mRZi = mi/(2.0*M_PI*ri);
-                  const Scalar mRZj = mj/(2.0*M_PI*rj);
-                  fweightij = mRZj*rhoi/(mRZi*rhoj);
-                } else {
-                  fweightij = mj*rhoi/(mi*rhoj);
+                fweightij = 1.0;
+                if (nodeListi != nodeListj) {
+                  if (dataBase.isRZ) {
+                    const auto ri = abs(posi.y());
+                    const auto rj = abs(posj.y());
+                    const auto mRZi = mi/(2.0*M_PI*ri);
+                    const auto mRZj = mj/(2.0*M_PI*rj);
+                    fweightij = mRZj*rhoi/(mRZi*rhoj);
+                  } else {
+                    fweightij = mj*rhoi/(mi*rhoj);
+                  }
                 }
-              }
                                         
-              const Vector xij = posi - posj;
-              const Scalar etai = (Hi*xij).magnitude();
-              const Scalar Wi = std::abs(W.gradValue(etai, 1.0));
-              const SymTensor thpt = xij.selfdyad()/(xij.magnitude2() + 1.0e-10);
-              zerothMoment += fweightij*Wi;
-              secondMoment += fweightij*FastMath::square(Wi/Dimension::pownu1(etai + 1.0e-10))*thpt;
+                const auto xij = posi - posj;
+                const auto etai = (Hi*xij).magnitude();
+                const auto Wi = std::abs(W.gradValue(etai, 1.0));
+                const auto thpt = xij.selfdyad()/(xij.magnitude2() + 1.0e-10);
+                zerothMoment += fweightij*Wi;
+                secondMoment += fweightij*FastMath::square(Wi*safeInvVar(xij.magnitude2()))*thpt;
+                // secondMoment += fweightij*FastMath::square(Wi/Dimension::pownu1(etai + 1.0e-10))*thpt;
+              }
             }
+
+            // Finish the moments and measure the new H.
+            zerothMoment = Dimension::rootnu(zerothMoment);
+            H1(nodeListi, i) = smoothingScaleMethod.newSmoothingScale(Hi,
+                                                                      posi,
+                                                                      zerothMoment,
+                                                                      secondMoment,
+                                                                      W,
+                                                                      hmin,
+                                                                      hmax,
+                                                                      hminratio,
+                                                                      nPerh,
+                                                                      connectivityMap,
+                                                                      nodeListi,
+                                                                      i);
+
+            // If we are preserving the determinant, do it.
+            if (fixDeterminant) {
+              H1(nodeListi, i) *= Dimension::rootnu(Hdet1(nodeListi, i)/H1(nodeListi, i).Determinant());
+              CHECK(fuzzyEqual(H1(nodeListi, i).Determinant(), Hdet1(nodeListi, i)));
+            }
+
+            // Check how much this H has changed.
+            const auto H1sqrt = H1(nodeListi, i).sqrt();
+            const auto phi = (H1sqrt*Hi.Inverse()*H1sqrt).Symmetric().eigenValues();
+            const auto phimin = phi.minElement();
+            const auto phimax = phi.maxElement();
+            const auto deltaHi = max(abs(phimin - 1.0), abs(phimax - 1.0));
+            deltaH(nodeListi, i) = deltaHi;
+            maxDeltaH = max(maxDeltaH, deltaHi);
           }
 
-          // Finish the moments and measure the new H.
-          zerothMoment = Dimension::rootnu(zerothMoment);
-          H1(nodeListi, i) = smoothingScaleMethod.newSmoothingScale(Hi,
-                                                                    posi,
-                                                                    zerothMoment,
-                                                                    secondMoment,
-                                                                    W,
-                                                                    hmin,
-                                                                    hmax,
-                                                                    hminratio,
-                                                                    nPerh,
-                                                                    connectivityMap,
-                                                                    nodeListi,
-                                                                    i);
-
-          // If we are preserving the determinant, do it.
-          if (fixDeterminant) {
-            H1(nodeListi, i) *= Dimension::rootnu(Hdet1(nodeListi, i)/H1(nodeListi, i).Determinant());
-            CHECK(fuzzyEqual(H1(nodeListi, i).Determinant(), Hdet1(nodeListi, i)));
-          }
-
-          // Check how much this H has changed.
-          const SymTensor H1sqrt = H1(nodeListi, i).sqrt();
-          const Vector phi = (H1sqrt*Hi.Inverse()*H1sqrt).Symmetric().eigenValues();
-          const double phimin = phi.minElement();
-          const double phimax = phi.maxElement();
-          const double deltaHi = max(abs(phimin - 1.0), abs(phimax - 1.0));
-          deltaH(nodeListi, i) = deltaHi;
-          maxDeltaH = max(maxDeltaH, deltaHi);
+          // Flag this node as completed.
+          flagNodeDone(nodeListi, i) = 1;
         }
 
-        // Flag this node as completed.
-        flagNodeDone(nodeListi, i) = 1;
+#pragma omp critical
+        maxDeltaH = max(maxDeltaH, maxDeltaH_local);
       }
     }
 
@@ -282,7 +289,7 @@ iterateIdealH(DataBase<Dimension>& dataBase,
 
     // Reset the nperh.
     size_t k = 0;
-    for (typename DataBase<Dimension>::FluidNodeListIterator nodeListItr = dataBase.fluidNodeListBegin();
+    for (auto nodeListItr = dataBase.fluidNodeListBegin();
          nodeListItr != dataBase.fluidNodeListEnd(); 
          ++nodeListItr, ++k) {
       CHECK(k < nperh0.size());
@@ -297,7 +304,7 @@ iterateIdealH(DataBase<Dimension>& dataBase,
 
   // If we're fixing the determinant, restore them.
   if (fixDeterminant) {
-    for (InternalNodeIterator<Dimension> itr = dataBase.internalNodeBegin();
+    for (auto itr = dataBase.internalNodeBegin();
          itr != dataBase.internalNodeEnd();
          ++itr) {
       H(itr) *= Dimension::rootnu(Hdet0(itr)/H(itr).Determinant());
@@ -305,15 +312,14 @@ iterateIdealH(DataBase<Dimension>& dataBase,
     }
   }
 
-
   // Leave the boundary conditions properly enforced.
-  for (typename DataBase<Dimension>::FluidNodeListIterator nodeListItr = dataBase.fluidNodeListBegin();
+  for (auto nodeListItr = dataBase.fluidNodeListBegin();
        nodeListItr != dataBase.fluidNodeListEnd(); 
        ++nodeListItr) {
     (*nodeListItr)->numGhostNodes(0);
     (*nodeListItr)->neighbor().updateNodes();
   }
-  for (ConstBoundaryIterator boundaryItr = boundaries.begin(); 
+  for (auto boundaryItr = boundaries.begin(); 
        boundaryItr != boundaries.end();
        ++boundaryItr) {
     (*boundaryItr)->setAllGhostNodes(dataBase);
@@ -325,22 +331,20 @@ iterateIdealH(DataBase<Dimension>& dataBase,
     }
   }
 
-  for (ConstBoundaryIterator boundaryItr = boundaries.begin(); 
+  for (auto boundaryItr = boundaries.begin(); 
        boundaryItr != boundaries.end();
        ++boundaryItr) {
     (*boundaryItr)->applyFieldListGhostBoundary(m);
   }
-  for (ConstBoundaryIterator boundaryItr = boundaries.begin(); 
+  for (auto boundaryItr = boundaries.begin(); 
        boundaryItr != boundaries.end();
        ++boundaryItr) {
     (*boundaryItr)->finalizeGhostBoundary();
   }
 
   // Report the final timing.
-  const clock_t t1 = clock();
-#ifdef USE_MPI
-    if (rank == 0)
-#endif
+  const auto t1 = clock();
+  if (Process::getRank() == 0)
     cerr << "iterateIdealH: required a total of "
          << (t1 - t0)/CLOCKS_PER_SEC
          << " seconds."

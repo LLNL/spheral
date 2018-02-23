@@ -27,7 +27,6 @@ commandLine(KernelConstructor = BSplineKernel,
             x0 = 0.0,
             x1 = 1.0,
             nPerh = 1.25,
-            NeighborType = NestedGridNeighbor,
 
             gamma = 5.0/3.0,
             mu = 1.0,
@@ -144,8 +143,7 @@ output("WTPi")
 nodes1 = makeFluidNodeList("nodes1", eos, 
                            hmin = hmin,
                            hmax = hmax,
-                           nPerh = nPerh,
-                           NeighborType = NeighborType)
+                           nPerh = nPerh)
 output("nodes1")
 output("nodes1.hmin")
 output("nodes1.hmax")

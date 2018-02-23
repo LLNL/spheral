@@ -11,6 +11,8 @@ source("../src/Geometry/tests/testInnerOuterProduct.py")
 source("../src/Geometry/tests/testEigen3d.py")
 source("../src/Geometry/tests/testPolygon.py")
 source("../src/Geometry/tests/testPolyhedron.py")
+source("../src/Geometry/tests/testPolyClipper2d.py")
+source("../src/Geometry/tests/testPolyClipper3d.py")
 
 # Boundary unit tests
 source("../src/Boundary/tests/testPeriodicBoundary-1d.py")
@@ -21,6 +23,7 @@ source("../src/SPH/tests/testLinearVelocityGradient.py")
 
 # CRKSPH unit tests
 source("../src/CRKSPH/tests/testInterpolation.py")
+source("../src/CRKSPH/tests/testVoronoiVolume.py")
 
 # SVPH unit tests
 source("../src/SVPH/tests/testSVPHInterpolation-1d.py")
@@ -36,7 +39,8 @@ source("../src/Neighbor/tests/testTreeNeighbor.py")
 # Distributed unit tests
 source("../src/Distributed/tests/distributedUnitTests.py")
 
-# SolidMaterial unit tests.
+# Material unit tests.
+source("../src/Material/tests/testEOS.py")
 source("../src/SolidMaterial/tests/testTillotsonEquationOfState.py")
 
 # Test the sampling to lattice method.

@@ -7,6 +7,8 @@
 //----------------------------------------------------------------------------//
 #ifndef __Spheral_NodeSpace_CRKSPHFluidGradient__
 #define __Spheral_NodeSpace_CRKSPHFluidGradient__
+
+#include <limits>
 #include "CRKSPHCorrectionParams.hh"
 
 // Forward declarations.
@@ -23,38 +25,42 @@ namespace CRKSPHSpace {
 template<typename Dimension>
 typename Dimension::Scalar
 CRKSPHKernel(const KernelSpace::TableKernel<Dimension>& W,
-           const CRKOrder correctionOrder,
-           const typename Dimension::Vector& rij,
-           const typename Dimension::Vector& etai,
-           const typename Dimension::Scalar& Hdeti,
-           const typename Dimension::Vector& etaj,
-           const typename Dimension::Scalar& Hdetj,
-           const typename Dimension::Scalar& Ai,
-           const typename Dimension::Vector& Bi,
-           const typename Dimension::Tensor& Ci);
+             const CRKOrder correctionOrder,
+             const typename Dimension::Vector& rij,
+             const typename Dimension::Vector& etai,
+             const typename Dimension::Scalar Hdeti,
+             const typename Dimension::Vector& etaj,
+             const typename Dimension::Scalar Hdetj,
+             const typename Dimension::Scalar Ai,
+             const typename Dimension::Vector& Bi,
+             const typename Dimension::Tensor& Ci,
+             const typename Dimension::Scalar correctionMin = std::numeric_limits<typename Dimension::Scalar>::lowest(),
+             const typename Dimension::Scalar correctionMax = std::numeric_limits<typename Dimension::Scalar>::max());
 
 // Compute the corrected kernel value, uncorrected and corrected gradients.
 // Returned as the last three arguments.
 template<typename Dimension>
 void
-CRKSPHKernelAndGradient(const KernelSpace::TableKernel<Dimension>& W,
-                      const CRKOrder correctionOrder,
-                      const typename Dimension::Vector& rij,
-                      const typename Dimension::Vector& etai,
-                      const typename Dimension::SymTensor& Hi,
-                      const typename Dimension::Scalar& Hdeti,
-                      const typename Dimension::Vector& etaj,
-                      const typename Dimension::SymTensor& Hj,
-                      const typename Dimension::Scalar& Hdetj,
-                      const typename Dimension::Scalar& Ai,
-                      const typename Dimension::Vector& Bi,
-                      const typename Dimension::Tensor& Ci,
-                      const typename Dimension::Vector& gradAi,
-                      const typename Dimension::Tensor& gradBi,
-                      const typename Dimension::ThirdRankTensor& gradCi,
-                      typename Dimension::Scalar& WCRKSPH,
-                      typename Dimension::Scalar& gradWSPH,
-                      typename Dimension::Vector& gradWCRKSPH);
+CRKSPHKernelAndGradient(typename Dimension::Scalar& WCRKSPH,
+                        typename Dimension::Scalar& gradWSPH,
+                        typename Dimension::Vector& gradWCRKSPH,
+                        const KernelSpace::TableKernel<Dimension>& W,
+                        const CRKOrder correctionOrder,
+                        const typename Dimension::Vector& rij,
+                        const typename Dimension::Vector& etai,
+                        const typename Dimension::SymTensor& Hi,
+                        const typename Dimension::Scalar Hdeti,
+                        const typename Dimension::Vector& etaj,
+                        const typename Dimension::SymTensor& Hj,
+                        const typename Dimension::Scalar Hdetj,
+                        const typename Dimension::Scalar Ai,
+                        const typename Dimension::Vector& Bi,
+                        const typename Dimension::Tensor& Ci,
+                        const typename Dimension::Vector& gradAi,
+                        const typename Dimension::Tensor& gradBi,
+                        const typename Dimension::ThirdRankTensor& gradCi,
+                        const typename Dimension::Scalar correctionMin = std::numeric_limits<typename Dimension::Scalar>::lowest(),
+                        const typename Dimension::Scalar correctionMax = std::numeric_limits<typename Dimension::Scalar>::max());
 
 }
 }

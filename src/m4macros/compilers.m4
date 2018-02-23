@@ -34,6 +34,7 @@ AC_SUBST(CMAKECC)
 AC_SUBST(CMAKECXX)
 
 AC_SUBST(PARMETISCC)
+AC_SUBST(MPI4PYCC)
 
 AC_SUBST(CXXCOMPILERTYPE)
 AC_SUBST(JAMOPTS)
@@ -53,6 +54,8 @@ AC_SUBST(SHAREDFLAG)
 AC_SUBST(LDPASSTHROUGH)
 
 AC_SUBST(CXXFLAGS)
+AC_SUBST(EXTRAFLAGS)
+AC_SUBST(EXTRAINCLUDES)
 AC_SUBST(FORTFLAGS)
 AC_SUBST(CFLAGS)
 AC_SUBST(MPICCFLAGS)
@@ -62,6 +65,8 @@ AC_SUBST(DEPFLAG)
 AC_SUBST(PYTHONCFLAGS)
 AC_SUBST(PYTHONCONFFLAGS)
 AC_SUBST(NUMPYFLAGS)
+AC_SUBST(NUMPYCFLAGS)
+AC_SUBST(HDF5FLAGS)
 
 PYTHONCONFFLAGS=
 LIBTARGETFLAGS=
@@ -70,6 +75,8 @@ LDINSTALLNAME="-o"
 LDRPATH=
 FORTLINK=
 NUMPYFLAGS=
+EXTRAINCLUDES=
+NUMPYCFLAGS=
 
 # =======================================================================
 # Selection of approved compiler sets for Spheral++.
@@ -104,12 +111,15 @@ case $COMPILERS in
             MPICXX=mpig++
             #MPICXXFLAGS="-cc=$CXX"
          fi
+         CMAKECC=$CC
+         CMAKECXX=$CXX
          GCCXMLCC=$CMAKECC
          GCCXMLCXX=$CMAKECXX
          PYTHONCC=$CC
-         PYTHONCXX=$CXX
+         PYTHONCXX=$MPICXX
          PARMETISCC=$MPICC
-         CXXFLAGS+=" -std=c++11"
+         MPI4PYCC=$MPICC
+         CXXFLAGS+=" -std=c++11 -march=native"
 
       else
          CC=gcc
@@ -122,9 +132,10 @@ case $COMPILERS in
          GCCXMLCC=$CMAKECC
          GCCXMLCXX=$CMAKECXX
          PYTHONCC=$CC
-         PYTHONCXX=$CXX
+         PYTHONCXX=$MPICXX
          PARMETISCC=$MPICC
-         CXXFLAGS+=" -std=c++11"
+         MPI4PYCC=$MPICC
+         CXXFLAGS+=" -std=c++11 -march=native"
          if test $OSNAME = "Darwin"; then
            CXXFLAGS+=" -mmacosx-version-min=10.7 -stdlib=libc++"
          fi
@@ -144,9 +155,10 @@ case $COMPILERS in
       GCCXMLCC=$CMAKECC
       GCCXMLCXX=$CMAKECXX
       PYTHONCC=$CC
-      PYTHONCXX=$CXX
+      PYTHONCXX=$MPICXX
       PARMETISCC=$MPICC
-      CXXFLAGS+=" -std=c++11 -Wno-undefined-var-template"
+      MPI4PYCC=$MPICC
+      CXXFLAGS+=" -std=c++11 -Wno-undefined-var-template -march=native"
       if test $OSNAME = "Darwin"; then
         CXXFLAGS+=" -mmacosx-version-min=10.7 -stdlib=libc++"
       fi
@@ -156,44 +168,107 @@ case $COMPILERS in
       CC=clang
       CXX=clang++
       FORT=gfortran
-      MPICC=mpicc
-      MPICXX=mpiCC
+      MPICC=mpiclang-gpu
+      MPICXX=mpiclang++-gpu
       MPICCFLAGS=
       MPICXXFLAGS=
       CMAKECC=clang
       CMAKECXX=clang++
       GCCXMLCC=$CMAKECC
       GCCXMLCXX=$CMAKECXX
-      PYTHONCC=$CC
-      PYTHONCXX=$CXX
+      PYTHONCC=gcc
+      PYTHONCXX=g++
       PARMETISCC=$MPICC
+      MPI4PYCC=$MPICC
       CXXFLAGS+=" -std=c++11 -DEIGEN_DONT_VECTORIZE"
       ;;
 
+   gcc-bg)
+      CC=mpigcc
+      CXX=mpig++
+      FORT=mpigfortran
+      MPICC=mpigcc
+      MPICXX=mpig++
+      MPICCFLAGS=
+      MPICXXFLAGS=
+      CMAKECC=gcc
+      CMAKECXX=g++
+      GCCXMLCC=$CMAKECC
+      GCCXMLCXX=$CMAKECXX
+      PYTHONCC=bggcc
+      PYTHONCXX=bgg++
+      PARMETISCC=$MPICC
+      MPI4PYCC=mpixlc_r
+      CXXFLAGS+=" -std=c++11 -DEIGEN_DONT_VECTORIZE"
+      #LDFLAGS+=" -dynamic"
+      HDF5FLAGS+=" --enable-shared=no --enable-static=yes --enable-static-exec=yes"
+      ;;
+
+   clang-bg)
+      CC=bgclang
+      CXX=bgclang++11
+      FORT=gfortran-4.7.2-fastmpi
+      MPICC=mpiclang
+      MPICXX=mpiclang++11
+      MPICCFLAGS=
+      MPICXXFLAGS=
+      CMAKECC=gcc
+      CMAKECXX=g++
+      GCCXMLCC=$CMAKECC
+      GCCXMLCXX=$CMAKECXX
+      PYTHONCC=gcc
+      PYTHONCXX=g++
+      PARMETISCC=$MPICC
+      MPI4PYCC=mpixlc_r
+      CXXFLAGS+=" -std=c++11 -DEIGEN_DONT_VECTORIZE"
+      HDF5FLAGS+=" --enable-shared=no --enable-static=yes --enable-static-exec=yes"
+      ;;
+
+   vacpp-bg)
+      CC=xlc_r
+      CXX=xlC_r
+      FORT=mpixlf-fastmpi
+      MPICC=mpixlc_r-fastmpi
+      MPICXX=mpixlcxx_r-fastmpi
+      MPICCFLAGS=
+      MPICXXFLAGS=
+      CMAKECC=gcc
+      CMAKECXX=g++
+      GCCXMLCC=$CMAKECC
+      GCCXMLCXX=$CMAKECXX
+      PYTHONCC=gcc
+      PYTHONCXX=g++
+      PARMETISCC=$MPICC
+      MPI4PYCC=$MPICC
+      CXXFLAGS+=" -qlanglvl=extended0x -DEIGEN_DONT_ALIGN -DEIGEN_DONT_VECTORIZE "
+      HDF5FLAGS+=" --enable-shared=no --enable-static=yes --enable-static-exec=yes"
+      ;;
+
    vacpp)
-      CC=xlc
-      CXX=xlC
-      MPICC=mpixlc
-      MPICXX=mpixlC 
-      CMAKECC=$CC
-      CMAKECXX=$CXX
+      CC=xlc_r
+      CXX=xlC_r
+      MPICC=mpicc
+      MPICXX=mpic++ 
+      CMAKECC=gcc
+      CMAKECXX=g++
       GCCXMLCC=/usr/tcetmp/packages/gcc/gcc-4.9.3/bin/gcc
       GCCXMLCXX=/usr/tcetmp/packages/gcc/gcc-4.9.3/bin/g++
-      PYTHONCC=$CC
-      PYTHONCXX=$CXX
+      PYTHONCC=/usr/tcetmp/packages/gcc/gcc-4.9.3/bin/gcc
+      PYTHONCXX=/usr/tcetmp/packages/gcc/gcc-4.9.3/bin/g++
       PARMETISCC=$MPICC
+      MPI4PYCC=$MPICC
       CFLAGS+=" "
-      CXXFLAGS+=" -std=c++11 -qnoxlcompatmacros  -DEIGEN_DONT_ALIGN -DEIGEN_DONT_VECTORIZE "
+      CXXFLAGS+=" -std=c++11 -qnoinline -qnoxlcompatmacros -qmaxmem=16384  -DEIGEN_DONT_ALIGN -DEIGEN_DONT_VECTORIZE "
       ;;
 
    intel)
       CC=icc
       CXX=icpc
       FORT=ifort
-      MPICC=mpicc # mpiicc
-      MPICXX=mpicxx # mpiicpc
-      PYTHONCC=icc
-      PYTHONCXX=icpc
+      MPICC=mpiicc
+      MPICXX=mpiicpc
+      PYTHONCC=$CC
+      PYTHONCXX=$MPICXX
       CMAKECC=$CC
       CMAKECXX=$CXX
       GCCXMLCC=gcc
@@ -201,8 +276,10 @@ case $COMPILERS in
       CMAKECC=gcc
       CMAKECXX=g++
       PARMETISCC=$MPICC
-      CXXFLAGS+=" -std=c++11"
+      MPI4PYCC=$MPICC
+      CXXFLAGS+=" -std=c++11 -flto"
       NUMPYFLAGS="--fcompiler=intelem"
+      NUMPYCFLAGS="CFLAGS=-no-ip"
       ;;
 
    pgi)
@@ -211,8 +288,8 @@ case $COMPILERS in
       FORT=mpif90
       MPICC=mpicc
       MPICXX=mpicxx
-      PYTHONCC=pgcc
-      PYTHONCXX=pgCC
+      PYTHONCC=$CC
+      PYTHONCXX=$MPICXX
       CMAKECC=$CC
       CMAKECXX=$CXX
       GCCXMLCC=
@@ -220,6 +297,7 @@ case $COMPILERS in
       CMAKECC=pgcc
       CMAKECXX=pbCC
       PARMETISCC=$MPICC
+      MPI4PYCC=$MPICC
       NUMPYFLAGS=
       # 111  - statement is unreachable
       # 186  - pointless comparison of unsigned integer with zero
@@ -235,12 +313,13 @@ case $COMPILERS in
       MPICC=mpicc
       MPICXX=mpiCC
       PYTHONCC=$CC
-      PYTHONCXX=$CXX
+      PYTHONCXX=$MPICXX
       CMAKECC=$CC
       CMAKECXX=$CXX
       GCCXMLCC=$CC
       GCCXMLCXX=$CXX
       PARMETISCC=$MPICC
+      MPI4PYCC=$MPICC
       #PYTHONCONFFLAGS="--with-gcc=$PYTHONCC"
       ;;
 
@@ -326,7 +405,6 @@ AC_ARG_WITH(python-CC,
    AC_MSG_RESULT($PYTHONCC)
 ],
 [
-   PYTHONCC=$CC
    AC_MSG_RESULT($PYTHONCC)
 ]
 )
@@ -339,8 +417,22 @@ AC_ARG_WITH(python-CXX,
    AC_MSG_RESULT($PYTHONCXX)
 ],
 [
-   PYTHONCXX=$CXX
    AC_MSG_RESULT($PYTHONCXX)
+]
+)
+
+# =======================================================================
+# mpi4py compilers
+# =======================================================================
+AC_MSG_CHECKING(for MPI4PYCC)
+AC_ARG_WITH(MPI4PYCC,
+[  --with-MPI4PYCC=ARG ....................... manually set the CC compiler for mpi4py],
+[
+   MPI4PYCC=$withval
+   AC_MSG_RESULT($MPI4PYCC)
+],
+[
+   AC_MSG_RESULT($MPI4PYCC)
 ]
 )
 
@@ -355,7 +447,6 @@ AC_ARG_WITH(GCCXMLCC,
    AC_MSG_RESULT($GCCXMLCC)
 ],
 [
-   GCCXMLCC=$CC
    AC_MSG_RESULT($GCCXMLCC)
 ]
 )
@@ -368,7 +459,6 @@ AC_ARG_WITH(GCCXMLCXX,
    AC_MSG_RESULT($GCCXMLCXX)
 ],
 [
-   GCCXMLCXX=$CXX
    AC_MSG_RESULT($GCCXMLCXX)
 ]
 )
@@ -385,7 +475,6 @@ AC_ARG_WITH(cmake-CC,
    AC_MSG_RESULT($CMAKECC)
 ],
 [
-   CMAKECC=$CC
    AC_MSG_RESULT($CMAKECC)
 ]
 )
@@ -398,7 +487,6 @@ AC_ARG_WITH(cmake-CXX,
    AC_MSG_RESULT($CMAKECXX)
 ],
 [
-   CMAKECXX=$CXX
    AC_MSG_RESULT($CMAKECXX)
 ]
 )
@@ -414,7 +502,6 @@ AC_ARG_WITH(parmetis-CC,
    AC_MSG_RESULT(PARMETISCC)
 ],
 [
-   PARMETISCC=$MPICC
    AC_MSG_RESULT($PARMETISCC)
 ]
 )
@@ -609,8 +696,8 @@ GNU)
 INTEL)
   # The -wd654 suppresses the "virtual methods partially overridden warning", which lots of Spheral++ code
   # emits by design.
-  CFLAGS="$CFLAGS -fpic -wd654"
-  CXXFLAGS="$CXXFLAGS -fpic -wd654"
+  CFLAGS="$CFLAGS -fpic" #  -wd654"
+  CXXFLAGS="$CXXFLAGS -fpic" #  -wd654"
   FORTFLAGS="$FORTFLAGS -fpic"
   #LIBS="$LIBS -lrt -lcxa -lirc"
   JAMTOOLSET="intel-linux"
@@ -641,9 +728,10 @@ KAI)
   BOOSTEXT="-$JAMTOOLSET"
   ;;
 VACPP)
-  FORTFLAGS="$FORTFLAGS -fpic"
+  FORTFLAGS="$FORTFLAGS " 
   SHAREDFLAG="$SHAREDFLAG -G -qmkshrobj"
-  DEPFLAG="-M -E"
+  DEPFLAG="-M"
+  #DEPFLAG="-M -E"
   #DEPENDRULES="dependrules.aix"
   CFLAGS="$CFLAGS -g"
   JAMTOOLSET=vacpp 
@@ -688,18 +776,83 @@ AC_MSG_RESULT($JAMTOOLSET)
 # =======================================================================
 AC_MSG_CHECKING(for openmp)
 AC_ARG_WITH(openmp,
-[  --with-openmp .............................. should we enable openmp],
+[  --with-openmp ............................ enable OpenMP],
 [
    AC_MSG_RESULT(yes)
+   PYTHONPKGS+=" OpenMP"
    if test $CXXCOMPILERTYPE = "VACPP"; then
-      CXXFLAGS+="  -qsmp=omp"
+      CXXFLAGS+=" "
+      EXTRAFLAGS+="-qsmp=omp -qoffload -I/usr/tcetmp/packages/cuda-9.0.176/include    "
    else
-      CXXFLAGS+="  -fopenmp"
+      CXXFLAGS+=" -fopenmp"
+    #  CXXFLAGS+=" "
+    #  EXTRAFLAGS+=" -qsmp=omp -qoffload -I/usr/tcetmp/packages/cuda-9.0.176/include    "
    fi
+],
+[
+   AC_MSG_RESULT(no)
+   PYTHONPKGS+=" OpenMP"
+]
+)
+
+# =======================================================================
+# UVM (unified memory for GPUs and such)
+# =======================================================================
+AC_MSG_CHECKING(for uvm)
+AC_ARG_WITH(uvm,
+[  --with-uvm ............................... enable unified memory (only for use with OpenMP)],
+[
+   AC_MSG_RESULT(yes)
+   EXTRAFLAGS+=" -DUSE_UVM"
+   EXTRAFLAGS+=" -I/usr/tcetmp/packages/cuda-9.0.184/include -fopenmp-targets=nvptx64-nvidia-cuda -fopenmp-implicit-declare-target"
 ],
 [
    AC_MSG_RESULT(no)
 ]
 )
+
+# =======================================================================
+# gprof
+# =======================================================================
+AC_MSG_CHECKING(for --with-gprof)
+AC_ARG_WITH(gprof,
+[  --with-gprof ............................. compile with gprof stuff turned on],
+[
+  AC_MSG_RESULT(yes)
+  if test "$CXXCOMPILERTYPE" = "GNU"; then
+    PYTHONCFLAGS+=" -pg"
+    CFLAGS+=" -pg"
+    CXXFLAGS+=" -pg"
+    LDFLAGS+=" -pg"
+  elif test "$CXXCOMPILERTYPE" = "INTEL"; then
+    PYTHONCFLAGS+=" -p -g"
+    CFLAGS+=" -p -g"
+    CXXFLAGS+=" -p -g"
+    LDFLAGS+=" -pg"
+  fi
+],
+[
+  AC_MSG_RESULT(no)
+])
+
+# =======================================================================
+# gperftools
+# =======================================================================
+AC_MSG_CHECKING(for --with-gperftools)
+AC_ARG_WITH(gperftools,
+[  --with-gperftools ....................... compile linking with gperftools (optionally specify link path to libprofiler)],
+[
+  PYTHONPKGS+=" Gperftools"
+  if test $withval = "yes"; then
+    LDFLAGS+=" -L$withval -lprofiler"
+    AC_MSG_RESULT($withval)
+  else
+    LDFLAGS+=" -lprofiler"
+    AC_MSG_RESULT(yes)
+  fi
+],
+[
+  AC_MSG_RESULT(no)
+])
 
 ])

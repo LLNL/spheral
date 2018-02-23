@@ -41,25 +41,29 @@ computeSPHOmegaGradhCorrection(const ConnectivityMap<Dimension>& connectivityMap
   typedef typename Dimension::Tensor Tensor;
   typedef typename Dimension::SymTensor SymTensor;
 
+  // Some useful variables.
+  const auto W0 = W.kernelValue(0.0, 1.0);
+  Scalar Wi, gWi;
+
   // Zero out the result.
   omegaGradh = 0.0;
 
   // Prepare a FieldList to hold the sum gradient.
-  FieldList<Dimension, Scalar> gradsum(FieldSpace::FieldStorageType::Copy);
-  for (size_t nodeListi = 0; nodeListi != numNodeLists; ++nodeListi) {
-    const NodeList<Dimension>& nodeList = omegaGradh[nodeListi]->nodeList();
+  FieldList<Dimension, Scalar> gradsum(FieldSpace::FieldStorageType::CopyFields);
+  for (auto nodeListi = 0; nodeListi != numNodeLists; ++nodeListi) {
+    const auto& nodeList = omegaGradh[nodeListi]->nodeList();
     gradsum.appendNewField("sum of the gradient", nodeList, 0.0);
   }
 
   // Walk the FluidNodeLists.
-  for (size_t nodeListi = 0; nodeListi != numNodeLists; ++nodeListi) {
-    const NodeList<Dimension>& nodeList = omegaGradh[nodeListi]->nodeList();
+  for (auto nodeListi = 0; nodeListi != numNodeLists; ++nodeListi) {
+    const auto& nodeList = omegaGradh[nodeListi]->nodeList();
+    const auto ni = connectivityMap.numNodes(nodeListi);
 
     // Iterate over the nodes in this node list.
-    for (typename ConnectivityMap<Dimension>::const_iterator iItr = connectivityMap.begin(nodeListi);
-         iItr != connectivityMap.end(nodeListi);
-         ++iItr) {
-      const int i = *iItr;
+#pragma omp parallel for private(Wi, gWi)
+    for (auto k = 0; k < ni; ++k) {
+      const auto i = connectivityMap.ithNode(nodeListi, k);
 
       // If we're isolated we have to punt and just set this correction to unity.
       if (connectivityMap.numNeighborsForNode(nodeListi, i) == 0) {
@@ -68,55 +72,37 @@ computeSPHOmegaGradhCorrection(const ConnectivityMap<Dimension>& connectivityMap
       } else {
 
         // Get the state for node i.
-        const Vector& ri = position(nodeListi, i);
-        const SymTensor& Hi = H(nodeListi, i);
-        const Scalar Hdeti = Hi.Determinant();
+        const auto& ri = position(nodeListi, i);
+        const auto& Hi = H(nodeListi, i);
+        const auto  Hdeti = Hi.Determinant();
 
         // Self-contribution.
-        const Scalar W0 = W.kernelValue(0.0, Hdeti);
-        omegaGradh(nodeListi, i) += W0;
+        omegaGradh(nodeListi, i) += Hdeti*W0;
 
         // Neighbors!
-        const vector<vector<int> >& fullConnectivity = connectivityMap.connectivityForNode(nodeListi, i);
+        const auto& fullConnectivity = connectivityMap.connectivityForNode(nodeListi, i);
         CHECK(fullConnectivity.size() == numNodeLists);
 
         // Iterate over the neighbor NodeLists.
-        for (int nodeListj = 0; nodeListj != numNodeLists; ++nodeListj) {
-          const int firstGhostNodej = omegaGradh[nodeListj]->nodeList().firstGhostNode();
+        for (auto nodeListj = 0; nodeListj != numNodeLists; ++nodeListj) {
+          const auto firstGhostNodej = omegaGradh[nodeListj]->nodeList().firstGhostNode();
 
           // Iterate over the neighbors for in this NodeList.
-          const vector<int>& connectivity = fullConnectivity[nodeListj];
-          for (vector<int>::const_iterator jItr = connectivity.begin();
+          const auto& connectivity = fullConnectivity[nodeListj];
+          for (auto jItr = connectivity.begin();
                jItr != connectivity.end();
                ++jItr) {
-            const int j = *jItr;
+            const auto j = *jItr;
+            const auto& rj = position(nodeListj, j);
 
-            // Only proceed if this node pair has not been calculated yet.
-            if (connectivityMap.calculatePairInteraction(nodeListi, i, 
-                                                         nodeListj, j,
-                                                         firstGhostNodej)) {
+            // Kernel weighting and gradient.
+            const auto rij = ri - rj;
+            const auto etai = (Hi*rij).magnitude();
+            std::tie(Wi, gWi) = W.kernelAndGradValue(etai, Hdeti);
 
-              const Vector& rj = position(nodeListj, j);
-              const SymTensor& Hj = H(nodeListj, j);
-              const Scalar Hdetj = Hj.Determinant();
-
-              // Kernel weighting and gradient.
-              const Vector rij = ri - rj;
-              const Scalar etai = (Hi*rij).magnitude();
-              const Scalar etaj = (Hj*rij).magnitude();
-              const std::pair<double, double> WWi = W.kernelAndGradValue(etai, Hdeti);
-              const Scalar& Wi = WWi.first;
-              const Scalar& gWi = WWi.second;
-              const std::pair<double, double> WWj = W.kernelAndGradValue(etaj, Hdetj);
-              const Scalar& Wj = WWj.first;
-              const Scalar& gWj = WWj.second;
-
-              // Sum the pair-wise contributions.
-              omegaGradh(nodeListi, i) += Wi;
-              gradsum(nodeListi, i) += etai*gWi;
-              omegaGradh(nodeListj, j) += Wj;
-              gradsum(nodeListj, j) += etaj*gWj;
-            }
+            // Sum the pair-wise contributions.
+            omegaGradh(nodeListi, i) += Wi;
+            gradsum(nodeListi, i) += etai*gWi;
           }
         }
 

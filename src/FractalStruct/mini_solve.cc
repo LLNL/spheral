@@ -75,7 +75,7 @@ namespace FractalSpace
 }
 namespace FractalSpace
 {
-  void mini_solve3(vector<Point*>found,const double& gc)
+  void mini_solve3(const vector<Point*>& found,const double& gc)
   {
     static const double dI204=1.0/204.0;
     Point* pa=0;
@@ -108,7 +108,7 @@ namespace FractalSpace
 	    else
 	      {
 		pa=found[0];
-		pb=found[1];
+		pc=found[1];
 	      }
 	    break;
 	  }

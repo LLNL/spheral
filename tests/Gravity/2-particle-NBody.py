@@ -19,17 +19,20 @@ commandLine(
     # Initial particle stuff
     r0 = 1.0,                      # (AU) Start stuff out at 1 AU from barycenter
     m0 = 1.0,                      # (earth masses) particle mass
-    plummerLength = 1.0e-3,        # (AU) Plummer softening scale
-    opening = 0.5,                 # (dimensionless, OctTreeGravity) opening parameter for tree walk
-    fdt = 0.1,                     # (dimensionless, OctTreeGravity) timestep multiplier
+    vfrac = 1.0,                   # (dimensionless) fraction of circular orbit velocity to initialize
 
     # Problem control
     steps = None,
     numOrbits = 2,                 # How many orbits do we want to follow?
 
-    # Which N-body method should we use?
+    # Gravity choices
     nbody = OctTreeGravity,
+    plummerLength = 1.0e-3,        # (AU) Plummer softening scale
+    opening = 0.5,                 # (dimensionless, OctTreeGravity) opening parameter for tree walk
+    fdt = 0.1,                     # (dimensionless, OctTreeGravity) timestep multiplier
     timeStepChoice = AccelerationRatio,
+
+    # Time integration choice
     integratorConstructor = CheapSynchronousRK2Integrator,
 
     # Output
@@ -37,7 +40,7 @@ commandLine(
     baseName = "2_particle_nbody",
     restoreCycle = None,
     restartStep = 100,
-    numViz = 100,
+    numVizPerOrbit = 50,
     dtverbose = False,
     )
 
@@ -53,7 +56,7 @@ G = MKS().G
 a = 2*r0
 M = 2*m0
 orbitTime = 2.0*pi*sqrt(a**3/(G*M))
-v0 = 2.0*pi*r0/orbitTime
+v0 = 2.0*pi*r0/orbitTime * vfrac
 
 # Miscellaneous problem control parameters.
 dt = orbitTime / 90
@@ -63,7 +66,7 @@ dtGrowth = 2.0
 maxSteps = None
 statsStep = 10
 smoothIters = 0
-vizTime = goalTime / numViz
+vizTime = orbitTime / numVizPerOrbit
 
 restartDir = os.path.join(dataDir, "restarts")
 visitDir = os.path.join(dataDir, "visit")
@@ -95,7 +98,8 @@ eos = GammaLawGasMKS3d(gamma = 5.0/3.0, mu = 1.0)
 nodes = makeFluidNodeList("nodes", eos,
                           numInternal = 2,
                           xmin = Vector(-100*r0, -100*r0, -100*r0),
-                          xmax = Vector( 100*r0,  100*r0,  100*r0))
+                          xmax = Vector( 100*r0,  100*r0,  100*r0),
+                          topGridCellSize = 1000*r0)
 mass = nodes.mass()
 pos = nodes.positions()
 vel = nodes.velocity()
@@ -129,7 +133,8 @@ db.appendNodeList(nodes)
 if nbody is NBodyGravity:
     gravity = NBodyGravity(plummerSofteningLength = plummerLength,
                            maxDeltaVelocity = 1e-2*v0,
-                           G = G)
+                           G = G,
+                           compatibleVelocityUpdate = compatibleVelocity)
 elif nbody is OctTreeGravity:
     gravity = OctTreeGravity(G = G,
                              softeningLength = plummerLength,

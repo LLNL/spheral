@@ -14,6 +14,8 @@
 #include "NodeList/NodeListRegistrar.hh"
 #include "Utilities/testBoxIntersection.hh"
 
+#include <algorithm>
+
 namespace Spheral {
 namespace NeighborSpace {
 
@@ -33,9 +35,6 @@ Neighbor(NodeList<Dimension>& nodeList,
          const double kernelExtent):
   mSearchType(searchType),
   mKernelExtent(kernelExtent),
-  mMasterListPtr(new vector<int>()),
-  mCoarseNeighborListPtr(new vector<int>()),
-  mRefineNeighborListPtr(new vector<int>()), // (mCoarseNeighborListPtr),
   mNodeListPtr(&nodeList),
   mNodeExtent("Node Extent", nodeList) {
   mNodeListPtr->registerNeighbor(*this);
@@ -48,9 +47,6 @@ template<typename Dimension>
 Neighbor<Dimension>::
 ~Neighbor() {
   if (mNodeListPtr) mNodeListPtr->unregisterNeighbor();
-  delete mMasterListPtr;
-  delete mCoarseNeighborListPtr;
-  delete mRefineNeighborListPtr;
 }
 
 //------------------------------------------------------------------------------
@@ -71,21 +67,6 @@ void
 Neighbor<Dimension>::
 neighborSearchType(NeighborSearchType searchType) {
   mSearchType = searchType;
-}
-
-//------------------------------------------------------------------------------
-// Calculate the maximum radial extent of a given smoothing tensor.
-//------------------------------------------------------------------------------
-// Make the general case the SPH approximation: assume the argument is a 
-// scalar representing the inverse smoothing scale.
-template<typename Dimension>
-typename Dimension::Vector
-Neighbor<Dimension>::
-HExtent(const typename Dimension::Scalar& H, 
-        const double kernelExtent) {
-  CHECK(H > 0.0);
-  const double r = kernelExtent/H;
-  return Vector(r);
 }
 
 //------------------------------------------------------------------------------
@@ -214,14 +195,14 @@ setGhostNodeExtents() {
 template<typename Dimension>
 void
 Neighbor<Dimension>::
-setMasterList(int nodeID) {
+setMasterList(int nodeID,
+              std::vector<int>& masterList,
+              std::vector<int>& coarseNeighbors) const {
   CHECK(valid());
   CHECK(nodeID >= 0 and nodeID < nodeList().numInternalNodes());
-  vector<int>& masterList = accessMasterList();
-  masterList = vector<int>();
-  const Field<Dimension, Vector>& positions = nodeList().positions();
-  const Field<Dimension, SymTensor>& Hfield = nodeList().Hfield();
-  setMasterList(positions(nodeID), Hfield(nodeID));
+  const auto& positions = nodeList().positions();
+  const auto& Hfield = nodeList().Hfield();
+  this->setMasterList(positions(nodeID), Hfield(nodeID), masterList, coarseNeighbors);
 }
 
 //------------------------------------------------------------------------------
@@ -230,14 +211,14 @@ setMasterList(int nodeID) {
 template<typename Dimension>
 void
 Neighbor<Dimension>::
-setRefineNeighborList(int nodeID) {
+setRefineNeighborList(int nodeID,
+                      const std::vector<int>& coarseNeighbors,
+                      std::vector<int>& refineNeighbors) const {
   CHECK(valid());
   CHECK(nodeID >= 0 and nodeID < nodeList().numInternalNodes());
-  CHECK(find(accessMasterList().begin(), accessMasterList().end(), nodeID) !=
-         accessMasterList().end());
-  const Field<Dimension, Vector>& positions = nodeList().positions();
-  const Field<Dimension, SymTensor>& Hfield = nodeList().Hfield();
-  setRefineNeighborList(positions(nodeID), Hfield(nodeID));
+  const auto& positions = nodeList().positions();
+  const auto& Hfield = nodeList().Hfield();
+  this->setRefineNeighborList(positions(nodeID), Hfield(nodeID), coarseNeighbors, refineNeighbors);
 }
 
 //------------------------------------------------------------------------------
@@ -250,36 +231,42 @@ Neighbor<Dimension>::
 precullList(const Vector& minMasterPosition, const Vector& maxMasterPosition,
             const Vector& minMasterExtent, const Vector& maxMasterExtent,
             const vector<int>& coarseList) const {
+  const auto n = coarseList.size();
 
   // Empty vector to accumulate the result in.
   vector<int> cullList;
-  cullList.reserve(coarseList.size());
 
   // Get a reference to the node positions and node extent field.
-  const Field<Dimension, Vector>& positions = nodeList().positions();
-  const Field<Dimension, Vector>& nodeExtents = nodeExtentField();
+  const auto& positions = nodeList().positions();
+  const auto& nodeExtents = nodeExtentField();
 
   // What kind of preculling we're doing determines the applied test.
   if (neighborSearchType() == NeighborSearchType::GatherScatter) {
     
     // Gather-Scatter.
-    for (typename vector<int>::const_iterator coarseItr = coarseList.begin();
-         coarseItr != coarseList.end();
-         ++coarseItr) {
-      const int j = *coarseItr;
-      const Vector& nodePosition = positions(j);
-      const Vector minNodeExtent = nodePosition - nodeExtents(j);
-      const Vector maxNodeExtent = nodePosition + nodeExtents(j);
-      const bool gatherTest = testBoxIntersection(nodePosition,
-                                                  nodePosition,
-                                                  minMasterExtent,
-                                                  maxMasterExtent);
-      const bool scatterTest = testBoxIntersection(minMasterPosition,
-                                                   maxMasterPosition,
-                                                   minNodeExtent,
-                                                   maxNodeExtent);
-      if (gatherTest or scatterTest) cullList.push_back(j);
-    }
+// #pragma omp parallel
+    // {
+    //   vector<int> cullList_private;
+// #pragma omp for nowait
+      for (auto k = 0; k < n; ++k) {
+        const auto  j = coarseList[k];
+        const auto& nodePosition = positions(j);
+        const auto  minNodeExtent = nodePosition - nodeExtents(j);
+        const auto  maxNodeExtent = nodePosition + nodeExtents(j);
+        if (testPointInBox(nodePosition,
+                           minMasterExtent,
+                           maxMasterExtent) or
+            testBoxIntersection(minMasterPosition,
+                                maxMasterPosition,
+                                minNodeExtent,
+                                maxNodeExtent)) {
+          cullList.push_back(j);
+        }
+      }
+
+// #pragma omp critical
+//       std::copy(cullList_private.begin(), cullList_private.end(), std::back_inserter(cullList));
+//     }
 
   } else if (neighborSearchType() == NeighborSearchType::Gather) {
 
@@ -287,12 +274,11 @@ precullList(const Vector& minMasterPosition, const Vector& maxMasterPosition,
     for (typename vector<int>::const_iterator coarseItr = coarseList.begin();
          coarseItr != coarseList.end();
          ++coarseItr) {
-      const int j = *coarseItr;
-      const Vector& nodePosition = positions(j);
-      const bool gatherTest = testBoxIntersection(nodePosition,
-                                                  nodePosition,
-                                                  minMasterExtent,
-                                                  maxMasterExtent);
+      const auto  j = *coarseItr;
+      const auto& nodePosition = positions(j);
+      const auto  gatherTest = testPointInBox(nodePosition,
+                                              minMasterExtent,
+                                              maxMasterExtent);
       if (gatherTest) cullList.push_back(j);
     }
 
@@ -303,14 +289,14 @@ precullList(const Vector& minMasterPosition, const Vector& maxMasterPosition,
     for (typename vector<int>::const_iterator coarseItr = coarseList.begin();
          coarseItr != coarseList.end();
          ++coarseItr) {
-      const int j = *coarseItr;
-      const Vector& nodePosition = positions(j);
-      const Vector minNodeExtent = nodePosition - nodeExtents(j);
-      const Vector maxNodeExtent = nodePosition + nodeExtents(j);
-      const bool scatterTest = testBoxIntersection(minMasterPosition,
-                                                   maxMasterPosition,
-                                                   minNodeExtent,
-                                                   maxNodeExtent);
+      const auto  j = *coarseItr;
+      const auto& nodePosition = positions(j);
+      const auto  minNodeExtent = nodePosition - nodeExtents(j);
+      const auto  maxNodeExtent = nodePosition + nodeExtents(j);
+      const auto  scatterTest = testBoxIntersection(minMasterPosition,
+                                                    maxMasterPosition,
+                                                    minNodeExtent,
+                                                    maxNodeExtent);
       if (scatterTest) cullList.push_back(j);
     }
 
@@ -320,46 +306,46 @@ precullList(const Vector& minMasterPosition, const Vector& maxMasterPosition,
   return cullList;
 }
 
-//------------------------------------------------------------------------------
-// Cull the local (to this NodeList) neighbor info based on the current master
-// state.
-// *NOTE* -- this is not safe to do when you want to use this neighbor info 
-// with different NodeLists!
-//------------------------------------------------------------------------------
-template<typename Dimension>
-void
-Neighbor<Dimension>::
-precullForLocalNodeList() {
+// //------------------------------------------------------------------------------
+// // Cull the local (to this NodeList) neighbor info based on the current master
+// // state.
+// // *NOTE* -- this is not safe to do when you want to use this neighbor info 
+// // with different NodeLists!
+// //------------------------------------------------------------------------------
+// template<typename Dimension>
+// void
+// Neighbor<Dimension>::
+// precullForLocalNodeList() {
 
-  // Grab the state.
-  const Field<Dimension, Vector>& r = this->nodeList().positions();
-  const Field<Dimension, Vector>& extent = nodeExtentField();
+//   // Grab the state.
+//   const Field<Dimension, Vector>& r = this->nodeList().positions();
+//   const Field<Dimension, Vector>& extent = nodeExtentField();
 
-  // Find the min/max master node positions and extents.
-  Vector minMasterPosition = DBL_MAX;
-  Vector maxMasterPosition = -DBL_MAX;
-  Vector minMasterExtent = DBL_MAX;
-  Vector maxMasterExtent = -DBL_MAX;
-  for (const_iterator masterItr = masterBegin();
-       masterItr != masterEnd();
-       ++masterItr) {
-    const int i = *masterItr;
-    const Vector& ri = r(i);
-    const Vector minExtent = ri - extent(i);
-    const Vector maxExtent = ri + extent(i);
-    for (int j = 0; j != Dimension::nDim; ++j) {
-      minMasterPosition(j) = min(minMasterPosition(j), ri(j));
-      maxMasterPosition(j) = max(maxMasterPosition(j), ri(j));
-      minMasterExtent(j) = min(minMasterExtent(j), minExtent(j));
-      maxMasterExtent(j) = max(maxMasterExtent(j), maxExtent(j));
-    }
-  }
+//   // Find the min/max master node positions and extents.
+//   Vector minMasterPosition = DBL_MAX;
+//   Vector maxMasterPosition = -DBL_MAX;
+//   Vector minMasterExtent = DBL_MAX;
+//   Vector maxMasterExtent = -DBL_MAX;
+//   for (const_iterator masterItr = masterBegin();
+//        masterItr != masterEnd();
+//        ++masterItr) {
+//     const int i = *masterItr;
+//     const Vector& ri = r(i);
+//     const Vector minExtent = ri - extent(i);
+//     const Vector maxExtent = ri + extent(i);
+//     for (int j = 0; j != Dimension::nDim; ++j) {
+//       minMasterPosition(j) = min(minMasterPosition(j), ri(j));
+//       maxMasterPosition(j) = max(maxMasterPosition(j), ri(j));
+//       minMasterExtent(j) = min(minMasterExtent(j), minExtent(j));
+//       maxMasterExtent(j) = max(maxMasterExtent(j), maxExtent(j));
+//     }
+//   }
 
-  // Now use this info to precull the coarse neighbor list.
-  *mCoarseNeighborListPtr = precullList(minMasterPosition, maxMasterPosition,
-                                        minMasterExtent, maxMasterExtent,
-                                        *mCoarseNeighborListPtr);
-}
+//   // Now use this info to precull the coarse neighbor list.
+//   *mCoarseNeighborListPtr = precullList(minMasterPosition, maxMasterPosition,
+//                                         minMasterExtent, maxMasterExtent,
+//                                         *mCoarseNeighborListPtr);
+// }
 
 //------------------------------------------------------------------------------
 // Provide a basic test to determine whether the neighbor base is in a valid

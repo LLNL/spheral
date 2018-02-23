@@ -7,18 +7,13 @@
 #ifndef DataBase_HH
 #define DataBase_HH
 
-#ifndef __GCCXML__
-#include <vector>
-#include "boost/shared_ptr.hpp"
-#else
-#include "fakestl.hh"
-#endif
-
 #include "NodeList/NodeList.hh"
 #include "NodeList/FluidNodeList.hh"
-#include "Strength/SolidNodeList.hh"
+#include "NodeList/SolidNodeList.hh"
 #include "Field/NodeIterators.hh"
 #include "Neighbor/ConnectivityMap.hh"
+
+#include <vector>
 
 namespace Spheral {
   namespace FieldSpace {
@@ -49,11 +44,11 @@ public:
   typedef typename std::vector<NodeSpace::FluidNodeList<Dimension>*>::iterator FluidNodeListIterator;
   typedef typename std::vector<NodeSpace::FluidNodeList<Dimension>*>::const_iterator ConstFluidNodeListIterator;
 
-  typedef typename std::vector<SolidMaterial::SolidNodeList<Dimension>*>::iterator SolidNodeListIterator;
-  typedef typename std::vector<SolidMaterial::SolidNodeList<Dimension>*>::const_iterator ConstSolidNodeListIterator;
+  typedef typename std::vector<NodeSpace::SolidNodeList<Dimension>*>::iterator SolidNodeListIterator;
+  typedef typename std::vector<NodeSpace::SolidNodeList<Dimension>*>::const_iterator ConstSolidNodeListIterator;
 
   typedef NeighborSpace::ConnectivityMap<Dimension> ConnectivityMapType;
-  typedef boost::shared_ptr<ConnectivityMapType> ConnectivityMapPtr;
+  typedef std::shared_ptr<ConnectivityMapType> ConnectivityMapPtr;
   
   // It is convenient to be able to query the DataBase for the problem
   // dimensionality for Python.
@@ -124,13 +119,13 @@ public:
   GhostNodeIterator<Dimension> ghostNodeBegin() const;
   GhostNodeIterator<Dimension> ghostNodeEnd() const;
   
-  MasterNodeIterator<Dimension> masterNodeBegin() const;
+  MasterNodeIterator<Dimension> masterNodeBegin(const std::vector<std::vector<int>>& masterLists) const;
   MasterNodeIterator<Dimension> masterNodeEnd() const;
   
-  CoarseNodeIterator<Dimension> coarseNodeBegin() const;
+  CoarseNodeIterator<Dimension> coarseNodeBegin(const std::vector<std::vector<int>>& coarseNeighbors) const;
   CoarseNodeIterator<Dimension> coarseNodeEnd() const;
   
-  RefineNodeIterator<Dimension> refineNodeBegin() const;
+  RefineNodeIterator<Dimension> refineNodeBegin(const std::vector<std::vector<int>>& refineNeighbors) const;
   RefineNodeIterator<Dimension> refineNodeEnd() const;
 
   // Same iterator methods, but over FluidNodeLists.
@@ -143,13 +138,13 @@ public:
   GhostNodeIterator<Dimension> fluidGhostNodeBegin() const;
   GhostNodeIterator<Dimension> fluidGhostNodeEnd() const;
   
-  MasterNodeIterator<Dimension> fluidMasterNodeBegin() const;
+  MasterNodeIterator<Dimension> fluidMasterNodeBegin(const std::vector<std::vector<int>>& masterLists) const;
   MasterNodeIterator<Dimension> fluidMasterNodeEnd() const;
   
-  CoarseNodeIterator<Dimension> fluidCoarseNodeBegin() const;
+  CoarseNodeIterator<Dimension> fluidCoarseNodeBegin(const std::vector<std::vector<int>>& coarseNeighbors) const;
   CoarseNodeIterator<Dimension> fluidCoarseNodeEnd() const;
   
-  RefineNodeIterator<Dimension> fluidRefineNodeBegin() const;
+  RefineNodeIterator<Dimension> fluidRefineNodeBegin(const std::vector<std::vector<int>>& refineNeighbors) const;
   RefineNodeIterator<Dimension> fluidRefineNodeEnd() const;
 
   // Update the internal connectivity map.
@@ -163,11 +158,11 @@ public:
   ConnectivityMapPtr connectivityMapPtr(const bool computeGhostConnectivity) const;
 
   // Methods to add, remove, and verify NodeLists.
-  void appendNodeList(SolidMaterial::SolidNodeList<Dimension>& nodeList);
+  void appendNodeList(NodeSpace::SolidNodeList<Dimension>& nodeList);
   void appendNodeList(NodeSpace::FluidNodeList<Dimension>& nodeList);
   void appendNodeList(NodeSpace::NodeList<Dimension>& nodeList);
 
-  void deleteNodeList(SolidMaterial::SolidNodeList<Dimension>& nodeList);
+  void deleteNodeList(NodeSpace::SolidNodeList<Dimension>& nodeList);
   void deleteNodeList(NodeSpace::FluidNodeList<Dimension>& nodeList);
   void deleteNodeList(NodeSpace::NodeList<Dimension>& nodeList);
 
@@ -176,19 +171,27 @@ public:
   // Allow const access to the list of NodeList pointers.
   const std::vector<NodeSpace::NodeList<Dimension>*>& nodeListPtrs() const;
   const std::vector<NodeSpace::FluidNodeList<Dimension>*>& fluidNodeListPtrs() const;
-  const std::vector<SolidMaterial::SolidNodeList<Dimension>*>& solidNodeListPtrs() const;
+  const std::vector<NodeSpace::SolidNodeList<Dimension>*>& solidNodeListPtrs() const;
 
   // Provide convenience functions for manipulating the neighbor information
   // of the NodeLists.
   void setMasterNodeLists(const Vector& position,
-                          const SymTensor& H) const;
+                          const SymTensor& H,
+                          std::vector<std::vector<int>>& masterLists,
+                          std::vector<std::vector<int>>& coarseNeighbors) const;
   void setMasterFluidNodeLists(const Vector& position,
-                               const SymTensor& H) const;
+                               const SymTensor& H,
+                          std::vector<std::vector<int>>& masterLists,
+                          std::vector<std::vector<int>>& coarseNeighbors) const;
 
   void setRefineNodeLists(const Vector& position,
-                          const SymTensor& H) const;
+                          const SymTensor& H,
+                          const std::vector<std::vector<int>>& coarseNeighbors,
+                          std::vector<std::vector<int>>& refineNeighbors) const;
   void setRefineFluidNodeLists(const Vector& position,
-                               const SymTensor& H) const;
+                               const SymTensor& H,
+                               const std::vector<std::vector<int>>& coarseNeighbors,
+                               std::vector<std::vector<int>>& refineNeighbors) const;
 
   // Query methods which return "global" fields (FieldLists) for quantities
   // defined over all NodeLists.  These methods all build up FieldLists
@@ -206,6 +209,14 @@ public:
   FieldSpace::FieldList<Dimension, Scalar> fluidSpecificThermalEnergy() const;
   FieldSpace::FieldList<Dimension, SymTensor> fluidHfield() const;
   FieldSpace::FieldList<Dimension, Scalar> fluidWork() const;
+
+  FieldSpace::FieldList<Dimension, SymTensor> solidDeviatoricStress() const;
+  FieldSpace::FieldList<Dimension, Scalar> solidPlasticStrain() const;
+  FieldSpace::FieldList<Dimension, Scalar> solidPlasticStrainRate() const;
+  FieldSpace::FieldList<Dimension, SymTensor> solidDamage() const;
+  FieldSpace::FieldList<Dimension, SymTensor> solidEffectiveDamage() const;
+  FieldSpace::FieldList<Dimension, Vector> solidDamageGradient() const;
+  FieldSpace::FieldList<Dimension, int> solidFragmentIDs() const;
 
   // We can also return the node extent Fields stored in the Neighbor objects.
   FieldSpace::FieldList<Dimension, Vector> globalNodeExtent() const;
@@ -298,7 +309,7 @@ private:
   std::vector<NodeSpace::FluidNodeList<Dimension>*> mFluidNodeListPtrs;
   std::vector<NodeSpace::NodeList<Dimension>*> mFluidNodeListAsNodeListPtrs;
 
-  std::vector<SolidMaterial::SolidNodeList<Dimension>*> mSolidNodeListPtrs;
+  std::vector<NodeSpace::SolidNodeList<Dimension>*> mSolidNodeListPtrs;
   std::vector<NodeSpace::NodeList<Dimension>*> mSolidNodeListAsNodeListPtrs;
 
   mutable ConnectivityMapPtr mConnectivityMapPtr;

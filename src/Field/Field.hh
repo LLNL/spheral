@@ -11,15 +11,14 @@
 #ifndef __Spheral_Field_hh__
 #define __Spheral_Field_hh__
 
-#include <string>
-
-#ifndef __GCCXML__
-#include <vector>
-#else
-#include "fakestl.hh"
-#endif
-
 #include "FieldBase.hh"
+
+#include <string>
+#include <vector>
+
+#ifdef USE_UVM
+#include "uvm_allocator.hh"
+#endif
 
 namespace Spheral {
   template<typename Dimension> class NodeIteratorBase;
@@ -36,10 +35,18 @@ namespace Spheral {
 namespace Spheral {
 namespace FieldSpace {
 
+#ifdef USE_UVM
+template<typename DataType>
+using DataAllocator = typename uvm_allocator::UVMAllocator<DataType>;
+#else
+template<typename DataType>
+using DataAllocator = std::allocator<DataType>;
+#endif
+
 template<typename Dimension, typename DataType>
 class Field: 
     public FieldBase<Dimension> {
-
+   
 public:
   //--------------------------- Public Interface ---------------------------//
   typedef typename Dimension::Scalar Scalar;
@@ -51,8 +58,8 @@ public:
   typedef DataType FieldDataType;
   typedef DataType value_type;      // STL compatibility.
 
-  typedef typename std::vector<DataType>::iterator iterator;
-  typedef typename std::vector<DataType>::const_iterator const_iterator;
+  typedef typename std::vector<DataType,DataAllocator<DataType>>::iterator iterator;
+  typedef typename std::vector<DataType,DataAllocator<DataType>>::const_iterator const_iterator;
 
   // Constructors.
   explicit Field(FieldName name);
@@ -64,10 +71,10 @@ public:
         DataType value);
   Field(FieldName name,
         const NodeSpace::NodeList<Dimension>& nodeList, 
-        const std::vector<DataType>& array);
+        const std::vector<DataType,DataAllocator<DataType>>& array);
   Field(const NodeSpace::NodeList<Dimension>& nodeList, const Field& field);
   Field(const Field& field);
-  virtual boost::shared_ptr<FieldBase<Dimension> > clone() const;
+  virtual std::shared_ptr<FieldBase<Dimension> > clone() const;
 
   // Destructor.
   virtual ~Field();
@@ -75,7 +82,7 @@ public:
   // Assignment operator.
   virtual FieldBase<Dimension>& operator=(const FieldBase<Dimension>& rhs);
   Field& operator=(const Field& rhs);
-  Field& operator=(const std::vector<DataType>& rhs);
+  Field& operator=(const std::vector<DataType,DataAllocator<DataType>>& rhs);
   Field& operator=(const DataType& rhs);
 
   // Required method to test equivalence with a FieldBase.
@@ -229,9 +236,8 @@ public:
 private:
   //--------------------------- Private Interface ---------------------------//
   // Private Data
-#ifndef __GCCXML__
-  std::vector<DataType> mDataArray;
-#endif
+//  std::vector<DataType,std::allocator<DataType> > mDataArray;
+  std::vector<DataType,DataAllocator<DataType>> mDataArray;
   bool mValid;
 
   // No default constructor.

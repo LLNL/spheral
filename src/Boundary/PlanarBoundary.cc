@@ -5,16 +5,16 @@
 //
 // Created by JMO, Thu Mar  2 21:34:25 PST 2000
 //----------------------------------------------------------------------------//
-
-#include "PlanarBoundary.hh"
+#include "FileIO/FileIO.hh"
 #include "mapPositionThroughPlanes.hh"
 #include "Geometry/GeomPlane.hh"
 #include "NodeList/FluidNodeList.hh"
-#include "FileIO/FileIO.hh"
 #include "Mesh/Mesh.hh"
 
 #include "Utilities/DBC.hh"
 #include "Utilities/allReduce.hh"
+
+#include "PlanarBoundary.hh"
 
 namespace Spheral {
 namespace BoundarySpace {
@@ -128,15 +128,14 @@ PlanarBoundary<Dimension>::setGhostNodes(NodeList<Dimension>& nodeList) {
 
     // Begin by identifying the set of master and neighbor nodes, where master
     // nodes see through the enter plane, and neighbors see through the exit plane.
-    neighbor.setMasterList(enterPlane(), exitPlane());
+    vector<int> masterList, coarseNeighbors, refineNeighbors;
+    neighbor.setMasterList(enterPlane(), exitPlane(), masterList, coarseNeighbors);
 
     // Set the list of control nodes.
     // std::copy(neighbor.masterBegin(), neighbor.masterEnd(), std::back_inserter(controlNodes));
     // std::copy(neighbor.coarseNeighborBegin(), neighbor.coarseNeighborEnd(), std::back_inserter(controlNodes));
     const Field<Dimension, Vector>& pos = nodeList.positions();
-    for (typename Neighbor<Dimension>::const_iterator itr = neighbor.coarseNeighborBegin();
-         itr < neighbor.coarseNeighborEnd();
-         ++itr) {
+    for (auto itr = coarseNeighbors.begin(); itr < coarseNeighbors.end(); ++itr) {
       if (mExitPlane.signedDistance(pos(*itr)) >= 0.0) controlNodes.push_back(*itr);
     }
 

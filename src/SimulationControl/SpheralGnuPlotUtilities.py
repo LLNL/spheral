@@ -467,13 +467,17 @@ def plotAnswer(answerObject, time,
                velPlot = None,
                epsPlot = None,
                PPlot = None,
+               APlot = None,
                HPlot = None,
                x = None):
 
     try:
         x, v, u, rho, P, h = answerObject.solution(time, x)
     except:
-        x, v, u, rho, P = answerObject.solution(time, x)
+        try:
+            x, v, u, rho, P, A, h = answerObject.solution(time, x)
+        except:
+            x, v, u, rho, P = answerObject.solution(time, x)
 
     if rhoPlot is not None:
         data = Gnuplot.Data(x, rho,
@@ -506,6 +510,14 @@ def plotAnswer(answerObject, time,
                             inline = True)
         SpheralGnuPlotCache.append(data)
         PPlot.replot(data)
+
+    if APlot is not None:
+        data = Gnuplot.Data(x, A,
+                            with_="lines lt 7 lw 2",
+                            title="Solution",
+                            inline = True)
+        SpheralGnuPlotCache.append(data)
+        APlot.replot(data)
 
     if HPlot is not None:
         data = Gnuplot.Data(x, h,

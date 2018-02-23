@@ -106,9 +106,9 @@ self.addDataBaseMethods(self.DataBase%(dim)id, %(dim)i)
         x.add_binary_comparison_operator("==")
 
         # Methods.
-        x.add_method("registered", "bool", [constrefparam("std::string", "key")], is_const=True)
-        x.add_method("registered", "bool", [constrefparam(fieldbase, "field")], is_const=True)
-        x.add_method("fieldNameRegistered", "bool", [constrefparam("std::string", "fieldName")], is_const=True)
+        x.add_method("registered", "bool", [param("std::string", "key")], is_const=True)
+        x.add_method("registered", "bool", [param(fieldbase, "field")], is_const=True)
+        x.add_method("fieldNameRegistered", "bool", [param("std::string", "fieldName")], is_const=True)
         x.add_method("enroll", None, [refparam(fieldbase, "field")], is_virtual=True)
         x.add_method("enroll", None, [refparam(fieldlistbase, "fieldList")], is_virtual=True)
 
@@ -284,7 +284,7 @@ self.addDataBaseMethods(self.DataBase%(dim)id, %(dim)i)
         vectorsymtensorfieldlist = "Spheral::FieldSpace::VectorSymTensorFieldList%id" % ndim
         nodelist = "Spheral::NodeSpace::NodeList%id" % ndim
         fluidnodelist = "Spheral::NodeSpace::FluidNodeList%id" % ndim
-        solidnodelist = "Spheral::SolidMaterial::SolidNodeList%id" % ndim
+        solidnodelist = "Spheral::NodeSpace::SolidNodeList%id" % ndim
         state = "Spheral::State%id" % ndim
         derivatives = "Spheral::StateDerivatives%id" % ndim
         database = "Spheral::DataBaseSpace::DataBase%id" % ndim
@@ -335,16 +335,24 @@ self.addDataBaseMethods(self.DataBase%(dim)id, %(dim)i)
 ##                                  custom_name = "fluidNodeLists")
 
         x.add_method("setMasterNodeLists", None, [constrefparam(vector, "position"),
-                                                  constrefparam(symtensor, "H")],
+                                                  constrefparam(symtensor, "H"),
+                                                  refparam("vector_of_vector_of_int", "masterLists"),
+                                                  refparam("vector_of_vector_of_int", "coarseNeighbors")],
                      is_const = True)
         x.add_method("setMasterFluidNodeLists", None, [constrefparam(vector, "position"),
-                                                       constrefparam(symtensor, "H")],
+                                                       constrefparam(symtensor, "H"),
+                                                       refparam("vector_of_vector_of_int", "masterLists"),
+                                                       refparam("vector_of_vector_of_int", "coarseNeighbors")],
                      is_const = True)
         x.add_method("setRefineNodeLists", None, [constrefparam(vector, "position"),
-                                                  constrefparam(symtensor, "H")],
+                                                  constrefparam(symtensor, "H"),
+                                                  constrefparam("vector_of_vector_of_int", "coarseNeighbors"),
+                                                  refparam("vector_of_vector_of_int", "refineNeighbors")],
                      is_const = True)
         x.add_method("setRefineFluidNodeLists", None, [constrefparam(vector, "position"),
-                                                       constrefparam(symtensor, "H")],
+                                                       constrefparam(symtensor, "H"),
+                                                       constrefparam("vector_of_vector_of_int", "coarseNeighbors"),
+                                                       refparam("vector_of_vector_of_int", "refineNeighbors")],
                      is_const = True)
 
         for result, value, default, customname in [(intfieldlist, "int", "0", "Int"),
@@ -356,7 +364,8 @@ self.addDataBaseMethods(self.DataBase%(dim)id, %(dim)i)
                                                    (fourthranktensorfieldlist, fourthranktensor, "%s::zero" % fourthranktensor, "FourthRankTensor"),
                                                    (fifthranktensorfieldlist, fifthranktensor, "%s::zero" % fifthranktensor, "FifthRankTensor"),
                                                    (polyvolfieldlist, polyvol, "%s()" % polyvol, "FacetedVolume"),
-                                                   (vectordoublefieldlist, "vector_of_double", "vector_of_double()", "vector_of_double")]:
+                                                   (vectordoublefieldlist, "vector_of_double", "vector_of_double()", "vector_of_double"),
+                                                   (vectorvectorfieldlist, vector_of_Vector, vector_of_Vector + "()", "vector_of_Vector")]:
             exec("""
 x.add_method("newGlobalFieldList", "%(result)s", [param("%(value)s", "value", default_value="%(default)s"),
                                                   param("std::string", "name", default_value='"unnamed field list"')],
@@ -435,6 +444,14 @@ x.add_method("newSolidFieldList", "%(result)s", [param("%(value)s", "value", def
         x.add_instance_attribute("fluidSpecificThermalEnergy", scalarfieldlist, getter="fluidSpecificThermalEnergy", is_const=True)
         x.add_instance_attribute("fluidHfield", symtensorfieldlist, getter="fluidHfield", is_const=True)
         x.add_instance_attribute("fluidWork", scalarfieldlist, getter="fluidWork", is_const=True)
+
+        x.add_instance_attribute("solidDeviatoricStress", symtensorfieldlist, getter="solidDeviatoricStress", is_const=True)
+        x.add_instance_attribute("solidPlasticStrain", scalarfieldlist, getter="solidPlasticStrain", is_const=True)
+        x.add_instance_attribute("solidPlasticStrainRate", scalarfieldlist, getter="solidPlasticStrainRate", is_const=True)
+        x.add_instance_attribute("solidDamage", symtensorfieldlist, getter="solidDamage", is_const=True)
+        x.add_instance_attribute("solidEffectiveDamage", symtensorfieldlist, getter="solidEffectiveDamage", is_const=True)
+        x.add_instance_attribute("solidDamageGradient", vectorfieldlist, getter="solidDamageGradient", is_const=True)
+        x.add_instance_attribute("solidFragmentIDs", intfieldlist, getter="solidFragmentIDs", is_const=True)
 
         x.add_instance_attribute("globalNodeExtent", vectorfieldlist, getter="globalNodeExtent", is_const=True)
         x.add_instance_attribute("fluidNodeExtent", vectorfieldlist, getter="fluidNodeExtent", is_const=True)

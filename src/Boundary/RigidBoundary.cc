@@ -4,13 +4,13 @@
 //
 // Created by JMO, Wed Feb 16 21:01:02 PST 2000
 //----------------------------------------------------------------------------//
-
-#include "RigidBoundary.hh"
+#include "FileIO/FileIO.hh"
 #include "Geometry/GeomPlane.hh"
 #include "Field/Field.hh"
 #include "Hydro/HydroFieldNames.hh"
-#include "FileIO/FileIO.hh"
 #include "Utilities/DBC.hh"
+
+#include "RigidBoundary.hh"
 
 using namespace std;
 
@@ -180,27 +180,6 @@ template<typename Dimension>
 void
 RigidBoundary<Dimension>::
 applyGhostBoundary(Field<Dimension, typename Dimension::ThirdRankTensor>& field) const {
-
-  REQUIRE(valid());
-
-  // Apply the boundary condition to all the ghost node values.
-  const NodeList<Dimension>& nodeList = field.nodeList();
-  CHECK(this->controlNodes(nodeList).size() == this->ghostNodes(nodeList).size());
-  vector<int>::const_iterator controlItr = this->controlBegin(nodeList);
-  vector<int>::const_iterator ghostItr = this->ghostBegin(nodeList);
-  for (; controlItr < this->controlEnd(nodeList); ++controlItr, ++ghostItr) {
-    CHECK(ghostItr < this->ghostEnd(nodeList));
-    CHECK(*controlItr >= 0 && *controlItr < nodeList.numNodes());
-    CHECK(*ghostItr >= nodeList.firstGhostNode() && *ghostItr < nodeList.numNodes());
-    field(*ghostItr) = field(*controlItr);
-  }
-}
-
-// Specialization for vector<scalar> fields, just perform a copy.
-template<typename Dimension>
-void
-RigidBoundary<Dimension>::
-applyGhostBoundary(Field<Dimension, std::vector<typename Dimension::Scalar> >& field) const {
 
   REQUIRE(valid());
 

@@ -5,7 +5,6 @@
 #-------------------------------------------------------------------------------
 from Spheral import *
 from SpheralModules.Spheral.SolidMaterial import *
-from SpheralModules.Spheral.SolidSPHSpace import *
 from SolidNodeLists import *
 from GradyKippTensorDamage import *
 from SolidSPHHydros import *

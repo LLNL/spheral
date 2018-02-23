@@ -15,16 +15,19 @@ MasterNodeIterator<Dimension>::operator++() {
 
   // If the index is out of range, then proceed to the next NodeList with a 
   // nonzero number of internal nodes.
-  if (mNodeListItr < mNodeListEnd && mNodeIDItr < (*mNodeListItr)->neighbor().masterEnd()) {
+  if (mNodeListItr < mNodeListEnd && mNodeIDItr < mMasterLists[mFieldID].end()) {
     mNodeID = *mNodeIDItr;
   } else {
     ++mNodeListItr;
+    ++mFieldID;
     while (mNodeListItr < mNodeListEnd &&
-           (*mNodeListItr)->neighbor().numMaster() == 0) ++mNodeListItr;
-    mFieldID = std::distance(mNodeListBegin, mNodeListItr);
+           mMasterLists[mFieldID].size() == 0) {
+      ++mNodeListItr;
+      ++mFieldID;
+    }
     if (mNodeListItr < mNodeListEnd) {
-      mNodeIDItr = (*mNodeListItr)->neighbor().masterBegin();
-      if (mNodeIDItr < (*mNodeListItr)->neighbor().masterEnd()) {
+      mNodeIDItr = mMasterLists[mFieldID].begin();
+      if (mNodeIDItr < mMasterLists[mFieldID].end()) {
         mNodeID = *mNodeIDItr;
       } else {
         mNodeID = 0;

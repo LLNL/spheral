@@ -4,9 +4,6 @@
 //
 // Created by JMO, Sun Feb  6 13:44:49 PST 2000
 //----------------------------------------------------------------------------//
-
-#include <algorithm>
-
 #include "DataBase.hh"
 #include "Geometry/Dimension.hh"
 #include "Field/NodeIterators.hh"
@@ -21,8 +18,10 @@
 #include "Utilities/globalBoundingVolumes.hh"
 #include "Utilities/allReduce.hh"
 #include "Distributed/Communicator.hh"
-
 #include "Utilities/DBC.hh"
+
+#include <algorithm>
+#include <memory>
 
 #ifdef USE_MPI
 extern "C" {
@@ -34,11 +33,11 @@ namespace Spheral {
 namespace DataBaseSpace {
 
 using namespace std;
-using boost::shared_ptr;
+using std::shared_ptr;
 
 using NodeSpace::NodeList;
 using NodeSpace::FluidNodeList;
-using SolidMaterial::SolidNodeList;
+using NodeSpace::SolidNodeList;
 using FieldSpace::Field;
 using FieldSpace::FieldList;
 using KernelSpace::TableKernel;
@@ -80,7 +79,7 @@ operator=(const DataBase<Dimension>& rhs) {
     mFluidNodeListAsNodeListPtrs = rhs.mFluidNodeListAsNodeListPtrs;
     mSolidNodeListPtrs = rhs.mSolidNodeListPtrs;
     mSolidNodeListAsNodeListPtrs = rhs.mSolidNodeListAsNodeListPtrs;
-    mConnectivityMapPtr = boost::shared_ptr<ConnectivityMap<Dimension> >(new ConnectivityMap<Dimension>());
+    mConnectivityMapPtr = std::shared_ptr<ConnectivityMap<Dimension> >(new ConnectivityMap<Dimension>());
   }
   ENSURE(valid());
   return *this;
@@ -194,15 +193,20 @@ DataBase<Dimension>::ghostNodeEnd() const {
 //------------------------------------------------------------------------------
 template<typename Dimension>
 MasterNodeIterator<Dimension>
-DataBase<Dimension>::masterNodeBegin() const {
+DataBase<Dimension>::masterNodeBegin(const std::vector<std::vector<int>>& masterLists) const {
   ConstNodeListIterator nodeListItr = nodeListBegin();
+  unsigned iNodeList = 0;
   while (nodeListItr < nodeListEnd() &&
-	 (*nodeListItr)->neighbor().numMaster() < 1) ++nodeListItr;
+         masterLists[iNodeList].empty()) {
+    ++nodeListItr;
+    ++iNodeList;
+  }
   if (nodeListItr < nodeListEnd()) {
     return MasterNodeIterator<Dimension>(nodeListItr,
                                          nodeListBegin(),
                                          nodeListEnd(),
-                                         (*nodeListItr)->neighbor().masterBegin());
+                                         masterLists[iNodeList].begin(),
+                                         masterLists);
   } else {
     return this->masterNodeEnd();
   }
@@ -213,7 +217,8 @@ MasterNodeIterator<Dimension>
 DataBase<Dimension>::masterNodeEnd() const {
   return MasterNodeIterator<Dimension>(nodeListEnd(),
                                        nodeListBegin(),
-                                       nodeListEnd());
+                                       nodeListEnd(),
+                                       std::vector<std::vector<int>>());
 }
 
 //------------------------------------------------------------------------------
@@ -221,15 +226,20 @@ DataBase<Dimension>::masterNodeEnd() const {
 //------------------------------------------------------------------------------
 template<typename Dimension>
 CoarseNodeIterator<Dimension>
-DataBase<Dimension>::coarseNodeBegin() const {
+DataBase<Dimension>::coarseNodeBegin(const std::vector<std::vector<int>>& coarseNeighbors) const {
   ConstNodeListIterator nodeListItr = nodeListBegin();
+  unsigned iNodeList = 0;
   while (nodeListItr < nodeListEnd() &&
-	 (*nodeListItr)->neighbor().numCoarse() < 1) ++nodeListItr;
+         coarseNeighbors[iNodeList].empty()) {
+    ++nodeListItr;
+    ++iNodeList;
+  }
   if (nodeListItr < nodeListEnd()) {
     return CoarseNodeIterator<Dimension>(nodeListItr,
                                          nodeListBegin(),
                                          nodeListEnd(),
-                                         (*nodeListItr)->neighbor().coarseNeighborBegin());
+                                         coarseNeighbors[iNodeList].begin(),
+                                         coarseNeighbors);
   } else {
     return this->coarseNodeEnd();
   }
@@ -240,7 +250,8 @@ CoarseNodeIterator<Dimension>
 DataBase<Dimension>::coarseNodeEnd() const {
   return CoarseNodeIterator<Dimension>(nodeListEnd(),
                                        nodeListBegin(),
-                                       nodeListEnd());
+                                       nodeListEnd(),
+                                       std::vector<std::vector<int>>());
 }
 
 //------------------------------------------------------------------------------
@@ -248,15 +259,20 @@ DataBase<Dimension>::coarseNodeEnd() const {
 //------------------------------------------------------------------------------
 template<typename Dimension>
 RefineNodeIterator<Dimension>
-DataBase<Dimension>::refineNodeBegin() const {
+DataBase<Dimension>::refineNodeBegin(const std::vector<std::vector<int>>& refineNeighbors) const {
   ConstNodeListIterator nodeListItr = nodeListBegin();
+  unsigned iNodeList = 0;
   while (nodeListItr < nodeListEnd() &&
-	 (*nodeListItr)->neighbor().numRefine() < 1) ++nodeListItr;
+         refineNeighbors[iNodeList].empty()) {
+    ++nodeListItr;
+    ++iNodeList;
+  }
   if (nodeListItr < nodeListEnd()) {
     return RefineNodeIterator<Dimension>(nodeListItr,
                                          nodeListBegin(),
                                          nodeListEnd(),
-                                         (*nodeListItr)->neighbor().refineNeighborBegin());
+                                         refineNeighbors[iNodeList].begin(),
+                                         refineNeighbors);
   } else {
     return this->refineNodeEnd();
   }
@@ -267,7 +283,8 @@ RefineNodeIterator<Dimension>
 DataBase<Dimension>::refineNodeEnd() const {
   return RefineNodeIterator<Dimension>(nodeListEnd(),
                                        nodeListBegin(),
-                                       nodeListEnd());
+                                       nodeListEnd(),
+                                       std::vector<std::vector<int>>());
 }
 
 //------------------------------------------------------------------------------
@@ -348,17 +365,22 @@ DataBase<Dimension>::fluidGhostNodeEnd() const {
 //------------------------------------------------------------------------------
 template<typename Dimension>
 MasterNodeIterator<Dimension>
-DataBase<Dimension>::fluidMasterNodeBegin() const {
+DataBase<Dimension>::fluidMasterNodeBegin(const std::vector<std::vector<int>>& masterLists) const {
   ConstNodeListIterator nodeListItr = fluidNodeListAsNodeListBegin();
+  unsigned iNodeList = 0;
   while (nodeListItr < fluidNodeListAsNodeListEnd() &&
-	 (*nodeListItr)->neighbor().numMaster() < 1) ++nodeListItr;
+         masterLists[iNodeList].empty()) {
+    ++nodeListItr;
+    ++iNodeList;
+  }
   CHECK(nodeListItr >= fluidNodeListAsNodeListBegin() && 
 	nodeListItr <= fluidNodeListAsNodeListEnd());
   if (nodeListItr < fluidNodeListAsNodeListEnd()) {
     return MasterNodeIterator<Dimension>(nodeListItr,
                                          fluidNodeListAsNodeListBegin(),
                                          fluidNodeListAsNodeListEnd(),
-                                         (*nodeListItr)->neighbor().masterBegin());
+                                         masterLists[iNodeList].begin(),
+                                         masterLists);
   } else {
     return this->fluidMasterNodeEnd();
   }
@@ -369,8 +391,8 @@ MasterNodeIterator<Dimension>
 DataBase<Dimension>::fluidMasterNodeEnd() const {
   return MasterNodeIterator<Dimension>(fluidNodeListAsNodeListEnd(),
                                        fluidNodeListAsNodeListBegin(),
-                                       fluidNodeListAsNodeListEnd());
-
+                                       fluidNodeListAsNodeListEnd(),
+                                       std::vector<std::vector<int>>());
 }
 
 //------------------------------------------------------------------------------
@@ -378,15 +400,22 @@ DataBase<Dimension>::fluidMasterNodeEnd() const {
 //------------------------------------------------------------------------------
 template<typename Dimension>
 CoarseNodeIterator<Dimension>
-DataBase<Dimension>::fluidCoarseNodeBegin() const {
+DataBase<Dimension>::fluidCoarseNodeBegin(const std::vector<std::vector<int>>& coarseNeighbors) const {
   ConstNodeListIterator nodeListItr = fluidNodeListAsNodeListBegin();
+  unsigned iNodeList = 0;
   while (nodeListItr < fluidNodeListAsNodeListEnd() &&
-	 (*nodeListItr)->neighbor().numCoarse() < 1) ++nodeListItr;
+         coarseNeighbors[iNodeList].empty()) {
+    ++nodeListItr;
+    ++iNodeList;
+  }
+  CHECK(nodeListItr >= fluidNodeListAsNodeListBegin() && 
+	nodeListItr <= fluidNodeListAsNodeListEnd());
   if (nodeListItr < fluidNodeListAsNodeListEnd()) {
     return CoarseNodeIterator<Dimension>(nodeListItr,
                                          fluidNodeListAsNodeListBegin(),
                                          fluidNodeListAsNodeListEnd(),
-                                         (*nodeListItr)->neighbor().coarseNeighborBegin());
+                                         coarseNeighbors[iNodeList].begin(),
+                                         coarseNeighbors);
   } else {
     return this->fluidCoarseNodeEnd();
   }
@@ -397,7 +426,8 @@ CoarseNodeIterator<Dimension>
 DataBase<Dimension>::fluidCoarseNodeEnd() const {
   return CoarseNodeIterator<Dimension>(fluidNodeListAsNodeListEnd(),
                                        fluidNodeListAsNodeListBegin(),
-                                       fluidNodeListAsNodeListEnd());
+                                       fluidNodeListAsNodeListEnd(),
+                                       std::vector<std::vector<int>>());
 }
 
 //------------------------------------------------------------------------------
@@ -405,15 +435,22 @@ DataBase<Dimension>::fluidCoarseNodeEnd() const {
 //------------------------------------------------------------------------------
 template<typename Dimension>
 RefineNodeIterator<Dimension>
-DataBase<Dimension>::fluidRefineNodeBegin() const {
+DataBase<Dimension>::fluidRefineNodeBegin(const std::vector<std::vector<int>>& refineNeighbors) const {
   ConstNodeListIterator nodeListItr = fluidNodeListAsNodeListBegin();
+  unsigned iNodeList = 0;
   while (nodeListItr < fluidNodeListAsNodeListEnd() &&
-	 (*nodeListItr)->neighbor().numRefine() < 1) ++nodeListItr;
+         refineNeighbors[iNodeList].empty()) {
+    ++nodeListItr;
+    ++iNodeList;
+  }
+  CHECK(nodeListItr >= fluidNodeListAsNodeListBegin() && 
+	nodeListItr <= fluidNodeListAsNodeListEnd());
   if (nodeListItr < fluidNodeListAsNodeListEnd()) {
     return RefineNodeIterator<Dimension>(nodeListItr,
                                          fluidNodeListAsNodeListBegin(),
                                          fluidNodeListAsNodeListEnd(),
-                                         (*nodeListItr)->neighbor().refineNeighborBegin());
+                                         refineNeighbors[iNodeList].begin(),
+                                         refineNeighbors);
   } else {
     return this->fluidRefineNodeEnd();
   }
@@ -424,7 +461,8 @@ RefineNodeIterator<Dimension>
 DataBase<Dimension>::fluidRefineNodeEnd() const {
   return RefineNodeIterator<Dimension>(fluidNodeListAsNodeListEnd(),
                                        fluidNodeListAsNodeListBegin(),
-                                       fluidNodeListAsNodeListEnd());
+                                       fluidNodeListAsNodeListEnd(),
+                                       std::vector<std::vector<int>>());
 }
 
 //------------------------------------------------------------------------------
@@ -687,11 +725,15 @@ template<typename Dimension>
 void
 DataBase<Dimension>::
 setMasterNodeLists(const typename Dimension::Vector& position,
-                   const typename Dimension::SymTensor& H) const {
+                   const typename Dimension::SymTensor& H,
+                   std::vector<std::vector<int>>& masterLists,
+                   std::vector<std::vector<int>>& coarseNeighbors) const {
   Neighbor<Dimension>::setMasterNeighborGroup(position, H,
                                               nodeListBegin(),
                                               nodeListEnd(),
-                                              maxKernelExtent());
+                                              maxKernelExtent(),
+                                              masterLists,
+                                              coarseNeighbors);
 }
 
 //------------------------------------------------------------------------------
@@ -701,11 +743,15 @@ template<typename Dimension>
 void
 DataBase<Dimension>::
 setMasterFluidNodeLists(const typename Dimension::Vector& position,
-                        const typename Dimension::SymTensor& H) const {
+                        const typename Dimension::SymTensor& H,
+                        std::vector<std::vector<int>>& masterLists,
+                        std::vector<std::vector<int>>& coarseNeighbors) const {
   Neighbor<Dimension>::setMasterNeighborGroup(position, H,
                                               fluidNodeListBegin(),
                                               fluidNodeListEnd(),
-                                              maxKernelExtent());
+                                              maxKernelExtent(),
+                                              masterLists,
+                                              coarseNeighbors);
 }
 
 //------------------------------------------------------------------------------
@@ -715,11 +761,18 @@ template<typename Dimension>
 void
 DataBase<Dimension>::
 setRefineNodeLists(const typename Dimension::Vector& position,
-                   const typename Dimension::SymTensor& H) const {
+                   const typename Dimension::SymTensor& H,
+                   const std::vector<std::vector<int>>& coarseNeighbors,
+                   std::vector<std::vector<int>>& refineNeighbors) const {
+  REQUIRE(coarseNeighbors.size() == this->numNodeLists());
+  refineNeighbors = std::vector<std::vector<int>>(this->numNodeLists());
+  size_t iNodeList = 0;
   for (ConstNodeListIterator nodeListItr = nodeListBegin();
        nodeListItr < nodeListEnd();
-       ++nodeListItr) {
-    (*nodeListItr)->neighbor().setRefineNeighborList(position, H);
+       ++nodeListItr, ++iNodeList) {
+    (*nodeListItr)->neighbor().setRefineNeighborList(position, H, 
+                                                     coarseNeighbors[iNodeList],
+                                                     refineNeighbors[iNodeList]);
   }
 }
 
@@ -730,11 +783,18 @@ template<typename Dimension>
 void
 DataBase<Dimension>::
 setRefineFluidNodeLists(const typename Dimension::Vector& position,
-                        const typename Dimension::SymTensor& H) const {
+                        const typename Dimension::SymTensor& H,
+                        const std::vector<std::vector<int>>& coarseNeighbors,
+                        std::vector<std::vector<int>>& refineNeighbors) const {
+  REQUIRE(coarseNeighbors.size() == this->numFluidNodeLists());
+  refineNeighbors = std::vector<std::vector<int>>(this->numFluidNodeLists());
+  size_t iNodeList = 0;
   for (ConstFluidNodeListIterator nodeListItr = fluidNodeListBegin();
        nodeListItr < fluidNodeListEnd();
-       ++nodeListItr) {
-    (*nodeListItr)->neighbor().setRefineNeighborList(position, H);
+       ++nodeListItr, ++iNodeList) {
+    (*nodeListItr)->neighbor().setRefineNeighborList(position, H,
+                                                     coarseNeighbors[iNodeList],
+                                                     refineNeighbors[iNodeList]);
   }
 }
 
@@ -914,6 +974,111 @@ DataBase<Dimension>::fluidWork() const {
   for (ConstFluidNodeListIterator nodeListItr = fluidNodeListBegin();
        nodeListItr < fluidNodeListEnd(); ++nodeListItr) {
     result.appendField((*nodeListItr)->work());
+  }
+  return result;
+}
+
+//------------------------------------------------------------------------------
+// Return the solid deviatoric stress field.
+//------------------------------------------------------------------------------
+template<typename Dimension>
+FieldList<Dimension, typename Dimension::SymTensor>
+DataBase<Dimension>::solidDeviatoricStress() const {
+  REQUIRE(valid());
+  FieldList<Dimension, SymTensor> result;
+  for (ConstSolidNodeListIterator nodeListItr = solidNodeListBegin();
+       nodeListItr < solidNodeListEnd(); ++nodeListItr) {
+    result.appendField((*nodeListItr)->deviatoricStress());
+  }
+  return result;
+}
+
+//------------------------------------------------------------------------------
+// Return the solid plastic strain field.
+//------------------------------------------------------------------------------
+template<typename Dimension>
+FieldList<Dimension, typename Dimension::Scalar>
+DataBase<Dimension>::solidPlasticStrain() const {
+  REQUIRE(valid());
+  FieldList<Dimension, Scalar> result;
+  for (ConstSolidNodeListIterator nodeListItr = solidNodeListBegin();
+       nodeListItr < solidNodeListEnd(); ++nodeListItr) {
+    result.appendField((*nodeListItr)->plasticStrain());
+  }
+  return result;
+}
+
+//------------------------------------------------------------------------------
+// Return the solid plastic strain rate field.
+//------------------------------------------------------------------------------
+template<typename Dimension>
+FieldList<Dimension, typename Dimension::Scalar>
+DataBase<Dimension>::solidPlasticStrainRate() const {
+  REQUIRE(valid());
+  FieldList<Dimension, Scalar> result;
+  for (ConstSolidNodeListIterator nodeListItr = solidNodeListBegin();
+       nodeListItr < solidNodeListEnd(); ++nodeListItr) {
+    result.appendField((*nodeListItr)->plasticStrainRate());
+  }
+  return result;
+}
+
+//------------------------------------------------------------------------------
+// Return the solid damage field.
+//------------------------------------------------------------------------------
+template<typename Dimension>
+FieldList<Dimension, typename Dimension::SymTensor>
+DataBase<Dimension>::solidDamage() const {
+  REQUIRE(valid());
+  FieldList<Dimension, SymTensor> result;
+  for (ConstSolidNodeListIterator nodeListItr = solidNodeListBegin();
+       nodeListItr < solidNodeListEnd(); ++nodeListItr) {
+    result.appendField((*nodeListItr)->damage());
+  }
+  return result;
+}
+
+//------------------------------------------------------------------------------
+// Return the solid effective damage field.
+//------------------------------------------------------------------------------
+template<typename Dimension>
+FieldList<Dimension, typename Dimension::SymTensor>
+DataBase<Dimension>::solidEffectiveDamage() const {
+  REQUIRE(valid());
+  FieldList<Dimension, SymTensor> result;
+  for (ConstSolidNodeListIterator nodeListItr = solidNodeListBegin();
+       nodeListItr < solidNodeListEnd(); ++nodeListItr) {
+    result.appendField((*nodeListItr)->effectiveDamage());
+  }
+  return result;
+}
+
+//------------------------------------------------------------------------------
+// Return the solid damage gradient field.
+//------------------------------------------------------------------------------
+template<typename Dimension>
+FieldList<Dimension, typename Dimension::Vector>
+DataBase<Dimension>::solidDamageGradient() const {
+  REQUIRE(valid());
+  FieldList<Dimension, Vector> result;
+  for (ConstSolidNodeListIterator nodeListItr = solidNodeListBegin();
+       nodeListItr < solidNodeListEnd(); ++nodeListItr) {
+    result.appendField((*nodeListItr)->damageGradient());
+  }
+  return result;
+}
+
+//------------------------------------------------------------------------------
+// Return the solid fragment ID field.
+//------------------------------------------------------------------------------
+template<typename Dimension>
+FieldList<Dimension, int>
+DataBase<Dimension>::solidFragmentIDs() const {
+  REQUIRE(valid());
+  FieldList<Dimension, int> result;
+  for (ConstSolidNodeListIterator nodeListItr = solidNodeListBegin();
+       nodeListItr < solidNodeListEnd(); ++nodeListItr) {
+    result.appendField((*nodeListItr)->fragmentIDs());
   }
   return result;
 }
@@ -1234,10 +1399,10 @@ localSamplingBoundingVolume(typename Dimension::Vector& centroid,
 
   // Find our local bounds.
   centroid = Vector();
-  xminNodes = DBL_MAX;
-  xmaxNodes = -DBL_MAX;
-  xminSample = DBL_MAX;
-  xmaxSample = -DBL_MAX;
+  xminNodes = FLT_MAX;
+  xmaxNodes = -FLT_MAX;
+  xminSample = FLT_MAX;
+  xmaxSample = -FLT_MAX;
   size_t count = 0;
   const FieldList<Dimension, Vector> positions = this->globalPosition();
   const FieldList<Dimension, Vector> extent = this->globalNodeExtent();

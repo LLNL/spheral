@@ -3,14 +3,7 @@
 //
 // Created by JMO, Wed Dec 16 20:52:02 PST 2015
 //----------------------------------------------------------------------------//
-#include <limits.h>
-#include <float.h>
-#include <algorithm>
-#include <fstream>
-#include <map>
-#include <vector>
-
-#include "PSPHHydroBase.hh"
+#include "FileIO/FileIO.hh"
 #include "computeSPHSumMassDensity.hh"
 #include "computeSumVoronoiCellMassDensity.hh"
 #include "computePSPHCorrections.hh"
@@ -44,9 +37,17 @@
 #include "Utilities/timingUtilities.hh"
 #include "Utilities/safeInv.hh"
 #include "Utilities/globalBoundingVolumes.hh"
-#include "FileIO/FileIO.hh"
 #include "Mesh/Mesh.hh"
 #include "CRKSPH/volumeSpacing.hh"
+
+#include "PSPHHydroBase.hh"
+
+#include <limits.h>
+#include <float.h>
+#include <algorithm>
+#include <fstream>
+#include <map>
+#include <vector>
 
 namespace Spheral {
 namespace SPHSpace {
@@ -110,8 +111,8 @@ PSPHHydroBase(const SmoothingScaleBase<Dimension>& smoothingScaleMethod,
                           xmin,
                           xmax),
   mHopkinsConductivity(HopkinsConductivity),
-  mGamma(FieldSpace::FieldStorageType::Copy),
-  mPSPHcorrection(FieldSpace::FieldStorageType::Copy) {
+  mGamma(FieldSpace::FieldStorageType::CopyFields),
+  mPSPHcorrection(FieldSpace::FieldStorageType::CopyFields) {
 }
 
 //------------------------------------------------------------------------------
@@ -313,7 +314,7 @@ evaluateDerivatives(const typename Dimension::Scalar time,
   FieldList<Dimension, Scalar> normalization = derivatives.fields(HydroFieldNames::normalization, 0.0);
   FieldList<Dimension, Vector> DxDt = derivatives.fields(IncrementFieldList<Dimension, Vector>::prefix() + HydroFieldNames::position, Vector::zero);
   FieldList<Dimension, Scalar> DrhoDt = derivatives.fields(IncrementFieldList<Dimension, Scalar>::prefix() + HydroFieldNames::massDensity, 0.0);
-  FieldList<Dimension, Vector> DvDt = derivatives.fields(IncrementFieldList<Dimension, Vector>::prefix() + HydroFieldNames::velocity, Vector::zero);
+  FieldList<Dimension, Vector> DvDt = derivatives.fields(HydroFieldNames::hydroAcceleration, Vector::zero);
   FieldList<Dimension, Scalar> DepsDt = derivatives.fields(IncrementFieldList<Dimension, Scalar>::prefix() + HydroFieldNames::specificThermalEnergy, 0.0);
   FieldList<Dimension, Tensor> DvDx = derivatives.fields(HydroFieldNames::velocityGradient, Tensor::zero);
   FieldList<Dimension, Tensor> localDvDx = derivatives.fields(HydroFieldNames::internalVelocityGradient, Tensor::zero);
@@ -511,7 +512,7 @@ evaluateDerivatives(const typename Dimension::Scalar time,
               // ideal H calculation.
               const double fweightij = nodeListi == nodeListj ? 1.0 : mj*rhoi/(mi*rhoj);
               const double rij2 = rij.magnitude2();
-              const SymTensor thpt = rij.selfdyad()*safeInv(rij2*FastMath::square(Dimension::pownu12(rij2)), tiny);
+              const auto thpt = rij.selfdyad()*safeInvVar(rij2*rij2*rij2);
               weightedNeighborSumi +=     fweightij*std::abs(gWi);
               weightedNeighborSumj += 1.0/fweightij*std::abs(gWj);
               massSecondMomenti +=     fweightij*gradWi.magnitude2()*thpt;
@@ -727,11 +728,14 @@ finalizeDerivatives(const typename Dimension::Scalar time,
   // If we're using the compatible energy discretization, we need to enforce
   // boundary conditions on the accelerations.
   if (this->mCompatibleEnergyEvolution) {
-
-    FieldList<Dimension, Vector> accelerations = derivs.fields(IncrementFieldList<Dimension, Field<Dimension, Vector> >::prefix() + HydroFieldNames::velocity, Vector::zero);
+    auto accelerations = derivs.fields(HydroFieldNames::hydroAcceleration, Vector::zero);
+    auto DepsDt = derivs.fields(IncrementFieldList<Dimension, Scalar>::prefix() + HydroFieldNames::specificThermalEnergy, 0.0);
     for (ConstBoundaryIterator boundaryItr = this->boundaryBegin();
          boundaryItr != this->boundaryEnd();
-         ++boundaryItr) (*boundaryItr)->applyFieldListGhostBoundary(accelerations);
+         ++boundaryItr) {
+      (*boundaryItr)->applyFieldListGhostBoundary(accelerations);
+      (*boundaryItr)->applyFieldListGhostBoundary(DepsDt);
+    }
     for (ConstBoundaryIterator boundaryItr = this->boundaryBegin(); 
          boundaryItr != this->boundaryEnd();
          ++boundaryItr) (*boundaryItr)->finalizeGhostBoundary();

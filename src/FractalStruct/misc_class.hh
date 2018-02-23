@@ -27,8 +27,8 @@ namespace FractalSpace
       int nx=pos[0]-Box[0];
       int ny=pos[1]-Box[2];
       int nz=pos[2]-Box[4];
-      int nxt=(Box[1]-Box[0])/spacing;
-      int nyt=(Box[3]-Box[2])/spacing;
+      int nxt=(Box[1]-Box[0]+1)/spacing;
+      int nyt=(Box[3]-Box[2]+1)/spacing;
       return (nx+nxt*(ny+nz*nyt))/spacing;
     }
      template <class T> void plus(const vector <T>& vin,T addit,vector <T>& vout)
@@ -41,22 +41,22 @@ namespace FractalSpace
       for(auto &v : vect)
 	v+=add;
     }
-    template <class T> static void times(const vector <T>& vin,T mult,vector <T>& vout)
+    template <class T> static void times(const vector <T>& vin,const T mult,vector <T>& vout)
     {
       vout=vin;
       times(vout,mult);
     }
-    template <class T> static void times(vector <T>& vect,T mult)
+    template <class T> static void times(vector <T>& vect,const T mult)
     {
       for(auto &v : vect)
 	v*=mult;
     }
-    template <class T> static void divide(const vector <T>& vin,T divisor,vector <T>& vout)
+    template <class T> static void divide(const vector <T>& vin,const T divisor,vector <T>& vout)
     {
       vout=vin;
       divide(vout,divisor);
     }
-    template <class T> static void divide(vector <T>& vect,T divisor)
+    template <class T> static void divide(vector <T>& vect,const T divisor)
     {
       for(auto &v : vect)
 	v/=divisor;
@@ -366,18 +366,32 @@ namespace FractalSpace
 	}
       return;
     }
-    template <class T> void zero_shrink_vector(vector <T>& vec,int size)
+    // template <class T> void zero_shrink_vector(vector <T>& vec,int size)
+    // {
+    //   vec.clear();
+    //   vec.resize(size);
+    //   vec.shrink_to_fit();
+    // }
+    // template <class T> void shrink_vectors(vector <vector <T> >& vec)
+    // {
+    //   vec.shrink_to_fit();
+    //   for(vector <T> v : vec)
+    // 	v.shrink_to_fit();
+    // }
+    template <class T> struct count_up
     {
-      vec.clear();
-      vec.resize(size);
-      vec.shrink_to_fit();
-    }
-    template <class T> void shrink_vectors(vector <vector <T> > vec)
+      bool operator()(const T A,const T B) const
+      {
+	return A < B;
+      }
+    };
+    template <class T> struct count_down
     {
-      vec.shrink_to_fit();
-      for(vector <T> v : vec)
-	v.shrink_to_fit();
-    }
+      bool operator()(const T A,const T B) const
+      {
+	return A > B;
+      }
+    };
   };
 }
 #endif

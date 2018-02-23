@@ -749,7 +749,11 @@ namespace FractalSpace
 //   }
   void Point::force_shear_point_zero()
   {
-    force_shear_point.clear();
+    {
+      vector<double>Patsy;
+      force_shear_point.swap(Patsy);
+    }
+    // force_shear_point.clear();
 //     if(force_shear_point != 0)
 //       delete [] force_shear_point;
 //     force_shear_point=0;

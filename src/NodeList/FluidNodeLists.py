@@ -20,13 +20,19 @@ def makeFluidNodeList%(dim)s(name,
                              maxNumNeighbors = 500,
                              rhoMin = 1.0e-10,
                              rhoMax = 1e10,
-                             NeighborType = NestedGridNeighbor%(dim)s, # TreeNeighbor%(dim)s,
+
+                             # Neighboring stuff
+                             NeighborType = TreeNeighbor%(dim)s,
                              searchType = GatherScatter,
-                             numGridLevels = 31,
-                             topGridCellSize = 100.0,
-                             origin = Vector%(dim)s.zero,
                              kernelExtent = 2.0,
-                             gridCellInfluenceRadius = 1,
+
+                             # Parameters only for NestedGridNeighbor (deprecated)
+                             # numGridLevels = 31,
+                             # topGridCellSize = 100.0,
+                             # origin = Vector%(dim)s.zero,
+                             # gridCellInfluenceRadius = 1,
+
+                             # Parameters for TreeNeighbor
                              xmin = Vector%(dim)s.one * -10.0,
                              xmax = Vector%(dim)s.one *  10.0):
     result = FluidNodeList%(dim)s(name, eos, numInternal, numGhost, 
@@ -34,13 +40,14 @@ def makeFluidNodeList%(dim)s(name,
                                   nPerh, maxNumNeighbors,
                                   rhoMin, rhoMax)
     if NeighborType == NestedGridNeighbor%(dim)s:
+        print "makeFluidNodeList Deprecation Warning: NestedGridNeighbor is deprecated: suggest using TreeNeighbor."
         result._neighbor = NestedGridNeighbor%(dim)s(result, searchType, 
-                                                     numGridLevels, topGridCellSize, 
-                                                     origin, kernelExtent, 
-                                                     gridCellInfluenceRadius)
+                                                     kernelExtent = kernelExtent)
+                                                     #numGridLevels, topGridCellSize, 
+                                                     #origin, kernelExtent, 
+                                                     #gridCellInfluenceRadius)
     else:
-        result._neighbor = NeighborType(result, searchType, kernelExtent,
-                                        xmin, xmax)
+        result._neighbor = TreeNeighbor%(dim)s(result, searchType, kernelExtent, xmin, xmax)
     result.registerNeighbor(result._neighbor)
     result.eos = eos
     return result

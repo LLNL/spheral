@@ -99,7 +99,7 @@ commandLine(# How much of the 2 Pi geometry are we doing?
             mWeibullFactor = 1.0,
             randomSeed = 548928513,
             strainType = PseudoPlasticStrain,
-            damageMethod = Copy,
+            damageMethod = CopyDamage,
             useDamageGradient = True,
             cullToWeakestFlaws = False,
             effectiveFlawAlgorithm = SampledFlaws,

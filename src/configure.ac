@@ -25,11 +25,6 @@ INSTALL=`which install`
 AC_PROG_PYTHON
 
 # -------------------------------------------------
-# setup python binding (m4macros/pythonbinding.m4)
-# -------------------------------------------------
-SETUP_PYTHONBINDING
-
-# -------------------------------------------------
 # Setup the Spheral Environment 
 # (m4macros/spheral.m4)
 # -------------------------------------------------
@@ -75,6 +70,11 @@ SETUP_COMPILERS_THE_WAY_I_WANT
 AC_CHECK_OPTIMIZATION
 SETUP_DEBUG_PRINT
 SETUP_DBC
+
+# -------------------------------------------------
+# setup python binding (m4macros/pythonbinding.m4)
+# -------------------------------------------------
+SETUP_PYTHONBINDING
 
 # -------------------------------------------------
 # setup ParMETIS (m4macros/mpi.m4)
@@ -136,6 +136,17 @@ SETUP_GEODYN
 # -------------------------------------------------
 SETUP_HELMHOLTZ
 
+# -------------------------------------------------
+# setup Noel's old Timer (m4macros/timers.m4)
+# -------------------------------------------------
+SETUP_TIMERS
+SETUP_PAPI
+
+# -------------------------------------------------
+# setup EASYPROFILE (m4macros/easyprofile.m4)
+# -------------------------------------------------
+SETUP_EASYPROFILE
+
 # -----------------------------------------------
 # Output the processed AC files
 # -----------------------------------------------
@@ -170,7 +181,6 @@ AC_OUTPUT(helpers/makefile_master \
           Mesh/makefile \
           Damage/makefile \
           SolidMaterial/makefile \
-          SolidSPH/makefile \
           Strength/makefile \
           ArtificialConduction/makefile \
           CXXTests/makefile \

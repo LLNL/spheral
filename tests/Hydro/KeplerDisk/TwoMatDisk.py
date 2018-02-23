@@ -145,7 +145,7 @@ commandLine(asph = False,
             statsStep = 10,
             redistributeStep = None,
             restartStep = 500,
-            restoreCycle = None,
+            restoreCycle = -1,
             smoothIters = 0,
             rigorousBoundaries = True,
             dtverbose = False,
@@ -157,6 +157,8 @@ commandLine(asph = False,
             writeHistory = False,
             historyInterval = 2.0,
             clearDirectories = False,
+
+            dataDir = "twomat-%i",
 
             outputFile = "None",
             comparisonFile = "None",
@@ -188,7 +190,7 @@ else:
         HydroConstructor = SPHHydro
 
 # Data output info.
-dataDir = "twomat-%i" % n
+dataDir = dataDir % n
 viscString = "MG"
 if balsaraCorrection:
     viscString = "Balsara"
@@ -212,12 +214,6 @@ if mpi.rank == 0:
     if not os.path.exists(vizDir):
         os.makedirs(vizDir)
 mpi.barrier()
-
-#-------------------------------------------------------------------------------
-# If we're restarting, find the set of most recent restart files.
-#-------------------------------------------------------------------------------
-if restoreCycle is None:
-    restoreCycle = findLastRestart(restartBaseName)
 
 #-------------------------------------------------------------------------------
 # Define a helper class that knows how to specify our requested radial profiles
@@ -291,7 +287,7 @@ output("diskNodes1.nodesPerSmoothingScale")
 #output("diskNodes.XSPH")
 
 # Construct the neighbor object and associate it with the node list.
-#neighbor1 = NestedGridNeighbor(diskNodes1,
+#neighbor1 = TreeNeighbor(diskNodes1,
 #                               kernelExtent = WT.kernelExtent)
 #diskNodes1.registerNeighbor(neighbor1)
 #diskNodes2.registerNeighbor(neighbor2)
@@ -302,37 +298,36 @@ diskProfile1 = KeplerianPressureDiskProfile(G0, M0, polytropicIndex, Rc, rho0)
 diskProfile2 = KeplerianPressureDiskProfile(G0, M0, polytropicIndex, Rc, rho0*0.5)
 
 # Set node positions, masses, and H's for this domain.
-if restoreCycle is None:
-    from VoronoiDistributeNodes import distributeNodes2d as distributeNodes
-    print "Generating node distribution."
-    generator1 = GenerateNodesMatchingProfile2d(n*0.25, diskProfile1,
-                                                rmin = rmin,
-                                                rmax = rmax*0.25,
-                                                thetaMin = thetaMin,
-                                                thetaMax = thetaMax,
-                                                nNodePerh = nPerh)
-    n1 = generator1.globalNumNodes()
-    generator2 = GenerateNodesMatchingProfile2d(n*0.75, diskProfile2,
-                                                rmin = rmax*0.27,
-                                                rmax = rmax,
-                                                thetaMin = thetaMin,
-                                                thetaMax = thetaMax,
-                                                nNodePerh = nPerh,
-                                                m0 = generator1.m0)
-    n1 = generator1.globalNumNodes()
-    n2 = generator2.globalNumNodes()
+from VoronoiDistributeNodes import distributeNodes2d as distributeNodes
+print "Generating node distribution."
+generator1 = GenerateNodesMatchingProfile2d(n*0.25, diskProfile1,
+                                            rmin = rmin,
+                                            rmax = rmax*0.25,
+                                            thetaMin = thetaMin,
+                                            thetaMax = thetaMax,
+                                            nNodePerh = nPerh)
+n1 = generator1.globalNumNodes()
+generator2 = GenerateNodesMatchingProfile2d(n*0.75, diskProfile2,
+                                            rmin = rmax*0.27,
+                                            rmax = rmax,
+                                            thetaMin = thetaMin,
+                                            thetaMax = thetaMax,
+                                            nNodePerh = nPerh,
+                                            m0 = generator1.m0)
+n1 = generator1.globalNumNodes()
+n2 = generator2.globalNumNodes()
 
-    print "Distributing nodes amongst processors."
-    distributeNodes((diskNodes1, generator1),(diskNodes2,generator2))
-    output('mpi.reduce(diskNodes1.numInternalNodes, mpi.MIN)')
-    output('mpi.reduce(diskNodes1.numInternalNodes, mpi.MAX)')
-    output('mpi.reduce(diskNodes1.numInternalNodes, mpi.SUM)')
+print "Distributing nodes amongst processors."
+distributeNodes((diskNodes1, generator1),(diskNodes2,generator2))
+output('mpi.reduce(diskNodes1.numInternalNodes, mpi.MIN)')
+output('mpi.reduce(diskNodes1.numInternalNodes, mpi.MAX)')
+output('mpi.reduce(diskNodes1.numInternalNodes, mpi.SUM)')
 
-    # Loop over the nodes, and set the specific energies and velocities.
-    for nodes in [diskNodes1,diskNodes2]:
-        for i in xrange(nodes.numInternalNodes):
-            r = nodes.positions()[i].magnitude()
-            #nodes.specificThermalEnergy()[i] = diskProfile.eps(r)
+# Loop over the nodes, and set the specific energies and velocities.
+for nodes in [diskNodes1,diskNodes2]:
+    for i in xrange(nodes.numInternalNodes):
+        r = nodes.positions()[i].magnitude()
+        #nodes.specificThermalEnergy()[i] = diskProfile.eps(r)
 
 #-------------------------------------------------------------------------------
 # Set an external pressure on the disk equivalent to the pressure at the

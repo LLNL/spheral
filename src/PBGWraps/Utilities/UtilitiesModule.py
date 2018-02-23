@@ -21,6 +21,7 @@ class Utilities:
 
         # Expose types.
         self.KeyTraits = addObject(mod, "KeyTraits", allow_subclassing=True)
+        self.Timer = addObject(mod, "Timer")
         self.ScalarScalarFunctor = addObject(self.PythonBoundFunctors, "SpheralFunctor", template_parameters=["double", "double"], custom_name="ScalarScalarFunctor", allow_subclassing=True)
         self.ScalarPairScalarFunctor = addObject(self.PythonBoundFunctors, "SpheralFunctor", template_parameters=["double", "std::pair<double, double>"], custom_name="ScalarPairScalarFunctor", allow_subclassing=True)
         for ndim in self.dims:
@@ -38,6 +39,8 @@ self.VectorPairScalarFunctor%(ndim)id = addObject(self.PythonBoundFunctors, "Sph
     def generateBindings(self, mod):
 
         Spheral = mod.add_cpp_namespace("Spheral")
+
+        self.addTimerBindings(self.Timer)
 
         # Add the functors.
         self.addFunctorBindings(self.ScalarScalarFunctor,       "double",   "double")
@@ -144,38 +147,39 @@ Spheral.add_function("globalBoundingVolumes", None, [constrefparam("DataBase%(di
 
         # These methods are only valid in 2d and 3d.
         for ndim in (2, 3):
-            dim = "Dim<%i>" % ndim
-            vector = "Vector%id" % ndim
-            vector_of_boundary = "vector_of_Boundary%id" % ndim
-            vector_of_scalarfieldptr = "vector_of_ScalarFieldPtr%id" % ndim
-            vector_of_vectorfieldptr = "vector_of_VectorFieldPtr%id" % ndim
-            vector_of_tensorfieldptr = "vector_of_TensorFieldPtr%id" % ndim
-            vector_of_symTensorfieldptr = "vector_of_SymTensorFieldPtr%id" % ndim
-            Spheral.add_function("pointPlaneDistance", "double", 
-                                 [constrefparam(vector, "point"),
-                                  constrefparam(vector, "origin"),
-                                  constrefparam(vector, "unitNormal")],
-                                 template_parameters = [vector],
-                                 custom_name = "pointPlaneDistance",
-                                 docstring="Compute the distance from (point) to the plane defined by (origin, unitNormal).")
-            Spheral.add_function("closestPointOnSegment", vector,
-                                 [constrefparam(vector, "p"), constrefparam(vector, "a0"), constrefparam(vector, "a1")],
-                                 template_parameters = [vector],
-                                 custom_name = "closestPointOnSegment",
-                                 docstring = "Find the closest point on a line segment (a0,a1) to point (p).")
-            Spheral.add_function("overlayRemapFields", None,
-                                 [constrefparam(vector_of_boundary, "boundaries"),
-                                  constrefparam(vector_of_scalarfieldptr, "scalarDonorFields"),
-                                  constrefparam(vector_of_vectorfieldptr, "vectorDonorFields"),
-                                  constrefparam(vector_of_tensorfieldptr, "tensorDonorFields"),
-                                  constrefparam(vector_of_symTensorfieldptr, "symTensorDonorFields"),
-                                  refparam(vector_of_scalarfieldptr, "scalarAcceptorFields"),
-                                  refparam(vector_of_vectorfieldptr, "vectorAcceptorFields"),
-                                  refparam(vector_of_tensorfieldptr, "tensorAcceptorFields"),
-                                  refparam(vector_of_symTensorfieldptr, "symTensorAcceptorFields")],
-                                 template_parameters = [dim],
-                                 custom_name = "overlayRemapFields",
-                                 docstring = "Do a simple donor overlay using geometric intersection.")
+            if ndim in self.dims:
+                dim = "Dim<%i>" % ndim
+                vector = "Vector%id" % ndim
+                vector_of_boundary = "vector_of_Boundary%id" % ndim
+                vector_of_scalarfieldptr = "vector_of_ScalarFieldPtr%id" % ndim
+                vector_of_vectorfieldptr = "vector_of_VectorFieldPtr%id" % ndim
+                vector_of_tensorfieldptr = "vector_of_TensorFieldPtr%id" % ndim
+                vector_of_symTensorfieldptr = "vector_of_SymTensorFieldPtr%id" % ndim
+                Spheral.add_function("pointPlaneDistance", "double", 
+                                     [constrefparam(vector, "point"),
+                                      constrefparam(vector, "origin"),
+                                      constrefparam(vector, "unitNormal")],
+                                     template_parameters = [vector],
+                                     custom_name = "pointPlaneDistance",
+                                     docstring="Compute the distance from (point) to the plane defined by (origin, unitNormal).")
+                Spheral.add_function("closestPointOnSegment", vector,
+                                     [constrefparam(vector, "p"), constrefparam(vector, "a0"), constrefparam(vector, "a1")],
+                                     template_parameters = [vector],
+                                     custom_name = "closestPointOnSegment",
+                                     docstring = "Find the closest point on a line segment (a0,a1) to point (p).")
+                Spheral.add_function("overlayRemapFields", None,
+                                     [constrefparam(vector_of_boundary, "boundaries"),
+                                      constrefparam(vector_of_scalarfieldptr, "scalarDonorFields"),
+                                      constrefparam(vector_of_vectorfieldptr, "vectorDonorFields"),
+                                      constrefparam(vector_of_tensorfieldptr, "tensorDonorFields"),
+                                      constrefparam(vector_of_symTensorfieldptr, "symTensorDonorFields"),
+                                      refparam(vector_of_scalarfieldptr, "scalarAcceptorFields"),
+                                      refparam(vector_of_vectorfieldptr, "vectorAcceptorFields"),
+                                      refparam(vector_of_tensorfieldptr, "tensorAcceptorFields"),
+                                      refparam(vector_of_symTensorfieldptr, "symTensorAcceptorFields")],
+                                     template_parameters = [dim],
+                                     custom_name = "overlayRemapFields",
+                                     docstring = "Do a simple donor overlay using geometric intersection.")
 
         # Closest point in plane to a point.
         Spheral.add_function("closestPointOnPlane", "Vector3d",
@@ -339,8 +343,11 @@ Spheral.add_function("segmentIntersectEdges", "bool", [constrefparam("%(vector)s
         ullfieldlist = "ULLFieldList%id" % ndim
         scalarfieldlist = "ScalarFieldList%id" % ndim
         vectorfieldlist = "VectorFieldList%id" % ndim
+        tensorfieldlist = "TensorFieldList%id" % ndim
+        symtensorfieldlist = "SymTensorFieldList%id" % ndim
         vector_of_boundary = "vector_of_Boundary%id" % ndim
         tablekernel = "TableKernel%id" % ndim
+        connectivitymap = "ConnectivityMap%id" % ndim
         smoothingscalebase = "Spheral::NodeSpace::SmoothingScaleBase%id" % ndim
 
         Spheral = self.Spheral
@@ -418,6 +425,17 @@ Spheral.add_function("segmentIntersectEdges", "bool", [constrefparam("%(vector)s
                               constrefparam(vector, "s1")],
                              docstring = "Integrate through a lattice sampled field along a line segment.")
 
+        for fl in (scalarfieldlist, vectorfieldlist, tensorfieldlist, symtensorfieldlist):
+            Spheral.add_function("computeShepardsInterpolation",
+                                 fl,
+                                 [constrefparam(fl, "fieldList"),
+                                  constrefparam(connectivitymap, "connectivityMap"),
+                                  constrefparam(tablekernel, "W"),
+                                  constrefparam(vectorfieldlist, "position"),
+                                  constrefparam(symtensorfieldlist, "H"),
+                                  constrefparam(scalarfieldlist, "weight")],
+                                 docstring = "Interpolate a FieldList using a Shepards function approach.")
+
         return
 
     #---------------------------------------------------------------------------
@@ -466,6 +484,32 @@ Spheral.add_function("segmentIntersectEdges", "bool", [constrefparam("%(vector)s
                              template_parameters = [plane],
                              custom_name = "planarReflectingOperator%id" % ndim,
                              docstring = "Generate the planar reflection transformation for th given plane.")
+
+        return
+
+    #---------------------------------------------------------------------------
+    # Timer bindings.
+    #---------------------------------------------------------------------------
+    def addTimerBindings(self, x):
+
+        # Constructors
+        x.add_constructor([])
+        x.add_constructor([param("std::string", "name")])
+        x.add_constructor([param("std::string", "name"),
+                           refparam("Timer", "base")])
+
+        # Methods
+        x.add_method("setup", None, [])
+        x.add_method("start", None, [])
+        x.add_method("stop", None, [])
+        x.add_method("clear", None, [])
+        x.add_method("getTimeStampWC", "double", [])
+        x.add_method("wc_time", "double", [])
+        x.add_method("Name", "std::string", [])
+        x.add_method("Count", "long int", [])
+
+        # Static methods
+        x.add_method("TimerSummary", None, [], is_static=True)
 
         return
 

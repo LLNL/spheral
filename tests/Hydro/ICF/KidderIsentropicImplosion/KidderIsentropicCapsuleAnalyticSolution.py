@@ -185,7 +185,7 @@ class KidderIsentropicCapsuleAnalyticSolution:
     # The radial gradient of the radial velocity.
     #---------------------------------------------------------------------------
     def DvrDr(self, t, r):
-        return t/(self.tau*self.tau*self.hfrac(t)**2)
+        return -t/(self.tau*self.tau*self.hfrac(t)**2)
 
     #---------------------------------------------------------------------------
     # The energies in the system as a function of time.

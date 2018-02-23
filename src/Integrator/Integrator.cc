@@ -5,11 +5,7 @@
 //
 // Created by JMO, Wed May 31 21:58:08 PDT 2000
 //----------------------------------------------------------------------------//
-#include <limits.h>
-#include <float.h>
-#include <algorithm>
-
-#include "Integrator.hh"
+#include "FileIO/FileIO.hh"
 #include "DataOutput/Restart.hh"
 #include "DataBase/DataBase.hh"
 #include "DataBase/State.hh"
@@ -17,14 +13,18 @@
 #include "Field/FieldList.hh"
 #include "Physics/Physics.hh"
 #include "Boundary/Boundary.hh"
-#include "FileIO/FileIO.hh"
 #include "Hydro/HydroFieldNames.hh"
 // #include "Utilities/timingUtilities.hh"
 #include "Neighbor/ConnectivityMap.hh"
 #include "Utilities/allReduce.hh"
 #include "Distributed/Communicator.hh"
-
 #include "Utilities/DBC.hh"
+
+#include "Integrator.hh"
+
+#include <limits.h>
+#include <float.h>
+#include <algorithm>
 
 namespace Spheral {
 namespace IntegratorSpace {

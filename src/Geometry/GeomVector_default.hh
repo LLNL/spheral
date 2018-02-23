@@ -14,12 +14,13 @@
 #ifndef __Spheral_GeomVector_default_hh__
 #define __Spheral_GeomVector_default_hh__
 
-#include <iostream>
-
 #include "Geometry/GeomVector_fwd.hh"
 #include "Geometry/GeomTensor_fwd.hh"
 #include "Geometry/GeomSymmetricTensor_fwd.hh"
 #include "GeomVectorBase_default.hh"
+
+#include <iostream>
+#include "Eigen/Dense"
 
 namespace Spheral {
 
@@ -31,6 +32,7 @@ public:
   typedef const double* const_iterator;
   typedef double* iterator;
   typedef unsigned size_type;
+  typedef Eigen::Matrix<double, nDim, 1> EigenType;
 
   // Useful static member data.
   static const size_type nDimensions;
@@ -43,6 +45,7 @@ public:
              const double y = 0.0,
              const double z = 0.0);
   GeomVector(const GeomVector& vec);
+  template<typename Derived> GeomVector(const Eigen::MatrixBase<Derived>& vec);
 
   // Destructor.
   ~GeomVector();
@@ -50,6 +53,7 @@ public:
   // Assignment.
   GeomVector& operator=(const GeomVector<nDim>& vec);
   GeomVector& operator=(const double val);
+  template<typename Derived> GeomVector& operator=(const Eigen::MatrixBase<Derived>& vec);
 
   // Allow the elements by indicies.
   double operator()(size_type index) const;
@@ -87,6 +91,10 @@ public:
 
   GeomVector& operator+=(const GeomVector& vec);
   GeomVector& operator-=(const GeomVector& vec);
+
+  template<typename Derived> GeomVector& operator+=(const Eigen::MatrixBase<Derived>& vec);
+  template<typename Derived> GeomVector& operator-=(const Eigen::MatrixBase<Derived>& vec);
+
   GeomVector& operator*=(const double val);
   GeomVector& operator/=(const double val);
 
@@ -121,6 +129,9 @@ public:
   double maxElement() const;
   double maxAbsElement() const;
   double sumElements() const;
+  
+  //  Convert to an Eigen Vector
+  EigenType eigen() const;
 };
 
 // Declare explicit specializations.
@@ -135,6 +146,10 @@ template<> GeomVector<3>& GeomVector<3>::operator=(const GeomVector<3>& vec);
 template<> GeomVector<1>& GeomVector<1>::operator=(const double val);
 template<> GeomVector<2>& GeomVector<2>::operator=(const double val);
 template<> GeomVector<3>& GeomVector<3>::operator=(const double val);
+
+// template<> GeomVector<1>& GeomVector<1>::operator=(const GeomVector<1>::EigenType& vec);
+// template<> GeomVector<2>& GeomVector<2>::operator=(const GeomVector<2>::EigenType& vec);
+// template<> GeomVector<3>& GeomVector<3>::operator=(const GeomVector<3>::EigenType& vec);
 
 template<> double GeomVector<1>::y() const;
 template<> double GeomVector<1>::z() const;
@@ -159,6 +174,23 @@ template<> GeomVector<3>& GeomVector<3>::operator+=(const GeomVector<3>& vec);
 template<> GeomVector<1>& GeomVector<1>::operator-=(const GeomVector<1>& vec);
 template<> GeomVector<2>& GeomVector<2>::operator-=(const GeomVector<2>& vec);
 template<> GeomVector<3>& GeomVector<3>::operator-=(const GeomVector<3>& vec);
+
+// template<> GeomVector<1>& GeomVector<1>::operator+=(const GeomVector<1>::EigenType& vec);
+// template<> GeomVector<2>& GeomVector<2>::operator+=(const GeomVector<2>::EigenType& vec);
+// template<> GeomVector<3>& GeomVector<3>::operator+=(const GeomVector<3>::EigenType& vec);
+
+// template<> GeomVector<1>& GeomVector<1>::operator-=(const GeomVector<1>::EigenType& vec);
+// template<> GeomVector<2>& GeomVector<2>::operator-=(const GeomVector<2>::EigenType& vec);
+// template<> GeomVector<3>& GeomVector<3>::operator-=(const GeomVector<3>::EigenType& vec);
+
+#if defined(_OPENMP) && _OPENMP >= 201107
+#pragma omp declare reduction(vecadd : GeomVector<1> : omp_out += omp_in ) initializer( omp_priv = GeomVector<1>(0.0,0.0,0.0) )
+#pragma omp declare reduction(vecdif : GeomVector<1> : omp_out -= omp_in ) initializer( omp_priv = GeomVector<1>(0.0,0.0,0.0) )
+#pragma omp declare reduction(vecadd : GeomVector<2> : omp_out += omp_in ) initializer( omp_priv = GeomVector<2>(0.0,0.0,0.0) )
+#pragma omp declare reduction(vecdif : GeomVector<2> : omp_out -= omp_in ) initializer( omp_priv = GeomVector<2>(0.0,0.0,0.0) )
+#pragma omp declare reduction(vecadd : GeomVector<3> : omp_out += omp_in ) initializer( omp_priv = GeomVector<3>(0.0,0.0,0.0) )
+#pragma omp declare reduction(vecdif : GeomVector<3> : omp_out -= omp_in ) initializer( omp_priv = GeomVector<3>(0.0,0.0,0.0) )
+#endif
 
 template<> GeomVector<1>& GeomVector<1>::operator*=(const double val);
 template<> GeomVector<2>& GeomVector<2>::operator*=(const double val);
@@ -223,6 +255,10 @@ template<> double GeomVector<3>::maxAbsElement() const;
 template<> double GeomVector<1>::sumElements() const;
 template<> double GeomVector<2>::sumElements() const;
 template<> double GeomVector<3>::sumElements() const;
+
+// template<> GeomVector<1>::EigenType GeomVector<1>::eigen() const;
+// template<> GeomVector<2>::EigenType GeomVector<2>::eigen() const;
+// template<> GeomVector<3>::EigenType GeomVector<3>::eigen() const;
 
 // Forward declare the global functions.
 template<int nDim> GeomVector<nDim> elementWiseMin(const GeomVector<nDim>& lhs,

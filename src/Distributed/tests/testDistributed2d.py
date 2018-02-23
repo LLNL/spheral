@@ -1,4 +1,4 @@
-#ATS:test(SELF, np=8, label="NestedGridDistributedBoundary (2-D) unit tests")
+#ATS:test(SELF, np=8, label="TreeDistributedBoundary (2-D) unit tests")
 import unittest
 import random
 import mpi
@@ -52,9 +52,9 @@ class TestDistributedBoundary2d:
 
         # Construct the NodeLists to be distributed
         self.eos = GammaLawGasMKS2d(2.0, 2.0)
-        self.nodes1 = makeFluidNodeList2d("nodes1", self.eos, NeighborType = NestedGridNeighbor2d)
-        self.nodes2 = makeFluidNodeList2d("nodes2", self.eos, NeighborType = NestedGridNeighbor2d)
-        self.nodes3 = makeFluidNodeList2d("nodes3", self.eos, NeighborType = NestedGridNeighbor2d)
+        self.nodes1 = makeFluidNodeList2d("nodes1", self.eos, NeighborType = TreeNeighbor2d)
+        self.nodes2 = makeFluidNodeList2d("nodes2", self.eos, NeighborType = TreeNeighbor2d)
+        self.nodes3 = makeFluidNodeList2d("nodes3", self.eos, NeighborType = TreeNeighbor2d)
 
         # Distribute the nodes.
         distributeNodes2d((self.nodes1, generator1),
@@ -82,7 +82,7 @@ class TestDistributedBoundary2d:
     # the communicated ghost nodes.
     #===========================================================================
     def testIt(self):
-        print "Testing NestedGridDistributedBoundary2d on domain %i of %i domains" % \
+        print "Testing TreeDistributedBoundary2d on domain %i of %i domains" % \
               (domainID, numDomains)
 
         # Set the ghost nodes for each domain distributed NodeList.
@@ -127,13 +127,17 @@ class TestDistributedBoundary2d:
 
                     # Have the testing processor build it's own version.
                     if mpi.rank == testProc:
-                        self.dataBase.setMasterNodeLists(ri, Hi)
-                        self.dataBase.setRefineNodeLists(ri, Hi)
+                        masterLists = vector_of_vector_of_int()
+                        coarseNeighbors = vector_of_vector_of_int()
+                        refineNeighbors = vector_of_vector_of_int()
+                        self.dataBase.setMasterNodeLists(ri, Hi, masterLists, coarseNeighbors)
+                        self.dataBase.setRefineNodeLists(ri, Hi, coarseNeighbors, refineNeighbors)
+                        assert len(refineNeighbors) == 3
                         refine = []
-                        for (nds, globalIDs) in ((self.nodes1, self.globalIDField1),
-                                                 (self.nodes2, self.globalIDField2),
-                                                 (self.nodes3, self.globalIDField3)):
-                            refine.extend([globalIDs[j] for j in nds.neighbor().refineNeighborList])
+                        for k, globalIDs in enumerate([self.globalIDField1,
+                                                       self.globalIDField2,
+                                                       self.globalIDField3]):
+                            refine.extend([globalIDs[j] for j in refineNeighbors[k]])
 
                         # Check the answer.
                         test = checkNeighbors(refine, answer)
@@ -144,14 +148,14 @@ class TestDistributedBoundary2d:
                         assert test
 
 #===============================================================================
-# NestedGridDistributedBoundary
+# TreeDistributedBoundary
 #===============================================================================
-class TestNestedGridDistributedBoundary2d(unittest.TestCase,
+class TestTreeDistributedBoundary2d(unittest.TestCase,
                                           TestDistributedBoundary2d):
 
     # Set up method called before test is run.
     def setUp(self):
-        self.domainbc = NestedGridDistributedBoundary2d.instance()
+        self.domainbc = TreeDistributedBoundary2d.instance()
         self.genericSetup()
 
     def tearDown(self):

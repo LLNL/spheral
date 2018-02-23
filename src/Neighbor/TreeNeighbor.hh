@@ -13,7 +13,8 @@
 #define __Spheral_TreeNeighbor_hh__
 
 #include <stdint.h>
-#include "boost/unordered_map.hpp"
+#include <unordered_map>
+#include <vector>
 
 #include "Neighbor.hh"
 
@@ -32,6 +33,10 @@ public:
   typedef std::vector<int>::iterator iterator;
   typedef std::vector<int>::const_iterator const_iterator;
 
+  // Data types we use to build the internal tree structure.
+  typedef uint32_t LevelKey;
+  typedef uint64_t CellKey;
+
   // Constructors and destructors
   TreeNeighbor(NodeSpace::NodeList<Dimension>& nodeList, 
                const NeighborSearchType searchType,
@@ -44,30 +49,44 @@ public:
   // Set or refine the neighbor lists for the given position and smoothing 
   // scale.
   virtual void setMasterList(const Vector& position,
-                             const Scalar& H);
+                             const Scalar& H,
+                             std::vector<int>& masterList,
+                             std::vector<int>& coarseNeighbors) const override;
   virtual void setMasterList(const Vector& position,
-                             const SymTensor& H);
+                             const SymTensor& H,
+                             std::vector<int>& masterList,
+                             std::vector<int>& coarseNeighbors) const override;
 
   virtual void setRefineNeighborList(const Vector& position,
-                                     const Scalar& H);
+                                     const Scalar& H,
+                                     const std::vector<int>& coarseNeighbors,
+                                     std::vector<int>& refineNeighbors) const override;
   virtual void setRefineNeighborList(const Vector& position,
-                                     const SymTensor& H);
+                                     const SymTensor& H,
+                                     const std::vector<int>& coarseNeighbors,
+                                     std::vector<int>& refineNeighbors) const override;
 
   // Set Neighbors for the given position.
-  virtual void setMasterList(const Vector& position);
-  virtual void setRefineNeighborList(const Vector& position);
+  virtual void setMasterList(const Vector& position,
+                             std::vector<int>& masterList,
+                             std::vector<int>& coarseNeighbors) const override;
+  virtual void setRefineNeighborList(const Vector& position,
+                                     const std::vector<int>& coarseNeighbors,
+                                     std::vector<int>& refineNeighbors) const override;
 
   // Set the neighbor lists based on proximity to planes.
   virtual void setMasterList(const GeomPlane<Dimension>& enterPlane,
-                             const GeomPlane<Dimension>& exitPlane);
+                             const GeomPlane<Dimension>& exitPlane,
+                             std::vector<int>& masterList,
+                             std::vector<int>& coarseNeighbors) const override;
 
   // Force the update of internal data for the NodeList.
-  virtual void updateNodes();
-  virtual void updateNodes(const std::vector<int>& nodeIDs);
+  virtual void updateNodes() override;
+  virtual void updateNodes(const std::vector<int>& nodeIDs) override;
   //****************************************************************************
 
   // Checks for internal validity.
-  virtual bool valid() const;
+  virtual bool valid() const override;
 
   // Compute the grid level appropriate for the given smoothing scale.
   unsigned gridLevel(const double& h) const;        // units of length
@@ -89,12 +108,18 @@ public:
   void deserialize(std::vector<char>::const_iterator& itr,
                    const std::vector<char>::const_iterator& end);
 
+  // Return the set of occupied cells on each level.
+  std::vector<std::vector<CellKey>> occupiedCells() const;
+
+  // For our parallel algorithm it is useful to be able to set the master/coarse
+  // information based on the given (level, cell).
+  void setTreeMasterList(const LevelKey levelID,
+                         const CellKey cellID,
+                         std::vector<int>& masterList,
+                         std::vector<int>& coarseNeighbors) const;
+
 private:
   //--------------------------- Private Interface ---------------------------//
-  // Data types we use to build the internal tree structure.
-  typedef uint32_t LevelKey;
-  typedef uint64_t CellKey;
-
   static const unsigned num1dbits;                   // The number of bits we quantize 1D coordinates to.  We have to fit three of these in 64 bits.
   static const CellKey max1dKey;                     // The maximum number of cells this corresponds to in a direction.
   static const CellKey xkeymask, ykeymask, zkeymask; // Bit masks we can use to extract the coordinate specific indices from a cell key.
@@ -119,7 +144,7 @@ private:
   };
 
   // Define the types we use to build the tree.
-  typedef boost::unordered_map<CellKey, Cell> TreeLevel;
+  typedef std::unordered_map<CellKey, Cell> TreeLevel;
   typedef std::vector<TreeLevel> Tree;
 
   // Default constructor -- disabled.
@@ -151,18 +176,23 @@ private:
   // Add a node to the internal tree.
   void addNodeToTree(const Vector& xi,
                      const SymTensor& Hi,
-                     const unsigned i);
+                     const unsigned i,
+                     Tree& tree) const;
 
   // Construct all the daughterPtrs in a tree.
   void constructDaughterPtrs(Tree& tree) const;
 
   // Actual method for setting the master list.
   void setTreeMasterList(const Vector& position,
-                         const double& h);
+                         const double& h,
+                         std::vector<int>& masterList,
+                         std::vector<int>& coarseNeighbors) const;
 
   // Actual method for setting the refine list.
   void setTreeRefineNeighborList(const Vector& position,
-                                 const SymTensor& H);
+                                 const SymTensor& H,
+                                 const std::vector<int>& coarseNeighbors,
+                                 std::vector<int>& refineNeighbors) const;
 
   // Return all the members in range of the specified cell.
   std::vector<int> findTreeNeighbors(const LevelKey& masterLevel,
@@ -193,6 +223,12 @@ private:
                    std::vector<char>::const_iterator& bufItr, 
                    const std::vector<char>::const_iterator& endItr) const;
 
+  // Tree dump methods that work on the given Tree.
+  std::string dumpTree(const Tree& tree,
+                       const bool globalTree) const;
+  std::string dumpTreeStatistics(const Tree& tree,
+                                 const bool globalTree) const;
+
   // Private data.
   double mBoxLength, mGridLevelConst0;
   Vector mXmin, mXmax;
@@ -201,8 +237,6 @@ private:
 
 }
 }
-
-//#include "TreeNeighborInline.hh"
 
 #else
 

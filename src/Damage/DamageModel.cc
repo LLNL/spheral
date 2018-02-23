@@ -5,22 +5,17 @@
 //
 // Created by JMO, Thu Sep 29 13:31:57 PDT 2005
 //----------------------------------------------------------------------------//
-#include <string>
-#include <vector>
-
-#include "boost/shared_ptr.hpp"
-
+#include "FileIO/FileIO.hh"
 #include "DamageModel.hh"
 #include "YoungsModulusPolicy.hh"
 #include "LongitudinalSoundSpeedPolicy.hh"
 #include "DamagedSoundSpeedPolicy.hh"
 #include "Strength/SolidFieldNames.hh"
-#include "Strength/SolidNodeList.hh"
+#include "NodeList/SolidNodeList.hh"
 #include "DataBase/DataBase.hh"
 #include "DataBase/State.hh"
 #include "DataBase/StateDerivatives.hh"
 #include "Hydro/HydroFieldNames.hh"
-#include "FileIO/FileIO.hh"
 #include "Field/FieldList.hh"
 #include "Boundary/Boundary.hh"
 #include "Kernel/TableKernel.hh"
@@ -28,12 +23,17 @@
 #include "Utilities/GeometricUtilities.hh"
 #include "Utilities/safeInv.hh"
 
+#include "boost/shared_ptr.hpp"
+
+#include <string>
+#include <vector>
+
 namespace Spheral {
 namespace PhysicsSpace {
 
 using namespace std;
 
-using SolidMaterial::SolidNodeList;
+using NodeSpace::SolidNodeList;
 using Material::EquationOfState;
 using FileIOSpace::FileIO;
 using DataBaseSpace::DataBase;
@@ -94,17 +94,18 @@ computeScalarDDDt(const DataBase<Dimension>& dataBase,
   REQUIRE(mFlaws.nodeListPtr() == &mNodeList);
 
   // Get the state fields.
-  typedef typename State<Dimension>::KeyType Key;
-  const Key clKey = State<Dimension>::buildFieldKey(SolidFieldNames::longitudinalSoundSpeed, mNodeList.name());
-  const Key HKey = State<Dimension>::buildFieldKey(HydroFieldNames::H, mNodeList.name());
-  const Field<Dimension, Scalar>& cl = state.field(clKey, 0.0);
-  const Field<Dimension, SymTensor>& H = state.field(HKey, SymTensor::zero);
+  const auto  clKey = State<Dimension>::buildFieldKey(SolidFieldNames::longitudinalSoundSpeed, mNodeList.name());
+  const auto  HKey = State<Dimension>::buildFieldKey(HydroFieldNames::H, mNodeList.name());
+  const auto& cl = state.field(clKey, 0.0);
+  const auto& H = state.field(HKey, SymTensor::zero);
 
   // Constant multiplicative parameter for the crack growth.
-  const double A = mCrackGrowthMultiplier / mW.kernelExtent();
+  const auto A = mCrackGrowthMultiplier / mW.kernelExtent();
 
   // Iterate over the internal nodes.
-  for (int i = 0; i != mNodeList.numInternalNodes(); ++i) {
+  const auto ni = mNodeList.numInternalNodes();
+#pragma omp parallel for
+  for (int i = 0; i < ni; ++i) {
     if (mExcludeNode(i) == 1) {
 
       DDDt(i) = 0.0;
@@ -169,17 +170,18 @@ preStepInitialize(const DataBase<Dimension>& dataBase,
   if (mEffectiveFlawAlgorithm != EffectiveFlawAlgorithm::FullSpectrumFlaws) {
 
     // Get the state fields.
-    typedef typename State<Dimension>::KeyType Key;
-    const Key posKey = State<Dimension>::buildFieldKey(HydroFieldNames::position, mNodeList.name());
-    const Key HKey = State<Dimension>::buildFieldKey(HydroFieldNames::H, mNodeList.name());
-    const Key flawKey = State<Dimension>::buildFieldKey(SolidFieldNames::effectiveFlaws, mNodeList.name());
-    const Field<Dimension, Vector>& positions = state.field(posKey, Vector::zero);
-    const Field<Dimension, SymTensor>& H = state.field(HKey, SymTensor::zero);
-    Field<Dimension, Scalar>& effectiveFlaws = state.field(flawKey, 0.0);
+    const auto  posKey = State<Dimension>::buildFieldKey(HydroFieldNames::position, mNodeList.name());
+    const auto  HKey = State<Dimension>::buildFieldKey(HydroFieldNames::H, mNodeList.name());
+    const auto  flawKey = State<Dimension>::buildFieldKey(SolidFieldNames::effectiveFlaws, mNodeList.name());
+    const auto& positions = state.field(posKey, Vector::zero);
+    const auto& H = state.field(HKey, SymTensor::zero);
+    auto&       effectiveFlaws = state.field(flawKey, 0.0);
 
     // Iterate over the nodes and compute our effective flaws!
-    for (int i = 0; i != mNodeList.numInternalNodes(); ++i) {
-      const vector<double>& flawsi = mFlaws(i);
+    const auto ni = mNodeList.numInternalNodes();
+#pragma omp parallel for
+    for (int i = 0; i < ni; ++i) {
+      const auto& flawsi = mFlaws(i);
       CHECK(flawsi.size() > 0);
 
       switch(mEffectiveFlawAlgorithm) {
@@ -195,7 +197,7 @@ preStepInitialize(const DataBase<Dimension>& dataBase,
       case EffectiveFlawAlgorithm::InverseSumFlaws:
       case EffectiveFlawAlgorithm::SampledFlaws:
         effectiveFlaws(i) = 0.0;
-        for (typename vector<double>::const_iterator itr = flawsi.begin(); itr != flawsi.end(); ++itr) effectiveFlaws(i) += 1.0/(*itr);
+        for (auto itr = flawsi.begin(); itr != flawsi.end(); ++itr) effectiveFlaws(i) += 1.0/(*itr);
         effectiveFlaws(i) = flawsi.size()/effectiveFlaws(i);
         break;
 
@@ -209,44 +211,44 @@ preStepInitialize(const DataBase<Dimension>& dataBase,
     // For the sampled flaws case, we have to communicate the local sums and then
     // do the weighted interpolation.
     if (mEffectiveFlawAlgorithm == EffectiveFlawAlgorithm::SampledFlaws) {
-      const ConnectivityMap<Dimension>& connectivityMap = dataBase.connectivityMap();
-      const vector<const NodeList<Dimension>*>& nodeLists = connectivityMap.nodeLists();
-      const int numNodeLists = nodeLists.size();
-      const int nodeListi = distance(nodeLists.begin(), find(nodeLists.begin(), nodeLists.end(), &mNodeList));
+      const auto& connectivityMap = dataBase.connectivityMap();
+      const auto& nodeLists = connectivityMap.nodeLists();
+      const auto  numNodeLists = nodeLists.size();
+      const auto  nodeListi = distance(nodeLists.begin(), find(nodeLists.begin(), nodeLists.end(), &mNodeList));
       CHECK(nodeListi < numNodeLists);
 
       // Invert the flaws again, and remove the number of flaws normalization.
-      for (int i = 0; i != mNodeList.numInternalNodes(); ++i) effectiveFlaws(i) = mFlaws(i).size()/effectiveFlaws(i);
+#pragma omp parallel for
+      for (auto i = 0; i < ni; ++i) {
+        effectiveFlaws(i) = mFlaws(i).size()/effectiveFlaws(i);
+      }
 
       // Apply ghost boundaries.
-      for (ConstBoundaryIterator boundaryItr = this->boundaryBegin();
-           boundaryItr != this->boundaryEnd();
-           ++boundaryItr) (*boundaryItr)->applyGhostBoundary(effectiveFlaws);
-      for (ConstBoundaryIterator boundaryItr = this->boundaryBegin();
-           boundaryItr != this->boundaryEnd();
-           ++boundaryItr) (*boundaryItr)->finalizeGhostBoundary();
+      for (auto boundaryItr = this->boundaryBegin(); boundaryItr < this->boundaryEnd(); ++boundaryItr) (*boundaryItr)->applyGhostBoundary(effectiveFlaws);
+      for (auto boundaryItr = this->boundaryBegin(); boundaryItr < this->boundaryEnd(); ++boundaryItr) (*boundaryItr)->finalizeGhostBoundary();
 
       // Make a copy of the inverse sum for each node.
       Field<Dimension, Scalar> flawCopy("flaws copy", effectiveFlaws);
 
       // Go over everybody again.
-      for (int i = 0; i != mNodeList.numInternalNodes(); ++i) {
+#pragma omp parallel for
+      for (int i = 0; i < ni; ++i) {
 
         // The self-contribution.
-        const Vector& ri = positions(i);
-        const SymTensor& Hi = H(i);
-        const Scalar Hdeti = Hi.Determinant();
-        const Scalar Wi = mW(0.0, Hdeti);
+        const auto& ri = positions(i);
+        const auto& Hi = H(i);
+        const auto  Hdeti = Hi.Determinant();
+        const auto  Wi = mW(0.0, Hdeti);
         effectiveFlaws(i) *= Wi;
-        Scalar normalization = Wi;
+        auto normalization = Wi;
 
         // Now everyone else's contribution.
-        const vector<int>& connectivity = connectivityMap.connectivityForNode(&mNodeList, i)[nodeListi];
-        for (typename vector<int>::const_iterator jItr = connectivity.begin(); jItr != connectivity.end(); ++jItr) {
+        const auto& connectivity = connectivityMap.connectivityForNode(&mNodeList, i)[nodeListi];
+        for (auto jItr = connectivity.begin(); jItr < connectivity.end(); ++jItr) {
           const int j = *jItr;
           CHECK(j < mNodeList.numNodes());
-          const Vector rij = ri - positions(j);
-          const Scalar Wi = mW(Hi*rij, Hdeti);
+          const auto rij = ri - positions(j);
+          const auto Wi = mW(Hi*rij, Hdeti);
           effectiveFlaws(i) += Wi*flawCopy(j);
           normalization += Wi;
         }
@@ -271,40 +273,39 @@ postStateUpdate(const DataBase<Dimension>& dataBase,
   typedef typename SymTensor::EigenStructType EigenStruct;
 
   // Connectivity info.
-  const ConnectivityMap<Dimension>& connectivityMap = dataBase.connectivityMap();
-  const vector<const NodeList<Dimension>*>& nodeLists = connectivityMap.nodeLists();
-  const size_t numNodeLists = nodeLists.size();
-  const size_t nodeListi = distance(nodeLists.begin(), find(nodeLists.begin(), nodeLists.end(), &mNodeList));
+  const auto& connectivityMap = dataBase.connectivityMap();
+  const auto& nodeLists = connectivityMap.nodeLists();
+  const auto  numNodeLists = nodeLists.size();
+  const auto  nodeListi = distance(nodeLists.begin(), find(nodeLists.begin(), nodeLists.end(), &mNodeList));
   CHECK(nodeListi < numNodeLists);
 
   // Grab the state.
   typedef typename State<Dimension>::KeyType Key;
-  const Field<Dimension, Vector>& x = state.field(State<Dimension>::buildFieldKey(HydroFieldNames::position, mNodeList.name()), Vector::zero);
-  const Field<Dimension, SymTensor>& D = state.field(State<Dimension>::buildFieldKey(SolidFieldNames::tensorDamage, mNodeList.name()), SymTensor::zero);
-  const Field<Dimension, Scalar>& m = state.field(State<Dimension>::buildFieldKey(HydroFieldNames::mass, mNodeList.name()), 0.0);
-  const Field<Dimension, Scalar>& rho = state.field(State<Dimension>::buildFieldKey(HydroFieldNames::massDensity, mNodeList.name()), 0.0);
-  Field<Dimension, SymTensor>& H = state.field(State<Dimension>::buildFieldKey(HydroFieldNames::H, mNodeList.name()), SymTensor::zero);
-  Field<Dimension, SymTensor>& S = state.field(State<Dimension>::buildFieldKey(SolidFieldNames::deviatoricStress, mNodeList.name()), SymTensor::zero);
+  const auto& x = state.field(State<Dimension>::buildFieldKey(HydroFieldNames::position, mNodeList.name()), Vector::zero);
+  const auto& D = state.field(State<Dimension>::buildFieldKey(SolidFieldNames::tensorDamage, mNodeList.name()), SymTensor::zero);
+  const auto& m = state.field(State<Dimension>::buildFieldKey(HydroFieldNames::mass, mNodeList.name()), 0.0);
+  const auto& rho = state.field(State<Dimension>::buildFieldKey(HydroFieldNames::massDensity, mNodeList.name()), 0.0);
+  auto&       H = state.field(State<Dimension>::buildFieldKey(HydroFieldNames::H, mNodeList.name()), SymTensor::zero);
+  auto&       S = state.field(State<Dimension>::buildFieldKey(SolidFieldNames::deviatoricStress, mNodeList.name()), SymTensor::zero);
 
   // Force the deviatoric stress of the damaged points to limit to the local average.
   Field<Dimension, SymTensor> Snew("S sampled", mNodeList);
-  for (size_t i = 0; i != mNodeList.numInternalNodes(); ++i) {
-    const Vector& xi = x(i);
-    const SymTensor& Hi = H(i);
-    const Scalar Hdeti = Hi.Determinant();
-    const Scalar Dmax = max(0.0, min(1.0, D(i).eigenValues().maxElement()));
-    const vector<int>& connectivity = connectivityMap.connectivityForNode(&mNodeList, i)[nodeListi];
+#pragma omp parallel for
+  for (auto i = 0; i < mNodeList.numInternalNodes(); ++i) {
+    const auto& xi = x(i);
+    const auto& Hi = H(i);
+    const auto  Hdeti = Hi.Determinant();
+    const auto  Dmax = max(0.0, min(1.0, D(i).eigenValues().maxElement()));
+    const auto& connectivity = connectivityMap.connectivityForNode(&mNodeList, i)[nodeListi];
     if (connectivity.size() > 0 and Dmax > 0.0) {
-      const Scalar weighti = m(i)*safeInv(rho(i));
-      double weightSum = (1.0 - Dmax)*weighti*mW(0.0, Hdeti);
+      const auto weighti = m(i)*safeInv(rho(i));
+      auto       weightSum = (1.0 - Dmax)*weighti*mW(0.0, Hdeti);
       Snew(i) = weightSum*S(i);
-      for (typename vector<int>::const_iterator jItr = connectivity.begin(); 
-           jItr != connectivity.end();
-           ++jItr) {
-        const int j = *jItr;
-        const Scalar weightj = m(j)*safeInv(rho(j));
-        const Vector xij = xi - x(j);
-        const double wj = max(0.0, min(1.0, 1.0 - D(j).eigenValues().maxElement())) * weightj * mW(Hi*xij, Hi);
+      for (auto jItr = connectivity.begin(); jItr < connectivity.end(); ++jItr) {
+        const auto j = *jItr;
+        const auto weightj = m(j)*safeInv(rho(j));
+        const auto xij = xi - x(j);
+        const auto wj = max(0.0, min(1.0, 1.0 - D(j).eigenValues().maxElement())) * weightj * mW(Hi*xij, Hi);
         weightSum += wj;
         Snew(i) += wj*S(j);
       }
@@ -318,14 +319,15 @@ postStateUpdate(const DataBase<Dimension>& dataBase,
   // We require the H tensors of nodes approach unit aspect ratio as the damage
   // is increased.
   // Iterate over our nodes and limit H's as need be.
-  for (size_t i = 0; i != mNodeList.numInternalNodes(); ++i) {
-    const SymTensor& Di = D(i);
-    SymTensor& Hi = H(i);
-    const Scalar Dmax = max(0.0, min(1.0, Di.eigenValues().maxElement()));
+#pragma omp parallel for
+  for (auto i = 0; i < mNodeList.numInternalNodes(); ++i) {
+    const auto& Di = D(i);
+    auto&       Hi = H(i);
+    const auto  Dmax = max(0.0, min(1.0, Di.eigenValues().maxElement()));
     if (Dmax > mNodeList.hminratio()) {
-      const EigenStruct Heigen = Hi.Inverse().eigenVectors();
-      const Scalar hmineff = Dmax*Heigen.eigenValues.maxElement();
-      SymTensor HnewInv = constructSymTensorWithMaxDiagonal(Heigen.eigenValues, hmineff);
+      const auto Heigen = Hi.Inverse().eigenVectors();
+      const auto hmineff = Dmax*Heigen.eigenValues.maxElement();
+      auto       HnewInv = constructSymTensorWithMaxDiagonal(Heigen.eigenValues, hmineff);
       HnewInv.rotationalTransform(Heigen.eigenVectors);
       Hi = HnewInv.Inverse();
     }
@@ -348,12 +350,12 @@ template<typename Dimension>
 void
 DamageModel<Dimension>::
 cullToWeakestFlaws() {
-  for (int i = 0; i != mNodeList.numInternalNodes(); ++i) {
-    vector<double>& flaws = mFlaws[i];
+#pragma omp parallel for
+  for (auto i = 0; i < mNodeList.numInternalNodes(); ++i) {
+    auto& flaws = mFlaws[i];
     if (flaws.size() > 0) {
-      const double maxVal = *max_element(flaws.begin(), flaws.end());
-      flaws = vector<double>();
-      flaws.push_back(maxVal);
+      const auto maxVal = *max_element(flaws.begin(), flaws.end());
+      flaws = vector<double>(maxVal);
     }
   }
 }

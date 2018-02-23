@@ -66,24 +66,6 @@ registered(const FieldSpace::FieldListBase<Dimension>& fieldList) const {
 }
 
 //------------------------------------------------------------------------------
-// Test if the given field name is registered.
-//------------------------------------------------------------------------------
-template<typename Dimension>
-inline
-bool
-StateBase<Dimension>::
-fieldNameRegistered(const FieldName& name) const {
-  KeyType fieldName, nodeListName;
-  typename StorageType::const_iterator itr = mStorage.begin();
-  while (itr != mStorage.end()) {
-    splitFieldKey(itr->first, fieldName, nodeListName);
-    if (fieldName == fieldName) return true;
-    ++itr;
-  }
-  return false;
-}
-
-//------------------------------------------------------------------------------
 // Add a field.
 //------------------------------------------------------------------------------
 template<typename Dimension>

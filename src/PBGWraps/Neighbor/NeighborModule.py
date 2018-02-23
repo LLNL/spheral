@@ -86,6 +86,7 @@ generateStdVectorBindings(self.vector_of_vector_of_GridCellIndex%(ndim)id, "vect
         x.add_constructor([param("int", "xIndex"),
                            param("int", "yIndex"),
                            param("int", "zIndex")])
+        x.add_constructor([constrefparam(me, "rhs")])
 
         # Methods.
         x.add_method("setIndices", None, [param("int", "xIndex")])
@@ -201,14 +202,17 @@ generateStdVectorBindings(self.vector_of_vector_of_GridCellIndex%(ndim)id, "vect
         x.add_method("setNodeExtents", None, [constrefparam("vector_of_int", "nodeIDs")])
         x.add_method("setInternalNodeExtents", None, [])
         x.add_method("setGhostNodeExtents", None, [])
-        x.add_method("setMasterList", None, [param("int", "nodeID")], is_virtual=True)
-        x.add_method("setRefineNeighborList", None, [param("int", "nodeID")], is_virtual=True)
+        x.add_method("setMasterList", None, [param("int", "nodeID"),
+                                             refparam("vector_of_int", "masterList"),
+                                             refparam("vector_of_int", "coarseNeighbors")], is_const=True, is_virtual=True)
+        x.add_method("setRefineNeighborList", None, [param("int", "nodeID"),
+                                                     constrefparam("vector_of_int", "coarseNeighbors"),
+                                                     refparam("vector_of_int", "refineNeighbors")], is_const=True, is_virtual=True)
         x.add_method("precullList", "vector_of_int", [constrefparam(vector, "minMasterPosition"),
                                                       constrefparam(vector, "maxMasterPosition"),
                                                       constrefparam(vector, "minMasterExtent"),
                                                       constrefparam(vector, "maxMasterExtent"),
                                                       constrefparam("vector_of_int", "coarseList")], is_const=True)
-        x.add_method("precullForLocalNodeList", None, [])
         x.add_method("valid", "bool", [], is_const=True, is_virtual=True)
         x.add_method("HExtent", vector, [param("double", "H"), param("double", "kernelExtent")], is_static=True)
         x.add_method("HExtent", vector, [constrefparam(symtensor, "H"), param("double", "kernelExtent")], is_static=True)
@@ -216,12 +220,6 @@ generateStdVectorBindings(self.vector_of_vector_of_GridCellIndex%(ndim)id, "vect
         # Attributes.
         x.add_instance_attribute("neighborSearchType", "NeighborSearchType", getter="neighborSearchType", setter="neighborSearchType")
         x.add_instance_attribute("kernelExtent", "double", getter="kernelExtent", setter="kernelExtent")
-        x.add_instance_attribute("numMaster", "int", getter="numMaster", is_const=True)
-        x.add_instance_attribute("numCoarse", "int", getter="numCoarse", is_const=True)
-        x.add_instance_attribute("numRefine", "int", getter="numRefine", is_const=True)
-        x.add_instance_attribute("masterList", "vector_of_int", getter="masterList", is_const=True)
-        x.add_instance_attribute("coarseNeighborList", "vector_of_int", getter="coarseNeighborList", is_const=True)
-        x.add_instance_attribute("refineNeighborList", "vector_of_int", getter="refineNeighborList", is_const=True)
 
         # Add the pure virtual methods.
         self.generateNeighborVirtualBindings(x, ndim, True)
@@ -245,13 +243,27 @@ generateStdVectorBindings(self.vector_of_vector_of_GridCellIndex%(ndim)id, "vect
         vectorfield = "Spheral::FieldSpace::VectorField%id" % ndim
 
         # Methods.
-        x.add_method("setMasterList", None, [constrefparam(vector, "position"), constrefparam("double", "H")], is_virtual=True, is_pure_virtual=pureVirtual)
-        x.add_method("setMasterList", None, [constrefparam(vector, "position"), constrefparam(symtensor, "H")], is_virtual=True, is_pure_virtual=pureVirtual)
-        x.add_method("setRefineNeighborList", None, [constrefparam(vector, "position"), constrefparam("double", "H")], is_virtual=True, is_pure_virtual=pureVirtual)
-        x.add_method("setRefineNeighborList", None, [constrefparam(vector, "position"), constrefparam(symtensor, "H")], is_virtual=True, is_pure_virtual=pureVirtual)
-        x.add_method("setMasterList", None, [constrefparam(vector, "position")], is_virtual=True, is_pure_virtual=pureVirtual)
-        x.add_method("setRefineNeighborList", None, [constrefparam(vector, "position")], is_virtual=True, is_pure_virtual=pureVirtual)
-        x.add_method("setMasterList", None, [constrefparam(plane, "enterPlane"), constrefparam(plane, "exitPlane")], is_virtual=True, is_pure_virtual=pureVirtual)
+        x.add_method("setMasterList", None, [constrefparam(vector, "position"), constrefparam("double", "H"),
+                                             refparam("vector_of_int", "masterList"),
+                                             refparam("vector_of_int", "coarseNeighbors")], is_const=True, is_virtual=True, is_pure_virtual=pureVirtual)
+        x.add_method("setMasterList", None, [constrefparam(vector, "position"), constrefparam(symtensor, "H"),
+                                             refparam("vector_of_int", "masterList"),
+                                             refparam("vector_of_int", "coarseNeighbors")], is_const=True, is_virtual=True, is_pure_virtual=pureVirtual)
+        x.add_method("setRefineNeighborList", None, [constrefparam(vector, "position"), constrefparam("double", "H"),
+                                                     constrefparam("vector_of_int", "coarseNeighbors"),
+                                                     refparam("vector_of_int", "refineNeighbors")], is_const=True, is_virtual=True, is_pure_virtual=pureVirtual)
+        x.add_method("setRefineNeighborList", None, [constrefparam(vector, "position"), constrefparam(symtensor, "H"),
+                                                     constrefparam("vector_of_int", "coarseNeighbors"),
+                                                     refparam("vector_of_int", "refineNeighbors")], is_const=True, is_virtual=True, is_pure_virtual=pureVirtual)
+        x.add_method("setMasterList", None, [constrefparam(vector, "position"),
+                                             refparam("vector_of_int", "masterList"),
+                                             refparam("vector_of_int", "coarseNeighbors")], is_const=True, is_virtual=True, is_pure_virtual=pureVirtual)
+        x.add_method("setRefineNeighborList", None, [constrefparam(vector, "position"),
+                                                     constrefparam("vector_of_int", "coarseNeighbors"),
+                                                     refparam("vector_of_int", "refineNeighbors")], is_const=True, is_virtual=True, is_pure_virtual=pureVirtual)
+        x.add_method("setMasterList", None, [constrefparam(plane, "enterPlane"), constrefparam(plane, "exitPlane"), 
+                                             refparam("vector_of_int", "masterList"),
+                                             refparam("vector_of_int", "coarseNeighbors")], is_const=True, is_virtual=True, is_pure_virtual=pureVirtual)
         x.add_method("updateNodes", None, [], is_virtual=True, is_pure_virtual=pureVirtual)
         x.add_method("updateNodes", None, [constrefparam("vector_of_int", "nodeIDs")], is_virtual=True, is_pure_virtual=pureVirtual)
 
@@ -320,7 +332,9 @@ generateStdVectorBindings(self.vector_of_vector_of_GridCellIndex%(ndim)id, "vect
                                                     constrefparam(plane, "enterPlane"),
                                                     constrefparam(plane, "exitPlane")], is_const=True)
         x.add_method("valid", "bool", [], is_const=True, is_virtual=True)
-        x.add_method("setNestedMasterList", None, [constrefparam(gridcellindex, "gridCell"), param("int", "gridLevel")])
+        x.add_method("setNestedMasterList", None, [constrefparam(gridcellindex, "gridCell"), param("int", "gridLevel"),
+                                                   refparam("vector_of_int", "masterList"),
+                                                   refparam("vector_of_int", "coarseNeighbors")])
         x.add_method("findNestedNeighbors", "vector_of_int", [constrefparam(gridcellindex, "gridCell"), param("int", "gridLevel")], is_const=True)
 
         # Attributes.
@@ -332,8 +346,6 @@ generateStdVectorBindings(self.vector_of_vector_of_GridCellIndex%(ndim)id, "vect
         x.add_instance_attribute("topGridSize", "double", getter="topGridSize", setter="topGridSize")
         x.add_instance_attribute("gridCellSizeInv", "vector_of_double", getter="gridCellSizeInv", is_const=True)
         x.add_instance_attribute("nodeInCell", vector_of_vector_of_gridcell, getter="nodeInCell", is_const=True)
-        x.add_instance_attribute("masterGridLevel", "int", getter="masterGridLevel", is_const=True)
-        x.add_instance_attribute("masterGridCellIndex", gridcellindex, getter="masterGridCellIndex", is_const=True)
         x.add_instance_attribute("endOfLinkList", "int", getter="endOfLinkList", is_const=True)
 
         # Add the base virtual methods.
@@ -425,6 +437,8 @@ generateStdVectorBindings(self.vector_of_vector_of_GridCellIndex%(ndim)id, "vect
                                  [param(me, "self")],
                                  template_parameters = [dim],
                                  custom_name = "numNodeLists")
+        x.add_method("numNodes", "int", [param("int", "nodeList")], is_const=True)
+        x.add_method("ithNode", "int", [param("int", "nodeList"), param("int", "index")], is_const=True)
         x.add_method("valid", "bool", [], is_const=True)
 
         # Attributes.

@@ -10,6 +10,7 @@
 
 #include <cmath>
 #include <algorithm>
+#include <limits>
 
 namespace Spheral {
 
@@ -19,6 +20,19 @@ namespace Spheral {
 template<typename DataType>
 bool fuzzyEqual(const DataType& lhs, const DataType& rhs,
                 const double fuzz = 1.0e-15) {
+  // return std::abs(lhs - rhs)/std::max(std::numeric_limits<DataType>::epsilon(), std::max(fuzz, std::max(std::abs(lhs), std::abs(rhs)))) < fuzz;
+  // const auto absA = std::abs(lhs);
+  // const auto absB = std::abs(rhs);
+  // const auto diff = std::abs(lhs - rhs);
+  // if (lhs == rhs) { // shortcut, handles infinities
+  //   return true;
+  // } else if (lhs == 0 or rhs == 0 or diff < std::numeric_limits<DataType>::denorm_min()) {
+  //   // a or b is zero or both are extremely close to it
+  //   // relative error is less meaningful here
+  //   return diff < (fuzz * std::numeric_limits<DataType>::denorm_min());
+  // } else { // use relative error
+  //   return diff / std::min((absA + absB), std::numeric_limits<DataType>::max()) < fuzz;
+  // }
   return std::abs(lhs - rhs)/std::max(1.0, std::abs(lhs) + std::abs(rhs)) < fuzz;
 }
 

@@ -10,6 +10,7 @@ from SpheralModules.Spheral.DataOutput import RestartableObject, RestartRegistra
 from SpheralModules.Spheral import BoundarySpace
 from SpheralModules.Spheral.FieldSpace import *
 from SpheralModules.Spheral.FileIOSpace import *
+from SpheralModules import Timer
 from SpheralTimer import SpheralTimer
 from SpheralConservation import SpheralConservation
 from GzipFileIO import GzipFileIO
@@ -80,12 +81,13 @@ class SpheralController:
             if self.dim == "1d":
                 from Spheral1dVizDump import dumpPhysicsState
             elif self.dim == "2d":
-                #from SpheralVoronoiSiloDump import dumpPhysicsState
+                from SpheralVoronoiSiloDump import dumpPhysicsState
                 #from SpheralVisitDump import dumpPhysicsState
-                from SpheralPointmeshSiloDump import dumpPhysicsState
+                #from SpheralPointmeshSiloDump import dumpPhysicsState
             else:
+                from SpheralVoronoiSiloDump import dumpPhysicsState
                 #from SpheralVisitDump import dumpPhysicsState
-                from SpheralPointmeshSiloDump import dumpPhysicsState
+                #from SpheralPointmeshSiloDump import dumpPhysicsState
             self.vizMethod = dumpPhysicsState
         self.vizGhosts = vizGhosts
         self.vizDerivs = vizDerivs
@@ -152,10 +154,6 @@ class SpheralController:
         # Construct a timer to track the cycle step time.
         self.stepTimer = SpheralTimer("Time per integration cycle.")
 
-        # Construct a fresh conservation check object.
-        self.conserve = SpheralConservation(self.integrator.dataBase(),
-                                            self.integrator.physicsPackages())
-
         # Prepare an empty set of periodic work.
         self._periodicWork = []
         self._periodicTimeWork = []
@@ -193,7 +191,6 @@ class SpheralController:
         self.appendPeriodicWork(self.printCycleStatus, printStep)
         self.appendPeriodicWork(self.garbageCollection, garbageCollectionStep)
         self.appendPeriodicWork(self.updateConservation, statsStep)
-        self.appendPeriodicWork(self.updateDomainDistribution, redistributeStep)
         self.appendPeriodicWork(self.updateRestart, restartStep)
 
         # Add the dynamic redistribution object to the controller.
@@ -206,9 +203,17 @@ class SpheralController:
             self.addVisualizationDumps(vizBaseName, vizDir, vizStep, vizTime,
                                        vizFields, vizFieldLists)
 
+        # Construct a fresh conservation check object.
+        # Hopefully by this time all packages have initialized their own extra energy bins.
+        self.conserve = SpheralConservation(self.integrator.dataBase(),
+                                            self.integrator.physicsPackages())
+
         # Force the periodic work to fire at problem initalization.
         if (not skipInitialPeriodicWork) and (restoreCycle is None):
             self.doPeriodicWork(force=True)
+
+        # We add this one after forcing periodic work so it's not always fired right at the beginning of a calculation.
+        self.appendPeriodicWork(self.updateDomainDistribution, redistributeStep)
 
         return
 
@@ -311,9 +316,12 @@ class SpheralController:
             # Do the periodic work.
             self.doPeriodicWork()
 
-        # Force the periodic work to fire at the end of an advance.
+        # Force the periodic work to fire at the end of an advance (except for any redistribution).
         if maxSteps != 0:
+            thpt = self.redistribute
+            self.redistribute = None
             self.doPeriodicWork(force=True)
+            self.redistribute = thpt
 
         db = self.integrator.dataBase()
         bcs = self.integrator.uniqueBoundaryConditions()
@@ -326,6 +334,9 @@ class SpheralController:
 
         # Print how much time was spent per integration cycle.
         self.stepTimer.printStatus()
+
+        # Output any timer info
+        Timer.TimerSummary()
 
         return
 
@@ -593,12 +604,14 @@ precedeDistributed += [BoundarySpace.PeriodicBoundary%(dim)sd,
         # boundary condition and insert it into the list of boundaries for each physics
         # package.
         else:
-            exec("from SpheralModules.Spheral.BoundarySpace import NestedGridDistributedBoundary%s" % self.dim)
-            self.domainbc = eval("NestedGridDistributedBoundary%s.instance()" % self.dim)
+            # exec("from SpheralModules.Spheral.BoundarySpace import NestedGridDistributedBoundary%s" % self.dim)
+            # self.domainbc = eval("NestedGridDistributedBoundary%s.instance()" % self.dim)
             # from SpheralModules.Spheral.BoundarySpace import BoundingVolumeDistributedBoundary1d, \
             #                                                  BoundingVolumeDistributedBoundary2d, \
             #                                                  BoundingVolumeDistributedBoundary3d
             # self.domainbc = eval("BoundingVolumeDistributedBoundary%s.instance()" % self.dim)
+            exec("from SpheralModules.Spheral.BoundarySpace import TreeDistributedBoundary%s" % self.dim)
+            self.domainbc = eval("TreeDistributedBoundary%s.instance()" % self.dim)
 
             # Iterate over each of the physics packages.
             for package in physicsPackages:

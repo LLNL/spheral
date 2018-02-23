@@ -3,28 +3,22 @@
 namespace FractalSpace
 {
 //! Headers for regular function calls
-  Fractal_Memory* FractalGravityFirstTime(int NumberParticles,
-					  int balance,
-					  int FractalNodes0,
-					  int FractalNodes1,
-					  int FractalNodes2,
-					  int FFTNodes,
-					  bool Periodic,
-					  bool Debug,
-					  int GridLength,
-					  int Padding,
-					  int LevelMax,
-					  int MinimumNumber,
-					  int MaxHypreIterations,
-					  double HypreTolerance,
-					  string BaseDirectory,
-					  string RunIdentifier,
-					  bool TimeTrial,
-					  MPI_Comm& TalkToMe);
-  void FractalGravity(Fractal_Memory* PFM,int NumberParticles,vector <double>& xmin,vector <double>& xmax, double G);
-  void FractalGravityFinal(Fractal_Memory* PFM);
-  //! One-Stop-Routine for setting up the Fractal_Memory object
+  Fractal_Memory* FractalGravityIsolatedFirstTime(
+						  MPI_Comm& TalkToMe,
+						  int GridLength,
+						  int FractalNodes0,
+						  int FractalNodes1,
+						  int FractalNodes2,
+						  string BaseDirectory,
+						  string RunIdentifier
+						  );
+  // void FractalGravity(Fractal_Memory* PFM,int NumberParticles,vector <double>& xmin,vector <double>& xmax, double G);
+  // void FractalGravityFinal(Fractal_Memory* PFM);
+  // //! One-Stop-Routine for setting up the Fractal_Memory object
 
+  void DoFractalGravity(Fractal_Memory* PFM);
+  //! wrapper for standalone call.
+  
   void do_fractal_force(Fractal_Memory* PFM);
   //! Wrapper for actually running the Poisson Solver
 
@@ -47,14 +41,26 @@ namespace FractalSpace
   //! Delete a Fractal object
 
   void add_particles(Fractal_Memory* PFM,int first,int total,
-		    vector <double>& xmin,vector <double>& xmax,
-		    vector <double>& posx,vector <double>& posy,
-		    vector <double>& posz,vector <double>& masses);
+		     vector <double>& posx,vector <double>& posy,
+		     vector <double>& posz,vector <double>& masses);
+  //
+
+  void add_particles(Fractal_Memory* PFM,int first,int total,
+		     vector <double> xmin,vector <double> xmax,
+		     vector <double>& posx,vector <double>& posy,
+		     vector <double>& posz,vector <double>& masses);
   //! Add positions and masses to the Fractal object. This can be done in multiple steps.
   //! xmin,xmax are the positions of the lower left and upper right corners
   //! of the User's computational cube. Really BAAAAD things can happen if not all particles
   //! are addded.
+  void return_particles(Fractal_Memory* PFM,int total,
+			vector <double> xmin,vector <double> xmax,
+			vector <double>& posx,vector <double>& posy,
+			vector <double>& posz,vector <double>& masses);
 
+  void FractalCube(Fractal_Memory* PFM,double SHRINK,const vector <double>& xmin,const vector <double>& xmax,
+		   vector <double>& xmini,vector <double>& xmaxy);
+  
   void get_field(Fractal_Memory* PFM,int first,int total,double G,
 		vector <double>& xmin,vector <double>& xmax,
 		vector <double>& pot,vector <double>& fx,

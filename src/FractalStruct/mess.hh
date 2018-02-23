@@ -13,24 +13,27 @@ namespace FractalSpace
     int FractalNodes0;
     int FractalNodes1;
     int FractalNodes2;
+    int WallNodes;
+    const int N63;
     int ROOTNODE;
     int FFTRank;
     int FFTNodes;
     int HypreRank;
     int HypreNodes;
-//     int RandomRank;
-//     int RandomNodes;
+    int mynumber;
     int MPI_SWITCH;
     int MPI_MAX_COMMS;
     long int number_particles_total;
-    vector <Particle*> parts_tmp;
-    vector <Particle*> parts_tmpp;
+    deque <Particle*> parts_tmp;
+    deque <Particle*> parts_tmpp;
     Particle* Parts_in;
     vector < vector <int> > Slices;
     vector < vector <int> > BoxS;
     vector < vector <int> > BoxSL;
     vector < vector <bool> > counts_on_nodes;
     vector <bool> count_on_node;
+    vector<vector <int>> node_lists;
+    vector <int> freenodes;
     int glength;
     pint start_x;
     pint length_x;
@@ -45,15 +48,12 @@ namespace FractalSpace
     MPI_Comm FractalWorld;
     MPI_Comm FFTWorld;
     MPI_Comm HypreWorld;
-//     MPI_Comm RandomWorld;
     MPI_Group FractalGroup;
     MPI_Group FFTGroup;
     MPI_Group HypreGroup;
-//     MPI_Group RandomGroup;
     bool IAmPeriodic;
     bool IAmAnFFTNode;
     bool IAmAHypreNode;
-//     bool IAmARandomNode;
     vector <int>Franks;
     vector <bool>ItIsAnFFTNode;
     vector <int>Hranks;
@@ -75,10 +75,13 @@ namespace FractalSpace
     Mess():
       FractalRank(0),
       FractalNodes(1),
+      N63(-1),
+      ROOTNODE(0),
       FFTRank(0),
       FFTNodes(1234567),
       HypreRank(0),
       HypreNodes(0),
+      mynumber(-1),
       MPI_SWITCH(512),
       MPI_MAX_COMMS(4096),
       number_particles_total(-1),
@@ -95,7 +98,6 @@ namespace FractalSpace
     {
       WallTime=Clock();
       cerr << " Empty Mess " << "\n";
-//       cerr << " HypreWorldEMPTY " << FractalRank << " " << &FractalWorld << endl;
     }
     Mess(const bool& MR,const int& GR,const bool& PR,const int& NP,
 	 int& FR0,int& FR1,int& FR2,const int& FN,MPI_Comm& FW):
@@ -104,9 +106,12 @@ namespace FractalSpace
       FractalNodes0(FR0),
       FractalNodes1(FR1),
       FractalNodes2(FR2),
+      N63(-1),
+      ROOTNODE(0),
       FFTNodes(FN),
       HypreRank(0),
       HypreNodes(0),
+      mynumber(-1),
       MPI_SWITCH(512),
       MPI_MAX_COMMS(4096),
       number_particles_total(-1),
@@ -121,13 +126,14 @@ namespace FractalSpace
       time_trial(true),
       TreeTime(-1.0)
     {
-      //      cerr << " Making a Mess with parameters" << "\n";
       int grid_length=GR;
       IAmPeriodic=PR;
       bool periodic=PR;
       WallTime=Clock();
       if(MR)
 	{
+	  WallNodes=FractalNodes0*FractalNodes1*FractalNodes2-
+	    (FractalNodes0-2)*(FractalNodes1-2)*(FractalNodes2-2);
 	  MPIStartup(PR,FR0,FR1,FR2);
 	  FractalRank=what_is_my_rank(); 
 	  FractalNodes=how_many_nodes(); 
@@ -135,8 +141,8 @@ namespace FractalSpace
 	  FractalRank0=FractalRank % FractalNodes0;
 	  FractalRank1=(FractalRank/FractalNodes0) % FractalNodes1;
 	  FractalRank2=FractalRank/(FractalNodes0*FractalNodes1);
-	  ROOTNODE=(FractalNodes0+FractalNodes0*FractalNodes1+FractalNodes)/2;
 	  FFTWStartup(grid_length,periodic);
+	  ROOTNODE=0;
 	  calc_fftw_Slices(grid_length,periodic);	
 	  calc_total_particles(NP);
 	  make_MPI_Groups();
@@ -146,16 +152,16 @@ namespace FractalSpace
 	  number_particles_total=NP;
 	  length_x=grid_length;
 	}
-//       cerr << " HypreWorld0A " << FractalRank << " " << &FractalWorld << endl;
-      //      if(FractalRank == 0)
-      //	cerr << " made a mess " << FractalRank << " " << FractalNodes << " " << length_x << " " << start_x << " " << total_memory << "\n";
     }
     Mess(const bool& MR,const int& GR,const bool& PR,const int& NP,const int& FN,MPI_Comm& FW):
       FractalRank(0),
       FractalNodes(1),
+      ROOTNODE(0),
+      N63(-1),
       FFTNodes(FN),
       HypreRank(0),
       HypreNodes(0),
+      mynumber(-1),
       MPI_SWITCH(512),
       MPI_MAX_COMMS(4096),
       number_particles_total(-1),
@@ -170,7 +176,6 @@ namespace FractalSpace
       time_trial(true),
       TreeTime(-1.0)
     {
-      //      cerr << " Making a Mess with parameters" << "\n";
       int grid_length=GR;
       bool periodic=PR;
       WallTime=Clock();
@@ -189,17 +194,12 @@ namespace FractalSpace
 	  number_particles_total=NP;
 	  length_x=grid_length;
 	}
-      //      if(FractalRank == 0)
-      //	cerr << " made a mess " << FractalRank << " " << FractalNodes << " " << length_x << " " << start_x << " " << total_memory << "\n";
-//       cerr << " HypreWorld0B " << FractalRank << " " << &FractalWorld << endl;
     }
     ~Mess()
     {
-      //      cerr << " starting to clean up a mess " << FractalRank << "\n";
       FFTWFinal();
       if(standalone)
 	MPIFinal();
-      //      cerr << " cleaned up a mess " << FractalRank << "\n";
     }
     void MPIStartup();
     void MPIStartup(const bool& PR,int& FR0,int& FR1,int& FR2);
@@ -306,7 +306,6 @@ namespace FractalSpace
     void HypreGroupFree();
     void HypreGroups3Free();
     void createFractalWorld(MPI_Comm& World,vector <int>& dims);
-//     void make_Random_Group();
   };
 }
 #endif

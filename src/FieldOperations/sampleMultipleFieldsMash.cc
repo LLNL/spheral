@@ -172,11 +172,13 @@ sampleMultipleFieldsMash(const FieldListSet<Dimension>& fieldListSet,
     if (!flagNodeDone[nodeItr.fieldID()][nodeItr.nodeID()]) {
 
       // Set the neighbor info over the positions we're sampling to.
-      position.setMasterNodeLists(samplePositions(nodeItr), sampleHfield(nodeItr));
-      samplePositions.setMasterNodeLists(samplePositions(nodeItr), sampleHfield(nodeItr));
+      vector<vector<int>> masterLists, coarseNeighbors, refineNeighbors,
+                          masterListsSample, coarseNeighborsSample, refineNeighborsSample;
+      position.setMasterNodeLists(samplePositions(nodeItr), sampleHfield(nodeItr), masterLists, coarseNeighbors);
+      samplePositions.setMasterNodeLists(samplePositions(nodeItr), sampleHfield(nodeItr), masterListsSample, coarseNeighborsSample);
 
       // Loop over the set of master nodes in the FieldList we're sampling to.
-      for (MasterNodeIterator<Dimension> masterItr = samplePositions.masterNodeBegin();
+      for (MasterNodeIterator<Dimension> masterItr = samplePositions.masterNodeBegin(masterListsSample);
            masterItr < samplePositions.masterNodeEnd();
            ++masterItr) {
         CHECK(flagNodeDone[masterItr.fieldID()][masterItr.nodeID()] == false);
@@ -187,11 +189,11 @@ sampleMultipleFieldsMash(const FieldListSet<Dimension>& fieldListSet,
         const Scalar& weighti = sampleWeight(masterItr);
 
         // Refine the set of nodes we're sampling from for this position.
-        position.setRefineNodeLists(ri, Hi);
+        position.setRefineNodeLists(ri, Hi, coarseNeighbors, refineNeighbors);
 
         // Loop over the refined neighbors, and calculate the local values.
         Scalar normalization = 1.0e-30;
-        for (RefineNodeIterator<Dimension> neighborItr = position.refineNodeBegin();
+        for (RefineNodeIterator<Dimension> neighborItr = position.refineNodeBegin(refineNeighbors);
              neighborItr < position.refineNodeEnd();
              ++neighborItr) {
 

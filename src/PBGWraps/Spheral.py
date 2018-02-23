@@ -8,8 +8,8 @@
 # do some magic 'cause type info and dynamic_casts get screwed up between
 # g++ built libraries.  Sigh.
 # ------------------------------------------------------------------------------
+import sys, ctypes
 try:
-    import sys, ctypes
     sys.setdlopenflags(sys.getdlopenflags() | ctypes.RTLD_GLOBAL)
     #sys.setdlopenflags(ctypes.RTLD_NOW | ctypes.RTLD_GLOBAL)
     #import sys, DLFCN
@@ -22,12 +22,7 @@ except:
     pass
 
 # ------------------------------------------------------------------------------
-# Load up MPI.
-# ------------------------------------------------------------------------------
-import mpi
-
-# ------------------------------------------------------------------------------
-# Import the compiled packages.
+# Import the core Spheral compiled packages.
 # ------------------------------------------------------------------------------
 from SpheralModules import *
 from SpheralModules.Spheral import *
@@ -47,9 +42,18 @@ from SpheralModules.Spheral.IntegratorSpace import *
 from SpheralModules.Spheral.SPHSpace import *
 from SpheralModules.Spheral.CRKSPHSpace import *
 from SpheralModules.Spheral.SVPHSpace import *
-from SpheralModules.Spheral.TaylorSPHSpace import *
 from SpheralModules.Spheral.MeshSpace import *
 from SpheralModules.Spheral.PythonBoundFunctors import *
+
+# ------------------------------------------------------------------------------
+# PolyCliper
+# ------------------------------------------------------------------------------
+import SpheralModules.PolyClipper as PolyClipper
+
+# ------------------------------------------------------------------------------
+# Load up MPI.
+# ------------------------------------------------------------------------------
+import mpi
 
 # ------------------------------------------------------------------------------
 # Import the Material python extensions.
@@ -70,14 +74,7 @@ from SPHHydros import *
 from PSPHHydros import *
 from SVPHHydros import *
 from CRKSPHHydros import *
-from SolidCRKSPHHydros import *
-from TaylorSPHHydros import *
 from SPHUtilities import *
-
-from spheralDimensions import spheralDimensions
-if 2 in spheralDimensions():
-    from SPHHydrosRZ import *
-    from CRKSPHHydrosRZ import *
 
 # ------------------------------------------------------------------------------
 # Helpful things with strings.
@@ -129,3 +126,34 @@ try:
 except:
     print "WARNING: unable to import polytope python bindings."
 
+
+# ------------------------------------------------------------------------------
+# Prepare for timing
+# ------------------------------------------------------------------------------
+# EasyProfilerStart()
+
+# ------------------------------------------------------------------------------
+# Output some useful Spheral configuration info to stdout.
+# ------------------------------------------------------------------------------
+# boxchars = {'A' : '╔',
+#             'B' : '╗',
+#             'C' : '╚',
+#             'D' : '╝',
+#             'E' : '═',
+#             'F' : '║'}
+# print boxchars['A'] + 78*boxchars['E'] + boxchars['B']
+# print "%s  %-76s%s" % (boxchars['F'], "Spheral version: @spheralversion@", boxchars['F'])
+# print "%s  %-76s%s" % (boxchars['F'], "  number of MPI tasks       : " + str(mpi.procs), boxchars['F'])
+# print "%s  %-76s%s" % (boxchars['F'], "  number of threads per rank: " + str(omp_get_num_threads()), boxchars['F'])
+# print boxchars['C'] + 78*boxchars['E'] + boxchars['D']
+# print u"╔══════════════════════════════════════════════════════════════════════════════╗"
+# print u"║  %-76s║" % "Spheral version: @spheralversion@"
+# print u"║  %-76s║" % ("  number of MPI tasks       : " + str(mpi.procs))
+# print u"║  %-76s║" % ("  number of threads per rank: " + str(omp_get_num_threads()))
+# print u"╚══════════════════════════════════════════════════════════════════════════════╝"
+print "/------------------------------------------------------------------------------\\"
+print "|  %-76s|" % "Spheral version: @spheralversion@"
+print "|  %-76s|" % ("  number of MPI tasks       : " + str(mpi.procs))
+print "|  %-76s|" % ("  number of threads per rank: " + str(omp_get_num_threads()))
+print "\\------------------------------------------------------------------------------/"
+sys.ps1 = "Spheral> "

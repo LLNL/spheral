@@ -5,12 +5,12 @@
 //
 // Created by JMO, Thu Dec 10 14:07:01 PST 2009
 //----------------------------------------------------------------------------//
+#include "RedistributionRegistrar.hh"
 
 #include <algorithm>
 #include <functional>
 #include <iostream>
 #include <sstream>
-#include "RedistributionRegistrar.hh"
 
 using namespace std;
 
@@ -20,12 +20,12 @@ namespace Spheral {
 // Weak pointers don't have operator==, so we have to provide something.
 //------------------------------------------------------------------------------
 template<typename T>
-struct CompareWeakPtr: public binary_function<boost::weak_ptr<T>, boost::weak_ptr<T>, bool> {
-  typedef typename binary_function<boost::weak_ptr<T>, boost::weak_ptr<T>, bool>::first_argument_type first_argument_type;
-  typedef typename binary_function<boost::weak_ptr<T>, boost::weak_ptr<T>, bool>::second_argument_type second_argument_type;
-  typedef typename binary_function<boost::weak_ptr<T>, boost::weak_ptr<T>, bool>::result_type result_type;
-  result_type operator()(const boost::weak_ptr<T>& lhs,
-                         const boost::weak_ptr<T>& rhs) const {
+struct CompareWeakPtr: public binary_function<std::weak_ptr<T>, std::weak_ptr<T>, bool> {
+  typedef typename binary_function<std::weak_ptr<T>, std::weak_ptr<T>, bool>::first_argument_type first_argument_type;
+  typedef typename binary_function<std::weak_ptr<T>, std::weak_ptr<T>, bool>::second_argument_type second_argument_type;
+  typedef typename binary_function<std::weak_ptr<T>, std::weak_ptr<T>, bool>::result_type result_type;
+  result_type operator()(const std::weak_ptr<T>& lhs,
+                         const std::weak_ptr<T>& rhs) const {
     return lhs.lock() == rhs.lock();
   }
 };
@@ -56,11 +56,11 @@ instancePtr() {
 //------------------------------------------------------------------------------
 void
 RedistributionRegistrar::
-registerRedistributionNotificationHandle(boost::shared_ptr<RedistributionNotificationHandle> redistributionHandlePtr) {
-  if (not haveRedistributionNotificationHandle(boost::weak_ptr<RedistributionNotificationHandle>(redistributionHandlePtr))) {
-    mRedistributionNotificationHandles.push_back(boost::weak_ptr<RedistributionNotificationHandle>(redistributionHandlePtr));
+registerRedistributionNotificationHandle(std::shared_ptr<RedistributionNotificationHandle> redistributionHandlePtr) {
+  if (not haveRedistributionNotificationHandle(std::weak_ptr<RedistributionNotificationHandle>(redistributionHandlePtr))) {
+    mRedistributionNotificationHandles.push_back(std::weak_ptr<RedistributionNotificationHandle>(redistributionHandlePtr));
   }
-  ENSURE(haveRedistributionNotificationHandle(boost::weak_ptr<RedistributionNotificationHandle>(redistributionHandlePtr)));
+  ENSURE(haveRedistributionNotificationHandle(std::weak_ptr<RedistributionNotificationHandle>(redistributionHandlePtr)));
 }
 
 //------------------------------------------------------------------------------
@@ -68,8 +68,8 @@ registerRedistributionNotificationHandle(boost::shared_ptr<RedistributionNotific
 //------------------------------------------------------------------------------
 void
 RedistributionRegistrar::
-unregisterRedistributionNotificationHandle(boost::shared_ptr<RedistributionNotificationHandle> redistributionHandlePtr) {
-  boost::weak_ptr<RedistributionNotificationHandle> wptr(redistributionHandlePtr);
+unregisterRedistributionNotificationHandle(std::shared_ptr<RedistributionNotificationHandle> redistributionHandlePtr) {
+  std::weak_ptr<RedistributionNotificationHandle> wptr(redistributionHandlePtr);
   VERIFY(haveRedistributionNotificationHandle(wptr));
   iterator itr = find_if(this->begin(), this->end(), bind2nd(CompareWeakPtr<RedistributionNotificationHandle>(), wptr));
   CHECK(itr != this->end());
@@ -82,7 +82,7 @@ unregisterRedistributionNotificationHandle(boost::shared_ptr<RedistributionNotif
 //------------------------------------------------------------------------------
 bool
 RedistributionRegistrar::
-haveRedistributionNotificationHandle(boost::weak_ptr<RedistributionNotificationHandle> redistributionHandlePtr) const {
+haveRedistributionNotificationHandle(std::weak_ptr<RedistributionNotificationHandle> redistributionHandlePtr) const {
   const_iterator itr = std::find_if(this->begin(), this->end(), bind2nd(CompareWeakPtr<RedistributionNotificationHandle>(), redistributionHandlePtr));
   return itr != mRedistributionNotificationHandles.end();
 }

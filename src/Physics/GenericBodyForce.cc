@@ -25,8 +25,8 @@ template<typename Dimension>
 GenericBodyForce<Dimension>::
 GenericBodyForce():
   Physics<Dimension>(),
-  mDxDt(FieldSpace::FieldStorageType::Copy),
-  mDvDt(FieldSpace::FieldStorageType::Copy) {
+  mDxDt(FieldSpace::FieldStorageType::CopyFields),
+  mDvDt(FieldSpace::FieldStorageType::CopyFields) {
 }
 
 //------------------------------------------------------------------------------
@@ -46,18 +46,19 @@ registerState(DataBase<Dimension>& dataBase,
               State<Dimension>& state) {
   typedef typename State<Dimension>::PolicyPointer PolicyPointer;
 
+  // Register the state we want to evolve.
+  FieldList<Dimension, Vector> position = dataBase.globalPosition();
+  FieldList<Dimension, Vector> velocity = dataBase.globalVelocity();
+  PolicyPointer positionPolicy(new IncrementFieldList<Dimension, Vector>());
+  PolicyPointer velocityPolicy(new IncrementFieldList<Dimension, Vector>(true));
+  if (not state.registered(position)) state.enroll(position, positionPolicy);
+  if (not state.registered(velocity)) state.enroll(velocity, velocityPolicy);
+
   // These state fields may be registered by other physics as well, but
   // since they are shared it is harmless.
   FieldList<Dimension, Scalar> mass = dataBase.globalMass();
-  FieldList<Dimension, Vector> position = dataBase.globalPosition();
-  FieldList<Dimension, Vector> velocity = dataBase.globalVelocity();
   FieldList<Dimension, SymTensor> Hfield = dataBase.globalHfield();
-
-  PolicyPointer positionPolicy(new IncrementFieldList<Dimension, Vector>());
-  PolicyPointer velocityPolicy(new IncrementFieldList<Dimension, Vector>());
   state.enroll(mass);
-  state.enroll(position, positionPolicy);
-  state.enroll(velocity, velocityPolicy);
   state.enroll(Hfield);
 }
 

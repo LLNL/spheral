@@ -80,6 +80,9 @@ unsigned compactFacetedVolumes(std::vector<typename Dimension::FacetedVolume>& s
   Field<Dimension, SymTensor>& H = nodes.Hfield();
   Field<Dimension, double> radius("radius", nodes);
 
+  // Scratch fields for Neighbor operations.
+  vector<int> masterList, coarseNeighbors, refineNeighbors;
+
   // Figure out the effective size per shape.
   for (size_t i = 0; i < nshapes; ++i) {
     if (flags[i] != 0) {
@@ -130,9 +133,9 @@ unsigned compactFacetedVolumes(std::vector<typename Dimension::FacetedVolume>& s
       for (auto i = imin; i < imax; ++i) {
         if (flags[i] == 3) {
           const FacetedVolume bi = shapes[i] + centers[i];
-          neighbor.setMasterList(i);
-          neighbor.setRefineNeighborList(i);
-          for (auto jitr = neighbor.refineNeighborBegin(); jitr != neighbor.refineNeighborEnd(); ++jitr) {
+          neighbor.setMasterList(i, masterList, coarseNeighbors);
+          neighbor.setRefineNeighborList(i, coarseNeighbors, refineNeighbors);
+          for (auto jitr = refineNeighbors.begin(); jitr != refineNeighbors.end(); ++jitr) {
             const auto j = *jitr;
             if (j != i) {
               if ((flags[j] == 1 and bi.intersect(shapes[j])) or
@@ -201,9 +204,9 @@ unsigned compactFacetedVolumes(std::vector<typename Dimension::FacetedVolume>& s
           // CHECK(neighbors.size() == 1);
           // for (auto j: neighbors[0]) {
           // for (auto j = 0; j != nshapes; ++j) {
-          neighbor.setMasterList(i);
-          neighbor.setRefineNeighborList(i);
-          for (auto jitr = neighbor.refineNeighborBegin(); jitr != neighbor.refineNeighborEnd(); ++jitr) {
+          neighbor.setMasterList(i, masterList, coarseNeighbors);
+          neighbor.setRefineNeighborList(i, coarseNeighbors, refineNeighbors);
+          for (auto jitr = refineNeighbors.begin(); jitr != refineNeighbors.end(); ++jitr) {
             const auto j = *jitr;
             if (j != i) {
               if (flags[j] >= 1) {

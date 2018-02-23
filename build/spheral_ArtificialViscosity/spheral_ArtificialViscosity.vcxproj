@@ -170,6 +170,7 @@
       <Cpp0xSupport>true</Cpp0xSupport>
       <DisableLanguageExtensions>true</DisableLanguageExtensions>
       <DisableSpecificWarnings>2358;2586</DisableSpecificWarnings>
+      <ProgramDataBaseFileName>$(OutDir)$(TargetName).pdb</ProgramDataBaseFileName>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -188,6 +189,7 @@
       <Cpp0xSupport>true</Cpp0xSupport>
       <DisableLanguageExtensions>true</DisableLanguageExtensions>
       <DisableSpecificWarnings>2358;2586</DisableSpecificWarnings>
+      <ProgramDataBaseFileName>$(OutDir)$(TargetName).pdb</ProgramDataBaseFileName>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -206,6 +208,7 @@
       <Cpp0xSupport>true</Cpp0xSupport>
       <DisableLanguageExtensions>true</DisableLanguageExtensions>
       <DisableSpecificWarnings>2358;2586</DisableSpecificWarnings>
+      <ProgramDataBaseFileName>$(OutDir)$(TargetName).pdb</ProgramDataBaseFileName>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -224,6 +227,7 @@
       <Cpp0xSupport>true</Cpp0xSupport>
       <DisableLanguageExtensions>true</DisableLanguageExtensions>
       <DisableSpecificWarnings>2358;2586</DisableSpecificWarnings>
+      <ProgramDataBaseFileName>$(OutDir)$(TargetName).pdb</ProgramDataBaseFileName>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -241,6 +245,7 @@
       <AdditionalIncludeDirectories>..;../../src;../../..;../../../polytope/src;../../../polytope/Win32;../../../qhull/src;../../../eigen;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <DisableLanguageExtensions>true</DisableLanguageExtensions>
       <DisableSpecificWarnings>2358;2586</DisableSpecificWarnings>
+      <ProgramDataBaseFileName>$(OutDir)$(TargetName).pdb</ProgramDataBaseFileName>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -259,6 +264,7 @@
       <DisableLanguageExtensions>true</DisableLanguageExtensions>
       <DisableSpecificWarnings>2358;2586</DisableSpecificWarnings>
       <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
+      <ProgramDataBaseFileName>$(OutDir)$(TargetName).pdb</ProgramDataBaseFileName>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -279,6 +285,7 @@
       <Cpp0xSupport>true</Cpp0xSupport>
       <DisableLanguageExtensions>true</DisableLanguageExtensions>
       <DisableSpecificWarnings>2358;2586</DisableSpecificWarnings>
+      <ProgramDataBaseFileName>$(OutDir)$(TargetName).pdb</ProgramDataBaseFileName>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -301,6 +308,7 @@
       <Cpp0xSupport>true</Cpp0xSupport>
       <DisableLanguageExtensions>true</DisableLanguageExtensions>
       <DisableSpecificWarnings>2358;2586</DisableSpecificWarnings>
+      <ProgramDataBaseFileName>$(OutDir)$(TargetName).pdb</ProgramDataBaseFileName>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -323,6 +331,7 @@
       <Cpp0xSupport>true</Cpp0xSupport>
       <DisableLanguageExtensions>true</DisableLanguageExtensions>
       <DisableSpecificWarnings>2358;2586</DisableSpecificWarnings>
+      <ProgramDataBaseFileName>$(OutDir)$(TargetName).pdb</ProgramDataBaseFileName>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -347,6 +356,7 @@
       <EnableEnhancedInstructionSet>StreamingSIMDExtensions2</EnableEnhancedInstructionSet>
       <FavorSizeOrSpeed>Size</FavorSizeOrSpeed>
       <DisableSpecificWarnings>2358;2586</DisableSpecificWarnings>
+      <ProgramDataBaseFileName>$(OutDir)$(TargetName).pdb</ProgramDataBaseFileName>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -360,12 +370,17 @@
     <ClCompile Include="..\..\src\ArtificialViscosity\ArtificialViscosityInst.cc.3.cc" />
     <ClCompile Include="..\..\src\ArtificialViscosity\CRKSPHMonaghanGingoldViscosityInst.cc.2.cc" />
     <ClCompile Include="..\..\src\ArtificialViscosity\CRKSPHMonaghanGingoldViscosityInst.cc.3.cc" />
+    <ClCompile Include="..\..\src\ArtificialViscosity\CRKSPHMonaghanGingoldViscosityRZ.cc" />
     <ClCompile Include="..\..\src\ArtificialViscosity\CullenDehnenViscosityInst.cc.2.cc" />
     <ClCompile Include="..\..\src\ArtificialViscosity\CullenDehnenViscosityInst.cc.3.cc" />
     <ClCompile Include="..\..\src\ArtificialViscosity\FiniteVolumeViscosityInst.cc.2.cc" />
     <ClCompile Include="..\..\src\ArtificialViscosity\FiniteVolumeViscosityInst.cc.3.cc" />
+    <ClCompile Include="..\..\src\ArtificialViscosity\IncrementCullenMultipliersInst.cc.2.cc" />
+    <ClCompile Include="..\..\src\ArtificialViscosity\IncrementCullenMultipliersInst.cc.3.cc" />
     <ClCompile Include="..\..\src\ArtificialViscosity\MonaghanGingoldViscosityInst.cc.2.cc" />
     <ClCompile Include="..\..\src\ArtificialViscosity\MonaghanGingoldViscosityInst.cc.3.cc" />
+    <ClCompile Include="..\..\src\ArtificialViscosity\MonaghanGingoldViscosityRZ.cc" />
+    <ClCompile Include="..\..\src\ArtificialViscosity\MonaghanGingoldViscosityGSRZ.cc" />
     <ClCompile Include="..\..\src\ArtificialViscosity\MorrisMonaghanReducingViscosityInst.cc.2.cc" />
     <ClCompile Include="..\..\src\ArtificialViscosity\MorrisMonaghanReducingViscosityInst.cc.3.cc" />
     <ClCompile Include="..\..\src\ArtificialViscosity\TensorCRKSPHViscosityInst.cc.2.cc" />
@@ -386,8 +401,8 @@
     </None>
     <CustomBuild Include="..\..\src\ArtificialViscosity\ArtificialViscosityInst.cc.py">
       <Command>
-            python.exe %(RelativeDir)..\helpers\InstantiationGenerator.py %(FullPath) %(RelativeDir)%(Filename).3.cc 3
-            python.exe %(RelativeDir)..\helpers\InstantiationGenerator.py %(FullPath) %(RelativeDir)%(Filename).2.cc 2
+            python.exe %(RelativeDir)..\helpers\InstantiationGenerator.py "%(FullPath)" %(RelativeDir)%(Filename).3.cc 3
+            python.exe %(RelativeDir)..\helpers\InstantiationGenerator.py "%(FullPath)" %(RelativeDir)%(Filename).2.cc 2
          </Command>
       <Message>Building 2 and 3 dim instantiation for %(Filename)</Message>
       <Outputs>%(RelativeDir)%(Filename).2.cc;%(RelativeDir)%(Filename).3.cc;%(Outputs)</Outputs>
@@ -401,18 +416,21 @@
     <None Include="..\..\src\ArtificialViscosity\CRKSPHMonaghanGingoldViscosity.hh">
       <FileType>Document</FileType>
     </None>
+    <None Include="..\..\src\ArtificialViscosity\CRKSPHMonaghanGingoldViscosityRZ.hh">
+      <FileType>Document</FileType>
+    </None>
     <CustomBuild Include="..\..\src\ArtificialViscosity\CRKSPHMonaghanGingoldViscosityInst.cc.py">
       <Command>
-            python.exe %(RelativeDir)..\helpers\InstantiationGenerator.py %(FullPath) %(RelativeDir)%(Filename).3.cc 3
-            python.exe %(RelativeDir)..\helpers\InstantiationGenerator.py %(FullPath) %(RelativeDir)%(Filename).2.cc 2
+            python.exe %(RelativeDir)..\helpers\InstantiationGenerator.py "%(FullPath)" %(RelativeDir)%(Filename).3.cc 3
+            python.exe %(RelativeDir)..\helpers\InstantiationGenerator.py "%(FullPath)" %(RelativeDir)%(Filename).2.cc 2
          </Command>
       <Message>Building 2 and 3 dim instantiation for %(Filename)</Message>
       <Outputs>%(RelativeDir)%(Filename).2.cc;%(RelativeDir)%(Filename).3.cc;%(Outputs)</Outputs>
     </CustomBuild>
     <CustomBuild Include="..\..\src\ArtificialViscosity\CullenDehnenViscosityInst.cc.py">
       <Command>
-            python.exe %(RelativeDir)..\helpers\InstantiationGenerator.py %(FullPath) %(RelativeDir)%(Filename).3.cc 3
-            python.exe %(RelativeDir)..\helpers\InstantiationGenerator.py %(FullPath) %(RelativeDir)%(Filename).2.cc 2
+            python.exe %(RelativeDir)..\helpers\InstantiationGenerator.py "%(FullPath)" %(RelativeDir)%(Filename).3.cc 3
+            python.exe %(RelativeDir)..\helpers\InstantiationGenerator.py "%(FullPath)" %(RelativeDir)%(Filename).2.cc 2
          </Command>
       <Message>Building 2 and 3 dim instantiation for %(Filename)</Message>
       <Outputs>%(RelativeDir)%(Filename).2.cc;%(RelativeDir)%(Filename).3.cc;%(Outputs)</Outputs>
@@ -422,9 +440,17 @@
     </None>
     <CustomBuild Include="..\..\src\ArtificialViscosity\FiniteVolumeViscosityInst.cc.py">
       <Command>
-            python.exe %(RelativeDir)..\helpers\InstantiationGenerator.py %(FullPath) %(RelativeDir)%(Filename).3.cc 3
-            python.exe %(RelativeDir)..\helpers\InstantiationGenerator.py %(FullPath) %(RelativeDir)%(Filename).2.cc 2
+            python.exe %(RelativeDir)..\helpers\InstantiationGenerator.py "%(FullPath)" %(RelativeDir)%(Filename).3.cc 3
+            python.exe %(RelativeDir)..\helpers\InstantiationGenerator.py "%(FullPath)" %(RelativeDir)%(Filename).2.cc 2
          </Command>
+      <Message>Building 2 and 3 dim instantiation for %(Filename)</Message>
+      <Outputs>%(RelativeDir)%(Filename).2.cc;%(RelativeDir)%(Filename).3.cc;%(Outputs)</Outputs>
+    </CustomBuild>
+    <CustomBuild Include="..\..\src\ArtificialViscosity\IncrementCullenMultipliersInst.cc.py">
+      <Command>
+          python.exe %(RelativeDir)..\helpers\InstantiationGenerator.py "%(FullPath)" %(RelativeDir)%(Filename).3.cc 3
+          python.exe %(RelativeDir)..\helpers\InstantiationGenerator.py "%(FullPath)" %(RelativeDir)%(Filename).2.cc 2
+       </Command>
       <Message>Building 2 and 3 dim instantiation for %(Filename)</Message>
       <Outputs>%(RelativeDir)%(Filename).2.cc;%(RelativeDir)%(Filename).3.cc;%(Outputs)</Outputs>
     </CustomBuild>
@@ -445,8 +471,8 @@
     </None>
     <CustomBuild Include="..\..\src\ArtificialViscosity\MonaghanGingoldViscosityInst.cc.py">
       <Command>
-            python.exe %(RelativeDir)..\helpers\InstantiationGenerator.py %(FullPath) %(RelativeDir)%(Filename).3.cc 3
-            python.exe %(RelativeDir)..\helpers\InstantiationGenerator.py %(FullPath) %(RelativeDir)%(Filename).2.cc 2
+            python.exe %(RelativeDir)..\helpers\InstantiationGenerator.py "%(FullPath)" %(RelativeDir)%(Filename).3.cc 3
+            python.exe %(RelativeDir)..\helpers\InstantiationGenerator.py "%(FullPath)" %(RelativeDir)%(Filename).2.cc 2
          </Command>
       <Message>Building 2 and 3 dim instantiation for %(Filename)</Message>
       <Outputs>%(RelativeDir)%(Filename).2.cc;%(RelativeDir)%(Filename).3.cc;%(Outputs)</Outputs>
@@ -454,13 +480,16 @@
     <None Include="..\..\src\ArtificialViscosity\MonaghanGingoldViscosityRZ.hh">
       <FileType>Document</FileType>
     </None>
+    <None Include="..\..\src\ArtificialViscosity\MonaghanGingoldViscosityGSRZ.hh">
+      <FileType>Document</FileType>
+    </None>
     <None Include="..\..\src\ArtificialViscosity\MorrisMonaghanReducingViscosity.hh">
       <FileType>Document</FileType>
     </None>
     <CustomBuild Include="..\..\src\ArtificialViscosity\MorrisMonaghanReducingViscosityInst.cc.py">
       <Command>
-            python.exe %(RelativeDir)..\helpers\InstantiationGenerator.py %(FullPath) %(RelativeDir)%(Filename).3.cc 3
-            python.exe %(RelativeDir)..\helpers\InstantiationGenerator.py %(FullPath) %(RelativeDir)%(Filename).2.cc 2
+            python.exe %(RelativeDir)..\helpers\InstantiationGenerator.py "%(FullPath)" %(RelativeDir)%(Filename).3.cc 3
+            python.exe %(RelativeDir)..\helpers\InstantiationGenerator.py "%(FullPath)" %(RelativeDir)%(Filename).2.cc 2
          </Command>
       <Message>Building 2 and 3 dim instantiation for %(Filename)</Message>
       <Outputs>%(RelativeDir)%(Filename).2.cc;%(RelativeDir)%(Filename).3.cc;%(Outputs)</Outputs>
@@ -476,8 +505,8 @@
     </None>
     <CustomBuild Include="..\..\src\ArtificialViscosity\TensorCRKSPHViscosityInst.cc.py">
       <Command>
-            python.exe %(RelativeDir)..\helpers\InstantiationGenerator.py %(FullPath) %(RelativeDir)%(Filename).3.cc 3
-            python.exe %(RelativeDir)..\helpers\InstantiationGenerator.py %(FullPath) %(RelativeDir)%(Filename).2.cc 2
+            python.exe %(RelativeDir)..\helpers\InstantiationGenerator.py "%(FullPath)" %(RelativeDir)%(Filename).3.cc 3
+            python.exe %(RelativeDir)..\helpers\InstantiationGenerator.py "%(FullPath)" %(RelativeDir)%(Filename).2.cc 2
          </Command>
       <Message>Building 2 and 3 dim instantiation for %(Filename)</Message>
       <Outputs>%(RelativeDir)%(Filename).2.cc;%(RelativeDir)%(Filename).3.cc;%(Outputs)</Outputs>
@@ -487,8 +516,8 @@
     </None>
     <CustomBuild Include="..\..\src\ArtificialViscosity\TensorMonaghanGingoldViscosityInst.cc.py">
       <Command>
-            python.exe %(RelativeDir)..\helpers\InstantiationGenerator.py %(FullPath) %(RelativeDir)%(Filename).3.cc 3
-            python.exe %(RelativeDir)..\helpers\InstantiationGenerator.py %(FullPath) %(RelativeDir)%(Filename).2.cc 2
+            python.exe %(RelativeDir)..\helpers\InstantiationGenerator.py "%(FullPath)" %(RelativeDir)%(Filename).3.cc 3
+            python.exe %(RelativeDir)..\helpers\InstantiationGenerator.py "%(FullPath)" %(RelativeDir)%(Filename).2.cc 2
          </Command>
       <Message>Building 2 and 3 dim instantiation for %(Filename)</Message>
       <Outputs>%(RelativeDir)%(Filename).2.cc;%(RelativeDir)%(Filename).3.cc;%(Outputs)</Outputs>
@@ -498,8 +527,8 @@
     </None>
     <CustomBuild Include="..\..\src\ArtificialViscosity\TensorSVPHViscosityInst.cc.py">
       <Command>
-            python.exe %(RelativeDir)..\helpers\InstantiationGenerator.py %(FullPath) %(RelativeDir)%(Filename).3.cc 3
-            python.exe %(RelativeDir)..\helpers\InstantiationGenerator.py %(FullPath) %(RelativeDir)%(Filename).2.cc 2
+            python.exe %(RelativeDir)..\helpers\InstantiationGenerator.py "%(FullPath)" %(RelativeDir)%(Filename).3.cc 3
+            python.exe %(RelativeDir)..\helpers\InstantiationGenerator.py "%(FullPath)" %(RelativeDir)%(Filename).2.cc 2
          </Command>
       <Message>Building 2 and 3 dim instantiation for %(Filename)</Message>
       <Outputs>%(RelativeDir)%(Filename).2.cc;%(RelativeDir)%(Filename).3.cc;%(Outputs)</Outputs>
@@ -509,8 +538,8 @@
     </None>
     <CustomBuild Include="..\..\src\ArtificialViscosity\VonNeumanViscosityInst.cc.py">
       <Command>
-            python.exe %(RelativeDir)..\helpers\InstantiationGenerator.py %(FullPath) %(RelativeDir)%(Filename).3.cc 3
-            python.exe %(RelativeDir)..\helpers\InstantiationGenerator.py %(FullPath) %(RelativeDir)%(Filename).2.cc 2
+            python.exe %(RelativeDir)..\helpers\InstantiationGenerator.py "%(FullPath)" %(RelativeDir)%(Filename).3.cc 3
+            python.exe %(RelativeDir)..\helpers\InstantiationGenerator.py "%(FullPath)" %(RelativeDir)%(Filename).2.cc 2
          </Command>
       <Message>Building 2 and 3 dim instantiation for %(Filename)</Message>
       <Outputs>%(RelativeDir)%(Filename).2.cc;%(RelativeDir)%(Filename).3.cc;%(Outputs)</Outputs>

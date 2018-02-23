@@ -15,12 +15,8 @@ namespace Spheral {
   }
 }
 
-#ifndef __GCCXML__
 #include <vector>
 #include "Utilities/SafeIndexMap.hh"
-#else
-#include "fakestl.hh"
-#endif
 
 #include "Neighbor.hh"
 #include "GridCellIndex.hh"
@@ -52,29 +48,47 @@ public:
   virtual ~NestedGridNeighbor();
 
   // Set or refine the neighbor lists for a given node ID.
-  virtual void setMasterList(const int nodeID);
-  virtual void setRefineNeighborList(const int nodeID);
+  virtual void setMasterList(const int nodeID,
+                             std::vector<int>& masterList,
+                             std::vector<int>& coarseNeighbors) const override;
+  virtual void setRefineNeighborList(const int nodeID,
+                                     const std::vector<int>& coarseNeighbors,
+                                     std::vector<int>& refineNeighbors) const override;
 
   // Define the required methods for all Neighbor objects.
   virtual void setMasterList(const Vector& position,
-                             const Scalar& H);
+                             const Scalar& H,
+                             std::vector<int>& masterList,
+                             std::vector<int>& coarseNeighbors) const override;
   virtual void setMasterList(const Vector& position,
-                             const SymTensor& H);
+                             const SymTensor& H,
+                             std::vector<int>& masterList,
+                             std::vector<int>& coarseNeighbors) const override;
 
-  virtual void setMasterList(const Vector& position);
-  virtual void setRefineNeighborList(const Vector& position);
+  virtual void setMasterList(const Vector& position,
+                             std::vector<int>& masterList,
+                             std::vector<int>& coarseNeighbors) const override;
+  virtual void setRefineNeighborList(const Vector& position,
+                                     const std::vector<int>& coarseNeighbors,
+                                     std::vector<int>& refineNeighbors) const override;
 
   virtual void setRefineNeighborList(const Vector& position,
-                                     const Scalar& H);
+                                     const Scalar& H,
+                                     const std::vector<int>& coarseNeighbors,
+                                     std::vector<int>& refineNeighbors) const override;
   virtual void setRefineNeighborList(const Vector& position,
-                                     const SymTensor& H);
+                                     const SymTensor& H,
+                                     const std::vector<int>& coarseNeighbors,
+                                     std::vector<int>& refineNeighbors) const override;
 
   virtual void setMasterList(const Plane& enterPlane,
-                             const Plane& exitPlane);
+                             const Plane& exitPlane,
+                             std::vector<int>& masterList,
+                             std::vector<int>& coarseNeighbors) const override;
 
   // Reassign the grid cell info for a given set of nodes.
-  virtual void updateNodes();
-  virtual void updateNodes(const std::vector<int>& nodeIDs);
+  virtual void updateNodes() override;;
+  virtual void updateNodes(const std::vector<int>& nodeIDs) override;
 
   // Function to determine the appropriate gridlevel for a node.
   int gridLevel(const int nodeID) const;
@@ -99,24 +113,13 @@ public:
   int numGridLevels() const;
   void numGridLevels(const int numGridLevels);
 
-//   // The first grid level with daughters.
-//   int firstParentGridLevel() const;
-
   // Access the occupied grid levels.
   int numOccupiedGridLevels() const;
   std::vector<int> occupiedGridLevels() const;
 
-//   // Is the given grid cell in the tree?
-//   bool cellInTree(const GC& gridCell,
-//                   const int gridLevel) const;
-
   // Is the given grid cell occupied?
   bool cellOccupied(const GC& gridCell,
                     const int gridLevel) const;
-
-//   // Access the internal oct-tree structure.
-//   const std::vector<GC>& daughterCells(const GC& gridCell,
-//                                        const int gridLevel) const;
 
   // Access the occupied grid cells.
   const std::vector< std::vector<GC> >& occupiedGridCells() const;
@@ -181,12 +184,14 @@ public:
   int endOfLinkList() const;
 
   // Determine if the NeighborList is in a valid, ready to use state.
-  virtual bool valid() const;
+  virtual bool valid() const override;
 
   // Allow outside users to be able to directly set master info for a given
   // grid cell and grid level.
   void setNestedMasterList(const GC& gridCell,
-                           const int gridLevel);
+                           const int gridLevel,
+                           std::vector<int>& masterList,
+                           std::vector<int>& coarseNeighbors) const;
 
   // Find the nodes that affect the given grid cell.
   std::vector<int> findNestedNeighbors(const GC& gridCell,
@@ -196,7 +201,6 @@ private:
   // Private functions.
   bool readyToAssignNodes() const;
   void rebuildOccupiedGridCells();
-//   void rebuildOctTree();
   void linkNode(const int nodeID,
                 const int gridLevelID,
                 const GC& gridCellID);
@@ -209,11 +213,15 @@ private:
   // setRefineList above.
   template<typename OtherHType>
   void setNestedMasterList(const Vector& position,
-                           const OtherHType& H);
+                           const OtherHType& H,
+                           std::vector<int>& masterList,
+                           std::vector<int>& coarseNeighbors) const;
 
   template<typename OtherHType>
   void setNestedRefineNeighborList(const Vector& position,
-                                   const OtherHType& H);
+                                   const OtherHType& H,
+                                   const std::vector<int>& coarseNeighbors,
+                                   std::vector<int>& refineNeighbors) const;
 
   // Private data.
   int mMaxGridLevels, mFirstParentGridLevel, mGridCellInfluenceRadius;
@@ -228,29 +236,18 @@ private:
   std::vector<int> mNextNodeInCell;
   std::vector<int> mNodeOnGridLevel;
 
-  int mMasterGridLevel;
-  GC mMasterGridCellIndex;
-
-  // The oct-tree structure of daughter cells.
-//   typedef SafeIndexMap<GC, std::vector<GC> > OctTree;
-//   std::vector<OctTree> mDaughterCells;
-//   std::vector<GC> mEmptyNest;
-
   // The set of grid cells that are actually occupied.
   std::vector< std::vector<GC> > mOccupiedGridCells;
 
   static const double ln2inverse;
   static const int mEndOfLinkList;
   static const int mGridNormalMagnitude;
-
 };
 
 }
 }
 
-#ifndef __GCCXML__
 #include "NestedGridNeighborInline.hh"
-#endif
 
 #else
 

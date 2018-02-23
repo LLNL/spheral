@@ -20,10 +20,15 @@ runit
 spam
 *.a
 *makefile
-
+job.out
+job.err
+out.job
+err.job
+runit
+dumps*
 src/BUILD
 src/BUILD/**
-tests/Hydro/dumps*
+dumps-*
 
 # These are files automatically generated in our configure process.
 src/PBGWraps/makefile

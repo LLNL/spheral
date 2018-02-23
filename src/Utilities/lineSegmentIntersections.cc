@@ -141,6 +141,7 @@ parallelSegmentIntersection(const Vector& a0,
     return 'e';
   }
   CHECK(false);
+  return false;   // Never reach here, this is just to silence a compile warning.
 }
 
 //------------------------------------------------------------------------------

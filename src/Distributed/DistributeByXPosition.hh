@@ -36,7 +36,7 @@ public:
   // Given a Spheral++ data base of NodeLists, repartition it among the processors.
   // This is the method required of all descendent classes.
   virtual void redistributeNodes(DataBaseSpace::DataBase<Dimension>& dataBase,
-                                 std::vector<BoundarySpace::Boundary<Dimension>*> boundaries = std::vector<BoundarySpace::Boundary<Dimension>*>());
+                                 std::vector<BoundarySpace::Boundary<Dimension>*> boundaries = std::vector<BoundarySpace::Boundary<Dimension>*>()) override;
 
 private:
   //--------------------------- Private Interface ---------------------------//

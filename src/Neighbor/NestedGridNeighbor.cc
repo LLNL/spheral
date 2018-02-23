@@ -55,8 +55,6 @@ NestedGridNeighbor(NodeList<Dimension>& aNodeList,
   mNodeInCell(numGridLevels),
   mNextNodeInCell(aNodeList.numNodes(), mEndOfLinkList),
   mNodeOnGridLevel(aNodeList.numNodes()),
-  mMasterGridLevel(-1),
-  mMasterGridCellIndex(),
 //   mDaughterCells(numGridLevels),
 //   mEmptyNest(),
   mOccupiedGridCells(numGridLevels) {
@@ -93,26 +91,32 @@ template<typename Dimension>
 void
 NestedGridNeighbor<Dimension>::
 setMasterList(const typename Dimension::Vector& position,
-              const typename Dimension::Scalar& H) {
-  setNestedMasterList(position, H);
+              const typename Dimension::Scalar& H,
+              std::vector<int>& masterList,
+              std::vector<int>& coarseNeighbors) const {
+  setNestedMasterList(position, H, masterList, coarseNeighbors);
 }
 
 template<typename Dimension>
 void
 NestedGridNeighbor<Dimension>::
 setMasterList(const typename Dimension::Vector& position,
-              const typename Dimension::SymTensor& H) {
-  setNestedMasterList(position, H);
+              const typename Dimension::SymTensor& H,
+              std::vector<int>& masterList,
+              std::vector<int>& coarseNeighbors) const {
+  setNestedMasterList(position, H, masterList, coarseNeighbors);
 }
 
 template<typename Dimension>
 void
 NestedGridNeighbor<Dimension>::
-setMasterList(const typename Dimension::Vector& position) {
+setMasterList(const typename Dimension::Vector& position,
+              std::vector<int>& masterList,
+              std::vector<int>& coarseNeighbors) const {
   SymTensor fakeH;
   fakeH.Identity();
   fakeH *= 1.0e30;
-  setNestedMasterList(position, fakeH);
+  setNestedMasterList(position, fakeH, masterList, coarseNeighbors);
 }
 
 //------------------------------------------------------------------------------
@@ -122,26 +126,32 @@ template<typename Dimension>
 void
 NestedGridNeighbor<Dimension>::
 setRefineNeighborList(const typename Dimension::Vector& position,
-                      const typename Dimension::Scalar& H) {
-  setNestedRefineNeighborList(position, H);
+                      const typename Dimension::Scalar& H,
+                      const std::vector<int>& coarseNeighbors,
+                      std::vector<int>& refineNeighbors) const {
+  setNestedRefineNeighborList(position, H, coarseNeighbors, refineNeighbors);
 }
 
 template<typename Dimension>
 void
 NestedGridNeighbor<Dimension>::
 setRefineNeighborList(const typename Dimension::Vector& position,
-                      const typename Dimension::SymTensor& H) {
-  setNestedRefineNeighborList(position, H);
+                      const typename Dimension::SymTensor& H,
+                      const std::vector<int>& coarseNeighbors,
+                      std::vector<int>& refineNeighbors) const {
+  setNestedRefineNeighborList(position, H, coarseNeighbors, refineNeighbors);
 }
 
 template<typename Dimension>
 void
 NestedGridNeighbor<Dimension>::
-setRefineNeighborList(const typename Dimension::Vector& position) {
+setRefineNeighborList(const typename Dimension::Vector& position,
+                      const std::vector<int>& coarseNeighbors,
+                      std::vector<int>& refineNeighbors) const {
   SymTensor fakeH;
   fakeH.Identity();
   fakeH *= 1.0e30;
-  setNestedRefineNeighborList(position, fakeH);
+  setNestedRefineNeighborList(position, fakeH, coarseNeighbors, refineNeighbors);
 }
 
 //------------------------------------------------------------------------------
@@ -150,13 +160,14 @@ setRefineNeighborList(const typename Dimension::Vector& position) {
 template<typename Dimension>
 void
 NestedGridNeighbor<Dimension>::
-setMasterList(const int nodeID) {
+setMasterList(const int nodeID,
+              std::vector<int>& masterList,
+              std::vector<int>& coarseNeighbors) const {
   REQUIRE(valid());
   REQUIRE(nodeID >= 0 and nodeID < this->nodeList().numInternalNodes());
-  vector<int>& masterList = this->accessMasterList();
-  masterList = vector<int>();
-  const Field<Dimension, Vector>& positions = this->nodeList().positions();
-  const Field<Dimension, SymTensor>& Hfield = this->nodeList().Hfield();
+  masterList.clear();
+  const auto& positions = this->nodeList().positions();
+  const auto& Hfield = this->nodeList().Hfield();
   BEGIN_CONTRACT_SCOPE
   {
     const int gridLevelCheck = mNodeOnGridLevel[nodeID];
@@ -165,7 +176,7 @@ setMasterList(const int nodeID) {
     CHECK(gridCellIndex(positions(nodeID), gridLevel(nodeID)) == gridCellCheck);
   }
   END_CONTRACT_SCOPE
-  setMasterList(positions(nodeID), Hfield(nodeID));
+  setMasterList(positions(nodeID), Hfield(nodeID), masterList, coarseNeighbors);
 }
 
 //------------------------------------------------------------------------------
@@ -174,14 +185,14 @@ setMasterList(const int nodeID) {
 template<typename Dimension>
 void
 NestedGridNeighbor<Dimension>::
-setRefineNeighborList(const int nodeID) {
+setRefineNeighborList(const int nodeID,
+                      const std::vector<int>& coarseNeighbors,
+                      std::vector<int>& refineNeighbors) const {
   REQUIRE(valid());
   REQUIRE(nodeID >= 0 and nodeID < this->nodeList().numInternalNodes());
-  REQUIRE(find(this->accessMasterList().begin(), this->accessMasterList().end(), nodeID) !=
-        this->accessMasterList().end());
-  const Field<Dimension, Vector>& positions = this->nodeList().positions();
-  const Field<Dimension, SymTensor>& Hfield = this->nodeList().Hfield();
-  setRefineNeighborList(positions(nodeID), Hfield(nodeID));
+  const auto& positions = this->nodeList().positions();
+  const auto& Hfield = this->nodeList().Hfield();
+  setRefineNeighborList(positions(nodeID), Hfield(nodeID), coarseNeighbors, refineNeighbors);
 }
 
 //------------------------------------------------------------------------------
@@ -194,10 +205,12 @@ template<typename OtherHType>
 void
 NestedGridNeighbor<Dimension>::
 setNestedMasterList(const typename Dimension::Vector& position,
-                    const OtherHType& H) {
-  const int gl = gridLevel(H);
-  const GridCellIndex<Dimension> gc = gridCellIndex(position, gl);
-  setNestedMasterList(gc, gl);
+                    const OtherHType& H,
+                    std::vector<int>& masterList,
+                    std::vector<int>& coarseNeighbors) const {
+  const auto gl = gridLevel(H);
+  const auto gc = gridCellIndex(position, gl);
+  setNestedMasterList(gc, gl, masterList, coarseNeighbors);
 }
 
 //------------------------------------------------------------------------------
@@ -209,27 +222,23 @@ template<typename Dimension>
 void
 NestedGridNeighbor<Dimension>::
 setNestedMasterList(const GridCellIndex<Dimension>& gridCell,
-                    const int gridLevel) {
+                    const int gridLevel,
+                    std::vector<int>& masterList,
+                    std::vector<int>& coarseNeighbors) const {
 
   REQUIRE(valid());
-
-  // Set the gridlevel and gridcell.
-  mMasterGridCellIndex = gridCell;
-  mMasterGridLevel = gridLevel;
+  REQUIRE(gridLevel >= 0 and gridLevel < mMaxGridLevels);
 
   // Set the master list to all (internal) nodes in this gridcell (on this gridlevel).
-  vector<int>& mMasterList = this->accessMasterList();
-  mMasterList = internalNodesInCell(mMasterGridCellIndex, mMasterGridLevel);
+  masterList = internalNodesInCell(gridCell, gridLevel);
 
   // We also need to set the coarse neighbor list -- potential neighbors for all
   // nodes in the master gridcell.  We can outsource this to our private findNestedNeighbors
   // method.
-  vector<int>& coarseNeighborList = this->accessCoarseNeighborList();
-  coarseNeighborList = findNestedNeighbors(mMasterGridCellIndex, mMasterGridLevel);
+  coarseNeighbors = findNestedNeighbors(gridCell, gridLevel);
 
   // Post conditions.
-  ENSURE(coarseNeighborList.size() >= this->masterList().size());
-  ENSURE(mMasterGridLevel >= 0 and mMasterGridLevel < mMaxGridLevels);
+  ENSURE(coarseNeighbors.size() >= masterList.size());
 }
 
 //------------------------------------------------------------------------------
@@ -239,25 +248,25 @@ template<typename Dimension>
 void
 NestedGridNeighbor<Dimension>::
 setMasterList(const GeomPlane<Dimension>& enterPlane,
-              const GeomPlane<Dimension>& exitPlane) {
+              const GeomPlane<Dimension>& exitPlane,
+              std::vector<int>& masterList,
+              std::vector<int>& coarseNeighbors) const {
 
   REQUIRE(valid());
   REQUIRE(enterPlane.parallel(exitPlane));
 
   // Make references to the two neighbor lists we'll be building for convenience.
-  const Field<Dimension, Vector>& nodePositions = this->nodeList().positions();
+  const auto& nodePositions = this->nodeList().positions();
 
   // Clear out the master and coarse neighbor lists.
-  vector<int>& masterNodeList = this->accessMasterList();
-  vector<int>& coarseNeighborList = this->accessCoarseNeighborList();
-  masterNodeList = vector<int>();
-  coarseNeighborList = vector<int>();
+  masterList.clear();
+  coarseNeighbors.clear();
 
   // Loop over all occupied grid cells.
-  int gridLevelID = 0;
-  for (typename vector< vector< GridCellIndex<Dimension> > >::const_iterator 
-         gridLevelItr = mOccupiedGridCells.begin();
-       gridLevelItr < mOccupiedGridCells.end(); ++gridLevelItr, ++gridLevelID) {
+  auto gridLevelID = 0;
+  for (auto gridLevelItr = mOccupiedGridCells.begin();
+       gridLevelItr < mOccupiedGridCells.end(); 
+       ++gridLevelItr, ++gridLevelID) {
     CHECK(gridLevelID >= 0 and gridLevelID < numGridLevels());
 
     if (mGridLevelOccupied[gridLevelID] == 1) {
@@ -266,25 +275,25 @@ setMasterList(const GeomPlane<Dimension>& enterPlane,
       const Scalar dxgc = 1.0/mGridCellSizeInv[gridLevelID];
 
       // Loop over all the grid cells occupied on this grid level.
-      for (typename vector< GridCellIndex<Dimension> >::const_iterator
-             gridCellItr = (*gridLevelItr).begin();
-           gridCellItr < (*gridLevelItr).end(); ++gridCellItr) {
+      for (auto gridCellItr = (*gridLevelItr).begin();
+           gridCellItr < (*gridLevelItr).end();
+           ++gridCellItr) {
 
         // Easier to type version of this grid cell.
-        const GridCellIndex<Dimension>& gridCell = *gridCellItr;
+        const auto& gridCell = *gridCellItr;
 
 	// The min and max gridcells on this level that can interact
         // with this grid cell.
-	GridCellIndex<Dimension> minGridCell = gridCell - mGridCellInfluenceRadius;
-	GridCellIndex<Dimension> maxGridCell = gridCell + mGridCellInfluenceRadius;
+	const auto minGridCell = gridCell - mGridCellInfluenceRadius;
+	const auto maxGridCell = gridCell + mGridCellInfluenceRadius;
 
         // Find the min and max coordinates in the above grid cell range.
-        const Vector rMin = dxgc*minGridCell;
-        const Vector rMax = dxgc*(maxGridCell + 1);
+        const auto rMin = dxgc*minGridCell;
+        const auto rMax = dxgc*(maxGridCell + 1);
 
         // Min and max positions in the gridcell.
-        const Vector rgcMin = dxgc*gridCell;
-        const Vector rgcMax = dxgc*(gridCell + 1);
+        const auto rgcMin = dxgc*gridCell;
+        const auto rgcMax = dxgc*(gridCell + 1);
 
 	// If this grid cell is in range of the enter plane it's nodes go into 
 	// the control list.
@@ -293,11 +302,11 @@ setMasterList(const GeomPlane<Dimension>& enterPlane,
 
 	  // Loop over the nodes in this grid cell and put them in the control
 	  // set.
-          int nodeID = headOfGridCell(gridCell, gridLevelID);
+          auto nodeID = headOfGridCell(gridCell, gridLevelID);
           while (nodeID != mEndOfLinkList) {
             CHECK((nodeID >= 0 and nodeID < this->nodeList().numNodes()) or
                   this->nodeList().numNodes() == 0);
-            masterNodeList.push_back(nodeID);
+            masterList.push_back(nodeID);
             nodeID = nextNodeInCell(nodeID);
             CHECK((nodeID >= 0 and nodeID < this->nodeList().numNodes()) or
                   this->nodeList().numNodes() == 0 or
@@ -308,12 +317,10 @@ setMasterList(const GeomPlane<Dimension>& enterPlane,
           // the enter/exit planes, and find the range of nodes on the exit
           // side that can interact with this grid cell.  They go in the
           // coarse neighbor list.
-          Vector r0 = mapPositionThroughPlanes(rgcMin, 
-                                               enterPlane, -exitPlane);
-          Vector r1 = mapPositionThroughPlanes(rgcMax,
-                                               enterPlane, -exitPlane);
+          const auto r0 = mapPositionThroughPlanes(rgcMin, enterPlane, -exitPlane);
+          const auto r1 = mapPositionThroughPlanes(rgcMax, enterPlane, -exitPlane);
           Vector rgcMinExit, rgcMaxExit;
-          for (int i = 0; i < Dimension::nDim; ++i) {
+          for (auto i = 0; i < Dimension::nDim; ++i) {
             rgcMinExit(i) = std::min(r0(i), r1(i));
             rgcMaxExit(i) = std::max(r0(i), r1(i));
           }
@@ -326,27 +333,23 @@ setMasterList(const GeomPlane<Dimension>& enterPlane,
           CHECK(rgcMinExit <= rgcMaxExit);
 
           // Determine the grid cells containing these mapped positions.
-          const GridCellIndex<Dimension> warpGridCellMin = gridCellIndex(rgcMinExit,
-                                                                         gridLevelID);
-          const GridCellIndex<Dimension> warpGridCellMax = gridCellIndex(rgcMaxExit,
-                                                                         gridLevelID);
+          const auto warpGridCellMin = gridCellIndex(rgcMinExit, gridLevelID);
+          const auto warpGridCellMax = gridCellIndex(rgcMaxExit, gridLevelID);
           CHECK(warpGridCellMin <= warpGridCellMax);
 
           // Add the nodes affecting these grid cells (if we haven't already 
           // done so.)
-          const vector<int> neighborIndices = findNestedNeighbors(warpGridCellMin,
-                                                                   gridLevelID);
+          const auto neighborIndices = findNestedNeighbors(warpGridCellMin, gridLevelID);
           {
-            for (vector<int>::const_iterator idItr = neighborIndices.begin();
+            for (auto idItr = neighborIndices.begin();
                  idItr < neighborIndices.end();
-                 ++idItr) coarseNeighborList.push_back(*idItr);
+                 ++idItr) coarseNeighbors.push_back(*idItr);
           }
           {
-            const vector<int> neighborIndices = findNestedNeighbors(warpGridCellMax,
-                                                                     gridLevelID);
-            for (vector<int>::const_iterator idItr = neighborIndices.begin();
+            const auto neighborIndices = findNestedNeighbors(warpGridCellMax, gridLevelID);
+            for (auto idItr = neighborIndices.begin();
                  idItr < neighborIndices.end();
-                 ++idItr) coarseNeighborList.push_back(*idItr);
+                 ++idItr) coarseNeighbors.push_back(*idItr);
           }
 
         } else if ((rMin <= exitPlane and rMax >= exitPlane) or
@@ -354,11 +357,11 @@ setMasterList(const GeomPlane<Dimension>& enterPlane,
 
 	  // If this gridCell overlaps the exit plane, then add its (and its 
           // neighbors) nodes to the coarse neighbor list.
-          int nodeID = headOfGridCell(gridCell, gridLevelID);
+          auto nodeID = headOfGridCell(gridCell, gridLevelID);
           while (nodeID != mEndOfLinkList) {
             CHECK((nodeID >= 0 and nodeID < this->nodeList().numNodes()) or
                   this->nodeList().numNodes() == 0);
-            coarseNeighborList.push_back(nodeID);
+            coarseNeighbors.push_back(nodeID);
             nodeID = nextNodeInCell(nodeID);
             CHECK((nodeID >= 0 and nodeID < this->nodeList().numNodes()) or
                   this->nodeList().numNodes() == 0 or
@@ -369,12 +372,10 @@ setMasterList(const GeomPlane<Dimension>& enterPlane,
           // the exit/enter planes, and find the range of nodes on the enter
           // side that can interact with this grid cell.  They go in the
           // master neighbor list.
-          Vector r0 = mapPositionThroughPlanes(rgcMin, 
-                                               exitPlane, -enterPlane);
-          Vector r1 = mapPositionThroughPlanes(rgcMax,
-                                               exitPlane, -enterPlane);
+          const auto r0 = mapPositionThroughPlanes(rgcMin, exitPlane, -enterPlane);
+          const auto r1 = mapPositionThroughPlanes(rgcMax, exitPlane, -enterPlane);
           Vector rgcMinEnter, rgcMaxEnter;
-          for (int i = 0; i < Dimension::nDim; ++i) {
+          for (auto i = 0; i < Dimension::nDim; ++i) {
             rgcMinEnter(i) = std::min(r0(i), r1(i));
             rgcMaxEnter(i) = std::max(r0(i), r1(i));
           }
@@ -387,27 +388,23 @@ setMasterList(const GeomPlane<Dimension>& enterPlane,
           CHECK(rgcMinEnter <= rgcMaxEnter);
 
           // Determine the grid cells containing these mapped positions.
-          const GridCellIndex<Dimension> warpGridCellMin = gridCellIndex(rgcMinEnter,
-                                                                         gridLevelID);
-          const GridCellIndex<Dimension> warpGridCellMax = gridCellIndex(rgcMaxEnter,
-                                                                         gridLevelID);
+          const auto warpGridCellMin = gridCellIndex(rgcMinEnter, gridLevelID);
+          const auto warpGridCellMax = gridCellIndex(rgcMaxEnter, gridLevelID);
           CHECK(warpGridCellMin <= warpGridCellMax);
 
           // For each grid cell in this range, add it's node to the master 
           // lists.
           {
-            const vector<int> neighborIndices = findNestedNeighbors(warpGridCellMin,
-                                                                     gridLevelID);
-            for (vector<int>::const_iterator idItr = neighborIndices.begin();
+            const auto neighborIndices = findNestedNeighbors(warpGridCellMin, gridLevelID);
+            for (auto idItr = neighborIndices.begin();
                  idItr < neighborIndices.end();
-                 ++idItr) masterNodeList.push_back(*idItr);
+                 ++idItr) masterList.push_back(*idItr);
           }
           {
-            const vector<int> neighborIndices = findNestedNeighbors(warpGridCellMax,
-                                                                     gridLevelID);
-            for (vector<int>::const_iterator idItr = neighborIndices.begin();
+            const auto neighborIndices = findNestedNeighbors(warpGridCellMax, gridLevelID);
+            for (auto idItr = neighborIndices.begin();
                  idItr < neighborIndices.end();
-                 ++idItr) masterNodeList.push_back(*idItr);
+                 ++idItr) masterList.push_back(*idItr);
           }
 	}
       }
@@ -415,14 +412,14 @@ setMasterList(const GeomPlane<Dimension>& enterPlane,
   }
 
   // Finally, make sure that we have unique lists of ghost nodes IDs.
-  sort(masterNodeList.begin(), masterNodeList.end());
-  typename vector<int>::iterator uniqueEnd = unique(masterNodeList.begin(),
-                                                    masterNodeList.end());
-  masterNodeList.erase(uniqueEnd, masterNodeList.end());
-  sort(coarseNeighborList.begin(), coarseNeighborList.end());
-  uniqueEnd = unique(coarseNeighborList.begin(),
-                     coarseNeighborList.end());
-  coarseNeighborList.erase(uniqueEnd, coarseNeighborList.end());
+  sort(masterList.begin(), masterList.end());
+  typename vector<int>::iterator uniqueEnd = unique(masterList.begin(),
+                                                    masterList.end());
+  masterList.erase(uniqueEnd, masterList.end());
+  sort(coarseNeighbors.begin(), coarseNeighbors.end());
+  uniqueEnd = unique(coarseNeighbors.begin(),
+                     coarseNeighbors.end());
+  coarseNeighbors.erase(uniqueEnd, coarseNeighbors.end());
 
 //   // Set the per field coarse data caches for this NodeList.
 //   this->nodeList().notifyFieldsCacheCoarseValues();

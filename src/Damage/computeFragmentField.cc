@@ -233,15 +233,14 @@ computeFragmentField(const NodeList<Dimension>& nodes,
 #endif
 
     // Find the neighbors for this node within the desired radius.
-    neighbor.setMasterList(ri, Hi);
-    neighbor.setRefineNeighborList(ri, Hi);
+    vector<int> masterList, coarseNeighbors, refineNeighbors;
+    neighbor.setMasterList(ri, Hi, masterList, coarseNeighbors);
+    neighbor.setRefineNeighborList(ri, Hi, coarseNeighbors, refineNeighbors);
     vector<int> significantNeighbors;
     vector<int> fragIDs;
-    significantNeighbors.reserve(neighbor.numRefine());
-    fragIDs.reserve(neighbor.numRefine());
-    for (typename Neighbor<Dimension>::const_iterator itr = neighbor.refineNeighborBegin();
-         itr != neighbor.refineNeighborEnd();
-         ++itr) {
+    significantNeighbors.reserve(refineNeighbors.size());
+    fragIDs.reserve(refineNeighbors.size());
+    for (auto itr = refineNeighbors.begin(); itr < refineNeighbors.end(); ++itr) {
       const Vector& rj = r(*itr);
       const SymTensor& Hj = H(*itr);
       const Vector rij = ri - rj;

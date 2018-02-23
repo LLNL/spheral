@@ -11,6 +11,9 @@
 #include "Distributed/Communicator.hh"
 #endif
 
+#include <list>
+#include <string>
+
 // if TIMER is not defined, then we just have a stub class.
 #ifdef TIMER
 
@@ -32,8 +35,6 @@ extern "C" {
 #define TIMER_COUNTER 0
 #endif
 
-#include <list>
-#include <string>
 using namespace std;
 
 #define DIAGNOSTIC false 
@@ -53,7 +54,7 @@ public:
   void stop();
   void clear();
 
-  inline double getTimeStampWC();
+  double getTimeStampWC();
   double wc_time() { return accumulated_WCtime; }
 
 #ifdef PAPI
@@ -124,7 +125,7 @@ public:
   Timer(const string&, Timer&, bool) {}
   ~Timer() {}
 
-  //static list<Timer*> TimerList;
+  static list<Timer*> TimerList;
 
   inline void setup(){}
   inline void start(){}
@@ -150,7 +151,7 @@ public:
   static void TimerSummary(void) {
     int rank;
 #ifdef MPI
-    MPI_Comm_rank(Communicator::communicator(), &rank);
+    MPI_Comm_rank(Spheral::Communicator::communicator(), &rank);
 #else
     rank=0;
 #endif

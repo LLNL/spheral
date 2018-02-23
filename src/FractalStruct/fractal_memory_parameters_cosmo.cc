@@ -5,40 +5,19 @@ namespace FractalSpace
 {
   string Fractal::sim_parameters="cosmos_flat_lambda";
   //
-  template <class M> void fractal_memory_parameters(M& mem,int _inteL_,int _mulT_)
+  template <class M> void fractal_memory_parameters(M* pmem,const string BaseDirectory,int _mulT_)
   {
+    M& mem=*pmem;
     int Ranky;
-    MPI_Comm_rank(MPI_COMM_WORLD,&Ranky);
+    MPI_Comm_rank(Fractal_Memory::FRACTAL_UNIVERSE,&Ranky);
     mem.FractalNodes=mem.FractalNodes0*mem.FractalNodes1*mem.FractalNodes2;
     // These are the parameters you need to set.
     // For the others you should use my values for now.
     //    ofstream& FileFractal=mem.p_fractal->p_file->FileFractal;
-    string sa="/p/lscratch";
-    string sb="d";
-    if(_inteL_ == 0)
-      sb="v";
-    string sc="/jensv/cosmo/";
-    mem.BaseDirectory=sa+sb+sc;
-    //    mem.BaseDirectory="/p/lscratchc/jensv/cosmo/";
-    //     stringstream ssFN;
-//     ssFN << mem.FractalNodes;
-//     string stringFN=ssFN.str();
-//     mem.BaseDirectory.append(stringFN);
-//     mem.BaseDirectory.append("/");
-    //base directory
+    mem.BaseDirectory=BaseDirectory;
     mem.RUN="svendborg";
-    //directory name desriptor
-    mem.MPIrun=true;
-    // Is this an MPI run.
-    //    mem.FractalNodes0=4;
-    //number of nodes in x-direction
-    //    mem.FractalNodes1=4;
-    //number of nodes in y-direction
-    //    mem.FractalNodes2=4;
-    //number of nodes in z-direction
-    //total number of nodes
-    mem.MPIrun=mem.MPIrun || mem.FractalNodes > 1;
-    // makes sense
+    //directory name descriptor
+    // mem.MPIrun=true;
     mem.FFTNodes=9876543;
     mem.FFTNodes=min(mem.FFTNodes,mem.FractalNodes);
     mem.FFTNodes=min(mem.FFTNodes,mem.grid_length/2);
@@ -55,8 +34,6 @@ namespace FractalSpace
     //    mem.number_particles = (mem.grid_length*mem.grid_length*mem.grid_length)/mem.FractalNodes; 
     // I will let you guess, you are wrong. It needs to be = grid_length**3/FractalNodes.
     mem.max_particles=mem.number_particles*_mulT_;
-    //    cerr << " EARLY NUMBERS " << mem.FractalRank  << " " << mem.number_particles << " " << mem.max_particles << "\n";
-    //    mem.max_particles=1;
     //The max number of particles the initial conditions code can generate through particle splitting
     mem.level_max = 10 ; 
     //    mem.level_max = 0 ; 
@@ -76,8 +53,8 @@ namespace FractalSpace
     // padding has to be (0) or(1)in an MPI version
     mem.maxits = 20 ;
     // maximum number of iterations in SOR or Hypre Solver
-    mem.epsilon_sor = 1.0e-7;
-    //convergence criterion in SOR or Hypre Solver
+    mem.HTOL = 1.0e-7;
+    //convergence criterion in Hypre Solver
     mem.hypre_load_balance=true;
     //    mem.hypre_load_balance=false;
     mem.debug=true;
@@ -87,13 +64,12 @@ namespace FractalSpace
     mem.number_steps_total=906;
     //    mem.number_steps_total=8;
     // Total number of steps
-    mem.number_steps_out=50;
+    mem.number_steps_out=20;
     // Output how often
     mem.time_trial=true;
     mem.redshift_start=99.0;
     // step length
     mem.step_length=0.025;
-    //    mem.step_length=1.0e-30;
     // initial redshift
     mem.omega_0=0.3;
     // Omega_matter at current epoch, NOT initial epoch.
@@ -195,7 +171,6 @@ namespace FractalSpace
     mem.masks_square[3]=true;
   //
     mem.splits=0;
-    //    mem.masks=0;
   //
     mem.masks_init=3;
     mem.masks_center_x_init.assign(mem.masks,0.5);
@@ -238,5 +213,5 @@ namespace FractalSpace
 }
 namespace FractalSpace
 {
-  template void fractal_memory_parameters(Fractal_Memory& mem,int _inteL_,int _mulT_);
+  template void fractal_memory_parameters(Fractal_Memory* pmem,string BaseDirectory,int _mulT_);
 }

@@ -4,14 +4,13 @@
 //
 // Created by JMO, Tue Mar 15 21:39:43 PST 2005
 //----------------------------------------------------------------------------//
-
-#include "SphericalBoundary.hh"
+#include "FileIO/FileIO.hh"
 #include "Geometry/GeomPlane.hh"
 #include "Geometry/innerProduct.hh"
 #include "NodeList/FluidNodeList.hh"
-#include "FileIO/FileIO.hh"
-
 #include "Utilities/DBC.hh"
+
+#include "SphericalBoundary.hh"
 
 namespace Spheral {
 namespace BoundarySpace {

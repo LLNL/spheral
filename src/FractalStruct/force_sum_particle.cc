@@ -19,17 +19,21 @@ namespace FractalSpace
 	sum0=1.0e-30;
       }
     //
-    for(vector<Point*>::const_iterator point_itr=group.list_points.begin();point_itr !=group.list_points.end();++point_itr)
+    for(auto &p : group.list_points)
+    // for(vector<Point*>::const_iterator point_itr=group.list_points.begin();point_itr !=group.list_points.end();++point_itr)
       {
-	Point& point=**point_itr;
-	if(point.list_particles.empty()) continue;
+	// Point& point=**point_itr;
+	if(p->list_particles.empty())
+	  continue;
 	//
-	for(vector<Particle*>::const_iterator particle_itr=point.list_particles.begin();particle_itr !=point.list_particles.end();++particle_itr)
+	for(auto &part : p->list_particles)
+	// for(vector<Particle*>::const_iterator particle_itr=point.list_particles.begin();particle_itr !=point.list_particles.end();++particle_itr)
 	  {
-	    Particle& particle=**particle_itr;
-	    if(particle.get_p_highest_level_group() == 0) continue;
-	    particle.get_field_pf(pf);
-	    double mass=particle.get_mass();
+	    // Particle& particle=**particle_itr;
+	    if(part->get_p_highest_level_group() == 0)
+	      continue;
+	    part->get_field_pf(pf);
+	    double mass=part->get_mass();
 	    sumf[0]+=pf[1]*mass;
 	    sumf[1]+=pf[2]*mass;
 	    sumf[2]+=pf[3]*mass;
@@ -43,9 +47,11 @@ namespace FractalSpace
 	pf[2]=(sumf0[1]-sumf[1])/sum0;
 	pf[3]=(sumf0[2]-sumf[2])/sum0;
 	//	cerr << " SUMM " << &group << " " << sumf[0] << " " << sumf[1] << " " << sumf[2] << " " << sum0 << "\n";
-	for(vector<Point*>::const_iterator point_itr=group.list_points.begin();point_itr !=group.list_points.end();++point_itr)
+	// for(vector<Point*>::const_iterator point_itr=group.list_points.begin();point_itr !=group.list_points.end();++point_itr)
+	for(auto pp : group.list_points)
 	  {
-	    Point& point=**point_itr;
+	    Point& point=*pp;
+	    // Point& point=**point_itr;
 	    if(point.list_particles.empty()) continue;
 	    //
 	    for(vector<Particle*>::const_iterator particle_itr=point.list_particles.begin();particle_itr !=point.list_particles.end();++particle_itr)

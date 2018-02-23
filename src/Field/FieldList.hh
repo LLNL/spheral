@@ -10,16 +10,12 @@
 #ifndef __Spheral__FieldSpace__FieldList_hh__
 #define __Spheral__FieldSpace__FieldList_hh__
 
-#ifndef __GCCXML__
+#include "FieldListBase.hh"
+
 #include <vector>
 #include <list>
 #include <map>
-#include "boost/shared_ptr.hpp"
-#else
-#include "fakestl.hh"
-#endif
-
-#include "FieldListBase.hh"
+#include <memory>
 
 // Forward declarations.
 namespace Spheral {
@@ -46,8 +42,8 @@ namespace FieldSpace {
 
 // An enum for selecting how Fields are stored in FieldLists.
 enum class FieldStorageType {
-  Reference = 0,
-  Copy = 1
+  ReferenceFields = 0,
+  CopyFields = 1
 };
 
 template<typename Dimension, typename DataType>
@@ -169,22 +165,30 @@ public:
   GhostNodeIterator<Dimension> ghostNodeBegin() const;
   GhostNodeIterator<Dimension> ghostNodeEnd() const;
   
-  MasterNodeIterator<Dimension> masterNodeBegin() const;
+  MasterNodeIterator<Dimension> masterNodeBegin(const std::vector<std::vector<int>>& masterLists) const;
   MasterNodeIterator<Dimension> masterNodeEnd() const;
   
-  CoarseNodeIterator<Dimension> coarseNodeBegin() const;
+  CoarseNodeIterator<Dimension> coarseNodeBegin(const std::vector<std::vector<int>>& coarseNeighbors) const;
   CoarseNodeIterator<Dimension> coarseNodeEnd() const;
   
-  RefineNodeIterator<Dimension> refineNodeBegin() const;
+  RefineNodeIterator<Dimension> refineNodeBegin(const std::vector<std::vector<int>>& refineNeighbors) const;
   RefineNodeIterator<Dimension> refineNodeEnd() const;
 
   // Provide a convenience function for setting the neighbor node information
   // for all the NodeList in this FieldList.
-  void setMasterNodeLists(const Vector& r, const SymTensor& H) const;
-  void setMasterNodeLists(const Vector& r) const;
+  void setMasterNodeLists(const Vector& r, const SymTensor& H,
+                          std::vector<std::vector<int>>& masterLists,
+                          std::vector<std::vector<int>>& coarseNeighbors) const;
+  void setMasterNodeLists(const Vector& r,
+                          std::vector<std::vector<int>>& masterLists,
+                          std::vector<std::vector<int>>& coarseNeighbors) const;
 
-  void setRefineNodeLists(const Vector& r, const SymTensor& H) const;
-  void setRefineNodeLists(const Vector& r) const;
+  void setRefineNodeLists(const Vector& r, const SymTensor& H,
+                          const std::vector<std::vector<int>>& coarseNeighbors,
+                          std::vector<std::vector<int>>& refineNeighbors) const;
+  void setRefineNodeLists(const Vector& r,
+                          const std::vector<std::vector<int>>& coarseNeighbors,
+                          std::vector<std::vector<int>>& refineNeighbors) const;
 
   // Reproduce the standard Field operators for FieldLists.
   void Zero();
@@ -260,7 +264,7 @@ public:
 private:
   //--------------------------- Private Interface ---------------------------//
 #ifndef __GCCXML__
-  typedef std::list<boost::shared_ptr<Field<Dimension, DataType> > > FieldCacheType;
+  typedef std::list<std::shared_ptr<Field<Dimension, DataType> > > FieldCacheType;
   typedef std::map<const NodeSpace::NodeList<Dimension>*, int> HashMapType;
 
   std::vector<ElementType> mFieldPtrs;

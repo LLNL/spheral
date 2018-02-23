@@ -34,9 +34,6 @@ namespace Spheral {
   namespace DataBaseSpace {
     template<typename Dimension> class DataBase;
   }
-  namespace NeighborSpace {
-    template<typename Dimension> class NestedGridNeighbor;
-  }
 }
 
 namespace Spheral {
@@ -99,6 +96,9 @@ public:
   template<typename DataType>
   void beginExchangeField(FieldSpace::Field<Dimension, DataType>& field) const;
 
+  template<typename DataType>
+  void beginExchangeFieldVariableSize(FieldSpace::Field<Dimension, DataType>& field) const;
+
   //**********************************************************************
   // Descendent Distributed Neighbors are required to provide the 
   // setGhostNodes method for DataBases.
@@ -107,41 +107,42 @@ public:
   // Override the Boundary method for culling ghost nodes.
   virtual void cullGhostNodes(const FieldSpace::FieldList<Dimension, int>& flagSet,
                               FieldSpace::FieldList<Dimension, int>& old2newIndexMap,
-                              std::vector<int>& numNodesRemoved);
+                              std::vector<int>& numNodesRemoved) override;
 
   // Use the given NodeList's neighbor object to select the ghost nodes.
   // This method should never be called for the DistributedBoundary!
-  virtual void setGhostNodes(NodeSpace::NodeList<Dimension>& nodeList);
+  virtual void setGhostNodes(NodeSpace::NodeList<Dimension>& nodeList) override;
 
   // For the computed set of ghost nodes, set the positions and H's.
-  virtual void updateGhostNodes(NodeSpace::NodeList<Dimension>& nodeList);
+  virtual void updateGhostNodes(NodeSpace::NodeList<Dimension>& nodeList) override;
 
   // Apply the boundary condition to the given Field.
-  virtual void applyGhostBoundary(FieldSpace::Field<Dimension, int>& field) const;
-  virtual void applyGhostBoundary(FieldSpace::Field<Dimension, Scalar>& field) const;
-  virtual void applyGhostBoundary(FieldSpace::Field<Dimension, Vector>& field) const;
-  virtual void applyGhostBoundary(FieldSpace::Field<Dimension, Tensor>& field) const;
-  virtual void applyGhostBoundary(FieldSpace::Field<Dimension, SymTensor>& field) const;
-  virtual void applyGhostBoundary(FieldSpace::Field<Dimension, ThirdRankTensor>& field) const;
-  virtual void applyGhostBoundary(FieldSpace::Field<Dimension, std::vector<Scalar> >& field) const;
+  virtual void applyGhostBoundary(FieldSpace::Field<Dimension, int>& field) const override;
+  virtual void applyGhostBoundary(FieldSpace::Field<Dimension, Scalar>& field) const override;
+  virtual void applyGhostBoundary(FieldSpace::Field<Dimension, Vector>& field) const override;
+  virtual void applyGhostBoundary(FieldSpace::Field<Dimension, Tensor>& field) const override;
+  virtual void applyGhostBoundary(FieldSpace::Field<Dimension, SymTensor>& field) const override;
+  virtual void applyGhostBoundary(FieldSpace::Field<Dimension, ThirdRankTensor>& field) const override;
+  virtual void applyGhostBoundary(FieldSpace::Field<Dimension, std::vector<Scalar>>& field) const override;
+  virtual void applyGhostBoundary(FieldSpace::Field<Dimension, std::vector<Vector>>& field) const override;
 
   // Distributed boundaries don't have "violate" nodes, so override these
   // methods to no-ops.
-  virtual void setViolationNodes(NodeSpace::NodeList<Dimension>& nodeList);
-  virtual void updateViolationNodes(NodeSpace::NodeList<Dimension>& nodeList);
-  virtual void enforceBoundary(FieldSpace::Field<Dimension, int>& field) const;
-  virtual void enforceBoundary(FieldSpace::Field<Dimension, Scalar>& field) const;
-  virtual void enforceBoundary(FieldSpace::Field<Dimension, Vector>& field) const;
-  virtual void enforceBoundary(FieldSpace::Field<Dimension, Tensor>& field) const;
-  virtual void enforceBoundary(FieldSpace::Field<Dimension, SymTensor>& field) const;
-  virtual void enforceBoundary(FieldSpace::Field<Dimension, ThirdRankTensor>& field) const;
+  virtual void setViolationNodes(NodeSpace::NodeList<Dimension>& nodeList) override;
+  virtual void updateViolationNodes(NodeSpace::NodeList<Dimension>& nodeList) override;
+  virtual void enforceBoundary(FieldSpace::Field<Dimension, int>& field) const override;
+  virtual void enforceBoundary(FieldSpace::Field<Dimension, Scalar>& field) const override;
+  virtual void enforceBoundary(FieldSpace::Field<Dimension, Vector>& field) const override;
+  virtual void enforceBoundary(FieldSpace::Field<Dimension, Tensor>& field) const override;
+  virtual void enforceBoundary(FieldSpace::Field<Dimension, SymTensor>& field) const override;
+  virtual void enforceBoundary(FieldSpace::Field<Dimension, ThirdRankTensor>& field) const override;
   //**********************************************************************
 
   // Override the base method to finalize ghost boundaries.
-  virtual void finalizeGhostBoundary() const;
+  virtual void finalizeGhostBoundary() const override;
 
   // We do not want to use the parallel ghost nodes as generators.
-  virtual bool meshGhostNodes() const;
+  virtual bool meshGhostNodes() const override;
 
   // Unpack a packed set of Field values back into the Field.
   template<typename DataType>
@@ -150,9 +151,6 @@ public:
 
   // Force the exchanges which have been registered to execute.
   void finalizeExchanges();
-
-  // Helper function to get the NestedGridNeighbor object from a NodeList.
-  NeighborSpace::NestedGridNeighbor<Dimension>& getNestedGridNeighbor(const NodeSpace::NodeList<Dimension>* nodeListPtr) const;
 
   // Update the control and ghost nodes of the base class.
   void setControlAndGhostNodes();
@@ -176,7 +174,7 @@ protected:
                                  const int domainID);
 
   // Override the Boundary method for clearing the maps.
-  virtual void reset(const DataBaseSpace::DataBase<Dimension>& dataBase);
+  virtual void reset(const DataBaseSpace::DataBase<Dimension>& dataBase) override;
 
   // This handy helper method will build receive and ghost nodes on all each
   // domain based on send nodes that have already been filled in.
@@ -195,7 +193,8 @@ private:
   mutable std::vector<FieldSpace::Field<Dimension, Tensor>*> mTensorExchangeFields;
   mutable std::vector<FieldSpace::Field<Dimension, SymTensor>*> mSymTensorExchangeFields;
   mutable std::vector<FieldSpace::Field<Dimension, ThirdRankTensor>*> mThirdRankTensorExchangeFields;
-  mutable std::vector<FieldSpace::Field<Dimension, std::vector<Scalar> >*> mVectorScalarExchangeFields;
+  mutable std::vector<FieldSpace::Field<Dimension, std::vector<Scalar>>*> mVectorScalarExchangeFields;
+  mutable std::vector<FieldSpace::Field<Dimension, std::vector<Vector>>*> mVectorVectorExchangeFields;
 
   // Internal tag for MPI communiators.
   mutable int mMPIFieldTag;

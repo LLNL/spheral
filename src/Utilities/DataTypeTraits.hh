@@ -11,6 +11,7 @@
 #include <vector>
 #include "boost/tuple/tuple.hpp"
 #include "Geometry/Dimension.hh"
+#include "Geometry/polyclipper.hh"
 #include "RegisterMPIDataTypes.hh"
 
 #ifdef USE_MPI
@@ -174,7 +175,7 @@ template<>
 struct DataTypeTraits<Dim<1>::Vector> {
   typedef double ElementType;
   static bool fixedSize() { return true; }
-  static int numElements(const Dim<1>::Vector& x) { return 1; }
+  static int numElements(const Dim<1>::Vector& x) { return Dim<1>::Vector::numElements; }
   static Dim<1>::Vector zero() { return Dim<1>::Vector::zero; }
 #ifdef USE_MPI
   static MPI_Datatype MpiDataType() { return RegisterMPIDataTypes::instance().MPI_Vector1d; }
@@ -185,7 +186,7 @@ template<>
 struct DataTypeTraits<Dim<1>::Vector3d> {
   typedef double ElementType;
   static bool fixedSize() { return true; }
-  static int numElements(const Dim<1>::Vector3d& x) { return 3; }
+  static int numElements(const Dim<1>::Vector3d& x) { return Dim<1>::Vector3d::numElements; }
   static Dim<1>::Vector3d zero() { return Dim<1>::Vector3d::zero; }
 #ifdef USE_MPI
   static MPI_Datatype MpiDataType() { return RegisterMPIDataTypes::instance().MPI_Vector3d; }
@@ -196,7 +197,7 @@ template<>
 struct DataTypeTraits<Dim<1>::Tensor> {
   typedef double ElementType;
   static bool fixedSize() { return true; }
-  static int numElements(const Dim<1>::Tensor& x) { return 1; }
+  static int numElements(const Dim<1>::Tensor& x) { return Dim<1>::Tensor::numElements; }
   static Dim<1>::Tensor zero() { return Dim<1>::Tensor::zero; }
 #ifdef USE_MPI
   static MPI_Datatype MpiDataType() { return RegisterMPIDataTypes::instance().MPI_Tensor1d; }
@@ -207,7 +208,7 @@ template<>
 struct DataTypeTraits<Dim<1>::SymTensor> {
   typedef double ElementType;
   static bool fixedSize() { return true; }
-  static int numElements(const Dim<1>::SymTensor& x) { return 1; }
+  static int numElements(const Dim<1>::SymTensor& x) { return Dim<1>::SymTensor::numElements; }
   static Dim<1>::SymTensor zero() { return Dim<1>::SymTensor::zero; }
 #ifdef USE_MPI
   static MPI_Datatype MpiDataType() { return RegisterMPIDataTypes::instance().MPI_SymTensor1d; }
@@ -257,7 +258,7 @@ template<>
 struct DataTypeTraits<Dim<2>::Vector> {
   typedef double ElementType;
   static bool fixedSize() { return true; }
-  static int numElements(const Dim<2>::Vector& x) { return 2; }
+  static int numElements(const Dim<2>::Vector& x) { return Dim<2>::Vector::numElements; }
   static Dim<2>::Vector zero() { return Dim<2>::Vector::zero; }
 #ifdef USE_MPI
   static MPI_Datatype MpiDataType() { return RegisterMPIDataTypes::instance().MPI_Vector2d; }
@@ -268,7 +269,7 @@ template<>
 struct DataTypeTraits<Dim<2>::Tensor> {
   typedef double ElementType;
   static bool fixedSize() { return true; }
-  static int numElements(const Dim<2>::Tensor& x) { return 4; }
+  static int numElements(const Dim<2>::Tensor& x) { return Dim<2>::Tensor::numElements; }
   static Dim<2>::Tensor zero() { return Dim<2>::Tensor::zero; }
 #ifdef USE_MPI
   static MPI_Datatype MpiDataType() { return RegisterMPIDataTypes::instance().MPI_Tensor2d; }
@@ -279,7 +280,7 @@ template<>
 struct DataTypeTraits<Dim<2>::SymTensor> {
   typedef double ElementType;
   static bool fixedSize() { return true; }
-  static int numElements(const Dim<2>::SymTensor& x) { return 3; }
+  static int numElements(const Dim<2>::SymTensor& x) { return Dim<2>::SymTensor::numElements; }
   static Dim<2>::SymTensor zero() { return Dim<2>::SymTensor::zero; }
 #ifdef USE_MPI
   static MPI_Datatype MpiDataType() { return RegisterMPIDataTypes::instance().MPI_SymTensor2d; }
@@ -329,7 +330,7 @@ template<>
 struct DataTypeTraits<Dim<3>::Vector> {
   typedef double ElementType;
   static bool fixedSize() { return true; }
-  static int numElements(const Dim<3>::Vector& x) { return 3; }
+  static int numElements(const Dim<3>::Vector& x) { return Dim<3>::Vector::numElements; }
   static Dim<3>::Vector zero() { return Dim<3>::Vector::zero; }
 #ifdef USE_MPI
   static MPI_Datatype MpiDataType() { return RegisterMPIDataTypes::instance().MPI_Vector3d; }
@@ -340,7 +341,7 @@ template<>
 struct DataTypeTraits<Dim<3>::Tensor> {
   typedef double ElementType;
   static bool fixedSize() { return true; }
-  static int numElements(const Dim<3>::Tensor& x) { return 9; }
+  static int numElements(const Dim<3>::Tensor& x) { return Dim<3>::Tensor::numElements; }
   static Dim<3>::Tensor zero() { return Dim<3>::Tensor::zero; }
 #ifdef USE_MPI
   static MPI_Datatype MpiDataType() { return RegisterMPIDataTypes::instance().MPI_Tensor3d; }
@@ -351,7 +352,7 @@ template<>
 struct DataTypeTraits<Dim<3>::SymTensor> {
   typedef double ElementType;
   static bool fixedSize() { return true; }
-  static int numElements(const Dim<3>::SymTensor& x) { return 6; }
+  static int numElements(const Dim<3>::SymTensor& x) { return Dim<3>::SymTensor::numElements; }
   static Dim<3>::SymTensor zero() { return Dim<3>::SymTensor::zero; }
 #ifdef USE_MPI
   static MPI_Datatype MpiDataType() { return RegisterMPIDataTypes::instance().MPI_SymTensor3d; }
@@ -394,6 +395,25 @@ struct DataTypeTraits<Dim<3>::FifthRankTensor> {
 template<>
 struct DataTypeTraits<Dim<3>::FacetedVolume> {
   static Dim<3>::FacetedVolume zero() { return Dim<3>::FacetedVolume(); }
+};
+
+//------------------------------------------------------------------------------
+template<>
+struct DataTypeTraits<PolyClipper::Vertex2d> {
+  typedef PolyClipper::Vertex2d ElementType;
+  static bool fixedSize() { return false; }
+  static int numElements(const ElementType& x) { return (DataTypeTraits<Dim<2>::Vector>::numElements(Dim<2>::Vector::zero) + 4); }
+  static ElementType zero() { return PolyClipper::Vertex2d(); }
+};
+
+template<>
+struct DataTypeTraits<PolyClipper::Vertex3d> {
+  typedef PolyClipper::Vertex3d ElementType;
+  static bool fixedSize() { return false; }
+  static int numElements(const ElementType& x) { return (DataTypeTraits<Dim<3>::Vector>::numElements(Dim<3>::Vector::zero) +
+                                                         x.neighbors.size() +
+                                                         2); }
+  static ElementType zero() { return PolyClipper::Vertex3d(); }
 };
 
 }

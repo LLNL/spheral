@@ -74,7 +74,7 @@ public:
   // This is the method required of all descendent classes.
   virtual void redistributeNodes(DataBaseSpace::DataBase<Dimension>& dataBase,
                                  std::vector<BoundarySpace::Boundary<Dimension>*> boundaries =
-                                 std::vector<BoundarySpace::Boundary<Dimension>*>());
+                                 std::vector<BoundarySpace::Boundary<Dimension>*>()) override;
 
   // Compute the cell size in each dimension.
   Vector computeStepSize(const std::pair<Vector, Vector>& box) const;

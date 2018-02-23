@@ -1,4 +1,4 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup>
     <Filter Include="Source Files">
@@ -12,10 +12,10 @@
     <ClCompile Include="..\..\src\CInterface\SpheralC.cc">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\src\CInterface\SpheralPseudoScript2D.cc">
+    <ClCompile Include="..\..\src\CInterface\SpheralPseudoScript.cc">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\src\CInterface\SpheralPseudoScript3D.cc">
+    <ClCompile Include="..\..\src\CInterface\SpheralPseudoScriptRZ.cc">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
@@ -26,6 +26,11 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="..\..\src\CInterface\SpheralPseudoScript.hh">
+      <Filter>Header Files</Filter>
+    </None>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="..\..\src\CInterface\SpheralPseudoScriptRZ.hh">
       <Filter>Header Files</Filter>
     </None>
   </ItemGroup>

@@ -4,6 +4,7 @@
 //
 namespace FractalSpace
 {
+  MPI_Comm Fractal_Memory::FRACTAL_UNIVERSE;
   void Fractal_Memory::set_G(double Cavendish)
   {
     G=Cavendish;
@@ -31,7 +32,6 @@ namespace FractalSpace
   void Fractal_Memory::calc_FractalNodes()
   {
     FractalNodes=FractalNodes0*FractalNodes1*FractalNodes2;
-    MPIrun=FractalNodes > 1;
     Boxes.resize(FractalNodes);
     int length=grid_length;
     if(!periodic)

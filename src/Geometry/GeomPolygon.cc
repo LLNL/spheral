@@ -5,13 +5,6 @@
 //
 // Created by JMO, Thu Jan 28 11:03:27 PST 2010
 //----------------------------------------------------------------------------//
-#include <algorithm>
-#include <numeric>
-#include <map>
-#include <limits>
-#include <stdio.h>
-#include <stdint.h>
-
 // #include "polytope/polytope.hh"
 // #include "polytope/convexHull_2d.hh"
 
@@ -23,6 +16,13 @@
 #include "Utilities/lineSegmentIntersections.hh"
 #include "Utilities/CounterClockwiseComparator.hh"
 #include "Utilities/pointInPolygon.hh"
+
+#include <algorithm>
+#include <numeric>
+#include <map>
+#include <limits>
+#include <iostream>
+#include <iterator>
 
 //------------------------------------------------------------------------------
 // It seems there is a missing specialization for abs(long unsigned int), so 
@@ -398,7 +398,10 @@ GeomPolygon(const vector<GeomPolygon::Vector>& points):
     setBoundingBox();
 
     // Compute the ancillary geometry.
-    GeometryUtilities::computeAncillaryGeometry(*this, mVertexFacetConnectivity, mFacetFacetConnectivity, mVertexUnitNorms, false);
+    mVertexFacetConnectivity.clear();
+    mFacetFacetConnectivity.clear();
+    mVertexUnitNorms.clear();
+    // GeometryUtilities::computeAncillaryGeometry(*this, mVertexFacetConnectivity, mFacetFacetConnectivity, mVertexUnitNorms, false);
 
     // Post-conditions.
     BEGIN_CONTRACT_SCOPE
@@ -465,7 +468,10 @@ GeomPolygon(const vector<GeomPolygon::Vector>& points,
   mConvex = this->convex();
 
   // Compute the ancillary geometry.
-  GeometryUtilities::computeAncillaryGeometry(*this, mVertexFacetConnectivity, mFacetFacetConnectivity, mVertexUnitNorms, false);
+  mVertexFacetConnectivity.clear();
+  mFacetFacetConnectivity.clear();
+  mVertexUnitNorms.clear();
+  // GeometryUtilities::computeAncillaryGeometry(*this, mVertexFacetConnectivity, mFacetFacetConnectivity, mVertexUnitNorms, false);
 }
 
 //------------------------------------------------------------------------------
@@ -498,7 +504,7 @@ operator=(const GeomPolygon& rhs) {
                                                                   facet.ipoint1(),
                                                                   facet.ipoint2()));
     mVertexFacetConnectivity = rhs.mVertexFacetConnectivity;
-    mFacetFacetConnectivity = rhs.mVertexFacetConnectivity;
+    mFacetFacetConnectivity = rhs.mFacetFacetConnectivity;
     mVertexUnitNorms = rhs.mVertexUnitNorms;
     mXmin = rhs.mXmin;
     mXmax = rhs.mXmax;
@@ -686,25 +692,20 @@ intersect(const GeomPolygon::Vector& x0, const GeomPolygon::Vector& x1) const {
 GeomPolygon::Vector
 GeomPolygon::
 centroid() const {
-  const unsigned n = mVertices.size();
-  Vector result;
-  if (n == 0) return result;
+  const int n = mVertices.size();
+  if (n == 0) return Vector::zero;
   CHECK(n >= 3);
-  const Vector c0 = std::accumulate(mVertices.begin(), mVertices.end(), Vector())/n;
 
-  // Specialize for triangles, which are easy!
-  if (n == 3) return c0;
-
-  unsigned i, j;
+  Vector result;
+  int i, j;
   double area, areasum = 0.0;
-  for (i = 0; i != n; ++i) {
+  for (i = 0; i < n; ++i) {
     j = (i + 1) % n;
-    area = (mVertices[i] - c0).cross(mVertices[j] - c0).z(); // This is off by a factor of 2 but will cancel.
+    area = ((mVertices[i] - mVertices[0]).cross(mVertices[j] - mVertices[0])).z(); // This is off by a factor of 2 but will cancel.
     areasum += area;
-    result += area * (c0 + mVertices[i] + mVertices[j]);
+    result += area * (mVertices[0] + mVertices[i] + mVertices[j]);
   }
-  CHECK(areasum > 0.0);
-  return result/(3.0 * areasum);
+  return result*safeInvVar(3.0 * areasum);
 }
 
 //------------------------------------------------------------------------------
@@ -759,7 +760,10 @@ reconstruct(const vector<GeomPolygon::Vector>& vertices,
   }
   setBoundingBox();
   mConvex = this->convex();
-  GeometryUtilities::computeAncillaryGeometry(*this, mVertexFacetConnectivity, mFacetFacetConnectivity, mVertexUnitNorms, false);
+  mVertexFacetConnectivity.clear();
+  mFacetFacetConnectivity.clear();
+  mVertexUnitNorms.clear();
+  // GeometryUtilities::computeAncillaryGeometry(*this, mVertexFacetConnectivity, mFacetFacetConnectivity, mVertexUnitNorms, false);
   ENSURE(mFacets.size() == facetVertices.size());
   ENSURE(mFacetFacetConnectivity.size() == 0); // mFacets.size());
 }
@@ -771,9 +775,8 @@ double
 GeomPolygon::
 volume() const {
   double result = 0.0;
-  const Vector c = centroid();
   for (const Facet& facet: mFacets) {
-    result += ((facet.point2() - facet.point1()).cross(c - facet.point1())).z();
+    result += ((facet.point2() - facet.point1()).cross(mVertices[0] - facet.point1())).z();
   }
   ENSURE2(result >= 0.0, result);
   return 0.5*result;
@@ -966,11 +969,17 @@ convex(const double tol) const {
 ostream& operator<<(ostream& os, const GeomPolygon& polygon) {
   typedef GeomPolygon::Vector Vector;
   typedef GeomPolygon::Facet Facet;
-  const vector<Vector>& vertices = polygon.vertices();
+  const auto& vertices = polygon.vertices();
+  const auto& facets = polygon.facets();
   if (vertices.size() > 0) {
-    for (unsigned i = 0; i != vertices.size(); ++i) {
-      os << vertices[i].x() << " " << vertices[i].y() << endl;
+    os << "Coordinates: ";
+    std::copy(vertices.begin(), vertices.end(), std::ostream_iterator<Vector>(os, " "));
+    os << "\n"
+       << "     Facets:";
+    for (const auto& facet: facets) {
+      os << " [" << facet.ipoint1() << " " << facet.ipoint2() << "]";
     }
+    os << "\n";
   }
   return os;
 }

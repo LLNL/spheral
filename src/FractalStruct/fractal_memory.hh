@@ -10,7 +10,7 @@ namespace FractalSpace
     string RUN;
     MPI_Comm FractalWorld;
     bool standalone;
-    bool MPIrun;
+    const bool MPIrun;
     bool balance;
     int FractalNodes;
     int FractalNodes0;
@@ -21,11 +21,9 @@ namespace FractalSpace
     bool time_trial;
     int min_hypre_group_size;
     bool hypre_load_balance;
-//     int HypreMaxSpecial;
     int hypre_min_node_load;
     int hypre_max_node_load;
     double hypre_multiplier;
-//     int hypre_max_average_load;
     double G;
     vector <double>xmin;
     vector <double>xmax;
@@ -40,8 +38,6 @@ namespace FractalSpace
     vector < vector <int> > FRPBoxesLev;
     vector < vector < vector <int> > > BoxesLev;
     vector < vector < vector <int> > > BBoxesLev;
-//     vector < vector < vector <int> > > HRBoxesLev;
-//     vector < vector < vector <int> > > HSBoxesLev;
     vector < vector < vector <int> > > PBoxesLev;
     vector < vector <int> > PBoxesLength;
     vector < vector <double> > RealBoxes;
@@ -88,7 +84,7 @@ namespace FractalSpace
     int random_offset;
     int maxits;
     double base_mass;
-    double epsilon_sor;
+    double HTOL;
     double force_max;
     double halo_scale;
     double halo_density0;
@@ -162,6 +158,7 @@ namespace FractalSpace
     Fractal* p_fractal;
     Mess* p_mess;
     File* p_file;
+    static MPI_Comm FRACTAL_UNIVERSE;
     Fractal_Memory():
       //
       // default values
@@ -171,8 +168,8 @@ namespace FractalSpace
       RUN("abc"),
       FractalWorld(MPI_COMM_WORLD),
       standalone(true),
-      MPIrun(false),
-      balance(0),
+      MPIrun(true),
+      balance(1),
       FractalNodes(1),
       FractalNodes0(1),
       FractalNodes1(1),
@@ -212,15 +209,13 @@ namespace FractalSpace
       moat_0(1),
       minimum_number(8),
       padding(-1),
-      // padding(1),
-      // level_max(8),
       level_max(8),
       number_steps_total(113),
       number_steps_out(20),
       random_offset(0),
       maxits(20),
       base_mass(1.0),
-      epsilon_sor(1.0e-7),
+      HTOL(1.0e-7),
       force_max(-1.0),
       halo_scale(1.0),
       halo_density0(1.0),
@@ -274,11 +269,11 @@ namespace FractalSpace
       split_particles= force_max > 0.0;
       xmin.assign(3,0.0);
       xmax.assign(3,1.0);
-      //
+    //
     }
     ~Fractal_Memory()
     {
-      cerr << "Ending Fractal_Memory " << this << "\n";
+      // cerr << "Ending Fractal_Memory " << this << "\n";
     }
     //
     void set_G(double Cavendish);

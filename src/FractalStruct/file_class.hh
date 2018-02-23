@@ -35,7 +35,7 @@ namespace FractalSpace
 	cerr << sRank << "\n";
       for(int ni=0;ni<26;ni++)
 	{
-	  Directory=BaseDirectory+RUN+extras[ni]+"_"+sRank+"/";
+	  Directory=BaseDirectory+RUN+"_"+extras[ni]+"_"+sRank+"/";
 	  if(Rank == 0)
 	    cerr << Directory << "\n";
 	  char cDirectory[200];
@@ -89,7 +89,7 @@ namespace FractalSpace
 	cerr << sRank << "\n";
       for(int ni=0;ni<26;ni++)
 	{
-	  Directory=BaseDirectory+RUN+extras[ni]+"_"+sRank+"/";
+	  Directory=BaseDirectory+RUN+"_"+extras[ni]+"_"+sRank+"/";
 	  //	  cerr << " Really Directory " << Directory << "\n";
 	  char cDirectory[200];
 	  size_t dir_length=Directory.copy(cDirectory,1000,0);

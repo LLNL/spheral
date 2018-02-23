@@ -30,7 +30,6 @@ units = PhysicalConstants(0.01,  # Unit length in m
 #-------------------------------------------------------------------------------
 commandLine(nxAl = 100,
             nxTa = 0,       # 0 implies automatically mass match against Al
-            nPerh = 2.01,
 
             # Material specific bounds on the mass density.
             etamin = 1e-3,
@@ -40,16 +39,7 @@ commandLine(nxAl = 100,
             useStrength = True,
 
             # Hydro parameters.
-            CRKSPH = False,
-            Qconstructor = MonaghanGingoldViscosity,
-            Cl = 1.0,
-            Cq = 1.0,
-            linearInExpansion = False,
-            Qlimiter = False,
-            balsaraCorrection = False,
-            epsilon2 = 1e-2,
-            negligibleSoundSpeed = 1e-5,
-            csMultiplier = 1e-4,
+            crksph = False,
             hmin = 1e-5,
             hmax = 0.1,
             cfl = 0.25,
@@ -95,17 +85,19 @@ if nxTa == 0:
     print "Selected %i Ta points to mass match with %i Al points." % (nxTa, nxAl)
 
 # Hydro constructor.
-if CRKSPH:
-    HydroConstructor = SolidCRKSPHHydro
-    Qconstructor = CRKSPHMonaghanGingoldViscosity
+if crksph:
+    hydroname = "CRKSPH"
+    kernelOrder = 7
+    nPerh = 1.01
 else:
-    HydroConstructor = SolidSPHHydro
+    hydroname = "SPH"
+    kernelOrder = 5
+    nPerh = 1.51
 
 # Directories.
 dataDir = os.path.join(dataDirBase,
                        "strength=%s" % useStrength,
-                       str(HydroConstructor).split("'")[1].split(".")[-1],
-                       str(Qconstructor).split("'")[1].split(".")[-1],
+                       hydroname,
                        "densityUpdate=%s" % densityUpdate,
                        "nxAl=%i_nxTa=%i" % (nxAl, nxTa))
 restartDir = os.path.join(dataDir, "restarts")
@@ -226,7 +218,7 @@ if not useStrength:
 # Create our interpolation kernels -- one for normal hydro interactions, and
 # one for use with the artificial viscosity
 #-------------------------------------------------------------------------------
-WT = TableKernel(BSplineKernel(), 1000)
+WT = TableKernel(NBSplineKernel(kernelOrder), 1000)
 output("WT")
 
 #-------------------------------------------------------------------------------
@@ -275,48 +267,29 @@ output("db.numNodeLists")
 output("db.numFluidNodeLists")
 
 #-------------------------------------------------------------------------------
-# Construct the artificial viscosities for the problem.
-#-------------------------------------------------------------------------------
-q = Qconstructor(Cl, Cq, linearInExpansion)
-q.limiter = Qlimiter
-q.balsaraShearCorrection = balsaraCorrection
-q.epsilon2 = epsilon2
-q.negligibleSoundSpeed = negligibleSoundSpeed
-q.csMultiplier = csMultiplier
-output("q")
-output("q.Cl")
-output("q.Cq")
-output("q.linearInExpansion")
-output("q.limiter")
-output("q.epsilon2")
-output("q.negligibleSoundSpeed")
-output("q.csMultiplier")
-output("q.balsaraShearCorrection")
-
-#-------------------------------------------------------------------------------
 # Construct the hydro physics object.
 #-------------------------------------------------------------------------------
-if CRKSPH:
-    hydro = HydroConstructor(W = WT,
-                             Q = q,
-                             filter = filter,
-                             cfl = cfl,
-                             compatibleEnergyEvolution = compatibleEnergy,
-                             XSPH = XSPH,
-                             densityUpdate = densityUpdate,
-                             HUpdate = HUpdate)
+if crksph:
+    hydro = CRKSPH(dataBase = db,
+                   W = WT,
+                   filter = filter,
+                   cfl = cfl,
+                   compatibleEnergyEvolution = compatibleEnergy,
+                   XSPH = XSPH,
+                   densityUpdate = densityUpdate,
+                   HUpdate = HUpdate)
 else:
-    hydro = HydroConstructor(W = WT,
-                             Q = q,
-                             filter = filter,
-                             cfl = cfl,
-                             compatibleEnergyEvolution = compatibleEnergy,
-                             gradhCorrection = gradhCorrection,
-                             densityUpdate = densityUpdate,
-                             HUpdate = HUpdate,
-                             XSPH = XSPH,
-                             epsTensile = epsilonTensile,
-                             nTensile = nTensile)
+    hydro = SPH(dataBase = db,
+                W = WT,
+                filter = filter,
+                cfl = cfl,
+                compatibleEnergyEvolution = compatibleEnergy,
+                gradhCorrection = gradhCorrection,
+                densityUpdate = densityUpdate,
+                HUpdate = HUpdate,
+                XSPH = XSPH,
+                epsTensile = epsilonTensile,
+                nTensile = nTensile)
 output("hydro")
 output("hydro.cfl")
 output("hydro.useVelocityMagnitudeForDt")

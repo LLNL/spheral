@@ -1,7 +1,6 @@
 #include "NodeList/NodeList.hh"
 #include "Field/Field.hh"
 #include "DataBase/DataBase.hh"
-#include "Neighbor/NestedGridNeighbor.hh"
 #include "Communicator.hh"
 
 namespace Spheral {
@@ -39,19 +38,6 @@ DistributedBoundary<Dimension>::numDomains() const {
   int nProcs;
   MPI_Comm_size(Communicator::communicator(), &nProcs);
   return nProcs;
-}
-
-//------------------------------------------------------------------------------
-// Get the NestedGridNeighbor associated with the given NodeList.
-//------------------------------------------------------------------------------
-template<typename Dimension>
-inline
-NeighborSpace::NestedGridNeighbor<Dimension>&
-DistributedBoundary<Dimension>::
-getNestedGridNeighbor(const NodeSpace::NodeList<Dimension>* nodeListPtr) const {
-  // Extract the neighbor pointer, and cast it to a NestedGridNeighbor object.
-  NeighborSpace::NestedGridNeighbor<Dimension>& neighbor = dynamic_cast<NeighborSpace::NestedGridNeighbor<Dimension>&>(nodeListPtr->neighbor());
-  return neighbor;
 }
 
 //------------------------------------------------------------------------------
