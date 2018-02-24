@@ -20,14 +20,16 @@ include $(BUILDTOP)/helpers/makefile_master
 LIBS += -lsiloh5 -lhdf5 $(LDRPATH)
 
 #-------------------------------------------------------------------------------
-CP = cp
+.PHONY:	all
 
 force_build:
 
+#FILTEREDPYTHONPKGS = $(filter-out $(PKGNAME), $(filter-out Python, $(PYTHONPKGS)))
+
 all:	@PYTHONPKGS@
 
-$(PYTHONPKGS):	force_build
-	cd $(BUILDTOP)/$(PKGDIR)/$@; \
+@PYTHONPKGS@:	force_build
+	cd $(BUILDTOP)/Pybind11Wraps/$@; \
 	$(MAKE) all
 
 Spheral.pth:	force_build

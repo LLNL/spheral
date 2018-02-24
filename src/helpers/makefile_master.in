@@ -209,7 +209,6 @@ else
 
 # Pybind11 
   EXTRAINCLUDES += -I$(prefix)/include/python$(PYTHONVERSION)
-  FILTEREDPYTHONPKGS = $(filter-out $(PKGNAME), $(filter-out Python, $(PYTHONPKGS)))
 endif
 
 #-------------------------------------------------------------------------------
