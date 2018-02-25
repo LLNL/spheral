@@ -54,7 +54,9 @@ public:
   typedef typename Dimension::SymTensor SymTensor;
   typedef Spheral::GeomPlane<Dimension> Plane;
 
-  virtual void setMasterList(int nodeID) override {
+  virtual void setMasterList(int nodeID,
+                             std::vector<int>& masterList,
+                             std::vector<int>& coarseNeighbors) const override {
     PYBIND11_OVERLOAD(void,         // Return type
                       NeighborBase, // Parent class
                       setMasterList,// name of method
@@ -62,7 +64,9 @@ public:
       );
   }
 
-  virtual void setRefineNeighborList(int nodeID) override {
+  virtual void setRefineNeighborList(int nodeID,
+                                     const std::vector<int>& coarseNeighbors,
+                                     std::vector<int>& refineNeighbors) const override {
     PYBIND11_OVERLOAD(void,                 // Return type
                       NeighborBase,         // Parent class
                       setRefineNeighborList,// name of method
@@ -70,7 +74,9 @@ public:
       );
   }
 
-  virtual void setMasterList(const Vector& position, const Scalar& H) override {
+  virtual void setMasterList(const Vector& position, const Scalar& H,
+                             std::vector<int>& masterList,
+                             std::vector<int>& coarseNeighbors) const override {
     PYBIND11_OVERLOAD_PURE(void,                 // Return type
                            NeighborBase,         // Parent class
                            setMasterList,        // name of method
@@ -78,7 +84,10 @@ public:
       );
   }
 
-  virtual void setMasterList(const Vector& position, const SymTensor& H) override {
+  virtual void setMasterList(const Vector& position, const SymTensor& H,
+                             std::vector<int>& masterList,
+                             std::vector<int>& coarseNeighbors) const override {
+
     PYBIND11_OVERLOAD_PURE(void,                 // Return type
                            NeighborBase,         // Parent class
                            setMasterList,        // name of method
@@ -86,7 +95,9 @@ public:
       );
   }
 
-  virtual void setRefineNeighborList(const Vector& position, const Scalar& H) override {
+  virtual void setRefineNeighborList(const Vector& position, const Scalar& H,
+                                     const std::vector<int>& coarseNeighbors,
+                                     std::vector<int>& refineNeighbors) const override {
     PYBIND11_OVERLOAD_PURE(void,                 // Return type
                            NeighborBase,         // Parent class
                            setRefineNeighborList,// name of method
@@ -94,7 +105,9 @@ public:
       );
   }
 
-  virtual void setRefineNeighborList(const Vector& position, const SymTensor& H) override {
+  virtual void setRefineNeighborList(const Vector& position, const SymTensor& H,
+                                     const std::vector<int>& coarseNeighbors,
+                                     std::vector<int>& refineNeighbors) const override {
     PYBIND11_OVERLOAD_PURE(void,                 // Return type
                            NeighborBase,         // Parent class
                            setRefineNeighborList,// name of method
@@ -102,7 +115,9 @@ public:
       );
   }
 
-  virtual void setMasterList(const Vector& position) override {
+  virtual void setMasterList(const Vector& position,
+                             std::vector<int>& masterList,
+                             std::vector<int>& coarseNeighbors) const override {
     PYBIND11_OVERLOAD_PURE(void,                 // Return type
                            NeighborBase,         // Parent class
                            setMasterList,        // name of method
@@ -110,7 +125,9 @@ public:
       );
   }
 
-  virtual void setRefineNeighborList(const Vector& position) override {
+  virtual void setRefineNeighborList(const Vector& position,
+                                     const std::vector<int>& coarseNeighbors,
+                                     std::vector<int>& refineNeighbors) const override {
     PYBIND11_OVERLOAD_PURE(void,                 // Return type
                            NeighborBase,         // Parent class
                            setRefineNeighborList,// name of method
@@ -118,7 +135,9 @@ public:
       );
   }
 
-  virtual void setMasterList(const Plane& enterPlane, const Plane& exitPlane) override {
+  virtual void setMasterList(const Plane& enterPlane, const Plane& exitPlane,
+                             std::vector<int>& masterList,
+                             std::vector<int>& coarseNeighbors) const override {
     PYBIND11_OVERLOAD_PURE(void,                 // Return type
                            NeighborBase,         // Parent class
                            setMasterList,        // name of method
@@ -168,15 +187,15 @@ void virtualNeighborBindings(py::module& m, const std::string suffix, PB11Obj& o
   obj
 
     // Methods
-    .def("setMasterList", (void (Obj::*)(const Vector&, const Scalar&)) &Obj::setMasterList, "position"_a, "h"_a)
-    .def("setMasterList", (void (Obj::*)(const Vector&, const SymTensor&)) &Obj::setMasterList, "position"_a, "H"_a)
-    .def("setMasterList", (void (Obj::*)(const Vector&)) &Obj::setMasterList, "position"_a)
+    .def("setMasterList", (void (Obj::*)(const Vector&, const Scalar&, std::vector<int>&, std::vector<int>&)) &Obj::setMasterList, "position"_a, "h"_a, "masterList"_a, "coarseNeighbors"_a)
+    .def("setMasterList", (void (Obj::*)(const Vector&, const SymTensor&, std::vector<int>&, std::vector<int>&)) &Obj::setMasterList, "position"_a, "H"_a, "masterList"_a, "coarseNeighbors"_a)
+    .def("setMasterList", (void (Obj::*)(const Vector&, std::vector<int>&, std::vector<int>&)) &Obj::setMasterList, "position"_a, "masterList"_a, "coarseNeighbors"_a)
     
-    .def("setRefineNeighborList", (void (Obj::*)(const Vector&, const Scalar&)) &Obj::setRefineNeighborList, "position"_a, "h"_a)
-    .def("setRefineNeighborList", (void (Obj::*)(const Vector&, const SymTensor&)) &Obj::setRefineNeighborList, "position"_a, "H"_a)
-    .def("setRefineNeighborList", (void (Obj::*)(const Vector&)) &Obj::setRefineNeighborList, "position"_a)
+    .def("setRefineNeighborList", (void (Obj::*)(const Vector&, const Scalar&, const std::vector<int>&, std::vector<int>&)) &Obj::setRefineNeighborList, "position"_a, "h"_a, "coarseNeighbors"_a, "refineNeighbors"_a)
+    .def("setRefineNeighborList", (void (Obj::*)(const Vector&, const SymTensor&, const std::vector<int>&, std::vector<int>&)) &Obj::setRefineNeighborList, "position"_a, "H"_a, "coarseNeighbors"_a, "refineNeighbors"_a)
+    .def("setRefineNeighborList", (void (Obj::*)(const Vector&, const std::vector<int>&, std::vector<int>&)) &Obj::setRefineNeighborList, "position"_a, "coarseNeighbors"_a, "refineNeighbors"_a)
 
-    .def("setMasterList", (void (Obj::*)(const Plane&, const Plane&)) &Obj::setMasterList, "enterPlane"_a, "exitPlane"_a)
+    .def("setMasterList", (void (Obj::*)(const Plane&, const Plane&, std::vector<int>&, std::vector<int>&)) &Obj::setMasterList, "enterPlane"_a, "exitPlane"_a, "masterList"_a, "coarseNeighbors"_a)
 
     .def("updateNodes", (void (Obj::*)()) &Obj::updateNodes)
     .def("updateNodes", (void (Obj::*)(const std::vector<int>&)) &Obj::updateNodes, "nodeIDs"_a)
@@ -299,13 +318,12 @@ void dimensionBindings(py::module& m, const std::string suffix) {
     .def("setInternalNodeExtents", &NT::setInternalNodeExtents)
     .def("setGhostNodeExtents", &NT::setGhostNodeExtents)
     .def("precullList", &NT::precullList)
-    .def("precullForLocalNodeList", &NT::precullForLocalNodeList)
     .def_static("HExtent", (Vector (*)(const Scalar&, const double)) &NT::HExtent) //, "H"_a, "kernelExtent"_a)
     .def_static("HExtent", (Vector (*)(const SymTensor&, const double)) &NT::HExtent, "H"_a, "kernelExtent"_a)
 
     // Virtual methods
-    .def("setMasterList", (void (NT::*)(int)) &NT::setMasterList, "nodeID"_a)
-    .def("setRefineNeighborList", (void (NT::*)(int)) &NT::setRefineNeighborList, "nodeID"_a)
+    .def("setMasterList", (void (NT::*)(int, std::vector<int>&, std::vector<int>&) const) &NT::setMasterList, "nodeID"_a, "masterList"_a, "coarseNeighbors"_a)
+    .def("setRefineNeighborList", (void (NT::*)(int, const std::vector<int>&, std::vector<int>&) const) &NT::setRefineNeighborList, "nodeID"_a, "coarseNeighbors"_a, "refineNeighbors"_a)
 
     // Attributes
     .def_property("neighborSearchType",
@@ -314,12 +332,6 @@ void dimensionBindings(py::module& m, const std::string suffix) {
     .def_property("kernelExtent",
                   (double (NT::*)() const) &NT::kernelExtent,
                   (void (NT::*)(double)) &NT::kernelExtent)
-    .def_property_readonly("numMaster", &NT::numMaster)
-    .def_property_readonly("numCoarse", &NT::numCoarse)
-    .def_property_readonly("numRefine", &NT::numRefine)
-    .def_property_readonly("masterList", &NT::masterList)
-    .def_property_readonly("coarseNeighborList", &NT::coarseNeighborList)
-    .def_property_readonly("refineNeighborList", &NT::refineNeighborList)
     ;
 
   //............................................................................
@@ -355,12 +367,12 @@ void dimensionBindings(py::module& m, const std::string suffix) {
     .def("occupiedGridCellsInRange", &NGT::occupiedGridCellsInRange)
     .def("gridNormal", &NGT::gridNormal)
     .def("mapGridCell", &NGT::mapGridCell)
-    .def("setNestedMasterList", (void (NGT::*)(const GCI&, const int)) &NGT::setNestedMasterList, "gridCell"_a, "gridLevel"_a)
+    .def("setNestedMasterList", (void (NGT::*)(const GCI&, const int, std::vector<int>&, std::vector<int>&) const) &NGT::setNestedMasterList, "gridCell"_a, "gridLevel"_a, "masterList"_a, "coarseNeighbors"_a)
     .def("findNestedNeighbors", &NGT::findNestedNeighbors)
 
     // Virtual methods
-    .def("setMasterList", (void (NGT::*)(int)) &NT::setMasterList, "nodeID"_a)
-    .def("setRefineNeighborList", (void (NGT::*)(int)) &NT::setRefineNeighborList, "nodeID"_a)
+    .def("setMasterList", (void (NGT::*)(int, std::vector<int>&, std::vector<int>&) const) &NT::setMasterList, "nodeID"_a, "masterList"_a, "coarseNeighbors"_a)
+    .def("setRefineNeighborList", (void (NGT::*)(int, const std::vector<int>&, std::vector<int>&) const) &NT::setRefineNeighborList, "nodeID"_a, "coarseNeighbors"_a, "refineNeighbors"_a)
 
     // Attributes
     .def_property("numGridLevels",
@@ -432,8 +444,9 @@ void dimensionBindings(py::module& m, const std::string suffix) {
 //------------------------------------------------------------------------------
 // Make the module
 //------------------------------------------------------------------------------
-PYBIND11_PLUGIN(SpheralNeighbor) {
-  py::module m("SpheralNeighbor", "Spheral Neighbor module.");
+PYBIND11_MODULE(SpheralNeighbor, m) {
+
+  m.doc() =  "Spheral Neighbor module.";
 
   //............................................................................
   // NeighborSearchType
@@ -455,6 +468,4 @@ PYBIND11_PLUGIN(SpheralNeighbor) {
 #ifdef SPHERAL3D
   dimensionBindings<Spheral::Dim<3>>(m, "3d");
 #endif
-
-  return m.ptr();
 }

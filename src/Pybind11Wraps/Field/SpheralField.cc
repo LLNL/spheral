@@ -195,10 +195,10 @@ void fieldlistBindings(py::module& m, const std::string suffix, PB11Obj& obj) {
     .def("appendField", &Obj::appendField)
     .def("deleteField", &Obj::deleteField)
     .def("appendNewField", &Obj::appendNewField)
-    .def("setMasterNodeLists", (void (Obj::*)(const Vector&, const SymTensor&) const) &Obj::setMasterNodeLists)
-    .def("setMasterNodeLists", (void (Obj::*)(const Vector&) const) &Obj::setMasterNodeLists)
-    .def("setRefineNodeLists", (void (Obj::*)(const Vector&, const SymTensor&) const) &Obj::setRefineNodeLists)
-    .def("setRefineNodeLists", (void (Obj::*)(const Vector&) const) &Obj::setRefineNodeLists)
+    .def("setMasterNodeLists", (void (Obj::*)(const Vector&, const SymTensor&, std::vector<std::vector<int>>&, std::vector<std::vector<int>>&) const) &Obj::setMasterNodeLists)
+    .def("setMasterNodeLists", (void (Obj::*)(const Vector&, std::vector<std::vector<int>>&, std::vector<std::vector<int>>&) const) &Obj::setMasterNodeLists)
+    .def("setRefineNodeLists", (void (Obj::*)(const Vector&, const SymTensor&, const std::vector<std::vector<int>>&, std::vector<std::vector<int>>&) const) &Obj::setRefineNodeLists)
+    .def("setRefineNodeLists", (void (Obj::*)(const Vector&, const std::vector<std::vector<int>>&, std::vector<std::vector<int>>&) const) &Obj::setRefineNodeLists)
     .def("Zero", &Obj::Zero)
     .def("nodeListPtrs", &Obj::nodeListPtrs)
     .def("fieldForNodeList", [](const Obj& self, const NodeList<Dimension>& x) { return *(self.fieldForNodeList(x)); })
@@ -431,8 +431,8 @@ void dimensionBindings(py::module& m, const std::string suffix) {
 //------------------------------------------------------------------------------
 // Make the module
 //------------------------------------------------------------------------------
-PYBIND11_PLUGIN(SpheralField) {
-  py::module m("SpheralField", "Spheral Field module.");
+PYBIND11_MODULE(SpheralField, m) {
+  m.doc() = "Spheral Field module.";
 
   //............................................................................
   // FieldStorageType
@@ -452,6 +452,4 @@ PYBIND11_PLUGIN(SpheralField) {
 #ifdef SPHERAL3D
   dimensionBindings<Spheral::Dim<3>>(m, "3d");
 #endif
-
-  return m.ptr();
 }

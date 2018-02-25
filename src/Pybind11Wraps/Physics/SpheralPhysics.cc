@@ -146,11 +146,11 @@ void dimensionBindings(py::module& m, const std::string suffix) {
 //------------------------------------------------------------------------------
 // Make the module
 //------------------------------------------------------------------------------
-PYBIND11_PLUGIN(SpheralPhysics) {
+PYBIND11_MODULE(SpheralPhysics, m) {
   using namespace Spheral;
   using namespace Spheral::PhysicsSpace;
 
-  py::module m("SpheralPhysics", "Spheral Physics module.");
+  m.doc() = "Spheral Physics module.";
 
   //............................................................................
   // Per dimension bindings.
@@ -165,6 +165,4 @@ PYBIND11_PLUGIN(SpheralPhysics) {
 #ifdef SPHERAL3D
   dimensionBindings<Spheral::Dim<3>>(m, "3d");
 #endif
-
-  return m.ptr();
 }

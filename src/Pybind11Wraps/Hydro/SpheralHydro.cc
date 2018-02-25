@@ -200,11 +200,11 @@ namespace {  // anonymous
 //------------------------------------------------------------------------------
 // Make the module
 //------------------------------------------------------------------------------
-PYBIND11_PLUGIN(SpheralHydro) {
+PYBIND11_MODULE(SpheralHydro, m) {
   using namespace Spheral;
   using namespace Spheral::PhysicsSpace;
 
-  py::module m("SpheralHydro", "Spheral Hydro module.");
+  m.doc() = "Spheral Hydro module.";
 
   //............................................................................
   // HydroFieldNames
@@ -299,6 +299,4 @@ PYBIND11_PLUGIN(SpheralHydro) {
 // #ifdef SPHERAL3D
 //   dimensionBindings<Spheral::Dim<3>>(m, "3d");
 // #endif
-
-  return m.ptr();
 }
