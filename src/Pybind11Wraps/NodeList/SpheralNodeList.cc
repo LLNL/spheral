@@ -337,7 +337,7 @@ void dimensionBindings(py::module& m, const std::string suffix) {
   //............................................................................
   // NodeListRegistrar
   py::class_<Spheral::NodeListRegistrar<Dimension>,
-             std::unique_ptr<Spheral::NodeListRegistrar<Dimension>, py::nodelete>>(m, ("NodeListRegistrar" + suffix).c_str(), py::metaclass())
+             std::unique_ptr<Spheral::NodeListRegistrar<Dimension>, py::nodelete>>(m, ("NodeListRegistrar" + suffix).c_str())
 
     // Attributes
     .def_property_readonly_static("instance", &Spheral::NodeListRegistrar<Dimension>::instance)
@@ -523,8 +523,9 @@ void dimensionBindings(py::module& m, const std::string suffix) {
 //------------------------------------------------------------------------------
 // Make the module
 //------------------------------------------------------------------------------
-PYBIND11_PLUGIN(SpheralNodeList) {
-  py::module m("SpheralNodeList", "Spheral NodeList module.");
+PYBIND11_MODULE(SpheralNodeList, m) {
+
+  m.doc() = "Spheral NodeList module.";
 
   //............................................................................
   // NodeType
@@ -544,6 +545,4 @@ PYBIND11_PLUGIN(SpheralNodeList) {
 #ifdef SPHERAL3D
   dimensionBindings<Spheral::Dim<3>>(m, "3d");
 #endif
-
-  return m.ptr();
 }

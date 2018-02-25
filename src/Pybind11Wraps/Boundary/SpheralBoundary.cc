@@ -428,11 +428,11 @@ void threeDimensionalBindings(py::module& m) {
 //------------------------------------------------------------------------------
 // Make the module
 //------------------------------------------------------------------------------
-PYBIND11_PLUGIN(SpheralBoundary) {
+PYBIND11_MODULE(SpheralBoundary, m) {
   using namespace Spheral;
   using namespace Spheral::BoundarySpace;
 
-  py::module m("SpheralBoundary", "Spheral Boundary module.");
+  m.doc() = "Spheral Boundary module.";
 
   //............................................................................
   // Per dimension bindings.
@@ -449,6 +449,4 @@ PYBIND11_PLUGIN(SpheralBoundary) {
   dimensionBindings<Spheral::Dim<3>>(m, "3d");
   threeDimensionalBindings(m);
 #endif
-
-  return m.ptr();
 }
