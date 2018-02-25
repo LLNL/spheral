@@ -23,7 +23,7 @@
 #include "Boundary/AxisBoundaryRZ.hh"
 
 #include "PyAbstractBoundary.hh"
-#include "PyAbstractBoundaryMesh.hh"
+// #include "PyAbstractBoundaryMesh.hh"
 #include "PyBoundary.hh"
 #include "PyPlanarBoundary.hh"
 #include "Pybind11Wraps/DataOutput/PyRestartMethods.hh"
@@ -63,41 +63,37 @@ void virtualBoundaryBindings(py::module& m, PB11Obj& obj) {
   typedef typename Dimension::ThirdRankTensor ThirdRankTensor;
   typedef Spheral::GeomPlane<Dimension> Plane;
 
-  obj
+  // Methods
+  obj.def("setAllGhostNodes", (void (Obj::*)(DataBase<Dimension>&)) &Obj::setAllGhostNodes, "dataBase"_a);
+  obj.def("setAllViolationNodes", (void (Obj::*)(DataBase<Dimension>&)) &Obj::setAllViolationNodes, "dataBase"_a);
+  obj.def("cullGhostNodes", (void (Obj::*)(const FieldList<Dimension, int>&, FieldList<Dimension, int>&, std::vector<int>&)) &Obj::cullGhostNodes, "flagSet"_a, "old2newIndexMap"_a, "numNodesRemoved"_a);
+  obj.def("setGhostNodes", (void (Obj::*)(NodeList<Dimension>&)) &Obj::setGhostNodes, "nodeList"_a);
+  obj.def("updateGhostNodes", (void (Obj::*)(NodeList<Dimension>&)) &Obj::updateGhostNodes);
 
-    // Methods
-    .def("setAllGhostNodes", (void (Obj::*)(DataBase<Dimension>&)) &Obj::setAllGhostNodes, "dataBase"_a)
-    .def("setAllViolationNodes", (void (Obj::*)(DataBase<Dimension>&)) &Obj::setAllViolationNodes, "dataBase"_a)
-    .def("cullGhostNodes", (void (Obj::*)(const FieldList<Dimension, int>&, FieldList<Dimension, int>&, std::vector<int>&)) &Obj::cullGhostNodes, "flagSet"_a, "old2newIndexMap"_a, "numNodesRemoved"_a)
-    .def("setGhostNodes", (void (Obj::*)(NodeList<Dimension>&)) &Obj::setGhostNodes, "nodeList"_a)
-    .def("updateGhostNodes", (void (Obj::*)(NodeList<Dimension>&)) &Obj::updateGhostNodes)
+  obj.def("applyGhostBoundary", (void (Obj::*)(Field<Dimension, int>&) const) &Obj::applyGhostBoundary, "field"_a);
+  obj.def("applyGhostBoundary", (void (Obj::*)(Field<Dimension, Scalar>&) const) &Obj::applyGhostBoundary, "field"_a);
+  obj.def("applyGhostBoundary", (void (Obj::*)(Field<Dimension, Vector>&) const) &Obj::applyGhostBoundary, "field"_a);
+  obj.def("applyGhostBoundary", (void (Obj::*)(Field<Dimension, Tensor>&) const) &Obj::applyGhostBoundary, "field"_a);
+  obj.def("applyGhostBoundary", (void (Obj::*)(Field<Dimension, SymTensor>&) const) &Obj::applyGhostBoundary, "field"_a);
+  obj.def("applyGhostBoundary", (void (Obj::*)(Field<Dimension, ThirdRankTensor>&) const) &Obj::applyGhostBoundary, "field"_a);
 
-    .def("applyGhostBoundary", (void (Obj::*)(Field<Dimension, int>&) const) &Obj::applyGhostBoundary, "field"_a)
-    .def("applyGhostBoundary", (void (Obj::*)(Field<Dimension, Scalar>&) const) &Obj::applyGhostBoundary, "field"_a)
-    .def("applyGhostBoundary", (void (Obj::*)(Field<Dimension, Vector>&) const) &Obj::applyGhostBoundary, "field"_a)
-    .def("applyGhostBoundary", (void (Obj::*)(Field<Dimension, Tensor>&) const) &Obj::applyGhostBoundary, "field"_a)
-    .def("applyGhostBoundary", (void (Obj::*)(Field<Dimension, SymTensor>&) const) &Obj::applyGhostBoundary, "field"_a)
-    .def("applyGhostBoundary", (void (Obj::*)(Field<Dimension, ThirdRankTensor>&) const) &Obj::applyGhostBoundary, "field"_a)
-    .def("applyGhostBoundary", (void (Obj::*)(Field<Dimension, std::vector<Scalar>>&) const) &Obj::applyGhostBoundary, "field"_a)
+  obj.def("setViolationNodes", &Obj::setViolationNodes);
+  obj.def("updateViolationNodes", &Obj::updateViolationNodes);
 
-    .def("setViolationNodes", &Obj::setViolationNodes)
-    .def("updateViolationNodes", &Obj::updateViolationNodes)
+  obj.def("enforceBoundary", (void (Obj::*)(Field<Dimension, int>&) const) &Obj::enforceBoundary, "field"_a);
+  obj.def("enforceBoundary", (void (Obj::*)(Field<Dimension, Scalar>&) const) &Obj::enforceBoundary, "field"_a);
+  obj.def("enforceBoundary", (void (Obj::*)(Field<Dimension, Vector>&) const) &Obj::enforceBoundary, "field"_a);
+  obj.def("enforceBoundary", (void (Obj::*)(Field<Dimension, Tensor>&) const) &Obj::enforceBoundary, "field"_a);
+  obj.def("enforceBoundary", (void (Obj::*)(Field<Dimension, SymTensor>&) const) &Obj::enforceBoundary, "field"_a);
+  obj.def("enforceBoundary", (void (Obj::*)(Field<Dimension, ThirdRankTensor>&) const) &Obj::enforceBoundary, "field"_a);
 
-    .def("enforceBoundary", (void (Obj::*)(Field<Dimension, int>&) const) &Obj::enforceBoundary, "field"_a)
-    .def("enforceBoundary", (void (Obj::*)(Field<Dimension, Scalar>&) const) &Obj::enforceBoundary, "field"_a)
-    .def("enforceBoundary", (void (Obj::*)(Field<Dimension, Vector>&) const) &Obj::enforceBoundary, "field"_a)
-    .def("enforceBoundary", (void (Obj::*)(Field<Dimension, Tensor>&) const) &Obj::enforceBoundary, "field"_a)
-    .def("enforceBoundary", (void (Obj::*)(Field<Dimension, SymTensor>&) const) &Obj::enforceBoundary, "field"_a)
-    .def("enforceBoundary", (void (Obj::*)(Field<Dimension, ThirdRankTensor>&) const) &Obj::enforceBoundary, "field"_a)
+  obj.def("initializeProblemStartup", &Obj::initializeProblemStartup);
+  obj.def("finalizeGhostBoundary", &Obj::finalizeGhostBoundary);
+  obj.def("reset", &Obj::reset);
+  obj.def("numGhostNodes", &Obj::numGhostNodes);
+  obj.def("clip", &Obj::clip);
 
-    .def("initializeProblemStartup", &Obj::initializeProblemStartup)
-    .def("finalizeGhostBoundary", &Obj::finalizeGhostBoundary)
-    .def("reset", &Obj::reset)
-    .def("numGhostNodes", &Obj::numGhostNodes)
-    .def("clip", &Obj::clip)
-
-    .def("addNodeList", &Obj::addNodeList)
-    ;
+  obj.def("addNodeList", &Obj::addNodeList);
 }
 
 //------------------------------------------------------------------------------
@@ -118,11 +114,12 @@ void dimensionBindings(py::module& m, const std::string suffix) {
   // Boundary
   typedef Boundary<Dimension> Bound;
   py::class_<Bound,
-             PyAbstractBoundary<Dimension, Bound>,
-             PyAbstractBoundaryMesh<Dimension, Bound>> boundaryPB11(m, ("Boundary" + suffix).c_str());
+             PyAbstractBoundary<Dimension, Bound>>
+             // PyAbstractBoundaryMesh<Dimension, Bound>>
+    boundaryPB11(m, ("Boundary" + suffix).c_str());
   virtualBoundaryBindings<Dimension, Bound>(m, boundaryPB11);
   boundaryPB11
-    
+  
     // Constructors
     .def(py::init<>())
 
@@ -171,31 +168,28 @@ void dimensionBindings(py::module& m, const std::string suffix) {
   // PlanarBoundary
   typedef PlanarBoundary<Dimension> PlanarB;
   py::class_<PlanarB,
-             PyPlanarBoundary<Dimension, PyAbstractBoundary<Dimension, PlanarB>>,
-             Spheral::PyRestartMethods<PlanarB>> pbPB11(m, ("PlanarBoundary" + suffix).c_str());
+             Spheral::PyRestartMethods<PyPlanarBoundary<Dimension, PyAbstractBoundary<Dimension, PlanarB> > > > pbPB11(m, ("PlanarBoundary" + suffix).c_str());
   // virtualBoundaryBindings<Dimension, Bound>(m, boundaryPB11);
   Spheral::restartMethodBindings<PlanarB>(m, pbPB11);
-  pbPB11
 
-    // Constructors
-    .def(py::init<>())
-    .def(py::init<const Plane&, const Plane&>(), "enterPlane"_a, "exitPlane"_a)
-    .def("mapPosition", &PlanarB::mapPosition)
-    .def("facesOnPlane", &PlanarB::facesOnPlane)
+  // Constructors
+  pbPB11.def(py::init<>());
+  // pbPB11.def(py::init<const Plane&, const Plane&>(), "enterPlane"_a, "exitPlane"_a);
+  pbPB11.def("mapPosition", &PlanarB::mapPosition);
+  pbPB11.def("facesOnPlane", &PlanarB::facesOnPlane);
 
-    // Virtual methods
-    .def("setGhostNodes", (void (PlanarB::*)(NodeList<Dimension>&)) &PlanarB::setGhostNodes, "nodeList"_a)
-    .def("updateGhostNodes", (void (PlanarB::*)(NodeList<Dimension>&)) &PlanarB::updateGhostNodes, "nodeList"_a)
-    .def("setViolationNodes", (void (PlanarB::*)(NodeList<Dimension>&)) &PlanarB::setViolationNodes, "nodeList"_a)
-    .def("updateViolationNodes", (void (PlanarB::*)(NodeList<Dimension>&)) &PlanarB::updateViolationNodes, "nodeList"_a)
-    .def("setGhostNodes", (void (PlanarB::*)(NodeList<Dimension>&, const std::vector<int>&)) &PlanarB::setGhostNodes, "nodeList"_a, "presetControlNodes"_a)
-    .def("clip", &PlanarB::clip)
-    .def("valid", &PlanarB::valid)
+  // Virtual methods
+  pbPB11.def("setGhostNodes", (void (PlanarB::*)(NodeList<Dimension>&)) &PlanarB::setGhostNodes, "nodeList"_a);
+  pbPB11.def("updateGhostNodes", (void (PlanarB::*)(NodeList<Dimension>&)) &PlanarB::updateGhostNodes, "nodeList"_a);
+  pbPB11.def("setViolationNodes", (void (PlanarB::*)(NodeList<Dimension>&)) &PlanarB::setViolationNodes, "nodeList"_a);
+  pbPB11.def("updateViolationNodes", (void (PlanarB::*)(NodeList<Dimension>&)) &PlanarB::updateViolationNodes, "nodeList"_a);
+  pbPB11.def("setGhostNodes", (void (PlanarB::*)(NodeList<Dimension>&, const std::vector<int>&)) &PlanarB::setGhostNodes, "nodeList"_a, "presetControlNodes"_a);
+  pbPB11.def("clip", &PlanarB::clip);
+  pbPB11.def("valid", &PlanarB::valid);
 
-    // Attributes
-    .def_property("enterPlane", &PlanarB::enterPlane, &PlanarB::setEnterPlane)
-    .def_property("exitPlane", &PlanarB::exitPlane, &PlanarB::setExitPlane)
-    ;
+  // Attributes
+  pbPB11.def_property("enterPlane", &PlanarB::enterPlane, &PlanarB::setEnterPlane);
+  pbPB11.def_property("exitPlane", &PlanarB::exitPlane, &PlanarB::setExitPlane);
 
   //............................................................................
   // ReflectingBoundary
