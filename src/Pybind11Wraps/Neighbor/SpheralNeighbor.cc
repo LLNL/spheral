@@ -60,7 +60,9 @@ public:
     PYBIND11_OVERLOAD(void,         // Return type
                       NeighborBase, // Parent class
                       setMasterList,// name of method
-                      nodeID        // arguments
+                      nodeID,       // arguments
+                      masterList,
+                      coarseNeighbors
       );
   }
 
@@ -70,7 +72,9 @@ public:
     PYBIND11_OVERLOAD(void,                 // Return type
                       NeighborBase,         // Parent class
                       setRefineNeighborList,// name of method
-                      nodeID                // arguments
+                      nodeID,               // arguments
+                      coarseNeighbors,
+                      refineNeighbors
       );
   }
 
@@ -80,7 +84,9 @@ public:
     PYBIND11_OVERLOAD_PURE(void,                 // Return type
                            NeighborBase,         // Parent class
                            setMasterList,        // name of method
-                           position, H           // arguments
+                           position, H,          // arguments
+                           masterList,
+                           coarseNeighbors
       );
   }
 
@@ -91,7 +97,9 @@ public:
     PYBIND11_OVERLOAD_PURE(void,                 // Return type
                            NeighborBase,         // Parent class
                            setMasterList,        // name of method
-                           position, H           // arguments
+                           position, H,          // arguments
+                           masterList,
+                           coarseNeighbors
       );
   }
 
@@ -101,7 +109,9 @@ public:
     PYBIND11_OVERLOAD_PURE(void,                 // Return type
                            NeighborBase,         // Parent class
                            setRefineNeighborList,// name of method
-                           position, H           // arguments
+                           position, H,          // arguments
+                           coarseNeighbors,
+                           refineNeighbors
       );
   }
 
@@ -111,7 +121,9 @@ public:
     PYBIND11_OVERLOAD_PURE(void,                 // Return type
                            NeighborBase,         // Parent class
                            setRefineNeighborList,// name of method
-                           position, H           // arguments
+                           position, H,          // arguments
+                           coarseNeighbors,
+                           refineNeighbors
       );
   }
 
@@ -121,7 +133,9 @@ public:
     PYBIND11_OVERLOAD_PURE(void,                 // Return type
                            NeighborBase,         // Parent class
                            setMasterList,        // name of method
-                           position              // arguments
+                           position,             // arguments
+                           masterList,
+                           coarseNeighbors
       );
   }
 
@@ -131,7 +145,9 @@ public:
     PYBIND11_OVERLOAD_PURE(void,                 // Return type
                            NeighborBase,         // Parent class
                            setRefineNeighborList,// name of method
-                           position              // arguments
+                           position,             // arguments
+                           coarseNeighbors,
+                           refineNeighbors
       );
   }
 
@@ -141,7 +157,9 @@ public:
     PYBIND11_OVERLOAD_PURE(void,                 // Return type
                            NeighborBase,         // Parent class
                            setMasterList,        // name of method
-                           enterPlane, exitPlane // arguments
+                           enterPlane, exitPlane,// arguments
+                           masterList,
+                           coarseNeighbors
       );
   }
 
@@ -184,24 +202,21 @@ void virtualNeighborBindings(py::module& m, const std::string suffix, PB11Obj& o
   typedef typename Dimension::SymTensor SymTensor;
   typedef Spheral::GeomPlane<Dimension> Plane;
 
-  obj
-
-    // Methods
-    .def("setMasterList", (void (Obj::*)(const Vector&, const Scalar&, std::vector<int>&, std::vector<int>&)) &Obj::setMasterList, "position"_a, "h"_a, "masterList"_a, "coarseNeighbors"_a)
-    .def("setMasterList", (void (Obj::*)(const Vector&, const SymTensor&, std::vector<int>&, std::vector<int>&)) &Obj::setMasterList, "position"_a, "H"_a, "masterList"_a, "coarseNeighbors"_a)
-    .def("setMasterList", (void (Obj::*)(const Vector&, std::vector<int>&, std::vector<int>&)) &Obj::setMasterList, "position"_a, "masterList"_a, "coarseNeighbors"_a)
+  // Methods
+  obj.def("setMasterList", (void (Obj::*)(const Vector&, const Scalar&, std::vector<int>&, std::vector<int>&) const) &Obj::setMasterList, "position"_a, "h"_a, "masterList"_a, "coarseNeighbors"_a);
+  obj.def("setMasterList", (void (Obj::*)(const Vector&, const SymTensor&, std::vector<int>&, std::vector<int>&) const) &Obj::setMasterList, "position"_a, "H"_a, "masterList"_a, "coarseNeighbors"_a);
+  obj.def("setMasterList", (void (Obj::*)(const Vector&, std::vector<int>&, std::vector<int>&) const) &Obj::setMasterList, "position"_a, "masterList"_a, "coarseNeighbors"_a);
     
-    .def("setRefineNeighborList", (void (Obj::*)(const Vector&, const Scalar&, const std::vector<int>&, std::vector<int>&)) &Obj::setRefineNeighborList, "position"_a, "h"_a, "coarseNeighbors"_a, "refineNeighbors"_a)
-    .def("setRefineNeighborList", (void (Obj::*)(const Vector&, const SymTensor&, const std::vector<int>&, std::vector<int>&)) &Obj::setRefineNeighborList, "position"_a, "H"_a, "coarseNeighbors"_a, "refineNeighbors"_a)
-    .def("setRefineNeighborList", (void (Obj::*)(const Vector&, const std::vector<int>&, std::vector<int>&)) &Obj::setRefineNeighborList, "position"_a, "coarseNeighbors"_a, "refineNeighbors"_a)
+  obj.def("setRefineNeighborList", (void (Obj::*)(const Vector&, const Scalar&, const std::vector<int>&, std::vector<int>&) const) &Obj::setRefineNeighborList, "position"_a, "h"_a, "coarseNeighbors"_a, "refineNeighbors"_a);
+  obj.def("setRefineNeighborList", (void (Obj::*)(const Vector&, const SymTensor&, const std::vector<int>&, std::vector<int>&) const) &Obj::setRefineNeighborList, "position"_a, "H"_a, "coarseNeighbors"_a, "refineNeighbors"_a);
+  obj.def("setRefineNeighborList", (void (Obj::*)(const Vector&, const std::vector<int>&, std::vector<int>&) const) &Obj::setRefineNeighborList, "position"_a, "coarseNeighbors"_a, "refineNeighbors"_a);
 
-    .def("setMasterList", (void (Obj::*)(const Plane&, const Plane&, std::vector<int>&, std::vector<int>&)) &Obj::setMasterList, "enterPlane"_a, "exitPlane"_a, "masterList"_a, "coarseNeighbors"_a)
+  obj.def("setMasterList", (void (Obj::*)(const Plane&, const Plane&, std::vector<int>&, std::vector<int>&) const) &Obj::setMasterList, "enterPlane"_a, "exitPlane"_a, "masterList"_a, "coarseNeighbors"_a);
 
-    .def("updateNodes", (void (Obj::*)()) &Obj::updateNodes)
-    .def("updateNodes", (void (Obj::*)(const std::vector<int>&)) &Obj::updateNodes, "nodeIDs"_a)
+  obj.def("updateNodes", (void (Obj::*)()) &Obj::updateNodes);
+  obj.def("updateNodes", (void (Obj::*)(const std::vector<int>&)) &Obj::updateNodes, "nodeIDs"_a);
 
-    .def("valid", &Obj::valid)
-    ;
+  obj.def("valid", &Obj::valid);
 }
 
 //------------------------------------------------------------------------------
@@ -386,27 +401,25 @@ void dimensionBindings(py::module& m, const std::string suffix) {
   typedef TreeNeighbor<Dimension> TN;
   py::class_<TN, NT, PyNeighbor<Dimension, TN>> treeneighborPB11(m, ("TreeNeighbor" + suffix).c_str());
   virtualNeighborBindings<Dimension, TN>(m, suffix, treeneighborPB11);
-  treeneighborPB11
-    
-    // Constructors
-    .def(py::init<NodeList<Dimension>&, const NeighborSearchType, double, Vector, Vector>(),
-         "nodeList"_a,
-         "searchType"_a,
-         "kernelExtent"_a,
-         "xmin"_a,
-         "xmax"_a)
+      
+  // Constructors
+  treeneighborPB11.def(py::init<NodeList<Dimension>&, const NeighborSearchType, double, Vector, Vector>(),
+                       "nodeList"_a,
+                       "searchType"_a,
+                       "kernelExtent"_a,
+                       "xmin"_a,
+                       "xmax"_a);
 
-    // Methods
-    .def("gridLevel", (unsigned (TN::*)(const double&) const) &TN::gridLevel, "h"_a)
-    .def("gridLevel", (unsigned (TN::*)(const SymTensor&) const) &TN::gridLevel, "H"_a)
-    .def("dumpTree", &TN::dumpTree)
-    .def("dumpTreeStatistics", &TN::dumpTreeStatistics)
+  // Methods
+  treeneighborPB11.def("gridLevel", (unsigned (TN::*)(const double&) const) &TN::gridLevel, "h"_a);
+  treeneighborPB11.def("gridLevel", (unsigned (TN::*)(const SymTensor&) const) &TN::gridLevel, "H"_a);
+  treeneighborPB11.def("dumpTree", (std::string (TN::*)(const bool) const) &TN::dumpTree, "globalTree"_a);
+  treeneighborPB11.def("dumpTreeStatistics", (std::string (TN::*)(const bool) const) &TN::dumpTreeStatistics, "globalTree"_a);
 
-    // Attributes
-    .def_property_readonly("xmin", &TN::xmin)
-    .def_property_readonly("xmax", &TN::xmax)
-    .def_property_readonly("boxLength", &TN::boxLength)
-    ;
+  // Attributes
+  treeneighborPB11.def_property_readonly("xmin", &TN::xmin);
+  treeneighborPB11.def_property_readonly("xmax", &TN::xmax);
+  treeneighborPB11.def_property_readonly("boxLength", &TN::boxLength);
 
   //............................................................................
   // ConnectivityMap
