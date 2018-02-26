@@ -8,10 +8,11 @@ namespace FractalSpace
 			vector <double>& velx,vector <double>& vely,vector <double>& velz)
   {
     int seed=9973+256*FractalRank;
-    srand(seed);
-    //    std::default_random_engine generator(seed);
-    //    std::uniform_real_distribution<double> distribution(0.0,1.0);
-    double rand_max=(double)RAND_MAX;
+    std::mt19937 genRAN(seed);
+    std::uniform_real_distribution<double> distRAD(1.0e-10,1.0);
+    std::uniform_real_distribution<double> distTHETA(-0.99999999,0.99999999);
+    std::uniform_real_distribution<double> distPHI(0.0,8.0*atan(1.0));
+    std::normal_distribution<double> distNORM(0.0,1.0);
     double rmax=30.0;
     double x_off=-1.0;
     double y_off=1.5;
@@ -23,17 +24,12 @@ namespace FractalSpace
     sigratio*=sqrt(G);
     double slope3=slope+3.0;
     double expo=1.0/(3.0+slope);
-    double twopi=8.0*atan(1.0);
-    bool allok=true;
     for(int ni=0;ni<numbers;ni++)
       {
-	//	double r1=std::distribution(generator);
-	double r1=Fractal::my_rand_not_zero(rand_max);
+	double r1=distRAD(genRAN);
 	r1=pow(r1,expo);
-	//	double ctheta=2.0*std::distribution(generator)-1.0;
-	double ctheta=0.99999*(2.0*Fractal::my_rand(rand_max)-1.0);
-	//	double phi=twopi*std::distribution(generator);
-	double phi=twopi*Fractal::my_rand(rand_max);
+	double ctheta=distTHETA(genRAN);
+	double phi=distPHI(genRAN);
 	double r=rmax*r1;
 	posz[ni]=r*ctheta+z_off;
 	double stheta=sqrt(1.0-ctheta*ctheta);
@@ -42,20 +38,12 @@ namespace FractalSpace
 	posx[ni]=r*stheta*cphi+x_off;
 	posy[ni]=r*stheta*sphi+y_off;
 	double massr=total_mass*pow((r/rmax),slope3);
-	double vt=velratio*sqrt(massr/r);
-	double vs=sigratio*sqrt(massr/r);
-	double v2=vs*sqrt(-2.0*log(Fractal::my_rand_not_zero(rand_max)));
-	double ang=twopi*Fractal::my_rand(rand_max);
-	velx[ni]=-sphi*vt+v2*cos(ang);
-	vely[ni]=cphi*vt+v2*sin(ang);
-	velz[ni]=vs*sqrt(-2.0*log(Fractal::my_rand_not_zero(rand_max)))*cos(twopi*Fractal::my_rand(rand_max));
-	if(isfinite(posx[ni]) && isfinite(posy[ni]) && isfinite(posz[ni]) && isfinite(velx[ni]) && isfinite(vely[ni]) && isfinite(velz[ni]))
-	  continue;
-	cerr << "BAD GALAXY " << FractalRank << " " << ni << " " << posx[ni] << " " << posy[ni] << " " << posz[ni];
-	cerr << " " << velx[ni] << " " << vely[ni] << " " << velz[ni];
-	cerr << " " << r1 << " " << phi << " " << ctheta << " " << v2 << " " << ang << endl;
-	allok=false;
+	double sqmr=sqrt(massr/r);
+	double vt=velratio*sqmr;
+	double vs=sigratio*sqmr;
+	velx[ni]=-sphi*vt+vs*distNORM(genRAN);
+	vely[ni]=cphi*vt+vs*distNORM(genRAN);
+	velz[ni]=vs*distNORM(genRAN);
       }
-    assert(allok);
   }
 }

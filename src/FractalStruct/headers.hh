@@ -25,7 +25,7 @@ namespace FractalSpace
   void clean_groups(Fractal_Memory& fractal_memory);
   void clean_shear(Fractal_Memory& fractal_memory);
   void clean_overlaps(Fractal_Memory& mem,int spacing,int VOLMIN,double FILLFACTOR,vector<bool>& STrouble,vector<vector<int>>& SBoxes,vector<vector<Point*>>& SPoints);
-  void clean_up(Fractal_Memory& mem,Misc& misc,Fractal& fractal);
+  void clean_up(Fractal_Memory& mem,Misc& misc);
   template <typename T> void clean_vector(vector<T>& vec);
   template <typename T> void clean_deque(deque<T>& deq);
   bool compare_vectorsX(vector <int> veca,vector <int> vecb);
@@ -65,6 +65,7 @@ namespace FractalSpace
   void fractal_force_init(Fractal_Memory* p_mem);
   int fractal_force_wrapper(Fractal_Memory* p_fractal_memory,Fractal* p_fractal);
   template <class M> void fractal_memory_parameters(M* pmem,const string _disK_,int _mulT_);
+  void fractal_memory_parameters(Fractal_Memory* pmem,double _mulT_);
   void fractal_nina_cosmo(int argc,char* argv[]);
   void fractal_nina_galaxy(int argc,char* argv[]);
   void Full_Stop(Fractal_Memory& mem,int number);

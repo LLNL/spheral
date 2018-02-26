@@ -1,7 +1,6 @@
 #include "libs.hh"
 #include "classes.hh"
 #include "headers.hh"
-#include "fractal_interface_public.hh"
 int main(int argc, char* argv[])
 {
   using namespace FractalSpace;
@@ -9,6 +8,20 @@ int main(int argc, char* argv[])
   MPI_Initialized(&knights);
   if(!knights)
     MPI_Init(NULL,NULL);
+  /*
+    BaseDirectory
+    RunIdentifier
+    GridLength
+    FractalNodes0
+    FractalNodes1
+    FractalNodes2
+    NumberParticles
+    Shrink
+    Padding
+    NodeLoad
+    StepLength
+    Number_Steps_Total
+  */
   Fractal_Memory::FRACTAL_UNIVERSE=MPI_COMM_WORLD;
   assert(Fractal_Memory::FRACTAL_UNIVERSE != MPI_COMM_NULL);
   int FRN;
@@ -50,12 +63,15 @@ int main(int argc, char* argv[])
   double PADDING=-1;
   if(argc >= 10)
     PADDING=atoi(argv[9]);
-  double step_length=1.0;
+  int node_load=20000;
   if(argc >= 11)
-    step_length=atof(argv[10]);
-  int number_steps_total=1000;
+    node_load=atoi(argv[10]);
+  double step_length=1.0;
   if(argc >= 12)
-    number_steps_total=atoi(argv[11]);
+    step_length=atof(argv[11]);
+  int number_steps_total=1000;
+  if(argc >= 13)
+    number_steps_total=atoi(argv[12]);
   if(Mess::IAMROOT)
     {
       cerr << "starting out " << argc << " " << FRN << " " << BaseDirectory << " " << RunIdentifier << " " << GRL << " " << FractalNodes0 << " " << FractalNodes1 << " " << FractalNodes2 << "\n";
@@ -96,7 +112,7 @@ int main(int argc, char* argv[])
   PFM->setBaseDirectory(BaseDirectory);
   PFM->setRunIdentifier(RunIdentifier);
   PFM->setTimeTrial(TimeTrial);
-  PFM->hypre_max_node_load=-1; //////
+  PFM->hypre_max_node_load=node_load;
   PFM->hypre_multiplier=-1;
   fractal_memory_setup(PFM);
 
@@ -108,7 +124,7 @@ int main(int argc, char* argv[])
     {
       if(PFM->p_mess->IAmAnFFTNode)
 	{
-	  NumberParticles/=10;
+	  // NumberParticles/=10;
 	  PFM->setNumberParticles(NumberParticles);
 	}
       PFM->p_mess->calc_total_particles(NumberParticles);

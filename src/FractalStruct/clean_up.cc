@@ -3,7 +3,7 @@
 #include "headers.hh"
 namespace FractalSpace
 {
-  void clean_up(Fractal_Memory& mem,Misc& misc,Fractal& fractal_ghost)
+  void clean_up(Fractal_Memory& mem,Misc& misc)
   {
     ofstream& FileFractal=mem.p_fractal->p_file->DUMPS;
     //    ofstream& FileFractal=mem.p_fractal->p_file->FileFractal;
@@ -16,7 +16,7 @@ namespace FractalSpace
 // 	delete fractal_ghost.particle_list[particle];
 // 	counting++;
 //       }
-    delete &fractal_ghost;
+    // delete &fractal_ghost;
     counting++;
     if(!mem.amnesia)
       return;
@@ -25,18 +25,16 @@ namespace FractalSpace
     int level_start=0;
     for(int level=level_start;level <= mem.level_max;level++)
       {
-	for(vector <Group*>::const_iterator group_itr=mem.all_groups[level].begin();
-	    group_itr!=mem.all_groups[level].end();group_itr++)
+	for(auto p_group : mem.all_groups[level])
 	  {
-	    Group* p_group=*group_itr;
-	    for(vector <Point*>::const_iterator point_itr=p_group->list_new_points.begin();point_itr !=p_group->list_new_points.end();++point_itr)
+	    for(auto point_itr=p_group->list_new_points.begin();point_itr !=p_group->list_new_points.end();++point_itr)
 	      {
 		Point* p_whatever=*point_itr;
 		delete [] p_whatever;
 		p_whatever=0;
 		counting++;
 	      }
-	    delete  p_group;
+	    delete p_group;
 	    counting++;
 	    p_group=0;
 	  }

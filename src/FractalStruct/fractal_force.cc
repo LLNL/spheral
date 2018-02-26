@@ -160,7 +160,7 @@ namespace FractalSpace
     fix_memory(fractal,3,jfield);
     if(Point::calc_candidates)
       candidate_points();
-    Misc* p_misc=new (nothrow) Misc;
+    Misc* p_misc=new Misc;
     assert(p_misc);
     Misc& misc=*p_misc;
     bool debug=fractal.get_debug();
@@ -173,7 +173,7 @@ namespace FractalSpace
     if(fractal.get_periodic())
       d_0=fractal.get_omega_start()*0.375/(4.0*atan(1.0));
     fractal.set_density_0(d_0);
-    Group* p_group=new (nothrow) Group;
+    Group* p_group=new Group;
     assert(p_group);
     Group& group=*p_group;
     group.set_level(0);
@@ -243,7 +243,7 @@ namespace FractalSpace
 	    for(Group* phigh_group : group.list_high_groups)
 	      {
 		Group& high_group=*phigh_group;
-		Group* p_new_group=new (nothrow) Group(group);
+		Group* p_new_group=new Group(group);
 		assert(p_new_group);
 		Group& new_group=*p_new_group;
 		new_group.set_mother_group(&group);
@@ -264,8 +264,8 @@ namespace FractalSpace
     assert(!badd);
     FileFractal << "number of everything after the tree "  << " " << Group::number_groups << " " << Point::number_points << "\n";
     FileFractal << " Total number of particles after the tree " << Particle::number_particles << "\n";
-    Fractal* p_fractal_ghost=new Fractal;
-    Fractal& fractal_ghost=*p_fractal_ghost;
+    // Fractal* p_fractal_ghost=new Fractal;
+    // Fractal& fractal_ghost=*p_fractal_ghost;
     fractal.timing(1,46);
     if(!fractal_memory.start_up)
       {
@@ -334,7 +334,8 @@ namespace FractalSpace
       tree_dump(fractal_memory);
     fractal.timing(1,44);
     fractal.timing(-1,26);
-    clean_up(fractal_memory,misc,fractal_ghost);
+    clean_up(fractal_memory,misc);
+    // clean_up(fractal_memory,misc,fractal_ghost);
     fractal.timing(1,26);
     Full_Stop(fractal_memory,38);
     fractal.timing_lev(-1,0);

@@ -12,7 +12,7 @@ namespace FractalSpace
       {
 	if(group.head_number[n]==n)
 	  {
-	    Group* p_high_group=new (nothrow) Group;
+	    Group* p_high_group=new Group;
 	    assert(p_high_group);
 	    Group& high_group=*p_high_group;
 	    group.list_high_groups.push_back(p_high_group);
@@ -31,7 +31,7 @@ namespace FractalSpace
 	    group.list_high[n]->set_p_in_high_group(p_high_g);
 	  }
       }
-    group.head_number.clear();
-    group.list_high.clear();  	
+    clean_vector(group.head_number);
+    clean_vector(group.list_high);
   }
 }

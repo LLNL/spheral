@@ -27,7 +27,7 @@ namespace FractalSpace
     // super_groups(mem,mem.all_groups[level],level,WorldRanks,LocalGroups,
     // 		 FreeNodes,IAmIn);
     // tsa+=mem.p_mess->Clock();
-    // FHT << " SUPER timing " << tsa << "\n";
+    // FHT << " SUPER timing " << tsa << " " << level << "\n";
     // WorldRanks.clear();
     // LocalGroups.clear();
     // FreeNodes.clear();

@@ -46,13 +46,13 @@ namespace FractalSpace
       }
     if(FM.balance > 0)
       balance_by_particles(&FM,false);
-    int _mulT_=FM.max_particles/FM.number_particles;
+    // int _mulT_=FM.max_particles/FM.number_particles;
     int count=0;
     make_particles(FM,FR,count,m,false);
     FileFractal << "size " << count << "\n";
     FM.number_particles=count;
     FR.set_number_particles(count);
-    FM.max_particles=FM.number_particles*_mulT_;
+    // FM.max_particles=FM.number_particles*_mulT_;
     update_rv(FR,0,0.0,0.0);
     FileFractal << "make parts " << FM.number_particles << " " << FM.max_particles << "\n";
     double delta_z=Growth(FM.omega_0,FM.omega_lambda,FM.redshift_start);
@@ -113,29 +113,12 @@ namespace FractalSpace
     update_rv(FR,2,omega_fraction,omega_fraction*omega_fraction_v);
     FM.arad=1.0;
     FM.time=Age_of_the_universe(FM.omega_start,FM.lambda_start,0.0);
-    if(FM.number_steps_total == 0)
-      {
-	int iphase=3;
-	int jfield=4;
-	if(FM.calc_density_particle) jfield=5;
-	fix_memory(FR,iphase,jfield);
-	FR.timing(-2,0);
-	FR.timing(-1,49);
-	if(FM.balance > 0)
-	  balance_by_particles(&FM,true);
-	fractal_force(FR,FM);
-	FM.p_file->FlushAll();
-	FR.timing(1,49);
-	FR.timing(0,0);
-	FR.timing_lev(0,0);
-	return 0;
-      }
     for(int step=0;step < FM.number_steps_total; ++step)
       {
 	if(FM.steps == -1) energy_simple(FM,FR);
 	FM.steps=step;
 	FileFractal << "step = " << step << " " << FM.arad << "\n";
-	if(FM.periodic && step % FM.number_steps_out == 0)
+	if(FM.steps % FM.number_steps_out == 0)
 	  {
 	    FM.calc_density_particle=true;
 	    FM.do_var=true;
