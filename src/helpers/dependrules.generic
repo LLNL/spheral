@@ -1,0 +1,25 @@
+# -*-makefile-*-
+# Restore $(EXTRAFLAGS) to the compile line when possible.
+%.d:	%.cc
+	@$(SHELL) -ec 'echo "Building dependencies for $(*F).cc"; \
+	$(MPICXX) $(DEPFLAG) $(CXXFLAGS) $(EXTRAINCLUDES) -w -c $< > $(*F).u; \
+	cat $(*F).u | sed '\''s/\($(*F)\)\.o[ :]*/\1.o $(@F) : /g'\'' > $(@F); \
+	rm -f $(*F).u; \
+	[ -s $(@F) ] || rm -f $(@F)'
+
+%Bindings.py.d:	%Bindings.py
+	@$(SHELL) -ec 'echo "Building dependencies for $*Bindings.py"; \
+	echo "PYTHONPKGS are $(PYTHONPKGS)"; \
+	env PYTHONPATH="$(srcdir):$(subst $(SPACE),:,$(patsubst %,$(srcdir)/%,$(PYTHONPKGS)))" $(PYTHONEXE) $*Bindings.py $*.C; \
+	echo "$*.C $*Bindings.py.d : $(MODPKGS)" > $@; \
+	$(MPICXX) $(DEPFLAG) $(INCS) $(EXTRAINCLUDES) $(CXXFLAGS) $(PYOPT) $(EXTRAFLAGS) -I$(srcdir) -c $*.C > $*Bindings.u; \
+	cat $*Bindings.u | sed '\''s/\($*\)\.o[ :]*/\1.o $@ : /g'\'' >> $@; \
+	rm -f $*Bindings.u; \
+	[ -s $@ ] || rm -f $@'
+
+%.d:	%.C
+	@$(SHELL) -ec 'echo "Building dependencies for $*.C"; \
+	$(MPICXX) $(DEPFLAG) $(INCS) $(EXTRAINCLUDES) $(CXXFLAGS) $(PYOPT) $(EXTRAFLAGS) -I$(srcdir) -c $*.C > $(*F).u; \
+	cat $(*F).u | sed '\''s/\($(*F)\)\.o[ :]*/\1.o $(@F) : /g'\'' > $(@F); \
+	rm -f $(*F).u; \
+	[ -s $(@F) ] || rm -f $(@F)'
