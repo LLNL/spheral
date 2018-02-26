@@ -23,7 +23,7 @@
 #include "Boundary/AxisBoundaryRZ.hh"
 
 #include "PyAbstractBoundary.hh"
-// #include "PyAbstractBoundaryMesh.hh"
+#include "PyAbstractBoundaryMesh.hh"
 #include "PyBoundary.hh"
 #include "PyPlanarBoundary.hh"
 #include "Pybind11Wraps/DataOutput/PyRestartMethods.hh"
@@ -114,47 +114,43 @@ void dimensionBindings(py::module& m, const std::string suffix) {
   // Boundary
   typedef Boundary<Dimension> Bound;
   py::class_<Bound,
-             PyAbstractBoundary<Dimension, Bound>>
-             // PyAbstractBoundaryMesh<Dimension, Bound>>
-    boundaryPB11(m, ("Boundary" + suffix).c_str());
+             PyAbstractBoundary<Dimension, PyAbstractBoundaryMesh<Dimension, Bound>>> boundaryPB11(m, ("Boundary" + suffix).c_str());
   virtualBoundaryBindings<Dimension, Bound>(m, boundaryPB11);
-  boundaryPB11
-  
-    // Constructors
-    .def(py::init<>())
 
-    // Methods
-    .def("boundaryNodeMap", &Bound::boundaryNodeMap)
-    .def("haveNodeList", &Bound::haveNodeList)
+  // Constructors
+  boundaryPB11.def(py::init<>());
 
-    .def("controlNodes", &Bound::controlNodes, "nodeList"_a)
-    .def("ghostNodes", &Bound::ghostNodes, "nodeList"_a)
-    .def("violationNodes", &Bound::violationNodes, "nodeList"_a)
+  // Methods
+  boundaryPB11.def("boundaryNodeMap", &Bound::boundaryNodeMap);
+  boundaryPB11.def("haveNodeList", &Bound::haveNodeList);
 
-    .def("applyFieldListGhostBoundary", (void (Bound::*)(FieldList<Dimension, Scalar>&) const) &Bound::applyFieldListGhostBoundary, "fieldList"_a)
-    .def("applyFieldListGhostBoundary", (void (Bound::*)(FieldList<Dimension, Vector>&) const) &Bound::applyFieldListGhostBoundary, "fieldList"_a)
-    .def("applyFieldListGhostBoundary", (void (Bound::*)(FieldList<Dimension, Tensor>&) const) &Bound::applyFieldListGhostBoundary, "fieldList"_a)
-    .def("applyFieldListGhostBoundary", (void (Bound::*)(FieldList<Dimension, SymTensor>&) const) &Bound::applyFieldListGhostBoundary, "fieldList"_a)
+  boundaryPB11.def("controlNodes", &Bound::controlNodes, "nodeList"_a);
+  boundaryPB11.def("ghostNodes", &Bound::ghostNodes, "nodeList"_a);
+  boundaryPB11.def("violationNodes", &Bound::violationNodes, "nodeList"_a);
 
-    .def("enforceFieldListBoundary", (void (Bound::*)(FieldList<Dimension, Scalar>&) const) &Bound::enforceFieldListBoundary, "fieldList"_a)
-    .def("enforceFieldListBoundary", (void (Bound::*)(FieldList<Dimension, Vector>&) const) &Bound::enforceFieldListBoundary, "fieldList"_a)
-    .def("enforceFieldListBoundary", (void (Bound::*)(FieldList<Dimension, Tensor>&) const) &Bound::enforceFieldListBoundary, "fieldList"_a)
-    .def("enforceFieldListBoundary", (void (Bound::*)(FieldList<Dimension, SymTensor>&) const) &Bound::enforceFieldListBoundary, "fieldList"_a)
+  boundaryPB11.def("applyFieldListGhostBoundary", (void (Bound::*)(FieldList<Dimension, Scalar>&) const) &Bound::applyFieldListGhostBoundary, "fieldList"_a);
+  boundaryPB11.def("applyFieldListGhostBoundary", (void (Bound::*)(FieldList<Dimension, Vector>&) const) &Bound::applyFieldListGhostBoundary, "fieldList"_a);
+  boundaryPB11.def("applyFieldListGhostBoundary", (void (Bound::*)(FieldList<Dimension, Tensor>&) const) &Bound::applyFieldListGhostBoundary, "fieldList"_a);
+  boundaryPB11.def("applyFieldListGhostBoundary", (void (Bound::*)(FieldList<Dimension, SymTensor>&) const) &Bound::applyFieldListGhostBoundary, "fieldList"_a);
 
-    .def("accessBoundaryNodes", (typename Bound::BoundaryNodes& (Bound::*)(NodeList<Dimension>&)) &Bound::accessBoundaryNodes, "nodeList"_a)
+  boundaryPB11.def("enforceFieldListBoundary", (void (Bound::*)(FieldList<Dimension, Scalar>&) const) &Bound::enforceFieldListBoundary, "fieldList"_a);
+  boundaryPB11.def("enforceFieldListBoundary", (void (Bound::*)(FieldList<Dimension, Vector>&) const) &Bound::enforceFieldListBoundary, "fieldList"_a);
+  boundaryPB11.def("enforceFieldListBoundary", (void (Bound::*)(FieldList<Dimension, Tensor>&) const) &Bound::enforceFieldListBoundary, "fieldList"_a);
+  boundaryPB11.def("enforceFieldListBoundary", (void (Bound::*)(FieldList<Dimension, SymTensor>&) const) &Bound::enforceFieldListBoundary, "fieldList"_a);
 
-    .def("enforceBoundary", (void (Bound::*)(std::vector<int>&, const Mesh<Dimension>&) const) &Bound::enforceBoundary, "faceField"_a, "mesh"_a)
-    .def("enforceBoundary", (void (Bound::*)(std::vector<Scalar>&, const Mesh<Dimension>&) const) &Bound::enforceBoundary, "faceField"_a, "mesh"_a)
-    .def("enforceBoundary", (void (Bound::*)(std::vector<Vector>&, const Mesh<Dimension>&) const) &Bound::enforceBoundary, "faceField"_a, "mesh"_a)
-    .def("enforceBoundary", (void (Bound::*)(std::vector<Tensor>&, const Mesh<Dimension>&) const) &Bound::enforceBoundary, "faceField"_a, "mesh"_a)
-    .def("enforceBoundary", (void (Bound::*)(std::vector<SymTensor>&, const Mesh<Dimension>&) const) &Bound::enforceBoundary, "faceField"_a, "mesh"_a)
-    .def("enforceBoundary", (void (Bound::*)(std::vector<ThirdRankTensor>&, const Mesh<Dimension>&) const) &Bound::enforceBoundary, "faceField"_a, "mesh"_a)
+  boundaryPB11.def("accessBoundaryNodes", (typename Bound::BoundaryNodes& (Bound::*)(NodeList<Dimension>&)) &Bound::accessBoundaryNodes, "nodeList"_a);
 
-    .def("swapFaceValues", (void (Bound::*)(Field<Dimension, std::vector<Scalar>>&, const Mesh<Dimension>&) const) &Bound::swapFaceValues, "field"_a, "mesh"_a)
-    .def("swapFaceValues", (void (Bound::*)(Field<Dimension, std::vector<Vector>>&, const Mesh<Dimension>&) const) &Bound::swapFaceValues, "field"_a, "mesh"_a)
+  boundaryPB11.def("enforceBoundary", (void (Bound::*)(std::vector<int>&, const Mesh<Dimension>&) const) &Bound::enforceBoundary, "faceField"_a, "mesh"_a);
+  boundaryPB11.def("enforceBoundary", (void (Bound::*)(std::vector<Scalar>&, const Mesh<Dimension>&) const) &Bound::enforceBoundary, "faceField"_a, "mesh"_a);
+  boundaryPB11.def("enforceBoundary", (void (Bound::*)(std::vector<Vector>&, const Mesh<Dimension>&) const) &Bound::enforceBoundary, "faceField"_a, "mesh"_a);
+  boundaryPB11.def("enforceBoundary", (void (Bound::*)(std::vector<Tensor>&, const Mesh<Dimension>&) const) &Bound::enforceBoundary, "faceField"_a, "mesh"_a);
+  boundaryPB11.def("enforceBoundary", (void (Bound::*)(std::vector<SymTensor>&, const Mesh<Dimension>&) const) &Bound::enforceBoundary, "faceField"_a, "mesh"_a);
+  boundaryPB11.def("enforceBoundary", (void (Bound::*)(std::vector<ThirdRankTensor>&, const Mesh<Dimension>&) const) &Bound::enforceBoundary, "faceField"_a, "mesh"_a);
 
-    .def("meshGhostNodes", &Bound::meshGhostNodes)
-    ;
+  boundaryPB11.def("swapFaceValues", (void (Bound::*)(Field<Dimension, std::vector<Scalar>>&, const Mesh<Dimension>&) const) &Bound::swapFaceValues, "field"_a, "mesh"_a);
+  boundaryPB11.def("swapFaceValues", (void (Bound::*)(Field<Dimension, std::vector<Vector>>&, const Mesh<Dimension>&) const) &Bound::swapFaceValues, "field"_a, "mesh"_a);
+
+  boundaryPB11.def("meshGhostNodes", &Bound::meshGhostNodes);
 
   //............................................................................
   // Boundary::BoundaryNodes
@@ -198,15 +194,13 @@ void dimensionBindings(py::module& m, const std::string suffix) {
              PyBoundary<Dimension, PyAbstractBoundary<Dimension, ReflectB>>> rbPB11(m, ("ReflectingBoundary" + suffix).c_str());
   virtualBoundaryBindings<Dimension, ReflectB>(m, rbPB11);
   Spheral::restartMethodBindings<PlanarB>(m, rbPB11);
-  rbPB11
 
-    // Constructors
-    .def(py::init<>())
-    .def(py::init<const Plane&>(), "plane"_a)
+  // Constructors
+  rbPB11.def(py::init<>());
+  rbPB11.def(py::init<const Plane&>(), "plane"_a);
 
-    // Attributes
-    .def_property_readonly("reflectOperator", &ReflectB::reflectOperator)
-    ;
+  // Attributes
+  rbPB11.def_property_readonly("reflectOperator", &ReflectB::reflectOperator);
 
   //............................................................................
   // RigidBoundary
@@ -215,15 +209,13 @@ void dimensionBindings(py::module& m, const std::string suffix) {
              PyBoundary<Dimension, PyAbstractBoundary<Dimension, RigidB>>> rigidbPB11(m, ("RigidBoundary" + suffix).c_str());
   virtualBoundaryBindings<Dimension, RigidB>(m, rigidbPB11);
   Spheral::restartMethodBindings<RigidB>(m, rigidbPB11);
-  rigidbPB11
 
-    // Constructors
-    .def(py::init<>())
-    .def(py::init<const Plane&>(), "plane"_a)
+  // Constructors
+  rigidbPB11.def(py::init<>());
+  rigidbPB11.def(py::init<const Plane&>(), "plane"_a);
 
-    // Attributes
-    .def_property_readonly("reflectOperator", &ReflectB::reflectOperator)
-    ;
+  // Attributes
+  rigidbPB11.def_property_readonly("reflectOperator", &RigidB::reflectOperator);
 
   //............................................................................
   // PeriodicBoundary
@@ -232,29 +224,25 @@ void dimensionBindings(py::module& m, const std::string suffix) {
              PyBoundary<Dimension, PyAbstractBoundary<Dimension, PeriodicB>>> periodicbPB11(m, ("PeriodicBoundary" + suffix).c_str());
   virtualBoundaryBindings<Dimension, PeriodicB>(m, periodicbPB11);
   Spheral::restartMethodBindings<PeriodicB>(m, periodicbPB11);
-  periodicbPB11
 
-    // Constructors
-    .def(py::init<>())
-    .def(py::init<const Plane&, const Plane&>(), "plane1"_a, "plane2"_a)
-    ;
+  // Constructors
+  periodicbPB11.def(py::init<>());
+  periodicbPB11.def(py::init<const Plane&, const Plane&>(), "plane1"_a, "plane2"_a);
 
-  //............................................................................
-  // ConstantVelocityBoundary
-  typedef ConstantVelocityBoundary<Dimension> ConstantVelocityB;
-  py::class_<ConstantVelocityB, Bound,
-             PyBoundary<Dimension, PyAbstractBoundary<Dimension, ConstantVelocityB>>> constantvelbPB11(m, ("ConstantVelocityBoundary" + suffix).c_str());
-  virtualBoundaryBindings<Dimension, ConstantVelocityB>(m, constantvelbPB11);
-  Spheral::restartMethodBindings<ConstantVelocityB>(m, constantvelbPB11);
-  constantvelbPB11
+   //............................................................................
+   // ConstantVelocityBoundary
+   typedef ConstantVelocityBoundary<Dimension> ConstantVelocityB;
+   py::class_<ConstantVelocityB, Bound,
+              PyBoundary<Dimension, PyAbstractBoundary<Dimension, ConstantVelocityB>>> constantvelbPB11(m, ("ConstantVelocityBoundary" + suffix).c_str());
+   virtualBoundaryBindings<Dimension, ConstantVelocityB>(m, constantvelbPB11);
+   Spheral::restartMethodBindings<ConstantVelocityB>(m, constantvelbPB11);
 
-    // Constructors
-    .def(py::init<const NodeList<Dimension>&, const std::vector<int>&>(), "nodeList"_a, "nodeIndices"_a)
+   // Constructors
+   constantvelbPB11.def(py::init<const NodeList<Dimension>&, const std::vector<int>&>(), "nodeList"_a, "nodeIndices"_a);
 
-    // Attributes
-    .def_property_readonly("nodeIndices", &ConstantVelocityB::nodeIndices)
-    .def_property_readonly("nodeList", &ConstantVelocityB::nodeList)
-    ;
+   // Attributes
+   constantvelbPB11.def_property_readonly("nodeIndices", &ConstantVelocityB::nodeIndices);
+   constantvelbPB11.def_property_readonly("nodeList", &ConstantVelocityB::nodeList);
 
   //............................................................................
   // ConstantXVelocityBoundary
@@ -263,11 +251,9 @@ void dimensionBindings(py::module& m, const std::string suffix) {
              PyBoundary<Dimension, PyAbstractBoundary<Dimension, ConstantXVelocityB>>> constantxvelbPB11(m, ("ConstantXVelocityBoundary" + suffix).c_str());
   virtualBoundaryBindings<Dimension, ConstantXVelocityB>(m, constantxvelbPB11);
   Spheral::restartMethodBindings<ConstantXVelocityB>(m, constantxvelbPB11);
-  constantxvelbPB11
 
-    // Constructors
-    .def(py::init<const NodeList<Dimension>&, const std::vector<int>&>(), "nodeList"_a, "nodeIndices"_a)
-    ;
+  // Constructors
+  constantxvelbPB11.def(py::init<const NodeList<Dimension>&, const std::vector<int>&>(), "nodeList"_a, "nodeIndices"_a);
 
   //............................................................................
   // ConstantBoundary
@@ -276,18 +262,16 @@ void dimensionBindings(py::module& m, const std::string suffix) {
              PyBoundary<Dimension, PyAbstractBoundary<Dimension, ConstantB>>> constantbPB11(m, ("ConstantBoundary" + suffix).c_str());
   virtualBoundaryBindings<Dimension, ConstantB>(m, constantbPB11);
   Spheral::restartMethodBindings<ConstantB>(m, constantbPB11);
-  constantbPB11
 
-    // Constructors
-    .def(py::init<NodeList<Dimension>&, const std::vector<int>&, const Plane&>(), "nodeList"_a, "nodeIndices"_a, "denialPlane"_a)
+  // Constructors
+  constantbPB11.def(py::init<NodeList<Dimension>&, const std::vector<int>&, const Plane&>(), "nodeList"_a, "nodeIndices"_a, "denialPlane"_a);
 
-    // Methods
-    .def("nodeIndices", &ConstantB::nodeIndices)
+  // Methods
+  constantbPB11.def("nodeIndices", &ConstantB::nodeIndices);
 
-    // Attributes
-    .def_property_readonly("numConstantNodes", &ConstantB::numConstantNodes)
-    .def_property_readonly("reflectOperator", &ConstantB::reflectOperator)
-    ;
+  // Attributes
+  constantbPB11.def_property_readonly("numConstantNodes", &ConstantB::numConstantNodes);
+  constantbPB11.def_property_readonly("reflectOperator", &ConstantB::reflectOperator);
 
   //............................................................................
   // The STL containers of Boundary objects.
@@ -319,11 +303,9 @@ void twoDimensionalBindings(py::module& m) {
              PyBoundary<Dimension, PyAbstractBoundary<Dimension, ConstantYVelocityB>>> constantyvelbPB11(m, ("ConstantYVelocityBoundary" + suffix).c_str());
   virtualBoundaryBindings<Dimension, ConstantYVelocityB>(m, constantyvelbPB11);
   Spheral::restartMethodBindings<ConstantYVelocityB>(m, constantyvelbPB11);
-  constantyvelbPB11
 
-    // Constructors
-    .def(py::init<const NodeList<Dimension>&, const std::vector<int>&>(), "nodeList"_a, "nodeIndices"_a)
-    ;
+  // Constructors
+  constantyvelbPB11.def(py::init<const NodeList<Dimension>&, const std::vector<int>&>(), "nodeList"_a, "nodeIndices"_a);
 
   //............................................................................
   // AxisBoundaryRZ
@@ -331,14 +313,13 @@ void twoDimensionalBindings(py::module& m) {
              PyBoundary<Dimension, PyAbstractBoundary<Dimension, AxisBoundaryRZ>>> axisPB11(m, "AxisBoundaryRZ");
   virtualBoundaryBindings<Dimension, AxisBoundaryRZ>(m, axisPB11);
   Spheral::restartMethodBindings<AxisBoundaryRZ>(m, axisPB11);
-  axisPB11
+  
 
-    // Constructors
-    .def(py::init<const double>(), "etamin"_a)
+  // Constructors
+  axisPB11.def(py::init<const double>(), "etamin"_a);
 
-    // Attributes
-    .def_property("etamin", (double (AxisBoundaryRZ::*)() const) &AxisBoundaryRZ::etamin, (void (AxisBoundaryRZ::*)(const double)) &AxisBoundaryRZ::etamin)
-    ;
+  // Attributes
+  axisPB11.def_property("etamin", (double (AxisBoundaryRZ::*)() const) &AxisBoundaryRZ::etamin, (void (AxisBoundaryRZ::*)(const double)) &AxisBoundaryRZ::etamin);
 }
 
 //------------------------------------------------------------------------------
@@ -366,11 +347,9 @@ void threeDimensionalBindings(py::module& m) {
              PyBoundary<Dimension, PyAbstractBoundary<Dimension, ConstantYVelocityB>>> constantyvelbPB11(m, ("ConstantYVelocityBoundary" + suffix).c_str());
   virtualBoundaryBindings<Dimension, ConstantYVelocityB>(m, constantyvelbPB11);
   Spheral::restartMethodBindings<ConstantYVelocityB>(m, constantyvelbPB11);
-  constantyvelbPB11
 
-    // Constructors
-    .def(py::init<const NodeList<Dimension>&, const std::vector<int>&>(), "nodeList"_a, "nodeIndices"_a)
-    ;
+  // Constructors
+  constantyvelbPB11.def(py::init<const NodeList<Dimension>&, const std::vector<int>&>(), "nodeList"_a, "nodeIndices"_a);
 
   //............................................................................
   // ConstantZVelocityBoundary
@@ -379,11 +358,9 @@ void threeDimensionalBindings(py::module& m) {
              PyBoundary<Dimension, PyAbstractBoundary<Dimension, ConstantZVelocityB>>> constantzvelbPB11(m, ("ConstantZVelocityBoundary" + suffix).c_str());
   virtualBoundaryBindings<Dimension, ConstantZVelocityB>(m, constantzvelbPB11);
   Spheral::restartMethodBindings<ConstantZVelocityB>(m, constantzvelbPB11);
-  constantzvelbPB11
 
-    // Constructors
-    .def(py::init<const NodeList<Dimension>&, const std::vector<int>&>(), "nodeList"_a, "nodeIndices"_a)
-    ;
+  // Constructors
+  constantzvelbPB11.def(py::init<const NodeList<Dimension>&, const std::vector<int>&>(), "nodeList"_a, "nodeIndices"_a);
 
   //............................................................................
   // SphericalBoundary
@@ -391,14 +368,12 @@ void threeDimensionalBindings(py::module& m) {
              PyBoundary<Dimension, PyAbstractBoundary<Dimension, SphericalBoundary>>> sphericalbPB11(m, "SphericalBoundary");
   virtualBoundaryBindings<Dimension, SphericalBoundary>(m, sphericalbPB11);
   Spheral::restartMethodBindings<SphericalBoundary>(m, sphericalbPB11);
-  sphericalbPB11
 
-    // Constructors
-    .def(py::init<DataBase<Dimension>&>(), "dataBase"_a)
+  // Constructors
+  sphericalbPB11.def(py::init<DataBase<Dimension>&>(), "dataBase"_a);
 
-    // Methods
-    .def("reflectOperator", &SphericalBoundary::reflectOperator)
-    ;
+  // Methods
+  sphericalbPB11.def("reflectOperator", &SphericalBoundary::reflectOperator);
 
   //............................................................................
   // CylindricalBoundary
@@ -406,15 +381,13 @@ void threeDimensionalBindings(py::module& m) {
              PyBoundary<Dimension, PyAbstractBoundary<Dimension, CylindricalBoundary>>> cylindricalbPB11(m, "CylindricalBoundary");
   virtualBoundaryBindings<Dimension, CylindricalBoundary>(m, cylindricalbPB11);
   Spheral::restartMethodBindings<CylindricalBoundary>(m, cylindricalbPB11);
-  cylindricalbPB11
 
-    // Constructors
-    .def(py::init<DataBase<Dimension>&>(), "dataBase"_a)
+  // Constructors
+  cylindricalbPB11.def(py::init<DataBase<Dimension>&>(), "dataBase"_a);
 
-    // Static methods
-    .def_static("reflectOperator", &CylindricalBoundary::reflectOperator, "r0"_a, "r1"_a)
-    .def_static("angularSpacing", &CylindricalBoundary::angularSpacing, "ri"_a, "hzi"_a, "nodePerh"_a, "kernelExtent"_a)
-    ;
+  // Static methods
+  cylindricalbPB11.def_static("reflectOperator", &CylindricalBoundary::reflectOperator, "r0"_a, "r1"_a);
+  cylindricalbPB11.def_static("angularSpacing", &CylindricalBoundary::angularSpacing, "ri"_a, "hzi"_a, "nodePerh"_a, "kernelExtent"_a);
 }
 
 } // anonymous
