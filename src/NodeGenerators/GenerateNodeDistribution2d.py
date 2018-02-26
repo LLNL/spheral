@@ -1515,8 +1515,7 @@ def RZGenerator(generator):
 
     # Correct the mass.
     n = len(generator.m)
-    assert len(generator.y) == n
     for i in xrange(n):
-        generator.m[i] *= 2.0*pi*generator.y[i]
+        generator.m[i] *= 2.0*pi*generator.localPosition(i).y
 
     return generator
