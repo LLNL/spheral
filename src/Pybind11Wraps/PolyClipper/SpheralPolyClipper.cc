@@ -100,4 +100,44 @@ PYBIND11_MODULE(SpheralOpenMP, m) {
         "Initialize a PolyClipper::Polygon from vertex positions and vertex neighbors.");
   m.def("polygon2string", &PolyClipper::polygon2string, "poly"_a,
         "Return a formatted string representation for a PolyClipper::Polygon.");
+  m.def("convertToPolygon", &PolyClipper::convertToPolygon, "polygon"_a, "Spheral_polygon"_a,
+        "Construct a PolyClipper::Polygon from a Spheral::Polygon.");
+  m.def("convertFromPolygon", &PolyClipper::convertFromPolygon, "Spheral_polygon"_a, "polygon"_a,
+        "Construct a Spheral::Polygon from a PolyClipper::Polygon.");
+  m.def("moments", (void (*)(double&, Spheral::Dim<2>::Vector&, const PolyClipper::Polygon&)) &PolyClipper::moments,
+        "zerothMoment"_a, "firstMoment"_a, "poly"_a,
+        "Compute the zeroth and first moment of a PolyClipper::Polygon.");
+  m.def("clipPolygon", &PolyClipper::clipPolygon, "poly"_a, "planes"_a,
+        "Clip a PolyClipper::Polygon with a collection of planes.");
+  m.def("collapseDegenerates", (void (*)(PolyClipper::Polygon&, const double)) &PolyClipper::collapseDegenerates, 
+        "poly"_a, "tol"_a,
+        "Collapse edges in a PolyClipper::Polygon below the given tolerance.");
+  m.def("splitIntoTriangles", &PolyClipper::splitIntoTriangles, "poly"_a, "tol"_a=0.0,
+        "Split a PolyClipper::Polygon into triangles.\n"
+        "The result is returned as a vector<vector<int>>, where each inner vector is a triple of\n"
+        "ints representing vertex indices in the input Polygon.");
+
+  //............................................................................
+  // Polyhedron methods
+  m.def("initializePolyhedron", &PolyClipper::initializePolyhedron,
+        "poly"_a, "positions"_a, "neighbors"_a,
+        "Initialize a PolyClipper::Polyhedron from vertex positions and vertex neighbors.");
+  m.def("polyhedron2string", &PolyClipper::polyhedron2string, "poly"_a,
+        "Return a formatted string representation for a PolyClipper::Polyhedron.");
+  m.def("convertToPolyhedron", &PolyClipper::convertToPolyhedron, "polyhedron"_a, "Spheral_polyhedron"_a,
+        "Construct a PolyClipper::Polyhedron from a Spheral::Polyhedron.");
+  m.def("convertFromPolyhedron", &PolyClipper::convertFromPolyhedron, "Spheral_polyhedron"_a, "polyhedron"_a,
+        "Construct a Spheral::Polyhedron from a PolyClipper::Polyhedron.");
+  m.def("moments", (void (*)(double&, Spheral::Dim<3>::Vector&, const PolyClipper::Polyhedron&)) &PolyClipper::moments,
+        "zerothMoment"_a, "firstMoment"_a, "poly"_a,
+        "Compute the zeroth and first moment of a PolyClipper::Polyhedron.");
+  m.def("clipPolyhedron", &PolyClipper::clipPolyhedron, "poly"_a, "planes"_a,
+        "Clip a PolyClipper::Polyhedron with a collection of planes.");
+  m.def("collapseDegenerates", (void (*)(PolyClipper::Polyhedron&, const double)) &PolyClipper::collapseDegenerates, 
+        "poly"_a, "tol"_a,
+        "Collapse edges in a PolyClipper::Polyhedron below the given tolerance.");
+  m.def("splitIntoTriangles", &PolyClipper::splitIntoTriangles, "poly"_a, "tol"_a=0.0,
+        "Split a PolyClipper::Polyhedron into triangles.\n"
+        "The result is returned as a vector<vector<int>>, where each inner vector is a triple of\n"
+        "ints representing vertex indices in the input Polyhedron.");
 }
