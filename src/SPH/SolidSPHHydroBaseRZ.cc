@@ -385,4 +385,8 @@ restoreState(const FileIO& file, const string& pathName) {
 }
 
 // Include the appropriate evaluateDerivatvies.
+#ifdef _OPENMP
+#include "SolidSPHEvaluateDerivativesRZ_OpenMP.cc"
+#else
 #include "SolidSPHEvaluateDerivativesRZ.cc"
+#endif
