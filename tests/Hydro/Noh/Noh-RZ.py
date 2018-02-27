@@ -184,8 +184,6 @@ if solid:
                                hmax = hmax,
                                hminratio = hminratio,
                                nPerh = nPerh,
-                               xmin = (-10.0, -10.0),
-                               xmax = ( 10.0,  10.0),
                                kernelExtent = kernelExtent)
 else:
     nodes1 = makeFluidNodeList("nodes1", eos, 
@@ -193,8 +191,6 @@ else:
                                hmax = hmax,
                                hminratio = hminratio,
                                nPerh = nPerh,
-                               xmin = (-10.0, -10.0),
-                               xmax = ( 10.0,  10.0),
                                kernelExtent = kernelExtent)
     
 output("nodes1")
@@ -460,14 +456,14 @@ L1_tot = L1 / len(rho)
 # Plot the final state.
 #-------------------------------------------------------------------------------
 if graphics:
-    from SpheralGnuPlotUtilities import *
+    from SpheralMatplotlib import *
     if problem == "planar":
         rhoPlot, velPlot, epsPlot, PPlot, HPlot = plotState(db, xFunction="%s.x", vecyFunction="%s.x", tenyFunction="1.0/%s.xx")
     elif problem == "cylindrical":
         rhoPlot, velPlot, epsPlot, PPlot, HPlot = plotState(db, xFunction="%s.y", vecyFunction="%s.y", tenyFunction="1.0/%s.yy")
     else:
         rhoPlot, velPlot, epsPlot, PPlot, HPlot = plotRadialState(db)
-    plotAnswer(answer, control.time(), rhoPlot, velPlot, epsPlot, PPlot, HPlot)
+    plotAnswer(answer, control.time(), rhoPlot=rhoPlot, velPlot=velPlot, epsPlot=epsPlot, PPlot=PPlot, HPlot=HPlot)
     EPlot = plotEHistory(control.conserve)
     plots = [(rhoPlot, "Noh-%s-rho-RZ.png" % problem),
              (velPlot, "Noh-%s-vel-RZ.png" % problem),
@@ -476,21 +472,19 @@ if graphics:
              (HPlot, "Noh-%s-h-RZ.png" % problem)]
 
     # Plot the specific entropy.
-    Aplot = generateNewGnuPlot()
-    AsimData = Gnuplot.Data(xprof, A,
-                            with_ = "points",
-                            title = "Simulation",
-                            inline = True)
-    AansData = Gnuplot.Data(xprof, Aans,
-                            with_ = "lines",
-                            title = "Solution",
-                            inline = True)
-    Aplot.plot(AsimData)
-    Aplot.replot(AansData)
-    Aplot.title("Specific entropy")
-    Aplot.refresh()
-    plots.append((Aplot, "Noh-planar-A.png"))
+    Aplot = newFigure()
+    Aplot.plot(xprof, A, "r-o")
+    Aplot.plot(xprof, Aans, "k-")
+    plt.title("Specific entropy")
+    plots.append((Aplot, "Noh-%s-A.png" % problem))
     
+    # Throw the positions out there too.
+    posPlot = plotNodePositions2d(db)
+    plt.xlabel("z")
+    plt.ylabel("r")
+    plt.title("Node positions @ t=%g" % control.time())
+    plots.append((posPlot, "Noh-%s-positions.png" % problem))
+
     if crksph:
         volPlot = plotFieldList(hydro.volume(), 
                                 winTitle = "volume",
@@ -515,8 +509,7 @@ if graphics:
 
     # Make hardcopies of the plots.
     for p, filename in plots:
-        p.hardcopy(os.path.join(dataDir, filename), terminal="png")
-
+        p.figure.savefig(os.path.join(dataDir, filename))
 
 #-------------------------------------------------------------------------------
 # Measure the difference between the simulation and analytic answer.
