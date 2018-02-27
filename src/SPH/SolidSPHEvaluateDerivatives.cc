@@ -161,14 +161,12 @@ evaluateDerivatives(const typename Dimension::Scalar time,
     }
 
     // Iterate over the internal nodes in this NodeList.
-    for (auto iItr = connectivityMap.begin(nodeListi);
-         iItr != connectivityMap.end(nodeListi);
-         ++iItr) {
-      const auto i = *iItr;
+    const auto ni = connectivityMap.numNodes(nodeListi);
+    for (auto iItr = 0; iItr < ni; ++iItr) {
+      const auto i = connectivityMap.ithNode(nodeListi, iItr);
 
       // Prepare to accumulate the time.
       const auto start = Timing::currentTime();
-      auto ncalc = 0;
 
       // Get the state for node i.
       const auto ri = position(nodeListi, i);
@@ -236,7 +234,6 @@ evaluateDerivatives(const typename Dimension::Scalar time,
             if (connectivityMap.calculatePairInteraction(nodeListi, i, 
                                                          nodeListj, j,
                                                          firstGhostNodej)) {
-              ++ncalc;
 
               // Get the state for node j
               const auto rj = position(nodeListj, j);
@@ -425,7 +422,7 @@ evaluateDerivatives(const typename Dimension::Scalar time,
             (pairAccelerationsi.size() == numNeighborsi));
 
       // Get the time for pairwise interactions.
-      const auto deltaTimePair = Timing::difference(start, Timing::currentTime())/(ncalc + 1.0e-30);
+      const auto deltaTimePair = Timing::difference(start, Timing::currentTime())/(numNeighborsi + 1.0e-30);
 
       // Add the self-contribution to density sum.
       rhoSumi += mi*W0*Hdeti;
