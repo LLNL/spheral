@@ -16,27 +16,24 @@ void virtualPhysicsBindings(py::module& m, PB11Obj& obj) {
   typedef typename Dimension::SymTensor SymTensor;
   typedef typename Dimension::ThirdRankTensor ThirdRankTensor;
 
-  obj
-
-    // Methods
-    .def("evaluateDerivatives", &Obj::evaluateDerivatives, "time"_a, "dt"_a, "dataBase"_a, "state"_a, "derivs"_a)
-    .def("dt", &Obj::dt, "dataBase"_a, "state"_a, "derivs"_a, "currentTime"_a)
-    .def("registerState", &Obj::registerState, "dataBase"_a, "state"_a)
-    .def("registerDerivatives", &Obj::registerDerivatives, "dataBase"_a, "state"_a)
-    .def("label", &Obj::label)
-    .def("applyGhostBoundaries", &Obj::applyGhostBoundaries, "state"_a, "derivs"_a)
-    .def("enforceBoundaries", &Obj::enforceBoundaries, "state"_a, "derivs"_a)
-    .def("initializeProblemStartup", &Obj::initializeProblemStartup)
-    .def("preStepInitialize", &Obj::preStepInitialize, "dataBase"_a, "state"_a, "derivs"_a)
-    .def("initialize", &Obj::initialize, "time"_a, "dt"_a, "dataBase"_a, "state"_a, "derivs"_a)
-    .def("finalize", &Obj::finalize, "time"_a, "dt"_a, "dataBase"_a, "state"_a, "derivs"_a)
-    .def("finalizeDerivatives", &Obj::finalizeDerivatives, "time"_a, "dt"_a, "dataBase"_a, "state"_a, "derivs"_a)
-    .def("postStateUpdate", &Obj::postStateUpdate, "dataBase"_a, "state"_a, "derivs"_a)
-    .def("requireConnectivity", &Obj::requireConnectivity)
-    .def("requireGhostConnectivity", &Obj::requireGhostConnectivity)
-    .def("extraEnergy", &Obj::extraEnergy)
-    .def("extraMomentum", &Obj::extraMomentum)
-    ;
+  // Methods
+  obj.def("evaluateDerivatives", &Obj::evaluateDerivatives, "time"_a, "dt"_a, "dataBase"_a, "state"_a, "derivs"_a);
+  obj.def("dt", &Obj::dt, "dataBase"_a, "state"_a, "derivs"_a, "currentTime"_a);
+  obj.def("registerState", &Obj::registerState, "dataBase"_a, "state"_a);
+  obj.def("registerDerivatives", &Obj::registerDerivatives, "dataBase"_a, "state"_a);
+  obj.def("label", &Obj::label);
+  obj.def("applyGhostBoundaries", &Obj::applyGhostBoundaries, "state"_a, "derivs"_a);
+  obj.def("enforceBoundaries", &Obj::enforceBoundaries, "state"_a, "derivs"_a);
+  obj.def("initializeProblemStartup", &Obj::initializeProblemStartup);
+  obj.def("preStepInitialize", &Obj::preStepInitialize, "dataBase"_a, "state"_a, "derivs"_a);
+  obj.def("initialize", &Obj::initialize, "time"_a, "dt"_a, "dataBase"_a, "state"_a, "derivs"_a);
+  obj.def("finalize", &Obj::finalize, "time"_a, "dt"_a, "dataBase"_a, "state"_a, "derivs"_a);
+  obj.def("finalizeDerivatives", &Obj::finalizeDerivatives, "time"_a, "dt"_a, "dataBase"_a, "state"_a, "derivs"_a);
+  obj.def("postStateUpdate", &Obj::postStateUpdate, "dataBase"_a, "state"_a, "derivs"_a);
+  obj.def("requireConnectivity", &Obj::requireConnectivity);
+  obj.def("requireGhostConnectivity", &Obj::requireGhostConnectivity);
+  obj.def("extraEnergy", &Obj::extraEnergy);
+  obj.def("extraMomentum", &Obj::extraMomentum);
 }
 
 }
