@@ -66,75 +66,67 @@ void dimensionBindings(py::module& m, const std::string suffix) {
   py::class_<Phys,
              PyAbstractPhysics<Dimension, Phys>> phyPB11(m, ("Physics" + suffix).c_str());
   virtualPhysicsBindings<Dimension, Phys>(m, phyPB11);
-  phyPB11
     
-    // Constructors
-    .def(py::init<>())
+  // Constructors
+  phyPB11.def(py::init<>());
 
-    // Methods
-    .def("appendBoundary", &Phys::appendBoundary, "boundary"_a)
-    .def("prependBoundary", &Phys::prependBoundary, "boundary"_a)
-    .def("clearBoundaries", &Phys::clearBoundaries)
-    .def("haveBoundary", &Phys::haveBoundary, "boundary"_a)
-    .def("boundaryConditions", &Phys::boundaryConditions)
-    ;
+  // Methods
+  phyPB11.def("appendBoundary", &Phys::appendBoundary, "boundary"_a);
+  phyPB11.def("prependBoundary", &Phys::prependBoundary, "boundary"_a);
+  phyPB11.def("clearBoundaries", &Phys::clearBoundaries);
+  phyPB11.def("haveBoundary", &Phys::haveBoundary, "boundary"_a);
+  phyPB11.def("boundaryConditions", &Phys::boundaryConditions);
 
   //............................................................................
   // GenericHydro
   typedef GenericHydro<Dimension> GH;
   py::class_<GH, Phys,
              PyGenericHydro<Dimension>> ghPB11(m, ("GenericHydro" + suffix).c_str());
-  //  virtualPhysicsBindings<Dimension, Phys>(m, ghPB11);
-  ghPB11
 
-    // Constructors
-    .def(py::init<const TableKernel<Dimension>&, const TableKernel<Dimension>&, ArtificialViscosity<Dimension>&, const double, const bool>(),
-         "W"_a, "WPi"_a, "Q"_a, "cfl"_a, "useVelocityMagnitudeForDt"_a)
+  // Constructors
+  ghPB11.def(py::init<const TableKernel<Dimension>&, const TableKernel<Dimension>&, ArtificialViscosity<Dimension>&, const double, const bool>(),
+             "W"_a, "WPi"_a, "Q"_a, "cfl"_a, "useVelocityMagnitudeForDt"_a);
 
-    // Methods
-    .def("artificialViscosity", &GH::artificialViscosity)
-    .def("kernel", &GH::kernel)
-    .def("PiKernel", &GH::PiKernel)
+  // Methods
+  ghPB11.def("artificialViscosity", &GH::artificialViscosity);
+  ghPB11.def("kernel", &GH::kernel);
+  ghPB11.def("PiKernel", &GH::PiKernel);
 
-    // Virtual methods
-    .def("dt", &GH::dt, "dataBase"_a, "state"_a, "derivs"_a, "currentTime"_a)
+  // Virtual methods
+  ghPB11.def("dt", &GH::dt, "dataBase"_a, "state"_a, "derivs"_a, "currentTime"_a);
 
-    // Attributes
-    .def_property("cfl", (Scalar (GH::*)() const) &GH::cfl, (void (GH::*)(Scalar)) &GH::cfl)
-    .def_property("useVelocityMagnitudeForDt", (bool (GH::*)() const) &GH::useVelocityMagnitudeForDt, (void (GH::*)(bool)) &GH::useVelocityMagnitudeForDt)
-    .def_property_readonly("minMasterNeighbor", &GH::minMasterNeighbor)
-    .def_property_readonly("maxMasterNeighbor", &GH::maxMasterNeighbor)
-    .def_property_readonly("averageMasterNeighbor", &GH::averageMasterNeighbor)
-    .def_property_readonly("minCoarseNeighbor", &GH::minCoarseNeighbor)
-    .def_property_readonly("maxCoarseNeighbor", &GH::maxCoarseNeighbor)
-    .def_property_readonly("averageCoarseNeighbor", &GH::averageCoarseNeighbor)
-    .def_property_readonly("minRefineNeighbor", &GH::minRefineNeighbor)
-    .def_property_readonly("maxRefineNeighbor", &GH::maxRefineNeighbor)
-    .def_property_readonly("averageRefineNeighbor", &GH::averageRefineNeighbor)
-    .def_property_readonly("minActualNeighbor", &GH::minActualNeighbor)
-    .def_property_readonly("maxActualNeighbor", &GH::maxActualNeighbor)
-    .def_property_readonly("averageActualNeighbor", &GH::averageActualNeighbor)
-    ;
+  // Attributes
+  ghPB11.def_property("cfl", (Scalar (GH::*)() const) &GH::cfl, (void (GH::*)(Scalar)) &GH::cfl);
+  ghPB11.def_property("useVelocityMagnitudeForDt", (bool (GH::*)() const) &GH::useVelocityMagnitudeForDt, (void (GH::*)(bool)) &GH::useVelocityMagnitudeForDt);
+  ghPB11.def_property_readonly("minMasterNeighbor", &GH::minMasterNeighbor);
+  ghPB11.def_property_readonly("maxMasterNeighbor", &GH::maxMasterNeighbor);
+  ghPB11.def_property_readonly("averageMasterNeighbor", &GH::averageMasterNeighbor);
+  ghPB11.def_property_readonly("minCoarseNeighbor", &GH::minCoarseNeighbor);
+  ghPB11.def_property_readonly("maxCoarseNeighbor", &GH::maxCoarseNeighbor);
+  ghPB11.def_property_readonly("averageCoarseNeighbor", &GH::averageCoarseNeighbor);
+  ghPB11.def_property_readonly("minRefineNeighbor", &GH::minRefineNeighbor);
+  ghPB11.def_property_readonly("maxRefineNeighbor", &GH::maxRefineNeighbor);
+  ghPB11.def_property_readonly("averageRefineNeighbor", &GH::averageRefineNeighbor);
+  ghPB11.def_property_readonly("minActualNeighbor", &GH::minActualNeighbor);
+  ghPB11.def_property_readonly("maxActualNeighbor", &GH::maxActualNeighbor);
+  ghPB11.def_property_readonly("averageActualNeighbor", &GH::averageActualNeighbor);
 
   //............................................................................
   // GenericBodyForce
   typedef GenericBodyForce<Dimension> GBF;
   py::class_<GBF, Phys,
              PyGenericBodyForce<Dimension>> gbfPB11(m, ("GenericBodyForce" + suffix).c_str());
-  //  virtualPhysicsBindings<Dimension, Phys>(m, ghPB11);
-  gbfPB11
 
-    // Constructors
-    .def(py::init<>())
+  // Constructors
+  gbfPB11.def(py::init<>());
 
-    // Methods
-    .def("DxDt", &GBF::DxDt)
-    .def("DvDt", &GBF::DvDt)
+  // Methods
+  gbfPB11.def("DxDt", &GBF::DxDt);
+  gbfPB11.def("DvDt", &GBF::DvDt);
 
-    // Virtual methods
-    .def("registerState", &GBF::registerState)
-    .def("registerDerivatives", &GBF::registerDerivatives)
-    ;
+  // Virtual methods
+  gbfPB11.def("registerState", &GBF::registerState);
+  gbfPB11.def("registerDerivatives", &GBF::registerDerivatives);
 
   //............................................................................
   // The STL containers of Physics objects.
