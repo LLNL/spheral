@@ -21,6 +21,7 @@
 #include "Boundary/CylindricalBoundary.hh"
 #include "Boundary/AxialSymmetryBoundary.hh"
 #include "Boundary/AxisBoundaryRZ.hh"
+#include "Boundary/CRKSPHVoidBoundary.hh"
 
 #include "PyAbstractBoundary.hh"
 #include "PyAbstractBoundaryMesh.hh"
