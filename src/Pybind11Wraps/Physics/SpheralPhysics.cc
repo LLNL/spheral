@@ -81,7 +81,7 @@ void dimensionBindings(py::module& m, const std::string suffix) {
   // GenericHydro
   typedef GenericHydro<Dimension> GH;
   py::class_<GH, Phys,
-             PyGenericHydro<Dimension>> ghPB11(m, ("GenericHydro" + suffix).c_str());
+             PyGenericHydro<Dimension, GH>> ghPB11(m, ("GenericHydro" + suffix).c_str());
 
   // Constructors
   ghPB11.def(py::init<const TableKernel<Dimension>&, const TableKernel<Dimension>&, ArtificialViscosity<Dimension>&, const double, const bool>(),
@@ -115,7 +115,7 @@ void dimensionBindings(py::module& m, const std::string suffix) {
   // GenericBodyForce
   typedef GenericBodyForce<Dimension> GBF;
   py::class_<GBF, Phys,
-             PyGenericBodyForce<Dimension>> gbfPB11(m, ("GenericBodyForce" + suffix).c_str());
+             PyGenericBodyForce<Dimension, GBF> > gbfPB11(m, ("GenericBodyForce" + suffix).c_str());
 
   // Constructors
   gbfPB11.def(py::init<>());
