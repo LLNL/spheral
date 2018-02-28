@@ -274,6 +274,16 @@ void dimensionBindings(py::module& m, const std::string suffix) {
   constantbPB11.def_property_readonly("reflectOperator", &ConstantB::reflectOperator);
 
   //............................................................................
+  // CRKSPHVoidBoundary
+  typedef CRKSPHVoidBoundary<Dimension> CRKVoidB;
+  py::class_<CRKVoidB, 
+             PyBoundary<Dimension, PyAbstractBoundary<Dimension, CRKVoidB>>> crkvoidbPB11(m, ("CRKSPHVoidBoundary" + suffix).c_str());
+  virtualBoundaryBindings<Dimension, CRKVoidB>(m, crkvoidbPB11);
+
+  // Constructors
+  crkvoidbPB11.def(py::init<const FieldList<Dimension, int>&, const FieldList<Dimension, std::vector<Vector>>&>(), "surfacePoint"_a, "etaVoidPoints"_a);
+
+  //............................................................................
   // The STL containers of Boundary objects.
   py::bind_vector<std::vector<Bound*>>(m, "vector_of_Boundary" + suffix);
 }
