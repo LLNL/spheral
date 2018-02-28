@@ -418,8 +418,8 @@ restoreState(const FileIO& file, const string& pathName) {
 }
 }
 
-// #ifdef _OPENMP
-// #include "SolidCRKSPHEvaluateDerivativesRZ_OpenMP.cc"
-// #else
+#ifdef _OPENMP
+#include "SolidCRKSPHEvaluateDerivativesRZ_OpenMP.cc"
+#else
 #include "SolidCRKSPHEvaluateDerivativesRZ.cc"
-// #endif
+#endif
