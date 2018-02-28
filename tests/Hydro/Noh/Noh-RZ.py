@@ -463,7 +463,8 @@ if graphics:
         rhoPlot, velPlot, epsPlot, PPlot, HPlot = plotState(db, xFunction="%s.y", vecyFunction="%s.y", tenyFunction="1.0/%s.yy")
     else:
         rhoPlot, velPlot, epsPlot, PPlot, HPlot = plotRadialState(db)
-    plotAnswer(answer, control.time(), rhoPlot=rhoPlot, velPlot=velPlot, epsPlot=epsPlot, PPlot=PPlot, HPlot=HPlot)
+    plotAnswer(answer, control.time(), rhoPlot=rhoPlot, velPlot=velPlot, epsPlot=epsPlot, PPlot=PPlot, HPlot=HPlot,
+               plotStyle = "kx")
     EPlot = plotEHistory(control.conserve)
     plots = [(rhoPlot, "Noh-%s-rho-RZ.png" % problem),
              (velPlot, "Noh-%s-vel-RZ.png" % problem),
@@ -473,8 +474,8 @@ if graphics:
 
     # Plot the specific entropy.
     Aplot = newFigure()
-    Aplot.plot(xprof, A, "r-o")
-    Aplot.plot(xprof, Aans, "k-")
+    Aplot.plot(xprof, A, "ro")
+    Aplot.plot(xprof, Aans, "kx")
     plt.title("Specific entropy")
     plots.append((Aplot, "Noh-%s-A.png" % problem))
     
