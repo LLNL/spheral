@@ -43,7 +43,6 @@ evaluateDerivatives(const typename Dimension::Scalar time,
   const auto velocity = state.fields(HydroFieldNames::velocity, Vector::zero);
   const auto massDensity = state.fields(HydroFieldNames::massDensity, 0.0);
   const auto specificThermalEnergy = state.fields(HydroFieldNames::specificThermalEnergy, 0.0);
-  const auto entropy = state.fields(HydroFieldNames::entropy, Scalar());
   const auto H = state.fields(HydroFieldNames::H, SymTensor::zero);
   const auto pressure = state.fields(HydroFieldNames::pressure, 0.0);
   const auto soundSpeed = state.fields(HydroFieldNames::soundSpeed, 0.0);
@@ -65,7 +64,6 @@ evaluateDerivatives(const typename Dimension::Scalar time,
   CHECK(velocity.size() == numNodeLists);
   CHECK(massDensity.size() == numNodeLists);
   CHECK(specificThermalEnergy.size() == numNodeLists);
-  CHECK(entropy.size() == numNodeLists);
   CHECK(H.size() == numNodeLists);
   CHECK(pressure.size() == numNodeLists);
   CHECK(soundSpeed.size() == numNodeLists);
@@ -186,7 +184,6 @@ evaluateDerivatives(const typename Dimension::Scalar time,
       const auto& vi = velocity(nodeListi, i);
       const auto  rhoi = massDensity(nodeListi, i);
       const auto  epsi = specificThermalEnergy(nodeListi, i);
-      const auto  si = entropy(nodeListi, i);
       const auto  Pi = pressure(nodeListi, i);
       const auto& Hi = H(nodeListi, i);
       const auto  ci = soundSpeed(nodeListi, i);
@@ -260,7 +257,6 @@ evaluateDerivatives(const typename Dimension::Scalar time,
               const auto& vj = velocity(nodeListj, j);
               const auto  rhoj = massDensity(nodeListj, j);
               const auto  epsj = specificThermalEnergy(nodeListj, j);
-              const auto  sj = entropy(nodeListj, j);
               const auto  Pj = pressure(nodeListj, j);
               const auto& Hj = H(nodeListj, j);
               const auto  cj = soundSpeed(nodeListj, j);
