@@ -135,7 +135,7 @@ update(const KeyType& key,
       const auto i = *iItr;
 
       // State for node i.
-      auto& DepsDti = DepsDt(nodeListi, i);
+      auto&       DepsDti = DepsDt(nodeListi, i);
       const auto  weighti = abs(DepsDt0(nodeListi, i)) + numeric_limits<Scalar>::epsilon();
       const auto  mi = mass(nodeListi, i);
       const auto& vi = velocity(nodeListi, i);
@@ -167,7 +167,7 @@ update(const KeyType& key,
             if (connectivityMap.calculatePairInteraction(nodeListi, i, 
                                                          nodeListj, j,
                                                          firstGhostNodej)) {
-              auto& DepsDtj = DepsDt(nodeListj, j);
+              auto&       DepsDtj = DepsDt(nodeListj, j);
 	      const auto  weightj = abs(DepsDt0(nodeListj, j)) + numeric_limits<Scalar>::epsilon();
               const auto  mj = mass(nodeListj, j);
               const auto& vj = velocity(nodeListj, j);
@@ -207,12 +207,12 @@ update(const KeyType& key,
         }
       }
 
-      // // Add the self-contribution.
-      // if (pacci.size() == connectivityMap.numNeighborsForNode(nodeLists[nodeListi], i) + 1) {
-      //   const auto duii = -vi12.dot(pacci.back());
-      //   DepsDti += duii;
-      //   ++offset(nodeListi, i);
-      // }
+      // Add the self-contribution if any (RZ does this for instance).
+      if (pacci.size() == connectivityMap.numNeighborsForNode(nodeLists[nodeListi], i) + 1) {
+        const auto duii = -2.0*vi12.dot(pacci.back());
+        DepsDti += duii;
+        ++offset(nodeListi, i);
+      }
 
       // Now we can update the energy.
       CHECK2(offset(nodeListi, i) == pacci.size() or NodeListRegistrar<Dimension>::instance().domainDecompositionIndependent(),
