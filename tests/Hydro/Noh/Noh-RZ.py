@@ -487,24 +487,29 @@ if graphics:
     plots.append((posPlot, "Noh-%s-positions.png" % problem))
 
     if crksph:
-        volPlot = plotFieldList(hydro.volume(), 
+        volPlot = plotFieldList(hydro.volume(),
+                                xFunction = "%s.y",
                                 winTitle = "volume",
                                 colorNodeLists = False, plotGhosts = False)
         plots.append((volPlot, "Noh-%s-vol.png" % problem))
 
     if boolCullenViscosity:
         cullAlphaPlot = plotFieldList(q.ClMultiplier(),
+                                      xFunction = "%s.y",
                                       winTitle = "Cullen alpha")
         cullDalphaPlot = plotFieldList(evolveCullenViscosityMultiplier.DalphaDt(),
+                                       xFunction = "%s.y",
                                        winTitle = "Cullen DalphaDt")
         plots += [(cullAlphaPlot, "Noh-%s-Cullen-alpha.png" % problem),
                   (cullDalphaPlot, "Noh-%s-Cullen-DalphaDt.png" % problem)]
 
     if boolReduceViscosity:
         alphaPlotQ = plotFieldList(q.reducingViscosityMultiplierQ(),
+                                   xFunction = "%s.y",
                                   winTitle = "rvAlphaQ",
                                   colorNodeLists = False, plotGhosts = False)
         alphaPlotL = plotFieldList(q.reducingViscosityMultiplierL(),
+                                   xFunction = "%s.y",
                                    winTitle = "rvAlphaL",
                                    colorNodeLists = False, plotGhosts = False)
 

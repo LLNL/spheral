@@ -30,7 +30,7 @@
 #include "DataBase/IncrementBoundedState.hh"
 #include "DataBase/ReplaceBoundedState.hh"
 #include "DataBase/CompositeFieldListPolicy.hh"
-#include "Hydro/NonSymmetricSpecificThermalEnergyPolicyRZ.hh"
+#include "Hydro/NonSymmetricSpecificThermalEnergyPolicy.hh"
 #include "Hydro/SpecificFromTotalThermalEnergyPolicy.hh"
 #include "Hydro/PositionPolicy.hh"
 #include "Hydro/PressurePolicy.hh"
@@ -163,7 +163,7 @@ registerState(DataBase<Dim<2> >& dataBase,
   // If so we need to override the ordinary energy registration with a specialized version.
   if (mCompatibleEnergyEvolution) {
     FieldList<Dimension, Scalar> specificThermalEnergy = dataBase.fluidSpecificThermalEnergy();
-    PolicyPointer thermalEnergyPolicy(new NonSymmetricSpecificThermalEnergyPolicyRZ(dataBase));
+    PolicyPointer thermalEnergyPolicy(new NonSymmetricSpecificThermalEnergyPolicy<Dimension>(dataBase));
     state.enroll(specificThermalEnergy, thermalEnergyPolicy);
 
     // Get the policy for the position, and add the specific energy as a dependency.
@@ -341,6 +341,7 @@ evaluateDerivatives(const Dim<2>::Scalar time,
       const Scalar zetai = abs((Hi*posi).y());
       const Scalar hri = ri*safeInv(zetai);
       const Scalar riInv = safeInv(ri, 0.25*hri);
+      CHECK2(ri > 0.0, i << " " << ri);
       CHECK2(mi > 0.0, i << " " << mi);
       CHECK2(rhoi > 0.0, i << " " << rhoi);
       CHECK2(Ai > 0.0, i << " " << Ai);
@@ -426,6 +427,7 @@ evaluateDerivatives(const Dim<2>::Scalar time,
               const Scalar Hdetj = Hj.Determinant();
               const Scalar weightj = volume(nodeListj, j);     // Change CRKSPH weights here if need be!
               const Scalar zetaj = abs((Hj*posj).y());
+              CHECK2(rj > 0.0, j << " " << rj);
               CHECK(mj > 0.0);
               CHECK(rhoj > 0.0);
               CHECK(Aj > 0.0 or j >= firstGhostNodej);
@@ -459,8 +461,8 @@ evaluateDerivatives(const Dim<2>::Scalar time,
               // Symmetrized kernel weight and gradient.
               Scalar gWi, gWj, Wi, Wj, gW0i, gW0j, W0i, W0j;
               Vector gradWi, gradWj, gradW0i, gradW0j;
-              CRKSPHKernelAndGradient(Wj, gWj, gradWj, W, order,  xij,  etai, Hi, Hdeti,  etaj, Hj, Hdetj, Ai, Bi, Ci, gradAi, gradBi, gradCi, mCorrectionMin);
-              CRKSPHKernelAndGradient(Wi, gWi, gradWi, W, order, -xij, -etaj, Hj, Hdetj, -etai, Hi, Hdeti, Aj, Bj, Cj, gradAj, gradBj, gradCj, mCorrectionMax);
+              CRKSPHKernelAndGradient(Wj, gWj, gradWj, W, order,  xij,  etai, Hi, Hdeti,  etaj, Hj, Hdetj, Ai, Bi, Ci, gradAi, gradBi, gradCi);
+              CRKSPHKernelAndGradient(Wi, gWi, gradWi, W, order, -xij, -etaj, Hj, Hdetj, -etai, Hi, Hdeti, Aj, Bj, Cj, gradAj, gradBj, gradCj);
               const Vector deltagrad = gradWj - gradWi;
               const Vector gradWSPHi = (Hi*etai.unitVector())*W.gradValue(etai.magnitude(), Hdeti);
               const Vector gradWSPHj = (Hj*etaj.unitVector())*W.gradValue(etaj.magnitude(), Hdetj);
