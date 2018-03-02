@@ -299,12 +299,12 @@ geometryBindings(py::module& m, const std::string& suffix) {
   typedef Spheral::GeomPlane<Spheral::Dim<ndim>> PlaneType;
 
   // Declare the pybind11 types.
-  py::class_<Vector> VectorPB11(m, ("Vector" + suffix).c_str(), py::metaclass());
-  py::class_<Tensor> TensorPB11(m, ("Tensor" + suffix).c_str(), py::metaclass());
-  py::class_<SymTensor> SymTensorPB11(m, ("SymTensor" + suffix).c_str(), py::metaclass());
-  py::class_<ThirdRankTensor> ThirdRankTensorPB11(m, ("ThirdRankTensor" + suffix).c_str(), py::metaclass());
-  py::class_<FourthRankTensor> FourthRankTensorPB11(m, ("FourthRankTensor" + suffix).c_str(), py::metaclass());
-  py::class_<FifthRankTensor> FifthRankTensorPB11(m, ("FifthRankTensor" + suffix).c_str(), py::metaclass());
+  py::class_<Vector> VectorPB11(m, ("Vector" + suffix).c_str());
+  py::class_<Tensor> TensorPB11(m, ("Tensor" + suffix).c_str());
+  py::class_<SymTensor> SymTensorPB11(m, ("SymTensor" + suffix).c_str());
+  py::class_<ThirdRankTensor> ThirdRankTensorPB11(m, ("ThirdRankTensor" + suffix).c_str());
+  py::class_<FourthRankTensor> FourthRankTensorPB11(m, ("FourthRankTensor" + suffix).c_str());
+  py::class_<FifthRankTensor> FifthRankTensorPB11(m, ("FifthRankTensor" + suffix).c_str());
   py::class_<EigenStructType> EigenStructPB11(m, ("EigenStruct" + suffix).c_str());
   py::class_<PlaneType> PlanePB11(m, ("Plane" + suffix).c_str());
 
@@ -660,8 +660,9 @@ geometryBindings(py::module& m, const std::string& suffix) {
 //------------------------------------------------------------------------------
 // Make the module
 //------------------------------------------------------------------------------
-PYBIND11_PLUGIN(SpheralGeometry) {
-  py::module m("SpheralGeometry", "Spheral Geometry module types.");
+PYBIND11_MODULE(SpheralGeometry, m) {
+
+  m.doc() = "Spheral Geometry module types.";
 
   //............................................................................
   // Generic dimension objects.
@@ -831,6 +832,4 @@ PYBIND11_PLUGIN(SpheralGeometry) {
   // The STL containers of 2D and 3D facets.
   py::bind_vector<std::vector<Spheral::GeomFacet2d>>(m, "vector_of_Facet2d");
   py::bind_vector<std::vector<Spheral::GeomFacet3d>>(m, "vector_of_Facet3d");
-
-  return m.ptr();
 }

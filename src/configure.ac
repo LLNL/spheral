@@ -189,7 +189,9 @@ AC_OUTPUT(helpers/makefile_master \
           PBGWraps/SpheralModulesBindings.py \
           Pybind11Wraps/makefile \
           Pybind11Wraps/Spheral.py \
+          Pybind11Wraps/OpenMP/makefile \
           Pybind11Wraps/CXXTypes/makefile \
+          Pybind11Wraps/PolyClipper/makefile \
           Pybind11Wraps/Geometry/makefile \
           Pybind11Wraps/Silo/makefile \
           Pybind11Wraps/DataOutput/makefile \
@@ -204,4 +206,6 @@ AC_OUTPUT(helpers/makefile_master \
           Pybind11Wraps/Physics/makefile \
           Pybind11Wraps/ArtificialViscosity/makefile \
           Pybind11Wraps/Hydro/makefile \
+          Pybind11Wraps/ExternalForce/makefile \
+          Pybind11Wraps/Gravity/makefile \
           SimulationControl/spheralDimensions.py)

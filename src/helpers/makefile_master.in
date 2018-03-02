@@ -189,11 +189,12 @@ PKGLIBS := $(patsubst %, -l%, $(CXXPKGLIBS))
 # Python binding stuff
 PYTHONBINDING = @PYTHONBINDING@
 PYTHONPKGDIR = @PYTHONPKGDIR@
+PYTHONPKGS = @PYTHONPKGS@
+FILTEREDPYTHONPKGS = $(filter-out $(PKGNAME), $(filter-out Python, $(PYTHONPKGS)))
 
 # Pybindgen
 ifeq "$(PYTHONBINDING)" "PYBINDGEN"
   EXTRAINCLUDES += -I$(prefix)/include/python$(PYTHONVERSION)
-  FILTEREDPYTHONPKGS = $(filter-out $(PKGNAME), $(filter-out Python, $(PYTHONPKGS)))
 
   PBGSRCS = $(patsubst %, $(SPHERALMODULES)_%.C, $(PYTHONPKGS)) $(SPHERALMODULES).C
   PBGOBJS = $(PBGSRCS:.C=.o)
@@ -209,7 +210,6 @@ else
 
 # Pybind11 
   EXTRAINCLUDES += -I$(prefix)/include/python$(PYTHONVERSION)
-  FILTEREDPYTHONPKGS = $(filter-out $(PKGNAME), $(filter-out Python, $(PYTHONPKGS)))
 endif
 
 #-------------------------------------------------------------------------------
