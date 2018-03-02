@@ -226,25 +226,6 @@ verbose(bool value) {
 }
 
 //------------------------------------------------------------------------------
-// Timestep threshold where we start reporting the timestep reasons even if not 
-// verbose.
-//------------------------------------------------------------------------------
-template<typename Dimension>
-inline
-typename Dimension::Scalar
-Integrator<Dimension>::dtThreshold() const {
-  return mDtThreshold;
-}
-
-template<typename Dimension>
-inline
-void
-Integrator<Dimension>::
-dtThreshold(const typename Dimension::Scalar x) {
-  mDtThreshold = x;
-}
-
-//------------------------------------------------------------------------------
 // Select whether we're enforcing culling of ghost nodes.
 //------------------------------------------------------------------------------
 template<typename Dimension>
