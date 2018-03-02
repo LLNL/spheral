@@ -373,7 +373,7 @@ evaluateDerivatives(const Dim<2>::Scalar time,
             DvDti -= forceij/mRZi;
             if (compatibleEnergy) {
               pairAccelerationsi.push_back(-forceij/mRZi);
-              pairAccelerationsi.push_back( forceji/mRZj);
+              pairAccelerationsi.push_back( forceij/mRZj);
             }
 
             // Energy
