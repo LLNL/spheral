@@ -364,7 +364,10 @@ evaluateDerivatives(const Dim<2>::Scalar time,
 
             // Specific thermal energy evolution.
             DepsDti -= mRZj*(sigmarhoi.doubledot(deltaDvDxi.Symmetric()) - workQi);
-            if (compatibleEnergy) pairAccelerationsi.push_back( mRZj*deltaDvDt);
+            if (compatibleEnergy) {
+              pairAccelerationsi.push_back( mRZj*deltaDvDt);
+              pairAccelerationsi.push_back(-mRZi*deltaDvDt);
+            }
 
             // Velocity gradient.
             DvDxi -= mRZj*deltaDvDxi;
@@ -386,7 +389,7 @@ evaluateDerivatives(const Dim<2>::Scalar time,
       const auto numNeighborsi = connectivityMap.numNeighborsForNode(&nodeList, i);
       CHECK(not this->compatibleEnergyEvolution() or NodeListRegistrar<Dimension>::instance().domainDecompositionIndependent() or
             (i >= firstGhostNodei and pairAccelerationsi.size() == 0) or
-            (pairAccelerationsi.size() == numNeighborsi));
+            (pairAccelerationsi.size() == 2*numNeighborsi));
 
       // Get the time for pairwise interactions.
       const auto deltaTimePair = Timing::difference(start, Timing::currentTime())/(numNeighborsi + 1.0e-30);

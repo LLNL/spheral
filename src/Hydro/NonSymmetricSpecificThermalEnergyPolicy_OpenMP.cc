@@ -145,8 +145,8 @@ update(const KeyType& key,
       const auto& ai = acceleration(nodeListi, i);
       const auto  vi12 = vi + ai*hdt;
       const auto& pacci = pairAccelerations(nodeListi, i);
-      CHECK(pacci.size() == connectivityMap.numNeighborsForNode(nodeLists[nodeListi], i) or
-            pacci.size() == connectivityMap.numNeighborsForNode(nodeLists[nodeListi], i) + 1);
+      CHECK(pacci.size() == 2*connectivityMap.numNeighborsForNode(nodeLists[nodeListi], i) or
+            pacci.size() == 2*connectivityMap.numNeighborsForNode(nodeLists[nodeListi], i) + 1);
       size_t offseti = 0;
 
       // Get the connectivity (neighbor set) for this node.
@@ -168,24 +168,20 @@ update(const KeyType& key,
             auto&       DepsDtj = DepsDt(nodeListj, j);
             const auto  weightj = abs(DepsDt0(nodeListj, j)) + numeric_limits<Scalar>::epsilon();
             const auto  mj = mass(nodeListj, j);
+            const auto& vj = velocity(nodeListj, j);
+            const auto& aj = acceleration(nodeListj, j);
+            const auto  vj12 = vj + aj*hdt;
 
             CHECK(offseti < pacci.size());
             const auto& pai = pacci[offseti++];
-            const auto dEij_i = -mi*vi12.dot(pai);   // NOTE! This is only part of the pair-work!
+            const auto& paj = pacci[offseti++];
+            const auto dEij = -(mi*vi12.dot(pai) + mj*vj12.dot(paj));
             const auto wi = weighti/(weighti + weightj);
             // const auto wi = entropyWeighting(si, sj, duij);
             // CHECK2(fuzzyEqual(wi + entropyWeighting(sj, si, dEij/mj), 1.0, 1.0e-10),
             //        wi << " " << entropyWeighting(sj, si, dEij/mj) << " " << (wi + entropyWeighting(sj, si, dEij/mj)));
             CHECK(wi >= 0.0 and wi <= 1.0);
-            DepsDti += wi*dEij_i/mi;
-            DepsDtj += (1.0 - wi)*dEij_i/mj;
-
-            if (i == 0) cerr << " --> " << i << " " << j << " : "
-                             << dEij_i << " " << wi << " : "
-                             << wi*dEij_i/mi << endl;
-            if (j == 0) cerr << " --> " << i << " " << j << " : "
-                             << dEij_i << " " << (1.0 - wi) << " : "
-                             << (1.0 - wi)*dEij_i/mj << endl;
+            DepsDti += wi*dEij/mi;
 
             // // Check if either of these points was advanced non-conservatively.
             // if (surface) {
@@ -194,26 +190,16 @@ update(const KeyType& key,
           }
         }
       }
+      CHECK(offseti == pacci.size() or offseti == pacci.size() - 1);
 
       // Add the self-contribution if any (RZ does this for instance).
-      if (pacci.size() == connectivityMap.numNeighborsForNode(nodeLists[nodeListi], i) + 1) {
+      if (offseti == pacci.size() - 1) {
         const auto duii = -2.0*vi12.dot(pacci.back());
         DepsDti += duii;
-        ++offseti;
       }
-      CHECK2(offseti == pacci.size() or NodeListRegistrar<Dimension>::instance().domainDecompositionIndependent(),
-             "Bad sizing : (" << nodeListi << " " << i << ") " << offseti << " " << pacci.size());
-    }
-  }
 
-  // Now apply the energy change.
-  for (size_t nodeListi = 0; nodeListi != numFields; ++nodeListi) {
-    const auto ni = connectivityMap.numNodes(nodeListi);
-// #pragma omp parallel for
-    for (auto k = 0; k < ni; ++k) {
-      const auto i = connectivityMap.ithNode(nodeListi, k);
       // if (poisoned(nodeListi, i) == 0) {
-        eps(nodeListi, i) += DepsDt(nodeListi, i)*multiplier;
+        eps(nodeListi, i) += DepsDti*multiplier;
       // } else {
       //   eps(nodeListi, i) += DepsDt0(nodeListi, i)*multiplier;
       // }
