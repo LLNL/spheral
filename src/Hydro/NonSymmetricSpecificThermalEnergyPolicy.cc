@@ -193,13 +193,6 @@ update(const KeyType& key,
               DepsDti += wi*dEij/mi;
               DepsDtj += (1.0 - wi)*dEij/mj;
 
-              if (i == 0) cerr << " --> " << i << " " << j << " : "
-                               << dEij << " " << wi << " : "
-                               << wi*dEij/mi << endl;
-              if (j == 0) cerr << " --> " << i << " " << j << " : "
-                               << dEij << " " << (1.0 - wi) << " : "
-                               << (1.0 - wi)*dEij/mj << endl;
-
               // // Check if either of these points was advanced non-conservatively.
               // if (surface) {
               //   poisoned(nodeListi, i) |= (surfacePoint(nodeListi, i) > 1 or surfacePoint(nodeListj, j) > 1 ? 1 : 0);
