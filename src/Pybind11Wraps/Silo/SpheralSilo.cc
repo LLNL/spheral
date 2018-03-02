@@ -39,8 +39,9 @@ bindSiloCompoundTypeMethods(py::module& m) {
 //------------------------------------------------------------------------------
 // Make the module
 //------------------------------------------------------------------------------
-PYBIND11_PLUGIN(SpheralSilo) {
-  py::module m("SpheralSilo", "Spheral module supporting Silo bindings.");
+PYBIND11_MODULE(SpheralSilo, m) {
+
+  m.doc() = "Spheral module supporting Silo bindings.";
 
   // Silo structs
   py::class_<DBfile>(m, "DBfile");
@@ -107,7 +108,7 @@ PYBIND11_PLUGIN(SpheralSilo) {
   bindSiloTypeMethods<int>(m);
   bindSiloTypeMethods<float>(m);
   bindSiloTypeMethods<double>(m);
-  bindSiloTypeMethods<char>(m);
+  // bindSiloTypeMethods<char>(m);
   bindSiloCompoundTypeMethods<Spheral::Dim<2>::Vector>(m);
   bindSiloCompoundTypeMethods<Spheral::Dim<2>::Tensor>(m);
   bindSiloCompoundTypeMethods<Spheral::Dim<2>::SymTensor>(m);
@@ -479,6 +480,4 @@ PYBIND11_PLUGIN(SpheralSilo) {
   m.attr("DB_ZONETYPE_POLYGON") = DB_ZONETYPE_POLYGON;
   m.attr("DB_ZONETYPE_TRIANGLE") = DB_ZONETYPE_TRIANGLE;
   m.attr("DB_ZONETYPE_QUAD") = DB_ZONETYPE_QUAD;
-
-  return m.ptr();
 }
