@@ -536,8 +536,6 @@ xprof = mpi.reduce([x.magnitude() for x in nodes1.positions().internalValues()],
 if outputFile != "None":
     outputFile = os.path.join(dataDir, outputFile)
     from SpheralGnuPlotUtilities import multiSort
-    mof = mortonOrderIndices(db)
-    mo = mpi.reduce(mof[0].internalValues(), mpi.SUM)
     mprof = mpi.reduce(nodes1.mass().internalValues(), mpi.SUM)
     rhoprof = mpi.reduce(nodes1.massDensity().internalValues(), mpi.SUM)
     P = ScalarField("pressure", nodes1)
@@ -547,25 +545,17 @@ if outputFile != "None":
     epsprof = mpi.reduce(nodes1.specificThermalEnergy().internalValues(), mpi.SUM)
     hprof = mpi.reduce([1.0/H.xx for H in nodes1.Hfield().internalValues()], mpi.SUM)
     if mpi.rank == 0:
-        multiSort(xprof, rhoprof, Pprof, vprof, epsprof, hprof, mo,
+        multiSort(xprof, rhoprof, Pprof, vprof, epsprof, hprof,
                   rhoans, Pans, vans, uans, hans)
         f = open(outputFile, "w")
-        f.write(("#  " + 20*"'%s' " + "\n") % ("x", "m", "rho", "P", "v", "eps", "h", "mo",
-                                               "rhoans", "Pans", "vans", "epsans", "hans",
-                                               "x_UU", "m_UU", "rho_UU", "P_UU", "v_UU", "eps_UU", "h_UU"))
-        for (xi, mi, rhoi, Pi, vi, epsi, hi, moi,
-             rhoansi, Pansi, vansi, uansi, hansi) in zip(xprof, mprof, rhoprof, Pprof, vprof, epsprof, hprof, mo,
+        f.write(("#  " + 12*"'%s' " + "\n") % ("x", "m", "rho", "P", "v", "eps", "h",
+                                               "rhoans", "Pans", "vans", "epsans", "hans"))
+        for (xi, mi, rhoi, Pi, vi, epsi, hi, 
+             rhoansi, Pansi, vansi, uansi, hansi) in zip(xprof, mprof, rhoprof, Pprof, vprof, epsprof, hprof, 
                                                          rhoans, Pans, vans, uans, hans):
-            f.write((7*"%16.12e " + "%i " + 5*"%16.12e " + 7*"%i " + '\n') % 
-                    (xi, mi, rhoi, Pi, vi, epsi, hi, moi,
-                     rhoansi, Pansi, vansi, uansi, hansi,
-                     unpackElementUL(packElementDouble(xi)),
-                     unpackElementUL(packElementDouble(mi)),
-                     unpackElementUL(packElementDouble(rhoi)),
-                     unpackElementUL(packElementDouble(Pi)),
-                     unpackElementUL(packElementDouble(vi)),
-                     unpackElementUL(packElementDouble(epsi)),
-                     unpackElementUL(packElementDouble(hi))))
+            f.write((12*"%16.12e " + '\n') % 
+                    (xi, mi, rhoi, Pi, vi, epsi, hi, 
+                     rhoansi, Pansi, vansi, uansi, hansi))
         f.close()
 
         # #---------------------------------------------------------------------------

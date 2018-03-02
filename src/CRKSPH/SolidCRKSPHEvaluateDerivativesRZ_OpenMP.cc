@@ -371,7 +371,10 @@ evaluateDerivatives(const Dim<2>::Scalar time,
                        0.5*wij*wij*((Pposi + Pposj)*deltagrad - fij*(sigmai + sigmaj)*deltagrad + Qaccij) :                    // Type III CRK interpoint force.
                        mi*wij*(((Pposj - Pposi)*gradWj - fij*(sigmaj - sigmai)*gradWj)/rhoi + rhoi*QPiij.dot(gradWj)));        // RK
             DvDti -= forceij/mRZi;
-            if (compatibleEnergy) pairAccelerationsi.push_back(-forceij/mRZi);
+            if (compatibleEnergy) {
+              pairAccelerationsi.push_back(-forceij/mRZi);
+              pairAccelerationsi.push_back( forceji/mRZj);
+            }
 
             // Energy
             DepsDti += (true ? // surfacePoint(nodeListi, i) <= 1 ?
@@ -386,7 +389,7 @@ evaluateDerivatives(const Dim<2>::Scalar time,
       const auto numNeighborsi = connectivityMap.numNeighborsForNode(&nodeList, i);
       CHECK(not this->compatibleEnergyEvolution() or NodeListRegistrar<Dimension>::instance().domainDecompositionIndependent() or
             (i >= firstGhostNodei and pairAccelerationsi.size() == 0) or
-            (pairAccelerationsi.size() == numNeighborsi));
+            (pairAccelerationsi.size() == 2*numNeighborsi));
 
       // For a surface point, add the RK thermal energy evolution.
       // if (surfacePoint(nodeListi, i) > 1) DepsDti += (Si - Pi*SymTensor::one).doubledot(DvDxi)/rhoi;

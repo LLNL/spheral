@@ -138,7 +138,6 @@ update(const KeyType& key,
       const auto  weighti = abs(DepsDt0(nodeListi, i)) + numeric_limits<Scalar>::epsilon();
       const auto  mi = mass(nodeListi, i);
       const auto& vi = velocity(nodeListi, i);
-      const auto  ui = eps0(nodeListi, i);
       const auto& ai = acceleration(nodeListi, i);
       const auto  vi12 = vi + ai*hdt;
       const auto& pacci = pairAccelerations(nodeListi, i);
@@ -170,7 +169,6 @@ update(const KeyType& key,
 	      const auto  weightj = abs(DepsDt0(nodeListj, j)) + numeric_limits<Scalar>::epsilon();
               const auto  mj = mass(nodeListj, j);
               const auto& vj = velocity(nodeListj, j);
-              const auto  uj = eps0(nodeListj, j);
               const auto& aj = acceleration(nodeListj, j);
               const auto  vj12 = vj + aj*hdt;
               const auto& paccj = pairAccelerations(nodeListj, j);
@@ -187,13 +185,12 @@ update(const KeyType& key,
               ++offset(nodeListj, j);
 
               const auto dEij = -(mi*vi12.dot(pai) + mj*vj12.dot(paj));
-              const auto duij = dEij/mi;
 	      const auto wi = weighti/(weighti + weightj);
               CHECK(wi >= 0.0 and wi <= 1.0);
               // const auto wi = entropyWeighting(si, sj, duij);
               // CHECK2(fuzzyEqual(wi + entropyWeighting(sj, si, dEij/mj), 1.0, 1.0e-10),
               //        wi << " " << entropyWeighting(sj, si, dEij/mj) << " " << (wi + entropyWeighting(sj, si, dEij/mj)));
-              DepsDti += wi*duij;
+              DepsDti += wi*dEij/mi;
               DepsDtj += (1.0 - wi)*dEij/mj;
 
               if (i == 0) cerr << " --> " << i << " " << j << " : "
@@ -212,17 +209,15 @@ update(const KeyType& key,
           }
         }
       }
+      CHECK(offset(nodeListi, i) == pacci.size() or offset(nodeListi, i) == pacci.size() - 1);
 
       // Add the self-contribution if any (RZ does this for instance).
-      if (pacci.size() == connectivityMap.numNeighborsForNode(nodeLists[nodeListi], i) + 1) {
+      if (offset(nodeListi, i) == pacci.size() - 1) {
         const auto duii = -2.0*vi12.dot(pacci.back());
         DepsDti += duii;
-        ++offset(nodeListi, i);
       }
 
       // Now we can update the energy.
-      CHECK2(offset(nodeListi, i) == pacci.size() or NodeListRegistrar<Dimension>::instance().domainDecompositionIndependent(),
-             "Bad sizing : (" << nodeListi << " " << i << ") " << offset(nodeListi, i) << " " << pacci.size());
       // if (poisoned(nodeListi, i) == 0) {
       //   eps(nodeListi, i) += DepsDti*multiplier;
       // } else {
