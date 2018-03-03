@@ -1,9 +1,7 @@
 #------------------------------------------------------------------------------
 # A simple class to control simulation runs for Spheral.
 #------------------------------------------------------------------------------
-import sys
-import gc
-import mpi
+import sys, os, gc, warnings, mpi
 
 from SpheralModules.Spheral import FileIOSpace
 from SpheralModules.Spheral.DataOutput import RestartableObject, RestartRegistrar
@@ -75,20 +73,16 @@ class SpheralController:
         self.dim = "%id" % self.integrator.dataBase().nDim
 
         # Determine the visualization method.
-        if vizMethod:
-            self.vizMethod = vizMethod
+        dumpPhysicsStatePoints, dumpPhysicsStateCells = None, None
+        if self.dim == "1d":
+            from Spheral1dVizDump import dumpPhysicsState as dumpPhysicsStatePoints
         else:
-            if self.dim == "1d":
-                from Spheral1dVizDump import dumpPhysicsState
-            elif self.dim == "2d":
-                from SpheralVoronoiSiloDump import dumpPhysicsState
-                #from SpheralVisitDump import dumpPhysicsState
-                #from SpheralPointmeshSiloDump import dumpPhysicsState
-            else:
-                from SpheralVoronoiSiloDump import dumpPhysicsState
-                #from SpheralVisitDump import dumpPhysicsState
-                #from SpheralPointmeshSiloDump import dumpPhysicsState
-            self.vizMethod = dumpPhysicsState
+            from SpheralPointmeshSiloDump import dumpPhysicsState as dumpPhysicsStatePoints
+            from SpheralVoronoiSiloDump import dumpPhysicsState as dumpPhysicsStateCells
+        if vizMethod:
+            dumpPhysicsStatePoints = vizMethod
+        self.vizMethodPoints = dumpPhysicsStatePoints
+        self.vizMethodCells = dumpPhysicsStateCells
         self.vizGhosts = vizGhosts
         self.vizDerivs = vizDerivs
 
@@ -708,16 +702,28 @@ precedeDistributed += [BoundarySpace.PeriodicBoundary%(dim)sd,
                 Time = None,
                 dt = None):
         mpi.barrier()
-        self.vizMethod(self.integrator,
-                       baseFileName = self.vizBaseName,
-                       baseDirectory = self.vizDir,
-                       fields = self.vizFields,
-                       fieldLists = self.vizFieldLists,
-                       currentTime = self.time(),
-                       currentCycle = self.totalSteps,
-                       dumpGhosts = self.vizGhosts,
-                       dumpDerivatives = self.vizDerivs,
-                       boundaries = self.integrator.uniqueBoundaryConditions())
+        if self.vizMethodPoints:
+            self.vizMethodPoints(self.integrator,
+                                 baseFileName = self.vizBaseName,
+                                 baseDirectory = os.path.join(self.vizDir, "points"),
+                                 fields = self.vizFields,
+                                 fieldLists = self.vizFieldLists,
+                                 currentTime = self.time(),
+                                 currentCycle = self.totalSteps,
+                                 dumpGhosts = self.vizGhosts,
+                                 dumpDerivatives = self.vizDerivs,
+                                 boundaries = self.integrator.uniqueBoundaryConditions())
+        if self.vizMethodCells:
+            self.vizMethodCells(self.integrator,
+                                baseFileName = self.vizBaseName,
+                                baseDirectory = os.path.join(self.vizDir, "cells"),
+                                fields = self.vizFields,
+                                fieldLists = self.vizFieldLists,
+                                currentTime = self.time(),
+                                currentCycle = self.totalSteps,
+                                dumpGhosts = self.vizGhosts,
+                                dumpDerivatives = self.vizDerivs,
+                                boundaries = self.integrator.uniqueBoundaryConditions())
         return
 
     #--------------------------------------------------------------------------
