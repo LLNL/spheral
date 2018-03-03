@@ -207,10 +207,6 @@ public:
   bool verbose() const;
   void verbose(bool x);
 
-  // Timestep threshold where we start reporting the timestep reasons even if not verbose.
-  Scalar dtThreshold() const;
-  void dtThreshold(const Scalar x);
-
   // Select whether we should run in a mode the ensures domain decomposition independence.
   // Possibly some performance impact.
   bool domainDecompositionIndependent() const;
@@ -234,7 +230,7 @@ protected:
 
 private:
   //--------------------------- Private Interface ---------------------------//
-  Scalar mDtMin, mDtMax, mDtGrowth, mLastDt, mCurrentTime, mDtThreshold;
+  Scalar mDtMin, mDtMax, mDtGrowth, mLastDt, mCurrentTime;
   int mCurrentCycle, mUpdateBoundaryFrequency;
   bool mVerbose, mRequireConnectivity, mRequireGhostConnectivity;
   DataBaseSpace::DataBase<Dimension>* mDataBasePtr;

@@ -282,13 +282,13 @@ registerState(DataBase<Dimension>& dataBase,
     state.enroll(this->nodeList().damageGradient(), damageGradientPolicy);
   }
 
-  // // Mask out nodes beyond the critical damage threshold from setting the timestep.
-  // Key maskKey = state.buildFieldKey(HydroFieldNames::timeStepMask, this->nodeList().name());
-  // Field<Dimension, int>& mask = state.field(maskKey, 0);
-  // const Field<Dimension, SymTensor>& damage = this->nodeList().damage();
-  // for (int i = 0; i != this->nodeList().numInternalNodes(); ++i) {
-  //   if (damage(i).Trace() > mCriticalDamageThreshold) mask(i) = 0;
-  // }
+  // Mask out nodes beyond the critical damage threshold from setting the timestep.
+  Key maskKey = state.buildFieldKey(HydroFieldNames::timeStepMask, this->nodeList().name());
+  Field<Dimension, int>& mask = state.field(maskKey, 0);
+  const Field<Dimension, SymTensor>& damage = this->nodeList().damage();
+  for (int i = 0; i != this->nodeList().numInternalNodes(); ++i) {
+    if (damage(i).Trace() > mCriticalDamageThreshold) mask(i) = 0;
+  }
 
 //   // Damage some of the state variables.
 //   typedef typename State<Dimension>::FieldKeyType Key;
