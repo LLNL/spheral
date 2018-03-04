@@ -21,6 +21,7 @@ namespace Spheral {
 template<class Base>
 class PyRestartMethods: public Base {
 public:
+  using Base::Base;  // inherit constructors
 
   virtual std::string label() const override {
     PYBIND11_OVERLOAD(std::string,  // Return type
