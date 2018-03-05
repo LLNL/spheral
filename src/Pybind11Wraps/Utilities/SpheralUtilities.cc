@@ -8,6 +8,7 @@
 #include <utility>
 
 #include "Geometry/Dimension.hh"
+#include "Utilities/packElement.hh"
 #include "boost/math/special_functions/legendre.hpp"
 #include "Utilities/Functors.hh"
 #include "Utilities/erff.hh"
@@ -38,7 +39,7 @@
 #include "Utilities/computeShepardsInterpolation.hh"
 #include "Utilities/Timer.hh"
 
-#include "Pybind11Wraps/Integrator/PyAbstractIntegrator.hh"
+#include "Pybind11Wraps/Utilities/PyAbstractSpheralFunctor.hh"
 #include "Pybind11Wraps/DataOutput/PyRestartMethods.hh"
 
 #ifndef NOR3D
@@ -63,111 +64,101 @@ namespace Spheral {
 namespace py = pybind11;
 using namespace pybind11::literals;
 using Spheral::NodeSpace::NodeList;
+using Spheral::FieldSpace::FieldList;
+using Spheral::PythonBoundFunctors::SpheralFunctor;
 
 using namespace Spheral;
 
 namespace {  // anonymous
 
-// //------------------------------------------------------------------------------
-// // Generic integrator methods.
-// //------------------------------------------------------------------------------
-// template<typename Dimension, typename Obj, typename PB11Obj>
-// void integratorMethodsBindings(PB11Obj& obj) {
-//   typedef typename Dimension::Scalar Scalar;
-    
-//   // Constructors
-//   obj.def(py::init<>());
-//   obj.def(py::init<DataBase<Dimension>&>(), "dataBase"_a);
-//   obj.def(py::init<DataBase<Dimension>&, const std::vector<Physics<Dimension>*>&>(),
-//           "dataBase"_a, "physicsPackages"_a);
+//------------------------------------------------------------------------------
+// toString
+//------------------------------------------------------------------------------
+template<typename DataType>
+std::string toString(const DataType& x) {
+  vector<char> buffer;
+  packElement(x, buffer);
+  return string(buffer.begin(), buffer.end());
+}
 
-//   // Methods
-//   obj.def("step", (void (Obj::*)(Scalar, State<Dimension>&, StateDerivatives<Dimension>&)) &Obj::step,
-//           "maxTime"_a, "state"_a, "derivs"_a);
-// }
+//------------------------------------------------------------------------------
+// fromString
+//------------------------------------------------------------------------------
+template<typename DataType>
+DataType fromString(const string& x) {
+  DataType result;
+  vector<char> buffer(x.begin(), x.end());
+  vector<char>::const_iterator itr = buffer.begin();
+  unpackElement(result, itr, buffer.end());
+  return result;
+}
 
-// //------------------------------------------------------------------------------
-// // Bind the objects templated on Dimension.
-// //------------------------------------------------------------------------------
-// template<typename Dimension>
-// void dimensionBindings(py::module& m, const std::string suffix) {
+//------------------------------------------------------------------------------
+// Bind the objects templated on Dimension.
+//------------------------------------------------------------------------------
+template<typename Dimension>
+void dimensionBindings(py::module& m, const std::string suffix) {
 
-//   typedef typename Dimension::Scalar Scalar;
-//   typedef typename Dimension::Vector Vector;
-//   typedef typename Dimension::Tensor Tensor;
-//   typedef typename Dimension::SymTensor SymTensor;
-//   typedef typename Dimension::ThirdRankTensor ThirdRankTensor;
+  typedef typename Dimension::Scalar Scalar;
+  typedef typename Dimension::Vector Vector;
+  typedef typename Dimension::Tensor Tensor;
+  typedef typename Dimension::SymTensor SymTensor;
+  typedef typename Dimension::ThirdRankTensor ThirdRankTensor;
 
-//   //............................................................................
-//   typedef Integrator<Dimension> INT;
-//   py::class_<INT, PyRestartMethods<PyAbstractIntegrator<Dimension, INT>>>  intPB11(m, ("Integrator" + suffix).c_str());
-//   restartMethodBindings<INT>(m, intPB11);   // Bind restart methods.
-    
-//   // Constructors
-//   intPB11.def(py::init<>());
-//   intPB11.def(py::init<DataBase<Dimension>&>(), "dataBase"_a);
-//   intPB11.def(py::init<DataBase<Dimension>&, const std::vector<Physics<Dimension>*>&>(),
-//               "dataBase"_a, "physicsPackages"_a);
+  //............................................................................
+  // VectorScalarFunctor
+  {
+    typedef SpheralFunctor<Vector, double> VSF;
+    py::class_<VSF, PyAbstractSpheralFunctor<Vector, double, VSF>> x(m, ("VectorScalarFunctor" + suffix).c_str());
 
-//   // Methods
-//   intPB11.def("step", (void (INT::*)(Scalar, State<Dimension>&, StateDerivatives<Dimension>&)) &INT::step,
-//               "maxTime"_a, "state"_a, "derivs"_a);
-//   intPB11.def("step", (void (INT::*)(Scalar)) &INT::step, "maxTime"_a);
-//   intPB11.def("selectDt", &INT::selectDt, "dtMin"_a, "dtMax"_a, "state"_a, "derivs"_a);
-//   intPB11.def("preStepInitialize", &INT::preStepInitialize, "state"_a, "derivs"_a);
-//   intPB11.def("initializeDerivatives", &INT::initializeDerivatives, "t"_a, "dt"_a, "state"_a, "derivs"_a);
-//   intPB11.def("evaluateDerivatives", &INT::evaluateDerivatives, "t"_a, "dt"_a, "dataBase"_a, "state"_a, "derivs"_a);
-//   intPB11.def("finalizeDerivatives", &INT::finalizeDerivatives, "t"_a, "dt"_a, "dataBase"_a, "state"_a, "derivs"_a);
-//   intPB11.def("postStateUpdate", &INT::postStateUpdate, "dataBase"_a, "state"_a, "derivs"_a);
-//   intPB11.def("finalizeDerivatives", &INT::finalizeDerivatives, "t"_a, "dt"_a, "dateBase"_a, "state"_a, "derivs"_a);
-//   intPB11.def("appendPhysicsPackage", &INT::appendPhysicsPackage, "package"_a);
-//   intPB11.def("havePhysicsPackage", &INT::havePhysicsPackage, "package"_a);
-//   intPB11.def("uniqueBoundaryConditions", &INT::uniqueBoundaryConditions);
-//   intPB11.def("setGhostNodes", &INT::setGhostNodes);
-//   intPB11.def("applyGhostBoundaries", &INT::applyGhostBoundaries, "state"_a, "derivs"_a);
-//   intPB11.def("finalizeGhostBoundaries", &INT::finalizeGhostBoundaries);
-//   intPB11.def("setViolationNodes", &INT::setViolationNodes);
-//   intPB11.def("enforceBoundaries", &INT::enforceBoundaries, "state"_a, "derivs"_a);
-//   intPB11.def("copyGhostState", &INT::copyGhostState, "state0"_a, "state1"_a);
-//   intPB11.def("advance", &INT::advance, "goalTime"_a);
+    // Constructors
+    x.def(py::init<>());
 
-//   // Attributes
-//   intPB11.def_property("currentTime",
-//                        (Scalar (INT::*)() const) &INT::currentTime,
-//                        (void (INT::*)(Scalar)) &INT::currentTime);
-//   intPB11.def_property("currentCycle",
-//                        (int (INT::*)() const) &INT::currentCycle,
-//                        (void (INT::*)(int)) &INT::currentCycle);
-//   intPB11.def_property("dtMin",
-//                        (Scalar (INT::*)() const) &INT::dtMin,
-//                        (void (INT::*)(Scalar)) &INT::dtMin);
-//   intPB11.def_property("dtMax",
-//                        (Scalar (INT::*)() const) &INT::dtMax,
-//                        (void (INT::*)(Scalar)) &INT::dtMax);
-//   intPB11.def_property("lastDt",
-//                        (Scalar (INT::*)() const) &INT::lastDt,
-//                        (void (INT::*)(Scalar)) &INT::lastDt);
-//   intPB11.def_property("dtGrowth",
-//                        (Scalar (INT::*)() const) &INT::dtGrowth,
-//                        (void (INT::*)(Scalar)) &INT::dtGrowth);
-//   intPB11.def_property_readonly("dataBase", &INT::dataBase);
-//   intPB11.def_property_readonly("physicsPackages", &INT::physicsPackages);
-//   intPB11.def_property("rigorousBoundaries",
-//                        (bool (INT::*)() const) &INT::rigorousBoundaries,
-//                        (void (INT::*)(bool)) &INT::rigorousBoundaries);
-//   intPB11.def_property("updateBoundaryFrequency",
-//                        (int (INT::*)() const) &INT::updateBoundaryFrequency,
-//                        (void (INT::*)(const int)) &INT::updateBoundaryFrequency);
-//   intPB11.def_property("verbose",
-//                        (bool (INT::*)() const) &INT::verbose,
-//                        (void (INT::*)(bool)) &INT::verbose);
-//   intPB11.def_property("domainDecompositionIndependent",
-//                        (bool (INT::*)() const) &INT::domainDecompositionIndependent,
-//                        (void (INT::*)(bool)) &INT::domainDecompositionIndependent);
-//   intPB11.def_property("cullGhostNodes",
-//                        (bool (INT::*)() const) &INT::cullGhostNodes,
-//                        (void (INT::*)(bool)) &INT::cullGhostNodes);
-// }
+    // Methods
+    x.def("__call__", &VSF::__call__, "x"_a);
+  }
+
+  //............................................................................
+  // VectorVectorFunctor
+  {
+    typedef SpheralFunctor<Vector, Vector> VVF;
+    py::class_<VVF, PyAbstractSpheralFunctor<Vector, Vector, VVF>> x(m, ("VectorVectorFunctor" + suffix).c_str());
+
+    // Constructors
+    x.def(py::init<>());
+
+    // Methods
+    x.def("__call__", &VVF::__call__, "x"_a);
+  }
+
+  //............................................................................
+  // VectorPairScalarFunctor
+  {
+    typedef SpheralFunctor<Vector, std::pair<double, double>> VPSF;
+    py::class_<VPSF, PyAbstractSpheralFunctor<Vector, std::pair<double, double>, VPSF>> x(m, ("VectorPairScalarFunctor" + suffix).c_str());
+
+    // Constructors
+    x.def(py::init<>());
+
+    // Methods
+    x.def("__call__", &VPSF::__call__, "x"_a);
+  }
+
+  //............................................................................
+  m.def("boundingBox", &boundingBox<Vector>, "positions"_a, "xmin"_a, "xmax"_a);
+  m.def("globalBoundingBox", (void (*)(const FieldList<Dimension, Vector>&, Vector&, Vector&, bool)) &globalBoundingBox<Dimension>, "positions"_a, "xmin"_a, "xmax"_a, "ghost"_a=false);
+  m.def("globalBoundingVolumes", &globalBoundingVolumes<Dimension>, "dataBase"_a, "nodeVolume"_a, "sampleVolume"_a);
+
+  m.def("collinear", &collinear<Vector>, "a"_a, "b"_a, "c"_a, "tol"_a=1.0e-10, "Test if three points are collinear.");
+  m.def("between", &between<Vector>, "a"_a, "b"_a, "c"_a, "tol"_a=1.0e-10, "Test if point c is between (a,b).");
+  m.def("segmentSegmentDistance", (double (*)(const Vector&, const Vector&, const Vector&, const Vector&)) &segmentSegmentDistance,
+        "a0"_a, "a1"_a, "b0"_a, "b1"_a, "Find the distance between line segements (a0,a1) -> (b0,b1)");
+  m.def("segmentSegmentIntersection", (char (*)(const Vector&, const Vector&, const Vector&, const Vector&, Vector&, Vector&, const double)) &segmentSegmentIntersection,
+        "a0"_a, "a1"_a, "b0"_a, "b1"_a, "result1"_a, "result2"_a, "tol"_a=1e-8, "Compute the intersection of two line segments (a0,a1) (b0,b1), returned as last two args.");
+  m.def("segmentSegmentIntersection", &segmentSegmentIntersection<Vector>,
+        "a0"_a, "a1"_a, "b0"_a, "b1"_a, "tol"_a=1e-8, "Test if two line segments (a0,a1) (b0,b1) intersect.");
+
+}
 
 } // anonymous
 
@@ -217,11 +208,95 @@ PYBIND11_MODULE(SpheralGravity, m) {
     x.def_static("TimerSummary", (void (*)()) &Timer::TimerSummary);
   }
 
-//   //............................................................................
-//   // Per dimension bindings.
-// #ifdef SPHERAL1D
-//   dimensionBindings<Spheral::Dim<1>>(m, "1d");
-// #endif
+  //............................................................................
+  // ScalarScalarFunctor
+  {
+    typedef SpheralFunctor<double, double> SSF;
+    py::class_<SSF, PyAbstractSpheralFunctor<double, double, SSF>> x(m, "ScalarScalarFunctor");
+
+    // Constructors
+    x.def(py::init<>());
+
+    // Methods
+    x.def("__call__", &SSF::__call__, "x"_a);
+  }
+
+  //............................................................................
+  // ScalarPairScalarFunctor
+  {
+    typedef SpheralFunctor<double, std::pair<double, double>> SPSF;
+    py::class_<SPSF, PyAbstractSpheralFunctor<double, std::pair<double, double>, SPSF>> x(m, "ScalarPairScalarFunctor");
+
+    // Constructors
+    x.def(py::init<>());
+
+    // Methods
+    x.def("__call__", &SPSF::__call__, "x"_a);
+  }
+
+  //............................................................................
+  // Module functions
+  m.def("erff", &Spheral::erff, "You know, the error function.");
+  m.def("newtonRaphsonFindRoot", &newtonRaphson<SpheralFunctor<double, std::pair<double, double>>>,
+        "function"_a, "x1"_a, "x2"_a, "xaccuracy"_a=1.0e-15, "yaccuracy"_a=1.0e-15, "maxIterations"_a=100,
+        "Newton-Raphson root finder.");
+  m.def("simpsonsIntegrationDouble", &simpsonsIntegration<SpheralFunctor<double, double>, double, double>,
+        "function"_a, "x0"_a, "x1"_a, "numBins"_a,
+        "Simpsons rule integration for double functions.");
+
+  // packElement
+  m.def("packElement", (void (*)(const int&, std::vector<char>&)) &packElement<int>, "x"_a, "buffer"_a);
+  m.def("packElement", (void (*)(const double&, std::vector<char>&)) &packElement<double>, "x"_a, "buffer"_a);
+  m.def("packElement", (void (*)(const uint32_t&, std::vector<char>&)) &packElement<uint32_t>, "x"_a, "buffer"_a);
+  m.def("packElement", (void (*)(const uint64_t&, std::vector<char>&)) &packElement<uint64_t>, "x"_a, "buffer"_a);
+  m.def("packElement", (void (*)(const std::vector<unsigned>&, std::vector<char>&)) &packElement<unsigned>, "x"_a, "buffer"_a);
+  m.def("packElement", (void (*)(const std::vector<int>&, std::vector<char>&)) &packElement<int>, "x"_a, "buffer"_a);
+  m.def("packElement", (void (*)(const std::vector<float>&, std::vector<char>&)) &packElement<float>, "x"_a, "buffer"_a);
+  m.def("packElement", (void (*)(const std::vector<double>&, std::vector<char>&)) &packElement<double>, "x"_a, "buffer"_a);
+  m.def("packElement", (void (*)(const std::vector<uint32_t>&, std::vector<char>&)) &packElement<uint32_t>, "x"_a, "buffer"_a);
+  m.def("packElement", (void (*)(const std::vector<uint64_t>&, std::vector<char>&)) &packElement<uint64_t>, "x"_a, "buffer"_a);
+  m.def("packElement", (void (*)(const std::vector<std::vector<unsigned>>&, std::vector<char>&)) &packElement<vector<unsigned>>, "x"_a, "buffer"_a);
+  m.def("packElement", (void (*)(const Dim<1>::FacetedVolume&, std::vector<char>&)) &packElement<Dim<1>::FacetedVolume>, "x"_a, "buffer"_a);
+  m.def("packElement", (void (*)(const Dim<2>::FacetedVolume&, std::vector<char>&)) &packElement<Dim<2>::FacetedVolume>, "x"_a, "buffer"_a);
+  m.def("packElement", (void (*)(const Dim<3>::FacetedVolume&, std::vector<char>&)) &packElement<Dim<3>::FacetedVolume>, "x"_a, "buffer"_a);
+
+  // toString
+  m.def("toString", &toString<int>, "x"_a);
+  m.def("toString", &toString<double>, "x"_a);
+  m.def("toString", &toString<uint32_t>, "x"_a);
+  m.def("toString", &toString<uint64_t>, "x"_a);
+  m.def("toString", &toString<vector<unsigned>>, "x"_a);
+  m.def("toString", &toString<vector<int>>, "x"_a);
+  m.def("toString", &toString<vector<float>>, "x"_a);
+  m.def("toString", &toString<vector<double>>, "x"_a);
+  m.def("toString", &toString<vector<uint32_t>>, "x"_a);
+  m.def("toString", &toString<vector<uint64_t>>, "x"_a);
+  m.def("toString", &toString<vector<vector<unsigned>>>, "x"_a);
+  m.def("toString", &toString<Dim<1>::FacetedVolume>, "x"_a);
+  m.def("toString", &toString<Dim<2>::FacetedVolume>, "x"_a);
+  m.def("toString", &toString<Dim<3>::FacetedVolume>, "x"_a);
+
+  // fromString
+  m.def("toInt", &fromString<int>, "x"_a);
+  m.def("toDouble", &fromString<double>, "x"_a);
+  m.def("toUint32_t", &fromString<uint32_t>, "x"_a);
+  m.def("toUint64_t", &fromString<uint64_t>, "x"_a);
+  m.def("toVectorUnsigned", &fromString<vector<unsigned>>, "x"_a);
+  m.def("toVectorInt", &fromString<vector<int>>, "x"_a);
+  m.def("toVectorFloat", &fromString<vector<float>>, "x"_a);
+  m.def("toVectorDouble", &fromString<vector<double>>, "x"_a);
+  m.def("toVectorUint32_t", &fromString<vector<uint32_t>>, "x"_a);
+  m.def("toVectorUint64_t", &fromString<vector<uint64_t>>, "x"_a);
+  m.def("toVectorVectorUnsigned", &fromString<vector<vector<unsigned>>>, "x"_a);
+  m.def("toBox1d", &fromString<Dim<1>::FacetedVolume>, "x"_a);
+  m.def("toPolygon", &fromString<Dim<2>::FacetedVolume>, "x"_a);
+  m.def("toPolyhedron", &fromString<Dim<3>::FacetedVolume>, "x"_a);
+
+  //............................................................................
+  // Per dimension bindings.
+#ifdef SPHERAL1D
+  dimensionBindings<Spheral::Dim<1>>(m, "1d");
+#endif
 
 // #ifdef SPHERAL2D
 //   dimensionBindings<Spheral::Dim<2>>(m, "2d");
