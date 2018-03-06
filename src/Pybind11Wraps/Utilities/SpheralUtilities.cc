@@ -157,7 +157,28 @@ void dimensionBindings(py::module& m, const std::string suffix) {
         "a0"_a, "a1"_a, "b0"_a, "b1"_a, "result1"_a, "result2"_a, "tol"_a=1e-8, "Compute the intersection of two line segments (a0,a1) (b0,b1), returned as last two args.");
   m.def("segmentSegmentIntersection", &segmentSegmentIntersection<Vector>,
         "a0"_a, "a1"_a, "b0"_a, "b1"_a, "tol"_a=1e-8, "Test if two line segments (a0,a1) (b0,b1) intersect.");
+}
 
+//------------------------------------------------------------------------------
+// These methods are only valid in (2D,3D).
+//------------------------------------------------------------------------------
+template<typename Dimension>
+void dimension23Bindings(py::module& m, const std::string suffix) {
+
+  typedef typename Dimension::Scalar Scalar;
+  typedef typename Dimension::Vector Vector;
+  typedef typename Dimension::Tensor Tensor;
+  typedef typename Dimension::SymTensor SymTensor;
+  typedef typename Dimension::ThirdRankTensor ThirdRankTensor;
+
+  m.def("pointPlaneDistance", &pointPlaneDistance<Vector>, "point"_a, "origin"_a, "unitNormal"_a,
+        "Compute the distance from (point) to the plane defined by (origin, unitNormal).");
+  m.def("closestPointOnSegment", &closestPointOnSegment<Vector>, "p"_a, "a0"_a, "a1"_a,
+        "Find the closest point on a line segment (a0,a1) to point (p).");
+  m.def("overlayRemapFields", &overlayRemapFields<Dimension>, 
+        "boundaries"_a, "scalarDonorFields"_a, "vectorDonorFields"_a, "tensorDonorFields"_a, "symTensorDonorFields"_a, 
+        "scalarAcceptorFields"_a, "vectorAcceptorFields"_a, "tensorAcceptorFields"_a, "symTensorAcceptorFields"_a,
+        "Do a simple donor overlay using geometric intersection.");
 }
 
 } // anonymous
@@ -292,15 +313,51 @@ PYBIND11_MODULE(SpheralGravity, m) {
   m.def("toPolygon", &fromString<Dim<2>::FacetedVolume>, "x"_a);
   m.def("toPolyhedron", &fromString<Dim<3>::FacetedVolume>, "x"_a);
 
+  m.def("closestPointOnPlane", &closestPointOnPlane, "p"_a, "origin"_a, "unitNormal"_a,
+        "Find the closest point in the plane (origin,normal) to point (p).");
+  m.def("segmentPlaneIntersection", (char (*)(const Dim<3>::Vector&, const Dim<3>::Vector&, const Dim<3>::Vector&, const Dim<3>::Vector&, Dim<3>::Vector&, double)) &segmentPlaneIntersection,
+        "s0"_a, "s1"_a, "point"_a, "normal"_a, "result"_a, "tol"_a=1.0e-8,
+        "Compute the intesection of a line segment (s0,s1) with a plane (point,normal).");
+  m.def("segmentPlaneIntersection", (char (*)(const Dim<3>::Vector&, const Dim<3>::Vector&, const Dim<3>::Vector&, const Dim<3>::Vector&, const Dim<3>::Vector&, Dim<3>::Vector&, const double)) &segmentPlaneIntersection,
+        "s0"_a, "s1"_a, "p0"_a, "p1"_a, "p2"_a, "result"_a, "tol"_a=1.0e-8,
+        "Compute the intesection of a line segment (s0,s1) with a plane (p0,p1,p2).");
+  m.def("segmentPlanarSectionIntersection", &segmentPlanarSectionIntersection,
+        "s0"_a, "s1"_a, "pverts"_a, "result"_a, "tol"_a=1.0e-8,
+        "Compute the intesection of a line segment (s0,s1) with a polygonal planar section (pverts).");
+  m.def("segmentPlaneIntersection", (bool (*)(const Dim<3>::Vector&, const Dim<3>::Vector&, const vector<Dim<3>::Vector>&, const Dim<3>::Vector&, const double)) &segmentPlaneIntersection,
+        "a0"_a, "a1"_a, "vertices"_a, "normal"_a, "tol"_a=1.0e-10,
+        "Test if a line segment intersects a planar section.");
+  m.def("segmentPlaneIntersection", (bool (*)(const Dim<3>::Vector&, const Dim<3>::Vector&, const vector<Dim<3>::Vector>&, const vector<unsigned>&, const Dim<3>::Vector&, const double)) &segmentPlaneIntersection,
+        "a0"_a, "a1"_a, "vertices"_a, "ipoints"_a, "normal"_a, "tol"_a=1.0e-10,
+        "Test if a line segment intersects a planar section.");
+
+  // Polygon utilities
+  m.def("pointOnPolygon", (bool (*)(const Dim<2>::Vector&, const Dim<2>::FacetedVolume&, const double)) &pointOnPolygon, 
+        "p"_a, "poly"_a, "tol"_a=1.0e-10,
+        "Test if the given point is on the boundary of a polygon specified by it's vertices.");
+  m.def("pointOnPolygon", (bool (*)(const Dim<2>::Vector&, const vector<Dim<2>::Vector>&, const vector<unsigned>&, const double)) &pointOnPolygon, 
+        "p"_a, "vertices"_a, "ipoints"_a, "tol"_a=1.0e-10,
+        "Test if the given point is on the boundary of a polygon specified by its vertices.");
+  m.def("pointInPolygon", (bool (*)(const Dim<2>::Vector&, const vector<Dim<2>::Vector>&)) &pointInPolygon, 
+        "p"_a, "vertices"_a, 
+        "Test if the given point is contained within a polygon.");
+  m.def("pointInPolygon", (bool (*)(const Dim<2>::Vector&, const Dim<2>::FacetedVolume&, const bool, const double)) &pointInPolygon, 
+        "p"_a, "poly"_a, "countBoundary"_a=false, "tol"_a=1.0e-10,
+        "Test if the given point is contained within a polygon.");
+  m.def("segmentIntersectEdges", (bool (*)(const Dim<2>::Vector&, const Dim<2>::Vector&, const Dim<2>::FacetedVolume&, const double)) &segmentIntersectEdges, 
+        "a0"_a, "a1"_a, "poly"_a, "tol"_a=1.0e-8, 
+        "Test if the give line segment intersects any edges/vertices of the given polygon.");
+
   //............................................................................
   // Per dimension bindings.
 #ifdef SPHERAL1D
   dimensionBindings<Spheral::Dim<1>>(m, "1d");
 #endif
 
-// #ifdef SPHERAL2D
-//   dimensionBindings<Spheral::Dim<2>>(m, "2d");
-// #endif
+#ifdef SPHERAL2D
+  dimensionBindings<Spheral::Dim<2>>(m, "2d");
+  dimension23Bindings<Spheral::Dim<2>>(m, "2d");
+#endif
 
 // #ifdef SPHERAL3D
 //   dimensionBindings<Spheral::Dim<3>>(m, "3d");
