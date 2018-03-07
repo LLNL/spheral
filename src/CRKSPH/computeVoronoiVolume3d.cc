@@ -163,13 +163,14 @@ computeVoronoiVolume(const FieldList<Dim<3>, Dim<3>::Vector>& position,
     }
 
     // First pass: clip by neighbors and generate void points.
+    double vol0, voli;
     vector<Plane> pairPlanes;
     for (auto nodeListi = 0; nodeListi != numNodeLists; ++nodeListi) {
       const auto n = vol[nodeListi]->numInternalElements();
       const auto rin = 2.0/vol[nodeListi]->nodeListPtr()->nodesPerSmoothingScale();
 
 #pragma omp parallel for                        \
-  private(pairPlanes)
+  private(pairPlanes, vol0, voli)
       for (auto i = 0; i < n; ++i) {
         const auto& ri = position(nodeListi, i);
         const auto& Hi = H(nodeListi, i);
@@ -223,35 +224,49 @@ computeVoronoiVolume(const FieldList<Dim<3>, Dim<3>::Vector>& position,
           }
         }
 
-        // Add clipping planes from neighbors.
-        for (auto nodeListj = 0; nodeListj != numNodeLists; ++nodeListj) {
+        // Add clipping planes from neighbors in our own NodeList.
+        for (auto j: fullConnectivity[nodeListi]) {
+          const auto& rj = position(nodeListi, j);
+          const auto  weightj = haveWeights ? weight(nodeListi, j) : 1.0;
 
-          // Check if this point has multi-material neighbors.
-          if (returnSurface and 
-              nodeListj != nodeListi and 
-              not fullConnectivity[nodeListj].empty()) surfacePoint(nodeListi, i) |= (1 << (nodeListj + 1));
-
-          for (auto jItr = fullConnectivity[nodeListj].begin();
-               jItr != fullConnectivity[nodeListj].end();
-               ++jItr) {
-            const auto  j = *jItr;
-            const auto& rj = position(nodeListj, j);
-            const auto  weightj = haveWeights ? weight(nodeListj, j) : 1.0;
-
-            // Build the planes for the clipping half-spaces.
-            const auto rji = rj - ri;
-            const auto nhat = -rji.unitVector();
-            const auto wij = weighti/(weightj + weighti);
-            pairPlanes.push_back(Plane(wij*rji, nhat));
-          }
+          // Build the planes for the clipping half-spaces.
+          const auto rji = rj - ri;
+          const auto nhat = -rji.unitVector();
+          const auto wij = weighti/(weightj + weighti);
+          pairPlanes.push_back(Plane(wij*rji, nhat));
         }
 
-        // Sort the planes by distance -- let's us clip more efficiently.
+        // Sort the planes by distance -- lets us clip more efficiently.
         std::sort(pairPlanes.begin(), pairPlanes.end(), [](const Plane& lhs, const Plane& rhs) { return lhs.dist < rhs.dist; });
 
-        // Clip by neighbors.
+        // Clip by the planes thus far.
         PolyClipper::clipPolyhedron(celli, pairPlanes);
         CHECK(not celli.empty());
+        PolyClipper::moments(voli, deltaMedian(nodeListi, i), celli);
+
+        // Now clip by neighbors in other NodeLists.
+        for (auto nodeListj = 0; nodeListj != numNodeLists; ++nodeListj) {
+          if (nodeListj != nodeListi) {
+            pairPlanes.clear();
+            for (auto j: fullConnectivity[nodeListj]) {
+              const auto& rj = position(nodeListj, j);
+              const auto  weightj = haveWeights ? weight(nodeListj, j) : 1.0;
+              const auto rji = rj - ri;
+              const auto nhat = -rji.unitVector();
+              const auto wij = weighti/(weightj + weighti);
+              pairPlanes.push_back(Plane(wij*rji, nhat));
+            }
+
+            // Clip by this NodeList's planes, and see if the volume changed.
+            std::sort(pairPlanes.begin(), pairPlanes.end(), [](const Plane& lhs, const Plane& rhs) { return lhs.dist < rhs.dist; });
+            PolyClipper::clipPolyhedron(celli, pairPlanes);
+            if (returnSurface) {
+              vol0 = voli;
+              PolyClipper::moments(voli, deltaMedian(nodeListi, i), celli);
+              if (voli < vol0) surfacePoint(nodeListi, i) |= (1 << (nodeListj + 1));
+            }
+          }
+        }
 
         // Check if the final polyghedron is entirely within our "interior" check radius.
         // We preserve remaining original vertices as void points.
@@ -279,7 +294,6 @@ computeVoronoiVolume(const FieldList<Dim<3>, Dim<3>::Vector>& position,
     }
 
     // Second pass: clip by any void points and compute the volumes.
-    double voli;
     for (auto nodeListi = 0; nodeListi != numNodeLists; ++nodeListi) {
       const auto n = vol[nodeListi]->numInternalElements();
       const auto rin = 2.0/vol[nodeListi]->nodeListPtr()->nodesPerSmoothingScale();
@@ -295,7 +309,7 @@ computeVoronoiVolume(const FieldList<Dim<3>, Dim<3>::Vector>& position,
         const auto  Hinvi = Hi.Inverse();
         const auto& fullConnectivity = connectivityMap.connectivityForNode(nodeListi, i);
         auto&       celli = polycells(nodeListi, i);
-        bool        interior = not (surfacePoint(nodeListi, i) & 1);
+        bool        interior = (surfacePoint(nodeListi, i) == 0);
 
         // First our own void points.
         pairPlanes.clear();
