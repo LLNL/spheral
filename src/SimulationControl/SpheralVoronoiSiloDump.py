@@ -513,7 +513,10 @@ def dumpPhysicsState(stateThingy,
     else:
         surfacePoint = dataBase.newFluidIntFieldList(0, HydroFieldNames.surfacePoint)
         voidPoint = dataBase.newFluidIntFieldList(0, HydroFieldNames.voidPoint)
-    vol = dataBase.newFluidScalarFieldList(0.0, HydroFieldNames.volume)
+    if state.fieldNameRegistered(HydroFieldNames.volume):
+        vol = state.scalarFields(HydroFieldNames.volume)
+    else:
+        vol = dataBase.newFluidScalarFieldList(0.0, HydroFieldNames.volume)
     deltaMedian = dataBase.newFluidVectorFieldList(eval("Vector%id.zero" % dataBase.nDim), "centroidal delta")
     etaVoidPoints = dataBase.newFluidvector_of_VectorFieldList(eval("vector_of_Vector%id()" % dataBase.nDim), "eta void points")
     FacetedVolume = {2 : Polygon,
