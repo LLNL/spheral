@@ -157,6 +157,66 @@ void dimensionBindings(py::module& m, const std::string suffix) {
         "a0"_a, "a1"_a, "b0"_a, "b1"_a, "result1"_a, "result2"_a, "tol"_a=1e-8, "Compute the intersection of two line segments (a0,a1) (b0,b1), returned as last two args.");
   m.def("segmentSegmentIntersection", &segmentSegmentIntersection<Vector>,
         "a0"_a, "a1"_a, "b0"_a, "b1"_a, "tol"_a=1e-8, "Test if two line segments (a0,a1) (b0,b1) intersect.");
+
+  //............................................................................
+  m.def("numGlobalNodes", (int (*)(const NodeList<Dimension>&)) &NodeSpace::numGlobalNodes<Dimension>, "nodes"_a, 
+        "Global number of nodes in the NodeList.");
+  m.def("numGlobalNodes", (int (*)(const DataBase<Dimension>&)) &NodeSpace::numGlobalNodes<Dimension>, "dataBase"_a, 
+        "Global number of nodes in the DataBase.");
+  m.def("globalNodeIDs", (Field<Dimension, int> (*)(const NodeList<Dimension>&)) &NodeSpace::globalNodeIDs<Dimension>, "nodes"_a, 
+        "Determine unique global node IDs for the nodes in a NodeList.");
+  m.def("globalNodeIDs", (FieldList<Dimension, int> (*)(const DataBase<Dimension>&)) &NodeSpace::globalNodeIDs<Dimension>, "dataBase"_a, 
+        "Determine unique global node IDs for the nodes in a DataBase.");
+
+  m.def("iterateIdealH", &Spheral::iterateIdealH<Dimension>,
+        "dataBase"_a, "boundaries"_a, "W"_a, "smoothingScaleMethod"_a,
+        "maxIterations"_a = 100,
+        "tolerance"_a = 1.0e-10,
+        "nPerhForIteration"_a = 0.0,
+        "sphericalStart"_a = false,
+        "fixDeterminant"_a = false,
+        "Iterate the Hfield for NodeLists in the DataBase using the ideal H algorithm.");
+
+  m.def("mortonOrderIndices",
+        (FieldList<Dimension, KeyTraits::Key> (*)(const FieldList<Dimension, Vector>&)) &Spheral::mortonOrderIndices<Dimension>,
+        "positions"_a,
+        "Compute indices for nodes obeying Morton ordering given the positions.");
+  m.def("mortonOrderIndices",
+        (FieldList<Dimension, KeyTraits::Key> (*)(const DataBase<Dimension>&)) &Spheral::mortonOrderIndices<Dimension>,
+        "dataBase"_a,
+        "Compute indices for nodes obeying Morton ordering in the given DataBase.");
+  m.def("mortonOrderIndices",
+        (FieldList<Dimension, KeyTraits::Key> (*)(const DataBase<Dimension>&, const FieldList<Dimension, int>&)) &Spheral::mortonOrderIndices<Dimension>,
+        "dataBase"_a, "mask"_a,
+        "Compute indices for nodes obeying Morton ordering in the given DataBase and mask.");
+        
+  m.def("peanoHilbertOrderIndices",
+        (FieldList<Dimension, KeyTraits::Key> (*)(const FieldList<Dimension, Vector>&)) &Spheral::peanoHilbertOrderIndices<Dimension>,
+        "positions"_a,
+        "Compute indices for nodes obeying Peano-Hilbert ordering given the positions.");
+  m.def("peanoHilbertOrderIndices",
+        (FieldList<Dimension, KeyTraits::Key> (*)(const DataBase<Dimension>&)) &Spheral::peanoHilbertOrderIndices<Dimension>,
+        "dataBase"_a,
+        "Compute indices for nodes obeying Peano-Hilbert ordering in the given DataBase.");
+        
+        // Spheral.add_function("numberDensity",
+        //                      scalarfieldlist,
+        //                      [constrefparam(database, "dataBase"), constrefparam(tablekernel, "W")],
+        //                      template_parameters = [dim],
+        //                      custom_name = "numberDensity%id" % ndim,
+        //                      docstring = "Compute the ASPH sum number density for each node in a DataBase.")
+
+        // Spheral.add_function("integrateThroughMeshAlongSegment%id" % ndim,
+        //                      "double",
+        //                      [constrefparam("vector_of_vector_of_double", "values"),
+        //                       constrefparam(vector, "xmin"),
+        //                       constrefparam(vector, "xmax"),
+        //                       constrefparam("vector_of_unsigned", "ncells"),
+        //                       constrefparam(vector, "s0"),
+        //                       constrefparam(vector, "s1")],
+        //                      docstring = "Integrate through a lattice sampled field along a line segment.")
+
+
 }
 
 //------------------------------------------------------------------------------
@@ -186,7 +246,7 @@ void dimension23Bindings(py::module& m, const std::string suffix) {
 //------------------------------------------------------------------------------
 // Make the module
 //------------------------------------------------------------------------------
-PYBIND11_MODULE(SpheralGravity, m) {
+PYBIND11_MODULE(SpheralUtilities, m) {
   using namespace Spheral;
 
   m.doc() = "Spheral Utilities module: a grab-bag of stuff.";
@@ -347,6 +407,25 @@ PYBIND11_MODULE(SpheralGravity, m) {
   m.def("segmentIntersectEdges", (bool (*)(const Dim<2>::Vector&, const Dim<2>::Vector&, const Dim<2>::FacetedVolume&, const double)) &segmentIntersectEdges, 
         "a0"_a, "a1"_a, "poly"_a, "tol"_a=1.0e-8, 
         "Test if the give line segment intersects any edges/vertices of the given polygon.");
+
+  m.def("refinePolyhedron", &refinePolyhedron, "poly0"_a, "numLevels"_a,
+        "Return a new Polyhedron based on refining an existing one a given number of levels.");
+
+  // R2D/R3D
+  m.def("clipFacetedVolume", (Dim<2>::FacetedVolume (*)(const Dim<2>::FacetedVolume&, const vector<GeomPlane<Dim<2>>>&)) &clipFacetedVolume,
+        "poly"_a, "planes"_a, 
+        "Clip a polygon with a set of planes.");
+  m.def("clipFacetedVolume", (Dim<3>::FacetedVolume (*)(const Dim<3>::FacetedVolume&, const vector<GeomPlane<Dim<3>>>&)) &clipFacetedVolume,
+        "poly"_a, "planes"_a, 
+        "Clip a polyhedron with a set of planes.");
+  m.def("clippedVolume", (double (*)(const Dim<2>::FacetedVolume&, const vector<GeomPlane<Dim<2>>>&)) &clippedVolume,
+        "Return the area of a polygon clipped with a set of planes.");
+  m.def("clippedVolume", (double (*)(const Dim<3>::FacetedVolume&, const vector<GeomPlane<Dim<3>>>&)) &clippedVolume,
+        "Return the volume of a polyhedron clipped with a set of planes.");
+
+  // Boost math functions
+  m.def("legendre_p", (double (*)(int, int, double)) &boost::math::legendre_p, "l"_a, "m"_a, "x"_a,
+        "Compute the associated Legendre polynomial.");
 
   //............................................................................
   // Per dimension bindings.
