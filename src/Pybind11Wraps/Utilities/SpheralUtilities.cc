@@ -199,24 +199,39 @@ void dimensionBindings(py::module& m, const std::string suffix) {
         "dataBase"_a,
         "Compute indices for nodes obeying Peano-Hilbert ordering in the given DataBase.");
         
-        // Spheral.add_function("numberDensity",
-        //                      scalarfieldlist,
-        //                      [constrefparam(database, "dataBase"), constrefparam(tablekernel, "W")],
-        //                      template_parameters = [dim],
-        //                      custom_name = "numberDensity%id" % ndim,
-        //                      docstring = "Compute the ASPH sum number density for each node in a DataBase.")
+  m.def("numberDensity", &Spheral::numberDensity<Dimension>, "dataBase"_a, "W"_a,
+        "Compute the ASPH sum number density for each node in a DataBase.");
 
-        // Spheral.add_function("integrateThroughMeshAlongSegment%id" % ndim,
-        //                      "double",
-        //                      [constrefparam("vector_of_vector_of_double", "values"),
-        //                       constrefparam(vector, "xmin"),
-        //                       constrefparam(vector, "xmax"),
-        //                       constrefparam("vector_of_unsigned", "ncells"),
-        //                       constrefparam(vector, "s0"),
-        //                       constrefparam(vector, "s1")],
-        //                      docstring = "Integrate through a lattice sampled field along a line segment.")
+  m.def("integrateThroughMeshAlongSegment", &Spheral::integrateThroughMeshAlongSegment<Dimension, Scalar>,
+        "values"_a, "xmin"_a, "xmax"_a, "ncells"_a, "s0"_a, "s1"_a,
+        "Integrate through a lattice sampled field along a line segment.");
 
+  //............................................................................
+  // Shepards interpolation methods
+  m.def("computeShepardsInterpolation", &Spheral::computeShepardsInterpolation<Dimension, Scalar>,
+        "fieldList"_a, "connectivityMap"_a, "W"_a, "position"_a, "H"_a, "weight"_a, 
+        "Interpolate a FieldList using a Shepards function approach.");
+  m.def("computeShepardsInterpolation", &Spheral::computeShepardsInterpolation<Dimension, Vector>,
+        "fieldList"_a, "connectivityMap"_a, "W"_a, "position"_a, "H"_a, "weight"_a, 
+        "Interpolate a FieldList using a Shepards function approach.");
+  m.def("computeShepardsInterpolation", &Spheral::computeShepardsInterpolation<Dimension, Tensor>,
+        "fieldList"_a, "connectivityMap"_a, "W"_a, "position"_a, "H"_a, "weight"_a, 
+        "Interpolate a FieldList using a Shepards function approach.");
+  m.def("computeShepardsInterpolation", &Spheral::computeShepardsInterpolation<Dimension, SymTensor>,
+        "fieldList"_a, "connectivityMap"_a, "W"_a, "position"_a, "H"_a, "weight"_a, 
+        "Interpolate a FieldList using a Shepards function approach.");
 
+  //............................................................................
+  m.def("rotationMatrix", (Tensor (*)(const Vector&)) &Spheral::rotationMatrix, "runit"_a,
+        "Rotational transformation to align with the given unit vector.");
+  m.def("testBoxIntersection", (bool (*)(const Vector&, const Vector&, const Vector&, const Vector&, const double)) &Spheral::testBoxIntersection,
+        "xmin1"_a, "xmax1"_a, "xmin2"_a, "xmax2"_a, "tol"_a = 1.0e-10,
+        "Test if the two boxes intersect.");
+  m.def("testPointInBox", (bool (*)(const Vector&, const Vector&, const Vector&, const double)) &Spheral::testPointInBox,
+        "point"_a, "xmin"_a, "xmax"_a, "tol"_a = 1.0e-10,
+        "Test if the point is in the box.");
+  m.def("planarReflectingOperator", &Spheral::planarReflectingOperator<GeomPlane<Dimension>>, "plane"_a,
+        "Generate the planar reflection transformation for th given plane.");
 }
 
 //------------------------------------------------------------------------------
@@ -438,8 +453,9 @@ PYBIND11_MODULE(SpheralUtilities, m) {
   dimension23Bindings<Spheral::Dim<2>>(m, "2d");
 #endif
 
-// #ifdef SPHERAL3D
-//   dimensionBindings<Spheral::Dim<3>>(m, "3d");
-// #endif
+#ifdef SPHERAL3D
+  dimensionBindings<Spheral::Dim<3>>(m, "3d");
+  dimension23Bindings<Spheral::Dim<3>>(m, "3d");
+#endif
 
 }
