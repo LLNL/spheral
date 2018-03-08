@@ -12,17 +12,6 @@ from spheralDimensions import spheralDimensions
 dims = spheralDimensions()
 
 #-------------------------------------------------------------------------------
-# Parallel safe pyplot
-#-------------------------------------------------------------------------------
-if mpi.rank == 0:
-    import matplotlib.pyplot as plt
-else:
-    plt = NullFigure()
-
-# Turn on TeX
-plt.rc("text", usetex = True)
-
-#-------------------------------------------------------------------------------
 # Dummy type to handle parallel matplotlib
 #-------------------------------------------------------------------------------
 class NullFigure:
@@ -39,6 +28,17 @@ class NullFigure:
             return NullFigure()
     def __setattr__(self, name, val):
         pass
+
+#-------------------------------------------------------------------------------
+# Parallel safe pyplot
+#-------------------------------------------------------------------------------
+if mpi.rank == 0:
+    import matplotlib.pyplot as plt
+else:
+    plt = NullFigure()
+
+# Turn on TeX
+plt.rc("text", usetex = True)
 
 #-------------------------------------------------------------------------------
 # Parallel safe new plot.

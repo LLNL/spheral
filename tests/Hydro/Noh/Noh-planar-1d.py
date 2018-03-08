@@ -520,7 +520,7 @@ if mpi.rank == 0 and outputFile != "None":
 if graphics:
     from SpheralGnuPlotUtilities import *
     rhoPlot, velPlot, epsPlot, PPlot, HPlot = plotState(db)
-    plotAnswer(answer, control.time(), rhoPlot, velPlot, epsPlot, PPlot, HPlot)
+    plotAnswer(answer, control.time(), rhoPlot, velPlot, epsPlot, PPlot, HPlot = HPlot)
     EPlot = plotEHistory(control.conserve)
     plots = [(rhoPlot, "Noh-planar-rho.png"),
              (velPlot, "Noh-planar-vel.png"),

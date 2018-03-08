@@ -178,7 +178,6 @@ self.generateIntegratorDescendentBindings(self.VerletIntegrator%(dim)id, %(dim)i
         x.add_instance_attribute("rigorousBoundaries", "bool", getter="rigorousBoundaries", setter="rigorousBoundaries")
         x.add_instance_attribute("updateBoundaryFrequency", "int", getter="updateBoundaryFrequency", setter="updateBoundaryFrequency")
         x.add_instance_attribute("verbose", "bool", getter="verbose", setter="verbose")
-        x.add_instance_attribute("dtThreshold", "double", getter="dtThreshold", setter="dtThreshold")
         x.add_instance_attribute("domainDecompositionIndependent", "bool", getter="domainDecompositionIndependent", setter="domainDecompositionIndependent")
         x.add_instance_attribute("cullGhostNodes", "bool", getter="cullGhostNodes", setter="cullGhostNodes")
 
