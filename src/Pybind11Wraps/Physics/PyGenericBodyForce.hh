@@ -23,11 +23,10 @@ namespace PhysicsSpace {
 //------------------------------------------------------------------------------
 // PyGenericBodyForce
 //------------------------------------------------------------------------------
-template<typename Dimension>
-class PyGenericBodyForce: public PyAbstractPhysics<Dimension, GenericBodyForce<Dimension>> {
+template<typename Dimension, typename Base>
+class PyGenericBodyForce: public PyAbstractPhysics<Dimension, Base> {
 public:
-  typedef GenericBodyForce<Dimension> PhysicsBase;
-  typedef PyAbstractPhysics<Dimension, PhysicsBase> PyAP;
+  typedef PyAbstractPhysics<Dimension, Base> PyAP;
   using PyAP::PyAP;  // inherit constructors
 
   typedef typename Dimension::Scalar Scalar;
@@ -40,18 +39,18 @@ public:
   virtual void registerState(DataBase<Dimension>& dataBase,
                              State<Dimension>& state) override {
     PYBIND11_OVERLOAD(void,                // Return type
-                      PhysicsBase,         // Parent class
+                      Base,                // Parent class
                       registerState,       // name of method
-                      dataBase, state   // arguments
+                      dataBase, state      // arguments
                       );
   }
 
   virtual void registerDerivatives(DataBase<Dimension>& dataBase,
                                    StateDerivatives<Dimension>& derivs) override {
     PYBIND11_OVERLOAD(void,                // Return type
-                      PhysicsBase,         // Parent class
+                      Base,                // Parent class
                       registerDerivatives, // name of method
-                      dataBase, derivs   // arguments
+                      dataBase, derivs     // arguments
                       );
   }
 
