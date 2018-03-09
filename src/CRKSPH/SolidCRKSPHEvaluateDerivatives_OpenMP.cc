@@ -154,7 +154,6 @@ evaluateDerivatives(const typename Dimension::Scalar time,
     const auto  hminratio = nodeList.hminratio();
     const auto  maxNumNeighbors = nodeList.maxNumNeighbors();
     const auto  nPerh = nodeList.nodesPerSmoothingScale();
-    const auto Hmin = 1.0/hmin * SymTensor::one;
 
     // Get the work field for this NodeList.
     auto& workFieldi = nodeList.work();
@@ -413,10 +412,10 @@ evaluateDerivatives(const typename Dimension::Scalar time,
                                                        nodeListi,
                                                        i);
 
-      // As this node is damaged force it to hmin.
-      const auto Di = max(0.0, min(1.0, damage(nodeListi, i).eigenValues().maxElement()));
-      Hideali = (1.0 - Di)*Hideali + Di*Hmin;
-      DHDti = (1.0 - Di)*DHDti + 0.25/dt*Di*(Hmin - Hi);
+      // // As this node is damaged force it to hmin.
+      // const auto Di = max(0.0, min(1.0, damage(nodeListi, i).eigenValues().maxElement()));
+      // Hideali = (1.0 - Di)*Hideali + Di*Hmin;
+      // DHDti = (1.0 - Di)*DHDti + 0.25/dt*Di*(Hmin - Hi);
 
       // Determine the deviatoric stress evolution.
       const auto deformation = localDvDxi.Symmetric();
@@ -426,6 +425,7 @@ evaluateDerivatives(const typename Dimension::Scalar time,
       DSDti = spinCorrection + (2.0*mui)*deviatoricDeformation;
 
       // In the presence of damage, add a term to reduce the stress on this point.
+      const auto Di = max(0.0, min(1.0, damage(nodeListi, i).eigenValues().maxElement()));
       DSDti = (1.0 - Di)*DSDti - 0.25/dt*Di*Si;
 
       // Time evolution of the mass density.
