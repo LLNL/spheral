@@ -141,6 +141,7 @@ evaluateDerivatives(const typename Dimension::Scalar time,
     const auto hminratio = nodeList.hminratio();
     const auto maxNumNeighbors = nodeList.maxNumNeighbors();
     const auto nPerh = nodeList.nodesPerSmoothingScale();
+    const auto Hmin = 1.0/hmin * SymTensor::one;
 
     // The scale for the tensile correction.
     const auto WnPerh = W(1.0/nPerh, 1.0);
@@ -491,12 +492,13 @@ evaluateDerivatives(const typename Dimension::Scalar time,
                                                        nodeListi,
                                                        i);
 
-      // If this node is damaged we begin to force it back to it's original H.
+      // As this node is damaged force it to hmin.
       const auto Di = max(0.0, min(1.0, damage(nodeListi, i).eigenValues().maxElement()));
-      Hideali = (1.0 - Di)*Hideali + Di*mHfield0(nodeListi, i);
+      Hideali = (1.0 - Di)*Hideali + Di*Hmin;
+      DHDti = (1.0 - Di)*DHDti + 0.25/dt*Di*(Hmin - Hi);
 
-      // We also adjust the density evolution in the presence of damage.
-      if (rho0 > 0.0) DrhoDti = (1.0 - Di)*DrhoDti - 0.25/dt*Di*(rhoi - rho0);
+      // // We also adjust the density evolution in the presence of damage.
+      // if (rho0 > 0.0) DrhoDti = (1.0 - Di)*DrhoDti - 0.25/dt*Di*(rhoi - rho0);
 
       // Determine the deviatoric stress evolution.
       const auto deformation = localDvDxi.Symmetric();
