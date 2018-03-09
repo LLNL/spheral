@@ -181,11 +181,11 @@ public:
                                              const Scalar hmax,
                                              const Scalar hminratio,
                                              const Scalar nPerh) const override {
-    PYBIND11_OVERLOAD(SymTensor,                                 // Return type
-                      SSBase,                                    // Parent class
-                      smoothingScaleDerivative,                  // name of method
-                      H, pos, DvDx, hmin, hmax, hminratio, nPerh // arguments
-      );
+    PYBIND11_OVERLOAD_PURE(SymTensor,                                 // Return type
+                           SSBase,                                    // Parent class
+                           smoothingScaleDerivative,                  // name of method
+                           H, pos, DvDx, hmin, hmax, hminratio, nPerh // arguments
+                           );
   }
 
   virtual SymTensor newSmoothingScale(const SymTensor& H,
@@ -200,11 +200,11 @@ public:
                                       const NeighborSpace::ConnectivityMap<Dimension>& connectivityMap,
                                       const unsigned nodeListi,
                                       const unsigned i) const override {
-    PYBIND11_OVERLOAD(SymTensor,              // Return type
-                      SSBase,                 // Parent class
-                      newSmoothingScale,      // name of method
-                      H, pos, zerothMoment, secondMoment, W, hmin, hmax, hminratio, nPerh, connectivityMap, nodeListi, i     // arguments
-      );
+    PYBIND11_OVERLOAD_PURE(SymTensor,              // Return type
+                           SSBase,                 // Parent class
+                           newSmoothingScale,      // name of method
+                           H, pos, zerothMoment, secondMoment, W, hmin, hmax, hminratio, nPerh, connectivityMap, nodeListi, i     // arguments
+                           );
   }
 
   virtual SymTensor idealSmoothingScale(const SymTensor& H,
@@ -219,11 +219,11 @@ public:
                                         const NeighborSpace::ConnectivityMap<Dimension>& connectivityMap,
                                         const unsigned nodeListi,
                                         const unsigned i) const override {
-    PYBIND11_OVERLOAD(SymTensor,              // Return type
-                      SSBase,                 // Parent class
-                      idealSmoothingScale,    // name of method
-                      H, pos, zerothMoment, secondMoment, W, hmin, hmax, hminratio, nPerh, connectivityMap, nodeListi, i     // arguments
-      );
+    PYBIND11_OVERLOAD_PURE(SymTensor,              // Return type
+                           SSBase,                 // Parent class
+                           idealSmoothingScale,    // name of method
+                           H, pos, zerothMoment, secondMoment, W, hmin, hmax, hminratio, nPerh, connectivityMap, nodeListi, i     // arguments
+                           );
   }
 
   virtual SymTensor idealSmoothingScale(const SymTensor& H,
@@ -233,11 +233,11 @@ public:
                                         const Scalar hmax,
                                         const Scalar hminratio,
                                         const Scalar nPerh) const override {
-    PYBIND11_OVERLOAD(SymTensor,              // Return type
-                      SSBase,                 // Parent class
-                      idealSmoothingScale,    // name of method
-                      H, mesh, zone, hmin, hmax, hminratio, nPerh     // arguments
-      );
+    PYBIND11_OVERLOAD_PURE(SymTensor,              // Return type
+                           SSBase,                 // Parent class
+                           idealSmoothingScale,    // name of method
+                           H, mesh, zone, hmin, hmax, hminratio, nPerh     // arguments
+                           );
   }
 };
 
