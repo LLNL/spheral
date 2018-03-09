@@ -63,7 +63,7 @@ void vertexBindings(VertexPB11& x) {
 //------------------------------------------------------------------------------
 // Make the module
 //------------------------------------------------------------------------------
-PYBIND11_MODULE(SpheralOpenMP, m) {
+PYBIND11_MODULE(SpheralPolyClipper, m) {
   namespace py = pybind11;
   using namespace pybind11::literals;
 

@@ -394,7 +394,7 @@ $(PYB11TARGET): $(OBJS)
 	@echo "# Building module $(PYB11TARGET)"
 	@echo "################################################################################"
 	@mkdir -p $(PYTHONLIBDIR)/Spheral
-	$(MPICXX) $(MPICXXFLAGS) $(CXXFLAGS) $(PYOPT) $(SHAREDFLAG) $(EXTRAINCLUDES) -I$(srcdir) -o $(PYB11TARGET) $(OBJS) $(MODULELINK) $(LDFLAGS) $(LDRPATH) $(LIBS) $(EXTRALIBS) $(DEPENDLIBS) $(LDRPATH) $(LDRPATH) $(LIBS) $(LIBS)
+	$(MPICXX) $(MPICXXFLAGS) $(CXXFLAGS) $(PYOPT) $(SHAREDFLAG) $(EXTRAINCLUDES) -I$(srcdir) -o $(PYB11TARGET) $(OBJS) $(MODULELINK) $(LDFLAGS) $(LDRPATH) $(LIBS) $(EXTRALIBS) $(DEPENDLIBS) $(LDRPATH) $(LDRPATH) $(LIBS) $(LIBS) $(PKGLIBS) $(PKGLIBS)
 	cp -f $(PYB11TARGET) $(PYTHONLIBDIR)/Spheral
 
 #-------------------------------------------------------------------------------
