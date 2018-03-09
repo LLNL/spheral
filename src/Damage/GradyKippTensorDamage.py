@@ -26,12 +26,12 @@ GradyKippTensorDamageBenzAsphaug is constructed with the following arguments:
                               reduced dimensional (1D or 2D) problems.
         kernel              : (required) the interpolation kernel to use
         seed                : (optional) random number seed for flaw generation.
-        strainAlgorithm     : (optional) defaults to "PsuedoPlasticStrain"
+        strainAlgorithm     : (optional) defaults to "BenzAsphaugStrain"
         effectiveDamageAlgorithm : (optional) defaults to "CopyDamage".
         useDamageGradient   : (optional) defaults to "True"
         crackGrowthMultiplier : (optional) defaults to "0.4"
         flawAlgorithm       : (optional) defaults to "FullSpectrumFlaws"
-        criticalDamageThreshold : (optional) defaults to 1.0
+        criticalDamageThreshold : (optional) defaults to 3.0
         minFlawsPerNode     : (optional) defaults to "1"
         minTotalFlaws       : (optional) defaults to "1"
 """
@@ -55,7 +55,7 @@ GradyKippTensorDamageOwen is constructed with the following arguments:
         useDamageGradient   : (optional) defaults to "True"
         crackGrowthMultiplier : (optional) defaults to "0.4"
         flawAlgorithm       : (optional) defaults to "FullSpectrumFlaws"
-        criticalDamageThreshold : (optional) defaults to 1.0
+        criticalDamageThreshold : (optional) defaults to 3.0
         minFlawsPerNode     : (optional) defaults to "1"
 """
 
@@ -85,7 +85,7 @@ class GradyKippTensorDamageBenzAsphaug%(dim)s(TensorDamageModel%(dim)s):
                          "kernel"                   : None,
                          "crackGrowthMultiplier"    : 0.4,
                          "flawAlgorithm"            : FullSpectrumFlaws,
-                         "criticalDamageThreshold"  : 1.0,
+                         "criticalDamageThreshold"  : 3.0,
                          "damageInCompression"      : False}
 
         # Arguments needed to build the Weibull distribution.
@@ -222,7 +222,7 @@ class GradyKippTensorDamageOwen%(dim)s(TensorDamageModel%(dim)s):
                          "kernel"                   : None,
                          "crackGrowthMultiplier"    : 0.4,
                          "flawAlgorithm"            : FullSpectrumFlaws,
-                         "criticalDamageThreshold"  : 1.0,
+                         "criticalDamageThreshold"  : 3.0,
                          "damageInCompression"      : False}
 
         # Arguments needed to build the Weibull distribution.
