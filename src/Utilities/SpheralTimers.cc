@@ -26,54 +26,61 @@ Timer TimeSpheral               ("Root Timer                ");
 //------------------------------------------------------------------------------
 // Voronoi 2d
 //------------------------------------------------------------------------------
-Timer TIME_computeVoronoiVolume2d("computeVoronoiVolume2d");
+Timer TIME_computeVoronoiVolume2d("computeVoronoiVolume2d", TimeSpheral);
 
 //------------------------------------------------------------------------------
 // Voronoi 3d
 //------------------------------------------------------------------------------
-Timer TIME_computeVoronoiVolume3d("computeVoronoiVolume3d");
+Timer TIME_computeVoronoiVolume3d("computeVoronoiVolume3d", TimeSpheral);
 
 //------------------------------------------------------------------------------
 // Polyhedron timers
 //------------------------------------------------------------------------------
-Timer TIME_Polyhedron_construct1       ("Polyhedron::Polyhedron(points)");
-Timer TIME_Polyhedron_construct2       ("Polyhedron::Polyhedron(points, facets)");
-Timer TIME_Polyhedron_BB               ("Polyhedron::setBoundingBox");
+Timer TIME_Polyhedron_construct1       ("Polyhedron::Polyhedron(points)", TimeSpheral);
+Timer TIME_Polyhedron_construct2       ("Polyhedron::Polyhedron(points, facets)", TimeSpheral);
+Timer TIME_Polyhedron_BB               ("Polyhedron::setBoundingBox", TimeSpheral);
 Timer   TIME_Polyhedron_BB_ancillary   ("Polyhedron::setBoundingBox - computeAncillaryGeometry", TIME_Polyhedron_BB);
 Timer   TIME_Polyhedron_BB_centroid    ("Polyhedron::setBoundingBox - centroid", TIME_Polyhedron_BB);
 Timer   TIME_Polyhedron_BB_R2          ("Polyhedron::setBoundingBox - Rinterior2", TIME_Polyhedron_BB);
-Timer TIME_Polyhedron_convex           ("Polyhedron::convex");
+Timer TIME_Polyhedron_convex           ("Polyhedron::convex", TimeSpheral);
 
 //------------------------------------------------------------------------------
 // PolyClipper2d timers
 //------------------------------------------------------------------------------
-Timer TIME_PC2d_convertto           ("Spheral::Polygon -> PolyClipper::Polygon");
-Timer TIME_PC2d_convertfrom         ("PolyClipper::Polygon -> Spheral::Polygon");
-Timer TIME_PC2d_copy                ("Copy PolyClipper::Polygon");
-Timer TIME_PC2d_moments             ("Compute polygon moments");
-Timer TIME_PC2d_clip                ("clipPolygon");
+Timer TIME_PC2d_convertto           ("Spheral::Polygon -> PolyClipper::Polygon", TimeSpheral);
+Timer TIME_PC2d_convertfrom         ("PolyClipper::Polygon -> Spheral::Polygon", TimeSpheral);
+Timer TIME_PC2d_copy                ("Copy PolyClipper::Polygon", TimeSpheral);
+Timer TIME_PC2d_moments             ("Compute polygon moments", TimeSpheral);
+Timer TIME_PC2d_clip                ("clipPolygon", TimeSpheral);
 Timer   TIME_PC2d_planes            ("Apply clip planes (clipPolygon)", TIME_PC2d_clip);
 Timer   TIME_PC2d_checkverts        ("Clip vertices", TIME_PC2d_planes);
 Timer   TIME_PC2d_insertverts       ("Insert new vertices", TIME_PC2d_planes);
 Timer   TIME_PC2d_hanging           ("Link hanging vertices", TIME_PC2d_planes);
 Timer   TIME_PC2d_compress          ("Compress to active vertices", TIME_PC2d_planes);
-Timer TIME_PC2d_collapseDegenerates ("Remove degenerate edges/vertices");
+Timer TIME_PC2d_collapseDegenerates ("Remove degenerate edges/vertices", TimeSpheral);
 
 //------------------------------------------------------------------------------
 // PolyClipper3d timers
 //------------------------------------------------------------------------------
-Timer TIME_PC3d_convertto("Spheral::Polyhedron -> PolyClipper::Polyhedron");
-Timer TIME_PC3d_convertfrom("PolyClipper::Polyhedron -> Spheral::Polyhedron");
-Timer TIME_PC3d_copy("Copy PolyClipper::Polyhedron");
-Timer TIME_PC3d_moments("Compute polyhedron moments");
-Timer TIME_PC3d_clip("clipPolyhedron");
+Timer TIME_PC3d_convertto("Spheral::Polyhedron -> PolyClipper::Polyhedron", TimeSpheral);
+Timer TIME_PC3d_convertfrom("PolyClipper::Polyhedron -> Spheral::Polyhedron", TimeSpheral);
+Timer TIME_PC3d_copy("Copy PolyClipper::Polyhedron", TimeSpheral);
+Timer TIME_PC3d_moments("Compute polyhedron moments", TimeSpheral);
+Timer TIME_PC3d_clip("clipPolyhedron", TimeSpheral);
 Timer   TIME_PC3d_planes("Apply clip planes (clipPolyhedron)", TIME_PC3d_clip);
 Timer   TIME_PC3d_checkverts("Clip vertices", TIME_PC3d_planes);
 Timer   TIME_PC3d_insertverts("Insert new vertices", TIME_PC3d_planes);
 Timer   TIME_PC3d_planeverts("Relink in-plane vertices", TIME_PC3d_planes);
 Timer   TIME_PC3d_linknew("Link hanging vertices", TIME_PC3d_planes);
 Timer   TIME_PC3d_compress("Compress to active vertices", TIME_PC3d_planes);
-Timer TIME_PC3d_collapseDegenerates ("Remove degenerate edges/vertices");
+Timer TIME_PC3d_collapseDegenerates ("Remove degenerate edges/vertices", TimeSpheral);
+
+//------------------------------------------------------------------------------
+// ConnectivityMap
+//------------------------------------------------------------------------------
+Timer TIME_ConnectivityMap_patch("ConnectivityMap::patchConnectivity", TimeSpheral);
+Timer TIME_ConnectivityMap_valid("ConnectivityMap::valid", TimeSpheral);
+Timer TIME_ConnectivityMap_computeConnectivity("ConnectivityMap::computeConnectivity", TimeSpheral);
 
 // //------------------------------------------------------------------------------
 // // Second order predictor corrector integrator
