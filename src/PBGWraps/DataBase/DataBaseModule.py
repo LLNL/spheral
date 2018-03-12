@@ -299,6 +299,7 @@ self.addDataBaseMethods(self.DataBase%(dim)id, %(dim)i)
         x.add_constructor([])
 
         # Methods.
+        x.add_method("reinitializeNeighbors", None, [], is_const=True)
         x.add_method("updateConnectivityMap", None, [param("bool", "computeGhostConnectivity")], is_const=True)
         x.add_method("patchConnectivityMap", None, [constrefparam(intfieldlist, "flags"),
                                                     constrefparam(intfieldlist, "old2new")], is_const=True)

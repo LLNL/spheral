@@ -466,6 +466,37 @@ DataBase<Dimension>::fluidRefineNodeEnd() const {
 }
 
 //------------------------------------------------------------------------------
+// Optimize neighbor objects.
+//------------------------------------------------------------------------------
+template<typename Dimension>
+void
+DataBase<Dimension>::
+reinitializeNeighbors() const {
+
+  // Find the current bounding box.
+  Vector xmin, xmax;
+  this->boundingBox(xmin, xmax, false);
+
+  // Compute the average node extent.
+  unsigned ntot = 0;
+  Scalar havg = 0.0;
+  for (auto itr = this->nodeListBegin(); itr != this->nodeListEnd(); ++itr) {
+    const auto  n = (*itr)->numInternalNodes();
+    const auto& neighbor = (*itr)->neighbor();
+    const auto  etaMax = neighbor.kernelExtent();
+    ntot += n;
+    for (auto i = 0; i < n; ++i) havg += neighbor.nodeExtent(i).maxElement()/etaMax;
+  }
+  if (ntot > 0) havg /= ntot;
+
+  // Now initialize the neighbors.
+  for (auto itr = this->nodeListBegin(); itr != this->nodeListEnd(); ++itr) {
+    auto& neighbor = (*itr)->neighbor();
+    neighbor.reinitialize(xmin, xmax, havg);
+  }
+}
+
+//------------------------------------------------------------------------------
 // Update the connectivity map.
 //------------------------------------------------------------------------------
 template<typename Dimension>
