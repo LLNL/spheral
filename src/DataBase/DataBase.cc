@@ -473,26 +473,39 @@ void
 DataBase<Dimension>::
 reinitializeNeighbors() const {
 
-  // Find the current bounding box.
-  Vector xmin, xmax;
-  this->boundingBox(xmin, xmax, false);
-
+  // Find the current bounding box and average node extent in one loop.
   // Compute the average node extent.
+  Vector xmin = numeric_limits<Scalar>::max(), xmax = numeric_limits<Scalar>::lowest();
   unsigned ntot = 0;
   Scalar havg = 0.0;
   for (auto itr = this->nodeListBegin(); itr != this->nodeListEnd(); ++itr) {
+    const auto positions = (*itr)->positions();
     const auto  n = (*itr)->numInternalNodes();
     const auto& neighbor = (*itr)->neighbor();
     const auto  etaMax = neighbor.kernelExtent();
     ntot += n;
-    for (auto i = 0; i < n; ++i) havg += neighbor.nodeExtent(i).maxElement()/etaMax;
+    for (auto i = 0; i < n; ++i) {
+      const auto& xi = positions(i);
+      xmin = elementWiseMin(xmin, xi);
+      xmax = elementWiseMax(xmax, xi);
+      havg += neighbor.nodeExtent(i).maxElement()/etaMax;
+    }
   }
+
+  // Find the global result across all processors.
+  for (auto i = 0; i != Dimension::nDim; ++i) {
+    xmin(i) = allReduce(xmin(i), MPI_MIN, Communicator::communicator());
+    xmax(i) = allReduce(xmax(i), MPI_MAX, Communicator::communicator());
+  }
+  havg = allReduce(havg, MPI_SUM, Communicator::communicator());
+  ntot = allReduce(ntot, MPI_SUM, Communicator::communicator());
   if (ntot > 0) havg /= ntot;
 
   // Now initialize the neighbors.
   for (auto itr = this->nodeListBegin(); itr != this->nodeListEnd(); ++itr) {
     auto& neighbor = (*itr)->neighbor();
     neighbor.reinitialize(xmin, xmax, havg);
+    neighbor.updateNodes();
   }
 }
 
