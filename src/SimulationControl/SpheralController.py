@@ -59,7 +59,8 @@ class SpheralController:
                  SPH = False,
                  skipInitialPeriodicWork = False,
                  iterateInitialH = True,
-                 numHIterationsBetweenCycles = 0):
+                 numHIterationsBetweenCycles = 0,
+                 reinitializeNeighborsStep = 10):
         self.restart = RestartableObject(self)
         self.integrator = integrator
         self.kernel = kernel
@@ -111,7 +112,8 @@ class SpheralController:
                                  vizFields = vizFields,
                                  vizFieldLists = vizFieldLists,
                                  skipInitialPeriodicWork = skipInitialPeriodicWork,
-                                 iterateInitialH = True)
+                                 iterateInitialH = True,
+                                 reinitializeNeighborsStep = 10)
 
         # Read the restart information if requested.
         if not restoreCycle is None:
@@ -140,7 +142,8 @@ class SpheralController:
                             vizFields = [],
                             vizFieldLists = [],
                             skipInitialPeriodicWork = False,
-                            iterateInitialH = True):
+                            iterateInitialH = True,
+                            reinitializeNeighborsStep = 10):
 
         # Intialize the cycle count.
         self.totalSteps = 0
@@ -158,11 +161,14 @@ class SpheralController:
         # Set the simulation time.
         self.integrator.currentTime = initialTime
 
+        # Prepare the neighbor objects.
+        db = self.integrator.dataBase()
+        db.reinitializeNeighbors()
+
         # Create ghost nodes for the physics packages to initialize with.
         self.integrator.setGhostNodes()
 
         # Initialize the integrator and packages.
-        db = self.integrator.dataBase()
         packages = self.integrator.physicsPackages()
         for package in packages:
             package.initializeProblemStartup(db)
@@ -186,6 +192,7 @@ class SpheralController:
         self.appendPeriodicWork(self.garbageCollection, garbageCollectionStep)
         self.appendPeriodicWork(self.updateConservation, statsStep)
         self.appendPeriodicWork(self.updateRestart, restartStep)
+        self.appendPeriodicWork(self.reinitializeNeighbors, reinitializeNeighborsStep)
 
         # Add the dynamic redistribution object to the controller.
         self.addRedistributeNodes(self.kernel)
@@ -454,6 +461,14 @@ class SpheralController:
         while gc.collect():
             pass
         self.dropRestartFile()
+        return
+
+    #--------------------------------------------------------------------------
+    # Periodically reinitialize neighbors.
+    #--------------------------------------------------------------------------
+    def reinitializeNeighbors(self, cycle, Time, dt):
+        db = self.integrator.dataBase()
+        db.reinitializeNeighbors()
         return
 
     #--------------------------------------------------------------------------

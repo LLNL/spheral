@@ -158,11 +158,12 @@ TreeNeighbor(NodeList<Dimension>& nodeList,
              const Vector& xmin,
              const Vector& xmax):
   Neighbor<Dimension>(nodeList, searchType, kernelExtent),
-  mBoxLength((xmax - xmin).maxElement()),
-  mGridLevelConst0(log(mBoxLength/kernelExtent)/log(2.0)),
-  mXmin(xmin),
-  mXmax(xmax),
+  mBoxLength(),
+  mGridLevelConst0(),
+  mXmin(),
+  mXmax(),
   mTree() {
+  this->reinitialize(xmin, xmax, (xmax - xmin).maxElement()/4.0);
 }
 
 //------------------------------------------------------------------------------
@@ -1157,6 +1158,31 @@ mapKey(const typename TreeNeighbor<Dimension>::LevelKey& ilevel,
 
   // That's it.
   return result;
+}
+
+//------------------------------------------------------------------------------
+// Reinitialize
+// For TreeNeighbor we want to ensure we have a grid level a close fit to the
+// target kernelExtent*htarget.
+//------------------------------------------------------------------------------
+template<typename Dimension>
+void
+TreeNeighbor<Dimension>::
+reinitialize(const typename Dimension::Vector& xmin,
+             const typename Dimension::Vector& xmax,
+             const Scalar htarget) {
+  const auto etaMax = this->kernelExtent();
+  mXmin = xmin;
+  mXmax = xmax;
+  mBoxLength = (xmax - xmin).maxElement();
+  mGridLevelConst0 = log(mBoxLength/etaMax)/log(2.0);
+  mTree.clear();
+
+  // // Now optimize the box-size so we have a level near the target size.
+  // const auto lvl = this->gridLevel(htarget) + 1U;
+  // mBoxLength = (1U << lvl) * etaMax*htarget;
+  // mGridLevelConst0 = log(mBoxLength/etaMax)/log(2.0);
+  // cerr << lvl << " " << mBoxLength << endl;
 }
 
 //------------------------------------------------------------------------------
