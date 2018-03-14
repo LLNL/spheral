@@ -165,6 +165,7 @@ void dimensionBindings(py::module& m, const std::string suffix) {
   pyDB.def(py::init<>());
 
   // Methods
+  pyDB.def("reinitializeNeighbors", &DB::reinitializeNeighbors);
   pyDB.def("updateConnectivityMap", &DB::updateConnectivityMap);
   pyDB.def("patchConnectivityMap", &DB::patchConnectivityMap);
   pyDB.def("connectivityMap", (const NeighborSpace::ConnectivityMap<Dimension>& (DB::*)(const bool) const) &DB::connectivityMap, "computeGhostConnectivity"_a=false);

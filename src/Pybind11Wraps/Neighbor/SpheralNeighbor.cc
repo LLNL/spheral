@@ -63,7 +63,7 @@ public:
                       nodeID,       // arguments
                       masterList,
                       coarseNeighbors
-      );
+                      );
   }
 
   virtual void setRefineNeighborList(int nodeID,
@@ -75,7 +75,7 @@ public:
                       nodeID,               // arguments
                       coarseNeighbors,
                       refineNeighbors
-      );
+                      );
   }
 
   virtual void setMasterList(const Vector& position, const Scalar& H,
@@ -87,7 +87,7 @@ public:
                            position, H,          // arguments
                            masterList,
                            coarseNeighbors
-      );
+                           );
   }
 
   virtual void setMasterList(const Vector& position, const SymTensor& H,
@@ -100,7 +100,7 @@ public:
                            position, H,          // arguments
                            masterList,
                            coarseNeighbors
-      );
+                           );
   }
 
   virtual void setRefineNeighborList(const Vector& position, const Scalar& H,
@@ -112,7 +112,7 @@ public:
                            position, H,          // arguments
                            coarseNeighbors,
                            refineNeighbors
-      );
+                           );
   }
 
   virtual void setRefineNeighborList(const Vector& position, const SymTensor& H,
@@ -124,7 +124,7 @@ public:
                            position, H,          // arguments
                            coarseNeighbors,
                            refineNeighbors
-      );
+                           );
   }
 
   virtual void setMasterList(const Vector& position,
@@ -136,7 +136,7 @@ public:
                            position,             // arguments
                            masterList,
                            coarseNeighbors
-      );
+                           );
   }
 
   virtual void setRefineNeighborList(const Vector& position,
@@ -148,7 +148,7 @@ public:
                            position,             // arguments
                            coarseNeighbors,
                            refineNeighbors
-      );
+                           );
   }
 
   virtual void setMasterList(const Plane& enterPlane, const Plane& exitPlane,
@@ -160,14 +160,14 @@ public:
                            enterPlane, exitPlane,// arguments
                            masterList,
                            coarseNeighbors
-      );
+                           );
   }
 
   virtual void updateNodes() override {
     PYBIND11_OVERLOAD_PURE(void,                 // Return type
                            NeighborBase,         // Parent class
                            updateNodes,        // name of method
-      );
+                           );
   }
 
   virtual void updateNodes(const std::vector<int>& nodeIDs) override {
@@ -175,14 +175,24 @@ public:
                            NeighborBase,         // Parent class
                            updateNodes,          // name of method
                            nodeIDs               // arguments
-      );
+                           );
+  }
+
+  virtual void reinitialize(const Vector& xmin,
+                            const Vector& xmax,
+                            const Scalar htarget) override {
+    PYBIND11_OVERLOAD(void,                 // Return type
+                      NeighborBase,         // Parent class
+                      reinitialize,         // name of method
+                      xmin, xmax, htarget   // arguments
+                      );
   }
 
   virtual bool valid() const override {
     PYBIND11_OVERLOAD(bool,                 // Return type
                       NeighborBase,         // Parent class
                       valid                 // name of method
-      );
+                      );
   }
 };
 
@@ -216,6 +226,7 @@ void virtualNeighborBindings(py::module& m, const std::string suffix, PB11Obj& o
   obj.def("updateNodes", (void (Obj::*)()) &Obj::updateNodes);
   obj.def("updateNodes", (void (Obj::*)(const std::vector<int>&)) &Obj::updateNodes, "nodeIDs"_a);
 
+  obj.def("reinitialize", &Obj::reinitialize);
   obj.def("valid", &Obj::valid);
 }
 
