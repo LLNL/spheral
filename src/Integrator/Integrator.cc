@@ -227,6 +227,10 @@ Integrator<Dimension>::preStepInitialize(State<Dimension>& state,
     mRequireGhostConnectivity = (mRequireGhostConnectivity or (*physicsItr)->requireGhostConnectivity());
   }
 
+  // Intialize neighbors if need be.
+  DataBase<Dimension>& db = accessDataBase();
+  // if (mRequireConnectivity) db.reinitializeNeighbors();
+
   // Set the boundary conditions.
   if ((not mRigorousBoundaries) and (mCurrentCycle % mUpdateBoundaryFrequency == 0)) {
     setGhostNodes();
@@ -234,7 +238,6 @@ Integrator<Dimension>::preStepInitialize(State<Dimension>& state,
   applyGhostBoundaries(state, derivs);
 
   // Register the now updated connectivity with the state.
-  DataBase<Dimension>& db = accessDataBase();
   if (mRequireConnectivity) {
     state.enrollConnectivityMap(db.connectivityMapPtr(mRequireGhostConnectivity));
   }

@@ -213,6 +213,9 @@ generateStdVectorBindings(self.vector_of_vector_of_GridCellIndex%(ndim)id, "vect
                                                       constrefparam(vector, "minMasterExtent"),
                                                       constrefparam(vector, "maxMasterExtent"),
                                                       constrefparam("vector_of_int", "coarseList")], is_const=True)
+        x.add_method("reinitialize", None,
+                     [constrefparam(vector, "xmin"), constrefparam(vector, "xmax"), param("double", "htarget")],
+                     is_virtual = True)
         x.add_method("valid", "bool", [], is_const=True, is_virtual=True)
         x.add_method("HExtent", vector, [param("double", "H"), param("double", "kernelExtent")], is_static=True)
         x.add_method("HExtent", vector, [constrefparam(symtensor, "H"), param("double", "kernelExtent")], is_static=True)
