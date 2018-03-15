@@ -553,6 +553,10 @@ class SpheralController:
         RestartRegistrar.instance().restoreState(file)
         print "Finished: required %0.2f seconds" % (time.clock() - start)
 
+        # Reset neighboring.
+        db = self.integrator.dataBase()
+        db.reinitializeNeighbors()
+
         # Do we need to force a boundary update to create ghost nodes?
         if (self.integrator.updateBoundaryFrequency > 1 and
             self.integrator.currentCycle % self.integrator.updateBoundaryFrequency != 0):
