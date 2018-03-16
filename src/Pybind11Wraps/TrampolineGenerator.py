@@ -44,8 +44,49 @@ public:
 
 """);
 
-        # pure methods
+        # Bind the methods
+        methods = [(name, meth) for (name, meth) in inspect.getmembers(self, predicate=inspect.ismethod)
+                   if name[:2] != "__"]
+        for name, method in methods:
+            stuff = inspect.getargspec(method)
+            assert "returnType" in stuff.args
+            assert "args" in stuff.args
+            returnType = stuff.defaults[stuff.args.index("returnType") - 1]
+            args = stuff.defaults[stuff.args.index("args") - 1]
 
+            # Is this method const?
+            if "const" in stuff.args:
+                const = stuff.defaults[stuff.args.index("const") - 1]
+            else:
+                const = False
+
+            # Is this method abstract?
+            if "pure" in stuff.args:
+                pure = stuff.defaults[stuff.args.index("pure") - 1]
+            else:
+                pure = False
+
+            dvals = {"name" : name, "returnType" : returnType}
+            firstline = "  virtual %(returnType)s %(name)s(" % dvals
+            offset = " "*len(firstline)
+            ss(firstline)
+            for i, (argType, argName) in enumerate(args):
+                if i > 0:
+                    ss(offset)
+                ss(argType + " " + argName)
+                if i < len(args) - 1:
+                    ss(",\n")
+                else:
+                    ss(")")
+            if const:
+                ss(" const override {\n")
+            else:
+                ss(" override {\n")
+
+            if pure:
+                ss("    PYBIND11_OVERLOAD_PURE(" + returnType + ",       // Return type\n")
+            else:
+                ss("    PYBIND11_OVERLOAD(" + returnType + ",       // Return type\n")
 
         # Closing
         ss("};\n\n")
