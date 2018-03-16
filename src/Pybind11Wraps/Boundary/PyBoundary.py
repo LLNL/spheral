@@ -1,6 +1,6 @@
 import sys
 sys.path.append("..")
-from TrampolineGenerator import TrampolineGenerator
+from TrampolineGenerator import *
 
 class PyBoundary(TrampolineGenerator):
 
@@ -25,4 +25,4 @@ using Spheral::DataBaseSpace::DataBase;
         return "void"
 
 if __name__ == "__main__":
-    PyBoundary()()
+    generateAbstractTrampoline(PyBoundary())
