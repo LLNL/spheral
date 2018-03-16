@@ -12,7 +12,7 @@ class PyBoundary(TrampolineGenerator):
 
     def setGhostNodes(self,
                       returnType = "void",
-                      args = (("NodeList<Dimension>&", "nodeList"))):
+                      args = (("NodeList<Dimension>&", "nodeList"),)):
         return
 
 if __name__ == "__main__":
