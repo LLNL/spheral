@@ -247,8 +247,9 @@ void dimensionBindings(py::module& m, const std::string suffix) {
 //------------------------------------------------------------------------------
 // Make the module
 //------------------------------------------------------------------------------
-PYBIND11_PLUGIN(SpheralKernel) {
-  py::module m("SpheralKernel", "Spheral Kernel module.");
+PYBIND11_MODULE(SpheralKernel, m) {
+
+  m.doc() = "Spheral Kernel module.";
 
   // //............................................................................
   // // imports
@@ -265,6 +266,4 @@ PYBIND11_PLUGIN(SpheralKernel) {
 #ifdef SPHERAL3D
   dimensionBindings<Spheral::Dim<3>>(m, "3d");
 #endif
-
-  return m.ptr();
 }

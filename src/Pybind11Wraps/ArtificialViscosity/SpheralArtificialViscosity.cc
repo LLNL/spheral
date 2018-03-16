@@ -258,11 +258,11 @@ void dimensionBindings(py::module& m, const std::string suffix) {
 //------------------------------------------------------------------------------
 // Make the module
 //------------------------------------------------------------------------------
-PYBIND11_PLUGIN(SpheralArtificialViscosity) {
+PYBIND11_MODULE(SpheralArtificialViscosity, m) {
   using namespace Spheral;
   using namespace Spheral::ArtificialViscositySpace;
 
-  py::module m("SpheralArtificialViscosity", "Spheral ArtificialViscosity module.");
+  m.doc() = "Spheral ArtificialViscosity module.";
 
   //............................................................................
   // Per dimension bindings.
@@ -289,6 +289,4 @@ PYBIND11_PLUGIN(SpheralArtificialViscosity) {
 #ifdef SPHERAL3D
   dimensionBindings<Spheral::Dim<3>>(m, "3d");
 #endif
-
-  return m.ptr();
 }
