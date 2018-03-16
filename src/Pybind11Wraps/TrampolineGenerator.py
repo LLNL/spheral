@@ -161,12 +161,88 @@ def generateConcreteTrampoline(obj):
     return
 
 #-------------------------------------------------------------------------------
+# generateBindingFunction
+#
+# Generate a function that provides pybind11 bindings for the virtual methods.
+#-------------------------------------------------------------------------------
+def generateBindingFunction(obj):
+    ss = sys.stdout.write
+    name = obj.__class__.__name__
+
+    # Compiler guard.
+    ss("""//------------------------------------------------------------------------------
+// Pybind11 binding for virtual methods in %(name)s
+//------------------------------------------------------------------------------
+#ifndef __pybind11Bindings_%(name)s__
+#define __pybing11Bindings_%(name)s__
+
+""" % {"name" : name})
+
+    # Includes
+    for inc in obj.includes:
+        ss('#include "%s"\n' % inc)
+    ss("\n")
+
+    # Preamble
+    if obj.preamble:
+        ss(obj.preamble + "\n")
+
+    # Namespaces
+    for ns in obj.namespaces:
+        ss("namespace " + ns + " {\n")
+    ss("\n")
+
+    # Template parameters
+    ss("template<")
+    for tp in obj.templates:
+        ss("typename %s, " % tp)
+    ss("typename Obj, typename PB11Obj>\n")
+
+    # Function spec
+    ss("void virtual%sBindings(PB11Obj& obj) {\n\n" % name)
+
+    # typedefs
+    if "Dimension" in obj.templates:
+        ss("""
+  typedef typename Dimension::Scalar Scalar;
+  typedef typename Dimension::Vector Vector;
+  typedef typename Dimension::Tensor Tensor
+  typedef typename Dimension::SymTensor SymTensor;
+  typedef typename Dimension::ThirdRankTensor ThirdRankTensor;
+
+""");
+
+    # Bind methods.
+    ss("  // Methods\n")
+    methods = [(name, meth) for (name, meth) in inspect.getmembers(obj, predicate=inspect.ismethod)
+               if name[:2] != "__"]
+    for name, method in methods:
+
+        # Get the return type and arguments.
+        stuff = inspect.getargspec(method)
+        assert "args" in stuff.args
+        returnType = method()
+        args = stuff.defaults[stuff.args.index("args") - 1]
+        nargs = len(args)
+
+        # Is this method const?
+        if "const" in stuff.args:
+            const = stuff.defaults[stuff.args.index("const") - 1]
+        else:
+            const = False
+
+        # Write the binding
+        dvals = {"name" : name, "returnType" : returnType}
+        ss("obj.def(%(name)s, (%(returnType)s (Obj::*)(" % dvals)
+
+    return
+
+#-------------------------------------------------------------------------------
 # __generateClassStart
 #
 # All the stuff up to the methods.
 #-------------------------------------------------------------------------------
 def __generateClassStart(obj, ss, name):
-    ss = sys.stdout.write
 
     # Compiler guard.
     ss("""//------------------------------------------------------------------------------
