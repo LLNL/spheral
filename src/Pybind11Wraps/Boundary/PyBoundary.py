@@ -26,3 +26,4 @@ using Spheral::DataBaseSpace::DataBase;
 
 if __name__ == "__main__":
     generateAbstractTrampoline(PyBoundary())
+    generateConcreteTrampoline(PyBoundary())
