@@ -91,7 +91,7 @@ def generateAbstractTrampoline(obj):
     return
 
 #-------------------------------------------------------------------------------
-# generateAbstractTrampoline
+# generateConcreteTrampoline
 #
 # Overload just the abstract methods with non-abstract overrides.
 #-------------------------------------------------------------------------------
