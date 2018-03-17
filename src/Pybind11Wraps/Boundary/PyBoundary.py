@@ -21,7 +21,8 @@ using Spheral::DataBaseSpace::DataBase;
         return
 
     def setAllGhostNodes(self,
-                         args = [("DataBase<Dimension>&", "dataBase")]):
+                         args = [("DataBase<Dimension>&", "dataBase")],
+                         doc = "Recreate ghost nodes for this Boundary for all NodeLists in the DataBase."):
         return "void"
 
     def setAllViolationNodes(self,
