@@ -34,10 +34,12 @@ def generateAbstractTrampoline(obj):
     for name, method in methods:
 
         # Get the return type and arguments.
-        stuff = inspect.getargspec(method)
-        assert "args" in stuff.args
         returnType = method()
-        args = stuff.defaults[stuff.args.index("args") - 1]
+        stuff = inspect.getargspec(method)
+        if "args" in stuff.args:
+            args = stuff.defaults[stuff.args.index("args") - 1]
+        else:
+            args = []
         nargs = len(args)
 
         # Is this method const?
@@ -57,7 +59,7 @@ def generateAbstractTrampoline(obj):
         firstline = "  virtual %(returnType)s %(name)s(" % dvals
         offset = " "*len(firstline)
         ss(firstline)
-        for i, (argType, argName) in enumerate(args):
+        for i, (argType, argName, default) in enumerate(__parseArgs(args)):
             if i > 0:
                 ss(offset)
             ss(argType + " " + argName)
@@ -79,7 +81,7 @@ def generateAbstractTrampoline(obj):
         ss(offset + "Base,\t\t// Parent class\n")
         ss(offset + name + ",\t// name of method\n")
 
-        for i, (argType, argName) in enumerate(args):
+        for i, (argType, argName, default) in enumerate(__parseArgs(args)):
             if i < nargs - 1:
                 ss(offset + argName + ",\t// argument %i\n" % i)
             else:
@@ -106,10 +108,12 @@ def generateConcreteTrampoline(obj):
     for name, method in methods:
 
         # Get the return type and arguments.
-        stuff = inspect.getargspec(method)
-        assert "args" in stuff.args
         returnType = method()
-        args = stuff.defaults[stuff.args.index("args") - 1]
+        stuff = inspect.getargspec(method)
+        if "args" in stuff.args:
+            args = stuff.defaults[stuff.args.index("args") - 1]
+        else:
+            args = []
         nargs = len(args)
 
         # Is this method const?
@@ -130,7 +134,7 @@ def generateConcreteTrampoline(obj):
             firstline = "  virtual %(returnType)s %(name)s(" % dvals
             offset = " "*len(firstline)
             ss(firstline)
-            for i, (argType, argName) in enumerate(args):
+            for i, (argType, argName, default) in enumerate(__parseArgs(args)):
                 if i > 0:
                     ss(offset)
                 ss(argType + " " + argName)
@@ -148,7 +152,7 @@ def generateConcreteTrampoline(obj):
             ss(offset + "Base,\t\t// Parent class\n")
             ss(offset + name + ",\t// name of method\n")
         
-            for i, (argType, argName) in enumerate(args):
+            for i, (argType, argName, default) in enumerate(__parseArgs(args)):
                 if i < nargs - 1:
                     ss(offset + argName + ",\t// argument %i\n" % i)
                 else:
@@ -219,10 +223,12 @@ def generateBindingFunction(obj):
     for name, method in methods:
 
         # Get the return type and arguments.
-        stuff = inspect.getargspec(method)
-        assert "args" in stuff.args
         returnType = method()
-        args = stuff.defaults[stuff.args.index("args") - 1]
+        stuff = inspect.getargspec(method)
+        if "args" in stuff.args:
+            args = stuff.defaults[stuff.args.index("args") - 1]
+        else:
+            args = []
         nargs = len(args)
 
         # Is this method const?
@@ -233,8 +239,27 @@ def generateBindingFunction(obj):
 
         # Write the binding
         dvals = {"name" : name, "returnType" : returnType}
-        ss("obj.def(%(name)s, (%(returnType)s (Obj::*)(" % dvals)
+        ss('  obj.def("%(name)s", (%(returnType)s (Obj::*)(' % dvals)
+        for i, (argType, argName, default) in enumerate(__parseArgs(args)):
+            ss(argType)
+            if i < nargs - 1:
+                ss(", ")
+        if const:
+            ss(") const)")
+        else:
+            ss("))")
+        ss(" &Obj::" + name)
+        for argType, argName, default in __parseArgs(args):
+            ss(', "%s"_a' % argName)
+            if default:
+                ss("=" + default)
+        ss(");\n")
 
+    # Closing
+    ss("}\n\n")
+    for ns in obj.namespaces:
+        ss("}\n")
+    
     return
 
 #-------------------------------------------------------------------------------
@@ -307,3 +332,16 @@ def __generateClassEnd(obj, ss):
     ss("\n#endif\n")
     return
 
+#-------------------------------------------------------------------------------
+# __parseArgs
+#
+# Return (argType, argName, default_value (optional)
+#-------------------------------------------------------------------------------
+def __parseArgs(args):
+    result = []
+    for tup in args:
+        if len(tup) == 2:
+            result.append((tup[0], tup[1], None))
+        else:
+            result.append(tup)
+    return result
