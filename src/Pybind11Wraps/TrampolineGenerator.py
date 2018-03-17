@@ -83,7 +83,7 @@ def generateAbstractTrampoline(obj):
 
         for i, (argType, argName, default) in enumerate(__parseArgs(args)):
             if i < nargs - 1:
-                ss(offset + argName + ",\t// argument %i\n" % i)
+                ss(offset + argName + ",\t// argument %i\n" % (i + 1))
             else:
                 ss(offset + argName + ");\t// argument %i\n" % (i + 1))
         ss("  }\n")
@@ -154,7 +154,7 @@ def generateConcreteTrampoline(obj):
         
             for i, (argType, argName, default) in enumerate(__parseArgs(args)):
                 if i < nargs - 1:
-                    ss(offset + argName + ",\t// argument %i\n" % i)
+                    ss(offset + argName + ",\t// argument %i\n" % (i + 1))
                 else:
                     ss(offset + argName + ");\t// argument %i\n" % (i + 1))
             ss("  }\n")
