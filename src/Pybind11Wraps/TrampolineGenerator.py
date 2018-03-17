@@ -237,6 +237,12 @@ def generateBindingFunction(obj):
         else:
             const = False
 
+        # Is there a doc string?
+        if "doc" in stuff.args:
+            doc = stuff.defaults[stuff.args.index("doc") - 1]
+        else:
+            doc = None
+
         # Write the binding
         dvals = {"name" : name, "returnType" : returnType}
         ss('  obj.def("%(name)s", (%(returnType)s (Obj::*)(' % dvals)
@@ -253,12 +259,15 @@ def generateBindingFunction(obj):
             ss(', "%s"_a' % argName)
             if default:
                 ss("=" + default)
+        if doc:
+            ss(',\n          "%s"' % doc)
         ss(");\n")
 
     # Closing
     ss("}\n\n")
     for ns in obj.namespaces:
         ss("}\n")
+    ss("#endif\n")
     
     return
 
