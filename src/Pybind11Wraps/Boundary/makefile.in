@@ -10,6 +10,15 @@ PKGNAME = Boundary
 PKGDIR = $(PKGNAME)/
 PYB11TARGET = Spheral$(PKGNAME).$(SHLIBEXT)
 
+PYB11GENTARGETS = \
+	PyBoundary.hh \
+	PyBoundaryConcrete.hh \
+	virtualPyBoundaryBindings.hh \
+	PyBoundaryMesh.hh \
+	virtualPyBoundaryMeshBindings.hh \
+	PyPlanarBoundary.hh \
+	virtualPyPlanarBoundaryBindings.hh
+
 SRCTARGETS += \
 	$(srcdir)/SpheralBoundary.cc
 

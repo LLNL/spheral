@@ -1,5 +1,3 @@
-import sys
-sys.path.append("..")
 from TrampolineGenerator import *
 
 class PyBoundary(TrampolineGenerator):
@@ -30,7 +28,7 @@ using Spheral::DataBaseSpace::DataBase;
         return "void"
 
     def cullGhostNodes(self,
-                       args = [("const FieldList<Dimension, int>", "flagSet"),
+                       args = [("const FieldList<Dimension, int>&", "flagSet"),
                                ("FieldList<Dimension, int>&", "old2newIndexMap"),
                                ("std::vector<int>&", "numNodesRemoved")]):
         return "void"
@@ -136,7 +134,8 @@ using Spheral::DataBaseSpace::DataBase;
     def initializeProblemStartup(self):
         return "void"
 
-    def finalizeGhostBoundary(self):
+    def finalizeGhostBoundary(self,
+                              const = True):
         return "void"
 
     def reset(self,
@@ -153,7 +152,7 @@ using Spheral::DataBaseSpace::DataBase;
              const = True):
         return "void"
 
-if __name__ == "__main__":
-    generateAbstractTrampoline(PyBoundary())
-    generateConcreteTrampoline(PyBoundary())
-    generateBindingFunction(PyBoundary())
+# if __name__ == "__main__":
+#     generateTrampoline(PyBoundary())
+#     generateConcreteTrampoline(PyBoundary())
+#     generateBindingFunction(PyBoundary())
