@@ -145,7 +145,7 @@ SHLIBEXT = @SHLIBEXT@
 EMPTY :=
 SPACE := $(EMPTY) $(EMPTY)
 
-INCS = $(EXTRAINCLUDES) $(TPINCS) -I$(SPHERALTOP) -I$(srcdir) -I$(BOOSTROOT) -I$(prefix)/include
+INCS = $(EXTRAINCLUDES) $(TPINCS) -I$(SPHERALTOP) -I$(srcdir) -I$(BOOSTROOT) -I$(prefix)/include -I.
 
 #-------------------------------------------------------------------------------
 # Augment the SRCTARGETS with generated instantiation files.
@@ -286,11 +286,27 @@ force_build:
 %Inst3d.cc:	%Inst.cc.py
 	@$(PYTHONEXE) $(SPHERALTOP)/helpers/InstantiationGenerator.py $< $@ 3
 
+%.hh:	%.py
+	$(eval cls = $(basename $(<F)))
+	@$(PYTHONEXE) -c "import sys; sys.path += ['$(srcdir)', '$(srcdir)/..']; from $(cls) import *; generateTrampoline($(cls)())" > $@
+
+%Concrete.hh:	%.py
+	$(eval cls = $(basename $(<F)))
+	@$(PYTHONEXE) -c "import sys; sys.path += ['$(srcdir)', '$(srcdir)/..']; from $(cls) import *; generateConcreteTrampoline($(cls)())" > $@
+
+virtual%Bindings.hh:	%.py
+	$(eval cls = $(basename $(<F)))
+	@$(PYTHONEXE) -c "import sys; sys.path += ['$(srcdir)', '$(srcdir)/..']; from $(cls) import *; generateBindingFunction($(cls)())" > $@
+
 # Machine dependent rules for generating dependency files.
 include $(SPHERALTOP)/helpers/@DEPENDRULES@
 
 .INTERMEDIATE:	Methods.cc
 .DELETE_ON_ERROR: Methods.cc
+
+#-------------------------------------------------------------------------------
+# For pybind11 we need to generate trampoline sources before trying to compile.
+$(SRCTARGETS):	$(PYB11GENTARGETS)
 
 #-------------------------------------------------------------------------------
 ifneq "$(SRCTARGETS)" ""
@@ -447,7 +463,7 @@ docs:
 
 #-------------------------------------------------------------------------------
 clean:
-	rm -fr $(LIBTARGET) $(STATICLIBTARGET) $(MODTARGET) $(PBGMODTARGET) $(STATICPBGMODTARGET) $(EXETARGETS) $(OBJS) $(BPLOBJS) $(OBJS:.o=.d) $(BPLOBJS:.o=.d) $(PBGTARGETDATE) $(PBGSRCS) $(PBGOBJS) $(PBGMODSRCS) $(PYSTEOBJS) $(PYSTECPPS) $(LASTPYSTEMAKE) .$(PKGNAME) $(PYTHONDATEFILE) $(PBGTARGETS:.py=.C) $(PBGTARGET:.py=.py.d) $(PYB11TARGET:.cc=.$(SHLIBEXT)) $(notdir $(EXTRAINSTSRCTARGETS)) $(EXTRAINSTOBJS) $(EXTRAINSTOBJS:.o=.d)
+	rm -fr $(LIBTARGET) $(STATICLIBTARGET) $(MODTARGET) $(PBGMODTARGET) $(STATICPBGMODTARGET) $(EXETARGETS) $(OBJS) $(BPLOBJS) $(OBJS:.o=.d) $(BPLOBJS:.o=.d) $(PBGTARGETDATE) $(PBGSRCS) $(PBGOBJS) $(PBGMODSRCS) $(PYSTEOBJS) $(PYSTECPPS) $(LASTPYSTEMAKE) .$(PKGNAME) $(PYTHONDATEFILE) $(PBGTARGETS:.py=.C) $(PBGTARGET:.py=.py.d) $(PYB11TARGET:.cc=.$(SHLIBEXT)) $(notdir $(EXTRAINSTSRCTARGETS)) $(EXTRAINSTOBJS) $(EXTRAINSTOBJS:.o=.d) $(PYB11GENTARGETS)
 
 #-------------------------------------------------------------------------------
 spotless:

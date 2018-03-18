@@ -19,13 +19,13 @@ Optional attributes to override:
         return
 
 #-------------------------------------------------------------------------------
-# generateAbstractTrampoline
+# generateTrampoline
 #
-# Generate the abstract trampoline class
+# Generate the trampoline class, including pure virtual hooks.
 #-------------------------------------------------------------------------------
-def generateAbstractTrampoline(obj):
+def generateTrampoline(obj):
     ss = sys.stdout.write
-    name = obj.__class__.__name__ + "Abstract"
+    name = obj.__class__.__name__
     __generateClassStart(obj, ss, name)
 
     # Bind the methods
@@ -65,8 +65,7 @@ def generateAbstractTrampoline(obj):
             ss(argType + " " + argName)
             if i < nargs - 1:
                 ss(",\n")
-            else:
-                ss(")")
+        ss(")")
         if const:
             ss(" const override {\n")
         else:
@@ -79,7 +78,10 @@ def generateAbstractTrampoline(obj):
             ss("    PYBIND11_OVERLOAD(" + returnType + ",\t// Return type\n")
             offset = "                      "
         ss(offset + "Base,\t\t// Parent class\n")
-        ss(offset + name + ",\t// name of method\n")
+        if nargs > 0:
+            ss(offset + name + ",\t// name of method\n")
+        else:
+            ss(offset + name + ");\t// name of method\n")
 
         for i, (argType, argName, default) in enumerate(__parseArgs(args)):
             if i < nargs - 1:
@@ -99,7 +101,7 @@ def generateAbstractTrampoline(obj):
 #-------------------------------------------------------------------------------
 def generateConcreteTrampoline(obj):
     ss = sys.stdout.write
-    name = obj.__class__.__name__
+    name = obj.__class__.__name__ + "Concrete"
     __generateClassStart(obj, ss, name)
 
     # Bind the methods
@@ -140,8 +142,7 @@ def generateConcreteTrampoline(obj):
                 ss(argType + " " + argName)
                 if i < nargs - 1:
                     ss(",\n")
-                else:
-                    ss(")")
+            ss(")")
             if const:
                 ss(" const override {\n")
             else:
@@ -150,7 +151,10 @@ def generateConcreteTrampoline(obj):
             ss("    PYBIND11_OVERLOAD(" + returnType + ",\t// Return type\n")
             offset = "                      "
             ss(offset + "Base,\t\t// Parent class\n")
-            ss(offset + name + ",\t// name of method\n")
+            if nargs > 0:
+                ss(offset + name + ",\t// name of method\n")
+            else:
+                ss(offset + name + ");\t// name of method\n")
         
             for i, (argType, argName, default) in enumerate(__parseArgs(args)):
                 if i < nargs - 1:
@@ -210,7 +214,7 @@ def generateBindingFunction(obj):
         ss("""
   typedef typename Dimension::Scalar Scalar;
   typedef typename Dimension::Vector Vector;
-  typedef typename Dimension::Tensor Tensor
+  typedef typename Dimension::Tensor Tensor;
   typedef typename Dimension::SymTensor SymTensor;
   typedef typename Dimension::ThirdRankTensor ThirdRankTensor;
 
@@ -321,7 +325,7 @@ public:
         ss("""
   typedef typename Dimension::Scalar Scalar;
   typedef typename Dimension::Vector Vector;
-  typedef typename Dimension::Tensor Tensor
+  typedef typename Dimension::Tensor Tensor;
   typedef typename Dimension::SymTensor SymTensor;
   typedef typename Dimension::ThirdRankTensor ThirdRankTensor;
 
