@@ -101,133 +101,133 @@ void dimensionBindings(py::module& m, const std::string suffix) {
 
   boundaryPB11.def("accessBoundaryNodes", (typename Bound::BoundaryNodes& (Bound::*)(NodeList<Dimension>&)) &Bound::accessBoundaryNodes, "nodeList"_a);
 
-  // //............................................................................
-  // // Boundary::BoundaryNodes
-  // py::class_<typename Bound::BoundaryNodes>(m, ("BoundaryNodes" + suffix).c_str())
-  //   .def_readwrite("controlNodes", &Bound::BoundaryNodes::controlNodes)
-  //   .def_readwrite("ghostNodes", &Bound::BoundaryNodes::ghostNodes)
-  //   .def_readwrite("violationNodes", &Bound::BoundaryNodes::violationNodes)
-  //   ;
+  //............................................................................
+  // Boundary::BoundaryNodes
+  py::class_<typename Bound::BoundaryNodes>(m, ("BoundaryNodes" + suffix).c_str())
+    .def_readwrite("controlNodes", &Bound::BoundaryNodes::controlNodes)
+    .def_readwrite("ghostNodes", &Bound::BoundaryNodes::ghostNodes)
+    .def_readwrite("violationNodes", &Bound::BoundaryNodes::violationNodes)
+    ;
 
-  // //............................................................................
-  // // PlanarBoundary
-  // typedef PlanarBoundary<Dimension> PlanarB;
-  // py::class_<PlanarB,
-  //            Spheral::PyRestartMethods<PyPlanarBoundary<Dimension, PyBoundary<Dimension, PlanarB> > > > pbPB11(m, ("PlanarBoundary" + suffix).c_str());
-  // virtualPyPlanarBoundaryBindings<Dimension, PlanarB>(pbPB11);
-  // Spheral::restartMethodBindings<PlanarB>(pbPB11);
-  // // Constructors
-  // pbPB11.def(py::init<>());
-  // // pbPB11.def(py::init<const Plane&, const Plane&>(), "enterPlane"_a, "exitPlane"_a);
-  // pbPB11.def("mapPosition", &PlanarB::mapPosition);
-  // pbPB11.def("facesOnPlane", &PlanarB::facesOnPlane);
+  //............................................................................
+  // PlanarBoundary
+  typedef PlanarBoundary<Dimension> PlanarB;
+  py::class_<PlanarB,
+             Spheral::PyRestartMethods<PyPlanarBoundary<Dimension, PyBoundary<Dimension, PlanarB> > > > pbPB11(m, ("PlanarBoundary" + suffix).c_str());
+  virtualPyPlanarBoundaryBindings<Dimension, PlanarB>(pbPB11);
+  Spheral::restartMethodBindings<PlanarB>(pbPB11);
+  // Constructors
+  pbPB11.def(py::init<>());
+  // pbPB11.def(py::init<const Plane&, const Plane&>(), "enterPlane"_a, "exitPlane"_a);
+  pbPB11.def("mapPosition", &PlanarB::mapPosition);
+  pbPB11.def("facesOnPlane", &PlanarB::facesOnPlane);
 
-  // // Virtual methods
-  // pbPB11.def("setGhostNodes", (void (PlanarB::*)(NodeList<Dimension>&, const std::vector<int>&)) &PlanarB::setGhostNodes, "nodeList"_a, "presetControlNodes"_a);
+  // Virtual methods
+  pbPB11.def("setGhostNodes", (void (PlanarB::*)(NodeList<Dimension>&, const std::vector<int>&)) &PlanarB::setGhostNodes, "nodeList"_a, "presetControlNodes"_a);
 
-  // // Attributes
-  // pbPB11.def_property("enterPlane", &PlanarB::enterPlane, &PlanarB::setEnterPlane);
-  // pbPB11.def_property("exitPlane", &PlanarB::exitPlane, &PlanarB::setExitPlane);
+  // Attributes
+  pbPB11.def_property("enterPlane", &PlanarB::enterPlane, &PlanarB::setEnterPlane);
+  pbPB11.def_property("exitPlane", &PlanarB::exitPlane, &PlanarB::setExitPlane);
 
-  // //............................................................................
-  // // ReflectingBoundary
-  // typedef ReflectingBoundary<Dimension> ReflectB;
-  // py::class_<ReflectB, PlanarB,
-  //            PyBoundaryConcrete<Dimension, PyBoundary<Dimension, ReflectB>>> rbPB11(m, ("ReflectingBoundary" + suffix).c_str());
-  // // virtualBoundaryBindings<Dimension, ReflectB>(m, rbPB11);
-  // Spheral::restartMethodBindings<PlanarB>(rbPB11);
+  //............................................................................
+  // ReflectingBoundary
+  typedef ReflectingBoundary<Dimension> ReflectB;
+  py::class_<ReflectB, PlanarB,
+             PyBoundaryConcrete<Dimension, PyBoundary<Dimension, ReflectB>>> rbPB11(m, ("ReflectingBoundary" + suffix).c_str());
+  // virtualBoundaryBindings<Dimension, ReflectB>(m, rbPB11);
+  Spheral::restartMethodBindings<PlanarB>(rbPB11);
 
-  // // Constructors
-  // rbPB11.def(py::init<>());
-  // rbPB11.def(py::init<const Plane&>(), "plane"_a);
+  // Constructors
+  rbPB11.def(py::init<>());
+  rbPB11.def(py::init<const Plane&>(), "plane"_a);
 
-  // // Attributes
-  // rbPB11.def_property_readonly("reflectOperator", &ReflectB::reflectOperator);
+  // Attributes
+  rbPB11.def_property_readonly("reflectOperator", &ReflectB::reflectOperator);
 
-  // //............................................................................
-  // // RigidBoundary
-  // typedef RigidBoundary<Dimension> RigidB;
-  // py::class_<RigidB, PlanarB,
-  //            PyBoundaryConcrete<Dimension, PyBoundary<Dimension, RigidB>>> rigidbPB11(m, ("RigidBoundary" + suffix).c_str());
-  // // virtualBoundaryBindings<Dimension, RigidB>(m, rigidbPB11);
-  // Spheral::restartMethodBindings<RigidB>(rigidbPB11);
+  //............................................................................
+  // RigidBoundary
+  typedef RigidBoundary<Dimension> RigidB;
+  py::class_<RigidB, PlanarB,
+             PyBoundaryConcrete<Dimension, PyBoundary<Dimension, RigidB>>> rigidbPB11(m, ("RigidBoundary" + suffix).c_str());
+  // virtualBoundaryBindings<Dimension, RigidB>(m, rigidbPB11);
+  Spheral::restartMethodBindings<RigidB>(rigidbPB11);
 
-  // // Constructors
-  // rigidbPB11.def(py::init<>());
-  // rigidbPB11.def(py::init<const Plane&>(), "plane"_a);
+  // Constructors
+  rigidbPB11.def(py::init<>());
+  rigidbPB11.def(py::init<const Plane&>(), "plane"_a);
 
-  // // Attributes
-  // rigidbPB11.def_property_readonly("reflectOperator", &RigidB::reflectOperator);
+  // Attributes
+  rigidbPB11.def_property_readonly("reflectOperator", &RigidB::reflectOperator);
 
-  // //............................................................................
-  // // PeriodicBoundary
-  // typedef PeriodicBoundary<Dimension> PeriodicB;
-  // py::class_<PeriodicB, PlanarB,
-  //            PyBoundaryConcrete<Dimension, PyBoundary<Dimension, PeriodicB>>> periodicbPB11(m, ("PeriodicBoundary" + suffix).c_str());
-  // // virtualBoundaryBindings<Dimension, PeriodicB>(m, periodicbPB11);
-  // Spheral::restartMethodBindings<PeriodicB>(periodicbPB11);
+  //............................................................................
+  // PeriodicBoundary
+  typedef PeriodicBoundary<Dimension> PeriodicB;
+  py::class_<PeriodicB, PlanarB,
+             PyBoundaryConcrete<Dimension, PyBoundary<Dimension, PeriodicB>>> periodicbPB11(m, ("PeriodicBoundary" + suffix).c_str());
+  // virtualBoundaryBindings<Dimension, PeriodicB>(m, periodicbPB11);
+  Spheral::restartMethodBindings<PeriodicB>(periodicbPB11);
 
-  // // Constructors
-  // periodicbPB11.def(py::init<>());
-  // periodicbPB11.def(py::init<const Plane&, const Plane&>(), "plane1"_a, "plane2"_a);
+  // Constructors
+  periodicbPB11.def(py::init<>());
+  periodicbPB11.def(py::init<const Plane&, const Plane&>(), "plane1"_a, "plane2"_a);
 
-  //  //............................................................................
-  //  // ConstantVelocityBoundary
-  //  typedef ConstantVelocityBoundary<Dimension> ConstantVelocityB;
-  //  py::class_<ConstantVelocityB, Bound,
-  //             PyBoundaryConcrete<Dimension, PyBoundary<Dimension, ConstantVelocityB>>> constantvelbPB11(m, ("ConstantVelocityBoundary" + suffix).c_str());
-  //  // virtualBoundaryBindings<Dimension, ConstantVelocityB>(m, constantvelbPB11);
-  //  Spheral::restartMethodBindings<ConstantVelocityB>(constantvelbPB11);
+   //............................................................................
+   // ConstantVelocityBoundary
+   typedef ConstantVelocityBoundary<Dimension> ConstantVelocityB;
+   py::class_<ConstantVelocityB, Bound,
+              PyBoundaryConcrete<Dimension, PyBoundary<Dimension, ConstantVelocityB>>> constantvelbPB11(m, ("ConstantVelocityBoundary" + suffix).c_str());
+   // virtualBoundaryBindings<Dimension, ConstantVelocityB>(m, constantvelbPB11);
+   Spheral::restartMethodBindings<ConstantVelocityB>(constantvelbPB11);
 
-  //  // Constructors
-  //  constantvelbPB11.def(py::init<const NodeList<Dimension>&, const std::vector<int>&>(), "nodeList"_a, "nodeIndices"_a);
+   // Constructors
+   constantvelbPB11.def(py::init<const NodeList<Dimension>&, const std::vector<int>&>(), "nodeList"_a, "nodeIndices"_a);
 
-  //  // Attributes
-  //  constantvelbPB11.def_property_readonly("nodeIndices", &ConstantVelocityB::nodeIndices);
-  //  constantvelbPB11.def_property_readonly("nodeList", &ConstantVelocityB::nodeList);
+   // Attributes
+   constantvelbPB11.def_property_readonly("nodeIndices", &ConstantVelocityB::nodeIndices);
+   constantvelbPB11.def_property_readonly("nodeList", &ConstantVelocityB::nodeList);
 
-  // //............................................................................
-  // // ConstantXVelocityBoundary
-  // typedef ConstantXVelocityBoundary<Dimension> ConstantXVelocityB;
-  // py::class_<ConstantXVelocityB, ConstantVelocityB,
-  //            PyBoundaryConcrete<Dimension, PyBoundary<Dimension, ConstantXVelocityB>>> constantxvelbPB11(m, ("ConstantXVelocityBoundary" + suffix).c_str());
-  // // virtualBoundaryBindings<Dimension, ConstantXVelocityB>(m, constantxvelbPB11);
-  // Spheral::restartMethodBindings<ConstantXVelocityB>(constantxvelbPB11);
+  //............................................................................
+  // ConstantXVelocityBoundary
+  typedef ConstantXVelocityBoundary<Dimension> ConstantXVelocityB;
+  py::class_<ConstantXVelocityB, ConstantVelocityB,
+             PyBoundaryConcrete<Dimension, PyBoundary<Dimension, ConstantXVelocityB>>> constantxvelbPB11(m, ("ConstantXVelocityBoundary" + suffix).c_str());
+  // virtualBoundaryBindings<Dimension, ConstantXVelocityB>(m, constantxvelbPB11);
+  Spheral::restartMethodBindings<ConstantXVelocityB>(constantxvelbPB11);
 
-  // // Constructors
-  // constantxvelbPB11.def(py::init<const NodeList<Dimension>&, const std::vector<int>&>(), "nodeList"_a, "nodeIndices"_a);
+  // Constructors
+  constantxvelbPB11.def(py::init<const NodeList<Dimension>&, const std::vector<int>&>(), "nodeList"_a, "nodeIndices"_a);
 
-  // //............................................................................
-  // // ConstantBoundary
-  // typedef ConstantBoundary<Dimension> ConstantB;
-  // py::class_<ConstantB, 
-  //            PyBoundaryConcrete<Dimension, PyBoundary<Dimension, ConstantB>>> constantbPB11(m, ("ConstantBoundary" + suffix).c_str());
-  // // virtualBoundaryBindings<Dimension, ConstantB>(m, constantbPB11);
-  // Spheral::restartMethodBindings<ConstantB>(constantbPB11);
+  //............................................................................
+  // ConstantBoundary
+  typedef ConstantBoundary<Dimension> ConstantB;
+  py::class_<ConstantB, 
+             PyBoundaryConcrete<Dimension, PyBoundary<Dimension, ConstantB>>> constantbPB11(m, ("ConstantBoundary" + suffix).c_str());
+  // virtualBoundaryBindings<Dimension, ConstantB>(m, constantbPB11);
+  Spheral::restartMethodBindings<ConstantB>(constantbPB11);
 
-  // // Constructors
-  // constantbPB11.def(py::init<NodeList<Dimension>&, const std::vector<int>&, const Plane&>(), "nodeList"_a, "nodeIndices"_a, "denialPlane"_a);
+  // Constructors
+  constantbPB11.def(py::init<NodeList<Dimension>&, const std::vector<int>&, const Plane&>(), "nodeList"_a, "nodeIndices"_a, "denialPlane"_a);
 
-  // // Methods
-  // constantbPB11.def("nodeIndices", &ConstantB::nodeIndices);
+  // Methods
+  constantbPB11.def("nodeIndices", &ConstantB::nodeIndices);
 
-  // // Attributes
-  // constantbPB11.def_property_readonly("numConstantNodes", &ConstantB::numConstantNodes);
-  // constantbPB11.def_property_readonly("reflectOperator", &ConstantB::reflectOperator);
+  // Attributes
+  constantbPB11.def_property_readonly("numConstantNodes", &ConstantB::numConstantNodes);
+  constantbPB11.def_property_readonly("reflectOperator", &ConstantB::reflectOperator);
 
-  // //............................................................................
-  // // CRKSPHVoidBoundary
-  // typedef CRKSPHVoidBoundary<Dimension> CRKVoidB;
-  // py::class_<CRKVoidB, 
-  //            PyBoundaryConcrete<Dimension, PyBoundary<Dimension, CRKVoidB>>> crkvoidbPB11(m, ("CRKSPHVoidBoundary" + suffix).c_str());
-  // // virtualBoundaryBindings<Dimension, CRKVoidB>(m, crkvoidbPB11);
+  //............................................................................
+  // CRKSPHVoidBoundary
+  typedef CRKSPHVoidBoundary<Dimension> CRKVoidB;
+  py::class_<CRKVoidB, 
+             PyBoundaryConcrete<Dimension, PyBoundary<Dimension, CRKVoidB>>> crkvoidbPB11(m, ("CRKSPHVoidBoundary" + suffix).c_str());
+  // virtualBoundaryBindings<Dimension, CRKVoidB>(m, crkvoidbPB11);
 
-  // // Constructors
-  // crkvoidbPB11.def(py::init<const FieldList<Dimension, int>&, const FieldList<Dimension, std::vector<Vector>>&>(), "surfacePoint"_a, "etaVoidPoints"_a);
+  // Constructors
+  crkvoidbPB11.def(py::init<const FieldList<Dimension, int>&, const FieldList<Dimension, std::vector<Vector>>&>(), "surfacePoint"_a, "etaVoidPoints"_a);
 
-  // //............................................................................
-  // // The STL containers of Boundary objects.
-  // py::bind_vector<std::vector<Bound*>>(m, "vector_of_Boundary" + suffix);
+  //............................................................................
+  // The STL containers of Boundary objects.
+  py::bind_vector<std::vector<Bound*>>(m, "vector_of_Boundary" + suffix);
 }
 
 //------------------------------------------------------------------------------
@@ -359,13 +359,13 @@ PYBIND11_MODULE(SpheralBoundary, m) {
   dimensionBindings<Spheral::Dim<1>>(m, "1d");
 #endif
 
-// #ifdef SPHERAL2D
-//   dimensionBindings<Spheral::Dim<2>>(m, "2d");
-//   twoDimensionalBindings(m);
-// #endif
+#ifdef SPHERAL2D
+  dimensionBindings<Spheral::Dim<2>>(m, "2d");
+  twoDimensionalBindings(m);
+#endif
 
-// #ifdef SPHERAL3D
-//   dimensionBindings<Spheral::Dim<3>>(m, "3d");
-//   threeDimensionalBindings(m);
-// #endif
+#ifdef SPHERAL3D
+  dimensionBindings<Spheral::Dim<3>>(m, "3d");
+  threeDimensionalBindings(m);
+#endif
 }
