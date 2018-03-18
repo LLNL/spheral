@@ -54,6 +54,11 @@ def generateTrampoline(obj):
         else:
             pure = False
 
+        # Because python does not have function overloading, we provide the ability
+        # to rename the c++ method.
+        if "name" in stuff.args:
+            name = stuff.defaults[stuff.args.index("name") - 1]
+
         # Generate the spec for this method
         dvals = {"name" : name, "returnType" : returnType}
         firstline = "  virtual %(returnType)s %(name)s(" % dvals
@@ -129,6 +134,11 @@ def generateConcreteTrampoline(obj):
             pure = stuff.defaults[stuff.args.index("pure") - 1]
         else:
             pure = False
+
+        # Because python does not have function overloading, we provide the ability
+        # to rename the c++ method.
+        if "name" in stuff.args:
+            name = stuff.defaults[stuff.args.index("name") - 1]
 
         if pure:
             # Generate the spec for this method
@@ -246,6 +256,11 @@ def generateBindingFunction(obj):
             doc = stuff.defaults[stuff.args.index("doc") - 1]
         else:
             doc = None
+
+        # Because python does not have function overloading, we provide the ability
+        # to rename the c++ method.
+        if "name" in stuff.args:
+            name = stuff.defaults[stuff.args.index("name") - 1]
 
         # Write the binding
         dvals = {"name" : name, "returnType" : returnType}

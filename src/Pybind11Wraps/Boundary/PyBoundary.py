@@ -43,46 +43,53 @@ using Spheral::DataBaseSpace::DataBase;
                          pure = True):
         return "void"
 
-    def applyGhostBoundary(self,
-                           args = [("Field<Dimension, int>&", "field")],
-                           const = True,
-                           pure = True):
+    def applyGhostBoundary1(self,
+                            args = [("Field<Dimension, int>&", "field")],
+                            const = True,
+                            pure = True,
+                            name = "applyGhostBoundary"):
         return "void"
 
-    def applyGhostBoundary(self,
-                           args = [("Field<Dimension, Scalar>&", "field")],
-                           const = True,
-                           pure = True):
+    def applyGhostBoundary2(self,
+                            args = [("Field<Dimension, Scalar>&", "field")],
+                            const = True,
+                            pure = True,
+                            name = "applyGhostBoundary"):
         return "void"
 
-    def applyGhostBoundary(self,
-                           args = [("Field<Dimension, Vector>&", "field")],
-                           const = True,
-                           pure = True):
+    def applyGhostBoundary3(self,
+                            args = [("Field<Dimension, Vector>&", "field")],
+                            const = True,
+                            pure = True,
+                            name = "applyGhostBoundary"):
         return "void"
 
-    def applyGhostBoundary(self,
-                           args = [("Field<Dimension, Tensor>&", "field")],
-                           const = True,
-                           pure = True):
+    def applyGhostBoundary4(self,
+                            args = [("Field<Dimension, Tensor>&", "field")],
+                            const = True,
+                            pure = True,
+                            name = "applyGhostBoundary"):
         return "void"
 
-    def applyGhostBoundary(self,
-                           args = [("Field<Dimension, SymTensor>&", "field")],
-                           const = True,
-                           pure = True):
+    def applyGhostBoundary5(self,
+                            args = [("Field<Dimension, SymTensor>&", "field")],
+                            const = True,
+                            pure = True,
+                            name = "applyGhostBoundary"):
         return "void"
 
-    def applyGhostBoundary(self,
-                           args = [("Field<Dimension, ThirdRankTensor>&", "field")],
-                           const = True,
-                           pure = True):
+    def applyGhostBoundary6(self,
+                            args = [("Field<Dimension, ThirdRankTensor>&", "field")],
+                            const = True,
+                            pure = True,
+                            name = "applyGhostBoundary"):
         return "void"
 
-    def applyGhostBoundary(self,
-                             args = [("Field<Dimension, std::vector<Scalar>>&", "field")],
-                             const = True,
-                             pure = True):
+    def applyGhostBoundary7(self,
+                            args = [("Field<Dimension, std::vector<Scalar>>&", "field")],
+                            const = True,
+                            pure = True,
+                            name = "applyGhostBoundary"):
         return "void"
 
     def setViolationNodes(self,
@@ -95,40 +102,46 @@ using Spheral::DataBaseSpace::DataBase;
                              pure = True):
         return "void"
 
-    def enforceBoundary(self,
-                          args = [("Field<Dimension, int>&", "field")],
-                          const = True,
-                          pure = True):
+    def enforceBoundary1(self,
+                         args = [("Field<Dimension, int>&", "field")],
+                         const = True,
+                         pure = True,
+                         name = "enforceBoundary"):
         return "void"
 
-    def enforceBoundary(self,
-                        args = [("Field<Dimension, Scalar>&", "field")],
-                        const = True,
-                        pure = True):
+    def enforceBoundary2(self,
+                         args = [("Field<Dimension, Scalar>&", "field")],
+                         const = True,
+                         pure = True,
+                         name = "enforceBoundary"):
         return "void"
 
-    def enforceBoundary(self,
-                        args = [("Field<Dimension, Vector>&", "field")],
-                        const = True,
-                        pure = True):
+    def enforceBoundary3(self,
+                         args = [("Field<Dimension, Vector>&", "field")],
+                         const = True,
+                         pure = True,
+                         name = "enforceBoundary"):
         return "void"
 
-    def enforceBoundary(self,
-                        args = [("Field<Dimension, Tensor>&", "field")],
-                        const = True,
-                        pure = True):
+    def enforceBoundary4(self,
+                         args = [("Field<Dimension, Tensor>&", "field")],
+                         const = True,
+                         pure = True,
+                         name = "enforceBoundary"):
         return "void"
 
-    def enforceBoundary(self,
-                        args = [("Field<Dimension, SymTensor>&", "field")],
-                        const = True,
-                        pure = True):
+    def enforceBoundary5(self,
+                         args = [("Field<Dimension, SymTensor>&", "field")],
+                         const = True,
+                         pure = True,
+                         name = "enforceBoundary"):
         return "void"
 
-    def enforceBoundary(self,
-                        args = [("Field<Dimension, ThirdRankTensor>&", "field")],
-                        const = True,
-                        pure = True):
+    def enforceBoundary6(self,
+                         args = [("Field<Dimension, ThirdRankTensor>&", "field")],
+                         const = True,
+                         pure = True,
+                         name = "enforceBoundary"):
         return "void"
 
     def initializeProblemStartup(self):
