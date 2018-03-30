@@ -5,10 +5,16 @@ namespace FractalSpace
   void add_pseudo_particles(Fractal_Memory& mem,Fractal& frac);
   void adj_nina(Point& point,vector <Point*>& adj);
   double Age_of_the_universe (const double& omega_0, const double& omega_lambda, const double& redshift);
-  void am_I_conservative_enough_isol(Fractal_Memory* PFM,vector <double>& masses,double G,
+  template <class ForwardIterator>
+  void am_I_conservative_enough_isol(Fractal_Memory* PFM,ForwardIterator massesb,double G,
 				     vector <double>& xmin,vector <double>& xmax,double correction,
-				     vector <double>& posx,vector <double>& posy,vector <double>& posz,
-				     vector <double>& velx,vector <double>& vely,vector <double>& velz);
+				     ForwardIterator posxb,ForwardIterator posyb,
+				     ForwardIterator poszb,ForwardIterator velxb,
+				     ForwardIterator velyb,ForwardIterator velzb);
+  // void am_I_conservative_enough_isol(Fractal_Memory* PFM,vector <double>& masses,double G,
+  // 				     vector <double>& xmin,vector <double>& xmax,double correction,
+  // 				     vector <double>& posx,vector <double>& posy,vector <double>& posz,
+  // 				     vector <double>& velx,vector <double>& vely,vector <double>& velz);
   void any_overlaps(Fractal_Memory& mem,int spacing,int VOLMIN,double FILLFACTOR,vector<vector<int>>& SBoxes,vector<vector<Point*>>& SPoints);
   void assign_density(Group& group, Fractal& fractal);
   void balance_by_particles(Fractal_Memory* PFM,bool withparts);
@@ -124,6 +130,10 @@ namespace FractalSpace
   void left_right(Fractal& frac,vector <double>& pos_left,vector <double>& pos_right);
   void left_right(vector <Group*>& all_groups,vector <int>& pos_left,vector <int>& pos_right);
   void list_buffer(Point& point,const int& corner);
+  template <class ForwardIterator>
+  void make_me_a_galaxy(Fractal_Memory* PFM,int numbers,double total_mass,double G,
+			ForwardIterator posxb,ForwardIterator posyb,ForwardIterator poszb,
+			ForwardIterator velxb,ForwardIterator velyb,ForwardIterator velzb);
   void make_me_a_galaxy(int FractalRank,int numbers,double total_mass,double G,
 			vector <double>& xpos,vector <double>& ypos,vector <double>& zpos,
 			vector <double>& xvel,vector <double>& yvel,vector <double>& zvel);
@@ -160,15 +170,20 @@ namespace FractalSpace
 		      vector <double>& variance_force,vector <double>& variance_force_s,int lev,double d0,bool do_var,
 		      Fractal_Memory& mem);
   bool rad_compare(Particle* par1,Particle* par2);
-  template <class GO_AWAY> void really_clear(vector <GO_AWAY>& die);
-  template <class GO_AWAY> void really_resize(vector <GO_AWAY>& die,int howbig);
-  template <class GO_AWAY> void really_resize(vector <vector <GO_AWAY> >& die,int howbig);
-  template <class GO_AWAY> void really_resize(vector <vector <vector <GO_AWAY> > >& die,int howbig);
   bool right_diff(vector <int>& Va,vector <int>& Vb,vector <int>& VD);
   void remove_dupe_points(int spacing,vector<vector<Point*>>& hypre_points,vector<vector<int>>& SBoxes,vector<vector<Point*>>& SPoints);
   void remove_pseudo_particles(Fractal_Memory& mem,Fractal& frac);
   void scatter_particles(Fractal_Memory& mem,Fractal& frac);
   template <class T> int shortest_vector(vector<T>& veca,vector<T>& vecb,vector<T>& vecc);
+  template <class ForwardIterator>
+  void shrink_cube(double SHRINK,
+		   const vector <double>& xmin,const vector <double>& xmax,
+		   Fractal_Memory* PFM,
+		   ForwardIterator posxb,
+		   ForwardIterator posyb,
+		   ForwardIterator poszb,
+		   int number_particles,
+		   vector <double>& xmini,vector <double>& xmaxy);
   void shrink_cube(Fractal_Memory* PFM,double SHRINK,const vector <double>& xmin,const vector <double>& xmax,
 		   vector <double>& xmini,vector <double>& xmaxy);
   void shrink_cube(double SHRINK,const vector <double>& xmin,const vector <double>& xmax,Fractal_Memory* PFM,
@@ -187,6 +202,11 @@ namespace FractalSpace
   void split_nodes(int FR,int& FR0,int& FR1,int& FR2);
   template <class M, class F> int split_particle(M& mem,F& frac,const double& x0,const double& y0,const double& z0,
 						 int& count,const double& m,const int& split_to,const bool& gen_part);
+  template <class ForwardIterator>
+  void start_writing(Fractal_Memory* PFM,int Numberparticles,
+		     double G,vector <double>& xmin,vector <double>& xmax,
+		     ForwardIterator posxb,ForwardIterator posyb,ForwardIterator poszb,
+		     ForwardIterator velxb,ForwardIterator velyb,ForwardIterator velzb,ForwardIterator massesb);
   void start_writing(Fractal_Memory* PFM,int Numberparticles,double G,vector <double>& xmin,vector <double>& xmax,
 		     vector<double>& posx,vector<double>& posy,vector<double>& posz,
 		     vector<double>& velx,vector<double>& vely,vector<double>& velz,vector<double>& masses);
@@ -197,12 +217,12 @@ namespace FractalSpace
 		    vector<vector<int>>& LocalGroups,
 		    vector<vector<int>>& FreeNodes,
 		    vector<bool>& IAmIn);
-  void super_groups(Fractal_Memory& mem,vector <Group*>& groups,const int level,
-		    vector<vector<int>>& WorldRanks,
-		    vector<vector<int>>& LocalGroups,
-		    vector<bool>& IAmIn);
-  template <class GO_AWAY> void swapvector(vector<GO_AWAY>& die);
-  template <class GO_AWAY> void swapvector(vector<GO_AWAY>& die,int how_big);
+  template <class ForwardIterator>
+  void take_a_leap_isol(Fractal_Memory* PFM,ForwardIterator massesb,double G,
+			vector <double>& xmin,vector <double>& xmax,
+			ForwardIterator posxb,ForwardIterator posyb,
+			ForwardIterator poszb,ForwardIterator velxb,
+			ForwardIterator velyb,ForwardIterator velzb);
   void take_a_leap_isol(Fractal_Memory* PFM,vector <double>& masses,double G,
 			vector <double>& xmin,vector <double>& xmax,
 			vector <double>& posx,vector <double>& posy,vector <double>& posz,

@@ -5,17 +5,15 @@ namespace FractalSpace
 {
   string Fractal::sim_parameters="cosmos_flat_lambda";
   //
-  template <class M> void fractal_memory_parameters(M* pmem,const string BaseDirectory,int _mulT_)
+  void fractal_memory_parameters(Fractal_Memory* pmem,double _mulT_)
   {
-    M& mem=*pmem;
+    Fractal_Memory& mem=*pmem;
     int Ranky;
     MPI_Comm_rank(Fractal_Memory::FRACTAL_UNIVERSE,&Ranky);
     mem.FractalNodes=mem.FractalNodes0*mem.FractalNodes1*mem.FractalNodes2;
     // These are the parameters you need to set.
     // For the others you should use my values for now.
     //    ofstream& FileFractal=mem.p_fractal->p_file->FileFractal;
-    mem.BaseDirectory=BaseDirectory;
-    mem.RUN="svendborg";
     //directory name descriptor
     // mem.MPIrun=true;
     mem.FFTNodes=9876543;
@@ -33,7 +31,7 @@ namespace FractalSpace
     mem.number_particles=really_longGLFN;
     //    mem.number_particles = (mem.grid_length*mem.grid_length*mem.grid_length)/mem.FractalNodes; 
     // I will let you guess, you are wrong. It needs to be = grid_length**3/FractalNodes.
-    mem.max_particles=mem.number_particles*_mulT_;
+    mem.max_particles=(double)(mem.number_particles)*_mulT_+0.5;
     //The max number of particles the initial conditions code can generate through particle splitting
     mem.level_max = 10 ; 
     //    mem.level_max = 0 ; 
@@ -210,8 +208,4 @@ namespace FractalSpace
     if(Ranky == 0)
       cerr << " finishing cosmo " << "\n";
   }
-}
-namespace FractalSpace
-{
-  template void fractal_memory_parameters(Fractal_Memory* pmem,string BaseDirectory,int _mulT_);
 }

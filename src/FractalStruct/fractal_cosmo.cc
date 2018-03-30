@@ -13,81 +13,88 @@ int main(int argc, char* argv[])
   MPI_Comm_size(Fractal_Memory::FRACTAL_UNIVERSE,&FRN);
   int Ranky;
   MPI_Comm_rank(Fractal_Memory::FRACTAL_UNIVERSE,&Ranky);
-  Mess::IAMROOT=Ranky == 21;
-  string _disK_="d";
+  Mess::IAMROOT=Ranky == 0;
+  /*
+    BaseDirectory
+    RUN
+    GridLength
+    FractalNodes0
+    FractalNodes1
+    FractalNodes2
+    Multiplier
+    PADDING
+    NodeLoad
+  */
+  string BaseDirectory="/p/lscratche/jensv/cosmo/";
   if(argc >= 2)
-    _disK_=argv[1];
+    BaseDirectory=argv[1];
+  string RUN="BillLives";
+  if(argc >= 3)
+    RUN=argv[2];
   int dims[]={0,0,0};
   int GRL=256;
-  if(argc >= 3)
-    GRL=atoi(argv[2]);
   if(argc >= 4)
-    dims[0]=atoi(argv[3]);
+    GRL=atoi(argv[3]);
   if(argc >= 5)
-    dims[1]=atoi(argv[4]);
+    dims[0]=atoi(argv[4]);
   if(argc >= 6)
-    dims[2]=atoi(argv[5]);
+    dims[1]=atoi(argv[5]);
+  if(argc >= 7)
+    dims[2]=atoi(argv[6]);
   dims[0]=max(dims[0],0);
   dims[1]=max(dims[1],0);
   dims[2]=max(dims[2],0);
   MPI_Dims_create(FRN,3,dims);
-  int FR0=dims[0];
-  int FR1=dims[1];
-  int FR2=dims[2];
-  int _mulT_=4;
-  if(argc >= 7)
-    _mulT_=atoi(argv[6]);
-  int PADDING=-1;
+  double _mulT_=4.0;
   if(argc >= 8)
-    PADDING=atoi(argv[7]);
-  int node_load=20000;
+    _mulT_=atof(argv[7]);
+  int PADDING=-1;
   if(argc >= 9)
-    node_load=atoi(argv[8]);
+    PADDING=atoi(argv[8]);
+  int node_load=20000;
+  if(argc >= 10)
+    node_load=atoi(argv[9]);
   if(Ranky == 0)
     {
-    cout << "starting out " << argc << " " << argv[0] << " " << FRN << " " << _disK_ << " " << GRL << " " << FR0 << " " << FR1 << " " << FR2 << " " << _mulT_ << " " << PADDING << " " << node_load << "\n";
-    int ar=0;
-    while(ar < argc)
-      cerr << " " << argv[ar++] << "\n";
+      int ar=0;
+      while(ar < argc)
+	cerr << " " << argv[ar++] << "\n";
     }
-  Fractal_Memory* PFM= new Fractal_Memory;
-  PFM->FractalNodes0=FR0;
-  PFM->FractalNodes1=FR1;
-  PFM->FractalNodes2=FR2;
+  Fractal_Memory* PFM= fractal_memory_create();
+  PFM->FractalNodes0=dims[0];
+  PFM->FractalNodes1=dims[1];
+  PFM->FractalNodes2=dims[2];
+  PFM->FractalNodes=FRN;
   PFM->grid_length=GRL;
   PFM->hypre_max_node_load=node_load;
-  PFM->hypre_multiplier=-1;
-  fractal_memory_parameters(PFM,_disK_,_mulT_);  
+  PFM->BaseDirectory=BaseDirectory;
+  PFM->RUN=RUN;
+  fractal_memory_parameters(PFM,_mulT_);  
   PADDING=max(-1,min(1,PADDING));
   PFM->padding=PADDING;
-  // PFM->MPIrun=true;
-  int GR=PFM->grid_length;
-  bool PR=PFM->periodic;
-  int NP=PFM->number_particles;
-  int FN=PFM->FFTNodes;
-  MPI_Comm FW=Fractal_Memory::FRACTAL_UNIVERSE;
-  FR0=PFM->FractalNodes0;
-  FR1=PFM->FractalNodes1;
-  FR2=PFM->FractalNodes2;
-  Mess* p_mess=new Mess(true,GR,PR,NP,FR0,FR1,FR2,FN,FW);
+  PFM->periodic=true;
+  Mess* p_mess=new Mess(true,
+			PFM->grid_length,
+			true,
+			PFM->number_particles,
+			PFM->FractalNodes0,
+			PFM->FractalNodes1,
+			PFM->FractalNodes2,
+			PFM->FFTNodes,
+			Fractal_Memory::FRACTAL_UNIVERSE);
   PFM->p_mess=p_mess;
   PFM->FFTNodes=PFM->p_mess->FFTNodes;
-  string BD=PFM->BaseDirectory;
-  int FR=p_mess->FractalRank;
-  string RUN=PFM->RUN;
-  File* p_file=new File(BD,FRN,FR,RUN);
+  File* p_file=new File(PFM->BaseDirectory,
+			PFM->FractalNodes,
+			PFM->p_mess->FractalRank,
+			PFM->RUN);
   PFM->p_file=p_file;
   PFM->p_mess->p_file=p_file;
   fractal_force_init(PFM);
-  Fractal* p_fractal=new Fractal(*PFM);
-  int result=fractal_force_wrapper(PFM,p_fractal);
-  delete p_mess;
-  p_mess=0;
-  delete PFM;
+  Fractal* PF=new Fractal(*PFM);
+  int result=fractal_force_wrapper(PFM,PF);
+  fractal_memory_content_delete(PFM);
+  fractal_memory_delete(PFM);
   PFM=0;
-  delete p_file;
-  p_file=0;
-  delete p_fractal;
-  p_fractal=0;
   return result;
 }

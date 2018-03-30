@@ -18,6 +18,7 @@
 #include <array>
 #include <utility>
 #include <sys/stat.h>
+#include <boost/random.hpp>
 #include "fftw3-mpi.h"
 #include "_hypre_utilities.h"
 #include "HYPRE_krylov.h"

@@ -40,6 +40,21 @@ namespace FractalSpace
   void fractal_delete(Fractal_Memory* PFM);
   //! Delete a Fractal object
 
+  template <class ForwardIterator>
+  void add_particles(Fractal_Memory* PFM,int first,int last,
+		     ForwardIterator posxb,
+		     ForwardIterator posyb,
+		     ForwardIterator poszb,
+		     ForwardIterator massesb);
+  //
+  template <class ForwardIterator>
+  void add_particles(Fractal_Memory* PFM,int first,int last,
+		     vector <double> xmin,vector <double> xmax,
+		     ForwardIterator posxb,
+		     ForwardIterator posyb,
+		     ForwardIterator poszb,
+		     ForwardIterator massesb);
+  //
   void add_particles(Fractal_Memory* PFM,int first,int total,
 		     vector <double>& posx,vector <double>& posy,
 		     vector <double>& posz,vector <double>& masses);
