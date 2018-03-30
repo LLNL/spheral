@@ -38,21 +38,25 @@
 ***  For my PhD thesis I used 1200 particles on a single node. PDP 11/60.
 ***   Now I run 1000000 particles per node on 100000 nodes. Vulcan@LLNL.
 ***   Eight orders of magnitude.
-***  On an observing trip in Chile I was interrogated at gun-point, in Spanish, about my suspected involvement
-***   in an armed bank robbery.
+***  On an observing trip in Chile I was interrogated at gun-point, in Spanish, 
+***   about my suspected involvement in an armed bank robbery.
 ***  In Brazil I took a picture of the Danish flag on the building housing the Danish consulate.
-***   This building also housed Chase Manhattan offices, so I was detained by security for an hour.
+***   This building also housed Chase Manhattan offices, so I was detained by security for an hour. Shakedown.
 ***  On my honeymoon our delicious meal was interrupted by a shooting in the restaurant.
 ***   The owner limped over to our table and explained that he had been shot by the cook.
 ***   He apologized for the incident, said he was going to the hospital, but asked us to please enjoy our meal.
 ***  I need to find out where I can get a Pan Galactic Gargle Blaster.
 ***  In customs at JFK they became suspicious of me, so I was given an astronomy quiz. I passed.
-
+***  To my elementary school teacher, Mrs Hansen, a great teacher. Quiet authority.
+***  To my 7th grade teacher, Mr Christensen, a former sailor, who told the best stories, some of them G rated. He made me want to travel the world.
+***  To my high school history teacher, Mr. Frederiksen, who taught me critical thinking. Always question everything.
+***  To my high school math teacher, Mr. Mourier, who taught me problem solving skills. Infinite patience.
 ***  TC Villumsen at 13 y.o.:
 ***   Mom, Dad does not do any work, all he does is read magazines, play on the computer and talk with his friends.
 
-***  Nina at 11 y.o.
+***  Nina:
 ***  I am not a kid, I am a highly sophisticated child.
+***  GrandPa, you are weird.
 
 ***  Mike Owen:
 ***  Our simulations are better than reality..
@@ -120,7 +124,6 @@
 
 ***  This is a prototype of fractal force, it is not supposed to be pretty
 ***  or fast, it is just supposed to work.
-***  This is a multi node version
      
 ***  Code is called repeatedly, it does not remember anything
 ***  from previous calls except a few useful arrays and the FT of the Green's

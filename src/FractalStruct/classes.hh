@@ -13,6 +13,7 @@ namespace FractalSpace
   struct point_comp2;
   struct point_compb;
 }
+#include "fractal_interface_public.hh"
 #include "file_class.hh"
 #include "fractal_class.hh"
 #include "fractal_memory.hh"
