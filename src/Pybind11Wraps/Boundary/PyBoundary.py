@@ -21,139 +21,139 @@ using Spheral::DataBaseSpace::DataBase;
     def setAllGhostNodes(self,
                          args = [("DataBase<Dimension>&", "dataBase")],
                          doc = "Recreate ghost nodes for this Boundary for all NodeLists in the DataBase."):
-        return "void"
+        return
 
     def setAllViolationNodes(self,
                              args = [("DataBase<Dimension>&", "dataBase")]):
-        return "void"
+        return
 
     def cullGhostNodes(self,
                        args = [("const FieldList<Dimension, int>&", "flagSet"),
                                ("FieldList<Dimension, int>&", "old2newIndexMap"),
                                ("std::vector<int>&", "numNodesRemoved")]):
-        return "void"
+        return
 
     def setGhostNodes(self,
                       args = [("NodeList<Dimension>&", "nodeList")],
                       pure = True):
-        return "void"
+        return
 
     def updateGhostNodes(self,
                          args = [("NodeList<Dimension>&", "nodeList")],
                          pure = True):
-        return "void"
+        return
 
     def applyGhostBoundary1(self,
                             args = [("Field<Dimension, int>&", "field")],
                             const = True,
                             pure = True,
                             name = "applyGhostBoundary"):
-        return "void"
+        return
 
     def applyGhostBoundary2(self,
                             args = [("Field<Dimension, Scalar>&", "field")],
                             const = True,
                             pure = True,
                             name = "applyGhostBoundary"):
-        return "void"
+        return
 
     def applyGhostBoundary3(self,
                             args = [("Field<Dimension, Vector>&", "field")],
                             const = True,
                             pure = True,
                             name = "applyGhostBoundary"):
-        return "void"
+        return
 
     def applyGhostBoundary4(self,
                             args = [("Field<Dimension, Tensor>&", "field")],
                             const = True,
                             pure = True,
                             name = "applyGhostBoundary"):
-        return "void"
+        return
 
     def applyGhostBoundary5(self,
                             args = [("Field<Dimension, SymTensor>&", "field")],
                             const = True,
                             pure = True,
                             name = "applyGhostBoundary"):
-        return "void"
+        return
 
     def applyGhostBoundary6(self,
                             args = [("Field<Dimension, ThirdRankTensor>&", "field")],
                             const = True,
                             pure = True,
                             name = "applyGhostBoundary"):
-        return "void"
+        return
 
     def applyGhostBoundary7(self,
                             args = [("Field<Dimension, std::vector<Scalar>>&", "field")],
                             const = True,
                             pure = True,
                             name = "applyGhostBoundary"):
-        return "void"
+        return
 
     def setViolationNodes(self,
                           args = [("NodeList<Dimension>&", "nodeList")],
                           pure = True):
-        return "void"
+        return
 
     def updateViolationNodes(self,
                              args = [("NodeList<Dimension>&", "nodeList")],
                              pure = True):
-        return "void"
+        return
 
     def enforceBoundary1(self,
                          args = [("Field<Dimension, int>&", "field")],
                          const = True,
                          pure = True,
                          name = "enforceBoundary"):
-        return "void"
+        return
 
     def enforceBoundary2(self,
                          args = [("Field<Dimension, Scalar>&", "field")],
                          const = True,
                          pure = True,
                          name = "enforceBoundary"):
-        return "void"
+        return
 
     def enforceBoundary3(self,
                          args = [("Field<Dimension, Vector>&", "field")],
                          const = True,
                          pure = True,
                          name = "enforceBoundary"):
-        return "void"
+        return
 
     def enforceBoundary4(self,
                          args = [("Field<Dimension, Tensor>&", "field")],
                          const = True,
                          pure = True,
                          name = "enforceBoundary"):
-        return "void"
+        return
 
     def enforceBoundary5(self,
                          args = [("Field<Dimension, SymTensor>&", "field")],
                          const = True,
                          pure = True,
                          name = "enforceBoundary"):
-        return "void"
+        return
 
     def enforceBoundary6(self,
                          args = [("Field<Dimension, ThirdRankTensor>&", "field")],
                          const = True,
                          pure = True,
                          name = "enforceBoundary"):
-        return "void"
+        return
 
     def initializeProblemStartup(self):
-        return "void"
+        return
 
     def finalizeGhostBoundary(self,
                               const = True):
-        return "void"
+        return
 
     def reset(self,
               args = [("const DataBase<Dimension>&", "dataBase")]):
-        return "void"
+        return
 
     def numGhostNodes(self,
                       const = True):
@@ -163,7 +163,7 @@ using Spheral::DataBaseSpace::DataBase;
              args = [("Vector&", "xmin"),
                      ("Vector&", "xmax")],
              const = True):
-        return "void"
+        return
 
 # if __name__ == "__main__":
 #     generateTrampoline(PyBoundary())
