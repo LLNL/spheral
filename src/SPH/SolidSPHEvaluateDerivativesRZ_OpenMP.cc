@@ -475,10 +475,13 @@ evaluateDerivatives(const Dim<2>::Scalar time,
                                                        nodeListi,
                                                        i);
 
-      // As this node is damaged force it to hmin.
+      // As this node is damaged force it back to it's original H.
       const auto Di = max(0.0, min(1.0, damage(nodeListi, i).eigenValues().maxElement()));
-      Hideali = (1.0 - Di)*Hideali + Di*Hmin;
-      DHDti = (1.0 - Di)*DHDti + 0.25/dt*Di*(Hmin - Hi);
+      Hideali = (1.0 - Di)*Hideali + Di*Hfield0(nodeListi, i);
+      DHDti = (1.0 - Di)*DHDti + Di*(Hfield0(nodeListi, i) - Hi)*0.25/dt;
+
+      // We also adjust the density evolution in the presence of damage.
+      if (rho0 > 0.0) DrhoDti = (1.0 - Di)*DrhoDti - 0.25/dt*Di*(rhoi - rho0);
 
       // Determine the deviatoric stress evolution.
       const auto deformation = localDvDxi.Symmetric();
@@ -488,6 +491,10 @@ evaluateDerivatives(const Dim<2>::Scalar time,
       const auto spinCorrection = (spin*Si + Si*spin).Symmetric();
       DSDti = spinCorrection + (2.0*mui)*deviatoricDeformation;
       DSTTDti = 2.0*mui*(deformationTT - (deformation.Trace() + deformationTT)/3.0);
+
+      // In the presence of damage, add a term to reduce the stress on this point.
+      DSDti = (1.0 - Di)*DSDti - Di*Si*0.25/dt;
+      DSTTDti = (1.0 - Di)*DSTTDti - Di*STTi*0.25/dt;
 
       // Increment the work for i.
       worki += Timing::difference(start, Timing::currentTime());
