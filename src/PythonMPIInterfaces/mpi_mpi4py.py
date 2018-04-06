@@ -5,6 +5,14 @@
 #-------------------------------------------------------------------------------
 import sys
 from SpheralTestUtilities import globalFrame
+
+# NOTE: this logic for disabling recv_mprobe seems to be necessary with newer
+# mpi4py versions, since the LC MPI implementations apparently report matched_probes
+# as supported, but seem to be broken.
+import mpi4py
+mpi4py.rc.recv_mprobe = False
+
+# Now go on as usual...
 from mpi4py import MPI
 
 #-------------------------------------------------------------------------------
@@ -94,13 +102,13 @@ def barrier():
 def synchronizeQueuedOutput(stdoutfile = None,
                             stderrfile = None):
     if stdoutfile == None:
-        exec("sys.stdout = sys.__stdout__", globalscope)
+        exec("import sys; sys.stdout = sys.__stdout__", globalscope)
     else:
         exec("__mpi_stdoutfile__ = open(%s, 'w'); sys.stdout = __mpi_stdoutfile__" % stdoutfile,
              globalscope)
 
     if stderrfile == None:
-        exec("sys.stderr = sys.__stderr__", globalscope)
+        exec("import sys; sys.stderr = sys.__stderr__", globalscope)
     else:
         exec("__mpi_stderrfile__ = open(%s, 'w'); sys.stderr = __mpi_stderrfile__" % stderrfile,
              globalscope)
