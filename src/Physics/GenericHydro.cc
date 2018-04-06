@@ -188,7 +188,9 @@ dt(const DataBase<Dimension>& dataBase,
           if (csDt < minDt_local.first) {
             minDt_local = make_pair(csDt, ("Sound speed limit: dt = " + to_string(csDt) + "\n" +
                                            "                   cs = " + to_string(cs(nodeListi, i)) + "\n" +
-                                           "            nodeScale = " + to_string(nodeScale)));
+                                           "            nodeScale = " + to_string(nodeScale) + "\n" +
+                                           "             material = " + fluidNodeList.name() + "\n" +
+                                           "      (nodeListID, i) = (" + to_string(nodeListi) + " " + to_string(i) + ")"));
           }
 
           // Longitudinal sound speed limit.
@@ -198,7 +200,9 @@ dt(const DataBase<Dimension>& dataBase,
               minDt_local = make_pair(csDt, ("Longitudinal sound speed limit: dt = " + to_string(csDt) + "\n" + 
                                              "                                cs = " + to_string(cs(nodeListi, i)) + "\n" +
                                              "                               csl = " + to_string((*cslptr)(i)) + "\n" +
-                                             "                         nodeScale = " + to_string(nodeScale)));
+                                             "                         nodeScale = " + to_string(nodeScale) + "\n" +
+                                             "                          material = " + fluidNodeList.name() + "\n" +
+                                             "                   (nodeListID, i) = (" + to_string(nodeListi) + " " + to_string(i) + ")"));
             }
           }
 
@@ -211,7 +215,9 @@ dt(const DataBase<Dimension>& dataBase,
                                             "                                               cs = " + to_string(cs(nodeListi, i)) + "\n" + 
                                             "                                              csS = " + to_string(csS) + "\n" +
                                             "                                              rho = " + to_string(rho(nodeListi, i)) + "\n" +
-                                            "                                        nodeScale = " + to_string(nodeScale)));
+                                            "                                        nodeScale = " + to_string(nodeScale) + "\n" +
+                                            "                                         material = " + fluidNodeList.name() + "\n" +
+                                            "                                  (nodeListID, i) = (" + to_string(nodeListi) + " " + to_string(i) + ")"));
             }
           }
 
@@ -224,7 +230,9 @@ dt(const DataBase<Dimension>& dataBase,
                                             "                                        cs = " + to_string(cs(nodeListi, i)) + "\n" +
                                             "                                       csQ = " + to_string(csq) + "\n" +
                                             "                                       rho = " + to_string(rho(nodeListi, i)) + "\n" +
-                                            "                                 nodeScale = " + to_string(nodeScale)));
+                                            "                                 nodeScale = " + to_string(nodeScale) + "\n" +
+                                            "                                  material = " + fluidNodeList.name() + "\n" +
+                                            "                           (nodeListID, i) = (" + to_string(nodeListi) + " " + to_string(i) + ")"));
           }
 
           // Velocity divergence limit.
@@ -232,7 +240,9 @@ dt(const DataBase<Dimension>& dataBase,
           const auto divvDt = 1.0/(std::abs(divVelocity) + tiny);
           if (divvDt < minDt_local.first) {
             minDt_local = make_pair(divvDt, ("Velocity divergence limit: dt = " + to_string(divvDt) + "\n" +
-                                             "                 div velocity = " + to_string(divVelocity)));
+                                             "                 div velocity = " + to_string(divVelocity) + "\n" +
+                                             "                     material = " + fluidNodeList.name() + "\n" +
+                                             "              (nodeListID, i) = (" + to_string(nodeListi) + " " + to_string(i) + ")"));
           }
 
           // Maximum velocity difference limit.
@@ -252,8 +262,9 @@ dt(const DataBase<Dimension>& dataBase,
               const auto  dtVelDiff = nodeScale*safeInvVar(vij, 1e-30);
               if (dtVelDiff < minDt_local.first) {
                 minDt_local = make_pair(dtVelDiff, ("Pairwise velocity difference limit: dt = " + to_string(dtVelDiff) + "\n" + 
-                                                    "                        (nodeListi, i) = " + to_string(nodeListi) + " " + to_string(i) + "\n" +
-                                                    "                        (nodeListj, j) = " + to_string(nodeListj) + " " + to_string(j) + "\n" +
+                                                    "                              material = " + fluidNodeList.name() + "\n" +
+                                                    "                        (nodeListi, i) = (" + to_string(nodeListi) + " " + to_string(i) + ")\n" +
+                                                    "                        (nodeListj, j) = (" + to_string(nodeListj) + " " + to_string(j) + ")\n" +
                                                     "                                   vij = " + to_string(vij) + "\n" +
                                                     "                             nodeScale = " + to_string(nodeScale)));
               }
@@ -285,7 +296,9 @@ dt(const DataBase<Dimension>& dataBase,
           if (dtAcc < minDt_local.first) {
             minDt_local = make_pair(dtAcc, ("Total acceleration limit: dt = " + to_string(dtAcc) + "\n" + 
                                             "              |acceleration| = " + to_string(DvDt(nodeListi, i).magnitude()) + "\n" +
-                                            "                   nodeScale = " + to_string(nodeScale)));
+                                            "                   nodeScale = " + to_string(nodeScale) + "\n" +
+                                            "                    material = " + fluidNodeList.name() + "\n" +
+                                            "             (nodeListID, i) = (" + to_string(nodeListi) + " " + to_string(i) + ")"));
           }
 
           // If requested, limit against the absolute velocity.
@@ -294,7 +307,9 @@ dt(const DataBase<Dimension>& dataBase,
             if (velDt < minDt_local.first) {
               minDt_local = make_pair(velDt, ("Velocity magnitude limit: dt = " + to_string(velDt) + "\n" +
                                               "                        |vi| = " + to_string(velocity(nodeListi, i).magnitude()) + "\n" +
-                                              "                   nodeScale = " + to_string(nodeScale)));
+                                              "                   nodeScale = " + to_string(nodeScale) + "\n" +
+                                              "                    material = " + fluidNodeList.name() + "\n" +
+                                              "             (nodeListID, i) = (" + to_string(nodeListi) + " " + to_string(i) + ")"));
             }
           }
         }

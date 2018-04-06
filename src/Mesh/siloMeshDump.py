@@ -725,9 +725,11 @@ def metaDataTensorField(name, time, cycle, dim):
                 SA._DB_VARTYPE_TENSOR, optlistDef, optlistMV, optlistVar)
 
 #-------------------------------------------------------------------------------
-# Write the variable descriptors for non-scalar types (vector and tensor).
+# Write out the prescriptions for defined/derived variables.
 #-------------------------------------------------------------------------------
 def writeDefvars(db, fieldwad):
+
+    # Write the variable descriptors for non-scalar types (vector and tensor).
     names, defs, types, opts = vector_of_string(), vector_of_string(), vector_of_int(), vector_of_DBoptlist()
     for name, desc, type, optlistDef, optlistMV, optlistVar, subvars in fieldwad:
         if desc != None:
@@ -737,6 +739,16 @@ def writeDefvars(db, fieldwad):
             defs.append(desc)
             types.append(type)
             opts.append(optlistDef)
+    
+    # Similaly map all variables from the MMESH -> MPointMesh.
+    hideOptlist = silo.DBoptlist()
+    assert hideOptlist.addOption(SA._DBOPT_HIDE_FROM_GUI, 1) == 0
+    for name, desc, type, optlistDef, optlistMV, optlistVar, subvars in fieldwad:
+        names.append("POINT_" + name)
+        defs.append("pos_cmfe(<[0]id:%s>,<MPointMESH>,0.0)" % name)
+        types.append(type)
+        opts.append(hideOptlist)
+
     if len(names) > 0:
         assert silo.DBPutDefvars(db, "VARDEFS", names, types, defs, opts) == 0
 

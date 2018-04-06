@@ -184,8 +184,6 @@ if solid:
                                hmax = hmax,
                                hminratio = hminratio,
                                nPerh = nPerh,
-                               xmin = (-10.0, -10.0),
-                               xmax = ( 10.0,  10.0),
                                kernelExtent = kernelExtent)
 else:
     nodes1 = makeFluidNodeList("nodes1", eos, 
@@ -193,8 +191,6 @@ else:
                                hmax = hmax,
                                hminratio = hminratio,
                                nPerh = nPerh,
-                               xmin = (-10.0, -10.0),
-                               xmax = ( 10.0,  10.0),
                                kernelExtent = kernelExtent)
     
 output("nodes1")
@@ -460,14 +456,15 @@ L1_tot = L1 / len(rho)
 # Plot the final state.
 #-------------------------------------------------------------------------------
 if graphics:
-    from SpheralGnuPlotUtilities import *
+    from SpheralMatplotlib import *
     if problem == "planar":
         rhoPlot, velPlot, epsPlot, PPlot, HPlot = plotState(db, xFunction="%s.x", vecyFunction="%s.x", tenyFunction="1.0/%s.xx")
     elif problem == "cylindrical":
         rhoPlot, velPlot, epsPlot, PPlot, HPlot = plotState(db, xFunction="%s.y", vecyFunction="%s.y", tenyFunction="1.0/%s.yy")
     else:
         rhoPlot, velPlot, epsPlot, PPlot, HPlot = plotRadialState(db)
-    plotAnswer(answer, control.time(), rhoPlot, velPlot, epsPlot, PPlot, HPlot)
+    plotAnswer(answer, control.time(), rhoPlot=rhoPlot, velPlot=velPlot, epsPlot=epsPlot, PPlot=PPlot, HPlot=HPlot,
+               plotStyle = "kx")
     EPlot = plotEHistory(control.conserve)
     plots = [(rhoPlot, "Noh-%s-rho-RZ.png" % problem),
              (velPlot, "Noh-%s-vel-RZ.png" % problem),
@@ -476,47 +473,49 @@ if graphics:
              (HPlot, "Noh-%s-h-RZ.png" % problem)]
 
     # Plot the specific entropy.
-    Aplot = generateNewGnuPlot()
-    AsimData = Gnuplot.Data(xprof, A,
-                            with_ = "points",
-                            title = "Simulation",
-                            inline = True)
-    AansData = Gnuplot.Data(xprof, Aans,
-                            with_ = "lines",
-                            title = "Solution",
-                            inline = True)
-    Aplot.plot(AsimData)
-    Aplot.replot(AansData)
-    Aplot.title("Specific entropy")
-    Aplot.refresh()
-    plots.append((Aplot, "Noh-planar-A.png"))
+    Aplot = newFigure()
+    Aplot.plot(xprof, A, "ro")
+    Aplot.plot(xprof, Aans, "kx")
+    plt.title("Specific entropy")
+    plots.append((Aplot, "Noh-%s-A.png" % problem))
     
+    # Throw the positions out there too.
+    posPlot = plotNodePositions2d(db)
+    plt.xlabel("z")
+    plt.ylabel("r")
+    plt.title("Node positions @ t=%g" % control.time())
+    plots.append((posPlot, "Noh-%s-positions.png" % problem))
+
     if crksph:
-        volPlot = plotFieldList(hydro.volume(), 
+        volPlot = plotFieldList(hydro.volume(),
+                                xFunction = "%s.y",
                                 winTitle = "volume",
                                 colorNodeLists = False, plotGhosts = False)
         plots.append((volPlot, "Noh-%s-vol.png" % problem))
 
     if boolCullenViscosity:
         cullAlphaPlot = plotFieldList(q.ClMultiplier(),
+                                      xFunction = "%s.y",
                                       winTitle = "Cullen alpha")
         cullDalphaPlot = plotFieldList(evolveCullenViscosityMultiplier.DalphaDt(),
+                                       xFunction = "%s.y",
                                        winTitle = "Cullen DalphaDt")
         plots += [(cullAlphaPlot, "Noh-%s-Cullen-alpha.png" % problem),
                   (cullDalphaPlot, "Noh-%s-Cullen-DalphaDt.png" % problem)]
 
     if boolReduceViscosity:
         alphaPlotQ = plotFieldList(q.reducingViscosityMultiplierQ(),
+                                   xFunction = "%s.y",
                                   winTitle = "rvAlphaQ",
                                   colorNodeLists = False, plotGhosts = False)
         alphaPlotL = plotFieldList(q.reducingViscosityMultiplierL(),
+                                   xFunction = "%s.y",
                                    winTitle = "rvAlphaL",
                                    colorNodeLists = False, plotGhosts = False)
 
     # Make hardcopies of the plots.
     for p, filename in plots:
-        p.hardcopy(os.path.join(dataDir, filename), terminal="png")
-
+        p.figure.savefig(os.path.join(dataDir, filename))
 
 #-------------------------------------------------------------------------------
 # Measure the difference between the simulation and analytic answer.
@@ -537,8 +536,6 @@ xprof = mpi.reduce([x.magnitude() for x in nodes1.positions().internalValues()],
 if outputFile != "None":
     outputFile = os.path.join(dataDir, outputFile)
     from SpheralGnuPlotUtilities import multiSort
-    mof = mortonOrderIndices(db)
-    mo = mpi.reduce(mof[0].internalValues(), mpi.SUM)
     mprof = mpi.reduce(nodes1.mass().internalValues(), mpi.SUM)
     rhoprof = mpi.reduce(nodes1.massDensity().internalValues(), mpi.SUM)
     P = ScalarField("pressure", nodes1)
@@ -548,25 +545,17 @@ if outputFile != "None":
     epsprof = mpi.reduce(nodes1.specificThermalEnergy().internalValues(), mpi.SUM)
     hprof = mpi.reduce([1.0/H.xx for H in nodes1.Hfield().internalValues()], mpi.SUM)
     if mpi.rank == 0:
-        multiSort(xprof, rhoprof, Pprof, vprof, epsprof, hprof, mo,
+        multiSort(xprof, rhoprof, Pprof, vprof, epsprof, hprof,
                   rhoans, Pans, vans, uans, hans)
         f = open(outputFile, "w")
-        f.write(("#  " + 20*"'%s' " + "\n") % ("x", "m", "rho", "P", "v", "eps", "h", "mo",
-                                               "rhoans", "Pans", "vans", "epsans", "hans",
-                                               "x_UU", "m_UU", "rho_UU", "P_UU", "v_UU", "eps_UU", "h_UU"))
-        for (xi, mi, rhoi, Pi, vi, epsi, hi, moi,
-             rhoansi, Pansi, vansi, uansi, hansi) in zip(xprof, mprof, rhoprof, Pprof, vprof, epsprof, hprof, mo,
+        f.write(("#  " + 12*"'%s' " + "\n") % ("x", "m", "rho", "P", "v", "eps", "h",
+                                               "rhoans", "Pans", "vans", "epsans", "hans"))
+        for (xi, mi, rhoi, Pi, vi, epsi, hi, 
+             rhoansi, Pansi, vansi, uansi, hansi) in zip(xprof, mprof, rhoprof, Pprof, vprof, epsprof, hprof, 
                                                          rhoans, Pans, vans, uans, hans):
-            f.write((7*"%16.12e " + "%i " + 5*"%16.12e " + 7*"%i " + '\n') % 
-                    (xi, mi, rhoi, Pi, vi, epsi, hi, moi,
-                     rhoansi, Pansi, vansi, uansi, hansi,
-                     unpackElementUL(packElementDouble(xi)),
-                     unpackElementUL(packElementDouble(mi)),
-                     unpackElementUL(packElementDouble(rhoi)),
-                     unpackElementUL(packElementDouble(Pi)),
-                     unpackElementUL(packElementDouble(vi)),
-                     unpackElementUL(packElementDouble(epsi)),
-                     unpackElementUL(packElementDouble(hi))))
+            f.write((12*"%16.12e " + '\n') % 
+                    (xi, mi, rhoi, Pi, vi, epsi, hi, 
+                     rhoansi, Pansi, vansi, uansi, hansi))
         f.close()
 
         # #---------------------------------------------------------------------------

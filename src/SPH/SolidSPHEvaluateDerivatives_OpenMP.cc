@@ -130,15 +130,18 @@ evaluateDerivatives(const typename Dimension::Scalar time,
   SymTensor sigmai, sigmaj;
 
   // Start our big loop over all FluidNodeLists.
-  for (auto nodeListi = 0; nodeListi < numNodeLists; ++nodeListi) {
-    const auto& nodeList = **(dataBase.fluidNodeListBegin() + nodeListi);
+  auto nodeListi = 0;
+  for (auto itr = dataBase.fluidNodeListBegin();
+       itr != dataBase.fluidNodeListEnd();
+       ++itr, ++nodeListi) {
+    const auto& nodeList = **itr;
     const auto firstGhostNodei = nodeList.firstGhostNode();
     const auto hmin = nodeList.hmin();
     const auto hmax = nodeList.hmax();
     const auto hminratio = nodeList.hminratio();
     const auto maxNumNeighbors = nodeList.maxNumNeighbors();
     const auto nPerh = nodeList.nodesPerSmoothingScale();
-
+ 
     // The scale for the tensile correction.
     const auto WnPerh = W(1.0/nPerh, 1.0);
 
@@ -436,9 +439,10 @@ evaluateDerivatives(const typename Dimension::Scalar time,
                                                        nodeListi,
                                                        i);
 
-      // If this node is damaged we begin to force it back to it's original H.
+      // As this node is damaged force it back to it's original H.
       const auto Di = max(0.0, min(1.0, damage(nodeListi, i).eigenValues().maxElement()));
       Hideali = (1.0 - Di)*Hideali + Di*mHfield0(nodeListi, i);
+      DHDti = (1.0 - Di)*DHDti + Di*(mHfield0(nodeListi, i) - Hi)*0.25/dt;
 
       // We also adjust the density evolution in the presence of damage.
       if (rho0 > 0.0) DrhoDti = (1.0 - Di)*DrhoDti - 0.25/dt*Di*(rhoi - rho0);
@@ -449,6 +453,9 @@ evaluateDerivatives(const typename Dimension::Scalar time,
       const auto deviatoricDeformation = deformation - (deformation.Trace()/3.0)*SymTensor::one;
       const auto spinCorrection = (spin*Si + Si*spin).Symmetric();
       DSDti = spinCorrection + (2.0*mui)*deviatoricDeformation;
+
+      // In the presence of damage, add a term to reduce the stress on this point.
+      DSDti = (1.0 - Di)*DSDti - Di*Si*0.25/dt;
 
       // Increment the work for i.
       worki += Timing::difference(start, Timing::currentTime());

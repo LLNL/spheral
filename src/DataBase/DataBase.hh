@@ -147,6 +147,9 @@ public:
   RefineNodeIterator<Dimension> fluidRefineNodeBegin(const std::vector<std::vector<int>>& refineNeighbors) const;
   RefineNodeIterator<Dimension> fluidRefineNodeEnd() const;
 
+  // Optimize all Neighbor objects for the current state.
+  void reinitializeNeighbors() const;
+
   // Update the internal connectivity map.
   void updateConnectivityMap(const bool computeGhostConnectivity) const;
   void patchConnectivityMap(const FieldSpace::FieldList<Dimension, int>& flags,

@@ -5,6 +5,14 @@
 #-------------------------------------------------------------------------------
 import sys
 from SpheralTestUtilities import globalFrame
+
+# NOTE: this logic for disabling recv_mprobe seems to be necessary with newer
+# mpi4py versions, since the LC MPI implementations apparently report matched_probes
+# as supported, but seem to be broken.
+import mpi4py
+mpi4py.rc.recv_mprobe = False
+
+# Now go on as usual...
 from mpi4py import MPI
 
 #-------------------------------------------------------------------------------
@@ -43,8 +51,8 @@ def send(obj, dest=0, tag=100):
 #-------------------------------------------------------------------------------
 # recv
 #-------------------------------------------------------------------------------
-def recv(source=0, tag=100, obj=None):
-    return (comm.recv(obj=obj, source=source, tag=tag), )
+def recv(source=0, tag=100):
+    return (comm.recv(source=source, tag=tag), )
 
 #-------------------------------------------------------------------------------
 # isend
@@ -56,25 +64,25 @@ def isend(obj, dest=0, tag=100):
 # reduce
 #-------------------------------------------------------------------------------
 def reduce(obj, op=SUM, root=0):
-    return comm.reduce(obj, op=op, root=root)
+    return comm.reduce(sendobj=obj, op=op, root=root)
 
 #-------------------------------------------------------------------------------
 # allreduce
 #-------------------------------------------------------------------------------
 def allreduce(obj, op=SUM):
-    return comm.allreduce(obj, op=op)
+    return comm.allreduce(sendobj=obj, op=op)
 
 #-------------------------------------------------------------------------------
 # gather
 #-------------------------------------------------------------------------------
 def gather(obj, root=0):
-    return comm.gather(obj, root=root)
+    return comm.gather(sendobj=obj, root=root)
 
 #-------------------------------------------------------------------------------
 # allgather
 #-------------------------------------------------------------------------------
 def allgather(obj):
-    return comm.allgather(obj)
+    return comm.allgather(sendobj=obj)
 
 #-------------------------------------------------------------------------------
 # bcast
@@ -94,13 +102,13 @@ def barrier():
 def synchronizeQueuedOutput(stdoutfile = None,
                             stderrfile = None):
     if stdoutfile == None:
-        exec("sys.stdout = sys.__stdout__", globalscope)
+        exec("import sys; sys.stdout = sys.__stdout__", globalscope)
     else:
         exec("__mpi_stdoutfile__ = open(%s, 'w'); sys.stdout = __mpi_stdoutfile__" % stdoutfile,
              globalscope)
 
     if stderrfile == None:
-        exec("sys.stderr = sys.__stderr__", globalscope)
+        exec("import sys; sys.stderr = sys.__stderr__", globalscope)
     else:
         exec("__mpi_stderrfile__ = open(%s, 'w'); sys.stderr = __mpi_stderrfile__" % stderrfile,
              globalscope)

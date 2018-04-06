@@ -18,6 +18,13 @@
 #include "Utilities/timingUtilities.hh"
 #include "Utilities/mortonOrderIndices.hh"
 #include "Utilities/PairComparisons.hh"
+#include "Utilities/Timer.hh"
+
+// Declare the timers.
+extern Timer TIME_ConnectivityMap_patch;
+extern Timer TIME_ConnectivityMap_valid;
+extern Timer TIME_ConnectivityMap_computeConnectivity;
+
 namespace Spheral {
 namespace NeighborSpace {
 
@@ -73,6 +80,7 @@ void
 ConnectivityMap<Dimension>::
 patchConnectivity(const FieldList<Dimension, int>& flags,
                   const FieldList<Dimension, int>& old2new) {
+  TIME_ConnectivityMap_patch.start();
 
   const auto domainDecompIndependent = NodeListRegistrar<Dimension>::instance().domainDecompositionIndependent();
 
@@ -180,6 +188,7 @@ patchConnectivity(const FieldList<Dimension, int>& flags,
   // when we call patch!  The valid method should be checked by whoever called
   // this method after that point.
   //ENSURE(valid());
+  TIME_ConnectivityMap_patch.stop();
 }
 
 //------------------------------------------------------------------------------
@@ -338,6 +347,7 @@ template<typename Dimension>
 bool
 ConnectivityMap<Dimension>::
 valid() const {
+  TIME_ConnectivityMap_valid.start();
 
   const bool domainDecompIndependent = NodeListRegistrar<Dimension>::instance().domainDecompositionIndependent();
 
@@ -543,6 +553,7 @@ valid() const {
   }
 
   // Everything must be OK.
+  TIME_ConnectivityMap_valid.stop();
   return true;
 }
 
@@ -553,6 +564,7 @@ template<typename Dimension>
 void
 ConnectivityMap<Dimension>::
 computeConnectivity() {
+  TIME_ConnectivityMap_computeConnectivity.start();
 
   typedef typename Dimension::Scalar Scalar;
   typedef typename Dimension::Vector Vector;
@@ -651,88 +663,98 @@ computeConnectivity() {
   //   trefine = std::clock_t(0), 
   //   twalk = std::clock_t(0);
   CHECK(mConnectivity.size() == connectivitySize);
-  for (auto iNodeList = 0; iNodeList != numNodeLists; ++iNodeList) {
-    const auto etaMax = mNodeLists[iNodeList]->neighbor().kernelExtent();
+  for (auto iiNodeList = 0; iiNodeList != numNodeLists; ++iiNodeList) {
+    const auto etaMax = mNodeLists[iiNodeList]->neighbor().kernelExtent();
 
     // Iterate over the nodes in this NodeList, and look for any that are not done yet.
-    const auto ni = (false ? // domainDecompIndependent or mBuildGhostConnectivity ? 
-                     mNodeLists[iNodeList]->numNodes() :
-                     mNodeLists[iNodeList]->numInternalNodes());
-#pragma omp parallel for schedule(dynamic)
-    for (auto i = 0; i < ni; ++i) {
-      CHECK2(flagNodeDone(iNodeList, i) == 0, "(" << iNodeList << " " << i << ") (" << iNodeList << " " << i << ")");
+    const auto nii = (false ? // domainDecompIndependent or mBuildGhostConnectivity ? 
+                      mNodeLists[iiNodeList]->numNodes() :
+                      mNodeLists[iiNodeList]->numInternalNodes());
+    for (auto ii = 0; ii < nii; ++ii) {
+      if (flagNodeDone(iiNodeList, ii) == 0) {
 
-      // Get the state for this node.
-      const auto& ri = position(iNodeList, i);
-      const auto& Hi = H(iNodeList, i);
-      
-      // Set the master nodes.
-      // t0 = std::clock();
-      vector<vector<int>> masterLists, coarseNeighbors;
-      Neighbor<Dimension>::setMasterNeighborGroup(ri,
-                                                  Hi,
-                                                  mNodeLists.begin(),
-                                                  mNodeLists.end(),
-                                                  etaMax,
-                                                  masterLists,
-                                                  coarseNeighbors);
-      auto& worki = mNodeLists[iNodeList]->work();
-      CHECK(mOffsets[iNodeList] + i < mConnectivity.size());
-      const auto start = Timing::currentTime();
-
-      // Get the neighbor set we're building for this node.
-      auto& neighbors = mConnectivity[mOffsets[iNodeList] + i];
-      CHECK2(neighbors.size() == numNodeLists, neighbors.size() << " " << numNodeLists << " " << i);
-
-      // We keep track of the Morton indices.
-      vector<vector<pair<int, Key>>> keys(numNodeLists);
-
-      // Iterate over the neighbor NodeLists.
-      for (auto jNodeList = 0; jNodeList != numNodeLists; ++jNodeList) {
-
-        // Iterate over the coarse neighbors in this NodeList.
+        // Set the master nodes.
         // t0 = std::clock();
-        for (const auto j:  coarseNeighbors[jNodeList]) {
-          const auto& rj = position(jNodeList, j);
-          const auto& Hj = H(jNodeList, j);
+        vector<vector<int>> masterLists, coarseNeighbors;
+        Neighbor<Dimension>::setMasterNeighborGroup(position(iiNodeList, ii),
+                                                    H(iiNodeList, ii),
+                                                    mNodeLists.begin(),
+                                                    mNodeLists.end(),
+                                                    etaMax,
+                                                    masterLists,
+                                                    coarseNeighbors);
 
-          // Compute the normalized distance between this pair.
-          const auto rij = ri - rj;
-          const auto eta2i = (Hi*rij).magnitude2();
-          const auto eta2j = (Hj*rij).magnitude2();
+        // Iterate over the full of NodeLists again to work on the master nodes.
+        for (auto iNodeList = 0; iNodeList != numNodeLists; ++iNodeList) {
+          const auto nmaster = masterLists[iNodeList].size();
+#pragma omp parallel for schedule(dynamic)
+          for (auto k = 0; k < nmaster; ++k) {
+            const auto i = masterLists[iNodeList][k];
+            CHECK2(flagNodeDone(iNodeList, i) == 0, "(" << iNodeList << " " << i << ") (" << iNodeList << " " << i << ")");
 
-          // If this pair is significant, add it to the list.
-          if (eta2i <= kernelExtent2 or eta2j <= kernelExtent2) {
+            // Get the state for this node.
+            const auto& ri = position(iNodeList, i);
+            const auto& Hi = H(iNodeList, i);
+            auto&       worki = mNodeLists[iNodeList]->work();
+            CHECK(mOffsets[iNodeList] + i < mConnectivity.size());
+            const auto start = Timing::currentTime();
 
-            // We don't include self-interactions.
-            if ((iNodeList != jNodeList) or (i != j)) {
-              neighbors[jNodeList].push_back(j);
-              if (domainDecompIndependent) keys[jNodeList].push_back(pair<int, Key>(j, mKeys(jNodeList, j)));
+            // Get the neighbor set we're building for this node.
+            auto& neighbors = mConnectivity[mOffsets[iNodeList] + i];
+            CHECK2(neighbors.size() == numNodeLists, neighbors.size() << " " << numNodeLists << " " << i);
+
+            // We keep track of the Morton indices.
+            vector<vector<pair<int, Key>>> keys(numNodeLists);
+
+            // Iterate over the neighbor NodeLists.
+            for (auto jNodeList = 0; jNodeList != numNodeLists; ++jNodeList) {
+
+              // Iterate over the coarse neighbors in this NodeList.
+              // t0 = std::clock();
+              for (const auto j:  coarseNeighbors[jNodeList]) {
+                const auto& rj = position(jNodeList, j);
+                const auto& Hj = H(jNodeList, j);
+
+                // Compute the normalized distance between this pair.
+                const auto rij = ri - rj;
+                const auto eta2i = (Hi*rij).magnitude2();
+                const auto eta2j = (Hj*rij).magnitude2();
+
+                // If this pair is significant, add it to the list.
+                if (eta2i <= kernelExtent2 or eta2j <= kernelExtent2) {
+
+                  // We don't include self-interactions.
+                  if ((iNodeList != jNodeList) or (i != j)) {
+                    neighbors[jNodeList].push_back(j);
+                    if (domainDecompIndependent) keys[jNodeList].push_back(pair<int, Key>(j, mKeys(jNodeList, j)));
+                  }
+                }
+              }
+              // twalk += std::clock() - t0;
             }
+            CHECK(neighbors.size() == numNodeLists);
+            CHECK(keys.size() == numNodeLists);
+        
+            // We have a few options for how to order the neighbors for this node.
+            for (auto jNodeList = 0; jNodeList != numNodeLists; ++jNodeList) {
+
+              if (domainDecompIndependent) {
+                // Sort in a domain independent manner.
+                CHECK(keys[jNodeList].size() == neighbors[jNodeList].size());
+                sort(keys[jNodeList].begin(), keys[jNodeList].end(), ComparePairsBySecondElement<pair<int, Key>>());
+                for (auto j = 0; j != neighbors[jNodeList].size(); ++j) neighbors[jNodeList][j] = keys[jNodeList][j].first;
+              } else {
+                // Sort in an attempt to be cache friendly.
+                sort(neighbors[jNodeList].begin(), neighbors[jNodeList].end());
+              }
+            }
+
+            // Flag this master node as done.
+            flagNodeDone(iNodeList, i) = 1;
+            worki(i) += Timing::difference(start, Timing::currentTime());
           }
         }
-        // twalk += std::clock() - t0;
       }
-      CHECK(neighbors.size() == numNodeLists);
-      CHECK(keys.size() == numNodeLists);
-        
-      // We have a few options for how to order the neighbors for this node.
-      for (auto jNodeList = 0; jNodeList != numNodeLists; ++jNodeList) {
-
-        if (domainDecompIndependent) {
-          // Sort in a domain independent manner.
-          CHECK(keys[jNodeList].size() == neighbors[jNodeList].size());
-          sort(keys[jNodeList].begin(), keys[jNodeList].end(), ComparePairsBySecondElement<pair<int, Key>>());
-          for (auto j = 0; j != neighbors[jNodeList].size(); ++j) neighbors[jNodeList][j] = keys[jNodeList][j].first;
-        } else {
-          // Sort in an attempt to be cache friendly.
-          sort(neighbors[jNodeList].begin(), neighbors[jNodeList].end());
-        }
-      }
-
-      // Flag this master node as done.
-      flagNodeDone(iNodeList, i) = 1;
-      worki(i) += Timing::difference(start, Timing::currentTime());
     }
   }
 
@@ -806,6 +828,8 @@ computeConnectivity() {
   // Make sure we're ready to be used.
   ENSURE(valid());
   END_CONTRACT_SCOPE
+
+  TIME_ConnectivityMap_computeConnectivity.stop();
 }
 
 }
