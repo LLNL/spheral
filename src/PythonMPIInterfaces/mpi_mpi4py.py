@@ -43,8 +43,8 @@ def send(obj, dest=0, tag=100):
 #-------------------------------------------------------------------------------
 # recv
 #-------------------------------------------------------------------------------
-def recv(source=0, tag=100, obj=None):
-    return (comm.recv(obj=obj, source=source, tag=tag), )
+def recv(source=0, tag=100):
+    return (comm.recv(source=source, tag=tag), )
 
 #-------------------------------------------------------------------------------
 # isend
@@ -56,25 +56,25 @@ def isend(obj, dest=0, tag=100):
 # reduce
 #-------------------------------------------------------------------------------
 def reduce(obj, op=SUM, root=0):
-    return comm.reduce(obj, op=op, root=root)
+    return comm.reduce(sendobj=obj, op=op, root=root)
 
 #-------------------------------------------------------------------------------
 # allreduce
 #-------------------------------------------------------------------------------
 def allreduce(obj, op=SUM):
-    return comm.allreduce(obj, op=op)
+    return comm.allreduce(sendobj=obj, op=op)
 
 #-------------------------------------------------------------------------------
 # gather
 #-------------------------------------------------------------------------------
 def gather(obj, root=0):
-    return comm.gather(obj, root=root)
+    return comm.gather(sendobj=obj, root=root)
 
 #-------------------------------------------------------------------------------
 # allgather
 #-------------------------------------------------------------------------------
 def allgather(obj):
-    return comm.allgather(obj)
+    return comm.allgather(sendobj=obj)
 
 #-------------------------------------------------------------------------------
 # bcast
