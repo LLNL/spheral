@@ -43,7 +43,6 @@ evaluateDerivatives(const typename Dimension::Scalar time,
   const auto velocity = state.fields(HydroFieldNames::velocity, Vector::zero);
   const auto massDensity = state.fields(HydroFieldNames::massDensity, 0.0);
   const auto specificThermalEnergy = state.fields(HydroFieldNames::specificThermalEnergy, 0.0);
-  const auto entropy = state.fields(HydroFieldNames::entropy, Scalar());
   const auto H = state.fields(HydroFieldNames::H, SymTensor::zero);
   const auto pressure = state.fields(HydroFieldNames::pressure, 0.0);
   const auto soundSpeed = state.fields(HydroFieldNames::soundSpeed, 0.0);
@@ -65,7 +64,6 @@ evaluateDerivatives(const typename Dimension::Scalar time,
   CHECK(velocity.size() == numNodeLists);
   CHECK(massDensity.size() == numNodeLists);
   CHECK(specificThermalEnergy.size() == numNodeLists);
-  CHECK(entropy.size() == numNodeLists);
   CHECK(H.size() == numNodeLists);
   CHECK(pressure.size() == numNodeLists);
   CHECK(soundSpeed.size() == numNodeLists);
@@ -186,7 +184,6 @@ evaluateDerivatives(const typename Dimension::Scalar time,
       const auto& vi = velocity(nodeListi, i);
       const auto  rhoi = massDensity(nodeListi, i);
       const auto  epsi = specificThermalEnergy(nodeListi, i);
-      const auto  si = entropy(nodeListi, i);
       const auto  Pi = pressure(nodeListi, i);
       const auto& Hi = H(nodeListi, i);
       const auto  ci = soundSpeed(nodeListi, i);
@@ -260,7 +257,6 @@ evaluateDerivatives(const typename Dimension::Scalar time,
               const auto& vj = velocity(nodeListj, j);
               const auto  rhoj = massDensity(nodeListj, j);
               const auto  epsj = specificThermalEnergy(nodeListj, j);
-              const auto  sj = entropy(nodeListj, j);
               const auto  Pj = pressure(nodeListj, j);
               const auto& Hj = H(nodeListj, j);
               const auto  cj = soundSpeed(nodeListj, j);
@@ -308,8 +304,8 @@ evaluateDerivatives(const typename Dimension::Scalar time,
               const auto vij = vi - vj;
 
               // Symmetrized kernel weight and gradient.
-              CRKSPHKernelAndGradient(Wj, gWj, gradWj, W, CRKSPHHydroBase<Dimension>::correctionOrder(),  rij,  etai, Hi, Hdeti,  etaj, Hj, Hdetj, Ai, Bi, Ci, gradAi, gradBi, gradCi, correctionMin, correctionMax);
-              CRKSPHKernelAndGradient(Wi, gWi, gradWi, W, CRKSPHHydroBase<Dimension>::correctionOrder(), -rij, -etaj, Hj, Hdetj, -etai, Hi, Hdeti, Aj, Bj, Cj, gradAj, gradBj, gradCj, correctionMin, correctionMax);
+              CRKSPHKernelAndGradient(Wj, gWj, gradWj, W, CRKSPHHydroBase<Dimension>::correctionOrder(),  rij,  etai, Hi, Hdeti,  etaj, Hj, Hdetj, Ai, Bi, Ci, gradAi, gradBi, gradCi);
+              CRKSPHKernelAndGradient(Wi, gWi, gradWi, W, CRKSPHHydroBase<Dimension>::correctionOrder(), -rij, -etaj, Hj, Hdetj, -etai, Hi, Hdeti, Aj, Bj, Cj, gradAj, gradBj, gradCj);
               deltagrad = gradWj - gradWi;
               const auto gradWSPHi = (Hi*etai.unitVector())*W.gradValue(etai.magnitude(), Hdeti);
               const auto gradWSPHj = (Hj*etaj.unitVector())*W.gradValue(etaj.magnitude(), Hdetj);
@@ -447,9 +443,10 @@ evaluateDerivatives(const typename Dimension::Scalar time,
                                                        nodeListi,
                                                        i);
 
-      // If this node is damaged we begin to force it back to it's original H.
+      // As this node is damaged force it back to it's original H.
       const auto Di = max(0.0, min(1.0, damage(nodeListi, i).eigenValues().maxElement()));
       Hideali = (1.0 - Di)*Hideali + Di*mHfield0(nodeListi, i);
+      DHDti = (1.0 - Di)*DHDti + Di*(mHfield0(nodeListi, i) - Hi)*0.25/dt;
 
       // Determine the deviatoric stress evolution.
       const auto deformation = localDvDxi.Symmetric();
@@ -459,8 +456,7 @@ evaluateDerivatives(const typename Dimension::Scalar time,
       DSDti = spinCorrection + (2.0*mui)*deviatoricDeformation;
 
       // In the presence of damage, add a term to reduce the stress on this point.
-      // const auto Di = max(0.0, min(1.0, damage(nodeListi, i).eigenValues().maxElement()));
-      DSDti = (1.0 - Di)*DSDti - 0.25/dt*Di*Si;
+      DSDti = (1.0 - Di)*DSDti - Di*Si*0.25/dt;
 
       // Time evolution of the mass density.
       DrhoDti = -rhoi*localDvDxi.Trace();

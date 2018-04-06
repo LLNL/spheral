@@ -137,6 +137,9 @@ public:
   virtual void updateNodes(const std::vector<int>& nodeIDs) = 0;
   //****************************************************************************
 
+  // Optional hook to reinitialize based on the desired target h and box dimensions.
+  virtual void reinitialize(const Vector& xmin, const Vector& xmax, const Scalar htarget) {};
+
   // Determine if the Neighbor is in a valid, ready to use state.
   virtual bool valid() const;
 

@@ -1,9 +1,7 @@
 #------------------------------------------------------------------------------
 # A simple class to control simulation runs for Spheral.
 #------------------------------------------------------------------------------
-import sys
-import gc
-import mpi
+import sys, os, gc, warnings, mpi
 
 from SpheralModules.Spheral import FileIOSpace
 from SpheralModules.Spheral.DataOutput import RestartableObject, RestartRegistrar
@@ -61,7 +59,8 @@ class SpheralController:
                  SPH = False,
                  skipInitialPeriodicWork = False,
                  iterateInitialH = True,
-                 numHIterationsBetweenCycles = 0):
+                 numHIterationsBetweenCycles = 0,
+                 reinitializeNeighborsStep = 10):
         self.restart = RestartableObject(self)
         self.integrator = integrator
         self.kernel = kernel
@@ -75,20 +74,16 @@ class SpheralController:
         self.dim = "%id" % self.integrator.dataBase().nDim
 
         # Determine the visualization method.
-        if vizMethod:
-            self.vizMethod = vizMethod
+        dumpPhysicsStatePoints, dumpPhysicsStateCells = None, None
+        if self.dim == "1d":
+            from Spheral1dVizDump import dumpPhysicsState as dumpPhysicsStatePoints
         else:
-            if self.dim == "1d":
-                from Spheral1dVizDump import dumpPhysicsState
-            elif self.dim == "2d":
-                from SpheralVoronoiSiloDump import dumpPhysicsState
-                #from SpheralVisitDump import dumpPhysicsState
-                #from SpheralPointmeshSiloDump import dumpPhysicsState
-            else:
-                from SpheralVoronoiSiloDump import dumpPhysicsState
-                #from SpheralVisitDump import dumpPhysicsState
-                #from SpheralPointmeshSiloDump import dumpPhysicsState
-            self.vizMethod = dumpPhysicsState
+            from SpheralPointmeshSiloDump import dumpPhysicsState as dumpPhysicsStatePoints
+            from SpheralVoronoiSiloDump import dumpPhysicsState as dumpPhysicsStateCells
+        if vizMethod:
+            dumpPhysicsStatePoints = vizMethod
+        self.vizMethodPoints = dumpPhysicsStatePoints
+        self.vizMethodCells = dumpPhysicsStateCells
         self.vizGhosts = vizGhosts
         self.vizDerivs = vizDerivs
 
@@ -117,7 +112,8 @@ class SpheralController:
                                  vizFields = vizFields,
                                  vizFieldLists = vizFieldLists,
                                  skipInitialPeriodicWork = skipInitialPeriodicWork,
-                                 iterateInitialH = True)
+                                 iterateInitialH = True,
+                                 reinitializeNeighborsStep = 10)
 
         # Read the restart information if requested.
         if not restoreCycle is None:
@@ -146,7 +142,8 @@ class SpheralController:
                             vizFields = [],
                             vizFieldLists = [],
                             skipInitialPeriodicWork = False,
-                            iterateInitialH = True):
+                            iterateInitialH = True,
+                            reinitializeNeighborsStep = 10):
 
         # Intialize the cycle count.
         self.totalSteps = 0
@@ -164,11 +161,14 @@ class SpheralController:
         # Set the simulation time.
         self.integrator.currentTime = initialTime
 
+        # Prepare the neighbor objects.
+        db = self.integrator.dataBase()
+        db.reinitializeNeighbors()
+
         # Create ghost nodes for the physics packages to initialize with.
         self.integrator.setGhostNodes()
 
         # Initialize the integrator and packages.
-        db = self.integrator.dataBase()
         packages = self.integrator.physicsPackages()
         for package in packages:
             package.initializeProblemStartup(db)
@@ -192,6 +192,7 @@ class SpheralController:
         self.appendPeriodicWork(self.garbageCollection, garbageCollectionStep)
         self.appendPeriodicWork(self.updateConservation, statsStep)
         self.appendPeriodicWork(self.updateRestart, restartStep)
+        self.appendPeriodicWork(self.reinitializeNeighbors, reinitializeNeighborsStep)
 
         # Add the dynamic redistribution object to the controller.
         self.addRedistributeNodes(self.kernel)
@@ -463,6 +464,14 @@ class SpheralController:
         return
 
     #--------------------------------------------------------------------------
+    # Periodically reinitialize neighbors.
+    #--------------------------------------------------------------------------
+    def reinitializeNeighbors(self, cycle, Time, dt):
+        db = self.integrator.dataBase()
+        db.reinitializeNeighbors()
+        return
+
+    #--------------------------------------------------------------------------
     # Periodically redistribute the nodes between domains.
     #--------------------------------------------------------------------------
     def updateDomainDistribution(self, cycle, Time, dt):
@@ -543,6 +552,10 @@ class SpheralController:
             file = self.restartFileConstructor(fileName, FileIOSpace.Read)
         RestartRegistrar.instance().restoreState(file)
         print "Finished: required %0.2f seconds" % (time.clock() - start)
+
+        # Reset neighboring.
+        db = self.integrator.dataBase()
+        db.reinitializeNeighbors()
 
         # Do we need to force a boundary update to create ghost nodes?
         if (self.integrator.updateBoundaryFrequency > 1 and
@@ -708,16 +721,28 @@ precedeDistributed += [BoundarySpace.PeriodicBoundary%(dim)sd,
                 Time = None,
                 dt = None):
         mpi.barrier()
-        self.vizMethod(self.integrator,
-                       baseFileName = self.vizBaseName,
-                       baseDirectory = self.vizDir,
-                       fields = self.vizFields,
-                       fieldLists = self.vizFieldLists,
-                       currentTime = self.time(),
-                       currentCycle = self.totalSteps,
-                       dumpGhosts = self.vizGhosts,
-                       dumpDerivatives = self.vizDerivs,
-                       boundaries = self.integrator.uniqueBoundaryConditions())
+        if self.vizMethodPoints:
+            self.vizMethodPoints(self.integrator,
+                                 baseFileName = self.vizBaseName,
+                                 baseDirectory = os.path.join(self.vizDir, "points"),
+                                 fields = list(self.vizFields),
+                                 fieldLists = list(self.vizFieldLists),
+                                 currentTime = self.time(),
+                                 currentCycle = self.totalSteps,
+                                 dumpGhosts = self.vizGhosts,
+                                 dumpDerivatives = self.vizDerivs,
+                                 boundaries = self.integrator.uniqueBoundaryConditions())
+        if self.vizMethodCells:
+            self.vizMethodCells(self.integrator,
+                                baseFileName = self.vizBaseName,
+                                baseDirectory = os.path.join(self.vizDir, "cells"),
+                                fields = list(self.vizFields),
+                                fieldLists = list(self.vizFieldLists),
+                                currentTime = self.time(),
+                                currentCycle = self.totalSteps,
+                                dumpGhosts = self.vizGhosts,
+                                dumpDerivatives = self.vizDerivs,
+                                boundaries = self.integrator.uniqueBoundaryConditions())
         return
 
     #--------------------------------------------------------------------------

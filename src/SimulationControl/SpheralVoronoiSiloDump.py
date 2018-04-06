@@ -102,7 +102,7 @@ class SpheralVoronoiSiloDump:
 
         # Build the name of the directory we will be stuffing the viz file
         # into.
-        outputdir = os.path.join(self.baseDirectory, self.baseFileName)
+        outputdir = self.baseDirectory # os.path.join(self.baseDirectory, self.baseFileName)
 
         # Make sure the output directory exists.
         if mpi.rank == 0:
@@ -331,7 +331,7 @@ class SpheralVoronoiSiloDump:
 
         # Write the master file listing all the time slices.
         if mpi.rank == 0:
-            mastername = os.path.join(self.baseDirectory, self.baseFileName, self.masterFileName)
+            mastername = os.path.join(self.baseDirectory, self.masterFileName)
             mf = open(mastername, "a")
             mf.write("%s\n" % timeslice)
             mf.close()
@@ -513,7 +513,10 @@ def dumpPhysicsState(stateThingy,
     else:
         surfacePoint = dataBase.newFluidIntFieldList(0, HydroFieldNames.surfacePoint)
         voidPoint = dataBase.newFluidIntFieldList(0, HydroFieldNames.voidPoint)
-    vol = dataBase.newFluidScalarFieldList(0.0, HydroFieldNames.volume)
+    if state.fieldNameRegistered(HydroFieldNames.volume):
+        vol = state.scalarFields(HydroFieldNames.volume)
+    else:
+        vol = dataBase.newFluidScalarFieldList(0.0, HydroFieldNames.volume)
     deltaMedian = dataBase.newFluidVectorFieldList(eval("Vector%id.zero" % dataBase.nDim), "centroidal delta")
     etaVoidPoints = dataBase.newFluidvector_of_VectorFieldList(eval("vector_of_Vector%id()" % dataBase.nDim), "eta void points")
     FacetedVolume = {2 : Polygon,

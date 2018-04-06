@@ -53,7 +53,6 @@ Integrator<Dimension>::Integrator():
   mVerbose(false),
   mRequireConnectivity(true),
   mRequireGhostConnectivity(false),
-  mDtThreshold(1.0e-10),
   mDataBasePtr(0),
   mPhysicsPackages(0),
   mRigorousBoundaries(false),
@@ -77,7 +76,6 @@ Integrator(DataBase<Dimension>& dataBase):
   mVerbose(false),
   mRequireConnectivity(true),
   mRequireGhostConnectivity(false),
-  mDtThreshold(1.0e-10),
   mDataBasePtr(&dataBase),
   mPhysicsPackages(0),
   mRigorousBoundaries(false),
@@ -102,7 +100,6 @@ Integrator(DataBase<Dimension>& dataBase,
   mVerbose(false),
   mRequireConnectivity(true),
   mRequireGhostConnectivity(false),
-  mDtThreshold(1.0e-10),
   mDataBasePtr(&dataBase),
   mPhysicsPackages(physicsPackages),
   mRigorousBoundaries(false),
@@ -140,7 +137,6 @@ operator=(const Integrator<Dimension>& rhs) {
     mVerbose = rhs.mVerbose;
     mRequireConnectivity = rhs.mRequireConnectivity;
     mRequireGhostConnectivity = rhs.mRequireGhostConnectivity;
-    mDtThreshold = rhs.mDtThreshold;
   }
   return *this;
 }
@@ -191,7 +187,7 @@ selectDt(const typename Dimension::Scalar dtMin,
   // processors.
   const Scalar globalDt = allReduce(dt.first, MPI_MIN, Communicator::communicator());
   if (dt.first == globalDt and 
-      (verbose() or globalDt < mDtThreshold)) {
+      (verbose() or globalDt < mDtMin)) {
     cout << "Selected timestep of "
 	 << dt.first << endl
          << dt.second << endl;
@@ -231,6 +227,10 @@ Integrator<Dimension>::preStepInitialize(State<Dimension>& state,
     mRequireGhostConnectivity = (mRequireGhostConnectivity or (*physicsItr)->requireGhostConnectivity());
   }
 
+  // Intialize neighbors if need be.
+  DataBase<Dimension>& db = accessDataBase();
+  // if (mRequireConnectivity) db.reinitializeNeighbors();
+
   // Set the boundary conditions.
   if ((not mRigorousBoundaries) and (mCurrentCycle % mUpdateBoundaryFrequency == 0)) {
     setGhostNodes();
@@ -238,7 +238,6 @@ Integrator<Dimension>::preStepInitialize(State<Dimension>& state,
   applyGhostBoundaries(state, derivs);
 
   // Register the now updated connectivity with the state.
-  DataBase<Dimension>& db = accessDataBase();
   if (mRequireConnectivity) {
     state.enrollConnectivityMap(db.connectivityMapPtr(mRequireGhostConnectivity));
   }

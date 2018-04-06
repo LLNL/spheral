@@ -4,14 +4,18 @@
 // as a dependent quantity.
 // 
 // This version is specialized for the compatible energy discretization 
-// method in RZ coordinates, which implicitly means we have to use the
-// non-symmetric (pairwise) form.
+// method in the case where we do *not* assume that pairwise forces are
+// equal and opposite.
 //
-// Created by JMO, Wed May  4 16:49:59 PDT 2016
+// Also specialized for OpenMP.
+//
+//  Created by JMO, Sat Aug 10 23:03:39 PDT 2013
+// Modified by JMO, Wed Feb 28 15:46:04 PST 2018
 //----------------------------------------------------------------------------//
 #include <vector>
+#include <limits>
 
-#include "NonSymmetricSpecificThermalEnergyPolicyRZ.hh"
+#include "NonSymmetricSpecificThermalEnergyPolicy.hh"
 #include "HydroFieldNames.hh"
 #include "NodeList/NodeList.hh"
 #include "NodeList/FluidNodeList.hh"
@@ -38,35 +42,55 @@ using NodeSpace::NodeList;
 using NodeSpace::FluidNodeList;
 using NeighborSpace::ConnectivityMap;
 
+// namespace {
+
+// inline double weighting(const double wi,
+//                         const double wj,
+//                         const double Eij) {
+//   const int si = isgn0(wi);
+//   const int sj = isgn0(wj);
+//   const int sij = isgn0(wij);
+//   if (sij == 0 or (si == 0 and sj == 0))             return 0.5;
+//   if (si == sj and sj == sij)                        return wi/(wi + wj);  // All the same sign and non-zero
+//   if (si == sj)                                      return 0.5;
+//   if (si == sij)                                     return 1.0;
+//   return 0.0;
+// }
+
+// }
+
 //------------------------------------------------------------------------------
 // Constructor.
 //------------------------------------------------------------------------------
-NonSymmetricSpecificThermalEnergyPolicyRZ::
-NonSymmetricSpecificThermalEnergyPolicyRZ(const DataBase<Dim<2> >& dataBase):
-  IncrementFieldList<Dim<2>, Dim<2>::Scalar>(),
+template<typename Dimension>
+NonSymmetricSpecificThermalEnergyPolicy<Dimension>::
+NonSymmetricSpecificThermalEnergyPolicy(const DataBase<Dimension>& dataBase):
+  IncrementFieldList<Dimension, typename Dimension::Scalar>(),
   mDataBasePtr(&dataBase) {
 }
 
 //------------------------------------------------------------------------------
 // Destructor.
 //------------------------------------------------------------------------------
-NonSymmetricSpecificThermalEnergyPolicyRZ::
-~NonSymmetricSpecificThermalEnergyPolicyRZ() {
+template<typename Dimension>
+NonSymmetricSpecificThermalEnergyPolicy<Dimension>::
+~NonSymmetricSpecificThermalEnergyPolicy() {
 }
 
 //------------------------------------------------------------------------------
 // Update the field.
 //------------------------------------------------------------------------------
+template<typename Dimension>
 void
-NonSymmetricSpecificThermalEnergyPolicyRZ::
+NonSymmetricSpecificThermalEnergyPolicy<Dimension>::
 update(const KeyType& key,
-       State<Dim<2> >& state,
-       StateDerivatives<Dim<2> >& derivs,
+       State<Dimension>& state,
+       StateDerivatives<Dimension>& derivs,
        const double multiplier,
        const double t,
        const double dt) {
 
-  typedef Dimension::SymTensor SymTensor;
+  typedef typename Dimension::SymTensor SymTensor;
 
 //   // HACK!
 //   std::cerr.setf(std::ios::scientific, std::ios::floatfield);
@@ -76,11 +100,10 @@ update(const KeyType& key,
   StateBase<Dimension>::splitFieldKey(key, fieldKey, nodeListKey);
   REQUIRE(fieldKey == HydroFieldNames::specificThermalEnergy and 
           nodeListKey == UpdatePolicyBase<Dimension>::wildcard());
-  FieldList<Dimension, Scalar> eps = state.fields(fieldKey, Scalar());
-  const unsigned numFields = eps.numFields();
+  auto eps = state.fields(fieldKey, Scalar());
+  const auto numFields = eps.numFields();
 
   // Get the state fields.
-  const auto  position = state.fields(HydroFieldNames::position, Vector::zero);
   const auto  mass = state.fields(HydroFieldNames::mass, Scalar());
   const auto  velocity = state.fields(HydroFieldNames::velocity, Vector::zero);
   const auto  acceleration = derivs.fields(HydroFieldNames::hydroAcceleration, Vector::zero);
@@ -91,35 +114,40 @@ update(const KeyType& key,
   const auto& nodeLists = connectivityMap.nodeLists();
   CHECK(nodeLists.size() == numFields);
 
+  // Check if there is a surface point flag field registered.  If so, we use non-compatible energy evolution 
+  // on such points.
+  const bool surface = state.fieldNameRegistered(HydroFieldNames::surfacePoint);
+  FieldList<Dimension, int> surfacePoint;
+  if (surface) {
+    surfacePoint = state.fields(HydroFieldNames::surfacePoint, int(0));
+  }
+
   // Prepare a counter to keep track of how we go through the pair-accelerations.
   auto DepsDt = mDataBasePtr->newFluidFieldList(0.0, "delta E");
-  auto offset = mDataBasePtr->newFluidFieldList(0, "offset");
+  // auto poisoned = mDataBasePtr->newFluidFieldList(0, "poisoned flag");
 
-  // Walk all the NodeLists.
+  // Walk all the NodeLists and compute the energy change.
   const auto hdt = 0.5*multiplier;
   for (size_t nodeListi = 0; nodeListi != numFields; ++nodeListi) {
+    const auto ni = connectivityMap.numNodes(nodeListi);
 
     // Iterate over the internal nodes of this NodeList.
-    for (auto iItr = connectivityMap.begin(nodeListi);
-         iItr != connectivityMap.end(nodeListi);
-         ++iItr) {
-      const int i = *iItr;
+// #pragma omp parallel for reduction(+:DepsDt)
+    for (auto k = 0; k < ni; ++k) {
+      const auto i = connectivityMap.ithNode(nodeListi, k);
 
       // State for node i.
       auto&       DepsDti = DepsDt(nodeListi, i);
       const auto  weighti = abs(DepsDt0(nodeListi, i)) + numeric_limits<Scalar>::epsilon();
-      const auto  ri = abs(position(nodeListi, i).y());
-      const auto  zi = position(nodeListi, i).x();
       const auto  mi = mass(nodeListi, i);
-      const auto  mRZi = mi/(2.0*M_PI*ri);
       const auto& vi = velocity(nodeListi, i);
       const auto  ui = eps0(nodeListi, i);
       const auto& ai = acceleration(nodeListi, i);
       const auto  vi12 = vi + ai*hdt;
-      // vi12.x(vi12.x()/(2.0*M_PI*ri));
       const auto& pacci = pairAccelerations(nodeListi, i);
-      CHECK(ri > 0.0);
-      CHECK(pacci.size() == connectivityMap.numNeighborsForNode(nodeLists[nodeListi], i) + 1);
+      CHECK(pacci.size() == 2*connectivityMap.numNeighborsForNode(nodeLists[nodeListi], i) or
+            pacci.size() == 2*connectivityMap.numNeighborsForNode(nodeLists[nodeListi], i) + 1);
+      size_t offseti = 0;
 
       // Get the connectivity (neighbor set) for this node.
       const auto& fullConnectivity = connectivityMap.connectivityForNode(nodeListi, i);
@@ -130,61 +158,51 @@ update(const KeyType& key,
         // The set of neighbors from this NodeList.
         const auto& connectivity = fullConnectivity[nodeListj];
         if (connectivity.size() > 0) {
-          const int firstGhostNodej = nodeLists[nodeListj]->firstGhostNode();
 
           // Iterate over the neighbors, and accumulate the specific energy
           // change.
           for (auto jitr = connectivity.begin();
                jitr != connectivity.end();
                ++jitr) {
-            const int j = *jitr;
+            const auto        j = *jitr;
+            auto&       DepsDtj = DepsDt(nodeListj, j);
+            const auto  weightj = abs(DepsDt0(nodeListj, j)) + numeric_limits<Scalar>::epsilon();
+            const auto  mj = mass(nodeListj, j);
+            const auto& vj = velocity(nodeListj, j);
+            const auto& aj = acceleration(nodeListj, j);
+            const auto  vj12 = vj + aj*hdt;
 
-            if (connectivityMap.calculatePairInteraction(nodeListi, i, 
-                                                         nodeListj, j,
-                                                         firstGhostNodej)) {
-              auto&       DepsDtj = DepsDt(nodeListj, j);
-              const auto  weightj = abs(DepsDt0(nodeListj, j)) + numeric_limits<Scalar>::epsilon();
-              const auto  rj = abs(position(nodeListj, j).y());
-              const auto  zj = position(nodeListj, j).x();
-              const auto  mj = mass(nodeListj, j);
-              const auto  mRZj = mj/(2.0*M_PI*rj);
-              const auto& vj = velocity(nodeListj, j);
-              const auto  uj = eps0(nodeListj, j);
-              const auto& aj = acceleration(nodeListj, j);
-              const auto  vj12 = vj + aj*hdt;
-              // vj12.x(vj12.x()/(2.0*M_PI*rj));
-              const auto& paccj = pairAccelerations(nodeListj, j);
-              CHECK(rj > 0.0);
-              CHECK(j >= firstGhostNodej or paccj.size() == (connectivityMap.numNeighborsForNode(nodeLists[nodeListj], j) + 1));
+            CHECK(offseti < pacci.size());
+            const auto& pai = pacci[offseti++];
+            const auto& paj = pacci[offseti++];
+            const auto dEij = -(mi*vi12.dot(pai) + mj*vj12.dot(paj));
+            const auto wi = weighti/(weighti + weightj);
+            // const auto wi = entropyWeighting(si, sj, duij);
+            // CHECK2(fuzzyEqual(wi + entropyWeighting(sj, si, dEij/mj), 1.0, 1.0e-10),
+            //        wi << " " << entropyWeighting(sj, si, dEij/mj) << " " << (wi + entropyWeighting(sj, si, dEij/mj)));
+            CHECK(wi >= 0.0 and wi <= 1.0);
+            DepsDti += wi*dEij/mi;
 
-              CHECK(offset(nodeListi, i) < pacci.size());
-              const auto& pai = pacci[offset(nodeListi, i)];
-              ++offset(nodeListi, i);
-
-              CHECK(offset(nodeListj, j) < paccj.size());
-              const auto& paj = paccj[offset(nodeListj, j)];
-              ++offset(nodeListj, j);
-
-              const auto dEij = -(mi*vi12.dot(pai) + mj*vj12.dot(paj));
-              const auto duij = dEij/mi;
-              const auto wi = weighti/(weighti + weightj);      // Du/Dt weighting
-
-              CHECK(wi >= 0.0 and wi <= 1.0);
-              DepsDti += wi*duij;
-              DepsDtj += (1.0 - wi)*dEij/mj;
-            }
+            // // Check if either of these points was advanced non-conservatively.
+            // if (surface) {
+            //   poisoned(nodeListi, i) |= (surfacePoint(nodeListi, i) > 1 or surfacePoint(nodeListj, j) > 1 ? 1 : 0);
+            // }
           }
         }
       }
+      CHECK(offseti == pacci.size() or offseti == pacci.size() - 1);
 
-      // Add the self-contribution.
-      const Vector& pai = pacci[offset(nodeListi, i)];
-      const Scalar duij = -2.0*vi12.dot(pai);
-      DepsDti += duij;
+      // Add the self-contribution if any (RZ does this for instance).
+      if (offseti == pacci.size() - 1) {
+        const auto duii = -2.0*vi12.dot(pacci.back());
+        DepsDti += duii;
+      }
 
-      // Now we can update the energy.
-      CHECK(offset(nodeListi, i) == pacci.size() - 1);
-      eps(nodeListi, i) += DepsDti*multiplier;
+      // if (poisoned(nodeListi, i) == 0) {
+        eps(nodeListi, i) += DepsDti*multiplier;
+      // } else {
+      //   eps(nodeListi, i) += DepsDt0(nodeListi, i)*multiplier;
+      // }
     }
   }
 }
@@ -192,12 +210,13 @@ update(const KeyType& key,
 //------------------------------------------------------------------------------
 // Equivalence operator.
 //------------------------------------------------------------------------------
+template<typename Dimension>
 bool
-NonSymmetricSpecificThermalEnergyPolicyRZ::
-operator==(const UpdatePolicyBase<Dim<2> >& rhs) const {
+NonSymmetricSpecificThermalEnergyPolicy<Dimension>::
+operator==(const UpdatePolicyBase<Dimension>& rhs) const {
 
   // We're only equal if the other guy is also an increment operator.
-  const NonSymmetricSpecificThermalEnergyPolicyRZ* rhsPtr = dynamic_cast<const NonSymmetricSpecificThermalEnergyPolicyRZ*>(&rhs);
+  const NonSymmetricSpecificThermalEnergyPolicy<Dimension>* rhsPtr = dynamic_cast<const NonSymmetricSpecificThermalEnergyPolicy<Dimension>*>(&rhs);
   if (rhsPtr == 0) {
     return false;
   } else {
