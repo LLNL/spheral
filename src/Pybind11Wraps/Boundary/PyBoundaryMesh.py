@@ -3,22 +3,22 @@ from TrampolineGenerator import *
 class PyBoundaryMesh(TrampolineGenerator):
 
     def __init__(self):
-        TrampolineGenerator.__init__(self)
-        self.includes = ["Geometry/GeomPlane.hh",
-                         "NodeList/NodeList.hh",
-                         "Field/Field.hh",
-                         "DataBase/DataBase.hh",
-                         "Field/FieldList.hh",
-                         "Mesh/Mesh.hh"]
-        self.namespaces = ["Spheral", "BoundarySpace"]
-        self.templates = ["Dimension"]
-        self.preamble = """
+        TrampolineGenerator.__init__(self,
+                                     includes = ["Geometry/GeomPlane.hh",
+                                                 "NodeList/NodeList.hh",
+                                                 "Field/Field.hh",
+                                                 "DataBase/DataBase.hh",
+                                                 "Field/FieldList.hh",
+                                                 "Mesh/Mesh.hh"],
+                                     namespaces = ["Spheral", "BoundarySpace"],
+                                     templates = ["Dimension"],
+                                     preamble = """
 using Spheral::NodeSpace::NodeList;
 using Spheral::FieldSpace::Field;
 using Spheral::FieldSpace::FieldList;
 using Spheral::DataBaseSpace::DataBase;
 using Spheral::MeshSpace::Mesh;
-"""
+""")
         return
 
     def enforceBoundary1(self,
