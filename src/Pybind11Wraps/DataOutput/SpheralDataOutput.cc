@@ -58,12 +58,12 @@ public:
 //------------------------------------------------------------------------------
 // Make the module
 //------------------------------------------------------------------------------
-PYBIND11_PLUGIN(SpheralDataOutput) {
-  py::module m("SpheralDataOutput", "Spheral DataOutput module.");
+PYBIND11_MODULE(SpheralDataOutput, m) {
+  m.doc() = "Spheral DataOutput module.";
 
   //............................................................................
   // RestartRegistrar
-  py::class_<RestartRegistrar, std::unique_ptr<RestartRegistrar, py::nodelete>>(m, "RestartRegistrar", py::metaclass())
+  py::class_<RestartRegistrar, std::unique_ptr<RestartRegistrar, py::nodelete>>(m, "RestartRegistrar")
     .def_property_readonly_static("instance", &RestartRegistrar::instance)
     .def("removeExpiredPointers", &RestartRegistrar::removeExpiredPointers)
     .def("uniqueLabels", &RestartRegistrar::uniqueLabels)
@@ -80,6 +80,4 @@ PYBIND11_PLUGIN(SpheralDataOutput) {
     .def("dumpState", &RestartableObject::dumpState)
     .def("restoreState", &RestartableObject::restoreState)
     ;
-
-  return m.ptr();
 }

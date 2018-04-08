@@ -181,11 +181,11 @@ public:
                                              const Scalar hmax,
                                              const Scalar hminratio,
                                              const Scalar nPerh) const override {
-    PYBIND11_OVERLOAD(SymTensor,                                 // Return type
-                      SSBase,                                    // Parent class
-                      smoothingScaleDerivative,                  // name of method
-                      H, pos, DvDx, hmin, hmax, hminratio, nPerh // arguments
-      );
+    PYBIND11_OVERLOAD_PURE(SymTensor,                                 // Return type
+                           SSBase,                                    // Parent class
+                           smoothingScaleDerivative,                  // name of method
+                           H, pos, DvDx, hmin, hmax, hminratio, nPerh // arguments
+                           );
   }
 
   virtual SymTensor newSmoothingScale(const SymTensor& H,
@@ -200,11 +200,11 @@ public:
                                       const NeighborSpace::ConnectivityMap<Dimension>& connectivityMap,
                                       const unsigned nodeListi,
                                       const unsigned i) const override {
-    PYBIND11_OVERLOAD(SymTensor,              // Return type
-                      SSBase,                 // Parent class
-                      newSmoothingScale,      // name of method
-                      H, pos, zerothMoment, secondMoment, W, hmin, hmax, hminratio, nPerh, connectivityMap, nodeListi, i     // arguments
-      );
+    PYBIND11_OVERLOAD_PURE(SymTensor,              // Return type
+                           SSBase,                 // Parent class
+                           newSmoothingScale,      // name of method
+                           H, pos, zerothMoment, secondMoment, W, hmin, hmax, hminratio, nPerh, connectivityMap, nodeListi, i     // arguments
+                           );
   }
 
   virtual SymTensor idealSmoothingScale(const SymTensor& H,
@@ -219,11 +219,11 @@ public:
                                         const NeighborSpace::ConnectivityMap<Dimension>& connectivityMap,
                                         const unsigned nodeListi,
                                         const unsigned i) const override {
-    PYBIND11_OVERLOAD(SymTensor,              // Return type
-                      SSBase,                 // Parent class
-                      idealSmoothingScale,    // name of method
-                      H, pos, zerothMoment, secondMoment, W, hmin, hmax, hminratio, nPerh, connectivityMap, nodeListi, i     // arguments
-      );
+    PYBIND11_OVERLOAD_PURE(SymTensor,              // Return type
+                           SSBase,                 // Parent class
+                           idealSmoothingScale,    // name of method
+                           H, pos, zerothMoment, secondMoment, W, hmin, hmax, hminratio, nPerh, connectivityMap, nodeListi, i     // arguments
+                           );
   }
 
   virtual SymTensor idealSmoothingScale(const SymTensor& H,
@@ -233,11 +233,11 @@ public:
                                         const Scalar hmax,
                                         const Scalar hminratio,
                                         const Scalar nPerh) const override {
-    PYBIND11_OVERLOAD(SymTensor,              // Return type
-                      SSBase,                 // Parent class
-                      idealSmoothingScale,    // name of method
-                      H, mesh, zone, hmin, hmax, hminratio, nPerh     // arguments
-      );
+    PYBIND11_OVERLOAD_PURE(SymTensor,              // Return type
+                           SSBase,                 // Parent class
+                           idealSmoothingScale,    // name of method
+                           H, mesh, zone, hmin, hmax, hminratio, nPerh     // arguments
+                           );
   }
 };
 
@@ -337,7 +337,7 @@ void dimensionBindings(py::module& m, const std::string suffix) {
   //............................................................................
   // NodeListRegistrar
   py::class_<Spheral::NodeListRegistrar<Dimension>,
-             std::unique_ptr<Spheral::NodeListRegistrar<Dimension>, py::nodelete>>(m, ("NodeListRegistrar" + suffix).c_str(), py::metaclass())
+             std::unique_ptr<Spheral::NodeListRegistrar<Dimension>, py::nodelete>>(m, ("NodeListRegistrar" + suffix).c_str())
 
     // Attributes
     .def_property_readonly_static("instance", &Spheral::NodeListRegistrar<Dimension>::instance)
@@ -523,8 +523,9 @@ void dimensionBindings(py::module& m, const std::string suffix) {
 //------------------------------------------------------------------------------
 // Make the module
 //------------------------------------------------------------------------------
-PYBIND11_PLUGIN(SpheralNodeList) {
-  py::module m("SpheralNodeList", "Spheral NodeList module.");
+PYBIND11_MODULE(SpheralNodeList, m) {
+
+  m.doc() = "Spheral NodeList module.";
 
   //............................................................................
   // NodeType
@@ -544,6 +545,4 @@ PYBIND11_PLUGIN(SpheralNodeList) {
 #ifdef SPHERAL3D
   dimensionBindings<Spheral::Dim<3>>(m, "3d");
 #endif
-
-  return m.ptr();
 }
