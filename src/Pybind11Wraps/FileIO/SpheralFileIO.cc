@@ -619,8 +619,9 @@ void virtualFileIOBindings(py::module& m, PB11Obj& obj) {
 //------------------------------------------------------------------------------
 // Make the module
 //------------------------------------------------------------------------------
-PYBIND11_PLUGIN(SpheralFileIO) {
-  py::module m("SpheralFileIO", "Spheral FileIO module.");
+PYBIND11_MODULE(SpheralFileIO, m) {
+
+  m.doc() = "Spheral FileIO module.";
 
   //............................................................................
   // AccessType
@@ -735,6 +736,4 @@ PYBIND11_PLUGIN(SpheralFileIO) {
   m.def("string2vector_of_ThirdRankTensor1d", &string2vector<Dim<1>::ThirdRankTensor>, "val"_a);
   m.def("string2vector_of_ThirdRankTensor2d", &string2vector<Dim<2>::ThirdRankTensor>, "val"_a);
   m.def("string2vector_of_ThirdRankTensor3d", &string2vector<Dim<3>::ThirdRankTensor>, "val"_a);
-
-  return m.ptr();
 }

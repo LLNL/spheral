@@ -48,8 +48,8 @@ PYBIND11_MAKE_OPAQUE(map_string_double);
 PYBIND11_MAKE_OPAQUE(map_int_string);
 
 // Make the module
-PYBIND11_PLUGIN(SpheralCXXTypes) {
-  py::module m("SpheralCXXTypes", "Spheral C++ types module.");
+PYBIND11_MODULE(SpheralCXXTypes, m) {
+  m.doc() = "Spheral C++ types module.";
 
   // vector
   py::bind_vector<std::vector<char>>(m, "vector_of_char");
@@ -79,6 +79,4 @@ PYBIND11_PLUGIN(SpheralCXXTypes) {
   // map
   py::bind_map<std::map<std::string, double>>(m, "map_string_double");
   py::bind_map<std::map<int, std::string>>(m, "map_int_string");
-
-  return m.ptr();
 }
