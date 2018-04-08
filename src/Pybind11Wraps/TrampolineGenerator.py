@@ -35,8 +35,6 @@ def generateTrampoline(obj):
 
         # Get the return type and arguments.
         returnType = method()
-        if returnType is None:
-            returnType = "void"
         stuff = inspect.getargspec(method)
         if "args" in stuff.args:
             args = stuff.defaults[stuff.args.index("args") - 1]

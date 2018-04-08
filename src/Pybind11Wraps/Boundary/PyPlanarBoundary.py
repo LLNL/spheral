@@ -20,19 +20,19 @@ using Spheral::DataBaseSpace::DataBase;
 
     def setGhostNodes(self,
                       args = [("NodeList<Dimension>&", "nodeList")]):
-        return
+        return "void"
 
     def updateGhostNodes(self,
                            args = [("NodeList<Dimension>&", "nodeList")]):
-        return
+        return "void"
 
     def setViolationNodes(self,
                           args = [("NodeList<Dimension>&", "nodeList")]):
-        return
+        return "void"
 
     def updateViolationNodes(self,
                              args = [("NodeList<Dimension>&", "nodeList")]):
-        return
+        return "void"
 
     def valid(self,
               const = True):
