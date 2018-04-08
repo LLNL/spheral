@@ -67,7 +67,7 @@ void dimensionBindings(py::module& m, const std::string suffix) {
   //............................................................................
   typedef Integrator<Dimension> INT;
   py::class_<INT, PyRestartMethods<PyAbstractIntegrator<Dimension, INT>>>  intPB11(m, ("Integrator" + suffix).c_str());
-  restartMethodBindings<INT>(m, intPB11);   // Bind restart methods.
+  restartMethodBindings<INT>(intPB11);   // Bind restart methods.
     
   // Constructors
   intPB11.def(py::init<>());
