@@ -11,11 +11,15 @@ Optional attributes to override:
   self.includes : a list of string include paths
 """
 
-    def __init__(self):
-        self.includes = []
-        self.namespaces = []
-        self.templates = []
-        self.preamble = None
+    def __init__(self,
+                includes = [],
+                namespaces = [],
+                templates = [],
+                preamble = None):
+        self.includes = includes
+        self.namespaces = namespaces
+        self.templates = templates
+        self.preamble = preamble
         return
 
 #-------------------------------------------------------------------------------

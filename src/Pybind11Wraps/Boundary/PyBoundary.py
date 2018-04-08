@@ -3,19 +3,19 @@ from TrampolineGenerator import *
 class PyBoundary(TrampolineGenerator):
 
     def __init__(self):
-        TrampolineGenerator.__init__(self)
-        self.includes = ["Geometry/GeomPlane.hh",
-                         "NodeList/NodeList.hh",
-                         "Field/Field.hh",
-                         "DataBase/DataBase.hh"]
-        self.namespaces = ["Spheral", "BoundarySpace"]
-        self.templates = ["Dimension"]
-        self.preamble = """
+        TrampolineGenerator.__init__(self,
+                                     includes = ["Geometry/GeomPlane.hh",
+                                                 "NodeList/NodeList.hh",
+                                                 "Field/Field.hh",
+                                                 "DataBase/DataBase.hh"],
+                                     namespaces = ["Spheral", "BoundarySpace"],
+                                     templates = ["Dimension"],
+                                     preamble = """
 using Spheral::NodeSpace::NodeList;
 using Spheral::FieldSpace::Field;
 using Spheral::FieldSpace::FieldList;
 using Spheral::DataBaseSpace::DataBase;
-"""
+""")
         return
 
     def setAllGhostNodes(self,
