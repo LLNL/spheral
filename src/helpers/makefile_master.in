@@ -298,6 +298,10 @@ virtual%Bindings.hh:	%.py
 	$(eval cls = $(basename $(<F)))
 	@$(PYTHONEXE) -c "import sys; sys.path += ['$(srcdir)', '$(srcdir)/..']; from $(cls) import *; generateBindingFunction($(cls)())" > $@
 
+%.cc:	%.py
+	$(eval mod = $(basename $(<F)))
+	@$(PYTHONEXE) -c "import sys; sys.path += ['$(srcdir)', '$(srcdir)/..']; from ModuleGenerator import *; import $(mod); generateModule($(mod))" > $@
+
 # Machine dependent rules for generating dependency files.
 include $(SPHERALTOP)/helpers/@DEPENDRULES@
 
@@ -337,9 +341,9 @@ ifneq "$(PBGTARGET)" ""
 -include $(notdir $(PBGTARGET:.py=.py.d))
 endif
 
-ifneq "$(PYB11ARGET)" ""
--include $(notdir $(PYB11TARGET:.cc=.d))
-endif
+#ifneq "$(PYB11TARGET)" ""
+#-include $(notdir $(PYB11TARGET:.py=.d))
+#endif
 
 #-------------------------------------------------------------------------------
 $(LIBTARGET): $(OBJS) $(PYFFLEOBJS) $(EXETARGETS)
@@ -405,12 +409,34 @@ $(BPLMODTARGET): $(BPLOBJS) $(OBJS)
 	cp -f $(BPLMODTARGET) $(PYTHONLIBDIR)/Spheral
 
 #-------------------------------------------------------------------------------
-$(PYB11TARGET): $(OBJS)
+# $(PYB11TARGET): $(OBJS)
+# 	@echo "################################################################################"
+# 	@echo "# Building module $(PYB11TARGET)"
+# 	@echo "################################################################################"
+# 	@mkdir -p $(PYTHONLIBDIR)/Spheral
+# 	$(MPICXX) $(MPICXXFLAGS) $(CXXFLAGS) $(PYOPT) $(SHAREDFLAG) $(EXTRAINCLUDES) -I$(srcdir) -o $(PYB11TARGET) $(OBJS) $(MODULELINK) $(LDFLAGS) $(LDRPATH) $(LIBS) $(EXTRALIBS) $(DEPENDLIBS) $(LDRPATH) $(LDRPATH) $(LIBS) $(LIBS) $(PKGLIBS) $(PKGLIBS)
+# 	cp -f $(PYB11TARGET) $(PYTHONLIBDIR)/Spheral
+
+#-------------------------------------------------------------------------------
+$(PYB11TARGETDATE):  $(PYB11TARGET)
+	@echo "################################################################################"
+	@echo "# Building sources $(PYB11TARGET) $(PYB11SRCS)"
+	@echo "################################################################################"
+	touch $(PYB11TARGETDATE)
+
+$(PYB11SRCS):	$(PYB11TARGETDATE)
+
+$(PYB11OBJS):	$(PYB11SRCS)
+
+$(PYB11TARGET): $(PYB11TARGET:.$(SHLIBEXT)=.py) $(PYB11SRCS)
 	@echo "################################################################################"
 	@echo "# Building module $(PYB11TARGET)"
 	@echo "################################################################################"
 	@mkdir -p $(PYTHONLIBDIR)/Spheral
-	$(MPICXX) $(MPICXXFLAGS) $(CXXFLAGS) $(PYOPT) $(SHAREDFLAG) $(EXTRAINCLUDES) -I$(srcdir) -o $(PYB11TARGET) $(OBJS) $(MODULELINK) $(LDFLAGS) $(LDRPATH) $(LIBS) $(EXTRALIBS) $(DEPENDLIBS) $(LDRPATH) $(LDRPATH) $(LIBS) $(LIBS) $(PKGLIBS) $(PKGLIBS)
+	$(eval mod = $(basename $(<F)))
+	$(PYTHONEXE) -c "import sys; sys.path = ['$(srcdir)', '$(srcdir)/..'] + sys.path; from ModuleGenerator import *; import $(mod); generateModule($(mod))" > $(mod).cc
+	$(MPICXX) $(MPICXXFLAGS) $(INCS) $(EXTRAINCLUDES) -I$(srcdir) $(CXXFLAGS) $(PYOPT) $(EXTRAFLAGS) -c $(mod).cc -o $(mod).o
+	$(MPICXX) $(MPICXXFLAGS) $(CXXFLAGS) $(PYOPT) $(SHAREDFLAG) $(EXTRAINCLUDES) -I$(srcdir) -o $(PYB11TARGET) $(PYB11OBJS) $(OBJS) $(MODULELINK) $(LDFLAGS) $(LDRPATH) $(LIBS) $(EXTRALIBS) $(DEPENDLIBS)
 	cp -f $(PYB11TARGET) $(PYTHONLIBDIR)/Spheral
 
 #-------------------------------------------------------------------------------
@@ -463,7 +489,7 @@ docs:
 
 #-------------------------------------------------------------------------------
 clean:
-	rm -fr $(LIBTARGET) $(STATICLIBTARGET) $(MODTARGET) $(PBGMODTARGET) $(STATICPBGMODTARGET) $(EXETARGETS) $(OBJS) $(BPLOBJS) $(OBJS:.o=.d) $(BPLOBJS:.o=.d) $(PBGTARGETDATE) $(PBGSRCS) $(PBGOBJS) $(PBGMODSRCS) $(PYSTEOBJS) $(PYSTECPPS) $(LASTPYSTEMAKE) .$(PKGNAME) $(PYTHONDATEFILE) $(PBGTARGETS:.py=.C) $(PBGTARGET:.py=.py.d) $(PYB11TARGET:.cc=.$(SHLIBEXT)) $(notdir $(EXTRAINSTSRCTARGETS)) $(EXTRAINSTOBJS) $(EXTRAINSTOBJS:.o=.d) $(PYB11GENTARGETS)
+	rm -fr $(LIBTARGET) $(STATICLIBTARGET) $(MODTARGET) $(PBGMODTARGET) $(STATICPBGMODTARGET) $(EXETARGETS) $(OBJS) $(BPLOBJS) $(OBJS:.o=.d) $(BPLOBJS:.o=.d) $(PBGTARGETDATE) $(PBGSRCS) $(PBGOBJS) $(PBGMODSRCS) $(PYSTEOBJS) $(PYSTECPPS) $(LASTPYSTEMAKE) .$(PKGNAME) $(PYTHONDATEFILE) $(PBGTARGETS:.py=.C) $(notdir $(EXTRAINSTSRCTARGETS)) $(EXTRAINSTOBJS) $(EXTRAINSTOBJS:.o=.d) $(PYB11GENTARGETS)  $(PYB11TARGET) $(PYB11TARGET:.$(SHLIBEXT)=.cc) $(PYB11TARGET:.$(SHLIBEXT)=.o)
 
 #-------------------------------------------------------------------------------
 spotless:
