@@ -4,302 +4,27 @@
 import inspect
 import sys
 
-class ModuleGenerator:
-    """Users should inherit from this base class and provide
-
-Optional attributes to override:
-  self.includes : a list of string include paths
-"""
-
-    def __init__(self,
-                 includes = [],
-                 namespaces = [],
-                 preamble = None):
-        self.includes = includes
-        self.namespaces = namespaces
-        self.preamble = None
-        return
-
 #-------------------------------------------------------------------------------
-# generateTrampoline
-#
-# Generate the trampoline class, including pure virtual hooks.
+# generateModule
 #-------------------------------------------------------------------------------
-def generateModule(obj):
+def generateModule(modobj):
     ss = sys.stdout.write
-    name = obj.__class__.__name__
-    __generateModuleStart(obj, ss, name)
-
-    # Bind the methods
-    methods = [(name, meth) for (name, meth) in inspect.getmembers(obj, predicate=inspect.ismethod)
-               if name[:2] != "__"]
-    for name, method in methods:
-
-        # Get the return type and arguments.
-        returnType = method()
-        if returnType is None:
-            returnType = "void"
-        stuff = inspect.getargspec(method)
-        if "args" in stuff.args:
-            args = stuff.defaults[stuff.args.index("args") - 1]
-        else:
-            args = []
-        nargs = len(args)
-
-        # Is this method const?
-        if "const" in stuff.args:
-            const = stuff.defaults[stuff.args.index("const") - 1]
-        else:
-            const = False
-
-        # Is this method abstract?
-        if "pure" in stuff.args:
-            pure = stuff.defaults[stuff.args.index("pure") - 1]
-        else:
-            pure = False
-
-        # Because python does not have function overloading, we provide the ability
-        # to rename the c++ method.
-        if "name" in stuff.args:
-            name = stuff.defaults[stuff.args.index("name") - 1]
-
-        # Generate the spec for this method
-        dvals = {"name" : name, "returnType" : returnType}
-        firstline = "  virtual %(returnType)s %(name)s(" % dvals
-        offset = " "*len(firstline)
-        ss(firstline)
-        for i, (argType, argName, default) in enumerate(__parseArgs(args)):
-            if i > 0:
-                ss(offset)
-            ss(argType + " " + argName)
-            if i < nargs - 1:
-                ss(",\n")
-        ss(")")
-        if const:
-            ss(" const override {\n")
-        else:
-            ss(" override {\n")
-
-        if pure:
-            ss("    PYBIND11_OVERLOAD_PURE(" + returnType + ",\t// Return type\n")
-            offset = "                           "
-        else:
-            ss("    PYBIND11_OVERLOAD(" + returnType + ",\t// Return type\n")
-            offset = "                      "
-        ss(offset + "Base,\t\t// Parent class\n")
-        if nargs > 0:
-            ss(offset + name + ",\t// name of method\n")
-        else:
-            ss(offset + name + ");\t// name of method\n")
-
-        for i, (argType, argName, default) in enumerate(__parseArgs(args)):
-            if i < nargs - 1:
-                ss(offset + argName + ",\t// argument %i\n" % (i + 1))
-            else:
-                ss(offset + argName + ");\t// argument %i\n" % (i + 1))
-        ss("  }\n")
-
-    # Closing
-    __generateClassEnd(obj, ss)
-    return
-
-#-------------------------------------------------------------------------------
-# generateConcreteTrampoline
-#
-# Overload just the abstract methods with non-abstract overrides.
-#-------------------------------------------------------------------------------
-def generateConcreteTrampoline(obj):
-    ss = sys.stdout.write
-    name = obj.__class__.__name__ + "Concrete"
-    __generateClassStart(obj, ss, name)
-
-    # Bind the methods
-    methods = [(name, meth) for (name, meth) in inspect.getmembers(obj, predicate=inspect.ismethod)
-               if name[:2] != "__"]
-    for name, method in methods:
-
-        # Get the return type and arguments.
-        returnType = method()
-        stuff = inspect.getargspec(method)
-        if "args" in stuff.args:
-            args = stuff.defaults[stuff.args.index("args") - 1]
-        else:
-            args = []
-        nargs = len(args)
-
-        # Is this method const?
-        if "const" in stuff.args:
-            const = stuff.defaults[stuff.args.index("const") - 1]
-        else:
-            const = False
-
-        # Is this method abstract?
-        if "pure" in stuff.args:
-            pure = stuff.defaults[stuff.args.index("pure") - 1]
-        else:
-            pure = False
-
-        # Because python does not have function overloading, we provide the ability
-        # to rename the c++ method.
-        if "name" in stuff.args:
-            name = stuff.defaults[stuff.args.index("name") - 1]
-
-        if pure:
-            # Generate the spec for this method
-            dvals = {"name" : name, "returnType" : returnType}
-            firstline = "  virtual %(returnType)s %(name)s(" % dvals
-            offset = " "*len(firstline)
-            ss(firstline)
-            for i, (argType, argName, default) in enumerate(__parseArgs(args)):
-                if i > 0:
-                    ss(offset)
-                ss(argType + " " + argName)
-                if i < nargs - 1:
-                    ss(",\n")
-            ss(")")
-            if const:
-                ss(" const override {\n")
-            else:
-                ss(" override {\n")
-
-            ss("    PYBIND11_OVERLOAD(" + returnType + ",\t// Return type\n")
-            offset = "                      "
-            ss(offset + "Base,\t\t// Parent class\n")
-            if nargs > 0:
-                ss(offset + name + ",\t// name of method\n")
-            else:
-                ss(offset + name + ");\t// name of method\n")
-        
-            for i, (argType, argName, default) in enumerate(__parseArgs(args)):
-                if i < nargs - 1:
-                    ss(offset + argName + ",\t// argument %i\n" % (i + 1))
-                else:
-                    ss(offset + argName + ");\t// argument %i\n" % (i + 1))
-            ss("  }\n")
-        
-    # Closing
-    __generateClassEnd(obj, ss)
-
-    return
-
-#-------------------------------------------------------------------------------
-# generateBindingFunction
-#
-# Generate a function that provides pybind11 bindings for the virtual methods.
-#-------------------------------------------------------------------------------
-def generateBindingFunction(obj):
-    ss = sys.stdout.write
-    name = obj.__class__.__name__
-
-    # Compiler guard.
-    ss("""//------------------------------------------------------------------------------
-// Pybind11 binding for virtual methods in %(name)s
-//------------------------------------------------------------------------------
-#ifndef __pybind11Bindings_%(name)s__
-#define __pybing11Bindings_%(name)s__
-
-""" % {"name" : name})
-
-    # Includes
-    for inc in obj.includes:
-        ss('#include "%s"\n' % inc)
-    ss("\n")
-
-    # Preamble
-    if obj.preamble:
-        ss(obj.preamble + "\n")
-
-    # Namespaces
-    for ns in obj.namespaces:
-        ss("namespace " + ns + " {\n")
-    ss("\n")
-
-    # Template parameters
-    ss("template<")
-    for tp in obj.templates:
-        ss("typename %s, " % tp)
-    ss("typename Obj, typename PB11Obj>\n")
-
-    # Function spec
-    ss("void virtual%sBindings(PB11Obj& obj) {\n\n" % name)
-
-    # typedefs
-    if "Dimension" in obj.templates:
-        ss("""
-  typedef typename Dimension::Scalar Scalar;
-  typedef typename Dimension::Vector Vector;
-  typedef typename Dimension::Tensor Tensor;
-  typedef typename Dimension::SymTensor SymTensor;
-  typedef typename Dimension::ThirdRankTensor ThirdRankTensor;
-
-""");
+    name = modobj.__name__
+    generateModuleStart(modobj, ss, name)
 
     # Bind methods.
-    ss("  // Methods\n")
-    methods = [(name, meth) for (name, meth) in inspect.getmembers(obj, predicate=inspect.ismethod)
-               if name[:2] != "__"]
-    for name, method in methods:
-
-        # Get the return type and arguments.
-        returnType = method()
-        stuff = inspect.getargspec(method)
-        if "args" in stuff.args:
-            args = stuff.defaults[stuff.args.index("args") - 1]
-        else:
-            args = []
-        nargs = len(args)
-
-        # Is this method const?
-        if "const" in stuff.args:
-            const = stuff.defaults[stuff.args.index("const") - 1]
-        else:
-            const = False
-
-        # Is there a doc string?
-        if "doc" in stuff.args:
-            doc = stuff.defaults[stuff.args.index("doc") - 1]
-        else:
-            doc = None
-
-        # Because python does not have function overloading, we provide the ability
-        # to rename the c++ method.
-        if "name" in stuff.args:
-            name = stuff.defaults[stuff.args.index("name") - 1]
-
-        # Write the binding
-        dvals = {"name" : name, "returnType" : returnType}
-        ss('  obj.def("%(name)s", (%(returnType)s (Obj::*)(' % dvals)
-        for i, (argType, argName, default) in enumerate(__parseArgs(args)):
-            ss(argType)
-            if i < nargs - 1:
-                ss(", ")
-        if const:
-            ss(") const)")
-        else:
-            ss("))")
-        ss(" &Obj::" + name)
-        for argType, argName, default in __parseArgs(args):
-            ss(', "%s"_a' % argName)
-            if default:
-                ss("=" + default)
-        if doc:
-            ss(',\n          "%s"' % doc)
-        ss(");\n")
+    generateModuleFunctions(modobj, ss)
 
     # Closing
-    ss("}\n\n")
-    for ns in obj.namespaces:
-        ss("}\n")
-    ss("#endif\n")
-    
+    ss("}\n")
     return
 
 #-------------------------------------------------------------------------------
-# __generateModuleStart
+# generateModuleStart
 #
 # All the stuff up to the methods.
 #-------------------------------------------------------------------------------
-def __generateModuleStart(modobj, ss, name):
+def generateModuleStart(modobj, ss, name):
 
     # Compiler guard.
     ss("""//------------------------------------------------------------------------------
@@ -310,39 +35,104 @@ def __generateModuleStart(modobj, ss, name):
 #include "pybind11/stl_bind.h"
 #include "pybind11/operators.h"
 
-namespace py = pybind11
+namespace py = pybind11;
 using namespace pybind11::literals;
 
 """ % {"name" : name})
 
     # Includes
-    for inc in modobj.includes:
-        ss('#include "%s"\n' % inc)
-    ss("\n")
+    if hasattr(modobj, "includes"):
+        for inc in modobj.includes:
+            ss('#include "%s"\n' % inc)
+        ss("\n")
 
     # Use  namespaces
-    for ns in modobj.namespaces:
-        ss("using namespace " + ns + "\n")
-    ss("\n")
+    if hasattr(modobj, "namespaces"):
+        for ns in modobj.namespaces:
+            ss("using namespace " + ns + "\n")
+        ss("\n")
 
     # Use objects from scopes
-    for scopename in modobj.scopenames:
-        ss("using " + scopename + "\n")
-    ss("\n")
+    if hasattr(modobj, "scopenames"):
+        for scopename in modobj.scopenames:
+            ss("using " + scopename + "\n")
+        ss("\n")
 
     # Preamble
-    if modobj.preamble:
-        ss(modobj.preamble + "\n")
-    ss("\n")
+    if hasattr(modobj, "preamble"):
+        if modobj.preamble:
+            ss(modobj.preamble + "\n")
+        ss("\n")
 
     # Declare the module
     ss("""
+//------------------------------------------------------------------------------
+// Make the module
+//------------------------------------------------------------------------------
 PYBIND11_MODULE(%(name)s, m) {
 
 """ % {"name"     : name,
       })
 
+    if inspect.getdoc(modobj):
+        ss("  m.doc() = ")
+        for i, line in enumerate(inspect.getdoc(modobj).split('\n')):
+            if i > 0:
+                ss("            ")
+            ss('"%s"\n' % line);
+        ss("  ;\n")
+    ss("\n")
+
     return
+
+#-------------------------------------------------------------------------------
+# generateModuleFunctions
+#
+# Bind the methods in the module
+#-------------------------------------------------------------------------------
+def generateModuleFunctions(modobj, ss):
+    methods = [(name, meth) for (name, meth) in inspect.getmembers(modobj, predicate=inspect.isfunction)
+               if name[:2] != "__"]
+    if methods:
+        ss("  // Methods\n")
+    for name, meth in methods:
+
+        # Get the return type and arguments.
+        returnType = meth()
+        stuff = inspect.getargspec(meth)
+        args = None
+        if "args" in stuff.args:
+            args = stuff.defaults[stuff.args.index("args") - 1]
+            nargs = len(args)
+
+        # Because python does not have function overloading, we provide the ability
+        # to rename the c++ method.
+        if "name" in stuff.args:
+            name = stuff.defaults[stuff.args.index("name") - 1]
+
+        # Write the binding
+        dvals = {"name" : name, "returnType" : returnType}
+        ss('  m.def("%s", ' % name)
+        if returnType:
+            assert not args is None
+            ss("(%s (*)(" % returnType)
+            for i, (argType, argName, default) in enumerate(__parseArgs(args)):
+                ss(argType)
+                if i < nargs - 1:
+                    ss(", ")
+            ss(")) &%s" % name)
+            for argType, argName, default in __parseArgs(args):
+                ss(', "%s"_a' % argName)
+                if default:
+                    ss("=" + default)
+        else:
+            ss("&%s" % name)
+
+        # Write the doc string
+        if inspect.getdoc(meth):
+            doc = inspect.getdoc(meth)
+            ss(',\n        "%s"' % inspect.getdoc(meth))
+        ss(");\n")
 
 #-------------------------------------------------------------------------------
 # __parseArgs
