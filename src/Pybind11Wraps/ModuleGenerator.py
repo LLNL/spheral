@@ -3,6 +3,22 @@
 #-------------------------------------------------------------------------------
 import inspect
 import sys
+from functools import wraps
+
+#-------------------------------------------------------------------------------
+# Add a virtual attribute to a method.
+#-------------------------------------------------------------------------------
+def virtual(f):
+    @wraps(f)
+    def wrapper(*args, **kwds):
+        f.__pyb11_virtual = True
+    return wrapper
+
+def pure_virtual(f):
+    @wraps(f)
+    def wrapper(*args, **kwds):
+        f.__pyb11_pure_virtual = True
+    return wrapper
 
 #-------------------------------------------------------------------------------
 # generateModule
@@ -133,6 +149,55 @@ def generateModuleFunctions(modobj, ss):
             doc = inspect.getdoc(meth)
             ss(',\n        "%s"' % inspect.getdoc(meth))
         ss(");\n")
+
+#-------------------------------------------------------------------------------
+# generateModuleClasses
+#
+# Bind the classes in the module
+#-------------------------------------------------------------------------------
+def generateModuleClasses(modobj, ss):
+    classes = [(name, klas) for (name, klas) in inspect.getmembers(modobj, predicate=inspect.isclass)
+               if name[:2] != "__"]
+    for name, klass in classes:
+        ss("  //............................................................................\n")
+        ss("  // Class %s\n" % klass.__name__)
+
+        # # Get the return type and arguments.
+        # returnType = meth()
+        # stuff = inspect.getargspec(meth)
+        # args = None
+        # if "args" in stuff.args:
+        #     args = stuff.defaults[stuff.args.index("args") - 1]
+        #     nargs = len(args)
+
+        # # Because python does not have function overloading, we provide the ability
+        # # to rename the c++ method.
+        # if "name" in stuff.args:
+        #     name = stuff.defaults[stuff.args.index("name") - 1]
+
+        # # Write the binding
+        # dvals = {"name" : name, "returnType" : returnType}
+        # ss('  m.def("%s", ' % name)
+        # if returnType:
+        #     assert not args is None
+        #     ss("(%s (*)(" % returnType)
+        #     for i, (argType, argName, default) in enumerate(__parseArgs(args)):
+        #         ss(argType)
+        #         if i < nargs - 1:
+        #             ss(", ")
+        #     ss(")) &%s" % name)
+        #     for argType, argName, default in __parseArgs(args):
+        #         ss(', "%s"_a' % argName)
+        #         if default:
+        #             ss("=" + default)
+        # else:
+        #     ss("&%s" % name)
+
+        # # Write the doc string
+        # if inspect.getdoc(meth):
+        #     doc = inspect.getdoc(meth)
+        #     ss(',\n        "%s"' % inspect.getdoc(meth))
+        # ss(");\n")
 
 #-------------------------------------------------------------------------------
 # __parseArgs
