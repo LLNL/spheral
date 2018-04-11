@@ -174,10 +174,31 @@ void
 SolidCRKSPHHydroBaseRZ::
 initializeProblemStartup(DataBase<Dim<2> >& dataBase) {
 
+  dataBase.isRZ = true;
+
+  // Correct the mass to mass/r.
+  auto mass = dataBase.fluidMass();
+  const auto pos = dataBase.fluidPosition();
+  const unsigned numNodeLists = mass.numFields();
+  for (unsigned nodeListi = 0; nodeListi != numNodeLists; ++nodeListi) {
+    const unsigned n = mass[nodeListi]->numElements();
+    for (unsigned i = 0; i != n; ++i) {
+      const Scalar circi = 2.0*M_PI*abs(pos(nodeListi, i).y());
+      mass(nodeListi, i) /= circi;
+    }
+  }
+
   // Call the ancestor.
   SolidCRKSPHHydroBase<Dimension>::initializeProblemStartup(dataBase);
 
-  dataBase.isRZ = true;
+  // Convert back to mass.
+  for (unsigned nodeListi = 0; nodeListi != numNodeLists; ++nodeListi) {
+    const unsigned n = mass[nodeListi]->numElements();
+    for (unsigned i = 0; i != n; ++i) {
+      const Scalar circi = 2.0*M_PI*abs(pos(nodeListi, i).y());
+      mass(nodeListi, i) *= circi;
+    }
+  }
 
   // Create storage for the state we're holding.
   mDeviatoricStressTT = dataBase.newSolidFieldList(0.0, SolidFieldNames::deviatoricStressTT);
@@ -255,42 +276,28 @@ finalize(const Dim<2>::Scalar time,
          State<Dim<2> >& state,
          StateDerivatives<Dim<2> >& derivs) {
 
-  // If we're going to do the summation density, we need to convert the mass
-  // to mass per unit length first.
-  if (densityUpdate() == PhysicsSpace::MassDensityType::RigorousSumDensity or
-      densityUpdate() == PhysicsSpace::MassDensityType::CorrectedSumDensity) {
-    FieldList<Dimension, Scalar> mass = state.fields(HydroFieldNames::mass, 0.0);
-    const FieldList<Dimension, Vector> pos = state.fields(HydroFieldNames::position, Vector::zero);
-    const unsigned numNodeLists = mass.numFields();
-    for (unsigned nodeListi = 0; nodeListi != numNodeLists; ++nodeListi) {
-      const unsigned n = mass[nodeListi]->numElements();
-      for (unsigned i = 0; i != n; ++i) {
-        const Scalar circi = 2.0*M_PI*abs(pos(nodeListi, i).y());
-        mass(nodeListi, i) /= circi;
-      }
+  // Convert the mass to mass per unit length first.
+  auto mass = state.fields(HydroFieldNames::mass, 0.0);
+  const auto pos = state.fields(HydroFieldNames::position, Vector::zero);
+  const unsigned numNodeLists = mass.numFields();
+  for (unsigned nodeListi = 0; nodeListi != numNodeLists; ++nodeListi) {
+    const unsigned n = mass[nodeListi]->numElements();
+    for (unsigned i = 0; i != n; ++i) {
+      const auto circi = 2.0*M_PI*abs(pos(nodeListi, i).y());
+      mass(nodeListi, i) /= circi;
     }
   }
 
   // Base class finalization does most of the work.
   SolidCRKSPHHydroBase<Dimension>::finalize(time, dt, dataBase, state, derivs);
 
-  // Now convert back to true masses and mass densities.  We also apply the RZ
-  // correction factor to the mass density.
-  if (densityUpdate() == PhysicsSpace::MassDensityType::RigorousSumDensity or
-      densityUpdate() == PhysicsSpace::MassDensityType::CorrectedSumDensity) {
-    const TableKernel<Dimension>& W = this->kernel();
-    const FieldList<Dimension, Vector> position = state.fields(HydroFieldNames::position, Vector::zero);
-    const FieldList<Dimension, SymTensor> H = state.fields(HydroFieldNames::H, SymTensor::zero);
-    FieldList<Dimension, Scalar> mass = state.fields(HydroFieldNames::mass, 0.0);
-    FieldList<Dimension, Scalar> massDensity = state.fields(HydroFieldNames::massDensity, 0.0);
-    const unsigned numNodeLists = massDensity.numFields();
-    for (unsigned nodeListi = 0; nodeListi != numNodeLists; ++nodeListi) {
-      const unsigned n = massDensity[nodeListi]->numElements();
-      for (unsigned i = 0; i != n; ++i) {
-        const Vector& xi = position(nodeListi, i);
-        const Scalar circi = 2.0*M_PI*abs(xi.y());
-        mass(nodeListi, i) *= circi;
-      }
+  // Now convert back to true masses.
+  for (unsigned nodeListi = 0; nodeListi != numNodeLists; ++nodeListi) {
+    const unsigned n = mass[nodeListi]->numElements();
+    for (unsigned i = 0; i != n; ++i) {
+      const auto& xi = pos(nodeListi, i);
+      const auto circi = 2.0*M_PI*abs(xi.y());
+      mass(nodeListi, i) *= circi;
     }
   }
 }
