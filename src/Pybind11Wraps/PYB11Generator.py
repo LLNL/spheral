@@ -3,22 +3,8 @@
 #-------------------------------------------------------------------------------
 import inspect
 import sys
-from functools import wraps
-
-#-------------------------------------------------------------------------------
-# Add a virtual attribute to a method.
-#-------------------------------------------------------------------------------
-def virtual(f):
-    @wraps(f)
-    def wrapper(*args, **kwds):
-        f.__pyb11_virtual = True
-    return wrapper
-
-def pure_virtual(f):
-    @wraps(f)
-    def wrapper(*args, **kwds):
-        f.__pyb11_pure_virtual = True
-    return wrapper
+from PYB11ClassDecorators import *
+from PYB11FunctionDecorators import *
 
 #-------------------------------------------------------------------------------
 # generateModule
