@@ -2,6 +2,7 @@
 # Decorators for attributes to classes.
 #-------------------------------------------------------------------------------
 from functools import wraps as PYB11wraps    # Add PYB11 to screen out in generation
+import decorator                             # To preserve wrapped functions args
 
 #-------------------------------------------------------------------------------
 # Singleton
@@ -18,6 +19,7 @@ def PYB11singleton(Cls):
 #-------------------------------------------------------------------------------
 # Virtual method
 #-------------------------------------------------------------------------------
+@decorator.decorator
 def PYB11virtual(f):
     @PYB11wraps(f)
     def wrapper(*args, **kwargs):
@@ -28,6 +30,7 @@ def PYB11virtual(f):
 #-------------------------------------------------------------------------------
 # Pure virtual method
 #-------------------------------------------------------------------------------
+@decorator.decorator
 def PYB11pure_virtual(f):
     @PYB11wraps(f)
     def wrapper(*args, **kwargs):
@@ -38,6 +41,7 @@ def PYB11pure_virtual(f):
 #-------------------------------------------------------------------------------
 # const method
 #-------------------------------------------------------------------------------
+@decorator.decorator
 def PYB11const(f):
     @PYB11wraps(f)
     def wrapper(*args, **kwargs):

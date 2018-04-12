@@ -189,7 +189,7 @@ def PYB11generateModuleClasses(modobj, ss):
 #-------------------------------------------------------------------------------
 # PYB11parseArgs
 #
-# Return (argType, argName, default_value (optional)
+# Return (argType, argName, <default_value>)
 #-------------------------------------------------------------------------------
 def PYB11parseArgs(args):
     result = []
@@ -218,3 +218,10 @@ def PYB11classes(modobj):
     return [(name, cls) for (name, cls) in inspect.getmembers(modobj, predicate=inspect.isclass)
             if name[:5] != "PYB11"]
 
+#-------------------------------------------------------------------------------
+# PYB11methods
+#
+# Get the methods to bind from a class
+#-------------------------------------------------------------------------------
+def PYB11methods(obj):
+    return inspect.getmembers(klass, predicate=inspect.ismethod)

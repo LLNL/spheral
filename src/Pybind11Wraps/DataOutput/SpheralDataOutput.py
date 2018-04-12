@@ -60,8 +60,8 @@ class RestartRegistrar:
 class RestartableObject:
 
     def __init__(self,
-                 args = [("PyObject*", "self"),
-                         ("const unsigned", "priority")]):
+                 pyobj = "PyObject*",
+                 priority = "const unsigned"):
         "Construct with the given object and priority."
         return
 
@@ -74,15 +74,15 @@ class RestartableObject:
     @PYB11virtual
     @PYB11const
     def dumpState(self,
-                  args = [("FileIOSpace::FileIO&", "file"),
-                          ("const std::string", "pathName")]):
+                  file = "FileIOSpace::FileIO&",
+                  pathName = "const std::string"):
         "Write this objects state to the file under the given path."
         return "void"
 
     @PYB11virtual
     def restoreState(self,
-                     args = [("const FileIOSpace::FileIO&", "file"),
-                             ("const std::string", "pathName")]):
+                     file = "const FileIOSpace::FileIO&",
+                     pathName = ("const std::string", "pathName")):
         "Read the state for this object from the given file and path."
         return "void"
 
