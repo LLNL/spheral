@@ -17,6 +17,9 @@ def PYB11generateModule(modobj):
     # Bind methods.
     PYB11generateModuleFunctions(modobj, ss)
 
+    # Bind classes.
+    PYB11generateModuleClasses(modobj, ss)
+
     # Closing
     ss("}\n")
     return
@@ -51,7 +54,7 @@ using namespace pybind11::literals;
     # Use  namespaces
     if hasattr(modobj, "namespaces"):
         for ns in modobj.namespaces:
-            ss("using namespace " + ns + "\n")
+            ss("using namespace " + ns + ";\n")
         ss("\n")
 
     # Use objects from scopes
