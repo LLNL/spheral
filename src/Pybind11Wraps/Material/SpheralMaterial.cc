@@ -398,8 +398,9 @@ void dimensionBindings(py::module& m, const std::string suffix) {
 //------------------------------------------------------------------------------
 // Make the module
 //------------------------------------------------------------------------------
-PYBIND11_PLUGIN(SpheralMaterial) {
-  py::module m("SpheralMaterial", "Spheral Material module.");
+PYBIND11_MODULE(SpheralMaterial, m) {
+
+  m.doc() = "Spheral Material module.";
 
   //............................................................................
   // MaterialPressureMinType
@@ -443,6 +444,4 @@ PYBIND11_PLUGIN(SpheralMaterial) {
 #ifdef SPHERAL3D
   dimensionBindings<Spheral::Dim<3>>(m, "3d");
 #endif
-
-  return m.ptr();
 }
