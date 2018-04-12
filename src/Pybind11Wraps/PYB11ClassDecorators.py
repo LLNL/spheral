@@ -36,3 +36,12 @@ def pure_virtual(f):
         f.__pyb11_pure_virtual = True
     return wrapper
 
+#-------------------------------------------------------------------------------
+# const method
+#-------------------------------------------------------------------------------
+def const(f):
+    @wraps(f)
+    def wrapper(*args, **kwds):
+        f.__pyb11_const = True
+    return wrapper
+
