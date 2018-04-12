@@ -26,29 +26,30 @@ namespaces = ["Spheral", "DataOutput"]
 #-------------------------------------------------------------------------------
 # RestartRegistrar
 #-------------------------------------------------------------------------------
-@singleton
+@PYB11singleton
 class RestartRegistrar:
+    "A singleton object that holds all objects currently registered for restart."
 
     def removeExpiredPointers(self):
         "Clear all expired objects from the RestartRegistrar."
         return
 
-    @const
+    @PYB11const
     def uniqueLabels(self):
         "Return a std::vector of the labels for each known restart handle."
         return
 
-    @const
+    @PYB11const
     def printLabels(self):
         "Print out the labels for all known restart handles."
         return
 
-    @const
+    @PYB11const
     def dumpState(self):
         "Dump the state of all restartable handles"
         return
 
-    @const
+    @PYB11const
     def restoreState(self):
         "Restore the state of all restartable handles"
         return
@@ -64,21 +65,21 @@ class RestartableObject:
         "Construct with the given object and priority."
         return
 
-    @virtual
-    @const
+    @PYB11virtual
+    @PYB11const
     def label(self):
         "Define the label for storing this object in a restart file."
         return "std::string"
 
-    @virtual
-    @const
+    @PYB11virtual
+    @PYB11const
     def dumpState(self,
                   args = [("FileIOSpace::FileIO&", "file"),
                           ("const std::string", "pathName")]):
         "Write this objects state to the file under the given path."
         return "void"
 
-    @virtual
+    @PYB11virtual
     def restoreState(self,
                      args = [("const FileIOSpace::FileIO&", "file"),
                              ("const std::string", "pathName")]):
