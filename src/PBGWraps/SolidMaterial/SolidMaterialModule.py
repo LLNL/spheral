@@ -666,7 +666,9 @@ def generateJohnsonCookStrengthBindings(x, ndim):
                        param("double", "epsdot0"),
                        param("double", "epsdotmin"),
                        param("double", "Tmelt"),
-                       param("double", "Troom")])
+                       param("double", "Troom"),
+                       param("double", "mu0", default_value="0.0"),
+                       param("bool", "shearModulusScaling", default_value="false")])
 
     # Add the abstract interface.
     generateStrengthModelVirtualBindings(x, ndim, False)
@@ -682,6 +684,8 @@ def generateJohnsonCookStrengthBindings(x, ndim):
     x.add_instance_attribute("epsdotmin", "double", getter="epsdotmin", is_const=True)
     x.add_instance_attribute("Tmelt", "double", getter="Tmelt", is_const=True)
     x.add_instance_attribute("Troom", "double", getter="Troom", is_const=True)
+    x.add_instance_attribute("mu0", "double", getter="mu0", is_const=True)
+    x.add_instance_attribute("shearModulusScaling", "bool", getter="shearModulusScaling", is_const=True)
 
     return
 

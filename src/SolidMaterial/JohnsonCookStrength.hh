@@ -38,27 +38,29 @@ public:
                       const double epsdot0,
                       const double epsdotmin,
                       const double Tmelt,
-                      const double Troom);
+                      const double Troom,
+                      const double mu0,
+                      const bool shearModulusScaling);
   virtual ~JohnsonCookStrength();
 
   // Override the required generic interface.
   virtual void shearModulus(FieldSpace::Field<Dimension, Scalar>& shearModulus,
                             const FieldSpace::Field<Dimension, Scalar>& density,
                             const FieldSpace::Field<Dimension, Scalar>& specificThermalEnergy,
-                            const FieldSpace::Field<Dimension, Scalar>& pressure) const;
+                            const FieldSpace::Field<Dimension, Scalar>& pressure) const override;
 
   virtual void yieldStrength(FieldSpace::Field<Dimension, Scalar>& yieldStrength,
                              const FieldSpace::Field<Dimension, Scalar>& density,
                              const FieldSpace::Field<Dimension, Scalar>& specificThermalEnergy,
                              const FieldSpace::Field<Dimension, Scalar>& pressure,
                              const FieldSpace::Field<Dimension, Scalar>& plasticStrain,
-                             const FieldSpace::Field<Dimension, Scalar>& plasticStrainRate) const;
+                             const FieldSpace::Field<Dimension, Scalar>& plasticStrainRate) const override;
 
   virtual void soundSpeed(FieldSpace::Field<Dimension, Scalar>& soundSpeed,
                           const FieldSpace::Field<Dimension, Scalar>& density,
                           const FieldSpace::Field<Dimension, Scalar>& specificThermalEnergy,
                           const FieldSpace::Field<Dimension, Scalar>& pressure,
-                          const FieldSpace::Field<Dimension, Scalar>& fluidSoundSpeed) const;
+                          const FieldSpace::Field<Dimension, Scalar>& fluidSoundSpeed) const override;
 
   // Access the strength parameters.
   double A() const;
@@ -71,12 +73,15 @@ public:
   double epsdotmin() const;
   double Tmelt() const;
   double Troom() const;
+  double mu0() const;
+  bool shearModulusScaling() const;
 
 private:
   //--------------------------- Private Interface ---------------------------//
   const SolidEquationOfState<Dimension>* mEOSPtr;
   const StrengthModel<Dimension>* mShearModulusModelPtr;
-  const double mA, mB, mC, mC4, mm, mnhard, mEpsdot0, mEpsdotmin, mTmelt, mTroom;
+  const double mA, mB, mC, mC4, mm, mnhard, mEpsdot0, mEpsdotmin, mTmelt, mTroom, mmu0;
+  bool mShearModulusScaling;
 
   // No copying or assignment.
   JohnsonCookStrength(const JohnsonCookStrength&);
