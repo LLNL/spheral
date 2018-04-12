@@ -7,26 +7,26 @@ from PYB11ClassDecorators import *
 from PYB11FunctionDecorators import *
 
 #-------------------------------------------------------------------------------
-# generateModule
+# PYB11generateModule
 #-------------------------------------------------------------------------------
-def generateModule(modobj):
+def PYB11generateModule(modobj):
     ss = sys.stdout.write
     name = modobj.__name__
-    generateModuleStart(modobj, ss, name)
+    PYB11generateModuleStart(modobj, ss, name)
 
     # Bind methods.
-    generateModuleFunctions(modobj, ss)
+    PYB11generateModuleFunctions(modobj, ss)
 
     # Closing
     ss("}\n")
     return
 
 #-------------------------------------------------------------------------------
-# generateModuleStart
+# PYB11generateModuleStart
 #
 # All the stuff up to the methods.
 #-------------------------------------------------------------------------------
-def generateModuleStart(modobj, ss, name):
+def PYB11generateModuleStart(modobj, ss, name):
 
     # Compiler guard.
     ss("""//------------------------------------------------------------------------------
@@ -88,13 +88,12 @@ PYBIND11_MODULE(%(name)s, m) {
     return
 
 #-------------------------------------------------------------------------------
-# generateModuleFunctions
+# PYB11generateModuleFunctions
 #
 # Bind the methods in the module
 #-------------------------------------------------------------------------------
-def generateModuleFunctions(modobj, ss):
-    methods = [(name, meth) for (name, meth) in inspect.getmembers(modobj, predicate=inspect.isfunction)
-               if name[:2] != "__"]
+def PYB11generateModuleFunctions(modobj, ss):
+    methods = PYB11functions(modobj)
     if methods:
         ss("  // Methods\n")
     for name, meth in methods:
@@ -118,12 +117,12 @@ def generateModuleFunctions(modobj, ss):
         if returnType:
             assert not args is None
             ss("(%s (*)(" % returnType)
-            for i, (argType, argName, default) in enumerate(__parseArgs(args)):
+            for i, (argType, argName, default) in enumerate(PYB11parseArgs(args)):
                 ss(argType)
                 if i < nargs - 1:
                     ss(", ")
             ss(")) &%s" % name)
-            for argType, argName, default in __parseArgs(args):
+            for argType, argName, default in PYB11parseArgs(args):
                 ss(', "%s"_a' % argName)
                 if default:
                     ss("=" + default)
@@ -137,13 +136,12 @@ def generateModuleFunctions(modobj, ss):
         ss(");\n")
 
 #-------------------------------------------------------------------------------
-# generateModuleClasses
+# PYB11generateModuleClasses
 #
 # Bind the classes in the module
 #-------------------------------------------------------------------------------
-def generateModuleClasses(modobj, ss):
-    classes = [(name, klas) for (name, klas) in inspect.getmembers(modobj, predicate=inspect.isclass)
-               if name[:2] != "__"]
+def PYB11generateModuleClasses(modobj, ss):
+    classes = PYB11classes(modobj)
     for name, klass in classes:
         ss("  //............................................................................\n")
         ss("  // Class %s\n" % klass.__name__)
@@ -167,12 +165,12 @@ def generateModuleClasses(modobj, ss):
         # if returnType:
         #     assert not args is None
         #     ss("(%s (*)(" % returnType)
-        #     for i, (argType, argName, default) in enumerate(__parseArgs(args)):
+        #     for i, (argType, argName, default) in enumerate(PYB11parseArgs(args)):
         #         ss(argType)
         #         if i < nargs - 1:
         #             ss(", ")
         #     ss(")) &%s" % name)
-        #     for argType, argName, default in __parseArgs(args):
+        #     for argType, argName, default in PYB11parseArgs(args):
         #         ss(', "%s"_a' % argName)
         #         if default:
         #             ss("=" + default)
@@ -186,11 +184,11 @@ def generateModuleClasses(modobj, ss):
         # ss(");\n")
 
 #-------------------------------------------------------------------------------
-# __parseArgs
+# PYB11parseArgs
 #
 # Return (argType, argName, default_value (optional)
 #-------------------------------------------------------------------------------
-def __parseArgs(args):
+def PYB11parseArgs(args):
     result = []
     for tup in args:
         if len(tup) == 2:
@@ -198,3 +196,22 @@ def __parseArgs(args):
         else:
             result.append(tup)
     return result
+
+#-------------------------------------------------------------------------------
+# PYB11functions
+#
+# Get the functions to bind from a module
+#-------------------------------------------------------------------------------
+def PYB11functions(modobj):
+    return [(name, meth) for (name, meth) in inspect.getmembers(modobj, predicate=inspect.isfunction)
+            if name[:5] != "PYB11"]
+
+#-------------------------------------------------------------------------------
+# PYB11classes
+#
+# Get the classes to bind from a module
+#-------------------------------------------------------------------------------
+def PYB11classes(modobj):
+    return [(name, cls) for (name, cls) in inspect.getmembers(modobj, predicate=inspect.isclass)
+            if name[:5] != "PYB11"]
+
