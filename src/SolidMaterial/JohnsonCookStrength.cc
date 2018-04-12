@@ -36,7 +36,9 @@ JohnsonCookStrength(const SolidEquationOfState<Dimension>& eos,
                     const double epsdot0,
                     const double epsdotmin,
                     const double Tmelt,
-                    const double Troom):
+                    const double Troom,
+                    const double mu0,
+                    const bool shearModulusScaling):
   mEOSPtr(&eos),
   mShearModulusModelPtr(&shearModulusModel),
   mA(A),
@@ -48,9 +50,15 @@ JohnsonCookStrength(const SolidEquationOfState<Dimension>& eos,
   mEpsdot0(epsdot0),
   mEpsdotmin(epsdotmin),
   mTmelt(Tmelt),
-  mTroom(Troom) {
-  VERIFY2(mEpsdot0 > 0.0, "JohnsonCookStrength ERROR: reference strain-rate must be greater than zero.");
-  VERIFY2(mTmelt > mTroom, "JohnsonCookStrength ERROR: Tmelt must be greater than or equal Troom.");
+  mTroom(Troom),
+  mmu0(mu0),
+  mShearModulusScaling(shearModulusScaling) {
+  VERIFY2(mEpsdot0 > 0.0,
+          "JohnsonCookStrength ERROR: reference strain-rate must be greater than zero.");
+  VERIFY2(mTmelt > mTroom,
+          "JohnsonCookStrength ERROR: Tmelt must be greater than or equal Troom.");
+  VERIFY2((not shearModulusScaling) or mu0 > 0.0,
+          "JohnsonCookStrength ERROR: require mu0 >= 0.0 if using shear modulus scaling.");
 }
 
 //------------------------------------------------------------------------------
@@ -88,13 +96,22 @@ yieldStrength(FieldSpace::Field<Dimension, Scalar>& yieldStrength,
               const FieldSpace::Field<Dimension, Scalar>& plasticStrainRate) const {
   Field<Dimension, Scalar> T("temperature", yieldStrength.nodeList());
   mEOSPtr->setTemperature(T, density, specificThermalEnergy);
-  for (unsigned i = 0; i != yieldStrength.numInternalElements(); ++i) {
-    const double Tstar = max(0.0, T(i) - mTroom)/(mTmelt - mTroom);
+  for (auto i = 0; i != yieldStrength.numInternalElements(); ++i) {
+    const auto Tstar = max(0.0, T(i) - mTroom)/(mTmelt - mTroom);
     yieldStrength(i) = 
       (mA + mB*pow(plasticStrain(i), mnhard))*
       (1.0 + mC*log(max(mEpsdotmin, plasticStrainRate(i))/mEpsdot0))*
       (1.0 - pow(Tstar, mm)) +
       mC4*pressure(i);
+  }
+
+  // Optionally scale by the relative shear modulus.
+  if (mShearModulusScaling) {
+    Field<Dimension, Scalar> mu("shear modulus", yieldStrength.nodeList());
+    mShearModulusModelPtr->shearModulus(mu, density, specificThermalEnergy, pressure);
+    for (auto i = 0; i != yieldStrength.numInternalElements(); ++i) {
+      yieldStrength(i) *= mu(i)*safeInvVar(mmu0);
+    }
   }
 }
 
@@ -183,6 +200,20 @@ double
 JohnsonCookStrength<Dimension>::
 Troom() const {
   return mTroom;
+}
+
+template<typename Dimension>
+double
+JohnsonCookStrength<Dimension>::
+mu0() const {
+  return mmu0;
+}
+
+template<typename Dimension>
+bool
+JohnsonCookStrength<Dimension>::
+shearModulusScaling() const {
+  return mShearModulusScaling;
 }
 
 }
