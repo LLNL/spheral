@@ -187,6 +187,7 @@ if iterateH:
 # Compute the volumes.
 #-------------------------------------------------------------------------------
 weight = ScalarFieldList()                         # No weights
+damage = SymTensorFieldList()                      # No damage
 gradRho = db.newFluidVectorFieldList(Vector.zero, "grad rho")
 holes = vector_of_vector_of_FacetedVolume(1)
 surfacePoint = db.newFluidIntFieldList(0, HydroFieldNames.surfacePoint)
@@ -202,6 +203,7 @@ computeVoronoiVolume(db.fluidPosition,
                      db.fluidMassDensity,
                      gradRho,
                      cm,
+                     damage,
                      faceted_bounds,
                      holes,
                      bounds,

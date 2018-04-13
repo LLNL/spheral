@@ -8,6 +8,8 @@
 #include "Utilities/PairComparisons.hh"
 #include "Utilities/FastMath.hh"
 
+#include <limits>
+
 namespace Spheral {
 namespace CRKSPHSpace {
 
@@ -28,6 +30,7 @@ computeVoronoiVolume(const FieldSpace::FieldList<Dim<1>, Dim<1>::Vector>& positi
                      const FieldSpace::FieldList<Dim<1>, Dim<1>::Scalar>& rho,
                      const FieldSpace::FieldList<Dim<1>, Dim<1>::Vector>& gradRho,
                      const NeighborSpace::ConnectivityMap<Dim<1> >& connectivityMap,
+                     const FieldSpace::FieldList<Dim<1>, Dim<1>::SymTensor>& damage,
                      const std::vector<Dim<1>::FacetedVolume>& facetedBoundaries,
                      const std::vector<std::vector<Dim<1>::FacetedVolume> >& holes,
                      const std::vector<BoundarySpace::Boundary<Dim<1>>*>& boundaries,
@@ -53,6 +56,7 @@ computeVoronoiVolume(const FieldSpace::FieldList<Dim<1>, Dim<1>::Vector>& positi
   const auto haveFacetedBoundaries = facetedBoundaries.size() == numNodeLists;
   const auto haveBoundaries = not boundaries.empty();
   const auto haveWeights = weight.size() == numNodeLists;
+  const auto haveDamage = damage.size() == numNodeLists;
   const auto returnSurface = surfacePoint.size() == numNodeLists;
   const auto returnCells = cells.size() == numNodeLists;
 
@@ -228,6 +232,14 @@ computeVoronoiVolume(const FieldSpace::FieldList<Dim<1>, Dim<1>::Vector>& positi
         if (-Hi*x1 >= rin) etaVoidPoints(nodeListi, i).push_back(max(Hi*x1, -0.5*rin));
         if ( Hi*x2 >= rin) etaVoidPoints(nodeListi, i).push_back(min(Hi*x2,  0.5*rin));
         // cerr << "Surface condition 7: " << nodeListi << " " << i << " " << surfacePoint(nodeListi, i) << endl;
+      }
+
+      // If this point is fully damaged, we force creation of void points.
+      if (haveDamage and damage(nodeListi, i).xx() > 1.0 - 1.0e-5) {
+        etaVoidPoints(nodeListi, i).clear();
+        etaVoidPoints(nodeListi, i).push_back(-0.5*rin);
+        etaVoidPoints(nodeListi, i).push_back( 0.5*rin);
+        surfacePoint(nodeListi, i) |= 1;
       }
     }
     CHECK2(((surfacePoint(nodeListi, i) & 1) == 1 and

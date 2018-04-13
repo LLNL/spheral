@@ -68,6 +68,7 @@ computeVoronoiVolume(const FieldList<Dim<3>, Dim<3>::Vector>& position,
                      const FieldSpace::FieldList<Dim<3>, Dim<3>::Scalar>& rho,
                      const FieldSpace::FieldList<Dim<3>, Dim<3>::Vector>& gradRho,
                      const ConnectivityMap<Dim<3> >& connectivityMap,
+                     const FieldSpace::FieldList<Dim<3>, Dim<3>::SymTensor>& damage,
                      const std::vector<Dim<3>::FacetedVolume>& facetedBoundaries,
                      const std::vector<std::vector<Dim<3>::FacetedVolume> >& holes,
                      const std::vector<BoundarySpace::Boundary<Dim<3>>*>& boundaries,
@@ -85,6 +86,7 @@ computeVoronoiVolume(const FieldList<Dim<3>, Dim<3>::Vector>& position,
   REQUIRE(facetedBoundaries.size() == 0 or facetedBoundaries.size() == position.size());
   REQUIRE(holes.size() == facetedBoundaries.size());
 
+  typedef Dim<3> Dimension;
   typedef Dim<3>::Scalar Scalar;
   typedef Dim<3>::Vector Vector;
   typedef Dim<3>::SymTensor SymTensor;
@@ -97,6 +99,7 @@ computeVoronoiVolume(const FieldList<Dim<3>, Dim<3>::Vector>& position,
   const auto haveFacetedBoundaries = facetedBoundaries.size() == numNodeLists;
   const auto haveBoundaries = not boundaries.empty();
   const auto haveWeights = weight.size() == numNodeLists;
+  const auto haveDamage = damage.size() == numNodeLists;
   const auto returnSurface = surfacePoint.size() == numNodeLists;
   const auto returnCells = cells.size() == numNodeLists;
 
@@ -270,19 +273,28 @@ computeVoronoiVolume(const FieldList<Dim<3>, Dim<3>::Vector>& position,
 
         // Check if the final polyghedron is entirely within our "interior" check radius.
         // We preserve remaining original vertices as void points.
-        bool interior = true;
-        {
-          for (const auto& vert: celli) {
-            const auto peta = Hi*vert.position;
-            if (peta.magnitude2() > rin*rin) {
-              interior = false;
-              if (returnSurface) {
-                surfacePoint(nodeListi, i) |= 1;
-                const Vector etaj = 0.5*rin*peta.unitVector();
-                etaVoidPoints(nodeListi, i).push_back(etaj);
-              }
+        for (const auto& vert: celli) {
+          const auto peta = Hi*vert.position;
+          if (peta.magnitude2() > rin*rin) {
+            if (returnSurface) {
+              surfacePoint(nodeListi, i) |= 1;
+              const Vector etaj = 0.5*rin*peta.unitVector();
+              etaVoidPoints(nodeListi, i).push_back(etaj);
             }
           }
+        }
+
+        // If this point is sufficiently damaged, we also create void points along the damaged directions.
+        if (haveDamage and damage(nodeListi, i).Trace() > 1.0 - 1.0e-5) {
+          const auto ev = damage(nodeListi, i).eigenVectors();
+          for (auto jdim = 0; jdim < Dimension::nDim; ++jdim) {
+            if (ev.eigenValues(jdim) > 1.0 - 1.0e-5) {
+              const auto evecj = ev.eigenVectors.getColumn(jdim);
+              etaVoidPoints(nodeListi, i).push_back(-0.5*rin*evecj);
+              etaVoidPoints(nodeListi, i).push_back( 0.5*rin*evecj);
+            }
+          }
+          surfacePoint(nodeListi, i) |= 1;
         }
       }
     }
