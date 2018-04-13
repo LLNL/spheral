@@ -146,7 +146,7 @@ def PYB11generateModuleFunctions(modobj, ss):
 def PYB11generateModuleClasses(modobj, ss):
     classes = PYB11classes(modobj)
     for kname, klass in classes:
-
+        objinst = klass()
         klassattrs = PYB11attrs(klass)
         ss("""
   //............................................................................
@@ -159,11 +159,21 @@ def PYB11generateModuleClasses(modobj, ss):
 
         # Bind methods of the class.
         for mname, meth in PYB11methods(klass):
+            print "  **************** ", mname
             methattrs = PYB11attrs(meth)
             ss('    obj.def("%(pyname)s", ' % methattrs)
-
-            margs = inspect.getargspec(meth)
-            print "\n", margs
+            returnType = eval("objinst." + mname + "()")
+            methattrs["returnType"] = returnType
+            if returnType is None:
+                ss(("&%(cppname)s::" % klassattrs) + methattrs["cppname"])
+            else:
+                args = PYB11parseArgs(inspect.getargspec(meth))
+                ss(("(%(returnType)s " % methattrs) + ("(%(cppname)s::*)(" % klassattrs))
+                for i, (argType, argName, default) in enumerate(args):
+                    ss(argType)
+                    if i < nargs - 1:
+                        ss(", ")
+                ss((")) &%(cppname)s::" % klassattrs) + methattrs["cppname"])
 
         # # Get the return type and arguments.
         # returnType = meth()
