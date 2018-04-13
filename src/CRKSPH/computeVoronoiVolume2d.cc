@@ -197,6 +197,7 @@ computeVoronoiVolume(const FieldList<Dim<2>, Dim<2>::Vector>& position,
                      const FieldSpace::FieldList<Dim<2>, Dim<2>::Scalar>& rho,
                      const FieldSpace::FieldList<Dim<2>, Dim<2>::Vector>& gradRho,
                      const ConnectivityMap<Dim<2> >& connectivityMap,
+                     const FieldSpace::FieldList<Dim<2>, Dim<2>::SymTensor>& damage,
                      const std::vector<Dim<2>::FacetedVolume>& facetedBoundaries,
                      const std::vector<std::vector<Dim<2>::FacetedVolume> >& holes,
                      const std::vector<BoundarySpace::Boundary<Dim<2>>*>& boundaries,
@@ -214,6 +215,7 @@ computeVoronoiVolume(const FieldList<Dim<2>, Dim<2>::Vector>& position,
   REQUIRE(facetedBoundaries.size() == 0 or facetedBoundaries.size() == position.size());
   REQUIRE(holes.size() == facetedBoundaries.size());
 
+  typedef Dim<2> Dimension;
   typedef Dim<2>::Scalar Scalar;
   typedef Dim<2>::Vector Vector;
   typedef Dim<2>::SymTensor SymTensor;
@@ -226,6 +228,7 @@ computeVoronoiVolume(const FieldList<Dim<2>, Dim<2>::Vector>& position,
   const auto haveFacetedBoundaries = facetedBoundaries.size() == numNodeLists;
   const auto haveBoundaries = not boundaries.empty();
   const auto haveWeights = weight.size() == numNodeLists;
+  const auto haveDamage = damage.size() == numNodeLists;
   const auto returnSurface = surfacePoint.size() == numNodeLists;
   const auto returnCells = cells.size() == numNodeLists;
 
@@ -396,6 +399,19 @@ computeVoronoiVolume(const FieldList<Dim<2>, Dim<2>::Vector>& position,
             etaVoidPoints(nodeListi, i).push_back(Vector(0.5*rin*cos(theta), 0.5*rin*sin(theta)));
           }
           CHECK(etaVoidPoints(nodeListi, i).size() == nv);
+        }
+
+        // If this point is sufficiently damaged, we also create void points along the damaged directions.
+        if (haveDamage and damage(nodeListi, i).Trace() > 1.0 - 1.0e-5) {
+          const auto ev = damage(nodeListi, i).eigenVectors();
+          for (auto jdim = 0; jdim < Dimension::nDim; ++jdim) {
+            if (ev.eigenValues(jdim) > 1.0 - 1.0e-5) {
+              const auto evecj = ev.eigenVectors.getColumn(jdim);
+              etaVoidPoints(nodeListi, i).push_back(-0.5*rin*evecj);
+              etaVoidPoints(nodeListi, i).push_back( 0.5*rin*evecj);
+            }
+          }
+          surfacePoint(nodeListi, i) |= 1;
         }
       }
     }

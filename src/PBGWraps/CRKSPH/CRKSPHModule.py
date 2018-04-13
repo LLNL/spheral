@@ -161,6 +161,7 @@ self.generateCRKSPHVariantBindings(self.CRKSPHVariant%(dim)id, %(dim)i)
                                  constrefparam(scalarfieldlist, "rho"),
                                  constrefparam(vectorfieldlist, "gradRho"),
                                  constrefparam(connectivitymap, "connectivityMap"),
+                                 constrefparam(symtensorfieldlist, "damage"),
                                  constrefparam(vector_of_FacetedVolume, "facetedBoundaries"),
                                  constrefparam(vector_of_vector_of_FacetedVolume, "holes"),
                                  constrefparam(vector_of_boundary, "boundaries"),
