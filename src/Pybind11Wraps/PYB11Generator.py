@@ -145,9 +145,25 @@ def PYB11generateModuleFunctions(modobj, ss):
 #-------------------------------------------------------------------------------
 def PYB11generateModuleClasses(modobj, ss):
     classes = PYB11classes(modobj)
-    for name, klass in classes:
-        ss("  //............................................................................\n")
-        ss("  // Class %s\n" % klass.__name__)
+    for kname, klass in classes:
+
+        klassattrs = PYB11attrs(klass)
+        ss("""
+  //............................................................................
+  // Class %(pyname)s
+  {
+    py::class_<%(cppname)s""" % klassattrs)
+        if klassattrs["singleton"]:
+            ss(", std::unique_ptr<RestartRegistrar, py::nodelete>")
+        ss('>(m, "%(pyname)s") obj;\n' % klassattrs)
+
+        # Bind methods of the class.
+        for mname, meth in PYB11methods(klass):
+            methattrs = PYB11attrs(meth)
+            ss('    obj.def("%(pyname)s", ' % methattrs)
+
+            margs = inspect.getargspec(meth)
+            print "\n", margs
 
         # # Get the return type and arguments.
         # returnType = meth()
@@ -224,4 +240,21 @@ def PYB11classes(modobj):
 # Get the methods to bind from a class
 #-------------------------------------------------------------------------------
 def PYB11methods(obj):
-    return inspect.getmembers(klass, predicate=inspect.ismethod)
+    return inspect.getmembers(obj, predicate=inspect.ismethod)
+
+#-------------------------------------------------------------------------------
+# PYB11attrs
+#
+# Read the possible PYB11 generation attributes from the obj
+#-------------------------------------------------------------------------------
+def PYB11attrs(obj):
+    d = {"pyname"       : obj.__name__,
+         "cppname"      : obj.__name__,
+         "singleton"    : False,
+         "virtual"      : False,
+         "pure_virtual" : False,
+         "const"        : False}
+    for key in d:
+        if hasattr(obj, "PYB11" + key):
+            d[key] = eval("obj.PYB11%s" % key)
+    return d
