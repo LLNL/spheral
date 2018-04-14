@@ -39,8 +39,9 @@ bindSiloCompoundTypeMethods(py::module& m) {
 //------------------------------------------------------------------------------
 // Make the module
 //------------------------------------------------------------------------------
-PYBIND11_PLUGIN(SpheralSilo) {
-  py::module m("SpheralSilo", "Spheral module supporting Silo bindings.");
+PYBIND11_MODULE(SpheralSilo, m) {
+
+  m.doc() = "Spheral module supporting Silo bindings.";
 
   // Silo structs
   py::class_<DBfile>(m, "DBfile");
@@ -107,7 +108,7 @@ PYBIND11_PLUGIN(SpheralSilo) {
   bindSiloTypeMethods<int>(m);
   bindSiloTypeMethods<float>(m);
   bindSiloTypeMethods<double>(m);
-  bindSiloTypeMethods<char>(m);
+  // bindSiloTypeMethods<char>(m);
   bindSiloCompoundTypeMethods<Spheral::Dim<2>::Vector>(m);
   bindSiloCompoundTypeMethods<Spheral::Dim<2>::Tensor>(m);
   bindSiloCompoundTypeMethods<Spheral::Dim<2>::SymTensor>(m);
@@ -209,49 +210,53 @@ PYBIND11_PLUGIN(SpheralSilo) {
   m.attr("DBMMADJZonelists") = DBMMADJZonelists;
   m.attr("DBPMGlobNodeNo") = DBPMGlobNodeNo;
 
-  m.attr("DB_INVALID_OBJECT") = DB_INVALID_OBJECT;
-  m.attr("DB_QUADRECT") = DB_QUADRECT;
-  m.attr("DB_QUADCURV") = DB_QUADCURV;
-  m.attr("DB_QUADMESH") = DB_QUADMESH;
-  m.attr("DB_QUADVAR") = DB_QUADVAR;
-  m.attr("DB_UCDMESH") = DB_UCDMESH;
-  m.attr("DB_UCDVAR") = DB_UCDVAR;
-  m.attr("DB_MULTIMESH") = DB_MULTIMESH;
-  m.attr("DB_MULTIVAR") = DB_MULTIVAR;
-  m.attr("DB_MULTIMAT") = DB_MULTIMAT;
-  m.attr("DB_MULTIMATSPECIES") = DB_MULTIMATSPECIES;
-  m.attr("DB_MULTIBLOCKMESH") = DB_MULTIBLOCKMESH;
-  m.attr("DB_MULTIBLOCKVAR") = DB_MULTIBLOCKVAR;
-  m.attr("DB_MULTIMESHADJ") = DB_MULTIMESHADJ;
-  m.attr("DB_MATERIAL") = DB_MATERIAL;
-  m.attr("DB_MATSPECIES") = DB_MATSPECIES;
-  m.attr("DB_FACELIST") = DB_FACELIST;
-  m.attr("DB_ZONELIST") = DB_ZONELIST;
-  m.attr("DB_EDGELIST") = DB_EDGELIST;
-  m.attr("DB_PHZONELIST") = DB_PHZONELIST;
-  m.attr("DB_CSGZONELIST") = DB_CSGZONELIST;
-  m.attr("DB_CSGMESH") = DB_CSGMESH;
-  m.attr("DB_CSGVAR") = DB_CSGVAR;
-  m.attr("DB_CURVE") = DB_CURVE;
-  m.attr("DB_DEFVARS") = DB_DEFVARS;
-  m.attr("DB_POINTMESH") = DB_POINTMESH;
-  m.attr("DB_POINTVAR") = DB_POINTVAR;
-  m.attr("DB_ARRAY") = DB_ARRAY;
-  m.attr("DB_DIR") = DB_DIR;
-  m.attr("DB_VARIABLE") = DB_VARIABLE;
-  m.attr("DB_MRGTREE") = DB_MRGTREE;
-  m.attr("DB_GROUPELMAP") = DB_GROUPELMAP;
-  m.attr("DB_MRGVAR") = DB_MRGVAR;
-  m.attr("DB_USERDEF") = DB_USERDEF;
+  py::enum_<DBObjectType>(m, "DBObjectType")
+    .value("DB_INVALID_OBJECT", DB_INVALID_OBJECT)
+    .value("DB_QUADRECT", DB_QUADRECT)
+    .value("DB_QUADCURV", DB_QUADCURV)
+    .value("DB_QUADMESH", DB_QUADMESH)
+    .value("DB_QUADVAR", DB_QUADVAR)
+    .value("DB_UCDMESH", DB_UCDMESH)
+    .value("DB_UCDVAR", DB_UCDVAR)
+    .value("DB_MULTIMESH", DB_MULTIMESH)
+    .value("DB_MULTIVAR", DB_MULTIVAR)
+    .value("DB_MULTIMAT", DB_MULTIMAT)
+    .value("DB_MULTIMATSPECIES", DB_MULTIMATSPECIES)
+    .value("DB_MULTIBLOCKMESH", DB_MULTIBLOCKMESH)
+    .value("DB_MULTIBLOCKVAR", DB_MULTIBLOCKVAR)
+    .value("DB_MULTIMESHADJ", DB_MULTIMESHADJ)
+    .value("DB_MATERIAL", DB_MATERIAL)
+    .value("DB_MATSPECIES", DB_MATSPECIES)
+    .value("DB_FACELIST", DB_FACELIST)
+    .value("DB_ZONELIST", DB_ZONELIST)
+    .value("DB_EDGELIST", DB_EDGELIST)
+    .value("DB_PHZONELIST", DB_PHZONELIST)
+    .value("DB_CSGZONELIST", DB_CSGZONELIST)
+    .value("DB_CSGMESH", DB_CSGMESH)
+    .value("DB_CSGVAR", DB_CSGVAR)
+    .value("DB_CURVE", DB_CURVE)
+    .value("DB_DEFVARS", DB_DEFVARS)
+    .value("DB_POINTMESH", DB_POINTMESH)
+    .value("DB_POINTVAR", DB_POINTVAR)
+    .value("DB_ARRAY", DB_ARRAY)
+    .value("DB_DIR", DB_DIR)
+    .value("DB_VARIABLE", DB_VARIABLE)
+    .value("DB_MRGTREE", DB_MRGTREE)
+    .value("DB_GROUPELMAP", DB_GROUPELMAP)
+    .value("DB_MRGVAR", DB_MRGVAR)
+    .value("DB_USERDEF", DB_USERDEF)
+    .export_values();
 
-  m.attr("DB_INT") = DB_INT;
-  m.attr("DB_SHORT") = DB_SHORT;
-  m.attr("DB_LONG") = DB_LONG;
-  m.attr("DB_FLOAT") = DB_FLOAT;
-  m.attr("DB_DOUBLE") = DB_DOUBLE;
-  m.attr("DB_CHAR") = DB_CHAR;
-  m.attr("DB_LONG_LONG") = DB_LONG_LONG;
-  m.attr("DB_NOTYPE") = DB_NOTYPE;
+  py::enum_<DBdatatype>(m, "DBdatatype")
+    .value("DB_INT", DB_INT)
+    .value("DB_SHORT", DB_SHORT)
+    .value("DB_LONG", DB_LONG)
+    .value("DB_FLOAT", DB_FLOAT)
+    .value("DB_DOUBLE", DB_DOUBLE)
+    .value("DB_CHAR", DB_CHAR)
+    .value("DB_LONG_LONG", DB_LONG_LONG)
+    .value("DB_NOTYPE", DB_NOTYPE)
+    .export_values();
 
   m.attr("DB_CLOBBER") = DB_CLOBBER;
   m.attr("DB_NOCLOBBER") = DB_NOCLOBBER;
@@ -479,6 +484,4 @@ PYBIND11_PLUGIN(SpheralSilo) {
   m.attr("DB_ZONETYPE_POLYGON") = DB_ZONETYPE_POLYGON;
   m.attr("DB_ZONETYPE_TRIANGLE") = DB_ZONETYPE_TRIANGLE;
   m.attr("DB_ZONETYPE_QUAD") = DB_ZONETYPE_QUAD;
-
-  return m.ptr();
 }
