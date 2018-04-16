@@ -19,7 +19,6 @@ def PYB11singleton(Cls):
 #-------------------------------------------------------------------------------
 # Virtual method
 #-------------------------------------------------------------------------------
-@decorator.decorator
 def PYB11virtual(f):
     @PYB11wraps(f)
     def wrapper(*args, **kwargs):
@@ -30,7 +29,6 @@ def PYB11virtual(f):
 #-------------------------------------------------------------------------------
 # Pure virtual method
 #-------------------------------------------------------------------------------
-@decorator.decorator
 def PYB11pure_virtual(f):
     @PYB11wraps(f)
     def wrapper(*args, **kwargs):
@@ -41,7 +39,6 @@ def PYB11pure_virtual(f):
 #-------------------------------------------------------------------------------
 # const method
 #-------------------------------------------------------------------------------
-@decorator.decorator
 def PYB11const(f):
     @PYB11wraps(f)
     def wrapper(*args, **kwargs):
@@ -49,3 +46,7 @@ def PYB11const(f):
     wrapper.PYB11const = True
     return wrapper
 
+# @decorator.decorator
+# def PYB11const(f, *args, **kwargs):
+#     f.PYB11const = True
+#     return f(*args, **kwargs)
