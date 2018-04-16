@@ -82,6 +82,7 @@ update(const KeyType& key,
   const auto PKey = State<Dimension>::buildFieldKey(HydroFieldNames::pressure, nodeListKey);
   const auto psKey = State<Dimension>::buildFieldKey(SolidFieldNames::plasticStrain, nodeListKey);
   const auto stressKey = State<Dimension>::buildFieldKey(SolidFieldNames::deviatoricStress, nodeListKey);
+  const auto DKey = State<Dimension>::buildFieldKey(SolidFieldNames::effectiveTensorDamage, nodeListKey);
   const auto gradvKey = State<Dimension>::buildFieldKey(HydroFieldNames::internalVelocityGradient, nodeListKey);
   const auto dSKey = State<Dimension>::buildFieldKey(IncrementState<Dimension, Field<Dimension, SymTensor> >::prefix() + SolidFieldNames::deviatoricStress, nodeListKey);
   CHECK(state.registered(eKey));
@@ -91,6 +92,7 @@ update(const KeyType& key,
   CHECK(state.registered(PKey));
   CHECK(state.registered(psKey));
   CHECK(state.registered(stressKey));
+  CHECK(state.registered(DKey));
   CHECK(derivs.registered(gradvKey));
   CHECK(derivs.registered(dSKey));
 
@@ -101,6 +103,7 @@ update(const KeyType& key,
   const auto& P = state.field(PKey, 0.0);
   const auto& plasticStrain = state.field(psKey, 0.0);
   const auto& S = state.field(stressKey, SymTensor::zero);
+  const auto& D = state.field(DKey, SymTensor::zero);
   const auto& gradv = derivs.field(gradvKey, Tensor::zero);
   const auto& DSDt = derivs.field(dSKey, SymTensor::zero);
 
@@ -157,6 +160,9 @@ update(const KeyType& key,
 
       }
     }
+
+    // Damage enhancement of the effective strain.
+    stateField(i) *= safeInvVar(max(0.0, 1.0 - D(i).Trace()/Dimension::nDim), tiny);
 
     // Apply limiting to the effective strain.
     stateField(i) = max(1.0e-7*max(1.0, std::abs(stateField(i).Trace())/Dimension::nDim), stateField(i));
