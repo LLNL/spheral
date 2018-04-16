@@ -431,7 +431,7 @@ evaluateDerivatives(const Dim<2>::Scalar time,
                                                        i);
 
       // As this node is damaged force it back to it's original H.
-      const auto Di = max(0.0, min(1.0, damage(nodeListi, i).eigenValues().maxElement()));
+      const auto Di = max(0.0, min(1.0, 10.0*max(0.0, damage(nodeListi, i).eigenValues().maxElement() - 0.9)));
       Hideali = (1.0 - Di)*Hideali + Di*Hfield0(nodeListi, i);
       DHDti = (1.0 - Di)*DHDti + Di*(Hfield0(nodeListi, i) - Hi)*0.25/dt;
 
