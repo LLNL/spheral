@@ -225,42 +225,7 @@ def PYB11generateModuleClasses(modobj, ss):
             else:
                 generic_class_method(meth, methattrs, args)
 
-        # # Get the return type and arguments.
-        # returnType = meth()
-        # stuff = inspect.getargspec(meth)
-        # args = None
-        # if "args" in stuff.args:
-        #     args = stuff.defaults[stuff.args.index("args") - 1]
-        #     nargs = len(args)
-
-        # # Because python does not have function overloading, we provide the ability
-        # # to rename the c++ method.
-        # if "name" in stuff.args:
-        #     name = stuff.defaults[stuff.args.index("name") - 1]
-
-        # # Write the binding
-        # dvals = {"name" : name, "returnType" : returnType}
-        # ss('  m.def("%s", ' % name)
-        # if returnType:
-        #     assert not args is None
-        #     ss("(%s (*)(" % returnType)
-        #     for i, (argType, argName, default) in enumerate(PYB11parseArgs(args)):
-        #         ss(argType)
-        #         if i < nargs - 1:
-        #             ss(", ")
-        #     ss(")) &%s" % name)
-        #     for argType, argName, default in PYB11parseArgs(args):
-        #         ss(', "%s"_a' % argName)
-        #         if default:
-        #             ss("=" + default)
-        # else:
-        #     ss("&%s" % name)
-
-        # # Write the doc string
-        # if inspect.getdoc(meth):
-        #     doc = inspect.getdoc(meth)
-        #     ss(',\n        "%s"' % inspect.getdoc(meth))
-        # ss(");\n")
+        ss("  }\n")
 
 #-------------------------------------------------------------------------------
 # PYB11parseArgs
