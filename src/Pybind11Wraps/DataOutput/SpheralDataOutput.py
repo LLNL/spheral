@@ -59,9 +59,9 @@ class RestartRegistrar:
 #-------------------------------------------------------------------------------
 class RestartableObject:
 
-    def __init__(self,
-                 pyobj = "PyObject*",
-                 priority = "const unsigned"):
+    def pyinit(self,
+               pyobj = "PyObject*",
+               priority = "const unsigned"):
         "Construct with the given object and priority."
         return
 
@@ -71,8 +71,8 @@ class RestartableObject:
         "Define the label for storing this object in a restart file."
         return "std::string"
 
-    @PYB11virtual
-    @PYB11const
+    #@PYB11virtual
+    #@PYB11const
     def dumpState(self,
                   file = "FileIOSpace::FileIO&",
                   pathName = "const std::string"):
