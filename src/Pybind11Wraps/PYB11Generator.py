@@ -10,18 +10,21 @@ from PYB11FunctionDecorators import *
 # PYB11generateModule
 #-------------------------------------------------------------------------------
 def PYB11generateModule(modobj):
-    ss = sys.stdout.write
     name = modobj.__name__
-    PYB11generateModuleStart(modobj, ss, name)
+    with open(name + ".cc", "w") as f:
+        ss = f.write
+        PYB11generateModuleStart(modobj, ss, name)
 
-    # Bind methods.
-    PYB11generateModuleFunctions(modobj, ss)
+        # Bind methods.
+        PYB11generateModuleFunctions(modobj, ss)
 
-    # Bind classes.
-    PYB11generateModuleClasses(modobj, ss)
+        # Bind classes.
+        PYB11generateModuleClasses(modobj, ss)
 
-    # Closing
-    ss("}\n")
+        # Closing
+        ss("}\n")
+        f.close()
+
     return
 
 #-------------------------------------------------------------------------------
@@ -145,6 +148,7 @@ def PYB11generateModuleFunctions(modobj, ss):
 #-------------------------------------------------------------------------------
 def PYB11generateModuleClasses(modobj, ss):
 
+    #...........................................................................
     # Generate a generic class method spec.
     def generic_class_method(meth, methattrs, args):
         ss('    obj.def("%(pyname)s", ' % methattrs)
@@ -169,11 +173,13 @@ def PYB11generateModuleClasses(modobj, ss):
             ss(',\n            "%s"' % doc)
         ss(");\n")
 
-    # Ignore
+    #...........................................................................
+    # Ignore a method
     def ignore(mesh, methattrs, args):
         pass
 
-    # Generate pyinit<>
+    #...........................................................................
+    # pyinit<>
     def pyinit(meth, methattrs, args):
         ss("    obj.def(py::init<")
         argString = ""
