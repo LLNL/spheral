@@ -1,26 +1,17 @@
 # -*-makefile-*-
-# Spheral++ Boundary pybind11 package makefile
+# Spheral++ Utilities pybind11 package makefile
 #-------------------------------------------------------------------------------
 srcdir = @abs_srcdir@
 VPATH = @abs_srcdir@
 SPHERALTOP = @abs_top_srcdir@
 BUILDTOP = @abs_top_builddir@
 
-PKGNAME = Boundary
+PKGNAME = Utilities
 PKGDIR = $(PKGNAME)/
 PYB11TARGET = Spheral$(PKGNAME).$(SHLIBEXT)
 
-PYB11GENTARGETS = \
-	PyBoundary.hh \
-	PyBoundaryConcrete.hh \
-	virtualPyBoundaryBindings.hh \
-	PyBoundaryMesh.hh \
-	virtualPyBoundaryMeshBindings.hh \
-	PyPlanarBoundary.hh \
-	virtualPyPlanarBoundaryBindings.hh
-
 SRCTARGETS += \
-	$(srcdir)/SpheralBoundary.cc
+	$(srcdir)/SpheralUtilities.cc
 
 #------------------------------------------------------------------------------
 include $(BUILDTOP)/helpers/makefile_master

@@ -126,172 +126,170 @@ void dimensionBindings(py::module& m, const std::string suffix) {
 
   //............................................................................
   // State
-  py::class_<ST, SB>(m, ("State" + suffix).c_str())
+  py::class_<ST, SB> pyST(m, ("State" + suffix).c_str());
 
-    // Constructors
-    .def(py::init<>())
-    .def(py::init<DB&, typename ST::PackageList>(), "dataBase"_a, "packages"_a)
-    .def(py::init<const ST&>())
+  // Constructors
+  pyST.def(py::init<>());
+  pyST.def(py::init<DB&, typename ST::PackageList&>(), "dataBase"_a, "packages"_a);
+  pyST.def(py::init<const ST&>());
 
-    // Methods
-    .def("update", &ST::update)
-    .def("policyKeys", &ST::policyKeys)
+  // Methods
+  pyST.def("update", &ST::update);
+  pyST.def("policyKeys", &ST::policyKeys);
 
-    // Comparisons
-    .def(py::self == py::self)
-    ;
+  // Comparisons
+  pyST.def(py::self == py::self);
 
   //............................................................................
   // StateDerivatives
-  py::class_<SD, SB>(m, ("StateDerivatives" + suffix).c_str())
+  py::class_<SD, SB> pySD(m, ("StateDerivatives" + suffix).c_str());
 
-    // Constructors
-    .def(py::init<>())
-    .def(py::init<DB&, typename SD::PackageList>(), "dataBase"_a, "packages"_a)
-    .def(py::init<const SD&>())
+  // Constructors
+  pySD.def(py::init<>());
+  pySD.def(py::init<DB&, typename SD::PackageList&>(), "dataBase"_a, "packages"_a);
+  pySD.def(py::init<const SD&>());
 
-    // Methods
-    .def("initializeNodePairInformation", &SD::initializeNodePairInformation)
-    .def("calculatedNodePairsSymmetric", &SD::calculatedNodePairsSymmetric)
-    .def("Zero", &SD::Zero)
+  // Methods
+  pySD.def("initializeNodePairInformation", &SD::initializeNodePairInformation);
+  pySD.def("calculatedNodePairsSymmetric", &SD::calculatedNodePairsSymmetric);
+  pySD.def("Zero", &SD::Zero);
 
-    // Comparisons
-    .def(py::self == py::self)
-    ;
+  // Comparisons
+  pySD.def(py::self == py::self);
 
   //............................................................................
   // DataBase
-  py::class_<DB>(m, ("DataBase" + suffix).c_str(), py::metaclass())
+  py::class_<DB> pyDB(m, ("DataBase" + suffix).c_str());
 
-    // Constructors
-    .def(py::init<>())
+  // Constructors
+  pyDB.def(py::init<>());
 
-    // Methods
-    .def("updateConnectivityMap", &DB::updateConnectivityMap)
-    .def("patchConnectivityMap", &DB::patchConnectivityMap)
-    .def("connectivityMap", (const NeighborSpace::ConnectivityMap<Dimension>& (DB::*)(const bool) const) &DB::connectivityMap, "computeGhostConnectivity"_a=false)
-    .def("appendNodeList", (void (DB::*)(NodeSpace::SolidNodeList<Dimension>&)) &DB::appendNodeList, "nodeList"_a)
-    .def("appendNodeList", (void (DB::*)(NodeSpace::FluidNodeList<Dimension>&)) &DB::appendNodeList, "nodeList"_a)
-    .def("appendNodeList", (void (DB::*)(NodeSpace::NodeList<Dimension>&)) &DB::appendNodeList, "nodeList"_a)
-    .def("deleteNodeList", (void (DB::*)(NodeSpace::SolidNodeList<Dimension>&)) &DB::deleteNodeList, "nodeList"_a)
-    .def("deleteNodeList", (void (DB::*)(NodeSpace::FluidNodeList<Dimension>&)) &DB::deleteNodeList, "nodeList"_a)
-    .def("deleteNodeList", (void (DB::*)(NodeSpace::NodeList<Dimension>&)) &DB::deleteNodeList, "nodeList"_a)
-    .def("haveNodeList", &DB::haveNodeList)
-    .def("nodeListPtrs", &DB::nodeListPtrs)
-    .def("fluidNodeListPtrs", &DB::fluidNodeListPtrs)
-    .def("solidNodeListPtrs", &DB::solidNodeListPtrs)
-    .def("setMasterNodeLists", &DB::setMasterNodeLists, "position"_a, "H"_a)
-    .def("setMasterFluidNodeLists", &DB::setMasterFluidNodeLists, "position"_a, "H"_a)
-    .def("setRefineNodeLists", &DB::setRefineNodeLists, "position"_a, "H"_a)
-    .def("setRefineFluidNodeLists", &DB::setRefineFluidNodeLists, "position"_a, "H"_a)
-    .def("globalMass", &DB::globalMass)
-    .def("globalPosition", &DB::globalPosition)
-    .def("globalVelocity", &DB::globalVelocity)
-    .def("globalHfield", &DB::globalHfield)
-    .def("globalWork", &DB::globalWork)
-    .def("fluidMass", &DB::fluidMass)
-    .def("fluidPosition", &DB::fluidPosition)
-    .def("fluidVelocity", &DB::fluidVelocity)
-    .def("fluidMassDensity", &DB::fluidMassDensity)
-    .def("fluidSpecificThermalEnergy", &DB::fluidSpecificThermalEnergy)
-    .def("fluidHfield", &DB::fluidHfield)
-    .def("fluidWork", &DB::fluidWork)
-    .def("globalNodeExtent", &DB::globalNodeExtent)
-    .def("fluidNodeExtent", &DB::fluidNodeExtent)
-    .def("globalHinverse", &DB::globalHinverse)
-    .def("fluidHinverse", &DB::fluidHinverse)
-    .def("fluidPressure", &DB::fluidPressure)
-    .def("fluidTemperature", &DB::fluidTemperature)
-    .def("fluidSoundSpeed", &DB::fluidSoundSpeed)
-    .def("fluidVolume", &DB::fluidVolume)
-    .def("fluidGamma", &DB::fluidGamma)
-    .def("fluidEntropy", &DB::fluidEntropy)
-    .def("fluidLinearMomentum", &DB::fluidLinearMomentum)
-    .def("fluidTotalEnergy", &DB::fluidTotalEnergy)
+  // Methods
+  pyDB.def("reinitializeNeighbors", &DB::reinitializeNeighbors);
+  pyDB.def("updateConnectivityMap", &DB::updateConnectivityMap);
+  pyDB.def("patchConnectivityMap", &DB::patchConnectivityMap);
+  pyDB.def("connectivityMap", (const NeighborSpace::ConnectivityMap<Dimension>& (DB::*)(const bool) const) &DB::connectivityMap, "computeGhostConnectivity"_a=false);
+  pyDB.def("appendNodeList", (void (DB::*)(NodeSpace::SolidNodeList<Dimension>&)) &DB::appendNodeList, "nodeList"_a);
+  pyDB.def("appendNodeList", (void (DB::*)(NodeSpace::FluidNodeList<Dimension>&)) &DB::appendNodeList, "nodeList"_a);
+  pyDB.def("appendNodeList", (void (DB::*)(NodeSpace::NodeList<Dimension>&)) &DB::appendNodeList, "nodeList"_a);
+  pyDB.def("deleteNodeList", (void (DB::*)(NodeSpace::SolidNodeList<Dimension>&)) &DB::deleteNodeList, "nodeList"_a);
+  pyDB.def("deleteNodeList", (void (DB::*)(NodeSpace::FluidNodeList<Dimension>&)) &DB::deleteNodeList, "nodeList"_a);
+  pyDB.def("deleteNodeList", (void (DB::*)(NodeSpace::NodeList<Dimension>&)) &DB::deleteNodeList, "nodeList"_a);
+  pyDB.def("haveNodeList", &DB::haveNodeList);
+  pyDB.def("nodeListPtrs", &DB::nodeListPtrs);
+  pyDB.def("fluidNodeListPtrs", &DB::fluidNodeListPtrs);
+  pyDB.def("solidNodeListPtrs", &DB::solidNodeListPtrs);
+  pyDB.def("setMasterNodeLists", &DB::setMasterNodeLists, "position"_a, "H"_a, "masterLists"_a, "coarseNeighbors"_a);
+  pyDB.def("setMasterFluidNodeLists", &DB::setMasterFluidNodeLists, "position"_a, "H"_a, "masterLists"_a, "coarseNeighbors"_a);
+  pyDB.def("setRefineNodeLists", &DB::setRefineNodeLists, "position"_a, "H"_a, "coarseNeighbors"_a, "refineNeighbors"_a);
+  pyDB.def("setRefineFluidNodeLists", &DB::setRefineFluidNodeLists, "position"_a, "H"_a, "coarseNeighbors"_a, "refineNeighbors"_a);
+  pyDB.def("globalMass", &DB::globalMass);
+  pyDB.def("globalPosition", &DB::globalPosition);
+  pyDB.def("globalVelocity", &DB::globalVelocity);
+  pyDB.def("globalHfield", &DB::globalHfield);
+  pyDB.def("globalWork", &DB::globalWork);
+  pyDB.def("fluidMass", &DB::fluidMass);
+  pyDB.def("fluidPosition", &DB::fluidPosition);
+  pyDB.def("fluidVelocity", &DB::fluidVelocity);
+  pyDB.def("fluidMassDensity", &DB::fluidMassDensity);
+  pyDB.def("fluidSpecificThermalEnergy", &DB::fluidSpecificThermalEnergy);
+  pyDB.def("fluidHfield", &DB::fluidHfield);
+  pyDB.def("fluidWork", &DB::fluidWork);
+  pyDB.def("globalNodeExtent", &DB::globalNodeExtent);
+  pyDB.def("fluidNodeExtent", &DB::fluidNodeExtent);
+  pyDB.def("globalHinverse", &DB::globalHinverse);
+  pyDB.def("fluidHinverse", &DB::fluidHinverse);
+  pyDB.def("fluidPressure", &DB::fluidPressure);
+  pyDB.def("fluidTemperature", &DB::fluidTemperature);
+  pyDB.def("fluidSoundSpeed", &DB::fluidSoundSpeed);
+  pyDB.def("fluidVolume", &DB::fluidVolume);
+  pyDB.def("fluidGamma", &DB::fluidGamma);
+  pyDB.def("fluidEntropy", &DB::fluidEntropy);
+  pyDB.def("fluidLinearMomentum", &DB::fluidLinearMomentum);
+  pyDB.def("fluidTotalEnergy", &DB::fluidTotalEnergy);
 
-    .def("newGlobalIntFieldList", (FieldList<Dimension, int> (DB::*)(const int, const std::string) const) &DB::newGlobalFieldList, "value"_a=0, "name"_a="unnamed field list")
-    .def("newGlobalScalarFieldList", (FieldList<Dimension, double> (DB::*)(const double, const std::string) const) &DB::newGlobalFieldList, "value"_a=0.0, "name"_a="unnamed field list")
-    .def("newGlobalVectorFieldList", (FieldList<Dimension, Vector> (DB::*)(const Vector, const std::string) const) &DB::newGlobalFieldList, "value"_a=Vector::zero, "name"_a="unnamed field list")
-    .def("newGlobalTensorFieldList", (FieldList<Dimension, Tensor> (DB::*)(const Tensor, const std::string) const) &DB::newGlobalFieldList, "value"_a=Tensor::zero, "name"_a="unnamed field list")
-    .def("newGlobalSymTensorFieldList", (FieldList<Dimension, SymTensor> (DB::*)(const SymTensor, const std::string) const) &DB::newGlobalFieldList, "value"_a=SymTensor::zero, "name"_a="unnamed field list")
-    .def("newGlobalThirdRankTensorFieldList", (FieldList<Dimension, ThirdRankTensor> (DB::*)(const ThirdRankTensor, const std::string) const) &DB::newGlobalFieldList, "value"_a=ThirdRankTensor::zero, "name"_a="unnamed field list")
-    .def("newGlobalFourthRankTensorFieldList", (FieldList<Dimension, FourthRankTensor> (DB::*)(const FourthRankTensor, const std::string) const) &DB::newGlobalFieldList, "value"_a=FourthRankTensor::zero, "name"_a="unnamed field list")
-    .def("newGlobalFifthRankTensorFieldList", (FieldList<Dimension, FifthRankTensor> (DB::*)(const FifthRankTensor, const std::string) const) &DB::newGlobalFieldList, "value"_a=FifthRankTensor::zero, "name"_a="unnamed field list")
-    .def("newGlobalFacetedVolumeFieldList", (FieldList<Dimension, FacetedVolume> (DB::*)(const FacetedVolume, const std::string) const) &DB::newGlobalFieldList, "value"_a=FacetedVolume(), "name"_a="unnamed field list")
-    .def("newGlobalVectorOfDoubleFieldList", (FieldList<Dimension, std::vector<double>> (DB::*)(const std::vector<double>, const std::string) const) &DB::newGlobalFieldList, "value"_a=std::vector<double>(), "name"_a="unnamed field list")
+  pyDB.def("newGlobalIntFieldList", (FieldList<Dimension, int> (DB::*)(const int, const std::string) const) &DB::newGlobalFieldList, "value"_a=0, "name"_a="unnamed field list");
+  pyDB.def("newGlobalScalarFieldList", (FieldList<Dimension, double> (DB::*)(const double, const std::string) const) &DB::newGlobalFieldList, "value"_a=0.0, "name"_a="unnamed field list");
+  pyDB.def("newGlobalVectorFieldList", (FieldList<Dimension, Vector> (DB::*)(const Vector, const std::string) const) &DB::newGlobalFieldList, "value"_a=Vector::zero, "name"_a="unnamed field list");
+  pyDB.def("newGlobalTensorFieldList", (FieldList<Dimension, Tensor> (DB::*)(const Tensor, const std::string) const) &DB::newGlobalFieldList, "value"_a=Tensor::zero, "name"_a="unnamed field list");
+  pyDB.def("newGlobalSymTensorFieldList", (FieldList<Dimension, SymTensor> (DB::*)(const SymTensor, const std::string) const) &DB::newGlobalFieldList, "value"_a=SymTensor::zero, "name"_a="unnamed field list");
+  pyDB.def("newGlobalThirdRankTensorFieldList", (FieldList<Dimension, ThirdRankTensor> (DB::*)(const ThirdRankTensor, const std::string) const) &DB::newGlobalFieldList, "value"_a=ThirdRankTensor::zero, "name"_a="unnamed field list");
+  pyDB.def("newGlobalFourthRankTensorFieldList", (FieldList<Dimension, FourthRankTensor> (DB::*)(const FourthRankTensor, const std::string) const) &DB::newGlobalFieldList, "value"_a=FourthRankTensor::zero, "name"_a="unnamed field list");
+  pyDB.def("newGlobalFifthRankTensorFieldList", (FieldList<Dimension, FifthRankTensor> (DB::*)(const FifthRankTensor, const std::string) const) &DB::newGlobalFieldList, "value"_a=FifthRankTensor::zero, "name"_a="unnamed field list");
+  pyDB.def("newGlobalFacetedVolumeFieldList", (FieldList<Dimension, FacetedVolume> (DB::*)(const FacetedVolume, const std::string) const) &DB::newGlobalFieldList, "value"_a=FacetedVolume(), "name"_a="unnamed field list");
+  pyDB.def("newGlobalVectorOfDoubleFieldList", (FieldList<Dimension, std::vector<double>> (DB::*)(const std::vector<double>, const std::string) const) &DB::newGlobalFieldList, "value"_a=std::vector<double>(), "name"_a="unnamed field list");
 
-    .def("newFluidIntFieldList", (FieldList<Dimension, int> (DB::*)(const int, const std::string) const) &DB::newFluidFieldList, "value"_a=0, "name"_a="unnamed field list")
-    .def("newFluidScalarFieldList", (FieldList<Dimension, double> (DB::*)(const double, const std::string) const) &DB::newFluidFieldList, "value"_a=0.0, "name"_a="unnamed field list")
-    .def("newFluidVectorFieldList", (FieldList<Dimension, Vector> (DB::*)(const Vector, const std::string) const) &DB::newFluidFieldList, "value"_a=Vector::zero, "name"_a="unnamed field list")
-    .def("newFluidTensorFieldList", (FieldList<Dimension, Tensor> (DB::*)(const Tensor, const std::string) const) &DB::newFluidFieldList, "value"_a=Tensor::zero, "name"_a="unnamed field list")
-    .def("newFluidSymTensorFieldList", (FieldList<Dimension, SymTensor> (DB::*)(const SymTensor, const std::string) const) &DB::newFluidFieldList, "value"_a=SymTensor::zero, "name"_a="unnamed field list")
-    .def("newFluidThirdRankTensorFieldList", (FieldList<Dimension, ThirdRankTensor> (DB::*)(const ThirdRankTensor, const std::string) const) &DB::newFluidFieldList, "value"_a=ThirdRankTensor::zero, "name"_a="unnamed field list")
-    .def("newFluidFourthRankTensorFieldList", (FieldList<Dimension, FourthRankTensor> (DB::*)(const FourthRankTensor, const std::string) const) &DB::newFluidFieldList, "value"_a=FourthRankTensor::zero, "name"_a="unnamed field list")
-    .def("newFluidFifthRankTensorFieldList", (FieldList<Dimension, FifthRankTensor> (DB::*)(const FifthRankTensor, const std::string) const) &DB::newFluidFieldList, "value"_a=FifthRankTensor::zero, "name"_a="unnamed field list")
-    .def("newFluidFacetedVolumeFieldList", (FieldList<Dimension, FacetedVolume> (DB::*)(const FacetedVolume, const std::string) const) &DB::newFluidFieldList, "value"_a=FacetedVolume(), "name"_a="unnamed field list")
-    .def("newFluidVectorOfDoubleFieldList", (FieldList<Dimension, std::vector<double>> (DB::*)(const std::vector<double>, const std::string) const) &DB::newFluidFieldList, "value"_a=std::vector<double>(), "name"_a="unnamed field list")
+  pyDB.def("newFluidIntFieldList", (FieldList<Dimension, int> (DB::*)(const int, const std::string) const) &DB::newFluidFieldList, "value"_a=0, "name"_a="unnamed field list");
+  pyDB.def("newFluidScalarFieldList", (FieldList<Dimension, double> (DB::*)(const double, const std::string) const) &DB::newFluidFieldList, "value"_a=0.0, "name"_a="unnamed field list");
+  pyDB.def("newFluidVectorFieldList", (FieldList<Dimension, Vector> (DB::*)(const Vector, const std::string) const) &DB::newFluidFieldList, "value"_a=Vector::zero, "name"_a="unnamed field list");
+  pyDB.def("newFluidTensorFieldList", (FieldList<Dimension, Tensor> (DB::*)(const Tensor, const std::string) const) &DB::newFluidFieldList, "value"_a=Tensor::zero, "name"_a="unnamed field list");
+  pyDB.def("newFluidSymTensorFieldList", (FieldList<Dimension, SymTensor> (DB::*)(const SymTensor, const std::string) const) &DB::newFluidFieldList, "value"_a=SymTensor::zero, "name"_a="unnamed field list");
+  pyDB.def("newFluidThirdRankTensorFieldList", (FieldList<Dimension, ThirdRankTensor> (DB::*)(const ThirdRankTensor, const std::string) const) &DB::newFluidFieldList, "value"_a=ThirdRankTensor::zero, "name"_a="unnamed field list");
+  pyDB.def("newFluidFourthRankTensorFieldList", (FieldList<Dimension, FourthRankTensor> (DB::*)(const FourthRankTensor, const std::string) const) &DB::newFluidFieldList, "value"_a=FourthRankTensor::zero, "name"_a="unnamed field list");
+  pyDB.def("newFluidFifthRankTensorFieldList", (FieldList<Dimension, FifthRankTensor> (DB::*)(const FifthRankTensor, const std::string) const) &DB::newFluidFieldList, "value"_a=FifthRankTensor::zero, "name"_a="unnamed field list");
+  pyDB.def("newFluidFacetedVolumeFieldList", (FieldList<Dimension, FacetedVolume> (DB::*)(const FacetedVolume, const std::string) const) &DB::newFluidFieldList, "value"_a=FacetedVolume(), "name"_a="unnamed field list");
+  pyDB.def("newFluidVectorOfDoubleFieldList", (FieldList<Dimension, std::vector<double>> (DB::*)(const std::vector<double>, const std::string) const) &DB::newFluidFieldList, "value"_a=std::vector<double>(), "name"_a="unnamed field list");
 
-    // Same as above without encoding the return type in method name
-    .def("newGlobalFieldList", (FieldList<Dimension, int> (DB::*)(const int, const std::string) const) &DB::newGlobalFieldList, "value"_a, "name"_a="unnamed field list")
-    .def("newGlobalFieldList", (FieldList<Dimension, double> (DB::*)(const double, const std::string) const) &DB::newGlobalFieldList, "value"_a, "name"_a="unnamed field list")
-    .def("newGlobalFieldList", (FieldList<Dimension, Vector> (DB::*)(const Vector, const std::string) const) &DB::newGlobalFieldList, "value"_a, "name"_a="unnamed field list")
-    .def("newGlobalFieldList", (FieldList<Dimension, Tensor> (DB::*)(const Tensor, const std::string) const) &DB::newGlobalFieldList, "value"_a, "name"_a="unnamed field list")
-    .def("newGlobalFieldList", (FieldList<Dimension, SymTensor> (DB::*)(const SymTensor, const std::string) const) &DB::newGlobalFieldList, "value"_a, "name"_a="unnamed field list")
-    .def("newGlobalFieldList", (FieldList<Dimension, ThirdRankTensor> (DB::*)(const ThirdRankTensor, const std::string) const) &DB::newGlobalFieldList, "value"_a, "name"_a="unnamed field list")
-    .def("newGlobalFieldList", (FieldList<Dimension, FourthRankTensor> (DB::*)(const FourthRankTensor, const std::string) const) &DB::newGlobalFieldList, "value"_a, "name"_a="unnamed field list")
-    .def("newGlobalFieldList", (FieldList<Dimension, FifthRankTensor> (DB::*)(const FifthRankTensor, const std::string) const) &DB::newGlobalFieldList, "value"_a, "name"_a="unnamed field list")
-    .def("newGlobalFieldList", (FieldList<Dimension, FacetedVolume> (DB::*)(const FacetedVolume, const std::string) const) &DB::newGlobalFieldList, "value"_a, "name"_a="unnamed field list")
-    .def("newGlobalFieldList", (FieldList<Dimension, std::vector<double>> (DB::*)(const std::vector<double>, const std::string) const) &DB::newGlobalFieldList, "value"_a, "name"_a="unnamed field list")
+  // Same as above without encoding the return type in method name
+  pyDB.def("newGlobalFieldList", (FieldList<Dimension, int> (DB::*)(const int, const std::string) const) &DB::newGlobalFieldList, "value"_a, "name"_a="unnamed field list");
+  pyDB.def("newGlobalFieldList", (FieldList<Dimension, double> (DB::*)(const double, const std::string) const) &DB::newGlobalFieldList, "value"_a, "name"_a="unnamed field list");
+  pyDB.def("newGlobalFieldList", (FieldList<Dimension, Vector> (DB::*)(const Vector, const std::string) const) &DB::newGlobalFieldList, "value"_a, "name"_a="unnamed field list");
+  pyDB.def("newGlobalFieldList", (FieldList<Dimension, Tensor> (DB::*)(const Tensor, const std::string) const) &DB::newGlobalFieldList, "value"_a, "name"_a="unnamed field list");
+  pyDB.def("newGlobalFieldList", (FieldList<Dimension, SymTensor> (DB::*)(const SymTensor, const std::string) const) &DB::newGlobalFieldList, "value"_a, "name"_a="unnamed field list");
+  pyDB.def("newGlobalFieldList", (FieldList<Dimension, ThirdRankTensor> (DB::*)(const ThirdRankTensor, const std::string) const) &DB::newGlobalFieldList, "value"_a, "name"_a="unnamed field list");
+  pyDB.def("newGlobalFieldList", (FieldList<Dimension, FourthRankTensor> (DB::*)(const FourthRankTensor, const std::string) const) &DB::newGlobalFieldList, "value"_a, "name"_a="unnamed field list");
+  pyDB.def("newGlobalFieldList", (FieldList<Dimension, FifthRankTensor> (DB::*)(const FifthRankTensor, const std::string) const) &DB::newGlobalFieldList, "value"_a, "name"_a="unnamed field list");
+  pyDB.def("newGlobalFieldList", (FieldList<Dimension, FacetedVolume> (DB::*)(const FacetedVolume, const std::string) const) &DB::newGlobalFieldList, "value"_a, "name"_a="unnamed field list");
+  pyDB.def("newGlobalFieldList", (FieldList<Dimension, std::vector<double>> (DB::*)(const std::vector<double>, const std::string) const) &DB::newGlobalFieldList, "value"_a, "name"_a="unnamed field list");
 
-    .def("newFluidFieldList", (FieldList<Dimension, int> (DB::*)(const int, const std::string) const) &DB::newFluidFieldList, "value"_a, "name"_a="unnamed field list")
-    .def("newFluidFieldList", (FieldList<Dimension, double> (DB::*)(const double, const std::string) const) &DB::newFluidFieldList, "value"_a, "name"_a="unnamed field list")
-    .def("newFluidFieldList", (FieldList<Dimension, Vector> (DB::*)(const Vector, const std::string) const) &DB::newFluidFieldList, "value"_a, "name"_a="unnamed field list")
-    .def("newFluidFieldList", (FieldList<Dimension, Tensor> (DB::*)(const Tensor, const std::string) const) &DB::newFluidFieldList, "value"_a, "name"_a="unnamed field list")
-    .def("newFluidFieldList", (FieldList<Dimension, SymTensor> (DB::*)(const SymTensor, const std::string) const) &DB::newFluidFieldList, "value"_a, "name"_a="unnamed field list")
-    .def("newFluidFieldList", (FieldList<Dimension, ThirdRankTensor> (DB::*)(const ThirdRankTensor, const std::string) const) &DB::newFluidFieldList, "value"_a, "name"_a="unnamed field list")
-    .def("newFluidFieldList", (FieldList<Dimension, FourthRankTensor> (DB::*)(const FourthRankTensor, const std::string) const) &DB::newFluidFieldList, "value"_a, "name"_a="unnamed field list")
-    .def("newFluidFieldList", (FieldList<Dimension, FifthRankTensor> (DB::*)(const FifthRankTensor, const std::string) const) &DB::newFluidFieldList, "value"_a, "name"_a="unnamed field list")
-    .def("newFluidFieldList", (FieldList<Dimension, FacetedVolume> (DB::*)(const FacetedVolume, const std::string) const) &DB::newFluidFieldList, "value"_a, "name"_a="unnamed field list")
-    .def("newFluidFieldList", (FieldList<Dimension, std::vector<double>> (DB::*)(const std::vector<double>, const std::string) const) &DB::newFluidFieldList, "value"_a, "name"_a="unnamed field list")
+  pyDB.def("newFluidFieldList", (FieldList<Dimension, int> (DB::*)(const int, const std::string) const) &DB::newFluidFieldList, "value"_a, "name"_a="unnamed field list");
+  pyDB.def("newFluidFieldList", (FieldList<Dimension, double> (DB::*)(const double, const std::string) const) &DB::newFluidFieldList, "value"_a, "name"_a="unnamed field list");
+  pyDB.def("newFluidFieldList", (FieldList<Dimension, Vector> (DB::*)(const Vector, const std::string) const) &DB::newFluidFieldList, "value"_a, "name"_a="unnamed field list");
+  pyDB.def("newFluidFieldList", (FieldList<Dimension, Tensor> (DB::*)(const Tensor, const std::string) const) &DB::newFluidFieldList, "value"_a, "name"_a="unnamed field list");
+  pyDB.def("newFluidFieldList", (FieldList<Dimension, SymTensor> (DB::*)(const SymTensor, const std::string) const) &DB::newFluidFieldList, "value"_a, "name"_a="unnamed field list");
+  pyDB.def("newFluidFieldList", (FieldList<Dimension, ThirdRankTensor> (DB::*)(const ThirdRankTensor, const std::string) const) &DB::newFluidFieldList, "value"_a, "name"_a="unnamed field list");
+  pyDB.def("newFluidFieldList", (FieldList<Dimension, FourthRankTensor> (DB::*)(const FourthRankTensor, const std::string) const) &DB::newFluidFieldList, "value"_a, "name"_a="unnamed field list");
+  pyDB.def("newFluidFieldList", (FieldList<Dimension, FifthRankTensor> (DB::*)(const FifthRankTensor, const std::string) const) &DB::newFluidFieldList, "value"_a, "name"_a="unnamed field list");
+  pyDB.def("newFluidFieldList", (FieldList<Dimension, FacetedVolume> (DB::*)(const FacetedVolume, const std::string) const) &DB::newFluidFieldList, "value"_a, "name"_a="unnamed field list");
+  pyDB.def("newFluidFieldList", (FieldList<Dimension, std::vector<double>> (DB::*)(const std::vector<double>, const std::string) const) &DB::newFluidFieldList, "value"_a, "name"_a="unnamed field list");
 
-    // Attributes
-    .def_property_readonly("numNodeLists", &DB::numNodeLists)
-    .def_property_readonly("numFluidNodeLists", &DB::numFluidNodeLists)
-    .def_property_readonly("numSolidNodeLists", &DB::numSolidNodeLists)
-    .def_property_readonly("numInternalNodes", &DB::numInternalNodes)
-    .def_property_readonly("numGhostNodes", &DB::numGhostNodes)
-    .def_property_readonly("numNodes", &DB::numNodes)
-    .def_property_readonly("globalNumInternalNodes", &DB::globalNumInternalNodes)
-    .def_property_readonly("globalNumGhostNodes", &DB::globalNumGhostNodes)
-    .def_property_readonly("globalNumNodes", &DB::globalNumNodes)
+  // Attributes
+  pyDB.def_property_readonly("numNodeLists", &DB::numNodeLists);
+  pyDB.def_property_readonly("numFluidNodeLists", &DB::numFluidNodeLists);
+  pyDB.def_property_readonly("numSolidNodeLists", &DB::numSolidNodeLists);
+  pyDB.def_property_readonly("numInternalNodes", &DB::numInternalNodes);
+  pyDB.def_property_readonly("numGhostNodes", &DB::numGhostNodes);
+  pyDB.def_property_readonly("numNodes", &DB::numNodes);
+  pyDB.def_property_readonly("globalNumInternalNodes", &DB::globalNumInternalNodes);
+  pyDB.def_property_readonly("globalNumGhostNodes", &DB::globalNumGhostNodes);
+  pyDB.def_property_readonly("globalNumNodes", &DB::globalNumNodes);
 
-    .def_property_readonly("globalMass", &DB::globalMass)
-    .def_property_readonly("globalPosition", &DB::globalPosition)
-    .def_property_readonly("globalVelocity", &DB::globalVelocity)
-    .def_property_readonly("globalHfield", &DB::globalHfield)
-    .def_property_readonly("globalWork", &DB::globalWork)
+  pyDB.def_property_readonly("globalMass", &DB::globalMass);
+  pyDB.def_property_readonly("globalPosition", &DB::globalPosition);
+  pyDB.def_property_readonly("globalVelocity", &DB::globalVelocity);
+  pyDB.def_property_readonly("globalHfield", &DB::globalHfield);
+  pyDB.def_property_readonly("globalWork", &DB::globalWork);
 
-    .def_property_readonly("fluidMass", &DB::fluidMass)
-    .def_property_readonly("fluidPosition", &DB::fluidPosition)
-    .def_property_readonly("fluidVelocity", &DB::fluidVelocity)
-    .def_property_readonly("fluidMassDensity", &DB::fluidMassDensity)
-    .def_property_readonly("fluidSpecificThermalEnergy", &DB::fluidSpecificThermalEnergy)
-    .def_property_readonly("fluidHfield", &DB::fluidHfield)
-    .def_property_readonly("fluidWork", &DB::fluidWork)
+  pyDB.def_property_readonly("fluidMass", &DB::fluidMass);
+  pyDB.def_property_readonly("fluidPosition", &DB::fluidPosition);
+  pyDB.def_property_readonly("fluidVelocity", &DB::fluidVelocity);
+  pyDB.def_property_readonly("fluidMassDensity", &DB::fluidMassDensity);
+  pyDB.def_property_readonly("fluidSpecificThermalEnergy", &DB::fluidSpecificThermalEnergy);
+  pyDB.def_property_readonly("fluidHfield", &DB::fluidHfield);
+  pyDB.def_property_readonly("fluidWork", &DB::fluidWork);
 
-    .def_property_readonly("globalNodeExtent", &DB::globalNodeExtent)
-    .def_property_readonly("fluidNodeExtent", &DB::fluidNodeExtent)
-    .def_property_readonly("numNeighbors", &DB::numNeighbors)
-    .def_property_readonly("maxKernelExtent", &DB::maxKernelExtent)
+  pyDB.def_property_readonly("globalNodeExtent", &DB::globalNodeExtent);
+  pyDB.def_property_readonly("fluidNodeExtent", &DB::fluidNodeExtent);
+  pyDB.def_property_readonly("numNeighbors", &DB::numNeighbors);
+  pyDB.def_property_readonly("maxKernelExtent", &DB::maxKernelExtent);
 
-    // For backwards compatibility, we provide attribute-like access to the static attributes.
-    .def_property_readonly("nDim", []() { return DB::nDim; })
-    .def_property_readonly("isRZ", []() { return DB::isRZ; })
+  // For backwards compatibility, we provide attribute-like access to the static attributes.
+  pyDB.def_property_readonly("nDim", []() { return DB::nDim; });
+  pyDB.def_property_readonly("isRZ", []() { return DB::isRZ; });
 
-    // Static attributes
-    .def_readonly_static("nDim", &DB::nDim)
-    .def_readonly_static("isRZ", &DB::isRZ)
-    ;
+  // Static attributes
+  pyDB.def_readonly_static("nDim", &DB::nDim);
+  pyDB.def_readonly_static("isRZ", &DB::isRZ);
 }
 
 } // anonymous
@@ -299,8 +297,8 @@ void dimensionBindings(py::module& m, const std::string suffix) {
 //------------------------------------------------------------------------------
 // Make the module
 //------------------------------------------------------------------------------
-PYBIND11_PLUGIN(SpheralDataBase) {
-  py::module m("SpheralDataBase", "Spheral DataBase module.");
+PYBIND11_MODULE(SpheralDataBase, m) {
+  m.doc() = "Spheral DataBase module.";
 
   //............................................................................
   // Per dimension bindings.
@@ -313,6 +311,4 @@ PYBIND11_PLUGIN(SpheralDataBase) {
 #ifdef SPHERAL3D
   dimensionBindings<Spheral::Dim<3>>(m, "3d");
 #endif
-
-  return m.ptr();
 }
