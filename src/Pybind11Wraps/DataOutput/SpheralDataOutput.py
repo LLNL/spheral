@@ -71,8 +71,8 @@ class RestartableObject:
         "Define the label for storing this object in a restart file."
         return "std::string"
 
-    #@PYB11virtual
-    #@PYB11const
+    @PYB11virtual
+    @PYB11const
     def dumpState(self,
                   file = "FileIOSpace::FileIO&",
                   pathName = "const std::string"):
