@@ -176,7 +176,10 @@ def PYB11generateModuleClasses(modobj, ss):
                     argString += ', "%s"_a' % argName
                     if default:
                         argString += "=%s" % default
-                ss((")) &%(cppname)s::" % klassattrs) + methattrs["cppname"] + argString)
+                if methattrs["const"]:
+                    ss((") const) &%(cppname)s::" % klassattrs) + methattrs["cppname"] + argString)
+                else:
+                    ss((")) &%(cppname)s::" % klassattrs) + methattrs["cppname"] + argString)
             doc = inspect.getdoc(meth)
             if doc:
                 ss(',\n            "%s"' % doc)
