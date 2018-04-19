@@ -58,3 +58,4 @@ endif
 #-------------------------------------------------------------------------------
 include $(BUILDTOP)/helpers/makefile_master
 EXTRAFLAGS += -DUSE_TRIANGLE=$(USE_TRIANGLE) -DUSE_TETGEN=$(USE_TETGEN)
+EXTRALIBS += $(POLYTOPELIBS)

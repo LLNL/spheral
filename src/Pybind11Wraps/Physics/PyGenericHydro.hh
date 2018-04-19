@@ -23,11 +23,10 @@ namespace PhysicsSpace {
 //------------------------------------------------------------------------------
 // PyGenericHydro
 //------------------------------------------------------------------------------
-template<typename Dimension>
-class PyGenericHydro: public PyAbstractPhysics<Dimension, GenericHydro<Dimension>> {
+template<typename Dimension, typename Base>
+class PyGenericHydro: public PyAbstractPhysics<Dimension, Base> {
 public:
-  typedef GenericHydro<Dimension> PhysicsBase;
-  typedef PyAbstractPhysics<Dimension, PhysicsBase> PyAP;
+  typedef PyAbstractPhysics<Dimension, Base> PyAP;
   using PyAP::PyAP;  // inherit constructors
 
   typedef typename Dimension::Scalar Scalar;
@@ -41,7 +40,7 @@ public:
                           const StateDerivatives<Dimension>& derivs,
                           const Scalar currentTime) const override {
     PYBIND11_OVERLOAD(TimeStepType,        // Return type
-                      PhysicsBase,         // Parent class
+                      Base,                // Parent class
                       dt,                  // name of method
                       dataBase, state, derivs, currentTime   // arguments
                       );
