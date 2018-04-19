@@ -1,7 +1,7 @@
 """
 Spheral OpenMP module.
 
-This module provide thin front-end wrapper for the OpenMP methods.
+This module provide thin front-end wrappers for the OpenMP methods.
 """
 
 preamble = """
