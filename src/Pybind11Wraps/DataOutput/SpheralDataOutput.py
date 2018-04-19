@@ -58,6 +58,7 @@ class RestartRegistrar:
 # RestartableObject
 #-------------------------------------------------------------------------------
 class RestartableObject:
+    "The base class for building restartable python objects in Spheral."
 
     def pyinit(self,
                pyobj = "PyObject*",
