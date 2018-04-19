@@ -144,6 +144,55 @@ def PYB11generateModuleFunctions(modobj, ss):
 # Bind the classes in the module
 #-------------------------------------------------------------------------------
 def PYB11generateModuleClasses(modobj, ss):
+
+    # Generate a generic class method spec.
+    def generic_class_method(meth, methattrs, args):
+        ss('    obj.def("%(pyname)s", ' % methattrs)
+        if methattrs["returnType"] is None:
+            ss(("&%(cppname)s::" % klassattrs) + methattrs["cppname"])
+        else:
+            argString = ""
+            ss(("(%(returnType)s " % methattrs) + ("(%(cppname)s::*)(" % klassattrs))
+            for i, (argType, argName, default) in enumerate(args):
+                ss(argType)
+                if i < len(args) - 1:
+                    ss(", ")
+                argString += ', "%s"_a' % argName
+                if default:
+                    argString += "=%s" % default
+            if methattrs["const"]:
+                ss((") const) &%(cppname)s::" % klassattrs) + methattrs["cppname"] + argString)
+            else:
+                ss((")) &%(cppname)s::" % klassattrs) + methattrs["cppname"] + argString)
+        doc = inspect.getdoc(meth)
+        if doc:
+            ss(',\n            "%s"' % doc)
+        ss(");\n")
+
+    # Ignore
+    def ignore(mesh, methattrs, args):
+        pass
+
+    # Generate pyinit<>
+    def pyinit(meth, methattrs, args):
+        ss("    obj.def(py::init<")
+        argString = ""
+        for i, (argType, argName, default) in enumerate(args):
+            if i < len(args) - 1:
+                ss("%s, " % argType)
+            else:
+                ss("%s>()" % argType)
+            argString += ', "%s"_a' % argName
+            if default:
+                argString += "=%s" % default
+        ss("%s);\n" % argString)
+        return
+
+    # Map special generation patterns.
+    special_class_methods = {"pyinit" : pyinit,
+                            "__init__" : ignore}
+
+    # Iterate over the module classes.
     classes = PYB11classes(modobj)
     for kname, klass in classes:
         objinst = klass()
@@ -157,33 +206,24 @@ def PYB11generateModuleClasses(modobj, ss):
             ss(", std::unique_ptr<RestartRegistrar, py::nodelete>")
         ss('>(m, "%(pyname)s") obj;\n' % klassattrs)
 
+        # Is there a doc string?
+        if inspect.getdoc(klass):
+            ss("    obj.doc() = ")
+            for i, line in enumerate(inspect.getdoc(klass).split('\n')):
+                if i > 0:
+                    ss("            ")
+                ss('"%s"\n' % line);
+            ss("  ;\n")
+
         # Bind methods of the class.
         for mname, meth in PYB11methods(klass):
             methattrs = PYB11attrs(meth)
-            ss('    obj.def("%(pyname)s", ' % methattrs)
-            returnType = eval("objinst." + mname + "()")
-            methattrs["returnType"] = returnType
-            if returnType is None:
-                ss(("&%(cppname)s::" % klassattrs) + methattrs["cppname"])
+            methattrs["returnType"] = eval("objinst." + mname + "()")
+            args = PYB11parseArgs(meth)
+            if mname in special_class_methods:
+                special_class_methods[mname](meth, methattrs, args)
             else:
-                args = PYB11parseArgs(meth)
-                argString = ""
-                ss(("(%(returnType)s " % methattrs) + ("(%(cppname)s::*)(" % klassattrs))
-                for i, (argType, argName, default) in enumerate(args):
-                    ss(argType)
-                    if i < len(args) - 1:
-                        ss(", ")
-                    argString += ', "%s"_a' % argName
-                    if default:
-                        argString += "=%s" % default
-                if methattrs["const"]:
-                    ss((") const) &%(cppname)s::" % klassattrs) + methattrs["cppname"] + argString)
-                else:
-                    ss((")) &%(cppname)s::" % klassattrs) + methattrs["cppname"] + argString)
-            doc = inspect.getdoc(meth)
-            if doc:
-                ss(',\n            "%s"' % doc)
-            ss(");\n")
+                generic_class_method(meth, methattrs, args)
 
         # # Get the return type and arguments.
         # returnType = meth()
