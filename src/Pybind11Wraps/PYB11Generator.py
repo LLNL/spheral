@@ -48,7 +48,7 @@ using namespace pybind11::literals;
     # Includes
     if hasattr(modobj, "includes"):
         for inc in modobj.includes:
-            ss('#include "%s"\n' % inc)
+            ss('#include %s\n' % inc)
         ss("\n")
 
     # Use  namespaces
@@ -164,15 +164,23 @@ def PYB11generateModuleClasses(modobj, ss):
             returnType = eval("objinst." + mname + "()")
             methattrs["returnType"] = returnType
             if returnType is None:
-                ss(("&%(cppname)s::" % klassattrs) + methattrs["cppname"] + ");\n")
+                ss(("&%(cppname)s::" % klassattrs) + methattrs["cppname"])
             else:
-                args = PYB11parseArgs(inspect.getargspec(meth))
+                args = PYB11parseArgs(meth)
+                argString = ""
                 ss(("(%(returnType)s " % methattrs) + ("(%(cppname)s::*)(" % klassattrs))
                 for i, (argType, argName, default) in enumerate(args):
                     ss(argType)
-                    if i < nargs - 1:
+                    if i < len(args) - 1:
                         ss(", ")
-                ss((")) &%(cppname)s::" % klassattrs) + methattrs["cppname"] + ");\n")
+                    argString += ', "%s"_a' % argName
+                    if default:
+                        argString += "=%s" % default
+                ss((")) &%(cppname)s::" % klassattrs) + methattrs["cppname"] + argString)
+            doc = inspect.getdoc(meth)
+            if doc:
+                ss(',\n            "%s"' % doc)
+            ss(");\n")
 
         # # Get the return type and arguments.
         # returnType = meth()
@@ -216,13 +224,18 @@ def PYB11generateModuleClasses(modobj, ss):
 #
 # Return (argType, argName, <default_value>)
 #-------------------------------------------------------------------------------
-def PYB11parseArgs(args):
+def PYB11parseArgs(meth):
+    stuff = inspect.getargspec(meth)
     result = []
-    for tup in args:
-        if len(tup) == 2:
-            result.append((tup[0], tup[1], None))
-        else:
-            result.append(tup)
+    if stuff.defaults:
+        nargs = len(stuff.defaults)
+        for argName, val in zip(stuff.args[-nargs:], stuff.defaults):
+            if isinstance(val, tuple):
+                assert len(val) == 2
+                argType, default = val
+            else:
+                argType, default = val, None
+            result.append((argType, argName, default))
     return result
 
 #-------------------------------------------------------------------------------
