@@ -179,6 +179,32 @@ def PYB11generateModuleClasses(modobj, ss):
         pass
 
     #...........................................................................
+    # Property
+    def class_property(meth, methattrs, args):
+
+        ss('    obj.def("%(pyname)s", ' % methattrs)
+        if methattrs["returnType"] is None:
+            ss(("&%(cppname)s::" % klassattrs) + methattrs["cppname"])
+        else:
+            argString = ""
+            ss(("(%(returnType)s " % methattrs) + ("(%(cppname)s::*)(" % klassattrs))
+            for i, (argType, argName, default) in enumerate(args):
+                ss(argType)
+                if i < len(args) - 1:
+                    ss(", ")
+                argString += ', "%s"_a' % argName
+                if default:
+                    argString += "=%s" % default
+            if methattrs["const"]:
+                ss((") const) &%(cppname)s::" % klassattrs) + methattrs["cppname"] + argString)
+            else:
+                ss((")) &%(cppname)s::" % klassattrs) + methattrs["cppname"] + argString)
+        doc = inspect.getdoc(meth)
+        if doc:
+            ss(',\n            "%s"' % doc)
+        ss(");\n")
+
+    #...........................................................................
     # pyinit<>
     def pyinit(meth, methattrs, args):
         ss("    obj.def(py::init<")
@@ -289,7 +315,11 @@ def PYB11attrs(obj):
          "singleton"    : False,
          "virtual"      : False,
          "pure_virtual" : False,
-         "const"        : False}
+         "const"        : False,
+         "static"       : False,
+         "property"     : None,
+         "getter"       : None,
+         "setter"       : None}
     for key in d:
         if hasattr(obj, "PYB11" + key):
             d[key] = eval("obj.PYB11%s" % key)

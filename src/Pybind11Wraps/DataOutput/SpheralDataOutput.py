@@ -30,6 +30,12 @@ namespaces = ["Spheral::DataOutput"]
 class RestartRegistrar:
     "A singleton object that holds all objects currently registered for restart."
 
+    # The instance attribute.  We expose this as a property of the class.
+    @PYB11static
+    @PYB11readonly
+    @PYB11getter("instance")
+    instance = "RestartRegistrar&"
+
     def removeExpiredPointers(self):
         "Clear all expired objects from the RestartRegistrar."
         return
@@ -53,6 +59,12 @@ class RestartRegistrar:
     def restoreState(self):
         "Restore the state of all restartable handles"
         return
+
+    # @PYB11static
+    # @PYB11getter("instance")
+    # def instance(self):
+    #     "Get the singleton instance."
+    #     return
 
 #-------------------------------------------------------------------------------
 # RestartableObject
