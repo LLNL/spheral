@@ -42,3 +42,39 @@ def PYB11const(f):
         return f(*args, **kwargs)
     f.PYB11const = True
     return PYB11decorator.decorate(f, wrapper)
+
+#-------------------------------------------------------------------------------
+# property
+#-------------------------------------------------------------------------------
+def PYB11property(f, x):
+    def wrapper(f, *args, **kwargs):
+        return f(*args, **kwargs)
+    f.PYB11property = x
+    return PYB11decorator.decorate(f, wrapper)
+
+#-------------------------------------------------------------------------------
+# getter (for property)
+#-------------------------------------------------------------------------------
+def PYB11getter(f, x):
+    def wrapper(f, *args, **kwargs):
+        return f(*args, **kwargs)
+    f.PYB11getter = x
+    return PYB11decorator.decorate(f, wrapper)
+
+#-------------------------------------------------------------------------------
+# setter (for property)
+#-------------------------------------------------------------------------------
+def PYB11setter(f, x):
+    def wrapper(f, *args, **kwargs):
+        return f(*args, **kwargs)
+    f.PYB11setter = x
+    return PYB11decorator.decorate(f, wrapper)
+
+#-------------------------------------------------------------------------------
+# static method
+#-------------------------------------------------------------------------------
+def PYB11static(f):
+    def wrapper(f, *args, **kwargs):
+        return f(*args, **kwargs)
+    f.PYB11static = True
+    return PYB11decorator.decorate(f, wrapper)
