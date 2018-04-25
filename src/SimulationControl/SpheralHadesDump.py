@@ -100,15 +100,15 @@ def hadesDump(integrator,
         assert mpi.allreduce(len(rhosamp), mpi.SUM) == ntot
 
     # Write the master file.
-    writeMasterSiloFile(ndim = db.nDim,
-                        baseDirectory = baseDirectory,
-                        baseName = baseFileName,
-                        procDirBaseName = procDirBaseName,
-                        nodeLists = materials,
-                        rhosamp = rhosamp,
-                        label = "Spheral++ cartesian sampled output",
-                        time = integrator.currentTime,
-                        cycle = integrator.currentCycle)
+    maxproc = writeMasterSiloFile(ndim = db.nDim,
+                                  baseDirectory = baseDirectory,
+                                  baseName = baseFileName,
+                                  procDirBaseName = procDirBaseName,
+                                  nodeLists = materials,
+                                  rhosamp = rhosamp,
+                                  label = "Spheral++ cartesian sampled output",
+                                  time = integrator.currentTime,
+                                  cycle = integrator.currentCycle)
 
     # Write the process files.
     writeDomainSiloFile(ndim = db.nDim,
@@ -134,19 +134,26 @@ def hadesDump(integrator,
 #-------------------------------------------------------------------------------
 def shuffleIntoBlocks(ndim, vals, xmin, xmax, nglobal):
 
+    # In 2D we expect nglobal = (nx, ny, 1)
+    assert len(nglobal) == 3
+
     if ndim == 2:
         from Spheral2d import *
     else:
         from Spheral3d import *
 
-    # Which dimension are cutting up into?
-    jmax = max(enumerate(nglobal), key = lambda x: x[1])[0]
     dx = [(xmax[j] - xmin[j])/nglobal[j] for j in xrange(ndim)]
     ntot = 1
     for x in nglobal:
         ntot *= x
 
-    # Find the offset to the global lattice numbering on this domain
+    # Which dimension should we divide up into?
+    jmax = max(enumerate(nglobal), key = lambda x: x[1])[0]
+
+    # Find the offset to the global lattice numbering on this domain.
+    # This is based on knowing the native lattice sampling method stripes the original data
+    # accoriding to (i + j*nx + k*nx*ny), and simply divides that 1D serialization sequentially
+    # between processors.
     offset = 0
     for sendproc in xrange(mpi.procs):
         n = mpi.bcast(len(vals), root=sendproc)
@@ -155,25 +162,30 @@ def shuffleIntoBlocks(ndim, vals, xmin, xmax, nglobal):
     if mpi.rank == mpi.procs - 1:
         assert offset + len(vals) == ntot
 
+    # A function to turn an index into the integer lattice coordinates
+    def latticeCoords(iglobal):
+        return (iglobal % nglobal[0],
+                (iglobal % (nglobal[0]*nglobal[1])) // nglobal[0],
+                iglobal // (nglobal[0]*nglobal[1]))
+
     # A function to tell us which block to assign a global index to
-    nperslab = 1
-    for j in xrange(ndim):
-        if j != jmax:
-            nperslab *= nglobal[j]
     slabsperblock = max(1, nglobal[jmax] // mpi.procs)
     remainder = max(0, nglobal[jmax] - mpi.procs*slabsperblock)
     islabdomain = [min(nglobal[jmax], iproc*slabsperblock + min(iproc, remainder)) for iproc in xrange(mpi.procs)]
+    print "Domain splitting: ", nglobal, jmax, islabdomain
     def targetBlock(index):
-        index = offset + index
-        if ndim == 2:
-            id = (index % nglobal[0],
-                  index // nglobal[0],
-                  0)
-        else:
-            id = ((index % (nglobal[0]*nglobal[1])) % nglobal[0],
-                  (index % (nglobal[0]*nglobal[1])) // nglobal[0],
-                  index // (nglobal[0]*nglobal[1]))
-        return bisect.bisect(islabdomain, id[jmax])
+        icoords = latticeCoords(offset + index)
+        return bisect.bisect(islabdomain, icoords[jmax])
+
+    # Build a list of (global_index, value, target_proc) for each of the lattice values.
+    id_val_procs = [(offset + i, val, targetBlock(offset + i)) for i, val in enumerate(vals)]
+    
+    # Send our values to other domains.
+    sendreqs, sendvals = []
+    for iproc in xrange(mpi.procs):
+        if iproc != mpi.rank:
+            sendvals.append([(i, val) for (i, val, proc) in id_val_procs if proc == iproc])
+            sendreqs.append(mpi.isend(sendvals[-1], dest=iproc, tag=100))
 
     # Now we can build the dang result.
     xminblock, xmaxblock = Vector(xmin), Vector(xmax)
@@ -181,9 +193,23 @@ def shuffleIntoBlocks(ndim, vals, xmin, xmax, nglobal):
     xmaxblock[jmax] = islabdomain[mpi.rank + 1]*dx[jmax]
     nblock = list(nglobal)
     nblock[jmax] = islabdomain[mpi.rank + 1] - islabdomain[mpi.rank]
-    valsblock = []
-    for i, vali in enumerate(vals):
-        
+    newvals = []
+    for iproc in xrange(mpi.procs):
+        if iproc == mpi.rank:
+            recvvals = [(i, val) for (i, val, proc) in id_val_procs if proc == mpi.rank]
+        else:
+            recvvals = mpi.recv(source=iproc, tag=100)
+        newvals += recvvals
+    newvals.sort()
+    valsblock = [x[1] for x in newvals]
+    assert len(valsblock) == nblock[0]*nblock[1]*nblock[2]
+
+    # Wait 'til all communication is done.
+    for req in sendreqs:
+        req.wait()
+
+    # That should be it.
+    return valsblock, xminblock, xmaxblock, nblock
 
 #-------------------------------------------------------------------------------
 # Write the master file.
@@ -193,8 +219,19 @@ def writeMasterSiloFile(ndim, baseDirectory, baseName, procDirBaseName, nodeList
 
     nullOpts = silo.DBoptlist()
 
+    # Decide which domains have information.
+    domainVarNames = vector_of_string()
+    nlocalvals = len(rhosamp)
+    maxproc = 1
+    for iproc, p in enumerate(domainNamePatterns):
+        nvals = mpi.bcast(nlocalvals, root=iproc)
+        if nvals > 0:
+            domainVarNames.append(p % name)
+            maxproc = iproc + 1
+    assert len(domainVarNames) == maxproc
+
     # Pattern for constructing per domain variables.
-    domainNamePatterns = [os.path.join(procDirBaseName % i, baseName + ".silo:%s") for i in xrange(mpi.procs)]
+    domainNamePatterns = [os.path.join(procDirBaseName % i, baseName + ".silo:%s") for i in xrange(maxproc)]
 
     # Create the master file.
     if mpi.rank == 0:
@@ -204,7 +241,7 @@ def writeMasterSiloFile(ndim, baseDirectory, baseName, procDirBaseName, nodeList
 
         # Write the domain file names and types.
         domainNames = vector_of_string()
-        meshTypes = vector_of_int(mpi.procs, SA._DB_QUAD_RECT)
+        meshTypes = vector_of_int(maxproc, SA._DB_QUAD_RECT)
         for p in domainNamePatterns:
             domainNames.append(p % "MESH")
         optlist = silo.DBoptlist(1024)
@@ -221,7 +258,7 @@ def writeMasterSiloFile(ndim, baseDirectory, baseName, procDirBaseName, nodeList
         for i, name in enumerate([x.name for x in nodeLists]):
             matnames.append(name)
             matnos.append(i)
-        assert len(material_names) == mpi.procs
+        assert len(material_names) == maxproc
         assert len(matnames) == len(nodeLists)
         assert len(matnos) == len(nodeLists)
         optlist = silo.DBoptlist(1024)
@@ -234,29 +271,19 @@ def writeMasterSiloFile(ndim, baseDirectory, baseName, procDirBaseName, nodeList
         # Write the variables descriptors.
         # We currently hardwire for the single density variable.
         name = "mass_density"
-        types = vector_of_int(mpi.procs, SA._DB_QUADVAR)
-        domainVarNames = vector_of_string()
-        nlocalvals = len(rhosamp)
-        for iproc, p in enumerate(domainNamePatterns):
-            nvals = mpi.bcast(nlocalvals, root=iproc)
-            if nvals > 0:
-                domainVarNames.append(p % name)
-            else:
-                domainVarNames.append("EMPTY")
-        assert len(domainVarNames) == mpi.procs
+        types = vector_of_int(maxproc, SA._DB_QUADVAR)
+        assert len(domainVarNames) == maxproc
         optlistMV = silo.DBoptlist()
         assert optlistMV.addOption(SA._DBOPT_CYCLE, cycle) == 0
         assert optlistMV.addOption(SA._DBOPT_DTIME, time) == 0
         assert optlistMV.addOption(SA._DBOPT_TENSOR_RANK, SA._DB_VARTYPE_SCALAR) == 0
-        if mpi.rank == 0:
-            assert silo.DBPutMultivar(f, name, domainVarNames, types, optlistMV) == 0
+        assert silo.DBPutMultivar(f, name, domainVarNames, types, optlistMV) == 0
 
-    # That's it.
-    if mpi.rank == 0:
+        # Close the file.
         assert silo.DBClose(f) == 0
         del f
 
-    return
+    return maxproc
 
 #-------------------------------------------------------------------------------
 # Write the domain file.
