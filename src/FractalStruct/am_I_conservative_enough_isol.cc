@@ -16,10 +16,6 @@ namespace FractalSpace
     int stride=100;
     int NP=PFM->number_particles;
     double dt5=correction*PFM->step_length;
-    vector <double>pot(stride);
-    vector <double>fx(stride);
-    vector <double>fy(stride);
-    vector <double>fz(stride);
     double vx,vy,vz;
     double pe=0.0;
     double ke=0.0;
@@ -32,6 +28,10 @@ namespace FractalSpace
     for(int ni=0;ni<NP;ni+=stride)
       {
 	int many=min(ni+stride,NP)-ni;
+	vector <double>pot(many);
+	vector <double>fx(many);
+	vector <double>fy(many);
+	vector <double>fz(many);
 	get_field(PFM,ni,many,G,xmin,xmax,pot,fx,fy,fz);
 	for(int p=0;p<many;p++)
 	  {
@@ -49,14 +49,14 @@ namespace FractalSpace
 	    m0+=*massesb*(*posyb*vz-*poszb*vy);
 	    m1+=*massesb*(*poszb*vx-*posxb*vz);
 	    m2+=*massesb*(*posxb*vy-*posyb*vx);
+	    posxb++;
+	    posyb++;
+	    poszb++;
+	    velxb++;
+	    velyb++;
+	    velzb++;
+	    massesb++;
 	  }
-	posxb++;
-	posyb++;
-	poszb++;
-	velxb++;
-	velyb++;
-	velzb++;
-	massesb++;
       }
     pe*=0.5;
     ke*=0.5;
