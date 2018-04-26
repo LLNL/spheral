@@ -20,7 +20,7 @@ def hadesDump(integrator,
               baseDirectory = ".",
               procDirBaseName = "proc-%06i",
               mask = None,
-              nodeLists = None):
+              materials = None):
 
     # Currently suppport 2D and 3D.
     db = integrator.dataBase()
@@ -55,36 +55,35 @@ def hadesDump(integrator,
         ntot *= nsample[j]
     for nodes in materials:
         print "hadesDump: sampling density for %s..." % nodes.name
-        r = Spheral.VectorFieldList()
-        H = Spheral.SymTensorFieldList()
-        rho = Spheral.ScalarFieldList()
+        r = sph.VectorFieldList()
+        H = sph.SymTensorFieldList()
+        rho = sph.ScalarFieldList()
         r.appendField(nodes.positions())
-        w.appendField(nodes.weight())
         H.appendField(nodes.Hfield())
         rho.appendField(nodes.massDensity())
 
-        w = Spheral.ScalarFieldList()
+        w = sph.ScalarFieldList()
         w.copyFields()
-        w.appendField(Spheral.ScalarField("weight", nodes, 1.0))
+        w.appendField(sph.ScalarField("weight", nodes, 1.0))
 
-        fieldListSet = Spheral.FieldListSet()
+        fieldListSet = sph.FieldListSet()
         fieldListSet.ScalarFieldLists.append(rho)
-        localMask = Spheral.IntFieldList()
+        localMask = sph.IntFieldList()
         if mask is None:
             localMask.copyFields()
-            localMask.appendField(Spheral.IntField("mask", nodes, 1))
+            localMask.appendField(sph.IntField("mask", nodes, 1))
         else:
             localMask.appendField(mask.fieldForNodeList(nodes))
 
-        scalar_samples = Spheral.vector_of_vector_of_double()
-        vector_samples = Spheral.vector_of_vector_of_Vector()
-        tensor_samples = Spheral.vector_of_vector_of_Tensor()
-        symTensor_samples = Spheral.vector_of_vector_of_SymTensor()
-        nsample_vec = Spheral.vector_of_int(db.nDim)
+        scalar_samples = sph.vector_of_vector_of_double()
+        vector_samples = sph.vector_of_vector_of_Vector()
+        tensor_samples = sph.vector_of_vector_of_Tensor()
+        symTensor_samples = sph.vector_of_vector_of_SymTensor()
+        nsample_vec = sph.vector_of_int(db.nDim)
         for i in xrange(db.nDim):
             nsample_vec[i] = nsample[i]
 
-        Spheral.sampleMultipleFields2Lattice(fieldListSet,
+        sph.sampleMultipleFields2Lattice(fieldListSet,
                                              r, w, H, localMask,
                                              W,
                                              xmin, xmax,
@@ -100,8 +99,7 @@ def hadesDump(integrator,
         assert mpi.allreduce(len(rhosamp), mpi.SUM) == ntot
 
     # Write the master file.
-    maxproc = writeMasterSiloFile(ndim = db.nDim,
-                                  baseDirectory = baseDirectory,
+    maxproc = writeMasterSiloFile(baseDirectory = baseDirectory,
                                   baseName = baseFileName,
                                   procDirBaseName = procDirBaseName,
                                   nodeLists = materials,
@@ -112,6 +110,7 @@ def hadesDump(integrator,
 
     # Write the process files.
     writeDomainSiloFile(ndim = db.nDim,
+                        maxproc = maxproc,
                         dirName = proc
                         )
 
@@ -138,9 +137,9 @@ def shuffleIntoBlocks(ndim, vals, xmin, xmax, nglobal):
     assert len(nglobal) == 3
 
     if ndim == 2:
-        from Spheral2d import *
+        import Spheral2d as sph
     else:
-        from Spheral3d import *
+        import Spheral3d as sph
 
     dx = [(xmax[j] - xmin[j])/nglobal[j] for j in xrange(ndim)]
     ntot = 1
@@ -188,7 +187,7 @@ def shuffleIntoBlocks(ndim, vals, xmin, xmax, nglobal):
             sendreqs.append(mpi.isend(sendvals[-1], dest=iproc, tag=100))
 
     # Now we can build the dang result.
-    xminblock, xmaxblock = Vector(xmin), Vector(xmax)
+    xminblock, xmaxblock = sph.Vector(xmin), sph.Vector(xmax)
     xminblock[jmax] = islabdomain[mpi.rank]    *dx[jmax]
     xmaxblock[jmax] = islabdomain[mpi.rank + 1]*dx[jmax]
     nblock = list(nglobal)
@@ -214,13 +213,13 @@ def shuffleIntoBlocks(ndim, vals, xmin, xmax, nglobal):
 #-------------------------------------------------------------------------------
 # Write the master file.
 #-------------------------------------------------------------------------------
-def writeMasterSiloFile(ndim, baseDirectory, baseName, procDirBaseName, nodeLists,
+def writeMasterSiloFile(baseDirectory, baseName, procDirBaseName, nodeLists,
                         rhosamp, label, time, cycle):
 
     nullOpts = silo.DBoptlist()
 
     # Decide which domains have information.
-    domainVarNames = vector_of_string()
+    domainVarNames = Spheral.vector_of_string()
     nlocalvals = len(rhosamp)
     maxproc = 1
     for iproc, p in enumerate(domainNamePatterns):
@@ -240,8 +239,8 @@ def writeMasterSiloFile(ndim, baseDirectory, baseName, procDirBaseName, nodeList
                           SA._DB_CLOBBER, SA._DB_LOCAL, label, SA._DB_HDF5)
 
         # Write the domain file names and types.
-        domainNames = vector_of_string()
-        meshTypes = vector_of_int(maxproc, SA._DB_QUAD_RECT)
+        domainNames = Spheral.vector_of_string()
+        meshTypes = Spheral.vector_of_int(maxproc, SA._DB_QUAD_RECT)
         for p in domainNamePatterns:
             domainNames.append(p % "MESH")
         optlist = silo.DBoptlist(1024)
@@ -250,14 +249,14 @@ def writeMasterSiloFile(ndim, baseDirectory, baseName, procDirBaseName, nodeList
         assert silo.DBPutMultimesh(f, "MMESH", domainNames, meshTypes, optlist) == 0
 
         # Write material names.
-        material_names = vector_of_string()
-        matnames = vector_of_string()
-        matnos = vector_of_int()
+        material_names = Spheral.vector_of_string()
+        matnames = Spheral.vector_of_string()
+        matnos = Spheral.vector_of_int()
         for p in domainNamePatterns:
             material_names.append(p % "material")
         for i, name in enumerate([x.name for x in nodeLists]):
             matnames.append(name)
-            matnos.append(i)
+            matnos.append(i + 1)
         assert len(material_names) == maxproc
         assert len(matnames) == len(nodeLists)
         assert len(matnos) == len(nodeLists)
@@ -271,7 +270,7 @@ def writeMasterSiloFile(ndim, baseDirectory, baseName, procDirBaseName, nodeList
         # Write the variables descriptors.
         # We currently hardwire for the single density variable.
         name = "mass_density"
-        types = vector_of_int(maxproc, SA._DB_QUADVAR)
+        types = Spheral.vector_of_int(maxproc, SA._DB_QUADVAR)
         assert len(domainVarNames) == maxproc
         optlistMV = silo.DBoptlist()
         assert optlistMV.addOption(SA._DBOPT_CYCLE, cycle) == 0
@@ -288,117 +287,54 @@ def writeMasterSiloFile(ndim, baseDirectory, baseName, procDirBaseName, nodeList
 #-------------------------------------------------------------------------------
 # Write the domain file.
 #-------------------------------------------------------------------------------
-def writeDomainSiloFile(ndim, procDirBaseName, mesh, index2zone, label, nodeLists, time, cycle, fieldwad,
-                        pretendRZ, nodeArrays, zoneArrays, faceArrays,
-                        meshType = SA._DB_UCDMESH):
+def writeDomainSiloFile(ndim, maxproc, procDirBaseName, materials,
+                        xminblock, xmaxblock, nblock,
+                        label, nodeLists, time, cycle, rhosamp,
+                        pretendRZ):
 
     # Is there anything to do?
-    numZones = len(mesh.cells)
-    if numZones > 0:
+    if mpi.rank < maxproc:
+        numZones = 1
+        for x in nblock:
+            numZones *= x
+        assert numZones > 0
+        assert len(rhosamp) == numZones
 
         # Create the file.
         fileName = os.path.join(dirName, "domain%i.silo" % mpi.rank)
-        db = silo.DBCreate(fileName, 
-                           SA._DB_CLOBBER, SA._DB_LOCAL, label, SA._DB_HDF5)
+        f = silo.DBCreate(fileName, 
+                          SA._DB_CLOBBER, SA._DB_LOCAL, label, SA._DB_HDF5)
         nullOpts = silo.DBoptlist()
 
-        # Determine our dimensionality
-        if isinstance(mesh, polytope.Tessellation2d):
-            nDim = 2
+        # Write the domain mesh.
+        coords = Spheral.vector_of_vector_of_double(ndim)
+        for jdim in xrange(ndim):
+            coords[jdim] = Spheral.vector_of_double(nblock[jdim] + 1)
+            dx = (xmaxblock[jdim] - xminblock[jdim])/nblock[jdim]
+            for i in xrange(nblock[jdim] + 1):
+                coords[jdim][i] = xminblock[jdim] + i*dx
+        optlist = silo.DBoptlist()
+        assert optlist.addOption(SA._DBOPT_CYCLE, cycle) == 0
+        assert optlist.addOption(SA._DBOPT_DTIME, time) == 0
+        if pretendRZ:
+            assert optlist.addOption(SA._DBOPT_CYLINDRICAL) == 0
         else:
-            assert isinstance(mesh, polytope.Tessellation3d)
-            nDim = 3
-
-        # Write a Polygonal zone list.
-        zonelistName = { 2 : "zonelist",
-                         3 : "PHzonelist" }
-
-        if nDim == 2:
-        
-            # Read out the zone nodes.  We rely on these already being arranged
-            # counter-clockwise.
-            zoneNodes = vector_of_vector_of_int()
-            shapesize = vector_of_int()
-            for zoneID in xrange(numZones):
-                zone = mesh.cells[zoneID]
-                nodes = vector_of_int()
-                for iface in zone:
-                    if iface < 0:
-                        nodes.append(mesh.faces[~iface][1])
-                    else:
-                        nodes.append(mesh.faces[iface][0])
-                zoneNodes.append(nodes)
-                shapesize.append(len(nodes))
-            assert len(zoneNodes) == numZones
-            assert len(shapesize) == numZones
-        
-            assert silo.DBPutZonelist2(db, zonelistName[nDim], nDim, zoneNodes, 0, 0,
-                                       vector_of_int(numZones, SA._DB_ZONETYPE_POLYGON),
-                                       shapesize,
-                                       vector_of_int(numZones, 1),
-                                       nullOpts) == 0
-        
-        # Write a Polyhedral zone list.
-        if nDim == 3:
-        
-            # Construct the face-node lists.
-            numFaces = len(mesh.faces)
-            faceNodes = vector_of_vector_of_int(numFaces)
-            for iface in xrange(numFaces):
-                for j in xrange(len(mesh.faces[iface])):
-                    faceNodes[iface].append(mesh.faces[iface][j])
-                assert len(faceNodes[iface]) == len(mesh.faces[iface])
-            assert len(faceNodes) == numFaces
-        
-            # Construct the zone-face list.  We use the ones complement of a face ID
-            # to indicate that face needs to be reversed in reference to this zone.
-            # This is the same convention as polytope, so just copy it.
-            zoneFaces = mesh.cells
-            assert len(zoneFaces) == numZones
-        
-            assert silo.DBPutPHZonelist(db, zonelistName[nDim], faceNodes, zoneFaces, 0, (numZones - 1), nullOpts) == 0
-        
-        # Construct the mesh node coordinates.
-        assert len(mesh.nodes) % nDim == 0
-        numNodes = len(mesh.nodes)/nDim
-        coords = vector_of_vector_of_double(nDim, vector_of_double(numNodes))
-        for nodeID in xrange(numNodes):
-            for idim in xrange(nDim):
-                coords[idim][nodeID] = mesh.nodes[nDim*nodeID + idim]
-        assert len(coords) == nDim
-        
-        # Write the mesh itself.
-        meshOpts = silo.DBoptlist(1024)
-        assert meshOpts.addOption(SA._DBOPT_CYCLE, cycle) == 0
-        assert meshOpts.addOption(SA._DBOPT_DTIME, time) == 0
-        assert meshOpts.addOption(SA._DBOPT_COORDSYS, SA._DB_CARTESIAN) == 0
-        assert meshOpts.addOption(SA._DBOPT_NSPACE, nDim) == 0
-        assert meshOpts.addOption(SA._DBOPT_TV_CONNECTIVITY, 1) == 0
-        if nDim == 2:
-            if pretendRZ:
-                assert meshOpts.addOption(SA._DBOPT_COORDSYS, SA._DB_CYLINDRICAL) == 0
-                assert meshOpts.addOption(SA._DBOPT_XLABEL, "z") == 0
-                assert meshOpts.addOption(SA._DBOPT_YLABEL, "r") == 0
-            assert silo.DBPutUcdmesh(db, "MESH", coords, numZones, zonelistName[nDim], "NULL", meshOpts) == 0
-        else:
-            assert meshOpts.addOption(SA._DBOPT_PHZONELIST, zonelistName[nDim]) == 0
-            assert silo.DBPutUcdmesh(db, "MESH", coords, numZones, "NULL", "NULL", meshOpts) == 0
+            assert optlist.addOption(SA._DBOPT_CARTESIAN) == 0
+        assert silo.DBPutQuadMesh(f, "MESH", coords, optlist)
         
         # Write materials.
-        if nodeLists:
-            matnos = vector_of_int()
-            for i in xrange(len(nodeLists)):
+        if materials:
+            matnos = Spheral.vector_of_int()
+            for i in xrange(len(materials)):
                 matnos.append(i)
-            assert len(matnos) == len(nodeLists)
-            matlist = vector_of_int(numZones)
-            matnames = vector_of_string()
-            offset = 0
-            for (nodeList, imat) in zip(nodeLists, xrange(len(nodeLists))):
-                for i in xrange(nodeList.numInternalNodes):
-                    for j in index2zone[offset + i]:
-                        matlist[j] = imat
+            assert len(matnos) == len(materials)
+            matlist = Spheral.vector_of_int(numZones, 0)
+            matnames = Spheral.vector_of_string()
+            for imat, nodeList in enumerate(materials):
+                for i in xrange(numZones):
+                    if rhosamp[i] > 0.0:
+                        matlist[i] = imat + 1
                 matnames.append(nodeList.name)
-                offset += nodeList.numInternalNodes
             assert len(matlist) == numZones
             assert len(matnames) == len(nodeLists)
             matOpts = silo.DBoptlist(1024)
@@ -406,110 +342,22 @@ def writeDomainSiloFile(ndim, procDirBaseName, mesh, index2zone, label, nodeList
             assert matOpts.addOption(SA._DBOPT_DTIME, time) == 0
             assert matOpts.addOption(SA._DBOPT_MATNAMES, SA._DBOPT_NMATNOS, matnames) == 0
             assert silo.DBPutMaterial(db, "MATERIAL", "MESH", matnos, matlist,
-                                      vector_of_int(), vector_of_int(), vector_of_int(), vector_of_double(),
-                                      matOpts) == 0
-            assert silo.DBPutMaterial(db, "PointMATERIAL", "PointMESH", matnos, matlist,
-                                      vector_of_int(), vector_of_int(), vector_of_int(), vector_of_double(),
+                                      Spheral.vector_of_int(), Spheral.vector_of_int(), Spheral.vector_of_int(), Spheral.vector_of_double(),
                                       matOpts) == 0
         
-            # Write the variable descriptions for non-scalar variables (vector and tensors).
-            writeDefvars(db, fieldwad)
-        
-            # Write the field components.
-            centering = SA._DB_ZONECENT
-            varOpts = silo.DBoptlist(1024)
-            assert varOpts.addOption(SA._DBOPT_CYCLE, cycle) == 0
-            assert varOpts.addOption(SA._DBOPT_DTIME, time) == 0
-            for name, desc, type, optlistDef, optlistMV, optlistVar, subvars in fieldwad:
-                for subname, vals in subvars:
-                    if len(vals) > 0:
-                        if isinstance(vals, vector_of_double):
-                            assert silo.DBPutUcdvar1(db, subname, "MESH", vals, vector_of_double(), centering, varOpts) == 0
-                        elif isinstance(vals, vector_of_int):
-                            assert silo.DBPutUcdvar1(db, subname, "MESH", vals, vector_of_int(), centering, varOpts) == 0
-        
-        # Write the set of neighbor domains.
-        thpt = vector_of_vector_of_int()
-        thpt.append(vector_of_int(1, len(mesh.neighborDomains)))
-        thpt.append(vector_of_int())
-        for i in mesh.neighborDomains:
-            thpt[-1].append(i)
-        elemNames = vector_of_string()
-        elemNames.append("num neighbor domains")
-        elemNames.append("neighbor domains")
-        assert silo.DBPutCompoundarray(db, "DOMAIN_NEIGHBOR_NUMS", elemNames, thpt, nullOpts) == 0
-        
-        # Write the shared nodes for each neighbor domain.
-        sharedNodes = mesh.sharedNodes
-        for ineighborDomain in xrange(len(mesh.neighborDomains)):
-            nodes = vector_of_int()
-            for i in sharedNodes[ineighborDomain]:
-                nodes.append(i)
-            assert len(nodes) == len(sharedNodes[ineighborDomain])
-            assert silo.DBPutCompoundarray(db, "DOMAIN_NEIGHBOR%i" % ineighborDomain,
-                                           vector_of_string(1, "shared_nodes"),
-                                           vector_of_vector_of_int(1, nodes),
-                                           nullOpts) == 0
-        
-        # If requested, write out annotations for the nodes, zones, and faces.
-        if (not (nodeArrays is None) or
-            not (zoneArrays is None) or
-            not (faceArrays is None)):
-            names = vector_of_string()
-            values = vector_of_vector_of_int()
-            if not (nodeArrays is None):
-                for pair in nodeArrays:
-                    assert len(pair) == 2
-                    if len(pair[1]) > 0:
-                        names.append(pair[0] + "_node")
-                        values.append(vector_of_int())
-                        for i in pair[1]:
-                            values[-1].append(i)
-                        assert len(values[-1]) == len(pair[1])
-            if not (zoneArrays is None):
-                for pair in zoneArrays:
-                    assert len(pair) == 2
-                    if len(pair[1]) > 0:
-                        names.append(pair[0] + "_zone")
-                        values.append(vector_of_int())
-                        for i in pair[1]:
-                            values[-1].append(i)
-                        assert len(values[-1]) == len(pair[1])
-            if not (faceArrays is None):
-                for pair in faceArrays:
-                    assert len(pair) == 2
-                    if len(pair[1]) > 0:
-                        names.append(pair[0] + "_face")
-                        values.append(vector_of_int())
-                        for i in pair[1]:
-                            values[-1].append(i)
-                        assert len(values[-1]) == len(pair[1])
-            assert len(names) == len(values)
-            if len(names) > 0:
-                assert silo.DBPutCompoundarray(db, "ANNOTATION_INT", names, values, nullOpts) == 0
-        
-        # Write the point mesh.
-        if nodeLists:
-            ntot = sum([n.numInternalNodes for n in nodeLists])
-            coords = vector_of_vector_of_double(nDim)
-            for nodes in nodeLists:
-                pos = nodes.positions().internalValues()
-                n = len(pos)
-                for j in xrange(nDim):
-                    for i in xrange(n):
-                        coords[j].append(pos[i][j])
-            for j in xrange(nDim):
-                assert len(coords[j]) == ntot
-         
-            # Write the Pointmesh.
-            meshOpts = silo.DBoptlist(1024)
-            assert meshOpts.addOption(SA._DBOPT_CYCLE, cycle) == 0
-            assert meshOpts.addOption(SA._DBOPT_DTIME, time) == 0
-            assert silo.DBPutPointmesh(db, "PointMESH", coords, meshOpts) == 0
+        # Write the field variables.
+        varOpts = silo.DBoptlist(1024)
+        assert varOpts.addOption(SA._DBOPT_CYCLE, cycle) == 0
+        assert varOpts.addOption(SA._DBOPT_DTIME, time) == 0
+        nblock_vec = Spheral.vector_of_int(ndim)
+        for jdim in xrange(ndim):
+            nblock_vec[jdim] = nblock[jdim]
+            assert silo.DBPutQuadvar1(f, "mass_density", "MESH", rhosamp, 
+                                      Spheral.vector_of_double(), SA._DB_ZONECENT, nblock_vec, varOpts) == 0
 
         # That's it.
-        assert silo.DBClose(db) == 0
-        del db
+        assert silo.DBClose(f) == 0
+        del f
 
     return
 

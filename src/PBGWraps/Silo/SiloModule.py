@@ -133,6 +133,14 @@ class Silo:
                                  refparam("silo::DBoptlist_wrapper", "optlist", default_value="silo::DBoptlist_wrapper(0)")],
                                 docstring = "Write UCD mesh object.")
 
+        # DBPutQuadmesh
+        self.space.add_function("DBPutQuadmesh", "int",
+                                [refparam("DBfile", "file"),
+                                 param("std::string", "name"),
+                                 refparam("vector_of_vector_of_double", "coords"),
+                                 refparam("silo::DBoptlist_wrapper", "optlist", default_value="silo::DBoptlist_wrapper(0)")],
+                                docstring = "Write Quad mesh object.")
+
         # DBPutDefvars
         self.space.add_function("DBPutDefvars", "int",
                                 [refparam("DBfile", "file"),
@@ -254,6 +262,20 @@ class Silo:
                                     custom_name = "DBPutUcdvar1",
                                     docstring = "Write a Ucd array of type %s." % type)
 
+            # DBPutQuadvar1
+            self.space.add_function("DBPutQuadvar1", "int",
+                                    [refparam("DBfile", "file"),
+                                     param("std::string", "name"),
+                                     param("std::string", "meshName"),
+                                     refparam("vector_of_%s" % type, "values"),
+                                     refparam("vector_of_%s" % type, "mixValues"),
+                                     param("int", "centering"),
+                                     refparam("vector_of_int", "vardims"),
+                                     refparam("silo::DBoptlist_wrapper", "optlist", default_value="silo::DBoptlist_wrapper(0)")],
+                                    template_parameters = [type],
+                                    custom_name = "DBPutQuadvar1",
+                                    docstring = "Write a Quad array of type %s." % type)
+
             # DBPutPointvar1
             self.space.add_function("DBPutPointvar1", "int",
                                     [refparam("DBfile", "file"),
@@ -280,6 +302,20 @@ class Silo:
                                     template_parameters = [type],
                                     custom_name = "DBPutUcdvar",
                                     docstring = "Write a Ucd array of type %s." % type)
+
+            # DBPutQuadvar
+            self.space.add_function("DBPutQuadvar", "int",
+                                    [refparam("DBfile", "file"),
+                                     param("std::string", "name"),
+                                     param("std::string", "meshName"),
+                                     refparam("vector_of_%s" % type, "values"),
+                                     refparam("vector_of_%s" % type, "mixValues"),
+                                     param("int", "centering"),
+                                     refparam("vector_of_int", "vardims"),
+                                     refparam("silo::DBoptlist_wrapper", "optlist", default_value="silo::DBoptlist_wrapper(0)")],
+                                    template_parameters = [type],
+                                    custom_name = "DBPutQuadvar",
+                                    docstring = "Write a Quad array of type %s." % type)
 
             # DBPutPointvar
             self.space.add_function("DBPutPointvar", "int",

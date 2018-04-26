@@ -1042,6 +1042,44 @@ DBPutUcdmesh(DBfile& file,
 }
 
 //------------------------------------------------------------------------------
+// DBPutQuadmesh
+//------------------------------------------------------------------------------
+inline
+int
+DBPutQuadmesh(DBfile& file,
+              std::string name,
+              std::vector<std::vector<double> >& coords,
+              DBoptlist_wrapper& optlist) {
+
+  // Preconditions.
+  const unsigned ndims = coords.size();
+  VERIFY(ndims == 2 or ndims == 3);
+
+  // Number of nodes in each dimension.
+  vector<int> meshdims(ndims);
+  for (auto k = 0; k < ndims; ++k) meshdims[k] = coords[k].size();
+
+  // We need the C-stylish pointers to the coordinates.
+  double** coordPtrs = new double*[ndims];
+  for (auto k = 0; k < ndims; ++k) coordPtrs[k] = &coords[k][0];
+
+  // Do the deed.
+  const int result = DBPutQuadmesh(&file,                            // dbfile
+                                   name.c_str(),                     // name
+                                   NULL,                             // coordnames
+                                   coordPtrs,                        // coords
+                                   &meshdims[0],                     // dims
+                                   ndims,                            // ndims
+                                   SiloTraits<double>::datatype(),   // datatype
+                                   DB_COLLINEAR,                     // coordtype
+                                   optlist.mOptlistPtr);             // optlist
+
+  // That's it.
+  delete[] coordPtrs;
+  return result;
+}
+
+//------------------------------------------------------------------------------
 // DBPutDefvars
 //------------------------------------------------------------------------------
 inline
@@ -1179,6 +1217,108 @@ DBPutUcdvar1(DBfile& file,
                       SiloTraits<T>::datatype(),
                       centering,
                       optlist.mOptlistPtr);
+}
+
+//------------------------------------------------------------------------------
+// DBPutQuadvar
+// We assume here that the underlying element type is double.
+//------------------------------------------------------------------------------
+template<typename T>
+inline
+int
+DBPutQuadvar(DBfile& file,
+             std::string name,
+             std::string meshName,
+             std::vector<T>& values,
+             std::vector<T>& mixValues,
+             int centering,
+             vector<int>& vardims,
+             DBoptlist_wrapper& optlist) {
+
+  // Preconditions.
+  VERIFY(centering == DB_NODECENT or
+         centering == DB_ZONECENT);
+  auto ndims = vardims.size();
+  VERIFY(ndims == 1 or ndims == 2 or ndims == 3);
+
+  // Build the sub-variable names.
+  auto nvars = Spheral2Silo<T>::numElements();
+  auto nels = values.size();
+  auto mixlen = mixValues.size();
+  vector<char*> varnames;
+  for (auto i = 0; i != nvars; ++i) {
+    varnames.push_back(const_cast<char*>((name + "_").c_str()));
+    sprintf(varnames.back(), "%i", i);
+  }
+
+  // Build the sub-variables.
+  double** vars = new double*[nvars];
+  double** mixvars = new double*[nvars];
+  for (auto i = 0; i != nvars; ++i) {
+    vars[i] = new double[nels];
+    mixvars[i] = new double[mixlen];
+  }
+  for (auto j = 0; j != nels; ++j) Spheral2Silo<T>::copyElement(values[j], vars, j);
+  for (auto j = 0; j != mixlen; ++j) Spheral2Silo<T>::copyElement(mixValues[j], mixvars, j);
+
+  const auto result = DBPutQuadvar(&file,
+                                   name.c_str(),
+                                   meshName.c_str(),
+                                   nvars,
+                                   &varnames.front(),
+                                   (void*) vars,
+                                   &vardims.front(),
+                                   ndims,
+                                   (void*) mixvars,
+                                   mixlen,
+                                   SiloTraits<double>::datatype(),
+                                   centering,
+                                   optlist.mOptlistPtr);
+
+  // That's it.
+  for (auto i = 0; i != nvars; ++i) {
+    delete[] vars[i];
+    delete[] mixvars[i];
+  }
+  delete[] vars;
+  delete[] mixvars;
+  return result;
+}
+
+//------------------------------------------------------------------------------
+// DBPutQuadvar1
+//------------------------------------------------------------------------------
+template<typename T>
+inline
+int
+DBPutQuadvar1(DBfile& file,
+              std::string name,
+              std::string meshName,
+              std::vector<T>& values,
+              std::vector<T>& mixValues,
+              int centering,
+              vector<int>& vardims,
+              DBoptlist_wrapper& optlist) {
+
+  // Preconditions.
+  VERIFY(centering == DB_NODECENT or
+         centering == DB_EDGECENT or
+         centering == DB_FACECENT or
+         centering == DB_ZONECENT);
+  const auto ndims = vardims.size();
+  VERIFY(ndims == 1 or ndims == 2 or ndims == 3);
+
+  return DBPutQuadvar1(&file,
+                       name.c_str(),
+                       meshName.c_str(),
+                       (void*) &values.front(),
+                       &vardims.front(),
+                       ndims,
+                       (void*) &mixValues.front(),
+                       mixValues.size(),
+                       SiloTraits<T>::datatype(),
+                       centering,
+                       optlist.mOptlistPtr);
 }
 
 //------------------------------------------------------------------------------
