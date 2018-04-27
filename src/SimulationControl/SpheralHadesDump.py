@@ -95,6 +95,12 @@ def hadesDump(integrator,
 
         # Rearrange the sampled data into rectangular blocks due to Silo's quad mesh limitations.
         rhosamp, xminblock, xmaxblock, nblock = shuffleIntoBlocks(db.nDim, scalar_samples[0], xmin, xmax, nsample)
+        print "rho range: ", min(rhosamp), max(rhosamp)
+        print "     xmin: ", xmin
+        print "     xmax: ", xmax
+        print "xminblock: ", xminblock
+        print "xmaxblock: ", xmaxblock
+        print "   nblock: ", nblock
         assert mpi.allreduce(len(rhosamp), mpi.SUM) == ntot
 
     # Write the master file.
@@ -194,9 +200,9 @@ def shuffleIntoBlocks(ndim, vals, xmin, xmax, nglobal):
             sendreqs.append(mpi.isend(sendvals[-1], dest=iproc, tag=100))
 
     # Now we can build the dang result.
-    xminblock, xmaxblock = sph.Vector(xmin), sph.Vector(xmax)
-    xminblock[jmax] = islabdomain[mpi.rank]    *dx[jmax]
-    xmaxblock[jmax] = islabdomain[mpi.rank + 1]*dx[jmax]
+    xminblock, xmaxblock = sph.Vector(*xmin), sph.Vector(*xmax)
+    xminblock[jmax] = xmin[jmax] + islabdomain[mpi.rank]    *dx[jmax]
+    xmaxblock[jmax] = xmin[jmax] + islabdomain[mpi.rank + 1]*dx[jmax]
     nblock = list(nglobal)
     nblock[jmax] = islabdomain[mpi.rank + 1] - islabdomain[mpi.rank]
     newvals = []
@@ -236,7 +242,7 @@ def writeMasterSiloFile(baseDirectory, baseName, procDirBaseName, materials,
     assert maxproc >= mpi.procs
 
     # Pattern for constructing per domain variables.
-    domainNamePatterns = [os.path.join(procDirBaseName % i, baseName + ".silo:%s") for i in xrange(maxproc)]
+    domainNamePatterns = [os.path.join(procDirBaseName % i, "domain%i.silo:%%s" % i) for i in xrange(maxproc)]
     domainVarNames = Spheral.vector_of_string()
     name = "mass_density"
     for iproc, p in enumerate(domainNamePatterns):
@@ -280,6 +286,7 @@ def writeMasterSiloFile(baseDirectory, baseName, procDirBaseName, materials,
         
         # Write the variables descriptors.
         # We currently hardwire for the single density variable.
+        name = "mass_density"
         types = Spheral.vector_of_int(maxproc, SA._DB_QUADVAR)
         assert len(domainVarNames) == maxproc
         optlistMV = silo.DBoptlist()
