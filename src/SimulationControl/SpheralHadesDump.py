@@ -61,9 +61,15 @@ def hadesDump(integrator,
         H.appendField(nodes.Hfield())
         rho.appendField(nodes.massDensity())
 
+        mf = nodes.mass()
+        rhof = nodes.massDensity()
+        wf = sph.ScalarField("volume", nodes)
+        for i in xrange(nodes.numNodes):
+            wf[i] = mf[i]/max(1e-100, rhof[i])
         w = sph.ScalarFieldList()
         w.copyFields()
-        w.appendField(sph.ScalarField("weight", nodes, 1.0))
+        w.appendField(wf)
+        #w.appendField(sph.ScalarField("weight", nodes, 1.0))
 
         fieldListSet = sph.FieldListSet()
         fieldListSet.ScalarFieldLists.append(rho)
