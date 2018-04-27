@@ -7,6 +7,7 @@ from SpheralModules import silo
 from SpheralModules.silo import SiloAttributes as SA
 import mpi
 import struct, time, os, bisect
+from operator import mul
 
 #-------------------------------------------------------------------------------
 # Write a silo file resampling to a fixed cartesian mesh for the density.
@@ -50,9 +51,7 @@ def hadesDump(integrator,
     mpi.barrier()
 
     # Sample the density.
-    ntot = nsample[0]
-    for j in xrange(2, db.nDim):
-        ntot *= nsample[j]
+    ntot = reduce(mul, nsample)
     for nodes in materials:
         print "hadesDump: sampling density for %s..." % nodes.name
         r = sph.VectorFieldList()
@@ -84,25 +83,25 @@ def hadesDump(integrator,
             nsample_vec[i] = nsample[i]
 
         sph.sampleMultipleFields2Lattice(fieldListSet,
-                                             r, w, H, localMask,
-                                             W,
-                                             xmin, xmax,
-                                             nsample_vec,
-                                             scalar_samples,
-                                             vector_samples,
-                                             tensor_samples,
-                                             symTensor_samples)
+                                         r, w, H, localMask,
+                                         W,
+                                         xmin, xmax,
+                                         nsample_vec,
+                                         scalar_samples,
+                                         vector_samples,
+                                         tensor_samples,
+                                         symTensor_samples)
         print "Generated %i scalar fields" % len(scalar_samples)
 
         # Rearrange the sampled data into rectangular blocks due to Silo's quad mesh limitations.
-        rhosamp, xminblock, xmaxblock, nblock = shuffleIntoBlocks(ndim, scalar_fields[0], xmin, xmax, nsample)
+        rhosamp, xminblock, xmaxblock, nblock = shuffleIntoBlocks(db.nDim, scalar_samples[0], xmin, xmax, nsample)
         assert mpi.allreduce(len(rhosamp), mpi.SUM) == ntot
 
     # Write the master file.
     maxproc = writeMasterSiloFile(baseDirectory = baseDirectory,
                                   baseName = baseFileName,
                                   procDirBaseName = procDirBaseName,
-                                  nodeLists = materials,
+                                  materials = materials,
                                   rhosamp = rhosamp,
                                   label = "Spheral++ cartesian sampled output",
                                   time = integrator.currentTime,
@@ -111,8 +110,18 @@ def hadesDump(integrator,
     # Write the process files.
     writeDomainSiloFile(ndim = db.nDim,
                         maxproc = maxproc,
-                        dirName = proc
-                        )
+                        baseDirectory = baseDirectory,
+                        baseName = baseFileName,
+                        procDirBaseName = procDirBaseName,
+                        materials = materials,
+                        rhosamp = rhosamp,
+                        xminblock = xminblock,
+                        xmaxblock = xmaxblock,
+                        nblock = nblock,
+                        label = "Spheral++ cartesian sampled output",
+                        time = integrator.currentTime,
+                        cycle = integrator.currentCycle,
+                        pretendRZ = db.isRZ)
 
     mpi.barrier()
     print "hadesDump finished: required %0.2f seconds" % (time.clock() - t0)
@@ -134,7 +143,7 @@ def hadesDump(integrator,
 def shuffleIntoBlocks(ndim, vals, xmin, xmax, nglobal):
 
     # In 2D we expect nglobal = (nx, ny, 1)
-    assert len(nglobal) == 3
+    #assert len(nglobal) == 3
 
     if ndim == 2:
         import Spheral2d as sph
@@ -142,12 +151,10 @@ def shuffleIntoBlocks(ndim, vals, xmin, xmax, nglobal):
         import Spheral3d as sph
 
     dx = [(xmax[j] - xmin[j])/nglobal[j] for j in xrange(ndim)]
-    ntot = 1
-    for x in nglobal:
-        ntot *= x
+    ntot = reduce(mul, nglobal)
 
     # Which dimension should we divide up into?
-    jmax = max(enumerate(nglobal), key = lambda x: x[1])[0]
+    jmax = min(ndim - 1, max(enumerate(nglobal), key = lambda x: x[1])[0])
 
     # Find the offset to the global lattice numbering on this domain.
     # This is based on knowing the native lattice sampling method stripes the original data
@@ -170,17 +177,17 @@ def shuffleIntoBlocks(ndim, vals, xmin, xmax, nglobal):
     # A function to tell us which block to assign a global index to
     slabsperblock = max(1, nglobal[jmax] // mpi.procs)
     remainder = max(0, nglobal[jmax] - mpi.procs*slabsperblock)
-    islabdomain = [min(nglobal[jmax], iproc*slabsperblock + min(iproc, remainder)) for iproc in xrange(mpi.procs)]
-    print "Domain splitting: ", nglobal, jmax, islabdomain
+    islabdomain = [min(nglobal[jmax], iproc*slabsperblock + min(iproc, remainder)) for iproc in xrange(mpi.procs + 1)]
+    #print "Domain splitting: ", nglobal, jmax, islabdomain
     def targetBlock(index):
         icoords = latticeCoords(offset + index)
-        return bisect.bisect(islabdomain, icoords[jmax])
+        return bisect.bisect(islabdomain, icoords[jmax]) - 1
 
     # Build a list of (global_index, value, target_proc) for each of the lattice values.
     id_val_procs = [(offset + i, val, targetBlock(offset + i)) for i, val in enumerate(vals)]
     
     # Send our values to other domains.
-    sendreqs, sendvals = []
+    sendreqs, sendvals = [], []
     for iproc in xrange(mpi.procs):
         if iproc != mpi.rank:
             sendvals.append([(i, val) for (i, val, proc) in id_val_procs if proc == iproc])
@@ -200,8 +207,10 @@ def shuffleIntoBlocks(ndim, vals, xmin, xmax, nglobal):
             recvvals = mpi.recv(source=iproc, tag=100)
         newvals += recvvals
     newvals.sort()
-    valsblock = [x[1] for x in newvals]
-    assert len(valsblock) == nblock[0]*nblock[1]*nblock[2]
+    valsblock = sph.vector_of_double()
+    for i, val in newvals:
+        valsblock.append(val)
+    assert len(valsblock) == reduce(mul, nblock)
 
     # Wait 'til all communication is done.
     for req in sendreqs:
@@ -213,24 +222,26 @@ def shuffleIntoBlocks(ndim, vals, xmin, xmax, nglobal):
 #-------------------------------------------------------------------------------
 # Write the master file.
 #-------------------------------------------------------------------------------
-def writeMasterSiloFile(baseDirectory, baseName, procDirBaseName, nodeLists,
+def writeMasterSiloFile(baseDirectory, baseName, procDirBaseName, materials,
                         rhosamp, label, time, cycle):
 
     nullOpts = silo.DBoptlist()
 
     # Decide which domains have information.
-    domainVarNames = Spheral.vector_of_string()
-    nlocalvals = len(rhosamp)
-    maxproc = 1
-    for iproc, p in enumerate(domainNamePatterns):
-        nvals = mpi.bcast(nlocalvals, root=iproc)
-        if nvals > 0:
-            domainVarNames.append(p % name)
-            maxproc = iproc + 1
-    assert len(domainVarNames) == maxproc
+    if len(rhosamp) > 0:
+        myvote = mpi.rank + 1
+    else:
+        myvote = 0
+    maxproc = mpi.allreduce(myvote, mpi.MAX)
+    assert maxproc >= mpi.procs
 
     # Pattern for constructing per domain variables.
     domainNamePatterns = [os.path.join(procDirBaseName % i, baseName + ".silo:%s") for i in xrange(maxproc)]
+    domainVarNames = Spheral.vector_of_string()
+    name = "mass_density"
+    for iproc, p in enumerate(domainNamePatterns):
+        domainVarNames.append(p % name)
+    assert len(domainVarNames) == maxproc
 
     # Create the master file.
     if mpi.rank == 0:
@@ -240,7 +251,7 @@ def writeMasterSiloFile(baseDirectory, baseName, procDirBaseName, nodeLists,
 
         # Write the domain file names and types.
         domainNames = Spheral.vector_of_string()
-        meshTypes = Spheral.vector_of_int(maxproc, SA._DB_QUAD_RECT)
+        meshTypes = Spheral.vector_of_int(maxproc, SA._DB_QUADRECT)
         for p in domainNamePatterns:
             domainNames.append(p % "MESH")
         optlist = silo.DBoptlist(1024)
@@ -254,12 +265,12 @@ def writeMasterSiloFile(baseDirectory, baseName, procDirBaseName, nodeLists,
         matnos = Spheral.vector_of_int()
         for p in domainNamePatterns:
             material_names.append(p % "material")
-        for i, name in enumerate([x.name for x in nodeLists]):
+        for i, name in enumerate([x.name for x in materials]):
             matnames.append(name)
             matnos.append(i + 1)
         assert len(material_names) == maxproc
-        assert len(matnames) == len(nodeLists)
-        assert len(matnos) == len(nodeLists)
+        assert len(matnames) == len(materials)
+        assert len(matnos) == len(materials)
         optlist = silo.DBoptlist(1024)
         assert optlist.addOption(SA._DBOPT_CYCLE, cycle) == 0
         assert optlist.addOption(SA._DBOPT_DTIME, time) == 0
@@ -269,7 +280,6 @@ def writeMasterSiloFile(baseDirectory, baseName, procDirBaseName, nodeLists,
         
         # Write the variables descriptors.
         # We currently hardwire for the single density variable.
-        name = "mass_density"
         types = Spheral.vector_of_int(maxproc, SA._DB_QUADVAR)
         assert len(domainVarNames) == maxproc
         optlistMV = silo.DBoptlist()
@@ -287,10 +297,20 @@ def writeMasterSiloFile(baseDirectory, baseName, procDirBaseName, nodeLists,
 #-------------------------------------------------------------------------------
 # Write the domain file.
 #-------------------------------------------------------------------------------
-def writeDomainSiloFile(ndim, maxproc, procDirBaseName, materials,
+def writeDomainSiloFile(ndim, maxproc, baseDirectory, baseName, procDirBaseName,
+                        materials, rhosamp,
                         xminblock, xmaxblock, nblock,
-                        label, nodeLists, time, cycle, rhosamp,
+                        label, time, cycle,
                         pretendRZ):
+
+    # Make sure the directories are there.
+    if mpi.rank == 0:
+        for iproc in xrange(maxproc):
+            pth = os.path.join(baseDirectory,
+                               procDirBaseName % iproc)
+            if not os.path.exists(pth):
+                os.makedirs(pth)
+    mpi.barrier()
 
     # Is there anything to do?
     if mpi.rank < maxproc:
@@ -301,7 +321,9 @@ def writeDomainSiloFile(ndim, maxproc, procDirBaseName, materials,
         assert len(rhosamp) == numZones
 
         # Create the file.
-        fileName = os.path.join(dirName, "domain%i.silo" % mpi.rank)
+        fileName = os.path.join(baseDirectory,
+                                procDirBaseName % mpi.rank,
+                                "domain%i.silo" % mpi.rank)
         f = silo.DBCreate(fileName, 
                           SA._DB_CLOBBER, SA._DB_LOCAL, label, SA._DB_HDF5)
         nullOpts = silo.DBoptlist()
@@ -317,10 +339,10 @@ def writeDomainSiloFile(ndim, maxproc, procDirBaseName, materials,
         assert optlist.addOption(SA._DBOPT_CYCLE, cycle) == 0
         assert optlist.addOption(SA._DBOPT_DTIME, time) == 0
         if pretendRZ:
-            assert optlist.addOption(SA._DBOPT_CYLINDRICAL) == 0
+            assert optlist.addOption(SA._DBOPT_COORDSYS, SA._DB_CYLINDRICAL) == 0
         else:
-            assert optlist.addOption(SA._DBOPT_CARTESIAN) == 0
-        assert silo.DBPutQuadMesh(f, "MESH", coords, optlist)
+            assert optlist.addOption(SA._DBOPT_COORDSYS, SA._DB_CARTESIAN) == 0
+        assert silo.DBPutQuadmesh(f, "MESH", coords, optlist) == 0
         
         # Write materials.
         if materials:
@@ -336,12 +358,12 @@ def writeDomainSiloFile(ndim, maxproc, procDirBaseName, materials,
                         matlist[i] = imat + 1
                 matnames.append(nodeList.name)
             assert len(matlist) == numZones
-            assert len(matnames) == len(nodeLists)
+            assert len(matnames) == len(materials)
             matOpts = silo.DBoptlist(1024)
             assert matOpts.addOption(SA._DBOPT_CYCLE, cycle) == 0
             assert matOpts.addOption(SA._DBOPT_DTIME, time) == 0
             assert matOpts.addOption(SA._DBOPT_MATNAMES, SA._DBOPT_NMATNOS, matnames) == 0
-            assert silo.DBPutMaterial(db, "MATERIAL", "MESH", matnos, matlist,
+            assert silo.DBPutMaterial(f, "MATERIAL", "MESH", matnos, matlist,
                                       Spheral.vector_of_int(), Spheral.vector_of_int(), Spheral.vector_of_int(), Spheral.vector_of_double(),
                                       matOpts) == 0
         
@@ -352,8 +374,8 @@ def writeDomainSiloFile(ndim, maxproc, procDirBaseName, materials,
         nblock_vec = Spheral.vector_of_int(ndim)
         for jdim in xrange(ndim):
             nblock_vec[jdim] = nblock[jdim]
-            assert silo.DBPutQuadvar1(f, "mass_density", "MESH", rhosamp, 
-                                      Spheral.vector_of_double(), SA._DB_ZONECENT, nblock_vec, varOpts) == 0
+        assert silo.DBPutQuadvar1(f, "mass_density", "MESH", rhosamp, 
+                                  Spheral.vector_of_double(), SA._DB_ZONECENT, nblock_vec, varOpts) == 0
 
         # That's it.
         assert silo.DBClose(f) == 0
