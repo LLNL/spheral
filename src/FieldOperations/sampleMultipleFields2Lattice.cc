@@ -26,7 +26,7 @@
 
 #ifdef USE_MPI
 #include "mpi.h"
-#include "Distributed/BoundingVolumeDistributedBoundary.hh"
+#include "Distributed/TreeDistributedBoundary.hh"
 #include "Distributed/Communicator.hh"
 #endif
 
@@ -359,7 +359,7 @@ sampleMultipleFields2Lattice(const FieldListSet<Dimension>& fieldListSet,
 
   // We need to exclude any nodes that come from the Distributed boundary condition.
 #ifdef USE_MPI
-  BoundarySpace::BoundingVolumeDistributedBoundary<Dimension>& distributedBoundary = BoundarySpace::BoundingVolumeDistributedBoundary<Dimension>::instance();
+  BoundarySpace::TreeDistributedBoundary<Dimension>& distributedBoundary = BoundarySpace::TreeDistributedBoundary<Dimension>::instance();
 #endif
 
   // Compute the total number of sample points.
@@ -407,12 +407,12 @@ sampleMultipleFields2Lattice(const FieldListSet<Dimension>& fieldListSet,
        nodeItr != position.nodeEnd();
        ++nodeItr) {
 
+    bool useNode = true;
 #ifdef USE_MPI
-    const bool useNode = count(distributedBoundary.ghostNodes(*(nodeItr.nodeListPtr())).begin(),
-                               distributedBoundary.ghostNodes(*(nodeItr.nodeListPtr())).end(),
-                               nodeItr.nodeID()) == 0;
-#else
-    const bool useNode = true;
+    if (Process::getTotalNumberOfProcesses() > 1)
+      useNode = count(distributedBoundary.ghostNodes(*(nodeItr.nodeListPtr())).begin(),
+                      distributedBoundary.ghostNodes(*(nodeItr.nodeListPtr())).end(),
+                      nodeItr.nodeID()) == 0;
 #endif
     if (useNode and mask(nodeItr) == 1) {
 
