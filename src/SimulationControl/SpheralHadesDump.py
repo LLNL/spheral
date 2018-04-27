@@ -101,12 +101,12 @@ def hadesDump(integrator,
 
         # Rearrange the sampled data into rectangular blocks due to Silo's quad mesh limitations.
         rhosamp, xminblock, xmaxblock, nblock = shuffleIntoBlocks(db.nDim, scalar_samples[0], xmin, xmax, nsample)
-        #print "rho range: ", min(rhosamp), max(rhosamp)
-        print "     xmin: ", xmin
-        print "     xmax: ", xmax
-        print "xminblock: ", xminblock
-        print "xmaxblock: ", xmaxblock
-        print "   nblock: ", nblock
+        # print "rho range: ", min(rhosamp), max(rhosamp)
+        # print "     xmin: ", xmin
+        # print "     xmax: ", xmax
+        # print "xminblock: ", xminblock
+        # print "xmaxblock: ", xmaxblock
+        # print "   nblock: ", nblock
         assert mpi.allreduce(len(rhosamp), mpi.SUM) == ntot
 
     # Write the master file.
@@ -167,7 +167,7 @@ def shuffleIntoBlocks(ndim, vals, xmin, xmax, nglobal):
 
     # Which dimension should we divide up into?
     jmax = min(ndim - 1, max(enumerate(nglobal), key = lambda x: x[1])[0])
-    sys.stderr.write("jmax : %s\n" % jmax)
+    #sys.stderr.write("jmax : %s\n" % jmax)
 
     # Find the offset to the global lattice numbering on this domain.
     # This is based on knowing the native lattice sampling method stripes the original data
@@ -191,16 +191,16 @@ def shuffleIntoBlocks(ndim, vals, xmin, xmax, nglobal):
     slabsperblock = max(1, nglobal[jmax] // mpi.procs)
     remainder = max(0, nglobal[jmax] - mpi.procs*slabsperblock)
     islabdomain = [min(nglobal[jmax], iproc*slabsperblock + min(iproc, remainder)) for iproc in xrange(mpi.procs + 1)]
-    print "Domain splitting: ", nglobal, jmax, islabdomain
-    sys.stderr.write("islabdomain : %s\n" % str(islabdomain))
+    #print "Domain splitting: ", nglobal, jmax, islabdomain
+    #sys.stderr.write("islabdomain : %s\n" % str(islabdomain))
     def targetBlock(index):
         icoords = latticeCoords(offset + index)
         return bisect.bisect_left(islabdomain, icoords[jmax])
 
     # Build a list of (global_index, value, target_proc) for each of the lattice values.
-    id_val_procs = [(offset + i, val, targetBlock(offset + i)) for i, val in enumerate(vals)]
-    sys.stderr.write("id_val_procs : %s\n" % str(id_val_procs))
-    sys.stderr.write("map index -> slab : %s\n" % str([(offset + i, latticeCoords(offset + i), targetBlock(offset + i)) for i in xrange(len(vals))]))
+    id_val_procs = [(offset + i, val, targetBlock(i)) for i, val in enumerate(vals)]
+    #sys.stderr.write("id_val_procs : %s\n" % str(id_val_procs))
+    #sys.stderr.write("map index -> slab : %s\n" % str([(offset + i, latticeCoords(offset + i), targetBlock(i)) for i in xrange(len(vals))]))
     
     # Send our values to other domains.
     sendreqs, sendvals = [], []
@@ -215,7 +215,7 @@ def shuffleIntoBlocks(ndim, vals, xmin, xmax, nglobal):
     xmaxblock[jmax] = xmin[jmax] + islabdomain[mpi.rank + 1]*dx[jmax]
     nblock = list(nglobal)
     nblock[jmax] = islabdomain[mpi.rank + 1] - islabdomain[mpi.rank]
-    sys.stderr.write("nblock : %s\n" % str(nblock))
+    #sys.stderr.write("nblock : %s\n" % str(nblock))
     newvals = []
     for iproc in xrange(mpi.procs):
         if iproc == mpi.rank:
@@ -227,7 +227,7 @@ def shuffleIntoBlocks(ndim, vals, xmin, xmax, nglobal):
     valsblock = sph.vector_of_double()
     for i, val in newvals:
         valsblock.append(val)
-    sys.stderr.write("len(valsblock) = %s\n" % len(valsblock))
+    #sys.stderr.write("len(valsblock) = %s\n" % len(valsblock))
     assert len(valsblock) == reduce(mul, nblock)
 
     # Wait 'til all communication is done.
@@ -251,7 +251,7 @@ def writeMasterSiloFile(baseDirectory, baseName, procDirBaseName, materials,
     else:
         myvote = 0
     maxproc = mpi.allreduce(myvote, mpi.MAX)
-    assert maxproc >= mpi.procs
+    assert maxproc <= mpi.procs
 
     # Pattern for constructing per domain variables.
     domainNamePatterns = [os.path.join(procDirBaseName % i, "domain%i.silo:%%s" % i) for i in xrange(maxproc)]
