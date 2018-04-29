@@ -93,17 +93,17 @@ namespace FractalSpace
 	if(_DOIT)
 	  fprintf(PFPos," EF %d",(abs(fr)-abs(frTheory))/abs(frTheory) >0.1); // 28
 	fprintf(PFPos,"\n");
+	posxb++;
+	posyb++;
+	poszb++;
+	velxb++;
+	velyb++;
+	velzb++;
       }
     // fflush(PFPos);
     t1+=PFM->p_mess->Clock();
     //    PFM->p_file->FileTime << " output time " << PFM->steps << " " << fixed << t1 << "\n";
     fprintf(PFM->p_file->PFTime," output time %5d %10.2E \n",PFM->steps,t1);
-    posxb++;
-    posyb++;
-    poszb++;
-    velxb++;
-    velyb++;
-    velzb++;
     massesb++;
     _DOIT=false;
   }
