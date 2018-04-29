@@ -21,6 +21,7 @@ namespace Spheral {
 template<class Base>
 class PyRestartMethods: public Base {
 public:
+  using Base::Base;  // inherit constructors
 
   virtual std::string label() const override {
     PYBIND11_OVERLOAD(std::string,  // Return type
@@ -50,7 +51,7 @@ public:
 // A function to add the restart bindings to a class.
 //------------------------------------------------------------------------------
 template<typename Obj, typename PB11Obj>
-void restartMethodBindings(py::module& m, PB11Obj& obj) {
+void restartMethodBindings(PB11Obj& obj) {
   obj
     .def("label", (std::string (Obj::*)() const) &Obj::label)
     .def("dumpState", (void (Obj::*)(FileIOSpace::FileIO&, const std::string&) const) &Obj::dumpState, "file"_a, "pathName"_a)
