@@ -256,7 +256,7 @@ def writeMasterSiloFile(baseDirectory, baseName, procDirBaseName, materials,
     # Pattern for constructing per domain variables.
     domainNamePatterns = [os.path.join(procDirBaseName % i, "domain%i.silo:%%s" % i) for i in xrange(maxproc)]
     domainVarNames = Spheral.vector_of_string()
-    name = "mass_density"
+    name = "den"
     for iproc, p in enumerate(domainNamePatterns):
         domainVarNames.append(p % name)
     assert len(domainVarNames) == maxproc
@@ -282,7 +282,7 @@ def writeMasterSiloFile(baseDirectory, baseName, procDirBaseName, materials,
         matnames = Spheral.vector_of_string()
         matnos = Spheral.vector_of_int()
         for p in domainNamePatterns:
-            material_names.append(p % "material")
+            material_names.append(p % "MATERIAL")
         for i, name in enumerate([x.name for x in materials]):
             matnames.append(name)
             matnos.append(i + 1)
@@ -298,7 +298,7 @@ def writeMasterSiloFile(baseDirectory, baseName, procDirBaseName, materials,
         
         # Write the variables descriptors.
         # We currently hardwire for the single density variable.
-        name = "mass_density"
+        name = "den"
         types = Spheral.vector_of_int(maxproc, SA._DB_QUADVAR)
         assert len(domainVarNames) == maxproc
         optlistMV = silo.DBoptlist()
@@ -367,7 +367,7 @@ def writeDomainSiloFile(ndim, maxproc, baseDirectory, baseName, procDirBaseName,
         if materials:
             matnos = Spheral.vector_of_int()
             for i in xrange(len(materials)):
-                matnos.append(i)
+                matnos.append(i + 1)
             assert len(matnos) == len(materials)
             matlist = Spheral.vector_of_int(numZones, 0)
             matnames = Spheral.vector_of_string()
@@ -393,7 +393,7 @@ def writeDomainSiloFile(ndim, maxproc, baseDirectory, baseName, procDirBaseName,
         nblock_vec = Spheral.vector_of_int(ndim)
         for jdim in xrange(ndim):
             nblock_vec[jdim] = nblock[jdim]
-        assert silo.DBPutQuadvar1(f, "mass_density", "MESH", rhosamp, 
+        assert silo.DBPutQuadvar1(f, "den", "MESH", rhosamp, 
                                   Spheral.vector_of_double(), SA._DB_ZONECENT, nblock_vec, varOpts) == 0
 
         # That's it.
