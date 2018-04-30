@@ -167,7 +167,6 @@ def shuffleIntoBlocks(ndim, vals, xmin, xmax, nglobal):
 
     # Which dimension should we divide up into?
     jmax = min(ndim - 1, max(enumerate(nglobal), key = lambda x: x[1])[0])
-    #sys.stderr.write("jmax : %s\n" % jmax)
 
     # Find the offset to the global lattice numbering on this domain.
     # This is based on knowing the native lattice sampling method stripes the original data
@@ -191,17 +190,18 @@ def shuffleIntoBlocks(ndim, vals, xmin, xmax, nglobal):
     slabsperblock = max(1, nglobal[jmax] // mpi.procs)
     remainder = max(0, nglobal[jmax] - mpi.procs*slabsperblock)
     islabdomain = [min(nglobal[jmax], iproc*slabsperblock + min(iproc, remainder)) for iproc in xrange(mpi.procs + 1)]
-    #print "Domain splitting: ", nglobal, jmax, islabdomain
+    #sys.stderr.write("Domain splitting: %s %i %s\n" % (nglobal, jmax, islabdomain))
     #sys.stderr.write("islabdomain : %s\n" % str(islabdomain))
     def targetBlock(index):
         icoords = latticeCoords(offset + index)
-        return bisect.bisect_left(islabdomain, icoords[jmax])
+        return bisect.bisect_right(islabdomain, icoords[jmax]) - 1
 
     # Build a list of (global_index, value, target_proc) for each of the lattice values.
     id_val_procs = [(offset + i, val, targetBlock(i)) for i, val in enumerate(vals)]
     #sys.stderr.write("id_val_procs : %s\n" % str(id_val_procs))
     #sys.stderr.write("map index -> slab : %s\n" % str([(offset + i, latticeCoords(offset + i), targetBlock(i)) for i in xrange(len(vals))]))
-    
+    #sys.stderr.write("id_val_procs : %s\n" % str([(i, tb, latticeCoords(i)) for (i, val, tb) in id_val_procs if i % 100 < 10 and tb != 0]))
+
     # Send our values to other domains.
     sendreqs, sendvals = [], []
     for iproc in xrange(mpi.procs):
