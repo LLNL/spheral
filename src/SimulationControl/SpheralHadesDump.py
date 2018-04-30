@@ -307,6 +307,21 @@ def writeMasterSiloFile(baseDirectory, baseName, procDirBaseName, materials,
         assert optlistMV.addOption(SA._DBOPT_TENSOR_RANK, SA._DB_VARTYPE_SCALAR) == 0
         assert silo.DBPutMultivar(f, name, domainVarNames, types, optlistMV) == 0
 
+        # Variable attributes
+        varOpts = silo.DBoptlist(1024)
+        assert varOpts.addOption(SA._DBOPT_CYCLE, cycle) == 0
+        assert varOpts.addOption(SA._DBOPT_DTIME, time) == 0
+        attrValues = Spheral.vector_of_vector_of_int(1)
+        for ival in (1, 0, 0, 1):
+            attrValues[0].append(ival)
+        assert silo.DBPutCompoundarray(f, "VAR_ATTRIBUTES", Spheral.vector_of_string(1, "den"), attrValues, varOpts) == 0
+
+        # The inexplicable ANNOTATION_INT
+        intValues = Spheral.vector_of_vector_of_int(1)
+        for ival in (1, 1):
+            intValues[0].append(ival)
+        assert silo.DBPutCompoundarray(f, "ANNOTATION_INT", Spheral.vector_of_string(1, "dummy"), attrValues, varOpts) == 0
+
         # Close the file.
         assert silo.DBClose(f) == 0
         del f
@@ -395,6 +410,18 @@ def writeDomainSiloFile(ndim, maxproc, baseDirectory, baseName, procDirBaseName,
             nblock_vec[jdim] = nblock[jdim]
         assert silo.DBPutQuadvar1(f, "den", "MESH", rhosamp, 
                                   Spheral.vector_of_double(), SA._DB_ZONECENT, nblock_vec, varOpts) == 0
+
+        # Variable attributes
+        attrValues = Spheral.vector_of_vector_of_int(1)
+        for ival in (1, 0, 0, 1):
+            attrValues[0].append(ival)
+        assert silo.DBPutCompoundarray(f, "VAR_ATTRIBUTES", Spheral.vector_of_string(1, "den"), attrValues, varOpts) == 0
+
+        # The inexplicable ANNOTATION_INT
+        intValues = Spheral.vector_of_vector_of_int(1)
+        for ival in (1, 1):
+            intValues[0].append(ival)
+        assert silo.DBPutCompoundarray(f, "ANNOTATION_INT", Spheral.vector_of_string(1, "dummy"), attrValues, varOpts) == 0
 
         # That's it.
         assert silo.DBClose(f) == 0
