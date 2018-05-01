@@ -100,7 +100,7 @@ def hadesDump(integrator,
         print "Generated %i scalar fields" % len(scalar_samples)
 
         # Rearrange the sampled data into rectangular blocks due to Silo's quad mesh limitations.
-        rhosamp, xminblock, xmaxblock, nblock = shuffleIntoBlocks(db.nDim, scalar_samples[0], xmin, xmax, nsample)
+        rhosamp, xminblock, xmaxblock, nblock, jsplit = shuffleIntoBlocks(db.nDim, scalar_samples[0], xmin, xmax, nsample)
         # print "rho range: ", min(rhosamp), max(rhosamp)
         # print "     xmin: ", xmin
         # print "     xmax: ", xmax
@@ -121,6 +121,7 @@ def hadesDump(integrator,
 
     # Write the process files.
     writeDomainSiloFile(ndim = db.nDim,
+                        jsplit = jsplit,
                         maxproc = maxproc,
                         baseDirectory = baseDirectory,
                         baseName = baseFileName,
@@ -154,9 +155,6 @@ def hadesDump(integrator,
 #-------------------------------------------------------------------------------
 def shuffleIntoBlocks(ndim, vals, xmin, xmax, nglobal):
 
-    # In 2D we expect nglobal = (nx, ny, 1)
-    #assert len(nglobal) == 3
-
     if ndim == 2:
         import Spheral2d as sph
     else:
@@ -166,7 +164,7 @@ def shuffleIntoBlocks(ndim, vals, xmin, xmax, nglobal):
     ntot = reduce(mul, nglobal)
 
     # Which dimension should we divide up into?
-    jmax = min(ndim - 1, max(enumerate(nglobal), key = lambda x: x[1])[0])
+    jsplit = min(ndim - 1, max(enumerate(nglobal), key = lambda x: x[1])[0])
 
     # Find the offset to the global lattice numbering on this domain.
     # This is based on knowing the native lattice sampling method stripes the original data
@@ -187,14 +185,14 @@ def shuffleIntoBlocks(ndim, vals, xmin, xmax, nglobal):
                 iglobal // (nglobal[0]*nglobal[1]))
 
     # A function to tell us which block to assign a global index to
-    slabsperblock = max(1, nglobal[jmax] // mpi.procs)
-    remainder = max(0, nglobal[jmax] - mpi.procs*slabsperblock)
-    islabdomain = [min(nglobal[jmax], iproc*slabsperblock + min(iproc, remainder)) for iproc in xrange(mpi.procs + 1)]
-    #sys.stderr.write("Domain splitting: %s %i %s\n" % (nglobal, jmax, islabdomain))
+    slabsperblock = max(1, nglobal[jsplit] // mpi.procs)
+    remainder = max(0, nglobal[jsplit] - mpi.procs*slabsperblock)
+    islabdomain = [min(nglobal[jsplit], iproc*slabsperblock + min(iproc, remainder)) for iproc in xrange(mpi.procs + 1)]
+    #sys.stderr.write("Domain splitting: %s %i %s\n" % (nglobal, jsplit, islabdomain))
     #sys.stderr.write("islabdomain : %s\n" % str(islabdomain))
     def targetBlock(index):
         icoords = latticeCoords(offset + index)
-        return bisect.bisect_right(islabdomain, icoords[jmax]) - 1
+        return bisect.bisect_right(islabdomain, icoords[jsplit]) - 1
 
     # Build a list of (global_index, value, target_proc) for each of the lattice values.
     id_val_procs = [(offset + i, val, targetBlock(i)) for i, val in enumerate(vals)]
@@ -211,10 +209,10 @@ def shuffleIntoBlocks(ndim, vals, xmin, xmax, nglobal):
 
     # Now we can build the dang result.
     xminblock, xmaxblock = sph.Vector(*xmin), sph.Vector(*xmax)
-    xminblock[jmax] = xmin[jmax] + islabdomain[mpi.rank]    *dx[jmax]
-    xmaxblock[jmax] = xmin[jmax] + islabdomain[mpi.rank + 1]*dx[jmax]
+    xminblock[jsplit] = xmin[jsplit] + islabdomain[mpi.rank]    *dx[jsplit]
+    xmaxblock[jsplit] = xmin[jsplit] + islabdomain[mpi.rank + 1]*dx[jsplit]
     nblock = list(nglobal)
-    nblock[jmax] = islabdomain[mpi.rank + 1] - islabdomain[mpi.rank]
+    nblock[jsplit] = islabdomain[mpi.rank + 1] - islabdomain[mpi.rank]
     #sys.stderr.write("nblock : %s\n" % str(nblock))
     newvals = []
     for iproc in xrange(mpi.procs):
@@ -235,7 +233,7 @@ def shuffleIntoBlocks(ndim, vals, xmin, xmax, nglobal):
         req.wait()
 
     # That should be it.
-    return valsblock, xminblock, xmaxblock, nblock
+    return valsblock, xminblock, xmaxblock, nblock, jsplit
 
 #-------------------------------------------------------------------------------
 # Write the master file.
@@ -266,6 +264,7 @@ def writeMasterSiloFile(baseDirectory, baseName, procDirBaseName, materials,
         fileName = os.path.join(baseDirectory, baseName + ".silo")
         f = silo.DBCreate(fileName, 
                           SA._DB_CLOBBER, SA._DB_LOCAL, label, SA._DB_HDF5)
+        nullOpts = silo.DBoptlist()
 
         # Write the domain file names and types.
         domainNames = Spheral.vector_of_string()
@@ -276,6 +275,9 @@ def writeMasterSiloFile(baseDirectory, baseName, procDirBaseName, materials,
         assert optlist.addOption(SA._DBOPT_CYCLE, cycle) == 0
         assert optlist.addOption(SA._DBOPT_DTIME, time) == 0
         assert silo.DBPutMultimesh(f, "MMESH", domainNames, meshTypes, optlist) == 0
+
+        # Padding dimensions (we're not writing any mesh padding).
+        assert silo.DBPutCompoundarray(f, "PAD_DIMS", Spheral.vector_of_string(maxproc, "dummy"), Spheral.vector_of_vector_of_int(maxproc, Spheral.vector_of_int(6, 0)), nullOpts) == 0
 
         # Write material names.
         material_names = Spheral.vector_of_string()
@@ -331,11 +333,14 @@ def writeMasterSiloFile(baseDirectory, baseName, procDirBaseName, materials,
 #-------------------------------------------------------------------------------
 # Write the domain file.
 #-------------------------------------------------------------------------------
-def writeDomainSiloFile(ndim, maxproc, baseDirectory, baseName, procDirBaseName,
+def writeDomainSiloFile(ndim, maxproc,
+                        baseDirectory, baseName, procDirBaseName,
                         materials, rhosamp,
-                        xminblock, xmaxblock, nblock,
+                        xminblock, xmaxblock, nblock, jsplit,
                         label, time, cycle,
                         pretendRZ):
+
+    assert jsplit < ndim
 
     # Make sure the directories are there.
     if mpi.rank == 0:
@@ -348,8 +353,10 @@ def writeDomainSiloFile(ndim, maxproc, baseDirectory, baseName, procDirBaseName,
 
     # Is there anything to do?
     if mpi.rank < maxproc:
+        nnodes = [1]*3
         numZones = 1
-        for x in nblock:
+        for i, x in enumerate(nblock):
+            nnodes[i] = x + 1
             numZones *= x
         assert numZones > 0
         assert len(rhosamp) == numZones
@@ -378,6 +385,42 @@ def writeDomainSiloFile(ndim, maxproc, baseDirectory, baseName, procDirBaseName,
             assert optlist.addOption(SA._DBOPT_COORDSYS, SA._DB_CARTESIAN) == 0
         assert silo.DBPutQuadmesh(f, "MESH", coords, optlist) == 0
         
+        # Domain neighbors.
+        if maxproc > 1 and mpi.rank < maxproc:
+            domain_neighbors = Spheral.vector_of_vector_of_int(2)
+            if mpi.rank > 0:
+                domain_neighbors[1].append(mpi.rank - 1)
+            if mpi.rank < maxproc - 1:
+                domain_neighbors[1].append(mpi.rank + 1)
+            domain_neighbors[0].append(len(domain_neighbors[1]))
+            assert silo.DBPutCompoundarray(f, "DOMAIN_NEIGHBOR_NUMS", Spheral.vector_of_string(len(domain_neighbors), "dummy"), domain_neighbors, nullOpts) == 0
+
+        # Domain shared nodes.
+        if maxproc > 1 and mpi.rank < maxproc:
+            for idomain in xrange(len(domain_neighbors[1])):
+                commelements = Spheral.vector_of_vector_of_int(11)
+                if mpi.rank == 0:
+                    face = nnodes[jsplit] - 1
+                elif mpi.rank == maxproc - 1:
+                    face = 0
+                elif idomain == 0:
+                    face = 0
+                else:
+                    face = nnodes[jsplit] - 1
+                if jsplit == 0:
+                    for j in xrange(nnodes[1]):
+                        for k in xrange(nnodes[2]):
+                            commelements[6].append(face + j*nnodes[0] + k*nnodes[0]*nnodes[1])
+                elif jsplit == 1:
+                    for i in xrange(nnodes[0]):
+                        for k in xrange(nnodes[2]):
+                            commelements[6].append(i + face*nnodes[0] + k*nnodes[0]*nnodes[1])
+                else:
+                    for i in xrange(nnodes[0]):
+                        for j in xrange(nnodes[1]):
+                            commelements[6].append(i + j*nnodes[0] + face*nnodes[0]*nnodes[1])
+                assert silo.DBPutCompoundarray(f, "DOMAIN_NEIGHBOR%i" % idomain, Spheral.vector_of_string(11, "dummy"), commelements, nullOpts) == 0
+
         # Write materials.
         if materials:
             matnos = Spheral.vector_of_int()
