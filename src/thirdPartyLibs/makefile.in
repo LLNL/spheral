@@ -156,7 +156,7 @@ ATSDIR = $(ATSDIST:.tar.gz=)
 ATSBUILDDATE = $(patsubst %.tar.gz, .%.date, $(ATSDIST))
 
 # FFTW
-FFTWDIST = fftw-3.3.tar.gz
+FFTWDIST = fftw-3.3.7.tar.gz
 FFTWURL = http://www.fftw.org/$(FFTWDIST)
 FFTWDIR = $(FFTWDIST:.tar.gz=)
 FFTWBUILDDATE = $(patsubst %.tar.gz, .%.date, $(FFTWDIST))
@@ -757,7 +757,7 @@ $(FFTWBUILDDATE):	cache/$(FFTWDIST)
 	rm -fr $(FFTWDIR)
 	$(GZIP) -dc cache/$(FFTWDIST) | $(TAR) -xf -
 	$(SHELL) -ec "cd $(FFTWDIR); \
-	env CC='$(CC)' CXX='$(CXX)' CFLAGS='$(CFLAGS)' ./configure --prefix=$(prefix) ; \
+	env CC='$(MPICC)' CXX='$(MPICXX)' CFLAGS='$(CFLAGS)' ./configure --prefix=$(prefix) $(FFTWFLAGS) ; \
 	$(MAKE) ; \
 	$(MAKE) install"
 	@if ! test -e $(prefix)/include/fftw3.h -a \
