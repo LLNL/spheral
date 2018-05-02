@@ -9,23 +9,7 @@ BUILDTOP = @abs_top_builddir@
 PKGNAME = FractalGravity
 PKGDIR = $(PKGNAME)/
 LIBTARGET = libSpheral_$(PKGNAME).$(DYLIBEXT)
-INSTSRCTARGETS = \
-	$(srcdir)/add_buffer_values.cc \
-	$(srcdir)/any_overlaps.cc \
-	$(srcdir)/box_stats.cc \
-	$(srcdir)/clean_overlaps.cc \
-	$(srcdir)/hypre_best_boxes.cc \
-	$(srcdir)/hypre_points_boxes.cc \
-	$(srcdir)/hypre_points_clean.cc \
-	$(srcdir)/hypre_points_struct.cc \
-	$(srcdir)/hypre_points_zero.cc \
-	$(srcdir)/hypre_solve_struct.cc \
-	$(srcdir)/hypre_struct_load_balance.cc \
-	$(srcdir)/hypre_test_boxes.cc \
-	$(srcdir)/hypre_world_create.cc \
-	$(srcdir)/node_groups_struct.cc \
-	$(srcdir)/points_on_nodes.cc \
-	$(srcdir)/poisson_solver_struct.cc \
+SRCTARGETS = \
 	$(srcdir)/file_class.cc \
 	$(srcdir)/fractal_class.cc \
 	$(srcdir)/fractal_memory.cc \
@@ -34,7 +18,7 @@ INSTSRCTARGETS = \
 	$(srcdir)/misc_class.cc \
 	$(srcdir)/kdtree.cc \
 	$(srcdir)/particle_class.cc \
-	$(srcdir)/point_class.cc 
+	$(srcdir)/point_class.cc \
 	$(srcdir)/add_pseudo_particles.cc \
 	$(srcdir)/adj_nina.cc \
 	$(srcdir)/am_I_conservative_enough_isol.cc \
@@ -104,29 +88,35 @@ INSTSRCTARGETS = \
 	$(srcdir)/update_rv.cc \
 	$(srcdir)/use_freenodes.cc \
 	$(srcdir)/write_rv.cc \
+	$(srcdir)/add_buffer_values.cc \
+	$(srcdir)/any_overlaps.cc \
+	$(srcdir)/box_stats.cc \
+	$(srcdir)/clean_overlaps.cc \
+	$(srcdir)/hypre_best_boxes.cc \
+	$(srcdir)/hypre_points_boxes.cc \
+	$(srcdir)/hypre_points_clean.cc \
+	$(srcdir)/hypre_points_struct.cc \
+	$(srcdir)/hypre_points_zero.cc \
+	$(srcdir)/hypre_solve_struct.cc \
+	$(srcdir)/hypre_struct_load_balance.cc \
+	$(srcdir)/hypre_test_boxes.cc \
+	$(srcdir)/hypre_world_create.cc \
+	$(srcdir)/node_groups_struct.cc \
+	$(srcdir)/points_on_nodes.cc \
+	$(srcdir)/poisson_solver_struct.cc \
+	$(srcdir)/hypre_solver_empty.cc \
 	$(srcdir)/initial_forces_sharp_mpi.cc \
 	$(srcdir)/isolated_solver_mpi.cc \
-	$(srcdir)/periodic_solver_mpi.cc 
+	$(srcdir)/periodic_solver_mpi.cc \
+	$(srcdir)/initial_forces_sharp.cc \
+	$(srcdir)/isolated_solver.cc \
+	$(srcdir)/periodic_solver.cc \
 	$(srcdir)/dens_to_slices.cc \
 	$(srcdir)/gather_particles.cc \
 	$(srcdir)/scatter_particles_find.cc \
-	$(srcdir)/slices_to_potf.cc \
-	$(srcdir)/cosmos_power.cc \
-	$(srcdir)/halo_force_flat.cc \
-	$(srcdir)/energy_leapfrog.cc \
-	$(srcdir)/fractal_memory_parameters_cosmo.cc \
-	$(srcdir)/make_particles_cosmo_mpi.cc \
-	$(srcdir)/step_leapfrog.cc \
-	$(srcdir)/velocities.cc \
-	$(srcdir)/fractal_force_wrapper.cc
-	SRCTARGETS =
-
-endif
+	$(srcdir)/slices_to_potf.cc 
 
 #-------------------------------------------------------------------------------
 include $(BUILDTOP)/helpers/makefile_master
 
-
-
-
-
+LIBS += "-lfftw3"

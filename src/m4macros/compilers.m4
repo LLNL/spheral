@@ -68,6 +68,8 @@ AC_SUBST(NUMPYFLAGS)
 AC_SUBST(NUMPYCFLAGS)
 AC_SUBST(HDF5FLAGS)
 
+AC_SUBST(FFTWFLAGS)
+
 PYTHONCONFFLAGS=
 LIBTARGETFLAGS=
 JAMTOOLSETOPTS=
@@ -780,6 +782,7 @@ AC_ARG_WITH(openmp,
 [
    AC_MSG_RESULT(yes)
    PYTHONPKGS+=" OpenMP"
+   FFTWFLAGS+=" --enable-openmp"
    if test $CXXCOMPILERTYPE = "VACPP"; then
       CXXFLAGS+=" "
       EXTRAFLAGS+="-qsmp=omp -qoffload -I/usr/tcetmp/packages/cuda-9.0.176/include    "
