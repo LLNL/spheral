@@ -163,7 +163,8 @@ class SpheralController:
 
         # Prepare the neighbor objects.
         db = self.integrator.dataBase()
-        db.reinitializeNeighbors()
+        if restoreCycle is None:
+            db.reinitializeNeighbors()
 
         # Create ghost nodes for the physics packages to initialize with.
         self.integrator.setGhostNodes()

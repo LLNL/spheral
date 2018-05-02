@@ -1707,7 +1707,7 @@ setControlAndGhostNodes() {
         // Add the receive nodes to the ghost node list.
         const vector<int>& recvNodes = domainNodes.receiveNodes;
         CHECK(ghostNodes.size() + sendNodes.size() >= 0 and
-              ghostNodes.size() + sendNodes.size() < 1000000);
+              ghostNodes.size() + sendNodes.size() < 10000000);
         ghostNodes.reserve(ghostNodes.size() + sendNodes.size());
         for (vector<int>::const_iterator recvItr = recvNodes.begin();
              recvItr < recvNodes.end();
