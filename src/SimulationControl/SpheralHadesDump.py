@@ -270,14 +270,11 @@ def writeMasterSiloFile(baseDirectory, baseName, procDirBaseName, materials,
         domainNames = Spheral.vector_of_string()
         meshTypes = Spheral.vector_of_int(maxproc, SA._DB_QUADRECT)
         for p in domainNamePatterns:
-            domainNames.append(p % "MESH")
+            domainNames.append(p % "hydro_mesh")
         optlist = silo.DBoptlist(1024)
         assert optlist.addOption(SA._DBOPT_CYCLE, cycle) == 0
         assert optlist.addOption(SA._DBOPT_DTIME, time) == 0
-        assert silo.DBPutMultimesh(f, "MMESH", domainNames, meshTypes, optlist) == 0
-
-        # Padding dimensions (we're not writing any mesh padding).
-        assert silo.DBPutCompoundarray(f, "PAD_DIMS", Spheral.vector_of_string(maxproc, "dummy"), Spheral.vector_of_vector_of_int(maxproc, Spheral.vector_of_int(6, 0)), nullOpts) == 0
+        assert silo.DBPutMultimesh(f, "hydro_mesh", domainNames, meshTypes, optlist) == 0
 
         # Write material names.
         material_names = Spheral.vector_of_string()
@@ -323,6 +320,16 @@ def writeMasterSiloFile(baseDirectory, baseName, procDirBaseName, materials,
         for ival in (1, 1):
             intValues[0].append(ival)
         assert silo.DBPutCompoundarray(f, "ANNOTATION_INT", Spheral.vector_of_string(1, "dummy"), attrValues, varOpts) == 0
+
+        # Write the dummy variable "akap_0" to tell Hades we're actually Hydra or something.
+        assert silo.DBPutQuadvar1(f, "akap_0", "hydro_mesh", vector_of_double(), vector_of_double(),
+                                  SA._DB_ZONECENT, vector_of_int(), nullOpts)
+
+        # Note how many domains we're writing.
+        assert silo.DBMkDir(f, "Decomposition") == 0
+        assert silo.DBSetDir(f, "Decomposition") == 0
+        assert silo.DBWrite(f, "NumDomains", maxproc) == 0
+        assert silo.DBSetDir(f, "..") == 0
 
         # Close the file.
         assert silo.DBClose(f) == 0
