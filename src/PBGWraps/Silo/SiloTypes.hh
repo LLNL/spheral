@@ -770,6 +770,50 @@ DBClose(DBfile& file) {
 }
 
 //------------------------------------------------------------------------------
+// DBMkDir
+//------------------------------------------------------------------------------
+inline
+int
+DBMkDir(DBfile& file,
+        std::string dirname) {
+  return DBMkDir(&file, dirname.c_str());
+}
+
+//------------------------------------------------------------------------------
+// DBSetDir
+//------------------------------------------------------------------------------
+inline
+int
+DBSetDir(DBfile& file,
+         std::string dirname) {
+  return DBSetDir(&file, dirname.c_str());
+}
+
+//------------------------------------------------------------------------------
+// DBGetDir
+//------------------------------------------------------------------------------
+inline
+std::string
+DBGetDir(DBfile& file) {
+  char result[256];
+  auto valid = DBGetDir(&file, result);
+  VERIFY2(valid == 0, "Silo ERROR: unable to fetch directory name.");
+  return std::string(result);
+}
+
+//------------------------------------------------------------------------------
+// DBCpDir
+//------------------------------------------------------------------------------
+inline
+int
+DBCpDir(DBfile& srcFile,
+        std::string srcDir,
+        DBfile& dstFile,
+        std::string dstDir) {
+  return DBCpDir(&srcFile, srcDir.c_str(), &dstFile, dstDir.c_str());
+}
+
+//------------------------------------------------------------------------------
 // DBWrite
 //------------------------------------------------------------------------------
 template<typename T>
