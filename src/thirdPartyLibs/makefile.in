@@ -241,9 +241,9 @@ PCLDIR = $(PCLDIST:.tar.bz2=)
 PCLBUILDDATE = $(patsubst %.tar.bz2, .%.date, $(PCLDIST))
 
 # HYPRE parallel linear solver
-HYPREDIST = hypre-2.8.0b.tar.gz
-HYPREURL = https://computation.llnl.gov/casc/hypre/download/$(HYPREDIST)
-HYPREDIR = $(HYPREDIST:.tar.gz=)
+HYPREDIST = hypre-v2.14.0.tar.gz
+HYPREURL = https://github.com/LLNL/hypre/archive/v2.14.0.tar.gz
+HYPREDIR = hypre-2.14.0
 HYPREBUILDDATE = $(patsubst %.tar.gz, .%.date, $(HYPREDIST))
 
 # Triangle (needed by polytope)
@@ -1041,15 +1041,15 @@ cache/$(HYPREDIST):
 	@$(MKDIR) cache
 	$(CURL) "$(HYPREURL)" -o cache/$(HYPREDIST)
 
-$(HYPREBUILDDATE):	cache/$(HYPREDIST)
+$(HYPREBUILDDATE):	cache/$(HYPREDIST) $(CMAKEEXE)
 	@echo "################################################################################"
 	@echo "# Building $(HYPREDIST)"
 	@echo "################################################################################"
 	@$(MKDIR) -p $(prefix)/bin $(prefix)/man $(prefix)/lib $(prefix)/include
 	rm -fr $(HYPREDIR)
 	$(GZIP) -dc cache/$(HYPREDIST) | $(TAR) -xf -
-	$(SHELL) -ec "cd $(HYPREDIR)/src; \
-	env CC='$(MPICC)' CXX='$(MPICXX)' CFLAGS='$(MPICCFLAGS) $(CFLAGS)' CXXFLAGS='$(MPICXXFLAGS) $(CXXFLAGS)' ./configure --prefix=$(prefix) ;\
+	$(SHELL) -ec "cd $(HYPREDIR)/src/cmbuild; \
+	$(CMAKEEXE) -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX:PATH=$(prefix) -DCMAKE_C_COMPILER='$(MPICC)' -DCMAKE_CXX_COMPILER='$(MPICXX)' -DCMAKE_C_FLAGS='$(CFLAGS)' .. ; \
 	$(MAKE) ; \
 	$(MAKE) install"
 	@if ! test -e $(prefix)/lib/libHYPRE.a -a \

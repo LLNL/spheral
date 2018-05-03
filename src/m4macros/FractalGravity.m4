@@ -16,7 +16,7 @@ AC_ARG_WITH(FractalGravity,
    CXXPKGS="$CXXPKGS FractalStruct"
    CXXPKGLIBS="$CXXPKGLIBS FractalStruct"
    PYTHONPKGS="$PYTHONPKGS FractalStruct"
-   EXTRATHIRDPARTYTARGETS+=" .fftw-3.3.7.date"
+   EXTRATHIRDPARTYTARGETS+=" .fftw-3.3.7.date .hypre-v2.14.0.date"
 ],
 [
    AC_MSG_RESULT(no)
