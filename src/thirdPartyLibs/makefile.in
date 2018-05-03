@@ -1051,7 +1051,7 @@ $(HYPREBUILDDATE):	cache/$(HYPREDIST) $(CMAKEEXE)
 	$(SHELL) -ec "cd $(HYPREDIR)/src/cmbuild; \
 	$(CMAKEEXE) -DCMAKE_BUILD_TYPE=Release -DCMAKE_C_COMPILER='$(MPICC)' -DCMAKE_CXX_COMPILER='$(MPICXX)' -DCMAKE_C_FLAGS='$(CFLAGS)' -DCMAKE_INSTALL_PREFIX:PATH=$(prefix) .. ; \
 	$(MAKE) ; \
-	$(MAKE) install"
+	$(MAKE) DESTDIR=$(prefix) install"
 	@if ! test -e $(prefix)/lib/libHYPRE.a -a \
 	           -e $(prefix)/include/HYPRE.h; then \
 	echo "ERROR building Hypre."; \
