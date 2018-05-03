@@ -1049,7 +1049,7 @@ $(HYPREBUILDDATE):	cache/$(HYPREDIST) $(CMAKEEXE)
 	rm -fr $(HYPREDIR)
 	$(GZIP) -dc cache/$(HYPREDIST) | $(TAR) -xf -
 	$(SHELL) -ec "cd $(HYPREDIR)/src/cmbuild; \
-	$(CMAKEEXE) -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX:PATH=$(prefix) -DCMAKE_C_COMPILER='$(MPICC)' -DCMAKE_CXX_COMPILER='$(MPICXX)' -DCMAKE_C_FLAGS='$(CFLAGS)' .. ; \
+	$(CMAKEEXE) -DCMAKE_BUILD_TYPE=Release -DCMAKE_C_COMPILER='$(MPICC)' -DCMAKE_CXX_COMPILER='$(MPICXX)' -DCMAKE_C_FLAGS='$(CFLAGS)' -DCMAKE_INSTALL_PREFIX:PATH=$(prefix) .. ; \
 	$(MAKE) ; \
 	$(MAKE) install"
 	@if ! test -e $(prefix)/lib/libHYPRE.a -a \
