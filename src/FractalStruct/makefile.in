@@ -117,6 +117,5 @@ SRCTARGETS = \
 	$(srcdir)/slices_to_potf.cc 
 
 #-------------------------------------------------------------------------------
-include $(BUILDTOP)/helpers/makefile_master
 
-LIBS += "-lfftw3"
+include $(BUILDTOP)/helpers/makefile_master
