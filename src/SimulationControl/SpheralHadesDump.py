@@ -278,7 +278,7 @@ def writeMasterSiloFile(ndim,
         optlist = silo.DBoptlist(1024)
         assert optlist.addOption(SA._DBOPT_CYCLE, cycle) == 0
         assert optlist.addOption(SA._DBOPT_DTIME, time) == 0
-        assert silo.DBPutMultimesh(f, "hblk0/hydro_mesh", domainNames, meshTypes, optlist) == 0
+        assert silo.DBPutMultimesh(f, "hydro_mesh", domainNames, meshTypes, optlist) == 0
 
         # Write material names.
         material_names = Spheral.vector_of_string()
@@ -310,7 +310,7 @@ def writeMasterSiloFile(ndim,
         assert silo.DBPutMultivar(f, "hblk0/den", domainVarNames, types, optlistMV) == 0
 
         # Write the dummy variable "akap_0" to tell Hades we're actually Hydra or something.
-        assert silo.DBPutQuadvar1(f, "akap_0", "hblk0/hydro_mesh",
+        assert silo.DBPutQuadvar1(f, "akap_0", "hydro_mesh",
                                   Spheral.vector_of_double(ndim*ndim, 0.0), Spheral.vector_of_double(),
                                   SA._DB_ZONECENT, Spheral.vector_of_int(ndim, ndim), nullOpts) == 0
 
