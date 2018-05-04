@@ -829,6 +829,22 @@ DBWrite(DBfile& file,
 }
 
 //------------------------------------------------------------------------------
+// DBWrite
+//------------------------------------------------------------------------------
+template<typename T>
+inline
+int
+DBWrite(DBfile& file,
+        std::string varname,
+        std::vector<T>& var) {
+  auto dims = std::vector<int>(1, var.size());
+  return DBWrite(&file, varname.c_str(), (void*) &var.front(), 
+                 &dims.front(),
+                 1,
+                 SiloTraits<T>::datatype());
+}
+
+//------------------------------------------------------------------------------
 // DBReadVar
 //------------------------------------------------------------------------------
 template<typename T>

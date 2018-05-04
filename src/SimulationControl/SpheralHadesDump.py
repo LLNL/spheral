@@ -111,6 +111,8 @@ def hadesDump(integrator,
 
     # Write the master file.
     maxproc = writeMasterSiloFile(ndim = db.nDim,
+                                  nblock = nblock,
+                                  jsplit = jsplit,
                                   baseDirectory = baseDirectory,
                                   baseName = baseFileName,
                                   procDirBaseName = procDirBaseName,
@@ -239,7 +241,7 @@ def shuffleIntoBlocks(ndim, vals, xmin, xmax, nglobal):
 #-------------------------------------------------------------------------------
 # Write the master file.
 #-------------------------------------------------------------------------------
-def writeMasterSiloFile(ndim,
+def writeMasterSiloFile(ndim, nblock, jsplit,
                         baseDirectory, baseName, procDirBaseName, materials,
                         rhosamp, label, time, cycle):
 
@@ -259,6 +261,14 @@ def writeMasterSiloFile(ndim,
     for iproc, p in enumerate(domainNamePatterns):
         domainVarNames.append(p % "hblk0/den")
     assert len(domainVarNames) == maxproc
+
+    # We need each domains nblock info.
+    nblocks = [nblock]
+    for sendproc in xrange(1, maxproc):
+        if mpi.rank == sendproc:
+            mpi.send(nblock, dest=0, tag=50)
+        if mpi.rank == 0:
+            nblocks.append(mpi.recv(source=sendproc, tag=50)[0])
 
     # Create the master file.
     if mpi.rank == 0:
@@ -314,11 +324,21 @@ def writeMasterSiloFile(ndim,
                                   Spheral.vector_of_double(ndim*ndim, 0.0), Spheral.vector_of_double(),
                                   SA._DB_ZONECENT, Spheral.vector_of_int(ndim, ndim), nullOpts) == 0
 
-        # Note how many domains we're writing.
+        # Write domain and mesh size info.
         assert silo.DBMkDir(f, "Decomposition") == 0
         assert silo.DBWrite(f, "Decomposition/NumDomains", maxproc) == 0
+        offsets = [0 for j in xrange(ndim)]
+        for iproc in xrange(maxproc):
+            stuff = Spheral.vector_of_int(12, 0)
+            for jdim in xrange(ndim):
+                stuff[3+jdim] = offsets[jdim]
+                stuff[6+jdim] = offsets[jdim] + nblocks[iproc][jdim]
+            offsets[jsplit] += nblocks[iproc][jsplit]
+            assert silo.DBMkDir(f, "Decomposition/gmap%i" % iproc) == 0
+            assert silo.DBWrite(f, "Decomposition/gmap%i/gmap" % iproc, stuff) == 0
 
-        # Close the file.
+    # Close the file.
+    if mpi.rank == 0:
         assert silo.DBClose(f) == 0
         del f
 
