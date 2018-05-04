@@ -1041,19 +1041,19 @@ cache/$(HYPREDIST):
 	@$(MKDIR) cache
 	$(CURL) "$(HYPREURL)" -o cache/$(HYPREDIST)
 
-$(HYPREBUILDDATE):	cache/$(HYPREDIST) $(CMAKEEXE)
+$(HYPREBUILDDATE):	cache/$(HYPREDIST)
 	@echo "################################################################################"
 	@echo "# Building $(HYPREDIST)"
 	@echo "################################################################################"
-	@$(MKDIR) -p $(prefix)/bin $(prefix)/man $(prefix)/lib $(prefix)/include
+	@$(MKDIR) -p $(prefix)/HYPRE
 	rm -fr $(HYPREDIR)
 	$(GZIP) -dc cache/$(HYPREDIST) | $(TAR) -xf -
-	$(SHELL) -ec "cd $(HYPREDIR)/src/cmbuild; \
-	$(CMAKEEXE) -DCMAKE_BUILD_TYPE=Release -DCMAKE_C_COMPILER='$(MPICC)' -DCMAKE_CXX_COMPILER='$(MPICXX)' -DCMAKE_C_FLAGS='$(CFLAGS)' -DCMAKE_INSTALL_PREFIX:PATH=$(prefix) .. ; \
+	$(SHELL) -ec 'cd $(HYPREDIR)/src/; \
+	env CC="$(MPICC)" CXX="$(MPICC)" CFLAGS="$(CFLAGS)" CXXFLAGS="$(CXXFLAGS)" ./configure --prefix=$(prefix)/HYPRE ; \
 	$(MAKE) ; \
-	$(MAKE) DESTDIR=$(prefix) install"
-	@if ! test -e $(prefix)/lib/libHYPRE.a -a \
-	           -e $(prefix)/include/HYPRE.h; then \
+	$(MAKE) install'
+	@if ! test -e $(prefix)/HYPRE/lib/libHYPRE.a -a \
+	           -e $(prefix)/HYPRE/include/HYPRE.h; then \
 	echo "ERROR building Hypre."; \
 	rm -f $(HYPREBUILDDATE); \
 	exit 1; \
