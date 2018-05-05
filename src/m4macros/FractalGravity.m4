@@ -20,7 +20,7 @@ AC_ARG_WITH(FractalGravity,
    PYTHONPKGS+=" FractalStruct"
    EXTRATHIRDPARTYTARGETS+=" .fftw-3.3.7.date .hypre-v2.14.0.date"
    TPINCS+=" -I\$(prefix)/HYPRE/include"
-   TPLIBS+=" -lfftw3 -L\$(prefix)/HYPRE -lHYPRE"
+   TPLIBS+=" -lfftw3 -L\$(prefix)/HYPRE/lib -lHYPRE"
 ],
 [
    AC_MSG_RESULT(no)
