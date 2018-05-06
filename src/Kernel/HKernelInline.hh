@@ -2,7 +2,7 @@
 #include "TableKernel.hh"
 #include "Utilities/DBC.hh"
 
-namspace Spheral {
+namespace Spheral {
 namespace KernelSpace {
 
 //------------------------------------------------------------------------------

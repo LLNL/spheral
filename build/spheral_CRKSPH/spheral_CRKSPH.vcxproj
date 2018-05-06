@@ -1,5 +1,5 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
-<Project DefaultTargets="Build" ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup Label="ProjectConfigurations">
     <ProjectConfiguration Include="Debug|Win32">
       <Configuration>Debug</Configuration>
@@ -46,60 +46,61 @@
     <ProjectGuid>{34F0C408-90A6-41A1-8C26-6189B18DB3D2}</ProjectGuid>
     <Keyword>Win32Proj</Keyword>
     <RootNamespace>spheral</RootNamespace>
+    <WindowsTargetPlatformVersion>10.0.16299.0</WindowsTargetPlatformVersion>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
     <ConfigurationType>StaticLibrary</ConfigurationType>
     <UseDebugLibraries>true</UseDebugLibraries>
-    <PlatformToolset>Intel C++ Compiler 16.0</PlatformToolset>
+    <PlatformToolset>Intel C++ Compiler 18.0</PlatformToolset>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
     <ConfigurationType>StaticLibrary</ConfigurationType>
     <UseDebugLibraries>true</UseDebugLibraries>
-    <PlatformToolset>Intel C++ Compiler 16.0</PlatformToolset>
+    <PlatformToolset>Intel C++ Compiler 18.0</PlatformToolset>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='ParDebug|Win32'" Label="Configuration">
     <ConfigurationType>StaticLibrary</ConfigurationType>
     <UseDebugLibraries>true</UseDebugLibraries>
-    <PlatformToolset>Intel C++ Compiler 16.0</PlatformToolset>
+    <PlatformToolset>Intel C++ Compiler 18.0</PlatformToolset>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='ParDebugVisit|Win32'" Label="Configuration">
     <ConfigurationType>StaticLibrary</ConfigurationType>
     <UseDebugLibraries>true</UseDebugLibraries>
-    <PlatformToolset>Intel C++ Compiler 16.0</PlatformToolset>
+    <PlatformToolset>Intel C++ Compiler 18.0</PlatformToolset>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='ParDebug|x64'" Label="Configuration">
     <ConfigurationType>StaticLibrary</ConfigurationType>
     <UseDebugLibraries>true</UseDebugLibraries>
-    <PlatformToolset>Intel C++ Compiler 16.0</PlatformToolset>
+    <PlatformToolset>Intel C++ Compiler 18.0</PlatformToolset>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='ParDebugVisit|x64'" Label="Configuration">
     <ConfigurationType>StaticLibrary</ConfigurationType>
     <UseDebugLibraries>true</UseDebugLibraries>
-    <PlatformToolset>Intel C++ Compiler 16.0</PlatformToolset>
+    <PlatformToolset>Intel C++ Compiler 18.0</PlatformToolset>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
     <ConfigurationType>StaticLibrary</ConfigurationType>
     <UseDebugLibraries>false</UseDebugLibraries>
-    <PlatformToolset>Intel C++ Compiler 16.0</PlatformToolset>
+    <PlatformToolset>Intel C++ Compiler 18.0</PlatformToolset>
     <WholeProgramOptimization>true</WholeProgramOptimization>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
     <ConfigurationType>StaticLibrary</ConfigurationType>
     <UseDebugLibraries>false</UseDebugLibraries>
-    <PlatformToolset>Intel C++ Compiler 16.0</PlatformToolset>
+    <PlatformToolset>Intel C++ Compiler 18.0</PlatformToolset>
     <WholeProgramOptimization>true</WholeProgramOptimization>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='ParRelease|Win32'" Label="Configuration">
     <ConfigurationType>StaticLibrary</ConfigurationType>
     <UseDebugLibraries>false</UseDebugLibraries>
-    <PlatformToolset>Intel C++ Compiler 16.0</PlatformToolset>
+    <PlatformToolset>Intel C++ Compiler 18.0</PlatformToolset>
     <WholeProgramOptimization>true</WholeProgramOptimization>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='ParRelease|x64'" Label="Configuration">
     <ConfigurationType>StaticLibrary</ConfigurationType>
     <UseDebugLibraries>false</UseDebugLibraries>
-    <PlatformToolset>Intel C++ Compiler 16.0</PlatformToolset>
+    <PlatformToolset>Intel C++ Compiler 18.0</PlatformToolset>
     <WholeProgramOptimization>true</WholeProgramOptimization>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
@@ -144,6 +145,7 @@
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
     <Import Project="..\..\..\..\src\Win32\Base Debug Libraries.props" />
     <Import Project="..\..\..\..\src\Win32\Properties\Serial.props" />
+    <Import Project="..\..\..\..\src\Win32\Properties\CPUOptimization.props" />
   </ImportGroup>
   <ImportGroup Condition="'$(Configuration)|$(Platform)'=='ParRelease|Win32'" Label="PropertySheets">
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
@@ -154,6 +156,7 @@
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
     <Import Project="..\..\..\..\src\Win32\Base Debug Libraries.props" />
     <Import Project="..\..\..\..\src\Win32\Properties\Parallel.x64.props" />
+    <Import Project="..\..\..\..\src\Win32\Properties\CPUOptimization.props" />
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup />
@@ -245,6 +248,7 @@
       <DisableLanguageExtensions>true</DisableLanguageExtensions>
       <DisableSpecificWarnings>2358;2586</DisableSpecificWarnings>
       <ProgramDataBaseFileName>$(OutDir)$(TargetName).pdb</ProgramDataBaseFileName>
+      <Cpp0xSupport>true</Cpp0xSupport>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -264,6 +268,7 @@
       <DisableSpecificWarnings>2358;2586</DisableSpecificWarnings>
       <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
       <ProgramDataBaseFileName>$(OutDir)$(TargetName).pdb</ProgramDataBaseFileName>
+      <Cpp0xSupport>true</Cpp0xSupport>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -366,6 +371,8 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="..\..\src\CRKSPH\centerOfMass.cc" />
+    <ClCompile Include="..\..\src\CRKSPH\ContinuityVolumePolicyInst.cc.2.cc" />
+    <ClCompile Include="..\..\src\CRKSPH\ContinuityVolumePolicyInst.cc.3.cc" />
     <ClCompile Include="..\..\src\CRKSPH\computeCRKSPHCorrectionsInst.cc.2.cc" />
     <ClCompile Include="..\..\src\CRKSPH\computeCRKSPHCorrectionsInst.cc.3.cc" />
     <ClCompile Include="..\..\src\CRKSPH\computeCRKSPHEvaluationInst.cc.2.cc" />
@@ -378,8 +385,6 @@
     <ClCompile Include="..\..\src\CRKSPH\computeCRKSPHSumMassDensityInst.cc.3.cc" />
     <ClCompile Include="..\..\src\CRKSPH\computeCRKSPHSumVolumeInst.cc.2.cc" />
     <ClCompile Include="..\..\src\CRKSPH\computeCRKSPHSumVolumeInst.cc.3.cc" />
-    <ClCompile Include="..\..\src\CRKSPH\computeHullSumMassDensityInst.cc.2.cc" />
-    <ClCompile Include="..\..\src\CRKSPH\computeHullSumMassDensityInst.cc.3.cc" />
     <ClCompile Include="..\..\src\CRKSPH\computeHullVolumesInst.cc.2.cc" />
     <ClCompile Include="..\..\src\CRKSPH\computeHullVolumesInst.cc.3.cc" />
     <ClCompile Include="..\..\src\CRKSPH\computeHVolumesInst.cc.2.cc" />
@@ -396,6 +401,12 @@
     <ClCompile Include="..\..\src\CRKSPH\CRKSPHHydroBaseInst.cc.2.cc" />
     <ClCompile Include="..\..\src\CRKSPH\CRKSPHHydroBaseInst.cc.3.cc" />
     <ClCompile Include="..\..\src\CRKSPH\CRKSPHHydroBaseRZ.cc" />
+    <ClCompile Include="..\..\src\CRKSPH\CRKSPHVariantInst.cc.2.cc" />
+    <ClCompile Include="..\..\src\CRKSPH\CRKSPHVariantInst.cc.3.cc" />
+    <ClCompile Include="..\..\src\CRKSPH\detectSurfaceInst.cc.2.cc" />
+    <ClCompile Include="..\..\src\CRKSPH\detectSurfaceInst.cc.3.cc" />
+    <ClCompile Include="..\..\src\CRKSPH\flagSurfaceNeighborsInst.cc.2.cc" />
+    <ClCompile Include="..\..\src\CRKSPH\flagSurfaceNeighborsInst.cc.3.cc" />
     <ClCompile Include="..\..\src\CRKSPH\gradientCRKSPHInst.cc.2.cc" />
     <ClCompile Include="..\..\src\CRKSPH\gradientCRKSPHInst.cc.3.cc" />
     <ClCompile Include="..\..\src\CRKSPH\HVolumePolicyInst.cc.2.cc" />
@@ -410,6 +421,17 @@
     <None Include="..\..\src\CRKSPH\centerOfMass.hh">
       <FileType>Document</FileType>
     </None>
+    <None Include="..\..\src\CRKSPH\ContinuityVolumePolicy.hh">
+      <FileType>Document</FileType>
+    </None>
+    <CustomBuild Include="..\..\src\CRKSPH\ContinuityVolumePolicyInst.cc.py">
+      <Command>
+            python.exe %(RelativeDir)..\helpers\InstantiationGenerator.py "%(FullPath)" %(RelativeDir)%(Filename).3.cc 3
+            python.exe %(RelativeDir)..\helpers\InstantiationGenerator.py "%(FullPath)" %(RelativeDir)%(Filename).2.cc 2
+         </Command>
+      <Message>Building 2 and 3 dim instantiation for %(Filename)</Message>
+      <Outputs>%(RelativeDir)%(Filename).2.cc;%(RelativeDir)%(Filename).3.cc;%(Outputs)</Outputs>
+    </CustomBuild>
     <None Include="..\..\src\CRKSPH\computeCRKSPHCorrections.hh">
       <FileType>Document</FileType>
     </None>
@@ -443,6 +465,9 @@
       <Message>Building 2 and 3 dim instantiation for %(Filename)</Message>
       <Outputs>%(RelativeDir)%(Filename).2.cc;%(RelativeDir)%(Filename).3.cc;%(Outputs)</Outputs>
     </CustomBuild>
+    <None Include="..\..\src\CRKSPH\computeCRKSPHMoments.hh">
+      <FileType>Document</FileType>
+    </None>
     <CustomBuild Include="..\..\src\CRKSPH\computeCRKSPHMomentsInst.cc.py">
       <Command>
            python.exe %(RelativeDir)..\helpers\InstantiationGenerator.py "%(FullPath)" %(RelativeDir)%(Filename).3.cc 3
@@ -462,6 +487,9 @@
       <Message>Building 2 and 3 dim instantiation for %(Filename)</Message>
       <Outputs>%(RelativeDir)%(Filename).2.cc;%(RelativeDir)%(Filename).3.cc;%(Outputs)</Outputs>
     </CustomBuild>
+    <None Include="..\..\src\CRKSPH\computeCRKSPHSumVolume.hh">
+      <FileType>Document</FileType>
+    </None>
     <CustomBuild Include="..\..\src\CRKSPH\computeCRKSPHSumVolumeInst.cc.py">
       <Command>
            python.exe %(RelativeDir)..\helpers\InstantiationGenerator.py "%(FullPath)" %(RelativeDir)%(Filename).3.cc 3
@@ -473,14 +501,6 @@
     <None Include="..\..\src\CRKSPH\computeHullSumMassDensity.hh">
       <FileType>Document</FileType>
     </None>
-    <CustomBuild Include="..\..\src\CRKSPH\computeHullSumMassDensityInst.cc.py">
-      <Command>
-            python.exe %(RelativeDir)..\helpers\InstantiationGenerator.py "%(FullPath)" %(RelativeDir)%(Filename).3.cc 3
-            python.exe %(RelativeDir)..\helpers\InstantiationGenerator.py "%(FullPath)" %(RelativeDir)%(Filename).2.cc 2
-         </Command>
-      <Message>Building 2 and 3 dim instantiation for %(Filename)</Message>
-      <Outputs>%(RelativeDir)%(Filename).2.cc;%(RelativeDir)%(Filename).3.cc;%(Outputs)</Outputs>
-    </CustomBuild>
     <None Include="..\..\src\CRKSPH\computeHullVolumes.hh">
       <FileType>Document</FileType>
     </None>
@@ -522,6 +542,9 @@
       <Message>Building 2 and 3 dim instantiation for %(Filename)</Message>
       <Outputs>%(RelativeDir)%(Filename).2.cc;%(RelativeDir)%(Filename).3.cc;%(Outputs)</Outputs>
     </CustomBuild>
+    <None Include="..\..\src\CRKSPH\computeSolidCRKSPHSumMassDensity.hh">
+      <FileType>Document</FileType>
+    </None>
     <CustomBuild Include="..\..\src\CRKSPH\computeSolidCRKSPHSumMassDensityInst.cc.py">
       <Command>
            python.exe %(RelativeDir)..\helpers\InstantiationGenerator.py "%(FullPath)" %(RelativeDir)%(Filename).3.cc 3
@@ -533,6 +556,12 @@
     <None Include="..\..\src\CRKSPH\computeVoronoiCentroids.hh">
       <FileType>Document</FileType>
     </None>
+    <None Include="..\..\src\CRKSPH\computeVoronoiVolumes.hh">
+      <FileType>Document</FileType>
+    </None>
+    <None Include="..\..\src\CRKSPH\CRKSPHCorrectionParams.hh">
+      <FileType>Document</FileType>
+    </None>
     <None Include="..\..\src\CRKSPH\CRKSPHHydroBase.hh">
       <FileType>Document</FileType>
     </None>
@@ -542,10 +571,19 @@
     <None Include="..\..\src\CRKSPH\CRKSPHHydroBaseRZ.hh">
       <FileType>Document</FileType>
     </None>
+    <None Include="..\..\src\CRKSPH\SolidCRKSPHHydroBase.hh">
+      <FileType>Document</FileType>
+    </None>
+    <None Include="..\..\src\CRKSPH\SolidCRKSPHHydroBaseInline.hh">
+      <FileType>Document</FileType>
+    </None>
     <None Include="..\..\src\CRKSPH\SolidCRKSPHHydroBaseRZ.hh">
       <FileType>Document</FileType>
     </None>
     <None Include="..\..\src\CRKSPH\SolidCRKSPHHydroBaseRZInline.hh">
+      <FileType>Document</FileType>
+    </None>
+    <None Include="..\..\src\CRKSPH\SurfaceNodeCoupling.hh">
       <FileType>Document</FileType>
     </None>
     <CustomBuild Include="..\..\src\CRKSPH\CRKSPHHydroBaseInst.cc.py">
@@ -565,6 +603,39 @@
     <None Include="..\..\src\CRKSPH\CRKSPHUtilitiesInline.hh">
       <FileType>Document</FileType>
     </None>
+    <None Include="..\..\src\CRKSPH\CRKSPHVariant.hh">
+      <FileType>Document</FileType>
+    </None>
+    <CustomBuild Include="..\..\src\CRKSPH\CRKSPHVariantInst.cc.py">
+      <Command>
+            python.exe %(RelativeDir)..\helpers\InstantiationGenerator.py "%(FullPath)" %(RelativeDir)%(Filename).3.cc 3
+            python.exe %(RelativeDir)..\helpers\InstantiationGenerator.py "%(FullPath)" %(RelativeDir)%(Filename).2.cc 2
+         </Command>
+      <Message>Building 2 and 3 dim instantiation for %(Filename)</Message>
+      <Outputs>%(RelativeDir)%(Filename).2.cc;%(RelativeDir)%(Filename).3.cc;%(Outputs)</Outputs>
+    </CustomBuild>
+    <None Include="..\..\src\CRKSPH\detectSurface.hh">
+      <FileType>Document</FileType>
+    </None>
+    <CustomBuild Include="..\..\src\CRKSPH\detectSurfaceInst.cc.py">
+      <Command>
+            python.exe %(RelativeDir)..\helpers\InstantiationGenerator.py "%(FullPath)" %(RelativeDir)%(Filename).3.cc 3
+            python.exe %(RelativeDir)..\helpers\InstantiationGenerator.py "%(FullPath)" %(RelativeDir)%(Filename).2.cc 2
+         </Command>
+      <Message>Building 2 and 3 dim instantiation for %(Filename)</Message>
+      <Outputs>%(RelativeDir)%(Filename).2.cc;%(RelativeDir)%(Filename).3.cc;%(Outputs)</Outputs>
+    </CustomBuild>
+    <None Include="..\..\src\CRKSPH\flagSurfaceNeighbors.hh">
+      <FileType>Document</FileType>
+    </None>
+    <CustomBuild Include="..\..\src\CRKSPH\flagSurfaceNeighborsInst.cc.py">
+      <Command>
+            python.exe %(RelativeDir)..\helpers\InstantiationGenerator.py "%(FullPath)" %(RelativeDir)%(Filename).3.cc 3
+            python.exe %(RelativeDir)..\helpers\InstantiationGenerator.py "%(FullPath)" %(RelativeDir)%(Filename).2.cc 2
+         </Command>
+      <Message>Building 2 and 3 dim instantiation for %(Filename)</Message>
+      <Outputs>%(RelativeDir)%(Filename).2.cc;%(RelativeDir)%(Filename).3.cc;%(Outputs)</Outputs>
+    </CustomBuild>
     <None Include="..\..\src\CRKSPH\gradientCRKSPH.hh">
       <FileType>Document</FileType>
     </None>
@@ -609,6 +680,9 @@
       <Message>Building 2 and 3 dim instantiation for %(Filename)</Message>
       <Outputs>%(RelativeDir)%(Filename).2.cc;%(RelativeDir)%(Filename).3.cc;%(Outputs)</Outputs>
     </CustomBuild>
+    <None Include="..\..\src\CRKSPH\volumeSpacing.hh">
+      <FileType>Document</FileType>
+    </None>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

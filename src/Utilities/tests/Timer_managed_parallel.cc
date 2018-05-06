@@ -4,7 +4,7 @@ using namespace std;
 
 #include "../Timer.hh"
 
-#ifdef MPI
+#ifdef USE_MPI
 #include <mpi.h>
 #include "Distributed/Communicator.hh"
 #endif
@@ -16,7 +16,7 @@ Timer loop2(" Loop 2", Everything);
 int main(int argc, char **argv) {
 
   int rank, number_procs;
-#ifdef MPI
+#ifdef USE_MPI
   MPI_Init(&argc, &argv);
   MPI_Comm_rank(Spheral::Communicator::communicator(), &rank);
   MPI_Comm_size(Spheral::Communicator::communicator(), &number_procs);
@@ -47,7 +47,7 @@ int main(int argc, char **argv) {
 
   Timer::TimerSummary(rank, number_procs);
 
-#ifdef MPI
+#ifdef USE_MPI
   MPI_Finalize();
 #endif
 }
