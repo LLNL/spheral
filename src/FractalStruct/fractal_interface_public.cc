@@ -5,6 +5,49 @@
 namespace FractalSpace
 {
   typedef deque<double>::iterator _ITD__;
+  Fractal_Memory* FractalGravityFirstTime(
+					  bool Periodic,
+					  MPI_Comm& TalkToMe,
+					  int GridLength,
+					  int FractalNodes0,
+					  int FractalNodes1,
+					  int FractalNodes2,
+					  string BaseDirectory,
+					  string RunIdentifier
+					  )
+  {
+    Fractal_Memory* PFM=fractal_memory_create();
+
+    Periodic=false;
+    
+    PFM->standalone=false;
+    PFM->setPeriodic(Periodic);
+    PFM->setGridLength(GridLength);
+    PFM->setFractalNodes(FractalNodes0,FractalNodes1,FractalNodes2);
+    PFM->setBaseDirectory(BaseDirectory);
+    PFM->setRunIdentifier(RunIdentifier);
+    Fractal_Memory::FRACTAL_UNIVERSE=TalkToMe;
+    int Balance=1;
+    bool Debug=true;
+    int Padding=-1;
+    int LevelMax=8;
+    int MinimumNumber=8;
+    int MaxHypreIterations=20;
+    double HypreTolerance=1.0e-7;
+    PFM->setBalance(Balance);
+    PFM->setDebug(Debug);
+    PFM->setPadding(Padding);
+    PFM->setLevelMax(LevelMax);
+    PFM->setMinimumNumber(MinimumNumber);
+    PFM->setHypreIterations(MaxHypreIterations);
+    PFM->setHypreTolerance(HypreTolerance);
+
+    return PFM;    
+  }
+}
+namespace FractalSpace
+{
+  typedef deque<double>::iterator _ITD__;
   Fractal_Memory* FractalGravityIsolatedFirstTime(
 						  MPI_Comm& TalkToMe,
 						  int GridLength,
