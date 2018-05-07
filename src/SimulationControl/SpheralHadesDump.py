@@ -101,12 +101,13 @@ def hadesDump(integrator,
 
         # Rearrange the sampled data into rectangular blocks due to Silo's quad mesh limitations.
         rhosamp, xminblock, xmaxblock, nblock, jsplit = shuffleIntoBlocks(db.nDim, scalar_samples[0], xmin, xmax, nsample)
-        # print "rho range: ", min(rhosamp), max(rhosamp)
-        # print "     xmin: ", xmin
-        # print "     xmax: ", xmax
-        # print "xminblock: ", xminblock
-        # print "xmaxblock: ", xmaxblock
-        # print "   nblock: ", nblock
+        if rhosamp:
+            print "rho range: ", min(rhosamp), max(rhosamp)
+        print "     xmin: ", xmin
+        print "     xmax: ", xmax
+        print "xminblock: ", xminblock
+        print "xmaxblock: ", xmaxblock
+        print "   nblock: ", nblock
         assert mpi.allreduce(len(rhosamp), mpi.SUM) == ntot
 
     # Write the master file.
@@ -391,15 +392,10 @@ def writeDomainSiloFile(ndim, maxproc,
         # Write the domain mesh.
         coords = Spheral.vector_of_vector_of_double(ndim)
         for jdim in xrange(ndim):
-            coords[jdim] = Spheral.vector_of_double(numNodes)
+            coords[jdim] = Spheral.vector_of_double(nblocknodes[jdim])
             dx = (xmaxblock[jdim] - xminblock[jdim])/nblock[jdim]
-            for i in xrange(numNodes):
-                if jdim == 0:
-                    coords[jdim][i] = xminblock[jdim] + (i % nblocknodes[0])*dx
-                elif jdim == 1:
-                    coords[jdim][i] = xminblock[jdim] + ((i % (nblocknodes[0]*nblocknodes[1])) // nblocknodes[0])*dx
-                else:
-                    coords[jdim][i] = xminblock[jdim] + (i // (nblocknodes[0]*nblocknodes[1]))*dx
+            for i in xrange(nblocknodes[jdim]):
+                coords[jdim][i] = xminblock[jdim] + i*dx
         optlist = silo.DBoptlist()
         assert optlist.addOption(SA._DBOPT_CYCLE, cycle) == 0
         assert optlist.addOption(SA._DBOPT_DTIME, time) == 0
