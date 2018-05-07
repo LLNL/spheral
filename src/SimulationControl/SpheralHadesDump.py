@@ -367,11 +367,13 @@ def writeDomainSiloFile(ndim, maxproc,
 
     # Is there anything to do?
     if mpi.rank < maxproc:
-        nnodes = [1]*3
         numZones = 1
+        numNodes = 1
+        nblocknodes = list(nblock)
         for i, x in enumerate(nblock):
-            nnodes[i] = x + 1
             numZones *= x
+            numNodes *= x + 1
+            nblocknodes[i] = x + 1
         assert numZones > 0
         assert len(rhosamp) == numZones
 
@@ -389,10 +391,15 @@ def writeDomainSiloFile(ndim, maxproc,
         # Write the domain mesh.
         coords = Spheral.vector_of_vector_of_double(ndim)
         for jdim in xrange(ndim):
-            coords[jdim] = Spheral.vector_of_double(nblock[jdim] + 1)
+            coords[jdim] = Spheral.vector_of_double(numNodes)
             dx = (xmaxblock[jdim] - xminblock[jdim])/nblock[jdim]
-            for i in xrange(nblock[jdim] + 1):
-                coords[jdim][i] = xminblock[jdim] + i*dx
+            for i in xrange(numNodes):
+                if jdim == 0:
+                    coords[jdim][i] = xminblock[jdim] + (i % nblocknodes[0])*dx
+                elif jdim == 1:
+                    coords[jdim][i] = xminblock[jdim] + ((i % (nblocknodes[0]*nblocknodes[1])) // nblocknodes[0])*dx
+                else:
+                    coords[jdim][i] = xminblock[jdim] + (i // (nblocknodes[0]*nblocknodes[1]))*dx
         optlist = silo.DBoptlist()
         assert optlist.addOption(SA._DBOPT_CYCLE, cycle) == 0
         assert optlist.addOption(SA._DBOPT_DTIME, time) == 0
