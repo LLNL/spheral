@@ -1103,6 +1103,8 @@ DBPutUcdmesh(DBfile& file,
 
 //------------------------------------------------------------------------------
 // DBPutQuadmesh
+// Note we assume just the unique (x,y,z) coordinates are provided, but we
+// replicate them here for the silo file writing.
 //------------------------------------------------------------------------------
 inline
 int
@@ -1116,12 +1118,22 @@ DBPutQuadmesh(DBfile& file,
   VERIFY(ndims == 2 or ndims == 3);
 
   // Number of nodes in each dimension.
-  vector<int> meshdims(ndims);
-  for (auto k = 0; k < ndims; ++k) meshdims[k] = coords[k].size();
+  auto nxnodes = coords[0].size();
+  auto nxynodes = nxnodes*coords[1].size();
+  auto nnodes = 1;
+  for (auto k = 0; k < ndims; ++k) nnodes *= coords[k].size();
+  vector<int> meshdims(3, nnodes);
 
   // We need the C-stylish pointers to the coordinates.
+  // This is where we flesh out to the nnodes number of values too.
   double** coordPtrs = new double*[ndims];
-  for (auto k = 0; k < ndims; ++k) coordPtrs[k] = &coords[k][0];
+  for (auto k = 0; k < ndims; ++k) coordPtrs[k] = new double[nnodes];
+  for (auto inode = 0; inode < nnodes; ++inode) {
+    const int index[3] = {inode % nxnodes,
+                          (inode % nxynodes) / nxnodes,
+                          inode / nxynodes};
+    for (auto k = 0; k < ndims; ++k) coordPtrs[k][inode] = coords[k][index[k]];
+  }
 
   // Do the deed.
   const int result = DBPutQuadmesh(&file,                            // dbfile
