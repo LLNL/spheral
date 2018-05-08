@@ -1,0 +1,50 @@
+# -*-makefile-*-
+# Spheral++ SimulationControl package makefile
+#-------------------------------------------------------------------------------
+srcdir = @abs_srcdir@
+VPATH = @abs_srcdir@
+SPHERALTOP = @abs_top_srcdir@
+BUILDTOP = @abs_top_builddir@
+
+PKGNAME = SimulationControl
+PKGDIR = $(PKGNAME)/
+PYTHONTARGETS = \
+	spheralDimensions.py \
+	$(srcdir)/Spheral1d.py \
+	$(srcdir)/Spheral2d.py \
+	$(srcdir)/Spheral3d.py \
+	$(srcdir)/SpheralRZ.py \
+	$(srcdir)/SolidSpheral1d.py \
+	$(srcdir)/SolidSpheral2d.py \
+	$(srcdir)/SolidSpheral3d.py \
+	$(srcdir)/SolidSpheralRZ.py \
+	$(srcdir)/SpheralPickle.py \
+	$(srcdir)/SpheralTestUtilities.py \
+	$(srcdir)/SpheralTimer.py \
+	$(srcdir)/SpheralConservation.py \
+	$(srcdir)/SpheralController.py \
+	$(srcdir)/SpheralOptionParser.py \
+	$(srcdir)/SpheralVisitDump.py \
+	$(srcdir)/SpheralVoronoiSiloDump.py \
+	$(srcdir)/SpheralPolytopeSiloDump.py \
+	$(srcdir)/Spheral1dVizDump.py \
+	$(srcdir)/SpheralGnuPlotUtilities.py \
+	$(srcdir)/SpheralMatplotlib.py \
+	$(srcdir)/findLastRestart.py \
+	$(srcdir)/Pnorm.py \
+	$(srcdir)/filearraycmp.py \
+	$(srcdir)/numericalIntegration.py \
+	$(srcdir)/newtonRaphson.py \
+	$(srcdir)/bisectFunction.py \
+	$(srcdir)/NodeHistory.py \
+	$(srcdir)/AverageStrain.py \
+	$(srcdir)/EulerianTracerHistory.py \
+	$(srcdir)/SpheralHadesDump.py \
+	$(srcdir)/siloPointmeshDump.py \
+	$(srcdir)/SpheralPointmeshSiloDump.py \
+	$(srcdir)/PolyhedronFileUtilities.py \
+	$(srcdir)/resampleNodeList.py \
+	$(srcdir)/overlayNodeList.py
+
+#-------------------------------------------------------------------------------
+include $(BUILDTOP)/helpers/makefile_master

@@ -1,0 +1,44 @@
+# -*-makefile-*-
+# Spheral++ BPLWraps makefile
+#-------------------------------------------------------------------------------
+srcdir = @abs_srcdir@
+VPATH = @abs_srcdir@
+SPHERALTOP = @abs_top_srcdir@
+BUILDTOP = @abs_top_builddir@
+
+#-------------------------------------------------------------------------------
+# This stuff is for generating Mercurial revision info in the python, based on:
+# https://www.mercurial-scm.org/wiki/VersioningWithMake
+HGVERSION:= $(shell hg id -n -i -b --cwd $(srcdir))
+Spheral.py: hgstamp
+.PHONY: update_hgstamp
+hgstamp: update_hgstamp
+	[ -f $@ ] || touch $@
+	sed -e 's/@spheralversion@/$(HGVERSION)/g' $(srcdir)/Spheral.py > Spheral.py
+
+#-------------------------------------------------------------------------------
+PKGNAME = SpheralModules
+PKGDIR = PBGWraps
+PBGMODTARGET = $(PKGNAME).$(SHLIBEXT)
+PBGTARGET = SpheralModulesBindings.py
+INSTALLTARGETS = Spheral.pth
+
+PYTHONPKGS = @PYTHONPKGS@
+PBGPKGS = @PYTHONPKGS@
+SPHERALMODULES = SpheralModules
+
+PYTHONTARGETS = \
+	Spheral.py \
+	$(srcdir)/SolidSpheral.py
+
+#-------------------------------------------------------------------------------
+include $(BUILDTOP)/helpers/makefile_master
+LIBS += -lsiloh5 -lhdf5 $(LDRPATH)
+
+#-------------------------------------------------------------------------------
+CP = cp
+
+force_build:
+
+Spheral.pth:	force_build
+	cp -f $(srcdir)/Spheral.pth $(PYTHONLIBDIR)
