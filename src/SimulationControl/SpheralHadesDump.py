@@ -282,7 +282,7 @@ def writeMasterSiloFile(ndim, nblock, jsplit,
         domainNames = Spheral.vector_of_string()
         meshTypes = Spheral.vector_of_int(maxproc, SA._DB_QUADMESH)
         for p in domainNamePatterns:
-            domainNames.append(p % "/hblk0/hydro_mesh")
+            domainNames.append(p % "hblk0/hydro_mesh")
         optlist = silo.DBoptlist(1024)
         assert optlist.addOption(SA._DBOPT_CYCLE, cycle) == 0
         assert optlist.addOption(SA._DBOPT_DTIME, time) == 0
@@ -323,17 +323,17 @@ def writeMasterSiloFile(ndim, nblock, jsplit,
                                   SA._DB_ZONECENT, Spheral.vector_of_int(ndim, ndim), nullOpts) == 0
 
         # Write domain and mesh size info.
-        assert silo.DBMkDir(f, "Decomposition") == 0
-        assert silo.DBWrite(f, "Decomposition/NumDomains", maxproc) == 0
-        offsets = [0 for j in xrange(ndim)]
-        for iproc in xrange(maxproc):
-            stuff = Spheral.vector_of_int(12, 0)
-            for jdim in xrange(ndim):
-                stuff[3+jdim] = offsets[jdim]
-                stuff[6+jdim] = offsets[jdim] + nblocks[iproc][jdim]
-            offsets[jsplit] += nblocks[iproc][jsplit]
-            assert silo.DBMkDir(f, "Decomposition/gmap%i" % iproc) == 0
-            assert silo.DBWrite(f, "Decomposition/gmap%i/gmap" % iproc, stuff) == 0
+        # assert silo.DBMkDir(f, "Decomposition") == 0
+        # assert silo.DBWrite(f, "Decomposition/NumDomains", maxproc) == 0
+        # offsets = [0 for j in xrange(ndim)]
+        # for iproc in xrange(maxproc):
+        #     stuff = Spheral.vector_of_int(12, 0)
+        #     for jdim in xrange(ndim):
+        #         stuff[3+jdim] = offsets[jdim]
+        #         stuff[6+jdim] = offsets[jdim] + nblocks[iproc][jdim]
+        #     offsets[jsplit] += nblocks[iproc][jsplit]
+        #     assert silo.DBMkDir(f, "Decomposition/gmap%i" % iproc) == 0
+        #     assert silo.DBWrite(f, "Decomposition/gmap%i/gmap" % iproc, stuff) == 0
 
     # Close the file.
     if mpi.rank == 0:

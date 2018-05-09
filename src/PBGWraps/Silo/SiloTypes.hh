@@ -1114,15 +1114,18 @@ DBPutQuadmesh(DBfile& file,
               DBoptlist_wrapper& optlist) {
 
   // Preconditions.
-  const unsigned ndims = coords.size();
+  const auto ndims = coords.size();
   VERIFY(ndims == 2 or ndims == 3);
 
   // Number of nodes in each dimension.
   auto nxnodes = coords[0].size();
   auto nxynodes = nxnodes*coords[1].size();
+  vector<int> meshdims(ndims);
   auto nnodes = 1;
-  for (auto k = 0; k < ndims; ++k) nnodes *= coords[k].size();
-  vector<int> meshdims(3, nnodes);
+  for (auto k = 0; k < ndims; ++k) {
+    meshdims[k] = coords[k].size();
+    nnodes *= coords[k].size();
+  }
 
   // We need the C-stylish pointers to the coordinates.
   // This is where we flesh out to the nnodes number of values too.
@@ -1143,10 +1146,11 @@ DBPutQuadmesh(DBfile& file,
                                    &meshdims[0],                     // dims
                                    ndims,                            // ndims
                                    SiloTraits<double>::datatype(),   // datatype
-                                   DB_COLLINEAR,                     // coordtype
+                                   DB_NONCOLLINEAR,                  // coordtype
                                    optlist.mOptlistPtr);             // optlist
 
   // That's it.
+  for (auto k = 0; k < ndims; ++k) delete[] coordPtrs[k];
   delete[] coordPtrs;
   return result;
 }
