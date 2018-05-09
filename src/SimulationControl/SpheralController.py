@@ -738,6 +738,9 @@ precedeDistributed += [BoundarySpace.PeriodicBoundary%(dim)sd,
                                  dumpDerivatives = self.vizDerivs,
                                  boundaries = self.integrator.uniqueBoundaryConditions())
         if self.vizMethodCells:
+            db = self.integrator.dataBase()
+            db.updateConnectivityMap(False)
+            bcs = self.integrator.uniqueBoundaryConditions()
             self.vizMethodCells(self.integrator,
                                 baseFileName = self.vizBaseName,
                                 baseDirectory = os.path.join(self.vizDir, "cells"),
@@ -747,7 +750,7 @@ precedeDistributed += [BoundarySpace.PeriodicBoundary%(dim)sd,
                                 currentCycle = self.totalSteps,
                                 dumpGhosts = self.vizGhosts,
                                 dumpDerivatives = self.vizDerivs,
-                                boundaries = self.integrator.uniqueBoundaryConditions())
+                                boundaries = bcs)
         return
 
     #--------------------------------------------------------------------------
