@@ -290,16 +290,16 @@ def writeMasterSiloFile(ndim, nblock, jsplit,
 
         # Write material names.
         material_names = Spheral.vector_of_string()
-        matnames = Spheral.vector_of_string()
-        matnos = Spheral.vector_of_int()
+        matnames = Spheral.vector_of_string(1, "void")
+        matnos = Spheral.vector_of_int(1, 0)
         for p in domainNamePatterns:
             material_names.append(p % "/hblk0/Materials")
         for i, name in enumerate([x.name for x in materials]):
             matnames.append(name)
             matnos.append(i + 1)
         assert len(material_names) == maxproc
-        assert len(matnames) == len(materials)
-        assert len(matnos) == len(materials)
+        assert len(matnames) == len(materials) + 1
+        assert len(matnos) == len(materials) + 1
         optlist = silo.DBoptlist(1024)
         assert optlist.addOption(SA._DBOPT_CYCLE, cycle) == 0
         assert optlist.addOption(SA._DBOPT_DTIME, time) == 0
@@ -325,7 +325,7 @@ def writeMasterSiloFile(ndim, nblock, jsplit,
                                   Spheral.vector_of_double(ndim*ndim, 0.0), Spheral.vector_of_double(),
                                   SA._DB_ZONECENT, Spheral.vector_of_int(ndim, ndim), nullOpts) == 0
 
-        # Write domain and mesh size info.
+        # # Write domain and mesh size info.
         # assert silo.DBMkDir(f, "Decomposition") == 0
         # assert silo.DBWrite(f, "Decomposition/NumDomains", maxproc) == 0
         # offsets = [0 for j in xrange(ndim)]
@@ -377,6 +377,11 @@ def writeDomainSiloFile(ndim, maxproc,
             nblocknodes[i] = x + 1
         assert numZones > 0
         assert len(rhosamp) == numZones
+
+        # Make a vector<int> version of nblock
+        nblock_vec = Spheral.vector_of_int(ndim)
+        for jdim in xrange(ndim):
+            nblock_vec[jdim] = nblock[jdim]
 
         # Create the file.
         fileName = os.path.join(baseDirectory,
@@ -443,24 +448,24 @@ def writeDomainSiloFile(ndim, maxproc,
 
         # Write materials.
         if materials:
-            matnos = Spheral.vector_of_int()
+            matnos = Spheral.vector_of_int(1, 0)
             for i in xrange(len(materials)):
                 matnos.append(i + 1)
-            assert len(matnos) == len(materials)
+            assert len(matnos) == len(materials) + 1
             matlist = Spheral.vector_of_int(numZones, 0)
-            matnames = Spheral.vector_of_string()
+            matnames = Spheral.vector_of_string(1, "void")
             for imat, nodeList in enumerate(materials):
                 for i in xrange(numZones):
                     if rhosamp[i] > 0.0:
                         matlist[i] = imat + 1
                 matnames.append(nodeList.name)
             assert len(matlist) == numZones
-            assert len(matnames) == len(materials)
+            assert len(matnames) == len(materials) + 1
             matOpts = silo.DBoptlist(1024)
             assert matOpts.addOption(SA._DBOPT_CYCLE, cycle) == 0
             assert matOpts.addOption(SA._DBOPT_DTIME, time) == 0
             assert matOpts.addOption(SA._DBOPT_MATNAMES, SA._DBOPT_NMATNOS, matnames) == 0
-            assert silo.DBPutMaterial(f, "hblk0/Materials", "hydro_mesh", matnos, matlist,
+            assert silo.DBPutMaterial(f, "hblk0/Materials", "hydro_mesh", matnos, matlist, nblock_vec,
                                       Spheral.vector_of_int(), Spheral.vector_of_int(), Spheral.vector_of_int(), Spheral.vector_of_double(),
                                       matOpts) == 0
         
@@ -468,9 +473,6 @@ def writeDomainSiloFile(ndim, maxproc,
         varOpts = silo.DBoptlist(1024)
         assert varOpts.addOption(SA._DBOPT_CYCLE, cycle) == 0
         assert varOpts.addOption(SA._DBOPT_DTIME, time) == 0
-        nblock_vec = Spheral.vector_of_int(ndim)
-        for jdim in xrange(ndim):
-            nblock_vec[jdim] = nblock[jdim]
         assert silo.DBPutQuadvar1(f, "hblk0/den", "hydro_mesh", rhosamp, 
                                   Spheral.vector_of_double(), SA._DB_ZONECENT, nblock_vec, varOpts) == 0
 
