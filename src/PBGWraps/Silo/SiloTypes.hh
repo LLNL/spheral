@@ -678,14 +678,14 @@ DBoptlist_wrapper::AddOptionFunctor<std::string> {
               const int option_size,
               const std::vector<std::string>& value) {
     VERIFY(optlist_wrapper.addOption<int>(option_size, value.size()) == 0);
-    std::shared_ptr<void> voidCopy(new std::vector<std::string>(value));
-    std::shared_ptr<void> voidValue(new std::vector<char*>());
-    std::vector<std::string>& stringvec = *((std::vector<string>*) voidCopy.get());
-    std::vector<char*>& charvec = *((std::vector<char*>*) (voidValue.get()));
-    for (unsigned k = 0; k != value.size(); ++k) charvec.push_back(const_cast<char*>(stringvec[k].c_str()));
-    VERIFY(charvec.size() == value.size());
+    std::shared_ptr<void> voidValue(new char*[value.size()]);
+    char** charArray = (char**) voidValue.get();
+    for (auto k = 0; k < value.size(); ++k) {
+      charArray[k] = new char[value[k].size() + 1];
+      strcpy(charArray[k], value[k].c_str());
+    }
     optlist_wrapper.mCache.push_back(voidValue);
-    return DBAddOption(optlist_wrapper.mOptlistPtr, option, (char**) &charvec.front());
+    return DBAddOption(optlist_wrapper.mOptlistPtr, option, charArray);
   }
 };
 

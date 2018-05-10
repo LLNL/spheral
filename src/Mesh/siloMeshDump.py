@@ -168,7 +168,7 @@ def writeMasterMeshSiloFile(dirName, mesh, label, nodeLists, time, cycle, fieldw
             matnos = vector_of_int()
             for p in domainNamePatterns:
                 material_names.append(p % "MATERIAL")
-            for (name, i) in zip(materialNames, range(len(materialNames))):
+            for i, name in enumerate(materialNames):
                 matnames.append(name)
                 matnos.append(i)
             assert len(material_names) == numDomains
@@ -177,6 +177,7 @@ def writeMasterMeshSiloFile(dirName, mesh, label, nodeLists, time, cycle, fieldw
             optlist = silo.DBoptlist(1024)
             assert optlist.addOption(SA._DBOPT_CYCLE, cycle) == 0
             assert optlist.addOption(SA._DBOPT_DTIME, time) == 0
+            assert optlist.addOption(SA._DBOPT_MMESH_NAME, "MMESH") == 0
             assert optlist.addOption(SA._DBOPT_MATNAMES, SA._DBOPT_NMATNOS, matnames) == 0
             assert optlist.addOption(SA._DBOPT_MATNOS, SA._DBOPT_NMATNOS, matnos) == 0
             assert silo.DBPutMultimat(db, "MMATERIAL", material_names, optlist) == 0
@@ -188,7 +189,7 @@ def writeMasterMeshSiloFile(dirName, mesh, label, nodeLists, time, cycle, fieldw
             matnos = vector_of_int()
             for p in domainNamePatterns:
                 material_names.append(p % "PointMATERIAL")
-            for (name, i) in zip(materialNames, range(len(materialNames))):
+            for i, name in enumerate(materialNames):
                 matnames.append(name)
                 matnos.append(i)
             assert len(material_names) == numDomains
@@ -197,6 +198,7 @@ def writeMasterMeshSiloFile(dirName, mesh, label, nodeLists, time, cycle, fieldw
             optlist = silo.DBoptlist(1024)
             assert optlist.addOption(SA._DBOPT_CYCLE, cycle) == 0
             assert optlist.addOption(SA._DBOPT_DTIME, time) == 0
+            assert optlist.addOption(SA._DBOPT_MMESH_NAME, "MPointMESH") == 0
             assert optlist.addOption(SA._DBOPT_MATNAMES, SA._DBOPT_NMATNOS, matnames) == 0
             assert optlist.addOption(SA._DBOPT_MATNOS, SA._DBOPT_NMATNOS, matnos) == 0
             assert silo.DBPutMultimat(db, "MPointMATERIAL", material_names, optlist) == 0
