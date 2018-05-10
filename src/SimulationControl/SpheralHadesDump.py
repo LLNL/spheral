@@ -294,15 +294,16 @@ def writeMasterSiloFile(ndim, nblock, jsplit,
         matnos = Spheral.vector_of_int()
         for p in domainNamePatterns:
             material_names.append(p % "/hblk0/Materials")
-        # for i, name in enumerate([x.name for x in materials]):
-        #     matnames.append(name)
-        #     matnos.append(i + 1)
+        for i, name in enumerate([x.name for x in materials]):
+            matnames.append(name)
+            matnos.append(i + 1)
         assert len(material_names) == maxproc
-        # assert len(matnames) == len(materials)
-        # assert len(matnos) == len(materials)
+        assert len(matnames) == len(materials)
+        assert len(matnos) == len(materials)
         optlist = silo.DBoptlist(1024)
         assert optlist.addOption(SA._DBOPT_CYCLE, cycle) == 0
         assert optlist.addOption(SA._DBOPT_DTIME, time) == 0
+        assert optlist.addOption(SA._DBOPT_MMESH_NAME, "hydro_mesh") == 0
         assert optlist.addOption(SA._DBOPT_MATNAMES, SA._DBOPT_NMATNOS, matnames) == 0
         assert optlist.addOption(SA._DBOPT_MATNOS, SA._DBOPT_NMATNOS, matnos) == 0
         assert silo.DBPutMultimat(f, "Materials", material_names, optlist) == 0
@@ -314,7 +315,9 @@ def writeMasterSiloFile(ndim, nblock, jsplit,
         optlistMV = silo.DBoptlist()
         assert optlistMV.addOption(SA._DBOPT_CYCLE, cycle) == 0
         assert optlistMV.addOption(SA._DBOPT_DTIME, time) == 0
-        assert optlistMV.addOption(SA._DBOPT_TENSOR_RANK, SA._DB_VARTYPE_SCALAR) == 0
+        #assert optlistMV.addOption(SA._DBOPT_TENSOR_RANK, SA._DB_VARTYPE_SCALAR) == 0
+        assert optlistMV.addOption(SA._DBOPT_BLOCKORIGIN, 0) == 0
+        assert optlistMV.addOption(SA._DBOPT_MMESH_NAME, "hydro_mesh") == 0
         assert silo.DBPutMultivar(f, "den", domainVarNames, types, optlistMV) == 0
 
         # Write the dummy variable "akap_0" to tell Hades we're actually Hydra or something.
