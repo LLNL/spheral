@@ -132,6 +132,7 @@ class Silo:
                                  param("std::string", "meshName"),
                                  refparam("vector_of_int", "matnos"),
                                  refparam("vector_of_int", "matlist"),
+                                 param("vector_of_int", "dims"),
                                  refparam("vector_of_int", "mix_next"),
                                  refparam("vector_of_int", "mix_mat"),
                                  refparam("vector_of_int", "mix_zone"),

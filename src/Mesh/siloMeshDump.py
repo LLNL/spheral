@@ -377,10 +377,10 @@ def writeDomainMeshSiloFile(dirName, mesh, index2zone, label, nodeLists, time, c
             assert matOpts.addOption(SA._DBOPT_CYCLE, cycle) == 0
             assert matOpts.addOption(SA._DBOPT_DTIME, time) == 0
             assert matOpts.addOption(SA._DBOPT_MATNAMES, SA._DBOPT_NMATNOS, matnames) == 0
-            assert silo.DBPutMaterial(db, "MATERIAL", "MESH", matnos, matlist,
+            assert silo.DBPutMaterial(db, "MATERIAL", "MESH", matnos, matlist, vector_of_int(),
                                       vector_of_int(), vector_of_int(), vector_of_int(), vector_of_double(),
                                       matOpts) == 0
-            assert silo.DBPutMaterial(db, "PointMATERIAL", "PointMESH", matnos, matlist,
+            assert silo.DBPutMaterial(db, "PointMATERIAL", "PointMESH", matnos, matlist, vector_of_int(),
                                       vector_of_int(), vector_of_int(), vector_of_int(), vector_of_double(),
                                       matOpts) == 0
         

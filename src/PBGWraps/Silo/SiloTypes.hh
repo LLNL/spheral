@@ -1012,6 +1012,7 @@ DBPutMaterial(DBfile& file,
               std::string meshName,
               std::vector<int>& matnos,
               std::vector<int>& matlist,
+              std::vector<int>  dims,
               std::vector<int>& mix_next,
               std::vector<int>& mix_mat,
               std::vector<int>& mix_zone,
@@ -1025,10 +1026,8 @@ DBPutMaterial(DBfile& file,
   VERIFY(mix_zone.size() == numMix);
   VERIFY(mix_vf.size() == numMix);
 
-  // Dimensionality of the matlist.
-  // For now we only support 1-D lists (I don't understand what silo does with 
-  // greater dimensionality?)
-  vector<int> dims(1, matlist.size());
+  // If dims is empty, set it as a 1D list based on matlist.
+  if (dims.empty()) dims = std::vector<int>(1, matlist.size());
 
   // Do the deed.
   const int result = DBPutMaterial(&file, 
