@@ -325,9 +325,17 @@ def writeMasterSiloFile(ndim, nblock, jsplit,
                                   Spheral.vector_of_double(ndim*ndim, 0.0), Spheral.vector_of_double(),
                                   SA._DB_ZONECENT, Spheral.vector_of_int(ndim, ndim), nullOpts) == 0
 
-        # # Write domain and mesh size info.
-        # assert silo.DBMkDir(f, "Decomposition") == 0
-        # assert silo.DBWrite(f, "Decomposition/NumDomains", maxproc) == 0
+        # Write domain and mesh size info.
+        assert silo.DBMkDir(f, "Decomposition") == 0
+        assert silo.DBWrite(f, "Decomposition/NumDomains", maxproc) == 0
+        assert silo.DBWrite(f, "Decomposition/NumLocalDomains", maxproc) == 0
+        assert silo.DBWrite(f, "Decomposition/NumBlocks", 1) == 0
+        #assert silo.DBWrite(f, "Decomposition/LocalName", "hblk") == 0
+        localDomains = Spheral.vector_of_int(maxproc)
+        for i in xrange(maxproc):
+            localDomains.append(i)
+        assert silo.DBWrite(f, "Decomposition/LocalDomains", localDomains) == 0
+
         # offsets = [0 for j in xrange(ndim)]
         # for iproc in xrange(maxproc):
         #     stuff = Spheral.vector_of_int(12, 0)
