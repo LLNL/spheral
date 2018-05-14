@@ -822,25 +822,55 @@ int
 DBWrite(DBfile& file,
         std::string varname,
         T& var) {
-  return DBWrite(&file, varname.c_str(), (void*) &var, 
+  return DBWrite(&file,
+                 varname.c_str(),
+                 (void*) &var, 
                  &(SiloTraits<T>::dims()).front(),
                  SiloTraits<T>::dims().size(),
                  SiloTraits<T>::datatype());
 }
 
 //------------------------------------------------------------------------------
-// DBWrite
+// DBWrite vector<T>
 //------------------------------------------------------------------------------
 template<typename T>
 inline
 int
-DBWrite(DBfile& file,
-        std::string varname,
-        std::vector<T>& var) {
+DBWrite_vector(DBfile& file,
+               std::string varname,
+               std::vector<T>& var) {
   auto dims = std::vector<int>(1, var.size());
-  return DBWrite(&file, varname.c_str(), (void*) &var.front(), 
+  return DBWrite(&file,
+                 varname.c_str(),
+                 (void*) &var.front(), 
                  &dims.front(),
                  1,
+                 SiloTraits<T>::datatype());
+}
+
+//------------------------------------------------------------------------------
+// DBWrite vector<vector<T>>
+//------------------------------------------------------------------------------
+template<typename T>
+inline
+int
+DBWrite_vector_of_vector(DBfile& file,
+                         std::string varname,
+                         std::vector<std::vector<T>>& var) {
+  auto ndims = var.size();
+  auto dims = std::vector<int>(ndims);
+  vector<T> varlinear;
+  for (auto i = 0; i < ndims; ++i) {
+    dims[i] = var[i].size();
+    auto istart = varlinear.size();
+    varlinear.resize(varlinear.size() + dims[i]);
+    std::copy(var[i].begin(), var[i].end(), varlinear.begin() + istart);
+  }
+  return DBWrite(&file,
+                 varname.c_str(),
+                 (void*) &varlinear.front(),
+                 &dims.front(),
+                 ndims,
                  SiloTraits<T>::datatype());
 }
 
@@ -1131,9 +1161,9 @@ DBPutQuadmesh(DBfile& file,
   double** coordPtrs = new double*[ndims];
   for (auto k = 0; k < ndims; ++k) coordPtrs[k] = new double[nnodes];
   for (auto inode = 0; inode < nnodes; ++inode) {
-    const int index[3] = {inode % nxnodes,
-                          (inode % nxynodes) / nxnodes,
-                          inode / nxynodes};
+    const size_t index[3] = {inode % nxnodes,
+                             (inode % nxynodes) / nxnodes,
+                             inode / nxynodes};
     for (auto k = 0; k < ndims; ++k) coordPtrs[k][inode] = coords[k][index[k]];
   }
 
