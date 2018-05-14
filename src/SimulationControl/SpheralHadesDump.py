@@ -257,7 +257,7 @@ def writeMasterSiloFile(ndim, nblock, jsplit,
     assert maxproc <= mpi.procs
 
     # Pattern for constructing per domain variables.
-    domainNamePatterns = [os.path.join(procDirBaseName, "domain%05i.silo:%%s" % i) for i in xrange(maxproc)]
+    domainNamePatterns = [os.path.join(procDirBaseName, "domain%i.silo:%%s" % i) for i in xrange(maxproc)]
     domainVarNames = Spheral.vector_of_string()
     for iproc, p in enumerate(domainNamePatterns):
         domainVarNames.append(p % "/hblk0/den")
@@ -336,7 +336,6 @@ def writeMasterSiloFile(ndim, nblock, jsplit,
         for i in xrange(maxproc):
             localDomains.append(i)
             domainFiles[0].append(i)
-        print "domainFiles: ", list(domainFiles[0]), maxproc
         assert silo.DBWrite(f, "Decomposition/LocalDomains", localDomains) == 0
         assert silo.DBWrite(f, "DomainFiles", domainFiles) == 0
 
