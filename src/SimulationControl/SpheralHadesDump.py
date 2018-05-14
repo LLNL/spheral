@@ -19,7 +19,7 @@ def hadesDump(integrator,
               W,
               baseFileName,
               baseDirectory = ".",
-              procDirBaseName = "proc-%06i",
+              procDirBaseName = "domains",
               mask = None,
               materials = None):
 
@@ -257,7 +257,7 @@ def writeMasterSiloFile(ndim, nblock, jsplit,
     assert maxproc <= mpi.procs
 
     # Pattern for constructing per domain variables.
-    domainNamePatterns = [os.path.join(procDirBaseName % i, "domain%i.silo:%%s" % i) for i in xrange(maxproc)]
+    domainNamePatterns = [os.path.join(procDirBaseName, "domain%05i.silo:%%s" % i) for i in xrange(maxproc)]
     domainVarNames = Spheral.vector_of_string()
     for iproc, p in enumerate(domainNamePatterns):
         domainVarNames.append(p % "/hblk0/den")
@@ -331,10 +331,14 @@ def writeMasterSiloFile(ndim, nblock, jsplit,
         assert silo.DBWrite(f, "Decomposition/NumLocalDomains", maxproc) == 0
         assert silo.DBWrite(f, "Decomposition/NumBlocks", 1) == 0
         #assert silo.DBWrite(f, "Decomposition/LocalName", "hblk") == 0
-        localDomains = Spheral.vector_of_int(maxproc)
+        localDomains = Spheral.vector_of_int()
+        domainFiles = Spheral.vector_of_vector_of_int(1)
         for i in xrange(maxproc):
             localDomains.append(i)
+            domainFiles[0].append(i)
+        print "domainFiles: ", list(domainFiles[0]), maxproc
         assert silo.DBWrite(f, "Decomposition/LocalDomains", localDomains) == 0
+        assert silo.DBWrite(f, "DomainFiles", domainFiles) == 0
 
         # offsets = [0 for j in xrange(ndim)]
         # for iproc in xrange(maxproc):
@@ -368,8 +372,7 @@ def writeDomainSiloFile(ndim, maxproc,
     # Make sure the directories are there.
     if mpi.rank == 0:
         for iproc in xrange(maxproc):
-            pth = os.path.join(baseDirectory,
-                               procDirBaseName % iproc)
+            pth = os.path.join(baseDirectory, procDirBaseName)
             if not os.path.exists(pth):
                 os.makedirs(pth)
     mpi.barrier()
@@ -392,9 +395,7 @@ def writeDomainSiloFile(ndim, maxproc,
             nblock_vec[jdim] = nblock[jdim]
 
         # Create the file.
-        fileName = os.path.join(baseDirectory,
-                                procDirBaseName % mpi.rank,
-                                "domain%i.silo" % mpi.rank)
+        fileName = os.path.join(baseDirectory, procDirBaseName, "domain%i.silo" % mpi.rank)
         f = silo.DBCreate(fileName, 
                           SA._DB_CLOBBER, SA._DB_LOCAL, label, SA._DB_HDF5)
         nullOpts = silo.DBoptlist()

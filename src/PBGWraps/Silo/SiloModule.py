@@ -249,13 +249,21 @@ class Silo:
                                     docstring = "Write a(n) %s to a SILO file." % type)
 
             # DBWrite
-            self.space.add_function("DBWrite", "int",
+            self.space.add_function("DBWrite_vector", "int",
                                     [refparam("DBfile", "file"),
                                      param("std::string", "varname"),
-                                     param("vector_of_%s" % type, "var")],
+                                     refparam("vector_of_%s" % type, "var")],
                                     template_parameters = [type],
                                     custom_name = "DBWrite",
                                     docstring = "Write a std::vector<%s> to a SILO file." % type)
+            # DBWrite
+            self.space.add_function("DBWrite_vector_of_vector", "int",
+                                    [refparam("DBfile", "file"),
+                                     param("std::string", "varname"),
+                                     refparam("vector_of_vector_of_%s" % type, "var")],
+                                    template_parameters = [type],
+                                    custom_name = "DBWrite",
+                                    docstring = "Write a std::vector<std::vector<%s>> to a SILO file." % type)
             # DBPutCompoundarray
             self.space.add_function("DBPutCompoundarray", type,
                                     [refparam("DBfile", "file"),
