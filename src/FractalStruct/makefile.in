@@ -10,6 +10,7 @@ PKGNAME = FractalGravity
 PKGDIR = $(PKGNAME)/
 LIBTARGET = libSpheral_$(PKGNAME).$(DYLIBEXT)
 SRCTARGETS = \
+	$(srcdir)/FractalGravity.cc \
 	$(srcdir)/add_buffer_values.cc \
 	$(srcdir)/any_overlaps.cc \
 	$(srcdir)/box_stats.cc \
