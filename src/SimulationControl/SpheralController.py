@@ -163,11 +163,12 @@ class SpheralController:
 
         # Prepare the neighbor objects.
         db = self.integrator.dataBase()
-        if restoreCycle is None:
-            db.reinitializeNeighbors()
+        db.reinitializeNeighbors()
+        db.updateConnectivityMap(False)
 
         # Create ghost nodes for the physics packages to initialize with.
         self.integrator.setGhostNodes()
+        db.updateConnectivityMap(False)
 
         # Initialize the integrator and packages.
         packages = self.integrator.physicsPackages()
@@ -187,6 +188,8 @@ class SpheralController:
         # If we're starting from scratch, initialize the H tensors.
         if restoreCycle is None and not skipInitialPeriodicWork and iterateInitialH:
             self.iterateIdealH()
+            db.reinitializeNeighbors()
+            db.updateConnectivityMap(False)
 
         # Set up the default periodic work.
         self.appendPeriodicWork(self.printCycleStatus, printStep)
@@ -557,6 +560,7 @@ class SpheralController:
         # Reset neighboring.
         db = self.integrator.dataBase()
         db.reinitializeNeighbors()
+        db.updateConnectivityMap(False)
 
         # Do we need to force a boundary update to create ghost nodes?
         if (self.integrator.updateBoundaryFrequency > 1 and
@@ -734,6 +738,9 @@ precedeDistributed += [BoundarySpace.PeriodicBoundary%(dim)sd,
                                  dumpDerivatives = self.vizDerivs,
                                  boundaries = self.integrator.uniqueBoundaryConditions())
         if self.vizMethodCells:
+            db = self.integrator.dataBase()
+            db.updateConnectivityMap(False)
+            bcs = self.integrator.uniqueBoundaryConditions()
             self.vizMethodCells(self.integrator,
                                 baseFileName = self.vizBaseName,
                                 baseDirectory = os.path.join(self.vizDir, "cells"),
@@ -743,7 +750,7 @@ precedeDistributed += [BoundarySpace.PeriodicBoundary%(dim)sd,
                                 currentCycle = self.totalSteps,
                                 dumpGhosts = self.vizGhosts,
                                 dumpDerivatives = self.vizDerivs,
-                                boundaries = self.integrator.uniqueBoundaryConditions())
+                                boundaries = bcs)
         return
 
     #--------------------------------------------------------------------------

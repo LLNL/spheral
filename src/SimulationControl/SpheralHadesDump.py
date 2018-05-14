@@ -19,7 +19,7 @@ def hadesDump(integrator,
               W,
               baseFileName,
               baseDirectory = ".",
-              procDirBaseName = "proc-%06i",
+              procDirBaseName = "domains",
               mask = None,
               materials = None):
 
@@ -257,10 +257,10 @@ def writeMasterSiloFile(ndim, nblock, jsplit,
     assert maxproc <= mpi.procs
 
     # Pattern for constructing per domain variables.
-    domainNamePatterns = [os.path.join(procDirBaseName % i, "domain%i.silo:%%s" % i) for i in xrange(maxproc)]
+    domainNamePatterns = [os.path.join(procDirBaseName, "domain%i.silo:%%s" % i) for i in xrange(maxproc)]
     domainVarNames = Spheral.vector_of_string()
     for iproc, p in enumerate(domainNamePatterns):
-        domainVarNames.append(p % "hblk0/den")
+        domainVarNames.append(p % "/hblk0/den")
     assert len(domainVarNames) == maxproc
 
     # We need each domains nblock info.
@@ -278,14 +278,11 @@ def writeMasterSiloFile(ndim, nblock, jsplit,
                           SA._DB_CLOBBER, SA._DB_LOCAL, label, SA._DB_HDF5)
         nullOpts = silo.DBoptlist()
 
-        # Make the hblk0 directory.
-        assert silo.DBMkDir(f, "hblk0") == 0
-
         # Write the domain file names and types.
         domainNames = Spheral.vector_of_string()
-        meshTypes = Spheral.vector_of_int(maxproc, SA._DB_QUADRECT)
+        meshTypes = Spheral.vector_of_int(maxproc, SA._DB_QUADMESH)
         for p in domainNamePatterns:
-            domainNames.append(p % "/hblk0/hydro_mesh")
+            domainNames.append(p % "hblk0/hydro_mesh")
         optlist = silo.DBoptlist(1024)
         assert optlist.addOption(SA._DBOPT_CYCLE, cycle) == 0
         assert optlist.addOption(SA._DBOPT_DTIME, time) == 0
@@ -293,22 +290,23 @@ def writeMasterSiloFile(ndim, nblock, jsplit,
 
         # Write material names.
         material_names = Spheral.vector_of_string()
-        matnames = Spheral.vector_of_string()
-        matnos = Spheral.vector_of_int()
+        matnames = Spheral.vector_of_string(1, "void")
+        matnos = Spheral.vector_of_int(1, 0)
         for p in domainNamePatterns:
             material_names.append(p % "/hblk0/Materials")
         for i, name in enumerate([x.name for x in materials]):
             matnames.append(name)
             matnos.append(i + 1)
         assert len(material_names) == maxproc
-        assert len(matnames) == len(materials)
-        assert len(matnos) == len(materials)
+        assert len(matnames) == len(materials) + 1
+        assert len(matnos) == len(materials) + 1
         optlist = silo.DBoptlist(1024)
         assert optlist.addOption(SA._DBOPT_CYCLE, cycle) == 0
         assert optlist.addOption(SA._DBOPT_DTIME, time) == 0
+        assert optlist.addOption(SA._DBOPT_MMESH_NAME, "hydro_mesh") == 0
         assert optlist.addOption(SA._DBOPT_MATNAMES, SA._DBOPT_NMATNOS, matnames) == 0
         assert optlist.addOption(SA._DBOPT_MATNOS, SA._DBOPT_NMATNOS, matnos) == 0
-        assert silo.DBPutMultimat(f, "hblk0/Materials", material_names, optlist) == 0
+        assert silo.DBPutMultimat(f, "Materials", material_names, optlist) == 0
         
         # Write the variables descriptors.
         # We currently hardwire for the single density variable.
@@ -317,8 +315,10 @@ def writeMasterSiloFile(ndim, nblock, jsplit,
         optlistMV = silo.DBoptlist()
         assert optlistMV.addOption(SA._DBOPT_CYCLE, cycle) == 0
         assert optlistMV.addOption(SA._DBOPT_DTIME, time) == 0
-        assert optlistMV.addOption(SA._DBOPT_TENSOR_RANK, SA._DB_VARTYPE_SCALAR) == 0
-        assert silo.DBPutMultivar(f, "hblk0/den", domainVarNames, types, optlistMV) == 0
+        #assert optlistMV.addOption(SA._DBOPT_TENSOR_RANK, SA._DB_VARTYPE_SCALAR) == 0
+        assert optlistMV.addOption(SA._DBOPT_BLOCKORIGIN, 0) == 0
+        assert optlistMV.addOption(SA._DBOPT_MMESH_NAME, "hydro_mesh") == 0
+        assert silo.DBPutMultivar(f, "den", domainVarNames, types, optlistMV) == 0
 
         # Write the dummy variable "akap_0" to tell Hades we're actually Hydra or something.
         assert silo.DBPutQuadvar1(f, "akap_0", "hydro_mesh",
@@ -328,15 +328,26 @@ def writeMasterSiloFile(ndim, nblock, jsplit,
         # Write domain and mesh size info.
         assert silo.DBMkDir(f, "Decomposition") == 0
         assert silo.DBWrite(f, "Decomposition/NumDomains", maxproc) == 0
-        offsets = [0 for j in xrange(ndim)]
-        for iproc in xrange(maxproc):
-            stuff = Spheral.vector_of_int(12, 0)
-            for jdim in xrange(ndim):
-                stuff[3+jdim] = offsets[jdim]
-                stuff[6+jdim] = offsets[jdim] + nblocks[iproc][jdim]
-            offsets[jsplit] += nblocks[iproc][jsplit]
-            assert silo.DBMkDir(f, "Decomposition/gmap%i" % iproc) == 0
-            assert silo.DBWrite(f, "Decomposition/gmap%i/gmap" % iproc, stuff) == 0
+        assert silo.DBWrite(f, "Decomposition/NumLocalDomains", maxproc) == 0
+        assert silo.DBWrite(f, "Decomposition/NumBlocks", 1) == 0
+        #assert silo.DBWrite(f, "Decomposition/LocalName", "hblk") == 0
+        localDomains = Spheral.vector_of_int()
+        domainFiles = Spheral.vector_of_vector_of_int(1)
+        for i in xrange(maxproc):
+            localDomains.append(i)
+            domainFiles[0].append(i)
+        assert silo.DBWrite(f, "Decomposition/LocalDomains", localDomains) == 0
+        assert silo.DBWrite(f, "DomainFiles", domainFiles) == 0
+
+        # offsets = [0 for j in xrange(ndim)]
+        # for iproc in xrange(maxproc):
+        #     stuff = Spheral.vector_of_int(12, 0)
+        #     for jdim in xrange(ndim):
+        #         stuff[3+jdim] = offsets[jdim]
+        #         stuff[6+jdim] = offsets[jdim] + nblocks[iproc][jdim]
+        #     offsets[jsplit] += nblocks[iproc][jsplit]
+        #     assert silo.DBMkDir(f, "Decomposition/gmap%i" % iproc) == 0
+        #     assert silo.DBWrite(f, "Decomposition/gmap%i/gmap" % iproc, stuff) == 0
 
     # Close the file.
     if mpi.rank == 0:
@@ -360,8 +371,7 @@ def writeDomainSiloFile(ndim, maxproc,
     # Make sure the directories are there.
     if mpi.rank == 0:
         for iproc in xrange(maxproc):
-            pth = os.path.join(baseDirectory,
-                               procDirBaseName % iproc)
+            pth = os.path.join(baseDirectory, procDirBaseName)
             if not os.path.exists(pth):
                 os.makedirs(pth)
     mpi.barrier()
@@ -378,10 +388,13 @@ def writeDomainSiloFile(ndim, maxproc,
         assert numZones > 0
         assert len(rhosamp) == numZones
 
+        # Make a vector<int> version of nblock
+        nblock_vec = Spheral.vector_of_int(ndim)
+        for jdim in xrange(ndim):
+            nblock_vec[jdim] = nblock[jdim]
+
         # Create the file.
-        fileName = os.path.join(baseDirectory,
-                                procDirBaseName % mpi.rank,
-                                "domain%i.silo" % mpi.rank)
+        fileName = os.path.join(baseDirectory, procDirBaseName, "domain%i.silo" % mpi.rank)
         f = silo.DBCreate(fileName, 
                           SA._DB_CLOBBER, SA._DB_LOCAL, label, SA._DB_HDF5)
         nullOpts = silo.DBoptlist()
@@ -443,24 +456,24 @@ def writeDomainSiloFile(ndim, maxproc,
 
         # Write materials.
         if materials:
-            matnos = Spheral.vector_of_int()
+            matnos = Spheral.vector_of_int(1, 0)
             for i in xrange(len(materials)):
                 matnos.append(i + 1)
-            assert len(matnos) == len(materials)
+            assert len(matnos) == len(materials) + 1
             matlist = Spheral.vector_of_int(numZones, 0)
-            matnames = Spheral.vector_of_string()
+            matnames = Spheral.vector_of_string(1, "void")
             for imat, nodeList in enumerate(materials):
                 for i in xrange(numZones):
                     if rhosamp[i] > 0.0:
                         matlist[i] = imat + 1
                 matnames.append(nodeList.name)
             assert len(matlist) == numZones
-            assert len(matnames) == len(materials)
+            assert len(matnames) == len(materials) + 1
             matOpts = silo.DBoptlist(1024)
             assert matOpts.addOption(SA._DBOPT_CYCLE, cycle) == 0
             assert matOpts.addOption(SA._DBOPT_DTIME, time) == 0
             assert matOpts.addOption(SA._DBOPT_MATNAMES, SA._DBOPT_NMATNOS, matnames) == 0
-            assert silo.DBPutMaterial(f, "hblk0/Materials", "hydro_mesh", matnos, matlist,
+            assert silo.DBPutMaterial(f, "hblk0/Materials", "hydro_mesh", matnos, matlist, nblock_vec,
                                       Spheral.vector_of_int(), Spheral.vector_of_int(), Spheral.vector_of_int(), Spheral.vector_of_double(),
                                       matOpts) == 0
         
@@ -468,9 +481,6 @@ def writeDomainSiloFile(ndim, maxproc,
         varOpts = silo.DBoptlist(1024)
         assert varOpts.addOption(SA._DBOPT_CYCLE, cycle) == 0
         assert varOpts.addOption(SA._DBOPT_DTIME, time) == 0
-        nblock_vec = Spheral.vector_of_int(ndim)
-        for jdim in xrange(ndim):
-            nblock_vec[jdim] = nblock[jdim]
         assert silo.DBPutQuadvar1(f, "hblk0/den", "hydro_mesh", rhosamp, 
                                   Spheral.vector_of_double(), SA._DB_ZONECENT, nblock_vec, varOpts) == 0
 

@@ -132,6 +132,7 @@ class Silo:
                                  param("std::string", "meshName"),
                                  refparam("vector_of_int", "matnos"),
                                  refparam("vector_of_int", "matlist"),
+                                 param("vector_of_int", "dims"),
                                  refparam("vector_of_int", "mix_next"),
                                  refparam("vector_of_int", "mix_mat"),
                                  refparam("vector_of_int", "mix_zone"),
@@ -248,13 +249,21 @@ class Silo:
                                     docstring = "Write a(n) %s to a SILO file." % type)
 
             # DBWrite
-            self.space.add_function("DBWrite", "int",
+            self.space.add_function("DBWrite_vector", "int",
                                     [refparam("DBfile", "file"),
                                      param("std::string", "varname"),
-                                     param("vector_of_%s" % type, "var")],
+                                     refparam("vector_of_%s" % type, "var")],
                                     template_parameters = [type],
                                     custom_name = "DBWrite",
                                     docstring = "Write a std::vector<%s> to a SILO file." % type)
+            # DBWrite
+            self.space.add_function("DBWrite_vector_of_vector", "int",
+                                    [refparam("DBfile", "file"),
+                                     param("std::string", "varname"),
+                                     refparam("vector_of_vector_of_%s" % type, "var")],
+                                    template_parameters = [type],
+                                    custom_name = "DBWrite",
+                                    docstring = "Write a std::vector<std::vector<%s>> to a SILO file." % type)
             # DBPutCompoundarray
             self.space.add_function("DBPutCompoundarray", type,
                                     [refparam("DBfile", "file"),
@@ -370,7 +379,7 @@ class Silo:
         x.add_constructor([param("int", "maxopts", default_value="1024")])
 
         # Methods.
-        for ValueType in ("double", "int", "std::string"):
+        for ValueType in ("int", "double", "std::string"):
             ValueBase = ValueType.split(":")[-1]
             x.add_method("addOption", "int", [param("int", "option"), param(ValueType, "value")],
                          template_parameters = [ValueType],
