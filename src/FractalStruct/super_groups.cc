@@ -154,6 +154,7 @@ namespace FractalSpace
     clean_vector(counts_in);
     counts_out.resize(FractalNodes,0);
     dataI_out.resize(FractalNodes);
+    dataR_out.resize(FractalNodes);
     how_manyI=-1;
     how_manyR=-1;
     integers=3;
@@ -196,8 +197,8 @@ namespace FractalSpace
 	      NGfound[nia]=true;
 	      NGfound[nib]=true;
 	    }
+	    c3+=3;
 	  }
-	c3+=3;
       }
     auto pNGa=NodeGroups.begin();
     const auto pNGb=NodeGroups.end();
@@ -220,8 +221,8 @@ namespace FractalSpace
 	    list_pair_1.push_back(distance(NodeGroups.begin(),it));
 	    it=NodeGroups.find({dataI_in[c3+1],dataI_in[c3+2]});
 	    list_pair_2.push_back(distance(NodeGroups.begin(),it));
+	    c3+=3;
 	  }
-	c3+=3;
       }
     clean_vector(dataI_in);
     vector<int>head_number;
