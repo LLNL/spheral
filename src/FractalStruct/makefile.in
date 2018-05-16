@@ -10,6 +10,23 @@ PKGNAME = FractalGravity
 PKGDIR = $(PKGNAME)/
 LIBTARGET = libSpheral_$(PKGNAME).$(DYLIBEXT)
 SRCTARGETS = \
+	$(srcdir)/FractalGravity.cc \
+	$(srcdir)/add_buffer_values.cc \
+	$(srcdir)/any_overlaps.cc \
+	$(srcdir)/box_stats.cc \
+	$(srcdir)/clean_overlaps.cc \
+	$(srcdir)/hypre_best_boxes.cc \
+	$(srcdir)/hypre_points_boxes.cc \
+	$(srcdir)/hypre_points_clean.cc \
+	$(srcdir)/hypre_points_struct.cc \
+	$(srcdir)/hypre_points_zero.cc \
+	$(srcdir)/hypre_solve_struct.cc \
+	$(srcdir)/hypre_struct_load_balance.cc \
+	$(srcdir)/hypre_test_boxes.cc \
+	$(srcdir)/hypre_world_create.cc \
+	$(srcdir)/node_groups_struct.cc \
+	$(srcdir)/points_on_nodes.cc \
+	$(srcdir)/poisson_solver_struct.cc \
 	$(srcdir)/file_class.cc \
 	$(srcdir)/fractal_class.cc \
 	$(srcdir)/fractal_memory.cc \
@@ -88,33 +105,15 @@ SRCTARGETS = \
 	$(srcdir)/update_rv.cc \
 	$(srcdir)/use_freenodes.cc \
 	$(srcdir)/write_rv.cc \
-	$(srcdir)/add_buffer_values.cc \
-	$(srcdir)/any_overlaps.cc \
-	$(srcdir)/box_stats.cc \
-	$(srcdir)/clean_overlaps.cc \
-	$(srcdir)/hypre_best_boxes.cc \
-	$(srcdir)/hypre_points_boxes.cc \
-	$(srcdir)/hypre_points_clean.cc \
-	$(srcdir)/hypre_points_struct.cc \
-	$(srcdir)/hypre_points_zero.cc \
-	$(srcdir)/hypre_solve_struct.cc \
-	$(srcdir)/hypre_struct_load_balance.cc \
-	$(srcdir)/hypre_test_boxes.cc \
-	$(srcdir)/hypre_world_create.cc \
-	$(srcdir)/node_groups_struct.cc \
-	$(srcdir)/points_on_nodes.cc \
-	$(srcdir)/poisson_solver_struct.cc \
-	$(srcdir)/hypre_solver_empty.cc \
 	$(srcdir)/initial_forces_sharp_mpi.cc \
 	$(srcdir)/isolated_solver_mpi.cc \
 	$(srcdir)/periodic_solver_mpi.cc \
-	$(srcdir)/initial_forces_sharp.cc \
-	$(srcdir)/isolated_solver.cc \
-	$(srcdir)/periodic_solver.cc \
 	$(srcdir)/dens_to_slices.cc \
 	$(srcdir)/gather_particles.cc \
 	$(srcdir)/scatter_particles_find.cc \
-	$(srcdir)/slices_to_potf.cc 
+	$(srcdir)/slices_to_potf.cc \
+	$(srcdir)/cosmos_power.cc \
+	$(srcdir)/halo_force_flat.cc \
 
 #-------------------------------------------------------------------------------
 

@@ -74,16 +74,13 @@ class SpheralController:
         self.dim = "%id" % self.integrator.dataBase().nDim
 
         # Determine the visualization method.
-        dumpPhysicsStatePoints, dumpPhysicsStateCells = None, None
         if self.dim == "1d":
-            from Spheral1dVizDump import dumpPhysicsState as dumpPhysicsStatePoints
+            from Spheral1dVizDump import dumpPhysicsState
         else:
-            from SpheralPointmeshSiloDump import dumpPhysicsState as dumpPhysicsStatePoints
-            from SpheralVoronoiSiloDump import dumpPhysicsState as dumpPhysicsStateCells
+            from SpheralVoronoiSiloDump import dumpPhysicsState
         if vizMethod:
-            dumpPhysicsStatePoints = vizMethod
-        self.vizMethodPoints = dumpPhysicsStatePoints
-        self.vizMethodCells = dumpPhysicsStateCells
+            dumpPhysicsState = vizMethod
+        self.vizMethod = dumpPhysicsState
         self.vizGhosts = vizGhosts
         self.vizDerivs = vizDerivs
 
@@ -163,11 +160,12 @@ class SpheralController:
 
         # Prepare the neighbor objects.
         db = self.integrator.dataBase()
-        if restoreCycle is None:
-            db.reinitializeNeighbors()
+        db.reinitializeNeighbors()
+        db.updateConnectivityMap(False)
 
         # Create ghost nodes for the physics packages to initialize with.
         self.integrator.setGhostNodes()
+        db.updateConnectivityMap(False)
 
         # Initialize the integrator and packages.
         packages = self.integrator.physicsPackages()
@@ -187,6 +185,8 @@ class SpheralController:
         # If we're starting from scratch, initialize the H tensors.
         if restoreCycle is None and not skipInitialPeriodicWork and iterateInitialH:
             self.iterateIdealH()
+            db.reinitializeNeighbors()
+            db.updateConnectivityMap(False)
 
         # Set up the default periodic work.
         self.appendPeriodicWork(self.printCycleStatus, printStep)
@@ -557,6 +557,7 @@ class SpheralController:
         # Reset neighboring.
         db = self.integrator.dataBase()
         db.reinitializeNeighbors()
+        db.updateConnectivityMap(False)
 
         # Do we need to force a boundary update to create ghost nodes?
         if (self.integrator.updateBoundaryFrequency > 1 and
@@ -722,28 +723,19 @@ precedeDistributed += [BoundarySpace.PeriodicBoundary%(dim)sd,
                 Time = None,
                 dt = None):
         mpi.barrier()
-        if self.vizMethodPoints:
-            self.vizMethodPoints(self.integrator,
-                                 baseFileName = self.vizBaseName,
-                                 baseDirectory = os.path.join(self.vizDir, "points"),
-                                 fields = list(self.vizFields),
-                                 fieldLists = list(self.vizFieldLists),
-                                 currentTime = self.time(),
-                                 currentCycle = self.totalSteps,
-                                 dumpGhosts = self.vizGhosts,
-                                 dumpDerivatives = self.vizDerivs,
-                                 boundaries = self.integrator.uniqueBoundaryConditions())
-        if self.vizMethodCells:
-            self.vizMethodCells(self.integrator,
-                                baseFileName = self.vizBaseName,
-                                baseDirectory = os.path.join(self.vizDir, "cells"),
-                                fields = list(self.vizFields),
-                                fieldLists = list(self.vizFieldLists),
-                                currentTime = self.time(),
-                                currentCycle = self.totalSteps,
-                                dumpGhosts = self.vizGhosts,
-                                dumpDerivatives = self.vizDerivs,
-                                boundaries = self.integrator.uniqueBoundaryConditions())
+        db = self.integrator.dataBase()
+        db.updateConnectivityMap(False)
+        bcs = self.integrator.uniqueBoundaryConditions()
+        self.vizMethod(self.integrator,
+                       baseFileName = self.vizBaseName,
+                       baseDirectory = self.vizDir,
+                       fields = list(self.vizFields),
+                       fieldLists = list(self.vizFieldLists),
+                       currentTime = self.time(),
+                       currentCycle = self.totalSteps,
+                       dumpGhosts = self.vizGhosts,
+                       dumpDerivatives = self.vizDerivs,
+                       boundaries = bcs)
         return
 
     #--------------------------------------------------------------------------

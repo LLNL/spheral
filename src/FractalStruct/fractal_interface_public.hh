@@ -3,6 +3,16 @@
 namespace FractalSpace
 {
 //! Headers for regular function calls
+  Fractal_Memory* FractalGravityFirstTime(
+					  bool Periodic,
+					  MPI_Comm& TalkToMe,
+					  int GridLength,
+					  int FractalNodes0,
+					  int FractalNodes1,
+					  int FractalNodes2,
+					  string BaseDirectory,
+					  string RunIdentifier
+					  );
   Fractal_Memory* FractalGravityIsolatedFirstTime(
 						  MPI_Comm& TalkToMe,
 						  int GridLength,

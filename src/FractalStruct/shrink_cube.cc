@@ -39,20 +39,21 @@ namespace FractalSpace
 	center[ni]=(minimax[ni+3]+minimax[ni])*0.5;
 	dmax=max(dmax,minimax[ni+3]-minimax[ni]);
       }
-    if(dmax >=xmax[0]-xmin[0])
-      {
-	xmini=xmin;
-	xmaxy=xmax;
-	return;
-      }
+    // if(dmax >=xmax[0]-xmin[0])
+    //   {
+    // 	xmini=xmin;
+    // 	xmaxy=xmax;
+    // 	return;
+    //   }
     dmax=dmax*SHRINK+(xmax[0]-xmin[0])*(1.0-SHRINK);
+    dmax=min(dmax,xmax[0]-xmin[0]);
     for(int ni : {0,1,2})
       {
 	xmini[ni]=center[ni]-dmax*0.51;
 	xmaxy[ni]=center[ni]+dmax*0.51;
       }
     if(PFM->p_mess->FractalRank == 0)
-      cerr << " Shrink Box " << PFM->steps << " " << xmini[0] << " " << xmini[1] << " " << xmini[2] << " "  << xmaxy[0] << " " << xmaxy[1] << " " << xmaxy[2] << " " << pow(dmax*1.02,3) << "\n";
+      cerr << " Shrink Cube " << PFM->steps << " " << xmini[0] << " " << xmini[1] << " " << xmini[2] << " "  << xmaxy[0] << " " << xmaxy[1] << " " << xmaxy[2] << " " << pow(dmax*1.02,3) << "\n";
   }
 }
 namespace FractalSpace
