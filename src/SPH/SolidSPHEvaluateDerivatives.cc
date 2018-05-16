@@ -493,8 +493,8 @@ evaluateDerivatives(const typename Dimension::Scalar time,
 
       // As this node is damaged force it back to it's original H.
       const auto Di = max(0.0, min(1.0, 10.0*max(0.0, damage(nodeListi, i).eigenValues().maxElement() - 0.9)));
-      Hideali = (1.0 - Di)*Hideali + Di*mHfield0(nodeListi, i);
-      DHDti = (1.0 - Di)*DHDti + Di*(mHfield0(nodeListi, i) - Hi)*0.25/dt;
+      // Hideali = (1.0 - Di)*Hideali + Di*mHfield0(nodeListi, i);
+      // DHDti = (1.0 - Di)*DHDti + Di*(mHfield0(nodeListi, i) - Hi)*0.25/dt;
 
       // We also adjust the density evolution in the presence of damage.
       if (rho0 > 0.0) DrhoDti = (1.0 - Di)*DrhoDti - 0.25/dt*Di*(rhoi - rho0);

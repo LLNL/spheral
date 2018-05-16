@@ -82,7 +82,8 @@ namespace FractalSpace
       }
     delete p_fake_group;
     //    FF << " gather " << how_manyI << " " << frac.particle_list_world.size() << "\n";
-    frac.set_number_particles((totalI/2));
+    // frac.set_number_particles((totalI/2));
+    frac.set_number_particles(frac.particle_list_world.size());
     frac.particle_list=frac.particle_list_world;
     // frac.particle_list_world.clear();
     clean_deque(frac.particle_list_world);
@@ -103,8 +104,8 @@ namespace FractalSpace
     // mem.p_mess->parts_tmpp.clear();
     clean_deque(mem.p_mess->parts_tmpp);
     remove_pseudo_particles(mem,frac);
-    frac.particle_list.resize((totalI/2));
-    frac.set_number_particles((totalI/2));
+    // frac.particle_list.resize((totalI/2));
+    // frac.set_number_particles((totalI/2));
   }
 }
 

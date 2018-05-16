@@ -455,8 +455,8 @@ template<typename Dimension>
 unsigned
 TreeNeighbor<Dimension>::
 gridLevel(const double& h) const {   
-  REQUIRE2(this->kernelExtent()*h <= mBoxLength,
-           "h larger than box size: " << this->kernelExtent()*h << " " << mBoxLength);
+  // REQUIRE2(this->kernelExtent()*h <= mBoxLength,
+  //          "h larger than box size: " << this->kernelExtent()*h << " " << mBoxLength);
   const unsigned result = std::max(0, 
                                    std::min(int(num1dbits) - 1,
                                             int(mGridLevelConst0 - log(h)/log(2.0))));
