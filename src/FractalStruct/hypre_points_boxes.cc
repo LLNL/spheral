@@ -10,8 +10,8 @@ namespace FractalSpace
     static int _COUNTER=0;
     // ofstream& FHT=mem.p_file->DUMPS;
     const int SBstart=SBoxes.size();
-    // int RANK=-1;
-    // MPI_Comm_rank(Fractal_Memory::FRACTAL_UNIVERSE,&RANK);
+    int RANK=-1;
+    MPI_Comm_rank(Fractal_Memory::FRACTAL_UNIVERSE,&RANK);
     // bool RANKY=RANK==21;
     const int MAXY=Misc::pow(2,29);
     const int MINY=-MAXY;
@@ -48,5 +48,19 @@ namespace FractalSpace
     _COUNTER++;
     if(VOLMIN > 1 || FILLFACTOR < 1.0)
       any_overlaps(mem,spacing,VOLMIN,FILLFACTOR,SBoxes,SPoints);
+    auto SP=SPoints.begin();
+    for(auto SB : SBoxes)
+      {
+	int vol=(SB[1]-SB[0])/spacing+1;
+	vol*=(SB[3]-SB[2])/spacing+1;
+	vol*=(SB[5]-SB[4])/spacing+1;
+	int volS=(*SP).size();
+	if(volS != vol || vol == 0 || volS == 0)
+	  {
+	    cerr << " BBBBAAADD BOXES " << RANK << " " << vol << " " << volS << endl;
+	    cerr << SB[0] << " " << SB[1] << " " << SB[2] << " " << SB[3] << " " << SB[4] << " " << SB[5] << endl;
+	  }
+	SP++;
+      }
   }
 }

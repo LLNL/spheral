@@ -53,6 +53,7 @@ namespace FractalSpace
       return false;
     if(!smallP)
       {
+	bool naughty_boy=false;
 	const int SBtotal=SBoxes.size();
 	for(int BOX=0;BOX<SBtotal;BOX++)
 	  {
@@ -77,7 +78,35 @@ namespace FractalSpace
 		  SPoints.back().push_back(SPoints[BOX][sp]);
 	      }
 	    SPoints[BOX].resize(BZstart*onelayer);
-	    SBoxes[BOX][5]=SBoxes[BOX][4]+(BZstart-1)*spacing;
+	    SBoxes[BOX][5]=SBoxes[BOX][4]+(BZstart-1)*spacing; ///// BAAD
+	    if(BZstart == 0)
+	      naughty_boy=true;
+	  }
+	if(naughty_boy)
+	  {
+	    cerr << " NAUGHTY BOY A " << FractalRank << " " << mem.steps << endl;
+	    int BB=0;
+	    bool found_naughty_boy=false;
+	    for(int B=0;B<SBoxes.size();B++)
+	      {
+		bool zero_box=SBoxes[B][5] < SBoxes[B][4];
+		if(!zero_box && found_naughty_boy)
+		  {
+		    SBoxes[BB]=SBoxes[B];
+		    SPoints[BB]=SPoints[B];
+		  }
+		if(zero_box)
+		  {
+		    found_naughty_boy=true;
+		    cerr << " NAUGHTY BOY B " << FractalRank << " " << mem.steps << endl;
+		  }
+		else
+		  BB++;
+	      }
+	    cerr << " NAUGHTY BOY C " << FractalRank << " " << mem.steps <<
+	      " " << SBoxes.size() << " " << BB << endl;
+	    SBoxes.resize(BB);
+	    SPoints.resize(BB);
 	  }
 	HRout.assign(SBoxes.size(),HypreRank);
 	multimap<int,deque<int>>NodesA;
