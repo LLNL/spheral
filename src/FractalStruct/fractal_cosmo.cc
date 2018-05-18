@@ -84,10 +84,14 @@ int main(int argc, char* argv[])
 			Fractal_Memory::FRACTAL_UNIVERSE);
   PFM->p_mess=p_mess;
   PFM->FFTNodes=PFM->p_mess->FFTNodes;
-  File* p_file=new File(PFM->BaseDirectory,
-			PFM->FractalNodes,
-			PFM->p_mess->FractalRank,
-			PFM->RUN);
+  File* p_file=0;
+  if(BaseDirectory == "")
+    p_file=new File();
+  else
+    p_file=new File(PFM->BaseDirectory,
+		    PFM->FractalNodes,
+		    PFM->p_mess->FractalRank,
+		    PFM->RUN);
   PFM->p_file=p_file;
   PFM->p_mess->p_file=p_file;
   fractal_force_init(PFM);
