@@ -744,10 +744,10 @@ def writeDefvars(db, fieldwad):
     
     # Similaly map all variables from the MMESH -> MPointMesh.
     hideOptlist = silo.DBoptlist()
-    assert hideOptlist.addOption(SA._DBOPT_HIDE_FROM_GUI, 1) == 0
+    assert hideOptlist.addOption(SA._DBOPT_HIDE_FROM_GUI, 0) == 0
     for name, desc, type, optlistDef, optlistMV, optlistVar, subvars in fieldwad:
         names.append("POINT_" + name)
-        defs.append("pos_cmfe(<[0]id:%s>,<MPointMESH>,0.0)" % name)
+        defs.append('recenter(pos_cmfe(<[0]id:%s>,<MPointMESH>,0.0), "nodal")' % name)
         types.append(type)
         opts.append(hideOptlist)
 
