@@ -1,5 +1,9 @@
 #ifndef _Group_Defined_
 #define _Group_Defined_
+
+#include <vector>
+#include <deque>
+
 namespace FractalSpace
 {
   class Group{
@@ -18,21 +22,21 @@ namespace FractalSpace
     bool set_dens;
     bool set_scaling;
     Group* p_generated_from_group;
-    vector <double> force_sum;
+    std::vector <double> force_sum;
     double mass_sum;
-    vector <int> miny;
-    vector <int> maxy;
+    std::vector <int> miny;
+    std::vector <int> maxy;
   public:
     File* p_file;
-    vector <Point*> p_list_really_high;
-    deque <Point*>list_points;
-    vector <Point*>list_high_points;
-    vector <Point*>list_new_points;
-    vector <Group*>list_high_groups;
-    vector <int> head_number;
-    vector <Point*> list_high;
-    vector <int> list_pair_1;
-    vector <int> list_pair_2;
+    std::vector <Point*> p_list_really_high;
+    std::deque <Point*>list_points;
+    std::vector <Point*>list_high_points;
+    std::vector <Point*>list_new_points;
+    std::vector <Group*>list_high_groups;
+    std::vector <int> head_number;
+    std::vector <Point*> list_high;
+    std::vector <int> list_pair_1;
+    std::vector <int> list_pair_2;
     static int number_groups;
     Group()
     {
@@ -85,8 +89,8 @@ namespace FractalSpace
     }
     void set_group_number(const int& gn);
     int get_group_number() const;
-    void set_forcem(const vector <double>& fs,const double& ms);
-    void get_forcem(vector <double>& fs,double& ms) const;
+    void set_forcem(const std::vector <double>& fs,const double& ms);
+    void get_forcem(std::vector <double>& fs,double& ms) const;
     void set_level(const int& lev);
     int get_level() const;
     void set_force_const(const double& g_c);
@@ -118,7 +122,7 @@ namespace FractalSpace
     void subtract_density(const double& d);
     void scale_pot_forces(const double& scaling);
     void get_force_variance(double& varx,double& vary,double& varz);
-    void get_miny_maxy(vector<int>& miny,vector<int>& maxy);
+    void get_miny_maxy(std::vector<int>& miny,std::vector<int>& maxy);
     void set_miny_maxy();
   };
 }

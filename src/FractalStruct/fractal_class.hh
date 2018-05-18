@@ -1,5 +1,10 @@
 #ifndef _Fractal_Defined_
 #define _Fractal_Defined_
+
+#include <string>
+#include <vector>
+#include <deque>
+
 namespace FractalSpace
 {
   class Fractal 
@@ -19,26 +24,26 @@ namespace FractalSpace
     int FractalNodes1;
     int FractalNodes2;
     int FractalRank;
-    vector <int> Box;
-    vector <int> BBox;
-    vector <int> PBox;
-    vector <double> RealBox;
-    vector <int> PBoxLength; 
-    vector < vector <int> >BoxLev;
-    vector < vector <int> >BBoxLev;
-    vector < vector <int> >PBoxLev;
-    vector <int> Buffer;
+    std::vector <int> Box;
+    std::vector <int> BBox;
+    std::vector <int> PBox;
+    std::vector <double> RealBox;
+    std::vector <int> PBoxLength; 
+    std::vector < std::vector <int> >BoxLev;
+    std::vector < std::vector <int> >BBoxLev;
+    std::vector < std::vector <int> >PBoxLev;
+    std::vector <int> Buffer;
     double clocks_per_sec;
     //
     int masks;
-    vector <double> masks_center_x;
-    vector <double> masks_center_y;
-    vector <double> masks_center_z;
-    vector <double> masks_rad_x;
-    vector <double> masks_rad_y;
-    vector <double> masks_rad_z;
-    vector <bool> masks_square;
-    vector <int> masks_level;
+    std::vector <double> masks_center_x;
+    std::vector <double> masks_center_y;
+    std::vector <double> masks_center_z;
+    std::vector <double> masks_rad_x;
+    std::vector <double> masks_rad_y;
+    std::vector <double> masks_rad_z;
+    std::vector <bool> masks_square;
+    std::vector <int> masks_level;
     double HTOL;
     double force_max;
     double halo_scale;
@@ -46,42 +51,42 @@ namespace FractalSpace
     double density_0;
     int random_offset;
     int maxits;
-    vector <double> time_1;
-    vector <double> time_2;
-    vector <double> delta_time;
-    vector <double> total_time;
-    vector <double> time_g;
-    vector <double> delta_g;
-    vector <double> total_g;
-    vector <double> time_p;
-    vector <double> delta_p;
-    vector <double> total_p;
+    std::vector <double> time_1;
+    std::vector <double> time_2;
+    std::vector <double> delta_time;
+    std::vector <double> total_time;
+    std::vector <double> time_g;
+    std::vector <double> delta_g;
+    std::vector <double> total_g;
+    std::vector <double> time_p;
+    std::vector <double> delta_p;
+    std::vector <double> total_p;
     bool debug;
     int highest_level_used;
     Fractal_Memory* p_generated_from;
-    vector <string> time_string;
+    std::vector <std::string> time_string;
     int steps;
     double omega_start;
     double base_mass;
   public:
     Mess* p_mess;
     File* p_file;
-    deque <Particle*> particle_list;
-    deque <Particle*> particle_list_world;
-    deque <Particle*> pseudo_particle_list;
+    std::deque <Particle*> particle_list;
+    std::deque <Particle*> particle_list_world;
+    std::deque <Particle*> pseudo_particle_list;
     Particle* part_list_tmp;
     double omega_fraction;
-    vector <double> rad;
-    vector <double> grow;
+    std::vector <double> rad;
+    std::vector <double> grow;
     static bool first_time_solver;
-    static string power_spec;
-    static string integrator;
-    static string energy_method;
-    static string sim_parameters;
-    static string force_fixed;
-    static string particles;
-    static string pot_solver;
-    static string vel;
+    static std::string power_spec;
+    static std::string integrator;
+    static std::string energy_method;
+    static std::string sim_parameters;
+    static std::string force_fixed;
+    static std::string particles;
+    static std::string pot_solver;
+    static std::string vel;
     Fractal()
     {
       //      cerr << " made ghost fractal" << "\n";
@@ -228,22 +233,22 @@ namespace FractalSpace
     double get_omega_start() const;
     double get_base_mass() const;
     void set_base_mass(double bm);
-    void setBox(vector <int>& B);
-    void setBBox(vector <int>& BB);
-    void getPBox(vector <int>& PB) const;
-    void setPBox(vector <int>& PB);
-    void setBuffer(vector <int>& BB);
-    void getBox(vector <int>& B) const;
-    void getBBox(vector <int>& BB) const;
-    void getBBoxLev(vector <int>& BB,const int& level) const;
-    void getPBoxLev(vector <int>& PB,const int& level) const;
-    void getPBoxLength(vector <int>& PBL) const;
-    void getBuffer(vector <int>& Bu) const;
-    void getRealBox(vector <double>& RB) const;
+    void setBox(std::vector <int>& B);
+    void setBBox(std::vector <int>& BB);
+    void getPBox(std::vector <int>& PB) const;
+    void setPBox(std::vector <int>& PB);
+    void setBuffer(std::vector <int>& BB);
+    void getBox(std::vector <int>& B) const;
+    void getBBox(std::vector <int>& BB) const;
+    void getBBoxLev(std::vector <int>& BB,const int& level) const;
+    void getPBoxLev(std::vector <int>& PB,const int& level) const;
+    void getPBoxLength(std::vector <int>& PBL) const;
+    void getBuffer(std::vector <int>& Bu) const;
+    void getRealBox(std::vector <double>& RB) const;
     void assign_edge_buffer_passive(Point& point,const int& level,bool& edge,bool& buff,bool& pass,bool& really) const;
     void setMPIrun(const bool& Mr);
     bool getMPIrun() const;
-    void inside_edge_buffer_pass(vector <int>& n,bool& inside,bool& edge,bool& buff,bool& pass) const;
+    void inside_edge_buffer_pass(std::vector <int>& n,bool& inside,bool& edge,bool& buff,bool& pass) const;
     Fractal_Memory* get_p_generated_from() const;
     void set_p_generated_from (Fractal_Memory* p);
     double get_halo_scale() const;
@@ -273,7 +278,7 @@ namespace FractalSpace
     void set_pos_mask(const int& i,const double& x, const double& y, const double& z, const double& r1, const double& r2,const double& r3);
     double get_level_mask(const int& i) const;
     void set_level_mask(const int& i, const int& k);
-    void get_mask(const int& m,vector <double>& cen,vector <double>& rad,bool& square) const;
+    void get_mask(const int& m,std::vector <double>& cen,std::vector <double>& rad,bool& square) const;
     int get_number_masks() const;
     void set_number_masks(const int& i);
     bool get_debug() const;
@@ -288,12 +293,12 @@ namespace FractalSpace
     void print_list(int what);
     void print_list_world(int what);
     double get_delta_time(int which) const;
-    void get_total_times(vector <double>& TT) const;
+    void get_total_times(std::vector <double>& TT) const;
     void timing_lev(const int& what,const int& level);
     void timing(const int& what, const int& which);
-    void where_6(const int& i,const int& j,const int& k,vector <int>& Boxu) const;
+    void where_6(const int& i,const int& j,const int& k,std::vector <int>& Boxu) const;
     int where_1(const int& i,const int& j,const int& k) const;
-    int where(const int& nx,const int& ny,const int& nz,vector <int>& boX,vector <int>& boXL) const;
+    int where(const int& nx,const int& ny,const int& nz,std::vector <int>& boX,std::vector <int>& boXL) const;
     void wrap(const int& p);
     void wrap();
     void wrap(Particle* p);
@@ -303,9 +308,9 @@ namespace FractalSpace
     }
     static double my_rand_not_zero(const double& rand_max)
     {
-      return (double)(max(rand(),1))/rand_max;
+      return (double)(std::max(rand(),1))/rand_max;
     }
-    template <class M> static bool equal(vector <M>& a,vector <M>& b)
+    template <class M> static bool equal(std::vector <M>& a,std::vector <M>& b)
     {
       unsigned int sa=a.size();
       if(sa != b.size()); 

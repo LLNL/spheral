@@ -2,10 +2,10 @@
 #define _Point_Comp_Defined_
 namespace FractalSpace
 {
-  typedef std::pair<array<int,3>,Point*> pap;
+  typedef std::pair<std::array<int,3>,Point*> pap;
   struct point_comp2
   {
-    bool operator()(const array<int,3>& pa,const array<int,3>& pb) const
+    bool operator()(const std::array<int,3>& pa,const std::array<int,3>& pb) const
     {
       int dif=pa[2]-pb[2];
       if(dif != 0)
@@ -18,7 +18,7 @@ namespace FractalSpace
   };
   struct point_comp1
   {
-    bool operator()(const array<int,3>& pa,const array<int,3>& pb) const
+    bool operator()(const std::array<int,3>& pa,const std::array<int,3>& pb) const
     {
       int dif=pa[1]-pb[1];
       if(dif != 0)
@@ -31,7 +31,7 @@ namespace FractalSpace
   };
   struct point_comp0
   {
-    bool operator()(const array<int,3>& pa,const array<int,3>& pb) const
+    bool operator()(const std::array<int,3>& pa,const std::array<int,3>& pb) const
     {
       int dif=pa[0]-pb[0];
       if(dif != 0)
@@ -44,7 +44,7 @@ namespace FractalSpace
   };
   struct point_comp4
   {
-    bool operator()(const array<int,4>& pa,const array<int,4>& pb) const
+    bool operator()(const std::array<int,4>& pa,const std::array<int,4>& pb) const
     {
       int dif=pa[2]-pb[2];
       if(dif != 0)
@@ -57,7 +57,7 @@ namespace FractalSpace
   };
   template <int N>  struct point_compN
   {
-    bool operator()(const array<int,N>& pa,const array<int,N>& pb) const
+    bool operator()(const std::array<int,N>& pa,const std::array<int,N>& pb) const
     {
       int dif=pa[2]-pb[2];
       if(dif != 0)
@@ -83,14 +83,14 @@ namespace FractalSpace
   };
   struct vector_comp_up
   {
-    template <class T> bool operator()(const vector<T*> vA,const vector<T*> vB) const
+    template <class T> bool operator()(const std::vector<T*> vA,const std::vector<T*> vB) const
     {
       return vA.size() < vB.size();
     }
   };
   struct vector_comp_down
   {
-    template <class T> bool operator()(const vector<T*> vA,const vector<T*> vB) const
+    template <class T> bool operator()(const std::vector<T*> vA,const std::vector<T*> vB) const
     {
       return -vA.size() < -vB.size();
     }
