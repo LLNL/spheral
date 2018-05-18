@@ -20,7 +20,19 @@ namespace FractalSpace
     FILE* PFBox;
     FILE* PFSurface;
     File()
-    {}
+    {
+      DUMPS.open("/dev/null");
+      FileFractal.open("/dev/null");
+      FileEnergy.open("/dev/null");
+      PFHypre=fopen("/dev/null","w");
+      PFFractalMemory=fopen("/dev/null","w");
+      PFDau=fopen("/dev/null","w");
+      PFTimeLev=fopen("/dev/null","w");
+      PFTime=fopen("/dev/null","w");
+      PFPos=fopen("/dev/null","w");
+      PFBox=fopen("/dev/null","w");
+      PFSurface=fopen("/dev/null","w");
+    }
     File(const string& basedirectory,const int& Rank,const string& Run)
     {
       string extras("ABCDEFGHIJKLMNOPQRSTUVWXYZ");

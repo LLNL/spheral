@@ -18,8 +18,6 @@ namespace FractalSpace
   {
     Fractal_Memory* PFM=fractal_memory_create();
 
-    Periodic=false;
-    
     PFM->standalone=false;
     PFM->setPeriodic(Periodic);
     PFM->setGridLength(GridLength);
@@ -47,7 +45,6 @@ namespace FractalSpace
 }
 namespace FractalSpace
 {
-  typedef deque<double>::iterator _ITD__;
   Fractal_Memory* FractalGravityIsolatedFirstTime(
 						  MPI_Comm& TalkToMe,
 						  int GridLength,
@@ -161,7 +158,11 @@ namespace FractalSpace
     // Construct a File object. 
     // All output is done in File member functions. 
     // This will be used throughout the simulation.
-    File* p_file=new File(PFM->BaseDirectory,p_mess->FractalNodes,p_mess->FractalRank,PFM->RUN);
+    File* p_file=0;
+    if(PFM->BaseDirectory == "")
+      p_file=new File();
+    else
+      File* p_file=new File(PFM->BaseDirectory,p_mess->FractalNodes,p_mess->FractalRank,PFM->RUN);
     PFM->p_file=p_file;
     PFM->p_mess->p_file=p_file;
     
