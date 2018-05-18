@@ -339,15 +339,16 @@ def writeMasterSiloFile(ndim, nblock, jsplit,
         assert silo.DBWrite(f, "Decomposition/LocalDomains", localDomains) == 0
         assert silo.DBWrite(f, "DomainFiles", domainFiles) == 0
 
-        # offsets = [0 for j in xrange(ndim)]
-        # for iproc in xrange(maxproc):
-        #     stuff = Spheral.vector_of_int(12, 0)
-        #     for jdim in xrange(ndim):
-        #         stuff[3+jdim] = offsets[jdim]
-        #         stuff[6+jdim] = offsets[jdim] + nblocks[iproc][jdim]
-        #     offsets[jsplit] += nblocks[iproc][jsplit]
-        #     assert silo.DBMkDir(f, "Decomposition/gmap%i" % iproc) == 0
-        #     assert silo.DBWrite(f, "Decomposition/gmap%i/gmap" % iproc, stuff) == 0
+        for iproc in xrange(maxproc):
+            assert silo.DBMkDir(f, "Decomposition/gmap%i" % iproc) == 0
+            stuff = Spheral.vector_of_int(12, 0)
+            for jdim in xrange(ndim):
+                stuff[6+jdim] = nblocks[iproc][jdim]
+            if iproc in (0, maxproc-1):
+                assert silo.DBWrite(f, "Decomposition/gmap%i/NumNeighbors" % iproc, 1) == 0
+            else:
+                assert silo.DBWrite(f, "Decomposition/gmap%i/NumNeighbors" % iproc, 2) == 0
+            assert silo.DBWrite(f, "Decomposition/gmap%i/gmap" % iproc, stuff) == 0
 
     # Close the file.
     if mpi.rank == 0:

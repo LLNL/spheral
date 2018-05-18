@@ -74,16 +74,13 @@ class SpheralController:
         self.dim = "%id" % self.integrator.dataBase().nDim
 
         # Determine the visualization method.
-        dumpPhysicsStatePoints, dumpPhysicsStateCells = None, None
         if self.dim == "1d":
-            from Spheral1dVizDump import dumpPhysicsState as dumpPhysicsStatePoints
+            from Spheral1dVizDump import dumpPhysicsState
         else:
-            from SpheralPointmeshSiloDump import dumpPhysicsState as dumpPhysicsStatePoints
-            from SpheralVoronoiSiloDump import dumpPhysicsState as dumpPhysicsStateCells
+            from SpheralVoronoiSiloDump import dumpPhysicsState
         if vizMethod:
-            dumpPhysicsStatePoints = vizMethod
-        self.vizMethodPoints = dumpPhysicsStatePoints
-        self.vizMethodCells = dumpPhysicsStateCells
+            dumpPhysicsState = vizMethod
+        self.vizMethod = dumpPhysicsState
         self.vizGhosts = vizGhosts
         self.vizDerivs = vizDerivs
 
@@ -726,31 +723,19 @@ precedeDistributed += [BoundarySpace.PeriodicBoundary%(dim)sd,
                 Time = None,
                 dt = None):
         mpi.barrier()
-        if self.vizMethodPoints:
-            self.vizMethodPoints(self.integrator,
-                                 baseFileName = self.vizBaseName,
-                                 baseDirectory = os.path.join(self.vizDir, "points"),
-                                 fields = list(self.vizFields),
-                                 fieldLists = list(self.vizFieldLists),
-                                 currentTime = self.time(),
-                                 currentCycle = self.totalSteps,
-                                 dumpGhosts = self.vizGhosts,
-                                 dumpDerivatives = self.vizDerivs,
-                                 boundaries = self.integrator.uniqueBoundaryConditions())
-        if self.vizMethodCells:
-            db = self.integrator.dataBase()
-            db.updateConnectivityMap(False)
-            bcs = self.integrator.uniqueBoundaryConditions()
-            self.vizMethodCells(self.integrator,
-                                baseFileName = self.vizBaseName,
-                                baseDirectory = os.path.join(self.vizDir, "cells"),
-                                fields = list(self.vizFields),
-                                fieldLists = list(self.vizFieldLists),
-                                currentTime = self.time(),
-                                currentCycle = self.totalSteps,
-                                dumpGhosts = self.vizGhosts,
-                                dumpDerivatives = self.vizDerivs,
-                                boundaries = bcs)
+        db = self.integrator.dataBase()
+        db.updateConnectivityMap(False)
+        bcs = self.integrator.uniqueBoundaryConditions()
+        self.vizMethod(self.integrator,
+                       baseFileName = self.vizBaseName,
+                       baseDirectory = self.vizDir,
+                       fields = list(self.vizFields),
+                       fieldLists = list(self.vizFieldLists),
+                       currentTime = self.time(),
+                       currentCycle = self.totalSteps,
+                       dumpGhosts = self.vizGhosts,
+                       dumpDerivatives = self.vizDerivs,
+                       boundaries = bcs)
         return
 
     #--------------------------------------------------------------------------
