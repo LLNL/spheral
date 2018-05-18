@@ -29,6 +29,8 @@
 #include "classes.hh"
 #include "headers.hh"
 
+#include "mpi.h"
+
 namespace Spheral {
 namespace GravitySpace {
 
@@ -38,70 +40,6 @@ using FieldSpace::FieldList;
 using DataBaseSpace::DataBase;
 
 //------------------------------------------------------------------------------
-// This is an internal convenience method to create Jens' Fractal_Memory struct.
-// I have no idea what most of the parameters in this thing should be, so I'm 
-// copying one of Jens' examples (fractal_memory_parameters_gal).  
-// This should be reviewed by Jens!
-//------------------------------------------------------------------------------
-FractalSpace::Fractal_Memory* 
-generateFractalMemory(const unsigned numNodes,
-                      const bool periodic,
-                      const unsigned ngrid,
-                      const unsigned minHighParticles,
-                      const unsigned padding,
-                      const double boxlength) {
-  using namespace FractalSpace;
-
-  Fractal_Memory* pmemory = new FractalSpace::Fractal_Memory;
-  pmemory->periodic = periodic;
-  pmemory->grid_length = ngrid;
-  pmemory->minimum_number = minHighParticles;
-  pmemory->padding = padding;
-  pmemory->box_length =boxlength;
-  pmemory->number_particles = numNodes;
-  
-  pmemory->debug=true;
-  pmemory->new_points_gen=9;
-  pmemory->remember_points=false;
-  pmemory->number_steps_total=903;
-  pmemory->redshift_start=99.0;
-  pmemory->max_particles=300000;
-  pmemory->omega_0=0.3;
-  pmemory->omega_lambda=0.7;
-  pmemory->h=0.7;
-  pmemory->steps=-1;
-  pmemory->random_gen=54321;
-  // sets your values for parameters
-  pmemory->amnesia=true; // (true) forget everything after you are done. (false) remember everything.
-  pmemory->mind_wipe=false; // (true) delete everything and then come back without calculating anything.
-  pmemory->fixed_potential=false; // (true) use the fixed potential.
-  pmemory->calc_shear=false;// (true) if we calculate shear of force field
-  pmemory->calc_density_particle=false;
-  pmemory->do_vel=false;
-  pmemory->start_up=false;
-  pmemory->halo=false;
-  pmemory->halo_fixed=pmemory->halo_fixed && !pmemory->periodic;
-  pmemory->length_ratio=1;
-  pmemory->omega_start=Omega(pmemory->omega_0,pmemory->omega_lambda,pmemory->redshift_start);
-  pmemory->lambda_start=Lambda(pmemory->omega_0,pmemory->omega_lambda,pmemory->redshift_start);
-  pmemory->sigma_initial=pmemory->sigma_0*Growth(pmemory->omega_0,pmemory->omega_lambda,pmemory->redshift_start);
-  pmemory->time=Age_of_the_universe(pmemory->omega_start,pmemory->lambda_start,0.0);
-  pmemory->total_mass=1.0;
-  //
-  pmemory->crash_levels=5;
-  pmemory->crash_pow=2.0;
-  pmemory->density_crash=5.5;
-  pmemory->splits=0;
-  //
-  pmemory->masks=0;
-  //
-  pmemory->masks_init=0;
-
-  // That's it.
-  return pmemory;
-}
-
-//------------------------------------------------------------------------------
 // Constructor.
 //------------------------------------------------------------------------------
 FractalGravity::
@@ -109,24 +47,50 @@ FractalGravity(const double G,
                const Vector& xmin,
                const Vector& xmax,
                const bool periodic,
-               const unsigned ngrid,
-               const unsigned nlevelmax,
-               const unsigned minHighParticles,
-               const unsigned padding,
+               const unsigned gridLength,
                const double maxDeltaVelocity):
   mG(G),
   mXmin(xmin),
   mXmax(xmax),
   mPeriodic(periodic),
-  mNgrid(ngrid),
-  mNlevelmax(nlevelmax),
-  mMinHighParticles(minHighParticles),
-  mPadding(padding),
+  mGridLength(gridLength),
   mMaxDeltaVelocityFactor(maxDeltaVelocity),
-  mPotential(FieldList<Dim<3>, Scalar>::Copy),
+  mPotential(FieldSpace::CopyFields),
   mExtraEnergy(0.0),
   mOldMaxAcceleration(0.0),
-  mOldMaxVelocity(0.0) {
+  mOldMaxVelocity(0.0),
+  mFractalMemoryPtr(NULL) {
+
+  // Decide how many MPI ranks we're going to use, and create the communicator.
+  // For now we assume we're modeling a cube, so just make the cpu ranks along each direction equal.
+  const auto mxFractalNodes = std::max(1, int(pow(double(Process::getTotalNumberOfProcesses()), 1.0/3.0)));
+  const auto maxProc = mxFractalNodes*mxFractalNodes*mxFractalNodes;
+  CHECK(maxProc <= Process::getTotalNumberOfProcesses());
+  MPI_Comm_split(Communicator::communicator(),
+                 (Process::getRank() < maxProc ? 1 : MPI_UNDEFINED),
+                 Process::getRank(),
+                 &mFractalComm);
+
+  // Call Jens' setup method.
+  if (mPeriodic) {
+    mFractalMemoryPtr = FractalSpace::FractalGravityFirstTime(mPeriodic,
+                                                              mFractalComm,
+                                                              mGridLength,
+                                                              mxFractalNodes,
+                                                              mxFractalNodes,
+                                                              mxFractalNodes,
+                                                              "",
+                                                              "blago");
+  } else {
+    mFractalMemoryPtr = FractalSpace::FractalGravityIsolatedFirstTime(mComm,
+                                                                      mGridLength,
+                                                                      mxFractalNodes,
+                                                                      mxFractalNodes,
+                                                                      mxFractalNodes,
+                                                                      "",
+                                                                      "blago");
+  }
+  FractalSpace::Fractal_Memory_Setup(mFractalMemoryPtr);
 }
 
 //------------------------------------------------------------------------------
@@ -134,6 +98,8 @@ FractalGravity(const double G,
 //------------------------------------------------------------------------------
 FractalGravity::
 ~FractalGravity() {
+  FractalSpace::fractal_memory_content_delete(mFractalMemoryPtr);
+  FractalSpace::fractal_memory_delete(mFractalMemoryPtr);
 }
 
 //------------------------------------------------------------------------------
@@ -149,116 +115,83 @@ evaluateDerivatives(const Dim<3>::Scalar time,
   using namespace NodeSpace;
 
   // Access to pertinent fields in the database.
-  const FieldList<Dimension, Scalar> mass = state.fields(HydroFieldNames::mass, 0.0);
-  const FieldList<Dimension, Vector> position = state.fields(HydroFieldNames::position, Vector::zero);
-  const FieldList<Dimension, Vector> velocity = state.fields(HydroFieldNames::velocity, Vector::zero);
-  const unsigned numNodeLists = mass.numFields();
-  const unsigned numNodes = mass.numInternalNodes();
+  const auto mass = state.fields(HydroFieldNames::mass, 0.0);
+  const auto position = state.fields(HydroFieldNames::position, Vector::zero);
+  const auto velocity = state.fields(HydroFieldNames::velocity, Vector::zero);
+  const auto numNodeLists = mass.numFields();
+  const auto numNodes = mass.numInternalNodes();
 
   // Get the acceleration and position change vectors we'll be modifying.
-  FieldList<Dimension, Vector> DxDt = derivs.fields(IncrementState<Dimension, Field<Dimension, Vector> >::prefix() + HydroFieldNames::position, Vector::zero);
-  FieldList<Dimension, Vector> DvDt = derivs.fields(IncrementState<Dimension, Field<Dimension, Vector> >::prefix() + HydroFieldNames::velocity, Vector::zero);
+  auto DxDt = derivs.fields(IncrementState<Dimension, Field<Dimension, Vector> >::prefix() + HydroFieldNames::position, Vector::zero);
+  auto DvDt = derivs.fields(IncrementState<Dimension, Field<Dimension, Vector> >::prefix() + HydroFieldNames::velocity, Vector::zero);
+
+  // Make Fractal friendly versions of the fields.
+  vector<double> m(numNodes), xpos(numNodes), ypos(numNodes), zpos(numNodes);
+  {
+    auto j = 0;
+    for (auto nodeListi = 0; nodeListi < numNodeLists; ++nodeListi) {
+      const auto n = mass[i]->numInternalElements();
+      for (auto i = 0; i < n; ++i) {
+        m[j] = mass(nodeListi, i).x();
+        xpos[j] = position(nodeListi, i).x();
+        ypos[j] = position(nodeListi, i).y();
+        zpos[j] = position(nodeListi, i).z();
+        ++j;
+      }
+    }
+    CHECK(j == numNodes);
+  }
 
   // Zero out the total gravitational potential energy.
   mExtraEnergy = 0.0;
 
-  // We scale the positions to be in the unit cube, and the masses such that G
-  // is one inside Fractal.
-  const double boxlength = mXmax.x() - mXmin.x();
-  VERIFY(fuzzyEqual(mXmax.y() - mXmin.y(), boxlength, 1.0e-10));
-  VERIFY(fuzzyEqual(mXmax.z() - mXmin.z(), boxlength, 1.0e-10));
-  VERIFY(boxlength > 0.0);
-  const double lscale = 1.0/boxlength;
-  const double mscale = lscale*lscale*lscale/mG;
-  const double lunscale = 1.0/lscale;
-  const double munscale = 1.0/mscale;
+  // Call Fractal's innards to do the force evaluations.
+  mFractalMemoryPtr->setNumberParticles(numNodes);
+  FractalSpace::fractal_create(mFractalMemoryPtr);
+  FractalSpace::add_particles(mFractalMemoryPtr,
+                              0,                     // first particle index
+                              numNodes,              // last particle index
+                              xpos,                  // the coordinates
+                              ypos,
+                              zpos,
+                              m);                    // masses
+  vector<double> fxmin(3), fxmax(3);
+  FractalSpace::FractalCube(mFractalMemoryPtr,
+                            (mPeriodic ? 0.0 : 1.0), // SHRINK: 0=>use supplied bounds, 1=>compute bounds
+                            mXmin,                   // Input box min coordinate
+                            mXmax,                   // Input box max coordinate
+                            fxmin,                   // Output box min coordinate
+                            fxmax);                  // Output box max coordinate
+  FractalSpace::balance_by_particles(mFractalMemoryPtr, true);
+  FractalSpace::DoFractalGravity(mFractalMemoryPtr);
 
-  // Create the Fractal memory struct, and fill in some of it's parameters.
-  // For now we will scale the input to Fractal for unit length and unit total mass.
-  FractalSpace::Fractal_Memory* pmemory = generateFractalMemory(numNodes,
-                                                                mPeriodic,
-                                                                mNgrid,
-                                                                mMinHighParticles,
-                                                                mPadding,
-                                                                1.0);
+  // Extract the potential and accelerations.
+  vector<double> phi(numNodes), accx(numNodes), accy(numNodes), accz(numNodes);
+  FractalSpace::get_field(mFractalMemoryPtr,
+                          0,                         // first particle index
+                          numNodes,                  // last particle index
+                          mG,                        // gravitational constant
+                          fxmin,                     // min box coordinates
+                          fxmax,                     // max box coordinates
+                          phi,                       // potential
+                          accx,                      // acceleration components
+                          accy,
+                          accz);
+  FractalSpace::fractal_delete(mFractalMemoryPtr);
 
-  // Create the Fractal class.
-  FractalSpace::Fractal* pfrac = new FractalSpace::Fractal(*pmemory);
-  pfrac->set_number_particles(numNodes);
-  pmemory->p_fractal = pfrac;
-  pfrac->particle_list.resize(pmemory->number_particles);
-
-  // Create the memory for Fractal's particles.
-  vector<FractalSpace::Particle> particles(numNodes);
-  for (unsigned i = 0; i != numNodes; ++i) {
-    particles[i].space_resize(3);    // 3 => pos(x, y, z)
-    particles[i].field_resize(4);    // 4 => fields(pot, fx, fy, fz)
-  }
-
-  // Copy Spheral's particle information to Fractal's particles.
-  unsigned j = 0;
-  double mtot = 0.0;
-  vector<double> ppos(3);
-  for (unsigned nodeListi = 0; nodeListi != numNodeLists; ++nodeListi) {
-    for (unsigned i = 0; i != mass[nodeListi]->numInternalElements(); ++i) {
-      CHECK(j < numNodes);
-      pfrac->particle_list[j] = &particles[j];
-      const Vector xi = (position(nodeListi, i) - mXmin)*lscale;
-      ppos[0] = max(0.0, min(1.0, xi.x()));
-      ppos[1] = max(0.0, min(1.0, xi.y()));
-      ppos[2] = max(0.0, min(1.0, xi.z()));
-      particles[j].set_mass(mass(nodeListi, i)*mscale);
-      particles[j].set_pos(ppos);
-      mtot += particles[j].get_mass();
-      ++j;
-    }
-  }
-  pmemory->total_mass = mtot;
-
-  // Invoke the gravity solver.
-  pfrac->timing(-2,0);
-  pfrac->timing(-1,29);
-  FractalSpace::fractal_gravity(*pfrac, *pmemory);
-  pfrac->timing(1,29);
-  pfrac->timing(0,0);
-
-  // Read the result back to Spheral's data structures.
-  vector<double> f(4);
-  j = 0;
-  for (unsigned nodeListi = 0; nodeListi != numNodeLists; ++nodeListi) {
-    for (unsigned i = 0; i != mass[nodeListi]->numInternalElements(); ++i) {
-      CHECK(j < numNodes);
-      DxDt(nodeListi, i) += velocity(nodeListi, i);
-
-      // Extract field (pot, fx, fy, fz) from the Fractal particle.
-      particles[j].get_field_pf(f);
-
-      // Update the potential energy.
-      mPotential(nodeListi, i) = f[0] * munscale*lunscale*lunscale;
-      mExtraEnergy += mass(nodeListi, i) * mPotential(nodeListi, i);
-
-      // Update the acceleration.
-      DvDt(nodeListi, i) += Vector(f[1] * lunscale,
-                                   f[2] * lunscale,
-                                   f[3] * lunscale);
-
-      // Capture the maximum acceleration and velocity magnitudes.
-      const Scalar accelMagnitude = DvDt(nodeListi, i).magnitude();
-      if (mOldMaxAcceleration < accelMagnitude) {
-        mOldMaxAcceleration = accelMagnitude + 1e-10;
-        CHECK(mOldMaxAcceleration != 0.0);
-      }
-
-      const Scalar velocityMagnitude = velocity(nodeListi, i).magnitude();
-      if (mOldMaxVelocity < velocityMagnitude) {
-        mOldMaxVelocity = velocityMagnitude;
+  // Fill Spheral's fields with the computed values.
+  {
+    auto j = 0;
+    for (auto nodeListi = 0; nodeListi < numNodeLists; ++nodeListi) {
+      const auto n = mass[i]->numInternalElements();
+      for (auto i = 0; i < n; ++i) {
+        DvDt(nodeListi, i) += Vector(accx[j], accy[j], accz[j]);
+        mPotential(nodeListi, i) = phi[j];
+        mExtraEnergy += 0.5*mass(nodeListi, i)*phi[j];
+        ++j;
       }
     }
   }
-
-  // Clean up.
-  delete pfrac;
-  delete pmemory;
 }
 
 //------------------------------------------------------------------------------
@@ -351,39 +284,12 @@ periodic() const {
 }
 
 //------------------------------------------------------------------------------
-// ngrid
+// gridLength
 //------------------------------------------------------------------------------
 unsigned
 FractalGravity::
-ngrid() const {
-  return mNgrid;
-}
-
-//------------------------------------------------------------------------------
-// nlevelmax
-//------------------------------------------------------------------------------
-unsigned
-FractalGravity::
-nlevelmax() const {
-  return mNlevelmax;
-}
-
-//------------------------------------------------------------------------------
-// minHighParticles
-//------------------------------------------------------------------------------
-unsigned
-FractalGravity::
-minHighParticles() const {
-  return mMinHighParticles;
-}
-
-//------------------------------------------------------------------------------
-// padding
-//------------------------------------------------------------------------------
-unsigned
-FractalGravity::
-padding() const {
-  return mPadding;
+gridLength() const {
+  return mGridLength;
 }
 
 }

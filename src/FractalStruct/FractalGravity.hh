@@ -14,6 +14,7 @@
 #include "Physics/GenericBodyForce.hh"
 #include "Field/FieldList.hh"
 #include "Geometry/Dimension.hh"
+#include "classes.hh"
 
 namespace Spheral {
 
@@ -35,25 +36,18 @@ public:
 
   //! Constructor.
   //! \param G -- the gravitational constant.
+  //! \param xmin -- lower left corner of computational cube.
+  //! \param xmax -- upper right corner of computational cube.
   //! \param periodic -- should the problem be solved in periodic (true) 
   //!                    or isolated (false) geometry.
   //! \param ngrid -- length of the fundamental grid.
-  //! \param nlevelmax -- maximum number of levels for refinement.
-  //! \param minHighParticles -- minimum number of particles belonging to a high point.
-  //! \param padding -- 0 => resolution jumps by factors of 2 (cheap)
-  //!                   1 => each high point fully padded (expensive)
-  //! \param xmin -- lower left corner of computational cube.
-  //! \param xmax -- upper right corner of computational cube.
   //! \param maxDeltaVelocity -- Maximum factor by which the velocity can be changed by an 
   //!                            acceleration per timestep.
   FractalGravity(const double G,
                  const Vector& xmin,
                  const Vector& xmax,
                  const bool periodic,
-                 const unsigned ngrid,
-                 const unsigned nlevelmax,
-                 const unsigned minHighParticles,
-                 const unsigned padding,
+                 const unsigned gridLength,
                  const double maxDeltaVelocity);
 
   //! Destructor.
@@ -65,19 +59,19 @@ public:
                            const Scalar dt,
                            const DataBaseSpace::DataBase<Dimension>& dataBase,
                            const State<Dimension>& state,
-                           StateDerivatives<Dimension>& derivs) const;
+                           StateDerivatives<Dimension>& derivs) const override;
 
   //! Vote on the timestep.  This uses a velocity-limiting rule.
   virtual TimeStepType dt(const DataBaseSpace::DataBase<Dimension>& dataBase, 
                           const State<Dimension>& state,
                           const StateDerivatives<Dimension>& derivs,
-                          const Scalar currentTime) const;
+                          const Scalar currentTime) const override;
 
   //! Initializations on problem start up.
-  virtual void initializeProblemStartup(DataBaseSpace::DataBase<Dimension>& db);
+  virtual void initializeProblemStartup(DataBaseSpace::DataBase<Dimension>& db) override;
 
   //! Return the total energy contribution due to the gravitational potential.
-  virtual Scalar extraEnergy() const;
+  virtual Scalar extraEnergy() const override;
 
   //! Return the gravitational potential created by the particle distribution.
   const FieldSpace::FieldList<Dimension, Scalar>& potential() const;
@@ -95,24 +89,20 @@ public:
   bool periodic() const;
 
   //! Number of grid cells per side on the fundamental level.
-  unsigned ngrid() const;
-
-  //! Maximum number of levels of refinement.
-  unsigned nlevelmax() const;
-
-  //! Minimum number of particles to form a high point.
-  unsigned minHighParticles() const;
-
-  //! padding flag:
-  //!     0 => resolution jumps by factors of 2 (cheap)
-  //!     1 => each high point fully padded (expensive)
-  unsigned padding() const;
+  unsigned gridLength() const;
 
 private:
+  //! Gravitational constant
   double mG;
+
+  //! Box boundaries
   Vector mXmin, mXmax;
+
+  //! Choose periodic or isolated boundaries
   bool mPeriodic;
-  unsigned mNgrid, mNlevelmax, mMinHighParticles, mPadding;
+
+  //! Length of the grid for the FFT box
+  unsigned mGridLength;
   
   //! The maximum allowed change in velocity, by factors of velocity.
   Scalar mMaxDeltaVelocityFactor;
@@ -129,15 +119,13 @@ private:
   //! The maximum velocity magnitude during the last time step.
   mutable Scalar mOldMaxVelocity;
 
-  // Default constructor -- disabled.
+  //! The FractalGravity memory blob
+  FractalSpace::Fractal_Memory* mFractalMemoryPtr;
+
+  // Disabled methods.
   FractalGravity();
-
-  // Copy constructor -- disabled.
   FractalGravity(const FractalGravity&);
-
-  // Assignment operator -- disabled.
   FractalGravity& operator=(const FractalGravity&);
-
 };
 
 }

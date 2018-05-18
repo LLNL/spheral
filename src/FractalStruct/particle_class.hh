@@ -4,10 +4,10 @@ namespace FractalSpace
 {
   class Particle
   {
-    vector <double> phase_space;
+    std::vector <double> phase_space;
     // 0 1 2 x,y,z
     // 3 4 5 vx,vy,vz
-    vector <double> field;
+    std::vector <double> field;
     // 0 1 2 3 pot,fx,fy,fz
     // 4 density
     // 5 rad_max
@@ -52,7 +52,7 @@ namespace FractalSpace
       field.assign(j,y);
       number_particles++;
     }
-    Particle(Particle& p,vector <double>& shift)
+    Particle(Particle& p,std::vector <double>& shift)
     {
       phase_space=p.phase_space;
       phase_space[0]+=shift[0];
@@ -79,29 +79,29 @@ namespace FractalSpace
     double get_r2(const double& x,const double& y,const double& z) const;
     double get_r(const double& x,const double& y,const double& z) const;
     void get_phase_field_sizes(int& nphase,int& nfield) const;
-    void get_pos(vector <double>& pos) const;
-    void get_posm(vector <double>& pos,double& m) const;
+    void get_pos(std::vector <double>& pos) const;
+    void get_posm(std::vector <double>& pos,double& m) const;
     void get_pos(double& posx,double& posy,double& posz) const;
-    void get_vel(vector <double>& vel) const;
-    void get_force(vector <double>& force) const;
-    void get_phase(vector <double>& pos,vector <double>& vel) const;
-    void get_field(vector <double>& pos,vector <double>& vel,vector <double>& force) const;
-    void get_field_pf(vector <double>& pf) const;
+    void get_vel(std::vector <double>& vel) const;
+    void get_force(std::vector <double>& force) const;
+    void get_phase(std::vector <double>& pos,std::vector <double>& vel) const;
+    void get_field(std::vector <double>& pos,std::vector <double>& vel,std::vector <double>& force) const;
+    void get_field_pf(std::vector <double>& pf) const;
     double get_potential() const;
     double get_density() const;
     double get_rad_max() const;
     Group* get_p_highest_level_group() const;
     void set_mass(const double& m);
-    void set_pos(vector <double>& pos);
-    void set_posm(vector <double>& pos,double& m);
+    void set_pos(std::vector <double>& pos);
+    void set_posm(std::vector <double>& pos,double& m);
     void set_posmIFR(const double& posx,const double& posy,const double& posz,const double& m,const int& num_w,const int& node_w);
-    void set_vel(vector <double>& vel);
+    void set_vel(std::vector <double>& vel);
     void set_pos(const double& posx,const double& posy,const double& posz);
-    void set_phase(vector <double>& pos,vector <double>& vel);
-    void set_field(vector <double>& pos,vector <double>& vel,vector <double>& force);
-    void set_field_pf(vector <double>& sum_pf);
-    void add_field_pf(vector <double>& sum_pf);
-    void set_field_pf(vector <double>& sum_pf,const double& scale);
+    void set_phase(std::vector <double>& pos,std::vector <double>& vel);
+    void set_field(std::vector <double>& pos,std::vector <double>& vel,std::vector <double>& force);
+    void set_field_pf(std::vector <double>& sum_pf);
+    void add_field_pf(std::vector <double>& sum_pf);
+    void set_field_pf(std::vector <double>& sum_pf,const double& scale);
     void set_field_pf(const double& p,const double& f1,const double& f2,const double& f3);
     void set_field_pf(const double& x);
     void set_density(const double& d);
@@ -112,8 +112,8 @@ namespace FractalSpace
     void space_resize(const int& i);
     void set_real_particle(const bool& rp);
     bool get_real_particle() const;
-    void dump(ofstream& FILE) const;
-    template <typename T> void dump(ofstream& FILE,vector <T>& pott,vector <T>& f_x,vector <T>& f_y,vector <T>& f_z) const;
+    void dump(std::ofstream& FILE) const;
+    template <typename T> void dump(std::ofstream& FILE,std::vector <T>& pott,std::vector <T>& f_x,std::vector <T>& f_y,std::vector <T>& f_z) const;
   };
 }
 #endif

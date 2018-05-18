@@ -1,13 +1,18 @@
 #ifndef _Fractal_Memory_Defined_
 #define _Fractal_Memory_Defined_
+
+#include <string>
+#include <vector>
+#include <array>
+
 namespace FractalSpace
 {
   class Fractal_Memory
   {
   public:
     //
-    string BaseDirectory;
-    string RUN;
+    std::string BaseDirectory;
+    std::string RUN;
     MPI_Comm FractalWorld;
     bool standalone;
     const bool MPIrun;
@@ -25,29 +30,29 @@ namespace FractalSpace
     int hypre_max_node_load;
     double hypre_multiplier;
     double G;
-    vector <double>xmin;
-    vector <double>xmax;
-    vector <int> TouchWhichBoxes;
-    vector <int> Touchy;
-    vector < vector <int> > Boxes;
-    vector < vector <int> > BBoxes;
-    vector < vector <int> > PBoxes;
-    vector < vector <int> > Buffers;
-    vector < vector <int> > FRBoxesLev;
-    vector < vector <int> > FRBBoxesLev;
-    vector < vector <int> > FRPBoxesLev;
-    vector < vector < vector <int> > > BoxesLev;
-    vector < vector < vector <int> > > BBoxesLev;
-    vector < vector < vector <int> > > PBoxesLev;
-    vector < vector <int> > PBoxesLength;
-    vector < vector <double> > RealBoxes;
-    vector < vector <double> > RealPBoxes;
-    vector < vector <double> > RealBBoxes;
-    vector < vector <double> > RealIBoxes;
-    vector <vector <int> > LeftCorners;
-    vector <double> BigBox;
-    string hypre_solver;
-    string hypre_precond;
+    std::vector <double>xmin;
+    std::vector <double>xmax;
+    std::vector <int> TouchWhichBoxes;
+    std::vector <int> Touchy;
+    std::vector < std::vector <int> > Boxes;
+    std::vector < std::vector <int> > BBoxes;
+    std::vector < std::vector <int> > PBoxes;
+    std::vector < std::vector <int> > Buffers;
+    std::vector < std::vector <int> > FRBoxesLev;
+    std::vector < std::vector <int> > FRBBoxesLev;
+    std::vector < std::vector <int> > FRPBoxesLev;
+    std::vector < std::vector < std::vector <int> > > BoxesLev;
+    std::vector < std::vector < std::vector <int> > > BBoxesLev;
+    std::vector < std::vector < std::vector <int> > > PBoxesLev;
+    std::vector < std::vector <int> > PBoxesLength;
+    std::vector < std::vector <double> > RealBoxes;
+    std::vector < std::vector <double> > RealPBoxes;
+    std::vector < std::vector <double> > RealBBoxes;
+    std::vector < std::vector <double> > RealIBoxes;
+    std::vector <std::vector <int> > LeftCorners;
+    std::vector <double> BigBox;
+    std::string hypre_solver;
+    std::string hypre_precond;
     int global_level_max;
     //
     bool split_particles;
@@ -76,7 +81,7 @@ namespace FractalSpace
     int grid_length;
     int moat_0;
     unsigned int minimum_number;
-    array<int,16>minimum_number_var;
+    std::array<int,16>minimum_number_var;
     int padding;
     int level_max;
     int number_steps_total;
@@ -125,34 +130,34 @@ namespace FractalSpace
     double density_crash;
     int max_particles;
     int splits;
-    vector <double> splits_center_x;
-    vector <double> splits_center_y;
-    vector <double> splits_center_z;
-    vector <double> splits_rad_x;
-    vector <double> splits_rad_y;
-    vector <double> splits_rad_z;
-    vector <bool> splits_square;
-    vector <int> splits_many;
+    std::vector <double> splits_center_x;
+    std::vector <double> splits_center_y;
+    std::vector <double> splits_center_z;
+    std::vector <double> splits_rad_x;
+    std::vector <double> splits_rad_y;
+    std::vector <double> splits_rad_z;
+    std::vector <bool> splits_square;
+    std::vector <int> splits_many;
     int masks;
-    vector <double> masks_center_x;
-    vector <double> masks_center_y;
-    vector <double> masks_center_z;
-    vector <double> masks_rad_x;
-    vector <double> masks_rad_y;
-    vector <double> masks_rad_z;
-    vector <bool> masks_square;
-    vector <int> masks_level;
+    std::vector <double> masks_center_x;
+    std::vector <double> masks_center_y;
+    std::vector <double> masks_center_z;
+    std::vector <double> masks_rad_x;
+    std::vector <double> masks_rad_y;
+    std::vector <double> masks_rad_z;
+    std::vector <bool> masks_square;
+    std::vector <int> masks_level;
     int masks_init;
-    vector <double> masks_center_x_init;
-    vector <double> masks_center_y_init;
-    vector <double> masks_center_z_init;
-    vector <double> masks_rad_x_init;
-    vector <double> masks_rad_y_init;
-    vector <double> masks_rad_z_init;
-    vector <bool> masks_square_init;
-    vector <int> masks_level_init;
+    std::vector <double> masks_center_x_init;
+    std::vector <double> masks_center_y_init;
+    std::vector <double> masks_center_z_init;
+    std::vector <double> masks_rad_x_init;
+    std::vector <double> masks_rad_y_init;
+    std::vector <double> masks_rad_z_init;
+    std::vector <bool> masks_square_init;
+    std::vector <int> masks_level_init;
     //
-    vector < vector<Group*> > all_groups;
+    std::vector < std::vector<Group*> > all_groups;
 
     Misc* p_misc; 
     Fractal* p_fractal;
@@ -265,7 +270,7 @@ namespace FractalSpace
       hypre_solver="PCG";
       hypre_precond="PFMG";
       global_level_max=level_max;
-      padding=min(padding,1);
+      padding=std::min(padding,1);
       split_particles= force_max > 0.0;
       xmin.assign(3,0.0);
       xmax.assign(3,1.0);
@@ -278,10 +283,10 @@ namespace FractalSpace
     //
     void set_G(double Cavendish);
     void get_G(double& Cavendish) const;
-    void set_xmin(vector <double>& xm);
-    void set_xmax(vector <double>& xm);
-    void get_xmin(vector <double>& xm) const;
-    void get_xmax(vector <double>& xm) const;
+    void set_xmin(std::vector <double>& xm);
+    void set_xmax(std::vector <double>& xm);
+    void get_xmin(std::vector <double>& xm) const;
+    void get_xmax(std::vector <double>& xm) const;
     void calc_FractalNodes();
     void calc_Buffers_and_more();
     void calc_RealBoxes();
@@ -292,13 +297,13 @@ namespace FractalSpace
     void fractal_memory_setup(Fractal_Memory* PFM);
     void setBalance(int B);
     void addParticles(int first,int total,
-				      vector <double>& xmin,vector <double>& xmax,
-				      vector <double>& xpos,vector <double>& ypos,
-				      vector <double>& zpos,vector <double>& masses);
+				      std::vector <double>& xmin,std::vector <double>& xmax,
+				      std::vector <double>& xpos,std::vector <double>& ypos,
+				      std::vector <double>& zpos,std::vector <double>& masses);
     void getField(int first,int last,double G,
-				  vector <double>& xmin,vector <double>& xmax,
-				  vector <double>& pot,vector <double>& fx,
-				  vector <double>& fy,vector <double>& fz) const;
+				  std::vector <double>& xmin,std::vector <double>& xmax,
+				  std::vector <double>& pot,std::vector <double>& fx,
+				  std::vector <double>& fy,std::vector <double>& fz) const;
     void setNumberParticles(int NP);
     void setFractalNodes(int FR0,int FR1,int FR2);
     void setFFTNodes(int FN);
@@ -310,8 +315,8 @@ namespace FractalSpace
     void setMinimumNumber(int MN);
     void setHypreIterations(int MHI);
     void setHypreTolerance(double HT);
-    void setBaseDirectory(string BD);
-    void setRunIdentifier(string RI);
+    void setBaseDirectory(std::string BD);
+    void setRunIdentifier(std::string RI);
     void setTimeTrial(bool tt);
     void setTalkToMe(MPI_Comm& ttm);
   // static functions
