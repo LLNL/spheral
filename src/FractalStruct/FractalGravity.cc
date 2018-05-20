@@ -55,11 +55,12 @@ FractalGravity(const double G,
   mPeriodic(periodic),
   mGridLength(gridLength),
   mMaxDeltaVelocityFactor(maxDeltaVelocity),
-  mPotential(FieldSpace::CopyFields),
+  mPotential(FieldSpace::FieldStorageType::CopyFields),
   mExtraEnergy(0.0),
   mOldMaxAcceleration(0.0),
   mOldMaxVelocity(0.0),
-  mFractalMemoryPtr(NULL) {
+  mFractalMemoryPtr(NULL),
+  mFractalComm() {
 
   // Decide how many MPI ranks we're going to use, and create the communicator.
   // For now we assume we're modeling a cube, so just make the cpu ranks along each direction equal.
@@ -82,7 +83,7 @@ FractalGravity(const double G,
                                                               "",
                                                               "blago");
   } else {
-    mFractalMemoryPtr = FractalSpace::FractalGravityIsolatedFirstTime(mComm,
+    mFractalMemoryPtr = FractalSpace::FractalGravityIsolatedFirstTime(mFractalComm,
                                                                       mGridLength,
                                                                       mxFractalNodes,
                                                                       mxFractalNodes,
@@ -90,7 +91,7 @@ FractalGravity(const double G,
                                                                       "",
                                                                       "blago");
   }
-  FractalSpace::Fractal_Memory_Setup(mFractalMemoryPtr);
+  FractalSpace::fractal_memory_setup(mFractalMemoryPtr);
 }
 
 //------------------------------------------------------------------------------
@@ -130,9 +131,9 @@ evaluateDerivatives(const Dim<3>::Scalar time,
   {
     auto j = 0;
     for (auto nodeListi = 0; nodeListi < numNodeLists; ++nodeListi) {
-      const auto n = mass[i]->numInternalElements();
+      const auto n = mass[nodeListi]->numInternalElements();
       for (auto i = 0; i < n; ++i) {
-        m[j] = mass(nodeListi, i).x();
+        m[j] = mass(nodeListi, i);
         xpos[j] = position(nodeListi, i).x();
         ypos[j] = position(nodeListi, i).y();
         zpos[j] = position(nodeListi, i).z();
@@ -155,11 +156,13 @@ evaluateDerivatives(const Dim<3>::Scalar time,
                               ypos,
                               zpos,
                               m);                    // masses
-  vector<double> fxmin(3), fxmax(3);
+  vector<double> fxmin(3), fxmax(3),
+                 fxmin_in(mXmin.begin(), mXmin.end()),
+                 fxmax_in(mXmax.begin(), mXmax.end());
   FractalSpace::FractalCube(mFractalMemoryPtr,
                             (mPeriodic ? 0.0 : 1.0), // SHRINK: 0=>use supplied bounds, 1=>compute bounds
-                            mXmin,                   // Input box min coordinate
-                            mXmax,                   // Input box max coordinate
+                            fxmin_in,                // Input box min coordinate
+                            fxmax_in,                // Input box max coordinate
                             fxmin,                   // Output box min coordinate
                             fxmax);                  // Output box max coordinate
   FractalSpace::balance_by_particles(mFractalMemoryPtr, true);
@@ -183,7 +186,7 @@ evaluateDerivatives(const Dim<3>::Scalar time,
   {
     auto j = 0;
     for (auto nodeListi = 0; nodeListi < numNodeLists; ++nodeListi) {
-      const auto n = mass[i]->numInternalElements();
+      const auto n = mass[nodeListi]->numInternalElements();
       for (auto i = 0; i < n; ++i) {
         DvDt(nodeListi, i) += Vector(accx[j], accy[j], accz[j]);
         mPotential(nodeListi, i) = phi[j];
