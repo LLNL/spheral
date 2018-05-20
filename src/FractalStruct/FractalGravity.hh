@@ -122,6 +122,9 @@ private:
   //! The FractalGravity memory blob
   FractalSpace::Fractal_Memory* mFractalMemoryPtr;
 
+  //! Special communicator for Fractal.
+  MPI_Comm mFractalComm;
+
   // Disabled methods.
   FractalGravity();
   FractalGravity(const FractalGravity&);
