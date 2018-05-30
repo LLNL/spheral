@@ -28,7 +28,7 @@ GradyKippTensorDamageBenzAsphaug is constructed with the following arguments:
         seed                : (optional) random number seed for flaw generation.
         strainAlgorithm     : (optional) defaults to "BenzAsphaugStrain"
         effectiveDamageAlgorithm : (optional) defaults to "CopyDamage".
-        useDamageGradient   : (optional) defaults to "True"
+        useDamageGradient   : (optional) defaults to "False"
         crackGrowthMultiplier : (optional) defaults to "0.4"
         flawAlgorithm       : (optional) defaults to "FullSpectrumFlaws"
         criticalDamageThreshold : (optional) defaults to 3.0
@@ -52,7 +52,7 @@ GradyKippTensorDamageOwen is constructed with the following arguments:
         volumeMultiplier    : (optional) Multiplies the total volume.
         strainAlgorithm     : (optional) defaults to "PsuedoPlasticStrain"
         effectiveDamageAlgorithm : (optional) defaults to "CopyDamage".
-        useDamageGradient   : (optional) defaults to "True"
+        useDamageGradient   : (optional) defaults to "False"
         crackGrowthMultiplier : (optional) defaults to "0.4"
         flawAlgorithm       : (optional) defaults to "FullSpectrumFlaws"
         criticalDamageThreshold : (optional) defaults to 3.0
@@ -81,7 +81,7 @@ class GradyKippTensorDamageBenzAsphaug%(dim)s(TensorDamageModel%(dim)s):
         damage_kwargs = {"nodeList"                 : None,
                          "strainAlgorithm"          : BenzAsphaugStrain,
                          "effectiveDamageAlgorithm" : CopyDamage,
-                         "useDamageGradient"        : True,
+                         "useDamageGradient"        : False,
                          "kernel"                   : None,
                          "crackGrowthMultiplier"    : 0.4,
                          "flawAlgorithm"            : FullSpectrumFlaws,
@@ -218,7 +218,7 @@ class GradyKippTensorDamageOwen%(dim)s(TensorDamageModel%(dim)s):
         damage_kwargs = {"nodeList"                 : None,
                          "strainAlgorithm"          : BenzAsphaugStrain,
                          "effectiveDamageAlgorithm" : CopyDamage,
-                         "useDamageGradient"        : True,
+                         "useDamageGradient"        : False,
                          "kernel"                   : None,
                          "crackGrowthMultiplier"    : 0.4,
                          "flawAlgorithm"            : FullSpectrumFlaws,
