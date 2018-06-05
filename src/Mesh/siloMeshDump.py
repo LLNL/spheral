@@ -237,10 +237,9 @@ def writeMasterMeshSiloFile(dirName, mesh, label, nodeLists, time, cycle, fieldw
                 assert silo.DBPutMultivar(db, "CELLS/" + name, domainVarNames, ucdTypes, optlistMV) == 0
                 if desc != None:
                     for subname, vals in subvars:
-                        print name, subname
                         domainVarNames = vector_of_string()
                         for p in domainNamePatterns:
-                            domainVarNames.append(p % ("CELLS/" + subname))
+                            domainVarNames.append(p % subname)
                         assert len(domainVarNames) == numDomains
                         assert silo.DBPutMultivar(db, "CELLS/" + subname, domainVarNames, ucdTypes, optlistVar) == 0
         
@@ -645,10 +644,10 @@ def metaDataVectorField(name, time, cycle, dim):
     assert optlistVar.addOption(SA._DBOPT_TENSOR_RANK, SA._DB_VARTYPE_SCALAR) == 0
 
     if dim == 2:
-        return ("{CELLS/%s_x, CELLS/%s_y}" % (name, name), SA._DB_VARTYPE_VECTOR,
+        return ("{<CELLS/%s_x>, <CELLS/%s_y>}" % (name, name), SA._DB_VARTYPE_VECTOR,
                 optlistDef, optlistMV, optlistVar)
     else:
-        return ("{CELLS/%s_x, CELLS/%s_y, CELLS/%s_z}" % (name, name, name), SA._DB_VARTYPE_VECTOR,
+        return ("{<CELLS/%s_x>, <CELLS/%s_y>, <CELLS/%s_z>}" % (name, name, name), SA._DB_VARTYPE_VECTOR,
                 optlistDef, optlistMV, optlistVar)
 
 #-------------------------------------------------------------------------------
@@ -722,12 +721,12 @@ def metaDataTensorField(name, time, cycle, dim):
     assert optlistVar.addOption(SA._DBOPT_TENSOR_RANK, SA._DB_VARTYPE_SCALAR) == 0
 
     if dim == 2:
-        return ("{{CELLS/%s_xx, CELLS/%s_xy}, {CELLS/%s_yx, CELLS/%s_yy}}" % (name, name, name, name), SA._DB_VARTYPE_TENSOR,
+        return ("{{<CELLS/%s_xx>, <CELLS/%s_xy>}, {<CELLS/%s_yx>, <CELLS/%s_yy>}}" % (name, name, name, name), SA._DB_VARTYPE_TENSOR,
                 optlistDef, optlistMV, optlistVar)
     else:
-        return ("{{CELLS/%s_xx, CELLS/%s_xy, CELLS/%s_xz}, {CELLS/%s_yx, CELLS/%s_yy, CELLS/%s_yz}, {CELLS/%s_zx, CELLS/%s_zy, CELLS/%s_zz}}" % (name, name, name,
-                                                                                           name, name, name,
-                                                                                           name, name, name),
+        return ("{{<CELLS/%s_xx>, <CELLS/%s_xy>, <CELLS/%s_xz>}, {<CELLS/%s_yx>, <CELLS/%s_yy>, <CELLS/%s_yz>}, {<CELLS/%s_zx>, <CELLS/%s_zy>, <CELLS/%s_zz>}}" % (name, name, name,
+                                                                                                                                                                   name, name, name,
+                                                                                                                                                                   name, name, name),
                 SA._DB_VARTYPE_TENSOR, optlistDef, optlistMV, optlistVar)
 
 #-------------------------------------------------------------------------------
