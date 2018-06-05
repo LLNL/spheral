@@ -109,10 +109,6 @@ CRKSPHVariant(const SmoothingScaleBase<Dimension>& smoothingScaleMethod,
               const HEvolutionType HUpdate,
               const CRKOrder correctionOrder,
               const CRKVolumeType volumeType,
-              const bool detectSurfaces,
-              const double detectThreshold,
-              const double sweepAngle,
-              const double detectRange,
               const double epsTensile,
               const double nTensile):
   CRKSPHHydroBase<Dimension>(smoothingScaleMethod,
@@ -129,10 +125,6 @@ CRKSPHVariant(const SmoothingScaleBase<Dimension>& smoothingScaleMethod,
                              HUpdate,
                              correctionOrder,
                              volumeType,
-                             detectSurfaces,
-                             detectThreshold,
-                             sweepAngle,
-                             detectRange,
                              epsTensile,
                              nTensile) {
 }
@@ -208,18 +200,6 @@ initializeProblemStartup(DataBase<Dimension>& dataBase) {
   const FieldList<Dimension, SymTensor> H = dataBase.fluidHfield();
   const FieldList<Dimension, Vector> position = dataBase.fluidPosition();
   const FieldList<Dimension, Scalar> massDensity = dataBase.fluidMassDensity();
-  if (this->mDetectSurfaces) {
-    this->mVolume.assignFields(mass/massDensity);
-    for (ConstBoundaryIterator boundItr = this->boundaryBegin();
-         boundItr != this->boundaryEnd();
-         ++boundItr) (*boundItr)->applyFieldListGhostBoundary(this->mVolume);
-    for (ConstBoundaryIterator boundItr = this->boundaryBegin();
-         boundItr != this->boundaryEnd();
-         ++boundItr) (*boundItr)->finalizeGhostBoundary();
-    const NodeCoupling couple;
-    computeCRKSPHMoments(connectivityMap, W, this->mVolume, position, H, this->correctionOrder(), couple, this->mM0, this->mM1, this->mM2, this->mM3, this->mM4, this->mGradm0, this->mGradm1, this->mGradm2, this->mGradm3, this->mGradm4);
-    detectSurface(connectivityMap, this->mM0, this->mM1, position, H, this->mDetectThreshold, this->mDetectRange*W.kernelExtent(), this->mSweepAngle, this->mSurfacePoint);
-  }
 
   // Compute the volumes for real.
   if (this->mVolumeType == CRKVolumeType::CRKMassOverDensity) {

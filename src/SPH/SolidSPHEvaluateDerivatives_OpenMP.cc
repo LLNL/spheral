@@ -439,8 +439,10 @@ evaluateDerivatives(const typename Dimension::Scalar time,
                                                        nodeListi,
                                                        i);
 
-      // As this node is damaged force it back to it's original H.
-      const auto Di = max(0.0, min(1.0, damage(nodeListi, i).Trace() - 1.0));
+      // Optionally use damage to ramp down stress on damaged material.
+      const auto Di = (mDamageRelieveRubble ? 
+                       max(0.0, min(1.0, damage(nodeListi, i).Trace() - 1.0)) :
+                       0.0);
       // Hideali = (1.0 - Di)*Hideali + Di*mHfield0(nodeListi, i);
       // DHDti = (1.0 - Di)*DHDti + Di*(mHfield0(nodeListi, i) - Hi)*0.25/dt;
 

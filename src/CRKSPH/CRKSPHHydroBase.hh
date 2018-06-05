@@ -70,10 +70,6 @@ public:
                   const PhysicsSpace::HEvolutionType HUpdate,
                   const CRKSPHSpace::CRKOrder correctionOrder,
                   const CRKSPHSpace::CRKVolumeType volumeType,
-                  const bool detectSurfaces,
-                  const double detectThreshold,
-                  const double sweepAngle,
-                  const double detectRange,
                   const double epsTensile,
                   const double nTensile);
 
@@ -195,19 +191,6 @@ public:
   Scalar nTensile() const;
   void nTensile(const Scalar val);
     
-  // Surface detection getters and setters
-  bool detectSurfaces() const;
-  void detectSurfaces(const bool val);
-    
-  double detectThreshold() const;
-  void detectThreshold(const double val);
-    
-  double detectRange() const;
-  void detectRange(const double val);
-    
-  double sweepAngle() const;
-  void sweepAngle(const double val);
-
   // Limits to impose on node by node corrections.
   double correctionMin() const;
   void correctionMin(const double val);
