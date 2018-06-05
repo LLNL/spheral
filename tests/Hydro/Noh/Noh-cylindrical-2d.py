@@ -469,8 +469,6 @@ answer = NohAnalyticSolution.NohSolution(2,
                                          h0 = nPerh*rmax/nRadial)
 
 if graphics:
-    mpi.synchronizeQueuedOutput(None, None)
-
     # Plot the node positions.
     from SpheralMatplotlib import *
     rPlot = plotNodePositions2d(db, colorNodeLists=0, colorDomains=1)
