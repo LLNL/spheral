@@ -131,6 +131,9 @@ def writeMasterMeshSiloFile(dirName, mesh, label, nodeLists, time, cycle, fieldw
         db = silo.DBCreate(fileName, 
                            SA._DB_CLOBBER, SA._DB_LOCAL, label, SA._DB_HDF5)
         
+        # Make directories for variables.
+        assert silo.DBMkDir(db, "CELLS") == 0
+
         # Pattern for constructing per domain variables.
         domainNamePatterns = [("%s/domain%i.silo:" % (p1, i)) + "%s" for i in xrange(mpi.procs) if numZonesPerDomain[i] > 0]
         numDomains = len(domainNamePatterns)
@@ -231,14 +234,15 @@ def writeMasterMeshSiloFile(dirName, mesh, label, nodeLists, time, cycle, fieldw
                 for p in domainNamePatterns:
                     domainVarNames.append(p % name)
                 assert len(domainVarNames) == numDomains
-                assert silo.DBPutMultivar(db, name, domainVarNames, ucdTypes, optlistMV) == 0
+                assert silo.DBPutMultivar(db, "CELLS/" + name, domainVarNames, ucdTypes, optlistMV) == 0
                 if desc != None:
                     for subname, vals in subvars:
+                        print name, subname
                         domainVarNames = vector_of_string()
                         for p in domainNamePatterns:
-                            domainVarNames.append(p % subname)
+                            domainVarNames.append(p % ("CELLS/" + subname))
                         assert len(domainVarNames) == numDomains
-                        assert silo.DBPutMultivar(db, subname, domainVarNames, ucdTypes, optlistVar) == 0
+                        assert silo.DBPutMultivar(db, "CELLS/" + subname, domainVarNames, ucdTypes, optlistVar) == 0
         
         # Make a convenient symlink for the master file.
         linkfile = p1 + ".silo"
@@ -385,7 +389,7 @@ def writeDomainMeshSiloFile(dirName, mesh, index2zone, label, nodeLists, time, c
                                       matOpts) == 0
         
             # Write the variable descriptions for non-scalar variables (vector and tensors).
-            writeDefvars(db, fieldwad)
+            #writeDefvars(db, fieldwad)
         
             # Write the field components.
             centering = SA._DB_ZONECENT
@@ -641,10 +645,10 @@ def metaDataVectorField(name, time, cycle, dim):
     assert optlistVar.addOption(SA._DBOPT_TENSOR_RANK, SA._DB_VARTYPE_SCALAR) == 0
 
     if dim == 2:
-        return ("{%s_x, %s_y}" % (name, name), SA._DB_VARTYPE_VECTOR,
+        return ("{CELLS/%s_x, CELLS/%s_y}" % (name, name), SA._DB_VARTYPE_VECTOR,
                 optlistDef, optlistMV, optlistVar)
     else:
-        return ("{%s_x, %s_y, %s_z}" % (name, name, name), SA._DB_VARTYPE_VECTOR,
+        return ("{CELLS/%s_x, CELLS/%s_y, CELLS/%s_z}" % (name, name, name), SA._DB_VARTYPE_VECTOR,
                 optlistDef, optlistMV, optlistVar)
 
 #-------------------------------------------------------------------------------
@@ -718,10 +722,10 @@ def metaDataTensorField(name, time, cycle, dim):
     assert optlistVar.addOption(SA._DBOPT_TENSOR_RANK, SA._DB_VARTYPE_SCALAR) == 0
 
     if dim == 2:
-        return ("{{%s_xx, %s_xy}, {%s_yx, %s_yy}}" % (name, name, name, name), SA._DB_VARTYPE_TENSOR,
+        return ("{{CELLS/%s_xx, CELLS/%s_xy}, {CELLS/%s_yx, CELLS/%s_yy}}" % (name, name, name, name), SA._DB_VARTYPE_TENSOR,
                 optlistDef, optlistMV, optlistVar)
     else:
-        return ("{{%s_xx, %s_xy, %s_xz}, {%s_yx, %s_yy, %s_yz}, {%s_zx, %s_zy, %s_zz}}" % (name, name, name,
+        return ("{{CELLS/%s_xx, CELLS/%s_xy, CELLS/%s_xz}, {CELLS/%s_yx, CELLS/%s_yy, CELLS/%s_yz}, {CELLS/%s_zx, CELLS/%s_zy, CELLS/%s_zz}}" % (name, name, name,
                                                                                            name, name, name,
                                                                                            name, name, name),
                 SA._DB_VARTYPE_TENSOR, optlistDef, optlistMV, optlistVar)
@@ -737,7 +741,7 @@ def writeDefvars(db, fieldwad):
         if desc != None:
             assert optlistDef != None
             assert len(subvars) > 1
-            names.append(name)
+            names.append("CELLS/" + name)
             defs.append(desc)
             types.append(type)
             opts.append(optlistDef)
@@ -746,8 +750,8 @@ def writeDefvars(db, fieldwad):
     hideOptlist = silo.DBoptlist()
     assert hideOptlist.addOption(SA._DBOPT_HIDE_FROM_GUI, 0) == 0
     for name, desc, type, optlistDef, optlistMV, optlistVar, subvars in fieldwad:
-        names.append("POINT_" + name)
-        defs.append('recenter(pos_cmfe(<[0]id:%s>,<MPointMESH>,0.0), "nodal")' % name)
+        names.append("POINTS/" + name)
+        defs.append('recenter(pos_cmfe(<[0]id:CELLS/%s>,<MPointMESH>,0.0), "nodal")' % name)
         types.append(type)
         opts.append(hideOptlist)
 
