@@ -584,6 +584,7 @@ self.generateSolidSPHHydroBaseBindings(self.SolidSPHHydroBase%(dim)id, %(dim)i)
                            param("HEvolutionType", "HUpdate", default_value="Spheral::PhysicsSpace::HEvolutionType::IdealH"),
                            param("double", "epsTensile", default_value="0.0"),
                            param("double", "nTensile", default_value="4.0"),
+                           param("bool", "damageRelieveRubble", default_value="true"),
                            param(vector, "xmin", default_value="%s(-1e10, -1e10, -1e10)" % vector),
                            param(vector, "xmax", default_value="%s( 1e10,  1e10,  1e10)" % vector)])
 
@@ -619,6 +620,7 @@ self.generateSolidSPHHydroBaseBindings(self.SolidSPHHydroBase%(dim)id, %(dim)i)
         const_ref_return_value(x, me, "%s::yieldStrength" % me, scalarfieldlist, [], "yieldStrength")
         const_ref_return_value(x, me, "%s::plasticStrain0" % me, scalarfieldlist, [], "plasticStrain0")
         const_ref_return_value(x, me, "%s::Hfield0" % me, symtensorfieldlist, [], "Hfield0")
+        x.add_instance_attribute("damageRelieveRubble", "bool", getter="damageRelieveRubble", setter="damageRelieveRubble")
 
         return
 
@@ -687,6 +689,7 @@ self.generateSolidSPHHydroBaseBindings(self.SolidSPHHydroBase%(dim)id, %(dim)i)
                            param("HEvolutionType", "HUpdate", default_value="Spheral::PhysicsSpace::HEvolutionType::IdealH"),
                            param("double", "epsTensile", default_value="0.0"),
                            param("double", "nTensile", default_value="4.0"),
+                           param("bool", "damageRelieveRubble", default_value="false"),
                            param(vector, "xmin", default_value="%s(-1e10, -1e10, -1e10)" % vector),
                            param(vector, "xmax", default_value="%s( 1e10,  1e10,  1e10)" % vector)])
 

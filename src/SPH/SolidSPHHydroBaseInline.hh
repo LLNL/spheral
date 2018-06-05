@@ -2,7 +2,26 @@ namespace Spheral {
 namespace SPHSpace {
 
 //------------------------------------------------------------------------------
-// Access the kernel used for artificial viscosity gradients.
+// Control whether allow damaged material to have stress relieved.
+//------------------------------------------------------------------------------
+template<typename Dimension>
+inline
+bool
+SolidSPHHydroBase<Dimension>::
+damageRelieveRubble() const {
+  return mDamageRelieveRubble;
+}
+
+template<typename Dimension>
+inline
+void
+SolidSPHHydroBase<Dimension>::
+damageRelieveRubble(const bool x) {
+  mDamageRelieveRubble = x;
+}
+
+//------------------------------------------------------------------------------
+// Kernel for velocity gradient.
 //------------------------------------------------------------------------------
 template<typename Dimension>
 inline

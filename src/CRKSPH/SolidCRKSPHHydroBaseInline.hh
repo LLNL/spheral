@@ -2,6 +2,25 @@ namespace Spheral {
 namespace CRKSPHSpace {
 
 //------------------------------------------------------------------------------
+// Control whether allow damaged material to have stress relieved.
+//------------------------------------------------------------------------------
+template<typename Dimension>
+inline
+bool
+SolidCRKSPHHydroBase<Dimension>::
+damageRelieveRubble() const {
+  return mDamageRelieveRubble;
+}
+
+template<typename Dimension>
+inline
+void
+SolidCRKSPHHydroBase<Dimension>::
+damageRelieveRubble(const bool x) {
+  mDamageRelieveRubble = x;
+}
+
+//------------------------------------------------------------------------------
 // The internal state field lists.
 //------------------------------------------------------------------------------
 template<typename Dimension>

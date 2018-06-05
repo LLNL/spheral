@@ -71,29 +71,26 @@ public:
                          const PhysicsSpace::HEvolutionType HUpdate,
                          const CRKSPHSpace::CRKOrder correctionOrder,
                          const CRKSPHSpace::CRKVolumeType volumeType,
-                         const bool detectSurfaces,
-                         const double detectThreshold,
-                         const double sweepAngle,
-                         const double detectRange,
                          const double epsTensile,
-                         const double nTensile);
+                         const double nTensile,
+                         const bool damageRelieveRubble);
 
   // Destructor.
   virtual ~SolidCRKSPHHydroBaseRZ();
 
   // Tasks we do once on problem startup.
   virtual
-  void initializeProblemStartup(DataBaseSpace::DataBase<Dimension>& dataBase);
+  void initializeProblemStartup(DataBaseSpace::DataBase<Dimension>& dataBase) override;
 
   // Register the state Hydro expects to use and evolve.
   virtual 
   void registerState(DataBaseSpace::DataBase<Dimension>& dataBase,
-                     State<Dimension>& state);
+                     State<Dimension>& state) override;
 
   // Register the derivatives/change fields for updating state.
   virtual
   void registerDerivatives(DataBaseSpace::DataBase<Dimension>& dataBase,
-                           StateDerivatives<Dimension>& derivs);
+                           StateDerivatives<Dimension>& derivs) override;
 
   // Evaluate the derivatives for the principle hydro variables:
   // mass density, velocity, and specific thermal energy.
@@ -102,7 +99,7 @@ public:
                            const Scalar dt,
                            const DataBaseSpace::DataBase<Dimension>& dataBase,
                            const State<Dimension>& state,
-                           StateDerivatives<Dimension>& derivatives) const;
+                           StateDerivatives<Dimension>& derivatives) const override;
 
   // Finalize the hydro at the completion of an integration step.
   virtual
@@ -110,17 +107,17 @@ public:
                 const Scalar dt,
                 DataBaseSpace::DataBase<Dimension>& dataBase,
                 State<Dimension>& state,
-                StateDerivatives<Dimension>& derivs);
+                StateDerivatives<Dimension>& derivs) override;
                
   // Apply boundary conditions to the physics specific fields.
   virtual
   void applyGhostBoundaries(State<Dimension>& state,
-                            StateDerivatives<Dimension>& derivs);
+                            StateDerivatives<Dimension>& derivs) override;
 
   // Enforce boundary conditions for the physics specific fields.
   virtual
   void enforceBoundaries(State<Dimension>& state,
-                         StateDerivatives<Dimension>& derivs);
+                         StateDerivatives<Dimension>& derivs) override;
 
   // The state field lists we're maintaining.
   // In the RZ case we have the (theta,theta) component of the deviatoric stress.

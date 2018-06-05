@@ -130,12 +130,9 @@ SolidCRKSPHHydroBaseRZ(const SmoothingScaleBase<Dimension>& smoothingScaleMethod
                        const PhysicsSpace::HEvolutionType HUpdate,
                        const CRKSPHSpace::CRKOrder correctionOrder,
                        const CRKSPHSpace::CRKVolumeType volumeType,
-                       const bool detectSurfaces,
-                       const double detectThreshold,
-                       const double sweepAngle,
-                       const double detectRange,
                        const double epsTensile,
-                       const double nTensile):
+                       const double nTensile,
+                       const bool damageRelieveRubble):
   SolidCRKSPHHydroBase<Dimension>(smoothingScaleMethod, 
                                   Q,
                                   W,
@@ -150,12 +147,9 @@ SolidCRKSPHHydroBaseRZ(const SmoothingScaleBase<Dimension>& smoothingScaleMethod
                                   HUpdate,
                                   correctionOrder,
                                   volumeType,
-                                  detectSurfaces,
-                                  detectThreshold,
-                                  sweepAngle,
-                                  detectRange,
                                   epsTensile,
-                                  nTensile),
+                                  nTensile,
+                                  damageRelieveRubble),
   mDeviatoricStressTT(FieldSpace::FieldStorageType::CopyFields),
   mDdeviatoricStressTTDt(FieldSpace::FieldStorageType::CopyFields) {
 }

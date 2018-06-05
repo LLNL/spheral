@@ -433,10 +433,6 @@ self.generateCRKSPHVariantBindings(self.CRKSPHVariant%(dim)id, %(dim)i)
                            param("HEvolutionType", "HUpdate"),
                            param("CRKOrder", "correctionOrder"),
                            param("CRKVolumeType", "volumeType"),
-                           param("int", "detectSurfaces"),
-                           param("double", "detectThreshold"),
-                           param("double", "sweepAngle"),
-                           param("double", "detectRange"),
                            param("double", "epsTensile"),
                            param("double", "nTensile")])
 
@@ -496,10 +492,6 @@ self.generateCRKSPHVariantBindings(self.CRKSPHVariant%(dim)id, %(dim)i)
         x.add_instance_attribute("evolveTotalEnergy", "bool", getter="evolveTotalEnergy", setter="evolveTotalEnergy")
         x.add_instance_attribute("XSPH", "bool", getter="XSPH", setter="XSPH")
         x.add_instance_attribute("filter", "double", getter="filter", setter="filter")
-        x.add_instance_attribute("detectSurfaces", "int", getter="detectSurfaces", setter="detectSurfaces")
-        x.add_instance_attribute("detectThreshold", "double", getter="detectThreshold", setter="detectThreshold")
-        x.add_instance_attribute("detectRange", "double", getter="detectRange", setter="detectRange")
-        x.add_instance_attribute("sweepAngle", "double", getter="sweepAngle", setter="sweepAngle")
         x.add_instance_attribute("correctionMin", "double", getter="correctionMin", setter="correctionMin")
         x.add_instance_attribute("correctionMax", "double", getter="correctionMax", setter="correctionMax")
 
@@ -603,15 +595,13 @@ self.generateCRKSPHVariantBindings(self.CRKSPHVariant%(dim)id, %(dim)i)
                            param("HEvolutionType", "HUpdate"),
                            param("CRKOrder", "correctionOrder"),
                            param("CRKVolumeType", "volumeType"),
-                           param("int", "detectSurfaces"),
-                           param("double", "detectThreshold"),
-                           param("double", "sweepAngle"),
-                           param("double", "detectRange"),
                            param("double", "epsTensile"),
-                           param("double", "nTensile")])
+                           param("double", "nTensile"),
+                           param("bool", "damageRelieveRubble", default_value="false")])
 
         # Attributes.
         const_ref_return_value(x, me, "%s::Hfield0" % me, symtensorfieldlist, [], "Hfield0")
+        x.add_instance_attribute("damageRelieveRubble", "bool", getter="damageRelieveRubble", setter="damageRelieveRubble")
 
         return
 
@@ -676,10 +666,6 @@ self.generateCRKSPHVariantBindings(self.CRKSPHVariant%(dim)id, %(dim)i)
                            param("HEvolutionType", "HUpdate"),
                            param("CRKOrder", "correctionOrder"),
                            param("CRKVolumeType", "volumeType"),
-                           param("int", "detectSurfaces"),
-                           param("double", "detectThreshold"),
-                           param("double", "sweepAngle"),
-                           param("double", "detectRange"),
                            param("double", "epsTensile"),
                            param("double", "nTensile")])
 
@@ -746,12 +732,9 @@ self.generateCRKSPHVariantBindings(self.CRKSPHVariant%(dim)id, %(dim)i)
                            param("HEvolutionType", "HUpdate"),
                            param("CRKOrder", "correctionOrder"),
                            param("CRKVolumeType", "volumeType"),
-                           param("int", "detectSurfaces"),
-                           param("double", "detectThreshold"),
-                           param("double", "sweepAngle"),
-                           param("double", "detectRange"),
                            param("double", "epsTensile"),
-                           param("double", "nTensile")])
+                           param("double", "nTensile"),
+                           param("bool", "damageRelieveRubble", default_value="false")])
 
         # Attributes.
         const_ref_return_value(x, me, "%s::deviatoricStressTT" % me, scalarfieldlist, [], "deviatoricStressTT")
@@ -819,10 +802,6 @@ self.generateCRKSPHVariantBindings(self.CRKSPHVariant%(dim)id, %(dim)i)
                            param("HEvolutionType", "HUpdate"),
                            param("CRKOrder", "correctionOrder"),
                            param("CRKVolumeType", "volumeType"),
-                           param("int", "detectSurfaces"),
-                           param("double", "detectThreshold"),
-                           param("double", "sweepAngle"),
-                           param("double", "detectRange"),
                            param("double", "epsTensile"),
                            param("double", "nTensile")])
 
