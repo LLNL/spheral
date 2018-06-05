@@ -154,7 +154,7 @@ computeFragmentField(const NodeList<Dimension>& nodes,
   }
 
   // Reduce the count of remaining nodes by the number of dust nodes.
-#ifdef USER_MPI
+#ifdef USE_MPI
   {
     int tmp = numDustNodes;
     MPI_Allreduce(&tmp, &numDustNodes, 1, MPI_INT, MPI_SUM, Communicator::communicator());
