@@ -795,14 +795,12 @@ inline
 bool
 Field<Dimension, DataType>::
 operator==(const Field<Dimension, DataType>& rhs) const {
-  if (this->size() != rhs.size()) return false;
-  bool result = true;
-  const_iterator lhsItr = this->begin();
-  const_iterator rhsItr = rhs.begin();
-  while (lhsItr < this->end() && result) {
-    result = *lhsItr == *rhsItr;
-    ++lhsItr;
-    ++rhsItr;
+  const auto n = this->size();
+  if (n != rhs.size()) return false;
+  auto result = true;
+  auto i = 0;
+  while (i < n and result) {
+    result = (*this)(i) == rhs(i);
   }
   return result;
 }

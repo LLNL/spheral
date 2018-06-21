@@ -463,7 +463,11 @@ output("control")
 # Advance to the end time.
 #-------------------------------------------------------------------------------
 if not steps is None:
+    if checkRestart:
+        control.setRestartBaseName(restartBaseName + "_CHECK")
     control.step(steps)
+    if checkRestart:
+        control.setRestartBaseName(restartBaseName)
 
     # Are we doing the restart test?
     if checkRestart:

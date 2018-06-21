@@ -192,7 +192,23 @@ control = SpheralController(integrator, WT,
 # Advance to the end time.
 #-------------------------------------------------------------------------------
 if not steps is None:
+    if checkRestart:
+        control.setRestartBaseName(restartBaseName + "_CHECK")
     control.step(steps)
+    if checkRestart:
+        control.setRestartBaseName(restartBaseName)
+
+    # Are we doing the restart test?
+    if checkRestart:
+        state0 = State(db, integrator.physicsPackages())
+        state0.copyState()
+        control.loadRestartFile(control.totalSteps)
+        state1 = State(db, integrator.physicsPackages())
+        if not state1 == state0:
+            raise ValueError, "The restarted state does not match!"
+        else:
+            print "Restart check PASSED."
+
 else:
     print "Advancing to %g sec = %g years" % (goalTime, goalTime/(365.24*24*3600))
     control.advance(goalTime)

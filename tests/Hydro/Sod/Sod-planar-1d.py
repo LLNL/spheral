@@ -1,5 +1,13 @@
-#ATS:t1 = test(      SELF, "--crksph True --cfl 0.25 --graphics None --clearDirectories True  --restartStep 20 --steps 40", label="Planar Sod problem with CRK -- 1-D (serial)")
-#ATS:t2 = testif(t1, SELF, "--crksph True --cfl 0.25 --graphics None --clearDirectories False --restartStep 20 --restoreCycle 20 --steps 20 --checkRestart True", label="Planar Sod problem with CRK -- 1-D (serial) RESTART CHECK")
+#
+# SPH
+#
+#ATS:sph1 = test(        SELF, "--crksph False --cfl 0.25 --graphics None --clearDirectories True  --restartStep 20 --steps 40", label="Planar Sod problem with SPH -- 1-D (serial)")
+#ATS:sph2 = testif(sph1, SELF, "--crksph False --cfl 0.25 --graphics None --clearDirectories False --restartStep 20 --steps 20 --restoreCycle 20 --checkRestart True", label="Planar Sod problem with SPH -- 1-D (serial) RESTART CHECK")
+#
+# CRK
+#
+#ATS:crk1 = test(        SELF, "--crksph True --cfl 0.25 --graphics None --clearDirectories True  --restartStep 20 --steps 40", label="Planar Sod problem with CRK -- 1-D (serial)")
+#ATS:crk2 = testif(crk1, SELF, "--crksph True --cfl 0.25 --graphics None --clearDirectories False --restartStep 20 --steps 20 --restoreCycle 20 --checkRestart True", label="Planar Sod problem with CRK -- 1-D (serial) RESTART CHECK")
 import os, sys
 import shutil
 from SolidSpheral1d import *
@@ -465,7 +473,11 @@ if useRefinement:
 # Advance to the end time.
 #-------------------------------------------------------------------------------
 if not steps is None:
+    if checkRestart:
+        control.setRestartBaseName(restartBaseName + "_CHECK")
     control.step(steps)
+    if checkRestart:
+        control.setRestartBaseName(restartBaseName)
 
     # Are we doing the restart test?
     if checkRestart:
