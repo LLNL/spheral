@@ -121,8 +121,8 @@ shearModulus(FieldSpace::Field<Dimension, Scalar>& shearModulus,
       shearModulus(i) = min(mGmax, 
                             mG0*max(1.0e-10,
                                     meltAttenuation(density(i), specificThermalEnergy(i))*(1.0 + 
-                                                                                           mA*max(0.0, pressure(i))/FastMath::CubeRootHalley2(eta) -
-                                                                                           mB*min(0.0, T(i)))));
+                                                                                           mA*pressure(i)/FastMath::CubeRootHalley2(eta) -
+                                                                                           mB*T(i))));
       CHECK(distinctlyGreaterThan(shearModulus(i), 0.0));
     }
   }
@@ -152,8 +152,8 @@ yieldStrength(FieldSpace::Field<Dimension, Scalar>& yieldStrength,
     for (unsigned i = 0; i != density.numInternalElements(); ++i) {
       const double eta = mEOSPtr->boundedEta(density(i));
       CHECK(distinctlyGreaterThan(eta, 0.0));
-      const double Yhard = mY0*pow(1.0 + mbeta*(plasticStrain(i) + mgamma0), mnhard);
-      yieldStrength(i) = min(mYmax, Yhard/mG0*yieldStrength(i));
+      const double Yhard = min(mYmax, mY0*pow(1.0 + mbeta*(plasticStrain(i) + mgamma0), mnhard));
+      yieldStrength(i) = Yhard*yieldStrength(i)/mG0;
     }
   }
 }
@@ -191,21 +191,14 @@ meltAttenuation(const double density, const double specificThermalEnergy) const 
   const double mu = mEOSPtr->boundedEta(density) - 1.0;
   CHECK(rho0 > 0.0);
   CHECK(mu >= -1.0);
-  const double emelt = mMeltEnergyFit(mu)/rho0;
-  // CHECK(fuzzyGreaterThanOrEqual(emelt, 0.0));
+  const double emelt = mMeltEnergyFit(mu)/rho0;   // Note converted to specific thermal energy.
 
   double result;
-  if (fuzzyEqual(emelt, 0.0) || specificThermalEnergy < 0.0) {
-    result = 1.0;
+  if (fuzzyGreaterThanOrEqual(specificThermalEnergy, emelt)) {
+    result = 0.0;
   } else {
-    CHECK(!fuzzyEqual(specificThermalEnergy, emelt));
-    result = exp(-mYp*specificThermalEnergy*safeInv(emelt - specificThermalEnergy, 1.0e-8));
-    // if (specificThermalEnergy > (1.0 - tiny)*emelt) {
-    //   result = 0.0;
-    // } else {
-    //   CHECK(!fuzzyEqual(specificThermalEnergy, emelt));
-    //   result = exp(-mYp*specificThermalEnergy/(emelt - specificThermalEnergy));
-    // }
+    CHECK(distinctlyLessThan(specificThermalEnergy, emelt));
+    result = exp(-mYp*specificThermalEnergy/(emelt - specificThermalEnergy));
   }
 
   return result;
@@ -221,10 +214,12 @@ computeTemperature(FieldSpace::Field<Dimension, Scalar>& temperature,
                    const FieldSpace::Field<Dimension, Scalar>& density,
                    const FieldSpace::Field<Dimension, Scalar>& specificThermalEnergy) const {
   Field<Dimension, Scalar> eps1("new energy", density.nodeList());
-  for (unsigned i = 0; i != density.numInternalElements(); ++i) {
+  const double rho0 = mEOSPtr->referenceDensity();
+  const auto n = density.numInternalElements();
+  for (auto i = 0; i < n; ++i) {
     const double mu = mEOSPtr->boundedEta(density(i)) - 1.0;
     CHECK(mu >= -1.0);
-    eps1(i) = max(0.0, specificThermalEnergy(i) - mColdEnergyFit(mu));
+    eps1(i) = specificThermalEnergy(i) - mColdEnergyFit(mu)/rho0;   // Note converted to specific thermal energy.
   }
   mEOSPtr->setTemperature(temperature, density, eps1);
   temperature -= 300.0;
