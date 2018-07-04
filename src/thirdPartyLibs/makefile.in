@@ -395,7 +395,7 @@ $(PYTHONBUILDDATE):	$(PYTHON) cache/$(PYTHONDIST) $(ZLIBBUILDDATE)
 	rm -f $(PYTHONBUILDDATE); \
 	exit 1; \
 	fi
-	$(SPHERALTOP)/helpers/runexecstack $(PYTHONEXE)
+	#$(SPHERALTOP)/helpers/runexecstack $(PYTHONEXE)
 	rm -fr $(PYTHONDIR)
 	touch $(PYTHONBUILDDATE)
 
