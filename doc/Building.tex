@@ -170,6 +170,18 @@ Some lesser used options that may be of interest include
 \item From this point you can configure and build as usual.
 \end{enumerate}
 
+%-------------------------------------------------------------------------------
+\subsection{Windows 10}
+\Spheral\ also builds on Windows 10 using the Windows Subsystem for Linux (WSL).  Various flavors of Linux can be installed from the Microsoft store -- we have built Spheral using the Ubuntu package for WSL.
+
+Under WSL \Spheral\ builds normally for a Linux platform, but you must make sure the necessary bits are installed for a build.  For instance a compiler suite must be installed (typically GCC or LLVM).  The only tricky part I have encountered is ensuring the packages necessary for a healthy python build are there.  Under the Ubunutu shell the following package install resulted in being able to build a fully functioning python in \Spheral:
+\begin{verbatim}
+sudo apt install libssl-dev zlib1g-dev libncurses5-dev libncursesw5-dev 
+sudo apt install libreadline-dev libsqlite3-dev libgdbm-dev 
+sudo apt install libdb5.3-dev libbz2-dev libexpat1-dev liblzma-dev tk-dev
+\end{verbatim}
+
+%-------------------------------------------------------------------------------
 \subsection{Configuration examples}
 When configuring your build, bear in mind the limitation that we require a reasonably standard compliant C++ compiler.  If you encounter problems with compiling the C++ portions of \Spheral, often using a more up to date compiler (such as the freely available \verb.gcc/g++. suite) will resolve such issues.
 
