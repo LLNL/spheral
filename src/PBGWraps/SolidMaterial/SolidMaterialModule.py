@@ -510,6 +510,14 @@ def generateStrengthModelVirtualBindings(x, ndim, pureVirtual):
                                       constrefparam(scalarfield, "pressure"),
                                       constrefparam(scalarfield, "fluidSoundSpeed")],
                  is_const=True, is_virtual=True)
+    x.add_method("meltSpecificEnergy", None, [refparam(scalarfield, "meltSpecificEnergy"),
+                                              constrefparam(scalarfield, "density"),
+                                              constrefparam(scalarfield, "specificThermalEnergy")],
+                 is_const=True, is_virtual=True)
+    x.add_method("coldSpecificEnergy", None, [refparam(scalarfield, "coldSpecificEnergy"),
+                                              constrefparam(scalarfield, "density"),
+                                              constrefparam(scalarfield, "specificThermalEnergy")],
+                 is_const=True, is_virtual=True)
     return
 
 #---------------------------------------------------------------------------

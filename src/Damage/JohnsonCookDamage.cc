@@ -8,6 +8,7 @@
 #include "JohnsonCookFailureStrainPolicy.hh"
 #include "JohnsonCookDamagePolicy.hh"
 #include "Strength/SolidFieldNames.hh"
+#include "Strength/MeltEnergyPolicy.hh"
 #include "NodeList/SolidNodeList.hh"
 #include "DataBase/DataBase.hh"
 #include "DataBase/State.hh"
@@ -70,6 +71,7 @@ JohnsonCookDamage(SolidNodeList<Dimension>& nodeList,
   mD1("D1_" + nodeList.name(), nodeList),
   mD2("D2_" + nodeList.name(), nodeList),
   mFailureStrain(SolidFieldNames::flaws, nodeList),
+  mMeltSpecificEnergy(SolidFieldNames::meltSpecificEnergy, nodeList),
   mD3(D3),
   mD4(D4),
   mD5(D5),
@@ -204,6 +206,10 @@ registerState(DataBase<Dimension>& dataBase,
   // Register the damage for updating.
   PolicyPointer damagePolicy(new JohnsonCookDamagePolicy<Dimension>());
   state.enroll(mNodeList.damage(), damagePolicy);
+
+  // We also require the melt energy.
+  PolicyPointer meltPolicy(new MeltEnergyPolicy<Dimension>());
+  state.enroll(mMeltSpecificEnergy, meltPolicy);
 }
 
 //------------------------------------------------------------------------------
@@ -226,6 +232,7 @@ dumpState(FileIO& file, const string& pathName) const {
   file.write(mD1, pathName + "/D1");
   file.write(mD2, pathName + "/D2");
   file.write(mFailureStrain, pathName + "/failureStrain");
+  file.write(mMeltSpecificEnergy, pathName + "/meltSpecificEnergy");
 }
 
 //------------------------------------------------------------------------------
@@ -238,6 +245,7 @@ restoreState(const FileIO& file, const string& pathName) {
   file.read(mD1, pathName + "/D1");
   file.read(mD2, pathName + "/D2");
   file.read(mFailureStrain, pathName + "/failureStrain");
+  file.read(mMeltSpecificEnergy, pathName + "/meltSpecificEnergy");
 }
 
 }

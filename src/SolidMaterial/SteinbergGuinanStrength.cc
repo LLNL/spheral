@@ -115,8 +115,10 @@ shearModulus(FieldSpace::Field<Dimension, Scalar>& shearModulus,
   } else {
     Field<Dimension, Scalar> T("temperature", density.nodeList());
     this->computeTemperature(T, density, specificThermalEnergy);
-    for (unsigned i = 0; i != density.numInternalElements(); ++i) {
-      const double eta = mEOSPtr->boundedEta(density(i));
+    const auto n = density.numInternalElements();
+#pragma omp parallel for
+    for (auto i = 0; i < n; ++i) {
+      const auto eta = mEOSPtr->boundedEta(density(i));
       CHECK(distinctlyGreaterThan(eta, 0.0));
       shearModulus(i) = min(mGmax, 
                             mG0*max(1.0e-10,
@@ -149,10 +151,12 @@ yieldStrength(FieldSpace::Field<Dimension, Scalar>& yieldStrength,
 
   } else {
     this->shearModulus(yieldStrength, density, specificThermalEnergy, pressure);
-    for (unsigned i = 0; i != density.numInternalElements(); ++i) {
-      const double eta = mEOSPtr->boundedEta(density(i));
+    const auto n = density.numInternalElements();
+#pragma omp parallel for
+    for (auto i = 0; i < n; ++i) {
+      const auto eta = mEOSPtr->boundedEta(density(i));
       CHECK(distinctlyGreaterThan(eta, 0.0));
-      const double Yhard = min(mYmax, mY0*pow(1.0 + mbeta*(plasticStrain(i) + mgamma0), mnhard));
+      const auto Yhard = min(mYmax, mY0*pow(1.0 + mbeta*(plasticStrain(i) + mgamma0), mnhard));
       yieldStrength(i) = Yhard*yieldStrength(i)/mG0;
     }
   }
@@ -171,11 +175,53 @@ soundSpeed(FieldSpace::Field<Dimension, Scalar>& soundSpeed,
            const FieldSpace::Field<Dimension, Scalar>& fluidSoundSpeed) const {
   Field<Dimension, Scalar> mu("shear modulus", density.nodeList());
   this->shearModulus(mu, density, specificThermalEnergy, pressure);
-  for (unsigned i = 0; i != density.numInternalElements(); ++i) {
+  const auto n = density.numInternalElements();
+#pragma omp parallel for
+  for (auto i = 0; i < n; ++i) {
     CHECK(density(i) > 0.0);
-    const double cs2 = fluidSoundSpeed(i)*fluidSoundSpeed(i) + std::abs(4.0/3.0 * mu(i)) / density(i);
+    const auto cs2 = fluidSoundSpeed(i)*fluidSoundSpeed(i) + std::abs(4.0/3.0 * mu(i)) / density(i);
     CHECK(cs2 > 0.0);
     soundSpeed(i) = std::sqrt(cs2);
+  }
+}
+
+//------------------------------------------------------------------------------
+// Compute the melt specific energy.
+//------------------------------------------------------------------------------
+template<typename Dimension>
+void
+SteinbergGuinanStrength<Dimension>::
+meltSpecificEnergy(FieldSpace::Field<Dimension, Scalar>& meltSpecificEnergy,
+                   const FieldSpace::Field<Dimension, Scalar>& density,
+                   const FieldSpace::Field<Dimension, Scalar>& specificThermalEnergy) const {
+  const auto rho0 = mEOSPtr->referenceDensity();
+  CHECK(rho0 > 0.0);
+  const auto n = meltSpecificEnergy.numInternalElements();
+#pragma omp parallel for
+  for (auto i = 0; i < n; ++i) {
+    const auto mu = mEOSPtr->boundedEta(density(i)) - 1.0;
+    CHECK(mu >= -1.0);
+    meltSpecificEnergy(i) = mMeltEnergyFit(mu)/rho0;   // Note converted to specific energy.
+  }
+}
+
+//------------------------------------------------------------------------------
+// Compute the cold specific energy.
+//------------------------------------------------------------------------------
+template<typename Dimension>
+void
+SteinbergGuinanStrength<Dimension>::
+coldSpecificEnergy(FieldSpace::Field<Dimension, Scalar>& coldSpecificEnergy,
+                   const FieldSpace::Field<Dimension, Scalar>& density,
+                   const FieldSpace::Field<Dimension, Scalar>& specificEnergy) const {
+  const auto rho0 = mEOSPtr->referenceDensity();
+  CHECK(rho0 > 0.0);
+  const auto n = coldSpecificEnergy.numInternalElements();
+#pragma omp parallel for
+  for (auto i = 0; i < n; ++i) {
+    const auto mu = mEOSPtr->boundedEta(density(i)) - 1.0;
+    CHECK(mu >= -1.0);
+    coldSpecificEnergy(i) = mColdEnergyFit(mu)/rho0;   // Note converted to specific energy.
   }
 }
 
@@ -214,10 +260,11 @@ computeTemperature(FieldSpace::Field<Dimension, Scalar>& temperature,
                    const FieldSpace::Field<Dimension, Scalar>& density,
                    const FieldSpace::Field<Dimension, Scalar>& specificThermalEnergy) const {
   Field<Dimension, Scalar> eps1("new energy", density.nodeList());
-  const double rho0 = mEOSPtr->referenceDensity();
+  const auto rho0 = mEOSPtr->referenceDensity();
   const auto n = density.numInternalElements();
+#pragma omp parallel for
   for (auto i = 0; i < n; ++i) {
-    const double mu = mEOSPtr->boundedEta(density(i)) - 1.0;
+    const auto mu = mEOSPtr->boundedEta(density(i)) - 1.0;
     CHECK(mu >= -1.0);
     eps1(i) = specificThermalEnergy(i) - mColdEnergyFit(mu)/rho0;   // Note converted to specific thermal energy.
   }
