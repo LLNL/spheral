@@ -62,7 +62,11 @@ class Strength:
         x.add_static_attribute("YoungsModulus", "std::string",  is_const=True)
         x.add_static_attribute("longitudinalSoundSpeed", "std::string",  is_const=True)
         x.add_static_attribute("yieldStrength", "std::string",  is_const=True)
+        x.add_static_attribute("flaws", "std::string",  is_const=True)
         x.add_static_attribute("effectiveFlaws", "std::string",  is_const=True)
+        x.add_static_attribute("porosityAlpha", "std::string",  is_const=True)
+        x.add_static_attribute("porosityStrain", "std::string",  is_const=True)
         x.add_static_attribute("fragmentIDs", "std::string",  is_const=True)
+        x.add_static_attribute("particleTypes", "std::string",  is_const=True)
+        x.add_static_attribute("meltSpecificEnergy", "std::string",  is_const=True)
         return
-

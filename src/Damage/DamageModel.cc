@@ -55,7 +55,7 @@ DamageModel(SolidNodeList<Dimension>& nodeList,
             const EffectiveFlawAlgorithm flawAlgorithm,
             const FlawStorageType& flaws):
   Physics<Dimension>(),
-  mFlaws("Flaws", flaws),
+  mFlaws(SolidFieldNames::flaws, flaws),
   mEffectiveFlaws(SolidFieldNames::effectiveFlaws, nodeList),
   mNodeList(nodeList),
   mW(W),
