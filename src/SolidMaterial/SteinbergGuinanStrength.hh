@@ -61,20 +61,29 @@ public:
   virtual void shearModulus(FieldSpace::Field<Dimension, Scalar>& shearModulus,
                             const FieldSpace::Field<Dimension, Scalar>& density,
                             const FieldSpace::Field<Dimension, Scalar>& specificThermalEnergy,
-                            const FieldSpace::Field<Dimension, Scalar>& pressure) const;
+                            const FieldSpace::Field<Dimension, Scalar>& pressure) const override;
 
   virtual void yieldStrength(FieldSpace::Field<Dimension, Scalar>& yieldStrength,
                              const FieldSpace::Field<Dimension, Scalar>& density,
                              const FieldSpace::Field<Dimension, Scalar>& specificThermalEnergy,
                              const FieldSpace::Field<Dimension, Scalar>& pressure,
                              const FieldSpace::Field<Dimension, Scalar>& plasticStrain,
-                             const FieldSpace::Field<Dimension, Scalar>& plasticStrainRate) const;
+                             const FieldSpace::Field<Dimension, Scalar>& plasticStrainRate) const override;
 
   virtual void soundSpeed(FieldSpace::Field<Dimension, Scalar>& soundSpeed,
                           const FieldSpace::Field<Dimension, Scalar>& density,
                           const FieldSpace::Field<Dimension, Scalar>& specificThermalEnergy,
                           const FieldSpace::Field<Dimension, Scalar>& pressure,
-                          const FieldSpace::Field<Dimension, Scalar>& fluidSoundSpeed) const;
+                          const FieldSpace::Field<Dimension, Scalar>& fluidSoundSpeed) const override;
+
+  // Steinberg-Guinan also can provide melt and cold energies.
+  virtual void meltSpecificEnergy(FieldSpace::Field<Dimension, Scalar>& meltSpecificEnergy,
+                                  const FieldSpace::Field<Dimension, Scalar>& density,
+                                  const FieldSpace::Field<Dimension, Scalar>& specficThermalEnergy) const override;
+
+  virtual void coldSpecificEnergy(FieldSpace::Field<Dimension, Scalar>& meltSpecificEnergy,
+                                  const FieldSpace::Field<Dimension, Scalar>& density,
+                                  const FieldSpace::Field<Dimension, Scalar>& specficThermalEnergy) const override;
 
   // Melt attenuation.
   double meltAttenuation(const double rho, const double eps) const;

@@ -298,6 +298,12 @@ self.generateJohnsonCookDamageBindings(self.JohnsonCookDamage%(dim)id, %(dim)i)
         x.add_function_as_method("const_reference_as_pointer",
                                  retval(ptr(scalarfield), reference_existing_object=True),
                                  [param(me, "self")],
+                                 template_parameters = [me, scalarfield, "&%s::meltSpecificEnergy" % me],
+                                 foreign_cpp_namespace = "Spheral",
+                                 custom_name = "meltSpecificEnergy")
+        x.add_function_as_method("const_reference_as_pointer",
+                                 retval(ptr(scalarfield), reference_existing_object=True),
+                                 [param(me, "self")],
                                  template_parameters = [me, scalarfield, "&%s::D1" % me],
                                  foreign_cpp_namespace = "Spheral",
                                  custom_name = "D1")

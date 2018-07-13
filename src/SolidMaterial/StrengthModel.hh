@@ -50,6 +50,15 @@ public:
                           const FieldSpace::Field<Dimension, Scalar>& fluidSoundSpeed) const { soundSpeed = fluidSoundSpeed; }
   //............................................................................
 
+  // Some strength models optionally provide the following methods.
+  virtual void meltSpecificEnergy(FieldSpace::Field<Dimension, Scalar>& meltSpecificEnergy,
+                                  const FieldSpace::Field<Dimension, Scalar>& density,
+                                  const FieldSpace::Field<Dimension, Scalar>& specficThermalEnergy) const;
+
+  virtual void coldSpecificEnergy(FieldSpace::Field<Dimension, Scalar>& meltSpecificEnergy,
+                                  const FieldSpace::Field<Dimension, Scalar>& density,
+                                  const FieldSpace::Field<Dimension, Scalar>& specficThermalEnergy) const;
+
 protected:
   // The following individual methods are deprecated.
   virtual double shearModulus(const double density,

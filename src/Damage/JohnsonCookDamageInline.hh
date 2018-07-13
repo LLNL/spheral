@@ -21,6 +21,13 @@ failureStrain() const {
 template<typename Dimension>
 const FieldSpace::Field<Dimension, typename Dimension::Scalar>&
 JohnsonCookDamage<Dimension>::
+meltSpecificEnergy() const {
+  return mMeltSpecificEnergy;
+}
+
+template<typename Dimension>
+const FieldSpace::Field<Dimension, typename Dimension::Scalar>&
+JohnsonCookDamage<Dimension>::
 D1() const {
   return mD1;
 }
