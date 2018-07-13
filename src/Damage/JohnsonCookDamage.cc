@@ -49,8 +49,6 @@ using NeighborSpace::Neighbor;
 template<typename Dimension>
 JohnsonCookDamage<Dimension>::
 JohnsonCookDamage(SolidNodeList<Dimension>& nodeList,
-                  const unsigned seed,
-                  const bool domainIndependent,
                   const double D1,
                   const double D2,
                   const double D3,
@@ -65,7 +63,9 @@ JohnsonCookDamage(SolidNodeList<Dimension>& nodeList,
                   const double epsilondot0,
                   const double Tcrit,
                   const double sigmamax,
-                  const double efailmin):
+                  const double efailmin,
+                  const unsigned seed,
+                  const bool domainIndependent):
   mNodeList(nodeList),
   mD1("D1_" + nodeList.name(), nodeList),
   mD2("D2_" + nodeList.name(), nodeList),
@@ -153,6 +153,32 @@ JohnsonCookDamage<Dimension>::
 }
 
 //------------------------------------------------------------------------------
+// Increment the derivatives.
+//------------------------------------------------------------------------------
+template<typename Dimension>
+void
+JohnsonCookDamage<Dimension>::
+evaluateDerivatives(const Scalar time,
+                    const Scalar dt,
+                    const DataBaseSpace::DataBase<Dimension>& dataBase,
+                    const State<Dimension>& state,
+                    StateDerivatives<Dimension>& derivatives) const {
+}
+
+//------------------------------------------------------------------------------
+// Vote on a time step.
+//------------------------------------------------------------------------------
+template<typename Dimension>
+typename JohnsonCookDamage<Dimension>::TimeStepType
+JohnsonCookDamage<Dimension>::
+dt(const DataBaseSpace::DataBase<Dimension>& dataBase, 
+   const State<Dimension>& state,
+   const StateDerivatives<Dimension>& derivs,
+   const Scalar currentTime) const {
+  return TimeStepType(1.0e100, "Rate of damage change -- NO VOTE.");
+}
+
+//------------------------------------------------------------------------------
 // Register the state and update policies.
 //------------------------------------------------------------------------------
 template<typename Dimension>
@@ -178,6 +204,16 @@ registerState(DataBase<Dimension>& dataBase,
   // Register the damage for updating.
   PolicyPointer damagePolicy(new JohnsonCookDamagePolicy<Dimension>());
   state.enroll(mNodeList.damage(), damagePolicy);
+}
+
+//------------------------------------------------------------------------------
+// Register the derivatives.
+//------------------------------------------------------------------------------
+template<typename Dimension>
+void
+JohnsonCookDamage<Dimension>::
+registerDerivatives(DataBase<Dimension>& dataBase,
+                    StateDerivatives<Dimension>& derivs) {
 }
 
 //------------------------------------------------------------------------------

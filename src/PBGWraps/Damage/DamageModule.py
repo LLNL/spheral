@@ -45,6 +45,7 @@ class Damage:
 Physics%(dim)id = findObject(PhysicsSpace, "Physics%(dim)id")
 self.DamageModel%(dim)id = addObject(space, "DamageModel%(dim)id", parent=Physics%(dim)id, allow_subclassing=True)
 self.TensorDamageModel%(dim)id = addObject(space, "TensorDamageModel%(dim)id", parent=self.DamageModel%(dim)id, allow_subclassing=True)
+self.JohnsonCookDamage%(dim)id = addObject(space, "JohnsonCookDamage%(dim)id", parent=Physics%(dim)id, allow_subclassing=True)
 self.addWeibullDistributionFunctions(space, %(dim)i)
 self.addComputeFragmentField(SolidSpheral, %(dim)i)
 ''' % {"dim" : dim})
@@ -60,6 +61,7 @@ self.addComputeFragmentField(SolidSpheral, %(dim)i)
             exec('''
 self.generateDamageModelBindings(self.DamageModel%(dim)id, %(dim)i)
 self.generateTensorDamageModelBindings(self.TensorDamageModel%(dim)id, %(dim)i)
+self.generateJohnsonCookDamageBindings(self.JohnsonCookDamage%(dim)id, %(dim)i)
 ''' % {"dim" : dim})
 
         return
@@ -233,6 +235,90 @@ self.generateTensorDamageModelBindings(self.TensorDamageModel%(dim)id, %(dim)i)
         x.add_instance_attribute("useDamageGradient", "bool", getter="useDamageGradient", setter="useDamageGradient")
         x.add_instance_attribute("damageInCompression", "bool", getter="damageInCompression", setter="damageInCompression")
         x.add_instance_attribute("criticalDamageThreshold", "double", getter="criticalDamageThreshold", setter="criticalDamageThreshold")
+
+        return
+
+    #---------------------------------------------------------------------------
+    # JohnsonCookDamage
+    #---------------------------------------------------------------------------
+    def generateJohnsonCookDamageBindings(self, x, ndim):
+
+        me = "Spheral::PhysicsSpace::JohnsonCookDamage%id" % ndim
+        dim = "Spheral::Dim<%i> " % ndim
+        solidnodelist = "Spheral::NodeSpace::SolidNodeList%id" % ndim
+        vectordoublefield = "Spheral::FieldSpace::VectorDoubleField%id" % ndim
+        database = "Spheral::DataBaseSpace::DataBase%id" % ndim
+        state = "Spheral::State%id" % ndim
+        derivatives = "Spheral::StateDerivatives%id" % ndim
+        scalarfield = "Spheral::FieldSpace::ScalarField%id" % ndim
+        vectorfield = "Spheral::FieldSpace::VectorField%id" % ndim
+        symtensorfield = "Spheral::FieldSpace::SymTensorField%id" % ndim
+        scalarfieldlist = "Spheral::FieldSpace::ScalarFieldList%id" % ndim
+        tablekernel = "Spheral::KernelSpace::TableKernel%id" % ndim
+        fileio = "Spheral::FileIOSpace::FileIO"
+
+        # Constructors.
+        x.add_constructor([refparam(solidnodelist, "nodeList"),
+                           param("double", "D1"),
+                           param("double", "aD1"),
+                           param("double", "bD1"),
+                           param("double", "eps0D1"),
+                           param("double", "D2"),
+                           param("double", "aD2"),
+                           param("double", "bD2"),
+                           param("double", "eps0D2"),
+                           param("double", "D3"),
+                           param("double", "D4"),
+                           param("double", "D5"),
+                           param("double", "epsilondot0"),
+                           param("double", "Tcrit"),
+                           param("double", "sigmamax"),
+                           param("double", "efailmin"),
+                           param("unsigned int", "seed"),
+                           param("bool", "domainIndependent", default_value="true")])
+
+        # Physics interface.
+        generatePhysicsVirtualBindings(x, ndim, False)
+
+        # Methods.
+        x.add_method("applyGhostBoundaries", None, [refparam(state, "state"), refparam(derivatives, "derivatives")], is_virtual=True)
+        x.add_method("enforceBoundaries", None, [refparam(state, "state"), refparam(derivatives, "derivatives")], is_virtual=True)
+        x.add_function_as_method("const_reference_as_pointer",
+                                 retval(ptr(solidnodelist), reference_existing_object=True),
+                                 [param(me, "self")],
+                                 template_parameters = [me, solidnodelist, "&%s::nodeList" % me],
+                                 foreign_cpp_namespace = "Spheral",
+                                 custom_name = "nodeList")
+        x.add_function_as_method("const_reference_as_pointer",
+                                 retval(ptr(scalarfield), reference_existing_object=True),
+                                 [param(me, "self")],
+                                 template_parameters = [me, scalarfield, "&%s::failureStrain" % me],
+                                 foreign_cpp_namespace = "Spheral",
+                                 custom_name = "failureStrain")
+        x.add_function_as_method("const_reference_as_pointer",
+                                 retval(ptr(scalarfield), reference_existing_object=True),
+                                 [param(me, "self")],
+                                 template_parameters = [me, scalarfield, "&%s::D1" % me],
+                                 foreign_cpp_namespace = "Spheral",
+                                 custom_name = "D1")
+        x.add_function_as_method("const_reference_as_pointer",
+                                 retval(ptr(scalarfield), reference_existing_object=True),
+                                 [param(me, "self")],
+                                 template_parameters = [me, scalarfield, "&%s::D2" % me],
+                                 foreign_cpp_namespace = "Spheral",
+                                 custom_name = "D2")
+        x.add_method("label", "std::string", [], is_const=True, is_virtual=True)
+        x.add_method("dumpState", None, [refparam(fileio, "FileIO"), refparam("std::string", "pathName")], is_const=True, is_virtual=True)
+        x.add_method("restoreState", None, [constrefparam(fileio, "FileIO"), refparam("std::string", "pathName")], is_virtual=True)
+
+        # Attributes.
+        x.add_instance_attribute("D3", "double", getter="D3", is_const=True)
+        x.add_instance_attribute("D4", "double", getter="D4", is_const=True)
+        x.add_instance_attribute("D5", "double", getter="D5", is_const=True)
+        x.add_instance_attribute("epsilondot0", "double", getter="epsilondot0", is_const=True)
+        x.add_instance_attribute("Tcrit", "double", getter="Tcrit", is_const=True)
+        x.add_instance_attribute("sigmamax", "double", getter="sigmamax", is_const=True)
+        x.add_instance_attribute("efailmin", "double", getter="efailmin", is_const=True)
 
         return
 

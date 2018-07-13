@@ -6,6 +6,7 @@
 #include "Strength/SolidFieldNames.hh"
 #include "Damage/DamageModel.hh"
 #include "Damage/TensorDamageModel.hh"
+#include "Damage/JohnsonCookDamage.hh"
 #include "Damage/weibullFlawDistribution.hh"
 #include "Damage/computeFragmentField.hh"
 
@@ -22,6 +23,10 @@ typedef DamageModel<Dim<3> > DamageModel3d;
 typedef TensorDamageModel<Dim<1> > TensorDamageModel1d;
 typedef TensorDamageModel<Dim<2> > TensorDamageModel2d;
 typedef TensorDamageModel<Dim<3> > TensorDamageModel3d;
+
+typedef JohnsonCookDamage<Dim<1> > JohnsonCookDamage1d;
+typedef JohnsonCookDamage<Dim<2> > JohnsonCookDamage2d;
+typedef JohnsonCookDamage<Dim<3> > JohnsonCookDamage3d;
 
 //------------------------------------------------------------------------------
 // Extract fields from DamageModel.
