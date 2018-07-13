@@ -47,13 +47,11 @@ public:
   typedef typename Dimension::Tensor Tensor;
   typedef typename Dimension::SymTensor SymTensor;
 
+  typedef typename Physics<Dimension>::TimeStepType TimeStepType;
   typedef typename Physics<Dimension>::ConstBoundaryIterator ConstBoundaryIterator;
-  typedef FieldSpace::Field<Dimension, std::vector<double> > FlawStorageType;
 
   // Constructors, destructor.
   JohnsonCookDamage(NodeSpace::SolidNodeList<Dimension>& nodeList,
-                    const unsigned seed,
-                    const bool domainIndependent,
                     const double D1,
                     const double aD1,
                     const double bD1,
@@ -68,7 +66,9 @@ public:
                     const double epsilondot0,
                     const double Tcrit,
                     const double sigmamax,
-                    const double efailmin);
+                    const double efailmin,
+                    const unsigned seed,
+                    const bool domainIndependent);
   virtual ~JohnsonCookDamage();
 
   // Attributes.
@@ -84,13 +84,31 @@ public:
   double sigmamax() const;
   double efailmin() const;
 
-  // Register our state and updates.
+  // Increment the derivatives.
+  virtual void evaluateDerivatives(const Scalar time,
+                                   const Scalar dt,
+                                   const DataBaseSpace::DataBase<Dimension>& dataBase,
+                                   const State<Dimension>& state,
+                                   StateDerivatives<Dimension>& derivatives) const override;
+
+  // Vote on a time step.
+  virtual TimeStepType dt(const DataBaseSpace::DataBase<Dimension>& dataBase, 
+                          const State<Dimension>& state,
+                          const StateDerivatives<Dimension>& derivs,
+                          const Scalar currentTime) const override;
+
+  // Register the state you want carried around (and potentially evolved), as
+  // well as the policies for such evolution.
   virtual void registerState(DataBaseSpace::DataBase<Dimension>& dataBase,
                              State<Dimension>& state) override;
 
+  // Register the derivatives/change fields for updating state.
+  virtual void registerDerivatives(DataBaseSpace::DataBase<Dimension>& dataBase,
+                                   StateDerivatives<Dimension>& derivs) override;
+
   //**************************************************************************
   // Restart methods.
-  virtual std::string label() const { return "JohnsonCookDamage"; }
+  virtual std::string label() const override { return "JohnsonCookDamage"; }
   virtual void dumpState(FileIOSpace::FileIO& file, const std::string& pathName) const;
   virtual void restoreState(const FileIOSpace::FileIO& file, const std::string& pathName);
   //**************************************************************************
