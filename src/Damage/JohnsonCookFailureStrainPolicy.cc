@@ -108,14 +108,14 @@ update(const KeyType& key,
       const auto chi = -P(i)*sigmaVMinv;
       if (chi > -mTcrit and chi < -msigmamax*sigmaVMinv) {
         const auto efailTcrit = (mD1(i) + mD2(i)*exp(-mD3*mTcrit))*
-                                (1.0 + mD4*log(psr(i)*safeInv(mepsilondot0)))*
+                                (1.0 + mD4*log(max(1.0, psr(i)*safeInv(mepsilondot0))))*
                                 (1.0 + mD5*eps(i)*safeInv(epsMelt(i)));
         const auto psi = (chi + mTcrit)*safeInvVar(-msigmamax*sigmaVMinv + mTcrit);
         CHECK(psi >= 0.0 and psi <= 1.0);
         efail(i) = (1.0 - psi)*efailTcrit + psi*mefailmin;
       } else {
         efail(i) = (mD1(i) + mD2(i)*exp(-mD3*chi))*
-                   (1.0 + mD4*log(psr(i)*safeInv(mepsilondot0)))*
+                   (1.0 + mD4*log(max(1.0, psr(i)*safeInv(mepsilondot0))))*
                    (1.0 + mD5*eps(i)*safeInv(epsMelt(i)));
       }
     }
