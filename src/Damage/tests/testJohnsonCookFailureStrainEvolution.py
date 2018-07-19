@@ -22,12 +22,15 @@ eos = TillotsonEquationOfState(materialName = "aluminum",
                                units = units)
 strength = ConstantStrength(materialName = "aluminum",
                             units = units)
+rho0 = eos.referenceDensity
 
 #-------------------------------------------------------------------------------
 # Create the NodeLists.
 #-------------------------------------------------------------------------------
-nodes = makeSolidNodeList("nodes", eos, strength,
-                          numInternal = 1)
+nodes = makeSolidNodeList("nodes", eos, strength)
+from DistributeNodes import distributeNodesInRange1d
+distributeNodesInRange1d([(nodes, 1000, rho0, (0.0, 1.0))],
+                         nPerh = nPerh)
 
 #-------------------------------------------------------------------------------
 # The JC damage model.
@@ -77,3 +80,4 @@ db.appendNodes(nodes)
 packages = vector_of_Physics()
 packages.append(damage)
 state = State(db, packages)
+derivs = StateDerivatives(db, packages)
