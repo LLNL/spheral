@@ -108,6 +108,14 @@ public:
   virtual void registerDerivatives(DataBaseSpace::DataBase<Dimension>& dataBase,
                                    StateDerivatives<Dimension>& derivs) override;
 
+  // Apply boundary conditions to the physics specific fields.
+  virtual void applyGhostBoundaries(State<Dimension>& state,
+                                    StateDerivatives<Dimension>& derivs);
+
+  // Enforce boundary conditions for the physics specific fields.
+  virtual void enforceBoundaries(State<Dimension>& state,
+                                 StateDerivatives<Dimension>& derivs);
+
   //**************************************************************************
   // Restart methods.
   virtual std::string label() const override { return "JohnsonCookDamage"; }
