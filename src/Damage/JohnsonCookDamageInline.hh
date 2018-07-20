@@ -26,6 +26,13 @@ meltSpecificEnergy() const {
 }
 
 template<typename Dimension>
+const FieldSpace::Field<Dimension, typename Dimension::SymTensor>&
+JohnsonCookDamage<Dimension>::
+newEffectiveDamage() const {
+  return mNewEffectiveDamage;
+}
+
+template<typename Dimension>
 const FieldSpace::Field<Dimension, typename Dimension::Scalar>&
 JohnsonCookDamage<Dimension>::
 D1() const {

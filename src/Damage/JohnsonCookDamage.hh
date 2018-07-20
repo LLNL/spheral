@@ -75,6 +75,7 @@ public:
   const NodeSpace::SolidNodeList<Dimension>& nodeList() const;
   const FieldSpace::Field<Dimension, Scalar>& failureStrain() const;
   const FieldSpace::Field<Dimension, Scalar>& meltSpecificEnergy() const;
+  const FieldSpace::Field<Dimension, SymTensor>& newEffectiveDamage() const;
   const FieldSpace::Field<Dimension, Scalar>& D1() const;
   const FieldSpace::Field<Dimension, Scalar>& D2() const;
   double D3() const;
@@ -118,6 +119,7 @@ private:
   //--------------------------- Private Interface ---------------------------//
   NodeSpace::SolidNodeList<Dimension>& mNodeList;
   FieldSpace::Field<Dimension, Scalar> mD1, mD2, mFailureStrain, mMeltSpecificEnergy;
+  FieldSpace::Field<Dimension, SymTensor> mNewEffectiveDamage;
   double mD3, mD4, mD5, mepsilondot0, mTcrit, msigmamax, mefailmin;
 
   // The restart registration.
