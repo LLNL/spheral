@@ -79,7 +79,7 @@ source("Gravity/CollisionlessSphereCollapse.py")
 source("Strength/CollidingPlates/CollidingPlates-1d.py")
 
 # Damage tests.
-source("Damage/TensileRod/TensileRod-GradyKipp-1d.py")
+source("Damage/TensileRod/TensileRod-1d.py")
 
 # Surface detection test
 # Susending this until we fix the test for the up to date surface detection method.
