@@ -63,10 +63,10 @@ update(const KeyType& key,
   const auto flawsKey = State<Dimension>::buildFieldKey(SolidFieldNames::flaws, nodeListKey);
   const auto psrKey = State<Dimension>::buildFieldKey(SolidFieldNames::plasticStrainRate, nodeListKey);
   CHECK(state.registered(flawsKey));
-  CHECK(state.registered(psrKey));
+  CHECK(derivs.registered(psrKey));
 
   const auto& flaws = state.field(flawsKey, 0.0);
-  const auto& plasticStrainRate = state.field(psrKey, 0.0);
+  const auto& plasticStrainRate = derivs.field(psrKey, 0.0);
 
   // Iterate over the internal nodes.
   const auto ni = stateField.numInternalElements();

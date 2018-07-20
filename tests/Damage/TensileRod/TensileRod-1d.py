@@ -87,7 +87,7 @@ commandLine(length = 3.0,
             etamax = 1.5,
 
             # Parameters for the time dependent strain and cracking.
-            DamageModelConstructor = GradyKippTensorDamageOwen, # GradyKippTensorDamage, # GradyKippScalarDamage # GradyKippVectorDamage # WeibullTensorDamage, # 
+            DamageModelConstructor = GradyKippTensorDamageOwen,
             volumeMultiplier = (3.0/100.0)**2,
             numFlawsPerNode = 1,
             v0 = 1e-2,
@@ -456,10 +456,31 @@ elif DamageModelConstructor is GradyKippTensorDamageOwen:
                                          numFlawsPerNode,
                                          damageInCompression = damageInCompression)
 
+elif DamageModelConstructor is JohnsonCookDamage:
+    damageModel = DamageModelConstructor(nodes,
+                                         D1 = 0.0,
+                                         D2 = 2.0,
+                                         D3 = -1.5,
+                                         D4 = 0.0,
+                                         D5 = 0.0,
+                                         aD1 = 0.0,
+                                         bD1 = 0.0,
+                                         eps0D1 = 0.0,
+                                         aD2 = 0.065,
+                                         bD2 = 2.0,
+                                         eps0D2 = 0.165,
+                                         epsilondot0 = 0.01,
+                                         Tcrit = -2.0,
+                                         sigmamax = -3.0,
+                                         efailmin = 0.1,
+                                         seed = randomSeed,
+                                         domainIndependent = domainIndependent)
+
 output("damageModel")
-output("damageModel.useDamageGradient")
-output("damageModel.effectiveDamageAlgorithm")
-output("damageModel.effectiveFlawAlgorithm")
+if DamageModelConstructor in (GradyKippTensorDamageBenzAsphaug, GradyKippTensorDamageOwen):
+    output("damageModel.useDamageGradient")
+    output("damageModel.effectiveDamageAlgorithm")
+    output("damageModel.effectiveFlawAlgorithm")
 
 if cullToWeakestFlaws:
     damageModel.cullToWeakestFlaws()
@@ -520,9 +541,10 @@ output("control")
 #-------------------------------------------------------------------------------
 # Monitor the evolution of the mass averaged strain.
 #-------------------------------------------------------------------------------
-strainHistory = AverageStrain(damageModel,
-                              dataDir + "/strainhistory.txt")
-control.appendPeriodicWork(strainHistory.sample, 1)
+if DamageModelConstructor in (GradyKippTensorDamageBenzAsphaug, GradyKippTensorDamageOwen):
+    strainHistory = AverageStrain(damageModel,
+                                  os.path.join(dataDir, "strainhistory.txt"))
+    control.appendPeriodicWork(strainHistory.sample, 1)
 
 #-------------------------------------------------------------------------------
 # Advance to the end time.
@@ -570,27 +592,47 @@ if graphics:
                            yFunction = "%s.xx",
                            winTitle="Effective damage @ %g %i" % (control.time(), mpi.procs),
                            plotStyle="linespoints")
-    ts = damageModel.strain()
-    s = ScalarField("strain", nodes)
-    for i in xrange(nodes.numInternalNodes):
-        s[i] = ts[i].xx
-    sl = ScalarFieldList()
-    sl.appendField(s)
-    sPlot = plotFieldList(sl, winTitle="strain @ %g %i" % (control.time(), mpi.procs),
-                          plotStyle="linespoints")
-    eps = damageModel.sumActivationEnergiesPerNode()
-    nflaws = damageModel.numFlawsPerNode()
-    for i in xrange(nodes.numInternalNodes):
-        assert nflaws[i] > 0
-        eps[i] /= nflaws[i]
-    epsl = ScalarFieldList()
-    epsl.appendField(eps)
-    epsPlot = plotFieldList(epsl, winTitle="Flaw activation strains",
-                            plotStyle="linespoints")
 
-    eflawsPlot = plotFieldList(state.scalarFields("effective flaws"),
-                               plotStyle = "linespoints",
-                               winTitle = "Effective Flaws @ %g %i" % (control.time(), mpi.procs))
+    if DamageModelConstructor in (GradyKippTensorDamageBenzAsphaug, GradyKippTensorDamageOwen):
+        ts = damageModel.strain()
+        s = ScalarField("strain", nodes)
+        for i in xrange(nodes.numInternalNodes):
+            s[i] = ts[i].xx
+        sl = ScalarFieldList()
+        sl.appendField(s)
+        sPlot = plotFieldList(sl, winTitle="strain @ %g %i" % (control.time(), mpi.procs),
+                              plotStyle="linespoints")
+        eps = damageModel.sumActivationEnergiesPerNode()
+        nflaws = damageModel.numFlawsPerNode()
+        for i in xrange(nodes.numInternalNodes):
+            assert nflaws[i] > 0
+            eps[i] /= nflaws[i]
+        epsl = ScalarFieldList()
+        epsl.appendField(eps)
+        epsPlot = plotFieldList(epsl, winTitle="Flaw activation strains",
+                                plotStyle="linespoints")
+      
+        eflawsPlot = plotFieldList(state.scalarFields("effective flaws"),
+                                   plotStyle = "linespoints",
+                                   winTitle = "Effective Flaws @ %g %i" % (control.time(), mpi.procs))
+
+    elif DamageModelConstructor is JohnsonCookDamage:
+        eps = damageModel.failureStrain()
+        epsl = ScalarFieldList()
+        epsl.appendField(eps)
+        epsPlot = plotFieldList(epsl, winTitle="JC failure strains",
+                                plotStyle="linespoints")
+        D1 = damageModel.D1()
+        D1l = ScalarFieldList()
+        D1l.appendField(D1)
+        D1Plot = plotFieldList(D1l, winTitle="JC D1",
+                                plotStyle="linespoints")
+        D2 = damageModel.D2()
+        D2l = ScalarFieldList()
+        D2l.appendField(D2)
+        D2Plot = plotFieldList(D2l, winTitle="JC D2",
+                                plotStyle="linespoints")
+
     fragPlot = plotFieldList(state.intFields(SolidFieldNames.fragmentIDs),
                              plotStyle = "linespoints",
                              winTitle = "Fragments @  %g %i" % (control.time(), mpi.procs))
