@@ -119,6 +119,7 @@ update(const KeyType& key,
                    (1.0 + mD5*eps(i)*safeInv(epsMelt(i)));
       }
     }
+    efail(i) = max(mefailmin, efail(i));
   }
 }
 
