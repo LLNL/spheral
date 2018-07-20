@@ -149,7 +149,7 @@ commandLine(length = 3.0,
             compatibleEnergy = True,
             gradhCorrection = True,
             correctVelocityGradient = True,
-            domainIndependent = False,
+            domainIndependent = True,
             dtverbose = False,
 
             restoreCycle = -1,

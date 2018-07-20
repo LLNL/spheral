@@ -239,6 +239,65 @@ registerDerivatives(DataBase<Dimension>& dataBase,
 }
 
 //------------------------------------------------------------------------------
+// Apply the boundary conditions to the ghost nodes.
+//------------------------------------------------------------------------------
+template<typename Dimension>
+void
+JohnsonCookDamage<Dimension>::
+applyGhostBoundaries(State<Dimension>& state,
+                     StateDerivatives<Dimension>& derivs) {
+
+  // Grab this models damage field from the state.
+  typedef typename State<Dimension>::KeyType Key;
+  const Key nodeListName = this->nodeList().name();
+  const Key DKey = state.buildFieldKey(SolidFieldNames::tensorDamage, nodeListName);
+  const Key DeffKey = state.buildFieldKey(SolidFieldNames::effectiveTensorDamage, nodeListName);
+  CHECK(state.registered(DKey));
+  CHECK(state.registered(DeffKey));
+  auto& D = state.field(DKey, SymTensor::zero);
+  auto& Deff = state.field(DeffKey, SymTensor::zero);
+
+  // Apply ghost boundaries to the damage.
+  for (ConstBoundaryIterator boundaryItr = this->boundaryBegin();
+       boundaryItr != this->boundaryEnd();
+       ++boundaryItr) {
+    (*boundaryItr)->applyGhostBoundary(D);
+    (*boundaryItr)->applyGhostBoundary(Deff);
+  }
+}
+
+//------------------------------------------------------------------------------
+// Enforce boundary conditions for the physics specific fields.
+//------------------------------------------------------------------------------
+template<typename Dimension>
+void
+JohnsonCookDamage<Dimension>::
+enforceBoundaries(State<Dimension>& state,
+                  StateDerivatives<Dimension>& derivs) {
+
+  // Grab this models damage field from the state.
+  typedef typename State<Dimension>::KeyType Key;
+  const Key nodeListName = this->nodeList().name();
+  const Key DKey = state.buildFieldKey(SolidFieldNames::tensorDamage, nodeListName);
+  const Key DeffKey = state.buildFieldKey(SolidFieldNames::effectiveTensorDamage, nodeListName);
+  const Key gradDKey = state.buildFieldKey(SolidFieldNames::damageGradient, nodeListName);
+  CHECK(state.registered(DKey));
+  CHECK(state.registered(DeffKey));
+  CHECK(state.registered(gradDKey));
+  auto& D = state.field(DKey, SymTensor::zero);
+  auto& Deff = state.field(DeffKey, SymTensor::zero);
+  auto& gradD = state.field(gradDKey, Vector::zero);
+
+  // Enforce!
+  for (ConstBoundaryIterator boundaryItr = this->boundaryBegin(); 
+       boundaryItr != this->boundaryEnd();
+       ++boundaryItr) {
+    (*boundaryItr)->enforceBoundary(D);
+    (*boundaryItr)->enforceBoundary(Deff);
+  }
+}
+
+//------------------------------------------------------------------------------
 // Dump the current state to the given file.
 //------------------------------------------------------------------------------
 template<typename Dimension>
