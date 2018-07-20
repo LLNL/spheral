@@ -7,6 +7,7 @@
 #include "JohnsonCookDamage.hh"
 #include "JohnsonCookFailureStrainPolicy.hh"
 #include "JohnsonCookDamagePolicy.hh"
+#include "EffectiveTensorDamagePolicy.hh"
 #include "Strength/SolidFieldNames.hh"
 #include "Strength/MeltEnergyPolicy.hh"
 #include "NodeList/SolidNodeList.hh"
@@ -72,6 +73,7 @@ JohnsonCookDamage(SolidNodeList<Dimension>& nodeList,
   mD2("D2_" + nodeList.name(), nodeList, D2),
   mFailureStrain(SolidFieldNames::flaws, nodeList),
   mMeltSpecificEnergy(SolidFieldNames::meltSpecificEnergy, nodeList),
+  mNewEffectiveDamage(EffectiveTensorDamagePolicy<Dimension>::prefix() + SolidFieldNames::effectiveTensorDamage, nodeList),
   mD3(D3),
   mD4(D4),
   mD5(D5),
@@ -170,7 +172,12 @@ evaluateDerivatives(const Scalar time,
                     const Scalar dt,
                     const DataBaseSpace::DataBase<Dimension>& dataBase,
                     const State<Dimension>& state,
-                    StateDerivatives<Dimension>& derivatives) const {
+                    StateDerivatives<Dimension>& derivs) const {
+
+  // Fow now we update the effective damage as simply a copy of the damage.
+  const auto& D = state.field(state.buildFieldKey(SolidFieldNames::tensorDamage, mNodeList.name()), SymTensor::zero);
+  auto& Deff = derivs.field(state.buildFieldKey(EffectiveTensorDamagePolicy<Dimension>::prefix() + SolidFieldNames::effectiveTensorDamage, mNodeList.name()), SymTensor::zero);
+  Deff = D;
 }
 
 //------------------------------------------------------------------------------
@@ -209,9 +216,11 @@ registerState(DataBase<Dimension>& dataBase,
                                                                          mTcrit));
   state.enroll(mFailureStrain, flawPolicy);
 
-  // Register the damage for updating.
+  // Register the damage and effective damage.
   PolicyPointer damagePolicy(new JohnsonCookDamagePolicy<Dimension>());
+  PolicyPointer effDamagePolicy(new EffectiveTensorDamagePolicy<Dimension>());
   state.enroll(mNodeList.damage(), damagePolicy);
+  state.enroll(mNodeList.effectiveDamage(), effDamagePolicy);
 
   // We also require the melt energy.
   PolicyPointer meltPolicy(new MeltEnergyPolicy<Dimension>());
@@ -226,6 +235,7 @@ void
 JohnsonCookDamage<Dimension>::
 registerDerivatives(DataBase<Dimension>& dataBase,
                     StateDerivatives<Dimension>& derivs) {
+  derivs.enroll(mNewEffectiveDamage);
 }
 
 //------------------------------------------------------------------------------
