@@ -29,14 +29,28 @@ StrengthModel<Dimension>::
 }
 
 //------------------------------------------------------------------------------
+// Sound speed
+//------------------------------------------------------------------------------
+template<typename Dimension>
+void
+StrengthModel<Dimension>::
+soundSpeed(FieldSpace::Field<Dimension, Scalar>& soundSpeed,
+           const FieldSpace::Field<Dimension, Scalar>& density,
+           const FieldSpace::Field<Dimension, Scalar>& specificThermalEnergy,
+           const FieldSpace::Field<Dimension, Scalar>& pressure,
+           const FieldSpace::Field<Dimension, Scalar>& fluidSoundSpeed) const {
+  soundSpeed = fluidSoundSpeed;
+}
+
+//------------------------------------------------------------------------------
 // Melt energy
 //------------------------------------------------------------------------------
 template<typename Dimension>
 void
 StrengthModel<Dimension>::
-meltSpecificThermalEnergy(FieldSpace::Field<Dimension, Scalar>& meltSpecificEnergy,
-                          const FieldSpace::Field<Dimension, Scalar>& density,
-                          const FieldSpace::Field<Dimension, Scalar>& specficThermalEnergy) const {
+meltSpecificEnergy(FieldSpace::Field<Dimension, Scalar>& meltSpecificEnergy,
+                   const FieldSpace::Field<Dimension, Scalar>& density,
+                   const FieldSpace::Field<Dimension, Scalar>& specficThermalEnergy) const {
   meltSpecificEnergy = 0.0;
 }
 
@@ -46,9 +60,9 @@ meltSpecificThermalEnergy(FieldSpace::Field<Dimension, Scalar>& meltSpecificEner
 template<typename Dimension>
 void
 StrengthModel<Dimension>::
-coldSpecificThermalEnergy(FieldSpace::Field<Dimension, Scalar>& coldSpecificEnergy,
-                          const FieldSpace::Field<Dimension, Scalar>& density,
-                          const FieldSpace::Field<Dimension, Scalar>& specficThermalEnergy) const {
+coldSpecificEnergy(FieldSpace::Field<Dimension, Scalar>& coldSpecificEnergy,
+                   const FieldSpace::Field<Dimension, Scalar>& density,
+                   const FieldSpace::Field<Dimension, Scalar>& specficThermalEnergy) const {
   coldSpecificEnergy = 0.0;
 }
 

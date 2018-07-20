@@ -88,13 +88,13 @@ update(const KeyType& key,
   CHECK(state.registered(PKey));
   CHECK(state.registered(epsKey));
   CHECK(state.registered(stressKey));
-  CHECK(state.registered(psrKey));
+  CHECK(derivs.registered(psrKey));
   CHECK(state.registered(meltKey));
 
   const auto& P = state.field(PKey, 0.0);
   const auto& eps = state.field(epsKey, 0.0);
   const auto& S = state.field(stressKey, SymTensor::zero);
-  const auto& psr = state.field(psrKey, 0.0);
+  const auto& psr = derivs.field(psrKey, 0.0);
   const auto& epsMelt = state.field(meltKey, 0.0);
 
   // Iterate over the internal nodes.

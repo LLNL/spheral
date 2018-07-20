@@ -147,6 +147,9 @@ JohnsonCookDamage(SolidNodeList<Dimension>& nodeList,
       }
     }
   }
+
+  cout << "D1: " << mD1 << endl;
+  cout << "D2: " << mD2 << endl;
 }
 
 //------------------------------------------------------------------------------
