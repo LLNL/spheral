@@ -90,7 +90,7 @@ commandLine(seed = "lattice",
             etamax = 1.5,
 
             # Parameters for the time dependent strain and cracking.
-            DamageModelConstructor = GradyKippTensorDamageOwen, # GradyKippTensorDamage, # GradyKippScalarDamage # GradyKippVectorDamage # WeibullTensorDamage, # 
+            DamageModelConstructor = GradyKippTensorDamageOwen,
             volumeMultiplier = (3.0/100.0)**2,
             numFlawsPerNode = 1,
             v0 = 1e-2,
@@ -103,6 +103,23 @@ commandLine(seed = "lattice",
             cullToWeakestFlaws = False,
             effectiveFlawAlgorithm = FullSpectrumFlaws,
             damageInCompression = False,
+
+            # Johnson-Cook choices
+            D1 = 0.0,
+            D2 = 2.0,
+            D3 = -1.5,
+            D4 = 0.0,
+            D5 = 0.0,
+            aD1 = 0.0,
+            bD1 = 0.0,
+            eps0D1 = 0.0,
+            aD2 = 0.065,
+            bD2 = 2.0,
+            eps0D2 = 0.165,
+            epsilondot0 = 0.01,
+            Tcrit = -2.0,
+            sigmamax = -3.0,
+            efailmin = 0.1,
 
             # Optionally we can initialize a break near the origin.
             initialBreakRadius = 0.0,
@@ -138,7 +155,7 @@ commandLine(seed = "lattice",
             compatibleEnergy = True,
             gradhCorrection = True,
             correctVelocityGradient = True,
-            domainIndependent = False,
+            domainIndependent = True,
             dtverbose = False,
 
             restoreCycle = -1,
@@ -479,10 +496,31 @@ elif DamageModelConstructor is GradyKippTensorDamageOwen:
                                          numFlawsPerNode,
                                          damageInCompression = damageInCompression)
 
+elif DamageModelConstructor is JohnsonCookDamage:
+    damageModel = DamageModelConstructor(nodes,
+                                         D1 = D1,
+                                         D2 = D2,
+                                         D3 = D3,
+                                         D4 = D4,
+                                         D5 = D5,
+                                         aD1 = aD1,
+                                         bD1 = bD1,
+                                         eps0D1 = eps0D1,
+                                         aD2 = aD2,
+                                         bD2 = bD2,
+                                         eps0D2 = eps0D2,
+                                         epsilondot0 = epsilondot0,
+                                         Tcrit = Tcrit,
+                                         sigmamax = sigmamax,
+                                         efailmin = efailmin,
+                                         seed = randomSeed,
+                                         domainIndependent = domainIndependent)
+
 output("damageModel")
-output("damageModel.useDamageGradient")
-output("damageModel.effectiveDamageAlgorithm")
-output("damageModel.effectiveFlawAlgorithm")
+if DamageModelConstructor in (GradyKippTensorDamageBenzAsphaug, GradyKippTensorDamageOwen):
+    output("damageModel.useDamageGradient")
+    output("damageModel.effectiveDamageAlgorithm")
+    output("damageModel.effectiveFlawAlgorithm")
 
 if cullToWeakestFlaws:
     damageModel.cullToWeakestFlaws()
@@ -539,9 +577,10 @@ output("control")
 #-------------------------------------------------------------------------------
 # Monitor the evolution of the mass averaged strain.
 #-------------------------------------------------------------------------------
-strainHistory = AverageStrain(damageModel,
-                              dataDir + "/strainhistory.txt")
-control.appendPeriodicWork(strainHistory.sample, 1)
+if DamageModelConstructor in (GradyKippTensorDamageBenzAsphaug, GradyKippTensorDamageOwen):
+    strainHistory = AverageStrain(damageModel,
+                                      dataDir + "/strainhistory.txt")
+    control.appendPeriodicWork(strainHistory.sample, 1)
 
 #-------------------------------------------------------------------------------
 # If we're doing CRK with the Voronoi volume, we can output an interesting view
