@@ -45,7 +45,7 @@ class Damage:
 Physics%(dim)id = findObject(PhysicsSpace, "Physics%(dim)id")
 self.DamageModel%(dim)id = addObject(space, "DamageModel%(dim)id", parent=Physics%(dim)id, allow_subclassing=True)
 self.TensorDamageModel%(dim)id = addObject(space, "TensorDamageModel%(dim)id", parent=self.DamageModel%(dim)id, allow_subclassing=True)
-self.JohnsonCookDamage%(dim)id = addObject(space, "JohnsonCookDamage%(dim)id", parent=Physics%(dim)id, allow_subclassing=True)
+self.JohnsonCookDamageBase%(dim)id = addObject(space, "JohnsonCookDamageBase%(dim)id", parent=Physics%(dim)id, allow_subclassing=True)
 self.addWeibullDistributionFunctions(space, %(dim)i)
 self.addComputeFragmentField(SolidSpheral, %(dim)i)
 ''' % {"dim" : dim})
@@ -61,7 +61,7 @@ self.addComputeFragmentField(SolidSpheral, %(dim)i)
             exec('''
 self.generateDamageModelBindings(self.DamageModel%(dim)id, %(dim)i)
 self.generateTensorDamageModelBindings(self.TensorDamageModel%(dim)id, %(dim)i)
-self.generateJohnsonCookDamageBindings(self.JohnsonCookDamage%(dim)id, %(dim)i)
+self.generateJohnsonCookDamageBaseBindings(self.JohnsonCookDamageBase%(dim)id, %(dim)i)
 ''' % {"dim" : dim})
 
         return
@@ -239,11 +239,11 @@ self.generateJohnsonCookDamageBindings(self.JohnsonCookDamage%(dim)id, %(dim)i)
         return
 
     #---------------------------------------------------------------------------
-    # JohnsonCookDamage
+    # JohnsonCookDamageBase
     #---------------------------------------------------------------------------
-    def generateJohnsonCookDamageBindings(self, x, ndim):
+    def generateJohnsonCookDamageBaseBindings(self, x, ndim):
 
-        me = "Spheral::PhysicsSpace::JohnsonCookDamage%id" % ndim
+        me = "Spheral::PhysicsSpace::JohnsonCookDamageBase%id" % ndim
         dim = "Spheral::Dim<%i> " % ndim
         solidnodelist = "Spheral::NodeSpace::SolidNodeList%id" % ndim
         vectordoublefield = "Spheral::FieldSpace::VectorDoubleField%id" % ndim
@@ -259,17 +259,11 @@ self.generateJohnsonCookDamageBindings(self.JohnsonCookDamage%(dim)id, %(dim)i)
 
         # Constructors.
         x.add_constructor([refparam(solidnodelist, "nodeList"),
-                           param("double", "D1"),
-                           param("double", "D2"),
+                           constrefparam(scalarfield, "D1"),
+                           constrefparam(scalarfield, "D2"),
                            param("double", "D3"),
                            param("double", "D4"),
                            param("double", "D5"),
-                           param("double", "aD1"),
-                           param("double", "bD1"),
-                           param("double", "eps0D1"),
-                           param("double", "aD2"),
-                           param("double", "bD2"),
-                           param("double", "eps0D2"),
                            param("double", "epsilondot0"),
                            param("double", "Tcrit"),
                            param("double", "sigmamax"),
