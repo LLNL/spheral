@@ -1,9 +1,62 @@
-  // We need to generate the D1 and D2 Fields Weibull distributed fields.
-  // If the a value is 0.0, we take this to mean the corresponding D coefficient is constant.
-  if (aD1 != 0.0 or aD2 != 0.0) {
+#-------------------------------------------------------------------------------
+# JohnsonCookDamageWeibull
+#
+# Implement the Weibull distribution for the D1 and D2 fields for the
+# Johnson-Cook damage model.
+#
+# We do this by making a factory function that returns an instance of
+# JohnsonCookDamage with the D1 and D2 fields filled in.
+#-------------------------------------------------------------------------------
+from math import *
+import np
+import mpi
 
-    // Are we generating domain-independent?
-    if (domainIndependent) {
+from spheralDimensions import spheralDimensions
+dims = spheralDimensions()
+
+def JohnsonCookDamageWeibull(nodeList,
+                             D1,
+                             D2,
+                             D3,
+                             D4,
+                             D5,
+                             aD1,
+                             bD1,
+                             eps0D1,
+                             aD2,
+                             bD2,
+                             eps0D2,
+                             epsilondot0,
+                             Tcrit,
+                             sigmamax,
+                             efailmin,
+                             seed,
+                             domainIndependent):
+                             
+    # What dimension are we?
+    assert nodeList.__name__ in ("SolidNodeList1d", "SolidNodeList3d", "SolidNodeList3d")
+    ndim = int(nodeList.__name__[-3:-2])
+    assert ndim in spheralDimensions()
+
+    # Import the approprite bits of Spheral.
+    exec("""
+from SpheralModules.Spheral.PhysicsSpace import JohnsonCookDamage%(ndim)sd as JohnsonCookDamage
+from SpheralModules.Spheral.FieldSpace import ScalarField%(ndim)sd as ScalarField
+""" % {"ndim" : ndim})
+
+    # Prepare the fields for D1 and D2
+    fD1 = ScalarField("D1", nodeList)
+    fD2 = ScalarField("D2", nodeList)
+
+    # We need to generate the D1 and D2 Fields Weibull distributed fields.
+    # If the a value is 0.0, we take this to mean the corresponding D coefficient is constant.
+    if aD1 != 0.0 or aD2 != 0.0:
+
+        # Are we generating domain-independent?
+        if domainIndependent:
+
+        # Initialize the random number generator.
+        np.random.seed(seed)
 
       // Construct a random number generator.
       // C++11 provides a Weibull distribution natively.
@@ -47,20 +100,16 @@
         }
       }
 
-    } else {
-    
-      // In the non-domain independent case we can generate more quickly in parallel.
-      // Construct a random number generator.
-      // C++11 provides a Weibull distribution natively.
-      const auto procID = Process::getRank();
-      std::mt19937 gen((seed + procID)*(seed + procID + 1)/2 + procID);
-      std::weibull_distribution<> d1(aD1, bD1), d2(aD2, bD2);
+    else:
 
-      // Walk the global number of node in Morton order.
-      const auto n = nodeList.numInternalNodes();
-      for (auto i = 0; i < n; ++i) {
-        if (aD1 != 0.0) mD1[i] = D1*(d1(gen) + eps0D1);
-        if (aD2 != 0.0) mD2[i] = D2*(d2(gen) + eps0D2);
-      }
-    }
-  }
+        # In the non-domain independent case we can generate more quickly in parallel.
+         procID = mpi.rank
+         np.random.seed((seed + procID)*(seed + procID + 1)/2 + procID)
+         if aD1 != 0.0:
+             vals = aD1*np.random.weibull(bD1, nodeList.numInternalNodes) + eps0D1
+             for i in xrange(nodeList.numInternalNodes):
+                 fD1[i] = vals[i]
+         if aD2 != 0.0:
+             vals = aD2*np.random.weibull(bD2, nodeList.numInternalNodes) + eps0D2
+             for i in xrange(nodeList.numInternalNodes):
+                 fD2[i] = vals[i]
