@@ -1,10 +1,10 @@
 //---------------------------------Spheral++----------------------------------//
-// JohnsonCookDamageBase -- an implementation of a Johnson-Cook damage law.
+// JohnsonCookDamage -- an implementation of a Johnson-Cook damage law.
 //
 // Created by JMO, Mon Jul  9 08:21:23 PDT 2018
 //----------------------------------------------------------------------------//
 #include "FileIO/FileIO.hh"
-#include "JohnsonCookDamageBase.hh"
+#include "JohnsonCookDamage.hh"
 #include "JohnsonCookFailureStrainPolicy.hh"
 #include "JohnsonCookDamagePolicy.hh"
 #include "EffectiveTensorDamagePolicy.hh"
@@ -45,8 +45,8 @@ using NeighborSpace::Neighbor;
 // Constructor.
 //------------------------------------------------------------------------------
 template<typename Dimension>
-JohnsonCookDamageBase<Dimension>::
-JohnsonCookDamageBase(SolidNodeList<Dimension>& nodeList,
+JohnsonCookDamage<Dimension>::
+JohnsonCookDamage(SolidNodeList<Dimension>& nodeList,
                       const FieldSpace::Field<Dimension, Scalar>& D1,
                       const FieldSpace::Field<Dimension, Scalar>& D2,
                       const double D3,
@@ -78,8 +78,8 @@ JohnsonCookDamageBase(SolidNodeList<Dimension>& nodeList,
 // Destructor.
 //------------------------------------------------------------------------------
 template<typename Dimension>
-JohnsonCookDamageBase<Dimension>::
-~JohnsonCookDamageBase() {
+JohnsonCookDamage<Dimension>::
+~JohnsonCookDamage() {
 }
 
 //------------------------------------------------------------------------------
@@ -87,7 +87,7 @@ JohnsonCookDamageBase<Dimension>::
 //------------------------------------------------------------------------------
 template<typename Dimension>
 void
-JohnsonCookDamageBase<Dimension>::
+JohnsonCookDamage<Dimension>::
 evaluateDerivatives(const Scalar time,
                     const Scalar dt,
                     const DataBaseSpace::DataBase<Dimension>& dataBase,
@@ -104,8 +104,8 @@ evaluateDerivatives(const Scalar time,
 // Vote on a time step.
 //------------------------------------------------------------------------------
 template<typename Dimension>
-typename JohnsonCookDamageBase<Dimension>::TimeStepType
-JohnsonCookDamageBase<Dimension>::
+typename JohnsonCookDamage<Dimension>::TimeStepType
+JohnsonCookDamage<Dimension>::
 dt(const DataBaseSpace::DataBase<Dimension>& dataBase, 
    const State<Dimension>& state,
    const StateDerivatives<Dimension>& derivs,
@@ -118,7 +118,7 @@ dt(const DataBaseSpace::DataBase<Dimension>& dataBase,
 //------------------------------------------------------------------------------
 template<typename Dimension>
 void
-JohnsonCookDamageBase<Dimension>::
+JohnsonCookDamage<Dimension>::
 registerState(DataBase<Dimension>& dataBase,
               State<Dimension>& state) {
 
@@ -152,7 +152,7 @@ registerState(DataBase<Dimension>& dataBase,
 //------------------------------------------------------------------------------
 template<typename Dimension>
 void
-JohnsonCookDamageBase<Dimension>::
+JohnsonCookDamage<Dimension>::
 registerDerivatives(DataBase<Dimension>& dataBase,
                     StateDerivatives<Dimension>& derivs) {
   derivs.enroll(mNewEffectiveDamage);
@@ -163,7 +163,7 @@ registerDerivatives(DataBase<Dimension>& dataBase,
 //------------------------------------------------------------------------------
 template<typename Dimension>
 void
-JohnsonCookDamageBase<Dimension>::
+JohnsonCookDamage<Dimension>::
 applyGhostBoundaries(State<Dimension>& state,
                      StateDerivatives<Dimension>& derivs) {
 
@@ -191,7 +191,7 @@ applyGhostBoundaries(State<Dimension>& state,
 //------------------------------------------------------------------------------
 template<typename Dimension>
 void
-JohnsonCookDamageBase<Dimension>::
+JohnsonCookDamage<Dimension>::
 enforceBoundaries(State<Dimension>& state,
                   StateDerivatives<Dimension>& derivs) {
 
@@ -222,7 +222,7 @@ enforceBoundaries(State<Dimension>& state,
 //------------------------------------------------------------------------------
 template<typename Dimension>
 void
-JohnsonCookDamageBase<Dimension>::
+JohnsonCookDamage<Dimension>::
 dumpState(FileIO& file, const string& pathName0) const {
   const string pathName = pathName0 + "/" + mNodeList.name();
   file.write(mD1, pathName + "/D1");
@@ -236,7 +236,7 @@ dumpState(FileIO& file, const string& pathName0) const {
 //------------------------------------------------------------------------------
 template<typename Dimension>
 void
-JohnsonCookDamageBase<Dimension>::
+JohnsonCookDamage<Dimension>::
 restoreState(const FileIO& file, const string& pathName0) {
   const string pathName = pathName0 + "/" + mNodeList.name();
   file.read(mD1, pathName + "/D1");

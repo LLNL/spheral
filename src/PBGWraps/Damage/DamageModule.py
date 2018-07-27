@@ -45,7 +45,7 @@ class Damage:
 Physics%(dim)id = findObject(PhysicsSpace, "Physics%(dim)id")
 self.DamageModel%(dim)id = addObject(space, "DamageModel%(dim)id", parent=Physics%(dim)id, allow_subclassing=True)
 self.TensorDamageModel%(dim)id = addObject(space, "TensorDamageModel%(dim)id", parent=self.DamageModel%(dim)id, allow_subclassing=True)
-self.JohnsonCookDamageBase%(dim)id = addObject(space, "JohnsonCookDamageBase%(dim)id", parent=Physics%(dim)id, allow_subclassing=True)
+self.JohnsonCookDamage%(dim)id = addObject(space, "JohnsonCookDamage%(dim)id", parent=Physics%(dim)id, allow_subclassing=True)
 self.addWeibullDistributionFunctions(space, %(dim)i)
 self.addComputeFragmentField(SolidSpheral, %(dim)i)
 ''' % {"dim" : dim})
@@ -61,7 +61,7 @@ self.addComputeFragmentField(SolidSpheral, %(dim)i)
             exec('''
 self.generateDamageModelBindings(self.DamageModel%(dim)id, %(dim)i)
 self.generateTensorDamageModelBindings(self.TensorDamageModel%(dim)id, %(dim)i)
-self.generateJohnsonCookDamageBaseBindings(self.JohnsonCookDamageBase%(dim)id, %(dim)i)
+self.generateJohnsonCookDamageBindings(self.JohnsonCookDamage%(dim)id, %(dim)i)
 ''' % {"dim" : dim})
 
         return
@@ -239,11 +239,11 @@ self.generateJohnsonCookDamageBaseBindings(self.JohnsonCookDamageBase%(dim)id, %
         return
 
     #---------------------------------------------------------------------------
-    # JohnsonCookDamageBase
+    # JohnsonCookDamage
     #---------------------------------------------------------------------------
-    def generateJohnsonCookDamageBaseBindings(self, x, ndim):
+    def generateJohnsonCookDamageBindings(self, x, ndim):
 
-        me = "Spheral::PhysicsSpace::JohnsonCookDamageBase%id" % ndim
+        me = "Spheral::PhysicsSpace::JohnsonCookDamage%id" % ndim
         dim = "Spheral::Dim<%i> " % ndim
         solidnodelist = "Spheral::NodeSpace::SolidNodeList%id" % ndim
         vectordoublefield = "Spheral::FieldSpace::VectorDoubleField%id" % ndim

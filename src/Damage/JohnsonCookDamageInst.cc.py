@@ -2,10 +2,10 @@ text = """
 //------------------------------------------------------------------------------
 // Instantiations.
 //------------------------------------------------------------------------------
-#include "JohnsonCookDamageBase.cc"
+#include "JohnsonCookDamage.cc"
 #include "Geometry/Dimension.hh"
 
 namespace Spheral {
-  template class PhysicsSpace::JohnsonCookDamageBase<Dim< %(ndim)s > >;
+  template class PhysicsSpace::JohnsonCookDamage<Dim< %(ndim)s > >;
 }
 """

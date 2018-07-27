@@ -1,10 +1,10 @@
 //---------------------------------Spheral++----------------------------------//
-// JohnsonCookDamageBase -- an implementation of a Johnson-Cook damage law.
+// JohnsonCookDamage -- an implementation of a Johnson-Cook damage law.
 //
 // Created by JMO, Mon Jul  9 08:21:23 PDT 2018
 //----------------------------------------------------------------------------//
-#ifndef __Spheral_JohnsonCookDamageBase_hh__
-#define __Spheral_JohnsonCookDamageBase_hh__
+#ifndef __Spheral_JohnsonCookDamage_hh__
+#define __Spheral_JohnsonCookDamage_hh__
 
 #include <vector>
 
@@ -37,7 +37,7 @@ namespace Spheral {
 namespace PhysicsSpace {
 
 template<typename Dimension>
-class JohnsonCookDamageBase: public Physics<Dimension> {
+class JohnsonCookDamage: public Physics<Dimension> {
 
 public:
   //--------------------------- Public Interface ---------------------------//
@@ -51,19 +51,19 @@ public:
   typedef typename Physics<Dimension>::ConstBoundaryIterator ConstBoundaryIterator;
 
   // Constructors, destructor.
-  JohnsonCookDamageBase(NodeSpace::SolidNodeList<Dimension>& nodeList,
-                        const FieldSpace::Field<Dimension, Scalar>& D1,
-                        const FieldSpace::Field<Dimension, Scalar>& D2,
-                        const double D3,
-                        const double D4,
-                        const double D5,
-                        const double epsilondot0,
-                        const double Tcrit,
-                        const double sigmamax,
-                        const double efailmin,
-                        const unsigned seed,
-                        const bool domainIndependent);
-  virtual ~JohnsonCookDamageBase();
+  JohnsonCookDamage(NodeSpace::SolidNodeList<Dimension>& nodeList,
+                    const FieldSpace::Field<Dimension, Scalar>& D1,
+                    const FieldSpace::Field<Dimension, Scalar>& D2,
+                    const double D3,
+                    const double D4,
+                    const double D5,
+                    const double epsilondot0,
+                    const double Tcrit,
+                    const double sigmamax,
+                    const double efailmin,
+                    const unsigned seed,
+                    const bool domainIndependent);
+  virtual ~JohnsonCookDamage();
 
   // Attributes.
   const NodeSpace::SolidNodeList<Dimension>& nodeList() const;
@@ -112,7 +112,7 @@ public:
 
   //**************************************************************************
   // Restart methods.
-  virtual std::string label() const override { return "JohnsonCookDamageBase"; }
+  virtual std::string label() const override { return "JohnsonCookDamage"; }
   virtual void dumpState(FileIOSpace::FileIO& file, const std::string& pathName) const;
   virtual void restoreState(const FileIOSpace::FileIO& file, const std::string& pathName);
   //**************************************************************************
@@ -128,22 +128,22 @@ private:
   DataOutput::RestartRegistrationType mRestart;
 
   // No default constructor, copying or assignment.
-  JohnsonCookDamageBase();
-  JohnsonCookDamageBase(const JohnsonCookDamageBase&);
-  JohnsonCookDamageBase& operator=(const JohnsonCookDamageBase&);
+  JohnsonCookDamage();
+  JohnsonCookDamage(const JohnsonCookDamage&);
+  JohnsonCookDamage& operator=(const JohnsonCookDamage&);
 };
 
 }
 }
 
-#include "JohnsonCookDamageBaseInline.hh"
+#include "JohnsonCookDamageInline.hh"
 
 #else
 
 // Forward declaration.
 namespace Spheral {
   namespace PhysicsSpace {
-    template<typename Dimension> class JohnsonCookDamageBase;
+    template<typename Dimension> class JohnsonCookDamage;
   }
 }
 
