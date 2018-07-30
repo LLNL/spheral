@@ -473,23 +473,23 @@ elif DamageModelConstructor is GradyKippTensorDamageOwen:
                                          numFlawsPerNode,
                                          damageInCompression = damageInCompression)
 
-elif DamageModelConstructor is JohnsonCookDamage:
+elif DamageModelConstructor is JohnsonCookDamageWeibull:
     damageModel = DamageModelConstructor(nodes,
                                          D1 = D1,
                                          D2 = D2,
                                          D3 = D3,
                                          D4 = D4,
                                          D5 = D5,
+                                         epsilondot0 = epsilondot0,
+                                         Tcrit = Tcrit,
+                                         sigmamax = sigmamax,
+                                         efailmin = efailmin,
                                          aD1 = aD1,
                                          bD1 = bD1,
                                          eps0D1 = eps0D1,
                                          aD2 = aD2,
                                          bD2 = bD2,
                                          eps0D2 = eps0D2,
-                                         epsilondot0 = epsilondot0,
-                                         Tcrit = Tcrit,
-                                         sigmamax = sigmamax,
-                                         efailmin = efailmin,
                                          seed = randomSeed,
                                          domainIndependent = domainIndependent)
 
@@ -633,7 +633,7 @@ if graphics:
                                    plotStyle = "linespoints",
                                    winTitle = "Effective Flaws @ %g %i" % (control.time(), mpi.procs))
 
-    elif DamageModelConstructor is JohnsonCookDamage:
+    elif DamageModelConstructor is JohnsonCookDamageWeibull:
         eps = damageModel.failureStrain()
         epsl = ScalarFieldList()
         epsl.appendField(eps)

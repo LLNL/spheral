@@ -12,6 +12,7 @@
 #include "Utilities/globalNodeIDs.hh"
 #include "Utilities/rotationMatrix.hh"
 #include "Utilities/iterateIdealH.hh"
+#include "Utilities/nodeOrdering.hh"
 #include "Utilities/mortonOrderIndices.hh"
 #include "Utilities/peanoHilbertOrderIndices.hh"
 #include "Utilities/boundingBox.hh"
@@ -247,6 +248,27 @@ inline
 FieldSpace::FieldList<Dim<3>, uint64_t>
 peanoHilbertOrderIndices3d(const DataBaseSpace::DataBase<Dim<3> >& dataBase) {
   return peanoHilbertOrderIndices(dataBase);
+}
+
+//------------------------------------------------------------------------------
+// And these...
+//------------------------------------------------------------------------------
+inline
+FieldSpace::FieldList<Dim<1>, int>
+nodeOrdering1d(const FieldSpace::FieldList<Dim<1>, uint64_t>& criteria) {
+  return nodeOrdering(criteria);
+}
+
+inline
+FieldSpace::FieldList<Dim<2>, int>
+nodeOrdering2d(const FieldSpace::FieldList<Dim<2>, uint64_t>& criteria) {
+  return nodeOrdering(criteria);
+}
+
+inline
+FieldSpace::FieldList<Dim<3>, int>
+nodeOrdering3d(const FieldSpace::FieldList<Dim<3>, uint64_t>& criteria) {
+  return nodeOrdering(criteria);
 }
 
 //------------------------------------------------------------------------------

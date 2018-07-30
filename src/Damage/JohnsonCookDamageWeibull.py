@@ -8,7 +8,7 @@
 # JohnsonCookDamage with the D1 and D2 fields filled in.
 #-------------------------------------------------------------------------------
 from math import *
-import np
+import numpy as np
 import mpi
 
 from spheralDimensions import spheralDimensions
@@ -20,28 +20,31 @@ def JohnsonCookDamageWeibull(nodeList,
                              D3,
                              D4,
                              D5,
+                             epsilondot0,
+                             Tcrit,
+                             sigmamax,
+                             efailmin,
                              aD1,
                              bD1,
                              eps0D1,
                              aD2,
                              bD2,
                              eps0D2,
-                             epsilondot0,
-                             Tcrit,
-                             sigmamax,
-                             efailmin,
-                             seed,
-                             domainIndependent):
+                             seed = None,
+                             domainIndependent = True):
                              
     # What dimension are we?
-    assert nodeList.__name__ in ("SolidNodeList1d", "SolidNodeList3d", "SolidNodeList3d")
-    ndim = int(nodeList.__name__[-3:-2])
+    assert nodeList.__class__.__name__ in ("SolidNodeList1d", "SolidNodeList3d", "SolidNodeList3d")
+    ndim = int(nodeList.__class__.__name__[-2:-1])
     assert ndim in spheralDimensions()
 
     # Import the approprite bits of Spheral.
     exec("""
 from SpheralModules.Spheral.PhysicsSpace import JohnsonCookDamage%(ndim)sd as JohnsonCookDamage
 from SpheralModules.Spheral.FieldSpace import ScalarField%(ndim)sd as ScalarField
+from SpheralModules.Spheral.DataBaseSpace import DataBase%(ndim)sd as DataBase
+from SpheralModules.Spheral import nodeOrdering%(ndim)sd as nodeOrdering
+from SpheralModules.Spheral import mortonOrderIndices%(ndim)sd as mortonOrderIndices
 """ % {"ndim" : ndim})
 
     # Prepare the fields for D1 and D2
@@ -55,61 +58,66 @@ from SpheralModules.Spheral.FieldSpace import ScalarField%(ndim)sd as ScalarFiel
         # Are we generating domain-independent?
         if domainIndependent:
 
-        # Initialize the random number generator.
-        np.random.seed(seed)
+            # Initialize the random number generator.
+            np.random.seed(seed)
 
-      // Construct a random number generator.
-      // C++11 provides a Weibull distribution natively.
-      std::mt19937 gen(seed);
-      std::weibull_distribution<> d1(aD1, bD1), d2(aD2, bD2);
+            # Assign a unique ordering to the nodes so we can step through them
+            # in a domain independent manner.
+            db = DataBase()
+            db.appendNodeList(nodeList)
+            keyList = mortonOrderIndices(db);
+            orderingList = nodeOrdering(keyList);
+            assert orderingList.numFields == 1
+            ordering = orderingList[0]
+            nglobal = max(0, ordering.max() + 1)
 
-      // First, assign a unique ordering to the nodes so we can step through them
-      // in a domain independent manner.
-      typedef KeyTraits::Key Key;
-      DataBase<Dimension> db;
-      db.appendNodeList(nodeList);
-      auto keyList = mortonOrderIndices(db);
-      auto orderingList = nodeOrdering(keyList);
-      CHECK(orderingList.numFields() == 1);
-      auto& ordering = *orderingList[0];
-      const auto n = std::max(0, ordering.max());  // Note this is the global number of nodes.
+            # Reverse lookup in the ordering.
+            order2local = [ordering[i] for i in xrange(nodeList.numInternalNodes)]
 
-      // Reverse lookup in the ordering.
-      unordered_map<unsigned, unsigned> order2local;
-      for (auto i = 0; i != nodeList.numInternalNodes(); ++i) order2local[ordering[i]] = i;
+            # Generate random numbers in batches.
+            iglobal = 0
+            nbatch = max(1, nglobal/mpi.procs)
+            for iproc in xrange(mpi.procs):
+                if iproc == mpi.procs - 1:
+                    nlocal = nglobal - iglobal
+                else:
+                    nlocal = nbatch
+                if aD1 != 0.0:
+                    D1vals = aD1*np.random.weibull(bD1, nlocal) + eps0D1
+                    D2vals = aD2*np.random.weibull(bD2, nlocal) + eps0D2
+                    for i in xrange(nlocal):
+                        try:
+                            j = order2local.index(iglobal + i)
+                            if aD1 != 0.0:
+                                fD1 = D1vals[i]
+                            if aD2 != 0.0:
+                                fD2 = D2vals[i]
+                        except ValueError:
+                            pass
+                    iglobal += nlocal
 
-      // Walk the global number of node in Morton order.
-      for (auto iorder = 0; iorder < n + 1; ++iorder) {
+        else:
 
-        // Is this one of our nodes?
-        auto itr = order2local.find(iorder);
-        if (itr != order2local.end()) {
+            # In the non-domain independent case we can generate more quickly in parallel.
+            procID = mpi.rank
+            np.random.seed((seed + procID)*(seed + procID + 1)/2 + procID)
+            if aD1 != 0.0:
+                vals = aD1*np.random.weibull(bD1, nodeList.numInternalNodes) + eps0D1
+                for i in xrange(nodeList.numInternalNodes):
+                    fD1[i] = vals[i]
+            if aD2 != 0.0:
+                vals = aD2*np.random.weibull(bD2, nodeList.numInternalNodes) + eps0D2
+                for i in xrange(nodeList.numInternalNodes):
+                    fD2[i] = vals[i]
 
-          // This node is on this domain, so assign D1 and D2.
-          const auto i = itr->second;
-          CHECK(i < nodeList.numInternalNodes());
-          if (aD1 != 0.0) mD1[i] = D1*(d1(gen) + eps0D1);
-          if (aD2 != 0.0) mD2[i] = D2*(d2(gen) + eps0D2);
-
-        } else {
-
-          // Otherwise we just spin the random generators to keep all domains in sync.
-          d1(gen);
-          d2(gen);
-
-        }
-      }
-
-    else:
-
-        # In the non-domain independent case we can generate more quickly in parallel.
-         procID = mpi.rank
-         np.random.seed((seed + procID)*(seed + procID + 1)/2 + procID)
-         if aD1 != 0.0:
-             vals = aD1*np.random.weibull(bD1, nodeList.numInternalNodes) + eps0D1
-             for i in xrange(nodeList.numInternalNodes):
-                 fD1[i] = vals[i]
-         if aD2 != 0.0:
-             vals = aD2*np.random.weibull(bD2, nodeList.numInternalNodes) + eps0D2
-             for i in xrange(nodeList.numInternalNodes):
-                 fD2[i] = vals[i]
+    # Now we build and and return the damage model.
+    return JohnsonCookDamage(nodeList,
+                             fD1,
+                             fD2,
+                             D3,
+                             D4,
+                             D5,
+                             epsilondot0,
+                             Tcrit,
+                             sigmamax,
+                             efailmin)

@@ -60,9 +60,7 @@ public:
                     const double epsilondot0,
                     const double Tcrit,
                     const double sigmamax,
-                    const double efailmin,
-                    const unsigned seed,
-                    const bool domainIndependent);
+                    const double efailmin);
   virtual ~JohnsonCookDamage();
 
   // Attributes.

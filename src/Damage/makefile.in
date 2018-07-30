@@ -29,7 +29,8 @@ SRCTARGETS =
 PYTHONTARGETS = \
 	$(srcdir)/identifyFragments.py \
 	$(srcdir)/WeibullDamage.py \
-	$(srcdir)/GradyKippTensorDamage.py
+	$(srcdir)/GradyKippTensorDamage.py \
+	$(srcdir)/JohnsonCookDamageWeibull.py
 
 #-------------------------------------------------------------------------------
 include $(BUILDTOP)/helpers/makefile_master

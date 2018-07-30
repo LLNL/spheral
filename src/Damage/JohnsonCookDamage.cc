@@ -55,9 +55,7 @@ JohnsonCookDamage(SolidNodeList<Dimension>& nodeList,
                       const double epsilondot0,
                       const double Tcrit,
                       const double sigmamax,
-                      const double efailmin,
-                      const unsigned seed,
-                      const bool domainIndependent):
+                      const double efailmin):
   mNodeList(nodeList),
   mD1("D1_" + nodeList.name(), D1),
   mD2("D2_" + nodeList.name(), D2),

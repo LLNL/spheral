@@ -267,9 +267,7 @@ self.generateJohnsonCookDamageBindings(self.JohnsonCookDamage%(dim)id, %(dim)i)
                            param("double", "epsilondot0"),
                            param("double", "Tcrit"),
                            param("double", "sigmamax"),
-                           param("double", "efailmin"),
-                           param("unsigned int", "seed"),
-                           param("bool", "domainIndependent", default_value="true")])
+                           param("double", "efailmin")])
 
         # Physics interface.
         generatePhysicsVirtualBindings(x, ndim, False)
