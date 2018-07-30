@@ -34,7 +34,7 @@ def JohnsonCookDamageWeibull(nodeList,
                              domainIndependent = True):
                              
     # What dimension are we?
-    assert nodeList.__class__.__name__ in ("SolidNodeList1d", "SolidNodeList3d", "SolidNodeList3d")
+    assert nodeList.__class__.__name__ in ("SolidNodeList1d", "SolidNodeList2d", "SolidNodeList3d")
     ndim = int(nodeList.__class__.__name__[-2:-1])
     assert ndim in spheralDimensions()
 
