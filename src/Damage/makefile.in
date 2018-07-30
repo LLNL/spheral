@@ -30,7 +30,8 @@ PYTHONTARGETS = \
 	$(srcdir)/identifyFragments.py \
 	$(srcdir)/WeibullDamage.py \
 	$(srcdir)/GradyKippTensorDamage.py \
-	$(srcdir)/JohnsonCookDamageWeibull.py
+	$(srcdir)/JohnsonCookDamageWeibull.py \
+	$(srcdir)/JohnsonCookDamageGaussian.py
 
 #-------------------------------------------------------------------------------
 include $(BUILDTOP)/helpers/makefile_master

@@ -18,6 +18,7 @@ from SolidMaterialUnits import *
 from SolidMaterialEquationsOfState import *
 
 from JohnsonCookDamageWeibull import JohnsonCookDamageWeibull
+from JohnsonCookDamageGaussian import JohnsonCookDamageGaussian
 
 # ------------------------------------------------------------------------------
 # Import our shadow layers for augmenting C++ types.

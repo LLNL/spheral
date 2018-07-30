@@ -49,7 +49,7 @@ from SpheralModules.Spheral import mortonOrderIndices%(ndim)sd as mortonOrderInd
 
     # We need to generate the D1 and D2 Fields Gaussian distributed fields.
     # If the a value is 0.0, we take this to mean the corresponding D coefficient is constant.
-    if aD1 != 0.0 or aD2 != 0.0:
+    if sigmaD1 != 0.0 or sigmaD2 != 0.0:
 
         # Are we generating domain-independent?
         if domainIndependent:
@@ -78,16 +78,16 @@ from SpheralModules.Spheral import mortonOrderIndices%(ndim)sd as mortonOrderInd
                     nlocal = nglobal - iglobal
                 else:
                     nlocal = nbatch
-                if aD1 != 0.0:
+                if sigmaD1 != 0.0:
                     D1vals = np.random.normal(D1, sigmaD1, nlocal)
-                if aD2 != 0.0:
+                if sigmaD2 != 0.0:
                     D2vals = np.random.normal(D2, sigmaD2, nlocal)
                 for i in xrange(nlocal):
                     try:
                         j = order2local.index(iglobal + i)
-                        if aD1 != 0.0:
+                        if sigmaD1 != 0.0:
                             fD1[j] = D1vals[i]
-                        if aD2 != 0.0:
+                        if sigmaD2 != 0.0:
                             fD2[j] = D2vals[i]
                     except ValueError:
                         pass
@@ -98,11 +98,11 @@ from SpheralModules.Spheral import mortonOrderIndices%(ndim)sd as mortonOrderInd
             # In the non-domain independent case we can generate more quickly in parallel.
             procID = mpi.rank
             np.random.seed(((seed + procID)*(seed + procID + 1)/2 + procID) % 2**32)
-            if aD1 != 0.0:
+            if sigmaD1 != 0.0:
                 vals = np.random.normal(D1, sigmaD1, nodeList.numInternalNodes)
                 for i in xrange(nodeList.numInternalNodes):
                     fD1[i] = vals[i]
-            if aD2 != 0.0:
+            if sigmaD2 != 0.0:
                 vals = np.random.normal(D2, sigmaD2, nodeList.numInternalNodes)
                 for i in xrange(nodeList.numInternalNodes):
                     fD2[i] = vals[i]

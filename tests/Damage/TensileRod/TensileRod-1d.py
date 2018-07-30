@@ -107,12 +107,14 @@ commandLine(length = 3.0,
             D3 = -1.5,
             D4 = 0.0,
             D5 = 0.0,
-            aD1 = 0.0,
-            bD1 = 0.0,
-            eps0D1 = 0.0,
-            aD2 = 0.065,
-            bD2 = 2.0,
-            eps0D2 = 0.165,
+            sigmaD1 = 0.0,  # Gaussian
+            aD1 = 0.0,      # Weibull
+            bD1 = 0.0,      # Weibull
+            eps0D1 = 0.0,   # Weibull
+            sigmaD2 = 0.1,  # Gaussian
+            aD2 = 0.065,    # Weibull
+            bD2 = 2.0,      # Weibull
+            eps0D2 = 0.165, # Weibull
             epsilondot0 = 0.01,
             Tcrit = -2.0,
             sigmamax = -3.0,
@@ -490,6 +492,22 @@ elif DamageModelConstructor is JohnsonCookDamageWeibull:
                                          aD2 = aD2,
                                          bD2 = bD2,
                                          eps0D2 = eps0D2,
+                                         seed = randomSeed,
+                                         domainIndependent = domainIndependent)
+
+elif DamageModelConstructor is JohnsonCookDamageGaussian:
+    damageModel = DamageModelConstructor(nodes,
+                                         D1 = D1,
+                                         D2 = D2,
+                                         D3 = D3,
+                                         D4 = D4,
+                                         D5 = D5,
+                                         epsilondot0 = epsilondot0,
+                                         Tcrit = Tcrit,
+                                         sigmamax = sigmamax,
+                                         efailmin = efailmin,
+                                         sigmaD1 = sigmaD1,
+                                         sigmaD2 = sigmaD2,
                                          seed = randomSeed,
                                          domainIndependent = domainIndependent)
 
