@@ -59,7 +59,7 @@ from SpheralModules.Spheral import mortonOrderIndices%(ndim)sd as mortonOrderInd
         if domainIndependent:
 
             # Initialize the random number generator.
-            np.random.seed(seed)
+            np.random.seed(seed % 2**32)
 
             # Assign a unique ordering to the nodes so we can step through them
             # in a domain independent manner.
@@ -84,23 +84,24 @@ from SpheralModules.Spheral import mortonOrderIndices%(ndim)sd as mortonOrderInd
                     nlocal = nbatch
                 if aD1 != 0.0:
                     D1vals = aD1*np.random.weibull(bD1, nlocal) + eps0D1
+                if aD2 != 0.0:
                     D2vals = aD2*np.random.weibull(bD2, nlocal) + eps0D2
-                    for i in xrange(nlocal):
-                        try:
-                            j = order2local.index(iglobal + i)
-                            if aD1 != 0.0:
-                                fD1 = D1vals[i]
-                            if aD2 != 0.0:
-                                fD2 = D2vals[i]
-                        except ValueError:
-                            pass
-                    iglobal += nlocal
+                for i in xrange(nlocal):
+                    try:
+                        j = order2local.index(iglobal + i)
+                        if aD1 != 0.0:
+                            fD1[j] = D1vals[i]
+                        if aD2 != 0.0:
+                            fD2[j] = D2vals[i]
+                    except ValueError:
+                        pass
+                iglobal += nlocal
 
         else:
 
             # In the non-domain independent case we can generate more quickly in parallel.
             procID = mpi.rank
-            np.random.seed((seed + procID)*(seed + procID + 1)/2 + procID)
+            np.random.seed(((seed + procID)*(seed + procID + 1)/2 + procID) % 2**32)
             if aD1 != 0.0:
                 vals = aD1*np.random.weibull(bD1, nodeList.numInternalNodes) + eps0D1
                 for i in xrange(nodeList.numInternalNodes):
