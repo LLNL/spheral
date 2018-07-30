@@ -101,23 +101,40 @@ update(const KeyType& key,
   const auto n = efail.numInternalElements();
 #pragma omp parallel for
   for (auto i = 0; i < n; ++i) {
-    if (-P(i) > -msigmamax) {
-      efail(i) = mefailmin;
-    } else {
-      const auto sigmaVMinv = safeInv(sqrt(1.5*S(i).doubledot(S(i))));
-      const auto chi = -P(i)*sigmaVMinv;
-      if (chi > -mTcrit and chi < -msigmamax*sigmaVMinv) {
-        const auto efailTcrit = (mD1(i) + mD2(i)*exp(-mD3*mTcrit))*
-                                (1.0 + mD4*log(max(1.0, psr(i)*safeInv(mepsilondot0))))*
-                                (1.0 + mD5*eps(i)*safeInv(epsMelt(i)));
-        const auto psi = (chi + mTcrit)*safeInvVar(-msigmamax*sigmaVMinv + mTcrit);
-        CHECK(psi >= 0.0 and psi <= 1.0);
-        efail(i) = (1.0 - psi)*efailTcrit + psi*mefailmin;
-      } else {
-        efail(i) = (mD1(i) + mD2(i)*exp(-mD3*chi))*
-                   (1.0 + mD4*log(max(1.0, psr(i)*safeInv(mepsilondot0))))*
-                   (1.0 + mD5*eps(i)*safeInv(epsMelt(i)));
+    const auto sigmaVM = sqrt(1.5*S(i).doubledot(S(i)));
+    CHECK(sigmaVM >= 0.0);
+    const auto Pi = min(0.0, P(i));                        // Only use negative pressure
+    if (sigmaVM < 1.0e-10 or abs(psr(i)) < 1.0e-10) {
+
+      // Negligible von-Mises stress or negligible plastic strain.
+      efail(i) = mD1(i) + mD2(i);
+
+    } else if (-Pi < mTcrit/sigmaVM) {
+
+      // Ordinary JC definition
+      efail(i) = (mD1(i) + mD2(i)*exp(min(35.0, mD3*Pi/sigmaVM)))*
+                 (1.0 + mD5*eps(i)*safeInv(epsMelt(i)));
+      if (psr(i) > mepsilondot0) {
+        efail(i) *= 1.0 + mD4*log(psr(i)*safeInv(mepsilondot0));
       }
+
+    } else if (-Pi < -msigmamax) {
+
+      // Linear interpolation to minimum failure
+      auto efailTcrit = (mD1(i) + mD2(i)*exp(min(35.0, mD3*mTcrit)))*
+                        (1.0 + mD5*eps(i)*safeInv(epsMelt(i)));
+      if (psr(i) > mepsilondot0) {
+        efail(i) *= 1.0 + mD4*log(psr(i)*safeInv(mepsilondot0));
+      }
+      const auto psi = max(0.0, min(1.0, (-Pi + mTcrit*sigmaVM)*safeInvVar(-msigmamax + mTcrit*sigmaVM)));
+      CHECK(psi >= 0.0 and psi <= 1.0);
+      efail(i) = (1.0 - psi)*efailTcrit + psi*mefailmin;
+
+    } else {
+
+      // Just the minimum
+      efail(i) = mefailmin;
+
     }
     efail(i) = max(mefailmin, efail(i));
   }
