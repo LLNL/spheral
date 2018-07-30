@@ -48,8 +48,8 @@ from SpheralModules.Spheral import mortonOrderIndices%(ndim)sd as mortonOrderInd
 """ % {"ndim" : ndim})
 
     # Prepare the fields for D1 and D2
-    fD1 = ScalarField("D1", nodeList)
-    fD2 = ScalarField("D2", nodeList)
+    fD1 = ScalarField("D1", nodeList, D1)
+    fD2 = ScalarField("D2", nodeList, D2)
 
     # We need to generate the D1 and D2 Fields Weibull distributed fields.
     # If the a value is 0.0, we take this to mean the corresponding D coefficient is constant.

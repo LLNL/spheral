@@ -576,41 +576,41 @@ else:
 # Plot the state.
 #-------------------------------------------------------------------------------
 if graphics:
-    from SpheralGnuPlotUtilities import *
+    from SpheralMatplotlib import *
     state = State(db, integrator.physicsPackages())
     H = state.symTensorFields("H")
     h = db.newFluidScalarFieldList(0.0, "h")
     for i in xrange(nodes.numInternalNodes):
         h[0][i] = 1.0/H[0][i].xx
     rhoPlot = plotFieldList(state.scalarFields("mass density"),
-                            plotStyle="linespoints",
+                            plotStyle="o-",
                             winTitle="rho @ %g %i" % (control.time(), mpi.procs))
     velPlot = plotFieldList(state.vectorFields("velocity"),
                             yFunction = "%s.x",
-                            plotStyle="linespoints",
+                            plotStyle="o-",
                             winTitle="vel @ %g %i" % (control.time(), mpi.procs))
     mPlot = plotFieldList(state.scalarFields("mass"),
-                          plotStyle="linespoints",
+                          plotStyle="o-",
                           winTitle="mass @ %g %i" % (control.time(), mpi.procs))
     PPlot = plotFieldList(state.scalarFields("pressure"),
-                          plotStyle="linespoints",
+                          plotStyle="o-",
                           winTitle="pressure @ %g %i" % (control.time(), mpi.procs))
     hPlot = plotFieldList(h,
-                          plotStyle="linespoints",
+                          plotStyle="o-",
                           winTitle="h @ %g %i" % (control.time(), mpi.procs))
 
     d = state.symTensorFields("tensor damage")
     dPlot = plotFieldList(d,
                           yFunction = "%s.xx",
                           winTitle="damage @ %g %i" % (control.time(), mpi.procs),
-                          plotStyle="linespoints")
+                          plotStyle="o-")
     ed = state.symTensorFields("effective tensor damage")
     edPlot = plotFieldList(ed,
                            yFunction = "%s.xx",
                            winTitle="Effective damage @ %g %i" % (control.time(), mpi.procs),
-                           plotStyle="linespoints")
+                           plotStyle="o-")
 
-    if DamageModelConstructor in (GradyKippTensorDamageBenzAsphaug, GradyKippTensorDamageOwen):
+    if isinstance(damageModel, GradyKippTensorDamageBenzAsphaug) or isinstance(damageModel, GradyKippTensorDamageOwen):
         ts = damageModel.strain()
         s = ScalarField("strain", nodes)
         for i in xrange(nodes.numInternalNodes):
@@ -618,7 +618,7 @@ if graphics:
         sl = ScalarFieldList()
         sl.appendField(s)
         sPlot = plotFieldList(sl, winTitle="strain @ %g %i" % (control.time(), mpi.procs),
-                              plotStyle="linespoints")
+                              plotStyle="o-")
         eps = damageModel.sumActivationEnergiesPerNode()
         nflaws = damageModel.numFlawsPerNode()
         for i in xrange(nodes.numInternalNodes):
@@ -627,31 +627,31 @@ if graphics:
         epsl = ScalarFieldList()
         epsl.appendField(eps)
         epsPlot = plotFieldList(epsl, winTitle="Flaw activation strains",
-                                plotStyle="linespoints")
+                                plotStyle="o-")
       
         eflawsPlot = plotFieldList(state.scalarFields("effective flaws"),
-                                   plotStyle = "linespoints",
+                                   plotStyle = "o-",
                                    winTitle = "Effective Flaws @ %g %i" % (control.time(), mpi.procs))
 
-    elif DamageModelConstructor is JohnsonCookDamageWeibull:
+    elif isinstance(damageModel, JohnsonCookDamage):
         eps = damageModel.failureStrain()
         epsl = ScalarFieldList()
         epsl.appendField(eps)
         epsPlot = plotFieldList(epsl, winTitle="JC failure strains",
-                                plotStyle="linespoints")
+                                plotStyle="o-")
         D1 = damageModel.D1()
         D1l = ScalarFieldList()
         D1l.appendField(D1)
         D1Plot = plotFieldList(D1l, winTitle="JC D1",
-                                plotStyle="linespoints")
+                                plotStyle="o-")
         D2 = damageModel.D2()
         D2l = ScalarFieldList()
         D2l.appendField(D2)
         D2Plot = plotFieldList(D2l, winTitle="JC D2",
-                                plotStyle="linespoints")
+                                plotStyle="o-")
 
     fragPlot = plotFieldList(state.intFields(SolidFieldNames.fragmentIDs),
-                             plotStyle = "linespoints",
+                             plotStyle = "o-",
                              winTitle = "Fragments @  %g %i" % (control.time(), mpi.procs))
 
 #-------------------------------------------------------------------------------
@@ -704,3 +704,5 @@ if outputFile != "None":
             import filecmp
             assert filecmp.cmp(outputFile, comparisonFile)
 
+if graphics:
+    plt.show()
