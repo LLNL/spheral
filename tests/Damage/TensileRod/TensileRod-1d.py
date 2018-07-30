@@ -116,7 +116,7 @@ commandLine(length = 3.0,
             epsilondot0 = 0.01,
             Tcrit = -2.0,
             sigmamax = -3.0,
-            efailmin = 0.1,
+            efailmin = 0.01,
 
             # Optionally we can initialize a break near the origin.
             initialBreakRadius = 0.0,
