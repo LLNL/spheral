@@ -1,5 +1,8 @@
 set(Damage_sources2d
     DamageModelInst.cc.2.cc
+    JohnsonCookDamageInst.cc.2.cc
+    JohnsonCookDamagePolicyInst.cc.2.cc
+    JohnsonCookFailureStrainPolicyInst.cc.2.cc
     LongitudinalSoundSpeedPolicyInst.cc.2.cc
     StrainPolicyInst.cc.2.cc
     TensorDamageModelInst.cc.2.cc
@@ -12,6 +15,9 @@ set(Damage_sources2d
 
 set(Damage_sources3d
     DamageModelInst.cc.3.cc
+    JohnsonCookDamageInst.cc.3.cc
+    JohnsonCookDamagePolicyInst.cc.3.cc
+    JohnsonCookFailureStrainPolicyInst.cc.3.cc
     LongitudinalSoundSpeedPolicyInst.cc.3.cc
     StrainPolicyInst.cc.3.cc
     TensorDamageModelInst.cc.3.cc
@@ -29,6 +35,10 @@ set(Damage_headers
     DamagedSoundSpeedPolicy.hh
     EffectiveTensorDamagePolicy.hh
     GradyKippScalarDamage.hh
+    JohnsonCookDamage.hh
+    JohnsonCookDamageInline.hh
+    JohnsonCookDamagePolicy.hh
+    JohnsonCookFailureStrainPolicy.hh
     LongitudinalSoundSpeedPolicy.hh
     ScalarDamageModel.hh
     ScalarDamagePolicy.hh

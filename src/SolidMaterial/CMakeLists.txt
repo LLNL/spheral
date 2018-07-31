@@ -10,6 +10,7 @@ set(SolidMaterial_sources2d
     PorousStrengthModelInst.cc.2.cc
     SteinbergGuinanStrengthInst.cc.2.cc
     StrainPorosityInst.cc.2.cc
+    StrengthModelInst.cc.2.cc
     TillotsonEquationOfStateInst.cc.2.cc
     )
 
@@ -25,6 +26,7 @@ set(SolidMaterial_sources3d
     PorousStrengthModelInst.cc.3.cc
     SteinbergGuinanStrengthInst.cc.3.cc
     StrainPorosityInst.cc.3.cc
+    StrengthModelInst.cc.3.cc
     TillotsonEquationOfStateInst.cc.3.cc
     )
 

@@ -16,8 +16,9 @@ declare -a arr=("src/SPH"
 		"src/Physics"
 		"src/Field"
 		"src/FieldOperations"
+		"src/NodeGenerators"
 		"src/NodeList"
-		"src/Geometry"
+                "src/Geometry"
 		"src/Utilities")
 
 for d in "${arr[@]}"; do

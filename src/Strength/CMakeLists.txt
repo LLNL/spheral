@@ -1,6 +1,7 @@
 set(Strength_sources2d
     BulkModulusPolicyInst.cc.2.cc
     DeviatoricStressPolicyInst.cc.2.cc
+    MeltEnergyPolicyInst.cc.2.cc
     PlasticStrainPolicyInst.cc.2.cc
     RZDeviatoricStressPolicy.cc
     RZPlasticStrainPolicy.cc
@@ -12,6 +13,7 @@ set(Strength_sources2d
 set(Strength_sources3d
     BulkModulusPolicyInst.cc.3.cc
     DeviatoricStressPolicyInst.cc.3.cc
+    MeltEnergyPolicyInst.cc.3.cc
     PlasticStrainPolicyInst.cc.3.cc
     ShearModulusPolicyInst.cc.3.cc
     StrengthSoundSpeedPolicyInst.cc.3.cc
@@ -25,6 +27,7 @@ set(Strength_sources
 set(Strength_headers
     BulkModulusPolicy.hh
     DeviatoricStressPolicy.hh
+    MeltEnergyPolicy.hh
     PlasticStrainPolicy.hh
     RZDeviatoricStressPolicy.hh
     RZPlasticStrainPolicy.hh
