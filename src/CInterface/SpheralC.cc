@@ -1,0 +1,489 @@
+//------------------------------------------------------------------------------
+// This is the C++ implementation of C interface functions for calling into
+// Spheral from C/Fortran.
+//------------------------------------------------------------------------------
+
+#include "SpheralC.h"
+
+#include <vector>
+
+#include "Geometry/Dimension.hh"
+#include "Distributed/Communicator.hh"
+#include "SpheralPseudoScript.hh"
+
+//------------------------------------------------------------------------------
+// spheral_set_communicator
+//------------------------------------------------------------------------------
+#ifdef USE_MPI
+void spheral_set_communicator(MPI_Comm* comm) {
+  Spheral::Communicator::communicator(*comm);
+}
+#endif
+
+//------------------------------------------------------------------------------
+// spheral_initialize
+//------------------------------------------------------------------------------
+void spheral_initialize(const int      ndims,
+                        const int      axisym,
+                        const int      CRK,
+                        const int      ASPH,
+                        const int      XSPH,
+                        const int      compatibleEnergy,
+                        const int      totalEnergy,
+                        const int      vGradCorrection,
+                        const int      hGradCorrection,
+                        const int      sumMassDensity,
+                        const int      useVelocityDt,
+                        const int      ScalarQ,
+                        const int      distributedBoundary,
+                        const int      kernelType,
+                        const int      piKernelType,
+                        const int      gradKernelType,
+                        const int      nbspline,
+                        const int      damage,
+                        const unsigned nmats,
+                        const double   CFL,
+                        const double   hmin,
+                        const double   hmax,
+                        const double   hminmaxratio,
+                        const double   nPerh,
+                        const double   Clinear,
+                        const double   Cquadratic,
+                        const double*  xmincoords,
+                        const double*  xmaxcoords) {
+  if (ndims == 3) {
+    typedef Spheral::Dim<3> Dimension;
+    Dimension::Vector xmin(xmincoords[0], xmincoords[1], xmincoords[2]),
+                      xmax(xmaxcoords[0], xmaxcoords[1], xmaxcoords[2]);
+    Spheral::SpheralPseudoScript<Dimension>::initialize(false,
+                                                        CRK,
+                                                        ASPH,
+                                                        XSPH,
+                                                        compatibleEnergy,
+                                                        totalEnergy,
+                                                        vGradCorrection,
+                                                        hGradCorrection,
+                                                        sumMassDensity,
+                                                        useVelocityDt,
+                                                        ScalarQ,
+                                                        distributedBoundary,
+                                                        kernelType,
+                                                        piKernelType,
+                                                        gradKernelType,
+                                                        nbspline,
+                                                        damage,
+                                                        nmats,
+                                                        CFL,
+                                                        hmin,
+                                                        hmax,
+                                                        hminmaxratio,
+                                                        nPerh,
+                                                        Clinear,
+                                                        Cquadratic,
+                                                        xmin,
+                                                        xmax);
+  } else if (ndims == 2) {
+    typedef Spheral::Dim<2> Dimension;
+    Dimension::Vector xmin(xmincoords[0], xmincoords[1]),
+                      xmax(xmaxcoords[0], xmaxcoords[1]);
+    Spheral::SpheralPseudoScript<Dimension>::initialize(axisym,
+                                                        CRK,
+                                                        ASPH,
+                                                        XSPH,
+                                                        compatibleEnergy,
+                                                        totalEnergy,
+                                                        vGradCorrection,
+                                                        hGradCorrection,
+                                                        sumMassDensity,
+                                                        useVelocityDt,
+                                                        ScalarQ,
+                                                        distributedBoundary,
+                                                        kernelType,
+                                                        piKernelType,
+                                                        gradKernelType,
+                                                        nbspline,
+                                                        damage,
+                                                        nmats,
+                                                        CFL,
+                                                        hmin,
+                                                        hmax,
+                                                        hminmaxratio,
+                                                        nPerh,
+                                                        Clinear,
+                                                        Cquadratic,
+                                                        xmin,
+                                                        xmax);
+  } else {
+    VERIFY2(false, "Error in SpheralC -- incorrect number of dimensions " << ndims << " requested.");
+  }
+}
+
+//------------------------------------------------------------------------------
+// spheral_initialize_step
+//------------------------------------------------------------------------------
+double spheral_initialize_step(const int       ndims,
+                               const unsigned* nintpermat,
+                               const unsigned* npermat,
+                               const double*   mass,
+                               const double*   massDensity,
+                               const double**  position,
+                               const double*   specificThermalEnergy,
+                               const double**  velocity,
+                               const double**  Hfield,
+                               const double*   pressure,
+                               const double**  deviatoricStress,
+                               const double*   deviatoricStressTT,
+                               const double*   soundSpeed,
+                               const double*   bulkModulus,
+                               const double*   shearModulus,
+                               const double*   yieldStrength,
+                               const double*   plasticStrain,
+                               const double*   scalarDamage,
+                               const int*      particleType) {
+  if (ndims == 3) {
+    typedef Spheral::Dim<3> Dimension;
+    return Spheral::SpheralPseudoScript<Dimension>::initializeStep(nintpermat,
+                                                                   npermat,
+                                                                   mass,
+                                                                   massDensity,
+                                                                   position,
+                                                                   specificThermalEnergy,
+                                                                   velocity,
+                                                                   Hfield,
+                                                                   pressure,
+                                                                   deviatoricStress,
+                                                                   deviatoricStressTT,
+                                                                   soundSpeed,
+                                                                   bulkModulus,
+                                                                   shearModulus,
+                                                                   yieldStrength,
+                                                                   plasticStrain,
+                                                                   scalarDamage,
+                                                                   particleType);
+  } else if (ndims == 2) {
+    typedef Spheral::Dim<2> Dimension;
+    return Spheral::SpheralPseudoScript<Dimension>::initializeStep(nintpermat,
+                                                                   npermat,
+                                                                   mass,
+                                                                   massDensity,
+                                                                   position,
+                                                                   specificThermalEnergy,
+                                                                   velocity,
+                                                                   Hfield,
+                                                                   pressure,
+                                                                   deviatoricStress,
+                                                                   deviatoricStressTT,
+                                                                   soundSpeed,
+                                                                   bulkModulus,
+                                                                   shearModulus,
+                                                                   yieldStrength,
+                                                                   plasticStrain,
+                                                                   scalarDamage,
+                                                                   particleType);
+  } else {
+    VERIFY2(false, "Error in SpheralC -- incorrect number of dimensions " << ndims << " requested.");
+  }
+}
+
+//------------------------------------------------------------------------------
+// spheral_update_state
+//------------------------------------------------------------------------------
+void spheral_update_state(const int      ndims,
+                          const double*  mass,
+                          const double*  massDensity,
+                          const double** position,
+                          const double*  specificThermalEnergy,
+                          const double** velocity,
+                          const double** Hfield,
+                          const double*  pressure,
+                          const double** deviatoricStress,
+                          const double*  deviatoricStressTT,
+                          const double*  soundSpeed,
+                          const double*  bulkModulus,
+                          const double*  shearModulus,
+                          const double*  yieldStrength,
+                          const double*  plasticStrain,
+                          const double*  scalarDamage,
+                          const int*     particleType) {
+  if (ndims == 3) {
+    typedef Spheral::Dim<3> Dimension;
+    Spheral::SpheralPseudoScript<Dimension>::updateState(mass,
+                                                         massDensity,
+                                                         position,
+                                                         specificThermalEnergy,
+                                                         velocity,
+                                                         Hfield,
+                                                         pressure,
+                                                         deviatoricStress,
+                                                         deviatoricStressTT,
+                                                         soundSpeed,
+                                                         bulkModulus,
+                                                         shearModulus,
+                                                         yieldStrength,
+                                                         plasticStrain,
+                                                         scalarDamage,
+                                                         particleType);
+  } else if (ndims == 2) {
+    typedef Spheral::Dim<2> Dimension;
+    Spheral::SpheralPseudoScript<Dimension>::updateState(mass,
+                                                         massDensity,
+                                                         position,
+                                                         specificThermalEnergy,
+                                                         velocity,
+                                                         Hfield,
+                                                         pressure,
+                                                         deviatoricStress,
+                                                         deviatoricStressTT,
+                                                         soundSpeed,
+                                                         bulkModulus,
+                                                         shearModulus,
+                                                         yieldStrength,
+                                                         plasticStrain,
+                                                         scalarDamage,
+                                                         particleType);
+  } else {
+    VERIFY2(false, "Error in SpheralC -- incorrect number of dimensions " << ndims << " requested.");
+  }
+}
+
+//------------------------------------------------------------------------------
+// spheral_evaluate_derivatives
+//------------------------------------------------------------------------------
+void spheral_evaluate_derivatives(const int ndims,
+                                  double*   massDensitySum,
+                                  double*   DmassDensityDt,
+                                  double**  DvelocityDt,
+                                  double**  DxDt,
+                                  double*   DspecificThermalEnergyDt,
+                                  double**  DvelocityDx,
+                                  double**  DHfieldDt,
+                                  double**  HfieldIdeal,
+                                  double**  DdeviatoricStressDt,
+                                  double*   DdeviatoricStressDtTT,
+                                  double*   qpressure,
+                                  double*   qwork) {
+  if (ndims == 3) {
+    // Build the vector packed types.
+    typedef Spheral::Dim<3> Dimension;
+    Spheral::SpheralPseudoScript<Dimension>::evaluateDerivatives(massDensitySum,
+                                                                 DmassDensityDt,
+                                                                 DvelocityDt,
+                                                                 DxDt,
+                                                                 DspecificThermalEnergyDt,
+                                                                 DvelocityDx,
+                                                                 DHfieldDt,
+                                                                 HfieldIdeal,
+                                                                 DdeviatoricStressDt,
+                                                                 DdeviatoricStressDtTT,
+                                                                 qpressure,
+                                                                 qwork);
+  } else if (ndims == 2) {
+    typedef Spheral::Dim<2> Dimension;
+    Spheral::SpheralPseudoScript<Dimension>::evaluateDerivatives(massDensitySum,
+                                                                 DmassDensityDt,
+                                                                 DvelocityDt,
+                                                                 DxDt,
+                                                                 DspecificThermalEnergyDt,
+                                                                 DvelocityDx,
+                                                                 DHfieldDt,
+                                                                 HfieldIdeal,
+                                                                 DdeviatoricStressDt,
+                                                                 DdeviatoricStressDtTT,
+                                                                 qpressure,
+                                                                 qwork);
+  } else {
+    VERIFY2(false, "Error in SpheralC -- incorrect number of dimensions " << ndims << " requested.");
+  }
+}
+
+//------------------------------------------------------------------------------
+// spheral_add_boundary
+//------------------------------------------------------------------------------
+void spheral_add_boundary(const int     ndims,
+                          const double* pcoords,
+                          const double* ncoords) {
+  if (ndims == 3) {
+    Spheral::SpheralPseudoScript<Spheral::Dim<3> >::addBoundary(Spheral::Dim<3>::Vector(pcoords[0], pcoords[1], pcoords[2]), 
+                                                                Spheral::Dim<3>::Vector(ncoords[0], ncoords[1], ncoords[2]));
+  } else if (ndims == 2) {
+    Spheral::SpheralPseudoScript<Spheral::Dim<2> >::addBoundary(Spheral::Dim<2>::Vector(pcoords[0], pcoords[1]), 
+                                                                Spheral::Dim<2>::Vector(ncoords[0], ncoords[1]));
+  } else {
+    VERIFY2(false, "Error in SpheralC -- incorrect number of dimensions " << ndims << " requested.");
+  }
+}
+
+//------------------------------------------------------------------------------
+// spheral_iterate_Hfield
+//------------------------------------------------------------------------------
+void spheral_iterate_Hfield(const int    ndims,
+                            double**     Hfield,
+                            const int    maxIterations,
+                            const double tolerance) {
+  if (ndims == 3) {
+    typedef Spheral::Dim<3> Dimension;
+    Spheral::SpheralPseudoScript<Dimension>::iterateHfield(Hfield,
+                                                           maxIterations,
+                                                           tolerance);
+  } else if (ndims == 2) {
+    typedef Spheral::Dim<2> Dimension;
+    Spheral::SpheralPseudoScript<Dimension>::iterateHfield(Hfield,
+                                                           maxIterations,
+                                                           tolerance);
+  } else {
+    VERIFY2(false, "Error in SpheralC -- incorrect number of dimensions " << ndims << " requested.");
+  }
+}
+
+//------------------------------------------------------------------------------
+// spheral_compute_fragments
+//------------------------------------------------------------------------------
+void spheral_compute_fragments(const int    ndims,
+                               double*     damage,
+                               int*     fragments) {
+  if (ndims == 3) {
+    typedef Spheral::Dim<3> Dimension;
+    Spheral::SpheralPseudoScript<Dimension>::computeFragmentID(damage,
+                                                               fragments);
+  } else if (ndims == 2) {
+    typedef Spheral::Dim<2> Dimension;
+    Spheral::SpheralPseudoScript<Dimension>::computeFragmentID(damage,
+                                                               fragments);
+  }
+}
+
+//------------------------------------------------------------------------------
+// spheral_sample_mesh
+//------------------------------------------------------------------------------
+void spheral_sample_mesh(const int      ndims,
+                         const double*  xmincoords,
+                         const double*  xmaxcoords,
+                         const int*     nsamples,
+                         double*        latticeMass,
+                         double*        latticeDensity,
+                         double*        latticeEnergy,
+                         double**       latticeVelocity,
+                         double*        latticePressure,
+                         double**       latticeStress,
+                         double*        latticeStressTT,
+                         double*        latticeSoundSpeed,
+                         double*        latticeBulkMod,
+                         double*        latticeShearMod,
+                         double*        latticeStrength,
+                         double*        latticeStrain) {
+  if (ndims == 3) {
+    typedef Spheral::Dim<3> Dimension;
+    Dimension::Vector xmin(xmincoords[0], xmincoords[1], xmincoords[2]), 
+                      xmax(xmaxcoords[0], xmaxcoords[1], xmaxcoords[2]);
+    Spheral::SpheralPseudoScript<Dimension>::sampleLatticeMesh(xmin, xmax, nsamples,
+                                                               latticeMass,
+                                                               latticeDensity,
+                                                               latticeEnergy,
+                                                               latticeVelocity,
+                                                               latticePressure,
+                                                               latticeStress,
+                                                               latticeStressTT,
+                                                               latticeSoundSpeed,
+                                                               latticeBulkMod,
+                                                               latticeShearMod,
+                                                               latticeStrength,
+                                                               latticeStrain);
+  } else if (ndims == 2) {
+    typedef Spheral::Dim<2> Dimension;
+    Dimension::Vector xmin(xmincoords[0], xmincoords[1]), 
+                      xmax(xmaxcoords[0], xmaxcoords[1]);
+    Spheral::SpheralPseudoScript<Dimension>::sampleLatticeMesh(xmin, xmax, nsamples,
+                                                               latticeMass,
+                                                               latticeDensity,
+                                                               latticeEnergy,
+                                                               latticeVelocity,
+                                                               latticePressure,
+                                                               latticeStress,
+                                                               latticeStressTT,
+                                                               latticeSoundSpeed,
+                                                               latticeBulkMod,
+                                                               latticeShearMod,
+                                                               latticeStrength,
+                                                               latticeStrain);
+  }
+}
+
+//------------------------------------------------------------------------------
+// spheral_update_connectivity
+//------------------------------------------------------------------------------
+void spheral_update_connectivity(const int ndims) {
+  if (ndims == 3) {
+    Spheral::SpheralPseudoScript<Spheral::Dim<3> >::updateConnectivity();
+  } else if (ndims == 2) {
+    Spheral::SpheralPseudoScript<Spheral::Dim<2> >::updateConnectivity();
+  } else {
+    VERIFY2(false, "Error in SpheralC -- incorrect number of dimensions " << ndims << " requested.");
+  }
+}
+
+//------------------------------------------------------------------------------
+// spheral_get_connectivity
+//------------------------------------------------------------------------------
+void spheral_get_connectivity(const int ndims,
+                              int***    numNeighbors,
+                              int****   connectivity) {
+  if (ndims == 3) {
+    Spheral::SpheralPseudoScript<Spheral::Dim<3> >::getConnectivity(numNeighbors, connectivity);
+  } else if (ndims == 2) {
+    Spheral::SpheralPseudoScript<Spheral::Dim<2> >::getConnectivity(numNeighbors, connectivity);
+  } else {
+    VERIFY2(false, "Error in SpheralC -- incorrect number of dimensions " << ndims << " requested.");
+  }
+}
+
+//------------------------------------------------------------------------------
+// spheral_get_num_materials
+//------------------------------------------------------------------------------
+int spheral_get_num_materials(const int ndims) {
+  if (ndims == 3) {
+    return Spheral::SpheralPseudoScript<Spheral::Dim<3> >::getNumMaterials();
+  } else if (ndims == 2) {
+    return Spheral::SpheralPseudoScript<Spheral::Dim<2> >::getNumMaterials();
+  } else {
+    VERIFY2(false, "Error in SpheralC -- incorrect number of dimensions " << ndims << " requested.");
+  }
+}
+
+//------------------------------------------------------------------------------
+// spheral_get_num_nodes
+//------------------------------------------------------------------------------
+int* spheral_get_num_nodes(const int ndims) {
+  if (ndims == 3) {
+    return Spheral::SpheralPseudoScript<Spheral::Dim<3> >::getNumNodes();
+  } else if (ndims == 2) {
+    return Spheral::SpheralPseudoScript<Spheral::Dim<2> >::getNumNodes();
+  } else {
+    VERIFY2(false, "Error in SpheralC -- incorrect number of dimensions " << ndims << " requested.");
+  }
+}
+
+//------------------------------------------------------------------------------
+// spheral_get_num_internal_nodes
+//------------------------------------------------------------------------------
+int* spheral_get_num_internal_nodes(const int ndims) {
+  if (ndims == 3) {
+    return Spheral::SpheralPseudoScript<Spheral::Dim<3> >::getNumInternalNodes();
+  } else if (ndims == 2) {
+    return Spheral::SpheralPseudoScript<Spheral::Dim<2> >::getNumInternalNodes();
+  } else {
+    VERIFY2(false, "Error in SpheralC -- incorrect number of dimensions " << ndims << " requested.");
+  }
+}
+
+//------------------------------------------------------------------------------
+// spheral_get_num_ghost_nodes
+//------------------------------------------------------------------------------
+int* spheral_get_num_ghost_nodes(const int ndims) {
+  if (ndims == 3) {
+    return Spheral::SpheralPseudoScript<Spheral::Dim<3> >::getNumGhostNodes();
+  } else if (ndims == 2) {
+    return Spheral::SpheralPseudoScript<Spheral::Dim<2> >::getNumGhostNodes();
+  } else {
+    VERIFY2(false, "Error in SpheralC -- incorrect number of dimensions " << ndims << " requested.");
+  }
+}
