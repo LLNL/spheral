@@ -17,8 +17,9 @@ dims = spheralDimensions()
 from SolidMaterialUnits import *
 from SolidMaterialEquationsOfState import *
 
-from JohnsonCookDamageWeibull import JohnsonCookDamageWeibull
-from JohnsonCookDamageGaussian import JohnsonCookDamageGaussian
+from JohnsonCookDamageFactories import (JohnsonCookDamageConstant,
+                                        JohnsonCookDamageGaussian,
+                                        JohnsonCookDamageWeibull)
 
 # ------------------------------------------------------------------------------
 # Import our shadow layers for augmenting C++ types.
