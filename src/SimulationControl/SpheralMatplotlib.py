@@ -1,4 +1,3 @@
-import matplotlib.patches as patches
 from matplotlib.pyplot import cm as pltcm
 #from matplotlib.collections import PatchCollections
 import numpy as np
@@ -863,6 +862,7 @@ def plotpmomHistory(conserve):
 #                 plot = None,
 #                 persist = False,
 #                 plotLabels = True):
+#     import matplotlib.patches as patches
 #     mppoly = patches.Polygon(np.array([[v.x, v.y] for v in in polygon.vertices()]), True)
 #     mppatches = PatchCollection([mppoly])
 
