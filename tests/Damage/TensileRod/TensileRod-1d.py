@@ -107,18 +107,18 @@ commandLine(length = 3.0,
             D3 = -1.5,
             D4 = 0.0,
             D5 = 0.0,
-            sigmaD1 = 0.0,  # Gaussian
-            aD1 = 0.0,      # Weibull
-            bD1 = 0.0,      # Weibull
-            eps0D1 = 0.0,   # Weibull
-            sigmaD2 = 0.1,  # Gaussian
-            aD2 = 0.065,    # Weibull
-            bD2 = 2.0,      # Weibull
-            eps0D2 = 0.165, # Weibull
             epsilondot0 = 0.01,
             Tcrit = -2.0,
             sigmamax = -3.0,
             efailmin = 0.01,
+            sigmaD1 = 0.0,  # Gaussian
+            aD1 = 0.0,      # Weibull
+            bD1 = 0.0,      # Weibull
+            eps0D1 = 0.0,   # Weibull
+            sigmaD2 = 0.05, # Gaussian
+            aD2 = 0.065,    # Weibull
+            bD2 = 2.0,      # Weibull
+            eps0D2 = 0.165, # Weibull
 
             # Optionally we can initialize a break near the origin.
             initialBreakRadius = 0.0,
