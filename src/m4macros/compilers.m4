@@ -267,8 +267,8 @@ case $COMPILERS in
       CC=icc
       CXX=icpc
       FORT=ifort
-      MPICC=mpiicc
-      MPICXX=mpiicpc
+      MPICC=mpicc  # mpiicc
+      MPICXX=mpic++ # mpiicpc
       PYTHONCC=$CC
       PYTHONCXX=$CXX
       CMAKECC=$CC
