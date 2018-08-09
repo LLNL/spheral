@@ -20,6 +20,7 @@
 #include "Kernel/NBSplineKernel.hh"
 #include "Kernel/GaussianKernel.hh"
 #include "Kernel/PiGaussianKernel.hh"
+#include "NodeGenerators/fillFacetedVolume.hh"
 #include "NodeList/SPHSmoothingScale.hh"
 #include "NodeList/ASPHSmoothingScale.hh"
 #include "SPH/SolidSPHHydroBase.hh"
@@ -1079,8 +1080,11 @@ iterateHfield(double**     Hfield,
 template<typename Dimension>
 void
 SpheralPseudoScript<Dimension>::
-computeFragmentID(double*  damage,
-                  int*  fragments) {
+computeFragmentID(double* damage,
+                  double  fragRadius,
+                  double  fragDensity,
+                  double  fragDamage,
+                  int*    fragments) {
 
   // Get our instance.
   auto& me = SpheralPseudoScript<Dimension>::instance();
@@ -1093,6 +1097,7 @@ computeFragmentID(double*  damage,
   }
 
   // Copy damage values from the array to the field list.
+  auto rho = me.mStatePtr->fields(HydroFieldNames::massDensity, 0.0);
   auto D = me.mStatePtr->fields(SolidFieldNames::effectiveTensorDamage, SymTensor::zero);
   auto fragIDs = me.mStatePtr->fields(SolidFieldNames::fragmentIDs, int(1));
   if (damage != NULL) copyArrayToSymTensorFieldList(damage, D);
@@ -1100,7 +1105,9 @@ computeFragmentID(double*  damage,
   // Call the fragment ID function for each node list.
   double dimFactor = double(Dimension::nDim);
   for (unsigned imat = 0; imat != nmats; ++imat) {
-    *fragIDs[imat] = computeFragmentField(*me.mNodeLists[imat], 1.0, *D[imat], 0.99*dimFactor, false) ;
+    *fragIDs[imat] = computeFragmentField(*me.mNodeLists[imat], fragRadius,
+                                          *rho[imat], *D[imat],
+                                          fragDensity, fragDamage*dimFactor, false) ;
   }
 
   // Copy back to the array.
@@ -1246,6 +1253,44 @@ sampleLatticeMesh(const Vector&  xmin,
     }
   }
 }
+
+//------------------------------------------------------------------------------
+// Fill a volume with evenly spaced distribution of particles.
+//------------------------------------------------------------------------------
+template<typename Dimension>
+void
+SpheralPseudoScript<Dimension>::
+fillVolume(const int*     nnodes,
+           const double** coords,
+           const double   spacing,
+           double*        volume,
+           int*           nparticles,
+           double**       sphcoords) {
+
+  if (Dimension::nDim == 3) {
+    std::vector< Dim<3>::Vector > nodeVec;
+    for (int i = 0 ; i < nnodes[0] ; ++i) {
+      nodeVec.push_back(Dim<3>::Vector(coords[0][i], coords[1][i], coords[2][i]));
+    }
+    Dim<3>::FacetedVolume mesh(nodeVec);
+    std::vector< Dim<3>::Vector > sphNodes = fillFacetedVolume2(mesh, spacing, 0, 1);
+    volume[0] = mesh.volume();
+    nparticles[0] = sphNodes.size();
+    double * sphcoordx = new double[sphNodes.size()];
+    double * sphcoordy = new double[sphNodes.size()];
+    double * sphcoordz = new double[sphNodes.size()];
+    for (int i = 0 ; i < sphNodes.size() ; ++i) {
+      sphcoordx[i] = sphNodes[i][0] ;
+      sphcoordy[i] = sphNodes[i][1] ;
+      sphcoordz[i] = sphNodes[i][2] ;
+    }
+    sphcoords[0] = sphcoordx ;
+    sphcoords[1] = sphcoordy ;
+    sphcoords[2] = sphcoordz ;
+  }
+
+}
+
 
 //------------------------------------------------------------------------------
 // Update the connectivity between nodes using Spheral's internal neighbor

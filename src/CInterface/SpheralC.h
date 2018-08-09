@@ -296,14 +296,19 @@ SPHERALDLL_API
 
   Returns:  void
   Arguments:  damage        : pointer to the scalar damage for each particle
+              frag_density  : dust tolerance for density
+              frag_damage   : dust tolerance for damage
               fragments     : pointer to the fragment ID number
   ----------------------------------------------------------------------------*/
 SPHERALDLL_API 
-  void spheral_compute_fragments(const int    ndims,
-			         double*     damage,
-                                 int*     fragments);
+  void spheral_compute_fragments(const int ndims,
+                                 double*   damage,
+                                 double    frag_radius,
+                                 double    frag_density,
+                                 double    frag_damage,
+                                 int*      fragments);
 
-  /*------------------------------------------------------------------------------
+/*------------------------------------------------------------------------------
   spheral_sample_mesh
 
   Takes as input a bounding box and sample points in each direction,
@@ -329,6 +334,25 @@ void spheral_sample_mesh(const int      ndims,
                          double*        latticeShearMod,
                          double*        latticeStrength,
                          double*        latticeStrain);
+
+/*------------------------------------------------------------------------------
+  spheral_fill_volume
+
+  Takes as input a set of coordinates for a hex or tet mesh and
+  returns an even distribution of SPH particle coordinates
+
+  Returns:  void
+  Arguments:
+  ----------------------------------------------------------------------------*/
+SPHERALDLL_API
+void spheral_fill_volume(const int      ndims,
+                         const int*     nnodes,
+                         const double** coords,
+                         const double   spacing,
+                         double*        volume,
+                         int*           nparticles,
+                         double**       sphcoords);
+
 /*------------------------------------------------------------------------------
   spheral_update_connectivity
 

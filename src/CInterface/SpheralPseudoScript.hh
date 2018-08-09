@@ -140,7 +140,10 @@ public:
 
   // Compute the fragment identification field.
   static void computeFragmentID(double* damage,
-                                int* fragments);
+                                double  fragRadius,
+                                double  fragDensity,
+                                double  fragDamage,
+                                int*    fragments);
 
   // Sample the SPH state to a structured mesh.
   static void sampleLatticeMesh(const Vector&  xmin,
@@ -158,6 +161,13 @@ public:
                                 double*        latticeShearMod,
                                 double*        latticeStrength,
                                 double*        latticeStrain);
+
+  static void fillVolume(const int*     nnodes,
+                         const double** coords,
+                         const double   spacing,
+                         double*        volume,
+                         int*           nparticles,
+                         double**       sphcoords);
 
   // Update the connectivity between nodes using Spheral's internal neighbor
   // finding.

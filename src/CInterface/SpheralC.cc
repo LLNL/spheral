@@ -338,16 +338,25 @@ void spheral_iterate_Hfield(const int    ndims,
 //------------------------------------------------------------------------------
 // spheral_compute_fragments
 //------------------------------------------------------------------------------
-void spheral_compute_fragments(const int    ndims,
-                               double*     damage,
-                               int*     fragments) {
+void spheral_compute_fragments(const int ndims,
+                               double*   damage,
+                               double    frag_radius,
+                               double    frag_density,
+                               double    frag_damage,
+                               int*      fragments) {
   if (ndims == 3) {
     typedef Spheral::Dim<3> Dimension;
     Spheral::SpheralPseudoScript<Dimension>::computeFragmentID(damage,
+                                                               frag_radius,
+                                                               frag_density,
+                                                               frag_damage,
                                                                fragments);
   } else if (ndims == 2) {
     typedef Spheral::Dim<2> Dimension;
     Spheral::SpheralPseudoScript<Dimension>::computeFragmentID(damage,
+                                                               frag_radius,
+                                                               frag_density,
+                                                               frag_damage,
                                                                fragments);
   }
 }
@@ -405,6 +414,37 @@ void spheral_sample_mesh(const int      ndims,
                                                                latticeShearMod,
                                                                latticeStrength,
                                                                latticeStrain);
+  }
+}
+
+//------------------------------------------------------------------------------
+// spheral_fill_volume
+//------------------------------------------------------------------------------
+void spheral_fill_volume(const int      ndims,
+                         const int*     nnodes,
+                         const double** coords,
+                         const double   spacing,
+                         double*        volume,
+                         int*           nparticles,
+                         double**       sphcoords) {
+  if (ndims == 3) {
+    typedef Spheral::Dim<3> Dimension;
+    Spheral::SpheralPseudoScript<Dimension>::fillVolume(nnodes,
+                                                        coords,
+                                                        spacing,
+                                                        volume,
+                                                        nparticles,
+                                                        sphcoords);
+  } else if (ndims == 2) {
+    typedef Spheral::Dim<2> Dimension;
+    Spheral::SpheralPseudoScript<Dimension>::fillVolume(nnodes,
+                                                        coords,
+                                                        spacing,
+                                                        volume,
+                                                        nparticles,
+                                                        sphcoords);
+  } else {
+    VERIFY2(false, "Error in SpheralC -- incorrect number of dimensions " << ndims << " requested.");
   }
 }
 
