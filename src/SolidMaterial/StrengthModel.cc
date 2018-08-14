@@ -43,6 +43,19 @@ soundSpeed(FieldSpace::Field<Dimension, Scalar>& soundSpeed,
 }
 
 //------------------------------------------------------------------------------
+// Bulk modulus
+//------------------------------------------------------------------------------
+template<typename Dimension>
+void
+StrengthModel<Dimension>::
+bulkModulus(FieldSpace::Field<Dimension, Scalar>& bulkModulus,
+            const FieldSpace::Field<Dimension, Scalar>& density,
+            const FieldSpace::Field<Dimension, Scalar>& specificThermalEnergy) const {
+  VERIFY2(false,
+          "StrengthModel::bulkModulus called");
+}
+
+//------------------------------------------------------------------------------
 // Melt energy
 //------------------------------------------------------------------------------
 template<typename Dimension>

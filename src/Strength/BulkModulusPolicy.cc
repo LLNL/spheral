@@ -11,15 +11,17 @@
 #include "DataBase/State.hh"
 #include "DataBase/StateDerivatives.hh"
 #include "Field/FieldList.hh"
-#include "NodeList/FluidNodeList.hh"
 #include "Material/EquationOfState.hh"
+#include "SolidMaterial/StrengthModel.hh"
+#include "NodeList/SolidNodeList.hh"
 #include "Utilities/DBC.hh"
 
 namespace Spheral {
 
+using FieldSpace::FieldList;
 using NodeSpace::NodeList;
 using NodeSpace::FluidNodeList;
-using FieldSpace::FieldList;
+using NodeSpace::SolidNodeList;
 
 //------------------------------------------------------------------------------
 // Constructor.
@@ -67,13 +69,18 @@ update(const KeyType& key,
   // Walk the individual fields.
   for (unsigned k = 0; k != numFields; ++k) {
 
-    // Get the eos.  This cast is ugly, but is a work-around for now.
-    const FluidNodeList<Dimension>* fluidNodeListPtr = dynamic_cast<const FluidNodeList<Dimension>*>(stateFields[k]->nodeListPtr());
-    CHECK(fluidNodeListPtr != 0);
-    const Material::EquationOfState<Dimension>& eos = fluidNodeListPtr->equationOfState();
+    // Check if we have a FluidNodeList or SolidNodeList.  Has to be at least fluid!
+    const auto* fluidNodeListPtr = dynamic_cast<const FluidNodeList<Dimension>*>(stateFields[k]->nodeListPtr());
+    const auto* solidNodeListPtr = dynamic_cast<const SolidNodeList<Dimension>*>(stateFields[k]->nodeListPtr());
+    CHECK(fluidNodeListPtr != NULL);
 
-    // Now set the bulk modulus.
-    eos.setBulkModulus(*stateFields[k], *massDensity[k], *energy[k]);
+    // Is there a strength model that wants to set the bulk modulus?
+    if (solidNodeListPtr != NULL and
+        solidNodeListPtr->strengthModel().providesBulkModulus()) {
+      solidNodeListPtr->strengthModel().bulkModulus(*stateFields[k], *massDensity[k], *energy[k]);
+    } else {
+      fluidNodeListPtr->equationOfState().setBulkModulus(*stateFields[k], *massDensity[k], *energy[k]);
+    }
   }
 
 //   // Is there a scalar damage field for this NodeList?

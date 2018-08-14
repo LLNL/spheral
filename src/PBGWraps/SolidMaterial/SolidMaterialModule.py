@@ -492,6 +492,8 @@ def generateStrengthModelVirtualBindings(x, ndim, pureVirtual):
     scalarfield = "Spheral::FieldSpace::ScalarField%id" % ndim
 
     # Methods.
+    x.add_method("providesSoundSpeed", "bool", [], is_const=True, is_virtual=True)
+    x.add_method("providesBulkModulus", "bool", [], is_const=True, is_virtual=True)
     x.add_method("shearModulus", None, [refparam(scalarfield, "shearModulus"),
                                         constrefparam(scalarfield, "density"),
                                         constrefparam(scalarfield, "specificThermalEnergy"),
@@ -509,6 +511,10 @@ def generateStrengthModelVirtualBindings(x, ndim, pureVirtual):
                                       constrefparam(scalarfield, "specificThermalEnergy"),
                                       constrefparam(scalarfield, "pressure"),
                                       constrefparam(scalarfield, "fluidSoundSpeed")],
+                 is_const=True, is_virtual=True)
+    x.add_method("bulkModulus", None, [refparam(scalarfield, "bulkModulus"),
+                                       constrefparam(scalarfield, "density"),
+                                       constrefparam(scalarfield, "specificThermalEnergy")],
                  is_const=True, is_virtual=True)
     x.add_method("meltSpecificEnergy", None, [refparam(scalarfield, "meltSpecificEnergy"),
                                               constrefparam(scalarfield, "density"),
