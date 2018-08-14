@@ -54,7 +54,7 @@ self.JohnsonCookStrength%(dim)id = addObject(space, "JohnsonCookStrength%(dim)id
 self.CollinsStrength%(dim)id = addObject(space, "CollinsStrength%(dim)id", parent=self.StrengthModel%(dim)id, allow_subclassing=True)
 self.PorousStrengthModel%(dim)id = addObject(space, "PorousStrengthModel%(dim)id", parent=self.StrengthModel%(dim)id, allow_subclassing=True)
 
-self.PhysicsEvolvingMaterialLibrary%(dim)id = addObject(space, "PhysicsEvolvingMaterialLibrary%(dim)id", parent=[Physics%(dim)id, self.StrengthModel%(dim)id], allow_subclassing=True)
+self.PhysicsEvolvingMaterialLibrary%(dim)id = addObject(space, "PhysicsEvolvingMaterialLibrary%(dim)id", parent=[EquationOfState%(dim)id, Physics%(dim)id, self.StrengthModel%(dim)id], allow_subclassing=True)
 ''' % {"dim" : dim})
 
         return
@@ -851,6 +851,9 @@ def generatePhysicsEvolvingMaterialLibraryBindings(x, ndim):
     me = "Spheral::SolidMaterial::PhysicsEvolvingMaterialLibrary%id" % ndim
 
     # Constructors.
-    x.add_constructor([])
+    x.add_constructor([constrefparam("PhysicalConstants", "constants"),
+                       param("double", "minimumPressure", default_value="-std::numeric_limits<double>::max()"),
+                       param("double", "maximumPressure", default_value="std::numeric_limits<double>::max()"),
+                       param("MaterialPressureMinType", "minPressureType", default_value="MaterialPressureMinType::PressureFloor")])
 
     return
