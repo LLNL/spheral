@@ -254,6 +254,8 @@
     <ClCompile Include="..\..\src\SolidMaterial\SteinbergGuinanStrengthInst.cc.3.cc" />
     <ClCompile Include="..\..\src\SolidMaterial\StrainPorosityInst.cc.2.cc" />
     <ClCompile Include="..\..\src\SolidMaterial\StrainPorosityInst.cc.3.cc" />
+    <ClCompile Include="..\..\src\SolidMaterial\StrengthModelInst.cc.2.cc" />
+    <ClCompile Include="..\..\src\SolidMaterial\StrengthModelInst.cc.3.cc" />
     <ClCompile Include="..\..\src\SolidMaterial\TillotsonEquationOfStateInst.cc.2.cc" />
     <ClCompile Include="..\..\src\SolidMaterial\TillotsonEquationOfStateInst.cc.3.cc" />
   </ItemGroup>
@@ -401,6 +403,14 @@
     <None Include="..\..\src\SolidMaterial\StrengthModel.hh">
       <FileType>Document</FileType>
     </None>
+    <CustomBuild Include="..\..\src\SolidMaterial\StrengthModelInst.cc.py" >
+      <Command>
+        python.exe %(RelativeDir)..\helpers\InstantiationGenerator.py "%(FullPath)" %(RelativeDir)%(Filename).3.cc 3
+        python.exe %(RelativeDir)..\helpers\InstantiationGenerator.py "%(FullPath)" %(RelativeDir)%(Filename).2.cc 2
+      </Command>
+      <Message>Building 2 and 3 dim instantiation for %(Filename)</Message>
+      <Outputs>%(RelativeDir)%(Filename).2.cc;%(RelativeDir)%(Filename).3.cc;%(Outputs)</Outputs>
+    </CustomBuild>
     <None Include="..\..\src\SolidMaterial\TillotsonEquationOfState.hh">
       <FileType>Document</FileType>
     </None>
