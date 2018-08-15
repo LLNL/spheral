@@ -2,8 +2,7 @@
 # Include project's CMake files
 ###############################################################################
 # Basic
-set(COMPILER_FLAGS_FILE "cmake/SetupCompilerFlags.cmake" CACHE STRING "")
-include(${COMPILER_FLAGS_FILE})
+
 # Libraries
 include(cmake/SetupLibraries.cmake)
 
