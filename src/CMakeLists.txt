@@ -1,26 +1,31 @@
 # Libraries
 add_subdirectory(CInterface)
-add_subdirectory(SPH)
-add_subdirectory(CRKSPH)
-add_subdirectory(ArtificialViscosity)
-add_subdirectory(Boundary)
-add_subdirectory(Damage)
-add_subdirectory(DataBase)
-add_subdirectory(DataOutput)
-add_subdirectory(Distributed)
-add_subdirectory(Integrator)
-add_subdirectory(Kernel)
-add_subdirectory(Strength)
-add_subdirectory(SolidMaterial)
-add_subdirectory(Material)
-add_subdirectory(Mesh)
-add_subdirectory(Neighbor)
-add_subdirectory(Hydro)
-add_subdirectory(Physics)
-add_subdirectory(FileIO)
-add_subdirectory(Field)
-add_subdirectory(FieldOperations)
-add_subdirectory(NodeGenerators)
-add_subdirectory(NodeList)
-add_subdirectory(Geometry)
-add_subdirectory(Utilities)
+set(_packages SPH
+              CRKSPH
+              ArtificialViscosity
+              Boundary
+              Damage
+              DataBase
+              DataOutput
+              Distributed
+              Integrator
+              Kernel
+              Strength
+              SolidMaterial
+              Material
+              Mesh
+              Neighbor
+              Hydro
+              Physics
+              FileIO
+              Field
+              FieldOperations
+              NodeGenerators
+              NodeList
+              Geometry
+              Utilities
+     )
+
+foreach(_package ${_packages})
+   add_subdirectory(${_package})
+endforeach()

@@ -1,31 +1,28 @@
-set(ArtificialViscosity_sources2d
-    ArtificialViscosityInst.cc.2.cc
-    CRKSPHMonaghanGingoldViscosityInst.cc.2.cc
-    CullenDehnenViscosityInst.cc.2.cc
-    FiniteVolumeViscosityInst.cc.2.cc
-    IncrementCullenMultipliersInst.cc.2.cc
-    MonaghanGingoldViscosityInst.cc.2.cc
-    MonaghanGingoldViscosityGSRZ.cc
-    MorrisMonaghanReducingViscosityInst.cc.2.cc
-    TensorCRKSPHViscosityInst.cc.2.cc
-    TensorMonaghanGingoldViscosityInst.cc.2.cc
-    TensorSVPHViscosityInst.cc.2.cc
-    VonNeumanViscosityInst.cc.2.cc
-    )
 
-set(ArtificialViscosity_sources3d
-    ArtificialViscosityInst.cc.3.cc
-    CRKSPHMonaghanGingoldViscosityInst.cc.3.cc
-    CullenDehnenViscosityInst.cc.3.cc
-    FiniteVolumeViscosityInst.cc.3.cc
-    IncrementCullenMultipliersInst.cc.3.cc
-    MonaghanGingoldViscosityInst.cc.3.cc
-    MorrisMonaghanReducingViscosityInst.cc.3.cc
-    TensorCRKSPHViscosityInst.cc.3.cc
-    TensorMonaghanGingoldViscosityInst.cc.3.cc
-    TensorSVPHViscosityInst.cc.3.cc
-    VonNeumanViscosityInst.cc.3.cc
-    )
+set(ArtificialViscosity_inst
+    ArtificialViscosity
+    CRKSPHMonaghanGingoldViscosity
+    CullenDehnenViscosity
+    FiniteVolumeViscosity
+    IncrementCullenMultipliers
+    MonaghanGingoldViscosity
+    MorrisMonaghanReducingViscosity
+    TensorCRKSPHViscosity
+    TensorMonaghanGingoldViscosity
+    TensorSVPHViscosity
+    VonNeumanViscosity
+   )
+
+
+set(ArtificialViscosity_sources )
+
+if(ENABLE_2D)
+  list(APPEND ArtificialViscosity_sources
+       MonaghanGingoldViscosityGSRZ.cc
+      )
+endif()
+
+instantiate(ArtificialViscosity_inst ArtificialViscosity_sources)
 
 set(ArtificialViscosity_headers
     ArtificialViscosity.hh
@@ -53,12 +50,12 @@ set(ArtificialViscosity_headers
     VonNeumanViscosity.hh
     )
 
-INCLUDE_DIRECTORIES(../)
+INCLUDE_DIRECTORIES(. ../)
 
 set(spheral_depends BOOST Eigen qhull silo polytope mpi)
 
 blt_add_library(NAME        Spheral_ArtificialViscosity
-                SOURCES     ${ArtificialViscosity_sources2d} ${ArtificialViscosity_sources3d}
+                SOURCES     ${ArtificialViscosity_sources}
                 HEADERS     ${ArtificialViscosity_headers}
                 DEPENDS_ON  ${spheral_depends}
                 )

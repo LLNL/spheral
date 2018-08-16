@@ -1,3 +1,11 @@
+set(Mesh_inst
+    MeshPolicy
+    computeGenerators
+    findMatchingVertex
+    generateMesh
+   )
+
+
 set(Mesh_sources
     findMatchingVertex.cc
     LineEdge.cc
@@ -16,19 +24,7 @@ set(Mesh_sources
     computeElementOwner.cc
     )
 
-set(Mesh_sources2d
-    MeshPolicyInst.cc.2.cc
-    computeGeneratorsInst.cc.2.cc
-    findMatchingVertexInst.cc.2.cc
-    generateMeshInst.cc.2.cc
-    )
-
-set(Mesh_sources3d
-    MeshPolicyInst.cc.3.cc
-    computeGeneratorsInst.cc.3.cc
-    findMatchingVertexInst.cc.3.cc
-    generateMeshInst.cc.3.cc
-    )
+instantiate(Mesh_inst Mesh_sources)
 
 set(Mesh_headers
     CounterClockwiseCompareElements.hh
@@ -50,12 +46,12 @@ set(Mesh_headers
     generateMesh.hh
     )
 
-INCLUDE_DIRECTORIES(../)
+INCLUDE_DIRECTORIES(. ../)
 
 set(spheral_depends BOOST Eigen qhull silo polytope mpi)
 
 blt_add_library(NAME        Spheral_Mesh
-                SOURCES     ${Mesh_sources} ${Mesh_sources2d} ${Mesh_sources3d}
+                SOURCES     ${Mesh_sources}
                 HEADERS     ${Mesh_headers}
                 DEPENDS_ON  ${spheral_depends}
                 )

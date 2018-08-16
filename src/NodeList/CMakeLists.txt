@@ -1,28 +1,19 @@
-set(NodeList_sources2d
-    ASPHSmoothingScaleInst.cc.2.cc
-    FixedSmoothingScaleInst.cc.2.cc
-    FluidNodeListInst.cc.2.cc
-    NodeListInst.cc.2.cc
-    NodeListRegistrarInst.cc.2.cc
-    SPHSmoothingScaleInst.cc.2.cc
-    SmoothingScaleBaseInst.cc.2.cc
-    SolidNodeListInst.cc.2.cc
-    generateVoidNodesInst.cc.2.cc
-    nthNodalMomentInst.cc.2.cc
-    )
+set(NodeList_inst
+    ASPHSmoothingScale
+    FixedSmoothingScale
+    FluidNodeList
+    NodeList
+    NodeListRegistrar
+    SPHSmoothingScale
+    SmoothingScaleBase
+    SolidNodeList
+    generateVoidNodes
+    nthNodalMoment
+   )
 
-set(NodeList_sources3d
-    ASPHSmoothingScaleInst.cc.3.cc
-    FixedSmoothingScaleInst.cc.3.cc
-    FluidNodeListInst.cc.3.cc
-    NodeListInst.cc.3.cc
-    NodeListRegistrarInst.cc.3.cc
-    SPHSmoothingScaleInst.cc.3.cc
-    SmoothingScaleBaseInst.cc.3.cc
-    SolidNodeListInst.cc.3.cc
-    generateVoidNodesInst.cc.3.cc
-    nthNodalMomentInst.cc.3.cc
-    )
+set(NodeList_sources )
+
+instantiate(NodeList_inst NodeList_sources)
 
 set(NodeList_headers
     ASPHSmoothingScale.hh
@@ -43,12 +34,12 @@ set(NodeList_headers
     secondMomentUtilities.hh
     )
 
-INCLUDE_DIRECTORIES(../)
+INCLUDE_DIRECTORIES(. ../)
 
 set(spheral_depends BOOST Eigen qhull silo polytope mpi)
 
 blt_add_library(NAME        Spheral_NodeList
-                SOURCES     ${NodeList_sources2d} ${NodeList_sources3d}
+                SOURCES     ${NodeList_sources}
                 HEADERS     ${NodeList_headers}
                 DEPENDS_ON  ${spheral_depends}
                 )

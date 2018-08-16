@@ -1,3 +1,7 @@
+set(Geometry_inst
+    invertRankNTensor
+   )
+
 set(Geometry_sources
     Dimension.cc
     EigenStruct.cc
@@ -24,15 +28,9 @@ set(Geometry_sources
     clipFacetedVolumeByPlanes3d.cc
     polyclipper2d.cc
     polyclipper3d.cc
-    )
+   )
 
-set(Geometry_sources2d
-    invertRankNTensorInst.cc.2.cc
-    )
-
-set(Geometry_sources3d
-    invertRankNTensorInst.cc.3.cc
-    )
+instantiate(Geometry_inst Geometry_sources)
 
 set(Geometry_headers
     Box1d.hh
@@ -106,7 +104,7 @@ set(Geometry_headers
     polyclipper_utilities.hh
     )
 
-INCLUDE_DIRECTORIES(../)
+INCLUDE_DIRECTORIES(. ../)
 
 set(spheral_depends BOOST Eigen qhull silo polytope mpi)
 

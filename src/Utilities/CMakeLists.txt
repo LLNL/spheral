@@ -1,3 +1,17 @@
+set(Utilities_inst
+    boundingBox
+    computeShepardsInterpolation
+    globalBoundingVolumes
+    integrateThroughMeshAlongSegment
+    iterateIdealH
+    medianPosition
+    mortonOrderIndices
+    nodeBoundingBoxes
+    nodeOrdering
+    numberDensity
+    peanoHilbertOrderIndices
+   )
+
 set(Utilities_sources
     DBC.cc
     Process.cc
@@ -19,33 +33,7 @@ set(Utilities_sources
     Timer.cc
     )
 
-set(Utilities_sources2d
-    boundingBoxInst.cc.2.cc
-    computeShepardsInterpolationInst.cc.2.cc
-    globalBoundingVolumesInst.cc.2.cc
-    integrateThroughMeshAlongSegmentInst.cc.2.cc
-    iterateIdealHInst.cc.2.cc
-    medianPositionInst.cc.2.cc
-    mortonOrderIndicesInst.cc.2.cc
-    nodeBoundingBoxesInst.cc.2.cc
-    nodeOrderingInst.cc.2.cc
-    numberDensityInst.cc.2.cc
-    peanoHilbertOrderIndicesInst.cc.2.cc
-    )
-
-set(Utilities_sources3d
-    boundingBoxInst.cc.3.cc
-    computeShepardsInterpolationInst.cc.3.cc
-    globalBoundingVolumesInst.cc.3.cc
-    integrateThroughMeshAlongSegmentInst.cc.3.cc
-    iterateIdealHInst.cc.3.cc
-    medianPositionInst.cc.3.cc
-    mortonOrderIndicesInst.cc.3.cc
-    nodeBoundingBoxesInst.cc.3.cc
-    nodeOrderingInst.cc.3.cc
-    numberDensityInst.cc.3.cc
-    peanoHilbertOrderIndicesInst.cc.3.cc
-    )
+instantiate(Utilities_inst Utilities_sources)
 
 set(Utilities_headers
     Bessel.hh
@@ -121,12 +109,12 @@ set(Utilities_headers
     timingUtilities.hh
     )
 
-INCLUDE_DIRECTORIES(../)
+INCLUDE_DIRECTORIES(. ../)
 
 set(spheral_depends BOOST Eigen qhull silo polytope mpi)
 
 blt_add_library(NAME        Spheral_Utilities
-                SOURCES     ${Utilities_sources} ${Utilities_sources2d} ${Utilities_sources3d}
+                SOURCES     ${Utilities_sources}
                 HEADERS     ${Utilities_headers}
                 DEPENDS_ON  ${spheral_depends}
                 )

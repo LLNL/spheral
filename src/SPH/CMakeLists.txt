@@ -1,28 +1,31 @@
-set(SPH_sources2d
-    PSPHHydroBaseInst.cc.2.cc
-    SPHHydroBaseInst.cc.2.cc
-    SPHHydroBaseGSRZ.cc
-    SPHHydroBaseRZ.cc
-    SolidSPHHydroBaseInst.cc.2.cc
-    SolidSPHHydroBaseRZ.cc
-    computePSPHCorrectionsInst.cc.2.cc
-    computeSPHOmegaGradhCorrectionInst.cc.2.cc
-    computeSPHSumMassDensityInst.cc.2.cc
-    computeSumVoronoiCellMassDensityInst.cc.2.cc
-    correctSPHSumMassDensityInst.cc.2.cc
-    )
+set(SPH_inst
+    PSPHHydroBase
+    SPHHydroBase
+    SolidSPHHydroBase
+    computePSPHCorrections
+    computeSPHOmegaGradhCorrection
+    computeSPHSumMassDensity
+    computeSumVoronoiCellMassDensity
+    correctSPHSumMassDensity
+   )
 
-set(SPH_sources3d
-    PSPHHydroBaseInst.cc.3.cc
-    SPHHydroBaseInst.cc.3.cc
-    SolidSPHHydroBaseInst.cc.3.cc
-    computeHydrostaticEquilibriumPressure.cc
-    computePSPHCorrectionsInst.cc.3.cc
-    computeSPHOmegaGradhCorrectionInst.cc.3.cc
-    computeSPHSumMassDensityInst.cc.3.cc
-    computeSumVoronoiCellMassDensityInst.cc.3.cc
-    correctSPHSumMassDensityInst.cc.3.cc
-    )
+
+set(SPH_sources )
+
+if(ENABLE_2D)
+  list(APPEND SPH_sources
+       SPHHydroBaseGSRZ.cc
+       SPHHydroBaseRZ.cc
+       SolidSPHHydroBaseRZ.cc
+      )
+endif()
+if(ENABLE_3D)
+  list(APPEND SPH_sources
+       computeHydrostaticEquilibriumPressure.cc
+      )
+endif()
+
+instantiate(SPH_inst SPH_sources)
 
 set(SPH_headers
     DamagedNodeCoupling.hh
@@ -47,12 +50,12 @@ set(SPH_headers
     correctSPHSumMassDensity.hh
     )
 
-INCLUDE_DIRECTORIES(../)
+INCLUDE_DIRECTORIES(. ../)
 
 set(spheral_depends BOOST Eigen qhull silo polytope mpi)
 
 blt_add_library(NAME        Spheral_SPH
-                SOURCES     ${SPH_sources2d} ${SPH_sources3d}
+                SOURCES     ${SPH_sources}
                 HEADERS     ${SPH_headers}
                 DEPENDS_ON  ${spheral_depends}
                 )

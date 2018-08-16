@@ -1,14 +1,12 @@
-set(Physics_sources2d
-    GenericBodyForceInst.cc.2.cc
-    GenericHydroInst.cc.2.cc
-    PhysicsInst.cc.2.cc
-    )
+set(Physics_inst
+    GenericBodyForce
+    GenericHydro
+    Physics
+   )
 
-set(Physics_sources3d
-    GenericBodyForceInst.cc.3.cc
-    GenericHydroInst.cc.3.cc
-    PhysicsInst.cc.3.cc
-    )
+set(Physics_sources )
+
+instantiate(Physics_inst Physics_sources)
 
 set(Physics_headers
     GenericBodyForce.hh
@@ -18,12 +16,12 @@ set(Physics_headers
     PhysicsInline.hh
     )
 
-INCLUDE_DIRECTORIES(../)
+INCLUDE_DIRECTORIES(. ../)
 
 set(spheral_depends BOOST Eigen qhull silo polytope mpi)
 
 blt_add_library(NAME        Spheral_Physics
-                SOURCES     ${Physics_sources2d} ${Physics_sources3d}
+                SOURCES     ${Physics_sources}
                 HEADERS     ${Physics_headers}
                 DEPENDS_ON  ${spheral_depends}
                 )

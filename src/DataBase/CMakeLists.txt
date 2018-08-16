@@ -1,38 +1,25 @@
-set(DataBase_sources2d
-    CompositeFieldListPolicyInst.cc.2.cc
-    CopyFieldListInst.cc.2.cc
-    CopyStateInst.cc.2.cc
-    DataBaseInst.cc.2.cc
-    IncrementBoundedFieldListInst.cc.2.cc
-    IncrementBoundedStateInst.cc.2.cc
-    IncrementFieldListInst.cc.2.cc
-    IncrementStateInst.cc.2.cc
-    ReplaceBoundedFieldListInst.cc.2.cc
-    ReplaceBoundedStateInst.cc.2.cc
-    ReplaceFieldListInst.cc.2.cc
-    ReplaceStateInst.cc.2.cc
-    StateInst.cc.2.cc
-    StateBaseInst.cc.2.cc
-    StateDerivativesInst.cc.2.cc
-    )
+set(DataBase_inst
+    CompositeFieldListPolicy
+    CopyFieldList
+    CopyState
+    DataBase
+    IncrementBoundedFieldList
+    IncrementBoundedState
+    IncrementFieldList
+    IncrementState
+    ReplaceBoundedFieldList
+    ReplaceBoundedState
+    ReplaceFieldList
+    ReplaceState
+    State
+    StateBase
+    StateDerivatives
+   )
 
-set(DataBase_sources3d
-    CompositeFieldListPolicyInst.cc.3.cc
-    CopyFieldListInst.cc.3.cc
-    CopyStateInst.cc.3.cc
-    DataBaseInst.cc.3.cc
-    IncrementBoundedFieldListInst.cc.3.cc
-    IncrementBoundedStateInst.cc.3.cc
-    IncrementFieldListInst.cc.3.cc
-    IncrementStateInst.cc.3.cc
-    ReplaceBoundedFieldListInst.cc.3.cc
-    ReplaceBoundedStateInst.cc.3.cc
-    ReplaceFieldListInst.cc.3.cc
-    ReplaceStateInst.cc.3.cc
-    StateInst.cc.3.cc
-    StateBaseInst.cc.3.cc
-    StateDerivativesInst.cc.3.cc
-    )
+
+set(DataBase_sources )
+
+instantiate(DataBase_inst DataBase_sources)
 
 set(DataBase_headers
     CompositeFieldListPolicy.hh
@@ -66,12 +53,12 @@ set(DataBase_headers
     UpdatePolicyBaseInline.hh
     )
 
-INCLUDE_DIRECTORIES(../)
+INCLUDE_DIRECTORIES(. ../)
 
 set(spheral_depends BOOST Eigen qhull silo polytope mpi)
 
 blt_add_library(NAME        Spheral_DataBase
-                SOURCES     ${DataBase_sources2d} ${DataBase_sources3d}
+                SOURCES     ${DataBase_sources}
                 HEADERS     ${DataBase_headers}
                 DEPENDS_ON  ${spheral_depends}
                 )

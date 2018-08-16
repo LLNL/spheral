@@ -1,22 +1,17 @@
-set(Integrator_sources2d
-    CheapSynchronousRK2Inst.cc.2.cc
-    IntegratorInst.cc.2.cc
-    PredictorCorrectorInst.cc.2.cc
-    SynchronousRK1Inst.cc.2.cc
-    SynchronousRK2Inst.cc.2.cc
-    SynchronousRK4Inst.cc.2.cc
-    VerletInst.cc.2.cc
-    )
+set(Integrator_inst
+    CheapSynchronousRK2
+    Integrator
+    PredictorCorrector
+    SynchronousRK1
+    SynchronousRK2
+    SynchronousRK4
+    Verlet
+   )
 
-set(Integrator_sources3d
-    CheapSynchronousRK2Inst.cc.3.cc
-    IntegratorInst.cc.3.cc
-    PredictorCorrectorInst.cc.3.cc
-    SynchronousRK1Inst.cc.3.cc
-    SynchronousRK2Inst.cc.3.cc
-    SynchronousRK4Inst.cc.3.cc
-    VerletInst.cc.3.cc
-    )
+
+set(Integrator_sources )
+
+instantiate(Integrator_inst Integrator_sources)
 
 set(Integrator_headers
     CheapSynchronousRK2.hh
@@ -29,12 +24,12 @@ set(Integrator_headers
     Verlet.hh
     )
 
-INCLUDE_DIRECTORIES(../)
+INCLUDE_DIRECTORIES(. ../)
 
 set(spheral_depends BOOST Eigen qhull silo polytope mpi)
 
 blt_add_library(NAME        Spheral_Integrator
-                SOURCES     ${Integrator_sources2d} ${Integrator_sources3d}
+                SOURCES     ${Integrator_sources}
                 HEADERS     ${Integrator_headers}
                 DEPENDS_ON  ${spheral_depends}
                 )
