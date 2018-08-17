@@ -325,15 +325,17 @@ Integrator<Dimension>::finalizeDerivatives(const Scalar t,
 //------------------------------------------------------------------------------
 template<typename Dimension>
 void
-Integrator<Dimension>::postStateUpdate(const DataBase<Dimension>& dataBase, 
+Integrator<Dimension>::postStateUpdate(const Scalar t,
+                                       const Scalar dt,
+                                       const DataBase<Dimension>& dataBase, 
                                        State<Dimension>& state,
-                                       const StateDerivatives<Dimension>& derivs) const {
+                                       StateDerivatives<Dimension>& derivs) const {
 
   // Loop over the physics packages.
   for (typename Integrator<Dimension>::ConstPackageIterator physicsItr = physicsPackagesBegin();
        physicsItr != physicsPackagesEnd();
        ++physicsItr) {
-    (*physicsItr)->postStateUpdate(dataBase, state, derivs);
+    (*physicsItr)->postStateUpdate(t, dt, dataBase, state, derivs);
   }
 }
 

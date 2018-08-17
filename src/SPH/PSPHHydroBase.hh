@@ -73,18 +73,18 @@ public:
 
   // Tasks we do once on problem startup.
   virtual
-  void initializeProblemStartup(DataBaseSpace::DataBase<Dimension>& dataBase);
+  void initializeProblemStartup(DataBaseSpace::DataBase<Dimension>& dataBase) override;
 
   // Register the state Hydro expects to use and evolve.
   virtual 
   void registerState(DataBaseSpace::DataBase<Dimension>& dataBase,
-                     State<Dimension>& state);
+                     State<Dimension>& state) override;
 
   // Pre-step initializations.
   virtual 
   void preStepInitialize(const DataBaseSpace::DataBase<Dimension>& dataBase, 
                          State<Dimension>& state,
-                         StateDerivatives<Dimension>& derivatives);
+                         StateDerivatives<Dimension>& derivatives) override;
 
   // Evaluate the derivatives for the principle hydro variables:
   // mass density, velocity, and specific thermal energy.
@@ -93,7 +93,7 @@ public:
                            const Scalar dt,
                            const DataBaseSpace::DataBase<Dimension>& dataBase,
                            const State<Dimension>& state,
-                           StateDerivatives<Dimension>& derivatives) const;
+                           StateDerivatives<Dimension>& derivatives) const override;
 
   // Finalize the derivatives.
   virtual
@@ -101,23 +101,25 @@ public:
                            const Scalar dt,
                            const DataBaseSpace::DataBase<Dimension>& dataBase,
                            const State<Dimension>& state,
-                           StateDerivatives<Dimension>& derivs) const;
+                           StateDerivatives<Dimension>& derivs) const override;
 
   // Post-state update. For PSPH this is where we recompute the PSPH pressure and corrections.
   virtual 
-  void postStateUpdate(const DataBaseSpace::DataBase<Dimension>& dataBase, 
+  void postStateUpdate(const Scalar time, 
+                       const Scalar dt,
+                       const DataBaseSpace::DataBase<Dimension>& dataBase, 
                        State<Dimension>& state,
-                       const StateDerivatives<Dimension>& derivatives) const;
+                       StateDerivatives<Dimension>& derivatives) override;
 
   // Apply boundary conditions to the physics specific fields.
   virtual
   void applyGhostBoundaries(State<Dimension>& state,
-                            StateDerivatives<Dimension>& derivs);
+                            StateDerivatives<Dimension>& derivs) override;
 
   // Enforce boundary conditions for the physics specific fields.
   virtual
   void enforceBoundaries(State<Dimension>& state,
-                         StateDerivatives<Dimension>& derivs);
+                         StateDerivatives<Dimension>& derivs) override;
 
   // Flag determining if we're applying Hopkins 2014 conductivity.
   bool HopkinsConductivity() const;

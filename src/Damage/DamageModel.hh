@@ -86,14 +86,17 @@ public:
   // Descendant classes must complete the set!
   virtual void preStepInitialize(const DataBaseSpace::DataBase<Dimension>& dataBase, 
                                  State<Dimension>& state,
-                                 StateDerivatives<Dimension>& derivs);
+                                 StateDerivatives<Dimension>& derivs) override;
 
   virtual void registerState(DataBaseSpace::DataBase<Dimension>& dataBase,
-                             State<Dimension>& state);
+                             State<Dimension>& state) override;
 
-  virtual void postStateUpdate(const DataBaseSpace::DataBase<Dimension>& dataBase, 
-                               State<Dimension>& state,
-                               const StateDerivatives<Dimension>& derivatives) const;
+  virtual 
+  void postStateUpdate(const Scalar time, 
+                       const Scalar dt,
+                       const DataBaseSpace::DataBase<Dimension>& dataBase, 
+                       State<Dimension>& state,
+                       StateDerivatives<Dimension>& derivatives) override;
   //...........................................................................
 
   // Optional method to cull the set of flaws to the single weakest one on

@@ -279,9 +279,11 @@ registerDerivatives(DataBase<Dimension>& dataBase,
 template<typename Dimension>
 void
 TotalHydro<Dimension>::
-postStateUpdate(const DataBase<Dimension>& dataBase,
+postStateUpdate(const Scalar time, 
+                const Scalar dt,
+                const DataBaseSpace::DataBase<Dimension>& dataBase, 
                 State<Dimension>& state,
-                const StateDerivatives<Dimension>& derivs) const {
+                StateDerivatives<Dimension>& derivatives) {
 
   // Walk the FluidNodeLists.
   for (typename DataBase<Dimension>::ConstFluidNodeListIterator itr = dataBase.fluidNodeListBegin();

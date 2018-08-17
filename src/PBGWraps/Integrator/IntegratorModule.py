@@ -143,9 +143,11 @@ self.generateIntegratorDescendentBindings(self.VerletIntegrator%(dim)id, %(dim)i
                                                    constrefparam(state, "state"),
                                                    refparam(derivatives, "derivs")],
                      is_const = True)
-        x.add_method("postStateUpdate", None, [constrefparam(database, "dataBase"),
+        x.add_method("postStateUpdate", None, [param("double", "t"),
+                                               param("double", "dt"),
+                                               constrefparam(database, "dataBase"),
                                                refparam(state, "state"),
-                                               constrefparam(derivatives, "derivs")],
+                                               refparam(derivatives, "derivs")],
                      is_const = True)
         x.add_method("postStepFinalize", None, [param("double", "t"),
                                                 param("double", "dt"),

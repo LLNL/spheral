@@ -111,9 +111,11 @@ public:
                            StateDerivatives<Dimension>& derivs) const;
 
   // Iterate over all physics packages and call postStateUpdate
-  void postStateUpdate(const DataBaseSpace::DataBase<Dimension>& dataBase,
+  void postStateUpdate(const Scalar t,
+                       const Scalar dt,
+                       const DataBaseSpace::DataBase<Dimension>& dataBase,
                        State<Dimension>& state,
-                       const StateDerivatives<Dimension>& derivs) const;
+                       StateDerivatives<Dimension>& derivs) const;
 
   // Finalize at the end a timestep, therefore called once at the end of a timestep.
   virtual void postStepFinalize(const double t,

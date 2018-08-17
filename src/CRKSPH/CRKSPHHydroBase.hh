@@ -115,12 +115,6 @@ public:
                            const State<Dimension>& state,
                            StateDerivatives<Dimension>& derivs) const override;
 
-  // Hook called after the state has been updated and boundary conditions have been enforced.
-  virtual 
-  void postStateUpdate(const DataBaseSpace::DataBase<Dimension>& dataBase, 
-                       State<Dimension>& state,
-                       const StateDerivatives<Dimension>& derivatives) const override;
-
   // Finalize the hydro at the completion of an integration step.
   virtual
   void finalize(const Scalar time,

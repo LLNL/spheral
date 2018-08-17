@@ -166,9 +166,11 @@ finalizeDerivatives(const typename Dimension::Scalar time,
 template<typename Dimension>
 void
 Physics<Dimension>::
-postStateUpdate(const DataBase<Dimension>& dataBase, 
+postStateUpdate(const Scalar time, 
+                const Scalar dt,
+                const DataBaseSpace::DataBase<Dimension>& dataBase, 
                 State<Dimension>& state,
-                const StateDerivatives<Dimension>& derivs) const {
+                StateDerivatives<Dimension>& derivatives) {
 }
 
 //------------------------------------------------------------------------------

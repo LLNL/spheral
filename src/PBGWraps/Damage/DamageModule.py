@@ -107,9 +107,11 @@ self.generateJohnsonCookDamageBindings(self.JohnsonCookDamage%(dim)id, %(dim)i)
         x.add_method("preStepInitialize", None, [constrefparam(database, "dataBase"),
                                                  refparam(state, "state"),
                                                  refparam(derivatives, "derivatives")], is_virtual=True)
-        x.add_method("postStateUpdate", None, [constrefparam(database, "dataBase"),
+        x.add_method("postStateUpdate", None, [param("double", "t"),
+                                               param("double", "dt"),
+                                               constrefparam(database, "dataBase"),
                                                refparam(state, "state"),
-                                               constrefparam(derivatives, "derivatives")], is_const=True, is_virtual=True)
+                                               refparam(derivatives, "derivatives")], is_virtual=True)
         x.add_method("cullToWeakestFlaws", None, [])
         x.add_method("flawsForNode", "vector_of_double", [param("int", "index")], is_const=True)
         x.add_function_as_method("const_reference_as_pointer",

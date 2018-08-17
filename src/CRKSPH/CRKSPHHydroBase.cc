@@ -655,60 +655,6 @@ finalizeDerivatives(const typename Dimension::Scalar time,
 }
 
 //------------------------------------------------------------------------------
-// Finalize the state after state has been updated and boundary conditions 
-// enforced.  For CRKSPH this is where we update the volumes and RPKM corrections.
-//------------------------------------------------------------------------------
-template<typename Dimension>
-void
-CRKSPHHydroBase<Dimension>::
-postStateUpdate(const DataBase<Dimension>& dataBase,
-                State<Dimension>& state,
-                const StateDerivatives<Dimension>& derivs) const {
-
-  // // Grab state we're going to use.
-  //const TableKernel<Dimension>& W = this->kernel();
-  //const ConnectivityMap<Dimension>& connectivityMap = dataBase.connectivityMap();
-  //const FieldList<Dimension, Vector> position = state.fields(HydroFieldNames::position, Vector::zero);
-  //const FieldList<Dimension, SymTensor> H = state.fields(HydroFieldNames::H, SymTensor::zero);
-  // const FieldList<Dimension, Scalar> mass = state.fields(HydroFieldNames::mass, 0.0);
-
-  // Compute the volume per node.
-  //FieldList<Dimension, Scalar> vol = state.fields(HydroFieldNames::volume, 0.0);
-  //computeCRKSPHSumVolume(connectivityMap, W, position, H, vol);
-  // computeHullVolumes(connectivityMap, position, vol);
-
-  // // We need boundary conditions enforced on the volume before we can compute corrections.
-  //for (ConstBoundaryIterator boundItr = this->boundaryBegin();
-  //     boundItr != this->boundaryEnd();
-  //     ++boundItr) (*boundItr)->applyFieldListGhostBoundary(vol);
-  //for (ConstBoundaryIterator boundItr = this->boundaryBegin();
-  //     boundItr != this->boundaryEnd();
-  //     ++boundItr) (*boundItr)->finalizeGhostBoundary();
-
-  // // Compute the kernel correction fields.
-  // FieldList<Dimension, Scalar> A = state.fields(HydroFieldNames::A_CRKSPH, 0.0);
-  // FieldList<Dimension, Vector> B = state.fields(HydroFieldNames::B_CRKSPH, Vector::zero);
-  // FieldList<Dimension, Vector> C = state.fields(HydroFieldNames::C_CRKSPH, Vector::zero);
-  // FieldList<Dimension, Tensor> D = state.fields(HydroFieldNames::D_CRKSPH, Tensor::zero);
-  // FieldList<Dimension, Vector> gradA = state.fields(HydroFieldNames::gradA_CRKSPH, Vector::zero);
-  // FieldList<Dimension, Tensor> gradB = state.fields(HydroFieldNames::gradB_CRKSPH, Tensor::zero);
-  // computeCRKSPHCorrections(connectivityMap, W, vol, position, H, A, B, C, D, gradA, gradB);
-  // for (ConstBoundaryIterator boundItr = this->boundaryBegin();
-  //      boundItr != this->boundaryEnd();
-  //      ++boundItr) {
-  //   (*boundItr)->applyFieldListGhostBoundary(A);
-  //   (*boundItr)->applyFieldListGhostBoundary(B);
-  //   (*boundItr)->applyFieldListGhostBoundary(C);
-  //   (*boundItr)->applyFieldListGhostBoundary(D);
-  //   (*boundItr)->applyFieldListGhostBoundary(gradA);
-  //   (*boundItr)->applyFieldListGhostBoundary(gradB);
-  // }
-  // for (ConstBoundaryIterator boundItr = this->boundaryBegin();
-  //      boundItr != this->boundaryEnd();
-  //      ++boundItr) (*boundItr)->finalizeGhostBoundary();
-}
-
-//------------------------------------------------------------------------------
 // Finalize the hydro.
 //------------------------------------------------------------------------------
 template<typename Dimension>

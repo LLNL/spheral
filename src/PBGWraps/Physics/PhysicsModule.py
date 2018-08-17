@@ -152,9 +152,11 @@ generateStdVectorBindings(self.vector_of_Physics%(dim)id, "Spheral::PhysicsSpace
                                                    constrefparam(database, "dataBase"),
                                                    constrefparam(state, "state"),
                                                    refparam(derivatives, "derivatives")], is_const=True, is_virtual=True)
-        x.add_method("postStateUpdate", None, [constrefparam(database, "dataBase"),
+        x.add_method("postStateUpdate", None, [param("double", "t"),
+                                               param("double", "dt"),
+                                               constrefparam(database, "dataBase"),
                                                refparam(state, "state"),
-                                               constrefparam(derivatives, "derivatives")], is_const=True, is_virtual=True)
+                                               refparam(derivatives, "derivatives")], is_virtual=True)
         x.add_method("requireConnectivity", "bool", [], is_const=True, is_virtual=False)
         x.add_method("requireGhostConnectivity", "bool", [], is_const=True, is_virtual=False)
         x.add_method("extraEnergy", "double", [], is_const=True, is_virtual=True)
