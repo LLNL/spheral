@@ -23,7 +23,20 @@ using DataBaseSpace::DataBase;
 //------------------------------------------------------------------------------
 template<typename Dimension>
 PhysicsEvolvingMaterialLibrary<Dimension>::
-PhysicsEvolvingMaterialLibrary():
+PhysicsEvolvingMaterialLibrary(const double referenceDensity,
+                               const double etamin,
+                               const double etamax,
+                               const Material::PhysicalConstants& constants,
+                               const double minimumPressure,
+                               const double maximumPressure,
+                               const Material::MaterialPressureMinType minPressureType):
+  SolidMaterial::SolidEquationOfState<Dimension>(referenceDensity,
+                                                 etamin,
+                                                 etamax,
+                                                 constants,
+                                                 minimumPressure,
+                                                 maximumPressure,
+                                                 minPressureType),
   SolidMaterial::StrengthModel<Dimension>(),
   PhysicsSpace::Physics<Dimension>() {
 }
