@@ -18,7 +18,9 @@ namespace Spheral {
   FieldSpace::Field<Dimension, int>
   computeFragmentField(const NodeSpace::NodeList<Dimension>& nodeList,
                        const double linkRadius,
+                       const FieldSpace::Field<Dimension, typename Dimension::Scalar>& density,
                        const FieldSpace::Field<Dimension, typename Dimension::SymTensor>& damage,
+                       const double densityThreshold,
                        const double damageThreshold,
                        const bool assignDustToFragments);
 

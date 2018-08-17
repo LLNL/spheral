@@ -54,6 +54,12 @@
     <ClCompile Include="..\..\src\Boundary\ConstantYVelocityBoundaryInst.cc.3.cc">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\src\Boundary\CRKSPHVoidBoundaryInst.cc.2.cc">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\Boundary\CRKSPHVoidBoundaryInst.cc.3.cc">
+      <Filter>Source Files</Filter>
+    </ClCompile>
     <ClCompile Include="..\..\src\Boundary\CylindricalBoundary.cc">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -122,6 +128,9 @@
     <None Include="..\..\src\Boundary\ConstantZVelocityBoundary.hh">
       <Filter>Header Files</Filter>
     </None>
+    <None Include="..\..\src\Boundary\CRKSPHVoidBoundary.hh">
+      <Filter>Header Files</Filter>
+    </None>
     <None Include="..\..\src\Boundary\CylindricalBoundary.hh">
       <Filter>Header Files</Filter>
     </None>
@@ -182,6 +191,9 @@
       <Filter>Inst Files</Filter>
     </CustomBuild>
     <CustomBuild Include="..\..\src\Boundary\ConstantYVelocityBoundaryInst.cc.py">
+      <Filter>Inst Files</Filter>
+    </CustomBuild>
+    <CustomBuild Include="..\..\src\Boundary\CRKSPHVoidBoundaryInst.cc.py">
       <Filter>Inst Files</Filter>
     </CustomBuild>
     <CustomBuild Include="..\..\src\Boundary\PeriodicBoundaryInst.cc.py">

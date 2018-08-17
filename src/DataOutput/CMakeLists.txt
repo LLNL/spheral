@@ -1,0 +1,33 @@
+set(DataOutput_sources
+    RestartRegistrar.cc
+    )
+
+set(DataOutput_headers
+    Restart.hh
+    RestartHandle.hh
+    RestartInline.hh
+    RestartRegistrar.hh
+    RestartRegistrarInline.hh
+    RestartableObject.hh
+    registerWithRestart.hh
+    )
+
+INCLUDE_DIRECTORIES(../)
+
+set(spheral_depends BOOST Eigen qhull silo polytope mpi)
+
+blt_add_library(NAME        Spheral_DataOutput
+                SOURCES     ${DataOutput_sources}
+                HEADERS     ${DataOutput_headers}
+                DEPENDS_ON  ${spheral_depends}
+                )
+
+install(TARGETS              Spheral_DataOutput
+        EXPORT               ${PROJECT_NAME}-targets
+        DESTINATION          lib
+        INCLUDES DESTINATION include
+        )
+
+install(FILES       ${DataOutput_headers}
+        DESTINATION include/DataOutput
+        )
