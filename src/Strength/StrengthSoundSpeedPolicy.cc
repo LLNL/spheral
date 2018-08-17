@@ -79,7 +79,7 @@ update(const KeyType& key,
     const SolidMaterial::StrengthModel<Dimension>& strengthModel = solidNodeListPtr->strengthModel();
 
     // Set the full sound speed.
-    strengthModel.soundSpeed(*stateFields[k], *rho[k], *eps[k], *P[k], *stateFields[k]);
+    if (strengthModel.providesSoundSpeed()) strengthModel.soundSpeed(*stateFields[k], *rho[k], *eps[k], *P[k], *stateFields[k]);
   }
 }
 

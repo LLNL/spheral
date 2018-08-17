@@ -93,6 +93,56 @@ yieldStrength(Field<Dimension, Scalar>& yieldStrength,
 }
 
 //------------------------------------------------------------------------------
+// Sound speed
+//------------------------------------------------------------------------------
+template<typename Dimension>
+void
+PorousStrengthModel<Dimension>::
+soundSpeed(FieldSpace::Field<Dimension, Scalar>& soundSpeed,
+           const FieldSpace::Field<Dimension, Scalar>& density,
+           const FieldSpace::Field<Dimension, Scalar>& specificThermalEnergy,
+           const FieldSpace::Field<Dimension, Scalar>& pressure,
+           const FieldSpace::Field<Dimension, Scalar>& fluidSoundSpeed) const {
+  mSolidStrength.soundSpeed(soundSpeed, density, specificThermalEnergy, pressure, fluidSoundSpeed);
+}
+
+//------------------------------------------------------------------------------
+// Bulk modulus
+//------------------------------------------------------------------------------
+template<typename Dimension>
+void
+PorousStrengthModel<Dimension>::
+bulkModulus(FieldSpace::Field<Dimension, Scalar>& bulkModulus,
+            const FieldSpace::Field<Dimension, Scalar>& density,
+            const FieldSpace::Field<Dimension, Scalar>& specificThermalEnergy) const {
+  mSolidStrength.bulkModulus(bulkModulus, density, specificThermalEnergy);
+}
+
+//------------------------------------------------------------------------------
+// Melt energy
+//------------------------------------------------------------------------------
+template<typename Dimension>
+void
+PorousStrengthModel<Dimension>::
+meltSpecificEnergy(FieldSpace::Field<Dimension, Scalar>& meltSpecificEnergy,
+                   const FieldSpace::Field<Dimension, Scalar>& density,
+                   const FieldSpace::Field<Dimension, Scalar>& specificThermalEnergy) const {
+  mSolidStrength.meltSpecificEnergy(meltSpecificEnergy, density, specificThermalEnergy);
+}
+
+//------------------------------------------------------------------------------
+// Cold energy
+//------------------------------------------------------------------------------
+template<typename Dimension>
+void
+PorousStrengthModel<Dimension>::
+coldSpecificEnergy(FieldSpace::Field<Dimension, Scalar>& coldSpecificEnergy,
+                   const FieldSpace::Field<Dimension, Scalar>& density,
+                   const FieldSpace::Field<Dimension, Scalar>& specificThermalEnergy) const {
+  mSolidStrength.coldSpecificEnergy(coldSpecificEnergy, density, specificThermalEnergy);
+}
+
+//------------------------------------------------------------------------------
 // Access the underlying solid strength model.
 //------------------------------------------------------------------------------
 template<typename Dimension>

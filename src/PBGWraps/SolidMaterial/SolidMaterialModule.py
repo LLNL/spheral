@@ -54,7 +54,7 @@ self.JohnsonCookStrength%(dim)id = addObject(space, "JohnsonCookStrength%(dim)id
 self.CollinsStrength%(dim)id = addObject(space, "CollinsStrength%(dim)id", parent=self.StrengthModel%(dim)id, allow_subclassing=True)
 self.PorousStrengthModel%(dim)id = addObject(space, "PorousStrengthModel%(dim)id", parent=self.StrengthModel%(dim)id, allow_subclassing=True)
 
-self.PhysicsEvolvingMaterialLibrary%(dim)id = addObject(space, "PhysicsEvolvingMaterialLibrary%(dim)id", parent=[EquationOfState%(dim)id, Physics%(dim)id, self.StrengthModel%(dim)id], allow_subclassing=True)
+self.PhysicsEvolvingMaterialLibrary%(dim)id = addObject(space, "PhysicsEvolvingMaterialLibrary%(dim)id", parent=[Physics%(dim)id, self.SolidEquationOfState%(dim)id, self.StrengthModel%(dim)id], allow_subclassing=True)
 ''' % {"dim" : dim})
 
         return
@@ -492,6 +492,8 @@ def generateStrengthModelVirtualBindings(x, ndim, pureVirtual):
     scalarfield = "Spheral::FieldSpace::ScalarField%id" % ndim
 
     # Methods.
+    x.add_method("providesSoundSpeed", "bool", [], is_const=True, is_virtual=True)
+    x.add_method("providesBulkModulus", "bool", [], is_const=True, is_virtual=True)
     x.add_method("shearModulus", None, [refparam(scalarfield, "shearModulus"),
                                         constrefparam(scalarfield, "density"),
                                         constrefparam(scalarfield, "specificThermalEnergy"),
@@ -509,6 +511,10 @@ def generateStrengthModelVirtualBindings(x, ndim, pureVirtual):
                                       constrefparam(scalarfield, "specificThermalEnergy"),
                                       constrefparam(scalarfield, "pressure"),
                                       constrefparam(scalarfield, "fluidSoundSpeed")],
+                 is_const=True, is_virtual=True)
+    x.add_method("bulkModulus", None, [refparam(scalarfield, "bulkModulus"),
+                                       constrefparam(scalarfield, "density"),
+                                       constrefparam(scalarfield, "specificThermalEnergy")],
                  is_const=True, is_virtual=True)
     x.add_method("meltSpecificEnergy", None, [refparam(scalarfield, "meltSpecificEnergy"),
                                               constrefparam(scalarfield, "density"),
@@ -851,7 +857,10 @@ def generatePhysicsEvolvingMaterialLibraryBindings(x, ndim):
     me = "Spheral::SolidMaterial::PhysicsEvolvingMaterialLibrary%id" % ndim
 
     # Constructors.
-    x.add_constructor([constrefparam("PhysicalConstants", "constants"),
+    x.add_constructor([param("double", "referenceDensity"),
+                       param("double", "etamin"),
+                       param("double", "etamax"),
+                       constrefparam("PhysicalConstants", "constants"),
                        param("double", "minimumPressure", default_value="-std::numeric_limits<double>::max()"),
                        param("double", "maximumPressure", default_value="std::numeric_limits<double>::max()"),
                        param("MaterialPressureMinType", "minPressureType", default_value="MaterialPressureMinType::PressureFloor")])

@@ -43,13 +43,18 @@ public:
                              const FieldSpace::Field<Dimension, Scalar>& plasticStrain,
                              const FieldSpace::Field<Dimension, Scalar>& plasticStrainRate) const = 0;
   //............................................................................
-
   // Some strength models optionally provide the following methods.
+  virtual bool providesSoundSpeed() const { return false; }
+  virtual bool providesBulkModulus() const { return false; }
   virtual void soundSpeed(FieldSpace::Field<Dimension, Scalar>& soundSpeed,
                           const FieldSpace::Field<Dimension, Scalar>& density,
                           const FieldSpace::Field<Dimension, Scalar>& specificThermalEnergy,
                           const FieldSpace::Field<Dimension, Scalar>& pressure,
                           const FieldSpace::Field<Dimension, Scalar>& fluidSoundSpeed) const;
+
+  virtual void bulkModulus(FieldSpace::Field<Dimension, Scalar>& bulkModulus,
+                           const FieldSpace::Field<Dimension, Scalar>& massDensity,
+                           const FieldSpace::Field<Dimension, Scalar>& specificThermalEnergy) const;
 
   virtual void meltSpecificEnergy(FieldSpace::Field<Dimension, Scalar>& meltSpecificEnergy,
                                   const FieldSpace::Field<Dimension, Scalar>& density,

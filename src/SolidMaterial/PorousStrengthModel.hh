@@ -51,6 +51,27 @@ public:
                              const FieldSpace::Field<Dimension, Scalar>& plasticStrain,
                              const FieldSpace::Field<Dimension, Scalar>& plasticStrainRate) const;
 
+  // The optional methods the underlying strength model might provide.
+  virtual bool providesSoundSpeed() const override { return mSolidStrength.providesSoundSpeed(); }
+  virtual bool providesBulkModulus() const override { return mSolidStrength.providesBulkModulus(); }
+  virtual void soundSpeed(FieldSpace::Field<Dimension, Scalar>& soundSpeed,
+                          const FieldSpace::Field<Dimension, Scalar>& density,
+                          const FieldSpace::Field<Dimension, Scalar>& specificThermalEnergy,
+                          const FieldSpace::Field<Dimension, Scalar>& pressure,
+                          const FieldSpace::Field<Dimension, Scalar>& fluidSoundSpeed) const;
+
+  virtual void bulkModulus(FieldSpace::Field<Dimension, Scalar>& bulkModulus,
+                           const FieldSpace::Field<Dimension, Scalar>& massDensity,
+                           const FieldSpace::Field<Dimension, Scalar>& specificThermalEnergy) const;
+
+  virtual void meltSpecificEnergy(FieldSpace::Field<Dimension, Scalar>& meltSpecificEnergy,
+                                  const FieldSpace::Field<Dimension, Scalar>& density,
+                                  const FieldSpace::Field<Dimension, Scalar>& specficThermalEnergy) const;
+
+  virtual void coldSpecificEnergy(FieldSpace::Field<Dimension, Scalar>& coldSpecificEnergy,
+                                  const FieldSpace::Field<Dimension, Scalar>& density,
+                                  const FieldSpace::Field<Dimension, Scalar>& specficThermalEnergy) const;
+
   // Forbid the non-Field calls.
   virtual double shearModulus(const double density,
                               const double specificThermalEnergy,
