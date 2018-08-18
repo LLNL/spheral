@@ -24,22 +24,27 @@ typedef std::shared_ptr<RedistributionNotificationHandle> RedistributionRegistra
 // registered object will be notified.
 //------------------------------------------------------------------------------
 template<typename Object>
-RedistributionRegistrationType
-registerWithRedistribution(Object& object, 
-                           void (Object::* notificationMethod)());
-
-#ifndef __GCCXML__
-template<typename Object>
 inline
 RedistributionRegistrationType
 registerWithRedistribution(Object& object, 
-                           void (Object::* notificationMethod)()) {
-  RedistributionRegistrationType handle(new RedistributionNotification<Object>(object, notificationMethod));
+                           void (Object::* postNotificationMethod)()) {
+  RedistributionRegistrationType handle(new RedistributionNotification<Object>(object, postNotificationMethod));
   RedistributionRegistrar& registrar = RedistributionRegistrar::instance();
   registrar.registerRedistributionNotificationHandle(handle);
   return handle;
 }
-#endif
+
+template<typename Object>
+inline
+RedistributionRegistrationType
+registerWithRedistribution(Object& object, 
+                           void (Object::* preNotificationMethod)(),
+                           void (Object::* postNotificationMethod)()) {
+  RedistributionRegistrationType handle(new RedistributionNotification<Object>(object, preNotificationMethod, postNotificationMethod));
+  RedistributionRegistrar& registrar = RedistributionRegistrar::instance();
+  registrar.registerRedistributionNotificationHandle(handle);
+  return handle;
+}
 
 }
 

@@ -113,12 +113,21 @@ removeExpiredPointers() {
 }
 
 //------------------------------------------------------------------------------
+// Notify everyone registered that a redistribution is about to occur.
+//------------------------------------------------------------------------------
+void
+RedistributionRegistrar::
+preRedistributionNotifications() const {
+  for (const_iterator itr = begin(); itr != end(); ++itr) itr->lock()->notifyBeforeRedistribution();
+}
+
+//------------------------------------------------------------------------------
 // Notify everyone registered that a redistribution has occurred.
 //------------------------------------------------------------------------------
 void
 RedistributionRegistrar::
 broadcastRedistributionNotifications() const {
-  for (const_iterator itr = begin(); itr != end(); ++itr) itr->lock()->notifyOfRedistribution();
+  for (const_iterator itr = begin(); itr != end(); ++itr) itr->lock()->notifyAfterRedistribution();
 }
 
 //------------------------------------------------------------------------------
