@@ -20,7 +20,7 @@ using BoundarySpace::Boundary;
 template<typename Dimension>
 Physics<Dimension>::
 Physics():
-  mBoundaryConditions(0) {
+  mBoundaryConditions() {
 }
 
 //------------------------------------------------------------------------------
