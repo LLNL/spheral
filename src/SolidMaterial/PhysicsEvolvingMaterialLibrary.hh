@@ -27,9 +27,9 @@ namespace SolidMaterial {
 
 template<typename Dimension>
 class PhysicsEvolvingMaterialLibrary: 
+    public PhysicsSpace::Physics<Dimension>,
     public SolidMaterial::SolidEquationOfState<Dimension>,
-    public SolidMaterial::StrengthModel<Dimension>,
-    public PhysicsSpace::Physics<Dimension> {
+    public SolidMaterial::StrengthModel<Dimension> {
 
 public:
   //--------------------------- Public Interface ---------------------------//
