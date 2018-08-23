@@ -2,7 +2,7 @@ text = """
 //------------------------------------------------------------------------------
 // Explicit instantiation.
 //------------------------------------------------------------------------------
-#include "relaxNodeDistribution.cc"
+#include "NodeGenerators/relaxNodeDistribution.cc"
 #include "Geometry/Dimension.hh"
 
 namespace Spheral {

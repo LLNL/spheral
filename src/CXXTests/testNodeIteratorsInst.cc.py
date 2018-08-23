@@ -3,7 +3,7 @@ text = """
 //------------------------------------------------------------------------------
 // Explicit instantiation.
 //------------------------------------------------------------------------------
-#include "testNodeIterators.cc"
+#include "CXXTests/testNodeIterators.cc"
 
 namespace Spheral {
   namespace Testing {

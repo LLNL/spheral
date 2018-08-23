@@ -3,7 +3,7 @@ text = """
 // Explicit instantiation.
 //------------------------------------------------------------------------------
 #include "Geometry/Dimension.hh"
-#include "weibullFlawDistribution.cc"
+#include "Damage/weibullFlawDistribution.cc"
 
 template Spheral::FieldSpace::Field<Spheral::Dim< %(ndim)s >, std::vector<double> > 
 Spheral::PhysicsSpace::weibullFlawDistributionBenzAsphaug<Spheral::Dim< %(ndim)s > >(double,

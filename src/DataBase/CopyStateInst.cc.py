@@ -3,7 +3,7 @@ text = """
 // Explicit instantiation.
 //------------------------------------------------------------------------------
 #include "Geometry/Dimension.hh"
-#include "CopyState.cc"
+#include "DataBase/CopyState.cc"
 
 namespace Spheral {
   template class CopyState<Dim< %(ndim)s >, Dim< %(ndim)s >::Scalar>;

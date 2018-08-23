@@ -2,7 +2,7 @@ text = """
 //------------------------------------------------------------------------------
 // Explicit instantiation.
 //------------------------------------------------------------------------------
-#include "NodeList.cc"
+#include "NodeList/NodeList.cc"
 
 namespace Spheral {
   namespace NodeSpace {

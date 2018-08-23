@@ -6,9 +6,9 @@ text = """
 #include "Boundary/Boundary.hh"
 
 #ifdef _OPENMP
-#include "computeCRKSPHSumMassDensity_OpenMP.cc"
+#include "CRKSPH/computeCRKSPHSumMassDensity_OpenMP.cc"
 #else
-#include "computeCRKSPHSumMassDensity.cc"
+#include "CRKSPH/computeCRKSPHSumMassDensity.cc"
 #endif
 
 namespace Spheral {

@@ -7,8 +7,8 @@ text = """
 
 #include <math.h>
 
-#include "Kernel.hh"
-#include "WendlandC4Kernel.hh"
+#include "Kernel/Kernel.hh"
+#include "Kernel/WendlandC4Kernel.hh"
 
 //------------------------------------------------------------------------------
 // Explicit instantiation.

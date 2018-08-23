@@ -1,5 +1,5 @@
 text = """
-#include "TreeNeighbor.cc"
+#include "Neighbor/TreeNeighbor.cc"
 
 namespace Spheral {
   namespace NeighborSpace {

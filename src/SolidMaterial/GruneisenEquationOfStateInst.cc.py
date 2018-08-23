@@ -2,7 +2,7 @@ text = """
 //------------------------------------------------------------------------------
 // Explicit instantiation.
 //------------------------------------------------------------------------------
-#include "GruneisenEquationOfState.cc"
+#include "SolidMaterial/GruneisenEquationOfState.cc"
 
 namespace Spheral {
   namespace SolidMaterial {

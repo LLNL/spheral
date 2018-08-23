@@ -2,7 +2,7 @@ text = """
 //------------------------------------------------------------------------------
 // Explicit instantiation.
 //------------------------------------------------------------------------------
-#include "CullenDehnenViscosity.cc"
+#include "ArtificialConduction/CullenDehnenViscosity.cc"
 #include "Geometry/Dimension.hh"
 
 namespace Spheral {

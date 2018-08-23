@@ -5,7 +5,7 @@ text = """
 //------------------------------------------------------------------------------
 // Explicit instantiation.
 //------------------------------------------------------------------------------
-#include "ASPHSmoothingScale.cc"
+#include "NodeList/ASPHSmoothingScale.cc"
 
 namespace Spheral {
   namespace NodeSpace {

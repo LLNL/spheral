@@ -3,7 +3,7 @@ text = """
 // Explicit instantiation.
 //------------------------------------------------------------------------------
 #include "Geometry/Dimension.hh"
-#include "computeTaylorSPHCorrections.cc"
+#include "TaylorSPH/computeTaylorSPHCorrections.cc"
 
 namespace Spheral {
   namespace TaylorSPHSpace {

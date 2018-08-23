@@ -3,7 +3,7 @@ text = """
 // Explicit instantiation.
 //------------------------------------------------------------------------------
 #include "Geometry/Dimension.hh"
-#include "DistributedBoundary.cc"
+#include "Distributed/DistributedBoundary.cc"
 
 namespace Spheral {
   namespace BoundarySpace {

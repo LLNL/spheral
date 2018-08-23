@@ -1,8 +1,8 @@
 text = """
 #include <math.h>
 
-#include "Kernel.hh"
-#include "ExpInvKernel.hh"
+#include "Kernel/Kernel.hh"
+#include "Kernel/ExpInvKernel.hh"
 
 //------------------------------------------------------------------------------
 // Explicit instantiation.

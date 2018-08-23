@@ -2,7 +2,7 @@ text = """
 //------------------------------------------------------------------------------
 // Explicit instantiation.
 //------------------------------------------------------------------------------
-#include "computeShepardsInterpolation.cc"
+#include "Utilities/computeShepardsInterpolation.cc"
 #include "Geometry/Dimension.hh"
 
 namespace Spheral {

@@ -8,7 +8,7 @@ text = """
 //
 // Created by JMO, Wed Jan  8 22:45:10 PST 2003
 //----------------------------------------------------------------------------//
-#include "QuarticSplineKernel.hh"
+#include "Kernel/QuarticSplineKernel.hh"
 
 //------------------------------------------------------------------------------
 // Explicit instantiation.

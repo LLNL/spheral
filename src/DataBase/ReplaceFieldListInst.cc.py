@@ -3,7 +3,7 @@ text = """
 // Explicit instantiation.
 //------------------------------------------------------------------------------
 #include "Geometry/Dimension.hh"
-#include "ReplaceFieldList.cc"
+#include "DataBase/ReplaceFieldList.cc"
 
 namespace Spheral {
   template class ReplaceFieldList<Dim< %(ndim)s >, Dim< %(ndim)s >::Scalar>;

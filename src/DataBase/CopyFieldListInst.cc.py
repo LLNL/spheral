@@ -3,7 +3,7 @@ text = """
 // Explicit instantiation.
 //------------------------------------------------------------------------------
 #include "Geometry/Dimension.hh"
-#include "CopyFieldList.cc"
+#include "DataBase/CopyFieldList.cc"
 
 namespace Spheral {
   template class CopyFieldList<Dim< %(ndim)s >, Dim< %(ndim)s >::Scalar>;
