@@ -3,7 +3,7 @@ text = """
 // Explicit instantiation.
 //------------------------------------------------------------------------------
 #include "Geometry/Dimension.hh"
-#include "ArtificialConduction/MonaghanGingoldViscosity.cc"
+#include "ArtificialViscosity/MonaghanGingoldViscosity.cc"
 
 namespace Spheral {
   namespace ArtificialViscositySpace {

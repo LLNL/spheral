@@ -2,7 +2,7 @@ text = """
 //------------------------------------------------------------------------------
 // Explicit instantiation.
 //------------------------------------------------------------------------------
-#include "ArtificialConduction/VonNeumanViscosity.cc"
+#include "ArtificialViscosity/VonNeumanViscosity.cc"
 #include "Geometry/Dimension.hh"
 
 namespace Spheral {
