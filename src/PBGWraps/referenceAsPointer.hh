@@ -21,14 +21,14 @@ const_reference_as_pointer(const Object& self) {
 template<typename Object, typename ReturnType, ReturnType& (Object::* AccessMethod)()>
 inline
 ReturnType*
-reference_as_pointer(const Object& self) {
+reference_as_pointer(Object& self) {
   return &((self.*AccessMethod)());
 }
 
 template<typename Object, typename ReturnType, ReturnType& (Object::* AccessMethod)() const>
 inline
 ReturnType*
-reference_as_pointer(const Object& self) {
+reference_as_pointer(Object& self) {
   return &((self.*AccessMethod)());
 }
 
