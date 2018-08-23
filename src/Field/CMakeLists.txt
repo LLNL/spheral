@@ -43,10 +43,6 @@ set(Field_headers
     uvm_allocator.hh
     )
 
-INCLUDE_DIRECTORIES(. ../)
-
-set(spheral_depends BOOST Eigen qhull silo polytope mpi)
-
 blt_add_library(NAME        Spheral_Field
                 SOURCES     ${Field_sources}
                 HEADERS     ${Field_headers}

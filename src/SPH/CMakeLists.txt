@@ -50,10 +50,6 @@ set(SPH_headers
     correctSPHSumMassDensity.hh
     )
 
-INCLUDE_DIRECTORIES(. ../)
-
-set(spheral_depends BOOST Eigen qhull silo polytope mpi)
-
 blt_add_library(NAME        Spheral_SPH
                 SOURCES     ${SPH_sources}
                 HEADERS     ${SPH_headers}

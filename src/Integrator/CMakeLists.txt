@@ -24,10 +24,6 @@ set(Integrator_headers
     Verlet.hh
     )
 
-INCLUDE_DIRECTORIES(. ../)
-
-set(spheral_depends BOOST Eigen qhull silo polytope mpi)
-
 blt_add_library(NAME        Spheral_Integrator
                 SOURCES     ${Integrator_sources}
                 HEADERS     ${Integrator_headers}

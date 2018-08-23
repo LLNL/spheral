@@ -62,10 +62,6 @@ set(Boundary_headers
     mapPositionThroughPlanes.hh
     )
 
-INCLUDE_DIRECTORIES(. ../)
-
-set(spheral_depends BOOST Eigen qhull silo polytope mpi)
-
 blt_add_library(NAME        Spheral_Boundary
                 SOURCES     ${Boundary_sources}
                 HEADERS     ${Boundary_headers}

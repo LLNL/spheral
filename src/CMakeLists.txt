@@ -1,4 +1,7 @@
 # Libraries
+include_directories(.)
+set(spheral_depends BOOST Eigen qhull silo polytope mpi)
+
 add_subdirectory(CInterface)
 set(_packages SPH
               CRKSPH

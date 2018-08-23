@@ -49,10 +49,6 @@ set(Hydro_headers
     entropyWeightingFunction.hh
     )
 
-INCLUDE_DIRECTORIES(. ../)
-
-set(spheral_depends BOOST Eigen qhull silo polytope mpi)
-
 blt_add_library(NAME        Spheral_Hydro
                 SOURCES     ${Hydro_sources}
                 HEADERS     ${Hydro_headers}

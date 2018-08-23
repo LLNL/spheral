@@ -27,10 +27,6 @@ set(Neighbor_headers
     TreeNeighbor.hh
     )
 
-INCLUDE_DIRECTORIES(. ../)
-
-set(spheral_depends BOOST Eigen qhull silo polytope mpi)
-
 blt_add_library(NAME        Spheral_Neighbor
                 SOURCES     ${Neighbor_sources}
                 HEADERS     ${Neighbor_headers}

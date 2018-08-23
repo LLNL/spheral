@@ -19,10 +19,6 @@ set(FileIO_headers
     vectorstringUtilities.hh
     )
 
-INCLUDE_DIRECTORIES(../)
-
-set(spheral_depends BOOST Eigen qhull silo polytope mpi)
-
 blt_add_library(NAME        Spheral_FileIO
                 SOURCES     ${FileIO_sources}
                 HEADERS     ${FileIO_headers}

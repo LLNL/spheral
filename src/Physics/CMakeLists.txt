@@ -16,10 +16,6 @@ set(Physics_headers
     PhysicsInline.hh
     )
 
-INCLUDE_DIRECTORIES(. ../)
-
-set(spheral_depends BOOST Eigen qhull silo polytope mpi)
-
 blt_add_library(NAME        Spheral_Physics
                 SOURCES     ${Physics_sources}
                 HEADERS     ${Physics_headers}

@@ -49,10 +49,6 @@ set(SolidMaterial_headers
     TillotsonEquationOfStateInline.hh
     )
 
-INCLUDE_DIRECTORIES(. ../)
-
-set(spheral_depends BOOST Eigen qhull silo polytope mpi)
-
 blt_add_library(NAME        Spheral_SolidMaterial
                 SOURCES     ${SolidMaterial_sources}
                 HEADERS     ${SolidMaterial_headers}

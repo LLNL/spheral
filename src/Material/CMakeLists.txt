@@ -26,10 +26,6 @@ set(Material_headers
     PolytropicEquationOfStateInline.hh
     )
 
-INCLUDE_DIRECTORIES(. ../)
-
-set(spheral_depends BOOST Eigen qhull silo polytope mpi)
-
 blt_add_library(NAME        Spheral_Material
                 SOURCES     ${Material_sources}
                 HEADERS     ${Material_headers}

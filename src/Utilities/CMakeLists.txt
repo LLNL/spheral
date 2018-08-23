@@ -109,10 +109,6 @@ set(Utilities_headers
     timingUtilities.hh
     )
 
-INCLUDE_DIRECTORIES(. ../)
-
-set(spheral_depends BOOST Eigen qhull silo polytope mpi)
-
 blt_add_library(NAME        Spheral_Utilities
                 SOURCES     ${Utilities_sources}
                 HEADERS     ${Utilities_headers}

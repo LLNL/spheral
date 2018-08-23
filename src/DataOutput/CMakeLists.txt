@@ -12,10 +12,6 @@ set(DataOutput_headers
     registerWithRestart.hh
     )
 
-INCLUDE_DIRECTORIES(../)
-
-set(spheral_depends BOOST Eigen qhull silo polytope mpi)
-
 blt_add_library(NAME        Spheral_DataOutput
                 SOURCES     ${DataOutput_sources}
                 HEADERS     ${DataOutput_headers}
