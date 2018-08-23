@@ -3,7 +3,7 @@ text = """
 // Explicit instantiation.
 //------------------------------------------------------------------------------
 #include "Geometry/Dimension.hh"
-#include "Damage/CompositeFieldListPolicy.cc"
+#include "Database/CompositeFieldListPolicy.cc"
 
 namespace Spheral {
   template class CompositeFieldListPolicy<Dim< %(ndim)s >, Dim< %(ndim)s >::Scalar>;
