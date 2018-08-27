@@ -34,8 +34,8 @@ SAFEPATH = $(prefix)/bin:$(subst $(OPENPAREN),\$(OPENPAREN),$(subst $(CLOSEPAREN
 # Targets.
 #-------------------------------------------------------------------------------
 # Python
-PYTHONDIST = Python-2.7.14.tgz
-PYTHONURL = http://www.python.org/ftp/python/2.7.14/$(PYTHONDIST)
+PYTHONDIST = Python-2.7.15.tgz
+PYTHONURL = http://www.python.org/ftp/python/2.7.15/$(PYTHONDIST)
 PYTHONDIR = $(PYTHONDIST:.tgz=)
 PYTHONBUILDDATE = $(patsubst %.tgz, .%.date, $(PYTHONDIST))
 PYTHONTARGET = @PYTHONTARGET@
@@ -156,7 +156,7 @@ ATSDIR = $(ATSDIST:.tar.gz=)
 ATSBUILDDATE = $(patsubst %.tar.gz, .%.date, $(ATSDIST))
 
 # FFTW
-FFTWDIST = fftw-3.3.tar.gz
+FFTWDIST = fftw-3.3.7.tar.gz
 FFTWURL = http://www.fftw.org/$(FFTWDIST)
 FFTWDIR = $(FFTWDIST:.tar.gz=)
 FFTWBUILDDATE = $(patsubst %.tar.gz, .%.date, $(FFTWDIST))
@@ -241,9 +241,9 @@ PCLDIR = $(PCLDIST:.tar.bz2=)
 PCLBUILDDATE = $(patsubst %.tar.bz2, .%.date, $(PCLDIST))
 
 # HYPRE parallel linear solver
-HYPREDIST = hypre-2.8.0b.tar.gz
-HYPREURL = https://computation.llnl.gov/casc/hypre/download/$(HYPREDIST)
-HYPREDIR = $(HYPREDIST:.tar.gz=)
+HYPREDIST = hypre-v2.14.0.tar.gz
+HYPREURL = https://github.com/LLNL/hypre/archive/v2.14.0.tar.gz
+HYPREDIR = hypre-2.14.0
 HYPREBUILDDATE = $(patsubst %.tar.gz, .%.date, $(HYPREDIST))
 
 # Triangle (needed by polytope)
@@ -395,7 +395,7 @@ $(PYTHONBUILDDATE):	$(PYTHON) cache/$(PYTHONDIST) $(ZLIBBUILDDATE)
 	rm -f $(PYTHONBUILDDATE); \
 	exit 1; \
 	fi
-	$(SPHERALTOP)/helpers/runexecstack $(PYTHONEXE)
+	#$(SPHERALTOP)/helpers/runexecstack $(PYTHONEXE)
 	rm -fr $(PYTHONDIR)
 	touch $(PYTHONBUILDDATE)
 
@@ -757,7 +757,7 @@ $(FFTWBUILDDATE):	cache/$(FFTWDIST)
 	rm -fr $(FFTWDIR)
 	$(GZIP) -dc cache/$(FFTWDIST) | $(TAR) -xf -
 	$(SHELL) -ec "cd $(FFTWDIR); \
-	env CC='$(CC)' CXX='$(CXX)' CFLAGS='$(CFLAGS)' ./configure --prefix=$(prefix) ; \
+	env CC='$(MPICC)' CXX='$(MPICXX)' CFLAGS='$(CFLAGS)' ./configure --prefix=$(prefix) $(FFTWFLAGS) ; \
 	$(MAKE) ; \
 	$(MAKE) install"
 	@if ! test -e $(prefix)/include/fftw3.h -a \
@@ -1045,15 +1045,15 @@ $(HYPREBUILDDATE):	cache/$(HYPREDIST)
 	@echo "################################################################################"
 	@echo "# Building $(HYPREDIST)"
 	@echo "################################################################################"
-	@$(MKDIR) -p $(prefix)/bin $(prefix)/man $(prefix)/lib $(prefix)/include
+	@$(MKDIR) -p $(prefix)/HYPRE
 	rm -fr $(HYPREDIR)
 	$(GZIP) -dc cache/$(HYPREDIST) | $(TAR) -xf -
-	$(SHELL) -ec "cd $(HYPREDIR)/src; \
-	env CC='$(MPICC)' CXX='$(MPICXX)' CFLAGS='$(MPICCFLAGS) $(CFLAGS)' CXXFLAGS='$(MPICXXFLAGS) $(CXXFLAGS)' ./configure --prefix=$(prefix) ;\
+	$(SHELL) -ec 'cd $(HYPREDIR)/src/; \
+	env CC="$(MPICC)" CXX="$(MPICC)" CFLAGS="$(CFLAGS)" CXXFLAGS="$(CXXFLAGS)" ./configure --prefix=$(prefix)/HYPRE ; \
 	$(MAKE) ; \
-	$(MAKE) install"
-	@if ! test -e $(prefix)/lib/libHYPRE.a -a \
-	           -e $(prefix)/include/HYPRE.h; then \
+	$(MAKE) install'
+	@if ! test -e $(prefix)/HYPRE/lib/libHYPRE.a -a \
+	           -e $(prefix)/HYPRE/include/HYPRE.h; then \
 	echo "ERROR building Hypre."; \
 	rm -f $(HYPREBUILDDATE); \
 	exit 1; \

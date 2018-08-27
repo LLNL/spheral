@@ -83,6 +83,7 @@ class %(classname)s%(dim)s(SolidSPHHydroBase%(dim)s):
                  HUpdate = IdealH,
                  epsTensile = 0.0,
                  nTensile = 4.0,
+                 damageRelieveRubble = False,
                  xmin = Vector%(dim)s(-1e100, -1e100, -1e100),
                  xmax = Vector%(dim)s( 1e100,  1e100,  1e100)):
         self._smoothingScaleMethod = %(smoothingScaleMethod)s%(dim)s()
@@ -109,6 +110,7 @@ class %(classname)s%(dim)s(SolidSPHHydroBase%(dim)s):
                                           HUpdate,
                                           epsTensile,
                                           nTensile,
+                                          damageRelieveRubble,
                                           xmin,
                                           xmax)
         return
@@ -246,6 +248,7 @@ class %(classname)s(SolidSPHHydroBaseRZ):
                  HUpdate = IdealH,
                  epsTensile = 0.0,
                  nTensile = 4.0,
+                 damageRelieveRubble = False,
                  xmin = Vector2d(-1e100, -1e100),
                  xmax = Vector2d( 1e100,  1e100),
                  etaMinAxis = 0.1):
@@ -273,6 +276,7 @@ class %(classname)s(SolidSPHHydroBaseRZ):
                                      HUpdate,
                                      epsTensile,
                                      nTensile,
+                                     damageRelieveRubble,
                                      xmin,
                                      xmax)
         self.zaxisBC = AxisBoundaryRZ(etaMinAxis)

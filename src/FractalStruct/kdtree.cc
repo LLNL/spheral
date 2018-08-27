@@ -319,6 +319,7 @@ namespace FractalSpace
 	if(rnode->full)
 	  {
 	    assert(rnode->ppoints.size() == vol);
+	    assert(vol != 0);
 	    TOT+=rnode->ppoints.size();
 	    NB++;
 	    return;
@@ -338,6 +339,7 @@ namespace FractalSpace
 	if(pnode->full)
 	  {
 	    assert(pnode->ppoints.size() == vol);
+	    assert(vol != 0);
 	    TOT+=pnode->ppoints.size();
 	    NB++;
 	    return;

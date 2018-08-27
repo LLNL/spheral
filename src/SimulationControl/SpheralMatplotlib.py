@@ -1,4 +1,3 @@
-import matplotlib.patches as patches
 from matplotlib.pyplot import cm as pltcm
 #from matplotlib.collections import PatchCollections
 import numpy as np
@@ -28,6 +27,8 @@ class NullFigure:
             return NullFigure()
     def __setattr__(self, name, val):
         pass
+    def savefig(self, *arghs, **keyw):
+        pass
 
 #-------------------------------------------------------------------------------
 # Parallel safe pyplot
@@ -48,6 +49,14 @@ def newFigure():
         return plt.figure().add_subplot(111)
     else:
         return NullFigure()
+
+#-------------------------------------------------------------------------------
+# Take one of our plotted objects and save it to a file.
+#-------------------------------------------------------------------------------
+def savefig(plot,
+            fname,
+            transparent = False):
+    plot.figure.savefig(fname, transparent=transparent, bbox_inches="tight")
 
 #-------------------------------------------------------------------------------
 # Calculate the radial velocity component, given a FieldList of positions
@@ -863,6 +872,7 @@ def plotpmomHistory(conserve):
 #                 plot = None,
 #                 persist = False,
 #                 plotLabels = True):
+#     import matplotlib.patches as patches
 #     mppoly = patches.Polygon(np.array([[v.x, v.y] for v in in polygon.vertices()]), True)
 #     mppatches = PatchCollection([mppoly])
 

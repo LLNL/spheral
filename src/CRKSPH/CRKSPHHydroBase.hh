@@ -70,10 +70,6 @@ public:
                   const PhysicsSpace::HEvolutionType HUpdate,
                   const CRKSPHSpace::CRKOrder correctionOrder,
                   const CRKSPHSpace::CRKVolumeType volumeType,
-                  const bool detectSurfaces,
-                  const double detectThreshold,
-                  const double sweepAngle,
-                  const double detectRange,
                   const double epsTensile,
                   const double nTensile);
 
@@ -118,12 +114,6 @@ public:
                            const DataBaseSpace::DataBase<Dimension>& dataBase,
                            const State<Dimension>& state,
                            StateDerivatives<Dimension>& derivs) const override;
-
-  // Hook called after the state has been updated and boundary conditions have been enforced.
-  virtual 
-  void postStateUpdate(const DataBaseSpace::DataBase<Dimension>& dataBase, 
-                       State<Dimension>& state,
-                       const StateDerivatives<Dimension>& derivatives) const override;
 
   // Finalize the hydro at the completion of an integration step.
   virtual
@@ -195,19 +185,6 @@ public:
   Scalar nTensile() const;
   void nTensile(const Scalar val);
     
-  // Surface detection getters and setters
-  bool detectSurfaces() const;
-  void detectSurfaces(const bool val);
-    
-  double detectThreshold() const;
-  void detectThreshold(const double val);
-    
-  double detectRange() const;
-  void detectRange(const double val);
-    
-  double sweepAngle() const;
-  void sweepAngle(const double val);
-
   // Limits to impose on node by node corrections.
   double correctionMin() const;
   void correctionMin(const double val);

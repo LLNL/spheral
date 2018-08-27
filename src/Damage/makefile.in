@@ -19,14 +19,18 @@ INSTSRCTARGETS = \
 	$(srcdir)/YoungsModulusPolicyInst.cc.py \
 	$(srcdir)/LongitudinalSoundSpeedPolicyInst.cc.py \
 	$(srcdir)/weibullFlawDistributionInst.cc.py \
-	$(srcdir)/computeFragmentFieldInst.cc.py
+	$(srcdir)/computeFragmentFieldInst.cc.py \
+	$(srcdir)/JohnsonCookDamageInst.cc.py \
+	$(srcdir)/JohnsonCookFailureStrainPolicyInst.cc.py \
+	$(srcdir)/JohnsonCookDamagePolicyInst.cc.py
 
 SRCTARGETS = 
 
 PYTHONTARGETS = \
 	$(srcdir)/identifyFragments.py \
 	$(srcdir)/WeibullDamage.py \
-	$(srcdir)/GradyKippTensorDamage.py
+	$(srcdir)/GradyKippTensorDamage.py \
+	$(srcdir)/JohnsonCookDamageFactories.py
 
 #-------------------------------------------------------------------------------
 include $(BUILDTOP)/helpers/makefile_master

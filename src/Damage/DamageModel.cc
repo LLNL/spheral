@@ -55,7 +55,7 @@ DamageModel(SolidNodeList<Dimension>& nodeList,
             const EffectiveFlawAlgorithm flawAlgorithm,
             const FlawStorageType& flaws):
   Physics<Dimension>(),
-  mFlaws("Flaws", flaws),
+  mFlaws(SolidFieldNames::flaws, flaws),
   mEffectiveFlaws(SolidFieldNames::effectiveFlaws, nodeList),
   mNodeList(nodeList),
   mW(W),
@@ -266,9 +266,11 @@ preStepInitialize(const DataBase<Dimension>& dataBase,
 template<typename Dimension>
 void 
 DamageModel<Dimension>::
-postStateUpdate(const DataBase<Dimension>& dataBase, 
+postStateUpdate(const Scalar time, 
+                const Scalar dt,
+                const DataBaseSpace::DataBase<Dimension>& dataBase, 
                 State<Dimension>& state,
-                const StateDerivatives<Dimension>& derivatives) const {
+                StateDerivatives<Dimension>& derivatives) {
 
   typedef typename SymTensor::EigenStructType EigenStruct;
 

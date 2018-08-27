@@ -264,7 +264,7 @@ def writeDomainSiloFile(ndim, baseDirectory, baseName, procDirBaseName, nodeList
     assert matOpts.addOption(SA._DBOPT_MATNAMES, SA._DBOPT_NMATNOS, matnames) == 0
     vecInt = vector_of_int(0)
     vecDouble = vector_of_double(0)
-    assert silo.DBPutMaterial(db, "material", "mesh", matnos, matlist,
+    assert silo.DBPutMaterial(db, "material", "mesh", matnos, matlist, vecInt, 
                               vecInt, vecInt, vecInt, vecDouble,
                               matOpts) == 0
 

@@ -34,6 +34,7 @@ public:
   virtual ~CollinsStrength();
 
   // Override the required generic interface.
+  virtual bool providesSoundSpeed() const override { return mShearModulusModel.providesSoundSpeed(); }
   virtual void shearModulus(FieldSpace::Field<Dimension, Scalar>& shearModulus,
                             const FieldSpace::Field<Dimension, Scalar>& density,
                             const FieldSpace::Field<Dimension, Scalar>& specificThermalEnergy,

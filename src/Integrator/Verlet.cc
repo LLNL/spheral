@@ -119,7 +119,7 @@ step(typename Dimension::Scalar maxTime,
   state.update(derivs, hdt0, t, dt0);
   this->enforceBoundaries(state, derivs);
   this->applyGhostBoundaries(state, derivs);
-  this->postStateUpdate(db, state, derivs);
+  this->postStateUpdate(t + hdt0, hdt0, db, state, derivs);
   this->finalizeGhostBoundaries();
 
   // Copy the mid-point state.
@@ -138,7 +138,7 @@ step(typename Dimension::Scalar maxTime,
   }
   this->enforceBoundaries(state, derivs);
   this->applyGhostBoundaries(state, derivs);
-  this->postStateUpdate(db, state, derivs);
+  this->postStateUpdate(t + dt0, dt0, db, state, derivs);
   this->finalizeGhostBoundaries();
 
   // Evaluate the derivatives at the predicted end-point.
@@ -158,7 +158,7 @@ step(typename Dimension::Scalar maxTime,
   }
   this->enforceBoundaries(state, derivs);
   this->applyGhostBoundaries(state, derivs);
-  this->postStateUpdate(db, state, derivs);
+  this->postStateUpdate(t + dt0, dt0, db, state, derivs);
   this->finalizeGhostBoundaries();
 
   // Apply any physics specific finalizations.

@@ -140,9 +140,11 @@ public:
   // Provide a hook to be called after the state has been updated and 
   // boundary conditions have been enforced.
   virtual 
-  void postStateUpdate(const DataBaseSpace::DataBase<Dimension>& dataBase, 
+  void postStateUpdate(const Scalar time, 
+                       const Scalar dt,
+                       const DataBaseSpace::DataBase<Dimension>& dataBase, 
                        State<Dimension>& state,
-                       const StateDerivatives<Dimension>& derivatives) const;
+                       StateDerivatives<Dimension>& derivatives);
 
   // Some physics does not require the connectivity be constructed.
   virtual bool requireConnectivity() const;

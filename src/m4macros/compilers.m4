@@ -68,6 +68,8 @@ AC_SUBST(NUMPYFLAGS)
 AC_SUBST(NUMPYCFLAGS)
 AC_SUBST(HDF5FLAGS)
 
+AC_SUBST(FFTWFLAGS)
+
 PYTHONCONFFLAGS=
 LIBTARGETFLAGS=
 JAMTOOLSETOPTS=
@@ -116,7 +118,7 @@ case $COMPILERS in
          GCCXMLCC=$CMAKECC
          GCCXMLCXX=$CMAKECXX
          PYTHONCC=$CC
-         PYTHONCXX=$MPICXX
+         PYTHONCXX=$CXX
          PARMETISCC=$MPICC
          MPI4PYCC=$MPICC
          CXXFLAGS+=" -std=c++11 -march=native"
@@ -132,7 +134,7 @@ case $COMPILERS in
          GCCXMLCC=$CMAKECC
          GCCXMLCXX=$CMAKECXX
          PYTHONCC=$CC
-         PYTHONCXX=$MPICXX
+         PYTHONCXX=$CXX
          PARMETISCC=$MPICC
          MPI4PYCC=$MPICC
          CXXFLAGS+=" -std=c++11 -march=native"
@@ -155,7 +157,7 @@ case $COMPILERS in
       GCCXMLCC=$CMAKECC
       GCCXMLCXX=$CMAKECXX
       PYTHONCC=$CC
-      PYTHONCXX=$MPICXX
+      PYTHONCXX=$CXX
       PARMETISCC=$MPICC
       MPI4PYCC=$MPICC
       CXXFLAGS+=" -std=c++11 -Wno-undefined-var-template -march=native"
@@ -265,10 +267,10 @@ case $COMPILERS in
       CC=icc
       CXX=icpc
       FORT=ifort
-      MPICC=mpiicc
-      MPICXX=mpiicpc
+      MPICC=mpicc  # mpiicc
+      MPICXX=mpic++ # mpiicpc
       PYTHONCC=$CC
-      PYTHONCXX=$MPICXX
+      PYTHONCXX=$CXX
       CMAKECC=$CC
       CMAKECXX=$CXX
       GCCXMLCC=gcc
@@ -289,7 +291,7 @@ case $COMPILERS in
       MPICC=mpicc
       MPICXX=mpicxx
       PYTHONCC=$CC
-      PYTHONCXX=$MPICXX
+      PYTHONCXX=$CXX
       CMAKECC=$CC
       CMAKECXX=$CXX
       GCCXMLCC=
@@ -313,7 +315,7 @@ case $COMPILERS in
       MPICC=mpicc
       MPICXX=mpiCC
       PYTHONCC=$CC
-      PYTHONCXX=$MPICXX
+      PYTHONCXX=$CXX
       CMAKECC=$CC
       CMAKECXX=$CXX
       GCCXMLCC=$CC
@@ -780,6 +782,7 @@ AC_ARG_WITH(openmp,
 [
    AC_MSG_RESULT(yes)
    PYTHONPKGS+=" OpenMP"
+   FFTWFLAGS+=" --enable-openmp"
    if test $CXXCOMPILERTYPE = "VACPP"; then
       CXXFLAGS+=" "
       EXTRAFLAGS+="-qsmp=omp -qoffload -I/usr/tcetmp/packages/cuda-9.0.176/include    "

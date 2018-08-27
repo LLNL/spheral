@@ -171,7 +171,7 @@ namespace FractalSpace
 	    if(!top_group)
 	      potential_start(group);
 	    double sumpot=0.0;
-	    for(vector <Point*>::const_iterator point_itr=group.list_points.begin();point_itr != group.list_points.end();++point_itr)
+	    for(deque <Point*>::const_iterator point_itr=group.list_points.begin();point_itr != group.list_points.end();++point_itr)
 	      {
 		Point& point=**point_itr;
 		int p_x=point.get_pos_point_x()-Box3[0];

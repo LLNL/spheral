@@ -28,6 +28,7 @@ evaluateDerivatives(const Dim<2>::Scalar time,
   const auto order = this->correctionOrder();
   const auto correctionMin = this->correctionMin();
   const auto correctionMax = this->correctionMax();
+  const auto damageRelieveRubble = this->damageRelieveRubble();
 
   // The connectivity.
   const auto& connectivityMap = dataBase.connectivityMap();
@@ -462,10 +463,12 @@ evaluateDerivatives(const Dim<2>::Scalar time,
                                                        nodeListi,
                                                        i);
 
-      // As this node is damaged force it back to it's original H.
-      const auto Di = max(0.0, min(1.0, 10.0*max(0.0, damage(nodeListi, i).eigenValues().maxElement() - 0.9)));
-      Hideali = (1.0 - Di)*Hideali + Di*Hfield0(nodeListi, i);
-      DHDti = (1.0 - Di)*DHDti + Di*(Hfield0(nodeListi, i) - Hi)*0.25/dt;
+      // Optionally use damage to ramp down stress on damaged material.
+      const auto Di = (damageRelieveRubble ? 
+                       max(0.0, min(1.0, damage(nodeListi, i).Trace() - 1.0)) :
+                       0.0);
+      // Hideali = (1.0 - Di)*Hideali + Di*Hfield0(nodeListi, i);
+      // DHDti = (1.0 - Di)*DHDti + Di*(Hfield0(nodeListi, i) - Hi)*0.25/dt;
 
       // Finish the acceleration.
       const Vector deltaDvDti(Si(1,0)/rhoi*riInv,

@@ -1,6 +1,6 @@
-#ATS:t0 = test(SELF,       "--nr 10 --numViz 0 --timeStepChoice AccelerationRatio --steps=40 --restartStep 20  --dataDir 'Collisionless_Sphere_Collapse_AccelerationRatio' --clearDirectories True --outputFile 'Collisionless_sphere_collapse_AccelerationRatio_data.gnu' --comparisonFile 'Reference/Collisionless_sphere_collapse_AccelerationRatio_data_20180312.gnu'", np=1, label="Collisionless sphere gravitational collapse restart test (serial, acceleration ratio) INITIAL RUN")
+#ATS:t0 = test(SELF,       "--nr 10 --numViz 0 --timeStepChoice AccelerationRatio --steps=40 --restartStep 20  --dataDir 'Collisionless_Sphere_Collapse_AccelerationRatio' --clearDirectories True --outputFile 'Collisionless_sphere_collapse_AccelerationRatio_data.gnu' --comparisonFile 'Reference/Collisionless_sphere_collapse_AccelerationRatio_data_20180814.gnu'", np=1, label="Collisionless sphere gravitational collapse restart test (serial, acceleration ratio) INITIAL RUN")
 #
-#ATS:t1 = testif(t0, SELF, "--nr 10 --numViz 0 --timeStepChoice AccelerationRatio --steps 20 --restartStep 100 --dataDir 'Collisionless_Sphere_Collapse_AccelerationRatio' --clearDirectories False --outputFile 'Collisionless_sphere_collapse_AccelerationRatio_data.gnu' --comparisonFile 'Reference/Collisionless_sphere_collapse_AccelerationRatio_data_20180312.gnu' --restoreCycle 20 --checkRestart True", np=1, label="Collisionless sphere gravitational collapse restart test (serial, acceleration ratio) RESTARTED CHECK")
+#ATS:t1 = testif(t0, SELF, "--nr 10 --numViz 0 --timeStepChoice AccelerationRatio --steps 20 --restartStep 100 --dataDir 'Collisionless_Sphere_Collapse_AccelerationRatio' --clearDirectories False --outputFile 'Collisionless_sphere_collapse_AccelerationRatio_data.gnu' --comparisonFile 'Reference/Collisionless_sphere_collapse_AccelerationRatio_data_20180814.gnu' --restoreCycle 20 --checkRestart True", np=1, label="Collisionless sphere gravitational collapse restart test (serial, acceleration ratio) RESTARTED CHECK")
 #
 #ATS:t2 = test(SELF,       "--nr 10 --numViz 0 --timeStepChoice DynamicalTime --steps=40 --restartStep 20   --dataDir 'Collisionless_Sphere_Collapse_DynamicalTime' --clearDirectories True --outputFile 'Collisionless_sphere_collapse_DynamicalTime_data.gnu' --comparisonFile 'Reference/Collisionless_sphere_collapse_DynamicalTime_data_20180125.gnu'", np=1, label="Collisionless sphere gravitational collapse restart test (serial, dynamical time) INITIAL RUN")
 #
@@ -43,7 +43,7 @@ commandLine(
 
     # Output
     clearDirectories = False,
-    dataDir = "Collisionless_Sphere_Collapse",
+    dataDir = "dumps_Collisionless_Sphere_Collapse",
     baseNameRoot = "sphere_collapse_%i",
     restoreCycle = -1,
     restartStep = 100,
@@ -192,7 +192,23 @@ control = SpheralController(integrator, WT,
 # Advance to the end time.
 #-------------------------------------------------------------------------------
 if not steps is None:
+    if checkRestart:
+        control.setRestartBaseName(restartBaseName + "_CHECK")
     control.step(steps)
+    if checkRestart:
+        control.setRestartBaseName(restartBaseName)
+
+    # Are we doing the restart test?
+    if checkRestart:
+        state0 = State(db, integrator.physicsPackages())
+        state0.copyState()
+        control.loadRestartFile(control.totalSteps)
+        state1 = State(db, integrator.physicsPackages())
+        if not state1 == state0:
+            raise ValueError, "The restarted state does not match!"
+        else:
+            print "Restart check PASSED."
+
 else:
     print "Advancing to %g sec = %g years" % (goalTime, goalTime/(365.24*24*3600))
     control.advance(goalTime)

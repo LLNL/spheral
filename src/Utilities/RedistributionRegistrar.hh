@@ -44,6 +44,7 @@ public:
   const_iterator end() const;
 
   // Send out the notifications.
+  void preRedistributionNotifications() const;
   void broadcastRedistributionNotifications() const;
 
 private:

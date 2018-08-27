@@ -193,7 +193,7 @@ initializeProblemStartup(DataBase<Dimension>& dataBase) {
   // Initialize the pressure and sound speed.
   dataBase.fluidPressure(mPressure);
   dataBase.fluidSoundSpeed(mSoundSpeed);
-  dataBase.fluidEntropy(mEntropy);
+  // dataBase.fluidEntropy(mEntropy);
 
   // // In some cases we need the volume per node as well.
   // const bool updateVolume = (this->densityUpdate() == PhysicsSpace::VoronoiCellDensity or
@@ -260,7 +260,7 @@ registerState(DataBase<Dimension>& dataBase,
   // If we're using the compatibile energy discretization, prepare to maintain a copy
   // of the thermal energy.
   dataBase.resizeFluidFieldList(mSpecificThermalEnergy0, 0.0);
-  dataBase.resizeFluidFieldList(mEntropy, 0.0, HydroFieldNames::entropy, false);
+  // dataBase.resizeFluidFieldList(mEntropy, 0.0, HydroFieldNames::entropy, false);
   if (mCompatibleEnergyEvolution) {
     size_t nodeListi = 0;
     for (typename DataBase<Dimension>::FluidNodeListIterator itr = dataBase.fluidNodeListBegin();
@@ -1302,7 +1302,7 @@ dumpState(FileIO& file, string pathName) const {
   file.write(mSoundSpeed, pathName + "/soundSpeed");
   file.write(mVolume, pathName + "/volume");
   file.write(mSpecificThermalEnergy0, pathName + "/specificThermalEnergy0");
-  file.write(mEntropy, pathName + "/entropy");
+  // file.write(mEntropy, pathName + "/entropy");
   file.write(mHideal, pathName + "/Hideal");
   file.write(mMassDensitySum, pathName + "/massDensitySum");
   file.write(mNormalization, pathName + "/normalization");
@@ -1343,7 +1343,7 @@ restoreState(const FileIO& file, string pathName) {
   file.read(mSoundSpeed, pathName + "/soundSpeed");
   file.read(mVolume, pathName + "/volume");
   file.read(mSpecificThermalEnergy0, pathName + "/specificThermalEnergy0");
-  file.read(mEntropy, pathName + "/entropy");
+  // file.read(mEntropy, pathName + "/entropy");
   file.read(mHideal, pathName + "/Hideal");
   file.read(mMassDensitySum, pathName + "/massDensitySum");
   file.read(mNormalization, pathName + "/normalization");

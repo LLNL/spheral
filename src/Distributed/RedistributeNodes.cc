@@ -152,6 +152,9 @@ RedistributeNodes<Dimension>::
 enforceDomainDecomposition(const vector<DomainNode<Dimension> >& nodeDistribution,
                            DataBase<Dimension>& dataBase) const {
 
+  // Notify everyone before we start redistributing.
+  RedistributionRegistrar::instance().preRedistributionNotifications();
+
   REQUIRE(validDomainDecomposition(nodeDistribution, dataBase));
   typedef typename DataBase<Dimension>::ConstNodeListIterator NodeListIterator;
 

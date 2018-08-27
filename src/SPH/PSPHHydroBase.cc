@@ -215,9 +215,11 @@ preStepInitialize(const DataBase<Dimension>& dataBase,
 template<typename Dimension>
 void
 PSPHHydroBase<Dimension>::
-postStateUpdate(const DataBase<Dimension>& dataBase,
+postStateUpdate(const Scalar time, 
+                const Scalar dt,
+                const DataBaseSpace::DataBase<Dimension>& dataBase, 
                 State<Dimension>& state,
-                const StateDerivatives<Dimension>& derivs) const {
+                StateDerivatives<Dimension>& derivatives) {
 
   // First we need out boundary conditions completed, which the time integrator hasn't 
   // verified yet.

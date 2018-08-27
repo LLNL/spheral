@@ -131,6 +131,10 @@ def writeMasterMeshSiloFile(dirName, mesh, label, nodeLists, time, cycle, fieldw
         db = silo.DBCreate(fileName, 
                            SA._DB_CLOBBER, SA._DB_LOCAL, label, SA._DB_HDF5)
         
+        # Make directories for variables.
+        assert silo.DBMkDir(db, "CELLS") == 0
+        assert silo.DBMkDir(db, "POINTS") == 0      # HACK
+
         # Pattern for constructing per domain variables.
         domainNamePatterns = [("%s/domain%i.silo:" % (p1, i)) + "%s" for i in xrange(mpi.procs) if numZonesPerDomain[i] > 0]
         numDomains = len(domainNamePatterns)
@@ -168,7 +172,7 @@ def writeMasterMeshSiloFile(dirName, mesh, label, nodeLists, time, cycle, fieldw
             matnos = vector_of_int()
             for p in domainNamePatterns:
                 material_names.append(p % "MATERIAL")
-            for (name, i) in zip(materialNames, range(len(materialNames))):
+            for i, name in enumerate(materialNames):
                 matnames.append(name)
                 matnos.append(i)
             assert len(material_names) == numDomains
@@ -177,6 +181,7 @@ def writeMasterMeshSiloFile(dirName, mesh, label, nodeLists, time, cycle, fieldw
             optlist = silo.DBoptlist(1024)
             assert optlist.addOption(SA._DBOPT_CYCLE, cycle) == 0
             assert optlist.addOption(SA._DBOPT_DTIME, time) == 0
+            assert optlist.addOption(SA._DBOPT_MMESH_NAME, "MMESH") == 0
             assert optlist.addOption(SA._DBOPT_MATNAMES, SA._DBOPT_NMATNOS, matnames) == 0
             assert optlist.addOption(SA._DBOPT_MATNOS, SA._DBOPT_NMATNOS, matnos) == 0
             assert silo.DBPutMultimat(db, "MMATERIAL", material_names, optlist) == 0
@@ -188,7 +193,7 @@ def writeMasterMeshSiloFile(dirName, mesh, label, nodeLists, time, cycle, fieldw
             matnos = vector_of_int()
             for p in domainNamePatterns:
                 material_names.append(p % "PointMATERIAL")
-            for (name, i) in zip(materialNames, range(len(materialNames))):
+            for i, name in enumerate(materialNames):
                 matnames.append(name)
                 matnos.append(i)
             assert len(material_names) == numDomains
@@ -197,6 +202,7 @@ def writeMasterMeshSiloFile(dirName, mesh, label, nodeLists, time, cycle, fieldw
             optlist = silo.DBoptlist(1024)
             assert optlist.addOption(SA._DBOPT_CYCLE, cycle) == 0
             assert optlist.addOption(SA._DBOPT_DTIME, time) == 0
+            assert optlist.addOption(SA._DBOPT_MMESH_NAME, "MPointMESH") == 0
             assert optlist.addOption(SA._DBOPT_MATNAMES, SA._DBOPT_NMATNOS, matnames) == 0
             assert optlist.addOption(SA._DBOPT_MATNOS, SA._DBOPT_NMATNOS, matnos) == 0
             assert silo.DBPutMultimat(db, "MPointMATERIAL", material_names, optlist) == 0
@@ -227,16 +233,33 @@ def writeMasterMeshSiloFile(dirName, mesh, label, nodeLists, time, cycle, fieldw
             for name, desc, type, optlistDef, optlistMV, optlistVar, subvars in fieldwad:
                 domainVarNames = vector_of_string()
                 for p in domainNamePatterns:
-                    domainVarNames.append(p % name)
+                    domainVarNames.append(p % ("CELLS_" + name))
                 assert len(domainVarNames) == numDomains
-                assert silo.DBPutMultivar(db, name, domainVarNames, ucdTypes, optlistMV) == 0
+                assert silo.DBPutMultivar(db, "CELLS/" + name, domainVarNames, ucdTypes, optlistMV) == 0
                 if desc != None:
                     for subname, vals in subvars:
                         domainVarNames = vector_of_string()
                         for p in domainNamePatterns:
-                            domainVarNames.append(p % subname)
+                            domainVarNames.append(p % ("CELLS_" + subname))
                         assert len(domainVarNames) == numDomains
-                        assert silo.DBPutMultivar(db, subname, domainVarNames, ucdTypes, optlistVar) == 0
+                        assert silo.DBPutMultivar(db, "CELLS/" + subname, domainVarNames, ucdTypes, optlistVar) == 0
+        
+            # HACK: repeating for point values -- remove when vardefs work
+            # Write the variables descriptors.
+            ptTypes = vector_of_int(numDomains, SA._DB_POINTVAR)
+            for name, desc, type, optlistDef, optlistMV, optlistVar, subvars in fieldwad:
+                domainVarNames = vector_of_string()
+                for p in domainNamePatterns:
+                    domainVarNames.append(p % ("POINTS_" + name))
+                assert len(domainVarNames) == numDomains
+                assert silo.DBPutMultivar(db, "POINTS/" + name, domainVarNames, ptTypes, optlistMV) == 0
+                if desc != None:
+                    for subname, vals in subvars:
+                        domainVarNames = vector_of_string()
+                        for p in domainNamePatterns:
+                            domainVarNames.append(p % ("POINTS_" + subname))
+                        assert len(domainVarNames) == numDomains
+                        assert silo.DBPutMultivar(db, "POINTS/" + subname, domainVarNames, ptTypes, optlistVar) == 0
         
         # Make a convenient symlink for the master file.
         linkfile = p1 + ".silo"
@@ -271,6 +294,10 @@ def writeDomainMeshSiloFile(dirName, mesh, index2zone, label, nodeLists, time, c
         db = silo.DBCreate(fileName, 
                            SA._DB_CLOBBER, SA._DB_LOCAL, label, SA._DB_HDF5)
         nullOpts = silo.DBoptlist()
+
+        # Make directories for variables.
+        assert silo.DBMkDir(db, "CELLS") == 0
+        assert silo.DBMkDir(db, "POINTS") == 0      # HACK
 
         # Determine our dimensionality
         if isinstance(mesh, polytope.Tessellation2d):
@@ -375,15 +402,15 @@ def writeDomainMeshSiloFile(dirName, mesh, index2zone, label, nodeLists, time, c
             assert matOpts.addOption(SA._DBOPT_CYCLE, cycle) == 0
             assert matOpts.addOption(SA._DBOPT_DTIME, time) == 0
             assert matOpts.addOption(SA._DBOPT_MATNAMES, SA._DBOPT_NMATNOS, matnames) == 0
-            assert silo.DBPutMaterial(db, "MATERIAL", "MESH", matnos, matlist,
+            assert silo.DBPutMaterial(db, "MATERIAL", "MESH", matnos, matlist, vector_of_int(),
                                       vector_of_int(), vector_of_int(), vector_of_int(), vector_of_double(),
                                       matOpts) == 0
-            assert silo.DBPutMaterial(db, "PointMATERIAL", "PointMESH", matnos, matlist,
+            assert silo.DBPutMaterial(db, "PointMATERIAL", "PointMESH", matnos, matlist, vector_of_int(),
                                       vector_of_int(), vector_of_int(), vector_of_int(), vector_of_double(),
                                       matOpts) == 0
         
             # Write the variable descriptions for non-scalar variables (vector and tensors).
-            writeDefvars(db, fieldwad)
+            #writeDefvars(db, fieldwad)
         
             # Write the field components.
             centering = SA._DB_ZONECENT
@@ -394,10 +421,20 @@ def writeDomainMeshSiloFile(dirName, mesh, index2zone, label, nodeLists, time, c
                 for subname, vals in subvars:
                     if len(vals) > 0:
                         if isinstance(vals, vector_of_double):
-                            assert silo.DBPutUcdvar1(db, subname, "MESH", vals, vector_of_double(), centering, varOpts) == 0
+                            assert silo.DBPutUcdvar1(db, "CELLS_" + subname, "MESH", vals, vector_of_double(), centering, varOpts) == 0
                         elif isinstance(vals, vector_of_int):
-                            assert silo.DBPutUcdvar1(db, subname, "MESH", vals, vector_of_int(), centering, varOpts) == 0
+                            assert silo.DBPutUcdvar1(db, "CELLS_" + subname, "MESH", vals, vector_of_int(), centering, varOpts) == 0
         
+            # HACK: Write the field components on the point mesh as well.  Remove when the vardef version is working.
+            centering = SA._DB_ZONECENT
+            varOpts = silo.DBoptlist(1024)
+            assert varOpts.addOption(SA._DBOPT_CYCLE, cycle) == 0
+            assert varOpts.addOption(SA._DBOPT_DTIME, time) == 0
+            for name, desc, type, optlistDef, optlistMV, optlistVar, subvars in fieldwad:
+                for subname, vals in subvars:
+                    if len(vals) > 0:
+                        assert silo.DBPutPointvar1(db, "POINTS_" + subname, "PointMESH", vals, varOpts) == 0
+
         # Write the set of neighbor domains.
         thpt = vector_of_vector_of_int()
         thpt.append(vector_of_int(1, len(mesh.neighborDomains)))
@@ -639,10 +676,10 @@ def metaDataVectorField(name, time, cycle, dim):
     assert optlistVar.addOption(SA._DBOPT_TENSOR_RANK, SA._DB_VARTYPE_SCALAR) == 0
 
     if dim == 2:
-        return ("{%s_x, %s_y}" % (name, name), SA._DB_VARTYPE_VECTOR,
+        return ("{<CELLS/%s_x>, <CELLS/%s_y>}" % (name, name), SA._DB_VARTYPE_VECTOR,
                 optlistDef, optlistMV, optlistVar)
     else:
-        return ("{%s_x, %s_y, %s_z}" % (name, name, name), SA._DB_VARTYPE_VECTOR,
+        return ("{<CELLS/%s_x>, <CELLS/%s_y>, <CELLS/%s_z>}" % (name, name, name), SA._DB_VARTYPE_VECTOR,
                 optlistDef, optlistMV, optlistVar)
 
 #-------------------------------------------------------------------------------
@@ -716,12 +753,12 @@ def metaDataTensorField(name, time, cycle, dim):
     assert optlistVar.addOption(SA._DBOPT_TENSOR_RANK, SA._DB_VARTYPE_SCALAR) == 0
 
     if dim == 2:
-        return ("{{%s_xx, %s_xy}, {%s_yx, %s_yy}}" % (name, name, name, name), SA._DB_VARTYPE_TENSOR,
+        return ("{{<CELLS/%s_xx>, <CELLS/%s_xy>}, {<CELLS/%s_yx>, <CELLS/%s_yy>}}" % (name, name, name, name), SA._DB_VARTYPE_TENSOR,
                 optlistDef, optlistMV, optlistVar)
     else:
-        return ("{{%s_xx, %s_xy, %s_xz}, {%s_yx, %s_yy, %s_yz}, {%s_zx, %s_zy, %s_zz}}" % (name, name, name,
-                                                                                           name, name, name,
-                                                                                           name, name, name),
+        return ("{{<CELLS/%s_xx>, <CELLS/%s_xy>, <CELLS/%s_xz>}, {<CELLS/%s_yx>, <CELLS/%s_yy>, <CELLS/%s_yz>}, {<CELLS/%s_zx>, <CELLS/%s_zy>, <CELLS/%s_zz>}}" % (name, name, name,
+                                                                                                                                                                   name, name, name,
+                                                                                                                                                                   name, name, name),
                 SA._DB_VARTYPE_TENSOR, optlistDef, optlistMV, optlistVar)
 
 #-------------------------------------------------------------------------------
@@ -735,19 +772,26 @@ def writeDefvars(db, fieldwad):
         if desc != None:
             assert optlistDef != None
             assert len(subvars) > 1
-            names.append(name)
+            names.append("CELLS/" + name)
             defs.append(desc)
             types.append(type)
             opts.append(optlistDef)
     
-    # Similaly map all variables from the MMESH -> MPointMesh.
-    hideOptlist = silo.DBoptlist()
-    assert hideOptlist.addOption(SA._DBOPT_HIDE_FROM_GUI, 1) == 0
-    for name, desc, type, optlistDef, optlistMV, optlistVar, subvars in fieldwad:
-        names.append("POINT_" + name)
-        defs.append("pos_cmfe(<[0]id:%s>,<MPointMESH>,0.0)" % name)
-        types.append(type)
-        opts.append(hideOptlist)
+            # Make a point version as well.
+            names.append("POINTS/" + name)
+            defs.append(desc.replace("CELLS", "POINTS"))
+            types.append(type)
+            opts.append(optlistDef)
+
+    # HACK: put back when vardef mapping is working
+    # # Similaly map all variables from the MMESH -> MPointMesh.
+    # hideOptlist = silo.DBoptlist()
+    # assert hideOptlist.addOption(SA._DBOPT_HIDE_FROM_GUI, 0) == 0
+    # for name, desc, type, optlistDef, optlistMV, optlistVar, subvars in fieldwad:
+    #     names.append("POINTS/" + name)
+    #     defs.append('recenter(pos_cmfe(<[0]id:CELLS/%s>,<MPointMESH>,0.0), "nodal")' % name)
+    #     types.append(type)
+    #     opts.append(hideOptlist)
 
     if len(names) > 0:
         assert silo.DBPutDefvars(db, "VARDEFS", names, types, defs, opts) == 0

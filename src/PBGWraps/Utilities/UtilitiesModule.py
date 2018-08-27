@@ -392,6 +392,10 @@ Spheral.add_function("segmentIntersectEdges", "bool", [constrefparam("%(vector)s
                              custom_name = "iterateIdealH%id" % ndim,
                              docstring="Iterate the Hfield for NodeLists in the DataBase using the ideal H algorithm.")
 
+        Spheral.add_function("nodeOrdering%id" % ndim, intfieldlist,
+                             [constrefparam(ullfieldlist, "criteria")],
+                             docstring = "Return a node ordering index list according to the given comparison criteria.")
+
         Spheral.add_function("mortonOrderIndices%id" % ndim, ullfieldlist,
                              [constrefparam(vectorfieldlist, "positions")],
                              docstring = "Compute indices for nodes obeying Morton ordering.")

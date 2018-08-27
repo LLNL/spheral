@@ -29,10 +29,6 @@ class %(classname)s%(dim)s(CRKSPHHydroBase%(dim)s):
                  HUpdate = IdealH,
                  correctionOrder = LinearOrder,
                  volumeType = CRKVoronoiVolume,
-                 detectSurfaces = False,
-                 detectThreshold = 0.05,
-                 sweepAngle = 0.8,
-                 detectRange = 1.0,
                  epsTensile = 0.0,
                  nTensile = 4.0):
         self._smoothingScaleMethod = %(smoothingScaleMethod)s%(dim)s()
@@ -53,10 +49,6 @@ class %(classname)s%(dim)s(CRKSPHHydroBase%(dim)s):
                                         HUpdate,
                                         correctionOrder,
                                         volumeType,
-                                        detectSurfaces,
-                                        detectThreshold,
-                                        sweepAngle,
-                                        detectRange,
                                         epsTensile,
                                         nTensile)
         return
@@ -82,12 +74,9 @@ class %(classname)s%(dim)s(SolidCRKSPHHydroBase%(dim)s):
                  HUpdate = IdealH,
                  correctionOrder = LinearOrder,
                  volumeType = CRKVoronoiVolume,
-                 detectSurfaces = False,
-                 detectThreshold = 0.05,
-                 sweepAngle = 0.8,
-                 detectRange = 1.0,
                  epsTensile = 0.0,
-                 nTensile = 4.0):
+                 nTensile = 4.0,
+                 damageRelieveRubble = False):
         self._smoothingScaleMethod = %(smoothingScaleMethod)s%(dim)s()
         if WPi is None:
             WPi = W
@@ -106,12 +95,9 @@ class %(classname)s%(dim)s(SolidCRKSPHHydroBase%(dim)s):
                                              HUpdate,
                                              correctionOrder,
                                              volumeType,
-                                             detectSurfaces,
-                                             detectThreshold,
-                                             sweepAngle,
-                                             detectRange,
                                              epsTensile,
-                                             nTensile)
+                                             nTensile,
+                                             damageRelieveRubble)
         return
 """
 
@@ -135,10 +121,6 @@ class %(classname)s(CRKSPHHydroBaseRZ):
                  HUpdate = IdealH,
                  correctionOrder = LinearOrder,
                  volumeType = CRKVoronoiVolume,
-                 detectSurfaces = False,
-                 detectThreshold = 0.05,
-                 sweepAngle = 0.8,
-                 detectRange = 1.0,
                  epsTensile = 0.0,
                  nTensile = 4.0,
                  etaMinAxis = 0.1):
@@ -160,10 +142,6 @@ class %(classname)s(CRKSPHHydroBaseRZ):
                                    HUpdate,
                                    correctionOrder,
                                    volumeType,
-                                   detectSurfaces,
-                                   detectThreshold,
-                                   sweepAngle,
-                                   detectRange,
                                    epsTensile,
                                    nTensile)
         self.zaxisBC = AxisBoundaryRZ(etaMinAxis)
@@ -191,12 +169,9 @@ class %(classname)s(SolidCRKSPHHydroBaseRZ):
                  HUpdate = IdealH,
                  correctionOrder = LinearOrder,
                  volumeType = CRKVoronoiVolume,
-                 detectSurfaces = False,
-                 detectThreshold = 0.05,
-                 sweepAngle = 0.8,
-                 detectRange = 1.0,
                  epsTensile = 0.0,
                  nTensile = 4.0,
+                 damageRelieveRubble = False,
                  etaMinAxis = 0.1):
         self._smoothingScaleMethod = %(smoothingScaleMethod)s2d()
         if WPi is None:
@@ -216,12 +191,9 @@ class %(classname)s(SolidCRKSPHHydroBaseRZ):
                                         HUpdate,
                                         correctionOrder,
                                         volumeType,
-                                        detectSurfaces,
-                                        detectThreshold,
-                                        sweepAngle,
-                                        detectRange,
                                         epsTensile,
-                                        nTensile)
+                                        nTensile,
+                                        damageRelieveRubble)
         self.zaxisBC = AxisBoundaryRZ(etaMinAxis)
         self.appendBoundary(self.zaxisBC)
         return
@@ -247,10 +219,6 @@ class %(classname)s%(dim)s(CRKSPHVariant%(dim)s):
                  HUpdate = IdealH,
                  correctionOrder = LinearOrder,
                  volumeType = CRKVoronoiVolume,
-                 detectSurfaces = False,
-                 detectThreshold = 0.05,
-                 sweepAngle = 0.8,
-                 detectRange = 1.0,
                  epsTensile = 0.0,
                  nTensile = 4.0):
         self._smoothingScaleMethod = %(smoothingScaleMethod)s%(dim)s()
@@ -271,10 +239,6 @@ class %(classname)s%(dim)s(CRKSPHVariant%(dim)s):
                                         HUpdate,
                                         correctionOrder,
                                         volumeType,
-                                        detectSurfaces,
-                                        detectThreshold,
-                                        sweepAngle,
-                                        detectRange,
                                         epsTensile,
                                         nTensile)
         return
@@ -333,10 +297,6 @@ def CRKSPH(dataBase,
            HUpdate = IdealH,
            correctionOrder = LinearOrder,
            volumeType = CRKVoronoiVolume,
-           detectSurfaces = False,
-           detectThreshold = 0.05,
-           sweepAngle = 0.8,
-           detectRange = 1.0,
            epsTensile = 0.0,
            nTensile = 4.0,
            ASPH = False,
@@ -413,10 +373,6 @@ def CRKSPH(dataBase,
                          HUpdate = HUpdate,
                          correctionOrder = correctionOrder,
                          volumeType = volumeType,
-                         detectSurfaces = detectSurfaces,
-                         detectThreshold = detectThreshold,
-                         sweepAngle = sweepAngle,
-                         detectRange = detectRange,
                          epsTensile = epsTensile,
                          nTensile = nTensile)
     result.Q = Q
@@ -441,10 +397,6 @@ def ACRKSPH(dataBase,
             HUpdate = IdealH,
             correctionOrder = LinearOrder,
             volumeType = CRKVoronoiVolume,
-            detectSurfaces = False,
-            detectThreshold = 0.05,
-            sweepAngle = 0.8,
-            detectRange = 1.0,
             epsTensile = 0.0,
             nTensile = 4.0):
     return CRKSPH(dataBase = dataBase,
@@ -461,10 +413,6 @@ def ACRKSPH(dataBase,
                   HUpdate = HUpdate,
                   correctionOrder = correctionOrder,
                   volumeType = volumeType,
-                  detectSurfaces = detectSurfaces,
-                  detectThreshold = detectThreshold,
-                  sweepAngle = sweepAngle,
-                  detectRange = detectRange,
                   epsTensile = epsTensile,
                   nTensile = nTensile,
                   ASPH = True,
@@ -487,10 +435,6 @@ def CRKSPHRZ(dataBase,
              HUpdate = IdealH,
              correctionOrder = LinearOrder,
              volumeType = CRKVoronoiVolume,
-             detectSurfaces = False,
-             detectThreshold = 0.05,
-             sweepAngle = 0.8,
-             detectRange = 1.0,
              epsTensile = 0.0,
              nTensile = 4.0):
     return CRKSPH(dataBase = dataBase,
@@ -507,10 +451,6 @@ def CRKSPHRZ(dataBase,
                   HUpdate = HUpdate,
                   correctionOrder = correctionOrder,
                   volumeType = volumeType,
-                  detectSurfaces = detectSurfaces,
-                  detectThreshold = detectThreshold,
-                  sweepAngle = sweepAngle,
-                  detectRange = detectRange,
                   epsTensile = epsTensile,
                   nTensile = nTensile,
                   ASPH = False,
@@ -533,10 +473,6 @@ def ACRKSPHRZ(dataBase,
               HUpdate = IdealH,
               correctionOrder = LinearOrder,
               volumeType = CRKVoronoiVolume,
-              detectSurfaces = False,
-              detectThreshold = 0.05,
-              sweepAngle = 0.8,
-              detectRange = 1.0,
               epsTensile = 0.0,
               nTensile = 4.0):
     return CRKSPH(dataBase = dataBase,
@@ -553,10 +489,6 @@ def ACRKSPHRZ(dataBase,
                   HUpdate = HUpdate,
                   correctionOrder = correctionOrder,
                   volumeType = volumeType,
-                  detectSurfaces = detectSurfaces,
-                  detectThreshold = detectThreshold,
-                  sweepAngle = sweepAngle,
-                  detectRange = detectRange,
                   epsTensile = epsTensile,
                   nTensile = nTensile,
                   ASPH = True,

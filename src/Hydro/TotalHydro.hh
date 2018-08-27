@@ -74,33 +74,35 @@ public:
                            const Scalar dt,
                            const DataBaseSpace::DataBase<Dimension>& dataBase,
                            const State<Dimension>& state,
-                           StateDerivatives<Dimension>& derivatives) const;
+                           StateDerivatives<Dimension>& derivatives) const override;
 
   // Register the state Hydro expects to use and evolve.
   virtual 
   void registerState(DataBaseSpace::DataBase<Dimension>& dataBase,
-                     State<Dimension>& state);
+                     State<Dimension>& state) override;
 
   // Register the derivatives/change fields for updating state.
   virtual
   void registerDerivatives(DataBaseSpace::DataBase<Dimension>& dataBase,
-                           StateDerivatives<Dimension>& derivs);
+                           StateDerivatives<Dimension>& derivs) override;
 
   // Post-state update jobs.
   virtual 
-  void postStateUpdate(const DataBaseSpace::DataBase<Dimension>& dataBase, 
+  void postStateUpdate(const Scalar time, 
+                       const Scalar dt,
+                       const DataBaseSpace::DataBase<Dimension>& dataBase, 
                        State<Dimension>& state,
-                       const StateDerivatives<Dimension>& derivatives) const;
+                       StateDerivatives<Dimension>& derivatives) override;
 
   // Apply boundary conditions to the physics specific fields.
   virtual
   void applyGhostBoundaries(State<Dimension>& state,
-                            StateDerivatives<Dimension>& derivs);
+                            StateDerivatives<Dimension>& derivs) override;
 
   // Enforce boundary conditions for the physics specific fields.
   virtual
   void enforceBoundaries(State<Dimension>& state,
-                         StateDerivatives<Dimension>& derivs);
+                         StateDerivatives<Dimension>& derivs) override;
 
   // Flag to select how we want to evolve the H tensor.
   // the continuity equation.

@@ -168,6 +168,7 @@ AC_OUTPUT(helpers/makefile_master \
           Hydro/makefile \
           ExternalForce/makefile \
           Gravity/makefile \
+          FractalStruct/makefile \
           Integrator/makefile \
           FileIO/makefile \
           DataOutput/makefile \

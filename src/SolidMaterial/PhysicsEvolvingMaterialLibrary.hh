@@ -18,7 +18,7 @@
 
 #include "boost/multi_array.hpp"
 
-#include "Material/EquationOfState.hh"
+#include "SolidMaterial/SolidEquationOfState.hh"
 #include "SolidMaterial/StrengthModel.hh"
 #include "Physics/Physics.hh"
 
@@ -27,15 +27,17 @@ namespace SolidMaterial {
 
 template<typename Dimension>
 class PhysicsEvolvingMaterialLibrary: 
-    public Material::EquationOfState<Dimension>,
-    public SolidMaterial::StrengthModel<Dimension>,
-    public PhysicsSpace::Physics<Dimension> {
+    public PhysicsSpace::Physics<Dimension>,
+    public SolidMaterial::SolidEquationOfState<Dimension>,
+    public SolidMaterial::StrengthModel<Dimension> {
 
 public:
   //--------------------------- Public Interface ---------------------------//
   // Constructors, destructors.
-  // We should add arguments to the constructor to specify the PhysicsEvolvingMaterialLibrary model
-  PhysicsEvolvingMaterialLibrary(const Material::PhysicalConstants& constants,
+  PhysicsEvolvingMaterialLibrary(const double referenceDensity,
+                                 const double etamin,
+                                 const double etamax,
+                                 const Material::PhysicalConstants& constants,
                                  const double minimumPressure,
                                  const double maximumPressure,
                                  const Material::MaterialPressureMinType minPressureType);
@@ -43,8 +45,6 @@ public:
 
 private:
   //--------------------------- Private Interface ---------------------------//
-  // Disallow default constructor
-  PhysicsEvolvingMaterialLibrary();
 };
 
 }

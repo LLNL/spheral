@@ -678,14 +678,14 @@ DBoptlist_wrapper::AddOptionFunctor<std::string> {
               const int option_size,
               const std::vector<std::string>& value) {
     VERIFY(optlist_wrapper.addOption<int>(option_size, value.size()) == 0);
-    std::shared_ptr<void> voidCopy(new std::vector<std::string>(value));
-    std::shared_ptr<void> voidValue(new std::vector<char*>());
-    std::vector<std::string>& stringvec = *((std::vector<string>*) voidCopy.get());
-    std::vector<char*>& charvec = *((std::vector<char*>*) (voidValue.get()));
-    for (unsigned k = 0; k != value.size(); ++k) charvec.push_back(const_cast<char*>(stringvec[k].c_str()));
-    VERIFY(charvec.size() == value.size());
+    std::shared_ptr<void> voidValue(new char*[value.size()]);
+    char** charArray = (char**) voidValue.get();
+    for (auto k = 0; k < value.size(); ++k) {
+      charArray[k] = new char[value[k].size() + 1];
+      strcpy(charArray[k], value[k].c_str());
+    }
     optlist_wrapper.mCache.push_back(voidValue);
-    return DBAddOption(optlist_wrapper.mOptlistPtr, option, (char**) &charvec.front());
+    return DBAddOption(optlist_wrapper.mOptlistPtr, option, charArray);
   }
 };
 
@@ -770,6 +770,50 @@ DBClose(DBfile& file) {
 }
 
 //------------------------------------------------------------------------------
+// DBMkDir
+//------------------------------------------------------------------------------
+inline
+int
+DBMkDir(DBfile& file,
+        std::string dirname) {
+  return DBMkDir(&file, dirname.c_str());
+}
+
+//------------------------------------------------------------------------------
+// DBSetDir
+//------------------------------------------------------------------------------
+inline
+int
+DBSetDir(DBfile& file,
+         std::string dirname) {
+  return DBSetDir(&file, dirname.c_str());
+}
+
+//------------------------------------------------------------------------------
+// DBGetDir
+//------------------------------------------------------------------------------
+inline
+std::string
+DBGetDir(DBfile& file) {
+  char result[256];
+  auto valid = DBGetDir(&file, result);
+  VERIFY2(valid == 0, "Silo ERROR: unable to fetch directory name.");
+  return std::string(result);
+}
+
+//------------------------------------------------------------------------------
+// DBCpDir
+//------------------------------------------------------------------------------
+inline
+int
+DBCpDir(DBfile& srcFile,
+        std::string srcDir,
+        DBfile& dstFile,
+        std::string dstDir) {
+  return DBCpDir(&srcFile, srcDir.c_str(), &dstFile, dstDir.c_str());
+}
+
+//------------------------------------------------------------------------------
 // DBWrite
 //------------------------------------------------------------------------------
 template<typename T>
@@ -778,9 +822,55 @@ int
 DBWrite(DBfile& file,
         std::string varname,
         T& var) {
-  return DBWrite(&file, varname.c_str(), (void*) &var, 
+  return DBWrite(&file,
+                 varname.c_str(),
+                 (void*) &var, 
                  &(SiloTraits<T>::dims()).front(),
                  SiloTraits<T>::dims().size(),
+                 SiloTraits<T>::datatype());
+}
+
+//------------------------------------------------------------------------------
+// DBWrite vector<T>
+//------------------------------------------------------------------------------
+template<typename T>
+inline
+int
+DBWrite_vector(DBfile& file,
+               std::string varname,
+               std::vector<T>& var) {
+  auto dims = std::vector<int>(1, var.size());
+  return DBWrite(&file,
+                 varname.c_str(),
+                 (void*) &var.front(), 
+                 &dims.front(),
+                 1,
+                 SiloTraits<T>::datatype());
+}
+
+//------------------------------------------------------------------------------
+// DBWrite vector<vector<T>>
+//------------------------------------------------------------------------------
+template<typename T>
+inline
+int
+DBWrite_vector_of_vector(DBfile& file,
+                         std::string varname,
+                         std::vector<std::vector<T>>& var) {
+  auto ndims = var.size();
+  auto dims = std::vector<int>(ndims);
+  vector<T> varlinear;
+  for (auto i = 0; i < ndims; ++i) {
+    dims[i] = var[i].size();
+    auto istart = varlinear.size();
+    varlinear.resize(varlinear.size() + dims[i]);
+    std::copy(var[i].begin(), var[i].end(), varlinear.begin() + istart);
+  }
+  return DBWrite(&file,
+                 varname.c_str(),
+                 (void*) &varlinear.front(),
+                 &dims.front(),
+                 ndims,
                  SiloTraits<T>::datatype());
 }
 
@@ -952,6 +1042,7 @@ DBPutMaterial(DBfile& file,
               std::string meshName,
               std::vector<int>& matnos,
               std::vector<int>& matlist,
+              std::vector<int>  dims,
               std::vector<int>& mix_next,
               std::vector<int>& mix_mat,
               std::vector<int>& mix_zone,
@@ -965,10 +1056,8 @@ DBPutMaterial(DBfile& file,
   VERIFY(mix_zone.size() == numMix);
   VERIFY(mix_vf.size() == numMix);
 
-  // Dimensionality of the matlist.
-  // For now we only support 1-D lists (I don't understand what silo does with 
-  // greater dimensionality?)
-  vector<int> dims(1, matlist.size());
+  // If dims is empty, set it as a 1D list based on matlist.
+  if (dims.empty()) dims = std::vector<int>(1, matlist.size());
 
   // Do the deed.
   const int result = DBPutMaterial(&file, 
@@ -1043,6 +1132,8 @@ DBPutUcdmesh(DBfile& file,
 
 //------------------------------------------------------------------------------
 // DBPutQuadmesh
+// Note we assume just the unique (x,y,z) coordinates are provided, but we
+// replicate them here for the silo file writing.
 //------------------------------------------------------------------------------
 inline
 int
@@ -1052,16 +1143,29 @@ DBPutQuadmesh(DBfile& file,
               DBoptlist_wrapper& optlist) {
 
   // Preconditions.
-  const unsigned ndims = coords.size();
+  const auto ndims = coords.size();
   VERIFY(ndims == 2 or ndims == 3);
 
   // Number of nodes in each dimension.
+  auto nxnodes = coords[0].size();
+  auto nxynodes = nxnodes*coords[1].size();
   vector<int> meshdims(ndims);
-  for (auto k = 0; k < ndims; ++k) meshdims[k] = coords[k].size();
+  auto nnodes = 1;
+  for (auto k = 0; k < ndims; ++k) {
+    meshdims[k] = coords[k].size();
+    nnodes *= coords[k].size();
+  }
 
   // We need the C-stylish pointers to the coordinates.
+  // This is where we flesh out to the nnodes number of values too.
   double** coordPtrs = new double*[ndims];
-  for (auto k = 0; k < ndims; ++k) coordPtrs[k] = &coords[k][0];
+  for (auto k = 0; k < ndims; ++k) coordPtrs[k] = new double[nnodes];
+  for (auto inode = 0; inode < nnodes; ++inode) {
+    const size_t index[3] = {inode % nxnodes,
+                             (inode % nxynodes) / nxnodes,
+                             inode / nxynodes};
+    for (auto k = 0; k < ndims; ++k) coordPtrs[k][inode] = coords[k][index[k]];
+  }
 
   // Do the deed.
   const int result = DBPutQuadmesh(&file,                            // dbfile
@@ -1071,10 +1175,11 @@ DBPutQuadmesh(DBfile& file,
                                    &meshdims[0],                     // dims
                                    ndims,                            // ndims
                                    SiloTraits<double>::datatype(),   // datatype
-                                   DB_COLLINEAR,                     // coordtype
+                                   DB_NONCOLLINEAR,                  // coordtype
                                    optlist.mOptlistPtr);             // optlist
 
   // That's it.
+  for (auto k = 0; k < ndims; ++k) delete[] coordPtrs[k];
   delete[] coordPtrs;
   return result;
 }

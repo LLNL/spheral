@@ -12,7 +12,7 @@ from GenerateNodeDistribution3d import *
 import mpi
 import DistributeNodes
 
-title("3-D integrated hydro test -- cylindrical Noh problem")
+title("3-D integrated hydro test -- spherical Noh problem")
 
 #-------------------------------------------------------------------------------
 # Generic problem parameters

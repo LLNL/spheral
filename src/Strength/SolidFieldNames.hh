@@ -28,11 +28,13 @@ struct SolidFieldNames {
   static const std::string YoungsModulus;
   static const std::string longitudinalSoundSpeed;
   static const std::string yieldStrength;
+  static const std::string flaws;
   static const std::string effectiveFlaws;
   static const std::string porosityAlpha;
   static const std::string porosityStrain;
   static const std::string fragmentIDs;
   static const std::string particleTypes;
+  static const std::string meltSpecificEnergy;
 };
 
 }

@@ -317,7 +317,7 @@ computeDPDrho(const Scalar massDensity,
                                      (mB1 + mB2*mu)*specificThermalEnergy)/rho0;
   const double Prho2 = this->pressure(massDensity, specificThermalEnergy)/(rho*rho);
   const double dPdeps_rho = mB0 + mB1*mu + mB2*mu*mu;
-  const double result = dPdrho_eps + Prho2*dPdeps_rho;
+  const double result = std::max(0.0, dPdrho_eps + Prho2*dPdeps_rho);
 
   ENSURE(result >= 0.0);
   return result;

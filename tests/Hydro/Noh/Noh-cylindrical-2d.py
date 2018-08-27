@@ -1,5 +1,13 @@
-#ATS:test(SELF, "--crksph=True --nRadial=100 --cfl=0.25 --Cl=1.0 --Cq=1.0 --clearDirectories=True --filter=0.0 --nPerh=2.01 --graphics False --steps 100", label="Noh cylindrical CRK, nPerh=2.0", np=20)
-#ATS:test(SELF, "--crksph=False --nRadial=100 --cfl=0.25 --Cl=1.0 --Cq=1.0 --clearDirectories=True --filter=0.0 --nPerh=2.01 --graphics False --steps 100", label="Noh cylindrical CRK, nPerh=2.0", np=20)
+#
+# SPH
+#
+#ATS:sph0 = test(        SELF, "--crksph False --nRadial 100 --cfl 0.25 --Cl 1.0 --Cq 1.0 --filter 0.0 --nPerh 2.01 --graphics False --restartStep 20 --clearDirectories True --steps 100", label="Noh cylindrical SPH, nPerh=2.0", np=2)
+#ATS:sph1 = testif(sph0, SELF, "--crksph False --nRadial 100 --cfl 0.25 --Cl 1.0 --Cq 1.0 --filter 0.0 --nPerh 2.01 --graphics False --restartStep 20 --clearDirectories False --steps 60 --restoreCycle 40 --checkRestart True", label="Noh cylindrical SPH, nPerh=2.0, restart test", np=2)
+#
+# CRK
+#
+#ATS:crk0 = test(        SELF, "--crksph True --nRadial 100 --cfl 0.25 --Cl 1.0 --Cq 1.0 --filter 0.0 --nPerh 2.01 --graphics False --restartStep 20 --volumeType CRKVoronoiVolume --clearDirectories True --steps 100", label="Noh cylindrical CRK, nPerh=2.0", np=2)
+#ATS:crk1 = testif(crk0, SELF, "--crksph True --nRadial 100 --cfl 0.25 --Cl 1.0 --Cq 1.0 --filter 0.0 --nPerh 2.01 --graphics False --restartStep 20 --volumeType CRKVoronoiVolume --clearDirectories False --steps 60 --restoreCycle 40 --checkRestart True", label="Noh cylindrical CRK, nPerh=2.0, restart test", np=2)
 
 #-------------------------------------------------------------------------------
 # The Cylindrical Noh test case run in 2-D.
@@ -443,7 +451,11 @@ if restoreCycle is None:
 # Advance to the end time.
 #-------------------------------------------------------------------------------
 if not steps is None:
+    if checkRestart:
+        control.setRestartBaseName(restartBaseName + "_CHECK")
     control.step(steps)
+    if checkRestart:
+        control.setRestartBaseName(restartBaseName)
 
     # Are we doing the restart test?
     if checkRestart:
@@ -469,8 +481,6 @@ answer = NohAnalyticSolution.NohSolution(2,
                                          h0 = nPerh*rmax/nRadial)
 
 if graphics:
-    mpi.synchronizeQueuedOutput(None, None)
-
     # Plot the node positions.
     from SpheralMatplotlib import *
     rPlot = plotNodePositions2d(db, colorNodeLists=0, colorDomains=1)

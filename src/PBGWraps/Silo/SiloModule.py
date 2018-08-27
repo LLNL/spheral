@@ -82,6 +82,23 @@ class Silo:
         self.space.add_function("DBClose", "int", [refparam("DBfile", "file")],
                                 docstring = "Close a SILO file.")
 
+        # DBMkDir
+        self.space.add_function("DBMkDir", "int", [refparam("DBfile", "file"), param("std::string", "dirname")],
+                                docstring = "Create a new directory in a Silo file.")
+
+        # DBSetDir
+        self.space.add_function("DBSetDir", "int", [refparam("DBfile", "file"), param("std::string", "dirname")],
+                                docstring = "Set the current directory in a Silo file.")
+
+        # DBGetDir
+        self.space.add_function("DBGetDir", "std::string", [refparam("DBfile", "file")],
+                                docstring = "Get the current directory in a Silo file.")
+
+        # DBCpDir
+        self.space.add_function("DBCpDir", "int", [refparam("DBfile", "srcFile"), param("std::string", "srcDir"),
+                                                   refparam("DBfile", "dstFile"), param("std::string", "dstDir")],
+                                docstring = "Create a directory structure from one Silo file to another.")
+
         # DBPutMultimesh
         self.space.add_function("DBPutMultimesh", "int",
                                 [refparam("DBfile", "file"),
@@ -115,6 +132,7 @@ class Silo:
                                  param("std::string", "meshName"),
                                  refparam("vector_of_int", "matnos"),
                                  refparam("vector_of_int", "matlist"),
+                                 param("vector_of_int", "dims"),
                                  refparam("vector_of_int", "mix_next"),
                                  refparam("vector_of_int", "mix_mat"),
                                  refparam("vector_of_int", "mix_zone"),
@@ -222,7 +240,7 @@ class Silo:
             ext = "_" + type.replace(" ", "_")
         
             # DBWrite
-            self.space.add_function("DBWrite", type,
+            self.space.add_function("DBWrite", "int",
                                     [refparam("DBfile", "file"),
                                      param("std::string", "varname"),
                                      param(type, "var")],
@@ -230,6 +248,22 @@ class Silo:
                                     custom_name = "DBWrite",
                                     docstring = "Write a(n) %s to a SILO file." % type)
 
+            # DBWrite
+            self.space.add_function("DBWrite_vector", "int",
+                                    [refparam("DBfile", "file"),
+                                     param("std::string", "varname"),
+                                     refparam("vector_of_%s" % type, "var")],
+                                    template_parameters = [type],
+                                    custom_name = "DBWrite",
+                                    docstring = "Write a std::vector<%s> to a SILO file." % type)
+            # DBWrite
+            self.space.add_function("DBWrite_vector_of_vector", "int",
+                                    [refparam("DBfile", "file"),
+                                     param("std::string", "varname"),
+                                     refparam("vector_of_vector_of_%s" % type, "var")],
+                                    template_parameters = [type],
+                                    custom_name = "DBWrite",
+                                    docstring = "Write a std::vector<std::vector<%s>> to a SILO file." % type)
             # DBPutCompoundarray
             self.space.add_function("DBPutCompoundarray", type,
                                     [refparam("DBfile", "file"),
@@ -345,7 +379,7 @@ class Silo:
         x.add_constructor([param("int", "maxopts", default_value="1024")])
 
         # Methods.
-        for ValueType in ("double", "int", "std::string"):
+        for ValueType in ("int", "double", "std::string"):
             ValueBase = ValueType.split(":")[-1]
             x.add_method("addOption", "int", [param("int", "option"), param(ValueType, "value")],
                          template_parameters = [ValueType],

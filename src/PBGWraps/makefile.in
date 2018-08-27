@@ -7,14 +7,15 @@ SPHERALTOP = @abs_top_srcdir@
 BUILDTOP = @abs_top_builddir@
 
 #-------------------------------------------------------------------------------
-# This stuff is for generating Mercurial revision info in the python, based on:
-# https://www.mercurial-scm.org/wiki/VersioningWithMake
-HGVERSION:= $(shell hg id -n -i -b --cwd $(srcdir))
-Spheral.py: hgstamp
-.PHONY: update_hgstamp
-hgstamp: update_hgstamp
+# This stuff is for generating git revision info in the python.
+# Based on our former mercurial logic from:
+#   https://www.mercurial-scm.org/wiki/VersioningWithMake
+GITVERSION:= $(shell git --git-dir $(SPHERALTOP)/../.git rev-parse --short HEAD) $(shell git --git-dir $(SPHERALTOP)/../.git rev-list --all --count HEAD)
+Spheral.py: gitstamp
+.PHONY: update_gitstamp
+gitstamp: update_gitstamp
 	[ -f $@ ] || touch $@
-	sed -e 's/@spheralversion@/$(HGVERSION)/g' $(srcdir)/Spheral.py > Spheral.py
+	sed -e 's/@spheralversion@/$(GITVERSION)/g' $(srcdir)/Spheral.py > Spheral.py
 
 #-------------------------------------------------------------------------------
 PKGNAME = SpheralModules

@@ -299,7 +299,7 @@ computeDPDrho(const Scalar massDensity,
   const double eta = this->boundedEta(massDensity);
   if (fuzzyEqual(eta, this->etamin()) || 
       fuzzyEqual(eta, this->etamax())) return 0.0;
-  const double result = pow(eta, mn - 1)/(mK*this->referenceDensity());
+  const double result = std::max(0.0, pow(eta, mn - 1)/(mK*this->referenceDensity()));
   ENSURE(result >= 0.0);
   return result;
 }

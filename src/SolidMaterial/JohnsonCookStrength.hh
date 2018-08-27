@@ -44,6 +44,7 @@ public:
   virtual ~JohnsonCookStrength();
 
   // Override the required generic interface.
+  virtual bool providesSoundSpeed() const override { return true; }
   virtual void shearModulus(FieldSpace::Field<Dimension, Scalar>& shearModulus,
                             const FieldSpace::Field<Dimension, Scalar>& density,
                             const FieldSpace::Field<Dimension, Scalar>& specificThermalEnergy,

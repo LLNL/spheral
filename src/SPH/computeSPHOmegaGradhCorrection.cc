@@ -108,7 +108,7 @@ computeSPHOmegaGradhCorrection(const ConnectivityMap<Dimension>& connectivityMap
 
         // Finish the grad h correction.
         CHECK(omegaGradh(nodeListi, i) > 0.0);
-        omegaGradh(nodeListi, i) = -gradsum(nodeListi, i)/(Dimension::nDim * omegaGradh(nodeListi, i));
+        omegaGradh(nodeListi, i) = std::max(1.0e-30, -gradsum(nodeListi, i)/(Dimension::nDim * omegaGradh(nodeListi, i)));
       }
 
       // Post-conditions.

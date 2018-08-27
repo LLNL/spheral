@@ -9,7 +9,8 @@ BUILDTOP = @abs_top_builddir@
 PKGNAME = FractalGravity
 PKGDIR = $(PKGNAME)/
 LIBTARGET = libSpheral_$(PKGNAME).$(DYLIBEXT)
-INSTSRCTARGETS = \
+SRCTARGETS = \
+	$(srcdir)/FractalGravity.cc \
 	$(srcdir)/add_buffer_values.cc \
 	$(srcdir)/any_overlaps.cc \
 	$(srcdir)/box_stats.cc \
@@ -34,7 +35,7 @@ INSTSRCTARGETS = \
 	$(srcdir)/misc_class.cc \
 	$(srcdir)/kdtree.cc \
 	$(srcdir)/particle_class.cc \
-	$(srcdir)/point_class.cc 
+	$(srcdir)/point_class.cc \
 	$(srcdir)/add_pseudo_particles.cc \
 	$(srcdir)/adj_nina.cc \
 	$(srcdir)/am_I_conservative_enough_isol.cc \
@@ -106,27 +107,14 @@ INSTSRCTARGETS = \
 	$(srcdir)/write_rv.cc \
 	$(srcdir)/initial_forces_sharp_mpi.cc \
 	$(srcdir)/isolated_solver_mpi.cc \
-	$(srcdir)/periodic_solver_mpi.cc 
+	$(srcdir)/periodic_solver_mpi.cc \
 	$(srcdir)/dens_to_slices.cc \
 	$(srcdir)/gather_particles.cc \
 	$(srcdir)/scatter_particles_find.cc \
 	$(srcdir)/slices_to_potf.cc \
 	$(srcdir)/cosmos_power.cc \
 	$(srcdir)/halo_force_flat.cc \
-	$(srcdir)/energy_leapfrog.cc \
-	$(srcdir)/fractal_memory_parameters_cosmo.cc \
-	$(srcdir)/make_particles_cosmo_mpi.cc \
-	$(srcdir)/step_leapfrog.cc \
-	$(srcdir)/velocities.cc \
-	$(srcdir)/fractal_force_wrapper.cc
-	SRCTARGETS =
-
-endif
 
 #-------------------------------------------------------------------------------
+
 include $(BUILDTOP)/helpers/makefile_master
-
-
-
-
-

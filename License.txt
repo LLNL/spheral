@@ -6,7 +6,7 @@ All rights reserved.
 
 The files in this directory and below are part of Spheral++. For details, see
 
-  http://sourceforge.net/projects/spheral
+  https://github.com/jmikeowen/spheral
 
 Please also read this link – Additional BSD Notice. 
 

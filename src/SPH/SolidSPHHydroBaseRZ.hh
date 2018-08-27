@@ -77,6 +77,7 @@ public:
                       const PhysicsSpace::HEvolutionType HUpdate,
                       const double epsTensile,
                       const double nTensile,
+                      const bool damageRelieveRubble,
                       const Vector& xmin,
                       const Vector& xmax);
 

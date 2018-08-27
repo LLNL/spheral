@@ -128,10 +128,6 @@ CRKSPHHydroBase(const SmoothingScaleBase<Dimension>& smoothingScaleMethod,
                 const HEvolutionType HUpdate,
                 const CRKOrder correctionOrder,
                 const CRKVolumeType volumeType,
-                const bool detectSurfaces,
-                const double detectThreshold,
-                const double sweepAngle,
-                const double detectRange,
                 const double epsTensile,
                 const double nTensile):
   GenericHydro<Dimension>(W, WPi, Q, cfl, useVelocityMagnitudeForDt),
@@ -146,10 +142,6 @@ CRKSPHHydroBase(const SmoothingScaleBase<Dimension>& smoothingScaleMethod,
   mfilter(filter),
   mEpsTensile(epsTensile),
   mnTensile(nTensile),
-  mDetectSurfaces(detectSurfaces),
-  mDetectThreshold(detectThreshold),
-  mSweepAngle(sweepAngle),
-  mDetectRange(detectRange),
   mCorrectionMin(std::numeric_limits<Scalar>::lowest()),
   mCorrectionMax(std::numeric_limits<Scalar>::max()),
   mTimeStepMask(FieldSpace::FieldStorageType::CopyFields),
@@ -268,18 +260,6 @@ initializeProblemStartup(DataBase<Dimension>& dataBase) {
   const FieldList<Dimension, SymTensor> H = dataBase.fluidHfield();
   const FieldList<Dimension, Vector> position = dataBase.fluidPosition();
   const FieldList<Dimension, Scalar> massDensity = dataBase.fluidMassDensity();
-  if (mDetectSurfaces) {
-    mVolume.assignFields(mass/massDensity);
-    for (ConstBoundaryIterator boundItr = this->boundaryBegin();
-         boundItr != this->boundaryEnd();
-         ++boundItr) (*boundItr)->applyFieldListGhostBoundary(mVolume);
-    for (ConstBoundaryIterator boundItr = this->boundaryBegin();
-         boundItr != this->boundaryEnd();
-         ++boundItr) (*boundItr)->finalizeGhostBoundary();
-    const NodeCoupling couple;
-    computeCRKSPHMoments(connectivityMap, W, mVolume, position, H, correctionOrder(), couple, mM0, mM1, mM2, mM3, mM4, mGradm0, mGradm1, mGradm2, mGradm3, mGradm4);
-    detectSurface(connectivityMap, mM0, mM1, position, H, mDetectThreshold, mDetectRange*W.kernelExtent(), mSweepAngle, mSurfacePoint);
-  }
 
   // Compute the volumes for real.
   if (mVolumeType == CRKVolumeType::CRKMassOverDensity) {
@@ -675,60 +655,6 @@ finalizeDerivatives(const typename Dimension::Scalar time,
 }
 
 //------------------------------------------------------------------------------
-// Finalize the state after state has been updated and boundary conditions 
-// enforced.  For CRKSPH this is where we update the volumes and RPKM corrections.
-//------------------------------------------------------------------------------
-template<typename Dimension>
-void
-CRKSPHHydroBase<Dimension>::
-postStateUpdate(const DataBase<Dimension>& dataBase,
-                State<Dimension>& state,
-                const StateDerivatives<Dimension>& derivs) const {
-
-  // // Grab state we're going to use.
-  //const TableKernel<Dimension>& W = this->kernel();
-  //const ConnectivityMap<Dimension>& connectivityMap = dataBase.connectivityMap();
-  //const FieldList<Dimension, Vector> position = state.fields(HydroFieldNames::position, Vector::zero);
-  //const FieldList<Dimension, SymTensor> H = state.fields(HydroFieldNames::H, SymTensor::zero);
-  // const FieldList<Dimension, Scalar> mass = state.fields(HydroFieldNames::mass, 0.0);
-
-  // Compute the volume per node.
-  //FieldList<Dimension, Scalar> vol = state.fields(HydroFieldNames::volume, 0.0);
-  //computeCRKSPHSumVolume(connectivityMap, W, position, H, vol);
-  // computeHullVolumes(connectivityMap, position, vol);
-
-  // // We need boundary conditions enforced on the volume before we can compute corrections.
-  //for (ConstBoundaryIterator boundItr = this->boundaryBegin();
-  //     boundItr != this->boundaryEnd();
-  //     ++boundItr) (*boundItr)->applyFieldListGhostBoundary(vol);
-  //for (ConstBoundaryIterator boundItr = this->boundaryBegin();
-  //     boundItr != this->boundaryEnd();
-  //     ++boundItr) (*boundItr)->finalizeGhostBoundary();
-
-  // // Compute the kernel correction fields.
-  // FieldList<Dimension, Scalar> A = state.fields(HydroFieldNames::A_CRKSPH, 0.0);
-  // FieldList<Dimension, Vector> B = state.fields(HydroFieldNames::B_CRKSPH, Vector::zero);
-  // FieldList<Dimension, Vector> C = state.fields(HydroFieldNames::C_CRKSPH, Vector::zero);
-  // FieldList<Dimension, Tensor> D = state.fields(HydroFieldNames::D_CRKSPH, Tensor::zero);
-  // FieldList<Dimension, Vector> gradA = state.fields(HydroFieldNames::gradA_CRKSPH, Vector::zero);
-  // FieldList<Dimension, Tensor> gradB = state.fields(HydroFieldNames::gradB_CRKSPH, Tensor::zero);
-  // computeCRKSPHCorrections(connectivityMap, W, vol, position, H, A, B, C, D, gradA, gradB);
-  // for (ConstBoundaryIterator boundItr = this->boundaryBegin();
-  //      boundItr != this->boundaryEnd();
-  //      ++boundItr) {
-  //   (*boundItr)->applyFieldListGhostBoundary(A);
-  //   (*boundItr)->applyFieldListGhostBoundary(B);
-  //   (*boundItr)->applyFieldListGhostBoundary(C);
-  //   (*boundItr)->applyFieldListGhostBoundary(D);
-  //   (*boundItr)->applyFieldListGhostBoundary(gradA);
-  //   (*boundItr)->applyFieldListGhostBoundary(gradB);
-  // }
-  // for (ConstBoundaryIterator boundItr = this->boundaryBegin();
-  //      boundItr != this->boundaryEnd();
-  //      ++boundItr) (*boundItr)->finalizeGhostBoundary();
-}
-
-//------------------------------------------------------------------------------
 // Finalize the hydro.
 //------------------------------------------------------------------------------
 template<typename Dimension>
@@ -826,19 +752,6 @@ finalize(const typename Dimension::Scalar time,
          ++boundaryItr) {
       (*boundaryItr)->applyFieldListGhostBoundary(massDensity);
     }
-    for (ConstBoundaryIterator boundaryItr = this->boundaryBegin(); 
-         boundaryItr != this->boundaryEnd();
-         ++boundaryItr) (*boundaryItr)->finalizeGhostBoundary();
-  }
-
-  // Update the surface point flags.
-  if (mDetectSurfaces) {
-    const FieldList<Dimension, Scalar> m0 = state.fields(HydroFieldNames::m0_CRKSPH, 0.0);
-    const FieldList<Dimension, Vector> m1 = state.fields(HydroFieldNames::m1_CRKSPH, Vector::zero);
-    detectSurface(connectivityMap, m0, m1, position, H, mDetectThreshold, mDetectRange*W.kernelExtent(), mSweepAngle, surfacePoint);
-    for (ConstBoundaryIterator boundaryItr = this->boundaryBegin(); 
-         boundaryItr != this->boundaryEnd();
-         ++boundaryItr) (*boundaryItr)->applyFieldListGhostBoundary(surfacePoint);
     for (ConstBoundaryIterator boundaryItr = this->boundaryBegin(); 
          boundaryItr != this->boundaryEnd();
          ++boundaryItr) (*boundaryItr)->finalizeGhostBoundary();
