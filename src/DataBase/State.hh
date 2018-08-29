@@ -80,13 +80,14 @@ public:
   void enroll(FieldSpace::FieldBase<Dimension>& field, PolicyPointer policy);
 
   // Enroll the given FieldList and associated update policy
-  void enroll(FieldSpace::FieldListBase<Dimension>& fieldList, PolicyPointer policy);
+   void enroll(FieldSpace::FieldListBase<Dimension>& fieldList, PolicyPointer policy);
 
   // The base class method for just registering a field.
-  virtual void enroll(FieldSpace::FieldBase<Dimension>& field);
+  virtual void enroll(FieldSpace::FieldBase<Dimension>& field) override;
+  virtual void enroll(std::shared_ptr<FieldSpace::FieldBase<Dimension>>& fieldPtr) override;
 
   // The base class method for just registering a field list.
-  virtual void enroll(FieldSpace::FieldListBase<Dimension>& fieldList);
+  virtual void enroll(FieldSpace::FieldListBase<Dimension>& fieldList) override;
 
   // The full set of keys for all policies.
   std::vector<KeyType> policyKeys() const;

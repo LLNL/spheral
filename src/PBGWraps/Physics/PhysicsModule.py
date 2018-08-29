@@ -161,6 +161,9 @@ generateStdVectorBindings(self.vector_of_Physics%(dim)id, "Spheral::PhysicsSpace
         x.add_method("requireGhostConnectivity", "bool", [], is_const=True, is_virtual=False)
         x.add_method("extraEnergy", "double", [], is_const=True, is_virtual=True)
         x.add_method("extraMomentum", vector, [], is_const=True, is_virtual=True)
+        x.add_method("registerAdditionalVisualizationState", None, [refparam(database, "dataBase"),
+                                                                    refparam(state, "state")],
+                     is_virtual=True)
 
         # The abstract interface.
         generatePhysicsVirtualBindings(x, ndim, True)

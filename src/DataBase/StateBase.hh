@@ -82,6 +82,7 @@ public:
 
   // Enroll a Field.
   virtual void enroll(FieldSpace::FieldBase<Dimension>& field);
+  virtual void enroll(std::shared_ptr<FieldSpace::FieldBase<Dimension>>& fieldPtr);
 
   // Enroll a FieldList.
   virtual void enroll(FieldSpace::FieldListBase<Dimension>& fieldList);

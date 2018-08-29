@@ -52,6 +52,17 @@ enroll(FieldSpace::FieldBase<Dimension>& field) {
 }
 
 //------------------------------------------------------------------------------
+// Enroll the given field shared_pointer.
+//------------------------------------------------------------------------------
+template<typename Dimension>
+inline
+void
+State<Dimension>::
+enroll(std::shared_ptr<FieldSpace::FieldBase<Dimension>>& fieldPtr) {
+  StateBase<Dimension>::enroll(fieldPtr);
+}
+
+//------------------------------------------------------------------------------
 // Enroll the given field list.
 //------------------------------------------------------------------------------
 template<typename Dimension>

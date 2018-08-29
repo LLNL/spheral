@@ -160,6 +160,10 @@ public:
   // system (electromagnetic momentum flux density, etc.) 
   virtual Vector extraMomentum() const;
 
+  // Register any additional state for visualization.
+  virtual void registerAdditionalVisualizationState(DataBaseSpace::DataBase<Dimension>& dataBase,
+                                                    State<Dimension>& state);
+
 private:
   //--------------------------- Private Interface ---------------------------//
 #ifndef __GCCXML__
