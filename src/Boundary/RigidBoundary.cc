@@ -15,12 +15,6 @@
 using namespace std;
 
 namespace Spheral {
-namespace BoundarySpace {
-
-using NodeSpace::NodeList;
-using FieldSpace::Field;
-using FieldSpace::FieldList;
-using DataBaseSpace::DataBase;
 
 //------------------------------------------------------------------------------
 // Empty constructor.
@@ -300,5 +294,4 @@ RigidBoundary<Dimension>::valid() const {
           PlanarBoundary<Dimension>::valid());
 }
 
-}
 }

@@ -14,12 +14,9 @@
 #include "Geometry/Dimension.hh"
 #include "DataOutput/registerWithRestart.hh"
 
-namespace FileIOSpace {
-  class FileIO;
-}
-
 namespace Spheral {
-namespace BoundarySpace {
+
+class FileIO;
 
 class SphericalBoundary: public Boundary<Dim<3> > {
 
@@ -84,19 +81,14 @@ private:
 };
 
 }
-}
 
-#ifndef __GCCXML__
 #include "SphericalBoundaryInline.hh"
-#endif
 
 #else
 
 namespace Spheral {
-  namespace BoundarySpace {
-    // Forward declaration.
-    class SphericalBoundary;
-  }
+  // Forward declaration.
+  class SphericalBoundary;
 }
 
 #endif

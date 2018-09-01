@@ -14,23 +14,12 @@
 #include "ConstantVelocityBoundary.hh"
 
 namespace Spheral {
-  namespace NodeSpace {
-    template<typename Dimension> class NodeList;
-  }
-  namespace FieldSpace {
-    template<typename Dimension, typename DataType> class Field;
-    template<typename Dimension, typename DataType> class FieldList;
-  }
-  namespace DataBaseSpace {
-    template<typename Dimension> class DataBase;
-  }
-  namespace FileIOSpace {
-    class FileIO;
-  }
-}
 
-namespace Spheral {
-namespace BoundarySpace {
+template<typename Dimension> class NodeList;
+template<typename Dimension, typename DataType> class Field;
+template<typename Dimension, typename DataType> class FieldList;
+template<typename Dimension> class DataBase;
+class FileIO;
 
 template<typename Dimension>
 class ConstantZVelocityBoundary: 
@@ -59,15 +48,12 @@ public:
 };
 
 }
-}
 
 #else
 
 // Forward declaration.
 namespace Spheral {
-  namespace BoundarySpace {
-    template<typename Dimension> class ConstantZVelocityBoundary;
-  }
+  template<typename Dimension> class ConstantZVelocityBoundary;
 }
 
 #endif

@@ -10,18 +10,13 @@
 #ifndef AxialSymmetryBoundary_HH
 #define AxialSymmetryBoundary_HH
 
-#ifndef __GCCXML__
-#include <map>
-#else
-#include "fakestl.hh"
-#endif
-
 #include "Boundary.hh"
 #include "Kernel/TableKernel.hh"
 #include "Geometry/Dimension.hh"
 
+#include <map>
+
 namespace Spheral {
-namespace BoundarySpace {
 
 class AxialSymmetryBoundary: public Boundary<Dim<3> > {
 
@@ -76,15 +71,12 @@ private:
 };
 
 }
-}
 
 #else
 
 namespace Spheral {
-namespace BoundarySpace {
-// Forward declaration.
-class AxialSymmetryBoundary;
-}
+  // Forward declaration.
+  class AxialSymmetryBoundary;
 }
 
 #endif

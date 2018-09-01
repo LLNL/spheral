@@ -13,10 +13,8 @@
 #include "Utilities/DBC.hh"
 
 namespace Spheral {
-namespace BoundarySpace {
 
 using namespace std;
-using Spheral::NodeSpace::FluidNodeList;
 
 //------------------------------------------------------------------------------
 // Empty constructor.
@@ -185,7 +183,6 @@ enforceBoundary(Field<Dimension, typename Dimension::SymTensor>& field) const {
 }
 
 }
-}
 
 //------------------------------------------------------------------------------
 // Explicit instantiation.
@@ -193,7 +190,5 @@ enforceBoundary(Field<Dimension, typename Dimension::SymTensor>& field) const {
 #include "Geometry/Dimension.hh"
 
 namespace Spheral {
-namespace BoundarySpace {
 template class ThreeOneDimensionBoundary< Dim<3> >;
-}
 }

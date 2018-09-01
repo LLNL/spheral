@@ -4,7 +4,6 @@
 #include "Utilities/DBC.hh"
 
 namespace Spheral {
-namespace BoundarySpace {
 
 using namespace std;
 using NodeSpace::NodeList;
@@ -380,6 +379,3 @@ enforceBoundary(Field<Dim<3>, Dim<3>::ThirdRankTensor>& field) const {
 //------------------------------------------------------------------------------
 
 }
-}
-
-

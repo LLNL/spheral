@@ -13,7 +13,6 @@
 #include "ReflectingBoundary.hh"
 
 namespace Spheral {
-namespace BoundarySpace {
 
 class AxisBoundaryRZ: public ReflectingBoundary<Dim<2> > {
 
@@ -49,15 +48,12 @@ private:
 };
 
 }
-}
 
 #else
 
 // Forward declaration.
 namespace Spheral {
-  namespace BoundarySpace {
-    class AxisBoundaryRZ;
-  }
+  class AxisBoundaryRZ;
 }
 
 #endif

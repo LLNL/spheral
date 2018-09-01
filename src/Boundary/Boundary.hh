@@ -16,23 +16,13 @@
 #include "Utilities/DBC.hh"
 
 namespace Spheral {
-  namespace NodeSpace {
-    template<typename Dimension> class NodeList;
-  }
-  namespace FieldSpace {
-    template<typename Dimension, typename DataType> class Field;
-    template<typename Dimension, typename DataType> class FieldList;
-  }
-  namespace DataBaseSpace {
-    template<typename Dimension> class DataBase;
-  }
-  namespace MeshSpace {
-    template<typename Dimension> class Mesh;
-  }
-}
 
-namespace Spheral {
-namespace BoundarySpace {
+// Forward declarations.
+template<typename Dimension> class NodeList;
+template<typename Dimension, typename DataType> class Field;
+template<typename Dimension, typename DataType> class FieldList;
+template<typename Dimension> class DataBase;
+template<typename Dimension> class Mesh;
 
 template<typename Dimension>
 class Boundary {
@@ -65,10 +55,8 @@ public:
   //   Violation nodes -- any internal nodes in the NodeList that our out
   //                      of bounds for this boundary condition.
 
-#ifndef __GCCXML__
   // Allow read access to the map of NodeList->BoundaryNodes.
   const std::map<NodeSpace::NodeList<Dimension>*, BoundaryNodes>& boundaryNodeMap() const;
-#endif
 
   // Check if we have entries for the given NodeList.
   bool haveNodeList(const NodeSpace::NodeList<Dimension>& nodeList) const;
@@ -197,17 +185,14 @@ private:
 };
 
 }
-}
 
 #include "BoundaryInline.hh"
 
 #else
 
 namespace Spheral {
-  namespace BoundarySpace {
-    // Forward declaration.
-    template<typename Dimension> class Boundary;
-  }
+  // Forward declaration.
+  template<typename Dimension> class Boundary;
 }
 
 #endif

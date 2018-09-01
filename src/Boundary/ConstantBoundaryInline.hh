@@ -1,7 +1,6 @@
 #include <typeinfo>
 
 namespace Spheral {
-namespace BoundarySpace {
 
 //------------------------------------------------------------------------------
 // Return the set of node IDs we're controlling.
@@ -52,5 +51,4 @@ reflectOperator() const {
   return mReflectOperator;
 }
 
-}
 }

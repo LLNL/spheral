@@ -17,17 +17,8 @@
 #include "PlanarBoundary.hh"
 
 namespace Spheral {
-namespace BoundarySpace {
 
 using namespace std;
-using NodeSpace::FluidNodeList;
-using FileIOSpace::FileIO;
-using NodeSpace::NodeList;
-using FieldSpace::Field;
-using FieldSpace::FieldList;
-using DataBaseSpace::DataBase;
-using NeighborSpace::Neighbor;
-using MeshSpace::Mesh;
 
 //------------------------------------------------------------------------------
 // Internal worker method to help with clipping a box range.
@@ -446,5 +437,4 @@ facesOnPlane(const Mesh<Dimension>& mesh,
   return result;
 }
 
-}
 }

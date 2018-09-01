@@ -15,13 +15,8 @@
 #include "DataOutput/registerWithRestart.hh"
 
 namespace Spheral {
-  namespace FileIOSpace {
-    class FileIO;
-  }
-}
 
-namespace Spheral {
-namespace BoundarySpace {
+class FileIO;
 
 class CylindricalBoundary: public Boundary<Dim<3> > {
 
@@ -87,26 +82,19 @@ private:
   FieldSpace::FieldList<Dim<3>, Scalar> mDeltaPhi;
   FieldSpace::FieldList<Dim<3>, Vector> mGhostPositions;
 
-#ifndef __GCCXML__
   // The restart registration.
   DataOutput::RestartRegistrationType mRestart;
-#endif
 };
 
 }
-}
 
-#ifndef __GCCXML__
 #include "CylindricalBoundaryInline.hh"
-#endif
 
 #else
 
 namespace Spheral {
-  namespace BoundarySpace {
-    // Forward declaration.
-    class CylindricalBoundary;
-  }
+  // Forward declaration.
+  class CylindricalBoundary;
 }
 
 #endif

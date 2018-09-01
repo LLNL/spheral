@@ -2,7 +2,6 @@
 #include "Geometry/Dimension.hh"
 
 namespace Spheral {
-namespace BoundarySpace {
 
 //------------------------------------------------------------------------------
 // Do we have an entry for the NodeList?
@@ -60,5 +59,4 @@ meshGhostNodes() const {
   return true;
 }
 
-}
 }

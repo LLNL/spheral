@@ -10,30 +10,17 @@
 #ifndef ConstantRVelocityBoundary_HH
 #define ConstantRVelocityBoundary_HH
 
-#ifndef __GCCXML__
-#include <vector>
-#endif
-
 #include "ConstantVelocityBoundary.hh"
 
-namespace Spheral {
-  namespace NodeSpace {
-    template<typename Dimension> class NodeList;
-  }
-  namespace FieldSpace {
-    template<typename Dimension, typename DataType> class Field;
-    template<typename Dimension, typename DataType> class FieldList;
-  }
-  namespace DataBaseSpace {
-    template<typename Dimension> class DataBase;
-  }
-  namespace FileIOSpace {
-    class FileIO;
-  }
-}
+#include <vector>
 
 namespace Spheral {
-namespace BoundarySpace {
+
+template<typename Dimension> class NodeList;
+template<typename Dimension, typename DataType> class Field;
+template<typename Dimension, typename DataType> class FieldList;
+template<typename Dimension> class DataBase;
+class FileIO;
 
 template<typename Dimension>
 class ConstantRVelocityBoundary: 
@@ -70,21 +57,16 @@ protected:
 
 private:
   //--------------------------- Private Interface ---------------------------//
-#ifndef __GCCXML__
   std::vector<Scalar> mRadialVelocity;
-#endif
 };
 
-}
 }
 
 #else
 
 // Forward declaration.
 namespace Spheral {
-  namespace BoundarySpace {
-    template<typename Dimension> class ConstantRVelocityBoundary;
-  }
+  template<typename Dimension> class ConstantRVelocityBoundary;
 }
 
 #endif

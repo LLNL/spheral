@@ -1,5 +1,4 @@
 namespace Spheral {
-namespace BoundarySpace {
 
 //------------------------------------------------------------------------------
 // The reflection operator appropriate between the given master and slave 
@@ -16,5 +15,4 @@ reflectOperator(const Dim<3>::Vector& r0,
   return result;
 }
 
-}
 }

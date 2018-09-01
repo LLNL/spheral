@@ -14,17 +14,11 @@
 #include "Utilities/DBC.hh"
 
 namespace Spheral {
-namespace BoundarySpace {
 
 using namespace std;
 using std::min;
 using std::max;
 using std::abs;
-
-using NodeSpace::NodeList;
-using FieldSpace::Field;
-using FieldSpace::FieldList;
-using DataBaseSpace::DataBase;
 
 //------------------------------------------------------------------------------
 // Copy all the boundary nodes from one Boundary to another.
@@ -407,5 +401,4 @@ PeriodicBoundary<Dimension>::numGhostNodes() const {
 // Include methods for the nested class type, PeriodicPlanarBoundary.
 //------------------------------------------------------------------------------
 #include "PeriodicPlanarBoundary.cc"
-}
 }

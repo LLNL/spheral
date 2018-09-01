@@ -17,18 +17,10 @@
 #include "boost/algorithm/string.hpp"
 
 namespace Spheral {
-namespace BoundarySpace {
 
 using namespace std;
 using std::vector;
 using std::map;
-
-using NodeSpace::NodeList;
-using FieldSpace::FieldBase;
-using FieldSpace::Field;
-using FieldSpace::FieldList;
-using DataBaseSpace::DataBase;
-using FileIOSpace::FileIO;
 
 namespace {
 
@@ -587,5 +579,3 @@ restoreState(const FileIO& file, string pathName)  {
 }
 
 }
-}
-

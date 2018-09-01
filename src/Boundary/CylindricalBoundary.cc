@@ -13,20 +13,11 @@
 #include "CylindricalBoundary.hh"
 
 namespace Spheral {
-namespace BoundarySpace {
 
 using namespace std;
 using std::max;
 using std::min;
 using std::abs;
-
-using NodeSpace::FluidNodeList;
-using FileIOSpace::FileIO;
-using NodeSpace::NodeList;
-using FieldSpace::Field;
-using FieldSpace::FieldList;
-using DataBaseSpace::DataBase;
-using Geometry::innerProduct;
 
 //------------------------------------------------------------------------------
 // Construct against the given DataBase.
@@ -577,5 +568,4 @@ restoreState(const FileIO& file, const string& pathName) {
   file.read(mGhostPositions, pathName + "/ghostPositions");
 }
 
-}
 }

@@ -4,11 +4,8 @@
 #include "Utilities/DBC.hh"
 
 namespace Spheral {
-namespace BoundarySpace {
 
 using std::vector;
-using Spheral::NodeSpace::FluidNodeList;
-
 
 //------------------------------------------------------------------------------
 PlanarSymmetryBoundary::
@@ -258,6 +255,3 @@ enforceBoundary(Field<Dim<3>, Dim<3>::SymTensor>& field) const {
 
 
 }
-}
-
-

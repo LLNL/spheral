@@ -13,16 +13,9 @@
 #include <limits>
 
 namespace Spheral {
-namespace BoundarySpace {
 
 using namespace std;
 using std::vector;
-
-using NodeSpace::NodeList;
-using FieldSpace::FieldBase;
-using FieldSpace::Field;
-using FieldSpace::FieldList;
-using DataBaseSpace::DataBase;
 
 //------------------------------------------------------------------------------
 // Constructor.
@@ -306,5 +299,3 @@ enforceBoundary(Field<Dimension, typename Dimension::ThirdRankTensor>& field) co
 }
 
 }
-}
-

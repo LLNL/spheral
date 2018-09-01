@@ -15,13 +15,6 @@
 using namespace std;
 
 namespace Spheral {
-namespace BoundarySpace {
-
-using NodeSpace::NodeList;
-using FieldSpace::Field;
-using FieldSpace::FieldList;
-using DataBaseSpace::DataBase;
-using MeshSpace::Mesh;
 
 //------------------------------------------------------------------------------
 // Constructor.
@@ -118,5 +111,4 @@ void AxisBoundaryRZ::etamin(const double x) {
   mEtaMin = x;
 }
 
-}
 }

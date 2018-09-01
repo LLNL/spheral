@@ -12,23 +12,12 @@
 #include "Boundary.hh"
 
 namespace Spheral {
-  namespace NodeSpace {
-    template<typename Dimension> class NodeList;
-  }
-  namespace FieldSpace {
-    template<typename Dimension, typename DataType> class Field;
-    template<typename Dimension, typename DataType> class FieldList;
-  }
-  namespace DataBaseSpace {
-    template<typename Dimension> class DataBase;
-  }
-  namespace MeshSpace {
-    template<typename Dimension> class Mesh;
-  }
-}
 
-namespace Spheral {
-namespace BoundarySpace {
+template<typename Dimension> class NodeList;
+template<typename Dimension, typename DataType> class Field;
+template<typename Dimension, typename DataType> class FieldList;
+template<typename Dimension> class DataBase;
+template<typename Dimension> class Mesh;
 
 template<typename Dimension>
 class CRKSPHVoidBoundary : public Boundary<Dimension> {
@@ -86,15 +75,12 @@ private:
 };
 
 }
-}
 
 #else
 
 namespace Spheral {
-  namespace BoundarySpace {
-    // Forward declaration.
-    template<typename Dimension> class CRKSPHVoidBoundary;
-  }
+  // Forward declaration.
+  template<typename Dimension> class CRKSPHVoidBoundary;
 }
 
 #endif

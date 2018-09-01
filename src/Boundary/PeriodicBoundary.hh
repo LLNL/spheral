@@ -11,7 +11,6 @@
 #include "PlanarBoundary.hh"
 
 namespace Spheral {
-namespace BoundarySpace {
 
 class PeriodicPlanarBoundary;
 
@@ -88,15 +87,12 @@ private:
 };
 
 }
-}
 
 #else
 
 // Forward declaration.
 namespace Spheral {
-  namespace BoundarySpace {
-    template<typename Dimension> class PeriodicBoundary;
-  }
+  template<typename Dimension> class PeriodicBoundary;
 }
 
 #endif

@@ -16,12 +16,6 @@ using namespace std;
 #include "Utilities/DBC.hh"
 
 namespace Spheral {
-namespace BoundarySpace {
-
-using NodeSpace::NodeList;
-using FieldSpace::Field;
-using FieldSpace::FieldList;
-using DataBaseSpace::DataBase;
 
 //------------------------------------------------------------------------------
 // Empty constructor.
@@ -339,5 +333,4 @@ Boundary<Dimension>::
 clip(typename Dimension::Vector& xmin, typename Dimension::Vector& xmax) const {
 }
 
-}
 }

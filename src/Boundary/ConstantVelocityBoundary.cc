@@ -11,14 +11,8 @@
 #include "ConstantVelocityBoundary.hh"
 
 namespace Spheral {
-namespace BoundarySpace {
 
 using namespace std;
-
-using NodeSpace::NodeList;
-using FieldSpace::Field;
-using FieldSpace::FieldList;
-using FileIOSpace::FileIO;
 
 //------------------------------------------------------------------------------
 // Construct with the given set of nodes.
@@ -247,5 +241,4 @@ restoreState(const FileIO& file, const string& pathName) {
 
 }
 
-}
 }

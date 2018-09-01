@@ -12,7 +12,6 @@
 #include "PlanarBoundary.hh"
 
 namespace Spheral {
-namespace BoundarySpace {
 
 template<typename Dimension>
 class ReflectingBoundary: public PlanarBoundary<Dimension> {
@@ -79,19 +78,14 @@ private:
 };
 
 }
-}
 
-#ifndef __GCCXML__
 #include "ReflectingBoundaryInline.hh"
-#endif
 
 #else
 
 // Forward declaration.
 namespace Spheral {
-  namespace BoundarySpace {
-    template<typename Dimension> class ReflectingBoundary;
-  }
+  template<typename Dimension> class ReflectingBoundary;
 }
 
 #endif

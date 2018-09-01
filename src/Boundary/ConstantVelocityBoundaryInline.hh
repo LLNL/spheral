@@ -1,5 +1,4 @@
 namespace Spheral {
-namespace BoundarySpace {
 
 //------------------------------------------------------------------------------
 // Return the NodeList we're using.
@@ -42,5 +41,4 @@ velocityCondition() const {
   return result;
 }
 
-}
 }

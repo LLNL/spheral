@@ -15,21 +15,13 @@
 #include "DataBase/StateBase.hh" // For constructing Field keys.
 
 namespace Spheral {
-  namespace NodeSpace {
-    template<typename Dimension> class NodeList;
-  }
-  namespace FieldSpace {
-    template<typename Dimension> class FieldBase;
-    template<typename Dimension, typename DataType> class Field;
-    template<typename Dimension, typename DataType> class FieldList;
-  }
-  namespace DataBaseSpace {
-    template<typename Dimension> class DataBase;
-  }
-}
 
-namespace Spheral {
-namespace BoundarySpace {
+// Forward declarations.
+template<typename Dimension> class NodeList;
+template<typename Dimension> class FieldBase;
+template<typename Dimension, typename DataType> class Field;
+template<typename Dimension, typename DataType> class FieldList;
+template<typename Dimension> class DataBase;
 
 template<typename Dimension>
 class ConstantBoundary: public Boundary<Dimension> {
@@ -140,7 +132,6 @@ private:
 };
 
 }
-}
 
 #include "ConstantBoundaryInline.hh"
 
@@ -148,9 +139,7 @@ private:
 
 // Forward declaration.
 namespace Spheral {
-  namespace ConstantBoundarySpace {
-    template<typename Dimension> class ConstantBoundary;
-  }
+  template<typename Dimension> class ConstantBoundary;
 }
 
 #endif

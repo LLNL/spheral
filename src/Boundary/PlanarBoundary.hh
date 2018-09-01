@@ -9,27 +9,17 @@
 #ifndef PlanarBoundary_HH
 #define PlanarBoundary_HH
 
-#include <string>
-
-#ifndef __GCCXML__
-#include <vector>
 #include "DataOutput/registerWithRestart.hh"
-#else
-#include "fakestl.hh"
-#endif
-
 #include "Boundary.hh"
 #include "Geometry/GeomPlane.hh"
 
-namespace Spheral {
-  template<typename Dimension> class GeomPlane;
-  namespace FileIOSpace {
-    class FileIO;
-  }
-}
+#include <vector>
+#include <string>
 
 namespace Spheral {
-namespace BoundarySpace {
+
+template<typename Dimension> class GeomPlane;
+class FileIO;
 
 template<typename Dimension>
 class PlanarBoundary: public Boundary<Dimension> {
@@ -72,8 +62,8 @@ public:
   // Function to map positions through the two planes (from the enter 
   // through the exit plane).
   Vector mapPosition(const Vector& position,
-		     const GeomPlane<Dimension>& enterPlane,
-		     const GeomPlane<Dimension>& exitPlane) const;
+                     const GeomPlane<Dimension>& enterPlane,
+                     const GeomPlane<Dimension>& exitPlane) const;
 
   // Determine if the boundary is in a "valid", ready to use state.
   virtual bool valid() const;
@@ -98,10 +88,8 @@ private:
   GeomPlane<Dimension> mEnterPlane;
   GeomPlane<Dimension> mExitPlane;
 
-#ifndef __GCCXML__
   // The restart registration.
   DataOutput::RestartRegistrationType mRestart;
-#endif
 
   // Method to set the ghost node indices for a given NodeList once the
   // master nodes are set.
@@ -109,19 +97,14 @@ private:
 };
 
 }
-}
 
-#ifndef __GCCXML__
 #include "PlanarBoundaryInline.hh"
-#endif
 
 #else
 
 namespace Spheral {
-  namespace BoundarySpace {
-    // Forward declaration.
-    template<typename Dimension> class PlanarBoundary;
-  }
+  // Forward declaration.
+  template<typename Dimension> class PlanarBoundary;
 }
 
 #endif

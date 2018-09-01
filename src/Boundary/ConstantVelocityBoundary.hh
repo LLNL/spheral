@@ -10,33 +10,18 @@
 #ifndef ConstantVelocityBoundary_HH
 #define ConstantVelocityBoundary_HH
 
-#ifndef __GCCXML__
-#include <vector>
-#else
-#include "fakestl.hh"
-#endif
-
 #include "Boundary.hh"
 #include "DataOutput/registerWithRestart.hh"
 
-namespace Spheral {
-  namespace NodeSpace {
-    template<typename Dimension> class NodeList;
-  }
-  namespace FieldSpace {
-    template<typename Dimension, typename DataType> class Field;
-    template<typename Dimension, typename DataType> class FieldList;
-  }
-  namespace DataBaseSpace {
-    template<typename Dimension> class DataBase;
-  }
-  namespace FileIOSpace {
-    class FileIO;
-  }
-}
+#include <vector>
 
 namespace Spheral {
-namespace BoundarySpace {
+
+template<typename Dimension> class NodeList;
+template<typename Dimension, typename DataType> class Field;
+template<typename Dimension, typename DataType> class FieldList;
+template<typename Dimension> class DataBase;
+class FileIO;
 
 template<typename Dimension>
 class ConstantVelocityBoundary: public Boundary<Dimension> {
@@ -106,30 +91,23 @@ protected:
 
 private:
   //--------------------------- Private Interface ---------------------------//
-#ifndef __GCCXML__
   const NodeSpace::NodeList<Dimension>* mNodeListPtr;
   FieldSpace::Field<Dimension, int> mNodes;
   FieldSpace::Field<Dimension, Vector> mVelocity;
 
   // The restart registration.
   DataOutput::RestartRegistrationType mRestart;
-#endif
 };
 
 }
-}
 
-#ifndef __GCCXML__
 #include "ConstantVelocityBoundaryInline.hh"
-#endif
 
 #else
 
 // Forward declaration.
 namespace Spheral {
-  namespace BoundarySpace {
-    template<typename Dimension> class ConstantVelocityBoundary;
-  }
+  template<typename Dimension> class ConstantVelocityBoundary;
 }
 
 #endif

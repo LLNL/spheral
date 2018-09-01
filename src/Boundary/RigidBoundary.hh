@@ -13,7 +13,6 @@
 #include "PlanarBoundary.hh"
 
 namespace Spheral {
-namespace BoundarySpace {
 
 template<typename Dimension>
 class RigidBoundary: public PlanarBoundary<Dimension> {
@@ -66,19 +65,14 @@ private:
 };
 
 }
-}
 
-#ifndef __GCCXML__
 #include "RigidBoundaryInline.hh"
-#endif
 
 #else
 
 // Forward declaration.
 namespace Spheral {
-  namespace BoundarySpace {
-    template<typename Dimension> class RigidBoundary;
-  }
+  template<typename Dimension> class RigidBoundary;
 }
 
 #endif
