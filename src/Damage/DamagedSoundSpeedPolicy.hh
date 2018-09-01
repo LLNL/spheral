@@ -7,21 +7,17 @@
 #ifndef __Spheral_DamagedSoundSpeedPolicy_hh__
 #define __Spheral_DamagedSoundSpeedPolicy_hh__
 
-#include <string>
-
 #include "Hydro/SoundSpeedPolicy.hh"
+
+#include <string>
 
 namespace Spheral {
 
 // Forward declarations.
 template<typename Dimension> class State;
 template<typename Dimension> class StateDerivatives;
-namespace NodeSpace {
-  template<typename Dimension> class FluidNodeList;
-}
-namespace FieldSpace {
-  template<typename Dimension, typename DataType> class Field;
-}
+template<typename Dimension> class FluidNodeList;
+template<typename Dimension, typename DataType> class Field;
 
 template<typename Dimension>
 class DamagedSoundSpeedPolicy: public SoundSpeedPolicy<Dimension> {

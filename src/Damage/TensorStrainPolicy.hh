@@ -7,22 +7,18 @@
 #ifndef __Spheral_TensorStrainPolicy_hh__
 #define __Spheral_TensorStrainPolicy_hh__
 
-#include <string>
-
 #include "DataBase/UpdatePolicyBase.hh"
 #include "TensorDamageModel.hh"
+
+#include <string>
 
 namespace Spheral {
 
 // Forward declarations.
 template<typename Dimension> class State;
 template<typename Dimension> class StateDerivatives;
-namespace NodeSpace {
-  template<typename Dimension> class FluidNodeList;
-}
-namespace FieldSpace {
-  template<typename Dimension, typename DataType> class Field;
-}
+template<typename Dimension> class FluidNodeList;
+template<typename Dimension, typename DataType> class Field;
 
 template<typename Dimension>
 class TensorStrainPolicy: 
@@ -36,10 +32,10 @@ public:
   typedef typename Dimension::SymTensor SymTensor;
   typedef typename UpdatePolicyBase<Dimension>::KeyType KeyType;
 
-  typedef typename PhysicsSpace::TensorStrainAlgorithm TensorStrainAlgorithm;
+  typedef typename TensorStrainAlgorithm TensorStrainAlgorithm;
 
   // Constructors, destructor.
-  TensorStrainPolicy(const PhysicsSpace::TensorStrainAlgorithm strainType);
+  TensorStrainPolicy(const TensorStrainAlgorithm strainType);
   virtual ~TensorStrainPolicy();
   
   // Overload the methods describing how to update Fields.
@@ -55,7 +51,7 @@ public:
 
 private:
   //--------------------------- Private Interface ---------------------------//
-  PhysicsSpace::TensorStrainAlgorithm mStrainType;
+  TensorStrainAlgorithm mStrainType;
   TensorStrainPolicy(const TensorStrainPolicy& rhs);
   TensorStrainPolicy& operator=(const TensorStrainPolicy& rhs);
 };

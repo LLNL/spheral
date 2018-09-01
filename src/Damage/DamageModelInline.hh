@@ -1,7 +1,6 @@
 #include "Kernel/TableKernel.hh"
 
 namespace Spheral {
-namespace PhysicsSpace {
 
 //------------------------------------------------------------------------------
 // The effective critical number of nodes per smoothing scale, below which we
@@ -133,5 +132,4 @@ effectiveFlaws() const {
   return mEffectiveFlaws;
 }
 
-}
 }

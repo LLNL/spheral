@@ -25,21 +25,8 @@
 #include <algorithm>
 
 namespace Spheral {
-namespace PhysicsSpace {
 
 using namespace std;
-
-using NodeSpace::NodeList;
-using NodeSpace::SolidNodeList;
-using Material::EquationOfState;
-using FileIOSpace::FileIO;
-using DataBaseSpace::DataBase;
-using FieldSpace::Field;
-using FieldSpace::FieldList;
-using BoundarySpace::Boundary;
-using NeighborSpace::ConnectivityMap;
-using KernelSpace::TableKernel;
-using NeighborSpace::Neighbor;
 
 //------------------------------------------------------------------------------
 // Constructor.
@@ -47,15 +34,15 @@ using NeighborSpace::Neighbor;
 template<typename Dimension>
 JohnsonCookDamage<Dimension>::
 JohnsonCookDamage(SolidNodeList<Dimension>& nodeList,
-                      const FieldSpace::Field<Dimension, Scalar>& D1,
-                      const FieldSpace::Field<Dimension, Scalar>& D2,
-                      const double D3,
-                      const double D4,
-                      const double D5,
-                      const double epsilondot0,
-                      const double Tcrit,
-                      const double sigmamax,
-                      const double efailmin):
+                  const Field<Dimension, Scalar>& D1,
+                  const Field<Dimension, Scalar>& D2,
+                  const double D3,
+                  const double D4,
+                  const double D5,
+                  const double epsilondot0,
+                  const double Tcrit,
+                  const double sigmamax,
+                  const double efailmin):
   mNodeList(nodeList),
   mD1("D1_" + nodeList.name(), D1),
   mD2("D2_" + nodeList.name(), D2),
@@ -88,7 +75,7 @@ void
 JohnsonCookDamage<Dimension>::
 evaluateDerivatives(const Scalar time,
                     const Scalar dt,
-                    const DataBaseSpace::DataBase<Dimension>& dataBase,
+                    const DataBase<Dimension>& dataBase,
                     const State<Dimension>& state,
                     StateDerivatives<Dimension>& derivs) const {
 
@@ -104,7 +91,7 @@ evaluateDerivatives(const Scalar time,
 template<typename Dimension>
 typename JohnsonCookDamage<Dimension>::TimeStepType
 JohnsonCookDamage<Dimension>::
-dt(const DataBaseSpace::DataBase<Dimension>& dataBase, 
+dt(const DataBase<Dimension>& dataBase, 
    const State<Dimension>& state,
    const StateDerivatives<Dimension>& derivs,
    const Scalar currentTime) const {
@@ -243,5 +230,4 @@ restoreState(const FileIO& file, const string& pathName0) {
   file.read(mMeltSpecificEnergy, pathName + "/meltSpecificEnergy");
 }
 
-}
 }

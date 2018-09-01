@@ -1,46 +1,45 @@
 namespace Spheral {
-namespace PhysicsSpace {
 
 //------------------------------------------------------------------------------
 // Access the attributes
 //------------------------------------------------------------------------------
 template<typename Dimension>
-const NodeSpace::SolidNodeList<Dimension>&
+const SolidNodeList<Dimension>&
 JohnsonCookDamage<Dimension>::
 nodeList() const {
   return mNodeList;
 }
 
 template<typename Dimension>
-const FieldSpace::Field<Dimension, typename Dimension::Scalar>&
+const Field<Dimension, typename Dimension::Scalar>&
 JohnsonCookDamage<Dimension>::
 failureStrain() const {
   return mFailureStrain;
 }
 
 template<typename Dimension>
-const FieldSpace::Field<Dimension, typename Dimension::Scalar>&
+const Field<Dimension, typename Dimension::Scalar>&
 JohnsonCookDamage<Dimension>::
 meltSpecificEnergy() const {
   return mMeltSpecificEnergy;
 }
 
 template<typename Dimension>
-const FieldSpace::Field<Dimension, typename Dimension::SymTensor>&
+const Field<Dimension, typename Dimension::SymTensor>&
 JohnsonCookDamage<Dimension>::
 newEffectiveDamage() const {
   return mNewEffectiveDamage;
 }
 
 template<typename Dimension>
-const FieldSpace::Field<Dimension, typename Dimension::Scalar>&
+const Field<Dimension, typename Dimension::Scalar>&
 JohnsonCookDamage<Dimension>::
 D1() const {
   return mD1;
 }
 
 template<typename Dimension>
-const FieldSpace::Field<Dimension, typename Dimension::Scalar>&
+const Field<Dimension, typename Dimension::Scalar>&
 JohnsonCookDamage<Dimension>::
 D2() const {
   return mD2;
@@ -95,5 +94,4 @@ efailmin() const {
   return mefailmin;
 }
 
-}
 }

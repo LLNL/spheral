@@ -5,8 +5,6 @@
 //
 // Created by JMO, Sun Oct 10 17:22:05 PDT 2004
 //----------------------------------------------------------------------------//
-#include <string>
-
 #include "ScalarDamageModel.hh"
 #include "SolidFieldNames.hh"
 #include "NodeList/SolidNodeList.hh"
@@ -20,20 +18,11 @@
 #include "FileIO/FileIO.hh"
 #include "Field/FieldList.hh"
 
-#include "boost/shared_ptr.hpp"
+#include <string>
 
 namespace Spheral {
-namespace PhysicsSpace {
 
 using namespace std;
-
-using NodeSpace::FluidNodeList;
-using NodeSpace::SolidNodeList;
-using Material::EquationOfState;
-using FileIOSpace::FileIO;
-using DataBaseSpace::DataBase;
-using FieldSpace::Field;
-using FieldSpace::FieldList;
 
 //------------------------------------------------------------------------------
 // Constructor.
@@ -558,14 +547,13 @@ restoreState(const FileIO& file, const string& pathName) {
 }
 
 }
-}
 
 //------------------------------------------------------------------------------
 // Instantiations.
 //------------------------------------------------------------------------------
 #include "Geometry/Dimension.hh"
 namespace Spheral {
-  template class PhysicsSpace::ScalarDamageModel<Dim<1> >;
-  template class PhysicsSpace::ScalarDamageModel<Dim<2> >;
-  template class PhysicsSpace::ScalarDamageModel<Dim<3> >;
+  template class ScalarDamageModel<Dim<1> >;
+  template class ScalarDamageModel<Dim<2> >;
+  template class ScalarDamageModel<Dim<3> >;
 }

@@ -15,19 +15,12 @@
 
 // Forward declarations.
 namespace Spheral {
-  namespace NodeSpace {
-    template<typename Dimension> class SolidNodeList;
-  }
-  namespace DataBaseSpace {
-    template<typename Dimension> class DataBase;
-  }
-  namespace KernelSpace {
-    template<typename Dimension> class TableKernel;
-  }
+  template<typename Dimension> class SolidNodeList;
+  template<typename Dimension> class DataBase;
+  template<typename Dimension> class TableKernel;
 }
 
 namespace Spheral {
-namespace PhysicsSpace {
 
 template<typename Dimension>
 class GradyKippScalarDamage: 
@@ -80,22 +73,16 @@ private:
   GradyKippScalarDamage(const GradyKippScalarDamage&);
   GradyKippScalarDamage& operator=(const GradyKippScalarDamage&);
 
-#ifndef __GCCXML__
   using ScalarDamageModel<Dimension>::mFlaws;
-#endif
-
 };
 
-}
 }
 
 #else
 
 // Forward declaration.
 namespace Spheral {
-  namespace PhysicsSpace {
-    template<typename Dimension> class GradyKippScalarDamage;
-  }
+  template<typename Dimension> class GradyKippScalarDamage;
 }
 
 #endif

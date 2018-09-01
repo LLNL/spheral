@@ -29,20 +29,8 @@
 #include <vector>
 
 namespace Spheral {
-namespace PhysicsSpace {
 
 using namespace std;
-
-using NodeSpace::SolidNodeList;
-using Material::EquationOfState;
-using FileIOSpace::FileIO;
-using DataBaseSpace::DataBase;
-using FieldSpace::Field;
-using FieldSpace::FieldList;
-using BoundarySpace::Boundary;
-using KernelSpace::TableKernel;
-using NeighborSpace::ConnectivityMap;
-using NodeSpace::NodeList;
 
 //------------------------------------------------------------------------------
 // Constructor.
@@ -268,7 +256,7 @@ void
 DamageModel<Dimension>::
 postStateUpdate(const Scalar time, 
                 const Scalar dt,
-                const DataBaseSpace::DataBase<Dimension>& dataBase, 
+                const DataBase<Dimension>& dataBase, 
                 State<Dimension>& state,
                 StateDerivatives<Dimension>& derivatives) {
 
@@ -446,6 +434,5 @@ restoreState(const FileIO& file, const string& pathName) {
   file.read(mExcludeNode, pathName + "/excludeNode");
 }
 
-}
 }
 

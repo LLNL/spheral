@@ -8,39 +8,24 @@
 #ifndef __Spheral_DamageModel_hh__
 #define __Spheral_DamageModel_hh__
 
-#ifndef __GCCXML__
-#include <vector>
-#else
-#include "fakestl.hh"
-#endif
-
 #include "Physics/Physics.hh"
 #include "DataOutput/registerWithRestart.hh"
+
+#include <vector>
 
 // Forward declarations.
 namespace Spheral {
   template<typename Dimension> class State;
   template<typename Dimension> class StateDerivatives;
-  namespace NodeSpace {
-    template<typename Dimension> class SolidNodeList;
-  }
-  namespace DataBaseSpace {
-    template<typename Dimension> class DataBase;
-  }
-  namespace FieldSpace {
-    template<typename Dimension, typename DataType> class Field;
-    template<typename Dimension, typename DataType> class FieldList;
-  }
-  namespace KernelSpace {
-    template<typename Dimension> class TableKernel;
-  }
-  namespace FileIOSpace {
-    class FileIO;
-  }
+  template<typename Dimension> class SolidNodeList;
+  template<typename Dimension> class DataBase;
+  template<typename Dimension, typename DataType> class Field;
+  template<typename Dimension, typename DataType> class FieldList;
+  template<typename Dimension> class TableKernel;
+  class FileIO;
 }
 
 namespace Spheral {
-namespace PhysicsSpace {
 
 enum class EffectiveFlawAlgorithm {
   FullSpectrumFlaws = 0,
@@ -152,14 +137,11 @@ public:
 
 protected:
   //-------------------------- Protected Interface --------------------------//
-#ifndef __GCCXML__
   FlawStorageType mFlaws;
   FieldSpace::Field<Dimension, Scalar> mEffectiveFlaws;
-#endif
 
 private:
   //--------------------------- Private Interface ---------------------------//
-#ifndef __GCCXML__
   NodeSpace::SolidNodeList<Dimension>& mNodeList;
   const KernelSpace::TableKernel<Dimension>& mW;
   double mCrackGrowthMultiplier;
@@ -174,7 +156,6 @@ private:
 
   // The restart registration.
   DataOutput::RestartRegistrationType mRestart;
-#endif
 
   // No default constructor, copying or assignment.
   DamageModel();
@@ -183,19 +164,14 @@ private:
 };
 
 }
-}
 
-#ifndef __GCCXML__
 #include "DamageModelInline.hh"
-#endif
 
 #else
 
 // Forward declaration.
 namespace Spheral {
-  namespace PhysicsSpace {
-    template<typename Dimension> class DamageModel;
-  }
+  template<typename Dimension> class DamageModel;
 }
 
 #endif

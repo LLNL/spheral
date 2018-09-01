@@ -22,13 +22,8 @@
 #include <boost/random/uniform_01.hpp>
 
 namespace Spheral {
-namespace PhysicsSpace {
 
 using namespace std;
-using FieldSpace::Field;
-using FieldSpace::FieldList;
-using NodeSpace::FluidNodeList;
-using DataBaseSpace::DataBase;
 using boost::unordered_map;
 
 //------------------------------------------------------------------------------

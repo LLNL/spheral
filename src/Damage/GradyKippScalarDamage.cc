@@ -28,15 +28,8 @@
 #include "FileIO/FileIO.hh"
 
 namespace Spheral {
-namespace PhysicsSpace {
 
 using namespace std;
-using namespace Spheral::FieldSpace;
-using NodeSpace::FluidNodeList;
-using NodeSpace::SolidNodeList;
-using Material::EquationOfState;
-using FileIOSpace::FileIO;
-using KernelSpace::TableKernel;
 
 //------------------------------------------------------------------------------
 // Constructor.
@@ -137,14 +130,13 @@ restoreState(const FileIO& file, const string& pathName) {
 }
 
 }
-}
 
 //------------------------------------------------------------------------------
 // Instantiations.
 //------------------------------------------------------------------------------
 #include "Geometry/Dimension.hh"
 namespace Spheral {
-  template class PhysicsSpace::GradyKippScalarDamage<Dim<1> >;
-  template class PhysicsSpace::GradyKippScalarDamage<Dim<2> >;
-  template class PhysicsSpace::GradyKippScalarDamage<Dim<3> >;
+  template class GradyKippScalarDamage<Dim<1> >;
+  template class GradyKippScalarDamage<Dim<2> >;
+  template class GradyKippScalarDamage<Dim<3> >;
 }

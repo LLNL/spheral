@@ -1,25 +1,24 @@
 namespace Spheral {
-namespace PhysicsSpace {
 
 //------------------------------------------------------------------------------
 // Access the state fields.
 //------------------------------------------------------------------------------
 template<typename Dimension>
-const FieldSpace::Field<Dimension, typename Dimension::SymTensor>&
+const Field<Dimension, typename Dimension::SymTensor>&
 TensorDamageModel<Dimension>::
 strain() const {
   return mStrain;
 }
 
 template<typename Dimension>
-const FieldSpace::Field<Dimension, typename Dimension::SymTensor>&
+const Field<Dimension, typename Dimension::SymTensor>&
 TensorDamageModel<Dimension>::
 effectiveStrain() const {
   return mEffectiveStrain;
 }
 
 template<typename Dimension>
-const FieldSpace::Field<Dimension, typename Dimension::Scalar>&
+const Field<Dimension, typename Dimension::Scalar>&
 TensorDamageModel<Dimension>::
 DdamageDt() const {
   return mDdamageDt;
@@ -27,7 +26,7 @@ DdamageDt() const {
 
 template<typename Dimension>
 inline
-const FieldSpace::Field<Dimension, typename Dimension::SymTensor>&
+const Field<Dimension, typename Dimension::SymTensor>&
 TensorDamageModel<Dimension>::
 newEffectiveDamage() const {
   return mNewEffectiveDamage;
@@ -35,7 +34,7 @@ newEffectiveDamage() const {
 
 template<typename Dimension>
 inline
-const FieldSpace::Field<Dimension, typename Dimension::Vector>&
+const Field<Dimension, typename Dimension::Vector>&
 TensorDamageModel<Dimension>::
 newDamageGradient() const {
   return mNewDamageGradient;
@@ -122,5 +121,4 @@ criticalDamageThreshold(const double x) {
   mCriticalDamageThreshold = x;
 }
 
-}
 }
