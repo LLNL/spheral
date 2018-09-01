@@ -7,29 +7,18 @@
 #ifndef __Spheral_PhysicsSpace_ConstantAcceleration__
 #define __Spheral_PhysicsSpace_ConstantAcceleration__
 
-#ifndef __GCCXML__
-#include <vector>
-#else
-#include "fakestl.hh"
-#endif
-
 #include "Physics/GenericBodyForce.hh"
 #include "Field/Field.hh"
 
-// Forward declarations.
-namespace Spheral {
-  template<typename Dimension> class State;
-  template<typename Dimension> class StateDerivatives;
-  namespace NodeSpace {
-    template<typename Dimension> class NodeList;
-  }
-  namespace DataBaseSpace {
-    template<typename Dimension> class DataBase;
-  }
-}
+#include <vector>
 
 namespace Spheral {
-namespace PhysicsSpace {
+
+// Forward declarations.
+template<typename Dimension> class State;
+template<typename Dimension> class StateDerivatives;
+template<typename Dimension> class NodeList;
+template<typename Dimension> class DataBase;
 
 template<typename Dimension>
 class ConstantAcceleration: public GenericBodyForce<Dimension> {
@@ -91,19 +80,14 @@ private:
 };
 
 }
-}
 
-#ifndef __GCCXML__
 #include "ConstantAccelerationInline.hh"
-#endif
 
 #else
 
 // Forward declaration.
 namespace Spheral {
-  namespace PhysicsSpace {
-    template<typename Dimension> class ConstantAcceleration;
-  }
+  template<typename Dimension> class ConstantAcceleration;
 }
 
 #endif

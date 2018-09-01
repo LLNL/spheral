@@ -8,20 +8,13 @@
 
 #include "Physics/GenericBodyForce.hh"
 
-// Forward declarations.
 namespace Spheral {
-  template<typename Dimension> class State;
-  template<typename Dimension> class StateDerivatives;
-  namespace NodeSpace {
-    template<typename Dimension> class NodeList;
-  }
-  namespace DataBaseSpace {
-    template<typename Dimension> class DataBase;
-  }
-}
 
-namespace Spheral {
-namespace PhysicsSpace {
+// Forward declarations.
+template<typename Dimension> class State;
+template<typename Dimension> class StateDerivatives;
+template<typename Dimension> class NodeList;
+template<typename Dimension> class DataBase;
 
 template<typename Dimension>
 class PointPotential: public GenericBodyForce<Dimension> {
@@ -101,19 +94,14 @@ private:
 };
 
 }
-}
 
-#ifndef __GCCXML__
 #include "PointPotentialInline.hh"
-#endif
 
 #else
 
 // Forward declaration.
 namespace Spheral {
-  namespace PhysicsSpace {
-    template<typename Dimension> class PointPotential;
-  }
+  template<typename Dimension> class PointPotential;
 }
 
 #endif

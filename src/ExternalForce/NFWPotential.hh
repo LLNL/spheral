@@ -25,23 +25,14 @@
 #include "Physics/GenericBodyForce.hh"
 #include "Material/PhysicalConstants.hh"
 
-// Forward declarations.
 namespace Spheral {
-  template<typename Dimension> class State;
-  template<typename Dimension> class StateDerivatives;
-  namespace NodeSpace {
-    template<typename Dimension> class NodeList;
-  }
-  namespace DataBaseSpace {
-    template<typename Dimension> class DataBase;
-  }
-  namespace Material {
-    class PhysicalConstants;
-  }
-}
 
-namespace Spheral {
-namespace PhysicsSpace {
+// Forward declarations.
+template<typename Dimension> class State;
+template<typename Dimension> class StateDerivatives;
+template<typename Dimension> class NodeList;
+template<typename Dimension> class DataBase;
+class PhysicalConstants;
 
 template<typename Dimension>
 class NFWPotential: public GenericBodyForce<Dimension> {
@@ -140,19 +131,14 @@ private:
 };
 
 }
-}
 
-#ifndef __GCCXML__
 #include "NFWPotentialInline.hh"
-#endif
 
 #else
 
 // Forward declaration.
 namespace Spheral {
-  namespace PhysicsSpace {
-    template<typename Dimension> class NFWPotential;
-  }
+  template<typename Dimension> class NFWPotential;
 }
 
 #endif

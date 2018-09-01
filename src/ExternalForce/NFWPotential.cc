@@ -28,12 +28,8 @@
 #include "Utilities/DBC.hh"
 
 namespace Spheral {
-namespace PhysicsSpace {
 
 using namespace std;
-using DataBaseSpace::DataBase;
-using FieldSpace::FieldList;
-using FieldSpace::Field;
 
 //------------------------------------------------------------------------------
 // Constructor.
@@ -161,5 +157,3 @@ dt(const DataBase<Dimension>& dataBase,
 }
 
 }
-}
-
