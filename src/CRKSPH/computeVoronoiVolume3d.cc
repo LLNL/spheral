@@ -20,7 +20,6 @@
 extern Timer TIME_computeVoronoiVolume3d;
 
 namespace Spheral {
-namespace CRKSPHSpace {
 
 using namespace std;
 using std::min;
@@ -28,12 +27,6 @@ using std::max;
 using std::abs;
 
 using namespace FastMath;
-
-using FieldSpace::Field;
-using FieldSpace::FieldList;
-using NodeSpace::NodeList;
-using NeighborSpace::Neighbor;
-using NeighborSpace::ConnectivityMap;
 
 namespace {  // anonymous namespace
 
@@ -427,5 +420,4 @@ computeVoronoiVolume(const FieldList<Dim<3>, Dim<3>::Vector>& position,
   TIME_computeVoronoiVolume3d.stop();
 }
     
-}
 }

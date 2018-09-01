@@ -67,28 +67,8 @@
 #include <vector>
 
 namespace Spheral {
-namespace CRKSPHSpace {
 
 using namespace std;
-using PhysicsSpace::Physics;
-using PhysicsSpace::GenericHydro;
-using NodeSpace::SmoothingScaleBase;
-using NodeSpace::NodeList;
-using NodeSpace::FluidNodeList;
-using FileIOSpace::FileIO;
-using ArtificialViscositySpace::ArtificialViscosity;
-using KernelSpace::TableKernel;
-using DataBaseSpace::DataBase;
-using FieldSpace::Field;
-using FieldSpace::FieldList;
-using NeighborSpace::ConnectivityMap;
-using Geometry::innerProduct;
-using Geometry::outerProduct;
-using BoundarySpace::Boundary;
-using BoundarySpace::CRKSPHVoidBoundary;
-
-using PhysicsSpace::MassDensityType;
-using PhysicsSpace::HEvolutionType;
 
 //------------------------------------------------------------------------------
 // Construct with the given artificial viscosity and kernels.
@@ -763,6 +743,5 @@ evaluateDerivatives(const typename Dimension::Scalar time,
   }
 }
 
-}
 }
 

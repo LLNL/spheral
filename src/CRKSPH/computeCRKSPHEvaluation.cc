@@ -13,7 +13,6 @@
 #include "Geometry/innerProduct.hh"
 
 namespace Spheral {
-namespace CRKSPHSpace {
 
 using namespace std;
 using std::min;
@@ -33,7 +32,7 @@ void
 computeCRKSPHEvaluation(const ConnectivityMap<Dimension>& connectivityMap,
                        const TableKernel<Dimension>& W,
                        const FieldList<Dimension, typename Dimension::Scalar>& weight,
- 	               const FieldList<Dimension, typename Dimension::Vector>& position,
+                       const FieldList<Dimension, typename Dimension::Vector>& position,
                        const FieldList<Dimension, typename Dimension::SymTensor>& H,
                        size_t nodeListi, const int i, typename Dimension::Vector reval,
                        const bool coupleNodeLists, typename Dimension::Scalar& WCRKSPH, typename Dimension::Vector& gradWCRKSPH){
@@ -204,5 +203,3 @@ computeCRKSPHEvaluation(const ConnectivityMap<Dimension>& connectivityMap,
 }
 
 }
-}
-

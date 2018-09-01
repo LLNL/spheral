@@ -11,27 +11,25 @@ text = """
 #endif
 
 namespace Spheral {
-  namespace CRKSPHSpace {
 
-    template void computeCRKSPHMoments(const ConnectivityMap< Dim< %(ndim)s > >& connectivityMap,
-                                       const TableKernel< Dim< %(ndim)s > >& W,
-                                       const FieldList< Dim< %(ndim)s >,  Dim< %(ndim)s >::Scalar>& weight,
-                                       const FieldList< Dim< %(ndim)s >,  Dim< %(ndim)s >::Vector>& position,
-                                       const FieldList< Dim< %(ndim)s >,  Dim< %(ndim)s >::SymTensor>& H,
-                                       const CRKOrder correctionOrder,
-                                       const NodeCoupling& nodeCoupling,
-                                       FieldList< Dim< %(ndim)s >,  Dim< %(ndim)s >::Scalar>& m0,
-                                       FieldList< Dim< %(ndim)s >,  Dim< %(ndim)s >::Vector>& m1,
-                                       FieldList< Dim< %(ndim)s >,  Dim< %(ndim)s >::SymTensor>& m2,
-                                       FieldList< Dim< %(ndim)s >,  Dim< %(ndim)s >::ThirdRankTensor>& m3,
-                                       FieldList< Dim< %(ndim)s >,  Dim< %(ndim)s >::FourthRankTensor>& m4,
-                                       FieldList< Dim< %(ndim)s >,  Dim< %(ndim)s >::Vector>& gradm0,
-                                       FieldList< Dim< %(ndim)s >,  Dim< %(ndim)s >::Tensor>& gradm1,
-                                       FieldList< Dim< %(ndim)s >,  Dim< %(ndim)s >::ThirdRankTensor>& gradm2,
-                                       FieldList< Dim< %(ndim)s >,  Dim< %(ndim)s >::FourthRankTensor>& gradm3,
-                                       FieldList< Dim< %(ndim)s >,  Dim< %(ndim)s >::FifthRankTensor>& gradm4);
+template void computeCRKSPHMoments(const ConnectivityMap< Dim< %(ndim)s > >& connectivityMap,
+                                   const TableKernel< Dim< %(ndim)s > >& W,
+                                   const FieldList< Dim< %(ndim)s >,  Dim< %(ndim)s >::Scalar>& weight,
+                                   const FieldList< Dim< %(ndim)s >,  Dim< %(ndim)s >::Vector>& position,
+                                   const FieldList< Dim< %(ndim)s >,  Dim< %(ndim)s >::SymTensor>& H,
+                                   const CRKOrder correctionOrder,
+                                   const NodeCoupling& nodeCoupling,
+                                   FieldList< Dim< %(ndim)s >,  Dim< %(ndim)s >::Scalar>& m0,
+                                   FieldList< Dim< %(ndim)s >,  Dim< %(ndim)s >::Vector>& m1,
+                                   FieldList< Dim< %(ndim)s >,  Dim< %(ndim)s >::SymTensor>& m2,
+                                   FieldList< Dim< %(ndim)s >,  Dim< %(ndim)s >::ThirdRankTensor>& m3,
+                                   FieldList< Dim< %(ndim)s >,  Dim< %(ndim)s >::FourthRankTensor>& m4,
+                                   FieldList< Dim< %(ndim)s >,  Dim< %(ndim)s >::Vector>& gradm0,
+                                   FieldList< Dim< %(ndim)s >,  Dim< %(ndim)s >::Tensor>& gradm1,
+                                   FieldList< Dim< %(ndim)s >,  Dim< %(ndim)s >::ThirdRankTensor>& gradm2,
+                                   FieldList< Dim< %(ndim)s >,  Dim< %(ndim)s >::FourthRankTensor>& gradm3,
+                                   FieldList< Dim< %(ndim)s >,  Dim< %(ndim)s >::FifthRankTensor>& gradm4);
 
-  }
 }
 
 """

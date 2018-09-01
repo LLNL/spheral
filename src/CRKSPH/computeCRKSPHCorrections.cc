@@ -18,7 +18,6 @@
 #include "Geometry/invertRankNTensor.hh"
 
 namespace Spheral {
-namespace CRKSPHSpace {
 
 using namespace std;
 using std::min;
@@ -681,5 +680,4 @@ computeCRKSPHCorrections(const FieldSpace::FieldList<Dimension, typename Dimensi
 }
 
 }//End Namespace
-}
 

@@ -8,14 +8,12 @@
 #include "Geometry/Dimension.hh"
 
 namespace Spheral {
-  namespace CRKSPHSpace {
-    Dim<1>::Vector centerOfMass(const Dim<1>::FacetedVolume& polyvol,
-                                const Dim<1>::Vector& gradRhoi);
-    Dim<2>::Vector centerOfMass(const Dim<2>::FacetedVolume& polyvol,
-                                const Dim<2>::Vector& gradRhoi);
-    Dim<3>::Vector centerOfMass(const Dim<3>::FacetedVolume& polyvol,
-                                const Dim<3>::Vector& gradRhoi);
-  }
+  Dim<1>::Vector centerOfMass(const Dim<1>::FacetedVolume& polyvol,
+                              const Dim<1>::Vector& gradRhoi);
+  Dim<2>::Vector centerOfMass(const Dim<2>::FacetedVolume& polyvol,
+                              const Dim<2>::Vector& gradRhoi);
+  Dim<3>::Vector centerOfMass(const Dim<3>::FacetedVolume& polyvol,
+                              const Dim<3>::Vector& gradRhoi);
 }
 
 #endif

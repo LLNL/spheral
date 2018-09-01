@@ -12,8 +12,6 @@ text = """
 #endif
 
 namespace Spheral {
-  namespace CRKSPHSpace {
-    template class SolidCRKSPHHydroBase< Dim< %(ndim)s > >;
-  }
+template class SolidCRKSPHHydroBase< Dim< %(ndim)s > >;
 }
 """

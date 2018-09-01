@@ -1,5 +1,4 @@
 namespace Spheral {
-namespace CRKSPHSpace {
 
 //------------------------------------------------------------------------------
 // Choose whether we want to sum for mass density, or integrate the continuity
@@ -574,5 +573,4 @@ voidBoundary() const {
   return mVoidBoundary;
 }
 
-}
 }

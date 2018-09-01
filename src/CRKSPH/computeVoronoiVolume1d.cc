@@ -11,15 +11,9 @@
 #include <limits>
 
 namespace Spheral {
-namespace CRKSPHSpace {
 
 using namespace std;
 using namespace FastMath;
-
-using FieldSpace::Field;
-using FieldSpace::FieldList;
-using NodeSpace::NodeList;
-using NeighborSpace::ConnectivityMap;
 
 //------------------------------------------------------------------------------
 // 1D
@@ -269,5 +263,4 @@ computeVoronoiVolume(const FieldSpace::FieldList<Dim<1>, Dim<1>::Vector>& positi
   }
 }
 
-}
 }

@@ -9,37 +9,22 @@
 #ifndef __Spheral_SolidCRKSPHHydroBaseRZ_hh__
 #define __Spheral_SolidCRKSPHHydroBaseRZ_hh__
 
+#include "CRKSPH/SolidCRKSPHHydroBase.hh"
+
 #include <float.h>
 #include <string>
 
-#include "CRKSPH/SolidCRKSPHHydroBase.hh"
-
 namespace Spheral {
-  template<typename Dimension> class State;
-  template<typename Dimension> class StateDerivatives;
-  namespace NodeSpace {
-    template<typename Dimension> class SmoothingScaleBase;
-  }
-  namespace ArtificialViscositySpace {
-    template<typename Dimension> class ArtificialViscosity;
-  }
-  namespace KernelSpace {
-    template<typename Dimension> class TableKernel;
-  }
-  namespace DataBaseSpace {
-    template<typename Dimension> class DataBase;
-  }
-  namespace FieldSpace {
-    template<typename Dimension, typename DataType> class Field;
-    template<typename Dimension, typename DataType> class FieldList;
-  }
-  namespace FileIOSpace {
-    class FileIO;
-  }
-}
 
-namespace Spheral {
-namespace CRKSPHSpace {
+template<typename Dimension> class State;
+template<typename Dimension> class StateDerivatives;
+template<typename Dimension> class SmoothingScaleBase;
+template<typename Dimension> class ArtificialViscosity;
+template<typename Dimension> class TableKernel;
+template<typename Dimension> class DataBase;
+template<typename Dimension, typename DataType> class Field;
+template<typename Dimension, typename DataType> class FieldList;
+class FileIO;
 
 class SolidCRKSPHHydroBaseRZ: public SolidCRKSPHHydroBase<Dim<2> > {
 
@@ -144,7 +129,6 @@ private:
 };
 
 }
-}
 
 #include "SolidCRKSPHHydroBaseRZInline.hh"
 
@@ -152,9 +136,7 @@ private:
 
 // Forward declaration.
 namespace Spheral {
-  namespace SolidCRKSPHSpace {
-    class SolidCRKSPHHydroBaseRZ;
-  }
+  class SolidCRKSPHHydroBaseRZ;
 }
 
 #endif

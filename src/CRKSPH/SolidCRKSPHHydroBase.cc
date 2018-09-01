@@ -53,7 +53,6 @@
 #include <vector>
 
 namespace Spheral {
-namespace CRKSPHSpace {
 
 using namespace std;
 using NodeSpace::SmoothingScaleBase;
@@ -389,6 +388,5 @@ restoreState(const FileIO& file, const string& pathName) {
   file.read(mFragIDs, pathName + "/fragIDs");
 }
 
-}
 }
 

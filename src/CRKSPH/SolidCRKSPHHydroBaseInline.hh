@@ -1,5 +1,4 @@
 namespace Spheral {
-namespace CRKSPHSpace {
 
 //------------------------------------------------------------------------------
 // Control whether allow damaged material to have stress relieved.
@@ -71,5 +70,4 @@ Hfield0() const {
   return mHfield0;
 }
 
-}
 }

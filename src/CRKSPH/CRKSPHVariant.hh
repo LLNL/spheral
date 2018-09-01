@@ -14,29 +14,16 @@
 namespace Spheral {
   template<typename Dimension> class State;
   template<typename Dimension> class StateDerivatives;
-  namespace NodeSpace {
-    template<typename Dimension> class SmoothingScaleBase;
-  }
-  namespace ArtificialViscositySpace {
-    template<typename Dimension> class ArtificialViscosity;
-  }
-  namespace KernelSpace {
-    template<typename Dimension> class TableKernel;
-  }
-  namespace DataBaseSpace {
-    template<typename Dimension> class DataBase;
-  }
-  namespace FieldSpace {
-    template<typename Dimension, typename DataType> class Field;
-    template<typename Dimension, typename DataType> class FieldList;
-  }
-  namespace FileIOSpace {
-    class FileIO;
-  }
+  template<typename Dimension> class SmoothingScaleBase;
+  template<typename Dimension> class ArtificialViscosity;
+  template<typename Dimension> class TableKernel;
+  template<typename Dimension> class DataBase;
+  template<typename Dimension, typename DataType> class Field;
+  template<typename Dimension, typename DataType> class FieldList;
+  class FileIO;
 }
 
 namespace Spheral {
-namespace CRKSPHSpace {
 
 template<typename Dimension>
 class CRKSPHVariant: public CRKSPHHydroBase<Dimension> {
@@ -106,15 +93,12 @@ private:
 };
 
 }
-}
 
 #else
 
 // Forward declaration.
 namespace Spheral {
-  namespace CRKSPHSpace {
-    template<typename Dimension> class CRKSPHVariant;
-  }
+  template<typename Dimension> class CRKSPHVariant;
 }
 
 #endif

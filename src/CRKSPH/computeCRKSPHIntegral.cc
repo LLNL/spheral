@@ -14,27 +14,18 @@
 #include "Geometry/innerProduct.hh"
 
 namespace Spheral {
-namespace CRKSPHSpace {
 
 using namespace std;
 using std::min;
 using std::max;
 using std::abs;
 
-using FieldSpace::Field;
-using FieldSpace::FieldList;
-using NeighborSpace::ConnectivityMap;
-using KernelSpace::TableKernel;
-using NodeSpace::NodeList;
-using Geometry::outerProduct;
-using Geometry::innerProduct;
-
 template<typename Dimension>
 std::pair<typename Dimension::Vector,typename Dimension::Vector>
 computeCRKSPHIntegral(const ConnectivityMap<Dimension>& connectivityMap,
                        const TableKernel<Dimension>& W,
                        const FieldList<Dimension, typename Dimension::Scalar>& weight,
- 	               const FieldList<Dimension, typename Dimension::Vector>& position,
+                       const FieldList<Dimension, typename Dimension::Vector>& position,
                        const FieldList<Dimension, typename Dimension::SymTensor>& H,
                        size_t nodeListi, const int i, size_t nodeListj, const int j, int mydim, const int order,
                        typename Dimension::Vector rmin, typename Dimension::Vector rmax){
@@ -139,6 +130,5 @@ computeCRKSPHIntegral(const ConnectivityMap<Dimension>& connectivityMap,
 
 }
 
-}
 }
 

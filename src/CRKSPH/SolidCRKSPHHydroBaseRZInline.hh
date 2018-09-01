@@ -1,5 +1,4 @@
 namespace Spheral {
-namespace CRKSPHSpace {
 
 //------------------------------------------------------------------------------
 // The internal state field lists.
@@ -18,5 +17,4 @@ DdeviatoricStressTTDt() const {
   return mDdeviatoricStressTTDt;
 }
 
-}
 }

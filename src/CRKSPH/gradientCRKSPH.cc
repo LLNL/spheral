@@ -11,18 +11,11 @@
 #include "CRKSPHUtilities.hh"
 
 namespace Spheral {
-namespace CRKSPHSpace {
 
 using namespace std;
 using std::min;
 using std::max;
 using std::abs;
-
-using FieldSpace::Field;
-using FieldSpace::FieldList;
-using NeighborSpace::ConnectivityMap;
-using KernelSpace::TableKernel;
-using NodeSpace::NodeList;
 
 template<typename Dimension, typename DataType>
 FieldSpace::FieldList<Dimension, typename MathTraits<Dimension, DataType>::GradientType>
@@ -114,7 +107,7 @@ gradientCRKSPH(const FieldSpace::FieldList<Dimension, DataType>& fieldList,
         // there are some nodes in this list.
         const vector<int>& connectivity = fullConnectivity[nodeListj];
         if (connectivity.size() > 0) {
-	  const int firstGhostNodej = A[nodeListj]->nodeList().firstGhostNode();
+          const int firstGhostNodej = A[nodeListj]->nodeList().firstGhostNode();
 
           // Loop over the neighbors.
 #pragma vector always
@@ -138,12 +131,12 @@ gradientCRKSPH(const FieldSpace::FieldList<Dimension, DataType>& fieldList,
               // const Scalar wi = fij*weight(nodeListi, i);
               // const Scalar wj = fij*weight(nodeListj, j);
 
-	      // Get the state for node j.
-	      const Vector& rj = position(nodeListj, j);
-	      const SymTensor& Hj = H(nodeListj, j);
-	      const Scalar Hdetj = Hj.Determinant();
-	      const Scalar& Aj = A(nodeListj, j);
-	      const Vector& gradAj = gradA(nodeListj, j);
+              // Get the state for node j.
+              const Vector& rj = position(nodeListj, j);
+              const SymTensor& Hj = H(nodeListj, j);
+              const Scalar Hdetj = Hj.Determinant();
+              const Scalar& Aj = A(nodeListj, j);
+              const Vector& gradAj = gradA(nodeListj, j);
               if (correctionOrder != CRKOrder::ZerothOrder) {
                 Bj = B(nodeListj, j);
                 gradBj = gradB(nodeListj, j);
@@ -152,8 +145,8 @@ gradientCRKSPH(const FieldSpace::FieldList<Dimension, DataType>& fieldList,
                 Cj = C(nodeListj, j);
                 gradCj = gradC(nodeListj, j);
               }
-	      const DataType& Fj = fieldList(nodeListj, j);
-	      GradientType& gradFj = result(nodeListj, j);
+              const DataType& Fj = fieldList(nodeListj, j);
+              GradientType& gradFj = result(nodeListj, j);
 
               // Node displacement.
               const Vector rij = ri - rj;
@@ -166,13 +159,13 @@ gradientCRKSPH(const FieldSpace::FieldList<Dimension, DataType>& fieldList,
               CRKSPHKernelAndGradient(Wj, gWj, gradWj, W, correctionOrder,  rij,  etai, Hi, Hdeti,  etaj, Hj, Hdetj, Ai, Bi, Ci, gradAi, gradBi, gradCi, -1e100, 1e100);
               CRKSPHKernelAndGradient(Wi, gWi, gradWi, W, correctionOrder, -rij, -etaj, Hj, Hdetj, -etai, Hi, Hdeti, Aj, Bj, Cj, gradAj, gradBj, gradCj, -1e100, 1e100);
 
-	      // Increment the pair-wise gradients.
-	      gradFi += wj*Fj*gradWj;
-	      gradFj += wi*Fi*gradWi;
+              // Increment the pair-wise gradients.
+              gradFi += wj*Fj*gradWj;
+              gradFj += wi*Fi*gradWi;
 
             }
-	  }
-	}
+          }
+        }
       }
     }
   }
@@ -182,5 +175,3 @@ gradientCRKSPH(const FieldSpace::FieldList<Dimension, DataType>& fieldList,
 }
 
 }
-}
-

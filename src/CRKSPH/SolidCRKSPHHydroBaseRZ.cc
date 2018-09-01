@@ -56,21 +56,8 @@
 #include <vector>
 
 namespace Spheral {
-namespace CRKSPHSpace {
 
 using namespace std;
-using NodeSpace::SmoothingScaleBase;
-using NodeSpace::NodeList;
-using NodeSpace::FluidNodeList;
-using NodeSpace::SolidNodeList;
-using SolidMaterial::SolidEquationOfState;
-using FileIOSpace::FileIO;
-using ArtificialViscositySpace::ArtificialViscosity;
-using KernelSpace::TableKernel;
-using DataBaseSpace::DataBase;
-using FieldSpace::Field;
-using FieldSpace::FieldList;
-using NeighborSpace::ConnectivityMap;
 
 //------------------------------------------------------------------------------
 // Compute the artificial tensile stress correction tensor for the given 
@@ -416,7 +403,6 @@ restoreState(const FileIO& file, const string& pathName) {
   file.read(mDdeviatoricStressTTDt, pathName + "/DdeviatoricStressTTDt");
 }
 
-}
 }
 
 #ifdef _OPENMP

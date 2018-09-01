@@ -8,14 +8,8 @@
 #include "NodeList/NodeList.hh"
 
 namespace Spheral {
-namespace CRKSPHSpace {
 
 using namespace std;
-
-using FieldSpace::Field;
-using FieldSpace::FieldList;
-using NodeSpace::NodeList;
-using NeighborSpace::ConnectivityMap;
 
 template<typename Dimension>
 void
@@ -53,5 +47,4 @@ flagSurfaceNeighbors(FieldSpace::FieldList<Dimension, int>& surfacePoint,
   }
 }
 
-}
 }

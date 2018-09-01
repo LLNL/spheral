@@ -8,18 +8,16 @@
 #ifndef __Spheral_NodeSpace_CRKSPHFluidGradient__
 #define __Spheral_NodeSpace_CRKSPHFluidGradient__
 
-#include <limits>
 #include "CRKSPHCorrectionParams.hh"
+
+#include <limits>
 
 // Forward declarations.
 namespace Spheral {
-  namespace KernelSpace {
-    template<typename Dimension> class TableKernel;
-  }
+  template<typename Dimension> class TableKernel;
 }
 
 namespace Spheral {
-namespace CRKSPHSpace {
 
 // Compute the corrected kernel value.
 template<typename Dimension>
@@ -63,10 +61,7 @@ CRKSPHKernelAndGradient(typename Dimension::Scalar& WCRKSPH,
                         const typename Dimension::Scalar correctionMax = std::numeric_limits<typename Dimension::Scalar>::max());
 
 }
-}
 
-#ifndef __GCCXML__
 #include "CRKSPHUtilitiesInline.hh"
-#endif
 
 #endif

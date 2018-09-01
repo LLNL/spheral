@@ -10,18 +10,11 @@
 #include "Hydro/HydroFieldNames.hh"
 
 namespace Spheral {
-namespace CRKSPHSpace {
 
 using namespace std;
 using std::min;
 using std::max;
 using std::abs;
-
-using FieldSpace::FieldList;
-using NeighborSpace::ConnectivityMap;
-using KernelSpace::TableKernel;
-using NodeSpace::NodeList;
-using NodeSpace::FluidNodeList;
 
 template<typename Dimension>
 void
@@ -135,5 +128,3 @@ computeCRKSPHSumMassDensity(const ConnectivityMap<Dimension>& connectivityMap,
 }
 
 }
-}
-

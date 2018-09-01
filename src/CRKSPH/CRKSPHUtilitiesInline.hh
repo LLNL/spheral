@@ -12,7 +12,6 @@
 #include "Geometry/Dimension.hh"
 
 namespace Spheral {
-namespace CRKSPHSpace {
 
 //------------------------------------------------------------------------------
 // Compute the corrected kernel value.
@@ -128,5 +127,4 @@ CRKSPHKernelAndGradient(typename Dimension::Scalar& WCRKSPH,
   }
 }
 
-}
 }

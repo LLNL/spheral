@@ -10,19 +10,11 @@
 #include "SPH/NodeCoupling.hh"
 
 namespace Spheral {
-namespace CRKSPHSpace {
 
 using namespace std;
 using std::min;
 using std::max;
 using std::abs;
-
-using FieldSpace::FieldList;
-using NeighborSpace::ConnectivityMap;
-using KernelSpace::TableKernel;
-using NodeSpace::NodeList;
-using NodeSpace::FluidNodeList;
-using BoundarySpace::Boundary;
 
 template<typename Dimension>
 void
@@ -125,6 +117,5 @@ computeSolidCRKSPHSumMassDensity(const ConnectivityMap<Dimension>& connectivityM
   }
 }
 
-}
 }
 
