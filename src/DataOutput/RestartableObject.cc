@@ -22,14 +22,13 @@ typedef enum _PyBindGenWrapperFlags {
 #endif
 typedef struct {
     PyObject_HEAD
-    Spheral::FileIOSpace::FileIO *obj;
+    Spheral::FileIO *obj;
     PyObject *inst_dict;
     PyBindGenWrapperFlags flags:8;
 } PySpheralFileIOSpaceFileIO;
 extern PyTypeObject PySpheralFileIOSpaceFileIO_Type;
 
 namespace Spheral {
-namespace DataOutput {
 
 //------------------------------------------------------------------------------
 // Constructor.
@@ -69,7 +68,7 @@ label() const {
 //------------------------------------------------------------------------------
 void
 RestartableObject::
-dumpState(FileIOSpace::FileIO& file, const std::string pathName) const {
+dumpState(FileIO& file, const std::string pathName) const {
   PySpheralFileIOSpaceFileIO* py_file = PyObject_GC_New(PySpheralFileIOSpaceFileIO, &PySpheralFileIOSpaceFileIO_Type);
   py_file->inst_dict = NULL;
   py_file->obj = &file;
@@ -83,14 +82,13 @@ dumpState(FileIOSpace::FileIO& file, const std::string pathName) const {
 //------------------------------------------------------------------------------
 void
 RestartableObject::
-restoreState(const FileIOSpace::FileIO& file, const std::string pathName) {
+restoreState(const FileIO& file, const std::string pathName) {
   PySpheralFileIOSpaceFileIO* py_file = PyObject_GC_New(PySpheralFileIOSpaceFileIO, &PySpheralFileIOSpaceFileIO_Type);
   py_file->inst_dict = NULL;
-  py_file->obj = const_cast<FileIOSpace::FileIO*>(&file);
+  py_file->obj = const_cast<FileIO*>(&file);
   PyObject* result = PyObject_CallMethod(mSelf, (char*) "restoreState", (char*) "Os", py_file, pathName.c_str());
   VERIFY2(result != NULL,
           "RestartableObject::restoreState ERROR encountered calling python restoreState method.");
 }
 
-}
 }

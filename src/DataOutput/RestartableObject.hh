@@ -24,13 +24,10 @@
 
 // Forward declarations.
 namespace Spheral {
-  namespace FileIOSpace {
-    class FileIO;
-  }
+  class FileIO;
 }
 
 namespace Spheral {
-namespace DataOutput {
 
 class RestartableObject {
 
@@ -43,8 +40,8 @@ public:
   // The methods we are providing for restart.  These simply turn around and call
   // methods of the same name on "self".
   virtual std::string label() const;
-  virtual void dumpState(FileIOSpace::FileIO& file, const std::string pathName) const;
-  virtual void restoreState(const FileIOSpace::FileIO& file, const std::string pathName);
+  virtual void dumpState(FileIO& file, const std::string pathName) const;
+  virtual void restoreState(const FileIO& file, const std::string pathName);
 
 private:
   //-----------------------===== Private Interface =====-----------------------//
@@ -55,7 +52,6 @@ private:
   PyObject* mSelf;
 };
 
-}
 }
 
 #endif

@@ -14,10 +14,8 @@
 #include <sstream>
 
 using namespace std;
-using Spheral::FileIOSpace::FileIO;
 
 namespace Spheral {
-namespace DataOutput {
 
 //------------------------------------------------------------------------------
 // Weak pointers don't have operator==, so we have to provide something.
@@ -212,9 +210,8 @@ RestartRegistrar::
 }
 
 }
-}
 
 //------------------------------------------------------------------------------
 // Initialize the static instance pointer.
 //-----------------------------------------------------------------------------
-Spheral::DataOutput::RestartRegistrar* Spheral::DataOutput::RestartRegistrar::mInstancePtr = 0;
+Spheral::RestartRegistrar* Spheral::RestartRegistrar::mInstancePtr = 0;

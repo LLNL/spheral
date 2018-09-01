@@ -11,11 +11,11 @@
 #ifndef __Spheral_Restart__
 #define __Spheral_Restart__
 
-#include <string>
 #include "RestartHandle.hh"
 
+#include <string>
+
 namespace Spheral {
-namespace DataOutput {
 
 template<typename Object>
 class Restart: public RestartHandle {
@@ -31,10 +31,10 @@ public:
   // Methods all restartable objects must provide.
   //******************************************************************************
   // Dump the objects state to the given file.
-  virtual void dumpState(FileIOSpace::FileIO& file, const std::string& pathName) const;
+  virtual void dumpState(FileIO& file, const std::string& pathName) const;
 
   // Restore state from the given file.
-  virtual void restoreState(const FileIOSpace::FileIO& file, const std::string& pathName) const;
+  virtual void restoreState(const FileIO& file, const std::string& pathName) const;
 
   // Provide a label for the object type to use when writing to the file.
   virtual std::string label() const;
@@ -46,19 +46,14 @@ private:
 };
 
 }
-}
 
-#ifndef __GCCXML__
 #include "RestartInline.hh"
-#endif
 
 #else
 
 // Forward declaration.
-namespace Spheral{
-  namespace DataOutput {
-    template<typename Object> class Restart;
-  }
+namespace Spheral {
+  template<typename Object> class Restart;
 }
 
 #endif
