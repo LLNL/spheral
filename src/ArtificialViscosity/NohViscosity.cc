@@ -7,12 +7,6 @@
 #include "Boundary/Boundary.hh"
 
 namespace Spheral {
-namespace ArtificialViscositySpace {
-
-using Spheral::FieldSpace::Field;
-using Spheral::FieldSpace::FieldList;
-using Spheral::DataBaseSpace::DataBase;
-using Spheral::BoundarySpace::Boundary;
 
 //------------------------------------------------------------------------------
 // Default constructor.
@@ -24,9 +18,6 @@ NohViscosity():
   mNodePositions(),
   mHfield(),
   mCurrentTime(0.0) {
-#ifdef DEBUG
-  cerr << "NohViscosity::NohViscosity()" << endl;
-#endif
 }
 
 //------------------------------------------------------------------------------
@@ -39,9 +30,6 @@ NohViscosity(Scalar Clinear, Scalar Cquadratic):
   mNodePositions(),
   mHfield(),
   mCurrentTime(0.0) {
-#ifdef DEBUG
-  cerr << "NohViscosity::NohViscosity(Cl, Cq)" << endl;
-#endif
 }
 
 //------------------------------------------------------------------------------
@@ -50,9 +38,6 @@ NohViscosity(Scalar Clinear, Scalar Cquadratic):
 template<typename Dimension>
 NohViscosity<Dimension>::
 ~NohViscosity() {
-#ifdef DEBUG
-  cerr << "NohViscosity::~NohViscosity()" << endl;
-#endif
 }
 
 //------------------------------------------------------------------------------
@@ -62,22 +47,19 @@ template<typename Dimension>
 void
 NohViscosity<Dimension>::
 initialize(const DataBase<Dimension>& dataBase,
-	   typename ArtificialViscosity<Dimension>::ConstBoundaryIterator boundaryBegin,
-	   typename ArtificialViscosity<Dimension>::ConstBoundaryIterator boundaryEnd,
-	   const typename Dimension::Scalar time,
-	   const typename Dimension::Scalar dt,
-	   const TableKernel<Dimension>& W) {
-#ifdef DEBUG
-  cerr << "NohViscosity::initialize()" << endl;
-#endif
+           typename ArtificialViscosity<Dimension>::ConstBoundaryIterator boundaryBegin,
+           typename ArtificialViscosity<Dimension>::ConstBoundaryIterator boundaryEnd,
+           const typename Dimension::Scalar time,
+           const typename Dimension::Scalar dt,
+           const TableKernel<Dimension>& W) {
 
   // Invoke the base class initialization.
   MonaghanGingoldViscosity<Dimension>::initialize(dataBase, 
-						  boundaryBegin,
-						  boundaryEnd,
-						  time,
-						  dt,
-						  W);
+                                                  boundaryBegin,
+                                                  boundaryEnd,
+                                                  time,
+                                                  dt,
+                                                  W);
 
   // Store the time.
   mCurrentTime = time;
@@ -96,7 +78,7 @@ typename Dimension::Scalar
 NohViscosity<Dimension>::
 viscousInternalEnergy(const NodeIDIterator<Dimension>& nodeI,
                       const NodeIDIterator<Dimension>& nodeJ,
-		      const Vector& rij, const Vector& vij,
+                      const Vector& rij, const Vector& vij,
                       const Vector& etai, const Vector& etaj,
                       const Scalar ci, const Scalar cj) const {
 
@@ -107,15 +89,14 @@ viscousInternalEnergy(const NodeIDIterator<Dimension>& nodeI,
   const Scalar rshock = mCurrentTime/3.0;
   if (ri.magnitude() <= rshock + 2.0*hi) {
     return MonaghanGingoldViscosity<Dimension>::viscousInternalEnergy(nodeI, nodeJ,
-								      rij, vij,
-								      etai, etaj,
-								      ci, cj);
+                                                                      rij, vij,
+                                                                      etai, etaj,
+                                                                      ci, cj);
   } else {
     return 0.0;
   }
 }
 
-}
 }
 
 //------------------------------------------------------------------------------
@@ -123,9 +104,7 @@ viscousInternalEnergy(const NodeIDIterator<Dimension>& nodeI,
 //------------------------------------------------------------------------------
 #include "Geometry/Dimension.hh"
 namespace Spheral {
-namespace ArtificialViscositySpace {
-template class NohViscosity< Dim<1> >;
-template class NohViscosity< Dim<2> >;
-template class NohViscosity< Dim<3> >;
-}
+  template class NohViscosity< Dim<1> >;
+  template class NohViscosity< Dim<2> >;
+  template class NohViscosity< Dim<3> >;
 }

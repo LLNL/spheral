@@ -12,13 +12,6 @@
 #include "Utilities/DBC.hh"
 
 namespace Spheral {
-namespace ArtificialViscositySpace {
-
-using Spheral::FieldSpace::Field;
-using Spheral::FieldSpace::FieldList;
-using Spheral::DataBaseSpace::DataBase;
-using Spheral::BoundarySpace::Boundary;
-using Spheral::Material::EquationOfState;
 
 //------------------------------------------------------------------------------
 // Default constructor.
@@ -77,5 +70,4 @@ viscousInternalEnergy(const NodeIDIterator<Dimension>& nodeI,
 template class MonaghanGingoldKurapatenkoViscosity< Dim<1> >;
 template class MonaghanGingoldKurapatenkoViscosity< Dim<2> >;
 template class MonaghanGingoldKurapatenkoViscosity< Dim<3> >;
-}
 }

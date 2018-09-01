@@ -11,7 +11,6 @@
 #include "Field/FieldList.hh"
 
 namespace Spheral {
-namespace ArtificialViscositySpace {
 
 template<typename Dimension>
 class FiniteVolumeViscosity: public ArtificialViscosity<Dimension> {
@@ -77,15 +76,12 @@ private:
 };
 
 }
-}
 
 #else
 
 namespace Spheral {
-  namespace ArtificialViscositySpace {
-    // Forward declaration.
-    template<typename Dimension> class FiniteVolumeViscosity;
-  }
+  // Forward declaration.
+  template<typename Dimension> class FiniteVolumeViscosity;
 }
 
 #endif

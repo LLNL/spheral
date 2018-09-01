@@ -3,7 +3,6 @@
 #include "Utilities/DBC.hh"
 
 namespace Spheral {
-namespace ArtificialViscositySpace {
 
 //------------------------------------------------------------------------------
 // Access the linear coefficient.
@@ -519,6 +518,5 @@ sigmaWeighting(const Dim<3>::Vector& r) const {
                         FastMath::square(r.z()))/(r.magnitude2() + 1.0e-10);
 }
 
-}
 }
 

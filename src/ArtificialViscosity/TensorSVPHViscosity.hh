@@ -10,7 +10,6 @@
 #include "ArtificialViscosity.hh"
 
 namespace Spheral {
-namespace ArtificialViscositySpace {
 
 template<typename Dimension>
 class TensorSVPHViscosity: public ArtificialViscosity<Dimension> {
@@ -35,8 +34,8 @@ public:
                           const StateDerivatives<Dimension>& derivs,
                           ConstBoundaryIterator boundaryBegin,
                           ConstBoundaryIterator boundaryEnd,
-			  const Scalar time, 
-			  const Scalar dt,
+                          const Scalar time, 
+                          const Scalar dt,
                           const KernelSpace::TableKernel<Dimension>& W);
 
   // Required method to compute the tensor viscous P/rho^2.
@@ -79,15 +78,12 @@ private:
 };
 
 }
-}
 
 #else
 
 // Forward declaration.
 namespace Spheral {
-  namespace ArtificialViscositySpace {
-    template<typename Dimension> class TensorSVPHViscosity;
-  }
+  template<typename Dimension> class TensorSVPHViscosity;
 }
 
 #endif

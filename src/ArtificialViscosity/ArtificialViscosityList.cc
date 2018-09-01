@@ -10,7 +10,7 @@
 #include <algorithm>
 
 namespace Spheral {
-namespace ArtificialViscositySpace {
+
 using namespace std;
 
 //------------------------------------------------------------------------------
@@ -160,7 +160,7 @@ ArtificialViscosityList<Dimension>::valid() const {
   }
   return ok;
 }
-}
+
 }
 
 //------------------------------------------------------------------------------
@@ -168,9 +168,7 @@ ArtificialViscosityList<Dimension>::valid() const {
 //------------------------------------------------------------------------------
 #include "Geometry/Dimension.hh"
 namespace Spheral {
-namespace ArtificialViscositySpace {
-template class ArtificialViscosityList< Dim<1> >;
-template class ArtificialViscosityList< Dim<2> >;
-template class ArtificialViscosityList< Dim<3> >;
-}
+  template class ArtificialViscosityList< Dim<1> >;
+  template class ArtificialViscosityList< Dim<2> >;
+  template class ArtificialViscosityList< Dim<3> >;
 }

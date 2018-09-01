@@ -12,7 +12,6 @@
 #include <vector>
 
 namespace Spheral {
-namespace ArtificialViscositySpace {
 
 using namespace std;
 
@@ -42,26 +41,26 @@ public:
   void initialize(const DataBase<Dimension>& dataBase,
                   typename ArtificialViscosity<Dimension>::ConstBoundaryIterator boundaryBegin,
                   typename ArtificialViscosity<Dimension>::ConstBoundaryIterator boundaryEnd,
-		  const Scalar time,
-		  const Scalar dt,
+                  const Scalar time,
+                  const Scalar dt,
                   const TableKernel<Dimension>& W);
 
   // Method to calculate and return the viscous acceleration, work, and pressure,
   // all in one step (efficiency and all).
   virtual void viscousEffects(Vector& acceleration,
-			      Scalar& work,
-			      Scalar& pressure,
-			      const NodeIteratorBase<Dimension>& nodeI,
-			      const NodeIteratorBase<Dimension>& nodeJ,
-			      const Vector& rij, 
+                              Scalar& work,
+                              Scalar& pressure,
+                              const NodeIteratorBase<Dimension>& nodeI,
+                              const NodeIteratorBase<Dimension>& nodeJ,
+                              const Vector& rij, 
                               const Vector& rijUnit,
-			      const Vector& vi, const Vector& vj,
-			      const Vector& etai, const Vector& etaj,
-			      const Scalar ci, const Scalar cj,
-			      const Scalar Pi, const Scalar Pj,
-			      const Scalar rhoi, const Scalar rhoj,
+                              const Vector& vi, const Vector& vj,
+                              const Vector& etai, const Vector& etaj,
+                              const Scalar ci, const Scalar cj,
+                              const Scalar Pi, const Scalar Pj,
+                              const Scalar rhoi, const Scalar rhoj,
                               const Scalar hi, const Scalar hj,
-			      const Vector& gradW) const;
+                              const Vector& gradW) const;
 
   // Add and delete Q's from the list.
   void appendArtificialViscosity(ArtificialViscosity<Dimension>* QPtr);
@@ -77,15 +76,12 @@ private:
   //--------------------------- Private Interface ---------------------------//
 };
 }
-}
 
 #else
 
 namespace Spheral {
-namespace ArtificialViscositySpace {
 // Forward declaration.
 template<typename Dimension> class ArtificialViscosityList;
-}
 }
 
 #endif

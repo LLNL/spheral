@@ -32,28 +32,15 @@ namespace Spheral {
   template<typename Dimension> class State;
   template<typename Dimension> class StateDerivatives;
 
-  namespace DataBaseSpace {
-    template<typename Dimension> class DataBase;
-  }
-  namespace FieldSpace {
-    template<typename Dimension, typename DataType> class FieldList;
-  }
-  namespace FileIOSpace {
-    class FileIO;
-  }
-  namespace NeighborSpace {
-    template<typename Dimension> class ConnectivityMap;
-  }
-  namespace KernelSpace {
-    template<typename Dimension> class TableKernel;
-  }
-  namespace BoundarySpace {
-    template<typename Dimension> class Boundary;
-  }
+  template<typename Dimension> class DataBase;
+  template<typename Dimension, typename DataType> class FieldList;
+  class FileIO;
+  template<typename Dimension> class ConnectivityMap;
+  template<typename Dimension> class TableKernel;
+  template<typename Dimension> class Boundary;
 }
 
 namespace Spheral {
-namespace ArtificialViscositySpace {
 
 template<typename Dimension>
 class ArtificialViscosity {
@@ -242,17 +229,14 @@ private:
 };
 
 }
-}
 
 #include "ArtificialViscosityInline.hh"
 
 #else
 
 namespace Spheral {
-  namespace ArtificialViscositySpace {
-    // Forward declaration.
-    template<typename Dimension> class ArtificialViscosity;
-  }
+  // Forward declaration.
+  template<typename Dimension> class ArtificialViscosity;
 }
 
 #endif

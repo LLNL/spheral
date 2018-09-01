@@ -16,15 +16,8 @@
 #include "VonNeumanViscosity.hh"
 
 namespace Spheral {
-namespace ArtificialViscositySpace {
 
 using namespace std;
-using DataBaseSpace::DataBase;
-using FieldSpace::Field;
-using FieldSpace::FieldList;
-using KernelSpace::TableKernel;
-using BoundarySpace::Boundary;
-using NeighborSpace::ConnectivityMap;
 
 //------------------------------------------------------------------------------
 // Construct with the given value for the linear and quadratic coefficients.
@@ -55,8 +48,8 @@ initialize(const DataBase<Dimension>& dataBase,
            const StateDerivatives<Dimension>& derivs,
            typename ArtificialViscosity<Dimension>::ConstBoundaryIterator boundaryBegin,
            typename ArtificialViscosity<Dimension>::ConstBoundaryIterator boundaryEnd,
-	   const typename Dimension::Scalar time,
-	   const typename Dimension::Scalar dt,
+           const typename Dimension::Scalar time,
+           const typename Dimension::Scalar dt,
            const TableKernel<Dimension>& W) {
 
   typedef typename ArtificialViscosity<Dimension>::ConstBoundaryIterator ConstBoundaryIterator;
@@ -135,7 +128,7 @@ initialize(const DataBase<Dimension>& dataBase,
                                                                                     gradB,
                                                                                     gradC,
                                                                                     connectivityMap,
-										    correctionOrder,
+                                                                                    correctionOrder,
                                                                                     W,
                                                                                     NodeCoupling());
 
@@ -226,5 +219,5 @@ restoreState(const FileIO& file, const string& pathName) {
   // Dump the viscous energy.
   file.read(mViscousEnergy, pathName + "/viscousEnergy");
 }  
-}
+
 }

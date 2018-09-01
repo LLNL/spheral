@@ -16,7 +16,6 @@
 #include "Utilities/safeInv.hh"
 
 namespace Spheral {
-namespace PhysicsSpace {
 
 using std::vector;
 using std::min;
@@ -384,6 +383,4 @@ dt(const DataBase<Dimension>& dataBase,
     return result;
 }
 
-
-}
 }

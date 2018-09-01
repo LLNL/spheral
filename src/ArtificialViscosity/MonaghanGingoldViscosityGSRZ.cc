@@ -15,24 +15,11 @@
 #include "DataBase/IncrementState.hh"
 
 namespace Spheral {
-namespace ArtificialViscositySpace {
 
 using namespace std;
 using std::abs;
 using std::min;
 using std::max;
-
-using DataOutput::Restart;
-using FieldSpace::Field;
-using FieldSpace::FieldList;
-using DataBaseSpace::DataBase;
-using NodeSpace::NodeList;
-using NodeSpace::FluidNodeList;
-using NeighborSpace::Neighbor;
-using Material::EquationOfState;
-using BoundarySpace::Boundary;
-using NeighborSpace::ConnectivityMap;
-using KernelSpace::TableKernel;
 
 //------------------------------------------------------------------------------
 // Construct with the given value for the linear and quadratic coefficients.
@@ -129,5 +116,4 @@ Piij(const unsigned nodeListi, const unsigned i,
                    ej/rhoRZj*Tensor::one);
 }
 
-}
 }

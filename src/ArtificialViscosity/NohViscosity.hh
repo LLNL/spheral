@@ -10,7 +10,6 @@
 #include "MonaghanGingoldViscosity.hh"
 
 namespace Spheral {
-namespace ArtificialViscositySpace {
 
 template<typename Dimension>
 class NohViscosity: public MonaghanGingoldViscosity<Dimension> {
@@ -33,16 +32,16 @@ public:
   void initialize(const DataBase<Dimension>& dataBase,
                   typename ArtificialViscosity<Dimension>::ConstBoundaryIterator boundaryBegin,
                   typename ArtificialViscosity<Dimension>::ConstBoundaryIterator boundaryEnd,
-		  const Scalar time,
-		  const Scalar dt,
+                  const Scalar time,
+                  const Scalar dt,
                   const TableKernel<Dimension>& W);
 
   // Calculate the artificial internal energy term.
   virtual Scalar viscousInternalEnergy(const NodeIDIterator<Dimension>& nodeI,
-				       const NodeIDIterator<Dimension>& nodeJ,
-				       const Vector& rij, const Vector& vij,
-				       const Vector& etai, const Vector& etaj,
-				       const Scalar ci, const Scalar cj) const;
+                                       const NodeIDIterator<Dimension>& nodeJ,
+                                       const Vector& rij, const Vector& vij,
+                                       const Vector& etai, const Vector& etaj,
+                                       const Scalar ci, const Scalar cj) const;
 
 private:
   //--------------------------- Private Interface ---------------------------//
@@ -50,16 +49,14 @@ private:
   FieldList<Dimension, SymTensor> mHfield;
   Scalar mCurrentTime;
 };
-}
+
 }
 
 #else
 
 namespace Spheral {
-namespace ArtificialViscositySpace {
-// Forward declaration.
-template<typename Dimension> class NohViscosity;
-}
+  // Forward declaration.
+  template<typename Dimension> class NohViscosity;
 }
 
 #endif

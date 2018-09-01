@@ -16,13 +16,10 @@
 #include "Utilities/DBC.hh"
 
 namespace Spheral {
-  namespace FieldSpace {
-    template<typename Dimension, typename DataType> class FieldList;
-  }
+  template<typename Dimension, typename DataType> class FieldList;
 }
 
 namespace Spheral {
-namespace ArtificialViscositySpace {
 
 using Spheral::FieldSpace::FieldList;
 
@@ -50,23 +47,23 @@ public:
   virtual void initialize(const DataBase<Dimension>& dataBase,
                           ConstBoundaryIterator boundaryBegin,
                           ConstBoundaryIterator boundaryEnd,
-			  const Scalar time,
-			  const Scalar dt,
+                          const Scalar time,
+                          const Scalar dt,
                           const TableKernel<Dimension>& W);
 
   // Method to calculate and return the viscous acceleration, work, and pressure,
   // all in one step (efficiency and all).
   virtual void viscousEffects(Vector& acceleration,
-			      Scalar& work,
-			      Scalar& pressure,
-			      const IDIterator& nodeI,
-			      const IDIterator& nodeJ,
-			      const Vector& rij, 
-			      const Vector& vi, const Vector& vj,
-			      const Vector& etai, const Vector& etaj,
-			      const Scalar ci, const Scalar cj,
-			      const Scalar rhoi, const Scalar rhoj,
-			      const Vector& gradW) const;
+                              Scalar& work,
+                              Scalar& pressure,
+                              const IDIterator& nodeI,
+                              const IDIterator& nodeJ,
+                              const Vector& rij, 
+                              const Vector& vi, const Vector& vj,
+                              const Vector& etai, const Vector& etaj,
+                              const Scalar ci, const Scalar cj,
+                              const Scalar rhoi, const Scalar rhoj,
+                              const Vector& gradW) const;
 
   // Access the viscous internal energy.
   const FieldList<Dimension, Scalar>& viscousInternalEnergyField() const;
@@ -78,14 +75,14 @@ private:
   //--------------------------- Private Interface ---------------------------//
   FieldList<Dimension, Scalar> mViscousEnergy;
 };
-}
+
 }
 
 #include "Field/NodeIDIterator.hh"
 
 namespace Spheral {
-namespace ArtificialViscositySpace {
-using Spheral::FieldSpace::NodeIDIterator;
+
+using Spheral::NodeIDIterator;
 
 //------------------------------------------------------------------------------
 // Method to calculate and return the viscous acceleration, work, and pressure,
@@ -126,16 +123,14 @@ MonaghanGingoldSumViscosity<Dimension>::
 viscousInternalEnergyField() const {
   return mViscousEnergy;
 }
-}
+
 }
 
 #else
 
 namespace Spheral {
-namespace ArtificialViscositySpace {
-// Forward declaration.
-template<typename Dimension> class MonaghanGingoldSumViscosity;
-}
+  // Forward declaration.
+  template<typename Dimension> class MonaghanGingoldSumViscosity;
 }
 
 #endif

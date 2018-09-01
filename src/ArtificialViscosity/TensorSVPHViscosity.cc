@@ -20,25 +20,11 @@
 #include "Utilities/DBC.hh"
 
 namespace Spheral {
-namespace ArtificialViscositySpace {
 
 using namespace std;
 using std::abs;
 using std::min;
 using std::max;
-
-using DataOutput::Restart;
-using FieldSpace::Field;
-using FieldSpace::FieldList;
-using DataBaseSpace::DataBase;
-using NodeSpace::NodeList;
-using NodeSpace::FluidNodeList;
-using NeighborSpace::Neighbor;
-using Material::EquationOfState;
-using BoundarySpace::Boundary;
-using NeighborSpace::ConnectivityMap;
-using KernelSpace::TableKernel;
-using MeshSpace::Mesh;
 
 //------------------------------------------------------------------------------
 // Construct with the given value for the linear and quadratic coefficients.
@@ -288,6 +274,5 @@ Qface() const {
   return mQface;
 }
 
-}
 }
 

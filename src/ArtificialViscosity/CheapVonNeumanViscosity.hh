@@ -11,7 +11,6 @@
 #include "VonNeumanViscosity.hh"
 
 namespace Spheral {
-namespace ArtificialViscositySpace {
 
 template<typename Dimension>
 class CheapVonNeumanViscosity: public VonNeumanViscosity<Dimension> {
@@ -42,16 +41,14 @@ public:
 private:
   //--------------------------- Private Interface ---------------------------//
 };
-}
+
 }
 
 #else
 
 namespace Spheral {
-namespace ArtificialViscositySpace {
 // Forward declaration.
 template<typename Dimension> class CheapVonNeumanViscosity;
-}
 }
 
 #endif

@@ -18,21 +18,11 @@
 #include "MorrisMonaghanReducingViscosity.hh"
 
 namespace Spheral {
-namespace ArtificialViscositySpace {
     
 using namespace std;
 using std::min;
 using std::max;
 using std::abs;
-using FileIOSpace::FileIO;
-
-using PhysicsSpace::Physics;
-using DataOutput::Restart;
-using FieldSpace::Field;
-using FieldSpace::FieldList;
-using DataBaseSpace::DataBase;
-using NodeSpace::NodeList;
-using NodeSpace::FluidNodeList;
 
 //------------------------------------------------------------------------------
 // Construct with the given value for the linear and quadratic coefficients.
@@ -267,5 +257,4 @@ dt(const DataBase<Dimension>& dataBase,
   return TimeStepType(1.0e100, "Rate of viscosity change -- NO VOTE.");
 }
     
-}
 }

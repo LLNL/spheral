@@ -13,7 +13,6 @@
 #include "Geometry/Dimension.hh"
 
 namespace Spheral {
-namespace ArtificialViscositySpace {
 
 class CRKSPHMonaghanGingoldViscosityRZ: public CRKSPHMonaghanGingoldViscosity<Dim<2> > {
 public:
@@ -66,15 +65,12 @@ private:
 };
 
 }
-}
 
 #else
 
 namespace Spheral {
-  namespace ArtificialViscositySpace {
-    // Forward declaration.
-    class CRKSPHMonaghanGingoldViscosityRZ;
-  }
+  // Forward declaration.
+  class CRKSPHMonaghanGingoldViscosityRZ;
 }
 
 #endif

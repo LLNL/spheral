@@ -13,7 +13,6 @@
 #include "FileIO/FileIO.hh"
 
 namespace Spheral {
-namespace ArtificialViscositySpace {
 
 template<typename Dimension>
 class MASHVonNeumanViscosity: public ArtificialViscosity<Dimension> {
@@ -39,8 +38,8 @@ public:
   void initialize(const DataBaseSpace::DataBase<Dimension>& dataBase,
                   typename ArtificialViscosity<Dimension>::ConstBoundaryIterator boundaryBegin,
                   typename ArtificialViscosity<Dimension>::ConstBoundaryIterator boundaryEnd,
-		  const Scalar time,
-		  const Scalar dt,
+                  const Scalar time,
+                  const Scalar dt,
                   const KernelSpace::TableKernel<Dimension>& W);
 
   // Method to calculate and return the viscous acceleration, work, and pressure,
@@ -105,15 +104,12 @@ correction() const {
 }
 
 }
-}
 
 #else
 
 namespace Spheral {
-namespace ArtificialViscositySpace {
-// Forward declaration.
-template<typename Dimension> class VonNeumanViscosity;
-}
+  // Forward declaration.
+  template<typename Dimension> class VonNeumanViscosity;
 }
 
 #endif

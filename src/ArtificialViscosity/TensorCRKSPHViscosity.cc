@@ -21,19 +21,8 @@
 using namespace std;
 
 namespace Spheral {
-namespace ArtificialViscositySpace {
 
 using std::vector;
-using NodeSpace::NodeList;
-using DataBaseSpace::DataBase;
-using FieldSpace::Field;
-using FieldSpace::FieldList;
-using BoundarySpace::Boundary;
-using KernelSpace::TableKernel;
-using NeighborSpace::Neighbor;
-using FileIOSpace::FileIO;
-using NeighborSpace::ConnectivityMap;
-using NodeSpace::FluidNodeList;
 
 //------------------------------------------------------------------------------
 // Construct with the given value for the linear and quadratic coefficients.
@@ -251,5 +240,4 @@ calculateSigmaAndGradDivV(const DataBase<Dimension>& dataBase,
   // }
 }
 
-}
 }

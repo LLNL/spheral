@@ -15,7 +15,6 @@
 #include "Physics/Physics.hh"
 
 namespace Spheral {
-namespace ArtificialViscositySpace {
     
 template<typename Dimension>
     class MorrisMonaghanReducingViscosity: public PhysicsSpace::Physics<Dimension>{
@@ -101,15 +100,12 @@ private:
 };
     
 }
-}
 
 #else
 
 namespace Spheral {
-    namespace ArtificialViscositySpace {
-        // Forward declaration.
-        template<typename Dimension> class MorrisMonaghanReducingViscosity;
-    }
+    // Forward declaration.
+    template<typename Dimension> class MorrisMonaghanReducingViscosity;
 }
 
 #endif

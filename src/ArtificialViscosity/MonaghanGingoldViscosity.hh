@@ -12,7 +12,6 @@
 #include "ArtificialViscosity.hh"
 
 namespace Spheral {
-namespace ArtificialViscositySpace {
 
 template<typename Dimension>
 class MonaghanGingoldViscosity: public ArtificialViscosity<Dimension> {
@@ -71,15 +70,12 @@ private:
 };
 
 }
-}
 
 #else
 
 namespace Spheral {
-  namespace ArtificialViscositySpace {
-    // Forward declaration.
-    template<typename Dimension> class MonaghanGingoldViscosity;
-  }
+  // Forward declaration.
+  template<typename Dimension> class MonaghanGingoldViscosity;
 }
 
 #endif

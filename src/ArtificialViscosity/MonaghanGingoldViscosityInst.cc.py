@@ -6,8 +6,6 @@ text = """
 #include "MonaghanGingoldViscosity.cc"
 
 namespace Spheral {
-  namespace ArtificialViscositySpace {
-    template class MonaghanGingoldViscosity< Dim< %(ndim)s > >;
-  }
+  template class MonaghanGingoldViscosity< Dim< %(ndim)s > >;
 }
 """

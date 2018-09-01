@@ -8,13 +8,6 @@
 #include "Boundary/Boundary.hh"
 
 namespace Spheral {
-namespace ArtificialViscositySpace {
-
-using Spheral::DataBaseSpace::DataBase;
-using Spheral::FieldSpace::Field;
-using Spheral::FieldSpace::FieldList;
-using Spheral::KernelSpace::TableKernel;
-using Spheral::BoundarySpace::Boundary;
 
 //------------------------------------------------------------------------------
 // Default constructor.
@@ -209,7 +202,7 @@ MonaghanGingoldSumViscosity<Dimension>::valid() const {
   return (MonaghanGingoldViscosity<Dimension>::valid());
 //           mViscousEnergy.numFields() > 0);
 }
-}
+
 }
 
 //------------------------------------------------------------------------------
@@ -217,9 +210,7 @@ MonaghanGingoldSumViscosity<Dimension>::valid() const {
 //------------------------------------------------------------------------------
 #include "Geometry/Dimension.hh"
 namespace Spheral {
-namespace ArtificialViscositySpace {
-template class MonaghanGingoldSumViscosity< Dim<1> >;
-template class MonaghanGingoldSumViscosity< Dim<2> >;
-template class MonaghanGingoldSumViscosity< Dim<3> >;
-}
+  template class MonaghanGingoldSumViscosity< Dim<1> >;
+  template class MonaghanGingoldSumViscosity< Dim<2> >;
+  template class MonaghanGingoldSumViscosity< Dim<3> >;
 }
