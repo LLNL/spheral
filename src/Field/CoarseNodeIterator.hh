@@ -11,12 +11,8 @@
 #include <vector>
 
 namespace Spheral {
-  namespace NodeSpace {
-    template<typename Dimension> class NodeList;
-  }
-}
 
-namespace Spheral {
+template<typename Dimension> class NodeList;
 
 template<typename Dimension>
 class CoarseNodeIterator: public NodeIteratorBase<Dimension> {

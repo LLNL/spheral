@@ -6,16 +6,15 @@
 //
 // Created by J. Michael Owen, Mon Mar 17 13:11:19 PST 2003
 //----------------------------------------------------------------------------//
-#include <algorithm>
-#include <cstdlib>
 
 #include "NodeIteratorBase.hh"
+
+#include <algorithm>
+#include <cstdlib>
 
 namespace Spheral {
 
 using namespace std;
-using NodeSpace::NodeList;
-using NodeSpace::FluidNodeList;
 
 //------------------------------------------------------------------------------
 // Default constructor.

@@ -1,9 +1,3 @@
-#include <cmath>
-#include <iostream>
-#include <algorithm>
-#include <sstream>
-#include <limits>
-
 #include "Field/FieldBase.hh"
 #include "Geometry/Dimension.hh"
 #include "NodeList/NodeList.hh"
@@ -13,16 +7,20 @@
 #include "Utilities/safeInv.hh"
 #include "Distributed/Communicator.hh"
 
+#include <cmath>
+#include <iostream>
+#include <algorithm>
+#include <sstream>
+#include <limits>
+
 #ifdef USE_MPI
 extern "C" {
 #include "mpi.h"
 }
 #endif
 
-
 // Inlined methods.
 namespace Spheral {
-namespace FieldSpace {
 
 // Construct with name.
 //------------------------------------------------------------------------------
@@ -53,7 +51,7 @@ template<typename Dimension, typename DataType>
 inline
 Field<Dimension, DataType>::
 Field(typename FieldBase<Dimension>::FieldName name,
-      const NodeSpace::NodeList<Dimension>& nodeList):
+      const NodeList<Dimension>& nodeList):
   FieldBase<Dimension>(name, nodeList),
   mDataArray((size_t) nodeList.numNodes(), DataType()),
   mValid(true) {
@@ -64,7 +62,7 @@ template<>
 inline
 Field<Dim<1>, Dim<1>::Scalar>::
 Field(FieldBase<Dim<1> >::FieldName name,
-      const NodeSpace::NodeList<Dim<1> >& nodeList):
+      const NodeList<Dim<1> >& nodeList):
   FieldBase<Dim<1> >(name, nodeList),
   mDataArray((size_t) nodeList.numNodes(), 0.0),
   mValid(true) {
@@ -75,7 +73,7 @@ template<>
 inline
 Field<Dim<2>, Dim<2>::Scalar>::
 Field(FieldBase<Dim<2> >::FieldName name,
-      const NodeSpace::NodeList<Dim<2> >& nodeList):
+      const NodeList<Dim<2> >& nodeList):
   FieldBase<Dim<2> >(name, nodeList),
   mDataArray((size_t) nodeList.numNodes(), 0.0),
   mValid(true) {
@@ -86,7 +84,7 @@ template<>
 inline
 Field<Dim<3>, Dim<3>::Scalar>::
 Field(FieldBase<Dim<3> >::FieldName name,
-      const NodeSpace::NodeList<Dim<3> >& nodeList):
+      const NodeList<Dim<3> >& nodeList):
   FieldBase<Dim<3> >(name, nodeList),
   mDataArray((size_t) nodeList.numNodes(), 0.0),
   mValid(true) {
@@ -100,7 +98,7 @@ template<typename Dimension, typename DataType>
 inline
 Field<Dimension, DataType>::
 Field(typename FieldBase<Dimension>::FieldName name,
-      const NodeSpace::NodeList<Dimension>& nodeList,
+      const NodeList<Dimension>& nodeList,
       DataType value):
   FieldBase<Dimension>(name, nodeList),
   mDataArray((size_t) nodeList.numNodes(), value),
@@ -116,7 +114,7 @@ template<typename Dimension, typename DataType>
 inline
 Field<Dimension, DataType>::
 Field(typename FieldBase<Dimension>::FieldName name, 
-      const NodeSpace::NodeList<Dimension>& nodeList,
+      const NodeList<Dimension>& nodeList,
       const std::vector<DataType,DataAllocator<DataType>>& array):
   FieldBase<Dimension>(name, nodeList),
   mDataArray((size_t) nodeList.numNodes()),
@@ -132,7 +130,7 @@ Field(typename FieldBase<Dimension>::FieldName name,
 //------------------------------------------------------------------------------
 template<typename Dimension, typename DataType>
 inline
-Field<Dimension, DataType>::Field(const NodeSpace::NodeList<Dimension>& nodeList,
+Field<Dimension, DataType>::Field(const NodeList<Dimension>& nodeList,
                                   const Field<Dimension, DataType>& field):
   FieldBase<Dimension>(field.name(), nodeList),
   mDataArray(field.mDataArray),
@@ -1151,7 +1149,7 @@ operator[](const unsigned int index) const {
 template<typename Dimension, typename DataType>
 inline
 void
-Field<Dimension, DataType>::setNodeList(const NodeSpace::NodeList<Dimension>& nodeList) {
+Field<Dimension, DataType>::setNodeList(const NodeList<Dimension>& nodeList) {
   unsigned oldSize = this->size();
   this->setFieldBaseNodeList(nodeList);
   mDataArray.resize(nodeList.numNodes());
@@ -1807,19 +1805,17 @@ sqrt(const Field<Dimension, typename Dimension::Scalar>& field) {
   return result;
 }
 
-}
-
 //------------------------------------------------------------------------------
 // Minimum
 //------------------------------------------------------------------------------
 template<typename Dimension, typename DataType>
-FieldSpace::Field<Dimension, DataType>
-min(const FieldSpace::Field<Dimension, DataType>& field1,
-    const FieldSpace::Field<Dimension, DataType>& field2) {
+Field<Dimension, DataType>
+min(const Field<Dimension, DataType>& field1,
+    const Field<Dimension, DataType>& field2) {
   CHECK(field1.valid() && field2.valid());
   CHECK(field1.numElements() == field2.numElements());
   CHECK(field1.nodeListPtr() == field2.nodeListPtr());
-  FieldSpace::Field<Dimension, DataType> result("min", const_cast<NodeSpace::NodeList<Dimension>&>(field1.nodeList()));
+  Field<Dimension, DataType> result("min", const_cast<NodeList<Dimension>&>(field1.nodeList()));
   for (int i = 0; i < field1.numElements(); ++i) {
     result(i) = std::min(field1(i), field2(i));
   }
@@ -1827,11 +1823,11 @@ min(const FieldSpace::Field<Dimension, DataType>& field1,
 }
 
 template<typename Dimension, typename DataType>
-FieldSpace::Field<Dimension, DataType>
+Field<Dimension, DataType>
 min(const DataType& value,
-    const FieldSpace::Field<Dimension, DataType>& field) {
+    const Field<Dimension, DataType>& field) {
   CHECK(field.valid());
-  FieldSpace::Field<Dimension, DataType> result("min", const_cast<NodeSpace::NodeList<Dimension>&>(field.nodeList()));
+  Field<Dimension, DataType> result("min", const_cast<NodeList<Dimension>&>(field.nodeList()));
   for (int i = 0; i < field.numElements(); ++i) {
     result(i) = std::min(value, field(i));
   }
@@ -1839,11 +1835,11 @@ min(const DataType& value,
 }
 
 template<typename Dimension, typename DataType>
-FieldSpace::Field<Dimension, DataType>
-min(const FieldSpace::Field<Dimension, DataType>& field, 
+Field<Dimension, DataType>
+min(const Field<Dimension, DataType>& field, 
     const DataType& value) {
   CHECK(field.valid());
-  FieldSpace::Field<Dimension, DataType> result("min", const_cast<NodeSpace::NodeList<Dimension>&>(field.nodeList()));
+  Field<Dimension, DataType> result("min", const_cast<NodeList<Dimension>&>(field.nodeList()));
   for (int i = 0; i < field.numElements(); ++i) {
     result(i) = std::min(field(i), value);
   }
@@ -1854,13 +1850,13 @@ min(const FieldSpace::Field<Dimension, DataType>& field,
 // Maximum
 //------------------------------------------------------------------------------
 template<typename Dimension, typename DataType>
-FieldSpace::Field<Dimension, DataType>
-max(const FieldSpace::Field<Dimension, DataType>& field1,
-    const FieldSpace::Field<Dimension, DataType>& field2) {
+Field<Dimension, DataType>
+max(const Field<Dimension, DataType>& field1,
+    const Field<Dimension, DataType>& field2) {
   CHECK(field1.valid() && field2.valid());
   CHECK(field1.numElements() == field2.numElements());
   CHECK(field1.nodeListPtr() == field2.nodeListPtr());
-  FieldSpace::Field<Dimension, DataType> result("max", const_cast<NodeSpace::NodeList<Dimension>&>(field1.nodeList()));
+  Field<Dimension, DataType> result("max", const_cast<NodeList<Dimension>&>(field1.nodeList()));
   for (int i = 0; i < field1.numElements(); ++i) {
     result(i) = std::max(field1(i), field2(i));
   }
@@ -1868,11 +1864,11 @@ max(const FieldSpace::Field<Dimension, DataType>& field1,
 }
 
 template<typename Dimension, typename DataType>
-FieldSpace::Field<Dimension, DataType>
+Field<Dimension, DataType>
 max(const DataType& value,
-    const FieldSpace::Field<Dimension, DataType>& field) {
+    const Field<Dimension, DataType>& field) {
   CHECK(field.valid());
-  FieldSpace::Field<Dimension, DataType> result("max", const_cast<NodeSpace::NodeList<Dimension>&>(field.nodeList()));
+  Field<Dimension, DataType> result("max", const_cast<NodeList<Dimension>&>(field.nodeList()));
   for (int i = 0; i < field.numElements(); ++i) {
     result(i) = std::max(value, field(i));
   }
@@ -1880,11 +1876,11 @@ max(const DataType& value,
 }
 
 template<typename Dimension, typename DataType>
-FieldSpace::Field<Dimension, DataType>
-max(const FieldSpace::Field<Dimension, DataType>& field, 
+Field<Dimension, DataType>
+max(const Field<Dimension, DataType>& field, 
     const DataType& value) {
   CHECK(field.valid());
-  FieldSpace::Field<Dimension, DataType> result("max", const_cast<NodeSpace::NodeList<Dimension>&>(field.nodeList()));
+  Field<Dimension, DataType> result("max", const_cast<NodeList<Dimension>&>(field.nodeList()));
   for (int i = 0; i < field.numElements(); ++i) {
     result(i) = std::max(field(i), value);
   }
@@ -1896,7 +1892,7 @@ max(const FieldSpace::Field<Dimension, DataType>& field,
 //------------------------------------------------------------------------------
 template<typename Dimension, typename DataType>
 std::istream&
-operator>>(std::istream& is, FieldSpace::Field<Dimension, DataType>& field) {
+operator>>(std::istream& is, Field<Dimension, DataType>& field) {
 
   // Start by reading the number of elements.
   int numElementsInStream;
@@ -1904,7 +1900,7 @@ operator>>(std::istream& is, FieldSpace::Field<Dimension, DataType>& field) {
   CHECK(numElementsInStream == field.nodeList().numInternalNodes());
 
   // Read in the elements.
-  for (typename FieldSpace::Field<Dimension, DataType>::iterator itr = field.internalBegin();
+  for (typename Field<Dimension, DataType>::iterator itr = field.internalBegin();
        itr < field.internalEnd();
        ++itr) {
     is >> *itr;
@@ -1917,13 +1913,13 @@ operator>>(std::istream& is, FieldSpace::Field<Dimension, DataType>& field) {
 //------------------------------------------------------------------------------
 template<typename Dimension, typename DataType>
 std::ostream&
-operator<<(std::ostream& os, const FieldSpace::Field<Dimension, DataType>& field) {
+operator<<(std::ostream& os, const Field<Dimension, DataType>& field) {
 
   // Write the number of internal elements.
   os << field.nodeList().numInternalNodes() << " ";
 
   // Write the internal elements.
-  for (typename FieldSpace::Field<Dimension, DataType>::const_iterator itr = field.internalBegin();
+  for (typename Field<Dimension, DataType>::const_iterator itr = field.internalBegin();
        itr < field.internalEnd();
        ++itr) {
     os << *itr << " ";

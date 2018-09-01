@@ -9,20 +9,12 @@
 #ifndef __Spheral_NodeIteratorBase_hh__
 #define __Spheral_NodeIteratorBase_hh__
 
-#ifndef __GCCXML__
 #include <vector>
-#else
-#include "fakestl.hh"
-#endif
 
 namespace Spheral {
-  namespace NodeSpace {
-    template<typename Dimension> class NodeList;
-    template<typename Dimension> class FluidNodeList;
-  }
-}
 
-namespace Spheral {
+template<typename Dimension> class NodeList;
+template<typename Dimension> class FluidNodeList;
 
 template<typename Dimension>
 class NodeIteratorBase {
@@ -44,9 +36,9 @@ public:
   NodeIteratorBase& operator=(const NodeIteratorBase& rhs);
 
   // Access the NodeList iterator/pointer.
-  typename std::vector<NodeSpace::NodeList<Dimension>*>::const_iterator nodeListIterator() const;
-  const NodeSpace::NodeList<Dimension>* nodeListPtr() const;
-  const NodeSpace::FluidNodeList<Dimension>* fluidNodeListPtr() const;
+  typename std::vector<NodeList<Dimension>*>::const_iterator nodeListIterator() const;
+  const NodeList<Dimension>* nodeListPtr() const;
+  const FluidNodeList<Dimension>* fluidNodeListPtr() const;
 
   // Access the node ID.
   int nodeID() const;
@@ -82,19 +74,14 @@ protected:
   // Internal state data.
   int mNodeID;
   int mFieldID;
-#ifndef __GCCXML__
-  typename std::vector<NodeSpace::NodeList<Dimension>*>::const_iterator mNodeListBegin;
-  typename std::vector<NodeSpace::NodeList<Dimension>*>::const_iterator mNodeListEnd;
-  typename std::vector<NodeSpace::NodeList<Dimension>*>::const_iterator mNodeListItr;
-#endif
-
+  typename std::vector<NodeList<Dimension>*>::const_iterator mNodeListBegin;
+  typename std::vector<NodeList<Dimension>*>::const_iterator mNodeListEnd;
+  typename std::vector<NodeList<Dimension>*>::const_iterator mNodeListItr;
 };
 
 }
 
-#ifndef __GCCXML__
 #include "NodeIteratorBaseInline.hh"
-#endif
 
 #else
 

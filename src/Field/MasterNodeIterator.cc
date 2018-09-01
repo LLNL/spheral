@@ -11,7 +11,6 @@
 namespace Spheral {
 
 using namespace std;
-using NodeSpace::NodeList;
 
 //------------------------------------------------------------------------------
 // Default constructor.

@@ -1,5 +1,4 @@
 namespace Spheral {
-namespace FieldSpace {
 
 //------------------------------------------------------------------------------
 // Access the member data as pointers.
@@ -36,6 +35,5 @@ SymTensorFieldListPtrs() {
   return &SymTensorFieldLists;
 }
 
-}
 }
 

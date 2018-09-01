@@ -11,15 +11,9 @@
 #include <memory>
 
 namespace Spheral {
-  namespace NodeSpace {
-    template<typename Dimension> class NodeList;
-  }
-}
 
-namespace Spheral {
-namespace FieldSpace {
-
-// Forward declare the FieldListBase for the registration.
+// Forward declarations
+template<typename Dimension> class NodeList;
 template<typename Dimension> class FieldListBase;
 
 template<typename Dimension>
@@ -95,7 +89,7 @@ private:
   // Disallow the default constructor.
   FieldBase();
 };
-}
+
 }
 
 #include "FieldBaseInline.hh"
@@ -104,9 +98,7 @@ private:
 
 // Forward declare the FieldBase class.
 namespace Spheral {
-  namespace FieldSpace {
-    template<typename Dimension> class FieldBase;
-  }
+  template<typename Dimension> class FieldBase;
 }
 
 #endif

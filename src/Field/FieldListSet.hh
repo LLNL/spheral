@@ -8,15 +8,10 @@
 #ifndef __Spheral_FieldListSet_hh__
 #define __Spheral_FieldListSet_hh__
 
-#ifndef __GCCXML__
-#include <vector>
 #include "FieldList.hh"
-#else
-#include "fakestl.hh"
-#endif
+#include <vector>
 
 namespace Spheral {
-namespace FieldSpace {
 
 template<typename Dimension>
 struct FieldListSet {
@@ -33,19 +28,13 @@ struct FieldListSet {
 };
 
 }
-}
 
-#ifndef __GCCXML__
 #include "FieldListSetInline.hh"
-#endif
 
 #else
 
 namespace Spheral {
-  namespace FieldSpace {
-    // Forward declaration.
-    template<typename Dimension> struct FieldListSet;
-  }
+  template<typename Dimension> struct FieldListSet;
 }
 
 #endif
