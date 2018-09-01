@@ -7,22 +7,18 @@
 #ifndef __Spheral_StateDerivatives_hh__
 #define __Spheral_StateDerivatives_hh__
 
-#include <vector>
-#include <map>
-
 #include "StateBase.hh"
 #include "Field/Field.hh"
 #include "Field/NodeIteratorBase.hh"
 
+#include <vector>
+#include <map>
+
 namespace Spheral {
 
 // Forward declarations.
-namespace DataBaseSpace {
-  template<typename Dimension> class DataBase;
-}
-namespace PhysicsSpace {
-  template<typename Dimension> class Physics;
-}
+template<typename Dimension> class DataBase;
+template<typename Dimension> class Physics;
 
 template<typename Dimension>
 class StateDerivatives: public StateBase<Dimension> {
@@ -36,15 +32,15 @@ public:
   typedef typename Dimension::Tensor Tensor;
   typedef typename Dimension::SymTensor SymTensor;
 
-  typedef std::vector<PhysicsSpace::Physics<Dimension>*> PackageList;
+  typedef std::vector<Physics<Dimension>*> PackageList;
   typedef typename PackageList::iterator PackageIterator;
 
   typedef typename StateBase<Dimension>::KeyType KeyType;
 
   // Constructors, destructor.
   StateDerivatives();
-  StateDerivatives(DataBaseSpace::DataBase<Dimension>& dataBase, PackageList& physicsPackage);
-  StateDerivatives(DataBaseSpace::DataBase<Dimension>& dataBase,
+  StateDerivatives(DataBase<Dimension>& dataBase, PackageList& physicsPackage);
+  StateDerivatives(DataBase<Dimension>& dataBase,
                    PackageIterator physicsPackageBegin,
                    PackageIterator physicsPackageEnd);
   StateDerivatives(const StateDerivatives& rhs);
@@ -92,9 +88,7 @@ private:
 
 }
 
-#ifndef __GCCXML__
 #include "StateDerivativesInline.hh"
-#endif
 
 #else
 

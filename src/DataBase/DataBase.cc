@@ -30,20 +30,9 @@ extern "C" {
 #endif
 
 namespace Spheral {
-namespace DataBaseSpace {
 
 using namespace std;
 using std::shared_ptr;
-
-using NodeSpace::NodeList;
-using NodeSpace::FluidNodeList;
-using NodeSpace::SolidNodeList;
-using FieldSpace::Field;
-using FieldSpace::FieldList;
-using KernelSpace::TableKernel;
-using NeighborSpace::Neighbor;
-using NeighborSpace::ConnectivityMap;
-using Material::EquationOfState;
 
 //------------------------------------------------------------------------------
 // Empty constructor.
@@ -1826,6 +1815,5 @@ int DataBase<Dimension>::nDim = Dimension::nDim;
 template<typename Dimension>
 bool DataBase<Dimension>::isRZ = false;
 
-}
 }
 

@@ -27,21 +27,13 @@
 namespace Spheral {
 
 // Forward declaration.
-namespace NodeSpace {
-  template<typename Dimension> class NodeList;
-}
-namespace FieldSpace {
-  template<typename Dimension> class FieldBase;
-  template<typename Dimension> class FieldListBase;
-  template<typename Dimension, typename DataType> class Field;
-  template<typename Dimension, typename DataType> class FieldList;
-}
-namespace NeighborSpace {
-  template<typename Dimension> class ConnectivityMap;
-}
-namespace MeshSpace {
-  template<typename Dimension> class Mesh;
-}
+template<typename Dimension> class NodeList;
+template<typename Dimension> class FieldBase;
+template<typename Dimension> class FieldListBase;
+template<typename Dimension, typename DataType> class Field;
+template<typename Dimension, typename DataType> class FieldList;
+template<typename Dimension> class ConnectivityMap;
+template<typename Dimension> class Mesh;
 
 template<typename Dimension>
 class StateBase {
@@ -54,14 +46,14 @@ public:
   typedef typename Dimension::Vector3d Vector3d;
   typedef typename Dimension::Tensor Tensor;
   typedef typename Dimension::SymTensor SymTensor;
-  typedef typename NeighborSpace::ConnectivityMap<Dimension> ConnectivityMapType;
-  typedef typename MeshSpace::Mesh<Dimension> MeshType;
+  typedef typename ConnectivityMap<Dimension> ConnectivityMapType;
+  typedef typename Mesh<Dimension> MeshType;
 
   typedef std::shared_ptr<ConnectivityMapType> ConnectivityMapPtr;
   typedef std::shared_ptr<MeshType> MeshPtr;
 
   typedef std::string KeyType;
-  typedef typename FieldSpace::FieldBase<Dimension>::FieldName FieldName;
+  typedef typename FieldBase<Dimension>::FieldName FieldName;
 
   // Constructors, destructor.
   StateBase();
@@ -76,16 +68,16 @@ public:
 
   // Test if the specified Field or key is currently registered.
   bool registered(const KeyType& key) const;
-  bool registered(const FieldSpace::FieldBase<Dimension>& field) const;
-  bool registered(const FieldSpace::FieldListBase<Dimension>& fieldList) const;
+  bool registered(const FieldBase<Dimension>& field) const;
+  bool registered(const FieldListBase<Dimension>& fieldList) const;
   bool fieldNameRegistered(const FieldName& fieldName) const;
 
   // Enroll a Field.
-  virtual void enroll(FieldSpace::FieldBase<Dimension>& field);
-  virtual void enroll(std::shared_ptr<FieldSpace::FieldBase<Dimension>>& fieldPtr);
+  virtual void enroll(FieldBase<Dimension>& field);
+  virtual void enroll(std::shared_ptr<FieldBase<Dimension>>& fieldPtr);
 
   // Enroll a FieldList.
-  virtual void enroll(FieldSpace::FieldListBase<Dimension>& fieldList);
+  virtual void enroll(FieldListBase<Dimension>& fieldList);
 
   // Enroll an externally held Mesh.
   void enrollMesh(MeshPtr meshPtr);
@@ -95,17 +87,17 @@ public:
 
   // Return the field for the given key.
   template<typename Value>
-  FieldSpace::Field<Dimension, Value>& field(const KeyType& key,
+  Field<Dimension, Value>& field(const KeyType& key,
                                              const Value& dummy) const;
 
   // Return FieldLists constructed from all registered Fields with the given name.
   template<typename Value>
-  FieldSpace::FieldList<Dimension, Value> fields(const std::string& name, 
+  FieldList<Dimension, Value> fields(const std::string& name, 
                                                  const Value& dummy) const;
 
   // Return all the fields of the given Value.
   template<typename Value>
-  std::vector<FieldSpace::Field<Dimension, Value>*> allFields(const Value& dummy) const;
+  std::vector<Field<Dimension, Value>*> allFields(const Value& dummy) const;
 
   // Return the vector<Scalar>.
   std::vector<Scalar>& array(const FieldName& key);
@@ -133,10 +125,10 @@ public:
   virtual void copyState();
 
   // Construct the lookup key for the given field.
-  static KeyType key(const FieldSpace::FieldBase<Dimension>& field);
+  static KeyType key(const FieldBase<Dimension>& field);
 
   // Construct the lookup key for the given FieldList.
-  static KeyType key(const FieldSpace::FieldListBase<Dimension>& fieldList);
+  static KeyType key(const FieldListBase<Dimension>& fieldList);
 
   // Encode our underlying convention for combining Field and NodeList names into a 
   // single Key.
@@ -145,8 +137,8 @@ public:
 
 protected:
   //--------------------------- Protected Interface ---------------------------//
-  typedef std::map<KeyType, FieldSpace::FieldBase<Dimension>*> StorageType;
-  typedef std::list<std::shared_ptr<FieldSpace::FieldBase<Dimension> > > CacheType;
+  typedef std::map<KeyType, FieldBase<Dimension>*> StorageType;
+  typedef std::list<std::shared_ptr<FieldBase<Dimension> > > CacheType;
   typedef std::map<KeyType, std::vector<Scalar>*> VectorStorageType;
   typedef std::list<std::shared_ptr<std::vector<Scalar> > > VectorCacheType;
 
@@ -155,7 +147,7 @@ protected:
   CacheType mCache;
   VectorStorageType mVectorStorage;
   VectorCacheType mVectorCache;
-  std::set<const NodeSpace::NodeList<Dimension>*> mNodeListPtrs;
+  std::set<const NodeList<Dimension>*> mNodeListPtrs;
   ConnectivityMapPtr mConnectivityMapPtr;
   MeshPtr mMeshPtr;
 };
