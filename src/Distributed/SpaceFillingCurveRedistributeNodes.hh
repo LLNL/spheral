@@ -11,37 +11,20 @@
 #ifndef SpaceFillingCurveRedistributeNodes_HH
 #define SpaceFillingCurveRedistributeNodes_HH
 
-#ifndef __GCCXML__
-
 #include <vector>
 #include <map>
 #ifdef USE_MPI
 #include "mpi.h"
 #endif
 
-#else
-
-#include "fakestl.hh"
-
-#endif
-
 #include "RedistributeNodes.hh"
 #include "Utilities/KeyTraits.hh"
 
 namespace Spheral {
-  namespace DataBaseSpace {
-    template<typename Dimension> class DataBase;
-  }
-  namespace NodeSpace {
-    template<typename Dimension> class NodeList;
-  }
-  namespace BoundarySpace {
-    template<typename Dimension> class Boundary;
-  }
-}
 
-namespace Spheral {
-namespace PartitionSpace {
+template<typename Dimension> class DataBase;
+template<typename Dimension> class NodeList;
+template<typename Dimension> class Boundary;
 
 template<typename Dimension>
 class SpaceFillingCurveRedistributeNodes: public RedistributeNodes<Dimension> {
@@ -163,14 +146,12 @@ private:
 };
 
 }
-}
 
 #else
+
 // Forward declare the SpaceFillingCurveRedistributeNodes class.
 namespace Spheral {
-  namespace PartitionSpace {
-    template<typename Dimension> class SpaceFillingCurveRedistributeNodes;
-  }
+  template<typename Dimension> class SpaceFillingCurveRedistributeNodes;
 }
 
 #endif

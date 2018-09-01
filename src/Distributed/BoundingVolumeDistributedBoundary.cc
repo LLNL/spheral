@@ -28,15 +28,6 @@
 using namespace std;
 
 namespace Spheral {
-namespace BoundarySpace {
-
-using NodeSpace::NodeList;
-using NeighborSpace::Neighbor;
-using NeighborSpace::NestedGridNeighbor;
-using NeighborSpace::GridCellIndex;
-using DataBaseSpace::DataBase;
-using FieldSpace::Field;
-using FieldSpace::FieldList;
 
 // Static initialization of singleton instance.
 template <typename Dimension>
@@ -231,6 +222,5 @@ packNodeListBuffers(const DataBase<Dimension>& dataBase,
   ENSURE(Hbuffers.size() == numNodesPerNodeList.size());
 }
 
-}
 }
 

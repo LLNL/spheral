@@ -10,25 +10,18 @@
 #ifndef BoundingVolumeDistributedBoundary_HH
 #define BoundingVolumeDistributedBoundary_HH
 
-#include <string>
-
 #include "DistributedBoundary.hh"
 
+#include <string>
+
 namespace Spheral {
-  namespace DataBaseSpace {
-    template<typename Dimension> class DataBase;
-  }
-  namespace NeighborSpace {
-    template<typename Dimension> class BoundingVolumeNeighbor;
-    template<typename Dimension> class GridCellIndex;
-  }
-  namespace NodeSpace {
-    template<typename Dimension> class NodeList;
-  }
+  template<typename Dimension> class DataBase;
+  template<typename Dimension> class BoundingVolumeNeighbor;
+  template<typename Dimension> class GridCellIndex;
+  template<typename Dimension> class NodeList;
 }
 
 namespace Spheral {
-namespace BoundarySpace {
 
 template<typename Dimension>
 class BoundingVolumeDistributedBoundary: public DistributedBoundary<Dimension> {
@@ -52,7 +45,7 @@ public:
   //**********************************************************************
   // Apply the boundary condition to the given Field.
   // Set the ghost nodes based on the NodeLists in the given DataBase.
-  virtual void setAllGhostNodes(DataBaseSpace::DataBase<Dimension>& dataBase) override;
+  virtual void setAllGhostNodes(DataBase<Dimension>& dataBase) override;
   //**********************************************************************
 
 private:
@@ -66,23 +59,20 @@ private:
   BoundingVolumeDistributedBoundary& operator=(const BoundingVolumeDistributedBoundary&);
 
   // Private methods.
-  void buildSendNodes(const DataBaseSpace::DataBase<Dimension>& dataBase);
-  void packNodeListBuffers(const DataBaseSpace::DataBase<Dimension>& dataBase,
+  void buildSendNodes(const DataBase<Dimension>& dataBase);
+  void packNodeListBuffers(const DataBase<Dimension>& dataBase,
                            std::vector<int>& numNodesPerNodes,
                            std::vector<std::string>& positionBuffers,
                            std::vector<std::string>& Hbuffers) const;
 };
 
 }
-}
 
 #else
 
 // Forward declaration.
 namespace Spheral {
-  namespace BoundarySpace {
-    template<typename Dimension> class BoundingVolumeDistributedBoundary;
-  }
+  template<typename Dimension> class BoundingVolumeDistributedBoundary;
 }
 
 #endif

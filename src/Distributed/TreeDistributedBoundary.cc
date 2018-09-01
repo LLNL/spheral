@@ -24,13 +24,6 @@
 using namespace std;
 
 namespace Spheral {
-namespace BoundarySpace {
-
-using NodeSpace::NodeList;
-using NeighborSpace::TreeNeighbor;
-using DataBaseSpace::DataBase;
-using FieldSpace::Field;
-using FieldSpace::FieldList;
 
 // Static initialization of singleton instance.
 template <typename Dimension>
@@ -113,10 +106,10 @@ setAllGhostNodes(DataBase<Dimension>& dataBase) {
 //------------------------------------------------------------------------------
 template<typename Dimension>
 inline
-const NeighborSpace::TreeNeighbor<Dimension>*
+const TreeNeighbor<Dimension>*
 TreeDistributedBoundary<Dimension>::
-getTreeNeighborPtr(const NodeSpace::NodeList<Dimension>* nodeListPtr) const {
-  const NeighborSpace::TreeNeighbor<Dimension>* result = dynamic_cast<NeighborSpace::TreeNeighbor<Dimension>*>(&(nodeListPtr->neighbor()));
+getTreeNeighborPtr(const NodeList<Dimension>* nodeListPtr) const {
+  const TreeNeighbor<Dimension>* result = dynamic_cast<TreeNeighbor<Dimension>*>(&(nodeListPtr->neighbor()));
   VERIFY2(result != NULL, "TreeDistributedBoundary ERROR : unable to extract TreeNeighbor from NodeList " << nodeListPtr->name());
   return result;
 }
@@ -310,6 +303,5 @@ buildSendNodes(const DataBase<Dimension>& dataBase,
   }
 }
 
-}
 }
 

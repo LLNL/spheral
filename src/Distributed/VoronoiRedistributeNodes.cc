@@ -10,14 +10,6 @@
 //
 // Created by JMO, Fri Jan 15 09:56:56 PST 2010
 //----------------------------------------------------------------------------//
-#include <algorithm>
-#include <sstream>
-#include <fstream>
-#include <cstdlib>
-#include <bitset>
-
-#include <boost/assign.hpp>
-
 #include "VoronoiRedistributeNodes.hh"
 #include "DomainNode.hh"
 #include "Boundary/Boundary.hh"
@@ -39,19 +31,17 @@
 
 #include "Utilities/DBC.hh"
 
+#include <algorithm>
+#include <sstream>
+#include <fstream>
+#include <cstdlib>
+#include <bitset>
+
+#include <boost/assign.hpp>
+
 namespace Spheral {
-namespace PartitionSpace {
 
 using namespace std;
-
-using DataBaseSpace::DataBase;
-using NodeSpace::NodeList;
-using BoundarySpace::Boundary;
-using FieldSpace::FieldList;
-using FieldSpace::Field;
-using FieldSpace::latticeIndex;
-using KernelSpace::TableKernel;
-using KernelSpace::BSplineKernel;
 
 //------------------------------------------------------------------------------
 // Helper method to find the nearest position in a vector of positions to the 
@@ -358,7 +348,7 @@ redistributeNodes(DataBase<Dimension>& dataBase,
   const int procID = this->domainID();
 
   // Get the global IDs.
-  const FieldList<Dimension, int> globalIDs = NodeSpace::globalNodeIDs(dataBase);
+  const FieldList<Dimension, int> globalIDs = globalNodeIDs(dataBase);
   const size_t numNodeLists = dataBase.numNodeLists();
 
   // Compute the work and number density per node.
@@ -1045,6 +1035,5 @@ maxIterations(const unsigned val) {
   mMaxIterations = val;
 }
 
-}
 }
 

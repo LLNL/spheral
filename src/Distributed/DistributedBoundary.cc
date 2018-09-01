@@ -4,10 +4,6 @@
 //
 // Created by JMO, Mon Aug 27 16:57:11 PDT 2001
 //----------------------------------------------------------------------------//
-#include <sstream>
-#include <list>
-#include <algorithm>
-
 #include "DistributedBoundary.hh"
 #include "Communicator.hh"
 #include "Boundary/Boundary.hh"
@@ -19,14 +15,13 @@
 #include "Utilities/DBC.hh"
 #include "waitAllWithDeadlockDetection.hh"
 
+#include <sstream>
+#include <list>
+#include <algorithm>
+
 namespace Spheral {
-namespace BoundarySpace {
 
 using namespace std;
-using NodeSpace::NodeList;
-using FieldSpace::Field;
-using FieldSpace::FieldBase;
-using DataBaseSpace::DataBase;
 
 //------------------------------------------------------------------------------
 // Define a local trait class to map elements to MPI_DATATYPES.
@@ -1852,6 +1847,5 @@ buildReceiveAndGhostNodes(const DataBase<Dimension>& dataBase) {
 
 }
 
-}
 }
 

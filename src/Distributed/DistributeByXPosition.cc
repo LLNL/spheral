@@ -6,8 +6,6 @@
 //----------------------------------------------------------------------------//
 #include "mpi.h"
 
-#include <algorithm>
-
 #include "RedistributeNodes.hh"
 #include "DistributeByXPosition.hh"
 #include "DomainNode.hh"
@@ -19,14 +17,11 @@
 
 #include "Utilities/DBC.hh"
 
+#include <algorithm>
+
 namespace Spheral {
-namespace PartitionSpace {
 
 using namespace std;
-using DataBaseSpace::DataBase;
-using NodeSpace::NodeList;
-using BoundarySpace::Boundary;
-using FieldSpace::FieldList;
 
 //------------------------------------------------------------------------------
 // Local function to help sort a vector of DomainNode by x position.
@@ -73,7 +68,7 @@ redistributeNodes(DataBase<Dimension>& dataBase,
   // the partitioning all by itself.
 
   // Assign temporary global IDs for each NodeList in the DataBase.
-  const FieldList<Dimension, int> globalNodeIDs = NodeSpace::globalNodeIDs(dataBase);
+  const FieldList<Dimension, int> globalNodeIDs = globalNodeIDs(dataBase);
   CHECK(globalNodeIDs.size() == dataBase.numNodeLists());
 
   // First get the local description of the domain distribution.
@@ -195,6 +190,5 @@ redistributeNodes(DataBase<Dimension>& dataBase,
   this->enforceDomainDecomposition(localDistribution, dataBase);
 }
 
-}
 }
 

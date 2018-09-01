@@ -2,13 +2,6 @@
 // SortAndDivideRedistributeNodes -- (Re)domain decompose the nodes by using the
 // information encoded in the SortAndDivideNeighbor algorithm.
 //----------------------------------------------------------------------------//
-#include <algorithm>
-#include <vector>
-#include <map>
-
-#include <fstream>
-#include <cstdlib>
-
 #include "SortAndDivideRedistributeNodes3d.hh"
 #include "DomainNode.hh"
 #include "BoundingVolumeDistributedBoundary.hh"
@@ -23,16 +16,16 @@
 
 #include "Utilities/DBC.hh"
 
+#include <algorithm>
+#include <vector>
+#include <map>
+
+#include <fstream>
+#include <cstdlib>
+
 namespace Spheral {
-namespace PartitionSpace {
 
 using namespace std;
-
-using DataBaseSpace::DataBase;
-using NodeSpace::NodeList;
-using BoundarySpace::BoundingVolumeDistributedBoundary;
-using BoundarySpace::Boundary;
-using FieldSpace::FieldList;
 
 //------------------------------------------------------------------------------
 // Construct with the given node extent.
@@ -100,7 +93,7 @@ redistributeNodes(DataBase<Dim<3> >& dataBase,
   }
 
   // Build the set of global node IDs.
-  const FieldList<Dimension, int> globalIDs = NodeSpace::globalNodeIDs(dataBase);
+  const FieldList<Dimension, int> globalIDs = globalNodeIDs(dataBase);
 
   // Get the local description of the domain distribution.
   vector<DomainNode<Dimension> > nodeDistribution = this->currentDomainDecomposition(dataBase, globalIDs, work);
@@ -375,5 +368,4 @@ domainsPerChunk(const Dim<3>::SymTensor::EigenStructType& shapeTensor) const {
   return result;
 }
 
-}
 }

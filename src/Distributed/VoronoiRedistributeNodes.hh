@@ -13,7 +13,8 @@
 #ifndef VoronoiRedistributeNodes_HH
 #define VoronoiRedistributeNodes_HH
 
-#ifndef __GCCXML__
+#include "RedistributeNodes.hh"
+#include "Utilities/KeyTraits.hh"
 
 #include <vector>
 #include <map>
@@ -21,29 +22,11 @@
 #include "mpi.h"
 #endif
 
-#else
-
-#include "fakestl.hh"
-
-#endif
-
-#include "RedistributeNodes.hh"
-#include "Utilities/KeyTraits.hh"
-
 namespace Spheral {
-  namespace DataBaseSpace {
-    template<typename Dimension> class DataBase;
-  }
-  namespace NodeSpace {
-    template<typename Dimension> class NodeList;
-  }
-  namespace BoundarySpace {
-    template<typename Dimension> class Boundary;
-  }
-}
 
-namespace Spheral {
-namespace PartitionSpace {
+template<typename Dimension> class DataBase;
+template<typename Dimension> class NodeList;
+template<typename Dimension> class Boundary;
 
 template<typename Dimension>
 class VoronoiRedistributeNodes: public RedistributeNodes<Dimension> {

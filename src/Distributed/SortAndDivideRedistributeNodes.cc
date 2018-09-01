@@ -10,16 +10,15 @@
 //
 // Created by JMO, Thu Dec 2 10:44:07 2004
 //----------------------------------------------------------------------------//
-#include <limits>
-
 #include "SortAndDivideRedistributeNodes.hh"
 #include "CompareDomainNodesByPosition.hh"
 #include "Field/FieldList.hh"
 #include "Geometry/EigenStruct.hh"
 #include "Communicator.hh"
 
+#include <limits>
+
 namespace Spheral {
-namespace PartitionSpace {
 
 using namespace std;
 
@@ -423,6 +422,5 @@ broadcastDomainNodes(const std::vector<DomainNode<Dimension> >& nodes,
   return result;
 }
 
-}
 }
 

@@ -2,15 +2,9 @@
 #define DomainNode_HH
 
 #include <stddef.h>
-
-#ifndef __GCCXML__
 #include <vector>
-#else
-#include "fakestl.hh"
-#endif
 
 namespace Spheral {
-namespace PartitionSpace {
 
 template<typename Dimension>
 struct DomainNode {
@@ -33,17 +27,12 @@ struct DomainNode {
 };
 
 }
-}
 
-#ifndef __GCCXML__
 #include "DomainNodeInline.hh"
-#endif
 
 #else
 namespace Spheral {
-  namespace PartitionSpace {
-    template<typename Dimension> struct DomainNode;
-  }
+  template<typename Dimension> struct DomainNode;
 }
 
 #endif
