@@ -15,11 +15,8 @@
 
 namespace Spheral {
 
-namespace KernelSpace {
 template<typename Dimension> class TableKernel;
-}
 
-namespace FieldSpace {
 template<typename Dimension, typename DataType> class FieldList;
 
 //------------------------------------------------------------------------------
@@ -38,7 +35,7 @@ binFieldList2Lattice(const FieldList<Dimension, Value>& fieldList,
 template<typename Dimension, typename Value>
 std::vector<Value>
 binFieldList2Lattice(const FieldList<Dimension, Value>& fieldList,
-                     const KernelSpace::TableKernel<Dimension>& W,
+                     const TableKernel<Dimension>& W,
                      const typename Dimension::Vector& xmin,
                      const typename Dimension::Vector& xmax,
                      const std::vector<unsigned>& nsample);
@@ -88,7 +85,6 @@ latticeIndex(const Dim<3>::Vector& xi,
           latticeIndexElement(xi.z(), xmin.z(), xmax.z(), nsample[2])*nsample[0]*nsample[1]);
 }
 
-}
 }
 
 #endif

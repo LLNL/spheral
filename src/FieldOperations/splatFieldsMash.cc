@@ -14,12 +14,8 @@
 #include "Geometry/MathTraits.hh"
 
 namespace Spheral {
-namespace FieldSpace {
 
 using namespace std;
-using NodeSpace::NodeList;
-using NeighborSpace::Neighbor;
-using KernelSpace::TableKernel;
 
 //------------------------------------------------------------------------------
 // Return a MASH donated version of the given FieldList at the new positions.
@@ -131,17 +127,17 @@ splatFieldsMash(const FieldList<Dimension, DataType>& fieldList,
           // Get the symmetrized kernel weighting for this node pair.
           Scalar Wij, weightij;
           switch(neighborItr.nodeListPtr()->neighbor().neighborSearchType()) {
-          case NeighborSpace::NeighborSearchType::GatherScatter:
+          case NeighborSearchType::GatherScatter:
             Wij = 0.5*(Wi + Wj);
             weightij = 0.5*(weighti + weightj);
             break;
 
-          case NeighborSpace::NeighborSearchType::Gather:
+          case NeighborSearchType::Gather:
             Wij = Wi;
             weightij = weighti;
             break;
 
-          case NeighborSpace::NeighborSearchType::Scatter:
+          case NeighborSearchType::Scatter:
             Wij = Wj;
             weightij = weightj;
             break;
@@ -182,17 +178,17 @@ splatFieldsMash(const FieldList<Dimension, DataType>& fieldList,
           // Get the symmetrized kernel weighting for this node pair.
           Scalar Wij, weightij;
           switch(neighborItr.nodeListPtr()->neighbor().neighborSearchType()) {
-          case NeighborSpace::NeighborSearchType::GatherScatter:
+          case NeighborSearchType::GatherScatter:
             Wij = 0.5*(Wi + Wj);
             weightij = 0.5*(weighti + weightj);
             break;
 
-          case NeighborSpace::NeighborSearchType::Gather:
+          case NeighborSearchType::Gather:
             Wij = Wi;
             weightij = weighti;
             break;
 
-          case NeighborSpace::NeighborSearchType::Scatter:
+          case NeighborSearchType::Scatter:
             Wij = Wj;
             weightij = weightj;
             break;
@@ -227,5 +223,3 @@ splatFieldsMash(const FieldList<Dimension, DataType>& fieldList,
 }
 
 }
-}
-

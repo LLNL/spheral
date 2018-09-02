@@ -19,14 +19,8 @@
 #include "Utilities/DBC.hh"
 
 namespace Spheral {
-namespace FieldSpace {
 
 using namespace std;
-using NodeSpace::NodeList;
-using NodeSpace::FluidNodeList;
-using NeighborSpace::Neighbor;
-using KernelSpace::TableKernel;
-using BoundarySpace::Boundary;
 
 //------------------------------------------------------------------------------
 // Return a MASH donated version of the given FieldList at the new positions.
@@ -165,8 +159,8 @@ splatMultipleFieldsMash(const FieldListSet<Dimension>& fieldListSet,
       resultItr->appendField(Field<Dimension, SymTensor>("splat" + (*fieldItr)->name(), (*fieldItr)->nodeList()));
   }
   
-  FieldList<Dimension, int> flagNodeDone(FieldSpace::FieldStorageType::CopyFields);
-  FieldList<Dimension, Scalar> normalization(FieldSpace::FieldStorageType::CopyFields);
+  FieldList<Dimension, int> flagNodeDone(FieldStorageType::CopyFields);
+  FieldList<Dimension, Scalar> normalization(FieldStorageType::CopyFields);
   for (typename FieldList<Dimension, Vector>::const_iterator fieldItr = position.begin();
        fieldItr < position.end(); 
        ++fieldItr) {
@@ -229,17 +223,17 @@ splatMultipleFieldsMash(const FieldListSet<Dimension>& fieldListSet,
           // // Get the symmetrized kernel weighting for this node pair.
           // Scalar Wij, weightij;
           // switch(neighborItr.nodeListPtr()->neighbor().neighborSearchType()) {
-          // case NeighborSpace::GatherScatter:
+          // case GatherScatter:
           //   Wij = 0.5*(Wi + Wj);
           //   weightij = 0.5*(weighti + weightj);
           //   break;
 
-          // case NeighborSpace::Gather:
+          // case Gather:
           //   Wij = Wi;
           //   weightij = weighti;
           //   break;
 
-          // case NeighborSpace::Scatter:
+          // case Scatter:
           //   Wij = Wj;
           //   weightij = weightj;
           //   break;
@@ -324,17 +318,17 @@ splatMultipleFieldsMash(const FieldListSet<Dimension>& fieldListSet,
       // // Get the symmetrized kernel weighting for this node pair.
       // Scalar Wij, weightij;
       // switch(neighborItr.nodeListPtr()->neighbor().neighborSearchType()) {
-      // case NeighborSpace::GatherScatter:
+      // case GatherScatter:
       //   Wij = 0.5*(Wi + Wj);
       //   weightij = 0.5*(weighti + weightj);
       //   break;
 
-      // case NeighborSpace::Gather:
+      // case Gather:
       //   Wij = Wj;
       //   weightij = weightj;
       //   break;
          
-      // case NeighborSpace::Scatter:
+      // case Scatter:
       //   Wij = Wi;
       //   weightij = weighti;
       //   break;
@@ -385,5 +379,3 @@ splatMultipleFieldsMash(const FieldListSet<Dimension>& fieldListSet,
 }
 
 }
-}
-

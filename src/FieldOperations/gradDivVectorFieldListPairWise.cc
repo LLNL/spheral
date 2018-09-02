@@ -6,9 +6,6 @@
 // Created by JMO, Wed Dec 18 22:46:54 PST 2002
 //----------------------------------------------------------------------------//
 
-#include <vector>
-using std::vector;
-
 #include "FieldListSecondDerivatives.hh"
 #include "PairWiseFieldListFunctions.hh"
 #include "Field/FieldList.hh"
@@ -20,14 +17,12 @@ using std::vector;
 #include "Boundary/Boundary.hh"
 #include "Utilities/rotationMatrix.hh"
 
+#include <vector>
+using std::vector;
+
 namespace Spheral {
-namespace FieldSpace {
 
 using namespace std;
-using NodeSpace::NodeList;
-using NeighborSpace::Neighbor;
-using KernelSpace::TableKernel;
-using BoundarySpace::Boundary;
 
 //------------------------------------------------------------------------------
 // Calculate the gradient of the divergence of a Vector FieldList.
@@ -130,17 +125,17 @@ gradDivVectorFieldListPairWise
             Scalar Wij;
             Vector gWij;
             switch((*fieldList.begin())->nodeListPtr()->neighbor().neighborSearchType()) {
-            case NeighborSpace::NeighborSearchType::GatherScatter:
+            case NeighborSearchType::GatherScatter:
               Wij = 0.5*(Wi + Wj);
               gWij = 0.5*(gWi + gWj);
               break;
 
-            case NeighborSpace::NeighborSearchType::Gather:
+            case NeighborSearchType::Gather:
               Wij = Wi;
               gWij = gWi;
               break;
 
-            case NeighborSpace::NeighborSearchType::Scatter:
+            case NeighborSearchType::Scatter:
               Wij = Wj;
               gWij = gWj;
               break;
@@ -286,5 +281,3 @@ gradDivVectorFieldListPairWise
 // }
 
 }
-}
-

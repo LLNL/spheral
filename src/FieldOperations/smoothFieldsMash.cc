@@ -14,12 +14,8 @@
 #include "Geometry/MathTraits.hh"
 
 namespace Spheral {
-namespace FieldSpace {
 
 using namespace std;
-using NodeSpace::NodeList;
-using NeighborSpace::Neighbor;
-using KernelSpace::TableKernel;
 
 //------------------------------------------------------------------------------
 // Return a monotonic smoothed estimate of the given FieldList by using a
@@ -117,15 +113,15 @@ smoothFieldsMash(const FieldList<Dimension, DataType>& fieldList,
           // Get the symmetrized kernel weighting for this node pair.
           Scalar Wij;
           switch(neighborItr.nodeListPtr()->neighbor().neighborSearchType()) {
-          case NeighborSpace::NeighborSearchType::GatherScatter:
+          case NeighborSearchType::GatherScatter:
             Wij = 0.5*(Wi + Wj);
             break;
 
-          case NeighborSpace::NeighborSearchType::Gather:
+          case NeighborSearchType::Gather:
             Wij = Wi;
             break;
 
-          case NeighborSpace::NeighborSearchType::Scatter:
+          case NeighborSearchType::Scatter:
             Wij = Wj;
             break;
 
@@ -162,5 +158,3 @@ smoothFieldsMash(const FieldList<Dimension, DataType>& fieldList,
 }
 
 }
-}
-

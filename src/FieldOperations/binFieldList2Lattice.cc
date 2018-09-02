@@ -7,8 +7,6 @@
 //
 // Created by JMO, Wed Feb  3 11:02:20 PST 2010
 //----------------------------------------------------------------------------//
-#include <algorithm>
-
 #include "Geometry/Dimension.hh"
 #include "binFieldList2Lattice.hh"
 #include "Kernel/TableKernel.hh"
@@ -24,6 +22,8 @@
 
 #include "Utilities/DBC.hh"
 
+#include <algorithm>
+
 #ifdef USE_MPI
 extern "C" {
 #include "mpi.h"
@@ -31,11 +31,8 @@ extern "C" {
 #endif
 
 namespace Spheral {
-namespace FieldSpace {
 
 using namespace std;
-using KernelSpace::TableKernel;
-using NeighborSpace::Neighbor;
 
 //------------------------------------------------------------------------------
 // Helper method specialized per dimension to increment grid cell values.
@@ -176,7 +173,7 @@ binFieldList2Lattice(const FieldList<Dimension, Value>& fieldList,
 
   // We need to exclude any nodes that come from the Distributed boundary condition.
 #ifdef USE_MPI
-  BoundarySpace::BoundingVolumeDistributedBoundary<Dimension>& distributedBoundary = BoundarySpace::BoundingVolumeDistributedBoundary<Dimension>::instance();
+  BoundingVolumeDistributedBoundary<Dimension>& distributedBoundary = BoundingVolumeDistributedBoundary<Dimension>::instance();
 #endif
 
   // Compute the total number of sample points.
@@ -266,7 +263,7 @@ binFieldList2Lattice(const FieldList<Dimension, Value>& fieldList,
 
   // We need to exclude any nodes that come from the Distributed boundary condition.
 #ifdef USE_MPI
-  BoundarySpace::BoundingVolumeDistributedBoundary<Dimension>& distributedBoundary = BoundarySpace::BoundingVolumeDistributedBoundary<Dimension>::instance();
+  BoundingVolumeDistributedBoundary<Dimension>& distributedBoundary = BoundingVolumeDistributedBoundary<Dimension>::instance();
 #endif
 
   // Compute the total number of sample points.
@@ -336,5 +333,3 @@ binFieldList2Lattice(const FieldList<Dimension, Value>& fieldList,
 }
 
 }
-}
-

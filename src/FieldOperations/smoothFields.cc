@@ -17,12 +17,8 @@
 // Return a smoothed estimate of the given FieldList.
 //------------------------------------------------------------------------------
 namespace Spheral {
-namespace FieldSpace {
 
 using namespace std;
-using NodeSpace::NodeList;
-using NeighborSpace::Neighbor;
-using KernelSpace::TableKernel;
 
 template<typename Dimension, typename DataType>
 FieldList<Dimension, DataType>
@@ -95,15 +91,15 @@ smoothFields(const FieldList<Dimension, DataType>& fieldList,
           // Get the symmetrized kernel weighting for this node pair.
           Scalar Wij;
           switch((*fieldList.begin())->nodeListPtr()->neighbor().neighborSearchType()) {
-          case NeighborSpace::NeighborSearchType::GatherScatter:
+          case NeighborSearchType::GatherScatter:
             Wij = 0.5*(kernel(etai, Hi) + kernel(etaj, Hj));
             break;
 
-          case NeighborSpace::NeighborSearchType::Gather:
+          case NeighborSearchType::Gather:
             Wij = kernel(etai, Hi);
             break;
 
-          case NeighborSpace::NeighborSearchType::Scatter:
+          case NeighborSearchType::Scatter:
             Wij = kernel(etaj, Hj);
             break;
 
@@ -137,5 +133,3 @@ smoothFields(const FieldList<Dimension, DataType>& fieldList,
 }
 
 }
-}
-
