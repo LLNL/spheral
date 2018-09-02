@@ -11,34 +11,19 @@
 #include "Physics/GenericHydro.hh"
 
 namespace Spheral {
-  template<typename Dimension> class State;
-  template<typename Dimension> class StateDerivatives;
-  namespace NodeSpace {
-    template<typename Dimension> class SmoothingScaleBase;
-  }
-  namespace ArtificialViscositySpace {
-    template<typename Dimension> class ArtificialViscosity;
-  }
-  namespace KernelSpace {
-    template<typename Dimension> class TableKernel;
-  }
-  namespace DataBaseSpace {
-    template<typename Dimension> class DataBase;
-  }
-  namespace FieldSpace {
-    template<typename Dimension, typename DataType> class Field;
-    template<typename Dimension, typename DataType> class FieldList;
-  }
-  namespace FileIOSpace {
-    class FileIO;
-  }
-}
 
-namespace Spheral {
-namespace FVPMSpace {
+template<typename Dimension> class State;
+template<typename Dimension> class StateDerivatives;
+template<typename Dimension> class SmoothingScaleBase;
+template<typename Dimension> class ArtificialViscosity;
+template<typename Dimension> class TableKernel;
+template<typename Dimension> class DataBase;
+template<typename Dimension, typename DataType> class Field;
+template<typename Dimension, typename DataType> class FieldList;
+class FileIO;
 
 template<typename Dimension>
-class FVPMTotalHydroBase: public PhysicsSpace::GenericHydro<Dimension> {
+class FVPMTotalHydroBase: public GenericHydro<Dimension> {
 
 public:
   //--------------------------- Public Interface ---------------------------//
@@ -47,12 +32,12 @@ public:
   typedef typename Dimension::Tensor Tensor;
   typedef typename Dimension::SymTensor SymTensor;
 
-  typedef typename PhysicsSpace::Physics<Dimension>::ConstBoundaryIterator ConstBoundaryIterator;
+  typedef typename Physics<Dimension>::ConstBoundaryIterator ConstBoundaryIterator;
 
   // Constructors.
-  FVPMTotalHydroBase(const NodeSpace::SmoothingScaleBase<Dimension>& smoothingScaleMethod,
-                     const KernelSpace::TableKernel<Dimension>& W,
-                     ArtificialViscositySpace::ArtificialViscosity<Dimension>& Q,
+  FVPMTotalHydroBase(const SmoothingScaleBase<Dimension>& smoothingScaleMethod,
+                     const TableKernel<Dimension>& W,
+                     ArtificialViscosity<Dimension>& Q,
                      const double cfl,
                      const bool useVelocityMagnitudeForDt,
                      const HEvolutionType HUpdate);
@@ -62,23 +47,23 @@ public:
 
   // Tasks we do once on problem startup.
   virtual
-  void initializeProblemStartup(DataBaseSpace::DataBase<Dimension>& dataBase);
+  void initializeProblemStartup(DataBase<Dimension>& dataBase);
 
   // Register the state Hydro expects to use and evolve.
   virtual 
-  void registerState(DataBaseSpace::DataBase<Dimension>& dataBase,
+  void registerState(DataBase<Dimension>& dataBase,
                      State<Dimension>& state);
 
   // Register the derivatives/change fields for updating state.
   virtual
-  void registerDerivatives(DataBaseSpace::DataBase<Dimension>& dataBase,
+  void registerDerivatives(DataBase<Dimension>& dataBase,
                            StateDerivatives<Dimension>& derivs);
 
   // Initialize the Hydro before we start a derivative evaluation.
   virtual
   void initialize(const Scalar time,
                   const Scalar dt,
-                  const DataBaseSpace::DataBase<Dimension>& dataBase,
+                  const DataBase<Dimension>& dataBase,
                   State<Dimension>& state,
                   StateDerivatives<Dimension>& derivs);
                        
@@ -87,7 +72,7 @@ public:
   virtual
   void evaluateDerivatives(const Scalar time,
                            const Scalar dt,
-                           const DataBaseSpace::DataBase<Dimension>& dataBase,
+                           const DataBase<Dimension>& dataBase,
                            const State<Dimension>& state,
                            StateDerivatives<Dimension>& derivatives) const;
 
@@ -95,7 +80,7 @@ public:
   virtual
   void finalizeDerivatives(const Scalar time,
                            const Scalar dt,
-                           const DataBaseSpace::DataBase<Dimension>& dataBase,
+                           const DataBase<Dimension>& dataBase,
                            const State<Dimension>& state,
                            StateDerivatives<Dimension>& derivs) const;
 
@@ -103,7 +88,7 @@ public:
   virtual
   void finalize(const Scalar time,
                 const Scalar dt,
-                DataBaseSpace::DataBase<Dimension>& dataBase,
+                DataBase<Dimension>& dataBase,
                 State<Dimension>& state,
                 StateDerivatives<Dimension>& derivs);
                
@@ -123,42 +108,42 @@ public:
   void HEvolution(const HEvolutionType type);
 
   // The object defining how we evolve smoothing scales.
-  const NodeSpace::SmoothingScaleBase<Dimension>& smoothingScaleMethod() const;
+  const SmoothingScaleBase<Dimension>& smoothingScaleMethod() const;
 
   // The state field lists we're maintaining.
-  const FieldSpace::FieldList<Dimension, int>&       timeStepMask() const;
-  const FieldSpace::FieldList<Dimension, Scalar>&    pressure() const;
-  const FieldSpace::FieldList<Dimension, Scalar>&    soundSpeed() const;
-  const FieldSpace::FieldList<Dimension, Scalar>&    positionWeight() const;
-  const FieldSpace::FieldList<Dimension, Scalar>&    omegaGradh() const;
-  const FieldSpace::FieldList<Dimension, Scalar>&    specificThermalEnergy0() const;
-  const FieldSpace::FieldList<Dimension, SymTensor>& Hideal() const;
-  const FieldSpace::FieldList<Dimension, Scalar>&    maxViscousPressure() const;
-  const FieldSpace::FieldList<Dimension, Scalar>&    massDensitySum() const;
-  const FieldSpace::FieldList<Dimension, Scalar>&    weightedNeighborSum() const;
-  const FieldSpace::FieldList<Dimension, SymTensor>& massSecondMoment() const;
-  const FieldSpace::FieldList<Dimension, Scalar>&    XSPHWeightSum() const;
-  const FieldSpace::FieldList<Dimension, Vector>&    XSPHDeltaV() const;
-  const FieldSpace::FieldList<Dimension, Vector>&    DxDt() const;
-  const FieldSpace::FieldList<Dimension, Vector>&    DvDt() const;
-  const FieldSpace::FieldList<Dimension, Scalar>&    DmassDensityDt() const;
-  const FieldSpace::FieldList<Dimension, Scalar>&    DspecificThermalEnergyDt() const;
-  const FieldSpace::FieldList<Dimension, SymTensor>& DHDt() const;
-  const FieldSpace::FieldList<Dimension, Tensor>&    DvDx() const;
-  const FieldSpace::FieldList<Dimension, Tensor>&    internalDvDx() const;
-  const FieldSpace::FieldList<Dimension, std::vector<Vector> >& pairAccelerations() const;
+  const FieldList<Dimension, int>&       timeStepMask() const;
+  const FieldList<Dimension, Scalar>&    pressure() const;
+  const FieldList<Dimension, Scalar>&    soundSpeed() const;
+  const FieldList<Dimension, Scalar>&    positionWeight() const;
+  const FieldList<Dimension, Scalar>&    omegaGradh() const;
+  const FieldList<Dimension, Scalar>&    specificThermalEnergy0() const;
+  const FieldList<Dimension, SymTensor>& Hideal() const;
+  const FieldList<Dimension, Scalar>&    maxViscousPressure() const;
+  const FieldList<Dimension, Scalar>&    massDensitySum() const;
+  const FieldList<Dimension, Scalar>&    weightedNeighborSum() const;
+  const FieldList<Dimension, SymTensor>& massSecondMoment() const;
+  const FieldList<Dimension, Scalar>&    XSPHWeightSum() const;
+  const FieldList<Dimension, Vector>&    XSPHDeltaV() const;
+  const FieldList<Dimension, Vector>&    DxDt() const;
+  const FieldList<Dimension, Vector>&    DvDt() const;
+  const FieldList<Dimension, Scalar>&    DmassDensityDt() const;
+  const FieldList<Dimension, Scalar>&    DspecificThermalEnergyDt() const;
+  const FieldList<Dimension, SymTensor>& DHDt() const;
+  const FieldList<Dimension, Tensor>&    DvDx() const;
+  const FieldList<Dimension, Tensor>&    internalDvDx() const;
+  const FieldList<Dimension, std::vector<Vector> >& pairAccelerations() const;
 
   //****************************************************************************
   // Methods required for restarting.
   virtual std::string label() const { return "FVPMTotalHydroBase"; }
-  virtual void dumpState(FileIOSpace::FileIO& file, const std::string& pathName) const;
-  virtual void restoreState(const FileIOSpace::FileIO& file, const std::string& pathName);
+  virtual void dumpState(FileIO& file, const std::string& pathName) const;
+  virtual void restoreState(const FileIO& file, const std::string& pathName);
   //****************************************************************************
 
 protected:
   //---------------------------  Protected Interface ---------------------------//
   // The method defining how we evolve smoothing scales.
-  const NodeSpace::SmoothingScaleBase<Dimension>& mSmoothingScaleMethod;
+  const SmoothingScaleBase<Dimension>& mSmoothingScaleMethod;
 
   // A bunch of switches.
   MassDensityType mDensityUpdate;
@@ -169,32 +154,32 @@ protected:
   Scalar mEpsTensile, mnTensile;
 
   // Some internal scratch fields.
-  FieldSpace::FieldList<Dimension, int>       mTimeStepMask;
-  FieldSpace::FieldList<Dimension, Scalar>    mPressure;
-  FieldSpace::FieldList<Dimension, Scalar>    mSoundSpeed;
-  FieldSpace::FieldList<Dimension, Scalar>    mPositionWeight;
-  FieldSpace::FieldList<Dimension, Scalar>    mOmegaGradh;
-  FieldSpace::FieldList<Dimension, Scalar>    mSpecificThermalEnergy0;
+  FieldList<Dimension, int>       mTimeStepMask;
+  FieldList<Dimension, Scalar>    mPressure;
+  FieldList<Dimension, Scalar>    mSoundSpeed;
+  FieldList<Dimension, Scalar>    mPositionWeight;
+  FieldList<Dimension, Scalar>    mOmegaGradh;
+  FieldList<Dimension, Scalar>    mSpecificThermalEnergy0;
 
-  FieldSpace::FieldList<Dimension, SymTensor> mHideal;
-  FieldSpace::FieldList<Dimension, Scalar>    mMaxViscousPressure;
-  FieldSpace::FieldList<Dimension, Scalar>    mMassDensitySum;
+  FieldList<Dimension, SymTensor> mHideal;
+  FieldList<Dimension, Scalar>    mMaxViscousPressure;
+  FieldList<Dimension, Scalar>    mMassDensitySum;
 
-  FieldSpace::FieldList<Dimension, Scalar>    mWeightedNeighborSum;
-  FieldSpace::FieldList<Dimension, SymTensor> mMassSecondMoment;
+  FieldList<Dimension, Scalar>    mWeightedNeighborSum;
+  FieldList<Dimension, SymTensor> mMassSecondMoment;
 
-  FieldSpace::FieldList<Dimension, Scalar>    mXSPHWeightSum;
-  FieldSpace::FieldList<Dimension, Vector>    mXSPHDeltaV;
+  FieldList<Dimension, Scalar>    mXSPHWeightSum;
+  FieldList<Dimension, Vector>    mXSPHDeltaV;
 
-  FieldSpace::FieldList<Dimension, Vector>    mDxDt;
-  FieldSpace::FieldList<Dimension, Vector>    mDvDt;
-  FieldSpace::FieldList<Dimension, Scalar>    mDmassDensityDt;
-  FieldSpace::FieldList<Dimension, Scalar>    mDspecificThermalEnergyDt;
-  FieldSpace::FieldList<Dimension, SymTensor> mDHDt;
-  FieldSpace::FieldList<Dimension, Tensor>    mDvDx;
-  FieldSpace::FieldList<Dimension, Tensor>    mInternalDvDx;
+  FieldList<Dimension, Vector>    mDxDt;
+  FieldList<Dimension, Vector>    mDvDt;
+  FieldList<Dimension, Scalar>    mDmassDensityDt;
+  FieldList<Dimension, Scalar>    mDspecificThermalEnergyDt;
+  FieldList<Dimension, SymTensor> mDHDt;
+  FieldList<Dimension, Tensor>    mDvDx;
+  FieldList<Dimension, Tensor>    mInternalDvDx;
 
-  FieldSpace::FieldList<Dimension, std::vector<Vector> > mPairAccelerations;
+  FieldList<Dimension, std::vector<Vector> > mPairAccelerations;
 
 private:
   //--------------------------- Private Interface ---------------------------//
@@ -208,19 +193,14 @@ private:
 };
 
 }
-}
 
-#ifndef __GCCXML__
 #include "FVPMTotalHydroBaseInline.hh"
-#endif
 
 #else
 
 // Forward declaration.
 namespace Spheral {
-  namespace FVPMSpace {
-    template<typename Dimension> class FVPMTotalHydroBase;
-  }
+  template<typename Dimension> class FVPMTotalHydroBase;
 }
 
 #endif

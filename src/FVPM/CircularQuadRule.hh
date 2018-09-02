@@ -14,8 +14,6 @@
 
 namespace Spheral {
 
-namespace FVPMSpace {
-
 //! \class CircularQuadRule
 //! This abstract base defines an interface for quadrature rules approximating
 //! integrals on circular/spherical intersections in space.
@@ -29,7 +27,7 @@ public:
   typedef typename Dimension::SymTensor SymTensor;
 
   //! Base constructor for the quadrature rule.
-  explicit CircularQuadRule(const KernelSpace::TableKernel<Dimension>& W);
+  explicit CircularQuadRule(const TableKernel<Dimension>& W);
 
   // Copy constructor and assignment operator are compiler-defined.
 
@@ -52,7 +50,6 @@ public:
 
 };
 
-}
 }
 
 #endif

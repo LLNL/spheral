@@ -3,13 +3,6 @@
 //
 // Created by JMO, Tue Aug  3 21:22:10 PDT 2010
 //----------------------------------------------------------------------------//
-#include <limits.h>
-#include <float.h>
-#include <algorithm>
-#include <fstream>
-#include <map>
-#include <vector>
-
 #include "FVPMTotalHydroBase.hh"
 #include "NodeList/SmoothingScaleBase.hh"
 #include "Hydro/HydroFieldNames.hh"
@@ -35,24 +28,16 @@
 #include "Utilities/safeInv.hh"
 #include "FileIO/FileIO.hh"
 
+#include <limits.h>
+#include <float.h>
+#include <algorithm>
+#include <fstream>
+#include <map>
+#include <vector>
+
 namespace Spheral {
-namespace FVPMSpace {
 
 using namespace std;
-using PhysicsSpace::GenericHydro;
-using NodeSpace::SmoothingScaleBase;
-using NodeSpace::NodeList;
-using NodeSpace::FluidNodeList;
-using FileIOSpace::FileIO;
-using ArtificialViscositySpace::ArtificialViscosity;
-using KernelSpace::TableKernel;
-using DataBaseSpace::DataBase;
-using FieldSpace::Field;
-using FieldSpace::FieldList;
-using NeighborSpace::ConnectivityMap;
-
-using PhysicsSpace::MassDensityType;
-using PhysicsSpace::HEvolutionType;
 
 //------------------------------------------------------------------------------
 // Construct with the given artificial viscosity and kernels.
@@ -186,11 +171,11 @@ registerState(DataBase<Dimension>& dataBase,
     // Register the H tensor.
     const Scalar hmaxInv = 1.0/(*itr)->hmax();
     const Scalar hminInv = 1.0/(*itr)->hmin();
-    if (HEvolution() == PhysicsSpace::IntegrateH) {
+    if (HEvolution() == IntegrateH) {
       SymTensorPolicyPointer Hpolicy(new IncrementBoundedState<Dimension, SymTensor, Scalar>(hmaxInv, hminInv));
       state.registerField((*itr)->Hfield(), Hpolicy);
     } else {
-      CHECK(HEvolution() == PhysicsSpace::IdealH);
+      CHECK(HEvolution() == IdealH);
       SymTensorPolicyPointer Hpolicy(new ReplaceBoundedState<Dimension, SymTensor, Scalar>(hmaxInv, hminInv));
       state.registerField((*itr)->Hfield(), Hpolicy);
     }
@@ -760,14 +745,14 @@ finalize(const typename Dimension::Scalar time,
 
   // Depending on the mass density advancement selected, we may want to replace the 
   // mass density.
-  if (densityUpdate() == PhysicsSpace::RigorousSumDensity) {
+  if (densityUpdate() == RigorousSumDensity) {
     const ConnectivityMap<Dimension>& connectivityMap = dataBase.connectivityMap();
     const FieldList<Dimension, Vector> position = state.vectorFields(HydroFieldNames::position);
     const FieldList<Dimension, Scalar> mass = state.scalarFields(HydroFieldNames::mass);
     const FieldList<Dimension, SymTensor> H = state.symTensorFields(HydroFieldNames::H);
     FieldList<Dimension, Scalar> massDensity = state.scalarFields(HydroFieldNames::massDensity);
     computeSPHSumMassDensity(connectivityMap, this->kernel(), position, mass, H, massDensity);
-  } else if (densityUpdate() == PhysicsSpace::SumDensity) {
+  } else if (densityUpdate() == SumDensity) {
     FieldList<Dimension, Scalar> massDensity = state.scalarFields(HydroFieldNames::massDensity);
     FieldList<Dimension, Scalar> massDensitySum = derivs.scalarFields(ReplaceState<Dimension, Field<Dimension, Field<Dimension, Scalar> > >::prefix() + 
                                                                       HydroFieldNames::massDensity);
@@ -916,7 +901,6 @@ restoreState(const FileIO& file, const string& pathName) {
 }
 
 }
-}
 
 //------------------------------------------------------------------------------
 // Explict instantiation.
@@ -924,9 +908,5 @@ restoreState(const FileIO& file, const string& pathName) {
 #include "Geometry/Dimension.hh"
 
 namespace Spheral {
-  namespace FVPMSpace {
-    template class FVPMTotalHydroBase< Dim<1> >;
-    // template class FVPMTotalHydroBase< Dim<2> >;
-    // template class FVPMTotalHydroBase< Dim<3> >;
-  }
+  template class FVPMTotalHydroBase< Dim<1> >;
 }
