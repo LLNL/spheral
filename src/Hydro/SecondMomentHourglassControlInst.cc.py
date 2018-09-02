@@ -5,8 +5,6 @@ text = """
 #include "SecondMomentHourglassControl.cc"
 
 namespace Spheral {
-  namespace PhysicsSpace {
-    template class SecondMomentHourglassControl< Dim< %(ndim)s > >;
-  }
+  template class SecondMomentHourglassControl< Dim< %(ndim)s > >;
 }
 """

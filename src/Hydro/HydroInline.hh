@@ -1,5 +1,4 @@
 namespace Spheral {
-namespace PhysicsSpace {
 
 //------------------------------------------------------------------------------
 // Choose whether we want to sum for mass density, or integrate the continuity
@@ -223,7 +222,7 @@ Hydro<Dimension>::postIterateHsphericalStart(const bool val) {
 //------------------------------------------------------------------------------
 template<typename Dimension>
 inline
-FieldSpace::FieldList<Dimension, typename Dimension::SymTensor>
+FieldList<Dimension, typename Dimension::SymTensor>
 Hydro<Dimension>::
 Hideal() const {
   return mHideal;
@@ -231,7 +230,7 @@ Hideal() const {
 
 template<typename Dimension>
 inline
-FieldSpace::FieldList<Dimension, int>
+FieldList<Dimension, int>
 Hydro<Dimension>::
 timeStepMask() const {
   return mTimeStepMask;
@@ -239,7 +238,7 @@ timeStepMask() const {
 
 template<typename Dimension>
 inline
-FieldSpace::FieldList<Dimension, typename Dimension::Scalar>
+FieldList<Dimension, typename Dimension::Scalar>
 Hydro<Dimension>::
 pressure() const {
   return mPressure;
@@ -247,7 +246,7 @@ pressure() const {
 
 template<typename Dimension>
 inline
-FieldSpace::FieldList<Dimension, typename Dimension::Scalar>
+FieldList<Dimension, typename Dimension::Scalar>
 Hydro<Dimension>::
 soundSpeed() const {
   return mSoundSpeed;
@@ -255,7 +254,7 @@ soundSpeed() const {
 
 template<typename Dimension>
 inline
-FieldSpace::FieldList<Dimension, typename Dimension::Scalar>
+FieldList<Dimension, typename Dimension::Scalar>
 Hydro<Dimension>::
 positionWeight() const {
   return mPositionWeight;
@@ -263,7 +262,7 @@ positionWeight() const {
 
 template<typename Dimension>
 inline
-FieldSpace::FieldList<Dimension, std::vector<typename Dimension::Vector> >
+FieldList<Dimension, std::vector<typename Dimension::Vector> >
 Hydro<Dimension>::
 pairAccelerations() const {
   return mPairAccelerations;
@@ -271,7 +270,7 @@ pairAccelerations() const {
 
 template<typename Dimension>
 inline
-FieldSpace::FieldList<Dimension, std::vector<typename Dimension::Vector> >
+FieldList<Dimension, std::vector<typename Dimension::Vector> >
 Hydro<Dimension>::
 QpairAccelerations() const {
   return mQpairAccelerations;
@@ -279,11 +278,10 @@ QpairAccelerations() const {
 
 template<typename Dimension>
 inline
-FieldSpace::FieldList<Dimension, typename Dimension::Scalar>
+FieldList<Dimension, typename Dimension::Scalar>
 Hydro<Dimension>::
 specificThermalEnergy0() const {
   return mSpecificThermalEnergy0;
 }
 
-}
 }

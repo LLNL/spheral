@@ -4,13 +4,6 @@
 //
 // Created by JMO, Mon Jul 12 21:07:52 PDT 2010
 //----------------------------------------------------------------------------//
-#include <limits.h>
-#include <float.h>
-#include <algorithm>
-#include <fstream>
-#include <map>
-#include <vector>
-
 #include "TotalHydro.hh"
 #include "HydroFieldNames.hh"
 #include "Physics/GenericHydro.hh"
@@ -34,19 +27,16 @@
 #include "Utilities/iterateIdealH.hh"
 #include "FileIO/FileIO.hh"
 
+#include <limits.h>
+#include <float.h>
+#include <algorithm>
+#include <fstream>
+#include <map>
+#include <vector>
+
 namespace Spheral {
-namespace PhysicsSpace {
 
 using namespace std;
-using NodeSpace::NodeList;
-using NodeSpace::FluidNodeList;
-using FileIOSpace::FileIO;
-using ArtificialViscositySpace::ArtificialViscosity;
-using KernelSpace::TableKernel;
-using DataBaseSpace::DataBase;
-using FieldSpace::Field;
-using FieldSpace::FieldList;
-using NeighborSpace::ConnectivityMap;
 
 //------------------------------------------------------------------------------
 // Construct with the given artificial viscosity and kernels.
@@ -281,7 +271,7 @@ void
 TotalHydro<Dimension>::
 postStateUpdate(const Scalar time, 
                 const Scalar dt,
-                const DataBaseSpace::DataBase<Dimension>& dataBase, 
+                const DataBase<Dimension>& dataBase, 
                 State<Dimension>& state,
                 StateDerivatives<Dimension>& derivatives) {
 
@@ -396,7 +386,6 @@ restoreState(const FileIO& file, const string& pathName) {
 }
 
 }
-}
 
 //------------------------------------------------------------------------------
 // Explict instantiation.
@@ -404,9 +393,7 @@ restoreState(const FileIO& file, const string& pathName) {
 #include "Geometry/Dimension.hh"
 
 namespace Spheral {
-  namespace PhysicsSpace {
-    template class TotalHydro< Dim<1> >;
-    template class TotalHydro< Dim<2> >;
-    template class TotalHydro< Dim<3> >;
-  }
+  template class TotalHydro< Dim<1> >;
+  template class TotalHydro< Dim<2> >;
+  template class TotalHydro< Dim<3> >;
 }

@@ -12,24 +12,18 @@
 #ifndef __Spheral_NonSymmetricSpecificThermalEnergyPolicy_hh__
 #define __Spheral_NonSymmetricSpecificThermalEnergyPolicy_hh__
 
-#include <string>
-
 #include "DataBase/IncrementFieldList.hh"
+
+#include <string>
 
 namespace Spheral {
 
 // Forward declarations.
 template<typename Dimension> class State;
 template<typename Dimension> class StateDerivatives;
-namespace NodeSpace {
-  template<typename Dimension> class FluidNodeList;
-}
-namespace FieldSpace {
-  template<typename Dimension, typename DataType> class FieldList;
-}
-namespace DataBaseSpace {
-  template<typename Dimension> class DataBase;
-}
+template<typename Dimension> class FluidNodeList;
+template<typename Dimension, typename DataType> class FieldList;
+template<typename Dimension> class DataBase;
 
 template<typename Dimension>
 class NonSymmetricSpecificThermalEnergyPolicy: 
@@ -42,7 +36,7 @@ public:
   typedef typename FieldListUpdatePolicyBase<Dimension, Scalar>::KeyType KeyType;
 
   // Constructors, destructor.
-  NonSymmetricSpecificThermalEnergyPolicy(const DataBaseSpace::DataBase<Dimension>& db);
+  NonSymmetricSpecificThermalEnergyPolicy(const DataBase<Dimension>& db);
   virtual ~NonSymmetricSpecificThermalEnergyPolicy();
   
   // Overload the methods describing how to update Fields.
@@ -74,7 +68,7 @@ public:
 
 private:
   //--------------------------- Private Interface ---------------------------//
-  const DataBaseSpace::DataBase<Dimension>* mDataBasePtr;
+  const DataBase<Dimension>* mDataBasePtr;
 
   NonSymmetricSpecificThermalEnergyPolicy(const NonSymmetricSpecificThermalEnergyPolicy& rhs);
   NonSymmetricSpecificThermalEnergyPolicy& operator=(const NonSymmetricSpecificThermalEnergyPolicy& rhs);

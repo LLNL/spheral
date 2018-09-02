@@ -11,14 +11,8 @@
 
 namespace Spheral {
 
-namespace FieldSpace {
-  template<typename Dimension, typename DataType> class FieldList;
-}
-namespace KernelSpace {
-  template<typename Dimension> class TableKernel;
-}
-
-namespace PhysicsSpace {
+template<typename Dimension, typename DataType> class FieldList;
+template<typename Dimension> class TableKernel;
 
 template<typename Dimension>
 class SecondMomentHourglassControl : 
@@ -34,7 +28,7 @@ public:
   typedef typename Physics<Dimension>::TimeStepType TimeStepType;
 
   // Constructors.
-  SecondMomentHourglassControl(const KernelSpace::TableKernel<Dimension>& W,
+  SecondMomentHourglassControl(const TableKernel<Dimension>& W,
                                const double multiplier = 0.05,
                                const double maxAccelerationFactor = 0.001);
                                
@@ -48,23 +42,23 @@ public:
   virtual 
   void evaluateDerivatives(const Scalar time,
                            const Scalar dt,
-                           const DataBaseSpace::DataBase<Dimension>& dataBase,
+                           const DataBase<Dimension>& dataBase,
                            const State<Dimension>& state,
                            StateDerivatives<Dimension>& derivatives) const;
 
   // Vote on a time step.
-  virtual TimeStepType dt(const DataBaseSpace::DataBase<Dimension>& dataBase, 
+  virtual TimeStepType dt(const DataBase<Dimension>& dataBase, 
                           const State<Dimension>& state,
                           const StateDerivatives<Dimension>& derivs,
                           const Scalar currentTime) const;
 
   // Register the state you want carried around (and potentially evolved), as
   // well as the policies for such evolution.
-  virtual void registerState(DataBaseSpace::DataBase<Dimension>& dataBase,
+  virtual void registerState(DataBase<Dimension>& dataBase,
                              State<Dimension>& state);
 
   // Register the derivatives/change fields for updating state.
-  virtual void registerDerivatives(DataBaseSpace::DataBase<Dimension>& dataBase,
+  virtual void registerDerivatives(DataBase<Dimension>& dataBase,
                                    StateDerivatives<Dimension>& derivs);
 
   // Label
@@ -82,32 +76,25 @@ public:
   void multiplier(const double x);
 
   // Local copy of the last acceleration due to this algorithm.
-  const FieldSpace::FieldList<Dimension, Vector>& acceleration() const;
+  const FieldList<Dimension, Vector>& acceleration() const;
 
 private:
   //--------------------------- Private Interface ---------------------------//
-  const KernelSpace::TableKernel<Dimension>& mW;
+  const TableKernel<Dimension>& mW;
   double mMultiplier;
   double mMaxAccelerationFactor;
-#ifndef __GCCXML__
-  mutable FieldSpace::FieldList<Dimension, Vector> mAcceleration;
-#endif
+  mutable FieldList<Dimension, Vector> mAcceleration;
 };
 
 }
-}
 
-#ifndef __GCCXML__
 #include "SecondMomentHourglassControlInline.hh"
-#endif
 
 #else
 
 // Forward declaration.
 namespace Spheral {
-  namespace PhysicsSpace {
-    template<typename Dimension> class SecondMomentHourglassControl;
-  }
+  template<typename Dimension> class SecondMomentHourglassControl;
 }
 
 #endif

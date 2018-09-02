@@ -1,5 +1,4 @@
 namespace Spheral {
-namespace PhysicsSpace {
 
 //------------------------------------------------------------------------------
 // Choose how we want to update the H tensor.
@@ -84,7 +83,7 @@ hratiomin(typename Dimension::Scalar val) {
 //------------------------------------------------------------------------------
 template<typename Dimension>
 inline
-const FieldSpace::FieldList<Dimension, typename Dimension::SymTensor>&
+const FieldList<Dimension, typename Dimension::SymTensor>&
 TotalHydro<Dimension>::
 Hideal() const {
   return mHideal;
@@ -92,7 +91,7 @@ Hideal() const {
 
 template<typename Dimension>
 inline
-const FieldSpace::FieldList<Dimension, int>&
+const FieldList<Dimension, int>&
 TotalHydro<Dimension>::
 timeStepMask() const {
   return mTimeStepMask;
@@ -100,7 +99,7 @@ timeStepMask() const {
 
 template<typename Dimension>
 inline
-const FieldSpace::FieldList<Dimension, typename Dimension::Scalar>&
+const FieldList<Dimension, typename Dimension::Scalar>&
 TotalHydro<Dimension>::
 pressure() const {
   return mPressure;
@@ -108,7 +107,7 @@ pressure() const {
 
 template<typename Dimension>
 inline
-const FieldSpace::FieldList<Dimension, typename Dimension::Scalar>&
+const FieldList<Dimension, typename Dimension::Scalar>&
 TotalHydro<Dimension>::
 soundSpeed() const {
   return mSoundSpeed;
@@ -116,7 +115,7 @@ soundSpeed() const {
 
 template<typename Dimension>
 inline
-const FieldSpace::FieldList<Dimension, typename Dimension::Scalar>&
+const FieldList<Dimension, typename Dimension::Scalar>&
 TotalHydro<Dimension>::
 positionWeight() const {
   return mPositionWeight;
@@ -124,7 +123,7 @@ positionWeight() const {
 
 template<typename Dimension>
 inline
-const FieldSpace::FieldList<Dimension, typename Dimension::Scalar>&
+const FieldList<Dimension, typename Dimension::Scalar>&
 TotalHydro<Dimension>::
 weightedNeighborSum() const {
   return mWeightedNeighborSum;
@@ -132,7 +131,7 @@ weightedNeighborSum() const {
 
 template<typename Dimension>
 inline
-const FieldSpace::FieldList<Dimension, typename Dimension::Scalar>&
+const FieldList<Dimension, typename Dimension::Scalar>&
 TotalHydro<Dimension>::
 volume() const {
   return mVolume;
@@ -140,7 +139,7 @@ volume() const {
 
 template<typename Dimension>
 inline
-const FieldSpace::FieldList<Dimension, typename Dimension::Scalar>&
+const FieldList<Dimension, typename Dimension::Scalar>&
 TotalHydro<Dimension>::
 totalEnergy() const {
   return mTotalEnergy;
@@ -148,7 +147,7 @@ totalEnergy() const {
 
 template<typename Dimension>
 inline
-const FieldSpace::FieldList<Dimension, typename Dimension::Vector>&
+const FieldList<Dimension, typename Dimension::Vector>&
 TotalHydro<Dimension>::
 linearMomentum() const {
   return mLinearMomentum;
@@ -156,7 +155,7 @@ linearMomentum() const {
 
 template<typename Dimension>
 inline
-const FieldSpace::FieldList<Dimension, typename Dimension::Scalar>&
+const FieldList<Dimension, typename Dimension::Scalar>&
 TotalHydro<Dimension>::
 DVDt() const {
   return mDVDt;
@@ -164,7 +163,7 @@ DVDt() const {
 
 template<typename Dimension>
 inline
-const FieldSpace::FieldList<Dimension, typename Dimension::Scalar>&
+const FieldList<Dimension, typename Dimension::Scalar>&
 TotalHydro<Dimension>::
 DEDt() const {
   return mDEDt;
@@ -172,7 +171,7 @@ DEDt() const {
 
 template<typename Dimension>
 inline
-const FieldSpace::FieldList<Dimension, typename Dimension::Vector>&
+const FieldList<Dimension, typename Dimension::Vector>&
 TotalHydro<Dimension>::
 DpmomDt() const {
   return mDpmomDt;
@@ -180,11 +179,10 @@ DpmomDt() const {
 
 template<typename Dimension>
 inline
-const FieldSpace::FieldList<Dimension, typename Dimension::SymTensor>&
+const FieldList<Dimension, typename Dimension::SymTensor>&
 TotalHydro<Dimension>::
 massSecondMoment() const {
   return mMassSecondMoment;
 }
 
-}
 }
