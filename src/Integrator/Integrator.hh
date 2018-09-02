@@ -8,40 +8,24 @@
 #ifndef Integrator_HH
 #define Integrator_HH
 
-#include <string>
-#ifndef __GCCXML__
-#include <vector>
 #include "DataOutput/registerWithRestart.hh"
-#else
-#include "fakestl.hh"
-#endif
 
 #ifdef USE_MPI
 #include "mpi.h"
 #endif
 
-namespace Spheral {
-  template<typename Dimension> class State;
-  template<typename Dimension> class StateDerivatives;
-  namespace DataBaseSpace {
-    template<typename Dimension> class DataBase;
-  }
-  namespace PhysicsSpace {
-    template<typename Dimension> class Physics;
-  }
-  namespace FileIOSpace {
-    class FileIO;
-  }
-  namespace FieldSpace {
-    template<typename Dimension, typename DataType> class FieldList;
-  }
-  namespace BoundarySpace {
-    template<typename Dimension> class Boundary;
-  }
-}
+#include <string>
+#include <vector>
 
 namespace Spheral {
-namespace IntegratorSpace {
+
+template<typename Dimension> class State;
+template<typename Dimension> class StateDerivatives;
+template<typename Dimension> class DataBase;
+template<typename Dimension> class Physics;
+template<typename Dimension, typename DataType> class FieldList;
+template<typename Dimension> class Boundary;
+class FileIO;
 
 template<typename Dimension>
 class Integrator {
@@ -52,17 +36,17 @@ public:
   typedef typename Dimension::Tensor Tensor;
   typedef typename Dimension::SymTensor SymTensor;
 
-  typedef typename std::vector<PhysicsSpace::Physics<Dimension>*>::iterator PackageIterator;
-  typedef typename std::vector<PhysicsSpace::Physics<Dimension>*>::const_iterator ConstPackageIterator;
+  typedef typename std::vector<Physics<Dimension>*>::iterator PackageIterator;
+  typedef typename std::vector<Physics<Dimension>*>::const_iterator ConstPackageIterator;
 
-  typedef typename std::vector<BoundarySpace::Boundary<Dimension>*>::iterator BoundaryIterator;
-  typedef typename std::vector<BoundarySpace::Boundary<Dimension>*>::const_iterator ConstBoundaryIterator;
+  typedef typename std::vector<Boundary<Dimension>*>::iterator BoundaryIterator;
+  typedef typename std::vector<Boundary<Dimension>*>::const_iterator ConstBoundaryIterator;
 
   // Constructors.
   Integrator();
-  Integrator(DataBaseSpace::DataBase<Dimension>& dataBase);
-  Integrator(DataBaseSpace::DataBase<Dimension>& dataBase,
-             const std::vector<PhysicsSpace::Physics<Dimension>*>& physicsPackages);
+  Integrator(DataBase<Dimension>& dataBase);
+  Integrator(DataBase<Dimension>& dataBase,
+             const std::vector<Physics<Dimension>*>& physicsPackages);
 
   // Destructor.
   virtual ~Integrator();
@@ -99,21 +83,21 @@ public:
   // Iterate over all physics packages and call evaluateDerivatives.
   void evaluateDerivatives(const Scalar t,
                            const Scalar dt,
-                           const DataBaseSpace::DataBase<Dimension>& dataBase,
+                           const DataBase<Dimension>& dataBase,
                            const State<Dimension>& state,
                            StateDerivatives<Dimension>& derivs) const;
 
   // Iterate over all physics packages and call finalizeDerivatives.
   void finalizeDerivatives(const Scalar t,
                            const Scalar dt,
-                           const DataBaseSpace::DataBase<Dimension>& dataBase,
+                           const DataBase<Dimension>& dataBase,
                            const State<Dimension>& state,
                            StateDerivatives<Dimension>& derivs) const;
 
   // Iterate over all physics packages and call postStateUpdate
   void postStateUpdate(const Scalar t,
                        const Scalar dt,
-                       const DataBaseSpace::DataBase<Dimension>& dataBase,
+                       const DataBase<Dimension>& dataBase,
                        State<Dimension>& state,
                        StateDerivatives<Dimension>& derivs) const;
 
@@ -124,13 +108,13 @@ public:
                                 StateDerivatives<Dimension>& derivs);
 
   // Add a Physics package.
-  void appendPhysicsPackage(PhysicsSpace::Physics<Dimension>& package);
+  void appendPhysicsPackage(Physics<Dimension>& package);
 
   // Test if the given Physics package is listed in the integrator.
-  bool havePhysicsPackage(const PhysicsSpace::Physics<Dimension>& package) const;
+  bool havePhysicsPackage(const Physics<Dimension>& package) const;
 
   // Get the unique set of boundary conditions across all physics packages.
-  std::vector<BoundarySpace::Boundary<Dimension>*> uniqueBoundaryConditions() const;
+  std::vector<Boundary<Dimension>*> uniqueBoundaryConditions() const;
 
   // Set the ghost nodes for all node lists according to the boundary 
   // conditions.
@@ -184,10 +168,10 @@ public:
   void dtGrowth(Scalar fraction);
 
   // Public const access to the DataBase.
-  const DataBaseSpace::DataBase<Dimension>& dataBase() const;
+  const DataBase<Dimension>& dataBase() const;
 
   // Access the list of physics packages.
-  const std::vector<PhysicsSpace::Physics<Dimension>*>& physicsPackages() const;
+  const std::vector<Physics<Dimension>*>& physicsPackages() const;
 
   // Provide standard iterator methods over the physics package list.
   PackageIterator physicsPackagesBegin();
@@ -221,44 +205,37 @@ public:
   //****************************************************************************
   // Methods required for restarting.
   virtual std::string label() const { return "Integrator"; }
-  virtual void dumpState(FileIOSpace::FileIO& file, const std::string& pathName) const;
-  virtual void restoreState(const FileIOSpace::FileIO& file, const std::string& pathName);
+  virtual void dumpState(FileIO& file, const std::string& pathName) const;
+  virtual void restoreState(const FileIO& file, const std::string& pathName);
   //****************************************************************************
 
 protected:
   //-------------------------- Protected Interface --------------------------//
   // Allow write access to the DataBase for descendent classes.
-  DataBaseSpace::DataBase<Dimension>& accessDataBase();
+  DataBase<Dimension>& accessDataBase();
 
 private:
   //--------------------------- Private Interface ---------------------------//
   Scalar mDtMin, mDtMax, mDtGrowth, mLastDt, mCurrentTime;
   int mCurrentCycle, mUpdateBoundaryFrequency;
   bool mVerbose, mRequireConnectivity, mRequireGhostConnectivity;
-  DataBaseSpace::DataBase<Dimension>* mDataBasePtr;
-  std::vector<PhysicsSpace::Physics<Dimension>*> mPhysicsPackages;
+  DataBase<Dimension>* mDataBasePtr;
+  std::vector<Physics<Dimension>*> mPhysicsPackages;
   bool mRigorousBoundaries, mCullGhostNodes;
 
-#ifndef __GCCXML__
   // The restart registration.
   DataOutput::RestartRegistrationType mRestart;
-#endif
 };
 
 }
-}
 
-#ifndef __GCCXML__
 #include "IntegratorInline.hh"
-#endif
 
 #else
 
 // Forward declaration.
 namespace Spheral {
-  namespace IntegratorSpace {
-    template<typename Dimension> class Integrator;
-  }
+  template<typename Dimension> class Integrator;
 }
 
 #endif

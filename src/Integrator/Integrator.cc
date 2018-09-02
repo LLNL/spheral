@@ -19,7 +19,6 @@
 #include "Utilities/allReduce.hh"
 #include "Distributed/Communicator.hh"
 #include "Utilities/DBC.hh"
-
 #include "Integrator.hh"
 
 #include <limits.h>
@@ -27,17 +26,8 @@
 #include <algorithm>
 
 namespace Spheral {
-namespace IntegratorSpace {
 
 using namespace std;
-
-using NodeSpace::NodeList;
-using DataBaseSpace::DataBase;
-using PhysicsSpace::Physics;
-using FileIOSpace::FileIO;
-using FieldSpace::FieldList;
-using BoundarySpace::Boundary;
-using NeighborSpace::ConnectivityMap;
 
 //------------------------------------------------------------------------------
 // Empty constructor.
@@ -823,5 +813,3 @@ restoreState(const FileIO& file, const string& pathName) {
 }
 
 }
-}
-
