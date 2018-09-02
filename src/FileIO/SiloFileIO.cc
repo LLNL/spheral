@@ -10,10 +10,8 @@
 #include <algorithm>
 
 namespace Spheral {
-namespace FileIOSpace {
 
 using namespace std;
-using FieldSpace::Field;
 
 namespace {
 //------------------------------------------------------------------------------
@@ -1311,5 +1309,4 @@ readValueSequence(Container& value,
   }
 }
   
-}
 }

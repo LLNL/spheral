@@ -4,7 +4,6 @@
 #include "Field/FieldList.hh"
 
 namespace Spheral {
-namespace FileIOSpace {
 
 //------------------------------------------------------------------------------
 // Write a FieldList of arbitrary DataType.
@@ -12,17 +11,17 @@ namespace FileIOSpace {
 template<typename Dimension, typename DataType>
 inline
 void
-FileIO::write(const FieldSpace::FieldList<Dimension, DataType>& fieldList,
+FileIO::write(const FieldList<Dimension, DataType>& fieldList,
               const std::string pathName) {
 
   const std::string divider = "|";
 
   // Is the FieldList responsible for it's own memory?  If so, we have to 
   // provide additional information so it can properly restore itself.
-  if (fieldList.storageType() == FieldSpace::FieldStorageType::CopyFields) {
+  if (fieldList.storageType() == FieldStorageType::CopyFields) {
     if (fieldList.numFields() > 0) {
       std::stringstream names;
-      for (typename FieldSpace::FieldList<Dimension, DataType>::const_iterator fieldItr = fieldList.begin();
+      for (typename FieldList<Dimension, DataType>::const_iterator fieldItr = fieldList.begin();
            fieldItr != fieldList.end();
            ++fieldItr) {
         names << (**fieldItr).nodeList().name() << divider;
@@ -35,7 +34,7 @@ FileIO::write(const FieldSpace::FieldList<Dimension, DataType>& fieldList,
   }
 
   // Loop over each Field, and write each one using the descendent method.
-  for (typename FieldSpace::FieldList<Dimension, DataType>::const_iterator fieldItr = fieldList.begin();
+  for (typename FieldList<Dimension, DataType>::const_iterator fieldItr = fieldList.begin();
        fieldItr != fieldList.end();
        ++fieldItr) {
 
@@ -54,14 +53,14 @@ FileIO::write(const FieldSpace::FieldList<Dimension, DataType>& fieldList,
 template<typename Dimension, typename DataType>
 inline
 void
-FileIO::read(FieldSpace::FieldList<Dimension, DataType>& fieldList,
+FileIO::read(FieldList<Dimension, DataType>& fieldList,
              const std::string pathName) const {
 
   const std::string divider = "|";
 
   // Is the FieldList responsible for it's own memory?  If so, we have to 
   // first make sure it has memory for each of the NodeLists it's defined against.
-  if (fieldList.storageType() == FieldSpace::FieldStorageType::CopyFields) {
+  if (fieldList.storageType() == FieldStorageType::CopyFields) {
     // We need the NodeListRegistrar.
     const NodeListRegistrar<Dimension>& registrar = NodeListRegistrar<Dimension>::instance();
     const size_t numNodeLists = registrar.numNodeLists();
@@ -81,7 +80,7 @@ FileIO::read(FieldSpace::FieldList<Dimension, DataType>& fieldList,
       const size_t nodeListi = std::distance(registeredNames.begin(), 
                                              find(registeredNames.begin(), registeredNames.end(), name));
       VERIFY(nodeListi < numNodeLists);
-      const NodeSpace::NodeList<Dimension>& nodeList = **(registrar.begin() + nodeListi);
+      const NodeList<Dimension>& nodeList = **(registrar.begin() + nodeListi);
 
       // If necessary, insert a field into this FieldList for this NodeList.
       if (not fieldList.haveNodeList(nodeList)) {
@@ -94,7 +93,7 @@ FileIO::read(FieldSpace::FieldList<Dimension, DataType>& fieldList,
   }
 
   // Loop over each Field, and read each one using the descendent method.
-  for (typename FieldSpace::FieldList<Dimension, DataType>::iterator fieldItr = fieldList.begin();
+  for (typename FieldList<Dimension, DataType>::iterator fieldItr = fieldList.begin();
        fieldItr != fieldList.end();
        ++fieldItr) {
 
@@ -113,13 +112,13 @@ FileIO::read(FieldSpace::FieldList<Dimension, DataType>& fieldList,
 template<typename Dimension, typename DataType>
 inline
 void
-FileIO::write(const FieldSpace::Field<Dimension, std::vector<DataType> >& field,
+FileIO::write(const Field<Dimension, std::vector<DataType> >& field,
               const std::string pathName) {
 
   // Build an array with the number of elements per node, and count the total number of elements.
   std::vector<int> numElementsPerNode;
   size_t totalNumElements = size_t(0);
-  for (typename FieldSpace::Field<Dimension, std::vector<DataType> >::const_iterator itr = field.internalBegin();
+  for (typename Field<Dimension, std::vector<DataType> >::const_iterator itr = field.internalBegin();
        itr != field.internalEnd();
        ++itr) {
     const int ni = (*itr).size();
@@ -131,7 +130,7 @@ FileIO::write(const FieldSpace::Field<Dimension, std::vector<DataType> >& field,
   // Serialize the elements into a flat array.
   std::vector<DataType> elements(totalNumElements);
   size_t offset = size_t(0);
-  for (typename FieldSpace::Field<Dimension, std::vector<DataType> >::const_iterator itr = field.internalBegin();
+  for (typename Field<Dimension, std::vector<DataType> >::const_iterator itr = field.internalBegin();
        itr != field.internalEnd();
        ++itr) {
     std::copy(itr->begin(), itr->end(), elements.begin() + offset);
@@ -151,7 +150,7 @@ FileIO::write(const FieldSpace::Field<Dimension, std::vector<DataType> >& field,
 template<typename Dimension, typename DataType>
 inline
 void
-FileIO::read(FieldSpace::Field<Dimension, std::vector<DataType> >& field,
+FileIO::read(Field<Dimension, std::vector<DataType> >& field,
              const std::string pathName) const {
 
   // Read the serialized data back in.
@@ -220,5 +219,4 @@ FileIO::read(std::vector<DataType>& x, const std::string pathName) const {
   }
 }
 
-}
 }

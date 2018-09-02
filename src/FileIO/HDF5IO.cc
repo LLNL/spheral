@@ -16,7 +16,6 @@
 using namespace std;
 
 namespace Spheral {
-namespace FileIO {
 
 //------------------------------------------------------------------------------
 // Empty constructor.
@@ -712,7 +711,6 @@ HDF5IO<Dimension>::initializeAccessMap() {
   mHDF5AccessTypes[Spheral::FileIO::ReadWrite] = H5F_ACC_RDWR;
 }
 
-}
 }
 
 //------------------------------------------------------------------------------

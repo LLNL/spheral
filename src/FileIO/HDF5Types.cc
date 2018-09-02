@@ -5,7 +5,6 @@
 using namespace std;
 
 namespace Spheral {
-namespace FileIO {
 
 //------------------------------------------------------------------------------
 // A function to define the static compound data types for HDF5 used by Spheral.
@@ -83,5 +82,3 @@ int initializeSpheralH5Types() {
 const int initTypes = initializeSpheralH5Types();
 
 }
-}
-

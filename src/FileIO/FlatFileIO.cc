@@ -8,10 +8,8 @@
 #include "Field/Field.hh"
 
 namespace Spheral {
-namespace FileIOSpace {
 
 using namespace std;
-using FieldSpace::Field;
 
 //------------------------------------------------------------------------------
 // Empty constructor.
@@ -1064,5 +1062,4 @@ FlatFileIO::beginningOfFile() const {
   mFilePtr = new fstream(fileName().c_str(), ios::in);
 }
 
-}
 }

@@ -14,11 +14,8 @@
 #include <cstring>
 
 namespace Spheral {
-namespace FileIOSpace {
 
 using namespace std;
-using FieldSpace::Field;
-using FieldSpace::FieldList;
 
 //------------------------------------------------------------------------------
 // Empty Constructor.
@@ -349,5 +346,4 @@ readObject(PyObject* pathObj) const {
 }
 #endif
 
-}
 }
