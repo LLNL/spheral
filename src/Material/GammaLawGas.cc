@@ -10,9 +10,6 @@
 #include "Field/Field.hh"
 
 namespace Spheral {
-namespace Material {
-
-using FieldSpace::Field;
 
 //------------------------------------------------------------------------------
 // Construct with the given gamma and mu.
@@ -298,6 +295,5 @@ GammaLawGas<Dimension>::valid() const {
           mMolecularWeight > 0.0 &&
           mGamma1 == mGamma - 1.0);
 }
-}
-}
 
+}

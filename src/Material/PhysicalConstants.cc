@@ -7,7 +7,6 @@
 #include "Utilities/FastMath.hh"
 
 namespace Spheral {
-namespace Material {
 
 //------------------------------------------------------------------------------
 // Constructor.
@@ -49,5 +48,3 @@ const double PhysicalConstants::NAvogadro = 6.02214129e23;   // mol^-1
 const double PhysicalConstants::StefanBoltzmannMKS = 5.67e-8;   // W/m^2/K^4
 
 }
-}
-

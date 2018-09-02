@@ -8,7 +8,6 @@
 #define __Spheral_PhysicalConstants_hh__
 
 namespace Spheral {
-namespace Material {
 
 class PhysicalConstants {
 
@@ -70,19 +69,14 @@ private:
 };
 
 }
-}
 
-#ifndef __GCCXML__
 #include "PhysicalConstantsInline.hh"
-#endif
 
 #else
 
 // Forward declaration.
 namespace Spheral {
-  namespace Material {
-    class PhysicalConstants;
-  }
+  class PhysicalConstants;
 }
 
 #endif

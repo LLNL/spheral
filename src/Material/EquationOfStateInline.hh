@@ -1,5 +1,4 @@
 namespace Spheral {
-namespace Material {
 
 //------------------------------------------------------------------------------
 // Units.
@@ -77,5 +76,4 @@ EquationOfState<Dimension>::applyPressureLimits(const Scalar P) const {
           P);
 }
 
-}
 }
