@@ -9,11 +9,12 @@
 #ifndef __Spheral_Geometry_computeAncillaryGeometry__
 #define __Spheral_Geometry_computeAncillaryGeometry__
 
+#include "Utilities/safeInv.hh"
+
 #include <algorithm>
 #include <vector>
 #include <set>
 #include <deque>
-#include "Utilities/safeInv.hh"
 
 namespace Spheral {
 namespace GeometryUtilities {

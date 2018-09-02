@@ -6,7 +6,7 @@
 #ifndef __Spheral_innerProduct_hh__
 #define __Spheral_innerProduct_hh__
 
-namespace Geometry {
+namespace Spheral {
 
 //------------------------------------------------------------------------------
 // Inner product with a scalar, just return the scalar times the elements.

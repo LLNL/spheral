@@ -19,10 +19,8 @@ namespace Spheral {
 template<typename Dimension> class State;
 template<typename Dimension> class StateDerivatives;
 
-namespace GravitySpace {
-
 template <typename Dimension>
-class NBodyGravity: public PhysicsSpace::GenericBodyForce<Dimension> {
+class NBodyGravity: public GenericBodyForce<Dimension> {
 public:
   //--------------------------- Public Interface ---------------------------//
   typedef typename Dimension::Scalar Scalar;
@@ -30,7 +28,7 @@ public:
   typedef typename Dimension::Tensor Tensor;
   typedef typename Dimension::SymTensor SymTensor;
 
-  typedef typename PhysicsSpace::Physics<Dimension>::TimeStepType TimeStepType;
+  typedef typename Physics<Dimension>::TimeStepType TimeStepType;
 
   //! Constructor.
   //! \param plummerSofteningLength -- The Plummer Softening Length for the model.
@@ -44,35 +42,35 @@ public:
   virtual ~NBodyGravity();
 
   //! We augment the generic body force state.
-  virtual void registerState(DataBaseSpace::DataBase<Dimension>& dataBase,
+  virtual void registerState(DataBase<Dimension>& dataBase,
                              State<Dimension>& state) override;
 
   //! This is the derivative method that all BodyForce classes must provide.
   virtual 
   void evaluateDerivatives(const Scalar time,
                            const Scalar dt,
-                           const DataBaseSpace::DataBase<Dimension>& dataBase,
+                           const DataBase<Dimension>& dataBase,
                            const State<Dimension>& state,
                            StateDerivatives<Dimension>& derivs) const override;
 
   //! Vote on the timestep.  This uses a velocity-limiting rule.
-  virtual TimeStepType dt(const DataBaseSpace::DataBase<Dimension>& dataBase, 
+  virtual TimeStepType dt(const DataBase<Dimension>& dataBase, 
                           const State<Dimension>& state,
                           const StateDerivatives<Dimension>& derivs,
                           const Scalar currentTime) const override;
 
   //! Initializations on problem start up.
-  virtual void initializeProblemStartup(DataBaseSpace::DataBase<Dimension>& db) override;
+  virtual void initializeProblemStartup(DataBase<Dimension>& db) override;
 
   //! Beginning of timestep work.
-  virtual void preStepInitialize(const DataBaseSpace::DataBase<Dimension>& dataBase, 
+  virtual void preStepInitialize(const DataBase<Dimension>& dataBase, 
                                  State<Dimension>& state,
                                  StateDerivatives<Dimension>& derivs) override;
 
   //! End of timestep finalizations.
   virtual void finalize(const Scalar time, 
                         const Scalar dt,
-                        DataBaseSpace::DataBase<Dimension>& dataBase, 
+                        DataBase<Dimension>& dataBase, 
                         State<Dimension>& state,
                         StateDerivatives<Dimension>& derivs) override;
 
@@ -86,7 +84,7 @@ public:
   virtual Scalar extraEnergy() const override;
 
   //! Return the gravitational potential created by the particle distribution.
-  const FieldSpace::FieldList<Dimension, Scalar>& potential() const;
+  const FieldList<Dimension, Scalar>& potential() const;
 
   //! Test if the package is valid, i.e., ready to use.
   virtual bool valid() const;
@@ -105,9 +103,9 @@ public:
 private:
   
   //! The gravitational potential of the particles.
-  mutable FieldSpace::FieldList<Dimension, Scalar> mPotential;
-  mutable FieldSpace::FieldList<Dimension, Scalar> mPotential0;
-  mutable FieldSpace::FieldList<Dimension, Scalar> mVel02;
+  mutable FieldList<Dimension, Scalar> mPotential;
+  mutable FieldList<Dimension, Scalar> mPotential0;
+  mutable FieldList<Dimension, Scalar> mVel02;
 
   //! The total potential energy of the particles.  Also mutable.
   mutable Scalar mExtraEnergy;
@@ -142,21 +140,19 @@ private:
   // Worker for accumulating pair-wise forces.
   void applyPairForces(const std::vector<Scalar>& otherMass,
                        const std::vector<Vector>& otherPosition,
-                       const FieldSpace::FieldList<Dimension, Vector>& position,
-                       FieldSpace::FieldList<Dimension, Vector>& DvDt,
-                       FieldSpace::FieldList<Dimension, Scalar>& potential) const;
+                       const FieldList<Dimension, Vector>& position,
+                       FieldList<Dimension, Vector>& DvDt,
+                       FieldList<Dimension, Scalar>& potential) const;
 
   // Methods for serializing/deserializing point values.
-  void serialize(const FieldSpace::FieldList<Dimension, typename Dimension::Scalar>& mass,
-                 const FieldSpace::FieldList<Dimension, typename Dimension::Vector>& position,
+  void serialize(const FieldList<Dimension, typename Dimension::Scalar>& mass,
+                 const FieldList<Dimension, typename Dimension::Vector>& position,
                  std::vector<char>& buffer) const;
   void deserialize(const std::vector<char>& buffer,
                    std::vector<typename Dimension::Scalar>& mass,
                    std::vector<typename Dimension::Vector>& position) const;
 
 }; // end class NBodyGravity
-
-} // end namespace GravitySpace
 
 } // end namespace Spheral
 

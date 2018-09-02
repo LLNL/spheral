@@ -6,13 +6,6 @@
 //! \date $Date: 2011-02-20 10:58:32 -0800 (Sun, 20 Feb 2011) $
 //----------------------------------------------------------------------------//
 
-#include <cstdio>
-#include <cstdlib>
-#include <cstring>
-#include <sstream>
-#include <iostream>
-#include <algorithm>
-
 #include "NBodyGravity.hh"
 #include "DataBase/DataBase.hh"
 #include "DataBase/IncrementState.hh"
@@ -27,13 +20,16 @@
 #include "Material/PhysicalConstants.hh"
 #include "Utilities/packElement.hh"
 
+#include <cstdio>
+#include <cstdlib>
+#include <cstring>
+#include <sstream>
+#include <iostream>
+#include <algorithm>
+
 namespace Spheral {
-namespace GravitySpace {
 
 using namespace std;
-using FieldSpace::Field;
-using FieldSpace::FieldList;
-using DataBaseSpace::DataBase;
 
 namespace {
 //------------------------------------------------------------------------------
@@ -78,9 +74,9 @@ NBodyGravity(const double plummerSofteningLength,
              const double maxDeltaVelocity,
              const double G,
              const bool compatibleVelocityUpdate):
-  mPotential(FieldSpace::FieldStorageType::CopyFields),
-  mPotential0(FieldSpace::FieldStorageType::CopyFields),
-  mVel02(FieldSpace::FieldStorageType::CopyFields),
+  mPotential(FieldStorageType::CopyFields),
+  mPotential0(FieldStorageType::CopyFields),
+  mVel02(FieldStorageType::CopyFields),
   mExtraEnergy(0.0),
   mMaxDeltaVelocityFactor(maxDeltaVelocity),
   mSofteningLength(plummerSofteningLength),
@@ -106,7 +102,7 @@ registerState(DataBase<Dimension >& dataBase,
               State<Dimension >& state) {
   typedef typename State<Dimension>::PolicyPointer PolicyPointer;
 
-  PhysicsSpace::GenericBodyForce<Dimension >::registerState(dataBase, state);
+  GenericBodyForce<Dimension >::registerState(dataBase, state);
   state.enroll(mPotential);
 }
 
@@ -121,7 +117,6 @@ evaluateDerivatives(const typename Dimension::Scalar time,
                     const DataBase<Dimension>& dataBase,
                     const State<Dimension>& state,
                     StateDerivatives<Dimension>& derivs) const {
-  using namespace NodeSpace;
 
   // Find the square of the Plummer softening length.
   auto softeningLength2 = mSofteningLength * mSofteningLength;
@@ -247,7 +242,7 @@ initializeProblemStartup(DataBase<Dimension>& db) {
 
   // We need to make a dry run through setting derivatives and such
   // to set our initial vote on the time step.
-  vector<PhysicsSpace::Physics<Dimension>*> packages(1, this);
+  vector<Physics<Dimension>*> packages(1, this);
   State<Dimension> state(db, packages);
   StateDerivatives<Dimension> derivs(db, packages);
   this->initialize(0.0, 1.0, db, state, derivs);
@@ -260,7 +255,7 @@ initializeProblemStartup(DataBase<Dimension>& db) {
 template <typename Dimension>
 void 
 NBodyGravity<Dimension>::
-preStepInitialize(const DataBaseSpace::DataBase<Dimension>& dataBase, 
+preStepInitialize(const DataBase<Dimension>& dataBase, 
                   State<Dimension>& state,
                   StateDerivatives<Dimension>& derivs) {
 
@@ -290,7 +285,7 @@ void
 NBodyGravity<Dimension>::
 finalize(const Scalar time, 
          const Scalar dt,
-         DataBaseSpace::DataBase<Dimension>& dataBase, 
+         DataBase<Dimension>& dataBase, 
          State<Dimension>& state,
          StateDerivatives<Dimension>& derivs) {
 
@@ -430,12 +425,10 @@ void
 NBodyGravity<Dimension>::
 applyPairForces(const std::vector<Scalar>& otherMass,
                 const std::vector<Vector>& otherPosition,
-                const FieldSpace::FieldList<Dimension, Vector>& position,
-                FieldSpace::FieldList<Dimension, Vector>& DvDt,
-                FieldSpace::FieldList<Dimension, Scalar>& potential) const {
+                const FieldList<Dimension, Vector>& position,
+                FieldList<Dimension, Vector>& DvDt,
+                FieldList<Dimension, Scalar>& potential) const {
 
-
-  using namespace NodeSpace;
 
   const unsigned numNodeLists = position.numFields();
   const unsigned nother = otherMass.size();
@@ -484,8 +477,8 @@ applyPairForces(const std::vector<Scalar>& otherMass,
 template <typename Dimension>
 void
 NBodyGravity<Dimension>::
-serialize(const FieldSpace::FieldList<Dimension, typename Dimension::Scalar>& mass,
-          const FieldSpace::FieldList<Dimension, typename Dimension::Vector>& position,
+serialize(const FieldList<Dimension, typename Dimension::Scalar>& mass,
+          const FieldList<Dimension, typename Dimension::Vector>& position,
           std::vector<char>& buffer) const {
   const unsigned n = mass.numInternalNodes();
   CHECK(position.numInternalNodes() == n);
@@ -521,6 +514,5 @@ deserialize(const std::vector<char>& buffer,
   CHECK(bufItr == buffer.end());
 }
 
-} // end namespace GravitySpace
 } // end namespace Spheral
 
