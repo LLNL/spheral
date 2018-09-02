@@ -6,13 +6,11 @@
 #ifndef __Spheral_NSincPolynomialKernel_hh__
 #define __Spheral_NSincPolynomialKernel_hh__
 
-#ifndef __GCCXML__
-#include <vector>
-#endif
 #include "Kernel.hh"
 
+#include <vector>
+
 namespace Spheral {
-namespace KernelSpace {
 
 template<typename Dimension>
 class NSincPolynomialKernel: 
@@ -55,19 +53,14 @@ private:
 };
 
 }
-}
 
-#ifndef __GCCXML__
 #include "NSincPolynomialKernelInline.hh"
-#endif
 
 #else
 
 // Forward declaration.
 namespace Spheral {
-  namespace KernelSpace {
-    template<typename Dimension> class NSincPolynomialKernel;
-  }
+  template<typename Dimension> class NSincPolynomialKernel;
 }
 
 #endif

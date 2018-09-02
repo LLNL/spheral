@@ -13,7 +13,6 @@
 #include "Geometry/Dimension.hh"
 
 namespace Spheral {
-namespace KernelSpace {
 
 template<typename Dimension>
 class QuinticSplineKernel: public Kernel<Dimension, QuinticSplineKernel<Dimension> > {
@@ -47,15 +46,12 @@ template<> QuinticSplineKernel<Dim<2> >::QuinticSplineKernel();
 template<> QuinticSplineKernel<Dim<3> >::QuinticSplineKernel();
 
 }
-}
 
 #else
 
 // Forward declaration.
 namespace Spheral {
-  namespace KernelSpace {
-    template<typename Dimension> class QuinticSplineKernel;
-  }
+  template<typename Dimension> class QuinticSplineKernel;
 }
 
 #endif

@@ -1,9 +1,8 @@
-#include <math.h>
-
 #include "Geometry/Dimension.hh"
 
+#include <math.h>
+
 namespace Spheral {
-namespace KernelSpace {
 
 //------------------------------------------------------------------------------
 // Empty constructor
@@ -88,5 +87,4 @@ SuperGaussianKernel<Dimension>::grad2Value(double etaMagnitude, double Hdet) con
     exp(-etaMagnitude2);
 }
 
-}
 }

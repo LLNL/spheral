@@ -15,7 +15,6 @@
 #include "Kernel.hh"
 
 namespace Spheral {
-namespace KernelSpace {
 
 template<typename Dimension>
 class PiGaussianKernel: public Kernel<Dimension, PiGaussianKernel<Dimension> > {
@@ -53,19 +52,14 @@ private:
 };
 
 }
-}
 
-#ifndef __GCCXML__
 #include "PiGaussianKernelInline.hh"
-#endif
 
 #else
 
 // Forward declaration.
 namespace Spheral {
-  namespace KernelSpace {
-    template<typename Dimension> class PiGaussianKernel;
-  }
+  template<typename Dimension> class PiGaussianKernel;
 }
 
 #endif

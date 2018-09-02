@@ -10,7 +10,6 @@ text = """
 #include "NBSplineKernel.hh"
 
 namespace Spheral {
-  namespace KernelSpace {
 """
 
 for Wname in ("TableKernel",
@@ -27,6 +26,5 @@ for Wname in ("TableKernel",
 """ % {"Wname" : Wname}
 
 text += """
-  }
 }
 """

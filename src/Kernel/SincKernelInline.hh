@@ -1,11 +1,10 @@
-#include <math.h>
-
 #include "Geometry/Dimension.hh"
 #include "VolumeIntegrationFunctions.hh"
 #include "Utilities/DBC.hh"
 
+#include <math.h>
+
 namespace Spheral {
-namespace KernelSpace {
 
 //------------------------------------------------------------------------------
 // Construct with the given extent in eta.
@@ -74,5 +73,4 @@ SincKernel<Dimension>::grad2Value(double etaMagnitude, double Hdet) const {
                 2.0*ack*gradValue(etaMagnitude, Hdet));
 }
 
-}
 }

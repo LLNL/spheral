@@ -3,7 +3,6 @@
 #include "Geometry/GeomVector.hh"
 
 namespace Spheral {
-namespace KernelSpace {
 
 //------------------------------------------------------------------------------
 // Return as a reference descendent class.
@@ -338,5 +337,4 @@ Kernel<Dimension, Descendent>::valid() const {
   return (volumeNormalization() > 0.0 && kernelExtent() > 0.0);
 }
 
-}
 }

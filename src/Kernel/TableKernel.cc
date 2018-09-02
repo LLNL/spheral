@@ -14,7 +14,6 @@
 #include "Utilities/safeInv.hh"
 
 namespace Spheral {
-namespace KernelSpace {
 
 using namespace std;
 using std::abs;
@@ -569,5 +568,3 @@ valid() const {
 }
 
 }
-}
-

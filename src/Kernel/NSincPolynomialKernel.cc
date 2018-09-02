@@ -4,17 +4,15 @@
 // Created by JMO, Tue Jan  7 15:01:13 PST 2003
 //----------------------------------------------------------------------------//
 
-#include <math.h>
-#include <vector>
-
 #include "Kernel.hh"
 #include "NSincPolynomialKernel.hh"
 
+#include <math.h>
+#include <vector>
+
 namespace Spheral {
-namespace KernelSpace {
 
 using namespace std;
-using std::vector;
 
 //------------------------------------------------------------------------------
 // Initialize the given vector<vector> with the the appropriate coefficients.
@@ -123,6 +121,5 @@ setPolynomialCoefficients(const int order,
   }
 }
 
-}
 }
 

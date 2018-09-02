@@ -17,12 +17,12 @@
 //
 // Created by J. Michael Owen, Thu Apr 22 16:00:39 2004
 //---------------------------------Spheral++----------------------------------//
-#include <math.h>
 #include "HKernel.hh"
 #include "VolumeIntegrationFunctions.hh"
 
+#include <math.h>
+
 namespace Spheral {
-namespace KernelSpace {
 
 using namespace std;
 
@@ -132,4 +132,4 @@ template class HKernel< Dim<2> >;
 template class HKernel< Dim<3> >;
 
 }
-}
+

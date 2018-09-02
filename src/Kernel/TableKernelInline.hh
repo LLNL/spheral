@@ -3,7 +3,6 @@
 #include "VolumeIntegrationFunctions.hh"
 
 namespace Spheral {
-namespace KernelSpace {
 
 //------------------------------------------------------------------------------
 // Return the kernel weight for a given normalized distance.
@@ -312,6 +311,5 @@ WsumValues() const {
   return mWsumValues;
 }
 
-}
 }
 

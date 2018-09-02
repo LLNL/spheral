@@ -17,7 +17,6 @@
 #include "Kernel.hh"
 
 namespace Spheral {
-namespace KernelSpace {
 
 template<typename Dimension>
 class WendlandC6Kernel: public Kernel<Dimension, WendlandC6Kernel<Dimension> > {
@@ -46,19 +45,14 @@ public:
 };
 
 }
-}
 
-#ifndef __GCCXML__
 #include "WendlandC6KernelInline.hh"
-#endif
 
 #else
 
 // Forward declaration.
 namespace Spheral {
-  namespace KernelSpace {
-    template<typename Dimension> class WendlandC6Kernel;
-  }
+  template<typename Dimension> class WendlandC6Kernel;
 }
 
 #endif

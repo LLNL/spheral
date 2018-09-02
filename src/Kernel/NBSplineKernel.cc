@@ -9,7 +9,6 @@
 #include "Utilities/DBC.hh"
 
 namespace Spheral {
-namespace KernelSpace {
 
 using namespace std;
 
@@ -117,5 +116,4 @@ initializeKernel() {
   this->setVolumeNormalization(1.0/volumeIntegral);
 }
 
-}
 }
