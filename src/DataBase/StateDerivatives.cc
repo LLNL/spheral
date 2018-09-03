@@ -13,9 +13,6 @@
 namespace Spheral {
 
 using namespace std;
-using FieldSpace::FieldBase;
-using FieldSpace::Field;
-using PhysicsSpace::Physics;
 
 //------------------------------------------------------------------------------
 // Default constructor.
@@ -33,7 +30,7 @@ StateDerivatives():
 //------------------------------------------------------------------------------
 template<typename Dimension>
 StateDerivatives<Dimension>::
-StateDerivatives(DataBaseSpace::DataBase<Dimension>& dataBase,
+StateDerivatives(DataBase<Dimension>& dataBase,
                  typename StateDerivatives<Dimension>::PackageList& physicsPackages):
   StateBase<Dimension>(),
   mCalculatedNodePairs(),
@@ -50,7 +47,7 @@ StateDerivatives(DataBaseSpace::DataBase<Dimension>& dataBase,
 //------------------------------------------------------------------------------
 template<typename Dimension>
 StateDerivatives<Dimension>::
-StateDerivatives(DataBaseSpace::DataBase<Dimension>& dataBase,
+StateDerivatives(DataBase<Dimension>& dataBase,
                  typename StateDerivatives<Dimension>::PackageIterator physicsPackageBegin,
                  typename StateDerivatives<Dimension>::PackageIterator physicsPackageEnd):
   StateBase<Dimension>(),

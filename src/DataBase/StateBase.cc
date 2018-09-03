@@ -18,12 +18,6 @@
 namespace Spheral {
 
 using namespace std;
-using NodeSpace::NodeList;
-using FieldSpace::Field;
-using FieldSpace::FieldBase;
-using FieldSpace::FieldList;
-using MeshSpace::Mesh;
-using std::shared_ptr;
 
 //------------------------------------------------------------------------------
 // Default constructor.

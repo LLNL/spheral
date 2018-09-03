@@ -15,8 +15,6 @@
 
 namespace Spheral {
 
-using Spheral::FieldSpace::FieldList;
-
 //------------------------------------------------------------------------------
 // Constructors.
 //------------------------------------------------------------------------------
@@ -132,8 +130,8 @@ update(const KeyType& key,
 
   // Find the matching derivative FieldList from the StateDerivatives.
   KeyType incrementKey = prefix() + fieldKey;
-  FieldSpace::FieldList<Dimension, ValueType> f = state.fields(fieldKey, ValueType());
-  const FieldSpace::FieldList<Dimension, ValueType> df = derivs.fields(incrementKey, ValueType());
+  FieldList<Dimension, ValueType> f = state.fields(fieldKey, ValueType());
+  const FieldList<Dimension, ValueType> df = derivs.fields(incrementKey, ValueType());
   CHECK(f.size() == df.size());
 
   // Loop over the internal values of the field.

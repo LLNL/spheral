@@ -14,7 +14,6 @@
 
 namespace Spheral {
 
-using FieldSpace::FieldList;
 using namespace std;
 
 //------------------------------------------------------------------------------
