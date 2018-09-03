@@ -21,9 +21,9 @@ public:
   //--------------------------- Public Interface ---------------------------//
   // Constructors and destructors.
   AllNodeIterator();
-  AllNodeIterator(typename std::vector<NodeSpace::NodeList<Dimension>*>::const_iterator itr,
-                  typename std::vector<NodeSpace::NodeList<Dimension>*>::const_iterator nodeListBegin,
-                  typename std::vector<NodeSpace::NodeList<Dimension>*>::const_iterator nodeListEnd,
+  AllNodeIterator(typename std::vector<NodeList<Dimension>*>::const_iterator itr,
+                  typename std::vector<NodeList<Dimension>*>::const_iterator nodeListBegin,
+                  typename std::vector<NodeList<Dimension>*>::const_iterator nodeListEnd,
                   int nodeID = 0);
   AllNodeIterator(const AllNodeIterator& rhs);
 

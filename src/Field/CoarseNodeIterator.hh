@@ -20,13 +20,13 @@ public:
   //--------------------------- Public Interface ---------------------------//
   // Constructors and destructors.
   CoarseNodeIterator();
-  CoarseNodeIterator(typename std::vector<NodeSpace::NodeList<Dimension>*>::const_iterator iter,
-                     typename std::vector<NodeSpace::NodeList<Dimension>*>::const_iterator nodeListBegin,
-                     typename std::vector<NodeSpace::NodeList<Dimension>*>::const_iterator nodeListEnd,
+  CoarseNodeIterator(typename std::vector<NodeList<Dimension>*>::const_iterator iter,
+                     typename std::vector<NodeList<Dimension>*>::const_iterator nodeListBegin,
+                     typename std::vector<NodeList<Dimension>*>::const_iterator nodeListEnd,
                      const std::vector<std::vector<int>>& coarseNeighbors);
-  CoarseNodeIterator(typename std::vector<NodeSpace::NodeList<Dimension>*>::const_iterator iter,
-                     typename std::vector<NodeSpace::NodeList<Dimension>*>::const_iterator nodeListBegin,
-                     typename std::vector<NodeSpace::NodeList<Dimension>*>::const_iterator nodeListEnd,
+  CoarseNodeIterator(typename std::vector<NodeList<Dimension>*>::const_iterator iter,
+                     typename std::vector<NodeList<Dimension>*>::const_iterator nodeListBegin,
+                     typename std::vector<NodeList<Dimension>*>::const_iterator nodeListEnd,
                      std::vector<int>::const_iterator IDItr,
                      const std::vector<std::vector<int>>& coarseNeighbors);
   CoarseNodeIterator(const CoarseNodeIterator& rhs);
@@ -51,9 +51,9 @@ protected:
 private:
   //---------------------------- Private Interface ----------------------------//
   // Internal method to initialize the state.
-  void initialize(typename std::vector<NodeSpace::NodeList<Dimension>*>::const_iterator nodeListItr,
-                  typename std::vector<NodeSpace::NodeList<Dimension>*>::const_iterator nodeListBegin,
-                  typename std::vector<NodeSpace::NodeList<Dimension>*>::const_iterator nodeListEnd,
+  void initialize(typename std::vector<NodeList<Dimension>*>::const_iterator nodeListItr,
+                  typename std::vector<NodeList<Dimension>*>::const_iterator nodeListBegin,
+                  typename std::vector<NodeList<Dimension>*>::const_iterator nodeListEnd,
                   std::vector<int>::const_iterator IDItr,
                   const std::vector<std::vector<int>>& coarseNeighbors);
 
