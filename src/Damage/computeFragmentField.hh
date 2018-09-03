@@ -11,7 +11,7 @@ template<typename Dimension> class NodeList;
 template<typename Dimension, typename DataType> class Field;
 
 template<typename Dimension>
-FieldSpace::Field<Dimension, int>
+Field<Dimension, int>
 computeFragmentField(const NodeList<Dimension>& nodeList,
                      const double linkRadius,
                      const Field<Dimension, typename Dimension::SymTensor>& damage,

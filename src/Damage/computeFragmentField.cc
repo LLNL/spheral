@@ -13,9 +13,6 @@
 namespace Spheral {
 
 using namespace std;
-using FieldSpace::Field;
-using NodeSpace::NodeList;
-using NeighborSpace::Neighbor;
 
 //------------------------------------------------------------------------------
 // Reduce a container to it's unique elements.
@@ -112,10 +109,10 @@ computeFragmentField(const NodeList<Dimension>& nodes,
   Neighbor<Dimension>& neighbor = nodes.neighbor();
 
   // Get the total number of nodes, and the global IDs on this domain.
-  int numGlobalNodesRemaining = NodeSpace::numGlobalNodes(nodes);
+  int numGlobalNodesRemaining = numGlobalNodes(nodes);
   vector<int> globalNodeIDs;
   {
-    Field<Dimension, int> globalNodeField = NodeSpace::globalNodeIDs(nodes);
+    Field<Dimension, int> globalNodeField = globalNodeIDs(nodes);
     copy(globalNodeField.begin(), 
          globalNodeField.begin() + nodes.numInternalNodes(),
          back_inserter(globalNodeIDs));

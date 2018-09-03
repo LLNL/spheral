@@ -47,11 +47,11 @@ public:
   typedef typename Dimension::SymTensor SymTensor;
 
   typedef typename Physics<Dimension>::ConstBoundaryIterator ConstBoundaryIterator;
-  typedef FieldSpace::Field<Dimension, std::vector<double> > FlawStorageType;
+  typedef Field<Dimension, std::vector<double> > FlawStorageType;
 
   // Constructors, destructor.
-  DamageModel(NodeSpace::SolidNodeList<Dimension>& nodeList,
-              const KernelSpace::TableKernel<Dimension>& W,
+  DamageModel(SolidNodeList<Dimension>& nodeList,
+              const TableKernel<Dimension>& W,
               const double crackGrowthMultiplier,
               const EffectiveFlawAlgorithm flawAlgorithm,
               const FlawStorageType& flaws);
@@ -60,26 +60,26 @@ public:
   // Compute the generic Grady-Kipp (ala Benz-Asphaug) scalar damage time 
   // derivative.
   virtual 
-  void computeScalarDDDt(const DataBaseSpace::DataBase<Dimension>& dataBase,
+  void computeScalarDDDt(const DataBase<Dimension>& dataBase,
                          const State<Dimension>& state,
                          const Scalar time,
                          const Scalar dt,
-                         FieldSpace::Field<Dimension, Scalar>& DDDt) const;
+                         Field<Dimension, Scalar>& DDDt) const;
 
   //...........................................................................
   // Provide a subset of the required physics package interface.
   // Descendant classes must complete the set!
-  virtual void preStepInitialize(const DataBaseSpace::DataBase<Dimension>& dataBase, 
+  virtual void preStepInitialize(const DataBase<Dimension>& dataBase, 
                                  State<Dimension>& state,
                                  StateDerivatives<Dimension>& derivs) override;
 
-  virtual void registerState(DataBaseSpace::DataBase<Dimension>& dataBase,
+  virtual void registerState(DataBase<Dimension>& dataBase,
                              State<Dimension>& state) override;
 
   virtual 
   void postStateUpdate(const Scalar time, 
                        const Scalar dt,
-                       const DataBaseSpace::DataBase<Dimension>& dataBase, 
+                       const DataBase<Dimension>& dataBase, 
                        State<Dimension>& state,
                        StateDerivatives<Dimension>& derivatives) override;
   //...........................................................................
@@ -92,11 +92,11 @@ public:
   const std::vector<double> flawsForNode(const size_t index) const;
 
   // Access the SolidNodeList we're damaging.
-  NodeSpace::SolidNodeList<Dimension>& nodeList();
-  const NodeSpace::SolidNodeList<Dimension>& nodeList() const;
+  SolidNodeList<Dimension>& nodeList();
+  const SolidNodeList<Dimension>& nodeList() const;
 
   // Access the kernel.
-  const KernelSpace::TableKernel<Dimension>& kernel() const;
+  const TableKernel<Dimension>& kernel() const;
 
   // Important local parameters.
   double crackGrowthMultiplier() const;
@@ -107,21 +107,21 @@ public:
   void excludeNodes(const std::vector<int>& ids);
 
   // Provide access to the state fields we maintain.
-  const FieldSpace::Field<Dimension, Scalar>& youngsModulus() const;
-  const FieldSpace::Field<Dimension, Scalar>& longitudinalSoundSpeed() const;
+  const Field<Dimension, Scalar>& youngsModulus() const;
+  const Field<Dimension, Scalar>& longitudinalSoundSpeed() const;
 
   // Access the flaw field.
   const FlawStorageType& flaws() const;
   FlawStorageType& flaws();
 
   // The effective flaw for each node.
-  const FieldSpace::Field<Dimension, Scalar>& effectiveFlaws() const;
+  const Field<Dimension, Scalar>& effectiveFlaws() const;
 
   // Compute a Field with the sum of the activation energies per node.
-  FieldSpace::Field<Dimension, Scalar> sumActivationEnergiesPerNode() const;
+  Field<Dimension, Scalar> sumActivationEnergiesPerNode() const;
 
   // Compute a Field with the number of flaws per node.
-  FieldSpace::Field<Dimension, Scalar> numFlawsPerNode() const;
+  Field<Dimension, Scalar> numFlawsPerNode() const;
 
   // The effective critical number of nodes per smoothing scale, below which we
   // assume all flaws are active on a node.
@@ -131,26 +131,26 @@ public:
   //**************************************************************************
   // Restart methods.
   virtual std::string label() const { return "DamageModel"; }
-  virtual void dumpState(FileIOSpace::FileIO& file, const std::string& pathName) const;
-  virtual void restoreState(const FileIOSpace::FileIO& file, const std::string& pathName);
+  virtual void dumpState(FileIO& file, const std::string& pathName) const;
+  virtual void restoreState(const FileIO& file, const std::string& pathName);
   //**************************************************************************
 
 protected:
   //-------------------------- Protected Interface --------------------------//
   FlawStorageType mFlaws;
-  FieldSpace::Field<Dimension, Scalar> mEffectiveFlaws;
+  Field<Dimension, Scalar> mEffectiveFlaws;
 
 private:
   //--------------------------- Private Interface ---------------------------//
-  NodeSpace::SolidNodeList<Dimension>& mNodeList;
-  const KernelSpace::TableKernel<Dimension>& mW;
+  SolidNodeList<Dimension>& mNodeList;
+  const TableKernel<Dimension>& mW;
   double mCrackGrowthMultiplier;
   EffectiveFlawAlgorithm mEffectiveFlawAlgorithm;
 
-  FieldSpace::Field<Dimension, Scalar> mYoungsModulus;
-  FieldSpace::Field<Dimension, Scalar> mLongitudinalSoundSpeed;
+  Field<Dimension, Scalar> mYoungsModulus;
+  Field<Dimension, Scalar> mLongitudinalSoundSpeed;
 
-  FieldSpace::Field<Dimension, int> mExcludeNode;
+  Field<Dimension, int> mExcludeNode;
 
   double mCriticalNodesPerSmoothingScale;
 

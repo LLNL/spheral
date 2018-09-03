@@ -22,11 +22,6 @@ namespace Spheral {
 
 using namespace std;
 
-using FieldSpace::Field;
-using NodeSpace::NodeList;
-using Material::EquationOfState;
-using KernelSpace::HatKernel;
-
 //------------------------------------------------------------------------------
 // Constructor.
 //------------------------------------------------------------------------------

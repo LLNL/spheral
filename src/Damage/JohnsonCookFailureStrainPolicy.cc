@@ -21,16 +21,13 @@ namespace Spheral {
 
 using namespace std;
 
-using FieldSpace::Field;
-using NodeSpace::NodeList;
-
 //------------------------------------------------------------------------------
 // Constructor.
 //------------------------------------------------------------------------------
 template<typename Dimension>
 JohnsonCookFailureStrainPolicy<Dimension>::
-JohnsonCookFailureStrainPolicy(const FieldSpace::Field<Dimension, Scalar>& D1,
-                               const FieldSpace::Field<Dimension, Scalar>& D2,
+JohnsonCookFailureStrainPolicy(const Field<Dimension, Scalar>& D1,
+                               const Field<Dimension, Scalar>& D2,
                                const double D3,
                                const double D4,
                                const double D5,

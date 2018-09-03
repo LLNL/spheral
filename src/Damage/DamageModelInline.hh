@@ -45,7 +45,7 @@ flawsForNode(const size_t index) const {
 //------------------------------------------------------------------------------
 template<typename Dimension>
 inline
-NodeSpace::SolidNodeList<Dimension>&
+SolidNodeList<Dimension>&
 DamageModel<Dimension>::
 nodeList() {
   return mNodeList;
@@ -53,7 +53,7 @@ nodeList() {
 
 template<typename Dimension>
 inline
-const NodeSpace::SolidNodeList<Dimension>&
+const SolidNodeList<Dimension>&
 DamageModel<Dimension>::
 nodeList() const {
   return mNodeList;
@@ -61,7 +61,7 @@ nodeList() const {
 
 template<typename Dimension>
 inline
-const KernelSpace::TableKernel<Dimension>&
+const TableKernel<Dimension>&
 DamageModel<Dimension>::
 kernel() const {
   return mW;
@@ -88,7 +88,7 @@ effectiveFlawAlgorithm() const {
 //------------------------------------------------------------------------------
 template<typename Dimension>
 inline
-const FieldSpace::Field<Dimension, typename Dimension::Scalar>&
+const Field<Dimension, typename Dimension::Scalar>&
 DamageModel<Dimension>::
 youngsModulus() const {
   return mYoungsModulus;
@@ -96,7 +96,7 @@ youngsModulus() const {
 
 template<typename Dimension>
 inline
-const FieldSpace::Field<Dimension, typename Dimension::Scalar>&
+const Field<Dimension, typename Dimension::Scalar>&
 DamageModel<Dimension>::
 longitudinalSoundSpeed() const {
   return mLongitudinalSoundSpeed;
@@ -126,7 +126,7 @@ flaws() {
 //------------------------------------------------------------------------------
 template<typename Dimension>
 inline
-const FieldSpace::Field<Dimension, typename Dimension::Scalar>&
+const Field<Dimension, typename Dimension::Scalar>&
 DamageModel<Dimension>::
 effectiveFlaws() const {
   return mEffectiveFlaws;
