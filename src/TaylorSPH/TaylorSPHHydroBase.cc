@@ -80,7 +80,7 @@ TaylorSPHHydroBase(const SmoothingScaleBase<Dimension>& smoothingScaleMethod,
   mInternalDvDx(FieldStorageType::CopyFields),
   mPairAccelerations(FieldStorageType::CopyFields),
   mD(FieldStorageType::CopyFields),
-  mRestart(DataOutput::registerWithRestart(*this)) {
+  mRestart(registerWithRestart(*this)) {
 }
 
 //------------------------------------------------------------------------------

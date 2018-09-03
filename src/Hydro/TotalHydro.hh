@@ -138,7 +138,7 @@ private:
   mutable FieldList<Dimension, SymTensor> mMassSecondMoment;
 
   // The restart registration.
-  DataOutput::RestartRegistrationType mRestart;
+  RestartRegistrationType mRestart;
 
   // No default constructor, copying, or assignment.
   TotalHydro();

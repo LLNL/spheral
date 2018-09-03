@@ -97,7 +97,7 @@ SVPHHydroBase(const SmoothingScaleBase<Dimension>& smoothingScaleMethod,
   mDvDx(FieldList<Dimension, Tensor>::Copy),
   mInternalDvDx(FieldList<Dimension, Tensor>::Copy),
   mPairAccelerations(FieldList<Dimension, vector<Vector> >::Copy),
-  mRestart(DataOutput::registerWithRestart(*this)) {
+  mRestart(registerWithRestart(*this)) {
   // Delegate range checking to our assignment methods.
   this->fcentroidal(mfcentroidal);
 }

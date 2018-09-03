@@ -96,7 +96,7 @@ private:
   Field<Dimension, Vector> mVelocity;
 
   // The restart registration.
-  DataOutput::RestartRegistrationType mRestart;
+  RestartRegistrationType mRestart;
 };
 
 }

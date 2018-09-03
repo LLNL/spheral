@@ -42,7 +42,7 @@ MorrisMonaghanReducingViscosity(ArtificialViscosity<Dimension>& q,
   maMin(aMin),
   maMax(aMax),
   myq(q),
-  mRestart(DataOutput::registerWithRestart(*this)) {
+  mRestart(registerWithRestart(*this)) {
 }
 
 //------------------------------------------------------------------------------

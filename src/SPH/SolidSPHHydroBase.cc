@@ -138,7 +138,7 @@ SolidSPHHydroBase(const SmoothingScaleBase<Dimension>& smoothingScaleMethod,
   mYieldStrength(FieldStorageType::CopyFields),
   mPlasticStrain0(FieldStorageType::CopyFields),
   mHfield0(FieldStorageType::CopyFields),
-  mRestart(DataOutput::registerWithRestart(*this)) {
+  mRestart(registerWithRestart(*this)) {
 }
 
 //------------------------------------------------------------------------------

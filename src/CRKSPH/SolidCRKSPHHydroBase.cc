@@ -142,7 +142,7 @@ SolidCRKSPHHydroBase(const SmoothingScaleBase<Dimension>& smoothingScaleMethod,
   mPlasticStrain0(FieldStorageType::CopyFields),
   mHfield0(FieldStorageType::CopyFields),
   mFragIDs(FieldStorageType::ReferenceFields),
-  mRestart(DataOutput::registerWithRestart(*this)) {
+  mRestart(registerWithRestart(*this)) {
 }
 
 //------------------------------------------------------------------------------

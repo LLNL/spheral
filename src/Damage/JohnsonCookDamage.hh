@@ -112,7 +112,7 @@ private:
   double mD3, mD4, mD5, mepsilondot0, mTcrit, msigmamax, mefailmin;
 
   // The restart registration.
-  DataOutput::RestartRegistrationType mRestart;
+  RestartRegistrationType mRestart;
 
   // No default constructor, copying or assignment.
   JohnsonCookDamage();

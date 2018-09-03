@@ -36,7 +36,7 @@ namespace Spheral {
 RestartableObject::
 RestartableObject(PyObject* self,
                   const unsigned priority):
-  mRestart(DataOutput::registerWithRestart(*this, priority)),
+  mRestart(registerWithRestart(*this, priority)),
   mSelf(self) {
 }
 

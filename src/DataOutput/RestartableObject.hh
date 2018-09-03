@@ -46,7 +46,7 @@ public:
 private:
   //-----------------------===== Private Interface =====-----------------------//
   // The restart registration.
-  DataOutput::RestartRegistrationType mRestart;
+  RestartRegistrationType mRestart;
 
   // The python object we're restarting.
   PyObject* mSelf;

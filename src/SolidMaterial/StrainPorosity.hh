@@ -127,7 +127,7 @@ private:
   Field<Dimension, Scalar> mAlpha,  mDalphaDt, mStrain, mDstrainDt;
 
   // The restart registration.
-  DataOutput::RestartRegistrationType mRestart;
+  RestartRegistrationType mRestart;
 
   // Disallow default constructor
   StrainPorosity();

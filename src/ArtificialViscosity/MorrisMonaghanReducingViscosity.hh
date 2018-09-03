@@ -87,7 +87,7 @@ public:
 private:
     //--------------------------- Private Interface ---------------------------//
     // The restart registration.
-    DataOutput::RestartRegistrationType mRestart;
+    RestartRegistrationType mRestart;
         
     MorrisMonaghanReducingViscosity();
     MorrisMonaghanReducingViscosity(const MorrisMonaghanReducingViscosity&);

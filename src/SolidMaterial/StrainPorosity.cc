@@ -51,7 +51,7 @@ StrainPorosity(PorousEquationOfState<Dimension>& porousEOS,
   mDalphaDt(IncrementBoundedState<Dimension, Scalar, Scalar>::prefix() + SolidFieldNames::porosityAlpha, nodeList),
   mStrain(SolidFieldNames::porosityStrain, nodeList),
   mDstrainDt(IncrementState<Dimension, Scalar>::prefix() + SolidFieldNames::porosityStrain, nodeList),
-  mRestart(DataOutput::registerWithRestart(*this)) {
+  mRestart(registerWithRestart(*this)) {
   VERIFY2(mEpsE <= 0.0,
           "ERROR : epsE required to be epsE <= 0.0.");
   VERIFY2(mEpsX <= mEpsE,

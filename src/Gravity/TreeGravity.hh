@@ -184,7 +184,7 @@ private:
   mutable Scalar mDtMinAcc, mRhoMax;
   
   // The restart registration.
-  DataOutput::RestartRegistrationType mRestart;
+  RestartRegistrationType mRestart;
 
   // Default constructor -- disabled.
   TreeGravity();

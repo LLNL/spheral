@@ -224,7 +224,7 @@ private:
   bool mRigorousBoundaries, mCullGhostNodes;
 
   // The restart registration.
-  DataOutput::RestartRegistrationType mRestart;
+  RestartRegistrationType mRestart;
 };
 
 }

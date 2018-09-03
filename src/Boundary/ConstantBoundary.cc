@@ -122,7 +122,7 @@ ConstantBoundary(NodeList<Dimension>& nodeList,
   mThirdRankTensorValues(),
   mVectorScalarValues(),
   mVectorVectorValues(),
-  mRestart(DataOutput::registerWithRestart(*this)) {
+  mRestart(registerWithRestart(*this)) {
 
   // Store the ids of the nodes we're watching.
   for (vector<int>::const_iterator itr = nodeIDs.begin();

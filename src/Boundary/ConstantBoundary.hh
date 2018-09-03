@@ -124,7 +124,7 @@ private:
   VectorVectorStorageType mVectorVectorValues;
 
   // The restart registration.
-  DataOutput::RestartRegistrationType mRestart;
+  RestartRegistrationType mRestart;
 
   // No default or copy constructors.
   ConstantBoundary();

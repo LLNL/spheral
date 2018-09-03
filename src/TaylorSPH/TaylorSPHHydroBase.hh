@@ -187,7 +187,7 @@ private:
   FieldList<Dimension, Tensor>    mD;
 
   // The restart registration.
-  DataOutput::RestartRegistrationType mRestart;
+  RestartRegistrationType mRestart;
 
   // No default constructor, copying, or assignment.
   TaylorSPHHydroBase();

@@ -314,7 +314,7 @@ protected:
 private:
   //--------------------------- Private Interface ---------------------------//
   // The restart registration.
-  DataOutput::RestartRegistrationType mRestart;
+  RestartRegistrationType mRestart;
 
   // No default constructor, copying, or assignment.
   CRKSPHHydroBase();

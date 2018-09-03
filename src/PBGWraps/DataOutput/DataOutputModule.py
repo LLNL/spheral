@@ -47,7 +47,7 @@ class DataOutput:
         x = self.RestartRegistrar
 
         # Get the instance.
-        x.add_method("instancePtr", retval("Spheral::DataOutput::RestartRegistrar*", caller_owns_return=True), [], is_static=True, custom_name="instance")
+        x.add_method("instancePtr", retval("Spheral::RestartRegistrar*", caller_owns_return=True), [], is_static=True, custom_name="instance")
 
         # Methods.
         x.add_method("removeExpiredPointers", None, [])

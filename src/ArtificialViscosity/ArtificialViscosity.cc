@@ -44,7 +44,7 @@ ArtificialViscosity():
   mEnergyMultiplier(1.0),
   mSigma(FieldStorageType::CopyFields),
   mGradDivVelocity(FieldStorageType::CopyFields),
-  mRestart(DataOutput::registerWithRestart(*this)) {
+  mRestart(registerWithRestart(*this)) {
 }
 
 //------------------------------------------------------------------------------
@@ -68,7 +68,7 @@ ArtificialViscosity(Scalar Clinear, Scalar Cquadratic, CRKOrder QcorrectionOrder
   mEnergyMultiplier(1.0),
   mSigma(FieldStorageType::CopyFields),
   mGradDivVelocity(FieldStorageType::CopyFields),
-  mRestart(DataOutput::registerWithRestart(*this)) {
+  mRestart(registerWithRestart(*this)) {
 }
 
 //------------------------------------------------------------------------------

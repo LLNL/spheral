@@ -83,7 +83,7 @@ private:
   FieldList<Dim<3>, Vector> mGhostPositions;
 
   // The restart registration.
-  DataOutput::RestartRegistrationType mRestart;
+  RestartRegistrationType mRestart;
 };
 
 }

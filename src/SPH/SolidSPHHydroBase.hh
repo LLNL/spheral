@@ -130,7 +130,7 @@ private:
   FieldList<Dimension, SymTensor> mHfield0;
 
   // The restart registration.
-  DataOutput::RestartRegistrationType mRestart;
+  RestartRegistrationType mRestart;
 
   // No default constructor, copying, or assignment.
   SolidSPHHydroBase();

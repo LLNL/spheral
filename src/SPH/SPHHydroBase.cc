@@ -127,7 +127,7 @@ SPHHydroBase(const SmoothingScaleBase<Dimension>& smoothingScaleMethod,
   mM(FieldStorageType::CopyFields),
   mLocalM(FieldStorageType::CopyFields),
   mPairAccelerations(FieldStorageType::CopyFields),
-  mRestart(DataOutput::registerWithRestart(*this)) {
+  mRestart(registerWithRestart(*this)) {
 }
 
 //------------------------------------------------------------------------------

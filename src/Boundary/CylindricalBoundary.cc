@@ -27,7 +27,7 @@ CylindricalBoundary(const DataBase<Dim<3> >& dataBase):
   Boundary<Dim<3> >(),
   mDeltaPhi(dataBase.newGlobalFieldList(0.0, "Delta angle for generating ghosts")),
   mGhostPositions(dataBase.newGlobalFieldList(Dim<3>::Vector(), "Ghost node positions")),
-  mRestart(DataOutput::registerWithRestart(*this)) {
+  mRestart(registerWithRestart(*this)) {
 }
 
 //------------------------------------------------------------------------------

@@ -55,7 +55,7 @@ NodeList<Dimension>::NodeList(std::string name,
   mFieldBaseList(),
   mNeighborPtr(0),
   mDummyList(),
-  mRestart(DataOutput::registerWithRestart(*this, 10)) {
+  mRestart(registerWithRestart(*this, 10)) {
   REQUIRE(numInternal >= 0 && numGhost >= 0);
   mMass.setNodeList(*this);
   mPositions.setNodeList(*this);

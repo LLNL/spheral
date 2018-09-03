@@ -73,7 +73,7 @@ PlanarBoundary<Dimension>::PlanarBoundary():
   Boundary<Dimension>(),
   mEnterPlane(),
   mExitPlane(),
-  mRestart(DataOutput::registerWithRestart(*this)) {
+  mRestart(registerWithRestart(*this)) {
 }
 
 //------------------------------------------------------------------------------
@@ -86,7 +86,7 @@ PlanarBoundary(const GeomPlane<Dimension>& enterPlane,
   Boundary<Dimension>(),
   mEnterPlane(enterPlane),
   mExitPlane(exitPlane),
-  mRestart(DataOutput::registerWithRestart(*this)) {
+  mRestart(registerWithRestart(*this)) {
   ENSURE(valid());
 }
 

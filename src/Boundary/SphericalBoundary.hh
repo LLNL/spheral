@@ -76,7 +76,7 @@ private:
 
 #ifndef __GCCXML__
   // The restart registration.
-  DataOutput::RestartRegistrationType mRestart;
+  RestartRegistrationType mRestart;
 #endif
 };
 

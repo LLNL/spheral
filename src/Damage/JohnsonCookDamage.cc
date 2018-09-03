@@ -56,7 +56,7 @@ JohnsonCookDamage(SolidNodeList<Dimension>& nodeList,
   mTcrit(Tcrit),
   msigmamax(sigmamax),
   mefailmin(efailmin),
-  mRestart(DataOutput::registerWithRestart(*this)) {
+  mRestart(registerWithRestart(*this)) {
 }
 
 //------------------------------------------------------------------------------

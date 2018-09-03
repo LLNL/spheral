@@ -110,7 +110,7 @@ TreeGravity(const double G,
   mimax(0),
   mDtMinAcc(0.0),
   mRhoMax(0.0),
-  mRestart(DataOutput::registerWithRestart(*this)) {
+  mRestart(registerWithRestart(*this)) {
   VERIFY(G > 0.0);
   VERIFY(opening > 0.0);
   VERIFY(softeningLength > 0.0);

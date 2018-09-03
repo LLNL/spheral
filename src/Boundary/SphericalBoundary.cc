@@ -24,7 +24,7 @@ SphericalBoundary(const DataBase<Dim<3> >& dataBase):
   Boundary<Dim<3> >(),
   mGhostPositions(dataBase.newGlobalFieldList(std::vector<Dim<3>::Vector>(),
                                               "Ghost node positions")),
-  mRestart(DataOutput::registerWithRestart(*this)) {
+  mRestart(registerWithRestart(*this)) {
 }
 
 //------------------------------------------------------------------------------

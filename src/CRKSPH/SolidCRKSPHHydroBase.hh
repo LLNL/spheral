@@ -128,7 +128,7 @@ private:
   FieldList<Dimension, int> mFragIDs;
 
   // The restart registration.
-  DataOutput::RestartRegistrationType mRestart;
+  RestartRegistrationType mRestart;
 
   // No default constructor, copying, or assignment.
   SolidCRKSPHHydroBase();

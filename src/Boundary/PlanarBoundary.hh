@@ -89,7 +89,7 @@ private:
   GeomPlane<Dimension> mExitPlane;
 
   // The restart registration.
-  DataOutput::RestartRegistrationType mRestart;
+  RestartRegistrationType mRestart;
 
   // Method to set the ghost node indices for a given NodeList once the
   // master nodes are set.

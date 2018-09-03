@@ -109,7 +109,7 @@ SVPHFacetedHydroBase(const SmoothingScaleBase<Dimension>& smoothingScaleMethod,
   mDvDx(FieldStorageType::CopyFields),
   mInternalDvDx(FieldStorageType::CopyFields),
   mFaceForce(FieldStorageType::CopyFields),
-  mRestart(DataOutput::registerWithRestart(*this)) {
+  mRestart(registerWithRestart(*this)) {
   // Delegate range checking to our assignment methods.
   this->fcentroidal(fcentroidal);
   this->fcellPressure(fcellPressure);

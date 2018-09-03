@@ -68,7 +68,7 @@ TotalHydro(const TableKernel<Dimension>& W,
   mLinearMomentum(FieldList<Dimension, Vector>::Copy),
   mDpmomDt(FieldList<Dimension, Vector>::Copy),
   mMassSecondMoment(FieldList<Dimension, SymTensor>::Copy),
-  mRestart(DataOutput::registerWithRestart(*this)) {
+  mRestart(registerWithRestart(*this)) {
 }
 
 //------------------------------------------------------------------------------

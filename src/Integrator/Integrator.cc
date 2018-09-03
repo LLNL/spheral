@@ -48,7 +48,7 @@ Integrator<Dimension>::Integrator():
   mRigorousBoundaries(false),
   mUpdateBoundaryFrequency(1),
   mCullGhostNodes(true),
-  mRestart(DataOutput::registerWithRestart(*this)) {
+  mRestart(registerWithRestart(*this)) {
 }
 
 //------------------------------------------------------------------------------
@@ -71,7 +71,7 @@ Integrator(DataBase<Dimension>& dataBase):
   mRigorousBoundaries(false),
   mUpdateBoundaryFrequency(1),
   mCullGhostNodes(true),
-  mRestart(DataOutput::registerWithRestart(*this)) {
+  mRestart(registerWithRestart(*this)) {
 }
 
 //------------------------------------------------------------------------------
@@ -95,7 +95,7 @@ Integrator(DataBase<Dimension>& dataBase,
   mRigorousBoundaries(false),
   mUpdateBoundaryFrequency(1),
   mCullGhostNodes(true),
-  mRestart(DataOutput::registerWithRestart(*this)) {
+  mRestart(registerWithRestart(*this)) {
 }
 
 //------------------------------------------------------------------------------

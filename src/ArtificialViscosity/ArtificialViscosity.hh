@@ -211,7 +211,7 @@ protected:
   FieldList<Dimension, Vector> mGradDivVelocity;
     
   // The restart registration.
-  DataOutput::RestartRegistrationType mRestart;
+  RestartRegistrationType mRestart;
 
   // Protected methods.
   virtual void calculateSigmaAndGradDivV(const DataBase<Dimension>& dataBase,

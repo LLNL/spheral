@@ -60,7 +60,7 @@ CullenDehnenViscosity(ArtificialViscosity<Dimension>& q,
   mboolHopkins(boolHopkins),
   myq(q),
   mKernel(W),
-  mRestart(DataOutput::registerWithRestart(*this)){
+  mRestart(registerWithRestart(*this)){
 }
 
 //------------------------------------------------------------------------------

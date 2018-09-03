@@ -25,7 +25,7 @@ ConstantVelocityBoundary(const NodeList<Dimension>& nodeList,
   mNodeListPtr(&nodeList),
   mNodes("Constant Nodes", nodeList, 0),
   mVelocity("Constant velocities", nodeList.velocity()),
-  mRestart(DataOutput::registerWithRestart(*this)) {
+  mRestart(registerWithRestart(*this)) {
 
   // Store the ids of the nodes we're watching.
   for (vector<int>::const_iterator itr = nodeIndices.begin();

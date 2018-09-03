@@ -53,7 +53,7 @@ DamageModel(SolidNodeList<Dimension>& nodeList,
   mLongitudinalSoundSpeed(SolidFieldNames::longitudinalSoundSpeed, nodeList),
   mExcludeNode("Nodes excluded from damage", nodeList, 0),
   mCriticalNodesPerSmoothingScale(0.99),
-  mRestart(DataOutput::registerWithRestart(*this)) {
+  mRestart(registerWithRestart(*this)) {
 }
 
 //------------------------------------------------------------------------------

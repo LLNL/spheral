@@ -216,7 +216,7 @@ private:
   std::vector<NodeList<Dimension>*> mDummyList;
 
   // The restart registration.
-  DataOutput::RestartRegistrationType mRestart;
+  RestartRegistrationType mRestart;
 
   // No default constructor, copying, or assignment.
   NodeList();
