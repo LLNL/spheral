@@ -1,8 +1,6 @@
 //------------------------------------------------------------------------------
 // Implement Lloyd's algorithm for centroidal relaxation of fluid points.
 //------------------------------------------------------------------------------
-#include <ctime>
-
 #include "centroidalRelaxNodesImpl.hh"
 #include "CRKSPH/computeVoronoiVolume.hh"
 #include "CRKSPH/computeCRKSPHMoments.hh"
@@ -11,32 +9,30 @@
 #include "NodeList/ASPHSmoothingScale.hh"
 #include "Utilities/iterateIdealH.hh"
 
+#include <ctime>
+
 namespace Spheral {
 
 using namespace std;
 
-using KernelSpace::TableKernel;
-using BoundarySpace::Boundary;
-using DataBaseSpace::DataBase;
-
 template<typename Dimension>
 unsigned
-centroidalRelaxNodesImpl(DataBaseSpace::DataBase<Dimension>& db,
+centroidalRelaxNodesImpl(DataBase<Dimension>& db,
                          const std::vector<typename Dimension::FacetedVolume>& volumeBoundaries,
                          const std::vector<std::vector<typename Dimension::FacetedVolume> >& holes,
-                         const KernelSpace::TableKernel<Dimension>& W,
+                         const TableKernel<Dimension>& W,
                          const PythonBoundFunctors::SpheralFunctor<typename Dimension::Vector, double>& rhofunc,
                          const PythonBoundFunctors::SpheralFunctor<typename Dimension::Vector, typename Dimension::Vector>& gradrhofunc,
                          const bool rhoConst,
                          const bool useGradRhoFunc,
-                         std::vector<BoundarySpace::Boundary<Dimension>*>& boundaries,
+                         std::vector<Boundary<Dimension>*>& boundaries,
                          const unsigned maxIterations,
                          const double fracTol,
-                         const CRKSPHSpace::CRKOrder correctionOrder,
+                         const CRKOrder correctionOrder,
                          const double centroidFrac,
-                         FieldSpace::FieldList<Dimension, double>& vol,
-                         FieldSpace::FieldList<Dimension, int>& surfacePoint,
-                         FieldSpace::FieldList<Dimension, typename Dimension::FacetedVolume>& cells) {
+                         FieldList<Dimension, double>& vol,
+                         FieldList<Dimension, int>& surfacePoint,
+                         FieldList<Dimension, typename Dimension::FacetedVolume>& cells) {
 
   typedef typename Dimension::Vector Vector;
   typedef typename Dimension::Tensor Tensor;
@@ -94,7 +90,7 @@ centroidalRelaxNodesImpl(DataBaseSpace::DataBase<Dimension>& db,
   }
 
   // // Update the H tensors a bit.
-  // iterateIdealH(db, boundaries, W, NodeSpace::ASPHSmoothingScale<Dimension>(), 5);
+  // iterateIdealH(db, boundaries, W, ASPHSmoothingScale<Dimension>(), 5);
 
   // Iterate until we converge or max out.
   unsigned iter = 0;
@@ -140,7 +136,7 @@ centroidalRelaxNodesImpl(DataBaseSpace::DataBase<Dimension>& db,
     // Compute the new volumes and centroids (note this uses the old rho gradient, not quite right,
     // but expedient/efficient).
     std::clock_t tvoro = std::clock();
-    CRKSPHSpace::computeVoronoiVolume(pos, H, rhof, gradRhof, cm, D, volumeBoundaries, holes, boundaries,
+    computeVoronoiVolume(pos, H, rhof, gradRhof, cm, D, volumeBoundaries, holes, boundaries,
                                       FieldList<Dimension, typename Dimension::Scalar>(),  // no weights
                                       voidPoint,
                                       surfacePoint, vol, deltaCentroid, etaVoidPoints, dummyCells);
@@ -168,11 +164,11 @@ centroidalRelaxNodesImpl(DataBaseSpace::DataBase<Dimension>& db,
 
       } else {
         // Use RK to numerically compute the new mass density gradient.
-        CRKSPHSpace::computeCRKSPHMoments(cm, W, vol, pos, H, correctionOrder, NodeCoupling(),
+        computeCRKSPHMoments(cm, W, vol, pos, H, correctionOrder, NodeCoupling(),
                                           m0, m1, m2, m3, m4, gradm0, gradm1, gradm2, gradm3, gradm4);
-        CRKSPHSpace::computeCRKSPHCorrections(m0, m1, m2, m3, m4, gradm0, gradm1, gradm2, gradm3, gradm4, H, correctionOrder,
+        computeCRKSPHCorrections(m0, m1, m2, m3, m4, gradm0, gradm1, gradm2, gradm3, gradm4, H, correctionOrder,
                                               A, B, C, gradA, gradB, gradC);
-        gradRhof.assignFields(CRKSPHSpace::gradientCRKSPH(rhof, pos, vol, H, A, B, C, gradA, gradB, gradC, cm, correctionOrder, W));
+        gradRhof.assignFields(gradientCRKSPH(rhof, pos, vol, H, A, B, C, gradA, gradB, gradC, cm, correctionOrder, W));
       }
     }
      
@@ -208,13 +204,13 @@ centroidalRelaxNodesImpl(DataBaseSpace::DataBase<Dimension>& db,
                                       << (tcm/CLOCKS_PER_SEC) << " in ConnectivityMap)." << endl;
         
     // // Update the H tensors a bit.
-    // iterateIdealH(db, boundaries, W, NodeSpace::ASPHSmoothingScale<Dimension>(), 2);
+    // iterateIdealH(db, boundaries, W, ASPHSmoothingScale<Dimension>(), 2);
   }
 
   // If requested to return the FacetedVolumes, make one last call to fill 'em in.
   if (cells.size() > 0) {
     const auto& cm = db.connectivityMap();
-    CRKSPHSpace::computeVoronoiVolume(pos, H, rhof, gradRhof, cm, D, volumeBoundaries, holes, boundaries,
+    computeVoronoiVolume(pos, H, rhof, gradRhof, cm, D, volumeBoundaries, holes, boundaries,
                                       FieldList<Dimension, typename Dimension::Scalar>(),  // no weights
                                       voidPoint,
                                       surfacePoint, vol, deltaCentroid, etaVoidPoints, cells);

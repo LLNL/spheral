@@ -15,7 +15,6 @@
 #include "Distributed/Communicator.hh"
 
 using namespace std;
-using namespace Spheral::BoundarySpace;
 
 namespace Spheral {
 

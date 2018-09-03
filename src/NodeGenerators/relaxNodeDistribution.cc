@@ -2,7 +2,6 @@
 // Centroidally relax a node distribution in a boundary.
 // Optionally the user can specify a weighting function for the nodes.
 //------------------------------------------------------------------------------
-#include <ctime>
 #include "relaxNodeDistribution.hh"
 #include "Field/FieldList.hh"
 #include "Boundary/Boundary.hh"
@@ -13,26 +12,19 @@
 #include "Distributed/Communicator.hh"
 #endif
 
+#include <ctime>
+
 namespace Spheral {
 
 using namespace std;
 
-using DataBaseSpace::DataBase;
-using BoundarySpace::Boundary;
-using KernelSpace::TableKernel;
-using FieldSpace::FieldList;
-using FieldSpace::Field;
-using NeighborSpace::ConnectivityMap;
-using NodeSpace::SmoothingScaleBase;
-using MeshSpace::Mesh;
-
 template<typename Dimension>
 void
-relaxNodeDistribution(DataBaseSpace::DataBase<Dimension>& dataBase,
+relaxNodeDistribution(DataBase<Dimension>& dataBase,
                       const typename Dimension::FacetedVolume& boundary,
-                      const std::vector<BoundarySpace::Boundary<Dimension>*>& boundaries,
-                      const KernelSpace::TableKernel<Dimension>& W,
-                      const NodeSpace::SmoothingScaleBase<Dimension>& smoothingScaleMethod,
+                      const std::vector<Boundary<Dimension>*>& boundaries,
+                      const TableKernel<Dimension>& W,
+                      const SmoothingScaleBase<Dimension>& smoothingScaleMethod,
                       const WeightingFunctor<Dimension>& weightingFunctor,
                       const WeightingFunctor<Dimension>& massDensityFunctor,
                       const double targetMass,
@@ -159,4 +151,3 @@ relaxNodeDistribution(DataBaseSpace::DataBase<Dimension>& dataBase,
 }
 
 }
-
