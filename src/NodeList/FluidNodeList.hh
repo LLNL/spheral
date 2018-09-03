@@ -7,48 +7,31 @@
 #ifndef __Spheral_FluidNodeList__
 #define __Spheral_FluidNodeList__
 
+#include "NodeList.hh"
+
 #include <float.h>
 #include <string>
 
-#include "NodeList.hh"
-
 namespace Spheral {
-  template<typename Dimension> class NodeIteratorBase;
-  template<typename Dimension> class AllNodeIterator;
-  template<typename Dimension> class InternalNodeIterator;
-  template<typename Dimension> class GhostNodeIterator;
-  template<typename Dimension> class MasterNodeIterator;
-  template<typename Dimension> class CoarseNodeIterator;
-  template<typename Dimension> class RefineNodeIterator;
-  template<typename Dimension> class State;
-  template<typename Dimension> class StateDerivatives;
-  namespace NeighborSpace {
-    template<typename Dimension> class Neighbor;
-    template<typename Dimension> class ConnectivityMap;
-  }
-  namespace FieldSpace {
-    template<typename Dimension, typename DataType> class Field;
-    template<typename Dimension, typename DataType> class FieldList;
-  }
-  namespace Material {
-    template<typename Dimension> class EquationOfState;
-  }
-  namespace KernelSpace {
-    template<typename Dimension> class TableKernel;
-  }
-  namespace FileIOSpace {
-    class FileIO;
-  }
-  namespace ArtificialViscositySpace {
-    template<typename Dimension> class ArtificialViscosity;
-  }
-  namespace DataBaseSpace {
-    template<typename Dimension> class DataBase;
-  }
-}
 
-namespace Spheral {
-namespace NodeSpace {
+template<typename Dimension> class NodeIteratorBase;
+template<typename Dimension> class AllNodeIterator;
+template<typename Dimension> class InternalNodeIterator;
+template<typename Dimension> class GhostNodeIterator;
+template<typename Dimension> class MasterNodeIterator;
+template<typename Dimension> class CoarseNodeIterator;
+template<typename Dimension> class RefineNodeIterator;
+template<typename Dimension> class State;
+template<typename Dimension> class StateDerivatives;
+template<typename Dimension> class Neighbor;
+template<typename Dimension> class ConnectivityMap;
+template<typename Dimension, typename DataType> class Field;
+template<typename Dimension, typename DataType> class FieldList;
+template<typename Dimension> class EquationOfState;
+template<typename Dimension> class TableKernel;
+template<typename Dimension> class ArtificialViscosity;
+template<typename Dimension> class DataBase;
+class FileIO;
 
 template<typename Dimension>
 class FluidNodeList: public NodeList<Dimension> {
@@ -77,22 +60,22 @@ public:
   virtual ~FluidNodeList();
 
   // Access the fluid state variables.
-  FieldSpace::Field<Dimension, Scalar>& massDensity();
-  FieldSpace::Field<Dimension, Scalar>& specificThermalEnergy();
+  Field<Dimension, Scalar>& massDensity();
+  Field<Dimension, Scalar>& specificThermalEnergy();
 
-  const FieldSpace::Field<Dimension, Scalar>& massDensity() const;
-  const FieldSpace::Field<Dimension, Scalar>& specificThermalEnergy() const;
+  const Field<Dimension, Scalar>& massDensity() const;
+  const Field<Dimension, Scalar>& specificThermalEnergy() const;
 
-  void massDensity(const FieldSpace::Field<Dimension, Scalar>& rho);
-  void specificThermalEnergy(const FieldSpace::Field<Dimension, Scalar>& eps);
+  void massDensity(const Field<Dimension, Scalar>& rho);
+  void specificThermalEnergy(const Field<Dimension, Scalar>& eps);
 
   // These are quantities which are not stored, but can be computed.
-  virtual void pressure(FieldSpace::Field<Dimension, Scalar>& field) const;
-  virtual void temperature(FieldSpace::Field<Dimension, Scalar>& field) const;
-  virtual void soundSpeed(FieldSpace::Field<Dimension, Scalar>& field) const;
-  virtual void volume(FieldSpace::Field<Dimension, Scalar>& field) const;
-  virtual void linearMomentum(FieldSpace::Field<Dimension, Vector>& field) const;
-  virtual void totalEnergy(FieldSpace::Field<Dimension, Scalar>& field) const;
+  virtual void pressure(Field<Dimension, Scalar>& field) const;
+  virtual void temperature(Field<Dimension, Scalar>& field) const;
+  virtual void soundSpeed(Field<Dimension, Scalar>& field) const;
+  virtual void volume(Field<Dimension, Scalar>& field) const;
+  virtual void linearMomentum(Field<Dimension, Vector>& field) const;
+  virtual void totalEnergy(Field<Dimension, Scalar>& field) const;
 
   // Access the equation of state.
   const Material::EquationOfState<Dimension>& equationOfState() const;
@@ -110,8 +93,8 @@ public:
   // Methods required for restarting.
   // Dump and restore the NodeList state.
   virtual std::string label() const { return "FluidNodeList"; }
-  virtual void dumpState(FileIOSpace::FileIO& file, const std::string& pathName) const;
-  virtual void restoreState(const FileIOSpace::FileIO& file, const std::string& pathName);
+  virtual void dumpState(FileIO& file, const std::string& pathName) const;
+  virtual void restoreState(const FileIO& file, const std::string& pathName);
   //****************************************************************************
 
 private:
@@ -121,8 +104,8 @@ private:
 
 #ifndef __GCCXML__
   // Fields that define the fluid's current state.
-  FieldSpace::Field<Dimension, Scalar> mMassDensity;
-  FieldSpace::Field<Dimension, Scalar> mSpecificThermalEnergy;
+  Field<Dimension, Scalar> mMassDensity;
+  Field<Dimension, Scalar> mSpecificThermalEnergy;
 
   // Equation of state.
   const Material::EquationOfState<Dimension>* mEosPtr;
@@ -135,19 +118,14 @@ private:
 };
 
 }
-}
 
-#ifndef __GCCXML__
 #include "FluidNodeListInline.hh"
-#endif
 
 #else
 
 // Forward declaration
 namespace Spheral {
-  namespace NodeSpace {
-    template<typename Dimension> class FluidNodeList;
-  }
+  template<typename Dimension> class FluidNodeList;
 }
 
 #endif

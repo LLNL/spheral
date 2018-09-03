@@ -10,13 +10,8 @@
 #include "NodeList/FluidNodeList.hh"
 
 namespace Spheral {
-  namespace SolidMaterial {
-    template<typename Dimension> class StrengthModel;
-  }
-}
 
-namespace Spheral {
-namespace NodeSpace {
+template<typename Dimension> class StrengthModel;
 
 template<typename Dimension>
 class SolidNodeList: public FluidNodeList<Dimension> {
@@ -45,38 +40,38 @@ public:
   virtual ~SolidNodeList();
 
   // Override the base method for calculating the sound speed.
-  virtual void soundSpeed(FieldSpace::Field<Dimension, Scalar>& field) const;
+  virtual void soundSpeed(Field<Dimension, Scalar>& field) const;
 
   // Compute the bulk modulus, shear modulus, and yield strength.
-  virtual void bulkModulus(FieldSpace::Field<Dimension, Scalar>& field) const;
-  virtual void shearModulus(FieldSpace::Field<Dimension, Scalar>& field) const;
-  virtual void yieldStrength(FieldSpace::Field<Dimension, Scalar>& field) const;
+  virtual void bulkModulus(Field<Dimension, Scalar>& field) const;
+  virtual void shearModulus(Field<Dimension, Scalar>& field) const;
+  virtual void yieldStrength(Field<Dimension, Scalar>& field) const;
 
   // Access the stored deviatoric stress and plastic strain.
-  FieldSpace::Field<Dimension, SymTensor>& deviatoricStress();
-  FieldSpace::Field<Dimension, Scalar>& plasticStrain();
-  FieldSpace::Field<Dimension, Scalar>& plasticStrainRate();
+  Field<Dimension, SymTensor>& deviatoricStress();
+  Field<Dimension, Scalar>& plasticStrain();
+  Field<Dimension, Scalar>& plasticStrainRate();
 
-  const FieldSpace::Field<Dimension, SymTensor>& deviatoricStress() const;
-  const FieldSpace::Field<Dimension, Scalar>& plasticStrain() const;
-  const FieldSpace::Field<Dimension, Scalar>& plasticStrainRate() const;
+  const Field<Dimension, SymTensor>& deviatoricStress() const;
+  const Field<Dimension, Scalar>& plasticStrain() const;
+  const Field<Dimension, Scalar>& plasticStrainRate() const;
 
   // The tensor damage and it's gradient.
-  FieldSpace::Field<Dimension, SymTensor>& damage();
-  FieldSpace::Field<Dimension, SymTensor>& effectiveDamage();
-  FieldSpace::Field<Dimension, Vector>& damageGradient();
+  Field<Dimension, SymTensor>& damage();
+  Field<Dimension, SymTensor>& effectiveDamage();
+  Field<Dimension, Vector>& damageGradient();
 
-  const FieldSpace::Field<Dimension, SymTensor>& damage() const;
-  const FieldSpace::Field<Dimension, SymTensor>& effectiveDamage() const;
-  const FieldSpace::Field<Dimension, Vector>& damageGradient() const;
+  const Field<Dimension, SymTensor>& damage() const;
+  const Field<Dimension, SymTensor>& effectiveDamage() const;
+  const Field<Dimension, Vector>& damageGradient() const;
 
   // The fragment ID field.
-  FieldSpace::Field<Dimension, int>& fragmentIDs();
-  const FieldSpace::Field<Dimension, int>& fragmentIDs() const;
+  Field<Dimension, int>& fragmentIDs();
+  const Field<Dimension, int>& fragmentIDs() const;
 
   // The particle type field.
-  FieldSpace::Field<Dimension, int>& particleTypes();
-  const FieldSpace::Field<Dimension, int>& particleTypes() const;
+  Field<Dimension, int>& particleTypes();
+  const Field<Dimension, int>& particleTypes() const;
 
   // The strength model this solid is using.
   const SolidMaterial::StrengthModel<Dimension>& strengthModel() const;
@@ -85,22 +80,20 @@ public:
   // Methods required for restarting.
   // Dump and restore the NodeList state.
   virtual std::string label() const { return "SolidNodeList"; }
-  virtual void dumpState(FileIOSpace::FileIO& file, const std::string& pathName) const;
-  virtual void restoreState(const FileIOSpace::FileIO& file, const std::string& pathName);
+  virtual void dumpState(FileIO& file, const std::string& pathName) const;
+  virtual void restoreState(const FileIO& file, const std::string& pathName);
   //****************************************************************************
 
 private:
   //--------------------------- Private Interface ---------------------------//
-#ifndef __GCCXML__
-  FieldSpace::Field<Dimension, SymTensor> mDeviatoricStress;
-  FieldSpace::Field<Dimension, Scalar> mPlasticStrain;
-  FieldSpace::Field<Dimension, Scalar> mPlasticStrainRate;
-  FieldSpace::Field<Dimension, SymTensor> mDamage;
-  FieldSpace::Field<Dimension, SymTensor> mEffectiveDamage;
-  FieldSpace::Field<Dimension, Vector> mDamageGradient;
-  FieldSpace::Field<Dimension, int> mFragmentIDs;
-  FieldSpace::Field<Dimension, int> mParticleTypes;
-#endif
+  Field<Dimension, SymTensor> mDeviatoricStress;
+  Field<Dimension, Scalar> mPlasticStrain;
+  Field<Dimension, Scalar> mPlasticStrainRate;
+  Field<Dimension, SymTensor> mDamage;
+  Field<Dimension, SymTensor> mEffectiveDamage;
+  Field<Dimension, Vector> mDamageGradient;
+  Field<Dimension, int> mFragmentIDs;
+  Field<Dimension, int> mParticleTypes;
 
   // Pointer to the associated strength object.
   SolidMaterial::StrengthModel<Dimension>& mStrength;
@@ -111,18 +104,13 @@ private:
 };
 
 }
-}
 
-#ifndef __GCCXML__
 #include "SolidNodeListInline.hh"
-#endif
 
 #else
 
 namespace Spheral {
-  namespace SolidMaterial {
-    template<typename Dimension> class SolidNodeList;
-  }
+  template<typename Dimension> class SolidNodeList;
 }
 
 #endif

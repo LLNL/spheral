@@ -1,12 +1,11 @@
 namespace Spheral {
-namespace NodeSpace {
 
 //------------------------------------------------------------------------------
 // Access the deviatoric stress field.
 //------------------------------------------------------------------------------
 template<typename Dimension>
 inline
-FieldSpace::Field<Dimension, typename Dimension::SymTensor>&
+Field<Dimension, typename Dimension::SymTensor>&
 SolidNodeList<Dimension>::
 deviatoricStress() {
   return mDeviatoricStress;
@@ -14,7 +13,7 @@ deviatoricStress() {
 
 template<typename Dimension>
 inline
-const FieldSpace::Field<Dimension, typename Dimension::SymTensor>&
+const Field<Dimension, typename Dimension::SymTensor>&
 SolidNodeList<Dimension>::
 deviatoricStress() const {
   return mDeviatoricStress;
@@ -25,7 +24,7 @@ deviatoricStress() const {
 //------------------------------------------------------------------------------
 template<typename Dimension>
 inline
-FieldSpace::Field<Dimension, typename Dimension::Scalar>&
+Field<Dimension, typename Dimension::Scalar>&
 SolidNodeList<Dimension>::
 plasticStrain() {
   return mPlasticStrain;
@@ -33,7 +32,7 @@ plasticStrain() {
 
 template<typename Dimension>
 inline
-const FieldSpace::Field<Dimension, typename Dimension::Scalar>&
+const Field<Dimension, typename Dimension::Scalar>&
 SolidNodeList<Dimension>::
 plasticStrain() const {
   return mPlasticStrain;
@@ -44,7 +43,7 @@ plasticStrain() const {
 //------------------------------------------------------------------------------
 template<typename Dimension>
 inline
-FieldSpace::Field<Dimension, typename Dimension::Scalar>&
+Field<Dimension, typename Dimension::Scalar>&
 SolidNodeList<Dimension>::
 plasticStrainRate() {
   return mPlasticStrainRate;
@@ -52,7 +51,7 @@ plasticStrainRate() {
 
 template<typename Dimension>
 inline
-const FieldSpace::Field<Dimension, typename Dimension::Scalar>&
+const Field<Dimension, typename Dimension::Scalar>&
 SolidNodeList<Dimension>::
 plasticStrainRate() const {
   return mPlasticStrainRate;
@@ -63,7 +62,7 @@ plasticStrainRate() const {
 //------------------------------------------------------------------------------
 template<typename Dimension>
 inline
-FieldSpace::Field<Dimension, typename Dimension::SymTensor>&
+Field<Dimension, typename Dimension::SymTensor>&
 SolidNodeList<Dimension>::
 damage() {
   return mDamage;
@@ -71,7 +70,7 @@ damage() {
 
 template<typename Dimension>
 inline
-const FieldSpace::Field<Dimension, typename Dimension::SymTensor>&
+const Field<Dimension, typename Dimension::SymTensor>&
 SolidNodeList<Dimension>::
 damage() const {
   return mDamage;
@@ -82,7 +81,7 @@ damage() const {
 //------------------------------------------------------------------------------
 template<typename Dimension>
 inline
-FieldSpace::Field<Dimension, typename Dimension::SymTensor>&
+Field<Dimension, typename Dimension::SymTensor>&
 SolidNodeList<Dimension>::
 effectiveDamage() {
   return mEffectiveDamage;
@@ -90,7 +89,7 @@ effectiveDamage() {
 
 template<typename Dimension>
 inline
-const FieldSpace::Field<Dimension, typename Dimension::SymTensor>&
+const Field<Dimension, typename Dimension::SymTensor>&
 SolidNodeList<Dimension>::
 effectiveDamage() const {
   return mEffectiveDamage;
@@ -101,7 +100,7 @@ effectiveDamage() const {
 //------------------------------------------------------------------------------
 template<typename Dimension>
 inline
-FieldSpace::Field<Dimension, typename Dimension::Vector>&
+Field<Dimension, typename Dimension::Vector>&
 SolidNodeList<Dimension>::
 damageGradient() {
   return mDamageGradient;
@@ -109,7 +108,7 @@ damageGradient() {
 
 template<typename Dimension>
 inline
-const FieldSpace::Field<Dimension, typename Dimension::Vector>&
+const Field<Dimension, typename Dimension::Vector>&
 SolidNodeList<Dimension>::
 damageGradient() const {
   return mDamageGradient;
@@ -120,7 +119,7 @@ damageGradient() const {
 //------------------------------------------------------------------------------
 template<typename Dimension>
 inline
-FieldSpace::Field<Dimension, int>&
+Field<Dimension, int>&
 SolidNodeList<Dimension>::
 fragmentIDs() {
   return mFragmentIDs;
@@ -128,7 +127,7 @@ fragmentIDs() {
 
 template<typename Dimension>
 inline
-const FieldSpace::Field<Dimension, int>&
+const Field<Dimension, int>&
 SolidNodeList<Dimension>::
 fragmentIDs() const {
   return mFragmentIDs;
@@ -139,7 +138,7 @@ fragmentIDs() const {
 //------------------------------------------------------------------------------
 template<typename Dimension>
 inline
-FieldSpace::Field<Dimension, int>&
+Field<Dimension, int>&
 SolidNodeList<Dimension>::
 particleTypes() {
   return mParticleTypes;
@@ -147,7 +146,7 @@ particleTypes() {
 
 template<typename Dimension>
 inline
-const FieldSpace::Field<Dimension, int>&
+const Field<Dimension, int>&
 SolidNodeList<Dimension>::
 particleTypes() const {
   return mParticleTypes;
@@ -164,5 +163,4 @@ strengthModel() const {
   return mStrength;
 }
 
-}
 }

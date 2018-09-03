@@ -7,8 +7,6 @@
 // We assume here that the caller has already created all the boundary ghost 
 // nodes.
 //------------------------------------------------------------------------------
-#include <algorithm>
-
 #include "generateVoidNodes.hh"
 #include "Field/Field.hh"
 #include "Field/FieldList.hh"
@@ -22,19 +20,14 @@
 #include "Utilities/pointDistances.hh"
 #include "Mesh/Mesh.hh"
 
+#include <algorithm>
+
 namespace Spheral {
-namespace NodeSpace {
 
 using namespace std;
 using std::abs;
 using std::min;
 using std::max;
-using FieldSpace::Field;
-using FieldSpace::FieldList;
-using NeighborSpace::ConnectivityMap;
-using KernelSpace::TableKernel;
-using KernelSpace::BSplineKernel;
-using MeshSpace::Mesh;
 
 //------------------------------------------------------------------------------
 // Overloaded method to find the closest point on a face for each dimension.
@@ -158,5 +151,4 @@ void generateVoidNodes(const vector<typename Dimension::Vector>& generators,
   // That's it.
 }
 
-}
 }

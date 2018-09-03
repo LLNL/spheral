@@ -13,21 +13,11 @@
 
 namespace Spheral {
 
-namespace NeighborSpace {
-  template<typename Dimension> class ConnectivityMap;
-}
-namespace FieldSpace {
-  template<typename Dimension, typename DataType> class Field;
-  template<typename Dimension, typename DataType> class FieldList;
-}
-namespace KernelSpace {
-  template<typename Dimension> class TableKernel;
-}
-namespace FileIOSpace {
-  class FileIO;
-}
-
-namespace NodeSpace {
+template<typename Dimension> class ConnectivityMap;
+template<typename Dimension, typename DataType> class Field;
+template<typename Dimension, typename DataType> class FieldList;
+template<typename Dimension> class TableKernel;
+class FileIO;
 
 template<typename Dimension>
 class SmoothingScaleBase {
@@ -46,19 +36,19 @@ public:
   virtual ~SmoothingScaleBase();
 
   // Compute the time derivative and ideal H simultaneously for a Field of H's.
-  void newSmoothingScaleAndDerivative(const FieldSpace::Field<Dimension, SymTensor>& H,
-                                      const FieldSpace::Field<Dimension, Vector>& position,
-                                      const FieldSpace::Field<Dimension, Tensor>& DvDx,
-                                      const FieldSpace::Field<Dimension, Scalar>& zerothMoment,
-                                      const FieldSpace::Field<Dimension, SymTensor>& secondMoment,
-                                      const NeighborSpace::ConnectivityMap<Dimension>& connectivityMap,
-                                      const KernelSpace::TableKernel<Dimension>& W,
+  void newSmoothingScaleAndDerivative(const Field<Dimension, SymTensor>& H,
+                                      const Field<Dimension, Vector>& position,
+                                      const Field<Dimension, Tensor>& DvDx,
+                                      const Field<Dimension, Scalar>& zerothMoment,
+                                      const Field<Dimension, SymTensor>& secondMoment,
+                                      const ConnectivityMap<Dimension>& connectivityMap,
+                                      const TableKernel<Dimension>& W,
                                       const Scalar hmin,
                                       const Scalar hmax,
                                       const Scalar hminratio,
                                       const Scalar nPerh,
-                                      FieldSpace::Field<Dimension, SymTensor>& DHDt,
-                                      FieldSpace::Field<Dimension, SymTensor>& Hideal) const;
+                                      Field<Dimension, SymTensor>& DHDt,
+                                      Field<Dimension, SymTensor>& Hideal) const;
 
   //*****************************************************************************
   // Required methods for descendents.
@@ -78,12 +68,12 @@ public:
                     const Vector& pos,
                     const Scalar zerothMoment,
                     const SymTensor& secondMoment,
-                    const KernelSpace::TableKernel<Dimension>& W,
+                    const TableKernel<Dimension>& W,
                     const Scalar hmin,
                     const Scalar hmax,
                     const Scalar hminratio,
                     const Scalar nPerh,
-                    const NeighborSpace::ConnectivityMap<Dimension>& connectivityMap,
+                    const ConnectivityMap<Dimension>& connectivityMap,
                     const unsigned nodeListi,
                     const unsigned i) const = 0;
 
@@ -93,20 +83,20 @@ public:
                       const Vector& pos,
                       const Scalar zerothMoment,
                       const SymTensor& secondMoment,
-                      const KernelSpace::TableKernel<Dimension>& W,
+                      const TableKernel<Dimension>& W,
                       const Scalar hmin,
                       const Scalar hmax,
                       const Scalar hminratio,
                       const Scalar nPerh,
-                      const NeighborSpace::ConnectivityMap<Dimension>& connectivityMap,
+                      const ConnectivityMap<Dimension>& connectivityMap,
                       const unsigned nodeListi,
                       const unsigned i) const = 0;
 
   // Compute the new H tensors for a tessellation.
   virtual SymTensor
   idealSmoothingScale(const SymTensor& H,
-                      const MeshSpace::Mesh<Dimension>& mesh,
-                      const typename MeshSpace::Mesh<Dimension>::Zone& zone,
+                      const Mesh<Dimension>& mesh,
+                      const typename Mesh<Dimension>::Zone& zone,
                       const Scalar hmin,
                       const Scalar hmax,
                       const Scalar hminratio,
@@ -122,7 +112,6 @@ private:
   //--------------------------- Private Interface ---------------------------//
 };
 
-}
 }
 
 #endif

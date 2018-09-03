@@ -18,14 +18,8 @@
 #include "SolidNodeList.hh"
 
 namespace Spheral {
-namespace NodeSpace {
 
 using namespace std;
-
-using Material::EquationOfState;
-using FieldSpace::Field;
-using FieldSpace::FieldList;
-using FileIOSpace::FileIO;
 
 //------------------------------------------------------------------------------
 // Construct with the given EOS object, along with optional numInternal nodes,
@@ -179,5 +173,3 @@ restoreState(const FileIO& file, const string& pathName) {
 }
 
 }
-}
-

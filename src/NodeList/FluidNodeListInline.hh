@@ -3,14 +3,13 @@
 #include "SmoothingScaleBase.hh"
 
 namespace Spheral {
-namespace NodeSpace {
 
 //------------------------------------------------------------------------------
 // Mass density per node.
 //------------------------------------------------------------------------------
 template<typename Dimension>
 inline
-FieldSpace::Field<Dimension, typename Dimension::Scalar>&
+Field<Dimension, typename Dimension::Scalar>&
 FluidNodeList<Dimension>::massDensity() {
   REQUIRE(mMassDensity.nodeListPtr() == this);
   return mMassDensity;
@@ -18,7 +17,7 @@ FluidNodeList<Dimension>::massDensity() {
 
 template<typename Dimension>
 inline
-const FieldSpace::Field<Dimension, typename Dimension::Scalar>&
+const Field<Dimension, typename Dimension::Scalar>&
 FluidNodeList<Dimension>::massDensity() const {
   REQUIRE(mMassDensity.nodeListPtr() == this);
   return mMassDensity;
@@ -29,7 +28,7 @@ FluidNodeList<Dimension>::massDensity() const {
 //------------------------------------------------------------------------------
 template<typename Dimension>
 inline
-FieldSpace::Field<Dimension, typename Dimension::Scalar>&
+Field<Dimension, typename Dimension::Scalar>&
 FluidNodeList<Dimension>::specificThermalEnergy() {
   REQUIRE(mSpecificThermalEnergy.nodeListPtr() == this);
   return mSpecificThermalEnergy;
@@ -37,7 +36,7 @@ FluidNodeList<Dimension>::specificThermalEnergy() {
 
 template<typename Dimension>
 inline
-const FieldSpace::Field<Dimension, typename Dimension::Scalar>&
+const Field<Dimension, typename Dimension::Scalar>&
 FluidNodeList<Dimension>::specificThermalEnergy() const {
   REQUIRE(mSpecificThermalEnergy.nodeListPtr() == this);
   return mSpecificThermalEnergy;
@@ -95,5 +94,4 @@ rhoMax(const typename Dimension::Scalar x) {
   mRhoMax = x;
 }
 
-}
 }
