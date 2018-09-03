@@ -33,10 +33,10 @@ public:
 
   // Constructors.
   ConstantAcceleration(const Vector a0,
-                       const NodeSpace::NodeList<Dimension>& nodeList,
+                       const NodeList<Dimension>& nodeList,
                        const std::vector<int>& indices);
   ConstantAcceleration(const Vector a0,
-                       const NodeSpace::NodeList<Dimension>& nodeList);
+                       const NodeList<Dimension>& nodeList);
 
   // Destructor.
   virtual ~ConstantAcceleration();
@@ -45,12 +45,12 @@ public:
   virtual 
   void evaluateDerivatives(const Scalar time,
                            const Scalar dt,
-                           const DataBaseSpace::DataBase<Dimension>& dataBase,
+                           const DataBase<Dimension>& dataBase,
                            const State<Dimension>& state,
                            StateDerivatives<Dimension>& derivs) const;
 
   // Provide the timestep appropriate for this package.
-  virtual TimeStepType dt(const DataBaseSpace::DataBase<Dimension>& dataBase, 
+  virtual TimeStepType dt(const DataBase<Dimension>& dataBase, 
                           const State<Dimension>& state,
                           const StateDerivatives<Dimension>& derivs,
                           const Scalar currentTime) const;
@@ -62,16 +62,16 @@ public:
   Vector a0() const;
 
   // Access the NodeList.
-  const NodeSpace::NodeList<Dimension>& nodeList() const;
+  const NodeList<Dimension>& nodeList() const;
 
   // Access the set of node flags.
-  const FieldSpace::Field<Dimension, int>& flags() const;
+  const Field<Dimension, int>& flags() const;
 
 private:
   //--------------------------- Public Interface ---------------------------//
   Vector ma0;
-  const NodeSpace::NodeList<Dimension>* mNodeListPtr;
-  FieldSpace::Field<Dimension, int> mFlags;
+  const NodeList<Dimension>* mNodeListPtr;
+  Field<Dimension, int> mFlags;
 
   // No default constructor, copying, or assignment.
   ConstantAcceleration();
