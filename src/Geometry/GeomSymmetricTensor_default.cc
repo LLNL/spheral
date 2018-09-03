@@ -17,6 +17,11 @@
 
 #include <Eigen/Dense>
 
+#include <cmath>
+using std::min;
+using std::max;
+using std::abs;
+
 namespace Spheral {
 
 using std::abs;
