@@ -17,8 +17,13 @@
 
 #include "SolidNodeList.hh"
 
-namespace Spheral {
+using std::vector;
+using std::list;
+using std::string;
+using std::cerr;
+using std::endl;
 
+namespace Spheral {
 
 //------------------------------------------------------------------------------
 // Construct with the given EOS object, along with optional numInternal nodes,

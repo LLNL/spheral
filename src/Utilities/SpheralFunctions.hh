@@ -118,17 +118,17 @@ sgn0(const int x) {
 //------------------------------------------------------------------------------
 // Generalized versions of min & max that work with Spheral data types.
 //------------------------------------------------------------------------------
-template<typename T1>
-T1
-min(const T1& lhs, const T1& rhs) {
-  return std::min(lhs, rhs);
-}
+// template<typename T1>
+// T1
+// min(const T1& lhs, const T1& rhs) {
+//   return std::min(lhs, rhs);
+// }
 
-template<typename T1>
-T1
-max(const T1& lhs, const T1& rhs) {
-  return std::max(lhs, rhs);
-}
+// template<typename T1>
+// T1
+// max(const T1& lhs, const T1& rhs) {
+//   return std::max(lhs, rhs);
+// }
 
 }
 

@@ -4,12 +4,12 @@
 //
 // Created by J. Michael Owen, Mon Mar 17 23:13:08 PST 2003
 //----------------------------------------------------------------------------//
-#include <algorithm>
-
 #include "InternalNodeIterator.hh"
 
-namespace Spheral {
+#include <algorithm>
+using std::vector;
 
+namespace Spheral {
 
 //------------------------------------------------------------------------------
 // Default constructor.

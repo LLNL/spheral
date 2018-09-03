@@ -21,6 +21,7 @@
 #include "Mesh/Mesh.hh"
 
 #include <algorithm>
+using std::vector;
 
 namespace Spheral {
 

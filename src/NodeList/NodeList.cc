@@ -22,6 +22,11 @@
 #include "NodeList.hh"
 
 #include <algorithm>
+using std::vector;
+using std::list;
+using std::string;
+using std::cerr;
+using std::endl;
 
 namespace Spheral {
 

@@ -19,6 +19,11 @@
 #include "Utilities/safeInv.hh"
 #include "FluidNodeList.hh"
 
+using std::vector;
+using std::list;
+using std::string;
+using std::cerr;
+using std::endl;
 
 namespace Spheral {
 

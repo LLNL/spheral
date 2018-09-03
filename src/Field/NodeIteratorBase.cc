@@ -11,9 +11,9 @@
 
 #include <algorithm>
 #include <cstdlib>
+using std::vector;
 
 namespace Spheral {
-
 
 //------------------------------------------------------------------------------
 // Default constructor.

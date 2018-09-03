@@ -14,12 +14,15 @@
 #include "Neighbor/ConnectivityMap.hh"
 #include "Mesh/Mesh.hh"
 
+#include <cmath>
+
 namespace Spheral {
 
 using std::vector;
 using std::min;
 using std::max;
 using std::abs;
+using std::pow;
 
 namespace {
 

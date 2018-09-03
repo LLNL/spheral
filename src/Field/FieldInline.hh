@@ -445,7 +445,7 @@ void
 Field<Dimension, DataType>::applyScalarMin(const double dataMin) {
   REQUIRE(mValid);
   const unsigned n = this->numElements();
-  for (unsigned i = 0; i != n; ++i) mDataArray[i] = Spheral::max(mDataArray[i], dataMin);
+  for (unsigned i = 0; i != n; ++i) mDataArray[i] = max(mDataArray[i], dataMin);
 }
 
 //------------------------------------------------------------------------------
@@ -457,7 +457,7 @@ void
 Field<Dimension, DataType>::applyScalarMax(const double dataMax) {
   REQUIRE(mValid);
   const unsigned n = this->numElements();
-  for (unsigned i = 0; i != n; ++i) mDataArray[i] = Spheral::min(mDataArray[i], dataMax);
+  for (unsigned i = 0; i != n; ++i) mDataArray[i] = min(mDataArray[i], dataMax);
 }
 
 //------------------------------------------------------------------------------

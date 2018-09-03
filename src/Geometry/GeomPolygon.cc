@@ -25,6 +25,8 @@
 #include <iterator>
 using std::vector;
 using std::pair;
+using std::min;
+using std::max;
 
 //------------------------------------------------------------------------------
 // It seems there is a missing specialization for abs(long unsigned int), so 

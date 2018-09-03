@@ -22,6 +22,8 @@ using std::vector;
 using std::map;
 using std::pair;
 using std::make_pair;
+using std::min;
+using std::max;
 
 extern "C" {
 #include "libqhull/qhull_a.h"
