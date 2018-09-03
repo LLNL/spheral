@@ -15,22 +15,11 @@
 #include "Mesh/Mesh.hh"
 
 namespace Spheral {
-namespace SVPHSpace {
 
 using namespace std;
 using std::min;
 using std::max;
 using std::abs;
-
-using FieldSpace::Field;
-using FieldSpace::FieldList;
-using NeighborSpace::ConnectivityMap;
-using NeighborSpace::Neighbor;
-using KernelSpace::TableKernel;
-using NodeSpace::NodeList;
-using MeshSpace::Mesh;
-using Geometry::outerProduct;
-using Geometry::innerProduct;
 
 //------------------------------------------------------------------------------
 // Compute corrections.
@@ -146,6 +135,5 @@ computeSVPHCorrectionsOnFaces(const Mesh<Dimension>& mesh,
   }
 }
 
-}
 }
 

@@ -14,21 +14,11 @@
 #include "Mesh/Mesh.hh"
 
 namespace Spheral {
-namespace SVPHSpace {
 
 using namespace std;
 using std::min;
 using std::max;
 using std::abs;
-
-using FieldSpace::FieldList;
-using NeighborSpace::ConnectivityMap;
-using KernelSpace::TableKernel;
-using NodeSpace::NodeList;
-using NodeSpace::FluidNodeList;
-using NeighborSpace::Neighbor;
-using DataBaseSpace::DataBase;
-using MeshSpace::Mesh;
 
 template<typename Dimension>
 void
@@ -126,6 +116,5 @@ computeSumVoronoiCellMassDensityFromFaces(const Mesh<Dimension>& mesh,
   }
 }
 
-}
 }
 

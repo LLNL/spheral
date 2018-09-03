@@ -3,11 +3,6 @@
 //
 // Created by JMO, Sun Jul 28 20:57:01 PDT 2013
 //----------------------------------------------------------------------------//
-#include <algorithm>
-#include <fstream>
-#include <map>
-#include <vector>
-
 #include "SVPHHydroBase.hh"
 #include "computeSVPHCorrections.hh"
 #include "SVPHCorrectionsPolicy.hh"
@@ -42,25 +37,14 @@
 #include "FileIO/FileIO.hh"
 #include "Mesh/Mesh.hh"
 
+#include <algorithm>
+#include <fstream>
+#include <map>
+#include <vector>
+
 namespace Spheral {
-namespace SVPHSpace {
 
 using namespace std;
-using PhysicsSpace::GenericHydro;
-using NodeSpace::SmoothingScaleBase;
-using NodeSpace::NodeList;
-using NodeSpace::FluidNodeList;
-using FileIOSpace::FileIO;
-using ArtificialViscositySpace::ArtificialViscosity;
-using KernelSpace::TableKernel;
-using DataBaseSpace::DataBase;
-using FieldSpace::Field;
-using FieldSpace::FieldList;
-using NeighborSpace::ConnectivityMap;
-using MeshSpace::Mesh;
-
-using PhysicsSpace::MassDensityType;
-using PhysicsSpace::HEvolutionType;
 
 //------------------------------------------------------------------------------
 // Construct with the given artificial viscosity and kernels.
@@ -147,7 +131,7 @@ initializeProblemStartup(DataBase<Dimension>& dataBase) {
   vector<const NodeList<Dimension>*> nodeLists(dataBase.nodeListBegin(), dataBase.nodeListEnd());
   nodeLists.push_back(&voidNodes);
   // std::sort(nodeLists.begin(), nodeLists.end(), typename NodeListRegistrar<Dimension>::NodeListComparator());
-  MeshSpace::generateMesh<Dimension,
+  generateMesh<Dimension,
                           typename vector<const NodeList<Dimension>*>::iterator,
                           ConstBoundaryIterator>
     (nodeLists.begin(),
@@ -222,7 +206,7 @@ registerState(DataBase<Dimension>& dataBase,
     state.enroll((*itr)->mass());
 
     // Mass density.
-    if (densityUpdate() == PhysicsSpace::IntegrateDensity) {
+    if (densityUpdate() == IntegrateDensity) {
       PolicyPointer rhoPolicy(new IncrementBoundedState<Dimension, Scalar>((*itr)->rhoMin(),
                                                                            (*itr)->rhoMax()));
       state.enroll((*itr)->massDensity(), rhoPolicy);
@@ -270,11 +254,11 @@ registerState(DataBase<Dimension>& dataBase,
     // Register the H tensor.
     const Scalar hmaxInv = 1.0/(*itr)->hmax();
     const Scalar hminInv = 1.0/(*itr)->hmin();
-    if (HEvolution() == PhysicsSpace::IntegrateH) {
+    if (HEvolution() == IntegrateH) {
       PolicyPointer Hpolicy(new IncrementBoundedState<Dimension, SymTensor, Scalar>(hmaxInv, hminInv));
       state.enroll((*itr)->Hfield(), Hpolicy);
     } else {
-      CHECK(HEvolution() == PhysicsSpace::IdealH);
+      CHECK(HEvolution() == IdealH);
       PolicyPointer Hpolicy(new ReplaceBoundedState<Dimension, SymTensor, Scalar>(hmaxInv, hminInv));
       state.enroll((*itr)->Hfield(), Hpolicy);
     }
@@ -835,21 +819,21 @@ finalize(const typename Dimension::Scalar time,
 
   // Depending on the mass density advancement selected, we may want to replace the 
   // mass density.
-  if (densityUpdate() == PhysicsSpace::RigorousSumDensity or
-      densityUpdate() == PhysicsSpace::SumVoronoiCellDensity) {
+  if (densityUpdate() == RigorousSumDensity or
+      densityUpdate() == SumVoronoiCellDensity) {
     const ConnectivityMap<Dimension>& connectivityMap = dataBase.connectivityMap();
     const FieldList<Dimension, Vector> position = state.fields(HydroFieldNames::position, Vector::zero);
     const FieldList<Dimension, Scalar> mass = state.fields(HydroFieldNames::mass, 0.0);
     const FieldList<Dimension, Scalar> volume = state.fields(HydroFieldNames::volume, 0.0);
     const FieldList<Dimension, SymTensor> H = state.fields(HydroFieldNames::H, SymTensor::zero);
     FieldList<Dimension, Scalar> massDensity = state.fields(HydroFieldNames::massDensity, 0.0);
-    SPHSpace::computeSumVoronoiCellMassDensity(connectivityMap, this->kernel(), position, mass, volume, H, massDensity);
-  } else if (densityUpdate() == PhysicsSpace::SumDensity) {
+    computeSumVoronoiCellMassDensity(connectivityMap, this->kernel(), position, mass, volume, H, massDensity);
+  } else if (densityUpdate() == SumDensity) {
     FieldList<Dimension, Scalar> massDensity = state.fields(HydroFieldNames::massDensity, 0.0);
     FieldList<Dimension, Scalar> massDensitySum = derivs.fields(ReplaceState<Dimension, Field<Dimension, Field<Dimension, Scalar> > >::prefix() + 
                                                                 HydroFieldNames::massDensity, 0.0);
     massDensity.assignFields(massDensitySum);
-  } else if (densityUpdate() == PhysicsSpace::VoronoiCellDensity) {
+  } else if (densityUpdate() == VoronoiCellDensity) {
     const FieldList<Dimension, Scalar> mass = state.fields(HydroFieldNames::mass, 0.0);
     const FieldList<Dimension, Scalar> volume = state.fields(HydroFieldNames::volume, 0.0);
     FieldList<Dimension, Scalar> massDensity = state.fields(HydroFieldNames::massDensity, 0.0);
@@ -992,5 +976,3 @@ restoreState(const FileIO& file, const string& pathName) {
 }
 
 }
-}
-

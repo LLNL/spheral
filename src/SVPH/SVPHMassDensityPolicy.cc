@@ -15,10 +15,6 @@
 
 namespace Spheral {
 
-using NodeSpace::NodeList;
-using NodeSpace::FluidNodeList;
-using FieldSpace::Field;
-
 //------------------------------------------------------------------------------
 // Constructor.
 //------------------------------------------------------------------------------

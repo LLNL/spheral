@@ -32,17 +32,6 @@ using namespace std;
 // using std::max;
 using std::abs;
 
-using DataBaseSpace::DataBase;
-using FieldSpace::Field;
-using FieldSpace::FieldList;
-using NodeSpace::NodeList;
-using NodeSpace::FluidNodeList;
-using NeighborSpace::ConnectivityMap;
-using KernelSpace::TableKernel;
-using MeshSpace::Mesh;
-using NeighborSpace::Neighbor;
-using ArtificialViscositySpace::ArtificialViscosity;
-
 namespace {
 
 //------------------------------------------------------------------------------
