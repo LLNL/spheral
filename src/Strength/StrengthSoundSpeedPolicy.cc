@@ -70,7 +70,7 @@ update(const KeyType& key,
     // Get the strength model.  This cast is ugly, but is a work-around for now.
     const SolidNodeList<Dimension>* solidNodeListPtr = dynamic_cast<const SolidNodeList<Dimension>*>(stateFields[k]->nodeListPtr());
     CHECK(solidNodeListPtr != 0);
-    const SolidMaterial::StrengthModel<Dimension>& strengthModel = solidNodeListPtr->strengthModel();
+    const StrengthModel<Dimension>& strengthModel = solidNodeListPtr->strengthModel();
 
     // Set the full sound speed.
     if (strengthModel.providesSoundSpeed()) strengthModel.soundSpeed(*stateFields[k], *rho[k], *eps[k], *P[k], *stateFields[k]);

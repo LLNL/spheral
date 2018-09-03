@@ -60,7 +60,7 @@ generateANEOSBindings(self.ANEOS%(dim)id, %(dim)i)
 def generateANEOSBindings(x, ndim):
 
     dim = "Spheral::Dim< %i >" % ndim
-    me = "Spheral::SolidMaterial::ANEOS%id" % ndim
+    me = "Spheral::ANEOS%id" % ndim
 
     # Constructors.
     x.add_constructor([param("int", "materialNumber"),

@@ -25,7 +25,7 @@ public:
   // Constructors.
   SolidNodeList(std::string name,
                 Material::EquationOfState<Dimension>& eos,
-                SolidMaterial::StrengthModel<Dimension>& strength,
+                StrengthModel<Dimension>& strength,
                 const int numInternal,
                 const int numGhost,
                 const Scalar hmin,
@@ -74,7 +74,7 @@ public:
   const Field<Dimension, int>& particleTypes() const;
 
   // The strength model this solid is using.
-  const SolidMaterial::StrengthModel<Dimension>& strengthModel() const;
+  const StrengthModel<Dimension>& strengthModel() const;
 
   //****************************************************************************
   // Methods required for restarting.
@@ -96,7 +96,7 @@ private:
   Field<Dimension, int> mParticleTypes;
 
   // Pointer to the associated strength object.
-  SolidMaterial::StrengthModel<Dimension>& mStrength;
+  StrengthModel<Dimension>& mStrength;
 
   // No default constructor or copying.
   SolidNodeList();

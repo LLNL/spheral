@@ -326,7 +326,7 @@ self.space.add_function("zerothAndFirstNodalMoments", None,
         symtensorfield = "Spheral::FieldSpace::SymTensorField%id" % ndim
         smoothingscalebase = "Spheral::NodeSpace::SmoothingScaleBase%id" % ndim
         equationofstate = "Spheral::Material::EquationOfState%id" % ndim
-        strengthmodel = "Spheral::SolidMaterial::StrengthModel%id" % ndim
+        strengthmodel = "Spheral::StrengthModel%id" % ndim
         tablekernel = "Spheral::KernelSpace::TableKernel%id" % ndim
         fileio = "Spheral::FileIOSpace::FileIO"
 

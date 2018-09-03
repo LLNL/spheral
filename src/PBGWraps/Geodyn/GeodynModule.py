@@ -63,7 +63,7 @@ generateGeodynBindings(self.Geodyn%(dim)id, %(dim)i)
 def generateGeodynBindings(x, ndim):
 
     dim = "Spheral::Dim< %i >" % ndim
-    me = "Spheral::SolidMaterial::Geodyn%id" % ndim
+    me = "Spheral::Geodyn%id" % ndim
 
     # Constructors.
     x.add_constructor([constrefparam("PhysicalConstants", "constants"),

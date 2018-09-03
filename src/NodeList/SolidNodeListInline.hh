@@ -157,7 +157,7 @@ particleTypes() const {
 //------------------------------------------------------------------------------
 template<typename Dimension>
 inline
-const SolidMaterial::StrengthModel<Dimension>&
+const StrengthModel<Dimension>&
 SolidNodeList<Dimension>::
 strengthModel() const {
   return mStrength;
