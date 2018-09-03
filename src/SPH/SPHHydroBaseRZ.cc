@@ -58,24 +58,8 @@
 #include <vector>
 
 namespace Spheral {
-namespace SPHSpace {
 
 using namespace std;
-using PhysicsSpace::GenericHydro;
-using NodeSpace::SmoothingScaleBase;
-using NodeSpace::NodeList;
-using NodeSpace::FluidNodeList;
-using FileIOSpace::FileIO;
-using ArtificialViscositySpace::ArtificialViscosity;
-using KernelSpace::TableKernel;
-using DataBaseSpace::DataBase;
-using FieldSpace::Field;
-using FieldSpace::FieldList;
-using NeighborSpace::ConnectivityMap;
-using MeshSpace::Mesh;
-
-using PhysicsSpace::MassDensityType;
-using PhysicsSpace::HEvolutionType;
 
 //------------------------------------------------------------------------------
 // Construct with the given artificial viscosity and kernels.
@@ -177,8 +161,8 @@ finalize(const Dim<2>::Scalar time,
 
   // If we're going to do the SPH summation density, we need to convert the mass
   // to mass per unit length first.
-  if (densityUpdate() == PhysicsSpace::MassDensityType::RigorousSumDensity or
-      densityUpdate() == PhysicsSpace::MassDensityType::CorrectedSumDensity) {
+  if (densityUpdate() == MassDensityType::RigorousSumDensity or
+      densityUpdate() == MassDensityType::CorrectedSumDensity) {
     FieldList<Dimension, Scalar> mass = state.fields(HydroFieldNames::mass, 0.0);
     const FieldList<Dimension, Vector> pos = state.fields(HydroFieldNames::position, Vector::zero);
     const unsigned numNodeLists = mass.numFields();
@@ -196,8 +180,8 @@ finalize(const Dim<2>::Scalar time,
 
   // Now convert back to true masses and mass densities.  We also apply the RZ
   // correction factor to the mass density.
-  if (densityUpdate() == PhysicsSpace::MassDensityType::RigorousSumDensity or
-      densityUpdate() == PhysicsSpace::MassDensityType::CorrectedSumDensity) {
+  if (densityUpdate() == MassDensityType::RigorousSumDensity or
+      densityUpdate() == MassDensityType::CorrectedSumDensity) {
     const TableKernel<Dimension>& W = this->kernel();
     const FieldList<Dimension, Vector> position = state.fields(HydroFieldNames::position, Vector::zero);
     const FieldList<Dimension, SymTensor> H = state.fields(HydroFieldNames::H, SymTensor::zero);
@@ -291,7 +275,6 @@ enforceBoundaries(State<Dim<2> >& state,
   }
 }
 
-}
 }
 
 // Include the appropriate evaluateDerivatvies.

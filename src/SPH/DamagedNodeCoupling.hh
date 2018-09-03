@@ -24,9 +24,9 @@ public:
   typedef typename Dimension::SymTensor SymTensor;
 
   // Constructor.
-  DamagedNodeCoupling(const FieldSpace::FieldList<Dimension, SymTensor>& damage,
-                      const FieldSpace::FieldList<Dimension, Vector>& damageGradient,
-                      const FieldSpace::FieldList<Dimension, SymTensor>& H):
+  DamagedNodeCoupling(const FieldList<Dimension, SymTensor>& damage,
+                      const FieldList<Dimension, Vector>& damageGradient,
+                      const FieldList<Dimension, SymTensor>& H):
     NodeCoupling(),
     mDamage(damage),
     mDamageGradient(damageGradient),
@@ -50,9 +50,9 @@ public:
   }
 
 private:
-  const FieldSpace::FieldList<Dimension, SymTensor>& mDamage;
-  const FieldSpace::FieldList<Dimension, Vector>& mDamageGradient;
-  const FieldSpace::FieldList<Dimension, SymTensor>& mH;
+  const FieldList<Dimension, SymTensor>& mDamage;
+  const FieldList<Dimension, Vector>& mDamageGradient;
+  const FieldList<Dimension, SymTensor>& mH;
 
   // Extract the effective scalar damage on a node.
   double scalarDamage(const unsigned nodeListi, const unsigned i) const {

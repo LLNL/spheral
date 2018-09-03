@@ -10,17 +10,11 @@
 #include "Hydro/HydroFieldNames.hh"
 
 namespace Spheral {
-namespace SPHSpace {
 
 using namespace std;
 using std::min;
 using std::max;
 using std::abs;
-
-using FieldSpace::FieldList;
-using NeighborSpace::ConnectivityMap;
-using KernelSpace::TableKernel;
-using NodeSpace::NodeList;
 
 template<typename Dimension>
 void
@@ -44,7 +38,7 @@ correctSPHSumMassDensity(const ConnectivityMap<Dimension>& connectivityMap,
   typedef typename Dimension::SymTensor SymTensor;
 
   // Make a single corrective pass.
-  FieldList<Dimension, Scalar> sumUnity(FieldSpace::FieldStorageType::CopyFields);
+  FieldList<Dimension, Scalar> sumUnity(FieldStorageType::CopyFields);
   for (size_t nodeListi = 0; nodeListi != numNodeLists; ++nodeListi) {
     sumUnity.appendNewField("SPH sum unity check", massDensity[nodeListi]->nodeList(), 0.0);
   }
@@ -116,5 +110,3 @@ correctSPHSumMassDensity(const ConnectivityMap<Dimension>& connectivityMap,
 }
 
 }
-}
-

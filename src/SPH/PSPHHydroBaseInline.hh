@@ -1,5 +1,4 @@
 namespace Spheral {
-namespace SPHSpace {
 
 //------------------------------------------------------------------------------
 // Access the flag determining if we're applying Hopkins 2014 artificial
@@ -24,7 +23,7 @@ PSPHHydroBase<Dimension>::HopkinsConductivity(const bool val) {
 //------------------------------------------------------------------------------
 template<typename Dimension>
 inline
-const FieldSpace::FieldList<Dimension, typename Dimension::Scalar>&
+const FieldList<Dimension, typename Dimension::Scalar>&
 PSPHHydroBase<Dimension>::
 gamma() const {
   return mGamma;
@@ -32,11 +31,10 @@ gamma() const {
 
 template<typename Dimension>
 inline
-const FieldSpace::FieldList<Dimension, typename Dimension::Scalar>&
+const FieldList<Dimension, typename Dimension::Scalar>&
 PSPHHydroBase<Dimension>::
 PSPHcorrection() const {
   return mPSPHcorrection;
 }
 
-}
 }

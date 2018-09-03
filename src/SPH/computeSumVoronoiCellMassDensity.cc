@@ -12,18 +12,11 @@
 #include "Utilities/safeInv.hh"
 
 namespace Spheral {
-namespace SPHSpace {
 
 using namespace std;
 using std::min;
 using std::max;
 using std::abs;
-
-using FieldSpace::FieldList;
-using NeighborSpace::ConnectivityMap;
-using KernelSpace::TableKernel;
-using NodeSpace::NodeList;
-using NodeSpace::FluidNodeList;
 
 template<typename Dimension>
 void
@@ -49,7 +42,7 @@ computeSumVoronoiCellMassDensity(const ConnectivityMap<Dimension>& connectivityM
 
   // Zero out the result, and prepare a FieldList to hold the effective volume.
   massDensity = 0.0;
-  FieldList<Dimension, Scalar> Veff(FieldSpace::FieldStorageType::CopyFields);
+  FieldList<Dimension, Scalar> Veff(FieldStorageType::CopyFields);
   for (size_t nodeListi = 0; nodeListi != numNodeLists; ++nodeListi) {
     const NodeList<Dimension>& nodeList = massDensity[nodeListi]->nodeList();
     Veff.appendNewField("effective volume", nodeList, 0.0);
@@ -121,5 +114,3 @@ computeSumVoronoiCellMassDensity(const ConnectivityMap<Dimension>& connectivityM
 }
 
 }
-}
-

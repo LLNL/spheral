@@ -18,24 +18,16 @@
 #include "Utilities/globalNodeIDs.hh"
 
 namespace Spheral {
-namespace SPHSpace {
 
 using namespace std;
 using std::min;
 using std::max;
 using std::abs;
 
-using FieldSpace::FieldList;
-using NeighborSpace::ConnectivityMap;
-using KernelSpace::TableKernel;
-using DataBaseSpace::DataBase;
-using NodeSpace::NodeList;
-
-
 void
 computeSPHHydrostaticEquilibriumPressure(const DataBase<Dim<3> >& db,
-                                         const KernelSpace::TableKernel<Dim<3> >& W,
-                                         const FieldSpace::FieldList<Dim<3>, Dim<3>::Vector>& acceleration,
+                                         const TableKernel<Dim<3> >& W,
+                                         const FieldList<Dim<3>, Dim<3>::Vector>& acceleration,
                                          FieldList<Dim<3>, Dim<3>::Scalar>& pressure) {
 
   // Pre-conditions.
@@ -67,7 +59,7 @@ computeSPHHydrostaticEquilibriumPressure(const DataBase<Dim<3> >& db,
   const ConnectivityMap<Dim<3> >& connectivityMap = db.connectivityMap();
 
   // Get the global IDs for all nodes.
-  const FieldList<Dim<3>, int> globalIDs = NodeSpace::globalNodeIDs<Dim<3>, DataBase<Dim<3> >::ConstFluidNodeListIterator>(db.fluidNodeListBegin(), db.fluidNodeListEnd());
+  const FieldList<Dim<3>, int> globalIDs = globalNodeIDs<Dim<3>, DataBase<Dim<3> >::ConstFluidNodeListIterator>(db.fluidNodeListBegin(), db.fluidNodeListEnd());
 
   // Build the sparse matrix that represents the full pressure gradient operator.
   // We have one of these matrix operators for each dimension, hence the 3 vector.
@@ -127,5 +119,4 @@ computeSPHHydrostaticEquilibriumPressure(const DataBase<Dim<3> >& db,
   // 
 }
 
-}
 }

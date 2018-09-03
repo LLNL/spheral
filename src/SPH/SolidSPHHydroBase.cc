@@ -42,21 +42,8 @@
 #include <vector>
 
 namespace Spheral {
-namespace SPHSpace {
 
 using namespace std;
-using NodeSpace::SmoothingScaleBase;
-using NodeSpace::NodeList;
-using NodeSpace::FluidNodeList;
-using NodeSpace::SolidNodeList;
-using SolidMaterial::SolidEquationOfState;
-using FileIOSpace::FileIO;
-using ArtificialViscositySpace::ArtificialViscosity;
-using KernelSpace::TableKernel;
-using DataBaseSpace::DataBase;
-using FieldSpace::Field;
-using FieldSpace::FieldList;
-using NeighborSpace::ConnectivityMap;
 
 //------------------------------------------------------------------------------
 // Compute the artificial tensile stress correction tensor for the given 
@@ -117,8 +104,8 @@ SolidSPHHydroBase(const SmoothingScaleBase<Dimension>& smoothingScaleMethod,
                   const bool XSPH,
                   const bool correctVelocityGradient,
                   const bool sumMassDensityOverAllNodeLists,
-                  const PhysicsSpace::MassDensityType densityUpdate,
-                  const PhysicsSpace::HEvolutionType HUpdate,
+                  const MassDensityType densityUpdate,
+                  const HEvolutionType HUpdate,
                   const double epsTensile,
                   const double nTensile,
                   const bool damageRelieveRubble,
@@ -145,12 +132,12 @@ SolidSPHHydroBase(const SmoothingScaleBase<Dimension>& smoothingScaleMethod,
                           xmax),
   mDamageRelieveRubble(damageRelieveRubble),
   mGradKernel(WGrad),
-  mDdeviatoricStressDt(FieldSpace::FieldStorageType::CopyFields),
-  mBulkModulus(FieldSpace::FieldStorageType::CopyFields),
-  mShearModulus(FieldSpace::FieldStorageType::CopyFields),
-  mYieldStrength(FieldSpace::FieldStorageType::CopyFields),
-  mPlasticStrain0(FieldSpace::FieldStorageType::CopyFields),
-  mHfield0(FieldSpace::FieldStorageType::CopyFields),
+  mDdeviatoricStressDt(FieldStorageType::CopyFields),
+  mBulkModulus(FieldStorageType::CopyFields),
+  mShearModulus(FieldStorageType::CopyFields),
+  mYieldStrength(FieldStorageType::CopyFields),
+  mPlasticStrain0(FieldStorageType::CopyFields),
+  mHfield0(FieldStorageType::CopyFields),
   mRestart(DataOutput::registerWithRestart(*this)) {
 }
 
@@ -409,5 +396,3 @@ restoreState(const FileIO& file, const string& pathName) {
 }
 
 }
-}
-

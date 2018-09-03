@@ -16,18 +16,10 @@ namespace Spheral {
 // Forward declarations.
 template<typename Dimension> class State;
 template<typename Dimension> class StateDerivatives;
-namespace NodeSpace {
-  template<typename Dimension> class FluidNodeList;
-}
-namespace FieldSpace {
-  template<typename Dimension, typename DataType> class Field;
-}
-namespace KernelSpace {
-  template<typename Dimension> class TableKernel;
-}
-namespace DataBaseSpace {
-  template<typename Dimension> class DataBase;
-}
+template<typename Dimension> class FluidNodeList;
+template<typename Dimension, typename DataType> class Field;
+template<typename Dimension> class TableKernel;
+template<typename Dimension> class DataBase;
 
 template<typename Dimension>
 class OmegaGradhPolicy: public UpdatePolicyBase<Dimension, typename Dimension::Scalar> {
@@ -35,11 +27,11 @@ public:
   //--------------------------- Public Interface ---------------------------//
   // Useful typedefs
   typedef typename Dimension::Scalar Scalar;
-  typedef typename FieldSpace::Field<Dimension, Scalar> FieldType;
+  typedef typename Field<Dimension, Scalar> FieldType;
   typedef typename UpdatePolicyBase<Dimension, FieldType>::KeyType KeyType;
 
   // Constructors, destructor.
-  OmegaGradhPolicy(const DataBaseSpace::DataBase<Dimension>& dataBase);
+  OmegaGradhPolicy(const DataBase<Dimension>& dataBase);
   virtual ~OmegaGradhPolicy();
   
   // Overload the methods describing how to update Fields.
@@ -55,7 +47,7 @@ public:
 
 private:
   //--------------------------- Private Interface ---------------------------//
-  const DataBaseSpace::DataBase<Dimension>& mDataBase;
+  const DataBase<Dimension>& mDataBase;
 
   OmegaGradhPolicy(const OmegaGradhPolicy& rhs);
   OmegaGradhPolicy& operator=(const OmegaGradhPolicy& rhs);

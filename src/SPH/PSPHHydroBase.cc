@@ -50,24 +50,8 @@
 #include <vector>
 
 namespace Spheral {
-namespace SPHSpace {
 
 using namespace std;
-using PhysicsSpace::GenericHydro;
-using NodeSpace::SmoothingScaleBase;
-using NodeSpace::NodeList;
-using NodeSpace::FluidNodeList;
-using FileIOSpace::FileIO;
-using ArtificialViscositySpace::ArtificialViscosity;
-using KernelSpace::TableKernel;
-using DataBaseSpace::DataBase;
-using FieldSpace::Field;
-using FieldSpace::FieldList;
-using NeighborSpace::ConnectivityMap;
-using MeshSpace::Mesh;
-
-using PhysicsSpace::MassDensityType;
-using PhysicsSpace::HEvolutionType;
 
 //------------------------------------------------------------------------------
 // Construct with the given artificial viscosity and kernels.
@@ -111,8 +95,8 @@ PSPHHydroBase(const SmoothingScaleBase<Dimension>& smoothingScaleMethod,
                           xmin,
                           xmax),
   mHopkinsConductivity(HopkinsConductivity),
-  mGamma(FieldSpace::FieldStorageType::CopyFields),
-  mPSPHcorrection(FieldSpace::FieldStorageType::CopyFields) {
+  mGamma(FieldStorageType::CopyFields),
+  mPSPHcorrection(FieldStorageType::CopyFields) {
 }
 
 //------------------------------------------------------------------------------
@@ -193,7 +177,7 @@ preStepInitialize(const DataBase<Dimension>& dataBase,
   FieldList<Dimension, Scalar> cs = state.fields(HydroFieldNames::soundSpeed, 0.0);
   FieldList<Dimension, Scalar> PSPHcorrection = state.fields(HydroFieldNames::PSPHcorrection, 0.0);
   computePSPHCorrections(connectivityMap, W, mass, position, specificThermalEnergy, gamma, H, 
-                         (this->mDensityUpdate != PhysicsSpace::MassDensityType::IntegrateDensity),
+                         (this->mDensityUpdate != MassDensityType::IntegrateDensity),
                          rho, P, cs, PSPHcorrection);
   for (ConstBoundaryIterator boundItr = this->boundaryBegin();
        boundItr != this->boundaryEnd();
@@ -217,7 +201,7 @@ void
 PSPHHydroBase<Dimension>::
 postStateUpdate(const Scalar time, 
                 const Scalar dt,
-                const DataBaseSpace::DataBase<Dimension>& dataBase, 
+                const DataBase<Dimension>& dataBase, 
                 State<Dimension>& state,
                 StateDerivatives<Dimension>& derivatives) {
 
@@ -240,7 +224,7 @@ postStateUpdate(const Scalar time,
   FieldList<Dimension, Scalar> cs = state.fields(HydroFieldNames::soundSpeed, 0.0);
   FieldList<Dimension, Scalar> PSPHcorrection = state.fields(HydroFieldNames::PSPHcorrection, 0.0);
   computePSPHCorrections(connectivityMap, W, mass, position, specificThermalEnergy, gamma, H,
-                         (this->mDensityUpdate != PhysicsSpace::MassDensityType::IntegrateDensity),
+                         (this->mDensityUpdate != MassDensityType::IntegrateDensity),
                          rho, P, cs, PSPHcorrection);
   for (ConstBoundaryIterator boundItr = this->boundaryBegin();
        boundItr != this->boundaryEnd();
@@ -823,5 +807,3 @@ restoreState(const FileIO& file, string pathName) {
 }
 
 }
-}
-
