@@ -21,7 +21,6 @@
 
 namespace Spheral {
 
-using namespace std;
 
 //------------------------------------------------------------------------------
 // Define a local trait class to map elements to MPI_DATATYPES.

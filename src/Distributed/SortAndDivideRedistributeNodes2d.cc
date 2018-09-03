@@ -27,7 +27,6 @@
 
 namespace Spheral {
 
-using namespace std;
 
 //------------------------------------------------------------------------------
 // Construct with the given node extent.

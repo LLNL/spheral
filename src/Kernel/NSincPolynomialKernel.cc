@@ -12,7 +12,6 @@
 
 namespace Spheral {
 
-using namespace std;
 
 //------------------------------------------------------------------------------
 // Initialize the given vector<vector> with the the appropriate coefficients.

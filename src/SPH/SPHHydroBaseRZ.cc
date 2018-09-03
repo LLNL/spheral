@@ -59,7 +59,6 @@
 
 namespace Spheral {
 
-using namespace std;
 
 //------------------------------------------------------------------------------
 // Construct with the given artificial viscosity and kernels.

@@ -23,7 +23,6 @@
 
 namespace Spheral {
 
-using namespace std;
 using boost::unordered_map;
 
 //------------------------------------------------------------------------------

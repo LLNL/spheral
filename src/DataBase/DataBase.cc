@@ -31,7 +31,6 @@ extern "C" {
 
 namespace Spheral {
 
-using namespace std;
 using std::shared_ptr;
 
 //------------------------------------------------------------------------------

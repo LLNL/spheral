@@ -41,7 +41,6 @@
 
 namespace Spheral {
 
-using namespace std;
 
 //------------------------------------------------------------------------------
 // Helper method to find the nearest position in a vector of positions to the 

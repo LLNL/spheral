@@ -11,7 +11,6 @@
 
 namespace Spheral {
 
-using namespace std;
 
 //------------------------------------------------------------------------------
 // Construct with the given set of nodes.

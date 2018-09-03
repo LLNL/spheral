@@ -13,7 +13,6 @@
 #else
 #include <sstream>
 #endif
-using namespace std;
 
 namespace Spheral {
 

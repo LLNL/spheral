@@ -23,7 +23,6 @@
 
 namespace Spheral {
 
-using namespace std;
 
 //------------------------------------------------------------------------------
 // Find the center of mass for a cell given a slope for the density in the cell.

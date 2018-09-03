@@ -27,7 +27,6 @@ extern Timer TIME_ConnectivityMap_computeConnectivity;
 
 namespace Spheral {
 
-using namespace std;
 
 namespace {
 //------------------------------------------------------------------------------

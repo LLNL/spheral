@@ -23,7 +23,6 @@
 
 namespace Spheral {
 
-using namespace std;
 
 //------------------------------------------------------------------------------
 // Add the sampling position box bounds to a vector.

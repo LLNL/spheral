@@ -19,7 +19,6 @@
 
 namespace Spheral {
 
-using namespace std;
 using namespace boost;
 
 namespace {

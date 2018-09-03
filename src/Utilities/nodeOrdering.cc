@@ -25,7 +25,6 @@
 
 namespace Spheral {
 
-using namespace std;
 using namespace boost::tuples;
 
 template<typename DataType>

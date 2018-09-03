@@ -21,7 +21,6 @@
 
 namespace Spheral {
 
-using namespace std;
 
 //------------------------------------------------------------------------------
 // Local function to help sort a vector of DomainNode by x position.

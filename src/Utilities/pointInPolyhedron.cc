@@ -18,7 +18,6 @@
 
 namespace Spheral {
 
-using namespace std;
 
 //------------------------------------------------------------------------------
 // The method in question -- test if a point is on the interior of a polyhedron.

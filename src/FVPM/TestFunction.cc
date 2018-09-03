@@ -2,7 +2,6 @@
 
 #include "TestFunction.hh"
 #include "Kernel/TableKernel.hh"
-using namespace std;
 
 namespace Spheral {
 

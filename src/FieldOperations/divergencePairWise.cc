@@ -17,7 +17,6 @@
 
 namespace Spheral {
 
-using namespace std;
 
 //------------------------------------------------------------------------------
 // Calculate the divergence of a FieldList.

@@ -15,7 +15,6 @@
 #include "Geometry/Dimension.hh"
 
 #include <string>
-using namespace std;
 
 namespace Spheral {
 

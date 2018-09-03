@@ -6,7 +6,6 @@
 #include "pointOnPolygon.hh"
 #include "lineSegmentIntersections.hh"
 
-using namespace std;
 
 namespace Spheral {
 

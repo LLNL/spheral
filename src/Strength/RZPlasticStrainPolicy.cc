@@ -22,7 +22,6 @@
 
 namespace Spheral {
 
-using namespace std;
 
 //------------------------------------------------------------------------------
 // Helper method to compute the J2 constant from the deviatoric stress.

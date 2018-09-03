@@ -14,7 +14,6 @@
 
 #include "ReflectingBoundary.hh"
 
-using namespace std;
 
 namespace Spheral {
 

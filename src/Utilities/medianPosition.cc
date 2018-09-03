@@ -14,7 +14,6 @@
 
 namespace Spheral {
 
-using namespace std;
 
 //------------------------------------------------------------------------------
 // Compare two vectors by the given index coordinate.

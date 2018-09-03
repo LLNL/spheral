@@ -12,7 +12,6 @@
 
 namespace Spheral {
 
-using namespace std;
 
 //------------------------------------------------------------------------------
 // Return the number density for all nodes in the DataBase.

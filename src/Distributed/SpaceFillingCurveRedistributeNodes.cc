@@ -33,7 +33,6 @@
 
 namespace Spheral {
 
-using namespace std;
 
 //------------------------------------------------------------------------------
 // Compare pairs of <Key, *> by the first element (Key).

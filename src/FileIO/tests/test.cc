@@ -1,5 +1,4 @@
 #include <fstream>
-using namespace std;
 
 void main() {
   fstream* f;

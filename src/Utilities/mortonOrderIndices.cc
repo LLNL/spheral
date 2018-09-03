@@ -16,7 +16,6 @@
 
 namespace Spheral {
 
-using namespace std;
 
 //------------------------------------------------------------------------------
 // Stand alone functions to do the interleaved bit hashing of positions.

@@ -15,7 +15,6 @@
 
 namespace Spheral {
 
-using namespace std;
 
 //------------------------------------------------------------------------------
 // Return a MASH donated version of the given FieldList at the new positions.

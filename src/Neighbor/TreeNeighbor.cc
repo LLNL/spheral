@@ -30,7 +30,6 @@
 
 namespace Spheral {
 
-using namespace std;
 
 //------------------------------------------------------------------------------
 // Compute the vertex coordinates for a cell.

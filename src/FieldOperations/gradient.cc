@@ -15,7 +15,6 @@
 
 namespace Spheral {
 
-using namespace std;
 
 //------------------------------------------------------------------------------
 // Calculate the gradient of a FieldList.

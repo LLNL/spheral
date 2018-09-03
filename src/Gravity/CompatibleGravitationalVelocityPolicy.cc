@@ -24,7 +24,6 @@ namespace Spheral {
 
 using std::abs;
 
-using namespace std;
 
 //------------------------------------------------------------------------------
 // Constructor.

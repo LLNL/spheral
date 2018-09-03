@@ -6,7 +6,6 @@
 #include <fstream>
 #include <cstdio>
 #include <cassert>
-using namespace std;
 
 #include "Timer.hh"
 

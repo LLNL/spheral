@@ -25,7 +25,6 @@
 
 namespace Spheral {
 
-using namespace std;
 
 //------------------------------------------------------------------------------
 // Constructor with optional numInternal nodes, numGhost nodes, and name.

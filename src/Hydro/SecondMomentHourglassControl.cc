@@ -16,7 +16,6 @@
 
 namespace Spheral {
 
-using namespace std;
 
 //------------------------------------------------------------------------------
 // Inline functions specialized to Dimension to calculate the anti-hourglassing

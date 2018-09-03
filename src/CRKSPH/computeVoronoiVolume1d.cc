@@ -12,7 +12,6 @@
 
 namespace Spheral {
 
-using namespace std;
 using namespace FastMath;
 
 //------------------------------------------------------------------------------

@@ -14,7 +14,6 @@
 
 namespace Spheral {
 
-using namespace std;
 
 //------------------------------------------------------------------------------
 // Construct against the given DataBase.

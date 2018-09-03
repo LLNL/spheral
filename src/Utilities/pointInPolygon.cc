@@ -80,7 +80,6 @@
 
 namespace Spheral {
 
-using namespace std;
 
 //------------------------------------------------------------------------------
 // Work with a closed polygon defined by it's vertices.

@@ -2,7 +2,6 @@
 
 namespace Spheral {
 
-using namespace std;
 
 //------------------------------------------------------------------------------
 // The the matching vertex between two lists (assumed to be in opposite order.)

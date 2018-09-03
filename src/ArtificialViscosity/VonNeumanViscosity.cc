@@ -17,7 +17,6 @@
 
 namespace Spheral {
 
-using namespace std;
 
 //------------------------------------------------------------------------------
 // Construct with the given value for the linear and quadratic coefficients.

@@ -10,7 +10,6 @@
 
 namespace Spheral {
 
-using namespace std;
 
 //------------------------------------------------------------------------------
 // Return the kernel weight for a given normalized distance.

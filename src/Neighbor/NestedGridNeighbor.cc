@@ -26,7 +26,6 @@
 
 namespace Spheral {
 
-using namespace std;
 
 //------------------------------------------------------------------------------
 // Construct with everything necessary to completely specify the neighboring.

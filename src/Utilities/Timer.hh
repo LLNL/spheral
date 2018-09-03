@@ -117,13 +117,13 @@ class Timer {
 public:
 
   Timer() {}
-  Timer(const string&) {}
-  //Timer(const string&, int) {}
-  Timer(const string&, Timer&) {}
-  Timer(const string&, Timer&, bool) {}
+  Timer(const std::string&) {}
+  //Timer(const std::string&, int) {}
+  Timer(const std::string&, Timer&) {}
+  Timer(const std::string&, Timer&, bool) {}
   ~Timer() {}
 
-  static list<Timer*> TimerList;
+  static std::list<Timer*> TimerList;
 
   inline void setup(){}
   inline void start(){}
@@ -138,7 +138,7 @@ public:
   inline long long int papi_counter2() {return 0;}
 #endif
 
-  inline string Name() {return NULL;}
+  inline std::string Name() {return NULL;}
   
   inline long int Count() {return 0;}
   
@@ -154,7 +154,7 @@ public:
     rank=0;
 #endif
     if(rank==0) {
-      cout << " Timers Disabled.  No timing output written."  << endl;
+      std::cout << " Timers Disabled.  No timing output written."  << std::endl;
     }
   }
 

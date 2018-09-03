@@ -7,7 +7,6 @@
 
 namespace Spheral {
 
-using namespace std;
 
 template<typename Dimension>
 typename Dimension::FacetedVolume

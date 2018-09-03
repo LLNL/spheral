@@ -20,7 +20,6 @@
 
 namespace Spheral {
 
-using namespace std;
 
 //------------------------------------------------------------------------------
 // Workhorse method to test that a given pair of NodeIterators walks the given 

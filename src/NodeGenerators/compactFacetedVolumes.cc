@@ -13,7 +13,6 @@
 
 namespace Spheral {
 
-using namespace std;
 
 //------------------------------------------------------------------------------
 // Push FacetedVolume shapes together inside a surface, but excluding mutual

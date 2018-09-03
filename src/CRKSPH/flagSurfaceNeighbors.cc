@@ -9,7 +9,6 @@
 
 namespace Spheral {
 
-using namespace std;
 
 template<typename Dimension>
 void

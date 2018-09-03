@@ -25,7 +25,6 @@
 #include "waitAllWithDeadlockDetection.hh"
 #include "Communicator.hh"
 
-using namespace std;
 
 namespace Spheral {
 

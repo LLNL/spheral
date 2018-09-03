@@ -14,7 +14,6 @@
 
 namespace Spheral {
 
-using namespace std;
 using std::max;
 using std::min;
 using std::abs;

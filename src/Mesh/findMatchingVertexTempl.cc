@@ -2,7 +2,6 @@
 
 namespace Spheral {
 
-using namespace std;
 
 //------------------------------------------------------------------------------
 // Find the closest vertex in the list to the given position.

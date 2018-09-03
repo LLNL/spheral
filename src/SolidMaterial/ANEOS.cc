@@ -15,7 +15,6 @@
 #include "Utilities/DBC.hh"
 
 #include <iostream>
-using namespace std;
 
 // Fortran baby!
 extern "C" {
@@ -28,7 +27,6 @@ extern "C" {
 
 namespace Spheral {
 
-using namespace std;
 using std::min;
 using std::max;
 using std::abs;

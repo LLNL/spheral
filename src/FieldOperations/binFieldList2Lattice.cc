@@ -32,7 +32,6 @@ extern "C" {
 
 namespace Spheral {
 
-using namespace std;
 
 //------------------------------------------------------------------------------
 // Helper method specialized per dimension to increment grid cell values.

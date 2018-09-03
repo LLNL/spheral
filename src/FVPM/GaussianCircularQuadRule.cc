@@ -7,7 +7,6 @@
 #include "GaussianCircularQuadRule.hh"
 #include "gauss_legendre.hh"
 
-using namespace std;
 
 namespace Spheral {
 

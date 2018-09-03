@@ -6,7 +6,6 @@
 #include "Mesh.hh"
 #include "Utilities/DBC.hh"
 
-using namespace std;
 
 namespace Spheral {
 

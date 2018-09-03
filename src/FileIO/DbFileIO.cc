@@ -18,7 +18,6 @@
 
 namespace Spheral {
 
-using namespace std;
 
 #ifdef USE_POSTGRES
 //------------------------------------------------------------------------------

@@ -11,7 +11,6 @@ namespace Spheral {
 namespace Bessel {
 
 
-using namespace std;
 
 
 //----------------------------------------------------------------------------

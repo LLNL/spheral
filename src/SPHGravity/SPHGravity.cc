@@ -37,7 +37,6 @@
 
 namespace Spheral {
 
-using namespace std;
 
 //------------------------------------------------------------------------------
 template <typename Dimension>
@@ -67,7 +66,6 @@ SPHGravity(const TableKernel<Dimension>& kernel,
 
   REQUIRE((safetyFactor > 0.0) && (safetyFactor <= 1.0));
 
-  using namespace std;
 
   // Make sure Spasmos is around.
   importConfig();

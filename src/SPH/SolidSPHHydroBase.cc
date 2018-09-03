@@ -43,7 +43,6 @@
 
 namespace Spheral {
 
-using namespace std;
 
 //------------------------------------------------------------------------------
 // Compute the artificial tensile stress correction tensor for the given 

@@ -15,7 +15,6 @@
 
 namespace Spheral {
 
-using namespace std;
 
 //------------------------------------------------------------------------------
 // Return a monotonic smoothed estimate of the given FieldList by using a

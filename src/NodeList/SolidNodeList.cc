@@ -19,7 +19,6 @@
 
 namespace Spheral {
 
-using namespace std;
 
 //------------------------------------------------------------------------------
 // Construct with the given EOS object, along with optional numInternal nodes,

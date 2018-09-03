@@ -17,7 +17,6 @@
 #include "lineSegmentIntersections.hh"
 #include "pointInPolygon.hh"
 
-using namespace std;
 namespace bg = boost::geometry;
 
 BOOST_GEOMETRY_REGISTER_POINT_2D_GET_SET(Spheral::Dim<2>::Vector, double, bg::cs::cartesian, 

@@ -20,7 +20,6 @@
 
 namespace Spheral {
 
-using namespace std;
 
 //------------------------------------------------------------------------------
 // Sort the eigen values/vectors such that the eigen values are arranged from

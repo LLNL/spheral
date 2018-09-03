@@ -3,7 +3,6 @@
 #include "Geometry/Dimension.hh"
 
 #include <vector>
-using namespace std;
 
 namespace Spheral {
 

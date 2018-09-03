@@ -22,7 +22,6 @@
 
 namespace Spheral {
 
-using namespace std;
 
 void 
 waitallWithDeadlockDetection(const string label,

@@ -5,7 +5,6 @@
 
 namespace Spheral {
 
-using namespace std;
 
 //------------------------------------------------------------------------------
 AxialSymmetryBoundary::

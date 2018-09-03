@@ -44,7 +44,6 @@
 
 namespace Spheral {
 
-using namespace std;
 
 //------------------------------------------------------------------------------
 MHD::
@@ -78,7 +77,6 @@ MHD(const TableKernel<Dim<3> >& kernel,
   mAvgDivB(0.0),
   mFirstStep(true) { 
 
-  using namespace std;
 
   // Make sure Spasmos is around.
   importConfig();

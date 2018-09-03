@@ -32,7 +32,6 @@
 
 namespace Spheral {
 
-using namespace std;
 using boost::tuple;
 
 //------------------------------------------------------------------------------

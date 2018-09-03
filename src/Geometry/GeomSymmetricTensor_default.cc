@@ -5,7 +5,6 @@
 #include <limits>
 #include <float.h>
 #include <vector>
-using namespace std;
 
 #include "GeomSymmetricTensor.hh"
 #include "EigenStruct.hh"

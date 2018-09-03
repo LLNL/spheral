@@ -239,6 +239,8 @@ collapseDegenerateVertices(const std::vector<Vector>& vertices,
                            const Uint tol) {
   using namespace boost;
   typedef boost::tuple<Uint, Uint, Uint> Key;
+  using std::vector;
+  using std::set;
 
   unsigned i, j, k;
   const unsigned n = vertices.size();
@@ -329,6 +331,7 @@ exchangeTuples(const std::vector<boost::tuple<T, T, T> >& localKeys,
 #ifdef USE_MPI
   using namespace boost;
   typedef boost::tuple<T, T, T> Key;
+  using std::vector;
 
   const unsigned rank = Process::getRank();
 

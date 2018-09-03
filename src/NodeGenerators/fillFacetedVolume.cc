@@ -2,7 +2,6 @@
 
 namespace Spheral {
 
-using namespace std;
 
 namespace {
 //------------------------------------------------------------------------------

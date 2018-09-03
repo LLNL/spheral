@@ -19,7 +19,6 @@
 #include "Utilities/safeInv.hh"
 #include "FluidNodeList.hh"
 
-using namespace std;
 
 namespace Spheral {
 

@@ -12,7 +12,6 @@
 
 namespace Spheral {
 
-using namespace std;
 
 //------------------------------------------------------------------------------
 // Reduce a container to it's unique elements.

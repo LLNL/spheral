@@ -21,7 +21,6 @@ using std::vector;
 
 namespace Spheral {
 
-using namespace std;
 
 //------------------------------------------------------------------------------
 // Calculate the gradient of the divergence of a Vector FieldList.

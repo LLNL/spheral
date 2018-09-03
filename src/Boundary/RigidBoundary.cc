@@ -12,7 +12,6 @@
 
 #include "RigidBoundary.hh"
 
-using namespace std;
 
 namespace Spheral {
 

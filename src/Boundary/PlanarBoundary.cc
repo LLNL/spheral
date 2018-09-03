@@ -18,7 +18,6 @@
 
 namespace Spheral {
 
-using namespace std;
 
 //------------------------------------------------------------------------------
 // Internal worker method to help with clipping a box range.

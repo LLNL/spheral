@@ -13,11 +13,9 @@
 #include "Utilities/DBC.hh"
 
 #include <iostream>
-using namespace std;
 
 namespace Spheral {
 
-using namespace std;
 using std::min;
 using std::max;
 using std::abs;

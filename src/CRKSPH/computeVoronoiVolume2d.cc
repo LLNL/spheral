@@ -20,7 +20,6 @@ extern Timer TIME_computeVoronoiVolume2d;
 
 namespace Spheral {
 
-using namespace std;
 using std::min;
 using std::max;
 using std::abs;

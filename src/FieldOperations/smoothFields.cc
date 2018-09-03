@@ -18,7 +18,6 @@
 //------------------------------------------------------------------------------
 namespace Spheral {
 
-using namespace std;
 
 template<typename Dimension, typename DataType>
 FieldList<Dimension, DataType>

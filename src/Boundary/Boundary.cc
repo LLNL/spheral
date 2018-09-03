@@ -5,7 +5,6 @@
 //----------------------------------------------------------------------------//
 
 #include <algorithm>
-using namespace std;
 
 #include "Boundary.hh"
 #include "DataBase/DataBase.hh"

@@ -28,7 +28,6 @@
 
 namespace Spheral {
 
-using namespace std;
 
 //------------------------------------------------------------------------------
 // Two ways of comparing the pair<globalID, distance> for sorting.

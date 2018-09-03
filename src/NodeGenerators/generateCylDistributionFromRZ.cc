@@ -14,7 +14,6 @@
 #include "Geometry/Dimension.hh"
 #include "Distributed/Communicator.hh"
 
-using namespace std;
 
 namespace Spheral {
 

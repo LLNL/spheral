@@ -18,7 +18,6 @@
 
 namespace Spheral {
 
-using namespace std;
 using std::vector;
 using std::map;
 

@@ -13,7 +13,6 @@
 
 namespace Spheral {
 
-using namespace std;
 
 //------------------------------------------------------------------------------
 // Define a global function which returns a vector of GridCellIndex objects

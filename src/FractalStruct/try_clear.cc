@@ -19,7 +19,6 @@
 #include <climits>
 #include <cerrno>
 #include <sys/stat.h>
-using namespace std;
 int main()
 {
   vector <int>a(3);

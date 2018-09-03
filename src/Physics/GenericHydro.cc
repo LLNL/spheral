@@ -22,7 +22,6 @@
 #include <limits>
 #include <algorithm>
 
-using namespace std;
 
 namespace Spheral {
 

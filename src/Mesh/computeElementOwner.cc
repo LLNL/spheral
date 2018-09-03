@@ -11,7 +11,6 @@
 
 namespace Spheral {
 
-using namespace std;
 
 vector<unsigned>
 computeElementOwner(const unsigned numElements,

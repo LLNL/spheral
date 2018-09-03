@@ -14,7 +14,6 @@
 
 namespace Spheral {
 
-using namespace std;
 
 //------------------------------------------------------------------------------
 // Compute the minimum volume box containing all the points in a vector of

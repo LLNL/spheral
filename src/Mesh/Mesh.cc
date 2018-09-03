@@ -27,7 +27,6 @@
 
 namespace Spheral {
 
-using namespace std;
 using namespace boost;
 using ::boost::unordered_map;
 using std::min;
