@@ -167,7 +167,7 @@ idealSmoothingScale(const SymTensor& H,
   CHECK(currentNodesPerSmoothingScale > 0.0);
 
   // The ratio of the desired to current nodes per smoothing scale.
-  const Scalar s = min(4.0, max(0.25, nPerh/(currentNodesPerSmoothingScale + 1.0e-30)));
+  const Scalar s = std::min(4.0, std::max(0.25, nPerh/(currentNodesPerSmoothingScale + 1.0e-30)));
   // const Scalar s = min(4.0, max(0.25, min(maxNeighborLimit, nPerh/(currentNodesPerSmoothingScale + 1.0e-30))));
   CHECK(s > 0.0);
 
@@ -180,7 +180,7 @@ idealSmoothingScale(const SymTensor& H,
   }
   CHECK(1.0 - a + a*s > 0.0);
   const double hi0 = 1.0/H.xx();
-  const double hi1 = min(hmax, max(hmin, hi0*(1.0 - a + a*s)));
+  const double hi1 = std::min(hmax, std::max(hmin, hi0*(1.0 - a + a*s)));
 
   // Turn the new vote into the SPH tensor and we're done.
   CHECK(hi1 > 0.0);
@@ -235,7 +235,7 @@ idealSmoothingScale(const SymTensor& H,
                     const Scalar nPerh) const {
   const Scalar vol = zone.volume();
   CHECK(vol > 0.0);
-  const Scalar hi = max(hmin, min(hmax, nPerh * Dimension::rootnu(vol)));
+  const Scalar hi = std::max(hmin, std::min(hmax, nPerh * Dimension::rootnu(vol)));
   return 1.0/hi * SymTensor::one;
 }
 

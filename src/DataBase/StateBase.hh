@@ -46,8 +46,8 @@ public:
   typedef typename Dimension::Vector3d Vector3d;
   typedef typename Dimension::Tensor Tensor;
   typedef typename Dimension::SymTensor SymTensor;
-  typedef typename ConnectivityMap<Dimension> ConnectivityMapType;
-  typedef typename Mesh<Dimension> MeshType;
+  typedef typename Spheral::ConnectivityMap<Dimension> ConnectivityMapType;
+  typedef typename Spheral::Mesh<Dimension> MeshType;
 
   typedef std::shared_ptr<ConnectivityMapType> ConnectivityMapPtr;
   typedef std::shared_ptr<MeshType> MeshPtr;

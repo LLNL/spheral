@@ -1,6 +1,10 @@
 #include "Utilities/DBC.hh"
+#include <math.h>
 
 namespace Spheral {
+
+using std::abs;
+using std::sqrt;
 
 //------------------------------------------------------------------------------
 // Calculate the maximum radial extent of a given smoothing tensor.
@@ -42,7 +46,7 @@ HExtent(const Dim<2>::SymTensor& H,
   const double Hdet = H.Determinant();
   const SymTensor M = H.square();
   CHECK(Hdet > 0.0);
-  return kernelExtent/Hdet*Vector(sqrt(M.yy()), sqrt(M.xx()));
+  return kernelExtent/Hdet*Vector(std::sqrt(M.yy()), sqrt(M.xx()));
 }
   
 template<>
