@@ -446,7 +446,7 @@ setEntropy(Field<Dimension, Scalar>& entropy,
 // Access abar
 //------------------------------------------------------------------------------
 template<typename Dimension>
-const FieldSpace::Field<Dimension, typename Dimension::Scalar>&
+const Field<Dimension, typename Dimension::Scalar>&
 HelmholtzEquationOfState<Dimension>::
 abar() const {
   //return mabar;
@@ -457,7 +457,7 @@ abar() const {
 // Access zbar
 //------------------------------------------------------------------------------
 template<typename Dimension>
-const FieldSpace::Field<Dimension, typename Dimension::Scalar>&
+const Field<Dimension, typename Dimension::Scalar>&
 HelmholtzEquationOfState<Dimension>::
 zbar() const {
   //return mzbar;

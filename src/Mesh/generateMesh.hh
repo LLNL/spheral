@@ -23,7 +23,7 @@ generateMesh(const NodeListIterator nodeListBegin,
              const bool removeBoundaryZones,
              const double voidThreshold,
              Mesh<Dimension>& mesh,
-             NodeSpace::NodeList<Dimension>& voidNodes);
+             NodeList<Dimension>& voidNodes);
 
 }
 
