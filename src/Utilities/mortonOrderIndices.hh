@@ -16,27 +16,23 @@
 namespace Spheral {
 
 // Forward declarations.
-namespace DataBaseSpace {
-  template<typename Dimension> class DataBase;
-}
-namespace FieldSpace {
-  template<typename Dimension, typename DataType> class FieldList;
-}
+template<typename Dimension> class DataBase;
+template<typename Dimension, typename DataType> class FieldList;
 
 template<typename Dimension>
-FieldSpace::FieldList<Dimension, typename KeyTraits::Key>
-mortonOrderIndices(const FieldSpace::FieldList<Dimension, typename Dimension::Vector>& positions);
+FieldList<Dimension, typename KeyTraits::Key>
+mortonOrderIndices(const FieldList<Dimension, typename Dimension::Vector>& positions);
 
 template<typename Dimension>
-FieldSpace::FieldList<Dimension, typename KeyTraits::Key>
-mortonOrderIndices(const DataBaseSpace::DataBase<Dimension>& dataBase);
+FieldList<Dimension, typename KeyTraits::Key>
+mortonOrderIndices(const DataBase<Dimension>& dataBase);
 
 // Special version allowing the user to pass a mask indicating nodes
 // to ignore in the ordering.
 template<typename Dimension>
-FieldSpace::FieldList<Dimension, typename KeyTraits::Key>
-mortonOrderIndices(const DataBaseSpace::DataBase<Dimension>& dataBase,
-                    const FieldSpace::FieldList<Dimension, int>& mask);
+FieldList<Dimension, typename KeyTraits::Key>
+mortonOrderIndices(const DataBase<Dimension>& dataBase,
+                   const FieldList<Dimension, int>& mask);
 
 }
 

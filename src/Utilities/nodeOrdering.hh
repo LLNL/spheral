@@ -13,13 +13,11 @@
 
 namespace Spheral {
 
-namespace FieldSpace {
-  template<typename Dimension, typename DataType> class FieldList;
-}
+template<typename Dimension, typename DataType> class FieldList;
 
 template<typename Dimension, typename DataType>
-FieldSpace::FieldList<Dimension, int>
-nodeOrdering(const FieldSpace::FieldList<Dimension, DataType>& criteria);
+FieldList<Dimension, int>
+nodeOrdering(const FieldList<Dimension, DataType>& criteria);
 
 }
 

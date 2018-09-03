@@ -8,10 +8,6 @@
 // 
 // Created by JMO, Fri Dec 19 16:13:39 PST 2008
 //----------------------------------------------------------------------------//
-#include <algorithm>
-#include <vector>
-#include <boost/tuple/tuple.hpp>
-
 #include "nodeOrdering.hh"
 #include "KeyTraits.hh"
 #include "Field/FieldList.hh"
@@ -23,13 +19,14 @@
 #include "mpi.h"
 #endif
 
+#include <algorithm>
+#include <vector>
+#include <boost/tuple/tuple.hpp>
+
 namespace Spheral {
 
 using namespace std;
 using namespace boost::tuples;
-using FieldSpace::FieldList;
-using FieldSpace::Field;
-using NodeSpace::NodeList;
 
 template<typename DataType>
 struct CompareTuples {
@@ -41,11 +38,11 @@ struct CompareTuples {
 
 template<typename Dimension, typename DataType>
 FieldList<Dimension, int>
-nodeOrdering(const FieldSpace::FieldList<Dimension, DataType>& criteria) {
+nodeOrdering(const FieldList<Dimension, DataType>& criteria) {
   typedef KeyTraits::Key Key;
 
   // Prepare the result.
-  FieldList<Dimension, int> result(FieldSpace::FieldStorageType::CopyFields);
+  FieldList<Dimension, int> result(FieldStorageType::CopyFields);
 
   // Parallel info.
   const int procID = Process::getRank();

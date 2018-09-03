@@ -9,9 +9,6 @@
 //
 // Created by JMO, Sun Jan 31 19:53:36 PST 2010
 //----------------------------------------------------------------------------//
-#include <vector>
-#include <algorithm>
-
 #include "DataBase/DataBase.hh"
 #include "Utilities/allReduce.hh"
 #include "Geometry/Dimension.hh"
@@ -21,12 +18,12 @@
 #include "mpi.h"
 #endif
 
+#include <vector>
+#include <algorithm>
+
 namespace Spheral {
 
 using namespace std;
-using DataBaseSpace::DataBase;
-using FieldSpace::Field;
-using FieldSpace::FieldList;
 
 //------------------------------------------------------------------------------
 // Add the sampling position box bounds to a vector.

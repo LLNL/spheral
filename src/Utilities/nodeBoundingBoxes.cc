@@ -12,17 +12,12 @@
 
 namespace Spheral {
 
-using NodeSpace::NodeList;
-using FieldSpace::Field;
-using FieldSpace::FieldList;
-using DataBaseSpace::DataBase;
-
 //------------------------------------------------------------------------------
 // The bounding boxes for a NodeList.
 //------------------------------------------------------------------------------
 template<typename Dimension>
 Field<Dimension, std::pair<typename Dimension::Vector, typename Dimension::Vector> >
-nodeBoundingBoxes(const NodeSpace::NodeList<Dimension>& nodes) {
+nodeBoundingBoxes(const NodeList<Dimension>& nodes) {
   typedef typename Dimension::Scalar Scalar;
   typedef typename Dimension::Vector Vector;
   typedef typename Dimension::SymTensor SymTensor;
@@ -44,7 +39,7 @@ nodeBoundingBoxes(const NodeSpace::NodeList<Dimension>& nodes) {
 //------------------------------------------------------------------------------
 template<typename Dimension>
 FieldList<Dimension, std::pair<typename Dimension::Vector, typename Dimension::Vector> >
-nodeBoundingBoxes(const DataBaseSpace::DataBase<Dimension>& dataBase) {
+nodeBoundingBoxes(const DataBase<Dimension>& dataBase) {
   typedef typename Dimension::Scalar Scalar;
   typedef typename Dimension::Vector Vector;
   typedef typename Dimension::SymTensor SymTensor;

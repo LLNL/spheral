@@ -260,7 +260,7 @@ finestNonZeroValue(const vector<vector<Value> >& values,
   while ((result == DataTypeTraits<Value>::zero()) and level < int(values.size() - 1)) {
     ++level;
     for (unsigned idim = 0; idim != Dimension::nDim; ++idim) ncellsLevel[idim] /= 2;
-    const size_t index = FieldSpace::latticeIndex(point, xmin, xmax, ncellsLevel);
+    const size_t index = latticeIndex(point, xmin, xmax, ncellsLevel);
     CHECK(index < values[level].size());
     result = values[level][index];
   }

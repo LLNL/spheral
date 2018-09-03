@@ -20,12 +20,8 @@
 #endif
 
 namespace Spheral {
-  namespace FieldSpace {
-    template<typename Dimension, typename DataType> class Field;
-  }
-}
 
-namespace Spheral {
+template<typename Dimension, typename DataType> class Field;
 
 //------------------------------------------------------------------------------
 // A standalone method to pack a given DataType into a vector
@@ -418,7 +414,7 @@ unpackElement(std::vector<DataType>& value,
 template<typename Dimension, typename DataType>
 inline
 int
-computeBufferSize(const FieldSpace::Field<Dimension, DataType>& field,
+computeBufferSize(const Field<Dimension, DataType>& field,
                   const std::vector<int>& packIndicies,
                   const int sendProc,
                   const int recvProc) {
@@ -431,7 +427,7 @@ computeBufferSize(const FieldSpace::Field<Dimension, DataType>& field,
 template<typename Dimension, typename DataType>
 inline
 int
-computeBufferSize(const FieldSpace::Field<Dimension, std::vector<DataType> >& field,
+computeBufferSize(const Field<Dimension, std::vector<DataType> >& field,
                   const std::vector<int>& packIndicies,
                   const int sendProc,
                   const int recvProc) {
@@ -476,7 +472,7 @@ computeBufferSize(const FieldSpace::Field<Dimension, std::vector<DataType> >& fi
 template<typename Dimension, typename DataType>
 inline
 std::vector<char>
-packFieldValues(const FieldSpace::Field<Dimension, DataType>& field,
+packFieldValues(const Field<Dimension, DataType>& field,
                 const std::vector<int>& packIndicies) {
 
   // Prepare the return vector.
@@ -501,7 +497,7 @@ packFieldValues(const FieldSpace::Field<Dimension, DataType>& field,
 template<typename Dimension, typename DataType>
 inline
 void
-unpackFieldValues(FieldSpace::Field<Dimension, DataType>& field,
+unpackFieldValues(Field<Dimension, DataType>& field,
                   const std::vector<int>& packIndicies,
                   const std::vector<char>& packedValues) {
 

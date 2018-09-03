@@ -15,22 +15,22 @@ using namespace __gnu_cxx;
 // Define a hash function for NodeList pointers.
 namespace __gnu_cxx {
   template<>
-  struct hash<const Spheral::NodeSpace::NodeList< Dim<1> >*> {
-    std::size_t operator()(const Spheral::NodeSpace::NodeList< Dim<1> >* key) const {
+  struct hash<const Spheral::NodeList< Dim<1> >*> {
+    std::size_t operator()(const Spheral::NodeList< Dim<1> >* key) const {
       return (std::size_t) key;
     }
   };
 
   template<>
-  struct hash<const Spheral::NodeSpace::NodeList< Dim<2> >*> {
-    std::size_t operator()(const Spheral::NodeSpace::NodeList< Dim<2> >* key) const {
+  struct hash<const Spheral::NodeList< Dim<2> >*> {
+    std::size_t operator()(const Spheral::NodeList< Dim<2> >* key) const {
       return (std::size_t) key;
     }
   };
 
   template<>
-  struct hash<const Spheral::NodeSpace::NodeList< Dim<3> >*> {
-    std::size_t operator()(const Spheral::NodeSpace::NodeList< Dim<3> >* key) const {
+  struct hash<const Spheral::NodeList< Dim<3> >*> {
+    std::size_t operator()(const Spheral::NodeList< Dim<3> >* key) const {
       return (std::size_t) key;
     }
   };
@@ -40,7 +40,7 @@ namespace Spheral {
   // Trait class to define the type of hash_map.
   template<typename Dimension, typename ValueType>
   struct NodeListHashMap {
-    typedef hash_map<const NodeSpace::NodeList<Dimension>*, ValueType> HashMapType;
+    typedef hash_map<const NodeList<Dimension>*, ValueType> HashMapType;
   };
 }
 

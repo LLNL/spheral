@@ -22,10 +22,6 @@ namespace Spheral {
 using namespace std;
 using namespace boost::assign;
 
-using NodeSpace::NodeList;
-using DataBaseSpace::DataBase;
-using FieldSpace::FieldList;
-
 //------------------------------------------------------------------------------
 // The specialized function (per dimension) to dive down the recursive levels
 // of the Peano-Hilbert path and generate the encoded key for a given position.
@@ -418,7 +414,7 @@ peanoHilbertOrderIndices(const FieldList<Dimension, typename Dimension::Vector>&
   typedef typename Dimension::Vector Vector;
 
   // Prepare the result.
-  FieldList<Dimension, Key> result(FieldSpace::FieldStorageType::CopyFields);
+  FieldList<Dimension, Key> result(FieldStorageType::CopyFields);
   const vector<NodeList<Dimension>*>& nodeListPtrs = positions.nodeListPtrs();
   for (const NodeList<Dimension>* nodeListPtr: nodeListPtrs) {
     result.appendNewField("hashed indices", *nodeListPtr, KeyTraits::zero);

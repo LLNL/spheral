@@ -18,10 +18,6 @@ namespace Spheral {
 
 using namespace std;
 
-using NodeSpace::NodeList;
-using DataBaseSpace::DataBase;
-using FieldSpace::FieldList;
-
 //------------------------------------------------------------------------------
 // Stand alone functions to do the interleaved bit hashing of positions.
 //------------------------------------------------------------------------------
@@ -113,7 +109,7 @@ mortonOrderIndices(const FieldList<Dimension, typename Dimension::Vector>& posit
   typedef typename Dimension::Vector Vector;
 
   // Prepare the result.
-  FieldList<Dimension, Key> result(FieldSpace::FieldStorageType::CopyFields);
+  FieldList<Dimension, Key> result(FieldStorageType::CopyFields);
   const vector<NodeList<Dimension>*>& nodeListPtrs = positions.nodeListPtrs();
   for (const NodeList<Dimension>* nodeListPtr: nodeListPtrs) {
     result.appendNewField("hashed indices", *nodeListPtr, KeyTraits::zero);

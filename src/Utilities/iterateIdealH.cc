@@ -2,24 +2,16 @@
 // Iterate the ideal H algorithm to converge on a new H field.
 // This routine replaces the H field in place.
 //------------------------------------------------------------------------------
-#include <ctime>
 #include "iterateIdealH.hh"
 #include "Field/FieldList.hh"
 #include "NodeList/SmoothingScaleBase.hh"
 #include "Utilities/allReduce.hh"
 #include "Distributed/Communicator.hh"
+#include <ctime>
 
 namespace Spheral {
 
 using namespace std;
-
-using DataBaseSpace::DataBase;
-using BoundarySpace::Boundary;
-using KernelSpace::TableKernel;
-using FieldSpace::FieldList;
-using FieldSpace::Field;
-using NeighborSpace::ConnectivityMap;
-using NodeSpace::SmoothingScaleBase;
 
 template<typename Dimension>
 void

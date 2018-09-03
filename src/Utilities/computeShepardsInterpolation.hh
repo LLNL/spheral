@@ -12,13 +12,13 @@
 
 namespace Spheral {
   template<typename Dimension, typename DataType>
-  FieldSpace::FieldList<Dimension, DataType>
-  computeShepardsInterpolation(const FieldSpace::FieldList<Dimension, DataType>& fieldList,
-                               const NeighborSpace::ConnectivityMap<Dimension>& connectivityMap,
-                               const KernelSpace::TableKernel<Dimension>& W,
-                               const FieldSpace::FieldList<Dimension, typename Dimension::Vector>& position,
-                               const FieldSpace::FieldList<Dimension, typename Dimension::SymTensor>& H,
-                               const FieldSpace::FieldList<Dimension, typename Dimension::Scalar>& weight);
+  FieldList<Dimension, DataType>
+  computeShepardsInterpolation(const FieldList<Dimension, DataType>& fieldList,
+                               const ConnectivityMap<Dimension>& connectivityMap,
+                               const TableKernel<Dimension>& W,
+                               const FieldList<Dimension, typename Dimension::Vector>& position,
+                               const FieldList<Dimension, typename Dimension::SymTensor>& H,
+                               const FieldList<Dimension, typename Dimension::Scalar>& weight);
 }
 
 #endif

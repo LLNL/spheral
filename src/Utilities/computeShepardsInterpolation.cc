@@ -9,12 +9,6 @@ namespace Spheral {
 
 using namespace std;
 
-using FieldSpace::FieldList;
-using NeighborSpace::ConnectivityMap;
-using KernelSpace::TableKernel;
-using NodeSpace::NodeList;
-using NodeSpace::FluidNodeList;
-
 template<typename Dimension, typename DataType>
 FieldList<Dimension, DataType>
 computeShepardsInterpolation(const FieldList<Dimension, DataType>& fieldList,
@@ -46,8 +40,8 @@ computeShepardsInterpolation(const FieldList<Dimension, DataType>& fieldList,
   Tensor Ci = Tensor::zero, Cj = Tensor::zero;
 
   // Prepare the return value.
-  FieldList<Dimension, DataType> result(FieldSpace::FieldStorageType::CopyFields);
-  FieldList<Dimension, Scalar> wsum(FieldSpace::FieldStorageType::CopyFields);
+  FieldList<Dimension, DataType> result(FieldStorageType::CopyFields);
+  FieldList<Dimension, Scalar> wsum(FieldStorageType::CopyFields);
   for (nodeListi = 0; nodeListi != numNodeLists; ++nodeListi) {
     result.appendNewField(fieldList[nodeListi]->name(), fieldList[nodeListi]->nodeList(), DataTypeTraits<DataType>::zero());
     wsum.appendNewField("weight sum", fieldList[nodeListi]->nodeList(), 0.0);

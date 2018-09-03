@@ -43,7 +43,7 @@ boundingBox(const vector<Vector>& positions,
 //------------------------------------------------------------------------------
 template<typename Dimension>
 void
-boundingBox(const FieldSpace::FieldList<Dimension, typename Dimension::Vector>& positions,
+boundingBox(const FieldList<Dimension, typename Dimension::Vector>& positions,
             typename Dimension::Vector& xmin,
             typename Dimension::Vector& xmax,
             const bool useGhosts) {

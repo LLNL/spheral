@@ -11,6 +11,14 @@
 //
 // Created by JMO, Fri Oct 29 13:08:33 2004
 //----------------------------------------------------------------------------//
+#include "NodeList/NodeList.hh"
+#include "Field/Field.hh"
+#include "Field/FieldList.hh"
+#include "DataBase/DataBase.hh"
+#include "Utilities/peanoHilbertOrderIndices.hh"
+#include "Utilities/KeyTraits.hh"
+#include "Utilities/DBC.hh"
+
 #include <vector>
 
 #include "boost/tuple/tuple.hpp"
@@ -20,16 +28,7 @@
 #include "Distributed/Communicator.hh"
 #endif
 
-#include "NodeList/NodeList.hh"
-#include "Field/Field.hh"
-#include "Field/FieldList.hh"
-#include "DataBase/DataBase.hh"
-#include "Utilities/peanoHilbertOrderIndices.hh"
-#include "Utilities/KeyTraits.hh"
-#include "Utilities/DBC.hh"
-
 namespace Spheral {
-namespace NodeSpace {
 
 //------------------------------------------------------------------------------
 // Return the total global number of nodes in the NodeList.
@@ -55,8 +54,8 @@ numGlobalNodes(const NodeList<Dimension>& nodeList) {
 template<typename Dimension>
 inline
 int
-numGlobalNodes(const DataBaseSpace::DataBase<Dimension>& dataBase) {
-  return numGlobalNodes<Dimension, typename DataBaseSpace::DataBase<Dimension>::ConstNodeListIterator>(dataBase.nodeListBegin(), dataBase.nodeListEnd());
+numGlobalNodes(const DataBase<Dimension>& dataBase) {
+  return numGlobalNodes<Dimension, typename DataBase<Dimension>::ConstNodeListIterator>(dataBase.nodeListBegin(), dataBase.nodeListEnd());
 }
 
 //------------------------------------------------------------------------------
@@ -80,11 +79,11 @@ numGlobalNodes(const NodeListIterator& begin,
 //------------------------------------------------------------------------------
 template<typename Dimension>
 inline
-FieldSpace::Field<Dimension, int>
+Field<Dimension, int>
 globalNodeIDs(const NodeList<Dimension>& nodeList) {
 
   using namespace std;
-  using FieldSpace::Field;
+  using Field;
   typedef typename Dimension::Vector Vector;
   typedef typename KeyTraits::Key Key;
 
@@ -93,7 +92,7 @@ globalNodeIDs(const NodeList<Dimension>& nodeList) {
   const int numProcs = Process::getTotalNumberOfProcesses();
 
   // Build keys to sort the nodes by.
-  DataBaseSpace::DataBase<Dimension> db;
+  DataBase<Dimension> db;
   db.appendNodeList(const_cast<NodeList<Dimension>&>(nodeList));
   FieldList<Dimension, Key> keys = peanoHilbertOrderIndices(db);
 
@@ -173,7 +172,7 @@ globalNodeIDs(const NodeList<Dimension>& nodeList) {
   }
 
   // Assign process 0's Ids.
-  FieldSpace::Field<Dimension, int> result("global IDs", nodeList);
+  Field<Dimension, int> result("global IDs", nodeList);
   if (procID == 0) {
     for (int i = 0; i != numLocalNodes; ++i) result(i) = globalIDs[0][i];
   }
@@ -213,9 +212,9 @@ globalNodeIDs(const NodeList<Dimension>& nodeList) {
 //------------------------------------------------------------------------------
 template<typename Dimension>
 // inline
-FieldSpace::FieldList<Dimension, int>
-globalNodeIDs(const DataBaseSpace::DataBase<Dimension>& dataBase) {
-  return globalNodeIDs<Dimension, typename DataBaseSpace::DataBase<Dimension>::ConstNodeListIterator>(dataBase.nodeListBegin(), dataBase.nodeListEnd());
+FieldList<Dimension, int>
+globalNodeIDs(const DataBase<Dimension>& dataBase) {
+  return globalNodeIDs<Dimension, typename DataBase<Dimension>::ConstNodeListIterator>(dataBase.nodeListBegin(), dataBase.nodeListEnd());
 }
 
 //------------------------------------------------------------------------------
@@ -224,15 +223,15 @@ globalNodeIDs(const DataBaseSpace::DataBase<Dimension>& dataBase) {
 //------------------------------------------------------------------------------
 template<typename Dimension, typename NodeListIterator>
 // inline
-FieldSpace::FieldList<Dimension, int>
+FieldList<Dimension, int>
 globalNodeIDs(const NodeListIterator& begin,
               const NodeListIterator& end) {
 
   // Prepare the result.
   const size_t numNodeLists = std::distance(begin, end);
-  FieldSpace::FieldList<Dimension, int> result(FieldSpace::FieldStorageType::CopyFields);
+  FieldList<Dimension, int> result(FieldStorageType::CopyFields);
   for (NodeListIterator itr = begin; itr != end; ++itr) {
-    result.appendField(FieldSpace::Field<Dimension, int>("global IDs", **itr));
+    result.appendField(Field<Dimension, int>("global IDs", **itr));
   }
   CHECK(result.numFields() == numNodeLists);
 
@@ -261,7 +260,7 @@ globalNodeIDs(const NodeListIterator& begin,
   int nodeListID = 0;
   for (NodeListIterator nodeListItr = begin; nodeListItr != end; ++nodeListItr, ++nodeListID) {
     const NodeList<Dimension>& nodeList = **nodeListItr;
-    FieldSpace::Field<Dimension, int>& globalIDs = **result.fieldForNodeList(nodeList);
+    Field<Dimension, int>& globalIDs = **result.fieldForNodeList(nodeList);
 
     // Construct the set of global IDs for this NodeList on this domain.
     CHECK(endID - beginID >= nodeList.numInternalNodes());
@@ -278,12 +277,12 @@ globalNodeIDs(const NodeListIterator& begin,
     // Make sure each global ID is unique.
     const int nGlobal = numGlobalNodes<Dimension, NodeListIterator>(begin, end);
     for (int checkProc = 0; checkProc != numProcs; ++checkProc) {
-      for (typename FieldSpace::FieldList<Dimension, int>::const_iterator fieldItr = result.begin();
+      for (typename FieldList<Dimension, int>::const_iterator fieldItr = result.begin();
            fieldItr != result.end();
            ++fieldItr) {
         int n = (*fieldItr)->nodeListPtr()->numInternalNodes();
-        typename FieldSpace::Field<Dimension, int>::const_iterator fieldBegin = (*fieldItr)->begin();
-        typename FieldSpace::Field<Dimension, int>::const_iterator fieldEnd = fieldBegin + n;
+        typename Field<Dimension, int>::const_iterator fieldBegin = (*fieldItr)->begin();
+        typename Field<Dimension, int>::const_iterator fieldEnd = fieldBegin + n;
         MPI_Bcast(&n, 1, MPI_INT, checkProc, Communicator::communicator());
         for (int i = 0; i != n; ++i) {
           int id;
@@ -304,7 +303,7 @@ globalNodeIDs(const NodeListIterator& begin,
   int numCumulativeNodes = 0;
   for (NodeListIterator nodeListItr = begin; nodeListItr != end; ++nodeListItr) {
     const NodeList<Dimension>& nodeList = **nodeListItr;
-    FieldSpace::Field<Dimension, int>& globalIDs = **result.fieldForNodeList(nodeList);
+    Field<Dimension, int>& globalIDs = **result.fieldForNodeList(nodeList);
     globalIDs = globalNodeIDs(nodeList);
     for (int i = 0; i != globalIDs.numElements(); ++i) globalIDs(i) += numCumulativeNodes;
     numCumulativeNodes += globalIDs.numElements();
@@ -316,5 +315,4 @@ globalNodeIDs(const NodeListIterator& begin,
   return result;
 }
 
-}
 }
