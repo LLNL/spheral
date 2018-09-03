@@ -28,35 +28,35 @@ namespace Spheral {
         typedef typename Physics<Dimension>::TimeStepType TimeStepType;
             
         // Constructors
-        ArtificialConduction(const KernelSpace::TableKernel<Dimension>& W,
-                             const Scalar alphaArCond, const CRKSPHSpace::CRKOrder ACcorrectionOrder = CRKSPHSpace::CRKOrder::LinearOrder);
+        ArtificialConduction(const TableKernel<Dimension>& W,
+                             const Scalar alphaArCond, const CRKOrder ACcorrectionOrder = CRKOrder::LinearOrder);
             
         // Destructor
         virtual ~ArtificialConduction();
             
         // Do any required one-time initializations on problem start up.
-        virtual void initializeProblemStartup(DataBaseSpace::DataBase<Dimension>& dataBase);
+        virtual void initializeProblemStartup(DataBase<Dimension>& dataBase);
             
         // Register our state.
-        virtual void registerState(DataBaseSpace::DataBase<Dimension>& dataBase,
+        virtual void registerState(DataBase<Dimension>& dataBase,
                                    State<Dimension>& state);
         //Allow access to the AC correction order.
-        CRKSPHSpace::CRKOrder ACcorrectionOrder() const;
-        void ACcorrectionOrder(CRKSPHSpace::CRKOrder order);
+        CRKOrder ACcorrectionOrder() const;
+        void ACcorrectionOrder(CRKOrder order);
             
         // Provide default methods for registering and iterating derivatives.
-        virtual void registerDerivatives(DataBaseSpace::DataBase<Dimension>& dataBase,
+        virtual void registerDerivatives(DataBase<Dimension>& dataBase,
                                          StateDerivatives<Dimension>& derivs);
         virtual
         void evaluateDerivatives(const Scalar time,
                                  const Scalar dt,
-                                 const DataBaseSpace::DataBase<Dimension>& dataBase,
+                                 const DataBase<Dimension>& dataBase,
                                  const State<Dimension>& state,
                                  StateDerivatives<Dimension>& derivatives) const;
             
             
         // Vote on a time step.
-        virtual TimeStepType dt(const DataBaseSpace::DataBase<Dimension>& dataBase,
+        virtual TimeStepType dt(const DataBase<Dimension>& dataBase,
                                 const State<Dimension>& state,
                                 const StateDerivatives<Dimension>& derivs,
                                 const Scalar currentTime) const;
@@ -67,14 +67,14 @@ namespace Spheral {
             
     private:
         //--------------------------- Private Interface ---------------------------//
-        const KernelSpace::TableKernel<Dimension>& mKernel;
+        const TableKernel<Dimension>& mKernel;
             
         // Our derivative field(s).
-        FieldSpace::FieldList<Dimension, Vector> mGradP;
-        FieldSpace::FieldList<Dimension, Scalar> mDepsDtArty;
-        FieldSpace::FieldList<Dimension, Scalar> mVsigMax;
+        FieldList<Dimension, Vector> mGradP;
+        FieldList<Dimension, Scalar> mDepsDtArty;
+        FieldList<Dimension, Scalar> mVsigMax;
         Scalar mAlphaArCond;
-        CRKSPHSpace::CRKOrder mACcorrectionOrder;
+        CRKOrder mACcorrectionOrder;
 
     };
 }
