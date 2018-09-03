@@ -17,7 +17,7 @@ computeNeighborHull(const std::vector<std::vector<int> >& fullConnectivity,
                     const typename Dimension::Scalar etaCutoff,
                     const typename Dimension::Vector& ri,
                     const typename Dimension::SymTensor& Hi,
-                    const FieldSpace::FieldList<Dimension, typename Dimension::Vector>& position);
+                    const FieldList<Dimension, typename Dimension::Vector>& position);
 
 }
 

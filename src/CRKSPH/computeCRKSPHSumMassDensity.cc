@@ -48,7 +48,7 @@ computeCRKSPHSumMassDensity(const ConnectivityMap<Dimension>& connectivityMap,
   Vector Bi = Vector::zero, Bj = Vector::zero;
   Tensor Ci = Tensor::zero, Cj = Tensor::zero;
 
-  FieldList<Dimension, Scalar> wsum(FieldSpace::FieldStorageType::CopyFields), vol1(FieldSpace::FieldStorageType::CopyFields);
+  FieldList<Dimension, Scalar> wsum(FieldStorageType::CopyFields), vol1(FieldStorageType::CopyFields);
   for (size_t nodeListi = 0; nodeListi != numNodeLists; ++nodeListi) {
     wsum.appendNewField("weight sum", position[nodeListi]->nodeList(), 0.0);
     vol1.appendNewField("sampled volume", position[nodeListi]->nodeList(), 0.0);

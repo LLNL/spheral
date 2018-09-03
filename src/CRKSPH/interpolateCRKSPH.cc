@@ -18,24 +18,18 @@ using std::min;
 using std::max;
 using std::abs;
 
-using FieldSpace::Field;
-using FieldSpace::FieldList;
-using NeighborSpace::ConnectivityMap;
-using KernelSpace::TableKernel;
-using NodeSpace::NodeList;
-
 template<typename Dimension, typename DataType>
-FieldSpace::FieldList<Dimension, DataType>
-interpolateCRKSPH(const FieldSpace::FieldList<Dimension, DataType>& fieldList,
-                  const FieldSpace::FieldList<Dimension, typename Dimension::Vector>& position,
-                  const FieldSpace::FieldList<Dimension, typename Dimension::Scalar>& weight,
-                  const FieldSpace::FieldList<Dimension, typename Dimension::SymTensor>& H,
-                  const FieldSpace::FieldList<Dimension, typename Dimension::Scalar>& A,
-                  const FieldSpace::FieldList<Dimension, typename Dimension::Vector>& B,
-                  const FieldSpace::FieldList<Dimension, typename Dimension::Tensor>& C,
-                  const NeighborSpace::ConnectivityMap<Dimension>& connectivityMap,
+FieldList<Dimension, DataType>
+interpolateCRKSPH(const FieldList<Dimension, DataType>& fieldList,
+                  const FieldList<Dimension, typename Dimension::Vector>& position,
+                  const FieldList<Dimension, typename Dimension::Scalar>& weight,
+                  const FieldList<Dimension, typename Dimension::SymTensor>& H,
+                  const FieldList<Dimension, typename Dimension::Scalar>& A,
+                  const FieldList<Dimension, typename Dimension::Vector>& B,
+                  const FieldList<Dimension, typename Dimension::Tensor>& C,
+                  const ConnectivityMap<Dimension>& connectivityMap,
                   const CRKOrder correctionOrder,
-                  const KernelSpace::TableKernel<Dimension>& W,
+                  const TableKernel<Dimension>& W,
                   const NodeCoupling& nodeCoupling) {
 
   // Pre-conditions.

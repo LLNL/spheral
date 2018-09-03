@@ -14,8 +14,8 @@ template<typename Dimension, typename DataType> class FieldList;
 template<typename Dimension>
 void
 computeHVolumes(const typename Dimension::Scalar nPerh,
-                const FieldSpace::FieldList<Dimension, typename Dimension::SymTensor>& H,
-                FieldSpace::FieldList<Dimension, typename Dimension::Scalar>& volume);
+                const FieldList<Dimension, typename Dimension::SymTensor>& H,
+                FieldList<Dimension, typename Dimension::Scalar>& volume);
 
 }
 

@@ -13,11 +13,11 @@ template<typename Dimension, typename DataType> class FieldList;
 
 template<typename Dimension>
 void
-computeHullVolumes(const NeighborSpace::ConnectivityMap<Dimension>& connectivityMap,
+computeHullVolumes(const ConnectivityMap<Dimension>& connectivityMap,
                    const typename Dimension::Scalar kernelExtent,
-                   const FieldSpace::FieldList<Dimension, typename Dimension::Vector>& position,
-                   const FieldSpace::FieldList<Dimension, typename Dimension::SymTensor>& H,
-                   FieldSpace::FieldList<Dimension, typename Dimension::Scalar>& volume);
+                   const FieldList<Dimension, typename Dimension::Vector>& position,
+                   const FieldList<Dimension, typename Dimension::SymTensor>& H,
+                   FieldList<Dimension, typename Dimension::Scalar>& volume);
 
 }
 

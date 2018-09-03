@@ -6,7 +6,7 @@ namespace Spheral {
 //------------------------------------------------------------------------------
 template<typename Dimension>
 inline
-PhysicsSpace::MassDensityType
+MassDensityType
 CRKSPHHydroBase<Dimension>::densityUpdate() const {
   return mDensityUpdate;
 }
@@ -15,7 +15,7 @@ template<typename Dimension>
 inline
 void
 CRKSPHHydroBase<Dimension>::
-densityUpdate(const PhysicsSpace::MassDensityType type) {
+densityUpdate(const MassDensityType type) {
   mDensityUpdate = type;
 }
 
@@ -24,7 +24,7 @@ densityUpdate(const PhysicsSpace::MassDensityType type) {
 //------------------------------------------------------------------------------
 template<typename Dimension>
 inline
-PhysicsSpace::HEvolutionType
+HEvolutionType
 CRKSPHHydroBase<Dimension>::HEvolution() const {
   return mHEvolution;
 }
@@ -33,7 +33,7 @@ template<typename Dimension>
 inline
 void
 CRKSPHHydroBase<Dimension>::
-HEvolution(const PhysicsSpace::HEvolutionType type) {
+HEvolution(const HEvolutionType type) {
   mHEvolution = type;
 }
 
@@ -42,7 +42,7 @@ HEvolution(const PhysicsSpace::HEvolutionType type) {
 //------------------------------------------------------------------------------
 template<typename Dimension>
 inline
-CRKSPHSpace::CRKOrder
+CRKOrder
 CRKSPHHydroBase<Dimension>::correctionOrder() const {
   return mCorrectionOrder;
 }
@@ -51,7 +51,7 @@ template<typename Dimension>
 inline
 void
 CRKSPHHydroBase<Dimension>::
-correctionOrder(const CRKSPHSpace::CRKOrder order) {
+correctionOrder(const CRKOrder order) {
   mCorrectionOrder = order;
 }
 
@@ -60,7 +60,7 @@ correctionOrder(const CRKSPHSpace::CRKOrder order) {
 //------------------------------------------------------------------------------
 template<typename Dimension>
 inline
-CRKSPHSpace::CRKVolumeType
+CRKVolumeType
 CRKSPHHydroBase<Dimension>::volumeType() const {
   return mVolumeType;
 }
@@ -69,7 +69,7 @@ template<typename Dimension>
 inline
 void
 CRKSPHHydroBase<Dimension>::
-volumeType(const CRKSPHSpace::CRKVolumeType x) {
+volumeType(const CRKVolumeType x) {
   mVolumeType = x;
 }
 
@@ -130,7 +130,7 @@ CRKSPHHydroBase<Dimension>::XSPH(const bool val) {
 //------------------------------------------------------------------------------
 template<typename Dimension>
 inline
-const NodeSpace::SmoothingScaleBase<Dimension>&
+const SmoothingScaleBase<Dimension>&
 CRKSPHHydroBase<Dimension>::
 smoothingScaleMethod() const {
   return mSmoothingScaleMethod;
@@ -231,7 +231,7 @@ correctionMax(const double val) {
 //------------------------------------------------------------------------------
 template<typename Dimension>
 inline
-const FieldSpace::FieldList<Dimension, int>&
+const FieldList<Dimension, int>&
 CRKSPHHydroBase<Dimension>::
 timeStepMask() const {
   return mTimeStepMask;
@@ -239,7 +239,7 @@ timeStepMask() const {
 
 template<typename Dimension>
 inline
-const FieldSpace::FieldList<Dimension, typename Dimension::Scalar>&
+const FieldList<Dimension, typename Dimension::Scalar>&
 CRKSPHHydroBase<Dimension>::
 pressure() const {
   return mPressure;
@@ -247,7 +247,7 @@ pressure() const {
 
 template<typename Dimension>
 inline
-const FieldSpace::FieldList<Dimension, typename Dimension::Scalar>&
+const FieldList<Dimension, typename Dimension::Scalar>&
 CRKSPHHydroBase<Dimension>::
 soundSpeed() const {
   return mSoundSpeed;
@@ -255,7 +255,7 @@ soundSpeed() const {
 
 template<typename Dimension>
 inline
-const FieldSpace::FieldList<Dimension, typename Dimension::Scalar>&
+const FieldList<Dimension, typename Dimension::Scalar>&
 CRKSPHHydroBase<Dimension>::
 specificThermalEnergy0() const {
   return mSpecificThermalEnergy0;
@@ -263,7 +263,7 @@ specificThermalEnergy0() const {
 
 template<typename Dimension>
 inline
-const FieldSpace::FieldList<Dimension, typename Dimension::Scalar>&
+const FieldList<Dimension, typename Dimension::Scalar>&
 CRKSPHHydroBase<Dimension>::
 entropy() const {
   return mEntropy;
@@ -271,7 +271,7 @@ entropy() const {
 
 template<typename Dimension>
 inline
-const FieldSpace::FieldList<Dimension, typename Dimension::SymTensor>&
+const FieldList<Dimension, typename Dimension::SymTensor>&
 CRKSPHHydroBase<Dimension>::
 Hideal() const {
   return mHideal;
@@ -279,7 +279,7 @@ Hideal() const {
 
 template<typename Dimension>
 inline
-const FieldSpace::FieldList<Dimension, typename Dimension::Scalar>&
+const FieldList<Dimension, typename Dimension::Scalar>&
 CRKSPHHydroBase<Dimension>::
 maxViscousPressure() const {
   return mMaxViscousPressure;
@@ -287,7 +287,7 @@ maxViscousPressure() const {
 
 template<typename Dimension>
 inline
-const FieldSpace::FieldList<Dimension, typename Dimension::Scalar>&
+const FieldList<Dimension, typename Dimension::Scalar>&
 CRKSPHHydroBase<Dimension>::
 effectiveViscousPressure() const {
   return mEffViscousPressure;
@@ -295,7 +295,7 @@ effectiveViscousPressure() const {
 
 template<typename Dimension>
 inline
-const FieldSpace::FieldList<Dimension, typename Dimension::Scalar>&
+const FieldList<Dimension, typename Dimension::Scalar>&
 CRKSPHHydroBase<Dimension>::
 viscousWork() const {
   return mViscousWork;
@@ -303,7 +303,7 @@ viscousWork() const {
 
 template<typename Dimension>
 inline
-const FieldSpace::FieldList<Dimension, typename Dimension::Scalar>&
+const FieldList<Dimension, typename Dimension::Scalar>&
 CRKSPHHydroBase<Dimension>::
 weightedNeighborSum() const {
   return mWeightedNeighborSum;
@@ -311,7 +311,7 @@ weightedNeighborSum() const {
 
 template<typename Dimension>
 inline
-const FieldSpace::FieldList<Dimension, typename Dimension::SymTensor>&
+const FieldList<Dimension, typename Dimension::SymTensor>&
 CRKSPHHydroBase<Dimension>::
 massSecondMoment() const {
   return mMassSecondMoment;
@@ -319,7 +319,7 @@ massSecondMoment() const {
 
 template<typename Dimension>
 inline
-const FieldSpace::FieldList<Dimension, typename Dimension::Scalar>&
+const FieldList<Dimension, typename Dimension::Scalar>&
 CRKSPHHydroBase<Dimension>::
 volume() const {
   return mVolume;
@@ -327,7 +327,7 @@ volume() const {
 
 template<typename Dimension>
 inline
-const FieldSpace::FieldList<Dimension, typename Dimension::Vector>&
+const FieldList<Dimension, typename Dimension::Vector>&
 CRKSPHHydroBase<Dimension>::
 massDensityGradient() const {
   return mMassDensityGradient;
@@ -335,7 +335,7 @@ massDensityGradient() const {
 
 template<typename Dimension>
 inline
-const FieldSpace::FieldList<Dimension, typename Dimension::Vector>&
+const FieldList<Dimension, typename Dimension::Vector>&
 CRKSPHHydroBase<Dimension>::
 XSPHDeltaV() const {
   return mXSPHDeltaV;
@@ -343,7 +343,7 @@ XSPHDeltaV() const {
 
 template<typename Dimension>
 inline
-const FieldSpace::FieldList<Dimension, typename Dimension::Vector>&
+const FieldList<Dimension, typename Dimension::Vector>&
 CRKSPHHydroBase<Dimension>::
 DxDt() const {
   return mDxDt;
@@ -351,7 +351,7 @@ DxDt() const {
 
 template<typename Dimension>
 inline
-const FieldSpace::FieldList<Dimension, typename Dimension::Vector>&
+const FieldList<Dimension, typename Dimension::Vector>&
 CRKSPHHydroBase<Dimension>::
 DvDt() const {
   return mDvDt;
@@ -359,7 +359,7 @@ DvDt() const {
 
 template<typename Dimension>
 inline
-const FieldSpace::FieldList<Dimension, typename Dimension::Scalar>&
+const FieldList<Dimension, typename Dimension::Scalar>&
 CRKSPHHydroBase<Dimension>::
 DmassDensityDt() const {
   return mDmassDensityDt;
@@ -367,7 +367,7 @@ DmassDensityDt() const {
 
 template<typename Dimension>
 inline
-const FieldSpace::FieldList<Dimension, typename Dimension::Scalar>&
+const FieldList<Dimension, typename Dimension::Scalar>&
 CRKSPHHydroBase<Dimension>::
 DspecificThermalEnergyDt() const {
   return mDspecificThermalEnergyDt;
@@ -375,7 +375,7 @@ DspecificThermalEnergyDt() const {
 
 template<typename Dimension>
 inline
-const FieldSpace::FieldList<Dimension, typename Dimension::SymTensor>&
+const FieldList<Dimension, typename Dimension::SymTensor>&
 CRKSPHHydroBase<Dimension>::
 DHDt() const {
   return mDHDt;
@@ -383,7 +383,7 @@ DHDt() const {
 
 template<typename Dimension>
 inline
-const FieldSpace::FieldList<Dimension, typename Dimension::Tensor>&
+const FieldList<Dimension, typename Dimension::Tensor>&
 CRKSPHHydroBase<Dimension>::
 DvDx() const {
   return mDvDx;
@@ -391,7 +391,7 @@ DvDx() const {
 
 template<typename Dimension>
 inline
-const FieldSpace::FieldList<Dimension, typename Dimension::Tensor>&
+const FieldList<Dimension, typename Dimension::Tensor>&
 CRKSPHHydroBase<Dimension>::
 internalDvDx() const {
   return mInternalDvDx;
@@ -399,7 +399,7 @@ internalDvDx() const {
 
 template<typename Dimension>
 inline
-const FieldSpace::FieldList<Dimension, std::vector<typename Dimension::Vector> >&
+const FieldList<Dimension, std::vector<typename Dimension::Vector> >&
 CRKSPHHydroBase<Dimension>::
 pairAccelerations() const {
   return mPairAccelerations;
@@ -407,7 +407,7 @@ pairAccelerations() const {
 
 template<typename Dimension>
 inline
-const FieldSpace::FieldList<Dimension, typename Dimension::Vector>&
+const FieldList<Dimension, typename Dimension::Vector>&
 CRKSPHHydroBase<Dimension>::
 deltaCentroid() const {
   return mDeltaCentroid;
@@ -415,7 +415,7 @@ deltaCentroid() const {
 
 template<typename Dimension>
 inline
-const FieldSpace::FieldList<Dimension, typename Dimension::Scalar>&
+const FieldList<Dimension, typename Dimension::Scalar>&
 CRKSPHHydroBase<Dimension>::
 A() const {
   return mA;
@@ -423,7 +423,7 @@ A() const {
 
 template<typename Dimension>
 inline
-const FieldSpace::FieldList<Dimension, typename Dimension::Vector>&
+const FieldList<Dimension, typename Dimension::Vector>&
 CRKSPHHydroBase<Dimension>::
 B() const {
   return mB;
@@ -431,7 +431,7 @@ B() const {
 
 template<typename Dimension>
 inline
-const FieldSpace::FieldList<Dimension, typename Dimension::Tensor>&
+const FieldList<Dimension, typename Dimension::Tensor>&
 CRKSPHHydroBase<Dimension>::
 C() const {
   return mC;
@@ -439,7 +439,7 @@ C() const {
 
 template<typename Dimension>
 inline
-const FieldSpace::FieldList<Dimension, typename Dimension::Vector>&
+const FieldList<Dimension, typename Dimension::Vector>&
 CRKSPHHydroBase<Dimension>::
 gradA() const {
   return mGradA;
@@ -447,7 +447,7 @@ gradA() const {
 
 template<typename Dimension>
 inline
-const FieldSpace::FieldList<Dimension, typename Dimension::Tensor>&
+const FieldList<Dimension, typename Dimension::Tensor>&
 CRKSPHHydroBase<Dimension>::
 gradB() const {
   return mGradB;
@@ -455,7 +455,7 @@ gradB() const {
   
 template<typename Dimension>
 inline
-const FieldSpace::FieldList<Dimension, typename Dimension::ThirdRankTensor>&
+const FieldList<Dimension, typename Dimension::ThirdRankTensor>&
 CRKSPHHydroBase<Dimension>::
 gradC() const {
   return mGradC;
@@ -463,7 +463,7 @@ gradC() const {
 
 template<typename Dimension>
 inline
-const FieldSpace::FieldList<Dimension, typename Dimension::Scalar>&
+const FieldList<Dimension, typename Dimension::Scalar>&
 CRKSPHHydroBase<Dimension>::
 m0() const {
   return mM0;
@@ -471,7 +471,7 @@ m0() const {
 
 template<typename Dimension>
 inline
-const FieldSpace::FieldList<Dimension, typename Dimension::Vector>&
+const FieldList<Dimension, typename Dimension::Vector>&
 CRKSPHHydroBase<Dimension>::
 m1() const {
   return mM1;
@@ -479,7 +479,7 @@ m1() const {
 
 template<typename Dimension>
 inline
-const FieldSpace::FieldList<Dimension, typename Dimension::SymTensor>&
+const FieldList<Dimension, typename Dimension::SymTensor>&
 CRKSPHHydroBase<Dimension>::
 m2() const {
   return mM2;
@@ -487,7 +487,7 @@ m2() const {
 
 template<typename Dimension>
 inline
-const FieldSpace::FieldList<Dimension, typename Dimension::ThirdRankTensor>&
+const FieldList<Dimension, typename Dimension::ThirdRankTensor>&
 CRKSPHHydroBase<Dimension>::
 m3() const {
   return mM3;
@@ -495,7 +495,7 @@ m3() const {
 
 template<typename Dimension>
 inline
-const FieldSpace::FieldList<Dimension, typename Dimension::FourthRankTensor>&
+const FieldList<Dimension, typename Dimension::FourthRankTensor>&
 CRKSPHHydroBase<Dimension>::
 m4() const {
   return mM4;
@@ -503,7 +503,7 @@ m4() const {
 
 template<typename Dimension>
 inline
-const FieldSpace::FieldList<Dimension, typename Dimension::Vector>&
+const FieldList<Dimension, typename Dimension::Vector>&
 CRKSPHHydroBase<Dimension>::
 gradm0() const {
   return mGradm0;
@@ -511,7 +511,7 @@ gradm0() const {
 
 template<typename Dimension>
 inline
-const FieldSpace::FieldList<Dimension, typename Dimension::Tensor>&
+const FieldList<Dimension, typename Dimension::Tensor>&
 CRKSPHHydroBase<Dimension>::
 gradm1() const {
   return mGradm1;
@@ -519,7 +519,7 @@ gradm1() const {
 
 template<typename Dimension>
 inline
-const FieldSpace::FieldList<Dimension, typename Dimension::ThirdRankTensor>&
+const FieldList<Dimension, typename Dimension::ThirdRankTensor>&
 CRKSPHHydroBase<Dimension>::
 gradm2() const {
   return mGradm2;
@@ -527,7 +527,7 @@ gradm2() const {
 
 template<typename Dimension>
 inline
-const FieldSpace::FieldList<Dimension, typename Dimension::FourthRankTensor>&
+const FieldList<Dimension, typename Dimension::FourthRankTensor>&
 CRKSPHHydroBase<Dimension>::
 gradm3() const {
   return mGradm3;
@@ -535,7 +535,7 @@ gradm3() const {
 
 template<typename Dimension>
 inline
-const FieldSpace::FieldList<Dimension, typename Dimension::FifthRankTensor>&
+const FieldList<Dimension, typename Dimension::FifthRankTensor>&
 CRKSPHHydroBase<Dimension>::
 gradm4() const {
   return mGradm4;
@@ -543,7 +543,7 @@ gradm4() const {
 
 template<typename Dimension>
 inline
-const FieldSpace::FieldList<Dimension, int>&
+const FieldList<Dimension, int>&
 CRKSPHHydroBase<Dimension>::
 surfacePoint() const {
   return mSurfacePoint;
@@ -551,7 +551,7 @@ surfacePoint() const {
 
 template<typename Dimension>
 inline
-const FieldSpace::FieldList<Dimension, int>&
+const FieldList<Dimension, int>&
 CRKSPHHydroBase<Dimension>::
 voidPoint() const {
   return mVoidPoint;
@@ -559,7 +559,7 @@ voidPoint() const {
 
 template<typename Dimension>
 inline
-const FieldSpace::FieldList<Dimension, std::vector<typename Dimension::Vector>>&
+const FieldList<Dimension, std::vector<typename Dimension::Vector>>&
 CRKSPHHydroBase<Dimension>::
 etaVoidPoints() const {
   return mEtaVoidPoints;
@@ -567,7 +567,7 @@ etaVoidPoints() const {
 
 template<typename Dimension>
 inline
-const BoundarySpace::CRKSPHVoidBoundary<Dimension>&
+const CRKSPHVoidBoundary<Dimension>&
 CRKSPHHydroBase<Dimension>::
 voidBoundary() const {
   return mVoidBoundary;

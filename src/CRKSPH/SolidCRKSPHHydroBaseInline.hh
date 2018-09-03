@@ -24,7 +24,7 @@ damageRelieveRubble(const bool x) {
 //------------------------------------------------------------------------------
 template<typename Dimension>
 inline
-const FieldSpace::FieldList<Dimension, typename Dimension::SymTensor>&
+const FieldList<Dimension, typename Dimension::SymTensor>&
 SolidCRKSPHHydroBase<Dimension>::
 DdeviatoricStressDt() const {
   return mDdeviatoricStressDt;
@@ -32,7 +32,7 @@ DdeviatoricStressDt() const {
 
 template<typename Dimension>
 inline
-const FieldSpace::FieldList<Dimension, typename Dimension::Scalar>&
+const FieldList<Dimension, typename Dimension::Scalar>&
 SolidCRKSPHHydroBase<Dimension>::
 bulkModulus() const {
   return mBulkModulus;
@@ -40,7 +40,7 @@ bulkModulus() const {
 
 template<typename Dimension>
 inline
-const FieldSpace::FieldList<Dimension, typename Dimension::Scalar>&
+const FieldList<Dimension, typename Dimension::Scalar>&
 SolidCRKSPHHydroBase<Dimension>::
 shearModulus() const {
   return mShearModulus;
@@ -48,7 +48,7 @@ shearModulus() const {
 
 template<typename Dimension>
 inline
-const FieldSpace::FieldList<Dimension, typename Dimension::Scalar>&
+const FieldList<Dimension, typename Dimension::Scalar>&
 SolidCRKSPHHydroBase<Dimension>::
 yieldStrength() const {
   return mYieldStrength;
@@ -56,7 +56,7 @@ yieldStrength() const {
 
 template<typename Dimension>
 inline
-const FieldSpace::FieldList<Dimension, typename Dimension::Scalar>&
+const FieldList<Dimension, typename Dimension::Scalar>&
 SolidCRKSPHHydroBase<Dimension>::
 plasticStrain0() const {
   return mPlasticStrain0;
@@ -64,7 +64,7 @@ plasticStrain0() const {
 
 template<typename Dimension>
 inline
-const FieldSpace::FieldList<Dimension, typename Dimension::SymTensor>&
+const FieldList<Dimension, typename Dimension::SymTensor>&
 SolidCRKSPHHydroBase<Dimension>::
 Hfield0() const {
   return mHfield0;

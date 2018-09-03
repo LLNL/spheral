@@ -15,14 +15,14 @@ class NodeCoupling;
 
 template<typename Dimension>
 void
-computeSolidCRKSPHSumMassDensity(const NeighborSpace::ConnectivityMap<Dimension>& connectivityMap,
-                                 const KernelSpace::TableKernel<Dimension>& W,
-                                 const FieldSpace::FieldList<Dimension, typename Dimension::Vector>& position,
-                                 const FieldSpace::FieldList<Dimension, typename Dimension::Scalar>& mass,
-                                 const FieldSpace::FieldList<Dimension, typename Dimension::SymTensor>& H,
-                                 const FieldSpace::FieldList<Dimension, typename Dimension::Scalar>& massDensity0,
+computeSolidCRKSPHSumMassDensity(const ConnectivityMap<Dimension>& connectivityMap,
+                                 const TableKernel<Dimension>& W,
+                                 const FieldList<Dimension, typename Dimension::Vector>& position,
+                                 const FieldList<Dimension, typename Dimension::Scalar>& mass,
+                                 const FieldList<Dimension, typename Dimension::SymTensor>& H,
+                                 const FieldList<Dimension, typename Dimension::Scalar>& massDensity0,
                                  const NodeCoupling& nodeCoupling,
-                                 FieldSpace::FieldList<Dimension, typename Dimension::Scalar>& massDensity);
+                                 FieldList<Dimension, typename Dimension::Scalar>& massDensity);
 
 }
 

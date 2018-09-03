@@ -37,12 +37,12 @@ computeSolidCRKSPHSumMassDensity(const ConnectivityMap<Dimension>& connectivityM
   typedef typename Dimension::Vector Vector;
   typedef typename Dimension::Tensor Tensor;
   typedef typename Dimension::SymTensor SymTensor;
-  typedef typename std::vector<BoundarySpace::Boundary<Dimension>*>::const_iterator ConstBoundaryIterator;
+  typedef typename std::vector<Boundary<Dimension>*>::const_iterator ConstBoundaryIterator;
 
   const Scalar W0 = W.kernelValue(0.0, 1.0);
 
   // Prepare to sum the correction.
-  FieldList<Dimension, Scalar> m0(FieldSpace::FieldStorageType::CopyFields);
+  FieldList<Dimension, Scalar> m0(FieldStorageType::CopyFields);
   for (size_t nodeListi = 0; nodeListi != numNodeLists; ++nodeListi) {
     m0.appendNewField("zeroth correction", position[nodeListi]->nodeList(), 0.0);
   }

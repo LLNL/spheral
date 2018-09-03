@@ -38,8 +38,8 @@ public:
   typedef typename FieldListUpdatePolicyBase<Dimension, Scalar>::KeyType KeyType;
 
   // Constructors, destructor.
-  CRKSPHSpecificThermalEnergyPolicy(const DataBaseSpace::DataBase<Dimension>& db,
-                                  const KernelSpace::TableKernel<Dimension>& W);
+  CRKSPHSpecificThermalEnergyPolicy(const DataBase<Dimension>& db,
+                                  const TableKernel<Dimension>& W);
   virtual ~CRKSPHSpecificThermalEnergyPolicy();
   
   // Overload the methods describing how to update Fields.
@@ -71,8 +71,8 @@ public:
 
 private:
   //--------------------------- Private Interface ---------------------------//
-  const DataBaseSpace::DataBase<Dimension>* mDataBasePtr;
-  const KernelSpace::TableKernel<Dimension>& mWT;
+  const DataBase<Dimension>* mDataBasePtr;
+  const TableKernel<Dimension>& mWT;
 
   CRKSPHSpecificThermalEnergyPolicy(const CRKSPHSpecificThermalEnergyPolicy& rhs);
   CRKSPHSpecificThermalEnergyPolicy& operator=(const CRKSPHSpecificThermalEnergyPolicy& rhs);

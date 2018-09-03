@@ -16,23 +16,23 @@ template<typename Dimension, typename DataType> class FieldList;
 
 template<typename Dimension>
 void
-computeCRKSPHMoments(const NeighborSpace::ConnectivityMap<Dimension>& connectivityMap,
-                     const KernelSpace::TableKernel<Dimension>& W,
-                     const FieldSpace::FieldList<Dimension, typename Dimension::Scalar>& weight,
-                     const FieldSpace::FieldList<Dimension, typename Dimension::Vector>& position,
-                     const FieldSpace::FieldList<Dimension, typename Dimension::SymTensor>& H,
+computeCRKSPHMoments(const ConnectivityMap<Dimension>& connectivityMap,
+                     const TableKernel<Dimension>& W,
+                     const FieldList<Dimension, typename Dimension::Scalar>& weight,
+                     const FieldList<Dimension, typename Dimension::Vector>& position,
+                     const FieldList<Dimension, typename Dimension::SymTensor>& H,
                      const CRKOrder correctionOrder,
                      const NodeCoupling& nodeCoupling,
-                     FieldSpace::FieldList<Dimension, typename Dimension::Scalar>& m0,
-                     FieldSpace::FieldList<Dimension, typename Dimension::Vector>& m1,
-                     FieldSpace::FieldList<Dimension, typename Dimension::SymTensor>& m2,
-                     FieldSpace::FieldList<Dimension, typename Dimension::ThirdRankTensor>& m3,
-                     FieldSpace::FieldList<Dimension, typename Dimension::FourthRankTensor>& m4,
-                     FieldSpace::FieldList<Dimension, typename Dimension::Vector>& gradm0,
-                     FieldSpace::FieldList<Dimension, typename Dimension::Tensor>& gradm1,
-                     FieldSpace::FieldList<Dimension, typename Dimension::ThirdRankTensor>& gradm2,
-                     FieldSpace::FieldList<Dimension, typename Dimension::FourthRankTensor>& gradm3,
-                     FieldSpace::FieldList<Dimension, typename Dimension::FifthRankTensor>& gradm4);
+                     FieldList<Dimension, typename Dimension::Scalar>& m0,
+                     FieldList<Dimension, typename Dimension::Vector>& m1,
+                     FieldList<Dimension, typename Dimension::SymTensor>& m2,
+                     FieldList<Dimension, typename Dimension::ThirdRankTensor>& m3,
+                     FieldList<Dimension, typename Dimension::FourthRankTensor>& m4,
+                     FieldList<Dimension, typename Dimension::Vector>& gradm0,
+                     FieldList<Dimension, typename Dimension::Tensor>& gradm1,
+                     FieldList<Dimension, typename Dimension::ThirdRankTensor>& gradm2,
+                     FieldList<Dimension, typename Dimension::FourthRankTensor>& gradm3,
+                     FieldList<Dimension, typename Dimension::FifthRankTensor>& gradm4);
 
 }
 

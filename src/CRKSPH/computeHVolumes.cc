@@ -10,10 +10,6 @@ namespace Spheral {
 
 using namespace std;
 
-using FieldSpace::Field;
-using FieldSpace::FieldList;
-using NodeSpace::NodeList;
-
 namespace {
 //------------------------------------------------------------------------------
 // Define a dimension specialized method to compute the H volume.

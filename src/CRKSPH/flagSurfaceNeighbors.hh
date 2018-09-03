@@ -10,8 +10,8 @@
 
 namespace Spheral {
 template<typename Dimension> 
-void flagSurfaceNeighbors(FieldSpace::FieldList<Dimension, int>& surfacePoint,
-                          const NeighborSpace::ConnectivityMap<Dimension>& connectivityMap);
+void flagSurfaceNeighbors(FieldList<Dimension, int>& surfacePoint,
+                          const ConnectivityMap<Dimension>& connectivityMap);
 }
 
 #endif

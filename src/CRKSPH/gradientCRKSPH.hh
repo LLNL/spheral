@@ -16,20 +16,20 @@ template<typename Dimension> class TableKernel;
 template<typename Dimension, typename DataType> class FieldList;
 
 template<typename Dimension, typename DataType>
-FieldSpace::FieldList<Dimension, typename MathTraits<Dimension, DataType>::GradientType>
-gradientCRKSPH(const FieldSpace::FieldList<Dimension, DataType>& fieldList,
-               const FieldSpace::FieldList<Dimension, typename Dimension::Vector>& position,
-               const FieldSpace::FieldList<Dimension, typename Dimension::Scalar>& weight,
-               const FieldSpace::FieldList<Dimension, typename Dimension::SymTensor>& H,
-               const FieldSpace::FieldList<Dimension, typename Dimension::Scalar>& A,
-               const FieldSpace::FieldList<Dimension, typename Dimension::Vector>& B,
-               const FieldSpace::FieldList<Dimension, typename Dimension::Tensor>& C,
-               const FieldSpace::FieldList<Dimension, typename Dimension::Vector>& gradA,
-               const FieldSpace::FieldList<Dimension, typename Dimension::Tensor>& gradB,
-               const FieldSpace::FieldList<Dimension, typename Dimension::ThirdRankTensor>& gradC,
-               const NeighborSpace::ConnectivityMap<Dimension>& connectivityMap,
+FieldList<Dimension, typename MathTraits<Dimension, DataType>::GradientType>
+gradientCRKSPH(const FieldList<Dimension, DataType>& fieldList,
+               const FieldList<Dimension, typename Dimension::Vector>& position,
+               const FieldList<Dimension, typename Dimension::Scalar>& weight,
+               const FieldList<Dimension, typename Dimension::SymTensor>& H,
+               const FieldList<Dimension, typename Dimension::Scalar>& A,
+               const FieldList<Dimension, typename Dimension::Vector>& B,
+               const FieldList<Dimension, typename Dimension::Tensor>& C,
+               const FieldList<Dimension, typename Dimension::Vector>& gradA,
+               const FieldList<Dimension, typename Dimension::Tensor>& gradB,
+               const FieldList<Dimension, typename Dimension::ThirdRankTensor>& gradC,
+               const ConnectivityMap<Dimension>& connectivityMap,
                const CRKOrder correctionOrder,
-               const KernelSpace::TableKernel<Dimension>& W,
+               const TableKernel<Dimension>& W,
                const NodeCoupling& nodeCoupling = NodeCoupling());
 
 }

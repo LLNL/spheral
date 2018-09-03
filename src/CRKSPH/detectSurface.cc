@@ -24,15 +24,15 @@ using std::abs;
 
 template<typename Dimension>
 void
-detectSurface(const NeighborSpace::ConnectivityMap<Dimension>& connectivityMap,
-              const FieldSpace::FieldList<Dimension, typename Dimension::Scalar>& m0,
-              const FieldSpace::FieldList<Dimension, typename Dimension::Vector>& m1,
-              const FieldSpace::FieldList<Dimension, typename Dimension::Vector>& position,
-              const FieldSpace::FieldList<Dimension, typename Dimension::SymTensor>& H,
+detectSurface(const ConnectivityMap<Dimension>& connectivityMap,
+              const FieldList<Dimension, typename Dimension::Scalar>& m0,
+              const FieldList<Dimension, typename Dimension::Vector>& m1,
+              const FieldList<Dimension, typename Dimension::Vector>& position,
+              const FieldList<Dimension, typename Dimension::SymTensor>& H,
               const double detectThreshold,
               const double detectRange,
               const double sweepAngle,
-              FieldSpace::FieldList<Dimension, int>& surfacePoint) {
+              FieldList<Dimension, int>& surfacePoint) {
 
   // Pre-conditions.
   const size_t numNodeLists = m0.size();

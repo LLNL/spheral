@@ -24,15 +24,6 @@ using std::min;
 using std::max;
 using std::abs;
 
-using FieldSpace::Field;
-using FieldSpace::FieldList;
-using NeighborSpace::ConnectivityMap;
-using KernelSpace::TableKernel;
-using NodeSpace::NodeList;
-using Geometry::outerProduct;
-using Geometry::innerProduct;
-using Geometry::innerDoubleProduct;
-
 namespace {
 
 //------------------------------------------------------------------------------
@@ -173,8 +164,8 @@ void solveGradC(const Dim<3>::FourthRankTensor& L,
 //------------------------------------------------------------------------------
 template<typename Dimension>
 void
-computeZerothCRKSPHCorrections(const FieldSpace::FieldList<Dimension, typename Dimension::Scalar>& m0,
-                               const FieldSpace::FieldList<Dimension, typename Dimension::Vector>& gradm0,
+computeZerothCRKSPHCorrections(const FieldList<Dimension, typename Dimension::Scalar>& m0,
+                               const FieldList<Dimension, typename Dimension::Vector>& gradm0,
                                FieldList<Dimension, typename Dimension::Scalar>& A,
                                FieldList<Dimension, typename Dimension::Vector>& gradA) {
 
@@ -203,13 +194,13 @@ computeZerothCRKSPHCorrections(const FieldSpace::FieldList<Dimension, typename D
 //------------------------------------------------------------------------------
 template<typename Dimension>
 void
-computeLinearCRKSPHCorrections(const FieldSpace::FieldList<Dimension, typename Dimension::Scalar>& m0,
-                               const FieldSpace::FieldList<Dimension, typename Dimension::Vector>& m1,
-                               const FieldSpace::FieldList<Dimension, typename Dimension::SymTensor>& m2,
-                               const FieldSpace::FieldList<Dimension, typename Dimension::Vector>& gradm0,
-                               const FieldSpace::FieldList<Dimension, typename Dimension::Tensor>& gradm1,
-                               const FieldSpace::FieldList<Dimension, typename Dimension::ThirdRankTensor>& gradm2,
-                               const FieldSpace::FieldList<Dimension, typename Dimension::SymTensor>& H,
+computeLinearCRKSPHCorrections(const FieldList<Dimension, typename Dimension::Scalar>& m0,
+                               const FieldList<Dimension, typename Dimension::Vector>& m1,
+                               const FieldList<Dimension, typename Dimension::SymTensor>& m2,
+                               const FieldList<Dimension, typename Dimension::Vector>& gradm0,
+                               const FieldList<Dimension, typename Dimension::Tensor>& gradm1,
+                               const FieldList<Dimension, typename Dimension::ThirdRankTensor>& gradm2,
+                               const FieldList<Dimension, typename Dimension::SymTensor>& H,
                                FieldList<Dimension, typename Dimension::Scalar>& A,
                                FieldList<Dimension, typename Dimension::Vector>& B,
                                FieldList<Dimension, typename Dimension::Vector>& gradA,
@@ -276,17 +267,17 @@ computeLinearCRKSPHCorrections(const FieldSpace::FieldList<Dimension, typename D
 //------------------------------------------------------------------------------
 template<typename Dimension>
 void
-computeQuadraticCRKSPHCorrections(const FieldSpace::FieldList<Dimension, typename Dimension::Scalar>& m0,
-                                  const FieldSpace::FieldList<Dimension, typename Dimension::Vector>& m1,
-                                  const FieldSpace::FieldList<Dimension, typename Dimension::SymTensor>& m2,
-                                  const FieldSpace::FieldList<Dimension, typename Dimension::ThirdRankTensor>& m3,
-                                  const FieldSpace::FieldList<Dimension, typename Dimension::FourthRankTensor>& m4,
-                                  const FieldSpace::FieldList<Dimension, typename Dimension::Vector>& gradm0,
-                                  const FieldSpace::FieldList<Dimension, typename Dimension::Tensor>& gradm1,
-                                  const FieldSpace::FieldList<Dimension, typename Dimension::ThirdRankTensor>& gradm2,
-                                  const FieldSpace::FieldList<Dimension, typename Dimension::FourthRankTensor>& gradm3,
-                                  const FieldSpace::FieldList<Dimension, typename Dimension::FifthRankTensor>& gradm4,
-                                  const FieldSpace::FieldList<Dimension, typename Dimension::SymTensor>& H,
+computeQuadraticCRKSPHCorrections(const FieldList<Dimension, typename Dimension::Scalar>& m0,
+                                  const FieldList<Dimension, typename Dimension::Vector>& m1,
+                                  const FieldList<Dimension, typename Dimension::SymTensor>& m2,
+                                  const FieldList<Dimension, typename Dimension::ThirdRankTensor>& m3,
+                                  const FieldList<Dimension, typename Dimension::FourthRankTensor>& m4,
+                                  const FieldList<Dimension, typename Dimension::Vector>& gradm0,
+                                  const FieldList<Dimension, typename Dimension::Tensor>& gradm1,
+                                  const FieldList<Dimension, typename Dimension::ThirdRankTensor>& gradm2,
+                                  const FieldList<Dimension, typename Dimension::FourthRankTensor>& gradm3,
+                                  const FieldList<Dimension, typename Dimension::FifthRankTensor>& gradm4,
+                                  const FieldList<Dimension, typename Dimension::SymTensor>& H,
                                   FieldList<Dimension, typename Dimension::Scalar>& A,
                                   FieldList<Dimension, typename Dimension::Vector>& B,
                                   FieldList<Dimension, typename Dimension::Tensor>& C,
@@ -476,12 +467,12 @@ computeCRKSPHCorrections(const ConnectivityMap<Dimension>& connectivityMap,
 
   // We can derive everything in terms of the zeroth, first, and second moments 
   // of the local positions.
-  FieldList<Dimension, Scalar> m0(FieldSpace::FieldStorageType::CopyFields), m0c(FieldSpace::FieldStorageType::CopyFields);
-  FieldList<Dimension, Vector> m1(FieldSpace::FieldStorageType::CopyFields), m1c(FieldSpace::FieldStorageType::CopyFields);
-  FieldList<Dimension, SymTensor> m2(FieldSpace::FieldStorageType::CopyFields), m2c(FieldSpace::FieldStorageType::CopyFields);
-  FieldList<Dimension, Vector> gradm0(FieldSpace::FieldStorageType::CopyFields), gradm0c(FieldSpace::FieldStorageType::CopyFields);
-  FieldList<Dimension, Tensor> gradm1(FieldSpace::FieldStorageType::CopyFields), gradm1c(FieldSpace::FieldStorageType::CopyFields);
-  FieldList<Dimension, ThirdRankTensor> gradm2(FieldSpace::FieldStorageType::CopyFields), gradm2c(FieldSpace::FieldStorageType::CopyFields);
+  FieldList<Dimension, Scalar> m0(FieldStorageType::CopyFields), m0c(FieldStorageType::CopyFields);
+  FieldList<Dimension, Vector> m1(FieldStorageType::CopyFields), m1c(FieldStorageType::CopyFields);
+  FieldList<Dimension, SymTensor> m2(FieldStorageType::CopyFields), m2c(FieldStorageType::CopyFields);
+  FieldList<Dimension, Vector> gradm0(FieldStorageType::CopyFields), gradm0c(FieldStorageType::CopyFields);
+  FieldList<Dimension, Tensor> gradm1(FieldStorageType::CopyFields), gradm1c(FieldStorageType::CopyFields);
+  FieldList<Dimension, ThirdRankTensor> gradm2(FieldStorageType::CopyFields), gradm2c(FieldStorageType::CopyFields);
   for (auto nodeListi = 0; nodeListi < numNodeLists; ++nodeListi) {
     const auto& nodeList = A[nodeListi]->nodeList();
     m0.appendNewField("zeroth moment", nodeList, 0.0);
@@ -652,17 +643,17 @@ computeCRKSPHCorrections(const ConnectivityMap<Dimension>& connectivityMap,
 //------------------------------------------------------------------------------
 template<typename Dimension>
 void
-computeCRKSPHCorrections(const FieldSpace::FieldList<Dimension, typename Dimension::Scalar>& m0,
-                         const FieldSpace::FieldList<Dimension, typename Dimension::Vector>& m1,
-                         const FieldSpace::FieldList<Dimension, typename Dimension::SymTensor>& m2,
-                         const FieldSpace::FieldList<Dimension, typename Dimension::ThirdRankTensor>& m3,
-                         const FieldSpace::FieldList<Dimension, typename Dimension::FourthRankTensor>& m4,
-                         const FieldSpace::FieldList<Dimension, typename Dimension::Vector>& gradm0,
-                         const FieldSpace::FieldList<Dimension, typename Dimension::Tensor>& gradm1,
-                         const FieldSpace::FieldList<Dimension, typename Dimension::ThirdRankTensor>& gradm2,
-                         const FieldSpace::FieldList<Dimension, typename Dimension::FourthRankTensor>& gradm3,
-                         const FieldSpace::FieldList<Dimension, typename Dimension::FifthRankTensor>& gradm4,
-                         const FieldSpace::FieldList<Dimension, typename Dimension::SymTensor>& H,
+computeCRKSPHCorrections(const FieldList<Dimension, typename Dimension::Scalar>& m0,
+                         const FieldList<Dimension, typename Dimension::Vector>& m1,
+                         const FieldList<Dimension, typename Dimension::SymTensor>& m2,
+                         const FieldList<Dimension, typename Dimension::ThirdRankTensor>& m3,
+                         const FieldList<Dimension, typename Dimension::FourthRankTensor>& m4,
+                         const FieldList<Dimension, typename Dimension::Vector>& gradm0,
+                         const FieldList<Dimension, typename Dimension::Tensor>& gradm1,
+                         const FieldList<Dimension, typename Dimension::ThirdRankTensor>& gradm2,
+                         const FieldList<Dimension, typename Dimension::FourthRankTensor>& gradm3,
+                         const FieldList<Dimension, typename Dimension::FifthRankTensor>& gradm4,
+                         const FieldList<Dimension, typename Dimension::SymTensor>& H,
                          const CRKOrder correctionOrder,
                          FieldList<Dimension, typename Dimension::Scalar>& A,
                          FieldList<Dimension, typename Dimension::Vector>& B,

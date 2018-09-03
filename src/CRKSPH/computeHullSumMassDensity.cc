@@ -190,7 +190,7 @@ computeHullSumMassDensity(const ConnectivityMap<Dimension>& connectivityMap,
   typedef typename Dimension::Vector Vector;
   typedef typename Dimension::Tensor Tensor;
   typedef typename Dimension::SymTensor SymTensor;
-  typedef typename std::vector<BoundarySpace::Boundary<Dimension>*>::const_iterator ConstBoundaryIterator;
+  typedef typename std::vector<Boundary<Dimension>*>::const_iterator ConstBoundaryIterator;
 
   const Scalar kernelExtent2 = FastMath::square(W.kernelExtent());
 

@@ -19,14 +19,6 @@ using std::min;
 using std::max;
 using std::abs;
 
-using FieldSpace::Field;
-using FieldSpace::FieldList;
-using NeighborSpace::ConnectivityMap;
-using KernelSpace::TableKernel;
-using NodeSpace::NodeList;
-using Geometry::outerProduct;
-using Geometry::innerProduct;
-
 template<typename Dimension>
 void
 computeCRKSPHEvaluation(const ConnectivityMap<Dimension>& connectivityMap,

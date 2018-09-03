@@ -113,10 +113,10 @@ SolidCRKSPHHydroBaseRZ(const SmoothingScaleBase<Dimension>& smoothingScaleMethod
                        const bool compatibleEnergyEvolution,
                        const bool evolveTotalEnergy,
                        const bool XSPH,
-                       const PhysicsSpace::MassDensityType densityUpdate,
-                       const PhysicsSpace::HEvolutionType HUpdate,
-                       const CRKSPHSpace::CRKOrder correctionOrder,
-                       const CRKSPHSpace::CRKVolumeType volumeType,
+                       const MassDensityType densityUpdate,
+                       const HEvolutionType HUpdate,
+                       const CRKOrder correctionOrder,
+                       const CRKVolumeType volumeType,
                        const double epsTensile,
                        const double nTensile,
                        const bool damageRelieveRubble):
@@ -137,8 +137,8 @@ SolidCRKSPHHydroBaseRZ(const SmoothingScaleBase<Dimension>& smoothingScaleMethod
                                   epsTensile,
                                   nTensile,
                                   damageRelieveRubble),
-  mDeviatoricStressTT(FieldSpace::FieldStorageType::CopyFields),
-  mDdeviatoricStressTTDt(FieldSpace::FieldStorageType::CopyFields) {
+  mDeviatoricStressTT(FieldStorageType::CopyFields),
+  mDdeviatoricStressTTDt(FieldStorageType::CopyFields) {
 }
 
 //------------------------------------------------------------------------------

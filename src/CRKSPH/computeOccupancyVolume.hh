@@ -14,11 +14,11 @@ namespace Spheral {
 
 template<typename Dimension>
 void
-computeOccupancyVolume(const NeighborSpace::ConnectivityMap<Dimension>& connectivityMap,
-                       const KernelSpace::TableKernel<Dimension>& W,
-                       const FieldSpace::FieldList<Dimension, typename Dimension::Vector>& position,
-                       const FieldSpace::FieldList<Dimension, typename Dimension::SymTensor>& H,
-                       FieldSpace::FieldList<Dimension, typename Dimension::Scalar>& vol);
+computeOccupancyVolume(const ConnectivityMap<Dimension>& connectivityMap,
+                       const TableKernel<Dimension>& W,
+                       const FieldList<Dimension, typename Dimension::Vector>& position,
+                       const FieldList<Dimension, typename Dimension::SymTensor>& H,
+                       FieldList<Dimension, typename Dimension::Scalar>& vol);
 
 }
 

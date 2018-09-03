@@ -13,8 +13,8 @@ using namespace std;
 
 template<typename Dimension>
 void
-flagSurfaceNeighbors(FieldSpace::FieldList<Dimension, int>& surfacePoint,
-                     const NeighborSpace::ConnectivityMap<Dimension >& connectivityMap) {
+flagSurfaceNeighbors(FieldList<Dimension, int>& surfacePoint,
+                     const ConnectivityMap<Dimension >& connectivityMap) {
 
   typedef Dim<1>::Scalar Scalar;
   typedef Dim<1>::Vector Vector;

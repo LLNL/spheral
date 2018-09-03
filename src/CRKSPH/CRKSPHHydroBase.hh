@@ -27,7 +27,7 @@ class FileIO;
 namespace Spheral {
 
 template<typename Dimension>
-class CRKSPHHydroBase: public PhysicsSpace::GenericHydro<Dimension> {
+class CRKSPHHydroBase: public GenericHydro<Dimension> {
 
 public:
   //--------------------------- Public Interface ---------------------------//
@@ -40,23 +40,23 @@ public:
   typedef typename Dimension::SymTensor SymTensor;
   typedef typename Dimension::FacetedVolume FacetedVolume;
 
-  typedef typename PhysicsSpace::Physics<Dimension>::ConstBoundaryIterator ConstBoundaryIterator;
+  typedef typename Physics<Dimension>::ConstBoundaryIterator ConstBoundaryIterator;
 
   // Constructors.
-  CRKSPHHydroBase(const NodeSpace::SmoothingScaleBase<Dimension>& smoothingScaleMethod,
-                  ArtificialViscositySpace::ArtificialViscosity<Dimension>& Q,
-                  const KernelSpace::TableKernel<Dimension>& W,
-                  const KernelSpace::TableKernel<Dimension>& WPi,
+  CRKSPHHydroBase(const SmoothingScaleBase<Dimension>& smoothingScaleMethod,
+                  ArtificialViscosity<Dimension>& Q,
+                  const TableKernel<Dimension>& W,
+                  const TableKernel<Dimension>& WPi,
                   const double filter,
                   const double cfl,
                   const bool useVelocityMagnitudeForDt,
                   const bool compatibleEnergyEvolution,
                   const bool evolveTotalEnergy,
                   const bool XSPH,
-                  const PhysicsSpace::MassDensityType densityUpdate,
-                  const PhysicsSpace::HEvolutionType HUpdate,
-                  const CRKSPHSpace::CRKOrder correctionOrder,
-                  const CRKSPHSpace::CRKVolumeType volumeType,
+                  const MassDensityType densityUpdate,
+                  const HEvolutionType HUpdate,
+                  const CRKOrder correctionOrder,
+                  const CRKVolumeType volumeType,
                   const double epsTensile,
                   const double nTensile);
 
@@ -65,23 +65,23 @@ public:
 
   // Tasks we do once on problem startup.
   virtual
-  void initializeProblemStartup(DataBaseSpace::DataBase<Dimension>& dataBase) override;
+  void initializeProblemStartup(DataBase<Dimension>& dataBase) override;
 
   // Register the state Hydro expects to use and evolve.
   virtual 
-  void registerState(DataBaseSpace::DataBase<Dimension>& dataBase,
+  void registerState(DataBase<Dimension>& dataBase,
                      State<Dimension>& state) override;
 
   // Register the derivatives/change fields for updating state.
   virtual
-  void registerDerivatives(DataBaseSpace::DataBase<Dimension>& dataBase,
+  void registerDerivatives(DataBase<Dimension>& dataBase,
                            StateDerivatives<Dimension>& derivs) override;
 
   // Initialize the Hydro before we start a derivative evaluation.
   virtual
   void initialize(const Scalar time,
                   const Scalar dt,
-                  const DataBaseSpace::DataBase<Dimension>& dataBase,
+                  const DataBase<Dimension>& dataBase,
                   State<Dimension>& state,
                   StateDerivatives<Dimension>& derivs) override;
                           
@@ -90,7 +90,7 @@ public:
   virtual
   void evaluateDerivatives(const Scalar time,
                            const Scalar dt,
-                           const DataBaseSpace::DataBase<Dimension>& dataBase,
+                           const DataBase<Dimension>& dataBase,
                            const State<Dimension>& state,
                            StateDerivatives<Dimension>& derivatives) const override;
 
@@ -98,7 +98,7 @@ public:
   virtual
   void finalizeDerivatives(const Scalar time,
                            const Scalar dt,
-                           const DataBaseSpace::DataBase<Dimension>& dataBase,
+                           const DataBase<Dimension>& dataBase,
                            const State<Dimension>& state,
                            StateDerivatives<Dimension>& derivs) const override;
 
@@ -106,7 +106,7 @@ public:
   virtual
   void finalize(const Scalar time,
                 const Scalar dt,
-                DataBaseSpace::DataBase<Dimension>& dataBase,
+                DataBase<Dimension>& dataBase,
                 State<Dimension>& state,
                 StateDerivatives<Dimension>& derivs) override;
                   
@@ -125,21 +125,21 @@ public:
 
   // Flag to choose whether we want to sum for density, or integrate
   // the continuity equation.
-  PhysicsSpace::MassDensityType densityUpdate() const;
-  void densityUpdate(const PhysicsSpace::MassDensityType type);
+  MassDensityType densityUpdate() const;
+  void densityUpdate(const MassDensityType type);
 
   // Flag to select how we want to evolve the H tensor.
   // the continuity equation.
-  PhysicsSpace::HEvolutionType HEvolution() const;
-  void HEvolution(const PhysicsSpace::HEvolutionType type);
+  HEvolutionType HEvolution() const;
+  void HEvolution(const HEvolutionType type);
 
   // Flag to choose CRK Correction Order
-  CRKSPHSpace::CRKOrder correctionOrder() const;
-  void correctionOrder(const CRKSPHSpace::CRKOrder order);
+  CRKOrder correctionOrder() const;
+  void correctionOrder(const CRKOrder order);
 
   // Flag for the CRK volume weighting definition
-  CRKSPHSpace::CRKVolumeType volumeType() const;
-  void volumeType(const CRKSPHSpace::CRKVolumeType x);
+  CRKVolumeType volumeType() const;
+  void volumeType(const CRKVolumeType x);
 
   // Flag to determine if we're using the total energy conserving compatible energy
   // evolution scheme.
@@ -159,7 +159,7 @@ public:
   void XSPH(const bool val);
 
   // The object defining how we evolve smoothing scales.
-  const NodeSpace::SmoothingScaleBase<Dimension>& smoothingScaleMethod() const;
+  const SmoothingScaleBase<Dimension>& smoothingScaleMethod() const;
 
   // Fraction of centroidal filtering to apply.
   double filter() const;
@@ -180,41 +180,41 @@ public:
   void correctionMax(const double val);
 
   // We maintain a special boundary condition to handle void points.
-  const BoundarySpace::CRKSPHVoidBoundary<Dimension>& voidBoundary() const;
+  const CRKSPHVoidBoundary<Dimension>& voidBoundary() const;
 
   // The state field lists we're maintaining.
-  const FieldSpace::FieldList<Dimension, int>&       timeStepMask() const;
-  const FieldSpace::FieldList<Dimension, Scalar>&    pressure() const;
-  const FieldSpace::FieldList<Dimension, Scalar>&    soundSpeed() const;
-  const FieldSpace::FieldList<Dimension, Scalar>&    specificThermalEnergy0() const;
-  const FieldSpace::FieldList<Dimension, Scalar>&    entropy() const;
-  const FieldSpace::FieldList<Dimension, SymTensor>& Hideal() const;
-  const FieldSpace::FieldList<Dimension, Scalar>&    maxViscousPressure() const;
-  const FieldSpace::FieldList<Dimension, Scalar>&    effectiveViscousPressure() const;
-  const FieldSpace::FieldList<Dimension, Scalar>&    viscousWork() const;
-  const FieldSpace::FieldList<Dimension, Scalar>&    weightedNeighborSum() const;
-  const FieldSpace::FieldList<Dimension, SymTensor>& massSecondMoment() const;
-  const FieldSpace::FieldList<Dimension, Scalar>&    volume() const;
-  const FieldSpace::FieldList<Dimension, Scalar>&    volume0() const;
-  const FieldSpace::FieldList<Dimension, Vector>&    massDensityGradient() const;
-  const FieldSpace::FieldList<Dimension, Vector>&    XSPHDeltaV() const;
-  const FieldSpace::FieldList<Dimension, Vector>&    DxDt() const;
+  const FieldList<Dimension, int>&       timeStepMask() const;
+  const FieldList<Dimension, Scalar>&    pressure() const;
+  const FieldList<Dimension, Scalar>&    soundSpeed() const;
+  const FieldList<Dimension, Scalar>&    specificThermalEnergy0() const;
+  const FieldList<Dimension, Scalar>&    entropy() const;
+  const FieldList<Dimension, SymTensor>& Hideal() const;
+  const FieldList<Dimension, Scalar>&    maxViscousPressure() const;
+  const FieldList<Dimension, Scalar>&    effectiveViscousPressure() const;
+  const FieldList<Dimension, Scalar>&    viscousWork() const;
+  const FieldList<Dimension, Scalar>&    weightedNeighborSum() const;
+  const FieldList<Dimension, SymTensor>& massSecondMoment() const;
+  const FieldList<Dimension, Scalar>&    volume() const;
+  const FieldList<Dimension, Scalar>&    volume0() const;
+  const FieldList<Dimension, Vector>&    massDensityGradient() const;
+  const FieldList<Dimension, Vector>&    XSPHDeltaV() const;
+  const FieldList<Dimension, Vector>&    DxDt() const;
 
-  const FieldSpace::FieldList<Dimension, Vector>&    DvDt() const;
-  const FieldSpace::FieldList<Dimension, Scalar>&    DmassDensityDt() const;
-  const FieldSpace::FieldList<Dimension, Scalar>&    DspecificThermalEnergyDt() const;
-  const FieldSpace::FieldList<Dimension, SymTensor>& DHDt() const;
-  const FieldSpace::FieldList<Dimension, Tensor>&    DvDx() const;
-  const FieldSpace::FieldList<Dimension, Tensor>&    internalDvDx() const;
-  const FieldSpace::FieldList<Dimension, std::vector<Vector> >& pairAccelerations() const;
-  const FieldSpace::FieldList<Dimension, Vector>&    deltaCentroid() const;
+  const FieldList<Dimension, Vector>&    DvDt() const;
+  const FieldList<Dimension, Scalar>&    DmassDensityDt() const;
+  const FieldList<Dimension, Scalar>&    DspecificThermalEnergyDt() const;
+  const FieldList<Dimension, SymTensor>& DHDt() const;
+  const FieldList<Dimension, Tensor>&    DvDx() const;
+  const FieldList<Dimension, Tensor>&    internalDvDx() const;
+  const FieldList<Dimension, std::vector<Vector> >& pairAccelerations() const;
+  const FieldList<Dimension, Vector>&    deltaCentroid() const;
 
-  const FieldSpace::FieldList<Dimension, Scalar>&    A() const;
-  const FieldSpace::FieldList<Dimension, Vector>&    B() const;
-  const FieldSpace::FieldList<Dimension, Tensor>&    C() const;
-  const FieldSpace::FieldList<Dimension, Vector>&    gradA() const;
-  const FieldSpace::FieldList<Dimension, Tensor>&    gradB() const;
-  const FieldSpace::FieldList<Dimension, ThirdRankTensor>&    gradC() const;
+  const FieldList<Dimension, Scalar>&    A() const;
+  const FieldList<Dimension, Vector>&    B() const;
+  const FieldList<Dimension, Tensor>&    C() const;
+  const FieldList<Dimension, Vector>&    gradA() const;
+  const FieldList<Dimension, Tensor>&    gradB() const;
+  const FieldList<Dimension, ThirdRankTensor>&    gradC() const;
     
   const FieldList<Dimension, Scalar>&                m0() const;
   const FieldList<Dimension, Vector>&                m1() const;
@@ -227,27 +227,27 @@ public:
   const FieldList<Dimension, FourthRankTensor>&      gradm3() const;
   const FieldList<Dimension, FifthRankTensor>&       gradm4() const;
 
-  const FieldSpace::FieldList<Dimension, int>&       surfacePoint() const;
-  const FieldSpace::FieldList<Dimension, int>&       voidPoint() const;
-  const FieldSpace::FieldList<Dimension, std::vector<Vector>>& etaVoidPoints() const;
+  const FieldList<Dimension, int>&       surfacePoint() const;
+  const FieldList<Dimension, int>&       voidPoint() const;
+  const FieldList<Dimension, std::vector<Vector>>& etaVoidPoints() const;
 
   //****************************************************************************
   // Methods required for restarting.
   virtual std::string label() const override { return "CRKSPHHydroBase"; }
-  virtual void dumpState(FileIOSpace::FileIO& file, std::string pathName) const;
-  virtual void restoreState(const FileIOSpace::FileIO& file, std::string pathName);
+  virtual void dumpState(FileIO& file, std::string pathName) const;
+  virtual void restoreState(const FileIO& file, std::string pathName);
   //****************************************************************************
 
 protected:
   //--------------------------- Protected Interface ---------------------------//
   // The method defining how we evolve smoothing scales.
-  const NodeSpace::SmoothingScaleBase<Dimension>& mSmoothingScaleMethod;
+  const SmoothingScaleBase<Dimension>& mSmoothingScaleMethod;
 
   // A bunch of switches.
-  PhysicsSpace::MassDensityType mDensityUpdate;
-  PhysicsSpace::HEvolutionType mHEvolution;
-  CRKSPHSpace::CRKOrder mCorrectionOrder;
-  CRKSPHSpace::CRKVolumeType mVolumeType;
+  MassDensityType mDensityUpdate;
+  HEvolutionType mHEvolution;
+  CRKOrder mCorrectionOrder;
+  CRKVolumeType mVolumeType;
   bool mCompatibleEnergyEvolution, mEvolveTotalEnergy, mGradhCorrection, mXSPH;
   double mfilter;
   Scalar mEpsTensile, mnTensile;
@@ -256,43 +256,43 @@ protected:
   double mCorrectionMin, mCorrectionMax;
 
   // Some internal scratch fields.
-  FieldSpace::FieldList<Dimension, int>       mTimeStepMask;
-  FieldSpace::FieldList<Dimension, Scalar>    mPressure;
-  FieldSpace::FieldList<Dimension, Scalar>    mSoundSpeed;
-  FieldSpace::FieldList<Dimension, Scalar>    mSpecificThermalEnergy0;
-  FieldSpace::FieldList<Dimension, Scalar>    mEntropy;
+  FieldList<Dimension, int>       mTimeStepMask;
+  FieldList<Dimension, Scalar>    mPressure;
+  FieldList<Dimension, Scalar>    mSoundSpeed;
+  FieldList<Dimension, Scalar>    mSpecificThermalEnergy0;
+  FieldList<Dimension, Scalar>    mEntropy;
 
-  FieldSpace::FieldList<Dimension, SymTensor> mHideal;
-  FieldSpace::FieldList<Dimension, Scalar>    mMaxViscousPressure;
-  FieldSpace::FieldList<Dimension, Scalar>    mEffViscousPressure;
-  FieldSpace::FieldList<Dimension, Scalar>    mViscousWork;
+  FieldList<Dimension, SymTensor> mHideal;
+  FieldList<Dimension, Scalar>    mMaxViscousPressure;
+  FieldList<Dimension, Scalar>    mEffViscousPressure;
+  FieldList<Dimension, Scalar>    mViscousWork;
 
-  FieldSpace::FieldList<Dimension, Scalar>    mWeightedNeighborSum;
-  FieldSpace::FieldList<Dimension, SymTensor> mMassSecondMoment;
+  FieldList<Dimension, Scalar>    mWeightedNeighborSum;
+  FieldList<Dimension, SymTensor> mMassSecondMoment;
 
-  FieldSpace::FieldList<Dimension, Scalar>    mVolume;
-  FieldSpace::FieldList<Dimension, Scalar>    mVolume0;
-  FieldSpace::FieldList<Dimension, Vector>    mMassDensityGradient;
+  FieldList<Dimension, Scalar>    mVolume;
+  FieldList<Dimension, Scalar>    mVolume0;
+  FieldList<Dimension, Vector>    mMassDensityGradient;
 
-  FieldSpace::FieldList<Dimension, Vector>    mXSPHDeltaV;
-  FieldSpace::FieldList<Dimension, Vector>    mDxDt;
+  FieldList<Dimension, Vector>    mXSPHDeltaV;
+  FieldList<Dimension, Vector>    mDxDt;
 
-  FieldSpace::FieldList<Dimension, Vector>    mDvDt;
-  FieldSpace::FieldList<Dimension, Scalar>    mDmassDensityDt;
-  FieldSpace::FieldList<Dimension, Scalar>    mDspecificThermalEnergyDt;
-  FieldSpace::FieldList<Dimension, SymTensor> mDHDt;
-  FieldSpace::FieldList<Dimension, Tensor>    mDvDx;
-  FieldSpace::FieldList<Dimension, Tensor>    mInternalDvDx;
-  FieldSpace::FieldList<Dimension, Vector>    mDeltaCentroid;
+  FieldList<Dimension, Vector>    mDvDt;
+  FieldList<Dimension, Scalar>    mDmassDensityDt;
+  FieldList<Dimension, Scalar>    mDspecificThermalEnergyDt;
+  FieldList<Dimension, SymTensor> mDHDt;
+  FieldList<Dimension, Tensor>    mDvDx;
+  FieldList<Dimension, Tensor>    mInternalDvDx;
+  FieldList<Dimension, Vector>    mDeltaCentroid;
 
-  FieldSpace::FieldList<Dimension, std::vector<Vector> > mPairAccelerations;
+  FieldList<Dimension, std::vector<Vector> > mPairAccelerations;
 
-  FieldSpace::FieldList<Dimension, Scalar>    mA;
-  FieldSpace::FieldList<Dimension, Vector>    mB;
-  FieldSpace::FieldList<Dimension, Tensor>    mC;
-  FieldSpace::FieldList<Dimension, Vector>    mGradA;
-  FieldSpace::FieldList<Dimension, Tensor>    mGradB;
-  FieldSpace::FieldList<Dimension, ThirdRankTensor>    mGradC;
+  FieldList<Dimension, Scalar>    mA;
+  FieldList<Dimension, Vector>    mB;
+  FieldList<Dimension, Tensor>    mC;
+  FieldList<Dimension, Vector>    mGradA;
+  FieldList<Dimension, Tensor>    mGradB;
+  FieldList<Dimension, ThirdRankTensor>    mGradC;
     
   FieldList<Dimension, Scalar>                mM0;
   FieldList<Dimension, Vector>                mM1;
@@ -305,11 +305,11 @@ protected:
   FieldList<Dimension, FourthRankTensor>      mGradm3;
   FieldList<Dimension, FifthRankTensor>       mGradm4;
 
-  FieldSpace::FieldList<Dimension, int>       mSurfacePoint;
-  FieldSpace::FieldList<Dimension, int>       mVoidPoint;
-  FieldSpace::FieldList<Dimension, std::vector<Vector>> mEtaVoidPoints;
+  FieldList<Dimension, int>       mSurfacePoint;
+  FieldList<Dimension, int>       mVoidPoint;
+  FieldList<Dimension, std::vector<Vector>> mEtaVoidPoints;
 
-  BoundarySpace::CRKSPHVoidBoundary<Dimension> mVoidBoundary;
+  CRKSPHVoidBoundary<Dimension> mVoidBoundary;
 
 private:
   //--------------------------- Private Interface ---------------------------//

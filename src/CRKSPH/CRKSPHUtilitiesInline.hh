@@ -19,7 +19,7 @@ namespace Spheral {
 template<typename Dimension>
 inline
 typename Dimension::Scalar
-CRKSPHKernel(const KernelSpace::TableKernel<Dimension>& W,
+CRKSPHKernel(const TableKernel<Dimension>& W,
              const CRKOrder correctionOrder,
              const typename Dimension::Vector& rij,
              const typename Dimension::Vector& etai,
@@ -60,7 +60,7 @@ void
 CRKSPHKernelAndGradient(typename Dimension::Scalar& WCRKSPH,
                         typename Dimension::Scalar& gradWSPH,
                         typename Dimension::Vector& gradWCRKSPH,
-                        const KernelSpace::TableKernel<Dimension>& W,
+                        const TableKernel<Dimension>& W,
                         const CRKOrder correctionOrder,
                         const typename Dimension::Vector& rij,
                         const typename Dimension::Vector& etai,

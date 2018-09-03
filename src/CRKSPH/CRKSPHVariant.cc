@@ -243,7 +243,7 @@ initializeProblemStartup(DataBase<Dimension>& dataBase) {
   // This breaks domain independence, so we'll try being inconsistent on the first step.
   // // We need to initialize the velocity gradient if we're using the CRKSPH artificial viscosity.
   // const FieldList<Dimension, Vector> velocity = dataBase.fluidVelocity();
-  // mDvDx.assignFields(CRKSPHSpace::gradientCRKSPH(velocity, position, mVolume, H, mA, mB, mC, mGradA, mGradB, mGradC, connectivityMap, correctionOrder(), W, NodeCoupling()));
+  // mDvDx.assignFields(gradientCRKSPH(velocity, position, mVolume, H, mA, mB, mC, mGradA, mGradB, mGradC, connectivityMap, correctionOrder(), W, NodeCoupling()));
 
   // Initialize the pressure, sound speed, and entropy.
   dataBase.fluidPressure(this->mPressure);

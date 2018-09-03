@@ -39,23 +39,23 @@ public:
   typedef Dimension::FourthRankTensor FourthRankTensor;
   typedef Dimension::FifthRankTensor FifthRankTensor;
 
-  typedef PhysicsSpace::Physics<Dimension>::ConstBoundaryIterator ConstBoundaryIterator;
+  typedef Physics<Dimension>::ConstBoundaryIterator ConstBoundaryIterator;
 
   // Constructors.
-  SolidCRKSPHHydroBaseRZ(const NodeSpace::SmoothingScaleBase<Dimension>& smoothingScaleMethod,
-                         ArtificialViscositySpace::ArtificialViscosity<Dimension>& Q,
-                         const KernelSpace::TableKernel<Dimension>& W,
-                         const KernelSpace::TableKernel<Dimension>& WPi,
+  SolidCRKSPHHydroBaseRZ(const SmoothingScaleBase<Dimension>& smoothingScaleMethod,
+                         ArtificialViscosity<Dimension>& Q,
+                         const TableKernel<Dimension>& W,
+                         const TableKernel<Dimension>& WPi,
                          const double filter,
                          const double cfl,
                          const bool useVelocityMagnitudeForDt,
                          const bool compatibleEnergyEvolution,
                          const bool evolveTotalEnergy,
                          const bool XSPH,
-                         const PhysicsSpace::MassDensityType densityUpdate,
-                         const PhysicsSpace::HEvolutionType HUpdate,
-                         const CRKSPHSpace::CRKOrder correctionOrder,
-                         const CRKSPHSpace::CRKVolumeType volumeType,
+                         const MassDensityType densityUpdate,
+                         const HEvolutionType HUpdate,
+                         const CRKOrder correctionOrder,
+                         const CRKVolumeType volumeType,
                          const double epsTensile,
                          const double nTensile,
                          const bool damageRelieveRubble);
@@ -65,16 +65,16 @@ public:
 
   // Tasks we do once on problem startup.
   virtual
-  void initializeProblemStartup(DataBaseSpace::DataBase<Dimension>& dataBase) override;
+  void initializeProblemStartup(DataBase<Dimension>& dataBase) override;
 
   // Register the state Hydro expects to use and evolve.
   virtual 
-  void registerState(DataBaseSpace::DataBase<Dimension>& dataBase,
+  void registerState(DataBase<Dimension>& dataBase,
                      State<Dimension>& state) override;
 
   // Register the derivatives/change fields for updating state.
   virtual
-  void registerDerivatives(DataBaseSpace::DataBase<Dimension>& dataBase,
+  void registerDerivatives(DataBase<Dimension>& dataBase,
                            StateDerivatives<Dimension>& derivs) override;
 
   // Evaluate the derivatives for the principle hydro variables:
@@ -82,7 +82,7 @@ public:
   virtual
   void evaluateDerivatives(const Scalar time,
                            const Scalar dt,
-                           const DataBaseSpace::DataBase<Dimension>& dataBase,
+                           const DataBase<Dimension>& dataBase,
                            const State<Dimension>& state,
                            StateDerivatives<Dimension>& derivatives) const override;
 
@@ -90,7 +90,7 @@ public:
   virtual
   void finalize(const Scalar time,
                 const Scalar dt,
-                DataBaseSpace::DataBase<Dimension>& dataBase,
+                DataBase<Dimension>& dataBase,
                 State<Dimension>& state,
                 StateDerivatives<Dimension>& derivs) override;
                
@@ -106,21 +106,21 @@ public:
 
   // The state field lists we're maintaining.
   // In the RZ case we have the (theta,theta) component of the deviatoric stress.
-  const FieldSpace::FieldList<Dimension, Scalar>& deviatoricStressTT() const;
-  const FieldSpace::FieldList<Dimension, Scalar>& DdeviatoricStressTTDt() const;
+  const FieldList<Dimension, Scalar>& deviatoricStressTT() const;
+  const FieldList<Dimension, Scalar>& DdeviatoricStressTTDt() const;
 
   //****************************************************************************
   // Methods required for restarting.
   virtual std::string label() const { return "SolidCRKSPHHydroBaseRZ"; }
-  virtual void dumpState(FileIOSpace::FileIO& file, const std::string& pathName) const;
-  virtual void restoreState(const FileIOSpace::FileIO& file, const std::string& pathName);
+  virtual void dumpState(FileIO& file, const std::string& pathName) const;
+  virtual void restoreState(const FileIO& file, const std::string& pathName);
   //****************************************************************************
 
 private:
   //--------------------------- Private Interface ---------------------------//
   // Some internal scratch fields.
-  FieldSpace::FieldList<Dimension, Scalar> mDeviatoricStressTT;
-  FieldSpace::FieldList<Dimension, Scalar> mDdeviatoricStressTTDt;
+  FieldList<Dimension, Scalar> mDeviatoricStressTT;
+  FieldList<Dimension, Scalar> mDdeviatoricStressTTDt;
 
   // No default constructor, copying, or assignment.
   SolidCRKSPHHydroBaseRZ();
