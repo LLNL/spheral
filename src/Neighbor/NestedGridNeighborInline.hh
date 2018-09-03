@@ -1,12 +1,11 @@
-#include <numeric>
-
 #include "Geometry/Dimension.hh"
 #include "Geometry/GeomPlane.hh"
 #include "Utilities/intpow2.hh"
 #include "GridCellPlane.hh"
 
+#include <numeric>
+
 namespace Spheral {
-namespace NeighborSpace {
 
 //------------------------------------------------------------------------------
 // Determine the appropriate gridlevel for a node by index.
@@ -556,5 +555,4 @@ setNestedRefineNeighborList(const typename Dimension::Vector& position,
 //   this->nodeList().notifyFieldsCacheRefineValues();
 }
 
-}
 }

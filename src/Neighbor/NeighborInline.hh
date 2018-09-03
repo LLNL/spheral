@@ -1,7 +1,6 @@
 #include "Utilities/DBC.hh"
 
 namespace Spheral {
-namespace NeighborSpace {
 
 //------------------------------------------------------------------------------
 // Calculate the maximum radial extent of a given smoothing tensor.
@@ -158,5 +157,4 @@ setMasterNeighborGroup(const typename Dimension::Vector& position,
   }
 }
 
-}
 }

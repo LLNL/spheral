@@ -5,14 +5,13 @@
 //
 // Created by:  JMO, Mon Dec 27 10:47:34 PST 1999
 //----------------------------------------------------------------------------//
-#include <limits.h>
-#include <math.h>
-
 #include "GridCellIndex.hh"
 #include "Geometry/Dimension.hh"
 
+#include <limits.h>
+#include <math.h>
+
 namespace Spheral {
-namespace NeighborSpace {
 
 using namespace std;
 
@@ -84,5 +83,4 @@ GridCellIndexRange(const GridCellIndex<Dim<3> >& gridCellMin,
   return result;  
 }
 
-}
 }

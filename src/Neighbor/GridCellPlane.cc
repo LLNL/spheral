@@ -9,7 +9,6 @@
 #include "Utilities/SpheralFunctions.hh"
 
 namespace Spheral {
-namespace NeighborSpace {
 
 //------------------------------------------------------------------------------
 // Empty constructor.
@@ -188,6 +187,5 @@ bool
 GridCellPlane<Dimension>::valid() const {
   return mNormal.magnitude2() > 0;
 }
-}
-}
 
+}

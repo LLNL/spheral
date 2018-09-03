@@ -5,9 +5,6 @@
 //
 // Created by J. Michael Owen, Sun Oct 30 15:36:33 PST 2005
 //----------------------------------------------------------------------------//
-#include <algorithm>
-#include <ctime>
-
 #include "ConnectivityMap.hh"
 #include "NodeList/NodeList.hh"
 #include "Neighbor/Neighbor.hh"
@@ -20,22 +17,17 @@
 #include "Utilities/PairComparisons.hh"
 #include "Utilities/Timer.hh"
 
+#include <algorithm>
+#include <ctime>
+
 // Declare the timers.
 extern Timer TIME_ConnectivityMap_patch;
 extern Timer TIME_ConnectivityMap_valid;
 extern Timer TIME_ConnectivityMap_computeConnectivity;
 
 namespace Spheral {
-namespace NeighborSpace {
 
 using namespace std;
-
-using NodeSpace::NodeList;
-using NodeSpace::FluidNodeList;
-using DataBaseSpace::DataBase;
-using FieldSpace::FieldList;
-using FieldSpace::Field;
-using BoundarySpace::Boundary;
 
 namespace {
 //------------------------------------------------------------------------------
@@ -61,7 +53,7 @@ ConnectivityMap():
   mBuildGhostConnectivity(false),
   mConnectivity(),
   mNodeTraversalIndices(),
-  mKeys(FieldSpace::FieldStorageType::CopyFields) {
+  mKeys(FieldStorageType::CopyFields) {
 }
 
 //------------------------------------------------------------------------------
@@ -290,7 +282,7 @@ ConnectivityMap<Dimension>::
 globalConnectivity(vector<Boundary<Dimension>*>& boundaries) const {
 
   // Get the set of global node IDs.
-  FieldList<Dimension, int> globalIDs = NodeSpace::globalNodeIDs<Dimension, typename vector<const NodeList<Dimension>*>::const_iterator>
+  FieldList<Dimension, int> globalIDs = globalNodeIDs<Dimension, typename vector<const NodeList<Dimension>*>::const_iterator>
     (mNodeLists.begin(), mNodeLists.end());
 
   // Make sure all ghost nodes have the appropriate global IDs.
@@ -833,5 +825,3 @@ computeConnectivity() {
 }
 
 }
-}
-

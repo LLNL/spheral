@@ -5,15 +5,6 @@
 //
 // Created by JMO, Wed Dec 22 21:02:47 PST 1999
 //----------------------------------------------------------------------------//
-#include <math.h>
-#include <limits.h>
-#include <float.h>
-#include <numeric>
-#include <algorithm>
-#include <iostream>
-#include <string>
-#include <sstream>
-
 #include "NestedGridNeighbor.hh"
 #include "Neighbor.hh"
 #include "NodeList/NodeList.hh"
@@ -24,12 +15,18 @@
 #include "Utilities/intpow2.hh"
 #include "Utilities/DBC.hh"
 
+#include <math.h>
+#include <limits.h>
+#include <float.h>
+#include <numeric>
+#include <algorithm>
+#include <iostream>
+#include <string>
+#include <sstream>
+
 namespace Spheral {
-namespace NeighborSpace {
 
 using namespace std;
-using NodeSpace::NodeList;
-using FieldSpace::Field;
 
 //------------------------------------------------------------------------------
 // Construct with everything necessary to completely specify the neighboring.
@@ -1152,6 +1149,6 @@ rebuildOccupiedGridCells() {
 // const int NestedGridNeighbor<Dimension>::mEndOfLinkList = -1;
 // template<typename Dimension>
 // const int NestedGridNeighbor<Dimension>::mGridNormalMagnitude = 1024;
-}
+
 }
 

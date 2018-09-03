@@ -17,13 +17,8 @@
 #include <algorithm>
 
 namespace Spheral {
-namespace NeighborSpace {
 
 using namespace std;
-
-using FieldSpace::Field;
-using FieldSpace::FieldList;
-using NodeSpace::NodeList;
 
 //------------------------------------------------------------------------------
 // Construct with the given NodeList and search type.
@@ -367,7 +362,7 @@ valid() const {
 // Neighbor<Dimension>::
 // setBoundingBox() {
 //   const NodeListRegistrar<Dimension>& registrar = NodeListRegistrar<Dimension>::instance();
-//   FieldList<Dimension, Vector> positions(FieldSpace::FieldListBase::Reference);
+//   FieldList<Dimension, Vector> positions(FieldListBase::Reference);
 //   for (typename NodeListRegistrar<Dimension>::const_fluid_iterator itr = registrar.fluidBegin();
 //        itr != registrar.fluidEnd();
 //        ++itr) {
@@ -376,5 +371,4 @@ valid() const {
 //   globalBoundingBox(positions, mXmin, mXmax, false);
 // }
 
-}
 }

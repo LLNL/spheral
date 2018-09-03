@@ -5,20 +5,14 @@
 //
 // Created by:  JMO, Mon Dec 27 10:47:34 PST 1999
 //----------------------------------------------------------------------------//
-
 #ifndef __Spheral_GridCellIndex_hh__
 #define __Spheral_GridCellIndex_hh__
 
-#ifndef __GCCXML__
-#include <vector>
-#else
-#include "fakestl.hh"
-#endif
-
 #include "GridCellIndexBase.hh"
 
+#include <vector>
+
 namespace Spheral {
-namespace NeighborSpace {
 
 template<typename Dimension> class GridCellPlane;
 
@@ -185,16 +179,12 @@ template<> int GridCellIndex<Dim<2> >::productElements() const;
 template<> int GridCellIndex<Dim<3> >::productElements() const;
 
 }
-}
 
-#ifndef __GCCXML__
 #include "GridCellIndexInline.hh"
-#endif
 
 #else
 
 namespace Spheral {
-namespace NeighborSpace {
 
 // Forward declaration.
 template<typename Dimension> class GridCellIndex;
@@ -229,7 +219,6 @@ GridCellIndex<Dimension> operator-(int lhs, const GridCellIndex<Dimension>& rhs)
 template<typename Dimension>
 GridCellIndex<Dimension> operator*(int lhs, const GridCellIndex<Dimension>& rhs);
 
-}
 }
 
 #endif

@@ -6,27 +6,16 @@
 #ifndef __Spheral_Neighbor_hh__
 #define __Spheral_Neighbor_hh__
 
-#ifndef __GCCXML__
-#include <vector>
 #include "Field/Field.hh"
-#else
-#include "fakestl.hh"
-#endif
-
 #include "Geometry/Dimension.hh"
 
-namespace Spheral {
-  template<typename Dimension> class GeomPlane;
-  namespace NodeSpace {
-    template<typename Dimension> class NodeList;
-  }
-  namespace FieldSpace {
-    template<typename Dimension, typename DataType> class Field;
-  }
-}
+#include <vector>
 
 namespace Spheral {
-namespace NeighborSpace {
+
+template<typename Dimension> class GeomPlane;
+template<typename Dimension> class NodeList;
+template<typename Dimension, typename DataType> class Field;
 
 enum class NeighborSearchType {
   None = 0,
@@ -48,7 +37,7 @@ public:
   typedef std::vector<int>::const_iterator const_iterator;
 
   // Constructors and destructors
-  Neighbor(NodeSpace::NodeList<Dimension>& nodeList, 
+  Neighbor(NodeList<Dimension>& nodeList, 
            const NeighborSearchType searchType,
            const double kernelExtent);
   virtual ~Neighbor();
@@ -62,14 +51,14 @@ public:
   void kernelExtent(double kernelExtent);
 
   // Allow access to the field of node extents.
-  const FieldSpace::Field<Dimension, Vector>& nodeExtentField() const;
+  const Field<Dimension, Vector>& nodeExtentField() const;
 
   // Access the node list.
-  const NodeSpace::NodeList<Dimension>& nodeList() const;
-  void nodeList(NodeSpace::NodeList<Dimension>& nodeList);
+  const NodeList<Dimension>& nodeList() const;
+  void nodeList(NodeList<Dimension>& nodeList);
 
-  const NodeSpace::NodeList<Dimension>* nodeListPtr() const;
-  void nodeListPtr(NodeSpace::NodeList<Dimension>* nodeListPtr);
+  const NodeList<Dimension>* nodeListPtr() const;
+  void nodeListPtr(NodeList<Dimension>* nodeListPtr);
 
   void unregisterNodeList();
 
@@ -164,14 +153,14 @@ public:
 protected:
   //-------------------------- Protected Interface --------------------------//
   // Provide read/write access to the node index vectors for descendent classes.
-  FieldSpace::Field<Dimension, Vector>& accessNodeExtentField();
+  Field<Dimension, Vector>& accessNodeExtentField();
 
 private:
   //--------------------------- Private Interface ---------------------------//
   NeighborSearchType mSearchType;
   double mKernelExtent;
-  NodeSpace::NodeList<Dimension>* mNodeListPtr;
-  FieldSpace::Field<Dimension, Vector> mNodeExtent;
+  NodeList<Dimension>* mNodeListPtr;
+  Field<Dimension, Vector> mNodeExtent;
 };
 
 // We explicitly specialize the HExtent method for 1, 2, & 3 dimensions.
@@ -180,7 +169,6 @@ template<> Dim<2>::Vector Neighbor< Dim<2> >::HExtent(const Dim<2>::SymTensor&, 
 template<> Dim<3>::Vector Neighbor< Dim<3> >::HExtent(const Dim<3>::SymTensor&, const double kernelExtent);
 
 }
-}
 
 #include "NeighborInline.hh"
 
@@ -188,9 +176,7 @@ template<> Dim<3>::Vector Neighbor< Dim<3> >::HExtent(const Dim<3>::SymTensor&, 
 
 // Forward declaration.
 namespace Spheral {
-  namespace NeighborSpace {
-    template<typename Dimension> class Neighbor;
-  }
+  template<typename Dimension> class Neighbor;
 }
 
 #endif

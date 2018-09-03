@@ -8,21 +8,16 @@
 #ifndef __Spheral_NestedGridNeighbor_hh__
 #define __Spheral_NestedGridNeighbor_hh__
 
-namespace Spheral {
-  template<typename Dimension> class GeomPlane;
-  namespace NodeSpace {
-    template<typename Dimension> class NodeList;
-  }
-}
-
-#include <vector>
-#include "Utilities/SafeIndexMap.hh"
-
 #include "Neighbor.hh"
 #include "GridCellIndex.hh"
+#include "Utilities/SafeIndexMap.hh"
+
+#include <vector>
 
 namespace Spheral {
-namespace NeighborSpace {
+
+template<typename Dimension> class GeomPlane;
+template<typename Dimension> class NodeList;
 
 template<typename Dimension>
 class NestedGridNeighbor: public Neighbor<Dimension> {
@@ -38,7 +33,7 @@ public:
   typedef GridCellIndex<Dimension> GC;
 
   // Constructors and destructors.
-  NestedGridNeighbor(NodeSpace::NodeList<Dimension>& nodeList, 
+  NestedGridNeighbor(NodeList<Dimension>& nodeList, 
                      const NeighborSearchType searchType,
                      const int numGridLevels, 
                      const double topGridCellSize,
@@ -245,7 +240,6 @@ private:
 };
 
 }
-}
 
 #include "NestedGridNeighborInline.hh"
 
@@ -253,9 +247,7 @@ private:
 
 // Forward declaration.
 namespace Spheral {
-  namespace NeighborSpace {
-    template<typename Dimension> class NestedGridNeighbor;
-  }
+  template<typename Dimension> class NestedGridNeighbor;
 }
 
 #endif
