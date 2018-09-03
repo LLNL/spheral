@@ -1,12 +1,11 @@
 namespace Spheral {
-namespace TaylorSPHSpace {
 
 //------------------------------------------------------------------------------
 // Choose how we want to update the H tensor.
 //------------------------------------------------------------------------------
 template<typename Dimension>
 inline
-PhysicsSpace::HEvolutionType
+HEvolutionType
 TaylorSPHHydroBase<Dimension>::HEvolution() const {
   return mHEvolution;
 }
@@ -15,7 +14,7 @@ template<typename Dimension>
 inline
 void
 TaylorSPHHydroBase<Dimension>::
-HEvolution(const PhysicsSpace::HEvolutionType type) {
+HEvolution(const HEvolutionType type) {
   mHEvolution = type;
 }
 
@@ -59,7 +58,7 @@ TaylorSPHHydroBase<Dimension>::XSPH(const bool val) {
 //------------------------------------------------------------------------------
 template<typename Dimension>
 inline
-const NodeSpace::SmoothingScaleBase<Dimension>&
+const SmoothingScaleBase<Dimension>&
 TaylorSPHHydroBase<Dimension>::
 smoothingScaleMethod() const {
   return mSmoothingScaleMethod;
@@ -70,7 +69,7 @@ smoothingScaleMethod() const {
 //------------------------------------------------------------------------------
 template<typename Dimension>
 inline
-const FieldSpace::FieldList<Dimension, int>&
+const FieldList<Dimension, int>&
 TaylorSPHHydroBase<Dimension>::
 timeStepMask() const {
   return mTimeStepMask;
@@ -78,7 +77,7 @@ timeStepMask() const {
 
 template<typename Dimension>
 inline
-const FieldSpace::FieldList<Dimension, typename Dimension::Scalar>&
+const FieldList<Dimension, typename Dimension::Scalar>&
 TaylorSPHHydroBase<Dimension>::
 pressure() const {
   return mPressure;
@@ -86,7 +85,7 @@ pressure() const {
 
 template<typename Dimension>
 inline
-const FieldSpace::FieldList<Dimension, typename Dimension::Scalar>&
+const FieldList<Dimension, typename Dimension::Scalar>&
 TaylorSPHHydroBase<Dimension>::
 soundSpeed() const {
   return mSoundSpeed;
@@ -94,7 +93,7 @@ soundSpeed() const {
 
 template<typename Dimension>
 inline
-const FieldSpace::FieldList<Dimension, typename Dimension::Scalar>&
+const FieldList<Dimension, typename Dimension::Scalar>&
 TaylorSPHHydroBase<Dimension>::
 specificThermalEnergy0() const {
   return mSpecificThermalEnergy0;
@@ -102,7 +101,7 @@ specificThermalEnergy0() const {
 
 template<typename Dimension>
 inline
-const FieldSpace::FieldList<Dimension, typename Dimension::SymTensor>&
+const FieldList<Dimension, typename Dimension::SymTensor>&
 TaylorSPHHydroBase<Dimension>::
 Hideal() const {
   return mHideal;
@@ -110,7 +109,7 @@ Hideal() const {
 
 template<typename Dimension>
 inline
-const FieldSpace::FieldList<Dimension, typename Dimension::Scalar>&
+const FieldList<Dimension, typename Dimension::Scalar>&
 TaylorSPHHydroBase<Dimension>::
 maxViscousPressure() const {
   return mMaxViscousPressure;
@@ -118,7 +117,7 @@ maxViscousPressure() const {
 
 template<typename Dimension>
 inline
-const FieldSpace::FieldList<Dimension, typename Dimension::Scalar>&
+const FieldList<Dimension, typename Dimension::Scalar>&
 TaylorSPHHydroBase<Dimension>::
 weightedNeighborSum() const {
   return mWeightedNeighborSum;
@@ -126,7 +125,7 @@ weightedNeighborSum() const {
 
 template<typename Dimension>
 inline
-const FieldSpace::FieldList<Dimension, typename Dimension::SymTensor>&
+const FieldList<Dimension, typename Dimension::SymTensor>&
 TaylorSPHHydroBase<Dimension>::
 massSecondMoment() const {
   return mMassSecondMoment;
@@ -134,7 +133,7 @@ massSecondMoment() const {
 
 template<typename Dimension>
 inline
-const FieldSpace::FieldList<Dimension, typename Dimension::Scalar>&
+const FieldList<Dimension, typename Dimension::Scalar>&
 TaylorSPHHydroBase<Dimension>::
 XSPHWeightSum() const {
   return mXSPHWeightSum;
@@ -142,7 +141,7 @@ XSPHWeightSum() const {
 
 template<typename Dimension>
 inline
-const FieldSpace::FieldList<Dimension, typename Dimension::Vector>&
+const FieldList<Dimension, typename Dimension::Vector>&
 TaylorSPHHydroBase<Dimension>::
 XSPHDeltaV() const {
   return mXSPHDeltaV;
@@ -150,7 +149,7 @@ XSPHDeltaV() const {
 
 template<typename Dimension>
 inline
-const FieldSpace::FieldList<Dimension, typename Dimension::Vector>&
+const FieldList<Dimension, typename Dimension::Vector>&
 TaylorSPHHydroBase<Dimension>::
 DxDt() const {
   return mDxDt;
@@ -158,7 +157,7 @@ DxDt() const {
 
 template<typename Dimension>
 inline
-const FieldSpace::FieldList<Dimension, typename Dimension::Vector>&
+const FieldList<Dimension, typename Dimension::Vector>&
 TaylorSPHHydroBase<Dimension>::
 DvDt() const {
   return mDvDt;
@@ -166,7 +165,7 @@ DvDt() const {
 
 template<typename Dimension>
 inline
-const FieldSpace::FieldList<Dimension, typename Dimension::Scalar>&
+const FieldList<Dimension, typename Dimension::Scalar>&
 TaylorSPHHydroBase<Dimension>::
 DmassDensityDt() const {
   return mDmassDensityDt;
@@ -174,7 +173,7 @@ DmassDensityDt() const {
 
 template<typename Dimension>
 inline
-const FieldSpace::FieldList<Dimension, typename Dimension::Scalar>&
+const FieldList<Dimension, typename Dimension::Scalar>&
 TaylorSPHHydroBase<Dimension>::
 DspecificThermalEnergyDt() const {
   return mDspecificThermalEnergyDt;
@@ -182,7 +181,7 @@ DspecificThermalEnergyDt() const {
 
 template<typename Dimension>
 inline
-const FieldSpace::FieldList<Dimension, typename Dimension::SymTensor>&
+const FieldList<Dimension, typename Dimension::SymTensor>&
 TaylorSPHHydroBase<Dimension>::
 DHDt() const {
   return mDHDt;
@@ -190,7 +189,7 @@ DHDt() const {
 
 template<typename Dimension>
 inline
-const FieldSpace::FieldList<Dimension, typename Dimension::Tensor>&
+const FieldList<Dimension, typename Dimension::Tensor>&
 TaylorSPHHydroBase<Dimension>::
 DvDx() const {
   return mDvDx;
@@ -198,7 +197,7 @@ DvDx() const {
 
 template<typename Dimension>
 inline
-const FieldSpace::FieldList<Dimension, typename Dimension::Tensor>&
+const FieldList<Dimension, typename Dimension::Tensor>&
 TaylorSPHHydroBase<Dimension>::
 internalDvDx() const {
   return mInternalDvDx;
@@ -206,7 +205,7 @@ internalDvDx() const {
 
 template<typename Dimension>
 inline
-const FieldSpace::FieldList<Dimension, std::vector<typename Dimension::Vector> >&
+const FieldList<Dimension, std::vector<typename Dimension::Vector> >&
 TaylorSPHHydroBase<Dimension>::
 pairAccelerations() const {
   return mPairAccelerations;
@@ -214,11 +213,10 @@ pairAccelerations() const {
 
 template<typename Dimension>
 inline
-const FieldSpace::FieldList<Dimension, typename Dimension::Tensor>&
+const FieldList<Dimension, typename Dimension::Tensor>&
 TaylorSPHHydroBase<Dimension>::
 D() const {
   return mD;
 }
 
-}
 }
