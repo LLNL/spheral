@@ -5,14 +5,6 @@
 //! \version $Revision: 2239 $
 //! \date $Date: 2007-05-28 23:58:39 -0700 (Mon, 28 May 2007) $
 //----------------------------------------------------------------------------//
-
-#include <cstdio>
-#include <cstdlib>
-#include <cstring>
-#include <sstream>
-#include <iostream>
-#include <algorithm>
-
 #include "SPHGravity.hh"
 #include "Geometry/Dimension.hh"
 #include "DataBase/DataBase.hh"
@@ -36,24 +28,21 @@
 #include "Spasmos/PyPetsc.h"
 #include "Spasmos/MatFactory.h"
 
+#include <cstdio>
+#include <cstdlib>
+#include <cstring>
+#include <sstream>
+#include <iostream>
+#include <algorithm>
+
 namespace Spheral {
-namespace GravitySpace {
 
 using namespace std;
-using FieldSpace::Field;
-using FieldSpace::FieldList;
-using DataBaseSpace::DataBase;
-using NodeSpace::FluidNodeList;
-using NodeSpace::globalNodeIDs;
-using NeighborSpace::ConnectivityMap;
-using BoundarySpace::Boundary;
-using BoundarySpace::PeriodicBoundary;
-using BoundarySpace::DistributedBoundary;
 
 //------------------------------------------------------------------------------
 template <typename Dimension>
 SPHGravity<Dimension>::
-SPHGravity(const KernelSpace::TableKernel<Dimension>& kernel,
+SPHGravity(const TableKernel<Dimension>& kernel,
            typename SPHGravity<Dimension>::Scalar G,
            typename SPHGravity<Dimension>::Scalar maxDeltaVelocity /* = 2.0 */,
            typename SPHGravity<Dimension>::Scalar safetyFactor /* = 0.5 */):
@@ -587,7 +576,6 @@ evaluateDerivatives(const typename Dimension::Scalar time,
                     const State<Dimension>& state,
                     StateDerivatives<Dimension>& derivs) const
 {
-  using namespace NodeSpace;
 
   // Access to pertinent fields in the database.
   const FieldList<Dimension, Scalar> m = state.scalarFields(HydroFieldNames::mass);
@@ -957,6 +945,5 @@ valid() const
 }
 
 //------------------------------------------------------------------------------
-} // end namespace GravitySpace
 } // end namespace Spheral
 
