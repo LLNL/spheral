@@ -260,7 +260,7 @@ enforceBoundary(Field<Dimension, typename Dimension::ThirdRankTensor>& field) co
 template<typename Dimension>
 void
 RigidBoundary<Dimension>::
-dumpState(FileIOSpace::FileIO& file,
+dumpState(FileIO& file,
           const std::string& pathName) const {
 
   // Call the ancestor class.
@@ -275,7 +275,7 @@ dumpState(FileIOSpace::FileIO& file,
 template<typename Dimension>
 void
 RigidBoundary<Dimension>::
-restoreState(const FileIOSpace::FileIO& file,
+restoreState(const FileIO& file,
              const std::string& pathName) {
 
   // Call the ancestor class.

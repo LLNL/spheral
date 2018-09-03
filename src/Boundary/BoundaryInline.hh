@@ -10,8 +10,8 @@ template<typename Dimension>
 inline
 bool
 Boundary<Dimension>::
-haveNodeList(const NodeSpace::NodeList<Dimension>& nodeList) const {
-  return mBoundaryNodes.find(const_cast<NodeSpace::NodeList<Dimension>*>(&nodeList)) != mBoundaryNodes.end();
+haveNodeList(const NodeList<Dimension>& nodeList) const {
+  return mBoundaryNodes.find(const_cast<NodeList<Dimension>*>(&nodeList)) != mBoundaryNodes.end();
 }
 
 //------------------------------------------------------------------------------
@@ -22,11 +22,11 @@ template<typename DataType>
 inline
 void
 Boundary<Dimension>::
-applyFieldListGhostBoundary(FieldSpace::FieldList<Dimension, DataType>& fieldList) const {
-  for (typename FieldSpace::FieldList<Dimension, DataType>::iterator fieldItr = fieldList.begin();
+applyFieldListGhostBoundary(FieldList<Dimension, DataType>& fieldList) const {
+  for (typename FieldList<Dimension, DataType>::iterator fieldItr = fieldList.begin();
        fieldItr < fieldList.end();
        ++fieldItr) {
-    REQUIRE(mBoundaryNodes.find(const_cast<NodeSpace::NodeList<Dimension>*>((*fieldItr)->nodeListPtr())) != mBoundaryNodes.end());
+    REQUIRE(mBoundaryNodes.find(const_cast<NodeList<Dimension>*>((*fieldItr)->nodeListPtr())) != mBoundaryNodes.end());
     applyGhostBoundary(**fieldItr);
   }
 }
@@ -39,11 +39,11 @@ template<typename DataType>
 inline
 void
 Boundary<Dimension>::
-enforceFieldListBoundary(FieldSpace::FieldList<Dimension, DataType>& fieldList) const {
-  for (typename FieldSpace::FieldList<Dimension, DataType>::iterator fieldItr = fieldList.begin();
+enforceFieldListBoundary(FieldList<Dimension, DataType>& fieldList) const {
+  for (typename FieldList<Dimension, DataType>::iterator fieldItr = fieldList.begin();
        fieldItr < fieldList.end();
        ++fieldItr) {
-    REQUIRE(mBoundaryNodes.find(const_cast<NodeSpace::NodeList<Dimension>*>((*fieldItr)->nodeListPtr())) != mBoundaryNodes.end());
+    REQUIRE(mBoundaryNodes.find(const_cast<NodeList<Dimension>*>((*fieldItr)->nodeListPtr())) != mBoundaryNodes.end());
     enforceBoundary(**fieldItr);
   }
 }

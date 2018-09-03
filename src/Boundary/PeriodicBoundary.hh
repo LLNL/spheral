@@ -32,12 +32,12 @@ public:
   virtual ~PeriodicBoundary();
 
   // Override the default methods for setting ghost nodes.
-  virtual void setGhostNodes(NodeSpace::NodeList<Dimension>& nodeList);
-  virtual void updateGhostNodes(NodeSpace::NodeList<Dimension>& nodeList);
+  virtual void setGhostNodes(NodeList<Dimension>& nodeList);
+  virtual void updateGhostNodes(NodeList<Dimension>& nodeList);
 
   // Override the default methods for setting violation nodes.
-  virtual void setViolationNodes(NodeSpace::NodeList<Dimension>& nodeList);
-  virtual void updateViolationNodes(NodeSpace::NodeList<Dimension>& nodeList);
+  virtual void setViolationNodes(NodeList<Dimension>& nodeList);
+  virtual void updateViolationNodes(NodeList<Dimension>& nodeList);
 
   // Override the methods for setting the enter and exit planes.
   virtual const GeomPlane<Dimension>& enterPlane() const;
@@ -47,28 +47,28 @@ public:
   virtual void setExitPlane(const GeomPlane<Dimension>& exitPlane);
 
   // Override the culling of ghost nodes.
-  virtual void cullGhostNodes(const FieldSpace::FieldList<Dimension, int>& flagSet,
-                              FieldSpace::FieldList<Dimension, int>& old2newIndexMap,
+  virtual void cullGhostNodes(const FieldList<Dimension, int>& flagSet,
+                              FieldList<Dimension, int>& old2newIndexMap,
                               std::vector<int>& numNodesRemoved);
 
   // Apply the boundary condition to the ghost nodes in the given Field.
-  virtual void applyGhostBoundary(FieldSpace::Field<Dimension, int>& field) const;
-  virtual void applyGhostBoundary(FieldSpace::Field<Dimension, Scalar>& field) const;
-  virtual void applyGhostBoundary(FieldSpace::Field<Dimension, Vector>& field) const;
-  virtual void applyGhostBoundary(FieldSpace::Field<Dimension, Tensor>& field) const;
-  virtual void applyGhostBoundary(FieldSpace::Field<Dimension, SymTensor>& field) const;
-  virtual void applyGhostBoundary(FieldSpace::Field<Dimension, ThirdRankTensor>& field) const;
+  virtual void applyGhostBoundary(Field<Dimension, int>& field) const;
+  virtual void applyGhostBoundary(Field<Dimension, Scalar>& field) const;
+  virtual void applyGhostBoundary(Field<Dimension, Vector>& field) const;
+  virtual void applyGhostBoundary(Field<Dimension, Tensor>& field) const;
+  virtual void applyGhostBoundary(Field<Dimension, SymTensor>& field) const;
+  virtual void applyGhostBoundary(Field<Dimension, ThirdRankTensor>& field) const;
 
   // Enforce the boundary condition on the violation node values in the given Field.
-  virtual void enforceBoundary(FieldSpace::Field<Dimension, int>& field) const;
-  virtual void enforceBoundary(FieldSpace::Field<Dimension, Scalar>& field) const;
-  virtual void enforceBoundary(FieldSpace::Field<Dimension, Vector>& field) const;
-  virtual void enforceBoundary(FieldSpace::Field<Dimension, Tensor>& field) const;
-  virtual void enforceBoundary(FieldSpace::Field<Dimension, SymTensor>& field) const;
-  virtual void enforceBoundary(FieldSpace::Field<Dimension, ThirdRankTensor>& field) const;
+  virtual void enforceBoundary(Field<Dimension, int>& field) const;
+  virtual void enforceBoundary(Field<Dimension, Scalar>& field) const;
+  virtual void enforceBoundary(Field<Dimension, Vector>& field) const;
+  virtual void enforceBoundary(Field<Dimension, Tensor>& field) const;
+  virtual void enforceBoundary(Field<Dimension, SymTensor>& field) const;
+  virtual void enforceBoundary(Field<Dimension, ThirdRankTensor>& field) const;
 
   // Override the base reset method.
-  virtual void reset(const DataBaseSpace::DataBase<Dimension>& dataBase);
+  virtual void reset(const DataBase<Dimension>& dataBase);
 
   // Report the number of ghost nodes in this boundary.
   virtual int numGhostNodes() const;

@@ -40,16 +40,16 @@ public:
   virtual ~PlanarBoundary();
 
   // Use the given NodeList's neighbor object to select the ghost nodes.
-  virtual void setGhostNodes(NodeSpace::NodeList<Dimension>& nodeList);
-  virtual void updateGhostNodes(NodeSpace::NodeList<Dimension>& nodeList);
+  virtual void setGhostNodes(NodeList<Dimension>& nodeList);
+  virtual void updateGhostNodes(NodeList<Dimension>& nodeList);
 
   // Find the set of nodes in violation of this boundary in the given NodeList.
   // For planar boundaries this is any node that is "behind" the enter plane.
-  virtual void setViolationNodes(NodeSpace::NodeList<Dimension>& nodeList);
-  virtual void updateViolationNodes(NodeSpace::NodeList<Dimension>& nodeList);
+  virtual void setViolationNodes(NodeList<Dimension>& nodeList);
+  virtual void updateViolationNodes(NodeList<Dimension>& nodeList);
 
   // Set the ghost nodes for a predefined set of control nodes.
-  void setGhostNodes(NodeSpace::NodeList<Dimension>& nodeList, 
+  void setGhostNodes(NodeList<Dimension>& nodeList, 
                      const std::vector<int>& presetControlNodes);
 
   // Allow access to the entrance and exit planes.
@@ -71,15 +71,15 @@ public:
   //****************************************************************************
   // Methods required for restarting.
   virtual std::string label() const { return "PlanarBoundary"; }
-  virtual void dumpState(FileIOSpace::FileIO& file, const std::string& pathName) const;
-  virtual void restoreState(const FileIOSpace::FileIO& file, const std::string& pathName);
+  virtual void dumpState(FileIO& file, const std::string& pathName) const;
+  virtual void restoreState(const FileIO& file, const std::string& pathName);
   //****************************************************************************
 
   // Override the clip method for clipping a box.
   virtual void clip(Vector& xmin, Vector& xmax) const;
 
   // Provide a method to identify tessellation faces on a plane.
-  std::vector<unsigned> facesOnPlane(const MeshSpace::Mesh<Dimension>& mesh,
+  std::vector<unsigned> facesOnPlane(const Mesh<Dimension>& mesh,
                                      const GeomPlane<Dimension>& plane,
                                      const Scalar tol) const;
 
@@ -93,7 +93,7 @@ private:
 
   // Method to set the ghost node indices for a given NodeList once the
   // master nodes are set.
-  void setGhostNodeIndices(NodeSpace::NodeList<Dimension>& nodeList);
+  void setGhostNodeIndices(NodeList<Dimension>& nodeList);
 };
 
 }

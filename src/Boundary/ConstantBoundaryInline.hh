@@ -33,7 +33,7 @@ numConstantNodes() const {
 //------------------------------------------------------------------------------
 template<typename Dimension>
 inline
-const NodeSpace::NodeList<Dimension>&
+const NodeList<Dimension>&
 ConstantBoundary<Dimension>::
 nodeList() const {
   CHECK(mNodeListPtr != 0);

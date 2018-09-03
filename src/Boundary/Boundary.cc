@@ -306,7 +306,7 @@ template<typename Dimension>
 void
 Boundary<Dimension>::reset(const DataBase<Dimension>& dataBase) {
   // Clear our own internal data.
-  mBoundaryNodes = std::map<NodeSpace::NodeList<Dimension>*, BoundaryNodes>();
+  mBoundaryNodes = std::map<NodeList<Dimension>*, BoundaryNodes>();
 }
 
 //------------------------------------------------------------------------------

@@ -34,14 +34,14 @@ public:
   typedef typename Dimension::ThirdRankTensor ThirdRankTensor;
 
   // Constructors and destructors.
-  ConstantXVelocityBoundary(const NodeSpace::NodeList<Dimension>& nodeList,
+  ConstantXVelocityBoundary(const NodeList<Dimension>& nodeList,
                             const std::vector<int>& nodeIndicies);
   virtual ~ConstantXVelocityBoundary();
 
   //**********************************************************************
   // Override the vector enforceBoundary method.
   // Use the given NodeList's neighbor object to select the ghost nodes.
-  virtual void enforceBoundary(FieldSpace::Field<Dimension, Vector>& field) const;
+  virtual void enforceBoundary(Field<Dimension, Vector>& field) const;
 
   // Restart methods.
   virtual std::string label() const { return "ConstantXVelocityBoundary"; }

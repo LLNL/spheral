@@ -30,8 +30,8 @@ public:
   virtual ~AxisBoundaryRZ();
 
   // Find the set of nodes in violation of this boundary in the given NodeList.
-  virtual void setViolationNodes(NodeSpace::NodeList<Dimension>& nodeList);
-  virtual void updateViolationNodes(NodeSpace::NodeList<Dimension>& nodeList);
+  virtual void setViolationNodes(NodeList<Dimension>& nodeList);
+  virtual void updateViolationNodes(NodeList<Dimension>& nodeList);
 
   // Access the fuzz from the axis we're using to enforce the BC.
   double etamin() const;

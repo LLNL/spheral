@@ -8,11 +8,6 @@
 // #include "PeriodicBoundary.hh"
 #include "Utilities/DBC.hh"
 
-using NodeSpace::NodeList;
-using FieldSpace::Field;
-using FieldSpace::FieldList;
-using DataBaseSpace::DataBase;
-
 //------------------------------------------------------------------------------
 // Empty constructor.
 //------------------------------------------------------------------------------

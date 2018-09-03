@@ -30,34 +30,34 @@ public:
   virtual ~ReflectingBoundary();
 
   // Apply the boundary condition to the ghost values of given Field.
-  virtual void applyGhostBoundary(FieldSpace::Field<Dimension, int>& field) const;
-  virtual void applyGhostBoundary(FieldSpace::Field<Dimension, Scalar>& field) const;
-  virtual void applyGhostBoundary(FieldSpace::Field<Dimension, Vector>& field) const;
-  virtual void applyGhostBoundary(FieldSpace::Field<Dimension, Tensor>& field) const;
-  virtual void applyGhostBoundary(FieldSpace::Field<Dimension, SymTensor>& field) const;
-  virtual void applyGhostBoundary(FieldSpace::Field<Dimension, ThirdRankTensor>& field) const;
+  virtual void applyGhostBoundary(Field<Dimension, int>& field) const;
+  virtual void applyGhostBoundary(Field<Dimension, Scalar>& field) const;
+  virtual void applyGhostBoundary(Field<Dimension, Vector>& field) const;
+  virtual void applyGhostBoundary(Field<Dimension, Tensor>& field) const;
+  virtual void applyGhostBoundary(Field<Dimension, SymTensor>& field) const;
+  virtual void applyGhostBoundary(Field<Dimension, ThirdRankTensor>& field) const;
 
   // Apply the boundary condition to the violation node values in the given Field.
-  virtual void enforceBoundary(FieldSpace::Field<Dimension, int>& field) const;
-  virtual void enforceBoundary(FieldSpace::Field<Dimension, Scalar>& field) const;
-  virtual void enforceBoundary(FieldSpace::Field<Dimension, Vector>& field) const;
-  virtual void enforceBoundary(FieldSpace::Field<Dimension, Tensor>& field) const;
-  virtual void enforceBoundary(FieldSpace::Field<Dimension, SymTensor>& field) const;
-  virtual void enforceBoundary(FieldSpace::Field<Dimension, ThirdRankTensor>& field) const;
+  virtual void enforceBoundary(Field<Dimension, int>& field) const;
+  virtual void enforceBoundary(Field<Dimension, Scalar>& field) const;
+  virtual void enforceBoundary(Field<Dimension, Vector>& field) const;
+  virtual void enforceBoundary(Field<Dimension, Tensor>& field) const;
+  virtual void enforceBoundary(Field<Dimension, SymTensor>& field) const;
+  virtual void enforceBoundary(Field<Dimension, ThirdRankTensor>& field) const;
 
   // Apply the boundary condition to face centered fields on a tessellation.
-  virtual void enforceBoundary(std::vector<int>& faceField, const MeshSpace::Mesh<Dimension>& mesh) const;
-  virtual void enforceBoundary(std::vector<Scalar>& faceField, const MeshSpace::Mesh<Dimension>& mesh) const;
-  virtual void enforceBoundary(std::vector<Vector>& faceField, const MeshSpace::Mesh<Dimension>& mesh) const;
-  virtual void enforceBoundary(std::vector<Tensor>& faceField, const MeshSpace::Mesh<Dimension>& mesh) const;
-  virtual void enforceBoundary(std::vector<SymTensor>& faceField, const MeshSpace::Mesh<Dimension>& mesh) const;
-  virtual void enforceBoundary(std::vector<ThirdRankTensor>& faceField, const MeshSpace::Mesh<Dimension>& mesh) const;
+  virtual void enforceBoundary(std::vector<int>& faceField, const Mesh<Dimension>& mesh) const;
+  virtual void enforceBoundary(std::vector<Scalar>& faceField, const Mesh<Dimension>& mesh) const;
+  virtual void enforceBoundary(std::vector<Vector>& faceField, const Mesh<Dimension>& mesh) const;
+  virtual void enforceBoundary(std::vector<Tensor>& faceField, const Mesh<Dimension>& mesh) const;
+  virtual void enforceBoundary(std::vector<SymTensor>& faceField, const Mesh<Dimension>& mesh) const;
+  virtual void enforceBoundary(std::vector<ThirdRankTensor>& faceField, const Mesh<Dimension>& mesh) const;
 
   // Fill in faces on this boundary with effective opposite face values.
-  virtual void swapFaceValues(FieldSpace::Field<Dimension, std::vector<Scalar> >& field,
-                              const MeshSpace::Mesh<Dimension>& mesh) const;
-  virtual void swapFaceValues(FieldSpace::Field<Dimension, std::vector<Vector> >& field,
-                              const MeshSpace::Mesh<Dimension>& mesh) const;
+  virtual void swapFaceValues(Field<Dimension, std::vector<Scalar> >& field,
+                              const Mesh<Dimension>& mesh) const;
+  virtual void swapFaceValues(Field<Dimension, std::vector<Vector> >& field,
+                              const Mesh<Dimension>& mesh) const;
 
   // Allow read only access to the reflection operator.
   const Tensor& reflectOperator() const;
@@ -68,8 +68,8 @@ public:
   //****************************************************************************
   // Methods required for restarting.
   virtual std::string label() const { return "ReflectingBoundary"; }
-  virtual void dumpState(FileIOSpace::FileIO& file, const std::string& pathName) const;
-  virtual void restoreState(const FileIOSpace::FileIO& file, const std::string& pathName);
+  virtual void dumpState(FileIO& file, const std::string& pathName) const;
+  virtual void restoreState(const FileIO& file, const std::string& pathName);
   //****************************************************************************
 
 private:

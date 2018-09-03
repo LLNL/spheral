@@ -35,44 +35,44 @@ public:
   typedef typename Dimension::ThirdRankTensor ThirdRankTensor;
 
   // Constructors and destructors.
-  ConstantVelocityBoundary(const NodeSpace::NodeList<Dimension>& nodeList,
+  ConstantVelocityBoundary(const NodeList<Dimension>& nodeList,
                            const std::vector<int>& nodeIndices);
   virtual ~ConstantVelocityBoundary();
 
   //**********************************************************************
   // All Boundary conditions must provide the following methods:
   // Use the given NodeList's neighbor object to select the ghost nodes.
-  virtual void setGhostNodes(NodeSpace::NodeList<Dimension>& nodeList);
+  virtual void setGhostNodes(NodeList<Dimension>& nodeList);
 
   // For the computed set of ghost nodes, set the positions and H's.
-  virtual void updateGhostNodes(NodeSpace::NodeList<Dimension>& nodeList);
+  virtual void updateGhostNodes(NodeList<Dimension>& nodeList);
 
   // Apply the boundary condition to the given Field.
-  virtual void applyGhostBoundary(FieldSpace::Field<Dimension, int>& field) const;
-  virtual void applyGhostBoundary(FieldSpace::Field<Dimension, Scalar>& field) const;
-  virtual void applyGhostBoundary(FieldSpace::Field<Dimension, Vector>& field) const;
-  virtual void applyGhostBoundary(FieldSpace::Field<Dimension, Tensor>& field) const;
-  virtual void applyGhostBoundary(FieldSpace::Field<Dimension, SymTensor>& field) const;
-  virtual void applyGhostBoundary(FieldSpace::Field<Dimension, ThirdRankTensor>& field) const;
+  virtual void applyGhostBoundary(Field<Dimension, int>& field) const;
+  virtual void applyGhostBoundary(Field<Dimension, Scalar>& field) const;
+  virtual void applyGhostBoundary(Field<Dimension, Vector>& field) const;
+  virtual void applyGhostBoundary(Field<Dimension, Tensor>& field) const;
+  virtual void applyGhostBoundary(Field<Dimension, SymTensor>& field) const;
+  virtual void applyGhostBoundary(Field<Dimension, ThirdRankTensor>& field) const;
 
   // Find any internal nodes that are in violation of this Boundary.
-  virtual void setViolationNodes(NodeSpace::NodeList<Dimension>& nodeList);
+  virtual void setViolationNodes(NodeList<Dimension>& nodeList);
 
   // For the computed set of nodes in violation of the boundary, bring them
   // back into compliance (for the positions and H's.)
-  virtual void updateViolationNodes(NodeSpace::NodeList<Dimension>& nodeList);
+  virtual void updateViolationNodes(NodeList<Dimension>& nodeList);
 
   // Apply the boundary condition to the violation node values in the given Field.
-  virtual void enforceBoundary(FieldSpace::Field<Dimension, int>& field) const;
-  virtual void enforceBoundary(FieldSpace::Field<Dimension, Scalar>& field) const;
-  virtual void enforceBoundary(FieldSpace::Field<Dimension, Vector>& field) const;
-  virtual void enforceBoundary(FieldSpace::Field<Dimension, Tensor>& field) const;
-  virtual void enforceBoundary(FieldSpace::Field<Dimension, SymTensor>& field) const;
-  virtual void enforceBoundary(FieldSpace::Field<Dimension, ThirdRankTensor>& field) const;
+  virtual void enforceBoundary(Field<Dimension, int>& field) const;
+  virtual void enforceBoundary(Field<Dimension, Scalar>& field) const;
+  virtual void enforceBoundary(Field<Dimension, Vector>& field) const;
+  virtual void enforceBoundary(Field<Dimension, Tensor>& field) const;
+  virtual void enforceBoundary(Field<Dimension, SymTensor>& field) const;
+  virtual void enforceBoundary(Field<Dimension, ThirdRankTensor>& field) const;
   //**********************************************************************
 
   // Allow read only access to the node indices and their forced velocities.
-  const NodeSpace::NodeList<Dimension>& nodeList() const;
+  const NodeList<Dimension>& nodeList() const;
   std::vector<int> nodeIndices() const;
   std::vector<Vector> velocityCondition() const;
 
@@ -82,8 +82,8 @@ public:
   //******************************************************************************
   // Restart methods.
   virtual std::string label() const { return "ConstantVelocityBoundary"; }
-  virtual void dumpState(FileIOSpace::FileIO& file, const std::string& pathName) const;
-  virtual void restoreState(const FileIOSpace::FileIO& file, const std::string& pathName);
+  virtual void dumpState(FileIO& file, const std::string& pathName) const;
+  virtual void restoreState(const FileIO& file, const std::string& pathName);
   //******************************************************************************
 
 protected:
@@ -91,9 +91,9 @@ protected:
 
 private:
   //--------------------------- Private Interface ---------------------------//
-  const NodeSpace::NodeList<Dimension>* mNodeListPtr;
-  FieldSpace::Field<Dimension, int> mNodes;
-  FieldSpace::Field<Dimension, Vector> mVelocity;
+  const NodeList<Dimension>* mNodeListPtr;
+  Field<Dimension, int> mNodes;
+  Field<Dimension, Vector> mVelocity;
 
   // The restart registration.
   DataOutput::RestartRegistrationType mRestart;

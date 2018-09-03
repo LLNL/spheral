@@ -32,33 +32,33 @@ public:
   typedef Boundary<Dimension>::BoundaryNodes BoundaryNodes;
 
   // Constructors and destructors.
-  CylindricalBoundary(const DataBaseSpace::DataBase<Dim<3> >& dataBase);
+  CylindricalBoundary(const DataBase<Dim<3> >& dataBase);
   virtual ~CylindricalBoundary();
 
   // Use the given NodeList's neighbor object to select the ghost nodes.
-  virtual void setGhostNodes(NodeSpace::NodeList<Dimension>& nodeList);
-  virtual void updateGhostNodes(NodeSpace::NodeList<Dimension>& nodeList);
+  virtual void setGhostNodes(NodeList<Dimension>& nodeList);
+  virtual void updateGhostNodes(NodeList<Dimension>& nodeList);
 
   // Apply the boundary condition to the ghost node values in the given Field.
-  virtual void applyGhostBoundary(FieldSpace::Field<Dimension, int>& field) const;
-  virtual void applyGhostBoundary(FieldSpace::Field<Dimension, Scalar>& field) const;
-  virtual void applyGhostBoundary(FieldSpace::Field<Dimension, Vector>& field) const;
-  virtual void applyGhostBoundary(FieldSpace::Field<Dimension, Tensor>& field) const;
-  virtual void applyGhostBoundary(FieldSpace::Field<Dimension, SymTensor>& field) const;
-  virtual void applyGhostBoundary(FieldSpace::Field<Dimension, ThirdRankTensor>& field) const;
-  virtual void applyGhostBoundary(FieldSpace::Field<Dimension, std::vector<Scalar> >& field) const;
+  virtual void applyGhostBoundary(Field<Dimension, int>& field) const;
+  virtual void applyGhostBoundary(Field<Dimension, Scalar>& field) const;
+  virtual void applyGhostBoundary(Field<Dimension, Vector>& field) const;
+  virtual void applyGhostBoundary(Field<Dimension, Tensor>& field) const;
+  virtual void applyGhostBoundary(Field<Dimension, SymTensor>& field) const;
+  virtual void applyGhostBoundary(Field<Dimension, ThirdRankTensor>& field) const;
+  virtual void applyGhostBoundary(Field<Dimension, std::vector<Scalar> >& field) const;
 
   // Find the set of nodes in violation of this boundary in the given NodeList.
-  virtual void setViolationNodes(NodeSpace::NodeList<Dimension>& nodeList);
-  virtual void updateViolationNodes(NodeSpace::NodeList<Dimension>& nodeList);
+  virtual void setViolationNodes(NodeList<Dimension>& nodeList);
+  virtual void updateViolationNodes(NodeList<Dimension>& nodeList);
 
   // Apply the boundary condition to the violation node values in the given Field.
-  virtual void enforceBoundary(FieldSpace::Field<Dimension, int>& field) const;
-  virtual void enforceBoundary(FieldSpace::Field<Dimension, Scalar>& field) const;
-  virtual void enforceBoundary(FieldSpace::Field<Dimension, Vector>& field) const;
-  virtual void enforceBoundary(FieldSpace::Field<Dimension, Tensor>& field) const;
-  virtual void enforceBoundary(FieldSpace::Field<Dimension, SymTensor>& field) const;
-  virtual void enforceBoundary(FieldSpace::Field<Dimension, ThirdRankTensor>& field) const;
+  virtual void enforceBoundary(Field<Dimension, int>& field) const;
+  virtual void enforceBoundary(Field<Dimension, Scalar>& field) const;
+  virtual void enforceBoundary(Field<Dimension, Vector>& field) const;
+  virtual void enforceBoundary(Field<Dimension, Tensor>& field) const;
+  virtual void enforceBoundary(Field<Dimension, SymTensor>& field) const;
+  virtual void enforceBoundary(Field<Dimension, ThirdRankTensor>& field) const;
 
   // Find the effective reflection operator between the given xy
   // position and slaved ghost position.
@@ -73,14 +73,14 @@ public:
   //****************************************************************************
   // Methods required for restarting.
   virtual std::string label() const { return "CylindricalBoundary"; }
-  virtual void dumpState(FileIOSpace::FileIO& file, const std::string& pathName) const;
-  virtual void restoreState(const FileIOSpace::FileIO& file, const std::string& pathName);
+  virtual void dumpState(FileIO& file, const std::string& pathName) const;
+  virtual void restoreState(const FileIO& file, const std::string& pathName);
   //****************************************************************************
 
 private:
   //--------------------------- Private Interface ---------------------------//
-  FieldSpace::FieldList<Dim<3>, Scalar> mDeltaPhi;
-  FieldSpace::FieldList<Dim<3>, Vector> mGhostPositions;
+  FieldList<Dim<3>, Scalar> mDeltaPhi;
+  FieldList<Dim<3>, Vector> mGhostPositions;
 
   // The restart registration.
   DataOutput::RestartRegistrationType mRestart;

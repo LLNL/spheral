@@ -5,7 +5,7 @@ namespace Spheral {
 //------------------------------------------------------------------------------
 template<typename Dimension>
 inline
-const NodeSpace::NodeList<Dimension>&
+const NodeList<Dimension>&
 ConstantVelocityBoundary<Dimension>::
 nodeList() const {
   return *mNodeListPtr;

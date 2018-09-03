@@ -284,7 +284,7 @@ mapPosition(const Vector& position,
 template<typename Dimension>
 void
 PlanarBoundary<Dimension>::
-dumpState(FileIOSpace::FileIO& file,
+dumpState(FileIO& file,
           const std::string& pathName) const {
   file.write(enterPlane(), pathName + "/enterPlane");
   file.write(exitPlane(), pathName + "/exitPlane");
@@ -296,7 +296,7 @@ dumpState(FileIOSpace::FileIO& file,
 template<typename Dimension>
 void
 PlanarBoundary<Dimension>::
-restoreState(const FileIOSpace::FileIO& file,
+restoreState(const FileIO& file,
              const std::string& pathName) {
   file.read(mEnterPlane, pathName + "/enterPlane");
   file.read(mExitPlane, pathName + "/exitPlane");

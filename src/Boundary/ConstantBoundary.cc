@@ -29,18 +29,18 @@ namespace {
 //------------------------------------------------------------------------------
 template<typename Dimension, typename DataType>
 void
-storeFieldValues(const NodeSpace::NodeList<Dimension>& nodeList,
+storeFieldValues(const NodeList<Dimension>& nodeList,
                  const std::vector<int>& nodeIDs,
                  std::map<std::string, std::vector<DataType> >& values) {
 
   // Iterate over all the Fields defined on the NodeList.
-  for (typename NodeSpace::NodeList<Dimension>::const_FieldBaseIterator fieldItr = nodeList.registeredFieldsBegin();
+  for (typename NodeList<Dimension>::const_FieldBaseIterator fieldItr = nodeList.registeredFieldsBegin();
        fieldItr != nodeList.registeredFieldsEnd();
        ++fieldItr) {
 
     // Determine if this Field is the type we're looking for.
-    if (typeid(**fieldItr) == typeid(FieldSpace::Field<Dimension, DataType>)) {
-      const FieldSpace::Field<Dimension, DataType>& field = (const FieldSpace::Field<Dimension, DataType>&) **fieldItr;
+    if (typeid(**fieldItr) == typeid(Field<Dimension, DataType>)) {
+      const Field<Dimension, DataType>& field = (const Field<Dimension, DataType>&) **fieldItr;
 
       // Build a vector of the values of this field on the requested nodes.
       std::vector<DataType> vals;
@@ -72,12 +72,12 @@ storeFieldValues(const NodeSpace::NodeList<Dimension>& nodeList,
 //------------------------------------------------------------------------------
 template<typename Dimension, typename DataType>
 void
-resetValues(FieldSpace::Field<Dimension, DataType>& field,
+resetValues(Field<Dimension, DataType>& field,
             const std::vector<int>& nodeIDs,
             const std::map<std::string, std::vector<DataType> >& values,
             const bool dieOnMissingField) {
 
-  const NodeSpace::NodeList<Dimension>& nodeList = field.nodeList();
+  const NodeList<Dimension>& nodeList = field.nodeList();
 
   // Find this Field in the set of stored values.
   const std::string key = StateBase<Dimension>::key(field);
